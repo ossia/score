@@ -238,6 +238,19 @@ TEST_CASE("LV2 descriptor cache round-trips through the versioned blob", "[lv2]"
 
     // A format bump must invalidate cleanly, not decode garbage
     CHECK(!Media::deserializePluginCache<LV2::PluginInfo>(2, blob).has_value());
+
+    // Truncation must be rejected *for a real score-serialized type*: the
+    // score datastream operators route reads through an internal stream, so
+    // a naive status check on the outer stream never fires and truncated
+    // blobs used to decode as garbage (the failure mode the old VST2
+    // vst_invalid_format global caught).
+    for(int cut : {1, 8, 12, 20, (int)blob.size() / 2, (int)blob.size() - 1})
+    {
+      auto truncated = blob;
+      truncated.truncate(cut);
+      CHECK(
+          !Media::deserializePluginCache<LV2::PluginInfo>(1, truncated).has_value());
+    }
   });
 }
 

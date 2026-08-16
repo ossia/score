@@ -132,5 +132,6 @@ private:
   std::unique_ptr<Media::PluginScanner> m_scanner;
 #endif
   QTimer* m_persistTimer{};
+  bool m_scanRan{};
 };
 }

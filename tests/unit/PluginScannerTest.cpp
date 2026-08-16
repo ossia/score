@@ -252,6 +252,23 @@ TEST_CASE("a reply beating the process exit wins over the exit code", "[pluginsc
   REQUIRE(r.scanned.size() == 2);
 }
 
+TEST_CASE("a missing puppet binary fails every path, without recursion", "[pluginscan][scanner]")
+{
+  // FailedToStart is emitted synchronously from QProcess::start(); resolving
+  // it inline used to recurse start -> errorOccurred -> refill -> start
+  // through the whole queue on one stack.
+  auto s = makeScanner("reply");
+  s->setPuppet(QStringLiteral("/nonexistent/puppet-binary"));
+  ScanResult r{*s};
+
+  s->scan(somePaths(50));
+  REQUIRE(spinUntil([&] { return r.done > 0; }));
+
+  REQUIRE(r.scanned.empty());
+  REQUIRE(r.failed.size() == 50);
+  REQUIRE(r.done == 1);
+}
+
 TEST_CASE("two concurrent scanners stay fully isolated", "[pluginscan][scanner][token]")
 {
   // The original sin: fixed ports meant one instance received every other

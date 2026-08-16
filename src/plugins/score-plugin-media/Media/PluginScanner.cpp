@@ -122,11 +122,16 @@ bool PluginScanner::ensureListening()
     ws->setMaxAllowedIncomingFrameSize(64 * 1024 * 1024);
     ws->setMaxAllowedIncomingMessageSize(64 * 1024 * 1024);
 
+    // A puppet that connects but never replies (hang, crash, timeout kill)
+    // would otherwise keep its socket alive for the scanner's lifetime
+    connect(ws, &QWebSocket::disconnected, ws, &QObject::deleteLater);
+
     connect(ws, &QWebSocket::textMessageReceived, this, [this, ws](const QString& txt) {
       QObject::disconnect(ws, &QWebSocket::textMessageReceived, nullptr, nullptr);
       processIncomingMessage(txt);
-      // Defer deleteLater so the puppet closes its side first; a synchronous
-      // FIN turns the puppet's teardown into a spurious non-zero exit
+      // Defer deleteLater so the puppet gets a chance to finish its own
+      // teardown first (exit codes after a reply are ignored either way;
+      // the disconnected handler below usually reaps the socket earlier)
       QTimer::singleShot(1000, ws, [ws] { ws->deleteLater(); });
     });
   });
@@ -194,13 +199,19 @@ void PluginScanner::startOne(const QString& path)
 
     if(err == QProcess::FailedToStart)
     {
-      // finished() will never fire; resolve here
+      // finished() will never fire; resolve here. Deferred: FailedToStart is
+      // emitted synchronously from QProcess::start(), so resolving inline
+      // would recurse start -> errorOccurred -> refill -> start through the
+      // whole remaining queue on one stack (e.g. when the puppet binary is
+      // missing).
       qDebug() << m_serverName << ": puppet failed to start for"
                << it->second.path;
-      resolveProcess(id);
-      failIfStillUnresolved(id, QStringLiteral("failed to start"));
-      refill();
-      checkDone();
+      QTimer::singleShot(0, this, [this, id] {
+        resolveProcess(id);
+        failIfStillUnresolved(id, QStringLiteral("failed to start"));
+        refill();
+        checkDone();
+      });
     }
     // Crashed also triggers finished(): a single resolution happens there
       });
@@ -301,8 +312,16 @@ void PluginScanner::releaseProcess(QProcess* proc)
 void PluginScanner::beginGracePeriod(int id)
 {
   QTimer::singleShot(m_graceMs, this, [this, id] {
-    failIfStillUnresolved(id, QStringLiteral("no reply from scanner process"));
-    checkDone();
+    // One extra event-loop iteration before declaring failure: when the main
+    // thread was stalled past the grace period (startup GUI build, large
+    // QSettings rewrite), this timer and the WebSocket delivering the reply
+    // become ready in the *same* poll iteration, and glib does not order a
+    // timeout source before a socket source. Deferring by a 0ms timer lets a
+    // reply that is already sitting in the socket win the race.
+    QTimer::singleShot(0, this, [this, id] {
+      failIfStillUnresolved(id, QStringLiteral("no reply from scanner process"));
+      checkDone();
+    });
   });
 }
 

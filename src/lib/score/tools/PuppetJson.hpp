@@ -109,8 +109,10 @@ parse_arguments(int argc, char** argv, int default_port) noexcept
     return value;
   };
 
+  // -1 fallback: a malformed id must not masquerade as request 0 (the host
+  // drops replies for unknown ids)
   if(argc > 2)
-    res.request_id = to_int(argv[2], 0);
+    res.request_id = to_int(argv[2], -1);
   if(argc > 3)
   {
     if(int p = to_int(argv[3], 0); p > 0 && p <= 65535)

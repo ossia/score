@@ -158,4 +158,23 @@ TEST_CASE("a duplicate-ridden legacy CLAP cache is healed on boot", "[pluginscan
     REQUIRE(plug.plugins().size() == 3);
     CHECK(plug.plugins()[0].id == "org.surge");
   });
+
+  // Boot 4: a legacy blob rewritten by an *older* score after the migration
+  // must not survive next to the versioned cache - it would resurrect stale
+  // entries after a future format-version bump.
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    QSettings s;
+    REQUIRE(s.contains("Effect/KnownCLAPCache"));
+    s.setValue(
+        "Effect/KnownCLAP",
+        QVariant::fromValue(std::vector<Clap::PluginInfo>{info("/stale.clap", "old")}));
+  });
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto& plug = ctx.guiApplicationPlugin<Clap::ApplicationPlugin>();
+    // Versioned cache won; the stale legacy entry is not loaded...
+    REQUIRE(plug.plugins().size() == 3);
+    // ...and the legacy key is gone again.
+    QSettings s;
+    CHECK(!s.contains("Effect/KnownCLAP"));
+  });
 }

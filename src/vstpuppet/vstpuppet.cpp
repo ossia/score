@@ -211,7 +211,7 @@ int main(int argc, char** argv)
   init_invisible_window();
 
   return score::puppet::puppet_main(
-      argc, argv, 37587, "vstpuppet", true,
+      argc, argv, 37587, "vstpuppet", true, 30,
       [](const std::string& path, int id, const std::string& token) {
     return load_vst(path, id, token);
       });
