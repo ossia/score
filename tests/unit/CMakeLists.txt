@@ -19,8 +19,7 @@ score_add_test(test_unit_port_factory_reuse
 # Graphics-view combo box: drop-down editor and free-value entry.
 score_add_test(test_unit_graphics_combo
   SOURCES GraphicsComboTest.cpp
-  APP
-  LIBS ${QT_PREFIX}::Test)
+  APP)
 
 if(TARGET score_plugin_controlsurface)
   # Control choice for a device parameter dropped on a Control surface.
@@ -36,8 +35,7 @@ endif()
 score_add_test(test_unit_address_settings_widgets
   SOURCES AddressSettingsWidgetsTest.cpp
   APP
-  PLUGINS score_plugin_deviceexplorer score_lib_device score_lib_state
-  LIBS ${QT_PREFIX}::Test)
+  PLUGINS score_plugin_deviceexplorer score_lib_device score_lib_state)
 
 # The shared per-type value editors used by the tree, the address panel and the
 # address dialog.
