@@ -412,7 +412,8 @@ ProgramCache::get(const ShaderSource& program) noexcept
 }
 
 ShaderSource
-programFromISFFragmentShaderPath(const QString& fsFilename, QByteArray fsData)
+programFromISFFragmentShaderPath(
+    const QString& fsFilename, QByteArray fsData, ShaderSource::ProgramType type)
 {
   // ISF works by storing a vertex shader next to the fragment shader.
   QString vertexName = fsFilename;
@@ -454,7 +455,11 @@ programFromISFFragmentShaderPath(const QString& fsFilename, QByteArray fsData)
   resolveGLSLIncludes(fsData, shaderIncludePath, file.absolutePath(), 0);
   resolveGLSLIncludes(vertexData, shaderIncludePath, file.absolutePath(), 0);
   */
-  return {ShaderSource::ProgramType::ISF, vertexData, fsData};
+  // The MODE declared in the header decides how the pair is compiled: a
+  // RAW_RASTER_PIPELINE shader brings its own vertex stage and must not be given
+  // the ISF prelude, which does not declare `position`. Defaulted to ISF so the
+  // ISF process is unaffected.
+  return {type, vertexData, fsData};
 }
 ShaderSource
 programFromVSAVertexShaderPath(const QString& vertexFilename, QByteArray vertexData)
