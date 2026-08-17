@@ -456,3 +456,39 @@ score_add_test(test_regression_splat_reload
   SOURCES RegressionSplatReloadTest.cpp
   GUI
   PLUGINS score_plugin_scenario score_lib_process)
+
+# The scene testers need the producers their `Wire:` clauses name — Primitive
+# cube, Camera, DirectionalLight — which are halp processes in
+# score_plugin_threedim, wrapped into score::gfx nodes by oscr::GfxNode<T>. The
+# plugin is built with hidden visibility, so (exactly as tests/threedim and
+# tests/unit already do) the specific engine .cpp files are compiled straight
+# into the test target and the plugin's own include set is pulled in via its
+# INCLUDE_DIRECTORIES property. score::gfx::ScenePreprocessorNode and
+# oscr::CustomGfxNodeBase are exported by score_plugin_gfx / score_plugin_avnd,
+# so those come from the link.
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  set(_3d "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
+  score_plugin_hidden_sources(_sweep_scene_hidden
+      "${_3d}/Camera.cpp"
+      "${_3d}/Light.cpp"
+      "${_3d}/Primitive.cpp")
+score_add_test(test_integration_shader_sweep_scene
+    SOURCES
+      ShaderSweepScene.cpp
+      ${_sweep_scene_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_lib_process)
+  target_include_directories(test_integration_shader_sweep_scene
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../fixtures")
+  target_include_directories(test_integration_shader_sweep_scene SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
