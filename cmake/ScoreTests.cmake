@@ -132,6 +132,12 @@ function(score_add_test NAME)
   if(ARG_APP OR ARG_GUI)
     set_tests_properties(${NAME} PROPERTIES
       WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+
+    # ...and tell the fixture where that is, so running the executable by hand
+    # from some other directory boots the same application instead of one with
+    # no plug-ins at all. See prepare_test_environment().
+    target_compile_definitions(${NAME} PRIVATE
+      "SCORE_TEST_BINARY_DIR=\"${SCORE_ROOT_BINARY_DIR}\"")
   endif()
 
   if(ARG_APP)
