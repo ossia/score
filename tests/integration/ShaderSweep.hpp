@@ -265,6 +265,31 @@ struct Sweeper
 };
 
 
+//! Writes the last frame a shader produced, so that "it rendered" can be
+//! checked against what the shader is supposed to draw rather than taken on
+//! faith. Off unless SCORE_SHADER_SWEEP_DUMP_DIR names a directory.
+void dumpFrame(
+    const QString& shader, const std::shared_ptr<QRhiReadbackResult>& rb_p)
+{
+  static const QString dir = qEnvironmentVariable("SCORE_SHADER_SWEEP_DUMP_DIR");
+  if(dir.isEmpty() || !rb_p)
+    return;
+
+  const auto& rb = *rb_p;
+  const auto px = rb.pixelSize.width() * rb.pixelSize.height();
+  if(px <= 0 || rb.data.size() != px * 4)
+    return;
+
+  QString name = shader;
+  name.replace('/', '_');
+
+  QDir{}.mkpath(dir);
+  const QImage img{
+      reinterpret_cast<const uchar*>(rb.data.constData()), rb.pixelSize.width(),
+      rb.pixelSize.height(), QImage::Format_RGBA8888};
+  img.copy().save(dir + '/' + name + ".png");
+}
+
 //! ProgramCache reports both ISF parsing and shader baking through one string.
 const char* programErrorKind(const QString& error)
 {
@@ -328,8 +353,20 @@ inline void sweepLibrary(
   if(shaders.isEmpty())
     SKIP("no shaders of this kind in the library");
 
+  // The backend comes from the gfx settings model, not from the environment:
+  // Gfx::Settings::Model reads QSG_RHI_BACKEND at construction and unsets it
+  // straight away, so by the time we get here the environment no longer says
+  // anything. score::gfx::BackgroundNode reads the same model in its
+  // constructor, so there is no rendering to be had without it either.
+  const auto* gfx_settings = ctx.findSettings<Gfx::Settings::Model>();
+  if(!gfx_settings)
+    FAIL(
+        "score_plugin_gfx registered no settings model: the gfx plug-in was not "
+        "loaded. Plug-ins are discovered in <cwd>/plugins -- run this from the "
+        "build root, as ctest does.");
+
   g_previous = qInstallMessageHandler(capture);
-  Sweeper sweeper{ctx.settings<Gfx::Settings::Model>().graphicsApiEnum()};
+  Sweeper sweeper{gfx_settings->graphicsApiEnum()};
 
   std::map<QString, std::map<std::string, std::string>> failures;
 
@@ -354,7 +391,9 @@ inline void sweepLibrary(
       continue;
     }
 
-    if(auto res = sweeper.run(*program); !res.empty())
+    auto res = sweeper.run(*program);
+    dumpFrame(rel, sweeper.output.shared_readback);
+    if(!res.empty())
     {
       report(rel, res);
       failures[rel] = std::move(res);
