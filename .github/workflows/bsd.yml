@@ -26,6 +26,11 @@ jobs:
         usesh: true
         sync: nfs
         copyback: false
+        # The default 6GB VM dies on the OOM killer ("Subprocess killed",
+        # no compiler diagnostic) near the end of the build, first seen on
+        # the VST3 SDK TUs around step 4039/4104 - the job had never
+        # compiled that far before 30fe1d771 fixed its shebang.
+        mem: 8192
         prepare: |
           echo "=============== FreeBSD Start update ====================="
           pkg update -f -q
