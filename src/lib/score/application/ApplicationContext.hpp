@@ -40,16 +40,33 @@ struct SCORE_LIB_BASE_EXPORT ApplicationContext
   template <typename T>
   T& settings() const
   {
+    if(auto c = findSettings<T>())
+      return *c;
+
+    SCORE_ABORT;
+    throw;
+  }
+
+  /**
+   * @brief Access a Settings model instance, or null when its plug-in did not
+   * register one.
+   *
+   * settings() aborts the process in that case, which is the right answer for
+   * application code (a missing settings model means the plug-in it belongs to
+   * is not loaded, and nothing downstream can work). Callers that can report
+   * the situation themselves want the null instead.
+   */
+  template <typename T>
+  T* findSettings() const noexcept
+  {
     for(auto& elt : this->m_settings)
     {
       if(auto c = dynamic_cast<T*>(elt.get()))
       {
-        return *c;
+        return c;
       }
     }
-
-    SCORE_ABORT;
-    throw;
+    return nullptr;
   }
 
   const auto& allSettings() const noexcept { return m_settings; }
