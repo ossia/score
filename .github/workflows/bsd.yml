@@ -32,6 +32,16 @@ jobs:
         # compiled that far before 30fe1d771 fixed its shebang.
         mem: 8192
         prepare: |
+          # 8GB was still not enough for the tail of the build (the VM died
+          # mid-compile on the same VST3 SDK / puppet TU cluster, moving from
+          # step 4039 to 4042 of 4104): give the guest swap to absorb the
+          # peak instead of dying, at zero cost while unused.
+          echo "=============== FreeBSD Start swap ====================="
+          truncate -s 6g /swapfile
+          chmod 0600 /swapfile
+          mdconfig -a -t vnode -f /swapfile -u 9
+          swapon /dev/md9
+          swapinfo
           echo "=============== FreeBSD Start update ====================="
           pkg update -f -q
           echo "=============== FreeBSD Start upgrade ====================="
