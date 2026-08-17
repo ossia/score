@@ -691,6 +691,31 @@ inline score::gfx::Port* nth_geometry_output(score::gfx::Node& n, int k) noexcep
   return nullptr;
 }
 
+/// The k-th (0-based) Buffer input port of a node, or nullptr. An ISF
+/// `uniform_input` and a read_only `storage_input` both land here — the
+/// UniformBuffer flag is what tells them apart, not the port type.
+inline score::gfx::Port* nth_buffer_input(score::gfx::Node& n, int k) noexcept
+{
+  int seen = 0;
+  for(auto* p : n.input)
+    if(p->type == score::gfx::Types::Buffer)
+      if(seen++ == k)
+        return p;
+  return nullptr;
+}
+
+/// The k-th (0-based) Buffer output port of a node, or nullptr. A write_only or
+/// read_write `storage` RESOURCE on a CSF exposes one.
+inline score::gfx::Port* nth_buffer_output(score::gfx::Node& n, int k) noexcept
+{
+  int seen = 0;
+  for(auto* p : n.output)
+    if(p->type == score::gfx::Types::Buffer)
+      if(seen++ == k)
+        return p;
+  return nullptr;
+}
+
 /// Deliver one Timings message to each processing node, then render each sink
 /// once. Factored out so the linear-chain renderer and the general GfxPipeline
 /// driver pump frames identically. `f` is the 0-based frame index in a run of
@@ -1103,6 +1128,66 @@ public:
     return int(m_isf.size()) - 1;
   }
 
+  /// Register a node this fixture did not build — a score::gfx engine node
+  /// (ScenePreprocessorNode) or a Crousti-wrapped halp process
+  /// (oscr::GfxNode<Threedim::Camera> and friends). Returns an index into a
+  /// SEPARATE space from addIsf/addRaster/addVsa: address its ports with
+  /// nodePort*/`node()`, not with imageOut/geometryIn.
+  int addNode(std::unique_ptr<score::gfx::Node> n)
+  {
+    if(!n)
+    {
+      if(m_error.empty())
+        m_error = "GfxPipeline::addNode: null node";
+      return -1;
+    }
+    n->nodeId = m_nextId++;
+    m_graph.addNode(n.get());
+    m_nodes.push_back(std::move(n));
+    return int(m_nodes.size()) - 1;
+  }
+
+  score::gfx::Node* node(int i) { return m_nodes.at(i).get(); }
+
+  score::gfx::Port* nodeImageOut(int i, int k = 0)
+  {
+    return nth_image_output(*m_nodes.at(i), k);
+  }
+  score::gfx::Port* nodeGeometryIn(int i, int k = 0)
+  {
+    return nth_geometry_input(*m_nodes.at(i), k);
+  }
+  score::gfx::Port* nodeGeometryOut(int i, int k = 0)
+  {
+    return nth_geometry_output(*m_nodes.at(i), k);
+  }
+  score::gfx::Port* nodeBufferOut(int i, int k = 0)
+  {
+    return nth_buffer_output(*m_nodes.at(i), k);
+  }
+  /// Scene ports are their own Types:: value on engine nodes
+  /// (ScenePreprocessorNode input 0) but halp scene outlets are stamped
+  /// Types::Geometry by port_to_type_enum, so a scene edge can be either.
+  /// This accepts both so callers wire by intent rather than by enum.
+  score::gfx::Port* nodeSceneIn(int i, int k = 0)
+  {
+    int seen = 0;
+    for(auto* p : m_nodes.at(i)->input)
+      if(p->type == score::gfx::Types::Scene || p->type == score::gfx::Types::Geometry)
+        if(seen++ == k)
+          return p;
+    return nullptr;
+  }
+  score::gfx::Port* nodeSceneOut(int i, int k = 0)
+  {
+    int seen = 0;
+    for(auto* p : m_nodes.at(i)->output)
+      if(p->type == score::gfx::Types::Scene || p->type == score::gfx::Types::Geometry)
+        if(seen++ == k)
+          return p;
+    return nullptr;
+  }
+
   /// Add an offscreen readback sink of `size`. Returns its sink index.
   int addSink(QSize size = {64, 64})
   {
@@ -1118,7 +1203,14 @@ public:
 
   /// Wire an image edge source-port -> sink-port. Both ports must belong to
   /// nodes already added. No-op-safe against nullptr (records an error).
-  void wire(score::gfx::Port* source, score::gfx::Port* sink)
+  ///
+  /// A feedback edge (a node reading its own previous output) MUST pass a
+  /// Delayed type: Graph.cpp's no_delay_edges filter keeps only the Immediate
+  /// kinds before the topological sort, so an Immediate self-edge stays in the
+  /// graph, makes it cyclic, and the sort throws.
+  void wire(
+      score::gfx::Port* source, score::gfx::Port* sink,
+      Process::CableType type = Process::CableType::ImmediateGlutton)
   {
     if(!source || !sink)
     {
@@ -1126,7 +1218,14 @@ public:
         m_error = "GfxPipeline::wire: null port";
       return;
     }
-    m_graph.addEdge(source, sink, Process::CableType::ImmediateGlutton);
+    m_graph.addEdge(source, sink, type);
+  }
+
+  /// Wire a node's output back onto one of its own inputs, the way the GUI's
+  /// delayed-cable property does.
+  void wireFeedback(score::gfx::Port* source, score::gfx::Port* sink)
+  {
+    wire(source, sink, Process::CableType::DelayedGlutton);
   }
 
   /// k-th image output port of ISF node `nodeIdx`.
@@ -1148,6 +1247,16 @@ public:
   score::gfx::Port* geometryOut(int nodeIdx, int k = 0)
   {
     return nth_geometry_output(*m_isf.at(nodeIdx), k);
+  }
+  /// k-th Buffer input port of node `nodeIdx` (uniform_input / read_only SSBO).
+  score::gfx::Port* bufferIn(int nodeIdx, int k = 0)
+  {
+    return nth_buffer_input(*m_isf.at(nodeIdx), k);
+  }
+  /// k-th Buffer output port of node `nodeIdx` (CSF storage producer).
+  score::gfx::Port* bufferOut(int nodeIdx, int k = 0)
+  {
+    return nth_buffer_output(*m_isf.at(nodeIdx), k);
   }
   /// The (single) input port of sink `sinkIdx`.
   score::gfx::Port* sinkInput(int sinkIdx) { return m_sinks.at(sinkIdx)->input[0]; }
@@ -1202,8 +1311,13 @@ public:
   void render(int frames)
   {
     std::vector<score::gfx::Node*> procs;
-    procs.reserve(m_isf.size());
+    procs.reserve(m_isf.size() + m_nodes.size());
     for(auto& n : m_isf)
+      procs.push_back(n.get());
+    // Crousti-wrapped halp nodes need the per-frame Message too: it is what
+    // CustomGfxNodeBase::process stores as last_message, and processControlIn
+    // reads it every frame to apply control values onto the halp struct.
+    for(auto& n : m_nodes)
       procs.push_back(n.get());
     std::vector<score::gfx::OutputNode*> sinks;
     sinks.reserve(m_sinks.size());
@@ -1327,6 +1441,7 @@ private:
   // m_graph (last) is torn down FIRST while the sinks and nodes it references
   // are still alive. DO NOT reorder.
   std::vector<std::unique_ptr<score::gfx::ISFNode>> m_isf;
+  std::vector<std::unique_ptr<score::gfx::Node>> m_nodes;
   std::vector<std::unique_ptr<score::gfx::BackgroundNode>> m_sinks;
   score::gfx::Graph m_graph;
 };
