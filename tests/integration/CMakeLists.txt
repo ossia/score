@@ -213,38 +213,44 @@ score_add_test(test_regression_throwing_drop_handler
 # One harness per shader kind in the library: they are authored differently,
 # fail differently, and each keeps its own baseline. All need a GPU-capable
 # display, and all skip when no library is installed.
-foreach(kind ISF VSA CSF Raster)
+foreach(kind ISF VSA CSF Raster CSFGeometry Wired)
   string(TOLOWER "${kind}" lc)
   string(TOUPPER "${kind}" uc)
   score_add_test(test_integration_shader_sweep_${lc}
     SOURCES ShaderSweep${kind}.cpp
     GUI
     PLUGINS score_plugin_gfx score_lib_process)
-  # The raster sweep drives render_raster() from the gfx fixture: a raster shader
-  # needs a geometry producer wired to it, which the ISF Sweeper does not provide.
-  if(kind STREQUAL "Raster")
+  # Both of these drive render_raster() from the gfx fixture. Raster varies the
+  # rasterizer over a fixed geometry producer; CSFGeometry varies the producer
+  # over a fixed rasterizer — no .cs in the corpus declares an OUTPUTS block, so
+  # an Image sink can never see what a compute shader writes.
+  # Wired hand-builds the graph each tester's `Wire:` clause prescribes, one
+  # fixture per tester, so it asserts directly instead of keeping a baseline.
+  if(kind STREQUAL "Raster" OR kind STREQUAL "CSFGeometry" OR kind STREQUAL "Wired")
     target_include_directories(test_integration_shader_sweep_${lc}
       PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../fixtures")
   endif()
-  set(_baseline "${CMAKE_CURRENT_SOURCE_DIR}/../testdata/shader_sweep_baseline_${lc}.txt")
-
-  # On wasm there is no filesystem to read the library or the baseline from:
-  # bake both into the test's own MEMFS image, the way the application does.
-  if(EMSCRIPTEN)
+  if(EMSCRIPTEN AND SCORE_WASM_PRELOAD_LIBRARY)
     target_link_options(test_integration_shader_sweep_${lc} PRIVATE
-      "SHELL:--preload-file ${_baseline}@/shader_sweep_baseline_${lc}.txt")
-    set(_baseline "/shader_sweep_baseline_${lc}.txt")
-
-    if(SCORE_WASM_PRELOAD_LIBRARY)
-      target_link_options(test_integration_shader_sweep_${lc} PRIVATE
-        "SHELL:--preload-file ${SCORE_WASM_PRELOAD_LIBRARY}@/score-library")
-      target_compile_definitions(test_integration_shader_sweep_${lc} PRIVATE
-        "SCORE_SHADER_SWEEP_WASM_LIBRARY=\"/score-library\"")
-    endif()
+      "SHELL:--preload-file ${SCORE_WASM_PRELOAD_LIBRARY}@/score-library")
+    target_compile_definitions(test_integration_shader_sweep_${lc} PRIVATE
+      "SCORE_SHADER_SWEEP_WASM_LIBRARY=\"/score-library\"")
   endif()
 
-  target_compile_definitions(test_integration_shader_sweep_${lc} PRIVATE
-    "SCORE_SHADER_SWEEP_BASELINE_${uc}=\"${_baseline}\"")
+  if(NOT kind STREQUAL "Wired")
+    set(_baseline "${CMAKE_CURRENT_SOURCE_DIR}/../testdata/shader_sweep_baseline_${lc}.txt")
+
+    # On wasm there is no filesystem to read the baseline from: bake it into the
+    # test's own MEMFS image, the way the application does.
+    if(EMSCRIPTEN)
+      target_link_options(test_integration_shader_sweep_${lc} PRIVATE
+        "SHELL:--preload-file ${_baseline}@/shader_sweep_baseline_${lc}.txt")
+      set(_baseline "/shader_sweep_baseline_${lc}.txt")
+    endif()
+
+    target_compile_definitions(test_integration_shader_sweep_${lc} PRIVATE
+      "SCORE_SHADER_SWEEP_BASELINE_${uc}=\"${_baseline}\"")
+  endif()
 endforeach()
 
 # Drags that never get their mouse release: QGraphicsScene drops the implicit
