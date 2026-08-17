@@ -36,12 +36,16 @@ jobs:
           # mid-compile on the same VST3 SDK / puppet TU cluster, moving from
           # step 4039 to 4042 of 4104): give the guest swap to absorb the
           # peak instead of dying, at zero cost while unused.
+          # dd, not truncate: FreeBSD swapon silently does not engage on a
+          # sparse vnode (the first attempt left only the image's 1GB
+          # partition in swapinfo).
           echo "=============== FreeBSD Start swap ====================="
-          truncate -s 6g /swapfile
+          dd if=/dev/zero of=/swapfile bs=1m count=6144
           chmod 0600 /swapfile
           mdconfig -a -t vnode -f /swapfile -u 9
           swapon /dev/md9
           swapinfo
+          swapinfo | grep -q md9 || echo "WARNING: swap file not engaged"
           echo "=============== FreeBSD Start update ====================="
           pkg update -f -q
           echo "=============== FreeBSD Start upgrade ====================="

@@ -20,5 +20,8 @@ cmake $SCORE_DIR \
   -DCMAKE_CXX_FLAGS="-fexperimental-library" \
   -DSCORE_PCH=1
 
-cmake --build .
+# --parallel 2: the 2-core VM otherwise runs enough concurrent -O3
+# compiles + plugin links to exhaust guest memory in the last ~60 build
+# steps, killing the VM with no compiler diagnostic.
+cmake --build . --parallel 2
 cmake --build . --target install
