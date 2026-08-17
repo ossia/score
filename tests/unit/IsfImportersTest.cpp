@@ -832,3 +832,95 @@ TEST_CASE(
   parser p2{{}, "void main() {}", 450, parser::ShaderType::Autodetect};
   CHECK(p2.data().default_vertex_shader);
 }
+
+namespace
+{
+// RAW_RASTER_PIPELINE header with the clip/cull counts spliced in.
+static std::string make_raw_raster_fs(const std::string& distancesJson)
+{
+  return R"({"ISFVSN": "2.0", "MODE": "RAW_RASTER_PIPELINE",
+  "VERTEX_INPUTS": [ { "TYPE": "vec4", "NAME": "position" } ],
+  "FRAGMENT_OUTPUTS": [ { "TYPE": "vec4", "NAME": "isf_FragColor" } ],
+  "INPUTS": [])"
+         + distancesJson
+         + "}";
+}
+
+static std::string raw_raster_vertex(const std::string& distancesJson)
+{
+  parser p{
+      "void main() { gl_Position = vec4(position.xyz, 1.0); }",
+      "/*" + make_raw_raster_fs(distancesJson)
+          + "*/\nvoid main() { isf_FragColor = vec4(1.0); }\n",
+      450, parser::ShaderType::RawRasterPipeline};
+  return p.vertex();
+}
+}
+
+TEST_CASE(
+    "raw raster: clip and cull distances are redeclared inside gl_PerVertex",
+    "[isf][rawraster][clipcull]")
+{
+  const auto vert = raw_raster_vertex(R"(, "CLIP_DISTANCES": 2, "CULL_DISTANCES": 1)");
+
+  CHECK(contains(vert, "out gl_PerVertex {"));
+  // Redeclaring a built-in block REPLACES it, so gl_Position has to be
+  // carried across or the shader no longer has one.
+  CHECK(contains(vert, "vec4 gl_Position;"));
+  CHECK(contains(vert, "float gl_ClipDistance[2];"));
+  CHECK(contains(vert, "float gl_CullDistance[1];"));
+
+  // The pre-fix form. gl_ClipDistance / gl_CullDistance are already declared
+  // in gl_PerVertex, so a bare global is a redeclaration that changes their
+  // qualification and glslang rejects it outright: every shader using the
+  // feature failed to build.
+  CHECK(!contains(vert, "out float gl_ClipDistance"));
+  CHECK(!contains(vert, "out float gl_CullDistance"));
+}
+
+TEST_CASE(
+    "raw raster: only the declared distance array is emitted",
+    "[isf][rawraster][clipcull]")
+{
+  const auto clipOnly = raw_raster_vertex(R"(, "CLIP_DISTANCES": 3)");
+  CHECK(contains(clipOnly, "out gl_PerVertex {"));
+  CHECK(contains(clipOnly, "vec4 gl_Position;"));
+  CHECK(contains(clipOnly, "float gl_ClipDistance[3];"));
+  CHECK(!contains(clipOnly, "gl_CullDistance"));
+
+  const auto cullOnly = raw_raster_vertex(R"(, "CULL_DISTANCES": 4)");
+  CHECK(contains(cullOnly, "out gl_PerVertex {"));
+  CHECK(contains(cullOnly, "vec4 gl_Position;"));
+  CHECK(contains(cullOnly, "float gl_CullDistance[4];"));
+  CHECK(!contains(cullOnly, "gl_ClipDistance"));
+}
+
+TEST_CASE(
+    "raw raster: no gl_PerVertex block without a distance declaration",
+    "[isf][rawraster][clipcull]")
+{
+  const auto plain = raw_raster_vertex("");
+  CHECK(!contains(plain, "gl_PerVertex"));
+  CHECK(!contains(plain, "gl_ClipDistance"));
+  CHECK(!contains(plain, "gl_CullDistance"));
+}
+
+TEST_CASE(
+    "raw raster: an out-of-range distance count is rejected, not clamped",
+    "[isf][rawraster][clipcull]")
+{
+  // isf.cpp accepts 1..8 (the GL guaranteed minimum) and otherwise leaves the
+  // count at 0, so the block is not emitted at all rather than emitted at a
+  // clamped size.
+  for(const char* json : {R"(, "CLIP_DISTANCES": 9)", R"(, "CLIP_DISTANCES": 0)",
+                          R"(, "CLIP_DISTANCES": -1)"})
+  {
+    INFO(json);
+    const auto vert = raw_raster_vertex(json);
+    CHECK(!contains(vert, "gl_PerVertex"));
+    CHECK(!contains(vert, "gl_ClipDistance"));
+  }
+
+  const auto eight = raw_raster_vertex(R"(, "CLIP_DISTANCES": 8)");
+  CHECK(contains(eight, "float gl_ClipDistance[8];"));
+}
