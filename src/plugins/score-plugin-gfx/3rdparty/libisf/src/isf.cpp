@@ -3994,15 +3994,27 @@ void parser::parse_raw_raster_pipeline()
           "layout(location = {}) out {} {};\n", attr.location,
           attribute_type_map.at((int)attr.type), attr.name);
 
-    // Clip / cull distances: user-declared count controls the size of the
-    // gl_ClipDistance / gl_CullDistance arrays. Required on some GLSL
-    // profiles; always explicit on Vulkan GLSL.
-    if(m_desc.clip_distances > 0)
-      m_vertex += fmt::format(
-          "out float gl_ClipDistance[{}];\n", m_desc.clip_distances);
-    if(m_desc.cull_distances > 0)
-      m_vertex += fmt::format(
-          "out float gl_CullDistance[{}];\n", m_desc.cull_distances);
+    // Clip / cull distances: the user-declared count sizes the gl_ClipDistance /
+    // gl_CullDistance arrays, which must be explicit on Vulkan GLSL.
+    //
+    // They have to be redeclared INSIDE gl_PerVertex, not as bare globals. Both
+    // are built-ins already declared in that block, so
+    //     out float gl_ClipDistance[2];
+    // is a redeclaration that changes their qualification, and the compiler says
+    // exactly that: "cannot change qualification of gl_ClipDistance". Redeclaring
+    // the block instead is the form the spec provides for resizing them, and it
+    // has to carry gl_Position too since redeclaring a built-in block replaces it.
+    if(m_desc.clip_distances > 0 || m_desc.cull_distances > 0)
+    {
+      m_vertex += "out gl_PerVertex {\n  vec4 gl_Position;\n";
+      if(m_desc.clip_distances > 0)
+        m_vertex += fmt::format(
+            "  float gl_ClipDistance[{}];\n", m_desc.clip_distances);
+      if(m_desc.cull_distances > 0)
+        m_vertex += fmt::format(
+            "  float gl_CullDistance[{}];\n", m_desc.cull_distances);
+      m_vertex += "};\n";
+    }
 
     // Conservative-depth qualifier on gl_FragDepth. Allowed values map to
     // GLSL layout qualifiers: greater/less/unchanged/any.
