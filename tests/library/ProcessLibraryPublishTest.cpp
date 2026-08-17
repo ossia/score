@@ -1,8 +1,8 @@
 // Tests for the staged-subtree publish path of Library::ProcessesItemModel.
 //
 // Correctness: every mutation outside rescan() goes through publish() /
-// replaceChildren() with exact QAbstractItemModel signals — verified by Qt's
-// own QAbstractItemModelTester and by mirroring the model through a live
+// replaceChildren() with exact QAbstractItemModel signals — verified by our
+// own checkModelInvariants() walk and by mirroring the model through a live
 // QSortFilterProxyModel (the exact observer that silent mutation used to
 // corrupt).
 //
@@ -21,12 +21,11 @@
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/plugins/InterfaceList.hpp>
 
-#include <QAbstractItemModelTester>
 #include <QDir>
 #include <QElapsedTimer>
-#include <QSignalSpy>
 
 #include <score_test/App.hpp>
+#include <score_test/ModelInvariants.hpp>
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -149,8 +148,6 @@ TEST_CASE("publish: model invariants and structure", "[library]")
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
     primeLibrarySettings(ctx);
     Fixture f{ctx};
-    QAbstractItemModelTester tester{
-        &f.model, QAbstractItemModelTester::FailureReportingMode::Fatal};
 
     // Deep new path, single entry
     f.model.publish(f.entry({"GIG", "orchestra"}, "violin"));
@@ -194,6 +191,8 @@ TEST_CASE("publish: model invariants and structure", "[library]")
     f.model.publish(std::move(stray));
     f.model.flushPending();
     REQUIRE(f.model.rowCount(anchor) == before);
+
+    score::test::checkModelInvariants(f.model);
   });
 }
 
@@ -202,9 +201,7 @@ TEST_CASE("publish: coalescing boundaries and signal counts", "[library]")
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
     primeLibrarySettings(ctx);
     Fixture f{ctx};
-    QAbstractItemModelTester tester{
-        &f.model, QAbstractItemModelTester::FailureReportingMode::Fatal};
-    QSignalSpy spy{&f.model, &QAbstractItemModel::rowsInserted};
+    score::test::SignalCounter spy{&f.model, &QAbstractItemModel::rowsInserted};
 
     // A whole new folder published in one flush: exactly one insert.
     for(int i = 0; i < 100; i++)
@@ -237,6 +234,8 @@ TEST_CASE("publish: coalescing boundaries and signal counts", "[library]")
     REQUIRE(childNames(f.model, packB) == QStringList{"b0", "b1", "b2"});
     const auto packA = f.model.index(0, 0, audio);
     REQUIRE(f.model.rowCount(packA) == 200);
+
+    score::test::checkModelInvariants(f.model);
   });
 }
 
@@ -275,8 +274,6 @@ TEST_CASE("replaceChildren: exact ranges, proxy stays consistent", "[library]")
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
     primeLibrarySettings(ctx);
     Fixture f{ctx};
-    QAbstractItemModelTester tester{
-        &f.model, QAbstractItemModelTester::FailureReportingMode::Fatal};
 
     Library::ProcessFilterProxy proxy;
     proxy.setSourceModel(&f.model);
@@ -319,6 +316,8 @@ TEST_CASE("replaceChildren: exact ranges, proxy stays consistent", "[library]")
     // Unknown key: no-op
     f.model.replaceChildren(Process::ProcessModelFactory::ConcreteKey{}, forest(1, 1));
     REQUIRE(f.model.rowCount(f.model.find(f.key)) == 0);
+
+    score::test::checkModelInvariants(f.model);
   });
 }
 
@@ -396,7 +395,7 @@ TEST_CASE("publish: 36k-entry storm, hot proxy mirrors the tree", "[library][ben
       proxy.hasChildren(i);
     REQUIRE(proxy.rowCount(proxy.mapFromSource(f.anchor)) == 1);
 
-    QSignalSpy spy{&f.model, &QAbstractItemModel::rowsInserted};
+    score::test::SignalCounter spy{&f.model, &QAbstractItemModel::rowsInserted};
 
     // Deliver in batches of 255 like RecursiveWatch; the flush timer runs in
     // the processEvents between batches. Timed per batch, flush included.
