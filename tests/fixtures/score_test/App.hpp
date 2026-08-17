@@ -40,6 +40,17 @@ namespace score::test
 /// no platform is set, forces the offscreen QPA platform.
 inline void prepare_test_environment(bool headless)
 {
+#if defined(SCORE_TEST_BINARY_DIR)
+  // score::PluginLoader::pluginsDir() probes "<cwd>/plugins", and the test
+  // executables do not live next to <build>/plugins the way the application
+  // binary does. ctest gets this right through WORKING_DIRECTORY; a hand-run
+  // executable did not, and booted an application with zero plug-ins whose
+  // first ctx.settings<SomePluginModel>() then hit SCORE_ABORT. Anchor
+  // ourselves so both invocations load the same plug-ins.
+  if(!QDir{QStringLiteral("plugins")}.exists())
+    QDir::setCurrent(QStringLiteral(SCORE_TEST_BINARY_DIR));
+#endif
+
   // WebAssembly only ever has the "wasm" platform: asking for another one
   // is a fatal error, and the page is headless anyway.
 #if !defined(__EMSCRIPTEN__)
