@@ -26,6 +26,9 @@ TEST_CASE("Every VSA shader in the library renders", "[integration][gfx][shaders
 {
   requestGlesContext();
   score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
-    sweepLibrary(ctx, {"*.vs", "*.vert"}, &loadVSA, QStringLiteral(SCORE_SHADER_SWEEP_BASELINE_VSA));
+    sweepLibrary(
+        ctx, {"*.vs", "*.vert"}, &loadVSA,
+        QStringLiteral(SCORE_SHADER_SWEEP_BASELINE_VSA),
+        QStringLiteral("VERTEX_SHADER_ART"));
   });
 }
