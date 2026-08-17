@@ -54,6 +54,9 @@ TEST_CASE("Every CSF shader in the library renders", "[integration][gfx][shaders
 {
   requestGlesContext();
   score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
-    sweepLibrary(ctx, {"*.cs", "*.comp", "*.csf"}, &loadCSF, QStringLiteral(SCORE_SHADER_SWEEP_BASELINE_CSF));
+    sweepLibrary(
+        ctx, {"*.cs", "*.comp", "*.csf"}, &loadCSF,
+        QStringLiteral(SCORE_SHADER_SWEEP_BASELINE_CSF),
+        QStringLiteral("COMPUTE_SHADER"));
   });
 }
