@@ -121,6 +121,12 @@ function(score_add_test NAME)
     add_test(NAME ${NAME} COMMAND ${NAME})
   endif()
 
+  # Catch2 exits with 4 when every test case in the binary was skipped
+  # (AllTestsSkippedExitCode, catch_session.cpp). A test that skips because its
+  # precondition is absent -- no display, no shader library, no capture device --
+  # is not a defect, and counting it as one silently inflates the failure count.
+  set_tests_properties(${NAME} PROPERTIES SKIP_RETURN_CODE 4)
+
   # App/integration tests rely on runtime dynamic-plugin discovery from
   # "<cwd>/plugins": run them from the build root where <build>/plugins lives.
   if(ARG_APP OR ARG_GUI)
