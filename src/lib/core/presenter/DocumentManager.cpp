@@ -242,8 +242,15 @@ void DocumentManager::setCurrentDocument(
 bool DocumentManager::closeDocument(
     const score::GUIApplicationContext& ctx, Document& doc)
 {
-  // Warn the user if he might loose data
-  if(!doc.commandStack().isAtSavedIndex())
+  // Warn the user if he might loose data. Only when there is a user: with
+  // applicationSettings.gui false (headless, --script, offscreen QPA) nothing
+  // can answer a modal, and QMessageBox::exec() aborts instead of returning.
+  // Every score::MessageBox helper already guards on this same flag; this call
+  // site was the one raw QMessageBox left, which is why a scripted /exit on a
+  // modified document died in teardown with SIGABRT. No GUI means no one to
+  // save for, so proceed as Discard -- the same outcome forceExit() already
+  // produces, since it quits 500ms later whatever the answer would have been.
+  if(!doc.commandStack().isAtSavedIndex() && ctx.applicationSettings.gui)
   {
     QMessageBox msgBox;
     msgBox.setText(tr("The document has been modified."));
