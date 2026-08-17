@@ -115,7 +115,9 @@ struct SCORE_PLUGIN_GFX_EXPORT ShaderSource
 };
 
 SCORE_PLUGIN_GFX_EXPORT ShaderSource
-programFromISFFragmentShaderPath(const QString& fsFilename, QByteArray fsData);
+programFromISFFragmentShaderPath(
+    const QString& fsFilename, QByteArray fsData,
+    ShaderSource::ProgramType type = ShaderSource::ProgramType::ISF);
 SCORE_PLUGIN_GFX_EXPORT ShaderSource
 programFromVSAVertexShaderPath(const QString& vertexFilename, QByteArray vertexData);
 }
