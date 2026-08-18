@@ -651,4 +651,12 @@ score_add_test(test_unit_scene_camera_aux
       ${_camera_aux_hidden}
     PLUGINS score_plugin_gfx
     LIBS ${QT_PREFIX}::Gui)
+
+  # ISOLATED, EXPECTED-RED (#172). PipelineStateHelpers is
+  # exported, so only the test TU is built here; it needs qrhi_p.h, which
+  # score_plugin_gfx provides through its PUBLIC Qt::GuiPrivate link.
+  score_add_test(test_unit_depth_clear_compare
+    SOURCES DepthClearCompareTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
 endif()
