@@ -399,3 +399,12 @@ score_add_test(test_unit_video_pixel_format
   SOURCES VideoPixelFormatTest.cpp
   PLUGINS score_plugin_gfx
   LIBS avutil)
+
+# The DirectShow enumeration decision -- subtype -> fourcc -> layout -> codec.
+# Deliberately NOT WIN32-guarded: the whole point of DirectShowSubtype.hpp is
+# that the decision is checkable on hosts where CameraDevice.win32.cpp cannot
+# be compiled at all.
+score_add_test(test_unit_dshow_subtype
+  SOURCES DirectShowSubtypeResolveTest.cpp
+  PLUGINS score_plugin_gfx
+  LIBS avutil avcodec)
