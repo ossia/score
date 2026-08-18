@@ -40,6 +40,15 @@ QRhiGraphicsPipeline::StencilOp toStencilOp(std::string_view s) noexcept;
 SCORE_PLUGIN_GFX_EXPORT
 QRhiGraphicsPipeline::ColorMask toColorMask(std::string_view s) noexcept;
 
+// Depth-attachment clear value to pair with a declared DEPTH_COMPARE.
+//
+// Depth after the viewport transform is in [0, 1], so a clear value only
+// admits fragments on one side of it: 0.0 works with `greater` / `greater_equal`
+// (the project-wide reverse-Z convention documented in CameraMath.hpp) and
+// rejects every fragment under `less` / `less_equal`.
+SCORE_PLUGIN_GFX_EXPORT
+float depthClearForCompare(QRhiGraphicsPipeline::CompareOp compare) noexcept;
+
 // --- Conversion helpers ---------------------------------------------------
 
 SCORE_PLUGIN_GFX_EXPORT

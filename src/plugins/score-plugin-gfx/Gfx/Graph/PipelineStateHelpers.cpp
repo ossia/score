@@ -46,6 +46,22 @@ QRhiGraphicsPipeline::CompareOp toCompareOp(std::string_view s) noexcept
   return QRhiGraphicsPipeline::Less;
 }
 
+float depthClearForCompare(QRhiGraphicsPipeline::CompareOp compare) noexcept
+{
+  // Depth after the viewport transform is in [0, 1]. A clear of 0.0 admits
+  // nothing under `less` and only the exact plane under `less_equal`; a clear of
+  // 1.0 is the mirror problem for `greater`. Pick the end the declared compare
+  // can actually move away from.
+  switch(compare)
+  {
+    case QRhiGraphicsPipeline::Less:
+    case QRhiGraphicsPipeline::LessOrEqual:
+      return 1.0f;
+    default:
+      return 0.0f;
+  }
+}
+
 QRhiGraphicsPipeline::CullMode toCullMode(std::string_view s) noexcept
 {
   if(ieq(s, "none"))  return QRhiGraphicsPipeline::None;
