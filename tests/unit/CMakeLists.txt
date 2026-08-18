@@ -290,3 +290,15 @@ if(TARGET pipewire::pipewire)
     target_include_directories(test_unit_pipewire_protocol_quantum SYSTEM PRIVATE ${_pw_includes})
   endif()
 endif()
+# --- heterogeneous builds: what happens when a factory is absent -----------
+# Pins the behaviour of documents referencing processes / protocols this build
+# does not have: Syphon and Spout are compiled into score-plugin-gfx under #if,
+# so a present plug-in is no guarantee that its factories are registered.
+score_add_test(test_unit_heterogeneous_build
+  SOURCES HeterogeneousBuildTest.cpp
+  APP
+  PLUGINS score_lib_device score_lib_process score_plugin_scenario)
+
+# --- how a path is stored in a document ------------------------------------
+score_add_test(test_unit_uri
+  SOURCES UriTest.cpp)

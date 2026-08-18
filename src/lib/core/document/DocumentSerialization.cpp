@@ -271,13 +271,22 @@ void Document::loadModel(
     }
     case JSONObject::type(): {
       auto doc = readJson(data);
-      bool ok = DocumentManager::checkAndUpdateJson(doc, m_context.app);
-      if(!ok)
+      const auto check = DocumentManager::checkAndUpdateJson(doc, m_context.app);
+      if(!check.loadable)
       {
         throw std::runtime_error(
-            "The save format is too old. Wait until the developers implement "
-            "loading of the older save format.");
+            "This document was written by a newer version of score, or by one "
+            "with a newer version of a plug-in you have, and cannot be read.");
       }
+
+      for(const auto& plugin : check.missingPlugins)
+      {
+        qWarning() << "Opening a document that uses plug-in"
+                   << score::uuids::toByteArray(plugin.impl())
+                   << "which this build does not have. What it contributed is "
+                      "kept as-is and will be written back unchanged.";
+      }
+
       m_model->loadDocumentAsJson(m_context, doc, factory);
       break;
     }

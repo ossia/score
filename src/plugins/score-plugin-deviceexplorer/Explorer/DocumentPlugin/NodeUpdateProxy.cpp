@@ -51,7 +51,8 @@ void NodeUpdateProxy::loadDevice(const Device::Node& node)
 void NodeUpdateProxy::updateDevice(
     const QString& name, const Device::DeviceSettings& dev)
 {
-  devModel.list().device(name).updateSettings(dev);
+  if(auto* impl = devModel.list().findDevice(name))
+    impl->updateSettings(dev);
   devModel.explorer().updateDevice(name, dev);
 }
 
@@ -64,12 +65,13 @@ void NodeUpdateProxy::removeDevice(const Device::DeviceSettings& dev)
   });
   SCORE_ASSERT(it != rootNode.end());
   auto dev_i = devModel.list().findDevice(dev.name);
-  SCORE_ASSERT(dev_i);
-  devModel.setupConnections(*dev_i, false);
+  if(dev_i)
+    devModel.setupConnections(*dev_i, false);
 
   devModel.explorer().removeNode(it);
 
-  devModel.list().removeDevice(dev.name);
+  if(dev_i)
+    devModel.list().removeDevice(dev.name);
 }
 
 void NodeUpdateProxy::addAddress(
@@ -91,9 +93,9 @@ void NodeUpdateProxy::addAddress(
           settings, Device::address(*parentnode));
 
   // Add in the device implementation
-  devModel.list()
-      .device(dev_node.template get<Device::DeviceSettings>().name)
-      .addAddress(full);
+  if(auto* impl = devModel.list().findDevice(
+         dev_node.template get<Device::DeviceSettings>().name))
+    impl->addAddress(full);
 
   // Add in the device explorer
   if(settings.name.contains('/'))
@@ -109,7 +111,11 @@ void NodeUpdateProxy::addAddress(
 void NodeUpdateProxy::addAddress(const Device::FullAddressSettings& full)
 {
   // Add in the device implementation
-  auto& dev = devModel.list().device(full.address.device);
+  auto* dev_p = devModel.list().findDevice(full.address.device);
+  if(!dev_p)
+    return;
+
+  auto& dev = *dev_p;
   bool learning = dev.isLearning();
   dev.setLearning(true);
   dev.addAddress(full);
@@ -155,7 +161,8 @@ void NodeUpdateProxy::updateAddress(
   full.address.path.last() = settings.name;
 
   // Update in the device implementation
-  devModel.list().device(addr.address.device).updateAddress(addr.address, full);
+  if(auto* impl = devModel.list().findDevice(addr.address.device))
+    impl->updateAddress(addr.address, full);
 
   // Update in the device explorer
   devModel.explorer().updateAddress(node, settings);
@@ -192,9 +199,9 @@ void NodeUpdateProxy::removeNode(
 
       // Remove from the device implementation
       const auto& dev_node = devModel.rootNode().childAt(parentPath.at(0));
-      devModel.list()
-          .device(dev_node.template get<Device::DeviceSettings>().name)
-          .removeNode(addr.address);
+      if(auto* impl = devModel.list().findDevice(
+             dev_node.template get<Device::DeviceSettings>().name))
+        impl->removeNode(addr.address);
 
       // Remove from the device explorer
       auto it = findChildNode_it(*lastparentnode, lastnode->displayName());
@@ -214,9 +221,9 @@ void NodeUpdateProxy::removeNode(
 
     // Remove from the device implementation
     const auto& dev_node = devModel.rootNode().childAt(parentPath.at(0));
-    devModel.list()
-        .device(dev_node.template get<Device::DeviceSettings>().name)
-        .removeNode(addr);
+    if(auto* impl = devModel.list().findDevice(
+           dev_node.template get<Device::DeviceSettings>().name))
+      impl->removeNode(addr);
 
     // Remove from the device explorer
     auto it = std::find_if(
@@ -336,7 +343,6 @@ void NodeUpdateProxy::updateLocalSettings(
 void NodeUpdateProxy::updateRemoteValue(
     const State::Address& addr, const ossia::value& val)
 {
-  // TODO add these checks everywhere.
   if(auto dev = devModel.list().findDevice(addr.device))
   {
     // Update in the device implementation
@@ -415,23 +421,23 @@ void NodeUpdateProxy::refreshRemoteValues(const Device::NodeList& nodes)
     if(n->template is<Device::DeviceSettings>())
     {
       auto dev_name = n->template get<Device::DeviceSettings>().name;
-      auto& dev = devModel.list().device(dev_name);
-      if(!dev.capabilities().canRefreshValue)
+      auto* dev = devModel.list().findDevice(dev_name);
+      if(!dev || !dev->capabilities().canRefreshValue)
         continue;
 
       for(auto& child : *n)
       {
-        rec_refreshRemoteValues(child, dev);
+        rec_refreshRemoteValues(child, *dev);
       }
     }
     else
     {
       auto addr = Device::address(*n);
-      auto& dev = devModel.list().device(addr.address.device);
-      if(!dev.capabilities().canRefreshValue)
+      auto* dev = devModel.list().findDevice(addr.address.device);
+      if(!dev || !dev->capabilities().canRefreshValue)
         continue;
 
-      rec_refreshRemoteValues(*n, dev);
+      rec_refreshRemoteValues(*n, *dev);
     }
   }
 }

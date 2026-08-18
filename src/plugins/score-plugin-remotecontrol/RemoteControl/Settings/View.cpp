@@ -9,6 +9,7 @@
 #include <QPushButton>
 #include <QFileDialog>
 #include <QLineEdit>
+#include <QSpinBox>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(RemoteControl::Settings::View)
@@ -115,23 +116,45 @@ View::View()
     web_lay->addRow(m_server_enabled);
     lay->addRow(m_web_ui);
   }
+
+  {
+    m_token = new QLineEdit;
+    m_token->setToolTip(
+        tr("Clients present this on the connection URL. It is generated for you; "
+           "change it if it has been shared too widely."));
+    connect(m_token, &QLineEdit::editingFinished, this, [&] {
+      TokenChanged(m_token->text());
+    });
+    lay->addRow(tr("Token"), m_token);
+  }
+
+  {
+    m_allowScripting = new QCheckBox{tr("Allow clients to run scripts")};
+    m_allowScripting->setToolTip(
+        tr("A script runs with the same rights as score itself, so this gives a "
+           "client control of this computer and not only of the score."));
+    connect(m_allowScripting, SignalUtils::QCheckBox_checkStateChanged(), this,
+            [&](int t) { AllowScriptingChanged(t == Qt::Checked); });
+    lay->addRow(m_allowScripting);
+  }
 }
 
 void View::setEnabled(bool val)
 {
-  switch(m_enabled->checkState())
-  {
-    case Qt::Unchecked:
-      if(val)
-        m_enabled->setChecked(true);
-      break;
-    case Qt::Checked:
-      if(!val)
-        m_enabled->setChecked(false);
-      break;
-    default:
-      break;
-  }
+  if(m_enabled->isChecked() != val)
+    m_enabled->setChecked(val);
+}
+
+void View::setToken(const QString& val)
+{
+  if(m_token->text() != val)
+    m_token->setText(val);
+}
+
+void View::setAllowScripting(bool val)
+{
+  if(m_allowScripting->isChecked() != val)
+    m_allowScripting->setChecked(val);
 }
 
 void View::setWebUiPath(const QString& val)

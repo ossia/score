@@ -2,6 +2,8 @@
 
 #include <ossia/detail/math.hpp>
 
+#include <score/widgets/FileDialog.hpp>
+
 #include <QFileDialog>
 #include <QFormLayout>
 #include <QGridLayout>
@@ -106,7 +108,9 @@ QWidget* SettingsWidget::make(const score::ApplicationContext& ctx)
   splitter->setCollapsible(0, false);
 
   connect(pb, &QPushButton::clicked, this, [this, splitter] {
-    auto path = QFileDialog::getExistingDirectory(splitter, tr("VST Path"));
+    QString path;
+    if(!score::selectExistingDirectory(splitter, tr("VST Path"), path))
+      return;
     if(!path.isEmpty())
     {
       m_VstPaths->addItem(path);

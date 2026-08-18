@@ -668,11 +668,12 @@ bool DocumentManager::preparingNewDocument() const
   return m_preparingNewDocument;
 }
 
-bool DocumentManager::checkAndUpdateJson(
+DocumentManager::Loadability DocumentManager::checkAndUpdateJson(
     rapidjson::Value& obj, const score::GUIApplicationContext& ctx)
 {
+  Loadability res;
   if(obj.GetType() != rapidjson::kObjectType)
-    return false;
+    return res;
 
   // Check the version
   Version loaded_version{0};
@@ -712,7 +713,7 @@ bool DocumentManager::checkAndUpdateJson(
     }
     else
     {
-      return false;
+      return res;
     }
   }
 
@@ -729,16 +730,13 @@ bool DocumentManager::checkAndUpdateJson(
   else if(loaded_version < ctx.applicationSettings.saveFormatVersion)
   {
     // TODO update main
-    auto res
-        = updateJson(obj, loaded_version, ctx.applicationSettings.saveFormatVersion);
-    if(!res)
+    if(!updateJson(obj, loaded_version, ctx.applicationSettings.saveFormatVersion))
     {
-      return false;
+      return res;
     }
   }
 
   // Check the plug-ins
-  bool pluginsAvailable = true;
   bool pluginsLoadable = true;
 
   for(const auto& plug : loading_plugins)
@@ -746,7 +744,12 @@ bool DocumentManager::checkAndUpdateJson(
     auto it = local_plugins.find(plug.plugin);
     if(it == local_plugins.end())
     {
-      pluginsAvailable = false;
+      // Not fatal. Refusing here used to make a document unopenable on any
+      // machine that did not have every plug-in it mentions -- which is every
+      // machine, once builds differ by platform -- and it could not see a
+      // factory missing inside a plug-in that *is* present anyway, so it never
+      // gave the guarantee it appeared to.
+      res.missingPlugins.push_back(plug.plugin);
     }
     else
     {
@@ -763,7 +766,10 @@ bool DocumentManager::checkAndUpdateJson(
     }
   }
 
-  return mainLoadable && pluginsAvailable && pluginsLoadable;
+  // A plug-in older than the file's is a different matter: its factory *is*
+  // found, and would read data in a format it does not understand.
+  res.loadable = mainLoadable && pluginsLoadable;
+  return res;
 }
 
 bool DocumentManager::updateJson(
