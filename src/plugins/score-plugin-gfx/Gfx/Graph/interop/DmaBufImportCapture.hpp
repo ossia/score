@@ -224,6 +224,99 @@ inline DmaBufImportFormat dmaBufFormatFor(QRhiTexture::Format f) noexcept
   return r;
 }
 
+/// Whether the producer stated a layout covering every plane the decoder wants.
+inline bool
+dmaBufExplicitLayout(const DmaBufSlotDesc& slot, std::size_t planes) noexcept
+{
+  return slot.planeCount >= planes;
+}
+
+/// Where plane @p i begins and how wide its rows are: stated by the producer
+/// when it can, accumulated from the plane geometry when it cannot.
+inline DmaBufPlaneLayout dmaBufPlaneLayout(
+    bool explicitLayout, const DmaBufSlotDesc& slot, std::size_t i,
+    std::uint32_t derivedOffset, std::uint32_t derivedPitch) noexcept
+{
+  if(explicitLayout)
+    return slot.planes[i];
+  return {derivedOffset, derivedPitch};
+}
+
+/// Whether plane @p p of a slot is imported with the producer's own
+/// `bytesperline` rather than a pitch derived from the texture width.
+///
+/// Producers pad: the Tegra VI reports 7168 for a 3552-wide 16-bit raster whose
+/// packed width is 7104, and importing that as packed shifts every row by the
+/// padding, cumulatively -- the frame shears rather than failing. The
+/// multi-plane path already refuses a padded slot outright because it cannot
+/// derive plane offsets, so only the single-plane case needs this.
+inline bool dmaBufUsesProducerPitch(
+    std::size_t derivedPlanes, const DmaBufSlotDesc& slot) noexcept
+{
+  return derivedPlanes == 1 && slot.planeCount == 0 && slot.pitch > 0;
+}
+
+/// The smallest row pitch a slot may carry for a frame @p width wide.
+///
+/// For the external form the decoder's texture format is nominal -- the
+/// external image carries its own -- so validating the producer's pitch against
+/// it compares an RGBA8 row against an NV12 luma row and rejects a perfectly
+/// good buffer. There, plane 0's stated pitch is the truth.
+inline std::uint32_t dmaBufMinPitch(
+    bool wantsExternal, int width, std::uint32_t bytesPerPixel) noexcept
+{
+  return wantsExternal ? std::uint32_t(width)
+                       : std::uint32_t(width) * bytesPerPixel;
+}
+
+/// VK_DRIVER_ID_NVIDIA_PROPRIETARY, spelled out so the gate below stays
+/// readable where the Vulkan headers are absent.
+inline constexpr std::uint32_t kNvidiaProprietaryDriverId = 4;
+
+/// Whether the Vulkan dma-buf rung must be refused.
+///
+/// NVIDIA's Vulkan imports dma-bufs from its own allocators exactly and reads
+/// stale bytes out of ones a foreign device exported, so the exporter is what
+/// decides this. The driver id alone would also refuse the GBM and NvBufSurface
+/// buffers that measured 10/10 byte-exact.
+inline bool dmaBufVulkanRungRefused(
+    DmaBufOrigin origin, std::uint32_t driverId) noexcept
+{
+  return origin == DmaBufOrigin::ForeignDevice
+         && driverId == kNvidiaProprietaryDriverId;
+}
+
+/// The plane descriptors an external import is issued with.
+struct DmaBufExternalPlanes
+{
+  std::uint32_t count{};
+  std::uint32_t offsets[3]{};
+  std::uint32_t pitches[3]{};
+};
+
+/// `planeCount == 0` means "derive it", per DmaBufSlotDesc: one plane described
+/// by the slot's own offset and pitch. V4L2-style producers never fill
+/// planes[].
+inline DmaBufExternalPlanes
+dmaBufExternalPlanes(const DmaBufSlotDesc& slot) noexcept
+{
+  DmaBufExternalPlanes r;
+  r.count = std::min<std::uint32_t>(slot.planeCount, 3);
+  if(r.count == 0)
+  {
+    r.count = 1;
+    r.offsets[0] = slot.offset;
+    r.pitches[0] = slot.pitch;
+    return r;
+  }
+  for(std::uint32_t p = 0; p < r.count; ++p)
+  {
+    r.offsets[p] = slot.offset + slot.planes[p].offset;
+    r.pitches[p] = slot.planes[p].pitch;
+  }
+  return r;
+}
+
 struct DmaBufImportCapture final : VideoCaptureStrategy
 {
   /// Slot indices are carried to the producer thread in a 32-bit mask.
@@ -283,17 +376,10 @@ struct DmaBufImportCapture final : VideoCaptureStrategy
   }
 
   /// The row pitch to import plane @p p of @p slot with.
-  ///
-  /// A single-plane frame is imported with the producer's own `bytesperline`,
-  /// not with a pitch derived from the texture width. Producers pad: the Tegra
-  /// VI reports 7168 for a 3552-wide 16-bit raster whose packed width is 7104,
-  /// and importing that as packed shifts every row by the padding, cumulatively
-  /// -- the frame shears rather than failing. The multi-plane path already
-  /// refuses a padded slot outright because it cannot derive plane offsets, so
-  /// only the single-plane case needs this.
+  /// See dmaBufUsesProducerPitch().
   std::uint32_t importPitch(const DmaBufSlotDesc& slot, std::size_t p) const noexcept
   {
-    if(m_planeInfo.size() == 1 && slot.planeCount == 0 && slot.pitch > 0)
+    if(dmaBufUsesProducerPitch(m_planeInfo.size(), slot))
       return slot.pitch;
     return m_planeInfo[p].pitch;
   }
@@ -316,7 +402,7 @@ struct DmaBufImportCapture final : VideoCaptureStrategy
     // A producer that states its plane layout is believed; only one that does
     // not gets the derivation.
     const bool explicitLayout
-        = !m_slots.empty() && m_slots[0].planeCount >= cfg.planes.size();
+        = !m_slots.empty() && dmaBufExplicitLayout(m_slots[0], cfg.planes.size());
     if(cfg.planes.size() > 1)
     {
       std::uint32_t off = 0;
@@ -337,9 +423,10 @@ struct DmaBufImportCapture final : VideoCaptureStrategy
           return false;
         }
         const auto derivedPitch = std::uint32_t(psz.width()) * pf.bytesPerPixel;
-        const auto pitch
-            = explicitLayout ? m_slots[0].planes[i].pitch : derivedPitch;
-        const auto planeOff = explicitLayout ? m_slots[0].planes[i].offset : off;
+        const auto lay = dmaBufPlaneLayout(
+            explicitLayout, m_slots[0], i, off, derivedPitch);
+        const auto pitch = lay.pitch;
+        const auto planeOff = lay.offset;
         if(pitch < derivedPitch)
         {
           qDebug() << "DmaBufImportCapture: plane" << i << "pitch" << pitch
@@ -397,14 +484,9 @@ struct DmaBufImportCapture final : VideoCaptureStrategy
     if(sz.width() <= 0 || sz.height() <= 0)
       return false;
 
-    // For the external form the decoder's texture format is nominal -- the
-    // external image carries its own -- so validating the producer's pitch
-    // against it compares an RGBA8 row against an NV12 luma row and rejects a
-    // perfectly good buffer. There, plane 0's stated pitch is the truth.
     const bool wantsExternal = m_wholeFrameFourcc != 0;
     const auto minPitch
-        = wantsExternal ? std::uint32_t(sz.width())
-                        : static_cast<std::uint32_t>(sz.width()) * fmt.bytesPerPixel;
+        = dmaBufMinPitch(wantsExternal, sz.width(), fmt.bytesPerPixel);
     for(const auto& s : m_slots)
     {
       if(s.fd < 0 || s.pitch < minPitch)
@@ -439,13 +521,12 @@ struct DmaBufImportCapture final : VideoCaptureStrategy
       // no capability bit for that, and a rung that tears is worse than one
       // that degrades.
 #if defined(VK_DRIVER_ID_NVIDIA_PROPRIETARY)
-      constexpr auto kNvidiaProprietary
-          = std::uint32_t(VK_DRIVER_ID_NVIDIA_PROPRIETARY);
-#else
-      constexpr std::uint32_t kNvidiaProprietary = 4;
+      static_assert(
+          std::uint32_t(VK_DRIVER_ID_NVIDIA_PROPRIETARY)
+          == kNvidiaProprietaryDriverId);
 #endif
-      if(m_origin == DmaBufOrigin::ForeignDevice
-         && DMABufPlaneImporter::driverId(*cfg.rhi) == kNvidiaProprietary)
+      if(dmaBufVulkanRungRefused(
+             m_origin, DMABufPlaneImporter::driverId(*cfg.rhi)))
       {
         qDebug() << "DmaBufImportCapture: NVIDIA proprietary Vulkan reads stale "
                     "bytes out of a dma-buf exported by a foreign device; no "
@@ -528,31 +609,11 @@ struct DmaBufImportCapture final : VideoCaptureStrategy
         const auto& s = m_slots[i];
         if(m_external)
         {
-          std::uint32_t offs[3]{}, pitches[3]{};
-          auto n = std::min<std::uint32_t>(s.planeCount, 3);
-          if(n == 0)
-          {
-            // "Derive it", per DmaBufSlotDesc: one plane described by the
-            // slot's own offset and pitch. Passing the zero straight through
-            // hit importExternal's planeCount guard and refused the import
-            // without ever reaching EGL -- for exactly the V4L2-style producer
-            // this path exists to serve, since those never fill planes[].
-            n = 1;
-            offs[0] = s.offset;
-            pitches[0] = s.pitch;
-          }
-          else
-          {
-            for(std::uint32_t p = 0; p < n; ++p)
-            {
-              offs[p] = s.offset + s.planes[p].offset;
-              pitches[p] = s.planes[p].pitch;
-            }
-          }
+          const auto ext = dmaBufExternalPlanes(s);
           if(!m_egl.importExternal(
-                 m_eglSlots[i][0], m_glTexPlane[0], s.fd, s.modifier, offs,
-                 pitches, n, m_wholeFrameFourcc, m_planeInfo[0].width,
-                 m_wholeFrameHeight))
+                 m_eglSlots[i][0], m_glTexPlane[0], s.fd, s.modifier,
+                 ext.offsets, ext.pitches, ext.count, m_wholeFrameFourcc,
+                 m_planeInfo[0].width, m_wholeFrameHeight))
           {
             qDebug() << "DmaBufImportCapture: external EGL import refused slot"
                      << i << "fourcc" << Qt::hex << m_wholeFrameFourcc;
