@@ -2002,7 +2002,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
             .name = "camera",
             .buffer = camBufIdx,
             .byte_offset = 0,
-            .byte_size = (int64_t)sizeof(CameraUBOData)});
+            .byte_size = cameraAuxByteSize(m_cachedCameras.size())});
       }
       if(m_sceneCountsBuffer)
       {
@@ -3214,10 +3214,12 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         .byte_offset = 0, .byte_size = (int64_t)sizeof(SceneCountsUBO)});
     g.auxiliary.push_back({
         .name = "camera", .buffer = baseBuf + 6,
-        .byte_offset = 0, .byte_size = (int64_t)sizeof(CameraUBOData)});
+        .byte_offset = 0,
+        .byte_size = cameraAuxByteSize(m_cachedCameras.size())});
     g.auxiliary.push_back({
         .name = "camera_prev", .buffer = baseBuf + 7,
-        .byte_offset = 0, .byte_size = (int64_t)sizeof(CameraUBOData)});
+        .byte_offset = 0,
+        .byte_size = cameraAuxByteSize(m_cachedCameras.size())});
     g.auxiliary.push_back({
         .name = "env", .buffer = baseBuf + 8,
         .byte_offset = (int64_t)m_env_aux_offset,
