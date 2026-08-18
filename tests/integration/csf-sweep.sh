@@ -12,11 +12,19 @@
 # own process so a shader compile-failure or render crash is attributed to that
 # file/backend. Exit 0 = ok, 3 = no texture output (skipped), 5 = unsupported,
 # anything else / signal / timeout = failure.
+#
+# Exit 77 (ctest SKIP) when the gallery binary, a display or the corpus is
+# unavailable; exit 1 when any shader failed on either backend.
 set -u
-GALLERY="tests/integration/ObjectGallery"
-CORPUS="${1:-$HOME/Documents/ossia/score/packages/csf-examples/csf-testers}"
+GALLERY="${OBJECT_GALLERY:-tests/integration/ObjectGallery}"
+CORPUS="${1:-${SCORE_SHADER_LIBRARY_DIR:-$HOME/Documents/ossia/score/packages/csf-examples/csf-testers}}"
 DISP="${DISPLAY:-:0}"
 SECS=1
+
+[ -x "$GALLERY" ] || { echo "SKIP: no ObjectGallery at $GALLERY"; exit 77; }
+[ -d "$CORPUS" ] || { echo "SKIP: no shader corpus at $CORPUS (set SCORE_SHADER_LIBRARY_DIR)"; exit 77; }
+command -v xdpyinfo >/dev/null 2>&1 && ! xdpyinfo -display "$DISP" >/dev/null 2>&1 \
+  && { echo "SKIP: no X display at $DISP"; exit 77; }
 
 run() { # file backend_env...
   local file="$1"; shift
@@ -28,6 +36,7 @@ mapfile -t FILES < <(find "$CORPUS" -type f \
   \( -name '*.fs' -o -name '*.frag' -o -name '*.glsl' \
      -o -name '*.cs' -o -name '*.comp' -o -name '*.csf' \) | sort)
 
+[ "${#FILES[@]}" -gt 0 ] || { echo "SKIP: no shaders found under $CORPUS"; exit 77; }
 echo "Rendering ${#FILES[@]} shaders from $CORPUS on llvmpipe + NVIDIA(X11)..."
 # Two separate passes: mixing software (llvmpipe) and the NVIDIA driver on the
 # same X server back-to-back leaves GL state that breaks the next context, so
