@@ -18,6 +18,7 @@ extern "C" {
 #include <oleauto.h>
 
 #include <Gfx/Graph/interop/DirectShowPixelFormat.hpp>
+#include <Gfx/Graph/interop/DirectShowSubtype.hpp>
 #include <Gfx/Graph/interop/VideoPixelFormatAV.hpp>
 
 namespace Gfx
@@ -41,19 +42,14 @@ static constexpr const GUID MEDIASUBTYPE_Y210             = { '012Y', 0x0000, 0x
 static constexpr const GUID MEDIASUBTYPE_Y216             = { '612Y', 0x0000, 0x0010, { 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71 }};
 static constexpr const GUID MEDIASUBTYPE_P408             = { '804P', 0x0000, 0x0010, { 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71 }};
 
-// Every YUV MEDIASUBTYPE is {fourcc, 0x0000, 0x0010, {0x80,0,0,0xaa,0,0x38,0x9b,0x71}},
-// so the subtype reduces to the fourcc in Data1. Returns 0 for the RGB subtypes,
-// which are genuine SDK GUIDs and are matched below.
-static uint32_t subtypeFourcc(const GUID& subtype) noexcept
+// GUID and score::gfx::interop::DirectShowGuid have the same layout; the
+// decisions themselves live in DirectShowSubtype.hpp so they can be tested on
+// hosts where this file cannot be compiled.
+static const score::gfx::interop::DirectShowGuid& asPortableGuid(
+    const GUID& subtype) noexcept
 {
-  static const uint8_t suffix[8]
-      = {0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71};
-  if(subtype.Data2 != 0x0000 || subtype.Data3 != 0x0010)
-    return 0;
-  for(int i = 0; i < 8; ++i)
-    if(subtype.Data4[i] != suffix[i])
-      return 0;
-  return uint32_t(subtype.Data1);
+  static_assert(sizeof(GUID) == sizeof(score::gfx::interop::DirectShowGuid));
+  return reinterpret_cast<const score::gfx::interop::DirectShowGuid&>(subtype);
 }
 
 // True when the subtype names a compressed stream. Previously this was inferred
@@ -61,31 +57,18 @@ static uint32_t subtypeFourcc(const GUID& subtype) noexcept
 // camera genuinely offering that layout would have been taken for MJPEG.
 static bool isCompressedSubtype(const GUID& subtype) noexcept
 {
-  const auto fourcc = subtypeFourcc(subtype);
-  return fourcc != 0
-         && score::gfx::interop::isDirectShowCompressedFourcc(fourcc);
+  return score::gfx::interop::directShowSubtypeIsCompressed(
+      asPortableGuid(subtype));
 }
 
 static int guidToPixelFormat(const GUID& subtype)
 {
   // The YUV layouts come from the shared, host-testable fourcc table, so they
   // cannot drift and are not carrying the chroma swaps this function used to.
-  if(const auto fourcc = subtypeFourcc(subtype))
-  {
-    using namespace score::gfx::interop;
-    const auto layout = fromDirectShowFourcc(fourcc);
-    if(layout != VideoPixelFormat::Unknown)
-    {
-      if(const auto av = toAVPixelFormat(layout); av != AV_PIX_FMT_NONE)
-        return av;
-      // The V-before-U layouts have no AVPixelFormat of their own; name the twin
-      // so the format stays offered, and chromaSwappedTwin records that a
-      // consumer wanting correct chroma must exchange the U and V planes.
-      if(const auto twin = toAVPixelFormat(chromaSwappedTwin(layout));
-         twin != AV_PIX_FMT_NONE)
-        return twin;
-    }
-  }
+  if(const auto av = score::gfx::interop::directShowSubtypePixelFormat(
+         asPortableGuid(subtype));
+     av != AV_PIX_FMT_NONE)
+    return av;
 
   if(subtype == MEDIASUBTYPE_RGB24)
     return AV_PIX_FMT_BGR24;
@@ -218,7 +201,8 @@ static void enumerateCameraFormat(
 
   if(isCompressedSubtype(subtype))
   {
-    source.codec = AV_CODEC_ID_MJPEG;
+    source.codec
+        = score::gfx::interop::directShowSubtypeCodec(asPortableGuid(subtype));
     source.pixelformat = AV_PIX_FMT_NONE;
   }
 
