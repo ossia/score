@@ -151,6 +151,18 @@ score_add_test(test_regression_double_exit
   SOURCES RegressionDoubleExitTest.cpp
   APP)
 
+# --script failure reporting: exit 0 / N / 2 / 3 and the diagnostics that go
+# with them. A subprocess test because the behaviour under test IS the exit
+# code of the application binary.
+if(TARGET score AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_script_exit_code
+    SOURCES ScriptExitCodeTest.cpp)
+  target_compile_definitions(test_integration_script_exit_code PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\"")
+  set_tests_properties(test_integration_script_exit_code PROPERTIES
+    TIMEOUT 900 RUN_SERIAL TRUE)
+endif()
+
 # Closing a MODIFIED document with applicationSettings.gui false must not
 # raise the save prompt: nothing can answer it and QMessageBox::exec() aborts.
 score_add_test(test_regression_headless_close_modified
