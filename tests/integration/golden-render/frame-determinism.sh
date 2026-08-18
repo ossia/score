@@ -21,6 +21,7 @@ SCORE="${OSSIA_SCORE:-}"
 CASE="build-isf-time-uniforms"
 FRAME=30
 OUT="${TMPDIR:-/tmp}/score-frame-determinism.$$"
+SCRIPTS="${SCRIPTS:-$HOME/Documents/ossia/score/packages/csf-examples/csf-testers/tests-scene/scripts}"
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -31,8 +32,13 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-[ -n "$SCORE" ] || { echo "FATAL: set OSSIA_SCORE or pass --score"; exit 2; }
-[ -x "$SCORE" ] || { echo "FATAL: not executable: $SCORE"; exit 2; }
+# Prerequisites -> ctest SKIP (return 77) rather than a hard failure, the same
+# way golden-render.sh does: the case corpus lives outside the repository, and
+# a machine without it has nothing to say about determinism either way.
+[ -n "$SCORE" ] || { echo "SKIP: set OSSIA_SCORE or pass --score";  exit 77; }
+[ -x "$SCORE" ] || { echo "SKIP: not executable: $SCORE";           exit 77; }
+[ -f "$SCRIPTS/${CASE}.js" ] || {
+  echo "SKIP: case corpus missing ($SCRIPTS/${CASE}.js)"; exit 77; }
 
 mkdir -p "$OUT"
 trap 'rm -rf "$OUT"' EXIT
