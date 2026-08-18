@@ -704,3 +704,33 @@ score_add_test(test_unit_scene_camera_aux
     PLUGINS score_plugin_gfx
     LIBS ${QT_PREFIX}::Gui)
 endif()
+
+# The DRM fourcc <-> AVPixelFormat bridge layered on the vocabulary
+# (Gfx/Graph/interop/DrmFourcc.hpp), which is a different header from the
+# DrmPixelFormat.hpp that VideoPixelFormatTest sweeps.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_drm_fourcc
+    SOURCES DrmFourccTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS avutil)
+
+  # The capture-side mirror of the WireEncoderFactory sweep in
+  # tests/integration/EncoderMatrixTest.cpp. Constructs decoders only: no QRhi.
+  score_add_test(test_unit_wire_decoder_factory
+    SOURCES WireDecoderFactoryTest.cpp
+    PLUGINS score_plugin_gfx score_plugin_media
+    LIBS ${QT_PREFIX}::Gui)
+
+  # PipeWire's own format table, and the SPA half of DrmFourcc.hpp, which only
+  # compiles where the SPA headers are.
+  if(TARGET pipewire::pipewire)
+    score_add_test(test_unit_pipewire_formats
+      SOURCES PipewireFormatsTest.cpp
+      PLUGINS score_plugin_gfx
+      LIBS avutil ${QT_PREFIX}::Gui)
+    get_target_property(_pw_fmt_includes pipewire::pipewire INTERFACE_INCLUDE_DIRECTORIES)
+    if(_pw_fmt_includes)
+      target_include_directories(test_unit_pipewire_formats SYSTEM PRIVATE ${_pw_fmt_includes})
+    endif()
+  endif()
+endif()
