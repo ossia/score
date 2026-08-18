@@ -1,5 +1,4 @@
 // Object gallery: a small tool to enumerate and live-preview every process
-#include <cstdlib>
 // ("object") the running application registers.
 //
 //   ObjectGallery --list [filter]
@@ -54,6 +53,7 @@
 #include <algorithm>
 #include <csignal>
 #include <cstdio>
+#include <cstdlib>
 
 // Coverage support: this harness intentionally exits via std::_Exit (to bypass a
 // gfx teardown crash) and often SEGVs on shutdown, both of which skip the normal
@@ -241,8 +241,9 @@ void run_render_check(const QString& filter, int seconds)
   if(target.isEmpty())
   {
     std::printf("RENDER  no object matches '%s'\n", filter.toUtf8().constData());
-    qApp->exit(1);
-    return;
+    std::fflush(stdout);
+    flush_coverage();
+    std::_Exit(1);
   }
 
   int textured = 0;
@@ -317,8 +318,9 @@ void run_shader_check(const QString& path, int seconds)
   else
   {
     std::printf("SHADER  UNSUPPORTED  %s\n", path.toUtf8().constData());
-    qApp->exit(5);
-    return;
+    std::fflush(stdout);
+    flush_coverage();
+    std::_Exit(5);
   }
 
   const auto& ctx = score::GUIAppContext();
@@ -356,8 +358,9 @@ void run_shader_check(const QString& path, int seconds)
   if(!created)
   {
     std::printf("SHADER  no '%s' process\n", wantName.toUtf8().constData());
-    qApp->exit(1);
-    return;
+    std::fflush(stdout);
+    flush_coverage();
+    std::_Exit(1);
   }
 
   int textured = 0;
@@ -370,8 +373,9 @@ void run_shader_check(const QString& path, int seconds)
   {
     std::printf(
         "SHADER  SKIP  %-46s (no texture output)\n", fi.fileName().toUtf8().constData());
-    qApp->exit(3);
-    return;
+    std::fflush(stdout);
+    flush_coverage();
+    std::_Exit(3);
   }
 
   auto& eng = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
