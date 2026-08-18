@@ -158,6 +158,13 @@ if(TARGET score_plugin_faust)
     PLUGINS score_plugin_faust)
   target_include_directories(test_unit_faust_dsp PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-faust")
+  # The plug-in keeps faust's own include directory private, so linking it does
+  # not hand the headers over. Distributions put them somewhere the compiler
+  # looks anyway; an SDK build does not.
+  if(FAUST_INCLUDE_DIR)
+    target_include_directories(test_unit_faust_dsp SYSTEM PRIVATE
+      ${FAUST_INCLUDE_DIR})
+  endif()
 else()
   find_package(Faust QUIET)
   if(FAUST_FOUND AND TARGET score_lib_process)
@@ -289,4 +296,18 @@ if(TARGET pipewire::pipewire)
   if(_pw_includes)
     target_include_directories(test_unit_pipewire_protocol_quantum SYSTEM PRIVATE ${_pw_includes})
   endif()
+# --- output windows on a board with no window manager ----------------------
+# Under eglfs a screen backs one window and the second one qFatals, so which
+# screen an output gets has to be decided before it is shown.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_screen_placement
+    SOURCES ScreenPlacementTest.cpp
+    APP
+    PLUGINS score_plugin_gfx)
 endif()
+
+# --- configuring the displays of a machine with no window manager ----------
+# The KMS JSON and the vkkhrdisplay indices are read once at platform startup;
+# producing exactly what each understands is the whole feature.
+score_add_test(test_unit_display_config
+  SOURCES DisplayConfigTest.cpp)

@@ -51,6 +51,7 @@ inline void init_apartment_sta() noexcept
 
 #include "Application.hpp"
 
+#include <score/gfx/DisplayConfig.hpp>
 #include <score/widgets/MessageBox.hpp>
 
 #include <ossia/detail/config.hpp>
@@ -839,6 +840,9 @@ int main(int argc, char** argv)
   setup_limits();
   setup_gpu();
   setup_x11(argc, argv);
+  // After setup_x11: it is what decides whether this is an eglfs boot, and the
+  // platform reads its configuration once, when QGuiApplication starts.
+  score::gfx::applyDisplayConfig();
   setup_gtk();
   setup_suil();
   setup_faust_path();
@@ -884,6 +888,13 @@ int main(int argc, char** argv)
 
   if(failsafe)
     app.appSettings.opengl = false;
+
+  // An appliance shows its render output, not an editor. The platform gives a
+  // screen to whichever window asks first and never takes it back, so the
+  // editor cannot simply be hidden: it must not be created. Ctrl+Alt+Shift+E
+  // writes the setting back and starts score again.
+  if(score::gfx::oneWindowPerScreen() && !score::gfx::editorUiRequested())
+    app.appSettings.gui = false;
 
 #if defined(__linux__) && !(defined(__arm__) || defined(__aarch64__))
   // On linux under offscreen, etc it crashes inside
