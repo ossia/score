@@ -247,3 +247,16 @@ score_add_test(test_integration_nodal_viewport
   SOURCES NodalViewportTest.cpp
   GUI
   PLUGINS score_plugin_scenario score_lib_process)
+
+# Frame-step determinism across two processes: the same case rendered to the same
+# frame index in two separate applications must be byte-identical.
+# Skips (77) without the binary or the out-of-repo tests-scene corpus.
+add_test(NAME test_frame_determinism
+  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/golden-render/frame-determinism.sh"
+  WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+set_tests_properties(test_frame_determinism PROPERTIES
+  SKIP_RETURN_CODE 77
+  TIMEOUT 600
+  RUN_SERIAL TRUE
+  LABELS "gui"
+  ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
