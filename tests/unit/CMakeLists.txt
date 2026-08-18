@@ -443,3 +443,32 @@ score_add_test(test_unit_gfx_assettable
 score_add_test(test_unit_isf_importers
   SOURCES IsfImportersTest.cpp
   PLUGINS score_plugin_gfx)
+
+
+# --- CPU scene flattener + camera math (score-plugin-gfx, pland/scene) ------
+# flattenScene / packMaterial / primitiveToGeometry / packCameraUBO are not
+# exported from the dynamic score_plugin_gfx (hidden visibility), so the two
+# translation units are compiled straight into the tests -- the same workaround
+# tests/gfx/CMakeLists.txt applies to ISFNode.cpp et al. Pure CPU: no QRhi, no
+# display, no document.
+if(TARGET score_plugin_gfx)
+  set(_gfx_scene_src "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx/Gfx/Graph")
+
+  score_plugin_hidden_sources(_scene_flatten_hidden
+      "${_gfx_scene_src}/SceneGPUState.cpp")
+score_add_test(test_unit_scene_flatten
+    SOURCES
+      SceneFlattenTest.cpp
+      ${_scene_flatten_hidden}
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+
+  score_plugin_hidden_sources(_camera_math_hidden
+      "${_gfx_scene_src}/CameraMath.cpp")
+score_add_test(test_unit_camera_math
+    SOURCES
+      CameraMathTest.cpp
+      ${_camera_math_hidden}
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+endif()
