@@ -232,6 +232,15 @@ target_sources(test_gfx_dynamic_slot PRIVATE
 target_include_directories(test_gfx_dynamic_slot PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator")
 
+# The scalar-arena allocate/free/isLive surface and the mesh-slab arena, which
+# GfxDynamicSlot leaves inert (it calls sweepMeshSlabs but never
+# acquireMeshSlab). Same OffsetAllocator inclusion as above, for the same reason.
+score_add_gfx_test(mesh_slabs GfxMeshSlabs.cpp)
+target_sources(test_gfx_mesh_slabs PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator/offsetAllocator.cpp")
+target_include_directories(test_gfx_mesh_slabs PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator")
+
 # R2-#8 (GfxContext incremental edge-to-not-yet-present-node) is a DOCUMENTED
 # GAP: the two-channel GfxContext baseline-diff bug is not reproducible through
 # the Graph-level L3 fixture. This target holds the honest SKIP anchor + rationale.
