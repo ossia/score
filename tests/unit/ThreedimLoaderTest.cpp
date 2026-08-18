@@ -40,6 +40,8 @@
 
 #include <QCoreApplication>
 
+#include <load-spz.h>
+
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
@@ -1353,4 +1355,290 @@ TEST_CASE("AssetLoaderRegistry: registration and dispatch",
     CHECK_FALSE(Threedim::AssetLoader::ins::asset_t::process(
         halp::text_file_view{.bytes = "x", .filename = "f.tstc"}));
   }
+}
+
+// ===========================================================================
+// AssetLoader point-cloud dispatch + the format-override stage (f0a202a782).
+//
+// `.ply` now sniffs ply_is_splat_shaped() and forks between the miniply mesh
+// path and the PrimitiveCloud path; `.splat` and `.spz` are new suffixes; and
+// a rebuild_format_state() stage sits between parse and wrap, splitting the
+// loader's state into m_parsed_state -> m_overridden_state -> m_wrapped_state.
+// The parsers underneath are covered by PrimitiveCloudTest; none of the
+// dispatch above them was.
+// ===========================================================================
+
+namespace
+{
+void append_f32(std::string& out, float v)
+{
+  static_assert(sizeof(float) == 4);
+  uint32_t bits{};
+  std::memcpy(&bits, &v, 4);
+  for(int i = 0; i < 4; ++i)
+    out.push_back(char((bits >> (8 * i)) & 0xFF));
+}
+
+//! A 3DGS-classic ASCII PLY: 15 float columns, no `face` element, so
+//! ply_is_splat_shaped() must return true.
+std::string splat_shaped_ply()
+{
+  std::string h = "ply\nformat ascii 1.0\nelement vertex 2\n";
+  for(const char* col :
+      {"x", "y", "z", "f_dc_0", "f_dc_1", "f_dc_2", "f_rest_0", "opacity",
+       "scale_0", "scale_1", "scale_2", "rot_0", "rot_1", "rot_2", "rot_3"})
+  {
+    h += "property float ";
+    h += col;
+    h += "\n";
+  }
+  h += "end_header\n";
+  h += "1 2 3 0.5 0.25 -0.5 0.125 1.5 -1 -2 -3 1 0 0 0\n";
+  h += "-4 5 -6 0.1 0.2 0.3 -0.125 -1.5 -0.5 -1.5 -2.5 0 1 0 0\n";
+  return h;
+}
+
+//! A mesh PLY: xyz + a `face` element, so ply_is_splat_shaped() is false.
+std::string mesh_ply()
+{
+  return "ply\nformat ascii 1.0\n"
+         "element vertex 3\n"
+         "property float x\nproperty float y\nproperty float z\n"
+         "element face 1\n"
+         "property list uchar int vertex_indices\n"
+         "end_header\n"
+         "0 0 0\n1 0 0\n0 1 0\n"
+         "3 0 1 2\n";
+}
+
+//! Two Antimatter15 .splat rows: 32 bytes each (3 pos + 3 scale floats,
+//! 4 rgba bytes, 4 rotation bytes).
+std::string splat_binary_rows()
+{
+  std::string out;
+  const float rows[2][6]{
+      {1.f, 2.f, 3.f, 0.5f, 0.5f, 0.5f}, {-1.f, -2.f, -3.f, 0.25f, 0.25f, 0.25f}};
+  for(const auto& r : rows)
+  {
+    for(float v : r)
+      append_f32(out, v);
+    for(int i = 0; i < 8; ++i)
+      out.push_back(char(128));
+  }
+  return out;
+}
+
+const ossia::primitive_cloud_component*
+find_first_cloud(const ossia::scene_node& n)
+{
+  if(!n.children)
+    return nullptr;
+  for(const auto& payload : *n.children)
+  {
+    if(auto* pc = ossia::get_if<ossia::primitive_cloud_component_ptr>(&payload))
+      return pc->get();
+    if(auto* child = ossia::get_if<ossia::scene_node_ptr>(&payload))
+      if(auto* c = find_first_cloud(**child))
+        return c;
+  }
+  return nullptr;
+}
+
+const ossia::primitive_cloud_component*
+find_first_cloud(const ossia::scene_state& s)
+{
+  if(!s.roots)
+    return nullptr;
+  for(const auto& r : *s.roots)
+    if(auto* c = find_first_cloud(*r))
+      return c;
+  return nullptr;
+}
+
+std::unique_ptr<Threedim::AssetLoader>
+load_asset(const fs::path& p, const std::string& bytes = {})
+{
+  auto apply = Threedim::AssetLoader::ins::asset_t::process(
+      halp::text_file_view{.bytes = bytes, .filename = p.string()});
+  if(!apply)
+    return nullptr;
+  auto loader = std::make_unique<Threedim::AssetLoader>();
+  apply(*loader);
+  return loader;
+}
+} // namespace
+
+TEST_CASE("AssetLoader: .ply forks on ply_is_splat_shaped()",
+          "[threedim][assetloader][cloud]")
+{
+  TempDir tmp;
+
+  SECTION("splat-shaped columns route to the cloud path")
+  {
+    auto loader = load_asset(tmp.write("cloud.ply", splat_shaped_ply()));
+    REQUIRE(loader);
+    REQUIRE(loader->m_parsed_state);
+
+    const auto* cloud = find_first_cloud(*loader->m_parsed_state);
+    REQUIRE(cloud);
+    CHECK(cloud->primitive_count == 2);
+    CHECK(cloud->format_id == "3dgs.classic");
+    CHECK(cloud->topology == ossia::primitive_topology::points);
+    // ...and NOT the mesh path.
+    CHECK(find_first_mesh(*loader->m_parsed_state) == nullptr);
+    // The node is labelled with the file's basename.
+    CHECK((*loader->m_parsed_state->roots)[0]->name == "cloud.ply");
+  }
+
+  SECTION("xyz + face routes to the mesh path")
+  {
+    auto loader = load_asset(tmp.write("tri.ply", mesh_ply()));
+    REQUIRE(loader);
+    REQUIRE(loader->m_parsed_state);
+
+    CHECK(find_first_cloud(*loader->m_parsed_state) == nullptr);
+    const auto* mesh = find_first_mesh(*loader->m_parsed_state);
+    REQUIRE(mesh);
+    CHECK(mesh->primitives[0].vertex_count == 3);
+  }
+}
+
+TEST_CASE("AssetLoader: .splat and .spz dispatch to the cloud parsers",
+          "[threedim][assetloader][cloud]")
+{
+  TempDir tmp;
+
+  SECTION(".splat, 32-byte rows")
+  {
+    const auto bytes = splat_binary_rows();
+    auto loader = load_asset(tmp.write("two.splat", bytes), bytes);
+    REQUIRE(loader);
+    REQUIRE(loader->m_parsed_state);
+    REQUIRE(loader->m_parsed_state->roots);
+    REQUIRE(loader->m_parsed_state->roots->size() == 1);
+    CHECK((*loader->m_parsed_state->roots)[0]->name == "two.splat");
+
+    const auto* cloud = find_first_cloud(*loader->m_parsed_state);
+    REQUIRE(cloud);
+    CHECK(cloud->primitive_count == 2);
+    CHECK(cloud->row_stride == 32);
+  }
+
+  SECTION(".splat with a size that is not a multiple of 32 is rejected")
+  {
+    std::string bytes = splat_binary_rows();
+    bytes.pop_back();
+    CHECK_FALSE(load_asset(tmp.write("odd.splat", bytes), bytes));
+  }
+
+  SECTION(".spz, a Niantic v2 payload")
+  {
+    spz::GaussianCloud c;
+    c.numPoints = 2;
+    c.shDegree = 0;
+    c.positions = {0.5f, -1.25f, 2.f, -3.5f, 0.75f, -0.25f};
+    c.scales = {-1.5f, -2.f, -2.5f, -3.f, -1.f, -2.f};
+    c.rotations = {0.f, 0.f, 0.f, 1.f, 0.5f, 0.5f, 0.5f, 0.5f};
+    c.alphas = {0.5f, -0.5f};
+    c.colors = {0.25f, -0.5f, 0.75f, -1.f, 0.f, 1.f};
+
+    spz::PackOptions po;
+    po.version = 2;
+    po.from = spz::CoordinateSystem::RDF;
+    std::vector<uint8_t> packed;
+    REQUIRE(spz::saveSpz(c, po, &packed));
+    const std::string bytes(
+        reinterpret_cast<const char*>(packed.data()), packed.size());
+
+    auto loader = load_asset(tmp.write("two.spz", bytes), bytes);
+    REQUIRE(loader);
+    REQUIRE(loader->m_parsed_state);
+    CHECK((*loader->m_parsed_state->roots)[0]->name == "two.spz");
+    const auto* cloud = find_first_cloud(*loader->m_parsed_state);
+    REQUIRE(cloud);
+    CHECK(cloud->primitive_count == 2);
+  }
+
+  SECTION("an unreadable .spz payload yields no apply function")
+  {
+    const std::string junk(64, '\x7f');
+    CHECK_FALSE(load_asset(tmp.write("bad.spz", junk), junk));
+  }
+
+  SECTION("suffix matching is case-insensitive")
+  {
+    const auto bytes = splat_binary_rows();
+    CHECK(load_asset(tmp.write("two.SPLAT", bytes), bytes));
+    CHECK(load_asset(tmp.write("cloud.PLY", splat_shaped_ply())));
+  }
+}
+
+TEST_CASE("AssetLoader: format_override rewrites the cloud without touching "
+          "the parsed state",
+          "[threedim][assetloader][cloud][override]")
+{
+  TempDir tmp;
+  const auto bytes = splat_binary_rows();
+  auto loader = load_asset(tmp.write("two.splat", bytes), bytes);
+  REQUIRE(loader);
+  REQUIRE(loader->m_parsed_state);
+
+  // No override: the three stages collapse onto the same parsed state.
+  const auto parsed = loader->m_parsed_state;
+  CHECK(loader->m_overridden_state.get() == parsed.get());
+  const auto* parsed_cloud = find_first_cloud(*parsed);
+  REQUIRE(parsed_cloud);
+  const std::string autodetected = parsed_cloud->format_id;
+  CHECK_FALSE(autodetected.empty());
+
+  const auto wrapped_before = loader->m_wrapped_state;
+  REQUIRE(wrapped_before);
+
+  // Set an override and re-tick through the control's callback.
+  loader->inputs.format_override.value = "my.custom.format";
+  loader->rebuild_format_state();
+
+  REQUIRE(loader->m_overridden_state);
+  CHECK(loader->m_overridden_state.get() != parsed.get());
+  CHECK(loader->m_overridden_state->version == parsed->version + 1);
+
+  const auto* over_cloud = find_first_cloud(*loader->m_overridden_state);
+  REQUIRE(over_cloud);
+  CHECK(over_cloud->format_id == "my.custom.format");
+  // The heavy payload is shared, not duplicated.
+  CHECK(over_cloud->raw_data.get() == parsed_cloud->raw_data.get());
+  CHECK(over_cloud->primitive_count == parsed_cloud->primitive_count);
+
+  // m_parsed_state is never mutated, so clearing the override restores the
+  // autodetected format exactly.
+  CHECK(loader->m_parsed_state.get() == parsed.get());
+  CHECK(find_first_cloud(*loader->m_parsed_state)->format_id == autodetected);
+
+  // The wrap is rebuilt on top of the new overridden state.
+  REQUIRE(loader->m_wrapped_state);
+  CHECK(loader->m_wrapped_state.get() != wrapped_before.get());
+
+  loader->inputs.format_override.value = "";
+  loader->rebuild_format_state();
+  CHECK(loader->m_overridden_state.get() == parsed.get());
+  CHECK(find_first_cloud(*loader->m_overridden_state)->format_id == autodetected);
+}
+
+TEST_CASE("AssetLoader: format_override also stamps a mesh-path asset's clouds",
+          "[threedim][assetloader][override]")
+{
+  TempDir tmp;
+  auto loader = load_asset(tmp.write("tri.ply", mesh_ply()));
+  REQUIRE(loader);
+  REQUIRE(loader->m_parsed_state);
+
+  // No cloud in a mesh scene: applyFormatOverride still clones the state
+  // (version bump) but has nothing to rewrite, so the tree keeps its identity.
+  const auto parsed = loader->m_parsed_state;
+  loader->inputs.format_override.value = "irrelevant";
+  loader->rebuild_format_state();
+
+  REQUIRE(loader->m_overridden_state);
+  CHECK(loader->m_overridden_state->version == parsed->version + 1);
+  CHECK(loader->m_overridden_state->roots.get() == parsed->roots.get());
 }
