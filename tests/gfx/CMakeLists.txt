@@ -212,6 +212,9 @@ score_add_gfx_test(depth_sampler   GfxDepthSampler.cpp)
 score_add_gfx_test(storage_visibility GfxStorageVisibility.cpp)
 score_add_gfx_test(multiview       GfxMultiview.cpp)
 score_add_gfx_test(dynamic_slot    GfxDynamicSlot.cpp)
+# The three scene-filter nodes added by 45d1202327, which had zero references
+# anywhere under tests/ while being user-facing processes.
+score_add_gfx_test(scene_filter_nodes SceneFilterNodes.cpp)
 # GpuResourceRegistry's default ctor is inline and value-initialises a
 # unique_ptr<OffsetAllocator::Allocator>, so instantiating a registry in the test
 # TU needs OffsetAllocator::Allocator::~Allocator() — compiled into the gfx plugin
