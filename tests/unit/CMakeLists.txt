@@ -451,4 +451,17 @@ score_add_test(test_unit_camera_math
       ${_camera_math_hidden}
     PLUGINS score_plugin_gfx
     LIBS ${QT_PREFIX}::Gui)
+
+  # ISOLATED, EXPECTED-RED (#163): the Camera auxiliary declares one 240-byte
+  # entry however many cameras the flattener packed into the buffer. Its own
+  # target, like test_gfx_isf_findings, so the attributable failure cannot take
+  # down the flattener suite.
+  score_plugin_hidden_sources(_camera_aux_hidden
+      "${_gfx_scene_src}/SceneGPUState.cpp")
+score_add_test(test_unit_scene_camera_aux
+    SOURCES
+      SceneCameraAuxTest.cpp
+      ${_camera_aux_hidden}
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
 endif()
