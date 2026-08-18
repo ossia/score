@@ -83,6 +83,11 @@ function(score_add_isf_test name source)
 endfunction()
 
 score_add_isf_test(image          IsfImageInputs.cpp)
+
+# Regression guard for the storage-buffer-into-uniform_input descriptor mismatch:
+# invalid on Vulkan (VUID-VkWriteDescriptorSet-descriptorType-00330, then a
+# SIGSEGV in setShaderResources) and silently nondeterministic on OpenGL.
+score_add_isf_test(buffer_usage_mismatch GfxBufferUsageMismatch.cpp)
 # CSF (compute-shader) L3 tests reuse the same helper (GUI app, corpus dir).
 function(score_add_csf_test name source)
   score_add_test(test_gfx_csf_${name}
