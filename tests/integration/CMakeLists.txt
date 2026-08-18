@@ -421,3 +421,19 @@ if(SCORE_VIDEO_TESTER)
     LABELS "gui"
     ENVIRONMENT "VIDEO_TESTER=${SCORE_ROOT_BINARY_DIR}/VideoDecoderTester;SCORE_AUDIO_BACKEND=dummy;ASAN_OPTIONS=detect_leaks=0:halt_on_error=0:handle_segv=1:detect_odr_violation=0:protect_shadow_gap=0")
 endif()
+
+# On-demand frame stepping: renderFrames / grabFrame / setStepRate and the
+# synthetic step clock. Drives the application binary because the mechanism only
+# exists inside a real gfx document, and uses separate processes because anything
+# cached in one would hide the nondeterminism it looks for. Needs a real display:
+# the offscreen QPA has no GL and reads back a flat colour.
+if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_frame_determinism
+    SOURCES FrameDeterminismTest.cpp
+    LIBS ${QT_PREFIX}::Gui)
+  target_compile_definitions(test_integration_frame_determinism PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\""
+    "GFX_TEST_CORPUS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/../gfx/corpus\"")
+  set_tests_properties(test_integration_frame_determinism PROPERTIES
+    TIMEOUT 1800 RUN_SERIAL TRUE LABELS "gui")
+endif()
