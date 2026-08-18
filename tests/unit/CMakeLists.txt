@@ -10,6 +10,12 @@ score_add_test(test_unit_address
 score_add_test(test_unit_project_files
   SOURCES ProjectFilesTest.cpp)
 
+# The document-free score::locateFilePath(QString) overload: <LIBRARY>: out of
+# QSettings, with no roots. A different function from the ProjectFiles.hpp one
+# above despite the shared name.
+score_add_test(test_unit_locate_file_path
+  SOURCES LocateFilePathTest.cpp)
+
 # Zip writing (miniz, vendored in 3rdparty/zipdownloader) behind score's API.
 score_add_test(test_unit_zip
   SOURCES ZipTest.cpp)
