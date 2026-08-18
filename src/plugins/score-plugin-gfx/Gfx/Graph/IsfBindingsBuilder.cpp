@@ -804,6 +804,22 @@ void bindUpstreamBuffers(
     if(!port || port->type != Types::Buffer)
       continue;
     QRhiBuffer* found = fetchUpstream(port);
+
+    // A uniform_input descriptor is VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, so the buffer
+    // behind it must carry UniformBuffer usage. An upstream publishing a storage
+    // buffer is a graph the user can build, but binding it here writes a descriptor
+    // vkUpdateDescriptorSets rejects with
+    // VUID-VkWriteDescriptorSet-descriptorType-00330. Keep the zero-filled
+    // placeholder instead of handing the backend an invalid descriptor.
+    if(found && !found->usage().testFlag(QRhiBuffer::UniformBuffer))
+    {
+      qWarning() << "ISF uniform_input" << e.name.c_str()
+                 << "is fed by a buffer without UniformBuffer usage; keeping the"
+                    " placeholder. Declare the input as storage_input, or have"
+                    " the producer publish a uniform buffer.";
+      found = nullptr;
+    }
+
     if(found == e.buffer)
       continue;  // unchanged — nothing to do
 
