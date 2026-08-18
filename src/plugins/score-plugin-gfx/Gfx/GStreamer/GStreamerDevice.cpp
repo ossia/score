@@ -33,7 +33,9 @@ extern "C" {
 #include <libavutil/pixfmt.h>
 }
 
+#include <Gfx/GStreamer/GStreamerAudioBuffer.hpp>
 #include <Gfx/GStreamer/GStreamerLoader.hpp>
+#include <Gfx/GStreamer/GStreamerPipelineParse.hpp>
 #include <Video/GStreamerCompatibility.hpp>
 
 #include <ossia/detail/parse_strict.hpp>
@@ -47,17 +49,8 @@ namespace Gfx::GStreamer
 
 struct gstreamer_pipeline
 {
-  struct AppsinkInfo
-  {
-    std::string name;
-    bool is_video{};
-    int width{};
-    int height{};
-    AVPixelFormat pixfmt{AV_PIX_FMT_NONE};
-    int channels{};
-    int rate{};
-    std::function<void(int, int, AVPixelFormat)> on_format_change;
-  };
+  using AppsinkInfo = Gfx::GStreamer::AppsinkInfo;
+  using AudioBuffer = Gfx::GStreamer::AudioBuffer;
 
   std::vector<AppsinkInfo> appsinks;
   std::vector<std::shared_ptr<::Video::FrameQueue>> video_queues;
@@ -65,108 +58,6 @@ struct gstreamer_pipeline
   // Named elements with their GObject properties exposed as ossia parameters
   std::vector<std::pair<std::string, GstElement*>> named_elements;
 
-  // Audio: GStreamer delivers large chunks (e.g. 1024 samples).
-  // The audio engine reads small chunks (e.g. 64 samples).
-  // We use a lock-free ring buffer to bridge the two.
-  struct AudioBuffer
-  {
-    int sample_rate{48000};
-    int num_channels{2};
-
-    // Ring buffer per channel, written by GStreamer thread, read by audio engine
-    static constexpr std::size_t ring_size = 65536;
-
-    // Max block the audio thread may resize the output storage to; the
-    // parameter reserves this up front so the per-tick resize never reallocates
-    // (a realloc would free a buffer the audio thread is reading through).
-    static constexpr std::size_t max_block = 1 << 15;
-    std::vector<std::vector<float>> ring; // [channel][ring_size]
-    std::atomic<std::size_t> write_pos{0};
-    std::atomic<std::size_t> read_pos{0};
-
-    // Backing storage for audio spans — audio engine reads from here
-    std::vector<ossia::float_vector>* output_data{};
-
-    void init(int nchannels)
-    {
-      num_channels = nchannels;
-      ring.resize(nchannels);
-      for(auto& ch : ring)
-        ch.resize(ring_size, 0.f);
-    }
-
-    // Called by GStreamer thread: write deinterleaved samples into ring
-    void write(const float* interleaved, int num_samples, int channels)
-    {
-      int nch = std::min(channels, num_channels);
-      auto wp = write_pos.load(std::memory_order_relaxed);
-      for(int s = 0; s < num_samples; s++)
-      {
-        for(int ch = 0; ch < nch; ch++)
-          ring[ch][(wp + s) % ring_size] = interleaved[s * channels + ch];
-      }
-      write_pos.store(wp + num_samples, std::memory_order_release);
-    }
-
-    // Points at the parameter's audio spans so read_into_output can re-point
-    // them after a resize. A raw pointer (not a std::function) so that clearing
-    // or using it during teardown can never throw on the audio thread.
-    ossia::small_vector<std::span<float>, 8>* output_spans{};
-
-    // Called by audio engine (indirectly): copy from ring into output spans
-    void read_into_output(int block_size)
-    {
-      if(!output_data)
-        return;
-
-      // The engine tick size can differ from the configured buffer size
-      // (e.g. PipeWire dynamic quantum); the storage follows it, but never
-      // beyond the capacity reserved at construction (so no reallocation).
-      if(block_size > (int)max_block)
-        block_size = max_block;
-      bool resized = false;
-      for(auto& v : *output_data)
-      {
-        if(std::ssize(v) != block_size)
-        {
-          v.resize(block_size);
-          resized = true;
-        }
-      }
-      if(resized && output_spans && output_data)
-      {
-        const std::size_t n = std::min(output_spans->size(), output_data->size());
-        for(std::size_t i = 0; i < n; i++)
-          (*output_spans)[i] = (*output_data)[i];
-      }
-
-      auto rp = read_pos.load(std::memory_order_relaxed);
-      auto wp = write_pos.load(std::memory_order_acquire);
-
-      // How many samples are available?
-      std::size_t available = (wp >= rp) ? (wp - rp) : 0;
-
-      int nch = std::min((int)output_data->size(), num_channels);
-      if(available >= (std::size_t)block_size)
-      {
-        // Copy block_size samples from ring to output
-        for(int ch = 0; ch < nch; ch++)
-        {
-          auto& dst = (*output_data)[ch];
-          auto& src = ring[ch];
-          for(int s = 0; s < block_size; s++)
-            dst[s] = src[(rp + s) % ring_size];
-        }
-        read_pos.store(rp + block_size, std::memory_order_release);
-      }
-      else
-      {
-        // Underrun: output silence
-        for(int ch = 0; ch < nch; ch++)
-          std::fill_n((*output_data)[ch].data(), block_size, 0.f);
-      }
-    }
-  };
   std::vector<std::unique_ptr<AudioBuffer>> audio_buffers;
 
   gstreamer_pipeline() = default;
@@ -406,106 +297,6 @@ struct gstreamer_pipeline
   }
 
 private:
-  static constexpr auto appsink_name_rexp
-      = ctll::fixed_string{R"(appsink\b[^!]*?\bname\s*=\s*([A-Za-z0-9_]+))"};
-  static constexpr auto elem_name_rexp
-      = ctll::fixed_string{R"(\bname\s*=\s*([A-Za-z0-9_]+))"};
-
-  static std::vector<std::string> find_appsink_names(const std::string& pipeline)
-  {
-    std::vector<std::string> names;
-    for(auto m : ctre::search_all<appsink_name_rexp>(pipeline))
-      names.push_back(m.get<1>().to_string());
-    return names;
-  }
-
-  // Find all name=<identifier> patterns in the pipeline string
-  // (covers any element, not just appsink/appsrc)
-  static std::vector<std::string> find_all_named_elements(const std::string& pipeline)
-  {
-    std::vector<std::string> names;
-    for(auto m : ctre::search_all<elem_name_rexp>(pipeline))
-      names.push_back(m.get<1>().to_string());
-    return names;
-  }
-
-  static constexpr auto channels_rexp
-      = ctll::fixed_string{R"(channels=(?:\(int\))?\s*([0-9]+))"};
-  static constexpr auto rate_rexp
-      = ctll::fixed_string{R"(rate=(?:\(int\))?\s*([0-9]+))"};
-  static constexpr auto width_rexp
-      = ctll::fixed_string{R"(width=(?:\(int\))?\s*([0-9]+))"};
-  static constexpr auto height_rexp
-      = ctll::fixed_string{R"(height=(?:\(int\))?\s*([0-9]+))"};
-  static constexpr auto format_rexp
-      = ctll::fixed_string{R"(format=(?:\(string\))?\s*([A-Za-z0-9]+))"};
-
-  template <ctll::fixed_string Rexp>
-  static int last_int_of(std::string_view str, int fallback)
-  {
-    int ret = fallback;
-    for(auto m : ctre::search_all<Rexp>(str))
-      if(auto v = ossia::parse_strict<int>(m.template get<1>().to_view()))
-        ret = *v;
-    return ret;
-  }
-
-  // Guess an appsink's media type from the pipeline string when caps are
-  // not negotiated yet: look for the last audio/video-ish token occurring
-  // before "appsink ... name=<sink_name>".
-  static void classify_from_pipeline_string(
-      const std::string& pipeline, const std::string& sink_name, AppsinkInfo& info)
-  {
-    std::size_t sink_pos = std::string::npos;
-    for(auto m : ctre::search_all<appsink_name_rexp>(pipeline))
-    {
-      if(m.get<1>().to_view() == sink_name)
-      {
-        sink_pos = std::distance(pipeline.begin(), m.get<0>().begin());
-        break;
-      }
-    }
-    const std::string_view before
-        = std::string_view{pipeline}.substr(0, sink_pos);
-
-    static constexpr std::string_view audio_tokens[]
-        = {"audio/x-raw", "audioconvert", "audioresample", "audiotestsrc"};
-    static constexpr std::string_view video_tokens[]
-        = {"video/x-raw", "videoconvert", "videoscale", "videotestsrc", "videorate"};
-
-    std::size_t last_audio = std::string::npos, last_video = std::string::npos;
-    for(auto tok : audio_tokens)
-      if(auto p = before.rfind(tok); p != std::string::npos)
-        last_audio = (last_audio == std::string::npos) ? p : std::max(last_audio, p);
-    for(auto tok : video_tokens)
-      if(auto p = before.rfind(tok); p != std::string::npos)
-        last_video = (last_video == std::string::npos) ? p : std::max(last_video, p);
-
-    const bool is_audio = last_audio != std::string::npos
-                          && (last_video == std::string::npos || last_audio > last_video);
-    if(is_audio)
-    {
-      info.is_video = false;
-      info.channels = last_int_of<channels_rexp>(before, 2);
-      info.rate = last_int_of<rate_rexp>(before, 48000);
-    }
-    else
-    {
-      info.is_video = true;
-      info.width = last_int_of<width_rexp>(before, 640);
-      info.height = last_int_of<height_rexp>(before, 480);
-      info.pixfmt = AV_PIX_FMT_RGBA;
-      std::string format;
-      for(auto m : ctre::search_all<format_rexp>(before))
-        format = m.get<1>().to_string();
-      if(!format.empty())
-      {
-        auto& map = ::Video::gstreamerToLibav();
-        if(auto it = map.find(format); it != map.end())
-          info.pixfmt = it->second;
-      }
-    }
-  }
 
   static void parse_video_caps(
       const libgstreamer& gst, GstStructure* s, AppsinkInfo& info)

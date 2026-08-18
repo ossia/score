@@ -569,6 +569,22 @@ score_add_test(test_unit_picker_start_folder
   SOURCES PickerStartFolderTest.cpp)
 
 
+
+# The GStreamer input device's two pieces of pure logic: appsink classification
+# from the pipeline string (no negotiated caps on a live source) and the audio
+# ring buffer whose per-tick resize must re-point the engine's spans. Neither
+# needs a GStreamer library.
+if(TARGET score_plugin_gfx AND TARGET score_plugin_media)
+  score_add_test(test_unit_gstreamer_pipeline_parse
+    SOURCES GStreamerPipelineParseTest.cpp
+    PLUGINS score_plugin_gfx score_plugin_media
+    LIBS avutil)
+
+  score_add_test(test_unit_gstreamer_audio_buffer
+    SOURCES GStreamerAudioBufferTest.cpp
+    PLUGINS score_plugin_gfx)
+endif()
+
 # Video::gstreamerToLibav(): the gst-name -> AVPixelFormat table feeding the
 # GStreamer, Sh4lt and Shmdata inputs. Header-only and self-contained, so the
 # test needs the plug-in only for its libav include paths and SCORE_HAS_LIBAV.
