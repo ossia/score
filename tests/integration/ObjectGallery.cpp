@@ -254,8 +254,14 @@ void run_render_check(const QString& filter, int seconds)
   if(textured == 0)
   {
     std::printf("RENDER  SKIP  %-40s (no texture output)\n", target.toUtf8().constData());
-    qApp->exit(3);
-    return;
+    std::fflush(stdout);
+    // Same hard exit as the success path below: a normal qApp->exit() runs the
+    // document-presenter teardown, which aborts in
+    // ApplicationContext::interfaces<Process::MagnetismAdjuster>() under
+    // MinimalGUIApplication — turning every "no texture output" object into an
+    // indistinguishable SIGABRT in the sweep tally.
+    flush_coverage();
+    std::_Exit(3);
   }
 
   auto& eng = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
