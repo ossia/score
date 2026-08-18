@@ -57,7 +57,8 @@ endfunction()
 foreach(pair
     "shader_strings:ShaderStrings.cpp"       # #5 triplanar + #6 equirect
     "hdr_extensions:HdrExtensions.cpp"       # #12 HDR extension honesty
-    "extract_leak:ExtractLeak.cpp")          # #14 partial-init release (source)
+    "extract_leak:ExtractLeak.cpp"           # #14 partial-init release (source)
+    "fisheye:FisheyeProjections.cpp")        # 7b2704dead + 0a314b547d
   string(REPLACE ":" ";" _p "${pair}")
   list(GET _p 0 _name)
   list(GET _p 1 _src)
@@ -137,6 +138,55 @@ score_add_test(test_threedim_camera_release
   SOURCES CameraRelease.cpp "${THREEDIM_DIR}/Camera.cpp"
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_camera_release)
+
+# -----------------------------------------------------------------------------
+# The pure scene_state -> scene_state algebra of 52104d297f (+ TagAs from
+# f0a202a782). Header-inline nodes need no engine .cpp; the rest compile theirs
+# in. score_plugin_gfx supplies the GpuResourceRegistry / RenderList symbols
+# their init/update/release reference — none of which these tests call, so the
+# arena slots stay invalid and no GPU is touched.
+score_add_test(test_threedim_scene_graph_ops
+  SOURCES SceneGraphOps.cpp
+    "${THREEDIM_DIR}/SceneGroup.cpp"
+    "${THREEDIM_DIR}/SceneSelector.cpp"
+    "${THREEDIM_DIR}/SceneDuplicator.cpp"
+    "${THREEDIM_DIR}/TagAs.cpp"
+    "${THREEDIM_DIR}/PrimitiveCloud/FormatOverride.cpp"
+  PLUGINS score_plugin_gfx
+  LIBS ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_scene_graph_ops)
+
+# CameraArray's six cubemap faces — the producer side of issue #163. Entirely
+# header-inline; only Qt Gui is needed for QQuaternion.
+score_add_test(test_threedim_camera_array_faces
+  SOURCES CameraArrayFaces.cpp
+  LIBS ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_camera_array_faces)
+
+# Transform3D TRS composition + the TransformHelper free functions.
+score_add_test(test_threedim_transform3d
+  SOURCES Transform3DCompose.cpp "${THREEDIM_DIR}/Transform3D.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_transform3d)
+
+# ShadowCascadeSetup's cascade math: split scheme, findActiveCamera id
+# filtering, the reverse-Z NDC flip and the zPad direction (f92f98ceab).
+score_add_test(test_threedim_shadow_cascades
+  SOURCES ShadowCascades.cpp "${THREEDIM_DIR}/ShadowCascadeSetup.cpp"
+  LIBS ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_shadow_cascades)
+
+# EXPECTED RED. Contracts the engine does not satisfy yet (issue #163's
+# one-entry `camera` aux; CameraSwitch's Blend accumulating onto default-
+# constructed components). Isolated so an open defect does not mask the
+# green suites, and so the entry flips to PASS on the day it is fixed.
+score_add_test(test_threedim_known_defects
+  SOURCES KnownDefects.cpp
+  PLUGINS score_plugin_gfx
+  LIBS ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_known_defects)
+target_compile_definitions(test_threedim_known_defects PRIVATE
+  GFX_SRC_DIR="${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx/Gfx")
 
 # #3 CRASH — CubemapLoader must clamp the cube face size to the device
 # TextureSizeMax (and check create()). Drives createCubemapTexture() directly on
