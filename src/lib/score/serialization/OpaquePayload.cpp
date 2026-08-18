@@ -6,14 +6,8 @@ namespace score
 {
 namespace
 {
-// A JSON payload has to be carried inside a binary blob sometimes -- autosave
-// and interval moves both serialise to the binary format regardless of where
-// the document came from. These say which of the two is inside, so that
-// reading it back does not have to guess.
-//
-// Nothing a plug-in writes can be mistaken for either: the binary marker is a
-// byte sequence with an embedded NUL, and the JSON key is not a name anyone
-// would choose.
+// Which format is inside, since a JSON payload can end up in a binary blob:
+// autosave and interval moves serialise to binary whatever the document is.
 constexpr auto foreign_json_marker = "\0score-opaque-json";
 constexpr int foreign_json_marker_size = 18;
 constexpr auto foreign_binary_key = "$score-opaque-binary";
@@ -80,6 +74,35 @@ OpaquePayload OpaquePayload::fromDataStream(DataStream::Deserializer& vis) noexc
   }
 
   return OpaquePayload{DataStream::type(), std::move(tail)};
+}
+
+QByteArray OpaquePayload::toBlob() const noexcept
+{
+  if(empty())
+    return {};
+
+  QByteArray out;
+  QDataStream s{&out, QIODevice::WriteOnly};
+  s << (int32_t)format << bytes;
+  return out;
+}
+
+OpaquePayload OpaquePayload::fromBlob(const QByteArray& blob) noexcept
+{
+  if(blob.isEmpty())
+    return {};
+
+  QDataStream s{blob};
+  int32_t fmt{};
+  QByteArray b;
+  s >> fmt >> b;
+
+  if(s.status() != QDataStream::Ok)
+    return {};
+  if(fmt != DataStream::type() && fmt != JSONObject::type())
+    return {};
+
+  return OpaquePayload{fmt, std::move(b)};
 }
 
 void OpaquePayload::write(const VisitorVariant& vis) const noexcept

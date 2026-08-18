@@ -50,6 +50,15 @@ class SCORE_PLUGIN_LIBRARY_EXPORT ProcessWidget : public QWidget
 {
 public:
   ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* parent);
+
+  //! Show what this file looks like, from its bytes when the file itself is on
+  //! another machine.
+  void showPreview(const QString& path, const QByteArray& contents);
+
+  //! What the selection is waiting to preview. Bytes fetched from the other
+  //! machine arrive whenever they arrive, and by then the user may have
+  //! selected something else.
+  QString m_awaitedPreview;
   ~ProcessWidget();
 
   ProcessesItemModel& processModel() const noexcept { return *m_processModel; }

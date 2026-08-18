@@ -1,5 +1,7 @@
 #include "ApplicationPlugin.hpp"
 
+#include <score/application/ScriptEvaluator.hpp>
+
 #include <JS/DocumentPlugin.hpp>
 #include <JS/Qml/DeviceContext.hpp>
 #include <JS/Qml/EditContext.hpp>
@@ -33,6 +35,29 @@
 
 namespace JS
 {
+namespace
+{
+//! The JS plug-in's answer to "run this here". Registered for the whole
+//! process: the session layer needs to run a peer's script without knowing
+//! what a QJSEngine is.
+struct ConsoleEvaluator final : score::ScriptEvaluator
+{
+  QJSEngine& engine;
+  explicit ConsoleEvaluator(QJSEngine& e)
+      : engine{e}
+  {
+  }
+
+  QString evaluate(const score::DocumentContext&, const QString& code) override
+  {
+    auto res = engine.evaluate(code);
+    if(res.isError())
+      return QStringLiteral("ERROR: ") + res.toString();
+    return res.isUndefined() ? QString{} : res.toString();
+  }
+};
+}
+
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
     : score::GUIApplicationPlugin{ctx}
 {
@@ -45,6 +70,11 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
       "Library", m_consoleEngine.newQObject(new JsLibrary));
   m_consoleEngine.globalObject().setProperty("Device", m_consoleEngine.newQObject(new DeviceContext{m_consoleEngine}));
   m_consoleEngine.globalObject().setProperty("View", m_consoleEngine.newQObject(new JsViewContext));
+
+  // What a peer's script runs through when this machine is the one with the
+  // devices. Owned here, so it lasts exactly as long as the engine it wraps.
+  m_evaluator = std::make_unique<ConsoleEvaluator>(m_consoleEngine);
+  score::scriptEvaluator() = m_evaluator.get();
   connect(&m_consoleEngine, &QQmlEngine::exit, this, [&] {
     for(auto& doc : score::GUIAppContext().docManager.documents())
       doc->commandStack().markCurrentIndexAsSaved();
@@ -93,6 +123,10 @@ void ApplicationPlugin::on_newDocument(score::Document& doc)
 
 ApplicationPlugin::~ApplicationPlugin()
 {
+  // Or the next peer's script runs against an engine that no longer exists.
+  if(score::scriptEvaluator() == m_evaluator.get())
+    score::scriptEvaluator() = nullptr;
+
   m_processMessages = false;
   m_asioContext->context.stop();
   m_asioThread.join();
@@ -128,7 +162,24 @@ void ApplicationPlugin::on_createdDocument(score::Document& doc)
 
   if(!m_start_script.isEmpty())
   {
-    QTimer::singleShot(100, this, [this] { m_consoleEngine.evaluate(m_start_script); });
+    // restarted per document: the last one created is the one to script
+    if(!m_start_script_timer)
+    {
+      m_start_script_timer = new QTimer{this};
+      m_start_script_timer->setSingleShot(true);
+      connect(m_start_script_timer, &QTimer::timeout, this, [this] {
+        // --script takes either JavaScript source or the path to a file
+        QString source = m_start_script;
+        if(QFile f{m_start_script}; f.exists() && f.open(QIODevice::ReadOnly))
+          source = QString::fromUtf8(f.readAll());
+
+        m_start_script.clear();
+        auto res = m_consoleEngine.evaluate(source);
+        if(res.isError())
+          qWarning() << "--script:" << res.toString();
+      });
+    }
+    m_start_script_timer->start(100);
   }
 }
 void ApplicationPlugin::afterStartup()

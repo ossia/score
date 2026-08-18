@@ -5,6 +5,8 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Process/ProcessList.hpp>
+#include <Process/RemoteState.hpp>
+#include <score/document/DocumentContext.hpp>
 
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -75,11 +77,24 @@ Process::ProcessModel& AddOnlyProcessToInterval::redo(
     IntervalModel& interval, const score::DocumentContext& ctx) const
 {
   // Create process model
-  auto fac = ctx.app.interfaces<Process::ProcessFactoryList>().get(m_processName);
-  SCORE_ASSERT(fac);
-  auto proc = fac->make(
-      interval.duration.defaultDuration(), // TODO should maybe be max ?
-      m_data, m_createdProcessId, ctx, &interval);
+  auto& facs = ctx.app.interfaces<Process::ProcessFactoryList>();
+  auto fac = facs.get(m_processName);
+
+  // A peer runs its own build, so a command can name a process this one
+  // cannot make. A stand-in keeps the document in step, and says it is one.
+  Process::ProcessModel* proc
+      = fac ? fac->make(
+                  interval.duration.defaultDuration(), // TODO should maybe be max ?
+                  m_data, m_createdProcessId, ctx, &interval)
+            : facs.makeMissing(
+                  m_processName, interval.duration.defaultDuration(),
+                  m_createdProcessId, &interval);
+  SCORE_ASSERT(proc);
+
+  // Creation data can name a file on the machine that sent the command, so
+  // even a factory we have produces an empty process.
+  if(fac && ctx.role() != score::DocumentRole::Local)
+    Process::awaitingRemoteState().push_back(proc);
 
   proc->setPosition(m_graphpos);
   AddProcess(interval, proc);
@@ -127,11 +142,16 @@ Process::ProcessModel& LoadOnlyLayerInInterval::redo(
   const JsonValue obj{m_data.GetObject()};
   auto key = obj[score::StringConstant().uuid].to<UuidKey<Process::ProcessModel>>();
 
-  auto fac = ctx.app.interfaces<Process::ProcessFactoryList>().get(key);
-  SCORE_ASSERT(fac);
-  // TODO handle missing process
+  auto& facs = ctx.app.interfaces<Process::ProcessFactoryList>();
+  auto fac = facs.get(key);
+
+  // Carries the process serialized, so loadMissing keeps it verbatim and
+  // rebuilds the ports.
   JSONObject::Deserializer des{obj};
-  auto proc = fac->load(des.toVariant(), ctx, &interval);
+  Process::ProcessModel* proc
+      = fac ? fac->load(des.toVariant(), ctx, &interval)
+            : facs.loadMissing(key, des.toVariant(), ctx, &interval);
+  SCORE_ASSERT(proc);
   const auto ports = proc->findChildren<Process::Port*>();
   for(Process::Port* port : ports)
   {

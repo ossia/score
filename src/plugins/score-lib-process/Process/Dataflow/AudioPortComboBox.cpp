@@ -4,6 +4,7 @@
 #include <Process/Dataflow/Port.hpp>
 
 #include <Explorer/DeviceList.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -113,20 +114,30 @@ QComboBox* makeAddressCombo(
   return edit;
 }
 
+std::optional<State::Address> droppedDeviceAddress(
+    const Device::FreeNodeList& nodes, Process::PortType type) noexcept
+{
+  if(nodes.empty() || type == Process::PortType::Message)
+    return std::nullopt;
+
+  const auto& [address, node] = nodes.front();
+  if(!node.template is<Device::DeviceSettings>() || address.device.isEmpty())
+    return std::nullopt;
+
+  return State::Address{address.device, {}};
+}
+
 QComboBox* makeDeviceCombo(
-    std::function<bool(Device::DeviceInterface&)> condition, Device::DeviceList& list,
-    const Process::Port& port, const score::DocumentContext& ctx, QWidget* parent)
+    Device::DeviceKind kind, Device::DeviceList& list, const Process::Port& port,
+    const score::DocumentContext& ctx, QWidget* parent)
 {
   using namespace Device;
   auto edit = new QComboBox{parent};
   edit->addItem("");
 
-  auto on_add = [condition, edit](Device::DeviceInterface* dev) {
-    if(condition(*dev))
-    {
-      auto& set = dev->settings();
-      edit->addItem(set.name);
-    }
+  auto on_add = [kind, edit](Device::DeviceInterface* dev) {
+    if(dev && dev->kinds().testFlag(kind))
+      edit->addItem(dev->settings().name);
   };
   list.apply([on_add](Device::DeviceInterface& dev) { on_add(&dev); });
   QObject::connect(&list, &Device::DeviceList::deviceAdded, edit, on_add);
@@ -137,6 +148,20 @@ QComboBox* makeDeviceCombo(
     if(idx >= 0)
       edit->removeItem(idx);
   });
+
+  // Nothing here is a device object when the score runs on another machine, so
+  // the names come from what that machine reported instead.
+  if(auto* plug = ctx.findPlugin<Explorer::DeviceDocumentPlugin>())
+  {
+    auto on_remote = [kind, edit, plug] {
+      for(const auto& name : plug->remoteDevicesOfKind(kind))
+        if(edit->findText(name) < 0)
+          edit->addItem(name);
+    };
+    on_remote();
+    QObject::connect(
+        plug, &Explorer::DeviceDocumentPlugin::remoteKindsChanged, edit, on_remote);
+  }
 
   edit->setCurrentText(port.address().address.device);
 

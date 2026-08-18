@@ -120,8 +120,14 @@ std::optional<Library::ProcessEntry> LibraryHandler::scanPath(std::string_view p
 QWidget*
 LibraryHandler::previewWidget(const QString& path, QWidget* parent) const noexcept
 {
+  return previewWidget(path, QByteArray{}, parent);
+}
+
+QWidget* LibraryHandler::previewWidget(
+    const QString& path, const QByteArray& contents, QWidget* parent) const noexcept
+{
   if(!qEnvironmentVariableIsSet("SCORE_DISABLE_SHADER_PREVIEW"))
-    return new ShaderPreviewWidget{path, parent};
+    return new ShaderPreviewWidget{path, contents, parent};
   else
     return nullptr;
 }

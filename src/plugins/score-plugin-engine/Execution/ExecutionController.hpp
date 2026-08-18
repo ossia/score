@@ -64,6 +64,10 @@ public:
   void request_stop_interval(Scenario::IntervalModel&);
   void request_stop();
 
+  //! Whether this application is executing a score right now, whichever
+  //! document it belongs to.
+  bool isPlaying() const noexcept { return m_playing || bool(m_clock); }
+
   void request_begin_scrub(TimeVal t);
   void request_scrub(TimeVal t);
   void request_end_scrub(TimeVal t);
@@ -84,7 +88,12 @@ private:
       ::TimeVal t = ::TimeVal::zero());
 
   void stop_interval(Scenario::IntervalModel&);
-  void ensure_audio_engine();
+  //! False -- and says why -- when nothing can be played through.
+  bool has_audio_engine();
+
+  //! False when the current score runs on another machine, so the transport
+  //! belongs to that machine and nothing here may enter the state machine.
+  bool executesHere() const;
 
   void on_play_local(bool, ::TimeVal t);
   void on_pause();

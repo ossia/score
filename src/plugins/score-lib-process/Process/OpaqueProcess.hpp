@@ -7,6 +7,10 @@
 
 #include <score_lib_process_export.h>
 
+#include <QPointer>
+
+#include <vector>
+
 namespace Process
 {
 /**
@@ -48,6 +52,13 @@ public:
       const UuidKey<ProcessModel>& key, DataStream::Deserializer& vis, QObject* parent);
   OpaqueProcessModel(
       const UuidKey<ProcessModel>& key, JSONObject::Deserializer& vis, QObject* parent);
+
+  //! For a command naming a process whose factory we do not have. Has no
+  //! state, and says so: see incomplete().
+  OpaqueProcessModel(
+      const UuidKey<ProcessModel>& key, const TimeVal& duration,
+      const Id<ProcessModel>& id, QObject* parent);
+
   ~OpaqueProcessModel() override;
 
   //! The key of the process we replace, not one of our own.
@@ -66,6 +77,15 @@ public:
   //! this process has none of its own.
   bool portsAreOpaque() const noexcept { return m_portsInPayload; }
 
+  //! True when the state was never received: created by a command rather than
+  //! read from a document, so its emptiness is not authoritative.
+  bool incomplete() const noexcept { return m_incomplete; }
+
+  //! Give it the state it never had, as its author serialized it. Rebuilds the
+  //! ports when the format allows, exactly as loading one from a document does.
+  void setState(const rapidjson::Value& serialized);
+
+
   //! The names of the JSON members written by ProcessModel and its bases.
   //! Anything else in a serialized process belongs to its plug-in.
   static const QStringList& baseMemberNames() noexcept;
@@ -77,6 +97,7 @@ private:
   // when those could be rebuilt.
   score::OpaquePayload m_payload;
   bool m_portsInPayload{true};
+  bool m_incomplete{false};
 };
 
 /**

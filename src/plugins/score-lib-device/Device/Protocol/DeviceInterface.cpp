@@ -1072,4 +1072,9 @@ void releaseDevice(
     }
   }
 }
+
+DeviceKinds DeviceInterface::kinds() const noexcept
+{
+  return {};
+}
 }

@@ -1065,7 +1065,7 @@ struct FileChooser
     act->setIcon(QIcon(":/icons/search.png"));
     sl->setPlaceholderText(QObject::tr("Open File"));
     auto on_open = [=, &ctx, &inlet] {
-      score::openFileToImport(inlet.filters(), [=, &ctx](const QString& filename) {
+      score::openFileToImport(ctx, inlet.filters(), [=, &ctx](const QString& filename) {
         auto path = score::relativizeFilePath(filename, ctx);
         sl->setText(path);
       });
@@ -1098,7 +1098,7 @@ struct FileChooser
     auto bt = new score::QGraphicsTextButton{"Choose a file...", parent};
     initWidgetProperties(inlet, *bt);
     auto on_open = [&inlet, &ctx] {
-      score::openFileToImport(inlet.filters(), [&inlet, &ctx](const QString& filename) {
+      score::openFileToImport(ctx, inlet.filters(), [&inlet, &ctx](const QString& filename) {
         auto path = score::relativizeFilePath(filename, ctx);
         CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
             inlet, path.toStdString());

@@ -10,12 +10,15 @@
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/document/DocumentInterface.hpp>
 #include <score/model/Skin.hpp>
+#include <score/serialization/JSONVisitor.hpp>
+#include <score/tools/Environment.hpp>
 #include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/tools/File.hpp>
-#include <score/tools/FilePath.hpp>
-#include <score/tools/RecursiveWatch.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/TextLabel.hpp>
@@ -28,16 +31,15 @@
 #include <QCoreApplication>
 #include <QDesktopServices>
 #include <QDialogButtonBox>
-#include <QDirIterator>
 #include <QFormLayout>
 #include <QHeaderView>
 #include <QLabel>
 #include <QListWidget>
 #include <QPushButton>
-#include <QSettings>
 #include <QSplitter>
+#include <QFileInfo>
+#include <QPointer>
 #include <QStackedWidget>
-#include <QStandardPaths>
 #include <QTreeWidget>
 #include <QVariant>
 #include <QWidget>
@@ -111,6 +113,7 @@ DeviceEditDialog::DeviceEditDialog(
   m_column1Stack->addWidget(m_protocols);
 
   m_presets = new QTreeWidget{this};
+  m_presets->setObjectName("PresetList");
   m_presets->header()->hide();
   m_presets->setSelectionMode(QAbstractItemView::SingleSelection);
   m_column1Stack->addWidget(m_presets);
@@ -149,6 +152,7 @@ DeviceEditDialog::DeviceEditDialog(
   m_devicesLabel->setAlignment(Qt::AlignTop);
   m_devicesLabel->setAlignment(Qt::AlignHCenter);
   m_devices = new QTreeWidget{this};
+  m_devices->setObjectName("DeviceList");
   m_devices->header()->hide();
   m_devices->setSelectionMode(QAbstractItemView::SingleSelection);
   column2_layout->addWidget(m_devices);
@@ -250,26 +254,53 @@ void DeviceEditDialog::initAvailableProtocols()
   // initialize previous settings
   m_previousSettings.clear();
 
-  std::vector<Device::ProtocolFactory*> sorted;
-  for(auto& elt : m_protocolList)
+  // The catalog's protocols when the score runs elsewhere; ours otherwise.
+  struct Listed
   {
-    sorted.push_back(&elt);
+    UuidKey<Device::ProtocolFactory> key;
+    QString name;
+    QString category;
+    Device::DeviceSettings defaults;
+    int priority{};
+  };
+  std::vector<Listed> listed;
+
+  if(auto* cat = catalog())
+  {
+    for(const auto& p : cat->protocols())
+    {
+      Device::DeviceSettings def;
+      if(auto* fac = m_protocolList.get(p.key))
+        def = fac->defaultSettings();
+      else
+      {
+        def.protocol = p.key;
+        def.name = p.name;
+      }
+      listed.push_back(Listed{p.key, p.name, p.category, def, 0});
+    }
+  }
+  else
+  {
+    for(auto& prot : m_protocolList)
+      listed.push_back(Listed{
+          prot.concreteKey(), prot.prettyName(), prot.category(),
+          prot.defaultSettings(), prot.visualPriority()});
   }
 
-  ossia::sort(sorted, [](Device::ProtocolFactory* lhs, Device::ProtocolFactory* rhs) {
-    return lhs->visualPriority() > rhs->visualPriority()
-           || (lhs->visualPriority() == rhs->visualPriority()
-               && lhs->prettyName() < rhs->prettyName());
+  ossia::sort(listed, [](const Listed& lhs, const Listed& rhs) {
+    return lhs.priority > rhs.priority
+           || (lhs.priority == rhs.priority && lhs.name < rhs.name);
   });
-  for(const auto& prot_pair : sorted)
+
+  for(const auto& prot : listed)
   {
-    auto& prot = *prot_pair;
-    auto cat_list = m_protocols->findItems(prot.category(), Qt::MatchFixedString);
+    auto cat_list = m_protocols->findItems(prot.category, Qt::MatchFixedString);
     QTreeWidgetItem* categoryItem{};
     if(cat_list.size() == 0)
     {
       categoryItem = new QTreeWidgetItem;
-      categoryItem->setText(0, prot.category());
+      categoryItem->setText(0, prot.category);
       categoryItem->setFlags(Qt::ItemIsEnabled);
       m_protocols->addTopLevelItem(categoryItem);
     }
@@ -279,10 +310,10 @@ void DeviceEditDialog::initAvailableProtocols()
     }
 
     auto item = new QTreeWidgetItem{categoryItem};
-    item->setText(0, prot.prettyName());
-    item->setData(0, Qt::UserRole, QVariant::fromValue(prot.concreteKey()));
+    item->setText(0, prot.name);
+    item->setData(0, Qt::UserRole, QVariant::fromValue(prot.key));
     item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-    m_previousSettings.append(prot.defaultSettings());
+    m_previousSettings.append(prot.defaults);
   }
 
   m_protocols->sortItems(0, Qt::AscendingOrder);
@@ -301,49 +332,26 @@ void DeviceEditDialog::initPresets()
 {
   m_presets->clear();
 
-  // Read the library root path directly from QSettings
-  // to avoid a dependency on score-plugin-library
-  QSettings s;
-  QString rootPath = s.value("Library/RootPath").toString();
-  if(rootPath.isEmpty())
-  {
-    auto paths = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
-    if(!paths.isEmpty())
+  // Through the environment rather than the local library folder: on a terminal
+  // the packages are on the other machine, and scanning here found nothing.
+  auto& ctx = score::IDocument::documentContext(m_model);
+  score::listRecursive(
+      ctx.environment(), score::Uri{score::UriScheme::Library, "packages"}, ".device",
+      [this, alive = QPointer<DeviceEditDialog>{this}](
+          std::vector<score::DirEntry> presets) {
+    if(!alive)
+      return;
+
+    for(const score::DirEntry& preset : presets)
     {
-      rootPath = QString("%1/%2/%3")
-                     .arg(
-                         paths[0], QCoreApplication::organizationName(),
-                         QCoreApplication::applicationName());
-    }
-  }
-
-  if(rootPath.isEmpty())
-    return;
-
-  static score::RecursiveWatch r;
-  r.reset();
-  r.registerWatch(
-      "device", score::RecursiveWatch::AsyncCallbacks{
-                    .filter = [&](std::string_view path) -> std::function<void()> {
-    const auto path_info = score::PathInfo{path};
-    auto basename = QString::fromUtf8(
-        path_info.completeBaseName.data(), path_info.completeBaseName.size());
-    auto absolutePath = QString::fromUtf8(
-        path_info.absoluteFilePath.data(), path_info.absoluteFilePath.size());
-
-    return
-        [this, basename = std::move(basename), absolutePath = std::move(absolutePath)] {
       auto item = new QTreeWidgetItem;
-      item->setText(0, basename);
-      item->setData(0, Qt::UserRole, absolutePath);
+      item->setText(0, QFileInfo{preset.name}.completeBaseName());
+      item->setData(0, Qt::UserRole, preset.uri.toString());
       item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
       m_presets->addTopLevelItem(item);
-    };
-  }});
-  r.setWatchedFolder(rootPath.toStdString() + "/packages");
-  r.scanAsync(this);
-
-  m_presets->sortItems(0, Qt::AscendingOrder);
+    }
+    m_presets->sortItems(0, Qt::AscendingOrder);
+      });
 }
 
 void DeviceEditDialog::selectedPresetChanged()
@@ -355,19 +363,31 @@ void DeviceEditDialog::selectedPresetChanged()
   if(!item)
     return;
 
-  auto filePath = item->data(0, Qt::UserRole).toString();
-  if(filePath.isEmpty())
+  const auto stored = item->data(0, Qt::UserRole).toString();
+  if(stored.isEmpty())
     return;
 
-  // Load the full device node from the .device file
-  Device::Node n;
-  if(!Device::loadDeviceFromScoreJSON(filePath, n))
-    return;
+  // The preset is a file, and the files are not necessarily here.
+  auto& ctx = score::IDocument::documentContext(m_model);
+  ctx.environment().read(
+      score::Uri::parse(stored),
+      [this, alive = QPointer<DeviceEditDialog>{this}](const QByteArray& contents) {
+    if(!alive)
+      return;
 
+    Device::Node n;
+    if(Device::loadDeviceFromScoreJSON(readJson(contents), n))
+      applyPreset(std::move(n));
+      });
+}
+
+void DeviceEditDialog::applyPreset(Device::Node n)
+{
   if(!n.is<Device::DeviceSettings>())
     return;
 
   auto& deviceSettings = n.get<Device::DeviceSettings>();
+  m_chosenSettings = deviceSettings;
 
   // Find the protocol factory for this device
   auto protocol = m_protocolList.get(deviceSettings.protocol);
@@ -393,8 +413,11 @@ void DeviceEditDialog::selectedPresetChanged()
     m_splitter->widget(0)->hide();
 
   // Create the correct settings widget for this protocol
-  m_protocolNameLabel->setText(tr("Settings (%1)").arg(protocol->prettyName()));
-  m_protocolWidget = protocol->makeSettingsWidget();
+  // No factory, no form: the settings widget lives in the absent plug-in.
+  m_protocolNameLabel->setText(
+      protocol ? tr("Settings (%1)").arg(protocol->prettyName())
+               : tr("Configured on the other machine"));
+  m_protocolWidget = protocol ? protocol->makeSettingsWidget() : nullptr;
 
   if(m_protocolWidget)
   {
@@ -419,6 +442,30 @@ void DeviceEditDialog::selectedPresetChanged()
   updateValidity();
 }
 
+void DeviceEditDialog::hideDevicesColumn()
+{
+  m_devices->setVisible(false);
+  m_devicesLabel->setVisible(false);
+  if(m_splitter->count() > 0)
+    m_splitter->widget(0)->hide();
+}
+
+void DeviceEditDialog::showDevicesColumn()
+{
+  if(m_devices->isVisible())
+    return;
+
+  m_devices->setVisible(true);
+  m_devicesLabel->setVisible(true);
+  m_devices->setRootIsDecorated(false);
+  m_devices->setExpandsOnDoubleClick(false);
+  if(m_splitter->count() > 0)
+  {
+    m_splitter->widget(0)->show();
+    m_splitter->widget(0)->setMinimumWidth(200);
+  }
+}
+
 void DeviceEditDialog::selectedDeviceChanged()
 {
   if(!m_devices->isVisible())
@@ -433,10 +480,16 @@ void DeviceEditDialog::selectedDeviceChanged()
   auto name = item->text(0);
   auto data = item->data(0, Qt::UserRole).value<Device::DeviceSettings>();
 
+  m_chosenSettings = data;
   if(m_protocolWidget)
     m_protocolWidget->setSettings(data);
 
   updateValidity();
+}
+
+Device::DeviceCatalog* DeviceEditDialog::catalog() const noexcept
+{
+  return m_model.deviceModel().catalog();
 }
 
 void DeviceEditDialog::selectedProtocolChanged()
@@ -456,14 +509,19 @@ void DeviceEditDialog::selectedProtocolChanged()
   if(key == UuidKey<Device::ProtocolFactory>{})
     return;
 
+  m_currentProtocol = key;
+
   // Clear preset state
   m_presetNode = Device::Node{};
+  m_chosenSettings = Device::DeviceSettings{};
 
   // Clear listener
   m_enumerators.clear();
 
-  // Clear devices
+  // Clear devices. Hidden until something is in it: nothing else hides it, so
+  // a protocol with no hardware kept whatever the previous one had shown.
   m_devices->clear();
+  hideDevicesColumn();
 
   // Clear protocol widget
   if(m_protocolWidget)
@@ -476,21 +534,67 @@ void DeviceEditDialog::selectedProtocolChanged()
   }
 
   auto protocol = m_protocolList.get(key);
-  for(auto [name, e] : protocol->getEnumerators(*doc))
-    m_enumerators.emplace_back(name, e);
+
+  // The other machine's hardware through the catalog, or this one's.
+  auto* remoteCatalog = catalog();
+  if(remoteCatalog)
+  {
+    // The answer may outlive the dialog, or the choice of protocol.
+    auto addRemote = [self = QPointer{this}, key](
+                         const QString& category, const QString& name,
+                         const Device::DeviceSettings& settings) {
+      if(!self || self->m_currentProtocol != key)
+        return;
+      auto* const me = self.data();
+      // On the first one: plenty of protocols enumerate nothing, and an empty
+      // column claiming a device list is worse than no column.
+      me->showDevicesColumn();
+
+      auto item = new QTreeWidgetItem;
+      item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+      item->setText(0, name);
+      item->setData(0, Qt::UserRole, QVariant::fromValue(settings));
+
+      // A heading per enumerator, as for local hardware.
+      if(category.isEmpty())
+      {
+        me->m_devices->addTopLevelItem(item);
+        return;
+      }
+
+      QTreeWidgetItem* cat{};
+      for(int i = 0; i < me->m_devices->topLevelItemCount() && !cat; i++)
+      {
+        auto* candidate = me->m_devices->topLevelItem(i);
+        if(candidate->text(0) == category)
+          cat = candidate;
+      }
+      if(!cat)
+      {
+        cat = new QTreeWidgetItem;
+        setCategoryStyle(cat);
+        cat->setText(0, category);
+        cat->setFlags(Qt::ItemIsEnabled);
+        me->m_devices->addTopLevelItem(cat);
+      }
+      cat->addChild(item);
+      cat->setExpanded(true);
+    };
+
+    remoteCatalog->enumerate(key, addRemote);
+  }
+  else if(protocol)
+  {
+    for(auto [name, e] : protocol->getEnumerators(*doc))
+      m_enumerators.emplace_back(name, e);
+  }
+
   std::sort(m_enumerators.begin(), m_enumerators.end(),
       [](const auto& a, const auto& b) { return a.first < b.first; });
-  if(!m_enumerators.empty())
+  // This machine's hardware; the catalog path above has shown its own.
+  if(!remoteCatalog && !m_enumerators.empty())
   {
-    m_devices->setVisible(true);
-    m_devicesLabel->setVisible(true);
-    m_devices->setRootIsDecorated(false);
-    m_devices->setExpandsOnDoubleClick(false);
-    if(m_splitter->count() > 0)
-    {
-      m_splitter->widget(0)->show();
-      m_splitter->widget(0)->setMinimumWidth(200);
-    }
+    showDevicesColumn();
 
     for(auto& [name, e] : m_enumerators)
     {
@@ -533,14 +637,16 @@ void DeviceEditDialog::selectedProtocolChanged()
       e->enumerate(addItem);
     }
   }
-  else
+  else if(!remoteCatalog)
   {
     m_devices->setVisible(false);
     m_devicesLabel->setVisible(false);
     m_splitter->widget(0)->hide();
   }
-  m_protocolNameLabel->setText(tr("Settings (%1)").arg(protocol->prettyName()));
-  m_protocolWidget = protocol->makeSettingsWidget();
+  m_protocolNameLabel->setText(
+      protocol ? tr("Settings (%1)").arg(protocol->prettyName())
+               : tr("Configured on the other machine"));
+  m_protocolWidget = protocol ? protocol->makeSettingsWidget() : nullptr;
 
   if(m_protocolWidget)
   {
@@ -566,13 +672,32 @@ Device::DeviceSettings DeviceEditDialog::getSettings() const
   if(m_protocolWidget)
     return m_protocolWidget->getSettings();
 
-  return {};
+  // No widget means this build has no such protocol -- the form is C++ in a
+  // plug-in we do not have. Such a device can still be added, through what the
+  // other machine enumerated or a preset, so what it sent is what we return.
+  return m_chosenSettings;
 }
 
 Device::Node DeviceEditDialog::getDevice() const
 {
   if(!m_protocolWidget)
-    return {};
+  {
+    // No form for this protocol in this build, so there is nothing to read the
+    // device out of but what was chosen -- the other machine's hardware, or a
+    // preset. Returning nothing here is what made Add do nothing at all.
+    if(m_chosenSettings.protocol == UuidKey<Device::ProtocolFactory>{})
+      return {};
+
+    if(m_presetNode.is<Device::DeviceSettings>())
+    {
+      Device::Node n = m_presetNode;
+      if(auto* dev = n.target<Device::DeviceSettings>())
+        *dev = m_chosenSettings;
+      return n;
+    }
+
+    return Device::Node{m_chosenSettings, nullptr};
+  }
 
   // If a preset was loaded, return the full node (with address tree)
   // but re-apply the current widget settings (user may have edited name, ports, etc.)
@@ -602,6 +727,11 @@ void DeviceEditDialog::setSettings(const Device::DeviceSettings& settings)
       {
         m_protocols->setCurrentItem(item);
         selectedProtocolChanged();
+
+        // Kept whether or not a widget can show them: editing a device of a
+        // protocol this build lacks must give back what it was handed, not an
+        // empty settings.
+        m_chosenSettings = settings;
         if(m_protocolWidget)
         {
           m_protocolWidget->setSettings(settings);

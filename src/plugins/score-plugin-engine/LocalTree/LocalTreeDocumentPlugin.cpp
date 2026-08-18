@@ -56,6 +56,13 @@ LocalTree::DocumentPlugin::~DocumentPlugin()
 
 void LocalTree::DocumentPlugin::init()
 {
+  // A terminal exposes nothing. The tree is a control surface for a score that
+  // executes here, and this one does not; LocalDevice::init would also open an
+  // OSCQuery server on the same default ports as the machine actually running
+  // the score, which collide outright when that is the same machine.
+  if(m_context.role() != score::DocumentRole::Local)
+    return;
+
   m_localDeviceWrapper.init();
 
   auto& set = m_context.app.settings<Explorer::Settings::Model>();

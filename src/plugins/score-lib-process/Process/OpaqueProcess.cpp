@@ -1,5 +1,7 @@
 #include "OpaqueProcess.hpp"
 
+#include <Process/RemoteState.hpp>
+
 #include <Process/Dataflow/PortFactory.hpp>
 
 #include <score/application/ApplicationContext.hpp>
@@ -28,10 +30,7 @@ const QStringList& portMemberNames() noexcept
 
 const QStringList& OpaqueProcessModel::baseMemberNames() noexcept
 {
-  // Written by readFromAbstract, IdentifiedObject, Entity and ProcessModel. A
-  // serialized process holds these plus whatever its plug-in added; we own the
-  // former and must not duplicate them, and must preserve the latter.
-  // OpaqueProcessBaseMembersTest fails if this drifts.
+  // What score itself writes; everything else in the blob is the plug-in's.
   static const QStringList names{
       QStringLiteral("uuid"),       QStringLiteral("ObjectName"),
       QStringLiteral("id"),         QStringLiteral("Metadata"),
@@ -47,14 +46,52 @@ OpaqueProcessModel::OpaqueProcessModel(
     : ProcessModel{vis, parent}
     , m_key{key}
 {
-  // The base consumed everything score itself writes, so the rest of this
-  // object's blob is the plug-in's. deserialize_interface gave each polymorphic
-  // object its own length-delimited buffer, which is what makes this safe: the
-  // tail is exactly one process and stops where it should.
-  m_payload = score::OpaquePayload::fromDataStream(vis);
+  // Ports when serialize_impl wrote them out; the payload takes the rest.
+  bool portsWritten{};
+  vis.m_stream >> portsWritten;
+  if(portsWritten)
+  {
+    auto& pl = score::AppContext().interfaces<Process::PortFactoryList>();
+    writePorts(vis, pl, m_inlets, m_outlets, this);
+  }
+  m_portsInPayload = !portsWritten;
 
-  // No way to find the ports inside an opaque binary blob.
-  m_portsInPayload = true;
+  m_payload = score::OpaquePayload::fromDataStream(vis);
+}
+
+OpaqueProcessModel::OpaqueProcessModel(
+    const UuidKey<ProcessModel>& key, const TimeVal& duration,
+    const Id<ProcessModel>& id, QObject* parent)
+    : ProcessModel{duration, id, QStringLiteral("OpaqueProcess"), parent}
+    , m_key{key}
+    , m_incomplete{true}
+{
+  // No payload: creation data is not what the process would have written.
+  m_portsInPayload = false;
+  awaitingRemoteState().push_back(this);
+}
+
+void OpaqueProcessModel::setState(const rapidjson::Value& serialized)
+{
+  if(!serialized.IsObject())
+    return;
+
+  // Only when absent: a stand-in can be filled in more than once.
+  if(m_inlets.empty() && m_outlets.empty() && serialized.HasMember("Inlets")
+     && serialized.HasMember("Outlets"))
+  {
+    JSONObject::Deserializer des{serialized};
+    auto& pl = score::AppContext().interfaces<Process::PortFactoryList>();
+    writePorts(des, pl, m_inlets, m_outlets, this);
+    m_portsInPayload = false;
+  }
+
+  auto skip = baseMemberNames();
+  if(!m_portsInPayload)
+    skip += portMemberNames();
+
+  m_payload = score::OpaquePayload::fromJson(serialized, skip);
+  m_incomplete = false;
 }
 
 OpaqueProcessModel::OpaqueProcessModel(
@@ -83,12 +120,21 @@ OpaqueProcessModel::~OpaqueProcessModel() = default;
 
 void OpaqueProcessModel::serialize_impl(const VisitorVariant& vis) const noexcept
 {
-  if(vis.identifier == JSONObject::type() && !m_portsInPayload)
+  // Live ports rather than the ones in the payload: they may have been edited,
+  // and the payload no longer describes them.
+  if(vis.identifier == JSONObject::type())
   {
-    // Live ports rather than the ones in the payload: they may have been
-    // edited, and the payload no longer describes them.
-    readPorts(static_cast<JSONObject::Serializer&>(vis.visitor), m_inlets, m_outlets);
+    if(!m_portsInPayload)
+      readPorts(static_cast<JSONObject::Serializer&>(vis.visitor), m_inlets, m_outlets);
   }
+  else if(vis.identifier == DataStream::type())
+  {
+    auto& s = static_cast<DataStream::Serializer&>(vis.visitor);
+    s.m_stream << !m_portsInPayload;
+    if(!m_portsInPayload)
+      readPorts(s, m_inlets, m_outlets);
+  }
+
   m_payload.write(vis);
 }
 
@@ -115,15 +161,7 @@ QStringList OpaqueProcessModel::tags() const noexcept
 
 ProcessFlags OpaqueProcessModel::flags() const noexcept
 {
-  // TimeIndependent is not a guess about what we are replacing so much as a
-  // statement about ourselves: nothing here knows how to rescale a plug-in's
-  // data, so the parent duration changing must not be taken to change it. Left
-  // out, the interval rewrote a stand-in's duration on every resize while its
-  // contents stayed as they were -- and the processes most often standing in
-  // like this, VST and LV2, declare it themselves.
-  //
-  // SupportsTemporal so it can still be shown where it was. Not ControlSurface
-  // or RequiresCustomData: those promise things we cannot do.
+  // TimeIndependent: nothing here can rescale a plug-in's data.
   return ProcessFlags::SupportsTemporal | ProcessFlags::TimeIndependent;
 }
 }

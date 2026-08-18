@@ -180,12 +180,26 @@ void DeviceDocumentPlugin::timerEvent(QTimerEvent* event)
 
 Device::Node DeviceDocumentPlugin::createDeviceFromNode(const Device::Node& node)
 {
+  if(m_context.role() == score::DocumentRole::Terminal)
+    return node;
+
   try
   {
     auto& fact = m_context.app.interfaces<Device::ProtocolFactoryList>();
 
     // Instantiate a real device.
     auto proto = fact.get(node.get<Device::DeviceSettings>().protocol);
+    if(!proto)
+    {
+      // Nothing here can make it. Ordinary rather than exceptional: a session
+      // adds devices from whichever machine the user is typing at, and a
+      // document routinely names protocols a given build has no factory for.
+      // The node is kept, as loading one does -- what is not acceptable is
+      // calling through the null.
+      qWarning() << "No protocol for device" << node.get<Device::DeviceSettings>().name;
+      return node;
+    }
+
     auto newdev
         = proto->makeDevice(node.get<Device::DeviceSettings>(), *this, context());
 
@@ -220,6 +234,13 @@ Device::Node DeviceDocumentPlugin::createDeviceFromNode(const Device::Node& node
 std::optional<Device::Node>
 DeviceDocumentPlugin::loadDeviceFromNode(const Device::Node& node)
 {
+  // The score runs on another machine and its devices belong to it: making
+  // them here would open that machine's ports, claim its MIDI and cameras, and
+  // put its render windows on this screen. The node stays in the tree with
+  // nothing behind it, which is the same shape as a protocol we do not have.
+  if(m_context.role() == score::DocumentRole::Terminal)
+    return {};
+
   try
   {
     // Instantiate a real device.
@@ -260,6 +281,53 @@ DeviceDocumentPlugin::loadDeviceFromNode(const Device::Node& node)
   }
 
   return {};
+}
+
+std::optional<bool>
+DeviceDocumentPlugin::remoteConnected(const QString& device) const noexcept
+{
+  if(auto it = m_remoteConnected.find(device); it != m_remoteConnected.end())
+    return it->second;
+  return {};
+}
+
+void DeviceDocumentPlugin::setRemoteConnected(const QString& device, bool connected)
+{
+  m_remoteConnected[device] = connected;
+
+  // The explorer draws the state, so it has to be told the row changed.
+  if(m_explorer)
+  {
+    auto& root = m_rootNode;
+    for(int i = 0; i < root.childCount(); i++)
+    {
+      const auto& n = root.childAt(i);
+      if(n.is<Device::DeviceSettings>()
+         && n.get<Device::DeviceSettings>().name == device)
+      {
+        const auto idx = m_explorer->index(i, 0, QModelIndex{});
+        m_explorer->dataChanged(idx, idx);
+        break;
+      }
+    }
+  }
+}
+
+std::vector<QString>
+DeviceDocumentPlugin::remoteDevicesOfKind(Device::DeviceKind kind) const
+{
+  std::vector<QString> out;
+  for(const auto& [name, kinds] : m_remoteKinds)
+    if(kinds.testFlag(kind))
+      out.push_back(name);
+  return out;
+}
+
+void DeviceDocumentPlugin::setRemoteKinds(
+    const QString& device, Device::DeviceKinds kinds)
+{
+  m_remoteKinds[device] = kinds;
+  remoteKindsChanged(device);
 }
 
 void DeviceDocumentPlugin::setConnection(bool b)
@@ -438,6 +506,8 @@ void DeviceDocumentPlugin::on_valueUpdated(
 {
   ossia::qt::run_async(this, [this, aa = State::AddressAccessor{addr}, v] {
     updateProxy.updateLocalValue(aa, v);
+    if(m_valueObserver)
+      m_valueObserver(aa.address, v);
   });
 }
 

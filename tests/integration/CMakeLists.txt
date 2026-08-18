@@ -164,6 +164,28 @@ score_add_test(test_regression_throwing_drop_handler
 # One harness per shader kind in the library: they are authored differently,
 # fail differently, and each keeps its own baseline. All need a GPU-capable
 # display, and all skip when no library is installed.
+# The sweeps read a real shader library and diff against a checked-in baseline,
+# so they need to be told where one is: the test fixture gives every test its own
+# XDG_CONFIG_HOME and application name, on purpose, so the library root a user
+# configured is deliberately not visible. Probed here, overridable, and skipped
+# cleanly when there is none.
+if(NOT DEFINED SCORE_SHADER_LIBRARY_DIR)
+  foreach(_candidate
+      "$ENV{HOME}/Documents/ossia/score/packages/default"
+      "$ENV{HOME}/Documents/ossia/score-test/packages/default")
+    if(EXISTS "${_candidate}")
+      set(SCORE_SHADER_LIBRARY_DIR "${_candidate}" CACHE PATH
+          "Shader library the sweeps run over; empty means skip them")
+      break()
+    endif()
+  endforeach()
+endif()
+
+if(NOT SCORE_SHADER_LIBRARY_DIR)
+  message(STATUS "No shader library found: the shader sweeps will skip. "
+                 "Set SCORE_SHADER_LIBRARY_DIR to run them.")
+endif()
+
 foreach(kind ISF VSA CSF)
   string(TOLOWER "${kind}" lc)
   score_add_test(test_integration_shader_sweep_${lc}
@@ -189,6 +211,15 @@ foreach(kind ISF VSA CSF)
 
   target_compile_definitions(test_integration_shader_sweep_${lc} PRIVATE
     "SCORE_SHADER_SWEEP_BASELINE_${kind}=\"${_baseline}\"")
+
+  # Catch2 exits 4 when every test skipped. Without this a skip is reported as a
+  # failure, which is how three sweeps sat "failing" while never running.
+  set_tests_properties(test_integration_shader_sweep_${lc} PROPERTIES
+    SKIP_RETURN_CODE 4)
+  if(SCORE_SHADER_LIBRARY_DIR)
+    set_tests_properties(test_integration_shader_sweep_${lc} PROPERTIES
+      ENVIRONMENT "SCORE_SHADER_LIBRARY_DIR=${SCORE_SHADER_LIBRARY_DIR}")
+  endif()
 endforeach()
 
 # Drags that never get their mouse release: QGraphicsScene drops the implicit
@@ -212,15 +243,73 @@ score_add_test(test_integration_device_unimplemented
   APP
   PLUGINS score_plugin_scenario score_plugin_deviceexplorer)
 
+# --- terminal role: a document that must not touch this machine -------------
+score_add_test(test_integration_terminal_role
+  SOURCES TerminalRoleTest.cpp
+  APP
+  PLUGINS score_plugin_scenario score_plugin_deviceexplorer score_plugin_engine)
+
+# What a port may be connected to, on a machine holding none of the devices.
+score_add_test(test_integration_terminal_port_combo
+  SOURCES TerminalPortComboTest.cpp
+  APP
+  PLUGINS score_plugin_scenario score_plugin_deviceexplorer)
+
+# The panel only exists with the GUI stack, and one binary cannot mix the two
+# application fixtures.
+score_add_test(test_integration_terminal_library
+  SOURCES TerminalLibraryTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_plugin_deviceexplorer score_plugin_library)
+
 # --- remote control: who is allowed to drive this instance ------------------
 # The WebSocket API sets device parameters, drives transport and can evaluate
 # JavaScript, so the access controls are worth asserting rather than assuming.
 if(TARGET score_plugin_remotecontrol)
+  # GUI: enforcing the scripting gate means seeing whether the console ran the
+  # code, and there is no console without the panel.
   score_add_test(test_integration_remote_control_auth
     SOURCES RemoteControlAuthTest.cpp
-    APP
-    PLUGINS score_plugin_remotecontrol score_plugin_deviceexplorer
+    GUI
+    PLUGINS score_plugin_remotecontrol score_plugin_deviceexplorer score_plugin_js
     LIBS ${QT_PREFIX}::WebSockets)
   target_include_directories(test_integration_remote_control_auth PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-remotecontrol")
 endif()
+
+# Whether the editing surface shows the same thing on both machines.
+score_add_test(test_integration_terminal_slots
+  SOURCES TerminalSlotTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_plugin_deviceexplorer score_plugin_automation
+          score_plugin_curve)
+
+# Dropping a file when the score runs on another machine.
+score_add_test(test_integration_terminal_file_drop
+  SOURCES TerminalFileDropTest.cpp
+  APP
+  PLUGINS score_lib_process score_plugin_scenario score_plugin_media)
+
+# Settings a machine carried without understanding them, read by one that does.
+score_add_test(test_integration_opaque_device_settings
+  SOURCES OpaqueDeviceSettingsTest.cpp
+  APP
+  PLUGINS score_plugin_deviceexplorer score_plugin_protocols score_plugin_scenario)
+
+# Adding a device whose protocol only the other machine has.
+score_add_test(test_integration_terminal_device_add
+  SOURCES TerminalDeviceAddTest.cpp
+  GUI
+  PLUGINS score_plugin_deviceexplorer score_plugin_scenario)
+
+# Presets listed through the document's environment, not the local library.
+score_add_test(test_integration_device_preset_source
+  SOURCES DevicePresetSourceTest.cpp
+  GUI
+  PLUGINS score_plugin_deviceexplorer score_plugin_scenario)
+
+# A waveform that cannot be computed must not be re-requested by painting.
+score_add_test(test_integration_sound_view_spin
+  SOURCES SoundViewSpinTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_plugin_media)

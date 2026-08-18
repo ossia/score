@@ -2,7 +2,12 @@
 #include <State/Address.hpp>
 
 #include <Device/Address/AddressSettings.hpp>
+#include <Device/Protocol/DeviceInterface.hpp>
 #include <Device/Node/DeviceNode.hpp>
+
+#include <Process/Dataflow/PortType.hpp>
+
+#include <optional>
 
 #include <score/document/DocumentContext.hpp>
 
@@ -39,15 +44,24 @@ private:
   std::vector<QString> m_child;
 };
 
+//! The device a drop of these nodes names. Audio, MIDI and texture ports hold
+//! a device and no path; a message port needs a parameter, which a device
+//! is not.
+SCORE_LIB_PROCESS_EXPORT
+std::optional<State::Address> droppedDeviceAddress(
+    const Device::FreeNodeList& nodes, Process::PortType type) noexcept;
+
 SCORE_LIB_PROCESS_EXPORT
 QComboBox* makeAddressCombo(
     State::Address root, const Device::Node& out_node, const Process::Port& port,
     const score::DocumentContext& ctx, QWidget* parent);
 
+//! Devices that can stand at the other end of `port`. A kind rather than a
+//! predicate on the object, since a terminal holds no device objects to ask.
 SCORE_LIB_PROCESS_EXPORT
 QComboBox* makeDeviceCombo(
-    std::function<bool(Device::DeviceInterface&)> condition, Device::DeviceList& devices,
-    const Process::Port& port, const score::DocumentContext& ctx, QWidget* parent);
+    Device::DeviceKind kind, Device::DeviceList& devices, const Process::Port& port,
+    const score::DocumentContext& ctx, QWidget* parent);
 /*
 class SCORE_LIB_PROCESS_EXPORT MidiPortComboBox final : public QComboBox
 {

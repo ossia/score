@@ -11,13 +11,13 @@
 
 namespace Explorer
 {
-Device::DeviceInterface&
+Device::DeviceInterface*
 ListeningManager::deviceFromProxyModelIndex(const QModelIndex& idx)
 {
   return deviceFromNode(nodeFromProxyModelIndex(idx));
 }
 
-Device::DeviceInterface& ListeningManager::deviceFromModelIndex(const QModelIndex& idx)
+Device::DeviceInterface* ListeningManager::deviceFromModelIndex(const QModelIndex& idx)
 {
   return deviceFromNode(m_model.nodeFromModelIndex(idx));
 }
@@ -46,10 +46,12 @@ ListeningManager::ListeningManager(
 
 void ListeningManager::enableListening(Device::Node& node)
 {
-  auto& dev = deviceFromNode(node);
+  auto* dev = deviceFromNode(node);
+  if(!dev)
+    return;
 
-  m_handler.setListening(dev, node, true);
-  dev.request(node);
+  m_handler.setListening(*dev, node, true);
+  dev->request(node);
 }
 
 void ListeningManager::disableListening_rec(
@@ -92,35 +94,38 @@ void ListeningManager::enableListening_rec(
   }
 }
 
-Device::DeviceInterface& ListeningManager::deviceFromNode(const Device::Node& node)
+Device::DeviceInterface* ListeningManager::deviceFromNode(const Device::Node& node)
 {
   auto& list = m_model.deviceModel().list();
   if(node.is<Device::AddressSettings>())
   {
     // OPTIMIZEME by just going to the top node
     auto addr = Device::address(node);
-    return list.device(addr.address.device);
+    return list.findDevice(addr.address.device);
   }
   else if(node.is<Device::DeviceSettings>())
   {
-    return list.device(node.get<Device::DeviceSettings>().name);
+    return list.findDevice(node.get<Device::DeviceSettings>().name);
   }
 
-  SCORE_ABORT;
+  return nullptr;
 }
 
 void ListeningManager::setListening(const QModelIndex& idx, bool b)
 {
-  auto& dev = deviceFromProxyModelIndex(idx);
+  auto* dev = deviceFromProxyModelIndex(idx);
+  if(!dev)
+    return;
+
   if(b)
   {
-    enableListening_rec(idx, dev, m_handler);
+    enableListening_rec(idx, *dev, m_handler);
   }
   else
   {
     for(const auto& child : nodeFromProxyModelIndex(idx))
     {
-      disableListening_rec(child, dev, m_handler);
+      disableListening_rec(child, *dev, m_handler);
     }
   }
 }
@@ -128,17 +133,19 @@ void ListeningManager::setListening(const QModelIndex& idx, bool b)
 void ListeningManager::resetListening(Device::Node& node)
 {
   auto idx = m_model.modelIndexFromNode(node, 0);
-  auto& dev = deviceFromModelIndex(idx);
+  auto* dev = deviceFromModelIndex(idx);
+  if(!dev)
+    return;
 
   for(const auto& child : node)
   {
-    disableListening_rec(child, dev, m_handler);
+    disableListening_rec(child, *dev, m_handler);
   }
 
   auto view_idx = m_widget.proxyIndex(idx);
   if(m_widget.view()->isExpanded(view_idx))
   {
-    enableListening_rec(view_idx, dev, m_handler);
+    enableListening_rec(view_idx, *dev, m_handler);
   }
 }
 

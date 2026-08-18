@@ -24,6 +24,7 @@ class QPushButton;
 
 namespace Device
 {
+class DeviceCatalog;
 class ProtocolFactoryList;
 class ProtocolSettingsWidget;
 class DeviceEnumerator;
@@ -61,11 +62,21 @@ public:
   void updateValidity();
 
 private:
+  //! Null for a document whose score runs here: the dialogs then show this
+  //! machine's protocols and hardware, as they always have.
+  Device::DeviceCatalog* catalog() const noexcept;
+
   void selectedProtocolChanged();
   void selectedDeviceChanged();
   void selectedPresetChanged();
   void initAvailableProtocols();
   void initPresets();
+  void applyPreset(Device::Node n);
+
+  //! The column listing what is plugged in. Shown when there is something in
+  //! it: most protocols enumerate nothing.
+  void showDevicesColumn();
+  void hideDevicesColumn();
 
   const DeviceExplorerModel& m_model;
   const Device::ProtocolFactoryList& m_protocolList;
@@ -98,7 +109,15 @@ private:
   // For presets: the loaded node with full address tree
   Device::Node m_presetNode{};
 
+  //! What was chosen from a preset or from the other machine's hardware. It is
+  //! what getSettings() answers when this build has no widget for the protocol.
+  Device::DeviceSettings m_chosenSettings{};
+
   QString m_originalName{};
   int m_index{};
+
+  //! Which protocol the device list is currently showing, so that answers
+  //! arriving for a previous one are dropped.
+  UuidKey<Device::ProtocolFactory> m_currentProtocol{};
 };
 }

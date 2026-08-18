@@ -94,6 +94,16 @@ public:
   int addDevice(const Device::Node& deviceNode);
   void updateDevice(const QString& name, const Device::DeviceSettings& dev);
 
+  //! Put the tree the machine that owns the device reports in place of ours.
+  //!
+  //! What a device contains is discovered by refreshing it, which a document
+  //! that holds no device cannot do. Added if it is not here yet; kept at the
+  //! same row otherwise, so the explorer does not reorder under the person.
+  void replaceDevice(const QString& name, const Device::Node& node);
+
+  //! The device an index belongs to, empty if it is not under one.
+  QString deviceNameOf(const QModelIndex& index) const;
+
   Device::Node* addAddress(
       Device::Node* parentNode, const Device::AddressSettings& addressSettings, int row);
   void updateAddress(Device::Node* node, const Device::AddressSettings& addressSettings);

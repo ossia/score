@@ -121,7 +121,10 @@ void EditJsContext::iterateDevice(const QString& name, const QJSValue& fun)
     {
       if(node.displayName() == name)
       {
-        auto& dev = list.device(name);
+        auto* dev_p = list.findDevice(name);
+        if(!dev_p)
+          return;
+        auto& dev = *dev_p;
         if(auto device = dev.getDevice())
         {
           QJSEngine* engine = qjsEngine(this);
