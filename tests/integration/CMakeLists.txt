@@ -151,6 +151,16 @@ score_add_test(test_regression_double_exit
   SOURCES RegressionDoubleExitTest.cpp
   APP)
 
+# Closing a MODIFIED document with applicationSettings.gui false must not
+# raise the save prompt: nothing can answer it and QMessageBox::exec() aborts.
+score_add_test(test_regression_headless_close_modified
+  SOURCES RegressionHeadlessCloseModifiedTest.cpp
+  APP)
+# Without the guard the modal is raised and blocks forever under the offscreen
+# QPA: the regression shows up as a hang, so it needs a deadline to be a
+# failure rather than a stuck job.
+set_tests_properties(test_regression_headless_close_modified PROPERTIES TIMEOUT 120)
+
 # A throwing dropCustom handler is contained by the
 # noexcept getCustomDrops API.
 score_add_test(test_regression_throwing_drop_handler
