@@ -4,6 +4,7 @@
 #include <Gfx/Graph/Mesh.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
+#include <Gfx/Graph/PipelineStateHelpers.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/VertexFallbackPool.hpp>
 #include <Gfx/Settings/Model.hpp>
@@ -1422,7 +1423,10 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
             if(rt)
             {
               QColor bg = (it + 1 == this->nodes.rend() ? Qt::black : Qt::transparent);
-              commands.beginPass(rt.renderTarget, bg, {0.0f, 0}, updateBatch);
+              commands.beginPass(
+                  rt.renderTarget, bg,
+                  {depthClearForCompare(QRhiGraphicsPipeline::Greater), 0},
+                  updateBatch);
               updateBatch = nullptr;
 
               // FIXME z-sort

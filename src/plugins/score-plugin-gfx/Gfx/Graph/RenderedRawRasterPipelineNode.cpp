@@ -3247,7 +3247,13 @@ void RenderedRawRasterPipelineNode::runInitialPasses(
       continue;
     }
 
-    cb.beginPass(rtForPass, Qt::transparent, {0.0f, 0}, invBatch);
+    const auto declaredCompare
+        = n.descriptor().default_state.depth_compare
+              ? toCompareOp(*n.descriptor().default_state.depth_compare)
+              : QRhiGraphicsPipeline::Greater;
+    cb.beginPass(
+        rtForPass, Qt::transparent,
+        {depthClearForCompare(declaredCompare), 0}, invBatch);
 
     cb.setGraphicsPipeline(pass.p.pipeline);
     cb.setViewport(
