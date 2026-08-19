@@ -270,3 +270,22 @@ score_add_test(test_gfx_assettable_eviction
 score_add_test(test_gfx_scatter_dispatch  SOURCES GfxScatterDispatch.cpp)
 score_add_test(test_gfx_gstreamer_bus_classify SOURCES GfxGStreamerBusClassify.cpp)
 
+
+# -----------------------------------------------------------------------------
+# Multi-window output editing canvases (Gfx/Window). Pure geometry driven
+# through QGraphicsScene::sendEvent: coordinate mapping, snapping, canvas
+# clamping, lock modes, re-indexing, blend handles and 4-corner warp. No QRhi
+# and no visible window -- run_in_app boots the headless offscreen stack.
+#
+# OutputMapping.cpp / DesktopLayout.cpp are not exported from the dynamic
+# score_plugin_gfx (hidden visibility), so both translation units are compiled
+# into the test target, as test_gfx_engine_glue does for the render nodes.
+score_plugin_hidden_sources(_window_layout_hidden
+    "${_gfx_src}/Gfx/Window/OutputMapping.cpp"
+    "${_gfx_src}/Gfx/Window/DesktopLayout.cpp")
+score_add_test(test_gfx_window_layout
+  SOURCES
+    WindowLayoutCanvas.cpp
+    ${_window_layout_hidden}
+  APP
+  PLUGINS score_plugin_gfx score_lib_process)
