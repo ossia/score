@@ -4,6 +4,7 @@
 
 #include <Video/ExternalInput.hpp>
 #include <Video/FrameQueue.hpp>
+#include <Video/LibavInterrupt.hpp>
 #include <Video/Rescale.hpp>
 
 extern "C" {
@@ -45,9 +46,17 @@ private:
   AVFrame* read_frame_impl() noexcept;
   bool open_stream() noexcept;
   void close_stream() noexcept;
+  bool alloc_format_context() noexcept;
   ReadFrame read_one_frame(AVFramePointer frame, AVPacket& packet);
 
   static const constexpr int frames_to_buffer = 1;
+
+  //! Opening a device that never answers must not wedge the caller
+  static const constexpr auto open_timeout = std::chrono::milliseconds(2000);
+  //! A camera that stopped delivering must not wedge the buffer thread
+  static const constexpr auto read_timeout = std::chrono::milliseconds(5000);
+
+  LibavInterrupt m_interrupt;
 
   AVCodecID m_requestedCodec{AV_CODEC_ID_NONE};
   AVPixelFormat m_requestedPixfmt{AV_PIX_FMT_NONE};

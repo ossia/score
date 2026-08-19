@@ -138,9 +138,12 @@ bool LibavStreamInput::probe() noexcept
   if(m_formatContext)
     return true; // Already probed
 
+  m_interrupt.reset();
+
   m_formatContext = avformat_alloc_context();
   if(!m_formatContext)
     return false;
+  m_interrupt.install(*m_formatContext);
 
   AVDictionary* options = nullptr;
   const AVInputFormat* input_fmt = nullptr;
@@ -180,25 +183,28 @@ bool LibavStreamInput::probe() noexcept
     }
   }
 
-  int ret = avformat_open_input(&m_formatContext, m_url.c_str(), input_fmt, &options);
-  av_dict_free(&options);
-
-  if(ret < 0)
+  int ret{};
   {
-    qDebug() << "FFmpeg input: avformat_open_input failed for"
-             << m_url.c_str() << av_to_string(ret);
-    m_formatContext = nullptr; // avformat_open_input frees on failure
-    return false;
-  }
+    LibavTimeout timeout{m_interrupt, probe_timeout};
+    ret = avformat_open_input(&m_formatContext, m_url.c_str(), input_fmt, &options);
+    av_dict_free(&options);
 
-  ret = avformat_find_stream_info(m_formatContext, nullptr);
-  if(ret < 0)
-  {
-    qDebug() << "FFmpeg input: avformat_find_stream_info failed:"
-             << av_to_string(ret);
-    avformat_close_input(&m_formatContext);
-    m_formatContext = nullptr;
-    return false;
+    if(ret < 0)
+    {
+      qDebug() << "FFmpeg input: avformat_open_input failed for" << m_url.c_str()
+               << av_to_string(ret);
+      m_formatContext = nullptr; // avformat_open_input frees on failure
+      return false;
+    }
+
+    ret = avformat_find_stream_info(m_formatContext, nullptr);
+    if(ret < 0)
+    {
+      qDebug() << "FFmpeg input: avformat_find_stream_info failed:" << av_to_string(ret);
+      avformat_close_input(&m_formatContext);
+      m_formatContext = nullptr;
+      return false;
+    }
   }
 
   if(!open_streams())
@@ -307,6 +313,9 @@ void LibavStreamInput::buffer_thread() noexcept
 
   while(m_running.load(std::memory_order_acquire))
   {
+    // No deadline here: a live stream may legitimately go quiet, and giving up
+    // on a read is fatal to the loop below. close_file() aborts the interrupt,
+    // which is what a blocked read has to be unblocked by.
     int ret = av_read_frame(m_formatContext, &packet);
     if(ret < 0)
     {
@@ -411,6 +420,10 @@ void LibavStreamInput::buffer_thread() noexcept
 void LibavStreamInput::close_file() noexcept
 {
   m_running.store(false, std::memory_order_release);
+
+  // The buffer thread may be blocked in av_read_frame: joining without
+  // unblocking it first would hang for as long as the stream does.
+  m_interrupt.abort();
 
   if(m_thread.joinable())
     m_thread.join();

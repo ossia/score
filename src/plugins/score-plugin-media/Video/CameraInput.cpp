@@ -57,6 +57,19 @@ bool CameraInput::load(
   return (bool)ifmt;
 }
 
+bool CameraInput::alloc_format_context() noexcept
+{
+  m_formatContext = avformat_alloc_context();
+  if(!m_formatContext)
+    return false;
+
+  m_formatContext->flags |= AVFMT_FLAG_NONBLOCK;
+  m_formatContext->flags |= AVFMT_FLAG_NOBUFFER;
+  m_formatContext->flags |= AVFMT_FLAG_FLUSH_PACKETS;
+  m_interrupt.install(*m_formatContext);
+  return true;
+}
+
 bool CameraInput::start() noexcept
 {
   if(m_running)
@@ -66,10 +79,10 @@ bool CameraInput::start() noexcept
   if(!ifmt)
     return false;
 
-  m_formatContext = avformat_alloc_context();
-  m_formatContext->flags |= AVFMT_FLAG_NONBLOCK;
-  m_formatContext->flags |= AVFMT_FLAG_NOBUFFER;
-  m_formatContext->flags |= AVFMT_FLAG_FLUSH_PACKETS;
+  m_interrupt.reset();
+
+  if(!alloc_format_context())
+    return false;
 
   AVDictionary* options = nullptr;
 
@@ -94,30 +107,47 @@ bool CameraInput::start() noexcept
 
   // FIXME color_range 0,1,2
 
-  int ret = avformat_open_input(&m_formatContext, m_inputDevice.c_str(), ifmt, &options);
-  av_dict_free(&options);
-
-  if(ret < 0)
+  int ret{};
   {
-    qDebug() << "avformat_open_input" << av_to_string(ret);
+    LibavTimeout timeout{m_interrupt, open_timeout};
 
-    // Let's try with the default settings if the requested settings did not work:
-    ret = avformat_open_input(&m_formatContext, m_inputDevice.c_str(), ifmt, nullptr);
+    ret = avformat_open_input(&m_formatContext, m_inputDevice.c_str(), ifmt, &options);
+    av_dict_free(&options);
+
     if(ret < 0)
     {
       qDebug() << "avformat_open_input" << av_to_string(ret);
 
-      close_file();
-      return false;
+      // avformat_open_input freed the context: the flags and the interrupt
+      // callback have to be installed again before retrying.
+      if(m_interrupt.expired() || !alloc_format_context())
+      {
+        close_file();
+        return false;
+      }
+
+      // Let's try with the default settings if the requested settings did not work:
+      ret = avformat_open_input(&m_formatContext, m_inputDevice.c_str(), ifmt, nullptr);
+      if(ret < 0)
+      {
+        qDebug() << "avformat_open_input" << av_to_string(ret);
+
+        close_file();
+        return false;
+      }
     }
   }
 
-  ret = avformat_find_stream_info(m_formatContext, nullptr);
-  if(ret < 0)
   {
-    qDebug() << "avformat_find_stream_info" << av_to_string(ret);
-    close_file();
-    return false;
+    LibavTimeout timeout{m_interrupt, open_timeout};
+
+    ret = avformat_find_stream_info(m_formatContext, nullptr);
+    if(ret < 0)
+    {
+      qDebug() << "avformat_find_stream_info" << av_to_string(ret);
+      close_file();
+      return false;
+    }
   }
 
   if(!open_stream())
@@ -156,6 +186,7 @@ void CameraInput::buffer_thread() noexcept
   {
     if(m_frames.size() < 4)
     {
+      LibavTimeout timeout{m_interrupt, read_timeout};
       if(auto f = read_frame_impl())
       {
         m_frames.enqueue(f);
@@ -172,6 +203,10 @@ void CameraInput::close_file() noexcept
 {
   // Stop the running status
   m_running.store(false, std::memory_order_release);
+
+  // The buffer thread may be blocked in av_read_frame: joining without
+  // unblocking it first would hang for as long as the device does.
+  m_interrupt.abort();
 
   if(m_thread.joinable())
     m_thread.join();
