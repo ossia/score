@@ -380,3 +380,13 @@ if(TARGET score_plugin_media)
     APP
     PLUGINS score_plugin_gfx score_lib_process score_plugin_media)
 endif()
+
+# -----------------------------------------------------------------------------
+# The ossia device trees of the window output device: Gfx/Window/WindowDevice.hpp
+# and Gfx/Window/MultiWindowDevice.hpp, both 0%. This is where every window
+# property becomes a remote-controllable address and where the input events
+# travel back out. Built through the real protocol factory on a real document,
+# so it needs a display: GUI, and it SKIPs without one.
+score_add_gfx_test(window_device_tree WindowDeviceTree.cpp)
+target_link_libraries(test_gfx_window_device_tree PRIVATE score_plugin_deviceexplorer)
+
