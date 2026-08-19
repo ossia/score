@@ -10,7 +10,9 @@ template <typename Node_T>
   requires(
       (avnd::texture_output_introspection<Node_T>::size + avnd::buffer_output_introspection<Node_T>::size + avnd::geometry_output_introspection<Node_T>::size) == 0
   )
-struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
+struct GfxRenderer<Node_T> final
+    : score::gfx::OutputNodeRenderer
+    , GpuRendererFiles<Node_T>
 {
   std::shared_ptr<Node_T> state;
   score::gfx::Message m_last_message{};

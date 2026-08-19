@@ -14,7 +14,9 @@ namespace oscr
 {
 
 template <typename Node_T>
-struct CustomGpuRenderer final : score::gfx::NodeRenderer
+struct CustomGpuRenderer final
+    : score::gfx::NodeRenderer
+    , GpuRendererFiles<Node_T>
 {
   using texture_inputs = avnd::texture_input_introspection<Node_T>;
   using texture_outputs = avnd::texture_output_introspection<Node_T>;
@@ -341,6 +343,8 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
       }
     }
     states.clear();
+
+    this->releaseFiles();
 
     // Release the allocated mesh buffers
     m_meshBuffer = {};
