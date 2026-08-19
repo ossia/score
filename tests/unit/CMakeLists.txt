@@ -304,6 +304,12 @@ score_add_test(test_unit_audio_plugin_cache
   SOURCES AudioPluginCacheTest.cpp
   PLUGINS score_plugin_media)
 
+# --- optional dynamic dependencies ------------------------------------------
+# A library that is not installed must leave its loader unavailable instead of
+# throwing out of instance().
+score_add_test(test_unit_dynamic_library
+  SOURCES DynamicLibraryTest.cpp)
+
 # --- video input timeouts ---------------------------------------------------
 # Blocking libav I/O on a device or stream that stops answering: the deadline
 # libav polls, and the abort that lets close_file() join its buffer thread.

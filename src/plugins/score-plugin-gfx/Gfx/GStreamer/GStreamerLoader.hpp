@@ -1,8 +1,11 @@
 #pragma once
+#include <score/tools/DynamicLibrary.hpp>
+
 #include <ossia/detail/dylib_loader.hpp>
 
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <string_view>
 #include <vector>
 
@@ -337,79 +340,79 @@ struct libgstreamer
 
   bool available{};
 
-  static const libgstreamer& instance()
+  static const libgstreamer& instance() noexcept
   {
     static const libgstreamer self;
     return self;
   }
 
 private:
-  static ossia::dylib_loader load_core_library()
+  static std::optional<ossia::dylib_loader> load_core_library()
   {
 #if defined(_WIN32)
-    return ossia::dylib_loader{
-        std::vector<std::string_view>{"gstreamer-1.0-0.dll"}};
+    return score::try_load_library({"gstreamer-1.0-0.dll"});
 #elif defined(__APPLE__)
-    return ossia::dylib_loader{std::vector<std::string_view>{
-        "libgstreamer-1.0.0.dylib", "libgstreamer-1.0.dylib"}};
+    return score::try_load_library({
+        "libgstreamer-1.0.0.dylib", "libgstreamer-1.0.dylib"});
 #else
-    return ossia::dylib_loader{std::vector<std::string_view>{
-        "libgstreamer-1.0.so.0", "libgstreamer-1.0.so"}};
+    return score::try_load_library({
+        "libgstreamer-1.0.so.0", "libgstreamer-1.0.so"});
 #endif
   }
 
-  static ossia::dylib_loader load_app_library()
+  static std::optional<ossia::dylib_loader> load_app_library()
   {
 #if defined(_WIN32)
-    return ossia::dylib_loader{
-        std::vector<std::string_view>{"gstapp-1.0-0.dll"}};
+    return score::try_load_library({"gstapp-1.0-0.dll"});
 #elif defined(__APPLE__)
-    return ossia::dylib_loader{std::vector<std::string_view>{
-        "libgstapp-1.0.0.dylib", "libgstapp-1.0.dylib"}};
+    return score::try_load_library({
+        "libgstapp-1.0.0.dylib", "libgstapp-1.0.dylib"});
 #else
-    return ossia::dylib_loader{std::vector<std::string_view>{
-        "libgstapp-1.0.so.0", "libgstapp-1.0.so"}};
+    return score::try_load_library({
+        "libgstapp-1.0.so.0", "libgstapp-1.0.so"});
 #endif
   }
 
-  static ossia::dylib_loader load_gobject_library()
+  static std::optional<ossia::dylib_loader> load_gobject_library()
   {
 #if defined(_WIN32)
-    return ossia::dylib_loader{
-        std::vector<std::string_view>{"gobject-2.0-0.dll", "libgobject-2.0-0.dll"}};
+    return score::try_load_library({"gobject-2.0-0.dll", "libgobject-2.0-0.dll"});
 #elif defined(__APPLE__)
-    return ossia::dylib_loader{std::vector<std::string_view>{
-        "libgobject-2.0.0.dylib", "libgobject-2.0.dylib"}};
+    return score::try_load_library({
+        "libgobject-2.0.0.dylib", "libgobject-2.0.dylib"});
 #else
-    return ossia::dylib_loader{std::vector<std::string_view>{
-        "libgobject-2.0.so.0", "libgobject-2.0.so"}};
+    return score::try_load_library({
+        "libgobject-2.0.so.0", "libgobject-2.0.so"});
 #endif
   }
 
-  static ossia::dylib_loader load_glib_library()
+  static std::optional<ossia::dylib_loader> load_glib_library()
   {
 #if defined(_WIN32)
-    return ossia::dylib_loader{
-        std::vector<std::string_view>{"glib-2.0-0.dll", "libglib-2.0-0.dll"}};
+    return score::try_load_library({"glib-2.0-0.dll", "libglib-2.0-0.dll"});
 #elif defined(__APPLE__)
-    return ossia::dylib_loader{std::vector<std::string_view>{
-        "libglib-2.0.0.dylib", "libglib-2.0.dylib"}};
+    return score::try_load_library({
+        "libglib-2.0.0.dylib", "libglib-2.0.dylib"});
 #else
-    return ossia::dylib_loader{std::vector<std::string_view>{
-        "libglib-2.0.so.0", "libglib-2.0.so"}};
+    return score::try_load_library({
+        "libglib-2.0.so.0", "libglib-2.0.so"});
 #endif
   }
 
 #define GST_LOAD(lib, name) \
-  name = lib.symbol<decltype(&::gst_##name)>("gst_" #name)
+  name = lib->symbol<decltype(&::gst_##name)>("gst_" #name)
 
   libgstreamer()
-  try : m_core{load_core_library()}
-      , m_app{load_app_library()}
-      , m_gobject{load_gobject_library()}
-      , m_glib{load_glib_library()}
-      , available{true}
   {
+    m_core = load_core_library();
+    m_app = load_app_library();
+    m_gobject = load_gobject_library();
+    m_glib = load_glib_library();
+
+    // Not installed: available stays false and every entry point bails out
+    if(!m_core || !m_app || !m_gobject || !m_glib)
+      return;
+
     // Core
     GST_LOAD(m_core, init_check);
     GST_LOAD(m_core, parse_launch);
@@ -442,8 +445,8 @@ private:
     GST_LOAD(m_core, object_unref);
     GST_LOAD(m_core, message_unref);
     GST_LOAD(m_core, mini_object_unref);
-    g_free = m_glib.symbol<decltype(&::g_free)>("g_free");
-    g_error_free = m_glib.symbol<decltype(&::g_error_free)>("g_error_free");
+    g_free = m_glib->symbol<decltype(&::g_free)>("g_free");
+    g_error_free = m_glib->symbol<decltype(&::g_error_free)>("g_error_free");
 
     // AppSink
     GST_LOAD(m_app, app_sink_try_pull_sample);
@@ -464,7 +467,7 @@ private:
 
     // GObject property introspection
 #define GOBJ_LOAD(name) \
-  name = m_gobject.symbol<decltype(&::g_##name)>("g_" #name)
+  name = m_gobject->symbol<decltype(&::g_##name)>("g_" #name)
 
     GOBJ_LOAD(object_class_list_properties);
     GOBJ_LOAD(type_class_ref);
@@ -500,23 +503,16 @@ private:
 #undef GOBJ_LOAD
 
     // Verify critical symbols
-    if(!init_check || !parse_launch || !element_set_state
-       || !element_get_state || !bin_get_by_name || !object_unref
-       || !buffer_map || !buffer_unmap)
-    {
-      available = false;
-    }
-  }
-  catch(...)
-  {
+    available = init_check && parse_launch && element_set_state && element_get_state
+                && bin_get_by_name && object_unref && buffer_map && buffer_unmap;
   }
 
 #undef GST_LOAD
 
-  ossia::dylib_loader m_core;
-  ossia::dylib_loader m_app;
-  ossia::dylib_loader m_gobject;
-  ossia::dylib_loader m_glib;
+  std::optional<ossia::dylib_loader> m_core;
+  std::optional<ossia::dylib_loader> m_app;
+  std::optional<ossia::dylib_loader> m_gobject;
+  std::optional<ossia::dylib_loader> m_glib;
 };
 
 // Call once from any code that needs GStreamer

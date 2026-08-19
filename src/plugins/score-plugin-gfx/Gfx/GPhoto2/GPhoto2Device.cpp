@@ -7,6 +7,7 @@
 #include <Gfx/Graph/VideoNode.hpp>
 
 #include <score/serialization/MimeVisitor.hpp>
+#include <score/tools/DynamicLibrary.hpp>
 
 #include <ossia-qt/name_utils.hpp>
 #include <ossia/detail/dylib_loader.hpp>
@@ -27,6 +28,7 @@ extern "C" {
 #include <libavutil/pixfmt.h>
 }
 
+#include <optional>
 #include <thread>
 
 // Forward declarations of gphoto2 types (all opaque)
@@ -277,187 +279,183 @@ struct libgphoto2
 
   bool available{};
 
-  static const libgphoto2& instance()
+  static const libgphoto2& instance() noexcept
   {
     static const libgphoto2 self;
     return self;
   }
 
 private:
-  static ossia::dylib_loader load_port_library()
+  static std::optional<ossia::dylib_loader> load_port_library()
   {
 #if defined(_WIN32)
-    return ossia::dylib_loader{"libgphoto2_port.dll"};
+    return score::try_load_library("libgphoto2_port.dll");
 #elif defined(__APPLE__)
-    return ossia::dylib_loader{std::vector<std::string_view>{"libgphoto2_port.12.dylib", "libgphoto2_port.dylib"}};
+    return score::try_load_library({"libgphoto2_port.12.dylib", "libgphoto2_port.dylib"});
 #else
-    return ossia::dylib_loader{std::vector<std::string_view>{"libgphoto2_port.so.12", "libgphoto2_port.so"}};
+    return score::try_load_library({"libgphoto2_port.so.12", "libgphoto2_port.so"});
 #endif
   }
 
-  static ossia::dylib_loader load_library()
+  static std::optional<ossia::dylib_loader> load_library()
   {
 #if defined(_WIN32)
-    return ossia::dylib_loader{"libgphoto2.dll"};
+    return score::try_load_library("libgphoto2.dll");
 #elif defined(__APPLE__)
-    return ossia::dylib_loader{std::vector<std::string_view>{"libgphoto2.6.dylib", "libgphoto2.dylib"}};
+    return score::try_load_library({"libgphoto2.6.dylib", "libgphoto2.dylib"});
 #else
-    return ossia::dylib_loader{std::vector<std::string_view>{"libgphoto2.so.6", "libgphoto2.so"}};
+    return score::try_load_library({"libgphoto2.so.6", "libgphoto2.so"});
 #endif
   }
 
   libgphoto2()
-  try : m_port_library{load_port_library()}
-      , m_library{load_library()}
-      , available{true}
   {
+    m_port_library = load_port_library();
+    m_library = load_library();
+
+    // Not installed: available stays false and every entry point bails out
+    if(!m_port_library || !m_library)
+      return;
+
     // libgphoto2_port symbols
     port_info_list_new
-        = m_port_library.symbol<decltype(&::gp_port_info_list_new)>(
+        = m_port_library->symbol<decltype(&::gp_port_info_list_new)>(
             "gp_port_info_list_new");
     port_info_list_load
-        = m_port_library.symbol<decltype(&::gp_port_info_list_load)>(
+        = m_port_library->symbol<decltype(&::gp_port_info_list_load)>(
             "gp_port_info_list_load");
     port_info_list_free
-        = m_port_library.symbol<decltype(&::gp_port_info_list_free)>(
+        = m_port_library->symbol<decltype(&::gp_port_info_list_free)>(
             "gp_port_info_list_free");
     port_info_list_lookup_path
-        = m_port_library.symbol<decltype(&::gp_port_info_list_lookup_path)>(
+        = m_port_library->symbol<decltype(&::gp_port_info_list_lookup_path)>(
             "gp_port_info_list_lookup_path");
     port_info_list_get_info
-        = m_port_library.symbol<decltype(&::gp_port_info_list_get_info)>(
+        = m_port_library->symbol<decltype(&::gp_port_info_list_get_info)>(
             "gp_port_info_list_get_info");
 
     // libgphoto2 symbols
     context_new
-        = m_library.symbol<decltype(&::gp_context_new)>("gp_context_new");
+        = m_library->symbol<decltype(&::gp_context_new)>("gp_context_new");
     context_unref
-        = m_library.symbol<decltype(&::gp_context_unref)>("gp_context_unref");
+        = m_library->symbol<decltype(&::gp_context_unref)>("gp_context_unref");
 
-    camera_new = m_library.symbol<decltype(&::gp_camera_new)>("gp_camera_new");
+    camera_new = m_library->symbol<decltype(&::gp_camera_new)>("gp_camera_new");
     camera_init
-        = m_library.symbol<decltype(&::gp_camera_init)>("gp_camera_init");
+        = m_library->symbol<decltype(&::gp_camera_init)>("gp_camera_init");
     camera_exit
-        = m_library.symbol<decltype(&::gp_camera_exit)>("gp_camera_exit");
+        = m_library->symbol<decltype(&::gp_camera_exit)>("gp_camera_exit");
     camera_unref
-        = m_library.symbol<decltype(&::gp_camera_unref)>("gp_camera_unref");
+        = m_library->symbol<decltype(&::gp_camera_unref)>("gp_camera_unref");
     camera_set_abilities
-        = m_library.symbol<decltype(&::gp_camera_set_abilities)>(
+        = m_library->symbol<decltype(&::gp_camera_set_abilities)>(
             "gp_camera_set_abilities");
     camera_set_port_info
-        = m_library.symbol<decltype(&::gp_camera_set_port_info)>(
+        = m_library->symbol<decltype(&::gp_camera_set_port_info)>(
             "gp_camera_set_port_info");
     camera_autodetect
-        = m_library.symbol<decltype(&::gp_camera_autodetect)>(
+        = m_library->symbol<decltype(&::gp_camera_autodetect)>(
             "gp_camera_autodetect");
     camera_capture_preview
-        = m_library.symbol<decltype(&::gp_camera_capture_preview)>(
+        = m_library->symbol<decltype(&::gp_camera_capture_preview)>(
             "gp_camera_capture_preview");
     camera_get_config
-        = m_library.symbol<decltype(&::gp_camera_get_config)>(
+        = m_library->symbol<decltype(&::gp_camera_get_config)>(
             "gp_camera_get_config");
     camera_set_config
-        = m_library.symbol<decltype(&::gp_camera_set_config)>(
+        = m_library->symbol<decltype(&::gp_camera_set_config)>(
             "gp_camera_set_config");
     camera_get_single_config
-        = m_library.symbol<decltype(&::gp_camera_get_single_config)>(
+        = m_library->symbol<decltype(&::gp_camera_get_single_config)>(
             "gp_camera_get_single_config");
     camera_set_single_config
-        = m_library.symbol<decltype(&::gp_camera_set_single_config)>(
+        = m_library->symbol<decltype(&::gp_camera_set_single_config)>(
             "gp_camera_set_single_config");
 
     widget_get_type
-        = m_library.symbol<decltype(&::gp_widget_get_type)>(
+        = m_library->symbol<decltype(&::gp_widget_get_type)>(
             "gp_widget_get_type");
     widget_get_name
-        = m_library.symbol<decltype(&::gp_widget_get_name)>(
+        = m_library->symbol<decltype(&::gp_widget_get_name)>(
             "gp_widget_get_name");
     widget_get_label
-        = m_library.symbol<decltype(&::gp_widget_get_label)>(
+        = m_library->symbol<decltype(&::gp_widget_get_label)>(
             "gp_widget_get_label");
     widget_get_value
-        = m_library.symbol<decltype(&::gp_widget_get_value)>(
+        = m_library->symbol<decltype(&::gp_widget_get_value)>(
             "gp_widget_get_value");
     widget_set_value
-        = m_library.symbol<decltype(&::gp_widget_set_value)>(
+        = m_library->symbol<decltype(&::gp_widget_set_value)>(
             "gp_widget_set_value");
     widget_get_range
-        = m_library.symbol<decltype(&::gp_widget_get_range)>(
+        = m_library->symbol<decltype(&::gp_widget_get_range)>(
             "gp_widget_get_range");
     widget_count_children
-        = m_library.symbol<decltype(&::gp_widget_count_children)>(
+        = m_library->symbol<decltype(&::gp_widget_count_children)>(
             "gp_widget_count_children");
     widget_get_child
-        = m_library.symbol<decltype(&::gp_widget_get_child)>(
+        = m_library->symbol<decltype(&::gp_widget_get_child)>(
             "gp_widget_get_child");
     widget_count_choices
-        = m_library.symbol<decltype(&::gp_widget_count_choices)>(
+        = m_library->symbol<decltype(&::gp_widget_count_choices)>(
             "gp_widget_count_choices");
     widget_get_choice
-        = m_library.symbol<decltype(&::gp_widget_get_choice)>(
+        = m_library->symbol<decltype(&::gp_widget_get_choice)>(
             "gp_widget_get_choice");
     widget_free
-        = m_library.symbol<decltype(&::gp_widget_free)>("gp_widget_free");
+        = m_library->symbol<decltype(&::gp_widget_free)>("gp_widget_free");
 
-    file_new = m_library.symbol<decltype(&::gp_file_new)>("gp_file_new");
+    file_new = m_library->symbol<decltype(&::gp_file_new)>("gp_file_new");
     file_new_from_handler
-        = m_library.symbol<decltype(&::gp_file_new_from_handler)>(
+        = m_library->symbol<decltype(&::gp_file_new_from_handler)>(
             "gp_file_new_from_handler");
     file_unref
-        = m_library.symbol<decltype(&::gp_file_unref)>("gp_file_unref");
+        = m_library->symbol<decltype(&::gp_file_unref)>("gp_file_unref");
     file_clean
-        = m_library.symbol<decltype(&::gp_file_clean)>("gp_file_clean");
+        = m_library->symbol<decltype(&::gp_file_clean)>("gp_file_clean");
     file_get_data_and_size
-        = m_library.symbol<decltype(&::gp_file_get_data_and_size)>(
+        = m_library->symbol<decltype(&::gp_file_get_data_and_size)>(
             "gp_file_get_data_and_size");
 
-    list_new = m_library.symbol<decltype(&::gp_list_new)>("gp_list_new");
-    list_free = m_library.symbol<decltype(&::gp_list_free)>("gp_list_free");
+    list_new = m_library->symbol<decltype(&::gp_list_new)>("gp_list_new");
+    list_free = m_library->symbol<decltype(&::gp_list_free)>("gp_list_free");
     list_count
-        = m_library.symbol<decltype(&::gp_list_count)>("gp_list_count");
+        = m_library->symbol<decltype(&::gp_list_count)>("gp_list_count");
     list_get_name
-        = m_library.symbol<decltype(&::gp_list_get_name)>("gp_list_get_name");
+        = m_library->symbol<decltype(&::gp_list_get_name)>("gp_list_get_name");
     list_get_value
-        = m_library.symbol<decltype(&::gp_list_get_value)>(
+        = m_library->symbol<decltype(&::gp_list_get_value)>(
             "gp_list_get_value");
 
     abilities_list_new
-        = m_library.symbol<decltype(&::gp_abilities_list_new)>(
+        = m_library->symbol<decltype(&::gp_abilities_list_new)>(
             "gp_abilities_list_new");
     abilities_list_load
-        = m_library.symbol<decltype(&::gp_abilities_list_load)>(
+        = m_library->symbol<decltype(&::gp_abilities_list_load)>(
             "gp_abilities_list_load");
     abilities_list_free
-        = m_library.symbol<decltype(&::gp_abilities_list_free)>(
+        = m_library->symbol<decltype(&::gp_abilities_list_free)>(
             "gp_abilities_list_free");
     abilities_list_lookup_model
-        = m_library.symbol<decltype(&::gp_abilities_list_lookup_model)>(
+        = m_library->symbol<decltype(&::gp_abilities_list_lookup_model)>(
             "gp_abilities_list_lookup_model");
     abilities_list_get_abilities
-        = m_library.symbol<decltype(&::gp_abilities_list_get_abilities)>(
+        = m_library->symbol<decltype(&::gp_abilities_list_get_abilities)>(
             "gp_abilities_list_get_abilities");
 
     result_as_string
-        = m_library.symbol<decltype(&::gp_result_as_string)>(
+        = m_library->symbol<decltype(&::gp_result_as_string)>(
             "gp_result_as_string");
 
     // Verify critical symbols
-    if(!context_new || !camera_new || !camera_init || !camera_exit
-       || !camera_unref || !camera_capture_preview || !file_new
-       || !file_unref || !file_get_data_and_size || !list_new
-       || !list_free || !list_count || !camera_autodetect)
-    {
-      available = false;
-    }
-  }
-  catch(...)
-  {
-    // available is default-initialized to false;
-    // if we reach here, the library loading failed.
+    available = context_new && camera_new && camera_init && camera_exit
+                && camera_unref && camera_capture_preview && file_new && file_unref
+                && file_get_data_and_size && list_new && list_free && list_count
+                && camera_autodetect;
   }
 
-  ossia::dylib_loader m_port_library;
-  ossia::dylib_loader m_library;
+  std::optional<ossia::dylib_loader> m_port_library;
+  std::optional<ossia::dylib_loader> m_library;
 };
 
 // MJPEG decoder for preview frames
