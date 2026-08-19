@@ -370,3 +370,21 @@ score_add_test(test_gfx_output_preview
     ${_output_preview_hidden}
   APP
   PLUGINS score_plugin_gfx score_lib_process)
+
+# The protocol settings widget of the window output device (1161 lines, 0%):
+# mode switching, the swapchain flag/format combos, the per-output inspector
+# (position/size/fullscreen/source rect/blend/transform/lock mode/screen), the
+# output selector buttons and the add/remove path, plus the WindowSettings
+# round-trip getSettings()/setSettings() sits on top of. Offscreen, no GPU.
+score_plugin_hidden_sources(_window_settings_hidden
+    "${_gfx_src}/Gfx/Window/WindowSettingsWidget.cpp"
+    "${_gfx_src}/Gfx/Window/OutputMapping.cpp"
+    "${_gfx_src}/Gfx/Window/DesktopLayout.cpp"
+    "${_gfx_src}/Gfx/Window/OutputPreview.cpp"
+    "${_gfx_src}/Gfx/Window/TestCard.cpp")
+score_add_test(test_gfx_window_settings_ui
+  SOURCES
+    WindowSettingsUi.cpp
+    ${_window_settings_hidden}
+  APP
+  PLUGINS score_plugin_gfx score_lib_process score_plugin_deviceexplorer)
