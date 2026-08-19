@@ -388,3 +388,24 @@ score_add_test(test_gfx_window_settings_ui
     ${_window_settings_hidden}
   APP
   PLUGINS score_plugin_gfx score_lib_process score_plugin_deviceexplorer)
+
+# The FFmpeg (libav) input/output device: its settings widget (781 lines, 0%)
+# and the preset enumerators (301 lines, 0%). Most of the widget is libav
+# introspection — a muxer choice filters the encoder lists, an encoder choice
+# repopulates the pixel/sample format lists from the codec's declared config,
+# and the validation label comes from av_guess_format /
+# avcodec_find_encoder_by_name. Offscreen, no GPU.
+if(TARGET score_plugin_media)
+  score_plugin_hidden_sources(_libav_settings_hidden
+      "${_gfx_src}/Gfx/Libav/LibavSettingsWidget.cpp"
+      "${_gfx_src}/Gfx/Libav/LibavDevice.cpp"
+      "${_gfx_src}/Gfx/Libav/LibavEncoder.cpp"
+      "${_gfx_src}/Gfx/Libav/LibavEncoderNode.cpp"
+      "${_gfx_src}/Gfx/Libav/LibavPresets.cpp")
+  score_add_test(test_gfx_libav_settings_ui
+    SOURCES
+      LibavSettingsUi.cpp
+      ${_libav_settings_hidden}
+    APP
+    PLUGINS score_plugin_gfx score_lib_process score_plugin_media)
+endif()
