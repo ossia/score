@@ -49,6 +49,17 @@ function(score_setup_catch2)
   set(BUILD_SHARED_LIBS "${_old_shared}")
 endfunction()
 
+# Sources a test compiles directly because the shared plugin hides them
+# (visibility). A static plugin archive already provides them; compiling them
+# again duplicates every symbol at link time.
+function(score_plugin_hidden_sources OUT)
+  if(SCORE_STATIC_PLUGINS OR NOT BUILD_SHARED_LIBS)
+    set(${OUT} "" PARENT_SCOPE)
+  else()
+    set(${OUT} ${ARGN} PARENT_SCOPE)
+  endif()
+endfunction()
+
 function(score_add_test NAME)
   cmake_parse_arguments(ARG "GUI;APP;STANDALONE;SANDBOXED" "" "SOURCES;PLUGINS;LIBS" ${ARGN})
 
