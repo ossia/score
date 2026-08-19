@@ -892,3 +892,15 @@ if(TARGET score_plugin_gfx)
     PLUGINS score_plugin_gfx score_plugin_media
     LIBS avutil avcodec ${QT_PREFIX}::Gui)
 endif()
+
+# --- GPU interop capability ladder (score-plugin-gfx) -----------------------
+# The rung-selection predicates every vendor video strategy consults. The probe
+# needs a driver; the decisions taken on its result are constexpr predicates
+# over a plain struct and are checkable anywhere. Exported from the plugin, so
+# nothing has to be recompiled into the test.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_gpu_capabilities
+    SOURCES GpuCapabilitiesTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+endif()
