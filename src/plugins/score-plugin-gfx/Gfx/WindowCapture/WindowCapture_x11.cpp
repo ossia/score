@@ -1,5 +1,7 @@
 #include <Gfx/WindowCapture/WindowCaptureBackend.hpp>
 
+#include <score/tools/DynamicLibrary.hpp>
+
 #include <ossia/detail/dylib_loader.hpp>
 
 #include <QDebug>
@@ -107,15 +109,15 @@ struct libx11
 
   bool available{};
 
-  static const libx11& instance()
+  static const libx11& instance() noexcept
   {
     static const libx11 self;
     return self;
   }
 
 private:
-  ossia::dylib_loader m_x11;
-  ossia::dylib_loader m_xext;
+  std::optional<ossia::dylib_loader> m_x11;
+  std::optional<ossia::dylib_loader> m_xext;
   std::optional<ossia::dylib_loader> m_xcomposite;
   std::optional<ossia::dylib_loader> m_xrandr;
 
@@ -126,33 +128,37 @@ private:
   }
 
   libx11()
-  try : m_x11{std::vector<std::string_view>{"libX11.so.6", "libX11.so"}}
-      , m_xext{std::vector<std::string_view>{"libXext.so.6", "libXext.so"}}
   {
-    OpenDisplay = sym<XOpenDisplay_t>(m_x11, "XOpenDisplay");
-    CloseDisplay = sym<XCloseDisplay_t>(m_x11, "XCloseDisplay");
-    DefaultRootWindow = sym<XDefaultRootWindow_t>(m_x11, "XDefaultRootWindow");
-    InternAtom = sym<XInternAtom_t>(m_x11, "XInternAtom");
-    GetWindowProperty = sym<XGetWindowProperty_t>(m_x11, "XGetWindowProperty");
-    Free = sym<XFree_t>(m_x11, "XFree");
-    FetchName = sym<XFetchName_t>(m_x11, "XFetchName");
-    GetWindowAttributes = sym<XGetWindowAttributes_t>(m_x11, "XGetWindowAttributes");
-    QueryTree = sym<XQueryTree_t>(m_x11, "XQueryTree");
-    DestroyImage = sym<XDestroyImage_t>(m_x11, "XDestroyImage");
-    FreePixmap = sym<XFreePixmap_t>(m_x11, "XFreePixmap");
-    Sync = sym<XSync_t>(m_x11, "XSync");
+    m_x11 = score::try_load_library({"libX11.so.6", "libX11.so"});
+    m_xext = score::try_load_library({"libXext.so.6", "libXext.so"});
 
-    ShmQueryExtension = sym<XShmQueryExtension_t>(m_xext, "XShmQueryExtension");
-    ShmCreateImage = sym<XShmCreateImage_t>(m_xext, "XShmCreateImage");
-    ShmAttach = sym<XShmAttach_t>(m_xext, "XShmAttach");
-    ShmDetach = sym<XShmDetach_t>(m_xext, "XShmDetach");
-    ShmGetImage = sym<XShmGetImage_t>(m_xext, "XShmGetImage");
+    // Not installed: available stays false and every entry point bails out
+    if(!m_x11 || !m_xext)
+      return;
+
+    OpenDisplay = sym<XOpenDisplay_t>(*m_x11, "XOpenDisplay");
+    CloseDisplay = sym<XCloseDisplay_t>(*m_x11, "XCloseDisplay");
+    DefaultRootWindow = sym<XDefaultRootWindow_t>(*m_x11, "XDefaultRootWindow");
+    InternAtom = sym<XInternAtom_t>(*m_x11, "XInternAtom");
+    GetWindowProperty = sym<XGetWindowProperty_t>(*m_x11, "XGetWindowProperty");
+    Free = sym<XFree_t>(*m_x11, "XFree");
+    FetchName = sym<XFetchName_t>(*m_x11, "XFetchName");
+    GetWindowAttributes = sym<XGetWindowAttributes_t>(*m_x11, "XGetWindowAttributes");
+    QueryTree = sym<XQueryTree_t>(*m_x11, "XQueryTree");
+    DestroyImage = sym<XDestroyImage_t>(*m_x11, "XDestroyImage");
+    FreePixmap = sym<XFreePixmap_t>(*m_x11, "XFreePixmap");
+    Sync = sym<XSync_t>(*m_x11, "XSync");
+
+    ShmQueryExtension = sym<XShmQueryExtension_t>(*m_xext, "XShmQueryExtension");
+    ShmCreateImage = sym<XShmCreateImage_t>(*m_xext, "XShmCreateImage");
+    ShmAttach = sym<XShmAttach_t>(*m_xext, "XShmAttach");
+    ShmDetach = sym<XShmDetach_t>(*m_xext, "XShmDetach");
+    ShmGetImage = sym<XShmGetImage_t>(*m_xext, "XShmGetImage");
 
     // XComposite is optional — graceful fallback if not available
-    try
+    m_xcomposite = score::try_load_library({"libXcomposite.so.1", "libXcomposite.so"});
+    if(m_xcomposite)
     {
-      m_xcomposite.emplace(
-          std::vector<std::string_view>{"libXcomposite.so.1", "libXcomposite.so"});
       CompositeQueryExtension
           = sym<XCompositeQueryExtension_t>(*m_xcomposite, "XCompositeQueryExtension");
       CompositeRedirectWindow
@@ -164,16 +170,11 @@ private:
       hasComposite = CompositeQueryExtension && CompositeRedirectWindow
                      && CompositeUnredirectWindow && CompositeNameWindowPixmap;
     }
-    catch(...)
-    {
-      hasComposite = false;
-    }
 
     // XRandR is optional — needed for screen enumeration
-    try
+    m_xrandr = score::try_load_library({"libXrandr.so.2", "libXrandr.so"});
+    if(m_xrandr)
     {
-      m_xrandr.emplace(
-          std::vector<std::string_view>{"libXrandr.so.2", "libXrandr.so"});
       RRGetScreenResourcesCurrent = sym<XRRGetScreenResourcesCurrent_t>(
           *m_xrandr, "XRRGetScreenResourcesCurrent");
       RRGetOutputInfo
@@ -188,18 +189,11 @@ private:
       hasRandR = RRGetScreenResourcesCurrent && RRGetOutputInfo && RRGetCrtcInfo
                  && RRFreeScreenResources && RRFreeOutputInfo && RRFreeCrtcInfo;
     }
-    catch(...)
-    {
-      hasRandR = false;
-    }
 
     available = OpenDisplay && CloseDisplay && DefaultRootWindow && InternAtom
                 && GetWindowProperty && Free && FetchName && GetWindowAttributes
                 && ShmQueryExtension && ShmCreateImage && ShmAttach && ShmDetach
                 && ShmGetImage && DestroyImage && QueryTree && FreePixmap && Sync;
-  }
-  catch(...)
-  {
   }
 };
 
