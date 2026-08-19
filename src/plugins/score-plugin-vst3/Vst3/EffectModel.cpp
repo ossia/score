@@ -388,6 +388,9 @@ void Model::initFx()
   catch(std::exception& e)
   {
     qDebug() << e.what();
+    // load() may have thrown after having instantiated the plug-in: hand back
+    // whatever it managed to create instead of dropping the pointers
+    this->fx.stop();
     this->fx = {};
     return;
   }

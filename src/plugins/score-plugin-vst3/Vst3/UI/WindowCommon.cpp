@@ -29,8 +29,8 @@ Window::~Window()
   if(auto view = m_model.fx.view)
   {
     view->removed();
-    if(m_model.fx.ui_owned)
-      view->release();
+    // Both createView() and queryInterface() hand out an owned reference
+    view->release();
 
     const_cast<Plugin&>(m_model.fx).view = nullptr;
   }
@@ -58,8 +58,8 @@ void Window::closeEvent(QCloseEvent* event)
   if(auto view = m_model.fx.view)
   {
     view->removed();
-    if(m_model.fx.ui_owned)
-      view->release();
+    // Both createView() and queryInterface() hand out an owned reference
+    view->release();
 
     const_cast<Plugin&>(m_model.fx).view = nullptr;
   }
