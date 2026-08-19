@@ -155,7 +155,8 @@ ExecutionController::ExecutionController(const score::GUIApplicationContext& ctx
 
 ExecutionController::~ExecutionController()
 {
-  m_transport->teardown();
+  if(m_transport)
+    m_transport->teardown();
 }
 
 TransportInterface& ExecutionController::transport() const noexcept
