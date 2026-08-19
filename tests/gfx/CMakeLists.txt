@@ -307,7 +307,8 @@ score_add_test(test_gfx_external_sampler_essl
 # into the test target, as test_gfx_engine_glue does for the render nodes.
 score_plugin_hidden_sources(_window_layout_hidden
     "${_gfx_src}/Gfx/Window/OutputMapping.cpp"
-    "${_gfx_src}/Gfx/Window/DesktopLayout.cpp")
+    "${_gfx_src}/Gfx/Window/DesktopLayout.cpp"
+    "${_gfx_src}/Gfx/Window/TestCard.cpp")
 score_add_test(test_gfx_window_layout
   SOURCES
     WindowLayoutCanvas.cpp
