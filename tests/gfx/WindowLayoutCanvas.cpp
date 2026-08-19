@@ -26,6 +26,7 @@
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
+#include <algorithm>
 #include <set>
 
 using Catch::Approx;
@@ -1172,12 +1173,26 @@ TEST_CASE("Test card rendering", "[gfx][window][testcard]")
       CHECK(colors.size() > 50);
       CHECK(colors.count(qRgb(0, 0, 0)) <= 1);
 
-      // The rainbow strip sits at 0.62 * h and spans the middle half.
+      // The rainbow strip sits at 0.62 * h and spans the middle half. Every
+      // other layer that reaches this row is greyscale (checkerboard, ramps,
+      // circles), so saturation identifies the strip unambiguously -- a plain
+      // distinct-colour count is satisfied by the antialiased grid labels alone.
       const int stripY = int(480 * 0.62) + qMax(8, int(480 * 0.04)) / 2;
-      std::set<QRgb> stripColors;
+      int saturated = 0;
+      std::set<QRgb> hues;
       for(int x = 640 / 4; x < 3 * 640 / 4; x++)
-        stripColors.insert(img.pixel(x, stripY));
-      CHECK(stripColors.size() >= 8);
+      {
+        const QRgb c = img.pixel(x, stripY);
+        const int mx = std::max({qRed(c), qGreen(c), qBlue(c)});
+        const int mn = std::min({qRed(c), qGreen(c), qBlue(c)});
+        if(mx - mn > 60)
+        {
+          ++saturated;
+          hues.insert(c);
+        }
+      }
+      CHECK(saturated > 200);
+      CHECK(hues.size() >= 10);
     }
 
     SECTION("rendering is deterministic")
