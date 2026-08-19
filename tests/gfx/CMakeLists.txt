@@ -354,3 +354,19 @@ score_add_gfx_test(multi_window       MultiWindowOutput.cpp)
 # attributable RED cannot pull down the two green suites above. See the FINDING
 # block at the top of the file.
 score_add_gfx_test(screen_findings    ScreenOutputFindings.cpp)
+
+# -----------------------------------------------------------------------------
+# The multi-window preview windows (Gfx/Window/OutputPreview.cpp): four preview
+# contents painted through a corner-warp + rotation/mirror transform with
+# soft-edge blend overlays, plus the window-per-mapping bookkeeping. Pure
+# QPainter work, so QWidget::grab() renders it offscreen and the pixels are
+# asserted numerically (the blend overlay has the closed form the shader uses).
+score_plugin_hidden_sources(_output_preview_hidden
+    "${_gfx_src}/Gfx/Window/OutputPreview.cpp"
+    "${_gfx_src}/Gfx/Window/TestCard.cpp")
+score_add_test(test_gfx_output_preview
+  SOURCES
+    OutputPreviewPaint.cpp
+    ${_output_preview_hidden}
+  APP
+  PLUGINS score_plugin_gfx score_lib_process)
