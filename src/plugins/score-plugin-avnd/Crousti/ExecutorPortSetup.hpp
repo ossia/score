@@ -228,7 +228,7 @@ struct setup_control_for_exec<Node, Field, N, NField>
 
               // We store the sound file handle returned in this lambda so that it gets
               // GC'd in the main thread
-              n->soundfile_loaded(
+              f = n->soundfile_loaded(
                   f, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
             });
           }
@@ -272,7 +272,7 @@ struct setup_control_for_exec<Node, Field, N, NField>
 
             // We store the sound file handle returned in this lambda so that it gets
             // GC'd in the main thread
-            n->midifile_loaded(
+            f = n->midifile_loaded(
                 f, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
           });
         }
@@ -337,7 +337,8 @@ struct setup_control_for_exec<Node, Field, N, NField>
 
               // We store the sound file handle returned in this lambda so that it gets
               // GC'd in the main thread
-              n->file_loaded(f, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+              f = n->file_loaded(
+                  f, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
               if(ff)
                 ff(n->impl.effect);
             });
@@ -351,7 +352,8 @@ struct setup_control_for_exec<Node, Field, N, NField>
 
               // We store the sound file handle returned in this lambda so that it gets
               // GC'd in the main thread
-              n->file_loaded(f, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+              f = n->file_loaded(
+                  f, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
             });
           }
         }

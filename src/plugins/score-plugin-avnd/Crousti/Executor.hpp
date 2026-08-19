@@ -451,7 +451,7 @@ public:
                   [&]<std::size_t NField, std::size_t N>(
                       auto& field, avnd::predicate_index<N> p,
                       avnd::field_index<NField> f) {
-                eff_ptr->soundfile_loaded(sf, p, f);
+                sf = eff_ptr->soundfile_loaded(sf, p, f);
               });
             });
           });

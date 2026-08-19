@@ -18,6 +18,7 @@
 
 #include <score/tools/ThreadPool.hpp>
 
+#include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/small_flat_map.hpp>
 
 #include <ossia-qt/invoke.hpp>
@@ -81,6 +82,43 @@ struct GpuWorker
   }
 };
 
+#if defined(OSCR_HAS_MMAP_FILE_STORAGE)
+// The file ports keep string_views into the raw_file_data, and there is one
+// object instance per renderer (one renderer per RenderList, that is per
+// output) and per instance in CustomGpuRenderer. Storing the handles on the
+// node would thus free, on every load, the memory that the ports of all the
+// other instances still point to.
+template <typename T>
+struct GpuRendererFiles
+{
+  template <std::size_t N, std::size_t NField>
+  void file_loaded(
+      T& state, const std::shared_ptr<oscr::raw_file_data>& hdl,
+      avnd::predicate_index<N> pred, avnd::field_index<NField> field)
+  {
+    m_rawfiles[&state].load(state, hdl, pred, field);
+  }
+
+  void releaseFiles() noexcept { m_rawfiles.clear(); }
+
+private:
+  ossia::hash_map<const T*, oscr::raw_file_storage<T>> m_rawfiles;
+};
+
+template <typename T>
+  requires(avnd::raw_file_input_introspection<T>::size == 0)
+struct GpuRendererFiles<T>
+{
+  void releaseFiles() noexcept { }
+};
+#else
+template <typename T>
+struct GpuRendererFiles
+{
+  void releaseFiles() noexcept { }
+};
+#endif
+
 template <typename GpuNodeRenderer, typename Node>
 struct GpuProcessIns
 {
@@ -127,7 +165,6 @@ struct GpuProcessIns
   void operator()(Field& t, avnd::field_index<NField> field_index)
   {
     // FIXME we should be loading a file there
-    using node_type = std::remove_cvref_t<decltype(gpu.node())>;
     using file_ports = avnd::raw_file_input_introspection<Node>;
 
     if(!can_process_message(field_index))
@@ -149,17 +186,15 @@ struct GpuProcessIns
         // FIXME also do it when we get a run-time message from the exec engine,
         // OSC, etc
         auto func = executePortPreprocess<Field>(*hdl);
-        const_cast<node_type&>(gpu.node())
-            .file_loaded(
-                state, hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+        gpu.file_loaded(
+            state, hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
         if(func)
           func(state);
       }
       else
       {
-        const_cast<node_type&>(gpu.node())
-            .file_loaded(
-                state, hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+        gpu.file_loaded(
+            state, hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
       }
     }
   }
@@ -252,18 +287,7 @@ struct SCORE_PLUGIN_AVND_EXPORT GpuNodeElements
 
   [[no_unique_address]] oscr::midifile_storage<T> midifiles;
 
-#if defined(OSCR_HAS_MMAP_FILE_STORAGE)
-  [[no_unique_address]] oscr::raw_file_storage<T> rawfiles;
-#endif
-
-  template <std::size_t N, std::size_t NField>
-  void file_loaded(
-      auto& state, const std::shared_ptr<oscr::raw_file_data>& hdl,
-      avnd::predicate_index<N>, avnd::field_index<NField>)
-  {
-    this->rawfiles.load(
-        state, hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
-  }
+  // Raw file handles are stored per-state in the renderers, see GpuRendererFiles
 };
 
 struct SCORE_PLUGIN_AVND_EXPORT CustomGfxNodeBase : score::gfx::NodeModel
