@@ -60,7 +60,7 @@ static bool stringIsScript(const QString& input)
       return true;
   }
 
-  return true;
+  return false;
 }
 
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
