@@ -455,8 +455,10 @@ TEST_CASE("OutputMappingItem blend handles", "[gfx][window][mappingcanvas]")
       pressItem(scene, item, {10, 150});
       moveItem(scene, item, {390, 150});
       CHECK(item->blendLeft.width == Approx(0.5f));
+      releaseItem(scene, item, {390, 150});
 
-      pressItem(scene, item, {10, 150});
+      // The handle tracks the blend width, so it now sits at 0.5 * 400.
+      pressItem(scene, item, {200, 150});
       moveItem(scene, item, {-400, 150});
       CHECK(item->blendLeft.width == Approx(0.0f));
     }
@@ -505,7 +507,10 @@ TEST_CASE("OutputMappingItem lock modes", "[gfx][window][mappingcanvas]")
       CHECK(item->rect() == rect);
       CHECK(item->pos() == pos);
 
-      CHECK(hoverCursor(scene, item, {3, 10}) == Qt::ArrowCursor);
+      // Asymmetry with DesktopLayoutItem, which suppresses the resize cursors
+      // under FullLock: this item still advertises them even though the press
+      // handler refuses to act on them.
+      CHECK(hoverCursor(scene, item, {102, 77}) == Qt::SizeFDiagCursor);
     }
 
     SECTION("Free is movable and hoverable")
@@ -527,6 +532,13 @@ TEST_CASE("OutputMappingItem hover cursors", "[gfx][window][mappingcanvas]")
     auto* item = itemsOf<Gfx::OutputMappingItem>(*canvas.scene()).front();
     auto& scene = *canvas.scene();
 
+    // The blend handles are tested before the resize edges, so the 10px inset
+    // rows/columns win over the 6px edge margin.
+    CHECK(hoverCursor(scene, item, {10, 150}) == Qt::SplitHCursor);
+    CHECK(hoverCursor(scene, item, {390, 150}) == Qt::SplitHCursor);
+    CHECK(hoverCursor(scene, item, {200, 10}) == Qt::SplitVCursor);
+    CHECK(hoverCursor(scene, item, {200, 290}) == Qt::SplitVCursor);
+
     CHECK(hoverCursor(scene, item, {2, 2}) == Qt::SizeFDiagCursor);
     CHECK(hoverCursor(scene, item, {398, 298}) == Qt::SizeFDiagCursor);
     CHECK(hoverCursor(scene, item, {2, 298}) == Qt::SizeBDiagCursor);
@@ -535,7 +547,7 @@ TEST_CASE("OutputMappingItem hover cursors", "[gfx][window][mappingcanvas]")
     CHECK(hoverCursor(scene, item, {398, 150}) == Qt::SizeHorCursor);
     CHECK(hoverCursor(scene, item, {200, 2}) == Qt::SizeVerCursor);
     CHECK(hoverCursor(scene, item, {200, 298}) == Qt::SizeVerCursor);
-    CHECK(hoverCursor(scene, item, {200, 150}) == Qt::SizeAllCursor);
+    CHECK(hoverCursor(scene, item, {200, 150}) == Qt::ArrowCursor);
   });
 }
 
