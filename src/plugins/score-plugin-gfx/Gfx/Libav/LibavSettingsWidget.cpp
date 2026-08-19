@@ -536,28 +536,30 @@ void LibavSettingsWidget::onDirectionChanged()
 void LibavSettingsWidget::onMuxerChanged()
 {
   auto muxerName = m_muxer->currentText();
-  if(muxerName.isEmpty())
-    return;
 
-  // Find the MuxerInfo for the selected muxer
+  // An empty muxer is unconstrained, like validateOutput treats it: the
+  // encoder lists go back to everything the build offers.
   const MuxerInfo* minfo = nullptr;
-  for(auto& m : LibavIntrospection::instance().muxers)
+  if(!muxerName.isEmpty())
   {
-    if(m.format && m.format->name && muxerName == m.format->name)
+    for(auto& m : LibavIntrospection::instance().muxers)
     {
-      minfo = &m;
-      break;
+      if(m.format && m.format->name && muxerName == m.format->name)
+      {
+        minfo = &m;
+        break;
+      }
     }
+    if(!minfo)
+      return;
   }
-  if(!minfo)
-    return;
 
   // Filter video encoders
   auto prevV = m_vencoder->currentText();
   m_vencoder->blockSignals(true);
   m_vencoder->clear();
   m_vencoder->addItem("");
-  if(!minfo->vcodecs.empty())
+  if(minfo && !minfo->vcodecs.empty())
   {
     for(auto* vc : minfo->vcodecs)
       if(vc->codec && vc->codec->name)
@@ -580,7 +582,7 @@ void LibavSettingsWidget::onMuxerChanged()
   m_aencoder->blockSignals(true);
   m_aencoder->clear();
   m_aencoder->addItem("");
-  if(!minfo->acodecs.empty())
+  if(minfo && !minfo->acodecs.empty())
   {
     for(auto* ac : minfo->acodecs)
       if(ac->codec && ac->codec->name)
