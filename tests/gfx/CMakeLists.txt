@@ -332,3 +332,25 @@ score_add_test(test_gfx_window_layout
     ${_window_layout_hidden}
   APP
   PLUGINS score_plugin_gfx score_lib_process)
+
+# -----------------------------------------------------------------------------
+# PRESENTED-SWAPCHAIN output tests. Everything else in this directory renders
+# into an offscreen BackgroundNode and reads it back, which leaves
+# score::gfx::Window, ScreenNode and MultiWindowNode -- i.e. every path that
+# only exists because a real platform surface is in front of the renderer --
+# entirely unexercised. These two targets terminate the same score::gfx::Graph
+# on a real window instead.
+#
+# They are GUI targets (label "gui", real display, no forced offscreen QPA) and
+# SKIP cleanly when no native window can be exposed. Split in two so a hang or
+# a crash in the multi-window case cannot take the single-window one with it,
+# and so the ctest timeout applies per group.
+score_add_gfx_test(screen_output      ScreenOutput.cpp)
+score_add_gfx_test(multi_window       MultiWindowOutput.cpp)
+
+# ISOLATED, EXPECTED-RED: a live swapchain-flag toggle on an output that is part
+# of a Graph frees the QRhi under the RenderList built against it. Own target,
+# like test_gfx_isf_findings / test_gfx_csf_image3d / test_gfx_vsa_cull, so the
+# attributable RED cannot pull down the two green suites above. See the FINDING
+# block at the top of the file.
+score_add_gfx_test(screen_findings    ScreenOutputFindings.cpp)
