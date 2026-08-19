@@ -263,7 +263,7 @@ QPixmap get_pixmap(QString str, QString svg)
   init_svgmap();
 
   QPixmap img;
-  static const auto& appSettings = score::AppContext().applicationSettings;
+  const auto& appSettings = score::AppContext().applicationSettings;
   if(!appSettings.gui)
     return img;
 
@@ -305,7 +305,7 @@ QPixmap get_pixmap(QString str, QString svg)
 QCursor get_cursor(QString str, double hotspot_x, double hotspot_y)
 {
   QCursor cur;
-  static const auto& appSettings = score::AppContext().applicationSettings;
+  const auto& appSettings = score::AppContext().applicationSettings;
   if(!appSettings.gui)
     return cur;
 
@@ -344,7 +344,7 @@ QImage get_image(QString str, QString svg)
   init_svgmap();
 
   QImage img;
-  static const auto& appSettings = score::AppContext().applicationSettings;
+  const auto& appSettings = score::AppContext().applicationSettings;
   if(!appSettings.gui)
     return img;
 
