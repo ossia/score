@@ -14,6 +14,7 @@
 
 #include <Gfx/Window/DesktopLayout.hpp>
 #include <Gfx/Window/OutputMapping.hpp>
+#include <Gfx/Window/TestCard.hpp>
 
 #include <score_test/App.hpp>
 
@@ -24,6 +25,9 @@
 
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
+
+#include <algorithm>
+#include <set>
 
 using Catch::Approx;
 
@@ -1128,5 +1132,88 @@ TEST_CASE("DesktopLayoutItem hover cursors", "[gfx][window][desktopcanvas]")
     CHECK(hoverCursor(scene, item, {r.width() / 2, 2}) == Qt::SizeVerCursor);
     CHECK(hoverCursor(scene, item, {r.width() / 2, r.height() / 2})
           == Qt::SizeAllCursor);
+  });
+}
+
+// -----------------------------------------------------------------------------
+// TestCard
+// -----------------------------------------------------------------------------
+
+TEST_CASE("Test card rendering", "[gfx][window][testcard]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    SECTION("a degenerate size yields a null image")
+    {
+      CHECK(Gfx::renderTestCard(0, 100).isNull());
+      CHECK(Gfx::renderTestCard(100, 0).isNull());
+      CHECK(Gfx::renderTestCard(-1, -1).isNull());
+    }
+
+    SECTION("the requested geometry and format are honoured")
+    {
+      const auto img = Gfx::renderTestCard(640, 480);
+      REQUIRE_FALSE(img.isNull());
+      CHECK(img.width() == 640);
+      CHECK(img.height() == 480);
+      CHECK(img.format() == QImage::Format_RGB32);
+    }
+
+    SECTION("every layer actually painted")
+    {
+      const auto img = Gfx::renderTestCard(640, 480);
+      REQUIRE_FALSE(img.isNull());
+
+      std::set<QRgb> colors;
+      for(int y = 0; y < img.height(); y += 2)
+        for(int x = 0; x < img.width(); x += 2)
+          colors.insert(img.pixel(x, y));
+
+      // The grey ramps alone contribute a long tail of distinct values; a card
+      // that stopped at the initial fill would report one.
+      CHECK(colors.size() > 50);
+      CHECK(colors.count(qRgb(0, 0, 0)) <= 1);
+
+      // The rainbow strip sits at 0.62 * h and spans the middle half. Every
+      // other layer that reaches this row is greyscale (checkerboard, ramps,
+      // circles), so saturation identifies the strip unambiguously -- a plain
+      // distinct-colour count is satisfied by the antialiased grid labels alone.
+      const int stripY = int(480 * 0.62) + qMax(8, int(480 * 0.04)) / 2;
+      int saturated = 0;
+      std::set<QRgb> hues;
+      for(int x = 640 / 4; x < 3 * 640 / 4; x++)
+      {
+        const QRgb c = img.pixel(x, stripY);
+        const int mx = std::max({qRed(c), qGreen(c), qBlue(c)});
+        const int mn = std::min({qRed(c), qGreen(c), qBlue(c)});
+        if(mx - mn > 60)
+        {
+          ++saturated;
+          hues.insert(c);
+        }
+      }
+      CHECK(saturated > 200);
+      CHECK(hues.size() >= 10);
+    }
+
+    SECTION("rendering is deterministic")
+    {
+      const auto a = Gfx::renderTestCard(320, 240);
+      const auto b = Gfx::renderTestCard(320, 240);
+      REQUIRE_FALSE(a.isNull());
+      CHECK(a == b);
+    }
+
+    SECTION("degenerate but legal geometries do not fall over")
+    {
+      // Every layer sizes itself off w/h with qMax floors; these are the sizes
+      // that exercise them.
+      for(QSize s : {QSize{1, 1}, QSize{3, 2}, QSize{2000, 10}, QSize{10, 2000}})
+      {
+        const auto img = Gfx::renderTestCard(s.width(), s.height());
+        INFO(s.width() << "x" << s.height());
+        REQUIRE_FALSE(img.isNull());
+        CHECK(img.size() == s);
+      }
+    }
   });
 }
