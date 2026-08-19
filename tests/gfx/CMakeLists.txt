@@ -270,3 +270,17 @@ score_add_test(test_gfx_assettable_eviction
 score_add_test(test_gfx_scatter_dispatch  SOURCES GfxScatterDispatch.cpp)
 score_add_test(test_gfx_gstreamer_bus_classify SOURCES GfxGStreamerBusClassify.cpp)
 
+
+# toExternalSamplerEssl rewrites baked GLSL into the GL_OES_EGL_image_external
+# form for the NV12/Bayer external-texture decoders. Its "this is not baked
+# GLSL" guard is the interesting part: it is the only thing between a non-baked
+# input and a shader with the extension pragma spliced in at an arbitrary
+# offset.
+score_plugin_hidden_sources(_external_oes_hidden
+    "${_gfx_src}/Gfx/Graph/decoders/NV12ExternalOES.cpp")
+score_add_test(test_gfx_external_sampler_essl
+  SOURCES
+    ExternalSamplerEssl.cpp
+    ${_external_oes_hidden}
+  APP
+  PLUGINS score_plugin_gfx score_plugin_media score_lib_process)
