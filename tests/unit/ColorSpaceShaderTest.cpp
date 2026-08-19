@@ -21,6 +21,22 @@
 using Catch::Approx;
 using score::gfx::colorMatrix;
 
+namespace Catch
+{
+// Without this the generated programs stringify as a wall of "{?}".
+template <>
+struct StringMaker<QString>
+{
+  static std::string convert(const QString& s)
+  {
+    const QString head = s.left(400);
+    return (s.size() > 400 ? head + QStringLiteral("... [%1 chars]").arg(s.size())
+                           : head)
+        .toStdString();
+  }
+};
+}
+
 namespace
 {
 Video::ImageFormat fmt(
@@ -399,10 +415,21 @@ TEST_CASE("colorMatrix HDR pipelines", "[gfx][video][colorspace]")
     CHECK(hlg != ictcp);
     CHECK(has(hlg, "ictcpToLms"));
 
-    // Anything that is not HLG uses the PQ inverse.
-    const auto unspecified = colorMatrix(
-        fmt(AVCOL_SPC_ICTCP, AVCOL_RANGE_MPEG, pri, AVCOL_TRC_UNSPECIFIED));
-    CHECK(unspecified == ictcp);
+    // The matrix choice is the only part of the program the transfer function
+    // drives here (the EOTF, peak and tonemapper differ too, so the whole
+    // programs are not comparable). Assert on the helper itself.
+    auto inverse = [&](AVColorTransferCharacteristic trc) {
+      QString s;
+      score::gfx::ictcp_appendInverseMatrix(
+          s, fmt(AVCOL_SPC_ICTCP, AVCOL_RANGE_MPEG, pri, trc));
+      return s;
+    };
+    const auto pqInverse = inverse(AVCOL_TRC_SMPTE2084);
+    CHECK(has(pqInverse, "ictcpToLms"));
+    CHECK(inverse(AVCOL_TRC_ARIB_STD_B67) != pqInverse);
+    // Anything that is not HLG defaults to the PQ inverse.
+    CHECK(inverse(AVCOL_TRC_UNSPECIFIED) == pqInverse);
+    CHECK(inverse(AVCOL_TRC_BT709) == pqInverse);
   }
 
   SECTION("each output format is its own program")
