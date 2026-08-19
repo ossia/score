@@ -54,6 +54,7 @@
 // caching. The copyTexture bridge is much simpler and still drops
 // the CPU readback + memcpy cost.
 
+#include <atomic>
 #include "PipewireOutputDevice.hpp"
 
 #include "PipewireFormats.hpp"
@@ -289,7 +290,7 @@ public:
     if(!lp || !m_stream || m_dmabufBackend != DmaBufBackend::EglGbm)
       return nullptr;
     auto& pw = libremidi::pipewire::load();
-    if(!pw.stream_available)
+    if(!pw.stream_available || !m_streaming.load(std::memory_order_acquire))
       return nullptr;
     pw.thread_loop_lock(lp);
 
@@ -361,7 +362,7 @@ public:
     if(!lp || !m_stream || m_dmabufBackend != DmaBufBackend::Vulkan)
       return nullptr;
     auto& pw = libremidi::pipewire::load();
-    if(!pw.stream_available)
+    if(!pw.stream_available || !m_streaming.load(std::memory_order_acquire))
       return nullptr;
     pw.thread_loop_lock(lp);
     pw_buffer* b = pw.stream_dequeue_buffer(m_stream);
@@ -657,7 +658,7 @@ public:
     if(!lp || !m_stream || !data || size == 0)
       return false;
     auto& pw = libremidi::pipewire::load();
-    if(!pw.stream_available)
+    if(!pw.stream_available || !m_streaming.load(std::memory_order_acquire))
       return false;
 
     pw.thread_loop_lock(lp);
@@ -693,9 +694,16 @@ public:
 
 private:
   static void on_state_changed(
-      void* /*self*/, pw_stream_state /*old*/, pw_stream_state state,
+      void* self_, pw_stream_state /*old*/, pw_stream_state state,
       const char* error)
   {
+    // pw_stream_dequeue_buffer dereferences stream internals that only exist
+    // once the stream is streaming; calling it on an UNCONNECTED or ERROR
+    // stream faults inside pipewire.
+    if(auto* self = static_cast<PipewireProducer*>(self_))
+      self->m_streaming.store(
+          state == PW_STREAM_STATE_STREAMING, std::memory_order_release);
+
     auto& pw = libremidi::pipewire::load();
     const char* s = pw.stream_state_as_string
                         ? pw.stream_state_as_string(state)
@@ -894,6 +902,7 @@ private:
   // start(). The thread_loop, pw_context and pw_core live here.
   std::shared_ptr<libremidi::pipewire::context> m_shared;
   pw_stream* m_stream{};
+  std::atomic_bool m_streaming{false};
   spa_hook m_listener{};
 
 #if defined(SCORE_PIPEWIRE_OUT_DMABUF)
