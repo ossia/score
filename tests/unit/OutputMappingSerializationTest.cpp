@@ -12,6 +12,7 @@
 
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+#include <score/serialization/VisitorCommon.hpp>
 
 #include <core/application/MockApplication.hpp>
 
