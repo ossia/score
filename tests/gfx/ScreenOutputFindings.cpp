@@ -95,3 +95,84 @@ TEST_CASE(
   // Graph and will be released against a freed QRhi.
   CHECK(renderListsLeft == 0);
 }
+
+// FINDING — a window resize discards the render-size override.
+//
+// The override decouples the resolution the graph renders at from the size of
+// the window it is presented in (`window_device`'s "/rendersize" address, and
+// ScreenNode::setRenderSize underneath it). Setting it works. Resizing the
+// window afterwards silently throws it away:
+//
+//   Window::render() sees a new surface size
+//     -> Window::resizeSwapChain()
+//          state->outputSize = swapchain size
+//          onResize()                              [ScreenNode::createOutput]
+//            st.renderSize = *m_renderSz;          (still correct here)
+//            conf.onResize();                      [Graph::initializeOutput]
+//              -> RenderList::resizeSwapchainSizedTargets(rs->outputSize)
+//                   state.renderSize = newSize;    RenderList.cpp:916  <-- lost
+//
+// The fast path writes the swapchain size straight into RenderState::renderSize
+// without consulting the output's override, so from the first resize onwards
+// the graph renders at the window's resolution whatever was asked for. It is
+// not visible immediately after setRenderSize() only because the fast path
+// early-returns when the requested size already equals RenderList::m_lastSize.
+//
+// The same mechanism silently weakens any test written against a Graph-backed
+// rig, which is why the green "render size overrides the swapchain size" case
+// runs on BareScreenRig.
+TEST_CASE(
+    "FINDING: a window resize discards the render-size override",
+    "[gfx][window][screen][!mayfail]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+
+  bool skipped{};
+  std::string skipReason, backend, error;
+  const QSize requested{200, 120};
+  QSize beforeResize, afterResize;
+
+  run_in_gui_app([&](const score::GUIApplicationContext&) {
+    ScreenRig rig;
+    if(!rig.build(api, {320, 240}))
+    {
+      skipped = rig.skipped();
+      skipReason = rig.skipReason();
+      error = rig.error();
+      backend = rig.backend();
+      return;
+    }
+    backend = rig.backend();
+    rig.render(3);
+
+    rig.screen->setRenderSize(requested);
+    rig.render(2);
+    if(auto rs = rig.screen->renderState())
+      beforeResize = rs->renderSize;
+
+    // Now resize the window. The override must survive it.
+    const auto out = rig.screen->renderState()->outputSize;
+    rig.screen->setSize({420, 320});
+    pump_until(
+        [&] {
+      rig.render(1);
+      return rig.screen->renderState()->outputSize != out;
+        },
+        5000);
+    rig.render(3);
+    if(auto rs = rig.screen->renderState())
+      afterResize = rs->renderSize;
+  });
+
+  if(skipped)
+    SKIP(backend << ": " << skipReason);
+  REQUIRE(error.empty());
+
+  INFO("backend: " << backend << " before " << beforeResize.width() << "x"
+                   << beforeResize.height() << " after " << afterResize.width() << "x"
+                   << afterResize.height());
+  // Setting it works...
+  CHECK(beforeResize == requested);
+  // ...and this is the defect: the resize threw it away.
+  CHECK(afterResize == requested);
+}
