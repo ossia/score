@@ -1,4 +1,13 @@
 # Integration tests: full headless application + document lifecycle.
+
+# The .sh harnesses need flock/oscsend and POSIX tooling. On Windows ctest
+# cannot execute them at all and reports BAD_COMMAND, which counts as a failure
+# rather than a skip.
+if(WIN32)
+  set(SCORE_HAS_SHELL_HARNESS 0)
+else()
+  set(SCORE_HAS_SHELL_HARNESS 1)
+endif()
 # These run from the build root so the dynamic plugins in <build>/plugins are
 # discovered at runtime (handled by score_add_test ... APP).
 
@@ -301,15 +310,18 @@ score_add_test(test_integration_nodal_viewport
 # Frame-step determinism across two processes: the same case rendered to the same
 # frame index in two separate applications must be byte-identical.
 # Skips (77) without the binary or the out-of-repo tests-scene corpus.
-add_test(NAME test_frame_determinism
-  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/golden-render/frame-determinism.sh"
-  WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
-set_tests_properties(test_frame_determinism PROPERTIES
-  SKIP_RETURN_CODE 77
-  TIMEOUT 600
-  RUN_SERIAL TRUE
-  LABELS "gui"
-  ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+if(SCORE_HAS_SHELL_HARNESS)
+  add_test(NAME test_frame_determinism
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/golden-render/frame-determinism.sh"
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+  set_tests_properties(test_frame_determinism PROPERTIES
+    SKIP_RETURN_CODE 77
+    TIMEOUT 600
+    RUN_SERIAL TRUE
+    LABELS "gui"
+    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+endif()
+
 
 # Golden-image render regression.
 # Renders a pinned subset of the tests-scene JS corpus headless on llvmpipe and
@@ -317,14 +329,17 @@ set_tests_properties(test_frame_determinism PROPERTIES
 # Deterministic-headless -> CI-able. References are committed under
 # refs/llvmpipe/; regenerate with:  golden-render.sh --backend llvmpipe --update-refs
 # Self-serializes on /tmp/score-harness.lock; skips (77) if refs/oscsend/corpus absent.
-add_test(NAME test_golden_render_llvmpipe
-  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/golden-render/golden-render.sh" --backend llvmpipe
-  WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
-set_tests_properties(test_golden_render_llvmpipe PROPERTIES
-  SKIP_RETURN_CODE 77
-  TIMEOUT 1800
-  RUN_SERIAL TRUE
-  ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+if(SCORE_HAS_SHELL_HARNESS)
+  add_test(NAME test_golden_render_llvmpipe
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/golden-render/golden-render.sh" --backend llvmpipe
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+  set_tests_properties(test_golden_render_llvmpipe PROPERTIES
+    SKIP_RETURN_CODE 77
+    TIMEOUT 1800
+    RUN_SERIAL TRUE
+    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+endif()
+
 
 # Resource/leak/lifetime soak.
 # Creates+destroys 4 gfx processes/cycle during playback via the JS harness and
@@ -337,28 +352,34 @@ set_tests_properties(test_golden_render_llvmpipe PROPERTIES
 # distinct from the 3 previously-fixed teardown UAFs. Flip DISABLED->FALSE once
 # that UAF is fixed; it then becomes the leak/teardown regression gate.
 # Deterministic-headless -> CI-able. Self-serializes on /tmp/score-harness.lock.
-add_test(NAME test_gfx_soak
-  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/gfx-soak/soak-leak.sh" 150
-  WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
-set_tests_properties(test_gfx_soak PROPERTIES
-  DISABLED TRUE
-  SKIP_RETURN_CODE 77
-  TIMEOUT 1200
-  RUN_SERIAL TRUE
-  ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+if(SCORE_HAS_SHELL_HARNESS)
+  add_test(NAME test_gfx_soak
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/gfx-soak/soak-leak.sh" 150
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+  set_tests_properties(test_gfx_soak PROPERTIES
+    DISABLED TRUE
+    SKIP_RETURN_CODE 77
+    TIMEOUT 1200
+    RUN_SERIAL TRUE
+    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+endif()
+
 
 # Timeline-driven scenario.
 # Seeks an automation ramp with OSC /transport, pausing + grabbing at fixed
 # positions, and asserts the rendered frame mean == position/duration.
 # Deterministic-headless -> CI-able. Self-serializes on /tmp/score-harness.lock.
-add_test(NAME test_timeline_scenario_ramp
-  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/timeline-scenarios/timeline-scenario.sh"
-  WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
-set_tests_properties(test_timeline_scenario_ramp PROPERTIES
-  SKIP_RETURN_CODE 77
-  TIMEOUT 600
-  RUN_SERIAL TRUE
-  ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+if(SCORE_HAS_SHELL_HARNESS)
+  add_test(NAME test_timeline_scenario_ramp
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/timeline-scenarios/timeline-scenario.sh"
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+  set_tests_properties(test_timeline_scenario_ramp PROPERTIES
+    SKIP_RETURN_CODE 77
+    TIMEOUT 600
+    RUN_SERIAL TRUE
+    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+endif()
+
 
 # TEXT node render validation (depends on the scene render path). One
 # headless llvmpipe app run: grabs the
@@ -370,14 +391,17 @@ set_tests_properties(test_timeline_scenario_ramp PROPERTIES
 # stable subset (text-render/refs/llvmpipe, compare.py strict; regenerate
 # with text-render.sh --update-refs — double-render self-consistency).
 # Self-serializes on /tmp/score-harness.lock; SKIPs (77) without deps.
-add_test(NAME test_text_render
-  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/text-render/text-render.sh"
-  WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
-set_tests_properties(test_text_render PROPERTIES
-  SKIP_RETURN_CODE 77
-  TIMEOUT 900
-  RUN_SERIAL TRUE
-  ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+if(SCORE_HAS_SHELL_HARNESS)
+  add_test(NAME test_text_render
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/text-render/text-render.sh"
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+  set_tests_properties(test_text_render PROPERTIES
+    SKIP_RETURN_CODE 77
+    TIMEOUT 900
+    RUN_SERIAL TRUE
+    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+endif()
+
 
 # GPU video encoder matrix: instantiates every encoder in
 # src/plugins/score-plugin-gfx/Gfx/Graph/encoders on a real QRhi backend
@@ -399,14 +423,17 @@ endif()
 # Offscreen-teardown regression: a full-app offscreen
 # render followed by /stop + /exit must exit 0 (was SIGSEGV/UAF at teardown).
 # The script serializes itself on /tmp/score-harness.lock (global OSC port).
-add_test(NAME test_regression_offscreen_teardown
-  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/offscreen-teardown-regression.sh"
-  WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
-set_tests_properties(test_regression_offscreen_teardown PROPERTIES
-  SKIP_RETURN_CODE 77
-  TIMEOUT 600
-  RUN_SERIAL TRUE
-  ENVIRONMENT "SCORE_BIN=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+if(SCORE_HAS_SHELL_HARNESS)
+  add_test(NAME test_regression_offscreen_teardown
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/offscreen-teardown-regression.sh"
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+  set_tests_properties(test_regression_offscreen_teardown PROPERTIES
+    SKIP_RETURN_CODE 77
+    TIMEOUT 600
+    RUN_SERIAL TRUE
+    ENVIRONMENT "SCORE_BIN=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+endif()
+
 
 # Video decode-correctness matrix: every SOFTWARE-
 # decodable pixel format in Gfx/Graph/decoders is encoded as a known pattern
