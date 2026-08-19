@@ -134,20 +134,26 @@ TEST_CASE("--script reports what happened to it", "[integration][js][script]")
   }
 #endif
 
-  SECTION("a path that does not exist is evaluated as a program")
+  SECTION("a path that does not exist exits 2 and names the path")
   {
-    // Pinning the behaviour, not the intent. JS::stringIsScript ends in an
-    // unconditional `return true`, so its punctuation scan is dead code and
-    // anything that is not an existing file is classified as inline source: a
-    // missing path never reaches the "cannot open" branch, it is parsed
-    // (/nonexistent/path.js is a regex literal with invalid flags) and reported
-    // as a syntax error. Nonzero either way, but exit 3 rather than the exit 2
-    // the commit describes. Tighten this to == 2 if that is ever fixed.
+    // A string that is not an existing file and carries none of the punctuation
+    // inline source always has is a path, not a program: it must reach the
+    // "cannot open" branch rather than be parsed (/definitely/does/not/exist.js
+    // is a regex literal with invalid flags, which used to surface as a
+    // SyntaxError at exit 3).
     auto r = runScript(QStringLiteral("/definitely/does/not/exist.js"));
     CHECK_FALSE(r.crashed);
-    CHECK(r.exitCode == 3);
-    CHECK(r.output.contains("<inline>"));
-    CHECK(r.output.contains("SyntaxError"));
+    CHECK(r.exitCode == 2);
+    CHECK(r.output.contains("--script: cannot open"));
+    CHECK(r.output.contains("/definitely/does/not/exist.js"));
+    CHECK_FALSE(r.output.contains("SyntaxError"));
+  }
+
+  SECTION("inline source is still recognised without an extension or a path")
+  {
+    auto r = runScript(QStringLiteral("Qt.exit(5);"));
+    CHECK_FALSE(r.crashed);
+    CHECK(r.exitCode == 5);
     CHECK_FALSE(r.output.contains("--script: cannot open"));
   }
 
