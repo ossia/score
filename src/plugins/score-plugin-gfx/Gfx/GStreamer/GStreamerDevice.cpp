@@ -616,8 +616,12 @@ public:
   gstreamer_protocol(const std::string& pipeline_string)
       : ossia::net::protocol_base{flags{}}
   {
-    pipeline.load(pipeline_string);
+    m_loaded = pipeline.load(pipeline_string);
   }
+
+  // load() fails on an unavailable gstreamer, a parse error, or a pipeline
+  // with no appsink. Callers must not present the device as connected then.
+  bool loaded() const noexcept { return m_loaded; }
 
   bool pull(ossia::net::parameter_base&) override { return false; }
   bool push(const ossia::net::parameter_base&, const ossia::value&) override
@@ -640,6 +644,9 @@ public:
       buf->read_into_output(buffer_size);
     }
   }
+
+private:
+  bool m_loaded{};
 };
 
 class gstreamer_device : public ossia::net::device_base
@@ -1010,6 +1017,12 @@ bool InputDevice::reconnect()
     {
       auto proto = std::make_unique<gstreamer_protocol>(
           set.pipeline.toStdString());
+      if(!proto->loaded())
+      {
+        qDebug() << "GStreamer: pipeline unusable, not creating the device:"
+                 << set.pipeline;
+        return connected();
+      }
       m_protocol = proto.get();
       m_dev = std::make_unique<gstreamer_device>(
           plug->exec, std::move(proto), this->settings().name.toStdString());
