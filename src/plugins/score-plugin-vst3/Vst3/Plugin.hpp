@@ -9,6 +9,7 @@
 #include <pluginterfaces/gui/iplugview.h>
 #include <pluginterfaces/vst/ivstaudioprocessor.h>
 #include <pluginterfaces/vst/ivstcomponent.h>
+#include <pluginterfaces/vst/ivstmessage.h>
 #include <pluginterfaces/vst/ivstunits.h>
 
 #include <string_view>
@@ -39,6 +40,7 @@ inline QString fromString(const Steinberg::Vst::String128& str)
 
 using MIDIControls = ossia::flat_map<std::pair<int, int>, Steinberg::Vst::ParamID>;
 class PlugFrame;
+class ComponentHandler;
 struct Plugin
 {
   Plugin() = default;
@@ -63,6 +65,15 @@ struct Plugin
   Steinberg::IPlugView* view{};
   PlugFrame* plugFrame{};
 
+  // Connection points of the component and the controller, kept around because
+  // VST3 mandates disconnecting them before terminating the plug-in
+  Steinberg::Vst::IConnectionPoint* componentCP{};
+  Steinberg::Vst::IConnectionPoint* controllerCP{};
+
+  // Given to the controller: it points to the Model, so it has to be unset
+  // before the Model dies
+  ComponentHandler* componentHandler{};
+
   void loadAudioProcessor(ApplicationPlugin& ctx);
   void loadEditController(Model& model, ApplicationPlugin& ctx);
   void loadView(Model& model);
@@ -77,6 +88,14 @@ struct Plugin
   bool supports_double{};
   bool ui_available{};
   bool ui_owned{};
+
+  // initialize() succeeded and must be paired with exactly one terminate()
+  bool component_initialized{};
+  bool controller_initialized{};
+
+  // Single-component effect: the component *is* the edit controller, thus it
+  // must only be initialized and terminated once
+  bool controller_is_component{};
   int audio_ins = 0;
   int event_ins = 0;
   int audio_outs = 0;

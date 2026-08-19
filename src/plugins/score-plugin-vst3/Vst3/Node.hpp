@@ -112,9 +112,14 @@ public:
 
     ~PluginHandle()
     {
-      // qDebug() << processor->release();
-      // qDebug() << component->release();
+      processor->release();
+      component->release();
     }
+
+    PluginHandle(const PluginHandle&) = delete;
+    PluginHandle(PluginHandle&&) = delete;
+    PluginHandle& operator=(const PluginHandle&) = delete;
+    PluginHandle& operator=(PluginHandle&&) = delete;
 
     Steinberg::Vst::IComponent* component{};
     Steinberg::Vst::IAudioProcessor* processor{};

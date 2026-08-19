@@ -71,28 +71,15 @@ void Plugin::loadBuses()
 
 void Plugin::loadPresets()
 {
+  if(!controller)
+    return;
+
   Steinberg::Vst::IUnitInfo* unit_ptr = nullptr;
-  Steinberg::Vst::IProgramListData* pl_ptr = nullptr;
-  Steinberg::Vst::IUnitData* udata_ptr = nullptr;
   {
     auto res
         = controller->queryInterface(Steinberg::Vst::IUnitInfo::iid, (void**)&unit_ptr);
     if(res != Steinberg::kResultOk || !unit_ptr)
       return;
-  }
-
-  {
-    auto res = component->queryInterface(
-        Steinberg::Vst::IProgramListData::iid, (void**)&pl_ptr);
-    if(res != Steinberg::kResultOk || !pl_ptr)
-      pl_ptr = nullptr;
-  }
-
-  {
-    auto res
-        = component->queryInterface(Steinberg::Vst::IUnitData::iid, (void**)&udata_ptr);
-    if(res != Steinberg::kResultOk || !udata_ptr)
-      udata_ptr = nullptr;
   }
 
   this->units = unit_ptr;
@@ -123,10 +110,20 @@ void Plugin::loadProcessorStateToController()
 void Plugin::loadEditController(Model& model, ApplicationPlugin& ctx)
 {
   Steinberg::Vst::IEditController* controller{};
+
+  // Single-component effects implement IEditController on the component itself.
+  // The component has already been initialized in load(): initializing (and
+  // later terminating) it a second time through the controller interface
+  // corrupts the internal bookkeeping of such plug-ins.
   auto ctl_res = component->queryInterface(
       Steinberg::Vst::IEditController::iid, (void**)&controller);
-  if(ctl_res != Steinberg::kResultOk || !controller)
+  if(ctl_res == Steinberg::kResultOk && controller)
   {
+    this->controller_is_component = true;
+  }
+  else
+  {
+    controller = nullptr;
     Steinberg::TUID cid;
     if(component->getControllerClassId(cid) == Steinberg::kResultTrue)
     {
@@ -142,15 +139,23 @@ void Plugin::loadEditController(Model& model, ApplicationPlugin& ctx)
     return;
   }
 
-  controller->initialize(&ctx.m_host);
+  if(!this->controller_is_component)
+  {
+    if(controller->initialize(&ctx.m_host) == Steinberg::kResultOk)
+      this->controller_initialized = true;
+  }
   this->controller = controller;
 
-  // Connect the controller to the component... for... reasons
+  this->componentHandler = new ComponentHandler{model};
+  controller->setComponentHandler(this->componentHandler);
+
+  // Connect the controller to the component... for... reasons.
+  // Pointless when they are the same object, and stop() has to disconnect them
+  // before terminating the plug-in.
+  if(!this->controller_is_component)
   {
-    controller->setComponentHandler(new ComponentHandler{model});
     using namespace Steinberg;
     using namespace Steinberg::Vst;
-    // TODO need disconnection
 
     IConnectionPoint* compICP{};
     IConnectionPoint* contrICP{};
@@ -164,6 +169,15 @@ void Plugin::loadEditController(Model& model, ApplicationPlugin& ctx)
     {
       compICP->connect(contrICP);
       contrICP->connect(compICP);
+      this->componentCP = compICP;
+      this->controllerCP = contrICP;
+    }
+    else
+    {
+      if(compICP)
+        compICP->release();
+      if(contrICP)
+        contrICP->release();
     }
   }
 }
@@ -171,6 +185,8 @@ void Plugin::loadEditController(Model& model, ApplicationPlugin& ctx)
 void Plugin::loadView(Model& model)
 {
   if(model.fx.view)
+    return;
+  if(!controller)
     return;
 
   // Try to instantiate a view
@@ -188,7 +204,7 @@ void Plugin::loadView(Model& model)
           == Steinberg::kResultOk)
          && view)
       {
-        view->addRef();
+        // queryInterface() already handed us an owned reference
         this->ui_owned = true;
       }
     }
@@ -218,6 +234,7 @@ void Plugin::load(
   if(component->initialize(&ctx.m_host) != Steinberg::kResultOk)
     throw std::runtime_error(
         fmt::format("Couldn't initialize VST3 component ({})", path));
+  component_initialized = true;
 
   loadAudioProcessor(ctx);
 
@@ -266,28 +283,78 @@ void Plugin::stop()
 
   component->setActive(false);
 
+  // Note: when an editor window was open, it already released the view and
+  // reset it to nullptr - this only handles the view created by load()
   if(view)
   {
+    view->setFrame(nullptr);
+    view->release();
     view = nullptr;
+  }
+
+  // The handler points to the Model which is going away: the plug-in must not
+  // be able to call back into it anymore
+  if(controller)
+    controller->setComponentHandler(nullptr);
+
+  // VST3 requires the connection points to be disconnected before terminate(),
+  // otherwise component and controller keep referencing each other
+  if(componentCP && controllerCP)
+  {
+    componentCP->disconnect(controllerCP);
+    controllerCP->disconnect(componentCP);
+  }
+  if(controllerCP)
+  {
+    controllerCP->release();
+    controllerCP = nullptr;
+  }
+  if(componentCP)
+  {
+    componentCP->release();
+    componentCP = nullptr;
+  }
+
+  if(units)
+  {
+    units->release();
+    units = nullptr;
   }
 
   if(controller)
   {
-    controller->terminate();
+    // For a single-component effect the controller *is* the component: it gets
+    // terminated once, below
+    if(controller_initialized && !controller_is_component)
+      controller->terminate();
+    controller->release();
     controller = nullptr;
   }
 
   if(processor)
   {
+    processor->release();
     processor = nullptr;
   }
 
-  component->terminate();
+  if(component_initialized)
+    component->terminate();
+  component->release();
   component = nullptr;
+
+  component_initialized = false;
+  controller_initialized = false;
+  controller_is_component = false;
+  ui_available = false;
+  ui_owned = false;
+
+  delete componentHandler;
+  componentHandler = nullptr;
 
   if(plugFrame)
   {
     QTimer::singleShot(100, [ptr = plugFrame] { delete ptr; });
+    plugFrame = nullptr;
   }
 }
 

@@ -5,6 +5,7 @@
 #include <QWindow>
 
 #include <pluginterfaces/gui/iplugview.h>
+#include <pluginterfaces/gui/iplugviewcontentscalesupport.h>
 
 namespace vst3
 {
@@ -22,32 +23,63 @@ inline const char* currentPlatform()
   return "";
 }
 
+//! Tell the plug-in about the scale of the screen its view is on.
+//! Returns true if the plug-in took it into account - it then has resized its
+//! view by that factor, so its size has to be queried again.
+inline bool applyContentScaleFactor(Steinberg::IPlugView& view, const QWidget& w)
+{
+#if defined(__APPLE__)
+  // NSViews are scaled by the system: there is nothing for the plug-in to do
+  return false;
+#else
+  // On Windows and X11 the plug-in has no way to find this out by itself
+  Steinberg::IPlugViewContentScaleSupport* scaling{};
+  if(view.queryInterface(Steinberg::IPlugViewContentScaleSupport::iid, (void**)&scaling)
+         != Steinberg::kResultOk
+     || !scaling)
+    return false;
+
+  const auto res = scaling->setContentScaleFactor(w.devicePixelRatioF());
+  scaling->release();
+  return res == Steinberg::kResultTrue;
+#endif
+}
+
 struct WindowContainer
 {
-  WId nativeId;
+  WId nativeId{};
   QWindow* qwindow{};
   QWidget* container{};
   vst3::PlugFrame* frame{};
 
-  double qtScaleFactor{1.};
-
-  WindowContainer()
+  //! Factor to go from the coordinates the plug-in gives us to the logical
+  //! pixels Qt lays out with
+  static double qtScaleFactor(const QWidget& w) noexcept
   {
-    double r = qEnvironmentVariable("QT_SCALE_FACTOR").toDouble();
-    if(r > 0.1)
-    {
-      qtScaleFactor = 1. / r;
-    }
+#if defined(__APPLE__)
+    // Cocoa view rects are in points, which is exactly Qt's logical pixel:
+    // only an explicit QT_SCALE_FACTOR breaks that 1:1 mapping
+    const double r = qEnvironmentVariable("QT_SCALE_FACTOR").toDouble();
+    return r > 0.1 ? 1. / r : 1.;
+#else
+    // Everywhere else the plug-in sizes its window in device pixels. Handing
+    // those numbers to Qt as-is makes the container devicePixelRatio times too
+    // big on a hidpi screen, with the actual UI sitting in a corner of it.
+    // Note: devicePixelRatioF() already accounts for QT_SCALE_FACTOR.
+    const double dpr = w.devicePixelRatioF();
+    return dpr > 0.1 ? 1. / dpr : 1.;
+#endif
   }
 
   auto setSizeFromQt(
       Steinberg::IPlugView& view, const Steinberg::ViewRect& r,
       QDialog& parentWindow) const
   {
+    const double scale = qtScaleFactor(parentWindow);
     int w = r.getWidth();
     int h = r.getHeight();
-    int qw = r.getWidth() * qtScaleFactor;
-    int qh = r.getHeight() * qtScaleFactor;
+    int qw = r.getWidth() * scale;
+    int qh = r.getHeight() * scale;
 
     if(w == 0 || h == 0)
     {
@@ -82,13 +114,14 @@ struct WindowContainer
       return;
     return;
 
+    const double scale = qtScaleFactor(parentWindow);
     int qw = sz.width();
     int qh = sz.height();
     Steinberg::ViewRect r;
     r.top = 0;
     r.left = 0;
-    r.right = sz.width() / qtScaleFactor;
-    r.bottom = sz.height() / qtScaleFactor;
+    r.right = sz.width() / scale;
+    r.bottom = sz.height() / scale;
     view.checkSizeConstraint(&r);
 
     parentWindow.resize(QSize(qw, qh));
@@ -110,10 +143,11 @@ struct WindowContainer
   auto setSizeFromVst(
       Steinberg::IPlugView& view, Steinberg::ViewRect& r, QDialog& parentWindow)
   {
+    const double scale = qtScaleFactor(parentWindow);
     int w = r.getWidth();
     int h = r.getHeight();
-    int qw = r.getWidth() * qtScaleFactor;
-    int qh = r.getHeight() * qtScaleFactor;
+    int qw = r.getWidth() * scale;
+    int qh = r.getHeight() * scale;
 
     if(w == 0 || h == 0)
     {
