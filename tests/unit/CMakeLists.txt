@@ -304,6 +304,20 @@ score_add_test(test_unit_audio_plugin_cache
   SOURCES AudioPluginCacheTest.cpp
   PLUGINS score_plugin_media)
 
+# --- video input timeouts ---------------------------------------------------
+# Blocking libav I/O on a device or stream that stops answering: the deadline
+# libav polls, and the abort that lets close_file() join its buffer thread.
+# The two end-to-end cases drive CameraInput / LibavStreamInput against a local
+# server that accepts and then stays silent, which used to block forever.
+if(TARGET score_plugin_media)
+  score_add_test(test_unit_libav_interrupt
+    SOURCES LibavInterruptTest.cpp
+    PLUGINS score_plugin_media
+    LIBS ${QT_PREFIX}::Network)
+  target_include_directories(test_unit_libav_interrupt PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-media")
+endif()
+
 # The shared scan state machine, end-to-end against a scriptable fake puppet:
 # session-token isolation, crash/timeout single-failure, reply-vs-exit races,
 # clean cancellation of a scan in progress.

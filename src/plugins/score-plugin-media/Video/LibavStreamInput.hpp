@@ -4,6 +4,7 @@
 
 #include <Video/ExternalInput.hpp>
 #include <Video/FrameQueue.hpp>
+#include <Video/LibavInterrupt.hpp>
 #include <Video/Rescale.hpp>
 
 extern "C" {
@@ -94,6 +95,11 @@ private:
   AVCodecContext* m_audioCodecContext{};
   AVFrame* m_audioFrame{};
   AudioRingBuffer m_audioBuf;
+
+  //! An unreachable stream must not wedge the caller
+  static const constexpr auto probe_timeout = std::chrono::milliseconds(10000);
+
+  LibavInterrupt m_interrupt;
 
   std::thread m_thread;
   std::atomic_bool m_running{};
