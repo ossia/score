@@ -824,3 +824,15 @@ if(TARGET score_plugin_gfx)
     PLUGINS score_plugin_gfx
     LIBS ${QT_PREFIX}::Gui ${QT_PREFIX}::Widgets)
 endif()
+
+# --- video colour-space / tone-mapping GLSL generation (score-plugin-gfx) ---
+# ColorSpace.hpp and Tonemap.hpp are header-only families of pure functions of a
+# Video::ImageFormat, so the whole H.273 decision tree is checkable with no GPU,
+# no decoder and no video file. Its consumers (the decoders/*.hpp samplers) are
+# GPU-bound; the decision itself is not.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_colorspace_shader
+    SOURCES ColorSpaceShaderTest.cpp
+    PLUGINS score_plugin_gfx score_plugin_media
+    LIBS avutil avcodec ${QT_PREFIX}::Gui)
+endif()
