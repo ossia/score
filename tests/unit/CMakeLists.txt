@@ -639,3 +639,20 @@ score_add_test(test_unit_primitivecloud
 target_include_directories(test_unit_primitivecloud SYSTEM PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
   "${3RDPARTY_FOLDER}/miniply")
+
+# --- multi-window output mapping serialization (score-plugin-gfx) -----------
+# JSON/DataStream of Gfx::OutputMapping. The specializations live in
+# OutputMapping.cpp and are not exported from the dynamic score_plugin_gfx
+# (hidden visibility), so the translation unit is compiled straight into the
+# test -- the same workaround tests/gfx/CMakeLists.txt applies to ISFNode.cpp.
+# It drags in QGraphicsView, hence the Widgets link; no widget is instantiated.
+if(TARGET score_plugin_gfx)
+  score_plugin_hidden_sources(_output_mapping_hidden
+      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx/Gfx/Window/OutputMapping.cpp")
+  score_add_test(test_unit_output_mapping_serialization
+    SOURCES
+      OutputMappingSerializationTest.cpp
+      ${_output_mapping_hidden}
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui ${QT_PREFIX}::Widgets)
+endif()
