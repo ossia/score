@@ -114,12 +114,14 @@ score_add_test(test_unit_spline_values
 # --- P3R2: score-plugin-midi + score-plugin-dataflow value tests -----------
 if(TARGET score_plugin_midi)
   set(_midi_src "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-midi")
-  score_add_test(test_unit_midi_message
-    SOURCES
-      MidiMessageTest.cpp
+  score_plugin_hidden_sources(_midi_hidden
       "${_midi_src}/Midi/MidiNote.cpp"
       "${_midi_src}/Midi/MidiProcess.cpp"
-      "${_midi_src}/Patternist/PatternParsing.cpp"
+      "${_midi_src}/Patternist/PatternParsing.cpp")
+score_add_test(test_unit_midi_message
+    SOURCES
+      MidiMessageTest.cpp
+      ${_midi_hidden}
     PLUGINS score_plugin_midi score_lib_process
     LIBS ${QT_PREFIX}::Gui)
 
@@ -140,16 +142,18 @@ endif()
 # --- analysis DSP ------------------------------------------------------------
 if(TARGET score_plugin_analysis)
   set(_gist_dir "${3RDPARTY_FOLDER}/Gist/src")
-  score_add_test(test_unit_analysis_gist
-    SOURCES
-      AnalysisGistTest.cpp
+  score_plugin_hidden_sources(_gist_hidden
       "${_gist_dir}/CoreFrequencyDomainFeatures.cpp"
       "${_gist_dir}/CoreTimeDomainFeatures.cpp"
       "${_gist_dir}/Gist.cpp"
       "${_gist_dir}/MFCC.cpp"
       "${_gist_dir}/OnsetDetectionFunction.cpp"
       "${_gist_dir}/WindowFunctions.cpp"
-      "${_gist_dir}/Yin.cpp"
+      "${_gist_dir}/Yin.cpp")
+score_add_test(test_unit_analysis_gist
+    SOURCES
+      AnalysisGistTest.cpp
+      ${_gist_hidden}
     PLUGINS score_plugin_analysis score_plugin_avnd)
   target_compile_definitions(test_unit_analysis_gist PRIVATE USE_OSSIA_FFT=1)
   target_include_directories(test_unit_analysis_gist SYSTEM PRIVATE "${_gist_dir}")
