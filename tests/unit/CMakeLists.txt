@@ -904,3 +904,15 @@ if(TARGET score_plugin_gfx)
     PLUGINS score_plugin_gfx
     LIBS ${QT_PREFIX}::Gui)
 endif()
+
+# --- GPU video decoder selection matrix (score-plugin-gfx) ------------------
+# createGPUVideoDecoder() takes only a Video::ImageFormat, so the whole
+# pixel-format -> decoder-class switch (and the parameterisation of the two
+# generic Packed/Planar decoders) is checkable with no QRhi and no frame. Only
+# init() needs a render list, and the L3 GPU suites cover that end.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_video_decoder_factory
+    SOURCES VideoDecoderFactoryTest.cpp
+    PLUGINS score_plugin_gfx score_plugin_media
+    LIBS avutil avcodec avformat ${QT_PREFIX}::Gui)
+endif()
