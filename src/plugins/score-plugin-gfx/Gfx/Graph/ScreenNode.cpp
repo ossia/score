@@ -48,6 +48,24 @@
 
 namespace score::gfx
 {
+namespace
+{
+// The D3D debug layer and the RHI debug markers were gated on NDEBUG, which
+// puts them out of reach in Release -- the configuration release testing and
+// the GPU validation matrix actually build. Keep the Debug behaviour and let a
+// Release binary opt in at run time.
+bool gpuDebugRequested() noexcept
+{
+#if !defined(NDEBUG)
+  return true;
+#else
+  static const bool requested
+      = qEnvironmentVariableIntValue("SCORE_GPU_VALIDATION") != 0;
+  return requested;
+#endif
+}
+}
+
 std::shared_ptr<RenderState>
 createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
 {
@@ -106,9 +124,8 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
   };
 
   QRhi::Flags flags{};
-#ifndef NDEBUG
-  flags |= QRhi::EnableDebugMarkers;
-#endif
+  if(gpuDebugRequested())
+    flags |= QRhi::EnableDebugMarkers;
 
 #ifndef QT_NO_OPENGL
   if(graphicsApi == OpenGL)
@@ -253,9 +270,7 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
   if(graphicsApi == D3D11)
   {
     QRhiD3D11InitParams params;
-#if !defined(NDEBUG)
-    params.enableDebugLayer = true;
-#endif
+    params.enableDebugLayer = gpuDebugRequested();
     // if (framesUntilTdr > 0)
     // {
     //   params.framesUntilKillingDeviceViaTdr = framesUntilTdr;
@@ -271,9 +286,7 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
   else if(graphicsApi == D3D12)
   {
     QRhiD3D12InitParams params;
-#if !defined(NDEBUG)
-    params.enableDebugLayer = true;
-#endif
+    params.enableDebugLayer = gpuDebugRequested();
     // if (framesUntilTdr > 0)
     // {
     //   params.framesUntilKillingDeviceViaTdr = framesUntilTdr;
