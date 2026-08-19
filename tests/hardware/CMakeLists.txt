@@ -49,6 +49,18 @@ if(TARGET PipewireRoundtrip)
     TIMEOUT    600
     ENVIRONMENT "${_pwrt_asan}")
 
+  # Strict counterparts: same harness, but run through the provisioning wrapper
+  # that REQUIRES gstreamer/ffmpeg/PipeWire and publishes a virtual Video/Source.
+  # These cannot skip, so a missing media stack shows up as a failure instead of
+  # silently removing the coverage.
+  score_add_media_test(
+    NAME       Media_PipewireRoundtrip_input
+    EXECUTABLE PipewireRoundtrip
+    VIRTUAL_VIDEO
+    ARGS       --seconds 2 --only pw2s
+    TIMEOUT    600
+    ENVIRONMENT "${_pwrt_asan}")
+
   score_add_hardware_test(
     NAME       PipewireRoundtrip_s2s
     EXECUTABLE PipewireRoundtrip
