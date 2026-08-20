@@ -9,7 +9,13 @@
 #     APP                                # needs the full headless app (run from build root)
 #     GUI                                # needs a GUI QApplication (links Qt Widgets/Gui)
 #     STANDALONE                         # do not link score_lib_base, only use its headers
+#     NO_CTEST                           # build the executable, register it elsewhere
 #     LIBS      some_other_lib)          # arbitrary extra link libraries
+#
+# NO_CTEST is for a harness whose ctest entry needs a wrapper this function does
+# not know about -- score_add_media_test(), which provisions the media stack the
+# harness reads. Without it the harness would also be registered as a bare
+# ctest entry that runs with none of it provisioned.
 #
 # STANDALONE is for tests that recompile a score_lib_base source into the test
 # and substitute one of its dependencies: linking the library as well would
@@ -61,7 +67,7 @@ function(score_plugin_hidden_sources OUT)
 endfunction()
 
 function(score_add_test NAME)
-  cmake_parse_arguments(ARG "GUI;APP;STANDALONE;SANDBOXED" "" "SOURCES;PLUGINS;LIBS" ${ARGN})
+  cmake_parse_arguments(ARG "GUI;APP;STANDALONE;SANDBOXED;NO_CTEST" "" "SOURCES;PLUGINS;LIBS" ${ARGN})
 
   if(NOT ARG_SOURCES)
     message(FATAL_ERROR "score_add_test(${NAME}): no SOURCES given")
@@ -120,6 +126,10 @@ function(score_add_test NAME)
   endif()
 
   set_target_properties(${NAME} PROPERTIES FOLDER "Tests")
+
+  if(ARG_NO_CTEST)
+    return()
+  endif()
 
   # A test that exercises code which deletes or overwrites media files runs
   # with the filesystem read-only apart from /tmp, so a bug in it cannot reach
