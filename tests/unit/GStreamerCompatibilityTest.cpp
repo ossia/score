@@ -14,6 +14,7 @@
 #include <map>
 #include <string>
 #include <string_view>
+#include <vector>
 
 extern "C" {
 #include <libavutil/pixdesc.h>
@@ -114,8 +115,10 @@ TEST_CASE("every mapped format is one the linked libav has", "[unit][gstreamer][
 
 TEST_CASE("no two names claim the same layout by accident", "[unit][gstreamer][video]")
 {
-  // RGB and RGBP both answer rgb24 on purpose (GStreamer's planar RGB has no
-  // libav twin here); every other collision would be a copy-paste.
+  // GBR and RGBP both answer gbrp on purpose: they are the same three planes in
+  // a different ORDER, and libav has no R-G-B planar RGB to name the second one
+  // with. Video::gstreamerPlaneOrder() is what keeps them apart, and it is
+  // asserted just below. Every other collision would be a copy-paste.
   std::map<AVPixelFormat, std::vector<std::string>> byFormat;
   for(const auto& [key, fmt] : Video::gstreamerToLibav())
     byFormat[fmt].push_back(key);
@@ -126,11 +129,54 @@ TEST_CASE("no two names claim the same layout by accident", "[unit][gstreamer][v
     if(keys.size() == 1)
       continue;
     INFO("format " << name(fmt) << " claimed by " << keys.size() << " names");
-    CHECK(keys == std::vector<std::string>{"RGB", "RGBP"});
+    CHECK(keys == std::vector<std::string>{"GBR", "RGBP"});
   }
+}
+
+TEST_CASE("the two names that share gbrp do not share its plane order",
+          "[unit][gstreamer][video]")
+{
+  // GStreamer GBR is already G-B-R, so it needs no permutation; RGBP is R-G-B,
+  // so libav plane 0 (G) is its plane 1, libav plane 1 (B) its plane 2, and
+  // libav plane 2 (R) its plane 0.
+  CHECK(Video::gstreamerPlaneOrder("GBR") == Video::identityPlaneOrder);
+  CHECK(Video::gstreamerPlaneOrder("RGBP") == Video::PlaneOrder{1, 2, 0, 3});
+
+  // ...and nothing else claims a permutation it does not need.
+  for(const auto& [key, fmt] : Video::gstreamerToLibav())
+  {
+    if(key == "RGBP")
+      continue;
+    INFO("gstreamer format " << key);
+    CHECK(Video::gstreamerPlaneOrder(key) == Video::identityPlaneOrder);
+  }
+}
+
+TEST_CASE("the sparse-alpha and planar-YUV names are spelled the GStreamer way",
+          "[unit][gstreamer][video]")
+{
+  const auto& map = Video::gstreamerToLibav();
+
+  // gst_video_format_to_string() spells the padding byte lower-case: RGBx,
+  // BGRx, xRGB, xBGR. Upper-cased keys never match a caps string, and an
+  // unmatched name used to be reinterpreted as RGBA.
+  for(const std::string& k : std::vector<std::string>{"RGBx", "BGRx", "xRGB", "xBGR"})
+  {
+    INFO("gstreamer format " << k);
+    CHECK(map.count(k) == 1);
+  }
+  CHECK(name(map.at("RGBx")) == std::string_view{"rgb0"});
+  CHECK(name(map.at("BGRx")) == std::string_view{"bgr0"});
+  CHECK(name(map.at("xRGB")) == std::string_view{"0rgb"});
+  CHECK(name(map.at("xBGR")) == std::string_view{"0bgr"});
+
+  // Y41B / Y42B are GStreamer's planar 4:1:1 and 4:2:2; libav spells those
+  // yuv411p and yuv422p (there is no AV_PIX_FMT_Y42B).
+  CHECK(name(map.at("Y41B")) == std::string_view{"yuv411p"});
+  CHECK(name(map.at("Y42B")) == std::string_view{"yuv422p"});
 }
 
 TEST_CASE("the table still has every row it was written with", "[unit][gstreamer][video]")
 {
-  CHECK(Video::gstreamerToLibav().size() == 54);
+  CHECK(Video::gstreamerToLibav().size() == 56);
 }

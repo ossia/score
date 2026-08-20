@@ -7,7 +7,9 @@
 
 #include <score_plugin_media_export.h>
 
+#include <array>
 #include <string>
+#include <string_view>
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -151,7 +153,7 @@ inline const ossia::hash_map<std::string, AVPixelFormat>& gstreamerToLibav()
     // format_map["BGRA64_BE"] = AV_PIX_FMT_BGRA64BE;
     // format_map["BGRA64_LE"] = AV_PIX_FMT_BGRA64LE;
     // format_map["BGRP"] = AV_PIX_FMT_BGRP;
-    format_map["BGRX"] = AV_PIX_FMT_BGR0;
+    format_map["BGRx"] = AV_PIX_FMT_BGR0;
     // format_map["ENCODED"] = AV_PIX_FMT_ENCODED;
     format_map["GBR"] = AV_PIX_FMT_GBRP;
     format_map["GBRA"] = AV_PIX_FMT_GBRAP;
@@ -204,8 +206,10 @@ inline const ossia::hash_map<std::string, AVPixelFormat>& gstreamerToLibav()
     format_map["RGBA"] = AV_PIX_FMT_RGBA;
     format_map["RGBA64_BE"] = AV_PIX_FMT_RGBA64BE;
     format_map["RGBA64_LE"] = AV_PIX_FMT_RGBA64LE;
-    format_map["RGBP"] = AV_PIX_FMT_RGB24;
-    format_map["RGBX"] = AV_PIX_FMT_RGB0;
+    // GStreamer RGBP is PLANAR: three separate R, G, B planes. libav has no
+    // R-G-B plane order, only GBRP -- see gstreamerPlaneOrder().
+    format_map["RGBP"] = AV_PIX_FMT_GBRP;
+    format_map["RGBx"] = AV_PIX_FMT_RGB0;
     // format_map["UNKNOWN"] = AV_PIX_FMT_UNKNOWN;
     // format_map["UYVP"] = AV_PIX_FMT_UYVP;
     format_map["UYVY"] = AV_PIX_FMT_UYVY422;
@@ -214,16 +218,21 @@ inline const ossia::hash_map<std::string, AVPixelFormat>& gstreamerToLibav()
     // format_map["V308"] = AV_PIX_FMT_V308;
     // format_map["VUYA"] = AV_PIX_FMT_VUYA;
     // format_map["VYUY"] = AV_PIX_FMT_VYUY;
-    format_map["XBGR"] = AV_PIX_FMT_0BGR;
-    format_map["XRGB"] = AV_PIX_FMT_0RGB;
+    format_map["xBGR"] = AV_PIX_FMT_0BGR;
+    format_map["xRGB"] = AV_PIX_FMT_0RGB;
     format_map["Y210"] = AV_PIX_FMT_Y210;
     // format_map["Y212_BE"] = AV_PIX_FMT_Y212BE;
     // format_map["Y212_LE"] = AV_PIX_FMT_Y212LE;
-    format_map["Y410"] = AV_PIX_FMT_YUV410P;
+    // GStreamer Y410 is PACKED 4:4:4 10-bit (A-V-Y-U in one 32-bit word).
+    // AV_PIX_FMT_XV30 is libav's name for it with the alpha left undefined;
+    // AV_PIX_FMT_YUV410P is planar 4:1:0 8-bit, i.e. GStreamer "YUV9".
+#if defined(AV_PIX_FMT_XV30)
+    format_map["Y410"] = AV_PIX_FMT_XV30;
+#endif
     // format_map["Y412_BE"] = AV_PIX_FMT_Y412BE;
     // format_map["Y412_LE"] = AV_PIX_FMT_Y412LE;
-    // format_map["Y41B"] = AV_PIX_FMT_Y41B;
-    // format_map["Y42B"] = AV_PIX_FMT_Y42B;
+    format_map["Y41B"] = AV_PIX_FMT_YUV411P;
+    format_map["Y42B"] = AV_PIX_FMT_YUV422P;
     format_map["Y444"] = AV_PIX_FMT_YUV444P;
     format_map["Y444_10BE"] = AV_PIX_FMT_YUV444P10BE;
     format_map["Y444_10LE"] = AV_PIX_FMT_YUV444P10LE;
@@ -241,6 +250,22 @@ inline const ossia::hash_map<std::string, AVPixelFormat>& gstreamerToLibav()
   }();
 
   return map;
+}
+
+// Where libav plane N lives in the GStreamer buffer, when the two disagree on
+// plane ORDER for the same set of planes. Identity for every format whose only
+// libav counterpart already agrees.
+//
+// GStreamer RGBP is R,G,B; the only libav planar 8-bit RGB is GBRP, which is
+// G,B,R. Same three planes, same strides, rotated by one.
+using PlaneOrder = std::array<int, 4>;
+inline constexpr PlaneOrder identityPlaneOrder{0, 1, 2, 3};
+
+inline PlaneOrder gstreamerPlaneOrder(std::string_view gstFormat) noexcept
+{
+  if(gstFormat == "RGBP")
+    return {1, 2, 0, 3};
+  return identityPlaneOrder;
 }
 
 // Lays out the planes of `frame` over a flat buffer of `sz` bytes, for the
