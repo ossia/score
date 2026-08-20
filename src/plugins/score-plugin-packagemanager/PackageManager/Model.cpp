@@ -71,9 +71,26 @@ PluginSettingsModel::PluginSettingsModel(
 
 PluginSettingsModel::~PluginSettingsModel() { }
 
-void PluginSettingsModel::refresh()
+// Whether a human is there to answer a modal question. score::question() is a
+// QDialog::exec(): in a run with no interactive GUI it is delivered to an event
+// loop nobody can click on, and never returns.
+static bool interactiveSession() noexcept
 {
   if(qEnvironmentVariableIsSet("SCORE_SANITIZE_SKIP_CHECKS"))
+    return false;
+  if(!score::AppContext().applicationSettings.gui)
+    return false;
+  if(!qobject_cast<QApplication*>(qApp))
+    return false;
+
+  const auto& platform = QGuiApplication::platformName();
+  return platform != QLatin1String("offscreen")
+         && platform != QLatin1String("minimal");
+}
+
+void PluginSettingsModel::refresh()
+{
+  if(!interactiveSession())
     return;
   QNetworkRequest rqst{QUrl(
       "https://raw.githubusercontent.com/ossia/score-packages/refs/heads/"
@@ -167,9 +184,7 @@ void PluginSettingsModel::on_message(QNetworkReply* rep)
 
 void PluginSettingsModel::firstTimeLibraryDownload()
 {
-  // Never block a non-interactive session (tests, CI, headless) on a modal
-  // question; same escape hatch as refresh().
-  if(qEnvironmentVariableIsSet("SCORE_SANITIZE_SKIP_CHECKS"))
+  if(!interactiveSession())
     return;
 
   const auto& lib = score::GUIAppContext().settings<Library::Settings::Model>();
