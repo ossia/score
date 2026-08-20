@@ -1,29 +1,24 @@
-// Video::VideoDecoder end-to-end against real files: the libav demux / decode /
+// Video::VideoDecoder end-to-end against real files: the libav demux, decode and
 // rescale path score plays every video file through.
 //
-// Registered as a MEDIA test (tests/hardware/CMakeLists.txt): the runner
-// tests/hardware/with-virtual-media.sh generates the clips with ffmpeg and
-// exports SCORE_TEST_MEDIA_DIR. A missing media stack is a FAILURE here, not a
-// skip -- the whole point is that "no sample file was available" stops being an
-// explanation for an untested decode path.
+// Registered as a MEDIA test: tests/hardware/with-virtual-media.sh generates the
+// clips with ffmpeg and exports SCORE_TEST_MEDIA_DIR. A missing media stack is a
+// FAILURE here, not a skip.
 //
 // The clip matrix is discovered from the directory (fmt-<pixfmt>-<W>x<H>.nut),
-// so a pixel format added to the runner enters this sweep with no change here.
-// rawvideo-in-NUT is used because it is the only container that carries an
-// arbitrary pix_fmt through untouched; ffmpeg itself is the oracle for what the
-// file contains (avformat_open_input on the same file), so the assertions are
-// about what SCORE does with it, never about what ffmpeg decided.
+// so a pixel format added to the runner enters the sweep with no change here.
+// rawvideo-in-NUT is the only container that carries an arbitrary pix_fmt
+// through untouched, and ffmpeg is the oracle for what the file contains, so the
+// assertions are about what score does with it.
 //
-// Two axes are deliberate:
-//   - ODD dimensions (65x33). A 4:2:0 chroma plane there is ceil(w/2) x
-//     ceil(h/2), and everything that computes w/2 is short by a row/column.
-//   - formats on both sides of Video::formatNeedsDecoding(). The ones it
-//     claims need decoding must come out of the decoder as RGBA (the swscale
-//     path in Video::Rescale, which nothing else exercises); the others must
-//     come out untouched, because a GPU decoder is waiting for exactly that
-//     layout.
+// Two deliberate axes: odd dimensions (65x33), where a 4:2:0 chroma plane is
+// ceil(w/2) x ceil(h/2) and anything computing w/2 is short by a row or column;
+// and formats on both sides of Video::formatNeedsDecoding(), where the ones it
+// claims need decoding must come out as RGBA through Video::Rescale and the
+// others must come out untouched for a GPU decoder.
 
 #include <Video/GpuFormats.hpp>
+#include <Video/LibavStreamInput.hpp>
 #include <Video/Thumbnailer.hpp>
 #include <Video/VideoDecoder.hpp>
 
@@ -35,6 +30,7 @@
 #include <QString>
 #include <QStringList>
 
+#include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
 #include <csignal>
@@ -814,4 +810,375 @@ TEST_CASE("FINDING: VideoThumbnailer::process() crashes on a file it could not o
     Video::VideoThumbnailer thumb{garbage};
     (void)thumb.process(0);
   }));
+}
+
+// ---------------------------------------------------------------------------
+// Video::LibavStreamInput -- the FFmpeg *input device* behind Gfx/Libav. Same
+// libav machinery as VideoDecoder, but a different object with its own demux
+// loop, its own audio path and its own pacing decision, and it was at 0% of 338
+// lines. A local file is a legitimate URL for it, so none of this needs a
+// network or a capture device.
+
+TEST_CASE("the FFmpeg input probes a file the way the demuxer sees it",
+          "[video][libav][media][streaminput]")
+{
+  const auto path = clipPath("audio-video.mp4");
+  const auto ref = probe(path);
+  REQUIRE(ref.videoStreams == 1);
+  REQUIRE(ref.otherStreams >= 1);
+
+  Video::LibavStreamInput in;
+  REQUIRE(in.load(path));
+  CHECK(in.url() == path);
+  REQUIRE(in.probe());
+
+  CHECK(in.width == ref.width);
+  CHECK(in.height == ref.height);
+  CHECK(in.fps > 0.);
+  // The audio stream must be picked up as audio, not ignored the way
+  // VideoDecoder discards it.
+  CHECK(in.has_audio());
+
+  // probe() is idempotent: the second call must reuse the open context rather
+  // than leak a second one.
+  CHECK(in.probe());
+}
+
+TEST_CASE("the FFmpeg input refuses what it cannot open",
+          "[video][libav][media][streaminput]")
+{
+  const auto dir = requireMediaDir().toStdString();
+
+  // An empty URL is refused by load() itself, before any libav call.
+  {
+    Video::LibavStreamInput in;
+    CHECK_FALSE(in.load(""));
+  }
+  {
+    Video::LibavStreamInput in;
+    REQUIRE(in.load(dir + "/there-is-no-such-file.mp4"));
+    CHECK_FALSE(in.probe());
+    CHECK_FALSE(in.start());
+  }
+  {
+    Video::LibavStreamInput in;
+    REQUIRE(in.load(dir + "/garbage.bin"));
+    CHECK_FALSE(in.probe());
+  }
+  {
+    Video::LibavStreamInput in;
+    REQUIRE(in.load(dir + "/empty.bin"));
+    CHECK_FALSE(in.probe());
+  }
+}
+
+namespace
+{
+// Frames delivered by a LibavStreamInput over `budget`, capped at `wanted`.
+int drain(
+    Video::LibavStreamInput& in, int wanted, std::chrono::milliseconds budget = 10s)
+{
+  int got = 0;
+  const auto deadline = std::chrono::steady_clock::now() + budget;
+  while(got < wanted && std::chrono::steady_clock::now() < deadline)
+  {
+    if(auto* f = in.dequeue_frame())
+    {
+      in.release_frame(f);
+      got++;
+    }
+    else
+    {
+      std::this_thread::sleep_for(2ms);
+    }
+  }
+  return got;
+}
+} // namespace
+
+TEST_CASE("the FFmpeg input delivers video frames", "[video][libav][media][streaminput]")
+{
+  const auto path = clipPath("fmt-rgb24-64x64.nut");
+
+  Video::LibavStreamInput in;
+  // Any option at all is enough to keep probe() out of its network-latency
+  // branch; see the FINDING case below for what happens without one.
+  REQUIRE(in.load(path, {{"probesize", "5000000"}}));
+  REQUIRE(in.start());
+  // A second start() while running must be refused rather than spawn a second
+  // demux thread onto the same queue.
+  CHECK_FALSE(in.start());
+
+  int got = 0;
+  const auto deadline = std::chrono::steady_clock::now() + 10s;
+  while(got < 3 && std::chrono::steady_clock::now() < deadline)
+  {
+    if(auto* f = in.dequeue_frame())
+    {
+      CHECK(f->width == 64);
+      CHECK(f->height == 64);
+      CHECK(AVPixelFormat(f->format) == in.pixel_format);
+      REQUIRE(f->data[0] != nullptr);
+      in.release_frame(f);
+      got++;
+    }
+    else
+    {
+      std::this_thread::sleep_for(2ms);
+    }
+  }
+  CHECK(got >= 3);
+
+  in.stop();
+  // stop() joins the thread and drains: nothing may be handed out afterwards.
+  CHECK(in.dequeue_frame() == nullptr);
+}
+
+// FINDING (reported, not fixed here -- tests-only branch): with NO options --
+// the default, and what a user gets by typing a file path into the FFmpeg input
+// device -- LibavStreamInput applies network low-latency flags to every source:
+//
+//   m_formatContext->flags |= AVFMT_FLAG_NOBUFFER | AVFMT_FLAG_FLUSH_PACKETS;
+//   av_dict_set(&options, "fflags", "nobuffer", 0);
+//   av_dict_set(&options, "flags",  "low_delay", 0);
+//
+// A local rawvideo-in-NUT file then yields ZERO frames: probe() succeeds,
+// start() succeeds, and nothing ever comes out. Passing any option at all --
+// even one as inert as probesize -- takes probe() down its other branch and the
+// same file plays. The flags belong behind the same "is this a network URL"
+// test probe() already computes for m_needsPacing.
+//
+// Written as the invariant that SHOULD hold, so it flips red the day the flags
+// are gated.
+TEST_CASE(
+    "FINDING: the FFmpeg input's default low-latency flags starve a local file",
+    "[video][libav][media][streaminput][!shouldfail]")
+{
+  {
+    INFO("rawvideo in NUT");
+    Video::LibavStreamInput in;
+    REQUIRE(in.load(clipPath("fmt-rgb24-64x64.nut")));
+    REQUIRE(in.start());
+    CHECK(drain(in, 3) >= 3);
+    in.stop();
+  }
+  {
+    INFO("H.264 in mp4");
+    Video::LibavStreamInput in;
+    REQUIRE(in.load(clipPath("h264.mp4")));
+    REQUIRE(in.start());
+    CHECK(drain(in, 3) >= 3);
+    in.stop();
+  }
+}
+
+TEST_CASE("the FFmpeg input can be started, stopped and started again",
+          "[video][libav][media][streaminput]")
+{
+  const auto path = clipPath("fmt-yuv420p-64x64.nut");
+  Video::LibavStreamInput in;
+  REQUIRE(in.load(path, {{"probesize", "5000000"}}));
+
+  for(int round = 0; round < 2; round++)
+  {
+    INFO("round " << round);
+    REQUIRE(in.start());
+    int got = 0;
+    const auto deadline = std::chrono::steady_clock::now() + 10s;
+    while(got < 2 && std::chrono::steady_clock::now() < deadline)
+    {
+      if(auto* f = in.dequeue_frame())
+      {
+        in.release_frame(f);
+        got++;
+      }
+      else
+      {
+        std::this_thread::sleep_for(2ms);
+      }
+    }
+    CHECK(got >= 2);
+    in.stop();
+  }
+}
+
+TEST_CASE("the FFmpeg input loops when asked to", "[video][libav][media][streaminput]")
+{
+  // "loop" is score's own option, not FFmpeg's: probe() strips it out of the
+  // dictionary and the demux loop seeks back to the start on EOF. The clip is
+  // 8 frames long, so more than 8 frames out is only possible if it wrapped.
+  const auto path = clipPath("fmt-rgb24-64x64.nut");
+  Video::LibavStreamInput in;
+  REQUIRE(in.load(path, {{"loop", "-1"}}));
+  REQUIRE(in.start());
+
+  int got = 0;
+  const auto deadline = std::chrono::steady_clock::now() + 20s;
+  while(got < 20 && std::chrono::steady_clock::now() < deadline)
+  {
+    if(auto* f = in.dequeue_frame())
+    {
+      in.release_frame(f);
+      got++;
+    }
+    else
+    {
+      std::this_thread::sleep_for(2ms);
+    }
+  }
+  CHECK(got > 8);
+  in.stop();
+}
+
+TEST_CASE("the FFmpeg input accepts a lavfi generator as a source",
+          "[video][libav][media][streaminput]")
+{
+  // The "format" option selects the demuxer explicitly; lavfi is the branch
+  // probe() special-cases for pacing, and it is a source with no file at all.
+  Video::LibavStreamInput in;
+  REQUIRE(in.load("testsrc2=size=64x64:rate=25", {{"format", "lavfi"}}));
+  if(!in.probe())
+    SKIP("this ffmpeg has no lavfi demuxer");
+
+  CHECK(in.width == 64);
+  CHECK(in.height == 64);
+  CHECK(in.fps > 0.);
+  CHECK_FALSE(in.has_audio());
+
+  REQUIRE(in.start());
+  int got = 0;
+  const auto deadline = std::chrono::steady_clock::now() + 10s;
+  while(got < 2 && std::chrono::steady_clock::now() < deadline)
+  {
+    if(auto* f = in.dequeue_frame())
+    {
+      CHECK(f->width == 64);
+      CHECK(f->height == 64);
+      in.release_frame(f);
+      got++;
+    }
+    else
+    {
+      std::this_thread::sleep_for(2ms);
+    }
+  }
+  CHECK(got >= 2);
+  in.stop();
+}
+
+TEST_CASE("the FFmpeg input decodes the audio stream too",
+          "[video][libav][media][streaminput]")
+{
+  const auto path = clipPath("audio-video.mp4");
+  Video::LibavStreamInput in;
+  REQUIRE(in.load(path));
+  REQUIRE(in.probe());
+  REQUIRE(in.has_audio());
+
+  auto& ring = in.audio_buffer();
+  CHECK(ring.sample_rate > 0);
+  CHECK(ring.num_channels > 0);
+
+  // The audio parameter points the ring at its own backing storage; without
+  // that, read_into_output() has nowhere to put the samples.
+  std::vector<ossia::float_vector> out;
+  out.resize(ring.num_channels);
+  for(auto& ch : out)
+    ch.resize(256);
+  ring.output_data = &out;
+
+  REQUIRE(in.start());
+
+  // A 440 Hz sine: once anything has been written, at least one sample of one
+  // channel must be non-zero. Poll rather than sleep a fixed amount.
+  bool sawAudio = false;
+  const auto deadline = std::chrono::steady_clock::now() + 15s;
+  while(!sawAudio && std::chrono::steady_clock::now() < deadline)
+  {
+    if(auto* f = in.dequeue_frame())
+      in.release_frame(f);
+
+    ring.read_into_output(256);
+    for(auto& ch : out)
+      for(float v : ch)
+        if(v != 0.f)
+        {
+          sawAudio = true;
+          break;
+        }
+    if(!sawAudio)
+      std::this_thread::sleep_for(5ms);
+  }
+  CHECK(sawAudio);
+
+  in.stop();
+  ring.output_data = nullptr;
+}
+
+TEST_CASE("the audio ring buffer round-trips every writer",
+          "[video][libav][media][streaminput]")
+{
+  // Pure CPU: the three writers the demuxer picks between, and the reader the
+  // audio engine calls. No file involved.
+  Video::AudioRingBuffer ring;
+  ring.init(2);
+  CHECK(ring.num_channels == 2);
+
+  std::vector<ossia::float_vector> out;
+  out.resize(2);
+  for(auto& ch : out)
+    ch.resize(4);
+  ring.output_data = &out;
+
+  SECTION("interleaved float")
+  {
+    const float src[8] = {0.1f, -0.1f, 0.2f, -0.2f, 0.3f, -0.3f, 0.4f, -0.4f};
+    ring.write_interleaved_float(src, 4, 2);
+    ring.read_into_output(4);
+    for(int i = 0; i < 4; i++)
+    {
+      CHECK(out[0][i] == Catch::Approx(src[2 * i]));
+      CHECK(out[1][i] == Catch::Approx(src[2 * i + 1]));
+    }
+  }
+
+  SECTION("interleaved 16-bit")
+  {
+    const int16_t src[8] = {32767, -32768, 16384, -16384, 0, 0, 8192, -8192};
+    ring.write_interleaved_s16(src, 4, 2);
+    ring.read_into_output(4);
+    // Scaled into [-1, 1]; the exact divisor is the implementation's business,
+    // the sign and the relative magnitudes are not.
+    CHECK(out[0][0] > 0.9f);
+    CHECK(out[1][0] < -0.9f);
+    CHECK(out[0][1] == Catch::Approx(out[0][0] / 2.f).margin(0.01));
+    CHECK(out[0][2] == Catch::Approx(0.f).margin(1e-6));
+  }
+
+  SECTION("planar float")
+  {
+    float left[4] = {1.f, 2.f, 3.f, 4.f};
+    float right[4] = {-1.f, -2.f, -3.f, -4.f};
+    float* planes[2] = {left, right};
+    ring.write_planar(planes, 4, 2);
+    ring.read_into_output(4);
+    for(int i = 0; i < 4; i++)
+    {
+      CHECK(out[0][i] == Catch::Approx(left[i]));
+      CHECK(out[1][i] == Catch::Approx(right[i]));
+    }
+  }
+
+  SECTION("reading an empty ring yields silence, not stale samples")
+  {
+    for(auto& ch : out)
+      for(auto& v : ch)
+        v = 42.f;
+    ring.read_into_output(4);
+    for(auto& ch : out)
+      for(float v : ch)
+        CHECK(v == Catch::Approx(0.f).margin(1e-6));
+  }
+
+  ring.output_data = nullptr;
 }
