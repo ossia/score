@@ -39,6 +39,9 @@ struct AppsinkInfo
   AVPixelFormat pixfmt{AV_PIX_FMT_NONE};
   int channels{};
   int rate{};
+  // Set when the negotiated caps named a format with no AVPixelFormat: the
+  // samples are dropped, and the reason is logged once rather than per frame.
+  bool unsupported_format{};
   std::function<void(int, int, AVPixelFormat)> on_format_change;
 };
 
