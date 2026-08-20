@@ -170,8 +170,7 @@ inline constexpr bool formatNeedsDecoding(AVPixelFormat fmt) noexcept
     case AV_PIX_FMT_GBRAP16LE:
     case AV_PIX_FMT_GBRPF32LE:
     case AV_PIX_FMT_GBRAPF32LE:
-    case AV_PIX_FMT_GRAYF32LE:
-    case AV_PIX_FMT_GRAYF32BE:
+    case AV_PIX_FMT_GRAYF32:
     case AV_PIX_FMT_NV24:
     case AV_PIX_FMT_NV42:
     case AV_PIX_FMT_Y210LE:
@@ -198,8 +197,7 @@ inline constexpr bool formatNeedsDecoding(AVPixelFormat fmt) noexcept
 #endif
 
 #if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(60, 8, 100)
-    case AV_PIX_FMT_GRAYF16LE:
-    case AV_PIX_FMT_GRAYF16BE:
+    case AV_PIX_FMT_GRAYF16:
 #endif
 
     case AV_PIX_FMT_GRAY8:
@@ -353,10 +351,10 @@ inline bool codecSupportsHWPixelFormat(
   (void)gpuVendorId;
 
   // The Vulkan compute-shader decoders (not Vulkan Video) produce wrong
-  // pixels: measured against the FATE prores samples, ~2% of the bytes of
-  // every frame come out full-scale wrong. This check is the gate for both
-  // an explicitly requested accel and the automatic selection, so refusing
-  // here sends these codecs to the software decoder on every path.
+  // pixels: part of every frame comes out full-scale wrong. This check is
+  // the gate for both an explicitly requested accel and the automatic
+  // selection, so refusing here sends these codecs to the software decoder
+  // on every path.
   if(pix_fmt == AV_PIX_FMT_VULKAN && isVulkanComputeCodec(codec_id))
     return false;
 
@@ -527,8 +525,8 @@ inline AVPixelFormat selectHardwareAcceleration(
 #if defined(__linux__)
 /// The DRM render node to hand libva. Its default is the first render node
 /// (renderD128), which on a dual-GPU laptop is typically the discrete NVIDIA
-/// card serviced by the nvidia-vaapi-driver shim — measured to hang forever
-/// in vaSyncSurface on mid-stream SPS changes and to abort the process in
+/// card serviced by the nvidia-vaapi-driver shim, which hangs forever in
+/// vaSyncSurface on mid-stream SPS changes and aborts the process in
 /// av_hwframe_transfer_data on VP8 resolution changes. Prefer a node whose
 /// kernel driver is a native implementation, as mpv does.
 inline std::string preferredVAAPIRenderNode() noexcept
