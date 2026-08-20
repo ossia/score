@@ -14,6 +14,7 @@
 #include <map>
 #include <string>
 #include <string_view>
+#include <vector>
 
 extern "C" {
 #include <libavutil/pixdesc.h>
@@ -130,7 +131,31 @@ TEST_CASE("no two names claim the same layout by accident", "[unit][gstreamer][v
   }
 }
 
+TEST_CASE("the sparse-alpha and planar-YUV names are spelled the GStreamer way",
+          "[unit][gstreamer][video]")
+{
+  const auto& map = Video::gstreamerToLibav();
+
+  // gst_video_format_to_string() spells the padding byte lower-case: RGBx,
+  // BGRx, xRGB, xBGR. Upper-cased keys never match a caps string, and an
+  // unmatched name used to be reinterpreted as RGBA.
+  for(const std::string& k : std::vector<std::string>{"RGBx", "BGRx", "xRGB", "xBGR"})
+  {
+    INFO("gstreamer format " << k);
+    CHECK(map.count(k) == 1);
+  }
+  CHECK(name(map.at("RGBx")) == std::string_view{"rgb0"});
+  CHECK(name(map.at("BGRx")) == std::string_view{"bgr0"});
+  CHECK(name(map.at("xRGB")) == std::string_view{"0rgb"});
+  CHECK(name(map.at("xBGR")) == std::string_view{"0bgr"});
+
+  // Y41B / Y42B are GStreamer's planar 4:1:1 and 4:2:2; libav spells those
+  // yuv411p and yuv422p (there is no AV_PIX_FMT_Y42B).
+  CHECK(name(map.at("Y41B")) == std::string_view{"yuv411p"});
+  CHECK(name(map.at("Y42B")) == std::string_view{"yuv422p"});
+}
+
 TEST_CASE("the table still has every row it was written with", "[unit][gstreamer][video]")
 {
-  CHECK(Video::gstreamerToLibav().size() == 54);
+  CHECK(Video::gstreamerToLibav().size() == 56);
 }

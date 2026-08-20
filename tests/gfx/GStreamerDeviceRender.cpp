@@ -156,12 +156,15 @@ DecodedPixel firstFrame(Video::VideoInterface& dec, int timeoutMs = 6000)
   return out;
 }
 
-QString testsrcPipeline(const char* pattern, const char* format)
+QString testsrcPipeline(const char* pattern, const char* format, bool live = true)
 {
-  return QStringLiteral("videotestsrc pattern=%1 is-live=true ! videoconvert ! "
-                        "video/x-raw,format=%2,width=64,height=64,framerate=30/1 ! "
+  return QStringLiteral("videotestsrc pattern=%1 is-live=%2 ! videoconvert ! "
+                        "video/x-raw,format=%3,width=64,height=64,framerate=30/1 ! "
                         "appsink name=video sync=false max-buffers=2 drop=true")
-      .arg(QString::fromUtf8(pattern), QString::fromUtf8(format));
+      .arg(
+          QString::fromUtf8(pattern), live ? QStringLiteral("true")
+                                           : QStringLiteral("false"),
+          QString::fromUtf8(format));
 }
 }
 
@@ -172,6 +175,10 @@ struct Case
   const char* pattern;
   const char* format;
   std::array<uint8_t, 4> expect;
+  // A live source does not preroll, so its caps are unknown until the pipeline
+  // reaches PLAYING; a non-live one negotiates them at PAUSED. The two take
+  // different paths through the device's format classification.
+  bool live{true};
 };
 
 struct Result
@@ -236,7 +243,7 @@ bool runCases(
       r.label = std::string(c.pattern) + "/" + c.format;
 
       std::unique_ptr<Device::DeviceInterface> dev{factory.makeDevice(
-          gstSettings(testsrcPipeline(c.pattern, c.format), "Gst"), plug,
+          gstSettings(testsrcPipeline(c.pattern, c.format, c.live), "Gst"), plug,
           doc->context())};
       REQUIRE(dev != nullptr);
       r.connected = dev->reconnect();
@@ -291,9 +298,9 @@ void checkAll(const std::vector<Case>& cases, const std::vector<Result>& results
 TEST_CASE("GStreamer input device decodes its pipeline", "[gfx][gstreamer][device]")
 {
   // videotestsrc's solid patterns through the pixel-format families the
-  // device's appsink classifier and frame queue have to handle: packed RGB,
-  // planar 8-bit YUV, semi-planar, and packed YUV. The 10-bit planar family is
-  // in the FINDING case below, because none of it arrives at all.
+  // device's appsink classifier and frame queue have to handle: packed RGB
+  // (padded and not), planar 8-bit YUV at three chroma subsamplings,
+  // semi-planar, and packed YUV.
   const std::vector<Case> cases{
       {"red", "RGBA", {255, 0, 0, 255}},
       {"green", "RGBA", {0, 255, 0, 255}},
@@ -307,6 +314,8 @@ TEST_CASE("GStreamer input device decodes its pipeline", "[gfx][gstreamer][devic
       {"red", "UYVY", {255, 0, 0, 255}},
       {"green", "YUY2", {0, 255, 0, 255}},
       {"green", "BGRA", {0, 255, 0, 255}},
+      {"blue", "BGRx", {0, 0, 255, 255}},
+      {"red", "Y42B", {255, 0, 0, 255}},
       {"white", "Y444", {255, 255, 255, 255}}};
 
   std::vector<Result> results;
@@ -317,41 +326,37 @@ TEST_CASE("GStreamer input device decodes its pipeline", "[gfx][gstreamer][devic
   checkAll(cases, results);
 }
 
-// FINDING (reported, not fixed here -- tests-only branch): a caps format the
-// gstreamerToLibav() table does not know is REINTERPRETED as RGBA rather than
-// refused.
+// The complement of the colour sweep above: a caps format the
+// gstreamerToLibav() table does not know must FAIL rather than be relabelled.
+// parse_video_caps() used to default it to AV_PIX_FMT_RGBA, which failed
+// nothing -- it changed the meaning of the bytes, and a BGRx blue frame came
+// back RED.
 //
-// GStreamerDevice::parse_video_caps() ends with
-//   if(it != map.end()) info.pixfmt = it->second; else info.pixfmt = AV_PIX_FMT_RGBA;
-// so an unmapped format name does not fail the connection, it changes the
-// meaning of the bytes. Two standard GStreamer format names land there today:
-//
-//   BGRx  -- absent from the table (BGRA is there, BGRx is not). Its bytes are
-//            B,G,R,X; read as RGBA a blue frame comes back RED, which is what
-//            this test measured before the case was moved here.
-//   Y42B  -- GStreamer's planar 4:2:2. The table has the row, COMMENTED OUT,
-//            because it was written as AV_PIX_FMT_Y42B, which does not exist;
-//            the correct value is AV_PIX_FMT_YUV422P, which
-//            initFrameFromRawData() already lays out. A red frame comes back
-//            neutral grey.
-//
-// The right behaviour is either to map the format or to refuse the pipeline the
-// way an appsink-less one is refused -- never to relabel the bytes. Written as
-// the invariant that SHOULD hold, so it flips red the day either is done.
+// VYUY is a standard videotestsrc format with no row in the table, so the
+// pipeline builds and only score's own classification can refuse it. Both
+// classification paths are exercised: a non-live source has its caps at PAUSED
+// and must be refused outright, a live one only negotiates them once running
+// and must then deliver nothing.
 TEST_CASE(
-    "FINDING: unmapped GStreamer caps formats are reinterpreted as RGBA",
-    "[gfx][gstreamer][device][!shouldfail]")
+    "an unmapped GStreamer caps format is refused, not relabelled",
+    "[gfx][gstreamer][device]")
 {
   const std::vector<Case> cases{
-      {"blue", "BGRx", {0, 0, 255, 255}},
-      {"red", "Y42B", {255, 0, 0, 255}}};
+      {"blue", "VYUY", {0, 0, 255, 255}, /*live=*/false},
+      {"blue", "VYUY", {0, 0, 255, 255}, /*live=*/true}};
 
   std::vector<Result> results;
   std::string skipReason;
   if(!runCases(cases, results, skipReason))
     SKIP(skipReason);
 
-  checkAll(cases, results);
+  REQUIRE(results.size() == 2);
+  INFO("non-live: caps are known before the device reports itself connected");
+  CHECK_FALSE(results[0].connected);
+  CHECK_FALSE(results[0].decoded);
+
+  INFO("live: caps arrive only once the pipeline is PLAYING");
+  CHECK_FALSE(results[1].decoded);
 }
 
 // A 9/10/12/14/16-bit PLANAR stream over the GStreamer input used to produce no

@@ -146,7 +146,16 @@ struct gstreamer_pipeline
                 if(type_str.find("video/") == 0)
                 {
                   info.is_video = true;
-                  parse_video_caps(gst, s, info);
+                  if(!parse_video_caps(gst, s, info))
+                  {
+                    qDebug() << "GStreamer: unsupported video format in caps for"
+                             << sink_name.c_str();
+                    gst.object_unref(pad);
+                    if(gst.caps_unref)
+                      gst.caps_unref(caps);
+                    cleanup();
+                    return false;
+                  }
                   video_count++;
                 }
                 else if(type_str.find("audio/") == 0)
@@ -276,7 +285,7 @@ struct gstreamer_pipeline
 
 private:
 
-  static void parse_video_caps(
+  [[nodiscard]] static bool parse_video_caps(
       const libgstreamer& gst, GstStructure* s, AppsinkInfo& info)
   {
     if(gst.structure_get_int)
@@ -291,15 +300,22 @@ private:
       {
         auto& map = ::Video::gstreamerToLibav();
         auto it = map.find(std::string(format));
-        if(it != map.end())
-          info.pixfmt = it->second;
-        else
-          info.pixfmt = AV_PIX_FMT_RGBA;
+        if(it == map.end())
+        {
+          // Defaulting to RGBA here would not fail anything, it would change
+          // the meaning of the bytes.
+          info.unsupported_format = true;
+          return false;
+        }
+        info.pixfmt = it->second;
       }
     }
     if(info.width <= 0) info.width = 640;
     if(info.height <= 0) info.height = 480;
+    // Only reached when the caps carried no format at all, e.g. a live source
+    // that has not negotiated yet.
     if(info.pixfmt == AV_PIX_FMT_NONE) info.pixfmt = AV_PIX_FMT_RGBA;
+    return true;
   }
 
   static void parse_audio_caps(
@@ -361,7 +377,21 @@ private:
             if(GstStructure* s = gst.caps_get_structure(caps, 0))
             {
               AppsinkInfo probed = info;
-              parse_video_caps(gst, s, probed);
+              if(!parse_video_caps(gst, s, probed))
+              {
+                // A live source negotiates its caps only after PAUSED, so this
+                // is where an unsupported format first becomes visible.
+                // Keeping the previous pixel format would relabel the bytes.
+                if(!info.unsupported_format)
+                {
+                  info.unsupported_format = true;
+                  qDebug() << "GStreamer: unsupported video format in caps for"
+                           << info.name.c_str() << ": dropping frames";
+                }
+                gst.mini_object_unref(sample);
+                video_idx++;
+                continue;
+              }
               new_w = probed.width;
               new_h = probed.height;
               new_pf = probed.pixfmt;
