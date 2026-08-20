@@ -11,6 +11,7 @@
 
 extern "C" {
 #include <libavformat/avformat.h>
+#include <libavutil/imgutils.h>
 #include <libavutil/pixdesc.h>
 }
 
@@ -458,92 +459,6 @@ inline bool initFrameFromRawData(AVFrame* frame, uint8_t* p, std::size_t sz)
       break;
     }
 
-    case AV_PIX_FMT_YUV440P:  ///< planar YUV 4:4:0 (1 Cr & Cb sample per 1x2 Y samples)
-    case AV_PIX_FMT_YUVJ440P: ///< planar YUV 4:4:0 full scale (JPEG), deprecated in favor of AV_PIX_FMT_YUV440P and setting color_range
-    case AV_PIX_FMT_YUVA420P: ///< planar YUV 4:2:0, 20bpp, (1 Cr & Cb sample per 2x2 Y & A samples)
-
-    case AV_PIX_FMT_YUV420P9BE: ///< planar YUV 4:2:0: 13.5bpp: (1 Cr & Cb sample per 2x2 Y samples): big-endian
-    case AV_PIX_FMT_YUV420P9LE: ///< planar YUV 4:2:0: 13.5bpp: (1 Cr & Cb sample per 2x2 Y samples): little-endian
-    case AV_PIX_FMT_YUV420P10BE: ///< planar YUV 4:2:0: 15bpp: (1 Cr & Cb sample per 2x2 Y samples): big-endian
-    case AV_PIX_FMT_YUV420P10LE: ///< planar YUV 4:2:0: 15bpp: (1 Cr & Cb sample per 2x2 Y samples): little-endian
-    case AV_PIX_FMT_YUV422P10BE: ///< planar YUV 4:2:2: 20bpp: (1 Cr & Cb sample per 2x1 Y samples): big-endian
-    case AV_PIX_FMT_YUV422P10LE: ///< planar YUV 4:2:2: 20bpp: (1 Cr & Cb sample per 2x1 Y samples): little-endian
-    case AV_PIX_FMT_YUV444P9BE: ///< planar YUV 4:4:4: 27bpp: (1 Cr & Cb sample per 1x1 Y samples): big-endian
-    case AV_PIX_FMT_YUV444P9LE: ///< planar YUV 4:4:4: 27bpp: (1 Cr & Cb sample per 1x1 Y samples): little-endian
-    case AV_PIX_FMT_YUV444P10BE: ///< planar YUV 4:4:4: 30bpp: (1 Cr & Cb sample per 1x1 Y samples): big-endian
-    case AV_PIX_FMT_YUV444P10LE: ///< planar YUV 4:4:4: 30bpp: (1 Cr & Cb sample per 1x1 Y samples): little-endian
-    case AV_PIX_FMT_YUV422P9BE: ///< planar YUV 4:2:2: 18bpp: (1 Cr & Cb sample per 2x1 Y samples): big-endian
-    case AV_PIX_FMT_YUV422P9LE: ///< planar YUV 4:2:2: 18bpp: (1 Cr & Cb sample per 2x1 Y samples): little-endian
-
-    case AV_PIX_FMT_GBRP9BE:  ///< planar GBR 4:4:4 27bpp: big-endian
-    case AV_PIX_FMT_GBRP9LE:  ///< planar GBR 4:4:4 27bpp: little-endian
-    case AV_PIX_FMT_GBRP10BE: ///< planar GBR 4:4:4 30bpp: big-endian
-    case AV_PIX_FMT_GBRP10LE: ///< planar GBR 4:4:4 30bpp: little-endian
-    case AV_PIX_FMT_GBRP16BE: ///< planar GBR 4:4:4 48bpp: big-endian
-    case AV_PIX_FMT_GBRP16LE: ///< planar GBR 4:4:4 48bpp: little-endian
-    case AV_PIX_FMT_YUVA422P: ///< planar YUV 4:2:2 24bpp: (1 Cr & Cb sample per 2x1 Y & A samples)
-    case AV_PIX_FMT_YUVA420P9BE: ///< planar YUV 4:2:0 22.5bpp: (1 Cr & Cb sample per 2x2 Y & A samples): big-endian
-    case AV_PIX_FMT_YUVA420P9LE: ///< planar YUV 4:2:0 22.5bpp: (1 Cr & Cb sample per 2x2 Y & A samples): little-endian
-    case AV_PIX_FMT_YUVA422P9BE: ///< planar YUV 4:2:2 27bpp: (1 Cr & Cb sample per 2x1 Y & A samples): big-endian
-    case AV_PIX_FMT_YUVA422P9LE: ///< planar YUV 4:2:2 27bpp: (1 Cr & Cb sample per 2x1 Y & A samples): little-endian
-    case AV_PIX_FMT_YUVA444P9BE: ///< planar YUV 4:4:4 36bpp: (1 Cr & Cb sample per 1x1 Y & A samples): big-endian
-    case AV_PIX_FMT_YUVA444P9LE: ///< planar YUV 4:4:4 36bpp: (1 Cr & Cb sample per 1x1 Y & A samples): little-endian
-    case AV_PIX_FMT_YUVA420P10BE: ///< planar YUV 4:2:0 25bpp: (1 Cr & Cb sample per 2x2 Y & A samples: big-endian)
-    case AV_PIX_FMT_YUVA420P10LE: ///< planar YUV 4:2:0 25bpp: (1 Cr & Cb sample per 2x2 Y & A samples: little-endian)
-    case AV_PIX_FMT_YUVA422P10BE: ///< planar YUV 4:2:2 30bpp: (1 Cr & Cb sample per 2x1 Y & A samples: big-endian)
-    case AV_PIX_FMT_YUVA422P10LE: ///< planar YUV 4:2:2 30bpp: (1 Cr & Cb sample per 2x1 Y & A samples: little-endian)
-    case AV_PIX_FMT_YUVA444P10BE: ///< planar YUV 4:4:4 40bpp: (1 Cr & Cb sample per 1x1 Y & A samples: big-endian)
-    case AV_PIX_FMT_YUVA444P10LE: ///< planar YUV 4:4:4 40bpp: (1 Cr & Cb sample per 1x1 Y & A samples: little-endian)
-    case AV_PIX_FMT_YUVA420P16BE: ///< planar YUV 4:2:0 40bpp: (1 Cr & Cb sample per 2x2 Y & A samples: big-endian)
-    case AV_PIX_FMT_YUVA420P16LE: ///< planar YUV 4:2:0 40bpp: (1 Cr & Cb sample per 2x2 Y & A samples: little-endian)
-    case AV_PIX_FMT_YUVA422P16BE: ///< planar YUV 4:2:2 48bpp: (1 Cr & Cb sample per 2x1 Y & A samples: big-endian)
-    case AV_PIX_FMT_YUVA422P16LE: ///< planar YUV 4:2:2 48bpp: (1 Cr & Cb sample per 2x1 Y & A samples: little-endian)
-    case AV_PIX_FMT_YUVA444P16BE: ///< planar YUV 4:4:4 64bpp: (1 Cr & Cb sample per 1x1 Y & A samples: big-endian)
-    case AV_PIX_FMT_YUVA444P16LE: ///< planar YUV 4:4:4 64bpp, (1 Cr & Cb sample per 1x1 Y & A samples, little-endian)
-
-    case AV_PIX_FMT_YUV420P12BE: ///< planar YUV 4:2:0:18bpp: (1 Cr & Cb sample per 2x2 Y samples): big-endian
-    case AV_PIX_FMT_YUV420P12LE: ///< planar YUV 4:2:0:18bpp: (1 Cr & Cb sample per 2x2 Y samples): little-endian
-    case AV_PIX_FMT_YUV420P14BE: ///< planar YUV 4:2:0:21bpp: (1 Cr & Cb sample per 2x2 Y samples): big-endian
-    case AV_PIX_FMT_YUV420P14LE: ///< planar YUV 4:2:0:21bpp: (1 Cr & Cb sample per 2x2 Y samples): little-endian
-    case AV_PIX_FMT_YUV422P12BE: ///< planar YUV 4:2:2:24bpp: (1 Cr & Cb sample per 2x1 Y samples): big-endian
-    case AV_PIX_FMT_YUV422P12LE: ///< planar YUV 4:2:2:24bpp: (1 Cr & Cb sample per 2x1 Y samples): little-endian
-    case AV_PIX_FMT_YUV422P14BE: ///< planar YUV 4:2:2:28bpp: (1 Cr & Cb sample per 2x1 Y samples): big-endian
-    case AV_PIX_FMT_YUV422P14LE: ///< planar YUV 4:2:2:28bpp: (1 Cr & Cb sample per 2x1 Y samples): little-endian
-    case AV_PIX_FMT_YUV444P12BE: ///< planar YUV 4:4:4:36bpp: (1 Cr & Cb sample per 1x1 Y samples): big-endian
-    case AV_PIX_FMT_YUV444P12LE: ///< planar YUV 4:4:4:36bpp: (1 Cr & Cb sample per 1x1 Y samples): little-endian
-    case AV_PIX_FMT_YUV444P14BE: ///< planar YUV 4:4:4:42bpp: (1 Cr & Cb sample per 1x1 Y samples): big-endian
-    case AV_PIX_FMT_YUV444P14LE: ///< planar YUV 4:4:4:42bpp: (1 Cr & Cb sample per 1x1 Y samples): little-endian
-    case AV_PIX_FMT_GBRP12BE: ///< planar GBR 4:4:4 36bpp: big-endian
-    case AV_PIX_FMT_GBRP12LE: ///< planar GBR 4:4:4 36bpp: little-endian
-    case AV_PIX_FMT_GBRP14BE: ///< planar GBR 4:4:4 42bpp: big-endian
-    case AV_PIX_FMT_GBRP14LE: ///< planar GBR 4:4:4 42bpp: little-endian
-    case AV_PIX_FMT_YUVJ411P: ///< planar YUV 4:1:1: 12bpp: (1 Cr & Cb sample per 4x1 Y samples) full scale (JPEG): deprecated in favor of AV_PIX_FMT_YUV411P and setting color_range
-
-    case AV_PIX_FMT_YUV440P10LE: ///< planar YUV 4:4:0:20bpp: (1 Cr & Cb sample per 1x2 Y samples): little-endian
-    case AV_PIX_FMT_YUV440P10BE: ///< planar YUV 4:4:0:20bpp: (1 Cr & Cb sample per 1x2 Y samples): big-endian
-    case AV_PIX_FMT_YUV440P12LE: ///< planar YUV 4:4:0:24bpp: (1 Cr & Cb sample per 1x2 Y samples): little-endian
-    case AV_PIX_FMT_YUV440P12BE: ///< planar YUV 4:4:0:24bpp: (1 Cr & Cb sample per 1x2 Y samples): big-endian
-
-    case AV_PIX_FMT_GBRAP12BE: ///< planar GBR 4:4:4:4 48bpp: big-endian
-    case AV_PIX_FMT_GBRAP12LE: ///< planar GBR 4:4:4:4 48bpp: little-endian
-
-    case AV_PIX_FMT_GBRAP10BE: ///< planar GBR 4:4:4:4 40bpp: big-endian
-    case AV_PIX_FMT_GBRAP10LE: ///< planar GBR 4:4:4:4 40bpp: little-endian
-
-    case AV_PIX_FMT_GBRPF32BE: ///< IEEE-754 single precision planar GBR 4:4:4:     96bpp: big-endian
-    case AV_PIX_FMT_GBRPF32LE: ///< IEEE-754 single precision planar GBR 4:4:4:     96bpp: little-endian
-    case AV_PIX_FMT_GBRAPF32BE: ///< IEEE-754 single precision planar GBRA 4:4:4:4: 128bpp: big-endian
-    case AV_PIX_FMT_GBRAPF32LE: ///< IEEE-754 single precision planar GBRA 4:4:4:4: 128bpp: little-endian
-
-    case AV_PIX_FMT_YUVA422P12BE: ///< planar YUV 4:2:2:24bpp: (1 Cr & Cb sample per 2x1 Y samples): 12b alpha: big-endian
-    case AV_PIX_FMT_YUVA422P12LE: ///< planar YUV 4:2:2:24bpp: (1 Cr & Cb sample per 2x1 Y samples): 12b alpha: little-endian
-    case AV_PIX_FMT_YUVA444P12BE: ///< planar YUV 4:4:4:36bpp: (1 Cr & Cb sample per 1x1 Y samples): 12b alpha: big-endian
-    case AV_PIX_FMT_YUVA444P12LE: ///< planar YUV 4:4:4:36bpp: (1 Cr & Cb sample per 1x1 Y samples): 12b alpha: little-endian
-    {
-      qDebug() << "TODO unhandled video format";
-      return false;
-    }
-
     case AV_PIX_FMT_MONOWHITE: ///<        Y        :  1bpp: 0 is white: 1 is black: in each byte pixels are ordered from the msb to the lsb
     case AV_PIX_FMT_MONOBLACK: ///<        Y        :  1bpp: 0 is black: 1 is white: in each byte pixels are ordered from the msb to the lsb
       frame->data[0] = p;
@@ -694,8 +609,26 @@ inline bool initFrameFromRawData(AVFrame* frame, uint8_t* p, std::size_t sz)
     case AV_PIX_FMT_BAYER_GRBG16BE: ///< bayer: GRGR..(odd line): BGBG..(even line): 16-bit samples: big-endian
     case AV_PIX_FMT_PAL8: ///< 8 bits with case AV_PIX_FMT_RGB32 palette
     default: {
-      qDebug() << "TODO unhandled video format";
-      return false;
+      // Everything else -- the 9/10/12/14/16-bit planar families in
+      // particular -- is laid out by libav itself for a tightly packed buffer,
+      // rather than enumerated by hand here.
+      const auto fmt = (AVPixelFormat)frame->format;
+      const int needed = av_image_get_buffer_size(fmt, frame->width, frame->height, 1);
+      if(needed < 0 || std::size_t(needed) > sz)
+      {
+        qDebug() << "unhandled video format" << av_get_pix_fmt_name(fmt) << ":" << sz
+                 << "bytes for a buffer that needs" << needed;
+        return false;
+      }
+
+      if(av_image_fill_arrays(
+             frame->data, frame->linesize, p, fmt, frame->width, frame->height, 1)
+         < 0)
+      {
+        qDebug() << "could not lay out video format" << av_get_pix_fmt_name(fmt);
+        return false;
+      }
+      break;
     }
   }
   return true;
