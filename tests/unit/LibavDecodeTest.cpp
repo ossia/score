@@ -35,8 +35,10 @@
 
 #include <csignal>
 
+#if !defined(_WIN32)
 #include <sys/wait.h>
 #include <unistd.h>
+#endif
 
 #include <chrono>
 #include <string>
@@ -740,26 +742,22 @@ TEST_CASE("the thumbnailer renders a frame at a requested position",
   CHECK(later.size() == first.size());
 }
 
-// FINDING (reported, not fixed here -- tests-only branch):
 // Video::VideoThumbnailer::process() dereferences m_formatContext and indexes
-// m_formatContext->streams[m_stream] with no guard. When the constructor could
-// not open the file it leaves m_formatContext == nullptr and m_stream == -1, so
-// the very first statement of process() is a null dereference:
+// m_formatContext->streams[m_stream] with no guard, so a constructor that could
+// not open the file leaves m_formatContext null and the first statement is a
+// null dereference. Its two internal callers both open with
+// `if(!m_codecContext) return;`; process() is public and has none, so any direct
+// caller crashes on a missing or corrupt media file.
 //
-//   ossia::seek_to_flick(m_formatContext, m_codecContext,
-//                        m_formatContext->streams[m_stream], ...)
-//
-// Its two internal callers, onRequest() and processNext(), both open with
-// `if(!m_codecContext) return;`. process() is public and has no such guard, so
-// any direct caller crashes the process on a file that failed to open -- a
-// missing or corrupt media file, i.e. the normal library case.
-//
-// Run in a forked child so the crash cannot take this binary down with it, and
-// written as the invariant that SHOULD hold: it flips red the day process()
-// grows the same guard its callers already have.
+// Run in a forked child so the crash cannot take this binary down, and written
+// as the invariant that should hold: it flips red the day process() grows the
+// same guard its callers already have.
 namespace
 {
-// Returns true if the child exited normally with status 0.
+// Returns true if the child exited normally with status 0. fork()/waitpid() are
+// POSIX; there is no Windows equivalent that isolates a crash this cheaply, so
+// the crash-isolated cases do not build there.
+#if !defined(_WIN32)
 bool survives(auto&& fn)
 {
   ::fflush(nullptr);
@@ -778,6 +776,7 @@ bool survives(auto&& fn)
   REQUIRE(::waitpid(pid, &status, 0) == pid);
   return WIFEXITED(status) && WEXITSTATUS(status) == 0;
 }
+#endif
 } // namespace
 
 TEST_CASE("a thumbnailer that could not open its file knows it",
@@ -795,6 +794,7 @@ TEST_CASE("a thumbnailer that could not open its file knows it",
   CHECK(thumb.fps == 0.);
 }
 
+#if !defined(_WIN32)
 TEST_CASE("VideoThumbnailer::process() survives a file it could not open",
           "[video][libav][media][thumbnail]")
 {
@@ -811,6 +811,7 @@ TEST_CASE("VideoThumbnailer::process() survives a file it could not open",
     (void)thumb.process(0);
   }));
 }
+#endif
 
 // ---------------------------------------------------------------------------
 // Video::LibavStreamInput -- the FFmpeg *input device* behind Gfx/Libav. Same
