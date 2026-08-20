@@ -901,8 +901,6 @@ TEST_CASE("the FFmpeg input delivers video frames", "[video][libav][media][strea
   const auto path = clipPath("fmt-rgb24-64x64.nut");
 
   Video::LibavStreamInput in;
-  // Any option at all is enough to keep probe() out of its network-latency
-  // branch; see the FINDING case below for what happens without one.
   REQUIRE(in.load(path, {{"probesize", "5000000"}}));
   REQUIRE(in.start());
   // A second start() while running must be refused rather than spawn a second
@@ -934,25 +932,13 @@ TEST_CASE("the FFmpeg input delivers video frames", "[video][libav][media][strea
   CHECK(in.dequeue_frame() == nullptr);
 }
 
-// FINDING (reported, not fixed here -- tests-only branch): with NO options --
-// the default, and what a user gets by typing a file path into the FFmpeg input
-// device -- LibavStreamInput applies network low-latency flags to every source:
-//
-//   m_formatContext->flags |= AVFMT_FLAG_NOBUFFER | AVFMT_FLAG_FLUSH_PACKETS;
-//   av_dict_set(&options, "fflags", "nobuffer", 0);
-//   av_dict_set(&options, "flags",  "low_delay", 0);
-//
-// A local rawvideo-in-NUT file then yields ZERO frames: probe() succeeds,
-// start() succeeds, and nothing ever comes out. Passing any option at all --
-// even one as inert as probesize -- takes probe() down its other branch and the
-// same file plays. The flags belong behind the same "is this a network URL"
-// test probe() already computes for m_needsPacing.
-//
-// Written as the invariant that SHOULD hold, so it flips red the day the flags
-// are gated.
+// The low-latency demuxer flags (AVFMT_FLAG_NOBUFFER and friends) belong to
+// network peers and capture devices only: AVFMT_FLAG_NOBUFFER makes
+// avformat_find_stream_info() discard the packets it read, which on a short
+// local file is the whole file. A plain path must play with no options at all.
 TEST_CASE(
-    "FINDING: the FFmpeg input's default low-latency flags starve a local file",
-    "[video][libav][media][streaminput][!shouldfail]")
+    "the FFmpeg input plays a local file with no options",
+    "[video][libav][media][streaminput]")
 {
   {
     INFO("rawvideo in NUT");
