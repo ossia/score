@@ -671,6 +671,20 @@ if(TARGET score_plugin_media)
     LIBS avutil avcodec)
 endif()
 
+# The first-run "download the user library?" question. It is a modal
+# QDialog::exec() posted by a 1s timer, so a headless process that pumps events
+# gets it and never comes back. Registered without SCORE_SANITIZE_SKIP_CHECKS
+# on purpose: that variable used to be the only thing keeping it shut.
+if(TARGET score_plugin_packagemanager AND TARGET score_plugin_library)
+  score_add_test(test_unit_packagemanager_firstrun
+    SOURCES PackageManagerFirstRunTest.cpp
+    APP
+    PLUGINS score_plugin_packagemanager score_plugin_library)
+  target_include_directories(test_unit_packagemanager_firstrun PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-packagemanager"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-library")
+endif()
+
 # --- libav demux / decode / rescale, against real files ---------------------
 # Video::VideoDecoder + Video::Rescale + Video::VideoThumbnailer end-to-end. The
 # clips come from tests/hardware/with-virtual-media.sh, so the ctest entry is

@@ -16,16 +16,11 @@
 // REQUIRES a working GStreamer -- the SKIP below is the last resort for a host
 // whose libraries load but whose videotestsrc is missing.
 //
-// Two things had to be true before this could run at all, and both are easy to
-// rediscover the hard way:
-//  - SCORE_SANITIZE_SKIP_CHECKS must be set (the ctest entry sets it). The
-//    package manager opens a modal question box one second after boot; the loop
-//    below pumps the event loop, so the box is delivered and QDialog::exec()
-//    never returns under the offscreen QPA. That -- not GStreamer -- is why an
-//    earlier version of this file was written off as "hangs".
-//  - start_execution() must be called. reconnect() only brings the pipeline to
-//    GST_STATE_PAUSED; the engine is what takes it to PLAYING, so without it the
-//    appsink never yields a sample and every case reads back nothing.
+// One thing had to be true before this could run at all, and it is easy to
+// rediscover the hard way: start_execution() must be called. reconnect() only
+// brings the pipeline to GST_STATE_PAUSED; the engine is what takes it to
+// PLAYING, so without it the appsink never yields a sample and every case reads
+// back nothing.
 
 #include <QCoreApplication>
 #include <QElapsedTimer>
