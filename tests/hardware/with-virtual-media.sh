@@ -85,6 +85,76 @@ if [ "$want_media" = 1 ]; then
   ffmpeg -nostdin -loglevel error -y -f lavfi -i testsrc=size=160x120:rate=25:duration=1 \
     -pix_fmt yuv420p -c:v rawvideo -f nut "$tmp/raw.nut" \
     || die "ffmpeg could not produce the raw clip"
+
+  # Per-pixel-format clips. rawvideo-in-NUT is the only container that carries
+  # an arbitrary pix_fmt through untouched -- every other muxer silently
+  # converts, which would make the decoder tests assert ffmpeg's conversion
+  # instead of score's. Named fmt-<pixfmt>-<W>x<H>.nut and discovered by name,
+  # so a format added here needs no test change.
+  #
+  # ODD dimensions are deliberate: a 4:2:0 chroma plane of an odd-sized frame is
+  # ceil(w/2) x ceil(h/2), and every consumer that computes w/2 is wrong by a
+  # row or a column there.
+  #
+  # The explicit scale filter is load-bearing: lavfi sources silently round an
+  # odd requested size DOWN to even, so `testsrc2=size=65x33` alone yields a
+  # 64x32 clip and the odd-dimension axis quietly disappears. The size is read
+  # back with ffprobe afterwards and a mismatch is fatal, so a clip can never
+  # again claim in its name a geometry it does not have.
+  gen_raw() {  # gen_raw <pixfmt> <W> <H> [frames]
+    local fmt="$1" w="$2" h="$3" n="${4:-8}"
+    local out="$tmp/fmt-${fmt}-${w}x${h}.nut"
+    ffmpeg -nostdin -loglevel error -y \
+      -f lavfi -i "testsrc2=size=$((w * 2))x$((h * 2)):rate=25" \
+      -vf "scale=${w}:${h}" -frames:v "$n" \
+      -pix_fmt "$fmt" -c:v rawvideo -f nut "$out" \
+      || die "ffmpeg could not produce a $fmt ${w}x${h} clip"
+    if command -v ffprobe >/dev/null 2>&1; then
+      got=$(ffprobe -v error -select_streams v:0 \
+              -show_entries stream=width,height -of csv=p=0 "$out")
+      [ "$got" = "${w},${h}" ] \
+        || die "ffmpeg produced $got for a requested ${w}x${h} $fmt clip"
+    fi
+  }
+
+  for fmt in yuv420p yuv422p yuv444p yuv440p nv12 nv21 gray \
+             rgb24 bgr24 rgba bgra argb abgr rgb0 \
+             yuv420p10le yuv422p10le yuv444p10le yuva420p \
+             rgb48le rgba64le gbrp gbrap uyvy422 yuyv422 gray16le ya8; do
+    gen_raw "$fmt" 64 64
+  done
+  for fmt in yuv420p yuv422p nv12 rgb24 yuv420p10le; do
+    gen_raw "$fmt" 65 33
+  done
+
+  # Formats Video::formatNeedsDecoding() sends through swscale to RGBA rather
+  # than to a GPU decoder: the CPU rescale path has no other consumer.
+  for fmt in yuv410p bgr565le rgb555le pal8 bgr8; do
+    gen_raw "$fmt" 64 64
+  done
+  gen_raw yuv410p 65 33
+
+  # Colour-space inference in VideoDecoder::open_stream() branches on the frame
+  # height when the stream tags none: <625 -> SMPTE170M, <720 -> BT470BG,
+  # otherwise BT709. All three need a clip.
+  gen_raw yuv420p 64 480
+  gen_raw yuv420p 64 640
+  gen_raw yuv420p 64 720
+
+  # A file with an audio stream in front of the video one: open_stream() must
+  # pick the video stream and mark the rest AVDISCARD_ALL.
+  ffmpeg -nostdin -loglevel error -y \
+    -f lavfi -i "sine=frequency=440:duration=1" \
+    -f lavfi -i "testsrc=size=64x64:rate=25:duration=1" \
+    -map 0:a -map 1:v -c:a aac -c:v libx264 -preset ultrafast -pix_fmt yuv420p \
+    "$tmp/audio-video.mp4" \
+    || die "ffmpeg could not produce the audio+video clip"
+
+  # Malformed inputs: opening these must fail cleanly, not crash or hang.
+  head -c 4096 "$tmp/h264.mp4" > "$tmp/truncated.mp4"
+  head -c 2048 /dev/urandom    > "$tmp/garbage.bin"
+  : > "$tmp/empty.bin"
+
   export SCORE_TEST_MEDIA_DIR="$tmp"
 fi
 
