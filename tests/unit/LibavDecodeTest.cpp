@@ -801,8 +801,8 @@ TEST_CASE("a thumbnailer that could not open its file knows it",
   CHECK(thumb.fps == 0.);
 }
 
-TEST_CASE("FINDING: VideoThumbnailer::process() crashes on a file it could not open",
-          "[video][libav][media][thumbnail][!shouldfail]")
+TEST_CASE("VideoThumbnailer::process() survives a file it could not open",
+          "[video][libav][media][thumbnail]")
 {
   const QString missing
       = requireMediaDir() + QLatin1String("/there-is-no-such-file.mp4");
