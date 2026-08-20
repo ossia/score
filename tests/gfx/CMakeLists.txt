@@ -390,3 +390,51 @@ endif()
 score_add_gfx_test(window_device_tree WindowDeviceTree.cpp)
 target_link_libraries(test_gfx_window_device_tree PRIVATE score_plugin_deviceexplorer)
 
+
+# -----------------------------------------------------------------------------
+# The GStreamer input device (Gfx/GStreamer/GStreamerDevice.cpp, 1010 lines at
+# 4%; GStreamerLoader.hpp, 0%). The device runs its OWN pipeline, so
+# `videotestsrc` is producer and reference at once and no external process is
+# needed: gst_parse_launch -> appsink classification -> FrameQueue -> AVFrame is
+# assertable on the CPU by scaling one decoded frame down to a single RGBA pixel.
+#
+# Registered in tests/hardware (score_add_media_test) rather than here: the
+# runner REQUIRES a working GStreamer, so an absent one is a failure instead of
+# a silently skipped suite. NO_CTEST keeps it from also being registered here
+# with none of that guaranteed.
+if(TARGET score_plugin_media)
+  score_plugin_hidden_sources(_gstreamer_device_hidden
+      "${_gfx_src}/Gfx/GStreamer/GStreamerDevice.cpp"
+      "${_gfx_src}/Gfx/GStreamer/GStreamerOutputDevice.cpp")
+  score_add_test(test_gfx_gstreamer_device
+    SOURCES
+      GStreamerDeviceRender.cpp
+      ${_gstreamer_device_hidden}
+    APP
+    PLUGINS score_plugin_gfx score_lib_process score_plugin_media
+            score_plugin_deviceexplorer
+    LIBS avutil swscale
+    NO_CTEST)
+endif()
+
+# --- GStreamer input device (score-plugin-gfx) ------------------------------
+# Registered here rather than in tests/hardware because tests/gfx is added
+# after it, so the target does not exist yet there. The runner
+# REQUIRES gstreamer, so a host without it fails instead of silently dropping
+# the only coverage GStreamerDevice.cpp has. No --video is needed -- the device
+# runs videotestsrc itself -- but the runner's gst-inspect check is exactly the
+# precondition this harness has.
+#
+# SCORE_SANITIZE_SKIP_CHECKS is not about sanitizers here: it is the existing
+# escape hatch that stops PM::PluginSettingsModel::firstTimeLibraryDownload()
+# from opening a modal QMessageBox one second into the run. The harness pumps
+# the event loop while waiting for frames, so without it the dialog is delivered
+# and QDialog::exec() never returns under the offscreen QPA -- the test hangs
+# forever rather than failing.
+if(TARGET test_gfx_gstreamer_device)
+  score_add_media_test(
+    NAME       Media_GStreamerDevice
+    EXECUTABLE test_gfx_gstreamer_device
+    TIMEOUT    600
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen;SCORE_SANITIZE_SKIP_CHECKS=1")
+endif()
