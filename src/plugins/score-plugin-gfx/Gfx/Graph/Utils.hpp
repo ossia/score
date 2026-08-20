@@ -160,6 +160,7 @@ struct TextureRenderTarget
   QRhiRenderTarget* renderTarget{};
 
   std::vector<QRhiTexture*> additionalColorTextures;   // MRT: locations 1..N
+  std::vector<QRhiRenderBuffer*> additionalColorRenderBuffers; // MRT: MSAA attachments for locations 1..N
   QRhiTexture* depthTexture{};                         // Sampleable depth (alternative to depthRenderBuffer)
   QRhiTexture* msDepthTexture{};                       // MSAA depth attachment when depthTexture is the resolve target
 
@@ -247,6 +248,10 @@ struct TextureRenderTarget
       if(colorRenderBuffer)
         colorRenderBuffer->deleteLater();
       colorRenderBuffer = nullptr;
+
+      for(auto* rb : additionalColorRenderBuffers)
+        rb->deleteLater();
+      additionalColorRenderBuffers.clear();
 
       if(depthRenderBuffer)
         depthRenderBuffer->deleteLater();
