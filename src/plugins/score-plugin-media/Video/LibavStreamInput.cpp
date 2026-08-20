@@ -133,6 +133,42 @@ bool LibavStreamInput::load(
   return !url.empty();
 }
 
+// A demuxer registered in libavdevice's capture-device registry.
+static bool isDeviceFormat(const AVInputFormat* fmt) noexcept
+{
+  if(!fmt)
+    return false;
+
+  const AVInputFormat* d = nullptr;
+  while((d = av_input_video_device_next(d)))
+    if(d == fmt)
+      return true;
+  while((d = av_input_audio_device_next(d)))
+    if(d == fmt)
+      return true;
+  return false;
+}
+
+// Whether this source is produced in real time by something other than us: a
+// network peer or a capture device. Only those may be opened with the
+// low-latency demuxer flags -- AVFMT_FLAG_NOBUFFER makes
+// avformat_find_stream_info() throw away the packets it read, which on a short
+// local file is the whole file.
+static bool
+urlIsLiveSource(const std::string& url, const AVInputFormat* input_fmt) noexcept
+{
+  if(isDeviceFormat(input_fmt))
+    return true;
+
+  const auto scheme_end = url.find("://");
+  if(scheme_end == std::string::npos)
+    return false;
+
+  using namespace std::literals;
+  const std::string_view scheme{url.data(), scheme_end};
+  return scheme != "file"sv;
+}
+
 bool LibavStreamInput::probe() noexcept
 {
   if(m_formatContext)
@@ -145,39 +181,36 @@ bool LibavStreamInput::probe() noexcept
   AVDictionary* options = nullptr;
   const AVInputFormat* input_fmt = nullptr;
 
-  if(m_options.empty())
+  // User-provided options: extract keys handled at our level,
+  // pass the rest as AVDictionary to the demuxer.
+  for(const auto& [k, v] : m_options)
   {
-    // Default: low-latency flags for network streams
+    if(k == "format")
+      input_fmt = av_find_input_format(v.c_str());
+    else if(k == "loop")
+    {
+      // loop: -1 = infinite, 0 = no loop, N = loop N times.
+      // This is NOT an FFmpeg option — we implement it ourselves
+      // by seeking back to start on EOF (same as ffmpeg CLI's -stream_loop).
+      try
+      {
+        m_loop = std::stoi(v);
+      }
+      catch(...)
+      {
+        m_loop = 0;
+      }
+    }
+    else
+      av_dict_set(&options, k.c_str(), v.c_str(), 0);
+  }
+
+  if(urlIsLiveSource(m_url, input_fmt))
+  {
     m_formatContext->flags |= AVFMT_FLAG_NOBUFFER;
     m_formatContext->flags |= AVFMT_FLAG_FLUSH_PACKETS;
-    av_dict_set(&options, "fflags", "nobuffer", 0);
-    av_dict_set(&options, "flags", "low_delay", 0);
-  }
-  else
-  {
-    // User-provided options: extract keys handled at our level,
-    // pass the rest as AVDictionary to the demuxer.
-    for(const auto& [k, v] : m_options)
-    {
-      if(k == "format")
-        input_fmt = av_find_input_format(v.c_str());
-      else if(k == "loop")
-      {
-        // loop: -1 = infinite, 0 = no loop, N = loop N times.
-        // This is NOT an FFmpeg option — we implement it ourselves
-        // by seeking back to start on EOF (same as ffmpeg CLI's -stream_loop).
-        try
-        {
-          m_loop = std::stoi(v);
-        }
-        catch(...)
-        {
-          m_loop = 0;
-        }
-      }
-      else
-        av_dict_set(&options, k.c_str(), v.c_str(), 0);
-    }
+    av_dict_set(&options, "fflags", "nobuffer", AV_DICT_DONT_OVERWRITE);
+    av_dict_set(&options, "flags", "low_delay", AV_DICT_DONT_OVERWRITE);
   }
 
   int ret = avformat_open_input(&m_formatContext, m_url.c_str(), input_fmt, &options);
@@ -230,23 +263,7 @@ bool LibavStreamInput::probe() noexcept
 
       // Check if the demuxer is a registered capture device (v4l2, x11grab, etc.)
       // using FFmpeg's own device registry.
-      bool isDevice = false;
-      {
-        const AVInputFormat* d = nullptr;
-        while((d = av_input_video_device_next(d)))
-          if(d == m_formatContext->iformat)
-          {
-            isDevice = true;
-            break;
-          }
-        if(!isDevice)
-          while((d = av_input_audio_device_next(d)))
-            if(d == m_formatContext->iformat)
-            {
-              isDevice = true;
-              break;
-            }
-      }
+      const bool isDevice = isDeviceFormat(m_formatContext->iformat);
 
       m_needsPacing = !isNetwork && !isDevice;
     }
