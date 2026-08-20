@@ -47,6 +47,8 @@ TextureRenderTarget renderTargetFailed(TextureRenderTarget& ret, const char* wha
     ret.depthRenderBuffer->deleteLater();
   if(ret.colorRenderBuffer)
     ret.colorRenderBuffer->deleteLater();
+  for(auto* rb : ret.additionalColorRenderBuffers)
+    rb->deleteLater();
   if(ret.dummyColorTexture)
     ret.dummyColorTexture->deleteLater();
 
@@ -238,6 +240,12 @@ TextureRenderTarget createRenderTarget(
       auto* rb = state.rhi->newRenderBuffer(
           QRhiRenderBuffer::Color, tex->pixelSize(), effectiveSamples, {}, tex->format());
       rb->setName("createRenderTarget::MRT::colorRB");
+      // Record the MSAA attachments on the RT: sampleCount() reads
+      // colorRenderBuffer first, and every attachment has to be released.
+      if(!ret.colorRenderBuffer)
+        ret.colorRenderBuffer = rb;
+      else
+        ret.additionalColorRenderBuffers.push_back(rb);
       if(!rb->create())
         return renderTargetFailed(ret, "an MRT color buffer");
 
