@@ -71,3 +71,16 @@ if(TARGET PipewireRoundtrip)
     TIMEOUT    600
     ENVIRONMENT "${_pwrt_asan}")
 endif()
+
+# --- libav decode matrix (score-plugin-media) -------------------------------
+# The harness is built in tests/unit (NO_CTEST) and registered here, because it
+# is the provisioning wrapper that gives it something to decode: --media
+# generates one rawvideo-in-NUT clip per pixel format, at even AND odd sizes,
+# plus the malformed inputs the failure paths need.
+if(TARGET test_unit_libav_decode)
+  score_add_media_test(
+    NAME       Media_LibavDecode
+    EXECUTABLE test_unit_libav_decode
+    MEDIA
+    TIMEOUT    600)
+endif()
