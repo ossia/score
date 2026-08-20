@@ -178,11 +178,14 @@ TextureRenderTarget createRenderTarget(
     const RenderState& state, QRhiTexture::Format fmt, QSize sz, int samples, bool depth,
     bool samplableDepth, QRhiTexture::Flags flags)
 {
-  // FIXME not every RT needs mipmap / generatemips
+  // Mip levels are opt-in through `flags`: nothing in the graph runs
+  // generateMips() on the render targets allocated here, so any mip beyond
+  // level 0 would stay uninitialized for the lifetime of the texture while
+  // still being covered by the SRV every sampler binds.
   auto texture = state.rhi->newTexture(
       fmt, sz, 1,
-      QRhiTexture::RenderTarget | QRhiTexture::UsedWithLoadStore | QRhiTexture::MipMapped
-          | QRhiTexture::UsedWithGenerateMips | flags);
+      QRhiTexture::RenderTarget | QRhiTexture::UsedWithLoadStore
+          | QRhiTexture::UsedAsTransferSource | flags);
   texture->setName("createRenderTarget::texture");
   if(!texture->create())
   {

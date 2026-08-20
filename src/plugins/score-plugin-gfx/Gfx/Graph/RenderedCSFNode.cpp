@@ -3179,7 +3179,12 @@ void RenderedCSFNode::buildComputeSrbBindings(
             {
               QRhiTexture::Flags flags
                   = QRhiTexture::RenderTarget | QRhiTexture::UsedWithLoadStore
-                    | QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips;
+                    | QRhiTexture::UsedAsTransferSource;
+              // Mip levels track the GENERATE_MIPS opt-in that gates the
+              // generateMips() call in update(): without it nothing ever
+              // writes levels > 0 and they stay uninitialized.
+              if(image->generate_mips)
+                flags |= QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips;
               t = rhi.newTexture(format, imageSize, 1, flags);
             }
             t->setName(
