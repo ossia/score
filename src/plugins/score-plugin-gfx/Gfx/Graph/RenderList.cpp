@@ -343,9 +343,16 @@ void RenderList::createAllInputRenderTargets()
     bool wantsDepth = requiresDepth(*port);
     bool wantsSamplableDepth
         = (port->flags & Flag::SamplableDepth) == Flag::SamplableDepth;
+    // A mip chain is only worth allocating when the consuming sampler
+    // filters across levels; otherwise levels > 0 are storage nothing
+    // writes and nothing reads.
+    QRhiTexture::Flags texFlags{};
+    if(spec.mipmap_mode != QRhiSampler::None)
+      texFlags |= QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips;
+
     auto rt = score::gfx::createRenderTarget(
         state, spec.format, spec.size, samples(),
-        wantsDepth || wantsSamplableDepth, wantsSamplableDepth);
+        wantsDepth || wantsSamplableDepth, wantsSamplableDepth, texFlags);
     m_inputRenderTargets[port] = std::move(rt);
   }
 }
@@ -1187,9 +1194,12 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
             bool wantsDepth = requiresDepth(*in);
             bool wantsSamplableDepth
                 = (in->flags & Flag::SamplableDepth) == Flag::SamplableDepth;
+            QRhiTexture::Flags texFlags{};
+            if(newSpec.mipmap_mode != QRhiSampler::None)
+              texFlags |= QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips;
             oldIt->second = score::gfx::createRenderTarget(
                 state, newSpec.format, newSpec.size, samples(),
-                wantsDepth || wantsSamplableDepth, wantsSamplableDepth);
+                wantsDepth || wantsSamplableDepth, wantsSamplableDepth, texFlags);
           }
         }
         cur_port++;
