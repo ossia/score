@@ -354,27 +354,20 @@ TEST_CASE(
   checkAll(cases, results);
 }
 
-// FINDING (reported, not fixed here -- tests-only branch): a 10-bit (or 9/12/14/
-// 16-bit) PLANAR stream over the GStreamer input produces no frames at all.
-//
-// Video::gstreamerToLibav() maps "I420_10LE" -> AV_PIX_FMT_YUV420P10LE, and
-// score::gfx has a dedicated YUV420P10Decoder for it, so both ends of the path
-// know the format. The middle does not: Video::initFrameFromRawData()
-// (GStreamerCompatibility.hpp) lumps every 9/10/12/14/16-bit planar layout into
-// the branch that logs "TODO unhandled video format" and returns false, and
-// GStreamerDevice's process_video_frame() drops the frame on that false. The
-// user sees a device that connects, publishes /video, and renders nothing --
-// with only a qDebug line to say why.
+// A 9/10/12/14/16-bit PLANAR stream over the GStreamer input used to produce no
+// frames at all. Video::gstreamerToLibav() maps "I420_10LE" ->
+// AV_PIX_FMT_YUV420P10LE and score::gfx has a dedicated YUV420P10Decoder for
+// it, so both ends of the path knew the format; the middle did not.
+// Video::initFrameFromRawData() (GStreamerCompatibility.hpp) lumped every such
+// layout into a branch that logged "TODO unhandled video format" and returned
+// false, and GStreamerDevice's process_video_frame() dropped the frame on that
+// false: a device that connects, publishes /video and renders nothing.
 //
 // The same initFrameFromRawData() serves the Sh4lt and Shmdata inputs, so this
 // is not GStreamer-specific.
-//
-// Written as the invariant that SHOULD hold, so it flips red -- and must be
-// deleted -- the day initFrameFromRawData() learns the planar high-bit-depth
-// plane layout it already spells out for the 8- and 16-bit cases.
 TEST_CASE(
-    "FINDING: 10-bit planar formats produce no frames over the GStreamer input",
-    "[gfx][gstreamer][device][!shouldfail]")
+    "10-bit planar formats decode over the GStreamer input",
+    "[gfx][gstreamer][device]")
 {
   const std::vector<Case> cases{
       {"blue", "I420_10LE", {0, 0, 255, 255}},
