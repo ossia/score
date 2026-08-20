@@ -107,6 +107,14 @@ void gfx_exec_node::run(
       }
 
       case ossia::geometry_port::which: {
+
+        if(auto in = inlet->address.target<ossia::net::parameter_base*>();
+           in && (*in)->get_type() == ossia::parameter_type::GEOMETRY)
+        {
+          auto cam = static_cast<ossia::gfx::geometry_parameter*>(*in);
+          cam->pull_geometry({this->id, inlet_i});
+        }
+
         auto& p = inlet->cast<ossia::geometry_port>();
         link_cable_to_inlet(inlet, inlet_i);
         break;
