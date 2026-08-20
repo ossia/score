@@ -160,6 +160,7 @@ struct TextureRenderTarget
   QRhiRenderTarget* renderTarget{};
 
   std::vector<QRhiTexture*> additionalColorTextures;   // MRT: locations 1..N
+  std::vector<QRhiRenderBuffer*> additionalColorRenderBuffers; // MRT: MSAA attachments for locations 1..N
   QRhiTexture* depthTexture{};                         // Sampleable depth (alternative to depthRenderBuffer)
   QRhiTexture* msDepthTexture{};                       // MSAA depth attachment when depthTexture is the resolve target
 
@@ -247,6 +248,10 @@ struct TextureRenderTarget
       if(colorRenderBuffer)
         colorRenderBuffer->deleteLater();
       colorRenderBuffer = nullptr;
+
+      for(auto* rb : additionalColorRenderBuffers)
+        rb->deleteLater();
+      additionalColorRenderBuffers.clear();
 
       if(depthRenderBuffer)
         depthRenderBuffer->deleteLater();
@@ -486,8 +491,8 @@ const ossia::geometry::attribute* findGeometryAttribute(
  * the same thing through the NonDynamicUniformBuffers feature. Every UBO this
  * plugin allocates from a literal is already Dynamic; this exists for the few
  * places that pick the usage at RUNTIME from a shader's declaration, where an
- * unconditional Immutable silently produced a null-backed buffer on D3D11 and
- * bound it anyway. Everything else keeps `nonDynamic`, which for a storage or
+ * unconditional Immutable would silently give a null-backed buffer on D3D11
+ * and bind it anyway. Everything else keeps `nonDynamic`, which for a storage or
  * vertex buffer is what it wants (and Dynamic + StorageBuffer is itself
  * rejected).
  */
@@ -521,7 +526,7 @@ bool remapPipelineVertexInputs(
     QRhiGraphicsPipeline& pip, const QShader& vertexShader,
     const ossia::geometry& geom, const isf::descriptor& desc);
 
-// FallbackBindingPlan now lives in its own header so both Utils.hpp and
+// FallbackBindingPlan lives in its own header so both Utils.hpp and
 // CustomMesh.hpp can depend on it without creating an include cycle
 // (Utils.hpp depends on Mesh.hpp, which transitively reaches CustomMesh
 // consumers). See <Gfx/Graph/VertexFallbackPlan.hpp>.
@@ -617,15 +622,14 @@ struct GraphicsStorageResources;
 /**
  * @brief Create a render pipeline applying pipeline_state from an ISF descriptor.
  *
- * This overload replaces the legacy hardcoded `setDepthTest(true)/setDepthWrite(true)`
- * on RawRaster and the `anyNodeRequiresDepth()` fallback on ISF with a unified
- * path driven by `state`. When `state` is empty (all fields nullopt), behaviour
- * matches the legacy variant exactly for backwards compatibility.
+ * Depth test / depth write and the `anyNodeRequiresDepth()` fallback are all
+ * driven by `state` here. When `state` is empty (all fields nullopt),
+ * behaviour matches the variant above exactly.
  *
  * `extraBindings` is typically the result of IsfBindingsBuilder::buildExtraBindings().
  * `multiViewCount` >= 2 activates multiview rendering (requires state.caps.multiview).
  *
- * Plan 09 S6: when `useShadingRate == true` AND
+ * When `useShadingRate == true` AND
  * `renderer.state.caps.variableRateShading == true`, the pipeline
  * gets `QRhiGraphicsPipeline::UsesShadingRate`. The shading-rate
  * texture / per-draw rate itself is supplied elsewhere (via the
