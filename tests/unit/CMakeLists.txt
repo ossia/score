@@ -692,3 +692,39 @@ if(TARGET score_plugin_gfx)
     PLUGINS score_plugin_gfx score_plugin_media
     LIBS avutil avcodec avformat ${QT_PREFIX}::Gui)
 endif()
+
+# --- hardware-decoding vocabulary + the CPU-rescale gate (score-plugin-media)
+# Video/GpuFormats.hpp is pure functions of an AVPixelFormat / AVCodecID. The
+# sweep that matters crosses it with score::gfx::createGPUVideoDecoder(): the
+# two tables independently decide "no rescale needed" and "here is your GPU
+# decoder", and a format only one of them knows renders nothing.
+if(TARGET score_plugin_gfx AND TARGET score_plugin_media)
+  score_add_test(test_unit_gpu_formats
+    SOURCES GpuFormatsTest.cpp
+    PLUGINS score_plugin_gfx score_plugin_media
+    LIBS avutil avcodec ${QT_PREFIX}::Gui)
+endif()
+
+# --- the decoder <-> renderer frame queue (score-plugin-media) --------------
+# Video::FrameQueue is the ownership boundary between the decode thread and the
+# render thread: a pool, a "latest frame wins" dequeue, and a discard marker
+# published on seek. All of it is pure CPU over AVFrame pointers.
+if(TARGET score_plugin_media)
+  score_add_test(test_unit_video_frame_queue
+    SOURCES VideoFrameQueueTest.cpp
+    PLUGINS score_plugin_media
+    LIBS avutil avcodec)
+endif()
+
+# --- libav demux / decode / rescale, against real files ---------------------
+# Video::VideoDecoder + Video::Rescale + Video::VideoThumbnailer end-to-end. The
+# clips come from tests/hardware/with-virtual-media.sh, so the ctest entry is
+# registered there (score_add_media_test) rather than here: run without the
+# provisioning wrapper the harness has no media at all.
+if(TARGET score_plugin_media)
+  score_add_test(test_unit_libav_decode
+    SOURCES LibavDecodeTest.cpp
+    PLUGINS score_plugin_media
+    LIBS avutil avcodec avformat swscale ${QT_PREFIX}::Gui
+    NO_CTEST)
+endif()
