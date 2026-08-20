@@ -196,6 +196,9 @@ void VideoThumbnailer::onRequest(int64_t req, QVector<int64_t> flicks)
 
 QImage VideoThumbnailer::process(int64_t flicks)
 {
+  if(!m_formatContext || !m_codecContext || m_stream < 0 || !m_rescale || !m_rgb)
+    return {};
+
   AVFramePointer res;
   // 1. Seek and decode
   {
