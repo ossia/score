@@ -18,6 +18,8 @@ void Rescale::open(const VideoMetadata& src)
            << av_get_pix_fmt_name(src.pixel_format);
   m_src = &src;
   m_rescaleFormat = (AVPixelFormat)src.pixel_format;
+  m_srcWidth = src.width;
+  m_srcHeight = src.height;
   m_rescale = sws_getContext(
       src.width, src.height, m_rescaleFormat, src.width, src.height, AV_PIX_FMT_RGBA,
       SWS_FAST_BILINEAR, NULL, NULL, NULL);
@@ -35,15 +37,25 @@ void Rescale::close()
 void Rescale::rescale(FrameQueue& m_frames, AVFramePointer& frame, ReadFrame& read)
 {
   auto& src = *m_src;
-  if(read.frame->format != m_rescaleFormat)
+  if(read.frame->format != m_rescaleFormat || read.frame->width != m_srcWidth
+     || read.frame->height != m_srcHeight)
   {
     qDebug() << "Actual format we getting: " << read.frame->format
-             << av_get_pix_fmt_name((AVPixelFormat)read.frame->format);
+             << av_get_pix_fmt_name((AVPixelFormat)read.frame->format)
+             << read.frame->width << "x" << read.frame->height;
     m_rescaleFormat = (AVPixelFormat)read.frame->format;
+    m_srcWidth = read.frame->width;
+    m_srcHeight = read.frame->height;
     sws_freeContext(m_rescale);
     m_rescale = sws_getContext(
-        src.width, src.height, m_rescaleFormat, src.width, src.height, AV_PIX_FMT_RGBA,
-        SWS_FAST_BILINEAR, NULL, NULL, NULL);
+        m_srcWidth, m_srcHeight, m_rescaleFormat, src.width, src.height,
+        AV_PIX_FMT_RGBA, SWS_FAST_BILINEAR, NULL, NULL, NULL);
+    if(!m_rescale)
+    {
+      if(read.frame == frame.get())
+        frame.release();
+      return;
+    }
   }
   // alloc an rgb frame
   auto rgb = m_frames.newFrame().release();
@@ -67,7 +79,7 @@ void Rescale::rescale(FrameQueue& m_frames, AVFramePointer& frame, ReadFrame& re
 
   // 2. Convert
   sws_scale(
-      m_rescale, read.frame->data, read.frame->linesize, 0, src.height, rgb->data,
+      m_rescale, read.frame->data, read.frame->linesize, 0, m_srcHeight, rgb->data,
       rgb->linesize);
 
   // 3. Free the old frame data
