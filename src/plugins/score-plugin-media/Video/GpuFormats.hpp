@@ -170,8 +170,7 @@ inline constexpr bool formatNeedsDecoding(AVPixelFormat fmt) noexcept
     case AV_PIX_FMT_GBRAP16LE:
     case AV_PIX_FMT_GBRPF32LE:
     case AV_PIX_FMT_GBRAPF32LE:
-    case AV_PIX_FMT_GRAYF32LE:
-    case AV_PIX_FMT_GRAYF32BE:
+    case AV_PIX_FMT_GRAYF32:
     case AV_PIX_FMT_NV24:
     case AV_PIX_FMT_NV42:
     case AV_PIX_FMT_Y210LE:
@@ -198,8 +197,7 @@ inline constexpr bool formatNeedsDecoding(AVPixelFormat fmt) noexcept
 #endif
 
 #if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(60, 8, 100)
-    case AV_PIX_FMT_GRAYF16LE:
-    case AV_PIX_FMT_GRAYF16BE:
+    case AV_PIX_FMT_GRAYF16:
 #endif
 
     case AV_PIX_FMT_GRAY8:

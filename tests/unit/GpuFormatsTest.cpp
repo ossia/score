@@ -59,17 +59,6 @@ bool hasGpuDecoder(AVPixelFormat f)
   return score::gfx::createGPUVideoDecoder(fmt) != nullptr;
 }
 
-// The two hosts where the cross-table check below is known to disagree; see the
-// [!shouldfail] case that owns them.
-bool isKnownUncoveredByFactory(AVPixelFormat f)
-{
-#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(60, 8, 100)
-  if(f == AV_PIX_FMT_GRAYF16BE)
-    return true;
-#endif
-  return f == AV_PIX_FMT_GRAYF32BE;
-}
-
 const AVPixelFormat kHardwareFormats[] = {
     AV_PIX_FMT_VAAPI,     AV_PIX_FMT_VDPAU, AV_PIX_FMT_DXVA2_VLD,
     AV_PIX_FMT_D3D11,     AV_PIX_FMT_CUDA,  AV_PIX_FMT_QSV,
@@ -315,9 +304,6 @@ TEST_CASE("every format that skips swscale has a GPU decoder",
       continue;
     if(formatIsHardwareDecoded(f))
       continue; // the HW transfer decoders, not this factory
-    if(isKnownUncoveredByFactory(f))
-      continue; // owned by the [!shouldfail] case below
-
     INFO("format " << name(f) << " skips swscale but has no GPU decoder");
     CHECK(hasGpuDecoder(f));
     checked++;
@@ -327,24 +313,30 @@ TEST_CASE("every format that skips swscale has a GPU decoder",
   CHECK(checked > 40);
 }
 
-// FINDING (reported, not fixed here -- tests-only branch): the big-endian
-// grayscale float formats are listed in formatNeedsDecoding()'s "no rescale
-// needed" set, but createGPUVideoDecoder() only handles AV_PIX_FMT_GRAYF32 /
-// AV_PIX_FMT_GRAYF16, which are the LITTLE-endian aliases on a little-endian
-// host. A grayf32be / grayf16be stream therefore skips the CPU rescale AND
-// gets no GPU decoder: it renders as nothing at all, where removing it from
-// formatNeedsDecoding()'s list would at least have rescaled it to RGBA.
-//
-// Asserted as the invariant that SHOULD hold, so this flips red -- and must be
-// deleted -- the day either table is corrected.
-TEST_CASE("FINDING: big-endian grayscale floats skip swscale with no decoder",
-          "[video][gpuformats][!shouldfail]")
+// AV_PIX_FMT_GRAYF32 / AV_PIX_FMT_GRAYF16 are AV_PIX_FMT_NE() aliases: they
+// name the host-endian member of the pair, which is the only one
+// createGPUVideoDecoder() builds a PackedDecoder for. formatNeedsDecoding()
+// listed BOTH members, so the foreign-endian one skipped the CPU rescale and
+// then found no GPU decoder: it rendered as nothing at all.
+TEST_CASE("the grayscale float formats follow the host endianness",
+          "[video][gpuformats]")
 {
-  CHECK_FALSE(formatNeedsDecoding(AV_PIX_FMT_GRAYF32BE));
-  CHECK(hasGpuDecoder(AV_PIX_FMT_GRAYF32BE));
+  constexpr auto foreignF32 = AV_PIX_FMT_GRAYF32 == AV_PIX_FMT_GRAYF32LE
+                                  ? AV_PIX_FMT_GRAYF32BE
+                                  : AV_PIX_FMT_GRAYF32LE;
+  CHECK_FALSE(formatNeedsDecoding(AV_PIX_FMT_GRAYF32));
+  CHECK(hasGpuDecoder(AV_PIX_FMT_GRAYF32));
+  CHECK(formatNeedsDecoding(foreignF32));
+  CHECK_FALSE(hasGpuDecoder(foreignF32));
+
 #if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(60, 8, 100)
-  CHECK_FALSE(formatNeedsDecoding(AV_PIX_FMT_GRAYF16BE));
-  CHECK(hasGpuDecoder(AV_PIX_FMT_GRAYF16BE));
+  constexpr auto foreignF16 = AV_PIX_FMT_GRAYF16 == AV_PIX_FMT_GRAYF16LE
+                                  ? AV_PIX_FMT_GRAYF16BE
+                                  : AV_PIX_FMT_GRAYF16LE;
+  CHECK_FALSE(formatNeedsDecoding(AV_PIX_FMT_GRAYF16));
+  CHECK(hasGpuDecoder(AV_PIX_FMT_GRAYF16));
+  CHECK(formatNeedsDecoding(foreignF16));
+  CHECK_FALSE(hasGpuDecoder(foreignF16));
 #endif
 }
 
