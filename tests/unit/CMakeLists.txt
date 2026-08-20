@@ -898,6 +898,18 @@ if(TARGET score_plugin_packagemanager AND TARGET score_plugin_library)
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-library")
 endif()
 
+# Video::Rescale on its own: the swscale fallback taken by every format without
+# a GPU decoder. Its source geometry comes from two places that can disagree --
+# the stream metadata handed to open() and the AVFrame handed to rescale() --
+# and believing the wrong one reads past the source planes. Needs no media: the
+# source frames are buffers the test owns.
+if(TARGET score_plugin_media)
+  score_add_test(test_unit_video_rescale
+    SOURCES VideoRescaleTest.cpp
+    PLUGINS score_plugin_media
+    LIBS avutil swscale)
+endif()
+
 # --- libav demux / decode / rescale, against real files ---------------------
 # Video::VideoDecoder + Video::Rescale + Video::VideoThumbnailer end-to-end. The
 # clips come from tests/hardware/with-virtual-media.sh, so the ctest entry is

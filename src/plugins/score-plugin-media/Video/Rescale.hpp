@@ -30,6 +30,8 @@ private:
   const VideoMetadata* m_src{};
   SwsContext* m_rescale{};
   AVPixelFormat m_rescaleFormat{};
+  int m_srcWidth{};
+  int m_srcHeight{};
 };
 
 struct SCORE_PLUGIN_MEDIA_EXPORT DecoderConfiguration
