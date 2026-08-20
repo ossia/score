@@ -454,16 +454,15 @@ endif()
 # runs videotestsrc itself -- but the runner's gst-inspect check is exactly the
 # precondition this harness has.
 #
-# SCORE_SANITIZE_SKIP_CHECKS is not about sanitizers here: it is the existing
-# escape hatch that stops PM::PluginSettingsModel::firstTimeLibraryDownload()
-# from opening a modal QMessageBox one second into the run. The harness pumps
-# the event loop while waiting for frames, so without it the dialog is delivered
-# and QDialog::exec() never returns under the offscreen QPA -- the test hangs
-# forever rather than failing.
+# Deliberately NOT run with SCORE_SANITIZE_SKIP_CHECKS: this harness pumps the
+# event loop for several seconds, which is exactly what used to deliver
+# PM::PluginSettingsModel::firstTimeLibraryDownload()'s modal QMessageBox and
+# wedge the run under the offscreen QPA. Leaving the escape hatch off keeps
+# that regression visible here as a hang instead of hiding it.
 if(TARGET test_gfx_gstreamer_device)
   score_add_media_test(
     NAME       Media_GStreamerDevice
     EXECUTABLE test_gfx_gstreamer_device
     TIMEOUT    600
-    ENVIRONMENT "QT_QPA_PLATFORM=offscreen;SCORE_SANITIZE_SKIP_CHECKS=1")
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 endif()

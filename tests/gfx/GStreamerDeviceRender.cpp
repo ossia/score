@@ -1,31 +1,23 @@
-// Gfx/GStreamer/GStreamerDevice.cpp (1010 lines, 4% covered on Qt 6.12) and
-// GStreamerLoader.hpp (0%): the GStreamer input device. Almost all of it is the pipeline the device builds and runs
-// itself — gst_parse_launch, the appsink classification (video vs audio, caps,
-// pixel format, size), the per-frame queue feeding a score::gfx::CameraNode, and
-// the GObject property tree it publishes for every named element.
+// Gfx/GStreamer/GStreamerDevice.cpp and GStreamerLoader.hpp: the GStreamer input
+// device. Almost all of it is the pipeline the device builds and runs itself --
+// gst_parse_launch, the appsink classification (video vs audio, caps, pixel
+// format, size), the per-frame queue feeding a score::gfx::CameraNode, and the
+// GObject property tree it publishes for every named element.
 //
 // None of that needs an external producer: the pipeline string IS the producer,
 // so `videotestsrc` gives a known picture end to end. Each configuration is
-// walked in ONE process (the pipeline is cheap, the app boot is not), and the
-// readback is asserted against the pattern's actual colour rather than against
-// "something was rendered".
+// walked in one process, and the readback is asserted against the pattern's
+// actual colour rather than against "something was rendered".
 //
-// No GPU and no display: the frame is scaled down to a single RGBA pixel with
-// sws_scale on the CPU, so the whole assertion happens before anything is
-// uploaded. Registered through tests/hardware/with-virtual-media.sh, which
-// REQUIRES a working GStreamer -- the SKIP below is the last resort for a host
-// whose libraries load but whose videotestsrc is missing.
+// No GPU and no display: the frame is scaled to a single RGBA pixel with
+// sws_scale on the CPU, so the assertion happens before any upload. Registered
+// through tests/hardware/with-virtual-media.sh, which requires a working
+// GStreamer; the SKIP below is the last resort for a host whose libraries load
+// but whose videotestsrc is missing.
 //
-// Two things had to be true before this could run at all, and both are easy to
-// rediscover the hard way:
-//  - SCORE_SANITIZE_SKIP_CHECKS must be set (the ctest entry sets it). The
-//    package manager opens a modal question box one second after boot; the loop
-//    below pumps the event loop, so the box is delivered and QDialog::exec()
-//    never returns under the offscreen QPA. That -- not GStreamer -- is why an
-//    earlier version of this file was written off as "hangs".
-//  - start_execution() must be called. reconnect() only brings the pipeline to
-//    GST_STATE_PAUSED; the engine is what takes it to PLAYING, so without it the
-//    appsink never yields a sample and every case reads back nothing.
+// start_execution() must be called: reconnect() only brings the pipeline to
+// GST_STATE_PAUSED, and the engine is what takes it to PLAYING, so without it
+// the appsink never yields a sample.
 
 #include <QCoreApplication>
 #include <QElapsedTimer>
