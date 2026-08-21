@@ -16,6 +16,20 @@ struct OutputConfiguration
   GraphicsApi graphicsApi{};
   std::function<void()> onReady;
   std::function<void()> onResize;
+
+  /**
+   * @brief Ask the owning Graph to release + deregister the RenderList that
+   *        was built against this output's QRhi.
+   *
+   * An output that tears its own device down outside of
+   * Graph::destroyOutputRenderList / ~Graph (a live swapchain-flag or
+   * -format toggle) MUST call this first, otherwise the Graph keeps a
+   * std::shared_ptr<RenderList> full of QRhiResources whose QRhi has been
+   * `delete`d — and the next `renderer->release()` dereferences it.
+   *
+   * Null when the output was created outside a Graph.
+   */
+  std::function<void()> onReleaseRenderList;
 };
 
 class SCORE_PLUGIN_GFX_EXPORT OutputNodeRenderer : public score::gfx::NodeRenderer
@@ -27,9 +41,8 @@ public:
   finishFrame(RenderList&, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch*& res);
 
   // Sinks have no output edges, so there is nothing to release per-edge.
-  // Concrete sinks may still override (e.g. to drop per-input bookkeeping
-  // routed through addOutputPass), but the default is a true no-op rather
-  // than the dangerous silent base-class no-op.
+  // Concrete sinks may still override, e.g. to drop per-input bookkeeping
+  // routed through addOutputPass.
   void removeOutputPass(RenderList&, Edge&) override { }
 };
 
@@ -141,6 +154,20 @@ public:
 
 protected:
   explicit OutputNode();
+
+  /**
+   * @brief Invoke OutputConfiguration::onReleaseRenderList, if any.
+   *
+   * Concrete outputs must call this immediately before any teardown of
+   * their QRhi that does not go through Graph::destroyOutputRenderList
+   * (i.e. the live swapchain-flag / -format setters). No-op outside a
+   * Graph, where the caller owns the whole lifetime anyway.
+   */
+  void releaseOwnedRenderList();
+
+  // Set by concrete createOutput() implementations from
+  // OutputConfiguration::onReleaseRenderList.
+  std::function<void()> m_onReleaseRenderList;
 
   // Persistent across RenderList rebuilds. See acquireRegistry() docs.
   // unique_ptr is opaque-typed in this header (forward-declared above);

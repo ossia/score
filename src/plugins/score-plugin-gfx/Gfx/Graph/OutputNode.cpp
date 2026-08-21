@@ -8,6 +8,16 @@ OutputNode::OutputNode() { }
 OutputNode::~OutputNode() { }
 
 void OutputNode::updateGraphicsAPI(GraphicsApi) { }
+
+void OutputNode::releaseOwnedRenderList()
+{
+  // Copy before invoking: the Graph is free to rebuild this output from
+  // inside the callback, which reassigns m_onReleaseRenderList — destroying
+  // the std::function whose operator() is on the stack.
+  if(auto cb = m_onReleaseRenderList)
+    cb();
+}
+
 void OutputNode::setVSyncCallback(std::function<void()>) { }
 OutputNodeRenderer::~OutputNodeRenderer() { }
 

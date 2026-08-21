@@ -105,6 +105,16 @@ struct SCORE_PLUGIN_GFX_EXPORT Graph
   void destroyOutputRenderList(score::gfx::OutputNode& node);
 
   /**
+   * @brief Release + deregister the render list built against @p node's
+   *        QRhi, leaving the output itself alone.
+   *
+   * This is the half of destroyOutputRenderList() that must run before an
+   * output destroys its own device (live swapchain-flag / -format toggles).
+   * Handed to outputs as OutputConfiguration::onReleaseRenderList.
+   */
+  void releaseOutputRenderList(score::gfx::OutputNode& node);
+
+  /**
    * @brief Recreate the connections between renderers when edges changed.
    */
   void relinkGraph();
