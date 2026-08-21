@@ -180,6 +180,36 @@ if(TARGET score AND NOT EMSCRIPTEN)
     TIMEOUT 900 RUN_SERIAL TRUE)
 endif()
 
+# PipeWire video input through the whole application, driven by the JS
+# scripting API. NO_CTEST: the ctest entries live in tests/hardware, where
+# score_add_media_test wraps them in the runner that requires the media stack.
+#
+# PipewireVideoInputTest.cpp has been in the tree without this since it was
+# written: nothing created the target, so the `if(TARGET
+# test_integration_pipewire_video_input)` guard in tests/hardware/CMakeLists.txt
+# never fired and Media_PipewireVideoInput was never a test.
+#
+# The motion test is the one that can tell a live stream from a still: its
+# source publishes a frame-numbered pattern the test wrote itself, so both the
+# pixels and the fact that they change are asserted against a reference that
+# owes nothing to score.
+if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_pipewire_video_input
+    SOURCES PipewireVideoInputTest.cpp
+    NO_CTEST)
+  score_add_test(test_integration_pipewire_video_motion
+    SOURCES PipewireVideoMotionTest.cpp
+    NO_CTEST)
+
+  foreach(_pw_tgt test_integration_pipewire_video_input
+                  test_integration_pipewire_video_motion)
+    target_link_libraries(${_pw_tgt} PRIVATE ${QT_PREFIX}::Gui)
+    target_compile_definitions(${_pw_tgt} PRIVATE
+      "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\""
+      "GFX_TEST_CORPUS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/../gfx/corpus\"")
+  endforeach()
+endif()
+
 # Closing a MODIFIED document with applicationSettings.gui false must not
 # raise the save prompt: nothing can answer it and QMessageBox::exec() aborts.
 score_add_test(test_regression_headless_close_modified
