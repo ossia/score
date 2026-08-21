@@ -309,6 +309,8 @@ set(HDRS
     Gfx/Graph/interop/GLCaptureUpload.hpp
     Gfx/Graph/interop/RdmaVideoOutput.hpp
     Gfx/Graph/interop/RdmaVideoOutput.cpp
+    Gfx/Graph/interop/RdmaPlayoutProbe.hpp
+    Gfx/Graph/interop/RdmaPlayoutProbe.cpp
     Gfx/Graph/interop/CpuStagedVideoOutput.hpp
     Gfx/Graph/interop/CpuStagedVideoOutput.cpp
     Gfx/Graph/interop/HostFramePool.hpp

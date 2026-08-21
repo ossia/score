@@ -1,5 +1,6 @@
 #include <Gfx/Graph/interop/RdmaVideoOutput.hpp>
 
+#include <Gfx/Graph/interop/RdmaPlayoutProbe.hpp>
 #include <Gfx/Graph/interop/StageProfiler.hpp>
 
 #include <QDebug>
@@ -107,15 +108,25 @@ bool RdmaVideoOutput::init(const RdmaVideoOutputConfig& cfg)
     // One-time transfer probe on the first pinned slot: pinning only proves
     // the pages were accepted, not that the PCIe path permits P2P in the
     // playout direction. Bail cleanly here so the strategy chain falls back
-    // rather than dropping every frame at submit time.
-    if(i == 0 && m_cfg.registrar.verifyTransfer
-       && !m_cfg.registrar.verifyTransfer(m_bounce[0], m_cfg.frameByteSize))
+    // rather than playing out a constant frame at zero drops.
+    if(i == 0)
     {
-      qWarning() << "RdmaVideoOutput: vendor transfer probe failed — the "
-                    "card↔GPU PCIe path does not permit P2P playout "
-                    "(pin succeeded but DMA does not). Falling back.";
-      release();
-      return false;
+      RdmaPlayoutProbeIo io;
+      io.seedGpu = [this](void* dst, const void* src, std::uint32_t n) {
+        return cuda_interop_upload_buffer(m_cudaCtx, dst, src, n)
+               == CUDA_INTEROP_SUCCESS;
+      };
+      const auto probe = rdmaProbePlayoutPath(
+          m_bounce[0], m_cfg.frameByteSize, m_cfg.registrar, io);
+      if(!rdmaPlayoutProbeEngages(probe))
+      {
+        qWarning() << "RdmaVideoOutput: playout probe refused the rung:"
+                   << rdmaPlayoutProbeMessage(probe);
+        release();
+        return false;
+      }
+      if(probe == RdmaPlayoutProbeResult::Unverified)
+        qWarning() << "RdmaVideoOutput:" << rdmaPlayoutProbeMessage(probe);
     }
   }
   return true;
@@ -155,6 +166,7 @@ void RdmaVideoOutput::release()
     m_cudaCtx = nullptr;
   }
   m_fenceValue = 0;
+  m_lostFrames = 0;
   m_cfg = {};
 }
 
@@ -165,6 +177,20 @@ void RdmaVideoOutput::encodeFrame(QRhiCommandBuffer& cb)
   m_dispatcher.encode(cb, ++m_fenceValue);
 }
 
+void RdmaVideoOutput::reportLostFrame(const char* stage)
+{
+  // The pump only counts the frames it was handed, so a frame lost here is
+  // invisible to it: the peer keeps transmitting its previous picture at a
+  // clean drop count. Rate-limited so a persistent fault does not become the log.
+  ++m_lostFrames;
+  if(m_lostFrames == 1 || (m_lostFrames % 60) == 0)
+  {
+    qWarning() << "RdmaVideoOutput: dropped an output frame at" << stage
+               << "— total" << m_lostFrames
+               << ". The peer device keeps transmitting its previous frame.";
+  }
+}
+
 void* RdmaVideoOutput::prepareNextFrame()
 {
   if(!valid())
@@ -172,14 +198,20 @@ void* RdmaVideoOutput::prepareNextFrame()
   {
     SCORE_STAGE_PROFILE(profWait, "gdo-wait-encoder(sync)");
     if(!m_dispatcher.waitOnCuda(m_fenceValue))
+    {
+      reportLostFrame("the encoder fence wait");
       return nullptr;
+    }
   }
   // The encoder's output is now visible (fence / glFinish above); bridge
   // it into the vendor-pinned bounce buffer. copy_dtod stream-syncs, so
   // the vendor may DMA the moment we return.
   const std::size_t idx = m_ring.writeIndex();
   if(idx >= m_bounce.size() || !m_bounce[idx])
+  {
+    reportLostFrame("the bounce-slot lookup");
     return nullptr;
+  }
   SCORE_STAGE_PROFILE(profDtoD, "gdo-dtod-bounce");
   const auto& finished = m_dispatcher.finishedSlot();
   const auto copied
@@ -194,6 +226,7 @@ void* RdmaVideoOutput::prepareNextFrame()
   {
     qWarning() << "RdmaVideoOutput: bounce copy failed:"
                << cuda_interop_get_error_string(m_cudaCtx);
+    reportLostFrame("the bounce copy");
     return nullptr;
   }
   return m_bounce[idx];
