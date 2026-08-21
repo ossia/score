@@ -160,10 +160,17 @@ TEST_CASE("ScreenNode render size overrides the swapchain size", "[gfx][window][
   QSize output, overridden, restored, negative;
   int resizeCallbacks{};
 
-  // BareScreenRig on purpose: under a live Graph the override is immediately
-  // overwritten by RenderList::resizeSwapchainSizedTargets(outputSize), so a
-  // Graph-backed assertion here cannot tell the two branches of setRenderSize
-  // apart (verified: it stays green when the guard is deleted).
+  // BareScreenRig on purpose: this case is about the setter's own two branches
+  // (a valid size sets the override, a degenerate one clears it), so it asserts
+  // on the node with nothing else able to write RenderState::renderSize.
+  //
+  // It used to carry a second reason -- under a live Graph the override was
+  // immediately overwritten by resizeSwapchainSizedTargets(outputSize), so a
+  // Graph-backed assertion could not tell the two branches apart and stayed
+  // green with the guard deleted. That is no longer true: the fast path takes
+  // the render size from the RenderState the output node has already updated,
+  // and ScreenOutputFindings.cpp asserts the override across a real resize
+  // under a live Graph.
   run_in_gui_app([&](const score::GUIApplicationContext&) {
     BareScreenRig rig;
     if(!rig.build(api, {256, 192}))
