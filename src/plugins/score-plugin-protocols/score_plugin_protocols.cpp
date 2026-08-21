@@ -66,6 +66,9 @@
 #if defined(OSSIA_PROTOCOL_GPS)
 #include <Protocols/GPS/GPSProtocolFactory.hpp>
 #endif
+#if defined(OSSIA_PROTOCOL_CAN)
+#include <Protocols/CAN/CANProtocolFactory.hpp>
+#endif
 #if defined(OSSIA_PROTOCOL_EVDEV)
 #include <Protocols/Evdev/EvdevProtocolFactory.hpp>
 #include <Protocols/Evdev/EvdevSpecificSettings.hpp>
@@ -165,6 +168,10 @@ std::vector<score::InterfaceBase*> score_plugin_protocols::factories(
 #if defined(OSSIA_PROTOCOL_GPS)
          ,
          Protocols::GPSProtocolFactory
+#endif
+#if defined(OSSIA_PROTOCOL_CAN)
+         ,
+         Protocols::CANProtocolFactory
 #endif
 #if defined(OSSIA_PROTOCOL_EVDEV)
          ,
