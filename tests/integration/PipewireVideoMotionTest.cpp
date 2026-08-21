@@ -132,50 +132,31 @@ struct Run
   int exitCode{-1};
   bool crashed{true};
   QString log;
-  QStringList frames;
 };
 
-//! One score process: build pipewire-in -> ISF passthrough -> offscreen window,
-//! play, and grab repeatedly with a real gap in between so that a stream which
-//! is actually running has time to advance.
-Run runScore(const QTemporaryDir& dir, const QString& node)
+//! The device declaration every case shares. The requested geometry is verbatim
+//! what Gfx::PipeWire's enumerator writes into every discovered node's path; the
+//! producer publishes something else entirely, so a device that holds out for
+//! its request renders black and fails on the first grab.
+QString prelude(const QString& node)
 {
-  const QString js = dir.filePath("scene.js");
-  const QString stem = dir.filePath("grab");
-
   QString src;
   src += "var UUID_PWIN   = \"cf6a355f-34d1-4d24-a6ea-3d204f93cde9\";\n";
   src += "var UUID_ISF    = \"74ca45ff-92c9-44a0-8f1a-754dea05ee1b\";\n";
   src += "var UUID_WINDOW = \"5a181207-7d40-4ad8-814e-879fcdf8cc31\";\n";
-  // Verbatim what Gfx::PipeWire's enumerator writes into every discovered
-  // node's path. The producer publishes something else entirely; a device that
-  // holds out for its request renders black and fails on the first grab.
+  src += "var SHADER = \"" + corpusDir() + "/isf-passthrough-plain.fs\";\n";
   src += "Score.createDevice(\"pwin\", UUID_PWIN, { Path: \"pipewire://" + node
          + "?width=1920&height=1080&fps=30&format=rgba\" });\n";
-  src += "Score.createDevice(\"Window\", UUID_WINDOW, {});\n";
   src += "var s = Score.find(\"Scenario.1\"); if (s) Score.remove(s);\n";
   // Processes go on the root interval: a scenario created from script ends up
   // nested and never executes.
-  src += "var proc = Score.createProcess(Score.rootInterval(), UUID_ISF, \""
-         + corpusDir() + "/isf-passthrough-plain.fs\");\n";
-  src += "if (!proc) { console.log(\"SCENE-ERROR: no process\"); Qt.exit(9); }\n";
-  src += "var inl = Score.inlet(proc, 0);\n";
-  src += "if (!inl) { console.log(\"SCENE-ERROR: no image inlet\"); Qt.exit(10); }\n";
-  src += "Score.setAddress(inl, \"pwin:/\");\n";
-  src += "Score.setAddress(Score.outlet(proc, 0), \"Window:/\");\n";
-  src += "var dev = Score.device(\"Window\");\n";
-  src += "if (!dev) { console.log(\"SCENE-ERROR: no window device\"); Qt.exit(11); }\n";
-  src += "Score.play();\n";
-  // The script engine owns the main thread, so the gap has to be a spin; the
-  // pipewire loop fills the input pool from its own thread meanwhile.
-  src += "for (var i = 0; i < " + QString::number(kGrabs) + "; i++) {\n";
-  src += "  var t0 = Date.now(); while (Date.now() - t0 < "
-         + QString::number(kGrabSpacingMs) + ") {}\n";
-  src += "  dev.grabFrame(2, \"" + stem + "\" + i + \".png\");\n";
-  src += "}\n";
-  src += "console.log(\"SCENE-OK\");\n";
-  src += "Qt.exit(0);\n";
+  src += "var root = Score.rootInterval();\n";
+  return src;
+}
 
+Run runScore(const QTemporaryDir& dir, const QString& name, const QString& src)
+{
+  const QString js = dir.filePath(name);
   {
     QFile f{js};
     REQUIRE(f.open(QIODevice::WriteOnly));
@@ -186,7 +167,7 @@ Run runScore(const QTemporaryDir& dir, const QString& node)
   // Without this the Window device maps a real window and the grab captures the
   // SCREEN at its geometry -- the desktop, which is never blank and would pass
   // a blankness check while showing nothing of the render.
-  env.insert("SCORE_FORCE_OFFSCREEN_WINDOW", "Window");
+  env.insert("SCORE_FORCE_OFFSCREEN_WINDOW", "Window,WindowA,WindowB");
   env.insert("SCORE_AUDIO_BACKEND", "dummy");
   env.insert("SCORE_DISABLE_AUDIOPLUGINS", "1");
   // Pick the backend rather than inheriting whatever the developer last saved
@@ -213,24 +194,73 @@ Run runScore(const QTemporaryDir& dir, const QString& node)
   r.log = QString::fromUtf8(p.readAll());
   r.crashed = p.exitStatus() != QProcess::NormalExit;
   r.exitCode = p.exitCode();
-  for(int i = 0; i < kGrabs; i++)
-  {
-    const QString f = stem + QString::number(i) + ".png";
-    if(QFile::exists(f))
-      r.frames.push_back(f);
-  }
   return r;
 }
+
+QStringList existing(const QString& stem, int n)
+{
+  QStringList out;
+  for(int i = 0; i < n; i++)
+    if(const QString f = stem + QString::number(i) + ".png"; QFile::exists(f))
+      out.push_back(f);
+  return out;
 }
 
-TEST_CASE(
-    "a PipeWire video input delivers moving pixels",
-    "[integration][gfx][pipewire][media]")
+struct Verdict
+{
+  std::size_t first{0};
+  int exact{0};
+  int checked{0};
+  int worstMismatch{0};
+  int totalSampled{0};
+  std::vector<int> idx;
+  QString detail;
+};
+
+//! The whole judgement, in one place: what arrived, whether each picture is
+//! exactly the frame it claims to be, and whether the claims advance.
+Verdict verify(const QStringList& files)
+{
+  Verdict v;
+  std::vector<MovingPattern::Reading> readings;
+  for(const auto& f : files)
+    readings.push_back(MovingPattern::readFile(f));
+
+  for(std::size_t i = 0; i < readings.size(); i++)
+    v.detail += QStringLiteral("grab %1: %2 frame=%3 sampled=%4 mismatched=%5%6\n")
+                    .arg(i)
+                    .arg(readings[i].uniform ? "flat" : "picture")
+                    .arg(readings[i].frame)
+                    .arg(readings[i].sampled)
+                    .arg(readings[i].mismatched)
+                    .arg(readings[i].flippedWouldMatch ? " VERTICALLY-FLIPPED" : "");
+
+  // The readback before the producer's first buffer lands is a cleared target:
+  // one flat colour, which is not a frame of this pattern and is never counted
+  // as one. Only a LEADING run of those is startup; a flat picture after the
+  // stream has been seen working means it stopped, and that is a failure.
+  while(v.first < readings.size() && readings[v.first].uniform)
+    v.first++;
+  for(std::size_t i = v.first; i < readings.size(); i++)
+  {
+    v.checked++;
+    v.totalSampled += readings[i].sampled;
+    if(readings[i].exact())
+      v.exact++;
+    else
+      v.worstMismatch = std::max(v.worstMismatch, readings[i].mismatched);
+    v.idx.push_back(readings[i].frame);
+  }
+  return v;
+}
+
+//! Preconditions shared by every case. A missing display or media stack is a
+//! failure, not a skip.
+void requireEnvironment()
 {
   REQUIRE_FALSE(appBinary().isEmpty());
   REQUIRE(QFile::exists(appBinary()));
   REQUIRE(QFile::exists(corpusDir() + "/isf-passthrough-plain.fs"));
-
   // A real session is a requirement, not a condition. The offscreen QPA has no
   // GL for the readback and silently falls back to a backend that renders a
   // picture no assertion here should ever be allowed to accept.
@@ -239,6 +269,15 @@ TEST_CASE(
       (qEnvironmentVariableIsSet("DISPLAY")
        || qEnvironmentVariableIsSet("WAYLAND_DISPLAY")));
   REQUIRE(qEnvironmentVariable("QT_QPA_PLATFORM") != "offscreen");
+}
+}
+
+
+TEST_CASE(
+    "a PipeWire video input delivers moving pixels",
+    "[integration][gfx][pipewire][media]")
+{
+  requireEnvironment();
 
   QTemporaryDir dir;
   REQUIRE(dir.isValid());
@@ -252,14 +291,36 @@ TEST_CASE(
   REQUIRE(MovingPattern::writeRawFrames(raw, kProducerFrames, mutation));
 
   Producer prod;
-  const QString node
-      = QStringLiteral("score-motion-%1").arg(QCoreApplication::applicationPid());
+  const QString node = QStringLiteral("score-motion-%1")
+                           .arg(QCoreApplication::applicationPid());
   INFO("gst-launch-1.0 must be able to publish a Video/Source; run this test "
        "through score_add_media_test, which requires the media stack");
   INFO(prod.log.toStdString());
   REQUIRE(prod.start(raw, node));
 
-  auto r = runScore(dir, node);
+  const QString stem = dir.filePath("grab");
+  QString src = prelude(node);
+  src += "var proc = Score.createProcess(root, UUID_ISF, SHADER);\n";
+  src += "if (!proc) { console.log(\"SCENE-ERROR: no process\"); Qt.exit(9); }\n";
+  src += "var inl = Score.inlet(proc, 0);\n";
+  src += "if (!inl) { console.log(\"SCENE-ERROR: no image inlet\"); Qt.exit(10); }\n";
+  src += "Score.createDevice(\"Window\", UUID_WINDOW, {});\n";
+  src += "Score.setAddress(inl, \"pwin:/\");\n";
+  src += "Score.setAddress(Score.outlet(proc, 0), \"Window:/\");\n";
+  src += "var dev = Score.device(\"Window\");\n";
+  src += "if (!dev) { console.log(\"SCENE-ERROR: no window device\"); Qt.exit(11); }\n";
+  src += "Score.play();\n";
+  // The script engine owns the main thread, so the gap has to be a spin; the
+  // pipewire loop fills the input pool from its own thread meanwhile.
+  src += QStringLiteral("for (var i = 0; i < %1; i++) {\n").arg(kGrabs);
+  src += QStringLiteral("  var t0 = Date.now(); while (Date.now() - t0 < %1) {}\n")
+             .arg(kGrabSpacingMs);
+  src += "  dev.grabFrame(2, \"" + stem + "\" + i + \".png\");\n";
+  src += "}\n";
+  src += "console.log(\"SCENE-OK\");\n";
+  src += "Qt.exit(0);\n";
+
+  auto r = runScore(dir, "scene.js", src);
   prod.stop();
 
   INFO(r.log.toStdString());
@@ -269,73 +330,39 @@ TEST_CASE(
   // Naming the symptom of the negotiation regression: with an exact-match-only
   // advertisement the server cannot intersect the format lists and says so.
   CHECK_FALSE(r.log.contains("no more input formats"));
-  REQUIRE_FALSE(r.frames.isEmpty());
 
-  std::vector<MovingPattern::Reading> readings;
-  for(const auto& f : r.frames)
-    readings.push_back(MovingPattern::readFile(f));
-
-  QString detail;
-  for(int i = 0; i < int(readings.size()); i++)
-  {
-    const auto& rd = readings[i];
-    detail += QStringLiteral("grab %1: %2 frame=%3 sampled=%4 mismatched=%5\n")
-                  .arg(i)
-                  .arg(rd.uniform ? "flat" : "picture")
-                  .arg(rd.frame)
-                  .arg(rd.sampled)
-                  .arg(rd.mismatched);
-  }
-  INFO(detail.toStdString());
-
-  // The readback before the producer's first buffer lands is a cleared target:
-  // one flat colour, which is not a frame of this pattern and is never counted
-  // as one. Only a LEADING run of those is startup; a flat picture after the
-  // stream has been seen working means it stopped, and that is a failure.
-  std::size_t first = 0;
-  while(first < readings.size() && readings[first].uniform)
-    first++;
-  INFO("first picture at grab " << first << " of " << readings.size());
-  REQUIRE(first <= 2);
+  const auto files = existing(stem, kGrabs);
+  REQUIRE_FALSE(files.isEmpty());
+  const auto v = verify(files);
+  INFO(v.detail.toStdString());
+  INFO("first picture at grab " << v.first << " of " << files.size());
+  REQUIRE(v.first <= 2);
 
   // --- 1. content, at 1:1 against the pattern this test wrote ---------------
-  int exact = 0, worstMismatch = 0, totalSampled = 0;
-  for(std::size_t i = first; i < readings.size(); i++)
-  {
-    const auto& rd = readings[i];
-    totalSampled += rd.sampled;
-    if(rd.exact())
-      exact++;
-    else
-      worstMismatch = std::max(worstMismatch, rd.mismatched);
-  }
-  INFO("compared " << totalSampled << " pixels; worst grab had " << worstMismatch
+  INFO("compared " << v.totalSampled << " pixels; worst grab had "
+                   << v.worstMismatch
                    << " that were not the exact expected colour");
-  REQUIRE(exact == int(readings.size() - first));
+  REQUIRE(v.checked >= 8);
+  REQUIRE(v.exact == v.checked);
 
   // --- 2. motion ------------------------------------------------------------
   // Every picture is a real frame; now they have to be DIFFERENT real frames,
   // arriving in the order the producer sends them.
-  std::vector<int> idx;
-  for(std::size_t i = first; i < readings.size(); i++)
-    idx.push_back(readings[i].frame);
-  REQUIRE(idx.size() >= 8);
-
   int distinct = 0, regressions = 0;
-  for(std::size_t i = 0; i < idx.size(); i++)
+  for(std::size_t i = 0; i < v.idx.size(); i++)
   {
-    if(i == 0 || idx[i] != idx[i - 1])
+    if(i == 0 || v.idx[i] != v.idx[i - 1])
       distinct++;
-    if(i > 0 && idx[i] < idx[i - 1])
+    if(i > 0 && v.idx[i] < v.idx[i - 1])
       regressions++;
   }
   QString seq;
-  for(int k : idx)
+  for(int k : v.idx)
     seq += QString::number(k) + " ";
   INFO("frame indices: " << seq.toStdString());
   // A stream that stopped after its first buffer, a texture uploaded once, and
   // a readback serving a cached frame all produce one repeated index here.
-  REQUIRE(idx.back() > idx.front());
+  REQUIRE(v.idx.back() > v.idx.front());
   REQUIRE(distinct >= 4);
   // Frames never arrive out of order from a file replayed forward: a lower
   // index than the previous grab means the consumer went back to an older
@@ -345,7 +372,87 @@ TEST_CASE(
   // kGrabSpacingMs apart the stream advances by at most that many frames plus
   // slack for the app's own startup; an index that ran far past that came from
   // somewhere other than this producer.
-  const int maxPlausible
-      = kProducerFps * (kGrabs * kGrabSpacingMs + 60000) / 1000;
-  CHECK(idx.back() <= maxPlausible);
+  const int maxPlausible = kProducerFps * (kGrabs * kGrabSpacingMs + 60000) / 1000;
+  CHECK(v.idx.back() <= maxPlausible);
+}
+
+TEST_CASE(
+    "one PipeWire video input drives two window outputs",
+    "[integration][gfx][pipewire][media]")
+{
+  requireEnvironment();
+
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+
+  const auto mutation = MovingPattern::mutationFromEnvironment();
+  if(mutation != MovingPattern::Mutation::None)
+    WARN("SCORE_TEST_PATTERN_NEGATIVE is set: this run is a negative control "
+         "and is EXPECTED to fail");
+
+  const QString raw = dir.filePath("frames.rgba");
+  REQUIRE(MovingPattern::writeRawFrames(raw, kProducerFrames, mutation));
+
+  Producer prod;
+  const QString node = QStringLiteral("score-motion2-%1")
+                           .arg(QCoreApplication::applicationPid());
+  INFO(prod.log.toStdString());
+  REQUIRE(prod.start(raw, node));
+
+  // Two consumers of one device, each with its own output. The failure this
+  // covers is the second output rendering black, or both outputs collapsing
+  // onto one render list -- and a black window is exactly as plausible-looking
+  // as a working one.
+  constexpr int kTwoGrabs = 8;
+  const QString stemA = dir.filePath("a");
+  const QString stemB = dir.filePath("b");
+  QString src = prelude(node);
+  src += "Score.createDevice(\"WindowA\", UUID_WINDOW, {});\n";
+  src += "Score.createDevice(\"WindowB\", UUID_WINDOW, {});\n";
+  src += "var pa = Score.createProcess(root, UUID_ISF, SHADER);\n";
+  src += "var pb = Score.createProcess(root, UUID_ISF, SHADER);\n";
+  src += "if (!pa || !pb) { console.log(\"SCENE-ERROR: no processes\"); Qt.exit(9); }\n";
+  src += "var ia = Score.inlet(pa, 0), ib = Score.inlet(pb, 0);\n";
+  src += "if (!ia || !ib) { console.log(\"SCENE-ERROR: no inlets\"); Qt.exit(10); }\n";
+  src += "Score.setAddress(ia, \"pwin:/\");\n";
+  src += "Score.setAddress(ib, \"pwin:/\");\n";
+  src += "Score.setAddress(Score.outlet(pa, 0), \"WindowA:/\");\n";
+  src += "Score.setAddress(Score.outlet(pb, 0), \"WindowB:/\");\n";
+  src += "var da = Score.device(\"WindowA\"), db = Score.device(\"WindowB\");\n";
+  src += "if (!da || !db) { console.log(\"SCENE-ERROR: no window devices\"); "
+         "Qt.exit(11); }\n";
+  src += "Score.play();\n";
+  src += QStringLiteral("for (var i = 0; i < %1; i++) {\n").arg(kTwoGrabs);
+  src += QStringLiteral("  var t0 = Date.now(); while (Date.now() - t0 < %1) {}\n")
+             .arg(kGrabSpacingMs);
+  src += "  da.grabFrame(2, \"" + stemA + "\" + i + \".png\");\n";
+  src += "  db.grabFrame(0, \"" + stemB + "\" + i + \".png\");\n";
+  src += "}\n";
+  src += "console.log(\"SCENE-OK\");\n";
+  src += "Qt.exit(0);\n";
+
+  auto r = runScore(dir, "two.js", src);
+  prod.stop();
+
+  INFO(r.log.toStdString());
+  CHECK_FALSE(r.crashed);
+  CHECK(r.exitCode == 0);
+  CHECK(r.log.contains("SCENE-OK"));
+
+  const auto fa = existing(stemA, kTwoGrabs);
+  const auto fb = existing(stemB, kTwoGrabs);
+  REQUIRE_FALSE(fa.isEmpty());
+  REQUIRE_FALSE(fb.isEmpty());
+  const auto va = verify(fa);
+  const auto vb = verify(fb);
+  INFO("WindowA:\n" << va.detail.toStdString());
+  INFO("WindowB:\n" << vb.detail.toStdString());
+  REQUIRE(va.first <= 2);
+  REQUIRE(vb.first <= 2);
+  REQUIRE(va.checked >= 4);
+  REQUIRE(vb.checked >= 4);
+  REQUIRE(va.exact == va.checked);
+  REQUIRE(vb.exact == vb.checked);
+  REQUIRE(va.idx.back() > va.idx.front());
+  REQUIRE(vb.idx.back() > vb.idx.front());
 }
