@@ -58,7 +58,7 @@ using namespace Gfx;
 
 namespace
 {
-bool near(
+bool nearEnough(
     const std::array<uint8_t, 4>& got, const std::array<uint8_t, 4>& want, int tol)
 {
   for(int i = 0; i < 4; i++)
@@ -282,7 +282,7 @@ void checkAll(const std::vector<Case>& cases, const std::vector<Result>& results
     CHECK(r.height == 64);
     // A YUV round trip is lossy, so allow a wide tolerance; the point is that
     // red is red and not blue.
-    CHECK(near(r.got, cases[i].expect, 40));
+    CHECK(nearEnough(r.got, cases[i].expect, 40));
   }
 }
 } // namespace
