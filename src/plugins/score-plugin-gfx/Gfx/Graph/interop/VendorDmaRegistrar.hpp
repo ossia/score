@@ -23,8 +23,14 @@
  * platforms, cross-host-bridge P2P routinely passes posted writes (capture)
  * but blocks non-posted reads (playout), so a card can pin an output buffer
  * yet fail every transfer. Returning false here aborts init so the strategy
- * chain falls back cleanly instead of emitting silent per-frame drops. When
- * null, the helper skips the probe (pin success is taken as sufficient).
+ * chain falls back cleanly instead of emitting silent per-frame drops.
+ *
+ * `verifyTransfer` alone is a *return code*, and a dropped P2P transfer returns
+ * success. `readbackTransfer` closes that: it reads back, into host memory, the
+ * bytes `verifyTransfer` just pushed into the peer's scratch buffer, so
+ * RdmaPlayoutProbe can compare them 1:1 against the pattern it seeded. A vendor
+ * that supplies both gets a content-verified rung; one that supplies neither
+ * does not get an RDMA output rung at all.
  */
 #include <cstdint>
 #include <functional>
@@ -36,5 +42,6 @@ struct VendorDmaRegistrar
   std::function<bool(void* ptr, std::uint32_t size)> registerSlot;
   std::function<void(void* ptr, std::uint32_t size)> releaseSlot;
   std::function<bool(void* ptr, std::uint32_t size)> verifyTransfer;
+  std::function<bool(void* hostDst, std::uint32_t size)> readbackTransfer;
 };
 }
