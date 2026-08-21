@@ -72,6 +72,25 @@ if(TARGET PipewireRoundtrip)
     ENVIRONMENT "${_pwrt_asan}")
 endif()
 
+# --- PipeWire video input through the application (tests/integration) --------
+# The harness above drives InputStream directly, against a producer built to
+# match its request exactly and with the link made by hand. This one goes
+# through the real app -- device settings, protocol, CameraNode, renderer --
+# against the runner's Video/Source, and asserts the producer's colour bars
+# come out of the window readback.
+#
+# Needs a real session: the window readback has no GL under the offscreen QPA.
+# Registered without OPTIONAL on purpose, like every other media test here --
+# an absent display or media stack must show up as a failure rather than
+# silently retiring the only end-to-end coverage of the input path.
+if(TARGET test_integration_pipewire_video_input)
+  score_add_media_test(
+    NAME       Media_PipewireVideoInput
+    EXECUTABLE test_integration_pipewire_video_input
+    VIRTUAL_VIDEO
+    TIMEOUT    600)
+endif()
+
 # --- libav decode matrix (score-plugin-media) -------------------------------
 # The harness is built in tests/unit (NO_CTEST) and registered here, because it
 # is the provisioning wrapper that gives it something to decode: --media
