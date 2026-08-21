@@ -132,7 +132,7 @@ Process::ScriptChangeResult Model::setProgram(const ShaderSource& f)
   }
   else
   {
-    qDebug() << "Erroe while processingp rogram: " << error;
+    qDebug() << "Error while processing program: " << error;
   }
   return {};
 }
