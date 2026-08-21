@@ -1102,8 +1102,11 @@ void RenderedCSFNode::updateGeometryBindings(
       if(arrayCount <= 0)
         continue;
 
-      const int64_t requiredSize = score::gfx::calculateStorageBufferSize(
-          aux.layout, arrayCount, this->n.descriptor());
+      const int64_t requiredSize = aux.is_uniform
+          ? score::gfx::calculateUniformBlockSize(
+                aux.layout, arrayCount, this->n.descriptor())
+          : score::gfx::calculateStorageBufferSize(
+                aux.layout, arrayCount, this->n.descriptor());
       if(requiredSize > 0 && requiredSize != aux.size)
       {
         if(aux.buffer && aux.owned)
@@ -3359,14 +3362,26 @@ void RenderedCSFNode::buildComputeSrbBindings(
         {
           if(!aux.buffer)
           {
-            // Create a minimal fallback buffer so we don't skip a binding
-            // index. Usage flag must match the aux kind — binding a
+            // Create a fallback buffer so we don't skip a binding index.
+            // Usage flag must match the aux kind — binding a
             // StorageBuffer-only buffer as a UBO (or vice versa) is
             // rejected by the Vulkan validation layer.
+            //
+            // Size it from the shader's own LAYOUT rather than a fixed
+            // guess: `aux.size` is 0 here (it is only ever assigned where a
+            // buffer already exists), so a block bigger than the guess left
+            // every member past the guess out of bounds for as long as the
+            // aux stayed unresolved.
             const auto fallback_usage = aux.is_uniform
                 ? QRhiBuffer::UniformBuffer
                 : QRhiBuffer::StorageBuffer;
-            const quint32 fallback_size = aux.is_uniform ? 256u : 16u;
+            const int64_t declared_size = aux.is_uniform
+                ? score::gfx::calculateUniformBlockSize(
+                      aux.layout, 0, n.m_descriptor)
+                : score::gfx::calculateStorageBufferSize(
+                      aux.layout, 0, n.m_descriptor);
+            const quint32 fallback_size = (quint32)std::max<int64_t>(
+                declared_size, aux.is_uniform ? 256 : 16);
             aux.buffer = rhi.newBuffer(
                 QRhiBuffer::Static, fallback_usage, fallback_size);
             aux.buffer->setName(QByteArray("CSF_AuxFB_") + aux.name.c_str());
@@ -3785,8 +3800,13 @@ void RenderedCSFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& r
         if(!aux.size.empty())
           arrayCount = resolveCountExpression(aux.size, *geo, aux.name);
 
-        const int64_t requiredSize = score::gfx::calculateStorageBufferSize(
-            aux.layout, arrayCount, this->n.descriptor());
+        // A uniform aux is declared `layout(std140) uniform`, so its block is
+        // laid out by the std140 rules, not the std430 ones the SSBO path uses.
+        const int64_t requiredSize = aux.is_uniform
+            ? score::gfx::calculateUniformBlockSize(
+                  aux.layout, arrayCount, this->n.descriptor())
+            : score::gfx::calculateStorageBufferSize(
+                  aux.layout, arrayCount, this->n.descriptor());
         if(requiredSize > 0)
         {
           const auto usage = aux.is_uniform ? QRhiBuffer::UniformBuffer

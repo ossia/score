@@ -88,6 +88,12 @@ score_add_isf_test(image          IsfImageInputs.cpp)
 # invalid on Vulkan (VUID-VkWriteDescriptorSet-descriptorType-00330, then a
 # SIGSEGV in setShaderResources) and silently nondeterministic on OpenGL.
 score_add_isf_test(buffer_usage_mismatch GfxBufferUsageMismatch.cpp)
+
+# Regression guard for the 256-byte disconnected-uniform_input placeholder: a
+# std140 block bigger than the guess left every member past 256 B unbound
+# (qrhigles2.cpp bounds-checks and skips them; the other backends read out of
+# range).
+score_add_isf_test(large_uniform_input GfxLargeUniformInput.cpp)
 # CSF (compute-shader) L3 tests reuse the same helper (GUI app, corpus dir).
 function(score_add_csf_test name source)
   score_add_test(test_gfx_csf_${name}

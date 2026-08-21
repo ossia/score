@@ -5,6 +5,7 @@
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/RhiClearBuffer.hpp>
+#include <Gfx/Graph/SSBO.hpp>
 
 #include <score/tools/Debug.hpp>
 
@@ -334,6 +335,7 @@ void collectGraphicsStorageResources(
           auto stages = visibilityToStages(uni->visibility);
           GraphicsUBO e;
           e.name = inp.name;
+          e.declared_size = score::gfx::calculateUniformBlockSize(uni->layout, 0, desc);
           e.owned = false; // sourced from upstream port each frame
           e.stages = stages;
           e.binding = binding++;
@@ -456,6 +458,11 @@ static QRhiTexture::Format parseImageFormat(const std::string& fmt)
 // Metal have no such restriction; only GL does.
 static constexpr uint32_t kSentinelBufferSize = 64u * 1024u;
 
+// Floor for a disconnected uniform_input placeholder. The real size comes
+// from the shader's LAYOUT (GraphicsUBO::declared_size); this only guards
+// the case where the LAYOUT could not be measured.
+static constexpr int64_t kUboPlaceholderMinSize = 256;
+
 // Allocate (and zero-fill) the sentinel disconnect-fallback buffers.
 // Called from ensureStorageResources so the resource-update batch is in
 // hand. Idempotent — the pointers are non-null after the first call.
@@ -555,9 +562,15 @@ void ensureStorageResources(
   {
     if(e.buffer)  // already borrowed from upstream, or previously allocated
       continue;
-    // 256 bytes covers the camera UBO (240 B) and most other small UBOs.
-    // If the upstream provides a larger buffer we'll replace this at bind time.
-    auto* buf = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 256);
+    // Size from the shader's own LAYOUT, not a fixed guess: a block bigger
+    // than the placeholder makes every member past the end an out-of-bounds
+    // read for the whole time the input stays disconnected. 256 is only the
+    // floor (it covers the camera UBO at 240 B); if the upstream provides a
+    // larger buffer we replace this at bind time anyway.
+    const quint32 placeholderSize
+        = (quint32)std::max<int64_t>(e.declared_size, kUboPlaceholderMinSize);
+    auto* buf = rhi.newBuffer(
+        QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, placeholderSize);
     buf->setName(QByteArray("ISF_UBO_placeholder_") + e.name.c_str());
     if(!buf->create())
     {
@@ -567,10 +580,10 @@ void ensureStorageResources(
     }
     // Zero-fill the placeholder. Same Vulkan-doesn't-zero-VkBuffers
     // rationale as the SSBO placeholder above. UBOs have a smaller
-    // attack surface (256 B) but a single garbage value here can flip
+    // attack surface but a single garbage value here can flip
     // a feature bit in scene_counts or fog params, producing the
     // openpbr-only intermittent lighting glitch on resize.
-    RhiClearBuffer::clearBuffer(rhi, res, buf, 0, 256u);
+    RhiClearBuffer::clearBuffer(rhi, res, buf, 0, placeholderSize);
     e.buffer = buf;
     e.owned = true;  // we own this placeholder; bindUpstreamBuffers drops ownership when it swaps.
   }

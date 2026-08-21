@@ -147,6 +147,11 @@ private:
     // For persistent aux only: binding slot of the <name>_prev (read-only)
     // half of the ping-pong pair. prev_binding + 1 == binding.
     int prev_binding{-1};
+    //! Byte size of the block the shader declares (std140 for is_uniform,
+    //! std430 otherwise), computed from the descriptor's LAYOUT alone.
+    //! Independent of `size`, which is only ever set where a buffer already
+    //! exists — so this is what the disconnected-placeholder path must use.
+    int64_t declared_size{};
   };
   std::vector<AuxiliarySSBO> m_auxiliarySSBOs;
 

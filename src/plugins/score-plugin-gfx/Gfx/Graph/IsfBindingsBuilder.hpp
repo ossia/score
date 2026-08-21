@@ -101,6 +101,11 @@ struct GraphicsUBO
   int binding{-1};
   QRhiShaderResourceBinding::StageFlags stages{};
   int input_port_index{-1};
+
+  //! std140 size of the block the shader declares, from the LAYOUT alone.
+  //! Independent of any upstream buffer, so the placeholder allocated for a
+  //! never-connected input still covers everything the shader reads.
+  int64_t declared_size{};
 };
 
 /**

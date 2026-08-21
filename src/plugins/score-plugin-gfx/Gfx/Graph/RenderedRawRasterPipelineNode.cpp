@@ -269,14 +269,17 @@ void RenderedRawRasterPipelineNode::initPass(
 
     for(auto& aux : m_auxiliarySSBOs)
     {
-      // If no buffer yet, create a small dummy so the descriptor set is valid.
+      // If no buffer yet, create a dummy so the descriptor set is valid.
       // Dummy usage flag matches the aux kind so the created buffer can be
-      // bound as the intended descriptor type.
+      // bound as the intended descriptor type. Sized from the shader's
+      // LAYOUT (declared_size) — `aux.size` is 0 here, it is only ever
+      // assigned where a buffer already exists.
       if(!aux.buffer)
       {
         auto usage = aux.is_uniform ? QRhiBuffer::UniformBuffer
                                     : QRhiBuffer::StorageBuffer;
-        const int64_t dummySize = aux.is_uniform ? 256 : 16;
+        const int64_t dummySize = std::max<int64_t>(
+            aux.declared_size, aux.is_uniform ? 256 : 16);
         auto* dummy = rhi.newBuffer(QRhiBuffer::Immutable, usage, dummySize);
         dummy->setName(aux.is_uniform ? "RRP_ubo_dummy" : "RRP_aux_dummy");
         dummy->create();
@@ -1391,12 +1394,14 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     {
       // Dummy usage flag matches the aux kind so the created buffer can be
       // bound as the intended descriptor type (UBO for uniform_input, SSBO
-      // otherwise). Mirrors the non-MRT path.
+      // otherwise). Mirrors the non-MRT path, including the LAYOUT-derived
+      // size.
       if(!aux.buffer)
       {
         auto usage = aux.is_uniform ? QRhiBuffer::UniformBuffer
                                     : QRhiBuffer::StorageBuffer;
-        const int64_t dummySize = aux.is_uniform ? 256 : 16;
+        const int64_t dummySize = std::max<int64_t>(
+            aux.declared_size, aux.is_uniform ? 256 : 16);
         auto* dummy = rhi.newBuffer(QRhiBuffer::Immutable, usage, dummySize);
         dummy->setName(aux.is_uniform ? "RRP_ubo_dummy" : "RRP_aux_dummy");
         dummy->create();
@@ -2014,6 +2019,28 @@ void RenderedRawRasterPipelineNode::initState(
     // Ordering: GLSL emits these AFTER all INPUTS bindings, so we push
     // them after the INPUTS loop above to keep binding slots aligned
     // between shader and SRB.
+    // Byte size the shader's own LAYOUT implies, so a never-resolved aux
+    // still gets a placeholder that covers every member the shader reads.
+    // std140 for uniform blocks, std430 for storage blocks.
+    auto aux_declared_size
+        = [&](const isf::geometry_input::auxiliary_request& aux) -> int64_t {
+      int64_t count = 0;
+      if(!aux.is_uniform && !aux.size.empty())
+      {
+        try
+        {
+          count = std::max<int64_t>(1, std::stoll(aux.size));
+        }
+        catch(const std::exception&)
+        {
+          count = 1024; // TODO: evaluate $USER when we add it
+        }
+      }
+      return aux.is_uniform
+                 ? score::gfx::calculateUniformBlockSize(aux.layout, (int)count, desc)
+                 : score::gfx::calculateStorageBufferSize(aux.layout, (int)count, desc);
+    };
+
     for(const auto& aux : desc.auxiliary)
     {
       AuxiliarySSBO ssbo;
@@ -2021,6 +2048,7 @@ void RenderedRawRasterPipelineNode::initState(
       ssbo.access = aux.access;
       ssbo.persistent = aux.persistent && !aux.is_uniform;
       ssbo.is_uniform = aux.is_uniform;
+      ssbo.declared_size = aux_declared_size(aux);
 
       if(ssbo.persistent)
       {
