@@ -27,6 +27,8 @@
 #include <Video/LibavStreamInput.hpp>
 #include <Video/VideoDecoder.hpp>
 
+#include <score_test/VideoMaster.hpp>
+
 #include <ossia/detail/flicks.hpp>
 
 #include <QDir>
@@ -54,180 +56,10 @@ extern "C" {
 }
 
 using namespace std::chrono_literals;
+using namespace score::test::video;
 
 namespace
 {
-QString matrixDir()
-{
-  const auto d = QString::fromLocal8Bit(qgetenv("SCORE_TEST_MATRIX_DIR"));
-  REQUIRE_FALSE(d.isEmpty());
-  REQUIRE(QFileInfo(d).isDir());
-  return d;
-}
-
-std::string matrixPath(const char* name)
-{
-  const QString p = matrixDir() + QLatin1String("/") + QLatin1String(name);
-  return p.toStdString();
-}
-
-Video::DecoderConfiguration softwareOnly()
-{
-  Video::DecoderConfiguration conf;
-  conf.hardwareAcceleration = AV_PIX_FMT_NONE;
-  conf.threads = 1;
-  conf.useAVCodec = true;
-  return conf;
-}
-
-// The known picture, as bytes on disk. Geometry comes from the master
-// container (libav) and must agree with the file's own length.
-struct Master
-{
-  int width{}, height{}, frames{};
-  std::vector<uint8_t> rgb;
-
-  const uint8_t* frame(int i) const
-  {
-    return rgb.data() + std::size_t(i) * std::size_t(width) * height * 3;
-  }
-};
-
-Master loadMaster()
-{
-  Master m;
-
-  AVFormatContext* ctx{};
-  const auto nut = matrixPath("master.nut");
-  REQUIRE(avformat_open_input(&ctx, nut.c_str(), nullptr, nullptr) == 0);
-  REQUIRE(avformat_find_stream_info(ctx, nullptr) >= 0);
-  for(unsigned i = 0; i < ctx->nb_streams; i++)
-  {
-    auto* par = ctx->streams[i]->codecpar;
-    if(par->codec_type == AVMEDIA_TYPE_VIDEO)
-    {
-      m.width = par->width;
-      m.height = par->height;
-      break;
-    }
-  }
-  avformat_close_input(&ctx);
-  REQUIRE(m.width > 0);
-  REQUIRE(m.height > 0);
-
-  const auto raw = matrixPath("master.rgb");
-  FILE* f = std::fopen(raw.c_str(), "rb");
-  REQUIRE(f != nullptr);
-  std::fseek(f, 0, SEEK_END);
-  const long sz = std::ftell(f);
-  std::fseek(f, 0, SEEK_SET);
-  REQUIRE(sz > 0);
-
-  const long perFrame = long(m.width) * m.height * 3;
-  REQUIRE(sz % perFrame == 0);
-  m.frames = int(sz / perFrame);
-  REQUIRE(m.frames >= 4);
-
-  m.rgb.resize(std::size_t(sz));
-  REQUIRE(std::fread(m.rgb.data(), 1, std::size_t(sz), f) == std::size_t(sz));
-  std::fclose(f);
-
-  // The env the runner exported is a cross-check on the two independent reads
-  // above, never the source of either.
-  const int envW = qgetenv("SCORE_TEST_MATRIX_WIDTH").toInt();
-  const int envH = qgetenv("SCORE_TEST_MATRIX_HEIGHT").toInt();
-  const int envN = qgetenv("SCORE_TEST_MATRIX_FRAMES").toInt();
-  if(envW > 0)
-    CHECK(m.width == envW);
-  if(envH > 0)
-    CHECK(m.height == envH);
-  if(envN > 0)
-    CHECK(m.frames == envN);
-
-  return m;
-}
-
-int blockSize()
-{
-  const int b = qgetenv("SCORE_TEST_MATRIX_BLOCK").toInt();
-  return b > 0 ? b : 40;
-}
-
-// One decoded AVFrame as rgb24, using swscale on the test side so that every
-// codec's native pixel format is compared in one space.
-std::vector<uint8_t> toRgb24(const AVFrame& f, int w, int h)
-{
-  std::vector<uint8_t> out(std::size_t(w) * h * 3);
-  SwsContext* sws = sws_getContext(
-      f.width, f.height, AVPixelFormat(f.format), w, h, AV_PIX_FMT_RGB24,
-      SWS_BILINEAR, nullptr, nullptr, nullptr);
-  if(!sws)
-    return {};
-  uint8_t* dst[4]{out.data(), nullptr, nullptr, nullptr};
-  int stride[4]{w * 3, 0, 0, 0};
-  sws_scale(sws, f.data, f.linesize, 0, f.height, dst, stride);
-  sws_freeContext(sws);
-  return out;
-}
-
-// Per-pixel distance over the interior of every block: the largest per-channel
-// deviation, and the mean. `margin` pixels are dropped from each block edge --
-// that is where 4:2:0 chroma and deblocking legitimately blend two colours.
-struct Diff
-{
-  int maxDev{};
-  double meanDev{};
-  long compared{};
-};
-
-Diff blockDiff(
-    const uint8_t* got, const uint8_t* want, int w, int h, int block, int margin)
-{
-  Diff d;
-  long sum = 0;
-  for(int by = 0; by + block <= h; by += block)
-  {
-    for(int bx = 0; bx + block <= w; bx += block)
-    {
-      for(int y = by + margin; y < by + block - margin; y++)
-      {
-        for(int x = bx + margin; x < bx + block - margin; x++)
-        {
-          const std::size_t o = (std::size_t(y) * w + x) * 3;
-          for(int c = 0; c < 3; c++)
-          {
-            const int dev = std::abs(int(got[o + c]) - int(want[o + c]));
-            if(dev > d.maxDev)
-              d.maxDev = dev;
-            sum += dev;
-            d.compared++;
-          }
-        }
-      }
-    }
-  }
-  if(d.compared > 0)
-    d.meanDev = double(sum) / double(d.compared);
-  return d;
-}
-
-// The fidelity a row is entitled to, from its name. `exact` is an RGB lossless
-// codec and must come back byte for byte; `yuvexact` is lossless but round
-// trips through a YUV colour space, so it carries the rounding of one
-// conversion; `lossy` carries a quantiser. The numbers are the largest
-// per-channel deviation allowed over block interiors, and the sweep asserts
-// separately that two DIFFERENT master frames are far further apart than the
-// largest of them.
-// Pixels within this many of a block edge are dropped from every comparison:
-// that is where 4:2:0 chroma and a deblocking filter legitimately blend two
-// colours, and it is the only part of the picture a codec is allowed to move.
-constexpr int kBlockMargin = 10;
-
-constexpr int kToleranceExact = 0;
-constexpr int kToleranceYuvExact = 6;
-constexpr int kToleranceLossy = 64;
-constexpr int kLargestTolerance = kToleranceLossy;
-
 struct Clip
 {
   std::string name;
