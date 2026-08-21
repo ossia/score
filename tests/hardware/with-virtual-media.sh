@@ -308,6 +308,27 @@ b='mod(${bx}*149+${by}*41+N*89,256)'"
     -c:v libx264 -preset ultrafast -pix_fmt yuv420p -c:a aac \
     "$mdir/audio-video.mp4" || die "ffmpeg could not produce the a+v clip"
 
+  # Network fixtures. The streaming harness spawns and kills the peers itself --
+  # half of what it has to test is what happens when one GOES AWAY -- so all the
+  # runner provides is the media they serve.
+  #
+  # stream-mpeg2.ts exists because a receiver joining an H.264 MPEG-TS mid-GOP
+  # cannot recover its parameter sets on this ffmpeg, which would make the plain
+  # UDP row a test of ffmpeg's resynchronisation rather than of score's demuxer.
+  ffmpeg -nostdin -loglevel error -y -i "$mdir/master.nut" \
+    -c:v mpeg2video -q:v 4 -g 4 -f mpegts "$mdir/stream-mpeg2.ts" \
+    || die "ffmpeg could not produce the MPEG-2 transport stream"
+
+  # The HLS playlist is the master looped into several segments: a receiver has
+  # to survive losing whatever was already in flight when it connected, and a
+  # single-segment playlist would make that indistinguishable from failure.
+  mkdir -p "$mdir/hls"
+  ffmpeg -nostdin -loglevel error -y -stream_loop 60 -i "$mdir/master.nut" \
+    -c:v libx264 -preset ultrafast -pix_fmt yuv420p -g 4 \
+    -f hls -hls_time 1 -hls_list_size 0 -hls_playlist_type vod \
+    -hls_segment_filename "$mdir/hls/seg%03d.ts" "$mdir/hls/index.m3u8" \
+    || die "ffmpeg could not produce the HLS playlist"
+
   export SCORE_TEST_MATRIX_DIR="$mdir"
   export SCORE_TEST_MATRIX_WIDTH="$MW"
   export SCORE_TEST_MATRIX_HEIGHT="$MH"
