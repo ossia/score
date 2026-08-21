@@ -46,7 +46,10 @@ TestInfo info(QString path, QString id, bool valid = true)
   return TestInfo{std::move(path), std::move(id), valid};
 }
 
-const auto key_of = [](const TestInfo& i) { return i.path + "|" + i.id; };
+// -> QString is load-bearing, and is what the real callers get wrong: without
+// it this deduces QStringBuilder<QStringBuilder<QString, char[2]>, QString>,
+// whose outer half references the inner temporary of the return statement.
+const auto key_of = [](const TestInfo& i) -> QString { return i.path + "|" + i.id; };
 const auto path_of = [](const TestInfo& i) { return i.path; };
 const auto is_valid = [](const TestInfo& i) { return i.valid; };
 }
