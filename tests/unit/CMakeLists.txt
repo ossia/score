@@ -948,3 +948,20 @@ if(TARGET score_plugin_media)
     LIBS avutil avcodec avformat swscale ${QT_PREFIX}::Gui
     NO_CTEST)
 endif()
+
+# --- streaming protocols and device lifecycle (score-plugin-media) ----------
+# Video::LibavStreamInput against real network peers -- UDP/MPEG-TS, RTP+SDP,
+# SRT, RIST, RTMP and HLS-over-HTTP -- serving the same known-pixel master the
+# codec matrix uses, so the assertion is the picture off the wire and not "a
+# frame arrived". The harness spawns and KILLS the peers itself, which is what
+# lets it stage a mid-stream drop, a reconnect and a destroy-while-blocked.
+# Every lifecycle case runs under a hard deadline (score_test/StreamServer.hpp):
+# a hang fails the case instead of wedging the run until ctest's TIMEOUT.
+# Registered in tests/hardware (score_add_media_test MATRIX) for the fixtures.
+if(TARGET score_plugin_media)
+  score_add_test(test_unit_streaming_protocol
+    SOURCES StreamingProtocolTest.cpp
+    PLUGINS score_plugin_media
+    LIBS avutil avcodec avformat swscale ${QT_PREFIX}::Gui ${QT_PREFIX}::Network
+    NO_CTEST)
+endif()
