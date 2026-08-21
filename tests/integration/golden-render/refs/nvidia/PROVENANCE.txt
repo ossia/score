@@ -1,0 +1,10 @@
+date:     2026-08-21T14:14-04:00 (backfilled)
+backend:  nvidia
+renderer: OpenGL VENDOR: NVIDIA Corporation RENDERER: Quadro RTX 4000/PCIe/SSE2 VERSION: 4.6.0 NVIDIA 595.84
+binary:   /home/jcelerier/ossia/wt/score-testinfra/build/ossia-score
+commit:   70afc174d409b84487e7e430b62ef2038d43e811
+built:    2026-08-16 09:17:13.055600254 -0400
+corpus:   /home/jcelerier/Documents/ossia/score/packages/csf-examples/csf-testers/tests-scene/scripts
+note:     binary predates HEAD by 3 commits (6958555501, 05a.., 70afc..);
+          none of them touch rendering - 6958555501 only removes the
+          exit-time save prompt, which fires AFTER the frame is grabbed.
