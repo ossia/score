@@ -103,3 +103,19 @@ if(TARGET test_unit_libav_decode)
     MEDIA
     TIMEOUT    600)
 endif()
+
+# --- container x codec matrix (score-plugin-media) ---------------------------
+# --matrix builds one master clip of solid colour blocks, derives its rgb24
+# ground truth from that clip, and encodes the same master into every
+# container/codec pair the host's ffmpeg can produce -- plus the malformed
+# inputs, the file whose header lies about its geometry, and the streams that
+# gain or lose an audio track mid-play. Rows the host cannot build are recorded
+# by name in unavailable.txt and reported by the harness, so a smaller matrix is
+# visible instead of silently green.
+if(TARGET test_unit_video_codec_matrix)
+  score_add_media_test(
+    NAME       Media_VideoCodecMatrix
+    EXECUTABLE test_unit_video_codec_matrix
+    MATRIX
+    TIMEOUT    900)
+endif()
