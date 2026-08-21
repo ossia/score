@@ -1,0 +1,4 @@
+# Cases that fail on EVERY backend because of a defect in score, not because of
+# anything the backend does. Format: "<case>  <why>". Printed on every run.
+# Remove the line when the defect is fixed; --update-refs then adopts the case.
+build-binding-storage-image-fragment  fragment-stage storage image: generated GLSL fails to compile -- "ERROR: :69: 'imageStore' : no matching overloaded function found". Reproduced 2026-08-21 on all four backend classes (NVIDIA GL, NVIDIA Vulkan, Mesa llvmpipe, Mesa lavapipe), so it is score's shader generation, not a driver. The declaration is emitted around libisf isf.cpp:3771-3801 (CSF path, format-qualified) and isf.cpp:1781 (ISF path, which emits a bare "uniform image2D" with NO layout format qualifier); which of the two this shader takes is not yet established.
