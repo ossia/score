@@ -94,24 +94,35 @@ bool withRegistry(score::gfx::GraphicsApi backend, F&& f)
     if(!probe_api(backend, probed))
       return;
 
+    // RenderState has no destructor: destroy() is the only thing that deletes
+    // the QRhi (RenderState.hpp), so letting the shared_ptr drop leaks the
+    // whole device. On D3D12 that is what every "Live Object" line at exit was
+    // about. The registry has to go first — ~GpuResourceRegistry deletes
+    // QRhiBuffers, which needs the QRhi still alive.
     auto st = score::gfx::createRenderState(backend, QSize{32, 32}, nullptr);
-    if(!st || !st->rhi)
+    if(!st)
       return;
-
-    QRhi& rhi = *st->rhi;
-    Reg reg;
-    auto* batch = rhi.nextResourceUpdateBatch();
-    if(!batch)
-      return;
-    reg.init(rhi, *batch);
-    if(!reg.buffer(Reg::Arena::Material) || !reg.meshStreamBuffer(Stream::Positions))
+    if(!st->rhi)
     {
-      batch->release();
+      st->destroy();
       return;
     }
-    ok = true;
-    f(reg, rhi, *batch);
-    batch->release();
+
+    {
+      QRhi& rhi = *st->rhi;
+      Reg reg;
+      if(auto* batch = rhi.nextResourceUpdateBatch())
+      {
+        reg.init(rhi, *batch);
+        if(reg.buffer(Reg::Arena::Material) && reg.meshStreamBuffer(Stream::Positions))
+        {
+          ok = true;
+          f(reg, rhi, *batch);
+        }
+        batch->release();
+      }
+    }
+    st->destroy();
   });
   return ok;
 }
