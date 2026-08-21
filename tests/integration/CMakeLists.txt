@@ -225,8 +225,16 @@ if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
     SOURCES PipewireVideoMotionTest.cpp
     NO_CTEST)
 
+  # Video graphs assembled entirely through the JS scripting API and asserted
+  # on their pixels: file -> filter -> window, one source into two windows, and
+  # the same graph built and torn down repeatedly in one process.
+  score_add_test(test_integration_js_graph_e2e
+    SOURCES JsGraphE2ETest.cpp
+    NO_CTEST)
+
   foreach(_pw_tgt test_integration_pipewire_video_input
-                  test_integration_pipewire_video_motion)
+                  test_integration_pipewire_video_motion
+                  test_integration_js_graph_e2e)
     target_link_libraries(${_pw_tgt} PRIVATE ${QT_PREFIX}::Gui)
     target_compile_definitions(${_pw_tgt} PRIVATE
       "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\""
