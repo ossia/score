@@ -213,11 +213,6 @@ endif()
 # scripting API. NO_CTEST: the ctest entries live in tests/hardware, where
 # score_add_media_test wraps them in the runner that requires the media stack.
 #
-# PipewireVideoInputTest.cpp has been in the tree without this since it was
-# written: nothing created the target, so the `if(TARGET
-# test_integration_pipewire_video_input)` guard in tests/hardware/CMakeLists.txt
-# never fired and Media_PipewireVideoInput was never a test.
-#
 # The motion test is the one that can tell a live stream from a still: its
 # source publishes a frame-numbered pattern the test wrote itself, so both the
 # pixels and the fact that they change are asserted against a reference that
