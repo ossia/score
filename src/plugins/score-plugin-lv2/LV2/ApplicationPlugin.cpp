@@ -186,7 +186,9 @@ void ApplicationPlugin::initialize()
   m_plugins = Media::loadPluginCache<PluginInfo>(
       cache_format_version, cache_key, legacy_cache_key);
   Media::sanitizePluginCache(
-      m_plugins, [](const PluginInfo& i) { return i.bundle + "|" + i.uri; },
+      m_plugins,
+      // -> QString: same QStringBuilder dangling-temporary trap as the CLAP key.
+      [](const PluginInfo& i) -> QString { return i.bundle + "|" + i.uri; },
       [](const PluginInfo& i) { return i.bundle; },
       [](const PluginInfo& i) { return i.valid; });
   // Make the migration/healing durable even if no scan runs this session
