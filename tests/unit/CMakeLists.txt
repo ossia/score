@@ -990,3 +990,18 @@ if(TARGET score_plugin_media)
     LIBS avutil avcodec avformat swscale ${QT_PREFIX}::Gui
     NO_CTEST)
 endif()
+
+# --- container x codec matrix, asserted 1:1 against known pixels -------------
+# Registered in tests/hardware (score_add_media_test MATRIX): the runner builds
+# one master clip of solid colour blocks, derives its ground-truth rgb24 dump
+# FROM that clip, and encodes the same master into every container/codec pair
+# the host's ffmpeg can produce. The harness compares decoded pixels against
+# those bytes, so no return code and no "something was rendered" heuristic is
+# involved.
+if(TARGET score_plugin_media)
+  score_add_test(test_unit_video_codec_matrix
+    SOURCES VideoCodecMatrixTest.cpp
+    PLUGINS score_plugin_media
+    LIBS avutil avcodec avformat swscale ${QT_PREFIX}::Gui
+    NO_CTEST)
+endif()

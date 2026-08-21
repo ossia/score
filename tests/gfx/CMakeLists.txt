@@ -468,6 +468,7 @@ if(TARGET test_gfx_gstreamer_device)
   score_add_media_test(
     NAME       Media_GStreamerDevice
     EXECUTABLE test_gfx_gstreamer_device
+    GSTREAMER
     TIMEOUT    600
     ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 endif()
