@@ -91,6 +91,32 @@ if(TARGET test_integration_pipewire_video_input)
     TIMEOUT    600)
 endif()
 
+# --- PipeWire video input: live pixels, not a plausible still ---------------
+# Same route through the application, but the source publishes a frame-numbered
+# pattern the test wrote itself and replays through gst-launch, so the picture
+# is asserted pixel-for-pixel AND required to advance. The runner's videotestsrc
+# node is a static image: everything above passes on a stream that delivered one
+# buffer and stopped, which is why this one brings its own producer and asks
+# only for the media stack the wrapper guarantees.
+if(TARGET test_integration_pipewire_video_motion)
+  score_add_media_test(
+    NAME       Media_PipewireVideoMotion
+    EXECUTABLE test_integration_pipewire_video_motion
+    TIMEOUT    600)
+endif()
+
+# --- Scripted end-to-end video graphs ---------------------------------------
+# Built through the JS scripting API in a real application process and asserted
+# on the window readback. Registered as a media test because the clip they play
+# is muxed with ffmpeg at run time, and because an absent display must fail
+# rather than retire the only end-to-end cover these graphs have.
+if(TARGET test_integration_js_graph_e2e)
+  score_add_media_test(
+    NAME       Media_JsGraphE2E
+    EXECUTABLE test_integration_js_graph_e2e
+    TIMEOUT    900)
+endif()
+
 # --- libav decode matrix (score-plugin-media) -------------------------------
 # The harness is built in tests/unit (NO_CTEST) and registered here, because it
 # is the provisioning wrapper that gives it something to decode: --media
