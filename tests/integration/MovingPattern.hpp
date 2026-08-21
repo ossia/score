@@ -163,6 +163,9 @@ struct Reading
   int sampled{0};      //!< pixels compared
   int mismatched{0};   //!< pixels that were not exactly the expected colour
   bool uniform{false}; //!< the whole picture is one colour: no frame arrived
+  //! the picture is exactly this frame, vertically flipped. Still a failure,
+  //! but a different one from "not this frame at all".
+  bool flippedWouldMatch{false};
   Orientation orientation{Orientation::TopLeft};
 
   bool exact() const noexcept
@@ -262,9 +265,11 @@ inline Reading readAt(const QImage& img, Orientation o)
 }
 } // namespace detail
 
-//! Read a grabbed picture. Both orientations are tried and the exact one wins;
-//! if neither is exact the top-left reading is returned so the caller can report
-//! how far off it was.
+//! Read a grabbed picture. Top-left is the only orientation that counts as a
+//! match -- an upside-down picture is a wrong picture, and this pattern is
+//! asymmetric in both axes so it can say so. The flipped reading is taken only
+//! to name the symptom: "it is the right frame, upside down" and "it is not the
+//! frame at all" are different defects and should not report the same way.
 inline Reading read(const QImage& in)
 {
   QImage img = in.convertToFormat(QImage::Format_RGB32);
@@ -274,13 +279,10 @@ inline Reading read(const QImage& in)
     r.uniform = true;
     return r;
   }
-  const auto tl = detail::readAt(img, Orientation::TopLeft);
-  if(tl.exact())
-    return tl;
-  const auto bl = detail::readAt(img, Orientation::BottomLeft);
-  if(bl.exact())
-    return bl;
-  return tl.mismatched <= bl.mismatched ? tl : bl;
+  auto tl = detail::readAt(img, Orientation::TopLeft);
+  if(!tl.exact() && detail::readAt(img, Orientation::BottomLeft).exact())
+    tl.flippedWouldMatch = true;
+  return tl;
 }
 
 inline Reading readFile(const QString& path)
