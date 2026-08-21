@@ -206,7 +206,10 @@ void ApplicationPlugin::initialize()
   m_plugins = Media::loadPluginCache<PluginInfo>(
       cache_format_version, cache_key, legacy_cache_key);
   Media::sanitizePluginCache(
-      m_plugins, [](const PluginInfo& i) { return i.path + "|" + i.id; },
+      m_plugins,
+      // -> QString: QT_USE_QSTRINGBUILDER makes operator+ return an expression
+      // template whose outer node references a dead temporary.
+      [](const PluginInfo& i) -> QString { return i.path + "|" + i.id; },
       [](const PluginInfo& i) { return i.path; },
       [](const PluginInfo& i) { return i.valid; });
   // Make the migration/healing durable even if no scan runs this session
