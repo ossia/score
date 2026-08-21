@@ -94,16 +94,17 @@ score_add_test(test_unit_device_edit_dialog
 # The CAN protocol's device browser entry: the .dbc databases of the user
 # library, plus the default interface against an independent walk of
 # /sys/class/net.
-if(TARGET score_plugin_protocols AND TARGET score_plugin_library)
+# LINUX-only: the CAN protocol is SocketCAN, and OSSIA_PROTOCOL_CAN is what
+# makes Protocols::CANSpecificSettings exist. Built anywhere else the target has
+# no cases at all, and a Catch2 binary that runs none of them reports failure.
+if(LINUX AND TARGET score_plugin_protocols AND TARGET score_plugin_library)
   score_add_test(test_unit_can_enumerator
     SOURCES CANEnumeratorTest.cpp
     APP
     PLUGINS score_plugin_protocols score_plugin_library score_lib_device)
   target_include_directories(test_unit_can_enumerator PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-protocols")
-  if(LINUX)
-    target_compile_definitions(test_unit_can_enumerator PRIVATE OSSIA_PROTOCOL_CAN)
-  endif()
+  target_compile_definitions(test_unit_can_enumerator PRIVATE OSSIA_PROTOCOL_CAN)
 endif()
 
 # End-to-end CAN, driven through score's JavaScript scripting API (the `Score`
