@@ -3180,9 +3180,18 @@ void RenderedCSFNode::buildComputeSrbBindings(
             }
             else
             {
+              // No RenderTarget flag: nothing ever attaches a CSF storage
+              // image to a QRhiTextureRenderTarget (this file creates none,
+              // and every consumer of textureForOutput() / the out_geo
+              // auxiliary_textures list binds it as a sampler or a load/store
+              // image). The 3D, cube and array branches above have always
+              // omitted it. On D3D12 the flag is the sole trigger for
+              // ALLOW_RENDER_TARGET (qrhid3d12.cpp, QD3D12Texture::create),
+              // which puts the resource under the debug layer's
+              // "must be initialized with a Discard/Clear/Copy" rule and made
+              // the first compute-then-sample frame report NOT_ZEROED.
               QRhiTexture::Flags flags
-                  = QRhiTexture::RenderTarget | QRhiTexture::UsedWithLoadStore
-                    | QRhiTexture::UsedAsTransferSource;
+                  = QRhiTexture::UsedWithLoadStore | QRhiTexture::UsedAsTransferSource;
               // Mip levels track the GENERATE_MIPS opt-in that gates the
               // generateMips() call in update(): without it nothing ever
               // writes levels > 0 and they stay uninitialized.
