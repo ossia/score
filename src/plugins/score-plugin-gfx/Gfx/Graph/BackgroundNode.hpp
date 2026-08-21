@@ -60,6 +60,7 @@ struct BackgroundNode : OutputNode
   void createOutput(score::gfx::OutputConfiguration conf) override
   {
     m_onResize = conf.onResize;
+    m_onReleaseRenderList = conf.onReleaseRenderList;
     // Cache the requested graphics API so setSwapchainFormat can rebuild
     // through createOutput when the format actually changes (live HDR↔SDR
     // toggle). Without this the format setter was inert: m_swapchainFormat
@@ -184,6 +185,10 @@ struct BackgroundNode : OutputNode
       score::gfx::OutputConfiguration conf;
       conf.graphicsApi = m_lastGraphicsApi;
       conf.onResize = m_onResize;
+      conf.onReleaseRenderList = m_onReleaseRenderList;
+      // The Graph-owned RenderList holds QRhiResources belonging to the QRhi
+      // destroyOutput() is about to `delete`; release it first.
+      releaseOwnedRenderList();
       destroyOutput();
       createOutput(std::move(conf));
       if(m_onResize)

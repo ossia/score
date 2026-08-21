@@ -630,6 +630,10 @@ void MultiWindowNode::setSwapchainFlag(Gfx::SwapchainFlag flag)
   // ScreenNode::setSwapchainFlag — destroyOutput tears down all windows;
   // the Graph reconciler rebuilds them on next cycle picking up the new
   // flag at the swapchain create site.
+  //
+  // The Graph-owned RenderList holds QRhiResources belonging to the QRhi
+  // destroyOutput() is about to `delete`; release it first.
+  releaseOwnedRenderList();
   destroyOutput();
 }
 
@@ -640,6 +644,7 @@ void MultiWindowNode::setSwapchainFormat(Gfx::SwapchainFormat format)
   m_swapchainFormat = format;
   // Same rebuild rationale — without it the field updated but the live
   // swapchains kept their prior format (HDR↔SDR toggle silently inert).
+  releaseOwnedRenderList();
   destroyOutput();
 }
 
@@ -933,6 +938,8 @@ void MultiWindowNode::releaseWindowSwapChain(int index)
 
 void MultiWindowNode::createOutput(score::gfx::OutputConfiguration conf)
 {
+  m_onReleaseRenderList = conf.onReleaseRenderList;
+
   if(m_mappings.empty())
     return;
 
