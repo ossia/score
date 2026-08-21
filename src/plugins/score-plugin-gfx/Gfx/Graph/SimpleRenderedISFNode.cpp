@@ -29,6 +29,12 @@ void main()
 #if defined(QSHADER_HLSL) || defined(QSHADER_MSL)
   gl_Position.y = - gl_Position.y;
 #endif
+#if !defined(QSHADER_SPIRV) && !defined(QSHADER_HLSL) && !defined(QSHADER_MSL)
+  // OpenGL only: QRhi::isYUpInFramebuffer(). The single-output path draws the
+  // ISF pass straight into the destination; this copy must not turn the
+  // intermediate attachment over on the way there.
+  v_texcoord.y = 1. - v_texcoord.y;
+#endif
 }
 )_";
 

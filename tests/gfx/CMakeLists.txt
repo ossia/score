@@ -156,6 +156,18 @@ score_add_gfx_test(raster    GfxRaster.cpp)
 score_add_gfx_test(vsa       GfxVsa.cpp)
 score_add_gfx_test(execmodel GfxExecutionModel.cpp)
 
+# Vertical orientation of the texture-producing paths (single-output ISF, MRT,
+# CSF sampled relay), asserted per row against each shader's closed-form ramp on
+# every backend. Green on OpenGL and Vulkan.
+score_add_gfx_test(orientation GfxOrientation.cpp)
+
+# ISOLATED, EXPECTED-RED on OpenGL: the compute storage-image origin. A CSF that
+# only imageStore()s is flipped on OpenGL because a raw texel index and a
+# bottom-up GL render target disagree, and neither of the two one-line fixes is
+# correct (both measured — see the FINDING block in the file). Own target so the
+# attributable RED cannot take the green orientation group with it.
+score_add_gfx_test(orientation_findings GfxOrientationFindings.cpp)
+
 # ISOLATED, EXPECTED-RED: the VSA triangle cull-mode cross-backend divergence
 # (R3-N4 area). A front-facing VSA triangle is culled on exactly one backend
 # regardless of winding (OpenGL draws / Vulkan culls, or vice-versa) — there is
