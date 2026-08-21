@@ -319,11 +319,10 @@ score_add_test(test_gfx_window_layout
 score_add_gfx_test(screen_output      ScreenOutput.cpp)
 score_add_gfx_test(multi_window       MultiWindowOutput.cpp)
 
-# ISOLATED, EXPECTED-RED: a live swapchain-flag toggle on an output that is part
-# of a Graph frees the QRhi under the RenderList built against it. Own target,
-# like test_gfx_isf_findings / test_gfx_csf_image3d / test_gfx_vsa_cull, so the
-# attributable RED cannot pull down the two green suites above. See the FINDING
-# block at the top of the file.
+# Regression guards on the ScreenNode <-> Graph boundary: a live swapchain-flag
+# toggle must release the Graph's RenderList before freeing the QRhi it was
+# built against, and a window resize must not discard the render-size override.
+# Own target so a crash in either cannot take the two suites above with it.
 score_add_gfx_test(screen_findings    ScreenOutputFindings.cpp)
 
 # -----------------------------------------------------------------------------

@@ -1,45 +1,53 @@
-// ISOLATED, EXPECTED-RED finding, in the same spirit as GfxIncrementalFindings /
-// GfxVsaCull / CsfImage3d: kept in its own target so the attributable failure
-// cannot pull down the green presented-swapchain suites.
+// Two regression guards on the ScreenNode <-> Graph boundary. Both were
+// EXPECTED-RED findings; both are now fixed, so both assert normally.
 //
-// FINDING — a live swapchain-flag / -format / graphics-API toggle on an output
-// that is part of a Graph frees the QRhi out from under the RenderList that was
-// built against it.
+// (1) A live swapchain-flag / -format toggle used to strand the RenderList.
 //
-//   ScreenNode::setSwapchainFlag()  -> destroyOutput()
-//   MultiWindowNode::setSwapchainFlag() -> destroyOutput()
+//       ScreenNode::setSwapchainFlag()  -> destroyOutput()
+//       MultiWindowNode::setSwapchainFlag() -> destroyOutput()
 //
-// destroyOutput() calls RenderState::destroy(), i.e. `delete rhi`. The Graph
-// still owns a std::shared_ptr<RenderList> for that output, holding QRhi
-// resources (the ScaledRenderer's pipeline, SRB, samplers, UBOs). The next
-// touch of that RenderList — Graph::createAllRenderLists, destroyOutputRenderList
-// or simply ~Graph, all of which start with `renderer->release()` — dereferences
-// the freed QRhi:
+//     destroyOutput() calls RenderState::destroy(), i.e. `delete rhi`. The
+//     Graph still owned a std::shared_ptr<RenderList> for that output, holding
+//     QRhi resources (the ScaledRenderer's pipeline, SRB, samplers, UBOs). The
+//     next touch of that RenderList — Graph::createAllRenderLists,
+//     destroyOutputRenderList or simply ~Graph, all of which start with
+//     `renderer->release()` — dereferenced the freed QRhi:
 //
-//   score::gfx::Pipeline::release()            Utils.hpp:139
-//   Gfx::ScaledRenderer::release()             InvertYRenderer.cpp:252
-//   score::gfx::RenderList::release()          RenderList.cpp:428
-//   score::gfx::Graph::~Graph()                Graph.cpp:1112
-//   -> QRhiResource::deleteLater()  SIGSEGV
+//       score::gfx::Pipeline::release()            Utils.hpp:139
+//       Gfx::ScaledRenderer::release()             InvertYRenderer.cpp:252
+//       score::gfx::RenderList::release()          RenderList.cpp:428
+//       score::gfx::Graph::~Graph()                Graph.cpp:1112
+//       -> QRhiResource::deleteLater()  SIGSEGV
 //
-// The safe order already exists in the codebase: Graph::destroyOutputRenderList()
-// releases the RenderList *then* calls destroyOutput(), and
-// Graph::createAllRenderLists() releases every renderer before initializeOutput().
-// The three OutputNode setters bypass both and tear the device down directly.
+//     The correct order already existed in Graph::destroyOutputRenderList():
+//     release + deregister the RenderList first, destroy the output second. The
+//     setters now take the same order via OutputConfiguration::onReleaseRender-
+//     List, the callback the Graph hands every output it initialises.
 //
-// Not reachable from the app *today*: createScreenNode / createMultiWindowNode
-// only call these setters at construction time, before the node has ever been
-// put in a Graph — but the comments at both call sites document them as live
-// toggles ("Live flag change (sRGB toggle) requires the swapchain to be
-// recreated ... the Graph reconciler rebuilds them on next cycle"), and wiring
-// the sRGB/HDR device parameters to them is the obvious next step.
+//     The rig is destroyed normally here on purpose: the crash was in the
+//     teardown, so letting ~ScreenRig run IS the assertion.
 //
-// The guard below is written as the invariant that SHOULD hold — an output that
-// destroyed its GPU device must not leave a RenderList behind referencing it —
-// so it turns GREEN the day the setters route through destroyOutputRenderList()
-// (or release the render list themselves). It deliberately LEAKS the rig: the
-// crash is in the teardown, and a crashed process flushes no coverage counters
-// and reports no result.
+// (2) A window resize used to discard the render-size override.
+//
+//     The override decouples the resolution the graph renders at from the size
+//     of the window it is presented in (`window_device`'s "/rendersize"
+//     address, and ScreenNode::setRenderSize underneath it). Setting it worked.
+//     Resizing the window afterwards silently threw it away:
+//
+//       Window::render() sees a new surface size
+//         -> Window::resizeSwapChain()
+//              state->outputSize = swapchain size
+//              onResize()                              [ScreenNode::createOutput]
+//                st.renderSize = *m_renderSz;          (still correct here)
+//                conf.onResize();                      [Graph::initializeOutput]
+//                  -> RenderList::resizeSwapchainSizedTargets(rs->outputSize)
+//                       state.renderSize = newSize;    <-- lost
+//
+//     The fast path wrote the swapchain size straight into
+//     RenderState::renderSize without consulting the output's override, so from
+//     the first resize onwards the graph rendered at the window's resolution
+//     whatever was asked for. It took both sizes from the RenderState the
+//     output node has already updated.
 
 #include "WindowedOutputCommon.hpp"
 
@@ -52,36 +60,40 @@ using namespace score::test;
 using namespace score::test::gfx;
 
 TEST_CASE(
-    "FINDING: a live swapchain-flag toggle strands the render list",
-    "[gfx][window][screen][!mayfail]")
+    "a live swapchain-flag toggle releases the render list first",
+    "[gfx][window][screen][regression]")
 {
   const auto api = GENERATE(from_range(platform_backends()));
 
   bool skipped{};
   std::string skipReason, backend, error;
   bool stateGone{};
+  int renderListsBefore{-1};
   int renderListsLeft{-1};
 
   run_in_gui_app([&](const score::GUIApplicationContext&) {
-    // Leaked on purpose — see the header comment.
-    auto* rig = new ScreenRig;
-    if(!rig->build(api, {192, 144}))
+    ScreenRig rig;
+    if(!rig.build(api, {192, 144}))
     {
-      skipped = rig->skipped();
-      skipReason = rig->skipReason();
-      error = rig->error();
-      backend = rig->backend();
-      if(!skipped)
-        delete rig;
+      skipped = rig.skipped();
+      skipReason = rig.skipReason();
+      error = rig.error();
+      backend = rig.backend();
       return;
     }
-    backend = rig->backend();
-    rig->render(2);
+    backend = rig.backend();
+    rig.render(2);
 
-    rig->screen->setSwapchainFlag(Gfx::SwapchainFlag::sRGB);
+    renderListsBefore = int(rig.graph.renderLists().size());
 
-    stateGone = !rig->screen->renderState();
-    renderListsLeft = int(rig->graph.renderLists().size());
+    rig.screen->setSwapchainFlag(Gfx::SwapchainFlag::sRGB);
+
+    stateGone = !rig.screen->renderState();
+    renderListsLeft = int(rig.graph.renderLists().size());
+
+    // ~ScreenRig runs here: ~Graph walks m_renderers and releases each one.
+    // Before the fix that walk hit a RenderList whose QRhi had just been
+    // deleted.
   });
 
   if(skipped)
@@ -89,48 +101,24 @@ TEST_CASE(
   REQUIRE(error.empty());
 
   INFO("backend: " << backend);
-  // The device really is gone...
+  // The rig really did have a render list to strand...
+  CHECK(renderListsBefore == 1);
+  // ...the device really is gone...
   CHECK(stateGone);
-  // ...and this is the defect: a RenderList built against it survives in the
-  // Graph and will be released against a freed QRhi.
+  // ...and no RenderList built against it survives in the Graph.
   CHECK(renderListsLeft == 0);
 }
 
-// FINDING — a window resize discards the render-size override.
-//
-// The override decouples the resolution the graph renders at from the size of
-// the window it is presented in (`window_device`'s "/rendersize" address, and
-// ScreenNode::setRenderSize underneath it). Setting it works. Resizing the
-// window afterwards silently throws it away:
-//
-//   Window::render() sees a new surface size
-//     -> Window::resizeSwapChain()
-//          state->outputSize = swapchain size
-//          onResize()                              [ScreenNode::createOutput]
-//            st.renderSize = *m_renderSz;          (still correct here)
-//            conf.onResize();                      [Graph::initializeOutput]
-//              -> RenderList::resizeSwapchainSizedTargets(rs->outputSize)
-//                   state.renderSize = newSize;    RenderList.cpp:916  <-- lost
-//
-// The fast path writes the swapchain size straight into RenderState::renderSize
-// without consulting the output's override, so from the first resize onwards
-// the graph renders at the window's resolution whatever was asked for. It is
-// not visible immediately after setRenderSize() only because the fast path
-// early-returns when the requested size already equals RenderList::m_lastSize.
-//
-// The same mechanism silently weakens any test written against a Graph-backed
-// rig, which is why the green "render size overrides the swapchain size" case
-// runs on BareScreenRig.
 TEST_CASE(
-    "FINDING: a window resize discards the render-size override",
-    "[gfx][window][screen][!mayfail]")
+    "a window resize keeps the render-size override",
+    "[gfx][window][screen][regression]")
 {
   const auto api = GENERATE(from_range(platform_backends()));
 
   bool skipped{};
   std::string skipReason, backend, error;
   const QSize requested{200, 120};
-  QSize beforeResize, afterResize;
+  QSize beforeResize, afterResize, outputAfterResize;
 
   run_in_gui_app([&](const score::GUIApplicationContext&) {
     ScreenRig rig;
@@ -161,7 +149,10 @@ TEST_CASE(
         5000);
     rig.render(3);
     if(auto rs = rig.screen->renderState())
+    {
       afterResize = rs->renderSize;
+      outputAfterResize = rs->outputSize;
+    }
   });
 
   if(skipped)
@@ -170,9 +161,12 @@ TEST_CASE(
 
   INFO("backend: " << backend << " before " << beforeResize.width() << "x"
                    << beforeResize.height() << " after " << afterResize.width() << "x"
-                   << afterResize.height());
+                   << afterResize.height() << " output " << outputAfterResize.width()
+                   << "x" << outputAfterResize.height());
   // Setting it works...
   CHECK(beforeResize == requested);
-  // ...and this is the defect: the resize threw it away.
+  // ...the window really did resize (otherwise the check below is vacuous)...
+  CHECK(outputAfterResize != requested);
+  // ...and the resize did not throw the override away.
   CHECK(afterResize == requested);
 }

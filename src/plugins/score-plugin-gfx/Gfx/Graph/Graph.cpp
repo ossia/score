@@ -369,8 +369,14 @@ void Graph::initializeOutput(OutputNode* output, GraphicsApi graphicsApi)
       recreateOutputRenderList(*output);
     };
 
+    auto onReleaseRenderList = [this, output] { releaseOutputRenderList(*output); };
+
     // TODO only works for one output !!
-    output->createOutput({.graphicsApi = graphicsApi, .onReady = onReady, .onResize = onResize});
+    output->createOutput(
+        {.graphicsApi = graphicsApi,
+         .onReady = onReady,
+         .onResize = onResize,
+         .onReleaseRenderList = onReleaseRenderList});
   }
   else if(output->canRender())
   {
@@ -1182,7 +1188,7 @@ void Graph::removeEdge(Port* source, Port* sink)
   }
 }
 
-void Graph::destroyOutputRenderList(score::gfx::OutputNode& output)
+void Graph::releaseOutputRenderList(score::gfx::OutputNode& output)
 {
   auto it = ossia::find_if(
       m_renderers, [rend = output.renderer()](const std::shared_ptr<RenderList>& r) {
@@ -1204,6 +1210,11 @@ void Graph::destroyOutputRenderList(score::gfx::OutputNode& output)
     {
     }
   }
+}
+
+void Graph::destroyOutputRenderList(score::gfx::OutputNode& output)
+{
+  releaseOutputRenderList(output);
 
   output.destroyOutput();
   ossia::remove_erase(m_outputs, &output);

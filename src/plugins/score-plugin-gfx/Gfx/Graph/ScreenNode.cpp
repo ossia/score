@@ -727,8 +727,14 @@ void ScreenNode::setSwapchainFlag(Gfx::SwapchainFlag flag)
   // with the new flag bits — setFlags happens in createOutput at line ~667.
   // destroyOutput tears down; Graph::createOutputRenderList rebuilds on
   // next reconcile (same pattern updateGraphicsAPI uses for sample-count).
+  //
+  // The Graph-owned RenderList holds QRhiResources belonging to the QRhi
+  // destroyOutput() is about to `delete`; release it first.
   if(m_window)
+  {
+    releaseOwnedRenderList();
     destroyOutput();
+  }
 }
 
 void ScreenNode::setSwapchainFormat(Gfx::SwapchainFormat format)
@@ -741,7 +747,10 @@ void ScreenNode::setSwapchainFormat(Gfx::SwapchainFormat format)
   // updated but the live swapchain kept its prior format (HDR↔SDR toggle
   // was silently inert).
   if(m_window)
+  {
+    releaseOwnedRenderList();
     destroyOutput();
+  }
 }
 
 void ScreenNode::setSize(QSize sz)
@@ -799,6 +808,8 @@ void ScreenNode::setCursor(bool b)
 
 void ScreenNode::createOutput(score::gfx::OutputConfiguration conf)
 {
+  m_onReleaseRenderList = conf.onReleaseRenderList;
+
   if(m_ownsWindow)
   {
     // Idempotency guard for mid-play graph rebuilds. initializeOutput()
