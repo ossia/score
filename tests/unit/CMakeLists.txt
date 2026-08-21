@@ -551,3 +551,15 @@ if(TARGET score_plugin_gfx)
     endif()
   endif()
 endif()
+
+# --- RDMA playout probe (score-plugin-gfx) ----------------------------------
+# The gate that decides whether a GPU-direct output rung may engage. The vendor
+# DMA calls are injected, so the whole decision table -- including the peer that
+# returns a constant while every return code says success -- runs with no card
+# and no CUDA driver.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_rdma_playout_probe
+    SOURCES RdmaPlayoutProbeTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+endif()

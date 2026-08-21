@@ -137,7 +137,14 @@ public:
   /// vendor has accepted the pointer.
   void advance();
 
+  /// Frames `prepareNextFrame()` could not deliver. Non-zero means the peer
+  /// device transmitted a stale picture for that many frames while its own
+  /// counters saw nothing wrong.
+  std::uint64_t lostFrames() const noexcept { return m_lostFrames; }
+
 private:
+  void reportLostFrame(const char* stage);
+
   RdmaVideoOutputConfig m_cfg{};
   CudaInteropContextHandle m_cudaCtx{};
   ImportedGpuBufferRing m_ring;
@@ -148,6 +155,7 @@ private:
   std::vector<void*> m_bounce;
   std::vector<bool> m_pinned;  ///< parallel to slots, tracks vendor register success
   std::uint64_t m_fenceValue{0};
+  std::uint64_t m_lostFrames{0};
 };
 
 } // namespace score::gfx::interop
