@@ -98,10 +98,15 @@ public:
   /**
    * @brief Fast-path for pure viewport resize.
    *
-   * Update state.renderSize / state.outputSize / m_lastSize to @p newSize
-   * and mark every renderer's renderTargetSpecsChanged so the existing
-   * `rt_changed` surgical block in renderInternal handles the actual
-   * RT recreation + sampler rebinding on the next render frame.
+   * Update state.outputSize to @p newOutputSize and state.renderSize to
+   * @p newRenderSize, and mark every renderer's renderTargetSpecsChanged so
+   * the existing `rt_changed` surgical block in renderInternal handles the
+   * actual RT recreation + sampler rebinding on the next render frame.
+   *
+   * The two sizes are distinct: the output node owns the render size (the
+   * `/rendersize` override, ScreenNode::setRenderSize), the platform owns
+   * the output size (the swapchain). Callers pass both from the
+   * RenderState the output node has already updated.
    *
    * Skips the full `recreateOutputRenderList` teardown + rebuild
    * (release+createRenderList) — saves the bulk of resize cost
@@ -112,14 +117,14 @@ public:
    *
    * Returns true on success. Returns false (caller should fall back
    * to recreateOutputRenderList) when:
-   *   - newSize is invalid
+   *   - either size is invalid
    *   - renderers vector is empty (RL not yet initialised)
    * The caller (Graph::onResize) handles the fallback path.
    *
    * Cost: O(N renderers), no GPU drain, no allocations until the
    * next render frame's rt_changed block recreates the RTs.
    */
-  bool resizeSwapchainSizedTargets(QSize newSize);
+  bool resizeSwapchainSizedTargets(QSize newOutputSize, QSize newRenderSize);
 
   /**
    * @brief Obtain the texture corresponding to an output port.

@@ -364,7 +364,7 @@ void Graph::initializeOutput(OutputNode* output, GraphicsApi graphicsApi)
       // and any future "format / sample-count change" path.
       if(auto* rl = output->renderer())
         if(auto rs = output->renderState(); rs)
-          if(rl->resizeSwapchainSizedTargets(rs->outputSize))
+          if(rl->resizeSwapchainSizedTargets(rs->outputSize, rs->renderSize))
             return;
       recreateOutputRenderList(*output);
     };

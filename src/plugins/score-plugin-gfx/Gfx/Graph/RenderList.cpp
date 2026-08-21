@@ -883,19 +883,23 @@ void RenderList::clearRenderers()
   m_built = false;
 }
 
-bool RenderList::resizeSwapchainSizedTargets(QSize newSize)
+bool RenderList::resizeSwapchainSizedTargets(QSize newOutputSize, QSize newRenderSize)
 {
   // Bail to fallback if there's nothing to resize. The fallback
   // (recreateOutputRenderList) handles initial output setup.
-  if(newSize.width() <= 0 || newSize.height() <= 0)
+  if(newOutputSize.width() <= 0 || newOutputSize.height() <= 0)
+    return false;
+  if(newRenderSize.width() <= 0 || newRenderSize.height() <= 0)
     return false;
   if(renderers.empty())
     return false;
 
   // Already at the right size — no-op success. Avoids a wasted
   // round-trip through maybeRebuild when Qt fires multiple onResize
-  // callbacks for the same final size.
-  if(newSize == m_lastSize)
+  // callbacks for the same final size. m_lastSize tracks state.renderSize
+  // (see markBuilt / maybeRebuild), so it is the render size that has to
+  // match it, not the swapchain size.
+  if(newRenderSize == m_lastSize && newOutputSize == state.outputSize)
     return true;
 
   // Update the shared RenderState's size. m_lastSize stays at the
@@ -920,8 +924,8 @@ bool RenderList::resizeSwapchainSizedTargets(QSize newSize)
   // which IS the correct propagation; with registry persistence the
   // cost is bounded (no arena destroy/create, no texture re-upload,
   // pipeline cache stays warm).
-  state.renderSize = newSize;
-  state.outputSize = newSize;
+  state.renderSize = newRenderSize;
+  state.outputSize = newOutputSize;
   m_built = false;  // forces maybeRebuild's release+init on next frame
 
   return true;
