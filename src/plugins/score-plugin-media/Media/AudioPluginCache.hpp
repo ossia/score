@@ -26,6 +26,7 @@
 #include <QString>
 
 #include <optional>
+#include <type_traits>
 #include <vector>
 
 namespace Media
@@ -154,6 +155,16 @@ void savePluginCache(quint32 version, const QString& key, const std::vector<T>& 
 template <typename T, typename KeyFn>
 void deduplicate(std::vector<T>& vec, KeyFn&& key_of)
 {
+  // `[](const Info& i) { return i.path + "|" + i.id; }` deduces a
+  // QStringBuilder return type. The outer builder holds a reference to the
+  // inner one, which is a temporary of the return statement, so the object
+  // handed back here points at freed memory and converting it reads a garbage
+  // length (std::bad_alloc, on the caller's first plug-in). Demanding QString
+  // makes the concatenation happen where its operands are still alive.
+  static_assert(
+      std::is_same_v<std::invoke_result_t<KeyFn&, const T&>, QString>,
+      "the key function must return QString: a deduced QStringBuilder return "
+      "type dangles past the end of the return statement");
   QSet<QString> seen;
   ossia::remove_erase_if(vec, [&](const T& elt) {
     const QString k = key_of(elt);
@@ -170,6 +181,9 @@ void deduplicate(std::vector<T>& vec, KeyFn&& key_of)
 template <typename T, typename PathFn, typename ValidFn>
 void dropShadowedInvalidEntries(std::vector<T>& vec, PathFn&& path_of, ValidFn&& is_valid)
 {
+  static_assert(
+      std::is_same_v<std::invoke_result_t<PathFn&, const T&>, QString>,
+      "the path function must return QString: see deduplicate()");
   QSet<QString> valid_paths;
   for(const auto& elt : vec)
     if(is_valid(elt))
