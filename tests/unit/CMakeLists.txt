@@ -593,6 +593,17 @@ if(TARGET score_plugin_media)
     SOURCES GStreamerCompatibilityTest.cpp
     PLUGINS score_plugin_media
     LIBS avutil)
+
+  # Video::initFrameFromRawData(): the plane layout every stride-less input
+  # (GStreamer appsink, Sh4lt, Shmdata, Kinect2) applies to a flat pixel buffer.
+  # libav is the oracle -- av_image_get_linesize for the minimum row width,
+  # av_image_fill_plane_sizes to turn the strides the subject chose into the
+  # bytes each plane then needs -- so nothing here re-derives a subsampling
+  # factor the code under test could agree with for the same wrong reason.
+  score_add_test(test_unit_video_frame_layout
+    SOURCES VideoFrameLayoutTest.cpp
+    PLUGINS score_plugin_media
+    LIBS avutil)
 endif()
 
 # The video pixel-format vocabulary and its libav bridge. Lives with the
