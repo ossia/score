@@ -748,5 +748,18 @@ if(TARGET score_plugin_gfx)
     if(_pw_fmt_includes)
       target_include_directories(test_unit_pipewire_formats SYSTEM PRIVATE ${_pw_fmt_includes})
     endif()
+
+    # The process-wide libremidi pipewire connection is shared by the gfx
+    # output producer, the gfx input consumer, the audio engine and the MIDI
+    # backends. Reconnecting it destroys the pw_core / pw_thread_loop every
+    # other holder's pw_stream was built on. Drives a private daemon.
+    score_add_test(test_unit_pipewire_shared_context
+      SOURCES PipewireSharedContextTest.cpp
+      PLUGINS score_plugin_gfx
+      LIBS ${QT_PREFIX}::Gui)
+    get_target_property(_pw_ctx_includes pipewire::pipewire INTERFACE_INCLUDE_DIRECTORIES)
+    if(_pw_ctx_includes)
+      target_include_directories(test_unit_pipewire_shared_context SYSTEM PRIVATE ${_pw_ctx_includes})
+    endif()
   endif()
 endif()
