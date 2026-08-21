@@ -85,14 +85,20 @@ function(score_add_hardware_test)
   endif()
 endfunction()
 
-# Media tests that are allowed to ASSUME a capable host: gstreamer, ffmpeg and
-# a live PipeWire daemon. Unlike score_add_hardware_test these do NOT declare
-# SKIP_RETURN_CODE by default, so an absent dependency fails the run instead of
-# quietly vanishing from it. VIRTUAL_VIDEO provisions a PipeWire Video/Source
-# from videotestsrc; MEDIA generates H.264 and raw clips with ffmpeg.
+# Media tests that are allowed to ASSUME a capable host: ffmpeg always, plus
+# whatever the requested provisioning needs. Unlike score_add_hardware_test
+# these do NOT declare SKIP_RETURN_CODE by default, so an absent dependency
+# fails the run instead of quietly vanishing from it.
+#
+#   VIRTUAL_VIDEO  publish a PipeWire Video/Source from videotestsrc
+#                  (needs gstreamer + a live PipeWire daemon)
+#   GSTREAMER      the harness runs its own gst pipelines (needs gstreamer,
+#                  but no PipeWire graph)
+#   MEDIA          per-pixel-format H.264 / raw clips
+#   MATRIX         the container x codec matrix and its known-pixel master
 function(score_add_media_test)
   cmake_parse_arguments(ARG
-    "VIRTUAL_VIDEO;MEDIA;OPTIONAL"
+    "VIRTUAL_VIDEO;GSTREAMER;MEDIA;MATRIX;OPTIONAL"
     "NAME;EXECUTABLE;TIMEOUT"
     "ARGS;ENVIRONMENT"
     ${ARGN})
@@ -113,8 +119,14 @@ function(score_add_media_test)
   if(ARG_VIRTUAL_VIDEO)
     list(APPEND _flags --video)
   endif()
+  if(ARG_GSTREAMER)
+    list(APPEND _flags --gstreamer)
+  endif()
   if(ARG_MEDIA)
     list(APPEND _flags --media)
+  endif()
+  if(ARG_MATRIX)
+    list(APPEND _flags --matrix)
   endif()
 
   add_test(NAME ${ARG_NAME}
