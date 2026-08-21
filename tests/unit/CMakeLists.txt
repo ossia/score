@@ -1053,3 +1053,35 @@ if(TARGET score_plugin_media)
     LIBS avutil avcodec avformat swscale ${QT_PREFIX}::Gui
     NO_CTEST)
 endif()
+
+# --- container x codec matrix, asserted 1:1 against known pixels -------------
+# Registered in tests/hardware (score_add_media_test MATRIX): the runner builds
+# one master clip of solid colour blocks, derives its ground-truth rgb24 dump
+# FROM that clip, and encodes the same master into every container/codec pair
+# the host's ffmpeg can produce. The harness compares decoded pixels against
+# those bytes, so no return code and no "something was rendered" heuristic is
+# involved.
+if(TARGET score_plugin_media)
+  score_add_test(test_unit_video_codec_matrix
+    SOURCES VideoCodecMatrixTest.cpp
+    PLUGINS score_plugin_media
+    LIBS avutil avcodec avformat swscale ${QT_PREFIX}::Gui
+    NO_CTEST)
+endif()
+
+# --- streaming protocols and device lifecycle (score-plugin-media) ----------
+# Video::LibavStreamInput against real network peers -- UDP/MPEG-TS, RTP+SDP,
+# SRT, RIST, RTMP and HLS-over-HTTP -- serving the same known-pixel master the
+# codec matrix uses, so the assertion is the picture off the wire and not "a
+# frame arrived". The harness spawns and KILLS the peers itself, which is what
+# lets it stage a mid-stream drop, a reconnect and a destroy-while-blocked.
+# Every lifecycle case runs under a hard deadline (score_test/StreamServer.hpp):
+# a hang fails the case instead of wedging the run until ctest's TIMEOUT.
+# Registered in tests/hardware (score_add_media_test MATRIX) for the fixtures.
+if(TARGET score_plugin_media)
+  score_add_test(test_unit_streaming_protocol
+    SOURCES StreamingProtocolTest.cpp
+    PLUGINS score_plugin_media
+    LIBS avutil avcodec avformat swscale ${QT_PREFIX}::Gui ${QT_PREFIX}::Network
+    NO_CTEST)
+endif()
