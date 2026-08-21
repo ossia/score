@@ -256,6 +256,22 @@ set(GPS_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/GPS/GPSSpecificSettingsSerialization.cpp"
 )
 
+set(CAN_HDRS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/CAN/CANDevice.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/CAN/CANProtocolFactory.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/CAN/CANProtocolSettingsWidget.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/CAN/CANSpecificSettings.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/CAN/DBCParser.hpp"
+)
+
+set(CAN_SRCS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/CAN/CANDevice.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/CAN/CANProtocolFactory.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/CAN/CANProtocolSettingsWidget.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/CAN/CANSpecificSettingsSerialization.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/CAN/DBCParser.cpp"
+)
+
 set(EVDEV_HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Evdev/EvdevDevice.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Evdev/EvdevProtocolFactory.hpp"
@@ -409,6 +425,15 @@ if(LINUX)
   list(APPEND SCORE_FEATURES_LIST protocol_evdev)
 endif()
 
+# SocketCAN is Linux-only, and so is ossia::net::can_socket. The DBC parser
+# itself is portable and has no guard of its own, so that it stays unit-testable
+# everywhere; it is simply not compiled into the plugin elsewhere.
+if(LINUX)
+  target_sources(${PROJECT_NAME} PRIVATE ${CAN_HDRS} ${CAN_SRCS})
+  target_compile_definitions(${PROJECT_NAME} PRIVATE OSSIA_PROTOCOL_CAN)
+  list(APPEND SCORE_FEATURES_LIST protocol_can)
+endif()
+
 if(NOT EMSCRIPTEN)
   target_sources(${PROJECT_NAME} PRIVATE ${BITFOCUS_HDRS} ${BITFOCUS_SRCS})
   if(WIN32)
@@ -446,3 +471,7 @@ if(WIN32)
 endif()
 
 setup_score_plugin(${PROJECT_NAME})
+
+if(SCORE_TESTING)
+  add_subdirectory(Tests)
+endif()
