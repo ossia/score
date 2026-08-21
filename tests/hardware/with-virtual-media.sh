@@ -13,16 +13,21 @@
 # Everything provisioned here is torn down on exit, including on failure.
 set -u
 
-want_video=0; want_media=0
+want_video=0; want_media=0; want_matrix=0; want_gstreamer=0
 while [ $# -gt 0 ]; do
   case "$1" in
-    --video) want_video=1; shift;;
+    --video) want_video=1; want_gstreamer=1; shift;;
     --media) want_media=1; shift;;
+    --matrix) want_matrix=1; shift;;
+    --gstreamer) want_gstreamer=1; shift;;
     --) shift; break;;
     *) echo "with-virtual-media: unexpected arg '$1'" >&2; exit 2;;
   esac
 done
-[ $# -ge 1 ] || { echo "usage: $0 [--video] [--media] -- <harness> [args...]" >&2; exit 2; }
+[ $# -ge 1 ] || {
+  echo "usage: $0 [--video] [--gstreamer] [--media] [--matrix] -- <harness> [args...]" >&2
+  exit 2
+}
 
 # Default is STRICT: a host running these tests is expected to have the media
 # stack, so a missing piece is a failure and not a skip -- otherwise "the device
@@ -39,15 +44,28 @@ die() {
   exit 1
 }
 
-for tool in gst-launch-1.0 ffmpeg; do
-  command -v "$tool" >/dev/null 2>&1 || die "$tool not on PATH (this runner requires it)"
-done
-gst-inspect-1.0 pipewiresink >/dev/null 2>&1 || die "gstreamer has no pipewiresink element"
+command -v ffmpeg >/dev/null 2>&1 || die "ffmpeg not on PATH (this runner requires it)"
 
-sock="${PIPEWIRE_RUNTIME_DIR:-${XDG_RUNTIME_DIR:-/run/user/$(id -u)}}/${PIPEWIRE_REMOTE:-pipewire-0}"
-[ -S "$sock" ] || die "no PipeWire socket at $sock"
-if command -v pw-cli >/dev/null 2>&1; then
-  timeout 5 pw-cli info 0 >/dev/null 2>&1 || die "PipeWire socket present but the core does not answer"
+# GStreamer and a live PipeWire graph are only needed by the harnesses that ask
+# for them. Requiring a running daemon for a harness that only decodes files
+# would make a missing daemon look like a decoder failure.
+if [ "$want_gstreamer" = 1 ]; then
+  command -v gst-launch-1.0 >/dev/null 2>&1 \
+    || die "gst-launch-1.0 not on PATH (--gstreamer/--video requires it)"
+  gst-inspect-1.0 videotestsrc >/dev/null 2>&1 \
+    || die "gstreamer has no videotestsrc element"
+fi
+
+if [ "$want_video" = 1 ]; then
+  gst-inspect-1.0 pipewiresink >/dev/null 2>&1 \
+    || die "gstreamer has no pipewiresink element"
+
+  sock="${PIPEWIRE_RUNTIME_DIR:-${XDG_RUNTIME_DIR:-/run/user/$(id -u)}}/${PIPEWIRE_REMOTE:-pipewire-0}"
+  [ -S "$sock" ] || die "no PipeWire socket at $sock"
+  if command -v pw-cli >/dev/null 2>&1; then
+    timeout 5 pw-cli info 0 >/dev/null 2>&1 \
+      || die "PipeWire socket present but the core does not answer"
+  fi
 fi
 
 tmp=$(mktemp -d)
@@ -156,6 +174,145 @@ if [ "$want_media" = 1 ]; then
   : > "$tmp/empty.bin"
 
   export SCORE_TEST_MEDIA_DIR="$tmp"
+fi
+
+if [ "$want_matrix" = 1 ]; then
+  # The container x codec matrix, plus the malformed and mid-stream-change
+  # inputs, all derived from ONE master clip so a decoded frame can be compared
+  # 1:1 against known pixels.
+  #
+  # The master is a grid of solid 40x40 blocks whose colour is a function of the
+  # block index and the frame number. Solid blocks are what makes a per-pixel
+  # assertion possible through a 4:2:0 codec at all: chroma subsampling and
+  # deblocking only disturb the block borders, so the interior of a block still
+  # carries the exact colour the pattern put there.
+  #
+  # Each frame ALSO rotates the grid by one column, on top of a per-frame colour
+  # offset, so that two different frames are nowhere near each other: the
+  # harness measures that separation and refuses to run if it is not far larger
+  # than the tolerance it allows a codec.
+  #
+  # master.rgb is derived FROM master.nut rather than generated a second time,
+  # so the ground truth the test reads and the bytes the encoders were fed
+  # cannot drift apart.
+  mdir="$tmp/matrix"
+  mkdir -p "$mdir"
+  MW=320; MH=240; MN=8; MBLK=40
+  MCOLS=$((MW / MBLK))
+  bx="mod(floor(X/${MBLK})+N,${MCOLS})"
+  by="floor(Y/${MBLK})"
+  geq="format=gbrp,geq=\
+r='mod(${bx}*53+${by}*97+N*61,256)':\
+g='mod(${bx}*29+${by}*181+N*137,256)':\
+b='mod(${bx}*149+${by}*41+N*89,256)'"
+
+  ffmpeg -nostdin -loglevel error -y -f lavfi -i "color=c=black:s=${MW}x${MH}:r=25:d=1" \
+    -vf "$geq" -frames:v "$MN" -pix_fmt rgb24 -c:v rawvideo -f nut "$mdir/master.nut" \
+    || die "ffmpeg could not produce the matrix master clip"
+  ffmpeg -nostdin -loglevel error -y -i "$mdir/master.nut" \
+    -pix_fmt rgb24 -c:v rawvideo -f rawvideo "$mdir/master.rgb" \
+    || die "ffmpeg could not flatten the matrix master to rgb24"
+  want=$((MW * MH * 3 * MN))
+  got=$(stat -c %s "$mdir/master.rgb" 2>/dev/null || stat -f %z "$mdir/master.rgb")
+  [ "$got" = "$want" ] || die "matrix master is $got bytes, expected $want"
+
+  # codec-<container>-<codec>-<exact|yuvexact|lossy>.<ext>, discovered by name:
+  # a row added here enters the sweep with no test change. The third field is
+  # the fidelity the row is entitled to -- `exact` for an RGB lossless codec,
+  # `yuvexact` for a lossless codec that still round-trips through a YUV
+  # colour space, `lossy` for a quantiser. A codec this ffmpeg cannot produce is
+  # skipped WITH ITS NAME RECORDED in unavailable.txt, so the test reports an
+  # attributed gap instead of a smaller green matrix.
+  : > "$mdir/unavailable.txt"
+  enc() {
+    local out="$1"; shift
+    if ffmpeg -nostdin -loglevel error -y -i "$mdir/master.nut" "$@" "$mdir/$out" \
+         2>"$tmp/enc.err"; then
+      :
+    else
+      echo "$out: $(head -c 300 "$tmp/enc.err" | tr '\n' ' ')" >> "$mdir/unavailable.txt"
+      rm -f "$mdir/$out"
+    fi
+  }
+
+  enc codec-mp4-h264-lossy.mp4        -c:v libx264 -preset ultrafast -pix_fmt yuv420p
+  enc codec-mp4-h265-lossy.mp4        -c:v libx265 -preset ultrafast -pix_fmt yuv420p -tag:v hvc1
+  enc codec-mp4-av1-lossy.mp4         -c:v libsvtav1 -preset 12 -pix_fmt yuv420p
+  enc codec-mp4-mjpeg-lossy.mp4       -c:v mjpeg -q:v 2 -pix_fmt yuvj420p
+  enc codec-mkv-h264-lossy.mkv        -c:v libx264 -preset ultrafast -pix_fmt yuv420p
+  enc codec-mkv-h265-lossy.mkv        -c:v libx265 -preset ultrafast -pix_fmt yuv420p
+  enc codec-mkv-vp8-lossy.mkv         -c:v libvpx -deadline realtime -cpu-used 8 -b:v 4M -pix_fmt yuv420p
+  enc codec-mkv-vp9-lossy.mkv         -c:v libvpx-vp9 -deadline realtime -cpu-used 8 -b:v 4M -pix_fmt yuv420p
+  enc codec-mkv-mjpeg-lossy.mkv       -c:v mjpeg -q:v 2 -pix_fmt yuvj420p
+  enc codec-mkv-ffv1-exact.mkv        -c:v ffv1 -pix_fmt gbrp
+  enc codec-mkv-ffv1yuv-yuvexact.mkv  -c:v ffv1 -pix_fmt yuv444p
+  enc codec-webm-vp8-lossy.webm       -c:v libvpx -deadline realtime -cpu-used 8 -b:v 4M -pix_fmt yuv420p
+  enc codec-webm-vp9-lossy.webm       -c:v libvpx-vp9 -deadline realtime -cpu-used 8 -b:v 4M -pix_fmt yuv420p
+  enc codec-mov-prores-lossy.mov      -c:v prores_ks -profile:v 3 -pix_fmt yuv422p10le
+  enc codec-mov-h264-lossy.mov        -c:v libx264 -preset ultrafast -pix_fmt yuv420p
+  enc codec-mov-rawuyvy-yuvexact.mov  -c:v rawvideo -pix_fmt uyvy422
+  enc codec-mpegts-h264-lossy.ts      -c:v libx264 -preset ultrafast -pix_fmt yuv420p -g 4
+  enc codec-mpegts-h265-lossy.ts      -c:v libx265 -preset ultrafast -pix_fmt yuv420p -g 4
+  enc codec-avi-mjpeg-lossy.avi       -c:v mjpeg -q:v 2 -pix_fmt yuvj420p
+  enc codec-avi-utvideo-exact.avi     -c:v utvideo -pix_fmt gbrp
+  enc codec-avi-rawvideo-exact.avi    -c:v rawvideo -pix_fmt bgr24
+  enc codec-nut-rawvideo-exact.nut    -c:v rawvideo -pix_fmt rgb24
+  enc codec-nut-rawyuv-yuvexact.nut   -c:v rawvideo -pix_fmt yuv444p
+
+  # Malformed inputs, one per container family: opening these must fail cleanly
+  # rather than crash, hang, or half-open.
+  for f in mp4 mkv webm mov ts avi nut; do
+    : > "$mdir/zero.$f"
+  done
+  for src in codec-mp4-h264-lossy.mp4 codec-mkv-h264-lossy.mkv \
+             codec-mpegts-h264-lossy.ts codec-nut-rawvideo-exact.nut; do
+    [ -f "$mdir/$src" ] || continue
+    sz=$(stat -c %s "$mdir/$src" 2>/dev/null || stat -f %z "$mdir/$src")
+    head -c $((sz * 2 / 5)) "$mdir/$src" > "$mdir/truncated-$src"
+  done
+  head -c 65536 /dev/urandom > "$mdir/garbage.mp4"
+
+  # A container whose header claims a geometry the frames do not have: two
+  # MPEG-TS segments of different sizes concatenated. The demuxer reports the
+  # FIRST size; the frames after the join are the second one.
+  ffmpeg -nostdin -loglevel error -y -f lavfi -i "testsrc2=size=320x240:rate=25" \
+    -frames:v 12 -c:v libx264 -preset ultrafast -pix_fmt yuv420p -g 4 \
+    -f mpegts "$tmp/part-320.ts" || die "ffmpeg could not produce the 320x240 segment"
+  ffmpeg -nostdin -loglevel error -y -f lavfi -i "testsrc2=size=160x120:rate=25" \
+    -frames:v 12 -c:v libx264 -preset ultrafast -pix_fmt yuv420p -g 4 \
+    -f mpegts "$tmp/part-160.ts" || die "ffmpeg could not produce the 160x120 segment"
+  cat "$tmp/part-320.ts" "$tmp/part-160.ts" > "$mdir/resolution-change.ts"
+
+  # Streams that gain and lose an audio track mid-play, same technique.
+  ffmpeg -nostdin -loglevel error -y \
+    -f lavfi -i "testsrc2=size=160x120:rate=25" -f lavfi -i "sine=frequency=440" \
+    -map 0:v -map 1:a -frames:v 12 -shortest \
+    -c:v libx264 -preset ultrafast -pix_fmt yuv420p -g 4 -c:a aac \
+    -f mpegts "$tmp/part-av.ts" || die "ffmpeg could not produce the a+v segment"
+  ffmpeg -nostdin -loglevel error -y -f lavfi -i "testsrc2=size=160x120:rate=25" \
+    -frames:v 12 -c:v libx264 -preset ultrafast -pix_fmt yuv420p -g 4 \
+    -f mpegts "$tmp/part-v.ts" || die "ffmpeg could not produce the video-only segment"
+  cat "$tmp/part-av.ts" "$tmp/part-v.ts" > "$mdir/track-loss.ts"
+  cat "$tmp/part-v.ts" "$tmp/part-av.ts" > "$mdir/track-gain.ts"
+
+  # Audio-only and video-only files of the same duration: the A/V clock check
+  # below needs each half on its own as well as together.
+  ffmpeg -nostdin -loglevel error -y -f lavfi -i "sine=frequency=440:duration=2" \
+    -c:a aac "$mdir/audio-only.m4a" || die "ffmpeg could not produce the audio-only clip"
+  ffmpeg -nostdin -loglevel error -y -f lavfi -i "testsrc2=size=160x120:rate=25" \
+    -frames:v 50 -c:v libx264 -preset ultrafast -pix_fmt yuv420p \
+    "$mdir/video-only.mp4" || die "ffmpeg could not produce the video-only clip"
+  ffmpeg -nostdin -loglevel error -y \
+    -f lavfi -i "testsrc2=size=160x120:rate=25" -f lavfi -i "sine=frequency=440" \
+    -map 0:v -map 1:a -frames:v 50 -shortest \
+    -c:v libx264 -preset ultrafast -pix_fmt yuv420p -c:a aac \
+    "$mdir/audio-video.mp4" || die "ffmpeg could not produce the a+v clip"
+
+  export SCORE_TEST_MATRIX_DIR="$mdir"
+  export SCORE_TEST_MATRIX_WIDTH="$MW"
+  export SCORE_TEST_MATRIX_HEIGHT="$MH"
+  export SCORE_TEST_MATRIX_FRAMES="$MN"
+  export SCORE_TEST_MATRIX_BLOCK="$MBLK"
 fi
 
 if [ -z "${DISPLAY:-}" ] && [ -z "${WAYLAND_DISPLAY:-}" ] \
