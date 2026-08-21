@@ -411,6 +411,21 @@ if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
   set_tests_properties(test_integration_frame_determinism PROPERTIES
     TIMEOUT 1800 RUN_SERIAL TRUE LABELS "gui")
 endif()
+# PipeWire video input, end to end through a real score process. The ctest
+# entry is registered in tests/hardware/CMakeLists.txt (score_add_media_test)
+# rather than here: the producer it renders comes from
+# with-virtual-media.sh --video, and without that wrapper the test has no
+# source to connect to at all.
+if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_pipewire_video_input
+    SOURCES PipewireVideoInputTest.cpp
+    LIBS ${QT_PREFIX}::Gui
+    NO_CTEST)
+  target_compile_definitions(test_integration_pipewire_video_input PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\""
+    "GFX_TEST_CORPUS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/../gfx/corpus\"")
+endif()
+
 # Manual tool (not a ctest): enumerate and live-preview every registered
 # object.  Run:  <build>/tests/integration/ObjectGallery --list
 #          or:  cd <build> && ./tests/integration/ObjectGallery --filter camera

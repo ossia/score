@@ -133,6 +133,75 @@ std::span<const std::uint64_t> consumerDmabufModifiers(formats::Tag) noexcept
   return {mods, std::size(mods)};
 }
 
+/** Every wire format `on_stream_process` has a copy path for, in the order
+ *  they are offered when the exact request cannot be met. */
+constexpr formats::Tag kConsumableTags[]{
+    formats::Tag::RGBA8,   formats::Tag::BGRA8,   formats::Tag::RGB24,
+    formats::Tag::NV12,    formats::Tag::YUV420P, formats::Tag::YV12,
+    formats::Tag::YUYV422, formats::Tag::UYVY422, formats::Tag::P010,
+    formats::Tag::RGB10A2, formats::Tag::BGR10A2, formats::Tag::RGBA16F};
+
+/** Open-ended SHM EnumFormat: any format this consumer can convert, at any
+ *  size and rate, with the URL's request as the default of each choice.
+ *
+ *  `format_negotiation` pins format, size and framerate to exactly one value
+ *  each, which only ever intersects a producer built to match. A camera
+ *  publishes what its sensor does and PipeWire inserts no video converter, so
+ *  the exact-match pod alone leaves the link in `state error` /
+ *  "no more input formats" and no frame is ever delivered.
+ *
+ *  No `maxFramerate` here on purpose: real sources do not carry that prop and
+ *  it only narrows the intersection. */
+const spa_pod* build_permissive_enum_format(
+    spa_pod_builder& b, formats::Tag preferred, int width, int height,
+    double fps)
+{
+  spa_pod_frame obj{};
+  spa_pod_builder_push_object(&b, &obj, SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat);
+  spa_pod_builder_add(
+      &b, SPA_FORMAT_mediaType, SPA_POD_Id(SPA_MEDIA_TYPE_video),
+      SPA_FORMAT_mediaSubtype, SPA_POD_Id(SPA_MEDIA_SUBTYPE_raw), 0);
+
+  // SPA_CHOICE_Enum: the first value is the default, then the alternatives.
+  const spa_video_format preferredSpa = formats::toSpa(preferred);
+  spa_pod_frame choice{};
+  spa_pod_builder_prop(&b, SPA_FORMAT_VIDEO_format, 0);
+  spa_pod_builder_push_choice(&b, &choice, SPA_CHOICE_Enum, 0);
+  spa_pod_builder_id(&b, preferredSpa);
+  spa_pod_builder_id(&b, preferredSpa);
+  for(const auto t : kConsumableTags)
+  {
+    const auto spa = formats::toSpa(t);
+    if(spa != preferredSpa)
+      spa_pod_builder_id(&b, spa);
+  }
+  spa_pod_builder_pop(&b, &choice);
+
+  // SPA_CHOICE_Range: default, then min and max.
+  const spa_rectangle defSize{
+      static_cast<std::uint32_t>(width > 0 ? width : 1),
+      static_cast<std::uint32_t>(height > 0 ? height : 1)};
+  const spa_rectangle minSize{1u, 1u};
+  const spa_rectangle maxSize{16384u, 16384u};
+  spa_pod_builder_prop(&b, SPA_FORMAT_VIDEO_size, 0);
+  spa_pod_builder_push_choice(&b, &choice, SPA_CHOICE_Range, 0);
+  spa_pod_builder_rectangle(&b, defSize.width, defSize.height);
+  spa_pod_builder_rectangle(&b, minSize.width, minSize.height);
+  spa_pod_builder_rectangle(&b, maxSize.width, maxSize.height);
+  spa_pod_builder_pop(&b, &choice);
+
+  const auto defRate = static_cast<std::uint32_t>(
+      std::lround((fps > 0. ? fps : 30.) * 1000.));
+  spa_pod_builder_prop(&b, SPA_FORMAT_VIDEO_framerate, 0);
+  spa_pod_builder_push_choice(&b, &choice, SPA_CHOICE_Range, 0);
+  spa_pod_builder_fraction(&b, defRate, 1000u);
+  spa_pod_builder_fraction(&b, 0u, 1u);
+  spa_pod_builder_fraction(&b, 1000u, 1u);
+  spa_pod_builder_pop(&b, &choice);
+
+  return static_cast<const spa_pod*>(spa_pod_builder_pop(&b, &obj));
+}
+
 // DMA-BUF handling:
 //
 // Two paths coexist based on the negotiated SPA format:
@@ -632,11 +701,18 @@ bool InputStream::start() noexcept
       neg.set_dmabuf_modifiers(consumerDmabufModifiers(m_formatTag));
     m_neg = std::move(neg);
 
-    uint8_t buffer[2048];
+    uint8_t buffer[4096];
     spa_pod_builder b = SPA_POD_BUILDER_INIT(buffer, sizeof(buffer));
-    const auto params = m_neg.build_connect_params(b, PW_DIRECTION_INPUT);
+    auto params = m_neg.build_connect_params(b, PW_DIRECTION_INPUT);
     if(params.empty())
       throw std::runtime_error("format_negotiation produced no params");
+
+    // Preference is expressed by order: the exact request first, then the
+    // open-ended fallback the server can actually intersect with a real
+    // producer's own format list.
+    if(const spa_pod* open = build_permissive_enum_format(
+           b, m_formatTag, m_width, m_height, m_fps))
+      params.push_back(open);
 
     // stream_connect also goes through the proxy layer — lock.
     int connect_ret = 0;
@@ -775,6 +851,11 @@ void InputStream::on_stream_param_changed(
   {
     if(pc.candidate_modifiers.empty())
       return;
+    // The producer may have settled on a geometry other than the URL's; the
+    // fixation pod must re-announce what it chose, not what we asked for.
+    if(pc.width > 0 && pc.height > 0)
+      self->m_neg.set_size(pc.width, pc.height);
+    self->m_neg.set_video_format(pc.format);
     // Baseline policy: prefer LINEAR when offered, otherwise take the
     // producer's first choice. Follow-up: probe each candidate against
     // the GPU import path and pick the cheapest supported tiled modifier
