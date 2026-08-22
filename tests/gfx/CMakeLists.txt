@@ -396,6 +396,30 @@ if(TARGET score_plugin_media)
       ${_libav_settings_hidden}
     APP
     PLUGINS score_plugin_gfx score_lib_process score_plugin_media)
+
+  # Every SHIPPED libav preset, in both directions: an input preset through the
+  # real device, an output preset through the real Gfx::LibavEncoder, and what
+  # the encoder wrote decoded back and compared against the known master.
+  # Registered as a media test in tests/hardware terms (below), because the
+  # master comes from the --matrix provisioning.
+  score_add_test(test_gfx_libav_presets
+    SOURCES
+      LibavPresets.cpp
+      ${_libav_settings_hidden}
+    APP
+    PLUGINS score_plugin_gfx score_lib_process score_plugin_media
+            score_plugin_deviceexplorer
+    LIBS avutil avformat avcodec swscale
+    NO_CTEST)
+endif()
+
+if(TARGET test_gfx_libav_presets)
+  score_add_media_test(
+    NAME       Media_LibavPresets
+    EXECUTABLE test_gfx_libav_presets
+    MATRIX
+    TIMEOUT    3600
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 endif()
 
 # -----------------------------------------------------------------------------
@@ -447,6 +471,18 @@ if(TARGET score_plugin_media)
             score_plugin_deviceexplorer
     LIBS avutil avformat swscale
     NO_CTEST)
+
+  # Every SHIPPED preset, enumerated from the factory rather than copied, so a
+  # preset that is added or edited is covered without touching this list.
+  score_add_test(test_gfx_gstreamer_presets
+    SOURCES
+      GStreamerPresets.cpp
+      ${_gstreamer_device_hidden}
+    APP
+    PLUGINS score_plugin_gfx score_lib_process score_plugin_media
+            score_plugin_deviceexplorer
+    LIBS avutil avformat swscale
+    NO_CTEST)
 endif()
 
 # --- GStreamer input device (score-plugin-gfx) ------------------------------
@@ -484,5 +520,20 @@ if(TARGET test_gfx_gstreamer_matrix)
     GSTREAMER
     MATRIX
     TIMEOUT    900
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+endif()
+
+# --- the shipped presets ----------------------------------------------------
+# Drives every preset the protocol enumerates: the file and network receivers
+# against the --matrix master, videotestsrc against a gst-launch dump of itself,
+# and everything else to the furthest point this host allows, with the reason it
+# stopped there recorded by name.
+if(TARGET test_gfx_gstreamer_presets)
+  score_add_media_test(
+    NAME       Media_GStreamerPresets
+    EXECUTABLE test_gfx_gstreamer_presets
+    GSTREAMER
+    MATRIX
+    TIMEOUT    3600
     ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 endif()
