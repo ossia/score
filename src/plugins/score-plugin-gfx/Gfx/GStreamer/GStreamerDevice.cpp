@@ -1657,7 +1657,10 @@ ProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
         {"SMPTE 302M audio sender (MPEG-TS)",
          "GStreamer Out",
          "appsrc name=audio ! audioconvert ! "
-         "audio/x-raw,format=S24LE,rate=48000,channels=2 ! "
+         // avenc_s302m accepts S16LE or S32LE only -- 24-bit SMPTE 302M is
+         // carried in 32-bit containers -- and never S24LE, which made this
+         // preset refuse to link at all.
+         "audio/x-raw,format=S32LE,rate=48000,channels=2 ! "
          "avenc_s302m ! mpegtsmux ! "
          "udpsink host=239.0.0.1 port=5008 auto-multicast=true sync=false",
          1280, 720, 30, 2});
