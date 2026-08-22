@@ -1,5 +1,6 @@
 #include "ISFNode.hpp"
 
+#include <Gfx/Graph/CustomMesh.hpp>
 #include <Gfx/Graph/Graph.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
@@ -72,25 +73,25 @@ struct no_delay_edges
 
 static void graphwalk(
     score::gfx::Node* node, std::vector<score::gfx::Node*>& list, GraphImpl& g,
-    VertexMap& m)
+    VertexMap& m, ossia::flat_set<score::gfx::Node*>& visited)
 {
   auto sink_desc = m[node];
   for(auto inputs : node->input)
   {
     for(auto edge : inputs->edges)
     {
-      if(!edge->source->node->addedToGraph)
+      auto* src_node = edge->source->node;
+      if(visited.insert(src_node).second)
       {
-        list.push_back(edge->source->node);
+        list.push_back(src_node);
 
-        auto src_desc = boost::add_vertex(edge->source->node, g);
-        m[edge->source->node] = src_desc;
-        edge->source->node->addedToGraph = true;
+        auto src_desc = boost::add_vertex(src_node, g);
+        m[src_node] = src_desc;
         boost::add_edge(src_desc, sink_desc, edge->type, g);
       }
       else
       {
-        auto src_desc = m[edge->source->node];
+        auto src_desc = m[src_node];
         boost::add_edge(src_desc, sink_desc, edge->type, g);
       }
     }
@@ -101,14 +102,16 @@ static void graphwalk(std::vector<score::gfx::Node*>& model_nodes)
 {
   GraphImpl g;
   VertexMap m;
+  ossia::flat_set<score::gfx::Node*> visited;
+
   auto k = boost::add_vertex(model_nodes.front(), g);
   m[model_nodes.front()] = k;
-  model_nodes.front()->addedToGraph = true;
+  visited.insert(model_nodes.front());
 
   std::size_t processed = 0;
   while(processed != model_nodes.size())
   {
-    graphwalk(model_nodes[processed], model_nodes, g, m);
+    graphwalk(model_nodes[processed], model_nodes, g, m, visited);
     processed++;
   }
 
@@ -252,6 +255,43 @@ void Graph::recreateOutputRenderList(OutputNode& output)
       if(!state)
         return;
 
+      // Pre-condition: recreateOutputRenderList MUST be called outside
+      // any active beginFrame/endFrame block. The Window::resize ->
+      // resizeSwapChain -> onResize -> here chain is invoked at the
+      // top of Window::render BEFORE beginFrame (Window.cpp:148-151),
+      // so this should always hold. Assert it to catch any future
+      // path that triggers the resize from inside a render frame.
+      if(auto rs = output.renderState(); rs && rs->rhi)
+        SCORE_ASSERT(!rs->rhi->isRecordingFrame());
+
+      // Drain the GPU before tearing down the old RenderList. release() walks every
+      // renderer and triggers a torrent of delete / deleteLater on QRhi objects, and
+      // on Vulkan sibling outputs -- BackgroundNode's beginOffscreenFrame,
+      // MultiWindowNode per-window CBs, the resizing window's own previous-frame CB
+      // -- may still hold them in pending state. The
+      // Window::resize -> onResize -> recreateOutputRenderList path tears the
+      // RenderList down directly and never enters the destroyOutput drains.
+      if(auto rs = output.renderState(); rs && rs->rhi)
+      {
+        auto* rhi = rs->rhi;
+        rhi->finish();
+
+        // Force a no-op offscreen frame on each frame slot so BOTH command pools are
+        // reset symmetrically: QRhi-Vulkan's finish() resets only
+        // cmdPool[currentFrameSlot]. A sibling output driving its own
+        // beginOffscreenFrame on a separate timer would otherwise find, on the
+        // un-reset slot, CBs still pending from before the resize.
+        //
+        // beginOffscreenFrame advances currentFrameSlot and resets the new slot's pool;
+        // endOffscreenFrame waits on ofr.cmdFence, draining every queued CB. Two
+        // iterations cover QVK_FRAMES_IN_FLIGHT=2.
+        for(int i = 0; i < 2; ++i)
+        {
+          QRhiCommandBuffer* cb{};
+          if(rhi->beginOffscreenFrame(&cb) == QRhi::FrameOpSuccess)
+            rhi->endOffscreenFrame();
+        }
+      }
       auto old_renderer = renderer;
       old_renderer->release();
       old_renderer.reset();
@@ -268,7 +308,6 @@ void Graph::recreateOutputRenderList(OutputNode& output)
     }
     else
     {
-      qDebug("???");
     }
   }
 }
@@ -289,7 +328,21 @@ void Graph::initializeOutput(OutputNode* output, GraphicsApi graphicsApi)
     };
 
     auto onResize = [this, output] {
-      // FIXME optimize if size did not change?
+      // Fast path for a pure viewport resize: skip the full release+createRenderList
+      // -- pipeline compiles, ScenePreprocessor rebuild, mesh slab and texture array
+      // re-upload, every preprocessor SSBO from cap=0 -- and instead mark every
+      // renderer's RT specs dirty so renderInternal's surgical rt_changed block
+      // recreates only the swapchain-sized RTs and rebinds downstream samplers. The
+      // persistent GpuResourceRegistry and ScenePreprocessor caches make the heavier
+      // work unnecessary for a size-only change.
+      //
+      // Returns false when it cannot handle the change (no renderers yet, invalid
+      // size); the fallback below covers initial setup and any future format or
+      // sample-count change.
+      if(auto* rl = output->renderer())
+        if(auto rs = output->renderState(); rs)
+          if(rl->resizeSwapchainSizedTargets(rs->outputSize, rs->renderSize))
+            return;
       recreateOutputRenderList(*output);
     };
 
@@ -308,8 +361,6 @@ void Graph::relinkGraph()
   for(auto r_it = m_renderers.begin(); r_it != m_renderers.end();)
   {
     auto& r = **r_it;
-    for(auto& node : m_nodes)
-      node->addedToGraph = false;
 
     assert(!r.nodes.empty());
 
@@ -327,11 +378,21 @@ void Graph::relinkGraph()
       if(model_nodes.size() > 1)
       {
         bool invalid_renderlist = false;
+        // Acquire a resource update batch for both brand-new renderers
+        // (whose init() uploads material UBOs, creates samplers, etc.) and
+        // reused renderers that we just released (whose init() must recreate
+        // freed resources). Without reinitialising the reused path, a
+        // second execution after stop/start leaves every reused renderer
+        // in its released state forever.
+        QRhiResourceUpdateBatch* batch = r.state.rhi
+            ? r.state.rhi->nextResourceUpdateBatch()
+            : nullptr;
         for(auto node : model_nodes)
         {
           score::gfx::NodeRenderer* rn{};
           auto it = node->renderedNodes.find(&r);
-          if(it == node->renderedNodes.end())
+          const bool is_new = (it == node->renderedNodes.end());
+          if(is_new)
           {
             if((rn = node->createRenderer(r)))
             {
@@ -339,7 +400,6 @@ void Graph::relinkGraph()
               node->renderedNodes.emplace(&r, rn);
 
               node->renderedNodesChanged();
-              //rn->init(r);
             }
             else
             {
@@ -352,10 +412,29 @@ void Graph::relinkGraph()
             rn = it->second;
             SCORE_ASSERT(rn);
             rn->release(r);
-            //rn->init(r);
           }
           SCORE_ASSERT(rn);
+          if(batch)
+            rn->init(r, *batch);
           r.renderers.push_back(rn);
+        }
+
+        // Fold the batch into the RenderList's initial batch so its uploads
+        // (vertex buffers, placeholder UBOs, samplers) land before the first
+        // render frame. `merge` copies entries but doesn't release `batch`
+        // back to the pool — release it explicitly, or we leak a pool slot
+        // per relinkGraph call and eventually exhaust the 64-slot pool.
+        if(batch)
+        {
+          if(r.initialBatch())
+          {
+            r.initialBatch()->merge(batch);
+            batch->release();
+          }
+          else
+          {
+            r.setInitialBatch(batch);
+          }
         }
 
         // If a node couldn't be recreated, we skip the whole thing
@@ -365,11 +444,6 @@ void Graph::relinkGraph()
           r_it = m_renderers.erase(r_it);
           break;
         }
-
-        //         for(auto node : r.renderers)
-        //         {
-        //           node->init(r);
-        //         }
       }
       else if(model_nodes.size() == 1)
       {
@@ -427,10 +501,12 @@ std::shared_ptr<RenderList>
 Graph::createRenderList(OutputNode* output, std::shared_ptr<RenderState> state)
 {
   auto ptr = std::make_shared<RenderList>(*output, state);
+  // Forward the session-wide AssetTable (if any) so ScenePreprocessor
+  // and other renderers can hit the content-hash decode cache
+  // instead of decoding every texture per-RenderList.
+  ptr->setAssetTable(m_assetTable);
   state->renderer = ptr;
   output->setRenderer(ptr);
-  for(auto& node : m_nodes)
-    node->addedToGraph = false;
 #if 0
   for(auto& model : m_nodes)
     qDebug() << "Model: " << typeid(*model).name();
@@ -484,20 +560,500 @@ Graph::createRenderList(OutputNode* output, std::shared_ptr<RenderState> state)
   {
     r.init();
 
-    if(model_nodes.size() > 1)
+    // Compute m_requiresDepth from the node graph BEFORE
+    // createAllInputRenderTargets — RT creation reads it. Mirrors
+    // maybeRebuild's recompute at RenderList.cpp:484-486.
     {
-      // Create all input render targets centrally before any node init().
-      // This ensures RTs are available regardless of init order
-      // (matches what maybeRebuild does).
-      r.createAllInputRenderTargets();
-
-      auto batch = r.initialBatch();
-      for(auto node : r.renderers)
-        node->init(r, *batch);
+      bool requiresDepth = false;
+      for(auto node : r.nodes)
+        requiresDepth |= node->requiresDepth;
+      r.markRequiresDepth(requiresDepth);
     }
+
+    // Create all input render targets centrally before any node init().
+    // This ensures RTs are available regardless of init order
+    // (matches what maybeRebuild does).
+    r.createAllInputRenderTargets();
+
+    // Always init all renderers, even when only the output node exists.
+    // This ensures the output renderer's internal render target (e.g.
+    // ScaledRenderer::m_inputTarget) is created and available for
+    // incremental edge additions later.
+    auto batch = r.initialBatch();
+    for(auto node : r.renderers)
+    {
+      node->init(r, *batch);
+      // Sync change indices so the first render frame does not see a spurious
+      // rt_changed: between init and the first render, update_inputs() can deliver
+      // render_target_spec messages that increment the node's counter, and the
+      // renderer's stale index would mismatch. materialChanged and geometryChanged
+      // are then set so the first update() uploads data and processes geometry.
+      node->checkForChanges();
+      node->materialChanged = true;
+      node->geometryChanged = true;
+      node->renderTargetSpecsChanged = false;
+    }
+
+    // Mark built, so the first render frame does not fire maybeRebuild(false)'s
+    // mid-frame release()+init() -- that would tear the RenderList down twice in
+    // quick succession on every viewport resize. The synchronous drain in
+    // maybeRebuild stays in place for forced rebuilds and later size changes.
+    r.markBuilt();
   }
 
   return ptr;
+}
+
+void Graph::removeNodeFromRenderLists(Node* node)
+{
+  for(auto& [rl, renderer] : node->renderedNodes)
+  {
+    renderer->releaseState(*rl);
+    delete renderer;
+
+    ossia::remove_erase(rl->renderers, renderer);
+    ossia::remove_erase(rl->nodes, node);
+  }
+
+  node->renderedNodes.clear();
+  node->renderedNodesChanged();
+}
+
+void Graph::removeNodeAndEdges(Node* node)
+{
+  // 1. For each edge involving this node, notify the render lists
+  //    so that upstream/downstream renderers clean up their passes.
+  //    Must happen BEFORE edge deletion (onEdgeRemoved reads the edge).
+  for(auto* edge : m_edges)
+  {
+    if(edge->source->node == node || edge->sink->node == node)
+    {
+      // Notify affected render lists
+      Node* other = (edge->source->node == node)
+                         ? edge->sink->node
+                         : edge->source->node;
+
+      for(auto& rl : m_renderers)
+      {
+        if(ossia::contains(rl->nodes, other)
+           || ossia::contains(rl->nodes, node))
+        {
+          rl->onEdgeRemoved(*edge);
+        }
+      }
+    }
+  }
+
+  // 2. Delete all edges involving this node from m_edges.
+  //    Edge destructor removes from source->edges and sink->edges.
+  for(auto it = m_edges.begin(); it != m_edges.end();)
+  {
+    Edge* edge = *it;
+    if(edge->source->node == node || edge->sink->node == node)
+    {
+      delete edge;
+      it = m_edges.erase(it);
+    }
+    else
+    {
+      ++it;
+    }
+  }
+
+  // 3. Release the node's own renderers from all render lists.
+  removeNodeFromRenderLists(node);
+
+  // 4. Reconcile all render lists. Removing an intermediate node can make its
+  //    whole upstream chain transitively unreachable (A->M->N->Output: removing
+  //    N orphans both M and A). A bare retopologicalSort() only rebuilds
+  //    rl->nodes and rl->renderers from the reachable set; it neither releases
+  //    the unreachable upstream renderers nor erases their node->renderedNodes
+  //    entries. reconcileAllRenderLists() step 3 does exactly that, and step 8
+  //    calls output.onRendererChange() per render list. No new nodes become
+  //    reachable by a removal, so step 5 creates nothing.
+  reconcileAllRenderLists();
+
+  // Note: does NOT remove from m_nodes — the caller (GfxContext::remove_node)
+  // handles that via Graph::removeNode().
+}
+
+void Graph::onEdgeRemoved(
+    Edge& edge, const ossia::hash_set<const Port*>* preserveSinks)
+{
+  Node* source = edge.source->node;
+
+  for(auto& rl : m_renderers)
+  {
+    // Only act on render lists that contain the source node
+    if(!ossia::contains(rl->nodes, source))
+      continue;
+
+    // Delegate to the render list (must happen before edge destruction)
+    rl->onEdgeRemoved(edge, preserveSinks);
+
+    // Do not retopological-sort or destroy unreachable renderers here. Removals are
+    // processed before additions, so a node that becomes temporarily unreachable
+    // may become reachable again; destroying its renderer would lose runtime state
+    // that cannot be trivially recreated. reconcileAllRenderLists() runs after all
+    // adds and removes and handles the final reachability check, cleanup and
+    // retopo sort.
+  }
+}
+
+void Graph::createPassForEdgeIfMissing(Edge& edge)
+{
+  Node* source = edge.source->node;
+
+  for(auto& rl : m_renderers)
+  {
+    // Check if the source node has a renderer in this render list
+    auto rn_it = source->renderedNodes.find(rl.get());
+    if(rn_it == source->renderedNodes.end())
+      continue;
+
+    auto* renderer = rn_it->second;
+
+    // Check if the sink node is also in this render list
+    if(!ossia::contains(rl->nodes, edge.sink->node))
+      continue;
+
+    // Check if a pass already exists for this edge
+    if(renderer->hasOutputPassForEdge(edge))
+      continue;
+
+    // Ensure the sink port has a render target (if needed)
+    Port* sink = edge.sink;
+    if(sink->type == Types::Image
+       && (sink->flags & Flag::GrabsFromSource) != Flag::GrabsFromSource
+       && sink->node != &rl->output)
+    {
+      if(rl->renderTargetForInputPort(*sink).renderTarget == nullptr)
+      {
+        int cur_port = 0;
+        for(auto* in : sink->node->input)
+        {
+          if(in == sink)
+            break;
+          cur_port++;
+        }
+        auto spec = sink->node->resolveRenderTargetSpecs(cur_port, *rl);
+        if(!sink->node->hasExplicitRenderTargetSize(cur_port))
+        {
+          ossia::small_flat_map<const Port*, RenderTargetSpecs, 16> emptySpecs;
+          QSize downstream = rl->resolveDownstreamSize(sink->node, emptySpecs);
+          if(!downstream.isEmpty())
+            spec.size = downstream;
+        }
+        bool wantsDepth = rl->requiresDepth(*sink);
+        bool wantsSamplableDepth
+            = (sink->flags & Flag::SamplableDepth) == Flag::SamplableDepth;
+        auto rt = createRenderTarget(
+            rl->state, spec.format, spec.size, rl->samples(),
+            wantsDepth || wantsSamplableDepth, wantsSamplableDepth);
+        rl->m_inputRenderTargets[sink] = std::move(rt);
+      }
+    }
+
+    // Create the output pass on the source renderer.
+    // Allocate a fresh batch, collect `addOutputPass`'s updates, then
+    // either promote it to the RL's initial batch or merge + release.
+    // QRhiResourceUpdateBatch::merge does NOT release the source batch
+    // — without the explicit release() the 64-slot pool exhausts after
+    // enough edges (e.g. when a live-connected shader triggers
+    // createAllMissingPasses over a large scene graph) and the next
+    // nextResourceUpdateBatch() returns null → crash on merge.
+    auto* batch = rl->state.rhi->nextResourceUpdateBatch();
+    if(!batch)
+      continue;
+    renderer->addOutputPass(*rl, edge, *batch);
+
+    if(rl->initialBatch())
+    {
+      rl->initialBatch()->merge(batch);
+      batch->release();
+    }
+    else
+    {
+      rl->setInitialBatch(batch);
+    }
+  }
+}
+
+void Graph::createAllMissingPasses()
+{
+  for(auto* edge : m_edges)
+    createPassForEdgeIfMissing(*edge);
+}
+
+void Graph::updateAllSinkSamplers()
+{
+  for(auto* edge : m_edges)
+    updateSinkSampler(*edge);
+}
+
+void Graph::updateSinkSampler(Edge& edge)
+{
+  Port* sink = edge.sink;
+  if(sink->type != Types::Image)
+    return;
+
+  // GrabsFromSource ports don't have a render target — they need the
+  // upstream's QRhiTexture directly via textureForOutput(). This path
+  // covers cubemaps, 3D textures, AND texture arrays (e.g.
+  // ScenePreprocessor's base_color_array feeding classic_pbr_textured).
+  // Without this, the sink keeps binding emptyTexture (2D, single-layer)
+  // into what the shader expects as sampler2DArray → Vulkan validation
+  // error VUID-vkCmdDrawIndexed-viewType-07752, nothing renders.
+  if((sink->flags & Flag::GrabsFromSource) == Flag::GrabsFromSource)
+  {
+    Port* source = edge.source;
+    if(!source || !source->node)
+      return;
+    for(auto& rl : m_renderers)
+    {
+      auto sink_rn_it = sink->node->renderedNodes.find(rl.get());
+      if(sink_rn_it == sink->node->renderedNodes.end())
+        continue;
+      auto src_rn_it = source->node->renderedNodes.find(rl.get());
+      if(src_rn_it == source->node->renderedNodes.end())
+        continue;
+      if(auto* tex = src_rn_it->second->textureForOutput(*source))
+        sink_rn_it->second->updateInputTexture(*sink, tex);
+    }
+    return;
+  }
+
+  for(auto& rl : m_renderers)
+  {
+    auto sink_rn_it = sink->node->renderedNodes.find(rl.get());
+    if(sink_rn_it == sink->node->renderedNodes.end())
+      continue;
+
+    // For output nodes, the RT comes from the renderer itself
+    if(sink->node == &rl->output)
+    {
+      auto rt = sink_rn_it->second->renderTargetForInput(*sink);
+      if(rt.texture)
+        sink_rn_it->second->updateInputTexture(*sink, rt.texture, rt.depthTexture);
+    }
+    else
+    {
+      // For intermediate nodes, the RT comes from the centralized map
+      auto rt = rl->renderTargetForInputPort(*sink);
+      if(rt.texture)
+        sink_rn_it->second->updateInputTexture(*sink, rt.texture, rt.depthTexture);
+    }
+  }
+}
+
+void Graph::reconcileAllRenderLists()
+{
+  for(auto& rl : m_renderers)
+  {
+    // 1. Re-walk the graph from output to discover all reachable nodes.
+    auto* outputNode = rl->nodes.front();
+    rl->nodes.clear();
+    rl->nodes.push_back(outputNode);
+    graphwalk(rl->nodes);
+
+    // 2. Find nodes that are newly reachable (no renderer yet)
+    //    and nodes that are no longer reachable (have renderer but not in walk).
+    ossia::flat_set<Node*> reachable(rl->nodes.begin(), rl->nodes.end());
+    // Collect all nodes that have renderers for this RL
+    std::vector<Node*> nodesWithRenderers;
+    for(auto* node : m_nodes)
+    {
+      if(node->renderedNodes.find(rl.get()) != node->renderedNodes.end())
+        nodesWithRenderers.push_back(node);
+    }
+
+    // 3. Remove renderers for nodes no longer reachable.
+    for(auto* node : nodesWithRenderers)
+    {
+      if(!reachable.contains(node))
+      {
+        auto rn_it = node->renderedNodes.find(rl.get());
+        if(rn_it != node->renderedNodes.end())
+        {
+          auto* renderer = rn_it->second;
+          BUFTRACE() << "reconcile: releasing unreachable renderer="
+                     << (void*)renderer
+                     << " node_id=" << node->nodeId
+                     << " (any downstream node still referencing this "
+                        "renderer's buffers via process() caches will see "
+                        "stale pointers → ASan target)";
+          renderer->releaseState(*rl);
+          delete renderer;
+          node->renderedNodes.erase(rn_it);
+          node->renderedNodesChanged();
+        }
+      }
+    }
+
+    // 4. Ensure render targets exist for all input ports BEFORE creating
+    //    renderers. initState() → initInputSamplers() looks up the RT
+    //    texture — if the RT doesn't exist yet, the sampler gets emptyTexture
+    //    and the SRB will have wrong bindings.
+    for(auto* node : rl->nodes)
+    {
+      if(node == &rl->output)
+        continue;
+      int cur_port = 0;
+      for(auto* in : node->input)
+      {
+        if(in->type == Types::Image
+           && (in->flags & Flag::GrabsFromSource) != Flag::GrabsFromSource)
+        {
+          if(rl->renderTargetForInputPort(*in).renderTarget == nullptr)
+          {
+            // Create the missing render target
+            auto spec = node->resolveRenderTargetSpecs(cur_port, *rl);
+            if(!node->hasExplicitRenderTargetSize(cur_port))
+            {
+              ossia::small_flat_map<const Port*, RenderTargetSpecs, 16> emptySpecs;
+              QSize downstream = rl->resolveDownstreamSize(node, emptySpecs);
+              if(!downstream.isEmpty())
+                spec.size = downstream;
+            }
+            bool wantsDepth = rl->requiresDepth(*in);
+            bool wantsSamplableDepth
+                = (in->flags & Flag::SamplableDepth) == Flag::SamplableDepth;
+            auto rt = createRenderTarget(
+                rl->state, spec.format, spec.size, rl->samples(),
+                wantsDepth || wantsSamplableDepth, wantsSamplableDepth);
+            rl->m_inputRenderTargets[in] = std::move(rt);
+          }
+        }
+        cur_port++;
+      }
+    }
+
+    // 5. Create renderers for newly-reachable nodes (AFTER render targets
+    //    exist so that initState → initInputSamplers finds the correct textures).
+    // Pool exhausted (64 live batches — indicates a leak elsewhere): skip
+    // creating renderers this pass (retried next reconcile) but STILL fall
+    // through to step 7, which rebuilds rl->renderers from renderedNodes —
+    // step 3 above already deleted unreachable renderers, so a `continue`
+    // here would leave their freed pointers live in rl->renderers → UAF.
+    QRhiResourceUpdateBatch* batch = rl->state.rhi->nextResourceUpdateBatch();
+    if(!batch)
+      qWarning("reconcileAllRenderLists: resource update batch pool exhausted");
+    bool batchUsed = false;
+
+    for(auto* node : rl->nodes)
+    {
+      if(batch
+         && node->renderedNodes.find(rl.get()) == node->renderedNodes.end())
+      {
+        if(auto* rn = node->createRenderer(*rl))
+        {
+          rn->nodeId = node->nodeId;
+          node->renderedNodes.emplace(rl.get(), rn);
+          node->renderedNodesChanged();
+
+          // All renderers now implement initState(). Pass creation for
+          // individual edges is handled by createPassForEdgeIfMissing
+          // after reconciliation, ensuring all renderers + RTs exist first.
+          rn->initState(*rl, *batch);
+          rn->checkForChanges();
+          rn->materialChanged = true;
+          rn->geometryChanged = true;
+          rn->renderTargetSpecsChanged = false;
+
+          // Seed downstream consumers with this newly-created renderer's
+          // outputs so live-inserted scene producers (Camera, Environment,
+          // Light) don't need a full stop/restart to take
+          // effect. Default no-op for everything else.
+          rn->seedInitialOutputs(*rl);
+
+          batchUsed = true;
+        }
+      }
+    }
+
+    // 6. Pass creation is now handled entirely by createPassForEdgeIfMissing
+    //    in incrementalEdgeUpdate, after reconciliation completes and all
+    //    renderers + RTs exist. No sweep needed here.
+
+    // 7. Rebuild renderers vector from node order.
+    //    Also sync change indices for ALL renderers (not just newly created)
+    //    to prevent spurious rt_changed on the first render frame.
+    //    Without this, existing renderers whose nodes received process()
+    //    messages (via update_inputs) between reconciliation and rendering
+    //    could have stale indices, triggering a full release+init in the
+    //    rt_changed block — which destroys the feedback ISF's persistent textures.
+    rl->renderers.clear();
+    // Filter nodes to only those with renderers
+    std::vector<score::gfx::Node*> validNodes;
+    validNodes.reserve(rl->nodes.size());
+    for(auto* node : rl->nodes)
+    {
+      auto rn_it = node->renderedNodes.find(rl.get());
+      if(rn_it != node->renderedNodes.end())
+      {
+        validNodes.push_back(node);
+        auto* rn = rn_it->second;
+        rl->renderers.push_back(rn);
+
+        // Sync change indices and prevent spurious rt_changed
+        rn->checkForChanges();
+        rn->renderTargetSpecsChanged = false;
+      }
+    }
+    rl->nodes = std::move(validNodes);
+
+    // 8. Submit batch and notify output. `merge()` copies entries but
+    // does NOT release the source batch, so we have to do it ourselves
+    // — otherwise the 64-slot pool leaks one slot per reconcile.
+    if(batchUsed)
+    {
+      if(rl->initialBatch())
+      {
+        rl->initialBatch()->merge(batch);
+        batch->release();
+      }
+      else
+      {
+        rl->setInitialBatch(batch);
+      }
+    }
+    else
+    {
+      batch->release();
+    }
+
+    rl->output.onRendererChange();
+  }
+}
+
+void Graph::retopologicalSort(RenderList& rl)
+{
+  // Save the output node (always first in the list)
+  auto* outputNode = rl.nodes.front();
+
+  // Clear and re-walk
+  rl.nodes.clear();
+  rl.nodes.push_back(outputNode);
+  graphwalk(rl.nodes);
+
+  // Rebuild renderers vector from the new node order.
+  // Only include nodes that actually have a renderer for this RenderList.
+  // Nodes discovered by the graph walk but without renderers (e.g. just
+  // added to the graph but not yet processed by reconcileAllRenderLists) are excluded
+  // from both lists to prevent the render loop from asserting.
+  rl.renderers.clear();
+  std::vector<score::gfx::Node*> valid_nodes;
+  valid_nodes.reserve(rl.nodes.size());
+  for(auto* node : rl.nodes)
+  {
+    auto it = node->renderedNodes.find(&rl);
+    if(it != node->renderedNodes.end())
+    {
+      valid_nodes.push_back(node);
+      rl.renderers.push_back(it->second);
+    }
+  }
+  rl.nodes = std::move(valid_nodes);
 }
 
 Graph::Graph() { }
@@ -512,6 +1068,19 @@ Graph::~Graph()
   for(auto out : m_outputs)
   {
     out->destroyOutput();
+  }
+
+  // Belt-and-braces: any OutputNode registered via addNode but not yet
+  // promoted into m_outputs (e.g. preview outputs added via
+  // createSingleRenderList without a subsequent createAllRenderLists)
+  // would otherwise leak its swapchain / RPD on shutdown.
+  for(auto* n : m_nodes)
+  {
+    if(auto* out = dynamic_cast<OutputNode*>(n))
+    {
+      if(!ossia::contains(m_outputs, out))
+        out->destroyOutput();
+    }
   }
 
   clearEdges();
@@ -566,25 +1135,6 @@ void Graph::removeEdge(Port* source, Port* sink)
   }
 }
 
-void Graph::addAndLinkEdge(Port* source, Port* sink, Process::CableType t)
-{
-  addEdge(source, sink, t);
-
-  auto output = dynamic_cast<OutputNode*>(sink->node);
-  SCORE_ASSERT(output);
-
-  recreateOutputRenderList(*output);
-}
-
-void Graph::unlinkAndRemoveEdge(Port* source, Port* sink)
-{
-  removeEdge(source, sink);
-  auto output = dynamic_cast<OutputNode*>(sink->node);
-  SCORE_ASSERT(output);
-
-  recreateOutputRenderList(*output);
-}
-
 void Graph::destroyOutputRenderList(score::gfx::OutputNode& output)
 {
   auto it = ossia::find_if(
@@ -605,7 +1155,6 @@ void Graph::destroyOutputRenderList(score::gfx::OutputNode& output)
     }
     else
     {
-      qDebug("???");
     }
   }
 

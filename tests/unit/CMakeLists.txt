@@ -428,3 +428,68 @@ score_add_test(test_unit_dshow_subtype
   SOURCES DirectShowSubtypeResolveTest.cpp
   PLUGINS score_plugin_gfx
   LIBS avutil avcodec)
+# AssetTable is pure CPU logic; TextureLoader upload paths run on QRhi's Null
+# backend (score_plugin_gfx links Qt::GuiPrivate PUBLIC, providing qrhi_p.h).
+# Lives with the scene rework rather than with the AssetTable code itself: the
+# trim and decode-cache behaviour it pins is what this commit introduces, so
+# committed any earlier the suite is red for every commit in between.
+score_add_test(test_unit_gfx_assettable
+  SOURCES AssetTableTest.cpp
+  PLUGINS score_plugin_gfx
+  LIBS ${QT_PREFIX}::Gui)
+# libisf importer branches (shadertoy / shadertoy-json / glsl-sandbox /
+# write_isf / float-input min-max inference). isf::parser is exported from
+# score_plugin_gfx, whose PUBLIC include dirs provide <isf.hpp>.
+score_add_test(test_unit_isf_importers
+  SOURCES IsfImportersTest.cpp
+  PLUGINS score_plugin_gfx)
+
+
+# --- CPU scene flattener + camera math (score-plugin-gfx, pland/scene) ------
+# flattenScene / packMaterial / primitiveToGeometry / packCameraUBO are not
+# exported from the dynamic score_plugin_gfx (hidden visibility), so the two
+# translation units are compiled straight into the tests -- the same workaround
+# tests/gfx/CMakeLists.txt applies to ISFNode.cpp et al. Pure CPU: no QRhi, no
+# display, no document.
+if(TARGET score_plugin_gfx)
+  set(_gfx_scene_src "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx/Gfx/Graph")
+
+  score_plugin_hidden_sources(_scene_flatten_hidden
+      "${_gfx_scene_src}/SceneGPUState.cpp")
+score_add_test(test_unit_scene_flatten
+    SOURCES
+      SceneFlattenTest.cpp
+      ${_scene_flatten_hidden}
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+
+  score_plugin_hidden_sources(_camera_math_hidden
+      "${_gfx_scene_src}/CameraMath.cpp")
+score_add_test(test_unit_camera_math
+    SOURCES
+      CameraMathTest.cpp
+      ${_camera_math_hidden}
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+
+  # ISOLATED, EXPECTED-RED (#163): the Camera auxiliary declares one 240-byte
+  # entry however many cameras the flattener packed into the buffer. Its own
+  # target, like test_gfx_isf_findings, so the attributable failure cannot take
+  # down the flattener suite.
+  score_plugin_hidden_sources(_camera_aux_hidden
+      "${_gfx_scene_src}/SceneGPUState.cpp")
+score_add_test(test_unit_scene_camera_aux
+    SOURCES
+      SceneCameraAuxTest.cpp
+      ${_camera_aux_hidden}
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+
+  # ISOLATED, EXPECTED-RED (#172). PipelineStateHelpers is
+  # exported, so only the test TU is built here; it needs qrhi_p.h, which
+  # score_plugin_gfx provides through its PUBLIC Qt::GuiPrivate link.
+  score_add_test(test_unit_depth_clear_compare
+    SOURCES DepthClearCompareTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+endif()

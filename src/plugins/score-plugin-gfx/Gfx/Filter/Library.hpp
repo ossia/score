@@ -44,7 +44,7 @@ class DropHandler final : public Process::ProcessDropHandler
 
   void dropCustom(
       std::vector<ProcessDrop>& drops, const QMimeData& mime,
-      const score::DocumentContext& ctx) const noexcept override;
+      const score::DocumentContext& ctx) const override;
 };
 
 struct VideoTextureDropHandler : public Process::ProcessDropHandler
