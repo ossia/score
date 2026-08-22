@@ -1156,6 +1156,7 @@ TEST_CASE("the GStreamer preset probe", "[.probe]")
 
           const auto out
               = runBounded(120, QStringLiteral("rec"), [&]() -> Outcome {
+                  std::string peerDiagnostics;
                   {
                     Peer peer{senderFromOutputPreset(m, rawMaster, pipeline)};
                     if(!peer.started)
@@ -1163,11 +1164,12 @@ TEST_CASE("the GStreamer preset probe", "[.probe]")
                     QThread::msleep(4000);
                     peer.interrupt();
                     peer.proc.waitForFinished(20000);
+                    peerDiagnostics = peer.diagnostics();
                   }
                   if(!QFile::exists(target) || QFileInfo{target}.size() == 0)
                     return {Verdict::Skipped,
                             "the preset produced no file at "
-                                + target.toStdString()};
+                                + target.toStdString() + peerDiagnostics};
                   const auto frames = decodeFile(target.toStdString(), m);
                   const auto best = bestOfDecoded(frames, m, block, kBlockMargin);
                   std::string why;
@@ -1564,10 +1566,13 @@ TEST_CASE("every shipped GStreamer preset is accounted for",
 
   CHECK(reports.size() >= 30);
 
-  // A preset whose description does not BUILD is a defect in the preset, not a
-  // property of the host -- with one exception: GST_PARSE_ERROR_NO_SUCH_ELEMENT
-  // means the host lacks a plugin. The error CODE is checked rather than the
-  // message, which is translated.
+  // A preset whose description does not BUILD is a defect in the preset unless
+  // the reason is something the HOST does not have. Two codes are
+  // host-attributable: NO_SUCH_ELEMENT (the plugin is not installed) and LINK
+  // (the installed plugin's pads do not accept each other -- gst-plugins-libav
+  // 1.24's mpegtsmux has no audio/x-smpte-302m pad, for instance). A syntax
+  // error, an unknown property or an unsettable one is ours. The error CODE is
+  // checked rather than the message, which is translated.
   for(const auto& r : reports)
   {
     if(r.verdict != Verdict::Skipped)
@@ -1577,7 +1582,7 @@ TEST_CASE("every shipped GStreamer preset is accounted for",
       continue;
     const int code = std::atoi(r.detail.c_str() + tag + 17);
     INFO(r.preset.label.toStdString() << ": " << r.detail);
-    CHECK(code == kParseNoSuchElement);
+    CHECK((code == kParseNoSuchElement || code == kParseLink));
   }
 
   // Nothing may wedge: a preset that has to be killed is a defect in what it
