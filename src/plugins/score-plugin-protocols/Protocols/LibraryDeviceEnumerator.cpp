@@ -16,9 +16,22 @@ namespace Protocols
 LibraryDeviceEnumerator::LibraryDeviceEnumerator(
     std::string pattern, QStringList ext, Device::ProtocolFactory::ConcreteKey k,
     std::function<QVariant(QByteArray)> createDev, const score::DocumentContext& ctx)
+    : LibraryDeviceEnumerator{
+          std::move(pattern), std::move(ext), k,
+          [createDev = std::move(createDev)](QByteArray arr, const QString&) {
+  return createDev(std::move(arr));
+          },
+          ctx}
+{
+}
+
+LibraryDeviceEnumerator::LibraryDeviceEnumerator(
+    std::string pattern, QStringList ext, Device::ProtocolFactory::ConcreteKey k,
+    std::function<QVariant(QByteArray, const QString&)> createDev,
+    const score::DocumentContext& ctx)
     : m_pattern{std::move(pattern)}
     , m_key{k}
-    , m_createDeviceSettings{createDev}
+    , m_createDeviceSettings{std::move(createDev)}
 {
   m_watch.setWatchedFolder(
       ctx.app.settings<Library::Settings::Model>().getPackagesPath().toStdString());
@@ -44,7 +57,7 @@ void LibraryDeviceEnumerator::next(std::string_view path)
     Device::DeviceSettings s;
     s.name = QFileInfo{filepath}.baseName();
     s.protocol = m_key;
-    s.deviceSpecificSettings = m_createDeviceSettings(score::mapAsByteArray(f));
+    s.deviceSpecificSettings = m_createDeviceSettings(score::mapAsByteArray(f), filepath);
     deviceAdded(s.name, s);
   });
 }
@@ -58,7 +71,7 @@ std::function<void()> LibraryDeviceEnumerator::asyncNext(std::string_view path)
     Device::DeviceSettings s;
     s.name = QFileInfo{filepath}.baseName();
     s.protocol = m_key;
-    s.deviceSpecificSettings = m_createDeviceSettings(score::mapAsByteArray(f));
+    s.deviceSpecificSettings = m_createDeviceSettings(score::mapAsByteArray(f), filepath);
     result = [this, s = std::move(s)]() mutable {
       deviceAdded(s.name, s);
     };

@@ -7,93 +7,13 @@
 #include "CANSpecificSettings.hpp"
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-
-#include <ossia/detail/algorithms.hpp>
+#include <Protocols/LibraryDeviceEnumerator.hpp>
 
 #include <QObject>
-#include <QTimer>
 #include <QUrl>
 
 namespace Protocols
 {
-namespace
-{
-Device::DeviceSettings settingsForInterface(const CAN::InterfaceInfo& itf)
-{
-  Device::DeviceSettings set;
-  set.name = itf.name;
-  set.protocol = CANProtocolFactory::static_concreteKey();
-
-  CANSpecificSettings specif;
-  specif.interfaceName = itf.name;
-  // Not enabled from fdCapable: FD is not a mode switch, but asking for it on a
-  // socket whose driver does not really support it is a way to fail at open
-  // time for nothing. The database says whether payloads above 8 bytes are
-  // expected; the checkbox is one click away when they are.
-  specif.fd = false;
-
-  set.deviceSpecificSettings = QVariant::fromValue(specif);
-  return set;
-}
-
-/**
- * Lists the SocketCAN interfaces of the machine in the device browser.
- *
- * Polled rather than event-driven: netlink would give exact notifications, but
- * it means a socket, a subscription and a reader for a list that changes when
- * somebody plugs a USB adapter in. One sysfs directory listing per second is
- * cheaper than that in every sense.
- */
-class CANInterfaceEnumerator final : public Device::DeviceEnumerator
-{
-public:
-  CANInterfaceEnumerator()
-  {
-    m_timer.setInterval(1000);
-    QObject::connect(&m_timer, &QTimer::timeout, this, [this] { rescan(); });
-    m_timer.start();
-  }
-
-  void enumerate(std::function<void(const QString&, const Device::DeviceSettings&)> f)
-      const override
-  {
-    m_current = CAN::availableInterfaces();
-    for(const auto& itf : m_current)
-      f(itf.name, settingsForInterface(itf));
-  }
-
-private:
-  void rescan()
-  {
-    auto next = CAN::availableInterfaces();
-    auto has = [](const std::vector<CAN::InterfaceInfo>& l, const QString& n) {
-      return ossia::any_of(l, [&n](const auto& i) { return i.name == n; });
-    };
-
-    for(const auto& itf : m_current)
-      if(!has(next, itf.name))
-        deviceRemoved(itf.name);
-
-    bool added = false;
-    for(const auto& itf : next)
-    {
-      if(!has(m_current, itf.name))
-      {
-        deviceAdded(itf.name, settingsForInterface(itf));
-        added = true;
-      }
-    }
-
-    m_current = std::move(next);
-    if(added)
-      sort();
-  }
-
-  QTimer m_timer;
-  mutable std::vector<CAN::InterfaceInfo> m_current;
-};
-}
-
 QString CANProtocolFactory::prettyName() const noexcept
 {
   return QObject::tr("CAN");
@@ -119,7 +39,31 @@ Device::DeviceInterface* CANProtocolFactory::makeDevice(
 Device::DeviceEnumerators
 CANProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
-  return {{QObject::tr("Interfaces"), new CANInterfaceEnumerator}};
+  // Not the interfaces: a machine has one or two of them, they are already in
+  // the settings widget's combo box, and an entry per interface tells the user
+  // nothing they did not know. What is worth browsing is the databases. A .dbc
+  // describes one device on the bus, a library holds many of them, and picking
+  // one is what actually gives a CAN device its node tree - so an entry per
+  // file lands in the dialog with the path filled in and the messages and
+  // signals it declares already listed underneath.
+  //
+  // "BO_" is the message keyword: it appears in every database that declares a
+  // frame, and a .dbc without one has nothing to offer a device.
+  auto library_enumerator = new LibraryDeviceEnumerator{
+      "BO_",
+      {"dbc"},
+      CANProtocolFactory::static_concreteKey(),
+      [](QByteArray, const QString& path) {
+    CANSpecificSettings specif;
+    specif.dbcPath = path;
+    // So that a device dropped in from the library is connectable as-is,
+    // rather than being a database with nowhere to read it from.
+    specif.interfaceName = CAN::defaultInterface();
+    return QVariant::fromValue(specif);
+      },
+      ctx};
+
+  return {{"Library", library_enumerator}};
 }
 
 const Device::DeviceSettings& CANProtocolFactory::defaultSettings() const noexcept
