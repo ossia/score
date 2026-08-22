@@ -87,6 +87,24 @@ if(TARGET score_plugin_protocols)
   endif()
 endif()
 
+# End-to-end CAN, driven through score's JavaScript scripting API (the `Score`
+# object of the console panel): a device created from a script, real frames on
+# vcan0, and the resulting node tree read back through iterateDevice.
+# Skips itself when vcan0 is absent.
+if(LINUX AND TARGET score_plugin_protocols AND TARGET score_plugin_js)
+  score_add_test(test_unit_can_scripting
+    SOURCES CANScriptingTest.cpp
+    APP
+    PLUGINS score_plugin_js score_plugin_protocols score_lib_device
+    LIBS ossia ${QT_PREFIX}::Qml)
+  target_include_directories(test_unit_can_scripting PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-js"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-protocols")
+  target_compile_definitions(test_unit_can_scripting PRIVATE
+    OSSIA_PROTOCOL_CAN
+    SCORE_CAN_TEST_DATA="${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-protocols/Tests/data")
+endif()
+
 # --- core data model (score-lib-state / score-lib-process, P3R2) -----------
 score_add_test(test_unit_state_serialization
   SOURCES StateSerializationTest.cpp
