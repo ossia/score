@@ -16,7 +16,13 @@ clone_addon() {
 
   (
   if [[ ! -d "$folder" ]]; then
-    if [[ -n "${SKIP_SUBMODULE:-}" ]]; then
+    if [[ -n "${NO_SUBMODULES:-}" ]]; then
+      # An addon that vendors whole SDKs it only needs for its own standalone
+      # build: score compiles the half that links into it, which is written not
+      # to need them. Clone the top level and leave the submodules alone.
+      local ndepth=(); [[ ${#shallow[@]} -gt 0 ]] && ndepth=(--depth 1)
+      git clone ${ndepth[@]+"${ndepth[@]}"} "$url" "$folder"
+    elif [[ -n "${SKIP_SUBMODULE:-}" ]]; then
       # Skip a heavy nested submodule score never compiles (SKIP_SUBMODULE is
       # "<super-path> <submodule-name>"): clone, init that super, mark it none, recurse.
       # ${arr[@]+...} guard: macOS bash 3.2 errors on empty arrays under set -u
@@ -92,6 +98,13 @@ then
   clone_addon    https://github.com/ossia/score-addon-spatgris
   clone_addon   https://github.com/ossia/score-addon-ultraleap
   clone_addon     https://github.com/ossia/score-addon-sysinfo
+
+  # Depth cameras (Orbbec, Kinect, Azure Kinect, RealSense). Without submodules
+  # on purpose: the repository vendors four camera SDKs that together take
+  # longer to build than the rest of score, and none of them belong in this
+  # build. The plug-in reaches cameras through a pure-C ABI and the SDKs ship as
+  # a separate downloadable package, built from the addon's own repository.
+  NO_SUBMODULES=1 clone_addon https://github.com/ossia/score-addon-orbbec
 fi
 
 if [[ "$CI_PLATFORM" == "LINUX" || "$CI_PLATFORM" == "WIN32" ]]; then
