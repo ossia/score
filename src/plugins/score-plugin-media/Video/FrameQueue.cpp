@@ -45,22 +45,25 @@ void frame_counters::deallocate(AVFrame* av)
 
 uint8_t* initFrameBuffer(AVFrame& frame, std::size_t bytes)
 {
-  // Here we need to copy the buffer.
-  uint8_t* storage{};
-  // Reuse allocated memory if any
-  if(frame.data[0])
+  // Reuse the buffer a recycled frame still carries, but only when it is still
+  // big enough: a mid-stream format change grows `bytes`, and the plane
+  // pointers a caller wrote into data[] do not have to start at the buffer.
+  if(frame.buf[0] && frame.buf[0]->size >= bytes)
   {
-    storage = frame.data[0];
+    frame.data[0] = frame.buf[0]->data;
+    return frame.data[0];
   }
-  else
-  {
-    // We got a new frame, init it
-    auto buf = av_buffer_alloc(bytes);
-    storage = buf->data;
-    frame.buf[0] = buf;
-    frame.data[0] = storage;
-  }
-  return storage;
+
+  if(frame.buf[0])
+    av_buffer_unref(&frame.buf[0]);
+
+  auto buf = av_buffer_alloc(bytes);
+  if(!buf)
+    return nullptr;
+
+  frame.buf[0] = buf;
+  frame.data[0] = buf->data;
+  return buf->data;
 }
 
 FrameQueue::FrameQueue() { }
