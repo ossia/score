@@ -23,6 +23,7 @@
 #if QT_HAS_VULKAN
 #if __has_include(<QtGui/private/qrhivulkan_p.h>)
 #include <Gfx/Graph/VulkanVideoDevice.hpp>
+#include <Gfx/Graph/interop/VkExternalMemoryHelpers.hpp>
 #include <QtGui/private/qrhivulkan_p.h>
 #if __has_include(<vulkan/vulkan_win32.h>)
 #include <vulkan/vulkan.h>
@@ -167,11 +168,11 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
       s.preRhiDestroy = [rhiPtr, graphicsApi]() {
         tryStorePipelineCache(rhiPtr, graphicsApi);
       };
-      // Mid-session flush for crash-resilient cache
-      // persistence. RenderList::render throttles this after PSO
-      // stalls; the QRhi read happens here on the render thread but the
-      // blocking file write is offloaded to a worker so the render
-      // thread isn't stalled on disk right after a PSO-compile burst.
+      // Mid-session flush for crash-resilient cache persistence.
+      // RenderList::render throttles this after PSO stalls; the QRhi read
+      // happens here on the render thread but the blocking file write is
+      // offloaded to a worker so the render thread isn't stalled on disk
+      // right after a PSO-compile burst.
       s.savePipelineCache = [rhiPtr, graphicsApi]() {
         tryStorePipelineCacheAsync(rhiPtr, graphicsApi);
       };
@@ -312,6 +313,11 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
   if(graphicsApi == Vulkan)
   {
     QRhiVulkanInitParams params;
+    // External-memory/-semaphore extensions for GPU interop (CUDA P2P, Spout,
+    // DMA-BUF), required for vkGetMemoryFdKHR / vkGetMemoryWin32HandleKHR to
+    // resolve. The shared-device path (Qt >= 6.6) requests them through
+    // sharedVulkanDeviceExtensions(); this covers the fallback QRhi-owned device.
+    // Platform-gated to where the handle types exist.
 #if defined(_WIN32)
     params.deviceExtensions << VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME
                             << VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME
@@ -319,6 +325,28 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
                             << VK_KHR_EXTERNAL_SEMAPHORE_EXTENSION_NAME
                             << VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME
                             << VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME
+#ifdef VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME
+        // Lets a capture slot's own pages be imported as VkDeviceMemory so the
+        // frame the vendor SDK already wrote needs no further CPU copy; Qt's
+        // uploadTexture otherwise re-stages it through the small host-visible
+        // BAR heap (see interop/VkHostImportUpload.hpp).
+                            << VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME
+#endif
+        ;
+#else
+    params.deviceExtensions << VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME
+                            << VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME
+                            << VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME
+                            << VK_KHR_EXTERNAL_SEMAPHORE_EXTENSION_NAME
+#ifdef VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME
+                            << VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME
+#endif
+#ifdef VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME
+                            << VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME
+#endif
+#ifdef VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME
+                            << VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME
+#endif
         ;
 #endif
 
@@ -345,6 +373,11 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
       auto sharedDev = createSharedVulkanDevice(params.inst);
       if(sharedDev)
       {
+        // The shared device enables every queried feature, so interop fast
+        // paths (timeline-semaphore ordering) are legal on it — unlike on
+        // QRhi-created devices.
+        vkinterop::setDeviceTimelineSemaphoresEnabled(
+            sharedDev.timelineSemaphores);
         QRhiVulkanNativeHandles importedHandles;
         importedHandles.physDev = sharedDev.physDev;
         importedHandles.dev = sharedDev.dev;
@@ -586,8 +619,7 @@ void ScreenNode::setRenderer(std::shared_ptr<RenderList> r)
   // m_window can be null after destroyOutput() (which calls m_window.reset()).
   // Reachable from Graph::createOutputRenderList paths after a graphics-API
   // switch / sample-count change / output-disable cycle. Sibling guards
-  // already exist in stopRendering and onRendererChange below; this one
-  // was missed when those were patched.
+  // already exist in stopRendering and onRendererChange below.
   if(m_window && m_window->state)
     m_window->state->renderer = r;
 }
@@ -715,6 +747,19 @@ void ScreenNode::createOutput(score::gfx::OutputConfiguration conf)
 {
   if(m_ownsWindow)
   {
+    // Idempotency guard for mid-play graph rebuilds. initializeOutput()
+    // re-enters here whenever renderState() is null — which is exactly the
+    // transient state of a freshly-created window that is still waiting for
+    // its first expose to build the swapchain. Re-creating the window here
+    // would free the in-flight Window (and the RenderState it co-owns) while
+    // queued expose/deferred-delete events and the surviving RenderLists still
+    // reference them -> the deterministic mid-play use-after-free/invalid-free.
+    // The onWindowReady set by the first createOutput() is still pending and
+    // completes the setup. A *deliberate* recreation (graphics-API or
+    // sample-count change) routes through destroyOutput() first, which resets
+    // m_window, so this guard never blocks it.
+    if(m_window)
+      return;
     m_window = std::make_shared<Window>(conf.graphicsApi);
     if(m_embedded)
       m_window->unsetCursor();
@@ -860,18 +905,12 @@ void ScreenNode::destroyOutput()
   if(!m_window)
     return;
 
-  // Drain the GPU before tearing anything down. Without this, queued frames
-  // can still reference the swapchain / RPD / depth-stencil while we're
-  // freeing them — and worse, when setSwapchainFormat / setSwapchainFlag
-  // call destroyOutput synchronously (commit e2afe7874), the host window's
-  // last beginFrame may still hold an unfinished cbWrapper referenced by
-  // ScenePreprocessor's per-frame copyBuffer (commit fe146c8de). The next
-  // runInitialPasses then records vkCmdCopyBuffer / vkCmdPipelineBarrier
-  // into a CB whose underlying VkCommandBuffer was already vkEndCommandBuffer'd
-  // (VUID-vkCmdCopyBuffer-commandBuffer-recording / VUID-vkCmdPipelineBarrier-
-  // commandBuffer-recording), often followed by a device loss.
-  //
-  // MultiWindowNode::destroyOutput already does this at line ~1068; mirror it.
+  // Drain the GPU before tearing anything down: queued frames can still reference
+  // the swapchain, RPD or depth-stencil, and when setSwapchainFormat calls
+  // destroyOutput synchronously the host window's last beginFrame may still hold
+  // an unfinished cbWrapper that ScenePreprocessor's per-frame copyBuffer
+  // references. The next runInitialPasses would then record into a command buffer
+  // that was already ended. MultiWindowNode::destroyOutput does the same.
   if(m_window->state && m_window->state->rhi)
   {
     // Pre-condition: destroyOutput must not be called inside a frame
@@ -991,9 +1030,24 @@ void ScreenNode::setVSyncCallback(std::function<void ()> f)
   // TODO thread safety if vulkan uses a thread ?
   // If we have more than one output, then instead we sync them with
   // a simple timer, as they may have drastically different vsync rates.
-  m_vsyncCallback = f;
+  const bool wasArmed = bool(m_vsyncCallback);
+  m_vsyncCallback = std::move(f);
   if(m_window)
+  {
     m_window->onUpdate = m_vsyncCallback;
+
+    // The window's vsync render loop is a self-perpetuating requestUpdate() chain:
+    // Window::render() re-arms it at its tail only while onUpdate is set. Switching
+    // from manual to vsync mode only sets the callback, so nothing kicks a first
+    // frame and the chain stays dead until a platform expose. Kick one on the
+    // null -> non-null transition. Queued and window-scoped, so it is a no-op if
+    // the window dies first and never runs re-entrantly inside the rebuild.
+    if(!wasArmed && m_vsyncCallback)
+    {
+      auto* w = m_window.get();
+      QMetaObject::invokeMethod(w, [w] { w->requestUpdate(); }, Qt::QueuedConnection);
+    }
+  }
 }
 
 std::shared_ptr<score::gfx::RenderState> ScreenNode::renderState() const

@@ -13,6 +13,9 @@ public:
   virtual ~ExternalInput();
   virtual bool start() noexcept = 0;
   virtual void stop() noexcept = 0;
+
+  virtual bool notifyFormatChange(
+      int new_w, int new_h, AVPixelFormat new_pixfmt) noexcept;
 };
 }
 #endif

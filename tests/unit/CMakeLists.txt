@@ -402,6 +402,21 @@ if(TARGET score_plugin_vst3 AND TARGET score_plugin_clap)
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst3"
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-clap")
 endif()
+# The GStreamer input device's two pieces of pure logic: appsink classification
+# from the pipeline string (no negotiated caps on a live source) and the audio
+# ring buffer whose per-tick resize must re-point the engine's spans. Neither
+# needs a GStreamer library.
+if(TARGET score_plugin_gfx AND TARGET score_plugin_media)
+  score_add_test(test_unit_gstreamer_pipeline_parse
+    SOURCES GStreamerPipelineParseTest.cpp
+    PLUGINS score_plugin_gfx score_plugin_media
+    LIBS avutil)
+
+  score_add_test(test_unit_gstreamer_audio_buffer
+    SOURCES GStreamerAudioBufferTest.cpp
+    PLUGINS score_plugin_gfx)
+endif()
+
 # Video::gstreamerToLibav(): the gst-name -> AVPixelFormat table feeding the
 # GStreamer, Sh4lt and Shmdata inputs. Header-only and self-contained, so the
 # test needs the plug-in only for its libav include paths and SCORE_HAS_LIBAV.
@@ -490,6 +505,61 @@ score_add_test(test_unit_scene_camera_aux
   # score_plugin_gfx provides through its PUBLIC Qt::GuiPrivate link.
   score_add_test(test_unit_depth_clear_compare
     SOURCES DepthClearCompareTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+endif()
+
+# The DRM fourcc <-> AVPixelFormat bridge layered on the vocabulary
+# (Gfx/Graph/interop/DrmFourcc.hpp), which is a different header from the
+# DrmPixelFormat.hpp that VideoPixelFormatTest sweeps.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_drm_fourcc
+    SOURCES DrmFourccTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS avutil)
+
+  # The capture-side mirror of the WireEncoderFactory sweep in
+  # tests/integration/EncoderMatrixTest.cpp. Constructs decoders only: no QRhi.
+  score_add_test(test_unit_wire_decoder_factory
+    SOURCES WireDecoderFactoryTest.cpp
+    PLUGINS score_plugin_gfx score_plugin_media
+    LIBS ${QT_PREFIX}::Gui)
+
+  # PipeWire's own format table, and the SPA half of DrmFourcc.hpp, which only
+  # compiles where the SPA headers are.
+  if(TARGET pipewire::pipewire)
+    score_add_test(test_unit_pipewire_formats
+      SOURCES PipewireFormatsTest.cpp
+      PLUGINS score_plugin_gfx
+      LIBS avutil ${QT_PREFIX}::Gui)
+    get_target_property(_pw_fmt_includes pipewire::pipewire INTERFACE_INCLUDE_DIRECTORIES)
+    if(_pw_fmt_includes)
+      target_include_directories(test_unit_pipewire_formats SYSTEM PRIVATE ${_pw_fmt_includes})
+    endif()
+
+    # The process-wide libremidi pipewire connection is shared by the gfx
+    # output producer, the gfx input consumer, the audio engine and the MIDI
+    # backends. Reconnecting it destroys the pw_core / pw_thread_loop every
+    # other holder's pw_stream was built on. Drives a private daemon.
+    score_add_test(test_unit_pipewire_shared_context
+      SOURCES PipewireSharedContextTest.cpp
+      PLUGINS score_plugin_gfx
+      LIBS ${QT_PREFIX}::Gui)
+    get_target_property(_pw_ctx_includes pipewire::pipewire INTERFACE_INCLUDE_DIRECTORIES)
+    if(_pw_ctx_includes)
+      target_include_directories(test_unit_pipewire_shared_context SYSTEM PRIVATE ${_pw_ctx_includes})
+    endif()
+  endif()
+endif()
+
+# --- RDMA playout probe (score-plugin-gfx) ----------------------------------
+# The gate that decides whether a GPU-direct output rung may engage. The vendor
+# DMA calls are injected, so the whole decision table -- including the peer that
+# returns a constant while every return code says success -- runs with no card
+# and no CUDA driver.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_rdma_playout_probe
+    SOURCES RdmaPlayoutProbeTest.cpp
     PLUGINS score_plugin_gfx
     LIBS ${QT_PREFIX}::Gui)
 endif()
