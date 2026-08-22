@@ -35,6 +35,12 @@
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/dataflow/graph_edge.hpp>
 #include <ossia/dataflow/nodes/forward_node.hpp>
+
+#if __has_include(<Gfx/GfxApplicationPlugin.hpp>)
+#include <Gfx/GfxApplicationPlugin.hpp>
+#include <Gfx/GfxForwardNode.hpp>
+#define SCORE_HAS_GFX 1
+#endif
 #include <ossia/editor/loop/loop.hpp>
 #include <ossia/editor/scenario/scenario.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
@@ -80,6 +86,20 @@ ScenarioComponentBase::ScenarioComponentBase(
   connect(
       this, &ScenarioComponentBase::sig_eventCallback, this,
       &ScenarioComponentBase::eventCallback, Qt::QueuedConnection);
+
+#if SCORE_HAS_GFX
+  // Create a gfx_forward_node for texture propagation at scenario level
+  if(auto* gfxPlug = ctx.doc.findPlugin<Gfx::DocumentPlugin>())
+  {
+    m_gfxForwardNode = std::make_shared<Gfx::gfx_forward_node>(gfxPlug->exec);
+    m_gfxForwardNode->prepare(*ctx.execState);
+    std::weak_ptr<ossia::graph_interface> g_weak = ctx.execGraph;
+    in_exec([g_weak, node = m_gfxForwardNode] {
+      if(auto graph = g_weak.lock())
+        graph->add_node(node);
+    });
+  }
+#endif
 }
 
 ScenarioComponentBase::~ScenarioComponentBase()
@@ -304,6 +324,15 @@ void ScenarioComponent::lazy_init()
 void ScenarioComponent::cleanup()
 {
   OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
+  if(m_gfxForwardNode)
+  {
+    std::weak_ptr<ossia::graph_interface> g_weak = system().execGraph;
+    in_exec([g_weak, node = m_gfxForwardNode] {
+      if(auto graph = g_weak.lock())
+        graph->remove_node(node);
+    });
+    m_gfxForwardNode.reset();
+  }
   clear();
   ProcessComponent::cleanup();
 }
@@ -499,7 +528,10 @@ ScenarioComponentBase::make<IntervalComponent, Scenario::IntervalModel>(
   elt->onSetup(elt, ossia_cst, dur);
 
   const bool prop = cst.graphal() ? false : cst.outlet->propagate();
-  in_exec([g = system().execGraph, proc, ossia_sev, ossia_eev, ossia_cst, prop] {
+  auto itv_gfx_fw = elt->gfxForwardNode();
+  auto scn_gfx_fw = m_gfxForwardNode;
+  in_exec([g = system().execGraph, proc, ossia_sev, ossia_eev, ossia_cst, prop,
+           itv_gfx_fw, scn_gfx_fw] {
     OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
     if(auto sev = ossia_sev->OSSIAEvent())
       sev->next_time_intervals().push_back(ossia_cst);
@@ -513,6 +545,18 @@ ScenarioComponentBase::make<IntervalComponent, Scenario::IntervalModel>(
       auto cable = g->allocate_edge(
           ossia::immediate_glutton_connection{}, ossia_cst->node->root_outputs()[0],
           proc->node->root_inputs()[0], ossia_cst->node, proc->node);
+      g->connect(cable);
+    }
+
+    // Connect interval's gfx_forward_node to scenario's gfx_forward_node
+    if(itv_gfx_fw && scn_gfx_fw
+       && !itv_gfx_fw->root_outputs().empty()
+       && !scn_gfx_fw->root_inputs().empty())
+    {
+      auto cable = g->allocate_edge(
+          ossia::immediate_glutton_connection{},
+          itv_gfx_fw->root_outputs()[0], scn_gfx_fw->root_inputs()[0],
+          itv_gfx_fw, scn_gfx_fw);
       g->connect(cable);
     }
   });

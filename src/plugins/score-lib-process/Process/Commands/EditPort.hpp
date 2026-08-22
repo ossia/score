@@ -37,7 +37,7 @@ private:
 }
 
 PROPERTY_COMMAND_T(
-    Process, SetPropagate, AudioOutlet::p_propagate, "Set port propagation")
+    Process, SetPropagate, Outlet::p_propagate, "Set port propagation")
 SCORE_COMMAND_DECL_T(Process::SetPropagate)
 
 PROPERTY_COMMAND_T(Process, ChangePortAddress, Port::p_address, "Set port address")
