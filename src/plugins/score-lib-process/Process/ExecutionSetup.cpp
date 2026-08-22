@@ -19,6 +19,13 @@
 
 namespace Execution
 {
+void Context::execCommand(ExecutionCommand&& cmd)
+{
+  if(transaction)
+    transaction->push_back(std::move(cmd));
+  else
+    executionQueue.enqueue(std::move(cmd));
+}
 
 namespace
 {
@@ -30,7 +37,7 @@ struct ContextEnqueuer
   {
     static_assert(std::is_nothrow_move_constructible_v<F>);
     OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
-    self.context.executionQueue.enqueue(std::move(f));
+    self.context.execCommand(std::move(f));
   }
 };
 struct VectorEnqueuer
@@ -544,7 +551,7 @@ void SetupContext::unregister_inlet(
     if(ossia_port_it != inlets.end())
     {
       std::weak_ptr<ossia::execution_state> ws = context.execState;
-      context.executionQueue.enqueue([ws, ossia_port = ossia_port_it->second.second] {
+      context.execCommand([ws, ossia_port = ossia_port_it->second.second] {
         OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
         if(auto state = ws.lock())
           state->unregister_port(*ossia_port);
@@ -661,7 +668,7 @@ void SetupContext::unregister_node(
   {
     std::weak_ptr<ossia::graph_interface> wg = context.execGraph;
     std::weak_ptr<ossia::execution_state> ws = context.execState;
-    context.executionQueue.enqueue([wg, ws, node = node] mutable {
+    context.execCommand([wg, ws, node = node] mutable {
       OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
       if(auto s = ws.lock())
       {
