@@ -35,10 +35,10 @@ enum class ByteOrder
 //! How the extracted bits are to be read as a number.
 enum class ValueType
 {
-  Unsigned,  //!< `+` in the file
-  Signed,    //!< `-` in the file, two's complement
-  Float32,   //!< SIG_VALTYPE_ ... 1
-  Double64   //!< SIG_VALTYPE_ ... 2
+  Unsigned, //!< `+` in the file
+  Signed,   //!< `-` in the file, two's complement
+  Float32,  //!< SIG_VALTYPE_ ... 1
+  Double64  //!< SIG_VALTYPE_ ... 2
 };
 
 //! One entry of a VAL_ / VAL_TABLE_ enumeration.
@@ -196,8 +196,9 @@ constexpr int flipBitPos(int p) noexcept
  * declares, and dropping the whole frame over it would lose the signals that
  * *are* present.
  */
-inline uint64_t
-extractRawBits(const uint8_t* data, int dataSize, int startBit, int length, ByteOrder order) noexcept
+inline uint64_t extractRawBits(
+    const uint8_t* data, int dataSize, int startBit, int length,
+    ByteOrder order) noexcept
 {
   if(length <= 0 || length > 64)
     return 0;
@@ -245,7 +246,8 @@ constexpr int64_t signExtend(uint64_t raw, int length) noexcept
 //! Extract one signal from a frame and apply its value type, factor and offset.
 inline double decodeSignal(const Signal& sig, const uint8_t* data, int dataSize) noexcept
 {
-  const uint64_t raw = extractRawBits(data, dataSize, sig.startBit, sig.length, sig.byteOrder);
+  const uint64_t raw
+      = extractRawBits(data, dataSize, sig.startBit, sig.length, sig.byteOrder);
 
   double physical{};
   switch(sig.valueType)
@@ -276,7 +278,8 @@ inline double decodeSignal(const Signal& sig, const uint8_t* data, int dataSize)
 
 //! The raw, unscaled bits of a signal -- what a multiplexer switch is compared
 //! against, and what the tests use as an oracle.
-inline uint64_t rawSignalBits(const Signal& sig, const uint8_t* data, int dataSize) noexcept
+inline uint64_t
+rawSignalBits(const Signal& sig, const uint8_t* data, int dataSize) noexcept
 {
   return extractRawBits(data, dataSize, sig.startBit, sig.length, sig.byteOrder);
 }

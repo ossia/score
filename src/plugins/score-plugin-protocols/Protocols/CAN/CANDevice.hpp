@@ -10,7 +10,8 @@ class CANDevice final : public Device::OwningDeviceInterface
   W_OBJECT(CANDevice)
 public:
   CANDevice(
-      const Device::DeviceSettings& settings, const ossia::net::network_context_ptr& ctx);
+      const Device::DeviceSettings& settings,
+      const ossia::net::network_context_ptr& ctx);
   ~CANDevice();
 
   bool reconnect() override;

@@ -82,8 +82,9 @@ TEST_CASE("A DBC-described frame decodes off a real CAN bus", "[can][vcan]")
 {
   if(!ifacePresent())
   {
-    SUCCEED("skipped: no vcan0 interface (modprobe vcan; ip link add dev vcan0 "
-            "type vcan; ip link set up vcan0)");
+    SUCCEED(
+        "skipped: no vcan0 interface (modprobe vcan; ip link add dev vcan0 "
+        "type vcan; ip link set up vcan0)");
     return;
   }
 
@@ -145,15 +146,19 @@ TEST_CASE("A DBC-described frame decodes off a real CAN bus", "[can][vcan]")
     const Message& m = *it->second;
     REQUIRE(m.name == "PDO4_Transmit");
 
-    REQUIRE(decodeSignal(*m.findSignal("QuaternionW"), msg.data, msg.size)
-            == Catch::Approx(0.9878));
-    REQUIRE(decodeSignal(*m.findSignal("QuaternionX"), msg.data, msg.size)
-            == Catch::Approx(-0.1234));
-    REQUIRE(decodeSignal(*m.findSignal("QuaternionY"), msg.data, msg.size)
-            == Catch::Approx(0.0));
+    REQUIRE(
+        decodeSignal(*m.findSignal("QuaternionW"), msg.data, msg.size)
+        == Catch::Approx(0.9878));
+    REQUIRE(
+        decodeSignal(*m.findSignal("QuaternionX"), msg.data, msg.size)
+        == Catch::Approx(-0.1234));
+    REQUIRE(
+        decodeSignal(*m.findSignal("QuaternionY"), msg.data, msg.size)
+        == Catch::Approx(0.0));
     // The vendor's typo, preserved.
-    REQUIRE(decodeSignal(*m.findSignal("QuatetnionZ"), msg.data, msg.size)
-            == Catch::Approx(3.2767));
+    REQUIRE(
+        decodeSignal(*m.findSignal("QuatetnionZ"), msg.data, msg.size)
+        == Catch::Approx(3.2767));
     ++decoded;
   }
 
@@ -214,8 +219,9 @@ TEST_CASE("The node id offset picks a different device off the same bus", "[can]
   const auto* m = node2.findMessage(msg.id, msg.extended);
   REQUIRE(m != nullptr);
   REQUIRE(m->name == "PDO4_Transmit");
-  REQUIRE(decodeSignal(*m->findSignal("QuaternionW"), msg.data, msg.size)
-          == Catch::Approx(0.9878));
+  REQUIRE(
+      decodeSignal(*m->findSignal("QuaternionW"), msg.data, msg.size)
+      == Catch::Approx(0.9878));
 
   rx.close();
   tx.close();

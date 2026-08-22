@@ -104,10 +104,9 @@ CANProtocolSettingsWidget::CANProtocolSettingsWidget(QWidget* parent)
   layout->addRow(tr("Interface"), m_interface);
   layout->addRow(QString{}, m_noInterface);
   score::setHelp(
-      m_interface,
-      tr("The SocketCAN network interface, e.g. can0 or vcan0.\n"
-         "Bring it up first, e.g.:\n"
-         "  sudo ip link set can0 up type can bitrate 1000000"));
+      m_interface, tr("The SocketCAN network interface, e.g. can0 or vcan0.\n"
+                      "Bring it up first, e.g.:\n"
+                      "  sudo ip link set can0 up type can bitrate 1000000"));
 
   layout->addRow(tr("DBC file"), dbcLayout);
   layout->addRow(tr("Node id offset"), m_nodeIdOffset);

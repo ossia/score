@@ -19,9 +19,8 @@ LibraryDeviceEnumerator::LibraryDeviceEnumerator(
     : LibraryDeviceEnumerator{
           std::move(pattern), std::move(ext), k,
           [createDev = std::move(createDev)](QByteArray arr, const QString&) {
-  return createDev(std::move(arr));
-          },
-          ctx}
+            return createDev(std::move(arr));
+          }, ctx}
 {
 }
 
@@ -57,7 +56,8 @@ void LibraryDeviceEnumerator::next(std::string_view path)
     Device::DeviceSettings s;
     s.name = QFileInfo{filepath}.baseName();
     s.protocol = m_key;
-    s.deviceSpecificSettings = m_createDeviceSettings(score::mapAsByteArray(f), filepath);
+    s.deviceSpecificSettings
+        = m_createDeviceSettings(score::mapAsByteArray(f), filepath);
     deviceAdded(s.name, s);
   });
 }
@@ -71,7 +71,8 @@ std::function<void()> LibraryDeviceEnumerator::asyncNext(std::string_view path)
     Device::DeviceSettings s;
     s.name = QFileInfo{filepath}.baseName();
     s.protocol = m_key;
-    s.deviceSpecificSettings = m_createDeviceSettings(score::mapAsByteArray(f), filepath);
+    s.deviceSpecificSettings
+        = m_createDeviceSettings(score::mapAsByteArray(f), filepath);
     result = [this, s = std::move(s)]() mutable {
       deviceAdded(s.name, s);
     };

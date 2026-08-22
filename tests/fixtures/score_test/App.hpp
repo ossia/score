@@ -18,14 +18,13 @@
 // and both close any documents fn left open before tearing the app down (the
 // GUI presenter teardown must happen while the factory families are alive).
 
-#include <ossia/context.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 
 #include <core/application/MinimalApplication.hpp>
 #include <core/document/Document.hpp>
 #include <core/presenter/DocumentManager.hpp>
 
-#include <score/application/GUIApplicationContext.hpp>
-
+#include <ossia/context.hpp>
 #include <ossia/detail/thread.hpp>
 
 #include <QApplication>

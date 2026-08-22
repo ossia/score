@@ -1,7 +1,6 @@
 #include <ossia/detail/config.hpp>
 #if defined(OSSIA_PROTOCOL_CAN)
 #include "CANDevice.hpp"
-
 #include "CANSpecificSettings.hpp"
 #include "DBCParser.hpp"
 
@@ -20,9 +19,8 @@
 
 #include <QDebug>
 
-#include <wobjectimpl.h>
-
 #include <cmath>
+#include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Protocols::CANDevice)
 
@@ -457,8 +455,7 @@ bool CANDevice::reconnect()
   }
   catch(...)
   {
-    qWarning() << "CAN device" << settings().name
-               << "could not connect: unknown error";
+    qWarning() << "CAN device" << settings().name << "could not connect: unknown error";
   }
 
   return connected();
