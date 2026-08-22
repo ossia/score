@@ -166,7 +166,9 @@ void addOutputEnumerators(Device::DeviceEnumerators& enums)
     add("FLAC", "<PROJECT>:/main.flac", "flac", "", "flac", "", "s16", {});
     add("Ogg Opus", "<PROJECT>:/main.opus", "ogg", "", "libopus", "", "flt",
         {{"b:a", "128k"}});
-    add("MP3", "<PROJECT>:/main.mp3", "mp3", "", "libmp3lame", "", "s16",
+    // libmp3lame takes PLANAR samples (s16p/s32p/fltp); avcodec_open2 refuses
+    // the preset outright for interleaved s16.
+    add("MP3", "<PROJECT>:/main.mp3", "mp3", "", "libmp3lame", "", "s16p",
         {{"q:a", "2"}});
     enums.push_back({"Record Audio", e});
   }
@@ -192,9 +194,11 @@ void addOutputEnumerators(Device::DeviceEnumerators& enums)
   {
     auto* e = new LibavPresetEnumerator;
     auto add = makeOutputAdder(e);
+    // No flags=+low_delay here: ffmpeg refuses it for anything but mpeg2
+    // ("low delay forcing is only available for mpeg2"), which made this
+    // preset fail to open its encoder at all.
     add("UDP MJPEG", "udp://192.168.1.80:8081", "mjpeg", "mjpeg", "", "yuv420p", "",
         {{"fflags", "+nobuffer+genpts"},
-         {"flags", "+low_delay"},
          {"flush_packets", "1"},
          {"bf", "0"},
          {"color_range", "pc"}});
