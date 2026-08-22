@@ -115,6 +115,12 @@
 [submodule "3rdparty/opengametools"]
 	path = 3rdparty/opengametools
 	url = https://github.com/jpaver/opengametools
+[submodule "3rdparty/ufbx"]
+	path = 3rdparty/ufbx
+	url = https://github.com/ufbx/ufbx
+[submodule "3rdparty/fastgltf"]
+	path = 3rdparty/fastgltf
+	url = https://github.com/spnda/fastgltf
 [submodule "3rdparty/OffsetAllocator"]
 	path = 3rdparty/OffsetAllocator
 	url = https://github.com/sebbbi/OffsetAllocator
