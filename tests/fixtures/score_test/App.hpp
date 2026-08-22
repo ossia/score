@@ -18,6 +18,8 @@
 // and both close any documents fn left open before tearing the app down (the
 // GUI presenter teardown must happen while the factory families are alive).
 
+#include <ossia/context.hpp>
+
 #include <core/application/MinimalApplication.hpp>
 #include <core/document/Document.hpp>
 #include <core/presenter/DocumentManager.hpp>
@@ -46,6 +48,14 @@ inline void prepare_test_environment(bool headless)
   if(headless && !qEnvironmentVariableIsSet("QT_QPA_PLATFORM"))
     qputenv("QT_QPA_PLATFORM", "offscreen");
 #endif
+
+  // Nothing interactive: the package manager asks "Download the user library?"
+  // one second after its first refresh, and score::question() is a modal
+  // QDialog::exec(). A test that runs the event loop for any length of time
+  // otherwise wedges in that nested loop with nobody to answer it -- which is
+  // the same escape hatch the model itself documents for tests and CI.
+  if(!qEnvironmentVariableIsSet("SCORE_SANITIZE_SKIP_CHECKS"))
+    qputenv("SCORE_SANITIZE_SKIP_CHECKS", "1");
 
   // No real audio device: force the dummy backend (honored at startup by
   // Audio::Settings::Model). Avoids connecting to a live PipeWire/JACK server.
@@ -97,9 +107,12 @@ void run_in_app(F&& fn)
   QLocale::setDefault(QLocale::C);
   std::setlocale(LC_ALL, "C");
 
-  // Register this (main) thread as the UI thread, exactly as ossia::context
-  // does during a normal score::Application bootstrap.
-  ossia::set_thread_pinned(ossia::thread_type::Ui, 0);
+  // The same bootstrap score::Application does (Application.cpp): this pins
+  // the current thread as the UI one *and* registers the Ossia QML types.
+  // Pinning by hand instead, as this used to, left `Ossia.Type` &co undefined,
+  // so any QML a test loads would throw the moment it referenced one - which a
+  // Mapper device's createTree() does on its first line.
+  ossia::context ossia_ctx;
 
   score::MinimalApplication app;
 
@@ -119,7 +132,8 @@ void run_in_gui_app(F&& fn)
   QLocale::setDefault(QLocale::C);
   std::setlocale(LC_ALL, "C");
 
-  ossia::set_thread_pinned(ossia::thread_type::Ui, 0);
+  // Same bootstrap as run_in_app(); see the comment there.
+  ossia::context ossia_ctx;
 
   static int argc = 1;
   static char arg0[] = "score-test";
