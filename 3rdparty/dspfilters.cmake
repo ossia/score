@@ -1,3 +1,18 @@
+score_use_system(use_sys DSPFilters)
+if(use_sys)
+  find_package(DSPFilters GLOBAL QUIET)
+  if(NOT TARGET dspfilters)
+    find_library(DSPFILTERS_LIBRARY NAMES DSPFilters dspfilters)
+    find_path(DSPFILTERS_INCLUDE_DIR DspFilters/Dsp.h)
+    if(DSPFILTERS_LIBRARY AND DSPFILTERS_INCLUDE_DIR)
+      add_library(dspfilters INTERFACE IMPORTED GLOBAL)
+      target_include_directories(dspfilters SYSTEM INTERFACE "${DSPFILTERS_INCLUDE_DIR}")
+      target_link_libraries(dspfilters INTERFACE "${DSPFILTERS_LIBRARY}")
+    endif()
+  endif()
+endif()
+
+if(NOT TARGET dspfilters)
 add_library(dspfilters
     "${CMAKE_CURRENT_LIST_DIR}/DSPFilters/DSPFilters/source/Bessel.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/DSPFilters/DSPFilters/source/Biquad.cpp"
@@ -30,3 +45,4 @@ target_include_directories(
   SYSTEM PUBLIC
     "${CMAKE_CURRENT_LIST_DIR}/DSPFilters/DSPFilters/include"
 )
+endif()

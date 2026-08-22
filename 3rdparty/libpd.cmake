@@ -1,4 +1,5 @@
-if(OSSIA_USE_SYSTEM_LIBRARIES AND LINUX)
+score_use_system(use_sys libpd)
+if(use_sys AND LINUX)
   find_library(LIBPD_LIBRARY
     NAMES pd
   )

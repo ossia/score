@@ -14,36 +14,11 @@ endif()
 
 find_package(${QT_VERSION} REQUIRED COMPONENTS Xml)
 
-# libssynth
-add_library(
-  ssynth STATIC
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/Parser/EisenParser.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/Parser/Preprocessor.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/Parser/Tokenizer.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/Model/Action.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/Model/AmbiguousRule.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/Model/Builder.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/Model/CustomRule.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/Model/PrimitiveRule.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/Model/RuleSet.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/Model/State.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/Model/Transformation.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/Model/Rendering/TemplateRenderer.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/Model/Rendering/ObjRenderer.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/ColorPool.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/ColorUtils.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/Logging.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/MiniParser.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/RandomStreams.cpp")
-target_include_directories(ssynth SYSTEM
-                           PRIVATE "${3RDPARTY_FOLDER}/libssynth/src")
-
-target_link_libraries(ssynth PRIVATE "${QT_PREFIX}::Core" "${QT_PREFIX}::Gui"
-                                     "${QT_PREFIX}::Xml" score_lib_base)
-
-if(NOT MSVC)
-  target_compile_options(ssynth PRIVATE -w)
-endif()
+include("${3RDPARTY_FOLDER}/ssynth.cmake")
+include("${3RDPARTY_FOLDER}/miniply.cmake")
+include("${3RDPARTY_FOLDER}/mikktspace.cmake")
+include("${3RDPARTY_FOLDER}/vcglib.cmake")
+include("${3RDPARTY_FOLDER}/opengametools.cmake")
 
 # threedim addon
 add_library(
@@ -115,8 +90,6 @@ add_library(
   Threedim/Splat/GaussianSplatNode.hpp
   Threedim/Splat/GaussianSplatNode.cpp
 
-  "${3RDPARTY_FOLDER}/miniply/miniply.cpp"
-  "${3RDPARTY_FOLDER}/mikktspace/mikktspace.c"
   score_plugin_threedim.hpp
   score_plugin_threedim.cpp)
 
@@ -125,15 +98,7 @@ setup_score_plugin(score_plugin_threedim)
 
 score_generate_command_list_file(score_plugin_threedim "Threedim/RenderPipeline/Process.hpp") 
 
-target_include_directories(
-  score_plugin_threedim SYSTEM
-  PRIVATE
-    "${3RDPARTY_FOLDER}/libssynth/src"
-    "${3RDPARTY_FOLDER}/vcglib"
-    "${3RDPARTY_FOLDER}/miniply"
-    "${3RDPARTY_FOLDER}/mikktspace"
-    "${3RDPARTY_FOLDER}/opengametools/src")
-
 target_link_libraries(
   score_plugin_threedim PRIVATE score_plugin_engine score_plugin_avnd
-                                score_plugin_gfx fmt::fmt ssynth Eigen3::Eigen)
+                                score_plugin_gfx fmt::fmt ssynth Eigen3::Eigen
+                                miniply mikktspace vcglib opengametools)
