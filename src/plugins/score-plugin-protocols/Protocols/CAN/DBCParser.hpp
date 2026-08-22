@@ -6,9 +6,9 @@
  * Scope: what a DBC needs to *decode* a bus. See DBCParser.cpp for the list of
  * constructs that are parsed, tolerated-and-skipped, or unsupported.
  *
- * This header is deliberately free of Qt, of ossia and of anything Linux, so
- * that the parser and the bit extraction can be unit-tested on their own -- the
- * protocol side of the CAN device is Linux-only, the file format is not.
+ * Free of Qt, ossia and anything Linux, so the parser and the bit extraction
+ * can be tested on their own: the protocol side is Linux-only, the format is
+ * not.
  */
 
 #include <cstdint>

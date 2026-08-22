@@ -24,14 +24,12 @@ struct InterfaceInfo
 /**
  * List the CAN interfaces of the machine, sorted by name.
  *
- * Matched on the link type (ARPHRD_CAN, as sysfs reports it in
- * /sys/class/net/<if>/type) rather than on the name: an interface does not have
- * to be called "canN" -- a USB adapter renamed by a udev rule is still a CAN
- * interface -- and conversely a name is not proof of anything. The name
- * prefixes are kept only as a fallback for the case where sysfs cannot be read.
+ * Matched on the link type (ARPHRD_CAN in /sys/class/net/<if>/type), not the
+ * name: a udev-renamed USB adapter is still a CAN interface. The name prefixes
+ * are only a fallback for when sysfs cannot be read.
  *
- * Returns an empty list on a machine with no CAN hardware and no vcan module,
- * which is the common case: that is not an error and callers must handle it.
+ * Empty on a machine with no CAN hardware and no vcan - the common case, and
+ * not an error.
  */
 std::vector<InterfaceInfo> availableInterfaces();
 

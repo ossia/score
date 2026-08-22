@@ -1,13 +1,11 @@
 /**
- * Tests for the DBC parser and for the signal bit extraction.
+ * Tests for the DBC parser and the signal bit extraction.
  *
- * The expected values below are hand-computed from the DBC bit-numbering rules
- * and written out in the comments, never taken from a run of the code under
- * test: this is the one place in the CAN device where a wrong answer looks
- * exactly like a right one, so an oracle derived from the implementation would
- * be worthless.
+ * Expected values are hand-computed from the bit-numbering rules and shown in
+ * the comments, never taken from a run of the code under test - a wrong answer
+ * here looks exactly like a right one.
  *
- * The numbering, restated once so the derivations below can be checked:
+ * The numbering, restated so the derivations can be checked:
  *  - Bit position `p` is bit `p % 8` of byte `p / 8`, counting bit 0 as the
  *    least significant bit of the byte.
  *  - An Intel (`@1`, little-endian) signal's start bit is its LSB, and the
