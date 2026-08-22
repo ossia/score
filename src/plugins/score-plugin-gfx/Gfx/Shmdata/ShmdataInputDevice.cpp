@@ -138,6 +138,7 @@ public:
     m_frames.drain();
     m_rescale.close();
 
+    m_sourceFormat = new_pixfmt;
     if(needsRescale)
     {
       this->pixel_format = new_pixfmt;
@@ -242,7 +243,10 @@ private:
     if(m_rescale)
     {
       AVFrame* frame = av_frame_alloc();
-      frame->format = this->pixel_format;
+      // The SOURCE format: pixel_format is what the renderer will be handed
+      // once m_rescale has converted, which is not how the bytes in `p` are
+      // laid out.
+      frame->format = m_sourceFormat;
       frame->width = this->width;
       frame->height = this->height;
 
@@ -258,9 +262,13 @@ private:
         for(int i = 0; i < AV_NUM_DATA_POINTERS; ++i)
           frame->data[i] = nullptr;
 
+        // Rescale::rescale() leaves read.frame pointing at its INPUT when it
+        // could not rebuild the sws context, so freeing unconditionally and
+        // enqueuing read.frame hands the render thread a dangling pointer.
+        const bool converted = read.frame != frame;
         av_frame_free(&frame);
-
-        m_frames.enqueue(read.frame);
+        if(converted)
+          m_frames.enqueue(read.frame);
       }
       else
       {
@@ -289,6 +297,7 @@ private:
 
   ::Video::FrameQueue m_frames;
   ::Video::Rescale m_rescale;
+  AVPixelFormat m_sourceFormat{AV_PIX_FMT_NONE};
 
   std::atomic_bool m_running{};
 
