@@ -73,6 +73,15 @@ void LibAVDecoder::init_scaler(VideoInterface& self) noexcept
     return;
 
   m_rescale.open(self);
+
+  // Only claim RGBA once the rescaler that produces it actually opened:
+  // sws_getContext refuses some source descriptions (a stream whose
+  // codecpar->format is AV_PIX_FMT_NONE, for one), and the renderer copies
+  // color_space out of this metadata and applies it to frames that are still
+  // in their native YUV.
+  if(!m_rescale)
+    return;
+
   self.pixel_format = AV_PIX_FMT_RGBA;
   self.color_space = AVCOL_SPC_RGB;
 }
@@ -575,7 +584,21 @@ do_read_frame:
       auto frame = m_frames.newFrame();
       while(avcodec_receive_frame(m_codecContext, frame.get()) == 0)
       {
-        m_frames.enqueue(frame.release());
+        // Through the rescaler, like every other decode path: these are the
+        // last frames of the clip, and a decoder whose pixel_format was
+        // relabelled RGBA by init_scaler must not suddenly emit its native
+        // format for them.
+        ReadFrame read{frame.get(), 0};
+        if(m_rescale)
+        {
+          m_rescale.rescale(m_frames, frame, read);
+        }
+        else if(read.frame == frame.get())
+        {
+          frame.release();
+        }
+        if(read.frame)
+          m_frames.enqueue(read.frame);
         frame = m_frames.newFrame();
       }
       m_frames.enqueue_decoding_error(frame.release());
