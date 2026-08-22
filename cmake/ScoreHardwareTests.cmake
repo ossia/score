@@ -35,6 +35,10 @@ set(SCORE_HARDWARE_TEST_WRAPPER
     "${SCORE_ROOT_SOURCE_DIR}/tests/hardware/run-hardware-test.sh"
     CACHE INTERNAL "Probe-then-exec wrapper for hardware-gated tests")
 
+set(SCORE_MEDIA_TEST_WRAPPER
+    "${SCORE_ROOT_SOURCE_DIR}/tests/hardware/with-virtual-media.sh"
+    CACHE INTERNAL "provision-then-exec wrapper for media tests")
+
 function(score_add_hardware_test)
   cmake_parse_arguments(ARG
     ""
@@ -78,5 +82,69 @@ function(score_add_hardware_test)
   if(ARG_ENVIRONMENT)
     set_property(TEST ${ARG_NAME} APPEND PROPERTY
       ENVIRONMENT ${ARG_ENVIRONMENT})
+  endif()
+endfunction()
+
+# Media tests that are allowed to ASSUME a capable host: ffmpeg always, plus
+# whatever the requested provisioning needs. Unlike score_add_hardware_test
+# these do NOT declare SKIP_RETURN_CODE by default, so an absent dependency
+# fails the run instead of quietly vanishing from it.
+#
+#   VIRTUAL_VIDEO  publish a PipeWire Video/Source from videotestsrc
+#                  (needs gstreamer + a live PipeWire daemon)
+#   GSTREAMER      the harness runs its own gst pipelines (needs gstreamer,
+#                  but no PipeWire graph)
+#   MEDIA          per-pixel-format H.264 / raw clips
+#   MATRIX         the container x codec matrix and its known-pixel master
+function(score_add_media_test)
+  cmake_parse_arguments(ARG
+    "VIRTUAL_VIDEO;GSTREAMER;MEDIA;MATRIX;OPTIONAL"
+    "NAME;EXECUTABLE;TIMEOUT"
+    "ARGS;ENVIRONMENT"
+    ${ARGN})
+
+  if(NOT ARG_NAME OR NOT ARG_EXECUTABLE)
+    message(FATAL_ERROR "score_add_media_test: NAME and EXECUTABLE are required")
+  endif()
+  if(NOT ARG_TIMEOUT)
+    set(ARG_TIMEOUT 600)
+  endif()
+  if(TARGET "${ARG_EXECUTABLE}")
+    set(_exe "$<TARGET_FILE:${ARG_EXECUTABLE}>")
+  else()
+    set(_exe "${ARG_EXECUTABLE}")
+  endif()
+
+  set(_flags "")
+  if(ARG_VIRTUAL_VIDEO)
+    list(APPEND _flags --video)
+  endif()
+  if(ARG_GSTREAMER)
+    list(APPEND _flags --gstreamer)
+  endif()
+  if(ARG_MEDIA)
+    list(APPEND _flags --media)
+  endif()
+  if(ARG_MATRIX)
+    list(APPEND _flags --matrix)
+  endif()
+
+  add_test(NAME ${ARG_NAME}
+    COMMAND "${SCORE_MEDIA_TEST_WRAPPER}" ${_flags} -- "${_exe}" ${ARG_ARGS})
+
+  set_tests_properties(${ARG_NAME} PROPERTIES
+    LABELS "media"
+    TIMEOUT "${ARG_TIMEOUT}"
+    RUN_SERIAL TRUE
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}"
+    ENVIRONMENT "SCORE_AUDIO_BACKEND=dummy;SCORE_DISABLE_AUDIOPLUGINS=1")
+
+  # Only an explicitly OPTIONAL test may skip; everything else must run.
+  if(ARG_OPTIONAL)
+    set_property(TEST ${ARG_NAME} PROPERTY SKIP_RETURN_CODE 77)
+  endif()
+
+  if(ARG_ENVIRONMENT)
+    set_property(TEST ${ARG_NAME} APPEND PROPERTY ENVIRONMENT ${ARG_ENVIRONMENT})
   endif()
 endfunction()

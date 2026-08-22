@@ -49,6 +49,7 @@
 #include <QFile>
 #include <QOffscreenSurface>
 #include <QScreen>
+#include <QOpenGLDebugLogger>
 #include <QStandardPaths>
 #include <QThreadPool>
 #include <QWindow>
@@ -73,6 +74,53 @@ bool gpuDebugRequested() noexcept
   return requested;
 #endif
 }
+
+#ifndef QT_NO_OPENGL
+// OpenGL's counterpart to the D3D debug layer and the Vulkan validation layers.
+// Without this, a GL run reports no errors because nothing is listening --
+// not because the driver had nothing to say. Needs a context created with
+// QSurfaceFormat::DebugContext and the KHR_debug entry points.
+void installGlDebugLogger(QRhi* rhi)
+{
+  if(!rhi || !gpuDebugRequested())
+    return;
+  auto* ctx = QOpenGLContext::currentContext();
+  if(!ctx)
+    return;
+  if(!ctx->hasExtension(QByteArrayLiteral("GL_KHR_debug")))
+  {
+    qDebug() << "GL validation requested but GL_KHR_debug is unavailable";
+    return;
+  }
+
+  auto* logger = new QOpenGLDebugLogger(ctx);
+  if(!logger->initialize())
+  {
+    delete logger;
+    return;
+  }
+  QObject::connect(
+      logger, &QOpenGLDebugLogger::messageLogged, logger,
+      [](const QOpenGLDebugMessage& m) {
+    // Drivers emit a lot of NotificationSeverity chatter (buffer placement
+    // hints and the like). Keeping it at debug level means a real warning is
+    // not buried in it; SCORE_GPU_VALIDATION=2 promotes everything.
+    const bool verbose = qEnvironmentVariableIntValue("SCORE_GPU_VALIDATION") > 1;
+    if(m.severity() == QOpenGLDebugMessage::NotificationSeverity && !verbose)
+    {
+      qDebug() << "gl-note:" << m.message();
+      return;
+    }
+    // Synchronous logging, so the message is emitted at the offending call and
+    // a backtrace under a debugger points at the real site.
+    qWarning() << "GL-VALIDATION:" << m.severity() << m.type() << m.source()
+               << m.message();
+      });
+  logger->startLogging(QOpenGLDebugLogger::SynchronousLogging);
+  logger->enableMessages();
+  qDebug() << "GL validation active (KHR_debug, synchronous)";
+}
+#endif
 
 // Persistent pipeline cache. Saved on QRhi destruction, loaded right after
 // QRhi creation. Keyed per backend so different APIs don't overwrite each
@@ -287,6 +335,8 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
     score::GLCapabilities caps;
     caps.setupFormat(params.format);
     params.format.setSamples(state.samples);
+    if(gpuDebugRequested())
+      params.format.setOption(QSurfaceFormat::DebugContext);
     state.version = caps.qShaderVersion;
     state.rhi = QRhi::create(QRhi::OpenGLES2, &params, flags);
     if(!state.rhi)
@@ -302,6 +352,7 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
     }
     else
     {
+      installGlDebugLogger(state.rhi);
       state.renderSize = sz;
       populateCaps(state);
       return st;
@@ -673,8 +724,14 @@ void ScreenNode::setSwapchainFlag(Gfx::SwapchainFlag flag)
   // with the new flag bits — setFlags happens in createOutput at line ~667.
   // destroyOutput tears down; Graph::createOutputRenderList rebuilds on
   // next reconcile (same pattern updateGraphicsAPI uses for sample-count).
+  //
+  // The Graph-owned RenderList holds QRhiResources belonging to the QRhi
+  // destroyOutput() is about to `delete`; release it first.
   if(m_window)
+  {
+    releaseOwnedRenderList();
     destroyOutput();
+  }
 }
 
 void ScreenNode::setSwapchainFormat(Gfx::SwapchainFormat format)
@@ -687,7 +744,10 @@ void ScreenNode::setSwapchainFormat(Gfx::SwapchainFormat format)
   // updated but the live swapchain kept its prior format (HDR↔SDR toggle
   // was silently inert).
   if(m_window)
+  {
+    releaseOwnedRenderList();
     destroyOutput();
+  }
 }
 
 void ScreenNode::setSize(QSize sz)
@@ -745,19 +805,17 @@ void ScreenNode::setCursor(bool b)
 
 void ScreenNode::createOutput(score::gfx::OutputConfiguration conf)
 {
+  m_onReleaseRenderList = conf.onReleaseRenderList;
+
   if(m_ownsWindow)
   {
-    // Idempotency guard for mid-play graph rebuilds. initializeOutput()
-    // re-enters here whenever renderState() is null — which is exactly the
-    // transient state of a freshly-created window that is still waiting for
-    // its first expose to build the swapchain. Re-creating the window here
-    // would free the in-flight Window (and the RenderState it co-owns) while
-    // queued expose/deferred-delete events and the surviving RenderLists still
-    // reference them -> the deterministic mid-play use-after-free/invalid-free.
-    // The onWindowReady set by the first createOutput() is still pending and
-    // completes the setup. A *deliberate* recreation (graphics-API or
-    // sample-count change) routes through destroyOutput() first, which resets
-    // m_window, so this guard never blocks it.
+    // Idempotency guard for mid-play graph rebuilds. initializeOutput() re-enters
+    // here whenever renderState() is null, which is exactly the transient state of
+    // a freshly created window still waiting for its first expose. Recreating the
+    // window would free the in-flight Window, and the RenderState it co-owns, while
+    // queued expose and deferred-delete events still reference them. The
+    // onWindowReady set by the first createOutput() completes the setup. A
+    // deliberate recreation routes through destroyOutput(), which resets m_window.
     if(m_window)
       return;
     m_window = std::make_shared<Window>(conf.graphicsApi);

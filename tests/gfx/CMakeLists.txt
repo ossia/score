@@ -88,6 +88,12 @@ score_add_isf_test(image          IsfImageInputs.cpp)
 # invalid on Vulkan (VUID-VkWriteDescriptorSet-descriptorType-00330, then a
 # SIGSEGV in setShaderResources) and silently nondeterministic on OpenGL.
 score_add_isf_test(buffer_usage_mismatch GfxBufferUsageMismatch.cpp)
+
+# Regression guard for the 256-byte disconnected-uniform_input placeholder: a
+# std140 block bigger than the guess left every member past 256 B unbound
+# (qrhigles2.cpp bounds-checks and skips them; the other backends read out of
+# range).
+score_add_isf_test(large_uniform_input GfxLargeUniformInput.cpp)
 # CSF (compute-shader) L3 tests reuse the same helper (GUI app, corpus dir).
 function(score_add_csf_test name source)
   score_add_test(test_gfx_csf_${name}
@@ -296,3 +302,187 @@ score_add_test(test_gfx_external_sampler_essl
     ${_external_oes_hidden}
   APP
   PLUGINS score_plugin_gfx score_plugin_media score_lib_process)
+# -----------------------------------------------------------------------------
+# Multi-window output editing canvases (Gfx/Window). Pure geometry driven
+# through QGraphicsScene::sendEvent: coordinate mapping, snapping, canvas
+# clamping, lock modes, re-indexing, blend handles and 4-corner warp. No QRhi
+# and no visible window -- run_in_app boots the headless offscreen stack.
+#
+# OutputMapping.cpp / DesktopLayout.cpp are not exported from the dynamic
+# score_plugin_gfx (hidden visibility), so both translation units are compiled
+# into the test target, as test_gfx_engine_glue does for the render nodes.
+score_plugin_hidden_sources(_window_layout_hidden
+    "${_gfx_src}/Gfx/Window/OutputMapping.cpp"
+    "${_gfx_src}/Gfx/Window/DesktopLayout.cpp"
+    "${_gfx_src}/Gfx/Window/TestCard.cpp")
+score_add_test(test_gfx_window_layout
+  SOURCES
+    WindowLayoutCanvas.cpp
+    ${_window_layout_hidden}
+  APP
+  PLUGINS score_plugin_gfx score_lib_process)
+
+# -----------------------------------------------------------------------------
+# PRESENTED-SWAPCHAIN output tests. Everything else in this directory renders
+# into an offscreen BackgroundNode and reads it back, which leaves
+# score::gfx::Window, ScreenNode and MultiWindowNode -- i.e. every path that
+# only exists because a real platform surface is in front of the renderer --
+# entirely unexercised. These two targets terminate the same score::gfx::Graph
+# on a real window instead.
+#
+# They are GUI targets (label "gui", real display, no forced offscreen QPA) and
+# SKIP cleanly when no native window can be exposed. Split in two so a hang or
+# a crash in the multi-window case cannot take the single-window one with it,
+# and so the ctest timeout applies per group.
+score_add_gfx_test(screen_output      ScreenOutput.cpp)
+score_add_gfx_test(multi_window       MultiWindowOutput.cpp)
+
+# Regression guards on the ScreenNode <-> Graph boundary: a live swapchain-flag
+# toggle must release the Graph's RenderList before freeing the QRhi it was
+# built against, and a window resize must not discard the render-size override.
+# Own target so a crash in either cannot take the two suites above with it.
+score_add_gfx_test(screen_findings    ScreenOutputFindings.cpp)
+
+# -----------------------------------------------------------------------------
+# The multi-window preview windows (Gfx/Window/OutputPreview.cpp): four preview
+# contents painted through a corner-warp + rotation/mirror transform with
+# soft-edge blend overlays, plus the window-per-mapping bookkeeping. Pure
+# QPainter work, so QWidget::grab() renders it offscreen and the pixels are
+# asserted numerically (the blend overlay has the closed form the shader uses).
+score_plugin_hidden_sources(_output_preview_hidden
+    "${_gfx_src}/Gfx/Window/OutputPreview.cpp"
+    "${_gfx_src}/Gfx/Window/TestCard.cpp")
+score_add_test(test_gfx_output_preview
+  SOURCES
+    OutputPreviewPaint.cpp
+    ${_output_preview_hidden}
+  APP
+  PLUGINS score_plugin_gfx score_lib_process)
+
+# The protocol settings widget of the window output device (1161 lines, 0%):
+# mode switching, the swapchain flag/format combos, the per-output inspector
+# (position/size/fullscreen/source rect/blend/transform/lock mode/screen), the
+# output selector buttons and the add/remove path, plus the WindowSettings
+# round-trip getSettings()/setSettings() sits on top of. Offscreen, no GPU.
+score_plugin_hidden_sources(_window_settings_hidden
+    "${_gfx_src}/Gfx/Window/WindowSettingsWidget.cpp"
+    "${_gfx_src}/Gfx/Window/OutputMapping.cpp"
+    "${_gfx_src}/Gfx/Window/DesktopLayout.cpp"
+    "${_gfx_src}/Gfx/Window/OutputPreview.cpp"
+    "${_gfx_src}/Gfx/Window/TestCard.cpp")
+score_add_test(test_gfx_window_settings_ui
+  SOURCES
+    WindowSettingsUi.cpp
+    ${_window_settings_hidden}
+  APP
+  PLUGINS score_plugin_gfx score_lib_process score_plugin_deviceexplorer)
+
+# The FFmpeg (libav) input/output device: its settings widget (781 lines, 0%)
+# and the preset enumerators (301 lines, 0%). Most of the widget is libav
+# introspection — a muxer choice filters the encoder lists, an encoder choice
+# repopulates the pixel/sample format lists from the codec's declared config,
+# and the validation label comes from av_guess_format /
+# avcodec_find_encoder_by_name. Offscreen, no GPU.
+if(TARGET score_plugin_media)
+  score_plugin_hidden_sources(_libav_settings_hidden
+      "${_gfx_src}/Gfx/Libav/LibavSettingsWidget.cpp"
+      "${_gfx_src}/Gfx/Libav/LibavDevice.cpp"
+      "${_gfx_src}/Gfx/Libav/LibavEncoder.cpp"
+      "${_gfx_src}/Gfx/Libav/LibavEncoderNode.cpp"
+      "${_gfx_src}/Gfx/Libav/LibavPresets.cpp")
+  score_add_test(test_gfx_libav_settings_ui
+    SOURCES
+      LibavSettingsUi.cpp
+      ${_libav_settings_hidden}
+    APP
+    PLUGINS score_plugin_gfx score_lib_process score_plugin_media)
+endif()
+
+# -----------------------------------------------------------------------------
+# The ossia device trees of the window output device: Gfx/Window/WindowDevice.hpp
+# and Gfx/Window/MultiWindowDevice.hpp, both 0%. This is where every window
+# property becomes a remote-controllable address and where the input events
+# travel back out. Built through the real protocol factory on a real document,
+# so it needs a display: GUI, and it SKIPs without one.
+score_add_gfx_test(window_device_tree WindowDeviceTree.cpp)
+target_link_libraries(test_gfx_window_device_tree PRIVATE score_plugin_deviceexplorer)
+
+
+# -----------------------------------------------------------------------------
+# The GStreamer input device (Gfx/GStreamer/GStreamerDevice.cpp, 1010 lines at
+# 4%; GStreamerLoader.hpp, 0%). The device runs its OWN pipeline, so
+# `videotestsrc` is producer and reference at once and no external process is
+# needed: gst_parse_launch -> appsink classification -> FrameQueue -> AVFrame is
+# assertable on the CPU by scaling one decoded frame down to a single RGBA pixel.
+#
+# Registered in tests/hardware (score_add_media_test) rather than here: the
+# runner REQUIRES a working GStreamer, so an absent one is a failure instead of
+# a silently skipped suite. NO_CTEST keeps it from also being registered here
+# with none of that guaranteed.
+if(TARGET score_plugin_media)
+  score_plugin_hidden_sources(_gstreamer_device_hidden
+      "${_gfx_src}/Gfx/GStreamer/GStreamerDevice.cpp"
+      "${_gfx_src}/Gfx/GStreamer/GStreamerOutputDevice.cpp")
+  score_add_test(test_gfx_gstreamer_device
+    SOURCES
+      GStreamerDeviceRender.cpp
+      ${_gstreamer_device_hidden}
+    APP
+    PLUGINS score_plugin_gfx score_lib_process score_plugin_media
+            score_plugin_deviceexplorer
+    LIBS avutil swscale
+    NO_CTEST)
+
+  # The picture sweep and the lifecycle matrix, in their own binary: they walk
+  # 25 pixel formats at two geometries through a real file source, which is
+  # minutes rather than the seconds the colour sweep above costs. Keeping them
+  # apart means a format regression and a teardown hang are separate ctest
+  # entries with separate timeouts.
+  score_add_test(test_gfx_gstreamer_matrix
+    SOURCES
+      GStreamerStreamingMatrix.cpp
+      ${_gstreamer_device_hidden}
+    APP
+    PLUGINS score_plugin_gfx score_lib_process score_plugin_media
+            score_plugin_deviceexplorer
+    LIBS avutil avformat swscale
+    NO_CTEST)
+endif()
+
+# --- GStreamer input device (score-plugin-gfx) ------------------------------
+# Registered here rather than in tests/hardware because tests/gfx is added
+# after it, so the target does not exist yet there. The runner
+# REQUIRES gstreamer, so a host without it fails instead of silently dropping
+# the only coverage GStreamerDevice.cpp has. No --video is needed -- the device
+# runs videotestsrc itself -- but the runner's gst-inspect check is exactly the
+# precondition this harness has.
+#
+# Deliberately NOT run with SCORE_SANITIZE_SKIP_CHECKS: this harness pumps the
+# event loop for several seconds, which is exactly what used to deliver
+# PM::PluginSettingsModel::firstTimeLibraryDownload()'s modal QMessageBox and
+# wedge the run under the offscreen QPA. Leaving the escape hatch off keeps
+# that regression visible here as a hang instead of hiding it.
+if(TARGET test_gfx_gstreamer_device)
+  score_add_media_test(
+    NAME       Media_GStreamerDevice
+    EXECUTABLE test_gfx_gstreamer_device
+    GSTREAMER
+    TIMEOUT    600
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+endif()
+
+# --- GStreamer picture sweep + device lifecycle -----------------------------
+# --matrix provides the known-pixel master in a container GStreamer can demux,
+# at an even and an odd geometry. The sweep pushes that picture through every
+# mapped pixel format and asserts the pixels that came back; the lifecycle half
+# bounds every create/start/stop/destroy order by a wall-clock budget, so a
+# teardown that wedges fails its own case instead of the whole run.
+if(TARGET test_gfx_gstreamer_matrix)
+  score_add_media_test(
+    NAME       Media_GStreamerMatrix
+    EXECUTABLE test_gfx_gstreamer_matrix
+    GSTREAMER
+    MATRIX
+    TIMEOUT    900
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+endif()

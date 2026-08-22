@@ -425,6 +425,17 @@ if(TARGET score_plugin_media)
     SOURCES GStreamerCompatibilityTest.cpp
     PLUGINS score_plugin_media
     LIBS avutil)
+
+  # Video::initFrameFromRawData(): the plane layout every stride-less input
+  # (GStreamer appsink, Sh4lt, Shmdata, Kinect2) applies to a flat pixel buffer.
+  # libav is the oracle -- av_image_get_linesize for the minimum row width,
+  # av_image_fill_plane_sizes to turn the strides the subject chose into the
+  # bytes each plane then needs -- so nothing here re-derives a subsampling
+  # factor the code under test could agree with for the same wrong reason.
+  score_add_test(test_unit_video_frame_layout
+    SOURCES VideoFrameLayoutTest.cpp
+    PLUGINS score_plugin_media
+    LIBS avutil)
 endif()
 
 # The video pixel-format vocabulary and its libav bridge. Lives with the
@@ -574,4 +585,215 @@ if(TARGET score_plugin_gfx)
     SOURCES RdmaPlayoutProbeTest.cpp
     PLUGINS score_plugin_gfx
     LIBS ${QT_PREFIX}::Gui)
+endif()
+# --- threedim asset loaders ------------------------------------------------
+# The plugin is built with -fvisibility=hidden, so the loader entry points
+# (GltfParser/FbxParser/AssetLoader::process, ObjFromString, ...) are not
+# reachable through libscore_plugin_threedim.so. Compile the loader layer
+# straight into the test binary instead; linking the plugins still provides
+# the include dirs + the exported gfx/registry symbols.
+if(TARGET score_plugin_threedim)
+  set(_threedim_src "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
+
+  # C sources go in a separate static lib: mixing C into the test target
+  # breaks the score_lib_pch REUSE_FROM (PCH is C++-only).
+  add_library(test_unit_threedim_3rdparty STATIC
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/miniply/miniply.cpp"
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/mikktspace/mikktspace.c"
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/ufbx/ufbx.c")
+  target_include_directories(test_unit_threedim_3rdparty SYSTEM PUBLIC
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/miniply"
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/mikktspace"
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/ufbx")
+  set_target_properties(test_unit_threedim_3rdparty
+    PROPERTIES FOLDER "Tests" POSITION_INDEPENDENT_CODE ON)
+
+  score_plugin_hidden_sources(_threedim_hidden
+      "${_threedim_src}/AssetLoader.cpp"
+      "${_threedim_src}/GltfParser.cpp"
+      "${_threedim_src}/FbxParser.cpp"
+      "${_threedim_src}/TinyObj.cpp"
+      "${_threedim_src}/Ply.cpp"
+      "${_threedim_src}/VcgImporters.cpp"
+      "${_threedim_src}/SceneFromMeshes.cpp"
+      "${_threedim_src}/PrimitiveCloud/PlyParser.cpp"
+      "${_threedim_src}/PrimitiveCloud/SplatBinary.cpp"
+      "${_threedim_src}/PrimitiveCloud/SpzCodec.cpp"
+      "${_threedim_src}/PrimitiveCloud/SceneFromCloud.cpp"
+      "${_threedim_src}/PrimitiveCloud/FormatOverride.cpp")
+score_add_test(test_unit_threedim_loaders
+    SOURCES
+      ThreedimLoaderTest.cpp
+      ${_threedim_hidden}
+    PLUGINS score_plugin_threedim score_plugin_gfx score_plugin_avnd
+    LIBS test_unit_threedim_3rdparty fastgltf spz "${QT_PREFIX}::Gui")
+  target_include_directories(test_unit_threedim_loaders SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/vcglib"
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/eigen")
+endif()
+
+# PrimitiveCloud parsers (PLY / .splat / .spz + scene helpers). The parser
+# entry points are not exported from the dynamic score_plugin_threedim
+# (hidden visibility), so compile the parser translation units directly
+# into the test.
+set(_pc_dir "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim/PrimitiveCloud")
+score_add_test(test_unit_primitivecloud
+  SOURCES
+    PrimitiveCloudTest.cpp
+    "${_pc_dir}/PlyParser.cpp"
+    "${_pc_dir}/SplatBinary.cpp"
+    "${_pc_dir}/SpzCodec.cpp"
+    "${_pc_dir}/SceneFromCloud.cpp"
+    "${_pc_dir}/FormatOverride.cpp"
+    "${3RDPARTY_FOLDER}/miniply/miniply.cpp"
+  LIBS spz)
+target_include_directories(test_unit_primitivecloud SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+  "${3RDPARTY_FOLDER}/miniply")
+
+# --- multi-window output mapping serialization (score-plugin-gfx) -----------
+# JSON/DataStream of Gfx::OutputMapping. The specializations live in
+# OutputMapping.cpp and are not exported from the dynamic score_plugin_gfx
+# (hidden visibility), so the translation unit is compiled straight into the
+# test -- the same workaround tests/gfx/CMakeLists.txt applies to ISFNode.cpp.
+# It drags in QGraphicsView, hence the Widgets link; no widget is instantiated.
+if(TARGET score_plugin_gfx)
+  score_plugin_hidden_sources(_output_mapping_hidden
+      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx/Gfx/Window/OutputMapping.cpp")
+  score_add_test(test_unit_output_mapping_serialization
+    SOURCES
+      OutputMappingSerializationTest.cpp
+      ${_output_mapping_hidden}
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui ${QT_PREFIX}::Widgets)
+endif()
+
+# --- video colour-space / tone-mapping GLSL generation (score-plugin-gfx) ---
+# ColorSpace.hpp and Tonemap.hpp are header-only families of pure functions of a
+# Video::ImageFormat, so the whole H.273 decision tree is checkable with no GPU,
+# no decoder and no video file. Its consumers (the decoders/*.hpp samplers) are
+# GPU-bound; the decision itself is not.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_colorspace_shader
+    SOURCES ColorSpaceShaderTest.cpp
+    PLUGINS score_plugin_gfx score_plugin_media
+    LIBS avutil avcodec ${QT_PREFIX}::Gui)
+endif()
+
+# --- GPU interop capability ladder (score-plugin-gfx) -----------------------
+# The rung-selection predicates every vendor video strategy consults. The probe
+# needs a driver; the decisions taken on its result are constexpr predicates
+# over a plain struct and are checkable anywhere. Exported from the plugin, so
+# nothing has to be recompiled into the test.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_gpu_capabilities
+    SOURCES GpuCapabilitiesTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+endif()
+
+# --- GPU video decoder selection matrix (score-plugin-gfx) ------------------
+# createGPUVideoDecoder() takes only a Video::ImageFormat, so the whole
+# pixel-format -> decoder-class switch (and the parameterisation of the two
+# generic Packed/Planar decoders) is checkable with no QRhi and no frame. Only
+# init() needs a render list, and the L3 GPU suites cover that end.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_video_decoder_factory
+    SOURCES VideoDecoderFactoryTest.cpp
+    PLUGINS score_plugin_gfx score_plugin_media
+    LIBS avutil avcodec avformat ${QT_PREFIX}::Gui)
+endif()
+
+# --- hardware-decoding vocabulary + the CPU-rescale gate (score-plugin-media)
+# Video/GpuFormats.hpp is pure functions of an AVPixelFormat / AVCodecID. The
+# sweep that matters crosses it with score::gfx::createGPUVideoDecoder(): the
+# two tables independently decide "no rescale needed" and "here is your GPU
+# decoder", and a format only one of them knows renders nothing.
+if(TARGET score_plugin_gfx AND TARGET score_plugin_media)
+  score_add_test(test_unit_gpu_formats
+    SOURCES GpuFormatsTest.cpp
+    PLUGINS score_plugin_gfx score_plugin_media
+    LIBS avutil avcodec ${QT_PREFIX}::Gui)
+endif()
+
+# --- the decoder <-> renderer frame queue (score-plugin-media) --------------
+# Video::FrameQueue is the ownership boundary between the decode thread and the
+# render thread: a pool, a "latest frame wins" dequeue, and a discard marker
+# published on seek. All of it is pure CPU over AVFrame pointers.
+if(TARGET score_plugin_media)
+  score_add_test(test_unit_video_frame_queue
+    SOURCES VideoFrameQueueTest.cpp
+    PLUGINS score_plugin_media
+    LIBS avutil avcodec)
+endif()
+
+# The first-run "download the user library?" question. It is a modal
+# QDialog::exec() posted by a 1s timer, so a headless process that pumps events
+# gets it and never comes back. Registered without SCORE_SANITIZE_SKIP_CHECKS
+# on purpose: that variable used to be the only thing keeping it shut.
+if(TARGET score_plugin_packagemanager AND TARGET score_plugin_library)
+  score_add_test(test_unit_packagemanager_firstrun
+    SOURCES PackageManagerFirstRunTest.cpp
+    APP
+    PLUGINS score_plugin_packagemanager score_plugin_library)
+  target_include_directories(test_unit_packagemanager_firstrun PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-packagemanager"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-library")
+endif()
+
+# Video::Rescale on its own: the swscale fallback taken by every format without
+# a GPU decoder. Its source geometry comes from two places that can disagree --
+# the stream metadata handed to open() and the AVFrame handed to rescale() --
+# and believing the wrong one reads past the source planes. Needs no media: the
+# source frames are buffers the test owns.
+if(TARGET score_plugin_media)
+  score_add_test(test_unit_video_rescale
+    SOURCES VideoRescaleTest.cpp
+    PLUGINS score_plugin_media
+    LIBS avutil swscale)
+endif()
+
+# --- libav demux / decode / rescale, against real files ---------------------
+# Video::VideoDecoder + Video::Rescale + Video::VideoThumbnailer end-to-end. The
+# clips come from tests/hardware/with-virtual-media.sh, so the ctest entry is
+# registered there (score_add_media_test) rather than here: run without the
+# provisioning wrapper the harness has no media at all.
+if(TARGET score_plugin_media)
+  score_add_test(test_unit_libav_decode
+    SOURCES LibavDecodeTest.cpp
+    PLUGINS score_plugin_media
+    LIBS avutil avcodec avformat swscale ${QT_PREFIX}::Gui
+    NO_CTEST)
+endif()
+
+# --- container x codec matrix, asserted 1:1 against known pixels -------------
+# Registered in tests/hardware (score_add_media_test MATRIX): the runner builds
+# one master clip of solid colour blocks, derives its ground-truth rgb24 dump
+# FROM that clip, and encodes the same master into every container/codec pair
+# the host's ffmpeg can produce. The harness compares decoded pixels against
+# those bytes, so no return code and no "something was rendered" heuristic is
+# involved.
+if(TARGET score_plugin_media)
+  score_add_test(test_unit_video_codec_matrix
+    SOURCES VideoCodecMatrixTest.cpp
+    PLUGINS score_plugin_media
+    LIBS avutil avcodec avformat swscale ${QT_PREFIX}::Gui
+    NO_CTEST)
+endif()
+
+# --- streaming protocols and device lifecycle (score-plugin-media) ----------
+# Video::LibavStreamInput against real network peers -- UDP/MPEG-TS, RTP+SDP,
+# SRT, RIST, RTMP and HLS-over-HTTP -- serving the same known-pixel master the
+# codec matrix uses, so the assertion is the picture off the wire and not "a
+# frame arrived". The harness spawns and KILLS the peers itself, which is what
+# lets it stage a mid-stream drop, a reconnect and a destroy-while-blocked.
+# Every lifecycle case runs under a hard deadline (score_test/StreamServer.hpp):
+# a hang fails the case instead of wedging the run until ctest's TIMEOUT.
+# Registered in tests/hardware (score_add_media_test MATRIX) for the fixtures.
+if(TARGET score_plugin_media)
+  score_add_test(test_unit_streaming_protocol
+    SOURCES StreamingProtocolTest.cpp
+    PLUGINS score_plugin_media
+    LIBS avutil avcodec avformat swscale ${QT_PREFIX}::Gui ${QT_PREFIX}::Network
+    NO_CTEST)
 endif()
