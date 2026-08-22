@@ -151,6 +151,8 @@ set(HDRS
     Gfx/Filter/Library.hpp
     Gfx/Filter/PreviewWidget.hpp
 
+    Gfx/Widgets/RhiPreviewWidget.hpp
+
     Gfx/GeometryFilter/Executor.hpp
     Gfx/GeometryFilter/Metadata.hpp
     Gfx/GeometryFilter/Process.hpp
@@ -205,6 +207,7 @@ set(HDRS
     Gfx/Graph/OutputNode.hpp
     Gfx/Graph/PhongNode.hpp
     Gfx/Graph/PreviewNode.hpp
+    Gfx/Graph/RenderClock.hpp
     Gfx/Graph/RenderList.hpp
     Gfx/Graph/RenderState.hpp
     Gfx/Graph/RenderedISFNode.hpp
@@ -218,6 +221,7 @@ set(HDRS
     Gfx/Graph/SimpleRenderedISFNode.hpp
     Gfx/Graph/TexgenNode.hpp
     Gfx/Graph/TextNode.hpp
+    Gfx/Graph/TextureLoader.hpp
     Gfx/Graph/Uniforms.hpp
     Gfx/Graph/Utils.hpp
     Gfx/Graph/VideoNode.hpp
@@ -297,6 +301,7 @@ set(HDRS
     Gfx/Settings/View.hpp
     Gfx/Settings/Factory.hpp
     
+    Gfx/AssetTable.hpp
     Gfx/Window/BackgroundDevice.hpp
     Gfx/Window/CollapsibleSection.hpp
     Gfx/Window/DesktopLayout.hpp
@@ -351,6 +356,8 @@ set(SRCS
     Gfx/Filter/Process.cpp
     Gfx/Filter/PreviewWidget.cpp
 
+    Gfx/Widgets/RhiPreviewWidget.cpp
+
     Gfx/GeometryFilter/Executor.cpp
     Gfx/GeometryFilter/Process.cpp
     Gfx/GeometryFilter/Library.cpp
@@ -398,6 +405,7 @@ set(SRCS
     Gfx/Graph/OutputNode.cpp
     Gfx/Graph/PhongNode.cpp
     Gfx/Graph/PreviewNode.cpp
+    Gfx/Graph/RenderClock.cpp
     Gfx/Graph/RenderList.cpp
     Gfx/Graph/RenderedISFNode.cpp
     Gfx/Graph/RenderedRawRasterPipelineNode.cpp
@@ -406,6 +414,7 @@ set(SRCS
     Gfx/Graph/ShaderCache.cpp
     Gfx/Graph/SimpleRenderedISFNode.cpp
     Gfx/Graph/TextNode.cpp
+    Gfx/Graph/TextureLoader.cpp
     Gfx/Graph/Utils.cpp
     Gfx/Graph/VideoNode.cpp
     Gfx/Graph/VideoNodeRenderer.cpp
@@ -413,6 +422,7 @@ set(SRCS
     Gfx/Graph/DirectVideoNodeRenderer.cpp
     Gfx/Graph/Window.cpp
 
+    Gfx/AssetTable.cpp
     Gfx/GfxApplicationPlugin.cpp
     Gfx/GfxExecNode.cpp
     Gfx/GfxExecutionAction.cpp
