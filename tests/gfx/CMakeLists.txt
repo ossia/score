@@ -432,6 +432,21 @@ if(TARGET score_plugin_media)
             score_plugin_deviceexplorer
     LIBS avutil swscale
     NO_CTEST)
+
+  # The picture sweep and the lifecycle matrix, in their own binary: they walk
+  # 25 pixel formats at two geometries through a real file source, which is
+  # minutes rather than the seconds the colour sweep above costs. Keeping them
+  # apart means a format regression and a teardown hang are separate ctest
+  # entries with separate timeouts.
+  score_add_test(test_gfx_gstreamer_matrix
+    SOURCES
+      GStreamerStreamingMatrix.cpp
+      ${_gstreamer_device_hidden}
+    APP
+    PLUGINS score_plugin_gfx score_lib_process score_plugin_media
+            score_plugin_deviceexplorer
+    LIBS avutil avformat swscale
+    NO_CTEST)
 endif()
 
 # --- GStreamer input device (score-plugin-gfx) ------------------------------
@@ -453,5 +468,21 @@ if(TARGET test_gfx_gstreamer_device)
     EXECUTABLE test_gfx_gstreamer_device
     GSTREAMER
     TIMEOUT    600
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+endif()
+
+# --- GStreamer picture sweep + device lifecycle -----------------------------
+# --matrix provides the known-pixel master in a container GStreamer can demux,
+# at an even and an odd geometry. The sweep pushes that picture through every
+# mapped pixel format and asserts the pixels that came back; the lifecycle half
+# bounds every create/start/stop/destroy order by a wall-clock budget, so a
+# teardown that wedges fails its own case instead of the whole run.
+if(TARGET test_gfx_gstreamer_matrix)
+  score_add_media_test(
+    NAME       Media_GStreamerMatrix
+    EXECUTABLE test_gfx_gstreamer_matrix
+    GSTREAMER
+    MATRIX
+    TIMEOUT    900
     ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 endif()

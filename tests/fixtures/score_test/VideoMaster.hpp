@@ -82,6 +82,12 @@ inline int blockSize()
   return b > 0 ? b : 40;
 }
 
+inline int oddBlockSize()
+{
+  const int b = qgetenv("SCORE_TEST_MATRIX_ODD_BLOCK").toInt();
+  return b > 0 ? b : 13;
+}
+
 struct Master
 {
   int width{}, height{}, frames{};
@@ -93,12 +99,17 @@ struct Master
   }
 };
 
-inline Master loadMaster()
+// The master pair provisioned by the runner: `stem`.nut carries the picture,
+// `stem`.rgb is the same frames flattened to rgb24 by the runner itself. Two
+// stems exist: "master" (320x240, 40-pixel blocks) and "master-odd" (65x39,
+// 13-pixel blocks), the second so that every odd-dimension chroma rounding is
+// exercised by a picture and not only by a stride computation.
+inline Master loadMaster(const char* stem = "master")
 {
   Master m;
 
   AVFormatContext* ctx{};
-  const auto nut = matrixPath("master.nut");
+  const auto nut = matrixPath((std::string{stem} + ".nut").c_str());
   REQUIRE(avformat_open_input(&ctx, nut.c_str(), nullptr, nullptr) == 0);
   REQUIRE(avformat_find_stream_info(ctx, nullptr) >= 0);
   for(unsigned i = 0; i < ctx->nb_streams; i++)
@@ -115,7 +126,7 @@ inline Master loadMaster()
   REQUIRE(m.width > 0);
   REQUIRE(m.height > 0);
 
-  const auto raw = matrixPath("master.rgb");
+  const auto raw = matrixPath((std::string{stem} + ".rgb").c_str());
   FILE* f = std::fopen(raw.c_str(), "rb");
   REQUIRE(f != nullptr);
   std::fseek(f, 0, SEEK_END);
@@ -133,7 +144,10 @@ inline Master loadMaster()
   std::fclose(f);
 
   // The env the runner exported is a cross-check on the two independent reads
-  // above, never the source of either.
+  // above, never the source of either. It describes the default master only.
+  if(std::string{stem} != "master")
+    return m;
+
   const int envW = qgetenv("SCORE_TEST_MATRIX_WIDTH").toInt();
   const int envH = qgetenv("SCORE_TEST_MATRIX_HEIGHT").toInt();
   const int envN = qgetenv("SCORE_TEST_MATRIX_FRAMES").toInt();
@@ -215,7 +229,8 @@ struct BestMatch
   double meanDev{};
 };
 
-inline BestMatch bestMatch(const AVFrame& f, const Master& m, int block)
+inline BestMatch
+bestMatch(const AVFrame& f, const Master& m, int block, int margin = kBlockMargin)
 {
   BestMatch best;
   const auto rgb = toRgb24(f, m.width, m.height);
@@ -225,7 +240,7 @@ inline BestMatch bestMatch(const AVFrame& f, const Master& m, int block)
   double bestMean = 1e30;
   for(int j = 0; j < m.frames; j++)
   {
-    const auto d = blockDiff(rgb.data(), m.frame(j), m.width, m.height, block);
+    const auto d = blockDiff(rgb.data(), m.frame(j), m.width, m.height, block, margin);
     if(d.compared > 0 && d.meanDev < bestMean)
     {
       bestMean = d.meanDev;
