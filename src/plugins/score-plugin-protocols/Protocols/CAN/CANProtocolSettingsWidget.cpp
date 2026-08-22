@@ -1,5 +1,6 @@
 #include <ossia/detail/config.hpp>
 #if defined(OSSIA_PROTOCOL_CAN)
+#include "CANInterfaces.hpp"
 #include "CANProtocolFactory.hpp"
 #include "CANProtocolSettingsWidget.hpp"
 #include "CANSpecificSettings.hpp"
@@ -28,52 +29,6 @@ W_OBJECT_IMPL(Protocols::CANProtocolSettingsWidget)
 
 namespace Protocols
 {
-namespace
-{
-//! ARPHRD_CAN, from <linux/if_arp.h>. Read out of sysfs rather than included,
-//! so that the widget does not pull a kernel header in for one constant.
-constexpr int arphrdCan = 280;
-
-/**
- * List the CAN interfaces of the machine.
- *
- * Matched on the link type rather than on the name: an interface does not have
- * to be called "canN" (a USB adapter renamed by a udev rule is still a CAN
- * interface), and conversely a name is not proof of anything. The name prefixes
- * are kept only as a fallback for the case where sysfs cannot be read.
- */
-QStringList canInterfaces()
-{
-  QStringList out;
-  QDir sys{"/sys/class/net"};
-  const auto entries = sys.entryList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::System);
-
-  for(const auto& name : entries)
-  {
-    bool isCan = false;
-
-    QFile type{"/sys/class/net/" + name + "/type"};
-    if(type.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-      bool ok = false;
-      const int t = type.readAll().trimmed().toInt(&ok);
-      isCan = ok && (t == arphrdCan);
-    }
-    else
-    {
-      isCan = name.startsWith("can") || name.startsWith("vcan")
-              || name.startsWith("slcan");
-    }
-
-    if(isCan)
-      out.push_back(name);
-  }
-
-  out.sort();
-  return out;
-}
-}
-
 CANProtocolSettingsWidget::CANProtocolSettingsWidget(QWidget* parent)
     : Device::ProtocolSettingsWidget(parent)
 {
@@ -86,10 +41,23 @@ CANProtocolSettingsWidget::CANProtocolSettingsWidget(QWidget* parent)
   // machine), so the user must be able to type a name that is not in the list.
   m_interface = new QComboBox{this};
   m_interface->setEditable(true);
-  m_interface->addItems(canInterfaces());
-  if(m_interface->count() == 0)
-    m_interface->setCurrentText("can0");
+  m_interface->addItems(CAN::availableInterfaceNames());
   checkForChanges(m_interface);
+
+  // No fallback to "can0" here: a name that resolves to nothing looks like a
+  // valid setting and only fails at connection time. An empty field plus the
+  // warning below says what is actually going on.
+  m_noInterface = new QLabel{
+      tr("No CAN interface found on this machine.\n"
+         "Plug an adapter in and bring it up, e.g.:\n"
+         "  sudo ip link set can0 up type can bitrate 1000000\n"
+         "or create a virtual bus for testing:\n"
+         "  sudo modprobe vcan\n"
+         "  sudo ip link add dev vcan0 type vcan && sudo ip link set up vcan0"),
+      this};
+  m_noInterface->setWordWrap(true);
+  m_noInterface->setTextInteractionFlags(Qt::TextSelectableByMouse);
+  m_noInterface->setVisible(m_interface->count() == 0);
 
   m_dbcPath = new QLineEdit{this};
   m_dbcPath->setPlaceholderText(tr("Path to a .dbc database"));
@@ -134,6 +102,7 @@ CANProtocolSettingsWidget::CANProtocolSettingsWidget(QWidget* parent)
   auto layout = new QFormLayout;
   layout->addRow(tr("Name"), m_deviceNameEdit);
   layout->addRow(tr("Interface"), m_interface);
+  layout->addRow(QString{}, m_noInterface);
   score::setHelp(
       m_interface,
       tr("The SocketCAN network interface, e.g. can0 or vcan0.\n"
@@ -258,7 +227,13 @@ void CANProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settin
   const auto& specif = settings.deviceSpecificSettings.value<CANSpecificSettings>();
 
   if(!specif.interfaceName.isEmpty())
+  {
+    // The combo is editable precisely so a score written elsewhere -- or before
+    // the adapter was plugged in -- keeps the name it was saved with instead of
+    // being silently rewritten to whatever this machine happens to have.
     m_interface->setCurrentText(specif.interfaceName);
+    m_noInterface->setVisible(false);
+  }
 
   m_dbcPath->setText(specif.dbcPath);
   m_nodeIdOffset->setValue(specif.nodeIdOffset);

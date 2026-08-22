@@ -258,6 +258,7 @@ set(GPS_SRCS
 
 set(CAN_HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/CAN/CANDevice.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/CAN/CANInterfaces.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/CAN/CANProtocolFactory.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/CAN/CANProtocolSettingsWidget.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/CAN/CANSpecificSettings.hpp"
@@ -266,6 +267,7 @@ set(CAN_HDRS
 
 set(CAN_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/CAN/CANDevice.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/CAN/CANInterfaces.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/CAN/CANProtocolFactory.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/CAN/CANProtocolSettingsWidget.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/CAN/CANSpecificSettingsSerialization.cpp"
