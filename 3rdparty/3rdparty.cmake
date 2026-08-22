@@ -18,6 +18,7 @@ function(restore_var VAR)
   endif()
 endfunction()
 
+include(3rdparty/bw64.cmake)
 include(3rdparty/dspfilters.cmake)
 include(3rdparty/eigen.cmake)
 include(3rdparty/gamma.cmake)
