@@ -7,10 +7,11 @@
 
 #include <score/model/ObjectEditor.hpp>
 
+#include <score_plugin_nodal_export.h>
 namespace Nodal
 {
 
-class Model final : public Process::ProcessModel
+class SCORE_PLUGIN_NODAL_EXPORT Model final : public Process::ProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Nodal::Model)

@@ -185,6 +185,31 @@ class PanelDelegateFactory final : public score::PanelDelegateFactory
 }
 
 */
+
+namespace Nodal
+{
+static PatcherWindowFactory s_patcherFactory = nullptr;
+void LayerFactory::setPatcherWindowFactory(PatcherWindowFactory f) noexcept
+{
+  s_patcherFactory = f;
+}
+
+bool LayerFactory::hasExternalUI(
+    const Process::ProcessModel& proc, const score::DocumentContext& ctx) const noexcept
+{
+  return s_patcherFactory != nullptr;
+}
+
+QWidget* LayerFactory::makeExternalUI(
+    Process::ProcessModel& proc, const score::DocumentContext& ctx,
+    QWidget* parent) const
+{
+  if(s_patcherFactory)
+    return s_patcherFactory(proc, ctx, parent);
+  return nullptr;
+}
+}
+
 score_plugin_nodal::score_plugin_nodal() { }
 
 score_plugin_nodal::~score_plugin_nodal() { }
