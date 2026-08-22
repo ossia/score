@@ -216,6 +216,57 @@ b='mod(${bx}*149+${by}*41+N*89,256)'"
   got=$(stat -c %s "$mdir/master.rgb" 2>/dev/null || stat -f %z "$mdir/master.rgb")
   [ "$got" = "$want" ] || die "matrix master is $got bytes, expected $want"
 
+  # The same pattern at an ODD geometry, so that chroma rounding is exercised by
+  # a picture and not only by a stride computation. 65x39 with 13-pixel blocks:
+  # both dimensions odd, both divisible by the block size.
+  OW=65; OH=39; OBLK=13
+  obx="mod(floor(X/${OBLK})+N,$((OW / OBLK)))"
+  oby="floor(Y/${OBLK})"
+  ogeq="format=gbrp,geq=\
+r='mod(${obx}*53+${oby}*97+N*61,256)':\
+g='mod(${obx}*29+${oby}*181+N*137,256)':\
+b='mod(${obx}*149+${oby}*41+N*89,256)'"
+  # lavfi rounds an odd requested size DOWN to even, so the source is generated
+  # at double size and scaled: without the explicit scale the odd axis silently
+  # disappears and the whole point of this master with it.
+  ffmpeg -nostdin -loglevel error -y \
+    -f lavfi -i "color=c=black:s=$((OW * 2))x$((OH * 2)):r=25:d=1" \
+    -vf "scale=${OW}:${OH},${ogeq}" -frames:v "$MN" \
+    -pix_fmt rgb24 -c:v rawvideo -f nut "$mdir/master-odd.nut" \
+    || die "ffmpeg could not produce the odd-geometry master"
+  ffmpeg -nostdin -loglevel error -y -i "$mdir/master-odd.nut" \
+    -pix_fmt rgb24 -c:v rawvideo -f rawvideo "$mdir/master-odd.rgb" \
+    || die "ffmpeg could not flatten the odd-geometry master"
+  owant=$((OW * OH * 3 * MN))
+  ogot=$(stat -c %s "$mdir/master-odd.rgb" 2>/dev/null || stat -f %z "$mdir/master-odd.rgb")
+  [ "$ogot" = "$owant" ] \
+    || die "odd master is $ogot bytes, expected $owant (geometry was rounded?)"
+
+  # The same two masters in a container GSTREAMER can demux. This host's
+  # gst-libav has no working NUT demuxer ("Unknown demuxer nut, no idea what to
+  # do", 13 s to fail), so the .nut masters are for libav-side harnesses only.
+  # Matroska + FFV1 in gbrp is lossless, so the picture that reaches an appsink
+  # is still the master's exact pixels.
+  ffmpeg -nostdin -loglevel error -y -i "$mdir/master.nut" \
+    -c:v ffv1 -pix_fmt gbrp "$mdir/master.mkv" \
+    || die "ffmpeg could not produce the GStreamer-side master"
+  ffmpeg -nostdin -loglevel error -y -i "$mdir/master-odd.nut" \
+    -c:v ffv1 -pix_fmt gbrp "$mdir/master-odd.mkv" \
+    || die "ffmpeg could not produce the odd GStreamer-side master"
+
+  # ...and as flat RGBA, for the GStreamer harness's `filesrc ! rawvideoparse`
+  # source. RGBA rather than RGB24 because rawvideoparse gives a 24-bit row of
+  # an odd-width frame a 4-byte-aligned stride (196 bytes for 65 pixels) while
+  # the file has tightly packed 195-byte rows: the SOURCE would then be
+  # misframed and every format would fail for a reason that has nothing to do
+  # with score. Four bytes per pixel is aligned at any width.
+  ffmpeg -nostdin -loglevel error -y -i "$mdir/master.nut" \
+    -pix_fmt rgba -c:v rawvideo -f rawvideo "$mdir/master.rgba" \
+    || die "ffmpeg could not flatten the master to rgba"
+  ffmpeg -nostdin -loglevel error -y -i "$mdir/master-odd.nut" \
+    -pix_fmt rgba -c:v rawvideo -f rawvideo "$mdir/master-odd.rgba" \
+    || die "ffmpeg could not flatten the odd master to rgba"
+
   # codec-<container>-<codec>-<exact|yuvexact|lossy>.<ext>, discovered by name:
   # a row added here enters the sweep with no test change. The third field is
   # the fidelity the row is entitled to -- `exact` for an RGB lossless codec,
@@ -334,6 +385,7 @@ b='mod(${bx}*149+${by}*41+N*89,256)'"
   export SCORE_TEST_MATRIX_HEIGHT="$MH"
   export SCORE_TEST_MATRIX_FRAMES="$MN"
   export SCORE_TEST_MATRIX_BLOCK="$MBLK"
+  export SCORE_TEST_MATRIX_ODD_BLOCK="$OBLK"
 fi
 
 if [ -z "${DISPLAY:-}" ] && [ -z "${WAYLAND_DISPLAY:-}" ] \
