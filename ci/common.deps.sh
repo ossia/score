@@ -89,6 +89,7 @@ then
   clone_addon         https://github.com/ossia/score-addon-led
   clone_addon         https://github.com/ossia/score-addon-lsl
   clone_addon         https://github.com/ossia/score-addon-ndi
+  clone_addon      https://github.com/ossia/score-addon-openzen
   clone_addon    https://github.com/ossia/score-addon-spatgris
   clone_addon   https://github.com/ossia/score-addon-ultraleap
   clone_addon     https://github.com/ossia/score-addon-sysinfo
