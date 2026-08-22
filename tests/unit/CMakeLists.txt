@@ -65,6 +65,14 @@ score_add_test(test_unit_device_explorer_node
   SOURCES DeviceExplorerNodeTest.cpp
   PLUGINS score_lib_device)
 
+# Add-device dialog: switching protocol must not leave an enumerator signal in
+# flight pointing at a QTreeWidgetItem the switch deleted (use-after-free in
+# QTreeWidgetItem::setExpanded reported from a release build).
+score_add_test(test_unit_device_edit_dialog
+  SOURCES DeviceEditDialogTest.cpp
+  APP
+  PLUGINS score_plugin_deviceexplorer score_lib_device score_lib_state)
+
 # --- core data model (score-lib-state / score-lib-process, P3R2) -----------
 score_add_test(test_unit_state_serialization
   SOURCES StateSerializationTest.cpp

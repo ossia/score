@@ -243,7 +243,35 @@ static void setCategoryStyle(QTreeWidgetItem* catItem)
   catItem->setFont(0, font);
   catItem->setExpanded(true);
 }
-DeviceEditDialog::~DeviceEditDialog() { }
+DeviceEditDialog::~DeviceEditDialog()
+{
+  clearEnumerators();
+}
+
+void DeviceEditDialog::clearEnumerators()
+{
+  // The order here is load-bearing.
+  //
+  // The deviceAdded / deviceRemoved / sort lambdas installed by
+  // selectedProtocolChanged capture `cat`, a raw QTreeWidgetItem* owned by
+  // m_devices. Every one of those items dies in the m_devices->clear() that
+  // follows this call. An enumerator that emits deviceAdded from a worker
+  // thread (SimpleBLE's scan callback, for one) has its Qt::AutoConnection
+  // resolved to a queued one, which posts a QMetaCallEvent to the *context*
+  // object of the connection. Destroying the enumerator does not retract that
+  // event -- Qt only drops posted events when their **receiver** is destroyed
+  // (QObject::~QObject -> QCoreApplication::removePostedEvents(this)). So with
+  // `this` as the context the call was still delivered after the switch, and
+  // ran addItem() on a freed QTreeWidgetItem: the SIGSEGV in
+  // QTreeWidgetItem::setExpanded reported from the release build.
+  //
+  // Giving each selection its own context object and destroying it *before*
+  // the items it captured makes Qt discard whatever is still in flight.
+  delete m_enumeratorContext;
+  m_enumeratorContext = nullptr;
+
+  m_enumerators.clear();
+}
 
 void DeviceEditDialog::initAvailableProtocols()
 {
@@ -375,7 +403,7 @@ void DeviceEditDialog::selectedPresetChanged()
     return;
 
   // Clear previous state
-  m_enumerators.clear();
+  clearEnumerators();
   m_devices->clear();
   if(m_protocolWidget)
   {
@@ -459,8 +487,8 @@ void DeviceEditDialog::selectedProtocolChanged()
   // Clear preset state
   m_presetNode = Device::Node{};
 
-  // Clear listener
-  m_enumerators.clear();
+  // Clear listener (must happen before the tree items the callbacks captured)
+  clearEnumerators();
 
   // Clear devices
   m_devices->clear();
@@ -492,6 +520,14 @@ void DeviceEditDialog::selectedProtocolChanged()
       m_splitter->widget(0)->setMinimumWidth(200);
     }
 
+    // Context object for every connection made below. It is destroyed by
+    // clearEnumerators() before the QTreeWidgetItems these lambdas capture, so
+    // that Qt drops any queued deviceAdded/deviceRemoved/sort still in flight.
+    // See the comment in clearEnumerators().
+    SCORE_ASSERT(!m_enumeratorContext);
+    m_enumeratorContext = new QObject{this};
+    auto* ctx = m_enumeratorContext;
+
     for(auto& [name, e] : m_enumerators)
     {
       auto cat = new QTreeWidgetItem{};
@@ -501,7 +537,7 @@ void DeviceEditDialog::selectedProtocolChanged()
       m_devices->addTopLevelItem(cat);
 
       auto addItem
-          = [&, cat](const QString& name, const Device::DeviceSettings& settings) {
+          = [cat](const QString& name, const Device::DeviceSettings& settings) {
         auto item = new QTreeWidgetItem;
         item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
         item->setText(0, name);
@@ -509,7 +545,7 @@ void DeviceEditDialog::selectedProtocolChanged()
         cat->addChild(item);
         cat->setExpanded(true);
       };
-      auto rmItem = [&, cat](const QString& name) {
+      auto rmItem = [cat](const QString& name) {
         for(int i = 0; i < cat->childCount();)
         {
           auto cld = cat->child(i);
@@ -525,9 +561,9 @@ void DeviceEditDialog::selectedProtocolChanged()
         }
       };
 
-      connect(e.get(), &Device::DeviceEnumerator::deviceAdded, this, addItem);
-      connect(e.get(), &Device::DeviceEnumerator::deviceRemoved, this, rmItem);
-      connect(e.get(), &Device::DeviceEnumerator::sort, this, [cat] {
+      connect(e.get(), &Device::DeviceEnumerator::deviceAdded, ctx, addItem);
+      connect(e.get(), &Device::DeviceEnumerator::deviceRemoved, ctx, rmItem);
+      connect(e.get(), &Device::DeviceEnumerator::sort, ctx, [cat] {
         cat->sortChildren(0, Qt::SortOrder::AscendingOrder);
       });
       e->enumerate(addItem);
@@ -623,7 +659,7 @@ void DeviceEditDialog::setBrowserEnabled(bool st)
 {
   if(!st)
   {
-    m_enumerators.clear();
+    clearEnumerators();
 
     delete m_column1Stack;
     m_column1Stack = nullptr;

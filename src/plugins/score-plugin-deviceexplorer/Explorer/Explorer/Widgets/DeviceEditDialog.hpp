@@ -66,12 +66,17 @@ private:
   void selectedPresetChanged();
   void initAvailableProtocols();
   void initPresets();
+  void clearEnumerators();
 
   const DeviceExplorerModel& m_model;
   const Device::ProtocolFactoryList& m_protocolList;
   Mode m_mode{};
   std::vector<std::pair<QString, std::unique_ptr<Device::DeviceEnumerator>>>
       m_enumerators;
+  // Receiver of every enumerator connection of the current selection: it is
+  // deleted before the QTreeWidgetItems those connections capture, which makes
+  // Qt discard the queued metacalls still posted to it.
+  QObject* m_enumeratorContext{};
 
   QSplitter* m_splitter{};
   QDialogButtonBox* m_buttonBox{};
