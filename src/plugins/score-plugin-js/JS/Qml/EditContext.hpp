@@ -66,7 +66,10 @@ public:
   W_SLOT(deviceToOSCQuery)
 
   void createDevice(QString name, QString uuid, QJSValue obj);
-  W_SLOT(createDevice)
+  W_SLOT(createDevice, (QString, QString, QJSValue))
+
+  void createDevice(QString name, QString uuid, QVariant obj);
+  W_SLOT(createDevice, (QString, QString, QVariant))
 
   void createOSCDevice(QString name, QString host, int in, int out);
   W_SLOT(createOSCDevice)
