@@ -220,7 +220,10 @@ private:
 
     const auto& fmts = ::Video::gstreamerToLibav();
     AVPixelFormat parsedPixFmt = AV_PIX_FMT_NONE;
-    if(auto it = fmts.find(format.toUpper().toStdString()); it != fmts.end())
+    // The GStreamer format names are case-SENSITIVE: "RGBx", "BGRx", "xRGB"
+    // and "xBGR" are spelled with a lowercase x, and upper-casing them makes
+    // four formats we do support look unsupported.
+    if(auto it = fmts.find(format.toStdString()); it != fmts.end())
     {
       qDebug() << "Sh4ltInput: supported format" << format;
       parsedPixFmt = it->second;
