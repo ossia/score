@@ -13,6 +13,9 @@ class CANProtocolFactory final : public DefaultProtocolFactory
   QString category() const noexcept override;
   QUrl manual() const noexcept override;
 
+  Device::DeviceEnumerators
+  getEnumerators(const score::DocumentContext& ctx) const override;
+
   Device::DeviceInterface* makeDevice(
       const Device::DeviceSettings& settings, const Explorer::DeviceDocumentPlugin& plug,
       const score::DocumentContext& ctx) override;
@@ -29,6 +32,12 @@ class CANProtocolFactory final : public DefaultProtocolFactory
   bool checkCompatibility(
       const Device::DeviceSettings& a,
       const Device::DeviceSettings& b) const noexcept override;
+
+  // defaultSettings() hands back a reference, but the interface it names is a
+  // property of the machine *now*: an adapter plugged in after score started
+  // must show up. Recomputed on each call into this, rather than cached in a
+  // function-local static like the other protocols do.
+  mutable Device::DeviceSettings m_defaultSettings;
 };
 }
 #endif

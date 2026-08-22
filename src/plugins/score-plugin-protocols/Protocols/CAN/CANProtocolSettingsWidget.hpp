@@ -44,6 +44,10 @@ private:
   QCheckBox* m_fd{};
   QCheckBox* m_filterToDatabase{};
   QLabel* m_summary{};
+
+  //! Shown only when the machine has no CAN interface at all: the combo is then
+  //! empty and there is nothing else to tell the user why.
+  QLabel* m_noInterface{};
 };
 }
 #endif

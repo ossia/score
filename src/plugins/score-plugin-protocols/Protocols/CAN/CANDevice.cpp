@@ -439,6 +439,13 @@ bool CANDevice::reconnect()
   {
     const auto& set = m_settings.deviceSpecificSettings.value<CANSpecificSettings>();
 
+    // Named explicitly rather than left to SocketCAN: an empty name reaches the
+    // kernel as "no such CAN interface: : No such device", which reads like a
+    // bug in score rather than like a field the user has to fill in.
+    if(set.interfaceName.isEmpty())
+      throw std::runtime_error(
+          "no CAN interface selected -- pick one in the device settings");
+
     auto proto = std::make_unique<ossia::net::can_protocol>(set, m_ctx);
     auto dev = std::make_unique<ossia::net::generic_device>(
         std::move(proto), settings().name.toStdString());
@@ -448,11 +455,15 @@ bool CANDevice::reconnect()
   }
   catch(const std::exception& e)
   {
-    qDebug() << "CAN error: " << e.what();
+    // qWarning, not qDebug: a device that failed to connect shows up in the
+    // explorer as an empty tree with no other explanation, and the reason must
+    // survive a build where debug output is filtered out.
+    qWarning() << "CAN device" << settings().name << "could not connect:" << e.what();
   }
   catch(...)
   {
-    qDebug() << "CAN error";
+    qWarning() << "CAN device" << settings().name
+               << "could not connect: unknown error";
   }
 
   return connected();
