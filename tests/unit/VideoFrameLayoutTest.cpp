@@ -13,20 +13,18 @@
 // actually deliver, at 64x64 (aligned), 65x33 and 63x31 (odd, where a 4:2:0
 // chroma plane is ceil(w/2) x ceil(h/2)) and 2x2 (degenerate).
 //
-// Cases marked [!shouldfail] pin layouts that are still wrong in
-// GStreamerCompatibility.hpp, so each entry flips RED the day it is fixed:
-//   1. AV_PIX_FMT_NV16 is two-plane but handled in the packed 16bpp branch, so
-//      data[1] / linesize[1] are never written.
-//   2. AV_PIX_FMT_P010LE/BE sit with GRAY10 and get linesize[0] = width*10/8
-//      and no second plane; P010 is 2 bytes per component plus interleaved UV.
-//   3. AV_PIX_FMT_Y210LE gets linesize[0] = width*20/8; Y210 is 4 bytes/pixel.
-//   4. Every subsampled layout rounds DOWN -- width/2, width/4, and plane-2
-//      offsets on height/2, height/4 -- so a 65x33 4:2:0 plane is a column short
-//      and planes 1 and 2 overlap.
-//   5. NV12/NV21 and P016LE/BE give the interleaved chroma plane linesize =
-//      width (resp. 2*width) instead of 2*ceil(width/2) (resp. 4*ceil(width/2)).
-//   6. The packed 4:2:2 family gets linesize = 2*width, but a macropixel covers
-//      two columns, so an odd width needs 4*ceil(width/2).
+// Every layout below is now owned by av_image_fill_arrays() rather than a
+// hand-written switch, which is what makes the eight cases green:
+//   1. NV16 is two-plane, not packed 16bpp, so data[1] / linesize[1] are set.
+//   2. P010LE/BE are 2 bytes per component plus an interleaved UV plane, not a
+//      GRAY10-style single plane at width*10/8.
+//   3. Y210LE is 4 bytes per pixel.
+//   4. Every subsampled plane rounds UP: a 65x33 4:2:0 plane is 33x17, so no
+//      stride is a column short and planes 1 and 2 cannot overlap.
+//   5. NV12/NV21 and P016LE/BE give the interleaved chroma plane
+//      2*ceil(width/2), resp. 4*ceil(width/2).
+//   6. The packed 4:2:2 family needs 4*ceil(width/2): a macropixel covers two
+//      columns.
 
 #include <Video/GStreamerCompatibility.hpp>
 
@@ -55,22 +53,16 @@ struct Size
 constexpr Size kAligned{64, 64};
 constexpr Size kSizes[] = {{64, 64}, {65, 33}, {63, 31}, {2, 2}};
 
-// The formats whose layout is wrong TODAY. A format that leaves this set makes
-// the [!shouldfail] cases below flip red; a format that ENTERS it fails
-// "no format outside the known-broken set is mis-laid-out", which is the guard
-// against a new defect hiding behind an old one.
-const std::set<std::string> kKnownBrokenAligned{"nv16", "p010le", "p010be", "y210le",
-                                                "y210be"};
-const std::set<std::string> kKnownBrokenOdd{
-    "yuv420p", "yuyv422", "yuv422p", "yuv410p", "yuv411p", "uyvy422",
-    "nv12",    "nv21",    "nv16",    "yvyu422", "p010le",  "p010be",
-    "p016le",  "p016be",  "y210le",  "y210be"};
-// A 2x2 frame is "aligned" for 4:2:0 but not for 4:1:0 / 4:1:1, whose
-// width/4 stride comes out as ZERO -- the same round-down defect at the
-// smallest geometry a stream can have.
-const std::set<std::string> kKnownBrokenTiny{"nv16",    "p010le",  "p010be",
-                                             "y210le",  "y210be",  "yuv410p",
-                                             "yuv411p"};
+// No format is mis-laid-out at any of the geometries below any more. These
+// stay as (empty) exception lists so that a format that starts failing is named
+// by "no format outside the known-broken set is mis-laid-out" rather than only
+// counted, and so that re-admitting one is a visible edit.
+const std::set<std::string> kKnownBrokenAligned{};
+const std::set<std::string> kKnownBrokenOdd{};
+// A 2x2 frame is "aligned" for 4:2:0 but not for 4:1:0 / 4:1:1, whose stride
+// used to come out as ZERO -- the same round-down defect at the smallest
+// geometry a stream can have.
+const std::set<std::string> kKnownBrokenTiny{};
 
 struct PlaneUse
 {
@@ -344,9 +336,9 @@ TEST_CASE("no format outside the known-broken set is mis-laid-out",
           "[video][layout]")
 {
   // One-sided guard: a format that starts failing without being on the list is
-  // a NEW defect and turns this red, while a fix only affects the
-  // [!shouldfail] cases below. Without it, a regression in a format nobody was
-  // watching would hide inside an already-red sweep.
+  // a NEW defect and names itself here. The lists are empty, so this is the
+  // whole sweep -- it stays as an exception mechanism for the day one has to be
+  // re-admitted.
   for(auto s : kSizes)
   {
     const auto& known = (s.w % 2 || s.h % 2) ? kKnownBrokenOdd
@@ -366,12 +358,11 @@ TEST_CASE("no format outside the known-broken set is mis-laid-out",
 
 TEST_CASE(
     "aligned frames of the GStreamer-mapped formats lay out correctly",
-    "[video][layout][!shouldfail]")
+    "[video][layout]")
 {
   // FINDINGS 1-3. 64x64: every subsampling factor divides both dimensions, so
-  // nothing here depends on rounding -- these four formats are mis-described
-  // outright. nv16 and p010 hand the renderer a null chroma plane; y210's
-  // stride is 160 bytes for a 256-byte row.
+  // nothing here depends on rounding. nv16 and p010 used to hand the renderer a
+  // null chroma plane, and y210 a 160-byte stride for a 256-byte row.
   const auto broken = brokenAt(kAligned);
   INFO("formats whose 64x64 layout is wrong:\n" + report(kAligned));
   CHECK(broken.empty());
@@ -379,11 +370,11 @@ TEST_CASE(
 
 TEST_CASE(
     "odd frames of the GStreamer-mapped formats lay out correctly",
-    "[video][layout][odd][!shouldfail]")
+    "[video][layout][odd]")
 {
-  // FINDINGS 4-6. Every subsampled stride and every plane offset rounds down,
-  // so a 65x33 or 63x31 frame is a column short in chroma and, for 4:2:0 and
-  // 4:1:0, plane 2 starts inside plane 1.
+  // FINDINGS 4-6. Every subsampled stride and every plane offset used to round
+  // down, so a 65x33 or 63x31 frame was a column short in chroma and, for 4:2:0
+  // and 4:1:0, plane 2 started inside plane 1.
   std::set<std::string> broken;
   std::string detail;
   for(auto s : kSizes)
@@ -399,9 +390,9 @@ TEST_CASE(
   CHECK(broken.empty());
 }
 
-TEST_CASE("NV16 gets both of its planes", "[video][layout][!shouldfail]")
+TEST_CASE("NV16 gets both of its planes", "[video][layout]")
 {
-  // FINDING 1, on its own so it flips independently of the rest.
+  // FINDING 1, on its own so it fails independently of the rest.
   AVFrame f{};
   f.format = AV_PIX_FMT_NV16;
   f.width = 64;
@@ -415,7 +406,7 @@ TEST_CASE("NV16 gets both of its planes", "[video][layout][!shouldfail]")
 }
 
 TEST_CASE("P010 is laid out as a 16-bit two-plane format",
-          "[video][layout][!shouldfail]")
+          "[video][layout]")
 {
   // FINDING 2. P010 stores 10 bits in the HIGH bits of a 16-bit sample, so a
   // row is 2*width bytes, and there is an interleaved UV plane after it.
@@ -432,7 +423,7 @@ TEST_CASE("P010 is laid out as a 16-bit two-plane format",
   CHECK(f.linesize[1] >= av_image_get_linesize(AV_PIX_FMT_P010LE, 64, 1));
 }
 
-TEST_CASE("Y210 rows are four bytes per pixel", "[video][layout][!shouldfail]")
+TEST_CASE("Y210 rows are four bytes per pixel", "[video][layout]")
 {
   // FINDING 3. Y210 packs Y0/U/Y1/V as four uint16 per two pixels.
   AVFrame f{};
@@ -447,7 +438,7 @@ TEST_CASE("Y210 rows are four bytes per pixel", "[video][layout][!shouldfail]")
 }
 
 TEST_CASE("a 4:2:0 chroma plane of an odd frame is ceil(w/2) x ceil(h/2)",
-          "[video][layout][odd][!shouldfail]")
+          "[video][layout][odd]")
 {
   // FINDING 4, the class of bug this sweep exists for: 65x33 yuv420p has 33x17
   // chroma planes. width/2 is 32 and height/2 is 16, so plane 2 starts one
@@ -467,7 +458,7 @@ TEST_CASE("a 4:2:0 chroma plane of an odd frame is ceil(w/2) x ceil(h/2)",
 }
 
 TEST_CASE("the interleaved chroma plane of an odd NV12 frame is wide enough",
-          "[video][layout][odd][!shouldfail]")
+          "[video][layout][odd]")
 {
   // FINDING 5. NV12's UV plane holds one (U,V) pair per 2x2 block, i.e.
   // 2*ceil(w/2) bytes per row: 66 for a 65-wide frame, not 65.
@@ -483,7 +474,7 @@ TEST_CASE("the interleaved chroma plane of an odd NV12 frame is wide enough",
 }
 
 TEST_CASE("packed 4:2:2 rows of an odd frame carry the trailing macropixel",
-          "[video][layout][odd][!shouldfail]")
+          "[video][layout][odd]")
 {
   // FINDING 6. A YUYV macropixel spans two columns, so a 65-wide row is 33
   // macropixels = 132 bytes, not 2*65.
@@ -517,15 +508,16 @@ TEST_CASE("every format the GStreamer table names exists in this libav",
 }
 
 TEST_CASE("the GStreamer format table does not mis-name a layout",
-          "[video][layout][!shouldfail]")
+          "[video][layout]")
 {
-  // Two rows of gstreamerToLibav() name a libav format with a different layout
-  // from the GStreamer one:
-  //   7. "Y410" -> AV_PIX_FMT_YUV410P. GStreamer Y410 is packed 4:4:4 10-bit YUV
-  //      with alpha, 4 bytes/pixel; YUV410P is planar 4:1:0 8-bit, 1.125
-  //      bytes/pixel, which is GStreamer "YUV9".
-  //   8. "RGBP" -> AV_PIX_FMT_RGB24. GStreamer RGBP is planar 4:4:4 RGB; RGB24 is
-  //      packed. Same byte count, different meaning.
+  // Two rows of gstreamerToLibav() name a libav format whose layout must match
+  // the GStreamer one:
+  //   7. "Y410" is packed 4:4:4 10-bit YUV with alpha, 4 bytes/pixel, so it maps
+  //      to AV_PIX_FMT_XV30 -- not to the planar 4:1:0 8-bit YUV410P, which is
+  //      1.125 bytes/pixel and is GStreamer "YUV9".
+  //   8. "RGBP" is planar 4:4:4 RGB, so it maps to AV_PIX_FMT_GBRP, whose G-B-R
+  //      plane order the GStreamer device undoes with
+  //      Video::gstreamerPlaneOrder().
   const auto& map = Video::gstreamerToLibav();
 
   {
