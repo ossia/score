@@ -142,23 +142,11 @@ int LibavEncoder::add_frame(std::span<ossia::float_vector> vec)
     return 1;
 
   auto& stream = streams[audio_stream_index];
-  AVFrame* next_frame = stream.get_audio_frame();
-  if(!next_frame)
-    return 1;
 
-  next_frame->sample_rate = stream.enc->sample_rate;
-  next_frame->format = stream.enc->sample_fmt;
-  next_frame->nb_samples = stream.enc->frame_size;
-  next_frame->ch_layout.nb_channels = channels;
-  next_frame->ch_layout.order = AV_CHANNEL_ORDER_UNSPEC;
-
-  // Write the data
-  if(stream.resamplers.empty())
-  {
-    // Encode directly
-    stream.encoder->add_frame(*next_frame, vec);
-  }
-  else
+  // 1. Resample first, so that what is buffered below is already at the
+  //    encoder's rate.
+  std::span<ossia::float_vector> src = vec;
+  if(!stream.resamplers.empty())
   {
     if(vec.size() != stream.resamplers.size())
     {
@@ -177,11 +165,63 @@ int LibavEncoder::add_frame(std::span<ossia::float_vector> vec)
           stream.resample_in_buf[c].data(), vec[c].size(), ret);
       stream.resample_out_buf[c].assign(ret, ret + res);
     }
-
-    stream.encoder->add_frame(*next_frame, stream.resample_out_buf);
+    src = stream.resample_out_buf;
   }
 
-  return stream.write_audio_frame(m_formatContext, next_frame);
+  // 2. A codec whose frame size is fixed -- aac at 1024, libopus at 960, flac
+  //    at 4096 -- must be handed exactly that many samples per frame, and the
+  //    engine's block is a different number. Buffer, and cut whole frames out,
+  //    so no frame carries samples left over from the previous one.
+  const int need = stream.enc->frame_size;
+  if(need <= 0)
+  {
+    // A variable-frame-size codec (the PCM families): the frame is the block.
+    AVFrame* next_frame = stream.get_audio_frame();
+    if(!next_frame)
+      return 1;
+    next_frame->sample_rate = stream.enc->sample_rate;
+    next_frame->format = stream.enc->sample_fmt;
+    next_frame->nb_samples = int(src[0].size());
+    next_frame->ch_layout.nb_channels = channels;
+    stream.encoder->add_frame(*next_frame, src);
+    return stream.write_audio_frame(m_formatContext, next_frame);
+  }
+
+  m_audioFifo.resize(channels);
+  m_audioBlock.resize(channels);
+  for(int c = 0; c < channels; c++)
+  {
+    m_audioFifo[c].reserve(std::size_t(need) * 4);
+    m_audioFifo[c].insert(m_audioFifo[c].end(), src[c].begin(), src[c].end());
+  }
+
+  int ret = 0;
+  while(int(m_audioFifo[0].size()) >= need)
+  {
+    AVFrame* next_frame = stream.get_audio_frame();
+    if(!next_frame)
+      return 1;
+
+    next_frame->sample_rate = stream.enc->sample_rate;
+    next_frame->format = stream.enc->sample_fmt;
+    next_frame->nb_samples = need;
+    next_frame->ch_layout.nb_channels = channels;
+
+    for(int c = 0; c < channels; c++)
+      m_audioBlock[c].assign(
+          m_audioFifo[c].begin(), m_audioFifo[c].begin() + need);
+
+    stream.encoder->add_frame(*next_frame, m_audioBlock);
+    ret = stream.write_audio_frame(m_formatContext, next_frame);
+
+    for(int c = 0; c < channels; c++)
+      m_audioFifo[c].erase(
+          m_audioFifo[c].begin(), m_audioFifo[c].begin() + need);
+
+    if(ret < 0)
+      break;
+  }
+  return ret;
 #endif
   return 1;
 }

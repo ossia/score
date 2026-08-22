@@ -8,6 +8,7 @@
 
 #include <mutex>
 #include <span>
+#include <vector>
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavdevice/avdevice.h>
@@ -46,6 +47,13 @@ struct LibavEncoder
 
   int audio_stream_index = -1;
   int video_stream_index = -1;
+
+private:
+  // The engine hands over one block per tick; a codec with a fixed frame size
+  // wants exactly that many samples per frame, and the two numbers are rarely
+  // the same. Whole frames are cut out of here, so nothing partial is encoded.
+  std::vector<ossia::float_vector> m_audioFifo;
+  std::vector<ossia::float_vector> m_audioBlock;
 };
 
 }
