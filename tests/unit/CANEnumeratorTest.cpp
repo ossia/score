@@ -14,7 +14,6 @@
 #include <Device/Protocol/ProtocolList.hpp>
 
 #include <Library/LibrarySettings.hpp>
-
 #include <Protocols/CAN/CANSpecificSettings.hpp>
 
 #include <core/document/Document.hpp>
@@ -25,10 +24,9 @@
 #include <QFile>
 #include <QFileInfo>
 
+#include <catch2/catch_all.hpp>
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
-
-#include <catch2/catch_all.hpp>
 
 #include <algorithm>
 #include <memory>
@@ -51,8 +49,7 @@ QStringList sysfsCanInterfaces()
 {
   QStringList out;
   QDir sys{"/sys/class/net"};
-  for(const auto& name :
-      sys.entryList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::System))
+  for(const auto& name : sys.entryList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::System))
   {
     QFile type{"/sys/class/net/" + name + "/type"};
     if(!type.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -103,10 +100,7 @@ struct library_files
     QDir{}.mkpath(dir);
   }
 
-  ~library_files()
-  {
-    QDir{dir}.removeRecursively();
-  }
+  ~library_files() { QDir{dir}.removeRecursively(); }
 
   //! Returns the absolute path of the file it wrote.
   QString write(const QString& name, const QByteArray& content)
@@ -307,9 +301,10 @@ TEST_CASE("the CAN default settings name an interface that exists", "[can]")
       REQUIRE(present.contains(specif.interfaceName));
 
       // A physical adapter wins over a vcan left over from a test.
-      const bool anyPhysical = std::any_of(
-          present.begin(), present.end(),
-          [](const QString& n) { return !n.startsWith("vcan"); });
+      const bool anyPhysical
+          = std::any_of(present.begin(), present.end(), [](const QString& n) {
+        return !n.startsWith("vcan");
+      });
       if(anyPhysical)
         REQUIRE(!specif.interfaceName.startsWith("vcan"));
     }

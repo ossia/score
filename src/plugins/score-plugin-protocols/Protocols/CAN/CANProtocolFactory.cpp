@@ -7,6 +7,7 @@
 #include "CANSpecificSettings.hpp"
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
 #include <Protocols/LibraryDeviceEnumerator.hpp>
 
 #include <QObject>
@@ -54,7 +55,7 @@ CANProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
     // rather than being a database with nowhere to read it from.
     specif.interfaceName = CAN::defaultInterface();
     return QVariant::fromValue(specif);
-      },
+  },
       ctx};
 
   return {{"Library", library_enumerator}};

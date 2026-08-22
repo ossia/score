@@ -20,10 +20,9 @@
 #include <QJSEngine>
 #include <QQmlEngine>
 
+#include <catch2/catch_all.hpp>
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
-
-#include <catch2/catch_all.hpp>
 
 #if defined(__linux__)
 
@@ -34,10 +33,10 @@
 #include <net/if.h>
 #include <sys/ioctl.h>
 
-#include <chrono>
 #include <array>
-#include <string>
+#include <chrono>
 #include <cstring>
+#include <string>
 #include <thread>
 
 namespace
@@ -76,8 +75,7 @@ struct Console
 
   Console()
   {
-    engine.globalObject().setProperty(
-        "Score", engine.newQObject(new JS::EditJsContext));
+    engine.globalObject().setProperty("Score", engine.newQObject(new JS::EditJsContext));
   }
 
   /**
@@ -102,7 +100,8 @@ struct Console
   //! JSON serialization uses, which is what createDevice() feeds them to.
   void createCanDevice(const QString& name, int nodeIdOffset = 0)
   {
-    eval(QString{R"js(
+    eval(
+        QString{R"js(
       Score.createDevice("%1", "%2", {
         "Interface": "%3",
         "DBC": "%4",
@@ -112,8 +111,8 @@ struct Console
         "FilterToDatabase": false
       })
     )js"}
-             .arg(name, can_uuid, can_iface, dbcPath())
-             .arg(nodeIdOffset));
+            .arg(name, can_uuid, can_iface, dbcPath())
+            .arg(nodeIdOffset));
   }
 
   //! Every address the device exposes, sorted, one per line. Returned as one
@@ -121,7 +120,8 @@ struct Console
   //! mismatch is then readable instead of forty {?}.
   std::string addresses(const QString& device)
   {
-    return eval(QString{R"js(
+    return eval(
+               QString{R"js(
       (function() {
         var out = [];
         Score.iterateDevice("%1", function(addr, value) { out.push(addr); });
@@ -129,7 +129,7 @@ struct Console
         return out.join("\n");
       })()
     )js"}
-                    .arg(device))
+                   .arg(device))
         .toString()
         .toStdString();
   }
@@ -144,7 +144,8 @@ struct Console
    */
   QJSValue valueAt(const QString& device, const QString& address)
   {
-    return eval(QString{R"js(
+    return eval(
+        QString{R"js(
       (function() {
         var found;
         Score.iterateDevice("%1", function(addr, value) {
@@ -154,7 +155,7 @@ struct Console
         return found;
       })()
     )js"}
-                    .arg(device, address));
+            .arg(device, address));
   }
 };
 
@@ -166,10 +167,10 @@ struct Bus
 
   Bus()
       : tx{[] {
-          ossia::net::can_configuration conf;
-          conf.interface_name = can_iface;
-          return conf;
-        }(), ctx}
+             ossia::net::can_configuration conf;
+             conf.interface_name = can_iface;
+             return conf;
+           }(), ctx}
   {
     tx.open();
   }
@@ -199,8 +200,8 @@ struct Bus
 //!   W =  9878 = 0x2696   X = -1234 = 0xFB2E   Y = 0   Z = 32767 = 0x7FFF
 //! little-endian on the wire, so low byte first.
 constexpr uint32_t pdo4_node1 = 0x481;
-constexpr std::array<uint8_t, 8> pdo4_payload{
-    0x96, 0x26, 0x2E, 0xFB, 0x00, 0x00, 0xFF, 0x7F};
+constexpr std::array<uint8_t, 8> pdo4_payload{0x96, 0x26, 0x2E, 0xFB,
+                                              0x00, 0x00, 0xFF, 0x7F};
 
 /**
  * Pump both the Qt event loop and the clock until `pred` holds.
@@ -247,26 +248,26 @@ TEST_CASE("a CAN device created from a script exposes the DBC tree", "[can][js]"
     // whole point of the database is that the script sees names.
     const auto addrs = js.addresses("imu");
 
-    const std::string expected =
-        "imu:/PDO1_Transmit/Acc_CalibratedX\n"
-        "imu:/PDO1_Transmit/Acc_CalibratedY\n"
-        "imu:/PDO1_Transmit/Acc_CalibratedZ\n"
-        "imu:/PDO1_Transmit/GyroII_Align_CalibratedX\n"
-        "imu:/PDO2_Transmit/GyroII_Align_CalibratedY\n"
-        "imu:/PDO2_Transmit/GyroII_Align_CalibratedZ\n"
-        "imu:/PDO2_Transmit/Mag_CalibratedX\n"
-        "imu:/PDO2_Transmit/Mag_CalibratedY\n"
-        "imu:/PDO3_Transmit/EulerX\n"
-        "imu:/PDO3_Transmit/EulerY\n"
-        "imu:/PDO3_Transmit/EulerZ\n"
-        "imu:/PDO3_Transmit/Mag_CalibratedZ\n"
-        "imu:/PDO4_Transmit/QuaternionW\n"
-        "imu:/PDO4_Transmit/QuaternionX\n"
-        "imu:/PDO4_Transmit/QuaternionY\n"
-        // The vendor's typo in QuatetnionZ, kept: renaming a signal would break
-        // every score written against the file. It sorts last because JS orders
-        // by UTF-16 code unit and 'r' < 't'.
-        "imu:/PDO4_Transmit/QuatetnionZ";
+    const std::string expected
+        = "imu:/PDO1_Transmit/Acc_CalibratedX\n"
+          "imu:/PDO1_Transmit/Acc_CalibratedY\n"
+          "imu:/PDO1_Transmit/Acc_CalibratedZ\n"
+          "imu:/PDO1_Transmit/GyroII_Align_CalibratedX\n"
+          "imu:/PDO2_Transmit/GyroII_Align_CalibratedY\n"
+          "imu:/PDO2_Transmit/GyroII_Align_CalibratedZ\n"
+          "imu:/PDO2_Transmit/Mag_CalibratedX\n"
+          "imu:/PDO2_Transmit/Mag_CalibratedY\n"
+          "imu:/PDO3_Transmit/EulerX\n"
+          "imu:/PDO3_Transmit/EulerY\n"
+          "imu:/PDO3_Transmit/EulerZ\n"
+          "imu:/PDO3_Transmit/Mag_CalibratedZ\n"
+          "imu:/PDO4_Transmit/QuaternionW\n"
+          "imu:/PDO4_Transmit/QuaternionX\n"
+          "imu:/PDO4_Transmit/QuaternionY\n"
+          // The vendor's typo in QuatetnionZ, kept: renaming a signal would break
+          // every score written against the file. It sorts last because JS orders
+          // by UTF-16 code unit and 'r' < 't'.
+          "imu:/PDO4_Transmit/QuatetnionZ";
     REQUIRE(addrs == expected);
 
     // Heatbeat (0x701) has no SG_ record at all, so it is a node with no

@@ -22,10 +22,9 @@
 #include <QApplication>
 #include <QTreeWidget>
 
+#include <catch2/catch_all.hpp>
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
-
-#include <catch2/catch_all.hpp>
 
 #include <thread>
 
@@ -38,8 +37,8 @@ namespace
 class ThreadedEnumerator final : public Device::DeviceEnumerator
 {
 public:
-  void enumerate(std::function<void(const QString&, const Device::DeviceSettings&)>)
-      const override
+  void enumerate(
+      std::function<void(const QString&, const Device::DeviceSettings&)>) const override
   {
   }
 
@@ -108,16 +107,16 @@ public:
     }();
     return s;
   }
-  void serializeProtocolSpecificSettings(const QVariant&, const VisitorVariant&)
-      const override
+  void serializeProtocolSpecificSettings(
+      const QVariant&, const VisitorVariant&) const override
   {
   }
   QVariant makeProtocolSpecificSettings(const VisitorVariant&) const override
   {
     return {};
   }
-  bool checkCompatibility(
-      const Device::DeviceSettings&, const Device::DeviceSettings&) const noexcept override
+  bool checkCompatibility(const Device::DeviceSettings&, const Device::DeviceSettings&)
+      const noexcept override
   {
     return true;
   }
@@ -131,8 +130,7 @@ public:
   mutable ThreadedEnumerator* last{};
 
   QString prettyName() const noexcept override { return QStringLiteral("AAsync"); }
-  Device::DeviceEnumerators
-  getEnumerators(const score::DocumentContext&) const override
+  Device::DeviceEnumerators getEnumerators(const score::DocumentContext&) const override
   {
     auto e = new ThreadedEnumerator;
     last = e;

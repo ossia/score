@@ -7,10 +7,11 @@
 // Each test creates a real Mapper from a script, moves bytes on a real
 // transport, and reads the result back through Score.iterateDevice().
 
-#include <JS/Qml/EditContext.hpp>
+#include <Device/Protocol/DeviceInterface.hpp>
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Device/Protocol/DeviceInterface.hpp>
+
+#include <JS/Qml/EditContext.hpp>
 
 #include <core/document/Document.hpp>
 
@@ -19,13 +20,11 @@
 #include <QJsonObject>
 #include <QQmlEngine>
 
+#include <catch2/catch_all.hpp>
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
 
-#include <catch2/catch_all.hpp>
-
 #if defined(__linux__)
-
 
 #include <linux/can.h>
 #include <linux/can/raw.h>
@@ -33,11 +32,12 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 
-#include <cstring>
 #include <fcntl.h>
 #include <stdlib.h>
-#include <string>
 #include <unistd.h>
+
+#include <cstring>
+#include <string>
 
 namespace
 {
@@ -128,8 +128,7 @@ struct fixture
       : ctx{c}
       , doc{d}
   {
-    engine.globalObject().setProperty(
-        "Score", engine.newQObject(new JS::EditJsContext));
+    engine.globalObject().setProperty("Score", engine.newQObject(new JS::EditJsContext));
   }
 
   /**
@@ -179,8 +178,9 @@ struct fixture
         })
       )js"));
       if(!m_iterate.isCallable())
-        FAIL("could not compile the iterateDevice wrapper: "
-             << m_iterate.toString().toStdString());
+        FAIL(
+            "could not compile the iterateDevice wrapper: "
+            << m_iterate.toString().toStdString());
     }
 
     auto res = m_iterate.call({name});
@@ -240,7 +240,8 @@ TEST_CASE("a mapper script reads a CAN bus through Protocols.can", "[mapper]")
 
     // The script keeps the last frame it saw and exposes it as two nodes; the
     // interval is what turns them into something iterateDevice can observe.
-    f.createMapper("can_mapper", QStringLiteral(R"qml(
+    f.createMapper(
+        "can_mapper", QStringLiteral(R"qml(
 import Ossia 1.0 as Ossia
 
 Ossia.Mapper
@@ -277,10 +278,11 @@ Ossia.Mapper
   }
 }
 )qml")
-                                   .arg(QString::fromUtf8(can_iface)));
+                          .arg(QString::fromUtf8(can_iface)));
 
     // The tree exists before any frame has arrived.
-    REQUIRE(f.spin([&] { return f.contents("can_mapper").contains("can_mapper:/rpm"); }));
+    REQUIRE(
+        f.spin([&] { return f.contents("can_mapper").contains("can_mapper:/rpm"); }));
 
     // 0x0BB8 == 3000, little-endian across the first two bytes.
     peer.send(0x123, {0xB8, 0x0B, 0, 0});
@@ -288,9 +290,9 @@ Ossia.Mapper
     const bool got = f.spin([&] {
       return f.contents("can_mapper").value("can_mapper:/rpm").toInt() == 3000;
     });
-    INFO("tree: " << QJsonDocument::fromVariant(f.contents("can_mapper"))
-                         .toJson()
-                         .toStdString());
+    INFO(
+        "tree: "
+        << QJsonDocument::fromVariant(f.contents("can_mapper")).toJson().toStdString());
     REQUIRE(got);
     REQUIRE(f.contents("can_mapper").value("can_mapper:/frames").toInt() >= 1);
 
@@ -320,7 +322,8 @@ TEST_CASE("a mapper script reads a serial port through Protocols.serial", "[mapp
     REQUIRE(doc);
     fixture f{ctx, *doc};
 
-    f.createMapper("serial_mapper", QStringLiteral(R"qml(
+    f.createMapper(
+        "serial_mapper", QStringLiteral(R"qml(
 import Ossia 1.0 as Ossia
 
 Ossia.Mapper
@@ -342,7 +345,7 @@ Ossia.Mapper
   }
 }
 )qml")
-                                      .arg(QString::fromStdString(pty.slave)));
+                             .arg(QString::fromStdString(pty.slave)));
 
     REQUIRE(f.spin(
         [&] { return f.contents("serial_mapper").contains("serial_mapper:/value"); }));
@@ -353,9 +356,10 @@ Ossia.Mapper
     const bool got = f.spin([&] {
       return f.contents("serial_mapper").value("serial_mapper:/value").toInt() == 4242;
     });
-    INFO("tree: " << QJsonDocument::fromVariant(f.contents("serial_mapper"))
-                         .toJson()
-                         .toStdString());
+    INFO(
+        "tree: " << QJsonDocument::fromVariant(f.contents("serial_mapper"))
+                        .toJson()
+                        .toStdString());
     REQUIRE(got);
 
     f.eval(QStringLiteral("Score.removeDevice(\"serial_mapper\")"));

@@ -147,13 +147,39 @@ std::string toUtf8(std::string s)
 const std::unordered_set<std::string_view>& topLevelKeywords()
 {
   static const std::unordered_set<std::string_view> k{
-      "VERSION",     "NS_",           "BS_",         "BU_",         "VAL_TABLE_",
-      "BO_",         "SG_",           "BO_TX_BU_",   "EV_",         "ENVVAR_DATA_",
-      "CM_",         "BA_DEF_",       "BA_DEF_DEF_", "BA_",         "VAL_",
-      "SIG_VALTYPE_", "SIG_GROUP_",   "SGTYPE_",     "SIG_TYPE_REF_", "SG_MUL_VAL_",
-      "CAT_DEF_",    "CAT_",          "FILTER",      "BA_DEF_REL_", "BA_REL_",
-      "BA_DEF_DEF_REL_", "BU_SG_REL_", "BU_EV_REL_", "BU_BO_REL_",  "NS_DESC_",
-      "BA_DEF_SGTYPE_", "BA_SGTYPE_", "SIGTYPE_VALTYPE_"};
+      "VERSION",
+      "NS_",
+      "BS_",
+      "BU_",
+      "VAL_TABLE_",
+      "BO_",
+      "SG_",
+      "BO_TX_BU_",
+      "EV_",
+      "ENVVAR_DATA_",
+      "CM_",
+      "BA_DEF_",
+      "BA_DEF_DEF_",
+      "BA_",
+      "VAL_",
+      "SIG_VALTYPE_",
+      "SIG_GROUP_",
+      "SGTYPE_",
+      "SIG_TYPE_REF_",
+      "SG_MUL_VAL_",
+      "CAT_DEF_",
+      "CAT_",
+      "FILTER",
+      "BA_DEF_REL_",
+      "BA_REL_",
+      "BA_DEF_DEF_REL_",
+      "BU_SG_REL_",
+      "BU_EV_REL_",
+      "BU_BO_REL_",
+      "NS_DESC_",
+      "BA_DEF_SGTYPE_",
+      "BA_SGTYPE_",
+      "SIGTYPE_VALTYPE_"};
   return k;
 }
 
@@ -614,10 +640,9 @@ struct Parser
       const char* worstName = nullptr;
       for(const auto& sg : msg.signals)
       {
-        const int lastBit
-            = (sg.byteOrder == ByteOrder::LittleEndian)
-                  ? sg.startBit + sg.length - 1
-                  : flipBitPos(flipBitPos(sg.startBit) + sg.length - 1);
+        const int lastBit = (sg.byteOrder == ByteOrder::LittleEndian)
+                                ? sg.startBit + sg.length - 1
+                                : flipBitPos(flipBitPos(sg.startBit) + sg.length - 1);
         const int neededBytes = lastBit / 8 + 1;
         if(neededBytes > msg.size && neededBytes > worst)
         {
@@ -642,8 +667,8 @@ struct Parser
     if(const auto* dup = db.findMessage(msg.id, msg.extended))
     {
       warnAt(
-          recordStart, "duplicate message id " + std::to_string(msg.id) + " ("
-                           + msg.name + " and " + dup->name + "); keeping the first");
+          recordStart, "duplicate message id " + std::to_string(msg.id) + " (" + msg.name
+                           + " and " + dup->name + "); keeping the first");
       return;
     }
 
@@ -693,12 +718,14 @@ struct Parser
             sig.isMultiplexer = true;
             t.remove_suffix(1);
           }
-          sig.multiplexValue = std::strtoll(std::string(t.substr(1)).c_str(), nullptr, 10);
+          sig.multiplexValue
+              = std::strtoll(std::string(t.substr(1)).c_str(), nullptr, 10);
         }
         else if(!t.empty())
         {
-          warnAt(recordStart, "unknown multiplexing indicator '" + std::string(t)
-                                  + "' on signal " + sig.name);
+          warnAt(
+              recordStart, "unknown multiplexing indicator '" + std::string(t)
+                               + "' on signal " + sig.name);
         }
       }
     }
@@ -803,7 +830,9 @@ struct Parser
     {
       // Legal, and occasionally deliberate, but it collapses every raw value
       // onto the offset -- worth saying out loud.
-      warnAt(recordStart, "SG_ " + sig.name + ": factor is 0, every value decodes to the offset");
+      warnAt(
+          recordStart,
+          "SG_ " + sig.name + ": factor is 0, every value decodes to the offset");
     }
 
     // `[0|0]` is how CANdb++ spells "no range given"; it is not a real domain
@@ -818,9 +847,8 @@ struct Parser
     if(msg.findSignal(sig.name))
     {
       warnAt(
-          recordStart,
-          "duplicate signal name " + sig.name + " in message " + msg.name
-              + "; keeping the first");
+          recordStart, "duplicate signal name " + sig.name + " in message " + msg.name
+                           + "; keeping the first");
       return;
     }
 
@@ -980,17 +1008,17 @@ struct Parser
       case 1:
         if(sg->length != 32)
           warnAt(
-              recordStart,
-              "SIG_VALTYPE_ declares " + name + " a float but its length is "
-                  + std::to_string(sg->length) + ", not 32");
+              recordStart, "SIG_VALTYPE_ declares " + name
+                               + " a float but its length is "
+                               + std::to_string(sg->length) + ", not 32");
         sg->valueType = ValueType::Float32;
         break;
       case 2:
         if(sg->length != 64)
           warnAt(
-              recordStart,
-              "SIG_VALTYPE_ declares " + name + " a double but its length is "
-                  + std::to_string(sg->length) + ", not 64");
+              recordStart, "SIG_VALTYPE_ declares " + name
+                               + " a double but its length is "
+                               + std::to_string(sg->length) + ", not 64");
         sg->valueType = ValueType::Double64;
         break;
       default:
@@ -1270,8 +1298,7 @@ static std::string preprocess(std::string_view content)
     Str,
     LineComment,
     BlockComment
-  } state
-      = Code;
+  } state = Code;
 
   for(std::size_t i = 0; i < content.size(); ++i)
   {

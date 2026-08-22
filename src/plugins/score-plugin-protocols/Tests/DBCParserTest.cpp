@@ -474,7 +474,8 @@ TEST_CASE("The 32-bit float override", "[can][dbc]")
   REQUIRE(decodeSignal(*accX2, frame, 8) == Catch::Approx(1.0));
 }
 
-TEST_CASE("The float override leaves non-32-bit and explicit signals alone", "[can][dbc]")
+TEST_CASE(
+    "The float override leaves non-32-bit and explicit signals alone", "[can][dbc]")
 {
   // 16-bit signals must not be touched.
   auto db16 = parseDBCFile(dataPath("LPMS3_16bit.dbc"));
@@ -607,20 +608,22 @@ VAL_ 100 Mode ModeTable ;
 
 TEST_CASE("Comments", "[can][dbc]")
 {
-  auto db = parseString("VERSION \"\"\r\n"
-                        "\r\n"
-                        "BO_ 100 Msg: 8 Vector__XXX\r\n"
-                        " SG_ A : 0|8@1+ (1,0) [0|0] \"\" Vector__XXX\r\n"
-                        "\r\n"
-                        "CM_ \"A database comment\";\r\n"
-                        "CM_ BO_ 100 \"A message comment\";\r\n"
-                        "CM_ SG_ 100 A \"A signal comment\nspanning two lines\";\r\n");
+  auto db = parseString(
+      "VERSION \"\"\r\n"
+      "\r\n"
+      "BO_ 100 Msg: 8 Vector__XXX\r\n"
+      " SG_ A : 0|8@1+ (1,0) [0|0] \"\" Vector__XXX\r\n"
+      "\r\n"
+      "CM_ \"A database comment\";\r\n"
+      "CM_ BO_ 100 \"A message comment\";\r\n"
+      "CM_ SG_ 100 A \"A signal comment\nspanning two lines\";\r\n");
 
   REQUIRE(db.messages.size() == 1);
   REQUIRE(db.comment == "A database comment");
   REQUIRE(db.messages[0].comment == "A message comment");
   // Comments may contain newlines: CANdb++ writes them verbatim.
-  REQUIRE(db.messages[0].findSignal("A")->comment == "A signal comment\nspanning two lines");
+  REQUIRE(
+      db.messages[0].findSignal("A")->comment == "A signal comment\nspanning two lines");
 }
 
 TEST_CASE("CRLF line endings", "[can][dbc]")
@@ -629,14 +632,15 @@ TEST_CASE("CRLF line endings", "[can][dbc]")
   // end-of-line turns the receiver list of the first signal into a construct
   // that runs to the end of the file, and the database silently comes back
   // empty -- which is exactly what happened before this was handled.
-  const std::string crlf = "VERSION \"\"\r\n"
-                           "\r\n"
-                           "BO_ 100 Msg: 8 Vector__XXX\r\n"
-                           " SG_ A : 0|8@1+ (1,0) [0|0] \"\" Vector__XXX\r\n"
-                           " SG_ B : 8|8@1+ (1,0) [0|0] \"\" Vector__XXX\r\n"
-                           "\r\n"
-                           "BO_ 200 Msg2: 8 Vector__XXX\r\n"
-                           " SG_ C : 0|8@1+ (1,0) [0|0] \"\" Vector__XXX\r\n";
+  const std::string crlf
+      = "VERSION \"\"\r\n"
+        "\r\n"
+        "BO_ 100 Msg: 8 Vector__XXX\r\n"
+        " SG_ A : 0|8@1+ (1,0) [0|0] \"\" Vector__XXX\r\n"
+        " SG_ B : 8|8@1+ (1,0) [0|0] \"\" Vector__XXX\r\n"
+        "\r\n"
+        "BO_ 200 Msg2: 8 Vector__XXX\r\n"
+        " SG_ C : 0|8@1+ (1,0) [0|0] \"\" Vector__XXX\r\n";
 
   auto db = parseString(crlf);
   REQUIRE(db.messages.size() == 2);
@@ -975,21 +979,23 @@ SIG_VALTYPE_ 100 G 1;
 
 TEST_CASE("Escaped and doubled quotes in strings", "[can][dbc]")
 {
-  auto db = parseString("VERSION \"\"\n"
-                        "\n"
-                        "BO_ 100 Msg: 8 Vector__XXX\n"
-                        " SG_ A : 0|8@1+ (1,0) [0|0] \"\" Vector__XXX\n"
-                        "\n"
-                        "CM_ BO_ 100 \"a \\\"quoted\\\" word\";\n");
+  auto db = parseString(
+      "VERSION \"\"\n"
+      "\n"
+      "BO_ 100 Msg: 8 Vector__XXX\n"
+      " SG_ A : 0|8@1+ (1,0) [0|0] \"\" Vector__XXX\n"
+      "\n"
+      "CM_ BO_ 100 \"a \\\"quoted\\\" word\";\n");
   REQUIRE(db.messages.size() == 1);
   REQUIRE(db.messages[0].comment == "a \"quoted\" word");
 
-  auto db2 = parseString("VERSION \"\"\n"
-                         "\n"
-                         "BO_ 100 Msg: 8 Vector__XXX\n"
-                         " SG_ A : 0|8@1+ (1,0) [0|0] \"\" Vector__XXX\n"
-                         "\n"
-                         "CM_ BO_ 100 \"a \"\"doubled\"\" word\";\n");
+  auto db2 = parseString(
+      "VERSION \"\"\n"
+      "\n"
+      "BO_ 100 Msg: 8 Vector__XXX\n"
+      " SG_ A : 0|8@1+ (1,0) [0|0] \"\" Vector__XXX\n"
+      "\n"
+      "CM_ BO_ 100 \"a \"\"doubled\"\" word\";\n");
   REQUIRE(db2.messages.size() == 1);
   REQUIRE(db2.messages[0].comment == "a \"doubled\" word");
 }
@@ -1040,8 +1046,8 @@ TEST_CASE("Big-endian start bits agree with Vector CANdb++", "[can][dbc][oracle]
   };
 
   static constexpr Case cases[] = {
-      {39, 4, 36},  {52, 1, 52},  {51, 12, 56}, {6, 1, 6},   {5, 1, 5},
-      {23, 3, 21},  {7, 1, 7},    {34, 11, 40}, {18, 11, 24}, {4, 13, 8},
+      {39, 4, 36}, {52, 1, 52}, {51, 12, 56}, {6, 1, 6},    {5, 1, 5},
+      {23, 3, 21}, {7, 1, 7},   {34, 11, 40}, {18, 11, 24}, {4, 13, 8},
   };
 
   for(const auto& c : cases)
@@ -1054,7 +1060,8 @@ TEST_CASE("Big-endian start bits agree with Vector CANdb++", "[can][dbc][oracle]
   }
 }
 
-TEST_CASE("Big-endian extraction agrees with cantools and canmatrix", "[can][dbc][oracle]")
+TEST_CASE(
+    "Big-endian extraction agrees with cantools and canmatrix", "[can][dbc][oracle]")
 {
   // Signals and expected raw values obtained by decoding the payloads below
   // through cantools and through canmatrix; the two agreed on every cell.
@@ -1140,7 +1147,8 @@ TEST_CASE("Latin-1 text is transcoded to UTF-8", "[can][dbc]")
 {
   // CANdb++ writes cp1252/ISO-8859-1: a degree sign is the byte 0xB0, which is
   // not valid UTF-8 on its own and would render as nothing downstream.
-  std::string src = "VERSION \"\"\n\nBO_ 100 Msg: 8 Vector__XXX\n SG_ A : 0|8@1+ (1,0) [0|0] \"";
+  std::string src
+      = "VERSION \"\"\n\nBO_ 100 Msg: 8 Vector__XXX\n SG_ A : 0|8@1+ (1,0) [0|0] \"";
   src += char(0xB0);
   src += "C\" Vector__XXX\n";
 
@@ -1155,7 +1163,10 @@ TEST_CASE("Latin-1 text is transcoded to UTF-8", "[can][dbc]")
   REQUIRE(unit[2] == 'C');
 
   // Text that already is valid UTF-8 must survive untouched.
-  std::string utf8 = "VERSION \"\"\n\nBO_ 100 Msg: 8 Vector__XXX\n SG_ A : 0|8@1+ (1,0) [0|0] \"\xC2\xB0" "C\" Vector__XXX\n";
+  std::string utf8
+      = "VERSION \"\"\n\nBO_ 100 Msg: 8 Vector__XXX\n SG_ A : 0|8@1+ (1,0) [0|0] "
+        "\"\xC2\xB0"
+        "C\" Vector__XXX\n";
   auto db2 = parseString(utf8);
   REQUIRE(db2.messages[0].findSignal("A")->unit == "\xC2\xB0" "C");
 }
