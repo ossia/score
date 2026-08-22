@@ -106,6 +106,20 @@ if(LINUX AND TARGET score_plugin_protocols AND TARGET score_plugin_js)
     SCORE_CAN_TEST_DATA="${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-protocols/Tests/data")
 endif()
 
+# The Mapper device driving libossia's QML protocol bindings: `Protocols` is a
+# context property of the mapper's engine, and that engine runs on its own
+# thread -- neither of which libossia's own QJSEngine-level tests can cover.
+if(LINUX AND TARGET score_plugin_protocols AND TARGET score_plugin_js)
+  score_add_test(test_unit_mapper_protocols
+    SOURCES MapperProtocolsTest.cpp
+    APP
+    PLUGINS score_plugin_js score_plugin_protocols score_lib_device
+    LIBS ossia ${QT_PREFIX}::Qml)
+  target_include_directories(test_unit_mapper_protocols PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-js"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-protocols")
+endif()
+
 # --- core data model (score-lib-state / score-lib-process, P3R2) -----------
 score_add_test(test_unit_state_serialization
   SOURCES StateSerializationTest.cpp

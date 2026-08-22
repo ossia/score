@@ -107,12 +107,21 @@ struct Console
         "Score", engine.newQObject(new JS::EditJsContext));
   }
 
+  /**
+   * Evaluate `js`, failing the test if it throws.
+   *
+   * FAIL rather than REQUIRE because this is reached from inside the polling
+   * predicates: an assertion there counts once per poll, which would make the
+   * test's assertion count depend on how fast the machine is. FAIL only counts
+   * when it fires.
+   */
   QJSValue eval(const QString& js)
   {
     auto res = engine.evaluate(js);
-    INFO("script: " << js.toStdString());
-    INFO("result: " << res.toString().toStdString());
-    REQUIRE(!res.isError());
+    if(res.isError())
+      FAIL(
+          "script failed: " << res.toString().toStdString()
+                            << "\nscript was: " << js.toStdString());
     return res;
   }
 
@@ -230,9 +239,8 @@ constexpr std::array<uint8_t, 8> pdo4_payload{
 template <typename F>
 bool waitFor(F pred, int ms = 2000)
 {
-  // Polled every 10ms rather than every 1ms: `pred` here evaluates a script
-  // that walks the whole device, and a 1ms period turns a two-second timeout
-  // into a couple of thousand redundant Catch2 assertions.
+  // Polled every 10ms rather than every 1ms: `pred` evaluates a script that
+  // walks the whole device.
   for(int i = 0; i < ms / 10; i++)
   {
     QApplication::processEvents();
