@@ -29,7 +29,9 @@
 #include <wobjectimpl.h>
 
 extern "C" {
+#include <libavutil/frame.h>
 #include <libavutil/imgutils.h>
+#include <libavutil/pixdesc.h>
 #include <libavutil/pixfmt.h>
 }
 
@@ -330,6 +332,7 @@ private:
           return false;
         }
         info.pixfmt = it->second;
+        info.gst_format = format;
       }
     }
     if(info.width <= 0) info.width = 640;
@@ -435,7 +438,7 @@ private:
         {
           if(info.is_video)
           {
-            process_video_frame(map_info, info, video_idx);
+            process_video_frame(buffer, map_info, info, video_idx);
           }
           else
           {
@@ -457,8 +460,127 @@ private:
     }
   }
 
+  // The stride and plane offsets an upstream element negotiated, when it
+  // attached a GstVideoMeta saying so. Every field read is validated against
+  // libav's own accounting, so a layout that does not add up is ignored rather
+  // than followed off the end of the buffer.
+  [[nodiscard]] static bool apply_video_meta(
+      AVFrame& frame, uint8_t* storage, std::size_t sz, GstBuffer* buffer,
+      const ::Video::PlaneOrder& order)
+  {
+    auto& gst = libgstreamer::instance();
+    if(!gst.buffer_get_video_meta || !buffer)
+      return false;
+
+    const GstVideoMeta* meta = gst.buffer_get_video_meta(buffer);
+    if(!meta)
+      return false;
+
+    const auto fmt = (AVPixelFormat)frame.format;
+    const int planes = av_pix_fmt_count_planes(fmt);
+    if(planes <= 0 || planes > GST_VIDEO_MAX_PLANES)
+      return false;
+    if((int)meta->n_planes != planes)
+      return false;
+    if((int)meta->width != frame.width || (int)meta->height != frame.height)
+      return false;
+
+    std::ptrdiff_t ls[4]{};
+    for(int p = 0; p < planes; p++)
+    {
+      const int stride = meta->stride[order[p]];
+      const int minimum = av_image_get_linesize(fmt, frame.width, p);
+      if(stride <= 0 || (minimum > 0 && stride < minimum))
+        return false;
+      ls[p] = stride;
+    }
+
+    std::size_t sizes[4]{};
+    if(av_image_fill_plane_sizes(sizes, fmt, frame.height, ls) < 0)
+      return false;
+
+    for(int p = 0; p < planes; p++)
+    {
+      const std::size_t off = meta->offset[order[p]];
+      if(off > sz || sizes[p] > sz - off)
+        return false;
+    }
+
+    for(int p = 0; p < AV_NUM_DATA_POINTERS; p++)
+    {
+      frame.data[p] = nullptr;
+      frame.linesize[p] = 0;
+    }
+    for(int p = 0; p < planes; p++)
+    {
+      frame.data[p] = storage + meta->offset[order[p]];
+      frame.linesize[p] = (int)ls[p];
+    }
+    return true;
+  }
+
+  // GStreamer's default plane layout is defined per format and is not
+  // reproducible from a subsampling factor -- I422_10LE rounds its plane
+  // heights up to a multiple of two where Y42B, of the same 4:2:2 sampling,
+  // does not. So the only two layouts that can be claimed without the meta are
+  // the ones whose total byte count the buffer matches exactly.
+  [[nodiscard]] static bool layout_frame(
+      AVFrame& frame, uint8_t* storage, std::size_t sz, GstBuffer* buffer,
+      AppsinkInfo& info)
+  {
+    const auto order = ::Video::gstreamerPlaneOrder(info.gst_format);
+
+    if(apply_video_meta(frame, storage, sz, buffer, order))
+      return true;
+
+    const auto fmt = (AVPixelFormat)frame.format;
+    const int tight = av_image_get_buffer_size(fmt, frame.width, frame.height, 1);
+    const int padded = av_image_get_buffer_size(fmt, frame.width, frame.height, 4);
+
+    int align = 0;
+    if(tight > 0 && sz == std::size_t(tight))
+      align = 1;
+    else if(padded > 0 && sz == std::size_t(padded))
+      align = 4;
+
+    if(align == 0)
+    {
+      if(!info.unsupported_layout)
+      {
+        info.unsupported_layout = true;
+        qDebug() << "GStreamer: no GstVideoMeta on a" << info.width << "x"
+                 << info.height << av_get_pix_fmt_name(fmt)
+                 << "buffer of" << sz << "bytes, which is neither the tightly"
+                 << "packed" << tight << "nor the row-aligned" << padded
+                 << ": dropping frames";
+      }
+      return false;
+    }
+
+    if(!::Video::initFrameFromRawData(&frame, storage, sz, align))
+      return false;
+
+    if(order != ::Video::identityPlaneOrder)
+    {
+      uint8_t* data[4]{};
+      int linesize[4]{};
+      for(int p = 0; p < 4; p++)
+      {
+        data[p] = frame.data[p];
+        linesize[p] = frame.linesize[p];
+      }
+      for(int p = 0; p < 4; p++)
+      {
+        frame.data[p] = data[order[p]];
+        frame.linesize[p] = linesize[order[p]];
+      }
+    }
+    return true;
+  }
+
   void process_video_frame(
-      const GstMapInfo& map_info, const AppsinkInfo& info, int video_idx)
+      GstBuffer* buffer, const GstMapInfo& map_info, AppsinkInfo& info,
+      int video_idx)
   {
     if(video_idx < 0 || video_idx >= (int)video_queues.size())
       return;
@@ -477,8 +599,8 @@ private:
     if(!storage || !map_info.data)
       return;
 
-    // Set up the plane pointers (data[] and linesize[]) based on pixel format
-    if(!::Video::initFrameFromRawData(frame.get(), storage, map_info.size))
+    // Set up the plane pointers (data[] and linesize[])
+    if(!layout_frame(*frame, storage, map_info.size, buffer, info))
       return;
 
     // Copy the actual pixel data

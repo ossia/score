@@ -37,11 +37,18 @@ struct AppsinkInfo
   int width{};
   int height{};
   AVPixelFormat pixfmt{AV_PIX_FMT_NONE};
+  // The GStreamer name the caps carried: several GStreamer formats share one
+  // AVPixelFormat but not its plane order (see Video::gstreamerPlaneOrder).
+  std::string gst_format;
   int channels{};
   int rate{};
   // Set when the negotiated caps named a format with no AVPixelFormat: the
   // samples are dropped, and the reason is logged once rather than per frame.
   bool unsupported_format{};
+  // Set when a buffer arrived with no GstVideoMeta and a size that matches
+  // neither the tightly packed nor the row-aligned layout: its plane layout is
+  // unknowable, so the samples are dropped and the reason logged once.
+  bool unsupported_layout{};
   std::function<void(int, int, AVPixelFormat)> on_format_change;
 };
 
@@ -141,7 +148,10 @@ inline void classify_from_pipeline_string(
     {
       auto& map = ::Video::gstreamerToLibav();
       if(auto it = map.find(format); it != map.end())
+      {
         info.pixfmt = it->second;
+        info.gst_format = format;
+      }
     }
   }
 }
