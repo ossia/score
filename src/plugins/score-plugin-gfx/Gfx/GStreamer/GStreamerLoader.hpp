@@ -91,6 +91,28 @@ typedef struct _GstMapInfo
   void* _gst_reserved[4];
 } GstMapInfo;
 
+// GstVideoMeta, from gst/video/gstvideometa.h. Read-only and only up to
+// stride[]: the map/unmap callbacks and the GstVideoAlignment that follow are
+// deliberately not declared, so nothing here depends on their layout.
+// GST_VIDEO_MAX_PLANES has been 4 since the API was introduced.
+#define GST_VIDEO_MAX_PLANES 4
+typedef struct _GstVideoMeta
+{
+  // GstMeta meta;
+  int meta_flags;
+  const void* meta_info;
+
+  struct _GstBuffer* buffer;
+  int flags;  // GstVideoFrameFlags
+  int format; // GstVideoFormat
+  unsigned int id;
+  unsigned int width;
+  unsigned int height;
+  unsigned int n_planes;
+  size_t offset[GST_VIDEO_MAX_PLANES];
+  int stride[GST_VIDEO_MAX_PLANES];
+} GstVideoMeta;
+
 // GError for error handling
 typedef struct _GError
 {
@@ -228,6 +250,10 @@ GstBuffer* gst_buffer_new_wrapped_full(
 gboolean gst_buffer_map(GstBuffer* buffer, GstMapInfo* info, GstMapFlags flags);
 void gst_buffer_unmap(GstBuffer* buffer, GstMapInfo* info);
 
+// Video meta (from libgstvideo-1.0): the stride and plane offsets an upstream
+// element actually negotiated, when they are not the default for the caps.
+GstVideoMeta* gst_buffer_get_video_meta(GstBuffer* buffer);
+
 // GObject property introspection (from libgobject-2.0)
 GParamSpec** g_object_class_list_properties(void* oclass, unsigned int* n_properties);
 void* g_type_class_ref(GType type);
@@ -326,6 +352,10 @@ struct libgstreamer
   decltype(&::gst_buffer_map) buffer_map{};
   decltype(&::gst_buffer_unmap) buffer_unmap{};
 
+  // Optional: absent when libgstvideo-1.0 is not installed. Every use falls
+  // back to the default layout for the caps.
+  decltype(&::gst_buffer_get_video_meta) buffer_get_video_meta{};
+
   // GObject property introspection (from libgobject-2.0)
   decltype(&::g_object_class_list_properties) object_class_list_properties{};
   decltype(&::g_type_class_ref) type_class_ref{};
@@ -393,6 +423,19 @@ private:
 #endif
   }
 
+  static std::optional<ossia::dylib_loader> load_video_library()
+  {
+#if defined(_WIN32)
+    return score::try_load_library({"gstvideo-1.0-0.dll"});
+#elif defined(__APPLE__)
+    return score::try_load_library({
+        "libgstvideo-1.0.0.dylib", "libgstvideo-1.0.dylib"});
+#else
+    return score::try_load_library({
+        "libgstvideo-1.0.so.0", "libgstvideo-1.0.so"});
+#endif
+  }
+
   static std::optional<ossia::dylib_loader> load_gobject_library()
   {
 #if defined(_WIN32)
@@ -428,6 +471,7 @@ private:
     m_app = load_app_library();
     m_gobject = load_gobject_library();
     m_glib = load_glib_library();
+    m_video = load_video_library();
 
     // Not installed: available stays false and every entry point bails out
     if(!m_core || !m_app || !m_gobject || !m_glib)
@@ -486,6 +530,9 @@ private:
     GST_LOAD(m_core, buffer_map);
     GST_LOAD(m_core, buffer_unmap);
 
+    if(m_video)
+      GST_LOAD(m_video, buffer_get_video_meta);
+
     // GObject property introspection
 #define GOBJ_LOAD(name) \
   name = m_gobject->symbol<decltype(&::g_##name)>("g_" #name)
@@ -534,6 +581,7 @@ private:
   std::optional<ossia::dylib_loader> m_app;
   std::optional<ossia::dylib_loader> m_gobject;
   std::optional<ossia::dylib_loader> m_glib;
+  std::optional<ossia::dylib_loader> m_video;
 };
 
 // Call once from any code that needs GStreamer
