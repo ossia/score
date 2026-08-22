@@ -73,13 +73,14 @@ score_add_test(test_unit_device_edit_dialog
   APP
   PLUGINS score_plugin_deviceexplorer score_lib_device score_lib_state)
 
-# The CAN protocol's device browser entry and its default interface, against an
-# independent walk of /sys/class/net.
-if(TARGET score_plugin_protocols)
+# The CAN protocol's device browser entry: the .dbc databases of the user
+# library, plus the default interface against an independent walk of
+# /sys/class/net.
+if(TARGET score_plugin_protocols AND TARGET score_plugin_library)
   score_add_test(test_unit_can_enumerator
     SOURCES CANEnumeratorTest.cpp
     APP
-    PLUGINS score_plugin_protocols score_lib_device)
+    PLUGINS score_plugin_protocols score_plugin_library score_lib_device)
   target_include_directories(test_unit_can_enumerator PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-protocols")
   if(LINUX)

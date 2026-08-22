@@ -16,12 +16,23 @@ class SCORE_PLUGIN_PROTOCOLS_EXPORT LibraryDeviceEnumerator
 public:
   std::string m_pattern;
   Device::ProtocolFactory::ConcreteKey m_key;
-  std::function<QVariant(QByteArray)> m_createDeviceSettings;
+  //! Called with the contents of a matching file and with its path.
+  //!
+  //! Both are needed: most protocols embed the file in their settings, but some
+  //! - CAN, whose settings name a .dbc - only want to remember where it is.
+  std::function<QVariant(QByteArray, const QString&)> m_createDeviceSettings;
   score::RecursiveWatch m_watch;
 
+  //! For settings that embed the file's contents.
   LibraryDeviceEnumerator(
       std::string pattern, QStringList extension, Device::ProtocolFactory::ConcreteKey k,
       std::function<QVariant(QByteArray)> createDev, const score::DocumentContext& ctx);
+
+  //! For settings that reference the file by path.
+  LibraryDeviceEnumerator(
+      std::string pattern, QStringList extension, Device::ProtocolFactory::ConcreteKey k,
+      std::function<QVariant(QByteArray, const QString&)> createDev,
+      const score::DocumentContext& ctx);
 
   void next(std::string_view path);
   std::function<void()> asyncNext(std::string_view path);
