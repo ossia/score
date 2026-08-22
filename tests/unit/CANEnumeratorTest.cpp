@@ -100,6 +100,10 @@ struct library_files
     QDir{}.mkpath(dir);
   }
 
+  //! The library lives under the documents directory, which a CI container may
+  //! not have: nothing to test there rather than a failure.
+  bool usable() const { return QFileInfo{dir}.isWritable(); }
+
   ~library_files() { QDir{dir}.removeRecursively(); }
 
   //! Returns the absolute path of the file it wrote.
@@ -107,7 +111,8 @@ struct library_files
   {
     const QString path = dir + '/' + name;
     QFile f{path};
-    REQUIRE(f.open(QIODevice::WriteOnly));
+    if(!f.open(QIODevice::WriteOnly))
+      FAIL("could not write " << path.toStdString());
     REQUIRE(f.write(content) == content.size());
     f.close();
     written.push_back(path);
@@ -191,6 +196,8 @@ TEST_CASE("the CAN protocol offers the databases in the library", "[can]")
     }
 
     library_files lib{ctx};
+    if(!lib.usable())
+      SKIP("no writable user library at " << lib.dir.toStdString());
     const auto dbc = lib.write("LPMS3_sample.dbc", sample_dbc);
 
     auto doc = score::test::new_document(ctx);
@@ -250,6 +257,8 @@ TEST_CASE("the CAN protocol offers only actual databases", "[can]")
     }
 
     library_files lib{ctx};
+    if(!lib.usable())
+      SKIP("no writable user library at " << lib.dir.toStdString());
     lib.write("real.dbc", sample_dbc);
 
     // Right extension, but no message in it: nothing for a device to read.
