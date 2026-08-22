@@ -145,8 +145,11 @@ struct OutputStream
       }
     }
 
-    c->ch_layout.order = AV_CHANNEL_ORDER_UNSPEC;
-    c->ch_layout.nb_channels = set.audio_channels;
+    // A NAMED layout, not AV_CHANNEL_ORDER_UNSPEC: encoders that publish a
+    // supported-layout list -- aac and libopus among them -- reject an
+    // unspecified order from avcodec_open2 with EINVAL, which is what made the
+    // "MP4 H.264 + AAC" preset refuse to start at all.
+    av_channel_layout_default(&c->ch_layout, set.audio_channels);
     c->thread_count = set.threads > 0 ? set.threads : 0;
     if(set.audio_encoder_short == "pcm_s24le" || set.audio_encoder_short == "pcm_s24be")
       c->bits_per_raw_sample = 24;
@@ -268,10 +271,11 @@ struct OutputStream
           encoder = std::make_unique<S16IAudioFrameEncoder>(nb_samples);
           break;
         case AV_SAMPLE_FMT_S32:
-          if(enc->bits_per_raw_sample == 24)
-            encoder = std::make_unique<S24IAudioFrameEncoder>(nb_samples);
-          else
-            encoder = std::make_unique<S32IAudioFrameEncoder>(nb_samples);
+          // Always full-scale int32, even for a 24-bit container: libav's
+          // pcm_s24le takes AV_SAMPLE_FMT_S32 samples and writes their TOP 24
+          // bits, so scaling to 2^23 as a 24-bit sample would have made every
+          // WAV 24-bit recording 48 dB too quiet.
+          encoder = std::make_unique<S32IAudioFrameEncoder>(nb_samples);
           break;
         case AV_SAMPLE_FMT_FLT:
           encoder = std::make_unique<FltIAudioFrameEncoder>(nb_samples);

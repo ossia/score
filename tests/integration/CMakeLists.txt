@@ -151,6 +151,28 @@ score_add_test(test_regression_double_exit
   SOURCES RegressionDoubleExitTest.cpp
   APP)
 
+# --script failure reporting: exit 0 / N / 2 / 3 and the diagnostics that go
+# with them. A subprocess test because the behaviour under test IS the exit
+# code of the application binary.
+if(TARGET score AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_script_exit_code
+    SOURCES ScriptExitCodeTest.cpp)
+  target_compile_definitions(test_integration_script_exit_code PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\"")
+  set_tests_properties(test_integration_script_exit_code PROPERTIES
+    TIMEOUT 900 RUN_SERIAL TRUE)
+endif()
+
+# Closing a MODIFIED document with applicationSettings.gui false must not
+# raise the save prompt: nothing can answer it and QMessageBox::exec() aborts.
+score_add_test(test_regression_headless_close_modified
+  SOURCES RegressionHeadlessCloseModifiedTest.cpp
+  APP)
+# Without the guard the modal is raised and blocks forever under the offscreen
+# QPA: the regression shows up as a hang, so it needs a deadline to be a
+# failure rather than a stuck job.
+set_tests_properties(test_regression_headless_close_modified PROPERTIES TIMEOUT 120)
+
 # A throwing dropCustom handler is contained by the
 # noexcept getCustomDrops API.
 score_add_test(test_regression_throwing_drop_handler
@@ -202,3 +224,16 @@ score_add_test(test_integration_process_fold_mode
   SOURCES ProcessFoldModeTest.cpp
   APP
   PLUGINS score_plugin_scenario score_lib_process score_plugin_fx)
+
+# Frame-step determinism across two processes: the same case rendered to the same
+# frame index in two separate applications must be byte-identical.
+# Skips (77) without the binary or the out-of-repo tests-scene corpus.
+add_test(NAME test_frame_determinism
+  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/golden-render/frame-determinism.sh"
+  WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+set_tests_properties(test_frame_determinism PROPERTIES
+  SKIP_RETURN_CODE 77
+  TIMEOUT 600
+  RUN_SERIAL TRUE
+  LABELS "gui"
+  ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")

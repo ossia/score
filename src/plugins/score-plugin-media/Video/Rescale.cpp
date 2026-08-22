@@ -63,7 +63,17 @@ void Rescale::rescale(FrameQueue& m_frames, AVFramePointer& frame, ReadFrame& re
   rgb->height = src.height;
   rgb->format = AV_PIX_FMT_RGBA;
   rgb->linesize[0] = 4 * src.width;
-  av_frame_get_buffer(rgb, 0);
+  if(av_frame_get_buffer(rgb, 0) < 0)
+  {
+    // Without a buffer rgb->data[0] is null and sws_scale would write through
+    // it. Leave read.frame as the caller's own frame, which is the same
+    // contract as a rescaler that could not be built.
+    SCORE_LIBAV_FRAME_DEALLOC_CHECK(rgb);
+    av_frame_free(&rgb);
+    if(read.frame == frame.get())
+      frame.release();
+    return;
+  }
 
   // 2. Convert
   sws_scale(

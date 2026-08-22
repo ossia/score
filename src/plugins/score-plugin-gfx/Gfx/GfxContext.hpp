@@ -79,6 +79,35 @@ public:
   void update_inputs();
   void updateGraph();
 
+  /**
+   * @brief Render exactly @p frames times, synchronously, and return.
+   *
+   * The normal path renders off wall-clock timers, so "how many frames have I
+   * drawn" depends on how long the caller happened to wait and how fast the
+   * machine is -- a harness that sleeps and then grabs gets a different frame
+   * on a Raspberry Pi than on a workstation, and an animated shader gives a
+   * different image every run.
+   *
+   * Stepping instead makes frame N mean the same thing everywhere, which is
+   * what lets a rendered frame be compared against a stored reference at all.
+   *
+   * Each step also hands every process node a synthetic token of
+   * `frame / stepRate()`, so TIME, TIMEDELTA, FRAMEINDEX and PROGRESS follow the
+   * counter rather than whatever the transport last delivered. Without it an
+   * animated shader keeps reading the execution clock and frame N is a
+   * different picture every run.
+   *
+   * Still on the execution clock: whatever a node takes from the transport
+   * itself rather than from its process UBO -- video decode position,
+   * automation -- so a graph built on those is only as reproducible as that
+   * clock is.
+   */
+  void renderFrames(int frames);
+
+  //! Step used by renderFrames(), in frames per second.
+  double stepRate() const noexcept { return m_stepRate; }
+  void setStepRate(double fps) noexcept { m_stepRate = fps; }
+
   void send_message(score::gfx::Message&& msg) noexcept
   {
     tick_messages.enqueue(std::move(msg));
@@ -101,6 +130,9 @@ private:
 
   score::gfx::Graph* m_graph{};
   QThread m_thread;
+
+  double m_stepRate{60.};
+  int64_t m_stepFrame{};
 
   struct NodeCommand
   {

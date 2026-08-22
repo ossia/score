@@ -283,8 +283,12 @@ struct gstreamer_pipeline
         named_elements.emplace_back(ename, elem);
     }
 
-    // Set back to NULL, ready for start()
-    gst.element_set_state(m_pipeline, GST_STATE_NULL);
+    // Left in PAUSED, ready for start(). A gst_parse_launch pipeline that
+    // contains a dynamic-pad element -- decodebin, uridecodebin, rtspsrc,
+    // tsdemux, qtdemux -- is held together by a delayed link that fires once,
+    // on the first pad-added, and then disconnects. Cycling down to NULL or
+    // READY destroys those pads: the next PLAYING creates new ones that nothing
+    // links, the state change stays ASYNC forever and the appsink never yields.
     return true;
   }
 
@@ -295,7 +299,21 @@ struct gstreamer_pipeline
       return;
     }
 
+    if(m_running)
+      return;
+
     auto& gst = libgstreamer::instance();
+
+    // Playing again after a stop: rewind, since stop() now rests at PAUSED
+    // instead of NULL. A live source refuses the seek and keeps streaming.
+    if(m_started_once && gst.element_seek_simple)
+    {
+      gst.element_seek_simple(
+          m_pipeline, GST_FORMAT_TIME,
+          GstSeekFlags(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT), 0);
+    }
+    m_started_once = true;
+
     gst.element_set_state(m_pipeline, GST_STATE_PLAYING);
 
     if(gst.element_get_state)
@@ -314,10 +332,12 @@ struct gstreamer_pipeline
     if(m_thread.joinable())
       m_thread.join();
 
+    // PAUSED rather than NULL, for the delayed-link reason in load(): a
+    // stopped device must be able to play again.
     if(m_pipeline)
     {
       auto& gst = libgstreamer::instance();
-      gst.element_set_state(m_pipeline, GST_STATE_NULL);
+      gst.element_set_state(m_pipeline, GST_STATE_PAUSED);
     }
 
     for(auto& q : video_queues)
@@ -331,6 +351,7 @@ struct gstreamer_pipeline
     if(m_pipeline)
     {
       auto& gst = libgstreamer::instance();
+      gst.element_set_state(m_pipeline, GST_STATE_NULL);
 
       for(auto* elem : m_appsink_elements)
         gst.object_unref(elem);
@@ -527,6 +548,7 @@ private:
   std::vector<GstElement*> m_appsink_elements;
   std::thread m_thread;
   std::atomic_bool m_running{};
+  bool m_started_once{};
 };
 
 class gstreamer_video_decoder : public ::Video::ExternalInput
@@ -1635,7 +1657,10 @@ ProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
         {"SMPTE 302M audio sender (MPEG-TS)",
          "GStreamer Out",
          "appsrc name=audio ! audioconvert ! "
-         "audio/x-raw,format=S24LE,rate=48000,channels=2 ! "
+         // avenc_s302m accepts S16LE or S32LE only -- 24-bit SMPTE 302M is
+         // carried in 32-bit containers -- and never S24LE, which made this
+         // preset refuse to link at all.
+         "audio/x-raw,format=S32LE,rate=48000,channels=2 ! "
          "avenc_s302m ! mpegtsmux ! "
          "udpsink host=239.0.0.1 port=5008 auto-multicast=true sync=false",
          1280, 720, 30, 2});

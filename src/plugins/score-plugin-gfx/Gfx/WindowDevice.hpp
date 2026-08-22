@@ -74,6 +74,28 @@ public:
   void disconnect() override;
   bool reconnect() override;
 
+  //! Write the current frame to @p path. On an offscreen device this reads the
+  //! render target back directly, which is what makes headless pixel testing
+  //! possible; on a real window it grabs the window.
+  void grabTo(const QString& path) const;
+  W_SLOT(grabTo)
+
+  //! Render exactly @p frames times and return. See GfxContext::renderFrames.
+  //! Call it repeatedly to step frame by frame: the clock keeps counting across
+  //! calls, so renderFrames(1) sixty times is the timeline renderFrames(60) is.
+  void renderFrames(int frames) const;
+  W_SLOT(renderFrames)
+
+  //! Frames per second the step clock advances by. 60 unless set.
+  void setStepRate(double fps) const;
+  W_SLOT(setStepRate)
+
+  //! Render @p frames times, then write that frame. The point of naming the
+  //! frame rather than sleeping is that frame N is the same picture on every
+  //! machine, which is what a stored reference can be compared against.
+  void grabFrame(int frames, const QString& path) const;
+  W_SLOT(grabFrame)
+
 private:
   gfx_protocol_base* m_protocol{};
   mutable std::unique_ptr<ossia::net::device_base> m_dev;

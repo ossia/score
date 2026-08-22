@@ -2,6 +2,7 @@
 
 #include <Gfx/Window/BackgroundDevice.hpp>
 #include <Gfx/Window/MultiWindowDevice.hpp>
+#include <Gfx/Window/OffscreenDevice.hpp>
 #include <Gfx/Window/WindowDevice.hpp>
 #include <Gfx/Window/WindowSettingsWidget.hpp>
 
@@ -11,6 +12,8 @@
 #include <ossia-qt/invoke.hpp>
 
 #include <QMenu>
+#include <QScreen>
+#include <QWindow>
 
 #include <wobjectimpl.h>
 
@@ -18,6 +21,24 @@ W_OBJECT_IMPL(Gfx::WindowDevice)
 
 namespace Gfx
 {
+
+// SCORE_FORCE_OFFSCREEN_WINDOW=Name1,Name2 forces any matching WindowDevice
+// (whatever its Single/Background/MultiWindow mode) into a headless offscreen
+// render path. Used by tests that need grabTo output but must not pop a
+// platform window.
+static bool shouldForceOffscreen(const QString& name)
+{
+  static const QByteArray env = qgetenv("SCORE_FORCE_OFFSCREEN_WINDOW");
+  if(env.isEmpty())
+    return false;
+  for(const auto& part : env.split(','))
+  {
+    const auto trimmed = QString::fromUtf8(part).trimmed();
+    if(!trimmed.isEmpty() && trimmed == name)
+      return true;
+  }
+  return false;
+}
 
 score::gfx::Window* WindowDevice::window() const noexcept
 {
@@ -75,6 +96,84 @@ void WindowDevice::disconnect()
   deviceChanged(prev.get(), nullptr);
 }
 
+void WindowDevice::grabTo(const QString& path) const
+{
+  if(auto dev = dynamic_cast<offscreen_device*>(m_dev.get()))
+  {
+    auto node = dev->node();
+    if(!node || !node->shared_readback)
+    {
+      qWarning() << "grabTo: offscreen device has not rendered yet";
+      return;
+    }
+
+    const auto& rb = *node->shared_readback;
+    const int w = rb.pixelSize.width();
+    const int h = rb.pixelSize.height();
+    const int expected = w * h * 4;
+
+    // BackgroundNode::render() clears the readback when its render list holds
+    // nothing but the output itself, which leaves the default-constructed
+    // QSize(-1, -1) here.
+    if(w <= 0 || h <= 0)
+    {
+      qWarning() << "grabTo: nothing rendered into" << m_settings.name
+                 << "- no process is connected to this device's input";
+      return;
+    }
+    if(rb.data.size() < expected)
+    {
+      qWarning() << "grabTo: readback is" << rb.data.size() << "bytes for" << w << "x"
+                 << h << "- expected" << expected;
+      return;
+    }
+
+    QImage img{
+        reinterpret_cast<const unsigned char*>(rb.data.constData()), w, h, w * 4,
+        QImage::Format_RGBA8888};
+    if(!img.save(path))
+      qWarning() << "grabTo: could not write" << path;
+  }
+  else if(auto win = this->window())
+  {
+    // QScreen::grabWindow reads the framebuffer at the window's geometry, not
+    // the window's own buffer: anything drawn on top lands in the file. Valid
+    // to eyeball an interactive session, never valid as a reference image.
+    qWarning() << "grabTo: capturing the SCREEN at" << m_settings.name
+               << "geometry, not the rendered frame. Set SCORE_FORCE_OFFSCREEN_WINDOW="
+               << m_settings.name << "for a real readback.";
+    auto grab = win->screen()->grabWindow(win->winId());
+    if(!grab.save(path))
+      qWarning() << "grabTo: could not write" << path;
+  }
+  else
+  {
+    qWarning() << "grabTo: device has no window and is not offscreen";
+  }
+}
+
+void WindowDevice::renderFrames(int frames) const
+{
+  if(auto plug = m_ctx.findPlugin<Gfx::DocumentPlugin>())
+    plug->context.renderFrames(frames);
+  else
+    qWarning() << "renderFrames: no gfx document plugin";
+}
+
+void WindowDevice::setStepRate(double fps) const
+{
+  if(auto plug = m_ctx.findPlugin<Gfx::DocumentPlugin>())
+    plug->context.setStepRate(fps);
+  else
+    qWarning() << "setStepRate: no gfx document plugin";
+}
+
+void WindowDevice::grabFrame(int frames, const QString& path) const
+{
+  renderFrames(frames);
+  grabTo(path);
+}
+
 bool WindowDevice::reconnect()
 {
   disconnect();
@@ -90,6 +189,18 @@ bool WindowDevice::reconnect()
       auto view = m_ctx.document.view();
       auto main_view = view ? qobject_cast<Scenario::ScenarioDocumentView*>(
           &view->viewDelegate()) : nullptr;
+
+      if(shouldForceOffscreen(m_settings.name))
+      {
+        m_dev = std::make_unique<offscreen_device>(
+            std::unique_ptr<gfx_protocol_base>(m_protocol),
+            m_settings.name.toStdString());
+
+        enableCallbacks();
+        deviceChanged(nullptr, m_dev.get());
+        return connected();
+      }
+
       switch(set.mode)
       {
         case WindowMode::Background: {

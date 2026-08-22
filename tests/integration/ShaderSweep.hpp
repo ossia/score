@@ -27,6 +27,7 @@
 
 #include <QDir>
 #include <QDirIterator>
+#include <QRegularExpression>
 #include <QFile>
 #include <QFileInfo>
 #include <QImage>
@@ -265,6 +266,45 @@ struct Sweeper
 };
 
 
+//! Writes the last frame a shader produced, so that "it rendered" can be
+//! checked against what the shader is supposed to draw rather than taken on
+//! faith. Off unless SCORE_SHADER_SWEEP_DUMP_DIR names a directory.
+void dumpFrame(
+    const QString& shader, const std::shared_ptr<QRhiReadbackResult>& rb_p)
+{
+  static const QString dir = qEnvironmentVariable("SCORE_SHADER_SWEEP_DUMP_DIR");
+  if(dir.isEmpty() || !rb_p)
+    return;
+
+  const auto& rb = *rb_p;
+  const auto px = rb.pixelSize.width() * rb.pixelSize.height();
+  if(px <= 0 || rb.data.size() != px * 4)
+    return;
+
+  QString name = shader;
+  name.replace('/', '_');
+
+  QDir{}.mkpath(dir);
+  const QImage img{
+      reinterpret_cast<const uchar*>(rb.data.constData()), rb.pixelSize.width(),
+      rb.pixelSize.height(), QImage::Format_RGBA8888};
+  img.copy().save(dir + '/' + name + ".png");
+}
+
+//! The MODE declared in a shader's JSON header, or an empty string when it has
+//! none (plain ISF). Which sweep owns a file is decided by this, not by its
+//! extension: RAW_RASTER_PIPELINE, COMPUTE_SHADER and VERTEX_SHADER_ART shaders
+//! are all written as .fs/.vs, and routing them into the ISF loader compiles
+//! them against the wrong prelude -- 41 of the testers failed that way, while
+//! the subsystem they were written for went entirely unexercised.
+inline QString shaderMode(const QByteArray& data)
+{
+  static const QRegularExpression re{
+      R"_("MODE"\s*:\s*"([A-Z_]+)")_"};
+  const auto m = re.match(QString::fromUtf8(data.left(8192)));
+  return m.hasMatch() ? m.captured(1) : QString{};
+}
+
 //! ProgramCache reports both ISF parsing and shader baking through one string.
 const char* programErrorKind(const QString& error)
 {
@@ -308,63 +348,12 @@ report(const QString& shader, const std::map<std::string, std::string>& kinds)
                       << QString::fromStdString(message);
 }
 
-//! Runs one shader kind over the library and diffs against its baseline.
-inline void sweepLibrary(
-    const score::GUIApplicationContext& ctx, const QStringList& patterns,
-    ProgramLoader load, const QString& baseline)
+//! The baseline records only the failure KINDS per file, so the test fails on
+//! *new* failures rather than on a known-bad corpus. Shared by every sweep.
+inline void diffAgainstBaseline(
+    const std::map<QString, std::map<std::string, std::string>>& failures,
+    const QString& baseline)
 {
-  const QString root = libraryRoot(ctx);
-  if(root.isEmpty() || !QFileInfo::exists(root))
-    SKIP("no shader library available (set SCORE_SHADER_LIBRARY_DIR)");
-
-  QStringList shaders;
-  QDirIterator it{
-      root, patterns, QDir::Files,
-      QDirIterator::Subdirectories | QDirIterator::FollowSymlinks};
-  while(it.hasNext())
-    shaders.push_back(it.next());
-  shaders.sort();
-
-  if(shaders.isEmpty())
-    SKIP("no shaders of this kind in the library");
-
-  g_previous = qInstallMessageHandler(capture);
-  Sweeper sweeper{ctx.settings<Gfx::Settings::Model>().graphicsApiEnum()};
-
-  std::map<QString, std::map<std::string, std::string>> failures;
-
-  for(const QString& path : shaders)
-  {
-    const QString rel = QDir{root}.relativeFilePath(path);
-    // Announce before rendering: on a backend that can hang or take the
-    // process down, the last line printed names the shader responsible.
-    qInfo().noquote() << "[sweep]" << rel;
-
-    QFile f{path};
-    if(!f.open(QIODevice::ReadOnly | QIODevice::Text))
-      continue;
-
-    QString error;
-    const auto program = load(path, f.readAll(), error);
-    if(!program)
-    {
-      failures[rel][programErrorKind(error)]
-          = error.isEmpty() ? "no program" : error.toStdString();
-      report(rel, failures[rel]);
-      continue;
-    }
-
-    if(auto res = sweeper.run(*program); !res.empty())
-    {
-      report(rel, res);
-      failures[rel] = std::move(res);
-    }
-  }
-
-  qInstallMessageHandler(g_previous);
-
-  INFO("swept " << shaders.size() << " shaders, " << failures.size() << " failing");
-
   QStringList current;
   for(const auto& [file, kinds] : failures)
     for(const auto& [kind, _] : kinds)
@@ -399,5 +388,99 @@ inline void sweepLibrary(
 
   INFO("new failures:\n" << regressions.join('\n').toStdString());
   CHECK(regressions.isEmpty());
+}
+
+//! Runs one shader kind over the library and diffs against its baseline.
+//! @p wantMode selects which files this sweep owns: an empty string means "no
+//! MODE header at all", i.e. plain ISF. Files declaring another mode are skipped,
+//! not failed.
+//! @p blankIsFailure says whether "every pixel identical" means anything for this
+//! kind of shader. It does for ISF, which draws a full-screen pass on its own. It
+//! does NOT for a raster pipeline: those draw geometry, and this harness wires no
+//! geometry producer, so they legitimately render nothing here. Counting that as a
+//! failure would measure the harness, not the shader — pixel validation for raster
+//! belongs to the JS-wiring harness, which assembles the whole scene chain.
+inline void sweepLibrary(
+    const score::GUIApplicationContext& ctx, const QStringList& patterns,
+    ProgramLoader load, const QString& baseline, const QString& wantMode = {},
+    bool blankIsFailure = true)
+{
+  const QString root = libraryRoot(ctx);
+  if(root.isEmpty() || !QFileInfo::exists(root))
+    SKIP("no shader library available (set SCORE_SHADER_LIBRARY_DIR)");
+
+  QStringList shaders;
+  QDirIterator it{
+      root, patterns, QDir::Files,
+      QDirIterator::Subdirectories | QDirIterator::FollowSymlinks};
+  while(it.hasNext())
+    shaders.push_back(it.next());
+  shaders.sort();
+
+  if(shaders.isEmpty())
+    SKIP("no shaders of this kind in the library");
+
+  // The backend comes from the gfx settings model, not from the environment:
+  // Gfx::Settings::Model reads QSG_RHI_BACKEND at construction and unsets it
+  // straight away, so by the time we get here the environment no longer says
+  // anything. score::gfx::BackgroundNode reads the same model in its
+  // constructor, so there is no rendering to be had without it either.
+  const auto* gfx_settings = ctx.findSettings<Gfx::Settings::Model>();
+  if(!gfx_settings)
+    FAIL(
+        "score_plugin_gfx registered no settings model: the gfx plug-in was not "
+        "loaded. Plug-ins are discovered in <cwd>/plugins -- run this from the "
+        "build root, as ctest does.");
+
+  g_previous = qInstallMessageHandler(capture);
+  Sweeper sweeper{gfx_settings->graphicsApiEnum()};
+
+  std::map<QString, std::map<std::string, std::string>> failures;
+
+  for(const QString& path : shaders)
+  {
+    const QString rel = QDir{root}.relativeFilePath(path);
+
+    QFile f{path};
+    if(!f.open(QIODevice::ReadOnly | QIODevice::Text))
+      continue;
+    const QByteArray data = f.readAll();
+
+    // Skip, do not fail, a shader another sweep owns. Compiling a
+    // RAW_RASTER_PIPELINE against the ISF prelude only ever produces
+    // "'position' : undeclared identifier", which says nothing about the shader.
+    if(shaderMode(data) != wantMode)
+      continue;
+
+    // Announce before rendering: on a backend that can hang or take the
+    // process down, the last line printed names the shader responsible.
+    qInfo().noquote() << "[sweep]" << rel;
+
+    QString error;
+    const auto program = load(path, data, error);
+    if(!program)
+    {
+      failures[rel][programErrorKind(error)]
+          = error.isEmpty() ? "no program" : error.toStdString();
+      report(rel, failures[rel]);
+      continue;
+    }
+
+    auto res = sweeper.run(*program);
+    if(!blankIsFailure)
+      res.erase("blank");
+    dumpFrame(rel, sweeper.output.shared_readback);
+    if(!res.empty())
+    {
+      report(rel, res);
+      failures[rel] = std::move(res);
+    }
+  }
+
+  qInstallMessageHandler(g_previous);
+
+  INFO("swept " << shaders.size() << " shaders, " << failures.size() << " failing");
+
+  diffAgainstBaseline(failures, baseline);
 }
 }

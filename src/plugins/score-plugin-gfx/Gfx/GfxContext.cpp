@@ -1,5 +1,6 @@
 #include <Gfx/GfxContext.hpp>
 #include <Gfx/Graph/Graph.hpp>
+#include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
 #include <Gfx/Settings/Model.hpp>
 
@@ -10,6 +11,8 @@
 #include <score/tools/Timers.hpp>
 
 #include <ossia/detail/flicks.hpp>
+
+#include <cmath>
 #include <ossia/detail/logger.hpp>
 #include <ossia/detail/thread.hpp>
 
@@ -490,6 +493,47 @@ void GfxContext::on_watchdog_timer(score::HighResolutionTimer* self)
 {
   if(m_manualTimers.empty() && !m_no_vsync_timer)
     updateGraph();
+}
+
+void GfxContext::renderFrames(int frames)
+{
+  if(frames <= 0 || !m_graph)
+    return;
+
+  const bool step = m_stepRate > 0.;
+  const int64_t frame_flicks
+      = step ? int64_t(std::llround(ossia::flicks_per_second<double> / m_stepRate)) : 0;
+  // Held for the whole call so PROGRESS sweeps 0..1 across it rather than
+  // restarting on every frame.
+  const ossia::time_value span{frame_flicks * (m_stepFrame + frames)};
+
+  for(int i = 0; i < frames; i++)
+  {
+    // Same order as the timer-driven path: parameters first, then draw, so a
+    // value written by the script is visible in the frame that follows it.
+    updateGraph();
+
+    // After updateGraph, which would otherwise overwrite the UBO with the date
+    // the transport last sent.
+    if(step)
+    {
+      const score::gfx::Timings tk{
+          .date = ossia::time_value{frame_flicks * m_stepFrame},
+          .parent_duration = span};
+      for(auto& [id, node] : nodes)
+      {
+        if(auto proc = dynamic_cast<score::gfx::ProcessNode*>(node.get()))
+          proc->process(tk);
+      }
+      m_stepFrame++;
+    }
+
+    for(auto output : m_graph->outputs())
+    {
+      if(output && output->canRender())
+        output->render();
+    }
+  }
 }
 
 void GfxContext::on_manual_timer(score::HighResolutionTimer* self)

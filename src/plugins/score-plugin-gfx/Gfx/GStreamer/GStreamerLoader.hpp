@@ -58,6 +58,22 @@ typedef enum
 
 typedef enum
 {
+  GST_FORMAT_UNDEFINED = 0,
+  GST_FORMAT_DEFAULT = 1,
+  GST_FORMAT_BYTES = 2,
+  GST_FORMAT_TIME = 3,
+} GstFormat;
+
+typedef enum
+{
+  GST_SEEK_FLAG_NONE = 0,
+  GST_SEEK_FLAG_FLUSH = (1 << 0),
+  GST_SEEK_FLAG_ACCURATE = (1 << 1),
+  GST_SEEK_FLAG_KEY_UNIT = (1 << 2),
+} GstSeekFlags;
+
+typedef enum
+{
   GST_FLOW_OK = 0,
   GST_FLOW_EOS = -3,
   GST_FLOW_ERROR = -5,
@@ -158,6 +174,9 @@ GstStateChangeReturn gst_element_get_state(
     GstElement* element, GstState* state, GstState* pending,
     GstClockTime timeout);
 GstBus* gst_element_get_bus(GstElement* element);
+gboolean gst_element_seek_simple(
+    GstElement* element, GstFormat format, GstSeekFlags seek_flags,
+    int64_t seek_pos);
 GstElement* gst_bin_get_by_name(GstElement* bin, const char* name);
 GstPad* gst_element_get_static_pad(GstElement* element, const char* name);
 char* gst_element_get_name(GstElement* element);
@@ -260,6 +279,7 @@ struct libgstreamer
   decltype(&::gst_element_set_state) element_set_state{};
   decltype(&::gst_element_get_state) element_get_state{};
   decltype(&::gst_element_get_bus) element_get_bus{};
+  decltype(&::gst_element_seek_simple) element_seek_simple{};
   decltype(&::gst_bin_get_by_name) bin_get_by_name{};
   decltype(&::gst_element_get_static_pad) element_get_static_pad{};
   decltype(&::gst_element_get_name) element_get_name{};
@@ -419,6 +439,7 @@ private:
     GST_LOAD(m_core, element_set_state);
     GST_LOAD(m_core, element_get_state);
     GST_LOAD(m_core, element_get_bus);
+    GST_LOAD(m_core, element_seek_simple);
     GST_LOAD(m_core, bin_get_by_name);
     GST_LOAD(m_core, element_get_static_pad);
     GST_LOAD(m_core, element_get_name);

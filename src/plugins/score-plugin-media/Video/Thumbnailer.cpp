@@ -247,10 +247,14 @@ QImage VideoThumbnailer::process(int64_t flicks)
       return {};
   }
 
-  // 2. Resize
-  QImage img{QSize(m_rgb->linesize[0] / 3, smallHeight), QImage::Format_RGB888};
+  // 2. Resize.
+  // The sws context scales to smallWidth x smallHeight; sizing the image from
+  // m_rgb's 32-byte-aligned stride instead left the columns past smallWidth
+  // uninitialised and threw the aspect ratio away with them.
+  QImage img{QSize(smallWidth, smallHeight), QImage::Format_RGB888};
   uint8_t* data[1] = {(uint8_t*)img.bits()};
-  sws_scale(m_rescale, res->data, res->linesize, 0, this->height, data, m_rgb->linesize);
+  int strides[1] = {int(img.bytesPerLine())};
+  sws_scale(m_rescale, res->data, res->linesize, 0, this->height, data, strides);
 
   return img;
 }

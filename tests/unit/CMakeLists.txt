@@ -10,6 +10,12 @@ score_add_test(test_unit_address
 score_add_test(test_unit_project_files
   SOURCES ProjectFilesTest.cpp)
 
+# The document-free score::locateFilePath(QString) overload: <LIBRARY>: out of
+# QSettings, with no roots. A different function from the ProjectFiles.hpp one
+# above despite the shared name.
+score_add_test(test_unit_locate_file_path
+  SOURCES LocateFilePathTest.cpp)
+
 # Zip writing (miniz, vendored in 3rdparty/zipdownloader) behind score's API.
 score_add_test(test_unit_zip
   SOURCES ZipTest.cpp)
@@ -108,12 +114,14 @@ score_add_test(test_unit_spline_values
 # --- P3R2: score-plugin-midi + score-plugin-dataflow value tests -----------
 if(TARGET score_plugin_midi)
   set(_midi_src "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-midi")
-  score_add_test(test_unit_midi_message
-    SOURCES
-      MidiMessageTest.cpp
+  score_plugin_hidden_sources(_midi_hidden
       "${_midi_src}/Midi/MidiNote.cpp"
       "${_midi_src}/Midi/MidiProcess.cpp"
-      "${_midi_src}/Patternist/PatternParsing.cpp"
+      "${_midi_src}/Patternist/PatternParsing.cpp")
+score_add_test(test_unit_midi_message
+    SOURCES
+      MidiMessageTest.cpp
+      ${_midi_hidden}
     PLUGINS score_plugin_midi score_lib_process
     LIBS ${QT_PREFIX}::Gui)
 
@@ -134,16 +142,18 @@ endif()
 # --- analysis DSP ------------------------------------------------------------
 if(TARGET score_plugin_analysis)
   set(_gist_dir "${3RDPARTY_FOLDER}/Gist/src")
-  score_add_test(test_unit_analysis_gist
-    SOURCES
-      AnalysisGistTest.cpp
+  score_plugin_hidden_sources(_gist_hidden
       "${_gist_dir}/CoreFrequencyDomainFeatures.cpp"
       "${_gist_dir}/CoreTimeDomainFeatures.cpp"
       "${_gist_dir}/Gist.cpp"
       "${_gist_dir}/MFCC.cpp"
       "${_gist_dir}/OnsetDetectionFunction.cpp"
       "${_gist_dir}/WindowFunctions.cpp"
-      "${_gist_dir}/Yin.cpp"
+      "${_gist_dir}/Yin.cpp")
+score_add_test(test_unit_analysis_gist
+    SOURCES
+      AnalysisGistTest.cpp
+      ${_gist_hidden}
     PLUGINS score_plugin_analysis score_plugin_avnd)
   target_compile_definitions(test_unit_analysis_gist PRIVATE USE_OSSIA_FFT=1)
   target_include_directories(test_unit_analysis_gist SYSTEM PRIVATE "${_gist_dir}")
@@ -158,6 +168,12 @@ if(TARGET score_plugin_faust)
     PLUGINS score_plugin_faust)
   target_include_directories(test_unit_faust_dsp PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-faust")
+  # score_plugin_faust keeps FAUST_INCLUDE_DIR PRIVATE, so linking it does not
+  # bring the faust headers along; FaustDspTest.cpp reaches libossia headers
+  # that include <faust/gui/UI.h> directly. The find_package branch below
+  # already does this.
+  target_include_directories(test_unit_faust_dsp SYSTEM PRIVATE
+    ${FAUST_INCLUDE_DIR})
 else()
   find_package(Faust QUIET)
   if(FAUST_FOUND AND TARGET score_lib_process)
@@ -327,12 +343,14 @@ endif()
 # The shared scan state machine, end-to-end against a scriptable fake puppet:
 # session-token isolation, crash/timeout single-failure, reply-vs-exit races,
 # clean cancellation of a scan in progress.
-score_add_test(test_unit_plugin_scanner
-  SOURCES PluginScannerTest.cpp
-  PLUGINS score_plugin_media)
-add_dependencies(test_unit_plugin_scanner score_test_fake_puppet)
-target_compile_definitions(test_unit_plugin_scanner PRIVATE
-  SCORE_FAKE_PUPPET="$<TARGET_FILE:score_test_fake_puppet>")
+if(SCORE_HAS_FAKE_PUPPET)
+  score_add_test(test_unit_plugin_scanner
+    SOURCES PluginScannerTest.cpp
+    PLUGINS score_plugin_media)
+  add_dependencies(test_unit_plugin_scanner score_test_fake_puppet)
+  target_compile_definitions(test_unit_plugin_scanner PRIVATE
+    SCORE_FAKE_PUPPET="$<TARGET_FILE:score_test_fake_puppet>")
+endif()
 
 # Per-backend scan-reply parsing + cache healing.
 if(TARGET score_plugin_vst)

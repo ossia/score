@@ -49,6 +49,17 @@ function(score_setup_catch2)
   set(BUILD_SHARED_LIBS "${_old_shared}")
 endfunction()
 
+# Sources a test compiles directly because the shared plugin hides them
+# (visibility). A static plugin archive already provides them; compiling them
+# again duplicates every symbol at link time.
+function(score_plugin_hidden_sources OUT)
+  if(SCORE_STATIC_PLUGINS OR NOT BUILD_SHARED_LIBS)
+    set(${OUT} "" PARENT_SCOPE)
+  else()
+    set(${OUT} ${ARGN} PARENT_SCOPE)
+  endif()
+endfunction()
+
 function(score_add_test NAME)
   cmake_parse_arguments(ARG "GUI;APP;STANDALONE;SANDBOXED" "" "SOURCES;PLUGINS;LIBS" ${ARGN})
 
@@ -121,11 +132,23 @@ function(score_add_test NAME)
     add_test(NAME ${NAME} COMMAND ${NAME})
   endif()
 
+  # Catch2 exits with 4 when every test case in the binary was skipped
+  # (AllTestsSkippedExitCode, catch_session.cpp). A test that skips because its
+  # precondition is absent -- no display, no shader library, no capture device --
+  # is not a defect, and counting it as one silently inflates the failure count.
+  set_tests_properties(${NAME} PROPERTIES SKIP_RETURN_CODE 4)
+
   # App/integration tests rely on runtime dynamic-plugin discovery from
   # "<cwd>/plugins": run them from the build root where <build>/plugins lives.
   if(ARG_APP OR ARG_GUI)
     set_tests_properties(${NAME} PROPERTIES
       WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+
+    # ...and tell the fixture where that is, so running the executable by hand
+    # from some other directory boots the same application instead of one with
+    # no plug-ins at all. See prepare_test_environment().
+    target_compile_definitions(${NAME} PRIVATE
+      "SCORE_TEST_BINARY_DIR=\"${SCORE_ROOT_BINARY_DIR}\"")
   endif()
 
   if(ARG_APP)
