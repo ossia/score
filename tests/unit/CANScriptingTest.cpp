@@ -1,42 +1,15 @@
-/**
- * End-to-end test of the CAN device, driven entirely through score's JavaScript
- * scripting API.
- *
- * The existing CAN tests are unit-level: the DBC parser on one side, raw
- * SocketCAN frames through ossia::net::can_socket on the other. Neither ever
- * instantiates the score device, so nothing covered the part the user actually
- * gets: a device created from settings, a DBC turned into an ossia node tree, a
- * frame on the wire turned into a value at an address.
- *
- * Everything here goes through the object score's console panel binds to the
- * global name `Score` -- JS::EditJsContext -- exactly as it is installed in
- * JS::ApplicationPlugin:
- *
- *   Score.createDevice(name, uuid, settings)   creates and connects the device
- *   Score.deviceToOSCQuery(name)               the namespace it produced
- *   Score.iterateDevice(name, fn)              every (address, value) pair
- *   Score.removeDevice(name)
- *
- * The test only ever writes frames on the bus and reads the tree back through
- * those calls: no protocol internals, no direct parameter access. That is the
- * point -- the layer under test is everything between a CAN frame and what a
- * script sees, which is where the device's own bugs would live.
- *
- * The libossia QML layer was the other candidate, and is the wrong one here:
- * Protocols.can() hands a script a raw socket and builds no tree at all
- * (libossia's own tests/Qt/QmlCanTest.cpp already covers it), while
- * ossia::qt::qml_device owns the generic_device it creates and has no way to
- * adopt an existing one -- neither goes anywhere near CANDevice or the DBC, so
- * a test written against them would exercise ossia, not this protocol.
- *
- * The `Device` global of the console (ossia's qml_engine_functions, i.e.
- * Device.read/Device.write) would have given plain numbers instead of the typed
- * objects iterateDevice returns, but JS::DeviceContext carries no export macro
- * and is not linkable from here. Not worth changing the plugin's ABI for a
- * nicer-looking test.
- *
- * Skipped, not failed, when vcan0 is absent.
- */
+// End-to-end test of the CAN device, through score's `Score` scripting object
+// (JS::EditJsContext, what the console panel binds).
+//
+// The other CAN tests are unit-level - the DBC parser on one side, raw frames
+// through ossia::net::can_socket on the other - and never instantiate the score
+// device. Here everything goes through createDevice / iterateDevice /
+// deviceToOSCQuery: a frame on the wire becomes a value at an address.
+//
+// libossia's QML layer was the other candidate and is the wrong one:
+// Protocols.can() builds no tree, and qml_device cannot adopt an existing one.
+//
+// Skipped, not failed, when vcan0 is absent.
 
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 

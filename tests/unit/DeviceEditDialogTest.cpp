@@ -1,20 +1,14 @@
 // Regression test for the use-after-free that crashed the "Add device" dialog
-// when the selected protocol changed while an enumerator still had a
-// deviceAdded()/deviceRemoved()/sort() in flight.
+// when the protocol changed with an enumerator signal still in flight.
 //
-// The dialog's addItem/rmItem/sort lambdas capture `cat`, a raw
-// QTreeWidgetItem* owned by the devices tree. Switching protocol calls
-// m_devices->clear(), which deletes every one of those items. An enumerator
-// that emits from a worker thread turns the connection into a queued one, and
-// Qt only drops posted metacalls when their *receiver* dies -- not when the
-// sender does. With `this` (the dialog) as the receiver the call was still
-// delivered after the switch and dereferenced a freed item, which is the
-// SIGSEGV inside QTreeWidgetItem::setExpanded seen in the field.
+// The dialog's addItem/rmItem/sort lambdas capture a QTreeWidgetItem* owned by
+// the tree, and switching protocol deletes it. An enumerator emitting from a
+// worker thread makes the connection queued, and Qt drops posted metacalls only
+// when their *receiver* dies - not when the sender does - so with the dialog as
+// receiver the call still arrived, on a freed item.
 //
-// The three tests below post a deviceAdded / deviceRemoved / sort from a
-// non-GUI thread, switch protocol without pumping the event loop in between,
-// and then pump it. Before the fix each of them is a heap-use-after-free under
-// ASan (and a plain crash in a release build); after it, nothing is delivered.
+// Only the deviceRemoved case reports cleanly under ASan: the other two
+// dereference the item inside uninstrumented Qt.
 
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <Device/Protocol/ProtocolList.hpp>

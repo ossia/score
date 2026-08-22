@@ -1,17 +1,13 @@
 // The CAN protocol's device browser entry and its default interface.
 //
-// The browser lists the .dbc databases found in the user library, the way the
-// OSC / Serial / WS protocols list their own file types. It used to list the
-// machine's CAN interfaces instead, which told the user nothing the settings
-// widget's combo box did not already show; a database, on the other hand,
-// arrives with a whole node tree attached and there can be any number of them.
+// The browser lists the .dbc databases of the user library, as the OSC / Serial
+// / WS protocols list their own file types. It used to list the machine's CAN
+// interfaces, which the settings widget's combo already shows.
 //
-// defaultSettings() also used to hardcode "can0" -- an interface that does not
-// exist on any machine without a physical CAN port, which turned every fresh
-// CAN device into "no such CAN interface: can0: No such device" at connection
-// time. That is asserted here against an independent walk of /sys/class/net
-// done in the test itself, so a bug in the implementation's own helper cannot
-// make the test agree with it.
+// defaultSettings() used to hardcode "can0", so a fresh device on a machine
+// without a physical CAN port failed with "no such CAN interface". Both are
+// checked against an independent walk of /sys/class/net done here, so a bug in
+// the implementation's own helper cannot make the test agree with it.
 
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>

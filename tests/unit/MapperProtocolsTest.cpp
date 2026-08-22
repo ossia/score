@@ -1,15 +1,11 @@
-/**
- * The Mapper device driving Protocols.can() and Protocols.serial().
- *
- * libossia's own QML tests install `Protocols` on a bare QJSEngine. That covers
- * the bindings but not the way they are actually reached: in score, `Protocols`
- * is a context property of the Mapper device's engine, which runs on a thread of
- * its own, and the values a script produces have to come back out through the
- * mapper's node tree.
- *
- * Each test here creates a real Mapper device from a script, moves bytes on a
- * real transport, and reads the result back through Score.iterateDevice().
- */
+// The Mapper device driving Protocols.can() and Protocols.serial().
+//
+// libossia's QML tests install `Protocols` on a bare QJSEngine. In score it is a
+// context property of the Mapper's engine, that engine runs on its own thread,
+// and what a script produces has to come back out through the mapper's tree.
+//
+// Each test creates a real Mapper from a script, moves bytes on a real
+// transport, and reads the result back through Score.iterateDevice().
 
 #include <JS/Qml/EditContext.hpp>
 

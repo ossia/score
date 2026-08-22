@@ -12,12 +12,8 @@ namespace Protocols
 
 struct CANSpecificSettings
 {
-  //! The netdev name of the CAN interface: "can0", "vcan0", "slcan0"...
-  //!
-  //! Deliberately not spelled `interface`: that is a macro on Windows, pulled
-  //! in by <objbase.h> through most of the Win32 headers. The field is
-  //! unreachable there anyway, but the name would still break the build of any
-  //! translation unit that happens to include both.
+  //! The netdev name: "can0", "vcan0", "slcan0"...
+  //! Not spelled `interface`: that is a macro on Windows, via <objbase.h>.
   QString interfaceName;
 
   //! Absolute path to the .dbc database describing the frames on the bus.
@@ -26,18 +22,13 @@ struct CANSpecificSettings
   /**
    * Added to every message identifier read from the database.
    *
-   * A DBC usually hardcodes the identifiers of one physical device. The LPMS
-   * files, for instance, are written for CANopen node 1: their frames are
-   * 0x181/0x281/0x381/0x481 (the CANopen "start id + node id" convention) plus
-   * the 0x701 heartbeat. The very same sensor configured as node 2 puts the
-   * same signals on 0x182/0x282/... -- the layout is identical, only the base
-   * changes.
+   * A DBC hardcodes the identifiers of one device: the LPMS files are written
+   * for CANopen node 1 (0x181/0x281/0x381/0x481, plus the 0x701 heartbeat), and
+   * the same sensor as node 2 puts the same signals one higher. The offset
+   * shifts the whole database at load time, so a chain of N sensors is one file
+   * opened N times rather than N edited copies.
    *
-   * Rather than requiring one edited copy of the vendor file per sensor, the
-   * offset shifts the whole database at load time, so a chain of N devices on
-   * one bus is N score devices pointing at one file with offsets 0, 1, 2...
-   *
-   * Signed: a database written for node 3 can be pulled back to node 1 with -2.
+   * Signed, so a database written for node 3 can be pulled back with -2.
    */
   int nodeIdOffset{0};
 

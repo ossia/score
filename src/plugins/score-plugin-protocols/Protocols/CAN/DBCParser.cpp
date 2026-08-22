@@ -9,35 +9,17 @@
 #include <unordered_set>
 
 /**
- * Why this is a hand-written recursive-descent parser and not a Spirit X3
- * grammar, given that X3 is available and used elsewhere in the tree
- * (ossia/protocols/coap/link_format_parser.cpp, ValueParser.hpp...):
+ * Hand-written rather than a Spirit X3 grammar, though X3 is used elsewhere in
+ * the tree:
  *
- *  - The NS_ block makes the file non-dispatchable by leading keyword. It is a
- *    bare list of the *same* tokens as the top-level constructs -- a real file
- *    opens with `NS_ :` and then lines reading `CM_`, `BA_DEF_`, `VAL_`,
- *    `SIG_VALTYPE_`, `SG_MUL_VAL_`... An alternation over the constructs would
- *    start parsing the NS_ entries as records and fail. Handling it needs a
- *    stateful "am I inside NS_" switch in the top-level loop, which is exactly
- *    the thing a declarative grammar is supposed to remove.
- *
- *  - Per-record error recovery is a requirement here, not a nicety: vendor
- *    files carry typos and dialect variants, and the contract for this parser
- *    is to keep going and *name* what it could not read (Database::warnings).
- *    X3 reports failure as one boolean plus an iterator; getting a diagnostic
- *    per record means either an on_error handler on every rule or invoking the
- *    parser once per record from a hand-written loop.
- *
- *  - DBC is line-sensitive in two places (the NS_ block ends at a blank line,
- *    a BU_ node list and a SG_ receiver list end at the newline) and free-form
- *    everywhere else, so no single X3 skipper fits.
- *
- *  - There is no recursion in the grammar. Message/signal nesting is one level
- *    deep, everything else is flat, so a parser generator has no structure to
- *    exploit -- and X3's compile-time cost is real.
- *
- * The lexical layer below is the only genuinely fiddly part, and it is ~120
- * lines.
+ *  - The NS_ block is a bare list of the same tokens as the top-level
+ *    constructs, so the file is not dispatchable by leading keyword without a
+ *    stateful "inside NS_" switch.
+ *  - Vendor files carry typos, and the contract is to keep going and name what
+ *    could not be read (Database::warnings). X3 reports failure as a bool.
+ *  - DBC is line-sensitive in two places and free-form elsewhere, so no single
+ *    skipper fits.
+ *  - The grammar has no recursion to exploit.
  */
 
 namespace Protocols::CAN

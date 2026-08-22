@@ -39,16 +39,10 @@ Device::DeviceInterface* CANProtocolFactory::makeDevice(
 Device::DeviceEnumerators
 CANProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
-  // Not the interfaces: a machine has one or two of them, they are already in
-  // the settings widget's combo box, and an entry per interface tells the user
-  // nothing they did not know. What is worth browsing is the databases. A .dbc
-  // describes one device on the bus, a library holds many of them, and picking
-  // one is what actually gives a CAN device its node tree - so an entry per
-  // file lands in the dialog with the path filled in and the messages and
-  // signals it declares already listed underneath.
-  //
-  // "BO_" is the message keyword: it appears in every database that declares a
-  // frame, and a .dbc without one has nothing to offer a device.
+  // The databases, not the interfaces: the settings widget's combo already
+  // lists those, while a .dbc describes one device on the bus and is what gives
+  // the device its tree. "BO_" is the message keyword - a database without one
+  // has nothing to offer.
   auto library_enumerator = new LibraryDeviceEnumerator{
       "BO_",
       {"dbc"},
@@ -73,10 +67,8 @@ const Device::DeviceSettings& CANProtocolFactory::defaultSettings() const noexce
   s.name = "CAN";
 
   CANSpecificSettings specif;
-  // The first interface actually present, and nothing at all when there is
-  // none. Hardcoding "can0" made every fresh CAN device on a machine without a
-  // physical CAN port fail at connection time with "no such CAN interface:
-  // can0" -- a setting the user never chose and had no reason to suspect.
+  // The first interface present, or nothing: hardcoding "can0" made every
+  // fresh device fail with "no such CAN interface" on a machine without one.
   specif.interfaceName = CAN::defaultInterface();
   s.deviceSpecificSettings = QVariant::fromValue(specif);
 

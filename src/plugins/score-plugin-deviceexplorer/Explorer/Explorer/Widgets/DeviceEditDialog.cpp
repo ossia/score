@@ -250,23 +250,12 @@ DeviceEditDialog::~DeviceEditDialog()
 
 void DeviceEditDialog::clearEnumerators()
 {
-  // The order here is load-bearing.
-  //
-  // The deviceAdded / deviceRemoved / sort lambdas installed by
-  // selectedProtocolChanged capture `cat`, a raw QTreeWidgetItem* owned by
-  // m_devices. Every one of those items dies in the m_devices->clear() that
-  // follows this call. An enumerator that emits deviceAdded from a worker
-  // thread (SimpleBLE's scan callback, for one) has its Qt::AutoConnection
-  // resolved to a queued one, which posts a QMetaCallEvent to the *context*
-  // object of the connection. Destroying the enumerator does not retract that
-  // event -- Qt only drops posted events when their **receiver** is destroyed
-  // (QObject::~QObject -> QCoreApplication::removePostedEvents(this)). So with
-  // `this` as the context the call was still delivered after the switch, and
-  // ran addItem() on a freed QTreeWidgetItem: the SIGSEGV in
-  // QTreeWidgetItem::setExpanded reported from the release build.
-  //
-  // Giving each selection its own context object and destroying it *before*
-  // the items it captured makes Qt discard whatever is still in flight.
+  // Order is load-bearing. The enumerator callbacks capture QTreeWidgetItem*s
+  // that the following m_devices->clear() deletes. An enumerator emitting from
+  // a worker thread makes the connection queued, and Qt retracts posted events
+  // only when their *receiver* dies - not the sender - so with `this` as the
+  // context they still ran, on freed items. Each selection therefore gets its
+  // own context object, destroyed here, before those items.
   delete m_enumeratorContext;
   m_enumeratorContext = nullptr;
 

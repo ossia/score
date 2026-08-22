@@ -47,15 +47,11 @@ constexpr uint64_t frameKey(uint32_t id, bool extended) noexcept
 /**
  * Map a DBC unit string onto an ossia unit.
  *
- * Deliberately tiny. DBC unit strings are free text with no vocabulary, and
- * the vendor files in hand use "d" for degrees, plus "g", "d/s", "uT" and
- * "kPa" -- none of which exist as ossia dataspaces. Inventing a mapping for
- * those would attach a wrong unit (and therefore a wrong automatic conversion)
- * to the parameter, which is worse than having none: a parameter with no unit
- * is simply a number, which is exactly what those signals are.
- *
- * So: only units that are unambiguous *and* exist in ossia are mapped, and
- * everything else stays a plain float.
+ * Tiny on purpose: DBC units are free text with no vocabulary, and most of what
+ * vendor files use ("g", "d/s", "uT", "kPa") has no ossia dataspace. A wrong
+ * unit brings a wrong automatic conversion with it, which is worse than none -
+ * an unmapped signal is just a number, which is what it is. Only unambiguous
+ * units that exist in ossia are mapped.
  */
 ossia::unit_t unitFromDBC(std::string_view u)
 {
@@ -65,9 +61,8 @@ ossia::unit_t unitFromDBC(std::string_view u)
   if(u == "rad" || u == "radian" || u == "radians")
     return ossia::radian_u{};
 
-  // Distances: unambiguous symbols only. Note that "m" is left out on purpose
-  // in favour of nothing -- it is just as often "minutes" or a scale prefix in
-  // an automotive database.
+  // Unambiguous symbols only: "m" is left out, being as often "minutes" or a
+  // scale prefix in an automotive database.
   if(u == "km")
     return ossia::kilometer_u{};
   if(u == "cm")
