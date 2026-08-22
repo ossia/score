@@ -89,17 +89,23 @@ public:
     const auto fact = process_factories.get(process.concreteKey());
 
     const auto proc_name = process.prettyName();
-    const auto type_name = fact->prettyName();
-    const auto label_text
-        = proc_name.contains(type_name)
-              ? QStringLiteral("Process (%1)").arg(proc_name)
-              : QStringLiteral("Process (%1: %2)").arg(type_name, proc_name);
-    auto label = new TextLabel{label_text, this};
-    auto f = label->font();
-    f.setBold(true);
-    f.setPixelSize(12); // See InspectorWidgetBase
-    label->setFont(f);
-    lay->addWidget(label);
+    auto typeLabel = new TextLabel{QStringLiteral("Process"), this};
+    auto typeFont = typeLabel->font();
+    typeFont.setBold(true);
+    typeFont.setPixelSize(14);
+    typeLabel->setFont(typeFont);
+    lay->addWidget(typeLabel);
+
+    auto nameLabel = new TextLabel{proc_name, this};
+    auto nameFont = nameLabel->font();
+    nameFont.setBold(true);
+    nameFont.setPixelSize(16);
+    nameLabel->setFont(nameFont);
+    auto namePal = nameLabel->palette();
+    namePal.setColor(QPalette::WindowText, Qt::white);
+    nameLabel->setPalette(namePal);
+    lay->addWidget(nameLabel);
+    lay->addSpacing(8);
 
     QWidget* loop_w{};
     QFormLayout* loop_lay{};
