@@ -66,24 +66,11 @@ const char* const kFormats[] = {
     "Y444_10LE", "P010_10LE", "Y210",  "GBR",   "GBRA",       "A420",
     "RGBA64_LE"};
 
-// The formats whose picture is wrong TODAY, per geometry. A format leaving a
-// set makes the matching [!shouldfail] case flip; a format entering one fails
-// the one-sided guard, which is what keeps a new defect from hiding behind an
-// old one.
-// Wrong at EVERY geometry: the layout the device publishes for these three is
-// mis-described outright (VideoFrameLayoutTest findings 1-3).
-const std::set<std::string> kKnownBrokenAny{"NV16", "P010_10LE", "Y210"};
-
-// Wrong only at an odd geometry, for two reasons: a stride or plane offset that
-// rounds down (I420, NV12, NV21, YUY2, UYVY, Y42B), where the layout does not
-// fit the buffer; or a layout that fits but reads the buffer as tightly packed
-// when GStreamer padded the rows (NV24, Y444, RGB, I420_10LE, I422_10LE,
-// Y444_10LE, GBR, GBRA, A420). Every format that survives 65x39 is one whose
-// tightly packed row is already 4-byte aligned.
-const std::set<std::string> kKnownBrokenOddOnly{
-    "I420",      "NV12",  "NV21",      "Y42B",      "YUY2", "UYVY",
-    "I420_10LE", "NV24",  "Y444",      "RGB",       "GBR",  "GBRA",
-    "A420",      "I422_10LE", "Y444_10LE"};
+// No format loses the picture at either geometry. These stay as empty exception
+// lists so that a format which starts failing is named by the one-sided guard
+// rather than only counted, and so that re-admitting one is a visible edit.
+const std::set<std::string> kKnownBrokenAny{};
+const std::set<std::string> kKnownBrokenOddOnly{};
 
 Device::DeviceSettings gstSettings(const QString& pipeline, const QString& name)
 {
@@ -438,7 +425,9 @@ TEST_CASE("no GStreamer format outside the known-broken set loses the picture",
           "[gfx][gstreamer][matrix][media]")
 {
   // One-sided guard. A format that starts failing without being on a list is a
-  // NEW defect and turns this red; a fix only affects the [!shouldfail] cases.
+  // NEW defect and names itself here. The lists are empty, so this is the whole
+  // sweep -- it stays as an exception mechanism for the day one has to be
+  // re-admitted.
   {
     const auto& sweep = evenSweep();
     if(!sweep.ran)
@@ -470,12 +459,12 @@ TEST_CASE("no GStreamer format outside the known-broken set loses the picture",
 }
 
 TEST_CASE("every mapped GStreamer format carries the picture at an even size",
-          "[gfx][gstreamer][matrix][media][!shouldfail]")
+          "[gfx][gstreamer][matrix][media]")
 {
-  // FINDINGS 1-3 of VideoFrameLayoutTest, end to end: NV16 and P010 reach the
-  // renderer with a chroma plane that was never pointed anywhere, and Y210's
-  // stride is 160 bytes for a 256-byte row. Nothing about the geometry is odd
-  // here -- these three are mis-described outright.
+  // FINDINGS 1-3 of VideoFrameLayoutTest, end to end: NV16 and P010 used to
+  // reach the renderer with a chroma plane that was never pointed anywhere, and
+  // Y210 with a stride of 160 bytes for a 256-byte row. Nothing about the
+  // geometry is odd here -- those three were mis-described outright.
   const auto& sweep = evenSweep();
   if(!sweep.ran)
     SKIP(sweep.skipReason);
@@ -485,10 +474,10 @@ TEST_CASE("every mapped GStreamer format carries the picture at an even size",
 }
 
 TEST_CASE("every mapped GStreamer format carries the picture at an odd size",
-          "[gfx][gstreamer][matrix][media][!shouldfail]")
+          "[gfx][gstreamer][matrix][media]")
 {
   // FINDINGS 4-6, end to end. A 65x39 4:2:0 frame has 33x20 chroma planes;
-  // Video::initFrameFromRawData() gives them 32 and starts plane 2 at
+  // Video::initFrameFromRawData() used to give them 32 and start plane 2 at
   // height/2 = 19 rows in, inside plane 1.
   const auto& sweep = oddSweep();
   if(!sweep.ran)
@@ -499,7 +488,7 @@ TEST_CASE("every mapped GStreamer format carries the picture at an odd size",
 }
 
 TEST_CASE("a padded GStreamer buffer is read with the stride GStreamer chose",
-          "[gfx][gstreamer][matrix][media][!shouldfail]")
+          "[gfx][gstreamer][matrix][media]")
 {
   // process_video_frame() in Gfx/GStreamer/GStreamerDevice.cpp sizes the frame
   // from the appsink buffer's SIZE alone and lays the planes out tightly packed.
@@ -584,7 +573,7 @@ TEST_CASE("a padded GStreamer buffer is read with the stride GStreamer chose",
 }
 
 TEST_CASE("a pipeline with a dynamic-pad element still delivers frames",
-          "[gfx][gstreamer][matrix][media][!shouldfail]")
+          "[gfx][gstreamer][matrix][media]")
 {
   // gstreamer_pipeline::load() returns the pipeline to GST_STATE_NULL after
   // probing the caps at PAUSED. For a gst_parse_launch pipeline containing an
