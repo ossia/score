@@ -562,8 +562,11 @@ void LibavStreamInput::decode_audio_packet(AVPacket& packet) noexcept
     switch(fmt)
     {
       case AV_SAMPLE_FMT_FLTP:
+        // extended_data, not data: AVFrame::data holds at most
+        // AV_NUM_DATA_POINTERS (8) planes, and a planar stream with more
+        // channels than that keeps the rest only in extended_data.
         m_audioBuf.write_planar(
-            (float**)m_audioFrame->data, num_samples, channels);
+            (float**)m_audioFrame->extended_data, num_samples, channels);
         break;
       case AV_SAMPLE_FMT_FLT:
         m_audioBuf.write_interleaved_float(
@@ -579,7 +582,7 @@ void LibavStreamInput::decode_audio_packet(AVPacket& packet) noexcept
         int nch = std::min(channels, m_audioBuf.num_channels);
         for(int ch = 0; ch < nch; ch++)
         {
-          const int16_t* src = (const int16_t*)m_audioFrame->data[ch];
+          const int16_t* src = (const int16_t*)m_audioFrame->extended_data[ch];
           for(int s = 0; s < num_samples; s++)
             m_audioBuf.ring[ch][(wp + s) % AudioRingBuffer::ring_size]
                 = src[s] / 32768.f;
