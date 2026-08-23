@@ -120,6 +120,49 @@ layout(std140, binding = 1) uniform process_t {
 #define isf_NumWorkGroups isf_process_uniforms.NUMWORKGROUPS_
 )_";
 
+  // Storage-image access for compute shaders, in the author's coordinate system.
+  //
+  // imageStore() addresses a raw texel index, where row 0 is first in memory on
+  // every backend, while the render target the result is copied into is
+  // bottom-up on OpenGL and top-down everywhere else -- what
+  // QRhi::isYUpInFramebuffer() reports. The two spaces are therefore mirrored
+  // against each other on OpenGL, and a compute shader that only stores comes
+  // out upside down there.
+  //
+  // The gate is the inverse of the fragment macros above: a fragment shader
+  // needs its correction on Vulkan, a compute shader needs it everywhere else.
+  // Read and store are corrected TOGETHER, so a shader that samples an input and
+  // stores it at the matching index keeps agreeing with itself.
+  //
+  // A cube face is addressed by direction, so no Y convention applies to it.
+  static constexpr auto computeImageMacros =
+      R"_(
+// Everything except Vulkan, measured rather than derived. The framebuffer
+// origin does not predict this: Direct3D and Metal put it at the top like
+// Vulkan, yet a compute storage image reaches the delivered picture mirrored on
+// them exactly as it does on OpenGL. Gating this on OpenGL alone leaves D3D11,
+// D3D12 and Metal upside down -- csf_orient_macros reports green=255 where 0
+// is expected at row 0 on all three.
+#if defined(QSHADER_SPIRV)
+#define ISF_STORE_COORD(img, coord) ivec2(coord)
+#define ISF_STORE_COORD_LAYER(img, coord) ivec3(coord)
+#define ISF_FIXUP_COMPUTE_TEXCOORD(coord) (coord)
+#else
+#define ISF_STORE_COORD(img, coord) ivec2((coord).x, imageSize(img).y - 1 - (coord).y)
+#define ISF_STORE_COORD_LAYER(img, coord) ivec3((coord).x, imageSize(img).y - 1 - (coord).y, (coord).z)
+#define ISF_FIXUP_COMPUTE_TEXCOORD(coord) vec2((coord).x, 1. - (coord).y)
+#endif
+
+#define IMG_STORE(img, coord, val) imageStore(img, ISF_STORE_COORD(img, coord), val)
+#define IMG_STORE_LAYER(img, coord, val) imageStore(img, ISF_STORE_COORD_LAYER(img, coord), val)
+#define IMG_LOAD(img, coord) imageLoad(img, ISF_STORE_COORD(img, coord))
+#define IMG_STORE_CUBE(img, coord, val) imageStore(img, ivec3(coord), val)
+
+#define IMG_NORM_PIXEL(tex, coord) texture(tex, ISF_FIXUP_COMPUTE_TEXCOORD(coord))
+#define IMG_PIXEL(tex, coord) texture(tex, ISF_FIXUP_COMPUTE_TEXCOORD((coord) / vec2(textureSize(tex, 0))))
+#define IMG_CUBE(tex, dir) texture(tex, dir)
+)_";
+
   static constexpr auto defaultFunctions =
       R"_(
 // GLSL's textureSize is overloaded by sampler dimensionality — sampler2D
@@ -5686,6 +5729,12 @@ void parser::parse_csf()
 
   // Add standard ProcessUBO uniforms (same as ISF/VSA)
   m_fragment += GLSL45.defaultUniforms;
+  m_fragment += "\n";
+
+  // Storage-image and sampling macros. A CSF that uses them is orientation-
+  // portable; one that calls imageStore()/texture() directly still gets the
+  // raw texel index and is upside down on OpenGL.
+  m_fragment += GLSL45.computeImageMacros;
   m_fragment += "\n";
 
   // Add local_size placeholder — substituted per-pass at pipeline creation time

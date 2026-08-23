@@ -185,6 +185,11 @@ score_add_gfx_test(graph_torture GfxGraphTorture.cpp)
 # attributable RED cannot take the green orientation group with it.
 score_add_gfx_test(orientation_findings GfxOrientationFindings.cpp)
 
+# The storage-image macros that make a compute generator portable: they correct
+# the read and the store together, on OpenGL alone -- Direct3D, Metal and Vulkan
+# all put the framebuffer origin at the top and need nothing.
+score_add_gfx_test(csf_orient_macros GfxCsfOrientMacros.cpp)
+
 # ISOLATED, EXPECTED-RED: the VSA triangle cull-mode cross-backend divergence
 # (R3-N4 area). A front-facing VSA triangle is culled on exactly one backend
 # regardless of winding (OpenGL draws / Vulkan culls, or vice-versa) — there is
