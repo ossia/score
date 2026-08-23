@@ -325,3 +325,65 @@ TEST_CASE(
   INFO("worst column " << worstCol << ": red=" << got << " expected=" << expected);
   CHECK(worst <= kRampTol);
 }
+
+// -----------------------------------------------------------------------------
+// MRT reaches its destination through a blit of the intermediate attachment
+// rather than drawing into it directly, so it is the path that can turn the
+// picture over. Both attachments must match the single-output path, and must
+// keep matching through a passthrough chain.
+// -----------------------------------------------------------------------------
+TEST_CASE(
+    "the MRT path delivers the same orientation as the single-output path",
+    "[gfx][l3][isf][mrt][orientation][matrix]")
+{
+  const auto backend = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(backend));
+
+  const IsfResult single
+      = render(backend, chain_of_depth("isf-orient-quadrants.fs", 0));
+  const IsfResult mrt
+      = render(backend, chain_of_depth("isf-mrt-orient-quadrants.fs", 0));
+  if(single.skipped || mrt.skipped)
+    SKIP(single.backend + ": " + single.skip_reason + mrt.skip_reason);
+  INFO("backend=" << single.backend);
+  REQUIRE(single.error.empty());
+  REQUIRE(mrt.error.empty());
+  REQUIRE(single.outputs.size() == 1);
+  REQUIRE(mrt.outputs.size() == 2);
+
+  // Absolute: every attachment is right way up on its own terms.
+  for(std::size_t i = 0; i < mrt.outputs.size(); ++i)
+  {
+    REQUIRE(mrt.outputs[i].valid());
+    check_key(mrt.outputs[i], i == 0 ? "MRT outA" : "MRT outB");
+  }
+
+  // Relative: and identical to what the single-output path delivers.
+  REQUIRE(single.outputs[0].valid());
+  for(std::size_t i = 0; i < mrt.outputs.size(); ++i)
+  {
+    const int d = max_channel_diff(single.outputs[0], mrt.outputs[i]);
+    INFO("single vs MRT attachment " << i << ": max channel diff " << d);
+    CHECK(d <= kQuadTol);
+  }
+}
+
+TEST_CASE(
+    "the MRT path survives a passthrough chain",
+    "[gfx][l3][isf][mrt][orientation][matrix]")
+{
+  const auto backend = GENERATE(from_range(platform_backends()));
+  const int depth = GENERATE(0, 1, 2);
+  CAPTURE(backend_name(backend), depth);
+
+  const IsfResult r
+      = render(backend, chain_of_depth("isf-mrt-orient-quadrants.fs", depth));
+  if(r.skipped)
+    SKIP(r.backend + ": " + r.skip_reason);
+  INFO("backend=" << r.backend << " depth=" << depth);
+  REQUIRE(r.error.empty());
+  REQUIRE(!r.outputs.empty());
+  REQUIRE(r.outputs[0].valid());
+
+  check_key(r.outputs[0], "MRT through passthroughs");
+}
