@@ -29,6 +29,17 @@
 
 include_guard(GLOBAL)
 
+# The .sh harnesses need flock/oscsend and POSIX tooling. On Windows ctest
+# cannot execute them at all and reports BAD_COMMAND, which counts as a failure
+# rather than a skip. Global rather than per-directory: tests/integration and
+# tests/hardware both gate on it, and a directory-scoped copy is invisible to
+# the score_add_media_test() function called from the latter.
+if(WIN32)
+  set(SCORE_HAS_SHELL_HARNESS 0 CACHE INTERNAL "shell harnesses are runnable")
+else()
+  set(SCORE_HAS_SHELL_HARNESS 1 CACHE INTERNAL "shell harnesses are runnable")
+endif()
+
 # Make the Catch2 target (Catch2::Catch2WithMain) available. Catch2 is vendored
 # inside libossia's 3rdparty tree; we add it ourselves (rather than relying on
 # OSSIA_TESTING, which would also drag in libossia's own test tree).

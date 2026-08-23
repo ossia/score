@@ -1,13 +1,8 @@
 # Integration tests: full headless application + document lifecycle.
 
-# The .sh harnesses need flock/oscsend and POSIX tooling. On Windows ctest
-# cannot execute them at all and reports BAD_COMMAND, which counts as a failure
-# rather than a skip.
-if(WIN32)
-  set(SCORE_HAS_SHELL_HARNESS 0)
-else()
-  set(SCORE_HAS_SHELL_HARNESS 1)
-endif()
+# SCORE_HAS_SHELL_HARNESS is set once in cmake/ScoreTests.cmake so that
+# tests/hardware sees the same value; it used to be defined here, where
+# score_add_media_test() could not see it.
 # These run from the build root so the dynamic plugins in <build>/plugins are
 # discovered at runtime (handled by score_add_test ... APP).
 
