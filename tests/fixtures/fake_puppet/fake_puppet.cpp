@@ -81,9 +81,9 @@ int main(int argc, char** argv)
   // QWebSocket::errorOccurred only exists since Qt 6.5 (before that the
   // signal is the overloaded `error`); Coverage CI builds with Qt 6.4
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
-  constexpr auto error_signal = &QWebSocket::errorOccurred;
+  auto error_signal = &QWebSocket::errorOccurred;
 #else
-  constexpr auto error_signal
+  auto error_signal
       = qOverload<QAbstractSocket::SocketError>(&QWebSocket::error);
 #endif
   QObject::connect(ws, error_signal, &app, [&](QAbstractSocket::SocketError) {

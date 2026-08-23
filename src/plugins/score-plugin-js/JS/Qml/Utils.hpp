@@ -31,6 +31,9 @@ public:
   W_SLOT(readFile)
   void writeFile(QString path, QByteArray content);
   W_SLOT(writeFile)
+  // Creates a directory (and missing parents). Returns true if it exists afterwards.
+  bool makeDir(QString path);
+  W_SLOT(makeDir)
 
   // Absolute paths of the files in a directory matching the given glob filters
   // (e.g. "*.scp" or "*.scp;*.json"; empty = all files). Empty if the directory

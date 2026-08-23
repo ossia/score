@@ -414,6 +414,18 @@ QWidget* ProcessModel::createWindowForUI(const score::DocumentContext& ctx,
   }
   widg->setAttribute(Qt::WA_DeleteOnClose);
 
+  // The container widget does not follow the QQuickWindow's size: size it
+  // explicitly, letting the ScriptUI root ask for a size through its implicit
+  // width / height (e.g. `implicitWidth: 1280`), defaulting to 640x640.
+  {
+    int w = 640, h = 640;
+    if(m_ui_object->implicitWidth() >= 100.)
+      w = static_cast<int>(m_ui_object->implicitWidth());
+    if(m_ui_object->implicitHeight() >= 100.)
+      h = static_cast<int>(m_ui_object->implicitHeight());
+    widg->resize(w, h);
+  }
+
 #if QT_VERSION >= QT_VERSION_CHECK(6,8,2)
   // Bug in older Qt 6 versions:
   // QtCore/qmetatype.h:842:23: error: invalid application of 'sizeof' to an incomplete type 'QQuickCloseEvent'

@@ -90,6 +90,13 @@ void JsUtils::writeFile(QString path, QByteArray content)
     f.write(content);
 }
 
+bool JsUtils::makeDir(QString path)
+{
+  if(auto doc = score::AppContext().currentDocument())
+    path = score::locateFilePath(path, *doc);
+  return QDir{}.mkpath(path);
+}
+
 QStringList JsUtils::listFiles(QString path, QString filters)
 {
   if(auto doc = score::AppContext().currentDocument())

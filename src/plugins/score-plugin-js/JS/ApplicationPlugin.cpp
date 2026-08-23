@@ -36,6 +36,12 @@ namespace JS
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
     : score::GUIApplicationPlugin{ctx}
 {
+#if __has_include(<QQuickWindow>)
+  // Crisp text in every QML UI: distance-field rendering looks blurry at the small
+  // font sizes our panels use, native glyph rendering matches the rest of score.
+  QQuickWindow::setTextRenderType(QQuickWindow::NativeTextRendering);
+#endif
+
   // For the console
   m_consoleEngine.globalObject().setProperty("Score", m_consoleEngine.newQObject(new EditJsContext));
   m_consoleEngine.globalObject().setProperty("Util", m_consoleEngine.newQObject(new JsUtils));
