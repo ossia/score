@@ -183,18 +183,39 @@ Device::Node DeviceDocumentPlugin::createDeviceFromNode(const Device::Node& node
 
     initDevice(*newdev);
 
-    if(newdev->capabilities().canRefreshTree)
-    {
-      return newdev->refresh();
-    }
-    else
+    const auto capas = newdev->capabilities();
+
+    // The node's children are user data - learned MIDI or OSC addresses,
+    // custom audio nodes, a tree loaded from a .device file, the tree a
+    // removed device had when its removal is undone... - whenever the device
+    // serializes its tree, and the whole of the tree when it cannot explore
+    // its namespace. Put them back in the device first.
+    if(capas.canSerialize || !capas.canRefreshTree)
     {
       for(auto& child : node)
       {
         newdev->addNode(child);
       }
-      return node;
     }
+
+    // Then show what the device actually has: for a device which explores a
+    // remote namespace (OSCQuery, Minuit...) that is the remote tree; for one
+    // which builds its own (audio, MIDI, joystick...) the tree it built, which
+    // includes the nodes replayed above.
+    if(capas.canRefreshTree)
+    {
+      auto refreshed = newdev->refresh();
+
+      // Nothing came back and the device is not reachable: keep what we have
+      // rather than wiping the tree. It will be explored once the device is
+      // reconnected (DeviceDocumentPlugin::reconnect, a manual refresh...).
+      if(!refreshed.hasChildren() && !newdev->connected())
+        return node;
+
+      return refreshed;
+    }
+
+    return node;
   }
   catch(const std::runtime_error& e)
   {
@@ -204,6 +225,59 @@ Device::Node DeviceDocumentPlugin::createDeviceFromNode(const Device::Node& node
   }
 
   return node;
+}
+
+bool DeviceDocumentPlugin::refreshDeviceTree(Device::DeviceInterface& dev)
+{
+  if(!dev.capabilities().canRefreshTree)
+    return false;
+
+  auto refreshed = dev.refresh();
+  if(!refreshed.hasChildren() && !dev.connected())
+    return false;
+
+  return explorer().replaceDevice(std::move(refreshed));
+}
+
+void DeviceDocumentPlugin::refreshDeviceTreeOnReconnect(Device::DeviceInterface& dev)
+{
+  if(!dev.capabilities().canRefreshTree)
+    return;
+
+  // Coalesce: undo / redo in quick succession, or several edits, must not
+  // pile up refreshes.
+  if(!m_pendingTreeRefresh.insert(&dev).second)
+    return;
+
+  // deviceChanged(old, new) is emitted by the device once it has been
+  // recreated with its new settings - synchronously for some protocols, so
+  // this must be hooked before the settings are applied. The device's own
+  // handler (DeviceInterface::updateSettings) then replays the previous nodes
+  // into the new device; exploring is deferred to run after that replay.
+  auto con_handle = std::make_shared<QMetaObject::Connection>();
+  *con_handle = connect(
+      &dev, &Device::DeviceInterface::deviceChanged, this,
+      [this, ptr = QPointer{&dev},
+       con_handle](ossia::net::device_base*, ossia::net::device_base* newd) {
+    if(!newd)
+      return;
+    QObject::disconnect(*con_handle);
+    if(!ptr)
+      return;
+    m_pendingTreeRefresh.erase(ptr.data());
+
+    QMetaObject::invokeMethod(
+        this,
+        [this, ptr] {
+      // The device may have been removed in the meantime
+      if(ptr && m_list.findDevice(ptr->settings().name) == ptr.data())
+        refreshDeviceTree(*ptr);
+        },
+        Qt::QueuedConnection);
+      });
+
+  // If the device goes away before reconnecting, forget about it.
+  m_connections[&dev].push_back(*con_handle);
 }
 
 std::optional<Device::Node>
@@ -367,6 +441,7 @@ void DeviceDocumentPlugin::setupConnections(
       QObject::disconnect(q);
     }
     m_connections.erase(&device);
+    m_pendingTreeRefresh.erase(&device);
   }
 }
 

@@ -805,10 +805,17 @@ void DeviceExplorerWidget::edit()
       if(flags & Device::ProtocolFactory::EditingReloadsEverything)
       {
         using namespace Command;
+        // The device is recreated from scratch with the new settings. It gets
+        // its current tree back, not just the settings: nodes learned from
+        // a MIDI or OSC device are user data that DeviceDocumentPlugin replays
+        // into the new device when the protocol keeps them (canSerialize), and
+        // discards when it builds the whole tree itself.
+        Device::Node reloaded = select;
+        reloaded.set(m_deviceDialog->getSettings());
+
         MacroCommandDispatcher<UpdateAndReloadMacro> disp{m_cmdDispatcher->stack()};
         disp.submit(new Remove(model()->deviceModel(), select));
-        disp.submit(
-            new LoadDevice(model()->deviceModel(), m_deviceDialog->getSettings()));
+        disp.submit(new LoadDevice(model()->deviceModel(), std::move(reloaded)));
         disp.commit();
       }
       else

@@ -138,6 +138,42 @@ int DeviceExplorerModel::addDevice(Device::Node&& deviceNode)
   return row;
 }
 
+bool DeviceExplorerModel::replaceDevice(Device::Node&& deviceNode)
+{
+  const auto& name = deviceNode.get<Device::DeviceSettings>().name;
+  int row = 0;
+  for(auto& n : m_rootNode)
+  {
+    if(n.get<Device::DeviceSettings>().name == name)
+    {
+      const QModelIndex index = createIndex(row, 0, &n);
+
+      // Out with the old children...
+      if(const int count = n.childCount(); count > 0)
+      {
+        beginRemoveRows(index, 0, count - 1);
+        n.takeChildren();
+        endRemoveRows();
+      }
+
+      // ... update the settings ...
+      n.set(deviceNode.get<Device::DeviceSettings>());
+      dataChanged(index, createIndex(row, columnCount() - 1, &n));
+
+      // ... and in with the new.
+      if(const int count = deviceNode.childCount(); count > 0)
+      {
+        beginInsertRows(index, 0, count - 1);
+        deviceNode.moveChildren(n);
+        endInsertRows();
+      }
+      return true;
+    }
+    row++;
+  }
+  return false;
+}
+
 void DeviceExplorerModel::updateDevice(
     const QString& name, const Device::DeviceSettings& dev)
 {
@@ -148,7 +184,7 @@ void DeviceExplorerModel::updateDevice(
     {
       n.set(dev);
 
-      QModelIndex index = createIndex(i, 0, n.parent());
+      QModelIndex index = createIndex(i, 0, &n);
       dataChanged(index, index);
       return;
     }

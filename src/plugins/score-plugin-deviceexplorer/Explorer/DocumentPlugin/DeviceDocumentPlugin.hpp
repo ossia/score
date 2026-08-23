@@ -78,6 +78,27 @@ public:
 
   void reconnect(const QString&);
 
+  /**
+   * @brief Re-explores the device's namespace and shows the result in the
+   * explorer, in place of the device's current tree.
+   *
+   * Only for devices which can refresh their tree. If the device is not
+   * reachable, the current tree is kept rather than replaced by nothing.
+   * Returns true if the tree was replaced.
+   */
+  bool refreshDeviceTree(Device::DeviceInterface& dev);
+
+  /**
+   * @brief Refreshes the device's tree once it has (re)connected.
+   *
+   * Used after the device's settings changed: the device reconnects
+   * asynchronously with its new settings, replays its previous nodes
+   * (DeviceInterface::recreate) and the namespace is then re-explored so that
+   * the explorer shows what is actually there. Requests are coalesced: a
+   * device has at most one refresh pending.
+   */
+  void refreshDeviceTreeOnReconnect(Device::DeviceInterface& dev);
+
   const ossia::net::network_context_ptr& networkContext() const noexcept
   {
     return m_asioContext;
@@ -97,6 +118,8 @@ private:
   DeviceExplorerModel* m_explorer{};
   ossia::hash_map<Device::DeviceInterface*, std::vector<QMetaObject::Connection>>
       m_connections;
+  // Devices with a refreshDeviceTreeOnReconnect() pending.
+  ossia::hash_set<Device::DeviceInterface*> m_pendingTreeRefresh;
 
   void asyncConnect(Device::DeviceInterface& newdev);
   void timerEvent(QTimerEvent* event) override;
