@@ -115,6 +115,12 @@ Run runScript(const QString& js)
   env.insert("SCORE_DISABLE_AUDIOPLUGINS", "1");
   env.insert("QSG_RHI_BACKEND", qEnvironmentVariable("SCORE_TEST_API", "opengl"));
   env.remove("QT_QPA_PLATFORM");
+  // Every verdict here is read out of the child's log. On Windows a process
+  // with no console gets the debugger as its message handler, so console.log()
+  // from the script never reaches the pipe and the run looks like a graph that
+  // rendered nothing.
+  env.insert("QT_FORCE_STDERR_LOGGING", "1");
+  env.insert("QT_ASSUME_STDERR_HAS_CONSOLE", "1");
 
   QProcess p;
   p.setProcessEnvironment(env);
@@ -133,6 +139,7 @@ Run runScript(const QString& js)
   r.log = QString::fromUtf8(p.readAll());
   r.crashed = p.exitStatus() != QProcess::NormalExit;
   r.exitCode = p.exitCode();
+
   return r;
 }
 
