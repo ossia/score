@@ -400,7 +400,7 @@ private:
   static std::optional<ossia::dylib_loader> load_core_library()
   {
 #if defined(_WIN32)
-    return score::try_load_library({"gstreamer-1.0-0.dll"});
+    return score::try_load_library({"gstreamer-1.0-0.dll", "libgstreamer-1.0-0.dll"});
 #elif defined(__APPLE__)
     return score::try_load_library({
         "libgstreamer-1.0.0.dylib", "libgstreamer-1.0.dylib"});
@@ -413,7 +413,7 @@ private:
   static std::optional<ossia::dylib_loader> load_app_library()
   {
 #if defined(_WIN32)
-    return score::try_load_library({"gstapp-1.0-0.dll"});
+    return score::try_load_library({"gstapp-1.0-0.dll", "libgstapp-1.0-0.dll"});
 #elif defined(__APPLE__)
     return score::try_load_library({
         "libgstapp-1.0.0.dylib", "libgstapp-1.0.dylib"});
@@ -426,7 +426,7 @@ private:
   static std::optional<ossia::dylib_loader> load_video_library()
   {
 #if defined(_WIN32)
-    return score::try_load_library({"gstvideo-1.0-0.dll"});
+    return score::try_load_library({"gstvideo-1.0-0.dll", "libgstvideo-1.0-0.dll"});
 #elif defined(__APPLE__)
     return score::try_load_library({
         "libgstvideo-1.0.0.dylib", "libgstvideo-1.0.dylib"});
