@@ -656,6 +656,7 @@ void ScreenNode::stopRendering()
   if(m_window)
   {
     m_window->m_canRender = false;
+    m_window->onClose = {};
     m_window->onRender = [](QRhiCommandBuffer&) {};
     if(m_window->state)
       m_window->state->renderer = {};
@@ -890,6 +891,16 @@ void ScreenNode::createOutput(score::gfx::OutputConfiguration conf)
       onReady();
     }
   };
+  // Closing the window, and any platform that destroys the surface when it is
+  // hidden, releases the swap chain from inside Window::event() -- a teardown of
+  // this output's QRhi resources that does not go through
+  // Graph::destroyOutputRenderList. The Graph would otherwise keep a RenderList
+  // built against what was just freed, and the re-expose that follows rebuilds
+  // on top of it. MultiWindowNode already answers onClose for the same reason.
+  m_window->onClose = [this] {
+    releaseOwnedRenderList();
+  };
+
   m_window->onResize = [this, onResize = std::move(conf.onResize)] {
     if(m_window && m_window->state)
     {
