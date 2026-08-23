@@ -473,11 +473,26 @@ struct PortCreationVisitor
            Steinberg::Vst::IMidiMapping::iid, (void**)&midi_map)
        == Steinberg::kResultTrue)
     {
+      // Every channel, not just channel 0: a plug-in may map the same
+      // controller to a different parameter per channel, and that is exactly
+      // what MPE relies on. Querying only channel 0 left every member channel
+      // unmapped, so MPE pitch bend and pressure reached nothing.
+      // Stop at kCountCtrlNumber (130): that covers CC 0..127 plus kAfterTouch
+      // and kPitchBend, and nothing beyond it is a valid controller to ask for.
+      // The enumerators above it exist only for kLegacyMIDICCOutEvent, which is
+      // an output path. Asking anyway is not harmless - a JUCE plug-in indexes
+      // midiControllerToParameter[channel][number] with no bounds check and its
+      // array is exactly kCountCtrlNumber wide, so 130..132 read past the end
+      // and hand back a garbage ParamID with kResultTrue.
       Steinberg::Vst::ParamID p;
-      for(int i = 0; i <= 132; i++) // See ivstmidicontrollers.h
+      for(int chan = 0; chan < 16; chan++)
       {
-        if(midi_map->getMidiControllerAssignment(idx, 0, i, p) == Steinberg::kResultOk)
-          fx.midiControls[{idx, i}] = p;
+        for(int i = 0; i < Steinberg::Vst::kCountCtrlNumber; i++)
+        {
+          if(midi_map->getMidiControllerAssignment(idx, chan, i, p)
+             == Steinberg::kResultOk)
+            fx.midiControls[{idx, chan, i}] = p;
+        }
       }
     }
   }

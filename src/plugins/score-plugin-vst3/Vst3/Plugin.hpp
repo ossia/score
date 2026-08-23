@@ -38,7 +38,12 @@ inline QString fromString(const Steinberg::Vst::String128& str)
 #endif
 }
 
-using MIDIControls = ossia::flat_map<std::pair<int, int>, Steinberg::Vst::ParamID>;
+// Keyed by (event bus, MIDI channel 0-15, controller number). The channel is
+// part of the key because VST3 lets a plug-in assign a different parameter per
+// channel, which is how an MPE-aware plug-in exposes per-voice pitch bend -
+// and MPE senders put every note on its own member channel, never channel 0.
+using MIDIControls
+    = ossia::flat_map<std::tuple<int, int, int>, Steinberg::Vst::ParamID>;
 class PlugFrame;
 class ComponentHandler;
 struct Plugin
