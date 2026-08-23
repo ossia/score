@@ -608,6 +608,8 @@ PortItem::~PortItem()
 {
   if(this == magneticDropPort)
     magneticDropPort = nullptr;
+  if(this == clickedPort)
+    clickedPort = nullptr;
 
   for(const auto& cable : cables)
   {
@@ -720,6 +722,11 @@ void PortItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 static void updateDragLineCoords(QGraphicsScene& scene, QPointF pt)
 {
+  // The source port may have moved in the scene since the drag started (the
+  // nodal canvas pans its items when auto-scrolling): follow it.
+  if(PortItem::clickedPort)
+    portDragLineCoords.setP1(PortItem::clickedPort->sceneCenter());
+
   if(magneticDropPort)
   {
     magneticDropPort->m_diam = 8;
@@ -843,7 +850,9 @@ public:
     }
     else if(event->type() == QEvent::GraphicsSceneDragLeave)
     {
-      autoScroller.stop();
+      // The cursor left the view: no more drag-move events, but the drag goes
+      // on. Keep scrolling from the cursor position while it stays close.
+      autoScroller.continueFromCursor();
       return false;
     }
     else if(event->type() == QEvent::GraphicsSceneDrop)

@@ -30,6 +30,17 @@ void spin(int ms)
 using Dataflow::CableDragAutoScroller;
 constexpr int margin = CableDragAutoScroller::margin;
 constexpr int maxStep = CableDragAutoScroller::maxStep;
+constexpr int outsideLimit = CableDragAutoScroller::outsideLimit;
+
+//! The cursor position the scroller's timer sees, under the test's control
+struct FakeCursor
+{
+  QPoint pos{200, 150};
+  CableDragAutoScroller::CursorProvider provider()
+  {
+    return [this](QWidget&) { return pos; };
+  }
+};
 }
 
 TEST_CASE("Auto-scroll step: nothing away from the edges", "[dataflow][autoscroll]")
@@ -56,7 +67,7 @@ TEST_CASE("Auto-scroll step: direction follows the edge", "[dataflow][autoscroll
   CHECK(corner.y() > 0);
 }
 
-TEST_CASE("Auto-scroll step: faster the closer to the edge", "[dataflow][autoscroll]")
+TEST_CASE("Auto-scroll step: faster the closer to the edge, full speed beyond it", "[dataflow][autoscroll]")
 {
   const QSize sz{400, 300};
   int prev = 0;
@@ -70,10 +81,15 @@ TEST_CASE("Auto-scroll step: faster the closer to the edge", "[dataflow][autoscr
   }
   CHECK(-CableDragAutoScroller::scrollStep({0, 150}, sz).x() == maxStep);
 
-  // Beyond the viewport (the cursor can be reported slightly outside during a
-  // drag): clamped, not runaway.
+  // Outside the viewport (the cursor left the view while dragging): full
+  // speed, as long as it stays close...
   CHECK(-CableDragAutoScroller::scrollStep({-50, 150}, sz).x() == maxStep);
   CHECK(CableDragAutoScroller::scrollStep({450, 150}, sz).x() == maxStep);
+  CHECK(CableDragAutoScroller::scrollStep({200, 300 + outsideLimit - 1}, sz).y() == maxStep);
+  // ... and nothing once it is far away (another window, another panel)
+  CHECK(CableDragAutoScroller::scrollStep({-outsideLimit - 1, 150}, sz).isNull());
+  CHECK(CableDragAutoScroller::scrollStep({400 + outsideLimit, 150}, sz).isNull());
+  CHECK(CableDragAutoScroller::scrollStep({200, -5000}, sz).isNull());
 }
 
 TEST_CASE("Auto-scroll step: tiny viewports never scroll", "[dataflow][autoscroll]")
@@ -94,11 +110,13 @@ TEST_CASE("Dragging against the edge scrolls the view", "[dataflow][autoscroll][
     view.verticalScrollBar()->setValue(0);
     spin(20);
 
+    FakeCursor cursor;
     std::vector<QPointF> seen;
-    CableDragAutoScroller scroller{[&](QPointF p) { seen.push_back(p); }};
+    CableDragAutoScroller scroller{[&](QPointF p) { seen.push_back(p); }, cursor.provider()};
 
     // A drag-move in the middle of the view: nothing happens.
-    scroller.track(view.viewport(), view.mapToScene(QPoint{200, 150}));
+    cursor.pos = {200, 150};
+    scroller.track(view.viewport(), view.mapToScene(cursor.pos));
     CHECK(!scroller.active());
     spin(60);
     CHECK(view.horizontalScrollBar()->value() == 0);
@@ -106,8 +124,8 @@ TEST_CASE("Dragging against the edge scrolls the view", "[dataflow][autoscroll][
 
     // Park the cursor against the right edge: the view scrolls right on its
     // own, and the scene position under the cursor is reported each step.
-    const QPoint edge{view.viewport()->width() - 1, 150};
-    scroller.track(view.viewport(), view.mapToScene(edge));
+    cursor.pos = {view.viewport()->width() - 1, 150};
+    scroller.track(view.viewport(), view.mapToScene(cursor.pos));
     CHECK(scroller.active());
     spin(120);
     const int h = view.horizontalScrollBar()->value();
@@ -115,22 +133,24 @@ TEST_CASE("Dragging against the edge scrolls the view", "[dataflow][autoscroll][
     CHECK(view.verticalScrollBar()->value() == 0);
     REQUIRE(!seen.empty());
     // Follows the cursor: the last reported scene point is what is now under it
-    CHECK(seen.back() == view.mapToScene(edge));
+    CHECK(seen.back() == view.mapToScene(cursor.pos));
     CHECK(seen.back().x() >= seen.front().x());
 
     // Back to the middle: it stops where it is.
-    scroller.track(view.viewport(), view.mapToScene(QPoint{200, 150}));
+    cursor.pos = {200, 150};
+    scroller.track(view.viewport(), view.mapToScene(cursor.pos));
     CHECK(!scroller.active());
     spin(60);
     CHECK(view.horizontalScrollBar()->value() == h);
 
     // Bottom edge: vertical.
-    scroller.track(view.viewport(), view.mapToScene(QPoint{200, view.viewport()->height() - 1}));
+    cursor.pos = {200, view.viewport()->height() - 1};
+    scroller.track(view.viewport(), view.mapToScene(cursor.pos));
     spin(120);
     CHECK(view.verticalScrollBar()->value() > 0);
     CHECK(view.horizontalScrollBar()->value() == h);
 
-    // Stopping (drop / drag leave) halts it.
+    // Stopping (drop) halts it.
     scroller.stop();
     CHECK(!scroller.active());
     const int v = view.verticalScrollBar()->value();
@@ -139,7 +159,8 @@ TEST_CASE("Dragging against the edge scrolls the view", "[dataflow][autoscroll][
 
     // Against an edge that cannot scroll any further: idles instead of spinning.
     view.horizontalScrollBar()->setValue(0);
-    scroller.track(view.viewport(), view.mapToScene(QPoint{0, 150}));
+    cursor.pos = {0, 150};
+    scroller.track(view.viewport(), view.mapToScene(cursor.pos));
     spin(60);
     CHECK(view.horizontalScrollBar()->value() == 0);
     CHECK(!scroller.active());
@@ -149,6 +170,54 @@ TEST_CASE("Dragging against the edge scrolls the view", "[dataflow][autoscroll][
     scroller.track(&plain, QPointF{0, 0});
     CHECK(!scroller.active());
     CHECK(scroller.view() == nullptr);
+  });
+}
+
+TEST_CASE("Leaving the view keeps scrolling while the cursor stays close", "[dataflow][autoscroll][gui]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    QGraphicsScene scene{QRectF{0, 0, 4000, 3000}};
+    QGraphicsView view{&scene};
+    view.resize(400, 300);
+    view.show();
+    view.horizontalScrollBar()->setValue(0);
+    spin(20);
+
+    FakeCursor cursor;
+    CableDragAutoScroller scroller{[](QPointF) {}, cursor.provider()};
+
+    // The last drag-move was near the edge, then the cursor left the viewport
+    // (no more drag-move events): the scroller is told the drag left.
+    cursor.pos = {view.viewport()->width() - 2, 150};
+    scroller.track(view.viewport(), view.mapToScene(cursor.pos));
+    cursor.pos = {view.viewport()->width() + 60, 150};
+    scroller.continueFromCursor();
+    CHECK(scroller.active());
+    spin(120);
+    const int h = view.horizontalScrollBar()->value();
+    CHECK(h > 0);
+    CHECK(scroller.active());
+
+    // Wandering far off (another window): the view is left alone
+    cursor.pos = {view.viewport()->width() + outsideLimit + 100, 150};
+    spin(60);
+    CHECK(!scroller.active());
+    CHECK(view.horizontalScrollBar()->value() == h);
+
+    // Coming back close to the edge: told again, it resumes
+    cursor.pos = {-30, 150};
+    scroller.continueFromCursor();
+    spin(120);
+    CHECK(view.horizontalScrollBar()->value() < h);
+
+    // Even when the last drag-move was in the middle: it is the cursor that counts
+    cursor.pos = {200, 150};
+    scroller.track(view.viewport(), view.mapToScene(cursor.pos));
+    CHECK(!scroller.active());
+    cursor.pos = {200, view.viewport()->height() + 20};
+    scroller.continueFromCursor();
+    spin(120);
+    CHECK(view.verticalScrollBar()->value() > 0);
   });
 }
 
@@ -181,15 +250,16 @@ TEST_CASE("Views that know how to move their content are asked to", "[dataflow][
     view.show();
     spin(20);
 
-    CableDragAutoScroller scroller{[](QPointF) {}};
-    const QPoint edge{view.viewport()->width() - 1, 150};
-    scroller.track(view.viewport(), view.mapToScene(edge));
+    FakeCursor cursor;
+    CableDragAutoScroller scroller{[](QPointF) {}, cursor.provider()};
+    cursor.pos = {view.viewport()->width() - 1, 150};
+    scroller.track(view.viewport(), view.mapToScene(cursor.pos));
     CHECK(scroller.active());
     spin(120);
     REQUIRE(!view.deltas.empty());
     for(auto d : view.deltas)
     {
-      CHECK(d.x() == CableDragAutoScroller::maxStep);
+      CHECK(d.x() == maxStep);
       CHECK(d.y() == 0);
     }
     CHECK(scroller.active());
