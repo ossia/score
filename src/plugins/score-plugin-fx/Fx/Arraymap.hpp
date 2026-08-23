@@ -63,6 +63,8 @@ struct Node
       double px;
       double po;
 
+      bool initialized{};
+
       ossia::math_expression expr;
     };
 
@@ -74,6 +76,7 @@ struct Node
 
     int64_t last_value_time{};
     std::string last_expression;
+    bool last_expression_ok{};
   } state;
   bool trigger{false};
 

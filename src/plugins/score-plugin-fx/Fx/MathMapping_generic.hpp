@@ -10,6 +10,16 @@ namespace Nodes
 template <typename State>
 struct GenericMathMapping
 {
+  //! Feed a fixed-size vec back into pov without resizing it: pov is an exprtk
+  //! vector view and its size / data pointer are baked into the compiled
+  //! expression.
+  static void store_output_vec(auto& self, const auto& vec)
+  {
+    const auto n = std::min(vec.size(), self.pov.size());
+    for(std::size_t i = 0; i < n; i++)
+      self.pov[i] = vec[i];
+  }
+
   static void store_output(auto& self, const ossia::value& v)
   {
     switch(v.get_type())
@@ -21,38 +31,29 @@ struct GenericMathMapping
         break;
       case ossia::val_type::VEC2F: {
         if constexpr(requires { self.pov; })
-        {
-          auto& vec = *v.target<ossia::vec2f>();
-          self.pov.assign(vec.begin(), vec.end());
-        }
+          store_output_vec(self, *v.target<ossia::vec2f>());
         break;
       }
       case ossia::val_type::VEC3F: {
         if constexpr(requires { self.pov; })
-        {
-          auto& vec = *v.target<ossia::vec3f>();
-          self.pov.assign(vec.begin(), vec.end());
-        }
+          store_output_vec(self, *v.target<ossia::vec3f>());
         break;
       }
       case ossia::val_type::VEC4F: {
         if constexpr(requires { self.pov; })
-        {
-          auto& vec = *v.target<ossia::vec4f>();
-          self.pov.assign(vec.begin(), vec.end());
-        }
+          store_output_vec(self, *v.target<ossia::vec4f>());
         break;
       }
       case ossia::val_type::LIST: {
         if constexpr(requires { self.pov; })
         {
           auto& arr = *v.target<std::vector<ossia::value>>();
-          if(!arr.empty())
-          {
-            self.pov.clear();
-            for(auto& v : arr)
-              self.pov.push_back(ossia::convert<float>(v));
-          }
+          // pov is an exprtk vector *view* onto this buffer: it must keep both
+          // its size and its data pointer, so write in place and drop anything
+          // that does not fit rather than growing (and reallocating) it.
+          const auto n = std::min(arr.size(), self.pov.size());
+          for(std::size_t i = 0; i < n; i++)
+            self.pov[i] = ossia::convert<float>(arr[i]);
         }
         break;
       }
@@ -72,16 +73,26 @@ struct GenericMathMapping
     output(res);
   }
 
-  static void exec_polyphonic(State& self, value_output_callback& output)
+  //! Evaluate every per-element expression, keeping each one's own feedback
+  //! state, and collect the results.
+  static void exec_polyphonic(State& self, std::vector<ossia::value>& res)
   {
-    for(auto& e : self.expressions)
+    const auto N = self.expressions.size();
+    res.resize(N);
+
+    for(std::size_t i = 0; i < N; i++)
     {
-      auto res = e.expr.result();
+      auto& e = self.expressions[i];
+      auto r = e.expr.result();
 
       if constexpr(requires { e.x; })
         e.px = e.x;
 
-      store_output(e, res);
+      // Feeds `po` for the next cycle...
+      store_output(e, r);
+      // ... but the output is the expression's actual result, which may well be
+      // a point rather than a scalar (`return [x, y]`).
+      res[i] = std::move(r);
     }
   }
 
@@ -93,25 +104,24 @@ struct GenericMathMapping
 
     if(vector_size_did_change)
     {
+      // xv and pxv are exprtk views: re-point both, then recompile so that the
+      // new sizes are baked in. This can legitimately fail - `xv[2]` cannot
+      // compile against a one-element input - in which case we simply produce
+      // nothing until an input of a workable size arrives.
+      self.pxv.resize(self.xv.size());
       self.expr.rebase_vector("xv", self.xv);
+      self.expr.rebase_vector("pxv", self.pxv);
       self.expr.recompile();
     }
+
+    if(!self.expr.valid())
+      return;
 
     auto res = self.expr.result();
     store_output(self, res);
 
     // Save the previous input
-    {
-      bool old_prev = self.pxv.size();
-      self.pxv.assign(self.xv.begin(), self.xv.end());
-      bool new_prev = self.pxv.size();
-
-      if(old_prev != new_prev)
-      {
-        self.expr.rebase_vector("pxv", self.pxv);
-        self.expr.recompile();
-      }
-    }
+    self.pxv.assign(self.xv.begin(), self.xv.end());
 
     output(std::move(res));
   }
@@ -171,51 +181,65 @@ struct GenericMathMapping
   static bool resize(const std::string& expr, State& self, int sz)
   {
     if(std::ssize(self.expressions) == sz && expr == self.last_expression)
-      return true;
+      return self.last_expression_ok;
 
     self.expressions.resize(sz);
     self.count = sz;
+
+    bool ok = true;
     int i = 0;
     for(auto& e : self.expressions)
     {
-      e.init(self.cur_time, self.cur_deltatime, self.cur_pos, self.count);
-      e.instance = i++;
+      // init() adds the symbols and registers the symbol table; doing it again
+      // on an expression that already has them would stack up duplicate symbol
+      // tables every time the text changes.
+      if(!std::exchange(e.initialized, true))
+        e.init(self.cur_time, self.cur_deltatime, self.cur_pos, self.count);
+
+      e.instance = i;
       if(!e.expr.set_expression(expr))
-        return false;
+        ok = false;
       e.expr.seed_random(
           UINT64_C(0xda3e39cb94b95bdb), UINT64_C(0x853c49e6748fea9b) * (1 + i));
+      i++;
     }
+
+    // Remember the outcome, successful or not: an expression that does not
+    // compile must not be re-parsed for all 1024 elements on every tick.
     self.last_expression = expr;
-    return true;
+    self.last_expression_ok = ok;
+    return ok;
   }
 
   static void run_polyphonic(
       int size, value_output_callback& output, const std::string& expr,
       const halp::tick_flicks& tk, State& self)
   {
-    if(size <= 1
-       || (expr.find(":=") != std::string::npos && expr.find("po") != std::string::npos))
+    // `po` is the element's own previous output: an expression that reads it
+    // needs one instance - with its own state - per element. Everything else
+    // can go through a single expression re-evaluated for each index, which
+    // also lets each element return a vector (`return [x, y]`).
+    if(size <= 1 || uses_identifier(expr, "po"))
     {
       size = std::clamp(size, 0, 1024);
-      resize(expr, self, size);
+      if(!resize(expr, self, size))
+        return;
 
       setMathExpressionTiming(
           self, tk.start_in_flicks, self.last_value_time, tk.relative_position);
       self.last_value_time = tk.start_in_flicks;
 
-      GenericMathMapping::exec_polyphonic(self, output);
-
       std::vector<ossia::value> res;
-      res.resize(self.expressions.size());
-      self.count = size;
-      for(int i = 0; i < self.expressions.size(); i++)
-        res[i] = (float)self.expressions[i].po;
+      GenericMathMapping::exec_polyphonic(self, res);
+
       // Combine
       output(std::move(res));
     }
     else
     {
-      resize(expr, self, 1);
+      if(!resize(expr, self, 1))
+        return;
+
       setMathExpressionTiming(
           self, tk.start_in_flicks, self.last_value_time, tk.relative_position);
       self.last_value_time = tk.start_in_flicks;
@@ -322,12 +346,8 @@ struct GenericMathMapping
       }
     }
 
-    GenericMathMapping::exec_polyphonic(self, output);
-
     std::vector<ossia::value> res;
-    res.resize(self.expressions.size());
-    for(int i = 0; i < self.expressions.size(); i++)
-      res[i] = (float)self.expressions[i].po;
+    GenericMathMapping::exec_polyphonic(self, res);
 
     // Combine
     output(std::move(res));

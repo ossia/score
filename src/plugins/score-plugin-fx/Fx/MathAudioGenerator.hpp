@@ -92,6 +92,10 @@ struct Node
       expr.rebase_vector("m1", m1);
       expr.rebase_vector("m2", m2);
       expr.rebase_vector("m3", m3);
+
+      // The vector sizes are baked into the compiled expression: it has to be
+      // parsed again against the new channel count.
+      expr.recompile();
     }
     std::vector<double> cur_out{};
     double cur_time{};
@@ -119,10 +123,16 @@ struct Node
     // if(tk.forward())
     {
       self.fs = setup.rate;
-      if(!self.expr.set_expression(inputs.expr))
+      self.expr.set_expression(inputs.expr);
+
+      // May recompile: validity is checked afterwards so that a channel-count
+      // change can rescue an expression that did not compile against the
+      // previous one.
+      self.reset_symbols(chans);
+
+      if(!self.expr.valid())
         return;
 
-      self.reset_symbols(chans);
       self.a = this->inputs.a;
       self.b = this->inputs.b;
       self.c = this->inputs.c;
