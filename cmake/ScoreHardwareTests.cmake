@@ -96,6 +96,14 @@ endfunction()
 #                  but no PipeWire graph)
 #   MEDIA          per-pixel-format H.264 / raw clips
 #   MATRIX         the container x codec matrix and its known-pixel master
+# ctest runs a .sh through an explicit interpreter where the system shell is not
+# a POSIX one. On Windows that is msys2's bash, which also carries the ffmpeg and
+# GStreamer the harnesses need; elsewhere the shebang suffices and this is empty.
+if(WIN32 AND NOT DEFINED SCORE_MEDIA_TEST_SHELL)
+  find_program(SCORE_MEDIA_TEST_SHELL NAMES bash
+    DOC "POSIX shell used to run the media test harnesses")
+endif()
+
 function(score_add_media_test)
   cmake_parse_arguments(ARG
     "VIRTUAL_VIDEO;GSTREAMER;MEDIA;MATRIX;OPTIONAL"
@@ -129,17 +137,22 @@ function(score_add_media_test)
     list(APPEND _flags --matrix)
   endif()
 
-  # SCORE_MEDIA_TEST_WRAPPER is with-virtual-media.sh: it provisions v4l2loopback,
-  # PipeWire and the GStreamer stack the harnesses read. A platform with no shell
-  # harness cannot run it, and registering it there turns every media test into
-  # ctest BAD_COMMAND -- which reads as a failure of the test rather than of the
-  # platform. Same guard the shell harnesses in tests/integration already carry.
-  if(NOT SCORE_HAS_SHELL_HARNESS)
+  # SCORE_MEDIA_TEST_WRAPPER is with-virtual-media.sh. ctest cannot exec a .sh
+  # directly on Windows -- that, not the absence of a POSIX shell, is why every
+  # media test reported BAD_COMMAND there. msys2 supplies bash, ffmpeg and the
+  # GStreamer stack, so the harnesses run once they are invoked THROUGH it.
+  if(SCORE_MEDIA_TEST_SHELL)
+    add_test(NAME ${ARG_NAME}
+      COMMAND "${SCORE_MEDIA_TEST_SHELL}" "${SCORE_MEDIA_TEST_WRAPPER}"
+              ${_flags} -- "${_exe}" ${ARG_ARGS})
+  elseif(SCORE_HAS_SHELL_HARNESS)
+    add_test(NAME ${ARG_NAME}
+      COMMAND "${SCORE_MEDIA_TEST_WRAPPER}" ${_flags} -- "${_exe}" ${ARG_ARGS})
+  else()
+    # No shell at all: registering it would report BAD_COMMAND, which reads as a
+    # failure of the test rather than of the machine.
     return()
   endif()
-
-  add_test(NAME ${ARG_NAME}
-    COMMAND "${SCORE_MEDIA_TEST_WRAPPER}" ${_flags} -- "${_exe}" ${ARG_ARGS})
 
   set_tests_properties(${ARG_NAME} PROPERTIES
     LABELS "media"
@@ -150,6 +163,15 @@ function(score_add_media_test)
 
   # Only an explicitly OPTIONAL test may skip; everything else must run.
   if(ARG_OPTIONAL)
+    set_property(TEST ${ARG_NAME} PROPERTY SKIP_RETURN_CODE 77)
+  endif()
+
+  # A v4l2loopback + PipeWire graph exists only on Linux. The wrapper already
+  # turns a missing prerequisite into exit 77 under SCORE_MEDIA_TESTS_OPTIONAL,
+  # so ask for that rather than letting the platform look like a broken test.
+  if(ARG_VIRTUAL_VIDEO AND NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set_property(TEST ${ARG_NAME} APPEND PROPERTY
+      ENVIRONMENT "SCORE_MEDIA_TESTS_OPTIONAL=1")
     set_property(TEST ${ARG_NAME} PROPERTY SKIP_RETURN_CODE 77)
   endif()
 
