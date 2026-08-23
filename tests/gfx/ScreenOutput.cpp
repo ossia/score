@@ -251,6 +251,71 @@ TEST_CASE("ScreenNode survives hide and re-show", "[gfx][window][screen]")
   CHECK(renderedAfter);
 }
 
+TEST_CASE("a re-shown window presents frames again", "[gfx][window][screen]")
+{
+  // "ScreenNode survives hide and re-show" above asserts canRender(), which is
+  // only `m_window && m_hasSwapChain`: it stays true while render() early-returns
+  // on a latched m_notExposed, so it cannot see a window that has stopped
+  // presenting. The user-visible symptom -- hide, show, and the output is dead
+  // until the device is disconnected and reconnected -- is counted here off
+  // Window::onRender, which runs only for a frame that actually reached the
+  // surface.
+  const auto api = GENERATE(from_range(platform_backends()));
+
+  Outcome o;
+  int before{}, after{};
+  bool exposedAfter{};
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    ScreenRig rig;
+    if(!rig.build(api))
+    {
+      o.skipped = !rig.skipReason().empty();
+      o.skipReason = rig.skipReason();
+      o.error = rig.error();
+      return;
+    }
+    o.backend = rig.backend();
+
+    auto* win = rig.window();
+    REQUIRE(win != nullptr);
+
+    // Chain, never replace: ScreenNode's own onRender is what draws the graph.
+    int presented = 0;
+    auto inner = win->onRender;
+    win->onRender = [&presented, inner](QRhiCommandBuffer& cb) {
+      ++presented;
+      if(inner)
+        inner(cb);
+    };
+
+    rig.render(30);
+    before = presented;
+
+    win->hide();
+    pump_until([&] { return !win->isExposed(); }, 3000);
+    rig.render(10);
+
+    win->show();
+    pump_until([&] { return win->isExposed(); }, 5000);
+    exposedAfter = win->isExposed();
+
+    presented = 0;
+    rig.render(30);
+    after = presented;
+
+    win->onRender = inner;
+  });
+
+  if(o.skipped)
+    SKIP(o.skipReason);
+  INFO("backend: " << o.backend);
+  REQUIRE(o.error.empty());
+  INFO("presented before hide: " << before << ", after re-show: " << after);
+  REQUIRE(before > 0);
+  CHECK(exposedAfter);
+  CHECK(after > 0);
+}
+
 TEST_CASE("Window swapchain release and re-create", "[gfx][window][screen]")
 {
   const auto api = GENERATE(from_range(platform_backends()));
