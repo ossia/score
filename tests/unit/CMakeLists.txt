@@ -480,3 +480,8 @@ score_add_test(test_unit_cable_drag_autoscroll
   SOURCES CableDragAutoScrollTest.cpp
   APP
   PLUGINS score_lib_process)
+
+# Multi-line "pretty" rendering of nested values (Value display process).
+score_add_test(test_unit_value_pretty_print
+  SOURCES ValuePrettyPrintTest.cpp
+  PLUGINS score_lib_state)
