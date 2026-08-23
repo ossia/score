@@ -447,6 +447,7 @@ score_add_test(test_regression_splat_reload
 # needs the out-of-repo shader corpus, keyed off SCORE_SHADER_LIBRARY_DIR
 # like the other shader sweeps. Labelled "gui" so display-less CI can gate
 # them out, RUN_SERIAL because each spawns a full GL app per case.
+if(SCORE_HAS_SHELL_HARNESS)
 foreach(sweep object_render_sweep:render-sweep.sh object_csf_sweep:csf-sweep.sh)
   string(REPLACE ":" ";" _s "${sweep}")
   list(GET _s 0 _sweep_name)
@@ -461,3 +462,4 @@ foreach(sweep object_render_sweep:render-sweep.sh object_csf_sweep:csf-sweep.sh)
     LABELS "gui;sweep"
     ENVIRONMENT "OBJECT_GALLERY=$<TARGET_FILE:ObjectGallery>;SCORE_AUDIO_BACKEND=dummy;ASAN_OPTIONS=detect_leaks=0:halt_on_error=0")
 endforeach()
+endif()
