@@ -434,3 +434,132 @@ TEST_CASE("LFO v2: deterministic waveform math (jitter = 0)", "[fx][lfo]")
     CHECK(*lfo.outputs.out.value == Approx(0.).margin(1e-9));
   }
 }
+
+TEST_CASE("MathAudioFilter: more channels than the initial two", "[fx][audio][exprtk]")
+{
+  // The ExprTK vector views for x / out / px are created against the node's
+  // initial 2-channel buffers. Growing the bus has to grow the views too:
+  // otherwise the expression only ever sees the first two channels.
+  static constexpr int N = 4;
+  static constexpr int C = 6;
+  std::array<std::array<double, N>, C> in{}, out{};
+  double* ins[C]{};
+  double* outs[C]{};
+  for(int c = 0; c < C; c++)
+  {
+    in[c].fill(c + 1);
+    ins[c] = in[c].data();
+    outs[c] = out[c].data();
+  }
+
+  filter_harness h;
+  h.wire(ins, outs, C);
+  h.node.inputs.expr.value
+      = "var n := x[];\nfor(var i := 0; i < n; i += 1) { out[i] := x[i] * 10; }";
+  h.run(N);
+
+  for(int c = 0; c < C; c++)
+    for(int i = 0; i < N; i++)
+      CHECK(out[c][i] == Approx((c + 1) * 10.));
+}
+
+TEST_CASE("MathAudioFilter: x[] reports the actual channel count", "[fx][audio][exprtk]")
+{
+  static constexpr int N = 2;
+  static constexpr int C = 4;
+  std::array<std::array<double, N>, C> in{}, out{};
+  double* ins[C]{};
+  double* outs[C]{};
+  for(int c = 0; c < C; c++)
+  {
+    ins[c] = in[c].data();
+    outs[c] = out[c].data();
+  }
+
+  filter_harness h;
+  h.wire(ins, outs, C);
+  h.node.inputs.expr.value = "for(var i := 0; i < x[]; i += 1) { out[i] := x[]; }";
+  h.run(N);
+
+  for(int c = 0; c < C; c++)
+    CHECK(out[c][0] == Approx((double)C));
+}
+
+TEST_CASE("MathAudioFilter: a stereo expression on a mono bus is not fatal", "[fx][audio][exprtk]")
+{
+  // The shipped "Crude Lowpass" / "Tan Disto" presets index x[1] / out[1]
+  // explicitly: on a mono bus they cannot be compiled, which must leave the
+  // output untouched rather than reading past the one-element vector view.
+  static constexpr int N = 4;
+  std::array<double, N> in{1, 2, 3, 4};
+  std::array<double, N> out{-1, -1, -1, -1};
+  double* ins[1]{in.data()};
+  double* outs[1]{out.data()};
+
+  filter_harness h;
+  h.wire(ins, outs, 1);
+  h.node.inputs.expr.value
+      = "out[0] := clamp(-1,  tan(x[0]*a), 1);\nout[1] := clamp(-1,  tan(x[1]*a), 1);";
+  h.run(N);
+
+  for(int i = 0; i < N; i++)
+    CHECK(out[i] == -1.);
+}
+
+TEST_CASE("MathAudioFilter: shipped presets run on a stereo bus", "[fx][audio][exprtk][presets]")
+{
+  struct preset
+  {
+    const char* expr;
+    // "Aggressive shaping" raises the (bipolar) input to a fractional power,
+    // which is NaN for negative samples: that is the preset's own doing, so
+    // only its ability to run is checked.
+    bool finite;
+  };
+  const preset presets[]{
+      {"out := sin ((c +100 a) (x ^ (b x)))", false},
+      {"out := 2 (100 a x) ^ 2 - 1", true},
+      {"out := 4 (100 a x) ^ 3 - 3 (100 a x) ", true},
+      {"out := 8 (100 a x) ^ 4 - 8 (100 a x) ^ 2 + 1", true},
+      {"out[0] := clamp(-1,  ((1-2*a) * x[0]+2*a*px[0]), 1);\n"
+       "out[1] := clamp(-1,  ((1-2*a) * x[1]+2*a*px[1]), 1);",
+       true},
+      {"out[0] := clamp(-1,  (x[0]*x[0]*x[0]*a), 1);\n"
+       "out[1] := clamp(-1,  (x[1]*x[1]*x[1]*a), 1);",
+       true},
+      {"out := (round(x 50 a) / (50 a))", true},
+      {"out := erf(x *(1 + 100 a)) / (1 + 100 a)", true},
+      {"\nout[0] := clamp(-1,  tan(x[0]*log(1 + 200 * a)), 1);\n"
+       "out[1] := clamp(-1,  tan(x[1]*log(1 + 200 * a)), 1);",
+       true},
+      {"out := (100 a x) / (1 + abs(100 a x))", true},
+      {"out := 1.5 (100 a x) - 0.5 ((100 a x) ^ 3)", true},
+      {"out[0] := clamp(-1,  sin(x[0]*a), 1);\nout[1] := clamp(-1,  sin(x[1]*a), 1);",
+       true},
+      {"\nout[0] := clamp(-1,  tan(x[0]*a), 1);\nout[1] := clamp(-1,  tan(x[1]*a), 1);",
+       true},
+  };
+
+  static constexpr int N = 16;
+  for(const auto& [expr, finite] : presets)
+  {
+    INFO(expr);
+    std::array<double, N> l{}, r{}, ol{}, or_{};
+    for(int i = 0; i < N; i++)
+      l[i] = r[i] = std::sin(i * 0.3);
+    double* ins[2]{l.data(), r.data()};
+    double* outs[2]{ol.data(), or_.data()};
+
+    filter_harness h;
+    h.wire(ins, outs, 2);
+    h.node.inputs.expr.value = expr;
+    h.node.inputs.a.value = 0.5f;
+    h.node.inputs.b.value = 0.5f;
+    h.node.inputs.c.value = 0.5f;
+    h.run(N);
+
+    if(finite)
+      for(int i = 0; i < N; i++)
+        CHECK_FALSE(std::isnan(ol[i]));
+  }
+}

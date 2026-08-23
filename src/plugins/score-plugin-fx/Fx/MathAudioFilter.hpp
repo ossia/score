@@ -100,6 +100,10 @@ struct Node
       expr.rebase_vector("m1", m1);
       expr.rebase_vector("m2", m2);
       expr.rebase_vector("m3", m3);
+
+      // The vector sizes are baked into the compiled expression: it has to be
+      // parsed again against the new channel count.
+      expr.recompile();
     }
 
     std::vector<double> cur_in{};
@@ -124,15 +128,20 @@ struct Node
     //if(tk.date > tk.prev_date)
     {
       self.fs = setup.rate;
-      if(!self.expr.set_expression(inputs.expr))
-        return;
+      self.expr.set_expression(inputs.expr);
 
       if(inputs.audio.channels == 0)
         return;
 
       // FIXME allow input channels != output channels ?
       const int chans = inputs.audio.channels;
+      // May recompile: the expression is checked for validity afterwards, so
+      // that a channel-count change can rescue an expression that could not be
+      // compiled against the previous one.
       self.reset_symbols(chans);
+
+      if(!self.expr.valid())
+        return;
 
       self.a = this->inputs.a;
       self.b = this->inputs.b;

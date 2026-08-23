@@ -111,18 +111,20 @@ struct Node
     if(!std::exchange(trigger, false))
       return;
     auto& self = this->state;
-    if(!self.expr.set_expression(this->inputs.expr))
-      return;
+    const bool compiled = self.expr.set_expression(this->inputs.expr);
 
     self.a = this->inputs.a;
     self.b = this->inputs.b;
     self.c = this->inputs.c;
     self.fs = setup.rate;
 
+    // has_variable is a lexical query, so the array path stays selected even
+    // when the expression does not currently compile against the vector sizes
+    // in place: run_array re-points the views and recompiles.
     if(self.expr.has_variable("xv"))
       GenericMathMapping<State>::run_array(
           inputs.port.value, outputs.port.call, tk, state);
-    else
+    else if(compiled)
       GenericMathMapping<State>::run_scalar(
           inputs.port.value, outputs.port.call, tk, state);
 

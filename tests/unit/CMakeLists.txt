@@ -260,7 +260,30 @@ if(TARGET score_plugin_fx)
   score_add_test(test_unit_fx_audio_dsp
     SOURCES FxAudioDspTest.cpp
     PLUGINS score_plugin_fx)
+
+  # The value-domain ExprTK processes (Micromap, Expression Value Filter /
+  # Generator, Arraymap, Arraygen) driven through GenericMathMapping, with the
+  # expressions that actually ship in packages/default/Presets.
+  score_add_test(test_unit_fx_expression
+    SOURCES FxExpressionTest.cpp
+    PLUGINS score_plugin_fx)
+
+  # Conformance sweep over every ExprTK preset shipped in the score user
+  # library: each one must compile, keep the shape its node promises, and never
+  # produce a NaN or an infinity. The corpus header is generated from the .scp
+  # files by tools/gen-expression-preset-corpus.js.
+  score_add_test(test_unit_expression_presets
+    SOURCES ExpressionPresetsTest.cpp
+    PLUGINS score_plugin_fx)
 endif()
+
+# --- ExprTK wrapper ----------------------------------------------------------
+# ossia::math_expression itself: the `return [...]` results protocol, the
+# lexical has_variable() query the nodes switch on, ExprTK vector views and the
+# score-specific function library.
+score_add_test(test_unit_math_expression
+  SOURCES MathExpressionTest.cpp
+  LIBS ossia)
 
 score_add_test(test_unit_audio_gain_pan
   SOURCES AudioGainPanTest.cpp)
@@ -439,3 +462,15 @@ if(TARGET score_plugin_vst3 AND TARGET score_plugin_clap)
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst3"
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-clap")
 endif()
+
+# --- beat tracker DSP -------------------------------------------------------
+# The ODF's fixed internal hop (independence from the host block size), onset
+# timing, tempo lock, the DLL's convergence/monotonicity/continuity contract,
+# the error pre-filter, hold/re-lock across silence, and tap tempo semantics.
+score_add_test(test_unit_beat_tracker
+  SOURCES BeatTrackerTest.cpp
+  LIBS ossia)
+target_include_directories(test_unit_beat_tracker SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include")
+target_include_directories(test_unit_beat_tracker PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd")
