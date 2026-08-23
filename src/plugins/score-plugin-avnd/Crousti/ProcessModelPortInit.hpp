@@ -227,6 +227,8 @@ struct InletInitFunc
             !std::is_same_v<port_ptr_type, Process::ControlInlet*>
             && !std::is_same_v<port_ptr_type, Process::ValueInlet*>)
           p->displayHandledExplicitly = true;
+
+        setupNewPort(in, p);
         ins.push_back(p);
       }
       else
@@ -366,6 +368,7 @@ struct OutletInitFunc
              avnd::field_index<N>{}, Id<Process::Port>(outlet), &self))
       {
         p->displayHandledExplicitly = true;
+        setupNewPort(out, p);
         outs.push_back(p);
       }
       else

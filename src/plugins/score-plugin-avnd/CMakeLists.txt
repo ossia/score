@@ -682,6 +682,20 @@ avnd_make_score(
   NAMESPACE avnd_tools
 )
 
+avnd_make_score(
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/PointTracker.hpp"
+  TARGET point_tracker_2d
+  MAIN_CLASS PointTracker2D
+  NAMESPACE avnd_tools
+)
+
+avnd_make_score(
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/PointTracker.hpp"
+  TARGET point_tracker_3d
+  MAIN_CLASS PointTracker3D
+  NAMESPACE avnd_tools
+)
+
 if(NOT SCORE_GCC_MEMORY_EXPLOSION)
 avnd_make_score(
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/Table.hpp"
@@ -715,6 +729,20 @@ avnd_make_score(
     TARGET avnd_midi_sync
     MAIN_CLASS MIDISyncOut
     NAMESPACE mtk
+)
+
+avnd_make_score(
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/BeatTracker.hpp"
+  TARGET beat_tracker
+  MAIN_CLASS BeatTracker
+  NAMESPACE avnd_tools
+)
+
+avnd_make_score(
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/EntityToMidi.hpp"
+  TARGET entity_to_midi
+  MAIN_CLASS EntityToMidi
+  NAMESPACE avnd_tools
 )
 
 avnd_make_score(
@@ -1212,6 +1240,12 @@ endFunction()
 # Commands
 addAvndTest(ossia_value_Test
              "${CMAKE_CURRENT_SOURCE_DIR}/Tests/from_ossia_value_Test.cpp")
+addAvndTest(point_tracker_Test
+             "${CMAKE_CURRENT_SOURCE_DIR}/Tests/PointTracker_Test.cpp")
+target_include_directories(Avnd_point_tracker_Test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+addAvndTest(entity_to_midi_Test
+             "${CMAKE_CURRENT_SOURCE_DIR}/Tests/EntityToMidi_Test.cpp")
+target_include_directories(Avnd_entity_to_midi_Test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
 endif()
 
 set(CMAKE_AUTOMOC OFF)
