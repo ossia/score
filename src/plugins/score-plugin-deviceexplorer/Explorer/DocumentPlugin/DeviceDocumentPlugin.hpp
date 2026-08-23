@@ -82,8 +82,9 @@ public:
    * @brief Re-explores the device's namespace and shows the result in the
    * explorer, in place of the device's current tree.
    *
-   * Only for devices which can refresh their tree. If the device is not
-   * reachable, the current tree is kept rather than replaced by nothing.
+   * Only for devices which can refresh their tree. If the exploration yields
+   * nothing (device unreachable, namespace not received in time), the current
+   * tree is kept rather than replaced by nothing.
    * Returns true if the tree was replaced.
    */
   bool refreshDeviceTree(Device::DeviceInterface& dev);
@@ -120,6 +121,8 @@ private:
       m_connections;
   // Devices with a refreshDeviceTreeOnReconnect() pending.
   ossia::hash_set<Device::DeviceInterface*> m_pendingTreeRefresh;
+  // Devices with a deferred refreshDeviceTree() already queued.
+  ossia::hash_set<Device::DeviceInterface*> m_queuedTreeRefresh;
 
   void asyncConnect(Device::DeviceInterface& newdev);
   void timerEvent(QTimerEvent* event) override;
