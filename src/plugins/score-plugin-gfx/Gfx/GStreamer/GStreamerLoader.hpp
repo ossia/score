@@ -127,23 +127,25 @@ typedef uint64_t GstClockTime;
 #define GST_CLOCK_TIME_NONE ((GstClockTime)-1)
 #define GST_SECOND ((GstClockTime)1000000000)
 
+// GType is gsize, which is pointer-sized: eight bytes on the LP64 platforms
+// and on Windows, where unsigned long is four. Getting this wrong shifts every
+// field that follows a GType in the structures below.
+typedef std::size_t GType;
+
 // GLib type constants for gst_caps_new_simple varargs
 // GLib/GObject fundamental type IDs
-#define G_TYPE_BOOLEAN ((unsigned long)5 << 2)
-#define G_TYPE_INT ((unsigned long)6 << 2)
-#define G_TYPE_UINT ((unsigned long)7 << 2)
-#define G_TYPE_LONG ((unsigned long)8 << 2)
-#define G_TYPE_ULONG ((unsigned long)9 << 2)
-#define G_TYPE_INT64 ((unsigned long)10 << 2)
-#define G_TYPE_UINT64 ((unsigned long)11 << 2)
-#define G_TYPE_FLOAT ((unsigned long)14 << 2)
-#define G_TYPE_DOUBLE ((unsigned long)15 << 2)
-#define G_TYPE_STRING ((unsigned long)16 << 2)
-#define G_TYPE_ENUM ((unsigned long)12 << 2)
-#define G_TYPE_FLAGS ((unsigned long)13 << 2)
-
-// GType is unsigned long
-typedef unsigned long GType;
+#define G_TYPE_BOOLEAN ((GType)5 << 2)
+#define G_TYPE_INT ((GType)6 << 2)
+#define G_TYPE_UINT ((GType)7 << 2)
+#define G_TYPE_LONG ((GType)8 << 2)
+#define G_TYPE_ULONG ((GType)9 << 2)
+#define G_TYPE_INT64 ((GType)10 << 2)
+#define G_TYPE_UINT64 ((GType)11 << 2)
+#define G_TYPE_FLOAT ((GType)14 << 2)
+#define G_TYPE_DOUBLE ((GType)15 << 2)
+#define G_TYPE_STRING ((GType)16 << 2)
+#define G_TYPE_ENUM ((GType)12 << 2)
+#define G_TYPE_FLAGS ((GType)13 << 2)
 
 // GParamSpec: property metadata
 typedef struct _GParamSpec
