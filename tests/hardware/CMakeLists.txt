@@ -102,6 +102,7 @@ if(TARGET test_integration_pipewire_video_motion)
   score_add_media_test(
     NAME       Media_PipewireVideoMotion
     EXECUTABLE test_integration_pipewire_video_motion
+    PIPEWIRE
     TIMEOUT    600)
 endif()
 
