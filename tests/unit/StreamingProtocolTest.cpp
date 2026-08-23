@@ -61,6 +61,10 @@ std::string port(int p)
   return std::to_string(p);
 }
 
+// freeUdpPort/freeTcpPort come from score_test/StreamServer.hpp, which is
+// POSIX-only; every case that uses these two peer builders is already inside
+// the same guard.
+#if !defined(_WIN32)
 // One row per protocol. The media is always the same master clip, so the
 // picture that comes back is comparable across all of them.
 std::vector<Peer> peers()
@@ -148,6 +152,8 @@ Peer ristPeer()
            {"analyzeduration", "5000000"},
            {"probesize", "5000000"}}};
 }
+
+#endif
 
 // Opens the input, retrying while the peer is still coming up. Returns the
 // number of frames whose picture matched a master frame.
