@@ -89,6 +89,7 @@
 
 #include <wobjectimpl.h>
 
+#include <functional>
 #include <set>
 #include <stdexcept>
 W_OBJECT_IMPL(Explorer::DeviceExplorerWidget)
@@ -208,7 +209,9 @@ DeviceExplorerWidget::DeviceExplorerWidget(
   connect(
       m_ntView, &DeviceExplorerView::created, this,
       [&](const QModelIndex& parent, int start, int end) {
-    if(m_listeningManager)
+    // Only what is visible is listened to: rows under a folded parent will
+    // be when it is unfolded (QTreeView::expanded below).
+    if(m_listeningManager && parent.isValid() && m_ntView->isExpanded(parent))
     {
       for(int i = start; i <= end; i++)
       {
@@ -556,6 +559,10 @@ void DeviceExplorerWidget::setModel(DeviceExplorerModel* model)
   m_listeningManager.reset();
   QObject::disconnect(m_modelCon);
   QObject::disconnect(m_addressCon);
+  for(auto& con : m_listeningCons)
+    QObject::disconnect(con);
+  m_listeningCons.clear();
+  m_savedExpansion.clear();
 
   if(model)
   {
@@ -581,6 +588,83 @@ void DeviceExplorerWidget::setModel(DeviceExplorerModel* model)
               m_listeningManager->enableListening(*n);
           }
         });
+
+    // What leaves the tree is no longer listened to - whatever the reason
+    // (removal of a node or of a device, a device tree being swapped). The
+    // device forgets the request so that a later restoreListening() does not
+    // bring nodes back that are not shown.
+    m_listeningCons.push_back(connect(
+        model, &QAbstractItemModel::rowsAboutToBeRemoved, this,
+        [this, model](const QModelIndex& parent, int first, int last) {
+      if(!m_listeningManager)
+        return;
+      for(int i = first; i <= last; i++)
+      {
+        auto idx = model->index(i, 0, parent);
+        if(idx.isValid())
+          m_listeningManager->disableListening(model->nodeFromModelIndex(idx));
+      }
+        }));
+
+    // A device tree being swapped in place (after re-exploring its namespace)
+    // keeps the unfolding it had: the same addresses end up shown, and
+    // expanding them again is what brings the listening back.
+    m_listeningCons.push_back(connect(
+        model, &DeviceExplorerModel::deviceTreeAboutToChange, this,
+        [this, model](Device::Node* device) {
+      m_savedExpansion.clear();
+      if(!device)
+        return;
+      auto dev_idx = model->modelIndexFromNode(*device, 0);
+      if(!m_ntView->isExpanded(proxyIndex(dev_idx)))
+        return;
+
+      // Pre-order, so that parents are expanded before their children
+      std::function<void(const QModelIndex&, const QStringList&)> visit
+          = [&](const QModelIndex& parent, const QStringList& path) {
+        const int n = model->rowCount(parent);
+        for(int i = 0; i < n; i++)
+        {
+          auto idx = model->index(i, 0, parent);
+          if(!m_ntView->isExpanded(proxyIndex(idx)))
+            continue;
+          auto& node = model->nodeFromModelIndex(idx);
+          QStringList sub = path;
+          sub.push_back(node.displayName());
+          m_savedExpansion.push_back(sub);
+          visit(idx, sub);
+        }
+      };
+      visit(dev_idx, {});
+        }));
+
+    m_listeningCons.push_back(connect(
+        model, &DeviceExplorerModel::deviceTreeChanged, this,
+        [this, model](Device::Node* device) {
+      auto saved = std::move(m_savedExpansion);
+      m_savedExpansion.clear();
+      if(!device || saved.empty())
+        return;
+
+      for(const auto& path : saved)
+      {
+        // Walk down by name; a path that no longer exists is simply skipped
+        Device::Node* node = device;
+        for(const auto& name : path)
+        {
+          auto it = ossia::find_if(
+              *node, [&](const Device::Node& c) { return c.displayName() == name; });
+          if(it == node->end())
+          {
+            node = nullptr;
+            break;
+          }
+          node = &*it;
+        }
+        if(node)
+          m_ntView->setExpanded(proxyIndex(model->modelIndexFromNode(*node, 0)), true);
+      }
+        }));
 
     connect(
         model, &DeviceExplorerModel::dataChanged, this,
@@ -1001,6 +1085,7 @@ void DeviceExplorerWidget::reconnect()
         if(newd)
         {
           dev.recreate(select);
+          dev.restoreListening();
           QObject::disconnect(*con_handle);
         }
           });

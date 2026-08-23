@@ -52,6 +52,21 @@ void ListeningManager::enableListening(Device::Node& node)
   dev.request(node);
 }
 
+void ListeningManager::disableListening(Device::Node& node)
+{
+  // The device may already be gone (removal of the device itself)
+  auto& list = m_model.deviceModel().list();
+  Device::DeviceInterface* dev{};
+  if(node.is<Device::AddressSettings>())
+    dev = list.findDevice(Device::address(node).address.device);
+  else if(node.is<Device::DeviceSettings>())
+    dev = list.findDevice(node.get<Device::DeviceSettings>().name);
+  if(!dev)
+    return;
+
+  disableListening_rec(node, *dev, m_handler);
+}
+
 void ListeningManager::disableListening_rec(
     const Device::Node& node, Device::DeviceInterface& dev, ListeningHandler& lm)
 {

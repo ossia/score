@@ -20,6 +20,9 @@ public:
   ListeningManager(DeviceExplorerModel&, const DeviceExplorerWidget&);
 
   void enableListening(Device::Node& node);
+  //! Stops listening to a node and everything below it: for nodes that leave
+  //! the tree (their device keeps the request otherwise).
+  void disableListening(Device::Node& node);
   void setListening(const QModelIndex& idx, bool b);
   void resetListening(Device::Node& idx);
 

@@ -401,6 +401,9 @@ void DeviceInterface::updateSettings(const Device::DeviceSettings& newsettings)
       if(newd)
       {
         recreate(std::move(data));
+        // The new ossia nodes carry no callbacks: listen again to what the
+        // explorer shows.
+        restoreListening();
         QObject::disconnect(*con_handle);
       }
         });
@@ -807,11 +810,46 @@ void DeviceInterface::setListening(const State::Address& addr, bool b)
   static const bool gui = score::AppContext().applicationSettings.gui;
   if(!gui)
     return;
+
+  // Remember the request even when the device is not connected, or the
+  // address does not exist yet: restoreListening() applies it once it does.
+  if(b)
+    m_listeningRequests.insert(addr);
+  else
+    m_listeningRequests.erase(addr);
+
+  listen_impl(addr, b);
+}
+
+std::vector<State::Address> DeviceInterface::listeningRequests() const
+{
+  return std::vector<State::Address>(
+      m_listeningRequests.begin(), m_listeningRequests.end());
+}
+
+void DeviceInterface::restoreListening()
+{
+  static const bool gui = score::AppContext().applicationSettings.gui;
+  if(!gui)
+    return;
+  if(!getDevice())
+    return;
+
+  for(const auto& addr : m_listeningRequests)
+    listen_impl(addr, true);
+}
+
+bool DeviceInterface::listen_impl(const State::Address& addr, bool b)
+{
   if(auto dev = getDevice())
   {
     // First check if the address is already listening
     // so that we don't have to go through the tree.
     auto cb_it = m_callbacks.find(addr);
+
+    // Nothing to stop: do not even look the node up (it may well be gone)
+    if(!b && cb_it == m_callbacks.end())
+      return false;
 
     ossia::net::parameter_base* ossia_addr{};
     if(cb_it == m_callbacks.end())
@@ -819,12 +857,12 @@ void DeviceInterface::setListening(const State::Address& addr, bool b)
       auto n = findNodeFromPath(addr.path, *dev);
       if(!n)
       {
-        return;
+        return false;
       }
 
       ossia_addr = n->get_parameter();
       if(!ossia_addr)
-        return;
+        return false;
     }
     else
     {
@@ -832,7 +870,7 @@ void DeviceInterface::setListening(const State::Address& addr, bool b)
       if(!ossia_addr)
       {
         m_callbacks.erase(cb_it);
-        return;
+        return false;
       }
     }
 
@@ -863,7 +901,9 @@ void DeviceInterface::setListening(const State::Address& addr, bool b)
         m_callbacks.erase(cb_it);
       }
     }
+    return true;
   }
+  return false;
 }
 
 std::vector<State::Address> DeviceInterface::listening() const

@@ -48,6 +48,10 @@
 #include <set>
 #include <string>
 
+#include "FakeDeviceProtocol.hpp"
+
+using namespace score::test::fake;
+
 namespace
 {
 void spin(int ms)
@@ -61,165 +65,6 @@ void spin(int ms)
 }
 
 //! Knobs of the fake protocol, shared by all its devices.
-struct FakeOptions
-{
-  bool canRefreshTree{true};
-  bool canSerialize{true};
-  //! The device connects (false: like an OSCQuery host that is down).
-  bool available{true};
-  //! The device connects from the event loop rather than right away, like the
-  //! protocols which resolve their host in a thread.
-  bool deferConnect{false};
-
-  int refreshCount{};
-  int connectCount{};
-};
-FakeOptions g_opts;
-
-QStringList remoteOf(const Device::DeviceSettings& s)
-{
-  return s.deviceSpecificSettings.toStringList();
-}
-
-class FakeDevice final : public Device::OwningDeviceInterface
-{
-public:
-  explicit FakeDevice(const Device::DeviceSettings& s)
-      : OwningDeviceInterface{s}
-  {
-    m_capas.canRefreshTree = g_opts.canRefreshTree;
-    m_capas.canSerialize = g_opts.canSerialize;
-    m_capas.canLearn = true;
-  }
-
-  bool reconnect() override
-  {
-    disconnect();
-    if(!g_opts.available)
-    {
-      connectionChanged(false);
-      return false;
-    }
-
-    if(g_opts.deferConnect)
-    {
-      QTimer::singleShot(0, this, [self = QPointer{this}] {
-        if(self)
-          self->connectNow();
-      });
-      return false;
-    }
-
-    connectNow();
-    return true;
-  }
-
-  void connectNow()
-  {
-    g_opts.connectCount++;
-    auto dev = new ossia::net::generic_device{
-        std::make_unique<ossia::net::multiplex_protocol>(),
-        settings().name.toStdString()};
-    for(const auto& name : remoteOf(settings()))
-      ossia::create_parameter(dev->get_root_node(), name.toStdString(), "float");
-
-    replaceDevice(dev);
-    connectionChanged(true);
-  }
-
-  void recreate(const Device::Node& n) override
-  {
-    for(auto& child : n)
-      addNode(child);
-  }
-
-  Device::Node refresh() override
-  {
-    g_opts.refreshCount++;
-    if(!connected())
-      return Device::Node{settings(), nullptr};
-    return simple_refresh();
-  }
-};
-
-class FakeSettingsWidget final : public Device::ProtocolSettingsWidget
-{
-public:
-  Device::DeviceSettings m_settings;
-  Device::DeviceSettings getSettings() const override { return m_settings; }
-  void setSettings(const Device::DeviceSettings& s) override { m_settings = s; }
-};
-
-class FakeFactory final : public Device::ProtocolFactory
-{
-  SCORE_CONCRETE("0b1f4c6e-2d3a-4e5f-8a9b-7c6d5e4f3a2b")
-public:
-  QString prettyName() const noexcept override { return QStringLiteral("Fake"); }
-  QString category() const noexcept override { return QStringLiteral("Test"); }
-
-  Device::DeviceInterface* makeDevice(
-      const Device::DeviceSettings& s, const Explorer::DeviceDocumentPlugin&,
-      const score::DocumentContext&) override
-  {
-    return new FakeDevice{s};
-  }
-  Device::ProtocolSettingsWidget* makeSettingsWidget() override
-  {
-    return new FakeSettingsWidget;
-  }
-  Device::AddressDialog* makeAddAddressDialog(
-      const Device::DeviceInterface&, const score::DocumentContext&, QWidget*) override
-  {
-    return nullptr;
-  }
-  Device::AddressDialog* makeEditAddressDialog(
-      const Device::AddressSettings&, const Device::DeviceInterface&,
-      const score::DocumentContext&, QWidget*) override
-  {
-    return nullptr;
-  }
-  const Device::DeviceSettings& defaultSettings() const noexcept override
-  {
-    static const Device::DeviceSettings s = [] {
-      Device::DeviceSettings set;
-      set.name = QStringLiteral("fake");
-      set.protocol = static_concreteKey();
-      return set;
-    }();
-    return s;
-  }
-  void serializeProtocolSpecificSettings(
-      const QVariant&, const VisitorVariant&) const override
-  {
-  }
-  QVariant makeProtocolSpecificSettings(const VisitorVariant&) const override
-  {
-    return {};
-  }
-  bool checkCompatibility(const Device::DeviceSettings&, const Device::DeviceSettings&)
-      const noexcept override
-  {
-    return true;
-  }
-};
-
-Device::DeviceSettings fakeSettings(QString name, QStringList remote)
-{
-  Device::DeviceSettings s;
-  s.name = std::move(name);
-  s.protocol = FakeFactory::static_concreteKey();
-  s.deviceSpecificSettings = QVariant::fromValue(std::move(remote));
-  return s;
-}
-
-Device::Node leaf(const QString& name)
-{
-  Device::AddressSettings as;
-  as.name = name;
-  as.value = ossia::value{0};
-  as.ioType = ossia::access_mode::BI;
-  return Device::Node{as, nullptr};
-}
 
 struct Fixture
 {
@@ -230,11 +75,7 @@ struct Fixture
   {
     g_opts = {};
 
-    // Register the fake protocol once per process
-    auto& list = const_cast<Device::ProtocolFactoryList&>(
-        ctx.interfaces<Device::ProtocolFactoryList>());
-    if(!list.get(FakeFactory::static_concreteKey()))
-      list.insert(std::make_unique<FakeFactory>());
+    registerFakeProtocol(ctx);
 
     doc = score::test::new_document(ctx);
     REQUIRE(doc);
@@ -513,10 +354,152 @@ TEST_CASE("An exploration that yields nothing never replaces the tree", "[device
     f.addDevice(fakeSettings("cam", {"pan"}));
     REQUIRE(f.tree("cam") == Names{"pan"});
 
+    // What is shown is listened to...
+    auto dev = f.device("cam");
+    REQUIRE(dev);
+    State::Address pan;
+    pan.device = "cam";
+    pan.path = QStringList{"pan"};
+    dev->setListening(pan, true);
+    REQUIRE(dev->listening().size() == 1);
+
     // Edit towards a host that answers nothing
     f.editDevice("cam", fakeSettings("cam", {}));
     spin(20);
     CHECK(f.device("cam")->connected());
     CHECK(f.tree("cam") == Names{"pan"});
+    // ... and still is: the node was replayed into the new device
+    CHECK(dev->listening().size() == 1);
+  });
+}
+
+// ---- Listening --------------------------------------------------------------
+//
+// What the explorer asked to listen to must stay listened to across everything
+// that rebuilds the device's nodes: editing its settings (reconnect + replay),
+// re-exploring its namespace, a request made while it was disconnected.
+
+namespace
+{
+State::Address addr(const QString& device, const QString& name)
+{
+  State::Address a;
+  a.device = device;
+  a.path = QStringList{name};
+  return a;
+}
+
+//! The values the device reported for `name`, through its listening callback.
+struct ValueSpy : Nano::Observer
+{
+  std::vector<ossia::value> values;
+  explicit ValueSpy(Device::DeviceInterface& dev, const QString& name)
+  {
+    dev.valueUpdated.connect<&ValueSpy::on_value>(*this);
+    m_name = name;
+  }
+  void on_value(const State::Address& a, const ossia::value& v)
+  {
+    if(a.path.size() == 1 && a.path[0] == m_name)
+      values.push_back(v);
+  }
+  QString m_name;
+};
+
+void pushRemoteValue(Device::DeviceInterface& dev, const QString& name, float v)
+{
+  auto dev_base = dev.getDevice();
+  REQUIRE(dev_base);
+  auto node = ossia::net::find_node(dev_base->get_root_node(), name.toStdString());
+  REQUIRE(node);
+  REQUIRE(node->get_parameter());
+  node->get_parameter()->push_value(v);
+}
+
+bool listens(Device::DeviceInterface& dev, const QString& name)
+{
+  for(const auto& a : dev.listening())
+    if(a.path.size() == 1 && a.path[0] == name)
+      return true;
+  return false;
+}
+}
+
+TEST_CASE("Listening survives editing the device's settings", "[deviceexplorer][reload][listening]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    Fixture f{ctx};
+    f.addDevice(fakeSettings("cam", {"pan", "tilt"}));
+    auto dev = f.device("cam");
+    REQUIRE(dev);
+
+    dev->setListening(addr("cam", "pan"), true);
+    REQUIRE(listens(*dev, "pan"));
+    ValueSpy spy{*dev, "pan"};
+    pushRemoteValue(*dev, "pan", 0.25f);
+    REQUIRE(spy.values.size() >= 1);
+
+    // Edit: the device reconnects with new nodes, one of them still "pan"
+    f.editDevice("cam", fakeSettings("cam", {"pan", "zoom"}));
+    spin(30);
+    REQUIRE(f.tree("cam").count("zoom") == 1);
+
+    CHECK(listens(*dev, "pan"));
+    const auto before = spy.values.size();
+    pushRemoteValue(*dev, "pan", 0.75f);
+    CHECK(spy.values.size() > before);
+    CHECK(spy.values.back() == ossia::value{0.75f});
+
+    // Not listened to: what was never asked for
+    CHECK(!listens(*dev, "zoom"));
+
+    // Undo: again a rebuild, "pan" still there
+    f.undo();
+    spin(30);
+    CHECK(listens(*dev, "pan"));
+  });
+}
+
+TEST_CASE("Listening requested while disconnected applies on reconnection", "[deviceexplorer][reload][listening]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    Fixture f{ctx};
+    g_opts.available = false;
+    f.addDevice(fakeSettings("cam", {"pan"}));
+    auto dev = f.device("cam");
+    REQUIRE(dev);
+    REQUIRE(!dev->connected());
+
+    dev->setListening(addr("cam", "pan"), true);
+    CHECK(!listens(*dev, "pan"));
+    CHECK(dev->listeningRequests().size() == 1);
+
+    // The host comes up and the device is reconnected (the "reconnect" action
+    // of the explorer: reconnect, replay, restore)
+    g_opts.available = true;
+    dev->reconnect();
+    dev->recreate(*f.deviceNode("cam"));
+    dev->restoreListening();
+    CHECK(listens(*dev, "pan"));
+  });
+}
+
+TEST_CASE("Stopping listening forgets the request", "[deviceexplorer][reload][listening]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    Fixture f{ctx};
+    f.addDevice(fakeSettings("cam", {"pan"}));
+    auto dev = f.device("cam");
+    REQUIRE(dev);
+
+    dev->setListening(addr("cam", "pan"), true);
+    dev->setListening(addr("cam", "pan"), false);
+    CHECK(!listens(*dev, "pan"));
+    CHECK(dev->listeningRequests().empty());
+
+    // A rebuild does not bring it back
+    f.editDevice("cam", fakeSettings("cam", {"pan"}));
+    spin(30);
+    CHECK(!listens(*dev, "pan"));
   });
 }
