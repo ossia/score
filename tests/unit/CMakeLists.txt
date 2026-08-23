@@ -474,3 +474,9 @@ target_include_directories(test_unit_beat_tracker SYSTEM PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include")
 target_include_directories(test_unit_beat_tracker PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd")
+
+# Dragging a cable against the edge of the view scrolls it.
+score_add_test(test_unit_cable_drag_autoscroll
+  SOURCES CableDragAutoScrollTest.cpp
+  APP
+  PLUGINS score_lib_process)
