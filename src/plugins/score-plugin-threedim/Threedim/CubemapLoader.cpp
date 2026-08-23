@@ -213,16 +213,30 @@ bool CubemapLoader::createCubemapTexture(QRhi& rhi, int faceSize)
 
   faceSize = std::max(faceSize, 1);
 
-  m_faceSize = faceSize;
-  m_cubemapTex = rhi.newTexture(
-      QRhiTexture::RGBA8, QSize{faceSize, faceSize}, 1,
-      QRhiTexture::CubeMap | QRhiTexture::RenderTarget | QRhiTexture::MipMapped
-          | QRhiTexture::UsedWithGenerateMips);
-  if(!m_cubemapTex->create())
+  // TextureSizeMax bounds a dimension and says nothing about
+  // maxMemoryAllocationSize: lavapipe advertises 16384 yet cannot back a mipped
+  // RGBA8 cube at 8192, which is ~2 GB across six faces. Step down until the
+  // device accepts one rather than dropping the skybox entirely.
+  for(; faceSize >= 16; faceSize /= 2)
   {
+    m_faceSize = faceSize;
+    m_cubemapTex = rhi.newTexture(
+        QRhiTexture::RGBA8, QSize{faceSize, faceSize}, 1,
+        QRhiTexture::CubeMap | QRhiTexture::RenderTarget | QRhiTexture::MipMapped
+            | QRhiTexture::UsedWithGenerateMips);
+    if(m_cubemapTex->create())
+      break;
+
     qWarning() << "CubemapLoader: cubemap texture creation failed at faceSize"
-               << faceSize << "- skipping render";
+               << faceSize << "- retrying at" << (faceSize / 2);
     releaseCubemapTexture();
+  }
+
+  if(!m_cubemapTex)
+  {
+    qWarning() << "CubemapLoader: no cubemap size this device accepts"
+               << "- skipping render";
+    m_faceSize = 0;
     return false;
   }
 
