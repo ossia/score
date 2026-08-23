@@ -206,10 +206,11 @@ Device::Node DeviceDocumentPlugin::createDeviceFromNode(const Device::Node& node
     {
       auto refreshed = newdev->refresh();
 
-      // Nothing came back and the device is not reachable: keep what we have
-      // rather than wiping the tree. It will be explored once the device is
+      // Nothing came back - the device is not reachable, or the namespace
+      // did not arrive within refresh()'s timeout: keep what we have rather
+      // than wiping the tree. It will be explored once the device is
       // reconnected (DeviceDocumentPlugin::reconnect, a manual refresh...).
-      if(!refreshed.hasChildren() && !newdev->connected())
+      if(!refreshed.hasChildren())
         return node;
 
       return refreshed;
@@ -233,7 +234,10 @@ bool DeviceDocumentPlugin::refreshDeviceTree(Device::DeviceInterface& dev)
     return false;
 
   auto refreshed = dev.refresh();
-  if(!refreshed.hasChildren() && !dev.connected())
+
+  // An empty answer is indistinguishable from a namespace that did not make
+  // it in time: never trade the tree we have for nothing.
+  if(!refreshed.hasChildren())
     return false;
 
   return explorer().replaceDevice(std::move(refreshed));
@@ -266,9 +270,16 @@ void DeviceDocumentPlugin::refreshDeviceTreeOnReconnect(Device::DeviceInterface&
       return;
     m_pendingTreeRefresh.erase(ptr.data());
 
+    // One deferred exploration at a time per device: a burst of undo / redo on
+    // a device that reconnects synchronously must not queue one per step.
+    if(!m_queuedTreeRefresh.insert(ptr.data()).second)
+      return;
+
     QMetaObject::invokeMethod(
         this,
         [this, ptr] {
+      if(ptr)
+        m_queuedTreeRefresh.erase(ptr.data());
       // The device may have been removed in the meantime
       if(ptr && m_list.findDevice(ptr->settings().name) == ptr.data())
         refreshDeviceTree(*ptr);
@@ -442,6 +453,7 @@ void DeviceDocumentPlugin::setupConnections(
     }
     m_connections.erase(&device);
     m_pendingTreeRefresh.erase(&device);
+    m_queuedTreeRefresh.erase(&device);
   }
 }
 

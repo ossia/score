@@ -501,3 +501,22 @@ TEST_CASE("Removing a device before it reconnects is safe", "[deviceexplorer][re
     SUCCEED("no refresh on a removed device");
   });
 }
+
+TEST_CASE("An exploration that yields nothing never replaces the tree", "[deviceexplorer][reload]")
+{
+  // A slow host whose namespace does not make it within refresh()'s timeout
+  // answers with an empty tree, indistinguishable from an empty namespace:
+  // the tree we have is worth more than nothing.
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    Fixture f{ctx};
+
+    f.addDevice(fakeSettings("cam", {"pan"}));
+    REQUIRE(f.tree("cam") == Names{"pan"});
+
+    // Edit towards a host that answers nothing
+    f.editDevice("cam", fakeSettings("cam", {}));
+    spin(20);
+    CHECK(f.device("cam")->connected());
+    CHECK(f.tree("cam") == Names{"pan"});
+  });
+}
