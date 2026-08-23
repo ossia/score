@@ -31,6 +31,10 @@
 #include <algorithm>
 #include <memory>
 
+// Everything below needs Protocols::CANSpecificSettings, which its header only
+// declares under OSSIA_PROTOCOL_CAN -- the same condition the CMake target
+// applies, and the one that actually governs whether the type exists.
+#if defined(OSSIA_PROTOCOL_CAN)
 namespace
 {
 //! The uuid of Protocols::CANProtocolFactory. Spelled out rather than taken
@@ -183,7 +187,6 @@ Protocols::CANSpecificSettings specific(const Device::DeviceSettings& s)
 }
 }
 
-#if defined(__linux__)
 
 TEST_CASE("the CAN protocol offers the databases in the library", "[can]")
 {
