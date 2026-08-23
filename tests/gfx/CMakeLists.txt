@@ -353,6 +353,13 @@ score_add_test(test_gfx_window_layout
 score_add_gfx_test(screen_output      ScreenOutput.cpp)
 score_add_gfx_test(multi_window       MultiWindowOutput.cpp)
 
+# Randomised sequences of the window disruptions a user can inflict -- hide,
+# re-show, resize, render-size override, full screen -- across all three output
+# modes and both clocks. The paths that set m_running / m_hasSwapChain /
+# m_notExposed / m_closed are not symmetric with the paths that clear them, so
+# a sequence finds combinations the single-operation cases above do not.
+score_add_gfx_test(window_output_torture WindowOutputTorture.cpp)
+
 # Regression guards on the ScreenNode <-> Graph boundary: a live swapchain-flag
 # toggle must release the Graph's RenderList before freeing the QRhi it was
 # built against, and a window resize must not discard the render-size override.
