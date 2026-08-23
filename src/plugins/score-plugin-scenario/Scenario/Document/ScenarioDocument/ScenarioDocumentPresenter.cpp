@@ -507,7 +507,7 @@ void ScenarioDocumentPresenter::on_visibleRectChanged(const QRectF& rect)
     }
     void operator()(CentralNodalDisplay& disp) const noexcept
     {
-      disp.presenter->setRect({0, 0, rect.width(), rect.height()});
+      disp.on_visibleRectChanged(rect);
     }
     void operator()(ossia::monostate) const noexcept { }
   } vis{rect};

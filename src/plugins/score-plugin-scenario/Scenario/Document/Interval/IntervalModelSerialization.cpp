@@ -158,8 +158,8 @@ DataStreamReader::read(const Scenario::IntervalModel& interval)
            << interval.m_date << interval.m_heightPercentage
            << interval.m_nodalFullViewSlotHeight << interval.m_quantRate
            << interval.m_zoom << interval.m_center << interval.m_nodalOffset
-           << interval.m_nodalScale << interval.m_viewMode << interval.m_smallViewShown
-           << interval.m_hasSignature;
+           << interval.m_nodalScale << interval.m_nodalCenter << interval.m_viewMode
+           << interval.m_smallViewShown << interval.m_hasSignature;
 
   insertDelimiter();
 }
@@ -213,8 +213,8 @@ DataStreamWriter::write(Scenario::IntervalModel& interval)
 
       >> interval.m_date >> interval.m_heightPercentage
       >> interval.m_nodalFullViewSlotHeight >> interval.m_quantRate >> interval.m_zoom
-      >> interval.m_center >> interval.m_nodalOffset >> interval.m_nodalScale >> vm >> sv
-      >> hs;
+      >> interval.m_center >> interval.m_nodalOffset >> interval.m_nodalScale
+      >> interval.m_nodalCenter >> vm >> sv >> hs;
   interval.m_viewMode = vm;
   interval.m_smallViewShown = sv;
   interval.m_hasSignature = hs;
@@ -267,10 +267,13 @@ JSONReader::read(const Scenario::IntervalModel& interval)
 
   obj[strings.Zoom] = interval.m_zoom;
   obj[strings.Center] = interval.m_center;
-  if(interval.m_nodalOffset != QPointF{})
+  // NodalOffset is what documents stored before NodalCenter; it is only read.
+  if(interval.m_nodalCenter)
+    obj["NodalCenter"] = *interval.m_nodalCenter;
+  else if(interval.m_nodalOffset != QPointF{})
     obj["NodalOffset"] = interval.m_nodalOffset;
   if(interval.m_nodalScale != 1.0)
-    obj["NodalScale"] = 1.0;
+    obj["NodalScale"] = interval.m_nodalScale;
   obj["ViewMode"] = (int)interval.m_viewMode;
   obj[strings.SmallViewShown] = interval.m_smallViewShown;
 
@@ -393,4 +396,11 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONWriter::write(Scenario::IntervalModel& int
     interval.m_center <<= *cit;
   assign_with_default(interval.m_nodalOffset, obj.tryGet("NodalOffset"), QPointF{});
   assign_with_default(interval.m_nodalScale, obj.tryGet("NodalScale"), 1.0);
+  interval.m_nodalCenter.reset();
+  if(auto it = obj.tryGet("NodalCenter"))
+  {
+    QPointF center;
+    center <<= *it;
+    interval.m_nodalCenter = center;
+  }
 }

@@ -104,13 +104,15 @@ TEST_CASE("The nodal canvas pans when a cable is dragged against an edge", "[int
     auto& itv = p.displayedInterval();
 
     const QPointF pos0 = nodal->nodeContainer().pos();
-    const QPointF off0 = itv.nodalOffset();
+    REQUIRE(itv.nodalCenter().has_value());
+    const QPointF center0 = *itv.nodalCenter();
+    const double scale = nodal->nodeContainer().scale();
 
     // Revealing what is to the right / below moves the canvas left / up
     CHECK(Dataflow::CableDragAutoScroller::scrollViewBy(gv, {24, 10}));
     CHECK(nodal->nodeContainer().pos() == pos0 - QPointF{24, 10});
-    // ... and the offset saved with the interval follows, as when dragging
-    CHECK(itv.nodalOffset() == off0 - QPointF{24, 10});
+    // ... and the center saved with the interval follows, as when dragging
+    CHECK(*itv.nodalCenter() == center0 + QPointF{24, 10} / scale);
 
     // Infinite: it never refuses
     for(int i = 0; i < 1000; i++)

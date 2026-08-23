@@ -217,3 +217,11 @@ score_add_test(test_integration_cable_drag_view_scroll
   SOURCES CableDragViewScrollTest.cpp
   GUI
   PLUGINS score_plugin_scenario score_lib_process)
+
+# The nodal canvas' zoom and position come back as saved, from the JSON and
+# binary formats, whatever happened to the nodes since; older documents open
+# centered on their nodes.
+score_add_test(test_integration_nodal_viewport
+  SOURCES NodalViewportTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process)

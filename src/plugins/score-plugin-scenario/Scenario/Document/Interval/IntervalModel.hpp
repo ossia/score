@@ -119,8 +119,15 @@ public:
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, viewModeChanged, v)
 
   // Node view properties (both small and full view)
-  QPointF nodalOffset() const noexcept;
-  void setNodalOffset(QPointF offs);
+  //! The point of the node canvas shown at the center of the view, in canvas
+  //! coordinates. Unset until the canvas has been shown once: the view then
+  //! picks one (the center of the nodes, or what an older document's pan
+  //! offset amounts to) and stores it here.
+  std::optional<QPointF> nodalCenter() const noexcept;
+  void setNodalCenter(QPointF center);
+  //! Pan offset relative to the nodes' center, the only thing documents saved
+  //! before nodalCenter() existed stored. Read-only, for its conversion.
+  QPointF legacyNodalOffset() const noexcept;
   double nodalScale() const noexcept;
   void setNodalScale(double z);
 
@@ -260,8 +267,8 @@ public:
   void graphalChanged(bool arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, graphalChanged, arg_1)
 
-  void nodalOffsetChanged(QPointF arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, nodalOffsetChanged, arg_1)
+  void nodalCenterChanged(QPointF arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, nodalCenterChanged, arg_1)
   void nodalScaleChanged(double arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, nodalScaleChanged, arg_1)
 
@@ -308,6 +315,7 @@ private:
   ::ZoomRatio m_zoom{-1};
   TimeVal m_center{};
   QPointF m_nodalOffset{};
+  std::optional<QPointF> m_nodalCenter{};
   double m_nodalScale{1.0};
   IntervalExecutionState m_executionState : 2;
   ViewMode m_viewMode : 1;
