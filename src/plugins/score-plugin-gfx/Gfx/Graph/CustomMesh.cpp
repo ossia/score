@@ -544,10 +544,18 @@ void CustomMesh::reload(const ossia::mesh_list &ml, const ossia::geometry_filter
   vertexBindings.clear();
   for(auto& binding : g.bindings)
   {
-    vertexBindings.emplace_back(
-        binding.byte_stride,
-        (QRhiVertexInputBinding::Classification)binding.classification,
-        binding.step_rate);
+    const auto classification
+        = (QRhiVertexInputBinding::Classification)binding.classification;
+    // Metal asserts that a per-vertex binding steps exactly once
+    // ("stepRate(0) must be one if stepFunction is MTLVertexStepFunctionPerVertex"),
+    // and geometry_port's step_rate is zero-initialised, so it only carries a
+    // meaningful value for instanced bindings.
+    const quint32 step_rate
+        = (classification == QRhiVertexInputBinding::PerInstance
+           && binding.step_rate > 0)
+              ? quint32(binding.step_rate)
+              : 1;
+    vertexBindings.emplace_back(binding.byte_stride, classification, step_rate);
   }
 
   vertexAttributes.clear();
