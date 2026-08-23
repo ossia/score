@@ -63,6 +63,15 @@ QStringList g_messages;
 bool g_capturing{};
 QtMessageHandler g_previous{};
 
+// A shader is judged by its own diagnostics, not by everything else the frame
+// logged. The KHR_debug stream, the plugin loader and the ISF/CSF fallback
+// notices all arrive as qWarning and say nothing about the shader under test;
+// only a message that names a failure does. A validation message that reports a
+// real GL error still matches, so the guard keeps its teeth.
+const QRegularExpression g_failure_re{
+    QStringLiteral("error|fatal|failed|failure|cannot|unable|invalid"),
+    QRegularExpression::CaseInsensitiveOption};
+
 void capture(QtMsgType type, const QMessageLogContext& ctx, const QString& msg)
 {
   if(g_capturing && type >= QtWarningMsg)
@@ -196,8 +205,8 @@ struct Sweeper
         failures["render"] = "unknown exception";
       }
 
-      if(!g_messages.isEmpty())
-        failures["warning"] = g_messages.join(" | ").toStdString();
+      if(const auto errs = g_messages.filter(g_failure_re); !errs.isEmpty())
+        failures["warning"] = errs.join(" | ").toStdString();
     }
 
     if(auto st = output.renderState(); st && st->rhi && st->rhi->isDeviceLost())
