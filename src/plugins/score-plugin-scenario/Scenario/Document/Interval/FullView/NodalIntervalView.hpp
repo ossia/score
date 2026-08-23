@@ -7,6 +7,8 @@
 
 #include <QRectF>
 
+#include <score_plugin_scenario_export.h>
+
 class QGraphicsRectItem;
 
 #include <nano_observer.hpp>
@@ -14,7 +16,7 @@ class QGraphicsRectItem;
 namespace Scenario
 {
 class IntervalModel;
-class NodalIntervalView final
+class SCORE_PLUGIN_SCENARIO_EXPORT NodalIntervalView final
     : public score::EmptyRectItem
     , public Nano::Observer
 {
