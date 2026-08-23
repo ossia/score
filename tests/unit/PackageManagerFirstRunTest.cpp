@@ -31,8 +31,11 @@ TEST_CASE("the first-run library question never fires headless", "[packagemanage
 
   score::test::run_in_app([&](const score::GUIApplicationContext& ctx) {
     // run_in_app boots on the offscreen QPA: no window manager, nobody to
-    // answer. The escape hatch used to be SCORE_SANITIZE_SKIP_CHECKS alone, so
-    // make sure it is not what carries this test.
+    // answer. The fixture sets SCORE_SANITIZE_SKIP_CHECKS for every test it
+    // starts, so drop it here: what has to keep the dialog shut is the platform
+    // check, not the escape hatch. interactiveSession() reads the environment
+    // when firstTimeLibraryDownload() asks, so removing it now is in time.
+    qunsetenv("SCORE_SANITIZE_SKIP_CHECKS");
     REQUIRE_FALSE(qEnvironmentVariableIsSet("SCORE_SANITIZE_SKIP_CHECKS"));
     REQUIRE(QGuiApplication::platformName() == QLatin1String("offscreen"));
 
