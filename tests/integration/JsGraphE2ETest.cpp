@@ -113,7 +113,17 @@ Run runScript(const QString& js)
   env.insert("SCORE_FORCE_OFFSCREEN_WINDOW", "Window,WindowA,WindowB");
   env.insert("SCORE_AUDIO_BACKEND", "dummy");
   env.insert("SCORE_DISABLE_AUDIOPLUGINS", "1");
-  env.insert("QSG_RHI_BACKEND", qEnvironmentVariable("SCORE_TEST_API", "opengl"));
+  // The platform's own backend, not OpenGL everywhere: a headless Windows
+  // session has no WGL and no opengl32sw, so an OpenGL request there creates no
+  // context and every grab comes back blank.
+#if defined(_WIN32)
+  constexpr auto defaultApi = "d3d11";
+#elif defined(__APPLE__)
+  constexpr auto defaultApi = "metal";
+#else
+  constexpr auto defaultApi = "opengl";
+#endif
+  env.insert("QSG_RHI_BACKEND", qEnvironmentVariable("SCORE_TEST_API", defaultApi));
   env.remove("QT_QPA_PLATFORM");
   // Every verdict here is read out of the child's log. On Windows a process
   // with no console gets the debugger as its message handler, so console.log()
