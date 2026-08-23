@@ -35,6 +35,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QProcess>
+#include <QStandardPaths>
 #include <QProcessEnvironment>
 #include <QRegularExpression>
 #include <QThread>
@@ -517,9 +518,25 @@ QStringList gstArgs(const QString& description, bool eos = true)
 
 struct Peer
 {
+  /// Windows resolves a bare program name by appending an executable suffix
+  /// only when the name has none -- and "gst-launch-1.0" already looks like it
+  /// carries the extension ".0", so CreateProcess looks for a file with exactly
+  /// that name and reports "The system cannot find the file specified". Asking
+  /// QStandardPaths for it appends the right suffix per platform and searches
+  /// PATH the same way; the bare name stays as the fallback so the error, if
+  /// any, is still QProcess's own.
+  static QString gstLaunchPath()
+  {
+    static const QString resolved = [] {
+      const QString p = QStandardPaths::findExecutable(QStringLiteral("gst-launch-1.0"));
+      return p.isEmpty() ? QStringLiteral("gst-launch-1.0") : p;
+    }();
+    return resolved;
+  }
+
   explicit Peer(const QString& description)
   {
-    proc.start(QStringLiteral("gst-launch-1.0"), gstArgs(description));
+    proc.start(gstLaunchPath(), gstArgs(description));
     started = proc.waitForStarted(5000);
     if(!started)
     {
