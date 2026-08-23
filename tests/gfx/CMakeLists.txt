@@ -167,6 +167,11 @@ score_add_gfx_test(execmodel GfxExecutionModel.cpp)
 # every backend. Green on OpenGL and Vulkan.
 score_add_gfx_test(orientation GfxOrientation.cpp)
 
+# Orientation as a property of the whole path rather than of one node: the same
+# picture through 0, 1 and 2 verbatim passthroughs, on every backend, against a
+# four-quadrant key that tells a flip from a transpose from a rotation.
+score_add_gfx_test(orientation_matrix GfxOrientationMatrix.cpp)
+
 # ISOLATED, EXPECTED-RED on OpenGL: the compute storage-image origin. A CSF that
 # only imageStore()s is flipped on OpenGL because a raw texel index and a
 # bottom-up GL render target disagree, and neither of the two one-line fixes is
