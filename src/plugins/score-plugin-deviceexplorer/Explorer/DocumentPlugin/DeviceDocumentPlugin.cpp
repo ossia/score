@@ -31,6 +31,7 @@
 
 #include <ossia/detail/logger.hpp>
 #include <ossia/detail/thread.hpp>
+#include <ossia/network/base/device.hpp>
 #include <ossia/network/context.hpp>
 
 #include <ossia-qt/invoke.hpp>
