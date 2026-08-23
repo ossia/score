@@ -171,6 +171,13 @@ public:
   void nodeChanged(Device::Node* n)
       E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, nodeChanged, n)
 
+  //! replaceDevice(): the device node's children are about to be swapped
+  //! (rows removed then re-inserted), and have been.
+  void deviceTreeAboutToChange(Device::Node* device)
+      E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, deviceTreeAboutToChange, device)
+  void deviceTreeChanged(Device::Node* device)
+      E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, deviceTreeChanged, device)
+
 protected:
   void debug_printPath(const Device::NodePath& path);
 

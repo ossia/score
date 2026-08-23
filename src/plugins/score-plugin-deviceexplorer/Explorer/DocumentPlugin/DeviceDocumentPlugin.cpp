@@ -236,11 +236,20 @@ bool DeviceDocumentPlugin::refreshDeviceTree(Device::DeviceInterface& dev)
   auto refreshed = dev.refresh();
 
   // An empty answer is indistinguishable from a namespace that did not make
-  // it in time: never trade the tree we have for nothing.
+  // it in time: never trade the tree we have for nothing. refresh() dropped
+  // the value callbacks though: listen again to what the explorer shows.
   if(!refreshed.hasChildren())
+  {
+    dev.restoreListening();
     return false;
+  }
 
-  return explorer().replaceDevice(std::move(refreshed));
+  // The explorer swaps the device's tree in place and keeps its unfolding,
+  // which is what brings the listening back on the nodes it shows; requests
+  // made outside of a view (no explorer widget) are restored here.
+  const bool replaced = explorer().replaceDevice(std::move(refreshed));
+  dev.restoreListening();
+  return replaced;
 }
 
 void DeviceDocumentPlugin::refreshDeviceTreeOnReconnect(Device::DeviceInterface& dev)
@@ -363,6 +372,9 @@ void DeviceDocumentPlugin::setConnection(bool b)
           qDebug() << "Could not save device";
         }
       }
+
+      // The nodes were just rebuilt: listen again to what the explorer shows
+      dev.restoreListening();
 
       setupConnections(dev, true);
     });

@@ -501,3 +501,10 @@ if(TARGET score_addon_trackingprotocols)
     APP
     PLUGINS score_plugin_deviceexplorer score_lib_device score_lib_state)
 endif()
+
+# The explorer listens to exactly what it shows, across device tree swaps and
+# settings edits. GUI: needs the device explorer panel and its view.
+score_add_test(test_unit_device_listening
+  SOURCES DeviceListeningTest.cpp
+  GUI
+  PLUGINS score_plugin_deviceexplorer score_lib_device score_lib_state)

@@ -148,6 +148,8 @@ bool DeviceExplorerModel::replaceDevice(Device::Node&& deviceNode)
     {
       const QModelIndex index = createIndex(row, 0, &n);
 
+      deviceTreeAboutToChange(&n);
+
       // Out with the old children...
       if(const int count = n.childCount(); count > 0)
       {
@@ -167,6 +169,8 @@ bool DeviceExplorerModel::replaceDevice(Device::Node&& deviceNode)
         deviceNode.moveChildren(n);
         endInsertRows();
       }
+
+      deviceTreeChanged(&n);
       return true;
     }
     row++;

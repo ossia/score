@@ -2,6 +2,8 @@
 #include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 
+#include <score/tools/std/HashMap.hpp>
+
 #include <ossia/detail/callback_container.hpp>
 #include <ossia/network/base/value_callback.hpp>
 
@@ -94,9 +96,22 @@ public:
   virtual Device::Node refresh();
   std::optional<ossia::value> refresh(const State::Address&);
   void request(const Device::Node&);
+  /**
+   * @brief Starts or stops listening to the value of an address.
+   *
+   * The request is remembered independently of the device's connection: the
+   * callbacks are re-installed by restoreListening() whenever the device is
+   * rebuilt (reconnect, recreate, refresh...), so that an address the explorer
+   * shows keeps being listened to across those.
+   */
   void setListening(const State::Address&, bool);
   void addToListening(const std::vector<State::Address>&);
+  //! The addresses actually being listened to right now.
   std::vector<State::Address> listening() const;
+  //! The addresses listening was requested for, whether or not they exist yet.
+  std::vector<State::Address> listeningRequests() const;
+  //! Re-installs the value callbacks for every requested address that exists.
+  void restoreListening();
 
   virtual void addAddress(const Device::FullAddressSettings&);
   virtual void updateAddress(
@@ -178,6 +193,11 @@ protected:
   Device::Node simple_refresh();
 
 private:
+  bool listen_impl(const State::Address& addr, bool b);
+
+  // What the explorer asked to listen to; outlives the callbacks, which die
+  // with the ossia nodes on reconnect / refresh.
+  ossia::hash_set<State::Address> m_listeningRequests;
   DeviceLogging m_logging = DeviceLogging::LogNothing;
   bool m_callbacksEnabled = false;
 };

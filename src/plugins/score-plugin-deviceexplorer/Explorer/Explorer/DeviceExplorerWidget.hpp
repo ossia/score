@@ -7,7 +7,10 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/model/tree/TreePath.hpp>
 
+#include <QStringList>
 #include <QWidget>
+
+#include <vector>
 
 #include <memory>
 #include <verdigris>
@@ -134,6 +137,10 @@ private:
 
   std::unique_ptr<ListeningManager> m_listeningManager;
   QMetaObject::Connection m_modelCon;
+  // Keeping listening in step with what is shown when rows come and go
+  std::vector<QMetaObject::Connection> m_listeningCons;
+  // Expanded paths (relative to the device) saved across a device tree swap
+  std::vector<QStringList> m_savedExpansion;
 
   QMetaObject::Connection m_addressCon;
 
