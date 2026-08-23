@@ -1,5 +1,5 @@
 /*{
-  "DESCRIPTION": "Compute-written vertical green ramp: green = gl_GlobalInvocationID.y / (height-1), with constant red 0.25 / blue 0.75 as garbage detectors. A storage-image texel index is top-down, so row 0 (green 0.0) is the TOP of the delivered image and the last row (green 1.0) is the BOTTOM -- the opposite vertical direction from isf-gradient-y.fs, which is the ISF bottom-left convention.",
+  "DESCRIPTION": "Same vertical green ramp as csf-gradient-y.cs, written through IMG_STORE instead of a bare imageStore. The author's model is top-down: gl_GlobalInvocationID.y == 0 is the TOP row, so green runs 0 at the top to 1 at the bottom, and the delivered image must read that way on every backend. csf-gradient-y.cs stores at the raw texel index and is therefore upside down on OpenGL, where the index and the render target are mirrored against each other; the macro is what makes this one portable.",
   "CREDIT": "test",
   "ISFVSN": "2.0",
   "MODE": "COMPUTE_SHADER",

@@ -1,45 +1,38 @@
 // =============================================================================
-// ISOLATED, EXPECTED-RED on OpenGL: the CSF compute storage-image ORIGIN.
+// The CSF compute storage-image ORIGIN, and the macro that resolves it.
 //
-// A compute shader that GENERATES an image -- writing only through imageStore(),
-// with no sampled input -- comes out vertically flipped on OpenGL and correct on
-// Vulkan. The same divergence is visible in the cross-backend golden-render
-// references, where build-2d-no-stride and build-2d-stride-xy are bit-identical
-// to the Vulkan frame after a flip. Vulkan matches the shaders' own headers:
-// 2d-no-stride.cs documents gl_GlobalInvocationID.y == 0 as the TOP row.
+// A compute shader that only stores -- imageStore() with a raw texel index, no
+// sampled input -- used to come out vertically flipped on OpenGL and correct on
+// Vulkan. Two coordinate spaces meet inside a compute shader and are mirrored
+// against each other on OpenGL: imageStore(img, ivec2(id)) addresses a raw texel
+// index, where row 0 is first in memory on every backend, while the render
+// target the result is copied into is bottom-up on OpenGL and top-down elsewhere
+// -- what QRhi::isYUpInFramebuffer() reports.
 //
-// Two coordinate spaces meet inside a compute shader and are mirrored against
-// each other on OpenGL: imageStore(img, ivec2(id)) addresses a raw texel index,
-// where row 0 is first in memory on every backend, while the render target the
-// result is copied into is bottom-up on OpenGL and top-down elsewhere -- what
-// QRhi::isYUpInFramebuffer() reports.
-//
-// Neither obvious fix works, both measured:
-//   1. Flipping the compute node's output blit on OpenGL turns the generator
+// Two one-line fixes were measured and both rejected, and they are why the
+// accepted fix has the shape it does:
+//   1. Flipping the compute node's output blit on OpenGL turned the generator
 //      case green and the RELAY case red. A CSF that samples an upstream texture
-//      and stores it at the matching index is correct today precisely because
-//      the read and the store are mirrored the same way and cancel. The relay
-//      guard lives in GfxOrientation.cpp and is green on both backends.
-//   2. Appending GLSL45.defaultFunctions in parse_csf() is a real gap -- a CSF
-//      never gets IMG_NORM_PIXEL -- but not this fix: ISF_FIXUP_TEXCOORD is
-//      gated on QSHADER_SPIRV, so it flips on Vulkan, the backend that is
-//      already correct. It also would not reach shaders calling the raw GLSL
-//      texture() builtin.
+//      and stores it at the matching index was correct precisely because the
+//      read and the store were mirrored the same way and cancelled.
+//   2. Appending GLSL45.defaultFunctions in parse_csf() gave a CSF the fragment
+//      macros, whose ISF_FIXUP_TEXCOORD is gated on QSHADER_SPIRV -- so it would
+//      have flipped Vulkan, the backend that was already correct.
 //
-// A correct fix has to bring both spaces into the author's top-down model on
-// OpenGL together, sampled inputs and stored output. Since CSF shaders call
-// texture() directly with 2D, 3D, cube or array samplers, that cannot be done by
-// rewriting coordinates in the generated GLSL. The shader-transparent route is
-// to flip at the node boundary in RenderedCSFNode when isYUpInFramebuffer():
-// present each sampled 2D input already top-down and flip the output blit. That
-// is an extra pass per input texture on OpenGL and needs its own coverage for
-// the non-2D sampler shapes, so it is deliberately not attempted here.
+// Resolved instead by GLSL45.computeImageMacros: IMG_STORE / IMG_LOAD and the
+// sampling macros correct the store AND the read together, on OpenGL alone, so a
+// generator lands in the author's top-down model while a relay stays consistent
+// with itself. This file now guards that csf-gradient-y.cs, written through
+// IMG_STORE, is the right way up on every backend; the relay guard lives in
+// GfxOrientation.cpp and the cross-backend agreement in GfxCsfOrientMacros.cpp.
 //
-// Isolated in its own executable so an attributable RED cannot pull down the
-// green orientation group.
+// A CSF that still calls imageStore() directly is still upside down on OpenGL:
+// the macro is the contract, not an automatic rewrite.
 //
-//   DISPLAY=:0 SCORE_TEST_API=vulkan ctest -R gfx_orientation_findings   # green
-//   DISPLAY=:0 SCORE_TEST_API=opengl ctest -R gfx_orientation_findings   # RED
+//   DISPLAY=:0 SCORE_TEST_API=vulkan ctest -R gfx_orientation_findings
+//   DISPLAY=:0 SCORE_TEST_API=opengl ctest -R gfx_orientation_findings
+// QT_QPA_PLATFORM=offscreen must NOT be used: it falls back to the Null backend,
+// which produces a stable, self-consistent and completely wrong picture.
 // =============================================================================
 #include "IsfTestCommon.hpp"
 
