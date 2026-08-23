@@ -14,6 +14,7 @@
 
 #include <Gfx/Graph/RenderList.hpp>
 
+#include <QCloseEvent>
 #include <QKeyEvent>
 #include <QMouseEvent>
 #include <QPointer>
@@ -313,6 +314,69 @@ TEST_CASE("a re-shown window presents frames again", "[gfx][window][screen]")
   INFO("presented before hide: " << before << ", after re-show: " << after);
   REQUIRE(before > 0);
   CHECK(exposedAfter);
+  CHECK(after > 0);
+}
+
+TEST_CASE("a closed and re-shown window presents frames again",
+          "[gfx][window][screen][.repro]")
+{
+  // Same counter as above, but the window goes away through the Close path
+  // rather than hide(): QEvent::Close (and SurfaceAboutToBeDestroyed, which
+  // falls through to it) releases the swapchain and latches m_running=false,
+  // m_hasSwapChain=false, m_notExposed=true, m_closed=true all at once.
+  // Hidden behind a [.repro] tag: this is an experiment for the reported
+  // "no output until I disconnect and reconnect", not yet a guard.
+  const auto api = GENERATE(from_range(platform_backends()));
+
+  Outcome o;
+  int before{}, after{};
+  bool exposedAfter{};
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    ScreenRig rig;
+    if(!rig.build(api))
+    {
+      o.skipped = !rig.skipReason().empty();
+      o.skipReason = rig.skipReason();
+      o.error = rig.error();
+      return;
+    }
+    o.backend = rig.backend();
+    auto* win = rig.window();
+    REQUIRE(win != nullptr);
+
+    int presented = 0;
+    auto inner = win->onRender;
+    win->onRender = [&presented, inner](QRhiCommandBuffer& cb) {
+      ++presented;
+      if(inner)
+        inner(cb);
+    };
+
+    rig.render(30);
+    before = presented;
+
+    QCloseEvent close;
+    QCoreApplication::sendEvent(win, &close);
+    pump_for(200);
+
+    win->show();
+    pump_until([&] { return win->isExposed(); }, 5000);
+    exposedAfter = win->isExposed();
+
+    presented = 0;
+    rig.render(30);
+    after = presented;
+
+    win->onRender = inner;
+  });
+
+  if(o.skipped)
+    SKIP(o.skipReason);
+  INFO("backend: " << o.backend);
+  REQUIRE(o.error.empty());
+  INFO("presented before close: " << before << ", after re-show: " << after);
+  REQUIRE(before > 0);
+  INFO("exposed after re-show: " << exposedAfter);
   CHECK(after > 0);
 }
 
@@ -672,6 +736,67 @@ TEST_CASE("ScreenNode vsync callback drives the window", "[gfx][window][screen]"
 
   INFO("backend: " << o.backend);
   CHECK(ticks >= 3);
+}
+
+TEST_CASE("the vsync loop survives a hide and re-show", "[gfx][window][screen]")
+{
+  // The app drives a single windowed output off the swap-chain vsync callback,
+  // a self-perpetuating requestUpdate() chain. Qt delivers no UpdateRequest to a
+  // window that is not exposed, so hiding breaks the chain, and only
+  // Window::exposeEvent() can restart it -- it calls render() just once, and
+  // only when `isExposed() && !surfaceSize.isEmpty()`, where surfaceSize is
+  // QSize{} whenever m_hasSwapChain is false.
+  //
+  // Everything above pumps frames by hand through rig.render(), which keeps a
+  // dead loop looking alive. Here nothing is pumped after the re-show: the ticks
+  // must come from the window itself.
+  const auto api = GENERATE(from_range(platform_backends()));
+
+  Outcome o;
+  int afterShow{}, beforeHide{};
+  bool exposedAfter{};
+  run_in_gui_app([&](const score::GUIApplicationContext&) {
+    ScreenRig rig;
+    if(!rig.build(
+           api, {192, 144}, QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-solid-color.fs"),
+           {.manualRenderingRate = {}, .supportsVSync = true}))
+    {
+      o = {rig.skipped(), rig.skipReason(), rig.error(), rig.backend()};
+      return;
+    }
+    o.backend = rig.backend();
+    auto* win = rig.window();
+    REQUIRE(win != nullptr);
+
+    int ticks = 0;
+    rig.screen->setVSyncCallback([&] { ++ticks; });
+    pump_until([&] { return ticks >= 3; }, 3000);
+    beforeHide = ticks;
+
+    win->hide();
+    pump_until([&] { return !win->isExposed(); }, 3000);
+    pump_for(200);
+
+    win->show();
+    pump_until([&] { return win->isExposed(); }, 5000);
+    exposedAfter = win->isExposed();
+
+    // Nothing drives the graph from here: only the window's own loop can.
+    ticks = 0;
+    pump_for(1500);
+    afterShow = ticks;
+
+    rig.screen->setVSyncCallback({});
+  });
+
+  if(o.skipped)
+    SKIP(o.backend << ": " << o.skipReason);
+  REQUIRE(o.error.empty());
+  INFO("backend: " << o.backend);
+  INFO("ticks before hide: " << beforeHide << ", after re-show: " << afterShow);
+  REQUIRE(beforeHide >= 3);
+  CHECK(exposedAfter);
+  CHECK(afterShow > 0);
 }
 
 TEST_CASE("ScreenNode cursor, title and position setters", "[gfx][window][screen]")
