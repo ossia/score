@@ -13,13 +13,16 @@
 # Everything provisioned here is torn down on exit, including on failure.
 set -u
 
-want_video=0; want_media=0; want_matrix=0; want_gstreamer=0
+want_video=0; want_media=0; want_matrix=0; want_gstreamer=0; want_pipewire=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --video) want_video=1; want_gstreamer=1; shift;;
     --media) want_media=1; shift;;
     --matrix) want_matrix=1; shift;;
     --gstreamer) want_gstreamer=1; shift;;
+    # The harness talks to PipeWire itself: check the daemon answers, but
+    # publish nothing into it -- that is what --video is for.
+    --pipewire) want_pipewire=1; shift;;
     --) shift; break;;
     *) echo "with-virtual-media: unexpected arg '$1'" >&2; exit 2;;
   esac
@@ -59,7 +62,11 @@ fi
 if [ "$want_video" = 1 ]; then
   gst-inspect-1.0 pipewiresink >/dev/null 2>&1 \
     || die "gstreamer has no pipewiresink element"
+fi
 
+# Both --video and --pipewire need a daemon that answers; only --video needs the
+# element above, because only --video publishes into it.
+if [ "$want_video" = 1 ] || [ "$want_pipewire" = 1 ]; then
   sock="${PIPEWIRE_RUNTIME_DIR:-${XDG_RUNTIME_DIR:-/run/user/$(id -u)}}/${PIPEWIRE_REMOTE:-pipewire-0}"
   [ -S "$sock" ] || die "no PipeWire socket at $sock"
   if command -v pw-cli >/dev/null 2>&1; then

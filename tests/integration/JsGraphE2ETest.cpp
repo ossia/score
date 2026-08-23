@@ -218,9 +218,15 @@ void requireEnvironment()
   REQUIRE(QFile::exists(corpusDir() + "/isf-passthrough-plain.fs"));
   INFO("needs a real display: the offscreen QPA resolves to the Null RHI, "
        "which renders a stable, reproducible, wrong picture");
+  // DISPLAY and WAYLAND_DISPLAY answer "is there a window server" only where the
+  // window server is X11 or Wayland. Windows and macOS have a native one in any
+  // user session and never set either, so requiring them there fails on a real
+  // desktop. What matters everywhere is that we are not on the offscreen QPA.
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__)
   REQUIRE(
       (qEnvironmentVariableIsSet("DISPLAY")
        || qEnvironmentVariableIsSet("WAYLAND_DISPLAY")));
+#endif
   REQUIRE(qEnvironmentVariable("QT_QPA_PLATFORM") != "offscreen");
 }
 }
