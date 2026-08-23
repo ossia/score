@@ -58,6 +58,7 @@ void CentralNodalDisplay::init()
       this->recenter();
   });
 
+  on_visibleRectChanged(gv.visibleRect());
   QTimer::singleShot(0, presenter, &NodalIntervalView::recenterRelativeToView);
 }
 
@@ -199,7 +200,14 @@ void CentralNodalDisplay::on_addPresetFromLibrary(const Process::Preset& dat)
   createInParentInterval();
 }
 
-void CentralNodalDisplay::on_visibleRectChanged(const QRectF&) { }
+void CentralNodalDisplay::on_visibleRectChanged(const QRectF& rect)
+{
+  // The canvas covers the visible part of the view; it places its content
+  // relative to this rect, which must therefore be right from the start and
+  // not only after the first resize.
+  if(presenter)
+    presenter->setRect({0, 0, rect.width(), rect.height()});
+}
 
 void CentralNodalDisplay::on_executionTimer()
 {

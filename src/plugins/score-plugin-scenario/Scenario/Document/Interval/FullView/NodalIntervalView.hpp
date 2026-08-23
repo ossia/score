@@ -34,7 +34,16 @@ public:
   void on_drop(QPointF pos, const QMimeData* data);
   void on_playPercentageChanged(double t, TimeVal parent_dur);
 
+  //! Fits all the nodes in the view.
   void recenter();
+  /**
+   * @brief Places the canvas so that the model's nodal center is at the
+   * center of the visible part of this item, at the model's scale.
+   *
+   * Called whenever the view's geometry changes; what is at the center stays
+   * there. The first time, when the model has no center yet (new or older
+   * document), the center of the nodes is taken and stored.
+   */
   void recenterRelativeToView();
   //! Moves the canvas by `delta` (scene units), as dragging its background does.
   void panBy(QPointF delta);
@@ -52,6 +61,16 @@ private:
   void on_processRemoving(const Process::ProcessModel& model);
   void on_zoomRatioChanged(ZoomRatio ratio);
   void on_dropOnNode(const QPointF& pt, const QMimeData& mime);
+
+  //! Center of the visible part of this item, in its coordinates.
+  QPointF viewportCenter() const;
+  //! Chooses and stores the model's nodal center (and scale) the first time
+  //! the canvas is shown.
+  void pickInitialViewport();
+  //! Places the container so that `center` (container coordinates) is at viewportCenter().
+  void placeContainer(QPointF center);
+  //! Stores in the model what the container's current pos and scale show at viewportCenter().
+  void storeCenterFromContainer();
 
   void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
   void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) override;

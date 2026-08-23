@@ -380,18 +380,23 @@ void IntervalModel::setViewMode(IntervalModel::ViewMode v)
   }
 }
 
-QPointF IntervalModel::nodalOffset() const noexcept
+std::optional<QPointF> IntervalModel::nodalCenter() const noexcept
 {
-  return m_nodalOffset;
+  return m_nodalCenter;
 }
 
-void IntervalModel::setNodalOffset(QPointF offs)
+void IntervalModel::setNodalCenter(QPointF center)
 {
-  if(m_nodalOffset != offs)
+  if(m_nodalCenter != center)
   {
-    m_nodalOffset = offs;
-    nodalOffsetChanged(m_nodalOffset);
+    m_nodalCenter = center;
+    nodalCenterChanged(center);
   }
+}
+
+QPointF IntervalModel::legacyNodalOffset() const noexcept
+{
+  return m_nodalOffset;
 }
 
 double IntervalModel::nodalScale() const noexcept
