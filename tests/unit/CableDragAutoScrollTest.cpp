@@ -1,6 +1,7 @@
 // Dragging a cable towards the edge of the view scrolls it, so that ports in
 // remote parts of the score can be reached without dropping the cable.
 
+#include <Process/Dataflow/AutoScrollableView.hpp>
 #include <Process/Dataflow/CableDragAutoScroller.hpp>
 
 #include <QApplication>
@@ -148,5 +149,68 @@ TEST_CASE("Dragging against the edge scrolls the view", "[dataflow][autoscroll][
     scroller.track(&plain, QPointF{0, 0});
     CHECK(!scroller.active());
     CHECK(scroller.view() == nullptr);
+  });
+}
+
+namespace
+{
+// A view that scrolls its own way (panning an item, growing its scene...)
+struct PanningView final
+    : QGraphicsView
+    , Dataflow::AutoScrollableView
+{
+  using QGraphicsView::QGraphicsView;
+  std::vector<QPoint> deltas;
+  bool canMove{true};
+  bool autoScrollBy(QPoint delta) override
+  {
+    deltas.push_back(delta);
+    return canMove;
+  }
+};
+}
+
+TEST_CASE("Views that know how to move their content are asked to", "[dataflow][autoscroll][gui]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    // A scene no bigger than the view: the scroll bars have nothing to scroll,
+    // the view itself must be asked (nodal canvas, infinite timeline).
+    QGraphicsScene scene{QRectF{0, 0, 10, 10}};
+    PanningView view{&scene};
+    view.resize(400, 300);
+    view.show();
+    spin(20);
+
+    CableDragAutoScroller scroller{[](QPointF) {}};
+    const QPoint edge{view.viewport()->width() - 1, 150};
+    scroller.track(view.viewport(), view.mapToScene(edge));
+    CHECK(scroller.active());
+    spin(120);
+    REQUIRE(!view.deltas.empty());
+    for(auto d : view.deltas)
+    {
+      CHECK(d.x() == CableDragAutoScroller::maxStep);
+      CHECK(d.y() == 0);
+    }
+    CHECK(scroller.active());
+
+    // Once it reports it cannot move, the scroller idles
+    view.canMove = false;
+    const auto n = view.deltas.size();
+    spin(60);
+    CHECK(!scroller.active());
+    CHECK(view.deltas.size() == n + 1);
+
+    // The scroll bar fallback is still what plain views get
+    QGraphicsScene big{QRectF{0, 0, 4000, 3000}};
+    QGraphicsView plain{&big};
+    plain.resize(400, 300);
+    plain.show();
+    spin(20);
+    const int h0 = plain.horizontalScrollBar()->value();
+    CHECK(CableDragAutoScroller::scrollViewBy(plain, {24, 0}));
+    CHECK(plain.horizontalScrollBar()->value() == h0 + 24);
+    CHECK(CableDragAutoScroller::scrollViewBy(view, {24, 0}) == false);
+    CHECK(view.deltas.size() == n + 2);
   });
 }

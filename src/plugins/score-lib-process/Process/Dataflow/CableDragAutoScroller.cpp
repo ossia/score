@@ -1,5 +1,7 @@
 #include "CableDragAutoScroller.hpp"
 
+#include "AutoScrollableView.hpp"
+
 #include <QGraphicsView>
 #include <QScrollBar>
 #include <QWidget>
@@ -45,6 +47,30 @@ QGraphicsView* CableDragAutoScroller::view() const noexcept
   return m_view;
 }
 
+bool CableDragAutoScroller::scrollBarsBy(QGraphicsView& view, QPoint delta)
+{
+  bool moved = false;
+  auto scroll = [&moved](QScrollBar* bar, int d) {
+    if(!bar || d == 0)
+      return;
+    const int old = bar->value();
+    bar->setValue(old + d);
+    moved |= bar->value() != old;
+  };
+  scroll(view.horizontalScrollBar(), delta.x());
+  scroll(view.verticalScrollBar(), delta.y());
+  return moved;
+}
+
+bool CableDragAutoScroller::scrollViewBy(QGraphicsView& view, QPoint delta)
+{
+  if(auto scrollable = dynamic_cast<AutoScrollableView*>(&view))
+    return scrollable->autoScrollBy(delta);
+  return scrollBarsBy(view, delta);
+}
+
+AutoScrollableView::~AutoScrollableView() = default;
+
 void CableDragAutoScroller::track(QWidget* viewport, QPointF scenePos)
 {
   m_view = viewport ? qobject_cast<QGraphicsView*>(viewport->parentWidget()) : nullptr;
@@ -82,18 +108,7 @@ void CableDragAutoScroller::tick()
     return;
   }
 
-  bool moved = false;
-  auto scroll = [&moved](QScrollBar* bar, int delta) {
-    if(!bar || delta == 0)
-      return;
-    const int old = bar->value();
-    bar->setValue(old + delta);
-    moved |= bar->value() != old;
-  };
-  scroll(m_view->horizontalScrollBar(), step.x());
-  scroll(m_view->verticalScrollBar(), step.y());
-
-  if(!moved)
+  if(!scrollViewBy(*m_view, step))
   {
     // Nothing left to scroll that way: idle until the next drag-move event.
     m_timer.stop();

@@ -31,6 +31,16 @@ void CentralNodalDisplay::init()
       NodalIntervalView::AllItems, itv, parent.context(), &view.baseItem()};
 
   view.view().setSceneRect(QRectF{0, 0, 10, 10});
+
+  // The canvas is infinite: revealing what lies further means panning the
+  // node container, as dragging the background does (the view's scroll bars
+  // have nothing to scroll with a 10x10 scene).
+  gv.autoScrollHandler = [this](QPoint delta) {
+    if(!presenter)
+      return false;
+    presenter->panBy(-QPointF{delta});
+    return true;
+  };
   con(gv, &ProcessGraphicsView::dropRequested, presenter,
       [this, &gv](QPoint viewPos, const QMimeData* data) {
     auto sp = gv.mapToScene(viewPos);
@@ -200,6 +210,7 @@ void CentralNodalDisplay::on_executionTimer()
 
 CentralNodalDisplay::~CentralNodalDisplay()
 {
+  parent.view().view().autoScrollHandler = {};
   delete presenter;
 }
 }

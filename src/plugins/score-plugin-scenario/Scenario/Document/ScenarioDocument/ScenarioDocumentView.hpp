@@ -1,4 +1,6 @@
 #pragma once
+#include <Process/Dataflow/AutoScrollableView.hpp>
+
 #include <Scenario/Document/Minimap/Minimap.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioScene.hpp>
 #include <Scenario/Document/TimeRuler/TimeRuler.hpp>
@@ -20,6 +22,8 @@
 #include <score_plugin_scenario_export.h>
 
 #include <verdigris>
+
+#include <functional>
 
 class QGraphicsView;
 class QObject;
@@ -49,7 +53,9 @@ class IntervalDurations;
 class IntervalView;
 class TimeRuler;
 class ScenarioDocumentView;
-class SCORE_PLUGIN_SCENARIO_EXPORT ProcessGraphicsView final : public QGraphicsView
+class SCORE_PLUGIN_SCENARIO_EXPORT ProcessGraphicsView final
+    : public QGraphicsView
+    , public Dataflow::AutoScrollableView
 {
   W_OBJECT(ProcessGraphicsView)
 public:
@@ -59,6 +65,17 @@ public:
 
   void scrollHorizontal(double dx);
   QRectF visibleRect() const noexcept;
+
+  /**
+   * @brief How the content is moved when something (a cable being dragged
+   * against the edge) asks to reveal more of it.
+   *
+   * Set by the central display in charge: the nodal canvas pans its node
+   * container, the timeline grows past its end. Without one, the scroll bars
+   * move, which only goes as far as the current scene rect.
+   */
+  std::function<bool(QPoint)> autoScrollHandler;
+  bool autoScrollBy(QPoint delta) override;
 
   QPointer<score::ArrowDialog> currentPopup{};
 

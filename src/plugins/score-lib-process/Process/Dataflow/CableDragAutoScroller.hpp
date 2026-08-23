@@ -59,6 +59,17 @@ public:
   bool active() const noexcept { return m_timer.isActive(); }
   QGraphicsView* view() const noexcept;
 
+  /**
+   * @brief Moves the view's content by `delta` pixels.
+   *
+   * Views that implement AutoScrollableView decide how (panning an item,
+   * growing the scene...); the others get their scroll bars moved.
+   * @return true if the content moved.
+   */
+  static bool scrollViewBy(QGraphicsView& view, QPoint delta);
+  //! The scroll bar fallback of scrollViewBy().
+  static bool scrollBarsBy(QGraphicsView& view, QPoint delta);
+
 private:
   void tick();
 

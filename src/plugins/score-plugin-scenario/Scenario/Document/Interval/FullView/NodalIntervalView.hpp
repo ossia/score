@@ -36,6 +36,8 @@ public:
 
   void recenter();
   void recenterRelativeToView();
+  //! Moves the canvas by `delta` (scene units), as dragging its background does.
+  void panBy(QPointF delta);
   void rescale();
   void zoomPlus();
   void zoomMinus();

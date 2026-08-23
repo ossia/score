@@ -58,6 +58,7 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PortType.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PortVisibility.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/Cable.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/AutoScrollableView.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/CableDragAutoScroller.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/CableItem.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/CableCopy.hpp"
