@@ -16,13 +16,14 @@
 //                             assert the readbacks AGREE across backends (the
 //                             GL-vs-Vulkan divergence check the plan calls for).
 //
-// Orientation note (measured on this box, NVIDIA GL 4.6 + Vulkan 1.4):
-//   The final sink readback is Y-corrected (row 0 == top) on every backend, and
-//   the horizontal (X / red = uv.x) axis agrees exactly across backends. The
-//   VERTICAL axis of a CROSS-NODE sampled image can differ between GL and Vulkan
-//   (intermediate texture origin convention) — so analytic assertions here key
-//   on the X gradient / center / channel-presence, never on a raw uv.y corner,
-//   exactly as the existing isf-image-passthrough test does.
+// Orientation: the final sink readback is Y-corrected (row 0 == top) and both
+// axes agree across every backend, at any chain depth. Assert the vertical axis
+// as freely as the horizontal one -- GfxOrientationMatrix.cpp pins exactly that,
+// on OpenGL, Vulkan, llvmpipe, lavapipe, Direct3D 11, Direct3D 12 and Metal.
+//
+//   An ISF node with more than one declared OUTPUT reaches its destination
+//   through a blit, and that blit flipped the picture on HLSL and MSL. Fixed by
+//   removing the flip.
 // =============================================================================
 
 #include <score_test/Gfx.hpp>
