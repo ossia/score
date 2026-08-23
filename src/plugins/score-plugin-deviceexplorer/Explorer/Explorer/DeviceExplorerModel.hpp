@@ -94,6 +94,14 @@ public:
   int addDevice(const Device::Node& deviceNode);
   void updateDevice(const QString& name, const Device::DeviceSettings& dev);
 
+  /**
+   * @brief Replaces the whole tree of the device named like deviceNode, in place.
+   *
+   * The device keeps its row: only its settings and children change.
+   * Returns false if no such device is shown.
+   */
+  bool replaceDevice(Device::Node&& deviceNode);
+
   Device::Node* addAddress(
       Device::Node* parentNode, const Device::AddressSettings& addressSettings, int row);
   void updateAddress(Device::Node* node, const Device::AddressSettings& addressSettings);

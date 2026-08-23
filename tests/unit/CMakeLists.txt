@@ -485,3 +485,10 @@ score_add_test(test_unit_cable_drag_autoscroll
 score_add_test(test_unit_value_pretty_print
   SOURCES ValuePrettyPrintTest.cpp
   PLUGINS score_lib_state)
+
+# When the explorer re-explores a device's namespace (add, edit, undo of a
+# removal), and which nodes survive it.
+score_add_test(test_unit_device_tree_reload
+  SOURCES DeviceTreeReloadTest.cpp
+  APP
+  PLUGINS score_plugin_deviceexplorer score_lib_device score_lib_state)

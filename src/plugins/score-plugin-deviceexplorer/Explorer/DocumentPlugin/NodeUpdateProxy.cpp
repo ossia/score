@@ -51,7 +51,16 @@ void NodeUpdateProxy::loadDevice(const Device::Node& node)
 void NodeUpdateProxy::updateDevice(
     const QString& name, const Device::DeviceSettings& dev)
 {
-  devModel.list().device(name).updateSettings(dev);
+  auto& device = devModel.list().device(name);
+
+  // The device reconnects with its new settings - synchronously or not,
+  // depending on the protocol, hence hooking before applying them; once it
+  // has, its namespace is explored again so that the explorer shows the tree
+  // of e.g. the new OSCQuery host, and not the one of the previous host
+  // replayed into it.
+  devModel.refreshDeviceTreeOnReconnect(device);
+
+  device.updateSettings(dev);
   devModel.explorer().updateDevice(name, dev);
 }
 

@@ -130,12 +130,22 @@ bool OSCQueryDevice::reconnect()
     auto [host, port] = ossia::url_to_host_and_port(url);
     bool ok = bool(ossia::resolve_sync_v4<boost::asio::ip::tcp>(host, port));
     QMetaObject::invokeMethod(qApp, [self, ok] {
-      if(self)
+      if(!self)
+        return;
+
+      // We are on the main thread here: create the device right away.
+      // connectionChanged() is emitted by slot_createDevice() once the device
+      // exists (or failed to be created): whoever waits on it to explore the
+      // namespace - DeviceDocumentPlugin::asyncConnect followed by refresh() -
+      // must find the device in place. Emitting connectionChanged(false) before
+      // a queued device creation is what left freshly added OSCQuery devices
+      // with an empty tree.
+      if(ok)
       {
-        if(ok)
-        {
-          self->sig_createDevice();
-        }
+        self->slot_createDevice();
+      }
+      else
+      {
         self->m_connected = false;
         self->connectionChanged(self->m_connected);
       }
