@@ -129,6 +129,15 @@ function(score_add_media_test)
     list(APPEND _flags --matrix)
   endif()
 
+  # SCORE_MEDIA_TEST_WRAPPER is with-virtual-media.sh: it provisions v4l2loopback,
+  # PipeWire and the GStreamer stack the harnesses read. A platform with no shell
+  # harness cannot run it, and registering it there turns every media test into
+  # ctest BAD_COMMAND -- which reads as a failure of the test rather than of the
+  # platform. Same guard the shell harnesses in tests/integration already carry.
+  if(NOT SCORE_HAS_SHELL_HARNESS)
+    return()
+  endif()
+
   add_test(NAME ${ARG_NAME}
     COMMAND "${SCORE_MEDIA_TEST_WRAPPER}" ${_flags} -- "${_exe}" ${ARG_ARGS})
 
