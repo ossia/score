@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioDocumentView.hpp"
 
+#include <Process/Dataflow/CableDragAutoScroller.hpp>
 #include <Process/Dataflow/CableItem.hpp>
 #include <Process/Dataflow/PortItem.hpp>
 
@@ -108,6 +109,13 @@ ProcessGraphicsView::ProcessGraphicsView(
 }
 
 ProcessGraphicsView::~ProcessGraphicsView() { }
+
+bool ProcessGraphicsView::autoScrollBy(QPoint delta)
+{
+  if(autoScrollHandler)
+    return autoScrollHandler(delta);
+  return Dataflow::CableDragAutoScroller::scrollBarsBy(*this, delta);
+}
 
 void ProcessGraphicsView::scrollHorizontal(double dx)
 {

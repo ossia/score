@@ -26,6 +26,7 @@ CentralIntervalDisplay::~CentralIntervalDisplay()
 {
   auto& view = parent.view();
   auto& gv = view.view();
+  gv.autoScrollHandler = {};
   if(auto itv_p = presenter.intervalPresenter())
   {
     QObject::disconnect(
@@ -71,6 +72,35 @@ void CentralIntervalDisplay::init()
   parent.on_viewReady();
   parent.updateMinimap();
   gv.verticalScrollBar()->setValue(0);
+
+  // Revealing what lies further: the timeline grows past its end, like it
+  // does when the scroll bar is dragged against its end (the presenter then
+  // extends the interval's gui duration on scrolled()); vertically, the
+  // scroll bar is all there is.
+  gv.autoScrollHandler = [&gv](QPoint delta) {
+    bool moved = false;
+    if(delta.x() != 0)
+    {
+      auto hsb = gv.horizontalScrollBar();
+      if(delta.x() > 0 && hsb->value() + delta.x() > hsb->maximum())
+      {
+        auto r = gv.sceneRect();
+        r.adjust(0, 0, delta.x(), 0);
+        gv.setSceneRect(r);
+      }
+      const int old = hsb->value();
+      hsb->setValue(old + delta.x());
+      moved |= hsb->value() != old;
+    }
+    if(delta.y() != 0)
+    {
+      auto vsb = gv.verticalScrollBar();
+      const int old = vsb->value();
+      vsb->setValue(old + delta.y());
+      moved |= vsb->value() != old;
+    }
+    return moved;
+  };
 
   view.timeRuler().setGrid(itv_p->grid());
   QObject::connect(

@@ -210,3 +210,10 @@ score_add_test(test_integration_port_hit_zone
   SOURCES PortHitZoneTest.cpp
   GUI
   PLUGINS score_plugin_scenario score_lib_process)
+
+# Dragging a cable against the edge of the central view reveals more of the
+# score, in the timeline (scene grows) and on the nodal canvas (pans).
+score_add_test(test_integration_cable_drag_view_scroll
+  SOURCES CableDragViewScrollTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process)

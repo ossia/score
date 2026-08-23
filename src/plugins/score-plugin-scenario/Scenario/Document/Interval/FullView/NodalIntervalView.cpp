@@ -368,11 +368,16 @@ void NodalIntervalView::mouseMoveEvent(QGraphicsSceneMouseEvent* e)
   else if(e->buttons() & (Qt::LeftButton | Qt::MiddleButton))
   {
     const auto delta = e->scenePos() - m_pressedPos;
-    m_container->setPos(m_container->pos() + delta);
+    panBy(delta);
     m_pressedPos = e->scenePos();
-    const_cast<IntervalModel&>(m_model).setNodalOffset(m_model.nodalOffset() + delta);
   }
   e->accept();
+}
+
+void NodalIntervalView::panBy(QPointF delta)
+{
+  m_container->setPos(m_container->pos() + delta);
+  const_cast<IntervalModel&>(m_model).setNodalOffset(m_model.nodalOffset() + delta);
 }
 
 void NodalIntervalView::mouseReleaseEvent(QGraphicsSceneMouseEvent* e)
