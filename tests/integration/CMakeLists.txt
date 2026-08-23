@@ -354,3 +354,110 @@ if(SCORE_HAS_SHELL_HARNESS)
       ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
   endforeach()
 endif()
+
+
+# The scene testers need the producers their `Wire:` clauses name — Primitive
+# cube, Camera, DirectionalLight — which are halp processes in
+# score_plugin_threedim, wrapped into score::gfx nodes by oscr::GfxNode<T>. The
+# plugin is built with hidden visibility, so (exactly as tests/threedim and
+# tests/unit already do) the specific engine .cpp files are compiled straight
+# into the test target and the plugin's own include set is pulled in via its
+# INCLUDE_DIRECTORIES property. score::gfx::ScenePreprocessorNode and
+# oscr::CustomGfxNodeBase are exported by score_plugin_gfx / score_plugin_avnd,
+# so those come from the link.
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  set(_3d "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
+  score_plugin_hidden_sources(_sweep_scene_hidden
+      "${_3d}/Camera.cpp"
+      "${_3d}/Light.cpp"
+      "${_3d}/Primitive.cpp")
+  score_add_test(test_integration_shader_sweep_scene
+    SOURCES
+      ShaderSweepScene.cpp
+      ${_sweep_scene_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_lib_process)
+  target_include_directories(test_integration_shader_sweep_scene
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../fixtures")
+  target_include_directories(test_integration_shader_sweep_scene SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
+# Encoder matrix: renders through each available graphics API
+# (SCORE_TEST_API=opengl|vulkan) and byte-checks the outputs. Registered GUI
+# (-> LABELS gui) because GL/Vulkan context creation needs a windowing system;
+# exclude with `ctest -LE gui` on displayless machines. Static-plugin builds
+# can't link score_plugin_gfx directly (same constraint as EncoderTester).
+if(TARGET score_plugin_gfx AND NOT SCORE_STATIC_PLUGINS)
+  score_add_test(test_integration_encoder_matrix
+    SOURCES EncoderMatrixTest.cpp
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_media)
+  # GL drivers (llvmpipe in particular) leak internally; don't let LSAN turn
+  # that into a test failure.
+  set_tests_properties(test_integration_encoder_matrix PROPERTIES
+    ENVIRONMENT "SCORE_AUDIO_BACKEND=dummy;ASAN_OPTIONS=detect_leaks=0:halt_on_error=0")
+endif()
+
+# On-demand frame stepping: renderFrames / grabFrame / setStepRate and the
+# synthetic step clock. Drives the application binary because the mechanism only
+# exists inside a real gfx document, and uses separate processes because anything
+# cached in one would hide the nondeterminism it looks for. Needs a real display:
+# the offscreen QPA has no GL and reads back a flat colour.
+if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_frame_determinism
+    SOURCES FrameDeterminismTest.cpp
+    LIBS ${QT_PREFIX}::Gui)
+  target_compile_definitions(test_integration_frame_determinism PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\""
+    "GFX_TEST_CORPUS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/../gfx/corpus\"")
+  set_tests_properties(test_integration_frame_determinism PROPERTIES
+    TIMEOUT 1800 RUN_SERIAL TRUE LABELS "gui")
+endif()
+
+# Manual tool (not a ctest): enumerate and live-preview every registered
+# object.  Run:  <build>/tests/integration/ObjectGallery --list
+#          or:  cd <build> && ./tests/integration/ObjectGallery --filter camera
+add_executable(ObjectGallery "${CMAKE_CURRENT_SOURCE_DIR}/ObjectGallery.cpp")
+target_link_libraries(ObjectGallery PRIVATE
+  score_lib_base
+  score_plugin_scenario score_plugin_engine score_plugin_gfx
+  score_plugin_deviceexplorer score_lib_process score_lib_device
+  ${QT_PREFIX}::Core ${QT_PREFIX}::Gui ${QT_PREFIX}::Widgets
+  ${QT_PREFIX}::Network ${QT_PREFIX}::Xml)
+setup_score_common_exe_features(ObjectGallery)
+set_target_properties(ObjectGallery PROPERTIES FOLDER "Tests")
+
+# Splat ports stay stable across save/reload
+# (score_plugin_threedim is discovered dynamically at runtime).
+score_add_test(test_regression_splat_reload
+  SOURCES RegressionSplatReloadTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process)
+# ...and the two render-regression sweeps built on it. Both need a real X
+# display (llvmpipe over GLX) and skip with 77 without one; csf-sweep also
+# needs the out-of-repo shader corpus, keyed off SCORE_SHADER_LIBRARY_DIR
+# like the other shader sweeps. Labelled "gui" so display-less CI can gate
+# them out, RUN_SERIAL because each spawns a full GL app per case.
+foreach(sweep object_render_sweep:render-sweep.sh object_csf_sweep:csf-sweep.sh)
+  string(REPLACE ":" ";" _s "${sweep}")
+  list(GET _s 0 _sweep_name)
+  list(GET _s 1 _sweep_script)
+  add_test(NAME test_integration_${_sweep_name}
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/${_sweep_script}"
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+  set_tests_properties(test_integration_${_sweep_name} PROPERTIES
+    SKIP_RETURN_CODE 77
+    TIMEOUT 7200
+    RUN_SERIAL TRUE
+    LABELS "gui;sweep"
+    ENVIRONMENT "OBJECT_GALLERY=$<TARGET_FILE:ObjectGallery>;SCORE_AUDIO_BACKEND=dummy;ASAN_OPTIONS=detect_leaks=0:halt_on_error=0")
+endforeach()
