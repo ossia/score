@@ -22,16 +22,15 @@ include(ScoreHardwareTests)
 #    including headless boxes (the wrapper falls back to offscreen).
 #  - PipewireRoundtrip_s2s: score TexgenNode -> PipewireOutputNode -> score
 #    InputStream over SHM/dma-buf on GL+Vulkan. Renders through the real GPU;
-#    llvmpipe/offscreen can never pass the PSNR gate (verified: 5 dB, 780 ms
-#    latency, frame repeats), so this one is additionally display-gated and
-#    only runs on rigs with a real session.
+#    llvmpipe/offscreen can never pass the PSNR gate, so this one is
+#    additionally display-gated and only runs on rigs with a real session.
 #
 # KNOWN FAILURE until the libossia submodule advances libremidi past 91ecbd5
 # ("pipewire: version-robust invoke_sync"): older libremidi calls a blocking
 # pw_loop_invoke without the thread-loop lock, so the score PipeWire input's
 # stop() deadlocks after the first verified cell and ctest kills the test at
-# TIMEOUT. Verified: the identical harness built against the fixed libremidi
-# (wt/score-interop) runs the full input matrix to 14/14 PASS, exit 0.
+# TIMEOUT. The identical harness built against a fixed libremidi runs the full
+# input matrix through.
 # Exclude with `ctest -LE hardware` (or -LE pipewire) in loops that must stay
 # green meanwhile.
 if(TARGET PipewireRoundtrip)
@@ -50,7 +49,7 @@ if(TARGET PipewireRoundtrip)
     ENVIRONMENT "${_pwrt_asan}")
 
   # Strict counterparts: same harness, but run through the provisioning wrapper
-  # that REQUIRES gstreamer/ffmpeg/PipeWire and publishes a virtual Video/Source.
+  # that requires gstreamer/ffmpeg/PipeWire and publishes a virtual Video/Source.
   # These cannot skip, so a missing media stack shows up as a failure instead of
   # silently removing the coverage.
   score_add_media_test(
@@ -94,7 +93,7 @@ endif()
 # --- PipeWire video input: live pixels, not a plausible still ---------------
 # Same route through the application, but the source publishes a frame-numbered
 # pattern the test wrote itself and replays through gst-launch, so the picture
-# is asserted pixel-for-pixel AND required to advance. The runner's videotestsrc
+# is asserted pixel-for-pixel and required to advance. The runner's videotestsrc
 # node is a static image: everything above passes on a stream that delivered one
 # buffer and stopped, which is why this one brings its own producer and asks
 # only for the media stack the wrapper guarantees.
@@ -102,6 +101,7 @@ if(TARGET test_integration_pipewire_video_motion)
   score_add_media_test(
     NAME       Media_PipewireVideoMotion
     EXECUTABLE test_integration_pipewire_video_motion
+    PIPEWIRE
     TIMEOUT    600)
 endif()
 
@@ -120,7 +120,7 @@ endif()
 # --- libav decode matrix (score-plugin-media) -------------------------------
 # The harness is built in tests/unit (NO_CTEST) and registered here, because it
 # is the provisioning wrapper that gives it something to decode: --media
-# generates one rawvideo-in-NUT clip per pixel format, at even AND odd sizes,
+# generates one rawvideo-in-NUT clip per pixel format, at even and odd sizes,
 # plus the malformed inputs the failure paths need.
 if(TARGET test_unit_libav_decode)
   score_add_media_test(

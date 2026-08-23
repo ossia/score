@@ -388,10 +388,19 @@ b='mod(${obx}*149+${oby}*41+N*89,256)'"
   export SCORE_TEST_MATRIX_ODD_BLOCK="$OBLK"
 fi
 
-if [ -z "${DISPLAY:-}" ] && [ -z "${WAYLAND_DISPLAY:-}" ] \
-   && [ -z "${QT_QPA_PLATFORM:-}" ]; then
-  export QT_QPA_PLATFORM=offscreen
-fi
+# DISPLAY and WAYLAND_DISPLAY only say anything on a system whose window server
+# is X11 or Wayland. Windows and macOS have a native one whenever the process
+# runs in a user session, and neither ever sets those variables -- so testing
+# for them there forces every harness onto the offscreen QPA, which resolves to
+# the Null RHI and renders a stable, reproducible, wrong picture.
+case "$(uname -s)" in
+  Linux | *BSD* | SunOS)
+    if [ -z "${DISPLAY:-}" ] && [ -z "${WAYLAND_DISPLAY:-}" ] \
+       && [ -z "${QT_QPA_PLATFORM:-}" ]; then
+      export QT_QPA_PLATFORM=offscreen
+    fi
+    ;;
+esac
 
 "$@"
 rc=$?
