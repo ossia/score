@@ -202,6 +202,28 @@ protected:
 
     m_inputEvents.setMaxSize(17 * 128 * m_totalEventIns);
     m_outputEvents.setMaxSize(128 * m_totalEventOuts);
+
+    // Give every MIDI-mapped parameter a queue up front.
+    //
+    // VST3 delivers CC, pitch bend and aftertouch only as parameter changes,
+    // and the parameters a plug-in publishes through IMidiMapping are as a rule
+    // not the ones exposed as score controls - a JUCE plug-in such as Surge XT
+    // answers getMidiControllerAssignment with ids that are not in its
+    // parameter list at all. Queues were only ever created by add_control, for
+    // exposed controls, so these ids had nowhere to be written and every
+    // controller was dropped at the last step even once it had been decoded.
+    //
+    // Done here rather than on demand because adding a queue allocates, and
+    // dispatchMidi runs on the audio thread.
+    for(const auto& [key, pid] : fx.midi_controls)
+    {
+      if(queue_map.find(pid) != queue_map.end())
+        continue;
+      const auto idx = m_inputChanges.queues.size();
+      m_inputChanges.queues.emplace_back(pid);
+      queue_map[pid] = idx;
+      m_midi_only_queues.push_back(idx);
+    }
   }
 
   ~vst_node_base()
@@ -222,6 +244,11 @@ protected:
 
   ossia::hash_map<Steinberg::Vst::ParamID, std::size_t> queue_map;
 
+  //! Queues that exist only to carry MIDI controllers. Nothing else clears
+  //! them - setControls() only touches the ones a control port backs - so
+  //! dispatchMidi has to, or points accumulate block after block.
+  ossia::small_vector<std::size_t, 8> m_midi_only_queues;
+
 public:
   ossia::small_vector<vst_control, 16> controls;
 
@@ -229,6 +256,22 @@ public:
   {
     (**inlet).domain = ossia::domain_base<float>{0.f, 1.f};
     (**inlet).type = ossia::val_type::FLOAT;
+
+    // The parameter may already own a queue because it is MIDI-mapped too.
+    // Reuse it, so a controller and the automation port for the same id do not
+    // write to two queues the plug-in then sees as conflicting. Ownership of
+    // the per-block clearing passes to setControls().
+    if(auto it = queue_map.find(id); it != queue_map.end())
+    {
+      const auto queue_idx = it->second;
+      m_midi_only_queues.erase(
+          std::remove(m_midi_only_queues.begin(), m_midi_only_queues.end(), queue_idx),
+          m_midi_only_queues.end());
+      this->m_inputChanges.queues[queue_idx].lastValue = v;
+      controls.push_back({id, queue_idx, inlet->target<ossia::value_port>()});
+      root_inputs().push_back(std::move(inlet));
+      return queue_idx;
+    }
 
     // FIXME this allocates a lot :[
     auto queue_idx = this->m_inputChanges.queues.size();
@@ -272,6 +315,9 @@ public:
   {
     m_inputEvents.clear();
     m_outputEvents.clear();
+
+    for(auto idx : m_midi_only_queues)
+      m_inputChanges.queues[idx].data.clear();
 
     int k = 0;
     int audioBusCount = std::ssize(m_audioInputChannels);
@@ -327,6 +373,32 @@ public:
       return;
 
     using VstEvent = Steinberg::Vst::Event;
+
+    // VST3 has no MIDI CC event: controllers reach the plug-in only as
+    // parameter changes, for whichever controllers it published through
+    // IMidiMapping (collected into fx.midi_controls). Everything that is not a
+    // note goes through here.
+    const auto push_midi_control = [this, index](
+                                       int channel, int controller, double value,
+                                       Steinberg::int32 offset) {
+      auto it = this->fx.midi_controls.find({index, channel, controller});
+      if(it == this->fx.midi_controls.end())
+      {
+        // A plug-in that maps a controller globally answers for channel 0
+        // only; fall back to it so single-channel plug-ins keep working when
+        // the sender uses another channel.
+        it = this->fx.midi_controls.find({index, 0, controller});
+        if(it == this->fx.midi_controls.end())
+          return;
+      }
+      const auto queue_it = this->queue_map.find(it->second);
+      if(queue_it == this->queue_map.end())
+        return;
+      auto& queue = this->m_inputChanges.queues[queue_it->second];
+      queue.data.push_back({offset, value});
+      queue.lastValue = value;
+    };
+
     VstEvent e;
     e.busIndex = index;
     e.sampleOffset = 0;
@@ -387,36 +459,26 @@ public:
           break;
         }
 
+        // Control changes were never handled at all, which is what kept every
+        // CC out of the plug-ins.
+        case libremidi::message_type::CONTROL_CHANGE: {
+          const auto cc = libremidi::as_01::control_change(mess);
+          push_midi_control(cc.channel, cc.control, cc.value, e.sampleOffset);
+          break;
+        }
+
         case libremidi::message_type::PITCH_BEND: {
-          if(auto it = this->fx.midi_controls.find({index, Steinberg::Vst::kPitchBend});
-             it != this->fx.midi_controls.end())
-          {
-            auto [channel, value] = libremidi::as_01::pitch_bend(mess);
-            Steinberg::Vst::ParamID pid = it->second;
-            if(auto queue_it = this->queue_map.find(pid);
-               queue_it != this->queue_map.end())
-            {
-              auto& queue = this->m_inputChanges.queues[queue_it->second];
-              queue.data.push_back({e.sampleOffset, value});
-              queue.lastValue = value;
-            }
-          }
+          const auto pb = libremidi::as_01::pitch_bend(mess);
+          push_midi_control(
+              pb.channel, Steinberg::Vst::kPitchBend, pb.value, e.sampleOffset);
+          break;
         }
 
         case libremidi::message_type::AFTERTOUCH: {
-          if(auto it = this->fx.midi_controls.find({index, Steinberg::Vst::kAfterTouch});
-             it != this->fx.midi_controls.end())
-          {
-            auto [channel, value] = libremidi::as_01::aftertouch(mess);
-            Steinberg::Vst::ParamID pid = it->second;
-            if(auto queue_it = this->queue_map.find(pid);
-               queue_it != this->queue_map.end())
-            {
-              auto& queue = this->m_inputChanges.queues[queue_it->second];
-              queue.data.push_back({e.sampleOffset, value});
-              queue.lastValue = value;
-            }
-          }
+          const auto at = libremidi::as_01::aftertouch(mess);
+          push_midi_control(
+              at.channel, Steinberg::Vst::kAfterTouch, at.value, e.sampleOffset);
+          break;
         }
         default:
           break;
@@ -547,7 +609,10 @@ public:
   void all_notes_off(int bus) noexcept
   {
     bool ok = false;
-    if(auto it = this->fx.midi_controls.find({bus, Steinberg::Vst::kCtrlAllNotesOff});
+    // Panic goes to channel 0's mapping: it is a global request, and a
+    // per-channel sweep would write the same parameter sixteen times.
+    if(auto it
+       = this->fx.midi_controls.find({bus, 0, Steinberg::Vst::kCtrlAllNotesOff});
        it != this->fx.midi_controls.end())
     {
       Steinberg::Vst::ParamID pid = it->second;
@@ -560,7 +625,8 @@ public:
       }
     }
 
-    if(auto it = this->fx.midi_controls.find({bus, Steinberg::Vst::kCtrlAllSoundsOff});
+    if(auto it
+       = this->fx.midi_controls.find({bus, 0, Steinberg::Vst::kCtrlAllSoundsOff});
        it != this->fx.midi_controls.end())
     {
       Steinberg::Vst::ParamID pid = it->second;
