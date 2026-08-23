@@ -68,13 +68,24 @@ public:
   static const constexpr int Type = QGraphicsItem::UserType + 700;
   int type() const final override { return Type; }
 
+  //! Center of the drawn port circle, in item coordinates.
+  //! Cables, the drag line and magnetic snapping all anchor on this point.
+  static constexpr QPointF portCenter() noexcept { return QPointF{6., 6.}; }
+  //! Radius of the clickable zone around portCenter().
+  static constexpr double hitRadius = 5.5;
+  //! portCenter() in scene coordinates, taking the item's transform into account.
+  QPointF sceneCenter() const noexcept;
+
+  QRectF boundingRect() const override;
+  QPainterPath shape() const override;
+  bool contains(const QPointF& point) const override;
+
   void createCable(PortItem* src, PortItem* snk)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, createCable, src, snk)
   void contextMenuRequested(QPointF scenepos, QPoint pos)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, contextMenuRequested, scenepos, pos)
 
 protected:
-  QRectF boundingRect() const override;
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
       override;
 

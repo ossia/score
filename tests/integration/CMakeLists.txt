@@ -202,3 +202,11 @@ score_add_test(test_integration_process_fold_mode
   SOURCES ProcessFoldModeTest.cpp
   APP
   PLUGINS score_plugin_scenario score_lib_process score_plugin_fx)
+
+# What a press next to a port hits: the port's hit zone is a circle around the
+# drawn circle, not a square spilling onto the control beside it; and cables
+# anchor on the center of that circle.
+score_add_test(test_integration_port_hit_zone
+  SOURCES PortHitZoneTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process)

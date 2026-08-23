@@ -236,8 +236,8 @@ void CableItem::resize()
   m_path.clear();
   if(m_p1 && m_p2)
   {
-    auto p1 = m_p1->scenePos() + QPointF(6., 6.) * m_p1->sceneTransform().m11();
-    auto p2 = m_p2->scenePos() + QPointF(6., 6.) * m_p2->sceneTransform().m11();
+    auto p1 = m_p1->sceneCenter();
+    auto p2 = m_p2->sceneCenter();
 
     this->setPos(QRectF{p1, p2}.normalized().topLeft());
 

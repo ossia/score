@@ -3,6 +3,7 @@
 
 #include <Device/Node/NodeListMimeSerialization.hpp>
 
+#include <Process/Dataflow/CableDragAutoScroller.hpp>
 #include <Process/Dataflow/CableItem.hpp>
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/DocumentPlugin.hpp>
@@ -28,10 +29,12 @@
 #include <QDrag>
 #include <QGraphicsScene>
 #include <QGraphicsSceneHoverEvent>
+#include <QGraphicsView>
 #include <QKeyEvent>
 #include <QMenu>
 #include <QMimeData>
 #include <QPainter>
+
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Dataflow::PortItem)
@@ -644,8 +647,32 @@ void PortItem::setHighlight(bool b)
 
 QRectF PortItem::boundingRect() const
 {
+  // Generous on purpose: it is only used for repaints, culling and the
+  // children layout, never for hit-testing (see shape()).
   constexpr auto max_diam = 20.;
   return {-3.5, -3.5, max_diam, max_diam};
+}
+
+QPainterPath PortItem::shape() const
+{
+  // The port is drawn as a 6px (small) or 10px (large) circle centered on
+  // portCenter(); the hit zone is a circle slightly larger than that so that the
+  // port stays easy to grab, but stops short of the controls laid out right next
+  // to it (e.g. a slider starts 12px right of the port origin: see
+  // DefaultControlLayouts::slider).
+  QPainterPath p;
+  p.addEllipse(portCenter(), hitRadius, hitRadius);
+  return p;
+}
+
+bool PortItem::contains(const QPointF& point) const
+{
+  return QLineF{portCenter(), point}.length() <= hitRadius;
+}
+
+QPointF PortItem::sceneCenter() const noexcept
+{
+  return mapToScene(portCenter());
 }
 void PortItem::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
@@ -728,8 +755,7 @@ static void updateDragLineCoords(QGraphicsScene& scene, QPointF pt)
       for(int i = 0; i < count; i++)
       {
         auto port = closePorts[i];
-        auto port_center
-            = port->mapToScene(((QGraphicsItem*)port)->boundingRect().center());
+        auto port_center = port->sceneCenter();
         if(double length = QLineF{port_center, pt}.length(); length < cur_length)
         {
           cur_length = length;
@@ -790,9 +816,21 @@ public:
 };
 
 static QGraphicsLineItem* portDragLine{};
+
 struct DragMoveFilter : QObject
 {
 public:
+  // Scrolls the view when the cable is dragged against its edges; the scene
+  // point under the cursor then changes so the drag line and the magnetic
+  // target port are re-evaluated.
+  CableDragAutoScroller autoScroller{[](QPointF scenePos) {
+    if(portDragLine)
+    {
+      updateDragLineCoords(*portDragLine->scene(), scenePos);
+      portDragLine->setLine(portDragLineCoords);
+    }
+  }};
+
   bool eventFilter(QObject* watched, QEvent* event) override
   {
     if(event->type() == QEvent::GraphicsSceneDragMove)
@@ -800,10 +838,17 @@ public:
       auto ev = static_cast<QGraphicsSceneDragDropEvent*>(event);
       updateDragLineCoords(*portDragLine->scene(), ev->scenePos());
       portDragLine->setLine(portDragLineCoords);
+      autoScroller.track(ev->widget(), ev->scenePos());
+      return false;
+    }
+    else if(event->type() == QEvent::GraphicsSceneDragLeave)
+    {
+      autoScroller.stop();
       return false;
     }
     else if(event->type() == QEvent::GraphicsSceneDrop)
     {
+      autoScroller.stop();
       auto ev = static_cast<QGraphicsSceneDragDropEvent*>(event);
       updateDragLineCoords(*portDragLine->scene(), ev->scenePos());
 
@@ -831,14 +876,19 @@ static DragMoveFilter* drag_move_filter{};
 void PortItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   event->accept();
-  if(QLineF(pos(), event->pos()).length() > QApplication::startDragDistance())
+  // Screen distance since the press: zoom-independent and starts from where
+  // the button actually went down, not from the item's position in its parent.
+  const auto dragged
+      = (event->screenPos() - event->buttonDownScreenPos(Qt::LeftButton))
+            .manhattanLength();
+  if(dragged > QApplication::startDragDistance())
   {
     QPointer<QDrag> d{new QDrag{this}};
     QMimeData* m = new QMimeData;
     portDragType = this->m_port.type();
     portDragDirection = this->m_inlet ? DragSourceIsInlet : DragSourceIsOutlet;
-    portDragLineCoords
-        = QLineF{scenePos() + QPointF{6., 6.}, event->scenePos() + QPointF{6., 6.}};
+    // From the center of the port circle to the cursor.
+    portDragLineCoords = QLineF{sceneCenter(), event->scenePos()};
     portDragLine = new DragLine{portDragLineCoords};
 
     scene()->installEventFilter(drag_move_filter = new DragMoveFilter{});
