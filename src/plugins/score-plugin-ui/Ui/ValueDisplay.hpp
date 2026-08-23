@@ -3,6 +3,7 @@
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/Process.hpp>
+#include <State/ValuePrettyPrint.hpp>
 
 #include <Effect/EffectLayer.hpp>
 #include <Effect/EffectLayout.hpp>
@@ -66,6 +67,9 @@ struct Node
     raw_port<"in", ossia::value_port> port;
 
     halp::spinbox_i32<"Log", halp::range{1, max_log, 1}> log;
+
+    // Spread nested lists and maps over indented lines instead of a single one.
+    halp::toggle<"Pretty"> pretty;
   } inputs;
 
   struct
@@ -133,12 +137,45 @@ struct Node
     int m_next_seq = 0;
 
     Process::ControlInlet* log_inlet{};
+    Process::ControlInlet* pretty_inlet{};
 
-    mutable QString txt_cache;
+    // The rendered text. Rebuilt when the values, the log length or the pretty
+    // toggle change - not on every paint - through m_buf, whose capacity is
+    // kept across rebuilds.
+    QString txt_cache;
+    std::string m_buf;
 
     int logging() const noexcept
     {
       return std::clamp(ossia::convert<int>(log_inlet->value()), 1, max_log);
+    }
+
+    bool pretty() const noexcept
+    {
+      return pretty_inlet && ossia::convert<bool>(pretty_inlet->value());
+    }
+
+    void rebuildText()
+    {
+      m_buf.clear();
+      if(pretty())
+      {
+        for(auto& line : this->values)
+        {
+          State::prettyPrintValue(m_buf, line);
+          m_buf.push_back('\n');
+        }
+      }
+      else
+      {
+        for(auto& line : this->values)
+        {
+          State::printValue(m_buf, line);
+          m_buf.push_back('\n');
+        }
+      }
+      txt_cache = QString::fromUtf8(m_buf.data(), m_buf.size());
+      update();
     }
 
     Layer(
@@ -157,6 +194,8 @@ struct Node
           port->setPos(0, 5);
 
       log_inlet = static_cast<Process::ControlInlet*>(process.inlets()[1]);
+      if(process.inlets().size() > 2)
+        pretty_inlet = qobject_cast<Process::ControlInlet*>(process.inlets()[2]);
 
       auto* out = static_cast<Process::ControlOutlet*>(process.outlets()[0]);
       connect(
@@ -168,8 +207,13 @@ struct Node
           [this](const ossia::value& v) {
         while(std::ssize(values) > logging())
           values.pop_back();
-        update();
+        rebuildText();
           });
+
+      if(pretty_inlet)
+        connect(
+            pretty_inlet, &Process::ControlInlet::valueChanged, this,
+            [this](const ossia::value&) { rebuildText(); });
     }
 
     void on_values(const ossia::value& v)
@@ -200,31 +244,24 @@ struct Node
       while(std::ssize(values) > logging())
         values.pop_back();
 
-      update();
+      rebuildText();
     }
 
     void reset()
     {
       values.clear();
       m_next_seq = 0;
-      update();
+      rebuildText();
     }
 
     void paint_impl(QPainter* p) const override
     {
-      if(values.empty())
+      if(txt_cache.isEmpty())
         return;
 
       p->setRenderHint(QPainter::Antialiasing, true);
       p->setPen(score::Skin::instance().Light.main.pen1_solid_flat_miter);
-
-      {
-        txt_cache.clear();
-        for(auto& line : this->values)
-          txt_cache += QString::fromStdString(fmt::format("{}\n", line));
-        p->drawText(boundingRect().adjusted(10, 0, 0, 0), txt_cache);
-      }
-
+      p->drawText(boundingRect().adjusted(10, 0, 0, 0), txt_cache);
       p->setRenderHint(QPainter::Antialiasing, false);
     }
   };
