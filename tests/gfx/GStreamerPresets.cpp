@@ -521,7 +521,17 @@ struct Peer
   {
     proc.start(QStringLiteral("gst-launch-1.0"), gstArgs(description));
     started = proc.waitForStarted(5000);
+    if(!started)
+    {
+      // "would not start" on its own cannot be acted on: a peer that is missing
+      // from PATH and one that the host refused to run look identical in the
+      // report. Carry QProcess's own reason.
+      startError = proc.errorString().toStdString();
+      if(startError.empty())
+        startError = "no error reported";
+    }
   }
+  std::string startError;
   ~Peer()
   {
     proc.kill();
@@ -1009,7 +1019,7 @@ TEST_CASE("the GStreamer preset probe", "[.probe]")
             = runBounded(90, QStringLiteral("pair"), [&]() -> Outcome {
                 Peer peer{sender};
                 if(!peer.started)
-                  return {Verdict::Skipped, "gst-launch-1.0 would not start"};
+                  return {Verdict::Skipped, "gst-launch-1.0 would not start: " + peer.startError};
                 QThread::msleep(settle);
                 const auto f = drive(
                     plug, ctx, factory, receiver, {6, 20000, m.width, m.height});
@@ -1160,7 +1170,7 @@ TEST_CASE("the GStreamer preset probe", "[.probe]")
                   {
                     Peer peer{senderFromOutputPreset(m, rawMaster, pipeline)};
                     if(!peer.started)
-                      return {Verdict::Skipped, "gst-launch-1.0 would not start"};
+                      return {Verdict::Skipped, "gst-launch-1.0 would not start: " + peer.startError};
                     QThread::msleep(4000);
                     peer.interrupt();
                     peer.proc.waitForFinished(20000);
@@ -1203,7 +1213,7 @@ TEST_CASE("the GStreamer preset probe", "[.probe]")
               = runBounded(90, QStringLiteral("shm"), [&]() -> Outcome {
                   Peer sender{senderFromOutputPreset(m, rawMaster, pipeline)};
                   if(!sender.started)
-                    return {Verdict::Skipped, "gst-launch-1.0 would not start"};
+                    return {Verdict::Skipped, "gst-launch-1.0 would not start: " + sender.startError};
                   QThread::msleep(1500);
                   QProcess rd;
                   rd.start(
@@ -1272,7 +1282,7 @@ TEST_CASE("the GStreamer preset probe", "[.probe]")
               = runBounded(90, QStringLiteral("tcp"), [&]() -> Outcome {
                   Peer sender{senderFromOutputPreset(m, rawMaster, pipeline)};
                   if(!sender.started)
-                    return {Verdict::Skipped, "gst-launch-1.0 would not start"};
+                    return {Verdict::Skipped, "gst-launch-1.0 would not start: " + sender.startError};
                   QThread::msleep(1200);
                   QProcess rd;
                   rd.start(
@@ -1343,7 +1353,7 @@ TEST_CASE("the GStreamer preset probe", "[.probe]")
               = runBounded(60, QStringLiteral("disp"), [&]() -> Outcome {
                   Peer sender{senderFromOutputPreset(m, rawMaster, p.pipeline)};
                   if(!sender.started)
-                    return {Verdict::Skipped, "gst-launch-1.0 would not start"};
+                    return {Verdict::Skipped, "gst-launch-1.0 would not start: " + sender.startError};
                   QThread::msleep(2500);
                   const bool alive = sender.proc.state() == QProcess::Running;
                   return {alive ? Verdict::Built : Verdict::Skipped,
@@ -1360,7 +1370,7 @@ TEST_CASE("the GStreamer preset probe", "[.probe]")
         const auto out = runBounded(60, QStringLiteral("out"), [&]() -> Outcome {
           Peer sender{senderFromOutputPreset(m, rawMaster, p.pipeline)};
           if(!sender.started)
-            return {Verdict::Skipped, "gst-launch-1.0 would not start"};
+            return {Verdict::Skipped, "gst-launch-1.0 would not start: " + sender.startError};
           QThread::msleep(2500);
           const bool alive = sender.proc.state() == QProcess::Running;
           return {alive ? Verdict::Built : Verdict::Skipped,
