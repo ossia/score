@@ -7,6 +7,7 @@
 //
 //   DISPLAY=:0 SCORE_TEST_API=vulkan ctest -R gfx_orientation_findings   # green
 //   DISPLAY=:0 SCORE_TEST_API=opengl ctest -R gfx_orientation_findings   # RED
+
 // =============================================================================
 #include "IsfTestCommon.hpp"
 

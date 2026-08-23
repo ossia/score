@@ -489,9 +489,6 @@ endforeach()
 endif()
 
 
-# Restored: 5dd128a5a5 dropped these five registrations along with the five already
-# put back in 11263a603a. Every harness they drive is still in the tree; only the
-# ctest entries were gone, so they had simply stopped running.
 
 
 

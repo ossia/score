@@ -26,5 +26,5 @@ void main()
     float g = uv.y * 2.0;
     float b = sin(TIME + uv.x * 10.0) * 0.5 + 0.5;
 
-    imageStore(outputImage, pos, vec4(r, g, b, 1.0));
+    IMG_STORE(outputImage, pos, vec4(r, g, b, 1.0));
 }
