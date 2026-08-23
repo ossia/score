@@ -463,3 +463,111 @@ foreach(sweep object_render_sweep:render-sweep.sh object_csf_sweep:csf-sweep.sh)
     ENVIRONMENT "OBJECT_GALLERY=$<TARGET_FILE:ObjectGallery>;SCORE_AUDIO_BACKEND=dummy;ASAN_OPTIONS=detect_leaks=0:halt_on_error=0")
 endforeach()
 endif()
+
+
+# Restored: 5dd128a5a5 dropped these five registrations along with the five already
+# put back in 11263a603a. Every harness they drive is still in the tree; only the
+# ctest entries were gone, so they had simply stopped running.
+
+
+
+# Resource/leak/lifetime soak.
+# Creates+destroys 4 gfx processes/cycle during playback via the JS harness and
+# asserts exit 0, ASAN-clean, and stable RSS/fd/process counts.
+# DISABLED: this reproducer currently FAILS on a REAL, unfixed heap-use-after-
+# free in the render-clock teardown path — GfxContext.cpp:341 (the TimerClock
+# tick lambda dereferences an offscreen BackgroundNode already freed by
+# ~offscreen_device, OffscreenDevice.hpp:97) fired from forceCloseDocument's
+# event pump on /exit. This is NEW render-clock code (RenderClock.cpp/TimerClock),
+# distinct from the 3 previously-fixed teardown UAFs. Flip DISABLED->FALSE once
+# that UAF is fixed; it then becomes the leak/teardown regression gate.
+# Deterministic-headless -> CI-able. Self-serializes on /tmp/score-harness.lock.
+if(SCORE_HAS_SHELL_HARNESS)
+  add_test(NAME test_gfx_soak
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/gfx-soak/soak-leak.sh" 150
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+  set_tests_properties(test_gfx_soak PROPERTIES
+    DISABLED TRUE
+    SKIP_RETURN_CODE 77
+    TIMEOUT 1200
+    RUN_SERIAL TRUE
+    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+endif()
+
+
+
+# Timeline-driven scenario.
+# Seeks an automation ramp with OSC /transport, pausing + grabbing at fixed
+# positions, and asserts the rendered frame mean == position/duration.
+# Deterministic-headless -> CI-able. Self-serializes on /tmp/score-harness.lock.
+if(SCORE_HAS_SHELL_HARNESS)
+  add_test(NAME test_timeline_scenario_ramp
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/timeline-scenarios/timeline-scenario.sh"
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+  set_tests_properties(test_timeline_scenario_ramp PROPERTIES
+    SKIP_RETURN_CODE 77
+    TIMEOUT 600
+    RUN_SERIAL TRUE
+    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+endif()
+
+
+
+# TEXT node render validation (depends on the scene render path). One
+# headless llvmpipe app run: grabs the
+# Gfx::Text process with DEFAULT controls (off-screen-default visibility
+# regression), then live-edits text/font/size/position/scale/color over OSC
+# /script and asserts pixel VALUES per case (analyze.py: coverage, bbox
+# ordering across sizes, centroid movement, channel dominance, blank empty
+# string, unicode/CJK/tofu/2000-char edge cases) + golden refs for the
+# stable subset (text-render/refs/llvmpipe, compare.py strict; regenerate
+# with text-render.sh --update-refs — double-render self-consistency).
+# Self-serializes on /tmp/score-harness.lock; SKIPs (77) without deps.
+if(SCORE_HAS_SHELL_HARNESS)
+  add_test(NAME test_text_render
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/text-render/text-render.sh"
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+  set_tests_properties(test_text_render PROPERTIES
+    SKIP_RETURN_CODE 77
+    TIMEOUT 900
+    RUN_SERIAL TRUE
+    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+endif()
+
+
+# Offscreen-teardown regression: a full-app offscreen
+# render followed by /stop + /exit must exit 0 (was SIGSEGV/UAF at teardown).
+# The script serializes itself on /tmp/score-harness.lock (global OSC port).
+if(SCORE_HAS_SHELL_HARNESS)
+  add_test(NAME test_regression_offscreen_teardown
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/offscreen-teardown-regression.sh"
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+  set_tests_properties(test_regression_offscreen_teardown PROPERTIES
+    SKIP_RETURN_CODE 77
+    TIMEOUT 600
+    RUN_SERIAL TRUE
+    ENVIRONMENT "SCORE_BIN=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+endif()
+
+
+
+# Video decode-correctness matrix: every SOFTWARE-
+# decodable pixel format in Gfx/Graph/decoders is encoded as a known pattern
+# (ffprobe-verified pix_fmt), played through VideoDecoderTester with
+# --expect/--psnr, and the rendered RGBA is asserted against ffmpeg's own
+# decode of the same clip (per-format PSNR bound), plus truncated/garbage
+# fuzz clips asserting graceful rejection. Needs an X display (llvmpipe over
+# GLX — the Qt 6.4 offscreen QPA has no headless GL/Vulkan): labeled gui,
+# skips (77) without ffmpeg/tester/display. Each tester run self-serializes
+# on /tmp/score-harness.lock.
+if(SCORE_VIDEO_TESTER)
+  add_test(NAME test_video_decode_correctness
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/video-decode-correctness.sh"
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+  set_tests_properties(test_video_decode_correctness PROPERTIES
+    SKIP_RETURN_CODE 77
+    TIMEOUT 3600
+    RUN_SERIAL TRUE
+    LABELS "gui"
+    ENVIRONMENT "VIDEO_TESTER=${SCORE_ROOT_BINARY_DIR}/VideoDecoderTester;SCORE_AUDIO_BACKEND=dummy;ASAN_OPTIONS=detect_leaks=0:halt_on_error=0:handle_segv=1:detect_odr_violation=0:protect_shadow_gap=0")
+endif()
