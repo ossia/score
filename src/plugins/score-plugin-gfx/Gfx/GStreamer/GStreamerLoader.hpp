@@ -5,7 +5,9 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <initializer_list>
 #include <optional>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -399,13 +401,36 @@ struct libgstreamer
   }
 
 private:
+#if defined(__APPLE__)
+  // dlopen searches DYLD_FALLBACK_LIBRARY_PATH, which covers neither the
+  // Homebrew nor the MacPorts prefix, so the install roots are named outright.
+  static std::optional<ossia::dylib_loader>
+  load_apple_library(std::initializer_list<std::string_view> sonames)
+  {
+    static constexpr std::string_view prefixes[]{
+        "", "/opt/homebrew/lib/", "/usr/local/lib/", "/opt/local/lib/",
+        "/Library/Frameworks/GStreamer.framework/Versions/1.0/lib/"};
+
+    std::vector<std::string> owned;
+    owned.reserve(sonames.size() * std::size(prefixes));
+    for(auto prefix : prefixes)
+      for(auto soname : sonames)
+        owned.emplace_back(std::string(prefix) + std::string(soname));
+
+    std::vector<std::string_view> names;
+    names.reserve(owned.size());
+    for(auto& candidate : owned)
+      names.emplace_back(candidate);
+    return score::try_load_library(std::move(names));
+  }
+#endif
+
   static std::optional<ossia::dylib_loader> load_core_library()
   {
 #if defined(_WIN32)
     return score::try_load_library({"gstreamer-1.0-0.dll", "libgstreamer-1.0-0.dll"});
 #elif defined(__APPLE__)
-    return score::try_load_library({
-        "libgstreamer-1.0.0.dylib", "libgstreamer-1.0.dylib"});
+    return load_apple_library({"libgstreamer-1.0.0.dylib", "libgstreamer-1.0.dylib"});
 #else
     return score::try_load_library({
         "libgstreamer-1.0.so.0", "libgstreamer-1.0.so"});
@@ -417,8 +442,7 @@ private:
 #if defined(_WIN32)
     return score::try_load_library({"gstapp-1.0-0.dll", "libgstapp-1.0-0.dll"});
 #elif defined(__APPLE__)
-    return score::try_load_library({
-        "libgstapp-1.0.0.dylib", "libgstapp-1.0.dylib"});
+    return load_apple_library({"libgstapp-1.0.0.dylib", "libgstapp-1.0.dylib"});
 #else
     return score::try_load_library({
         "libgstapp-1.0.so.0", "libgstapp-1.0.so"});
@@ -430,8 +454,7 @@ private:
 #if defined(_WIN32)
     return score::try_load_library({"gstvideo-1.0-0.dll", "libgstvideo-1.0-0.dll"});
 #elif defined(__APPLE__)
-    return score::try_load_library({
-        "libgstvideo-1.0.0.dylib", "libgstvideo-1.0.dylib"});
+    return load_apple_library({"libgstvideo-1.0.0.dylib", "libgstvideo-1.0.dylib"});
 #else
     return score::try_load_library({
         "libgstvideo-1.0.so.0", "libgstvideo-1.0.so"});
@@ -443,8 +466,7 @@ private:
 #if defined(_WIN32)
     return score::try_load_library({"gobject-2.0-0.dll", "libgobject-2.0-0.dll"});
 #elif defined(__APPLE__)
-    return score::try_load_library({
-        "libgobject-2.0.0.dylib", "libgobject-2.0.dylib"});
+    return load_apple_library({"libgobject-2.0.0.dylib", "libgobject-2.0.dylib"});
 #else
     return score::try_load_library({
         "libgobject-2.0.so.0", "libgobject-2.0.so"});
@@ -456,8 +478,7 @@ private:
 #if defined(_WIN32)
     return score::try_load_library({"glib-2.0-0.dll", "libglib-2.0-0.dll"});
 #elif defined(__APPLE__)
-    return score::try_load_library({
-        "libglib-2.0.0.dylib", "libglib-2.0.dylib"});
+    return load_apple_library({"libglib-2.0.0.dylib", "libglib-2.0.dylib"});
 #else
     return score::try_load_library({
         "libglib-2.0.so.0", "libglib-2.0.so"});
