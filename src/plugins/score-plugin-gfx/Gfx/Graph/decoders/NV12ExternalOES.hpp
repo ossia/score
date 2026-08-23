@@ -10,9 +10,9 @@
  * returns RGB, because the driver's sampler does the conversion.
  *
  * That is not a preference, it is what EGL drivers implement. Importing NV12
- * as two single-channel 2D images is refused outright -- measured on both
- * Mesa/llvmpipe and Tegra, which reject fourcc 'R8  ' as a 2D texture -- so a
- * dma-buf NV12 frame can only be sampled this way.
+ * as two single-channel 2D images is refused outright -- drivers reject
+ * fourcc 'R8  ' as a 2D texture -- so a dma-buf NV12 frame can only be
+ * sampled this way.
  *
  * THE SHADER TRICK
  * ----------------
@@ -22,14 +22,15 @@
  * a correct reflection -- and only its GLSL variant is replaced afterwards with
  * hand-written ESSL declaring `samplerExternalOES`.
  *
- * Nothing has to agree with anything else for this to work: QRhiGles2 takes the
- * bind target from the texture (QGles2Texture::target, set from
- * QRhiTexture::ExternalOES), not from the shader description. So the
- * description keeps saying Sampler2D and the GL program says external, and each
- * is right about its own half.
+ * The two halves need not agree: QRhiGles2 takes the bind target from the
+ * texture (QGles2Texture::target, set from QRhiTexture::ExternalOES), not from
+ * the shader description. So the description keeps saying Sampler2D while the
+ * GL program says external, and each is right about its own half.
  */
 
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
+
+#include <score_plugin_gfx_export.h>
 
 #include <QFile>
 
@@ -44,6 +45,7 @@ namespace score::gfx
 /// advertises the external-image extension. Checked before the backend commits
 /// to it, because an external texture the driver will not sample is worse than
 /// the CPU path.
+SCORE_PLUGIN_GFX_EXPORT
 bool nv12ExternalOesUsable(QRhi::Implementation backend) noexcept;
 
 /// Rewrite baked GLSL so its `sampler2D tex` becomes `samplerExternalOES tex`,
