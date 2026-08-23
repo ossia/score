@@ -53,6 +53,10 @@ const QIcon& getCategoryIcon(const QString& category) noexcept
       {"Structure", makeIcon(QStringLiteral(":/icons/structure.png"))},
       {"Network", makeIcon(QStringLiteral(":/icons/sync.png"))},
       {"Monitoring", makeIcon(QStringLiteral(":/icons/ui.png"))},
+      {"Spatial", makeIcon(QStringLiteral(":/icons/spatial.png"))},
+      // Kept until the remaining processes are renamed to "Spatial": the icon
+      // is looked up on the first path segment only, so both spellings need a
+      // row or one of them renders without an icon.
       {"Spatialization", makeIcon(QStringLiteral(":/icons/spatial.png"))},
       {"Timing", makeIcon(QStringLiteral(":/icons/timing.png"))},
   };

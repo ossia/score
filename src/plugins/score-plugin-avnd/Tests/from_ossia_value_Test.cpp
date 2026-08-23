@@ -10,6 +10,7 @@
 
 #include <avnd/binding/ossia/from_value.hpp>
 #include <avnd/binding/ossia/to_value.hpp>
+#include <halp/controls.hpp>
 #include <catch2/catch_all.hpp>
 #include <fmt/ostream.h>
 #include <fmt/ranges.h>
@@ -992,6 +993,141 @@ TEST_CASE("wrapped_type map conversions", "wrapped_type")
         ossia::value roundtrip = oscr::to_ossia_value(list);
         REQUIRE(v == roundtrip);
       }
+    }
+  }
+}
+
+// Bug regression: a struct with exactly 2/3/4 all-float fields AND
+// halp_field_names serializes as a value_map (the field-names branch wins in
+// to_value.hpp), but deserialization used to check vecf-compatibility FIRST and
+// call ossia::convert<vecNf>(map) which returns {} — so the round-trip between
+// two avendish processes silently zeroed the value. Affected in-tree types:
+// cv::rect, OnnxModels::PoseKeypoint / BoundingBox, cv::model_point3.
+namespace bug_named_vecf
+{
+struct named_point2
+{
+  float x, y;
+  halp_field_names(x, y);
+};
+struct named_point3
+{
+  float x, y, z;
+  halp_field_names(x, y, z);
+};
+struct named_rect4
+{
+  float x, y, w, h;
+  halp_field_names(x, y, w, h);
+};
+}
+
+TEST_CASE("named all-float structs round-trip through ossia::value", "aggregate")
+{
+  using namespace bug_named_vecf;
+  GIVEN("a named 2-float struct")
+  {
+    named_point2 in{1.5f, -2.5f};
+    ossia::value v = oscr::to_ossia_value(in);
+    THEN("the round-trip preserves the values")
+    {
+      named_point2 out{};
+      REQUIRE(oscr::from_ossia_value(v, out));
+      REQUIRE(out.x == 1.5f);
+      REQUIRE(out.y == -2.5f);
+    }
+  }
+  GIVEN("a named 3-float struct")
+  {
+    named_point3 in{1.f, 2.f, 3.f};
+    ossia::value v = oscr::to_ossia_value(in);
+    THEN("the round-trip preserves the values")
+    {
+      named_point3 out{};
+      REQUIRE(oscr::from_ossia_value(v, out));
+      REQUIRE(out.x == 1.f);
+      REQUIRE(out.y == 2.f);
+      REQUIRE(out.z == 3.f);
+    }
+  }
+  GIVEN("a named 4-float struct")
+  {
+    named_rect4 in{0.1f, 0.2f, 0.3f, 0.4f};
+    ossia::value v = oscr::to_ossia_value(in);
+    THEN("the round-trip preserves the values")
+    {
+      named_rect4 out{};
+      REQUIRE(oscr::from_ossia_value(v, out));
+      REQUIRE(out.x == 0.1f);
+      REQUIRE(out.y == 0.2f);
+      REQUIRE(out.w == 0.3f);
+      REQUIRE(out.h == 0.4f);
+    }
+  }
+  GIVEN("a named 3-float struct receiving a plain vec3f (external sender)")
+  {
+    // Pre-existing behaviour that must survive the fix: a bare vec3f (e.g. an
+    // OSC device) still fills the struct positionally.
+    named_point3 out{};
+    REQUIRE(oscr::from_ossia_value(ossia::value{ossia::vec3f{7.f, 8.f, 9.f}}, out));
+    REQUIRE(out.x == 7.f);
+    REQUIRE(out.y == 8.f);
+    REQUIRE(out.z == 9.f);
+  }
+  GIVEN("an UNNAMED 3-float struct still encodes as vec3f both ways")
+  {
+    struct plain3
+    {
+      float x, y, z;
+    } in{1.f, 2.f, 3.f};
+    ossia::value v = oscr::to_ossia_value(in);
+    REQUIRE(v == ossia::value{ossia::vec3f{1.f, 2.f, 3.f}});
+    plain3 out{};
+    REQUIRE(oscr::from_ossia_value(v, out));
+    REQUIRE(out.z == 3.f);
+  }
+}
+
+// The trap above does not fire for a TOP-LEVEL struct: the top-level
+// to_ossia_value overload checks vecf-compatibility before field names and
+// encodes named 2/3/4-float structs as vec2f/vec3f/vec4f, which decode fine.
+// It fires for NESTED structs: to_ossia_value_impl (used for the elements of a
+// std::vector port, the common detector-output shape) puts the field-names
+// branch first and encodes each element as a value_map; the inbound path then
+// hits the vecf branch first and ossia::convert<vecNf>(map) returns zeros.
+TEST_CASE("vectors of named all-float structs round-trip", "aggregate")
+{
+  using namespace bug_named_vecf;
+  GIVEN("a vector of named 3-float structs")
+  {
+    std::vector<named_point3> in{{1.f, 2.f, 3.f}, {4.f, 5.f, 6.f}};
+    ossia::value v = oscr::to_ossia_value(in);
+    THEN("the round-trip preserves the values")
+    {
+      std::vector<named_point3> out;
+      REQUIRE(oscr::from_ossia_value(v, out));
+      REQUIRE(out.size() == 2);
+      REQUIRE(out[0].x == 1.f);
+      REQUIRE(out[0].y == 2.f);
+      REQUIRE(out[0].z == 3.f);
+      REQUIRE(out[1].x == 4.f);
+      REQUIRE(out[1].y == 5.f);
+      REQUIRE(out[1].z == 6.f);
+    }
+  }
+  GIVEN("a vector of named 4-float structs (the cv::rect shape)")
+  {
+    std::vector<named_rect4> in{{.1f, .2f, .3f, .4f}};
+    ossia::value v = oscr::to_ossia_value(in);
+    THEN("the round-trip preserves the values")
+    {
+      std::vector<named_rect4> out;
+      REQUIRE(oscr::from_ossia_value(v, out));
+      REQUIRE(out.size() == 1);
+      REQUIRE(out[0].x == .1f);
+      REQUIRE(out[0].y == .2f);
+      REQUIRE(out[0].w == .3f);
+      REQUIRE(out[0].h == .4f);
     }
   }
 }
