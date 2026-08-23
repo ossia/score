@@ -60,10 +60,16 @@ public:
 
   void updateValidity();
 
+  //! The tree listing the devices found by the protocol's enumerators.
+  //! Selecting one of its items is what the user does to pick a camera,
+  //! a joystick, etc.
+  QTreeWidget* devicesTree() const noexcept { return m_devices; }
+
 private:
   void selectedProtocolChanged();
   void selectedDeviceChanged();
   void selectedPresetChanged();
+  QString editedDeviceName() const;
   void initAvailableProtocols();
   void initPresets();
   void clearEnumerators();

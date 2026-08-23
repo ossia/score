@@ -447,13 +447,29 @@ void DeviceEditDialog::selectedDeviceChanged()
   if(!item)
     return;
 
-  auto name = item->text(0);
   auto data = item->data(0, Qt::UserRole).value<Device::DeviceSettings>();
 
   if(m_protocolWidget)
+  {
+    if(m_mode == Mode::Editing)
+    {
+      // The score refers to the device by its name: picking another physical
+      // device (camera, joystick, MIDI port...) for an existing device must
+      // only change the device-specific settings, not rename it.
+      data.name = editedDeviceName();
+    }
     m_protocolWidget->setSettings(data);
+  }
 
   updateValidity();
+}
+
+QString DeviceEditDialog::editedDeviceName() const
+{
+  if(m_protocolWidget)
+    if(auto name = m_protocolWidget->getSettings().name; !name.isEmpty())
+      return name;
+  return m_originalName;
 }
 
 void DeviceEditDialog::selectedProtocolChanged()
