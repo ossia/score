@@ -91,6 +91,8 @@ endfunction()
 # fails the run instead of quietly vanishing from it.
 #
 #   VIRTUAL_VIDEO  publish a PipeWire Video/Source from videotestsrc
+#   PIPEWIRE       the harness talks to a PipeWire daemon itself, without
+#                  needing the wrapper to publish anything into it
 #                  (needs gstreamer + a live PipeWire daemon)
 #   GSTREAMER      the harness runs its own gst pipelines (needs gstreamer,
 #                  but no PipeWire graph)
@@ -106,7 +108,7 @@ endif()
 
 function(score_add_media_test)
   cmake_parse_arguments(ARG
-    "VIRTUAL_VIDEO;GSTREAMER;MEDIA;MATRIX;OPTIONAL"
+    "VIRTUAL_VIDEO;GSTREAMER;MEDIA;MATRIX;OPTIONAL;PIPEWIRE"
     "NAME;EXECUTABLE;TIMEOUT"
     "ARGS;ENVIRONMENT"
     ${ARGN})
@@ -168,7 +170,7 @@ function(score_add_media_test)
   # A v4l2loopback + PipeWire graph exists only on Linux. The wrapper already
   # turns a missing prerequisite into exit 77 under SCORE_MEDIA_TESTS_OPTIONAL,
   # so ask for that rather than letting the platform look like a broken test.
-  if(ARG_VIRTUAL_VIDEO AND NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  if((ARG_VIRTUAL_VIDEO OR ARG_PIPEWIRE) AND NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set_property(TEST ${ARG_NAME} APPEND PROPERTY
       ENVIRONMENT "SCORE_MEDIA_TESTS_OPTIONAL=1")
     set_property(TEST ${ARG_NAME} PROPERTY SKIP_RETURN_CODE 77)
