@@ -26,6 +26,6 @@ void main()
     {
         vec3 bits = vec3(float(face & 1), float((face >> 1) & 1), float((face >> 2) & 1));
         vec3 tint = vec3(0.25) + 0.6 * bits;
-        imageStore(probe, ivec3(xy, face), vec4(tint, 1.0));
+        IMG_STORE_CUBE(probe, ivec3(xy, face), vec4(tint, 1.0));
     }
 }

@@ -26,5 +26,5 @@ void main()
     float val = 1.0 - smoothstep(0.0, 1.0, dist);
     val *= 0.5 + 0.5 * sin(TIME * 2.0);
 
-    imageStore(outputImage, pos, vec4(val, 0.0, 0.0, 1.0));
+    IMG_STORE(outputImage, pos, vec4(val, 0.0, 0.0, 1.0));
 }
