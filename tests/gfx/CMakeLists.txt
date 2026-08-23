@@ -172,6 +172,12 @@ score_add_gfx_test(orientation GfxOrientation.cpp)
 # four-quadrant key that tells a flip from a transpose from a rotation.
 score_add_gfx_test(orientation_matrix GfxOrientationMatrix.cpp)
 
+# Random edit sequences against a live render loop: the incremental tests each
+# pin one edit, this one looks for the state a graph only reaches after some
+# particular ORDER of connects, disconnects and node additions. Deterministic
+# from a seed; SCORE_TORTURE_SECONDS raises the default budget for a soak.
+score_add_gfx_test(graph_torture GfxGraphTorture.cpp)
+
 # ISOLATED, EXPECTED-RED on OpenGL: the compute storage-image origin. A CSF that
 # only imageStore()s is flipped on OpenGL because a raw texel index and a
 # bottom-up GL render target disagree, and neither of the two one-line fixes is
