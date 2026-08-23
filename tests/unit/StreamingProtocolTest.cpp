@@ -25,7 +25,10 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
+#include <cctype>
 #include <chrono>
+#include <cstdint>
+#include <cstdio>
 #include <map>
 #include <memory>
 #include <string>
@@ -54,6 +57,9 @@ struct Peer
   std::string url;
   Options options;
   bool tcpPort{};
+  // Safe to connect to as a readiness probe. An "ffmpeg -listen 1" peer accepts
+  // exactly one client, so probing it would consume the session under test.
+  bool multiAccept{};
 };
 
 std::string port(int p)
@@ -65,9 +71,118 @@ std::string port(int p)
 // POSIX-only; every case that uses these two peer builders is already inside
 // the same guard.
 #if !defined(_WIN32)
+// The peers are served by the ffmpeg and python3 binaries on PATH. Those are
+// not the libav this test links against, and a host can have one without the
+// other: Homebrew's ffmpeg ships no SRT or RIST, and its Python 3.14 binds an
+// http.server socket it then never listens on.
+const std::vector<std::string>& peerFfmpegProtocols()
+{
+  static const std::vector<std::string> protocols = [] {
+    std::vector<std::string> out;
+    if(FILE* pipe = ::popen("ffmpeg -hide_banner -protocols 2>/dev/null", "r"))
+    {
+      char line[512];
+      while(std::fgets(line, sizeof(line), pipe))
+      {
+        std::string_view tok{line};
+        while(!tok.empty() && std::isspace((unsigned char)tok.front()))
+          tok.remove_prefix(1);
+        while(!tok.empty() && std::isspace((unsigned char)tok.back()))
+          tok.remove_suffix(1);
+        // "Supported file protocols:", "Input:" and "Output:" are headings.
+        if(!tok.empty() && tok.find(':') == std::string_view::npos)
+          out.emplace_back(tok);
+      }
+      ::pclose(pipe);
+    }
+    return out;
+  }();
+  return protocols;
+}
+
+std::string schemeOf(const std::string& url)
+{
+  const auto sep = url.find("://");
+  return sep == std::string::npos ? std::string{} : url.substr(0, sep);
+}
+
+bool tcpAccepts(int port)
+{
+  const int fd = ::socket(AF_INET, SOCK_STREAM, 0);
+  if(fd < 0)
+    return false;
+  sockaddr_in addr{};
+  addr.sin_family = AF_INET;
+  addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+  addr.sin_port = htons((uint16_t)port);
+  const bool ok
+      = ::connect(fd, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) == 0;
+  ::close(fd);
+  return ok;
+}
+
+int portOf(const std::string& url)
+{
+  const auto colon = url.rfind(':');
+  if(colon == std::string::npos)
+    return 0;
+  int p = 0;
+  for(std::size_t i = colon + 1; i < url.size() && std::isdigit((unsigned char)url[i]);
+      i++)
+    p = p * 10 + (url[i] - '0');
+  return p;
+}
+
+// A connection-oriented peer is ready when it accepts, not after a fixed sleep:
+// python's http.server can take six seconds to reach its accept loop on a cold
+// interpreter, and a datagram peer has nothing to connect to at all.
+bool awaitPeer(const Peer& peer, std::chrono::milliseconds budget = 30s)
+{
+  if(!peer.tcpPort || !peer.multiAccept)
+  {
+    std::this_thread::sleep_for(peer.tcpPort ? 700ms : 400ms);
+    return true;
+  }
+  const int port = portOf(peer.url);
+  if(port <= 0)
+  {
+    std::this_thread::sleep_for(700ms);
+    return true;
+  }
+  const auto deadline = std::chrono::steady_clock::now() + budget;
+  while(std::chrono::steady_clock::now() < deadline)
+  {
+    if(tcpAccepts(port))
+      return true;
+    std::this_thread::sleep_for(100ms);
+  }
+  return false;
+}
+
+// Why this host cannot serve the peer, or empty when it can.
+std::string cannotServe(const Peer& peer)
+{
+  if(peer.argv.empty())
+    return {};
+  if(peer.argv.front() == "ffmpeg")
+  {
+    // The scheme comes off what ffmpeg is asked to SERVE, its last argument.
+    // peer.url is what the input opens, and for RTP that is an .sdp path with
+    // no scheme at all.
+    const auto scheme = schemeOf(peer.argv.back());
+    if(scheme.empty())
+      return {};
+    const auto& have = peerFfmpegProtocols();
+    if(std::find(have.begin(), have.end(), scheme) == have.end())
+      return "the ffmpeg binary on PATH has no " + scheme
+             + " protocol (see ffmpeg -protocols)";
+  }
+  return {};
+}
+
 // One row per protocol. The media is always the same master clip, so the
 // picture that comes back is comparable across all of them.
-std::vector<Peer> peers()
+std::vector<Peer> allPeers()
 {
   const auto h264 = matrixPath("codec-mpegts-h264-lossy.ts");
   const auto mpeg2 = matrixPath("stream-mpeg2.ts");
@@ -130,10 +245,32 @@ std::vector<Peer> peers()
           "--directory", hls},
          "http://127.0.0.1:" + port(p) + "/index.m3u8",
          {},
+         true,
          true});
   }
 
   return out;
+}
+
+// The peers this host can actually serve. A protocol the host has no server
+// for is dropped here and named by unservablePeers(), so a case that sweeps
+// every protocol does not report a missing peer as a delivery failure.
+std::vector<Peer> peers()
+{
+  std::vector<Peer> usable;
+  for(auto& peer : allPeers())
+    if(cannotServe(peer).empty())
+      usable.push_back(std::move(peer));
+  return usable;
+}
+
+std::vector<std::string> unservablePeers()
+{
+  std::vector<std::string> reasons;
+  for(const auto& peer : allPeers())
+    if(const auto why = cannotServe(peer); !why.empty())
+      reasons.push_back(peer.label + ": " + why);
+  return reasons;
 }
 
 // RIST is built separately and never enters peers(): opening a rist:// URL more
@@ -247,6 +384,22 @@ TEST_CASE("the network fixtures are present", "[video][stream][media]")
 }
 
 #if !defined(_WIN32)
+TEST_CASE("peers this host cannot serve are named",
+          "[video][stream][media]")
+{
+  // Attribution, not a gate: the sweeps below silently omit these, so the run
+  // has to say out loud which protocols went untested and why.
+  const auto reasons = unservablePeers();
+  if(!reasons.empty())
+  {
+    std::string all;
+    for(const auto& r : reasons)
+      all += "\n  " + r;
+    SKIP("this host cannot serve some peers, so they were not swept:" + all);
+  }
+  SUCCEED("every peer protocol can be served here");
+}
+
 TEST_CASE("every protocol delivers the master picture", "[video][stream][media]")
 {
   const auto m = loadMaster();
@@ -260,7 +413,8 @@ TEST_CASE("every protocol delivers the master picture", "[video][stream][media]"
     Process server{peer.argv};
     // rtmp and http are connection-oriented: the peer must be listening before
     // the input tries. The retry loop in receiveFrom() covers the rest.
-    std::this_thread::sleep_for(peer.tcpPort ? 700ms : 400ms);
+    if(!awaitPeer(peer))
+      SKIP("peer " + peer.label + " never accepted a connection on this host");
 
     Video::LibavStreamInput in;
     const auto r = receiveFrom(in, peer, m, block, 3, 25s);
@@ -302,7 +456,8 @@ TEST_CASE("a peer that goes away mid-stream stops cleanly",
     INFO("peer " << peer.label);
 
     auto server = std::make_unique<Process>(peer.argv);
-    std::this_thread::sleep_for(peer.tcpPort ? 700ms : 400ms);
+    if(!awaitPeer(peer))
+      SKIP("peer " + peer.label + " never accepted a connection on this host");
 
     // The input lives behind a pointer inside the deadline-guarded state, so
     // that its DESTRUCTOR can be run under a deadline too -- that is the call
@@ -356,7 +511,8 @@ TEST_CASE("an input destroyed while streaming does not hang",
     INFO("peer " << peer.label);
 
     Process server{peer.argv};
-    std::this_thread::sleep_for(peer.tcpPort ? 700ms : 400ms);
+    if(!awaitPeer(peer))
+      SKIP("peer " + peer.label + " never accepted a connection on this host");
 
     auto run = std::make_unique<Run<InputPtr>>();
     run->state = std::make_unique<Video::LibavStreamInput>();
@@ -390,7 +546,8 @@ TEST_CASE("an input destroyed before its first frame does not hang",
     INFO("peer " << peer.label);
 
     auto server = std::make_unique<Process>(peer.argv);
-    std::this_thread::sleep_for(peer.tcpPort ? 700ms : 400ms);
+    if(!awaitPeer(peer))
+      SKIP("peer " + peer.label + " never accepted a connection on this host");
 
     auto run = std::make_unique<Run<InputPtr>>();
     run->state = std::make_unique<Video::LibavStreamInput>();
@@ -442,7 +599,8 @@ TEST_CASE("two inputs on one URL do not interfere",
     INFO("peer " << peer.label);
 
     Process server{peer.argv};
-    std::this_thread::sleep_for(peer.tcpPort ? 700ms : 400ms);
+    if(!awaitPeer(peer))
+      SKIP("peer " + peer.label + " never accepted a connection on this host");
 
     auto run = std::make_unique<Run<std::vector<InputPtr>>>();
     run->state.push_back(std::make_unique<Video::LibavStreamInput>());
@@ -635,7 +793,14 @@ TEST_CASE("a peer that comes back is picked up again",
 
   // One connection-oriented and one datagram protocol: they take different
   // paths through avformat's open.
-  for(const auto& peer : peers())
+  const auto all = peers();
+  const bool anyChosen = std::any_of(all.begin(), all.end(), [](const Peer& p) {
+    return p.label == "srt/mpegts" || p.label == "hls/http";
+  });
+  if(!anyChosen)
+    SKIP("neither srt/mpegts nor hls/http can be served on this host");
+
+  for(const auto& peer : all)
   {
     if(peer.label != "srt/mpegts" && peer.label != "hls/http")
       continue;
@@ -644,7 +809,8 @@ TEST_CASE("a peer that comes back is picked up again",
     Video::LibavStreamInput in;
     {
       Process server{peer.argv};
-      std::this_thread::sleep_for(peer.tcpPort ? 700ms : 400ms);
+      if(!awaitPeer(peer))
+        SKIP("peer " + peer.label + " never accepted a connection on this host");
       const auto r = receiveFrom(in, peer, m, block, 2, 25s);
       INFO("first session matched " << r.matched);
       CHECK(r.matched >= 2);
@@ -660,7 +826,8 @@ TEST_CASE("a peer that comes back is picked up again",
 
     {
       Process server{peer.argv};
-      std::this_thread::sleep_for(peer.tcpPort ? 700ms : 400ms);
+      if(!awaitPeer(peer))
+        SKIP("peer " + peer.label + " never accepted a connection on this host");
       const auto r = receiveFrom(in, peer, m, block, 2, 25s);
       INFO("second session opened " << r.opened << " matched " << r.matched);
       CHECK(r.opened);
@@ -742,6 +909,8 @@ TEST_CASE("a RIST input can be opened repeatedly without crashing",
   const auto m = loadMaster();
   const int block = blockSize();
   const auto peer = ristPeer();
+  if(const auto why = cannotServe(peer); !why.empty())
+    SKIP("rist/mpegts: " + why);
 
   Process server{peer.argv};
   std::this_thread::sleep_for(400ms);
@@ -768,6 +937,8 @@ TEST_CASE("a RIST input delivers the master picture",
   const auto m = loadMaster();
   const int block = blockSize();
   const auto peer = ristPeer();
+  if(const auto why = cannotServe(peer); !why.empty())
+    SKIP("rist/mpegts: " + why);
 
   Process server{peer.argv};
   std::this_thread::sleep_for(400ms);
