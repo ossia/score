@@ -129,8 +129,8 @@ layout(std140, binding = 1) uniform process_t {
   // against each other on OpenGL, and a compute shader that only stores comes
   // out upside down there.
   //
-  // The gate is not the same as the fragment macros above: a fragment shader
-  // needs its correction on Vulkan, a compute shader needs it on OpenGL alone.
+  // The gate is the inverse of the fragment macros above: a fragment shader
+  // needs its correction on Vulkan, a compute shader needs it everywhere else.
   // Read and store are corrected TOGETHER, so a shader that samples an input and
   // stores it at the matching index keeps agreeing with itself -- correcting
   // only the store is what turns a generator green and a relay red.
@@ -138,18 +138,20 @@ layout(std140, binding = 1) uniform process_t {
   // A cube face is addressed by direction, so no Y convention applies to it.
   static constexpr auto computeImageMacros =
       R"_(
-// OpenGL only, the backend QRhi::isYUpInFramebuffer() reports true for.
-// Direct3D, Metal and Vulkan all put the framebuffer origin at the top, so a
-// raw texel index already agrees with the target there and correcting it would
-// mirror the backends that are right.
-#if !defined(QSHADER_SPIRV) && !defined(QSHADER_HLSL) && !defined(QSHADER_MSL)
-#define ISF_STORE_COORD(img, coord) ivec2((coord).x, imageSize(img).y - 1 - (coord).y)
-#define ISF_STORE_COORD_LAYER(img, coord) ivec3((coord).x, imageSize(img).y - 1 - (coord).y, (coord).z)
-#define ISF_FIXUP_COMPUTE_TEXCOORD(coord) vec2((coord).x, 1. - (coord).y)
-#else
+// Everything except Vulkan, measured rather than derived. The framebuffer
+// origin does not predict this: Direct3D and Metal put it at the top like
+// Vulkan, yet a compute storage image reaches the delivered picture mirrored on
+// them exactly as it does on OpenGL. Gating this on OpenGL alone leaves D3D11,
+// D3D12 and Metal upside down -- csf_orient_macros reports green=255 where 0
+// is expected at row 0 on all three.
+#if defined(QSHADER_SPIRV)
 #define ISF_STORE_COORD(img, coord) ivec2(coord)
 #define ISF_STORE_COORD_LAYER(img, coord) ivec3(coord)
 #define ISF_FIXUP_COMPUTE_TEXCOORD(coord) (coord)
+#else
+#define ISF_STORE_COORD(img, coord) ivec2((coord).x, imageSize(img).y - 1 - (coord).y)
+#define ISF_STORE_COORD_LAYER(img, coord) ivec3((coord).x, imageSize(img).y - 1 - (coord).y, (coord).z)
+#define ISF_FIXUP_COMPUTE_TEXCOORD(coord) vec2((coord).x, 1. - (coord).y)
 #endif
 
 #define IMG_STORE(img, coord, val) imageStore(img, ISF_STORE_COORD(img, coord), val)
