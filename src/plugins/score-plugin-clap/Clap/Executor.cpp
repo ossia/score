@@ -436,6 +436,33 @@ public:
       for(const auto& m : msgs)
         to_send.push_back({&m, stamp(m.timestamp)});
 
+      // Notes exist in all three dialects; control changes, pitch bend and
+      // channel pressure exist only in the MIDI one. A plug-in advertising
+      // CLAP|MIDI - which most synths do - therefore still needs its non-note
+      // traffic as raw MIDI, otherwise the CLAP branch below silently drops
+      // everything that is not a note on/off.
+      const auto push_midi1 = [&](const libremidi::ump& m, uint32_t m_time) {
+        uint8_t midi_bytes[16];
+        const auto bytes_written = cmidi2_convert_single_ump_to_midi1(
+            midi_bytes, sizeof(midi_bytes), (cmidi2_ump*)m.data);
+        if(bytes_written <= 0 || bytes_written > 3)
+          return;
+
+        clap_event_midi_t ev{};
+        ev.header.size = sizeof(clap_event_midi_t);
+        ev.header.time = m_time;
+        ev.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
+        ev.header.type = CLAP_EVENT_MIDI;
+        ev.header.flags = 0;
+        ev.port_index = midi_port_index;
+        std::memcpy(ev.data, midi_bytes, bytes_written);
+
+        m_input_events.midi_events.push_back(ev);
+        m_input_events.all_events.push_back(
+            reinterpret_cast<clap_event_header_t*>(
+                &m_input_events.midi_events.back()));
+      };
+
       if(spec.supported_dialects & clap_note_dialect::CLAP_NOTE_DIALECT_MIDI2)
       {
         for(const auto& [m_ptr, m_time] : to_send)
@@ -509,38 +536,21 @@ public:
                       &m_input_events.note_events.back()));
               break;
             }
-            default:
+            default: {
+              // Poly pressure, CC, pitch bend, channel pressure: no CLAP-note
+              // representation, so pass them through in the MIDI dialect when
+              // the port also accepts it.
+              if(spec.supported_dialects & clap_note_dialect::CLAP_NOTE_DIALECT_MIDI)
+                push_midi1(m, m_time);
               break;
+            }
           }
         }
       }
       else if(spec.supported_dialects & clap_note_dialect::CLAP_NOTE_DIALECT_MIDI)
       {
         for(const auto& [m_ptr, m_time] : to_send)
-        {
-          const auto& m = *m_ptr;
-          // Convert UMP to MIDI 1.0
-          uint8_t midi_bytes[16];
-          auto bytes_written = cmidi2_convert_single_ump_to_midi1(
-              midi_bytes, sizeof(midi_bytes), (cmidi2_ump*)m.data);
-
-          if(bytes_written > 0 && bytes_written <= 3)
-          {
-            clap_event_midi_t ev{};
-            ev.header.size = sizeof(clap_event_midi_t);
-            ev.header.time = m_time;
-            ev.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
-            ev.header.type = CLAP_EVENT_MIDI;
-            ev.header.flags = 0;
-            ev.port_index = midi_port_index;
-            std::memcpy(ev.data, midi_bytes, bytes_written);
-
-            m_input_events.midi_events.push_back(ev);
-            m_input_events.all_events.push_back(
-                reinterpret_cast<clap_event_header_t*>(
-                    &m_input_events.midi_events.back()));
-          }
-        }
+          push_midi1(*m_ptr, m_time);
       }
       // FIXME sysex
       midi_port_index++;
