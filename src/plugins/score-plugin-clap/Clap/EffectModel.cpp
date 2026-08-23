@@ -954,12 +954,17 @@ Model::Model(
     : Process::ProcessModel{duration, id, "ClapProcess", parent}
     , m_plugin{std::make_shared<PluginHandle>()}
 {
+  // "<path>:::<id>" is what the library gives us, but a process can also be
+  // created before anything is chosen -- the object gallery does exactly that,
+  // and so does a document that lost the setting. Stay empty instead of
+  // aborting the application.
   auto plug = pluginId.split(":::");
-  SCORE_ASSERT(plug.size() == 2);
-  m_pluginPath = plug[0];
-  m_pluginId = plug[1];
-
-  loadPlugin();
+  if(plug.size() == 2)
+  {
+    m_pluginPath = plug[0];
+    m_pluginId = plug[1];
+    loadPlugin();
+  }
   createControls(false);
 }
 
