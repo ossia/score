@@ -286,3 +286,93 @@ TEST_CASE("queued enumerator signals survive dialog destruction", "[deviceexplor
     SUCCEED("no use-after-free after the dialog is gone");
   });
 }
+
+// Picking a device from the enumerated list ("Devices" column) fills the
+// settings widget with that device's settings. When *editing* an existing
+// device the score already refers to it by name, so the name must survive the
+// pick; when *creating* one, taking the enumerated name is what the user wants.
+namespace
+{
+struct ModeFixture
+{
+  Harness h;
+  Explorer::DeviceEditDialog* dialog{};
+  ThreadedEnumerator* enumerator{};
+
+  ModeFixture(score::Document& doc, Explorer::DeviceEditDialog::Mode mode)
+  {
+    auto& model = Explorer::deviceExplorerFromContext(doc.context());
+    dialog = new Explorer::DeviceEditDialog{model, h.protocols, mode, nullptr};
+
+    auto s = h.async->defaultSettings();
+    s.name = QStringLiteral("my camera");
+    dialog->setSettings(s);
+    dialog->show();
+    QApplication::processEvents();
+
+    enumerator = h.async->last;
+    REQUIRE(enumerator != nullptr);
+  }
+
+  ~ModeFixture() { delete dialog; }
+
+  //! Enumerate a device and click on it, as the user would.
+  void pickEnumeratedDevice(const QString& name)
+  {
+    Device::DeviceSettings s;
+    s.name = name;
+    s.protocol = AsyncFactory::static_concreteKey();
+    enumerator->deviceAdded(name, s);
+    QApplication::processEvents();
+
+    auto tree = dialog->devicesTree();
+    REQUIRE(tree != nullptr);
+    REQUIRE(tree->isVisible());
+    QTreeWidgetItem* found{};
+    for(int i = 0; i < tree->topLevelItemCount() && !found; i++)
+    {
+      auto cat = tree->topLevelItem(i);
+      for(int j = 0; j < cat->childCount(); j++)
+        if(cat->child(j)->text(0) == name)
+        {
+          found = cat->child(j);
+          break;
+        }
+    }
+    REQUIRE(found != nullptr);
+    tree->setCurrentItem(found);
+    found->setSelected(true);
+    tree->activated(tree->currentIndex());
+    QApplication::processEvents();
+  }
+};
+}
+
+TEST_CASE("editing a device and picking another enumerated device keeps its name", "[deviceexplorer]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+
+    ModeFixture f{*doc, Explorer::DeviceEditDialog::Editing};
+    REQUIRE(f.dialog->getSettings().name == "my camera");
+
+    f.pickEnumeratedDevice(QStringLiteral("Logitech C920"));
+
+    // The device-specific settings are taken from the pick, the name is not.
+    CHECK(f.dialog->getSettings().name == "my camera");
+  });
+}
+
+TEST_CASE("creating a device and picking an enumerated device takes its name", "[deviceexplorer]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+
+    ModeFixture f{*doc, Explorer::DeviceEditDialog::Creating};
+    f.pickEnumeratedDevice(QStringLiteral("Logitech C920"));
+
+    CHECK(f.dialog->getSettings().name == "Logitech C920");
+  });
+}
