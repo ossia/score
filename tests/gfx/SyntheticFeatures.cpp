@@ -258,3 +258,49 @@ TEST_CASE("EXECUTION_MODEL USER dispatches from its generated ports",
   CHECK(marker == 7);
   CHECK(hits == 4);
 }
+
+TEST_CASE("a compute filter can ADD an attribute the input does not have",
+          "[gfx][syn][csf][geometry]")
+{
+  // Upstream carries position only. The blue the consumer draws exists nowhere
+  // in the input, so forwarding cannot produce it -- only the filter writing a
+  // new attribute can.
+  const auto api = GENERATE(from_range(platform_backends()));
+  IsfResult r;
+  run_in_gui_app([&](const score::GUIApplicationContext&) {
+    r = render_raster(api,
+                      {corpus("syn-geo-position-only.cs"), corpus("syn-geo-add-attribute.cs")},
+                      corpus("raw-raster-basic.vs"), corpus("raw-raster-basic.fs"));
+  });
+  if(r.skipped) SKIP(r.backend + ": " + r.skip_reason);
+  INFO("backend=" << r.backend << " error: " << r.error);
+  REQUIRE(r.error.empty());
+  REQUIRE(r.outputs.size() >= 1);
+  const auto px = r.outputs[0].at(32, 32);
+  INFO("centre rgba = " << int(px[0]) << "," << int(px[1]) << "," << int(px[2]));
+  CHECK(int(px[2]) > 128);
+  CHECK(int(px[1]) < 96);
+}
+
+TEST_CASE("a compute filter can MODIFY an attribute in flight",
+          "[gfx][syn][csf][geometry]")
+{
+  // Upstream is green; the filter rewrites the colour to red. Red proves the
+  // write landed, and green would prove the upstream buffer was forwarded past
+  // it -- the two outcomes are opposite channels, not shades of one.
+  const auto api = GENERATE(from_range(platform_backends()));
+  IsfResult r;
+  run_in_gui_app([&](const score::GUIApplicationContext&) {
+    r = render_raster(api,
+                      {corpus("syn-geo-producer.cs"), corpus("syn-geo-modify-attribute.cs")},
+                      corpus("raw-raster-basic.vs"), corpus("raw-raster-basic.fs"));
+  });
+  if(r.skipped) SKIP(r.backend + ": " + r.skip_reason);
+  INFO("backend=" << r.backend << " error: " << r.error);
+  REQUIRE(r.error.empty());
+  REQUIRE(r.outputs.size() >= 1);
+  const auto px = r.outputs[0].at(32, 32);
+  INFO("centre rgba = " << int(px[0]) << "," << int(px[1]) << "," << int(px[2]));
+  CHECK(int(px[0]) > 128);
+  CHECK(int(px[1]) < 96);
+}
