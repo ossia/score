@@ -16,6 +16,7 @@
 #include <score/tools/Bind.hpp>
 #include <score/widgets/ArrowButton.hpp>
 #include <score/widgets/ClearLayout.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SetIcons.hpp>
 #include <score/widgets/TextLabel.hpp>
@@ -112,6 +113,13 @@ void PortWidgetSetup::setupControl(
   auto hl = new score::MarginLess<QHBoxLayout>{widg};
   hl->addWidget(advBtn);
   hl->addWidget(lab);
+  // The description shows in the help panel from the label and the control
+  // too, not only from the port
+  if(const auto& desc = inlet.description(); !desc.isEmpty())
+  {
+    score::setHelp(widg, desc);
+    score::setHelp(inlet_widget, desc);
+  }
 
   auto sw = new QWidget{parent};
   sw->setContentsMargins(0, 0, 0, 0);
@@ -143,6 +151,13 @@ void PortWidgetSetup::setupControl(
   auto hl = new score::MarginLess<QHBoxLayout>{widg};
   hl->addWidget(advBtn);
   hl->addWidget(lab);
+  // The description shows in the help panel from the label and the control
+  // too, not only from the port
+  if(const auto& desc = inlet.description(); !desc.isEmpty())
+  {
+    score::setHelp(widg, desc);
+    score::setHelp(inlet_widget, desc);
+  }
 
   auto sw = new QWidget{parent};
   sw->setContentsMargins(0, 0, 0, 0);
@@ -206,6 +221,11 @@ void PortWidgetSetup::setupImpl(
   hl->addWidget(lab);
 
   auto port_widg = PortWidgetSetup::makeAddressWidget(port, ctx, parent);
+  if(const auto& desc = port.description(); !desc.isEmpty())
+  {
+    score::setHelp(widg, desc);
+    score::setHelp(port_widg, desc);
+  }
   lay.addRow(widg, port_widg);
 
   switch(port.type())

@@ -832,11 +832,15 @@ static auto makeFullItemImpl(
   control.setParentItem(&item);
   control.setPos(layout.control);
   control.setZValue(2);
+  // The help panel shows the description of whatever is hovered: the port,
+  // its label or its control
+  control.setToolTip(portModel.description());
 
   // Text
   if(layout.labelVisible)
   {
     lab = Dataflow::makePortLabel(portModel, &item);
+    lab->setToolTip(portModel.description());
     lab->setPos(layout.label);
     auto widg_r = control.boundingRect();
     auto lab_r = lab->boundingRect();
@@ -884,6 +888,7 @@ static auto makeLabelItemImpl(
   if(layout.labelVisible)
   {
     lab = Dataflow::makePortLabel(portModel, &item);
+    lab->setToolTip(portModel.description());
     lab->setPos(layout.label);
     if(layout.labelAlignment == Qt::AlignLeft)
     {
