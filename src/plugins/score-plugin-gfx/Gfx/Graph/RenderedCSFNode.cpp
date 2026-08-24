@@ -3526,7 +3526,10 @@ void RenderedCSFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& r
   m_gpuScatterAvailable = m_gpuScatter.init(renderer.state);
 
   // Create the material UBO
-  m_materialSize = n.m_materialSize;
+  // Only the shader-visible part is bound: a USER pass appends dispatch-count
+  // ports past it, and binding those would take the slot the shader assigns to
+  // its first storage resource.
+  m_materialSize = n.m_materialUBOSize;
   if(m_materialSize > 0)
   {
     m_materialUBO = rhi.newBuffer(

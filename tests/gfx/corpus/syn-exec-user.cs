@@ -42,8 +42,11 @@ void main()
   if(pos.x >= size.x || pos.y >= size.y)
     return;
 
+  // Slots 56..62 hold the per-PASSINDEX markers, so the invocation tally stops
+  // short of them: summing those too would report dispatch counts that no
+  // dispatch produced.
   int total = 0;
-  for(int i = 0; i < 63; i++)
+  for(int i = 0; i < 56; i++)
     total += tally.hits[i];
   // Blue carries the marker so "pass never ran" and "pass ran with no
   // invocations counted" are separable.
