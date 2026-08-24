@@ -71,7 +71,7 @@ public:
 
   void setControl(std::size_t index, const QVariant& val)
   {
-    if(index > m_jsInlets.size())
+    if(index >= m_jsInlets.size())
       return;
     if(auto v = qobject_cast<ValueInlet*>(m_jsInlets[index]))
       v->setValue(val);
@@ -80,7 +80,7 @@ public:
   }
   void impulse(std::size_t index)
   {
-    if(index > m_jsInlets.size())
+    if(index >= m_jsInlets.size())
       return;
     if(auto v = qobject_cast<Impulse*>(m_jsInlets[index]))
       v->impulse();
