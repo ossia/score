@@ -299,6 +299,12 @@ void Window::render()
     m_newlyExposed = false;
   }
 
+  // m_canRender is recomputed by the output node from its render list. The
+  // timer-driven path refreshes it every tick through ScreenNode::render(); the
+  // vsync chain re-enters here directly and never did.
+  if(onAboutToRender)
+    onAboutToRender();
+
   // onRender is only installed by ScreenNode::startRendering; platforms that
   // expose the window before that (vkkhrdisplay) reach here with an empty
   // std::function, and calling it would throw bad_function_call between
