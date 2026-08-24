@@ -117,7 +117,7 @@ struct SceneRun
 }
 
 TEST_CASE(
-    "a Crousti scene chain renders the geometry it carries",
+    "a Crousti scene chain builds, renders and tears down",
     "[gfx][crousti][scene][threedim]")
 {
   // Cube -> Transform 3D -> ScenePreprocessor -> raster, every producer a halp
@@ -125,10 +125,18 @@ TEST_CASE(
   // CpuFilterNode.hpp's renderer serves, and nothing in a default ctest run
   // entered it before.
   //
-  // The oracle is drawn-vs-not-drawn, and it is paired with its own negative
-  // control in the same case: the identical chain with no producer wired must
-  // read zero. Without that pairing "something is lit" proves nothing, because
-  // a rig that lights pixels for an unrelated reason would pass it.
+  // SCOPE, measured and deliberately narrow: this asserts that wiring a producer
+  // changes the frame, paired with its own negative control -- the identical
+  // chain with no producer must read zero coverage. It does NOT assert that the
+  // lit pixels are the mesh, because they demonstrably are not: the lit region
+  // is exactly the NDC quadrant x[80..159] y[0..79] of a 160x160 frame, byte for
+  // byte, whether the producer is a Cube or a Torus, whatever Transform 3D's
+  // position and scale are set to, and with or without a Camera in the chain.
+  // Controls are not the cause -- probing GpuProcessIns shows them delivered and
+  // applied (fields 1..3, can_process true). Something between the flattener and
+  // the raw-raster vertex binding is not carrying the mesh through in this rig;
+  // until that is understood, a placement oracle here would be measuring the
+  // rig, so this case guards construction and teardown only.
   const auto api = GENERATE(from_range(platform_backends()));
 
   auto run = [&](bool withGeometry) {
@@ -295,12 +303,12 @@ TEST_CASE(
   REQUIRE(both.r.outputs.size() == 1);
   REQUIRE(both.r.outputs[0].valid());
 
-  // NOT ASSERTED: that the second input contributes. Measured here, cube-only
-  // and cube+torus render byte-identical coverage on both backends, which is
-  // what a group forwarding only input 0 would produce -- but equally what a
-  // torus that never reached the group would. Telling those apart needs the
-  // control path below, so the merge contract stays unasserted rather than
-  // pinned to whichever answer today's build happens to give.
+  // NOT ASSERTED: that the second input contributes. Cube-only and cube+torus
+  // render byte-identical frames, but that says nothing about Scene Group --
+  // the same rig renders the same fixed NDC quadrant for ANY mesh, so mesh
+  // content does not reach the pixels here at all (see the scope note on the
+  // first case). The merge contract is untestable by pixels until that is
+  // fixed, and pinning it to today's output would pin the rig, not the node.
   INFO("coverage cube only=" << one.p.coverage << " cube+torus=" << both.p.coverage);
   CHECK(both.p.coverage > 0.01);
 }
@@ -379,5 +387,6 @@ TEST_CASE(
   INFO("coverage with a Camera Array in the scene = " << coverage);
   CHECK(coverage > 0.01);
 }
+
 
 
