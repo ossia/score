@@ -117,6 +117,57 @@ score::gfx::ScreenNode* screen_of(WindowDevice& dev)
 /// render list for the window and no clock driving it, so nothing is presented
 /// at all -- which is why every case here asserts a non-zero frame count BEFORE
 /// the disruption under test.
+/// Cube -> Model Display -> Window:/, the geometry path. A model renderer holds
+/// a Mesh pointer into the RenderList's cache, so it is the family that a
+/// mid-frame rebuild -- what a resize or a full-screen change triggers -- can
+/// leave holding a freed mesh. A shader-only chain owns no geometry and cannot
+/// reach any of it.
+bool build_geometry_and_play(JS::EditJsContext& api, std::string& why)
+{
+  auto* itv = api.rootInterval();
+  if(!itv)
+  {
+    why = "rootInterval() is null";
+    return false;
+  }
+  // Array to mesh, not the Cube primitive: it emits DYNAMIC geometry, which is
+  // what goes through RenderList::acquireMesh() into the custom-mesh cache the
+  // rebuild deletes. A static primitive never touches that cache, so it cannot
+  // reach the dangling-mesh path at all.
+  auto* cube = api.createProcess(
+      itv, QStringLiteral("dfc5bae9-c75c-4180-b4e8-be3063c8d8f2"), {});
+  if(!cube)
+  {
+    why = "could not create Array to mesh";
+    return false;
+  }
+  auto* display = api.createProcess(
+      itv, QStringLiteral("9ce44e4b-eeb6-4042-bb7f-9d0b28190daf"), {});
+  if(!display)
+  {
+    why = "could not create Model Display";
+    return false;
+  }
+  auto* geomOut = api.outlet(cube, 0);
+  auto* geomIn = api.inlet(display, 0);
+  if(!geomOut || !geomIn)
+  {
+    why = "the cube or the display is missing its geometry port";
+    return false;
+  }
+  api.createCable(geomOut, geomIn);
+
+  auto* out = api.outlet(display, 0);
+  if(!out)
+  {
+    why = "Model Display has no image outlet";
+    return false;
+  }
+  api.setAddress(out, QStringLiteral("Win:/"));
+  api.play();
+  return true;
+}
+
 bool build_and_play(JS::EditJsContext& api, const QString& shader, std::string& why)
 {
   auto* itv = api.rootInterval();
@@ -376,6 +427,104 @@ TEST_CASE(
   REQUIRE(beforeHide > 0);
   CHECK(exposedAfter);
   CHECK(afterShow > 0);
+}
+
+TEST_CASE(
+    "a geometry output survives resizes and full-screen changes",
+    "[gfx][window][device][lifecycle][geometry]")
+{
+  // The reported crash: a document of point-cloud meshes, resized or sent full
+  // screen, dies in RenderList::initMeshBuffer(). Both rebuild the render list
+  // mid-frame through maybeRebuild(), which is release() followed straight by
+  // init(), and the model renderer's Mesh pointer belongs to the list being
+  // released. A Cube stands in for the point cloud: same geometry path, same
+  // acquireMesh() pointer, no asset needed.
+  Outcome o;
+  int beforeResize{}, afterResize{};
+  bool connected{};
+
+  run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
+    if(!can_present())
+    {
+      o = {true, "no windowing system able to expose a native window"};
+      return;
+    }
+    auto* doc = score::test::new_document(ctx);
+    if(!doc)
+    {
+      o = {true, "no document delegate"};
+      return;
+    }
+    auto* devPtr = add_window_device(doc->context(), QStringLiteral("Win"));
+    if(!devPtr)
+    {
+      o = {true, "the window device could not be registered with the document"};
+      return;
+    }
+    auto& dev = *devPtr;
+    connected = true;
+
+    score::gfx::Window* windowPtr{};
+    pump_until([&] { return (windowPtr = dev.window()) != nullptr; }, 5000);
+    if(!windowPtr)
+    {
+      o = {true, "the device published no window"};
+      return;
+    }
+    auto& win = *windowPtr;
+    if(!pump_until([&] { return win.isExposed(); }, 5000))
+    {
+      o = {true, "the device's window never became exposed"};
+      return;
+    }
+
+    JS::EditJsContext api;
+    std::string why;
+    if(!build_geometry_and_play(api, why))
+    {
+      o = {true, "could not build Cube -> Model Display -> Win:/ : " + why};
+      return;
+    }
+
+    pump_for(2000);
+    FrameCounter frames{win};
+    frames.rearm();
+    pump_for(1000);
+    beforeResize = frames.take();
+
+    // Sizes, odd extents and full screen both ways: the fast resize path and a
+    // full rebuild take different code, and full screen resizes from the
+    // platform side at a size nothing here chose.
+    for(int i = 0; i < 8; ++i)
+    {
+      win.resize(200 + (i * 61) % 400, 150 + (i * 43) % 300);
+      pump_for(120);
+      frames.rearm();
+      if(i % 2 == 0)
+      {
+        win.showFullScreen();
+        pump_for(200);
+        frames.rearm();
+        win.showNormal();
+        pump_for(200);
+        frames.rearm();
+      }
+    }
+
+    win.resize(320, 240);
+    pump_for(400);
+    frames.rearm();
+    frames.take();
+    pump_for(1200);
+    afterResize = frames.take();
+  });
+
+  if(o.skipped)
+    SKIP(o.skipReason);
+  REQUIRE(connected);
+  INFO("frames before resizing: " << beforeResize << ", after: " << afterResize);
+  REQUIRE(beforeResize > 0);
+  CHECK(afterResize > 0);
 }
 
 TEST_CASE(
