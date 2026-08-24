@@ -341,8 +341,15 @@ void Graph::initializeOutput(OutputNode* output, GraphicsApi graphicsApi)
       // sample-count change.
       if(auto* rl = output->renderer())
         if(auto rs = output->renderState(); rs)
-          if(rl->resizeSwapchainSizedTargets(rs->outputSize, rs->renderSize))
-            return;
+          // Only when the list is still built against this device. A window that
+          // was closed and re-shown comes back on a NEW QRhi -- exposeEvent's
+          // init() builds a fresh RenderState -- and resizing the old list
+          // succeeds against the dead one, which is a black window that nothing
+          // rebuilds. Window::releaseSwapChain() sets m_newlyExposed for the
+          // same reason.
+          if(rl->state.rhi == rs->rhi)
+            if(rl->resizeSwapchainSizedTargets(rs->outputSize, rs->renderSize))
+              return;
       recreateOutputRenderList(*output);
     };
 
