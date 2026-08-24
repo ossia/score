@@ -206,3 +206,26 @@ TEST_CASE("REQUIRED false falls back to zeroes instead of failing the build",
   CHECK(int(px[1]) > 128);
   CHECK(int(px[2]) < 32);
 }
+
+TEST_CASE("EXECUTION_MODEL PER_MIP loops the pass once per level",
+          "[gfx][syn][raster][execution]")
+{
+  // Each level paints its own PASSINDEX. Level 0 must therefore read 0 in red
+  // and 1 in green: green proves the pass ran at all, red proves the level
+  // index reaching the shader is the base level rather than a stale or
+  // arbitrary value.
+  const auto api = GENERATE(from_range(platform_backends()));
+  IsfResult r;
+  run_in_gui_app([&](const score::GUIApplicationContext&) {
+    r = render_raster(api, {corpus("syn-geo-producer.cs")},
+                      corpus("syn-raster-per-mip.vs"), corpus("syn-raster-per-mip.fs"));
+  });
+  if(r.skipped) SKIP(r.backend + ": " + r.skip_reason);
+  INFO("backend=" << r.backend << " error: " << r.error);
+  REQUIRE(r.error.empty());
+  REQUIRE(r.outputs.size() >= 1);
+  const auto px = r.outputs[0].at(32, 32);
+  INFO("centre rgba = " << int(px[0]) << "," << int(px[1]) << "," << int(px[2]));
+  CHECK(int(px[1]) > 128);
+  CHECK(int(px[0]) < 32);
+}
