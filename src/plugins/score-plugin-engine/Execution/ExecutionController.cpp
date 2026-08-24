@@ -740,11 +740,11 @@ void ExecutionController::reset_after_stop()
       50, this,
       [this, itv = QPointer<Scenario::IntervalModel>{&scenar->baseInterval()}] {
     if(itv)
-      reset_edition();
+      reset_edition(*itv);
       });
 }
 
-void ExecutionController::reset_edition()
+void ExecutionController::reset_edition(Scenario::IntervalModel& base)
 {
   // Reset edition for the device explorer
   if(context.applicationSettings.gui)
@@ -757,11 +757,8 @@ void ExecutionController::reset_edition()
 
   // FIXME uuuugh have an event in scenario instead (or better, move this
   // in process)
-  auto scenar = currentScenarioModel();
-  if(!scenar)
-    return;
-  scenar->baseInterval().reset();
-  scenar->baseInterval().executionEvent(Scenario::IntervalExecutionEvent::Finished);
+  base.reset();
+  base.executionEvent(Scenario::IntervalExecutionEvent::Finished);
 }
 
 void ExecutionController::on_reinitialize()
