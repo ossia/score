@@ -898,6 +898,11 @@ void ScreenNode::createOutput(score::gfx::OutputConfiguration conf)
   // on top of it. MultiWindowNode already answers onClose for the same reason.
   m_window->onClose = [this] {
     releaseOwnedRenderList();
+    // The registry deliberately outlives a RenderList rebuild, but not the QRhi
+    // it is bound to: a window that comes back after this gets a new device, and
+    // RenderList::init() asserts boundRhi() == &rhi on the reuse path. Only
+    // destroyOutput() released it, and closing the window never goes there.
+    releaseRegistry();
   };
 
   m_window->onResize = [this, onResize = std::move(conf.onResize)] {

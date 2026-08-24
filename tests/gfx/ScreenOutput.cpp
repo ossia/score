@@ -310,14 +310,12 @@ TEST_CASE("a re-shown window presents frames again", "[gfx][window][screen]")
 }
 
 TEST_CASE("a closed and re-shown window presents frames again",
-          "[gfx][window][screen][.repro]")
+          "[gfx][window][screen]")
 {
   // Same counter as above, but the window goes away through the Close path
   // rather than hide(): QEvent::Close (and SurfaceAboutToBeDestroyed, which
   // falls through to it) releases the swapchain and latches m_running=false,
   // m_hasSwapChain=false, m_notExposed=true, m_closed=true all at once.
-  // Hidden behind a [.repro] tag: this is an experiment for the reported
-  // "no output until I disconnect and reconnect", not yet a guard.
   const auto api = GENERATE(from_range(platform_backends()));
 
   Outcome o;
