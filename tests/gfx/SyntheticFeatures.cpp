@@ -139,6 +139,33 @@ TEST_CASE("COPY_FROM forwards an attribute buffer between geometries",
   CHECK(int(px[0]) < 96);
 }
 
+TEST_CASE("COPY_FROM forwards an attribute declared read_only",
+          "[gfx][syn][csf][geometry]")
+{
+  // The same forwarding written the other legal way. "ACCESS": "none" is what
+  // RenderedCSFNode documents for a forwarded attribute, but read_only is the
+  // natural way to say "this shader does not write it" and is what the shipped
+  // csf-testers corpus uses -- so it has to reach the same pixel, not silently
+  // allocate an unwritten buffer and render black.
+  const auto api = GENERATE(from_range(platform_backends()));
+  IsfResult r;
+  run_in_gui_app([&](const score::GUIApplicationContext&) {
+    r = render_raster(api,
+                      {corpus("syn-geo-producer.cs"), corpus("syn-copy-from-readonly.cs")},
+                      corpus("raw-raster-basic.vs"), corpus("raw-raster-basic.fs"));
+  });
+  if(r.skipped) SKIP(r.backend + ": " + r.skip_reason);
+  INFO("backend=" << r.backend << " error: " << r.error);
+  REQUIRE(r.error.empty());
+  REQUIRE(r.outputs.size() >= 1);
+  REQUIRE(r.outputs[0].valid());
+  const auto px = r.outputs[0].at(32, 32);
+  INFO("centre pixel rgba = " << int(px[0]) << "," << int(px[1]) << ","
+                              << int(px[2]) << "," << int(px[3]));
+  CHECK(int(px[1]) > 128);
+  CHECK(int(px[0]) < 96);
+}
+
 TEST_CASE("the synthetic producer alone draws its colour",
           "[gfx][syn][raster][control]")
 {
