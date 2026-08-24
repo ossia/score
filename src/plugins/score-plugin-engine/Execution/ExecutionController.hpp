@@ -98,7 +98,9 @@ private:
   void stop_clock();
   void send_end_state();
   void reset_after_stop();
-  void reset_edition();
+  //! Acts on the interval that was stopped: by the time the timer fires,
+  //! the current document may be another one, or be closing.
+  void reset_edition(Scenario::IntervalModel& base);
 
 private:
   Scenario::ScenarioDocumentModel* currentScenarioModel();

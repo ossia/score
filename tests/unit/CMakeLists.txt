@@ -517,3 +517,12 @@ if(TARGET score_plugin_audio)
     APP
     PLUGINS score_plugin_audio score_plugin_deviceexplorer score_lib_device)
 endif()
+
+# The delayed reset after a stop acts on the interval it was armed for, not
+# on whatever document is current (or closing) when its timer fires.
+if(TARGET score_plugin_engine)
+  score_add_test(test_unit_execution_reset_after_close
+    SOURCES ExecutionResetAfterCloseTest.cpp
+    APP
+    PLUGINS score_plugin_engine score_plugin_scenario)
+endif()
