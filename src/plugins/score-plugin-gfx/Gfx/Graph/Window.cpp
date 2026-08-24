@@ -299,6 +299,13 @@ void Window::render()
     m_newlyExposed = false;
   }
 
+  // m_canRender is recomputed by the output node from its render list. The
+  // timer-driven path refreshes it every tick through ScreenNode::render(); the
+  // vsync chain re-enters here directly and never did, so a window whose flag
+  // was false when the chain started stayed black while render() spun.
+  if(onAboutToRender)
+    onAboutToRender();
+
   if(m_canRender && state)
   {
     QRhi::FrameOpResult r = state->rhi->beginFrame(m_swapChain, {});

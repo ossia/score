@@ -452,6 +452,13 @@ endif()
 # travel back out. Built through the real protocol factory on a real document,
 # so it needs a display: GUI, and it SKIPs without one.
 score_add_gfx_test(window_device_tree WindowDeviceTree.cpp)
+
+# The window output as the application assembles it: a real WindowDevice in a
+# real document, with GfxContext between the window and the graph. The rigs
+# above drive a ScreenNode directly and pump frames themselves, which is why a
+# window that has stopped presenting in the running app still reads as healthy.
+score_add_gfx_test(window_device_lifecycle WindowDeviceLifecycle.cpp)
+target_link_libraries(test_gfx_window_device_lifecycle PRIVATE score_plugin_deviceexplorer score_plugin_engine score_plugin_js)
 target_link_libraries(test_gfx_window_device_tree PRIVATE score_plugin_deviceexplorer)
 
 

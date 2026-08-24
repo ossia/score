@@ -51,6 +51,11 @@ public:
 
   std::function<void()> onWindowReady;
   std::function<void()> onUpdate;
+  //! Refreshes whatever gates a frame, before m_canRender is read. The vsync
+  //! loop re-enters render() on its own, without ever passing through the
+  //! node's own render(), so a node that recomputes state per tick needs a hook
+  //! here or it only ever runs on the timer-driven path.
+  std::function<void()> onAboutToRender;
   std::function<void(QRhiCommandBuffer&)> onRender;
   std::function<void()> onResize;
   // Invoked when the window is closing or its platform surface is being
