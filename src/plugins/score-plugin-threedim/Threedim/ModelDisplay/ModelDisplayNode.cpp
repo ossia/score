@@ -1488,6 +1488,16 @@ private:
   void release(RenderList& r) override
   {
     m_renderer = nullptr;
+    // m_mesh belongs to the RenderList going away: acquireMesh() hands out a
+    // pointer into its custom-mesh cache, which RenderList::release() deletes
+    // right after this. Keeping it leaves a dangling Mesh for the next init()
+    // to pass to initMeshBuffer() -- a resize or a full-screen change away,
+    // since both rebuild the list mid-frame through maybeRebuild().
+    // Dropping it makes init() fall back to the default quad; geometryChanged
+    // brings the real mesh back on the next update against the new list.
+    m_mesh = nullptr;
+    m_meshbufs = {};
+    this->geometryChanged = true;
     defaultRelease(r);
   }
 };
