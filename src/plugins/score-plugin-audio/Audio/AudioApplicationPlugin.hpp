@@ -29,6 +29,7 @@ private:
   void restart_engine();
   void stop_engine();
   void start_engine();
+  void rebind_engine(score::Document& doc);
 
   QAction* m_audioEngineAct{};
 

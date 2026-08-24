@@ -508,3 +508,12 @@ score_add_test(test_unit_device_listening
   SOURCES DeviceListeningTest.cpp
   GUI
   PLUGINS score_plugin_deviceexplorer score_lib_device score_lib_state)
+
+# The audio engine across documents being opened, switched and closed: it
+# lives as long as a document does, whichever document closes.
+if(TARGET score_plugin_audio)
+  score_add_test(test_unit_audio_engine_documents
+    SOURCES AudioEngineDocumentsTest.cpp
+    APP
+    PLUGINS score_plugin_audio score_plugin_deviceexplorer score_lib_device)
+endif()

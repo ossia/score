@@ -56,24 +56,56 @@ ApplicationPlugin::~ApplicationPlugin() { }
 
 void ApplicationPlugin::on_closeDocument(score::Document& old)
 {
-#if defined(__EMSCRIPTEN__)
-  // The WebAudio worklet is a page-lifetime singleton that cannot be torn down
-  // and recreated, so destroying the engine on close would leave playback dead
-  // until a full page reload (e.g. after File > New). Keep the engine alive and
-  // just park it on the document-independent pause tick; the next document
-  // rebinds to it via restart_engine().
+  // The engine does not depend on the document: keep it, parked on the
+  // document-independent pause tick (set_tick() waits for the audio thread to
+  // pick it up, so nothing of the closing document is referenced afterwards).
+  //
+  // Stopping it here used to leave the audio dead: closing a document that is
+  // not the current one changes no document, so nothing restarted the engine;
+  // and closing the current one recreated the driver, which is slow and
+  // fragile (ASIO, WASAPI...). On WebAssembly the WebAudio worklet cannot be
+  // recreated at all.
+  //
+  // The closing document is still listed here: it is the last one when no
+  // other remains.
+  const auto& docs = context.docManager.documents();
+  const bool last = docs.size() <= 1;
   if(audio)
+  {
     audio->set_tick(Audio::makePauseTick(this->context));
-#else
-  stop_engine();
+#if !defined(__EMSCRIPTEN__)
+    if(last)
+      stop_engine();
 #endif
+  }
 }
 
 void ApplicationPlugin::on_documentChanged(
     score::Document* olddoc, score::Document* newdoc)
 {
-  if(newdoc)
+  if(!newdoc)
+    return;
+
+  if(!audio)
+  {
     restart_engine();
+    return;
+  }
+
+  // The engine runs on: bind the document's audio device to it
+  rebind_engine(*newdoc);
+}
+
+void ApplicationPlugin::rebind_engine(score::Document& doc)
+{
+  auto dev = (Dataflow::AudioDevice*)doc.context()
+                 .plugin<Explorer::DeviceDocumentPlugin>()
+                 .list()
+                 .audioDevice();
+  if(dev)
+    dev->reconnect();
+  if(audio)
+    audio->set_tick(Audio::makePauseTick(this->context));
 }
 
 void ApplicationPlugin::timerEvent(QTimerEvent*)
@@ -235,6 +267,8 @@ void ApplicationPlugin::stop_engine()
     audio->stop();
     previous_audio.push_back(std::move(audio));
     audio.reset();
+    if(m_audioEngineAct)
+      m_audioEngineAct->setChecked(false);
   }
 }
 
