@@ -404,6 +404,74 @@ TEST_CASE("Window swapchain release and re-create", "[gfx][window][screen]")
   CHECK(afterResize);
 }
 
+TEST_CASE(
+    "a window closed in one execution is re-wired by the next",
+    "[gfx][window][screen]")
+{
+  // The sequence: play with an output on the Window device, close the window,
+  // press Show. It must come back without disconnecting the device.
+  //
+  // A ScreenNode's window outlives both a graph rebuild and a close; only
+  // destroyOutput() resets it, so createOutput() on a surviving window has to
+  // rebind onReady rather than keep the graph of whichever execution created
+  // the window first. The second createOutput() here is the next play, and its
+  // onReady is the one that has to fire on the re-show.
+  const auto api = GENERATE(from_range(platform_backends()));
+
+  Outcome o;
+  int firstReady{}, secondReady{}, presentedAfter{};
+  bool exposedAfter{};
+  run_in_gui_app([&](const score::GUIApplicationContext&) {
+    BareScreenRig rig;
+    if(!rig.build(api))
+    {
+      o = {rig.skipped(), rig.skipReason(), rig.error(), rig.backend()};
+      return;
+    }
+    o.backend = rig.backend();
+    auto* win = rig.window();
+    REQUIRE(win != nullptr);
+    firstReady = rig.readyCount;
+
+    QCloseEvent close;
+    QCoreApplication::sendEvent(win, &close);
+    pump_for(200);
+
+    // The next execution: a fresh configuration over the surviving window.
+    int ready2 = 0;
+    int presented = 0;
+    rig.screen->createOutput(
+        {.graphicsApi = api, .onReady = [&ready2] { ++ready2; }, .onResize = [] {}});
+
+    auto inner = win->onRender;
+    win->onRender = [&presented, inner](QRhiCommandBuffer& cb) {
+      ++presented;
+      if(inner)
+        inner(cb);
+    };
+
+    win->show();
+    pump_until([&] { return win->isExposed(); }, 5000);
+    exposedAfter = win->isExposed();
+    pump_for(1200);
+
+    secondReady = ready2;
+    presentedAfter = presented;
+    win->onRender = inner;
+  });
+
+  if(o.skipped)
+    SKIP(o.backend << ": " << o.skipReason);
+  INFO("backend: " << o.backend);
+  REQUIRE(o.error.empty());
+  REQUIRE(firstReady > 0);
+  INFO("second onReady fired " << secondReady << " times, presented "
+                               << presentedAfter);
+  CHECK(exposedAfter);
+  // The new execution's callback must be the one that runs.
+  CHECK(secondReady > 0);
+}
+
 TEST_CASE("Window device loss stops the output", "[gfx][window][screen]")
 {
   const auto api = GENERATE(from_range(platform_backends()));
@@ -544,10 +612,9 @@ TEST_CASE("Window swallows deferred deletion", "[gfx][window][screen]")
     //
     // deleteLater() + processEvents() does NOT reach Window::event: Qt only
     // flushes DeferredDelete when the event loop that posted it unwinds, so a
-    // pumped test cannot tell the two branches apart (verified — it stayed
-    // green with the swallow deleted). Deliver the event synchronously
-    // instead. A QPointer is the probe: it nulls itself iff the QObject was
-    // really destroyed, without dereferencing freed memory.
+    // pumped test cannot tell the two branches apart. Deliver the event
+    // synchronously instead. A QPointer is the probe: it nulls itself iff the
+    // QObject was really destroyed, without dereferencing freed memory.
     QPointer<score::gfx::Window> alive{rig.window()};
     QEvent del{QEvent::DeferredDelete};
     swallowed = rig.window()->event(&del);
@@ -718,7 +785,7 @@ TEST_CASE("ScreenNode vsync callback drives the window", "[gfx][window][screen]"
 
     // Arming the callback from a null state must kick a first frame by itself:
     // the vsync loop is a self-perpetuating requestUpdate() chain and nothing
-    // else restarts it (the "render freezes until I move the window" bug).
+    // else restarts it.
     rig.screen->setVSyncCallback([&] { ++ticks; });
     pump_until([&] { return ticks >= 3; }, 3000);
 
