@@ -1,7 +1,7 @@
 #include "AudioOutletItem.hpp"
 
 #include <Process/Commands/EditPort.hpp>
-#include <Process/Dataflow/AudioPortComboBox.hpp>
+#include <Process/Dataflow/PortAddressComboBox.hpp>
 #include <Process/Dataflow/PortListWidget.hpp>
 #include <Process/Style/Pixmaps.hpp>
 
@@ -58,12 +58,7 @@ void AudioOutletFactory::setupOutletInspector(
 {
   auto& outlet = static_cast<const Process::AudioOutlet&>(port);
 
-  auto root = State::Address{"audio", {"out"}};
-  auto& device = *ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
-  auto d = device.list().audioDevice();
-  const auto& node = d->getNode(root);
-
-  auto edit = Process::makeAddressCombo(root, node, port, ctx, parent);
+  auto edit = Process::makePortAddressCombo(port, ctx, parent);
   lay.addRow(port.name(), edit);
 
   auto cb = new QCheckBox{QObject::tr("Propagate"), parent};

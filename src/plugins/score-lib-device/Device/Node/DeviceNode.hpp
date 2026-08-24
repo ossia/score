@@ -87,6 +87,24 @@ SCORE_LIB_DEVICE_EXPORT State::AddressAccessor address(const Node& treeNode);
 SCORE_LIB_DEVICE_EXPORT State::Message message(const Device::Node& node);
 
 /**
+ * @brief What a drop of device explorer nodes (a FreeNodeList) resolves to.
+ *
+ * Only the first dropped node counts. A device root (e.g. a whole OSC tree,
+ * which a value inlet receives as a map) resolves to the bare device address
+ * with no settings; a parameter resolves to its address and its settings.
+ * Returns nothing when the drop would not change @p current.
+ */
+struct DroppedAddress
+{
+  State::AddressAccessor address;
+  std::optional<Device::AddressSettings> settings;
+};
+
+SCORE_LIB_DEVICE_EXPORT
+std::optional<DroppedAddress> addressOfDroppedNodes(
+    const Device::FreeNodeList& nodes, const State::AddressAccessor& current);
+
+/**
  * @brief parametersList Recursive list of parameters in this node
  *
  * Note : this one takes an output reference as an optimization

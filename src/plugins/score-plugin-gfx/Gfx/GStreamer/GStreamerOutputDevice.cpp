@@ -729,7 +729,12 @@ class OutputDevice final : public Gfx::GfxOutputDevice
 {
   W_OBJECT(OutputDevice)
 public:
-  using GfxOutputDevice::GfxOutputDevice;
+  OutputDevice(const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
+      : GfxOutputDevice{settings, ctx}
+  {
+    // A pipeline can take sound as well as video
+    m_capas.nodeKinds |= Device::NodeKind::AudioOut;
+  }
   ~OutputDevice();
 
 private:

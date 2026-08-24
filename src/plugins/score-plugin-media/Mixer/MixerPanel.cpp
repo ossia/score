@@ -1,7 +1,7 @@
 #include "MixerPanel.hpp"
 
 #include <Process/Commands/EditPort.hpp>
-#include <Process/Dataflow/AudioPortComboBox.hpp>
+#include <Process/Dataflow/PortAddressComboBox.hpp>
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
@@ -208,10 +208,7 @@ public:
 
     if(dev)
     {
-      auto root = State::Address{"audio", {"out"}};
-      const auto& node = dev->getNode(root);
-      m_audioSelector
-          = Process::makeAddressCombo(root, node, *param->outlet, ctx, parent);
+      m_audioSelector = Process::makePortAddressCombo(*param->outlet, ctx, parent);
     }
 
     m_lay.addWidget(&m_title, 0, 0, 1, 2, Qt::AlignLeft);

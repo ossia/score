@@ -29,6 +29,7 @@ GfxInputDevice::GfxInputDevice(
   m_capas.hasCallbacks = false;
   m_capas.canListen = false;
   m_capas.canSerialize = true;
+  m_capas.nodeKinds = Device::NodeKind::TextureIn;
 }
 
 GfxInputDevice::~GfxInputDevice() { }
@@ -135,6 +136,7 @@ GfxOutputDevice::GfxOutputDevice(
   m_capas.hasCallbacks = false;
   m_capas.canListen = false;
   m_capas.canSerialize = true;
+  m_capas.nodeKinds = Device::NodeKind::TextureOut;
 }
 
 GfxOutputDevice::~GfxOutputDevice() { }

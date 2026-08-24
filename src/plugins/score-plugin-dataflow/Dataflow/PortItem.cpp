@@ -196,22 +196,15 @@ void AutomatablePortItem::dropEvent(QGraphicsSceneDragDropEvent* event)
   if(mime.hasFormat(score::mime::nodelist()))
   {
     Mime<Device::FreeNodeList>::Deserializer des{mime};
-    Device::FreeNodeList nl = des.deserialize();
-
-    if(nl.empty())
+    auto res = Device::addressOfDroppedNodes(des.deserialize(), m_port.address());
+    if(!res)
       return;
 
-    if(nl[0].first == m_port.address().address)
-      return;
-
-    if(nl[0].first.device.isEmpty())
-      return;
-
-    auto addr = nl[0].second.target<Device::AddressSettings>();
-    if(!addr)
-      return;
-    disp.submit(new Process::ChangePortSettings{
-        m_port, {State::AddressAccessor{nl[0].first}, std::move(*addr)}});
+    if(res->settings)
+      disp.submit(new Process::ChangePortSettings{
+          m_port, {std::move(res->address), std::move(*res->settings)}});
+    else
+      disp.submit(new Process::ChangePortAddress{m_port, std::move(res->address)});
   }
   else if(mime.hasFormat(score::mime::messagelist()))
   {
