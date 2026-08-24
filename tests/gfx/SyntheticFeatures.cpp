@@ -229,3 +229,32 @@ TEST_CASE("EXECUTION_MODEL PER_MIP loops the pass once per level",
   CHECK(int(px[1]) > 128);
   CHECK(int(px[0]) < 32);
 }
+
+TEST_CASE("EXECUTION_MODEL USER dispatches from its generated ports",
+          "[gfx][syn][csf][execution]")
+{
+  // USER makes the runtime create three integer ports for the dispatch counts,
+  // each defaulting to 1. With LOCAL_SIZE [4,1,1] the default dispatch is
+  // exactly 4 invocations. A USER pass quietly treated as 2D_IMAGE would size
+  // from an image and land elsewhere; one never dispatched reads 0.
+  //
+  // USER is parser-supported and was exercised by nothing in the tree -- not
+  // one shader in packages/, not one test -- before this.
+  const auto api = GENERATE(from_range(platform_backends()));
+  IsfResult r;
+  run_in_gui_app([&](const score::GUIApplicationContext&) {
+    r = render_csf_image(api, corpus("syn-exec-user.cs"), {}, {16, 16}, 3);
+  });
+  if(r.skipped) SKIP(r.backend + ": " + r.skip_reason);
+  INFO("backend=" << r.backend << " error: " << r.error);
+  REQUIRE(r.error.empty());
+  REQUIRE(r.outputs.size() == 1);
+  REQUIRE(r.outputs[0].valid());
+  const int hits = r.outputs[0].at(8, 8)[0];
+  const int marker = r.outputs[0].at(8, 8)[2];
+  // hits[56..63] record which PASSINDEX values reached the shader.
+  INFO("invocations = " << hits << ", marker = " << marker
+                        << " (marker 7 means the pass ran at all)");
+  CHECK(marker == 7);
+  CHECK(hits == 4);
+}
