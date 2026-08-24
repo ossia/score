@@ -161,23 +161,18 @@ clone_addon https://github.com/ossia/score-addon-puara
 
 if [[ "$CI_PLATFORM" != "WASM" ]];
 then
-  clone_addon         https://github.com/ossia/score-addon-ble
-  clone_addon https://github.com/ossia/score-addon-contextfree
-  clone_addon   https://github.com/ossia/score-addon-deuterium
-  clone_addon        https://github.com/ossia/score-addon-hdf5
-  clone_addon         https://github.com/ossia/score-addon-led
-  clone_addon         https://github.com/ossia/score-addon-lsl
-  clone_addon         https://github.com/ossia/score-addon-ndi
+  clone_addon          https://github.com/ossia/score-addon-ble
+  clone_addon  https://github.com/ossia/score-addon-contextfree
+  clone_addon    https://github.com/ossia/score-addon-deuterium
+  clone_addon         https://github.com/ossia/score-addon-hdf5
+  clone_addon          https://github.com/ossia/score-addon-led
+  clone_addon          https://github.com/ossia/score-addon-lsl
+  clone_addon          https://github.com/ossia/score-addon-ndi
   clone_addon      https://github.com/ossia/score-addon-openzen
-  clone_addon    https://github.com/ossia/score-addon-spatgris
-  clone_addon   https://github.com/ossia/score-addon-ultraleap
-  clone_addon     https://github.com/ossia/score-addon-sysinfo
-
-  # Depth cameras (Orbbec, Kinect, Azure Kinect, RealSense). Without submodules
-  # on purpose: the repository vendors four camera SDKs that together take
-  # longer to build than the rest of score, and none of them belong in this
-  # build. The plug-in reaches cameras through a pure-C ABI and the SDKs ship as
-  # a separate downloadable package, built from the addon's own repository.
+  clone_addon     https://github.com/ossia/score-addon-spatgris
+  clone_addon    https://github.com/ossia/score-addon-ultraleap
+  clone_addon      https://github.com/ossia/score-addon-sysinfo
+  clone_addon https://github.com/sat-mtl/carto-tcp-avendish.git update-avendish-packaging
   NO_SUBMODULES=1 clone_addon https://github.com/ossia/score-addon-orbbec
 fi
 
