@@ -123,18 +123,22 @@ TEST_CASE(
   // CpuFilterNode.hpp's renderer serves, and nothing in a default ctest run
   // entered it before.
   //
-  // SCOPE, measured and deliberately narrow: this asserts that wiring a producer
-  // changes the frame, paired with its own negative control -- the identical
-  // chain with no producer must read zero coverage. It does NOT assert that the
-  // lit pixels are the mesh, because they demonstrably are not: the lit region
-  // is exactly the NDC quadrant x[80..159] y[0..79] of a 160x160 frame, byte for
-  // byte, whether the producer is a Cube or a Torus, whatever Transform 3D's
-  // position and scale are set to, and with or without a Camera in the chain.
-  // Controls are not the cause -- probing GpuProcessIns shows them delivered and
-  // applied (fields 1..3, can_process true). Something between the flattener and
-  // the raw-raster vertex binding is not carrying the mesh through in this rig;
-  // until that is understood, a placement oracle here would be measuring the
-  // rig, so this case guards construction and teardown only.
+  // SCOPE: this asserts that the chain builds, renders frames and tears down
+  // without error, and NOTHING about pixels. The reason is worth stating so
+  // nobody re-adds a pixel oracle here:
+  //
+  // RenderedRawRasterPipelineNode::addOutputPass is never called for the raster
+  // node in this rig -- probed directly -- so the raster never draws into the
+  // sink at all. Whatever lights pixels here is not this chain, which makes any
+  // coverage or placement assertion a measurement of something unidentified.
+  // (The lit region is a fixed NDC quadrant, identical for a Cube or a Torus, at
+  // any Transform 3D position or scale, with or without a Camera.)
+  //
+  // The Crousti path itself IS exercised: the halp processes are constructed,
+  // their renderers built, and GpuProcessIns applies their controls -- probed,
+  // mess.input.size 4 with fields 1..3 applying. That is what this file is for.
+  // Wiring the raster output into the sink so the mesh actually rasterises is
+  // the open piece of work.
   const auto api = GENERATE(from_range(platform_backends()));
 
   auto run = [&](bool withGeometry) {
@@ -210,11 +214,6 @@ TEST_CASE(
   REQUIRE(empty.r.error.empty());
   REQUIRE(empty.r.outputs.size() == 1);
   REQUIRE(empty.r.outputs[0].valid());
-
-  INFO("coverage with geometry=" << drawn.p.coverage
-                                 << " without=" << empty.p.coverage);
-  CHECK(empty.p.coverage == 0.);
-  CHECK(drawn.p.coverage > 0.01);
 }
 
 TEST_CASE(
