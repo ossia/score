@@ -467,7 +467,10 @@ TEST_CASE(
   // effect.
   //
   // The rig is not the suspect: the same wiring driven by the CSF triangle
-  // producer fills the frame exactly as it should.
+  // producer fills the frame exactly as it should, and the scene vertex layout
+  // was dumped and found self-consistent. The cause is narrower than "the mesh
+  // is not drawn": MODEL_MATRIX reaches the shader as identity -- see "a scene
+  // transform reaches MODEL_MATRIX", which measures it directly.
   //
   // Asserted as the INTENT and marked expected-failure, so this flips to a
   // regular pass the day the transform is honoured, rather than pinning today's
@@ -509,6 +512,9 @@ TEST_CASE(
   // vertices for the Torus, against 36 for the Cube, and the Cube draws a
   // visible silhouette through the identical chain. The Torus simply produces an
   // empty frame on both backends.
+  //
+  // Not explained by the MODEL_MATRIX defect either: that one leaves the matrix
+  // identity, which still draws the Cube. Treat this as its own fault.
   const auto api = GENERATE(from_range(platform_backends()));
   Placement cube, torus;
   bool okA = false, okB = false;
@@ -575,15 +581,19 @@ TEST_CASE(
   // filter that was skipped still passes the mesh through and still draws, which
   // a not-blank oracle would accept.
   //
-  // EXPECTED TO FAIL, and probably not on its own account. Three independent
-  // things that should move a threedim mesh do nothing: Transform 3D's TRS, this
-  // filter's per-vertex displacement, and the choice of primitive (a Cube draws a
-  // fixed quadrant, a Torus with 1764 vertices draws nothing at all). Meanwhile
-  // the CSF triangle producer through the SAME raster and sink fills the frame
-  // correctly. One explanation covers all of it: the raw-raster vertex binding
-  // does not read threedim/ScenePreprocessor vertex positions correctly, so
-  // nothing upstream that edits positions can matter. Fix that and these three
-  // cases should flip together.
+  // EXPECTED TO FAIL. An earlier note here blamed the raw-raster vertex binding
+  // for not reading threedim vertex positions; probing the layout DISPROVED that
+  // and it should not be chased again. The scene geometry is planar and
+  // self-consistent: one pooled arena per attribute (2^27 / 2^26 bytes), each
+  // attribute at its own binding with offset 0, position float3 padded into a
+  // 16-byte stride. The Cube's "fixed quadrant" is a correctly drawn unit-cube
+  // face: spanning [0,1] with no camera, its front face lands on exactly NDC
+  // [0,1]^2.
+  //
+  // The transform no-op has its own proven cause -- MODEL_MATRIX arrives as
+  // identity, see "a scene transform reaches MODEL_MATRIX". This filter edits
+  // vertex positions rather than the matrix, so it is a SEPARATE failure and is
+  // still unexplained. Do not assume one fix covers both.
   const auto api = GENERATE(from_range(platform_backends()));
 
   auto run = [&](float shift, Placement& out, std::string& err) {
@@ -789,4 +799,64 @@ TEST_CASE(
   // a call counter would pass on a blank or stale texture.
   CHECK(AnalysisProbe::lastR.load() == 255);
   CHECK(AnalysisProbe::lastG.load() == 0);
+}
+
+TEST_CASE(
+    "a scene transform reaches MODEL_MATRIX",
+    "[gfx][crousti][scene][threedim][!shouldfail]")
+{
+  // EXPECTED TO FAIL, and this is the sharpest statement of the defect behind
+  // "Transform 3D moves the mesh it wraps": the transform never arrives at the
+  // shader at all.
+  //
+  // syn-scene-modelmat encodes MODEL_MATRIX's translation column into the
+  // fragment colour, so this separates "the transform did not move the geometry"
+  // from "the transform never reached the shader". Measured: the drawn region is
+  // rgb 127,127,127 -- the +0.5 bias with a translation of exactly zero -- at
+  // Transform 3D position 0 AND 0.5, on OpenGL and Vulkan. MODEL_MATRIX is
+  // identity.
+  const auto api = GENERATE(from_range(platform_backends()));
+  int red0 = -1, red1 = -1;
+
+  auto probe = [&](float xpos, int& out) {
+    run_in_gui_app([&](const score::GUIApplicationContext& app) {
+      auto* doc = score::test::new_document(app);
+      if(!doc)
+        return;
+      HalpProcesses procs;
+      GfxPipeline p;
+      const int cube = p.addNode(procs.make<Threedim::Cube>(doc->context()));
+      const int xf = p.addNode(procs.make<Threedim::Transform3D>(doc->context()));
+      const int flat = p.addNode(std::make_unique<score::gfx::ScenePreprocessorNode>());
+      const int raster = p.addRaster(
+          corpus("syn-scene-modelmat.vs"), corpus("syn-scene-modelmat.fs"));
+      if(raster < 0)
+        return;
+      p.wire(p.nodeSceneOut(cube, 0), p.nodeSceneIn(xf, 0));
+      p.wire(p.nodeSceneOut(xf, 0), p.nodeSceneIn(flat, 0));
+      p.wire(p.nodeGeometryOut(flat, 0), p.geometryIn(raster, 0));
+      const int sink = p.addSink({160, 160});
+      p.wire(p.imageOut(raster, 0), p.sinkInput(sink));
+      setInputs(
+          *p.node(xf), {ossia::value{}, ossia::value{ossia::vec3f{xpos, 0.f, 0.f}},
+                        ossia::value{ossia::vec3f{0.f, 0.f, 0.f}},
+                        ossia::value{ossia::vec3f{1.f, 1.f, 1.f}}});
+      if(!p.create(api))
+        return;
+      p.render(4);
+      out = p.readback(sink).at(120, 40)[0];
+    });
+  };
+  probe(0.f, red0);
+  probe(0.5f, red1);
+
+  if(red0 < 0 || red1 < 0)
+    SKIP("backend unavailable");
+  // Control: translation 0 must encode as the mid-grey bias, else the shader is
+  // not reporting MODEL_MATRIX at all and the comparison below means nothing.
+  INFO("encoded translation.x: at 0 -> " << red0 << ", at 0.5 -> " << red1
+                                         << " (127/128 == zero translation)");
+  REQUIRE(red0 >= 120);
+  REQUIRE(red0 <= 135);
+  CHECK(red1 > red0);
 }
