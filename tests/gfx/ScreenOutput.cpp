@@ -412,6 +412,75 @@ TEST_CASE("Window swapchain release and re-create", "[gfx][window][screen]")
   CHECK(afterResize);
 }
 
+TEST_CASE(
+    "a window closed in one execution is re-wired by the next",
+    "[gfx][window][screen]")
+{
+  // The reported sequence: play with an output on the Window device, close the
+  // window, press Show -- black, and it stays black across stop/start. Only
+  // disconnecting and reconnecting the device brings it back.
+  //
+  // A ScreenNode's window outlives both a graph rebuild and a close; only
+  // destroyOutput() resets it. createOutput() used to return early whenever the
+  // window already existed, so onReady stayed bound to the graph of whichever
+  // execution created the window first. The second createOutput() here is the
+  // next play, and its onReady is the one that has to fire on the re-show.
+  const auto api = GENERATE(from_range(platform_backends()));
+
+  Outcome o;
+  int firstReady{}, secondReady{}, presentedAfter{};
+  bool exposedAfter{};
+  run_in_gui_app([&](const score::GUIApplicationContext&) {
+    BareScreenRig rig;
+    if(!rig.build(api))
+    {
+      o = {rig.skipped(), rig.skipReason(), rig.error(), rig.backend()};
+      return;
+    }
+    o.backend = rig.backend();
+    auto* win = rig.window();
+    REQUIRE(win != nullptr);
+    firstReady = rig.readyCount;
+
+    QCloseEvent close;
+    QCoreApplication::sendEvent(win, &close);
+    pump_for(200);
+
+    // The next execution: a fresh configuration over the surviving window.
+    int ready2 = 0;
+    int presented = 0;
+    rig.screen->createOutput(
+        {.graphicsApi = api, .onReady = [&ready2] { ++ready2; }, .onResize = [] {}});
+
+    auto inner = win->onRender;
+    win->onRender = [&presented, inner](QRhiCommandBuffer& cb) {
+      ++presented;
+      if(inner)
+        inner(cb);
+    };
+
+    win->show();
+    pump_until([&] { return win->isExposed(); }, 5000);
+    exposedAfter = win->isExposed();
+    pump_for(1200);
+
+    secondReady = ready2;
+    presentedAfter = presented;
+    win->onRender = inner;
+  });
+
+  if(o.skipped)
+    SKIP(o.backend << ": " << o.skipReason);
+  INFO("backend: " << o.backend);
+  REQUIRE(o.error.empty());
+  REQUIRE(firstReady > 0);
+  INFO("second onReady fired " << secondReady << " times, presented "
+                               << presentedAfter);
+  CHECK(exposedAfter);
+  // The new execution's callback must be the one that runs.
+  CHECK(secondReady > 0);
+}
+
 TEST_CASE("Window device loss stops the output", "[gfx][window][screen]")
 {
   const auto api = GENERATE(from_range(platform_backends()));
