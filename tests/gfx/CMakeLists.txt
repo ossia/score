@@ -249,6 +249,40 @@ score_add_gfx_test(dynamic_slot    GfxDynamicSlot.cpp)
 # The three scene-filter nodes added by 45d1202327, which had zero references
 # anywhere under tests/ while being user-facing processes.
 score_add_gfx_test(scene_filter_nodes SceneFilterNodes.cpp)
+
+# The Crousti CPU node path (oscr::ProcessModel + oscr::GfxNode). Its renderer
+# lives in Crousti/CpuFilterNode.hpp, which nothing in a default ctest run
+# touched: the only driver was the tests-scene sweep, and that needs an external
+# corpus. The threedim sources are compiled in directly because they are
+# hidden-visibility inside the plug-in, as the scene sweep does.
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  set(_3d_c "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
+  score_plugin_hidden_sources(_crousti_hidden
+      "${_3d_c}/Primitive.cpp"
+      "${_3d_c}/Camera.cpp"
+      "${_3d_c}/Transform3D.cpp"
+      "${_3d_c}/SceneGroup.cpp"
+      "${_3d_c}/CameraArray.cpp")
+  score_add_test(test_gfx_crousti_cpu_nodes
+    SOURCES
+      CroustiCpuNodes.cpp
+      ${_crousti_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_crousti_cpu_nodes PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_crousti_cpu_nodes SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
 # GpuResourceRegistry's default ctor is inline and value-initialises a
 # unique_ptr<OffsetAllocator::Allocator>, so instantiating a registry in the test
 # TU needs OffsetAllocator::Allocator::~Allocator() — compiled into the gfx plugin
