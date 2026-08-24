@@ -10,6 +10,8 @@
 
 #include <score/widgets/HelpInteraction.hpp>
 
+#include <score/tools/FilePath.hpp>
+
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDir>
@@ -152,7 +154,7 @@ CANProtocolSettingsWidget::~CANProtocolSettingsWidget() { }
 void CANProtocolSettingsWidget::browseDBC()
 {
   const auto path = QFileDialog::getOpenFileName(
-      this, tr("Open a CAN database"), QFileInfo{m_dbcPath->text()}.absolutePath(),
+      this, tr("Open a CAN database"), score::pickerStartFolder(m_dbcPath->text()),
       tr("CAN databases (*.dbc);;All files (*)"));
 
   if(!path.isEmpty())

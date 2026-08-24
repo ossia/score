@@ -466,3 +466,31 @@ bool materializeFile(
   return true;
 }
 }
+
+namespace score
+{
+QString pickerStartFolder(
+    const QString& current, const PathRoots& roots, const QString& userDocuments,
+    const QString& workingDir) noexcept
+{
+  const auto existingDir = [](const QString& p) { return !p.isEmpty() && QDir{p}.exists(); };
+
+  // Where the current file is, if it still is there
+  if(!current.isEmpty())
+  {
+    const QFileInfo fi{locateFilePath(current, roots)};
+    if(fi.isDir())
+      return fi.absoluteFilePath();
+    if(fi.exists())
+      return fi.absolutePath();
+  }
+
+  if(const auto p = roots.documentFolder(); existingDir(p))
+    return p;
+  if(existingDir(roots.library))
+    return roots.library;
+  if(existingDir(userDocuments))
+    return userDocuments;
+  return workingDir;
+}
+}

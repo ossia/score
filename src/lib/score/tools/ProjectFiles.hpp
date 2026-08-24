@@ -51,6 +51,17 @@ struct SCORE_LIB_BASE_EXPORT PathRoots
   QString documentFolder() const noexcept;
 };
 
+//! Where a file / folder picker should open for a control whose current
+//! value is @p current (absolute, document-relative, <PROJECT>: or
+//! <LIBRARY>:-prefixed, or empty). In order: the folder of the current file
+//! (or the current folder itself) if it exists, the document's folder, the
+//! library, the user's documents folder, the working directory - the first
+//! one that exists. Never empty.
+SCORE_LIB_BASE_EXPORT
+QString pickerStartFolder(
+    const QString& current, const PathRoots& roots, const QString& userDocuments,
+    const QString& workingDir) noexcept;
+
 //! Roots of a live document.
 SCORE_LIB_BASE_EXPORT
 PathRoots pathRoots(const score::DocumentContext& ctx) noexcept;

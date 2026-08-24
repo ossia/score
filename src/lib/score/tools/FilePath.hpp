@@ -21,6 +21,17 @@ relativizeFilePath(const QString& filename, const score::DocumentContext& ctx) n
 SCORE_LIB_BASE_EXPORT
 QString addUniqueSuffix(const QString& fileName);
 
+//! Where a file / folder picker should open for a control of this document
+//! whose current value is @p current: see the PathRoots overload.
+SCORE_LIB_BASE_EXPORT
+QString
+pickerStartFolder(const QString& current, const score::DocumentContext& ctx) noexcept;
+
+//! Same, outside of any document (application settings): the library, the
+//! user's documents folder, or the working directory.
+SCORE_LIB_BASE_EXPORT
+QString pickerStartFolder(const QString& current) noexcept;
+
 struct FilePath
 {
   QString absolute;

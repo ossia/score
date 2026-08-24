@@ -1,5 +1,6 @@
 #pragma once
 
+#include <score/tools/FilePath.hpp>
 #include <Process/Dataflow/ControlWidgets.hpp>
 
 #include <Media/MediaFileHandle.hpp>
@@ -67,7 +68,10 @@ struct AudioFileChooser : WidgetFactory::FileChooser
   {
     auto bt = new score::QGraphicsWaveformButton{parent};
     auto on_open = [&inlet, &ctx] {
-      WidgetFactory::openFileToImport(inlet.filters(), [&inlet, &ctx](const QString& filename) {
+      const auto current = QString::fromStdString(ossia::convert<std::string>(inlet.value()));
+      WidgetFactory::openFileToImport(
+          inlet.filters(), score::pickerStartFolder(current, ctx),
+          [&inlet, &ctx](const QString& filename) {
         // On wasm `filename` is the staged MEMFS path; relativize so it is
         // stored consistently with drops.
         auto path = score::relativizeFilePath(filename, ctx);

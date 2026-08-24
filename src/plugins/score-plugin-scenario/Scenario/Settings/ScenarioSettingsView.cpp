@@ -15,6 +15,8 @@
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/TimeSpinBox.hpp>
 
+#include <score/tools/FilePath.hpp>
+
 #include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
@@ -128,7 +130,8 @@ public:
 
     connect(&save, &QPushButton::clicked, this, [&] {
       auto f = QFileDialog::getSaveFileName(
-          nullptr, tr("Save edited skin file"), skinFile, tr("*.json"));
+          nullptr, tr("Save edited skin file"), score::pickerStartFolder(skinFile),
+          tr("*.json"));
       if(f.isEmpty())
         return;
       QFile fl{f};
@@ -184,7 +187,7 @@ View::View()
     ls->setMaximumWidth(100);
     connect(ls, &QPushButton::clicked, this, [this, skinPath] {
       auto f = QFileDialog::getOpenFileName(
-          nullptr, tr("Load skin"), skinPath, tr("*.json"));
+          nullptr, tr("Load skin"), score::pickerStartFolder(skinPath), tr("*.json"));
       if(!f.isEmpty())
       {
         SkinChanged(f);
@@ -228,7 +231,8 @@ View::View()
     m_editor = new QLineEdit{};
     auto btn = new QPushButton{tr("Browse..."), m_widg};
     connect(btn, &QPushButton::pressed, this, [this, subw] {
-      auto file = QFileDialog::getOpenFileName(subw, tr("Default editor"));
+      auto file = QFileDialog::getOpenFileName(
+          subw, tr("Default editor"), score::pickerStartFolder(m_editor->text()));
       if(!file.isEmpty())
       {
         m_editor->setText(file);

@@ -6,6 +6,7 @@
 #include <QDir>
 #include <QRegularExpression>
 #include <QSettings>
+#include <QStandardPaths>
 
 #include <cstring>
 #include <string_view>
@@ -243,4 +244,28 @@ QString stageImportedFileFromPath(const QString& sourcePath) noexcept
   return {};
 }
 #endif
+}
+
+namespace score
+{
+static QString userDocumentsFolder() noexcept
+{
+  return QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+}
+
+QString
+pickerStartFolder(const QString& current, const score::DocumentContext& ctx) noexcept
+{
+  return pickerStartFolder(
+      current, pathRoots(ctx), userDocumentsFolder(), QDir::currentPath());
+}
+
+QString pickerStartFolder(const QString& current) noexcept
+{
+  PathRoots roots;
+  QSettings set;
+  if(auto lib = set.value("Library/RootPath").toString(); QDir{lib}.exists())
+    roots.library = QFileInfo{lib}.canonicalFilePath();
+  return pickerStartFolder(current, roots, userDocumentsFolder(), QDir::currentPath());
+}
 }
