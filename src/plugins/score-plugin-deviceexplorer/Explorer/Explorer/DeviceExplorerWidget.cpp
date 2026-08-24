@@ -57,6 +57,8 @@
 
 #include <ossia-qt/js_utilities.hpp>
 
+#include <score/tools/FilePath.hpp>
+
 #include <QAbstractProxyModel>
 #include <QAction>
 #include <QClipboard>
@@ -1145,7 +1147,8 @@ void DeviceExplorerWidget::importDevice()
     return;
 
   auto fileName = QFileDialog::getOpenFileName(
-      this, tr("Device file"), QString{}, tr("Device file (*.device)"));
+      this, tr("Device file"), score::pickerStartFolder({}, m->deviceModel().context()),
+      tr("Device file (*.device)"));
   if(fileName.isEmpty())
     return;
 
@@ -1185,7 +1188,8 @@ void DeviceExplorerWidget::exportDevice()
     return;
 
   auto fileName = QFileDialog::getSaveFileName(
-      this, tr("Device file"), QString{}, tr("Device file (*.device)"));
+      this, tr("Device file"), score::pickerStartFolder({}, model()->deviceModel().context()),
+      tr("Device file (*.device)"));
   if(!fileName.endsWith(".device"))
     fileName.append(".device");
 

@@ -1,5 +1,7 @@
 #include "PluginTab.hpp"
 
+#include <score/tools/FilePath.hpp>
+
 #include <QFileDialog>
 #include <QFormLayout>
 #include <QGridLayout>
@@ -95,7 +97,8 @@ QWidget* makePluginSettingsWidget(PluginTabSpec spec)
       addPath, &QPushButton::clicked, pathList,
       [pathList, items, commit = spec.commitPaths, splitter] {
     auto path
-        = QFileDialog::getExistingDirectory(splitter, QObject::tr("Plug-in path"));
+        = QFileDialog::getExistingDirectory(
+            splitter, QObject::tr("Plug-in path"), score::pickerStartFolder({}));
     if(!path.isEmpty())
     {
       pathList->addItem(path);

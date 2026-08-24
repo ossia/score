@@ -528,7 +528,8 @@ Document* DocumentManager::loadStack(const score::GUIApplicationContext& ctx)
     return nullptr;
 
   QString loadname
-      = QFileDialog::getOpenFileName(m_view, tr("Open Stack"), QString(), "*.stack");
+      = QFileDialog::getOpenFileName(
+          m_view, tr("Open Stack"), getDialogDirectory(nullptr).absolutePath(), "*.stack");
   if(!loadname.isEmpty() && (loadname.indexOf(".stack") != -1))
   {
     return loadStack(ctx, loadname);

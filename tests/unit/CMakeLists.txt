@@ -553,3 +553,8 @@ if(TARGET score_plugin_audio)
     APP
     PLUGINS score_plugin_audio score_plugin_deviceexplorer score_lib_device)
 endif()
+
+# Where the file / folder pickers open: next to the current file, else the
+# project, the library, the user's documents, the working directory.
+score_add_test(test_unit_picker_start_folder
+  SOURCES PickerStartFolderTest.cpp)

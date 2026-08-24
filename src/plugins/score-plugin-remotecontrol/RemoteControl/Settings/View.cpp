@@ -4,6 +4,8 @@
 #include <score/widgets/FormWidget.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
+#include <score/tools/FilePath.hpp>
+
 #include <QCheckBox>
 #include <QFormLayout>
 #include <QPushButton>
@@ -61,7 +63,8 @@ View::View()
     connect(browse, &QPushButton::clicked, this, [this]
     {
       auto f{QFileDialog::getExistingDirectory(
-          nullptr, tr("Web UI folder"), m_web_ui_path->displayText())};
+          nullptr, tr("Web UI folder"),
+          score::pickerStartFolder(m_web_ui_path->displayText()))};
       if (!f.isEmpty()) webUiPathChanged(f);
     });
 

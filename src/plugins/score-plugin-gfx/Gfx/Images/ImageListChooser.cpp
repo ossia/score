@@ -143,7 +143,7 @@ private:
   void on_addItems()
   {
     auto files = QFileDialog::getOpenFileNames(
-        this, tr("Choose images..."), QString{},
+        this, tr("Choose images..."), score::pickerStartFolder({}, ctx),
         QString{"Images (*.png *.jpg *.jpeg *.gif *.bmp *.tiff *.heic *.jp2 *.svg *.tga "
                 "*.wbmp)"});
     for(auto f : files)
