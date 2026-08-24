@@ -26,12 +26,18 @@
 
 #include <Crousti/CpuFilterNode.hpp>
 #include <Crousti/GfxNode.hpp>
+#include <Crousti/CpuAnalysisNode.hpp>
 #include <Crousti/ProcessModel.hpp>
+
+#include <halp/texture.hpp>
+#include <halp/controls.hpp>
 
 #include <Gfx/Graph/GeometryFilterNode.hpp>
 #include <Gfx/Graph/ScenePreprocessorNode.hpp>
 
 #include <QFile>
+
+#include <atomic>
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
@@ -645,4 +651,140 @@ TEST_CASE(
   REQUIRE(at0.coverage > 0.01);
   INFO("centroidX shift=0 " << at0.centroidX << " shift=0.6 " << at1.centroidX);
   CHECK(at1.centroidX != at0.centroidX);
+}
+
+// -----------------------------------------------------------------------------
+// CpuAnalysisNode: a halp object with a texture INPUT and no texture / buffer /
+// geometry / scene output. That shape selects the GfxRenderer specialisation in
+// Crousti/CpuAnalysisNode.hpp, which is an OutputNodeRenderer -- the node IS the
+// sink. Nothing in the tree has that shape, so the test brings its own.
+// -----------------------------------------------------------------------------
+namespace
+{
+struct AnalysisProbe
+{
+  static inline std::atomic<int> calls{0};
+  static inline std::atomic<int> lastR{-1};
+  static inline std::atomic<int> lastG{-1};
+  static inline std::atomic<int> lastW{-1};
+
+  halp_meta(name, "Test Mean Red")
+  halp_meta(c_name, "test_mean_red")
+  halp_meta(category, "Visuals")
+  halp_meta(author, "test")
+  halp_meta(uuid, "3f1c9a72-5d64-4a1e-9b73-2c8a51de77b4")
+
+  struct
+  {
+    halp::texture_input<"In"> image;
+  } inputs;
+
+  struct
+  {
+    halp::val_port<"Mean", float> mean;
+  } outputs;
+
+  void operator()()
+  {
+    auto& t = inputs.image.texture;
+    lastW.store(t.width);
+    if(t.bytes && t.width > 0 && t.height > 0)
+    {
+      // Sample the centre rather than averaging: the producer paints a flat
+      // colour, so one texel is the whole signal and there is no rounding to
+      // argue about.
+      const int idx = ((t.height / 2) * t.width + (t.width / 2)) * 4;
+      auto* px = static_cast<unsigned char*>(t.bytes) + idx;
+      lastR.store(int(px[0]));
+      lastG.store(int(px[1]));
+      outputs.mean.value = float(px[0]) / 255.f;
+    }
+    calls.fetch_add(1);
+  }
+};
+}
+
+TEST_CASE(
+    "a CPU analysis node receives the texture it is wired to",
+    "[gfx][crousti][analysis]")
+{
+  // Nothing in the tree instantiated the shape that selects CpuAnalysisNode.
+  // The oracle is the PIXEL the node saw: the ISF producer paints a known flat
+  // colour, so "it ran" and "it received the right image" are separable, which
+  // a call-counter alone would not give.
+  const auto api = GENERATE(from_range(platform_backends()));
+
+  AnalysisProbe::calls.store(0);
+  AnalysisProbe::lastR.store(-1);
+  AnalysisProbe::lastG.store(-1);
+  AnalysisProbe::lastW.store(-1);
+
+  bool skipped = false;
+  std::string err, backend;
+
+  run_in_gui_app([&](const score::GUIApplicationContext& app) {
+    auto* doc = score::test::new_document(app);
+    if(!doc)
+    {
+      err = "no document";
+      return;
+    }
+    HalpProcesses procs;
+    GfxPipeline p;
+
+    const int prod = p.addIsf(corpus("isf-solid-color.fs"));
+    if(prod < 0)
+    {
+      err = "producer build failed: " + p.error();
+      return;
+    }
+    auto analysisOwned = procs.make<AnalysisProbe>(doc->context());
+    auto* analysis = static_cast<score::gfx::OutputNode*>(analysisOwned.get());
+    const int an = p.addNode(std::move(analysisOwned));
+    // The fixture has no nodeImageIn(); find the Image inlet directly.
+    score::gfx::Port* ain = nullptr;
+    for(auto* ip : p.node(an)->input)
+      if(ip->type == score::gfx::Types::Image)
+      {
+        ain = ip;
+        break;
+      }
+    if(!ain)
+    {
+      err = "analysis node exposes no image input";
+      return;
+    }
+    p.wire(p.imageOut(prod, 0), ain);
+
+    if(!p.create(api))
+    {
+      skipped = p.skipped();
+      err = p.error();
+      backend = p.backend();
+      return;
+    }
+    backend = p.backend();
+    // The analysis node IS the sink: createAllRenderLists brought it up, and
+    // render() has to be driven per frame the way a real output node is.
+    for(int f = 0; f < 4; ++f)
+    {
+      p.render(1);
+      analysis->render();
+    }
+  });
+
+  if(skipped)
+    SKIP(backend << ": backend unavailable");
+  INFO("backend=" << backend << " error: " << err);
+  REQUIRE(err.empty());
+  INFO("calls=" << AnalysisProbe::calls.load() << " width=" << AnalysisProbe::lastW.load()
+                << " centre rgb=" << AnalysisProbe::lastR.load() << ","
+                << AnalysisProbe::lastG.load());
+  CHECK(AnalysisProbe::calls.load() > 0);
+  CHECK(AnalysisProbe::lastW.load() > 0);
+  // isf-solid-color.fs paints magenta (1,0,1,1). Asserting the actual texel is
+  // what separates "the node ran" from "the node was handed the right image" --
+  // a call counter would pass on a blank or stale texture.
+  CHECK(AnalysisProbe::lastR.load() == 255);
+  CHECK(AnalysisProbe::lastG.load() == 0);
 }
