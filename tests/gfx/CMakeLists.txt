@@ -367,6 +367,10 @@ score_add_gfx_test(window_output_torture WindowOutputTorture.cpp)
 # point-cloud geometry.
 score_add_gfx_test(window_resize_torture WindowResizeTorture.cpp)
 
+# Synthetic, single-feature shaders: each isolates one documented capability so a
+# failure names the feature rather than a corpus file that mixes ten of them.
+score_add_gfx_test(synthetic_features SyntheticFeatures.cpp)
+
 # Regression guards on the ScreenNode <-> Graph boundary: a live swapchain-flag
 # toggle must release the Graph's RenderList before freeing the QRhi it was
 # built against, and a window resize must not discard the render-size override.
