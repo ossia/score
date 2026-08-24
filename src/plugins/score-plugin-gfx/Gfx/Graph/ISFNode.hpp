@@ -47,6 +47,10 @@ public:
   std::vector<int*> m_event_ports;
 
   int m_materialSize{};
+  // Bytes of m_material_data the shader's material UBO actually covers. USER
+  // dispatch ports are appended past this: their values are read on the CPU to
+  // size the dispatch, and no generated shader declares them.
+  int m_materialUBOSize{};
 
   // Reset all `event` input ports to 0 so they pulse true for exactly one
   // frame after the upstream producer writes 1. Called at the end of each
