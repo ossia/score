@@ -304,3 +304,32 @@ TEST_CASE("a compute filter can MODIFY an attribute in flight",
   CHECK(int(px[0]) > 128);
   CHECK(int(px[1]) < 96);
 }
+
+TEST_CASE("EXECUTION_MODEL SINGLE runs the pass exactly once",
+          "[gfx][syn][raster][execution]")
+{
+  // The explicit form of the default. One pass means PASSINDEX 0, so red must
+  // be 0 while green proves it drew: a looped pass would leave a higher index
+  // behind, and no pass at all leaves both channels at 0.
+  const auto api = GENERATE(from_range(platform_backends()));
+  IsfResult r;
+  run_in_gui_app([&](const score::GUIApplicationContext&) {
+    r = render_raster(api, {corpus("syn-geo-producer.cs")},
+                      corpus("syn-raster-single.vs"), corpus("syn-raster-single.fs"));
+  });
+  if(r.skipped) SKIP(r.backend + ": " + r.skip_reason);
+  INFO("backend=" << r.backend << " error: " << r.error);
+  REQUIRE(r.error.empty());
+  REQUIRE(r.outputs.size() >= 1);
+  const auto px = r.outputs[0].at(32, 32);
+  INFO("centre rgba = " << int(px[0]) << "," << int(px[1]) << "," << int(px[2]));
+  CHECK(int(px[1]) > 128);
+  CHECK(int(px[0]) < 32);
+}
+
+// PER_CUBE_FACE is NOT tested here on purpose. The case was written and its
+// shader is committed (syn-raster-per-cube-face.*), but render_raster cannot
+// read back a cubemap attachment: the same output declared CUBEMAP reads black
+// under EXECUTION_MODEL SINGLE too, so a failure here would accuse the wrong
+// thing. Testing it needs either cubemap readback in the rig or a second pass
+// sampling the cube into a 2D target.
