@@ -181,3 +181,28 @@ TEST_CASE("a geometry filter copying attributes by hand keeps the colour",
                               << int(px[2]) << "," << int(px[3]));
   CHECK(int(px[1]) > 128);
 }
+
+TEST_CASE("REQUIRED false falls back to zeroes instead of failing the build",
+          "[gfx][syn][csf][geometry]")
+{
+  // in_texcoord is declared REQUIRED false and the producer never supplies it.
+  // The documented contract is a zero-filled buffer, so the shader can read it
+  // unconditionally: green stays 1 (the shader ran) and blue stays 0 (the
+  // fallback really was zeroes rather than uninitialised memory).
+  const auto api = GENERATE(from_range(platform_backends()));
+  IsfResult r;
+  run_in_gui_app([&](const score::GUIApplicationContext&) {
+    r = render_raster(api,
+                      {corpus("syn-geo-producer.cs"), corpus("syn-required-optional.cs")},
+                      corpus("raw-raster-basic.vs"), corpus("raw-raster-basic.fs"));
+  });
+  if(r.skipped) SKIP(r.backend + ": " + r.skip_reason);
+  INFO("backend=" << r.backend << " error: " << r.error);
+  REQUIRE(r.error.empty());
+  REQUIRE(r.outputs.size() >= 1);
+  const auto px = r.outputs[0].at(32, 32);
+  INFO("centre rgba = " << int(px[0]) << "," << int(px[1]) << "," << int(px[2])
+                        << "," << int(px[3]));
+  CHECK(int(px[1]) > 128);
+  CHECK(int(px[2]) < 32);
+}
