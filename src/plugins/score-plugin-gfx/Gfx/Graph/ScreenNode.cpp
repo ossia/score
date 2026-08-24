@@ -656,6 +656,7 @@ void ScreenNode::stopRendering()
   if(m_window)
   {
     m_window->m_canRender = false;
+    m_window->onAboutToRender = {};
     m_window->onClose = {};
     m_window->onRender = [](QRhiCommandBuffer&) {};
     if(m_window->state)
@@ -860,6 +861,7 @@ void ScreenNode::createOutput(score::gfx::OutputConfiguration conf)
   });
   }
 
+  m_window->onAboutToRender = [this] { onRendererChange(); };
   m_window->onUpdate = this->m_vsyncCallback;
   m_window->onWindowReady = [this, graphicsApi=conf.graphicsApi, onReady = std::move(conf.onReady)] {
     m_window->state = createRenderState(*m_window, graphicsApi);
@@ -1124,7 +1126,7 @@ void ScreenNode::setVSyncCallback(std::function<void ()> f)
     // frame and the chain stays dead until a platform expose. Kick one on the
     // null -> non-null transition. Queued and window-scoped, so it is a no-op if
     // the window dies first and never runs re-entrantly inside the rebuild.
-    if(!wasArmed && m_vsyncCallback)
+    if(m_vsyncCallback)
     {
       auto* w = m_window.get();
       QMetaObject::invokeMethod(w, [w] { w->requestUpdate(); }, Qt::QueuedConnection);
