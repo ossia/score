@@ -807,22 +807,29 @@ void ScreenNode::createOutput(score::gfx::OutputConfiguration conf)
 {
   m_onReleaseRenderList = conf.onReleaseRenderList;
 
+  // A window outlives graph rebuilds, and it outlives being closed: only
+  // destroyOutput() resets it. Recreating the window is still what must not
+  // happen; re-binding the callbacks is what was missing.
+  const bool reusingWindow = bool(m_window);
   if(m_ownsWindow)
   {
-    // Idempotency guard for mid-play graph rebuilds. initializeOutput() re-enters
-    // here whenever renderState() is null, which is exactly the transient state of
-    // a freshly created window still waiting for its first expose. Recreating the
-    // window would free the in-flight Window, and the RenderState it co-owns, while
-    // queued expose and deferred-delete events still reference them. The
-    // onWindowReady set by the first createOutput() completes the setup. A
-    // deliberate recreation routes through destroyOutput(), which resets m_window.
-    if(m_window)
-      return;
-    m_window = std::make_shared<Window>(conf.graphicsApi);
-    if(m_embedded)
-      m_window->unsetCursor();
+    // Recreating would free the in-flight Window, and the RenderState it
+    // co-owns, while queued expose and deferred-delete events still reference
+    // them. initializeOutput() re-enters here whenever renderState() is null,
+    // which is exactly the transient state of a freshly created window still
+    // waiting for its first expose.
+    if(!m_window)
+    {
+      m_window = std::make_shared<Window>(conf.graphicsApi);
+      if(m_embedded)
+        m_window->unsetCursor();
+    }
   }
 
+  // The signals fan out to this node's own callbacks, which do not change with
+  // the configuration, so they are connected once per window.
+  if(!reusingWindow)
+  {
   QObject::connect(m_window.get(), &Window::xChanged, [this](int x) {
     if(onWindowMove)
       onWindowMove(QPointF(x, m_window->y()));
@@ -851,6 +858,8 @@ void ScreenNode::createOutput(score::gfx::OutputConfiguration conf)
     if(onFps)
       onFps(f);
   });
+  }
+
   m_window->onUpdate = this->m_vsyncCallback;
   m_window->onWindowReady = [this, graphicsApi=conf.graphicsApi, onReady = std::move(conf.onReady)] {
     m_window->state = createRenderState(*m_window, graphicsApi);
