@@ -4329,6 +4329,11 @@ void parser::parse_raw_raster_pipeline()
     m_fragment += material_ubos;
   }
 
+  // Every IMG_* accessor -- IMG_NORM_PIXEL, IMG_PIXEL, IMG_THIS_PIXEL, the
+  // depth and cube variants, TEX_DIMENSIONS -- lives in defaultFunctions, which
+  // parse_isf, parse_shadertoy and parse_shadertoy_json all emit.
+  m_fragment += GLSL45.defaultFunctions;
+
   // The raw-raster path replaces gl_FragCoord → isf_FragCoord for the
   // same Y-flip behaviour as fullscreen ISF, but unlike ISF the raw-raster
   // FS prelude didn't define the macro — causing "isf_FragCoord :
