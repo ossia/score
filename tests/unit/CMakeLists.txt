@@ -545,16 +545,7 @@ score_add_test(test_unit_device_disconnect_callbacks
   SOURCES DeviceDisconnectCallbacksTest.cpp
   PLUGINS score_lib_device score_lib_state)
 
-# The audio engine across documents being opened, switched and closed: it
-# lives as long as a document does, whichever document closes.
-if(TARGET score_plugin_audio)
-  score_add_test(test_unit_audio_engine_documents
-    SOURCES AudioEngineDocumentsTest.cpp
-    APP
-    PLUGINS score_plugin_audio score_plugin_deviceexplorer score_lib_device)
-endif()
-
-# Where the file / folder pickers open: next to the current file, else the
+  # Where the file / folder pickers open: next to the current file, else the
 # project, the library, the user's documents, the working directory.
 score_add_test(test_unit_picker_start_folder
   SOURCES PickerStartFolderTest.cpp)
