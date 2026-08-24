@@ -23,6 +23,8 @@
 
 #include "WindowedOutputCommon.hpp"
 
+#include <QCloseEvent>
+
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/generators/catch_generators_range.hpp>
@@ -73,14 +75,14 @@ std::vector<Clock> clocks()
       {"timer", {.manualRenderingRate = 1000. / 60., .supportsVSync = false}}};
 }
 
-/// The disruptions a user can reach from the UI. Closing the window is
-/// deliberately absent: it is a known-open defect with its own guard in
-/// ScreenOutput.cpp ("a closed and re-shown window presents frames again"), and
-/// mixing it in here would make every sequence fail for that one reason.
+/// The disruptions a user can reach from the UI, closing the window included:
+/// that path releases the swap chain from inside Window::event() and is the one
+/// that used to strand the output entirely.
 enum class Op
 {
   Hide,
   Show,
+  Close,
   Resize,
   RenderSize,
   ClearRenderSize,
@@ -97,6 +99,8 @@ const char* op_name(Op o)
       return "hide";
     case Op::Show:
       return "show";
+    case Op::Close:
+      return "close";
     case Op::Resize:
       return "resize";
     case Op::RenderSize:
@@ -180,6 +184,13 @@ TEST_CASE(
           win->show();
           pump_until([&] { return win->isExposed(); }, 3000);
           break;
+        case Op::Close:
+        {
+          QCloseEvent close;
+          QCoreApplication::sendEvent(win, &close);
+          pump_for(150);
+          break;
+        }
         case Op::Resize:
           win->resize(200 + (i * 17) % 180, 150 + (i * 13) % 120);
           break;
