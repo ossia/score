@@ -126,21 +126,21 @@ TEST_CASE(
   // entered it before.
   //
   // SCOPE: this asserts that the chain builds, renders frames and tears down
-  // without error, and NOTHING about pixels. The reason is worth stating so
-  // nobody re-adds a pixel oracle here:
+  // without error, and nothing about pixels.
   //
-  // RenderedRawRasterPipelineNode::addOutputPass is never called for the raster
-  // node in this rig -- probed directly -- so the raster never draws into the
-  // sink at all. Whatever lights pixels here is not this chain, which makes any
-  // coverage or placement assertion a measurement of something unidentified.
-  // (The lit region is a fixed NDC quadrant, identical for a Cube or a Torus, at
-  // any Transform 3D position or scale, with or without a Camera.)
+  // What IS verified by probe, and is the reason the file exists: the halp
+  // processes are constructed, oscr::GfxNode's renderer is created (mode
+  // RawRaster, one pass), initState and initPass both run, and the raster
+  // receives real geometry -- 36 vertices for a Cube, 1764 for a Torus, 0 with
+  // no producer wired. GpuProcessIns applies the controls (mess.input.size 4,
+  // fields 1..3). So the Crousti path genuinely executes.
   //
-  // The Crousti path itself IS exercised: the halp processes are constructed,
-  // their renderers built, and GpuProcessIns applies their controls -- probed,
-  // mess.input.size 4 with fields 1..3 applying. That is what this file is for.
-  // Wiring the raster output into the sink so the mesh actually rasterises is
-  // the open piece of work.
+  // What is NOT understood, and why there is no pixel oracle: the readback does
+  // not vary with any of that. Coverage is a fixed NDC quadrant, identical for a
+  // 36-vertex Cube and a 1764-vertex Torus, at any Transform 3D position or
+  // scale. Since the mesh demonstrably differs at the raster, the invariance is
+  // in the readback or the projection, not in the scene chain -- and until that
+  // is pinned down, any pixel assertion here measures the unknown part.
   const auto api = GENERATE(from_range(platform_backends()));
 
   auto run = [&](bool withGeometry) {
