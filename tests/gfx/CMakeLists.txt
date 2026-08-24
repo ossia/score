@@ -377,6 +377,13 @@ score_add_gfx_test(multi_window       MultiWindowOutput.cpp)
 # a sequence finds combinations the single-operation cases above do not.
 score_add_gfx_test(window_output_torture WindowOutputTorture.cpp)
 
+# Resizing and full-screening a presented output. A resize takes either the
+# swapchain-sized-target fast path or a full render-list rebuild, and the two
+# exercise entirely different code; full screen changes the surface size from
+# the platform side. Reported as a crash on a document of compute shaders and
+# point-cloud geometry.
+score_add_gfx_test(window_resize_torture WindowResizeTorture.cpp)
+
 # Regression guards on the ScreenNode <-> Graph boundary: a live swapchain-flag
 # toggle must release the Graph's RenderList before freeing the QRhi it was
 # built against, and a window resize must not discard the render-size override.
