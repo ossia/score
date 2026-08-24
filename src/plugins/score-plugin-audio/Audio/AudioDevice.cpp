@@ -47,6 +47,7 @@ AudioDevice::AudioDevice(const Device::DeviceSettings& settings)
   m_capas.hasCallbacks = false;
   m_capas.canListen = false;
   m_capas.canSerialize = true;
+  m_capas.nodeKinds = Device::NodeKind::AudioIn | Device::NodeKind::AudioOut;
 }
 
 AudioDevice::~AudioDevice() { }

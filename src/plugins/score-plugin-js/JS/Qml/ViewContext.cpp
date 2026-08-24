@@ -20,6 +20,7 @@
 
 #include <QApplication>
 #include <QGuiApplication>
+#include <QMainWindow>
 #include <QPixmap>
 #include <QScreen>
 #include <QWidget>
@@ -67,7 +68,10 @@ bool JsViewContext::grabScene(QString path)
 
 bool JsViewContext::grabMainWindow(QString path)
 {
-  auto w = qApp->activeWindow();
+  // The active window may be an output window opened by a device
+  QWidget* w = score::GUIAppContext().mainWindow;
+  if(!w)
+    w = qApp->activeWindow();
   if(!w)
     return false;
   return w->grab().save(path);

@@ -308,23 +308,23 @@ void AddressAccessorEditWidget::dropEvent(QDropEvent* ev)
   if(mime.hasFormat(score::mime::nodelist()))
   {
     Mime<Device::FreeNodeList>::Deserializer des{mime};
-    Device::FreeNodeList nl = des.deserialize();
-    if(nl.empty())
+    auto res = Device::addressOfDroppedNodes(des.deserialize(), m_address.address);
+    if(!res)
       return;
 
-    // We only take the first node.
-    const Device::Node& node = nl.front().second;
-    // TODO refactor with CreateCurves and AutomationDropHandle
-    if(node.is<Device::AddressSettings>())
+    if(res->settings)
     {
-      const Device::AddressSettings& addr = node.get<Device::AddressSettings>();
       Device::FullAddressSettings as;
-      static_cast<Device::AddressSettingsCommon&>(as) = addr;
-      as.address = nl.front().first;
-
+      static_cast<Device::AddressSettingsCommon&>(as) = *res->settings;
+      as.address = res->address.address;
       setFullAddress(Device::FullAddressAccessorSettings{std::move(as)});
-      addressChanged(m_address);
     }
+    else
+    {
+      // A device root: an address without settings
+      setAddress(res->address);
+    }
+    addressChanged(m_address);
   }
   else if(mime.hasFormat(score::mime::messagelist()))
   {

@@ -4,7 +4,7 @@
 
 #include <Device/Protocol/DeviceInterface.hpp>
 
-#include <Process/Dataflow/AudioPortComboBox.hpp>
+#include <Process/Dataflow/PortAddressComboBox.hpp>
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
@@ -383,12 +383,7 @@ void TextureInletFactory::setupInletInspector(
     const Process::Inlet& port, const score::DocumentContext& ctx, QWidget* parent,
     Inspector::Layout& lay, QObject* context)
 {
-  auto& device = *ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
-
-  auto cond
-      = [](Device::DeviceInterface& dev) { return qobject_cast<GfxInputDevice*>(&dev); };
-
-  lay.addRow(Process::makeDeviceCombo(cond, device.list(), port, ctx, parent));
+  lay.addRow(port.name(), Process::makePortAddressCombo(port, ctx, parent));
 
   auto& inlet = safe_cast<const TextureInlet&>(port);
   // Size
@@ -484,11 +479,7 @@ void TextureOutletFactory::setupOutletInspector(
     const Process::Outlet& port, const score::DocumentContext& ctx, QWidget* parent,
     Inspector::Layout& lay, QObject* context)
 {
-  auto& device = *ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
-  auto cond = [](Device::DeviceInterface& dev) {
-    return qobject_cast<GfxOutputDevice*>(&dev);
-  };
-  lay.addRow(Process::makeDeviceCombo(cond, device.list(), port, ctx, parent));
+  lay.addRow(port.name(), Process::makePortAddressCombo(port, ctx, parent));
 
   auto& outlet = safe_cast<const TextureOutlet&>(port);
   if(!qEnvironmentVariableIsSet("SCORE_DISABLE_SHADER_PREVIEW"))
@@ -668,4 +659,21 @@ void JSONReader::read(const Gfx::GeometryOutlet& p)
 template <>
 void JSONWriter::write(Gfx::GeometryOutlet& p)
 {
+}
+
+namespace Gfx
+{
+void GeometryInletFactory::setupInletInspector(
+    const Process::Inlet& port, const score::DocumentContext& ctx, QWidget* parent,
+    Inspector::Layout& lay, QObject* context)
+{
+  lay.addRow(port.name(), Process::makePortAddressCombo(port, ctx, parent));
+}
+
+void GeometryOutletFactory::setupOutletInspector(
+    const Process::Outlet& port, const score::DocumentContext& ctx, QWidget* parent,
+    Inspector::Layout& lay, QObject* context)
+{
+  lay.addRow(port.name(), Process::makePortAddressCombo(port, ctx, parent));
+}
 }

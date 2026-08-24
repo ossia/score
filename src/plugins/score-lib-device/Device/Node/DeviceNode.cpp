@@ -116,6 +116,36 @@ State::AddressAccessor address(const Node& treeNode)
   return addr;
 }
 
+std::optional<DroppedAddress> addressOfDroppedNodes(
+    const Device::FreeNodeList& nodes, const State::AddressAccessor& current)
+{
+  if(nodes.empty())
+    return std::nullopt;
+
+  const auto& [address, node] = nodes.front();
+  if(address.device.isEmpty())
+    return std::nullopt;
+
+  if(auto addr = node.target<Device::AddressSettings>())
+  {
+    if(address == current.address)
+      return std::nullopt;
+    return DroppedAddress{State::AddressAccessor{address}, *addr};
+  }
+
+  // A device root: the node carries the device settings, not address settings.
+  // Its address is the device alone, and there is nothing to copy over.
+  if(node.is<Device::DeviceSettings>())
+  {
+    State::AddressAccessor root{State::Address{address.device, {}}, {}};
+    if(root == current)
+      return std::nullopt;
+    return DroppedAddress{std::move(root), std::nullopt};
+  }
+
+  return std::nullopt;
+}
+
 void parametersList(const Node& n, State::MessageList& ml)
 {
   if(n.is<AddressSettings>())

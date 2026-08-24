@@ -356,8 +356,12 @@ DeviceResources DeviceInterface::usedResources() const noexcept
 
 void DeviceInterface::disconnect()
 {
-  if(m_capas.hasCallbacks)
-    disableCallbacks();
+  // Whatever the device advertises, the callbacks enableCallbacks() installed
+  // must go before the nodes do: clear_children() below would otherwise report
+  // every node as removed and the explorer would drop the device's tree. This
+  // also resets the flag, so that the device rebuilt by reconnect() gets its
+  // callbacks back.
+  disableCallbacks();
 
   m_callbacks.clear();
   if(auto dev = getDevice())

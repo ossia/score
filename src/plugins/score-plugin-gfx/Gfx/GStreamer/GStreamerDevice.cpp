@@ -990,7 +990,12 @@ class InputDevice final : public Gfx::GfxInputDevice
 {
   W_OBJECT(InputDevice)
 public:
-  using GfxInputDevice::GfxInputDevice;
+  InputDevice(const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
+      : GfxInputDevice{settings, ctx}
+  {
+    // A pipeline can produce sound as well as video
+    m_capas.nodeKinds |= Device::NodeKind::AudioIn;
+  }
   ~InputDevice();
 
 private:

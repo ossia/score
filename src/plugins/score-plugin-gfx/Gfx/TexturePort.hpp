@@ -201,6 +201,10 @@ struct GeometryInletFactory final : public Dataflow::AutomatablePortFactory
     return Metadata<ConcreteKey_k, Model_T>::get();
   }
 
+  void setupInletInspector(
+      const Process::Inlet& port, const score::DocumentContext& ctx, QWidget* parent,
+      Inspector::Layout& lay, QObject* context) override;
+
   Model_T* load(const VisitorVariant& vis, QObject* parent) override
   {
     return score::deserialize_dyn(vis, [&](auto&& deserializer) {
@@ -216,6 +220,10 @@ struct GeometryOutletFactory final : public Dataflow::AutomatablePortFactory
   {
     return Metadata<ConcreteKey_k, Model_T>::get();
   }
+
+  void setupOutletInspector(
+      const Process::Outlet& port, const score::DocumentContext& ctx, QWidget* parent,
+      Inspector::Layout& lay, QObject* context) override;
 
   Model_T* load(const VisitorVariant& vis, QObject* parent) override
   {

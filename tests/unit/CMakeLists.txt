@@ -183,6 +183,7 @@ if(TARGET score_plugin_dataflow)
   score_add_test(test_unit_dataflow_value
     SOURCES DataflowValueTest.cpp
     PLUGINS score_plugin_dataflow score_lib_process)
+
 endif()
 
 
@@ -526,3 +527,20 @@ if(TARGET score_plugin_engine)
     APP
     PLUGINS score_plugin_engine score_plugin_scenario)
 endif()
+# The addresses a port's combo box lists: which devices are walked (their
+# declared node kinds) and which nodes qualify for each port type / direction.
+score_add_test(test_unit_port_address_list
+  SOURCES PortAddressListTest.cpp
+  PLUGINS score_lib_process score_lib_device score_lib_state)
+
+# What dropping device explorer nodes (a parameter, a device root) on a port
+# or an address field resolves to.
+score_add_test(test_unit_port_drop
+  SOURCES PortDropTest.cpp
+  PLUGINS score_lib_device score_lib_state)
+
+# A device's node callbacks across disconnect / reconnect: disconnecting must
+# not report the nodes as removed, reconnecting must watch the new tree.
+score_add_test(test_unit_device_disconnect_callbacks
+  SOURCES DeviceDisconnectCallbacksTest.cpp
+  PLUGINS score_lib_device score_lib_state)

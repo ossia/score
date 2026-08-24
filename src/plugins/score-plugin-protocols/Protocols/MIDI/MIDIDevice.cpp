@@ -53,6 +53,8 @@ MIDIDevice::MIDIDevice(
   m_capas.canRenameNode = false;
   m_capas.canSetProperties = false;
   m_capas.canLearn = true;
+  m_capas.nodeKinds = set.io == MIDISpecificSettings::IO::In ? Device::NodeKind::MidiIn
+                                                              : Device::NodeKind::MidiOut;
 }
 
 MIDIDevice::~MIDIDevice()

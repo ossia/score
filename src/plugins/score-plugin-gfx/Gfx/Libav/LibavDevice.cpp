@@ -438,6 +438,13 @@ bool LibavDevice::reconnect()
     if(!plug)
       return false;
 
+    // Video and sound, either way; the direction is a setting, hence here
+    // rather than in the constructor.
+    using Device::NodeKind;
+    m_capas.nodeKinds = set.direction == LibavSettings::Input
+                            ? NodeKind::TextureIn | NodeKind::AudioIn
+                            : NodeKind::TextureOut | NodeKind::AudioOut;
+
     // Resolve <PROJECT>:, <LIBRARY>:, and relative paths before passing to FFmpeg.
     // URLs (rtsp://, srt://, etc.) and filter graphs (lavfi) are left as-is.
     auto resolvedPath = resolveLibavPath(set.path, set.options, m_ctx);

@@ -17,6 +17,7 @@
 #include <ossia-qt/invoke.hpp>
 #include <ossia-qt/qml_protocols.hpp>
 
+#include <QFile>
 #include <QCommandLineParser>
 
 #if __has_include(<QQuickWindow>)
@@ -134,7 +135,16 @@ void ApplicationPlugin::on_createdDocument(score::Document& doc)
 
   if(!m_start_script.isEmpty())
   {
-    QTimer::singleShot(100, this, [this] { m_consoleEngine.evaluate(m_start_script); });
+    QTimer::singleShot(100, this, [this] {
+      // Either a file to run, or code passed directly
+      QString code = m_start_script;
+      if(QFile file{m_start_script}; file.exists() && file.open(QIODevice::ReadOnly))
+        code = QString::fromUtf8(file.readAll());
+
+      auto res = m_consoleEngine.evaluate(code, m_start_script);
+      if(res.isError())
+        qDebug() << "--script:" << res.toString();
+    });
   }
 }
 void ApplicationPlugin::afterStartup()
