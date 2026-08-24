@@ -1,5 +1,5 @@
 /*{
-  "DESCRIPTION": "COPY_FROM attribute forwarding: geoOut.color is declared COPY_FROM geoIn.color, so the runtime forwards the upstream colour buffer without this shader ever writing it. Positions are copied through by hand. Drawn with raw-raster-basic, the triangle is the producer's green when forwarding works and black when it does not.",
+  "DESCRIPTION": "COPY_FROM with ACCESS read_only: geoOut.color is declared COPY_FROM geoIn.color, so the runtime forwards the upstream colour buffer without this shader ever writing it. Positions are copied through by hand. Drawn with raw-raster-basic, the triangle is the producer's green when forwarding works and black when it does not.",
   "CREDIT": "test",
   "ISFVSN": "2.0",
   "MODE": "COMPUTE_SHADER",
@@ -11,7 +11,7 @@
       "VERTEX_COUNT": "$VERTEX_COUNT_geoIn",
       "ATTRIBUTES": [
         { "NAME": "out_position", "SEMANTIC": "position", "TYPE": "vec4", "ACCESS": "write_only" },
-        { "NAME": "out_color", "SEMANTIC": "color",   "TYPE": "vec4", "ACCESS": "none",
+        { "NAME": "out_color", "SEMANTIC": "color",   "TYPE": "vec4", "ACCESS": "read_only",
           "COPY_FROM": { "GEOMETRY": "geoIn", "ATTRIBUTE": "in_color" } }
       ]
     },

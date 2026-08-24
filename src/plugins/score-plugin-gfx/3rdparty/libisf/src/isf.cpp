@@ -1256,6 +1256,11 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
           if(ar.access.empty())
             ar.access = "read_write";
 
+          // A COPY_FROM attribute is filled from the geometry it names rather
+          // than by this shader, which is what access "none" means downstream.
+          if(ar.forward)
+            ar.access = "none";
+
           // Default semantic to the attribute name if not specified
           if(ar.semantic.empty())
             ar.semantic = ar.name;

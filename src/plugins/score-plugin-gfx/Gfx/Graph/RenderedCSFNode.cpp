@@ -2117,6 +2117,28 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
         const std::string& src_geo_name = attr_req.forward->geometry;
         const std::string& src_attr_name = attr_req.forward->attribute;
 
+        // COPY_FROM names the source attribute as this shader's own declaration
+        // of it ("in_color"), not as the upstream mesh publishes it ("color0").
+        // Resolve it to a semantic, which both sides do share.
+        auto declared_semantic = ossia::attribute_semantic::custom;
+        for(const auto& inp : n.m_descriptor.inputs)
+        {
+          if(inp.name != src_geo_name)
+            continue;
+          auto* src_geo = ossia::get_if<isf::geometry_input>(&inp.data);
+          if(!src_geo)
+            break;
+          for(const auto& src_attr : src_geo->attributes)
+          {
+            if(src_attr.name == src_attr_name)
+            {
+              declared_semantic = ossia::name_to_semantic(src_attr.semantic);
+              break;
+            }
+          }
+          break;
+        }
+
         for(const auto& [port_key, geo_spec] : m_portGeometries)
         {
           if(!geo_spec.meshes || geo_spec.meshes->meshes.empty())
@@ -2142,9 +2164,7 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
           }
 
           if(!found_geo)
-          {
             continue;
-          }
 
           const auto& src_mesh = geo_spec.meshes->meshes[0];
           // Find the source attribute by name
@@ -2158,6 +2178,8 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
               name_match = (src_sem != ossia::attribute_semantic::custom
                             && in_attr.semantic == src_sem);
             }
+            if(!name_match && declared_semantic != ossia::attribute_semantic::custom)
+              name_match = (in_attr.semantic == declared_semantic);
             if(!name_match)
               continue;
 
