@@ -864,6 +864,16 @@ void ScreenNode::createOutput(score::gfx::OutputConfiguration conf)
   m_window->onAboutToRender = [this] { onRendererChange(); };
   m_window->onUpdate = this->m_vsyncCallback;
   m_window->onWindowReady = [this, graphicsApi=conf.graphicsApi, onReady = std::move(conf.onReady)] {
+    // A window that comes back after a close builds a whole new device here.
+    // Everything the output carries across a RenderList rebuild -- the
+    // GpuResourceRegistry above all -- is bound to the OLD one, and
+    // RenderList::init() refuses to reuse a registry bound elsewhere (it
+    // throws, in a release build, so the list is silently never built and the
+    // window stays black). Let both go while that device is still alive, which
+    // is what makes destroying their QRhi resources legal.
+    releaseOwnedRenderList();
+    releaseRegistry();
+
     m_window->state = createRenderState(*m_window, graphicsApi);
     m_window->state->window = m_window;
     m_window->state->renderSize = QSize(1280, 720);
