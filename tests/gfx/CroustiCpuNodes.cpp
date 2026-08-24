@@ -214,6 +214,15 @@ TEST_CASE(
   REQUIRE(empty.r.error.empty());
   REQUIRE(empty.r.outputs.size() == 1);
   REQUIRE(empty.r.outputs[0].valid());
+
+  // The rig is proven, not assumed: the same wiring driven by the CSF triangle
+  // producer fills the whole frame, so a partial coverage here is the cube's
+  // own silhouette rather than a fixture artefact.
+  INFO("coverage with cube=" << drawn.p.coverage
+                             << " without a producer=" << empty.p.coverage);
+  CHECK(empty.p.coverage == 0.);
+  CHECK(drawn.p.coverage > 0.01);
+  CHECK(drawn.p.coverage < 1.);
 }
 
 TEST_CASE(
@@ -387,3 +396,132 @@ TEST_CASE(
 
 
 
+
+
+//! Shared scene-chain render used by the two expected-failure cases below.
+namespace
+{
+Placement render_scene_chain(
+    score::gfx::GraphicsApi api, const score::DocumentContext& ctx,
+    HalpProcesses& procs, bool torus, bool withTransform, float xpos, bool& ok)
+{
+  Placement out;
+  ok = false;
+  GfxPipeline p;
+  const int prim = torus ? p.addNode(procs.make<Threedim::Torus>(ctx))
+                         : p.addNode(procs.make<Threedim::Cube>(ctx));
+  const int flat = p.addNode(std::make_unique<score::gfx::ScenePreprocessorNode>());
+  const int raster
+      = p.addRaster(corpus("syn-scene-solid.vs"), corpus("syn-scene-solid.fs"));
+  if(raster < 0)
+    return out;
+
+  if(withTransform)
+  {
+    const int xf = p.addNode(procs.make<Threedim::Transform3D>(ctx));
+    p.wire(p.nodeSceneOut(prim, 0), p.nodeSceneIn(xf, 0));
+    p.wire(p.nodeSceneOut(xf, 0), p.nodeSceneIn(flat, 0));
+    setInputs(
+        *p.node(xf), {ossia::value{}, ossia::value{ossia::vec3f{xpos, 0.f, 0.f}},
+                      ossia::value{ossia::vec3f{0.f, 0.f, 0.f}},
+                      ossia::value{ossia::vec3f{1.f, 1.f, 1.f}}});
+  }
+  else
+  {
+    p.wire(p.nodeSceneOut(prim, 0), p.nodeSceneIn(flat, 0));
+  }
+  p.wire(p.nodeGeometryOut(flat, 0), p.geometryIn(raster, 0));
+  const int sink = p.addSink({160, 160});
+  p.wire(p.imageOut(raster, 0), p.sinkInput(sink));
+  if(!p.create(api))
+    return out;
+  p.render(4);
+  out = placement_of(p.readback(sink));
+  ok = true;
+  return out;
+}
+}
+
+TEST_CASE(
+    "Transform 3D moves the mesh it wraps",
+    "[gfx][crousti][scene][threedim][!shouldfail]")
+{
+  // EXPECTED TO FAIL: Transform 3D's position does not reach the render.
+  //
+  // Its controls ARE applied -- GpuProcessIns runs with mess.input.size 4 and
+  // fields 1..3 applying their values -- and the mesh does reach the rasterizer
+  // (36 vertices for the Cube). But the drawn bounding box is identical at
+  // x = -0.5, 0 and +0.5, byte for byte, on OpenGL and Vulkan. Half an NDC unit
+  // is 40 pixels of a 160-pixel frame, so this is a no-op and not a rounding
+  // effect.
+  //
+  // The rig is not the suspect: the same wiring driven by the CSF triangle
+  // producer fills the frame exactly as it should.
+  //
+  // Asserted as the INTENT and marked expected-failure, so this flips to a
+  // regular pass the day the transform is honoured, rather than pinning today's
+  // wrong answer as correct.
+  const auto api = GENERATE(from_range(platform_backends()));
+  Placement centred, shifted;
+  bool okA = false, okB = false;
+
+  run_in_gui_app([&](const score::GUIApplicationContext& app) {
+    auto* doc = score::test::new_document(app);
+    if(!doc)
+      return;
+    HalpProcesses procs;
+    centred = render_scene_chain(api, doc->context(), procs, false, true, 0.f, okA);
+  });
+  run_in_gui_app([&](const score::GUIApplicationContext& app) {
+    auto* doc = score::test::new_document(app);
+    if(!doc)
+      return;
+    HalpProcesses procs;
+    shifted = render_scene_chain(api, doc->context(), procs, false, true, 0.5f, okB);
+  });
+
+  if(!okA || !okB)
+    SKIP("backend unavailable");
+  // Negative control: a shift assertion is vacuous if nothing was drawn.
+  REQUIRE(centred.coverage > 0.01);
+  INFO("centroidX centred=" << centred.centroidX << " shifted=" << shifted.centroidX);
+  CHECK(shifted.centroidX != centred.centroidX);
+}
+
+TEST_CASE(
+    "a Torus reaches the rasterizer and draws",
+    "[gfx][crousti][scene][threedim][!shouldfail]")
+{
+  // EXPECTED TO FAIL: a Threedim::Torus renders nothing through the scene chain.
+  //
+  // It is not a case of geometry never arriving -- the rasterizer receives 1764
+  // vertices for the Torus, against 36 for the Cube, and the Cube draws a
+  // visible silhouette through the identical chain. The Torus simply produces an
+  // empty frame on both backends.
+  const auto api = GENERATE(from_range(platform_backends()));
+  Placement cube, torus;
+  bool okA = false, okB = false;
+
+  run_in_gui_app([&](const score::GUIApplicationContext& app) {
+    auto* doc = score::test::new_document(app);
+    if(!doc)
+      return;
+    HalpProcesses procs;
+    cube = render_scene_chain(api, doc->context(), procs, false, false, 0.f, okA);
+  });
+  run_in_gui_app([&](const score::GUIApplicationContext& app) {
+    auto* doc = score::test::new_document(app);
+    if(!doc)
+      return;
+    HalpProcesses procs;
+    torus = render_scene_chain(api, doc->context(), procs, true, false, 0.f, okB);
+  });
+
+  if(!okA || !okB)
+    SKIP("backend unavailable");
+  // Control: the Cube through the same chain must draw, else the chain is at
+  // fault rather than the Torus.
+  REQUIRE(cube.coverage > 0.01);
+  INFO("coverage cube=" << cube.coverage << " torus=" << torus.coverage);
+  CHECK(torus.coverage > 0.01);
+}
