@@ -19,14 +19,11 @@
 //
 // Registered GUI: these create presented windows and SKIP without a display.
 //
-// HIDDEN behind [.wip]: building the graph through a document-registered
-// WindowDevice currently trips SCORE_ASSERT(m_registry->boundRhi() == &rhi) in
-// RenderList::init() during the FIRST output initialisation -- before any close
-// -- so these would take the runner down. That assert is a finding in its own
-// right: the same one that closing a window used to trip, reached by a second
-// route. Run them deliberately:
-//
-//   DISPLAY=:0 ./test_gfx_window_device_lifecycle "[.wip]"
+// What these guard, and what they do not: reverting the registry release in
+// ScreenNode's onWindowReady takes the close case down with a core dump, so
+// that fix is pinned. Reverting the vsync render-gate refresh does NOT fail any
+// of them, with either clock -- that fix was confirmed by hand in the running
+// application and is still unguarded here.
 
 #include "WindowedOutputCommon.hpp"
 
@@ -34,6 +31,9 @@
 
 #include <Explorer/Commands/Add/LoadDevice.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
+#include <Gfx/Graph/RenderList.hpp>
+#include <Gfx/Settings/Model.hpp>
 
 #include <Gfx/GfxParameter.hpp>
 
@@ -150,21 +150,37 @@ struct FrameCounter
 {
   explicit FrameCounter(score::gfx::Window& w)
       : window{&w}
-      , previous{w.onRender}
   {
-    window->onRender = [this](QRhiCommandBuffer& cb) {
+    rearm();
+  }
+  ~FrameCounter()
+  {
+    if(window && m_tag.use_count() > 1)
+      window->onRender = previous;
+  }
+  FrameCounter(const FrameCounter&) = delete;
+  FrameCounter& operator=(const FrameCounter&) = delete;
+
+  /// ScreenNode reassigns Window::onRender every time it (re)creates the
+  /// output, which both a close and a re-show do: a counter installed once is
+  /// silently replaced and then reads zero on a perfectly healthy window.
+  ///
+  /// Re-chaining blindly is worse -- it wraps our own wrapper and the chain
+  /// recurses until the stack goes. The tag tells the two apart: while our
+  /// lambda is installed it holds a copy, so use_count() > 1. Once the node has
+  /// overwritten it the lambda is destroyed and the count drops back to one.
+  void rearm()
+  {
+    if(!window || m_tag.use_count() > 1)
+      return;
+    previous = window->onRender;
+    auto tag = m_tag;
+    window->onRender = [this, tag](QRhiCommandBuffer& cb) {
       ++count;
       if(previous)
         previous(cb);
     };
   }
-  ~FrameCounter()
-  {
-    if(window)
-      window->onRender = previous;
-  }
-  FrameCounter(const FrameCounter&) = delete;
-  FrameCounter& operator=(const FrameCounter&) = delete;
 
   int take()
   {
@@ -176,12 +192,15 @@ struct FrameCounter
   score::gfx::Window* window{};
   std::function<void(QRhiCommandBuffer&)> previous;
   int count{};
+
+private:
+  std::shared_ptr<int> m_tag = std::make_shared<int>(0);
 };
 }
 
 TEST_CASE(
     "the window device's output keeps presenting across a close and a re-show",
-    "[gfx][window][device][lifecycle][.wip]")
+    "[gfx][window][device][lifecycle]")
 {
   Outcome o;
   int beforeClose{}, afterShow{};
@@ -234,8 +253,12 @@ TEST_CASE(
       return;
     }
 
+    // Let the graph settle first: the output is created during play, and that
+    // is what installs the node's own onRender.
+    pump_for(1500);
     FrameCounter frames{win};
-    pump_for(2000);
+    frames.rearm();
+    pump_for(1000);
     beforeClose = frames.take();
 
     // The X button: QEvent::Close, which releases the swap chain from inside
@@ -249,6 +272,7 @@ TEST_CASE(
     pump_until([&] { return win.isExposed(); }, 5000);
     exposedAfter = win.isExposed();
 
+    frames.rearm();
     frames.take();
     pump_for(1500);
     afterShow = frames.take();
@@ -266,8 +290,97 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "the window device's output keeps presenting across a hide and a re-show",
+    "[gfx][window][device][lifecycle]")
+{
+  // The context menu's Hide/Show, which is Window::hide()/show() and nothing
+  // more. Distinct from the close above: no swap chain is released and no new
+  // device is built, so nothing rebuilds the render list -- what has to survive
+  // is the flag Window::render() gates each frame on, which only the
+  // timer-driven path used to refresh.
+  Outcome o;
+  int beforeHide{}, afterShow{};
+  bool connected{}, exposedAfter{};
+
+  run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
+    if(!can_present())
+    {
+      o = {true, "no windowing system able to expose a native window"};
+      return;
+    }
+    auto* doc = score::test::new_document(ctx);
+    if(!doc)
+    {
+      o = {true, "no document delegate"};
+      return;
+    }
+    auto* devPtr = add_window_device(doc->context(), QStringLiteral("Win"));
+    if(!devPtr)
+    {
+      o = {true, "the window device could not be registered with the document"};
+      return;
+    }
+    auto& dev = *devPtr;
+    connected = true;
+
+    score::gfx::Window* windowPtr{};
+    pump_until([&] { return (windowPtr = dev.window()) != nullptr; }, 5000);
+    if(!windowPtr)
+    {
+      o = {true, "the device published no window"};
+      return;
+    }
+    auto& win = *windowPtr;
+    if(!pump_until([&] { return win.isExposed(); }, 5000))
+    {
+      o = {true, "the device's window never became exposed"};
+      return;
+    }
+
+    // The clock matters here: the timer path refreshes the render gate every
+    // tick by itself, so only the vsync chain can strand it.
+    ctx.settings<Gfx::Settings::Model>().setVSync(true);
+
+    JS::EditJsContext api;
+    std::string why;
+    if(!build_and_play(api, QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-solid-color.fs"), why))
+    {
+      o = {true, "could not build a shader -> Win:/ graph: " + why};
+      return;
+    }
+
+    pump_for(1500);
+    FrameCounter frames{win};
+    frames.rearm();
+    pump_for(1000);
+    beforeHide = frames.take();
+
+    win.hide();
+    pump_until([&] { return !win.isExposed(); }, 3000);
+    pump_for(300);
+
+    win.show();
+    pump_until([&] { return win.isExposed(); }, 5000);
+    exposedAfter = win.isExposed();
+
+    frames.rearm();
+    frames.take();
+    pump_for(1500);
+    afterShow = frames.take();
+  });
+
+  if(o.skipped)
+    SKIP(o.skipReason);
+  REQUIRE(connected);
+  INFO("frames before hide: " << beforeHide << ", after re-show: " << afterShow);
+  REQUIRE(beforeHide > 0);
+  CHECK(exposedAfter);
+  CHECK(afterShow > 0);
+}
+
+TEST_CASE(
     "the window device's output survives being closed twice",
-    "[gfx][window][device][lifecycle][.wip]")
+    "[gfx][window][device][lifecycle]")
 {
   // Whatever the first close/re-show leaves behind has to be recoverable too:
   // the reported failure persisted across stop/start, so a state that only
@@ -319,8 +432,10 @@ TEST_CASE(
       o = {true, "could not build a shader -> Win:/ graph: " + why};
       return;
     }
+    pump_for(1500);
     FrameCounter frames{win};
-    pump_for(2000);
+    frames.rearm();
+    pump_for(1000);
     if(frames.take() == 0)
     {
       o = {true, "the window presented nothing even before the close"};
@@ -333,6 +448,7 @@ TEST_CASE(
       pump_for(250);
       win.show();
       pump_until([&] { return win.isExposed(); }, 5000);
+      frames.rearm();
       frames.take();
       pump_for(1200);
       (cycle == 0 ? afterFirst : afterSecond) = frames.take();
