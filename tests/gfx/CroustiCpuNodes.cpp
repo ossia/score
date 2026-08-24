@@ -28,7 +28,10 @@
 #include <Crousti/GfxNode.hpp>
 #include <Crousti/ProcessModel.hpp>
 
+#include <Gfx/Graph/GeometryFilterNode.hpp>
 #include <Gfx/Graph/ScenePreprocessorNode.hpp>
+
+#include <QFile>
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
@@ -524,4 +527,122 @@ TEST_CASE(
   REQUIRE(cube.coverage > 0.01);
   INFO("coverage cube=" << cube.coverage << " torus=" << torus.coverage);
   CHECK(torus.coverage > 0.01);
+}
+
+//! Build a GeometryFilterNode from a MODE:"GEOMETRY_FILTER" source on disk.
+namespace
+{
+std::unique_ptr<score::gfx::Node>
+make_geometry_filter(const QString& path, std::string& err)
+{
+  QFile f{path};
+  if(!f.open(QIODevice::ReadOnly))
+  {
+    err = "cannot open geometry filter: " + path.toStdString();
+    return {};
+  }
+  const auto src = QString::fromUtf8(f.readAll()).toStdString();
+  try
+  {
+    isf::parser p{src, isf::parser::ShaderType::GeometryFilter};
+    auto desc = p.data();
+    return std::make_unique<score::gfx::GeometryFilterNode>(
+        1, desc, QString::fromStdString(p.geometry_filter()));
+  }
+  catch(const std::exception& e)
+  {
+    err = std::string("geometry filter parse failed: ") + e.what();
+    return {};
+  }
+}
+}
+
+TEST_CASE(
+    "a geometry filter displaces the mesh it is given",
+    "[gfx][gfxfilter][geometry][!shouldfail]")
+{
+  // GeometryFilterNode / GeometryFilterNodeRenderer had ZERO line coverage: the
+  // process is user-facing but nothing in the tree built one. The filter shifts
+  // every vertex along +X, so the oracle is that the silhouette MOVES -- a
+  // filter that was skipped still passes the mesh through and still draws, which
+  // a not-blank oracle would accept.
+  //
+  // EXPECTED TO FAIL, and probably not on its own account. Three independent
+  // things that should move a threedim mesh do nothing: Transform 3D's TRS, this
+  // filter's per-vertex displacement, and the choice of primitive (a Cube draws a
+  // fixed quadrant, a Torus with 1764 vertices draws nothing at all). Meanwhile
+  // the CSF triangle producer through the SAME raster and sink fills the frame
+  // correctly. One explanation covers all of it: the raw-raster vertex binding
+  // does not read threedim/ScenePreprocessor vertex positions correctly, so
+  // nothing upstream that edits positions can matter. Fix that and these three
+  // cases should flip together.
+  const auto api = GENERATE(from_range(platform_backends()));
+
+  auto run = [&](float shift, Placement& out, std::string& err) {
+    bool built = false;
+    run_in_gui_app([&](const score::GUIApplicationContext& app) {
+      auto* doc = score::test::new_document(app);
+      if(!doc)
+      {
+        err = "no document";
+        return;
+      }
+      HalpProcesses procs;
+      GfxPipeline p;
+      const int cube = p.addNode(procs.make<Threedim::Cube>(doc->context()));
+      const int flat = p.addNode(std::make_unique<score::gfx::ScenePreprocessorNode>());
+      auto filterNode = make_geometry_filter(corpus("syn-geofilter-shift.glsl"), err);
+      if(!filterNode)
+        return;
+      const int filt = p.addNode(std::move(filterNode));
+      const int raster
+          = p.addRaster(corpus("syn-scene-solid.vs"), corpus("syn-scene-solid.fs"));
+      if(raster < 0)
+      {
+        err = "raster build failed: " + p.error();
+        return;
+      }
+      auto* fin = p.nodeGeometryIn(filt, 0);
+      auto* fout = p.nodeGeometryOut(filt, 0);
+      if(!fin || !fout)
+      {
+        err = "geometry filter exposes no Geometry in/out";
+        return;
+      }
+      p.wire(p.nodeSceneOut(cube, 0), p.nodeSceneIn(flat, 0));
+      p.wire(p.nodeGeometryOut(flat, 0), fin);
+      p.wire(fout, p.geometryIn(raster, 0));
+      const int sink = p.addSink({160, 160});
+      p.wire(p.imageOut(raster, 0), p.sinkInput(sink));
+
+      // The filter's only control is `shift` on inlet 1 (inlet 0 is Geometry).
+      setInputs(*p.node(filt), {ossia::value{}, ossia::value{shift}});
+
+      if(!p.create(api))
+      {
+        err = p.error();
+        return;
+      }
+      p.render(4);
+      out = placement_of(p.readback(sink));
+      built = true;
+    });
+    if(!built && err.empty())
+      err = "chain did not build";
+  };
+
+  Placement at0, at1;
+  std::string e0, e1;
+  run(0.f, at0, e0);
+  if(!e0.empty())
+    SKIP("geometry filter chain unavailable: " << e0);
+  run(0.6f, at1, e1);
+  INFO("err0='" << e0 << "' err1='" << e1 << "'");
+  REQUIRE(e1.empty());
+
+  // Negative control: a displacement oracle is vacuous if nothing drew.
+  INFO("coverage shift=0 " << at0.coverage << " shift=0.6 " << at1.coverage);
+  REQUIRE(at0.coverage > 0.01);
+  INFO("centroidX shift=0 " << at0.centroidX << " shift=0.6 " << at1.centroidX);
+  CHECK(at1.centroidX != at0.centroidX);
 }
