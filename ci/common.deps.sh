@@ -161,7 +161,7 @@ clone_addon https://github.com/ossia/score-addon-puara
 
 if [[ "$CI_PLATFORM" != "WASM" ]];
 then
-  clone_addon         https://github.com/ossia/score-addon-ble
+  clone_addon         https://github.com/ossia/score-addon-ble feature/qtbluetooth
   clone_addon https://github.com/ossia/score-addon-contextfree
   clone_addon   https://github.com/ossia/score-addon-deuterium
   clone_addon        https://github.com/ossia/score-addon-hdf5
