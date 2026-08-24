@@ -377,6 +377,13 @@ score_add_gfx_test(multi_window       MultiWindowOutput.cpp)
 # a sequence finds combinations the single-operation cases above do not.
 score_add_gfx_test(window_output_torture WindowOutputTorture.cpp)
 
+# Resizing and full-screening a presented output. A resize takes either the
+# swapchain-sized-target fast path or a full render-list rebuild, and the two
+# exercise entirely different code; full screen changes the surface size from
+# the platform side. Reported as a crash on a document of compute shaders and
+# point-cloud geometry.
+score_add_gfx_test(window_resize_torture WindowResizeTorture.cpp)
+
 # Regression guards on the ScreenNode <-> Graph boundary: a live swapchain-flag
 # toggle must release the Graph's RenderList before freeing the QRhi it was
 # built against, and a window resize must not discard the render-size override.
@@ -469,6 +476,13 @@ endif()
 # travel back out. Built through the real protocol factory on a real document,
 # so it needs a display: GUI, and it SKIPs without one.
 score_add_gfx_test(window_device_tree WindowDeviceTree.cpp)
+
+# The window output as the application assembles it: a real WindowDevice in a
+# real document, with GfxContext between the window and the graph. The rigs
+# above drive a ScreenNode directly and pump frames themselves, which is why a
+# window that has stopped presenting in the running app still reads as healthy.
+score_add_gfx_test(window_device_lifecycle WindowDeviceLifecycle.cpp)
+target_link_libraries(test_gfx_window_device_lifecycle PRIVATE score_plugin_deviceexplorer score_plugin_engine score_plugin_js)
 target_link_libraries(test_gfx_window_device_tree PRIVATE score_plugin_deviceexplorer)
 
 
