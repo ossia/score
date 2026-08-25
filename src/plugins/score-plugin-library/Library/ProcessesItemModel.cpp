@@ -118,6 +118,23 @@ void ProcessesItemModel::clear()
   endResetModel();
 }
 
+void ProcessesItemModel::replaceRoot(std::vector<StagedNode> forest)
+{
+  // Same reasoning as clear(): a scan still in flight belongs to the tree that
+  // is going away, and the anchors point into it.
+  m_generation++;
+  m_pending.clear();
+  m_anchors.clear();
+
+  beginResetModel();
+  m_inReset = true;
+  m_root = ProcessNode{};
+  for(auto& staged : forest)
+    m_root.push_back(toNode(std::move(staged)));
+  m_inReset = false;
+  endResetModel();
+}
+
 void ProcessesItemModel::rescan()
 {
   auto& procs = context.interfaces<Process::ProcessFactoryList>();
@@ -303,6 +320,7 @@ void ProcessesItemModel::flushPending()
     std::size_t j = i + 1;
     while(
         j < pending.size() && pending[j].generation == m_generation
+        && pending[j].entry.atRoot == pending[i].entry.atRoot
         && pending[j].entry.rootKey == pending[i].entry.rootKey
         && pending[j].entry.categoryPath == pending[i].entry.categoryPath)
       j++;
@@ -315,12 +333,20 @@ void ProcessesItemModel::flushPending()
 void ProcessesItemModel::publishRun(PendingEntry* entries, std::size_t count)
 {
   SCORE_ASSERT(count > 0);
-  auto anchor_it = m_anchors.find(entries[0].entry.rootKey);
-  if(anchor_it == m_anchors.end())
-    return; // Not a registered process: nothing to attach to.
+  ProcessNode* parent{};
+  if(entries[0].entry.atRoot)
+  {
+    parent = &m_root;
+  }
+  else
+  {
+    auto anchor_it = m_anchors.find(entries[0].entry.rootKey);
+    if(anchor_it == m_anchors.end())
+      return; // Not a registered process: nothing to attach to.
+    parent = anchor_it->second;
+  }
 
   // Walk the existing part of the category chain.
-  ProcessNode* parent = anchor_it->second;
   const QStringList& path = entries[0].entry.categoryPath;
   int existing = 0;
   for(; existing < path.size(); existing++)

@@ -41,6 +41,13 @@ struct ProcessEntry
   Process::ProcessModelFactory::ConcreteKey rootKey;
   QStringList categoryPath;
   StagedNode node;
+
+  //! Attach under the root of the tree rather than under a process node,
+  //! ignoring rootKey. What another machine offers is named by categories
+  //! that exist nowhere here, so there is no local process to anchor to.
+  //! A default rootKey does NOT mean this: it means a key that resolved to
+  //! nothing, and such an entry is still dropped.
+  bool atRoot{};
 };
 
 //! The category a scanned file lands in: its parent folder, except for files

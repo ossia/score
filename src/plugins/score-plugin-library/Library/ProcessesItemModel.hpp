@@ -47,6 +47,11 @@ public:
   //! and flushed on a 0-timer; consecutive entries sharing the same anchor
   //! and category chain are inserted as one subtree / one ranged insert, so
   //! a folder scanned in one batch costs one rowsInserted. GUI thread only.
+  //!
+  //! An entry with atRoot set anchors at the root instead of at a process
+  //! node: what another machine offers is named by categories that exist
+  //! nowhere here, so there is no key to anchor to. A key that resolves to
+  //! no anchor is still dropped, as before.
   void publish(ProcessEntry&& entry);
 
   //! Same, from a scan whose generation was captured at rescan() time:
@@ -69,6 +74,15 @@ public:
   //! Marks a process node as a pure container: plugin databases clear the
   //! anchor's key so only their per-plugin children are user-creatable.
   void clearAnchorKey(const Process::ProcessModelFactory::ConcreteKey& key);
+
+  //! Replace the whole tree with a staged forest, in display order (each
+  //! staged node's own children are name-sorted on insertion), inside one
+  //! reset envelope. For a library whose content is not this machine's at
+  //! all: a terminal shows what the machine running the score can make, and
+  //! none of its own processes are relevant. Like clear(), it drops the scan
+  //! in flight and the anchors, which point into the tree being replaced.
+  //! GUI thread only.
+  void replaceRoot(std::vector<StagedNode> forest);
 
   //! Empty the tree inside a proper reset envelope: rescan()'s reset half
   //! without the repopulate. A terminal document lists no local processes,

@@ -374,6 +374,79 @@ TEST_CASE("end-to-end: a real scan publishes through the handlers", "[library]")
   });
 }
 
+// What a terminal needs: the library it shows is another machine's, named by
+// categories that match no process this build can make.
+TEST_CASE("publish: atRoot attaches where no process anchors", "[library]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    primeLibrarySettings(ctx);
+    Fixture f{ctx};
+
+    const int rootsBefore = f.model.rowCount(QModelIndex{});
+
+    auto e = f.entry({"Remote"}, "their-process");
+    e.atRoot = true;
+    e.rootKey = Process::ProcessModelFactory::ConcreteKey{};
+    f.model.publish(std::move(e));
+    f.model.flushPending();
+
+    // The category chain is created under the root, not under any process.
+    REQUIRE(f.model.rowCount(QModelIndex{}) == rootsBefore + 1);
+    const auto names = childNames(f.model, QModelIndex{});
+    REQUIRE(names.contains("Remote"));
+    const auto remote = f.model.index(names.indexOf("Remote"), 0, QModelIndex{});
+    REQUIRE(childNames(f.model, remote) == QStringList{"their-process"});
+
+    // The guarantee that made atRoot necessary in the first place: a key that
+    // resolves to nothing is still dropped, rather than silently landing at
+    // the root.
+    auto stray = f.entry({"Remote"}, "stray");
+    stray.rootKey = Process::ProcessModelFactory::ConcreteKey{};
+    f.model.publish(std::move(stray));
+    f.model.flushPending();
+    REQUIRE(childNames(f.model, remote) == QStringList{"their-process"});
+
+    score::test::checkModelInvariants(f.model);
+  });
+}
+
+TEST_CASE("replaceRoot: the whole tree becomes someone else's", "[library]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    primeLibrarySettings(ctx);
+    Fixture f{ctx};
+
+    f.model.publish(f.entry({"GIG"}, "local"));
+    f.model.flushPending();
+    REQUIRE(f.model.rowCount(f.model.find(f.key)) > 0);
+
+    Library::RecursiveFilterProxy proxy;
+    proxy.setSourceModel(&f.model);
+
+    std::vector<Library::StagedNode> forest;
+    forest.push_back(
+        {{{{}, "Audio", {}}, {}},
+         {Library::StagedNode{{{{}, "their-synth", {}}, {}}, {}}}});
+    forest.push_back({{{{}, "Video", {}}, {}}, {}});
+
+    f.model.replaceRoot(std::move(forest));
+
+    // Display order is kept at the top level, exactly like replaceChildren.
+    REQUIRE(childNames(f.model, QModelIndex{}) == QStringList{"Audio", "Video"});
+    const auto audio = f.model.index(0, 0, QModelIndex{});
+    REQUIRE(childNames(f.model, audio) == QStringList{"their-synth"});
+
+    // Nothing of this machine's library survives, anchors included: a publish
+    // for a process that used to be there must not resurrect it.
+    REQUIRE_FALSE(f.model.find(f.key).isValid());
+    f.model.publish(f.entry({"GIG"}, "late"));
+    f.model.flushPending();
+    REQUIRE(childNames(f.model, QModelIndex{}) == QStringList{"Audio", "Video"});
+
+    score::test::checkModelInvariants(f.model);
+  });
+}
+
 TEST_CASE("publish: 36k-entry storm, hot proxy mirrors the tree", "[library][bench]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
