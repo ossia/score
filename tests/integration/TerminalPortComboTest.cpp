@@ -74,17 +74,17 @@ TEST_CASE("A terminal's port combo offers the devices the score's machine has", 
     // has no object to ask.
     REQUIRE(plug.list().devices().empty());
 
-    plug.setRemoteKinds(QStringLiteral("stagewindow"), Device::DeviceKind::TextureOut);
-    plug.setRemoteKinds(QStringLiteral("webcam"), Device::DeviceKind::TextureIn);
+    plug.setRemoteKinds(QStringLiteral("stagewindow"), Device::NodeKind::TextureOut);
+    plug.setRemoteKinds(QStringLiteral("webcam"), Device::NodeKind::TextureIn);
     plug.setRemoteKinds(
         QStringLiteral("keyboard"),
-        Device::DeviceKinds{Device::DeviceKind::MidiIn} | Device::DeviceKind::MidiOut);
+        Device::NodeKind::MidiIn | Device::NodeKind::MidiOut);
 
     QWidget parent;
     Process::ValueInlet port{QStringLiteral("in"), Id<Process::Port>{0}, &parent};
 
     auto* out = Process::makeDeviceCombo(
-        Device::DeviceKind::TextureOut, plug.list(), port, doc->context(), &parent);
+        Device::NodeKind::TextureOut, plug.list(), port, doc->context(), &parent);
     REQUIRE(out);
     CHECK(has(*out, QStringLiteral("stagewindow")));
 
@@ -94,16 +94,16 @@ TEST_CASE("A terminal's port combo offers the devices the score's machine has", 
     CHECK_FALSE(has(*out, QStringLiteral("keyboard")));
 
     auto* in = Process::makeDeviceCombo(
-        Device::DeviceKind::TextureIn, plug.list(), port, doc->context(), &parent);
+        Device::NodeKind::TextureIn, plug.list(), port, doc->context(), &parent);
     REQUIRE(in);
     CHECK(has(*in, QStringLiteral("webcam")));
     CHECK_FALSE(has(*in, QStringLiteral("stagewindow")));
 
     // A device can be several things at once, and both directions must list it.
     auto* midiIn = Process::makeDeviceCombo(
-        Device::DeviceKind::MidiIn, plug.list(), port, doc->context(), &parent);
+        Device::NodeKind::MidiIn, plug.list(), port, doc->context(), &parent);
     auto* midiOut = Process::makeDeviceCombo(
-        Device::DeviceKind::MidiOut, plug.list(), port, doc->context(), &parent);
+        Device::NodeKind::MidiOut, plug.list(), port, doc->context(), &parent);
     REQUIRE(midiIn);
     REQUIRE(midiOut);
     CHECK(has(*midiIn, QStringLiteral("keyboard")));
@@ -123,12 +123,12 @@ TEST_CASE("A device reported after the combo was built still appears", "[termina
     QWidget parent;
     Process::ValueInlet port{QStringLiteral("in"), Id<Process::Port>{0}, &parent};
     auto* box = Process::makeDeviceCombo(
-        Device::DeviceKind::TextureOut, plug.list(), port, doc->context(), &parent);
+        Device::NodeKind::TextureOut, plug.list(), port, doc->context(), &parent);
     REQUIRE(box);
     REQUIRE_FALSE(has(*box, QStringLiteral("stagewindow")));
 
     // Plugged in on the other machine while this inspector was open.
-    plug.setRemoteKinds(QStringLiteral("stagewindow"), Device::DeviceKind::TextureOut);
+    plug.setRemoteKinds(QStringLiteral("stagewindow"), Device::NodeKind::TextureOut);
     QApplication::processEvents();
 
     CHECK(has(*box, QStringLiteral("stagewindow")));

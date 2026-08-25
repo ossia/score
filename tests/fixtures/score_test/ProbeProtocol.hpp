@@ -28,12 +28,15 @@ namespace score::test
 //! can be deleted without a single test noticing. This protocol owns one.
 struct ProbeDevice final : public Device::DeviceInterface
 {
-  using Device::DeviceInterface::DeviceInterface;
+  explicit ProbeDevice(Device::DeviceSettings s)
+      : Device::DeviceInterface{std::move(s)}
+  {
+    m_capas.nodeKinds = Device::NodeKind::MidiIn | Device::NodeKind::TextureOut;
+  }
 
   bool reconnect() override { return m_connected; }
   ossia::net::device_base* getDevice() const override { return nullptr; }
   bool connected() const override { return m_connected; }
-  Device::DeviceKinds kinds() const noexcept override { return m_kinds; }
 
   void setConnected(bool b)
   {
@@ -42,8 +45,6 @@ struct ProbeDevice final : public Device::DeviceInterface
   }
 
   bool m_connected{true};
-  Device::DeviceKinds m_kinds{
-      Device::DeviceKinds{Device::DeviceKind::MidiIn} | Device::DeviceKind::TextureOut};
 };
 
 struct ConnectedProbeProtocolFactory final : public Device::ProtocolFactory
