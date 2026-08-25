@@ -157,11 +157,13 @@ public:
   QSize renderSize(const Edge* e) const noexcept;
 
   int64_t frame = 0;
+  float currentDate[4]{};
 
   void createAllInputRenderTargets();
 
 private:
   OutputUBO m_outputUBOData;
+
 
   QRhiResourceUpdateBatch* m_initialBatch{};
 

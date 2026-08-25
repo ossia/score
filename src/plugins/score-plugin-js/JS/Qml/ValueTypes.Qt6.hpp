@@ -1,6 +1,6 @@
 #pragma once
 #include <JS/Qml/Metatypes.hpp>
-
+#include <score_plugin_js_export.h>
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/token_request.hpp>
 
@@ -165,7 +165,7 @@ public:
   Q_PROPERTY(qreal w READ w WRITE setW FINAL)
 };
 
-struct TokenRequestValueType
+struct SCORE_PLUGIN_JS_EXPORT TokenRequestValueType
 {
   Q_GADGET
 public:
@@ -256,7 +256,7 @@ public:
   Q_PROPERTY(int length READ length FINAL)
 };
 
-struct ExecutionStateValueType
+struct SCORE_PLUGIN_JS_EXPORT ExecutionStateValueType
 {
   Q_GADGET
   QML_VALUE_TYPE(ExecutionStateValueType)

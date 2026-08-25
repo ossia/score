@@ -130,7 +130,10 @@ void GenericNodeRenderer::defaultUBOUpdate(
     RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
   auto& n = static_cast<const score::gfx::NodeModel&>(this->node);
-  res.updateDynamicBuffer(m_processUBO, 0, sizeof(ProcessUBO), &n.standardUBO);
+
+  auto process_ubo = n.standardUBO;
+  std::copy_n(renderer.currentDate, 4, process_ubo.date);
+  res.updateDynamicBuffer(m_processUBO, 0, sizeof(ProcessUBO), &process_ubo);
 
   if(m_material.buffer && m_material.size > 0)
   {

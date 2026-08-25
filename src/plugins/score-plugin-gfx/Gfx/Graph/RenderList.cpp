@@ -521,8 +521,23 @@ const Mesh& RenderList::defaultTriangle() const noexcept
   */
 }
 
+static void update_date_for_shaders(float (&date)[4]) noexcept {
+  using namespace std::chrono;
+  const auto now = system_clock::now();
+  const auto sys_days_tp = floor<days>(now);
+  const year_month_day ymd{sys_days_tp};
+  const auto time_of_day = duration_cast<seconds>(now - sys_days_tp);
+
+  date[0] = (int32_t)ymd.year();
+  date[1] = (uint32_t)ymd.month();
+  date[2] = (uint32_t)ymd.day();
+  date[3] = (uint32_t)time_of_day.count();
+}
+
 void RenderList::render(QRhiCommandBuffer& commands, bool force)
 {
+  update_date_for_shaders(this->currentDate);
+
   if(renderers.size() <= 1 && !force)
     return;
 

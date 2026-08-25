@@ -68,6 +68,8 @@ inline void init_apartment_sta() noexcept
 #include <qnamespace.h>
 
 #include <clocale>
+#include <cstdio>
+#include <cstdlib>
 
 #if QT_WEBVIEW_LIB
 #include <QtWebView>

@@ -445,6 +445,7 @@ void RenderedISFNode::update(
     n.standardUBO.passIndex = m_passes.size() - 1;
 
   n.standardUBO.frameIndex++;
+  std::copy_n(renderer.currentDate, 4, n.standardUBO.date);
 
   // Update audio textures
   bool audioChanged = false;

@@ -3162,13 +3162,15 @@ void RenderedCSFNode::update(
   // Update standard ProcessUBO (time, renderSize, etc.)
   // passIndex will be set per-pass in runInitialPasses
   n.standardUBO.frameIndex++;
+  std::copy_n(renderer.currentDate, 4, n.standardUBO.date);
   if(edge)
   {
     auto sz = renderer.renderSize(edge);
     n.standardUBO.renderSize[0] = sz.width();
     n.standardUBO.renderSize[1] = sz.height();
   }
-  
+
+
   // Update ProcessUBO for each compute pass with the correct passIndex
   std::size_t passIdx = 0;
   for(auto& [edge, pass] : m_computePasses)

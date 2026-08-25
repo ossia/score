@@ -414,6 +414,14 @@ public:
     m_isf->standardUBO.time += 16. / 1000.;
     m_isf->standardUBO.timeDelta = 16. / 1000.;
     m_isf->standardUBO.progress += 0.002;
+    if(auto& l = this->m_graph.renderLists(); !l.empty() && l[0])
+    {
+      auto& d = l[0]->currentDate;
+      m_isf->standardUBO.date[0] = d[0];
+      m_isf->standardUBO.date[1] = d[1];
+      m_isf->standardUBO.date[2] = d[2];
+      m_isf->standardUBO.date[3] = d[3];
+    }
 
     // OPTIMIZEME
     {

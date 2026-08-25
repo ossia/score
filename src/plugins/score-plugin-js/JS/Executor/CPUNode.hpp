@@ -29,7 +29,7 @@ class qml_engine_functions;
 
 namespace JS
 {
-class js_node final : public ossia::graph_node
+class SCORE_PLUGIN_JS_EXPORT js_node final : public ossia::graph_node
 {
 public:
   explicit js_node(ossia::execution_state& st);

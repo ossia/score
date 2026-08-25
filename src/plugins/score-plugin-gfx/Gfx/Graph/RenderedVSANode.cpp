@@ -236,6 +236,8 @@ void SimpleRenderedVSANode::update(
 
   n.standardUBO.passIndex = 0;
   n.standardUBO.frameIndex++;
+  std::copy_n(renderer.currentDate, 4, n.standardUBO.date);
+
   auto sz = renderer.renderSize(edge);
   n.standardUBO.renderSize[0] = sz.width();
   n.standardUBO.renderSize[1] = sz.height();
