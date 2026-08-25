@@ -268,7 +268,7 @@ elseif(TARGET avcodec)
       endif()
     endif()
 
-    # ossia SDK 38 (ffmpeg 9) builds libavcodec / libavformat against a set of
+    # ossia SDK 39 (ffmpeg 9) builds libavcodec / libavformat against a set of
     # codec and protocol libraries that earlier SDKs did not have: dav1d, x264,
     # x265, opus, vpx, webp, SVT-JPEG-XS, mp3lame, libxml2, SRT (which itself
     # links the SDK's openssl) and freetype+harfbuzz for the drawtext filter.
