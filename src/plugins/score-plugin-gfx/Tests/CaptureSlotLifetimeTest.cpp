@@ -232,6 +232,15 @@ TEST_CASE("a reader never sees half of two geometries")
     }
   }};
 
+  // Wait for the reader to get through at least one iteration before racing it.
+  // std::thread's constructor does not promise the body has begun, so on a
+  // machine where thread start-up is slower than 100000 publishes the writer
+  // finished and set stop before the reader ever looped -- reads == 0 and the
+  // test failed without anything being wrong. That is what it did on Windows,
+  // on every backend, in 0.03s.
+  while(reads.load(std::memory_order_relaxed) == 0)
+    std::this_thread::yield();
+
   for(int i = 0; i < 100000; ++i)
   {
     if(i % 2)

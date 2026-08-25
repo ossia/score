@@ -4,7 +4,7 @@
 
 #include <cstdlib>
 
-#if QT_CONFIG(vulkan)
+#if QT_HAS_VULKAN || (QT_CONFIG(vulkan) && __has_include(<vulkan/vulkan.h>))
 #include <QVulkanFunctions>
 #include <QVulkanInstance>
 #include <QtGui/private/qrhivulkan_p.h>
@@ -66,7 +66,7 @@ void importableFree(void* p)
 #endif
 }
 
-#if QT_CONFIG(vulkan)
+#if QT_HAS_VULKAN || (QT_CONFIG(vulkan) && __has_include(<vulkan/vulkan.h>))
 
 struct VkHostImportUpload::Impl
 {
