@@ -122,6 +122,15 @@ enum class DeviceKind
 };
 Q_DECLARE_FLAGS(DeviceKinds, DeviceKind)
 
+// These values are on the wire: iscore-addon-network sends kinds().toInt() both
+// in the device_status broadcast and as the "kinds" field of the join answer,
+// and decodes it with DeviceKinds::fromInt. Renumbering them re-labels every
+// device a peer reports instead of failing, so they are pinned.
+static_assert(static_cast<int>(DeviceKind::MidiIn) == 1);
+static_assert(static_cast<int>(DeviceKind::MidiOut) == 2);
+static_assert(static_cast<int>(DeviceKind::TextureIn) == 4);
+static_assert(static_cast<int>(DeviceKind::TextureOut) == 8);
+
 class SCORE_LIB_DEVICE_EXPORT DeviceInterface
     : public QObject
     , public Nano::Observer
