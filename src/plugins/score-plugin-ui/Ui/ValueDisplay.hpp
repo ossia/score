@@ -259,8 +259,10 @@ struct Node
       if(txt_cache.isEmpty())
         return;
 
+      const auto& skin = score::Skin::instance();
+      p->setFont(skin.MonoFontSmall);
       p->setRenderHint(QPainter::Antialiasing, true);
-      p->setPen(score::Skin::instance().Light.main.pen1_solid_flat_miter);
+      p->setPen(skin.Light.main.pen1_solid_flat_miter);
       p->drawText(boundingRect().adjusted(10, 0, 0, 0), txt_cache);
       p->setRenderHint(QPainter::Antialiasing, false);
     }

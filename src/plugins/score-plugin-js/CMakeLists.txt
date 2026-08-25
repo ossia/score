@@ -117,7 +117,9 @@ if(TARGET "${QT_PREFIX}::Quick")
     target_link_libraries(${PROJECT_NAME} PUBLIC ${QT_PREFIX}::Quick)
     if(TARGET score_plugin_gfx AND ${Qt6_VERSION} VERSION_GREATER_EQUAL 6.5.0)
       target_link_libraries(${PROJECT_NAME} PUBLIC ${QT_PREFIX}::QuickPrivate score_plugin_gfx)
-      target_compile_definitions(${PROJECT_NAME} PRIVATE SCORE_HAS_GPU_JS)
+      # PUBLIC: the flag gates class definitions in JS/Qml/QmlObjects.hpp, so
+      # anything including that header has to agree with the plugin about it.
+      target_compile_definitions(${PROJECT_NAME} PUBLIC SCORE_HAS_GPU_JS)
       list(APPEND SCORE_FEATURES_LIST gpu_js)
     endif()
 endif()

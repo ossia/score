@@ -69,6 +69,14 @@ score_add_test(test_integration_js_process
   GUI
   PLUGINS score_plugin_scenario score_lib_process score_plugin_js)
 
+# Sweeps every Javascript preset in the user library through the real QML
+# engine: parses it, ticks it, and checks it never throws or emits a NaN.
+# Skips itself when the user library is not installed.
+score_add_test(test_integration_js_presets
+  SOURCES JsPresetsTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process score_plugin_js score_plugin_library)
+
 score_add_test(test_integration_scenario_rename
   SOURCES ScenarioRenameTest.cpp
   APP
