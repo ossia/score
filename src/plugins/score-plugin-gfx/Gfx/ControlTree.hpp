@@ -60,8 +60,13 @@ inline std::vector<ossia::net::parameter_base*> addControlGroup(
   std::vector<ossia::net::parameter_base*> out;
   out.reserve(controls.size());
 
-  auto groupNode = std::make_unique<ossia::net::generic_node>(group, dev, parent);
-  auto* groupPtr = parent.add_child(std::move(groupNode));
+  // Reload puts the saved tree back before the hardware is opened, so the group
+  // and its children can already be there. add_child refuses a duplicate name
+  // and returns null.
+  ossia::net::node_base* groupPtr = parent.find_child(group);
+  if(!groupPtr)
+    groupPtr = parent.add_child(
+        std::make_unique<ossia::net::generic_node>(group, dev, parent));
   if(!groupPtr)
   {
     out.resize(controls.size(), nullptr);
@@ -70,6 +75,44 @@ inline std::vector<ossia::net::parameter_base*> addControlGroup(
 
   for(const auto& c : controls)
   {
+    // Same again per control: adopt the node the document restored rather than
+    // failing to add a second one with the same name.
+    if(auto* existing = groupPtr->find_child(c.name))
+    {
+      auto* param = existing->get_parameter();
+      if(!param)
+        param = existing->create_parameter(c.type);
+      if(!param)
+      {
+        out.push_back(nullptr);
+        continue;
+      }
+
+      if(c.domain)
+        param->set_domain(c.domain);
+      param->set_access(c.access);
+      if(!c.description.empty())
+        ossia::net::set_description(*existing, c.description);
+
+      // The value the document restored is the user's, not the hardware's, so
+      // it is pushed back through the callback rather than overwritten with
+      // c.initial the way a freshly created node is.
+      const auto restored = param->value();
+      param->callbacks_clear();
+      if(c.onSet)
+      {
+        // Driven before the callback is installed, not after: the write has to
+        // reach the hardware, and doing it through an installed callback would
+        // re-enter the parameter that is being set up.
+        if(restored.valid())
+          c.onSet(restored);
+        auto cb = c.onSet;
+        param->add_callback(std::move(cb));
+      }
+      out.push_back(param);
+      continue;
+    }
+
     auto node = std::make_unique<ossia::net::generic_node>(c.name, dev, *groupPtr);
     auto* param = node->create_parameter(c.type);
     if(!param)
