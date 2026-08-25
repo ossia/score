@@ -9,8 +9,7 @@
  * the render thread uploads the freshest slot into the decoder's input texture.
  * Works on every QRhi backend.
  *
- * A `Policy` supplies the small per-vendor deltas so this one implementation
- * replaces the five byte-for-byte-divergent-only-in-name vendor copies:
+ * A `Policy` supplies the small per-vendor deltas:
  *   - `has_dma_lock` : page-lock each slot for the card's DMA engine (AJA
  *     `DMABufferLock(inRDMA=false)`); the CPU-only vendors leave it false.
  *   - `has_gl_fast_path` : on the GL backend, upload via a single raw
@@ -20,8 +19,7 @@
  *
  * The upload row stride is `frameByteSize / height` universally: for the
  * CPU-only vendors this is the card raster's true (possibly v210-padded) pitch;
- * for AJA the slot is tightly packed so it equals width*4 — identical to the
- * value the standalone AJA shim used.
+ * for AJA the slot is tightly packed so it equals width*4.
  */
 
 #include <Gfx/Graph/interop/CaptureStrategyCommon.hpp>
@@ -84,6 +82,9 @@ struct CpuStagedCapture final : VideoCaptureStrategy
   CaptureSlotPublisher m_publisher;
   /// Which allocator the slots came from, so release() frees them the same way.
   bool m_slotsImportable{};
+
+  /// Producer row stride in bytes; 0 when unknown.
+  std::size_t m_rowPitch{};
 
   /// Non-null only on Vulkan with VK_EXT_external_memory_host: the slots are
   /// imported as VkDeviceMemory and the GPU DMAs straight out of them, so the
@@ -154,8 +155,6 @@ struct CpuStagedCapture final : VideoCaptureStrategy
     }
 #endif
 
-    // Align to the import requirement when it is available so the same slots
-    // can serve both paths; otherwise plain max_align is enough.
     // Bottom two rungs of the capture ladder (RDMA -> DVP -> host-import ->
     // uploadTexture). SCORE_GFX_CAPTURE_STRATEGY pins one:
     //   "uploadtexture" skips the import; "hostimport" requires it and fails
@@ -172,6 +171,8 @@ struct CpuStagedCapture final : VideoCaptureStrategy
     const std::size_t importAlign = vkAlign ? vkAlign : d3dAlign;
     const std::size_t rowPitch
         = cfg.height > 0 ? cfg.frameByteSize / std::size_t(cfg.height) : 0;
+    // Both host-import paths need the row pitch.
+    m_rowPitch = rowPitch;
     // D3D12 additionally constrains the row pitch; refusing here keeps the
     // ladder honest rather than importing and then failing every copy.
     const bool d3dUsable = d3dAlign != 0 && D3D12HostImportUpload::pitchUsable(rowPitch);
@@ -181,6 +182,8 @@ struct CpuStagedCapture final : VideoCaptureStrategy
                     "no host-import path is available on this backend";
       return false;
     }
+    // Align to the import requirement when it is available so the same slots
+    // can serve both paths; otherwise plain max_align is enough.
     const std::size_t slotAlign = importAlign ? importAlign : alignof(std::max_align_t);
     m_slotsImportable = importAlign != 0;
 
@@ -298,13 +301,12 @@ struct CpuStagedCapture final : VideoCaptureStrategy
       const auto doCopy = [&](QRhiTexture& t, std::size_t s, int w, int h,
                               std::size_t off) {
         return m_hostImport.valid()
-                   ? m_hostImport.copyToTexture(*cb, t, s, w, h, off)
+                   ? m_hostImport.copyToTexture(*cb, t, s, w, h, off, m_rowPitch)
                    : m_d3dImport.copyToTexture(*cb, t, s, w, h, off);
       };
       // Planar frames are one contiguous slot holding N planes, so the
-      // zero-copy path has to walk them exactly as the portable path below
-      // does -- uploading only plane 0 here left chroma uninitialised while
-      // still reporting the rung engaged.
+      // zero-copy path walks them exactly as the portable path below does:
+      // uploading only plane 0 would leave chroma uninitialised.
       if(cfg.planes.size() > 1)
       {
         std::size_t offset = 0;
@@ -362,8 +364,8 @@ struct CpuStagedCapture final : VideoCaptureStrategy
     if constexpr(Policy::has_dma_lock)
     {
       // AJA: the slot is tightly packed to the texture's byte layout
-      // (validateCaptureTextureBytes enforced frameByteSize == texW*4*texH);
-      // stride is texWidth*4, exactly as the standalone AJA shim computed it.
+      // (validateCaptureTextureBytes enforces frameByteSize == texW*4*texH),
+      // so the stride is texWidth*4.
       const auto pxsz = cfg.outputTexture->pixelSize();
       sub.setDataStride(static_cast<quint32>(pxsz.width()) * 4u);
     }
@@ -371,7 +373,7 @@ struct CpuStagedCapture final : VideoCaptureStrategy
     {
       // CPU-only vendors: source stride = the card raster's true pitch (v210
       // rows are 48-pixel-group padded, wider than texWidth*4 when w % 48 != 0,
-      // e.g. 720p — the texture-width stride sheared those frames).
+      // e.g. 720p, and a texture-width stride would shear the frame).
       sub.setDataStride(
           cfg.height > 0 ? cfg.frameByteSize / static_cast<quint32>(cfg.height)
                          : 0);

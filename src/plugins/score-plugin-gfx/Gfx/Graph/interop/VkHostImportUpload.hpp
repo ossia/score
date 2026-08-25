@@ -10,17 +10,13 @@
  * host-visible BAR heap. VMA treats a heap that size as "small", so its block
  * size is heapSize/8 and any allocation above half a block becomes a dedicated
  * vkAllocateMemory — and Qt destroys the staging buffer after every upload
- * ("no reuse of staging, this is intentional"). Past that threshold each frame
- * therefore pays a fresh BAR allocation: measured 13.4 MB on a 214 MB heap
- * (RTX 2080) and 15.4 MB on a 246 MB heap (RTX 4090), matching heapSize/16
- * exactly, with effective bandwidth falling from ~8 to ~2.4 GB/s (Windows) and
- * ~16 to ~9.9 GB/s (Linux).
+ * ("no reuse of staging, this is intentional"). Past that threshold -- half a
+ * block, i.e. heapSize/16 -- each frame therefore pays a fresh BAR allocation,
+ * and the effective upload bandwidth collapses.
  *
  * A capture slot has already been filled by the vendor SDK, so the right answer
  * is not a cheaper copy but no copy: import the slot's own pages as
  * VkDeviceMemory once at setup and let the GPU DMA straight out of them.
- * Measured 1.4x (SD/HD) to 6.4x (1440p, the worst Qt case) faster than
- * uploadTexture, and faster than every other backend's upload at 4K.
  *
  * Requirements: the imported pointer and the imported length must both be
  * multiples of minImportedHostPointerAlignment (4096 on NVIDIA), which is why
@@ -52,7 +48,7 @@ SCORE_PLUGIN_GFX_EXPORT void alignedSlotFree(void* p);
 /// ID3D12Device3::OpenExistingHeapFromAddress rejects `_aligned_malloc` memory
 /// with E_INVALIDARG because it needs the base address of a virtual-memory
 /// reservation at the 64 KB system allocation granularity, and a 4 KB-aligned
-/// heap pointer lands mid-block (measured: 28672 % 65536). VirtualAlloc gives
+/// heap pointer lands mid-block. VirtualAlloc gives
 /// that; Vulkan's VK_EXT_external_memory_host accepts it too, so one allocator
 /// serves both rungs. Elsewhere this is just the page-aligned allocation.
 ///
@@ -108,9 +104,17 @@ public:
   /// @p srcOffset is the plane's byte offset inside the slot: a planar frame
   /// arrives as one contiguous buffer, so each plane is the same import at a
   /// different offset. Zero for single-plane formats.
+  /// @p rowPitchBytes is the producer's stride. Zero means the rows are packed
+  /// tight against @p width, which is what Vulkan assumes when
+  /// VkBufferImageCopy::bufferRowLength is left at 0 -- and what a captured
+  /// frame usually is NOT: V4L2 pads its rows to the device's alignment, so a
+  /// 3552-pixel 16-bit line arrives 7168 bytes wide rather than 7104, and
+  /// copying it as if it were tight skews every row 32 pixels further left
+  /// than the one above.
   bool copyToTexture(
       QRhiCommandBuffer& cb, QRhiTexture& tex, std::size_t slot, int width,
-      int height, std::size_t srcOffset = 0) noexcept;
+      int height, std::size_t srcOffset = 0,
+      std::size_t rowPitchBytes = 0) noexcept;
 
 private:
   struct Impl;
