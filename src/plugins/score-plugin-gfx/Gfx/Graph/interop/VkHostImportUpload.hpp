@@ -108,9 +108,17 @@ public:
   /// @p srcOffset is the plane's byte offset inside the slot: a planar frame
   /// arrives as one contiguous buffer, so each plane is the same import at a
   /// different offset. Zero for single-plane formats.
+  /// @p rowPitchBytes is the producer's stride. Zero means the rows are packed
+  /// tight against @p width, which is what Vulkan assumes when
+  /// VkBufferImageCopy::bufferRowLength is left at 0 -- and what a captured
+  /// frame usually is NOT: V4L2 pads its rows to the device's alignment, so a
+  /// 3552-pixel 16-bit line arrives 7168 bytes wide rather than 7104, and
+  /// copying it as if it were tight skews every row 32 pixels further left
+  /// than the one above.
   bool copyToTexture(
       QRhiCommandBuffer& cb, QRhiTexture& tex, std::size_t slot, int width,
-      int height, std::size_t srcOffset = 0) noexcept;
+      int height, std::size_t srcOffset = 0,
+      std::size_t rowPitchBytes = 0) noexcept;
 
 private:
   struct Impl;
