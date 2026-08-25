@@ -88,6 +88,9 @@ struct CpuStagedCapture final : VideoCaptureStrategy
   /// Non-null only on Vulkan with VK_EXT_external_memory_host: the slots are
   /// imported as VkDeviceMemory and the GPU DMAs straight out of them, so the
   /// per-frame staging copy disappears entirely.
+  /// Producer row stride in bytes; 0 when unknown.
+  std::size_t m_rowPitch{};
+
   VkHostImportUpload m_hostImport;
   /// The same trick on D3D12, through OpenExistingHeapFromAddress.
   D3D12HostImportUpload m_d3dImport;
@@ -172,6 +175,9 @@ struct CpuStagedCapture final : VideoCaptureStrategy
     const std::size_t importAlign = vkAlign ? vkAlign : d3dAlign;
     const std::size_t rowPitch
         = cfg.height > 0 ? cfg.frameByteSize / std::size_t(cfg.height) : 0;
+    // The Vulkan import needs it as much as D3D12 does; it simply was never
+    // given it, so a padded frame arrived skewed by the padding.
+    m_rowPitch = rowPitch;
     // D3D12 additionally constrains the row pitch; refusing here keeps the
     // ladder honest rather than importing and then failing every copy.
     const bool d3dUsable = d3dAlign != 0 && D3D12HostImportUpload::pitchUsable(rowPitch);
@@ -298,7 +304,7 @@ struct CpuStagedCapture final : VideoCaptureStrategy
       const auto doCopy = [&](QRhiTexture& t, std::size_t s, int w, int h,
                               std::size_t off) {
         return m_hostImport.valid()
-                   ? m_hostImport.copyToTexture(*cb, t, s, w, h, off)
+                   ? m_hostImport.copyToTexture(*cb, t, s, w, h, off, m_rowPitch)
                    : m_d3dImport.copyToTexture(*cb, t, s, w, h, off);
       };
       // Planar frames are one contiguous slot holding N planes, so the
