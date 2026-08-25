@@ -120,8 +120,8 @@ public:
 
   //! Devices the machine running the score reported as being of this kind.
   //! Empty for an ordinary document, where the objects can be asked directly.
-  std::vector<QString> remoteDevicesOfKind(Device::DeviceKind kind) const;
-  void setRemoteKinds(const QString& device, Device::DeviceKinds kinds);
+  std::vector<QString> remoteDevicesOfKind(Device::NodeKind kind) const;
+  void setRemoteKinds(const QString& device, Device::NodeKind kinds);
 
   //! Where a value edited here goes when the device is on another machine.
   //! Unset for an ordinary document, which has the device to send to.
@@ -155,7 +155,7 @@ private:
   ValueSink m_valueSink;
   ValueSink m_valueObserver;
   ossia::hash_map<QString, bool> m_remoteConnected;
-  ossia::hash_map<QString, Device::DeviceKinds> m_remoteKinds;
+  ossia::hash_map<QString, Device::NodeKind> m_remoteKinds;
   Device::DeviceList m_list;
   std::atomic_bool m_processMessages{};
   std::thread m_asioThread;

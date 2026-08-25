@@ -102,34 +102,53 @@ enum DeviceLogging : int8_t
 };
 
 /**
- * @brief What a device can stand at the end of.
+ * @brief The kinds of nodes a device can carry.
  *
- * The inspector's port combo boxes each ask one of these questions -- which
- * devices can be a texture source, which are MIDI inputs -- and each used to
- * ask it with a lambda that casts to a plug-in's own C++ type. That answer only
- * exists where the device object does, so a peer editing a score that runs
- * elsewhere had nothing to offer: no device objects, empty combo box.
+ * "In" is what the device produces and score reads (usable by an inlet),
+ * "Out" what the device consumes (usable by an outlet). A device declares
+ * them in its capabilities so that the widgets listing e.g. the texture
+ * addresses only walk the devices worth walking: an OSC device will never
+ * hold a texture, and a libav device holds both video and audio.
  *
- * Asked of the device instead, it is a fact that can be reported over a wire
- * by the machine that has it.
+ * It is also a fact the machine that holds the device can report over a wire:
+ * a peer editing a score that runs elsewhere has no device object to ask.
  */
-enum class DeviceKind
+enum class NodeKind : uint16_t
 {
-  MidiIn = (1 << 0),
-  MidiOut = (1 << 1),
-  TextureIn = (1 << 2),
-  TextureOut = (1 << 3)
+  None = 0,
+  Value = 1 << 0,
+  AudioIn = 1 << 1,
+  AudioOut = 1 << 2,
+  MidiIn = 1 << 3,
+  MidiOut = 1 << 4,
+  TextureIn = 1 << 5,
+  TextureOut = 1 << 6,
+  GeometryIn = 1 << 7,
+  GeometryOut = 1 << 8,
 };
-Q_DECLARE_FLAGS(DeviceKinds, DeviceKind)
 
-// These values are on the wire: iscore-addon-network sends kinds().toInt() both
-// in the device_status broadcast and as the "kinds" field of the join answer,
-// and decodes it with DeviceKinds::fromInt. Renumbering them re-labels every
-// device a peer reports instead of failing, so they are pinned.
-static_assert(static_cast<int>(DeviceKind::MidiIn) == 1);
-static_assert(static_cast<int>(DeviceKind::MidiOut) == 2);
-static_assert(static_cast<int>(DeviceKind::TextureIn) == 4);
-static_assert(static_cast<int>(DeviceKind::TextureOut) == 8);
+constexpr NodeKind operator|(NodeKind a, NodeKind b) noexcept
+{
+  return NodeKind(uint16_t(a) | uint16_t(b));
+}
+constexpr NodeKind& operator|=(NodeKind& a, NodeKind b) noexcept
+{
+  return a = a | b;
+}
+//! Whether every kind in @p wanted is in @p set.
+constexpr bool carries(NodeKind set, NodeKind wanted) noexcept
+{
+  return (uint16_t(set) & uint16_t(wanted)) == uint16_t(wanted);
+}
+
+// These values are on the wire: iscore-addon-network sends the device's
+// nodeKinds in the device_status broadcast and as the "kinds" field of the
+// join answer. Renumbering them re-labels every device a peer reports instead
+// of failing, so they are pinned.
+static_assert(static_cast<int>(NodeKind::MidiIn) == 8);
+static_assert(static_cast<int>(NodeKind::MidiOut) == 16);
+static_assert(static_cast<int>(NodeKind::TextureIn) == 32);
+static_assert(static_cast<int>(NodeKind::TextureOut) == 64);
 
 class SCORE_LIB_DEVICE_EXPORT DeviceInterface
     : public QObject
@@ -152,8 +171,6 @@ public:
   virtual void disconnect();
   virtual bool reconnect() = 0;
 
-  //! What this device can be plugged into. Empty unless it says otherwise.
-  virtual DeviceKinds kinds() const noexcept;
   virtual void recreate(const Device::Node&); // Argument is the node of the
                                               // device, used for recreation
   virtual bool connected() const;
