@@ -103,10 +103,13 @@ inline std::vector<ossia::net::parameter_base*> addControlGroup(
       param->callbacks_clear();
       if(c.onSet)
       {
-        auto cb = c.onSet;
-        param->add_callback(cb);
+        // Driven before the callback is installed, not after: the write has to
+        // reach the hardware, and doing it through an installed callback would
+        // re-enter the parameter that is being set up.
         if(restored.valid())
-          cb(restored);
+          c.onSet(restored);
+        auto cb = c.onSet;
+        param->add_callback(std::move(cb));
       }
       out.push_back(param);
       continue;
