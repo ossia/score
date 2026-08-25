@@ -1,0 +1,8 @@
+b5c1b0df9f device: let a device say what it can be plugged into | superseded by master NodeKind/PortAddressComboBox; remote fallback NOT carried over
+5a2a81bba9 JS: let --script take a file, and report evaluation errors | fully superseded by master (reads file, name/path, exit 3)
+99e591306b terminal: refresh port combo boxes when the peer reports a device | depends on b5c1b0df9f; needs re-authoring onto NodeKind
+e047c9ae5c ports: accept a device dropped from the explorer | superseded by master's resolver + master's own tests/unit/PortDropTest.cpp
+f5d1e80161 devices: let a document with no devices hand an edit ... | PARTIAL: kept ValueSink, dropped DeviceKind bleed
+619cf8f227 comments: cut the rationale, keep what the code does   | PARTIAL: took master side (DeviceKind bleed)
+19151a340c comments: second pass over the rationale blocks        | AudioPortComboBox.hpp deleted on master
+23206a79d5 devices: say what a device turned out to contain       | master reimplemented replaceDevice() (bool, keeps row, tree signals)
