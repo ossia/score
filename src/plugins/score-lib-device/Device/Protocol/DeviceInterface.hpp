@@ -101,46 +101,6 @@ enum DeviceLogging : int8_t
   LogEverything
 };
 
-/**
- * @brief The kinds of nodes a device can carry.
- *
- * "In" is what the device produces and score reads (usable by an inlet),
- * "Out" what the device consumes (usable by an outlet). A device declares
- * them in its capabilities so that the widgets listing e.g. the texture
- * addresses only walk the devices worth walking: an OSC device will never
- * hold a texture, and a libav device holds both video and audio.
- *
- * It is also a fact the machine that holds the device can report over a wire:
- * a peer editing a score that runs elsewhere has no device object to ask.
- */
-enum class NodeKind : uint16_t
-{
-  None = 0,
-  Value = 1 << 0,
-  AudioIn = 1 << 1,
-  AudioOut = 1 << 2,
-  MidiIn = 1 << 3,
-  MidiOut = 1 << 4,
-  TextureIn = 1 << 5,
-  TextureOut = 1 << 6,
-  GeometryIn = 1 << 7,
-  GeometryOut = 1 << 8,
-};
-
-constexpr NodeKind operator|(NodeKind a, NodeKind b) noexcept
-{
-  return NodeKind(uint16_t(a) | uint16_t(b));
-}
-constexpr NodeKind& operator|=(NodeKind& a, NodeKind b) noexcept
-{
-  return a = a | b;
-}
-//! Whether every kind in @p wanted is in @p set.
-constexpr bool carries(NodeKind set, NodeKind wanted) noexcept
-{
-  return (uint16_t(set) & uint16_t(wanted)) == uint16_t(wanted);
-}
-
 // These values are on the wire: iscore-addon-network sends the device's
 // nodeKinds in the device_status broadcast and as the "kinds" field of the
 // join answer. Renumbering them re-labels every device a peer reports instead
