@@ -516,6 +516,7 @@ void DesktopLayoutCanvas::updateItem(int index, QPoint pos, QSize size)
       if(di->outputIndex() == index)
       {
         auto savedCallback = std::move(di->onChanged);
+        di->onChanged = nullptr;
         di->setPos(desktopToScene(QPointF(pos)));
         QSizeF sceneSize = desktopSizeToScene(size);
         di->setRect(QRectF(0, 0, sceneSize.width(), sceneSize.height()));
