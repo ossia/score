@@ -34,7 +34,7 @@ constexpr int max_workgroups = 4096;
   return (int)std::clamp<int64_t>(g, 1, max_workgroups);
 }
 
-[[nodiscard]] uint32_t table_size_for(int64_t points) noexcept
+[[nodiscard]] uint32_t gpu_table_size_for(int64_t points) noexcept
 {
   uint32_t ts = min_table_size;
   while(ts < (uint32_t)points && ts < max_table_size)
@@ -921,7 +921,7 @@ bool GpuClusterPipeline::allocate(QRhi& rhi, int64_t points, int max_blobs)
 
   m_capacity = points;
   m_max_blobs = std::clamp(max_blobs, 1, max_blobs_limit);
-  m_table_size = table_size_for(points);
+  m_table_size = gpu_table_size_for(points);
 
   const int64_t blocks = std::max<int64_t>(m_table_size / scan_block, 1);
   const int64_t M = max_clusters;
