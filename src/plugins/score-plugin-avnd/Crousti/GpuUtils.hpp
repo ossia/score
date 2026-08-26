@@ -203,6 +203,9 @@ struct GpuProcessIns
   template <avnd::buffer_port Field, std::size_t NField>
   void operator()(Field& t, avnd::field_index<NField> field_index)
   {
+    if(!can_process_message(field_index))
+      return;
+
     using node_type = std::remove_cvref_t<decltype(gpu.node())>;
     auto& node = const_cast<node_type&>(gpu.node());
     auto val = ossia::get_if<ossia::render_target_spec>(&mess.input[field_index]);
@@ -214,6 +217,9 @@ struct GpuProcessIns
   template <avnd::texture_port Field, std::size_t NField>
   void operator()(Field& t, avnd::field_index<NField> field_index)
   {
+    if(!can_process_message(field_index))
+      return;
+
     using node_type = std::remove_cvref_t<decltype(gpu.node())>;
     auto& node = const_cast<node_type&>(gpu.node());
     auto val = ossia::get_if<ossia::render_target_spec>(&mess.input[field_index]);
@@ -227,6 +233,9 @@ struct GpuProcessIns
   {
     using node_type = std::remove_cvref_t<decltype(gpu.node())>;
     auto& node = const_cast<node_type&>(gpu.node());
+
+    if(!can_process_message(field_index))
+      return;
 
     // FIXME
   }
