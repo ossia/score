@@ -23,13 +23,28 @@ struct GLCapabilitiesResult
     surf.create();
 
     QOpenGLContext ctx;
-#if (defined(__arm__) || defined(__aarch64__)) && !defined(_WIN32) && !defined(__APPLE__)
+    auto fmt = ctx.format();
+    auto requested_format = qEnvironmentVariable("SCORE_OPENGL_FORMAT").toLower().trimmed();
+    if(requested_format.endsWith("gles"))
     {
-      auto fmt = ctx.format();
       fmt.setRenderableType(QSurfaceFormat::OpenGLES);
-      ctx.setFormat(fmt);
     }
+    else if(requested_format.endsWith("gl"))
+    {
+      fmt.setRenderableType(QSurfaceFormat::OpenGL);
+      fmt.setProfile(QSurfaceFormat::CoreProfile);
+    }
+    else
+    {
+#if (defined(__arm__) || defined(__aarch64__)) && !defined(_WIN32) && !defined(__APPLE__)
+      fmt.setRenderableType(QSurfaceFormat::OpenGLES);
+#else
+      fmt.setRenderableType(QSurfaceFormat::OpenGL);
+      fmt.setProfile(QSurfaceFormat::CoreProfile);
 #endif
+    }
+
+    ctx.setFormat(fmt);
     ctx.create();
     ctx.makeCurrent(&surf);
 
@@ -119,10 +134,23 @@ void GLCapabilities::setupFormat(QSurfaceFormat& fmt)
   fmt.setMajorVersion(major);
   fmt.setMinorVersion(minor);
 
+  if(type == QSurfaceFormat::OpenGLES)
+  {
+    fmt.setRenderableType(QSurfaceFormat::OpenGLES);
+  }
+  else if(type == QSurfaceFormat::OpenGL)
+  {
+    fmt.setRenderableType(QSurfaceFormat::OpenGL);
+    fmt.setProfile(QSurfaceFormat::CoreProfile);
+  }
+  else
+  {
 #if (defined(__arm__) || defined(__aarch64__)) && !defined(_WIN32) && !defined(__APPLE__)
-  fmt.setRenderableType(QSurfaceFormat::OpenGLES);
+    fmt.setRenderableType(QSurfaceFormat::OpenGLES);
 #else
-  fmt.setProfile(QSurfaceFormat::CoreProfile);
+    fmt.setRenderableType(QSurfaceFormat::OpenGL);
+    fmt.setProfile(QSurfaceFormat::CoreProfile);
 #endif
+  }
 }
 }
