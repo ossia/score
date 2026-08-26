@@ -7,6 +7,7 @@
 
 #include <QApplication>
 #include <QDesktopServices>
+#include <QHBoxLayout>
 #include <QIcon>
 #include <QKeyEvent>
 #include <QLabel>
@@ -25,6 +26,8 @@
 #include <QVBoxLayout>
 
 #include <score_git_info.hpp>
+
+#include <array>
 
 #include <optional>
 #include <verdigris>
@@ -547,30 +550,42 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
   setFixedSize(QSize(600, 400) / m_background.devicePixelRatioF());
 
   {
-    // TODO : make this work
-    // new version
-    auto m_getLastVersion = new HTTPGet{
-        QUrl("https://ossia.io/score-last-version.txt"),
-        [this, navFont](const QByteArray& data) {
-      auto version = QString::fromUtf8(data.simplified());
-      if(SCORE_TAG_NO_V < version)
-      {
-        QString text
-            = qApp->tr("New version %1 is available, click to update !").arg(version);
-        QString url = "https://github.com/ossia/score/releases/latest/";
-        InteractiveLabel* label = new InteractiveLabel{navFont, text, url, this};
-        label->setPixmaps(
-            score::get_pixmap(":/icons/version_on.png"),
-            score::get_pixmap(":/icons/version_off.png"));
-        label->setOpenExternalLink(true);
-        label->setInactiveColor(QColor{"#f6a019"});
-        label->setActiveColor(QColor{"#f0f0f0"});
-        label->setFixedWidth(600);
-        label->move(280, 170);
-        label->show();
-      }
-    },
-        [] {}};
+    auto& tp = score::ThreadPool::instance();
+    auto t = tp.acquireThread();
+    QMetaObject::invokeMethod(t, [t, self = QPointer{this}, navFont] {
+      auto getLastVersion = new HTTPGet{
+          QUrl("https://ossia.io/score-last-version.txt"),
+          [self, navFont](const QByteArray& data) {
+        auto version = QString::fromUtf8(data.simplified());
+        if(SCORE_TAG_NO_V < version)
+        {
+          QString text
+              = qApp->tr("New version %1 is available, click to update !").arg(version);
+          QString url = "https://github.com/ossia/score/releases/latest/";
+          QMetaObject::invokeMethod(
+              QCoreApplication::instance(), [self, navFont, text, url] {
+            if(!self)
+              return;
+            auto label = new InteractiveLabel{navFont, text, url, self};
+            label->setPixmaps(
+                score::get_pixmap(":/icons/version_on.png"),
+                score::get_pixmap(":/icons/version_off.png"));
+            label->setOpenExternalLink(true);
+            label->setInactiveColor(QColor{"#f6a019"});
+            label->setActiveColor(QColor{"#f0f0f0"});
+            label->setFixedWidth(600);
+            label->move(280, 170);
+            label->show();
+          });
+        }
+      }, [] { }};
+      connect(getLastVersion, &QObject::destroyed, t, [] {
+        QMetaObject::invokeMethod(QCoreApplication::instance(), [] {
+          auto& tp = score::ThreadPool::instance();
+          tp.releaseThread();
+        });
+      });
+    });
   }
 }
 
