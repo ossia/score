@@ -94,7 +94,9 @@ find_package(Qt6 6.2 REQUIRED
     ShaderToolsPrivate
 )
 
-find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVDEVICE AVUTIL SWRESAMPLE SWSCALE POSTPROC)
+# No POSTPROC: libpostproc was removed in ffmpeg 8, and requesting it as a
+# component only makes find_package report FFmpeg missing.
+find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVDEVICE AVUTIL SWRESAMPLE SWSCALE)
 
 # ossia-config.hpp
 file(CONFIGURE
