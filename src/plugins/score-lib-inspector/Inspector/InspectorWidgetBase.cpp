@@ -13,6 +13,7 @@
 
 #include <QColor>
 #include <QScrollArea>
+#include <QStringList>
 #include <QWidget>
 
 #include <wobjectimpl.h>

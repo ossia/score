@@ -85,9 +85,6 @@ public:
     setObjectName("Process::InspectorWidget");
     auto lay = new Inspector::VBoxLayout{this};
 
-    const auto& process_factories = doc.app.interfaces<Process::ProcessFactoryList>();
-    const auto fact = process_factories.get(process.concreteKey());
-
     const auto proc_name = process.prettyName();
     auto typeLabel = new TextLabel{QStringLiteral("Process"), this};
     auto typeFont = typeLabel->font();
