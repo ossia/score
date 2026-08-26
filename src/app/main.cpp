@@ -277,7 +277,9 @@ static void setup_x11(int argc, char** argv)
         helper_dylibs.xwayland = wayland;
 
         // EGL is the only way to get zero-copy with dma-buf import
-        qputenv("QT_XCB_GL_INTEGRATION", "xcb_egl");
+        const auto xcb_gl_integration = qgetenv("QT_XCB_GL_INTEGRATION");
+        if(xcb_gl_integration.isEmpty())
+          qputenv("QT_XCB_GL_INTEGRATION", "xcb_egl");
       }
     }
   };
