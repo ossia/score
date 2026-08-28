@@ -227,6 +227,31 @@ QRhiResourceUpdateBatch* RenderList::initialBatch() const noexcept
   return m_initialBatch;
 }
 
+void RenderList::flushInitialBatch()
+{
+  if(!m_initialBatch)
+    return;
+
+  auto* rhi = state.rhi;
+  if(!rhi)
+  {
+    m_initialBatch = nullptr;
+    return;
+  }
+
+  QRhiCommandBuffer* cb{};
+  if(rhi->beginOffscreenFrame(&cb) == QRhi::FrameOpSuccess)
+  {
+    cb->resourceUpdate(m_initialBatch);
+    rhi->endOffscreenFrame();
+  }
+  else
+  {
+    m_initialBatch->release();
+  }
+  m_initialBatch = nullptr;
+}
+
 QSize RenderList::resolveDownstreamSize(
     const Node* node,
     const ossia::small_flat_map<const Port*, RenderTargetSpecs, 16>& resolvedSpecs)
@@ -341,6 +366,11 @@ void RenderList::createAllInputRenderTargets()
 void RenderList::onEdgeRemoved(
     Edge& edge, const ossia::hash_set<const Port*>* preserveSinks)
 {
+  // removeOutputPass / removeInputRenderTarget below destroy resources that a
+  // still-pending initial batch may name (e.g. a processUBO uploaded by
+  // addOutputPass in this same inter-frame window).
+  flushInitialBatch();
+
   // Notify source renderer
   if(auto src_it = edge.source->node->renderedNodes.find(this);
      src_it != edge.source->node->renderedNodes.end())
@@ -1325,7 +1355,11 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
             if(node != &output)
             {
               updateBatch = state.rhi->nextResourceUpdateBatch();
-              SCORE_ASSERT(updateBatch);
+              if(!updateBatch)
+              {
+                qWarning("RenderList: resource update batch pool exhausted");
+                return;
+              }
             }
           }
         }
