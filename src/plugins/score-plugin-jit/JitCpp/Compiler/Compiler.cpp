@@ -65,10 +65,12 @@ void setTargetOptions(
   opts.AllowFPOpFusion = llvm::FPOpFusion::Fast;
 #endif
 
+#if LLVM_VERSION_MAJOR < 23
   opts.NoInfsFPMath = true;
   opts.NoNaNsFPMath = true;
-  opts.NoTrappingFPMath = true;
   opts.NoSignedZerosFPMath = true;
+#endif
+  opts.NoTrappingFPMath = true;
   opts.HonorSignDependentRoundingFPMathOption = false;
   opts.EnableIPRA = true;
   opts.EnableFastISel = true;
@@ -210,16 +212,31 @@ static std::unique_ptr<llvm::orc::LLJIT> jitBuilder(JitCompiler& self)
   builder.setJITTargetMachineBuilder(std::move(*JTMB));
   builder.setNumCompileThreads(4);
 
+#if LLVM_VERSION_MAJOR >= 23
+  builder.setMemoryManagerCreator(
+      [&](llvm::orc::ExecutionSession&)
+          -> llvm::Expected<std::unique_ptr<llvm::jitlink::JITLinkMemoryManager>> {
+    return std::move(self.m_memmgr);
+  });
+#endif
+
   // Configure to use JITLink via ObjectLinkingLayer
   builder.setObjectLinkingLayerCreator(
       [&](llvm::orc::ExecutionSession& ES
-            #if LLVM_VERSION_MAJOR < 21
+            #if LLVM_VERSION_MAJOR >= 23
+              , llvm::jitlink::JITLinkMemoryManager& memmgr
+            #elif LLVM_VERSION_MAJOR < 21
               , const llvm::Triple& TT
             #endif
               ) {
     // Create ObjectLinkingLayer with JITLink
+#if LLVM_VERSION_MAJOR >= 23
+    auto ObjLinkingLayer
+        = std::make_unique<llvm::orc::ObjectLinkingLayer>(ES, memmgr);
+#else
     auto ObjLinkingLayer
         = std::make_unique<llvm::orc::ObjectLinkingLayer>(ES, *self.m_memmgr);
+#endif
 
     // COFF needs the same responsibility setup LLJIT applies to its own COFF
     // object layer; a hand-built ObjectLinkingLayer omits it, so JIT-linking COFF
