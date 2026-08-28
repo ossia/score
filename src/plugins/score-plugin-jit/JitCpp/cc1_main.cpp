@@ -61,7 +61,9 @@ class QtDiagnosticConsumer final : public DiagnosticConsumer
 
   // DiagnosticConsumer interface
 public:
+#if LLVM_VERSION_MAJOR < 23
   void finish() override { std::cerr << " == finish == \n"; }
+#endif
   void
   HandleDiagnostic(DiagnosticsEngine::Level DiagLevel, const Diagnostic& Info) override
   {
