@@ -58,6 +58,17 @@ public:
   void setInitialBatch(QRhiResourceUpdateBatch* batch) noexcept { m_initialBatch = batch; }
 
   /**
+   * @brief Submit the pending initial batch before destroying resources it may name.
+   *
+   * A QRhiResourceUpdateBatch stores raw QRhiBuffer / QRhiTexture pointers until
+   * it is committed, and QRhiResource::deleteLater() outside a frame deletes
+   * immediately. Graph mutations run between frames, so any path that tears down
+   * renderer resources while this batch is outstanding must call this first;
+   * otherwise the next render() submits updates naming freed resources.
+   */
+  void flushInitialBatch();
+
+  /**
    * @brief Create buffers for a mesh and mark them for upload.
    *
    * The meshes used by the nodes are cached
