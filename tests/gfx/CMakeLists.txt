@@ -229,6 +229,11 @@ score_add_gfx_test(incremental_findings GfxIncrementalFindings.cpp)
 #                       (824a08d39).
 score_add_gfx_test(rt_changed      GfxRtChanged.cpp)
 score_add_gfx_test(node_removal    GfxNodeRemoval.cpp)
+# batch_lifetime: a pending initial resource-update batch must be submitted
+# before graph mutations destroy resources it names (pre-fix: UAF inside
+# QRhi::enqueueResourceUpdates on the next frame — the GL/D3D11/Vulkan crash
+# triplet from the corpus run). ISOLATED so the pre-fix crash is attributable.
+score_add_gfx_test(batch_lifetime  GfxBatchLifetime.cpp)
 score_add_gfx_test(depth_sampler   GfxDepthSampler.cpp)
 score_add_gfx_test(storage_visibility GfxStorageVisibility.cpp)
 score_add_gfx_test(multiview       GfxMultiview.cpp)
