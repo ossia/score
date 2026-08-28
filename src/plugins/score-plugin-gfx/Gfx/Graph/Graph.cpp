@@ -377,6 +377,10 @@ void Graph::relinkGraph()
 
     assert(!r.nodes.empty());
 
+    // The reused renderers below go through release() before re-init; a pending
+    // initial batch may still name the resources release() deletes.
+    r.flushInitialBatch();
+
     auto out = r.nodes.back();
     r.nodes.clear();
     r.nodes.push_back(out);
@@ -618,6 +622,10 @@ void Graph::removeNodeFromRenderLists(Node* node)
 {
   for(auto& [rl, renderer] : node->renderedNodes)
   {
+    // releaseState deletes buffers the RL's pending initial batch may still
+    // name (e.g. a material UBO whose upload was queued by initState in this
+    // same inter-frame window); submit it first.
+    rl->flushInitialBatch();
     renderer->releaseState(*rl);
     delete renderer;
 
@@ -889,6 +897,9 @@ void Graph::reconcileAllRenderLists()
                      << " (any downstream node still referencing this "
                         "renderer's buffers via process() caches will see "
                         "stale pointers → ASan target)";
+          // Same contract as removeNodeFromRenderLists: the pending initial
+          // batch may name resources releaseState is about to delete.
+          rl->flushInitialBatch();
           renderer->releaseState(*rl);
           delete renderer;
           node->renderedNodes.erase(rn_it);
