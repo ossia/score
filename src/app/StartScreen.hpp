@@ -356,16 +356,20 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
   navigationList->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   navigationList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
+#ifndef QT_NO_STYLE_STYLESHEET
   navigationList->setStyleSheet(
       "QListWidget { background-color: black;color: white; border: none;}"
       "QListWidget::item { padding: 10px 10; margin: 8px 0; color: white;}"
       "QListWidget::item:selected { background-color: #211f1f; color: white;"
       "padding:00px; margin: 00px 0; }");
+#endif
 
   // Home View
   QWidget* homeView = new QWidget;
   QVBoxLayout* homeLayout = new QVBoxLayout(homeView);
+#ifndef QT_NO_STYLE_STYLESHEET
   homeView->setStyleSheet("background-color: #211f1f;");
+#endif
 
   // Left Col
   QLabel* createNewLabel = new QLabel(tr("Create score"));
@@ -465,7 +469,9 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
   // Learn View
   QWidget* learnView = new QWidget;
   QVBoxLayout* learnLayout = new QVBoxLayout(learnView);
+#ifndef QT_NO_STYLE_STYLESHEET
   learnView->setStyleSheet("background-color: #211f1f;");
+#endif
 
   QLabel* learnLabel = new QLabel(tr("Browse examples"));
   learnLabel->setFont(headerFont);
@@ -479,9 +485,11 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
   tutorialsLabel->setPixmaps(
       score::get_pixmap(":/icons/tutorials_off.png"),
       score::get_pixmap(":/icons/tutorials_on.png"));
+#ifndef QT_NO_STYLE_STYLESHEET
   tutorialsLabel->setStyleSheet(
       "QLabel { padding: 8px; background-color: #161514; color: white; }"
       "QLabel:hover { color: #f6a019; }");
+#endif
   learnLayout->addWidget(tutorialsLabel);
 
   learnLayout->addStretch();
@@ -491,7 +499,9 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
   // Community View
   QWidget* communityView = new QWidget;
   QVBoxLayout* communityLayout = new QVBoxLayout(communityView);
+#ifndef QT_NO_STYLE_STYLESHEET
   communityView->setStyleSheet("background-color: #211f1f;");
+#endif
 
   QLabel* communityLabel = new QLabel(tr("Get involved"));
   communityLabel->setFont(headerFont);
@@ -515,9 +525,11 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
     menuLabel->setOpenExternalLink(true);
     menuLabel->setPixmaps(score::get_pixmap(m.pixmap), score::get_pixmap(m.pixmapOn));
 
+#ifndef QT_NO_STYLE_STYLESHEET
     menuLabel->setStyleSheet(
         "QLabel {padding: 8px; background-color: #161514; color: white;}"
         "QLabel:hover {color: #f6a019;}");
+#endif
 
     communityLayout->addWidget(menuLabel);
   }
