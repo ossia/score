@@ -162,8 +162,8 @@ void computeAll(
     ossia::bar_time increment, QRectF rect)
 {
   //qDebug("\n\n\n starting \n");
-  auto& bars = grid.timebars.lightBars;
-  auto& sub = grid.timebars.lighterBars;
+  auto& bars = *grid.timebars.lightBars;
+  auto& sub = *grid.timebars.lighterBars;
   auto& measures = *grid.m_measures;
   auto& magneticTimings = grid.timebars.magneticTimings;
 
@@ -371,8 +371,8 @@ void MusicalGrid::compute(
   // this->start = computeStart(*this, x0_time, last_signature_change);
   mainPositions.clear();
   //subPositions.clear();
-  timebars.lightBars.positions.clear();
-  timebars.lighterBars.positions.clear();
+  timebars.lightBars->positions.clear();
+  timebars.lighterBars->positions.clear();
   timebars.magneticTimings.clear();
 
   // Find the first measure we see
@@ -415,8 +415,8 @@ void MusicalGrid::compute(
       qDebug() << "Magnetic" << i <<  timebars.magneticTimings[i].toQTime();
   }
 */
-  this->timebars.lightBars.updateShapes();
-  this->timebars.lighterBars.updateShapes();
+  this->timebars.lightBars->updateShapes();
+  this->timebars.lighterBars->updateShapes();
   changed();
 }
 
