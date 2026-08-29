@@ -36,7 +36,7 @@ done
 # stack, so a missing piece is a failure and not a skip -- otherwise "the device
 # was absent" silently explains away an untested code path forever. Hosts that
 # genuinely cannot provide it (a minimal CI container) set
-# SCORE_MEDIA_TESTS_OPTIONAL=1 and get the old ctest SKIP instead.
+# SCORE_MEDIA_TESTS_OPTIONAL=1 and get a ctest SKIP instead.
 die() {
   if [ "${SCORE_MEDIA_TESTS_OPTIONAL:-0}" = 1 ]; then
     echo "with-virtual-media: SKIP (optional mode): $*" >&2
@@ -124,8 +124,8 @@ if [ "$want_media" = 1 ]; then
   # The explicit scale filter is load-bearing: lavfi sources silently round an
   # odd requested size DOWN to even, so `testsrc2=size=65x33` alone yields a
   # 64x32 clip and the odd-dimension axis quietly disappears. The size is read
-  # back with ffprobe afterwards and a mismatch is fatal, so a clip can never
-  # again claim in its name a geometry it does not have.
+  # back with ffprobe afterwards and a mismatch is fatal, so a clip cannot
+  # claim in its name a geometry it does not have.
   gen_raw() {  # gen_raw <pixfmt> <W> <H> [frames]
     local fmt="$1" w="$2" h="$3" n="${4:-8}"
     local out="$tmp/fmt-${fmt}-${w}x${h}.nut"
@@ -404,7 +404,30 @@ case "$(uname -s)" in
   Linux | *BSD* | SunOS)
     if [ -z "${DISPLAY:-}" ] && [ -z "${WAYLAND_DISPLAY:-}" ] \
        && [ -z "${QT_QPA_PLATFORM:-}" ]; then
-      export QT_QPA_PLATFORM=offscreen
+      # Bring up a headless X rather than falling back to offscreen. Qt's
+      # offscreen integration provides OpenGL only through GLX, so with no X
+      # there is no GL at all: QRhi falls back to the Null backend, which draws
+      # nothing while every call succeeds. Tests that read pixels back then
+      # verify a constant colour and pass.
+      for _d in 99 98 97; do
+        if command -v Xvfb >/dev/null 2>&1; then
+          Xvfb ":$_d" -screen 0 1280x720x24 >/dev/null 2>&1 &
+        elif command -v Xephyr >/dev/null 2>&1; then
+          Xephyr ":$_d" -screen 1280x720 -ac -noreset >/dev/null 2>&1 &
+        else
+          break
+        fi
+        _xpid=$!
+        sleep 3
+        if DISPLAY=":$_d" xdpyinfo >/dev/null 2>&1; then
+          export DISPLAY=":$_d" QT_QPA_PLATFORM=xcb
+          trap 'kill "$_xpid" 2>/dev/null' EXIT
+          break
+        fi
+        kill "$_xpid" 2>/dev/null
+      done
+      # Only if no X could be started: offscreen, with the caveat above.
+      [ -n "${DISPLAY:-}" ] || export QT_QPA_PLATFORM=offscreen
     fi
     ;;
 esac
