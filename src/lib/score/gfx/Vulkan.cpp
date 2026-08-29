@@ -89,6 +89,44 @@ QVulkanInstance* staticVulkanInstance(bool create)
 
     if(!instance.create())
     {
+      // The instance is deleted immediately below, so this is the only place
+      // errorCode() and the supported layer/extension lists can still be read.
+      qWarning() << "Vulkan: QVulkanInstance::create() failed, VkResult ="
+                 << instance.errorCode();
+
+      // Nothing supported at all is a different fault from a missing layer: it
+      // means the QPA plugin has no Vulkan support (the offscreen platform is
+      // the usual one, and it says "does not support createPlatformVulkanInstance"
+      // just above).
+      if(instance.supportedLayers().isEmpty()
+         && instance.supportedExtensions().isEmpty())
+      {
+        qWarning() << "Vulkan: the platform plugin provides no Vulkan support "
+                      "-- this is expected under QT_QPA_PLATFORM=offscreen";
+        g_staticVulkanInstanceInvalid = true;
+        delete g_staticVulkanInstance;
+        g_staticVulkanInstance = nullptr;
+        return;
+      }
+
+      qWarning() << "Vulkan: requested api" << instance.apiVersion()
+                 << "supported" << instance.supportedApiVersion();
+
+      const auto missing = [](const auto& wanted, const auto& supported) {
+        QByteArrayList out;
+        for(const auto& w : wanted)
+          if(!supported.contains(w))
+            out << w;
+        return out;
+      };
+      if(const auto m = missing(instance.layers(), instance.supportedLayers());
+         !m.isEmpty())
+        qWarning() << "Vulkan: requested layers that are NOT available:" << m;
+      if(const auto m
+         = missing(instance.extensions(), instance.supportedExtensions());
+         !m.isEmpty())
+        qWarning() << "Vulkan: requested extensions that are NOT available:" << m;
+
       g_staticVulkanInstanceInvalid = true;
       delete g_staticVulkanInstance;
       g_staticVulkanInstance = nullptr;
