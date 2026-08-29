@@ -404,7 +404,32 @@ case "$(uname -s)" in
   Linux | *BSD* | SunOS)
     if [ -z "${DISPLAY:-}" ] && [ -z "${WAYLAND_DISPLAY:-}" ] \
        && [ -z "${QT_QPA_PLATFORM:-}" ]; then
-      export QT_QPA_PLATFORM=offscreen
+      # Bring up a headless X rather than falling back to offscreen. Qt's
+      # offscreen integration provides OpenGL only through GLX, so with no X
+      # there is no GL at all: QRhi falls back to the Null backend, which draws
+      # nothing while every call succeeds. Tests that read pixels back then
+      # verify a constant colour and pass. Several gfx tests already say
+      # "offscreen must NOT be used" in their own comments; this wrapper had
+      # not caught up.
+      for _d in 99 98 97; do
+        if command -v Xvfb >/dev/null 2>&1; then
+          Xvfb ":$_d" -screen 0 1280x720x24 >/dev/null 2>&1 &
+        elif command -v Xephyr >/dev/null 2>&1; then
+          Xephyr ":$_d" -screen 1280x720 -ac -noreset >/dev/null 2>&1 &
+        else
+          break
+        fi
+        _xpid=$!
+        sleep 3
+        if DISPLAY=":$_d" xdpyinfo >/dev/null 2>&1; then
+          export DISPLAY=":$_d" QT_QPA_PLATFORM=xcb
+          trap 'kill "$_xpid" 2>/dev/null' EXIT
+          break
+        fi
+        kill "$_xpid" 2>/dev/null
+      done
+      # Only if no X could be started: offscreen, with the caveat above.
+      [ -n "${DISPLAY:-}" ] || export QT_QPA_PLATFORM=offscreen
     fi
     ;;
 esac
