@@ -1,4 +1,5 @@
 #pragma once
+#include <score_plugin_gfx_export.h>
 #include <ossia/dataflow/geometry_port.hpp>
 
 #include <QMatrix4x4>
@@ -593,6 +594,7 @@ struct FlatScene
 };
 
 // Flatten a scene_spec into a FlatScene for GPU consumption.
+SCORE_PLUGIN_GFX_EXPORT
 void flattenScene(
     const ossia::scene_spec& scene,
     FlatScene& out,
@@ -601,9 +603,11 @@ void flattenScene(
 // Build a transient ossia::geometry that wraps a mesh_primitive's buffers
 // and attributes. The result is heap-allocated and owned by shared_ptr so
 // callers can keep it alive beyond the flatten pass (see DrawCall::owned_mesh).
+SCORE_PLUGIN_GFX_EXPORT
 std::shared_ptr<ossia::geometry>
 primitiveToGeometry(const ossia::mesh_primitive& prim);
 
+SCORE_PLUGIN_GFX_EXPORT
 MaterialGPU packMaterial(const ossia::material_component& mc);
 MaterialExtensionsGPU packMaterialExtensions(const ossia::material_component& mc);
 }

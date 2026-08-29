@@ -1,3 +1,4 @@
+#include <score_plugin_gfx_export.h>
 #include "OutputMapping.hpp"
 
 #include <score/serialization/DataStreamVisitor.hpp>
@@ -1075,7 +1076,7 @@ void OutputMappingCanvas::keyPressEvent(QKeyEvent* event)
 }
 
 template <>
-void JSONReader::read(const Gfx::OutputMapping& n)
+SCORE_PLUGIN_GFX_EXPORT void JSONReader::read(const Gfx::OutputMapping& n)
 {
   stream.StartObject();
   stream.Key("SourceRect");
@@ -1153,7 +1154,7 @@ void JSONReader::read(const Gfx::OutputMapping& n)
 }
 
 template <>
-void DataStreamReader::read(const Gfx::OutputMapping& n)
+SCORE_PLUGIN_GFX_EXPORT void DataStreamReader::read(const Gfx::OutputMapping& n)
 {
   m_stream << n.sourceRect << n.screenIndex << n.windowPosition << n.windowSize
            << n.fullscreen;
@@ -1168,7 +1169,7 @@ void DataStreamReader::read(const Gfx::OutputMapping& n)
 }
 
 template <>
-void DataStreamWriter::write(Gfx::OutputMapping& n)
+SCORE_PLUGIN_GFX_EXPORT void DataStreamWriter::write(Gfx::OutputMapping& n)
 {
   m_stream >> n.sourceRect >> n.screenIndex >> n.windowPosition >> n.windowSize
       >> n.fullscreen;
@@ -1205,7 +1206,7 @@ bool readNumbers(const Obj& obj, const std::string& key, std::array<double, N>& 
 }
 
 template <>
-void JSONWriter::write(Gfx::OutputMapping& n)
+SCORE_PLUGIN_GFX_EXPORT void JSONWriter::write(Gfx::OutputMapping& n)
 {
   if(std::array<double, 4> r; readNumbers(obj, "SourceRect", r))
     n.sourceRect = QRectF(r[0], r[1], r[2], r[3]);
