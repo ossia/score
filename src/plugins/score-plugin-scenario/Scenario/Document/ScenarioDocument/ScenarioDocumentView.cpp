@@ -580,11 +580,16 @@ ScenarioDocumentView::ScenarioDocumentView(
     : score::DocumentDelegateView{parent}
     , m_widget{new QWidget}
     , m_context{ctx}
-    , m_scene{m_widget}
+    // No QObject parent: these scenes are BY-VALUE members, so giving them
+    // m_widget as parent means ~QWidget deletes them via deleteChildren() --
+    // `delete` on an address inside ScenarioDocumentView, which is not a heap
+    // allocation. m_timeRulerScene already gets this right. The members are
+    // destroyed with the view, which is what owns them.
+    , m_scene{nullptr}
     , m_view{ctx.app, &m_scene, m_widget}
     , m_timeRulerView{&m_timeRulerScene}
     , m_timeRuler{new MusicalRuler{&m_timeRulerView}}
-    , m_minimapScene{m_widget}
+    , m_minimapScene{nullptr}
     , m_minimapView{&m_minimapScene}
 {
   auto& scenario_settings = ctx.app.settings<Scenario::Settings::Model>();
@@ -653,7 +658,8 @@ ScenarioDocumentView::ScenarioDocumentView(
   }
 
   // view layout
-  m_scene.addItem(&m_baseObject);
+  m_baseObject = new BaseGraphicsObject{};
+  m_scene.addItem(m_baseObject);
 
   auto lay = new score::MarginLess<QVBoxLayout>;
   m_widget->setLayout(lay);
