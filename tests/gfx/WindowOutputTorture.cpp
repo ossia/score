@@ -29,6 +29,7 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/generators/catch_generators_range.hpp>
 
+#include <algorithm>
 #include <random>
 #include <string>
 #include <vector>
@@ -50,6 +51,28 @@ int ops_from_env()
   bool ok = false;
   const int n = qEnvironmentVariableIntValue("SCORE_TORTURE_OPS", &ok);
   return ok && n > 0 ? n : 24;
+}
+
+/// The order the operations are performed in: every one of them once, shuffled,
+/// then uniformly random for the remaining length.
+///
+/// Drawing uniformly from the start looks equivalent and is not. Full screen was
+/// absent from this file's operation set entirely -- the enum went straight from
+/// clearRenderSize to raise -- and the suite stayed green because no run had to
+/// contain it. Covering the set by construction is what makes an operation that
+/// is declared but never dispatched fail rather than pass quietly.
+std::vector<int> op_order(int count, int nops, std::mt19937& rng)
+{
+  std::vector<int> seq(count);
+  for(int i = 0; i < count; ++i)
+    seq[i] = i;
+  std::shuffle(seq.begin(), seq.end(), rng);
+
+  std::uniform_int_distribution<int> pick{0, count - 1};
+  while(int(seq.size()) < nops)
+    seq.push_back(pick(rng));
+  seq.resize(std::max(nops, count));
+  return seq;
 }
 
 struct Outcome
@@ -86,6 +109,7 @@ enum class Op
   Resize,
   RenderSize,
   ClearRenderSize,
+  FullScreenOn,
   FullScreenOff,
   Raise,
   Count
@@ -107,10 +131,54 @@ const char* op_name(Op o)
       return "renderSize";
     case Op::ClearRenderSize:
       return "clearRenderSize";
+    case Op::FullScreenOn:
+      return "fullScreenOn";
     case Op::FullScreenOff:
       return "fullScreenOff";
     case Op::Raise:
       return "raise";
+    default:
+      return "?";
+  }
+}
+
+/// The multi-window equivalents. Hide and show apply to every window at once —
+/// that is what a user does to the whole output — while the disruptions that
+/// desynchronise the windows from each other are aimed at one of them, since a
+/// node holding N swap chains has to recover each independently.
+enum class MwOp
+{
+  HideAll,
+  ShowAll,
+  ResizeOne,
+  CloseOne,
+  FullScreenOne,
+  NormalOne,
+  RenderSize,
+  ClearRenderSize,
+  Count
+};
+
+const char* mw_op_name(MwOp o)
+{
+  switch(o)
+  {
+    case MwOp::HideAll:
+      return "hideAll";
+    case MwOp::ShowAll:
+      return "showAll";
+    case MwOp::ResizeOne:
+      return "resizeOne";
+    case MwOp::CloseOne:
+      return "closeOne";
+    case MwOp::FullScreenOne:
+      return "fullScreenOne";
+    case MwOp::NormalOne:
+      return "normalOne";
+    case MwOp::RenderSize:
+      return "renderSize";
+    case MwOp::ClearRenderSize:
+      return "clearRenderSize";
     default:
       return "?";
   }
@@ -168,10 +236,10 @@ TEST_CASE(
     };
 
     std::mt19937 rng{seed};
-    std::uniform_int_distribution<int> pick{0, int(Op::Count) - 1};
-    for(int i = 0; i < nops; ++i)
+    const auto seq = op_order(int(Op::Count), nops, rng);
+    for(int i = 0; i < int(seq.size()); ++i)
     {
-      const auto op = Op(pick(rng));
+      const auto op = Op(seq[i]);
       log += op_name(op);
       log += ' ';
       switch(op)
@@ -200,6 +268,10 @@ TEST_CASE(
         case Op::ClearRenderSize:
           rig.screen->setRenderSize(QSize{});
           break;
+        case Op::FullScreenOn:
+          rig.screen->setFullScreen(true);
+          pump_for(150);
+          break;
         case Op::FullScreenOff:
           rig.screen->setFullScreen(false);
           break;
@@ -213,6 +285,8 @@ TEST_CASE(
     }
 
     // Whatever the sequence did, the window ends visible and must present again.
+    rig.screen->setFullScreen(false);
+    rig.screen->setRenderSize(QSize{});
     win->show();
     pump_until([&] { return win->isExposed(); }, 5000);
     exposedAfter = win->isExposed();
@@ -277,27 +351,70 @@ TEST_CASE(
         fpsBefore += wo.hasSwapChain ? 1 : 0;
 
     std::mt19937 rng{seed};
-    std::uniform_int_distribution<int> pick{0, 2};
-    for(int i = 0; i < nops; ++i)
+    const auto seq = op_order(int(MwOp::Count), nops, rng);
+    std::uniform_int_distribution<int> dim{64, 480};
+    for(int i = 0; i < int(seq.size()); ++i)
     {
-      const int which = pick(rng);
-      log += (which == 0 ? "hideAll " : which == 1 ? "showAll " : "render ");
-      for(const auto& wo : rig.node->windowOutputs())
+      const auto op = MwOp(seq[i]);
+      const auto& outs = rig.node->windowOutputs();
+      const int target = outs.empty() ? 0 : int(i % outs.size());
+      log += mw_op_name(op);
+      log += ' ';
+      for(int w = 0; w < int(outs.size()); ++w)
       {
-        if(!wo.window)
+        auto* win = outs[w].window.get();
+        if(!win)
           continue;
-        if(which == 0)
-          wo.window->hide();
-        else if(which == 1)
-          wo.window->show();
+        switch(op)
+        {
+          case MwOp::HideAll:
+            win->hide();
+            break;
+          case MwOp::ShowAll:
+            win->show();
+            break;
+          case MwOp::ResizeOne:
+            if(w == target)
+              win->resize(dim(rng), dim(rng));
+            break;
+          case MwOp::CloseOne:
+            if(w == target)
+            {
+              QCloseEvent close;
+              QCoreApplication::sendEvent(win, &close);
+            }
+            break;
+          case MwOp::FullScreenOne:
+            if(w == target)
+              win->showFullScreen();
+            break;
+          case MwOp::NormalOne:
+            if(w == target)
+              win->showNormal();
+            break;
+          default:
+            break;
+        }
       }
+      // Render size is a node-level property, not a per-window one.
+      if(op == MwOp::RenderSize)
+        rig.node->setRenderSize(QSize{dim(rng), dim(rng)});
+      else if(op == MwOp::ClearRenderSize)
+        rig.node->setRenderSize(QSize{});
+
       pump_for(80);
       rig.render(2);
     }
 
+    // Recovery: every window back to a plain visible state at the node's own
+    // render size, which is what a user leaving full screen ends up with.
+    rig.node->setRenderSize(QSize{});
     for(const auto& wo : rig.node->windowOutputs())
       if(wo.window)
+      {
+        wo.window->showNormal();
         wo.window->show();
+      }
     pump_for(300);
 
     rig.render(30);
