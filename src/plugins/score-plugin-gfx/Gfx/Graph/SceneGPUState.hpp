@@ -1,4 +1,5 @@
 #pragma once
+#include <score_plugin_gfx_export.h>
 #include <ossia/dataflow/geometry_port.hpp>
 
 #include <QMatrix4x4>
@@ -80,7 +81,7 @@ inline constexpr uint32_t tex_ref_dynamic(uint32_t slot)
 
 // Per-material data for the material SSBO, 80 bytes (5 x vec4). The 16 B of
 // runtime metadata leaves headroom for future fields (animation ID, LOD hint,
-// shader permutation hash) without another ABI break.
+// shader permutation hash) without an ABI break.
 struct MaterialGPU
 {
   float baseColor[4]{1.f, 1.f, 1.f, 1.f};
@@ -195,7 +196,7 @@ inline constexpr uint32_t reflection_caster_disabled = 1u << 31;
 }
 
 // Per-material EXTENSION data: a parallel SSBO indexed by the same
-// material_index as MaterialGPU. Shaders needing only the 64-byte base material
+// material_index as MaterialGPU. Shaders needing only the 80-byte base material
 // ignore it; OpenPBR-grade shaders declare `scene_materials_ext`.
 //
 // std430-friendly: every member starts on a 16-byte boundary. Field names track
@@ -593,6 +594,7 @@ struct FlatScene
 };
 
 // Flatten a scene_spec into a FlatScene for GPU consumption.
+SCORE_PLUGIN_GFX_EXPORT
 void flattenScene(
     const ossia::scene_spec& scene,
     FlatScene& out,
@@ -601,9 +603,11 @@ void flattenScene(
 // Build a transient ossia::geometry that wraps a mesh_primitive's buffers
 // and attributes. The result is heap-allocated and owned by shared_ptr so
 // callers can keep it alive beyond the flatten pass (see DrawCall::owned_mesh).
+SCORE_PLUGIN_GFX_EXPORT
 std::shared_ptr<ossia::geometry>
 primitiveToGeometry(const ossia::mesh_primitive& prim);
 
+SCORE_PLUGIN_GFX_EXPORT
 MaterialGPU packMaterial(const ossia::material_component& mc);
 MaterialExtensionsGPU packMaterialExtensions(const ossia::material_component& mc);
 }

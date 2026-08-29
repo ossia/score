@@ -1,5 +1,6 @@
 #pragma once
 #include <score/model/IdentifiedObject.hpp>
+#include <score_plugin_midi_export.h>
 #include <score/selection/Selectable.hpp>
 
 #include <verdigris>
@@ -55,7 +56,7 @@ struct NoteComparator
  * Allocate the Notes on a vector<Note> and allow them to be copied.
  * Don't allow signals in some way.
  */
-class Note final : public IdentifiedObject<Note>
+class SCORE_PLUGIN_MIDI_EXPORT Note final : public IdentifiedObject<Note>
 {
   W_OBJECT(Note)
   SCORE_SERIALIZE_FRIENDS
