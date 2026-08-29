@@ -92,8 +92,19 @@ bool withRegistry(score::gfx::GraphicsApi backend, F&& f)
     // RenderState has no destructor: destroy() is the only thing that deletes
     // the QRhi (RenderState.hpp), so letting the shared_ptr drop leaks the
     // whole device. On D3D12 that is what every "Live Object" line at exit was
-    // about. The registry has to go first — ~GpuResourceRegistry deletes
-    // QRhiBuffers, which needs the QRhi still alive.
+    // about.
+    //
+    // The registry has to be torn down first, and with destroyOwned() rather
+    // than by going out of scope: ~GpuResourceRegistry calls destroy(), which
+    // is documented as a destructor fallback that nulls the pointers WITHOUT
+    // touching the QRhi and deliberately leaks the wrappers, because it cannot
+    // know whether the QRhi is still alive. Relying on the destructor left four
+    // arena buffers allocated (env/0, env/1, raw_camera/0, raw_camera/1) and
+    // Vulkan aborted the process on st->destroy():
+    //   ASSERT "Some allocations were not freed before destruction of this
+    //           memory block!" (vk_mem_alloc.h)
+    // destroyOwned() is the contract every real owner uses -- see
+    // OutputNode::releaseRegistry.
     auto st = score::gfx::createRenderState(backend, QSize{32, 32}, nullptr);
     if(!st)
       return;
@@ -116,6 +127,7 @@ bool withRegistry(score::gfx::GraphicsApi backend, F&& f)
         }
         batch->release();
       }
+      reg.destroyOwned();
     }
     st->destroy();
   });
