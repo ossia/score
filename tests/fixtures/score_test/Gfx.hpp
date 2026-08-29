@@ -981,6 +981,25 @@ public:
     return int(m_isf.size()) - 1;
   }
 
+  /// Build a CSF compute node and register it in the same index space as ISF,
+  /// raster and VSA nodes. This makes buffer, image and geometry producers
+  /// available to live-edit fixtures instead of leaving those cable operations
+  /// as null-port no-ops.
+  int addCsf(const QString& path)
+  {
+    auto built = make_csf_node(path);
+    if(!built.node)
+    {
+      if(m_error.empty())
+        m_error = built.error;
+      return -1;
+    }
+    built.node->nodeId = m_nextId++;
+    m_graph.addNode(built.node.get());
+    m_isf.push_back(std::move(built.node));
+    return int(m_isf.size()) - 1;
+  }
+
   /// Build a RAW_RASTER_PIPELINE node from a .vs + .fs pair and register it.
   /// Returns its node index (indexes the same space as addIsf), or -1 on error.
   int addRaster(const QString& vsPath, const QString& fsPath)
