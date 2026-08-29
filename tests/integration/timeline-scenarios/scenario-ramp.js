@@ -6,14 +6,16 @@
 // Therefore at timeline position T the rendered frame's pixel mean MUST be
 // T / RAMP_MS (alpha excluded; compare.py-independent predicate).
 //
-// timeline-scenario.sh seeks with OSC /transport (absolute milliseconds,
-// Engine/ApplicationPlugin.cpp:385), pauses, grabs, and asserts the mean at
-// several positions — testing that seek + paused execution state + shader
-// uniform propagation agree with the document's timeline.
+// timeline-scenario.sh seeks with OSC /transport (absolute milliseconds; the
+// `transport` node in Engine/ApplicationPlugin.cpp), pauses, grabs, and
+// asserts the mean at several positions — testing that seek + paused
+// execution state + shader uniform propagation agree with the document's
+// timeline.
 //
 // `var` only — QML scopes const/let inside eval() (see live-edit/common.js).
 
-var HERE      = "/home/jcelerier/ossia/wt/score-tests/tests/integration/timeline-scenarios";
+// Injected by timeline-scenario.sh.
+var HERE      = TIMELINE_DIR;
 var OUT_DIR   = "/tmp/timeline-scenarios";
 var UUID_ISF    = "74ca45ff-92c9-44a0-8f1a-754dea05ee1b"; // ISF filter process
 var UUID_WINDOW = "5a181207-7d40-4ad8-814e-879fcdf8cc31"; // Window device

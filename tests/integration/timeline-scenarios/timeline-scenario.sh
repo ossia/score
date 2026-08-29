@@ -61,13 +61,17 @@ mean_of() { convert "$1" -format '%[fx:mean]' info: 2>/dev/null || echo -1; }
 
 (
   flock -w 900 9 || { echo 98 > "$OUT/ramp.rc"; exit 0; }
+  # Stage with the scenario's own directory injected -- Score.readFile resolves
+  # nothing relative to the running script.
+  { printf 'var TIMELINE_DIR = "%s";\n' "$HERE"; cat "$HERE/scenario-ramp.js"; } \
+    > "$OUT/scenario-ramp.staged.js"
   env -u DISPLAY XDG_CONFIG_HOME="$CFG" \
       SCORE_AUDIO_BACKEND=dummy SCORE_DISABLE_AUDIOPLUGINS=1 \
       SCORE_FORCE_OFFSCREEN_WINDOW=Window QT_QPA_PLATFORM=offscreen \
       LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe \
       ASAN_OPTIONS="$ASAN" LLVM_PROFILE_FILE="$OUT/ramp.profraw" \
     timeout --foreground 300 "$BIN" --no-gui --no-restore \
-      --script "$HERE/scenario-ramp.js" --wait 1 --autoplay >"$OUT/ramp.log" 2>&1 &
+      --script "$OUT/scenario-ramp.staged.js" --wait 1 --autoplay >"$OUT/ramp.log" 2>&1 &
   APP=$!
 
   for _ in $(seq 1 120); do [ -s "$OUT/ramp-init.score" ] && break; sleep 1; done
