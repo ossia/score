@@ -7,20 +7,18 @@
 // where the failure is a state the graph only reaches after some particular
 // order of operations. This drives random edits against a live render loop
 // until a deadline and asserts the invariants after every one.
-//
 // Operations, all through the same incremental entry points GfxContext uses:
-//   * add an ISF / raster / VSA node, drawn from a table that spans the ISF
-//     feature surface (controls, image inputs, audio, multipass, persistent,
-//     MRT, uniform_input and storage buffers, compute, geometry)
-//   * add a sink and wire something into it
-//   * connect a texture, buffer or geometry port
-//   * disconnect a cable
-//   * render frames, which is where a bad edit actually bites
+//   * add ISF, CSF, raster and VSA nodes spanning texture, storage-buffer and
+//     geometry ports
+//   * add and resize sinks
+//   * connect and disconnect texture, buffer and geometry cables
+//   * remove live nodes together with every incident cable
+//   * render after every mutation, where stale QRhi resources actually fail
 //
-// Nodes, sinks and outputs are only ever ADDED. Cables are added and removed.
-// Node removal has its own test (GfxNodeRemoval.cpp) and is deliberately out of
-// scope here so that a failure is attributable to the edit sequence rather than
-// to teardown.
+// The live-node set stays bounded and removed nodes remain fixture-owned until
+// teardown. That mirrors the application boundary: Graph membership and GPU
+// renderers disappear synchronously, while the execution-side object can finish
+// unwinding without a dangling pointer.
 //
 // Deterministic: the schedule comes from a fixed seed, printed on failure and
 // overridable with SCORE_TORTURE_SEED so a bad sequence can be replayed exactly.
@@ -37,6 +35,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <random>
@@ -77,9 +76,16 @@ const char* const kIsfShaders[] = {
     "isf-orient-quadrants.fs",         //
 };
 
-// Compute (CSF) nodes are reached through make_csf_node rather than a
-// GfxPipeline entry point, so this sequence does not create them; its buffer
-// and geometry edits go through whatever ports the ISF and raster nodes expose.
+const char* const kCsfShaders[] = {
+    "csf-gradient-y.cs",       // storage image output
+    "csf-storage-rw.cs",       // storage-buffer input/output
+    "csf-auxiliary-buffer.cs", // auxiliary storage buffer
+    "syn-geo-producer.cs",     // geometry output
+};
+
+// CSF nodes are the real producers for the buffer and geometry cable cases.
+// Without them those random operations only selected null ports and recorded no
+// mutations, giving green coverage to paths that never ran.
 
 struct RasterPair
 {
@@ -127,6 +133,8 @@ struct Invariants
   int cables{};
   int connects{};
   int disconnects{};
+  int removals{};
+  int resizes{};
   bool sinkZeroValid{};
   std::array<uint8_t, 4> sinkZeroPixel{};
   // Iteration at which the control sink first stopped showing its producer.
@@ -165,6 +173,7 @@ TEST_CASE(
     std::vector<int> nodes;
     std::vector<int> sinks;
     std::vector<Cable> cables;
+    int created = 1; // seedNode is installed below
 
     // The initial graph is built BEFORE create(): the device is brought up
     // around whatever exists, and everything after that goes through the
@@ -201,16 +210,17 @@ TEST_CASE(
     // Bounded so a long budget soaks the edit path rather than running the
     // machine out of GPU memory.
     constexpr int kMaxNodes = 24;
+    constexpr int kMaxCreated = 96;
     constexpr int kMaxSinks = 6;
 
     while(std::chrono::steady_clock::now() < deadline && inv.failure.empty())
     {
-      switch(pick(9))
+      switch(pick(12))
       {
         case 0: // add an ISF node spanning the feature surface
         case 1:
         {
-          if(int(nodes.size()) >= kMaxNodes)
+          if(int(nodes.size()) >= kMaxNodes || created >= kMaxCreated)
             break;
           const char* sh = kIsfShaders[pick(int(std::size(kIsfShaders)))];
           const int n = p.addIsf(corpus(sh));
@@ -222,11 +232,12 @@ TEST_CASE(
           }
           nodes.push_back(n);
           ++inv.edits;
+          ++created;
           break;
         }
         case 2: // add a raster node (geometry input path)
         {
-          if(int(nodes.size()) >= kMaxNodes)
+          if(int(nodes.size()) >= kMaxNodes || created >= kMaxCreated)
             break;
           const auto& pr = kRasterPairs[pick(int(std::size(kRasterPairs)))];
           const int n = p.addRaster(corpus(pr.vs), corpus(pr.fs));
@@ -234,18 +245,20 @@ TEST_CASE(
           {
             nodes.push_back(n);
             ++inv.edits;
+            ++created;
           }
           break;
         }
         case 3: // add a VSA node
         {
-          if(int(nodes.size()) >= kMaxNodes)
+          if(int(nodes.size()) >= kMaxNodes || created >= kMaxCreated)
             break;
           const int n = p.addVsa(corpus(kVsaShaders[pick(int(std::size(kVsaShaders)))]));
           if(n >= 0)
           {
             nodes.push_back(n);
             ++inv.edits;
+            ++created;
           }
           break;
         }
@@ -329,6 +342,47 @@ TEST_CASE(
           ++inv.disconnects;
           break;
         }
+        case 9: // add a compute node (real image/buffer/geometry producers)
+        {
+          if(int(nodes.size()) >= kMaxNodes || created >= kMaxCreated)
+            break;
+          const int n = p.addCsf(
+              corpus(kCsfShaders[pick(int(std::size(kCsfShaders)))]));
+          if(n >= 0)
+          {
+            nodes.push_back(n);
+            ++created;
+            ++inv.edits;
+          }
+          break;
+        }
+        case 10: // remove a live node and every incident cable
+        {
+          if(nodes.size() <= 1)
+            break;
+          const int k = 1 + pick(int(nodes.size()) - 1); // preserve seed node
+          const int n = nodes[k];
+          auto* doomed = p.isf(n);
+          std::erase_if(cables, [doomed](const Cable& c) {
+            return c.source->node == doomed || c.sink->node == doomed;
+          });
+          p.removeNodeIncremental(n);
+          nodes.erase(nodes.begin() + k);
+          ++inv.removals;
+          ++inv.edits;
+          break;
+        }
+        case 11: // resize any live output, including the control sink
+        {
+          const int s = sinks[pick(int(sinks.size()))];
+          const QSize size{
+              31 + pick(226),
+              29 + pick(164)};
+          p.resizeSink(s, size);
+          ++inv.resizes;
+          ++inv.edits;
+          break;
+        }
       }
 
       // The edit only bites when frames run through it.
@@ -391,7 +445,8 @@ TEST_CASE(
   INFO(
       "backend=" << backendName << " edits=" << inv.edits
                  << " connects=" << inv.connects << " disconnects=" << inv.disconnects
-                 << " renders=" << inv.renders << " nodes=" << inv.nodes
+                 << " removals=" << inv.removals << " resizes=" << inv.resizes
+                 << " renders=" << inv.renders << " liveNodes=" << inv.nodes
                  << " sinks=" << inv.sinks << " cables=" << inv.cables);
 
   // The control must be right BEFORE the sequence starts, or everything after
@@ -406,6 +461,8 @@ TEST_CASE(
   CHECK(inv.edits > 0);
   CHECK(inv.connects > 0);
   CHECK(inv.renders > 0);
+  CHECK(inv.removals > 0);
+  CHECK(inv.resizes > 0);
 
   // Cable 0 is never disconnected, so sink 0 must still show isf-solid-color's
   // magenta after every edit the sequence made around it.

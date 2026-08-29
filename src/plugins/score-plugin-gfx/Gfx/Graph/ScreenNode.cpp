@@ -38,6 +38,9 @@
 
 #ifdef Q_OS_WIN
 #include <QtGui/private/qrhid3d11_p.h>
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
+#include <d3d12sdklayers.h>
+#endif
 #endif
 
 #ifdef Q_OS_DARWIN
@@ -74,6 +77,30 @@ bool gpuDebugRequested() noexcept
   return requested;
 #endif
 }
+#if defined(Q_OS_WIN) && QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
+// QRhi's enableDebugLayer flag turns on CPU-side D3D12 validation. Shader
+// descriptor accesses and resource states on the GPU timeline need GBV, which
+// must be enabled before QRhi creates its ID3D12Device.
+void enableD3D12GpuValidationIfRequested() noexcept
+{
+  if(qEnvironmentVariableIntValue("SCORE_GPU_VALIDATION") < 2)
+    return;
+
+  ID3D12Debug1* debug{};
+  if(FAILED(D3D12GetDebugInterface(
+         __uuidof(ID3D12Debug1), reinterpret_cast<void**>(&debug))))
+  {
+    qWarning() << "D3D12 GPU validation requested but Graphics Tools are unavailable";
+    return;
+  }
+
+  debug->EnableDebugLayer();
+  debug->SetEnableGPUBasedValidation(TRUE);
+  debug->SetEnableSynchronizedCommandQueueValidation(TRUE);
+  debug->Release();
+  qDebug() << "D3D12 GPU-based and synchronized queue validation active";
+}
+#endif
 
 #ifndef QT_NO_OPENGL
 // OpenGL's counterpart to the D3D debug layer and the Vulkan validation layers.
@@ -491,6 +518,7 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
   {
     QRhiD3D12InitParams params;
     params.enableDebugLayer = gpuDebugRequested();
+    enableD3D12GpuValidationIfRequested();
     // if (framesUntilTdr > 0)
     // {
     //   params.framesUntilKillingDeviceViaTdr = framesUntilTdr;

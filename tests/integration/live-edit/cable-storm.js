@@ -4,15 +4,9 @@
 // removed every other tick — each toggle drives GfxContext::add_edge /
 // remove_edge + recompute_graph while the render thread is live.
 //
-// KNOWN API GAP (documented in the cluster-J report):
-// EditJsContext::remove() (EditContext.scenario.cpp:473) only handles
-// Process::ProcessModel and scenario elements — a Process::Cable matches
-// neither branch, so Score.remove(cable) is a silent no-op that submits
-// no command. We still call it (regression probe: if it ever starts
-// working, the following undo would then undo the WRONG command and this
-// scenario would go blank — flagging the semantic change), then actually
-// remove the cable by undoing the CreateCable command. createCable
-// returning null submits no command either, so the undo is guarded.
+// Cable deletion uses Score.remove(cable), the same public API as process
+// deletion. This exercises RemoveCable directly; using undo here would only
+// prove that the command stack can reverse CreateCable.
 //
 // tick_final() leaves the cable CONNECTED so the final grab shows the
 // solid color through the passthrough (non-blank).
@@ -30,10 +24,9 @@ function makeCable() {
 
 function dropCable() {
     if(!g_cable) return;
-    Score.remove(g_cable); // no-op today, see header comment
+    Score.remove(g_cable);
     g_cable = null;
-    Score.undo();          // undoes CreateCable -> cable actually removed
-    llog("cable removed (via undo)");
+    llog("cable removed");
 }
 
 function step(n) {

@@ -32,9 +32,35 @@ QVulkanInstance* staticVulkanInstance(bool create)
     g_staticVulkanInstance = new QVulkanInstance{};
     QVulkanInstance& instance = *g_staticVulkanInstance;
 
+    const int validationLevel
+        = qEnvironmentVariableIntValue("SCORE_GPU_VALIDATION");
 #if !defined(NDEBUG)
-    instance.setLayers({"VK_LAYER_KHRONOS_validation"});
+    const bool enableValidation = true;
+#else
+    const bool enableValidation = validationLevel > 0;
 #endif
+    if(enableValidation)
+    {
+      instance.setLayers({"VK_LAYER_KHRONOS_validation"});
+
+      // Level 2 is the deliberately expensive validation soak. The standard
+      // layer only enables core/object-lifetime checks by default; these
+      // switches add the GPU-timeline, synchronization and best-practice
+      // checks which find descriptor and resource-state bugs core validation
+      // cannot see. Respect an explicit caller setting.
+      if(validationLevel > 1)
+      {
+        const auto setDefault = [](const char* name) {
+          if(!qEnvironmentVariableIsSet(name))
+            qputenv(name, "1");
+        };
+        setDefault("VK_LAYER_VALIDATE_SYNC");
+        setDefault("VK_LAYER_GPUAV_ENABLE");
+        setDefault("VK_LAYER_GPUAV_SAFE_MODE");
+        setDefault("VK_LAYER_VALIDATE_BEST_PRACTICES");
+        setDefault("VK_LAYER_THREAD_SAFETY");
+      }
+    }
 
     QByteArrayList exts;
     exts << QRhiVulkanInitParams::preferredInstanceExtensions();
@@ -55,7 +81,11 @@ QVulkanInstance* staticVulkanInstance(bool create)
     }
 
     instance.setExtensions(exts);
-    instance.setFlags(QVulkanInstance::Flag::NoDebugOutputRedirect);
+    // QVulkanInstance's redirect is the only consumer of validation messages
+    // in score. Suppressing it while the layer is active makes a validation
+    // run look clean regardless of what the layer reports.
+    if(!enableValidation)
+      instance.setFlags(QVulkanInstance::Flag::NoDebugOutputRedirect);
 
     if(!instance.create())
     {
