@@ -36,6 +36,36 @@ TICK="${TICK:-0.5}"
 BLANK_MEAN="${BLANK_MEAN:-0.002}"
 ASAN="detect_leaks=0:halt_on_error=0:handle_segv=1:detect_odr_violation=0:protect_shadow_gap=0"
 
+# An X server is required; see the env block in run_scenario for why offscreen
+# is not a substitute (no GL -> Null RHI backend -> every verdict meaningless).
+# Prefer an inherited DISPLAY, else bring up a headless one and take it down.
+OWN_X=""
+if [ -z "${DISPLAY:-}" ]; then
+  for d in 99 98 97; do
+    if command -v Xvfb >/dev/null 2>&1; then
+      Xvfb ":$d" -screen 0 1280x720x24 >/dev/null 2>&1 &
+    elif command -v Xephyr >/dev/null 2>&1; then
+      Xephyr ":$d" -screen 1280x720 -ac -noreset >/dev/null 2>&1 &
+    else
+      break
+    fi
+    OWN_X=$!
+    sleep 3
+    if DISPLAY=":$d" xdpyinfo >/dev/null 2>&1; then
+      export DISPLAY=":$d"
+      trap 'kill "$OWN_X" 2>/dev/null' EXIT
+      break
+    fi
+    kill "$OWN_X" 2>/dev/null; OWN_X=""
+  done
+fi
+if [ -z "${DISPLAY:-}" ]; then
+  echo "live-edit-sweep: no X server, and none could be started -- SKIP."
+  echo "  offscreen is not a fallback: it has no GL, so score renders on the"
+  echo "  Null backend and every verdict would be vacuous."
+  exit 77
+fi
+
 mkdir -p "$OUT"
 
 # scenario -> "<nticks> <require_render>"
@@ -68,8 +98,14 @@ pump() { # name nticks — runs alongside the app, under the same lock
     sleep 1; [ -s "$png" ] && break
   done
   send /script s "finalize('$name')"; sleep 1
-  send /stop;  sleep 0.5
-  send /exit
+  # Stop and exit through /script, not the bare /stop and /exit. This oscsend
+  # emits argument-less messages that score's OSC listener rejects outright --
+  # "element size must be multiple of four" / "unterminated address pattern" --
+  # so the app never saw them and the run ended at the harness timeout instead.
+  # /script carries a string argument and is accepted, which is why the grabs
+  # above always worked while the shutdown silently did not.
+  send /script s "Score.stop()"; sleep 0.5
+  send /script s "Qt.exit(0)"
 }
 
 run_scenario() { # name nticks
@@ -89,23 +125,23 @@ run_scenario() { # name nticks
     flock -w 900 9 || { echo 98 > "$OUT/$name.rc"; exit 0; }
     pump "$name" "$nticks" >/dev/null 2>&1 &
     local pumppid=$!
-    # SCORE_FORCE_OFFSCREEN_WINDOW is REQUIRED, not incidental: without it
-    # WindowDevice::grabTo falls back to grabbing the SCREEN at the window's
-    # geometry and says so ("capturing the SCREEN ... not the rendered frame"),
-    # so a verdict computed from that PNG measures the desktop. Offscreen is the
-    # only sound readback. It also means these scenarios run without a Vulkan
-    # instance -- the offscreen platform plugin cannot create one -- so they
-    # exercise the OpenGL path only.
-    # -u DISPLAY is load-bearing, not tidiness: with an inherited DISPLAY the
-    # offscreen platform takes GLX-on-NVIDIA and texture creation breaks, so the
-    # Window ends up with nothing connected and every grab reports
-    # "no process is connected to this device's input". ctest hands a DISPLAY to
-    # anything labelled "gui", which is exactly how this stayed broken.
-    env -u DISPLAY SCORE_AUDIO_BACKEND=dummy SCORE_DISABLE_AUDIOPLUGINS=1 \
-        SCORE_FORCE_OFFSCREEN_WINDOW=Window QT_QPA_PLATFORM=offscreen \
+    # A REAL X server with xcb, NOT QT_QPA_PLATFORM=offscreen. Qt's offscreen
+    # integration provides OpenGL only through GLX, so with no X there is no GL
+    # at all: QRhi::create(OpenGLES2) fails and score falls back to the Null RHI
+    # backend, which accepts every call and draws nothing. The grab then
+    # succeeds and hands back a constant colour, so a non-blank check passes
+    # while verifying nothing.
+    # A real window on $DISPLAY is both a true render and a true readback, and
+    # a nested/virtual X keeps it headless.
+    # SCORE_SANITIZE_SKIP_CHECKS suppresses the first-run library-download
+    # modal. It is a no-op under --no-gui but wedges a real GUI run forever in
+    # QDialog::exec(), which reads as a hang rather than as a dialog.
+    env SCORE_AUDIO_BACKEND=dummy SCORE_DISABLE_AUDIOPLUGINS=1 \
+        SCORE_SANITIZE_SKIP_CHECKS=1 \
+        QT_QPA_PLATFORM=xcb \
         LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe \
         ASAN_OPTIONS="$ASAN" LLVM_PROFILE_FILE="$OUT/$name.profraw" \
-      timeout --foreground 150 "$BIN" --no-gui --no-restore \
+      timeout --foreground 150 "$BIN" --no-restore \
         --script "$js" --wait 1 --autoplay >"$log" 2>&1
     echo $? > "$OUT/$name.rc"
     kill "$pumppid" 2>/dev/null; wait "$pumppid" 2>/dev/null
