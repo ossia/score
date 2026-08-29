@@ -471,7 +471,7 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "a streaming graph survives live cable, node and device mutation",
+    "a streaming graph survives live cable and node mutation",
     "[integration][gfx][js][media][torture]")
 {
   requireEnvironment();
@@ -526,14 +526,17 @@ TEST_CASE(
   src += "if (!direct) { console.log(\"SCENE-ERROR: reconnect\"); Qt.exit(12); }\n";
   src += "snap(); snap();\n";
 
-  // Device removal owns a BackgroundNode, RenderList and QRhi. Remove it while
-  // frames are flowing, recreate it, re-address the outlet and demand pixels
-  // from the new device before exiting.
+  // Device removal owns a BackgroundNode, RenderList and QRhi. Removing a device
+  // is only in contract while execution is STOPPED -- see the expected-failure
+  // case below for what happens otherwise, and why the editor forbids it. Stop,
+  // swap the device, restart, and demand pixels from the new one.
+  src += "Score.stop(); settle();\n";
   src += "Score.removeDevice(\"Window\"); dev = null; settle();\n";
   src += "Score.createDevice(\"Window\", UUID_WINDOW, {});\n";
   src += "dev = Score.device(\"Window\");\n";
   src += "if (!dev) { console.log(\"SCENE-ERROR: recreated device\"); Qt.exit(13); }\n";
   src += "Score.setAddress(Score.outlet(a, 0), \"Window:/\");\n";
+  src += "Score.play(); settle();\n";
   src += "snap(); snap();\n";
 
   src += "Score.stop(); Score.remove(direct); Score.remove(a); Score.remove(vid);\n";
@@ -555,4 +558,51 @@ TEST_CASE(
   REQUIRE(v.checked == kGrabs);
   REQUIRE(v.exact == v.checked);
   REQUIRE(v.idx.back() > v.idx.front());
+}
+
+// Removing a device while the engine is running is OUT OF CONTRACT: the editor
+// does not offer it, and the scripting API reaching past that is what this pins.
+// Execution ports hold a raw ossia::net::parameter_base* into the device, and
+// nothing clears them when it is destroyed, so the next tick dynamic_casts a
+// freed parameter -- GfxExecNode.cpp:138, reached from graph_util::exec_node on
+// the audio thread. The device list already defers its own bookkeeping through
+// execution_state::m_device_change_queue, but nothing defers the DESTRUCTION,
+// and execution_state cannot clear the ports itself: it keeps no port registry
+// and no graph handle.
+//
+// Written as the INTENT -- removing a device mid-play should be survivable --
+// and marked expected-failure, so that fixing it turns this red and the marker
+// comes off, rather than leaving a test that asserts the bug.
+TEST_CASE(
+    "a device can be removed while the engine is running",
+    "[integration][gfx][js][media][torture][!shouldfail]")
+{
+  requireEnvironment();
+
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+
+  QString src;
+  src += QStringLiteral("var UUID_ISF = \"%1\";\n").arg(kUuidIsf);
+  src += QStringLiteral("var UUID_WINDOW = \"%1\";\n").arg(kUuidWindow);
+  src += "var s = Score.find(\"Scenario.1\"); if (s) Score.remove(s);\n";
+  src += "var root = Score.rootInterval();\n";
+  src += "var dev = Score.createDevice(\"Window\", UUID_WINDOW, {});\n";
+  src += "if (!dev) { console.log(\"SCENE-ERROR: window device\"); Qt.exit(9); }\n";
+  src += "var a = Score.createProcess(root, UUID_ISF, \"" + corpusDir()
+         + "/isf-passthrough-plain.fs\");\n";
+  src += "if (!a) { console.log(\"SCENE-ERROR: isf process\"); Qt.exit(10); }\n";
+  src += "Score.setAddress(Score.outlet(a, 0), \"Window:/\");\n";
+  src += "function settle() { var t = Date.now(); while (Date.now() - t < 500) {} }\n";
+  src += "Score.play(); settle();\n";
+  src += "Score.removeDevice(\"Window\"); settle();\n";
+  src += "Score.stop();\n";
+  src += "console.log(\"SCENE-OK removed-while-running\");\n";
+  src += "Qt.exit(0);\n";
+
+  auto r = runScript(writeScript(dir, "device-removal-while-running.js", src));
+  INFO(r.log.toStdString());
+  CHECK_FALSE(r.crashed);
+  CHECK(r.exitCode == 0);
+  REQUIRE(r.log.contains("SCENE-OK removed-while-running"));
 }
