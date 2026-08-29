@@ -2,7 +2,7 @@
 // scenario, played for the same duration with ZERO mutations. Functions
 // hit by the mutation scenarios but not by this run are the ones the
 // live-edit machinery lights up.
-eval(Score.readFile("/home/jcelerier/ossia/wt/score-tests/tests/integration/live-edit/common.js"));
+eval(Score.readFile(LIVE_EDIT_DIR + "/common.js"));
 
 var NAME = "baseline";
 

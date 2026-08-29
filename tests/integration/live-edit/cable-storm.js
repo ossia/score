@@ -10,7 +10,7 @@
 //
 // tick_final() leaves the cable CONNECTED so the final grab shows the
 // solid color through the passthrough (non-blank).
-eval(Score.readFile("/home/jcelerier/ossia/wt/score-tests/tests/integration/live-edit/common.js"));
+eval(Score.readFile(LIVE_EDIT_DIR + "/common.js"));
 
 var NAME    = "cable-storm";
 var g_src   = null;

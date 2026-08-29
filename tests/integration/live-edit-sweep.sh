@@ -23,10 +23,12 @@
 # RenderList.cpp is diffed against the no-mutation `baseline` scenario.
 set -u
 
-SRCROOT="/home/jcelerier/ossia/wt/score-tests"
+# Derived, not hardcoded.
+SRCROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DIR="$SRCROOT/tests/integration/live-edit"
-BIN="${OSSIA_SCORE:-$SRCROOT/build-sanitizers/ossia-score}"
-GFXSO="$SRCROOT/build-sanitizers/plugins/libscore_plugin_gfx.so"
+BIN="${OSSIA_SCORE:-$SRCROOT/build-asan/ossia-score}"
+BINDIR="$(cd "$(dirname "$BIN")" && pwd)"
+GFXSO="$BINDIR/plugins/libscore_plugin_gfx.so"
 GFXSRC="$SRCROOT/src/plugins/score-plugin-gfx/Gfx"
 OUT="${OUT:-/tmp/live-edit}"
 OSC=6666
@@ -72,13 +74,28 @@ pump() { # name nticks — runs alongside the app, under the same lock
 
 run_scenario() { # name nticks
   local name="$1" nticks="$2"
-  local js="$DIR/$name.js" log="$OUT/$name.log"
+  local log="$OUT/$name.log"
+
+  # Stage the scenario with its directory injected. The scripts pull in
+  # common.js through Score.readFile, which resolves nothing relative to the
+  # running script -- --script only addImportPath()s that directory, and that
+  # serves ES imports, not readFile. Staging keeps the .js files free of any
+  # absolute path.
+  local js="$OUT/$name.js"
+  { printf 'var LIVE_EDIT_DIR = "%s";\n' "$DIR"; cat "$DIR/$name.js"; } > "$js"
   rm -f "$OUT/$name-init.score" "$OUT/$name-final.score" "$OUT/$name.png" \
         "$OUT/$name.profraw" "$log" "$HOME/.config/ossia/failsafe.bit"
   (
     flock -w 900 9 || { echo 98 > "$OUT/$name.rc"; exit 0; }
     pump "$name" "$nticks" >/dev/null 2>&1 &
     local pumppid=$!
+    # SCORE_FORCE_OFFSCREEN_WINDOW is REQUIRED, not incidental: without it
+    # WindowDevice::grabTo falls back to grabbing the SCREEN at the window's
+    # geometry and says so ("capturing the SCREEN ... not the rendered frame"),
+    # so a verdict computed from that PNG measures the desktop. Offscreen is the
+    # only sound readback. It also means these scenarios run without a Vulkan
+    # instance -- the offscreen platform plugin cannot create one -- so they
+    # exercise the OpenGL path only.
     env SCORE_AUDIO_BACKEND=dummy SCORE_DISABLE_AUDIOPLUGINS=1 \
         SCORE_FORCE_OFFSCREEN_WINDOW=Window QT_QPA_PLATFORM=offscreen \
         LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe \

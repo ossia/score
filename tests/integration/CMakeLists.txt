@@ -498,6 +498,40 @@ endif()
 
 
 
+# Live graph mutation DURING execution, one ctest entry per scenario. Each
+# builds a small ISF scene, plays it headless, and injects mutations over OSC
+# while frames flow -- process add/remove storms, cable storms, undo/redo
+# storms, transport storms.
+#
+# This suite existed in the tree but could not run: live-edit-sweep.sh hardcoded
+# SRCROOT to a worktree that no longer exists, every scenario eval'd common.js
+# through an absolute path into that same dead tree, and common.js pointed at a
+# shader corpus under ~/Documents. Nothing registered it with ctest either, so
+# none of that was visible. Paths are derived now and the corpus is the in-repo
+# one.
+#
+# CURRENTLY RED, and left that way deliberately. Under the offscreen Window --
+# the only readback that measures the render rather than the desktop -- every
+# scenario reports "no process is connected to this device's input" and grabs
+# nothing. Whether that is the scenarios or the offscreen Window device itself
+# (score task #137) is not yet established; running them on a real display
+# instead makes them "pass" by grabbing the desktop, which is worse than red.
+if(SCORE_HAS_SHELL_HARNESS)
+  foreach(_le_scen baseline add-remove-storm cable-storm undo-redo-during-play
+                   transport-storm mixed-chaos)
+    add_test(NAME test_live_edit.${_le_scen}
+      COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/live-edit-sweep.sh" ${_le_scen}
+      WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+    set_tests_properties(test_live_edit.${_le_scen} PROPERTIES
+      SKIP_RETURN_CODE 77
+      TIMEOUT 120
+      RUN_SERIAL TRUE
+      LABELS "gui;live-edit"
+      ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+  endforeach()
+endif()
+
+
 # Resource/leak/lifetime soak.
 # Creates+destroys 4 gfx processes/cycle during playback via the JS harness and
 # asserts exit 0, ASAN-clean, and stable RSS/fd/process counts.

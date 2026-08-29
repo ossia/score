@@ -5,7 +5,7 @@
 // Graph::recreateOutputRenderList on every cycle, mid-render.
 // A permanent solid-color process keeps Window rendering, so the final
 // grab must be non-blank.
-eval(Score.readFile("/home/jcelerier/ossia/wt/score-tests/tests/integration/live-edit/common.js"));
+eval(Score.readFile(LIVE_EDIT_DIR + "/common.js"));
 
 var NAME  = "add-remove-storm";
 var g_tmp = null;

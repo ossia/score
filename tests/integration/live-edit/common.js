@@ -1,7 +1,7 @@
 // Shared prologue for the live-edit scenarios.
 //
 // Each scenario script pulls this in with:
-//   eval(Score.readFile("/home/jcelerier/ossia/wt/score-tests/tests/integration/live-edit/common.js"));
+//   eval(Score.readFile(LIVE_EDIT_DIR + "/common.js"));
 // builds a small initial scene, then defines step(n). The scene plays via
 // --autoplay while live-edit-sweep.sh injects `tick()` every ~500ms over
 // OSC (/script on udp/6666). All /script evaluations run in the SAME
@@ -13,7 +13,9 @@
 // engine scopes const/let inside eval() so the outer script could not see
 // them (same convention as tests-scene/common.js).
 
-var TESTS_DIR   = "/home/jcelerier/Documents/ossia/score/packages/csf-examples/csf-testers";
+// Derived from the staged script's own directory (LIVE_EDIT_DIR, injected by
+// live-edit-sweep.sh) so the scenarios need nothing outside the repository.
+var TESTS_DIR   = LIVE_EDIT_DIR + "/../../gfx/corpus";
 var OUT_DIR     = "/tmp/live-edit";
 var UUID_ISF    = "74ca45ff-92c9-44a0-8f1a-754dea05ee1b"; // ISF filter process
 var UUID_WINDOW = "5a181207-7d40-4ad8-814e-879fcdf8cc31"; // Window device
