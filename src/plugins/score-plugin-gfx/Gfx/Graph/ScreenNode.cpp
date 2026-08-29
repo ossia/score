@@ -604,6 +604,18 @@ ScreenNode::~ScreenNode()
 
   if(m_window && m_window->state)
   {
+    // Same contract destroyOutput() honours, for the paths that reach the
+    // destructor without going through it: the registry outlives a RenderList
+    // rebuild, so its QRhi resources have to be freed while the QRhi is still
+    // alive. Skipping it leaks every registry buffer into the device that is
+    // deleted three lines below, and Vulkan turns that into a hard failure --
+    //   UNFREED ALLOCATION; Name: GpuResourceRegistry::env/0; Type: BUFFER
+    //   ASSERT "Some allocations were not freed before destruction of this
+    //           memory block!" (vk_mem_alloc.h)
+    // releaseRegistry() is idempotent, so calling it here costs nothing when
+    // destroyOutput() already ran.
+    releaseRegistry();
+
     delete m_window->state->renderPassDescriptor;
     m_window->state->renderPassDescriptor = nullptr;
 
