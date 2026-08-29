@@ -59,9 +59,11 @@ static double timeSignatureBarY = -(FullViewTopMargin - 3.);
 static SlotDragOverlay* full_slot_drag_overlay{};
 
 Timebars::Timebars(FullViewIntervalPresenter& self)
-    : timebar{self, self.view()}
+    : timebar{new TimeSignatureItem{self, self.view()}}
+    , lightBars{new LightBars{}}
+    , lighterBars{new LighterBars{}}
 {
-  timebar.setPos(0, -(FullViewTopMargin - 1.));
+  timebar->setPos(0, -47);
 }
 
 void FullViewIntervalPresenter::startSlotDrag(int curslot, QPointF pos) const
@@ -99,8 +101,8 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
   m_view->setPos(0, 0);
   m_header->setPos(0, -IntervalHeader::headerHeight());
 
-  m_timebars->lightBars.setParentItem(m_view);
-  m_timebars->lighterBars.setParentItem(m_view);
+  m_timebars->lightBars->setParentItem(m_view);
+  m_timebars->lighterBars->setParentItem(m_view);
 
   con(interval.selection, &Selectable::changed, (FullViewIntervalView*)m_view,
       &FullViewIntervalView::setSelected);
@@ -120,8 +122,8 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
   con(m_model, &IntervalModel::hasTimeSignatureChanged, this,
       [this] { updateTimeBars(); });
   ::bind(settings, Settings::Model::p_MeasureBars{}, this, [this](bool show) {
-    this->m_timebars->lightBars.setVisible(show);
-    this->m_timebars->lighterBars.setVisible(show);
+    this->m_timebars->lightBars->setVisible(show);
+    this->m_timebars->lighterBars->setVisible(show);
   });
 
   // Slots
@@ -586,7 +588,7 @@ void FullViewIntervalPresenter::on_zoomRatioChanged(ZoomRatio ratio)
   auto gui_width = m_model.duration.guiDuration().toPixels(ratio);
   auto def_width = m_model.duration.defaultDuration().toPixels(ratio);
 
-  m_timebars->timebar.setWidth(gui_width);
+  m_timebars->timebar->setWidth(gui_width);
 
   for(auto& slot : m_slots)
   {
@@ -790,28 +792,28 @@ void FullViewIntervalPresenter::updateTimeBars()
 
   auto [model, lastFound, timeDelta] = closestParentWithMusicalMetrics(&m_model);
 
-  this->m_timebars->timebar.setModel(model, timeDelta);
-  this->m_timebars->timebar.setZoomRatio(m_zoomRatio);
+  this->m_timebars->timebar->setModel(model, timeDelta);
+  this->m_timebars->timebar->setZoomRatio(m_zoomRatio);
 
   if(!model || !this->m_settings.getMeasureBars())
   {
-    if(this->m_timebars->timebar.isEnabled())
+    if(this->m_timebars->timebar->isEnabled())
     {
-      this->m_timebars->lightBars.setVisible(false);
-      this->m_timebars->lighterBars.setVisible(false);
-      this->m_timebars->timebar.setEnabled(true);
-      this->m_timebars->timebar.setVisible(true);
+      this->m_timebars->lightBars->setVisible(false);
+      this->m_timebars->lighterBars->setVisible(false);
+      this->m_timebars->timebar->setEnabled(true);
+      this->m_timebars->timebar->setVisible(true);
     }
     return;
   }
   else
   {
-    if(!this->m_timebars->timebar.isEnabled())
+    if(!this->m_timebars->timebar->isEnabled())
     {
-      this->m_timebars->lightBars.setVisible(true);
-      this->m_timebars->lighterBars.setVisible(true);
-      this->m_timebars->timebar.setEnabled(true);
-      this->m_timebars->timebar.setVisible(true);
+      this->m_timebars->lightBars->setVisible(true);
+      this->m_timebars->lighterBars->setVisible(true);
+      this->m_timebars->timebar->setEnabled(true);
+      this->m_timebars->timebar->setVisible(true);
     }
   }
 
@@ -839,7 +841,7 @@ void FullViewIntervalPresenter::on_guiDurationChanged(const TimeVal& val)
   const auto gui_width = val.toPixels(m_zoomRatio);
   const auto def_width = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
   m_header->setWidth(gui_width);
-  m_timebars->timebar.setWidth(gui_width);
+  m_timebars->timebar->setWidth(gui_width);
 
   static_cast<FullViewIntervalView*>(m_view)->setGuiWidth(gui_width);
 

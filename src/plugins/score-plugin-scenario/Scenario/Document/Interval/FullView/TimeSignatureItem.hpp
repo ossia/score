@@ -173,10 +173,15 @@ struct Timebars
 {
   Timebars(FullViewIntervalPresenter& self);
 
-  TimeSignatureItem timebar;
-
-  LightBars lightBars;
-  LighterBars lighterBars;
+  // Owned by Qt, not by value. These are QGraphicsItems parented to the
+  // interval view, and QGraphicsItem's destructor deletes its children: as
+  // by-value members that meant `delete` on an address interior to Timebars.
+  // ~FullViewIntervalPresenter ordered its own teardown around it, but that
+  // ordering is bypassed when the scene is destroyed first
+  // (QGraphicsScene::clear -> ~FullViewIntervalView -> ~QGraphicsItem).
+  TimeSignatureItem* timebar{};
+  LightBars* lightBars{};
+  LighterBars* lighterBars{};
   std::vector<TimeVal> magneticTimings;
 };
 }
