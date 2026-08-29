@@ -1,4 +1,5 @@
 #pragma once
+#include <atomic>
 #include <Gfx/Graph/OutputNode.hpp>
 #include <Gfx/Window/WindowSettings.hpp>
 
@@ -45,6 +46,20 @@ struct SCORE_PLUGIN_GFX_EXPORT ScreenNode : OutputNode
 
   const std::shared_ptr<Window>& window() const noexcept { return m_window; }
 
+  // Readback of the on-screen frame. QScreen::grabWindow reads the desktop at
+  // the window's geometry, so it captures whatever is in front of the window;
+  // this reads the swapchain's own backbuffer instead. It costs a full-frame
+  // copy, so the renderer only issues it when requestReadback() has armed it.
+  void requestReadback() const noexcept { m_readbackRequested.store(true); }
+  bool takeReadbackRequest() const noexcept
+  {
+    return m_readbackRequested.exchange(false);
+  }
+  const std::shared_ptr<QRhiReadbackResult>& readback() const noexcept
+  {
+    return m_readback;
+  }
+
   std::function<void(QPointF)> onWindowMove;
   std::function<void(QPointF, QPointF)> onMouseMove;
   std::function<void(QTabletEvent*)> onTabletMove;
@@ -54,6 +69,9 @@ struct SCORE_PLUGIN_GFX_EXPORT ScreenNode : OutputNode
 
 private:
   Configuration m_conf;
+  mutable std::atomic_bool m_readbackRequested{false};
+  std::shared_ptr<QRhiReadbackResult> m_readback
+      = std::make_shared<QRhiReadbackResult>();
   std::shared_ptr<Window> m_window{};
   QRhiSwapChain* m_swapChain{};
   QRhiRenderBuffer* m_depthStencil{};

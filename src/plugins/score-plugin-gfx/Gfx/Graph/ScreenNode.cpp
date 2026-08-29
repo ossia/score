@@ -925,7 +925,12 @@ void ScreenNode::createOutput(score::gfx::OutputConfiguration conf)
       m_swapChain->setDepthStencil(m_depthStencil);
       m_swapChain->setSampleCount(m_window->state->samples);
 
-      QRhiSwapChain::Flags flags = QRhiSwapChain::MinimalBufferCount;
+      // UsedAsTransferSource is what makes a backbuffer readback legal at all
+      // (QRhiReadbackDescription with a null texture); without it grabTo can
+      // only fall back to grabbing the screen, which captures whatever is in
+      // front of the window rather than what we rendered.
+      QRhiSwapChain::Flags flags
+          = QRhiSwapChain::MinimalBufferCount | QRhiSwapChain::UsedAsTransferSource;
       if(!score::AppContext().settings<Gfx::Settings::Model>().getVSync())
         flags |= QRhiSwapChain::NoVSync;
       if(m_swapchainFlag == Gfx::SwapchainFlag::sRGB)

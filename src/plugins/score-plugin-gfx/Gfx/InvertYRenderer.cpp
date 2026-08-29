@@ -1,6 +1,7 @@
 #include "InvertYRenderer.hpp"
 
 #include <Gfx/Graph/RenderList.hpp>
+#include <Gfx/Graph/ScreenNode.hpp>
 #include <Gfx/Graph/Utils.hpp>
 
 namespace Gfx
@@ -244,7 +245,22 @@ void ScaledRenderer::finishFrame(score::gfx::RenderList &renderer, QRhiCommandBu
     const auto& mesh = renderer.defaultTriangle();
     mesh.draw(this->m_mesh, cb);
   }
-  cb.endPass();
+
+  // A readback with a null texture reads the swapchain's current backbuffer,
+  // which is what the window actually shows -- unlike QScreen::grabWindow,
+  // which reads the desktop at the window's geometry. It is only issued when
+  // grabTo armed it, because it copies the whole frame.
+  if(auto* screen = dynamic_cast<const score::gfx::ScreenNode*>(&this->node);
+     screen && m_swapChain && screen->takeReadbackRequest())
+  {
+    auto* rb = renderer.state.rhi->nextResourceUpdateBatch();
+    rb->readBackTexture(QRhiReadbackDescription{}, screen->readback().get());
+    cb.endPass(rb);
+  }
+  else
+  {
+    cb.endPass();
+  }
 }
 
 void ScaledRenderer::release(score::gfx::RenderList &)
