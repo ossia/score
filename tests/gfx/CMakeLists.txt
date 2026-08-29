@@ -7,28 +7,15 @@
 # GUI mode: links Qt Gui/Widgets and runs from the build root so the dynamic
 # gfx plugin resources are discovered. The offscreen platform is supplied by the
 # ctest invocation (QT_QPA_PLATFORM=offscreen).
-# --- port note ---------------------------------------------------------------
-# The suite was written against a tree where ISFNode / programFromISFFragment-
-# ShaderPath / ... carried SCORE_PLUGIN_GFX_EXPORT. The current tree builds the
-# plugin with hidden visibility and does not export them, so (as the threedim
-# loader unit tests already do for the same reason) the needed TUs are compiled
-# straight into a static glue lib linked by every gfx test target. src/ is not
-# modified.
 set(_gfx_src "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx")
-add_library(test_gfx_engine_glue STATIC
-  "${_gfx_src}/Gfx/Graph/ISFNode.cpp"
-  "${_gfx_src}/Gfx/Graph/RenderedISFNode.cpp"
-  "${_gfx_src}/Gfx/Graph/SimpleRenderedISFNode.cpp"
-  "${_gfx_src}/Gfx/Graph/RenderedCSFNode.cpp"
-  "${_gfx_src}/Gfx/Graph/RenderedRawRasterPipelineNode.cpp"
-  "${_gfx_src}/Gfx/Graph/RenderedVSANode.cpp"
-  "${_gfx_src}/Gfx/Graph/CustomMesh.cpp"
-  "${_gfx_src}/Gfx/Graph/GPUBufferScatter.cpp"
-  "${_gfx_src}/Gfx/ShaderProgram.cpp")
-target_link_libraries(test_gfx_engine_glue PUBLIC
+
+# The gfx test targets link the real plug-in. Symbols they need are marked
+# SCORE_PLUGIN_GFX_EXPORT at their declaration; recompiling the TUs into the
+# tests instead makes every type ODR-violate against the shared library, which
+# ASan aborts on before the first assertion runs.
+add_library(test_gfx_engine_glue INTERFACE)
+target_link_libraries(test_gfx_engine_glue INTERFACE
   score_plugin_gfx score_lib_process ${QT_PREFIX}::Gui)
-set_target_properties(test_gfx_engine_glue PROPERTIES
-  FOLDER "Tests" POSITION_INDEPENDENT_CODE ON)
 
 score_add_test(test_gfx_isf
   SOURCES Gfx.cpp

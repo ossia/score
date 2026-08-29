@@ -182,14 +182,9 @@ score_add_test(test_unit_spline_values
 # --- P3R2: score-plugin-midi + score-plugin-dataflow value tests -----------
 if(TARGET score_plugin_midi)
   set(_midi_src "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-midi")
-  score_plugin_hidden_sources(_midi_hidden
-      "${_midi_src}/Midi/MidiNote.cpp"
-      "${_midi_src}/Midi/MidiProcess.cpp"
-      "${_midi_src}/Patternist/PatternParsing.cpp")
 score_add_test(test_unit_midi_message
     SOURCES
       MidiMessageTest.cpp
-      ${_midi_hidden}
     PLUGINS score_plugin_midi score_lib_process
     LIBS ${QT_PREFIX}::Gui)
 
@@ -682,21 +677,15 @@ score_add_test(test_unit_isf_importers
 if(TARGET score_plugin_gfx)
   set(_gfx_scene_src "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx/Gfx/Graph")
 
-  score_plugin_hidden_sources(_scene_flatten_hidden
-      "${_gfx_scene_src}/SceneGPUState.cpp")
 score_add_test(test_unit_scene_flatten
     SOURCES
       SceneFlattenTest.cpp
-      ${_scene_flatten_hidden}
     PLUGINS score_plugin_gfx
     LIBS ${QT_PREFIX}::Gui)
 
-  score_plugin_hidden_sources(_camera_math_hidden
-      "${_gfx_scene_src}/CameraMath.cpp")
 score_add_test(test_unit_camera_math
     SOURCES
       CameraMathTest.cpp
-      ${_camera_math_hidden}
     PLUGINS score_plugin_gfx
     LIBS ${QT_PREFIX}::Gui)
 
@@ -704,12 +693,9 @@ score_add_test(test_unit_camera_math
   # entry however many cameras the flattener packed into the buffer. Its own
   # target, like test_gfx_isf_findings, so the attributable failure cannot take
   # down the flattener suite.
-  score_plugin_hidden_sources(_camera_aux_hidden
-      "${_gfx_scene_src}/SceneGPUState.cpp")
 score_add_test(test_unit_scene_camera_aux
     SOURCES
       SceneCameraAuxTest.cpp
-      ${_camera_aux_hidden}
     PLUGINS score_plugin_gfx
     LIBS ${QT_PREFIX}::Gui)
 
@@ -883,12 +869,9 @@ target_include_directories(test_unit_primitivecloud SYSTEM PRIVATE
 # test -- the same workaround tests/gfx/CMakeLists.txt applies to ISFNode.cpp.
 # It drags in QGraphicsView, hence the Widgets link; no widget is instantiated.
 if(TARGET score_plugin_gfx)
-  score_plugin_hidden_sources(_output_mapping_hidden
-      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx/Gfx/Window/OutputMapping.cpp")
   score_add_test(test_unit_output_mapping_serialization
     SOURCES
       OutputMappingSerializationTest.cpp
-      ${_output_mapping_hidden}
     PLUGINS score_plugin_gfx
     LIBS ${QT_PREFIX}::Gui ${QT_PREFIX}::Widgets)
 endif()
