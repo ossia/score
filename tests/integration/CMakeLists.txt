@@ -358,18 +358,30 @@ if(SCORE_HAS_SHELL_HARNESS)
   # a different GPU or rasteriser fails as WRONG-BACKEND. Without that assertion a
   # run under QT_QPA_PLATFORM=offscreen falls back to the Null RHI backend and
   # still emits a plausible, perfectly reproducible, WRONG picture.
+  # One ctest entry per (class, case) rather than per class. The script already
+  # takes --cases, and a case is ~20 s: as a single entry per class the group ran
+  # 188-423 s each, and one bad case reported as one opaque red covering sixteen.
+  # Split, a failure names the case it is.
   foreach(_gr_backend nvidia nvidia-vulkan llvmpipe vulkan-lavapipe)
     string(REPLACE "-" "_" _gr_name "${_gr_backend}")
-    add_test(NAME test_golden_render_${_gr_name}
-      COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/golden-render/golden-render.sh"
-              --backend ${_gr_backend}
-      WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
-    set_tests_properties(test_golden_render_${_gr_name} PROPERTIES
-      SKIP_RETURN_CODE 77
-      TIMEOUT 1800
-      RUN_SERIAL TRUE
-      LABELS "gui"
-      ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+    set(_gr_cases_file "${CMAKE_CURRENT_SOURCE_DIR}/golden-render/cases-${_gr_backend}.txt")
+    if(NOT EXISTS "${_gr_cases_file}")
+      set(_gr_cases_file "${CMAKE_CURRENT_SOURCE_DIR}/golden-render/cases-llvmpipe.txt")
+    endif()
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${_gr_cases_file}")
+    file(STRINGS "${_gr_cases_file}" _gr_cases REGEX "^[A-Za-z0-9_-]+$")
+    foreach(_gr_case ${_gr_cases})
+      add_test(NAME test_golden_render_${_gr_name}.${_gr_case}
+        COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/golden-render/golden-render.sh"
+                --backend ${_gr_backend} --cases ${_gr_case}
+        WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+      set_tests_properties(test_golden_render_${_gr_name}.${_gr_case} PROPERTIES
+        SKIP_RETURN_CODE 77
+        TIMEOUT 120
+        RUN_SERIAL TRUE
+        LABELS "gui;golden-render"
+        ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+    endforeach()
   endforeach()
 endif()
 
