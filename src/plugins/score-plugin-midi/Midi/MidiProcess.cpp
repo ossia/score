@@ -1,5 +1,6 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <score_plugin_midi_export.h>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortSerialization.hpp>
 
@@ -136,13 +137,13 @@ TimeVal ProcessModel::contentDuration() const noexcept
 }
 
 template <>
-void DataStreamReader::read(const Midi::NoteData& n)
+SCORE_PLUGIN_MIDI_EXPORT void DataStreamReader::read(const Midi::NoteData& n)
 {
   m_stream << n.m_start << n.m_duration << n.m_pitch << n.m_velocity;
 }
 
 template <>
-void DataStreamWriter::write(Midi::NoteData& n)
+SCORE_PLUGIN_MIDI_EXPORT void DataStreamWriter::write(Midi::NoteData& n)
 {
   m_stream >> n.m_start >> n.m_duration >> n.m_pitch >> n.m_velocity;
 }

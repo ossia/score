@@ -1,4 +1,5 @@
 #pragma once
+#include <score_plugin_gfx_export.h>
 #include <QMatrix4x4>
 #include <QSize>
 #include <QVector3D>
@@ -84,6 +85,7 @@ inline void setReverseZPerspective(
 // `worldTransform` is the camera node's accumulated world matrix (its
 // column 3 is the eye position and its inverse is the view matrix).
 // `aspectOverride` of <= 0 falls back to `renderSize.width / renderSize.height`.
+SCORE_PLUGIN_GFX_EXPORT
 void packCameraUBO(
     CameraUBOData& out, const ossia::camera_component& cam,
     const QMatrix4x4& worldTransform, QSize renderSize, float timeSeconds,
