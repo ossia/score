@@ -501,7 +501,7 @@ endif()
 # Live graph mutation DURING execution, one ctest entry per scenario. Each
 # builds a small ISF scene, plays it headless, and injects mutations over OSC
 # while frames flow -- process add/remove storms, cable storms, undo/redo
-# storms, transport storms.
+# storms, transport storms, and window resize/full-screen storms.
 #
 # This suite existed in the tree but could not run: live-edit-sweep.sh hardcoded
 # SRCROOT to a worktree that no longer exists, every scenario eval'd common.js
@@ -510,15 +510,17 @@ endif()
 # none of that was visible. Paths are derived now and the corpus is the in-repo
 # one.
 #
-# CURRENTLY RED, and left that way deliberately. Under the offscreen Window --
-# the only readback that measures the render rather than the desktop -- every
-# scenario reports "no process is connected to this device's input" and grabs
-# nothing. Whether that is the scenarios or the offscreen Window device itself
-# (score task #137) is not yet established; running them on a real display
-# instead makes them "pass" by grabbing the desktop, which is worse than red.
+# The sweep runs on a real X server (Xvfb, else Xephyr) with QT_QPA_PLATFORM=xcb,
+# and grabs through the window's own swap chain rather than the desktop, so the
+# earlier choice between "vacuous green under the offscreen QPA" and "green by
+# screenshotting whatever is in front of the window" no longer applies.
+#
+# window-storm additionally drives the Window device's parameter tree while the
+# scene plays; it is the only entry here that covers GfxContext's clock and
+# updateGraph() between the window and the graph.
 if(SCORE_HAS_SHELL_HARNESS)
   foreach(_le_scen baseline add-remove-storm cable-storm undo-redo-during-play
-                   transport-storm mixed-chaos)
+                   transport-storm mixed-chaos window-storm)
     add_test(NAME test_live_edit.${_le_scen}
       COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/live-edit-sweep.sh" ${_le_scen}
       WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
