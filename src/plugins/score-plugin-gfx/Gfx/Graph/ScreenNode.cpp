@@ -553,7 +553,16 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
 
   if(!state.rhi)
   {
-    qDebug() << "Failed to create RHI backend, creating Null backend";
+    // Loud, and a warning rather than a debug line. The Null backend accepts
+    // every call and draws nothing, so a harness that only checks "the frame is
+    // not blank" passes on a constant colour and reports success while
+    // verifying nothing.
+    qWarning() << "score::gfx: NULL RHI BACKEND — no GPU backend could be "
+                  "created, so nothing will actually be rendered. Under "
+                  "QT_QPA_PLATFORM=offscreen this is expected: Qt's offscreen "
+                  "integration provides OpenGL only through GLX, so with no X "
+                  "server there is no GL at all. Use a real X server (Xvfb) "
+                  "with QT_QPA_PLATFORM=xcb for a run that renders.";
 
     QRhiNullInitParams params;
     state.version = QShaderVersion(120);
