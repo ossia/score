@@ -526,7 +526,7 @@ if(SCORE_HAS_SHELL_HARNESS)
       SKIP_RETURN_CODE 77
       TIMEOUT 120
       RUN_SERIAL TRUE
-      LABELS "gui;live-edit"
+      LABELS "live-edit"
       ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
   endforeach()
 endif()

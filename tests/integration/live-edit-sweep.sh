@@ -96,7 +96,12 @@ run_scenario() { # name nticks
     # only sound readback. It also means these scenarios run without a Vulkan
     # instance -- the offscreen platform plugin cannot create one -- so they
     # exercise the OpenGL path only.
-    env SCORE_AUDIO_BACKEND=dummy SCORE_DISABLE_AUDIOPLUGINS=1 \
+    # -u DISPLAY is load-bearing, not tidiness: with an inherited DISPLAY the
+    # offscreen platform takes GLX-on-NVIDIA and texture creation breaks, so the
+    # Window ends up with nothing connected and every grab reports
+    # "no process is connected to this device's input". ctest hands a DISPLAY to
+    # anything labelled "gui", which is exactly how this stayed broken.
+    env -u DISPLAY SCORE_AUDIO_BACKEND=dummy SCORE_DISABLE_AUDIOPLUGINS=1 \
         SCORE_FORCE_OFFSCREEN_WINDOW=Window QT_QPA_PLATFORM=offscreen \
         LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe \
         ASAN_OPTIONS="$ASAN" LLVM_PROFILE_FILE="$OUT/$name.profraw" \

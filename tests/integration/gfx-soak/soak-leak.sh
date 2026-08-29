@@ -24,7 +24,8 @@ set -u
 
 SRCROOT="$(cd "$(dirname "$0")/../../.." && pwd)"  # tests/integration/gfx-soak -> repo root
 BIN="${OSSIA_SCORE:-$SRCROOT/build-sanitizers/ossia-score}"
-JS="$(cd "$(dirname "$0")" && pwd)/soak.js"
+SOAK_DIR="$(cd "$(dirname "$0")" && pwd)"
+JS="$SOAK_DIR/soak.js"
 OUT="${OUT:-/tmp/gfx-soak}"
 OSC=6666
 N="${1:-250}"
@@ -81,13 +82,17 @@ echo "cycle,rss_kb,fds" > "$OUT/samples.csv"
 
 (
   flock -w 900 9 || { echo 98 > "$OUT/soak.rc"; exit 0; }
+  # Stage with the script's own directory injected: Score.readFile resolves
+  # nothing relative to the running script, so soak.js takes its corpus from
+  # SOAK_DIR rather than an absolute path.
+  { printf 'var SOAK_DIR = "%s";\n' "$SOAK_DIR"; cat "$JS"; } > "$OUT/soak.staged.js"
   env -u DISPLAY XDG_CONFIG_HOME="$CFG" \
       SCORE_AUDIO_BACKEND=dummy SCORE_DISABLE_AUDIOPLUGINS=1 \
       SCORE_FORCE_OFFSCREEN_WINDOW=Window QT_QPA_PLATFORM=offscreen \
       LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe \
       ASAN_OPTIONS="$ASAN" LLVM_PROFILE_FILE="$OUT/soak.profraw" \
     timeout --foreground 900 "$BIN" --no-gui --no-restore \
-      --script "$JS" --wait 1 --autoplay >"$OUT/soak.log" 2>&1 &
+      --script "$OUT/soak.staged.js" --wait 1 --autoplay >"$OUT/soak.log" 2>&1 &
   APP=$!
 
   # wait for the readiness marker (ASAN startup is slow), let play begin
@@ -100,7 +105,7 @@ echo "cycle,rss_kb,fds" > "$OUT/samples.csv"
   # $APP is the `timeout` wrapper (RSS ~2MB); resolve the real ossia-score
   # child so RSS/fd sampling measures the engine, not the wrapper.
   SPID=$(pgrep -P "$APP" -f ossia-score | head -1)
-  [ -n "$SPID" ] || SPID=$(pgrep -f "ossia-score --no-gui --no-restore --script $JS" | head -1)
+  [ -n "$SPID" ] || SPID=$(pgrep -f "ossia-score --no-gui --no-restore --script $OUT/soak.staged.js" | head -1)
   [ -n "$SPID" ] || SPID="$APP"
   sample 0 "$SPID"
 

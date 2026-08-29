@@ -15,7 +15,9 @@
 // All top-level identifiers use `var` — QML's engine scopes const/let inside
 // eval() so later /script sends could not see them.
 
-var TESTS_DIR = "/home/jcelerier/Documents/ossia/score/packages/csf-examples/csf-testers";
+// Injected by soak-leak.sh (SOAK_DIR); the in-repo corpus, so the soak needs
+// nothing outside the repository.
+var TESTS_DIR = SOAK_DIR + "/../../gfx/corpus";
 var OUT_DIR   = "/tmp/gfx-soak";
 var UUID_ISF    = "74ca45ff-92c9-44a0-8f1a-754dea05ee1b"; // ISF filter process
 var UUID_WINDOW = "5a181207-7d40-4ad8-814e-879fcdf8cc31"; // Window device
