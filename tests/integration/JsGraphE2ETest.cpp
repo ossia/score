@@ -12,6 +12,9 @@
 //   build / play / stop / tear  the same graph created and destroyed several
 //   down, repeatedly            times in one process: renders correctly on the
 //                               LAST cycle, and the process still exits 0.
+//   live mutate while streaming  disconnect/reconnect cables, insert and remove
+//                               a filter with live incident cables, remove and
+//                               recreate the output device, then close cleanly.
 //
 // Every case asserts the frame-numbered pattern from MovingPattern.hpp at 1:1 and
 // requires the frame numbers to rise, for the same reason as
@@ -463,6 +466,93 @@ TEST_CASE(
   INFO("last cycle:\n" << v.detail.toStdString());
   REQUIRE(v.first == 0);
   REQUIRE(v.checked == kGrabsPerCycle);
+  REQUIRE(v.exact == v.checked);
+  REQUIRE(v.idx.back() > v.idx.front());
+}
+
+TEST_CASE(
+    "a streaming graph survives live cable, node and device mutation",
+    "[integration][gfx][js][media][torture]")
+{
+  requireEnvironment();
+
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  keepArtifacts(dir);
+  const QString clip = dir.filePath("pattern.nut");
+  REQUIRE(writeClip(dir.filePath("frames.rgba"), clip));
+
+  constexpr int kGrabs = 8;
+  const QString stem = dir.filePath("mutation");
+  QString src;
+  src += QStringLiteral("var UUID_VIDEO = \"%1\";\n").arg(kUuidVideo);
+  src += QStringLiteral("var UUID_ISF = \"%1\";\n").arg(kUuidIsf);
+  src += QStringLiteral("var UUID_WINDOW = \"%1\";\n").arg(kUuidWindow);
+  src += "var s = Score.find(\"Scenario.1\"); if (s) Score.remove(s);\n";
+  src += "var root = Score.rootInterval();\n";
+  src += "Score.createDevice(\"Window\", UUID_WINDOW, {});\n";
+  src += "var dev = Score.device(\"Window\");\n";
+  src += "var vid = Score.createProcess(root, UUID_VIDEO, \"" + clip + "\");\n";
+  src += "var a = Score.createProcess(root, UUID_ISF, \"" + corpusDir()
+         + "/isf-passthrough-plain.fs\");\n";
+  src += "if (!dev || !vid || !a) { console.log(\"SCENE-ERROR: initial graph\"); "
+         "Qt.exit(9); }\n";
+  src += "vid.scaleMode = 3; vid.playbackMode = 2;\n";
+  src += "Score.setAddress(Score.outlet(a, 0), \"Window:/\");\n";
+  src += "var direct = Score.createCable(Score.outlet(vid, 0), Score.inlet(a, 0));\n";
+  src += "if (!direct) { console.log(\"SCENE-ERROR: direct cable\"); Qt.exit(10); }\n";
+  src += "var grab = 0;\n";
+  src += "function settle() { var t = Date.now(); while (Date.now() - t < 500) {} }\n";
+  src += "function snap() { settle(); dev.grabFrame(2, \"" + stem
+         + "\" + grab + \".png\"); grab++; }\n";
+  src += "Score.play(); snap(); snap();\n";
+
+  // Remove the live cable through the public scripting API, then replace it
+  // with a two-edge chain containing a node created during playback.
+  src += "Score.remove(direct); direct = null; settle();\n";
+  src += "var b = Score.createProcess(root, UUID_ISF, \"" + corpusDir()
+         + "/isf-passthrough-plain.fs\");\n";
+  src += "var c0 = b && Score.createCable(Score.outlet(vid, 0), Score.inlet(b, 0));\n";
+  src += "var c1 = b && Score.createCable(Score.outlet(b, 0), Score.inlet(a, 0));\n";
+  src += "if (!b || !c0 || !c1) { console.log(\"SCENE-ERROR: inserted chain\"); "
+         "Qt.exit(11); }\n";
+  src += "snap(); snap();\n";
+
+  // Removing B while both cables are live must remove its incident edges before
+  // freeing its ports. Reconnect the original direct route and prove rendering
+  // recovers rather than merely proving that teardown did not crash.
+  src += "Score.remove(b); b = null; c0 = null; c1 = null; settle();\n";
+  src += "direct = Score.createCable(Score.outlet(vid, 0), Score.inlet(a, 0));\n";
+  src += "if (!direct) { console.log(\"SCENE-ERROR: reconnect\"); Qt.exit(12); }\n";
+  src += "snap(); snap();\n";
+
+  // Device removal owns a BackgroundNode, RenderList and QRhi. Remove it while
+  // frames are flowing, recreate it, re-address the outlet and demand pixels
+  // from the new device before exiting.
+  src += "Score.removeDevice(\"Window\"); dev = null; settle();\n";
+  src += "Score.createDevice(\"Window\", UUID_WINDOW, {});\n";
+  src += "dev = Score.device(\"Window\");\n";
+  src += "if (!dev) { console.log(\"SCENE-ERROR: recreated device\"); Qt.exit(13); }\n";
+  src += "Score.setAddress(Score.outlet(a, 0), \"Window:/\");\n";
+  src += "snap(); snap();\n";
+
+  src += "Score.stop(); Score.remove(direct); Score.remove(a); Score.remove(vid);\n";
+  src += "Score.removeDevice(\"Window\");\n";
+  src += "console.log(\"SCENE-OK mutation grabs=\" + grab);\n";
+  src += "Qt.exit(0);\n";
+
+  auto r = runScript(writeScript(dir, "mutation.js", src));
+  INFO(r.log.toStdString());
+  CHECK_FALSE(r.crashed);
+  CHECK(r.exitCode == 0);
+  REQUIRE(r.log.contains("SCENE-OK mutation grabs=8"));
+
+  const auto files = existing(stem, kGrabs);
+  REQUIRE(files.size() == kGrabs);
+  const auto v = verify(files);
+  INFO(v.detail.toStdString());
+  REQUIRE(v.first == 0);
+  REQUIRE(v.checked == kGrabs);
   REQUIRE(v.exact == v.checked);
   REQUIRE(v.idx.back() > v.idx.front());
 }

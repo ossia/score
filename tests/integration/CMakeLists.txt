@@ -501,20 +501,26 @@ endif()
 # Resource/leak/lifetime soak.
 # Creates+destroys 4 gfx processes/cycle during playback via the JS harness and
 # asserts exit 0, ASAN-clean, and stable RSS/fd/process counts.
-# DISABLED: this reproducer currently FAILS on a REAL, unfixed heap-use-after-
-# free in the render-clock teardown path — GfxContext.cpp:341 (the TimerClock
-# tick lambda dereferences an offscreen BackgroundNode already freed by
-# ~offscreen_device, OffscreenDevice.hpp:97) fired from forceCloseDocument's
-# event pump on /exit. This is NEW render-clock code (RenderClock.cpp/TimerClock),
-# distinct from the 3 previously-fixed teardown UAFs. Flip DISABLED->FALSE once
-# that UAF is fixed; it then becomes the leak/teardown regression gate.
+#
+# Re-enabled: the render-clock teardown UAF that disabled this is fixed --
+# destroyOutput now unregisters the output from every TimerClock before its
+# BackgroundNode is freed (GfxContext.cpp). Measured 2026-08-28 at 150 cycles:
+# 150/150 executed, zero AddressSanitizer reports, zero teardown errors.
+#
+# EXPECTED-RED, on a DIFFERENT and real defect: criterion 7, post-warmup RSS
+# slope, measures 75.8 KB/cycle against a 40 KB budget. It is monotonic and
+# near-linear across the whole run (1339 MB at cycle 20 to 1350 MB at cycle 140,
+# ~1530 KB per 20 cycles), so it is a steady leak of roughly 19 KB per gfx
+# process created and destroyed, not allocator noise. The summary line prints a
+# first-to-last range that can read as a decrease; the per-cycle samples in
+# samples.csv are what to trust. Do NOT raise SLOPE_KB_PER_CYCLE to make this
+# green -- that is the one thing that would hide the defect it now pins.
 # Deterministic-headless -> CI-able. Self-serializes on /tmp/score-harness.lock.
 if(SCORE_HAS_SHELL_HARNESS)
   add_test(NAME test_gfx_soak
     COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/gfx-soak/soak-leak.sh" 150
     WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
   set_tests_properties(test_gfx_soak PROPERTIES
-    DISABLED TRUE
     SKIP_RETURN_CODE 77
     TIMEOUT 1200
     RUN_SERIAL TRUE
