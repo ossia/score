@@ -163,7 +163,7 @@ public:
 
   QWidget* getWidget() override;
 
-  BaseGraphicsObject& baseItem() { return m_baseObject; }
+  BaseGraphicsObject& baseItem() { return *m_baseObject; }
 
   ScenarioScene& scene() { return m_scene; }
 
@@ -205,7 +205,11 @@ private:
   const score::DocumentContext& m_context;
   ScenarioScene m_scene;
   ProcessGraphicsView m_view;
-  BaseGraphicsObject m_baseObject;
+  // Owned by the scene, not by value. m_scene is a QObject child of m_widget,
+  // so ~QWidget destroys it -- and QGraphicsScene::clear() deletes its
+  // top-level items -- before ScenarioDocumentView's own members are destroyed.
+  // As a by-value member that was `delete` on a non-heap address.
+  BaseGraphicsObject* m_baseObject{};
 
   QGraphicsScene m_timeRulerScene;
   TimeRulerGraphicsView m_timeRulerView;
