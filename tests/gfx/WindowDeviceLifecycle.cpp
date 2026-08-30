@@ -24,6 +24,10 @@
 // that fix is pinned. Reverting the vsync render-gate refresh does NOT fail any
 // of them, with either clock -- that fix was confirmed by hand in the running
 // application and is still unguarded here.
+//
+// The last case is about the same rig for a different reason: grabTo pumps the
+// event loop, so it is re-entrant, and the guard that stops it recursing needs
+// a real device with a real swap chain to be exercised at all.
 
 #include "WindowedOutputCommon.hpp"
 
@@ -42,6 +46,9 @@
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/Graph/ScreenNode.hpp>
 #include <Gfx/WindowDevice.hpp>
+
+#include <QFile>
+#include <QTemporaryDir>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
@@ -611,4 +618,108 @@ TEST_CASE(
                                       << ", after second: " << afterSecond);
   CHECK(afterFirst > 0);
   CHECK(afterSecond > 0);
+}
+
+TEST_CASE(
+    "a grabTo dispatched while grabTo is pumping does not re-enter it",
+    "[gfx][window][device][grab][reentry]")
+{
+  // grabTo arms a readback on the swap chain and then pumps the event loop
+  // until QRhi hands the result back, because the frame that fills it is not
+  // the frame that queued it. Pumping dispatches whatever is queued, and one
+  // of the things that can be queued is another grabTo: the OSC listener
+  // delivers /script through the event loop, and every shell harness that
+  // retries a grab sends several. That call then arms its own readback and
+  // pumps again, and the nesting is only bounded by the stack -- one soak run
+  // under ASan reported grabTo at frames #1, #103, #154 and #205 of a single
+  // trace.
+  //
+  // QMetaObject::invokeMethod is that dispatch without the socket: a metacall
+  // event, delivered by the same processEvents call the OSC message would have
+  // been delivered by.
+  //
+  // Nothing is pumped between the outer grab returning and the readings, so
+  // "the inner call ran" can only mean it ran from inside the outer one. That
+  // is what makes the absence of its file evidence of the guard rather than
+  // evidence that nothing was dispatched.
+  Outcome o;
+  bool connected{}, outerWritten{}, innerWritten{};
+  int innerCalls{};
+
+  run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
+    if(!can_present())
+    {
+      o = {true, "no windowing system able to expose a native window"};
+      return;
+    }
+    auto* doc = score::test::new_document(ctx);
+    if(!doc)
+    {
+      o = {true, "no document delegate"};
+      return;
+    }
+    auto* devPtr = add_window_device(doc->context(), QStringLiteral("Win"));
+    if(!devPtr)
+    {
+      o = {true, "the window device could not be registered with the document"};
+      return;
+    }
+    auto& dev = *devPtr;
+    connected = true;
+
+    score::gfx::Window* windowPtr{};
+    pump_until([&] { return (windowPtr = dev.window()) != nullptr; }, 5000);
+    if(!windowPtr)
+    {
+      o = {true, "the device published no window"};
+      return;
+    }
+    if(!pump_until([&] { return windowPtr->isExposed(); }, 5000))
+    {
+      o = {true, "the device's window never became exposed"};
+      return;
+    }
+
+    JS::EditJsContext api;
+    std::string why;
+    if(!build_and_play(api, QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-solid-color.fs"), why))
+    {
+      o = {true, "could not build a shader -> Win:/ graph: " + why};
+      return;
+    }
+    pump_for(1500);
+
+    QTemporaryDir tmp;
+    if(!tmp.isValid())
+    {
+      o = {true, "no writable temporary directory"};
+      return;
+    }
+    tmp.setAutoRemove(true);
+    const QString outer = tmp.filePath("outer.png");
+    const QString inner = tmp.filePath("inner.png");
+
+    QMetaObject::invokeMethod(
+        &dev,
+        [&] {
+      ++innerCalls;
+      dev.grabTo(inner);
+        },
+        Qt::QueuedConnection);
+
+    dev.grabTo(outer);
+
+    outerWritten = QFile::exists(outer);
+    innerWritten = QFile::exists(inner);
+  });
+
+  if(o.skipped)
+    SKIP(o.skipReason);
+  REQUIRE(connected);
+  // Both are negative controls: with no outer file the grab path never ran,
+  // and with no inner call the re-entrant dispatch never happened, and either
+  // way the check below would pass on nothing.
+  REQUIRE(outerWritten);
+  REQUIRE(innerCalls == 1);
+  CHECK_FALSE(innerWritten);
 }
