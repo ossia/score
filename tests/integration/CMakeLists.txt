@@ -518,9 +518,17 @@ endif()
 # window-storm additionally drives the Window device's parameter tree while the
 # scene plays; it is the only entry here that covers GfxContext's clock and
 # updateGraph() between the window and the graph.
+#
+# camera-storm and ndi-storm run that identical viewport storm with a real
+# streaming device as the source instead of an ISF, so a failure in one of them
+# but not in window-storm belongs to the device rather than to the storm. Both
+# skip with a printed reason when the device is absent (no /dev/video*, no
+# libndi); a bench machine sets SCORE_REQUIRE_DEVICES=1 to turn that into a
+# failure. ndi-storm needs no external sender: score sends and receives its own
+# stream over localhost, covering both NDI nodes at once.
 if(SCORE_HAS_SHELL_HARNESS)
   foreach(_le_scen baseline add-remove-storm cable-storm undo-redo-during-play
-                   transport-storm mixed-chaos window-storm)
+                   transport-storm mixed-chaos window-storm camera-storm ndi-storm)
     add_test(NAME test_live_edit.${_le_scen}
       COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/live-edit-sweep.sh" ${_le_scen}
       WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
