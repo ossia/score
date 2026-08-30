@@ -28,8 +28,11 @@ void EditJsContext::zoom(double zx, double zy)
   auto doc = ctx();
   if(!doc)
     return;
-  auto main_view = qobject_cast<Scenario::ScenarioDocumentView*>(
-      &doc->document.view()->viewDelegate());
+  auto* view = doc->document.view();
+  if(!view)
+    return;
+  auto main_view
+      = qobject_cast<Scenario::ScenarioDocumentView*>(&view->viewDelegate());
   if(!main_view)
     return;
 
@@ -41,8 +44,11 @@ void EditJsContext::scroll(double dx, double dy)
   auto doc = ctx();
   if(!doc)
     return;
-  auto main_view = qobject_cast<Scenario::ScenarioDocumentView*>(
-      &doc->document.view()->viewDelegate());
+  auto* view = doc->document.view();
+  if(!view)
+    return;
+  auto main_view
+      = qobject_cast<Scenario::ScenarioDocumentView*>(&view->viewDelegate());
   if(!main_view)
     return;
 

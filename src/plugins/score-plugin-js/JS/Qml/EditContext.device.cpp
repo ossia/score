@@ -243,6 +243,13 @@ void EditJsContext::createDevice(QString name, QString uuid, QJSValue obj)
   Device::DeviceSettings set;
   set.name = name;
   set.protocol = UuidKey<Device::ProtocolFactory>::fromString(uuid);
+  auto* prot_factory = pl.get(set.protocol);
+  if(!prot_factory)
+  {
+    qDebug() << "Cannot create device: missing protocol" << name << uuid;
+    return;
+  }
+
   const QVariant& var = obj.toVariant();
   if(var.canConvert<Device::DeviceSettings>())
   {
@@ -253,17 +260,10 @@ void EditJsContext::createDevice(QString name, QString uuid, QJSValue obj)
   {
     auto json = QJsonDocument::fromVariant(var.value<QVariantMap>()).toJson();
 
-    if(auto prot = pl.get(set.protocol))
-    {
-      auto json_doc = readJson(json);
-      JSONWriter wrt{json_doc};
-      set.deviceSpecificSettings = prot->makeProtocolSpecificSettings(wrt.toVariant());
-    }
-    else
-    {
-      qDebug() << "Cannot create device: missing protocol" << name << uuid;
-      return;
-    }
+    auto json_doc = readJson(json);
+    JSONWriter wrt{json_doc};
+    set.deviceSpecificSettings
+        = prot_factory->makeProtocolSpecificSettings(wrt.toVariant());
   }
 
   auto [m, _] = macro(*doc);
@@ -371,6 +371,13 @@ void EditJsContext::createAddress(QString addr, QString type)
     return;
 
   auto& plug = doc->plugin<Explorer::DeviceDocumentPlugin>();
+
+  if(!plug.list().findDevice(a->device))
+  {
+    qDebug() << "createAddress: no such device:" << a->device;
+    return;
+  }
+
   auto [m, _] = macro(*doc);
 
   Device::FullAddressSettings set;

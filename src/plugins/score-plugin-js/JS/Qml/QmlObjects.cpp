@@ -272,14 +272,21 @@ const QVector<QVector<int>>& MidiOutlet::midi() const
   return m_midi;
 }
 
+// Both come from script text, which comes from a document.
+static constexpr int kMaxScriptAudioChannels = 1024;
+static constexpr int kMaxScriptAudioFrames = 1 << 20;
+
 void AudioOutlet::setChannel(int i, const QJSValue& v)
 {
-  if(i < 0)
-    i = 0;
+  if(i < 0 || i >= kMaxScriptAudioChannels)
+    return;
   if(i + 1 > std::ssize(m_audio))
     m_audio.resize(i + 1);
 
-  int n = v.property("length").toNumber();
+  const double len = v.property("length").toNumber();
+  if(!(len >= 0.) || len > double(kMaxScriptAudioFrames))
+    return;
+  const int n = int(len);
   auto& arr = m_audio[i];
   arr.clear();
   arr.resize(n);

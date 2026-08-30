@@ -337,6 +337,7 @@ void js_node::run(
       for(int j = 0; j < src[chan].size(); j++)
         snk[chan][j + tick_start] = src[chan][j];
     }
+    m_audOutlets[out].first->clear();
   }
 
   if(std::exchange(triggerStop, false))
