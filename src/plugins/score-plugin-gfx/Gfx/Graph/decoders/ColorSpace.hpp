@@ -18,6 +18,7 @@
 //   Y in [0, 1], Cb/Cr in [0, 1] centered at 128/255
 //   (ITU-T H.273 full range: D'C = Clip(Round(255 * E'C + 128)), so the
 //    neutral chroma code is 128 and E'C = (D'C - 128) / 255.)
+
 //
 // Kr/Kb coefficients used:
 //   BT.601:     Kr=0.299,  Kb=0.114
@@ -174,11 +175,13 @@ namespace score::gfx
 
 // LSB-aligned n-bit samples in a 16-bit word (ffmpeg's yuv*p10le / p12le,
 // gbrp10le / gbrp12le) sample as code/65535 and need 65535/(255*2^(n-8)).
+
 #define SCORE_GFX_LSB10_SCALE "64.25"    // 65535.0 / 1020.0
 #define SCORE_GFX_LSB12_SCALE "16.0625"  // 65535.0 / 4080.0
 
 // 10-bit samples the hardware itself normalises (RGB10A2) arrive as
 // code/1023.
+
 #define SCORE_GFX_UNORM10_SCALE "1.002941176470588" // 1023.0 / 1020.0
 
 // --- BT.601 ---

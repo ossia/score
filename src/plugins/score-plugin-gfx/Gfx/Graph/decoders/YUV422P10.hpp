@@ -38,9 +38,9 @@ vec4 processTexture(vec4 tex) {
 
 void main()
 {
-float y = (65535.0 / 1023.0) * texture(y_tex, v_texcoord).r;
-float u = (65535.0 / 1023.0) * texture(u_tex, v_texcoord).r;
-float v = (65535.0 / 1023.0) * texture(v_tex, v_texcoord).r;
+float y = )_" SCORE_GFX_LSB10_SCALE R"_( * texture(y_tex, v_texcoord).r;
+float u = )_" SCORE_GFX_LSB10_SCALE R"_( * texture(u_tex, v_texcoord).r;
+float v = )_" SCORE_GFX_LSB10_SCALE R"_( * texture(v_tex, v_texcoord).r;
 
   fragColor = processTexture(vec4(y,u,v, 1.));
 }

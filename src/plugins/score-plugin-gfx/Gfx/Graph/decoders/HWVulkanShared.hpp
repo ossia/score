@@ -234,9 +234,9 @@ struct HWVulkanSharedDecoder : GPUVideoDecoder
       }
       else
       {
-        // R16_UNORM samples as raw_value/65535. Scale to actual bit range.
-        // 10-bit: 65535/1023 ≈ 64. 12-bit: 65535/4095 = 16. 16-bit: 1.
-        double scale = 65535.0 / ((1 << m_fmt.bitDepth) - 1);
+        // R16_UNORM samples as raw_value/65535. The 8-bit-equivalent code of
+        // an n-bit sample is code / 2^(n-8), so full scale is 255 * 2^(n-8).
+        double scale = 65535.0 / (255.0 * (1 << (m_fmt.bitDepth - 8)));
         QString frag = QString(R"_(#version 450
 
 )_" SCORE_GFX_VIDEO_UNIFORMS R"_(

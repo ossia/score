@@ -240,7 +240,8 @@ std::unique_ptr<GPUVideoDecoder> createGPUVideoDecoder(
     case AV_PIX_FMT_GRAY16:
       return std::make_unique<PackedDecoder>(
           QRhiTexture::R16, 2, format,
-          "processed.rgba = vec4(tex.r, tex.r, tex.r, 1.0);" + f);
+          "processed.rgba = vec4(vec3(tex.r * " SCORE_GFX_MSB_ALIGNED_SCALE "), 1.0);"
+              + f);
 #if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(60, 8, 100)
     case AV_PIX_FMT_GRAYF16:
       return std::make_unique<PackedDecoder>(
@@ -277,7 +278,8 @@ std::unique_ptr<GPUVideoDecoder> createGPUVideoDecoder(
     case AV_PIX_FMT_YA16LE:
       return std::make_unique<PackedDecoder>(
           QRhiTexture::RG16, 4, format,
-          "processed.rgba = vec4(tex.r, tex.r, tex.r, tex.g);" + f);
+          "processed.rgba = vec4(tex.rrr, tex.g) * " SCORE_GFX_MSB_ALIGNED_SCALE ";"
+              + f);
 
     default: {
       // Try fourcc-based formats (HAP, DXV)
