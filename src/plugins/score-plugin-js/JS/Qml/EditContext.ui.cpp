@@ -28,6 +28,8 @@ void EditJsContext::zoom(double zx, double zy)
   auto doc = ctx();
   if(!doc)
     return;
+
+
   auto* view = doc->document.view();
   if(!view)
     return;
@@ -44,6 +46,8 @@ void EditJsContext::scroll(double dx, double dy)
   auto doc = ctx();
   if(!doc)
     return;
+
+
   auto* view = doc->document.view();
   if(!view)
     return;
