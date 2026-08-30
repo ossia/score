@@ -361,7 +361,8 @@ void reloadPortsInNewProcess(
 
     if(new_p->type() == old_p.type && new_p->name() == old_p.name)
     {
-      new_p->loadData(old_p.data);
+      // Keep the saved value across a port-set change; only restored into a type/name-identical port.
+      new_p->loadData(old_p.data, Process::PortLoadDataFlags::DontReloadValue);
     }
   }
 
@@ -372,7 +373,7 @@ void reloadPortsInNewProcess(
 
     if(new_p->type() == old_p.type && new_p->name() == old_p.name)
     {
-      new_p->loadData(old_p.data);
+      new_p->loadData(old_p.data, Process::PortLoadDataFlags::DontReloadValue);
     }
   }
 }
