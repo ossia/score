@@ -9,7 +9,9 @@
 //
 // The macros correct read and store together and are gated on the opposite side
 // from the fragment macros (a fragment shader needs its correction on Vulkan, a
-// compute shader on OpenGL), so both cases hold at once. This file asserts both:
+// compute shader everywhere else), so both cases hold at once. Which side each
+// backend falls on is asserted without a GPU in GfxCsfOrientGate.cpp; this file
+// asserts the picture that comes out, wherever a backend can be brought up:
 //
 //   * a generator written through IMG_STORE lands the right way up
 //   * it agrees with the ISF reference ramp, so "consistent" cannot pass by
