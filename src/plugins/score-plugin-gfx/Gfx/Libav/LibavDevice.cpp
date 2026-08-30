@@ -14,6 +14,7 @@
 #include <Media/LibavIntrospection.hpp>
 #include <Video/LibavStreamInput.hpp>
 
+#include <score/serialization/JSONParse.hpp>
 #include <score/serialization/MapSerialization.hpp>
 #include <score/serialization/MimeVisitor.hpp>
 #include <score/tools/FilePath.hpp>
@@ -636,26 +637,26 @@ void JSONReader::read(const Gfx::LibavSettings& n)
 template <>
 void JSONWriter::write(Gfx::LibavSettings& n)
 {
-  n.direction = (Gfx::LibavSettings::Direction)obj["Direction"].toInt();
-  n.path = obj["Path"].toString();
-  n.width = obj["Width"].toInt();
-  n.height = obj["Height"].toInt();
-  n.rate = obj["Rate"].toDouble();
-  n.audio_channels = obj["AudioChannels"].toInt();
-  n.threads = obj["Threads"].toInt();
-  n.audio_encoder_short = obj["AudioEncoderShort"].toString();
-  n.audio_encoder_long = obj["AudioEncoderLong"].toString();
-  n.audio_converted_smpfmt = obj["AudioSmpFmt"].toString();
-  n.audio_sample_rate = obj["AudioSampleRate"].toInt();
-  n.video_encoder_short = obj["VideoEncoderShort"].toString();
-  n.video_encoder_long = obj["VideoEncoderLong"].toString();
-  n.video_render_pixfmt = obj["VideoRenderPixFmt"].toString();
-  n.video_converted_pixfmt = obj["VideoConvertedPixFmt"].toString();
-  n.muxer = obj["Muxer"].toString();
-  n.muxer_long = obj["MuxerLong"].toString();
-  n.options <<= obj["Options"];
-  if(auto v = obj.tryGet("InputTransfer"))
-    n.input_transfer = v->toInt();
+  score::parseJsonField(obj, "Direction", n.direction);
+  score::parseJsonField(obj, "Path", n.path);
+  score::parseJsonField(obj, "Width", n.width);
+  score::parseJsonField(obj, "Height", n.height);
+  score::parseJsonField(obj, "Rate", n.rate);
+  score::parseJsonField(obj, "AudioChannels", n.audio_channels);
+  score::parseJsonField(obj, "Threads", n.threads);
+  score::parseJsonField(obj, "AudioEncoderShort", n.audio_encoder_short);
+  score::parseJsonField(obj, "AudioEncoderLong", n.audio_encoder_long);
+  score::parseJsonField(obj, "AudioSmpFmt", n.audio_converted_smpfmt);
+  score::parseJsonField(obj, "AudioSampleRate", n.audio_sample_rate);
+  score::parseJsonField(obj, "VideoEncoderShort", n.video_encoder_short);
+  score::parseJsonField(obj, "VideoEncoderLong", n.video_encoder_long);
+  score::parseJsonField(obj, "VideoRenderPixFmt", n.video_render_pixfmt);
+  score::parseJsonField(obj, "VideoConvertedPixFmt", n.video_converted_pixfmt);
+  score::parseJsonField(obj, "Muxer", n.muxer);
+  score::parseJsonField(obj, "MuxerLong", n.muxer_long);
+  if(auto v = obj.tryGet("Options"); v && v->obj.IsArray())
+    n.options <<= *v;
+  score::parseJsonField(obj, "InputTransfer", n.input_transfer);
 }
 
 #endif

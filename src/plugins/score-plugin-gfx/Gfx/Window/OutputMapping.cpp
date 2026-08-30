@@ -1,7 +1,11 @@
 #include "OutputMapping.hpp"
 
 #include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/JSONParse.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+
+#include <array>
+#include <string>
 
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
@@ -1177,43 +1181,49 @@ void DataStreamWriter::write(Gfx::OutputMapping& n)
   { int lm{}; m_stream >> lm; n.lockMode = Gfx::OutputLockMode(lm); }
   m_stream >> n.rotation >> n.mirrorX >> n.mirrorY;
 }
+namespace
+{
+//! rapidjson's GetArray/GetInt/GetDouble/GetBool are asserts, and an
+//! OutputMapping can arrive from a script as well as from a saved document.
+template <std::size_t N, typename Obj>
+bool readNumbers(const Obj& obj, const std::string& key, std::array<double, N>& out)
+{
+  auto v = obj.tryGet(key);
+  if(!v || !v->obj.IsArray())
+    return false;
+  const auto& arr = v->obj.GetArray();
+  if(arr.Size() != N)
+    return false;
+  for(rapidjson::SizeType i = 0; i < N; i++)
+  {
+    if(!arr[i].IsNumber())
+      return false;
+    out[i] = arr[i].GetDouble();
+  }
+  return true;
+}
+}
+
 template <>
 void JSONWriter::write(Gfx::OutputMapping& n)
 {
-  if(auto sr = obj.tryGet("SourceRect"))
-  {
-    auto arr = sr->toArray();
-    if(arr.Size() == 4)
-      n.sourceRect = QRectF(
-          arr[0].GetDouble(), arr[1].GetDouble(), arr[2].GetDouble(),
-          arr[3].GetDouble());
-  }
-  if(auto v = obj.tryGet("ScreenIndex"))
-    n.screenIndex = v->toInt();
-  if(auto wp = obj.tryGet("WindowPosition"))
-  {
-    auto arr = wp->toArray();
-    if(arr.Size() == 2)
-      n.windowPosition = QPoint(arr[0].GetInt(), arr[1].GetInt());
-  }
-  if(auto ws = obj.tryGet("WindowSize"))
-  {
-    auto arr = ws->toArray();
-    if(arr.Size() == 2)
-      n.windowSize = QSize(arr[0].GetInt(), arr[1].GetInt());
-  }
-  if(auto v = obj.tryGet("Fullscreen"))
-    n.fullscreen = v->toBool();
+  if(std::array<double, 4> r; readNumbers(obj, "SourceRect", r))
+    n.sourceRect = QRectF(r[0], r[1], r[2], r[3]);
+
+  score::parseJsonField(obj, "ScreenIndex", n.screenIndex);
+
+  if(std::array<double, 2> p; readNumbers(obj, "WindowPosition", p))
+    n.windowPosition = QPoint(int(p[0]), int(p[1]));
+  if(std::array<double, 2> p; readNumbers(obj, "WindowSize", p))
+    n.windowSize = QSize(int(p[0]), int(p[1]));
+
+  score::parseJsonField(obj, "Fullscreen", n.fullscreen);
 
   auto readBlend = [&](const std::string& key, Gfx::EdgeBlend& b) {
-    if(auto v = obj.tryGet(key))
+    if(std::array<double, 2> a; readNumbers(obj, key, a))
     {
-      auto arr = v->toArray();
-      if(arr.Size() == 2)
-      {
-        b.width = (float)arr[0].GetDouble();
-        b.gamma = (float)arr[1].GetDouble();
-      }
+      b.width = float(a[0]);
+      b.gamma = float(a[1]);
     }
   };
   readBlend("BlendLeft", n.blendLeft);
@@ -1221,36 +1231,27 @@ void JSONWriter::write(Gfx::OutputMapping& n)
   readBlend("BlendTop", n.blendTop);
   readBlend("BlendBottom", n.blendBottom);
 
-  if(auto cw = obj.tryGet("CornerWarp"))
+  if(std::array<double, 8> c; readNumbers(obj, "CornerWarp", c))
   {
-    auto arr = cw->toArray();
-    if(arr.Size() == 8)
-    {
-      n.cornerWarp.topLeft = {arr[0].GetDouble(), arr[1].GetDouble()};
-      n.cornerWarp.topRight = {arr[2].GetDouble(), arr[3].GetDouble()};
-      n.cornerWarp.bottomLeft = {arr[4].GetDouble(), arr[5].GetDouble()};
-      n.cornerWarp.bottomRight = {arr[6].GetDouble(), arr[7].GetDouble()};
-    }
+    n.cornerWarp.topLeft = {c[0], c[1]};
+    n.cornerWarp.topRight = {c[2], c[3]};
+    n.cornerWarp.bottomLeft = {c[4], c[5]};
+    n.cornerWarp.bottomRight = {c[6], c[7]};
   }
-  if(auto v = obj.tryGet("LockMode"))
-    n.lockMode = Gfx::OutputLockMode(v->toInt());
-  else
+
+  if(!score::parseJsonField(obj, "LockMode", n.lockMode))
   {
     // Backward compatibility with old bool fields
     bool lockSize = false, locked = false;
-    if(auto v2 = obj.tryGet("LockSizeToInput"))
-      lockSize = v2->toBool();
-    if(auto v2 = obj.tryGet("Locked"))
-      locked = v2->toBool();
+    score::parseJsonField(obj, "LockSizeToInput", lockSize);
+    score::parseJsonField(obj, "Locked", locked);
     if(locked)
       n.lockMode = Gfx::OutputLockMode::FullLock;
     else if(lockSize)
       n.lockMode = Gfx::OutputLockMode::OneToOne;
   }
-  if(auto v = obj.tryGet("Rotation"))
-    n.rotation = v->toInt();
-  if(auto v = obj.tryGet("MirrorX"))
-    n.mirrorX = v->toBool();
-  if(auto v = obj.tryGet("MirrorY"))
-    n.mirrorY = v->toBool();
+
+  score::parseJsonField(obj, "Rotation", n.rotation);
+  score::parseJsonField(obj, "MirrorX", n.mirrorX);
+  score::parseJsonField(obj, "MirrorY", n.mirrorY);
 }

@@ -6,6 +6,7 @@
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/Graph/VideoNode.hpp>
 
+#include <score/serialization/JSONParse.hpp>
 #include <score/serialization/MimeVisitor.hpp>
 
 #include <ossia-qt/name_utils.hpp>
@@ -802,8 +803,8 @@ void JSONReader::read(const Gfx::Kinect2::Kinect2Settings& n)
 template <>
 void JSONWriter::write(Gfx::Kinect2::Kinect2Settings& n)
 {
-  n.input = obj["Input"].toString();
-  n.rgb = obj["RGB"].toBool();
-  n.ir = obj["IR"].toBool();
-  n.depth = obj["Depth"].toBool();
+  score::parseJsonField(obj, "Input", n.input);
+  score::parseJsonField(obj, "RGB", n.rgb);
+  score::parseJsonField(obj, "IR", n.ir);
+  score::parseJsonField(obj, "Depth", n.depth);
 }

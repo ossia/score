@@ -7,6 +7,7 @@
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/Graph/VideoNode.hpp>
 
+#include <score/serialization/JSONParse.hpp>
 #include <score/serialization/MimeVisitor.hpp>
 
 #include <ossia/audio/audio_parameter.hpp>
@@ -1901,11 +1902,10 @@ void JSONReader::read(const Gfx::GStreamer::GStreamerSettings& n)
 template <>
 void JSONWriter::write(Gfx::GStreamer::GStreamerSettings& n)
 {
-  n.pipeline = obj["Pipeline"].toString();
-  n.width = obj["Width"].toInt();
-  n.height = obj["Height"].toInt();
-  n.rate = obj["Rate"].toInt();
-  n.audio_channels = obj["AudioChannels"].toInt();
-  if(auto v = obj.tryGet("InputTransfer"))
-    n.input_transfer = v->toInt();
+  score::parseJsonField(obj, "Pipeline", n.pipeline);
+  score::parseJsonField(obj, "Width", n.width);
+  score::parseJsonField(obj, "Height", n.height);
+  score::parseJsonField(obj, "Rate", n.rate);
+  score::parseJsonField(obj, "AudioChannels", n.audio_channels);
+  score::parseJsonField(obj, "InputTransfer", n.input_transfer);
 }
