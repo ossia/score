@@ -5,6 +5,11 @@
 namespace Gfx
 {
 
+GfxExecutionAction::~GfxExecutionAction()
+{
+  *alive = false;
+}
+
 GfxExecutionAction::GfxExecutionAction(GfxContext& w)
     : ui{&w}
 {

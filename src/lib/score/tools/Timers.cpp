@@ -3,9 +3,11 @@
 #include <QCoreApplication>
 #include <QMutex>
 #include <QDebug>
-#include <cmath>
 #include <ossia/detail/sleep.hpp>
+#include <ossia/math/safe_math.hpp>
 #include <ossia/detail/thread_priority.hpp>
+
+#include <algorithm>
 
 #include <wobjectimpl.h>
 
@@ -89,10 +91,15 @@ public:
   int timerId{-1};
   bool accurate{};
 
+  static double sanitizeFrequency(double freq) noexcept
+  {
+    return (freq > 0. && ossia::safe_isfinite(freq)) ? std::min(freq, 100000.) : 1.;
+  }
+
   HighResolutionTimerPrivate(HighResolutionTimer* parent, double freq)
       : q(parent)
-      , frequencyHz(freq)
-      , intervalNs(static_cast<uint64_t>(1'000'000'000.0 / freq))
+      , frequencyHz(sanitizeFrequency(freq))
+      , intervalNs(static_cast<uint64_t>(1'000'000'000.0 / frequencyHz))
   {
     thread.setObjectName(QStringLiteral("ossia-timer"));
   }

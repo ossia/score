@@ -76,6 +76,7 @@ video_texture_input_parameter::video_texture_input_parameter(
     : ossia::gfx::texture_parameter{n}
     , proto{proto}
     , context{proto.context}
+    , context_alive{proto.context ? proto.context->alive : nullptr}
 {
   camera = proto.camera;
 
@@ -98,7 +99,8 @@ void video_texture_input_parameter::pull_texture(ossia::gfx::port_index idx)
 video_texture_input_parameter::~video_texture_input_parameter()
 {
   proto.camera_node = nullptr;
-  context->ui->unregister_node(node_id);
+  if(context_alive && *context_alive)
+    context->ui->unregister_node(node_id);
 }
 
 video_texture_input_node::video_texture_input_node(

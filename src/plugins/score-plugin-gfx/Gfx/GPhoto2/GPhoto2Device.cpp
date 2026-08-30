@@ -3,10 +3,10 @@
 #include <State/MessageListSerialization.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
-#include <Gfx/SettingsJson.hpp>
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/Graph/VideoNode.hpp>
 
+#include <score/serialization/JSONParse.hpp>
 #include <score/serialization/MimeVisitor.hpp>
 #include <score/tools/DynamicLibrary.hpp>
 
@@ -1023,6 +1023,7 @@ public:
 class gphoto2_parameter : public ossia::gfx::texture_parameter
 {
   GfxExecutionAction* context{};
+  std::shared_ptr<bool> context_alive;
 
 public:
   std::shared_ptr<gphoto2_decoder> decoder;
@@ -1034,6 +1035,7 @@ public:
       GfxExecutionAction& ctx)
       : ossia::gfx::texture_parameter{n}
       , context{&ctx}
+      , context_alive{ctx.alive}
       , decoder{dec}
       , node{new score::gfx::CameraNode(decoder)}
   {
@@ -1057,7 +1059,11 @@ public:
 
   int pull_calls{};
 
-  virtual ~gphoto2_parameter() { context->ui->unregister_node(node_id); }
+  virtual ~gphoto2_parameter()
+  {
+    if(context_alive && *context_alive)
+      context->ui->unregister_node(node_id);
+  }
 };
 
 class gphoto2_root_node : public ossia::net::node_base
@@ -1580,6 +1586,6 @@ void JSONReader::read(const Gfx::GPhoto2::GPhoto2Settings& n)
 template <>
 void JSONWriter::write(Gfx::GPhoto2::GPhoto2Settings& n)
 {
-  Gfx::readJsonField(obj, "Model", n.model);
-  Gfx::readJsonField(obj, "Port", n.port);
+  score::parseJsonField(obj, "Model", n.model);
+  score::parseJsonField(obj, "Port", n.port);
 }

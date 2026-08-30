@@ -90,6 +90,10 @@ struct Sh4ltOutputNode : score::gfx::OutputNode
   createRenderer(score::gfx::RenderList& r) const noexcept override;
   Configuration configuration() const noexcept override;
 
+  //! Settings default to 0 when the key is absent, and every use of the rate
+  //! here divides by it.
+  double rate() const noexcept;
+
   SharedOutputSettings m_settings;
 
   QRhiReadbackResult m_readback;
@@ -159,9 +163,14 @@ void Sh4ltOutputNode::render()
   }
 }
 
+double Sh4ltOutputNode::rate() const noexcept
+{
+  return m_settings.rate > 0. ? m_settings.rate : 60.;
+}
+
 score::gfx::OutputNode::Configuration Sh4ltOutputNode::configuration() const noexcept
 {
-  return {.manualRenderingRate = 1000. / m_settings.rate};
+  return {.manualRenderingRate = 1000. / rate()};
 }
 
 void Sh4ltOutputNode::onRendererChange() { }
@@ -186,11 +195,11 @@ void Sh4ltOutputNode::createOutput(score::gfx::OutputConfiguration conf)
           fmt::format(
               "video/x-raw, format=(string)RGBA, width=(int){}, height=(int){}, "
               "framerate={}/1",
-              m_settings.width, m_settings.height, int(m_settings.rate)),
+              m_settings.width, m_settings.height, int(rate())),
           m_settings.path.toStdString(),
           sh4lt::ShType::default_group()),
       m_settings.width * m_settings.height * 4, m_logger);
-  m_frame_dur = 1e9 / m_settings.rate;
+  m_frame_dur = int64_t(1e9 / rate());
   m_renderState = std::make_shared<score::gfx::RenderState>();
 
   m_renderState->surface = QRhiGles2InitParams::newFallbackSurface();
