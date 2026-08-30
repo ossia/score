@@ -146,12 +146,10 @@ std::unique_ptr<GPUVideoDecoder> createGPUVideoDecoder(
 
     // RGBA 16-bit
     case AV_PIX_FMT_RGBA64LE:
-      return std::make_unique<PackedDecoder>(
-          QRhiTexture::RGBA16F, 8, format, f);
+      return std::make_unique<RGBA64Decoder>(format, f);
     case AV_PIX_FMT_BGRA64LE:
-      return std::make_unique<PackedDecoder>(
-          QRhiTexture::RGBA16F, 8, format,
-          "processed.rgba = vec4(tex.b, tex.g, tex.r, tex.a); " + f);
+      return std::make_unique<RGBA64Decoder>(
+          format, "processed.rgb = tex.bgr; " + f);
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
     case AV_PIX_FMT_X2RGB10LE:
@@ -172,25 +170,27 @@ std::unique_ptr<GPUVideoDecoder> createGPUVideoDecoder(
     case AV_PIX_FMT_GBRP10LE:
       return std::make_unique<PlanarDecoder>(
           QRhiTexture::R16, 2, "gbr", format,
-          "processed.rgb *= 64.0; " + f);
+          "processed.rgb *= " SCORE_GFX_LSB10_SCALE "; " + f);
     case AV_PIX_FMT_GBRP12LE:
       return std::make_unique<PlanarDecoder>(
           QRhiTexture::R16, 2, "gbr", format,
-          "processed.rgb *= 16.0; " + f);
+          "processed.rgb *= " SCORE_GFX_LSB12_SCALE "; " + f);
     case AV_PIX_FMT_GBRP16LE:
       return std::make_unique<PlanarDecoder>(
-          QRhiTexture::R16, 2, "gbr", format, f);
+          QRhiTexture::R16, 2, "gbr", format,
+          "processed.rgb *= " SCORE_GFX_MSB_ALIGNED_SCALE "; " + f);
     case AV_PIX_FMT_GBRAP10LE:
       return std::make_unique<PlanarDecoder>(
           QRhiTexture::R16, 2, "gbra", format,
-          "processed *= 64.0; " + f);
+          "processed *= " SCORE_GFX_LSB10_SCALE "; " + f);
     case AV_PIX_FMT_GBRAP12LE:
       return std::make_unique<PlanarDecoder>(
           QRhiTexture::R16, 2, "gbra", format,
-          "processed *= 16.0; " + f);
+          "processed *= " SCORE_GFX_LSB12_SCALE "; " + f);
     case AV_PIX_FMT_GBRAP16LE:
       return std::make_unique<PlanarDecoder>(
-          QRhiTexture::R16, 2, "gbra", format, f);
+          QRhiTexture::R16, 2, "gbra", format,
+          "processed *= " SCORE_GFX_MSB_ALIGNED_SCALE "; " + f);
     case AV_PIX_FMT_GBRPF32LE:
       return std::make_unique<PlanarDecoder>(
           QRhiTexture::R32F, 4, "gbr", format, f);
@@ -231,6 +231,8 @@ std::unique_ptr<GPUVideoDecoder> createGPUVideoDecoder(
       return std::make_unique<PackedDecoder>(
           QRhiTexture::R16F, 2, format,
           "processed.rgba = vec4(tex.r, tex.r, tex.r, 1.0);" + f);
+#endif
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(58, 29, 100)
     case AV_PIX_FMT_RGBAF32LE:
       return std::make_unique<PackedDecoder>(
           QRhiTexture::RGBA32F, 16, format, f);
@@ -241,8 +243,7 @@ std::unique_ptr<GPUVideoDecoder> createGPUVideoDecoder(
     case AV_PIX_FMT_P012LE:
       return std::make_unique<P016Decoder>(format);
     case AV_PIX_FMT_RGBAF16LE:
-      return std::make_unique<PackedDecoder>(
-          QRhiTexture::RGBA16F, 8, format, f);
+      return std::make_unique<RGBA64Decoder>(format, f);
 #if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
     case AV_PIX_FMT_XV30LE:
       return std::make_unique<XV30Decoder>(format);

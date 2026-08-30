@@ -1,5 +1,6 @@
 #pragma once
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
+#include <Gfx/Graph/decoders/ColorSpace.hpp>
 extern "C" {
 #include <libavformat/avformat.h>
 }
@@ -30,17 +31,21 @@ struct PackedDecoder : GPUVideoDecoder
 
   PackedDecoder(
       QRhiTexture::Format fmt, int bytes_per_pixel, Video::ImageFormat& d,
-      QString f = "", bool invertY = false)
+      QString f = "", bool invertY = false, bool nearest = false)
       : format{fmt}
       , bytes_per_pixel{bytes_per_pixel}
       , decoder{d}
       , filter{std::move(f)}
       , invertY{invertY}
+      , nearestSampling{nearest}
   {
   }
   QRhiTexture::Format format;
   int bytes_per_pixel{}; // bpp/8 !
   bool invertY{}; // Mainly useful for Spout texture import
+  //! Set for texels reassembled from several bytes: interpolation would blend
+  //! the bytes of adjacent texels before the filter can recombine them.
+  bool nearestSampling{};
   Video::ImageFormat& decoder;
   QString filter;
 
@@ -56,8 +61,9 @@ struct PackedDecoder : GPUVideoDecoder
 
       // Create a sampler
       auto sampler = rhi.newSampler(
-          QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
-          QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
+          nearestSampling ? QRhiSampler::Nearest : QRhiSampler::Linear,
+          nearestSampling ? QRhiSampler::Nearest : QRhiSampler::Linear,
+          QRhiSampler::None, QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
       sampler->create();
 
       // Store both
@@ -332,8 +338,10 @@ struct RGB24Decoder : GPUVideoDecoder
     const auto w = decoder.width, h = decoder.height;
 
     {
-      // Create a texture
-      auto tex = rhi.newTexture(QRhiTexture::R8, QSize{w * 3, h}, 1, QRhiTexture::sRGB);
+      // A data texture, not a colour one: the bytes are read individually
+      // with texelFetch, so no QRhiTexture::sRGB -- the flag would apply the
+      // sRGB->linear EOTF to every raw byte on fetch.
+      auto tex = rhi.newTexture(QRhiTexture::R8, QSize{w * 3, h}, 1);
       tex->create();
 
       // Create a sampler
@@ -393,9 +401,10 @@ struct RGB48Decoder : GPUVideoDecoder
       float h = mat.texSz.y;
       int x = int(floor(v_texcoord.x * w) * 3.);
       int y = int(v_texcoord.y * h);
-      float r = texelFetch(y_tex, ivec2(x + 0, y), 0).r;
-      float g = texelFetch(y_tex, ivec2(x + 1, y), 0).r;
-      float b = texelFetch(y_tex, ivec2(x + 2, y), 0).r;
+      const float s = )_" SCORE_GFX_MSB_ALIGNED_SCALE R"_(;
+      float r = texelFetch(y_tex, ivec2(x + 0, y), 0).r * s;
+      float g = texelFetch(y_tex, ivec2(x + 1, y), 0).r * s;
+      float b = texelFetch(y_tex, ivec2(x + 2, y), 0).r * s;
       fragColor = processTexture(vec4(r, g, b, 1.));
     })_";
 
@@ -436,6 +445,84 @@ struct RGB48Decoder : GPUVideoDecoder
     // 3 R16 samples per pixel = 6 bytes per pixel
     QRhiTextureUploadEntry entry{
         0, 0, createTextureUpload(frame.data[0], w * 3, h, 2, frame.linesize[0])};
+
+    QRhiTextureUploadDescription desc{entry};
+    res.uploadTexture(y_tex, desc);
+  }
+};
+
+// RGBA / BGRA 16-bit-per-channel (rgba64le / bgra64le). The samples are
+// 16-bit UNORM integers and QRhi has no four-channel 16-bit UNORM format, so
+// -- as for RGB48 -- they go into an R16 data texture of width w*4 and the
+// four components are reassembled with texelFetch.
+struct RGBA64Decoder : GPUVideoDecoder
+{
+  static const constexpr auto rgb_filter = R"_(#version 450
+
+)_" SCORE_GFX_VIDEO_UNIFORMS R"_(
+
+    layout(binding=3) uniform sampler2D y_tex;
+
+    layout(location = 0) in vec2 v_texcoord;
+    layout(location = 0) out vec4 fragColor;
+
+    vec4 processTexture(vec4 tex) {
+      vec4 processed = tex;
+      { %1 }
+      return processed;
+    }
+
+    void main ()
+    {
+      float w = mat.texSz.x;
+      float h = mat.texSz.y;
+      int x = int(floor(v_texcoord.x * w) * 4.);
+      int y = int(v_texcoord.y * h);
+      const float s = )_" SCORE_GFX_MSB_ALIGNED_SCALE R"_(;
+      float r = texelFetch(y_tex, ivec2(x + 0, y), 0).r * s;
+      float g = texelFetch(y_tex, ivec2(x + 1, y), 0).r * s;
+      float b = texelFetch(y_tex, ivec2(x + 2, y), 0).r * s;
+      float a = texelFetch(y_tex, ivec2(x + 3, y), 0).r * s;
+      fragColor = processTexture(vec4(r, g, b, a));
+    })_";
+
+  RGBA64Decoder(Video::ImageFormat& d, QString f = "")
+      : decoder{d}
+      , filter{std::move(f)}
+  {
+  }
+  Video::ImageFormat& decoder;
+  QString filter;
+
+  std::pair<QShader, QShader> init(RenderList& r) override
+  {
+    auto& rhi = *r.state.rhi;
+    const auto w = decoder.width, h = decoder.height;
+
+    {
+      auto tex = rhi.newTexture(QRhiTexture::R16, QSize{w * 4, h}, 1, QRhiTexture::Flag{});
+      tex->create();
+
+      auto sampler = rhi.newSampler(
+          QRhiSampler::Nearest, QRhiSampler::Nearest, QRhiSampler::None,
+          QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
+      sampler->create();
+
+      samplers.push_back({sampler, tex});
+    }
+
+    return score::gfx::makeShaders(
+        r.state, vertexShader(), QString(rgb_filter).arg(filter));
+  }
+
+  void exec(RenderList&, QRhiResourceUpdateBatch& res, AVFrame& frame) override
+  {
+    const auto w = decoder.width, h = decoder.height;
+    auto y_tex = samplers[0].texture;
+
+    // 4 R16 samples per pixel = 8 bytes per pixel
+    QRhiTextureUploadEntry entry{
+        0, 0, createTextureUpload(frame.data[0], w * 4, h, 2, frame.linesize[0])};
 
     QRhiTextureUploadDescription desc{entry};
     res.uploadTexture(y_tex, desc);
