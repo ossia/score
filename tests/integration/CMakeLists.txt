@@ -526,6 +526,14 @@ endif()
 # libndi); a bench machine sets SCORE_REQUIRE_DEVICES=1 to turn that into a
 # failure. ndi-storm needs no external sender: score sends and receives its own
 # stream over localhost, covering both NDI nodes at once.
+#
+# Those two are EXPECTED RED on one shared finding: no device pixels reach the
+# window through this wiring. Both render the byte-identical disconnected-input
+# fallback -- 24% of the frame, the rest black -- from two unrelated sources, so
+# the cause is upstream of either device. The storm part passes underneath; it is
+# the coverage oracle that fails. Do NOT lower min_nonblack_coverage in
+# live-edit-sweep.sh's CFG to make them green: a non-blank check accepts that
+# fallback, which is exactly why this looked like a pass to begin with.
 if(SCORE_HAS_SHELL_HARNESS)
   foreach(_le_scen baseline add-remove-storm cable-storm undo-redo-during-play
                    transport-storm mixed-chaos window-storm camera-storm ndi-storm)
