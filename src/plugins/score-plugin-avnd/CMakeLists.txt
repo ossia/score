@@ -168,7 +168,9 @@ add_library(
   "${AVND_FOLDER}/examples/Advanced/Audio/Flanger.hpp"
 
 
+  Avnd/Controls.hpp
   Avnd/Factories.hpp
+  Avnd/Logger.hpp
 
   AvndDevices/AvndDevice.hpp
   Crousti/Attributes.hpp
