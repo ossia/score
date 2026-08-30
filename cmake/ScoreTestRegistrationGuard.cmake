@@ -141,8 +141,12 @@ function(score_check_test_registration)
 
   set(_orphans "")
 
-  file(GLOB_RECURSE _sources RELATIVE "${_root}" "${_root}/*.cpp")
-  file(GLOB_RECURSE _harnesses RELATIVE "${_root}" "${_root}/*.sh")
+  # CONFIGURE_DEPENDS so that adding a file re-runs the configure by itself.
+  # Deleting a registration always edits a CMakeLists and reconfigures anyway;
+  # adding a source and never wiring it up touches nothing the buildsystem
+  # watches, and that is how the two unregistered harnesses below got in.
+  file(GLOB_RECURSE _sources CONFIGURE_DEPENDS RELATIVE "${_root}" "${_root}/*.cpp")
+  file(GLOB_RECURSE _harnesses CONFIGURE_DEPENDS RELATIVE "${_root}" "${_root}/*.sh")
 
   foreach(_source IN LISTS _sources)
     string(REGEX MATCH "^[^/]+" _top "${_source}")
