@@ -68,7 +68,11 @@ fi
 
 mkdir -p "$OUT"
 
-# scenario -> "<nticks> <require_render>"
+# scenario -> "<nticks> <require_render> [min_nonblack_coverage]"
+#   min_nonblack_coverage: the fraction of the frame that must not be black.
+#   A passthrough fed by a device fills the viewport, so anything well under 1.0
+#   means the device did not deliver and the shader drew its disconnected-input
+#   fallback instead -- which is non-blank, and would otherwise pass.
 #   nticks chosen so every scenario mutates for ~8-10s of playback at 500ms;
 #   parity matters: see each scenario's header for what the last tick leaves.
 declare -A CFG=(
@@ -79,8 +83,8 @@ declare -A CFG=(
   [transport-storm]="18 no"
   [mixed-chaos]="20 yes"
   [window-storm]="24 yes"
-  [camera-storm]="20 yes"
-  [ndi-storm]="20 yes"
+  [camera-storm]="20 yes 0.5"
+  [ndi-storm]="20 yes 0.5"
 )
 ORDER=(baseline add-remove-storm cable-storm undo-redo-during-play transport-storm mixed-chaos
        window-storm camera-storm ndi-storm)
@@ -201,8 +205,8 @@ asan_census() {
     END { if(inrep && matched) k++; print total+0, k+0 }' "$1" 2>/dev/null
 }
 
-verdict() { # name require_render -> prints one line, returns nonzero on findings
-  local name="$1" require="$2"
+verdict() { # name require_render [min_coverage] -> one line, nonzero on findings
+  local name="$1" require="$2" cover="${3:-}"
   local log="$OUT/$name.log" png="$OUT/$name.png"
   local rc; rc=$(cat "$OUT/$name.rc" 2>/dev/null || echo 97)
   local bad="" note=""
@@ -231,6 +235,13 @@ verdict() { # name require_render -> prints one line, returns nonzero on finding
           | sed -E 's/^ *([0-9]+):.*(#[0-9A-Fa-f]{6}).*/\2x\1px/')
     dom="${dom:--}"
     if [ "$require" = yes ] && ! awk "BEGIN{exit !($mean > $BLANK_MEAN)}"; then bad+=" BLANK"; fi
+    if [ -n "$cover" ]; then
+      # Binarise and take the mean: that is literally the fraction of the frame
+      # that is not black, independent of how bright the lit part happens to be.
+      local nb; nb=$(convert "$png" -colorspace gray -threshold 1% -format '%[fx:mean]' info: 2>/dev/null || echo 0)
+      awk "BEGIN{exit !($nb >= $cover)}" \
+        || bad+=" NODEVICEPIXELS(nonblack=$nb < $cover)"
+    fi
   else
     [ "$require" = yes ] && bad+=" NORENDER"
   fi
@@ -266,7 +277,7 @@ FAILED=0
 SKIPPED=0
 for name in "${ORDER[@]}"; do
   [ $# -gt 0 ] && { printf '%s\n' "$@" | grep -qx "$name" || continue; }
-  read -r nticks require <<< "${CFG[$name]}"
+  read -r nticks require cover <<< "${CFG[$name]}"
   # A/B handle: NTICKS=0 runs a scenario's scene with no mutations at all, which
   # is how you tell "this chain never worked" from "the storm broke it".
   nticks="${NTICKS:-$nticks}"
@@ -279,7 +290,7 @@ for name in "${ORDER[@]}"; do
   fi
   echo "=== $name (${nticks} ticks @ ${TICK}s) ==="
   run_scenario "$name" "$nticks"
-  verdict "$name" "$require" || FAILED=$((FAILED+1))
+  verdict "$name" "$require" "${cover:-}" || FAILED=$((FAILED+1))
   coverage "$name"
 done
 

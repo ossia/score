@@ -12,6 +12,22 @@
 // that exists on one machine. The sweep refuses to run this scenario when no
 // camera answers, so an absent camera is a skip with a reason and never a
 // silent pass.
+//
+// EXPECTED RED, sharing one cause with ndi-storm: no device pixels reach the
+// window. The grab is 76% black and 24% a uniform muddy purple, and it is
+// byte-identical to ndi-storm's -- same md5, two grabs 37 seconds apart from two
+// unrelated sources. Two different devices cannot coincide, so what is on screen
+// is the passthrough ISF's disconnected-input fallback and the cause is upstream
+// of both devices; setAddress() on an inlet is the prime suspect for not
+// establishing a texture connection the way a cable does.
+//
+// The camera itself does open -- CameraInput logs "Codec: MJPEG (Motion JPEG)"
+// when a consumer is added -- so this is the wiring between device and process,
+// not capture.
+//
+// The viewport storm PASSES underneath: the chain survives resize, render-size,
+// full screen and stop/start. Only the coverage oracle is red, and it stays red
+// until device pixels arrive.
 eval(Score.readFile(LIVE_EDIT_DIR + "/common.js"));
 
 var NAME = "camera-storm";
