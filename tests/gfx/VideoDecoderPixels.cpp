@@ -18,8 +18,12 @@
 // WHERE THE EXPECTATIONS COME FROM. Not from score. Each colour is a
 // (Y, Cb, Cr) triple whose RGB is computed from ITU-R BT.709 full range,
 //   R = Y + 1.5748·Cr'   B = Y + 1.8556·Cb'
-//   G = Y - 0.468124·Cr' - 0.187324·Cb'      (Cb' = Cb-0.5, Cr' = Cr-0.5)
-// and BOTH the byte layouts and those RGB values were then cross-checked, before
+//   G = Y - 0.468124·Cr' - 0.187324·Cb'
+// with Y, Cb, Cr the 8-bit codes over 255 and Cb' = (Cb-128)/255,
+// Cr' = (Cr-128)/255 -- H.273 full range puts neutral chroma at code 128
+// and scales by 255, so the centre is 128/255, not 0.5 (a 0.5 centre puts
+// `cr-hi` green at 68; ffmpeg says 69).
+// BOTH the byte layouts and those RGB values were then cross-checked, before
 // this file was written, by feeding the exact same synthesised bytes to
 // `ffmpeg -f rawvideo -pix_fmt <fmt> ... -vf format=rgb24` and reading the
 // result. ffmpeg's swscale and this file agree on every cell of the table below;
@@ -40,16 +44,29 @@
 // leaves the colour cases correct and only shows up as a wrong value at a known
 // x.
 //
-// WHAT THIS FOUND. YUVA444P12 decodes correctly on both available backends, and
-// so does the RGBA control. Two defects:
+// WHAT THIS FOUND. The RGBA8 control decodes correctly on both backends. Four
+// defects:
 //
-//  1. Y210Decoder allocated an RGBA16F texture and uploaded UNORM16 samples
+//  1. Every full-range matrix in ColorSpace.hpp centred chroma on 0.5 instead of
+//     128/255, so R and B came back one code high at EVERY luma level, black
+//     included -- (1,0,1) for black, (129,128,129) for grey -- on 8-bit VUYA
+//     just as much as on 10-bit Y210. G moved by only -0.33 of a code and so
+//     stayed put. FIXED.
+//
+//  2. The high-bit-depth scale factors were all 0.39% low: P010 / P210 / P410 /
+//     P016 / RGB48 / RGBA64 / GRAY16 / YA16 / GBRP16 applied none at all, the
+//     LSB-aligned planar decoders used 64 and 16 where the format needs
+//     65535/1020 and 65535/4080, and XV30 took RGB10A2's code/1023 as final.
+//     FIXED; this is what kTol = 0 costs.
+//
+//  3. Y210Decoder allocated an RGBA16F texture and uploaded UNORM16 samples
 //     into it, so every sample was reinterpreted as a half-float and the
 //     picture collapsed to two constants. Same defect class as the
 //     rgba64le/bgra64le one video-decode-correctness.sh records as fixed. FIXED
 //     -- the decoder now uploads RG16 unorm at {w, h}; both Y210 cases below
 //     assert the correct pixels and are no longer [!shouldfail].
-//  2. VUYADecoder and XV30Decoder are gated in GPUVideoDecoderFactory.cpp on a
+//
+//  4. VUYADecoder and XV30Decoder are gated in GPUVideoDecoderFactory.cpp on a
 //     libavutil far later than the one that introduced their pixel formats, so
 //     on every shipping ffmpeg 6.x/7.x they are unreachable dead code and those
 //     formats render black. Still open; carries a [!shouldfail] case with the
@@ -128,7 +145,7 @@ constexpr Color kColors[]{
     {"grey", 128, 128, 128, 128, 128, 128},
     {"white", 255, 128, 128, 255, 255, 255},
     {"black", 0, 128, 128, 0, 0, 0},
-    {"cr-hi", 128, 128, 255, 255, 68, 128},
+    {"cr-hi", 128, 128, 255, 255, 69, 128},
     {"cb-hi", 128, 255, 128, 128, 104, 255},
 };
 
@@ -219,6 +236,60 @@ Planes packVuya(F yAt, int cb, int cr)
       p.data[0].push_back(uint8_t(yAt(x)));
       p.data[0].push_back(255);
     }
+  return p;
+}
+
+// P010 / P210 / P410 / P016: a full-resolution 16-bit luma plane and an
+// interleaved Cb,Cr plane, subsampled by (sx, sy). Every sample is the 8-bit
+// code left-aligned in the word -- code << (16 - bits) -- which is exactly what
+// SMPTE 274M prescribes and what ffmpeg reads back with `>> (bits - 8)`.
+template <typename F>
+Planes packSemiPlanarMsb(F yAt, int cb, int cr, int bits, int sx, int sy)
+{
+  const int shift = 16 - bits;
+  const int scale = 1 << (bits - 8);
+  Planes p;
+  p.count = 2;
+  p.linesize[0] = W * 2;
+  p.linesize[1] = (W / sx) * 4;
+  for(int y = 0; y < H; y++)
+    for(int x = 0; x < W; x++)
+      put16le(p.data[0], uint16_t((yAt(x) * scale) << shift));
+  for(int y = 0; y < H / sy; y++)
+    for(int x = 0; x < W / sx; x++)
+    {
+      put16le(p.data[1], uint16_t((cb * scale) << shift));
+      put16le(p.data[1], uint16_t((cr * scale) << shift));
+    }
+  return p;
+}
+
+// RGBA64LE / GRAY16LE: no matrix at all, just a 16-bit word per component.
+// Same framing rule -- 255 is 65280, not 65535.
+Planes packRgba64(int r, int g, int b)
+{
+  Planes p;
+  p.count = 1;
+  p.linesize[0] = W * 8;
+  for(int i = 0; i < W * H; i++)
+  {
+    put16le(p.data[0], uint16_t(r << 8));
+    put16le(p.data[0], uint16_t(g << 8));
+    put16le(p.data[0], uint16_t(b << 8));
+    put16le(p.data[0], uint16_t(255 << 8));
+  }
+  return p;
+}
+
+template <typename F>
+Planes packGray16(F yAt)
+{
+  Planes p;
+  p.count = 1;
+  p.linesize[0] = W * 2;
+  for(int y = 0; y < H; y++)
+    for(int x = 0; x < W; x++)
+      put16le(p.data[0], uint16_t(yAt(x) << 8));
   return p;
 }
 
@@ -333,11 +404,11 @@ Outcome render_camera(
   return out;
 }
 
-// Tolerance covers the RGBA8 readback quantisation plus the 8-bit test code
-// re-expressed at 10 or 12 bits (128/255 vs 512/1023 is 0.4 of a code). It is
-// far below every error class the table is built to catch: the smallest of them,
-// a limited/full range mistake, moves grey by 16 codes.
-constexpr int kTol = 1;
+// Zero. Every colour below is exact arithmetic on 8-bit codes, every decoder
+// here normalises an n-bit code to code / (255 * 2^(n-8)) so the 8-bit code
+// comes back unchanged, and the RGBA8 target rounds to nearest. Nothing in the
+// chain is allowed to move a pixel by one.
+constexpr int kTol = 0;
 
 void check_color(const ReadbackImage& img, const Color& c, const char* what)
 {
@@ -395,9 +466,8 @@ TEST_CASE(
   // texel is exactly one luma plus one chroma sample of the macropixel -- and
   // reassembles the triple with texelFetch.
   //
-  // The readback runs ~0.1% low (grey 127 for 128, white 254 for 255) because
-  // 10-bit-in-the-high-bits normalises to v/65535 rather than v/1023; that is
-  // the same convention P010 / P210 / P410 use and it stays inside kTol.
+  // The readback also ran 0.39% low (white 254 for 255) until the sampler's
+  // v/65535 was corrected by 65535/65280 -- see SCORE_GFX_MSB_ALIGNED_SCALE.
   const auto api = GENERATE(from_range(platform_backends()));
   for(const auto& c : kColors)
   {
@@ -496,6 +566,86 @@ TEST_CASE(
 }
 #endif
 
+TEST_CASE(
+    "The MSB-aligned semi-planar family unpacks to the right colour",
+    "[gfx][video][decoder][pixels]")
+{
+  // P010 / P210 / P410 (10-bit, 4:2:0 / 4:2:2 / 4:4:4) and P016 (16-bit) all
+  // carry the 8-bit code left-aligned in a 16-bit word, so a UNORM16 sampler
+  // divides by 65535 where the format's full scale is 65280 -- every level
+  // 0.39% low, white 254 instead of 255. HWVAAPI and HWVulkan build their
+  // 10-bit shader from P010Decoder::frag, so they inherit whatever this says.
+  const auto api = GENERATE(from_range(platform_backends()));
+  struct Case
+  {
+    const char* name;
+    AVPixelFormat fmt;
+    int bits, sx, sy;
+  };
+  const Case cases[]{
+      {"p010le", AV_PIX_FMT_P010LE, 10, 2, 2},
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 17, 100)
+      {"p210le", AV_PIX_FMT_P210LE, 10, 2, 1},
+      {"p410le", AV_PIX_FMT_P410LE, 10, 1, 1},
+#endif
+      {"p016le", AV_PIX_FMT_P016LE, 16, 2, 2},
+  };
+
+  for(const auto& k : cases)
+    for(const auto& c : kColors)
+    {
+      const auto out = render_camera(
+          api, k.fmt,
+          packSemiPlanarMsb([&](int) { return c.y; }, c.cb, c.cr, k.bits, k.sx, k.sy));
+      INFO("backend " << out.backend);
+      if(out.skipped)
+        SKIP(out.skip_reason);
+      REQUIRE(out.error.empty());
+      check_color(out.img, c, k.name);
+    }
+}
+
+TEST_CASE(
+    "16-bit RGB and grey obey the same framing rule",
+    "[gfx][video][decoder][pixels]")
+{
+  // No colour matrix here, so this isolates the framing rule from the matrix:
+  // rgba64le / gray16le hold the 8-bit code in the top 8 bits, and ffmpeg reads
+  // them back with `>> 8` -- `ffmpeg -pix_fmt rgb48le` turns word 51400 into 201,
+  // not 200, which is 51400/65280 and not 51400/65535.
+  const auto api = GENERATE(from_range(platform_backends()));
+  {
+    const auto out = render_camera(
+        api, AV_PIX_FMT_RGBA64LE, packRgba64(64, 160, 200), AVCOL_SPC_RGB,
+        AVCOL_RANGE_JPEG);
+    INFO("backend " << out.backend);
+    if(out.skipped)
+      SKIP(out.skip_reason);
+    REQUIRE(out.error.empty());
+    REQUIRE(out.img.valid());
+    const auto px = out.img.at(W / 2, H / 2);
+    INFO("rgba64le: got (" << int(px[0]) << "," << int(px[1]) << "," << int(px[2]) << ")");
+    CHECK(std::abs(int(px[0]) - 64) <= kTol);
+    CHECK(std::abs(int(px[1]) - 160) <= kTol);
+    CHECK(std::abs(int(px[2]) - 200) <= kTol);
+  }
+  {
+    const auto out = render_camera(
+        api, AV_PIX_FMT_GRAY16LE, packGray16([](int) { return 200; }), AVCOL_SPC_RGB,
+        AVCOL_RANGE_JPEG);
+    INFO("backend " << out.backend);
+    if(out.skipped)
+      SKIP(out.skip_reason);
+    REQUIRE(out.error.empty());
+    REQUIRE(out.img.valid());
+    const auto px = out.img.at(W / 2, H / 2);
+    INFO("gray16le: got (" << int(px[0]) << "," << int(px[1]) << "," << int(px[2]) << ")");
+    CHECK(std::abs(int(px[0]) - 200) <= kTol);
+    CHECK(std::abs(int(px[1]) - 200) <= kTol);
+    CHECK(std::abs(int(px[2]) - 200) <= kTol);
+  }
+}
+
 TEST_CASE("YUVA444P12Decoder unpacks four 12-bit planes", "[gfx][video][decoder][pixels]")
 {
   const auto api = GENERATE(from_range(platform_backends()));
@@ -571,6 +721,17 @@ TEST_CASE(
   check_ramp(
       api, "yuva444p12le", AV_PIX_FMT_YUVA444P12LE,
       packYuva444p12(rampLumaAt, 128, 128));
+  check_ramp(
+      api, "p010le", AV_PIX_FMT_P010LE,
+      packSemiPlanarMsb(rampLumaAt, 128, 128, 10, 2, 2));
+  check_ramp(
+      api, "p016le", AV_PIX_FMT_P016LE,
+      packSemiPlanarMsb(rampLumaAt, 128, 128, 16, 2, 2));
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 17, 100)
+  check_ramp(
+      api, "p410le", AV_PIX_FMT_P410LE,
+      packSemiPlanarMsb(rampLumaAt, 128, 128, 10, 1, 1));
+#endif
 }
 
 #if SCORE_TEST_HAS_Y210

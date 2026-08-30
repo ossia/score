@@ -157,10 +157,10 @@ TEST_CASE("Packed RGB decoder parameterisation", "[gfx][video][decoderfactory]")
       {AV_PIX_FMT_ARGB, QRhiTexture::RGBA8, 4, "tex.yzwx"},
       {AV_PIX_FMT_ABGR, QRhiTexture::RGBA8, 4, "tex.abgr"},
       {AV_PIX_FMT_GRAY8, QRhiTexture::R8, 1, "vec4(tex.r, tex.r, tex.r, 1.0)"},
-      {AV_PIX_FMT_GRAY16, QRhiTexture::R16, 2, "vec4(tex.r, tex.r, tex.r, 1.0)"},
+      {AV_PIX_FMT_GRAY16, QRhiTexture::R16, 2, "vec4(vec3(tex.r * 1.00390625), 1.0)"},
       {AV_PIX_FMT_GRAYF32, QRhiTexture::R32F, 4, "vec4(tex.r, tex.r, tex.r, 1.0)"},
       {AV_PIX_FMT_YA8, QRhiTexture::RG8, 2, "vec4(tex.r, tex.r, tex.r, tex.g)"},
-      {AV_PIX_FMT_YA16LE, QRhiTexture::RG16, 4, "vec4(tex.r, tex.r, tex.r, tex.g)"},
+      {AV_PIX_FMT_YA16LE, QRhiTexture::RG16, 4, "vec4(tex.rrr, tex.g) * 1.00390625"},
   };
 
   for(const auto& row : rows)
@@ -217,25 +217,27 @@ TEST_CASE("Planar RGB decoder parameterisation", "[gfx][video][decoderfactory]")
 #if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(56, 19, 100)
   SECTION("the high-bit-depth planes carry their own scaling factor")
   {
-    // 10-bit data left-aligned in 16 bits needs 64x, 12-bit needs 16x; a 16-bit
-    // plane needs none. Getting the pair the wrong way round is a brightness
+    // The 8-bit-equivalent code of an n-bit sample is code / 2^(n-8), so full
+    // scale is 255 * 2^(n-8): 10-bit LSB-aligned data needs 65535/1020 = 64.25,
+    // 12-bit needs 65535/4080 = 16.0625, and a 16-bit plane still needs
+    // 65535/65280 = 1.00390625 -- not 1. Getting these wrong is a brightness
     // bug, not a crash.
     const auto d_p10 = make(AV_PIX_FMT_GBRP10LE);
     auto* p10 = as<PlanarDecoder>(d_p10);
     REQUIRE(p10 != nullptr);
     CHECK(p10->format == QRhiTexture::R16);
     CHECK(p10->bytes_per_pixel == 2);
-    CHECK(p10->filter.contains(QLatin1String("*= 64.0")));
+    CHECK(p10->filter.contains(QLatin1String("*= 64.25")));
 
     const auto d_p12 = make(AV_PIX_FMT_GBRP12LE);
     auto* p12 = as<PlanarDecoder>(d_p12);
     REQUIRE(p12 != nullptr);
-    CHECK(p12->filter.contains(QLatin1String("*= 16.0")));
+    CHECK(p12->filter.contains(QLatin1String("*= 16.0625")));
 
     const auto d_p16 = make(AV_PIX_FMT_GBRP16LE);
     auto* p16 = as<PlanarDecoder>(d_p16);
     REQUIRE(p16 != nullptr);
-    CHECK_FALSE(p16->filter.contains(QLatin1String("*=")));
+    CHECK(p16->filter.contains(QLatin1String("*= 1.00390625")));
 
     const auto d_pf32 = make(AV_PIX_FMT_GBRPF32LE);
     auto* pf32 = as<PlanarDecoder>(d_pf32);

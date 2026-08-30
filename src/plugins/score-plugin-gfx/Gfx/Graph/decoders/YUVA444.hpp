@@ -122,10 +122,10 @@ vec4 processTexture(vec4 tex) {
 
 void main ()
 {
-  float y = 64. * texture(y_tex, v_texcoord).r;
-  float u = 64. * texture(u_tex, v_texcoord).r;
-  float v = 64. * texture(v_tex, v_texcoord).r;
-  float a = 64. * texture(a_tex, v_texcoord).r;
+  float y = )_" SCORE_GFX_LSB10_SCALE R"_( * texture(y_tex, v_texcoord).r;
+  float u = )_" SCORE_GFX_LSB10_SCALE R"_( * texture(u_tex, v_texcoord).r;
+  float v = )_" SCORE_GFX_LSB10_SCALE R"_( * texture(v_tex, v_texcoord).r;
+  float a = )_" SCORE_GFX_LSB10_SCALE R"_( * texture(a_tex, v_texcoord).r;
 
   vec4 rgb = processTexture(vec4(y,u,v, 1.));
   fragColor = vec4(rgb.rgb, a);
@@ -206,10 +206,10 @@ vec4 processTexture(vec4 tex) {
 
 void main ()
 {
-  float y = 16. * texture(y_tex, v_texcoord).r;
-  float u = 16. * texture(u_tex, v_texcoord).r;
-  float v = 16. * texture(v_tex, v_texcoord).r;
-  float a = 16. * texture(a_tex, v_texcoord).r;
+  float y = )_" SCORE_GFX_LSB12_SCALE R"_( * texture(y_tex, v_texcoord).r;
+  float u = )_" SCORE_GFX_LSB12_SCALE R"_( * texture(u_tex, v_texcoord).r;
+  float v = )_" SCORE_GFX_LSB12_SCALE R"_( * texture(v_tex, v_texcoord).r;
+  float a = )_" SCORE_GFX_LSB12_SCALE R"_( * texture(a_tex, v_texcoord).r;
 
   vec4 rgb = processTexture(vec4(y,u,v, 1.));
   fragColor = vec4(rgb.rgb, a);
