@@ -47,3 +47,17 @@ score_add_test(test_gfx_external_essl
 score_add_test(test_gfx_dmabuf_layout
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/DmaBufLayoutTest.cpp"
   PLUGINS score_plugin_gfx)
+
+# The KMS sink's own ports. Registered only where KmsOutputNode.cpp is actually
+# compiled: without libdrm the plugin builds an inert stub whose constructor
+# creates no ports at all, and asserting on that would be asserting the stub.
+# SCORE_LIBDRM_FOUND comes from the parent scope (pkg_check_modules above
+# add_subdirectory(Tests)).
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND SCORE_LIBDRM_FOUND)
+  score_add_test(test_gfx_kms_output_port
+    SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/KmsOutputPortTest.cpp"
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+  target_include_directories(test_gfx_kms_output_port
+    PRIVATE ${SCORE_LIBDRM_INCLUDE_DIRS})
+endif()
