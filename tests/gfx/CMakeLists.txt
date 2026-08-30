@@ -296,3 +296,20 @@ score_add_test(test_gfx_external_sampler_essl
     ${_external_oes_hidden}
   APP
   PLUGINS score_plugin_gfx score_plugin_media score_lib_process)
+
+# What DMACaptureInputNode::Renderer::init() must report back to its vendor
+# backend once the capture ladder has resolved: whether the sync group the
+# backend offered actually engaged, and whether the whole-frame external-image
+# rung did. Neither is observable from the backend's side and neither shows in a
+# rendered frame -- a declined group is a rare tear, a declined external rung is
+# a black frame from a path reporting itself engaged. Fake backend + fake rungs;
+# the QRhi, the RenderList and the node are real, because init() only runs
+# against a live render list.
+# Registered by hand rather than through score_add_gfx_test: DMACaptureInputNode's
+# backend seam is spelled in Video::ImageFormat / VideoMetadata, so the test needs
+# score_plugin_media's headers on top of the usual gfx set.
+score_add_test(test_gfx_dmacapture_ladder
+  SOURCES DmaCaptureLadderContract.cpp
+  GUI
+  PLUGINS score_plugin_gfx score_plugin_media score_plugin_scenario score_lib_process
+  LIBS test_gfx_engine_glue)
