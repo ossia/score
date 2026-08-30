@@ -31,6 +31,10 @@ struct mesh {
   bool texcoord{};
   bool normals{};
   bool colors{};
+  // How many floats per vertex the colour stream actually carries. PLY writes
+  // three, the vcg importers write four, and a consumer that assumes either one
+  // reads every vertex after the first at the wrong offset.
+  int color_components{3};
   bool tangents{};
   bool points{};
   std::vector<extra_attribute> extras;
@@ -79,9 +83,8 @@ inline void rebuild_transform(auto& inputs, auto& outputs)
   }
 
   // Legacy path: writes into the halp::mesh-style `geometry` output.
-  // Scene-only loaders (GltfParser/FbxParser after the legacy outlet was
-  // removed) don't have `outputs.geometry`; we leave the Position/Rotation/
-  // Scale controls as a no-op.
+  // Scene-only loaders (GltfParser/FbxParser) have no `outputs.geometry`;
+  // there the Position/Rotation/Scale controls are a no-op.
   if constexpr(requires {
                  outputs.geometry.transform;
                  outputs.geometry.dirty_transform;

@@ -43,16 +43,17 @@
 // WHAT THIS FOUND. YUVA444P12 decodes correctly on both available backends, and
 // so does the RGBA control. Two defects:
 //
-//  1. Y210Decoder allocates an RGBA16F texture and uploads UNORM16 samples into
-//     it, so every sample is reinterpreted as a half-float and the picture
-//     collapses to two constants. Same defect class as the rgba64le/bgra64le one
-//     video-decode-correctness.sh records as fixed.
+//  1. Y210Decoder allocated an RGBA16F texture and uploaded UNORM16 samples
+//     into it, so every sample was reinterpreted as a half-float and the
+//     picture collapsed to two constants. Same defect class as the
+//     rgba64le/bgra64le one video-decode-correctness.sh records as fixed. FIXED
+//     -- the decoder now uploads RG16 unorm at {w, h}; both Y210 cases below
+//     assert the correct pixels and are no longer [!shouldfail].
 //  2. VUYADecoder and XV30Decoder are gated in GPUVideoDecoderFactory.cpp on a
 //     libavutil far later than the one that introduced their pixel formats, so
 //     on every shipping ffmpeg 6.x/7.x they are unreachable dead code and those
-//     formats render black.
-//
-// Both carry [!shouldfail] cases with the correct expectation and the evidence.
+//     formats render black. Still open; carries a [!shouldfail] case with the
+//     correct expectation and the evidence.
 //
 // NOT COVERED HERE, and why:
 //  - V210 / R210 / Bayer / PackedBitfield* are wire decoders: makeWireDecoder()
@@ -99,7 +100,7 @@ extern "C" {
 #define SCORE_TEST_HAS_Y210 (LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(56, 19, 100))
 
 #define SCORE_TEST_VUYA_NAMEABLE (LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(58, 29, 100))
-#define SCORE_TEST_VUYA_SELECTABLE (LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(60, 8, 100))
+#define SCORE_TEST_VUYA_SELECTABLE (LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(58, 29, 100))
 #define SCORE_TEST_XV30_NAMEABLE SCORE_TEST_VUYA_NAMEABLE
 #define SCORE_TEST_XV30_SELECTABLE \
   (SCORE_TEST_VUYA_SELECTABLE && QT_VERSION >= QT_VERSION_CHECK(6, 4, 0))
@@ -380,31 +381,23 @@ TEST_CASE(
 #if SCORE_TEST_HAS_Y210
 TEST_CASE(
     "Y210Decoder unpacks 10-bit 4:2:2 to the right colour",
-    "[gfx][video][decoder][pixels][!shouldfail]")
+    "[gfx][video][decoder][pixels]")
 {
-  // FINDING. Y210Decoder::init() allocates QRhiTexture::RGBA16F and exec()
-  // uploads the raw y210 bytes into it, so the sampler reinterprets UNORM16
-  // sample data as IEEE half-floats. Its own class comment says otherwise --
-  // "Data in high bits means R16 unorm already returns [0,1] normalized
-  // values" -- so the format, not the intent, is what is wrong.
+  // WAS [!shouldfail]. Y210Decoder::init() allocated QRhiTexture::RGBA16F and
+  // exec() uploaded the raw y210 bytes into it, so the sampler reinterpreted
+  // UNORM16 sample data as IEEE half-floats: grey (0x8000 = -0.0) came back
+  // (0, 84, 0) and white (0xFFC0 = NaN) came back black, on both backends.
+  // Same defect that video-decode-correctness.sh records as fixed for
+  // rgba64le/bgra64le; y210 kept it because no container stores y210, so that
+  // harness could never reach it.
   //
-  // The arithmetic matches the readback exactly, which is how the diagnosis is
-  // confirmed rather than guessed:
-  //   grey  Y=Cb=Cr=512 -> 512<<6 = 0x8000, which as a half-float is -0.0.
-  //         BT.709 full of (0,-0.5,-0.5) is (-0.787, 0.328, -0.928), and an
-  //         RGBA8 target clamps that to (0, 84, 0). Measured: (0, 84, 0).
-  //   white Y=1023 -> 0xFFC0, a half-float NaN -> (0, 0, 0). Measured likewise.
-  // Every colour below therefore comes back as one of two constants, carrying
-  // none of the input.
+  // The decoder now uploads into an RG16 unorm texture at {w, h} -- 4 bytes per
+  // texel is exactly one luma plus one chroma sample of the macropixel -- and
+  // reassembles the triple with texelFetch.
   //
-  // This is the SAME defect that video-decode-correctness.sh records as fixed
-  // for rgba64le/bgra64le ("reinterpreting UNORM16 data as half-float in an
-  // RGBA16F texture, which rendered pure black"); Y210 was not swept there
-  // because no container stores y210, so it kept the bug. The fix is the same
-  // shape: a unorm texture (or R16 + texelFetch reassembly like RGBA64Decoder).
-  //
-  // Registered [!shouldfail] with the CORRECT expectation, so the day the
-  // decoder is fixed this case goes green and Catch2 reports the XPASS.
+  // The readback runs ~0.1% low (grey 127 for 128, white 254 for 255) because
+  // 10-bit-in-the-high-bits normalises to v/65535 rather than v/1023; that is
+  // the same convention P010 / P210 / P410 use and it stays inside kTol.
   const auto api = GENERATE(from_range(platform_backends()));
   for(const auto& c : kColors)
   {
@@ -583,15 +576,14 @@ TEST_CASE(
 #if SCORE_TEST_HAS_Y210
 TEST_CASE(
     "Y210Decoder addresses the right sample for the right pixel",
-    "[gfx][video][decoder][pixels][!shouldfail]")
+    "[gfx][video][decoder][pixels]")
 {
-  // Isolated from the case above and marked expected-failure for the RGBA16F
-  // reinterpretation documented on the Y210 colour case: with every sample read
-  // as a half-float the staircase collapses to two constants (measured: bands
-  // 0/2/3 come back near (0,84,0), band 1 saturates to white), so this case
-  // cannot say anything about Y210's ADDRESSING until the texture format is
-  // fixed. It is kept, rather than deleted, so the addressing is asserted the
-  // moment the format bug is.
+  // WAS [!shouldfail]. Kept isolated from the case above because under the
+  // RGBA16F reinterpretation the staircase collapsed to two constants (bands
+  // 0/2/3 near (0,84,0), band 1 saturated to white) and said nothing about
+  // ADDRESSING. With the RG16 upload it does: the luma of pixel x is the .r of
+  // texel x and the two chroma samples are the .g of the macropixel's pair, so
+  // a half-macropixel or stride error moves a band.
   const auto api = GENERATE(from_range(platform_backends()));
   check_ramp(api, "y210le", AV_PIX_FMT_Y210LE, packY210(rampLumaAt, 128, 128));
 }

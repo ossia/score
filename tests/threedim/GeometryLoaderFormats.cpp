@@ -333,8 +333,8 @@ TEST_CASE("an ASCII STL loads as de-indexed triangles",
   // 2 facets, one output vertex per triangle corner.
   CHECK(g.vertices == 6);
   CHECK(g.topology == halp::primitive_topology::triangles);
-  // STL is 'a normal and three vertices per facet': since 1a02c5cabf the
-  // openStl wrapper recomputes per-face normals from the winding (vcglib's
+  // STL is 'a normal and three vertices per facet': the openStl wrapper
+  // recomputes per-face normals from the winding (vcglib's
   // import_stl.h reads the stored normal and drops it, and never sets
   // IOM_FACENORMAL itself) — so positions AND normals come through.
   REQUIRE(g.attributes.size() == 2);
@@ -364,7 +364,7 @@ TEST_CASE("an ASCII OFF loads as de-indexed triangles",
 
 TEST_CASE(
     "a coloured OFF describes its colour stream with the stride it wrote",
-    "[threedim][geomloader][off][!shouldfail]")
+    "[threedim][geomloader][off]")
 {
   // DEFECT: VcgImporters::convertVcgToMeshes writes colours as RGBA — four
   // floats per corner — but rebuild_geometry (in both GeometryLoader.cpp and
@@ -404,13 +404,11 @@ TEST_CASE("extension dispatch is case-insensitive", "[threedim][geomloader]")
 
   // A DIFFERENT stem, not just a different extension case. On a
   // case-insensitive filesystem -- Windows, and macOS by default --
-  // "<stem>.PLY" and "<stem>.ply" name the SAME file, so copy_file() is a
-  // self-copy, which the standard requires to fail (equivalent(from, to))
-  // even with overwrite_existing. It threw
-  //   copy_file: File exists ["...-5.PLY"] ["...-5.ply"]
-  // and took the whole case-insensitivity test with it. The stem change keeps
-  // the upper-case extension the case is actually about while making the two
-  // paths distinct files everywhere.
+  // "<stem>.PLY" and "<stem>.ply" name the SAME file, so copy_file() would be
+  // a self-copy, which the standard requires to fail (equivalent(from, to))
+  // even with overwrite_existing. The stem change keeps the upper-case
+  // extension the case is about while making the two paths distinct files
+  // everywhere.
   auto upper = f.path;
   upper.replace_filename(upper.stem().string() + "-upper.PLY");
   std::filesystem::copy_file(
