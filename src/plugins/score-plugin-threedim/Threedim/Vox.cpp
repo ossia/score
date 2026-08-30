@@ -3,6 +3,38 @@
 #include <QDebug>
 #include <QFile>
 
+#include <stdexcept>
+
+namespace Threedim
+{
+struct VoxParseError : std::runtime_error
+{
+  using std::runtime_error::runtime_error;
+};
+}
+
+// ogt_vox's default ogt_assert is a plain assert(), and it validates a .vox
+// file's structure with it -- a truncated chunk, an out-of-range voxel, a layer
+// MagicaVoxel saved empty. A malformed asset must fail the load, not the
+// process, and the library documents this macro as the way to say so.
+//
+// It has to unwind rather than continue: several of these are the only bound on
+// a subsequent write -- _vox_file_read_dict's pair count indexes a 256-entry
+// stack array whose loop otherwise permits ~2000 iterations -- so logging and
+// carrying on would turn a controlled abort into a stack smash. The library
+// allocates with malloc and does not unwind, so a rejected file leaks whatever
+// it had built; that is the price of not parsing it further.
+#define ogt_assert(condition, message_str)                                       \
+  do                                                                             \
+  {                                                                              \
+    if(!(condition))                                                             \
+      throw Threedim::VoxParseError{message_str};                                \
+  } while(0)
+#define ogt_assert_warn(condition, message_str)                                  \
+  do                                                                             \
+  {                                                                              \
+  } while(0)
+
 #define OGT_VOX_IMPLEMENTATION
 #include <ogt_vox.h>
 
@@ -25,8 +57,17 @@ static const ogt_vox_scene* load_vox_scene(std::string_view filename)
   if(bytes.isEmpty())
     return nullptr;
 
-  return ogt_vox_read_scene(
-      reinterpret_cast<const uint8_t*>(bytes.constData()), bytes.size());
+  try
+  {
+    return ogt_vox_read_scene(
+        reinterpret_cast<const uint8_t*>(bytes.constData()), bytes.size());
+  }
+  catch(const VoxParseError& e)
+  {
+    qDebug() << "vox: rejected" << QString::fromUtf8(filename.data(), filename.size())
+             << ":" << e.what();
+    return nullptr;
+  }
 }
 
 // Build the palette buffer: 256 entries × 8 floats
@@ -68,7 +109,14 @@ std::vector<mesh> VoxPointCloudFromFile(
     const auto& inst = scene->instances[i];
     if(inst.hidden)
       continue;
+    // ogt_vox reports an out-of-range model_index or a model it declined to
+    // build through ogt_assert, which is non-fatal here, so the scene can come
+    // back with an instance that points at nothing.
+    if(inst.model_index >= scene->num_models)
+      continue;
     const ogt_vox_model* model = scene->models[inst.model_index];
+    if(!model)
+      continue;
     const uint32_t count = model->size_x * model->size_y * model->size_z;
     for(uint32_t v = 0; v < count; v++)
       if(model->voxel_data[v] != 0)
@@ -94,7 +142,14 @@ std::vector<mesh> VoxPointCloudFromFile(
     if(inst.hidden)
       continue;
 
+    // ogt_vox reports an out-of-range model_index or a model it declined to
+    // build through ogt_assert, which is non-fatal here, so the scene can come
+    // back with an instance that points at nothing.
+    if(inst.model_index >= scene->num_models)
+      continue;
     const ogt_vox_model* model = scene->models[inst.model_index];
+    if(!model)
+      continue;
     const auto& t = inst.transform;
     const float px = float(model->size_x / 2);
     const float py = float(model->size_y / 2);
@@ -207,7 +262,14 @@ std::vector<mesh> VoxMeshFromFile(
     if(inst.hidden)
       continue;
 
+    // ogt_vox reports an out-of-range model_index or a model it declined to
+    // build through ogt_assert, which is non-fatal here, so the scene can come
+    // back with an instance that points at nothing.
+    if(inst.model_index >= scene->num_models)
+      continue;
     const ogt_vox_model* model = scene->models[inst.model_index];
+    if(!model)
+      continue;
 
     ogt_mesh* ogt_m = nullptr;
     if(mode == 1)
