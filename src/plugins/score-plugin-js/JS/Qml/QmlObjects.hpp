@@ -714,6 +714,9 @@ public:
 
   void setChannel(int i, const QJSValue& v);
   W_INVOKABLE(setChannel)
+
+  void clear() { m_audio.clear(); }
+
 private:
   QVector<QVector<double>> m_audio;
 };
@@ -741,12 +744,13 @@ public:
     m_midi.clear();
     for(const libremidi::ump& mess : arr)
     {
-      auto m1 = libremidi::midi1_from_ump(mess);
-      const auto N = mess.size();
-      QVector<int> m;
-      m.resize(N);
+      const auto m1 = libremidi::midi1_from_ump(mess);
+      if(m1.bytes.empty())
+        continue;
 
-      for(std::size_t i = 0; i < N; i++)
+      QVector<int> m;
+      m.resize(m1.bytes.size());
+      for(std::size_t i = 0; i < m1.bytes.size(); i++)
         m[i] = m1.bytes[i];
 
       m_midi.push_back(QVariant::fromValue(m));

@@ -39,7 +39,10 @@ QVariant EditJsContext::availableProcessesAndPresets() const noexcept
   v.reserve(20000);
   auto& ctx = score::GUIAppContext();
   auto& procs = ctx.interfaces<Process::ProcessFactoryList>();
-  auto& lib = ctx.panel<Library::ProcessPanel>().processWidget().processModel();
+  auto* panel = ctx.findPanel<Library::ProcessPanel>();
+  if(!panel)
+    return v;
+  auto& lib = panel->processWidget().processModel();
   auto& root = lib.rootNode();
   root.visit([&](const Library::ProcessNode& n) {
     if(n.key.impl().is_nil())
@@ -75,7 +78,10 @@ QVariantList EditJsContext::libraryEntries(QString filter) const noexcept
   QVariantList v;
   auto& ctx = score::GUIAppContext();
   auto& procs = ctx.interfaces<Process::ProcessFactoryList>();
-  auto& lib = ctx.panel<Library::ProcessPanel>().processWidget().processModel();
+  auto* panel = ctx.findPanel<Library::ProcessPanel>();
+  if(!panel)
+    return v;
+  auto& lib = panel->processWidget().processModel();
 
   lib.rootNode().visit([&](const Library::ProcessNode& n) {
     if(n.key.impl().is_nil())
