@@ -90,7 +90,8 @@
 	url = https://github.com/jcelerier/libssynth
 [submodule "3rdparty/vcglib"]
 	path = 3rdparty/vcglib
-	url = https://github.com/cnr-isti-vclab/vcglib
+	url = https://github.com/jcelerier/vcglib
+	branch = fix/degenerate-cone-and-off-bounds
 [submodule "3rdparty/eigen"]
 	path = 3rdparty/eigen
 	url = https://gitlab.com/libeigen/eigen
@@ -114,7 +115,8 @@
 	url = https://github.com/xtensor-stack/xtl
 [submodule "3rdparty/opengametools"]
 	path = 3rdparty/opengametools
-	url = https://github.com/jpaver/opengametools
+	url = https://github.com/jcelerier/opengametools
+	branch = fix/vox-size-overflow
 [submodule "3rdparty/ufbx"]
 	path = 3rdparty/ufbx
 	url = https://github.com/ufbx/ufbx
