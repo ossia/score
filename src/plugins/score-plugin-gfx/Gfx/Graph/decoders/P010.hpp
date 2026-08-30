@@ -41,6 +41,8 @@ vec4 processTexture(vec4 tex) {
 
 void main()
 {
+
+
   const float s = )_" SCORE_GFX_MSB_ALIGNED_SCALE R"_(;
   float y = s * texture(y_tex, v_texcoord).r;
   float u = s * texture(uv_tex, v_texcoord).r;
