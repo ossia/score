@@ -39,6 +39,8 @@ QVariant EditJsContext::availableProcessesAndPresets() const noexcept
   v.reserve(20000);
   auto& ctx = score::GUIAppContext();
   auto& procs = ctx.interfaces<Process::ProcessFactoryList>();
+
+
   auto* panel = ctx.findPanel<Library::ProcessPanel>();
   if(!panel)
     return v;

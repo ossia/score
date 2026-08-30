@@ -401,6 +401,8 @@ void EditJsContext::createAddress(QString addr, QString type)
 
   auto& plug = doc->plugin<Explorer::DeviceDocumentPlugin>();
 
+
+
   if(!plug.list().findDevice(a->device))
   {
     qDebug() << "createAddress: no such device:" << a->device;
