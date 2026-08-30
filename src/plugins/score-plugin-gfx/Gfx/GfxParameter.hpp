@@ -13,6 +13,12 @@ class gfx_parameter_base : public ossia::gfx::texture_parameter
 {
 protected:
   GfxExecutionAction* context{};
+  std::shared_ptr<bool> context_alive;
+
+  bool contextAlive() const noexcept
+  {
+    return context && context_alive && *context_alive;
+  }
 
 public:
   score::gfx::Node* node{};
@@ -22,6 +28,7 @@ public:
       ossia::net::node_base& n, score::gfx::Node* node, GfxExecutionAction* ctx)
       : texture_parameter{n}
       , context{ctx}
+      , context_alive{ctx ? ctx->alive : nullptr}
       , node{node}
   {
     node_id = context->ui->register_node(std::unique_ptr<score::gfx::Node>{node});
@@ -34,7 +41,11 @@ public:
     context->setEdge(source, sink, Process::CableType::ImmediateGlutton);
   }
 
-  virtual ~gfx_parameter_base() { context->ui->unregister_node(node_id); }
+  virtual ~gfx_parameter_base()
+  {
+    if(contextAlive())
+      context->ui->unregister_node(node_id);
+  }
 };
 
 class gfx_protocol_base : public ossia::net::protocol_base

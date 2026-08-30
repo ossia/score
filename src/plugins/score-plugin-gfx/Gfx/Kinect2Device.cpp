@@ -454,6 +454,7 @@ void kinect2_camera::processDepth(libfreenect2::Frame* depthFrame)
 class kinect2_parameter : public ossia::gfx::texture_parameter
 {
   GfxExecutionAction* context{};
+  std::shared_ptr<bool> context_alive;
 
 public:
   std::shared_ptr<kinect2_decoder> decoder;
@@ -465,6 +466,7 @@ public:
       GfxExecutionAction& ctx)
       : ossia::gfx::texture_parameter{n}
       , context{&ctx}
+      , context_alive{ctx.alive}
       , decoder{dec}
       , node{new score::gfx::CameraNode(decoder, dec->filter)}
   {
@@ -481,7 +483,11 @@ public:
     context->ui->send_message(std::move(m));
   }
 
-  virtual ~kinect2_parameter() { context->ui->unregister_node(node_id); }
+  virtual ~kinect2_parameter()
+  {
+    if(context_alive && *context_alive)
+      context->ui->unregister_node(node_id);
+  }
 };
 
 class kinect2_node : public ossia::net::node_base

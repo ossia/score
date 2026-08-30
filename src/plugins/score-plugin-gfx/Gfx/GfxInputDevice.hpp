@@ -39,6 +39,8 @@ class simple_texture_input_parameter : public ossia::gfx::texture_parameter
 {
   GfxExecutionAction* context{};
 
+  std::shared_ptr<bool> context_alive;
+
 public:
   int32_t node_id{score::gfx::invalid_node_index};
   score::gfx::Node* node{};
@@ -47,6 +49,7 @@ public:
       score::gfx::Node* gfx_n, GfxExecutionAction* ctx, ossia::net::node_base& n)
       : ossia::gfx::texture_parameter{n}
       , context{ctx}
+      , context_alive{ctx ? ctx->alive : nullptr}
       , node{gfx_n}
   {
     node_id = context->ui->register_node(std::unique_ptr<score::gfx::Node>{gfx_n});
@@ -62,7 +65,11 @@ public:
     context->ui->send_message(std::move(m));
   }
 
-  virtual ~simple_texture_input_parameter() { context->ui->unregister_node(node_id); }
+  virtual ~simple_texture_input_parameter()
+  {
+    if(context_alive && *context_alive)
+      context->ui->unregister_node(node_id);
+  }
 };
 
 class simple_texture_input_device;
@@ -149,6 +156,7 @@ class SCORE_PLUGIN_GFX_EXPORT video_texture_input_parameter
 {
   video_texture_input_protocol& proto;
   GfxExecutionAction* context{};
+  std::shared_ptr<bool> context_alive;
 
 public:
   std::shared_ptr<::Video::ExternalInput> camera;
