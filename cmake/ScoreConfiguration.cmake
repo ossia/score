@@ -94,6 +94,24 @@ if(SCORE_COVERAGE)
   add_link_options(--coverage)
 endif()
 
+# UBSan above -O0 is superlinear in the optimiser on this codebase: one
+# score_plugin_avnd TU measured >420 s and 5.7 GB at -O1 against ~14 s at -O0,
+# with identical sanitizer coverage.
+#
+# This is a workaround for a toolchain defect, not a property worth keeping.
+# Configure with -DSCORE_UBSAN_KEEP_OPTIMISATION=1 to build a UBSan tree at the
+# build type's own optimisation level and check whether the compiler still needs
+# it; delete this block once it does not.
+#
+# add_compile_options lands after CMAKE_CXX_FLAGS_<CONFIG>, so this wins over the
+# build type's -O2/-O3.
+if(CMAKE_CXX_FLAGS MATCHES "sanitize=[a-z,]*undefined"
+   AND NOT SCORE_UBSAN_KEEP_OPTIMISATION)
+  add_compile_options(-O0)
+  message(STATUS "score: -O0 project-wide (UBSan above -O0 is superlinear here; "
+                 "set SCORE_UBSAN_KEEP_OPTIMISATION=1 to test without it)")
+endif()
+
 # Note : if building with a Qt installed in e.g. /home/myuser/Qt/ or /Users/Qt or c:\Qt\
 # keep in mind that you have to call CMake with :
 # $ cmake -DCMAKE_MODULE_PATH={path/to/qt/5.3}/{gcc64,clang,msvc2013...}/lib/cmake/Qt5
