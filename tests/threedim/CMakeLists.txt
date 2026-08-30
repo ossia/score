@@ -200,3 +200,51 @@ score_add_test(test_threedim_cubemap_clamp
   GUI
   PLUGINS score_plugin_gfx score_plugin_scenario score_lib_process)
 threedim_test_includes(test_threedim_cubemap_clamp)
+
+# -----------------------------------------------------------------------------
+# ASSET INGESTION + MESH GENERATION. All CPU: parsers, primitive generators and
+# the descriptor-building code between them. None of these touch a QRhi, so they
+# run headless with no display.
+
+# The attribute-description layer every extraction strategy goes through
+# (attributeFormat*/isFloatFormat/findAttribute/attribute_lookup). Header-only;
+# score_plugin_gfx supplies the RenderState/RenderList declarations the header
+# pulls in.
+score_add_test(test_threedim_geometry_attributes
+  SOURCES GeometryAttributeLookup.cpp
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_geometry_attributes)
+
+# Primitive generators (Plane/Cube/Sphere/Icosahedron/Cone/Cylinder/Torus) and
+# ArrayToMesh. Both build on vcglib (header-only) and on the shared
+# createMesh/loadTriMesh expansion in Primitive.cpp; Qt Gui is needed for the
+# QMatrix4x4 in TinyObj.hpp.
+score_add_test(test_threedim_primitive_meshes
+  SOURCES PrimitiveMeshes.cpp
+    "${THREEDIM_DIR}/Primitive.cpp"
+    "${THREEDIM_DIR}/ArrayToGeometry.cpp"
+  LIBS ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_primitive_meshes)
+
+# MagicaVoxel ingestion: Vox.cpp (opengametools is header-only, pulled in by
+# Vox.cpp's own OGT_*_IMPLEMENTATION defines) plus the VoxelLoader node that
+# wraps it. Malformed .vox fixtures are driven in a forked child, so a parser
+# crash is reported instead of killing the executable.
+score_add_test(test_threedim_voxel_assets
+  SOURCES VoxelAssets.cpp
+    "${THREEDIM_DIR}/Vox.cpp"
+    "${THREEDIM_DIR}/VoxelLoader.cpp"
+  LIBS ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_voxel_assets)
+
+# GeometryLoader's extension dispatch and the four parsers behind it: TinyObj
+# (needs the mikktspace tangent generator), Ply (miniply) and VcgImporters
+# (STL/OFF, vcglib header-only). Also covers GaussianSplatsFromPly.
+score_add_test(test_threedim_geometry_loader_formats
+  SOURCES GeometryLoaderFormats.cpp
+    "${THREEDIM_DIR}/GeometryLoader.cpp"
+    "${THREEDIM_DIR}/TinyObj.cpp"
+    "${THREEDIM_DIR}/Ply.cpp"
+    "${THREEDIM_DIR}/VcgImporters.cpp"
+  LIBS ${QT_PREFIX}::Gui miniply mikktspace)
+threedim_test_includes(test_threedim_geometry_loader_formats)

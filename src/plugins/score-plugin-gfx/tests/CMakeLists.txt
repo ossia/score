@@ -61,3 +61,19 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND SCORE_LIBDRM_FOUND)
   target_include_directories(test_gfx_kms_output_port
     PRIVATE ${SCORE_LIBDRM_INCLUDE_DIRS})
 endif()
+# The slot rotation behind TextureShare. Header-only and atomic-only, so the
+# state machine that keeps the producer's render target and the consumer's
+# sampled texture apart is checkable exhaustively, with no QRhi and no GPU.
+score_add_test(test_gfx_triple_buffer_index
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/TripleBufferIndexTest.cpp"
+  PLUGINS score_plugin_gfx)
+
+# The ring/fence policy surface every GPU-direct video path consults before it
+# moves a byte: the BAR1 depth rule, the substituted no-op DMA lock, what a
+# stub fence is allowed to claim, and both slot rings' config gates. Uses
+# QRhi's Null backend for the bookkeeping around QRhi only -- never to conclude
+# anything about rendering.
+score_add_test(test_gfx_interop_ring_policy
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/InteropRingPolicyTest.cpp"
+  PLUGINS score_plugin_gfx
+  LIBS ${QT_PREFIX}::Gui)

@@ -876,6 +876,19 @@ if(TARGET score_plugin_gfx)
     LIBS ${QT_PREFIX}::Gui ${QT_PREFIX}::Widgets)
 endif()
 
+# --- shared-memory device settings serialization (score-plugin-gfx) ---------
+# Gfx::SharedInputSettings / Gfx::SharedOutputSettings are the device-specific
+# settings of Spout, Syphon, Sh4lt, Shmdata and Pipewire in and out: ten
+# protocols, one pair of JSON parsers. Both are exported from the plugin, so
+# nothing has to be recompiled into the test.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_gfx_shared_settings
+    SOURCES
+      GfxSharedSettingsSerializationTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui ${QT_PREFIX}::Widgets)
+endif()
+
 # --- video colour-space / tone-mapping GLSL generation (score-plugin-gfx) ---
 # ColorSpace.hpp and Tonemap.hpp are header-only families of pure functions of a
 # Video::ImageFormat, so the whole H.273 decision tree is checkable with no GPU,
@@ -886,6 +899,20 @@ if(TARGET score_plugin_gfx)
     SOURCES ColorSpaceShaderTest.cpp
     PLUGINS score_plugin_gfx score_plugin_media
     LIBS avutil avcodec ${QT_PREFIX}::Gui)
+endif()
+
+# --- Libav audio sample-format encoders (score-plugin-gfx) ------------------
+# Gfx/Libav/AudioFrameEncoder.hpp is the conversion between the engine's planar
+# float buffers and the sample layout the opened AVCodecContext wants. It is
+# pure arithmetic over an AVFrame whose buffers came from av_frame_get_buffer,
+# so interleave order, plane routing (including the extended_data branch past
+# AV_NUM_DATA_POINTERS), the writable() length clamp and the quantiser endpoints
+# are all checkable with no codec, no muxer and no device.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_audio_frame_encoder
+    SOURCES AudioFrameEncoderTest.cpp
+    PLUGINS score_plugin_gfx score_plugin_media
+    LIBS avutil ${QT_PREFIX}::Gui)
 endif()
 
 # --- GPU interop capability ladder (score-plugin-gfx) -----------------------

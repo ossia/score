@@ -80,6 +80,69 @@ score_add_test(test_integration_js_presets
   GUI
   PLUGINS score_plugin_scenario score_lib_process score_plugin_js score_plugin_library)
 
+# The CPU executor of the Javascript process (JS::js_node), driven port by port
+# and tick by tick: audio in and out asserted by sample value, value messages
+# with their timestamps, MIDI, buffer-size and channel-count changes, a
+# throwing tick, an unparseable script, live script replacement and
+# determinism. JsPresetsTest above never touches the node itself.
+score_add_test(test_integration_js_cpu_node
+  SOURCES JsCpuNodeTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process score_plugin_js score_plugin_library)
+
+# AudioOutlet::setChannel handed something that is not an array converts a NaN
+# to int and hands the result to QVector::resize(): the process aborts. Its own
+# executable because that abort truncates whatever binary it is in; the test
+# turns the abort into exit(1) with its own SIGABRT handler so WILL_FAIL can
+# invert it (ctest reports a signal death as "Subprocess aborted" and does not
+# invert that, and Catch2's [!shouldfail] never gets to report at all).
+# Registered with the CORRECT expectation: when the argument is validated this
+# test passes and the ctest entry goes red, which is the signal to drop
+# WILL_FAIL and fold the case back into test_integration_js_cpu_node.
+score_add_test(test_integration_js_setchannel
+  SOURCES JsSetChannelTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process score_plugin_js score_plugin_library)
+
+# The custom-UI half of the Javascript process: a UI script that loads, one
+# that does not parse, one whose root is not a ScriptUI, one that imports a
+# module that does not exist, no UI at all, and repeated show/hide.
+score_add_test(test_integration_js_process_ui
+  SOURCES JsProcessUiTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process score_plugin_js score_plugin_library)
+
+# JS::ProcessModel::rootPath() caches the Library settings model in a
+# function-local static reference, so the second score application built in a
+# process reads the first one's freed settings when a Javascript process is
+# created. Its own executable and WILL_FAIL because ASan aborts: registered
+# with the CORRECT expectation, so fixing rootPath() turns this entry red.
+score_add_test(test_integration_js_rootpath_static
+  SOURCES JsRootPathStaticTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process score_plugin_js score_plugin_library)
+set_tests_properties(test_integration_js_rootpath_static PROPERTIES WILL_FAIL TRUE)
+
+# Opening a Javascript process UI never emits externalUIVisible(true), so the
+# controls that opened it stay in the closed state. [!shouldfail] with the
+# correct expectation.
+score_add_test(test_integration_js_external_ui_visible
+  SOURCES JsExternalUiVisibleTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process score_plugin_js score_plugin_library)
+
+# Which executor a Javascript process gets is decided by the ports its script
+# declares (isGpu()): the texture ports must reach the model as Gfx ports and
+# editing the script must re-route the process in place. The GPU node's own
+# rendering is not covered here.
+score_add_test(test_integration_js_gpu_process
+  SOURCES JsGpuProcessTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process score_plugin_js score_plugin_library)
+if(TARGET score_plugin_gfx)
+  target_link_libraries(test_integration_js_gpu_process PRIVATE score_plugin_gfx)
+endif()
+
 score_add_test(test_integration_scenario_rename
   SOURCES ScenarioRenameTest.cpp
   APP
@@ -179,6 +242,17 @@ if(TARGET score AND NOT EMSCRIPTEN)
     "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\"")
   set_tests_properties(test_integration_script_exit_code PROPERTIES
     TIMEOUT 900 RUN_SERIAL TRUE)
+
+  # Every reachable slot of JS::EditJsContext called with null, a wrong-typed
+  # argument or a removed object handle, from a real --script run. Subprocess
+  # for the same reason: the behaviour under test is whether the application
+  # stays alive. Seven launches, so the timeout is generous.
+  score_add_test(test_integration_js_scripting_api
+    SOURCES JsScriptingApiTest.cpp)
+  target_compile_definitions(test_integration_js_scripting_api PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\"")
+  set_tests_properties(test_integration_js_scripting_api PROPERTIES
+    TIMEOUT 900 RUN_SERIAL TRUE)
 endif()
 
 # Score.remove() on a cable, which used to be a silent no-op. A subprocess test
@@ -226,9 +300,20 @@ if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
     SOURCES JsGraphE2ETest.cpp
     NO_CTEST)
 
+  # The gfx protocol factories and their device-settings parsers, reached the
+  # way a script reaches them: Score.availableProtocols() and
+  # Score.createDevice(name, uuid, obj). No device is expected to connect and
+  # nothing is rendered, so unlike the graph tests above this one needs no
+  # display and runs under ctest.
+  score_add_test(test_integration_gfx_protocol_settings
+    SOURCES GfxProtocolSettingsTest.cpp)
+  set_tests_properties(test_integration_gfx_protocol_settings
+    PROPERTIES TIMEOUT 600)
+
   foreach(_pw_tgt test_integration_pipewire_video_input
                   test_integration_pipewire_video_motion
-                  test_integration_js_graph_e2e)
+                  test_integration_js_graph_e2e
+                  test_integration_gfx_protocol_settings)
     target_link_libraries(${_pw_tgt} PRIVATE ${QT_PREFIX}::Gui)
     target_compile_definitions(${_pw_tgt} PRIVATE
       "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\""
