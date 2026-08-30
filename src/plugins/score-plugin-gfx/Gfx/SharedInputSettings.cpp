@@ -2,6 +2,8 @@
 
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
+#include <score/serialization/JSONParse.hpp>
+
 #include <QFormLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -103,7 +105,7 @@ void JSONReader::read(const Gfx::SharedInputSettings& n)
 template <>
 void JSONWriter::write(Gfx::SharedInputSettings& n)
 {
-  n.path = obj["Path"].toString();
+  score::parseJsonField(obj, "Path", n.path);
 }
 
 SCORE_SERALIZE_DATASTREAM_DEFINE(Gfx::SharedInputSettings);

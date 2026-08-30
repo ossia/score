@@ -3,6 +3,7 @@
 #include <State/MessageListSerialization.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
+#include <Gfx/SettingsJson.hpp>
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/Graph/VideoNode.hpp>
 
@@ -1579,6 +1580,6 @@ void JSONReader::read(const Gfx::GPhoto2::GPhoto2Settings& n)
 template <>
 void JSONWriter::write(Gfx::GPhoto2::GPhoto2Settings& n)
 {
-  n.model = obj["Model"].toString();
-  n.port = obj["Port"].toString();
+  Gfx::readJsonField(obj, "Model", n.model);
+  Gfx::readJsonField(obj, "Port", n.port);
 }

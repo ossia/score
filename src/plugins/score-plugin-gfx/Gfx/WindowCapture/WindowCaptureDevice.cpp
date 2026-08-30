@@ -7,6 +7,7 @@
 #include <Gfx/GfxInputDevice.hpp>
 #include <Gfx/WindowCapture/WindowCaptureNode.hpp>
 
+#include <score/serialization/JSONParse.hpp>
 #include <score/serialization/MimeVisitor.hpp>
 
 #include <ossia-qt/name_utils.hpp>
@@ -722,15 +723,14 @@ void JSONReader::read(const Gfx::WindowCapture::WindowCaptureSettings& n)
 template <>
 void JSONWriter::write(Gfx::WindowCapture::WindowCaptureSettings& n)
 {
-  n.mode = static_cast<Gfx::WindowCapture::CaptureMode>(
-      obj["Mode"].toInt());
-  n.windowTitle = obj["WindowTitle"].toString();
-  n.windowId = obj["WindowId"].toUInt64();
-  n.screenId = obj["ScreenId"].toUInt64();
-  n.screenName = obj["ScreenName"].toString();
-  n.regionX = obj["RegionX"].toInt();
-  n.regionY = obj["RegionY"].toInt();
-  n.regionW = obj["RegionW"].toInt();
-  n.regionH = obj["RegionH"].toInt();
-  n.fps = obj["FPS"].toDouble();
+  score::parseJsonField(obj, "Mode", n.mode);
+  score::parseJsonField(obj, "WindowTitle", n.windowTitle);
+  score::parseJsonField(obj, "WindowId", n.windowId);
+  score::parseJsonField(obj, "ScreenId", n.screenId);
+  score::parseJsonField(obj, "ScreenName", n.screenName);
+  score::parseJsonField(obj, "RegionX", n.regionX);
+  score::parseJsonField(obj, "RegionY", n.regionY);
+  score::parseJsonField(obj, "RegionW", n.regionW);
+  score::parseJsonField(obj, "RegionH", n.regionH);
+  score::parseJsonField(obj, "FPS", n.fps);
 }

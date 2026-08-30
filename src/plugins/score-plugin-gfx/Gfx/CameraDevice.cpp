@@ -11,6 +11,7 @@
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Media/LibavIntrospection.hpp>
 
+#include <score/serialization/JSONParse.hpp>
 #include <score/serialization/MimeVisitor.hpp>
 
 #include <ossia-qt/name_utils.hpp>
@@ -478,16 +479,12 @@ void JSONReader::read(const Gfx::CameraSettings& n)
 template <>
 void JSONWriter::write(Gfx::CameraSettings& n)
 {
-  n.input = obj["Input"].toString();
-  n.device = obj["Device"].toString();
-  n.size <<= obj["Size"];
-  n.fps = obj["FPS"].toDouble();
-  if(auto codec = obj.tryGet("Codec"))
-    n.codec = codec->toInt();
-  if(auto format = obj.tryGet("PixelFormat"))
-    n.pixelformat = format->toInt();
-  if(auto range = obj.tryGet("ColorRange"))
-    n.colorRange = range->toInt();
-  if(auto custom = obj.tryGet("Custom"))
-    n.custom = custom->toBool();
+  score::parseJsonField(obj, "Input", n.input);
+  score::parseJsonField(obj, "Device", n.device);
+  score::parseJsonField(obj, "Size", n.size);
+  score::parseJsonField(obj, "FPS", n.fps);
+  score::parseJsonField(obj, "Codec", n.codec);
+  score::parseJsonField(obj, "PixelFormat", n.pixelformat);
+  score::parseJsonField(obj, "ColorRange", n.colorRange);
+  score::parseJsonField(obj, "Custom", n.custom);
 }

@@ -59,10 +59,17 @@ struct MapSerializer
   {
     obj.clear();
 
+    if(!s.base.IsArray())
+      return;
+
     const auto& arr = s.base.GetArray();
     for(const auto& elt : arr)
     {
+      if(!elt.IsArray())
+        continue;
       const auto& pair = elt.GetArray();
+      if(pair.Size() < 2)
+        continue;
       typename Map_T::key_type key;
       typename Map_T::mapped_type value;
       key <<= JsonValue{pair[0]};

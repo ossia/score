@@ -6,6 +6,8 @@
 #include <Gfx/Window/WindowDevice.hpp>
 #include <Gfx/Window/WindowSettingsWidget.hpp>
 
+#include <score/serialization/JSONParse.hpp>
+
 #include <core/document/Document.hpp>
 #include <core/document/DocumentView.hpp>
 
@@ -373,32 +375,29 @@ template <>
 void JSONWriter::write(Gfx::WindowSettings& n)
 {
   // Backward compatibility with old format
-  if(auto v = obj.tryGet("Background"))
+  if(auto v = obj.tryGet("Background"); v && v->obj.IsBool())
   {
-    n.mode = v->toBool() ? Gfx::WindowMode::Background : Gfx::WindowMode::Single;
+    n.mode = v->obj.GetBool() ? Gfx::WindowMode::Background : Gfx::WindowMode::Single;
     return;
   }
 
-  if(auto v = obj.tryGet("Mode"))
-    n.mode = (Gfx::WindowMode)v->toInt();
-  if(auto v = obj.tryGet("Outputs"))
+  score::parseJsonField(obj, "Mode", n.mode);
+  if(auto v = obj.tryGet("Outputs"); v && v->obj.IsArray())
   {
-    const auto arr = v->toArray();
+    const auto arr = v->obj.GetArray();
     n.outputs.resize(arr.Size());
-    for(int i = 0; i < arr.Size(); i++)
+    for(rapidjson::SizeType i = 0; i < arr.Size(); i++)
     {
+      if(!arr[i].IsObject())
+        continue;
       JSONWriter w{arr[i]};
       w.write(n.outputs[i]);
     }
   }
-  if(auto v = obj.tryGet("InputWidth"))
-    n.inputWidth = v->toInt();
-  if(auto v = obj.tryGet("InputHeight"))
-    n.inputHeight = v->toInt();
-  if(auto v = obj.tryGet("SwapchainFlag"))
-    n.flag = (Gfx::SwapchainFlag)v->toInt();
-  if(auto v = obj.tryGet("SwapchainFormat"))
-    n.format = (Gfx::SwapchainFormat)v->toInt();
+  score::parseJsonField(obj, "InputWidth", n.inputWidth);
+  score::parseJsonField(obj, "InputHeight", n.inputHeight);
+  score::parseJsonField(obj, "SwapchainFlag", n.flag);
+  score::parseJsonField(obj, "SwapchainFormat", n.format);
 }
 
 SCORE_SERALIZE_DATASTREAM_DEFINE(Gfx::WindowSettings);
