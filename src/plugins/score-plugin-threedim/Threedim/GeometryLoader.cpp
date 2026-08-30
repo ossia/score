@@ -81,7 +81,7 @@ void GeometryLoader::rebuild_geometry()
     {
       geom.bindings.push_back(
           halp::geometry_binding{
-              .stride = 3 * sizeof(float),
+              .stride = int(m.color_components * sizeof(float)),
               .step_rate = 1,
               .classification = halp::binding_classification::per_vertex});
     }
@@ -129,7 +129,8 @@ void GeometryLoader::rebuild_geometry()
           halp::geometry_attribute{
               .binding = geom.attributes.back().binding + 1,
               .semantic = halp::attribute_semantic::color0,
-              .format = halp::attribute_format::float3,
+              .format = m.color_components == 4 ? halp::attribute_format::float4
+                                                : halp::attribute_format::float3,
               .byte_offset = 0});
     }
 

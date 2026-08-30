@@ -354,7 +354,7 @@ TEST_CASE("an ASCII OFF loads as de-indexed triangles",
 
 TEST_CASE(
     "a coloured OFF describes its colour stream with the stride it wrote",
-    "[threedim][geomloader][off][!shouldfail]")
+    "[threedim][geomloader][off]")
 {
   // DEFECT: VcgImporters::convertVcgToMeshes writes colours as RGBA — four
   // floats per corner — but rebuild_geometry (in both GeometryLoader.cpp and
