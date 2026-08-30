@@ -62,6 +62,7 @@ convertVcgToMeshes(const ImpMesh& vm, Threedim::float_vec& out, int loadmask)
   m.texcoord = false;
   m.normals  = has_normal;
   m.colors   = has_color;
+  m.color_components = 4;
   m.tangents = false;
   m.points   = !has_faces;
   m.extras.clear();

@@ -31,6 +31,10 @@ struct mesh {
   bool texcoord{};
   bool normals{};
   bool colors{};
+  // How many floats per vertex the colour stream actually carries. PLY writes
+  // three, the vcg importers write four, and a consumer that assumes either one
+  // reads every vertex after the first at the wrong offset.
+  int color_components{3};
   bool tangents{};
   bool points{};
   std::vector<extra_attribute> extras;
