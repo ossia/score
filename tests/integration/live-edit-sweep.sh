@@ -79,9 +79,30 @@ declare -A CFG=(
   [transport-storm]="18 no"
   [mixed-chaos]="20 yes"
   [window-storm]="24 yes"
+  [camera-storm]="20 yes"
+  [ndi-storm]="20 yes"
 )
 ORDER=(baseline add-remove-storm cable-storm undo-redo-during-play transport-storm mixed-chaos
-       window-storm)
+       window-storm camera-storm ndi-storm)
+
+# Device-backed scenarios need the device. Absent hardware is a SKIP with the
+# reason printed, never a silent pass -- but it stays a skip rather than the
+# hard failure this file's media wrapper uses, because a camera and an NDI
+# runtime are genuinely optional on a build host. SCORE_REQUIRE_DEVICES=1
+# turns both into failures, which is what a bench machine should set.
+NDI_MACHINE="$(hostname | tr '[:lower:]' '[:upper:]')"
+
+precondition() { # name -> 0 runnable, 1 not (reason on stdout)
+  case "$1" in
+    camera-storm)
+      for d in /dev/video*; do [ -e "$d" ] && return 0; done
+      echo "no /dev/video* on this host"; return 1 ;;
+    ndi-storm)
+      ldconfig -p 2>/dev/null | grep -q 'libndi\.so' && return 0
+      echo "libndi is not installed"; return 1 ;;
+  esac
+  return 0
+}
 
 send() { oscsend 127.0.0.1 "$OSC" "$@" 2>/dev/null; }
 
@@ -120,7 +141,9 @@ run_scenario() { # name nticks
   # serves ES imports, not readFile. Staging keeps the .js files free of any
   # absolute path.
   local js="$OUT/$name.js"
-  { printf 'var LIVE_EDIT_DIR = "%s";\n' "$DIR"; cat "$DIR/$name.js"; } > "$js"
+  { printf 'var LIVE_EDIT_DIR = "%s";\n' "$DIR"
+    printf 'var NDI_MACHINE = "%s";\n' "$NDI_MACHINE"
+    cat "$DIR/$name.js"; } > "$js"
   rm -f "$OUT/$name-init.score" "$OUT/$name-final.score" "$OUT/$name.png" \
         "$OUT/$name.profraw" "$log" "$HOME/.config/ossia/failsafe.bit"
   (
@@ -196,17 +219,25 @@ verdict() { # name require_render -> prints one line, returns nonzero on finding
   [ "$rc" = 124 ] && bad+="(TIMEOUT/hang)"
   grep -q "TICK-ERROR" "$log" 2>/dev/null && bad+=" JSERR"
   local ticks; ticks=$(grep -c "\[live-edit\] tick " "$log" 2>/dev/null); ticks=${ticks:-0}
-  local mean="-"
+  local mean="-" dom="-"
   if [ -s "$png" ]; then
     mean=$(convert "$png" -format '%[fx:mean]' info: 2>/dev/null || echo 0)
+    # The mean alone is ambiguous -- magenta and yellow share it, and a quarter
+    # of a frame over black reads as "not blank" while being visibly wrong. The
+    # dominant non-black colour and its coverage make that visible in every run
+    # instead of only when someone opens the png.
+    dom=$(convert "$png" -colors 8 -format '%c' histogram:info: 2>/dev/null \
+          | grep -av '#000000' | sort -rn | head -1 \
+          | sed -E 's/^ *([0-9]+):.*(#[0-9A-Fa-f]{6}).*/\2x\1px/')
+    dom="${dom:--}"
     if [ "$require" = yes ] && ! awk "BEGIN{exit !($mean > $BLANK_MEAN)}"; then bad+=" BLANK"; fi
   else
     [ "$require" = yes ] && bad+=" NORENDER"
   fi
   if [ -z "$bad" ]; then
-    printf '  %-24s PASS   ticks=%s mean=%s%s\n' "$name" "$ticks" "$mean" "$note"; return 0
+    printf '  %-24s PASS   ticks=%s mean=%s dom=%s%s\n' "$name" "$ticks" "$mean" "$dom" "$note"; return 0
   else
-    printf '  %-24s FAIL  %s (ticks=%s mean=%s log=%s)\n' "$name" "$bad" "$ticks" "$mean" "$log"; return 1
+    printf '  %-24s FAIL  %s (ticks=%s mean=%s dom=%s log=%s)\n' "$name" "$bad" "$ticks" "$mean" "$dom" "$log"; return 1
   fi
 }
 
@@ -232,9 +263,20 @@ coverage() { # name — list of gfx functions with >0 region coverage
 }
 
 FAILED=0
+SKIPPED=0
 for name in "${ORDER[@]}"; do
   [ $# -gt 0 ] && { printf '%s\n' "$@" | grep -qx "$name" || continue; }
   read -r nticks require <<< "${CFG[$name]}"
+  # A/B handle: NTICKS=0 runs a scenario's scene with no mutations at all, which
+  # is how you tell "this chain never worked" from "the storm broke it".
+  nticks="${NTICKS:-$nticks}"
+  if ! why=$(precondition "$name"); then
+    if [ "${SCORE_REQUIRE_DEVICES:-0}" = 1 ]; then
+      printf '  %-24s FAIL   %s (SCORE_REQUIRE_DEVICES=1)\n' "$name" "$why"
+      FAILED=$((FAILED+1)); continue
+    fi
+    printf '  %-24s SKIP   %s\n' "$name" "$why"; SKIPPED=$((SKIPPED+1)); continue
+  fi
   echo "=== $name (${nticks} ticks @ ${TICK}s) ==="
   run_scenario "$name" "$nticks"
   verdict "$name" "$require" || FAILED=$((FAILED+1))
