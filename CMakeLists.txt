@@ -343,6 +343,12 @@ endif()
 if(SCORE_TESTING)
   include(ScoreTests)
   add_subdirectory(tests)
+
+  # Deliberately here and not in tests/CMakeLists.txt: this compares what the
+  # test tree registers against what it contains, and a rework of that tree
+  # must not be able to delete its own guard along with the registrations.
+  include(ScoreTestRegistrationGuard)
+  score_check_test_registration()
 endif()
 
 # Backwards-compatible aliases for the legacy flags (kept temporarily).
