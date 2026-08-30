@@ -689,4 +689,18 @@ score_add_test(test_unit_scene_camera_aux
     SOURCES IsfUniformInputUsageTest.cpp
     PLUGINS score_plugin_gfx score_lib_process
     LIBS ${QT_PREFIX}::Gui)
+
+  # The output renderers' null-pipeline guard. ScaledRenderer is not exported
+  # from the dynamic plugin, so InvertYRenderer.cpp -- which defines both it and
+  # InvertYRenderer -- is compiled into the test. ISOLATED: the defect aborts
+  # the process rather than failing an assertion, which would take any
+  # co-located test case down with it.
+  score_plugin_hidden_sources(_null_pipeline_hidden
+      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx/Gfx/InvertYRenderer.cpp")
+  score_add_test(test_unit_output_null_pipeline
+    SOURCES
+      OutputNullPipelineTest.cpp
+      ${_null_pipeline_hidden}
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
 endif()
