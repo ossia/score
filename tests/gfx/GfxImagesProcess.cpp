@@ -236,11 +236,10 @@ TEST_CASE("fromImageSet round-trips the image paths", "[gfx][images][gui]")
 // cache stops being a cache exactly in the case it exists for, and the next
 // acquire re-decodes from disk.
 //
-// Expected-failure so that fixing the refcount turns this case green and
-// Catch2 flags the [!shouldfail].
+// Fixed: acquire() inserts at 1.
 TEST_CASE(
     "The image cache survives two processes sharing one file",
-    "[gfx][images][gui][!shouldfail]")
+    "[gfx][images][gui]")
 {
   // The documented scenario: two Images processes list the same file. The
   // cache is a process-global refcount, so whichever process releases first

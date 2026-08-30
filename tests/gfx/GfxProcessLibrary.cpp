@@ -125,12 +125,12 @@ TEST_CASE("Every Gfx drop and library handler is registered", "[gfx][library][gu
 // FW<Library::LibraryInterface, …> list right below it, so a .cs compute shader
 // appears in the library tree and cannot be dragged into a score at all.
 //
-// Expected-failure rather than an assertion of the bug: when the handler is
-// added to that list this case starts passing, Catch2 reports the [!shouldfail]
-// as a failure, and whoever fixed it removes the tag.
+// Fixed: CSF and VSA dropped the two overrides they declared and never defined,
+// which is what left their vtables undefined, and all three handlers are
+// registered.
 TEST_CASE(
     "A compute shader can be dropped into the score",
-    "[gfx][library][gui][!shouldfail]")
+    "[gfx][library][gui]")
 {
   run_in_gui_app([](const score::GUIApplicationContext& ctx) {
     score::Document* doc = new_document(ctx);
