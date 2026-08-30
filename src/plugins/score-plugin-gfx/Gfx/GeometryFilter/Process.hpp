@@ -9,6 +9,8 @@
 
 #include <isf.hpp>
 
+#include <score_plugin_gfx_export.h>
+
 namespace Gfx::GeometryFilter
 {
 struct ProcessedGeometryProgram
@@ -17,7 +19,7 @@ struct ProcessedGeometryProgram
   QString shader;
 };
 
-class Model final : public Process::ProcessModel
+class SCORE_PLUGIN_GFX_EXPORT Model final : public Process::ProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Gfx::GeometryFilter::Model)

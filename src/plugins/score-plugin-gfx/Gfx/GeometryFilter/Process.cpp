@@ -188,8 +188,13 @@ Process::ScriptChangeResult Model::setScript(const QString& f)
       setupIsf(m_processedProgram.descriptor);
       return {.valid = true, .inlets = std::move(inls), .outlets = {}};
     }
+    catch(const std::exception& e)
+    {
+      this->errorMessage(0, e.what());
+    }
     catch(...)
     {
+      this->errorMessage(0, "Unknown error parsing geometry filter");
     }
     return {.valid = false, .inlets = std::move(inls), .outlets = {}};
   }

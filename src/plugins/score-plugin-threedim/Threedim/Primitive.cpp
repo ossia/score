@@ -4,6 +4,8 @@
 #include <Threedim/TinyObj.hpp>
 
 #include <QDebug>
+
+#include <cmath>
 #include <QString>
 
 namespace Threedim
@@ -14,6 +16,10 @@ static auto createMesh(TMesh& mesh, std::vector<float>& complete)
   vcg::tri::Clean<TMesh>::RemoveZeroAreaFace(mesh);
   vcg::tri::UpdateTopology<TMesh>::FaceFace(mesh);
   vcg::tri::Clean<TMesh>::RemoveNonManifoldFace(mesh);
+  // vcglib deletes lazily — a flag on the element, no compaction — so
+  // without this the fill loop below would expand deleted faces into the
+  // published buffer as if the three cleanup calls above had never run.
+  vcg::tri::Allocator<TMesh>::CompactEveryVector(mesh);
   vcg::tri::UpdateTopology<TMesh>::FaceFace(mesh);
   vcg::tri::UpdateNormal<TMesh>::PerVertexNormalized(mesh);
   vcg::tri::UpdateTexture<TMesh>::WedgeTexFromPlane(
@@ -70,27 +76,36 @@ static auto createMesh(TMesh& mesh, std::vector<float>& complete)
     (*norm_start++) = n2.Y();
     (*norm_start++) = n2.Z();
 
-#if 0
-    auto uv0 = fi.WT(0);
-    (*uv_start++) = uv0.U();
-    (*uv_start++) = uv0.V();
+    // Per-face parameterization: project each corner onto the plane
+    // orthogonal to the face normal's dominant axis (box mapping).
+    // A global uv = pos.xy would collapse every face parallel to the Z
+    // axis (e.g. 8 of the cube's 12 triangles) to zero UV area; for a
+    // Z-facing surface such as the Plane this reduces to (x, y), its
+    // natural parameterization.
+    const auto fnrm = (p1 - p0) ^ (p2 - p0);
+    const float ax = std::abs(fnrm.X());
+    const float ay = std::abs(fnrm.Y());
+    const float az = std::abs(fnrm.Z());
+    int u_axis = 0, v_axis = 1; // normal mostly Z -> (x, y)
+    if(ax >= ay && ax >= az)
+    {
+      u_axis = 1; // normal mostly X -> (y, z)
+      v_axis = 2;
+    }
+    else if(ay >= ax && ay >= az)
+    {
+      u_axis = 0; // normal mostly Y -> (x, z)
+      v_axis = 2;
+    }
 
-    auto uv1 = fi.WT(1);
-    (*uv_start++) = uv1.U();
-    (*uv_start++) = uv1.V();
+    (*uv_start++) = p0[u_axis];
+    (*uv_start++) = p0[v_axis];
 
-    auto uv2 = fi.WT(2);
-    (*uv_start++) = uv2.U();
-    (*uv_start++) = uv2.V();
-#endif
-    (*uv_start++) = p0.X();
-    (*uv_start++) = p0.Y();
+    (*uv_start++) = p1[u_axis];
+    (*uv_start++) = p1[v_axis];
 
-    (*uv_start++) = p1.X();
-    (*uv_start++) = p1.Y();
-
-    (*uv_start++) = p2.X();
-    (*uv_start++) = p2.Y();
+    (*uv_start++) = p2[u_axis];
+    (*uv_start++) = p2[v_axis];
   }
 
   return std::make_tuple(vertices, pos_start, norm_start, uv_start);

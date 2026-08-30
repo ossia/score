@@ -177,6 +177,18 @@ score_add_gfx_test(orientation_findings GfxOrientationFindings.cpp)
 # all put the framebuffer origin at the top and need nothing.
 score_add_gfx_test(csf_orient_macros GfxCsfOrientMacros.cpp)
 
+# The QRhi<->CUDA fence, against a real device on every backend this box brings
+# up. The vendor GPU-direct rungs gate on InteropFence::valid() and trust
+# waitOnCuda() before letting a peer DMA-read a buffer, so what each backend's
+# implementation does when its bridge is absent is a correctness question, not
+# a capability one. The no-GPU half (the fallback stub) lives in
+# src/plugins/score-plugin-gfx/tests/InteropRingPolicyTest.cpp.
+score_add_test(test_gfx_interop_fence
+  SOURCES InteropFenceBackends.cpp
+  GUI
+  PLUGINS score_plugin_gfx score_lib_process
+  LIBS test_gfx_engine_glue)
+
 # ISOLATED, EXPECTED-RED: the VSA triangle cull-mode cross-backend divergence
 # (R3-N4 area). A front-facing VSA triangle is culled on exactly one backend
 # regardless of winding (OpenGL draws / Vulkan culls, or vice-versa) — there is
@@ -361,6 +373,26 @@ score_add_test(test_gfx_dmacapture_ladder
   GUI
   PLUGINS score_plugin_gfx score_plugin_media score_plugin_scenario score_lib_process
   LIBS test_gfx_engine_glue)
+# -----------------------------------------------------------------------------
+# What the packed / high-bit-depth GPU video decoders put on screen.
+#
+# VideoDecoderFactoryTest proves the AVPixelFormat -> decoder-class choice and
+# tests/integration/video-decode-correctness.sh proves real pixels, but only for
+# formats ffmpeg can round-trip through a container that preserves the pix_fmt.
+# y210 / xv30 / vuya / vuyx / yuva444p12 have no such container, so their unpack
+# and colour conversion were never asserted. Here the frames are synthesised
+# byte by byte (layouts and expected RGB cross-checked against ffmpeg swscale)
+# and pushed through a real CameraNode -> VideoNodeRenderer ->
+# createGPUVideoDecoder -> offscreen readback, on every available RHI backend.
+if(TARGET score_plugin_media)
+  score_add_test(test_gfx_video_decoder_pixels
+    SOURCES VideoDecoderPixels.cpp
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_media score_plugin_scenario
+            score_lib_process
+    LIBS test_gfx_engine_glue avutil)
+endif()
+
 # -----------------------------------------------------------------------------
 # Multi-window output editing canvases (Gfx/Window). Pure geometry driven
 # through QGraphicsScene::sendEvent: coordinate mapping, snapping, canvas
@@ -620,4 +652,66 @@ if(TARGET test_gfx_gstreamer_presets)
     MATRIX
     TIMEOUT    3600
     ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+endif()
+
+# -----------------------------------------------------------------------------
+# The Gfx PROCESS layer: the seven Process::ProcessModel subclasses of
+# Gfx/{Images,Filter,GeometryFilter,CSF,VSA,Video,Text}, the Change* commands a
+# live edit drives through them, and the library/drop handlers that decide which
+# file becomes which process. Everything above builds score::gfx nodes by hand;
+# none of it ever constructs a process model, so this whole layer had no test.
+#
+# GUI, not APP: these run undo/redo of commands that save and restore ports and
+# cables (Scenario::EditScript), which goes through the document presenter. They
+# also deliberately do NOT force the offscreen QPA platform -- offscreen has no
+# GL, and a test in this directory that later grows a render assertion would
+# then run on the Null RHI backend and pass vacuously.
+#
+#   *_shader_commands  ChangeShader / ChangeGeometryShader / ChangeCSF /
+#                      ChangeVSAShader: port surface after an edit, after an
+#                      UNPARSEABLE edit, and across chained undo/redo.
+#   *_images           Gfx/Images: index domain driven by the files on disk,
+#                      unreadable / corrupt / unsupported entries, the shared
+#                      ImageCache refcount, and the list-editor widget's
+#                      undoable write-back.
+#   *_video_text       Gfx/Video property commands + a real clip's duration
+#                      (SKIPs without SCORE_TEST_MEDIA_DIR or ffmpeg), and the
+#                      8-inlet contract Gfx/Text's executor hard-codes.
+#   *_library          Drop and library handlers by uuid through the real
+#                      registries, incl. the two Shadertoy URL guards WITHOUT
+#                      touching the network.
+function(score_add_gfx_process_test name source)
+  score_add_test(test_gfx_process_${name}
+    SOURCES ${source}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_scenario score_plugin_library
+            score_plugin_media score_lib_process score_lib_device
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_process_${name} PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+endfunction()
+
+score_add_gfx_process_test(shader_commands GfxShaderCommands.cpp)
+score_add_gfx_process_test(images          GfxImagesProcess.cpp)
+score_add_gfx_process_test(video_text      GfxVideoTextProcess.cpp)
+score_add_gfx_process_test(library         GfxProcessLibrary.cpp)
+
+# -----------------------------------------------------------------------------
+# Gfx/Spout (Windows/x86_64) and Gfx/Syphon (macOS). Neither compiles on Linux,
+# so this target must build EVERYWHERE and change what it asserts instead of
+# whether it exists: on the supporting platform it drives the four protocol
+# factories, everywhere else it asserts they are NOT registered and then SKIPs
+# with the reason. The two conditions below must stay identical to the ones in
+# src/plugins/score-plugin-gfx/CMakeLists.txt that set SCORE_HAS_SPOUT / the
+# APPLE branch -- that is the only coupling, and the third test case in the file
+# fails loudly if they ever drift apart.
+score_add_test(test_gfx_shared_texture_io
+  SOURCES GfxSharedTextureIO.cpp
+  GUI
+  PLUGINS score_plugin_gfx score_lib_device score_lib_process)
+if(WIN32 AND "${CMAKE_SYSTEM_PROCESSOR}" MATCHES "(x86_64|AMD64)")
+  target_compile_definitions(test_gfx_shared_texture_io PRIVATE GFX_TEST_HAS_SPOUT=1)
+endif()
+if(APPLE)
+  target_compile_definitions(test_gfx_shared_texture_io PRIVATE GFX_TEST_HAS_SYPHON=1)
 endif()
