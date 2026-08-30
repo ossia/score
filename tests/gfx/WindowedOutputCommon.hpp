@@ -20,6 +20,10 @@
 #include <Gfx/Graph/ScreenNode.hpp>
 #include <Gfx/Graph/Window.hpp>
 
+#if defined(_WIN32)
+#include <windows.h>
+#endif
+
 #include <QElapsedTimer>
 #include <QGuiApplication>
 #include <QScreen>
@@ -129,6 +133,24 @@ inline bool can_present()
     cached = 0;
     return false;
   }
+
+#if defined(_WIN32)
+  // A session-0 window station (any process launched over ssh, or as a service)
+  // has no interactive desktop. QWindow::show() and isExposed() both succeed
+  // there anyway, so the probe below is not sufficient on its own; WSF_VISIBLE
+  // is what actually distinguishes an interactive station.
+  if(HWINSTA sta = GetProcessWindowStation())
+  {
+    USEROBJECTFLAGS flags{};
+    DWORD len = 0;
+    if(GetUserObjectInformationW(sta, UOI_FLAGS, &flags, sizeof(flags), &len)
+       && !(flags.dwFlags & WSF_VISIBLE))
+    {
+      cached = 0;
+      return false;
+    }
+  }
+#endif
 
   QWindow w;
   w.setSurfaceType(QSurface::OpenGLSurface);
