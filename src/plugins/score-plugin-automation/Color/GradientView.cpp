@@ -40,15 +40,15 @@ void View::setDataWidth(double x)
   update();
 }
 
-const constexpr double side = 7;
-static const QPainterPath& triangle{[] {
+static const constexpr double side = 7;
+Q_GLOBAL_STATIC_WITH_ARGS(QPainterPath, triangle, ([] {
   QPainterPath path;
   path.moveTo(0, 0);
   path.lineTo(side, 0);
   path.lineTo(side / 2., side / 1.5);
   path.lineTo(0, 0);
   return path;
-}()};
+}()));
 
 void View::paint_impl(QPainter* p) const
 {
@@ -125,7 +125,7 @@ void View::paint_impl(QPainter* p) const
     p->setCompositionMode(QPainter::CompositionMode_Source);
     p->drawLine(QPointF{side / 2., 0}, QPointF{side / 2., height()});
     p->setCompositionMode(QPainter::CompositionMode_SourceOver);
-    p->drawPath(triangle);
+    p->drawPath(*triangle);
     p->restore();
   }
 }
@@ -227,7 +227,7 @@ static constexpr bool array_is_between(const auto& arr, float min, float max) no
 
 void View::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
-  for(auto m : event->mimeData()->formats())
+  for(const auto& m : event->mimeData()->formats())
   {
     if(m == score::mime::messagelist())
     {

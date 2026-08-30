@@ -30,17 +30,17 @@
 W_OBJECT_IMPL(Scenario::StateView)
 namespace Scenario
 {
-static const QPainterPath smallNonDilated{[] {
+Q_GLOBAL_STATIC_WITH_ARGS(QPainterPath, smallNonDilated, ([] {
   QPainterPath p;
   p.addEllipse({0, 0}, StateView::pointRadius, StateView::pointRadius);
   return p;
-}()};
-static const QPainterPath fullNonDilated{[] {
+}()));
+Q_GLOBAL_STATIC_WITH_ARGS(QPainterPath, fullNonDilated, ([] {
   QPainterPath p;
   p.addEllipse({0, 0}, StateView::fullRadius, StateView::fullRadius);
   return p;
-}()};
-static const QPainterPath fullProcessNonDilated{[] {
+}()));
+Q_GLOBAL_STATIC_WITH_ARGS(QPainterPath, fullProcessNonDilated, ([] {
   QPainterPath p;
   p.addPolygon({
       {0, StateView::fullRadius},
@@ -49,22 +49,22 @@ static const QPainterPath fullProcessNonDilated{[] {
       {-StateView::fullRadius, 0},
   });
   return p;
-}()};
-static const QPainterPath smallDilated{[] {
+}()));
+Q_GLOBAL_STATIC_WITH_ARGS(QPainterPath, smallDilated, ([] {
   QPainterPath p;
   p.addEllipse(
       {0, 0}, StateView::pointRadius * StateView::dilated,
       StateView::pointRadius * StateView::dilated);
   return p;
-}()};
-static const QPainterPath fullDilated{[] {
+}()));
+Q_GLOBAL_STATIC_WITH_ARGS(QPainterPath, fullDilated, ([] {
   QPainterPath p;
   p.addEllipse(
       {0, 0}, StateView::fullRadius * StateView::dilated,
       StateView::fullRadius * StateView::dilated);
   return p;
-}()};
-static const QPainterPath fullProcessDilated{[] {
+}()));
+Q_GLOBAL_STATIC_WITH_ARGS(QPainterPath, fullProcessDilated, ([] {
   QPainterPath p;
   p.addPolygon({
       {0, StateView::fullRadius * StateView::dilated},
@@ -73,7 +73,7 @@ static const QPainterPath fullProcessDilated{[] {
       {-StateView::fullRadius * StateView::dilated, 0},
   });
   return p;
-}()};
+}()));
 static bool is_hidpi()
 {
   static const bool vector_gui = score::AppContext().applicationSettings.vector_gui;
@@ -119,19 +119,19 @@ QPainterPath StateView::shape() const
   QPainterPath p;
   if(m_dilated)
   {
-    p = smallDilated;
+    p = *smallDilated;
     if(m_containMessage)
-      p |= fullDilated;
+      p |= *fullDilated;
     if(m_containProcess)
-      p |= fullProcessDilated;
+      p |= *fullProcessDilated;
   }
   else
   {
-    p = smallNonDilated;
+    p = *smallNonDilated;
     if(m_containMessage)
-      p |= fullNonDilated;
+      p |= *fullNonDilated;
     if(m_containProcess)
-      p |= fullProcessNonDilated;
+      p |= *fullProcessNonDilated;
   }
   return p;
 }
@@ -157,9 +157,9 @@ void StateView::paint(
   {
     painter->setBrush(skin.StateOutline());
     if(m_dilated)
-      painter->drawPath(fullDilated);
+      painter->drawPath(*fullDilated);
     else
-      painter->drawPath(fullNonDilated);
+      painter->drawPath(*fullNonDilated);
   }
   if(m_execPing.running())
   {
@@ -180,9 +180,9 @@ void StateView::paint(
     painter->setBrush(brush);
   }
   if(m_dilated)
-    painter->drawPath(smallDilated);
+    painter->drawPath(*smallDilated);
   else
-    painter->drawPath(smallNonDilated);
+    painter->drawPath(*smallNonDilated);
 
 #if defined(SCORE_SCENARIO_DEBUG_RECTS)
   painter->setBrush(Qt::NoBrush);
@@ -195,9 +195,9 @@ void StateView::paint(
   {
     painter->setBrush(skin.StateOutline());
     if(m_dilated)
-      painter->drawPath(fullProcessDilated);
+      painter->drawPath(*fullProcessDilated);
     else
-      painter->drawPath(fullProcessNonDilated);
+      painter->drawPath(*fullProcessNonDilated);
   }
 }
 
