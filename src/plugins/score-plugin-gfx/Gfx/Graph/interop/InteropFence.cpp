@@ -82,18 +82,27 @@ struct InteropFenceGL final : InteropFence
 };
 
 // =============================================================================
-// Vulkan — stub (used when Qt is built without Vulkan support)
+// Stub — Qt built without Vulkan support, and every backend with no CUDA
+// interop path. It is handed its reason rather than assuming one.
 // =============================================================================
 
 struct InteropFenceVulkanStub final : InteropFence
 {
   bool valid() const noexcept override { return false; }
 
+  explicit InteropFenceVulkanStub(const char* reason) noexcept
+      : m_reason{reason}
+  {
+  }
+
   bool init(QRhi&, CudaInteropContextHandle) override
   {
-    qDebug() << "InteropFence(Vulkan): stub — Qt built without Vulkan support.";
+    qDebug() << "InteropFence: no CUDA fence available —" << m_reason;
     return false;
   }
+
+  const char* m_reason{};
+
   void release() override { }
   void signalAfterEncode(QRhiCommandBuffer&, std::uint64_t) override { }
   bool waitOnCuda(std::uint64_t) override { return false; }
@@ -237,7 +246,8 @@ std::unique_ptr<InteropFence> makeInteropFence(QRhi& rhi)
 #if QT_HAS_VULKAN && QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
       return std::make_unique<InteropFenceVulkan>();
 #else
-      return std::make_unique<InteropFenceVulkanStub>();
+      return std::make_unique<InteropFenceVulkanStub>(
+          "Qt built without Vulkan support");
 #endif
 #if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
     case QRhi::D3D12:
@@ -245,7 +255,8 @@ std::unique_ptr<InteropFence> makeInteropFence(QRhi& rhi)
 #endif
     default:
       qWarning() << "makeInteropFence: unsupported backend" << rhi.backend();
-      return std::make_unique<InteropFenceVulkanStub>(); // returns invalid()
+      return std::make_unique<InteropFenceVulkanStub>(
+          "this RHI backend has no CUDA interop path"); // returns invalid()
   }
 }
 
