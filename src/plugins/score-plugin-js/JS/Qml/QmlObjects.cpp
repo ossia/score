@@ -1,4 +1,6 @@
 #include "QmlObjects.hpp"
+
+#include <limits>
 #include <Process/Process.hpp>
 
 #include <JS/Qml/Metatypes.hpp>
