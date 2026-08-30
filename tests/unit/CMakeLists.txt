@@ -680,4 +680,13 @@ score_add_test(test_unit_scene_camera_aux
     SOURCES DepthClearCompareTest.cpp
     PLUGINS score_plugin_gfx
     LIBS ${QT_PREFIX}::Gui)
+
+  # bindUpstreamBuffers' uniform_input usage check. bindUpstreamBuffers and
+  # RenderList are exported, so only the test TU is built; the QRhi it needs
+  # comes from score_plugin_gfx's PUBLIC Qt::GuiPrivate link. Runs on the Null
+  # backend on purpose -- the assertion is a CPU binding decision.
+  score_add_test(test_unit_isf_uniform_input_usage
+    SOURCES IsfUniformInputUsageTest.cpp
+    PLUGINS score_plugin_gfx score_lib_process
+    LIBS ${QT_PREFIX}::Gui)
 endif()
