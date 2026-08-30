@@ -337,7 +337,7 @@ Outcome render_camera(
 // re-expressed at 10 or 12 bits (128/255 vs 512/1023 is 0.4 of a code). It is
 // far below every error class the table is built to catch: the smallest of them,
 // a limited/full range mistake, moves grey by 16 codes.
-constexpr int kTol = 3;
+constexpr int kTol = 1;
 
 void check_color(const ReadbackImage& img, const Color& c, const char* what)
 {
