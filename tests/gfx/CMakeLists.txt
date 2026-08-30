@@ -173,9 +173,21 @@ score_add_gfx_test(graph_torture GfxGraphTorture.cpp)
 score_add_gfx_test(orientation_findings GfxOrientationFindings.cpp)
 
 # The storage-image macros that make a compute generator portable: they correct
-# the read and the store together, on OpenGL alone -- Direct3D, Metal and Vulkan
-# all put the framebuffer origin at the top and need nothing.
+# the read and the store together, on every backend except Vulkan -- measured,
+# not derived from where each backend puts the framebuffer origin.
 score_add_gfx_test(csf_orient_macros GfxCsfOrientMacros.cpp)
+
+# The same gate, read off the baked shader rather than off the picture. The one
+# above can only judge a backend this machine brings up, and the wrong gate was
+# invisible on both of the two that Linux brings up; this one resolves all five
+# backends' branches through QShaderBaker, which cross-compiles to HLSL and MSL
+# on any host. No device, no display, so it is a plain test and not a GUI one.
+score_add_test(test_gfx_csf_orient_gate
+  SOURCES GfxCsfOrientGate.cpp
+  PLUGINS score_plugin_gfx score_lib_process
+  LIBS test_gfx_engine_glue)
+target_compile_definitions(test_gfx_csf_orient_gate PRIVATE
+  GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
 
 # The QRhi<->CUDA fence, against a real device on every backend this box brings
 # up. The vendor GPU-direct rungs gate on InteropFence::valid() and trust
