@@ -1,3 +1,4 @@
+#include <Gfx/Filter/Process.hpp>
 #include <Gfx/GeometryFilter/Library.hpp>
 #include <Gfx/GeometryFilter/PreviewWidget.hpp>
 #include <Gfx/GeometryFilter/Process.hpp>
@@ -52,8 +53,14 @@ void DropHandler::dropPath(
     std::vector<ProcessDrop>& vec, const score::FilePath& filename,
     const score::DocumentContext& ctx) const noexcept
 {
+  // Both this handler and Gfx::Filter's claim "glsl", and only one of them is
+  // in ProcessDropHandlerList's per-extension map, so both have to sort the two
+  // shader kinds out the way the library handlers do.
+  QFile f{filename.absolute};
   Process::ProcessDropHandler::ProcessDrop p;
-  p.creation.key = Metadata<ConcreteKey_k, Gfx::GeometryFilter::Model>::get();
+  p.creation.key = score::fileContains(f, "\"GEOMETRY_FILTER\"")
+                       ? Metadata<ConcreteKey_k, Gfx::GeometryFilter::Model>::get()
+                       : Metadata<ConcreteKey_k, Gfx::Filter::Model>::get();
   p.creation.prettyName = filename.basename;
   p.creation.customData = filename.relative;
 
