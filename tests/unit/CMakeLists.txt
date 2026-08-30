@@ -587,6 +587,17 @@ score_add_test(test_unit_video_pixel_format
   PLUGINS score_plugin_gfx
   LIBS avutil)
 
+# The YCbCr->RGB matrices and the bit-depth normalisation constants in
+# ColorSpace.hpp. Half of it derives every coefficient from Kr/Kb and needs
+# nothing; the other half generates clips with ffmpeg and replays the shader
+# arithmetic on them, and skips when ffmpeg is not on PATH.
+if(TARGET score_plugin_media)
+  score_add_test(test_unit_video_colorspace
+    SOURCES VideoColorSpaceTest.cpp
+    PLUGINS score_plugin_gfx score_plugin_media
+    LIBS avutil)
+endif()
+
 # The DirectShow enumeration decision -- subtype -> fourcc -> layout -> codec.
 # Deliberately NOT WIN32-guarded: the whole point of DirectShowSubtype.hpp is
 # that the decision is checkable on hosts where CameraDevice.win32.cpp cannot

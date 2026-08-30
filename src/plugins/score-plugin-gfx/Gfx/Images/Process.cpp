@@ -252,7 +252,7 @@ std::optional<score::gfx::Image> ImageCache::acquire(const QString& path)
 
   if(auto img = Images::readImage(path))
   {
-    auto [it, ok] = m_images.insert({path, {0, *std::move(img)}});
+    auto [it, ok] = m_images.insert({path, {1, *std::move(img)}});
     return it->second.second;
   }
   return {};

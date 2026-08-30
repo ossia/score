@@ -39,20 +39,27 @@ vec4 processTexture(vec4 tex) {
 void main()
 {
   vec4 vuya = texture(u_tex, v_texcoord);
-  float y = vuya.b;
-  float u = vuya.g;
-  float v = vuya.r;
+  float y = vuya.%3;
+  float u = vuya.%4;
+  float v = vuya.%5;
 
   vec4 rgb = processTexture(vec4(y, u, v, 1.));
-  fragColor = vec4(rgb.rgb, %3);
+  fragColor = vec4(rgb.rgb, %6);
 })_";
 
   Video::ImageFormat& decoder;
   bool opaque{};
+  QString swizzle{"bgr"};
+  QChar alphaComp{'a'};
 
-  VUYADecoder(Video::ImageFormat& d, bool opaque_)
+  /// @p swz maps texture components to Y, U and V in that order. The 32-bit
+  /// 4:4:4 formats differ only in that order: VUYA is "bgr" (memory V,U,Y,A),
+  /// AYUV is "gba", YUVA is "rgb".
+  VUYADecoder(Video::ImageFormat& d, bool opaque_, QString swz = "bgr", QChar aComp = 'a')
       : decoder{d}
       , opaque{opaque_}
+      , swizzle{std::move(swz)}
+      , alphaComp{aComp}
   {
   }
 
@@ -73,11 +80,17 @@ void main()
     }
 
     // VUYX has undefined alpha, use 1.0; VUYA preserves alpha
-    QString alpha = opaque ? "1.0" : "vuya.a";
+    QString alpha = opaque ? "1.0" : QString("vuya.%1").arg(alphaComp);
 
     return score::gfx::makeShaders(
         r.state, vertexShader(),
-        QString(frag).arg("").arg(colorMatrix(decoder)).arg(alpha));
+        QString(frag)
+            .arg("")
+            .arg(colorMatrix(decoder))
+            .arg(swizzle[0])
+            .arg(swizzle[1])
+            .arg(swizzle[2])
+            .arg(alpha));
   }
 
   void exec(RenderList&, QRhiResourceUpdateBatch& res, AVFrame& frame) override
@@ -92,7 +105,7 @@ void main()
   }
 };
 
-#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(60, 8, 100)
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(58, 29, 100)
 #if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
 
 /**
@@ -124,7 +137,8 @@ vec4 processTexture(vec4 tex) {
 
 void main()
 {
-  vec4 xvyu = texture(u_tex, v_texcoord);
+  const float s = )_" SCORE_GFX_UNORM10_SCALE R"_(;
+  vec4 xvyu = texture(u_tex, v_texcoord) * s;
   float y = xvyu.g;
   float u = xvyu.r;
   float v = xvyu.b;
@@ -174,6 +188,6 @@ void main()
 };
 
 #endif // QT_VERSION >= 6.4.0
-#endif // LIBAVUTIL_VERSION >= 60.8.100
+#endif // LIBAVUTIL_VERSION >= 58.29.100
 
 }

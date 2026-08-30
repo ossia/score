@@ -12,12 +12,15 @@ namespace score::gfx
 /**
  * @brief Decodes Y210 packed 4:2:2 10-bit videos.
  *
- * Packed as Y0 U Y1 V, each 16-bit with data in the high bits.
- * 8 bytes per macropixel (2 pixels).
- * Uploaded as RGBA16F at {w/2, h}.
- * tex.r=Y0, tex.g=U, tex.b=Y1, tex.a=V.
+ * Packed as Y0 Cb Y1 Cr, each a 16-bit little-endian word with the 10 bits of
+ * data in the high end. 8 bytes per macropixel (2 pixels), so 4 * width bytes
+ * per row.
  *
- * Data in high bits means R16 unorm already returns [0,1] normalized values.
+ * QRhi has no four-channel 16-bit UNORM format, so the samples are uploaded
+ * into an RG16 texture at {w, h}: 4 bytes per texel is exactly one luma plus
+ * one chroma sample, and texel x holds (Y of pixel x, Cb on even columns / Cr
+ * on odd columns). The shader takes the luma of its own texel and the two
+ * chroma samples of the macropixel it belongs to.
  */
 struct Y210Decoder : GPUVideoDecoder
 {
@@ -40,21 +43,16 @@ vec4 processTexture(vec4 tex) {
 
 void main()
 {
-  // Y0 U Y1 V packed as RGBA16, one texel = 2 pixels
-  // Input texture is half the width of the output
-  float colIndex = floor(v_texcoord.x * mat.texSz.x);
-  float oddCol = mod(colIndex, 2.0);
+  int x = int(floor(v_texcoord.x * mat.texSz.x));
+  int y = int(floor(v_texcoord.y * mat.texSz.y));
+  int cx = (x / 2) * 2;
 
-  // Offset by half an input pixel to sample the correct texel center
-  vec2 dxInput = 0.5 * vec2(1.0 / mat.texSz.x, 0.0);
+  const float s = )_" SCORE_GFX_MSB_ALIGNED_SCALE R"_(;
+  float luma = texelFetch(u_tex, ivec2(x, y), 0).r * s;
+  float cb = texelFetch(u_tex, ivec2(cx, y), 0).g * s;
+  float cr = texelFetch(u_tex, ivec2(cx + 1, y), 0).g * s;
 
-  float oddY = texture(u_tex, v_texcoord - dxInput).z;
-  float evenY = texture(u_tex, v_texcoord + dxInput).x;
-  float y = mix(evenY, oddY, oddCol);
-
-  vec2 uv = texture(u_tex, v_texcoord).yw;
-
-  fragColor = processTexture(vec4(y, uv.x, uv.y, 1.));
+  fragColor = processTexture(vec4(luma, cb, cr, 1.));
 })_";
 
   Video::ImageFormat& decoder;
@@ -70,12 +68,11 @@ void main()
     const auto w = decoder.width, h = decoder.height;
 
     {
-      auto tex
-          = rhi.newTexture(QRhiTexture::RGBA16F, {w / 2, h}, 1, QRhiTexture::Flag{});
+      auto tex = rhi.newTexture(QRhiTexture::RG16, {w, h}, 1, QRhiTexture::Flag{});
       tex->create();
 
       auto sampler = rhi.newSampler(
-          QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
+          QRhiSampler::Nearest, QRhiSampler::Nearest, QRhiSampler::None,
           QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
       sampler->create();
       samplers.push_back({sampler, tex});
@@ -92,9 +89,8 @@ void main()
     auto pixels = frame.data[0];
     auto stride = frame.linesize[0];
 
-    // w/2 macropixels, each 8 bytes (4 x 16-bit)
-    QRhiTextureUploadEntry entry{
-        0, 0, createTextureUpload(pixels, w / 2, h, 8, stride)};
+    // One RG16 texel per pixel: 4 bytes = one 16-bit luma + one 16-bit chroma
+    QRhiTextureUploadEntry entry{0, 0, createTextureUpload(pixels, w, h, 4, stride)};
     res.uploadTexture(samplers[0].texture, {entry});
   }
 };
