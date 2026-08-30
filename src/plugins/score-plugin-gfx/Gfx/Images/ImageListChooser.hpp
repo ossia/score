@@ -20,7 +20,7 @@ UUID_METADATA(
 
 namespace WidgetFactory
 {
-struct ImageListChooserItems
+struct SCORE_PLUGIN_GFX_EXPORT ImageListChooserItems
 {
   static constexpr Process::PortItemLayout layout() noexcept
   {
@@ -41,7 +41,7 @@ struct ImageListChooserItems
 
 namespace Gfx::Images
 {
-struct ImageListChooser : public Process::ControlInlet
+struct SCORE_PLUGIN_GFX_EXPORT ImageListChooser : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(ImageListChooser)
   ImageListChooser(

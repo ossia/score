@@ -14,28 +14,9 @@
 // happens while a second, independent render target is still being presented
 // into on the sending side. Stop/start tears down both at once.
 //
-// EXPECTED RED. No device pixels reach the window through this wiring: the grab
-// is 76% black with the remaining 24% a uniform muddy purple, (159,90,127) at
-// 1280x720 and (54,32,127) at 437x261. 24% is half the window's width by half
-// its height, and the colour is deterministic per size.
-//
-// It is NOT an NDI defect, and the evidence for that is camera-storm: it renders
-// the pixel-identical frame, same md5, from a completely different source. Two
-// unrelated devices cannot coincide, so what is on screen is the passthrough
-// ISF's disconnected-input fallback, and the shared cause is upstream of both
-// devices -- most likely that setAddress() on an inlet does not establish a
-// texture connection from a device the way a cable does.
-//
-// Ruled out along the way: score's NDI output node (an external sender built
-// straight against the SDK gives the byte-identical picture), and NDI's own
-// colour handling (a raw SDK-to-SDK round trip on this host returns
-// (252,0,241), i.e. correct).
-//
-// The viewport storm itself PASSES underneath this: the chain survives resize,
-// render-size, full screen and stop/start without crashing. The coverage oracle
-// is what is red, and it must stay red until device pixels actually arrive --
-// a non-blank check alone accepts the fallback, which is how this looked green
-// at first.
+// The coverage oracle (>=0.5 non-black) is what makes this scenario meaningful:
+// a plain non-blank check accepts the passthrough ISF's disconnected-input
+// fallback.
 eval(Score.readFile(LIVE_EDIT_DIR + "/common.js"));
 
 var NAME = "ndi-storm";

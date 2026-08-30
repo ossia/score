@@ -188,8 +188,13 @@ Process::ScriptChangeResult Model::setScript(const QString& f)
       setupIsf(m_processedProgram.descriptor);
       return {.valid = true, .inlets = std::move(inls), .outlets = {}};
     }
+    catch(const std::exception& e)
+    {
+      this->errorMessage(0, e.what());
+    }
     catch(...)
     {
+      this->errorMessage(0, "Unknown error parsing geometry filter");
     }
     return {.valid = false, .inlets = std::move(inls), .outlets = {}};
   }
@@ -328,7 +333,7 @@ void Model::setupIsf(const isf::descriptor& desc)
       // not an index. libisf stores `v.def` as the INDEX into values.
       // Pass the alternative's value at v.def so the widget initialises
       // to the author-intended entry instead of falling back to
-      // alternatives[0]. Same fix as CSF/Process.cpp.
+      // alternatives[0]. Same as CSF/Process.cpp.
       const std::size_t def_idx
           = std::min<std::size_t>(v.def, alternatives.size() - 1);
       const ossia::value& init_value = alternatives[def_idx].second;
