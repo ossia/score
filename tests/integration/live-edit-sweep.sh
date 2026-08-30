@@ -85,9 +85,10 @@ declare -A CFG=(
   [window-storm]="24 yes"
   [camera-storm]="20 yes 0.5"
   [ndi-storm]="20 yes 0.5"
+  [gfx-process-storm]="20 yes"
 )
 ORDER=(baseline add-remove-storm cable-storm undo-redo-during-play transport-storm mixed-chaos
-       window-storm camera-storm ndi-storm)
+       window-storm gfx-process-storm camera-storm ndi-storm)
 
 # Device-backed scenarios need the device. Absent hardware is a SKIP with the
 # reason printed, never a silent pass -- but it stays a skip rather than the
