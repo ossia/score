@@ -163,7 +163,9 @@ std::vector<score::InterfaceBase*> score_plugin_gfx::factories(
          Gfx::TextureInletFactory, Gfx::TextureOutletFactory, Gfx::GeometryInletFactory,
          Gfx::GeometryOutletFactory>,
       FW<Process::ProcessDropHandler, Gfx::Filter::DropHandler, Gfx::Video::DropHandler,
-         Gfx::Images::DropHandler, Gfx::Filter::VideoTextureDropHandler>,
+         Gfx::Images::DropHandler, Gfx::Filter::VideoTextureDropHandler,
+         Gfx::CSF::DropHandler, Gfx::GeometryFilter::DropHandler,
+         Gfx::VSA::DropHandler>,
 
       FW<Library::LibraryInterface, Gfx::Filter::LibraryHandler,
          Gfx::VSA::LibraryHandler, Gfx::Video::LibraryHandler,

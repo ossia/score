@@ -27,14 +27,10 @@ class DropHandler final : public Process::ProcessDropHandler
 {
   SCORE_CONCRETE("b3adba36-29cc-45b4-bea3-5a2a89458a48")
 
-  QSet<QString> mimeTypes() const noexcept override;
   QSet<QString> fileExtensions() const noexcept override;
   void dropPath(
       std::vector<ProcessDrop>&, const score::FilePath& data,
       const score::DocumentContext& ctx) const noexcept override;
 
-  void dropCustom(
-      std::vector<ProcessDrop>& drops, const QMimeData& mime,
-      const score::DocumentContext& ctx) const noexcept override;
 };
 }

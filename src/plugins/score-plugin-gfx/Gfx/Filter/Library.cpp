@@ -1,6 +1,7 @@
 #include <Gfx/Filter/Library.hpp>
 #include <Gfx/Filter/PreviewWidget.hpp>
 #include <Gfx/Filter/Process.hpp>
+#include <Gfx/GeometryFilter/Process.hpp>
 #include <Library/LibrarySettings.hpp>
 #include <Library/ProcessesItemModel.hpp>
 #include <State/MessageListSerialization.hpp>
@@ -144,8 +145,13 @@ void DropHandler::dropPath(
     std::vector<ProcessDrop>& vec, const score::FilePath& filename,
     const score::DocumentContext& ctx) const noexcept
 {
+  // See Gfx::GeometryFilter::DropHandler::dropPath: "glsl" resolves to one of
+  // the two handlers and either has to produce the right process.
+  QFile f{filename.absolute};
   Process::ProcessDropHandler::ProcessDrop p;
-  p.creation.key = Metadata<ConcreteKey_k, Gfx::Filter::Model>::get();
+  p.creation.key = score::fileContains(f, "\"GEOMETRY_FILTER\"")
+                       ? Metadata<ConcreteKey_k, Gfx::GeometryFilter::Model>::get()
+                       : Metadata<ConcreteKey_k, Gfx::Filter::Model>::get();
   p.creation.prettyName = filename.basename;
   p.creation.customData = filename.relative;
 
