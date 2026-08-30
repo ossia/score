@@ -3,15 +3,15 @@
 // window and the graph.
 //
 // Every other windowed test in tests/gfx builds a ScreenNode directly and pumps
-// frames itself. That skips the two pieces the reported failures live in --
-// GfxContext's clock selection (the swap-chain vsync push loop vs the shared
-// wall timer) and the device's own createOutput/destroyOutput cycle -- so a
-// window that has stopped presenting in the running application still reads as
-// healthy there. Reported symptom: close the output window, press Show, the
-// viewport is black, and it stays black across stop/start; only disconnecting
-// and reconnecting the device recovers it, while the process's preview widget
-// keeps rendering normally the whole time (the preview is a separate render
-// list on a separate timer, which is exactly why it is not evidence).
+// frames itself. That skips the two pieces the failures live in -- GfxContext's
+// clock selection (the swap-chain vsync push loop vs the shared wall timer) and
+// the device's own createOutput/destroyOutput cycle -- so a window that has
+// stopped presenting in the running application still reads as healthy there.
+// The symptom: close the output window, press Show, the viewport is black, and
+// it stays black across stop/start; only disconnecting and reconnecting the
+// device recovers it, while the process's preview widget keeps rendering the
+// whole time (the preview is a separate render list on a separate timer, which
+// is why it is not evidence).
 //
 // The observable is Window::onRender: it runs only for a frame that reached the
 // surface, so it answers "is this window's render loop alive" independently of
@@ -19,11 +19,14 @@
 //
 // Registered GUI: these create presented windows and SKIP without a display.
 //
-// What these guard, and what they do not: reverting the registry release in
+// What these guard, and what they do not: removing the registry release in
 // ScreenNode's onWindowReady takes the close case down with a core dump, so
-// that fix is pinned. Reverting the vsync render-gate refresh does NOT fail any
-// of them, with either clock -- that fix was confirmed by hand in the running
-// application and is still unguarded here.
+// that behaviour is pinned. Removing the vsync render-gate refresh fails none
+// of these cases with either clock, so it stays unguarded here.
+//
+// The last case is about the same rig for a different reason: grabTo pumps the
+// event loop, so it is re-entrant, and the guard that stops it recursing needs
+// a real device with a real swap chain to be exercised at all.
 
 #include "WindowedOutputCommon.hpp"
 
@@ -42,6 +45,9 @@
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/Graph/ScreenNode.hpp>
 #include <Gfx/WindowDevice.hpp>
+
+#include <QFile>
+#include <QTemporaryDir>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
@@ -108,16 +114,7 @@ score::gfx::ScreenNode* screen_of(WindowDevice& dev)
   return nullptr;
 }
 
-/// Presses play the way the transport does. Without an execution there is no
-/// render list for the window and no clock driving it, so nothing is presented
-/// at all -- which is why every case here asserts a non-zero frame count BEFORE
-/// the disruption it is testing.
-/// Builds shader -> Window:/ through the same EditContext API the scripting
-/// layer uses, then plays. Without a producer feeding the output there is no
-/// render list for the window and no clock driving it, so nothing is presented
-/// at all -- which is why every case here asserts a non-zero frame count BEFORE
-/// the disruption under test.
-/// Cube -> Model Display -> Window:/, the geometry path. A model renderer holds
+/// Cube -> Model Display -> Win:/, the geometry path. A model renderer holds
 /// a Mesh pointer into the RenderList's cache, so it is the family that a
 /// mid-frame rebuild -- what a resize or a full-screen change triggers -- can
 /// leave holding a freed mesh. A shader-only chain owns no geometry and cannot
@@ -168,6 +165,11 @@ bool build_geometry_and_play(JS::EditJsContext& api, std::string& why)
   return true;
 }
 
+/// Builds shader -> Win:/ through the same EditContext API the scripting layer
+/// uses, then plays. Without a producer feeding the output there is no render
+/// list for the window and no clock driving it, so nothing is presented at all
+/// -- which is why every case here asserts a non-zero frame count BEFORE the
+/// disruption under test.
 bool build_and_play(JS::EditJsContext& api, const QString& shader, std::string& why)
 {
   auto* itv = api.rootInterval();
@@ -347,8 +349,8 @@ TEST_CASE(
   // The context menu's Hide/Show, which is Window::hide()/show() and nothing
   // more. Distinct from the close above: no swap chain is released and no new
   // device is built, so nothing rebuilds the render list -- what has to survive
-  // is the flag Window::render() gates each frame on, which only the
-  // timer-driven path used to refresh.
+  // is the flag Window::render() gates each frame on, which the timer-driven
+  // path refreshes on its own and the vsync chain does not.
   Outcome o;
   int beforeHide{}, afterShow{};
   bool connected{}, exposedAfter{};
@@ -611,4 +613,108 @@ TEST_CASE(
                                       << ", after second: " << afterSecond);
   CHECK(afterFirst > 0);
   CHECK(afterSecond > 0);
+}
+
+TEST_CASE(
+    "a grabTo dispatched while grabTo is pumping does not re-enter it",
+    "[gfx][window][device][grab][reentry]")
+{
+  // grabTo arms a readback on the swap chain and then pumps the event loop
+  // until QRhi hands the result back, because the frame that fills it is not
+  // the frame that queued it. Pumping dispatches whatever is queued, and one
+  // of the things that can be queued is another grabTo: the OSC listener
+  // delivers /script through the event loop, and every shell harness that
+  // retries a grab sends several. That call then arms its own readback and
+  // pumps again, and the nesting is only bounded by the stack -- one soak run
+  // under ASan reported grabTo at frames #1, #103, #154 and #205 of a single
+  // trace.
+  //
+  // QMetaObject::invokeMethod is that dispatch without the socket: a metacall
+  // event, delivered by the same processEvents call the OSC message would have
+  // been delivered by.
+  //
+  // Nothing is pumped between the outer grab returning and the readings, so
+  // "the inner call ran" can only mean it ran from inside the outer one. That
+  // is what makes the absence of its file evidence of the guard rather than
+  // evidence that nothing was dispatched.
+  Outcome o;
+  bool connected{}, outerWritten{}, innerWritten{};
+  int innerCalls{};
+
+  run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
+    if(!can_present())
+    {
+      o = {true, "no windowing system able to expose a native window"};
+      return;
+    }
+    auto* doc = score::test::new_document(ctx);
+    if(!doc)
+    {
+      o = {true, "no document delegate"};
+      return;
+    }
+    auto* devPtr = add_window_device(doc->context(), QStringLiteral("Win"));
+    if(!devPtr)
+    {
+      o = {true, "the window device could not be registered with the document"};
+      return;
+    }
+    auto& dev = *devPtr;
+    connected = true;
+
+    score::gfx::Window* windowPtr{};
+    pump_until([&] { return (windowPtr = dev.window()) != nullptr; }, 5000);
+    if(!windowPtr)
+    {
+      o = {true, "the device published no window"};
+      return;
+    }
+    if(!pump_until([&] { return windowPtr->isExposed(); }, 5000))
+    {
+      o = {true, "the device's window never became exposed"};
+      return;
+    }
+
+    JS::EditJsContext api;
+    std::string why;
+    if(!build_and_play(api, QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-solid-color.fs"), why))
+    {
+      o = {true, "could not build a shader -> Win:/ graph: " + why};
+      return;
+    }
+    pump_for(1500);
+
+    QTemporaryDir tmp;
+    if(!tmp.isValid())
+    {
+      o = {true, "no writable temporary directory"};
+      return;
+    }
+    tmp.setAutoRemove(true);
+    const QString outer = tmp.filePath("outer.png");
+    const QString inner = tmp.filePath("inner.png");
+
+    QMetaObject::invokeMethod(
+        &dev,
+        [&] {
+      ++innerCalls;
+      dev.grabTo(inner);
+        },
+        Qt::QueuedConnection);
+
+    dev.grabTo(outer);
+
+    outerWritten = QFile::exists(outer);
+    innerWritten = QFile::exists(inner);
+  });
+
+  if(o.skipped)
+    SKIP(o.skipReason);
+  REQUIRE(connected);
+  // Both are negative controls: with no outer file the grab path never ran,
+  // and with no inner call the re-entrant dispatch never happened, and either
+  // way the check below would pass on nothing.
+  REQUIRE(outerWritten);
+  REQUIRE(innerCalls == 1);
+  CHECK_FALSE(innerWritten);
 }
