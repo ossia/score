@@ -75,8 +75,13 @@ bool Presenter::exit()
   // deletions); a second exit request arriving meanwhile — e.g. the OSC
   // /exit callback firing again, or a queued quit timer — would re-enter
   // closeAllDocuments and tear down half-destroyed documents.
+  // Already tearing down: report that closing may proceed, without re-entering
+  // closeAllDocuments. Returning false here vetoes the shutdown -- View::closeEvent
+  // calls ev->ignore() on false, and QCoreApplication::quit() closes the top-level
+  // windows, so the latch that exists to prevent re-entrancy would cancel the very
+  // quit that forceExit() had just scheduled.
   if(m_exiting)
-    return false;
+    return true;
   m_exiting = true;
   const bool closed = m_docManager.closeAllDocuments(m_context);
   if(!closed)
