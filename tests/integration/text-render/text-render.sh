@@ -119,7 +119,7 @@ run_sequence() { # outdir -> writes <outdir>/<case>.png + run.log + run.rc
     send /script s "finalizeRun()"
     sleep 1
     send /stop; sleep 0.5
-    send /exit
+    send /exit s force
     wait "$APP"; echo $? > "$dir/run.rc"
   ) 9>/tmp/score-harness.lock
 }
