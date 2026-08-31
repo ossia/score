@@ -14,7 +14,12 @@
 #endif
 #endif
 
+#include <QCoreApplication>
+#include <QDebug>
+
+#include <chrono>
 #include <cstring>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -22,6 +27,51 @@
 
 namespace score::gfx
 {
+
+/// SCORE_GFX_VKDEVICE_TRACE=1 logs every VkDevice create / destroy /
+/// cache hit with a CLOCK_MONOTONIC timestamp, for stall measurements.
+inline bool sharedVulkanDeviceTraceEnabled()
+{
+  static const bool on = qEnvironmentVariableIsSet("SCORE_GFX_VKDEVICE_TRACE");
+  return on;
+}
+
+inline double sharedVulkanDeviceTraceClockMs()
+{
+  return std::chrono::duration<double, std::milli>(
+             std::chrono::steady_clock::now().time_since_epoch())
+      .count();
+}
+
+/// SCORE_GFX_NO_VKDEVICE_CACHE=1 sends every caller back to a private
+/// per-RenderState VkDevice. An escape hatch for drivers that dislike two
+/// QRhis over one device, and the control arm when measuring the cache.
+inline bool sharedVulkanDeviceCacheDisabled()
+{
+  static const bool off
+      = qEnvironmentVariableIsSet("SCORE_GFX_NO_VKDEVICE_CACHE");
+  return off;
+}
+
+/// vkDestroyDevice on @p dev, resolved through @p inst.
+inline void destroySharedVulkanDevice(QVulkanInstance* inst, VkDevice dev)
+{
+  if(!inst || dev == VK_NULL_HANDLE)
+    return;
+  auto fn = reinterpret_cast<PFN_vkDestroyDevice>(
+      inst->getInstanceProcAddr("vkDestroyDevice"));
+  if(!fn)
+    return;
+
+  const double t0 = sharedVulkanDeviceTraceClockMs();
+  fn(dev, nullptr);
+  if(sharedVulkanDeviceTraceEnabled())
+  {
+    const double t1 = sharedVulkanDeviceTraceClockMs();
+    qDebug(
+        "%.3f VKDEV vkDestroyDevice %.2f ms dev=%p", t1, t1 - t0, (void*)dev);
+  }
+}
 
 /**
  * @brief Shared Vulkan device info for FFmpeg + QRhi interop.
@@ -57,20 +107,12 @@ struct SharedVulkanDevice
   };
   std::vector<QueueFamilyInfo> queueFamilies;
 
-  void destroy()
+  void destroy() { destroy(staticVulkanInstance(false)); }
+
+  void destroy(QVulkanInstance* inst)
   {
-    if(dev != VK_NULL_HANDLE)
-    {
-      auto* inst = staticVulkanInstance(false);
-      if(inst)
-      {
-        auto fn = reinterpret_cast<PFN_vkDestroyDevice>(
-            inst->getInstanceProcAddr("vkDestroyDevice"));
-        if(fn)
-          fn(dev, nullptr);
-      }
-      dev = VK_NULL_HANDLE;
-    }
+    destroySharedVulkanDevice(inst, dev);
+    dev = VK_NULL_HANDLE;
   }
 
   explicit operator bool() const { return dev != VK_NULL_HANDLE; }
@@ -191,6 +233,41 @@ inline std::vector<const char*> sharedVulkanDeviceExtensions()
 }
 
 /**
+ * @brief Resolve which GPU the shared VkDevice must be created on.
+ *
+ * Mirrors QRhi's own selection: an explicit caller request wins, else
+ * QT_VK_PHYSICAL_DEVICE_INDEX, else the first enumerated device. Split out of
+ * createSharedVulkanDevice so the device cache can key on the resolved GPU
+ * without creating anything.
+ */
+inline VkPhysicalDevice resolveSharedVulkanPhysicalDevice(
+    QVulkanInstance* inst, VkPhysicalDevice preferredPhysDev = VK_NULL_HANDLE)
+{
+  if(!inst)
+    return VK_NULL_HANDLE;
+  if(preferredPhysDev != VK_NULL_HANDLE)
+    return preferredPhysDev;
+
+  auto* funcs = inst->functions();
+  if(!funcs)
+    return VK_NULL_HANDLE;
+
+  uint32_t devCount = 0;
+  funcs->vkEnumeratePhysicalDevices(inst->vkInstance(), &devCount, nullptr);
+  if(devCount == 0)
+    return VK_NULL_HANDLE;
+
+  std::vector<VkPhysicalDevice> physDevs(devCount);
+  funcs->vkEnumeratePhysicalDevices(inst->vkInstance(), &devCount, physDevs.data());
+
+  bool ok = false;
+  const int idx = qEnvironmentVariableIntValue("QT_VK_PHYSICAL_DEVICE_INDEX", &ok);
+  if(ok && idx >= 0 && uint32_t(idx) < devCount)
+    return physDevs[uint32_t(idx)];
+  return physDevs[0];
+}
+
+/**
  * @brief Create a VkDevice with video decode queue support.
  *
  * Creates a VkDevice with queues from ALL available queue families
@@ -216,33 +293,13 @@ inline SharedVulkanDevice createSharedVulkanDevice(
 
   // --- Pick physical device (prefer discrete GPU) ---
 
-  uint32_t devCount = 0;
-  funcs->vkEnumeratePhysicalDevices(inst->vkInstance(), &devCount, nullptr);
-  if(devCount == 0)
-    return result;
-
-  std::vector<VkPhysicalDevice> physDevs(devCount);
-  funcs->vkEnumeratePhysicalDevices(inst->vkInstance(), &devCount, physDevs.data());
-
   // Use the caller-specified physical device (matching QRhi's GPU),
   // else honour QT_VK_PHYSICAL_DEVICE_INDEX (the same env QRhi's own
   // device selection respects — critical on multi-GPU boxes where CUDA
   // interop pins the workload to one specific GPU), else the first one.
-  result.physDev = VK_NULL_HANDLE;
-  if(preferredPhysDev != VK_NULL_HANDLE)
-  {
-    result.physDev = preferredPhysDev;
-  }
-  else
-  {
-    bool ok = false;
-    const int idx
-        = qEnvironmentVariableIntValue("QT_VK_PHYSICAL_DEVICE_INDEX", &ok);
-    if(ok && idx >= 0 && uint32_t(idx) < devCount)
-      result.physDev = physDevs[uint32_t(idx)];
-    else
-      result.physDev = physDevs[0];
-  }
+  result.physDev = resolveSharedVulkanPhysicalDevice(inst, preferredPhysDev);
+  if(result.physDev == VK_NULL_HANDLE)
+    return result;
 
   uint32_t qfCount = 0;
   funcs->vkGetPhysicalDeviceQueueFamilyProperties(
@@ -363,8 +420,15 @@ inline SharedVulkanDevice createSharedVulkanDevice(
   if(!vkCreateDeviceFn)
     return {};
 
+  const double t0 = sharedVulkanDeviceTraceClockMs();
   VkResult vkResult
       = vkCreateDeviceFn(result.physDev, &devInfo, nullptr, &result.dev);
+  if(sharedVulkanDeviceTraceEnabled())
+  {
+    const double t1 = sharedVulkanDeviceTraceClockMs();
+    qDebug("%.3f VKDEV vkCreateDevice %.2f ms physDev=%p dev=%p result=%d", t1,
+           t1 - t0, (void*)result.physDev, (void*)result.dev, int(vkResult));
+  }
   if(vkResult != VK_SUCCESS)
   {
     qDebug() << "createSharedVulkanDevice: vkCreateDevice failed:" << vkResult;
@@ -381,6 +445,157 @@ inline SharedVulkanDevice createSharedVulkanDevice(
         result.dev, result.gfxQueueFamilyIdx, 0, &result.gfxQueue);
 
   return result;
+}
+
+/**
+ * @brief Process-wide cache of imported VkDevices, keyed by (VkInstance, GPU).
+ *
+ * vkCreateDevice on the curated extension/feature set costs 150-210 ms and
+ * vkDestroyDevice 80-140 ms; paying both on every shader-preview selection
+ * froze the GUI thread for ~300 ms a click. Entries are refcounted, but a
+ * refcount of zero does NOT destroy: selecting a preview tears the old
+ * BackgroundNode down before building the new one, so a destroy-at-zero cache
+ * would drop to zero and back to one across every transition and save nothing.
+ * The cache instead owns the device for the process lifetime and releases it
+ * from a qAddPostRoutine at shutdown, so a preview-to-preview transition never
+ * touches the driver at all.
+ *
+ * Keyed on the GPU as well as the instance: createSharedVulkanDevice honours
+ * QT_VK_PHYSICAL_DEVICE_INDEX and a caller-chosen preferredPhysDev, and handing
+ * back a device for the wrong GPU on a multi-GPU box would be silent corruption.
+ */
+class SharedVulkanDeviceCache;
+inline SharedVulkanDeviceCache& sharedVulkanDeviceCache();
+
+class SharedVulkanDeviceCache
+{
+public:
+  /// Returns a device for @p inst on the resolved GPU with its refcount
+  /// incremented, or an empty device if none can be made — in which case the
+  /// caller must fall back to letting QRhi create its own, exactly as it does
+  /// for an uncached createSharedVulkanDevice() failure.
+  SharedVulkanDevice
+  acquire(QVulkanInstance* inst, VkPhysicalDevice preferredPhysDev = VK_NULL_HANDLE)
+  {
+    if(!inst)
+      return {};
+
+    const VkPhysicalDevice physDev
+        = resolveSharedVulkanPhysicalDevice(inst, preferredPhysDev);
+    if(physDev == VK_NULL_HANDLE)
+      return {};
+
+    std::lock_guard lock{m_mutex};
+    for(auto& e : m_entries)
+    {
+      if(e.inst == inst && e.device.physDev == physDev)
+      {
+        e.refcount++;
+        if(sharedVulkanDeviceTraceEnabled())
+          qDebug(
+              "%.3f VKDEV cache HIT dev=%p refcount=%d",
+              sharedVulkanDeviceTraceClockMs(), (void*)e.device.dev, e.refcount);
+        return e.device;
+      }
+    }
+
+    SharedVulkanDevice dev = createSharedVulkanDevice(inst, physDev);
+    if(!dev)
+    {
+      if(sharedVulkanDeviceTraceEnabled())
+        qDebug(
+            "%.3f VKDEV cache MISS — creation unavailable, caller falls back",
+            sharedVulkanDeviceTraceClockMs());
+      return {};
+    }
+
+    m_created++;
+    m_entries.push_back(Entry{.inst = inst, .device = dev, .refcount = 1});
+    // Per creation rather than once per process: Qt runs each post routine at
+    // most once, and a process that boots a second QCoreApplication (the tests
+    // do) would otherwise leave its second device undestroyed.
+    qAddPostRoutine([] { sharedVulkanDeviceCache().shutdown(); });
+    if(sharedVulkanDeviceTraceEnabled())
+      qDebug(
+          "%.3f VKDEV cache MISS dev=%p refcount=1", sharedVulkanDeviceTraceClockMs(),
+          (void*)dev.dev);
+    return dev;
+  }
+
+  /// Drops one reference. The device stays alive: see the class docs.
+  void release(VkDevice dev)
+  {
+    if(dev == VK_NULL_HANDLE)
+      return;
+    std::lock_guard lock{m_mutex};
+    for(auto& e : m_entries)
+    {
+      if(e.device.dev == dev)
+      {
+        if(e.refcount > 0)
+          e.refcount--;
+        if(sharedVulkanDeviceTraceEnabled())
+          qDebug(
+              "%.3f VKDEV cache RELEASE dev=%p refcount=%d",
+              sharedVulkanDeviceTraceClockMs(), (void*)dev, e.refcount);
+        return;
+      }
+    }
+  }
+
+  /// Destroys every idle cached device. Called from a qAddPostRoutine, i.e.
+  /// after the widgets that hold references are gone but while the
+  /// QVulkanInstance is still alive.
+  void shutdown()
+  {
+    std::lock_guard lock{m_mutex};
+    std::vector<Entry> stillUsed;
+    for(auto& e : m_entries)
+    {
+      if(e.refcount != 0)
+      {
+        // Destroying under a live QRhi would be a use-after-free. Keep the
+        // entry so a later acquire hands back the device its holders are
+        // already using rather than making a second one.
+        qWarning() << "SharedVulkanDeviceCache: device still referenced at "
+                      "shutdown, refcount ="
+                   << e.refcount;
+        stillUsed.push_back(e);
+        continue;
+      }
+      e.device.destroy(e.inst);
+    }
+    m_entries = std::move(stillUsed);
+    m_created = int(m_entries.size());
+  }
+
+  /// How many times the cache called vkCreateDevice for the devices it
+  /// currently holds — reset by shutdown(), so this counts one application
+  /// session. The point of the cache is that it stays at 1 no matter how many
+  /// previews that session opens.
+  int createdDeviceCount() const
+  {
+    std::lock_guard lock{m_mutex};
+    return m_created;
+  }
+
+private:
+  struct Entry
+  {
+    QVulkanInstance* inst{};
+    SharedVulkanDevice device;
+    int refcount{};
+  };
+
+  mutable std::mutex m_mutex;
+  std::vector<Entry> m_entries;
+  int m_created{};
+};
+
+inline SharedVulkanDeviceCache& sharedVulkanDeviceCache()
+{
+  static SharedVulkanDeviceCache cache;
+  return cache;
 }
 
 } // namespace score::gfx
