@@ -288,10 +288,15 @@ bool DocumentManager::closeDocument(
 void DocumentManager::forceCloseDocument(
     const score::GUIApplicationContext& ctx, Document& doc)
 {
-  // Clear the plug-ins
-  for(auto plug : doc.model().pluginModels())
+  // Clear the plug-ins, in reverse creation order: same rule as ~DocumentModel
+  // and ~DocumentManager. The execution plug-in has to be torn down before the
+  // device explorer one, whose on_documentClosing() disconnects every device --
+  // which destroys the ossia parameters that the still-running execution graph
+  // holds raw pointers to in ossia::inlet::address.
+  auto& plugs = doc.model().pluginModels();
+  for(auto it = plugs.rbegin(); it != plugs.rend(); ++it)
   {
-    plug->on_documentClosing();
+    (*it)->on_documentClosing();
   }
 
   // Clear the app plugins
