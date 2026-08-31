@@ -1,6 +1,8 @@
 #pragma once
 #include <Media/Libav.hpp>
 
+#include <QtGlobal>
+
 #include <string>
 #include <vector>
 
@@ -175,10 +177,21 @@ inline constexpr bool formatNeedsDecoding(AVPixelFormat fmt) noexcept
     case AV_PIX_FMT_P410LE:
 #endif
 
-#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(60, 8, 100)
+    // These guards must match GPUVideoDecoderFactory.cpp: a format whose decoder
+    // is compiled in but whose case here is compiled out gets routed through
+    // swscale even though it has a direct GPU path.
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(58, 29, 100)
     case AV_PIX_FMT_RGBAF32LE:
     case AV_PIX_FMT_VUYA:
     case AV_PIX_FMT_VUYX:
+    case AV_PIX_FMT_P012LE:
+    case AV_PIX_FMT_RGBAF16LE:
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
+    case AV_PIX_FMT_XV30LE:
+#endif
+#endif
+
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(60, 8, 100)
     case AV_PIX_FMT_GRAYF16LE:
     case AV_PIX_FMT_GRAYF16BE:
 #endif
