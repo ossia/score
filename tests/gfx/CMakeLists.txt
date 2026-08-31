@@ -28,6 +28,18 @@ score_add_test(test_gfx_isf
 target_compile_definitions(test_gfx_isf PRIVATE
   GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
 
+# The process-wide imported-VkDevice cache the shader previews opt into: five
+# consecutive "selections" must cost one vkCreateDevice, not five, and must each
+# still render real content.
+score_add_test(test_gfx_preview_device_cache
+  SOURCES PreviewDeviceCache.cpp
+  GUI
+  PLUGINS score_plugin_gfx score_plugin_scenario score_lib_process
+  LIBS test_gfx_engine_glue)
+
+target_compile_definitions(test_gfx_preview_device_cache PRIVATE
+  GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+
 # L3 regression tests: one per render-engine bug fixed on split/gfx-scene. Each
 # renders a real offscreen pipeline (fan-out / diamond / mid-run graph mutation)
 # and asserts the readback across every available RHI backend.
