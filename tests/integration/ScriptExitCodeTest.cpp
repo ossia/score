@@ -36,7 +36,7 @@ struct Run
   QString output;
 };
 
-Run runScript(const QString& scriptArg, const QString& configHome = {})
+Run runScripts(const QStringList& scriptArgs, const QString& configHome = {})
 {
   auto env = QProcessEnvironment::systemEnvironment();
   env.remove("DISPLAY");
@@ -44,15 +44,25 @@ Run runScript(const QString& scriptArg, const QString& configHome = {})
   env.insert("QT_QPA_PLATFORM", "offscreen");
   env.insert("SCORE_AUDIO_BACKEND", "dummy");
   env.insert("SCORE_DISABLE_AUDIOPLUGINS", "1");
+  // Every message this test reads -- the script's own console.log, and the
+  // "--script:" diagnostics -- is a qDebug/qCritical, and the child's stderr is
+  // a pipe. Where Qt is built against journald it then logs to the journal and
+  // the pipe stays empty, so the assertions below read nothing and fail for a
+  // reason that has nothing to do with the code under test. Same pair, and the
+  // same reason, as JsGraphE2ETest.
+  env.insert("QT_ASSUME_STDERR_HAS_CONSOLE", "1");
+  env.insert("QT_FORCE_STDERR_LOGGING", "1");
   if(!configHome.isEmpty())
     env.insert("XDG_CONFIG_HOME", configHome);
+
+  QStringList args{"--no-gui", "--no-restore", "--wait", "0"};
+  for(const QString& s : scriptArgs)
+    args << "--script" << s;
 
   QProcess p;
   p.setProcessEnvironment(env);
   p.setProcessChannelMode(QProcess::MergedChannels);
-  p.start(
-      appBinary(),
-      {"--no-gui", "--no-restore", "--wait", "0", "--script", scriptArg});
+  p.start(appBinary(), args);
 
   Run r;
   if(!p.waitForStarted(30000) || !p.waitForFinished(90000))
@@ -66,6 +76,11 @@ Run runScript(const QString& scriptArg, const QString& configHome = {})
   r.crashed = p.exitStatus() != QProcess::NormalExit;
   r.exitCode = p.exitCode();
   return r;
+}
+
+Run runScript(const QString& scriptArg, const QString& configHome = {})
+{
+  return runScripts(QStringList{scriptArg}, configHome);
 }
 
 QString write(const QTemporaryDir& dir, const QString& name, const QByteArray& body)
@@ -178,5 +193,75 @@ TEST_CASE("--script reports what happened to it", "[integration][js][script]")
     // else, which is the case a plain missing path must not be confused with.
     CHECK(r.output.contains("<LIBRARY>:/definitely/absent.js ->"));
     CHECK(r.output.contains("Score.readFile: cannot read /definitely/absent-plain.js"));
+  }
+
+  // --script used to hand everything to QJSEngine::evaluate, which parses its
+  // input as a script: a top-level `export` was a syntax error, so none of the
+  // .mjs modules score ships in packages/default/Scripts could be run or
+  // tested headlessly. They now go through importModule.
+  SECTION("a .mjs module is imported rather than evaluated")
+  {
+    const auto path = write(
+        dir, "mod.mjs",
+        "export function initialize() { console.log(\"INIT-RAN\"); }\n"
+        "console.log(\"TOPLEVEL-RAN\");\n"
+        "Qt.exit(0);\n");
+
+    auto r = runScript(path);
+    CHECK_FALSE(r.crashed);
+    CHECK(r.exitCode == 0);
+    CHECK_FALSE(r.output.contains("SyntaxError"));
+    CHECK(r.output.contains("TOPLEVEL-RAN"));
+    // The console panel calls initialize() when it loads a library module;
+    // --script has to mean the same thing or a module behaves differently
+    // depending on how it was loaded.
+    CHECK(r.output.contains("INIT-RAN"));
+  }
+
+  SECTION("a module that throws while initialising exits 3")
+  {
+    const auto path = write(
+        dir, "badinit.mjs",
+        "export function initialize() { throw new Error(\"initboom\"); }\n");
+
+    auto r = runScript(path);
+    CHECK_FALSE(r.crashed);
+    CHECK(r.exitCode == 3);
+    CHECK(r.output.contains("--script:"));
+    CHECK(r.output.contains("initboom"));
+  }
+
+  SECTION("a module that fails to parse exits 3 and names itself")
+  {
+    const auto path = write(dir, "syntax.mjs", "export const = ;\n");
+
+    auto r = runScript(path);
+    CHECK_FALSE(r.crashed);
+    CHECK(r.exitCode == 3);
+    CHECK(r.output.contains("--script:"));
+    CHECK(r.output.contains(path));
+  }
+
+  // A module that only exports things needs something to call into it: that is
+  // the whole point of shipping .mjs actions, and the only way to exercise one
+  // without a Scripts menu.
+  SECTION("--script repeats, so a module can be loaded and then driven")
+  {
+    const auto mod = write(
+        dir, "driven.mjs", "export function go(n) { Qt.exit(n); }\n");
+
+    auto r = runScripts({mod, "driven.go(4);"});
+    CHECK_FALSE(r.crashed);
+    CHECK(r.exitCode == 4);
+  }
+
+  SECTION("a failing entry stops the ones after it")
+  {
+    const auto boom = write(dir, "first.js", "throw new Error(\"first\");\n");
+
+    auto r = runScripts({boom, "Qt.exit(0);"});
+    CHECK_FALSE(r.crashed);
+    CHECK(r.exitCode == 3);
+    CHECK(r.output.contains("first"));
   }
 }
