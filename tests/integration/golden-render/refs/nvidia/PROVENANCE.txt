@@ -1,7 +1,7 @@
-date:     2026-08-31T18:23:03-04:00
+date:     2026-08-31T18:28:26-04:00
 backend:  nvidia (OpenGL)
 renderer: OpenGL VENDOR: NVIDIA Corporation RENDERER: Quadro RTX 4000/PCIe/SSE2 VERSION: 4.6.0 NVIDIA 595.84
 binary:   /home/jcelerier/ossia/wt/bld-clang/ossia-score
-commit:   2fe4dfb34373c0c75504fee7ca98c7ad7a607007
+commit:   4586ac152f2629901b6d304d24451ed7cb018737
 built:    2026-08-31 15:57:40.730229406 -0400
 corpus:   /home/jcelerier/Documents/ossia/score/packages/csf-examples/csf-testers/tests-scene/scripts
