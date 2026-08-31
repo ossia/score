@@ -45,7 +45,7 @@ run_one() { # js_path out_png
     sleep "$GRAB_DELAY"
     oscsend 127.0.0.1 "$OSC_PORT" /script s "Score.device('Window').grabTo('$png')"
     sleep 1.5; oscsend 127.0.0.1 "$OSC_PORT" /stop
-    sleep 0.5; oscsend 127.0.0.1 "$OSC_PORT" /exit
+    sleep 0.5; oscsend 127.0.0.1 "$OSC_PORT" /exit s force
   ) >/dev/null 2>&1 &
   local grabber=$!
   # SCORE_FORCE_OFFSCREEN_WINDOW renders to an offscreen surface (never maps a
