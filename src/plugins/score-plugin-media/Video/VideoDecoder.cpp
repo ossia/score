@@ -276,9 +276,21 @@ ReadFrame LibAVDecoder::enqueue_frame(const AVPacket* pkt) noexcept
     }
 
     auto read = receive();
-    if(!read.frame)
-      return last.frame ? last : read;
-    keepInOrder(read);
+    if(read.frame)
+    {
+      keepInOrder(read);
+      continue;
+    }
+
+    // error == 0 with no frame: a frame was decoded but discarded (negative
+    // pts). The codec still made room, so the packet must be retried, not
+    // dropped.
+    if(read.error == 0)
+      continue;
+
+    // EAGAIN from send_packet guarantees receive_frame yields a frame; if it
+    // does not, no progress is possible: bail out instead of spinning.
+    return last.frame ? last : read;
   }
 
   // One packet can make more than one frame available. Receive all of them
@@ -291,6 +303,10 @@ ReadFrame LibAVDecoder::enqueue_frame(const AVPacket* pkt) noexcept
       keepInOrder(read);
       continue;
     }
+    // A decoded-but-discarded frame (negative pts) is not the end of the
+    // available frames: keep draining.
+    if(read.error == 0)
+      continue;
     if(read.error != AVERROR(EAGAIN) && read.error != AVERROR_EOF)
       return last.frame ? last : read;
     break;

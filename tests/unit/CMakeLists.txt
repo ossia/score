@@ -577,6 +577,16 @@ if(TARGET score_plugin_media)
     SOURCES GStreamerCompatibilityTest.cpp
     PLUGINS score_plugin_media
     LIBS avutil)
+
+  # LibAVDecoder::enqueue_frame(): the avcodec_send_packet /
+  # avcodec_receive_frame loop behind every video decode path. Synthesizes
+  # encoded streams in-process, drives the codec into the send-EAGAIN
+  # backpressure state, and asserts the N-in / N-out / in-order invariant —
+  # including the EOF reorder-buffer flush through the full VideoDecoder.
+  score_add_test(test_unit_video_decoder
+    SOURCES VideoDecoderTest.cpp
+    PLUGINS score_plugin_media
+    LIBS avutil avcodec avformat)
 endif()
 
 # The video pixel-format vocabulary and its libav bridge. Lives with the
