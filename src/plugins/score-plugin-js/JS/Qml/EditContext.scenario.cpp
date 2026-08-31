@@ -1,20 +1,26 @@
 #include <Process/Preset.hpp>
+#include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 
 #include <JS/Commands/ScriptMacro.hpp>
 #include <JS/Qml/EditContext.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/model/EntityMap.hpp>
 
 #include <ossia-qt/js_utilities.hpp>
 
 #include <QTime>
+
+#include <iterator>
 namespace JS
 {
 
@@ -53,17 +59,22 @@ QObject* EditJsContext::rootInterval()
   return &root.baseInterval();
 }
 
-void EditJsContext::automate(QObject* interval, QString addr)
+QVariantList EditJsContext::automate(QObject* interval, QString addr)
 {
   auto doc = ctx();
   if(!doc)
-    return;
+    return {};
   auto itv = qobject_cast<Scenario::IntervalModel*>(interval);
   if(!itv)
-    return;
+    return {};
 
   auto [m, _] = macro(*doc);
-  m->automate(*itv, addr);
+
+  QVariantList created;
+  for(auto proc : m->automate(*itv, addr))
+    if(proc)
+      created.push_back(QVariant::fromValue(static_cast<QObject*>(proc)));
+  return created;
 }
 
 EditJsContext::MacroClear EditJsContext::macro(const score::DocumentContext& doc)
@@ -171,6 +182,66 @@ QObject* EditJsContext::createProcess(QObject* interval, QString name, QString d
     return m->createProcess(*st, f->concreteKey(), data);
   }
   return nullptr;
+}
+
+// Intervals and states both host processes in an ordered EntityMap, so the
+// same pair of accessors serves both. The order is the map's own, which
+// inserts at the front: index 0 is the most recently added process. It is
+// stable for a given document, which is what an index-based accessor needs;
+// scripts that care about timeline order should sort on what they need.
+static const score::EntityMap<Process::ProcessModel, true>*
+hostedProcesses(QObject* obj)
+{
+  if(auto itv = qobject_cast<Scenario::IntervalModel*>(obj))
+    return &itv->processes;
+  if(auto st = qobject_cast<Scenario::StateModel*>(obj))
+    return &st->stateProcesses;
+  return nullptr;
+}
+
+int EditJsContext::processes(QObject* obj)
+{
+  auto doc = ctx();
+  if(!doc)
+    return 0;
+  auto procs = hostedProcesses(obj);
+  if(!procs)
+    return 0;
+  return std::ssize(*procs);
+}
+
+QObject* EditJsContext::process(QObject* obj, int index)
+{
+  auto doc = ctx();
+  if(!doc)
+    return nullptr;
+  auto procs = hostedProcesses(obj);
+  if(!procs)
+    return nullptr;
+  if(index < 0 || index >= std::ssize(*procs))
+    return nullptr;
+
+  auto it = procs->begin();
+  std::advance(it, index);
+  return &*it;
+}
+
+QObject* EditJsContext::parentProcess(QObject* obj)
+{
+  if(!obj)
+    return nullptr;
+  if(auto proc = qobject_cast<Process::ProcessModel*>(obj))
+    return proc;
+  return Process::parentProcess(obj);
+}
+
+QObject* EditJsContext::parentInterval(QObject* obj)
+{
+  if(!obj)
+    return nullptr;
+  if(auto itv = qobject_cast<Scenario::IntervalModel*>(obj))
+    return itv;
+  return Scenario::closestParentInterval(obj);
 }
 
 void EditJsContext::loadPreset(QObject* process, QString json)

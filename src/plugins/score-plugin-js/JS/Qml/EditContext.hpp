@@ -106,6 +106,26 @@ public:
   QObject* createProcess(QObject* interval, QString name, QString data);
   W_SLOT(createProcess)
 
+  //! Number of processes hosted by an interval or a state.
+  int processes(QObject* obj);
+  W_SLOT(processes)
+
+  //! The index-th process of an interval or a state. Index 0 is the most
+  //! recently added one; the order is stable but is not timeline order.
+  QObject* process(QObject* obj, int index);
+  W_SLOT(process)
+
+  //! The process an object belongs to: the process itself if given one, else
+  //! the closest process ancestor. Ports, layers and cable endpoints all
+  //! resolve through this.
+  QObject* parentProcess(QObject* obj);
+  W_SLOT(parentProcess)
+
+  //! The interval an object belongs to, or null. A process gives the interval
+  //! hosting it; an interval gives itself.
+  QObject* parentInterval(QObject* obj);
+  W_SLOT(parentInterval)
+
   void loadPreset(QObject* process, QString json);
   W_SLOT(loadPreset)
   QString savePreset(QObject* process);
@@ -141,23 +161,49 @@ public:
   void setIntervalSpeed(QObject* object, double);
   W_SLOT(setIntervalSpeed)
 
+  //! A port of a process by name, inlets first. Prefer inlet() / outlet() when
+  //! a process has an input and an output sharing a name.
   QObject* port(QObject* obj, QString name);
   W_SLOT(port)
 
   QObject* inlet(QObject* obj, int index);
-  W_SLOT(inlet)
+  W_SLOT(inlet, (QObject*, int))
+
+  //! An inlet of a process by name, or null.
+  QObject* inlet(QObject* obj, QString name);
+  W_SLOT(inlet, (QObject*, QString))
 
   int inlets(QObject* obj);
   W_SLOT(inlets)
 
   QObject* outlet(QObject* obj, int index);
-  W_SLOT(outlet)
+  W_SLOT(outlet, (QObject*, int))
+
+  //! An outlet of a process by name, or null.
+  QObject* outlet(QObject* obj, QString name);
+  W_SLOT(outlet, (QObject*, QString))
 
   int outlets(QObject* obj);
   W_SLOT(outlets)
 
   QObject* createCable(QObject* outlet, QObject* inlet);
   W_SLOT(createCable)
+
+  //! The index-th cable attached to a port. Works for inlets and outlets alike.
+  QObject* cable(QObject* port, int index);
+  W_SLOT(cable)
+
+  //! Number of cables attached to a port. Works for inlets and outlets alike.
+  int cables(QObject* port);
+  W_SLOT(cables)
+
+  //! The outlet a cable starts from, or null if it no longer resolves.
+  QObject* source(QObject* cable);
+  W_SLOT(source)
+
+  //! The inlet a cable ends at, or null if it no longer resolves.
+  QObject* sink(QObject* cable);
+  W_SLOT(sink)
 
   void setAddress(QObject* obj, QString addr);
   W_SLOT(setAddress)
@@ -243,10 +289,14 @@ public:
   void replaceAddress(QObjectList objects, QString before, QString after);
   W_SLOT(replaceAddress)
 
-  void automate(QObject* interval, QString addr);
+  //! Create automations for every parameter matching `addr` in `interval`.
+  //! Returns the created processes: an address may expand to several curves.
+  QVariantList automate(QObject* interval, QString addr);
   W_SLOT(automate, (QObject*, QString))
 
-  void automate(QObject* interval, QObject* port);
+  //! Create an automation in `interval` driving `port`, and cable it up.
+  //! Returns the created process, whose default curve is a 0 -> 1 ramp.
+  QObject* automate(QObject* interval, QObject* port);
   W_SLOT(automate, (QObject*, QObject*))
 
   /////////////////
