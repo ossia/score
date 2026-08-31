@@ -166,6 +166,11 @@ score_add_gfx_test(execmodel GfxExecutionModel.cpp)
 # every backend. Green on OpenGL and Vulkan.
 score_add_gfx_test(orientation GfxOrientation.cpp)
 
+# MRT correctness against a closed-form pattern: GfxOrientation only reads
+# attachment 0 of a shader whose ramp is constant along X, so the horizontal axis,
+# the remaining attachments and per-attachment identity are all unpinned there.
+score_add_gfx_test(mrt_pattern GfxMrtPattern.cpp)
+
 # Orientation as a property of the whole path rather than of one node: the same
 # picture through 0, 1 and 2 verbatim passthroughs, on every backend, against a
 # four-quadrant key that tells a flip from a transpose from a rotation.
