@@ -1,10 +1,7 @@
-date:     2026-08-21T14:14-04:00 (backfilled)
-backend:  nvidia-vulkan
-renderer: Physical device 1: 'Quadro RTX 4000' 595.336.0 (api 1.4.329 vendor 0x10DE device 0x1EB1 type 2)
-binary:   /home/jcelerier/ossia/wt/score-testinfra/build/ossia-score
-commit:   70afc174d409b84487e7e430b62ef2038d43e811
-built:    2026-08-16 09:17:13.055600254 -0400
+date:     2026-08-31T18:24:18-04:00
+backend:  nvidia-vulkan (Vulkan)
+renderer: Using imported physical device 'Quadro RTX 4000' 595.336.0 (api 1.4.329 vendor 0x10DE device 0x1EB1 type 2)
+binary:   /home/jcelerier/ossia/wt/bld-clang/ossia-score
+commit:   2fe4dfb34373c0c75504fee7ca98c7ad7a607007
+built:    2026-08-31 15:57:40.730229406 -0400
 corpus:   /home/jcelerier/Documents/ossia/score/packages/csf-examples/csf-testers/tests-scene/scripts
-note:     binary predates HEAD by 3 commits (6958555501, 05a.., 70afc..);
-          none of them touch rendering - 6958555501 only removes the
-          exit-time save prompt, which fires AFTER the frame is grabbed.

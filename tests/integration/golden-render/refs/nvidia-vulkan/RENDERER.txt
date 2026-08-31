@@ -1,1 +1,1 @@
-Physical device 1: 'Quadro RTX 4000' 595.336.0 (api 1.4.329 vendor 0x10DE device 0x1EB1 type 2)
+Using imported physical device 'Quadro RTX 4000' 595.336.0 (api 1.4.329 vendor 0x10DE device 0x1EB1 type 2)
