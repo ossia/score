@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/JS/Qml/qml/patcher">
+        <file>PatcherView.qml</file>
+        <file>NodeItem.qml</file>
+        <file>PortItem.qml</file>
+        <file>CableItem.qml</file>
+        <file>ConnectionDrag.qml</file>
+        <file>NodePreview.qml</file>
+        <file>ProcessPalette.qml</file>
+    </qresource>
+</RCC>

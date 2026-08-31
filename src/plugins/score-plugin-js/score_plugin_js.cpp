@@ -21,8 +21,11 @@
 #include <JS/Qml/QmlObjects.hpp>
 #include <JS/Qml/QmlProcess.hpp>
 #include <JS/Qml/TextureSource.hpp>
+#include <JS/Qml/PatcherWindow.hpp>
 #include <JS/Qml/Utils.hpp>
 #include <JS/Qml/ValueTypes.Qt6.hpp>
+
+#include <Nodal/Layer.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
 #include <score/plugins/InterfaceList.hpp>
@@ -142,6 +145,9 @@ score_plugin_js::score_plugin_js()
 #if !defined(__EMSCRIPTEN__)
   qmlRegisterType<JS::QmlProcess>("Score.UI", 1, 0, "Process");
 #endif
+
+  // Register patcher window factory for Nodal plugin
+  Nodal::LayerFactory::setPatcherWindowFactory(&JS::createPatcherWindow);
 
   qRegisterMetaType<QVector<JS::MidiMessage>>();
 

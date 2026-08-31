@@ -153,6 +153,12 @@ public:
   PROPERTY(QString, name W_READ name W_WRITE setName W_NOTIFY nameChanged)
   PROPERTY(Process::PortType, type W_READ type W_CONSTANT W_FINAL)
 
+  /// QML helpers
+  bool isInlet() const noexcept;
+  W_INVOKABLE(isInlet)
+  int cableCount() const noexcept;
+  W_INVOKABLE(cableCount)
+
   virtual QByteArray saveData() const noexcept;
 
   virtual void loadData(const QByteArray& arr, PortLoadDataFlags = {}) noexcept;
@@ -545,6 +551,12 @@ DEFAULT_MODEL_METADATA(Process::Port, "Port")
 W_REGISTER_ARGTYPE(Id<Process::Port>)
 W_REGISTER_ARGTYPE(Process::Port)
 W_REGISTER_ARGTYPE(Process::Inlet)
+// Declared here rather than in Process.hpp: Q_DECLARE_METATYPE needs the
+// complete type, and Process.hpp only forward-declares Inlet/Outlet.
+Q_DECLARE_METATYPE(QList<Process::Inlet*>)
+Q_DECLARE_METATYPE(QList<Process::Outlet*>)
+W_REGISTER_ARGTYPE(QList<Process::Inlet*>)
+W_REGISTER_ARGTYPE(QList<Process::Outlet*>)
 W_REGISTER_ARGTYPE(Process::Outlet)
 W_REGISTER_ARGTYPE(Process::ControlInlet)
 W_REGISTER_ARGTYPE(Process::ControlOutlet)
