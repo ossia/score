@@ -1,7 +1,7 @@
-date:     2026-08-31T18:23:37-04:00
+date:     2026-08-31T18:28:59-04:00
 backend:  llvmpipe (OpenGL)
 renderer: OpenGL VENDOR: Mesa RENDERER: llvmpipe (LLVM 20.1.2, 256 bits) VERSION: 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.2
 binary:   /home/jcelerier/ossia/wt/bld-clang/ossia-score
-commit:   2fe4dfb34373c0c75504fee7ca98c7ad7a607007
+commit:   4586ac152f2629901b6d304d24451ed7cb018737
 built:    2026-08-31 15:57:40.730229406 -0400
 corpus:   /home/jcelerier/Documents/ossia/score/packages/csf-examples/csf-testers/tests-scene/scripts
