@@ -677,7 +677,8 @@ inline void pump_frame(
 // -----------------------------------------------------------------------------
 inline IsfResult render_isf_chain(
     score::gfx::GraphicsApi backend, std::vector<QString> paths,
-    QSize size = {64, 64}, int frames = 3)
+    QSize size = {64, 64}, int frames = 3,
+    score::gfx::SharedDeviceMode deviceMode = score::gfx::SharedDeviceMode::Owned)
 {
   IsfResult r;
   r.backend = backend_name(backend);
@@ -749,7 +750,7 @@ inline IsfResult render_isf_chain(
   sinks.reserve(outPorts.size());
   for(std::size_t k = 0; k < outPorts.size(); ++k)
   {
-    auto bg = std::make_unique<score::gfx::BackgroundNode>();
+    auto bg = std::make_unique<score::gfx::BackgroundNode>(deviceMode);
     // BackgroundNode's constructor does NOT allocate shared_readback; its
     // renderer dereferences it (*shared_readback) to get the QRhiReadbackResult
     // to fill. A null here => a null QRhiReadbackResult* handed to

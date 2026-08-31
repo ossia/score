@@ -134,9 +134,26 @@ struct RenderState
   }
 };
 
+/**
+ * @brief Who owns the imported Vulkan device behind a RenderState.
+ *
+ * Owned is the historical behaviour: one vkCreateDevice per RenderState, one
+ * vkDestroyDevice when it goes away. Cached takes a reference on the
+ * process-wide SharedVulkanDeviceCache instead, so a create/destroy pair is
+ * not paid every time the state is rebuilt. Only the shader previews opt in —
+ * they are rebuilt on every selection, whereas outputs and encoders are
+ * long-lived and must keep their current behaviour.
+ */
+enum class SharedDeviceMode
+{
+  Owned,
+  Cached
+};
+
 SCORE_PLUGIN_GFX_EXPORT
-std::shared_ptr<RenderState>
-createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window);
+std::shared_ptr<RenderState> createRenderState(
+    GraphicsApi graphicsApi, QSize sz, QWindow* window,
+    SharedDeviceMode deviceMode = SharedDeviceMode::Owned);
 
 static const constexpr int32_t invalid_node_index = -1;
 }
