@@ -485,7 +485,7 @@ Macro::automate(const IntervalModel& parent, const Process::Inlet& inl)
   auto outl = static_cast<Automation::ProcessModel*>(autom)->outlet.get();
   createCable(plug, *outl, inl, Process::CableType::ImmediateGlutton);
 
-  return {};
+  return autom;
 }
 
 Process::ProcessModel& Macro::automate(

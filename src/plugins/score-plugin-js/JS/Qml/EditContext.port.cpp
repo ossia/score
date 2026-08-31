@@ -1,6 +1,8 @@
 #include <State/Domain.hpp>
 
 #include <Process/Commands/EditPort.hpp>
+#include <Process/Dataflow/Cable.hpp>
+#include <Process/Dataflow/Port.hpp>
 
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -10,24 +12,26 @@
 
 #include <ossia/network/domain/domain.hpp>
 
+#include <vector>
+
 namespace JS
 {
-void EditJsContext::automate(QObject* interval, QObject* port)
+QObject* EditJsContext::automate(QObject* interval, QObject* port)
 {
   auto doc = ctx();
   if(!doc)
-    return;
+    return nullptr;
   auto itv = qobject_cast<Scenario::IntervalModel*>(interval);
   if(!itv)
-    return;
+    return nullptr;
   auto ctl = qobject_cast<Process::Inlet*>(port);
   if(!ctl)
-    return;
+    return nullptr;
   if(ctl->type() != Process::PortType::Message)
-    return;
+    return nullptr;
 
   auto [m, _] = macro(*doc);
-  m->automate(*itv, *ctl);
+  return m->automate(*itv, *ctl);
 }
 
 QObject* EditJsContext::port(QObject* obj, QString name)
@@ -66,6 +70,21 @@ QObject* EditJsContext::inlet(QObject* obj, int index)
   return proc->inlets()[index];
 }
 
+QObject* EditJsContext::inlet(QObject* obj, QString name)
+{
+  auto doc = ctx();
+  if(!doc)
+    return nullptr;
+  auto proc = qobject_cast<Process::ProcessModel*>(obj);
+  if(!proc)
+    return nullptr;
+
+  for(auto p : proc->inlets())
+    if(p->name() == name)
+      return p;
+  return nullptr;
+}
+
 int EditJsContext::inlets(QObject* obj)
 {
   auto doc = ctx();
@@ -89,6 +108,21 @@ QObject* EditJsContext::outlet(QObject* obj, int index)
     return nullptr;
 
   return proc->outlets()[index];
+}
+
+QObject* EditJsContext::outlet(QObject* obj, QString name)
+{
+  auto doc = ctx();
+  if(!doc)
+    return nullptr;
+  auto proc = qobject_cast<Process::ProcessModel*>(obj);
+  if(!proc)
+    return nullptr;
+
+  for(auto p : proc->outlets())
+    if(p->name() == name)
+      return p;
+  return nullptr;
 }
 
 int EditJsContext::outlets(QObject* obj)
@@ -120,6 +154,71 @@ QObject* EditJsContext::createCable(QObject* outlet, QObject* inlet)
   auto [m, _] = macro(*doc);
   auto& c = m->createCable(root, *src, *sink, Process::CableType::ImmediateGlutton);
   return &c;
+}
+
+// A port stores its cables as paths, which may not resolve while a document is
+// being torn down or if the other end was just removed. Both accessors below
+// skip what does not resolve, so a script never sees a dangling cable and the
+// indices of cable(port, i) stay in step with the count from cables(port).
+static void
+resolvedCables(const Process::Port& port, const score::DocumentContext& ctx,
+               std::vector<Process::Cable*>& out)
+{
+  for(const auto& path : port.cables())
+    if(auto c = path.try_find(ctx))
+      out.push_back(c);
+}
+
+int EditJsContext::cables(QObject* port)
+{
+  auto doc = ctx();
+  if(!doc)
+    return 0;
+  auto p = qobject_cast<Process::Port*>(port);
+  if(!p)
+    return 0;
+
+  std::vector<Process::Cable*> found;
+  resolvedCables(*p, *doc, found);
+  return std::ssize(found);
+}
+
+QObject* EditJsContext::cable(QObject* port, int index)
+{
+  auto doc = ctx();
+  if(!doc)
+    return nullptr;
+  auto p = qobject_cast<Process::Port*>(port);
+  if(!p)
+    return nullptr;
+
+  std::vector<Process::Cable*> found;
+  resolvedCables(*p, *doc, found);
+  if(index < 0 || index >= std::ssize(found))
+    return nullptr;
+  return found[index];
+}
+
+QObject* EditJsContext::source(QObject* cable)
+{
+  auto doc = ctx();
+  if(!doc)
+    return nullptr;
+  auto c = qobject_cast<Process::Cable*>(cable);
+  if(!c)
+    return nullptr;
+  return c->source().try_find(*doc);
+}
+
+QObject* EditJsContext::sink(QObject* cable)
+{
+  auto doc = ctx();
+  if(!doc)
+    return nullptr;
+  auto c = qobject_cast<Process::Cable*>(cable);
+  if(!c)
+    return nullptr;
+  return c->sink().try_find(*doc);
 }
 
 void EditJsContext::setAddress(QObject* obj, QString addr)
