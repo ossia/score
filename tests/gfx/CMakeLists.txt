@@ -171,6 +171,11 @@ score_add_gfx_test(orientation GfxOrientation.cpp)
 # the remaining attachments and per-attachment identity are all unpinned there.
 score_add_gfx_test(mrt_pattern GfxMrtPattern.cpp)
 
+# The same closed-form pattern, but through ISF -> ScreenNode -> swapchain
+# readback: the path the golden gate exercises and the only one the analytic
+# tests above do not cover. Needs a real windowing system.
+score_add_gfx_test(window_pattern GfxWindowPattern.cpp)
+
 # Orientation as a property of the whole path rather than of one node: the same
 # picture through 0, 1 and 2 verbatim passthroughs, on every backend, against a
 # four-quadrant key that tells a flip from a transpose from a rotation.
