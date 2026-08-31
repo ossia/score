@@ -627,7 +627,10 @@ if(SCORE_HAS_SHELL_HARNESS)
       WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
     set_tests_properties(test_live_edit.${_le_scen} PROPERTIES
       SKIP_RETURN_CODE 77
-      TIMEOUT 120
+      # Above live-edit-sweep.sh's own `timeout --foreground 150`, so the harness
+      # reaches its verdict instead of ctest killing it first and reporting a bare
+      # Timeout.
+      TIMEOUT 240
       RUN_SERIAL TRUE
       LABELS "live-edit"
       ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")

@@ -85,7 +85,7 @@ rc=125
       oscsend 127.0.0.1 6666 /script s "Score.device('Window').grabTo('$PNG')" 2>/dev/null
       [ -s "$PNG" ] && break
     done
-    sleep 0.5; oscsend 127.0.0.1 6666 /stop; sleep 0.5; oscsend 127.0.0.1 6666 /exit ) \
+    sleep 0.5; oscsend 127.0.0.1 6666 /script s "Score.stop()"; sleep 0.5; oscsend 127.0.0.1 6666 /exit s force ) \
     >/dev/null 2>&1 &
 
   env "${COMMON[@]}" ASAN_OPTIONS="$ASAN" "${BE[@]}" \

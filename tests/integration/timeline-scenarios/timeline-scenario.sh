@@ -128,7 +128,7 @@ mean_of() { convert "$1" -format '%[fx:mean]' info: 2>/dev/null || echo -1; }
   # listener rejects ("element size must be multiple of four"), so bare /stop
   # and /exit were never delivered and the run ended at the harness timeout.
   send /script s "Score.stop()"; sleep 0.5
-  send /script s "Qt.exit(0)"
+  send /exit s force
   wait "$APP"; echo $? > "$OUT/ramp.rc"
 ) 9>/tmp/score-harness.lock
 

@@ -251,7 +251,7 @@ render_one() { # case_name out_png -> 0 ok, 2 no png, 3 wrong backend
         oscsend 127.0.0.1 $OSC /script s "Score.device('Window').grabTo('$png')" 2>/dev/null
         [ -s "$png" ] && break
       done
-      sleep 0.5; oscsend 127.0.0.1 $OSC /stop; sleep 0.5; oscsend 127.0.0.1 $OSC /exit ) >/dev/null 2>&1 &
+      sleep 0.5; oscsend 127.0.0.1 $OSC /script s "Score.stop()"; sleep 0.5; oscsend 127.0.0.1 $OSC /exit s force ) >/dev/null 2>&1 &
     # shellcheck disable=SC2086
     env -u DISPLAY XDG_CONFIG_HOME="$CFG" \
         SCORE_AUDIO_BACKEND=dummy SCORE_DISABLE_AUDIOPLUGINS=1 \

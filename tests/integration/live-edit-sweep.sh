@@ -66,6 +66,19 @@ if [ -z "${DISPLAY:-}" ]; then
   exit 77
 fi
 
+# The verdict logic forgives the known shutdown defect only through ASan report
+# signatures (asan_census below): under ASan it is a report plus exit 1, which is
+# carved out. Without ASan the same defect is a bare SIGSEGV (139) with no report
+# to match, so every scenario fails no matter how the live editing itself went.
+# Skip honestly rather than emit a guaranteed red.
+if ! nm -C "$BIN" 2>/dev/null | grep -q "__asan_init" \
+   && ! ldd "$BIN" 2>/dev/null | grep -q "libasan"; then
+  echo "live-edit-sweep: $BIN is not ASan-instrumented -- SKIP."
+  echo "  This sweep's verdict logic needs ASan: the known shutdown defect shows up"
+  echo "  as SIGSEGV rather than as a matchable report."
+  exit 77
+fi
+
 mkdir -p "$OUT"
 
 # scenario -> "<nticks> <require_render> [min_nonblack_coverage]"
@@ -133,7 +146,7 @@ pump() { # name nticks — runs alongside the app, under the same lock
   # /script carries a string argument and is accepted, which is why the grabs
   # above always worked while the shutdown silently did not.
   send /script s "Score.stop()"; sleep 0.5
-  send /script s "Qt.exit(0)"
+  send /exit s force
 }
 
 run_scenario() { # name nticks

@@ -149,7 +149,7 @@ echo "cycle,rss_kb,fds" > "$OUT/samples.csv"
   # /script, not bare /stop and /exit: this oscsend emits argument-less messages
   # that score's OSC listener rejects, so shutdown was never delivered.
   send /script s "Score.stop()"; sleep 0.5
-  send /script s "Qt.exit(0)"
+  send /exit s force
   wait "$APP"; echo $? > "$OUT/soak.rc"
 ) 9>/tmp/score-harness.lock
 
