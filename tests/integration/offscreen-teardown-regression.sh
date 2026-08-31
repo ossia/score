@@ -1,18 +1,14 @@
 #!/usr/bin/env bash
 # Regression test for the render-teardown crash fixes:
-#   * 12283829d "gfx: fix offscreen output teardown use-after-free/double-free"
-#     ~offscreen_device must synchronously
-#     release the output's RenderList and the double-owned node before the
-#     QRhi dies.
-#   * 32ad5559e "gfx/render-clock: fix TimerClock timeout use-after-free on
-#     teardown" — a queued timer tick must not fire
-#     on a freed TimerClock.
+#   * ~offscreen_device must synchronously release the output's RenderList and
+#     the double-owned node before the QRhi dies.
+#   * a queued timer tick must not fire on a freed TimerClock.
 #
-# Recipe (modeled on csf-sweep.sh / verify-shader.sh): boot the full
-# ossia-score with an offscreen window device, render a solid-color ISF shader
-# scene, grab a frame to prove rendering actually happened, then /stop + /exit
-# and assert the process EXIT CODE is 0. Before the fixes, teardown died with
-# SIGSEGV / ASAN heap-use-after-free (exit 139 / 1).
+# Recipe (modeled on csf-sweep.sh): boot the full ossia-score with an offscreen
+# window device, render a solid-color ISF shader scene, grab a frame to prove
+# rendering actually happened, then /stop + /exit and assert the process exit
+# code is 0. A regression shows up as SIGSEGV or an ASAN heap-use-after-free
+# (exit 139 / 1).
 #
 #   tests/integration/offscreen-teardown-regression.sh [build-js] [llvmpipe|nvidia]
 #
@@ -27,7 +23,7 @@ SRCROOT="$(cd "$HERE/../.." && pwd)"
 BIN="${SCORE_BIN:-${OSSIA_SCORE:-$SRCROOT/build-sanitizers/ossia-score}}"
 # The scene must come from the tests-scene builder: a live-edit-style scene
 # does not connect to the offscreen device (see the backend note below). The
-# corpus is out-of-repo, same provisioning contract as golden-render.sh.
+# corpus is out-of-repo, provisioned like the other sweep scripts here.
 SCRIPTS="${SCRIPTS:-$HOME/Documents/ossia/score/packages/csf-examples/csf-testers/tests-scene/scripts}"
 JS="${1:-$SCRIPTS/build-isf-solid-color.js}"
 BACKEND="${2:-llvmpipe}"
@@ -66,16 +62,16 @@ case "$BACKEND" in
   nvidia) BE=(env DISPLAY="${DISPLAY:-:0}" QT_QPA_PLATFORM=xcb __GLX_VENDOR_LIBRARY_NAME=nvidia) ;;
   # llvmpipe must not see an inherited DISPLAY (e.g. from a ctest run that set
   # one for GUI tests): offscreen+GLX-on-NVIDIA breaks texture creation.
-  # A real X server with xcb, NOT QT_QPA_PLATFORM=offscreen. Offscreen has no
+  # A real X server with xcb, not QT_QPA_PLATFORM=offscreen. Offscreen has no
   # GL (Qt's offscreen integration is GLX-only), so QRhi falls back to the Null
-  # backend, which draws nothing: this test's "grab a frame to prove rendering
-  # happened" step passed on a constant colour and the teardown assertion that
-  # follows it was therefore never reached on a real render.
+  # backend, which draws nothing: the "grab a frame to prove rendering
+  # happened" step would pass on a constant colour and the teardown assertion
+  # after it would never be reached on a real render.
   #
   # SCORE_FORCE_OFFSCREEN_WINDOW is kept: the offscreen device is what this test
   # is about, and it renders correctly on a real GL context -- the grab comes
   # back magenta, which is what the shader draws. (A scene built the way the
-  # live-edit scenarios build theirs does NOT connect to the offscreen device;
+  # live-edit scenarios build theirs does not connect to the offscreen device;
   # that is a separate, unexplained difference between the two scene builders,
   # not a fault in the device.)
   *)      BE=(env QT_QPA_PLATFORM=xcb SCORE_SANITIZE_SKIP_CHECKS=1 LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe) ;;
@@ -91,7 +87,7 @@ rc=125
       oscsend 127.0.0.1 6666 /script s "Score.device('Window').grabTo('$PNG')" 2>/dev/null
       [ -s "$PNG" ] && break
     done
-    sleep 0.5; oscsend 127.0.0.1 6666 /stop; sleep 0.5; oscsend 127.0.0.1 6666 /exit ) \
+    sleep 0.5; oscsend 127.0.0.1 6666 /script s "Score.stop()"; sleep 0.5; oscsend 127.0.0.1 6666 /exit s force ) \
     >/dev/null 2>&1 &
 
   env "${COMMON[@]}" ASAN_OPTIONS="$ASAN" "${BE[@]}" \

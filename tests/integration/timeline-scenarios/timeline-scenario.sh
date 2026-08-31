@@ -83,15 +83,14 @@ mean_of() { convert "$1" -format '%[fx:mean]' info: 2>/dev/null || echo -1; }
   # nothing relative to the running script.
   { printf 'var TIMELINE_DIR = "%s";\n' "$HERE"; cat "$HERE/scenario-ramp.js"; } \
     > "$OUT/scenario-ramp.staged.js"
-  # A real X server with xcb and a real window, NOT QT_QPA_PLATFORM=offscreen.
+  # A real X server with xcb and a real window, not QT_QPA_PLATFORM=offscreen.
   # Qt's offscreen integration has GL only through GLX, so with no X there is no
   # GL: QRhi::create fails, score falls back to the Null RHI backend and renders
-  # a constant. That is what made this scenario report a level frozen at
-  # 0.666667 -- it was measuring a Null-backend frame, not the ramp.
+  # a constant frame, which a mean-based probe cannot tell from a real one.
   # SCORE_FORCE_OFFSCREEN_WINDOW is not used either: with real GL the offscreen
   # device never gets the graph connected ("no process is connected to this
-  # device's input"), and grabTo reads the swapchain backbuffer now, so a real
-  # window is a true render and a true readback.
+  # device's input"), and grabTo reads the swapchain backbuffer, so a real
+  # window gives a true render and a true readback.
   env XDG_CONFIG_HOME="$CFG" \
       SCORE_AUDIO_BACKEND=dummy SCORE_DISABLE_AUDIOPLUGINS=1 \
       SCORE_SANITIZE_SKIP_CHECKS=1 QT_QPA_PLATFORM=xcb \
@@ -108,12 +107,12 @@ mean_of() { convert "$1" -format '%[fx:mean]' info: 2>/dev/null || echo -1; }
   fi
   sleep 3   # let autoplay actually start the engine
 
-  # Playback stays RUNNING: /transport repositions the playhead and the running
+  # Playback stays running: /transport repositions the playhead and the running
   # engine re-renders the automation value at the new spot. (A paused seek does
-  # NOT re-render — no tick fires while paused — so it freezes the last frame.)
-  # The grab therefore lands slightly AHEAD of T by the settle time; the verdict
-  # uses a one-directional drift band + monotonicity rather than exact equality.
-  # Frame-exact stepping needs the offline/driven clock (render-clock-RFC, P2).
+  # not re-render -- no tick fires while paused -- so it freezes the last frame.)
+  # The grab therefore lands slightly ahead of T by the settle time; the verdict
+  # uses a one-directional drift band plus monotonicity rather than exact
+  # equality. Frame-exact stepping would need an offline, driven clock.
   for T in "${POSITIONS[@]}"; do
     png="$OUT/ramp-$T.png"
     rm -f "$png"
@@ -124,11 +123,11 @@ mean_of() { convert "$1" -format '%[fx:mean]' info: 2>/dev/null || echo -1; }
     done
   done
 
-  # Through /script: this oscsend emits argument-less messages that score's OSC
-  # listener rejects ("element size must be multiple of four"), so bare /stop
-  # and /exit were never delivered and the run ended at the harness timeout.
+  # Sent through /script: this oscsend emits argument-less messages, which
+  # score's OSC listener rejects ("element size must be multiple of four"), so a
+  # bare /stop or /exit never arrives and the run hits the harness timeout.
   send /script s "Score.stop()"; sleep 0.5
-  send /script s "Qt.exit(0)"
+  send /exit s force
   wait "$APP"; echo $? > "$OUT/ramp.rc"
 ) 9>/tmp/score-harness.lock
 
