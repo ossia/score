@@ -117,26 +117,52 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
   parser.addOption(script_opt);
 
   parser.parse(ctx.applicationSettings.arguments);
-  const auto script = parser.value(script_opt);
-  if(stringIsScript(script))
+  for(const QString& script : parser.values(script_opt))
   {
-    this->m_start_script = script;
-  }
-  else if(!script.isEmpty())
-  {
-    QFile f{script};
-    if(f.open(QIODevice::ReadOnly))
+    if(script.isEmpty())
+      continue;
+
+    if(stringIsScript(script))
     {
-      this->m_start_script = f.readAll();
-      this->m_start_script_name = script;
-      this->m_start_script_path = QFileInfo{f}.canonicalPath();
+      this->m_start_scripts.push_back(StartScript{.source = script});
+      continue;
     }
-    else
+
+    QFile f{script};
+    if(!f.open(QIODevice::ReadOnly))
     {
       qCritical() << "--script: cannot open" << script << ":" << f.errorString();
       this->m_start_script_failed = true;
+      continue;
     }
+
+    const QFileInfo fi{f};
+    StartScript s;
+    s.name = script;
+    s.file = fi.canonicalFilePath();
+    s.dir = fi.canonicalPath();
+    // .mjs is what the rest of score calls an ES module (see the library's
+    // ModuleLibraryHandler); only those go through importModule().
+    s.module = fi.suffix().compare(QStringLiteral("mjs"), Qt::CaseInsensitive) == 0;
+    if(!s.module)
+      s.source = QString::fromUtf8(f.readAll());
+
+    this->m_start_scripts.push_back(std::move(s));
   }
+}
+
+QJSValue ApplicationPlugin::importModule(QQmlEngine& engine, const QString& path)
+{
+  QJSValue mod = engine.importModule(path);
+  if(mod.isError())
+    return mod;
+
+  if(auto init = mod.property("initialize"); init.isCallable())
+    if(const auto res = init.call(); res.isError())
+      return res;
+
+  engine.globalObject().setProperty(QFileInfo{path}.baseName(), mod);
+  return mod;
 }
 
 void ApplicationPlugin::on_newDocument(score::Document& doc)
@@ -185,24 +211,28 @@ void ApplicationPlugin::on_createdDocument(score::Document& doc)
     return;
   }
 
-  if(!m_start_script.isEmpty())
+  if(!m_start_scripts.empty())
   {
     QTimer::singleShot(100, this, [this] {
-      if(!m_start_script_path.isEmpty())
-        m_consoleEngine.addImportPath(m_start_script_path);
-
-      // Report a throwing --script: an unresolvable readFile returns an empty
-      // string and eval("") is a no-op, so the process would otherwise exit
-      // reporting success and a harness could not tell that from a pass.
-      const auto res = m_consoleEngine.evaluate(m_start_script, m_start_script_name);
-      if(res.isError())
+      for(const StartScript& s : m_start_scripts)
       {
-        qCritical().noquote()
-            << "--script:"
-            << (m_start_script_name.isEmpty() ? QStringLiteral("<inline>")
-                                              : m_start_script_name)
-            << "line" << res.property("lineNumber").toInt() << ":" << res.toString();
-        qGuiApp->exit(3);
+        if(!s.dir.isEmpty())
+          m_consoleEngine.addImportPath(s.dir);
+
+        // Report a throwing --script: an unresolvable readFile returns an empty
+        // string and eval("") is a no-op, so the process would otherwise exit
+        // reporting success and a harness could not tell that from a pass.
+        const auto res = s.module ? importModule(m_consoleEngine, s.file)
+                                  : m_consoleEngine.evaluate(s.source, s.name);
+        if(res.isError())
+        {
+          qCritical().noquote()
+              << "--script:"
+              << (s.name.isEmpty() ? QStringLiteral("<inline>") : s.name) << "line"
+              << res.property("lineNumber").toInt() << ":" << res.toString();
+          qGuiApp->exit(3);
+          return;
+        }
       }
     });
   }
@@ -216,6 +246,10 @@ void ApplicationPlugin::afterStartup()
   for(auto& p : this->context.settings<Library::Settings::Model>().getIncludePaths())
   {
     m_scriptProcessUIEngine.addImportPath(p);
+    // The console engine runs --script, the console panel and every library
+    // .mjs; without this they could not import what a JS process can, which
+    // made the same `import` line work in a process and fail in a script.
+    m_consoleEngine.addImportPath(p);
   }
 
 #if __has_include(<QQuickWindow>)

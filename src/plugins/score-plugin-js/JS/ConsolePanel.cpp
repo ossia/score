@@ -139,9 +139,9 @@ QMenu* PanelDelegate::addMenu(QMenu* cur, QStringList names)
 
 void PanelDelegate::importModule(const QString& path)
 {
-  QJSValue mod = m_engine.importModule(path);
-  if(auto init = mod.property("initialize"); init.isCallable())
-    init.call();
+  // Shared with --script so that both agree on what loading a module means:
+  // import, run initialize(), publish under the base name.
+  QJSValue mod = ApplicationPlugin::importModule(m_engine, path);
   if(auto init = mod.property("actions"); init.isArray())
   {
     QJSValueIterator it(init);
