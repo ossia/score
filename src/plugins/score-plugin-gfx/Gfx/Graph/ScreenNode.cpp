@@ -223,8 +223,9 @@ static void tryStorePipelineCacheAsync(QRhi* rhi, GraphicsApi api)
 }
 }
 
-std::shared_ptr<RenderState>
-createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
+std::shared_ptr<RenderState> createRenderState(
+    GraphicsApi graphicsApi, QSize sz, QWindow* window,
+    SharedDeviceMode deviceMode)
 {
   auto st = std::make_shared<RenderState>();
   RenderState& state = *st;
@@ -448,7 +449,10 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
     // what QRhi would pick by default.
 #if defined(VK_KHR_video_decode_queue) && QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
     {
-      auto sharedDev = createSharedVulkanDevice(params.inst);
+      const bool cached = deviceMode == SharedDeviceMode::Cached
+                          && !sharedVulkanDeviceCacheDisabled();
+      auto sharedDev = cached ? sharedVulkanDeviceCache().acquire(params.inst)
+                              : createSharedVulkanDevice(params.inst);
       if(sharedDev)
       {
         // The shared device enables every queried feature, so interop fast
@@ -467,16 +471,25 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
         state.rhi = QRhi::create(QRhi::Vulkan, &params, flags, &importedHandles);
         if(state.rhi)
         {
-          state.customDeviceCleanup = [dev = sharedDev.dev, inst = params.inst]() {
-            if(auto fn = reinterpret_cast<PFN_vkDestroyDevice>(
-                   inst->getInstanceProcAddr("vkDestroyDevice")))
-              fn(dev, nullptr);
-          };
+          // Runs from RenderState::destroy(), i.e. after `delete rhi` — the
+          // QRhi still touches the imported device while shutting down.
+          if(cached)
+            state.customDeviceCleanup = [dev = sharedDev.dev]() {
+              sharedVulkanDeviceCache().release(dev);
+            };
+          else
+            state.customDeviceCleanup
+                = [dev = sharedDev.dev, inst = params.inst]() {
+              destroySharedVulkanDevice(inst, dev);
+            };
           state.renderSize = sz;
           populateCaps(state);
           return st;
         }
-        sharedDev.destroy();
+        if(cached)
+          sharedVulkanDeviceCache().release(sharedDev.dev);
+        else
+          sharedDev.destroy(params.inst);
       }
     }
 #endif

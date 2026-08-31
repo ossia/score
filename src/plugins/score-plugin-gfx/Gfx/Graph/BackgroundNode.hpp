@@ -14,7 +14,8 @@ namespace score::gfx
 {
 struct BackgroundNode : OutputNode
 {
-  explicit BackgroundNode()
+  explicit BackgroundNode(SharedDeviceMode deviceMode = SharedDeviceMode::Owned)
+      : m_deviceMode{deviceMode}
   {
     input.push_back(new Port{this, {}, Types::Image, {}});
     auto& ctx = score::GUIAppContext();
@@ -74,7 +75,8 @@ struct BackgroundNode : OutputNode
     if(newSz.width() <= 0 || newSz.height() <= 0)
       newSz = QSize{1024, 1024};
 
-    m_renderState = score::gfx::createRenderState(conf.graphicsApi, newSz, nullptr);
+    m_renderState = score::gfx::createRenderState(
+        conf.graphicsApi, newSz, nullptr, m_deviceMode);
     if(!m_renderState || !m_renderState->rhi)
     {
       qWarning() << "BackgroundNode: failed to create QRhi";
@@ -295,6 +297,7 @@ struct BackgroundNode : OutputNode
 
 private:
   Configuration m_conf;
+  SharedDeviceMode m_deviceMode{SharedDeviceMode::Owned};
 
   std::weak_ptr<score::gfx::RenderList> m_renderer{};
   QRhiTexture* m_texture{};
