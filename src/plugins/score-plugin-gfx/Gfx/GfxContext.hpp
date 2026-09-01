@@ -187,6 +187,7 @@ private:
   using Command = ossia::variant<NodeCommand, EdgeCommand>;
   moodycamel::ConcurrentQueue<Command> tick_commands;
   moodycamel::ConcurrentQueue<score::gfx::Message> tick_messages;
+  std::vector<std::pair<score::gfx::Message, int>> m_deferredMessages;
 
   std::mutex edges_lock;
   ossia::flat_set<EdgeSpec> new_edges TS_GUARDED_BY(edges_lock);

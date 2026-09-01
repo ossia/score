@@ -219,6 +219,12 @@ void Graph::createOutputRenderList(OutputNode& output)
 try
 {
   static const bool trace = qEnvironmentVariableIsSet("SCORE_GFX_TRACE");
+  // Already built: multiple recovery paths (onReady, onResize, the per-tick
+  // createMissingRenderLists sweep) can race to build the same list.
+  if(auto* r = output.renderer())
+    for(auto& rl : m_renderers)
+      if(rl.get() == r)
+        return;
   if(output.renderState())
   {
     if(auto rl = createRenderList(&output, output.renderState()))
@@ -237,6 +243,15 @@ try
 }
 catch(...)
 {
+  // createRenderList sets output->setRenderer() before RenderList::init()
+  // runs; init() can throw (SCORE_ASSERT throws in release). Left as-is, the
+  // output holds a half-built RenderList that is not in m_renderers, which
+  // makes the resize fast path in initializeOutput report success forever
+  // and no recovery ever runs. Reset so retries see a renderer-less output.
+  fprintf(stderr, "gfx: render list creation threw for output %p\n", (void*)&output);
+  output.setRenderer({});
+  if(output.renderState())
+    output.renderState()->renderer = {};
 }
 
 void Graph::recreateOutputRenderList(OutputNode& output)
@@ -321,6 +336,13 @@ void Graph::recreateOutputRenderList(OutputNode& output)
     {
     }
   }
+}
+
+void Graph::createMissingRenderLists()
+{
+  for(auto* output : m_outputs)
+    if(output && output->canRender() && !output->renderer())
+      createOutputRenderList(*output);
 }
 
 void Graph::initializeOutput(OutputNode* output, GraphicsApi graphicsApi)
@@ -1048,7 +1070,7 @@ void Graph::reconcileAllRenderLists()
         rl->setInitialBatch(batch);
       }
     }
-    else
+    else if(batch)
     {
       batch->release();
     }
@@ -1164,6 +1186,13 @@ void Graph::removeEdge(Port* source, Port* sink)
     delete *it;
     m_edges.erase(it);
   }
+}
+
+Edge* Graph::findEdge(Port* source, Port* sink)
+{
+  auto it = ossia::find_if(
+      m_edges, [=](Edge* e) { return e->source == source && e->sink == sink; });
+  return it != m_edges.end() ? *it : nullptr;
 }
 
 void Graph::releaseOutputRenderList(score::gfx::OutputNode& output)
