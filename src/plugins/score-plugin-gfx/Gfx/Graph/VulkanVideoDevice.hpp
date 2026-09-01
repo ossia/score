@@ -388,6 +388,12 @@ inline SharedVulkanDevice createSharedVulkanDevice(
   vkGetPhysicalDeviceFeatures2Fn(result.physDev, &features2);
   result.timelineSemaphores = vk12.timelineSemaphore == VK_TRUE;
 
+  // Do not enable the robustness features: they force bounds-checked GPU
+  // memory access on every operation, a documented slow path on several
+  // drivers, and nothing in score or the interop paths relies on them.
+  features2.features.robustBufferAccess = VK_FALSE;
+  vk13.robustImageAccess = VK_FALSE;
+
   // --- Create queue infos (1 queue per family) ---
 
   std::vector<VkDeviceQueueCreateInfo> queueInfos;

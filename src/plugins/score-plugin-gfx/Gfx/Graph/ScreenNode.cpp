@@ -448,6 +448,7 @@ std::shared_ptr<RenderState> createRenderState(
     // Use the first physical device from QVulkanInstance — this matches
     // what QRhi would pick by default.
 #if defined(VK_KHR_video_decode_queue) && QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+    if(!qEnvironmentVariableIsSet("SCORE_GFX_NO_SHARED_VKDEVICE"))
     {
       const bool cached = deviceMode == SharedDeviceMode::Cached
                           && !sharedVulkanDeviceCacheDisabled();
