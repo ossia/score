@@ -16,6 +16,7 @@
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
+#include <cmath>
 #include <memory>
 #include <vector>
 
@@ -181,10 +182,12 @@ TEST_CASE("flattenScene: the fallback eye used when a scene has no camera", "[sc
   FlatScene out;
   flattenScene(specOf({makeNode(1, {})}), out, 16.f / 9.f);
 
-  // FlatScene's own doc-comment says this eye is (0,1,3); SceneGPUState.cpp
-  // writes (0,0,3). The code is the contract.
+  // (0,1,3) is the product's no-camera eye: the camera-UBO fallback in
+  // ScenePreprocessorNode uses it and the Threedim Camera process defaults
+  // to it. The legacy mirror must agree or the two consumer families render
+  // from different eyes.
   CHECK(out.cameraPosition.x() == Approx(0.f));
-  CHECK(out.cameraPosition.y() == Approx(0.f));
+  CHECK(out.cameraPosition.y() == Approx(1.f));
   CHECK(out.cameraPosition.z() == Approx(3.f));
   CHECK(out.cameraFov == Approx(60.f));
   CHECK(out.cameraNear == Approx(0.1f));
@@ -192,7 +195,9 @@ TEST_CASE("flattenScene: the fallback eye used when a scene has no camera", "[sc
   CHECK_FALSE(out.hasCamera);
 
   const auto seen = out.viewMatrix.map(QVector3D{0.f, 0.f, 0.f});
-  CHECK(seen.z() == Approx(-3.f));
+  CHECK(seen.x() == Approx(0.f).margin(1e-5));
+  CHECK(seen.y() == Approx(0.f).margin(1e-5));
+  CHECK(seen.z() == Approx(-std::sqrt(10.f)));
 }
 
 TEST_CASE("flattenScene: reuse does not carry the previous scene's camera", "[scene][flatten]")
