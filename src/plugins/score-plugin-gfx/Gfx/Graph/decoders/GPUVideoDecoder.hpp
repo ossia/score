@@ -111,7 +111,7 @@ public:
   /**
    * @brief This method will release all the created samplers and textures.
    */
-  void release(RenderList&);
+  virtual void release(RenderList&);
 
   /**
    * @brief Utility method to create a QRhiTextureSubresourceUploadDescription.
