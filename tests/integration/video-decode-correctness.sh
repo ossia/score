@@ -298,7 +298,9 @@ for fmt in "${ORDER[@]}"; do
   fi
   case $rc in
     0) echo "PASS  (psnr=${psnr:-?} >= ${THRESH[$fmt]})"; pass=$((pass+1));;
-    4) echo "SKIP  (not recognized as video)"; skip=$((skip+1));;
+    # The clip's pix_fmt was ffprobe-verified above, so "not recognized as
+    # a video" here can only be a score regression, not a bad input.
+    4) echo "FAIL  (rc=4: no TextureOutlet for an ffprobe-verified clip, see $MEDIA/run-$fmt.log)"; fail=$((fail+1));;
     5) echo "FAIL  (psnr=${psnr:--} < ${THRESH[$fmt]}, see $MEDIA/run-$fmt.log)"; fail=$((fail+1));;
     124) echo "FAIL  (timeout)"; fail=$((fail+1));;
     *) echo "FAIL  (rc=$rc — crash?, see $MEDIA/run-$fmt.log)"; fail=$((fail+1));;
