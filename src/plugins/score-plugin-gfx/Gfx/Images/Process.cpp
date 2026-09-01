@@ -16,6 +16,7 @@
 #include <QDebug>
 #include <QFileInfo>
 #include <QImageReader>
+#include <QMimeDatabase>
 
 #include <wobjectimpl.h>
 
@@ -202,26 +203,41 @@ QSet<QString> DropHandler::mimeTypes() const noexcept
   return {}; // TODO
 }
 
+const QSet<QString>& supportedImageExtensions()
+{
+  // What this exact Qt build decodes — QtGui's built-in formats plus the
+  // linked imageformat plugins — instead of a hardcoded list that both
+  // missed linked plugins (webp, ico, tif...) and promised formats no
+  // plugin provides (heic, jp2 in the static SDK build).
+  static const QSet<QString> set = [] {
+    QSet<QString> s;
+    QMimeDatabase db;
+    for(const auto& mime : QImageReader::supportedMimeTypes())
+      for(const auto& suffix : db.mimeTypeForName(QString::fromUtf8(mime)).suffixes())
+        s.insert(suffix.toLower());
+    for(const auto& fmt : QImageReader::supportedImageFormats())
+      s.insert(QString::fromUtf8(fmt).toLower());
+    return s;
+  }();
+  return set;
+}
+
 QSet<QString> LibraryHandler::acceptedFiles() const noexcept
 {
-  return {"png",  "jpg",  "jpe", "jpeg", "gif", "bmp",
-          "tiff", "heic", "jp2", "svg",  "tga", "wbmp"};
+  return supportedImageExtensions();
 }
 
 QSet<QString> DropHandler::fileExtensions() const noexcept
 {
-  return {"png",  "jpg",  "jpe", "jpeg", "gif", "bmp",
-          "tiff", "heic", "jp2", "svg",  "tga", "wbmp"};
+  return supportedImageExtensions();
 }
 
 static bool isSupportedImage(const QFileInfo& filepath)
 {
-  static const auto set = DropHandler{}.fileExtensions();
-  if(set.contains(filepath.suffix().toLower()))
+  if(supportedImageExtensions().contains(filepath.suffix().toLower()))
     return true;
-  // The UI (EditableTable, drops) accepts anything QImage can decode, which
-  // is wider than the suffix whitelist — tif, webp, avif, ico, pnm... A
-  // whitelist miss must not silently veto what the user was allowed to pick.
+  // Content sniff for misnamed files; also the diagnostic gate for the
+  // qWarning below.
   return !QImageReader::imageFormat(filepath.filePath()).isEmpty();
 }
 
@@ -237,12 +253,15 @@ static std::optional<score::gfx::Image> readImage(const QString& filename)
   QImageReader reader{filename};
   reader.setBackgroundColor(Qt::transparent);
   std::vector<QImage> frames;
-  while(reader.canRead())
+  // Animations (gif) auto-advance on read(); multi-image formats (ico,
+  // multi-page tiff) do NOT — canRead() stays true and read() returns the
+  // same frame forever unless we jump explicitly. Break on failed reads too
+  // (a truncated animation keeps canRead() true).
+  while(reader.canRead() && frames.size() < 4096)
   {
+    const int cur = reader.currentImageNumber();
     QImage img = reader.read();
 
-    // A failed read with canRead() still true (truncated animation) would
-    // loop forever on `continue`.
     if(img.isNull() || img.size() == QSize{})
       break;
 
@@ -250,6 +269,9 @@ static std::optional<score::gfx::Image> readImage(const QString& filename)
       img.convertTo(QImage::Format_ARGB32);
 
     frames.push_back(std::move(img));
+
+    if(reader.currentImageNumber() == cur && !reader.jumpToNextImage())
+      break;
   }
 
   if(frames.empty())

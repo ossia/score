@@ -439,6 +439,11 @@ private:
     if(this->node.output[0]->type != score::gfx::Types::Image)
       return;
 
+    // Retried by createPassForEdgeIfMissing whenever either variant is
+    // missing (see hasOutputPassForEdge): drop what exists for this edge
+    // first so retries never accumulate duplicate pipelines.
+    removeOutputPass(renderer, edge);
+
     auto rt = renderer.renderTargetForOutput(edge);
     if(rt.renderTarget)
     {
@@ -460,6 +465,21 @@ private:
           m_altPasses.emplace_back(&edge, Pass{rt, pip, nullptr});
       }
     }
+  }
+
+  bool hasOutputPassForEdge(Edge& edge) const override
+  {
+    // Both variants must exist: runRenderPass draws from m_altPasses for
+    // every non-Single tile mode. The inherited check looked only at m_p, so
+    // a failed tiled build was never retried (tile modes drew nothing) while
+    // a failed single build was retried forever, duplicating m_altPasses.
+    const bool single
+        = ossia::find_if(m_p, [&](const auto& p) { return p.first == &edge; })
+          != m_p.end();
+    const bool tiled
+        = ossia::find_if(m_altPasses, [&](const auto& p) { return p.first == &edge; })
+          != m_altPasses.end();
+    return single && tiled;
   }
 
   void removeOutputPass(RenderList& renderer, Edge& edge) override

@@ -76,6 +76,9 @@ private:
   std::vector<score::gfx::Image> m_currentImages;
 };
 
+//! Suffixes this Qt build can actually decode (built-ins + linked plugins).
+SCORE_PLUGIN_GFX_EXPORT const QSet<QString>& supportedImageExtensions();
+
 using ProcessFactory = Process::ProcessFactory_T<Gfx::Images::Model>;
 
 class LibraryHandler final : public Library::LibraryInterface
