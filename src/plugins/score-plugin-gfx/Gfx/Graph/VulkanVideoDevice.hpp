@@ -388,6 +388,12 @@ inline SharedVulkanDevice createSharedVulkanDevice(
   vkGetPhysicalDeviceFeatures2Fn(result.physDev, &features2);
   result.timelineSemaphores = vk12.timelineSemaphore == VK_TRUE;
 
+  // Do not enable the robustness features: they force bounds-checked GPU
+  // memory access on every operation, a documented slow path on several
+  // drivers, and nothing in score or the interop paths relies on them.
+  features2.features.robustBufferAccess = VK_FALSE;
+  vk13.robustImageAccess = VK_FALSE;
+
   // --- Create queue infos (1 queue per family) ---
 
   std::vector<VkDeviceQueueCreateInfo> queueInfos;
@@ -450,9 +456,9 @@ inline SharedVulkanDevice createSharedVulkanDevice(
 /**
  * @brief Process-wide cache of imported VkDevices, keyed by (VkInstance, GPU).
  *
- * vkCreateDevice on the curated extension/feature set costs 150-210 ms and
- * vkDestroyDevice 80-140 ms; paying both on every shader-preview selection
- * froze the GUI thread for ~300 ms a click. Entries are refcounted, but a
+ * vkCreateDevice on the curated extension/feature set is expensive, and so is
+ * vkDestroyDevice; paying both on every shader-preview selection froze the GUI
+ * thread for the duration of each click. Entries are refcounted, but a
  * refcount of zero does NOT destroy: selecting a preview tears the old
  * BackgroundNode down before building the new one, so a destroy-at-zero cache
  * would drop to zero and back to one across every transition and save nothing.

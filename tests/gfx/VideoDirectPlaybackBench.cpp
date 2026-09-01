@@ -289,6 +289,128 @@ BenchResult run_bench(
 }
 }
 
+// Pure texture-upload throughput per backend, mirroring what the GPU video
+// decoders upload each frame: tightly-packed planes through
+// QRhiResourceUpdateBatch::uploadTexture, committed in an offscreen frame.
+// Isolates RHI upload cost from decode cost.
+TEST_CASE("texture upload throughput", "[.uploadbench]")
+{
+  struct Plane
+  {
+    QRhiTexture::Format fmt;
+    int w, h, bpp;
+  };
+  struct Cfg
+  {
+    const char* name;
+    std::vector<Plane> planes;
+  };
+  const int W = 1920, H = 1080;
+  const std::vector<Cfg> cfgs{
+      {"yuv420p-8bit(R8x3)",
+       {{QRhiTexture::R8, W, H, 1},
+        {QRhiTexture::R8, W / 2, H / 2, 1},
+        {QRhiTexture::R8, W / 2, H / 2, 1}}},
+      {"yuv422p10(R16x3)",
+       {{QRhiTexture::R16, W, H, 2},
+        {QRhiTexture::R16, W / 2, H, 2},
+        {QRhiTexture::R16, W / 2, H, 2}}},
+      {"nv12(R8+RG8)",
+       {{QRhiTexture::R8, W, H, 1}, {QRhiTexture::RG8, W / 2, H / 2, 2}}},
+      {"p010(R16+RG16)",
+       {{QRhiTexture::R16, W, H, 2}, {QRhiTexture::RG16, W / 2, H / 2, 4}}},
+      {"rgba8x1", {{QRhiTexture::RGBA8, W, H, 4}}},
+      {"rgba8x3-same-bytes-as-422p10",
+       {{QRhiTexture::RGBA8, W / 2, H, 4},
+        {QRhiTexture::RGBA8, W / 4, H, 4},
+        {QRhiTexture::RGBA8, W / 4, H, 4}}},
+  };
+
+  const auto backend
+      = GENERATE(from_range(score::test::gfx::platform_backends()));
+
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    std::string probed;
+    if(!score::test::gfx::probe_api(backend, probed))
+      return;
+    auto st = score::gfx::createRenderState(backend, QSize{16, 16}, nullptr);
+    if(!st || !st->rhi)
+      return;
+    QRhi& rhi = *st->rhi;
+
+    // Deterministic non-trivial pixel data, large enough for any plane.
+    std::vector<char> src(size_t(W) * H * 4);
+    uint32_t rnd = 0x12345678;
+    for(auto& c : src)
+    {
+      rnd = rnd * 1664525u + 1013904223u;
+      c = char(rnd >> 24);
+    }
+
+    for(const auto& cfg : cfgs)
+    {
+      std::vector<QRhiTexture*> texs;
+      size_t frame_bytes = 0;
+      for(const auto& p : cfg.planes)
+      {
+        auto t = rhi.newTexture(p.fmt, QSize{p.w, p.h}, 1, QRhiTexture::Flag{});
+        if(!t->create())
+        {
+          std::fprintf(
+              stderr, "BENCH-UPLOAD %-28s %-30s: format unsupported\n",
+              probed.c_str(), cfg.name);
+          delete t;
+          for(auto* tt : texs)
+            delete tt;
+          texs.clear();
+          break;
+        }
+        texs.push_back(t);
+        frame_bytes += size_t(p.w) * p.h * p.bpp;
+      }
+      if(texs.empty())
+        continue;
+
+      auto upload_frame = [&] {
+        auto batch = rhi.nextResourceUpdateBatch();
+        for(size_t i = 0; i < texs.size(); i++)
+        {
+          const auto& p = cfg.planes[i];
+          QRhiTextureSubresourceUploadDescription sub;
+          sub.setData(
+              QByteArray::fromRawData(src.data(), qsizetype(p.w) * p.h * p.bpp));
+          batch->uploadTexture(texs[i], QRhiTextureUploadDescription{{0, 0, sub}});
+        }
+        QRhiCommandBuffer* cb{};
+        rhi.beginOffscreenFrame(&cb);
+        cb->resourceUpdate(batch);
+        rhi.endOffscreenFrame();
+      };
+
+      for(int i = 0; i < 10; i++)
+        upload_frame();
+      constexpr int iters = 200;
+      QElapsedTimer t;
+      t.start();
+      for(int i = 0; i < iters; i++)
+        upload_frame();
+      const double secs = t.nsecsElapsed() / 1e9;
+
+      std::fprintf(
+          stderr,
+          "BENCH-UPLOAD %-28s %-30s: %8.1f uploads/s %8.1f MB/s (%.3f ms/frame)\n",
+          probed.c_str(), cfg.name, iters / secs,
+          (double(frame_bytes) * iters / secs) / 1e6, 1000. * secs / iters);
+      std::fflush(stderr);
+
+      for(auto* t2 : texs)
+        delete t2;
+    }
+    st->destroy();
+  });
+  SUCCEED();
+}
+
 TEST_CASE("direct video playback throughput", "[.videobench]")
 {
   const auto files = bench_files();
