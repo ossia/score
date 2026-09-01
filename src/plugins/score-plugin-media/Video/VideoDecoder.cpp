@@ -443,11 +443,21 @@ bool VideoDecoder::open(const std::string& inputFile) noexcept
     return false;
   }
 
-  int64_t secs = m_formatContext->duration / AV_TIME_BASE;
-  int64_t us = m_formatContext->duration % AV_TIME_BASE;
+  // Elementary streams and truncated files have no known duration:
+  // formatContext->duration stays AV_NOPTS_VALUE (INT64_MIN), and scaling
+  // that to flicks is a signed overflow. Report 0, like "unknown".
+  if(m_formatContext->duration == AV_NOPTS_VALUE || m_formatContext->duration < 0)
+  {
+    m_duration = 0;
+  }
+  else
+  {
+    int64_t secs = m_formatContext->duration / AV_TIME_BASE;
+    int64_t us = m_formatContext->duration % AV_TIME_BASE;
 
-  m_duration = secs * ossia::flicks_per_second<int64_t>;
-  m_duration += us * ossia::flicks_per_millisecond<int64_t> / 1000;
+    m_duration = secs * ossia::flicks_per_second<int64_t>;
+    m_duration += us * ossia::flicks_per_millisecond<int64_t> / 1000;
+  }
 
   return true;
 }
@@ -579,12 +589,12 @@ ReadFrame LibAVDecoder::read_one_frame_raw(AVPacket& packet)
     }
   }
 
-  if(res != 0 && res != AVERROR_EOF)
-  {
-    // qDebug() << "Error while reading a frame: "
-    //          << av_to_string(res);
-  }
-  else if(res == AVERROR_EOF)
+  // A file that ends in garbage (truncation, an interrupted transcode) makes
+  // av_read_frame return AVERROR_INVALIDDATA & co forever instead of EOF.
+  // Either way no more packets will ever come: finish, like ffplay does —
+  // otherwise buffer_thread retries this error at full tilt for the rest of
+  // the process's life.
+  if(res < 0 && res != AVERROR(EAGAIN))
   {
     m_finished = true;
   }
@@ -624,12 +634,13 @@ do_read_frame:
     }
   }
 
-  if(res != 0 && res != AVERROR_EOF)
-  {
-    // qDebug() << "Error while reading a frame: "
-    //          << av_to_string(res);
-  }
-  else if(res == AVERROR_EOF)
+  // AVERROR_EOF, or a persistent demux error: a truncated or corrupt tail
+  // makes av_read_frame return AVERROR_INVALIDDATA & co forever, never EOF.
+  // Either way no more packets will ever come, so both are the end of the
+  // stream, like ffplay treats them — otherwise buffer_thread retries the
+  // error at full tilt forever and the frames still buffered inside the
+  // decoder are never shown.
+  if(res < 0 && res != AVERROR(EAGAIN))
   {
     // Flush codec to get remaining frames from the reorder buffer (B-frames)
     if(m_codecContext)
