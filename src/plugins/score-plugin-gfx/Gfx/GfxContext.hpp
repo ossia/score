@@ -43,17 +43,23 @@ struct EdgeSpec
   port_index second{};
   Process::CableType type{};
 
+  // type takes part in identity: the exec thread republishes the full edge
+  // set every tick and endTick dedups against prev_edges — comparisons that
+  // ignore the cable type made an Immediate/Delayed flip invisible (never
+  // published, so the graph kept the old type until an unrelated change).
+  // A type flip now diffs as remove(old) + add(new) in the incremental path.
   bool operator==(const EdgeSpec& other) const noexcept
   {
-    return first == other.first && second == other.second;
+    return first == other.first && second == other.second && type == other.type;
   }
-  bool operator!=(const EdgeSpec& other) const noexcept
-  {
-    return first != other.first || second != other.second;
-  }
+  bool operator!=(const EdgeSpec& other) const noexcept { return !(*this == other); }
   bool operator<(const EdgeSpec& other) const noexcept
   {
-    return first < other.first || (first == other.first && second < other.second);
+    if(first != other.first)
+      return first < other.first;
+    if(second != other.second)
+      return second < other.second;
+    return type < other.type;
   }
 };
 
