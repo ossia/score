@@ -53,12 +53,12 @@ def gradient_2d(img, _all):
     """2d-no-stride.cs: R = x/(w-1), G = y/(h-1), B = 0.
 
     The header calls for black top-left, red top-right, green bottom-left,
-    yellow bottom-right. Red-vs-x is checked in the stated direction; green-vs-y
-    is accepted in EITHER direction but the direction is reported, because as
-    measured on 2026-08-21 every backend puts green at the TOP -- i.e. the
-    compute-written image reaches the window vertically flipped with respect to
-    the shader's own documented orientation. Pinning the flip as "correct" would
-    freeze a convention nobody has ruled on; ignoring it would lose the fact.
+    yellow bottom-right, and the repo has ruled on the orientation:
+    GfxOrientationFindings files the raw-imageStore flip as a defect,
+    GfxCsfOrientMacros states that a generator written through IMG_STORE lands
+    the right way up, and GfxMrtPattern / GfxWindowPattern pin the same
+    convention analytically on four backends. So green must increase DOWNWARD
+    in the delivered image; a flip is a failure, not a convention.
     """
     h, w, _ = img.shape
     r, g, b = img[:, :, 0], img[:, :, 1], img[:, :, 2]
@@ -67,10 +67,9 @@ def gradient_2d(img, _all):
     rc = r.mean(axis=0)
     gr = g.mean(axis=1)
 
-    # Monotonicity has to be judged against the ramp's OWN step size. Over 720
+    # Monotonicity has to be judged against the ramp's own step size. Over 720
     # rows a full 0..255 ramp advances ~0.35 per row, so a fixed +-1.0 per-step
-    # tolerance accepts a perfectly reversed ramp -- which is how an earlier
-    # version of this check reported "as documented" on a flipped image.
+    # tolerance would accept a perfectly reversed ramp.
     def direction(prof, axis_len, what):
         span = float(prof[-1] - prof[0])
         if abs(span) < 235:
@@ -89,22 +88,11 @@ def gradient_2d(img, _all):
     up, err = direction(gr, len(gr), "green across y")
     if err:
         return _fail(err)
-    # The header rules: 2d-no-stride.cs writes v = pos.y/(size.y-1) and documents
-    # "green (bottom-left) to yellow (bottom-right)", so green increases DOWNWARD.
-    # This used to report the flip and pass anyway, on the grounds that no one had
-    # ruled on the convention. The repo has since ruled -- GfxOrientationFindings
-    # files the raw-imageStore flip as a defect, GfxCsfOrientMacros states that a
-    # generator written through IMG_STORE lands the right way up, and GfxMrtPattern
-    # and GfxWindowPattern pin the same convention analytically on four backends.
-    # Abstaining here is what let two reference sets store a picture and its mirror
-    # image and call both correct.
     if not up:
         # The header rules: 2d-no-stride.cs writes v = pos.y/(size.y-1) and
         # documents "green (bottom-left) to yellow (bottom-right)", so green
-        # increases DOWNWARD. This used to detect the flip, print it, and return
-        # OK anyway, on the grounds that no one had ruled on the convention --
-        # which is how two reference sets came to hold a picture and its mirror
-        # image and have both blessed.
+        # increases downward. Abstaining here would let two reference sets hold
+        # a picture and its mirror image and call both correct.
         return _fail("green increases upward: vertically flipped against the "
                      "shader header, which documents green at the bottom. A "
                      "compute shader must store through IMG_STORE, not raw "
@@ -169,6 +157,32 @@ def nearest_filter(img, _all):
     return _ok(f"hard edges present (max per-channel step {step})")
 
 
+def isf_formula(formula, why, tol=3.0):
+    """A fragment-shader case whose displayed output is a closed-form function
+    of isf_FragNormCoord. Row 0 of the delivered image is the top; ISF's y == 1
+    is the top (the convention GfxWindowPattern pins analytically). The image is
+    compared per-pixel against the formula evaluated at pixel centers."""
+
+    def check(img, _all):
+        h, w, _ = img.shape
+        u = (np.arange(w, dtype=np.float64) + 0.5) / w
+        v = 1.0 - (np.arange(h, dtype=np.float64) + 0.5) / h
+        U, V = np.meshgrid(u, v)
+        exp = np.clip(np.stack(formula(U, V), axis=2) * 255.0, 0.0, 255.0)
+        d = np.abs(img.astype(np.float64) - exp)
+        mx = float(d.max())
+        if mx > tol:
+            worst = d.max(axis=2)
+            y, x = np.unravel_index(int(np.argmax(worst)), worst.shape)
+            got = tuple(int(c) for c in img[y, x])
+            want = tuple(round(float(c), 1) for c in exp[y, x])
+            return _fail(
+                f"max deviation {mx:.1f} from {why}; at ({x},{y}) got {got}, expected {want}")
+        return _ok(f"matches {why} (max deviation {mx:.1f})")
+
+    return check
+
+
 def not_flat(img, _all):
     """Multi-output / multi-pass cases: whatever they draw, a single flat
     colour means the pipeline collapsed. This is the weak fallback assertion --
@@ -204,17 +218,25 @@ CHECKS = {
     "build-isf-nearest-filter": nearest_filter,
     # Weak-but-real: these have no closed-form expectation in their headers.
     "build-isf-image-passthrough": not_flat,
-    "build-isf-three-pass": not_flat,
     "build-isf-multipass-size": not_flat,
-    "build-isf-mrt-four-outputs": not_flat,
     "build-mrt-gbuffer": not_flat,
-    "build-pass-override-state": not_flat,
+    # Closed forms from the shader headers. The window shows the last pass /
+    # the first MRT output.
+    "build-isf-three-pass": isf_formula(
+        lambda U, V: (U, V, (U + V) * 0.5),
+        "pass 2's vec4(p0.r, p1.g, (uv.x+uv.y)*0.5, 1)"),
+    "build-isf-mrt-four-outputs": isf_formula(
+        lambda U, V: (U, V, U * 0.0),
+        "out0 = vec4(uv.x, uv.y, 0, 1)"),
+    "build-pass-override-state": isf_formula(
+        lambda U, V: (U, V, U * 0.0 + 0.5),
+        "pass 1's vec4(isf_FragNormCoord, PASSINDEX*0.5, 1)"),
     "build-isf-pass-format-rgba16f": not_flat,
     # OUTPUTS FORMAT rgba16f. Its own header concedes the window "may still
     # display clamped", and it does: a flat white frame. So this case cannot
     # distinguish FORMAT honoured from FORMAT ignored -- both clamp to white.
     # All it can catch is a backend painting something else entirely, which is
-    # exactly the Null-backend yellow. Worth keeping, worth not overclaiming.
+    # exactly the Null-backend yellow.
     "build-output-format-rgba16f": flat_exact((255, 255, 255), "clamped HDR white (see note)"),
     "build-csf-texture-sampling": not_flat,
     # point3D "dir" DEFAULT [0.2, 0.6, 0.9] -> (51, 153, 229). The header says
