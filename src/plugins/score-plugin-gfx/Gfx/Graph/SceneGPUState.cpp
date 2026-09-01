@@ -964,7 +964,7 @@ void flattenScene(const ossia::scene_spec& scene, FlatScene& out, float aspectRa
   }
   else
   {
-    out.cameraPosition = QVector3D(0.f, 0.f, 3.f);
+    out.cameraPosition = QVector3D(0.f, 1.f, 3.f);
     out.viewMatrix.setToIdentity();
     out.viewMatrix.lookAt(
         out.cameraPosition, QVector3D(0.f, 0.f, 0.f), QVector3D(0.f, 1.f, 0.f));
