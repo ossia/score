@@ -20,6 +20,7 @@
 
 #include <concurrentqueue.h>
 #include <score_plugin_gfx_export.h>
+class QTimer;
 namespace score {
 class HighResolutionTimer;
 class Timers;
@@ -196,6 +197,8 @@ private:
 
   score::HighResolutionTimer* m_no_vsync_timer{};
   score::HighResolutionTimer* m_watchdog_timer{};
+  // Rate == 0 with vsync off: zero-interval timer, renders back-to-back.
+  QTimer* m_freewheel_timer{};
 
   // Per-output render clocks (the render-clock / genlock abstraction).
   //
