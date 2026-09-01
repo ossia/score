@@ -1,5 +1,7 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
+#include <Device/Protocol/DeviceCatalog.hpp>
+#include <Device/Protocol/DeviceInterface.hpp>
 
 #include <Explorer/DeviceList.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
@@ -12,6 +14,7 @@
 
 #include <score_plugin_deviceexplorer_export.h>
 
+#include <functional>
 #include <thread>
 #include <verdigris>
 
@@ -105,11 +108,54 @@ public:
     return m_asioContext;
   }
 
-private:
-  void initDevice(Device::DeviceInterface&);
+  //! What may be added, and whose hardware is offered. Null for an ordinary
+  //! document, where it is this machine's.
+  Device::DeviceCatalog* catalog() const noexcept { return m_catalog; }
+  void setCatalog(Device::DeviceCatalog* c) noexcept { m_catalog = c; }
+
+  //! Whether a device is connected, as reported by the machine that has it.
+  //! Empty for an ordinary document, where the device itself is the answer.
+  std::optional<bool> remoteConnected(const QString& device) const noexcept;
+  void setRemoteConnected(const QString& device, bool connected);
+
+  //! Devices the machine running the score reported as being of this kind.
+  //! Empty for an ordinary document, where the objects can be asked directly.
+  std::vector<QString> remoteDevicesOfKind(Device::NodeKind kind) const;
+  void setRemoteKinds(const QString& device, Device::NodeKind kinds);
+
+  //! Where a value edited here goes when the device is on another machine.
+  //! Unset for an ordinary document, which has the device to send to.
+  using ValueSink = std::function<void(const State::Address&, const ossia::value&)>;
+  void setValueSink(ValueSink s) { m_valueSink = std::move(s); }
+  const ValueSink& valueSink() const noexcept { return m_valueSink; }
+
+  //! Told what one of this machine's devices reported, as opposed to what
+  //! somebody asked for. A peer that does not run the score has no device to
+  //! hear it from, so this is the only way it learns a value moved.
+  void setValueObserver(ValueSink s) { m_valueObserver = std::move(s); }
+
+  //! The peer reported what a device is; arrives after the join.
+  void remoteKindsChanged(const QString& device)
+      E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, remoteKindsChanged, device)
+
+  //! A device's own tree changed here: refreshed, or discovered something.
+  //! What is inside a device is known only where the device is.
+  void deviceTreeChanged(const QString& device)
+      E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, deviceTreeChanged, device)
+
+  //! One of this machine's devices reported a value. Called by the device
+  //! itself, through the callback installed when it is opened.
   void on_valueUpdated(const State::Address& addr, const ossia::value& v);
 
+private:
+  void initDevice(Device::DeviceInterface&);
+
   Device::Node m_rootNode;
+  Device::DeviceCatalog* m_catalog{};
+  ValueSink m_valueSink;
+  ValueSink m_valueObserver;
+  ossia::hash_map<QString, bool> m_remoteConnected;
+  ossia::hash_map<QString, Device::NodeKind> m_remoteKinds;
   Device::DeviceList m_list;
   std::atomic_bool m_processMessages{};
   std::thread m_asioThread;

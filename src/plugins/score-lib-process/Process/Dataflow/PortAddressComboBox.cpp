@@ -232,6 +232,19 @@ void PortAddressComboBox::reload()
   addItem(QString{});
   for(const auto& addr : listPortAddresses(m_devices, m_type, m_inlet))
     addItem(addr.toString());
+
+  // What the machine running the score reported. Only the device is known
+  // here -- its tree lives where the device does -- so it is offered as the
+  // device address, which is what an audio / MIDI / texture port binds to.
+  if(remoteDevices)
+  {
+    for(const auto& dev : remoteDevices())
+    {
+      const auto txt = State::Address{dev, {}}.toString();
+      if(findText(txt) < 0)
+        addItem(txt);
+    }
+  }
   showAddress();
 }
 
@@ -317,6 +330,17 @@ QComboBox* makePortAddressCombo(
 
   auto edit = new PortAddressComboBox{devices, port.type(), inlet, parent};
   edit->setAddress(port.address());
+
+  if(auto* plug = ctx.findPlugin<Explorer::DeviceDocumentPlugin>())
+  {
+    const auto kind = nodeKindOf(port.type(), inlet);
+    edit->remoteDevices = [plug, kind] { return plug->remoteDevicesOfKind(kind); };
+    // The peer answers after the join, so anything already showing a list has
+    // to be told rather than asked once.
+    QObject::connect(
+        plug, &Explorer::DeviceDocumentPlugin::remoteKindsChanged, edit,
+        [edit](const QString&) { edit->reload(); });
+  }
 
   QObject::connect(
       &port, &Process::Port::addressChanged, edit,

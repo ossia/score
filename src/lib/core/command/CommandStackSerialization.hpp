@@ -24,12 +24,15 @@ void loadCommandStack(
   stack.updateStack([&]() {
     stack.setSavedIndex(-1);
 
+    // A command we cannot read stops the history there rather than the load:
+    // what precedes it is consistent, what follows would undo against a state
+    // we never reached.
     bool ok = true;
     for(const auto& elt : undoStack)
     {
-      auto cmd = components.instantiateUndoCommand(elt);
+      auto cmd = components.instantiateUndoCommandIfAvailable(elt);
 
-      if(redo_fun(cmd))
+      if(cmd && redo_fun(cmd))
       {
         stack.undoable().push(cmd);
       }
@@ -44,7 +47,9 @@ void loadCommandStack(
     {
       for(const auto& elt : redoStack)
       {
-        auto cmd = components.instantiateUndoCommand(elt);
+        auto cmd = components.instantiateUndoCommandIfAvailable(elt);
+        if(!cmd)
+          break;
 
         stack.redoable().push(cmd);
       }

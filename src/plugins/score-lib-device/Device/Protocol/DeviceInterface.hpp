@@ -101,6 +101,15 @@ enum DeviceLogging : int8_t
   LogEverything
 };
 
+// These values are on the wire: iscore-addon-network sends the device's
+// nodeKinds in the device_status broadcast and as the "kinds" field of the
+// join answer. Renumbering them re-labels every device a peer reports instead
+// of failing, so they are pinned.
+static_assert(static_cast<int>(NodeKind::MidiIn) == 8);
+static_assert(static_cast<int>(NodeKind::MidiOut) == 16);
+static_assert(static_cast<int>(NodeKind::TextureIn) == 32);
+static_assert(static_cast<int>(NodeKind::TextureOut) == 64);
+
 class SCORE_LIB_DEVICE_EXPORT DeviceInterface
     : public QObject
     , public Nano::Observer
@@ -121,6 +130,7 @@ public:
 
   virtual void disconnect();
   virtual bool reconnect() = 0;
+
   virtual void recreate(const Device::Node&); // Argument is the node of the
                                               // device, used for recreation
   virtual bool connected() const;

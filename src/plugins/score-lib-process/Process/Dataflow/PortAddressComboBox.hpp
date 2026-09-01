@@ -9,6 +9,9 @@
 
 #include <QComboBox>
 
+#include <functional>
+#include <vector>
+
 #include <score_lib_process_export.h>
 
 #include <verdigris>
@@ -67,6 +70,11 @@ public:
 
   //! Rebuilds the drop-down from the devices.
   void reload();
+
+  //! Devices the machine running the score reported as carrying this kind.
+  //! A terminal holds no device objects to walk, so without this its list is
+  //! empty and there is nothing to pick. Empty for an ordinary document.
+  std::function<std::vector<QString>()> remoteDevices;
 
   void addressChanged(const State::AddressAccessor& arg_1)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, addressChanged, arg_1)

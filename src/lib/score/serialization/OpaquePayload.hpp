@@ -61,5 +61,11 @@ struct SCORE_LIB_BASE_EXPORT OpaquePayload
 
   //! Write it back into whichever format is being written now.
   void write(const VisitorVariant& vis) const noexcept;
+
+  //! Self-contained bytes: the format tag, then the payload. For a payload in
+  //! the middle of a stream, where "the rest of the blob" is not an answer.
+  //! Always tagged, so a peer that has the factory cannot misread one.
+  QByteArray toBlob() const noexcept;
+  static OpaquePayload fromBlob(const QByteArray& blob) noexcept;
 };
 }

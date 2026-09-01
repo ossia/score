@@ -112,10 +112,8 @@ public:
   template <class T>
   T& find(const score::DocumentContext& ctx) const
   {
-    // Checked rather than assumed, for the reason given on try_find: an object
-    // of another type can be standing where this path points. safe_cast would
-    // abort in debug and cast blind in release; throwing lets the caller --
-    // a command being replayed from another peer, typically -- report it.
+    // Checked: another type can stand where this path points, and safe_cast
+    // aborts in debug and casts blind in release.
     auto raw = m_cache.isNull() ? find_impl(ctx) : m_cache.data();
     auto ptr = dynamic_cast<typename std::remove_const<T>::type*>(raw);
     if(!ptr)

@@ -12,6 +12,7 @@ namespace Gfx
 class gfx_protocol_base;
 class SCORE_PLUGIN_GFX_EXPORT GfxInputDevice : public Device::DeviceInterface
 {
+public:
   W_OBJECT(GfxInputDevice)
 public:
   GfxInputDevice(
@@ -34,6 +35,7 @@ protected:
 
 class SCORE_PLUGIN_GFX_EXPORT GfxOutputDevice : public Device::DeviceInterface
 {
+public:
   W_OBJECT(GfxOutputDevice)
 public:
   GfxOutputDevice(

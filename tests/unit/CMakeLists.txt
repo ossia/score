@@ -127,6 +127,16 @@ if(LINUX AND TARGET score_plugin_protocols AND TARGET score_plugin_js)
 endif()
 
 # --- core data model (score-lib-state / score-lib-process, P3R2) -----------
+# Taking in a dropped file: into the cache here, and over to the machine that
+# will actually open it.
+score_add_test(test_unit_import_file
+  SOURCES ImportFileTest.cpp)
+
+# Walking a directory tree through the Environment interface: the remote one
+# answers out of order and some directories cannot be listed at all.
+score_add_test(test_unit_environment_walk
+  SOURCES EnvironmentWalkTest.cpp)
+
 score_add_test(test_unit_state_serialization
   SOURCES StateSerializationTest.cpp
   PLUGINS score_lib_state)
@@ -628,3 +638,20 @@ score_add_test(test_unit_heterogeneous_build
 # --- how a path is stored in a document ------------------------------------
 score_add_test(test_unit_uri
   SOURCES UriTest.cpp)
+
+# Browsing the files of a machine that is not this one.
+if(TARGET score_plugin_library)
+  score_add_test(test_unit_remote_filesystem
+    SOURCES RemoteFileSystemTest.cpp
+    APP
+    PLUGINS score_plugin_library)
+endif()
+
+# Dropping a device from the explorer onto a port.
+score_add_test(test_unit_port_drop
+  SOURCES PortDropTest.cpp
+  PLUGINS score_lib_process score_lib_state score_lib_device)
+
+# Thread creation is lazy: one acquired thread must not start the whole pool.
+score_add_test(test_unit_thread_pool
+  SOURCES ThreadPoolTest.cpp)

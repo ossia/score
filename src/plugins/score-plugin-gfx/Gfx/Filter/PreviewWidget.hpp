@@ -23,6 +23,8 @@ class ShaderPreviewWidget : public QWidget
 {
 public:
   ShaderPreviewWidget(const QString& path, QWidget* parent = nullptr);
+  ShaderPreviewWidget(
+      const QString& path, const QByteArray& contents, QWidget* parent = nullptr);
   ShaderPreviewWidget(const Process::Preset& path, QWidget* parent = nullptr);
   ~ShaderPreviewWidget();
 

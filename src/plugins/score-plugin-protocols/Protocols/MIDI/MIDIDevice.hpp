@@ -14,6 +14,10 @@ struct MIDISpecificSettings;
 class MIDIDevice final : public Device::OwningDeviceInterface
 {
 public:
+  //! Which way round this port goes is in the protocol's own settings, so it
+  //! is the device that knows -- and now says so where anyone can read it.
+
+public:
   MIDIDevice(
       const Device::DeviceSettings& settings,
       const ossia::net::network_context_ptr& ctx);

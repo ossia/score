@@ -12,6 +12,7 @@
 #include <Device/Node/NodeListMimeSerialization.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
+#include <Device/Protocol/DeviceCatalog.hpp>
 #include <Device/Protocol/ProtocolList.hpp>
 
 #include <Explorer/Commands/Add/LoadDevice.hpp>
@@ -72,8 +73,49 @@ DeviceExplorerModel::DeviceExplorerModel(DeviceDocumentPlugin& plug, QObject* pa
 {
   this->setObjectName("DeviceExplorerModel");
 
+  // Structural changes only: a value arriving is not the tree changing, and
+  // re-sending a whole device on every value would be most of the socket.
+  auto changed = [this](const QModelIndex& parent, int, int) {
+    if(const auto name = deviceNameOf(parent); !name.isEmpty())
+      m_devicePlugin.deviceTreeChanged(name);
+  };
+  connect(this, &QAbstractItemModel::rowsInserted, this, changed);
+  connect(this, &QAbstractItemModel::rowsRemoved, this, changed);
+
+  // A device appearing at the root. Its command carries the node as the
+  // machine that asked for it knew it, and a machine that cannot make the
+  // device knows nothing of its tree: what a mouse or a MIDI port turns out to
+  // contain is discovered here, when it is opened. So the tree still has to be
+  // announced, or the peer that asked sees a device with nothing under it.
+  connect(
+      this, &QAbstractItemModel::rowsInserted, this,
+      [this](const QModelIndex& parent, int first, int last) {
+    if(parent.isValid())
+      return;
+
+    for(int row = first; row <= last && row < rootNode().childCount(); row++)
+    {
+      const auto& n = rootNode().childAt(row);
+      if(n.is<Device::DeviceSettings>())
+        m_devicePlugin.deviceTreeChanged(n.get<Device::DeviceSettings>().name);
+    }
+      });
+
   beginResetModel();
   endResetModel();
+}
+
+QString DeviceExplorerModel::deviceNameOf(const QModelIndex& index) const
+{
+  // The device is the ancestor directly under the invisible root. An insertion
+  // at the root is a device appearing, which its own command already carries.
+  const Device::Node* n = index.isValid() ? &nodeFromModelIndex(index) : nullptr;
+  while(n && n->parent() && n->parent() != &m_rootNode)
+    n = n->parent();
+
+  if(!n || !n->is<Device::DeviceSettings>())
+    return {};
+  return n->get<Device::DeviceSettings>().name;
 }
 
 DeviceExplorerModel::~DeviceExplorerModel() { }
@@ -279,7 +321,28 @@ bool DeviceExplorerModel::checkDeviceInstantiatable(
   auto& context = m_devicePlugin.context().app;
   auto prot = context.interfaces<Device::ProtocolFactoryList>().get(n.protocol);
   if(!prot)
-    return false;
+  {
+    // This build has no such protocol. On a terminal that is ordinary: the
+    // device is made on the machine that does have it, and the settings came
+    // from there. Refusing here means a whole class of devices -- everything
+    // the other machine enumerates -- can never be added.
+    auto* catalog = m_devicePlugin.catalog();
+    if(!catalog)
+      return false;
+
+    const auto known = catalog->protocols();
+    if(ossia::none_of(
+           known, [&](const auto& p) { return p.key == n.protocol; }))
+      return false;
+
+    // Only the name can be judged here. Whether two devices of a protocol can
+    // coexist is that protocol's own rule, and it lives on the other machine.
+    return std::none_of(
+        rootNode().begin(), rootNode().end(), [&](const Device::Node& child) {
+      SCORE_ASSERT(child.is<Device::DeviceSettings>());
+      return child.get<Device::DeviceSettings>().name == n.name;
+    });
+  }
 
   // Look for other childs in the same protocol.
   bool none_incompatible = std::none_of(
@@ -421,6 +484,13 @@ QVariant DeviceExplorerModel::data(const QModelIndex& index, int role) const
         else if(n.is<Device::DeviceSettings>())
         {
           auto& dev_set = n.get<Device::DeviceSettings>();
+
+          // What the machine running the score says, when that is not this one.
+          // Otherwise every device reads as disconnected, which is not what
+          // "we have no implementation for it here" means.
+          if(auto remote = deviceModel().remoteConnected(dev_set.name))
+            return Device::deviceNameColumnData(n, *remote, role);
+
           auto* impl = deviceModel().list().findDevice(dev_set.name);
           return Device::deviceNameColumnData(n, impl && impl->connected(), role);
         }

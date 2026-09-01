@@ -21,6 +21,10 @@ namespace score
 template <typename model>
 class Entity;
 class ApplicationComponents;
+
+//! While set, a failed delimiter check throws without stopping in the
+//! debugger: the breakpoint is for a corrupt file, not for a peer's bytes.
+SCORE_LIB_BASE_EXPORT bool& readingUntrustedData() noexcept;
 }
 
 class SCORE_LIB_BASE_EXPORT DataStreamReader : public AbstractVisitor

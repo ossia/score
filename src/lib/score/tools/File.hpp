@@ -8,6 +8,7 @@
 
 namespace score
 {
+class Environment;
 
 // Used instead of QFileInfo
 // as it does a stat which can be super expensive
@@ -93,6 +94,37 @@ inline QString readFileAsQString(QFile& f) noexcept
 
 SCORE_LIB_BASE_EXPORT
 bool fileContains(QFile& file, std::string_view pattern);
+
+/**
+ * @brief Take in a file that has just been imported, and say where it now is.
+ *
+ * Dropping a file names it by a path, and a path is only meaningful on the
+ * machine holding it. That is fine while the score runs here; it is not when it
+ * runs on another machine, which cannot open `/score/imports/kick.wav` in a
+ * browser's memory or `/home/me/kick.wav` on a laptop. So the bytes go into the
+ * media cache, named by content -- the same media is one entry on every machine
+ * -- and, when the score is elsewhere, they are sent there too.
+ *
+ * Returns the path to use here, empty if the file could not be taken in. The
+ * returned path is under the cache, so relativizing it gives "<CACHE>:", which
+ * is what the document must store: it means the same thing on both machines.
+ */
+SCORE_LIB_BASE_EXPORT
+QString importFile(
+    const QString& suggestedName, const QByteArray& data,
+    score::Environment& env) noexcept;
+
+/**
+ * @brief A file the user picked by name here, made available to whoever opens it.
+ *
+ * The same problem as a dropped file, arriving by the other route. When the
+ * score runs here the chosen path is already the answer; when it runs elsewhere
+ * the bytes have to go with it, so this reads them and imports them.
+ *
+ * Returns the path to use, or empty if the file could not be taken in.
+ */
+SCORE_LIB_BASE_EXPORT
+QString importPickedFile(const QString& chosenPath, score::Environment& env) noexcept;
 
 #if defined(__EMSCRIPTEN__)
 // Persist an imported file into a stable, session-lifetime MEMFS location

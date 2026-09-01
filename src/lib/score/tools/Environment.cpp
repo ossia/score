@@ -5,6 +5,11 @@
 #include <QFileInfo>
 #include <QObject>
 
+#include <QMetaObject>
+#include <QPointer>
+
+#include <memory>
+
 namespace score
 {
 namespace
@@ -19,6 +24,86 @@ void fail(const Environment::Callback<Environment::Failure>& onFailed, QString w
 }
 
 Environment::~Environment() = default;
+
+qint64 maxInlineTransferBytes() noexcept
+{
+  return 8 * 1024 * 1024;
+}
+
+namespace
+{
+//! One walk in flight. Shared: a listing can arrive long after the call that
+//! asked for it returned, and several directories are in flight at once.
+struct RecursiveWalk
+{
+  Environment& env;
+  QString suffix;
+  Environment::Callback<std::vector<DirEntry>> onListed;
+  std::vector<DirEntry> found;
+  int pending{};
+  QPointer<QObject> context;
+};
+
+void walkDone(const std::shared_ptr<RecursiveWalk>& st)
+{
+  // The directory that launched its children is only finished after they are
+  // all launched, so this cannot reach zero early on a local environment, where
+  // every listing answers before `list` returns.
+  if(--st->pending == 0 && st->onListed)
+    st->onListed(std::move(st->found));
+}
+
+void listDir(const std::shared_ptr<RecursiveWalk>& st, const Uri& dir, int depth);
+
+//! Counted before it is scheduled, so a walk that yields cannot look finished
+//! in between.
+void walkDir(const std::shared_ptr<RecursiveWalk>& st, const Uri& dir, int depth)
+{
+  st->pending++;
+
+  if(st->context)
+  {
+    QMetaObject::invokeMethod(
+        st->context, [st, dir, depth] { listDir(st, dir, depth); },
+        Qt::QueuedConnection);
+    return;
+  }
+
+  listDir(st, dir, depth);
+}
+
+void listDir(const std::shared_ptr<RecursiveWalk>& st, const Uri& dir, int depth)
+{
+  st->env.list(
+      dir,
+      [st, depth](std::vector<DirEntry> entries) {
+    for(auto& e : entries)
+    {
+      if(e.directory)
+      {
+        if(depth > 0)
+          walkDir(st, e.uri, depth - 1);
+      }
+      else if(st->suffix.isEmpty() || e.name.endsWith(st->suffix, Qt::CaseInsensitive))
+      {
+        st->found.push_back(std::move(e));
+      }
+    }
+    walkDone(st);
+      },
+      [st](const Environment::Failure&) { walkDone(st); });
+}
+}
+
+void listRecursive(
+    Environment& env, const Uri& root, const QString& suffix,
+    Environment::Callback<std::vector<DirEntry>> onListed, int maxDepth,
+    QObject* context)
+{
+  auto st = std::make_shared<RecursiveWalk>(
+      env, suffix, std::move(onListed), std::vector<DirEntry>{}, 0, context);
+  walkDir(st, root, maxDepth);
+}
 
 LocalEnvironment::LocalEnvironment(const DocumentContext& ctx)
     : m_ctx{ctx}

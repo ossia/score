@@ -158,7 +158,10 @@ bool MessageRecorder::setup(const Box& box, const RecordListening& recordListeni
   //// Setup listening on the curves ////
   for(const auto& vec : recordListening)
   {
-    auto& dev = devicelist.device(*vec.front());
+    auto* dev_p = devicelist.findDevice(Device::deviceName(*vec.front()));
+    if(!dev_p)
+      continue;
+    auto& dev = *dev_p;
     if(!dev.connected())
       continue;
 

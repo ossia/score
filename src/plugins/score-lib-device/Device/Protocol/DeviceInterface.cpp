@@ -1116,4 +1116,5 @@ void releaseDevice(
     }
   }
 }
+
 }

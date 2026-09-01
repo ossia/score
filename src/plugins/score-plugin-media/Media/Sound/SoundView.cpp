@@ -24,7 +24,7 @@ LayerView::LayerView(const ProcessModel& m, QGraphicsItem* parent)
   setFlag(ItemClipsToShape, true);
   this->setAcceptDrops(true);
 
-  if(auto view = getView(*parent))
+  if(auto view = parent ? getView(*parent) : nullptr)
   {
     connect(
         view->horizontalScrollBar(), &QScrollBar::valueChanged, this,
@@ -93,6 +93,7 @@ void LayerView::setData(const std::shared_ptr<AudioFile>& data)
 
 void LayerView::recompute() const
 {
+  m_recomputeCount++;
   if(Q_UNLIKELY(
          !m_data || width() < 2. || height() < 2. || m_zoom <= 0.
          || m_model.file()->sampleRate() < 1.))
@@ -163,8 +164,15 @@ void LayerView::paint_impl(QPainter* painter) const
   int channels = std::ssize(m_images);
   if(channels == 0.)
   {
-    if(!m_recomputed)
+    // recompute() gives up without marking itself done when it has no data, no
+    // size, no zoom or no view, and asking again on every paint made the two
+    // call each other for as long as the process existed -- which is what a
+    // file living on another machine does here. Of those, only the view has no
+    // signal to re-ask on, and painting is the proof that one exists: so paint
+    // asks once. Everything else already calls recompute() when it changes.
+    if(!m_recomputed && !m_askedWhilePainting)
     {
+      m_askedWhilePainting = true;
       m_renderAll = true;
       recompute();
     }

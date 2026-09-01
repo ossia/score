@@ -32,6 +32,14 @@ public:
   virtual QSet<QString> acceptedMimeTypes() const noexcept;
 
   virtual QWidget* previewWidget(const QString& path, QWidget* parent) const noexcept;
+
+  //! The same, for a file this machine does not have: the library may be the
+  //! other machine's, and a preview cannot open a path that is not here.
+  //! `path` still names it, since the extension chooses how to read `contents`.
+  //! Defaults to ignoring the bytes, which is right for anything that can only
+  //! preview a real file.
+  virtual QWidget* previewWidget(
+      const QString& path, const QByteArray& contents, QWidget* parent) const noexcept;
   virtual QWidget*
   previewWidget(const Process::Preset& preset, QWidget* parent) const noexcept;
 

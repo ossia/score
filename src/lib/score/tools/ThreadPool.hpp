@@ -1,5 +1,6 @@
 #pragma once
 #include <QAbstractEventDispatcher>
+#include <QCoreApplication>
 #include <QThread>
 
 #include <blockingconcurrentqueue.h>
@@ -7,6 +8,7 @@
 #include <smallfun.hpp>
 
 #include <memory>
+#include <mutex>
 #include <thread>
 namespace score
 {
@@ -21,8 +23,20 @@ public:
   QThread* acquireThread();
   void releaseThread();
 
+  //! How many threads have actually been started, as opposed to reserved.
+  //! Handing out one used to start all of them.
+  int startedThreadCount() const noexcept;
+
+  //! Stop and join the workers. Called when the application goes away: doing it
+  //! on the last release meant joining them from the UI thread mid-session.
+  void shutdown();
+
 private:
+  // Acquired from the UI thread, released from whoever held the last reference
+  // to the work -- so every field below has two writers.
+  mutable std::mutex m_mutex;
   std::unique_ptr<QThread[]> m_threads;
+  std::unique_ptr<bool[]> m_started;
   int m_numThreads{};
   int m_currentThread{};
 

@@ -524,9 +524,11 @@ void DeviceExplorerWidget::contextMenuEvent(QContextMenuEvent* event)
         if(node.is<Device::DeviceSettings>())
         {
           auto& lst = m->deviceModel().list();
-          auto& dev = lst.device(node.get<Device::DeviceSettings>().name);
-          dev.setupContextMenu(*contextMenu);
-          contextMenu->addSeparator();
+          if(auto* dev = lst.findDevice(node.get<Device::DeviceSettings>().name))
+          {
+            dev->setupContextMenu(*contextMenu);
+            contextMenu->addSeparator();
+          }
         }
       }
     }
@@ -703,13 +705,22 @@ void DeviceExplorerWidget::populateColumnCBox()
 }
 
 // The bool indicates if the passed node was a device
+//
+// A device with no implementation -- a protocol this build does not have, or a
+// score that runs on another machine -- reports the default capabilities rather
+// than throwing. This runs from updateActions and from the drag handler, so
+// throwing here surfaced as "Internal error" the moment anything was selected.
 std::pair<Device::DeviceCapas, bool>
 getCapas(Device::Node* p, const Device::DeviceList& lst)
 {
+  auto capasOf = [&lst](const Device::Node& n) {
+    auto* dev = lst.findDevice(n.get<Device::DeviceSettings>().name);
+    return dev ? dev->capabilities() : Device::DeviceCapas{};
+  };
+
   if(p->is<Device::DeviceSettings>())
-  {
-    return {lst.device(p->get<Device::DeviceSettings>().name).capabilities(), true};
-  }
+    return {capasOf(*p), true};
+
   while(p && !p->is<Device::DeviceSettings>())
   {
     p = p->parent();
@@ -717,7 +728,7 @@ getCapas(Device::Node* p, const Device::DeviceList& lst)
   if(!p)
     throw std::runtime_error("Cannot get capabilities of no device");
 
-  return {lst.device(p->get<Device::DeviceSettings>().name).capabilities(), false};
+  return {capasOf(*p), false};
 }
 
 void DeviceExplorerWidget::updateActions()
@@ -1122,7 +1133,17 @@ void DeviceExplorerWidget::addDevice()
 
     SCORE_ASSERT(model());
     auto node = m_deviceDialog->getDevice();
-    auto& deviceSettings = *node.target<Device::DeviceSettings>();
+    auto* settings = node.target<Device::DeviceSettings>();
+    if(!settings)
+    {
+      // An empty node carries no settings, and reading them anyway is a null
+      // dereference on the way to doing nothing.
+      m_deviceDialog->deleteLater();
+      m_deviceDialog = nullptr;
+      return;
+    }
+
+    auto& deviceSettings = *settings;
     if(!model()->checkDeviceInstantiatable(deviceSettings))
     {
       m_deviceDialog->deleteLater();

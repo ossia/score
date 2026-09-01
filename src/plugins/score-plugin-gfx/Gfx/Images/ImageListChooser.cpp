@@ -145,7 +145,7 @@ private:
   void on_addItems()
   {
     score::openFilesToImport(
-        tr("Choose images..."),
+        ctx, tr("Choose images..."),
         QString{"Images (*.png *.jpg *.jpeg *.gif *.bmp *.tiff *.heic *.jp2 *.svg "
                 "*.tga *.wbmp)"},
         score::pickerStartFolder({}, ctx), [this](const QString& f) {

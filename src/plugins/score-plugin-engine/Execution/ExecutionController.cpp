@@ -164,8 +164,18 @@ TransportInterface& ExecutionController::transport() const noexcept
   return *m_transport;
 }
 
+bool ExecutionController::executesHere() const
+{
+  auto doc = currentDocument();
+  return !doc || doc->role() == score::DocumentRole::Local;
+}
+
 void ExecutionController::request_play_global(bool b)
 {
+  // Before the transport: declining later leaves the buttons showing play.
+  if(!executesHere())
+    return;
+
   if(b)
   {
     this->m_requestLocalPlay = false;
@@ -179,6 +189,9 @@ void ExecutionController::request_play_global(bool b)
 
 void ExecutionController::request_play_local(bool b)
 {
+  if(!executesHere())
+    return;
+
   if(b)
   {
     this->m_requestLocalPlay = true;
@@ -193,17 +206,27 @@ void ExecutionController::request_play_local(bool b)
 void ExecutionController::request_play_interval(
     Scenario::IntervalModel& itv, exec_setup_fun setup, TimeVal t)
 {
+  if(!executesHere())
+    return;
+
   m_intervalsToPlay.push_back({itv, std::move(setup), t});
   m_transport->requestPlay();
 }
 
 void ExecutionController::request_stop_interval(Scenario::IntervalModel& itv)
 {
+  if(!isPlaying())
+    return;
+
   stop_interval(itv);
 }
 
 void ExecutionController::request_stop()
 {
+  // What executes belongs to the document that started it, not the one in front.
+  if(!isPlaying())
+    return;
+
   m_transport->requestStop();
 }
 
@@ -316,7 +339,8 @@ void ExecutionController::on_play_local(bool b)
 
 void ExecutionController::on_pause()
 {
-  ensure_audio_engine();
+  if(!has_audio_engine())
+    return;
 
   if(m_clock)
   {
@@ -478,30 +502,24 @@ void ExecutionController::request_end_scrub(TimeVal t)
   }
 }
 
-void ExecutionController::ensure_audio_engine()
+bool ExecutionController::has_audio_engine()
 {
   auto& audio_engine = this->context.guiApplicationPlugin<Audio::ApplicationPlugin>();
-  if(!audio_engine.audio)
-  {
-    if(this->context.mainWindow)
-    {
-      score::warning(
-          this->context.mainWindow, tr("Cannot play"),
-          tr("Cannot start playback. It looks like the audio engine is not "
-             "running.\n"
-             "Check the audio settings in the software settings to ensure "
-             "that a sound card "
-             "is correctly configured.\n\n"
-             "Check Settings > Audio > Device in particular. "
-             "The power-on icon at the bottom of the transport toolbar will "
-             "light up when the engine is running."));
-      return;
-    }
-    else
-    {
-      qFatal("Cannot playback without an audio engine set up");
-    }
-  }
+  if(audio_engine.audio)
+    return true;
+
+  // Not fatal without a window: an unattended host declines instead.
+  score::warning(
+      this->context.mainWindow, tr("Cannot play"),
+      tr("Cannot start playback. It looks like the audio engine is not "
+         "running.\n"
+         "Check the audio settings in the software settings to ensure "
+         "that a sound card "
+         "is correctly configured.\n\n"
+         "Check Settings > Audio > Device in particular. "
+         "The power-on icon at the bottom of the transport toolbar will "
+         "light up when the engine is running."));
+  return false;
 }
 
 void ExecutionController::play_interval(
@@ -513,11 +531,16 @@ void ExecutionController::play_interval(
 
   auto& ctx = doc->context();
 
+  // The score runs elsewhere: no devices here, and no claim on this audio.
+  if(doc->role() == score::DocumentRole::Terminal)
+    return;
+
   auto exec_plug = ctx.findPlugin<Execution::DocumentPlugin>();
   if(!exec_plug)
     return;
 
-  ensure_audio_engine();
+  if(!has_audio_engine())
+    return;
 
   if(m_playing)
   {
@@ -605,7 +628,8 @@ void ExecutionController::stop_interval(Scenario::IntervalModel& cst)
   if(!exec_plug)
     return;
 
-  ensure_audio_engine();
+  if(!has_audio_engine())
+    return;
 
   if(m_playing)
   {
@@ -630,6 +654,19 @@ TimeVal ExecutionController::execution_time() const
     auto& itv = m_clock->scenario->baseInterval().scoreInterval().duration;
     return TimeVal(itv.defaultDuration() * itv.playPercentage());
   }
+
+  // No clock on a terminal, but the host says where it has got to.
+  if(auto doc = currentDocument(); doc && doc->role() != score::DocumentRole::Local)
+  {
+    // closing() too: the timing widget keeps firing during teardown.
+    auto* sm = score::IDocument::try_get<Scenario::ScenarioDocumentModel>(*doc);
+    if(sm && !sm->closing())
+    {
+      auto& itv = sm->baseInterval().duration;
+      return TimeVal(itv.defaultDuration() * itv.playPercentage());
+    }
+  }
+
   return TimeVal::zero();
 }
 

@@ -10,15 +10,22 @@
 #include <Library/RecursiveFilterProxy.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/tools/Environment.hpp>
+#include <score/tools/Uri.hpp>
 #include <score/tools/File.hpp>
 #include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/MarginLess.hpp>
+
+#include <core/document/Document.hpp>
+#include <core/presenter/DocumentManager.hpp>
 
 #include <ossia/detail/math.hpp>
 
 #include <QApplication>
 #include <QLabel>
 #include <QMainWindow>
+#include <QPointer>
 #include <QScrollArea>
 #include <QTimer>
 #include <QShortcut>
@@ -129,6 +136,22 @@ public:
   QLabel m_documentationLink;
 };
 
+void ProcessWidget::showPreview(const QString& path, const QByteArray& contents)
+{
+  delete m_previewChild;
+  m_previewChild = nullptr;
+
+  for(auto lib : libraryInterface(path))
+  {
+    if((m_previewChild = lib->previewWidget(path, contents, &m_preview)))
+    {
+      m_preview.layout()->addWidget(m_previewChild);
+      m_preview.show();
+      break;
+    }
+  }
+}
+
 ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* parent)
     : QWidget{parent}
     , m_processModel{new ProcessesItemModel{ctx, this}}
@@ -180,7 +203,7 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
 
   connect(
       &m_tv, &ProcessTreeView::selected, this,
-      [this, infoWidg, filter,
+      [this, &ctx, infoWidg, filter,
        presetFilterProxy](const std::optional<Library::ProcessData>& pdata) {
 #if defined(_WIN32)
     const bool filter_had_focus = filter->hasFocus();
@@ -205,19 +228,25 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
     // Update the preview
     delete m_previewChild;
     m_previewChild = nullptr;
+    m_awaitedPreview = pdata ? pdata->customData : QString{};
     if(pdata)
     {
       if(QFile::exists(pdata->customData))
       {
-        for(auto lib : libraryInterface(pdata->customData))
-        {
-          if((m_previewChild = lib->previewWidget(pdata->customData, &m_preview)))
-          {
-            m_preview.layout()->addWidget(m_previewChild);
-            m_preview.show();
-            break;
-          }
-        }
+        showPreview(pdata->customData, {});
+      }
+      else if(auto* doc = ctx.documents.currentDocument();
+              doc && !doc->context().environment().isLocal())
+      {
+        // The library is the other machine's, so the file it names is not here.
+        // Small enough to read whole -- these are shaders, not media.
+        doc->context().environment().read(
+            score::Uri::parse(pdata->customData),
+            [this, alive = QPointer<ProcessWidget>{this},
+             path = pdata->customData](const QByteArray& contents) {
+          if(alive && m_awaitedPreview == path)
+            showPreview(path, contents);
+            });
       }
     }
 
