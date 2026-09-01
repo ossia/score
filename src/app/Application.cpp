@@ -305,11 +305,19 @@ Application::~Application()
   svc.threadpool.reset();
 
 #if QT_HAS_VULKAN
-  if(auto vk = score::gfx::staticVulkanInstance(false))
-  {
-    delete vk;
-  }
-
+  // The process-wide QVulkanInstance is deliberately NOT destroyed here.
+  //
+  // vkDestroyInstance drops the loader's last reference to the ICD, and the
+  // loader dlcloses it; with the NVIDIA stack that unload also takes
+  // libGLX_nvidia down, and its destructor faults inside libnvidia-glcore while
+  // GL objects from the same process are still being torn down. The result is a
+  // SIGSEGV on exit, after the last frame and after every document is closed.
+  //
+  // Destroying it later does not help -- moving this below `delete m_app` was
+  // measured and still crashes -- because the fault is in the unload itself, not
+  // in the order Qt and score release their references. The process is exiting,
+  // so the instance is left to the OS: nothing observable outlives it, and the
+  // alternative is a crash on every windowed shutdown.
 #endif
   for(auto& settings : m_settings.settings())
     settings->setParent(nullptr);
