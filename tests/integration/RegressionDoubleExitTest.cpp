@@ -4,10 +4,11 @@
 // again, or an already-queued quit timer — re-entered closeAllDocuments and
 // tore down half-destroyed documents, aborting the process.
 //
-// Presenter::exit() now latches: the first call closes the documents, any
-// further call while exiting (or after a completed exit) is a no-op returning
-// false. A cancelled close (user said no to a save prompt) resets the latch so
-// the session can exit later. GUIApplicationInterface::requestExit() also
+// Presenter::exit() latches: the first call closes the documents, any further
+// call while exiting (or after a completed exit) is a no-op. It answers true --
+// closing may proceed -- because the return also gates View::closeEvent, and a
+// refusal there vetoes the shutdown. A cancelled close (user said no to a save
+// prompt) resets the latch so the session can exit later. GUIApplicationInterface::requestExit() also
 // tolerates the presenter being gone.
 
 #include <score_test/App.hpp>
@@ -39,9 +40,14 @@ TEST_CASE(
   // First request closes every document and reports success.
   CHECK(pres->exit() == true);
 
-  // Any further request is latched out instead of re-entering the close.
-  CHECK(pres->exit() == false);
-  CHECK(pres->exit() == false);
+  // Any further request is latched out instead of re-entering the close, and
+  // reports that closing may proceed. It must NOT report a refusal: the return
+  // is what View::closeEvent turns into accept/ignore, and since Qt 6.6
+  // QCoreApplication::quit() closes the top-level windows and honours that
+  // refusal -- so answering false here made the latch veto the very quit
+  // forceExit() had just scheduled, and a windowed instance never exited.
+  CHECK(pres->exit() == true);
+  CHECK(pres->exit() == true);
 
   // The full request path stays safe too (this is what the OSC /exit
   // callback and the quit timer end up calling).
