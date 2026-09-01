@@ -617,8 +617,16 @@ private:
       mustRecomputeSize = true;
     }
 
-    // Copy the model UBO into the renderer
-    m_ubo = n.ubo;
+    // Copy the model UBO into the renderer, but keep the render-size-derived
+    // scale: the model's scale is the raw control value, and overwriting the
+    // computed one here meant any materialChanged upload happening between two
+    // recompute triggers sent the un-fitted scale to the GPU.
+    {
+      const float sx = m_ubo.scale[0], sy = m_ubo.scale[1];
+      m_ubo = n.ubo;
+      m_ubo.scale[0] = sx;
+      m_ubo.scale[1] = sy;
+    }
 
     if(edge)
     {
@@ -678,6 +686,20 @@ private:
         materialChanged = true;
         mustRecomputeSize = false;
       }
+    }
+
+    if(qEnvironmentVariableIsSet("SCORE_GFX_TRACE"))
+    {
+      static int frame = 0;
+      if(frame++ % 120 == 0)
+        fprintf(
+            stderr,
+            "GFX-IMAGES upd %p #%d imgs=%d texs=%d uploaded=%d idx=%d opacity=%f "
+            "pos=%f,%f scale=%f,%f edge=%p passes=%zu/%zu\n",
+            (void*)this, frame, int(n.linearImages.size()), int(m_textures.size()),
+            int(m_uploaded), m_ubo.currentImageIndex, m_ubo.opacity, m_ubo.position[0],
+            m_ubo.position[1], m_ubo.scale[0], m_ubo.scale[1], (void*)edge, m_p.size(),
+            m_altPasses.size());
     }
 
     // We can't use generic update since we need some modifications on the UBO

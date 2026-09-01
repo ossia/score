@@ -309,6 +309,14 @@ void Window::render()
   // expose the window before that (vkkhrdisplay) reach here with an empty
   // std::function, and calling it would throw bad_function_call between
   // beginFrame and endFrame — leaving the frame recording forever.
+  if(qEnvironmentVariableIsSet("SCORE_GFX_TRACE"))
+  {
+    static int n = 0;
+    if(n++ % 120 == 0)
+      fprintf(
+          stderr, "GFX-WINDOW render #%d canRender=%d state=%d onRender=%d\n", n,
+          int(m_canRender), int(!!state), int(!!onRender));
+  }
   if(m_canRender && state && onRender)
   {
     QRhi::FrameOpResult r = state->rhi->beginFrame(m_swapChain, {});
