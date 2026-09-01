@@ -78,7 +78,7 @@ inline std::vector<std::string> find_all_named_elements(const std::string& pipel
 inline constexpr auto channels_rexp
     = ctll::fixed_string{R"(channels=(?:\(int\))?\s*([0-9]+))"};
 inline constexpr auto rate_rexp
-    = ctll::fixed_string{R"(rate=(?:\(int\))?\s*([0-9]+))"};
+    = ctll::fixed_string{R"((?:^|[^A-Za-z0-9_\-])rate=(?:\(int\))?\s*([0-9]+))"};
 inline constexpr auto width_rexp
     = ctll::fixed_string{R"(width=(?:\(int\))?\s*([0-9]+))"};
 inline constexpr auto height_rexp
