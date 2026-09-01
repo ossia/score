@@ -15,6 +15,8 @@
 
 #include <ossia/dataflow/port.hpp>
 
+#include <algorithm>
+
 namespace Gfx::Images
 {
 class image_node final : public gfx_exec_node
@@ -49,15 +51,22 @@ ProcessExecutorComponent::ProcessExecutorComponent(
     }
   }
 
-  // Normal controls
-  for(std::size_t i = 0; i < 8; i++)
+  // Normal controls. Old .scorebin documents can load with fewer inlets
+  // (the DataStream writer has no version-upgrade block, unlike JSON), so
+  // don't index past what is actually there.
+  const std::size_t n_inlets
+      = std::min(std::size_t(8), std::size_t(element.inlets().size()));
+  for(std::size_t i = 0; i < n_inlets; i++)
   {
     auto ctrl = qobject_cast<Process::ControlInlet*>(element.inlets()[i]);
     auto& p = n->add_control();
-    p->value = ctrl->value();
-
-    QObject::connect(
-        ctrl, &Process::ControlInlet::valueChanged, this, con_unvalidated{ctx, i, 0, n});
+    if(ctrl)
+    {
+      p->value = ctrl->value();
+      QObject::connect(
+          ctrl, &Process::ControlInlet::valueChanged, this,
+          con_unvalidated{ctx, i, 0, n});
+    }
   }
 
   n->root_outputs().push_back(new ossia::texture_outlet);

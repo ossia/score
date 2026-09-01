@@ -209,10 +209,9 @@ void ImagesNode::process(Message&& msg)
         case 5: // Images
         {
           // getImages() acquires every image from Gfx::ImageCache (refcount
-          // bumped per image). Without a matching release on the no-change
-          // branch below, the cache refcount accumulated by one acquire per
-          // re-emit of the same control value — long sessions that re-fed
-          // the same image list every tick bled cache memory until quit.
+          // bumped per image), so the no-change branch below has to release
+          // them again: otherwise every re-emit of the same control value
+          // leaks one acquire per image.
           auto new_images = Gfx::getImages(*val, this->ctx);
           auto diff = [](const score::gfx::Image& lhs, const score::gfx::Image& rhs) {
             return lhs.path != rhs.path;
@@ -254,9 +253,7 @@ void ImagesNode::process(Message&& msg)
           else
           {
             // Same image set as before — release the freshly-acquired
-            // copy so the cache refcount returns to baseline. Without
-            // this, every re-emit on the same control value bumped
-            // ImageCache::m_refcounts by one per image and never paired.
+            // copy so ImageCache::m_refcounts returns to baseline.
             Gfx::releaseImages(new_images);
           }
           break;
@@ -439,6 +436,11 @@ private:
     if(this->node.output[0]->type != score::gfx::Types::Image)
       return;
 
+    // Retried by createPassForEdgeIfMissing whenever either variant is
+    // missing (see hasOutputPassForEdge): drop what exists for this edge
+    // first so retries never accumulate duplicate pipelines.
+    removeOutputPass(renderer, edge);
+
     auto rt = renderer.renderTargetForOutput(edge);
     if(rt.renderTarget)
     {
@@ -460,6 +462,21 @@ private:
           m_altPasses.emplace_back(&edge, Pass{rt, pip, nullptr});
       }
     }
+  }
+
+  bool hasOutputPassForEdge(Edge& edge) const override
+  {
+    // Both variants must exist: runRenderPass draws from m_altPasses for every
+    // non-Single tile mode. Checking only m_p, as the inherited version does,
+    // leaves a failed tiled build unretried (tile modes draw nothing) and
+    // retries a failed single build forever, duplicating m_altPasses.
+    const bool single
+        = ossia::find_if(m_p, [&](const auto& p) { return p.first == &edge; })
+          != m_p.end();
+    const bool tiled
+        = ossia::find_if(m_altPasses, [&](const auto& p) { return p.first == &edge; })
+          != m_altPasses.end();
+    return single && tiled;
   }
 
   void removeOutputPass(RenderList& renderer, Edge& edge) override
@@ -619,8 +636,8 @@ private:
 
     // Copy the model UBO into the renderer, but keep the render-size-derived
     // scale: the model's scale is the raw control value, and overwriting the
-    // computed one here meant any materialChanged upload happening between two
-    // recompute triggers sent the un-fitted scale to the GPU.
+    // computed one here would send the un-fitted scale to the GPU on any
+    // materialChanged upload between two recompute triggers.
     {
       const float sx = m_ubo.scale[0], sy = m_ubo.scale[1];
       m_ubo = n.ubo;

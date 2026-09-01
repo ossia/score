@@ -43,17 +43,23 @@ struct EdgeSpec
   port_index second{};
   Process::CableType type{};
 
+  // type takes part in identity: the exec thread republishes the full edge
+  // set every tick and endTick dedups against prev_edges, so a comparison that
+  // ignored the cable type would make an Immediate/Delayed flip invisible. As
+  // it stands a type flip diffs as remove(old) + add(new) in the incremental
+  // path.
   bool operator==(const EdgeSpec& other) const noexcept
   {
-    return first == other.first && second == other.second;
+    return first == other.first && second == other.second && type == other.type;
   }
-  bool operator!=(const EdgeSpec& other) const noexcept
-  {
-    return first != other.first || second != other.second;
-  }
+  bool operator!=(const EdgeSpec& other) const noexcept { return !(*this == other); }
   bool operator<(const EdgeSpec& other) const noexcept
   {
-    return first < other.first || (first == other.first && second < other.second);
+    if(first != other.first)
+      return first < other.first;
+    if(second != other.second)
+      return second < other.second;
+    return type < other.type;
   }
 };
 
@@ -187,6 +193,7 @@ private:
   using Command = ossia::variant<NodeCommand, EdgeCommand>;
   moodycamel::ConcurrentQueue<Command> tick_commands;
   moodycamel::ConcurrentQueue<score::gfx::Message> tick_messages;
+  std::vector<std::pair<score::gfx::Message, int>> m_deferredMessages;
 
   std::mutex edges_lock;
   ossia::flat_set<EdgeSpec> new_edges TS_GUARDED_BY(edges_lock);
@@ -201,12 +208,10 @@ private:
   QTimer* m_freewheel_timer{};
 
   // Per-output render clocks (the render-clock / genlock abstraction).
-  //
-  // These replace the old timer->set<OutputNode*> map: each TimerClock owns
-  // one shared HighResolutionTimer at a given manualRenderingRate and the
-  // coalesced set of outputs driven by it (clock #2, the default), while the
-  // single DisplayVSyncClock wraps the swap-chain vsync callback (clock #1).
-  // Behaviour is byte-identical to the previous inline timer bookkeeping.
+  // Each TimerClock owns one shared HighResolutionTimer at a given
+  // manualRenderingRate and the coalesced set of outputs driven by it
+  // (clock #2, the default); the single DisplayVSyncClock wraps the
+  // swap-chain vsync callback (clock #1).
   std::vector<std::unique_ptr<score::gfx::TimerClock>> m_renderClocks;
   std::unique_ptr<score::gfx::DisplayVSyncClock> m_vsyncClock;
 
