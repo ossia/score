@@ -171,16 +171,31 @@ TEST_CASE("a sink name that is not in the pipeline scans the whole string", "[un
   CHECK(info.channels == 8);
 }
 
-TEST_CASE("rate= is matched inside framerate= when the value is bare", "[unit][gstreamer]")
+TEST_CASE("framerate= never contributes to an audio sink's rate", "[unit][gstreamer]")
 {
-  // The pattern is unanchored, so "framerate=30/1" contributes a rate of 30 to
-  // an audio sink. GStreamer's own "(fraction)30/1" spelling does not match.
+  // The rate= pattern requires a property boundary, so "framerate=30/1" in a
+  // preceding video branch does not open the audio sink at 30 Hz.
   CHECK(
       classify("audiotestsrc ! audio/x-raw,framerate=30/1 ! appsink name=s", "s").rate
-      == 30);
+      == 48000);
   CHECK(
       classify(
           "audiotestsrc ! audio/x-raw,framerate=(fraction)30/1 ! appsink name=s", "s")
           .rate
       == 48000);
+  // A real rate still parses, at the string start, after a comma and in
+  // GStreamer's (int) spelling.
+  CHECK(
+      classify("audiotestsrc ! audio/x-raw,rate=44100 ! appsink name=s", "s").rate
+      == 44100);
+  CHECK(
+      classify("audiotestsrc ! audio/x-raw,rate=(int)22050 ! appsink name=s", "s").rate
+      == 22050);
+  CHECK(
+      classify(
+          "videotestsrc ! video/x-raw,framerate=30/1 ! appsink name=v audiotestsrc ! "
+          "audio/x-raw,rate=96000 ! appsink name=s",
+          "s")
+          .rate
+      == 96000);
 }
