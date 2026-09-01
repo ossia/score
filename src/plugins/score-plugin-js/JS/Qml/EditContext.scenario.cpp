@@ -562,6 +562,16 @@ void EditJsContext::remove(QObject* obj)
     if(auto itv = qobject_cast<Scenario::IntervalModel*>(proc->parent()))
       m->removeProcess(*itv, proc->id());
   }
+  else if(auto cable = qobject_cast<Process::Cable*>(obj))
+  {
+    // Cables are parented to the document-level cable map rather than to a
+    // scenario, so the generic branch below never matched one: removing a cable
+    // from a script silently did nothing, which is what a script has to do to
+    // reroute an existing connection.
+    auto& root = score::IDocument::get<Scenario::ScenarioDocumentModel>(doc->document);
+    auto [m, _] = macro(*doc);
+    m->removeCable(root, *cable);
+  }
   else if(auto p = obj->parent())
   {
     if(auto scenar = qobject_cast<Scenario::ProcessModel*>(p))
