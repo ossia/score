@@ -412,6 +412,8 @@ struct CustomGpuRenderer final
     // Copy the data to the model node
     if(!this->states.empty())
       parent.processControlOut(*this->states[0]);
+    for(auto& state : states)
+      parent.clearControlIn(*state);
   }
 };
 
