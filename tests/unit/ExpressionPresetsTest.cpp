@@ -1388,13 +1388,26 @@ TEST_CASE("Presets: every preset is filed under a category", "[fx][exprtk][prese
   check_categories(preset_corpus::audio_generator, "Expression Audio Generator", seen);
 
   // A category holding a single preset is a submenu with one entry in it:
-  // usually a typo rather than a deliberate grouping.
+  // usually a typo rather than a deliberate grouping. These five were
+  // reviewed and are deliberate ("Noise gate" really is Dynamics; each name
+  // matches the same category in another process's menu); a singleton not on
+  // this list needs the same review.
+  static const std::vector<std::string> reviewed_singletons{
+      "Arraygen / Colour",
+      "Arraymap / Geometry",
+      "Arraymap / Shaping",
+      "Expression Audio Filter / Dynamics",
+      "Expression Value Filter / Random",
+  };
   std::sort(seen.begin(), seen.end());
   for(std::size_t i = 0; i < seen.size(); i++)
   {
     const auto count = std::count(seen.begin(), seen.end(), seen[i]);
     INFO(seen[i] << ": " << count << " preset(s)");
-    CHECK(count >= 1);
+    const bool reviewed
+        = std::find(reviewed_singletons.begin(), reviewed_singletons.end(), seen[i])
+          != reviewed_singletons.end();
+    CHECK((count >= 2 || reviewed));
   }
 
   // Sanity: the corpus really did pick up every folder of the library.
