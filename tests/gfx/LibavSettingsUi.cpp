@@ -291,13 +291,14 @@ TEST_CASE("LibavSettingsWidget encoder-driven format lists", "[gfx][libav][setti
         CHECK(allV.contains(e));
       for(auto& e : a)
         CHECK(allA.contains(e));
-      const int narrowedV = venc->count();
-      const int narrowedA = aenc->count();
-      // Clearing the muxer does NOT restore the full lists: onMuxerChanged
-      // returns early on an empty name, so the last filter stays in force.
+      // Clearing the muxer removes the constraint, so the full lists come
+      // back — matching validateOutput, which treats an empty muxer as
+      // unconstrained.
       muxer->setCurrentIndex(0);
-      CHECK(venc->count() == narrowedV);
-      CHECK(aenc->count() == narrowedA);
+      CHECK(venc->count() == allVideo);
+      CHECK(aenc->count() == allAudio);
+      CHECK(itemsOf(venc) == allV);
+      CHECK(itemsOf(aenc) == allA);
     }
 
     SECTION("choosing a video encoder repopulates the pixel formats")
