@@ -20,6 +20,8 @@
 //            the reason is recorded per preset.
 //   SKIP   - cannot run here; the reason names the missing encoder, server,
 //            device or kernel module exactly.
+//   FAILED - it ran, the oracle ran, and the content was WRONG (decoded
+//            pixels or samples do not match the master). A finding.
 //   WEDGED - it had to be killed. That is a finding, not an absence.
 //
 // One preset per process, under a wall-clock deadline the parent owns: half of
@@ -110,6 +112,7 @@ enum class Verdict
   Works,
   Built,
   Skipped,
+  Failed,
   Wedged
 };
 
@@ -123,6 +126,8 @@ const char* toString(Verdict v)
       return "built ";
     case Verdict::Skipped:
       return "SKIP  ";
+    case Verdict::Failed:
+      return "FAILED";
     case Verdict::Wedged:
       return "WEDGED";
   }
@@ -139,6 +144,8 @@ char toChar(Verdict v)
       return 'B';
     case Verdict::Wedged:
       return 'X';
+    case Verdict::Failed:
+      return 'F';
     case Verdict::Skipped:
       return 'S';
   }
@@ -155,6 +162,8 @@ Verdict fromChar(char c)
       return Verdict::Built;
     case 'X':
       return Verdict::Wedged;
+    case 'F':
+      return Verdict::Failed;
     default:
       return Verdict::Skipped;
   }
@@ -767,7 +776,7 @@ TEST_CASE("the libav preset probe", "[.probe]")
                        + std::to_string(f.width) + "x" + std::to_string(f.height)
                        + " to within " + std::to_string(bestDev));
             else
-              note(Verdict::Skipped,
+              note(Verdict::Failed,
                    "the closest ffmpeg reference frame differs by "
                        + std::to_string(bestDev));
           }
@@ -1197,7 +1206,7 @@ TEST_CASE("the libav preset probe", "[.probe]")
                          + std::to_string(best.maxDev) + " (tolerance "
                          + std::to_string(tol) + ")");
               else
-                note(Verdict::Skipped,
+                note(Verdict::Failed,
                      "what it wrote did not decode back to the master: " + why);
             }
           }
@@ -1261,7 +1270,7 @@ TEST_CASE("the libav preset probe", "[.probe]")
                                       + std::to_string(kAudioRate)
                                 : ""));
               else
-                note(Verdict::Skipped,
+                note(Verdict::Failed,
                      "the samples it wrote do not match the signal pushed into "
                      "it: mean error " + std::to_string(bestErr)
                          + " (tolerance " + std::to_string(tol) + ")");
@@ -1449,11 +1458,13 @@ TEST_CASE("every shipped libav preset is accounted for",
 
   CHECK(reports.size() >= 30);
 
-  // Nothing may wedge.
+  // Nothing may wedge, and nothing that ran may have produced the wrong
+  // picture or the wrong sound.
   for(const auto& r : reports)
   {
     INFO(r.preset.label.toStdString() << ": " << r.detail);
     CHECK(r.verdict != Verdict::Wedged);
+    CHECK(r.verdict != Verdict::Failed);
   }
 
   int works = 0;
