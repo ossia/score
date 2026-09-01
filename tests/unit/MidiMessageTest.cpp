@@ -546,12 +546,27 @@ TEST_CASE("Patternist pattern parsing", "[midi][pattern]")
     CHECK(pats[0].length == 4);
   }
 
-  SECTION("hc means clap (39), not hi conga: second mapping is unreachable")
+  SECTION("cp is the clap, hc completes the conga trio")
   {
-    const auto pats = parsePatterns(QByteArray("HC x---\n"));
-    REQUIRE(pats.size() == 1);
-    REQUIRE(pats[0].lanes.size() == 1);
-    CHECK(pats[0].lanes[0].note == 39);
+    // The doc table listed HC under both 39 (clap, as CP/HC) and 66
+    // (hi conga); the parser's first branch shadowed the second. CP alone
+    // is the clap; LC/MC/HC are the congas 64/65/66.
+    const auto cp = parsePatterns(QByteArray("CP x---\n"));
+    REQUIRE(cp.size() == 1);
+    REQUIRE(cp[0].lanes.size() == 1);
+    CHECK(cp[0].lanes[0].note == 39);
+
+    const auto hc = parsePatterns(QByteArray("HC x---\n"));
+    REQUIRE(hc.size() == 1);
+    REQUIRE(hc[0].lanes.size() == 1);
+    CHECK(hc[0].lanes[0].note == 66);
+
+    const auto lc = parsePatterns(QByteArray("LC x---\n"));
+    REQUIRE(lc.size() == 1);
+    CHECK(lc[0].lanes[0].note == 64);
+    const auto mc = parsePatterns(QByteArray("MC x---\n"));
+    REQUIRE(mc.size() == 1);
+    CHECK(mc[0].lanes[0].note == 65);
   }
 
   SECTION("garbage input yields no patterns")
