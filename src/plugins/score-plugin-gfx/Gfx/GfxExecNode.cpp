@@ -130,6 +130,8 @@ void gfx_exec_node::run(
     inlet_i++;
   }
 
+  static const bool trace_gfx_exec
+      = qEnvironmentVariableIsSet("SCORE_GFX_TRACE");
   for(auto& outlet : this->m_outlets)
   {
     if(auto out = outlet->address.target<ossia::net::parameter_base*>())
@@ -137,9 +139,17 @@ void gfx_exec_node::run(
       // TODO same, ugh.
       if(auto p = dynamic_cast<gfx_parameter_base*>(*out))
       {
+        if(trace_gfx_exec)
+          fprintf(stderr, "GFX-EXEC node %d push_texture\n", this->id);
         p->push_texture({this->id, 0});
       }
+      else if(trace_gfx_exec)
+        fprintf(
+            stderr, "GFX-EXEC node %d outlet target is not a gfx parameter\n",
+            this->id);
     }
+    else if(trace_gfx_exec && outlet->which() == ossia::texture_port::which)
+      fprintf(stderr, "GFX-EXEC node %d texture outlet UNRESOLVED\n", this->id);
   }
 
   exec_context->ui->send_message(std::move(msg));

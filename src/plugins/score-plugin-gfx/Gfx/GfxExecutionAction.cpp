@@ -94,6 +94,8 @@ void GfxExecutionAction::endTick(const ossia::audio_tick_state& st)
         ui->new_edges.tree().get_sequence_ref().assign(edges_cache.begin(), edges_cache.end());
       }
 
+      if(qEnvironmentVariableIsSet("SCORE_GFX_TRACE"))
+        fprintf(stderr, "GFX-EDGES publish %zu\n", edges_cache.size());
       std::swap(edges_cache, prev_edges);
       ui->edges_changed = true;
     }

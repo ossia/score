@@ -218,11 +218,22 @@ void Graph::createSingleRenderList(
 void Graph::createOutputRenderList(OutputNode& output)
 try
 {
+  static const bool trace = qEnvironmentVariableIsSet("SCORE_GFX_TRACE");
   if(output.renderState())
   {
     if(auto rl = createRenderList(&output, output.renderState()))
+    {
+      if(trace)
+        fprintf(
+            stderr, "GFX-RENDERLIST created for %p, %zu renderers\n", (void*)&output,
+            rl->renderers.size());
       m_renderers.push_back(std::move(rl));
+    }
+    else if(trace)
+      fprintf(stderr, "GFX-RENDERLIST creation FAILED for %p\n", (void*)&output);
   }
+  else if(trace)
+    fprintf(stderr, "GFX-RENDERLIST skipped, no renderState for %p\n", (void*)&output);
 }
 catch(...)
 {
@@ -314,6 +325,11 @@ void Graph::recreateOutputRenderList(OutputNode& output)
 
 void Graph::initializeOutput(OutputNode* output, GraphicsApi graphicsApi)
 {
+  static const bool trace = qEnvironmentVariableIsSet("SCORE_GFX_TRACE");
+  if(trace)
+    fprintf(
+        stderr, "GFX-INITOUT output=%p renderState=%d canRender=%d\n", (void*)output,
+        int(!!output->renderState()), int(output->canRender()));
   output->updateGraphicsAPI(graphicsApi);
   // Only when there is no output yet: createOutput() replaces ScreenNode's
   // Window outright, so calling it on a live output that merely is not ready

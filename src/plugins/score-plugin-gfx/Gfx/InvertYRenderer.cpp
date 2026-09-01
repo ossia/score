@@ -221,6 +221,14 @@ void ScaledRenderer::finishFrame(score::gfx::RenderList &renderer, QRhiCommandBu
     m_renderTarget.renderTarget = m_swapChain->currentFrameRenderTarget();
 
   auto* rt = m_renderTarget.renderTarget;
+  if(qEnvironmentVariableIsSet("SCORE_GFX_TRACE"))
+  {
+    static int n = 0;
+    if(n++ % 120 == 0)
+      fprintf(
+          stderr, "GFX-SCALED finish #%d rt=%d pipeline=%d swap=%d\n", n, int(!!rt),
+          int(!!m_p.pipeline), int(!!m_swapChain));
+  }
   if(!rt)
     return;
 
