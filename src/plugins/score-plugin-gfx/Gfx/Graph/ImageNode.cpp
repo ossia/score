@@ -519,6 +519,10 @@ private:
       }
 
       m_uploaded = false;
+      // The passes' SRBs may reference a texture that was just deleted;
+      // when the new list is empty no upload happens below, so force the
+      // rebind (it falls back to the RenderList's empty texture).
+      updateCurrentTexture = true;
     }
 
     recreateTextures(*renderer.state.rhi);
@@ -604,6 +608,10 @@ private:
 
       replace_texture(m_p, sampler, new_tex);
       replace_texture(m_altPasses, sampler, new_tex);
+      // Keep the sampler entry in sync: it is what addOutputPass bakes into
+      // pipelines built later (e.g. a preview cable added mid-playback), so
+      // leaving the old pointer here dangles once that texture is deleted.
+      m_samplers[0].texture = new_tex;
 
       m_ubo.currentImageIndex = n.ubo.currentImageIndex;
       mustRecomputeSize = true;
