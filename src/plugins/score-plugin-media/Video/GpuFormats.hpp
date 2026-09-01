@@ -3,8 +3,14 @@
 
 #include <QtGlobal>
 
+#include <cstdlib>
 #include <string>
+#include <string_view>
 #include <vector>
+
+#if defined(__linux__)
+#include <unistd.h>
+#endif
 
 #if SCORE_HAS_LIBAV
 extern "C" {
@@ -516,6 +522,62 @@ inline AVPixelFormat selectHardwareAcceleration(
 {
   auto fmts = selectHardwareAccelerations(graphicsApi, codec_id, gpuVendorId);
   return fmts.empty() ? AV_PIX_FMT_NONE : fmts.front();
+}
+
+#if defined(__linux__)
+/// The DRM render node to hand libva. Its default is the first render node
+/// (renderD128), which on a dual-GPU laptop is typically the discrete NVIDIA
+/// card serviced by the nvidia-vaapi-driver shim — measured to hang forever
+/// in vaSyncSurface on mid-stream SPS changes and to abort the process in
+/// av_hwframe_transfer_data on VP8 resolution changes. Prefer a node whose
+/// kernel driver is a native implementation, as mpv does.
+inline std::string preferredVAAPIRenderNode() noexcept
+{
+  for(int i = 128; i < 128 + 16; i++)
+  {
+    char link[64], drv[256];
+    snprintf(link, sizeof link, "/sys/class/drm/renderD%d/device/driver", i);
+    ssize_t n = readlink(link, drv, sizeof(drv) - 1);
+    if(n <= 0)
+      continue;
+    drv[n] = 0;
+    std::string_view driver{drv};
+    if(auto slash = driver.rfind('/'); slash != std::string_view::npos)
+      driver.remove_prefix(slash + 1);
+    if(driver != "nvidia")
+    {
+      char dev[64];
+      snprintf(dev, sizeof dev, "/dev/dri/renderD%d", i);
+      return dev;
+    }
+  }
+  return {};
+}
+#endif
+
+/// Which physical device should back a hardware decoder: an explicit request
+/// through SCORE_VIDEO_HW_DEVICE wins (a DRM node path for VAAPI, a GPU
+/// ordinal for CUDA...); otherwise VAAPI on Linux avoids the unstable NVIDIA
+/// shim when a native implementation is present. Returns the storage for the
+/// name; empty means libav's default. Every av_hwdevice_ctx_create in score
+/// must route through this so all decode paths pick the same device.
+inline std::string hardwareDecodingDeviceName(AVHWDeviceType device) noexcept
+{
+  if(const char* env = getenv("SCORE_VIDEO_HW_DEVICE"); env && *env)
+    return env;
+#if defined(__linux__)
+  if(device == AV_HWDEVICE_TYPE_VAAPI)
+    return preferredVAAPIRenderNode();
+#endif
+  return {};
+}
+
+/// av_hwdevice_ctx_create with score's device-selection policy applied.
+inline int createHardwareDevice(AVBufferRef** ctx, AVHWDeviceType device) noexcept
+{
+  const std::string name = hardwareDecodingDeviceName(device);
+  return av_hwdevice_ctx_create(
+      ctx, device, name.empty() ? nullptr : name.c_str(), nullptr, 0);
 }
 
 #endif
