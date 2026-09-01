@@ -16,10 +16,12 @@ void TagAs::rebuild()
   m_cached_in_version = in_version;
   m_cached_format_id = cur_format;
 
+  m_built = true;
+
   if(!in_state)
   {
     m_cached_out = in.state;
-    m_pending_dirty = 0xFF;
+    m_pending_dirty = 0;
     return;
   }
 
@@ -41,7 +43,7 @@ void TagAs::operator()()
   const bool upstream_changed
       = m_cached_in_state != in_state
         || m_cached_in_version != in_version;
-  if(!m_cached_out || upstream_changed)
+  if(!m_built || upstream_changed)
     rebuild();
 
   outputs.scene_out.scene.state = m_cached_out;

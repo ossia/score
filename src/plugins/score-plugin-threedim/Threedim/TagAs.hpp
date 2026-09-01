@@ -71,6 +71,7 @@ public:
   std::shared_ptr<const ossia::scene_state> m_cached_out;
   uint8_t m_pending_dirty{0xFF};
   const ossia::scene_state* m_cached_in_state{};
+  bool m_built{};
   int64_t m_cached_in_version{-1};
   std::string m_cached_format_id;
 };
