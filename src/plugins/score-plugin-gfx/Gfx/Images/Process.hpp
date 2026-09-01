@@ -68,6 +68,10 @@ public:
   //
 private:
   void on_imagesChanged(const ossia::value& v);
+  //! Deserialization tail: upgrade old port lists, reconnect the image-list
+  //! port (writePorts rebuilds every port, severing the constructor's
+  //! connection) and refresh the Index domain.
+  void finishLoad();
   QString prettyName() const noexcept override;
   std::vector<score::gfx::Image> m_currentImages;
 };

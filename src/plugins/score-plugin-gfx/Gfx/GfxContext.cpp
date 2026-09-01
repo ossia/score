@@ -249,8 +249,14 @@ void GfxContext::remove_edge(EdgeSpec edge)
      || edge.second.port >= sink_ports.size())
     return;
 
-  m_graph->removeEdge(source_ports[edge.first.port],
-                      sink_ports[edge.second.port]);
+  // Release the per-edge passes / input RTs keyed on the Edge* before it is
+  // freed: this path (preview disconnect) does not go through
+  // incrementalEdgeUpdate, which does its own onEdgeRemoved.
+  auto* src = source_ports[edge.first.port];
+  auto* snk = sink_ports[edge.second.port];
+  if(auto* e = m_graph->findEdge(src, snk))
+    m_graph->onEdgeRemoved(*e);
+  m_graph->removeEdge(src, snk);
 }
 
 void GfxContext::recompute_edges()
@@ -573,7 +579,15 @@ void GfxContext::incrementalEdgeUpdate(
     auto& sink_ports = sink_it->second->input;
     if(spec.first.port >= source_ports.size()
        || spec.second.port >= sink_ports.size())
+    {
+      // Ports don't grow after registration, so this spec can never apply —
+      // not deferred, but not silent either: it means the producer published
+      // a bad port index.
+      fprintf(
+          stderr, "gfx: dropping edge with out-of-range port: %d:%d -> %d:%d\n",
+          spec.first.node, spec.first.port, spec.second.node, spec.second.port);
       continue;
+    }
 
     auto* source_port = source_ports[spec.first.port];
     auto* sink_port = sink_ports[spec.second.port];
@@ -612,6 +626,39 @@ void GfxContext::incrementalEdgeUpdate(
 
 void GfxContext::update_inputs()
 {
+  // Controls are edge-triggered upstream: the exec node clears its `changed`
+  // flag when it builds the message, so a message dropped here is never sent
+  // again for the whole play — e.g. an Images list that never shows. A
+  // message can arrive before its node's ADD_NODE command has been processed
+  // (threaded config, or any off-UI-thread register_node), so retry unknown
+  // ids for a few ticks instead of dropping them.
+  if(!m_deferredMessages.empty())
+  {
+    auto pending = std::move(m_deferredMessages);
+    m_deferredMessages.clear();
+    for(auto& [m, tries] : pending)
+    {
+      if(auto it = nodes.find(m.node_id); it != nodes.end())
+      {
+        it->second->process(std::move(m));
+        if(m.input.capacity() > 0)
+          m_buffers.release(std::move(m).input);
+      }
+      else if(tries < 8)
+      {
+        m_deferredMessages.emplace_back(std::move(m), tries + 1);
+      }
+      else
+      {
+        // Normal on stop: messages in flight for a node just removed.
+        if(qEnvironmentVariableIsSet("SCORE_GFX_TRACE"))
+          fprintf(stderr, "GFX-MSG dropped for unregistered node %d\n", m.node_id);
+        if(m.input.capacity() > 0)
+          m_buffers.release(std::move(m).input);
+      }
+    }
+  }
+
   score::gfx::Message msg;
   while(tick_messages.try_dequeue(msg))
   {
@@ -619,6 +666,11 @@ void GfxContext::update_inputs()
     {
       auto& node = it->second;
       node->process(std::move(msg));
+    }
+    else
+    {
+      m_deferredMessages.emplace_back(std::move(msg), 0);
+      continue;
     }
 
     if(msg.input.capacity() > 0)
@@ -680,6 +732,7 @@ void GfxContext::run_commands()
   std::vector<std::unique_ptr<score::gfx::Node>> nursery;
 
   bool recompute = false;
+  bool preview_edges_changed = false;
   std::vector<score::gfx::Node*> add_output;
   Command c = NodeCommand{};
   while(tick_commands.try_dequeue(c))
@@ -778,6 +831,7 @@ void GfxContext::run_commands()
             this->preview_edges.emplace(cmd.edge);
           }
           add_edge(cmd.edge);
+          preview_edges_changed = true;
           break;
         }
         case EdgeCommand::DISCONNECT_PREVIEW_NODE: {
@@ -807,6 +861,17 @@ void GfxContext::run_commands()
     // applying an incremental diff would result in a half-built state.
     m_fullRebuildThisFrame = true;
   }
+  else if(preview_edges_changed)
+  {
+    // Rewiring an existing preview (setProducerNodeId) arrives with no node
+    // command: the bare add_edge above puts the edge in the graph but builds
+    // no renderer or output pass for the new source, so the preview clears
+    // to black every frame. Run the same repair pass incrementalEdgeUpdate
+    // ends with.
+    m_graph->reconcileAllRenderLists();
+    m_graph->createAllMissingPasses();
+    m_graph->updateAllSinkSamplers();
+  }
 
   // This will force the nodes to be deleted in the main thread a bit later
   // as for some reason when the ScreenNode is deleted, it still gets rendered to...
@@ -823,6 +888,15 @@ void GfxContext::updateGraph()
   run_commands();
 
   update_inputs();
+
+  // A full rebuild ran in run_commands with no edge change pending: it used
+  // the current edge baseline, so don't let the flag linger and downgrade a
+  // future incremental diff into another full rebuild.
+  if(m_fullRebuildThisFrame && !edges_changed.load())
+    m_fullRebuildThisFrame = false;
+
+  if(m_graph)
+    m_graph->createMissingRenderLists();
 
   // Clear the flag BEFORE copying new_edges so a producer that publishes a
   // fresh edge set after our copy (and re-sets the flag) cannot have its

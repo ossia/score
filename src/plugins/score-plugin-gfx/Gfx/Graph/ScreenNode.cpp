@@ -668,6 +668,11 @@ void ScreenNode::startRendering()
     onFps(0.f);
   if(m_window)
   {
+    // Symmetric with stopRendering()'s clear: only createOutput used to
+    // install this, so a rebuild that kept the window alive left the vsync
+    // path with no per-frame m_canRender refresh (the timer path gets it
+    // from ScreenNode::render()).
+    m_window->onAboutToRender = [this] { onRendererChange(); };
     m_window->onRender = [this](QRhiCommandBuffer& commands) {
       if(auto r = m_window->state->renderer.lock())
       {
