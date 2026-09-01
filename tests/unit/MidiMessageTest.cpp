@@ -536,14 +536,14 @@ TEST_CASE("Patternist pattern parsing", "[midi][pattern]")
     CHECK(pats[0].lanes[0].pattern.size() == 4);
   }
 
-  SECTION("mismatched lane lengths: lane dropped, but pattern length is updated")
+  SECTION("mismatched lane lengths: lane dropped, pattern length untouched")
   {
     const auto pats = parsePatterns(QByteArray("36 x---\n38 xx\n"));
     REQUIRE(pats.size() == 1);
     REQUIRE(pats[0].lanes.size() == 1);
     CHECK(pats[0].lanes[0].note == 36);
     CHECK(pats[0].lanes[0].pattern.size() == 4);
-    CHECK(pats[0].length == 2); // documents the quirk: length != lane size
+    CHECK(pats[0].length == 4);
   }
 
   SECTION("hc means clap (39), not hi conga: second mapping is unreachable")
