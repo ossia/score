@@ -63,9 +63,11 @@ void checkUnitNormals(const Span& s)
   }
 }
 
-// createMesh deliberately ignores the WedgeTexFromPlane result and writes
-// (x, y) of each corner as its texcoord (the UV branch is #if 0'd out).
-// Pinning it here so a change to that convention is visible.
+// createMesh writes (x, y) of each corner as its texcoord (the wedge-UV
+// branch is #if 0'd out, and the WedgeTexFromPlane call above it passes a
+// zero uVec anyway). For the Plane that IS the natural parameterization, so
+// it is pinned there; for solids it degenerates — see the [!shouldfail]
+// cube case below.
 void checkTexcoordsArePositionXY(const Span& s)
 {
   for(int64_t i = 0; i < s.vertices; i++)
@@ -73,6 +75,16 @@ void checkTexcoordsArePositionXY(const Span& s)
     CHECK(s.uv[2 * i] == s.pos[3 * i]);
     CHECK(s.uv[2 * i + 1] == s.pos[3 * i + 1]);
   }
+}
+
+// Area of each triangle in UV space; a zero-area triangle samples a single
+// texel line across its whole surface.
+double uvArea(const Span& s, int64_t tri)
+{
+  const float* a = s.uv + 6 * tri;
+  const double ux1 = a[2] - a[0], uy1 = a[3] - a[1];
+  const double ux2 = a[4] - a[0], uy2 = a[5] - a[1];
+  return 0.5 * std::abs(ux1 * uy2 - ux2 * uy1);
 }
 
 struct Bounds
@@ -115,7 +127,25 @@ TEST_CASE("Cube generates the 12 triangles of a unit box", "[threedim][primitive
     CHECK(b.hi[k] == Approx(1.f).margin(1e-6));
   }
   checkUnitNormals(s);
-  checkTexcoordsArePositionXY(s);
+}
+
+// Defect: createMesh maps uv = pos.xy for every primitive, so the cube's
+// x = 0 / x = 1 faces (uv varies only in y) and y = 0 / y = 1 faces (uv
+// varies only in x) — 8 of its 12 triangles — have zero UV area and cannot
+// be textured. Fixing it means a per-face parameterization in createMesh;
+// when that lands this case passes and the [!shouldfail] tag comes off.
+TEST_CASE(
+    "Cube faces have nonzero UV area", "[threedim][primitive][!shouldfail]")
+{
+  Threedim::Cube cube;
+  cube.update();
+  auto s = checkLayout(cube.outputs);
+  REQUIRE(s.vertices == 36);
+  int degenerate = 0;
+  for(int64_t tri = 0; tri < s.vertices / 3; tri++)
+    if(uvArea(s, tri) < 1e-9)
+      degenerate++;
+  CHECK(degenerate == 0);
 }
 
 TEST_CASE("Icosahedron generates 20 faces on a sphere", "[threedim][primitive]")
