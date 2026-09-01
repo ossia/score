@@ -42,10 +42,12 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <cinttypes>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <string>
 #include <thread>
@@ -126,6 +128,10 @@ struct Verdict
   int64_t ref_raw_frames = -1;
   int64_t first_mismatch = -1;
   std::string native_format;
+  // hwdec mode only
+  std::string requested; // accel asked for on the command line
+  std::string engaged;   // what actually decoded: device type / codec / "sw"
+  std::string out_format; // pixel format score's frames arrived in
 };
 
 std::string json_escape(const std::string& s)
@@ -148,13 +154,18 @@ std::string json_escape(const std::string& s)
 
 void emit(const char* mode, const std::string& file, const Verdict& v)
 {
+  std::string hw;
+  if(!v.requested.empty())
+    hw = ",\"requested\":\"" + json_escape(v.requested) + "\",\"engaged\":\""
+         + json_escape(v.engaged) + "\",\"out_format\":\"" + json_escape(v.out_format)
+         + "\"";
   std::printf(
       "{\"mode\":\"%s\",\"file\":\"%s\",\"status\":\"%s\",\"score_frames\":%" PRId64
       ",\"ref_frames\":%" PRId64 ",\"ref_raw_frames\":%" PRId64
-      ",\"first_mismatch\":%" PRId64 ",\"native_format\":\"%s\",\"note\":\"%s\"}\n",
+      ",\"first_mismatch\":%" PRId64 ",\"native_format\":\"%s\"%s,\"note\":\"%s\"}\n",
       mode, json_escape(file).c_str(), v.status.c_str(), v.score_frames, v.ref_frames,
       v.ref_raw_frames, v.first_mismatch, json_escape(v.native_format).c_str(),
-      json_escape(v.note).c_str());
+      hw.c_str(), json_escape(v.note).c_str());
   std::fflush(stdout);
 }
 
@@ -260,6 +271,7 @@ struct Reference
   int64_t raw_frames = 0; // before the pts >= 0 policy
   std::string native_format;
   std::string note;
+  AVPixelFormat out_fmt = AV_PIX_FMT_NONE; // format the compared frames are in
 };
 
 // score forwards these codecs' packets straight to the GPU; the reference for
@@ -272,7 +284,12 @@ bool is_raw_gpu_codec(AVCodecID id)
 // raw_mode: 1 = compare against demuxed packets (score chose the GPU-direct
 // path), 0 = compare against decoded pixels, -1 = guess from the codec id
 // (score's own decoder could not be opened, counts are informational only).
-Reference reference_decode(const std::string& path, clk::time_point deadline, int raw_mode)
+// ignore_pts mirrors DecoderConfiguration::ignorePTS on the reference side:
+// hw validation uses it so that raw elementary streams (conformance suites,
+// whose frames all have no pts) still compare decoder against decoder.
+Reference reference_decode(
+    const std::string& path, clk::time_point deadline, int raw_mode,
+    bool ignore_pts = false)
 {
   Reference ref;
 
@@ -375,7 +392,7 @@ Reference reference_decode(const std::string& path, clk::time_point deadline, in
 
   auto take_frame = [&](AVFrame* frame) {
     ref.raw_frames++;
-    if(frame->pts < 0) // receiveVideoFrame's policy
+    if(!ignore_pts && frame->pts < 0) // receiveVideoFrame's policy
       return;
     if(int64_t(ref.frames.size()) >= max_frames)
       return;
@@ -410,6 +427,7 @@ Reference reference_decode(const std::string& path, clk::time_point deadline, in
           rgb->linesize);
       if(g_capture.index == int64_t(ref.frames.size()))
         frame_bytes(rgb, g_capture.ref);
+      ref.out_fmt = AV_PIX_FMT_RGBA;
       ref.frames.push_back({frame->pts, hash_frame_pixels(rgb)});
     }
     else
@@ -417,6 +435,7 @@ Reference reference_decode(const std::string& path, clk::time_point deadline, in
       maybe_dump_frame("ref", ref.frames.size(), frame);
       if(g_capture.index == int64_t(ref.frames.size()))
         frame_bytes(frame, g_capture.ref);
+      ref.out_fmt = (AVPixelFormat)frame->format;
       ref.frames.push_back({frame->pts, hash_frame_pixels(frame)});
     }
   };
@@ -471,25 +490,94 @@ struct ScoreResult
   bool raw_gpu = false; // open_stream chose the packet-forwarding path
   std::vector<FrameSig> frames;
   std::string note;
+  // hwdec introspection
+  std::string engaged_device; // hw_device_ctx's type name, if any
+  std::string codec_name;     // the decoder that was actually opened
+  std::string out_format;     // format of the first produced frame
 };
 
-ScoreResult score_decode_direct(const std::string& path, clk::time_point deadline)
+ScoreResult score_decode_direct(
+    const std::string& path, clk::time_point deadline,
+    const Video::DecoderConfiguration& conf = Video::DecoderConfiguration{},
+    AVPixelFormat normalize_to = AV_PIX_FMT_NONE)
 {
   ScoreResult res;
 
-  Video::VideoDecoder dec{Video::DecoderConfiguration{}};
+  Video::VideoDecoder dec{conf};
   if(!dec.open(path))
     return res;
   res.opened = true;
   res.raw_gpu = !dec.m_conf.useAVCodec;
 
+  if(dec.m_codecContext)
+  {
+    if(dec.m_codecContext->codec && dec.m_codecContext->codec->name)
+      res.codec_name = dec.m_codecContext->codec->name;
+    if(dec.m_codecContext->hw_device_ctx)
+    {
+      auto* hw = (AVHWDeviceContext*)dec.m_codecContext->hw_device_ctx->data;
+      if(const char* n = av_hwdevice_get_type_name(hw->type))
+        res.engaged_device = n;
+    }
+  }
+
+  // hwdec output usually arrives as NV12/P010 after the hw->sw transfer while
+  // the software reference decodes to the codec's native format: compare in
+  // the reference's format, through an exact repack conversion.
+  SwsContext* norm_sws{};
+  AVPixelFormat norm_src = AV_PIX_FMT_NONE;
+  AVFrame* norm_frame{};
+  auto normalize = [&](AVFrame* fr) -> AVFrame* {
+    if(normalize_to == AV_PIX_FMT_NONE || fr->format == normalize_to
+       || !av_pix_fmt_desc_get((AVPixelFormat)fr->format))
+      return fr;
+    if(!norm_sws || norm_src != (AVPixelFormat)fr->format)
+    {
+      sws_freeContext(norm_sws);
+      norm_src = (AVPixelFormat)fr->format;
+      norm_sws = sws_getContext(
+          fr->width, fr->height, norm_src, fr->width, fr->height, normalize_to,
+          SWS_POINT, nullptr, nullptr, nullptr);
+      if(!norm_sws)
+      {
+        note_append(
+            res.note, std::string("cannot normalize ")
+                          + av_get_pix_fmt_name(norm_src) + " to "
+                          + av_get_pix_fmt_name(normalize_to));
+        return fr;
+      }
+      av_frame_free(&norm_frame);
+    }
+    if(!norm_frame)
+    {
+      norm_frame = av_frame_alloc();
+      norm_frame->width = fr->width;
+      norm_frame->height = fr->height;
+      norm_frame->format = normalize_to;
+      av_frame_get_buffer(norm_frame, 0);
+    }
+    sws_scale(
+        norm_sws, fr->data, fr->linesize, 0, fr->height, norm_frame->data,
+        norm_frame->linesize);
+    norm_frame->pts = fr->pts;
+    return norm_frame;
+  };
+
   auto collect_one = [&](AVFrame* fr) {
     if(int64_t(res.frames.size()) < max_frames)
     {
-      maybe_dump_frame("score", res.frames.size(), fr);
+      if(res.out_format.empty())
+      {
+        if(const char* n = av_get_pix_fmt_name((AVPixelFormat)fr->format))
+          res.out_format = n;
+        else
+          res.out_format = "fourcc";
+      }
+      AVFrame* view = normalize(fr);
+      maybe_dump_frame("score", res.frames.size(), view);
       if(g_capture.index == int64_t(res.frames.size()))
-        frame_bytes(fr, g_capture.score);
-      res.frames.push_back({fr->pts, hash_frame_pixels(fr)});
+        frame_bytes(view, g_capture.score);
+      res.frames.push_back({fr->pts, hash_frame_pixels(view)});
     }
     dec.m_frames.release(fr);
   };
@@ -530,6 +618,8 @@ ScoreResult score_decode_direct(const std::string& path, clk::time_point deadlin
 
   av_packet_unref(pkt);
   av_packet_free(&pkt);
+  av_frame_free(&norm_frame);
+  sws_freeContext(norm_sws);
 
   if(int64_t(res.frames.size()) >= max_frames)
     note_append(res.note, "frame cap reached");
@@ -669,6 +759,204 @@ int run_direct(const std::string& path)
 }
 
 // ---------------------------------------------------------------------------
+// Hardware decoding: same oracle, decoding through score's hwdec path.
+// ---------------------------------------------------------------------------
+
+struct HwAccelName
+{
+  const char* name;
+  AVPixelFormat fmt;
+};
+constexpr HwAccelName hw_accels[] = {
+    {"vaapi", AV_PIX_FMT_VAAPI},   {"vdpau", AV_PIX_FMT_VDPAU},
+    {"cuda", AV_PIX_FMT_CUDA},     {"qsv", AV_PIX_FMT_QSV},
+    {"vulkan", AV_PIX_FMT_VULKAN}, {"drm", AV_PIX_FMT_DRM_PRIME},
+};
+
+int run_hw(const std::string& path, const std::string& accel, AVPixelFormat hwfmt)
+{
+  const auto t0 = clk::now();
+  const std::string mode = "hwdec:" + accel;
+  Verdict v;
+  v.requested = accel;
+
+  // Software reference first: it defines both the expected frames and the
+  // pixel format the comparison happens in. pts filtering is off on both
+  // sides: conformance suites are raw streams whose frames carry no pts, and
+  // hw validation is about decoders, not timing policy.
+  auto ref = reference_decode(path, t0 + direct_budget, 0, /* ignore_pts: */ true);
+  v.ref_frames = ref.opened ? int64_t(ref.frames.size()) : -1;
+  v.ref_raw_frames = ref.opened ? ref.raw_frames : -1;
+  v.native_format = ref.native_format;
+  v.note = ref.note;
+
+  if(!ref.opened || ref.frames.empty())
+  {
+    v.status = "SKIP";
+    emit(mode.c_str(), path, v);
+    return 0;
+  }
+
+  Video::DecoderConfiguration conf;
+  conf.hardwareAcceleration = hwfmt;
+  conf.ignorePTS = true;
+  auto sc = score_decode_direct(path, t0 + direct_budget, conf, ref.out_fmt);
+  v.score_frames = sc.opened ? int64_t(sc.frames.size()) : -1;
+  v.out_format = sc.out_format;
+  if(!sc.note.empty())
+    note_append(v.note, sc.note);
+
+  // What actually decoded. score substitutes another accel or falls back to
+  // software when the requested one cannot handle this codec — the verdict
+  // has to say which hardware, if any, was exercised.
+  if(!sc.engaged_device.empty())
+    v.engaged = sc.engaged_device;
+  else if(sc.codec_name.find("v4l2m2m") != std::string::npos)
+    v.engaged = sc.codec_name;
+  else
+    v.engaged = "sw";
+
+  if(!sc.opened)
+  {
+    v.status = "SCORE_CANT_OPEN";
+    emit(mode.c_str(), path, v);
+    return 0;
+  }
+  if(sc.raw_gpu)
+  {
+    v.status = "NOT_APPLICABLE"; // HAP/DXV: packets go to the GPU undecoded
+    emit(mode.c_str(), path, v);
+    return 0;
+  }
+  if(v.engaged == "sw")
+  {
+    // Nothing engaged: the combination is unsupported on this machine (or
+    // for this codec). Not a failure — but not a validation either.
+    v.status = "HW_FALLBACK";
+    emit(mode.c_str(), path, v);
+    return 0;
+  }
+  if(v.engaged.find(accel) == std::string::npos
+     && !(accel == "drm" && v.engaged.find("v4l2m2m") != std::string::npos))
+    note_append(v.note, "substituted: " + v.engaged + " answered for " + accel);
+
+  if(getenv("VIDEO_TESTER_DUMP"))
+  {
+    const size_t total = std::max(ref.frames.size(), sc.frames.size());
+    for(size_t i = 0; i < total; i++)
+    {
+      auto fmt = [](const std::vector<FrameSig>& fs, size_t i) -> std::string {
+        if(i >= fs.size())
+          return "-";
+        return std::to_string(fs[i].pts) + "/" + std::to_string(fs[i].hash);
+      };
+      std::fprintf(
+          stderr, "%4zu ref %-24s score %-24s\n", i, fmt(ref.frames, i).c_str(),
+          fmt(sc.frames, i).c_str());
+    }
+  }
+
+  // Streams with no timestamps (raw conformance bitstreams) come out of the
+  // generic decoder with AV_NOPTS_VALUE while the qsv/cuvid wrappers
+  // synthesize timing — content is what hw validation compares, so pts only
+  // counts when the reference actually has one.
+  const size_t n = std::min(ref.frames.size(), sc.frames.size());
+  size_t bad = n;
+  for(size_t i = 0; i < n; i++)
+  {
+    const bool pts_bad = ref.frames[i].pts != INT64_MIN /* AV_NOPTS_VALUE */
+                         && ref.frames[i].pts != sc.frames[i].pts;
+    if(pts_bad || ref.frames[i].hash != sc.frames[i].hash)
+    {
+      bad = i;
+      break;
+    }
+  }
+  // Some hw decoders legitimately emit fewer frames than software: the Intel
+  // runtime skips VP8 duplicate frames, corrupt conformance frames get
+  // dropped instead of concealed... If everything the hw path did emit
+  // matches a software frame at the same timestamp, that is a policy
+  // difference, not corruption.
+  auto matching_subsequence = [&]() -> bool {
+    if(sc.frames.empty() || sc.frames.size() >= ref.frames.size())
+      return false;
+    size_t r = 0;
+    for(const auto& s : sc.frames)
+    {
+      while(r < ref.frames.size()
+            && !(ref.frames[r].hash == s.hash
+                 && (ref.frames[r].pts == s.pts || ref.frames[r].pts == INT64_MIN)))
+        r++;
+      if(r == ref.frames.size())
+        return false;
+      r++;
+    }
+    return true;
+  };
+
+  if((bad < n || ref.frames.size() != sc.frames.size()) && matching_subsequence())
+  {
+    v.status = "HW_SKIPS_FRAMES";
+    note_append(
+        v.note, "hw emitted " + std::to_string(sc.frames.size()) + " of "
+                    + std::to_string(ref.frames.size())
+                    + " frames, every one matching sw at its pts");
+  }
+  else if(bad < n)
+  {
+    v.first_mismatch = int64_t(bad);
+    if(ref.frames[bad].pts != INT64_MIN && ref.frames[bad].pts != sc.frames[bad].pts)
+      v.status = "PTS_MISMATCH";
+    else
+    {
+      g_capture = {};
+      g_capture.index = int64_t(bad);
+      const auto t1 = clk::now();
+      score_decode_direct(path, t1 + direct_budget, conf, ref.out_fmt);
+      reference_decode(path, t1 + direct_budget, 0, true);
+
+      size_t diff_bytes = 0;
+      int max_delta = 0;
+      const size_t total = std::min(g_capture.ref.size(), g_capture.score.size());
+      for(size_t i = 0; i < total; i++)
+      {
+        const int d = std::abs(int(g_capture.ref[i]) - int(g_capture.score[i]));
+        diff_bytes += d != 0;
+        max_delta = std::max(max_delta, d);
+      }
+      diff_bytes += std::max(g_capture.ref.size(), g_capture.score.size()) - total;
+
+      note_append(
+          v.note, "frame " + std::to_string(bad) + ": " + std::to_string(diff_bytes)
+                      + "/" + std::to_string(total) + " bytes differ, max delta "
+                      + std::to_string(max_delta));
+      const bool minor = total > 0 && diff_bytes <= std::max<size_t>(64, total / 200);
+      // H.264/HEVC/VP8/VP9/AV1 decoding is spec-exact — hardware must match
+      // the software decoder bit for bit. MPEG-1/2/4 and friends allow
+      // non-exact IDCTs: small-amplitude drift there is conformant.
+      const bool drift = max_delta <= 3 && total > 0
+                         && g_capture.ref.size() == g_capture.score.size();
+      const bool damaged = g_av_diagnostics.load(std::memory_order_relaxed) > 0;
+      v.status = minor      ? "PIXEL_MISMATCH_MINOR"
+                 : drift    ? "PIXEL_DRIFT"
+                 : damaged ? "PIXEL_MISMATCH_DAMAGED"
+                           : "PIXEL_MISMATCH";
+      g_capture = {};
+    }
+  }
+  else if(ref.frames.size() != sc.frames.size())
+    v.status = "COUNT_MISMATCH";
+  else
+    v.status = "OK";
+
+  if(int nd = g_av_diagnostics.load(std::memory_order_relaxed))
+    note_append(v.note, "libav diagnostics: " + std::to_string(nd));
+
+  emit(mode.c_str(), path, v);
+  return 0;
+}
+
+// ---------------------------------------------------------------------------
 // Playback: the real threaded path, as the application runs it.
 // ---------------------------------------------------------------------------
 
@@ -736,7 +1024,7 @@ int run_playback(const std::string& path, bool seek_stress)
 int main(int argc, char** argv)
 {
   bool playback = false, seek_stress = false;
-  std::string file;
+  std::string file, hwaccel;
   for(int i = 1; i < argc; i++)
   {
     std::string a = argv[i];
@@ -744,13 +1032,16 @@ int main(int argc, char** argv)
       playback = true;
     else if(a == "--seek-stress")
       seek_stress = true;
+    else if(a == "--hwaccel" && i + 1 < argc)
+      hwaccel = argv[++i];
     else
       file = a;
   }
   if(file.empty())
   {
     std::fprintf(
-        stderr, "usage: %s [--playback|--seek-stress] <file>\n", argv[0]);
+        stderr, "usage: %s [--playback|--seek-stress|--hwaccel <name>] <file>\n",
+        argv[0]);
     return 2;
   }
 
@@ -759,6 +1050,14 @@ int main(int argc, char** argv)
   // complained about is concealment, not necessarily a decode-loop bug.
   av_log_set_callback(counting_log_cb);
 
+  if(!hwaccel.empty())
+  {
+    for(const auto& a : hw_accels)
+      if(hwaccel == a.name)
+        return run_hw(file, hwaccel, a.fmt);
+    std::fprintf(stderr, "unknown hwaccel: %s\n", hwaccel.c_str());
+    return 2;
+  }
   if(playback || seek_stress)
     return run_playback(file, seek_stress);
   return run_direct(file);
