@@ -427,6 +427,15 @@ if(TARGET score_plugin_media)
     LIBS test_gfx_engine_glue avutil)
 endif()
 
+# Render-level tests for the Images process: pixel assertions across the
+# timing permutations of image-list delivery vs renderer creation (the
+# image-does-not-show-until-a-viewport-rebuild class of bugs).
+score_add_test(test_gfx_images_render
+  SOURCES GfxImagesRender.cpp
+  GUI
+  PLUGINS score_plugin_gfx score_plugin_scenario score_lib_process
+  LIBS test_gfx_engine_glue)
+
 # -----------------------------------------------------------------------------
 # Multi-window output editing canvases (Gfx/Window). Pure geometry driven
 # through QGraphicsScene::sendEvent: coordinate mapping, snapping, canvas
