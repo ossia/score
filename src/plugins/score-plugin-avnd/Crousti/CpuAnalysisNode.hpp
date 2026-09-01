@@ -153,6 +153,7 @@ struct GfxRenderer<Node_T> final
     // Run the processor
     if_possible(state->runInitialPasses(renderer, commands, res, edge));
     if_possible((*state)());
+    parent.clearControlIn(*state);
 
     // Copy the data to the model node
     parent.processControlOut(*this->state);
