@@ -40,6 +40,11 @@
 
 #include <ossia/detail/flicks.hpp>
 
+extern "C" {
+#include <libavformat/avformat.h>
+#include <libavutil/error.h>
+}
+
 #include <QCoreApplication>
 #include <QElapsedTimer>
 #include <QThread>
@@ -60,12 +65,25 @@ std::vector<std::string> bench_files()
   std::vector<std::string> r;
   if(const char* env = getenv("VIDEO_BENCH_FILES"))
   {
+    // ';' preferred (needed on Windows, where ':' appears in drive letters);
+    // ':' accepted for unixy invocations.
     std::string s{env};
+    const char sep = s.find(';') != std::string::npos ? ';' : ':';
     size_t pos = 0;
     while(pos != std::string::npos)
     {
-      auto next = s.find(':', pos);
+      auto next = s.find(sep, pos);
       auto item = s.substr(pos, next == std::string::npos ? next : next - pos);
+      if(item.size() == 1 && isalpha(uint8_t(item[0])) && sep == ':'
+         && next != std::string::npos)
+      {
+        // A bare drive letter split from its path: rejoin.
+        auto next2 = s.find(sep, next + 1);
+        item += ":"
+                + s.substr(
+                    next + 1, next2 == std::string::npos ? next2 : next2 - next - 1);
+        next = next2;
+      }
       if(!item.empty())
         r.push_back(item);
       pos = next == std::string::npos ? next : next + 1;
@@ -109,7 +127,6 @@ BenchResult run_bench(
   BenchResult r;
   r.backend = score::test::gfx::backend_name(api);
 
-  if(!getenv("VIDEO_BENCH_NO_PROBE"))
   {
     std::string probed;
     if(!score::test::gfx::probe_api(api, probed))
@@ -137,7 +154,14 @@ BenchResult run_bench(
   const bool opened = queue_mode ? dec->load(file) : dec->open(file);
   if(!opened)
   {
-    r.error = "cannot open " + file;
+    AVFormatContext* probe{};
+    const int rc = avformat_open_input(&probe, file.c_str(), nullptr, nullptr);
+    char buf[128]{};
+    av_strerror(rc, buf, sizeof buf);
+    if(probe)
+      avformat_close_input(&probe);
+    r.error = "cannot open " + file + " (raw avformat: " + std::to_string(rc) + " "
+              + buf + ")";
     return r;
   }
   r.width = dec->width;
@@ -290,6 +314,7 @@ TEST_CASE("direct video playback throughput", "[.videobench]")
       WARN(r.backend << ": " << r.skip_reason);
       continue;
     }
+    INFO(r.error);
     REQUIRE(r.error.empty());
     std::fprintf(
         stderr,
