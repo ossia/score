@@ -106,6 +106,9 @@ public:
 
   void setDuration(const TimeVal& other) noexcept;
   const TimeVal& duration() const noexcept;
+  //! The process's length in flicks. Read-only: the duration follows the
+  //! parent interval, and is changed through it.
+  double durationInFlicks() const noexcept { return duration().impl; }
 
   /// Nodal things
   QPointF position() const noexcept;
@@ -216,6 +219,8 @@ public:
 
   void durationChanged(const TimeVal& arg_1)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, durationChanged, arg_1)
+
+  PROPERTY(double, duration W_READ durationInFlicks W_NOTIFY durationChanged)
   void useParentDurationChanged(bool arg_1)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, useParentDurationChanged, arg_1)
 

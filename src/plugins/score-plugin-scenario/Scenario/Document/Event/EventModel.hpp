@@ -69,6 +69,8 @@ public:
   const State::Expression& condition() const noexcept;
   OffsetBehavior offsetBehavior() const noexcept;
   const TimeVal& date() const noexcept;
+  //! The event's position in flicks, relative to its parent scenario.
+  double dateInFlicks() const noexcept { return date().impl; }
   void translate(const TimeVal& deltaTime);
   ExecutionStatus status() const noexcept;
 
@@ -103,6 +105,8 @@ private:
 
   ExecutionStatusProperty m_status{};
   OffsetBehavior m_offset{};
+
+  PROPERTY(double, date READ dateInFlicks NOTIFY dateChanged)
 
   W_PROPERTY(
       Scenario::OffsetBehavior,

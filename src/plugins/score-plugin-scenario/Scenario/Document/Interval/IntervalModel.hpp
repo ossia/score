@@ -95,6 +95,14 @@ public:
   void setStartDate(const TimeVal& start);
   void translate(const TimeVal& deltaTime);
 
+  //! The interval's start, in flicks, relative to its parent scenario.
+  //!
+  //! Read-only and in flicks: that is how time is already spelled on the
+  //! Javascript side (TokenRequestValueType::date and friends return a raw
+  //! .impl), and leaving it read-only keeps every position change going through
+  //! a command, so undo still works.
+  double dateInFlicks() const noexcept { return date().impl; }
+
   double heightPercentage() const noexcept;
 
   void startExecution();
@@ -207,6 +215,7 @@ public:
 
   void setStartMarker(TimeVal t);
   TimeVal startMarker() const noexcept;
+  double startMarkerInFlicks() const noexcept { return startMarker().impl; }
   inline IntervalDurations* getDurations() noexcept { return &duration; }
 
   void hasTimeSignatureChanged(bool arg_1)
@@ -286,6 +295,10 @@ public:
       ossia::musical_sync, quantizationRate READ quantizationRate WRITE
                                setQuantizationRate NOTIFY quantizationRateChanged)
   W_PROPERTY(IntervalDurations*, durations READ getDurations CONSTANT)
+
+  PROPERTY(double, date READ dateInFlicks NOTIFY dateChanged)
+  PROPERTY(
+      double, startMarker READ startMarkerInFlicks NOTIFY startMarkerChanged)
 
 private:
   void on_addProcess(Process::ProcessModel&);
