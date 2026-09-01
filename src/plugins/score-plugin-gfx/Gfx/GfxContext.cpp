@@ -77,6 +77,8 @@ GfxContext::~GfxContext()
   m_vsyncClock.reset();
   m_no_vsync_timer = nullptr;
   m_watchdog_timer = nullptr;
+  delete m_freewheel_timer;
+  m_freewheel_timer = nullptr;
   std::destroy_at(&m_timers);
   std::construct_at(&m_timers);
 
@@ -281,6 +283,8 @@ void GfxContext::recomputeTimers()
     connect(m_watchdog_timer, &score::HighResolutionTimer::timeout, this, &GfxContext::on_watchdog_timer, Qt::UniqueConnection);
   }
   m_no_vsync_timer = nullptr;
+  delete m_freewheel_timer;
+  m_freewheel_timer = nullptr;
 
   for(auto& output : m_graph->outputs())
   {
@@ -341,6 +345,24 @@ void GfxContext::recomputeTimers()
       {
         rate = std::max(1000. / *conf.manualRenderingRate, rate);
       }
+    }
+
+    // Rate 0 with vsync off: free-wheel. A zero-interval timer fires once per
+    // event-loop pass, so update + render run back-to-back, bounded only by
+    // the GPU — not by timer granularity (the wall timers cap at 1000 Hz).
+    if(rate <= 0.)
+    {
+      m_freewheel_timer = new QTimer{this};
+      m_freewheel_timer->setTimerType(Qt::PreciseTimer);
+      m_freewheel_timer->setInterval(0);
+      connect(m_freewheel_timer, &QTimer::timeout, this, [this] {
+        updateGraph();
+        for(auto* output : m_graph->outputs())
+          if(output && output->canRender())
+            output->render();
+      });
+      m_freewheel_timer->start();
+      return;
     }
 
     rate = qBound(1.0, rate, 1000.);
@@ -835,7 +857,7 @@ void GfxContext::on_no_vsync_timer(score::HighResolutionTimer* self)
 
 void GfxContext::on_watchdog_timer(score::HighResolutionTimer* self)
 {
-  if(m_renderClocks.empty() && !m_no_vsync_timer)
+  if(m_renderClocks.empty() && !m_no_vsync_timer && !m_freewheel_timer)
     updateGraph();
 }
 void GfxContext::renderFrames(int frames)
