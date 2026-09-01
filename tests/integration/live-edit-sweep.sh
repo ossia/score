@@ -87,6 +87,21 @@ declare -A CFG=(
   [ndi-storm]="20 yes 0.5"
   [gfx-process-storm]="20 yes"
 )
+# Scenarios whose final tick leaves the full-screen isf-solid-color base
+# (magenta, 255 0 255) as the only thing on the window. For these "not
+# blank" is far too weak — a frame 0.3% lit passes, and any wrong colour
+# passes identically — so the verdict requires the frame to actually BE
+# magenta. camera/ndi end on device pixels (the coverage gate) and
+# transport-storm does not require a render.
+declare -A EXPECT=(
+  [baseline]=magenta
+  [add-remove-storm]=magenta
+  [cable-storm]=magenta
+  [undo-redo-during-play]=magenta
+  [mixed-chaos]=magenta
+  [window-storm]=magenta
+  [gfx-process-storm]=magenta
+)
 ORDER=(baseline add-remove-storm cable-storm undo-redo-during-play transport-storm mixed-chaos
        window-storm gfx-process-storm camera-storm ndi-storm)
 
@@ -206,8 +221,8 @@ asan_census() {
     END { if(inrep && matched) k++; print total+0, k+0 }' "$1" 2>/dev/null
 }
 
-verdict() { # name require_render [min_coverage] -> one line, nonzero on findings
-  local name="$1" require="$2" cover="${3:-}"
+verdict() { # name require_render [min_coverage] [expect] -> one line, nonzero on findings
+  local name="$1" require="$2" cover="${3:-}" expect="${4:-}"
   local log="$OUT/$name.log" png="$OUT/$name.png"
   local rc; rc=$(cat "$OUT/$name.rc" 2>/dev/null || echo 97)
   local bad="" note=""
@@ -236,6 +251,12 @@ verdict() { # name require_render [min_coverage] -> one line, nonzero on finding
           | sed -E 's/^ *([0-9]+):.*(#[0-9A-Fa-f]{6}).*/\2x\1px/')
     dom="${dom:--}"
     if [ "$require" = yes ] && ! awk "BEGIN{exit !($mean > $BLANK_MEAN)}"; then bad+=" BLANK"; fi
+    if [ "$expect" = magenta ]; then
+      # Fraction of the frame within 2% of pure magenta.
+      local mag; mag=$(convert "$png" -fuzz 2% -fill white -opaque '#FF00FF' \
+            -fill black +opaque white -colorspace gray -format '%[fx:mean]' info: 2>/dev/null || echo 0)
+      awk "BEGIN{exit !($mag >= 0.99)}" || bad+=" NOTMAGENTA(fraction=${mag:-0})"
+    fi
     if [ -n "$cover" ]; then
       # Binarise and take the mean: that is literally the fraction of the frame
       # that is not black, independent of how bright the lit part happens to be.
@@ -291,7 +312,7 @@ for name in "${ORDER[@]}"; do
   fi
   echo "=== $name (${nticks} ticks @ ${TICK}s) ==="
   run_scenario "$name" "$nticks"
-  verdict "$name" "$require" "${cover:-}" || FAILED=$((FAILED+1))
+  verdict "$name" "$require" "${cover:-}" "${EXPECT[$name]:-}" || FAILED=$((FAILED+1))
   coverage "$name"
 done
 

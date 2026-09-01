@@ -13,7 +13,8 @@
 #   2. zero "ERROR: AddressSanitizer" in the log
 #   3. zero CYCLE-ERROR / TEARDOWN-ERROR (mutations really happened)
 #   4. >= 90% of pumped cycles executed
-#   5. final grab non-blank (the pipeline still renders after the churn)
+#   5. final grab is the solid-color base's full-frame magenta (the
+#      pipeline still renders the RIGHT thing after the churn)
 #   6. gfx-process population in final.score == baseline init.score
 #   7. post-warmup RSS growth < SLOPE_KB_PER_CYCLE (linear fit; catches
 #      unbounded growth without exact counts under ASAN's noisy allocator)
@@ -173,6 +174,13 @@ try:
     mean = float(subprocess.check_output(
         ["convert", f"{out}/final.png", "-format", "%[fx:mean]", "info:"]).decode())
     if mean <= blank: bad.append(f"BLANK mean={mean}")
+    # The scene after churn is the persistent isf-solid-color alone: the
+    # frame must actually BE magenta, not merely non-blank.
+    mag = float(subprocess.check_output(
+        ["convert", f"{out}/final.png", "-fuzz", "2%", "-fill", "white",
+         "-opaque", "#FF00FF", "-fill", "black", "+opaque", "white",
+         "-colorspace", "gray", "-format", "%[fx:mean]", "info:"]).decode())
+    if mag < 0.99: bad.append(f"NOTMAGENTA fraction={mag:.4f}")
 except Exception as e:
     bad.append(f"NORENDER ({e.__class__.__name__})")
     mean = -1
