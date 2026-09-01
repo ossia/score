@@ -1183,10 +1183,18 @@ endsolid tri
     const auto& prim = mesh->primitives[0];
     CHECK(prim.vertex_count == 3);
     CHECK(prim.index_type == ossia::index_format::none);
-    // Documented behaviour: although STL carries a per-face normal, the
-    // vcglib importer does not report IOM_FACENORMAL in its loadmask for
-    // this file, so the bridge emits positions only — no normal attribute.
-    CHECK(find_attr(prim, ossia::attribute_semantic::normal) == nullptr);
+    // STL defines one normal per facet; the bridge recomputes it from the
+    // winding (vcglib's importer drops the stored value) and expands it to
+    // every corner. For this CCW triangle in the XY plane that is +Z.
+    const auto* nor = find_attr(prim, ossia::attribute_semantic::normal);
+    REQUIRE(nor != nullptr);
+    const float* n = attr_floats(prim, *nor);
+    for(int c = 0; c < 3; ++c)
+    {
+      CHECK(n[3 * c + 0] == Approx(0.f));
+      CHECK(n[3 * c + 1] == Approx(0.f));
+      CHECK(n[3 * c + 2] == Approx(1.f));
+    }
     const auto* pos = find_attr(prim, ossia::attribute_semantic::position);
     REQUIRE(pos);
     const float* p = attr_floats(prim, *pos);
