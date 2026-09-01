@@ -4,7 +4,7 @@
 // All of these are GPU-free: their init/update/release take a RenderList but
 // the algebra lives entirely in rebuild()/operator()(). Nothing here touches
 // a QRhi, so the arena slot refs stay invalid throughout and the render-thread
-// paths are never entered — the property test_threedim_camera_release also
+// paths are never entered -- the same property test_threedim_camera_release
 // relies on.
 
 #include <Threedim/CameraSwitch.hpp>
@@ -812,11 +812,17 @@ TEST_CASE("TagAs with an empty format id is a passthrough",
 
 TEST_CASE("TagAs handles a null upstream", "[threedim][scene][tagas]")
 {
+  // Same contract as Transform3D: no scene in, no scene out, nothing dirty.
+  // A 0xFF here would invalidate every identity-keyed preprocessor cache on
+  // every tick of an unwired node.
   Threedim::TagAs n;
   n.inputs.format_id.value = "x";
   n();
   CHECK(n.outputs.scene_out.scene.state == nullptr);
-  CHECK(n.outputs.scene_out.dirty == 0xFF);
+  CHECK(n.outputs.scene_out.dirty == 0);
+  n();
+  CHECK(n.outputs.scene_out.scene.state == nullptr);
+  CHECK(n.outputs.scene_out.dirty == 0);
 }
 
 TEST_CASE("TagAs re-runs when the upstream state pointer changes",
