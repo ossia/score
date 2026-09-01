@@ -15,8 +15,8 @@
 #      through the real Gfx graph (drop -> Video process -> forced-offscreen
 #      window device -> GPUVideoDecoder -> readback) and asserts the
 #      rendered RGBA matches the reference within a per-format PSNR bound.
-#   4. Fuzz: truncated / garbage / empty clips must be rejected gracefully
-#      (no crash, no hang).
+#   4. Fuzz: truncated / garbage / empty clips must be rejected without a
+#      crash and without a hang.
 #
 # YUV colorspace: clips are encoded untagged with an explicit bt601 swscale
 # matrix; score's colorMatrix() fallback for untagged <1280px content is
@@ -32,8 +32,8 @@
 #   tests/integration/video-decode-correctness.sh [--gen-only] [--formats "a b c"]
 #   VIDEO_TESTER=<path>  MEDIA=<dir>  SCORE_VIDEO_TEST_MS=<ms>
 #
-# Serialization: each tester run takes flock /tmp/score-harness.lock itself
-# (do NOT hold it around the whole script — see EXHAUSTIVE-TEST-PLAN note).
+# Serialization: each tester run takes flock /tmp/score-harness.lock itself;
+# the lock must NOT be held around the whole script.
 set -u
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -77,9 +77,8 @@ FF="ffmpeg -nostdin -hide_banner -loglevel error -y"
 #   yuv     : rawvideo in NUT, forced BT.601 limited both ways
 #   yuvfull : MJPEG in AVI (yuvj*, full-range BT.601)
 #   hap     : HAP in MOV (DXT-compressed; ffmpeg-decoded reference)
-# Thresholds calibrated on llvmpipe 2026-07; each is >=6dB
-# below the measured value but high enough that a plane swap / wrong matrix /
-# channel-order bug (all measured <20dB) fails.
+# Each threshold sits well below what a correct decode scores, but high enough
+# that a plane swap / wrong matrix / channel-order bug fails.
 MATRIX="
 rgb24        raw      45
 bgr24        raw      45
@@ -136,16 +135,9 @@ hap_alpha    hap      30
 hap_q        hap      25
 "
 
-# Known-bug formats: decode to the WRONG pixels. Empty now — the two decoder
-# bugs this matrix originally found are fixed (verified under ASAN: rgb24/bgr24
-# 15 dB -> 99 dB, rgba64le/bgra64le black -> 51 dB), so every format is asserted
-# as a hard PASS. Re-add a format here only if a future decoder bug needs to be
-# tracked without failing the suite.
-#   FIXED: rgb24/bgr24 — RGB24Decoder R8 data texture no longer flagged
-#          QRhiTexture::sRGB (the sampler was EOTF-linearizing raw bytes).
-#   FIXED: rgba64le/bgra64le — now decoded by RGBA64Decoder (R16 x w*4 packed +
-#          texelFetch reassembly) instead of reinterpreting UNORM16 data as
-#          half-float in an RGBA16F texture (which rendered pure black).
+# Known-bug formats: decode to the WRONG pixels. The list is empty, so every
+# format is asserted as a hard PASS. Add a format here only if a decoder bug
+# needs to be tracked without failing the suite.
 declare -A XFAIL
 
 # ---- media generation -------------------------------------------------------
@@ -298,14 +290,16 @@ for fmt in "${ORDER[@]}"; do
   fi
   case $rc in
     0) echo "PASS  (psnr=${psnr:-?} >= ${THRESH[$fmt]})"; pass=$((pass+1));;
-    4) echo "SKIP  (not recognized as video)"; skip=$((skip+1));;
+    # The clip's pix_fmt was ffprobe-verified above, so "not recognized as
+    # a video" here can only be a score regression, not a bad input.
+    4) echo "FAIL  (rc=4: no TextureOutlet for an ffprobe-verified clip, see $MEDIA/run-$fmt.log)"; fail=$((fail+1));;
     5) echo "FAIL  (psnr=${psnr:--} < ${THRESH[$fmt]}, see $MEDIA/run-$fmt.log)"; fail=$((fail+1));;
     124) echo "FAIL  (timeout)"; fail=$((fail+1));;
     *) echo "FAIL  (rc=$rc — crash?, see $MEDIA/run-$fmt.log)"; fail=$((fail+1));;
   esac
 done
 
-# ---- fuzz: graceful rejection, ASAN-clean, no hang --------------------------
+# ---- fuzz: rejected cleanly, ASAN-clean, no hang ----------------------------
 for fz in fuzz-truncated.nut fuzz-garbage.mov fuzz-empty.nut; do
   [ -f "$MEDIA/$fz" ] || continue
   printf '%-14s' "$fz"
