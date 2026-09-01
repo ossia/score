@@ -109,6 +109,7 @@ BenchResult run_bench(
   BenchResult r;
   r.backend = score::test::gfx::backend_name(api);
 
+  if(!getenv("VIDEO_BENCH_NO_PROBE"))
   {
     std::string probed;
     if(!score::test::gfx::probe_api(api, probed))
