@@ -8,12 +8,13 @@
 # the graph renders — sampling VmRSS / open-fd count from /proc/<pid> as it
 # goes. See soak.js for what one cycle exercises.
 #
-# PASS requires ALL of:
+# PASS requires all of:
 #   1. exit code 0 (teardown survives a long churn session)
 #   2. zero "ERROR: AddressSanitizer" in the log
 #   3. zero CYCLE-ERROR / TEARDOWN-ERROR (mutations really happened)
 #   4. >= 90% of pumped cycles executed
-#   5. final grab non-blank (the pipeline still renders after the churn)
+#   5. final grab is the solid-color base's full-frame magenta (the
+#      pipeline still renders the right thing after the churn)
 #   6. gfx-process population in final.score == baseline init.score
 #   7. post-warmup RSS growth < SLOPE_KB_PER_CYCLE (linear fit; catches
 #      unbounded growth without exact counts under ASAN's noisy allocator)
@@ -106,9 +107,9 @@ echo "cycle,rss_kb,fds" > "$OUT/samples.csv"
   { printf 'var SOAK_DIR = "%s";\n' "$SOAK_DIR"; cat "$JS"; } > "$OUT/soak.staged.js"
   # Real X + xcb + a real window. Under QT_QPA_PLATFORM=offscreen there is no
   # GL (Qt's offscreen integration is GLX-only), QRhi falls back to the Null
-  # backend and renders nothing, so criterion 5 -- "final grab non-blank" --
-  # passed on a constant colour and verified nothing. The RSS measurement was
-  # unaffected, but the render check was not.
+  # backend and renders nothing, so criterion 5 -- the final grab -- would pass
+  # on a constant colour and check nothing. RSS sampling would be unaffected,
+  # the render check would not.
   env XDG_CONFIG_HOME="$CFG" \
       SCORE_AUDIO_BACKEND=dummy SCORE_DISABLE_AUDIOPLUGINS=1 \
       SCORE_SANITIZE_SKIP_CHECKS=1 QT_QPA_PLATFORM=xcb \
@@ -125,7 +126,7 @@ echo "cycle,rss_kb,fds" > "$OUT/samples.csv"
     kill "$APP" 2>/dev/null; wait "$APP" 2>/dev/null; echo 97 > "$OUT/soak.rc"; exit 0
   fi
   sleep 3
-  # $APP is the `timeout` wrapper (RSS ~2MB); resolve the real ossia-score
+  # $APP is the `timeout` wrapper, not the engine; resolve the real ossia-score
   # child so RSS/fd sampling measures the engine, not the wrapper.
   SPID=$(pgrep -P "$APP" -f ossia-score | head -1)
   [ -n "$SPID" ] || SPID=$(pgrep -f "ossia-score --no-gui --no-restore --script $OUT/soak.staged.js" | head -1)
@@ -146,8 +147,9 @@ echo "cycle,rss_kb,fds" > "$OUT/samples.csv"
     send /script s "Score.device('Window').grabTo('$OUT/final.png')"
     sleep 1; [ -s "$OUT/final.png" ] && break
   done
-  # /script, not bare /stop and /exit: this oscsend emits argument-less messages
-  # that score's OSC listener rejects, so shutdown was never delivered.
+  # /script, not bare /stop and /exit: this oscsend emits argument-less
+  # messages, which score's OSC listener rejects, so shutdown would never be
+  # delivered.
   send /script s "Score.stop()"; sleep 0.5
   send /exit s force
   wait "$APP"; echo $? > "$OUT/soak.rc"
@@ -173,6 +175,13 @@ try:
     mean = float(subprocess.check_output(
         ["convert", f"{out}/final.png", "-format", "%[fx:mean]", "info:"]).decode())
     if mean <= blank: bad.append(f"BLANK mean={mean}")
+    # The scene after churn is the persistent isf-solid-color alone: the
+    # frame must be magenta, not merely non-blank.
+    mag = float(subprocess.check_output(
+        ["convert", f"{out}/final.png", "-fuzz", "2%", "-fill", "white",
+         "-opaque", "#FF00FF", "-fill", "black", "+opaque", "white",
+         "-colorspace", "gray", "-format", "%[fx:mean]", "info:"]).decode())
+    if mag < 0.99: bad.append(f"NOTMAGENTA fraction={mag:.4f}")
 except Exception as e:
     bad.append(f"NORENDER ({e.__class__.__name__})")
     mean = -1
