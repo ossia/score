@@ -22,8 +22,14 @@
 # 77 = missing prerequisites (skip).
 set -u
 
-BIN="${SCORE_BIN:-/home/jcelerier/ossia/wt/score-tests/build-sanitizers/ossia-score}"
-JS="${1:-/home/jcelerier/Documents/ossia/score/packages/csf-examples/csf-testers/tests-scene/scripts/build-isf-solid-color.js}"
+HERE="$(cd "$(dirname "$0")" && pwd)"
+SRCROOT="$(cd "$HERE/../.." && pwd)"
+BIN="${SCORE_BIN:-${OSSIA_SCORE:-$SRCROOT/build-sanitizers/ossia-score}}"
+# The scene must come from the tests-scene builder: a live-edit-style scene
+# does not connect to the offscreen device (see the backend note below). The
+# corpus is out-of-repo, same provisioning contract as golden-render.sh.
+SCRIPTS="${SCRIPTS:-$HOME/Documents/ossia/score/packages/csf-examples/csf-testers/tests-scene/scripts}"
+JS="${1:-$SCRIPTS/build-isf-solid-color.js}"
 BACKEND="${2:-llvmpipe}"
 
 if [ -z "${DISPLAY:-}" ]; then
@@ -98,8 +104,11 @@ rc=125
 rc=$?
 
 if [ ! -s "$PNG" ]; then
+  # Every prerequisite was present, so a missing frame is a finding of its
+  # own, not a skip: exit 2 as the header promises (ctest maps only 77 to
+  # SKIP, so this stays red instead of silently green).
   echo "NORENDER: no frame was grabbed (rc=$rc) — cannot conclude on teardown; see $LOG"
-  exit 77
+  exit 2
 fi
 
 if [ "$rc" -ne 0 ]; then
