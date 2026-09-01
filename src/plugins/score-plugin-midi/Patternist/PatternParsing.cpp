@@ -122,8 +122,8 @@ std::vector<Pattern> parsePatterns(const QByteArray& data) noexcept
 
       if(ok)
       {
-        p.length = split[1].size();
-        for(int i = 0; i < p.length; i++)
+        const int length = split[1].size();
+        for(int i = 0; i < length; i++)
         {
           char c = split[1][i].toLatin1();
           switch(c)
@@ -149,7 +149,10 @@ std::vector<Pattern> parsePatterns(const QByteArray& data) noexcept
         if(!lane.pattern.empty())
         {
           if(p.lanes.empty() || lane.pattern.size() == p.lanes[0].pattern.size())
+          {
+            p.length = length;
             p.lanes.push_back(lane);
+          }
         }
       }
     }
