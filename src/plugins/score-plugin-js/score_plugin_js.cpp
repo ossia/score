@@ -52,6 +52,22 @@ score_plugin_js::score_plugin_js()
       [](int64_t qval) -> TimeVal { return TimeVal{qval}; });
   QMetaType::registerConverter<double, TimeVal>(
       [](double qval) -> TimeVal { return TimeVal{(int64_t)qval}; });
+
+  // A Javascript number reaches a TimeVal parameter as whichever C++ type it
+  // fits in, and an integral one that fits in 32 bits arrives as `int` -- a
+  // type nothing above converts. The effect was that a duration passed as a
+  // whole number worked only above INT32_MAX flicks, i.e. above ~3.04 seconds,
+  // and threw "Passing incompatible arguments to C++ functions" below it:
+  //
+  //     Score.setIntervalDuration(itv, 7056000000)  // 10 s: fine
+  //     Score.setIntervalDuration(itv, 1411200000)  //  2 s: TypeError
+  //
+  // Registering the narrower integral types can only turn that error into the
+  // call the script already meant.
+  QMetaType::registerConverter<int, TimeVal>(
+      [](int qval) -> TimeVal { return TimeVal{int64_t(qval)}; });
+  QMetaType::registerConverter<unsigned int, TimeVal>(
+      [](unsigned int qval) -> TimeVal { return TimeVal{int64_t(qval)}; });
   QMetaType::registerConverter<QTime, TimeVal>([](const QTime& qval) -> TimeVal {
     int64_t ms = 0;
     ms += qval.hour() * 60 * 60 * 1000;

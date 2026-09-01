@@ -76,6 +76,10 @@ public:
   W_SLOT(toTime)
   double toMilliseconds(TimeVal v);
   W_SLOT(toMilliseconds)
+  //! Seconds, for the common case. Accepts anything that converts to a
+  //! TimeVal, including the raw flicks that itv.date and proc.duration give.
+  double toSeconds(TimeVal v);
+  W_SLOT(toSeconds)
   bool isInfinite(TimeVal v);
   W_SLOT(isInfinite)
 

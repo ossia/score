@@ -182,6 +182,17 @@ if(TARGET score AND NOT EMSCRIPTEN)
     TIMEOUT 900 RUN_SERIAL TRUE)
 endif()
 
+# Time in the scripting API: the flicks-as-a-number representation scripts
+# already depend on, and the positions that were added beside it.
+if(TARGET score AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_js_time_api
+    SOURCES JsTimeApiTest.cpp)
+  target_compile_definitions(test_integration_js_time_api PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\"")
+  set_tests_properties(test_integration_js_time_api PROPERTIES
+    TIMEOUT 900 RUN_SERIAL TRUE)
+endif()
+
 # Closing a MODIFIED document with applicationSettings.gui false must not
 # raise the save prompt: nothing can answer it and QMessageBox::exec() aborts.
 score_add_test(test_regression_headless_close_modified

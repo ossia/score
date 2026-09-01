@@ -52,6 +52,9 @@ public:
 
   // Data of the TimeSync
   const TimeVal& date() const noexcept;
+  //! The sync's position in flicks, relative to its parent scenario.
+  //! Read-only, in flicks, like IntervalModel::dateInFlicks.
+  double dateInFlicks() const noexcept { return date().impl; }
   void setDate(const TimeVal&);
 
   void addEvent(const Id<EventModel>&);
@@ -109,6 +112,7 @@ public:
   PROPERTY(
       ossia::musical_sync,
       musicalSync READ musicalSync WRITE setMusicalSync NOTIFY musicalSyncChanged)
+  PROPERTY(double, date READ dateInFlicks NOTIFY dateChanged)
   PROPERTY(bool, active READ active WRITE setActive NOTIFY activeChanged)
   PROPERTY(
       bool, autotrigger READ autotrigger WRITE setAutotrigger NOTIFY autotriggerChanged)

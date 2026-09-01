@@ -382,6 +382,11 @@ double JsUtils::toMilliseconds(TimeVal v)
 {
   return v.msec();
 }
+
+double JsUtils::toSeconds(TimeVal v)
+{
+  return v.impl / double(ossia::flicks_per_second<int64_t>);
+}
 bool JsUtils::isInfinite(TimeVal v)
 {
   return v.infinite();
