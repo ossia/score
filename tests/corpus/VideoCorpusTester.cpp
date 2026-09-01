@@ -918,11 +918,29 @@ int run_hw(const std::string& path, const std::string& accel, AVPixelFormat hwfm
       size_t diff_bytes = 0;
       int max_delta = 0;
       const size_t total = std::min(g_capture.ref.size(), g_capture.score.size());
-      for(size_t i = 0; i < total; i++)
+      // On >8-bit formats a one-code sample step crosses a byte boundary and
+      // reads as a delta of 255 byte-wise: measure sample values, not bytes.
+      const auto* d16 = av_pix_fmt_desc_get(ref.out_fmt);
+      const bool words = d16 && d16->comp[0].depth > 8 && total % 2 == 0;
+      if(words)
       {
-        const int d = std::abs(int(g_capture.ref[i]) - int(g_capture.score[i]));
-        diff_bytes += d != 0;
-        max_delta = std::max(max_delta, d);
+        for(size_t i = 0; i + 1 < total; i += 2)
+        {
+          const int a = g_capture.ref[i] | (g_capture.ref[i + 1] << 8);
+          const int b = g_capture.score[i] | (g_capture.score[i + 1] << 8);
+          const int d = std::abs(a - b);
+          diff_bytes += (d != 0) * 2;
+          max_delta = std::max(max_delta, d);
+        }
+      }
+      else
+      {
+        for(size_t i = 0; i < total; i++)
+        {
+          const int d = std::abs(int(g_capture.ref[i]) - int(g_capture.score[i]));
+          diff_bytes += d != 0;
+          max_delta = std::max(max_delta, d);
+        }
       }
       diff_bytes += std::max(g_capture.ref.size(), g_capture.score.size()) - total;
 
