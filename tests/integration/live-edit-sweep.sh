@@ -96,7 +96,12 @@ declare -A CFG=(
 declare -A EXPECT=(
   [baseline]=magenta
   [add-remove-storm]=magenta
-  [cable-storm]=magenta
+  # NOT magenta: cable-storm ends on isf-image-passthrough.fs, which despite its
+  # name is a 2x2 sampling test card -- three quadrants sample the magenta input
+  # and the fourth is a TEX_DIMENSIONS readback, (159,90,127) for a 1280x720
+  # source. 3 * 628*352 = 663168 px = 71.96%% magenta is the CORRECT full-frame
+  # result for this scene, reproduced pixel-identically by a statically wired
+  # graph with no live editing at all. Its coverage gate below still applies.
   [undo-redo-during-play]=magenta
   [mixed-chaos]=magenta
   [window-storm]=magenta
