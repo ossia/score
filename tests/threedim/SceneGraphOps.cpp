@@ -812,11 +812,17 @@ TEST_CASE("TagAs with an empty format id is a passthrough",
 
 TEST_CASE("TagAs handles a null upstream", "[threedim][scene][tagas]")
 {
+  // Same contract as Transform3D: no scene in, no scene out, nothing dirty.
+  // A 0xFF here would invalidate every identity-keyed preprocessor cache on
+  // every tick of an unwired node.
   Threedim::TagAs n;
   n.inputs.format_id.value = "x";
   n();
   CHECK(n.outputs.scene_out.scene.state == nullptr);
-  CHECK(n.outputs.scene_out.dirty == 0xFF);
+  CHECK(n.outputs.scene_out.dirty == 0);
+  n();
+  CHECK(n.outputs.scene_out.scene.state == nullptr);
+  CHECK(n.outputs.scene_out.dirty == 0);
 }
 
 TEST_CASE("TagAs re-runs when the upstream state pointer changes",
