@@ -226,6 +226,7 @@ struct GfxRenderer<Node_T> final
     // Run the processor
     if_possible(state->runInitialPasses(renderer, commands, res, edge));
     if_possible((*state)());
+    parent.clearControlIn(*state);
 
     // Upload output buffers
     if constexpr(avnd::buffer_output_introspection<Node_T>::size > 0)

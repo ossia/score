@@ -424,6 +424,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
 
     // Copy the data to the model node
     parent.processControlOut(*this->state);
+    parent.clearControlIn(*this->state);
   }
 
   void runInitialPasses(

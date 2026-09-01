@@ -148,10 +148,29 @@ struct GpuProcessIns
     return true;
   }
 
-  void operator()(avnd::parameter_port auto& t, auto field_index)
+  // The same message is handed to the renderer more than once (init, update, every frame between
+  // two execution ticks).
+  bool is_new_message() const noexcept
   {
-    if(!can_process_message(field_index))
+    return prev_mess.node_id != mess.node_id || prev_mess.token.date != mess.token.date
+           || prev_mess.input.size() != mess.input.size();
+  }
+
+  template <avnd::parameter_port Field, std::size_t NField>
+  void operator()(Field& t, avnd::field_index<NField> field_index)
+  {
+    if constexpr(avnd::optional_ish<decltype(Field::value)>)
+    {
+      // Impulses and other one-shot values are events, not states: a value equal to the previous
+      // one is a new event, but the same message must not fire it twice. Mirrors the CPU path
+      // (which sees each port's data stream once per tick).
+      if(mess.input.size() <= NField || !is_new_message())
+        return;
+    }
+    else if(!can_process_message(field_index))
+    {
       return;
+    }
 
     if(auto val = ossia::get_if<ossia::value>(&mess.input[field_index]))
     {
@@ -255,6 +274,19 @@ struct GpuControlIns
         avnd::get_inputs<Node_T>(state),
         GpuProcessIns<Self, Node_T>{self, state, renderer_mess, mess, ctx});
     renderer_mess = mess;
+  }
+
+  // Once the processor has run, the impulses and other one-shot values it received this tick are
+  // consumed, exactly as oscr::process_after_run does on the CPU path. Without this an impulse
+  // would stay set until the next message touches the port.
+  template <typename Node_T>
+  static void clearControlIn(Node_T& state) noexcept
+  {
+    avnd::parameter_input_introspection<Node_T>::for_all(
+        avnd::get_inputs<Node_T>(state), []<typename Field>(Field& t) {
+          if constexpr(avnd::optional_ish<decltype(Field::value)>)
+            t.value.reset();
+        });
   }
 };
 
