@@ -139,14 +139,20 @@ if [ "$UPDATE" = 1 ]; then
   run_sequence "$OUT/B"
   check_run_health "$OUT/A"; check_run_health "$OUT/B"
   python3 "$HERE/analyze.py" "$OUT/A" || FAILS+=" ANALYZE(A)"
-  for g in "${GOLDEN[@]}"; do
-    if res=$(python3 "$COMPARE" "$OUT/A/$g.png" "$OUT/B/$g.png" --profile self); then
-      cp "$OUT/A/$g.png" "$REFS/$g.png"
-      echo "REF-UPDATED $g ($res)"
-    else
-      FAILS+=" UNSTABLE@$g($res)"
-    fi
-  done
+  if [ -z "$FAILS" ]; then
+    for g in "${GOLDEN[@]}"; do
+      if res=$(python3 "$COMPARE" "$OUT/A/$g.png" "$OUT/B/$g.png" --profile self); then
+        cp "$OUT/A/$g.png" "$REFS/$g.png"
+        echo "REF-UPDATED $g ($res)"
+      else
+        FAILS+=" UNSTABLE@$g($res)"
+      fi
+    done
+  else
+    # A deterministically broken render agrees with itself; without this
+    # gate it would become a permanent reference.
+    echo "REFS NOT UPDATED:$FAILS"
+  fi
 else
   run_sequence "$OUT/run"
   check_run_health "$OUT/run"
