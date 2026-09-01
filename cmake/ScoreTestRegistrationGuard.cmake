@@ -147,6 +147,10 @@ function(score_check_test_registration)
   # watches, and that is how the two unregistered harnesses below got in.
   file(GLOB_RECURSE _sources CONFIGURE_DEPENDS RELATIVE "${_root}" "${_root}/*.cpp")
   file(GLOB_RECURSE _harnesses CONFIGURE_DEPENDS RELATIVE "${_root}" "${_root}/*.sh")
+  # .py too: assert-content.py sat unwired and unnoticed for a whole campaign
+  # because this glob only looked at .cpp and .sh.
+  file(GLOB_RECURSE _pysources CONFIGURE_DEPENDS RELATIVE "${_root}" "${_root}/*.py")
+  list(APPEND _harnesses ${_pysources})
 
   foreach(_source IN LISTS _sources)
     string(REGEX MATCH "^[^/]+" _top "${_source}")

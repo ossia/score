@@ -465,6 +465,8 @@ if(SCORE_HAS_SHELL_HARNESS)
         TIMEOUT 120
         RUN_SERIAL TRUE
         LABELS "gui;golden-render"
+        REQUIRED_FILES
+          "${CMAKE_CURRENT_SOURCE_DIR}/golden-render/compare.py;${CMAKE_CURRENT_SOURCE_DIR}/golden-render/assert-content.py"
         ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
     endforeach()
   endforeach()
@@ -704,6 +706,8 @@ if(SCORE_HAS_SHELL_HARNESS)
     SKIP_RETURN_CODE 77
     TIMEOUT 900
     RUN_SERIAL TRUE
+    REQUIRED_FILES
+      "${CMAKE_CURRENT_SOURCE_DIR}/text-render/analyze.py;${CMAKE_CURRENT_SOURCE_DIR}/golden-render/compare.py"
     ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
 endif()
 

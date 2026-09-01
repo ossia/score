@@ -354,6 +354,23 @@ for name in "${CASES[@]}"; do
   fi
 done
 
+# Intent assertions, reference-free: each case is checked against what its own
+# shader header says it must look like. A reference only pins what the renderer
+# DID -- a backend that quietly falls back and paints a constant produces a
+# perfectly stable, perfectly reproducible, perfectly wrong reference, and two
+# flipped refs in this very set passed the image gate for a whole campaign.
+# Run in both modes: in --update-refs it gates what is allowed to become a ref.
+content_rc=0
+if [ -f "$HERE/assert-content.py" ]; then
+  echo "----"
+  if python3 "$HERE/assert-content.py" "$REFS"; then
+    echo "assert-content[$BACKEND]: ok"
+  else
+    content_rc=1
+    echo "assert-content[$BACKEND]: FAILED -- a reference disagrees with its shader header"
+  fi
+fi
+
 echo "----"
 echo "renderer: ${RENDERER:-(none reported)}"
 echo "golden-render[$BACKEND]$([ "$UPDATE" = 1 ] && echo ' (update-refs)'): $passes ok, $fails failing, $skips skipped"
@@ -362,4 +379,4 @@ echo "golden-render[$BACKEND]$([ "$UPDATE" = 1 ] && echo ' (update-refs)'): $pas
 if [ "$UPDATE" = 0 ] && [ "$passes" = 0 ] && [ "$fails" -gt 0 ] && ! ls "$REFS"/*.png >/dev/null 2>&1; then
   echo "SKIP: no references present — run --update-refs once and commit refs/$BACKEND/"; exit 77
 fi
-[ "$fails" = 0 ]
+[ "$fails" = 0 ] && [ "$content_rc" = 0 ]
