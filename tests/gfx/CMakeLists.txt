@@ -749,3 +749,12 @@ endif()
 if(APPLE)
   target_compile_definitions(test_gfx_shared_texture_io PRIVATE GFX_TEST_HAS_SYPHON=1)
 endif()
+
+# Hidden playback-throughput benchmark for the Direct video path; see the
+# file header for usage (needs VIDEO_BENCH_FILES; VIDEO_BENCH_HWDEC selects
+# the hardware decoding method by its settings name).
+score_add_test(test_gfx_video_direct_bench
+  SOURCES VideoDirectPlaybackBench.cpp
+  GUI
+  PLUGINS score_plugin_gfx score_plugin_media score_plugin_scenario score_lib_process
+  LIBS test_gfx_engine_glue avcodec avformat avutil)
