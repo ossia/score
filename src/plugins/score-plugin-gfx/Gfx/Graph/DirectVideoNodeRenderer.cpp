@@ -620,7 +620,19 @@ bool DirectVideoNodeRenderer::openFile(score::gfx::GraphicsApi api, QRhi* rhi)
   m_codecContext = avcodec_alloc_context3(codec);
   avcodec_parameters_to_context(m_codecContext, codecPar);
   m_codecContext->pkt_timebase = m_avstream->time_base;
-  m_codecContext->thread_count = 1;
+  // Slice threading only: parallel decode without frame threading's pipeline
+  // delay, so scrubbing stays frame-exact. Codecs without slice support stay
+  // single-threaded: their wrappers (libdav1d...) would silently use frame
+  // threading, whose delay makes every read look non-sequential here.
+  if(codec->capabilities & AV_CODEC_CAP_SLICE_THREADS)
+  {
+    m_codecContext->thread_count = 0;
+    m_codecContext->thread_type = FF_THREAD_SLICE;
+  }
+  else
+  {
+    m_codecContext->thread_count = 1;
+  }
 
   // Try hardware-accelerated decoding
   bool hw_ok = false;
@@ -714,7 +726,15 @@ bool DirectVideoNodeRenderer::openFile(score::gfx::GraphicsApi api, QRhi* rhi)
       m_codecContext = avcodec_alloc_context3(codec);
       avcodec_parameters_to_context(m_codecContext, codecPar);
       m_codecContext->pkt_timebase = m_avstream->time_base;
-      m_codecContext->thread_count = 1;
+      if(codec->capabilities & AV_CODEC_CAP_SLICE_THREADS)
+      {
+        m_codecContext->thread_count = 0;
+        m_codecContext->thread_type = FF_THREAD_SLICE;
+      }
+      else
+      {
+        m_codecContext->thread_count = 1;
+      }
     }
 
     int err = avcodec_open2(m_codecContext, codec, nullptr);
@@ -828,7 +848,7 @@ bool DirectVideoNodeRenderer::readNextPacketRaw()
       m_decodedFrame->pts = packet->pts;
       m_decodedFrame->pkt_dts = packet->dts;
 
-      m_lastDecodedDts = packet->dts;
+      m_lastDecodedDts = packet->dts != AV_NOPTS_VALUE ? packet->dts : packet->pts;
       found = true;
       av_packet_unref(packet);
       break;
@@ -865,7 +885,15 @@ bool DirectVideoNodeRenderer::readNextPacketAVCodec()
     ret = avcodec_receive_frame(m_codecContext, m_decodedFrame);
     if(ret == 0)
     {
-      m_lastDecodedDts = m_decodedFrame->pkt_dts;
+      // cuvid & co hand out frames with pkt_dts == AV_NOPTS_VALUE, which made
+      // isSequentialRead() refuse every frame and re-seek per render. Prefer
+      // the display timestamp — it is also what isSequentialRead compares to.
+      int64_t ts = m_decodedFrame->best_effort_timestamp;
+      if(ts == AV_NOPTS_VALUE)
+        ts = m_decodedFrame->pts;
+      if(ts == AV_NOPTS_VALUE)
+        ts = m_decodedFrame->pkt_dts;
+      m_lastDecodedDts = ts;
 
       // Note: do NOT update m_frameFormat here. The format change detection
       // in update() compares the decoded frame format against m_frameFormat

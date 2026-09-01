@@ -414,6 +414,7 @@ struct HWCudaVulkanDecoder : GPUVideoDecoder
          || !setupPlane(1, VK_FORMAT_R16G16_UNORM, w / 2, h / 2, 2, 2))
       {
         qDebug() << "HWCudaVulkanDecoder: interop setup failed";
+        failed = true;
         cleanup();
       }
 
@@ -449,6 +450,7 @@ struct HWCudaVulkanDecoder : GPUVideoDecoder
          || !setupPlane(1, VK_FORMAT_R8G8_UNORM, w / 2, h / 2, 2, 1))
       {
         qDebug() << "HWCudaVulkanDecoder: interop setup failed";
+        failed = true;
         cleanup();
       }
 
