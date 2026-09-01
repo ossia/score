@@ -13,11 +13,25 @@ namespace Video
 
 void Rescale::open(const VideoMetadata& src)
 {
+  m_src = &src;
+  m_rescaleFormat = (AVPixelFormat)src.pixel_format;
+  m_rescale = nullptr;
+
+  // ffmpeg 9's sws_getContext av_assert0()s — aborting the process — on
+  // source descriptions it does not support, instead of returning null as it
+  // used to. A stream whose probed codecpar->format stayed AV_PIX_FMT_NONE
+  // (a misdetected or truncated file) reaches here with exactly such a
+  // description; refuse it before libswscale can abort.
+  if(src.width <= 0 || src.height <= 0 || sws_isSupportedInput(m_rescaleFormat) <= 0)
+  {
+    qDebug() << "Rescale: refusing unsupported input:" << src.width << "x"
+             << src.height << av_get_pix_fmt_name(m_rescaleFormat);
+    return;
+  }
+
   // Allocate a rescale context
   qDebug() << "allocating a rescaler for format" << src.pixel_format
            << av_get_pix_fmt_name(src.pixel_format);
-  m_src = &src;
-  m_rescaleFormat = (AVPixelFormat)src.pixel_format;
   m_rescale = sws_getContext(
       src.width, src.height, m_rescaleFormat, src.width, src.height, AV_PIX_FMT_RGBA,
       SWS_FAST_BILINEAR, NULL, NULL, NULL);
