@@ -99,7 +99,15 @@ function tick() {
 
 // Sent once after the tick storm, before the final grab: restore a state
 // that is expected to render non-blank. Default: nothing to restore.
-function tick_final() { }
+// Deliberately NOT `function tick_final() {}`. Each scenario eval()s this file as
+// its first statement and declares its own tick_final() later in the file; the
+// scenario's declaration is hoisted before any statement runs, so a function
+// declaration here would be created by the eval afterwards and OVERWRITE it. That
+// made every scenario's "restore a known-rendering state" step a silent no-op --
+// they rendered only because the last step(n) happened to leave a rendering state.
+// Assigning to a var instead runs at eval time and loses to the hoisted
+// declaration, which is what we want.
+var tick_final = (typeof tick_final === 'function') ? tick_final : function() { };
 
 // Sent by the sweep after the final grab, before /stop /exit.
 function finalize(name) {
