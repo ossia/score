@@ -189,7 +189,7 @@ TEST_CASE(
     disp.submit(new Gfx::ChangeGeometryShader{
         m, QStringLiteral("/*{ not json at all */ void nope("), doc->context()});
 
-    CHECK(errors >= 0); // the parse failure path must not abort the process
+    CHECK(errors >= 1); // setScript catches the parse failure and reports it
     const auto broken = inlet_names(m);
     CHECK(broken.size() >= 1);
     CHECK(has_port(broken, "Geometry In"));
@@ -294,18 +294,13 @@ TEST_CASE(
   });
 }
 
-// FINDING (defect, filed by this test): a CSF shader whose ISF header is
-// truncated mid-JSON does not throw out of isf::parser, so
-// Gfx::CSF::Model::setScript() takes its SUCCESS path — it never emits
-// errorMessage — while setupCSF() finds no PASSES and no RESOURCES and leaves
-// the process with zero inlets and zero outlets. The user gets an inert
-// process and no diagnostic; the editor's error line stays empty.
-//
-// Expected-failure: the day the parser (or the model) reports this, the case
-// passes, Catch2 flags the [!shouldfail], and the tag comes off.
+// Once an expected-failure pin: a CSF shader with a header truncated mid-JSON
+// used to sail through setScript() without an errorMessage, leaving an inert
+// portless process and an empty editor error line. The model reports it now,
+// so the [!shouldfail] tag has come off as its comment promised.
 TEST_CASE(
     "An unparseable CSF shader reports an error",
-    "[gfx][process][command][gui][!shouldfail]")
+    "[gfx][process][command][gui]")
 {
   run_in_gui_app([](const score::GUIApplicationContext& ctx) {
     score::Document* doc = new_document(ctx);
