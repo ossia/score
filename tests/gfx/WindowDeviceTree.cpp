@@ -169,8 +169,6 @@ TEST_CASE("Window device parameter tree", "[gfx][window][device]")
     push(param(*d, "/cursor/visible"), true);
     cursorShownAfter = screen->cursor().shape() != Qt::BlankCursor;
 
-    // NOTE: /rendersize is asserted in ScreenOutputFindings.cpp — under a live
-    // Graph it is currently inert. Pushed here anyway so the callback runs.
     push(param(*d, "/rendersize"), vec2(200.f, 120.f));
     if(auto* sn = sinkOf<score::gfx::ScreenNode>(*d))
       if(auto st = sn->renderState())
@@ -222,7 +220,7 @@ TEST_CASE("Window device parameter tree", "[gfx][window][device]")
   CHECK(posParamAfterMove[1] == Approx(200.f).margin(1.f));
   CHECK(cursorBlankAfter);
   CHECK(cursorShownAfter);
-  CHECK(renderSizeAfter.width() > 0);
+  CHECK(renderSizeAfter == QSize{200, 120});
   CHECK(keyCode == int(Qt::Key_F5));
   CHECK(keyText == "x");
   CHECK(releaseCode == int(Qt::Key_F5));
