@@ -4,6 +4,7 @@
 // header-only trimesh + io_trimesh subset. Isolate these includes here so
 // the rest of the plugin isn't exposed to vcglib's macro soup.
 #include <vcg/complex/complex.h>
+#include <vcg/complex/algorithms/update/normal.h>
 #include <wrap/io_trimesh/import_off.h>
 #include <wrap/io_trimesh/import_stl.h>
 
@@ -192,7 +193,16 @@ importVcgGeneric(std::string_view filename, Threedim::float_vec& out)
 // Wrappers to pin the importer function pointer signature.
 static int openStl(ImpMesh& m, const char* p, int& mask, vcg::CallBackPos* cb)
 {
-  return vcg::tri::io::ImporterSTL<ImpMesh>::Open(m, p, mask, cb);
+  const int err = vcg::tri::io::ImporterSTL<ImpMesh>::Open(m, p, mask, cb);
+  // STL defines one normal per facet, but vcglib's importer discards the
+  // stored value and never sets IOM_FACENORMAL. Recompute from the winding,
+  // which the STL spec requires to agree with the stored normal.
+  if(err == 0 && !m.face.empty())
+  {
+    vcg::tri::UpdateNormal<ImpMesh>::PerFaceNormalized(m);
+    mask |= vcg::tri::io::Mask::IOM_FACENORMAL;
+  }
+  return err;
 }
 static int openOff(ImpMesh& m, const char* p, int& mask, vcg::CallBackPos* cb)
 {
