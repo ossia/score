@@ -346,6 +346,14 @@ inline bool codecSupportsHWPixelFormat(
 {
   (void)gpuVendorId;
 
+  // The Vulkan compute-shader decoders (not Vulkan Video) produce wrong
+  // pixels: measured against the FATE prores samples, ~2% of the bytes of
+  // every frame come out full-scale wrong. This check is the gate for both
+  // an explicitly requested accel and the automatic selection, so refusing
+  // here sends these codecs to the software decoder on every path.
+  if(pix_fmt == AV_PIX_FMT_VULKAN && isVulkanComputeCodec(codec_id))
+    return false;
+
   auto hwInfo = ffmpegHardwareDecodingFormats(pix_fmt);
   if(hwInfo.device == AV_HWDEVICE_TYPE_NONE)
     return false;
