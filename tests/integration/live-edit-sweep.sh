@@ -81,11 +81,42 @@ declare -A CFG=(
   [cable-storm]="15 yes"
   [undo-redo-during-play]="13 yes"
   [transport-storm]="18 no"
-  [mixed-chaos]="20 yes"
+  # 0.99 coverage, not magenta: see the EXPECT note below.
+  [mixed-chaos]="20 yes 0.99"
   [window-storm]="24 yes"
   [camera-storm]="20 yes 0.5"
   [ndi-storm]="20 yes 0.5"
   [gfx-process-storm]="20 yes"
+)
+# Scenarios whose final tick leaves the full-screen isf-solid-color base
+# (magenta, 255 0 255) as the only thing on the window. For these "not
+# blank" is far too weak — a frame 0.3% lit passes, and any wrong colour
+# passes identically — so the verdict requires the frame to actually BE
+# magenta. camera/ndi end on device pixels (the coverage gate) and
+# transport-storm does not require a render.
+declare -A EXPECT=(
+  [baseline]=magenta
+  [add-remove-storm]=magenta
+  # NOT magenta: cable-storm ends on isf-image-passthrough.fs, which despite its
+  # name is a 2x2 sampling test card -- three quadrants sample the magenta input
+  # and the fourth is a TEX_DIMENSIONS readback, (159,90,127) for a 1280x720
+  # source. 3 * 628*352 = 663168 px = 71.96%% magenta is the CORRECT full-frame
+  # result for this scene, reproduced pixel-identically by a statically wired
+  # graph with no live editing at all. Its coverage gate below still applies.
+  [undo-redo-during-play]=magenta
+  # NOT magenta, for the same reason as cable-storm: mixed-chaos also ends on
+  # isf-image-passthrough.fs, and that shader is a sampling test card rather
+  # than the passthrough its name promises. Its own header ("tick_final()
+  # reconnects the cable so dst shows the solid color") assumed otherwise, and
+  # the magenta oracle was written from that assumption -- so this scenario has
+  # never met it. The render is right and deterministic: 76.01% magenta,
+  # byte-identical across two independently configured builds, and the extra
+  # 4 points over cable-storm's 71.96% are the solid base this scene also
+  # wires to the window. The coverage gate above replaces it: the whole frame
+  # must be lit (nonblack = 1.0 here), which is what a live-edit scenario can
+  # actually assert about a composite whose top surface is a test card.
+  [window-storm]=magenta
+  [gfx-process-storm]=magenta
 )
 ORDER=(baseline add-remove-storm cable-storm undo-redo-during-play transport-storm mixed-chaos
        window-storm gfx-process-storm camera-storm ndi-storm)
@@ -206,8 +237,8 @@ asan_census() {
     END { if(inrep && matched) k++; print total+0, k+0 }' "$1" 2>/dev/null
 }
 
-verdict() { # name require_render [min_coverage] -> one line, nonzero on findings
-  local name="$1" require="$2" cover="${3:-}"
+verdict() { # name require_render [min_coverage] [expect] -> one line, nonzero on findings
+  local name="$1" require="$2" cover="${3:-}" expect="${4:-}"
   local log="$OUT/$name.log" png="$OUT/$name.png"
   local rc; rc=$(cat "$OUT/$name.rc" 2>/dev/null || echo 97)
   local bad="" note=""
@@ -236,6 +267,12 @@ verdict() { # name require_render [min_coverage] -> one line, nonzero on finding
           | sed -E 's/^ *([0-9]+):.*(#[0-9A-Fa-f]{6}).*/\2x\1px/')
     dom="${dom:--}"
     if [ "$require" = yes ] && ! awk "BEGIN{exit !($mean > $BLANK_MEAN)}"; then bad+=" BLANK"; fi
+    if [ "$expect" = magenta ]; then
+      # Fraction of the frame within 2% of pure magenta.
+      local mag; mag=$(convert "$png" -fuzz 2% -fill white -opaque '#FF00FF' \
+            -fill black +opaque white -colorspace gray -format '%[fx:mean]' info: 2>/dev/null || echo 0)
+      awk "BEGIN{exit !($mag >= 0.99)}" || bad+=" NOTMAGENTA(fraction=${mag:-0})"
+    fi
     if [ -n "$cover" ]; then
       # Binarise and take the mean: that is literally the fraction of the frame
       # that is not black, independent of how bright the lit part happens to be.
@@ -291,7 +328,7 @@ for name in "${ORDER[@]}"; do
   fi
   echo "=== $name (${nticks} ticks @ ${TICK}s) ==="
   run_scenario "$name" "$nticks"
-  verdict "$name" "$require" "${cover:-}" || FAILED=$((FAILED+1))
+  verdict "$name" "$require" "${cover:-}" "${EXPECT[$name]:-}" || FAILED=$((FAILED+1))
   coverage "$name"
 done
 
