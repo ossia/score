@@ -855,8 +855,10 @@ bool DirectVideoNodeRenderer::isSequentialRead(int64_t flicks) const
       = static_cast<int64_t>(m_lastDecodedDts * m_flicks_per_dts);
   const int64_t delta = flicks - lastFlicks;
 
-  // Sequential if we're moving forward by 0–2 frames
-  return delta >= 0 && delta <= frameDurationFlicks * 2;
+  // Sequential if we're moving forward by 0–2 frames. The quarter-frame
+  // margin absorbs the rounding of date -> flicks -> dts conversions, which
+  // otherwise tips an exactly-two-frame delta into a spurious seek.
+  return delta >= 0 && delta <= frameDurationFlicks * 2 + frameDurationFlicks / 4;
 }
 
 bool DirectVideoNodeRenderer::readNextPacketRaw()
@@ -947,6 +949,23 @@ bool DirectVideoNodeRenderer::readNextPacketAVCodec()
     }
   }
 
+  if(!found)
+  {
+    // EOF: drain the frames still delayed by B-frame reordering.
+    // A later backward seek flushes the codec, which exits drain mode.
+    avcodec_send_packet(m_codecContext, nullptr);
+    if(avcodec_receive_frame(m_codecContext, m_decodedFrame) == 0)
+    {
+      int64_t ts = m_decodedFrame->best_effort_timestamp;
+      if(ts == AV_NOPTS_VALUE)
+        ts = m_decodedFrame->pts;
+      if(ts == AV_NOPTS_VALUE)
+        ts = m_decodedFrame->pkt_dts;
+      m_lastDecodedDts = ts;
+      found = true;
+    }
+  }
+
   av_packet_free(&packet);
   return found;
 }
@@ -986,7 +1005,26 @@ bool DirectVideoNodeRenderer::seekAndDecode(int64_t flicks)
       return false;
   }
 
-  return readNextPacketAVCodec();
+  // Decode until the requested time is reached. After a backward seek this
+  // replays the GOP up to the target; stopping at the keyframe instead would
+  // both show the wrong frame and leave m_lastDecodedDts at the keyframe,
+  // making every subsequent read look non-sequential (a seek per frame).
+  const double fps = m_fps > 0. ? m_fps : 24.;
+  const int64_t frameDurationFlicks
+      = static_cast<int64_t>(ossia::flicks_per_second<double> / fps);
+  bool ok = false;
+  for(int guard = sequential ? 4 : 4096; guard-- > 0;)
+  {
+    if(!readNextPacketAVCodec())
+      return ok; // EOF / error: keep the last frame that did decode
+    ok = true;
+    if(m_lastDecodedDts == AV_NOPTS_VALUE)
+      break;
+    if(static_cast<int64_t>(m_lastDecodedDts * m_flicks_per_dts) + frameDurationFlicks
+       > flicks)
+      break;
+  }
+  return ok;
 }
 
 // ============================================================
