@@ -116,6 +116,14 @@ Window::Window(GraphicsApi graphicsApi)
   if(auto platform = qGuiApp->platformName();
      platform.contains("eglfs") || platform.contains("vkkhr"))
     m_embeddedFullscreen = true;
+
+  // Moving to another monitor with the same pixel size is invisible to the
+  // lazy currentPixelSize() != surfacePixelSize() check in render(), leaving
+  // the swapchain bound to the previous output.
+  connect(this, &QWindow::screenChanged, this, [this](QScreen*) {
+    m_newlyExposed = true;
+    requestUpdate();
+  });
 }
 
 Window::~Window()
@@ -267,7 +275,13 @@ void Window::render()
   }
 
   if(!m_swapChain)
+  {
+    // In vsync mode this function is the only driver of itself: returning
+    // without re-arming anything kills the loop for good. The swapchain can
+    // come back (surface recreation on monitor hot-plug), so keep polling.
+    scheduleRetry();
     return;
+  }
 
   if(!m_hasSwapChain || m_notExposed)
   {
@@ -354,7 +368,14 @@ void Window::render()
     const auto commands = m_swapChain->currentFrameCommandBuffer();
     onRender(*commands);
 
-    state->rhi->endFrame(m_swapChain, {});
+    // A resolution / refresh-rate / monitor change surfaces as an
+    // out-of-date swapchain at *present* time; dropping the result means the
+    // next beginFrame may silently keep presenting to a stale output.
+    const auto er = state->rhi->endFrame(m_swapChain, {});
+    if(checkDeviceLost(er))
+      return;
+    if(er == QRhi::FrameOpSwapChainOutOfDate)
+      m_newlyExposed = true;
     {
       // 1. Calculate the time elapsed since the last frame
       if(const auto frame_ns = m_timer.nsecsElapsed(); frame_ns > 0)
@@ -372,6 +393,11 @@ void Window::render()
   }
   else
   {
+    if(!state || !state->rhi)
+    {
+      scheduleRetry();
+      return;
+    }
     QRhi::FrameOpResult r = state->rhi->beginFrame(m_swapChain, {});
     if(checkDeviceLost(r))
       return;
@@ -398,7 +424,11 @@ void Window::render()
     buf->beginPass(m_swapChain->currentFrameRenderTarget(), Qt::black, {0.0f, 0}, batch);
     buf->endPass();
 
-    state->rhi->endFrame(m_swapChain, {});
+    const auto er = state->rhi->endFrame(m_swapChain, {});
+    if(checkDeviceLost(er))
+      return;
+    if(er == QRhi::FrameOpSwapChainOutOfDate)
+      m_newlyExposed = true;
     m_fps = 0.;
   }
 
@@ -438,7 +468,12 @@ void Window::exposeEvent(QExposeEvent* ev)
     qDebug("exposeEvent: m_hasSwapChain && !m_swapChain");
     m_hasSwapChain = false;
   }
-  const QSize surfaceSize = m_hasSwapChain ? m_swapChain->surfacePixelSize() : QSize();
+  // Probe the surface through the swapchain object, not the m_hasSwapChain
+  // flag: after releaseSwapChain() (surface destroyed on close / monitor
+  // hot-plug) the flag is down, and gating on it here made a re-expose a
+  // no-op — no render() kick, and the timer path is gated off by
+  // canRender() — so the window stayed black forever.
+  const QSize surfaceSize = m_swapChain ? m_swapChain->surfacePixelSize() : QSize();
 
   if((!isExposed() || (m_hasSwapChain && surfaceSize.isEmpty())) && m_running)
     m_notExposed = true;

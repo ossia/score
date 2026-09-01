@@ -1,5 +1,7 @@
 #include "ImageListChooser.hpp"
 
+#include <Gfx/Images/Process.hpp>
+
 #include <Process/Commands/SetControlValue.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -142,10 +144,13 @@ public:
 private:
   void on_addItems()
   {
+    QStringList globs;
+    for(const auto& ext : Gfx::Images::supportedImageExtensions())
+      globs.push_back("*." + ext);
+    globs.sort();
     auto files = QFileDialog::getOpenFileNames(
         this, tr("Choose images..."), score::pickerStartFolder({}, ctx),
-        QString{"Images (*.png *.jpg *.jpeg *.gif *.bmp *.tiff *.heic *.jp2 *.svg *.tga "
-                "*.wbmp)"});
+        tr("Images (%1)").arg(globs.join(' ')));
     for(auto f : files)
     {
       addItem(f);
