@@ -47,6 +47,9 @@ void OutputMappingItem::applyLockedState()
   {
     setFlags(QGraphicsItem::ItemIsSelectable | QGraphicsItem::ItemSendsGeometryChanges);
     setAcceptHoverEvents(false);
+    // The view applies item->cursor() on mouse-over even with hover events
+    // off, so a resize cursor left over from the unlocked state would stick.
+    setCursor(Qt::ArrowCursor);
   }
   else
   {
@@ -423,6 +426,13 @@ void OutputMappingItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 
 void OutputMappingItem::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
 {
+  if(lockMode == OutputLockMode::FullLock)
+  {
+    setCursor(Qt::ArrowCursor);
+    QGraphicsRectItem::hoverMoveEvent(event);
+    return;
+  }
+
   // Check blend handles first
   auto bh = hitTestBlendHandles(event->pos());
   if(bh == BlendLeft || bh == BlendRight)

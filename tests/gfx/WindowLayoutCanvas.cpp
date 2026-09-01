@@ -511,10 +511,9 @@ TEST_CASE("OutputMappingItem lock modes", "[gfx][window][mappingcanvas]")
       CHECK(item->rect() == rect);
       CHECK(item->pos() == pos);
 
-      // Asymmetry with DesktopLayoutItem, which suppresses the resize cursors
-      // under FullLock: this item still advertises them even though the press
-      // handler refuses to act on them.
-      CHECK(hoverCursor(scene, item, {102, 77}) == Qt::SizeFDiagCursor);
+      // Same contract as DesktopLayoutItem: FullLock never advertises a
+      // resize cursor its press handler refuses to act on.
+      CHECK(hoverCursor(scene, item, {102, 77}) == Qt::ArrowCursor);
     }
 
     SECTION("Free is movable and hoverable")
