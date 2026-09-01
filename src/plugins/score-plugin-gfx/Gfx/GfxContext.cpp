@@ -195,17 +195,28 @@ void GfxContext::disconnect_preview_node(EdgeSpec e)
 
 void GfxContext::add_edge(EdgeSpec edge)
 {
+  static const bool trace = qEnvironmentVariableIsSet("SCORE_GFX_TRACE");
   auto source_node_it = this->nodes.find(edge.first.node);
   if(source_node_it == this->nodes.end())
+  {
+    if(trace) fprintf(stderr, "GFX-ADDEDGE drop: no source node %d\n", edge.first.node);
     return;
+  }
   auto sink_node_it = this->nodes.find(edge.second.node);
   if(sink_node_it == this->nodes.end())
+  {
+    if(trace) fprintf(stderr, "GFX-ADDEDGE drop: no sink node %d\n", edge.second.node);
     return;
+  }
   if(!source_node_it->second || !sink_node_it->second)
+  {
+    if(trace) fprintf(stderr, "GFX-ADDEDGE drop: null node %d->%d\n", edge.first.node, edge.second.node);
     return;
+  }
 
   auto& source_ports = source_node_it->second->output;
   auto& sink_ports = sink_node_it->second->input;
+  if(trace) fprintf(stderr, "GFX-ADDEDGE ok %d:%d -> %d:%d\n", edge.first.node, edge.first.port, edge.second.node, edge.second.port);
 
   // Silently drop malformed edges. A live-coded or half-wired patch can
   // produce an edge whose declared port index doesn't exist on either side
@@ -570,6 +581,10 @@ void GfxContext::incrementalEdgeUpdate(
     m_graph->addEdge(source_port, sink_port, spec.type);
   }
 
+  if(qEnvironmentVariableIsSet("SCORE_GFX_TRACE"))
+    fprintf(
+        stderr, "GFX-EDGES applied added=%zu deferred=%zu\n", added.size(),
+        deferred.size());
   if(!deferred.empty())
   {
     std::lock_guard l{edges_lock};
@@ -824,6 +839,10 @@ void GfxContext::updateGraph()
       edges = new_edges;
       cur_edges = edges;
     }
+    if(qEnvironmentVariableIsSet("SCORE_GFX_TRACE"))
+      fprintf(
+          stderr, "GFX-EDGES consume old=%zu new=%zu full=%d\n", old_edges.size(),
+          cur_edges.size(), int(m_fullRebuildThisFrame));
 
     if(m_fullRebuildThisFrame)
     {
