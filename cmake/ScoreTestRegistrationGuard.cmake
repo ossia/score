@@ -74,6 +74,9 @@ set(SCORE_TEST_GUARD_ALLOWED_TARGETS
   ObjectGallery
   # Driven by the corpus/*.sh harnesses above, not by ctest.
   score_video_corpus_tester
+  # Helper the plugin-scanner test spawns (static-Qt builds only), started
+  # through SCORE_FAKE_PUPPET, never by ctest.
+  score_test_fake_puppet
 )
 
 # Every directory the buildsystem created below `dir`, `dir` included.
