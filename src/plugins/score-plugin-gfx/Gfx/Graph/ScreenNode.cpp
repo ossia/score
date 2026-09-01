@@ -1078,6 +1078,11 @@ void ScreenNode::destroyOutput()
     // (between beginFrame and endFrame). If this fires, some upstream
     // path triggered a teardown mid-render — the cascade would be
     // worse than just deferring to next frame.
+    // An exception between beginFrame and endFrame (or a bailed-out render)
+    // can leave the frame recording; close it without presenting so teardown
+    // can proceed instead of asserting.
+    if(m_window->state->rhi->isRecordingFrame() && m_swapChain)
+      m_window->state->rhi->endFrame(m_swapChain, QRhi::SkipPresent);
     SCORE_ASSERT(!m_window->state->rhi->isRecordingFrame());
     m_window->state->rhi->finish();
   }
