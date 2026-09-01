@@ -18,7 +18,7 @@ enum ImageMode
 /**
  * @brief A node that renders an image to screen.
  */
-struct ImagesNode : NodeModel
+struct SCORE_PLUGIN_GFX_EXPORT ImagesNode : NodeModel
 {
 public:
   explicit ImagesNode(const score::DocumentContext& ctx);
