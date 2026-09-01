@@ -400,11 +400,15 @@ bool DirectVideoNodeRenderer::setupHardwareDecoder(
   }
 #endif
 
-  // Fallback: let FFmpeg create its own device
+  // Fallback: let FFmpeg create its own device — through score's device
+  // policy (SCORE_VIDEO_HW_DEVICE, and on Linux a native VAAPI node instead
+  // of the nvidia-vaapi-driver shim, which hangs in vaSyncSurface and
+  // crashes on VP8 resolution changes; see Video::hardwareDecodingDeviceName).
+  // The VAAPI zero-copy decoder takes this path, so it must pick the same
+  // device as the decode-thread path in LibAVDecoder::open_hwdec.
   if(!hw_device_ctx)
   {
-    int ret = av_hwdevice_ctx_create(
-        &hw_device_ctx, hwInfo.device, nullptr, nullptr, 0);
+    int ret = ::Video::createHardwareDevice(&hw_device_ctx, hwInfo.device);
     if(ret != 0)
     {
       qDebug() << "DirectVideoNodeRenderer: av_hwdevice_ctx_create failed:" << ret;

@@ -176,38 +176,6 @@ bool LibAVDecoder::open_codec_context(
         {AV_CODEC_ID_VP8, "vp8_cuvid"},          {AV_CODEC_ID_VP9, "vp9_cuvid"},
     };
     */
-#if defined(__linux__)
-// The DRM render node to hand libva. Its default is the first node
-// (renderD128), which on a dual-GPU laptop is typically the discrete NVIDIA
-// card serviced by the nvidia-vaapi-driver shim — measured here to hang
-// forever in vaSyncSurface on mid-stream SPS changes and to abort in
-// av_hwframe_transfer_data on VP8 resolution changes. Prefer a node whose
-// kernel driver is a native VAAPI implementation, as mpv does; an explicit
-// SCORE_VIDEO_HW_DEVICE overrides everything.
-static std::string preferredVAAPIRenderNode() noexcept
-{
-  for(int i = 128; i < 128 + 16; i++)
-  {
-    char link[64], drv[256];
-    snprintf(link, sizeof link, "/sys/class/drm/renderD%d/device/driver", i);
-    ssize_t n = readlink(link, drv, sizeof(drv) - 1);
-    if(n <= 0)
-      continue;
-    drv[n] = 0;
-    std::string_view driver{drv};
-    if(auto slash = driver.rfind('/'); slash != std::string_view::npos)
-      driver.remove_prefix(slash + 1);
-    if(driver != "nvidia")
-    {
-      char dev[64];
-      snprintf(dev, sizeof dev, "/dev/dri/renderD%d", i);
-      return dev;
-    }
-  }
-  return {};
-}
-#endif
-
 std::pair<AVBufferRef*, const AVCodec*>
 LibAVDecoder::open_hwdec(const AVCodec& detected_codec) noexcept
 {
@@ -248,27 +216,8 @@ LibAVDecoder::open_hwdec(const AVCodec& detected_codec) noexcept
     return {nullptr, codec};
   }
 
-  // Which physical device backs the decoder: an explicit request through the
-  // environment wins (a DRM node path for VAAPI, a GPU ordinal for CUDA...);
-  // otherwise VAAPI on Linux avoids the unstable NVIDIA shim when a native
-  // implementation is present.
-  const char* device_name = nullptr;
-  std::string device_storage;
-  if(const char* env = getenv("SCORE_VIDEO_HW_DEVICE"); env && *env)
-  {
-    device_name = env;
-  }
-#if defined(__linux__)
-  else if(device == AV_HWDEVICE_TYPE_VAAPI)
-  {
-    device_storage = preferredVAAPIRenderNode();
-    if(!device_storage.empty())
-      device_name = device_storage.c_str();
-  }
-#endif
-
   AVBufferRef* hw_device_ctx{};
-  int ret = av_hwdevice_ctx_create(&hw_device_ctx, device, device_name, nullptr, 0);
+  int ret = Video::createHardwareDevice(&hw_device_ctx, device);
   if(ret != 0)
     return {};
 
