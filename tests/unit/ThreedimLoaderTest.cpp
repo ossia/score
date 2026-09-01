@@ -343,7 +343,7 @@ TEST_CASE("OBJ: cube.obj — exact counts and first-triangle values",
   CHECK(m.vertices == 36);
 
   // cube.obj has no "vn" and no "vt": the loader does NOT generate
-  // normals for OBJ — it simply marks them absent.
+  // normals for OBJ — it marks them absent.
   CHECK(m.normals == false);
   CHECK(m.texcoord == false);
   CHECK(m.tangents == false);
@@ -967,7 +967,7 @@ TEST_CASE("glTF: hostile accessor count beyond bufferView is rejected "
   json.replace(pos, 9, R"("count":30000)");
   const auto path = tmp.write("oob.gltf", json);
   const std::string p = path.string();
-  // The hostile file is rejected outright; previously this OOB-read.
+  // The hostile file is rejected outright, with no OOB read.
   CHECK_FALSE(Threedim::GltfParser::ins::gltf_t::process(
       halp::text_file_view{.bytes = {}, .filename = p}));
 }
@@ -1187,10 +1187,18 @@ endsolid tri
     const auto& prim = mesh->primitives[0];
     CHECK(prim.vertex_count == 3);
     CHECK(prim.index_type == ossia::index_format::none);
-    // Documented behaviour: although STL carries a per-face normal, the
-    // vcglib importer does not report IOM_FACENORMAL in its loadmask for
-    // this file, so the bridge emits positions only — no normal attribute.
-    CHECK(find_attr(prim, ossia::attribute_semantic::normal) == nullptr);
+    // STL defines one normal per facet; the bridge recomputes it from the
+    // winding (vcglib's importer drops the stored value) and expands it to
+    // every corner. For this CCW triangle in the XY plane that is +Z.
+    const auto* nor = find_attr(prim, ossia::attribute_semantic::normal);
+    REQUIRE(nor != nullptr);
+    const float* n = attr_floats(prim, *nor);
+    for(int c = 0; c < 3; ++c)
+    {
+      CHECK(n[3 * c + 0] == Approx(0.f));
+      CHECK(n[3 * c + 1] == Approx(0.f));
+      CHECK(n[3 * c + 2] == Approx(1.f));
+    }
     const auto* pos = find_attr(prim, ossia::attribute_semantic::position);
     REQUIRE(pos);
     const float* p = attr_floats(prim, *pos);

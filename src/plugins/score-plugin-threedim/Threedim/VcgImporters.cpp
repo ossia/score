@@ -4,6 +4,7 @@
 // header-only trimesh + io_trimesh subset. Isolate these includes here so
 // the rest of the plugin isn't exposed to vcglib's macro soup.
 #include <vcg/complex/complex.h>
+#include <vcg/complex/algorithms/update/normal.h>
 #include <wrap/io_trimesh/import_off.h>
 #include <wrap/io_trimesh/import_stl.h>
 
@@ -195,12 +196,21 @@ importVcgGeneric(std::string_view filename, Threedim::float_vec& out)
 // Wrappers to pin the importer function pointer signature.
 static int openStl(ImpMesh& m, const char* p, int& mask, vcg::CallBackPos* cb)
 {
-  return vcg::tri::io::ImporterSTL<ImpMesh>::Open(m, p, mask, cb);
+  const int err = vcg::tri::io::ImporterSTL<ImpMesh>::Open(m, p, mask, cb);
+  // STL defines one normal per facet, but vcglib's importer discards the
+  // stored value and never sets IOM_FACENORMAL. Recompute from the winding,
+  // which the STL spec requires to agree with the stored normal.
+  if(err == 0 && !m.face.empty())
+  {
+    vcg::tri::UpdateNormal<ImpMesh>::PerFaceNormalized(m);
+    mask |= vcg::tri::io::Mask::IOM_FACENORMAL;
+  }
+  return err;
 }
 // vcglib's ImporterOFF indexes tokens[] without bounds checks in its face
-// section (import_off.h:440 reads tokens[0] of a possibly-empty EOF line;
-// :451-460 read tokens[1..3] of a face line shorter than announced; :472-474
-// dereference mesh.vert[idx] BEFORE validating idx for polygons). A file
+// section: it reads tokens[0] of a possibly-empty EOF line, reads tokens[1..3]
+// of a face line shorter than announced, and dereferences mesh.vert[idx]
+// BEFORE validating idx for polygons. A file
 // truncated mid-face-list is therefore an out-of-bounds vector read: a
 // libstdc++ assertion abort in debug, silent UB in release — found by
 // tests/unit/AssetLoaderFailure.cpp's truncation matrix. vcglib is a vendored
@@ -288,7 +298,7 @@ static bool offStructureIsSane(const char* path)
   {
     offTokenizeNextLine(stream, tokens);
     if(tokens.empty())
-      return false; // import_off.h:440 would read tokens[0] out of bounds
+      return false; // ImporterOFF would read tokens[0] out of bounds
     const long n = std::atol(tokens[0].c_str());
     if(n < 2)
       return true; // ErrorDegenerateFace, handled safely by vcglib
