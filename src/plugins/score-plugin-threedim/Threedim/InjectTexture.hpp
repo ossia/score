@@ -77,7 +77,12 @@ public:
   std::shared_ptr<const ossia::scene_state> m_cached_out;
   uint8_t m_pending_dirty{0xFF};
   const ossia::scene_state* m_cached_in_state{};
-  int64_t m_cached_in_version{-1};
+  // -2 is a sentinel no live input can produce (a null input reads as
+  // -1): it forces the first tick's rebuild without needing
+  // `!m_cached_out` as a trigger — a null cached output is legitimate
+  // whenever the input scene is null, and using it as a rebuild trigger
+  // re-dirties every tick of an unwired node.
+  int64_t m_cached_in_version{-2};
   std::string m_cached_name;
   void* m_cached_handle{};
   int64_t m_version_counter{0};

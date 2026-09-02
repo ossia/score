@@ -278,16 +278,15 @@ TEST_CASE(
   CHECK(n.outputs.scene_out.dirty == 0); // and quiet afterwards
 }
 
-// DEFECT: operator()() uses `!m_cached_out` as its "never built" trigger, but
-// the passthrough of a NULL input scene caches nullptr — so every tick with no
-// upstream scene re-enters rebuild() and re-arms m_pending_dirty = 0xFF. A
-// disconnected InjectTexture spams dirty=0xFF downstream forever (the TagAs
-// 8ad12fe91a re-dirty class; contrast Transform3D, whose null-input ticks
-// publish dirty == 0 — see Transform3DCompose.cpp). Correct behaviour is
-// asserted; the tag flips this to a reminder the day it is fixed.
+// A disconnected InjectTexture must not spam dirty=0xFF downstream: a null
+// cached output is legitimate whenever the input scene is null, so the
+// rebuild trigger is pure upstream change detection (first tick guaranteed
+// by a version sentinel), never `!m_cached_out` (the TagAs 8ad12fe91a
+// re-dirty class; contrast Transform3D, whose null-input ticks publish
+// dirty == 0 — see Transform3DCompose.cpp).
 TEST_CASE(
     "InjectTexture does not re-dirty every tick while the input scene is null",
-    "[threedim][inject][!shouldfail]")
+    "[threedim][inject]")
 {
   Threedim::InjectTexture n; // no scene, no handle, no name
   n();
@@ -296,7 +295,7 @@ TEST_CASE(
 
   n();
   CHECK(n.outputs.scene_out.scene.state == nullptr);
-  CHECK(n.outputs.scene_out.dirty == 0); // today: 0xFF again, every tick
+  CHECK(n.outputs.scene_out.dirty == 0);
 }
 
 // =============================================================== ExtractTexture
@@ -476,14 +475,15 @@ TEST_CASE(
   CHECK(n.outputs.texture.texture.width == 16);
 }
 
-// DEFECT: release() resets handle/width/height/layers/kind but NOT
-// sampler_handle — the producer-owned sampler pointer forwarded by update()
-// survives teardown on the output port. Same stale-resource class as the
-// Camera::release m_state fix (tests/threedim/CameraRelease.cpp): after the
-// render list is torn down that sampler is freed, and the outlet dangles.
+// release() resets handle/width/height/layers/kind AND sampler_handle —
+// the producer-owned sampler pointer forwarded by update() must not
+// survive teardown on the output port. Same stale-resource class as the
+// Camera::release m_state fix (tests/threedim/CameraRelease.cpp): after
+// the render list is torn down that sampler is freed, and a published
+// pointer would dangle.
 TEST_CASE(
     "ExtractTexture::release clears the forwarded sampler handle",
-    "[threedim][extracttexture][!shouldfail]")
+    "[threedim][extracttexture]")
 {
   FakeRhiTexture sky{QRhiTexture::RGBA8, QSize(16, 16), 0, 0, {}};
   int sampler{};
@@ -496,7 +496,7 @@ TEST_CASE(
 
   n.release(inert_ref<score::gfx::RenderList>());
   CHECK(n.outputs.texture.texture.handle == nullptr);
-  CHECK(n.outputs.texture.texture.sampler_handle == nullptr); // today: dangles
+  CHECK(n.outputs.texture.texture.sampler_handle == nullptr);
 }
 
 // ============================================================== TextureToBuffer
@@ -593,19 +593,19 @@ TEST_CASE(
   // dereferences the RenderList and is out of scope here — GPU work.
 }
 
-// DEFECT: a texture dropout followed by data returning at the SAME size leaves
-// the outlet permanently null. init()'s `!bytes` early-out zeroes the published
-// outputs but keeps `buf`, and update()'s only republish trigger is a byte-size
-// mismatch — so once sizes match again nothing ever re-publishes the handle,
-// while runInitialPasses() happily uploads into the live buffer downstream can
-// no longer see. Production sequence: (1) texture 4x4 → init allocates+publishes,
+// A texture dropout followed by data returning at the SAME size must not
+// leave the outlet permanently null: init()'s `!bytes` early-out zeroes the
+// published outputs but keeps `buf`, and a byte-size match then triggers no
+// re-init — so update() republishes the still-live buffer whenever the
+// source is back and the outlet does not carry it.
+// Production sequence: (1) texture 4x4 → init allocates+publishes,
 // (2) source drops out (bytes=null, dims 0) → update re-inits, zeroes the outlet,
 // returns before releasing buf, (3) source returns at 4x4 → sizes match, no init,
 // outlet stays null. Steps 2-3 are driven verbatim below; the stub buffer stands
 // in for step 1's GPU allocation (same size, only its inline size() is read).
 TEST_CASE(
     "TextureToBuffer republishes the buffer when data returns at the same size",
-    "[threedim][texturetobuffer][!shouldfail]")
+    "[threedim][texturetobuffer]")
 {
   Threedim::TextureToBuffer n;
   FakeRhiBuffer buf{64}; // step 1's allocation: 4x4 RGBA8
@@ -635,8 +635,7 @@ TEST_CASE(
       inert_ref<score::gfx::RenderList>(), inert_ref<QRhiResourceUpdateBatch>(),
       nullptr);
 
-  // Correct behaviour: downstream gets the (still-live, size-matching) buffer
-  // back. Today the outlet stays null forever.
+  // Downstream gets the (still-live, size-matching) buffer back.
   CHECK(n.outputs.buffer.buffer.handle == &buf);
   CHECK(n.outputs.buffer.buffer.byte_size == 64);
 
