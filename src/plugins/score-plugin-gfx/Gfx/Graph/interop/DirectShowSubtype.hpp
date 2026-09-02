@@ -91,9 +91,9 @@ inline AVCodecID directShowSubtypeCodec(const DirectShowGuid& subtype) noexcept
   if(fourcc == 0 || !isDirectShowCompressedFourcc(fourcc))
     return AV_CODEC_ID_RAWVIDEO;
 
-  if(fourcc == fcc('H', '2', '6', '4'))
+  if(fourcc == directShowFourcc('H', '2', '6', '4'))
     return AV_CODEC_ID_H264;
-  if(fourcc == fcc('d', 'v', 's', 'd'))
+  if(fourcc == directShowFourcc('d', 'v', 's', 'd'))
     return AV_CODEC_ID_DVVIDEO;
   // MJPG and the historical Motion-JPEG spellings.
   return AV_CODEC_ID_MJPEG;
