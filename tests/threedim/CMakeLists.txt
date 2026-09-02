@@ -302,3 +302,18 @@ score_add_test(test_threedim_humanoid_retarget
   SOURCES HumanoidRetargetTest.cpp
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_humanoid_retarget)
+
+# StrucSynth (Structure Synth): EisenScript -> mesh through the vendored
+# libssynth and ObjFromString. The unit's whole surface is the synchronous
+# static worker::work() seam, so no threads/GPU/QApplication (libssynth's
+# ProgressDialog is a stub). Compiles StructureSynth.cpp (the unit) and
+# TinyObj.cpp (ObjFromString); links the vendored `ssynth` static target
+# and threedim_test_mikktspace for TinyObj.cpp's genTangSpaceDefault reference
+# (never reached: ssynth OBJ output carries no texcoords); Qt Gui for
+# QMatrix4x4/QQuaternion in TinyObj.hpp.
+score_add_test(test_threedim_structure_synth
+  SOURCES StructureSynthTest.cpp
+          "${THREEDIM_DIR}/StructureSynth.cpp"
+          "${THREEDIM_DIR}/TinyObj.cpp"
+  LIBS ssynth threedim_test_mikktspace ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_structure_synth)
