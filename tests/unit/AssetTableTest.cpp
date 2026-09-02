@@ -19,8 +19,19 @@
 #include <QImage>
 #include <QTemporaryDir>
 
-#include <private/qrhi_p.h>
-#include <private/qrhinull_p.h>
+// RHI headers. CI builds against Qt 6.4.2, which has the private headers and
+// none of the public `rhi/` ones; from 6.6 the per-backend InitParams live in
+// rhi/qrhi_platform.h and qrhi_p.h alone declares only the base QRhiInitParams.
+// QRhiNullInitParams is used below, so both spellings have to be available.
+// Same guard as IsfUniformInputUsageTest.cpp / OutputNullPipelineTest.cpp.
+#include <QtGlobal>
+
+#include <QtGui/private/qrhi_p.h>
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+#include <rhi/qrhi_platform.h>
+#else
+#include <QtGui/private/qrhinull_p.h>
+#endif
 
 #include <catch2/catch_test_macros.hpp>
 
