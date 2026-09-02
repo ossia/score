@@ -27,6 +27,14 @@ score_add_test(test_integration_missing_process_roundtrip
 # produce nothing anywhere -- no load, no callback, no message. The diagnostic
 # lives in oscr::loadRawfile because that is the only layer that sees the
 # failure; the object's process() is never reached. Needs media (AudioDecoder,
+# pulled in by Crousti/File.hpp) and avnd.
+if(TARGET score_plugin_media AND TARGET score_plugin_avnd)
+  score_add_test(test_integration_avnd_file_port_diagnostic
+    SOURCES AvndFilePortDiagnostic.cpp
+    GUI
+    PLUGINS score_plugin_scenario score_plugin_media score_plugin_avnd score_lib_process)
+endif()
+
 score_add_test(test_integration_scenario_undo
   SOURCES ScenarioUndoTest.cpp
   GUI

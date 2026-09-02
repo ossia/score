@@ -14,6 +14,7 @@
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/SceneGPUState.hpp>
 
+#include <QDebug>
 #include <QFileInfo>
 #include <QQuaternion>
 #include <QString>
@@ -147,17 +148,24 @@ AssetLoader::ins::asset_t::process(file_type tv)
 
   const std::string_view fname{tv.filename};
   std::shared_ptr<const ossia::scene_state> loaded;
+  // Set by the dispatch below when an extension was recognised, so a rejection
+  // can say WHICH of the two failures happened: a format we do not handle, or
+  // a file whose parser refused it.
+  bool dispatched = false;
 
   if(hasSuffixCI(fname, "fbx"))
   {
+    dispatched = true;
     loaded = runInnerParser<FbxParser>(tv, &FbxParser::ins::fbx_t::process);
   }
   else if(hasSuffixCI(fname, "gltf") || hasSuffixCI(fname, "glb"))
   {
+    dispatched = true;
     loaded = runInnerParser<GltfParser>(tv, &GltfParser::ins::gltf_t::process);
   }
   else if(hasSuffixCI(fname, "obj"))
   {
+    dispatched = true;
     Threedim::float_vec buf;
     auto meshes = Threedim::ObjFromString(tv.bytes, buf);
     if(!meshes.empty())
@@ -170,6 +178,7 @@ AssetLoader::ins::asset_t::process(file_type tv)
   }
   else if(hasSuffixCI(fname, "ply"))
   {
+    dispatched = true;
     // Sniff the header first: a PLY whose vertex element carries
     // splat-style columns (or no face element) goes through the
     // primitive-cloud path; everything else stays on the existing
@@ -200,6 +209,7 @@ AssetLoader::ins::asset_t::process(file_type tv)
   }
   else if(hasSuffixCI(fname, "stl"))
   {
+    dispatched = true;
     Threedim::float_vec buf;
     auto meshes = Threedim::StlFromFile(fname, buf);
     if(!meshes.empty())
@@ -212,6 +222,7 @@ AssetLoader::ins::asset_t::process(file_type tv)
   }
   else if(hasSuffixCI(fname, "off"))
   {
+    dispatched = true;
     Threedim::float_vec buf;
     auto meshes = Threedim::OffFromFile(fname, buf);
     if(!meshes.empty())
@@ -224,6 +235,7 @@ AssetLoader::ins::asset_t::process(file_type tv)
   }
   else if(hasSuffixCI(fname, "splat"))
   {
+    dispatched = true;
     // Antimatter15 binary .splat: 32 bytes/primitive, fixed schema.
     auto cloud = Threedim::PrimitiveCloud::parse_splat_binary(tv.bytes);
     if(cloud)
@@ -236,6 +248,7 @@ AssetLoader::ins::asset_t::process(file_type tv)
   }
   else if(hasSuffixCI(fname, "spz"))
   {
+    dispatched = true;
     // Niantic .spz v1-3: gzip-compressed column-grouped 3DGS data.
     // Decoded via the vendored Niantic library (3rdparty/spz),
     // transposed into the canonical 62-float row layout that the
@@ -256,11 +269,33 @@ AssetLoader::ins::asset_t::process(file_type tv)
     // score-addon-academy registers its USD loader here at module load.
     const std::string ext = extensionLowerCI(fname);
     if(auto fn = AssetLoaderRegistry::lookup(ext))
+    {
+      dispatched = true;
       loaded = fn(tv);
+    }
   }
 
   if(!loaded)
+  {
+    // Say so. Every path above used to return an empty function in silence,
+    // and the node has no way to observe its own failure afterwards: the
+    // avnd runtime applies nothing, so operator()() only ever sees "I have no
+    // scene", which is also what a brand-new instance sees. With 24 real
+    // scores using this node and a corpus that addresses assets through four
+    // different path syntaxes -- including C:/Users/... paths opened on
+    // Linux -- a rejected asset is the NORMAL outcome, and it used to produce
+    // a black frame with no message anywhere.
+    if(dispatched)
+      qWarning() << "Asset Loader: could not parse"
+                 << QString::fromUtf8(fname.data(), int(fname.size()))
+                 << "(" << qint64(tv.bytes.size()) << "bytes read)";
+    else
+      qWarning() << "Asset Loader: unsupported file type"
+                 << QString::fromUtf8(fname.data(), int(fname.size()))
+                 << "- no built-in parser and no registered parser for"
+                 << QString::fromStdString(extensionLowerCI(fname));
     return {};
+  }
 
   return [state = std::move(loaded)](AssetLoader& self) mutable {
     self.m_parsed_state = std::move(state);
