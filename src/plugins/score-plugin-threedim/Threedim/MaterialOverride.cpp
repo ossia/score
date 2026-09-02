@@ -19,7 +19,6 @@ void applyTextureOverride(
   dst.source.reset();
   dst.texture.native_handle = src.handle;
   dst.texture.bindless_index = 0;
-  // sampler stays default
 }
 
 // Decide whether a given material-index should receive overrides, given
@@ -56,6 +55,13 @@ void MaterialOverride::rebuild()
                           || inputs.use_emissive.value;
   if(!any_tex && !any_factor)
   {
+    // Cache the input identity here too: without it operator()() sees a
+    // stale m_cached_in_state on every tick and re-runs rebuild(), which
+    // re-emits dirty = 0xFF forever in the node's default state (the TagAs
+    // defect class).
+    m_cached_in_state = in_state;
+    m_cached_in_version = in_version;
+    std::copy(cur_tex, cur_tex + 4, m_cached_tex);
     m_cached_out = in.state;
     m_pending_dirty = 0xFF;
     return;
@@ -109,7 +115,7 @@ void MaterialOverride::rebuild()
     seen_src.insert(src_mat.get());
 
     // Reuse the cached clone shared_ptr if we've cloned this source
-    // before — MUTATING its fields in place. The shared_ptr address
+    // before, mutating its fields in place. The shared_ptr address
     // stays stable across rebuilds, so the preprocessor's
     // m_loaderMaterialSlots keeps the material arena slot allocated
     // across frames: no per-frame GC + reallocate churn, Material arena
@@ -174,16 +180,13 @@ void MaterialOverride::rebuild()
       ++it;
   }
 
-  auto state = std::make_shared<ossia::scene_state>();
-  // Passthrough: roots / cameras / animations / skeletons / environment
-  // all reference the upstream shared_ptrs (no deep copy). Only materials
-  // is swapped out.
-  state->roots = in_state->roots;
-  state->animations = in_state->animations;
-  state->cameras = in_state->cameras;
-  state->skeletons = in_state->skeletons;
-  state->environment = in_state->environment;
-  state->active_camera_id = in_state->active_camera_id;
+  // Forward every shared scene_state field (roots / cameras / animations /
+  // skeletons / environment / collections / variants / time / statistics /
+  // aux injections) by copying the upstream state wholesale — the vectors
+  // are shared_ptrs so this is shallow — then swap only the materials.
+  // Cherry-picking fields here silently loses data on every pass, which
+  // tests/threedim/Transform3DCompose.cpp pins for wrapSceneWithTransform.
+  auto state = std::make_shared<ossia::scene_state>(*in_state);
   state->materials = std::move(new_mats);
   state->version = ++m_version_counter;
   state->dirty_index = m_version_counter;
@@ -209,7 +212,7 @@ void MaterialOverride::operator()()
       = m_cached_in_state != in_state || m_cached_in_version != in_version
         || m_cached_tex[0] != cur_tex[0] || m_cached_tex[1] != cur_tex[1]
         || m_cached_tex[2] != cur_tex[2] || m_cached_tex[3] != cur_tex[3];
-  if(!m_cached_out || upstream_changed)
+  if(upstream_changed)
     rebuild();
   outputs.scene_out.scene.state = m_cached_out;
   outputs.scene_out.dirty = m_pending_dirty;
