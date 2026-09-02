@@ -309,6 +309,18 @@ public:
    */
   void markBuilt() noexcept { m_built = true; m_lastSize = state.renderSize; }
 
+  /**
+   * @brief Is this render list currently coherent with its output's GPU objects?
+   *
+   * False between the moment something invalidates the list (a fast-path
+   * viewport resize: resizeSwapchainSizedTargets) and the maybeRebuild() that
+   * runs on the next render frame. In that window the output node has ALREADY
+   * destroyed and replaced its QRhiTextureRenderTarget / QRhiRenderPassDescriptor
+   * while the renderers still hold the pre-resize snapshot, so nothing outside
+   * the rebuild may ask a renderer for a render target.
+   */
+  [[nodiscard]] bool isBuilt() const noexcept { return m_built; }
+
   /// Set the "any node requires depth" flag computed from the node graph.
   /// Mirrors what maybeRebuild() recomputes; called from
   /// Graph::createRenderList so the freshly-built RL doesn't need a
