@@ -514,6 +514,18 @@ target_include_directories(test_gfx_dynamic_slot PRIVATE
 # GfxDynamicSlot leaves inert (it calls sweepMeshSlabs but never
 # acquireMeshSlab). Same OffsetAllocator inclusion as above, for the same reason.
 score_add_gfx_test(mesh_slabs GfxMeshSlabs.cpp)
+
+# P1-20: a material texture swapped live changes the frame WITHOUT a graph
+# rebuild, and a layer-growth change legitimately reallocates the
+# QRhiTextureArray -- the test asserts WHICH path each change kind took via
+# registry snapshots. Case 2 ([!mayfail]) pins the statically-located gap
+# that a plain handle swap may never reach the consumer (no dynamic-slot
+# term in meshesUnchanged).
+score_add_gfx_test(material_texture_swap GfxMaterialTextureSwap.cpp)
+target_sources(test_gfx_material_texture_swap PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator/offsetAllocator.cpp")
+target_include_directories(test_gfx_material_texture_swap PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator")
 target_sources(test_gfx_mesh_slabs PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator/offsetAllocator.cpp")
 target_include_directories(test_gfx_mesh_slabs PRIVATE
