@@ -235,21 +235,15 @@ TEST_CASE(
   CHECK(node.outputs.geometry.dirty_mesh);
 }
 
-// DEFECT: with a non-zero byte_offset the vertex count is still computed from
-// the FULL buffer size (byte_size / stride) in PCLToGeometry.cpp:
-//
-//   outputs.geometry.mesh.vertices = (tex.byte_size / (sizeof(float) * vertice_stride));
-//
-// while the geometry input starts the fetch at byte_offset inside that same
-// buffer. halp's buffer convention (halp::raw_buffer in halp/buffer.hpp) is
-// that byte_offset addresses INTO byte_size — usable bytes are
-// byte_size - byte_offset — so drawing byte_size/stride vertices from
-// byte_offset over-reads the buffer tail by byte_offset bytes on the GPU.
-// Correct expectation: vertices == (byte_size - byte_offset) / stride.
-// Tagged [!shouldfail]; flips red-to-green the day the count is fixed.
+// With a non-zero byte_offset the vertex count must be computed from the
+// usable region only: the geometry input starts the fetch at byte_offset
+// inside the buffer, and halp's buffer convention (halp::raw_buffer in
+// halp/buffer.hpp) is that byte_offset addresses INTO byte_size — usable
+// bytes are byte_size - byte_offset. Counting byte_size/stride vertices
+// from byte_offset would over-read the buffer tail on the GPU.
 TEST_CASE(
     "PCLToMesh2 vertex count must exclude the byte_offset region",
-    "[threedim][pcl][!shouldfail]")
+    "[threedim][pcl]")
 {
   // 5 XYZ points' worth of bytes, but the input starts one point in:
   // only 4 points are addressable after the offset.
@@ -259,5 +253,5 @@ TEST_CASE(
   auto& mesh = node.outputs.geometry.mesh;
   REQUIRE(mesh.input.size() == 1);
   CHECK(mesh.input[0].byte_offset == 12);
-  CHECK(mesh.vertices == 4); // currently 5: reads 12 bytes past the end
+  CHECK(mesh.vertices == 4); // 5 would read 12 bytes past the end
 }
