@@ -163,6 +163,9 @@ void ExtractTexture::release(score::gfx::RenderList& /*r*/)
   m_lastHandle = nullptr;
   m_lastName.clear();
   outputs.texture.texture.handle = nullptr;
+  // The sampler is forwarded from the aux entry alongside the texture;
+  // leaving it published after release dangles into freed GPU state.
+  outputs.texture.texture.sampler_handle = nullptr;
   outputs.texture.texture.width = 0;
   outputs.texture.texture.height = 0;
   outputs.texture.texture.layers_or_depth = 1;
