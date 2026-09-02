@@ -1030,3 +1030,46 @@ score_add_test(test_gfx_video_direct_bench
 # P2-9: a geometry filter displaces the mesh it is given, by a closed-form
 # delta.
 score_add_gfx_test(geometry_filter_shift GfxGeometryFilterShift.cpp)
+
+# P2-14: closing a document mid-render tears down cleanly, fork-isolated so a
+# crash is a red assertion in the parent rather than a dead run.
+score_add_gfx_test(document_close_teardown GfxDocumentCloseTeardown.cpp)
+
+# P2-1: a camera array renders six faces, each carrying its own camera's
+# encoded forward direction. Needs Threedim::CameraArray, which is
+# hidden-visibility inside the plug-in, so it is compiled in directly.
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  set(_ca_c "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
+  score_plugin_hidden_sources(_camarray_hidden
+      "${_ca_c}/Primitive.cpp"
+      "${_ca_c}/Camera.cpp"
+      "${_ca_c}/CameraArray.cpp")
+  score_add_test(test_gfx_camera_array_faces
+    SOURCES
+      GfxCameraArrayFaces.cpp
+      ${_camarray_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_camera_array_faces PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_camera_array_faces SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
+# P2-2: per-layer depth renders through the scratch-D32F + copyTexture shim,
+# each layer carrying its own closed-form depth.
+score_add_gfx_test(per_layer_depth GfxPerLayerDepth.cpp)
+
+# P1-17: a gaussian splat renders through the path real scores take
+# (asset_loader(.ply) -> Scene Preprocessor -> scene_group -> Flattened Scene
+# Filter -> CSF chain -> Render Pipeline), on a .ply the test synthesises.
+score_add_gfx_test(splat_render GfxSplatRender.cpp)
