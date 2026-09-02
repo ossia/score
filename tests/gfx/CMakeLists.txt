@@ -186,6 +186,11 @@ score_add_gfx_test(raw_raster_mrt_pattern GfxRawRasterMrtPattern.cpp)
 # feeding a second, MRT raw-raster (raster#1 image out -> raster#2 sampler),
 # both attachments closed-form, then a sink resize the graph must survive.
 score_add_gfx_test(raster_chain_mrt GfxRasterChainMrt.cpp)
+# P0-1: a $USER-driven INSTANCE_COUNT changed mid-render (4 -> 9 -> 2 in one
+# session, no rebuild) redraws exactly the right number of instance strips,
+# each carrying its closed-form buffer identity (G) and draw identity (B) --
+# no stale strip from the previous count.
+score_add_gfx_test(instance_count_live GfxInstanceCountLive.cpp)
 
 # The same closed-form pattern, but through ISF -> ScreenNode -> swapchain
 # readback: the path the golden gate exercises and the only one the analytic
