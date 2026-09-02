@@ -13,13 +13,16 @@
 // belongs to) on every add/remove cycle still renders magenta and stays green
 // there. This file makes the leak COUNTABLE, three ways, so a regression trips:
 //
-//  1. PER-CYCLE (Vulkan/D3D12): QRhi::statistics().allocCount -- the memory
+//  1. PER-CYCLE (Vulkan/D3D12, Qt >= 6.6): QRhi::statistics().allocCount -- the memory
 //     allocator's live-allocation count (VMA on Vulkan; see QRhiStats in
 //     qtbase/src/gui/rhi/qrhi.h:1896). A leaked render target keeps its color
 //     texture allocation alive, so over K add-output/remove-output cycles the
 //     count must return to its steady-state baseline after EVERY cycle (+-0,
 //     cycles 1..K-1; cycle 0 is excluded as cache warm-up). OpenGL/Metal
 //     expose no allocator statistics (allocCount stays 0) and rely on 2+3.
+//     So does every backend on Qt < 6.6, where QRhi::statistics() does not
+//     exist at all -- CI builds against 6.4.2. The count is compiled out
+//     there and reports 0, taking the same statsUsable == false branch.
 //
 //  2. AT TEARDOWN (every backend, unix): Qt's own RHI resource accounting.
 //     With QT_RHI_LEAK_CHECK=1 (always-on in a debug Qt), destroying a QRhi
@@ -77,6 +80,7 @@
 #include <score/gfx/Vulkan.hpp>
 #if QT_HAS_VULKAN
 #include <QVulkanInstance>
+#include <QtGlobal>
 #endif
 
 #if defined(__unix__) || defined(__APPLE__)
@@ -265,11 +269,20 @@ TEST_CASE(
     // Live-allocation count over both sinks' QRhis (each sink owns its QRhi;
     // the per-cycle producer renders inside s1's RenderList / QRhi). Non-zero
     // only on backends whose QRhi runs a memory allocator (Vulkan, D3D12).
+    //
+    // QRhi::statistics() (and QRhiStats) arrived in Qt 6.6; CI builds the
+    // tests against 6.4.2, where neither exists. Below 6.6 this mechanism
+    // compiles out and reports 0, which sets statsUsable = false and hands
+    // the case to counts 2 and 3 through the SAME branch an OpenGL or Metal
+    // run already takes. Nothing is weakened on 6.6+; the older Qt simply
+    // counts the leak one way fewer.
     const auto sumAlloc = [&]() -> quint64 {
       quint64 n = 0;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
       for(int i : {s0, s1})
         if(auto rs = p->sink(i)->renderState(); rs && rs->rhi)
           n += rs->rhi->statistics().allocCount;
+#endif
       return n;
     };
 
@@ -356,9 +369,10 @@ TEST_CASE(
   {
     INFO(
         "backend '" << out.backend
-                    << "' exposes no allocator statistics (QRhiStats::allocCount "
-                       "== 0); per-cycle accounting not available, relying on "
-                       "the teardown resource accounting below");
+                    << "' exposes no allocator statistics (allocCount == 0, or "
+                       "Qt < 6.6 where QRhi::statistics() does not exist); "
+                       "per-cycle accounting not available, relying on the "
+                       "teardown resource accounting below");
   }
 
 #if GFX_LEAK_HAVE_STDERR_CAPTURE
