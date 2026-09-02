@@ -1,5 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <QDebug>
+
 #include <Process/Dataflow/PortSerialization.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
@@ -200,7 +202,10 @@ DataStreamWriter::write(Scenario::IntervalModel& interval)
     if(proc)
       loaded.push_back(proc);
     else
-      SCORE_TODO;
+      qWarning() << "A process could not be loaded and has been DROPPED from"
+                 << "interval" << interval.metadata().getName()
+                 << "-- its cables are gone with it. Save this document over the"
+                 << "original and the loss becomes permanent.";
   }
   for(auto it = loaded.rbegin(); it != loaded.rend(); ++it)
   {
@@ -335,7 +340,10 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONWriter::write(Scenario::IntervalModel& int
     if(proc)
       interval.processes.add(proc);
     else
-      SCORE_TODO;
+      qWarning() << "A process could not be loaded and has been DROPPED from"
+                 << "interval" << interval.metadata().getName()
+                 << "-- its cables are gone with it. Save this document over the"
+                 << "original and the loss becomes permanent.";
   }
 
   auto sv_it = obj.constFind(strings.SmallViewRack);
