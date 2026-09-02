@@ -274,3 +274,9 @@ threedim_test_includes(test_threedim_inverse_kinematics)
 score_add_test(test_threedim_material_override
   SOURCES MaterialOverrideTest.cpp "${THREEDIM_DIR}/MaterialOverride.cpp")
 threedim_test_includes(test_threedim_material_override)
+
+# SceneGraphFilter: the scene_state -> scene_state culling predicate walker.
+# Pure CPU — the whole unit is rebuild()/operator()(); no GPU, no Qt.
+score_add_test(test_threedim_scene_graph_filter
+  SOURCES SceneGraphFilterTest.cpp "${THREEDIM_DIR}/SceneGraphFilter.cpp")
+threedim_test_includes(test_threedim_scene_graph_filter)
