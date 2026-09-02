@@ -32,18 +32,23 @@ struct Model
   int ready{1};
   int read{2};
   bool hasNew{false};
+  // Latches on the first publish; before it, the read slot is the initial
+  // (never-written) slot 2, so acquire() must report "nothing ready" (-1)
+  // rather than hand out that slot.
+  bool everReady{false};
 
   void publish() noexcept
   {
     std::swap(write, ready);
     hasNew = true;
+    everReady = true;
   }
 
-  // Returns the index the consumer should be handed.
+  // Returns the index the consumer should be handed, or -1 if none ready.
   int acquire() noexcept
   {
     if(!hasNew)
-      return read;
+      return everReady ? read : -1;
     std::swap(ready, read);
     hasNew = false;
     return read;
@@ -149,7 +154,7 @@ TEST_CASE("every reachable state keeps the three roles distinct",
       {
         const int got = idx.acquireReadIndex();
         REQUIRE(got == model.acquire());
-        REQUIRE(got >= 0);
+        REQUIRE(got >= -1); // -1 before the first publish, else a real slot
         REQUIRE(got < 3);
       }
     }
@@ -228,18 +233,15 @@ TEST_CASE("a producer and a consumer thread never share a slot",
 //   if(readSlot < 0 || readSlot >= 3)
 //     return m_consumerTextureWrappers[m_currentReadSlot];
 //
-// The branch is dead. Before the producer has published anything the call
-// returns 2 -- a real index into slots that were created with QRhi::create()
-// and never rendered into -- so TextureShare::acquireConsumerTexture(), which
-// documents "the most recently completed texture, or nullptr if none ready",
-// hands the consumer undefined texture contents instead of nullptr. The only
-// thing that distinguishes "not ready" from "ready" today is the separate
-// hasNewFrame() query, which the acquire path does not consult.
-//
-// Marked !shouldfail: the assertion below states the documented contract, so
-// it goes green the day the code meets it.
+// Before the producer has published anything, acquireReadIndex() now returns
+// -1 rather than the initial read slot (2) -- a slot created with
+// QRhi::create() and never rendered into -- so
+// TextureShare::acquireConsumerTexture() honours its documented contract
+// ("the most recently completed texture, or nullptr if none ready"). An
+// everReady latch (set on the first publish) gates the steady-state
+// "keep the last frame" fallback against the never-written startup slot.
 // ---------------------------------------------------------------------------
-TEST_CASE("no frame yet means no slot", "[gfx][interop][triplebuffer][!shouldfail]")
+TEST_CASE("no frame yet means no slot", "[gfx][interop][triplebuffer]")
 {
   TripleBufferIndex idx;
   REQUIRE_FALSE(idx.hasNewFrameAvailable());
@@ -247,7 +249,7 @@ TEST_CASE("no frame yet means no slot", "[gfx][interop][triplebuffer][!shouldfai
 }
 
 TEST_CASE("a slot is never handed out before it was written",
-          "[gfx][interop][triplebuffer][!shouldfail]")
+          "[gfx][interop][triplebuffer]")
 {
   TripleBufferIndex idx;
   std::array<int, 3> slot{kNeverWritten, kNeverWritten, kNeverWritten};
