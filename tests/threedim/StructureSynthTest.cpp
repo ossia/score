@@ -304,21 +304,16 @@ TEST_CASE(
 
 TEST_CASE(
     "StructureSynth: an on-the-fly triangle rule yields its three vertices",
-    "[threedim][ssynth][!shouldfail]")
+    "[threedim][ssynth]")
 {
-  // DEFECT: StrucSynth::worker::work() hard-codes the positions+normals
-  // buffer layout of box/sphere output: it reports
-  //   vertices    = m_vertexData.size() / (2 * 3)
-  //   input1.byte_offset = sizeof(float) * (size / 2)
-  // But RuleSet::resolveNames() creates TriangleRule on the fly for
+  // RuleSet::resolveNames() creates TriangleRule on the fly for
   // "triangle[p1;p2;p3]" scripts, and ObjRenderer::drawTriangle emits its
   // face with nID = -1 — an OBJ with no `vn` at all — so ObjFromString
-  // returns a position-only buffer (9 floats for one triangle). The closure
-  // then reports 9/6 = 1 vertex instead of 3 and points the normals binding
-  // at byte 16, into the middle of the position stream. Correct behaviour
-  // (asserted here): the triangle's 3 vertices reach the geometry output —
-  // either by synthesizing normals for normal-less meshes or by honoring
-  // mesh.normals from ObjFromString.
+  // returns a position-only buffer (9 floats for one triangle). The worker
+  // must not assume the box/sphere positions+normals layout: it derives
+  // the vertex count and normals offset from the loader's mesh info and
+  // synthesizes flat per-face normals for normal-less meshes, so the
+  // triangle's 3 vertices reach the geometry output.
   auto fn = generate("triangle[0,0,0;1,0,0;0,1,0]");
   REQUIRE(fn);
 
