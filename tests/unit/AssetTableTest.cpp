@@ -19,8 +19,19 @@
 #include <QImage>
 #include <QTemporaryDir>
 
-#include <private/qrhi_p.h>
-#include <private/qrhinull_p.h>
+// RHI headers. CI builds against Qt 6.4.2, which has the private headers and
+// none of the public `rhi/` ones; from 6.6 the per-backend InitParams live in
+// rhi/qrhi_platform.h and qrhi_p.h alone declares only the base QRhiInitParams.
+// QRhiNullInitParams is used below, so both spellings have to be available.
+// Same guard as IsfUniformInputUsageTest.cpp / OutputNullPipelineTest.cpp.
+#include <QtGlobal>
+
+#include <QtGui/private/qrhi_p.h>
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+#include <rhi/qrhi_platform.h>
+#else
+#include <QtGui/private/qrhinull_p.h>
+#endif
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -81,8 +92,8 @@ TEST_CASE("AssetTable: staged image is counted and starts cold", "[gfx][assettab
 
   CHECK(table.size() == 1);
   CHECK(table.totalBytes() == kImgBytes);
-  // Regression for 2d8569018: a stage() that is never acquire()d must sit in
-  // the cold LRU so it stays evictable instead of leaking for the session.
+  // A stage() that is never acquire()d must sit in the cold LRU, so it stays
+  // evictable instead of leaking for the session.
   CHECK(table.coldCount() == 1);
 }
 
@@ -301,9 +312,8 @@ TEST_CASE("AssetTable: acquire resurrects a cold entry at zero cost", "[gfx][ass
 
 TEST_CASE("AssetTable: staged-but-never-acquired entry is evictable", "[gfx][assettable]")
 {
-  // Regression test for 2d8569018 ("make staged-but-never-acquired
-  // AssetTable entries evictable"): before the fix these entries never
-  // entered the cold LRU and leaked for the whole session.
+  // Staged-but-never-acquired entries belong in the cold LRU; outside it they
+  // would leak for the whole session.
   Gfx::AssetTable table;
   table.stage(1, makeImage());
   table.stage(2, makeBytes(100));
