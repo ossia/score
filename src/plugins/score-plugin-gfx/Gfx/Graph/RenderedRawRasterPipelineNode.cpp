@@ -37,8 +37,16 @@ void main()
 {
   v_texcoord = texcoord;
   gl_Position = renderer.clipSpaceCorrMatrix * vec4(position.xy, 0.0, 1.);
-#if defined(QSHADER_HLSL) || defined(QSHADER_MSL)
-  gl_Position.y = - gl_Position.y;
+#if !defined(QSHADER_SPIRV) && !defined(QSHADER_HLSL) && !defined(QSHADER_MSL)
+  // OpenGL only: QRhi::isYUpInFramebuffer(). Same contract as the MRT blit in
+  // SimpleRenderedISFNode.cpp -- the copy from the intermediate MRT attachment
+  // to the output render target must not turn the image over on the way
+  // there. Direct3D and Metal put the framebuffer origin where Vulkan does,
+  // so like Vulkan they need nothing here: clipSpaceCorrMatrix already
+  // carries the whole difference. (Before this, the raw-raster MRT path was
+  // delivered vertically flipped on OpenGL while Vulkan was correct --
+  // caught by tests/gfx/GfxRawRasterMrtPattern.cpp.)
+  v_texcoord.y = 1. - v_texcoord.y;
 #endif
 }
 )_";
