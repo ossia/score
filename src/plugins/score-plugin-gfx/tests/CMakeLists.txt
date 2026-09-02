@@ -21,6 +21,13 @@ score_add_test(test_gfx_render_clock
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/RenderClockTest.cpp"
   PLUGINS score_plugin_gfx)
 
+# The borrowed-host zero-copy capture rung's init() refusal ladder, on the
+# Null QRhi (which genuinely has no host-import path, like GL/D3D11).
+score_add_test(test_gfx_borrowed_host_import
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/BorrowedHostImportTest.cpp"
+  PLUGINS score_plugin_gfx
+  LIBS ${QT_PREFIX}::Gui)
+
 score_add_test(test_gfx_capture_correlator
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/CaptureCorrelatorTest.cpp"
   PLUGINS score_plugin_gfx)
