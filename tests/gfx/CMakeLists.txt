@@ -438,6 +438,39 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
 
+# P1-3: switching the active camera mid-render moves the image (the drawn
+# colour identifies WHICH camera is active), and switching back reproduces
+# the first frame byte-for-byte with zero texture-channel reallocation. CPU
+# halves pin the id mint, merge-order first-non-zero-wins, CameraSwitch
+# Select forwarding and flattenScene id->index resolution; the render half
+# drives real Cube + real Camera-authored scenes through ScenePreprocessorNode
+# with a camera-position-encoding probe raster. OffsetAllocator compiled in
+# because the TU reads GpuResourceRegistry through RenderList::registry().
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  set(_3d_cs "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
+  score_plugin_hidden_sources(_cam_switch_hidden
+      "${_3d_cs}/Primitive.cpp"
+      "${_3d_cs}/Camera.cpp")
+  score_add_test(test_gfx_camera_switch_live
+    SOURCES GfxCameraSwitchLive.cpp ${_cam_switch_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_sources(test_gfx_camera_switch_live PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator/offsetAllocator.cpp")
+  target_include_directories(test_gfx_camera_switch_live SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
 # P1-10 (render half): the Instances spinbox on Buffers-to-geometry v2 drives
 # the drawn count, live, with exactly one CustomMesh::reload per flush. Also
 # PINS (green, flip-when-fixed) the engine gap that an Instances-ONLY edit is
