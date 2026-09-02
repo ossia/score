@@ -318,6 +318,11 @@ score_add_gfx_test(geometry_producer_removal GfxGeometryProducerRemoval.cpp)
 # QRhi::enqueueResourceUpdates on the next frame — the GL/D3D11/Vulkan crash
 # triplet from the corpus run). ISOLATED so the pre-fix crash is attributable.
 score_add_gfx_test(batch_lifetime  GfxBatchLifetime.cpp)
+# P0-8: the geometry-buffer sibling of batch_lifetime -- a CSF geometry
+# buffer reallocated in the same frame the raster rebinds it renders one of
+# the two closed forms (old size / new size), never garbage; plus the
+# teardown-with-pending-initial-batch scenario.
+score_add_gfx_test(geometry_buffer_rebind GfxGeometryBufferRebind.cpp)
 score_add_gfx_test(depth_sampler   GfxDepthSampler.cpp)
 score_add_gfx_test(storage_visibility GfxStorageVisibility.cpp)
 score_add_gfx_test(multiview       GfxMultiview.cpp)
