@@ -243,6 +243,21 @@ score_add_gfx_test(orientation_findings GfxOrientationFindings.cpp)
 # not derived from where each backend puts the framebuffer origin.
 score_add_gfx_test(csf_orient_macros GfxCsfOrientMacros.cpp)
 
+# P1-16 / G16: the shader-include search path -- registration mechanism tested
+# directly (temp library root, header resolution + per-call path recompute),
+# the missing-include failure is DIAGNOSABLE by name (no pin needed: the
+# product already errors "Shader include not found" with the searched paths),
+# failures are not cached, and the academy openpbr.h positive half SKIPs with
+# enablement instructions when the addon's package is absent. APP-booted,
+# GPU-less (Vulkan bake path).
+score_add_test(test_gfx_shader_include_path
+  SOURCES GfxShaderIncludePath.cpp
+  APP
+  PLUGINS score_plugin_gfx score_plugin_library
+  LIBS test_gfx_engine_glue)
+target_include_directories(test_gfx_shader_include_path PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-library")
+
 # The same gate, read off the baked shader rather than off the picture. The one
 # above can only judge a backend this machine brings up, and the wrong gate was
 # invisible on both of the two that Linux brings up; this one resolves all five
