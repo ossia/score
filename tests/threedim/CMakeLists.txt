@@ -258,3 +258,11 @@ score_add_test(test_threedim_pcl_to_geometry
   SOURCES PCLToGeometryTest.cpp "${THREEDIM_DIR}/PCLToGeometry.cpp"
   LIBS ${QT_PREFIX}::Gui)
 threedim_test_includes(test_threedim_pcl_to_geometry)
+
+# InverseKinematics (2-bone analytic solver). Entirely header-inline — pure
+# scene_state / QQuaternion math, no engine .cpp and no GPU; Qt Gui supplies
+# QQuaternion/QVector3D/QMatrix4x4 (same shape as test_threedim_camera_array_faces).
+score_add_test(test_threedim_inverse_kinematics
+  SOURCES InverseKinematicsTest.cpp
+  LIBS ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_inverse_kinematics)
