@@ -3167,6 +3167,87 @@ void RenderedCSFNode::buildComputeSrbBindings(
             return t;
           };
 
+          // Runtime resize (P1-21, tests/gfx/CsfImage3dResize.cpp): a
+          // $-driven WIDTH/HEIGHT/DEPTH (or layers) change must recreate the
+          // allocation -- this was the literal TODO "Check if texture size
+          // inputs have changed and recreate texture if needed". Compare the
+          // live texture against the freshly resolved size; on mismatch,
+          // recreate and re-point every SRB that binds the old handle (same
+          // replaceTexture idiom as the persistent ping-pong swap in
+          // runInitialPasses). The downstream consumers sample the per-edge
+          // render target the graphics blit pass draws into, so patching
+          // this node's own passes is sufficient.
+          const auto liveSizeMatches = [&](QRhiTexture* t) -> bool {
+            if(!t)
+              return true;
+            if(image->isCube())
+            {
+              const int edge = std::max(imageSize.width(), imageSize.height());
+              return t->pixelSize() == QSize(edge, edge);
+            }
+            if(image->is3D())
+            {
+              const int depth = !image->depth_expression.empty()
+                  ? resolveDispatchExpression(image->depth_expression)
+                  : imageSize.height();
+              return t->pixelSize() == imageSize && t->depth() == depth;
+            }
+            if(image->is_array)
+            {
+              int layers = !image->layers_expression.empty()
+                  ? resolveDispatchExpression(image->layers_expression)
+                  : 1;
+              if(layers < 1)
+                layers = 1;
+              return t->pixelSize() == imageSize && t->arraySize() == layers;
+            }
+            return t->pixelSize() == imageSize;
+          };
+          if(it->texture && !liveSizeMatches(it->texture))
+          {
+            QRhiTexture* oldTex = it->texture;
+            QRhiTexture* oldRead = it->read_texture;
+            if(QRhiTexture* newTex = make_tex(""))
+            {
+              it->texture = newTex;
+              if(it->persistent && oldRead)
+                it->read_texture = make_tex("_prev"); // null tolerated: guards below
+              for(auto& [e2, cp] : m_computePasses)
+              {
+                if(!cp.srb)
+                  continue;
+                if(it->binding >= 0)
+                  score::gfx::replaceTexture(*cp.srb, it->binding, newTex);
+                if(it->prev_binding >= 0 && it->read_texture)
+                  score::gfx::replaceTexture(
+                      *cp.srb, it->prev_binding, it->read_texture);
+              }
+              const int myIndex = int(it - m_storageImages.begin());
+              for(auto& [e2, gp] : m_graphicsPasses)
+              {
+                if(!gp.pipeline.srb || !gp.outputSampler)
+                  continue;
+                bool mine = false;
+                for(const auto& [port, index] : m_outStorageImages)
+                {
+                  if(port == e2->source)
+                  {
+                    mine = (index == myIndex);
+                    break;
+                  }
+                }
+                // Fallback-path passes sample m_outputTexture.
+                if(mine || m_outputTexture == oldTex)
+                  score::gfx::replaceTexture(
+                      *gp.pipeline.srb, gp.outputSampler, newTex);
+              }
+              if(m_outputTexture == oldTex)
+                m_outputTexture = newTex;
+              oldTex->deleteLater();
+              if(oldRead && oldRead != it->read_texture)
+                oldRead->deleteLater();
+            }
+          }
           if(!it->texture)
           {
             it->texture = make_tex("");
