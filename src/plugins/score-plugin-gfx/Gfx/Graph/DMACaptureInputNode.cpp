@@ -202,6 +202,12 @@ public:
                       " the decoder for host-staged upload";
         m_backend->dropExternalImageRequest();
 
+        // GPUVideoDecoder::release() is what frees the samplers and input
+        // textures init() created (the destructor does not) — dropping the
+        // external decoder without it leaks its textures into QRhi
+        // teardown, which debug Vulkan catches as a VMA
+        // "allocations were not freed" abort.
+        m_gpu->release(renderer);
         m_gpu.reset();
         static_cast<Video::ImageFormat&>(m_metadata) = m_backend->imageFormat();
         m_gpu = m_backend->makeDecoder(m_metadata);
