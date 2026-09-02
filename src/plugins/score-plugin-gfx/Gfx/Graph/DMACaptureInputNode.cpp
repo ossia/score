@@ -113,10 +113,10 @@ public:
 
     // SCORE_GFX_CAPTURE_STRATEGY pins a rung of the ladder for matrix testing:
     // a case-insensitive substring matched against the strategy's name()
-    // ("rdma", "dvp", ...), or "cpu" to force the CPU-staging rung. Without it
-    // selection is unchanged: fastest first, degrading on init failure. This is
-    // how a Quadro box can be made to behave like a machine without one, which
-    // is the only way to test the CPU rung on hardware that would skip it.
+    // ("rdma", "dvp", ...), or "cpu" to force the CPU-staging rung. Without it,
+    // selection is fastest first, degrading on init failure. This is how a
+    // Quadro box can be made to behave like a machine without one, which is the
+    // only way to test the CPU rung on hardware that would skip it.
     const auto pinWant
         = qEnvironmentVariable("SCORE_GFX_CAPTURE_STRATEGY").toLower();
     const bool pinForceCpu = (pinWant == "cpu" || pinWant == "cpu-staging");
@@ -202,6 +202,12 @@ public:
                       " the decoder for host-staged upload";
         m_backend->dropExternalImageRequest();
 
+        // GPUVideoDecoder::release() is what frees the samplers and input
+        // textures init() created (the destructor does not) — dropping the
+        // external decoder without it leaks its textures into QRhi
+        // teardown, which debug Vulkan catches as a VMA
+        // "allocations were not freed" abort.
+        m_gpu->release(renderer);
         m_gpu.reset();
         static_cast<Video::ImageFormat&>(m_metadata) = m_backend->imageFormat();
         m_gpu = m_backend->makeDecoder(m_metadata);
@@ -264,7 +270,7 @@ public:
     // down, and one that never offered still has to be told nothing changed.
     m_backend->setSyncGroupEngaged(m_syncGroup != nullptr);
 
-    // Some zero-copy strategies (the Vulkan zero-copy path) allocate the renderer-facing
+    // Some strategies (the Vulkan zero-copy path) allocate the renderer-facing
     // texture themselves — an exportable, CUDA-mapped VkImage — instead of
     // uploading into the decoder's. When the strategy provides its own texture,
     // swap it into the decoder's sampler so the pass samples it. The strategy
@@ -350,14 +356,14 @@ public:
       score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res,
       score::gfx::Edge*) override
   {
-    // Live input-resolution change (Spout-style consumer side): the capture
-    // thread published a new wire geometry into the ring. Rebuild our
-    // size-dependent GPU resources at the new size with the same teardown+reinit
-    // the RenderList runs on a window resize. release() stops the backend first,
-    // so the capture thread cannot write a new-size frame into an old-size slot.
-    // Done at the top of update(), before this frame draws with m_p, so the
-    // rebuilt passes are the ones used. init() re-opens the backend, which for
-    // an auto-detecting input re-reads the current wire format.
+    // Live input-resolution change: the capture thread published a new wire
+    // geometry into the ring. Rebuild the size-dependent GPU resources at the
+    // new size with the same teardown+reinit the RenderList runs on a window
+    // resize. release() stops the backend first, so the capture thread cannot
+    // write a new-size frame into an old-size slot. Done at the top of
+    // update(), before this frame draws with m_p, so the rebuilt passes are the
+    // ones used. init() re-opens the backend, which for an auto-detecting input
+    // re-reads the current wire format.
     if(const auto fmt = m_ring.loadFormat();
        fmt.generation != m_lastFormatGen && fmt.width > 0 && fmt.height > 0)
     {
@@ -567,8 +573,8 @@ public:
           << ") mean " << (double(m_uploadTotalNs) / m_uploadCount / 1000.0)
           << " us over " << m_uploadCount << " frames";
     }
-    // If the strategy owns the decoder's sampler texture (the Vulkan zero-copy swap,
-    // recorded at init), detach it before either release() runs so the decoder
+    // If the strategy owns the decoder's sampler texture (the Vulkan zero-copy
+    // swap, recorded at init), detach it before either release() runs so the decoder
     // doesn't free a texture the strategy also frees. For every other strategy
     // outputTexture() IS the decoder's own texture — detaching would leak it,
     // since GPUVideoDecoder::release() is what deletes it.
@@ -627,7 +633,7 @@ private:
 
   /// Set when this stream belongs to a multi-sensor capture; then the group,
   /// not m_ring, decides which slot to bind. Null for a single-stream device,
-  /// which keeps the unsynchronised path byte-for-byte unchanged.
+  /// which stays on the unsynchronised path.
   score::gfx::interop::CaptureSyncGroup* m_syncGroup{};
   std::size_t m_syncMember{0};
 
@@ -638,8 +644,8 @@ private:
   uint64_t m_lastFormatGen{0};
   bool m_renderHoldsTexture{false};
   /// True when the strategy swapped its own texture into the decoder sampler
-  /// (the Vulkan zero-copy path); gates the detach in release() so decoder-owned textures
-  /// are still freed by GPUVideoDecoder::release().
+  /// (the Vulkan zero-copy path); gates the detach in release() so decoder-owned
+  /// textures are still freed by GPUVideoDecoder::release().
   bool m_strategyOwnsTexture{false};
   /// The texture currently bound in every pass's SRB. Tracked so a
   /// double-buffering strategy's per-frame texture change triggers exactly one
