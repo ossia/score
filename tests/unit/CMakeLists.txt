@@ -871,6 +871,19 @@ score_add_test(test_unit_threedim_loaders
   target_include_directories(test_unit_threedim_gltf_loader SYSTEM PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/vcglib"
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/eigen")
+
+  # P2-5: the ufbx FBX path yields position / normal / UV streams with the
+  # expected counts, plus a fork-isolated truncation matrix. Same wiring as
+  # the loaders target above.
+  score_add_test(test_unit_threedim_fbx_loader
+    SOURCES
+      FbxLoaderTest.cpp
+      ${_threedim_hidden}
+    PLUGINS score_plugin_threedim score_plugin_gfx score_plugin_avnd
+    LIBS test_unit_threedim_3rdparty fastgltf spz "${QT_PREFIX}::Gui")
+  target_include_directories(test_unit_threedim_fbx_loader SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/vcglib"
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/eigen")
 endif()
 
 # PrimitiveCloud parsers (PLY / .splat / .spz + scene helpers). The parser
