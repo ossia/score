@@ -9,6 +9,11 @@ score_add_test(test_gfx_control_tree
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/ControlTreeTest.cpp"
   PLUGINS score_plugin_gfx)
 
+# The shared dlopen'd libv4l2 loader and its ioctl retry wrapper.
+score_add_test(test_gfx_v4l2_loader
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/V4L2LoaderTest.cpp"
+  PLUGINS score_plugin_gfx)
+
 score_add_test(test_gfx_capture_correlator
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/CaptureCorrelatorTest.cpp"
   PLUGINS score_plugin_gfx)
