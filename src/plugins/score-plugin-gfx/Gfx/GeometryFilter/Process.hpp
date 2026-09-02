@@ -53,6 +53,11 @@ public:
     return m_processedProgram;
   }
 
+  // Explicitly exported so the signal has ONE address process-wide even
+  // under -fvisibility-inlines-hidden; see the note on CSF::Model's
+  // errorMessage — a cross-DSO PMF connect() otherwise fails with
+  // 'signal not found'.
+  SCORE_PLUGIN_GFX_EXPORT
   void errorMessage(int arg_1, const QString& arg_2) const
       W_SIGNAL(errorMessage, arg_1, arg_2);
 
