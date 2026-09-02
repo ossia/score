@@ -784,9 +784,13 @@ endif()
 
 # Hidden playback-throughput benchmark for the Direct video path; see the
 # file header for usage (needs VIDEO_BENCH_FILES; VIDEO_BENCH_HWDEC selects
-# the hardware decoding method by its settings name).
+# the hardware decoding method by its settings name). NO_CTEST: every case
+# in the binary is a hidden [.tag] benchmark that needs media files handed
+# in by environment, so a bare ctest entry can only ever fail with
+# Catch2's 'No tests ran'.
 score_add_test(test_gfx_video_direct_bench
   SOURCES VideoDirectPlaybackBench.cpp
   GUI
   PLUGINS score_plugin_gfx score_plugin_media score_plugin_scenario score_lib_process
-  LIBS test_gfx_engine_glue avcodec avformat avutil)
+  LIBS test_gfx_engine_glue avcodec avformat avutil
+  NO_CTEST)

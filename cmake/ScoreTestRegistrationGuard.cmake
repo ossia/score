@@ -77,6 +77,11 @@ set(SCORE_TEST_GUARD_ALLOWED_TARGETS
   # Helper the plugin-scanner test spawns (static-Qt builds only), started
   # through SCORE_FAKE_PUPPET, never by ctest.
   score_test_fake_puppet
+  # Hidden playback-throughput benchmark (every Catch2 case is a [.tag]):
+  # it needs media files handed in through VIDEO_BENCH_FILES and prints
+  # numbers instead of asserting them, so a bare ctest entry can only ever
+  # fail with Catch2's 'No tests ran'. Run by hand per its file header.
+  test_gfx_video_direct_bench
 )
 
 # Every directory the buildsystem created below `dir`, `dir` included.
