@@ -65,6 +65,13 @@ set(SCORE_TEST_GUARD_ALLOWED_HARNESSES
   corpus/generate-corpus.sh
   corpus/run-corpus.sh
   corpus/run-hwdec.sh
+  # The score-document corpus harness (P1-15). The corpus is the user's own
+  # working files, lives outside the repository (SCORE_CORPUS_DIR, default
+  # $HOME/ossia/score-corpus) and must never be committed; and a document that
+  # crashes or hangs has to be a report LINE, which means one process per
+  # document driven by a script, not a single ctest that dies with the first
+  # bad file. run-score-corpus.sh exits 77 when the corpus is absent.
+  corpus/run-score-corpus.sh
 )
 
 # Executables built under tests/ that are deliberately not ctest entries.
@@ -74,6 +81,9 @@ set(SCORE_TEST_GUARD_ALLOWED_TARGETS
   ObjectGallery
   # Driven by the corpus/*.sh harnesses above, not by ctest.
   score_video_corpus_tester
+  # Ditto, for .score documents: run-score-corpus.sh spawns one of these per
+  # document so a crash or a hang condemns only that document.
+  score_corpus_tester
   # Helper the plugin-scanner test spawns (static-Qt builds only), started
   # through SCORE_FAKE_PUPPET, never by ctest.
   score_test_fake_puppet
