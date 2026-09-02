@@ -423,6 +423,30 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
 
+# P1-10 (render half): the Instances spinbox on Buffers-to-geometry v2 drives
+# the drawn count, live, with exactly one CustomMesh::reload per flush. Also
+# PINS (green, flip-when-fixed) the engine gap that an Instances-ONLY edit is
+# absent from the node's change fingerprint and freezes until another control
+# nudges it.
+if(TARGET score_plugin_threedim)
+  score_plugin_hidden_sources(_b2g_instances_hidden
+      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim/BufferToGeometry2.cpp")
+  score_add_test(test_gfx_buffertogeometry_instances
+    SOURCES GfxBufferToGeometryInstances.cpp ${_b2g_instances_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_buffertogeometry_instances PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_buffertogeometry_instances SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
 # P1-11 (render half): a point cloud renders as exactly N points -- real
 # PCLToMesh2 descriptor with a NON-ZERO byte_offset (regression guard for the
 # fixed 2b6234a6c3 full-byte_size over-count), real avnd bridge, real point
