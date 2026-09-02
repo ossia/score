@@ -36,6 +36,37 @@ Process::ProcessModel* find_splat(score::Document& doc)
 }
 }
 
+// Threedim/Splat/Process.cpp's Model::prettyName() returns tr("Model Display")
+// — a copy-paste slip from the process it was cloned from; the process's own
+// Metadata.hpp declares both the internal and the pretty name as "Splat".
+// Users see two processes named "Model Display" in the UI. Asserts the CORRECT
+// name per the house rule, so fixing the string flips this tag rather than
+// editing the test.
+TEST_CASE(
+    "Splat's prettyName says Splat, not Model Display",
+    "[integration][regression][threedim][gui][!shouldfail]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    score::Document* doc = score::test::new_document(ctx);
+    REQUIRE(doc != nullptr);
+
+    auto& factories = ctx.interfaces<Process::ProcessFactoryList>();
+    auto* factory = factories.get(splat_key);
+    REQUIRE(factory != nullptr);
+
+    CommandDispatcher<> disp{doc->context().commandStack};
+    disp.submit<Scenario::Command::AddOnlyProcessToInterval>(
+        base_interval(*doc), factory->concreteKey(), QString{}, QPointF{});
+
+    Process::ProcessModel* splat = find_splat(*doc);
+    REQUIRE(splat != nullptr);
+
+    // Metadata.hpp (cdc15a16-…): internal name "Splat", pretty name "Splat".
+    // Model::prettyName() returns "Model Display" instead.
+    CHECK(splat->prettyName() == QStringLiteral("Splat"));
+  });
+}
+
 TEST_CASE(
     "Splat process ports stay stable across save/reload cycles",
     "[integration][regression][threedim][gui]")
@@ -49,7 +80,6 @@ TEST_CASE(
     auto* factory = factories.get(splat_key);
     REQUIRE(factory != nullptr);
 
-    // Create a Splat process with empty construction data.
     CommandDispatcher<> disp{doc->context().commandStack};
     disp.submit<Scenario::Command::AddOnlyProcessToInterval>(
         base_interval(*doc), factory->concreteKey(), QString{}, QPointF{});
@@ -61,7 +91,6 @@ TEST_CASE(
     const auto outlets = splat->outlets().size();
     REQUIRE(inlets > 0);
 
-    // First reload.
     score::Document* reloaded = score::test::reload_via_bytes(ctx, *doc, "splat-1");
     REQUIRE(reloaded != nullptr);
     Process::ProcessModel* splat1 = find_splat(*reloaded);
@@ -69,7 +98,6 @@ TEST_CASE(
     CHECK(splat1->inlets().size() == inlets);
     CHECK(splat1->outlets().size() == outlets);
 
-    // Second reload.
     score::Document* reloaded2
         = score::test::reload_via_bytes(ctx, *reloaded, "splat-2");
     REQUIRE(reloaded2 != nullptr);
