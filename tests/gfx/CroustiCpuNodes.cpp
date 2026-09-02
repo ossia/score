@@ -85,13 +85,14 @@ void setInputs(score::gfx::Node& n, std::vector<ossia::value> vals)
   n.process(std::move(m));
 }
 
-//! Fraction of pixels that are lit, and the horizontal centre of mass of the lit
-//! ones in [0,1]. Centroid is meaningless with nothing lit, so callers must
-//! check `coverage` first.
+//! Fraction of pixels that are lit, the horizontal centre of mass of the lit
+//! ones in [0,1], and whether the frame's own centre pixel is lit. Centroid is
+//! meaningless with nothing lit, so callers must check `coverage` first.
 struct Placement
 {
   double coverage{};
   double centroidX{};
+  bool centreLit{};
 };
 
 Placement placement_of(const ReadbackImage& img)
@@ -113,6 +114,8 @@ Placement placement_of(const ReadbackImage& img)
   const double total = double(img.width) * double(img.height);
   p.coverage = total > 0 ? double(lit) / total : 0.;
   p.centroidX = lit > 0 ? (sx / double(lit)) / double(img.width) : 0.;
+  p.centreLit = img.width > 0 && img.height > 0
+                && img.at(img.width / 2, img.height / 2)[0] > 128;
   return p;
 }
 
@@ -419,6 +422,22 @@ Placement render_scene_chain(
   GfxPipeline p;
   const int prim = torus ? p.addNode(procs.make<Threedim::Torus>(ctx))
                          : p.addNode(procs.make<Threedim::Cube>(ctx));
+  if(torus)
+  {
+    // Threedim::Torus defaults to R1 = 10 (ring) / R2 = 1 (tube), so its
+    // surface lives entirely in the annulus 9 <= sqrt(x^2+y^2) <= 11 of the XY
+    // plane (vcg::tri::Torus, platonic.h:673-700: the profile circle is placed
+    // at +hRingRadius on X and swept about Z). This rig has NO camera -- the
+    // shader is `clipSpaceCorrMatrix * per_draws[draw_id].model * position`, so
+    // model space IS clip space -- and the visible NDC square is [-1,1]^2,
+    // which sits wholly inside the torus's own hole. Scaling to 0.05 brings the
+    // ring (radius 0.5, tube 0.05) into the frame. The Cube needs none of this:
+    // vcg::tri::Box is built on [0,1]^3 and lands on one NDC quadrant.
+    setInputs(
+        *p.node(prim), {ossia::value{ossia::vec3f{0.f, 0.f, 0.f}},
+                        ossia::value{ossia::vec3f{0.f, 0.f, 0.f}},
+                        ossia::value{ossia::vec3f{0.05f, 0.05f, 0.05f}}});
+  }
   const int flat = p.addNode(std::make_unique<score::gfx::ScenePreprocessorNode>());
   // syn-scene-perdraw-solid places the geometry with per_draws[draw_id].model,
   // the matrix the FLATTENER fills. syn-scene-solid.vs multiplies by
@@ -506,19 +525,31 @@ TEST_CASE(
 
 TEST_CASE(
     "a Torus reaches the rasterizer and draws",
-    "[gfx][crousti][scene][threedim][!shouldfail]")
+    "[gfx][crousti][scene][threedim]")
 {
-  // EXPECTED TO FAIL: a Threedim::Torus renders nothing through the scene chain.
+  // THIS WAS AN EXPECTED-FAILURE PIN, and it was the SECOND rig mistake in this
+  // file, unrelated to the first (the retired MODEL_MATRIX one).
   //
-  // It is not a case of geometry never arriving -- the rasterizer receives 1764
-  // vertices for the Torus, against 36 for the Cube, and the Cube draws a
-  // visible silhouette through the identical chain. The Torus simply produces an
-  // empty frame on both backends.
+  // The pin recorded that the rasterizer receives 1764 vertices for the Torus
+  // against 36 for the Cube, that the Cube draws through the identical chain,
+  // and that the Torus frame is nevertheless exactly empty. All three
+  // observations were correct. The missing one: WHERE those 1764 vertices are.
   //
-  // Not explained by the (now-retired) MODEL_MATRIX pin either: that was a
-  // rig mistake, and with the corrected syn-scene-perdraw-solid rasteriser the
-  // Cube draws at coverage 0.25 while the Torus is still exactly 0. Measured
-  // after the shader fix, so this is its own fault and still unexplained.
+  // Threedim::Torus's default controls are R1 = 10 and R2 = 1, so every vertex
+  // it emits satisfies 9 <= sqrt(x^2+y^2) <= 11. The rig has no camera -- the
+  // rasteriser is `gl_Position = clipSpaceCorrMatrix * per_draws[draw_id].model
+  // * position`, i.e. model space is clip space -- so the frame shows NDC
+  // [-1,1]^2, which lies entirely within the torus's 9-unit hole. The geometry
+  // was generated correctly, uploaded correctly and drawn correctly; all of it
+  // simply missed the viewport. Scaling the primitive to 0.05 (through the
+  // scene transform the flattener already publishes in per_draws[].model)
+  // brings it into frame and it draws: measured coverage 0.078125, against the
+  // 0.0785 = pi*(0.55^2 - 0.45^2)/4 an annulus of those radii must cover in a
+  // 2x2 NDC square. Reverting just the scale returns coverage to exactly 0.
+  //
+  // The oracle is therefore not "something was drawn" but "a RING was drawn":
+  // the centre of the frame must stay dark, which no full silhouette (and no
+  // stray full-frame clear) can satisfy.
   const auto api = GENERATE(from_range(platform_backends()));
   Placement cube, torus;
   bool okA = false, okB = false;
@@ -545,6 +576,10 @@ TEST_CASE(
   REQUIRE(cube.coverage > 0.01);
   INFO("coverage cube=" << cube.coverage << " torus=" << torus.coverage);
   CHECK(torus.coverage > 0.01);
+  CHECK(torus.coverage < 0.5);
+  // A torus is a ring: the hole must show. This is what separates "the Torus
+  // drew" from "the frame was filled by something else".
+  CHECK_FALSE(torus.centreLit);
 }
 
 //! Build a GeometryFilterNode from a MODE:"GEOMETRY_FILTER" source on disk.
