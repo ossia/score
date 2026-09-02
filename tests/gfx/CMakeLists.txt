@@ -119,6 +119,11 @@ score_add_csf_test(cube_array CsfCubeArray.cpp)
 # CSF geometry / storage-buffer producers: parse + port-surface coverage; the
 # readback itself SKIPs (no Geometry/Buffer-consuming sink in this fixture yet).
 score_add_csf_test(geometry CsfGeometry.cpp)
+# CSF geometry / storage-buffer VALUE readback, through the BufferSinkNode
+# fixture (score_test/GfxBufferSink.hpp): closes the SKIP CsfGeometry.cpp
+# documents -- until this, CSF compute output values could not be read back at
+# all. Also carries the P0-2 instancing counter half (instanceHits SSBO).
+score_add_csf_test(buffer_readback GfxBufferReadback.cpp)
 
 score_add_isf_test(mrt            IsfMrt.cpp)
 score_add_isf_test(multipass      IsfMultipass.cpp)
