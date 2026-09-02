@@ -22,7 +22,17 @@
 
 #include <QGuiApplication>
 
+#include <QtGlobal>
+
 #include <QtGui/private/qrhi_p.h>
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+#include <rhi/qrhi_platform.h>
+#else
+// Before 6.6 the rhi/ headers do not exist and qrhi_p.h declares only the
+// base QRhiInitParams; the concrete ones live in the per-backend headers.
+#include <QtGui/private/qrhinull_p.h>
+#endif
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -417,17 +427,16 @@ TEST_CASE("a readback in flight is not re-issued onto the same slot",
 
 
 // ---------------------------------------------------------------------------
-// HostPinnedRing move-assignment (4ad2a48f28). Impl has no destructor and
-// freeSlots() is reachable only from destroy(), so a DEFAULTED move-assign
-// dropped the destination's page-locked slots (16 MB across 4 objects,
-// measured) and skipped the CUDA/DVP/AMD-pinned teardown with it. operator=
-// routes through destroy() now.
+// HostPinnedRing move-assignment. Impl has no destructor and freeSlots() is
+// reachable only from destroy(), so a defaulted move-assign would drop the
+// destination's page-locked slots and skip the CUDA/DVP/AMD-pinned teardown
+// with it; operator= routes through destroy().
 //
 // What a normal build can assert is the ownership contract below. The LEAK
-// half is only observable with LeakSanitizer: under the ASan/LSan build the
+// half is only observable with LeakSanitizer: under the ASan/LSan build a
 // defaulted operator= reports the destination's slots as definitely lost --
 // that build is this case's negative control, since in a plain build the
-// defaulted and the fixed operator= produce identical observable state.
+// defaulted and the routed operator= produce identical observable state.
 // ---------------------------------------------------------------------------
 
 TEST_CASE("move-assignment hands the ring over and keeps none of it",

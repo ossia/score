@@ -17,7 +17,17 @@
 #include <QGuiApplication>
 #include <QOffscreenSurface>
 #include <QOpenGLContext>
+#include <QtGlobal>
+
 #include <QtGui/private/qrhi_p.h>
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+#include <rhi/qrhi_platform.h>
+#else
+// Before 6.6 the rhi/ headers do not exist and qrhi_p.h declares only the
+// base QRhiInitParams; the concrete ones live in the per-backend headers.
+#include <QtGui/private/qrhigles2_p.h>
+#endif
 #include <QtGui/private/qrhigles2_p.h>
 
 #include <cmath>
@@ -401,9 +411,8 @@ void main() {
 }
 } // namespace
 
-/// Everything the test does once an app context exists. createRenderState
-/// reaches for score::AppContext(), so none of this can run before one does --
-/// without it the process segfaults before printing anything.
+/// Everything the test does once a QGuiApplication exists: the GL context probe
+/// and QRhi creation both go through the platform integration.
 int runTests()
 {
   // The RHI is built here rather than through createRenderState, which reaches
