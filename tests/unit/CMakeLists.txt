@@ -520,6 +520,14 @@ score_add_test(test_unit_device_tree_reload
   APP
   PLUGINS score_plugin_deviceexplorer score_lib_device score_lib_state)
 
+# A5: a MIDI device naming a backend this build does not have (an ALSA sequencer
+# port on a machine whose libremidi was built without ALSA) used to ABORT on
+# load, from a SCORE_ASSERT on external state. It must refuse, visibly.
+score_add_test(test_unit_midi_missing_api
+  SOURCES MidiMissingApiTest.cpp
+  APP
+  PLUGINS score_plugin_protocols score_plugin_deviceexplorer score_lib_device score_lib_state)
+
 # The tracking protocols addon as devices: every protocol can be added to a
 # document and coexists with the others (what the "Add device" dialog checks).
 if(TARGET score_addon_trackingprotocols)
