@@ -354,6 +354,12 @@ if(SCORE_TESTING)
   # must not be able to delete its own guard along with the registrations.
   include(ScoreTestRegistrationGuard)
   score_check_test_registration()
+
+  # Same placement rationale: CI compiles the tests against Qt 6.4.2 while the
+  # reference build here is 6.13, and two tests have already shipped using an
+  # API newer than that. See the header of the file for the two shapes it knows.
+  include(ScoreRhiPortabilityGuard)
+  score_check_rhi_portability()
 endif()
 
 # Backwards-compatible aliases for the legacy flags (kept temporarily).
