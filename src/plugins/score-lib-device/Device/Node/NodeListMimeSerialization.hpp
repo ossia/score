@@ -42,6 +42,15 @@ struct MimeWriter<Device::FreeNodeList> : public MimeDataWriter
   {
     Device::FreeNodeList ml;
     auto json = readJson(m_mime.data(score::mime::nodelist()));
+
+    // A drag source can declare score::mime::nodelist() with an empty or
+    // malformed payload (an interrupted drag, another app echoing the type
+    // with no data). readJson then yields a document that is not an array,
+    // and rapidjson's GetArray() asserts IsArray() — a SIGABRT that takes
+    // down the whole application. Refuse it: an unusable payload is an
+    // empty node list, not a crash.
+    if(!json.IsArray())
+      return ml;
     const auto& arr = json.GetArray();
 
     auto& strings = score::StringConstant();
