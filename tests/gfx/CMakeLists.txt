@@ -270,6 +270,11 @@ score_add_gfx_test(incremental_findings GfxIncrementalFindings.cpp)
 # object tracking when present. The incremental_findings pin only asserts the
 # added output's pixels appear; green there is not evidence about the leak.
 score_add_gfx_test(render_pass_leak GfxRenderPassLeak.cpp)
+# P0-4: the (now-fixed) resize-after-incremental-add Vulkan SIGSEGV, re-run in
+# a forked child so a future regression is a recorded verdict ("child killed by
+# signal 11") instead of a dead ctest run. The parent stays graphics-free
+# before forking; the child boots its own GUI app.
+score_add_gfx_test(incremental_resize_fork GfxIncrementalResizeFork.cpp)
 
 # -----------------------------------------------------------------------------
 # ISOLATED regression guards for the split/gfx-scene engine fixes (REVIEW-ROUND2).

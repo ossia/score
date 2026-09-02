@@ -8,7 +8,7 @@ using namespace score::test::gfx;
 using namespace score::test::gfx::isf;
 using namespace score::test::gfx::incremental;
 
-TEST_CASE("FINDING add-new-output incremental (Vulkan leaks a render pass)", "[gfx][l3][incremental][finding]")
+TEST_CASE("FINDING add-new-output incremental (fixed: Vulkan used to leak a render pass; the leak is COUNTED by test_gfx_render_pass_leak)", "[gfx][l3][incremental][finding]")
 {
   const auto backend = GENERATE(from_range(platform_backends()));
   CAPTURE(backend_name(backend));
@@ -46,7 +46,7 @@ TEST_CASE("FINDING add-new-output incremental (Vulkan leaks a render pass)", "[g
   CHECK(solid(out.c, {255, 0, 255, 255}, 2)); // the added output appears
 }
 
-TEST_CASE("FINDING resize after an incremental add crashes on Vulkan", "[gfx][l3][incremental][finding]")
+TEST_CASE("FINDING resize after an incremental add (fixed: used to SIGSEGV on Vulkan; guarded fork-isolated by test_gfx_incremental_resize_fork)", "[gfx][l3][incremental][finding]")
 {
   const auto backend = GENERATE(from_range(platform_backends()));
   CAPTURE(backend_name(backend));
