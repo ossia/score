@@ -753,6 +753,11 @@ score_add_gfx_process_test(library         GfxProcessLibrary.cpp)
 # forked child because CTest's WILL_FAIL does not invert abnormal termination.
 score_add_gfx_process_test(drop_empty_nodelist GfxDropEmptyNodelistAbort.cpp)
 
+# OPEN-3: the run_commands full-rebuild flag must not latch across frames and
+# downgrade the next incremental edge diff. Drives the real document
+# GfxContext through GfxExecutionAction, observed via SCORE_GFX_TRACE.
+score_add_gfx_process_test(edge_consume_latch GfxEdgeConsumeLatch.cpp)
+
 # -----------------------------------------------------------------------------
 # Gfx/Spout (Windows/x86_64) and Gfx/Syphon (macOS). Neither compiles on Linux,
 # so this target must build EVERYWHERE and change what it asserts instead of
