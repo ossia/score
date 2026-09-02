@@ -51,7 +51,13 @@
 #include <core/document/DocumentModel.hpp>
 #include <core/presenter/DocumentManager.hpp>
 
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+
 #include <catch2/catch_test_macros.hpp>
+
+#include <set>
 
 namespace
 {
@@ -62,6 +68,34 @@ const QString automation_uuid = QStringLiteral("d2a67bd8-5d3f-404e-b6e9-e350cf2a
 const QString mapping_uuid = QStringLiteral("12a5d9b8-823e-4303-99f8-34db37c448b4");
 // Claimed by no factory, in this build or any other.
 const QString unknown_uuid = QStringLiteral("00000000-dead-4bee-8000-000000000a16");
+
+//! Keys that Entity<ProcessModel> / ProcessModel write themselves. Everything
+//! else in a process object is the concrete process's own payload, which a
+//! placeholder must hand back untouched.
+const std::set<QString> base_keys{
+    "uuid", "id",   "ObjectName",   "Metadata", "Components",   "Duration",
+    "Height", "StartOffset", "LoopDuration", "Pos", "Size", "Loops", "FoldMode"};
+
+//! Depth-first search for the process object carrying `uuid`.
+std::optional<QJsonObject> find_process(const QJsonValue& v, const QString& uuid)
+{
+  if(v.isObject())
+  {
+    const auto o = v.toObject();
+    if(o.value("uuid").toString() == uuid && o.contains("Duration"))
+      return o;
+    for(const auto& k : o.keys())
+      if(auto r = find_process(o.value(k), uuid))
+        return r;
+  }
+  else if(v.isArray())
+  {
+    for(const auto& e : v.toArray())
+      if(auto r = find_process(e, uuid))
+        return r;
+  }
+  return std::nullopt;
+}
 
 Scenario::ScenarioDocumentModel& doc_model(score::Document& doc)
 {
@@ -150,5 +184,33 @@ TEST_CASE(
     //    on a machine that HAS the plug-in gets it intact.
     const QByteArray resaved = save_json(*reloaded);
     CHECK(resaved.contains(unknown_uuid.toUtf8()));
+
+    // 6. ...and it writes back the process's OWN payload byte-for-byte, not a
+    //    hollow stand-in. A placeholder that keeps the uuid but loses the
+    //    Curve, the ranges and the port definitions is just a slower data loss:
+    //    the build that HAS the plug-in would reopen an empty process.
+    const auto before
+        = find_process(QJsonDocument::fromJson(json).object(), unknown_uuid);
+    const auto after
+        = find_process(QJsonDocument::fromJson(resaved).object(), unknown_uuid);
+    REQUIRE(before.has_value());
+    REQUIRE(after.has_value());
+
+    for(const auto& k : before->keys())
+    {
+      if(base_keys.count(k))
+        continue;
+      INFO("payload key: " << k.toStdString());
+      CHECK(after->contains(k));
+      CHECK(after->value(k) == before->value(k));
+    }
+    // No keys invented either.
+    for(const auto& k : after->keys())
+    {
+      if(base_keys.count(k))
+        continue;
+      INFO("unexpected key in the re-saved process: " << k.toStdString());
+      CHECK(before->contains(k));
+    }
   });
 }

@@ -82,9 +82,13 @@ NodeItem::NodeItem(
   setAcceptDrops(true);
   setFlag(ItemIsFocusable, true);
   setFlag(ItemClipsChildrenToShape, true);
-  const auto& pf
-      = ctx.app.interfaces<Process::ProcessFactoryList>().get(process.concreteKey());
-  setData(0xF1, pf->descriptor(process).documentationLink);
+  // Null for a Process::MissingProcess -- a process whose factory this build
+  // does not have. That is a real process in the document (see
+  // ProcessFactoryList::loadMissing) and gets a node item like any other; it
+  // simply has no descriptor, hence no documentation link.
+  if(const auto& pf
+     = ctx.app.interfaces<Process::ProcessFactoryList>().get(process.concreteKey()))
+    setData(0xF1, pf->descriptor(process).documentationLink);
 
   if(process.flags() & Process::ProcessFlags::FullyCustomItem)
   {
@@ -196,7 +200,17 @@ void NodeItem::updateTooltip()
   if(!m_fx || m_fx->toolTip().isEmpty())
   {
     auto& p = this->m_context.app.interfaces<Process::ProcessFactoryList>();
-    const auto& desc = p.get(m_model.concreteKey())->descriptor(m_model);
+    auto* fac = p.get(m_model.concreteKey());
+    if(!fac)
+    {
+      // Process::MissingProcess: no factory in this build, hence no descriptor.
+      // Say what it actually is instead of dereferencing null.
+      setToolTip(tr("%1\n\nThis process comes from a plug-in that is not "
+                    "installed. It is kept intact and saved back unchanged.")
+                     .arg(m_model.metadata().getName()));
+      return;
+    }
+    const auto& desc = fac->descriptor(m_model);
 
     bool has_name = !desc.prettyName.isEmpty();
     bool has_desc = !desc.description.isEmpty();
