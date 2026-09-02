@@ -111,8 +111,8 @@ public:
    *
    * Update state.outputSize to @p newOutputSize and state.renderSize to
    * @p newRenderSize, and mark every renderer's renderTargetSpecsChanged so
-   * the existing `rt_changed` surgical block in renderInternal handles the
-   * actual RT recreation + sampler rebinding on the next render frame.
+   * the `rt_changed` block in renderInternal does the RT recreation and
+   * sampler rebinding on the next render frame.
    *
    * The two sizes are distinct: the output node owns the render size (the
    * `/rendersize` override, ScreenNode::setRenderSize), the platform owns
@@ -120,20 +120,16 @@ public:
    * RenderState the output node has already updated.
    *
    * Skips the full `recreateOutputRenderList` teardown + rebuild
-   * (release+createRenderList) — saves the bulk of resize cost
-   * (pipeline compiles, ScenePreprocessor REBUILD, mesh slab uploads,
-   * texture array reallocation, etc.). Persistent registry +
-   * persistent ScenePreprocessor caches mean none of that work is
-   * actually needed for a pure size change.
+   * (pipeline compiles, ScenePreprocessor rebuild, mesh slab uploads,
+   * texture array reallocation): the persistent registry and
+   * ScenePreprocessor caches make that work unnecessary for a pure size
+   * change. Cost is O(N renderers), with no GPU drain and no allocation
+   * until the next frame's rt_changed block recreates the RTs.
    *
-   * Returns true on success. Returns false (caller should fall back
-   * to recreateOutputRenderList) when:
+   * Returns true on success. Returns false, and the caller must fall back
+   * to recreateOutputRenderList, when:
    *   - either size is invalid
    *   - renderers vector is empty (RL not yet initialised)
-   * The caller (Graph::onResize) handles the fallback path.
-   *
-   * Cost: O(N renderers), no GPU drain, no allocations until the
-   * next render frame's rt_changed block recreates the RTs.
    */
   bool resizeSwapchainSizedTargets(QSize newOutputSize, QSize newRenderSize);
 
@@ -231,8 +227,8 @@ public:
    * rebuilds — the same registry pointer is observed by both the
    * pre- and post-rebuild RenderList for a given OutputNode. Consumers
    * that cache the registry pointer (e.g. ScenePreprocessor's
-   * m_registry) can compare against the new RL's registry on init(),
-   * skip cache wipes when unchanged.
+   * m_registry) can compare it against the new RL's registry on init()
+   * and skip the cache wipe when it is unchanged.
    *
    * Valid between init() and release().
    */
@@ -254,9 +250,6 @@ public:
    * Renderers wrap their begin/endPass regions in `ScopedGpuTimer` to
    * attribute the CB-wide lastCompletedGpuTime to the named pass. The
    * result is one frame stale — see GpuTiming.hpp for details.
-   *
-   * The S6 observability panel reads `gpuTimings().snapshot()` on its
-   * UI tick and displays per-pass rolling means.
    */
   GpuTimings& gpuTimings() noexcept { return m_gpuTimings; }
   const GpuTimings& gpuTimings() const noexcept { return m_gpuTimings; }
@@ -308,6 +301,18 @@ public:
    * createRenderList() has already fully initialized everything.
    */
   void markBuilt() noexcept { m_built = true; m_lastSize = state.renderSize; }
+
+  /**
+   * @brief Is this render list currently coherent with its output's GPU objects?
+   *
+   * False between the moment something invalidates the list (a fast-path
+   * viewport resize: resizeSwapchainSizedTargets) and the maybeRebuild() that
+   * runs on the next render frame. In that window the output node has ALREADY
+   * destroyed and replaced its QRhiTextureRenderTarget / QRhiRenderPassDescriptor
+   * while the renderers still hold the pre-resize snapshot, so nothing outside
+   * the rebuild may ask a renderer for a render target.
+   */
+  [[nodiscard]] bool isBuilt() const noexcept { return m_built; }
 
   /// Set the "any node requires depth" flag computed from the node graph.
   /// Mirrors what maybeRebuild() recomputes; called from

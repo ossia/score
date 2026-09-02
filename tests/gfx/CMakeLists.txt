@@ -328,6 +328,15 @@ score_add_gfx_test(render_pass_leak GfxRenderPassLeak.cpp)
 # before forking; the child boots its own GUI app.
 score_add_gfx_test(incremental_resize_fork GfxIncrementalResizeFork.cpp)
 
+# A4: an incremental edge add that lands between a fast-path sink resize and the
+# rebuild that resize defers used to build its pass against the render pass
+# descriptor BackgroundNode::resize() had already freed (SIGSEGV in
+# GenericNodeRenderer::addOutputPass on the corpus document test-js-ui.score).
+# Its own target: the pin compares the handles the sink renderer hands out
+# against the sink's live ones, which must not be perturbed by a neighbour's
+# QRhi teardown.
+score_add_gfx_test(sink_resize_stale_pass GfxSinkResizeStalePass.cpp)
+
 # -----------------------------------------------------------------------------
 # ISOLATED regression guards for the split/gfx-scene engine fixes (REVIEW-ROUND2).
 # Each is its OWN executable so a crash-on-failure on the pre-fix engine (the
