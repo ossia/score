@@ -330,11 +330,14 @@ TEST_CASE("an ASCII STL loads as de-indexed triangles",
   // 2 facets, one output vertex per triangle corner.
   CHECK(g.vertices == 6);
   CHECK(g.topology == halp::primitive_topology::triangles);
-  // vcglib's ASCII STL importer reports neither normals nor colours in its
-  // load mask, so only positions come through.
-  REQUIRE(g.attributes.size() == 1);
+  // STL is 'a normal and three vertices per facet': since 1a02c5cabf the
+  // openStl wrapper recomputes per-face normals from the winding (vcglib's
+  // import_stl.h reads the stored normal and drops it, and never sets
+  // IOM_FACENORMAL itself) — so positions AND normals come through.
+  REQUIRE(g.attributes.size() == 2);
   CHECK(g.attributes[0].semantic == halp::attribute_semantic::position);
-  CHECK(loader.complete.size() == 6 * 3);
+  CHECK(g.attributes[1].semantic == halp::attribute_semantic::normal);
+  CHECK(loader.complete.size() == 6 * (3 + 3));
 }
 
 TEST_CASE("an ASCII OFF loads as de-indexed triangles",
