@@ -1,25 +1,26 @@
 // =============================================================================
-// P0-5 -- an incremental add-new-output must not leak a render pass.
+// An incremental add-new-output must not leak a render pass.
 //
 //   DISPLAY=:0 SCORE_TEST_API=opengl ctest -R gfx_render_pass_leak
 //   DISPLAY=:0 SCORE_TEST_API=vulkan ctest -R gfx_render_pass_leak
 //
-// WHY THIS TEST EXISTS. The historical Vulkan render-pass leak (one VkRenderPass
-// left behind by every incremental add-new-output) is reported FIXED by the
-// pass-creation/reconcile rework -- but the existing coverage,
-// "FINDING add-new-output incremental" in tests/gfx/GfxIncrementalFindings.cpp,
-// only asserts that the ADDED OUTPUT'S PIXELS APPEAR. It counts nothing: a
-// build that re-leaks a QRhiRenderPassDescriptor (and the render target it
-// belongs to) on every add/remove cycle still renders magenta and stays green
-// there. This file makes the leak COUNTABLE, three ways, so a regression trips:
+// WHY THIS TEST EXISTS. The existing coverage, "FINDING add-new-output
+// incremental" in tests/gfx/GfxIncrementalFindings.cpp, only asserts that the
+// ADDED OUTPUT'S PIXELS APPEAR. It counts nothing: a build that leaks a
+// QRhiRenderPassDescriptor (and the render target it belongs to) on every
+// add/remove cycle still renders magenta and stays green there. This file
+// makes the leak COUNTABLE, three ways, so a regression trips:
 //
-//  1. PER-CYCLE (Vulkan/D3D12): QRhi::statistics().allocCount -- the memory
+//  1. PER-CYCLE (Vulkan/D3D12, Qt >= 6.6): QRhi::statistics().allocCount -- the memory
 //     allocator's live-allocation count (VMA on Vulkan; see QRhiStats in
 //     qtbase/src/gui/rhi/qrhi.h:1896). A leaked render target keeps its color
 //     texture allocation alive, so over K add-output/remove-output cycles the
 //     count must return to its steady-state baseline after EVERY cycle (+-0,
 //     cycles 1..K-1; cycle 0 is excluded as cache warm-up). OpenGL/Metal
 //     expose no allocator statistics (allocCount stays 0) and rely on 2+3.
+//     So does every backend on Qt < 6.6, where QRhi::statistics() does not
+//     exist at all -- CI builds against 6.4.2. The count is compiled out
+//     there and reports 0, taking the same statsUsable == false branch.
 //
 //  2. AT TEARDOWN (every backend, unix): Qt's own RHI resource accounting.
 //     With QT_RHI_LEAK_CHECK=1 (always-on in a debug Qt), destroying a QRhi
@@ -28,7 +29,7 @@
 //     after "QRhi %p going down with %d unreleased resources ..."
 //     (qtbase/src/gui/rhi/qrhi.cpp:8722-8729). Every render pass the engine
 //     creates is a named resource ("createRenderTarget::renderPass",
-//     src/plugins/score-plugin-gfx/Gfx/Graph/Utils.cpp:161) and properly
+//     src/plugins/score-plugin-gfx/Gfx/Graph/Utils.cpp:164) and properly
 //     released resources NEVER appear there: TextureRenderTarget::release()
 //     goes through QRhiResource::deleteLater() and QRhi::~QRhi flushes the
 //     pending-delete list BEFORE the leak check runs (qrhi.cpp:9200). So the
@@ -55,28 +56,28 @@
 // output APPEARS (the cycle must be real), and tears it back down through the
 // real removal path (onEdgeRemoved + removeEdge + reconcile;
 // removeNodeAndEdges). The renderer resources of the now-unreachable `b` are
-// released by reconcileAllRenderLists (Graph.cpp:945, releaseState) -- the
+// released by reconcileAllRenderLists (Graph.cpp:987, releaseState) -- the
 // exact site whose omission the counters above must catch, along with
-// releaseOutputRenderList's renderer->release() (Graph.cpp:1218) at teardown.
+// releaseOutputRenderList's renderer->release() (Graph.cpp:1259) at teardown.
 //
 // RSS is deliberately NOT used: it cannot attribute a leak to a render pass.
 //
-// MEASURED LIMITATION (verified by the orchestrator's negative controls):
+// LIMITATION:
 // a PURE QRhiRenderPassDescriptor leak (renderPass->deleteLater() removed
-// from TextureRenderTarget::release()) trips mechanism 2 on Vulkan
-// ("leaked RenderPassDescriptors=2") but is INVISIBLE on OpenGL: Qt's
-// teardown report only lists resources that "own native graphics
-// resources", and a QGles2RenderPassDescriptor owns none. On OpenGL this
-// test still catches leaks of textures / render targets / whole render
-// lists (verified: skipping ~Graph's renderer->release() goes red on GL
-// through the same counter), but the render-pass-specific strong form is
-// Vulkan/D3D12-only. Run the Vulkan leg to guard the render pass itself.
+// from TextureRenderTarget::release()) trips mechanism 2 on Vulkan but is
+// INVISIBLE on OpenGL: Qt's teardown report only lists resources that "own
+// native graphics resources", and a QGles2RenderPassDescriptor owns none. On
+// OpenGL this test still catches leaks of textures / render targets / whole
+// render lists through the same counter, but the render-pass-specific strong
+// form is Vulkan/D3D12-only. Run the Vulkan leg to guard the render pass
+// itself.
 // =============================================================================
 #include "GfxIncrementalCommon.hpp"
 
 #include <score/gfx/Vulkan.hpp>
 #if QT_HAS_VULKAN
 #include <QVulkanInstance>
+#include <QtGlobal>
 #endif
 
 #if defined(__unix__) || defined(__APPLE__)
@@ -223,7 +224,7 @@ int vkRenderPassLeaks(const std::string& log)
 } // namespace
 
 TEST_CASE(
-    "P0-5 incremental add-output/remove-output cycles do not leak render "
+    "incremental add-output/remove-output cycles do not leak render "
     "passes or render targets",
     "[gfx][l3][incremental][leak]")
 {
@@ -265,11 +266,20 @@ TEST_CASE(
     // Live-allocation count over both sinks' QRhis (each sink owns its QRhi;
     // the per-cycle producer renders inside s1's RenderList / QRhi). Non-zero
     // only on backends whose QRhi runs a memory allocator (Vulkan, D3D12).
+    //
+    // QRhi::statistics() (and QRhiStats) arrived in Qt 6.6; CI builds the
+    // tests against 6.4.2, where neither exists. Below 6.6 this mechanism
+    // compiles out and reports 0, which sets statsUsable = false and hands
+    // the case to counts 2 and 3 through the SAME branch an OpenGL or Metal
+    // run already takes. Nothing is weakened on 6.6+; the older Qt counts
+    // the leak one way fewer.
     const auto sumAlloc = [&]() -> quint64 {
       quint64 n = 0;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
       for(int i : {s0, s1})
         if(auto rs = p->sink(i)->renderState(); rs && rs->rhi)
           n += rs->rhi->statistics().allocCount;
+#endif
       return n;
     };
 
@@ -350,16 +360,14 @@ TEST_CASE(
         "allocCount after create=" << out.allocAfterCreate << " cycle1=" << *first
                                    << " min=" << *mn << " max=" << *mx
                                    << " (cycles 1.." << K - 1 << ")");
-    // A leak is a TREND, not jitter. Requiring mn == mx assumed every
-    // allocator retires a cycle's transients within that same cycle. D3D12's
-    // does not: it retires some one cycle late, so the live count oscillates
-    // by exactly one between cycles while never climbing -- measured
-    // min=62 max=63 across cycles 1..19, with d3d11 and Vulkan exactly flat.
+    // A leak is a TREND, not jitter. D3D12's allocator retires some of a
+    // cycle's transients one cycle late, so the live count oscillates by
+    // exactly one between cycles while never climbing, with d3d11 and Vulkan
+    // exactly flat.
     //
-    // Tolerating one does not weaken the guard. This test's own premise is
-    // that one leaked render target per cycle shows up as ~+18 over the
-    // compared range, and the second check below is the one that catches it:
-    // a real leak cannot end the range where it started.
+    // Tolerating one does not weaken the guard: one leaked render target per
+    // cycle shows up as ~+18 over the compared range, and the second check
+    // below catches it -- a real leak cannot end the range where it started.
     constexpr int kAllocJitter = 1;
     CHECK(*mx - *mn <= kAllocJitter);
     CHECK(out.allocAfterCycle.back() - *first <= kAllocJitter);
@@ -368,9 +376,10 @@ TEST_CASE(
   {
     INFO(
         "backend '" << out.backend
-                    << "' exposes no allocator statistics (QRhiStats::allocCount "
-                       "== 0); per-cycle accounting not available, relying on "
-                       "the teardown resource accounting below");
+                    << "' exposes no allocator statistics (allocCount == 0, or "
+                       "Qt < 6.6 where QRhi::statistics() does not exist); "
+                       "per-cycle accounting not available, relying on the "
+                       "teardown resource accounting below");
   }
 
 #if GFX_LEAK_HAVE_STDERR_CAPTURE
@@ -414,7 +423,7 @@ TEST_CASE(
     else
     {
       INFO("VK_LAYER_KHRONOS_validation not present (or non-Vulkan backend); "
-           "validation-layer half of P0-5 not applicable on this run");
+           "validation-layer half not applicable on this run");
     }
   }
 #else
