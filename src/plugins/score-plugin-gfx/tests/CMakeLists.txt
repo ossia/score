@@ -14,6 +14,13 @@ score_add_test(test_gfx_v4l2_loader
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/V4L2LoaderTest.cpp"
   PLUGINS score_plugin_gfx)
 
+# The render-clock abstraction (timer / vsync / external genlock). The genlock
+# clock's hardware wait is an injected function, so its thread contract runs
+# with no card.
+score_add_test(test_gfx_render_clock
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/RenderClockTest.cpp"
+  PLUGINS score_plugin_gfx)
+
 score_add_test(test_gfx_capture_correlator
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/CaptureCorrelatorTest.cpp"
   PLUGINS score_plugin_gfx)
