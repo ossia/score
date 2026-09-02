@@ -12,7 +12,7 @@
 // real verdict if a crash cannot take the rest of the suite with it, and a
 // SIGABRT/SIGSEGV inside the parser is exactly what we are looking for.
 
-#include "ForkProbe.hpp"
+#include <score_test/ForkProbe.hpp>
 
 #include <Threedim/VoxelLoader.hpp>
 #include <Threedim/Vox.hpp>

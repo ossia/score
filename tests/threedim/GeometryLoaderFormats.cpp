@@ -14,7 +14,7 @@
 // well-formed fixture next to it (truncation, or one rewritten field), so this
 // file carries its own corpus.
 
-#include "ForkProbe.hpp"
+#include <score_test/ForkProbe.hpp>
 
 #include <Threedim/GeometryLoader.hpp>
 #include <Threedim/Ply.hpp>
