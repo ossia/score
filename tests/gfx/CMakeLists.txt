@@ -747,6 +747,12 @@ score_add_gfx_process_test(images          GfxImagesProcess.cpp)
 score_add_gfx_process_test(video_text      GfxVideoTextProcess.cpp)
 score_add_gfx_process_test(library         GfxProcessLibrary.cpp)
 
+# OPEN-7 pin, its own single-test executable: an empty nodelist mime payload
+# SIGABRTs in rapidjson today. The case asserts the CORRECT behaviour (child
+# process survives, zero drops) and is [!shouldfail]; the drop runs in a
+# forked child because CTest's WILL_FAIL does not invert abnormal termination.
+score_add_gfx_process_test(drop_empty_nodelist GfxDropEmptyNodelistAbort.cpp)
+
 # -----------------------------------------------------------------------------
 # Gfx/Spout (Windows/x86_64) and Gfx/Syphon (macOS). Neither compiles on Linux,
 # so this target must build EVERYWHERE and change what it asserts instead of
