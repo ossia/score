@@ -756,3 +756,22 @@ if(SCORE_VIDEO_TESTER)
     LABELS "gui"
     ENVIRONMENT "VIDEO_TESTER=${SCORE_ROOT_BINARY_DIR}/VideoDecoderTester;SCORE_AUDIO_BACKEND=dummy;ASAN_OPTIONS=detect_leaks=0:halt_on_error=0:handle_segv=1:detect_odr_violation=0:protect_shadow_gap=0")
 endif()
+
+# End-to-end threedim asset renders against visually-validated goldens
+# (tests/integration/ThreedimRenderTest.cpp). Drives the real ossia-score
+# binary over the OSC control port, so it must never run concurrently with
+# the other OSC harnesses; the in-test QLockFile mirrors their
+# /tmp/score-harness.lock convention and RUN_SERIAL keeps ctest honest.
+score_add_test(test_integration_threedim_render
+  SOURCES ThreedimRenderTest.cpp
+  GUI
+  PLUGINS score_lib_base)
+target_compile_definitions(test_integration_threedim_render PRIVATE
+  "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\""
+  "THREEDIM_RENDER_REFS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/threedim-render/refs\""
+  "GFX_TEST_CORPUS_DIR=\"${SCORE_ROOT_SOURCE_DIR}/tests/gfx/corpus\"")
+set_tests_properties(test_integration_threedim_render PROPERTIES
+  RUN_SERIAL TRUE
+  TIMEOUT 900
+  REQUIRED_FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/threedim-render/fetch-real-assets.sh")
