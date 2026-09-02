@@ -420,8 +420,12 @@ Placement render_scene_chain(
   const int prim = torus ? p.addNode(procs.make<Threedim::Torus>(ctx))
                          : p.addNode(procs.make<Threedim::Cube>(ctx));
   const int flat = p.addNode(std::make_unique<score::gfx::ScenePreprocessorNode>());
-  const int raster
-      = p.addRaster(corpus("syn-scene-solid.vs"), corpus("syn-scene-solid.fs"));
+  // syn-scene-perdraw-solid places the geometry with per_draws[draw_id].model,
+  // the matrix the FLATTENER fills. syn-scene-solid.vs multiplies by
+  // MODEL_MATRIX instead, which no scene chain ever writes -- see the
+  // "a scene transform reaches the shader" case for the measurement.
+  const int raster = p.addRaster(
+      corpus("syn-scene-perdraw-solid.vs"), corpus("syn-scene-perdraw-solid.fs"));
   if(raster < 0)
     return out;
 
@@ -453,26 +457,26 @@ Placement render_scene_chain(
 
 TEST_CASE(
     "Transform 3D moves the mesh it wraps",
-    "[gfx][crousti][scene][threedim][!shouldfail]")
+    "[gfx][crousti][scene][threedim]")
 {
-  // EXPECTED TO FAIL: Transform 3D's position does not reach the render.
+  // THIS WAS AN EXPECTED-FAILURE PIN. It failed because the RIG read the wrong
+  // matrix, not because Transform 3D is broken.
   //
-  // Its controls ARE applied -- GpuProcessIns runs with mess.input.size 4 and
-  // fields 1..3 applying their values -- and the mesh does reach the rasterizer
-  // (36 vertices for the Cube). But the drawn bounding box is identical at
-  // x = -0.5, 0 and +0.5, byte for byte, on OpenGL and Vulkan. Half an NDC unit
-  // is 40 pixels of a 160-pixel frame, so this is a no-op and not a rounding
-  // effect.
+  // The old rig rasterised with syn-scene-solid.vs, whose one line is
+  // `gl_Position = clipSpaceCorrMatrix * MODEL_MATRIX * position`. MODEL_MATRIX
+  // is the RAW-RASTER convention: the only writer is
+  // RenderedRawRasterPipelineNode::process(int32_t, const ossia::transform3d&)
+  // (RenderedRawRasterPipelineNode.cpp:3378), fed by a transform3d message on
+  // the raster node's OWN port. Nothing in a scene chain writes it, so it was
+  // identity at every Transform 3D position and the silhouette could not move.
   //
-  // The rig is not the suspect: the same wiring driven by the CSF triangle
-  // producer fills the frame exactly as it should, and the scene vertex layout
-  // was dumped and found self-consistent. The cause is narrower than "the mesh
-  // is not drawn": MODEL_MATRIX reaches the shader as identity -- see "a scene
-  // transform reaches MODEL_MATRIX", which measures it directly.
-  //
-  // Asserted as the INTENT and marked expected-failure, so this flips to a
-  // regular pass the day the transform is honoured, rather than pinning today's
-  // wrong answer as correct.
+  // The scene path's per-object matrix is PerDrawGPU::model
+  // (ScenePreprocessorNode.cpp:41-49), published as the `per_draws` auxiliary
+  // and indexed by the per-instance `draw_id` VERTEX_INPUT. render_scene_chain
+  // now rasterises with syn-scene-perdraw-solid, which reads exactly that --
+  // the same thing shadow_cascades.vert and five real corpus documents do --
+  // and the centroid moves. See "a scene transform reaches the shader through
+  // per_draws" for the direct measurement of the matrix itself.
   const auto api = GENERATE(from_range(platform_backends()));
   Placement centred, shifted;
   bool okA = false, okB = false;
@@ -511,8 +515,10 @@ TEST_CASE(
   // visible silhouette through the identical chain. The Torus simply produces an
   // empty frame on both backends.
   //
-  // Not explained by the MODEL_MATRIX defect either: that one leaves the matrix
-  // identity, which still draws the Cube. Treat this as its own fault.
+  // Not explained by the (now-retired) MODEL_MATRIX pin either: that was a
+  // rig mistake, and with the corrected syn-scene-perdraw-solid rasteriser the
+  // Cube draws at coverage 0.25 while the Torus is still exactly 0. Measured
+  // after the shader fix, so this is its own fault and still unexplained.
   const auto api = GENERATE(from_range(platform_backends()));
   Placement cube, torus;
   bool okA = false, okB = false;
@@ -588,10 +594,23 @@ TEST_CASE(
   // face: spanning [0,1] with no camera, its front face lands on exactly NDC
   // [0,1]^2.
   //
-  // The transform no-op has its own proven cause -- MODEL_MATRIX arrives as
-  // identity, see "a scene transform reaches MODEL_MATRIX". This filter edits
-  // vertex positions rather than the matrix, so it is a SEPARATE failure and is
-  // still unexplained. Do not assume one fix covers both.
+  // EXPLAINED as of this session, and no longer a mystery: a Geometry Filter
+  // does not touch vertex buffers at all. GeometryFilterNodeRenderer's
+  // runRenderPass is empty (GeometryFilterNodeRenderer.cpp:128-132); all it
+  // does is append one `ossia::geometry_filter` descriptor to the mesh's
+  // filter list (:110-111). The DISPLACEMENT is spliced into the CONSUMER's
+  // vertex shader, and the only consumer in the tree that does that splice is
+  // Threedim's ModelDisplay (ModelDisplayNode.cpp:1157-1176,
+  // %vtx_define_filters% / process_vertex_<id>). This chain ends in
+  // p.addRaster, and RenderedRawRasterPipelineNode never reads mesh.filters --
+  // its single mention of them is the FIXME at :2630. So the filter is
+  // silently dropped here, and a user wiring a Geometry Filter into a Render
+  // Pipeline gets no error and no effect (a product gap worth its own fix).
+  // Kept expected-red as the INTENT; see tests/gfx/GfxGeometryFilterShift.cpp,
+  // which pins the parts that ARE reachable without a ModelDisplay.
+  // The old note here blamed the same cause as the Transform 3D pin; that pin
+  // turned out to be a rig mistake and is retired. These were never the same
+  // fault.
   const auto api = GENERATE(from_range(platform_backends()));
 
   auto run = [&](float shift, Placement& out, std::string& err) {
@@ -800,23 +819,49 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "a scene transform reaches MODEL_MATRIX",
-    "[gfx][crousti][scene][threedim][!shouldfail]")
+    "a scene transform reaches the shader through per_draws",
+    "[gfx][crousti][scene][threedim]")
 {
-  // EXPECTED TO FAIL, and this is the sharpest statement of the defect behind
-  // "Transform 3D moves the mesh it wraps": the transform never arrives at the
-  // shader at all.
+  // THIS CASE USED TO BE AN EXPECTED-FAILURE PIN TITLED "a scene transform
+  // reaches MODEL_MATRIX". It was measuring the WRONG MECHANISM, and the pin
+  // was wrong, not the product. Traced through the engine:
   //
-  // syn-scene-modelmat encodes MODEL_MATRIX's translation column into the
-  // fragment colour, so this separates "the transform did not move the geometry"
-  // from "the transform never reached the shader". Measured: the drawn region is
-  // rgb 127,127,127 -- the +0.5 bias with a translation of exactly zero -- at
-  // Transform 3D position 0 AND 0.5, on OpenGL and Vulkan. MODEL_MATRIX is
-  // identity.
+  //  * MODEL_MATRIX is a UBO field libisf injects into every raw-raster shader
+  //    (isf.cpp:4358-4366). The ONLY thing that ever writes it is
+  //    RenderedRawRasterPipelineNode::process(int32_t, const
+  //    ossia::transform3d&) (RenderedRawRasterPipelineNode.cpp:3378), which
+  //    stores into m_modelTransform, uploaded to m_modelUBO at :2768. That is
+  //    a transform3d message delivered to the RASTER NODE'S OWN port.
+  //  * A Transform 3D in a SCENE chain never reaches that port. It reaches the
+  //    ScenePreprocessor's renderer, where the base
+  //    NodeRenderer::process(port, transform3d) (NodeRenderer.cpp:612-689)
+  //    decomposes the matrix and wraps the last root under a
+  //    `scene_transform` payload.
+  //  * The flattener bakes that into PerDrawGPU::model
+  //    (ScenePreprocessorNode.cpp:41-49, `float model[16]`), published as the
+  //    `per_draws` auxiliary (:2786) and indexed by the per-instance
+  //    `draw_id` VERTEX_INPUT (semantic instance_draw_id, :2660; the mechanism
+  //    is spelled out at :2390-2392).
+  //
+  // So MODEL_MATRIX being identity under a scene chain is CORRECT, not a
+  // defect -- and it is what every real shader assumes: shadow_cascades.vert
+  // in this corpus reads per_draws.data[draw_id].model, and five documents in
+  // the user's corpus (2026/lgm/sponza-*, 2026/test-gltf-cubemap.score,
+  // 2026/funky-depth-duck.score, 2026/lgm/model-depth.score) index `per_draws`
+  // the same way. Measured with syn-scene-perdraw: the encoded translation
+  // moves from the mid-grey bias at position 0 to a strictly larger value at
+  // position 0.5, on both backends.
+  //
+  // The second half keeps the OLD shader and pins the boundary explicitly:
+  // through a scene chain MODEL_MATRIX stays identity at both positions. That
+  // is the statement the deleted pin should have made.
   const auto api = GENERATE(from_range(platform_backends()));
   int red0 = -1, red1 = -1;
+  int mm0 = -1, mm1 = -1;
 
-  auto probe = [&](float xpos, int& out) {
+  // Same rig for both halves; only the pair of shaders differs, which is
+  // exactly the variable under study.
+  auto probe_with = [&](const char* vs, const char* fs, float xpos, int& out) {
     run_in_gui_app([&](const score::GUIApplicationContext& app) {
       auto* doc = score::test::new_document(app);
       if(!doc)
@@ -826,8 +871,7 @@ TEST_CASE(
       const int cube = p.addNode(procs.make<Threedim::Cube>(doc->context()));
       const int xf = p.addNode(procs.make<Threedim::Transform3D>(doc->context()));
       const int flat = p.addNode(std::make_unique<score::gfx::ScenePreprocessorNode>());
-      const int raster = p.addRaster(
-          corpus("syn-scene-modelmat.vs"), corpus("syn-scene-modelmat.fs"));
+      const int raster = p.addRaster(corpus(vs), corpus(fs));
       if(raster < 0)
         return;
       p.wire(p.nodeSceneOut(cube, 0), p.nodeSceneIn(xf, 0));
@@ -845,16 +889,36 @@ TEST_CASE(
       out = p.readback(sink).at(120, 40)[0];
     });
   };
+  auto probe = [&](float xpos, int& out) {
+    probe_with("syn-scene-perdraw.vs", "syn-scene-perdraw.fs", xpos, out);
+  };
+  auto probeModelMatrix = [&](float xpos, int& out) {
+    probe_with("syn-scene-modelmat.vs", "syn-scene-modelmat.fs", xpos, out);
+  };
   probe(0.f, red0);
   probe(0.5f, red1);
+  probeModelMatrix(0.f, mm0);
+  probeModelMatrix(0.5f, mm1);
 
   if(red0 < 0 || red1 < 0)
     SKIP("backend unavailable");
   // Control: translation 0 must encode as the mid-grey bias, else the shader is
-  // not reporting MODEL_MATRIX at all and the comparison below means nothing.
-  INFO("encoded translation.x: at 0 -> " << red0 << ", at 0.5 -> " << red1
-                                         << " (127/128 == zero translation)");
+  // not reporting the matrix at all and the comparison below means nothing.
+  INFO("per_draws[draw_id].model translation.x: at 0 -> "
+       << red0 << ", at 0.5 -> " << red1 << " (127/128 == zero translation)");
   REQUIRE(red0 >= 120);
   REQUIRE(red0 <= 135);
   CHECK(red1 > red0);
+
+  // The boundary: the same chain read through MODEL_MATRIX sees identity at
+  // BOTH positions -- correct, since nothing wires a transform3d message to
+  // the raster node's own port. If this ever stops being identity, the engine
+  // grew a second transform path and the comment block above is stale.
+  if(mm0 >= 0 && mm1 >= 0)
+  {
+    INFO("MODEL_MATRIX translation.x: at 0 -> " << mm0 << ", at 0.5 -> " << mm1);
+    CHECK(mm0 >= 120);
+    CHECK(mm0 <= 135);
+    CHECK(mm1 == mm0);
+  }
 }
