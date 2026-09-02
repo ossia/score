@@ -329,8 +329,13 @@ endif()
 
 add_subdirectory(src)
 
-if(SCORE_STATIC_PLUGINS AND TARGET EncoderTester)
-  target_link_libraries(EncoderTester PRIVATE ${SCORE_PLUGINS_LIST})
+# Static builds: complete the tester executables' link with the full plugin
+# list (see score_link_plugins_for_static in cmake/ScoreTests.cmake for why,
+# and why this has to happen here, after add_subdirectory(src)).
+if(SCORE_TESTING)
+  score_link_plugins_for_static(EncoderTester)
+  score_link_plugins_for_static(ReadbackTester)
+  score_link_plugins_for_static(PipewireRoundtrip)
 endif()
 
 include(cmake/ScoreFeatureCheck.cmake)

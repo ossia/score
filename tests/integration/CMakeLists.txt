@@ -519,9 +519,12 @@ endif()
 # Encoder matrix: renders through each available graphics API
 # (SCORE_TEST_API=opengl|vulkan) and byte-checks the outputs. Registered GUI
 # (-> LABELS gui) because GL/Vulkan context creation needs a windowing system;
-# exclude with `ctest -LE gui` on displayless machines. Static-plugin builds
-# can't link score_plugin_gfx directly (same constraint as EncoderTester).
-if(TARGET score_plugin_gfx AND NOT SCORE_STATIC_PLUGINS)
+# exclude with `ctest -LE gui` on displayless machines. Works under static
+# plugins too: score_add_test's GUI path links the whole SCORE_PLUGINS_LIST
+# there (cmake/ScoreTests.cmake), which is the same remedy EncoderTester gets
+# from score_link_plugins_for_static -- the old gate here mis-cited
+# EncoderTester as a reason to skip when it is the precedent for the fix.
+if(TARGET score_plugin_gfx)
   score_add_test(test_integration_encoder_matrix
     SOURCES EncoderMatrixTest.cpp
     GUI
