@@ -191,13 +191,16 @@ TEST_CASE("OBJ bytes reach the loader and publish a position stream",
   CHECK(g.buffers[0].byte_size == int64_t(loader.complete.size() * sizeof(float)));
   CHECK(g.buffers[0].dirty);
 
-  REQUIRE(g.attributes.size() == 1);
+  // Position first; the loader derives flat per-face normals for a mesh
+  // (here a bare triangle OBJ) that carried none, so a second stream follows.
+  REQUIRE(g.attributes.size() == 2);
   CHECK(g.attributes[0].semantic == halp::attribute_semantic::position);
   CHECK(g.attributes[0].format == halp::attribute_format::float3);
   CHECK(g.attributes[0].binding == 0);
-  REQUIRE(g.bindings.size() == 1);
+  CHECK(g.attributes[1].semantic == halp::attribute_semantic::normal);
+  REQUIRE(g.bindings.size() == 2);
   CHECK(g.bindings[0].stride == 3 * int(sizeof(float)));
-  REQUIRE(g.input.size() == 1);
+  REQUIRE(g.input.size() == 2);
   CHECK(g.input[0].buffer == 0);
   CHECK(g.input[0].byte_offset == 0);
 
@@ -351,8 +354,12 @@ TEST_CASE("an ASCII OFF loads as de-indexed triangles",
   const auto& g = loader.outputs.geometry.mesh[0];
   CHECK(g.vertices == 6);
   CHECK(g.topology == halp::primitive_topology::triangles);
-  REQUIRE(g.attributes.size() == 1);
-  CHECK(loader.complete.size() == 6 * 3);
+  // OFF carries no normals; the loader derives flat per-face normals, so
+  // the published mesh is position + normal.
+  REQUIRE(g.attributes.size() == 2);
+  CHECK(g.attributes[0].semantic == halp::attribute_semantic::position);
+  CHECK(g.attributes[1].semantic == halp::attribute_semantic::normal);
+  CHECK(loader.complete.size() == 6 * (3 + 3));
 }
 
 TEST_CASE(
@@ -376,8 +383,9 @@ TEST_CASE(
   REQUIRE(loader.outputs.geometry.mesh.size() == 1);
   const auto& g = loader.outputs.geometry.mesh[0];
   REQUIRE(g.vertices == 3);
-  // pos(3) + rgba(4) per corner.
-  REQUIRE(loader.complete.size() == 3 * (3 + 4));
+  // pos(3) + rgba(4) + derived normal(3) per corner: the OFF had colours
+  // but no normals, so the loader appends a flat-normal stream.
+  REQUIRE(loader.complete.size() == 3 * (3 + 4 + 3));
 
   const int ci = attributeIndex(g, halp::attribute_semantic::color0);
   REQUIRE(ci >= 0);
