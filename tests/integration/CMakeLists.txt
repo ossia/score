@@ -21,6 +21,18 @@ score_add_test(test_integration_missing_process_roundtrip
   GUI
   PLUGINS score_plugin_scenario score_plugin_automation score_plugin_mapping score_lib_process)
 
+# A9: an avnd raw-file port pointed at a path that does not exist used to
+# produce nothing anywhere -- no load, no callback, no message. The diagnostic
+# lives in oscr::loadRawfile because that is the only layer that sees the
+# failure; the object's process() is never reached. Needs media (AudioDecoder,
+# pulled in by Crousti/File.hpp) and avnd.
+if(TARGET score_plugin_media AND TARGET score_plugin_avnd)
+  score_add_test(test_integration_avnd_file_port_diagnostic
+    SOURCES AvndFilePortDiagnostic.cpp
+    GUI
+    PLUGINS score_plugin_scenario score_plugin_media score_plugin_avnd score_lib_process)
+endif()
+
 score_add_test(test_integration_scenario_undo
   SOURCES ScenarioUndoTest.cpp
   GUI

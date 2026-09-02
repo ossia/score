@@ -508,30 +508,34 @@ TEST_CASE(
 
 TEST_CASE(
     "a failed asset load is diagnosable",
-    "[threedim][assetloader][failure][diagnosability][!shouldfail]")
+    "[threedim][assetloader][failure][diagnosability]")
 {
-  // DEFECT (silent failure). Every failure path in
-  // AssetLoader::ins::asset_t::process (AssetLoader.cpp:145-146, :262-263)
-  // returns an empty function without qWarning/qDebug, and the node's `outs`
-  // struct (AssetLoader.hpp) carries only scene_out — no error/status port.
-  // The user pointing the port at C:/Users/... on a Linux box gets a black
-  // frame and NO message anywhere. 24 real scores use this node; the missing
-  // file is the normal case, so the failure must be observable — either a
-  // logged warning or a published error/status output. Until one exists this
-  // case fails, and [!shouldfail] keeps it red-but-expected.
-
-  // Channel 1: a diagnostic output port on the node itself. The probe must
-  // be a template so the member accesses are dependent: a requires-expression
-  // in a non-template context hard-errors on a missing member instead of
-  // yielding false.
+  // WAS A DEFECT (silent failure), now fixed. Every failure path in
+  // AssetLoader::ins::asset_t::process returned an empty function without a
+  // word, and the node's `outs` struct carries only scene_out. The user
+  // pointing the port at C:/Users/... on a Linux box got a black frame and NO
+  // message anywhere. 24 real scores use this node; the missing file is the
+  // normal case, so the failure must be observable — the pin's own words,
+  // "either a logged warning or a published error/status output".
+  //
+  // The log is the channel that was implemented, and it is the only one that
+  // CAN carry the normal case. An error OUTPUT PORT structurally cannot:
+  // oscr::loadRawfile (Crousti/File.hpp) returns a null handle for a file
+  // that does not exist, and all three of its callers
+  // (ExecutorPortSetup.hpp:298/:327, GpuUtils.hpp:202) are written
+  // `if(auto hdl = loadRawfile(...))`, so for a MISSING file the node's
+  // process() is never invoked and the node never learns anything happened.
+  // A port on the node could only ever report the sub-case where the file
+  // WAS read and the parser then refused it. The disjunction below is
+  // therefore asserted as the pin's prose states it, not as two independent
+  // requirements — and the log assertions that follow are stricter than the
+  // pin's `!empty()`: the message must NAME the file it rejected.
   constexpr bool has_error_port
       = []<typename O = Threedim::AssetLoader::outs>() constexpr {
           return requires(O& o) { o.error; } || requires(O& o) { o.status; }
                  || requires(O& o) { o.load_error; };
         }();
-  CHECK(has_error_port);
 
-  // Channel 2: a Qt log message on the failure path.
   capturedMessages().clear();
   const auto previous = qInstallMessageHandler(&messageCapture);
   {
@@ -542,7 +546,29 @@ TEST_CASE(
     (void)load_asset("tri.unknown-extension", triangle_obj);
   }
   qInstallMessageHandler(previous);
-  CHECK(!capturedMessages().empty());
+
+  CHECK((has_error_port || !capturedMessages().empty()));
+
+  // Each of the three failures must have produced its own message, and each
+  // must identify the offending file: a bare "load failed" in a log shared
+  // with the whole application is not diagnosable.
+  const auto mentions = [](std::string_view needle) {
+    for(const auto& m : capturedMessages())
+      if(m.find(needle) != std::string::npos)
+        return true;
+    return false;
+  };
+  INFO("captured " << capturedMessages().size() << " messages");
+  for(const auto& m : capturedMessages())
+    INFO("  " << m);
+  CHECK(capturedMessages().size() >= 3);
+  CHECK(mentions("missing.glb"));
+  CHECK(mentions("junk.glb"));
+  CHECK(mentions("tri.unknown-extension"));
+  // The two failures are distinguishable: a format we do not handle is not
+  // the same problem as a file our parser refused.
+  CHECK(mentions("unsupported file type"));
+  CHECK(mentions("could not parse"));
 }
 
 // ===========================================================================

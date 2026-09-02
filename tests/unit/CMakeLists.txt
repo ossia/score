@@ -858,8 +858,10 @@ score_add_test(test_unit_threedim_loaders
 
   # P0-13: the AssetLoader failure contract (empty / missing / corrupt /
   # unknown-extension / truncated files publish nullptr + dirty 0, a failed
-  # REPLACEMENT load keeps the previous scene), plus the [!shouldfail] pin on
-  # "a failed asset load is diagnosable" (no error port, no qWarning today).
+  # REPLACEMENT load keeps the previous scene), plus "a failed asset load is
+  # diagnosable" -- formerly a [!shouldfail] pin, green since the dispatch
+  # warns by name; see tests/integration/AvndFilePortDiagnostic.cpp for the
+  # missing-file half, which the node itself cannot observe.
   # Same engine sources / libs as test_unit_threedim_loaders above.
   score_add_test(test_unit_threedim_asset_loader_failure
     SOURCES

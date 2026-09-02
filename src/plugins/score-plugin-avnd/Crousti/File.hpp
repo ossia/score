@@ -9,6 +9,7 @@
 #include <ossia/network/value/value.hpp>
 
 #include <QByteArray>
+#include <QDebug>
 #include <QFile>
 
 #include <avnd/binding/ossia/soundfiles.hpp>
@@ -93,16 +94,43 @@ using raw_file_handle = std::shared_ptr<raw_file_data>;
 [[nodiscard]] inline raw_file_handle loadRawfile(
     const ossia::value& value, const score::DocumentContext& ctx, bool text, bool mmap)
 {
-  // Initialize the control with the current soundfile
-  if(auto filename = filenameFromPort(value, ctx); !filename.isEmpty())
+  // A file port whose control holds no path at all is simply unset: that is
+  // not a failure and must stay silent. Everything below IS a failure, and
+  // every caller of this function treats a null handle as "do nothing" --
+  // ExecutorPortSetup.hpp:298/:327 and GpuUtils.hpp:202 all wrap the call in
+  // `if(auto hdl = loadRawfile(...))`, so the object's own preprocessing
+  // (Field::process) is never even reached. Without a word here, pointing a
+  // file port at a path that does not exist produces NOTHING anywhere: no
+  // load, no callback, no message. That is the normal case, not an edge one --
+  // a document written on another machine carries absolute paths that do not
+  // resolve here.
+  const auto* raw = value.target<std::string>();
+  if(!raw || raw->empty())
+    return {};
+
+  const QString filename = filenameFromPort(value, ctx);
+  if(filename.isEmpty())
+  {
+    qWarning() << "file port: could not resolve"
+               << QString::fromStdString(*raw);
+    return {};
+  }
+
   {
     if(!QFile::exists(filename))
+    {
+      qWarning() << "file port: no such file:" << filename;
       return {};
+    }
 
     auto hdl = std::make_shared<oscr::raw_file_data>();
     hdl->file.setFileName(filename);
     if(!hdl->file.open(QIODevice::ReadOnly))
+    {
+      qWarning() << "file port: cannot open" << filename << ":"
+                 << hdl->file.errorString();
       return {};
+    }
 
     if(mmap)
     {
