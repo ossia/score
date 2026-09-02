@@ -24,7 +24,7 @@ class TripleBufferIndex
 public:
   TripleBufferIndex()
   {
-    m_state.store(makeState(0, 1, 2, false), std::memory_order_relaxed);
+    m_state.store(makeState(0, 1, 2, false, false), std::memory_order_relaxed);
   }
 
   // Called by producer when starting a new frame
@@ -44,7 +44,7 @@ public:
       int w = writeIndex(oldState);
       int r = readyIndex(oldState);
       int rd = readIndex(oldState);
-      newState = makeState(r, w, rd, true);
+      newState = makeState(r, w, rd, true, true);
     } while(!m_state.compare_exchange_weak(
         oldState, newState, std::memory_order_release, std::memory_order_relaxed));
   }
@@ -58,12 +58,19 @@ public:
     {
       oldState = m_state.load(std::memory_order_acquire);
       if(!hasNewFrame(oldState))
-        return readIndex(oldState);
+        // No new frame: keep showing the last one the consumer read — but
+        // only if a frame was EVER published. Before the first publish the
+        // read slot is still its initial value (2), a slot created with
+        // QRhi::create() and never rendered into, so returning it would hand
+        // the consumer undefined texture contents. The documented contract
+        // ("the most recently completed texture, or nullptr if none ready")
+        // requires -1 here.
+        return everReady(oldState) ? readIndex(oldState) : -1;
 
       int w = writeIndex(oldState);
       int r = readyIndex(oldState);
       int rd = readIndex(oldState);
-      newState = makeState(w, rd, r, false);
+      newState = makeState(w, rd, r, false, true);
     } while(!m_state.compare_exchange_weak(
         oldState, newState, std::memory_order_release, std::memory_order_relaxed));
 
@@ -76,16 +83,21 @@ public:
   }
 
 private:
-  // State packing: [write:2][ready:2][read:2][hasNew:1] in lowest 7 bits
-  static constexpr uint32_t makeState(int w, int r, int rd, bool hasNew) noexcept
+  // State packing: [everReady:1][write:2][ready:2][read:2][hasNew:1] in the
+  // lowest 8 bits. everReady latches true on the first publish and gates the
+  // "keep the last frame" fallback in acquireReadIndex against the initial,
+  // never-written read slot.
+  static constexpr uint32_t
+  makeState(int w, int r, int rd, bool hasNew, bool ever) noexcept
   {
-    return (uint32_t(w) << 5) | (uint32_t(r) << 3) | (uint32_t(rd) << 1)
-           | (hasNew ? 1 : 0);
+    return (uint32_t(ever) << 7) | (uint32_t(w) << 5) | (uint32_t(r) << 3)
+           | (uint32_t(rd) << 1) | (hasNew ? 1 : 0);
   }
   static constexpr int writeIndex(uint32_t state) noexcept { return (state >> 5) & 3; }
   static constexpr int readyIndex(uint32_t state) noexcept { return (state >> 3) & 3; }
   static constexpr int readIndex(uint32_t state) noexcept { return (state >> 1) & 3; }
   static constexpr bool hasNewFrame(uint32_t state) noexcept { return state & 1; }
+  static constexpr bool everReady(uint32_t state) noexcept { return (state >> 7) & 1; }
 
   std::atomic<uint32_t> m_state;
 };
