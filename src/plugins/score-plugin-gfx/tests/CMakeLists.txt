@@ -3,6 +3,12 @@ score_add_test(test_gfx_capture_sync
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/CaptureSyncGroupTest.cpp"
   PLUGINS score_plugin_gfx)
 
+# The description -> device-tree control-group builder (V4L2 / render /
+# Argus controls), fresh build and reload adoption.
+score_add_test(test_gfx_control_tree
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/ControlTreeTest.cpp"
+  PLUGINS score_plugin_gfx)
+
 score_add_test(test_gfx_capture_correlator
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/CaptureCorrelatorTest.cpp"
   PLUGINS score_plugin_gfx)
