@@ -32,14 +32,13 @@
 // For those we hand the callees references into inert storage they are
 // contractually forbidden to touch — the CameraRelease.cpp technique.
 //
-// DEFECT found while writing this (own [!shouldfail] case so the suite stays
-// green and flips on the fix day):
-//   1. InjectBuffer's null-scene passthrough leaves m_cached_out null, and
-//      operator()() cannot distinguish "computed null" from "never built":
-//      an unwired node rebuild()s and re-dirties 0xFF on EVERY tick. Same
-//      subclass as MaterialOverrideTest.cpp's defect #1.
-//   2. ExtractSceneBuffer's clear paths assign a default gpu_buffer, so a
-//      live handle vanishing (scene unplugged) publishes handle==nullptr
+// Two defects were found while writing this, both fixed since (the cases
+// below assert the correct behaviour and run green):
+//   1. InjectBuffer's unwired first tick used `!m_cached_out` as a rebuild
+//      trigger, so a null-scene node rebuilt and re-dirtied 0xFF on EVERY
+//      tick (same subclass as MaterialOverrideTest.cpp's defect #1).
+//   2. ExtractSceneBuffer's clear paths assigned a default gpu_buffer, so
+//      a live handle vanishing (scene unplugged) published handle==nullptr
 //      with changed==false — while the success path carefully computes
 //      `changed` from prev-vs-new precisely so downstream rebinds key on it.
 
@@ -331,7 +330,7 @@ TEST_CASE(
 // sentinel) so the identity compare, not nullness, drives the re-arm.
 TEST_CASE(
     "InjectBuffer does not re-dirty on unchanged ticks with a null scene",
-    "[threedim][injectbuffer][!shouldfail]")
+    "[threedim][injectbuffer]")
 {
   Threedim::InjectBuffer node; // nothing wired at all
 
@@ -341,7 +340,7 @@ TEST_CASE(
 
   node();
   CHECK(node.outputs.scene_out.scene.state == nullptr);
-  CHECK(node.outputs.scene_out.dirty == 0); // FAILS pre-fix: 0xFF every tick
+  CHECK(node.outputs.scene_out.dirty == 0);
 }
 
 // ========================================================= ExtractSceneBuffer
@@ -438,7 +437,7 @@ TEST_CASE(
 // live -> cleared transition publishes changed == true.
 TEST_CASE(
     "ExtractSceneBuffer flags `changed` when a live outlet is cleared",
-    "[threedim][extractscenebuffer][!shouldfail]")
+    "[threedim][extractscenebuffer]")
 {
   Threedim::ExtractSceneBuffer node;
 
@@ -449,5 +448,5 @@ TEST_CASE(
   // ...this frame the scene is gone.
   node.update(inert_renderlist(), inert_batch(), nullptr);
   CHECK(node.outputs.buffer.buffer.handle == nullptr);
-  CHECK(node.outputs.buffer.buffer.changed); // FAILS pre-fix: wholesale {}
+  CHECK(node.outputs.buffer.buffer.changed);
 }
