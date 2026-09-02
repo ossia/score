@@ -340,9 +340,30 @@ QString EditJsContext::deviceToJson(QString name)
   {
     if(auto d = dev->getDevice())
     {
-      auto p = ossia::presets::make_json_preset(
-          d->get_root_node(), ossia::presets::preset_save_options{true, true, true});
-      return QString::fromStdString(p);
+      // A device tree can hold parameters this serializer cannot read -- a
+      // gfx device's texture parameters are the case that found this -- and it
+      // signals that by throwing. Nothing above catches it, so a script asking
+      // a graphics device for its tree took the whole application down.
+      try
+      {
+        auto p = ossia::presets::make_json_preset(
+            d->get_root_node(),
+            ossia::presets::preset_save_options{true, true, true});
+        return QString::fromStdString(p);
+      }
+      catch(const std::exception& e)
+      {
+        qWarning() << "deviceToJson:" << name
+                   << "has a parameter the preset serializer cannot read:"
+                   << e.what();
+        return {};
+      }
+      catch(...)
+      {
+        qWarning() << "deviceToJson:" << name
+                   << "could not be serialised (unknown exception)";
+        return {};
+      }
     }
   }
   return {};
