@@ -187,18 +187,25 @@ DataStreamWriter::write(Scenario::IntervalModel& interval)
   m_stream >> process_count;
 
   auto& pl = components.interfaces<Process::ProcessFactoryList>();
+  // The writer iterates processes front-to-back, but EntityMap::add() inserts
+  // at the FRONT (push_front). Adding in stream order would therefore reverse
+  // the order on every load, so save -> load -> save never reaches a byte
+  // fixed point (it oscillates). Collect in stream order, then add in reverse
+  // so the container reconstructs exactly the order that was written.
+  std::vector<Process::ProcessModel*> loaded;
+  loaded.reserve(process_count > 0 ? process_count : 0);
   for(; process_count-- > 0;)
   {
     auto proc = deserialize_interface(pl, *this, interval.context(), &interval);
     if(proc)
-    {
-      // TODO why isn't AddProcess used here ?!
-      interval.processes.add(proc);
-    }
+      loaded.push_back(proc);
     else
-    {
       SCORE_TODO;
-    }
+  }
+  for(auto it = loaded.rbegin(); it != loaded.rend(); ++it)
+  {
+    // TODO why isn't AddProcess used here ?!
+    interval.processes.add(*it);
   }
 
   // Rackes
