@@ -104,6 +104,17 @@ QGraphicsItem* ControlPortFactory::makeControlItem(
 {
   auto proc = safe_cast<vst::Model*>(port.parent());
   auto inl = safe_cast<vst::ControlInlet*>(&port);
+  // A document can reference a VST whose .so/.dll is not installed on this
+  // machine: the Model then exists with its serialized control ports but
+  // `fx` is an empty shared_ptr, and dereferencing it here SIGSEGVs while
+  // the effect's UI is being built (Control.cpp:107, reached from
+  // DefaultEffectItem::recreate -> PortFactory::makeFullItem). Found by the
+  // .score corpus harness on real user documents. nullptr is the value the
+  // caller already expects for "no control item": both sibling overloads in
+  // this file return it, and PortFactory::makeFullItem
+  // (Port.cpp:928-935) guards on it with SCORE_SOFT_ASSERT + `if(ret.control)`.
+  if(!proc->fx || !proc->fx->fx)
+    return nullptr;
   return VSTFloatSlider::make_item(proc->fx->fx, *inl, ctx, parent, context);
 }
 
