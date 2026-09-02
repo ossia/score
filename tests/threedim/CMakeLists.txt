@@ -280,3 +280,15 @@ threedim_test_includes(test_threedim_material_override)
 score_add_test(test_threedim_scene_graph_filter
   SOURCES SceneGraphFilterTest.cpp "${THREEDIM_DIR}/SceneGraphFilter.cpp")
 threedim_test_includes(test_threedim_scene_graph_filter)
+
+# GeometryPacker's CPU-side packing contract: interleave order, output stride,
+# per-attribute offsets, vec4 padding, missing-attribute skip, source-location
+# arithmetic and index passthrough — all computed in PackedExtractionStrategy::
+# init() before any QRhi work (the vertices==0 "Zero output size" guard returns
+# first). Compiles GeometryPacker.cpp for buildAttributeSpecs()/specsChanged();
+# score_plugin_gfx supplies the exported makeCompute / RenderList symbols the
+# header-inline strategy references (never reached at runtime). No GPU/display.
+score_add_test(test_threedim_geometry_packer
+  SOURCES GeometryPackerTest.cpp "${THREEDIM_DIR}/GeometryPacker.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_geometry_packer)
