@@ -79,7 +79,11 @@ inline std::vector<ossia::net::parameter_base*> addControlGroup(
     // failing to add a second one with the same name.
     if(auto* existing = groupPtr->find_child(c.name))
     {
+      // Whether the parameter PRE-EXISTED (the document restored it, so its
+      // value is the user's) or is created right here (no restored value —
+      // its default-constructed 0.0 is fabricated, not the user's).
       auto* param = existing->get_parameter();
+      const bool parameterWasRestored = (param != nullptr);
       if(!param)
         param = existing->create_parameter(c.type);
       if(!param)
@@ -94,9 +98,13 @@ inline std::vector<ossia::net::parameter_base*> addControlGroup(
       if(!c.description.empty())
         ossia::net::set_description(*existing, c.description);
 
-      // The value the document restored is the user's, not the hardware's, so
-      // it is pushed back through the callback rather than overwritten with
-      // c.initial the way a freshly created node is.
+      // A restored value is the user's, not the hardware's, so it is pushed
+      // back through the callback rather than overwritten with c.initial the
+      // way a freshly created node is. But a parameter CREATED here holds only
+      // its default-constructed value (0.0 for FLOAT) — no document ever held
+      // it — so pushing it would slam a gain/exposure to zero. The fresh-node
+      // path refuses to write c.initial for the same reason; the adopt path
+      // must likewise write nothing when it just made the parameter.
       const auto restored = param->value();
       param->callbacks_clear();
       if(c.onSet)
@@ -104,7 +112,7 @@ inline std::vector<ossia::net::parameter_base*> addControlGroup(
         // Driven before the callback is installed, not after: the write has to
         // reach the hardware, and doing it through an installed callback would
         // re-enter the parameter that is being set up.
-        if(restored.valid())
+        if(parameterWasRestored && restored.valid())
           c.onSet(restored);
         auto cb = c.onSet;
         param->add_callback(std::move(cb));

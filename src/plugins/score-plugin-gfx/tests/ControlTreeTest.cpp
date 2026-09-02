@@ -180,18 +180,16 @@ TEST_CASE("a second attach never leaves two drivers on one parameter")
   CHECK(firstDriver.size() <= 1); // at most its own attach-time push
 }
 
-// DEFECT, pinned expected-red (2026-09-01). 52b00de5e5's contract is that the
-// value pushed to the driver at adoption is "the value the document restored
-// -- that value is the user's". But when the restored node carries NO
-// parameter, addControlGroup creates one and then reads ITS default-constructed
-// value (0.0 for FLOAT), which is valid(), and pushes THAT to the hardware: a
-// gain/exposure slammed to zero by a value no document ever held. The fresh
-// -node path deliberately refuses to write c.initial back for exactly this
-// reason; the adopt path must distinguish "the node existed with a parameter"
-// (push the restored value) from "the parameter was just created here" (push
-// nothing). The correct expectation below is `writes.empty()`; the tag comes
-// off when the product stops writing the fabricated zero.
-TEST_CASE("an adopted node without a parameter gets one", "[!shouldfail]")
+// 52b00de5e5's contract is that the value pushed to the driver at adoption is
+// "the value the document restored -- that value is the user's". When the
+// restored node carries NO parameter, addControlGroup creates one, whose
+// default-constructed value (0.0 for FLOAT) is fabricated, not the user's --
+// so it pushes NOTHING, the same way the fresh-node path refuses to write
+// c.initial back. It distinguishes "the node existed with a parameter" (push
+// the restored value) from "the parameter was just created here" (push
+// nothing), so a gain/exposure is never slammed to zero by a value no
+// document ever held.
+TEST_CASE("an adopted node without a parameter gets one", "[gfx][controltree]")
 {
   fixture f;
 
