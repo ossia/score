@@ -31,6 +31,7 @@
 #include <libremidi/backends.hpp>
 #include <libremidi/configurations.hpp>
 #include <libremidi/port_comparison.hpp>
+#include <magic_enum/magic_enum.hpp>
 // clang-format on
 
 #include <score_plugin_protocols_export.h>
@@ -60,6 +61,33 @@ MIDIDevice::MIDIDevice(
 MIDIDevice::~MIDIDevice()
 {
   delete m_kbdfilter;
+}
+
+//! Is the API this document asks for actually present in this build / on this
+//! machine? libremidi::available_apis() lists the backends that were compiled
+//! in, so a document written on Linux with ALSA_SEQ answers "no" on a macOS or
+//! Windows build, and on a Linux build made without ALSA.
+//!
+//! This has to be checked, not asserted. makeInputConfiguration used to do
+//!     auto ptr = get_if<libremidi::alsa_seq::input_configuration>(&api_conf);
+//!     SCORE_ASSERT(ptr);
+//! but midi_in_configuration_for() only fills the variant for a COMPILED-IN
+//! backend (libremidi.cpp: midi_any::for_backend), so on a build without ALSA
+//! the variant holds unspecified_configuration, get_if returns null, and
+//! opening the document ABORTS the application. An absent backend is external
+//! state, not a programming error.
+bool midiApiAvailable(libremidi::API api) noexcept
+{
+  if(api == libremidi::API::UNSPECIFIED)
+    return true;
+
+  for(auto a : libremidi::available_apis())
+    if(a == api)
+      return true;
+  for(auto a : libremidi::available_ump_apis())
+    if(a == api)
+      return true;
+  return false;
 }
 
 static bool locateDevice(libremidi::observer& obs, MIDISpecificSettings& set)
@@ -128,7 +156,7 @@ static bool locateDevice(libremidi::observer& obs, MIDISpecificSettings& set)
 }
 
 std::pair<libremidi::input_configuration, libremidi::input_api_configuration>
-makeInputConfiguration(MIDIDevice& self, MIDISpecificSettings& set)
+makeInputConfiguration(MIDIDevice* self, MIDISpecificSettings& set)
 {
   libremidi::input_configuration conf;
   auto api_conf = libremidi::midi_in_configuration_for(set.handle.api);
@@ -152,9 +180,12 @@ makeInputConfiguration(MIDIDevice& self, MIDISpecificSettings& set)
     case libremidi::API::ALSA_SEQ: {
       conf.timestamps = libremidi::timestamp_mode::AudioFrame;
 
-      auto ptr = get_if<libremidi::alsa_seq::input_configuration>(&api_conf);
-      SCORE_ASSERT(ptr);
-      ptr->client_name = "ossia score";
+      // Null when the ALSA backend is not compiled in. reconnect() refuses
+      // such a device before we get here; if that check is ever bypassed, skip
+      // the tuning rather than abort — the generic configuration is still a
+      // valid one to hand to libremidi, which reports the failure itself.
+      if(auto ptr = get_if<libremidi::alsa_seq::input_configuration>(&api_conf))
+        ptr->client_name = "ossia score";
       break;
     }
     case libremidi::API::JACK_MIDI: {
@@ -171,11 +202,12 @@ makeInputConfiguration(MIDIDevice& self, MIDISpecificSettings& set)
     }
     case libremidi::API::KEYBOARD: {
       auto ptr = get_if<libremidi::kbd_input_configuration>(&api_conf);
-      SCORE_ASSERT(ptr);
-      ptr->set_input_scancode_callbacks = [&self](auto keypress, auto keyrelease) {
-        self.m_kbdfilter = new MidiKeyboardEventFilter{keypress, keyrelease};
+      if(!ptr || !self) // keyboard backend not compiled in; see the ALSA case above
+        break;
+      ptr->set_input_scancode_callbacks = [self](auto keypress, auto keyrelease) {
+        self->m_kbdfilter = new MidiKeyboardEventFilter{keypress, keyrelease};
 #if !defined(__APPLE__)
-        qApp->installEventFilter(self.m_kbdfilter);
+        qApp->installEventFilter(self->m_kbdfilter);
 #endif
       };
       break;
@@ -187,7 +219,7 @@ makeInputConfiguration(MIDIDevice& self, MIDISpecificSettings& set)
 }
 
 std::pair<libremidi::output_configuration, libremidi::output_api_configuration>
-makeOutputConfiguration(MIDIDevice& self, MIDISpecificSettings& set)
+makeOutputConfiguration(MIDIDevice* self, MIDISpecificSettings& set)
 {
   libremidi::output_configuration conf;
   auto api_conf = libremidi::midi_out_configuration_for(set.handle.api);
@@ -208,6 +240,35 @@ bool MIDIDevice::reconnect()
       = settings().deviceSpecificSettings.value<MIDISpecificSettings>();
 
   m_capas.canSerialize = !set.createWholeTree;
+
+  // A document can name a MIDI API this machine does not have — an ALSA
+  // sequencer device opened on macOS, on Windows, or on a Linux build made
+  // without ALSA. REFUSE the device, with a diagnostic, and let the rest of the
+  // document load: that is score's existing, non-fatal "device could not
+  // connect" state, the same one an unplugged interface or a busy OSC port
+  // produces.
+  //
+  // Deliberately NOT a fallback to a dummy/null backend: a MIDI device is an
+  // I/O endpoint bound to a named external port, so a silent stand-in would
+  // make the document look like it works while every note goes nowhere, and it
+  // would rewrite the document's API on the next save. A missing backend must
+  // degrade visibly, not invisibly.
+  if(!midiApiAvailable(set.handle.api))
+  {
+    // get_api_display_name() is empty for a backend that is not compiled in --
+    // the very case we are reporting -- so fall back to the enumerator name.
+    auto apiName = libremidi::get_api_display_name(set.handle.api);
+    if(apiName.empty())
+      apiName = magic_enum::enum_name(set.handle.api);
+    qWarning() << "MIDI device" << settings().name << "asks for the"
+               << QString::fromUtf8(apiName.data(), apiName.size())
+               << "API, which this build of score does not have. The device is "
+                  "left disconnected; the rest of the document is unaffected. "
+                  "Re-point it at one of the available MIDI APIs in the device "
+                  "settings.";
+    return false;
+  }
+
   try
   {
     std::unique_ptr<ossia::net::midi::midi_protocol> proto;
@@ -219,7 +280,7 @@ bool MIDIDevice::reconnect()
     // 2. Create the device
     if(set.io == MIDISpecificSettings::IO::In)
     {
-      auto [conf, api_conf] = makeInputConfiguration(*this, set);
+      auto [conf, api_conf] = makeInputConfiguration(this, set);
       proto = std::make_unique<ossia::net::midi::midi_protocol>(
           m_ctx,
           ossia::net::midi::midi_protocol_configuration{
@@ -228,7 +289,7 @@ bool MIDIDevice::reconnect()
     }
     else
     {
-      auto [conf, api_conf] = makeOutputConfiguration(*this, set);
+      auto [conf, api_conf] = makeOutputConfiguration(this, set);
       proto = std::make_unique<ossia::net::midi::midi_protocol>(
           m_ctx,
           ossia::net::midi::midi_protocol_configuration{
