@@ -42,11 +42,12 @@
 //     two grabs never agree; asserted non-blank + blue-dominant (the raster's
 //     particle colour), which a missing geometry cable turns black.
 //
-// Vulkan note: this suite pins the GL class only. On the Vulkan backend the
-// model pipeline currently ABORTS in debug Qt builds (qrhivulkan.cpp assert
-// "utexD->m_flags.testFlag(QRhiTexture::UsedWithGenerateMips)" — generateMips
-// requested on a texture created without the flag), recorded in the coverage
-// ledger; a crash pin needs the fork harness and is left for a follow-up.
+// Vulkan note: this suite pins the GL class only, but the model pipeline no
+// longer ABORTS on the Vulkan backend. It used to hit a qrhivulkan.cpp assert
+// ("utexD->m_flags.testFlag(QRhiTexture::UsedWithGenerateMips)" — generateMips
+// requested on an input texture created without the flag); ModelDisplayNode
+// now guards the generateMips call on the texture's flag, so a debug Qt
+// Vulkan build renders the model pipeline instead of aborting.
 // =============================================================================
 
 #include <catch2/catch_test_macros.hpp>
