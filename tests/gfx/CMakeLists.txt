@@ -1031,6 +1031,10 @@ score_add_test(test_gfx_video_direct_bench
 # delta.
 score_add_gfx_test(geometry_filter_shift GfxGeometryFilterShift.cpp)
 
+# P2-14: closing a document mid-render tears down cleanly, fork-isolated so a
+# crash is a red assertion in the parent rather than a dead run.
+score_add_gfx_test(document_close_teardown GfxDocumentCloseTeardown.cpp)
+
 # P2-1: a camera array renders six faces, each carrying its own camera's
 # encoded forward direction. Needs Threedim::CameraArray, which is
 # hidden-visibility inside the plug-in, so it is compiled in directly.
