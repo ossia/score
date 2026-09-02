@@ -81,6 +81,25 @@ function(score_plugin_hidden_sources OUT)
   endif()
 endfunction()
 
+# Static plug-ins are interlinked through the global plugin registry: linking
+# ONE plugin target leaves the other plugins' registration symbols unresolved,
+# so a bare tester executable that links a plugin directly must link the WHOLE
+# list (minus score_plugin_jit, exactly as score_add_test does for its own
+# GUI/APP targets below). No-op on dynamic-plugin builds.
+#
+# ORDERING SEAM: SCORE_PLUGINS_LIST is only complete once add_subdirectory(src)
+# has returned, so for tester executables DEFINED inside src/ this must be
+# called from the top-level CMakeLists AFTER that point -- which is why the
+# application site for EncoderTester/ReadbackTester/PipewireRoundtrip lives
+# there and not next to their add_executable.
+function(score_link_plugins_for_static tgt)
+  if(SCORE_STATIC_PLUGINS AND TARGET ${tgt})
+    set(_static_plugins "${SCORE_PLUGINS_LIST}")
+    list(REMOVE_ITEM _static_plugins score_plugin_jit)
+    target_link_libraries(${tgt} PRIVATE ${_static_plugins})
+  endif()
+endfunction()
+
 function(score_add_test NAME)
   cmake_parse_arguments(ARG "GUI;APP;STANDALONE;SANDBOXED;NO_CTEST" "" "SOURCES;PLUGINS;LIBS" ${ARGN})
 
