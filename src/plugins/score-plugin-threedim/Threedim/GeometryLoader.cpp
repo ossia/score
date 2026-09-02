@@ -1,6 +1,7 @@
 #include "GeometryLoader.hpp"
 
 #include <QMatrix4x4>
+#include <cmath>
 #include <QString>
 
 #include <Threedim/Debug.hpp>
@@ -215,16 +216,62 @@ static bool check_file_extension(std::string_view filename, std::string_view exp
 
 std::function<void(GeometryLoader&)> GeometryLoader::ins::geom_t::process(file_type tv)
 {
-  // Dispatch by extension. Each branch returns a pair of
-  // (vector<Threedim::mesh>, float_vec). Empty pair = unsupported / failed
-  // parse → we return {} so the halp runtime leaves the current geometry
-  // intact rather than wiping it.
+  // Dispatch by extension. Each branch returns a (vector<Threedim::mesh>,
+  // float_vec) pair; an empty pair means unsupported or failed parse, and we
+  // return {} so the halp runtime leaves the current geometry intact rather
+  // than wiping it. The returned lambda runs on the execution thread, swaps
+  // the mesh list and flat float buffer into the loader instance's members,
+  // then triggers rebuild_geometry to populate the dynamic_geometry output.
   //
-  // The returned lambda (captured mesh list + flat float buffer) runs on
-  // the execution thread and swaps into the loader instance's members,
-  // then triggers rebuild_geometry to populate the dynamic_geometry
-  // output.
-  auto upload = [](auto&& mesh, auto&& buf) {
+  // Derive flat per-face normals for any triangle mesh a loader returned
+  // without them: a mesh with no normals renders black under any lit material,
+  // since the Light projection has nothing to dot against, and the TinyObj
+  // path leaves an OBJ carrying no `vn` records normal-less. Deriving them
+  // here -- at the loader that feeds the renderer, not in ObjFromString whose
+  // documented contract is to report normals as absent -- keeps a loaded mesh
+  // visible.
+  auto deriveMissingNormals = [](std::vector<mesh>& meshes,
+                                 Threedim::float_vec& buf) {
+    for(auto& m : meshes)
+    {
+      if(m.normals || m.points || m.vertices <= 0)
+        continue;
+
+      const int64_t nrm_offset = int64_t(buf.size());
+      buf.resize(buf.size() + m.vertices * 3, 0.f);
+      const float* pos = buf.data() + m.pos_offset;
+      float* nrm = buf.data() + nrm_offset;
+      for(int64_t t = 0; t < m.vertices / 3; ++t)
+      {
+        const float* p0 = pos + 9 * t;
+        const float* p1 = p0 + 3;
+        const float* p2 = p0 + 6;
+        const float ux = p1[0] - p0[0], uy = p1[1] - p0[1], uz = p1[2] - p0[2];
+        const float vx = p2[0] - p0[0], vy = p2[1] - p0[1], vz = p2[2] - p0[2];
+        float nx = uy * vz - uz * vy;
+        float ny = uz * vx - ux * vz;
+        float nz = ux * vy - uy * vx;
+        const float len = std::sqrt(nx * nx + ny * ny + nz * nz);
+        if(len > 0.f)
+        {
+          nx /= len;
+          ny /= len;
+          nz /= len;
+        }
+        for(int c = 0; c < 3; ++c)
+        {
+          *nrm++ = nx;
+          *nrm++ = ny;
+          *nrm++ = nz;
+        }
+      }
+      m.normal_offset = nrm_offset;
+      m.normals = true;
+    }
+  };
+
+  auto upload = [&](auto&& mesh, auto&& buf) {
+    deriveMissingNormals(mesh, buf);
     return [mesh = std::move(mesh), buf = std::move(buf)](GeometryLoader& o) mutable {
       std::swap(o.meshinfo, mesh);
       std::swap(o.complete, buf);
@@ -258,10 +305,9 @@ std::function<void(GeometryLoader&)> GeometryLoader::ins::geom_t::process(file_t
 
 void GeometryLoader::operator()()
 {
-  // Compute TRS matrix from position/rotation/scale into
-  // halp::mesh::transform[16]. dirty_transform fires only on actual
-  // change so downstream's transform binding rebuild is skipped on
-  // idle frames.
+  // Compute the TRS matrix from position/rotation/scale into
+  // halp::mesh::transform[16]. dirty_transform fires only on an actual change,
+  // so downstream's transform binding rebuild is skipped on idle frames.
   outputs.geometry.dirty_transform
       = computeTRSMatrix(inputs, outputs.geometry.transform, m_cachedTRS);
 }
