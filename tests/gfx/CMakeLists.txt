@@ -197,6 +197,11 @@ score_add_gfx_test(raster_chain_mrt GfxRasterChainMrt.cpp)
 # each carrying its closed-form buffer identity (G) and draw identity (B) --
 # no stale strip from the previous count.
 score_add_gfx_test(instance_count_live GfxInstanceCountLive.cpp)
+# P1-8: the indirect draw takes its count from the GPU-written buffer. CPU
+# instances pinned at 8; only the compute-written indirect command can make
+# the frame show 3 then 6 strips. SKIPs where neither DrawIndirect nor
+# ReadBackNonUniformBuffer exists (the engine only degrades there).
+score_add_gfx_test(indirect_draw_count GfxIndirectDrawCount.cpp)
 # P1-14 / G17 pin, [!shouldfail]: packCameraUBO ignores camera_projection and
 # always builds reverse-Z perspective, so an orthographic or fulldome camera
 # renders as a perspective one. Unit-math level: byte-identical UBOs provably
