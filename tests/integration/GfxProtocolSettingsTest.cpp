@@ -321,12 +321,18 @@ TEST_CASE(
 //    :179 as inf, which UBSan flags and which lands as
 //    "QObject::startTimer: negative intervals aren't allowed".
 //
-// Registered [!shouldfail] with the CORRECT expectation -- a script that
-// creates a gfx device and exits must exit 0 -- so this turns green the day
-// those are fixed rather than needing to be rewritten.
+// This case was pinned [!shouldfail] with the CORRECT expectation -- a
+// script that creates a gfx device and exits must exit 0 -- while the
+// three defects above made the exit dirty. The observable symptom (a
+// non-zero exit / crash on teardown) is gone since plug-in teardown was
+// made reverse-order (#2245): the device list no longer outlives the
+// GfxContext its parameters unregister from. The tag is off; the same
+// expectation now runs green. The ShmdataOutput render-target leak note
+// above may still hold under a leak checker -- it no longer changes the
+// exit code, which is what this asserts.
 TEST_CASE(
     "a script that creates gfx input devices exits cleanly",
-    "[integration][gfx][device][!shouldfail]")
+    "[integration][gfx][device]")
 {
   requireBinary();
   QTemporaryDir dir;
