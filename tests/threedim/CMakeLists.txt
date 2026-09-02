@@ -292,3 +292,13 @@ score_add_test(test_threedim_geometry_packer
   SOURCES GeometryPackerTest.cpp "${THREEDIM_DIR}/GeometryPacker.cpp"
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_geometry_packer)
+
+# Humanoid pose/retarget family: presets, source maps, keypoint/tracker
+# adapters and the HumanoidRetarget offset math. Entirely header-inline
+# (HumanoidRetarget.hpp and friends), so no engine .cpp TU is compiled in;
+# score_plugin_gfx supplies the ossia scene_state/geometry_port declarations,
+# same as test_threedim_geometry_attributes. Pure state — no GPU / display.
+score_add_test(test_threedim_humanoid_retarget
+  SOURCES HumanoidRetargetTest.cpp
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_humanoid_retarget)
