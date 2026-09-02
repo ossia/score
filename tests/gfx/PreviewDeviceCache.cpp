@@ -7,14 +7,27 @@
 // SharedVulkanDeviceCache fixes that by keeping one imported VkDevice for the
 // process lifetime. The subtle part is the ordering: because selection destroys
 // before it creates, a cache that freed the device at refcount zero would drop
-// to zero and back to one across every transition and save nothing. What this
-// test pins is therefore not a timing but a count — one device, no matter how
-// many previews are opened — plus the fact that each of those previews still
-// renders real content.
+// to zero and back to one across every transition and save nothing.
 //
-// The Owned half is the control: the same loop through the same code with
-// SharedDeviceMode::Owned must still create one device per selection, because
-// every non-preview caller of createRenderState relies on that.
+// WHAT THIS TEST USED TO PIN, AND WHY THAT WAS NOT ENOUGH. It asserted a count
+// -- `createdDeviceCount() <= 1` -- and merely PRINTED the per-selection cost.
+// A count of one is also what you get when the cache is not used at all:
+// `SCORE_GFX_NO_VKDEVICE_CACHE=1` sends every selection down
+// createSharedVulkanDevice() and leaves the counter at ZERO, so the assertion
+// passed vacuously. Measured on this machine, the binary printed 194/182/182/177
+// ms per selection under that variable and passed all 22 assertions -- i.e. the
+// test could not fail on the exact regression it exists to guard, which is a
+// latency regression and not a count.
+//
+// So the count is kept and a MEASUREMENT is added, in the only form that
+// survives a machine of unknown speed: the same five selections are run twice
+// in one process, once with SharedDeviceMode::Owned (a device created and
+// destroyed per selection, which is the pre-fix behaviour and is still what
+// every non-preview caller of createRenderState relies on) and once Cached.
+// Cached must be dramatically cheaper than Owned on the same box in the same
+// run. The absolute numbers are printed for the record against the project's
+// <50 ms interaction standard, but the ASSERTION is the ratio, because an
+// absolute millisecond budget on a CI runner of unknown load is a flake.
 
 #include <Gfx/Graph/VulkanVideoDevice.hpp>
 
@@ -22,8 +35,10 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <algorithm>
 #include <chrono>
 #include <cstdio>
+#include <vector>
 
 using namespace score::test::gfx;
 
@@ -62,6 +77,20 @@ selectSequentially(score::gfx::SharedDeviceMode mode, const char* const* shaders
   return out;
 }
 
+/// Median of the STEADY-STATE selections, i.e. everything but the first: the
+/// cold one pays for driver load, shader compilation and the first pipeline
+/// cache and is not what the user feels when clicking down a shader list.
+double steadyStateMedianMs(const std::vector<PreviewShot>& runs)
+{
+  std::vector<double> ms;
+  for(std::size_t i = 1; i < runs.size(); ++i)
+    ms.push_back(runs[i].ms);
+  if(ms.empty())
+    return 0.;
+  std::sort(ms.begin(), ms.end());
+  return ms[ms.size() / 2];
+}
+
 /// True if the readback is not one constant colour, i.e. something was drawn.
 bool nonDegenerate(const ReadbackImage& img)
 {
@@ -85,40 +114,90 @@ TEST_CASE("Cached previews create one VkDevice for the whole session", "[gfx]")
 #if !QT_HAS_VULKAN || !defined(VK_KHR_video_decode_queue)
   SUCCEED("built without the Vulkan shared-device path");
 #else
-  std::vector<PreviewShot> runs;
+  std::vector<PreviewShot> owned, cached;
   int devicesCreated = -1;
   score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
-    runs = selectSequentially(score::gfx::SharedDeviceMode::Cached, kShaders);
+    // Owned FIRST so it absorbs the cold cost (driver load, shader compile,
+    // pipeline cache) instead of handing it to the run we want to look good.
+    owned = selectSequentially(score::gfx::SharedDeviceMode::Owned, kShaders);
+    cached = selectSequentially(score::gfx::SharedDeviceMode::Cached, kShaders);
     devicesCreated = score::gfx::sharedVulkanDeviceCache().createdDeviceCount();
   });
 
-  REQUIRE(runs.size() == std::size_t(kSelections));
-  if(runs.front().result.skipped)
+  REQUIRE(owned.size() == std::size_t(kSelections));
+  REQUIRE(cached.size() == std::size_t(kSelections));
+  if(owned.front().result.skipped)
   {
-    SUCCEED("Vulkan unavailable here: " + runs.front().result.skip_reason);
+    SUCCEED("Vulkan unavailable here: " + owned.front().result.skip_reason);
     return;
   }
 
-  for(int i = 0; i < kSelections; ++i)
-  {
-    // Printed, not just INFO'd: the per-selection cost is the number this
-    // change exists to move, and it is worth seeing on a passing run.
-    std::fprintf(
-        stderr, "PREVIEW-SELECTION %d: %.1f ms\n", i, runs[i].ms);
-    INFO(
-        "selection " << i << " took " << runs[i].ms
-                     << " ms, error=" << runs[i].result.error);
-    REQUIRE(runs[i].result.error.empty());
-    REQUIRE(runs[i].result.outputs.size() == 1u);
-    // A preview that is fast because it draws nothing is a regression.
-    REQUIRE(nonDegenerate(runs[i].result.outputs[0]));
-  }
+  const auto check = [](const char* label, const std::vector<PreviewShot>& runs) {
+    for(int i = 0; i < kSelections; ++i)
+    {
+      // Printed, not just INFO'd: the per-selection cost is the number this
+      // change exists to move, and it is worth seeing on a passing run.
+      std::fprintf(
+          stderr, "PREVIEW-SELECTION %s %d: %.1f ms\n", label, i, runs[i].ms);
+      INFO(
+          label << " selection " << i << " took " << runs[i].ms
+                << " ms, error=" << runs[i].result.error);
+      REQUIRE(runs[i].result.error.empty());
+      REQUIRE(runs[i].result.outputs.size() == 1u);
+      // A preview that is fast because it draws nothing is a regression.
+      REQUIRE(nonDegenerate(runs[i].result.outputs[0]));
+    }
+  };
+  check("owned", owned);
+  check("cached", cached);
 
-  // The whole point. Zero means the box has no video-decode queue and the
-  // caller fell back to a QRhi-owned device — that is the documented fallback,
-  // not a failure; anything above one means the cache is not caching.
+  // Zero means the box has no video-decode queue and the caller fell back to a
+  // QRhi-owned device — that is the documented fallback, not a failure;
+  // anything above one means the cache is not caching.
   INFO("devices created by the cache: " << devicesCreated);
   REQUIRE(devicesCreated <= 1);
+
+  const double ownedMs = steadyStateMedianMs(owned);
+  const double cachedMs = steadyStateMedianMs(cached);
+  std::fprintf(
+      stderr,
+      "PREVIEW-STEADY-STATE MEDIAN: owned %.1f ms, cached %.1f ms "
+      "(project standard: < 50 ms per selection)\n",
+      ownedMs, cachedMs);
+
+  // THE ASSERTION THIS TEST EXISTS FOR. Selecting a shader must not pay for a
+  // vkCreateDevice + vkDestroyDevice pair.
+  //
+  // The gate is the OWNED run, not `devicesCreated`. A first attempt gated on
+  // `devicesCreated == 0` and was vacuous again for exactly the same reason as
+  // the original: with SCORE_GFX_NO_VKDEVICE_CACHE=1 the counter stays at zero,
+  // so the bypass switched the assertion off instead of tripping it (measured:
+  // owned 187.2 / cached 192.9 ms, all 39 assertions still green). What
+  // actually says "the expensive path is in play on this box" is the owned
+  // run's own cost: a machine with no video-decode queue takes the plain
+  // QRhi::create fallback and is fast in BOTH halves, so there is no stutter
+  // to assert about. Above the standard, the device pair is being paid and the
+  // cached half has to avoid it.
+  //
+  // The comparison itself is a RATIO against a baseline measured moments
+  // earlier on the same box, so it holds on a runner of any speed; 0.5 is a
+  // wide margin around the measured 0.10 (cached 20.1 ms against owned 196.9
+  // ms on the reference machine). The 50 ms in the gate is the project's
+  // interaction standard used as a "is there anything to measure" threshold,
+  // never as the pass criterion -- a millisecond budget on a CI runner of
+  // unknown load would be a flake.
+  constexpr double kInteractionStandardMs = 50.;
+  INFO(
+      "steady-state median: owned " << ownedMs << " ms, cached " << cachedMs
+                                    << " ms; devices created " << devicesCreated);
+  REQUIRE(ownedMs > 0.);
+  if(ownedMs <= kInteractionStandardMs)
+  {
+    SUCCEED(
+        "a preview costs no device pair on this box; nothing to accelerate");
+    return;
+  }
+  CHECK(cachedMs < 0.5 * ownedMs);
 #endif
 }
 
