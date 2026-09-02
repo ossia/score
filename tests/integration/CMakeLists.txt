@@ -13,6 +13,14 @@ score_add_test(test_integration_roundtrip
   SOURCES DocumentRoundtripTest.cpp
   APP)
 
+# A16: a process whose factory is not installed used to be dropped on load, with
+# its cables, silently. Asserting "the document opened" cannot see that, so this
+# one asserts on the content that came back.
+score_add_test(test_integration_missing_process_roundtrip
+  SOURCES MissingProcessRoundtripTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_plugin_automation score_plugin_mapping score_lib_process)
+
 score_add_test(test_integration_scenario_undo
   SOURCES ScenarioUndoTest.cpp
   GUI
