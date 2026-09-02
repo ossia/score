@@ -841,6 +841,21 @@ score_add_test(test_unit_threedim_loaders
   target_include_directories(test_unit_threedim_loaders SYSTEM PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/vcglib"
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/eigen")
+
+  # P0-13: the AssetLoader failure contract (empty / missing / corrupt /
+  # unknown-extension / truncated files publish nullptr + dirty 0, a failed
+  # REPLACEMENT load keeps the previous scene), plus the [!shouldfail] pin on
+  # "a failed asset load is diagnosable" (no error port, no qWarning today).
+  # Same engine sources / libs as test_unit_threedim_loaders above.
+  score_add_test(test_unit_threedim_asset_loader_failure
+    SOURCES
+      AssetLoaderFailure.cpp
+      ${_threedim_hidden}
+    PLUGINS score_plugin_threedim score_plugin_gfx score_plugin_avnd
+    LIBS test_unit_threedim_3rdparty fastgltf spz "${QT_PREFIX}::Gui")
+  target_include_directories(test_unit_threedim_asset_loader_failure SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/vcglib"
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/eigen")
 endif()
 
 # PrimitiveCloud parsers (PLY / .splat / .spz + scene helpers). The parser
