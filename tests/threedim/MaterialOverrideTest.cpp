@@ -17,17 +17,12 @@
 //   - an unchanged tick must NOT re-dirty — the plugin's established
 //     defect class (cf. TagAs, 8ad12fe91a).
 //
-// Two DEFECTS found while writing this (each in its own [!shouldfail]
-// case so the green suite stays green and the entry flips on the fix day):
-//   1. The unconfigured (no texture, no toggle) passthrough early-return in
-//      rebuild() returns BEFORE the identity-cache update, so
-//      m_cached_in_state/-version never match and operator()() re-dirties
-//      0xFF on every idle tick. Same for a null input with a toggle set
-//      (m_cached_out stays null -> unconditional rebuild every tick).
-//   2. The configured rebuild forwards roots/animations/cameras/skeletons/
-//      environment/active_camera_id but drops collections, time_seconds,
-//      active_variant_index and variant_names — the exact silent-data-loss
-//      set Transform3DCompose.cpp pins for wrapSceneWithTransform.
+// Historical note: three defects were found while writing this (the
+// idle-tick 0xFF re-dirty of the unconfigured passthrough and of a null
+// input with a toggle set, and the configured rebuild dropping
+// collections / time_seconds / variant fields). All fixed; the formerly
+// [!shouldfail]-pinned cases at the bottom now assert the correct
+// behaviour and run green.
 
 #include <Threedim/MaterialOverride.hpp>
 
@@ -398,15 +393,15 @@ TEST_CASE("a scene without materials passes through untouched",
 
 // ============================================================== known defects
 
-// DEFECT: rebuild()'s unconfigured passthrough (`!any_tex && !any_factor`)
-// early-returns BEFORE the identity-cache update block, so m_cached_in_state
-// stays null forever. operator()() then sees `m_cached_in_state != in_state`
-// on every tick, rebuilds, and re-emits dirty = 0xFF — in the node's DEFAULT
-// state. Every identity-keyed cache downstream is invalidated every frame,
-// the exact defect class TagAs had (8ad12fe91a); Transform3D's idle-tick
-// contract ("neither rebuilds nor bumps") is the house rule.
+// rebuild()'s unconfigured passthrough (`!any_tex && !any_factor`) must
+// update the identity cache before returning; otherwise operator()() sees
+// `m_cached_in_state != in_state` on every tick, rebuilds, and re-emits
+// dirty = 0xFF in the node's DEFAULT state — invalidating every
+// identity-keyed cache downstream each frame (the TagAs defect class,
+// 8ad12fe91a). Transform3D's idle-tick contract ("neither rebuilds nor
+// bumps") is the house rule.
 TEST_CASE("an unconfigured passthrough must not re-dirty on idle ticks",
-          "[threedim][material_override][!shouldfail]")
+          "[threedim][material_override]")
 {
   auto raw = make_state({make_material(0.10f, 51)});
   Threedim::MaterialOverride n;
@@ -418,15 +413,15 @@ TEST_CASE("an unconfigured passthrough must not re-dirty on idle ticks",
 
   n();
   CHECK(n.outputs.scene_out.scene.state == raw);
-  CHECK(n.outputs.scene_out.dirty == 0); // FAILS today: 0xFF every tick
+  CHECK(n.outputs.scene_out.dirty == 0);
 }
 
-// DEFECT: with a factor toggled but no input scene, m_cached_out is
-// legitimately null, and operator()()'s `if(!m_cached_out || ...)` therefore
-// rebuilds and re-emits dirty = 0xFF on every tick — dirty flags with no
-// scene attached, forever. Transform3D emits dirty == 0 for a null input.
+// With a factor toggled but no input scene, m_cached_out is legitimately
+// null; a null cached output must not by itself trigger a rebuild, or the
+// node re-emits dirty = 0xFF on every tick — dirty flags with no scene
+// attached, forever. Transform3D emits dirty == 0 for a null input.
 TEST_CASE("a null input with overrides configured must not dirty every tick",
-          "[threedim][material_override][!shouldfail]")
+          "[threedim][material_override]")
 {
   Threedim::MaterialOverride n;
   n.inputs.use_metallic.value = true;
@@ -435,18 +430,17 @@ TEST_CASE("a null input with overrides configured must not dirty every tick",
   REQUIRE(n.outputs.scene_out.scene.state == nullptr);
   n();
   CHECK(n.outputs.scene_out.scene.state == nullptr);
-  CHECK(n.outputs.scene_out.dirty == 0); // FAILS today: 0xFF every tick
+  CHECK(n.outputs.scene_out.dirty == 0);
 }
 
-// DEFECT: the configured rebuild copies roots / animations / cameras /
-// skeletons / environment / active_camera_id into the new scene_state but
-// drops collections, time_seconds, active_variant_index and variant_names —
-// the same silent-data-loss set Transform3DCompose.cpp pins for
-// wrapSceneWithTransform ("dropping any of these silently loses data on
-// every pass"). Any scene routed through a configured MaterialOverride
-// loses its collections and variant selection.
+// The configured rebuild must forward every shared scene_state field —
+// not only roots / animations / cameras / skeletons / environment /
+// active_camera_id but also collections, time_seconds,
+// active_variant_index and variant_names — the silent-data-loss set
+// Transform3DCompose.cpp pins for wrapSceneWithTransform ("dropping any
+// of these silently loses data on every pass").
 TEST_CASE("a configured rebuild must forward every shared scene_state field",
-          "[threedim][material_override][!shouldfail]")
+          "[threedim][material_override]")
 {
   auto raw = make_state({make_material(0.10f, 61)});
   raw->collections
@@ -464,8 +458,8 @@ TEST_CASE("a configured rebuild must forward every shared scene_state field",
   REQUIRE(out);
   REQUIRE(out != raw);
 
-  CHECK(out->collections.get() == raw->collections.get()); // FAILS: dropped
-  CHECK(out->time_seconds == Approx(1.5));                 // FAILS: 0.0
-  CHECK(out->active_variant_index == 3);                   // FAILS: -1
-  CHECK(out->variant_names.size() == 1);                   // FAILS: empty
+  CHECK(out->collections.get() == raw->collections.get());
+  CHECK(out->time_seconds == Approx(1.5));
+  CHECK(out->active_variant_index == 3);
+  CHECK(out->variant_names.size() == 1);
 }
