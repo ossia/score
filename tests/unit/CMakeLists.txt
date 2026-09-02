@@ -856,6 +856,21 @@ score_add_test(test_unit_threedim_loaders
   target_include_directories(test_unit_threedim_asset_loader_failure SYSTEM PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/vcglib"
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/eigen")
+
+  # P1-5 / gap G4: first glTF/GLB coverage at any level. Khronos Box.glb /
+  # BoxVertexColors.glb closed forms (SKIP with the fetch command when the
+  # fetched assets are absent), synthesized minimal GLB truncation matrix
+  # (ForkProbe), and a synthesized .gltf + external .bin relative-resolution
+  # case. Same wiring as the loaders target above.
+  score_add_test(test_unit_threedim_gltf_loader
+    SOURCES
+      GltfLoaderTest.cpp
+      ${_threedim_hidden}
+    PLUGINS score_plugin_threedim score_plugin_gfx score_plugin_avnd
+    LIBS test_unit_threedim_3rdparty fastgltf spz "${QT_PREFIX}::Gui")
+  target_include_directories(test_unit_threedim_gltf_loader SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/vcglib"
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/eigen")
 endif()
 
 # PrimitiveCloud parsers (PLY / .splat / .spz + scene helpers). The parser
