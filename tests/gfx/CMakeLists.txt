@@ -191,6 +191,11 @@ score_add_gfx_test(raster_chain_mrt GfxRasterChainMrt.cpp)
 # each carrying its closed-form buffer identity (G) and draw identity (B) --
 # no stale strip from the previous count.
 score_add_gfx_test(instance_count_live GfxInstanceCountLive.cpp)
+# P1-14 / G17 pin, [!shouldfail]: packCameraUBO ignores camera_projection and
+# always builds reverse-Z perspective, so an orthographic or fulldome camera
+# renders as a perspective one. Unit-math level: byte-identical UBOs provably
+# imply byte-identical frames (no other reader of camera projection exists).
+score_add_gfx_test(camera_projection_pin GfxCameraProjectionPin.cpp)
 
 # The same closed-form pattern, but through ISF -> ScreenNode -> swapchain
 # readback: the path the golden gate exercises and the only one the analytic
