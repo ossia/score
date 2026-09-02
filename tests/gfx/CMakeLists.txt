@@ -182,6 +182,10 @@ score_add_gfx_test(mrt_pattern GfxMrtPattern.cpp)
 # accepts ANY two non-identical non-blank images, so an attachment-order or
 # Y-flip regression in the MRT blit was invisible until this one.
 score_add_gfx_test(raw_raster_mrt_pattern GfxRawRasterMrtPattern.cpp)
+# P0-7: the topology of 2026/crash-renderpipeline-mrt.score -- a raw-raster
+# feeding a second, MRT raw-raster (raster#1 image out -> raster#2 sampler),
+# both attachments closed-form, then a sink resize the graph must survive.
+score_add_gfx_test(raster_chain_mrt GfxRasterChainMrt.cpp)
 
 # The same closed-form pattern, but through ISF -> ScreenNode -> swapchain
 # readback: the path the golden gate exercises and the only one the analytic
