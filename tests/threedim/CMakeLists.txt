@@ -331,3 +331,15 @@ score_add_test(test_threedim_buffer_to_geometry
   PLUGINS score_plugin_gfx
   LIBS ${QT_PREFIX}::Gui)
 threedim_test_includes(test_threedim_buffer_to_geometry)
+
+# TextToMesh: the QRawFont -> QPainterPath -> ear-clip tessellation pipeline
+# and its scene_state / mesh-reuse / dirty contract. CPU-only (init/update/
+# release never called), but QFont needs a QGuiApplication + font database:
+# the test makes one on first use and defaults QT_QPA_PLATFORM=offscreen.
+# score_plugin_gfx supplies the exported GpuResourceRegistry/RenderList
+# symbols the compiled-in TU references (never reached at runtime).
+score_add_test(test_threedim_text_to_mesh
+  SOURCES TextToMeshTest.cpp "${THREEDIM_DIR}/TextToMesh.cpp"
+  PLUGINS score_plugin_gfx
+  LIBS ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_text_to_mesh)
