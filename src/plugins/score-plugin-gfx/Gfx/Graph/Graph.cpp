@@ -821,6 +821,10 @@ void Graph::createPassForEdgeIfMissing(Edge& edge)
     auto* batch = rl->state.rhi->nextResourceUpdateBatch();
     if(!batch)
       continue;
+    if(qEnvironmentVariableIsSet("SCORE_GFX_TRACE"))
+      fprintf(
+          stderr, "GFX-PASS add src=%p sink=%p rl=%p\n", (void*)source,
+          (void*)edge.sink->node, (void*)rl.get());
     renderer->addOutputPass(*rl, edge, *batch);
 
     if(rl->initialBatch())
@@ -1007,6 +1011,10 @@ void Graph::reconcileAllRenderLists()
           // All renderers now implement initState(). Pass creation for
           // individual edges is handled by createPassForEdgeIfMissing
           // after reconciliation, ensuring all renderers + RTs exist first.
+          if(qEnvironmentVariableIsSet("SCORE_GFX_TRACE"))
+            fprintf(
+                stderr, "GFX-RECONCILE initState node=%p rl=%p\n", (void*)node,
+                (void*)rl.get());
           rn->initState(*rl, *batch);
           rn->checkForChanges();
           rn->materialChanged = true;
