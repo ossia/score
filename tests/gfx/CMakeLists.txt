@@ -264,6 +264,12 @@ score_add_gfx_test(audio                GfxAudio.cpp)
 score_add_gfx_test(incremental          GfxIncremental.cpp)
 score_add_gfx_test(incremental_add      GfxIncrementalAdd.cpp)
 score_add_gfx_test(incremental_findings GfxIncrementalFindings.cpp)
+# P0-5: the (now-fixed) add-new-output render-pass leak, made COUNTABLE:
+# per-cycle QRhi::statistics().allocCount (Vulkan/D3D12), QT_RHI_LEAK_CHECK=1
+# teardown accounting (all backends, unix), and the Vulkan validation layer's
+# object tracking when present. The incremental_findings pin only asserts the
+# added output's pixels appear; green there is not evidence about the leak.
+score_add_gfx_test(render_pass_leak GfxRenderPassLeak.cpp)
 
 # -----------------------------------------------------------------------------
 # ISOLATED regression guards for the split/gfx-scene engine fixes (REVIEW-ROUND2).
