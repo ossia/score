@@ -29,14 +29,13 @@
 // Real-world third-party samples are deliberately NOT committed; see
 // threedim-render/fetch-real-assets.sh for the out-of-repo corpus.
 //
-// KNOWN DEFECTS PINNED EXPECTED-RED (never blessed):
-//   * obj-no-normals: GeometryLoader leaves an OBJ without `vn` unshaded —
-//     the mesh renders BLACK under the Light projection. The STL path grew
-//     per-face normals in 1a02c5cabf; the OBJ path did not. Correct
-//     behaviour (a visible mesh) is asserted under [!shouldfail].
-//   * stl-cube / ply-cube: the whole VCG import family (STL, PLY) renders
-//     BLACK end-to-end while the byte-equal geometry through the OBJ path
-//     renders -- see those cases for the measurement matrix.
+// FORMERLY-PINNED DEFECTS, now fixed and asserting correct behaviour:
+//   * obj-no-normals: GeometryLoader left an OBJ without `vn` unshaded so it
+//     rendered BLACK under the Light projection; the loader now derives flat
+//     per-face normals (the treatment STL got in 1a02c5cabf).
+//   * stl-cube / ply-cube: the VCG import family (normals, no UVs) selected
+//     the triplanar shader, which emitted only a texture and rendered black
+//     untextured; the triplanar pass grew a normal-lighting floor.
 //
 // Cases found un-goldenable and asserted structurally instead:
 //   * csf-geometry: csf-vertex-count-expr.cs is time-animated by design, so
@@ -560,15 +559,13 @@ TEST_CASE(
   requireMatchesGolden(r, "obj-cube");
 }
 
-// DEFECT, pinned expected-red (2026-09-02): GeometryLoader leaves an OBJ
-// without `vn` records unshaded — zero normals — so the Light projection
-// renders it BLACK while the very same geometry with normals renders. STL
-// got its per-face normals computed in 1a02c5cabf; the OBJ path did not.
-// Correct behaviour: a mesh the artist loaded is visible. The tag comes off
-// when the loader derives face normals for normal-less OBJs.
+// GeometryLoader now derives flat per-face normals for any triangle mesh a
+// loader returned without them (deriveMissingNormals), so an OBJ carrying no
+// `vn` records is shaded by the Light projection instead of rendering black —
+// the same visibility STL got from its per-face normals in 1a02c5cabf.
 TEST_CASE(
     "an OBJ without normals must still be visible",
-    "[integration][threedim][render][gui][!shouldfail]")
+    "[integration][threedim][render][gui]")
 {
   QTemporaryDir dir;
   REQUIRE(dir.isValid());
@@ -587,18 +584,14 @@ TEST_CASE(
   CHECK(nonBlank(r.frame));
 }
 
-// DEFECT, pinned expected-red (2026-09-02): the VCG import family renders
-// BLACK end-to-end. Byte-identical cube geometry (same coordinates, same
-// winding, same normals) drawn through the OBJ/TinyObj path renders the
-// golden above; routed through the STL path (VcgImporters) it rasterises
-// nothing, in either STL encoding and either winding (all four measured).
-// 1a02c5cabf pinned the loader's FLOAT OUTPUT (per-face normals present) at
-// unit level, so the break is between the vcg mesh layout and what the
-// renderer consumes -- exactly the gap only an end-to-end test can see.
-// Correct behaviour: the same cube, visible. Tag comes off with the fix.
+// The VCG import family (STL, PLY) carries normals but no UVs, so under the
+// Light projection it selected the triplanar shader — which emitted ONLY the
+// projected texture and, with no texture wired, rendered pure black. The
+// triplanar pass now has a normal-lighting floor (a wired texture still
+// dominates via max()), so a plain STL/PLY cube is visible like the OBJ twin.
 TEST_CASE(
     "an STL cube must render like the same cube as OBJ",
-    "[integration][threedim][render][gui][!shouldfail]")
+    "[integration][threedim][render][gui]")
 {
   QTemporaryDir dir;
   REQUIRE(dir.isValid());
@@ -622,12 +615,12 @@ TEST_CASE(
   SECTION("binary") { run("stl-cube-bin", makeCubeStlBinary()); }
 }
 
-// Same defect family as the STL pin above: the equal-geometry cube through
-// the PLY path (ascii, positions+normals, 24 flat-shaded corner vertices)
-// rasterises nothing while the OBJ twin renders. Pinned expected-red.
+// Same path as the STL case above: PLY (ascii, positions+normals, no UVs)
+// went through the triplanar shader and rendered black without a texture;
+// the triplanar lighting floor makes the untextured cube visible.
 TEST_CASE(
     "a PLY cube must render like the same cube as OBJ",
-    "[integration][threedim][render][gui][!shouldfail]")
+    "[integration][threedim][render][gui]")
 {
   QTemporaryDir dir;
   REQUIRE(dir.isValid());
