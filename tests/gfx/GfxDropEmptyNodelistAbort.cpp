@@ -1,13 +1,19 @@
 // OPEN-7, fixed. Its own single-test executable because the defect was a
 // SIGABRT and the child-fork isolation must stay to guard against a regress.
 //
-// A QMimeData that declares score::mime::nodelist() but carries an EMPTY
+// A QMimeData that declares score::mime::nodelist() but carries an unusable
 // payload takes Gfx::Filter::VideoTextureDropHandler::dropCustom straight into
-// Mime<Device::FreeNodeList>::Deserializer::deserialize(), which hands "" to
-// rapidjson and trips its IsArray() assertion -- SIGABRT, no recoverable
-// error. Any drag source can produce that mime (an interrupted drag, another
-// application echoing the type with no data), and the cost is the whole
-// application.
+// Mime<Device::FreeNodeList>::Deserializer::deserialize() and into one of
+// rapidjson's assertions -- SIGABRT, no recoverable error. Any drag source can
+// produce that mime (an interrupted drag, another application echoing the type
+// with no data, a stale clipboard), and the cost is the whole application.
+//
+// There are TWO levels of it. The original OPEN-7 report was an EMPTY payload,
+// which is not a JSON array, caught by IsArray(). The array's CONTENTS are the
+// same hazard and that guard does not reach them: rapidjson's operator[]
+// asserts IsObject() on each element and asserts again when the requested
+// member is absent, so `[1,2,3]` and `[{}]` -- both perfectly well-formed JSON
+// arrays -- abort just as hard. This case covers both levels.
 //
 // GfxProcessLibrary.cpp:313 recorded this as un-encodable "even as
 // [!shouldfail]" because the abort kills the binary. Two things fix that:
@@ -36,6 +42,7 @@
 #include <QMimeData>
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 
 #if defined(__unix__)
 #include <sys/wait.h>
@@ -56,10 +63,30 @@ dropper(const score::GUIApplicationContext& ctx, const char* uuid)
 
 #if defined(__unix__)
 TEST_CASE(
-    "an empty nodelist payload must be refused, not abort the app",
+    "a malformed nodelist payload must be refused, not abort the app",
     "[gfx][library][gui]")
 {
-  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+  // Every one of these declares score::mime::nodelist() and carries something
+  // a drag source can plausibly produce. The empty payload is the original
+  // OPEN-7 defect (json.IsArray() false). The rest are the SAME defect one
+  // level down and were NOT covered by that fix: the guard admitted the array
+  // and rapidjson then asserted on its CONTENTS -- operator[] asserts
+  // IsObject() on the element and asserts again when the member is absent.
+  const auto [label, payload] = GENERATE(
+      table<const char*, QByteArray>(
+          {{"empty", QByteArray{}},
+           {"whitespace", QByteArray{"   "}},
+           {"not json at all", QByteArray{"<html>nope</html>"}},
+           {"a json object, not an array", QByteArray{R"({"Address": {}})"}},
+           {"an array of numbers", QByteArray{"[1,2,3]"}},
+           {"an array of empty objects", QByteArray{"[{},{}]"}},
+           {"entries missing Node", QByteArray{R"([{"Address": {}}])"}},
+           {"entries missing Address", QByteArray{R"([{"Node": {}}])"}}}));
+
+  INFO("payload: " << label);
+
+  score::test::run_in_gui_app([&, payload = payload](
+                                  const score::GUIApplicationContext& ctx) {
     score::Document* doc = score::test::new_document(ctx);
     REQUIRE(doc != nullptr);
 
@@ -72,10 +99,10 @@ TEST_CASE(
     if(pid == 0)
     {
       // Child: the drop under test. _exit codes: 0 = handled gracefully with
-      // no drops (the correct answer for an empty payload), 3 = it produced
+      // no drops (the correct answer for an unusable payload), 3 = it produced
       // drops from nothing (also wrong). A SIGABRT never reaches _exit.
       QMimeData mime;
-      mime.setData(score::mime::nodelist(), QByteArray{});
+      mime.setData(score::mime::nodelist(), payload);
       std::vector<Process::ProcessDropHandler::ProcessDrop> drops;
       h->getCustomDrops(drops, mime, doc->context());
       ::_exit(drops.empty() ? 0 : 3);
@@ -85,8 +112,9 @@ TEST_CASE(
     REQUIRE(::waitpid(pid, &status, 0) == pid);
 
     // CORRECT behaviour: the child survives and reports no drops. Before the
-    // fix it was killed by rapidjson's IsArray() assertion; the deserializer
-    // now refuses a non-array payload gracefully.
+    // fix it was killed by one of rapidjson's assertions; the deserializer now
+    // refuses an unusable payload -- and an unreadable entry inside a readable
+    // array -- with a qWarning instead.
     INFO(
         "child status: exited=" << WIFEXITED(status) << " code="
                                 << (WIFEXITED(status) ? WEXITSTATUS(status) : -1)
@@ -97,7 +125,7 @@ TEST_CASE(
   });
 }
 #else
-TEST_CASE("an empty nodelist payload must be refused, not abort the app")
+TEST_CASE("a malformed nodelist payload must be refused, not abort the app")
 {
   SKIP("fork-based child isolation is a unix-only harness");
 }
