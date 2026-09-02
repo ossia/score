@@ -218,7 +218,10 @@ public:
   // Cache the last emitted scene_state so unchanged inputs don't churn
   // downstream identity caches.
   std::shared_ptr<const ossia::scene_state> m_cached_out;
-  uint8_t m_pending_dirty{0xFF};
+  // Starts at 0: a never-wired node must stay quiet from its very first
+  // tick (no scene in, no scene out, nothing dirty). rebuild() raises it
+  // whenever it actually publishes something.
+  uint8_t m_pending_dirty{0};
   const ossia::scene_state* m_cached_in_state{};
   int64_t m_cached_in_version{-1};
   int64_t m_version_counter{0};

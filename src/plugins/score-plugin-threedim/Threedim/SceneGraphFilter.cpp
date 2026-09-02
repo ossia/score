@@ -2,6 +2,8 @@
 
 #include <ossia/network/value/value.hpp>
 
+#include <fmt/format.h>
+
 #include <algorithm>
 
 namespace Threedim
@@ -108,6 +110,46 @@ struct FilterCtx
   std::string_view prop_value;
 };
 
+// ───── Property-value helpers ────────────────────────────────────────
+
+// The payload of the stored ossia::value as plain text — what a user
+// would type — never a typed debug string.
+std::string bare_value_string(const ossia::value& v)
+{
+  switch(v.get_type())
+  {
+    case ossia::val_type::INT:
+      return std::to_string(*v.target<int32_t>());
+    case ossia::val_type::FLOAT:
+      return fmt::format("{}", *v.target<float>());
+    case ossia::val_type::BOOL:
+      return *v.target<bool>() ? "true" : "false";
+    case ossia::val_type::STRING:
+      return *v.target<std::string>();
+    default:
+      return ossia::value_to_pretty_string(v);
+  }
+}
+
+// True (and `out` set) when the stored value is a scalar number.
+bool numeric_value(const ossia::value& v, double& out) noexcept
+{
+  switch(v.get_type())
+  {
+    case ossia::val_type::INT:
+      out = *v.target<int32_t>();
+      return true;
+    case ossia::val_type::FLOAT:
+      out = *v.target<float>();
+      return true;
+    case ossia::val_type::BOOL:
+      out = *v.target<bool>() ? 1.0 : 0.0;
+      return true;
+    default:
+      return false;
+  }
+}
+
 // True if the payload carried by a scene_node has the component kind
 // we're looking for. Used by ByComponent mode.
 bool node_has_component(
@@ -184,12 +226,11 @@ bool node_matches(
     }
 
     case SceneGraphFilter::SetVisibility:
-      // SetVisibility uses the same predicate chain as ByName in the
-      // caller — this case is a hint to the walker, not a true filter.
-      // Fall through to "match everything" so the flag flip runs on
-      // every node. The real gating happens at the caller level using
-      // name-list matching.
-      return true;
+      // SetVisibility flips `visible` only on nodes matching the Names
+      // list (the header contract: "matching nodes have their `visible`
+      // flag flipped ... Non-matching nodes kept untouched"). The walker
+      // never drops anything in this mode; the gate is this predicate.
+      return any_match(ctx.names, n.name);
 
     // ─── Schema-field predicates ────────────────────────────────────
     case SceneGraphFilter::ByAlphaMode: {
@@ -253,10 +294,11 @@ bool node_matches(
         auto it = props.find(std::string(ctx.prop_key));
         if(it == props.end())
           return false;
-        // Stringify the stored value for comparison. ossia::value is
-        // variant-typed; value_to_pretty_string covers int/float/
-        // string/bool/impulse uniformly.
-        const std::string lhs = ossia::value_to_pretty_string(it->second);
+        // Compare against the BARE stored value: the user supplies
+        // literals like "3" or "0.5". value_to_pretty_string() prints a
+        // typed debug string ("int: 3", "float: 0.40") which can never
+        // match a user literal and breaks numeric parsing.
+        const std::string lhs = bare_value_string(it->second);
         const std::string_view rhs = ctx.prop_value;
         switch(ctx.prop_op)
         {
@@ -265,21 +307,25 @@ bool node_matches(
           case SceneGraphFilter::PropContains:    return lhs.find(rhs) != std::string::npos;
           case SceneGraphFilter::PropLessThan:
           case SceneGraphFilter::PropGreaterThan: {
-            // Numeric compare when both sides parse as float; fall
-            // back to lexicographic compare otherwise. Covers the
-            // common "alpha_cutoff > 0.5" case without a full DSL.
-            try
+            // Numeric compare when the stored value is numeric and the
+            // user literal parses; fall back to lexicographic compare
+            // otherwise. Covers the common "alpha_cutoff > 0.5" case
+            // without a full DSL.
+            double l{};
+            if(numeric_value(it->second, l))
             {
-              const double l = std::stod(lhs);
-              const double r = std::stod(std::string(rhs));
-              return ctx.prop_op == SceneGraphFilter::PropLessThan
-                         ? l < r : l > r;
+              try
+              {
+                const double r = std::stod(std::string(rhs));
+                return ctx.prop_op == SceneGraphFilter::PropLessThan
+                           ? l < r : l > r;
+              }
+              catch(...)
+              {
+              }
             }
-            catch(...)
-            {
-              return ctx.prop_op == SceneGraphFilter::PropLessThan
-                         ? lhs < rhs : lhs > rhs;
-            }
+            return ctx.prop_op == SceneGraphFilter::PropLessThan
+                       ? lhs < rhs : lhs > rhs;
           }
         }
         return false;
