@@ -1026,3 +1026,7 @@ score_add_test(test_gfx_video_direct_bench
   PLUGINS score_plugin_gfx score_plugin_media score_plugin_scenario score_lib_process
   LIBS test_gfx_engine_glue avcodec avformat avutil
   NO_CTEST)
+
+# P2-9: a geometry filter displaces the mesh it is given, by a closed-form
+# delta.
+score_add_gfx_test(geometry_filter_shift GfxGeometryFilterShift.cpp)

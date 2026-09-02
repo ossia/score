@@ -393,3 +393,20 @@ score_add_test(test_threedim_texture_inject_extract
     "${THREEDIM_DIR}/ExtractTexture.cpp"
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_texture_inject_extract)
+
+# P2-13: the four payload kinds SceneGPUState.cpp:617-618 admits it does not
+# render (gaussian_splat, voxel_field, point_cloud, volume) survive
+# merge_scenes + the SceneGraphFilter payload rebuild, and contribute ZERO
+# entries to every FlatScene counter. Compiles SceneGraphFilter.cpp (the
+# transport visitor under test); ossia::merge_scenes comes from libossia
+# through score_lib_base, and score::gfx::flattenScene is
+# SCORE_PLUGIN_GFX_EXPORT, so score_plugin_gfx is LINKED, not recompiled.
+# Qt Gui for the QMatrix4x4 in FlatScene. Pure CPU: no QRhi, no display.
+score_add_test(test_threedim_scene_payload_transport
+  SOURCES ScenePayloadTransportTest.cpp
+    "${THREEDIM_DIR}/SceneGraphFilter.cpp"
+  PLUGINS score_plugin_gfx
+  LIBS ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_scene_payload_transport)
+target_compile_definitions(test_threedim_scene_payload_transport PRIVATE
+  GFX_SRC_DIR="${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx/Gfx")
