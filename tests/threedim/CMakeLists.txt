@@ -343,3 +343,12 @@ score_add_test(test_threedim_text_to_mesh
   PLUGINS score_plugin_gfx
   LIBS ${QT_PREFIX}::Gui)
 threedim_test_includes(test_threedim_text_to_mesh)
+
+# Text to Texture — CPU rasterization of a string into an RGBA8 texture.
+# Header-only node (QPainter on QImage — no GPU / QRhi / engine .cpp), so
+# only the include set is needed. Qt Gui for QImage/QPainter/QFont; the test
+# makes a QGuiApplication on demand. Assertions are font-independent.
+score_add_test(test_threedim_text_to_texture
+  SOURCES TextToTextureTest.cpp
+  LIBS ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_text_to_texture)
