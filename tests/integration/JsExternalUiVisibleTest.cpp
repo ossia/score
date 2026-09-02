@@ -1,12 +1,12 @@
 // Opening the custom UI of a Javascript process tells nothing that it is open.
 //
 // Process::setupExternalUI (EffectLayer.cpp:165) builds and shows the window
-// but emits nothing; every emitter of Process::ProcessModel::externalUIVisible
-// lives in the plug-ins, and the Javascript one only ever emits `false`
-// (JSProcessModel.cpp:407, :444, :454, :655 -- all on close). LV2, VST and
+// but emits nothing itself; every emitter of
+// Process::ProcessModel::externalUIVisible lives in the plug-ins. LV2, VST and
 // VST3 windows emit `true` from their show path (LV2/Window.cpp:280,
-// Vst/Window.cpp:50, Vst3/UI/WindowCommon.cpp:21); the Javascript process has
-// no equivalent.
+// Vst/Window.cpp:50, Vst3/UI/WindowCommon.cpp:21); the Javascript process now
+// emits `true` from the end of createWindowForUI too (it previously only
+// emitted `false` on close: JSProcessModel.cpp:407, :444, :454, :655).
 //
 // What reads that signal is the state of the two controls that open the UI:
 // the process-header button (EffectLayer.cpp:233) and the inspector toggle
@@ -42,7 +42,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 TEST_CASE("Showing a Javascript process UI reports that it is visible",
-          "[integration][js][gui][ui][!shouldfail]")
+          "[integration][js][gui][ui]")
 {
   score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
     score::Document* doc = score::test::new_document(ctx);
