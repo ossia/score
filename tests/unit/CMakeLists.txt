@@ -520,6 +520,12 @@ score_add_test(test_unit_device_tree_reload
   APP
   PLUGINS score_plugin_deviceexplorer score_lib_device score_lib_state)
 
+# A17: two processes that a user can add must not carry the same label.
+score_add_test(test_unit_process_name_uniqueness
+  SOURCES ProcessNameUniquenessTest.cpp
+  APP
+  PLUGINS score_lib_process)
+
 # A5: a MIDI device naming a backend this build does not have (an ALSA sequencer
 # port on a machine whose libremidi was built without ALSA) used to ABORT on
 # load, from a SCORE_ASSERT on external state. It must refuse, visibly.
