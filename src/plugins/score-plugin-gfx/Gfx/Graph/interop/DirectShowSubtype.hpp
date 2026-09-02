@@ -81,15 +81,22 @@ directShowSubtypePixelFormat(const DirectShowGuid& subtype) noexcept
 
 /// The codec `enumerateCameraFormat` offers for a subtype.
 ///
-/// Every compressed fourcc answers AV_CODEC_ID_MJPEG, H264 included. That is
-/// what the enumeration does today and this function exists to state it where
-/// a test can see it; it is not what the enumeration should do. Correcting it
-/// means dispatching on the fourcc here, at which point the pin in
-/// tests/unit/DirectShowSubtypeResolveTest.cpp goes red and names the change.
+/// A compressed fourcc dispatches to the codec it actually names — H.264 to
+/// AV_CODEC_ID_H264, the DV spelling to DV, the Motion-JPEG spellings to
+/// MJPEG — rather than collapsing everything to MJPEG, which offered an
+/// H.264 camera with the wrong decoder. A non-compressed subtype is raw.
 inline AVCodecID directShowSubtypeCodec(const DirectShowGuid& subtype) noexcept
 {
-  return directShowSubtypeIsCompressed(subtype) ? AV_CODEC_ID_MJPEG
-                                                : AV_CODEC_ID_RAWVIDEO;
+  const auto fourcc = directShowSubtypeFourcc(subtype);
+  if(fourcc == 0 || !isDirectShowCompressedFourcc(fourcc))
+    return AV_CODEC_ID_RAWVIDEO;
+
+  if(fourcc == fcc('H', '2', '6', '4'))
+    return AV_CODEC_ID_H264;
+  if(fourcc == fcc('d', 'v', 's', 'd'))
+    return AV_CODEC_ID_DVVIDEO;
+  // MJPG and the historical Motion-JPEG spellings.
+  return AV_CODEC_ID_MJPEG;
 }
 
 } // namespace score::gfx::interop
