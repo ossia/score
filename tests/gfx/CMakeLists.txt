@@ -1064,6 +1064,11 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
     $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
+
+# P2-2: per-layer depth renders through the scratch-D32F + copyTexture shim,
+# each layer carrying its own closed-form depth.
+score_add_gfx_test(per_layer_depth GfxPerLayerDepth.cpp)
+
 # P1-17: a gaussian splat renders through the path real scores take
 # (asset_loader(.ply) -> Scene Preprocessor -> scene_group -> Flattened Scene
 # Filter -> CSF chain -> Render Pipeline), on a .ply the test synthesises.
