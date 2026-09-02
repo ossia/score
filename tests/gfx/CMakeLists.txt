@@ -298,6 +298,12 @@ score_add_gfx_test(incremental_resize_fork GfxIncrementalResizeFork.cpp)
 #                       (824a08d39).
 score_add_gfx_test(rt_changed      GfxRtChanged.cpp)
 score_add_gfx_test(node_removal    GfxNodeRemoval.cpp)
+# P0-9: removing a CSF geometry producer (and then the geometry filter) while
+# the render loop is live: the raster consumer keeps rendering (uniform clear
+# or last valid frame, stable across 12 post-removal frames) and every
+# transitively-unreachable upstream node's renderedNodes drains to 0 --
+# GfxNodeRemoval's structural invariant applied to the geometry chain.
+score_add_gfx_test(geometry_producer_removal GfxGeometryProducerRemoval.cpp)
 # batch_lifetime: a pending initial resource-update batch must be submitted
 # before graph mutations destroy resources it names (pre-fix: UAF inside
 # QRhi::enqueueResourceUpdates on the next frame — the GL/D3D11/Vulkan crash
