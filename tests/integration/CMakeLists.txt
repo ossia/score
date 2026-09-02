@@ -551,6 +551,24 @@ if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
     TIMEOUT 1800 RUN_SERIAL TRUE LABELS "gui")
 endif()
 
+# P1-18: a gfx process inside a sub-interval of the document's own Scenario.1
+# starts and stops cleanly during playback: three-phase pixel oracle (baseline
+# "renders nothing" / magenta / EXACTLY back to baseline) plus the
+# SCORE_GFX_TRACE GFX-EDGES half proving both transitions were consumed
+# incrementally (full=0, edge set grows at t1 and shrinks at t2). Drives the
+# application binary; SKIPs itself when the binary, the corpus or a display is
+# missing.
+if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_gfx_nested_interval
+    SOURCES GfxNestedIntervalTest.cpp
+    LIBS ${QT_PREFIX}::Gui)
+  target_compile_definitions(test_integration_gfx_nested_interval PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\""
+    "GFX_TEST_CORPUS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/../gfx/corpus\"")
+  set_tests_properties(test_integration_gfx_nested_interval PROPERTIES
+    TIMEOUT 600 RUN_SERIAL TRUE LABELS "gui")
+endif()
+
 # Manual tool (not a ctest): enumerate and live-preview every registered
 # object.  Run:  <build>/tests/integration/ObjectGallery --list
 #          or:  cd <build> && ./tests/integration/ObjectGallery --filter camera
