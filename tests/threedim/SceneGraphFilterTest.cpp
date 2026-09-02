@@ -15,8 +15,8 @@
 //      defect class the TagAs / Transform3D pins in SceneGraphOps.cpp and
 //      Transform3DCompose.cpp guard against.
 //
-// Three [!shouldfail] cases document real defects (marked DEFECT below);
-// they assert the CORRECT behaviour and flip to green the day each is fixed.
+// Three formerly-pinned cases document defects fixed since (see below);
+// they assert the correct behaviour and run green.
 
 #include <Threedim/SceneGraphFilter.hpp>
 
@@ -522,15 +522,11 @@ TEST_CASE("SceneGraphFilter SetVisibility hides but never drops",
 }
 
 TEST_CASE("SceneGraphFilter SetVisibility must only touch nodes matching Names",
-          "[threedim][scene][filter][!shouldfail]")
+          "[threedim][scene][filter]")
 {
-  // DEFECT: the Names gate is never applied in SetVisibility mode.
-  // node_matches() returns true for every node in this mode, with a comment
-  // claiming "the real gating happens at the caller level using name-list
-  // matching" — but Walker::rewrite never consults ctx.names, so EVERY node
-  // is hidden, not just the listed ones. The header documents: "matching
-  // nodes have their `visible` flag flipped ... Non-matching nodes kept
-  // untouched."
+  // The Names gate applies in SetVisibility mode: only listed nodes get
+  // their flag flipped. The header documents: "matching nodes have their
+  // `visible` flag flipped ... Non-matching nodes kept untouched."
   Filter n;
   auto wheel = make_node("Wheel", 2);
   auto door = make_node("Door", 3);
@@ -549,25 +545,19 @@ TEST_CASE("SceneGraphFilter SetVisibility must only touch nodes matching Names",
   const auto* out_door = child_node(*out_car, "Door");
   REQUIRE(out_wheel);
   REQUIRE(out_door);
-  CHECK_FALSE(out_wheel->visible); // the listed node IS hidden (works today)
-  CHECK(out_door->visible);        // FAILS: unlisted node hidden too
-  CHECK(out_car->visible);         // FAILS: unlisted root hidden too
+  CHECK_FALSE(out_wheel->visible); // the listed node is hidden
+  CHECK(out_door->visible);        // unlisted node untouched
+  CHECK(out_car->visible);         // unlisted root untouched
 }
 
 TEST_CASE("SceneGraphFilter ByNodeProperty must compare the stored value, not "
           "its debug string",
-          "[threedim][scene][filter][!shouldfail]")
+          "[threedim][scene][filter]")
 {
-  // DEFECT: the property predicate stringifies the stored ossia::value with
-  // value_to_pretty_string(), which is fmt::format("{}", v) and prints a
-  // TYPED DEBUG string: int 3 -> "int: 3", float 0.4f -> "float: 0.40",
-  // "x" -> "string: \"x\"".  Consequences:
-  //  - PropEqual against a user literal like "3" can never match;
-  //  - PropLessThan/GreaterThan: std::stod("float: 0.40") throws, so the
-  //    lexicographic fallback compares "float: 0.40" with "0.5" and
-  //    'f' > '0' makes GreaterThan spuriously true for every float value.
-  // The fix is to compare against the bare value (or convert the stored
-  // value directly), after which both sections go green.
+  // The property predicate compares the BARE stored value (int 3 -> "3",
+  // float 0.4f numerically), never a typed debug string: PropEqual matches
+  // user literals like "3", and PropLessThan/GreaterThan compare
+  // numerically whenever the stored value is a scalar number.
   Filter n;
 
   SECTION("PropEqual on an int property must match its literal text")
@@ -583,7 +573,6 @@ TEST_CASE("SceneGraphFilter ByNodeProperty must compare the stored value, not "
 
     n();
     REQUIRE(n.outputs.scene_out.scene.state);
-    // FAILS: "int: 3" != "3" -> nothing matches -> empty output.
     CHECK(root_names(*n.outputs.scene_out.scene.state)
           == std::vector<std::string>{"A"});
   }
@@ -602,7 +591,6 @@ TEST_CASE("SceneGraphFilter ByNodeProperty must compare the stored value, not "
     const auto& st = n.outputs.scene_out.scene.state;
     REQUIRE(st);
     // 0.4 > 0.5 is false, so A must be dropped.
-    // FAILS: stod("float: 0.40") throws -> lexicographic 'f' > '0' -> kept.
     CHECK(st->empty());
   }
 }
@@ -715,17 +703,16 @@ TEST_CASE("SceneGraphFilter degrades gracefully on empty input",
 }
 
 TEST_CASE("SceneGraphFilter never-wired must stay quiet from the first tick",
-          "[threedim][scene][filter][!shouldfail]")
+          "[threedim][scene][filter]")
 {
-  // DEFECT: m_pending_dirty is default-initialised to 0xFF, so the very
-  // first tick of a node with NO upstream scene emits dirty == 0xFF with a
-  // null state. Same contract as the TagAs / Transform3D null-upstream pins
-  // in SceneGraphOps.cpp: no scene in, no scene out, nothing dirty — a 0xFF
-  // here invalidates every identity-keyed preprocessor cache downstream of
-  // an unwired node.
+  // m_pending_dirty starts at 0, so the very first tick of a node with NO
+  // upstream scene stays quiet. Same contract as the TagAs / Transform3D
+  // null-upstream pins in SceneGraphOps.cpp: no scene in, no scene out,
+  // nothing dirty — a 0xFF here would invalidate every identity-keyed
+  // preprocessor cache downstream of an unwired node.
   Filter n;
   n.inputs.mode.value = Filter::ByName;
   n();
   CHECK(n.outputs.scene_out.scene.state == nullptr);
-  CHECK(n.outputs.scene_out.dirty == 0); // FAILS: 0xFF leaks from the init
+  CHECK(n.outputs.scene_out.dirty == 0);
 }
