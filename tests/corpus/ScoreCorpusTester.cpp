@@ -11,13 +11,14 @@
 //
 // Per document, in this process:
 //  1. Pre-scan the raw JSON for process uuids and compare them against the
-//     registered Process::ProcessFactoryList. Any unknown uuid is verdict
-//     UNKNOWN_UUID:<uuid> and the document is NOT loaded: on load, an unknown
-//     process is silently dropped (ProcessFactoryList::loadMissing is
-//     SCORE_TODO -> nullptr, see IntervalModelSerialization.cpp:199), which
-//     would both hide the reference and break the round-trip check. ~20 of
-//     the user's real documents reference processes that exist in no branch;
-//     for those, UNKNOWN_UUID is the correct, *expected* baseline verdict.
+//     registered Process::ProcessFactoryList. Unknown uuids are RECORDED in
+//     the note and the document is loaded anyway. It used not to be: an
+//     unknown process was silently dropped on load (loadMissing was
+//     SCORE_TODO -> nullptr), taking its cables with it, so neither the
+//     reference nor the round-trip check meant anything. loadMissing now keeps
+//     the process as a Process::MissingProcess with its original uuid, ports
+//     and payload, so these documents get the same treatment as any other --
+//     and step 3 is what proves the placeholder writes them back unchanged.
 //  2. Load the document through the application path:
 //     DocumentManager::loadFile (DocumentManager.cpp:615). Failure -> LOADFAIL.
 //  3. Round-trip: Document::saveAsJson, reload that byte-for-byte through
@@ -37,7 +38,7 @@
 //     outlets present but every grab blank or unwritten -> BLANK. A document
 //     with no texture outlet legitimately has no gfx output -> OK with a note.
 //
-// Verdicts: OK / UNKNOWN_UUID:<uuid> / LOADFAIL / ROUNDTRIP / GRAPHFAIL /
+// Verdicts: OK / LOADFAIL / ROUNDTRIP / GRAPHFAIL /
 // BLANK — plus CRASH_SIG<n> / TIMEOUT which are synthesized by the driver
 // (run-score-corpus.sh) from the process's signal exit / timeout, exactly as
 // run-corpus.sh does for the video tester.
@@ -320,13 +321,16 @@ void run_document(
 
     if(!unknown.isEmpty())
     {
-      v.status = "UNKNOWN_UUID:" + unknown.front().toStdString();
+      // Recorded, not fatal. This used to abandon the document: an unknown
+      // process was DROPPED on load, with its cables, so both the reference
+      // and the round-trip check were meaningless. Since
+      // ProcessFactoryList::loadMissing keeps the process (Process::
+      // MissingProcess: original uuid, ports, payload), these documents load
+      // and round-trip like any other — and the round-trip leg is now the
+      // thing that proves the placeholder writes them back unchanged.
       note_append(
-          v.note, "unknown process uuids: " + unknown.join(", ").toStdString());
-      note_append(
-          v.note, "load not attempted: unknown processes are dropped silently "
-                  "on load (ProcessFactoryList::loadMissing)");
-      finish(file, v);
+          v.note, "unknown process uuids: " + unknown.join(", ").toStdString()
+                      + " (kept as placeholders)");
     }
   }
   else
