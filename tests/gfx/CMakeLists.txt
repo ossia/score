@@ -407,6 +407,14 @@ score_add_test(test_gfx_dmacapture_ladder
   GUI
   PLUGINS score_plugin_gfx score_plugin_media score_plugin_scenario score_lib_process
   LIBS test_gfx_engine_glue)
+
+# What the GPU Bayer demosaic reconstructs, per CFA order and bit depth, on the
+# real capture path (fake backend, real CpuStagedCapture + wire decoder).
+score_add_test(test_gfx_bayer_demosaic
+  SOURCES BayerDemosaic.cpp
+  GUI
+  PLUGINS score_plugin_gfx score_plugin_media score_plugin_scenario score_lib_process
+  LIBS test_gfx_engine_glue)
 # -----------------------------------------------------------------------------
 # What the packed / high-bit-depth GPU video decoders put on screen.
 #
