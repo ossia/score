@@ -14,7 +14,7 @@
 //     shares the sub-vectors (roots etc.) by shared_ptr identity;
 //   - an unchanged tick must NOT re-dirty and must republish the SAME
 //     shared_ptr — the identity fast-path ScenePreprocessor keys on
-//     (the plugin's established defect class, cf. TagAs, 8ad12fe91a);
+//     (the plugin's established defect class, cf. TagAs);
 //   - live handle / byte_size / in-place version changes are detected in
 //     operator()() without a port event (the header documents why).
 //
@@ -31,17 +31,6 @@
 //     renderer dereference.
 // For those we hand the callees references into inert storage they are
 // contractually forbidden to touch — the CameraRelease.cpp technique.
-//
-// DEFECT found while writing this (own [!shouldfail] case so the suite stays
-// green and flips on the fix day):
-//   1. InjectBuffer's null-scene passthrough leaves m_cached_out null, and
-//      operator()() cannot distinguish "computed null" from "never built":
-//      an unwired node rebuild()s and re-dirties 0xFF on EVERY tick. Same
-//      subclass as MaterialOverrideTest.cpp's defect #1.
-//   2. ExtractSceneBuffer's clear paths assign a default gpu_buffer, so a
-//      live handle vanishing (scene unplugged) publishes handle==nullptr
-//      with changed==false — while the success path carefully computes
-//      `changed` from prev-vs-new precisely so downstream rebinds key on it.
 
 #include <Threedim/ExtractSceneBuffer.hpp>
 #include <Threedim/InjectBuffer.hpp>
@@ -326,12 +315,12 @@ TEST_CASE(
 // rebuild() and republishes dirty == 0xFF on EVERY tick. Correct behaviour
 // (asserted here): after the first announcement, an unchanged null-scene
 // tick is silent, exactly like the unwired-but-scene-present case above.
-// Same defect subclass as MaterialOverrideTest.cpp's #1 (cf. TagAs,
-// 8ad12fe91a). Fix shape: a separate m_built flag (or caching the null in a
+// Same defect subclass as MaterialOverrideTest.cpp's #1 (cf. TagAs).
+// Fix shape: a separate m_built flag (or caching the null in a
 // sentinel) so the identity compare, not nullness, drives the re-arm.
 TEST_CASE(
     "InjectBuffer does not re-dirty on unchanged ticks with a null scene",
-    "[threedim][injectbuffer][!shouldfail]")
+    "[threedim][injectbuffer]")
 {
   Threedim::InjectBuffer node; // nothing wired at all
 
@@ -341,7 +330,7 @@ TEST_CASE(
 
   node();
   CHECK(node.outputs.scene_out.scene.state == nullptr);
-  CHECK(node.outputs.scene_out.dirty == 0); // FAILS pre-fix: 0xFF every tick
+  CHECK(node.outputs.scene_out.dirty == 0);
 }
 
 // ========================================================= ExtractSceneBuffer
@@ -438,7 +427,7 @@ TEST_CASE(
 // live -> cleared transition publishes changed == true.
 TEST_CASE(
     "ExtractSceneBuffer flags `changed` when a live outlet is cleared",
-    "[threedim][extractscenebuffer][!shouldfail]")
+    "[threedim][extractscenebuffer]")
 {
   Threedim::ExtractSceneBuffer node;
 
@@ -449,5 +438,5 @@ TEST_CASE(
   // ...this frame the scene is gone.
   node.update(inert_renderlist(), inert_batch(), nullptr);
   CHECK(node.outputs.buffer.buffer.handle == nullptr);
-  CHECK(node.outputs.buffer.buffer.changed); // FAILS pre-fix: wholesale {}
+  CHECK(node.outputs.buffer.buffer.changed);
 }
