@@ -68,7 +68,23 @@ public:
       score::gfx::Edge* e)
   {
     if(!buf || inputs.texture.texture.bytesize() != buf->size())
+    {
       init(renderer, res);
+      return;
+    }
+    // A dropout tick (bytes == nullptr) re-inits and zeroes the
+    // published outlet while keeping `buf` alive. When the source comes
+    // back at the SAME size no re-init happens, so republish the
+    // still-live, size-matching buffer — otherwise the outlet stays
+    // null forever while runInitialPasses() uploads into a buffer
+    // downstream can no longer see.
+    if(inputs.texture.texture.bytes && outputs.buffer.buffer.handle != buf)
+    {
+      outputs.buffer.buffer.handle = buf;
+      outputs.buffer.buffer.byte_size = buf->size();
+      outputs.buffer.buffer.byte_offset = 0;
+      outputs.buffer.buffer.changed = true;
+    }
   }
 
   void release(score::gfx::RenderList& r)
