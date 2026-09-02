@@ -167,6 +167,14 @@ score_add_test(test_integration_scenario_create
   GUI
   PLUGINS score_plugin_scenario score_lib_process)
 
+# Qt-vs-by-value ownership of ScenarioDocumentView's members: the widget must
+# not be the Qt owner of anything the view holds by value (6227fbd07f), with
+# the deferred remainder pinned expected-red.
+score_add_test(test_integration_scenario_view_ownership
+  SOURCES ScenarioViewOwnershipTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process)
+
 # Device explorer address panel: editing values, accepted values, and the
 # absence of empty undo steps.
 score_add_test(test_integration_device_address_edit
