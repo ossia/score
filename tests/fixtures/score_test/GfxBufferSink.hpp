@@ -132,7 +132,15 @@ public:
   struct NamedReadback
   {
     std::string name;
-    QRhiReadbackResult rb;
+    // NOT QRhiReadbackResult. The buffer-readback result is its own type in the
+    // Qt CI builds against (6.4.2 -- the failing Coverage log names
+    // .../QtGui/6.4.2/QtGui/private/qrhi_p.h) and only later folds into
+    // QRhiReadbackResult; Gfx/Graph/RenderState.hpp already carries the
+    // project's compatibility alias for the newer Qt, and
+    // EncoderMatrixTest.cpp / ExtractComputeSrb.cpp already spell it this way.
+    // Writing QRhiReadbackResult here made the three readBackBuffer calls below
+    // fail to compile on 6.4 (the parameter is QRhiBufferReadbackResult*).
+    QRhiBufferReadbackResult rb;
   };
 
   // Everything the renderer harvested on the LAST rendered frame. Held
@@ -471,6 +479,10 @@ public:
         // A null handle leaves rb.data empty — surfaced by the driver as a
         // hard error ("empty readback is a failure"), not silently skipped.
         if(qb && byte_size > 0)
+          // The size parameter is `int` on Qt 6.4 and `quint32` from 6.6; an
+          // explicit narrowing cast from the int64 byte counts satisfies both
+          // (and keeps -Wshorten-64-to-32 quiet), since each converts to the
+          // other implicitly.
           ensureBatch()->readBackBuffer(qb, 0, quint32(byte_size), &slot.rb);
       }
 
