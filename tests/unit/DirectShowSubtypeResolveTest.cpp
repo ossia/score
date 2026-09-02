@@ -143,14 +143,13 @@ TEST_CASE("MJPEG-family subtypes resolve to the MJPEG decoder", "[unit][dshow][v
   CHECK(directShowSubtypeCodec(MEDIASUBTYPE_RGB24) == AV_CODEC_ID_RAWVIDEO);
 }
 
-// Defect: 9b688179e5 taught isDirectShowCompressedFourcc about H264, and
-// enumerateCameraFormat hands every compressed subtype to the MJPEG decoder,
-// so an H.264 camera is offered with the wrong decoder. Fixing it means
-// dispatching on the fourcc in directShowSubtypeCodec; when that lands this
-// case passes and the [!shouldfail] tag comes off.
+// 9b688179e5 taught isDirectShowCompressedFourcc about H264;
+// directShowSubtypeCodec now dispatches on the fourcc rather than collapsing
+// every compressed subtype to MJPEG, so an H.264 camera is offered with the
+// H.264 decoder instead of the wrong one.
 TEST_CASE(
     "an H264 subtype resolves to the H264 decoder",
-    "[unit][dshow][video][!shouldfail]")
+    "[unit][dshow][video]")
 {
   CHECK(directShowSubtypeCodec(yuvSubtype(fcc('H', '2', '6', '4'))) == AV_CODEC_ID_H264);
 }
