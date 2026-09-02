@@ -777,6 +777,19 @@ void Graph::createPassForEdgeIfMissing(Edge& edge)
     if(renderer->hasOutputPassForEdge(edge))
       continue;
 
+    // A render list that is pending a rebuild is INCOHERENT with its output's
+    // GPU objects: a fast-path viewport resize (RenderList::
+    // resizeSwapchainSizedTargets, reached from BackgroundNode::resize ->
+    // onResize) destroys the output's QRhiTextureRenderTarget and its
+    // QRhiRenderPassDescriptor, installs fresh ones, and only marks the list
+    // not-built — the renderers are re-init'd on the NEXT render frame, in
+    // maybeRebuild. Building a pass in that window reads the output renderer's
+    // pre-resize snapshot (e.g. InvertYRenderer::m_inputTarget) and calls
+    // through a freed QRhiRenderPassDescriptor. Nothing is lost by skipping:
+    // maybeRebuild's release() + init() re-adds an output pass for every edge.
+    if(!rl->isBuilt())
+      continue;
+
     // Ensure the sink port has a render target (if needed)
     Port* sink = edge.sink;
     if(sink->type == Types::Image

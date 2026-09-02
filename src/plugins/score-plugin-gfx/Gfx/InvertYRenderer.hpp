@@ -24,9 +24,27 @@ public:
 
   score::gfx::MeshBuffers m_mesh{};
 
+  // m_inputTarget is a SNAPSHOT of the owning output node's render target,
+  // taken in createRenderer() and refreshed in init(). The output node can
+  // replace both the QRhiTextureRenderTarget and the QRhiRenderPassDescriptor
+  // behind our back — BackgroundNode::resize() `deleteLater()`s them and
+  // installs fresh ones — and when the resize takes the fast path
+  // (RenderList::resizeSwapchainSizedTargets) the re-init is deferred to the
+  // next render frame. Anything reading the snapshot in that window (an
+  // incremental edge add: Graph::createAllMissingPasses ->
+  // RenderList::renderTargetForOutput -> here -> addOutputPass's
+  // renderPass->serializedFormat()) dereferences freed memory. Re-adopt the
+  // node's LIVE target on every query: the output node is the authority, and
+  // this is the same rule init() applies.
   score::gfx::TextureRenderTarget
   renderTargetForInput(const score::gfx::Port& p) override
   {
+    if(auto* out = dynamic_cast<const score::gfx::OutputNode*>(&this->node))
+    {
+      auto cur = out->currentRenderTarget();
+      if(cur.renderTarget && cur.renderPass)
+        m_inputTarget = cur;
+    }
     return m_inputTarget;
   }
 
