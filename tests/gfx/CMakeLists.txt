@@ -758,6 +758,10 @@ score_add_gfx_process_test(drop_empty_nodelist GfxDropEmptyNodelistAbort.cpp)
 # GfxContext through GfxExecutionAction, observed via SCORE_GFX_TRACE.
 score_add_gfx_process_test(edge_consume_latch GfxEdgeConsumeLatch.cpp)
 
+# OPEN-4: within one incremental frame, every renderer (initState) precedes
+# every pass creation. Observed via the GFX-RECONCILE / GFX-PASS trace lines.
+score_add_gfx_process_test(renderers_before_passes GfxRenderersBeforePasses.cpp)
+
 # -----------------------------------------------------------------------------
 # Gfx/Spout (Windows/x86_64) and Gfx/Syphon (macOS). Neither compiles on Linux,
 # so this target must build EVERYWHERE and change what it asserts instead of
