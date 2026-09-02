@@ -1072,4 +1072,39 @@ score_add_gfx_test(per_layer_depth GfxPerLayerDepth.cpp)
 # P1-17: a gaussian splat renders through the path real scores take
 # (asset_loader(.ply) -> Scene Preprocessor -> scene_group -> Flattened Scene
 # Filter -> CSF chain -> Render Pipeline), on a .ply the test synthesises.
-score_add_gfx_test(splat_render GfxSplatRender.cpp)
+# score_add_gfx_test() is not enough: the loader entry points are
+# hidden-visibility inside the plug-in, so the AssetLoader / PrimitiveCloud /
+# Ply translation units are compiled straight in. test_unit_threedim_3rdparty
+# (miniply / mikktspace / ufbx) is reusable because tests/CMakeLists.txt adds
+# `unit` before `gfx`; the TARGET guard keeps that honest.
+if(TARGET score_plugin_threedim AND TARGET test_unit_threedim_3rdparty)
+  set(_splat_3d "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
+  score_plugin_hidden_sources(_splat_hidden
+      "${_splat_3d}/AssetLoader.cpp" "${_splat_3d}/GltfParser.cpp"
+      "${_splat_3d}/FbxParser.cpp"   "${_splat_3d}/TinyObj.cpp"
+      "${_splat_3d}/Ply.cpp"         "${_splat_3d}/VcgImporters.cpp"
+      "${_splat_3d}/SceneFromMeshes.cpp"
+      "${_splat_3d}/PrimitiveCloud/PlyParser.cpp"
+      "${_splat_3d}/PrimitiveCloud/SplatBinary.cpp"
+      "${_splat_3d}/PrimitiveCloud/SpzCodec.cpp"
+      "${_splat_3d}/PrimitiveCloud/SceneFromCloud.cpp"
+      "${_splat_3d}/PrimitiveCloud/FormatOverride.cpp")
+  score_add_test(test_gfx_splat_render
+    SOURCES GfxSplatRender.cpp ${_splat_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_threedim score_plugin_avnd
+            score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue test_unit_threedim_3rdparty fastgltf spz
+         "${QT_PREFIX}::Gui")
+  target_compile_definitions(test_gfx_splat_render PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_splat_render SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/vcglib"
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/eigen"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
