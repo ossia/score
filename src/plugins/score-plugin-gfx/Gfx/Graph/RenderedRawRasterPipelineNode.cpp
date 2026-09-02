@@ -2301,6 +2301,10 @@ void RenderedRawRasterPipelineNode::addInputEdge(
 
 void RenderedRawRasterPipelineNode::removeInputEdge(RenderList& renderer, Edge& edge)
 {
+  // Evict the cached per-(port, source) geometry first (base class): without
+  // it the departed producer's spec lingers in m_portGeometries. Same P0-9
+  // class as RenderedCSFNode::removeInputEdge.
+  NodeRenderer::removeInputEdge(renderer, edge);
   if(edge.sink->type == Types::Image)
   {
     // See SimpleRenderedISFNode::removeInputEdge — same dangling-depth-
@@ -2310,6 +2314,22 @@ void RenderedRawRasterPipelineNode::removeInputEdge(RenderList& renderer, Edge& 
     QRhiTexture* depthFallback
         = hasDepthCompanion ? &renderer.emptyTexture() : nullptr;
     updateInputTexture(*edge.sink, &renderer.emptyTexture(), depthFallback);
+  }
+  else if(edge.sink->type == Types::Geometry && edge.sink->edges.size() <= 1)
+  {
+    // The LAST geometry feed of this port is going away (called before edge
+    // destruction, so the departing edge is still in the list). For a
+    // GPU-produced mesh the vertex/index buffers the acquired CustomMesh
+    // binds are owned by the departing producer's renderer and die with it
+    // -- keeping the mesh meant vkCmdBindVertexBuffers on freed buffers
+    // (P0-9, tests/gfx/GfxGeometryProducerRemoval.cpp). Drop the cached
+    // spec and the acquired mesh; the draw path already handles a null
+    // m_mesh ("m_mesh stays null and the draw call doesn't run") and the
+    // pass is rebuilt when geometry comes back.
+    this->geometry = {};
+    m_mesh = nullptr;
+    m_meshbufs = {};
+    this->geometryChanged = true;
   }
 }
 

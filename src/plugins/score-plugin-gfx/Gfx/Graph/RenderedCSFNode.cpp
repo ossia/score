@@ -1190,28 +1190,53 @@ void RenderedCSFNode::updateGeometryBindings(
       }
     }
 
-    if(!binding_has_upstream && !binding.has_vertex_count_spec)
+    if(!binding_has_upstream)
     {
-      // No upstream geometry on this binding's port and no vertex_count spec.
-      // Clear any stale unowned pointers.
-      for(auto& ssbo : binding.attribute_ssbos)
-      {
-        if(!ssbo.owned)
+      // No upstream geometry on this binding's port: never wired, or the
+      // producer was just removed. Unowned pointers adopted from a departed
+      // upstream may already be DANGLING -- reconcile /
+      // removeNodeFromRenderLists destroys the producer renderer's buffers
+      // before our next update() -- so they must be dropped here for EVERY
+      // binding, not only the !has_vertex_count_spec case: a binding with a
+      // vertex-count expression used to keep the dead pointers, and the
+      // recreated SRB then crashed in setShaderResources (P0-9,
+      // tests/gfx/GfxGeometryProducerRemoval.cpp). Each dropped pointer is
+      // replaced by an owned zero-filled buffer of the same size (same
+      // treatment as the attribute-not-found fallback below) so the SRB
+      // stays complete and the dispatch stays valid -- the pass then
+      // processes zeros, i.e. degenerate geometry, until a new producer
+      // arrives.
+      const auto orphan = [&](auto& ssbo, const char* kind) {
+        if(ssbo.owned)
+          return;
+        const int64_t sz = std::max<int64_t>(ssbo.size, 16);
+        auto* buf = renderer.state.rhi->newBuffer(
+            QRhiBuffer::Static,
+            QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, sz);
+        buf->setName(QByteArray("CSF_GeomOrphanFallback_") + kind);
+        if(buf->create())
         {
+          QByteArray zero(sz, 0);
+          res.uploadStaticBuffer(buf, 0, sz, zero.constData());
+          ssbo.buffer = buf;
+          ssbo.size = sz;
+        }
+        else
+        {
+          delete buf;
           ssbo.buffer = nullptr;
-          ssbo.owned = true;
         }
-      }
+        ssbo.owned = true;
+      };
+      for(auto& ssbo : binding.attribute_ssbos)
+        orphan(ssbo, "attr");
       for(auto& aux : binding.auxiliary_ssbos)
+        orphan(aux, "aux");
+      if(!binding.has_vertex_count_spec)
       {
-        if(!aux.owned)
-        {
-          aux.buffer = nullptr;
-          aux.owned = true;
-        }
+        geo_binding_idx++;
+        continue;
       }
-      geo_binding_idx++;
-      continue;
     }
 
     if(binding_has_upstream && upstream_mesh)
@@ -4113,6 +4138,13 @@ void RenderedCSFNode::addInputEdge(
 
 void RenderedCSFNode::removeInputEdge(RenderList& renderer, Edge& edge)
 {
+  // Evict the cached per-(port, source) geometry/scene first: without this,
+  // findGeometryByPort keeps returning the departed producer's spec and
+  // updateGeometryBindings re-adopts its FREED gpu buffers into the compute
+  // SRB -> SIGSEGV in setShaderResources (P0-9,
+  // tests/gfx/GfxGeometryProducerRemoval.cpp). The base class does exactly
+  // this eviction; this override previously dropped it.
+  NodeRenderer::removeInputEdge(renderer, edge);
   if(edge.sink->type == Types::Image)
   {
     // See SimpleRenderedISFNode::removeInputEdge — same dangling-depth-
@@ -4409,6 +4441,11 @@ void RenderedCSFNode::runInitialPasses(
     }
     
     const auto& pass = m_computePasses[passIndex].second;
+    // A pass whose SRB failed to (re)create must be skipped, not recorded:
+    // setShaderResources on a null / half-built SRB is a crash, and the
+    // failure was already reported by recreateShaderResourceBindings.
+    if(!pass.pipeline || !pass.srb)
+      continue;
 
     // Use pass-specific local sizes
     int localX = passDesc.local_size[0];
