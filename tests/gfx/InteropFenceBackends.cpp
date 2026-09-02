@@ -22,6 +22,8 @@
 #include <score_test/App.hpp>
 #include <score_test/Gfx.hpp>
 
+#include <QtGlobal>
+
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators_range.hpp>
 
@@ -147,12 +149,20 @@ TEST_CASE("the interop fence never claims a synchronisation it cannot make",
       CHECK_FALSE(r.initWithoutCuda);
       CHECK_FALSE(r.waitAfterInit);
       break;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+    // The D3D12 backend, and therefore the QRhi::D3D12 enumerator, arrived in
+    // Qt 6.6; CI builds against 6.4.2. The whole ARM is guarded, not just the
+    // enumerator: with QRhi::D3D12 absent the compiler recovers by reading it
+    // as D3D11 and the next error is a duplicate case label, so a guard around
+    // the label alone would not compile either. Nothing is lost below 6.6 --
+    // a backend that does not exist cannot be the one under test.
     case QRhi::D3D12:
       // Documented stub: blocked on the same QRhi D3D12 SHARED-heap
       // limitation as the buffer ring.
       CHECK_FALSE(r.initWithoutCuda);
       CHECK_FALSE(r.waitAfterInit);
       break;
+#endif
     case QRhi::D3D11:
       // The immediate-context flush at endOffscreenFrame is the fence, so
       // this one is a no-op that legitimately succeeds.
