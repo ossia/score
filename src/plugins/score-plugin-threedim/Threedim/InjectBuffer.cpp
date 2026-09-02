@@ -64,7 +64,7 @@ void InjectBuffer::operator()()
         || m_cached_in_version != in_version
         || m_cached_handle != cur_handle
         || m_cached_byte_size != cur_bytes;
-  if(!m_cached_out || upstream_changed)
+  if(upstream_changed)
     rebuild();
   outputs.scene_out.scene.state = m_cached_out;
   outputs.scene_out.dirty = m_pending_dirty;
