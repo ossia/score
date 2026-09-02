@@ -440,8 +440,16 @@ void RenderedRawRasterPipelineNode::initPass(
       ps->setDepthOp(QRhiGraphicsPipeline::Greater);
     }
 
-    // Topology is always runtime-controllable via the material UBO.
-    switch(mat.mode)
+    // The material 'mode' control seeds the topology, but an EXPLICITLY
+    // declared PIPELINE_STATE TOPOLOGY wins -- same precedence rule as
+    // blend ("applyPipelineState only overrides blend when BLEND was
+    // explicitly declared"). Before this, the unconditional switch below ran
+    // AFTER applyPipelineState and silently clobbered every declared
+    // TOPOLOGY (measured: a RAW_RASTER shader with
+    // PIPELINE_STATE {TOPOLOGY: points} still drew triangles --
+    // tests/gfx/GfxPointCloudCount.cpp).
+    if(!desc.default_state.topology.has_value())
+      switch(mat.mode)
     {
       default:
       case 0:
@@ -1521,19 +1529,22 @@ void RenderedRawRasterPipelineNode::initMRTPass(
       ps->setDepthOp(QRhiGraphicsPipeline::Greater);
     }
 
-    switch(mat.mode)
-    {
-      default:
-      case 0:
-        ps->setTopology(QRhiGraphicsPipeline::Triangles);
-        break;
-      case 1:
-        ps->setTopology(QRhiGraphicsPipeline::Points);
-        break;
-      case 2:
-        ps->setTopology(QRhiGraphicsPipeline::Lines);
-        break;
-    }
+    // Same precedence rule as the single-target pass above: an explicitly
+    // declared PIPELINE_STATE TOPOLOGY wins over the material mode control.
+    if(!desc.default_state.topology.has_value())
+      switch(mat.mode)
+      {
+        default:
+        case 0:
+          ps->setTopology(QRhiGraphicsPipeline::Triangles);
+          break;
+        case 1:
+          ps->setTopology(QRhiGraphicsPipeline::Points);
+          break;
+        case 2:
+          ps->setTopology(QRhiGraphicsPipeline::Lines);
+          break;
+      }
 
     // Remap vertex inputs by semantic (CSF-style; honour explicit
     // SEMANTIC). Procedural draws have no vertex inputs to remap — skip.
