@@ -396,6 +396,33 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
     $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
+# P1-19: EnvironmentLoader's render_target_size override reaches the camera
+# pass (packCameraUBO's renderSize/aspect), scoped to exactly that -- the
+# physical RT extent must NOT change. CPU producer/merge + camera-math halves
+# run GPU-less; the render half drives real Cube+Camera+EnvironmentLoader
+# through ScenePreprocessorNode with a camera-UBO-probing raster shader.
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  score_plugin_hidden_sources(_env_rts_hidden
+      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim/Primitive.cpp"
+      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim/Camera.cpp"
+      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim/EnvironmentLoader.cpp")
+  score_add_test(test_gfx_env_render_target_size
+    SOURCES GfxEnvRenderTargetSize.cpp ${_env_rts_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_include_directories(test_gfx_env_render_target_size SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
 # P1-11 (render half): a point cloud renders as exactly N points -- real
 # PCLToMesh2 descriptor with a NON-ZERO byte_offset (regression guard for the
 # fixed 2b6234a6c3 full-byte_size over-count), real avnd bridge, real point
