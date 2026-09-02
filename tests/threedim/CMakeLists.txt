@@ -410,3 +410,16 @@ score_add_test(test_threedim_scene_payload_transport
 threedim_test_includes(test_threedim_scene_payload_transport)
 target_compile_definitions(test_threedim_scene_payload_transport PRIVATE
   GFX_SRC_DIR="${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx/Gfx")
+
+# P2-11 / P2-12: the two scene approximations the product admits to in
+# comments -- area lights collapsed to points, and SceneFilterNode mode 2
+# behaving like mode 1 -- asserted as the CORRECT behaviour so they flip to a
+# plain pass the day they are implemented.
+score_add_test(test_threedim_scene_approximation_pins
+  SOURCES SceneApproximationPins.cpp
+    "${THREEDIM_DIR}/Light.cpp"
+  PLUGINS score_plugin_gfx
+  LIBS ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_scene_approximation_pins)
+target_compile_definitions(test_threedim_scene_approximation_pins
+  PRIVATE THREEDIM_SRC_DIR="${THREEDIM_DIR}")
