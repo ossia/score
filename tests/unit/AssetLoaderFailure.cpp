@@ -1,39 +1,36 @@
-// P0-13 (SPEC-SCENE-RENDER-TESTS.md): an asset that fails to load publishes
-// nothing — and says so.
+// An asset that fails to load publishes nothing — and says so.
 //
-// Contract under test, from Threedim/AssetLoader.cpp (verified):
+// Contract under test, from Threedim/AssetLoader.cpp:
 //
 //   AssetLoader::ins::asset_t::process(file_type tv)
-//     :145-146   if(tv.filename.empty())  return {};
-//     :253-260   built-in dispatch missed -> AssetLoaderRegistry::lookup(ext);
-//                no registered parser -> `loaded` stays null
-//     :262-263   if(!loaded)              return {};
+//     if(tv.filename.empty())  return {};
+//     built-in dispatch missed -> AssetLoaderRegistry::lookup(ext);
+//     no registered parser -> `loaded` stays null
+//     if(!loaded)              return {};
 //   i.e. a missing, empty-named, corrupt or unknown-extension asset yields an
 //   EMPTY std::function. The avnd runtime applies nothing, so the loader keeps
 //   whatever state it had (none, for a fresh instance).
 //
 //   AssetLoader::operator()()
-//     :292-297   if(!m_parsed_state) { outputs.scene_out.scene.state = nullptr;
-//                                      outputs.scene_out.dirty = 0; return; }
-//     :302-303   success path: state = m_wrapped_state,
-//                dirty = ossia::scene_port::dirty_transform
+//     if(!m_parsed_state) { outputs.scene_out.scene.state = nullptr;
+//                           outputs.scene_out.dirty = 0; return; }
+//     success path: state = m_wrapped_state,
+//                   dirty = ossia::scene_port::dirty_transform
 //
 // "Publishes nothing" therefore means, concretely: scene_out.scene.state is
 // the null shared_ptr and scene_out.dirty == 0. The downstream renderer draws
 // a black frame.
 //
-// Dispatch table (AssetLoader.cpp :151-260): .fbx -> ufbx, .gltf/.glb ->
+// Dispatch table (AssetLoader::ins::asset_t::process): .fbx -> ufbx, .gltf/.glb ->
 // fastgltf, .obj -> tinyobjloader (from tv.bytes), .ply -> miniply or the
 // PrimitiveCloud PLY parser (from the file on disk, after a header sniff),
 // .stl/.off -> vcglib (from the file on disk), .splat/.spz -> PrimitiveCloud
 // binary codecs (from tv.bytes), anything else -> AssetLoaderRegistry.
 //
-// The failure path used to log NOTHING, and the node has no error output port,
-// so the user got a silent black frame. That was pinned here as [!shouldfail]
-// "a failed asset load is diagnosable"; the pin is GONE — the dispatch now
-// names the file it rejected and says which of the two failures it was, and
-// the case below asserts that (see it for why a log, and not an output port,
-// is the channel that can carry the common case).
+// The node has no error output port, so the log is the only failure channel:
+// the dispatch names the file it rejected and says which of the two failures
+// it was, and the case below asserts that (see it for why a log, and not an
+// output port, is the channel that can carry the common case).
 // Motivation: 24 real scores use Asset Loader and the corpus references
 // assets by four different path syntaxes, including C:/Users/... paths played
 // back on a Linux box — the missing file is the NORMAL case, not the edge.
@@ -135,7 +132,7 @@ load_asset(std::string_view filename, std::string_view bytes)
   return loader;
 }
 
-// The publishes-nothing contract of AssetLoader.cpp:292-297.
+// The publishes-nothing contract of AssetLoader::operator()().
 bool publishes_nothing(Threedim::AssetLoader& loader)
 {
   loader();
@@ -143,7 +140,7 @@ bool publishes_nothing(Threedim::AssetLoader& loader)
          && loader.outputs.scene_out.dirty == 0;
 }
 
-// The success contract of AssetLoader.cpp:302-303.
+// The success contract of AssetLoader::operator()().
 bool publishes_scene(Threedim::AssetLoader& loader)
 {
   loader();
@@ -167,7 +164,7 @@ f 1 2 3
 )";
 
 // x/y/z + a face element: fails ply_is_splat_shaped(), so it takes the
-// miniply mesh path (AssetLoader.cpp:188-199). Proven to load through
+// miniply mesh path. Proven to load through
 // AssetLoader in tests/unit/ThreedimLoaderTest.cpp ("xyz + face routes to
 // the mesh path").
 const std::string mesh_ply = "ply\nformat ascii 1.0\n"
@@ -382,14 +379,14 @@ TEST_CASE(
     "publishes nothing",
     "[threedim][assetloader][failure]")
 {
-  // AssetLoader.cpp:145-146.
+  // Empty filename: process() bails before any dispatch.
   halp::text_file_view tv;
   tv.filename = std::string_view{};
   tv.bytes = std::string_view{};
   CHECK_FALSE(bool(Threedim::AssetLoader::ins::asset_t::process(tv)));
 
-  // A loader that never received a scene publishes null + dirty 0
-  // (AssetLoader.cpp:292-297) — every tick, not just once.
+  // A loader that never received a scene publishes null + dirty 0 — every
+  // tick, not just once.
   Threedim::AssetLoader loader;
   CHECK(publishes_nothing(loader));
   CHECK(publishes_nothing(loader));
@@ -405,8 +402,7 @@ TEST_CASE(
   // not exist. When the runtime cannot read the file it hands process() the
   // name with empty bytes; the disk-reading parsers (.ply/.stl/.off) then
   // fail their own open(), the byte-reading ones (.glb/.fbx/.obj) fail on
-  // the empty view. Either way `loaded` stays null -> return {} at
-  // AssetLoader.cpp:262-263.
+  // the empty view. Either way `loaded` stays null -> return {}.
   const std::string_view missing[] = {
       "/nonexistent/score-threedim/model.glb",        // absolute POSIX
       "C:/Users/someone/Desktop/model.glb",           // Windows, forward /
@@ -464,10 +460,9 @@ TEST_CASE(
     "an unknown or absent extension publishes nothing even over valid bytes",
     "[threedim][assetloader][failure]")
 {
-  // Dispatch is by extension only (AssetLoader.cpp:151-260); an extension no
-  // built-in matches and no addon registered falls off the registry lookup
-  // at :253-260 and returns {} at :262-263 — even though the bytes are a
-  // perfectly good OBJ.
+  // Dispatch is by extension only; an extension no built-in matches and no
+  // addon registered falls off the registry lookup and returns {} — even
+  // though the bytes are a perfectly good OBJ.
   CHECK_FALSE(bool(load_asset("tri.model3d", triangle_obj)));
   CHECK_FALSE(bool(load_asset("triobj", triangle_obj)));   // dotless
   CHECK_FALSE(bool(load_asset("tri.", triangle_obj)));     // trailing dot
@@ -508,35 +503,36 @@ TEST_CASE(
 }
 
 // ===========================================================================
-// The diagnosability defect — pinned red.
+// Diagnosability.
 // ===========================================================================
 
 TEST_CASE(
     "a failed asset load is diagnosable",
-    "[threedim][assetloader][failure][diagnosability][!shouldfail]")
+    "[threedim][assetloader][failure][diagnosability]")
 {
-  // DEFECT (silent failure). Every failure path in
-  // AssetLoader::ins::asset_t::process (AssetLoader.cpp:145-146, :262-263)
-  // returns an empty function without qWarning/qDebug, and the node's `outs`
-  // struct (AssetLoader.hpp) carries only scene_out — no error/status port.
-  // The user pointing the port at C:/Users/... on a Linux box gets a black
-  // frame and NO message anywhere. 24 real scores use this node; the missing
-  // file is the normal case, so the failure must be observable — either a
-  // logged warning or a published error/status output. Until one exists this
-  // case fails, and [!shouldfail] keeps it red-but-expected.
-
-  // Channel 1: a diagnostic output port on the node itself. The probe must
-  // be a template so the member accesses are dependent: a requires-expression
-  // in a non-template context hard-errors on a missing member instead of
-  // yielding false.
+  // The node's `outs` struct carries only scene_out, so a failed load has no
+  // output to report itself on. 24 real scores use this node and the missing
+  // file is the normal case, so the failure must be observable — the pin's own
+  // words, "either a logged warning or a published error/status output".
+  //
+  // The log is the channel that is implemented, and it is the only one that
+  // CAN carry the normal case. An error OUTPUT PORT structurally cannot:
+  // oscr::loadRawfile (Crousti/File.hpp) returns a null handle for a file
+  // that does not exist, and all three of its callers
+  // (Crousti/ExecutorPortSetup.hpp, Crousti/GpuUtils.hpp) are written
+  // `if(auto hdl = loadRawfile(...))`, so for a MISSING file the node's
+  // process() is never invoked and the node never learns anything happened.
+  // A port on the node could only ever report the sub-case where the file
+  // WAS read and the parser then refused it. The disjunction below is
+  // therefore asserted as the pin's prose states it, not as two independent
+  // requirements — and the log assertions that follow are stricter than the
+  // pin's `!empty()`: the message must NAME the file it rejected.
   constexpr bool has_error_port
       = []<typename O = Threedim::AssetLoader::outs>() constexpr {
           return requires(O& o) { o.error; } || requires(O& o) { o.status; }
                  || requires(O& o) { o.load_error; };
         }();
-  CHECK(has_error_port);
 
-  // Channel 2: a Qt log message on the failure path.
   capturedMessages().clear();
   const auto previous = qInstallMessageHandler(&messageCapture);
   {
@@ -547,7 +543,29 @@ TEST_CASE(
     (void)load_asset("tri.unknown-extension", triangle_obj);
   }
   qInstallMessageHandler(previous);
-  CHECK(!capturedMessages().empty());
+
+  CHECK((has_error_port || !capturedMessages().empty()));
+
+  // Each of the three failures must have produced its own message, and each
+  // must identify the offending file: a bare "load failed" in a log shared
+  // with the whole application is not diagnosable.
+  const auto mentions = [](std::string_view needle) {
+    for(const auto& m : capturedMessages())
+      if(m.find(needle) != std::string::npos)
+        return true;
+    return false;
+  };
+  INFO("captured " << capturedMessages().size() << " messages");
+  for(const auto& m : capturedMessages())
+    INFO("  " << m);
+  CHECK(capturedMessages().size() >= 3);
+  CHECK(mentions("missing.glb"));
+  CHECK(mentions("junk.glb"));
+  CHECK(mentions("tri.unknown-extension"));
+  // The two failures are distinguishable: an unhandled format is not the same
+  // problem as a file the parser refused.
+  CHECK(mentions("unsupported file type"));
+  CHECK(mentions("could not parse"));
 }
 
 // ===========================================================================
