@@ -2,15 +2,15 @@
 // every video device's control group goes through (V4L2 driver controls,
 // score's own /render/ adjustments, the Argus sensor controls).
 //
-// Two behaviours, one per commit:
+// Two behaviours:
 //
-//  * the fresh build (1cfa2b75f1): nodes appear at <parent>/<group>/<name>, in
+//  * the fresh build: nodes appear at <parent>/<group>/<name>, in
 //    order, with type/domain/access/description applied; the initial value is
 //    set WITHOUT invoking the driver callback (it describes what the hardware
 //    already holds, and a write-back could perform an unwanted action);
 //    afterwards a write reaches the driver callback.
 //
-//  * the reload adoption (52b00de5e5): a document reload restores the saved
+//  * the reload adoption: a document reload restores the saved
 //    tree before the hardware is opened, so the group and its children already
 //    exist. addControlGroup must adopt them instead of failing add_child and
 //    returning nulls; the restored value is the USER's, so it is pushed to the
@@ -126,8 +126,9 @@ TEST_CASE("a reloaded tree is adopted, not fought")
 
   REQUIRE(params.size() == 2);
 
-  // Pre-fix, add_child refused the duplicate names, addControlGroup returned
-  // nulls, and the explorer showed a full set of dead controls.
+  // Without adoption, add_child refuses the duplicate names and
+  // addControlGroup returns nulls -- a full set of dead controls in the
+  // explorer.
   REQUIRE(params[0] != nullptr);
   REQUIRE(params[1] != nullptr);
 
@@ -180,18 +181,16 @@ TEST_CASE("a second attach never leaves two drivers on one parameter")
   CHECK(firstDriver.size() <= 1); // at most its own attach-time push
 }
 
-// DEFECT, pinned expected-red (2026-09-01). 52b00de5e5's contract is that the
-// value pushed to the driver at adoption is "the value the document restored
-// -- that value is the user's". But when the restored node carries NO
-// parameter, addControlGroup creates one and then reads ITS default-constructed
-// value (0.0 for FLOAT), which is valid(), and pushes THAT to the hardware: a
-// gain/exposure slammed to zero by a value no document ever held. The fresh
-// -node path deliberately refuses to write c.initial back for exactly this
-// reason; the adopt path must distinguish "the node existed with a parameter"
-// (push the restored value) from "the parameter was just created here" (push
-// nothing). The correct expectation below is `writes.empty()`; the tag comes
-// off when the product stops writing the fabricated zero.
-TEST_CASE("an adopted node without a parameter gets one", "[!shouldfail]")
+// The adoption contract is that the value pushed to the driver at adoption is
+// "the value the document restored -- that value is the user's". When the
+// restored node carries NO parameter, addControlGroup creates one, whose
+// default-constructed value (0.0 for FLOAT) is fabricated, not the user's --
+// so it pushes NOTHING, the same way the fresh-node path refuses to write
+// c.initial back. It distinguishes "the node existed with a parameter" (push
+// the restored value) from "the parameter was just created here" (push
+// nothing), so a gain/exposure is never slammed to zero by a value no
+// document ever held.
+TEST_CASE("an adopted node without a parameter gets one", "[gfx][controltree]")
 {
   fixture f;
 
