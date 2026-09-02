@@ -1,67 +1,58 @@
-// P1-14 / G17 — `an orthographic camera does not render as a perspective one`
-// EXPECTED RED: the defect cases below carry [!shouldfail].
+// A6 / P1-14 / G17 — an orthographic or fulldome camera must not render as a
+// perspective one. FIXED; this file is now the regression guard.
 //
-// The defect
-// ----------
+// The defect (history)
+// --------------------
 // `ossia::camera_projection` carries perspective / orthographic / fulldome
 // (3rdparty/libossia/src/ossia/dataflow/geometry_port.hpp:875, the field on
 // camera_component at :879, with the orthographic extents xmag/ymag at
-// :884-885). Real assets author it: GltfParser.cpp:468 and FbxParser.cpp:730
-// both emit camera_projection::orthographic. But `packCameraUBO`
-// (src/plugins/score-plugin-gfx/Gfx/Graph/CameraMath.cpp:8-46) never reads
-// `cam.projection` and unconditionally builds `setReverseZPerspective`
-// (CameraMath.cpp:26-27). An orthographic or fulldome camera is transported
-// through the whole scene graph and rendered as a perspective one.
+// :884-885). Real assets author it: GltfParser.cpp and FbxParser.cpp both emit
+// camera_projection::orthographic. But `packCameraUBO`
+// (src/plugins/score-plugin-gfx/Gfx/Graph/CameraMath.cpp) never read
+// `cam.projection` and unconditionally built `setReverseZPerspective`, so an
+// orthographic or fulldome camera was transported through the whole scene graph
+// and rendered as a perspective one. The two cases below carried
+// [!shouldfail]; they no longer do.
 //
-// Why this pin is unit-level (option 1) and not a render-difference oracle
-// -----------------------------------------------------------------------
-// The projection field's only possible consumers in the render path are the
-// two packCameraUBO call sites in ScenePreprocessorNode.cpp (:3677 default
-// camera, :3688 flattened scene cameras); no other code in score-plugin-gfx
-// reads camera_component::projection (verified by grep across the plugin).
-// Every scene shader receives the camera exclusively through the 240-byte
-// CameraUBOData those calls produce. Therefore: if two camera states
-// differing only in `projection` pack to byte-identical UBOs — which this
-// test proves they do today — the rendered frames of two otherwise-identical
-// scenes are byte-identical by construction. A GPU render-difference oracle
-// would add hardware dependence without adding discrimination; the memcmp on
-// the packed UBO *is* the frame-difference oracle, evaluated at the exact
-// boundary where the information is lost. (The existing GfxPipeline-style
-// fixtures build ISFNode graphs directly and do not route an ossia camera
-// with a projection field into ScenePreprocessor without substantial new
-// plumbing; nothing a render leg could observe is not already decided here.)
+// The fix
+// -------
+//  * orthographic: packCameraUBO builds `setReverseZOrthographic` from
+//    cam.xmag / cam.ymag (half-extents, per the glTF definition) and
+//    cam.znear / cam.zfar, keeping the project-wide reverse-Z convention
+//    (near -> +1, far -> -1 in NDC z, GREATER compare, clear-depth 0.0);
+//  * every camera now also publishes WHICH projection it is, as a mode code in
+//    `params[3]` — `camera.params.w` in a scene shader — using
+//    score::gfx::CameraProjectionMode. Perspective is 0, which is the value
+//    every camera got before this existed, so no shader in the corpus changes
+//    behaviour (all 28 real Model Displays are Perspective).
+//  * fulldome: an angular (fisheye) mapping is not expressible as a 4x4 — at
+//    180 degrees the frustum is degenerate — so the packed matrix stays the
+//    linear frustum that culling and the depth buffer work against, and
+//    params.w = 2 is what tells the scene shader to apply the dome remap.
+//    Before, the shader had no way to know at all.
+//
+// Why this is unit-level (option 1) and not a render-difference oracle
+// -------------------------------------------------------------------
+// The projection field's only consumers in the render path are the two
+// packCameraUBO call sites in ScenePreprocessorNode.cpp (default camera,
+// flattened scene cameras); no other code in score-plugin-gfx reads
+// camera_component::projection. Every scene shader receives the camera
+// exclusively through the 240-byte CameraUBOData those calls produce. So if two
+// camera states differing only in `projection` packed to byte-identical UBOs —
+// which they did — the rendered frames of two otherwise-identical scenes were
+// byte-identical by construction. The memcmp on the packed UBO *is* the
+// frame-difference oracle, evaluated at the exact boundary where the
+// information used to be lost.
 //
 // Structure
 // ---------
-// [!shouldfail] applies per TEST_CASE, so:
-//   - one shouldfail case per defective projection (orthographic, fulldome),
-//     so a partial fix (e.g. ortho branch only) flips exactly the case it
-//     fixes and CI flags the flip instead of hiding it;
-//   - the control cases (same projection -> identical bytes; a genuinely
-//     different parameter -> different bytes) are separate, NON-shouldfail
-//     TEST_CASEs, so the pin cannot "pass" through a broken comparator or a
-//     nondeterministic pack.
+// One case per projection kind, plus two controls that must hold whatever
+// packCameraUBO does: identical inputs pack identically (so a "they differ"
+// assertion cannot be satisfied by nondeterminism), and a genuinely different
+// parameter does change the bytes (so the comparator is not inert).
 //
-// Proposed fix direction (recorded per spec as a proposal, not a change)
-// ---------------------------------------------------------------------
-// In packCameraUBO, switch on cam.projection:
-//   - orthographic: build a reverse-Z orthographic matrix from
-//     cam.xmag/cam.ymag (half-extents, aspect-corrected like the perspective
-//     branch) and cam.znear/cam.zfar, keeping the project-wide reverse-Z
-//     convention documented in CameraMath.hpp (near -> +1, far -> -1 NDC,
-//     GREATER depth compare, clear-depth 0.0);
-//   - fulldome: either a dedicated matrix or a flag in out.params[3]
-//     (currently always 0.f) consumed by the scene shaders — either strategy
-//     changes at least one of the 240 packed bytes, which is all the
-//     fulldome case below asserts.
-// Fixing packCameraUBO this way flips the two shouldfail cases green.
-//
-// Registration: score_add_gfx_test(camera_projection_pin GfxCameraProjectionPin.cpp)
-// packCameraUBO is SCORE_PLUGIN_GFX_EXPORT (CameraMath.hpp), so linking
-// score_plugin_gfx (which score_add_gfx_test already does) is sufficient —
-// no score_plugin_hidden_sources / direct compilation of CameraMath.cpp is
-// needed.
-
+//   ctest -R gfx_camera_projection_pin --output-on-failure
+// =============================================================================
 #include <Gfx/Graph/CameraMath.hpp>
 
 #include <ossia/dataflow/geometry_port.hpp>
@@ -135,12 +126,12 @@ float ndcX(const QMatrix4x4& proj, float viewX, float viewY, float viewZ)
 }
 
 //------------------------------------------------------------------------------
-// Defect pins — expected red today, [!shouldfail].
+// The two behaviours the defect destroyed. Red before the CameraMath fix.
 //------------------------------------------------------------------------------
 
 TEST_CASE(
     "an orthographic camera packs a different UBO than a perspective one",
-    "[gfx][camera][projection][issueG17][!shouldfail]")
+    "[gfx][camera][projection][issueG17]")
 {
   // Two cameras differing ONLY in the projection kind. Since the packed UBO
   // is the sole channel through which a camera reaches the scene shaders
@@ -167,27 +158,54 @@ TEST_CASE(
   const float xNear = ndcX(orthoProj, 1.f, 0.5f, -1.f);
   const float xFar = ndcX(orthoProj, 1.f, 0.5f, -50.f);
   CHECK(xNear == Approx(xFar).margin(1e-4));
+
+  // It is a true parallel projection: no perspective divide at all.
+  CHECK(orthoProj(3, 0) == Approx(0.f));
+  CHECK(orthoProj(3, 1) == Approx(0.f));
+  CHECK(orthoProj(3, 2) == Approx(0.f));
+  CHECK(orthoProj(3, 3) == Approx(1.f));
+
+  // The half-extents come from xmag/ymag: a point at x = xmag lands on the NDC
+  // edge, not somewhere arbitrary.
+  const auto cam = makeCamera(ossia::camera_projection::orthographic);
+  CHECK(ndcX(orthoProj, cam.xmag, 0.f, -10.f) == Approx(1.f).margin(1e-4));
+
+  // ...and it keeps the project-wide reverse-Z convention: near -> +1,
+  // far -> -1 (CameraMath.hpp), so it shares the depth buffer with everything
+  // else instead of rendering inside out.
+  const auto ndcZ = [&](float z) {
+    const QVector4D clip = orthoProj * QVector4D{0.f, 0.f, z, 1.f};
+    return clip.z() / clip.w();
+  };
+  CHECK(ndcZ(-cam.znear) == Approx(1.f).margin(1e-4));
+  CHECK(ndcZ(-cam.zfar) == Approx(-1.f).margin(1e-4));
+
+  // And the mode is published to the shader.
+  CHECK(persp.params[3] == Approx(float(int(CameraProjectionMode::Perspective))));
+  CHECK(ortho.params[3] == Approx(float(int(CameraProjectionMode::Orthographic))));
 }
 
 TEST_CASE(
     "a fulldome camera packs a different UBO than a perspective one",
-    "[gfx][camera][projection][issueG17][!shouldfail]")
+    "[gfx][camera][projection][issueG17]")
 {
-  // Fulldome may legitimately be implemented as a shader-side mapping rather
-  // than a linear matrix, so this case only requires that SOME of the 240
-  // packed bytes differ (e.g. a mode flag in params[3], currently always
-  // 0.f) — any implementation strategy that lets a shader distinguish the
-  // two satisfies it. Today none do: packCameraUBO never reads
-  // cam.projection.
+  // Fulldome is a shader-side angular mapping rather than a linear matrix, so
+  // this case requires that SOME of the 240 packed bytes differ — any strategy
+  // that lets a shader distinguish the two satisfies it. Before the fix none
+  // did: packCameraUBO never read cam.projection, so a dome camera was
+  // indistinguishable from a perspective one by the time it reached a shader.
   const auto persp = pack(makeCamera(ossia::camera_projection::perspective));
   const auto dome = pack(makeCamera(ossia::camera_projection::fulldome));
 
   CHECK(!sameBytes(persp, dome));
+
+  // Concretely: the mode code a dome shader branches on.
+  CHECK(dome.params[3] == Approx(float(int(CameraProjectionMode::Fulldome))));
+  CHECK(dome.params[3] != Approx(persp.params[3]));
 }
 
 //------------------------------------------------------------------------------
-// Controls — must pass today and after the fix; deliberately NOT shouldfail,
-// in their own TEST_CASEs since [!shouldfail] applies per TEST_CASE.
+// Controls — these held before the fix too, and must keep holding.
 //------------------------------------------------------------------------------
 
 TEST_CASE(
