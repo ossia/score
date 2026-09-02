@@ -170,8 +170,12 @@ void BuffersToGeometry2::operator()()
     const auto* srcBuf = inputBuffers[bufIdx];
     if(!srcBuf || !srcBuf->handle)
     {
-      // Null buffer somewhere
+      // Null buffer somewhere. The descriptor was already wiped above,
+      // so the change must be announced: without dirty_mesh downstream
+      // keeps its cached GPU geometry, which still references the old,
+      // possibly freed, buffer handle.
       m_prevVertices = -1; // to force reanalysis
+      out.dirty_mesh = true;
       return;
     }
   }

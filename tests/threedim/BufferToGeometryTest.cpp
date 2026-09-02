@@ -32,15 +32,16 @@
 //   unrecognized name into geometry_attribute::name (whose contract says
 //   custom semantics carry their string), and keeps a dead attr_idx counter.
 //
-// DEFECTS found and pinned [!shouldfail] (never blessed as green):
+// Defects found while writing this (both fixed since; the cases below
+// assert the correct behaviour and run green):
 // 1) toHalpFormat/attributeFormatSize in BufferToGeometryCommon.hpp
 //    static_cast the local AttributeFormat enum (QRhi-style order WITHOUT
 //    UInt3/SInt3/UShort3/SShort3) into halp::attribute_format (which HAS
 //    uint3/sint3/ushort3/sshort1..4), so every value from UInt2 (8) upward
-//    publishes the wrong format and the wrong default stride.
-// 2) The null-handle early return wipes the descriptor after mesh.*.clear()
-//    but never raises dirty_mesh, so after a preceding no-change tick the
-//    wipe ships with dirty_mesh == false and downstream keeps rendering a
+//    published the wrong format and the wrong default stride.
+// 2) The null-handle early return wiped the descriptor after mesh.*.clear()
+//    but never raised dirty_mesh, so after a preceding no-change tick the
+//    wipe shipped with dirty_mesh == false and downstream kept rendering a
 //    GPU geometry referencing the old (possibly freed) buffer handle.
 //
 // Everything runs headless: handles are opaque pointers, no QRhi, no files.
@@ -547,8 +548,8 @@ TEMPLATE_TEST_CASE(
 {
   // The local AttributeFormat enum and halp::attribute_format agree for
   // values 0..7 (Float4..UInt4); each publishes the right format and
-  // tightly-packed stride. (From UInt2 upward they diverge — see the
-  // [!shouldfail] defect test below.)
+  // tightly-packed stride. (From UInt2 upward the raw enum values diverge
+  // — see the mapping test below.)
   struct Case
   {
     Threedim::AttributeFormat in;
@@ -577,22 +578,17 @@ TEMPLATE_TEST_CASE(
   }
 }
 
-// DEFECT 1: BufferToGeometryCommon.hpp's toHalpFormat and attributeFormatSize
-// both static_cast the local AttributeFormat enum straight into
-// halp::attribute_format. The local enum (Float4..SShort, 0..22, commented
-// "Matches QRhiVertexInputAttribute::Format") has NO 3-component int/short
-// entries, while halp::attribute_format interleaves uint3/sint3/ushort3/
-// sshort3 into the sequence. The two enums therefore agree only for values
-// 0..7 (Float4..UInt4); from UInt2 (8) upward every cast lands on the wrong
-// halp entry: UInt2->uint3, UInt->uint2, SInt4->uint1, SInt2->sint4,
-// Half4->sint2, UShort4->half2, SShort4->ushort3, ... The published
-// descriptor then carries both a wrong vertex-input format AND a wrong
-// tightly-packed stride (UInt2 should be uint2 / 8 bytes; it ships as
-// uint3 / 12 bytes). Correct expectations asserted; flips red-to-green the
-// day the mapping is fixed (e.g. by a real switch instead of the cast).
+// BufferToGeometryCommon.hpp's toHalpFormat maps the local AttributeFormat
+// enum (which mirrors QRhiVertexInputAttribute::Format and has NO
+// 3-component int/short entries) onto halp::attribute_format (which
+// interleaves uint3/sint3/ushort3/sshort3 into the sequence) with a real
+// switch. The two enums agree only for values 0..7 (Float4..UInt4); a
+// plain cast would land every format from UInt2 (8) upward on the wrong
+// halp entry (UInt2->uint3, SInt4->uint1, UShort4->half2, ...), shipping
+// both a wrong vertex-input format AND a wrong tightly-packed stride.
 TEMPLATE_TEST_CASE(
     "AttributeFormat::UInt2 must publish halp uint2 with an 8-byte packed stride",
-    "[threedim][buffertogeometry][!shouldfail]", V1, V2)
+    "[threedim][buffertogeometry]", V1, V2)
 {
   TestType node;
   setBuffer(node, 0, handle_a, 64);
@@ -602,22 +598,20 @@ TEMPLATE_TEST_CASE(
 
   auto& mesh = node.outputs.geometry.mesh;
   REQUIRE(mesh.attributes.size() == 1);
-  CHECK(mesh.attributes[0].format == halp::attribute_format::uint2); // ships uint3
+  CHECK(mesh.attributes[0].format == halp::attribute_format::uint2);
   REQUIRE(mesh.bindings.size() == 1);
-  CHECK(mesh.bindings[0].stride == 8); // ships 12
+  CHECK(mesh.bindings[0].stride == 8);
 }
 
-// DEFECT 2: the "null buffer somewhere" early return in operator() wipes the
-// descriptor (mesh.buffers/bindings/attributes/input are cleared before the
-// first pass detects the null handle) but returns WITHOUT raising dirty_mesh.
-// After a preceding no-change tick left dirty_mesh == false, the wipe ships
-// with dirty_mesh == false, so downstream keeps its cached GPU geometry —
-// which still references the old, possibly freed, buffer handle (the exact
-// dangling-handle class InstancerStaleBuffer guards against). The output
-// mesh changed, so dirty_mesh must be raised.
+// The "null buffer somewhere" early return in operator() wipes the
+// descriptor (mesh.buffers/bindings/attributes/input are cleared before
+// the first pass detects the null handle) and must raise dirty_mesh:
+// downstream would otherwise keep its cached GPU geometry — which still
+// references the old, possibly freed, buffer handle (the exact
+// dangling-handle class InstancerStaleBuffer guards against).
 TEMPLATE_TEST_CASE(
     "wiping the descriptor on a null handle must raise dirty_mesh",
-    "[threedim][buffertogeometry][!shouldfail]", V1, V2)
+    "[threedim][buffertogeometry]", V1, V2)
 {
   TestType node;
   setBuffer(node, 0, handle_a, 48);
@@ -634,7 +628,7 @@ TEMPLATE_TEST_CASE(
   node.inputs.buffer_0.buffer.handle = nullptr;
   node();
   REQUIRE(node.outputs.geometry.mesh.buffers.empty());
-  // ...so the change must be announced. Currently stays false.
+  // ...so the change must be announced.
   CHECK(node.outputs.geometry.dirty_mesh);
 }
 
