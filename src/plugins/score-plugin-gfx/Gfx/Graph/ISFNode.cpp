@@ -317,6 +317,11 @@ ISFNode::ISFNode(const isf::descriptor& desc, const QString& vert, const QString
   // Compoute the size required for the materials
   isf_input_size_vis sz_vis{};
 
+  if(qEnvironmentVariableIsSet("SCORE_GFX_TRACE"))
+    fprintf(
+        stderr, "GFX-ISFNODE ctor mode=%d (RawRaster=%d) inputs=%zu\n",
+        (int)desc.mode, (int)isf::descriptor::RawRaster, desc.inputs.size());
+
   if(desc.mode == isf::descriptor::RawRaster)
   {
     // Geometry port input
