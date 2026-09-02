@@ -569,6 +569,54 @@ if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
     TIMEOUT 600 RUN_SERIAL TRUE LABELS "gui")
 endif()
 
+# P1-2: a light added or removed mid-render changes the frame, and only that.
+# Adds the Light process and its cable live during playback, then removes it,
+# and requires the frame to return byte-for-byte; the SCORE_GFX_TRACE half
+# proves both transitions were consumed incrementally.
+if(TARGET score AND TARGET score_plugin_gfx AND TARGET score_plugin_threedim
+   AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_gfx_light_live
+    SOURCES GfxLightLiveTest.cpp
+    LIBS ${QT_PREFIX}::Gui)
+  target_compile_definitions(test_integration_gfx_light_live PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\"")
+  set_tests_properties(test_integration_gfx_light_live PROPERTIES
+    TIMEOUT 600 RUN_SERIAL TRUE LABELS "gui")
+endif()
+
+# P1-1: the T-A scene assembly chain renders a lit model -- closed-form
+# bright/dark inequality across the lit and unlit faces, difference oracle
+# light-on vs light-off, exact clear colour in the background, non-uniform
+# frame. Drives the application binary; SKIPs without a display, the asset or
+# the threedim processes.
+if(TARGET score AND TARGET score_plugin_gfx AND TARGET score_plugin_threedim
+   AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_threedim_lit_scene
+    SOURCES ThreedimLitSceneTest.cpp
+    LIBS ${QT_PREFIX}::Gui)
+  target_compile_definitions(test_integration_threedim_lit_scene PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\""
+    "GFX_TEST_CORPUS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/../gfx/corpus\"")
+  set_tests_properties(test_integration_threedim_lit_scene PROPERTIES
+    TIMEOUT 900 RUN_SERIAL TRUE LABELS "gui")
+endif()
+
+# P1-12: a decoded video frame textures 3D geometry -- the frame index visible
+# ON the geometry advances 1:1 with the decoder, and a still frame is exact
+# where the geometry is axis-aligned and unscaled. Drives the application
+# binary; SKIPs without a display, libav or the threedim processes.
+if(TARGET score AND TARGET score_plugin_gfx AND TARGET score_plugin_media
+   AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_gfx_video_on_geometry
+    SOURCES GfxVideoOnGeometryTest.cpp
+    LIBS ${QT_PREFIX}::Gui)
+  target_compile_definitions(test_integration_gfx_video_on_geometry PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\""
+    "GFX_TEST_CORPUS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/../gfx/corpus\"")
+  set_tests_properties(test_integration_gfx_video_on_geometry PROPERTIES
+    TIMEOUT 900 RUN_SERIAL TRUE LABELS "gui")
+endif()
+
 # Manual tool (not a ctest): enumerate and live-preview every registered
 # object.  Run:  <build>/tests/integration/ObjectGallery --list
 #          or:  cd <build> && ./tests/integration/ObjectGallery --filter camera
