@@ -352,3 +352,18 @@ score_add_test(test_threedim_text_to_texture
   SOURCES TextToTextureTest.cpp
   LIBS ${QT_PREFIX}::Gui)
 threedim_test_includes(test_threedim_text_to_texture)
+
+# SplatLoader ("Splat loader" node, BufferLoader.cpp): the file-port process()
+# closure that moves GaussianSplatsFromPly results into node state, and the
+# m_changed dirty-flag lifecycle. CPU seam only — init/update/release need a
+# live RenderList/QRhi. Compiles BufferLoader.cpp for the node's out-of-line
+# members and Ply.cpp for GaussianSplatsFromPly (miniply); score_plugin_gfx
+# exports the RenderList symbols BufferLoader.cpp's TU references; Qt Gui
+# supplies QMatrix4x4 (TinyObj.hpp) and the QRhi symbols.
+score_add_test(test_threedim_buffer_loader
+  SOURCES BufferLoaderTest.cpp
+    "${THREEDIM_DIR}/BufferLoader.cpp"
+    "${THREEDIM_DIR}/Ply.cpp"
+  LIBS ${QT_PREFIX}::Gui miniply
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_buffer_loader)
