@@ -23,7 +23,17 @@
 
 #include <QGuiApplication>
 
+#include <QtGlobal>
+
 #include <QtGui/private/qrhi_p.h>
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+#include <rhi/qrhi_platform.h>
+#else
+// Before 6.6 the rhi/ headers do not exist and qrhi_p.h declares only the
+// base QRhiInitParams; the concrete ones live in the per-backend headers.
+#include <QtGui/private/qrhinull_p.h>
+#endif
 
 #include <catch2/catch_test_macros.hpp>
 
