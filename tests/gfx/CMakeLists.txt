@@ -335,6 +335,11 @@ score_add_gfx_test(dynamic_slot    GfxDynamicSlot.cpp)
 # The three scene-filter nodes added by 45d1202327, which had zero references
 # anywhere under tests/ while being user-facing processes.
 score_add_gfx_test(scene_filter_nodes SceneFilterNodes.cpp)
+# P1-4: N producers into ScenePreprocessor's single inlet merge additively and
+# memoize on {state.get(), version}: idle frames re-run merge_scenes ZERO
+# times (pointer identity), a bump re-merges exactly once, one contributor
+# short-circuits to a pointer copy, an env-only rootless producer is kept.
+score_add_gfx_test(scene_merge_memo SceneMergeMemo.cpp)
 
 # The Crousti CPU node path (oscr::ProcessModel + oscr::GfxNode). Its renderer
 # lives in Crousti/CpuFilterNode.hpp, which nothing in a default ctest run
