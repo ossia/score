@@ -468,7 +468,17 @@ void main ()
   vec4 zaxis = texture(y_tex, v_coords.xy * scale);
   vec4 tex = xaxis * blending.x + yaxis * blending.y + zaxis * blending.z;
 
-  fragColor = tex;
+  // Lighting floor: without this the pass emits ONLY the projected texture,
+  // so a mesh routed here with no texture wired (the common case for a plain
+  // STL/PLY/OBJ that carries normals but no UVs) renders pure black — the
+  // geometry is invisible. Shade by the surface normal so the mesh is always
+  // visible; a wired texture still dominates via max().
+  vec3 N = normalize(v_normal);
+  vec3 L = normalize(vec3(0.4, 0.7, 1.0));
+  float dif = max(dot(N, L), 0.0);
+  vec3 lit = vec3(0.12, 0.16, 0.12) + vec3(0.2, 0.8, 0.0) * dif;
+
+  fragColor = vec4(max(tex.rgb, lit), 1.0);
 }
 )_";
 
@@ -1475,7 +1485,16 @@ private:
     }
 
     if(m_renderer)
-      if(auto inputRT = m_renderer->renderTargetForInputPort(*this->node.input[0]); inputRT.texture)
+      if(auto inputRT = m_renderer->renderTargetForInputPort(*this->node.input[0]);
+         inputRT.texture
+         && inputRT.texture->flags().testFlag(QRhiTexture::UsedWithGenerateMips))
+        // Only the texture's OWNER knows whether it was allocated with mip
+        // support; an input render target produced by an upstream node
+        // usually was not. qrhivulkan asserts on generateMips() for a
+        // texture created without UsedWithGenerateMips (GL silently
+        // tolerates it), which aborts the whole model pipeline in a debug
+        // Qt Vulkan build. Sampling mip 0 is correct when no mip chain
+        // exists, so skip the request rather than abort.
         res.generateMips(inputRT.texture);
   }
 
