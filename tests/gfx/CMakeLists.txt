@@ -311,6 +311,10 @@ score_add_gfx_test(incremental_resize_fork GfxIncrementalResizeFork.cpp)
 #   csf_cube_array R2-#10 GL layered rebind covers cube/array storage images
 #                       (824a08d39).
 score_add_gfx_test(rt_changed      GfxRtChanged.cpp)
+# P1-13: the FORMAT half of the surgical rt_changed path (rt_changed covers
+# size): RGBA8 -> RGBA16F mid-render, oracle = a 2.0 write surviving the
+# round trip only in float (halver shader: red 128 clipped vs 255 preserved).
+score_add_gfx_test(rt_format_changed GfxRtFormatChanged.cpp)
 score_add_gfx_test(node_removal    GfxNodeRemoval.cpp)
 # P0-9: removing a CSF geometry producer (and then the geometry filter) while
 # the render loop is live: the raster consumer keeps rendering (uniform clear
