@@ -46,6 +46,15 @@ struct BackgroundNode : OutputNode
       }
       else
       {
+        // Nothing upstream: the render list holds only this output. Clearing
+        // leaves pixelSize at QSize(-1,-1), which WindowDevice::grabTo reports
+        // as "nothing rendered ... no process is connected to this device's
+        // input" -- a false blank when the graph is in fact connected, hence
+        // the trace.
+        if(qEnvironmentVariableIsSet("SCORE_GFX_TRACE"))
+          fprintf(
+              stderr, "GFX-BACKGROUND readback cleared: renderers=%zu\n",
+              renderer->renderers.size());
         shared_readback->data.clear();
         shared_readback->pixelSize = {};
       }
@@ -63,10 +72,9 @@ struct BackgroundNode : OutputNode
     m_onResize = conf.onResize;
     m_onReleaseRenderList = conf.onReleaseRenderList;
     // Cache the requested graphics API so setSwapchainFormat can rebuild
-    // through createOutput when the format actually changes (live HDR↔SDR
-    // toggle). Without this the format setter was inert: m_swapchainFormat
-    // was updated but the underlying QRhiTexture stayed in its original
-    // format, silently downgrading HDR to SDR.
+    // through createOutput when the format changes (live HDR↔SDR toggle):
+    // setting m_swapchainFormat alone leaves the QRhiTexture in its original
+    // format.
     m_lastGraphicsApi = conf.graphicsApi;
 
     QSize newSz = m_renderSize;
@@ -131,16 +139,13 @@ struct BackgroundNode : OutputNode
       // recording and a device loss.
       if(m_renderState->rhi)
       {
-        // Pre-condition: destroyOutput must not be called inside a
-        // frame. Mirrors ScreenNode::destroyOutput.
         SCORE_ASSERT(!m_renderState->rhi->isRecordingFrame());
         m_renderState->rhi->finish();
       }
 
-      // Persist-across-rebuild contract: the registry survives RL
-      // teardown, so we must release its QRhi resources here BEFORE
-      // RenderState::destroy() tears down the QRhi. destroyOwned()
-      // `delete`s the wrappers directly while the device is alive.
+      // The registry survives render list teardown, so its QRhi resources
+      // must be released here, before RenderState::destroy() tears down the
+      // QRhi: destroyOwned() `delete`s the wrappers while the device is alive.
       releaseRegistry();
 
       delete m_renderTarget;
@@ -173,14 +178,12 @@ struct BackgroundNode : OutputNode
       return;
     m_swapchainFormat = format;
 
-    // Live format change while rendering: the existing m_texture was
-    // allocated at createOutput-time with the prior format. setFormat alone
-    // wouldn't re-allocate the GPU memory backing — only setPixelSize +
-    // recreate-via-resize does. Re-route through destroyOutput +
-    // createOutput so the renderTarget / RPD / depth tex / colour tex all
-    // come back in matching format. Skipped before any output exists
-    // (m_renderState null) — createOutput will pick up the new format
-    // naturally via m_swapchainFormat.
+    // Live format change while rendering: m_texture was allocated by
+    // createOutput with the prior format, and setFormat alone does not
+    // re-allocate its GPU memory backing. Route through destroyOutput +
+    // createOutput so the render target, RPD, depth and colour textures all
+    // come back in the matching format. With no output yet (m_renderState
+    // null) createOutput picks the format up from m_swapchainFormat.
     if(m_renderState)
     {
       score::gfx::OutputConfiguration conf;
@@ -231,11 +234,10 @@ struct BackgroundNode : OutputNode
 
       // Drain the GPU before destroying m_renderTarget / m_texture /
       // m_depthTexture, as destroyOutput does: the current frame's offscreen
-      // CB, or a queued one, may still reference these resources, and Qt's
-      // setPixelSize+create dance below does not internally drain.
-      // Without this, validation fires on the next vkCmd*-recording
-      // (-recording / -commandBuffer-recording / -in-use) and may
-      // device-loss.
+      // CB, or a queued one, may still reference these resources, and the
+      // setPixelSize + create below does not drain internally. Without this,
+      // validation fires on the next vkCmd* recording (-recording /
+      // -commandBuffer-recording / -in-use) and can lose the device.
       rhi->finish();
 
       m_renderTarget->destroy();
