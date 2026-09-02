@@ -171,6 +171,13 @@ score_add_gfx_test(orientation GfxOrientation.cpp)
 # the remaining attachments and per-attachment identity are all unpinned there.
 score_add_gfx_test(mrt_pattern GfxMrtPattern.cpp)
 
+# The raw-raster (RenderPipeline) twin of mrt_pattern: same closed-form
+# per-attachment fit, but through RenderedRawRasterPipelineNode's
+# initMRTPass / initMRTBlitPasses. GfxRaster.cpp's "two attachments" case
+# accepts ANY two non-identical non-blank images, so an attachment-order or
+# Y-flip regression in the MRT blit was invisible until this one.
+score_add_gfx_test(raw_raster_mrt_pattern GfxRawRasterMrtPattern.cpp)
+
 # The same closed-form pattern, but through ISF -> ScreenNode -> swapchain
 # readback: the path the golden gate exercises and the only one the analytic
 # tests above do not cover. Needs a real windowing system.
