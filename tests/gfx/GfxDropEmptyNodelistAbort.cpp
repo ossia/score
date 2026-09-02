@@ -1,5 +1,5 @@
-// DEFECT PIN (OPEN-7), expected-red until fixed. Its own single-test
-// executable, because the defect is a SIGABRT.
+// OPEN-7, fixed. Its own single-test executable because the defect was a
+// SIGABRT and the child-fork isolation must stay to guard against a regress.
 //
 // A QMimeData that declares score::mime::nodelist() but carries an EMPTY
 // payload takes Gfx::Filter::VideoTextureDropHandler::dropCustom straight into
@@ -18,10 +18,11 @@
 //      under WILL_FAIL -- so the child process is what turns the crash into
 //      an assertable value.)
 //   2. the case asserts the CORRECT behaviour -- the child survives the drop
-//      and reports zero drops -- and is tagged [!shouldfail], so today's
-//      SIGABRT is failed-as-expected, and the day the deserializer refuses an
-//      empty payload gracefully the tag has to come off. Never the reverse:
-//      asserting "it aborts" would bless the defect.
+//      and reports zero drops. The deserializer now refuses a non-array
+//      payload (returns an empty list) instead of tripping rapidjson's
+//      IsArray() assertion, so the child exits 0 and the case runs green.
+//      The child-process isolation is kept so a regression re-abort is
+//      caught as a wait-status, not a killed test binary.
 //
 // The child only touches the drop handler (JSON parsing, no event loop), so
 // running it post-fork without exec is safe.
@@ -56,7 +57,7 @@ dropper(const score::GUIApplicationContext& ctx, const char* uuid)
 #if defined(__unix__)
 TEST_CASE(
     "an empty nodelist payload must be refused, not abort the app",
-    "[gfx][library][gui][!shouldfail]")
+    "[gfx][library][gui]")
 {
   score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
     score::Document* doc = score::test::new_document(ctx);
@@ -83,9 +84,9 @@ TEST_CASE(
     int status = 0;
     REQUIRE(::waitpid(pid, &status, 0) == pid);
 
-    // CORRECT behaviour: the child survives and reports no drops. Today it is
-    // killed by rapidjson's IsArray() assertion instead, which is the
-    // expected-red this file exists to keep visible.
+    // CORRECT behaviour: the child survives and reports no drops. Before the
+    // fix it was killed by rapidjson's IsArray() assertion; the deserializer
+    // now refuses a non-array payload gracefully.
     INFO(
         "child status: exited=" << WIFEXITED(status) << " code="
                                 << (WIFEXITED(status) ? WEXITSTATUS(status) : -1)
