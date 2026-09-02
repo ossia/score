@@ -9,7 +9,7 @@
 // normal lengths, the buffer partition and the texcoord convention — not on
 // "it returned something".
 
-#include "ForkProbe.hpp"
+#include <score_test/ForkProbe.hpp>
 
 #include <Threedim/ArrayToGeometry.hpp>
 #include <Threedim/Primitive.hpp>
