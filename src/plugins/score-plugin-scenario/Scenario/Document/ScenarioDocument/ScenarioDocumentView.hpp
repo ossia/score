@@ -166,15 +166,15 @@ public:
 
   ScenarioScene& scene() { return m_scene; }
 
-  ProcessGraphicsView& view() { return m_view; }
+  ProcessGraphicsView& view() { return *m_view; }
 
   qreal viewWidth() const;
 
-  QGraphicsView& rulerView() { return m_timeRulerView; }
+  QGraphicsView& rulerView() { return *m_timeRulerView; }
 
   TimeRulerBase& timeRuler() { return *m_timeRuler; }
 
-  Minimap& minimap() { return m_minimap; }
+  Minimap& minimap() { return *m_minimap; }
 
   QRectF viewportRect() const;
   QRectF visibleSceneRect() const;
@@ -199,7 +199,21 @@ private:
   QWidget* m_widget{};
   const score::DocumentContext& m_context;
   ScenarioScene m_scene;
-  ProcessGraphicsView m_view;
+
+  // The three views below are put into m_widget's layout, which REPARENTS
+  // them: Qt then deletes them through ~QWidget's deleteChildren(). As
+  // by-value members that was `delete` on an address inside this object,
+  // which is not a heap allocation -- the same defect 6227fbd07f fixed for
+  // the scenes and the base item, and the reason live-edit-sweep.sh had to
+  // carve their four destructors out of its ASan reports by name.
+  //
+  // Heap-allocated, they are Qt's to delete, and QPointer means we can also
+  // delete them ourselves in ~ScenarioDocumentView for the OTHER teardown
+  // order (a document closed with removeTab orphans the widget, so nothing
+  // Qt-side ever deletes it) without risking a double free. Deleting them in
+  // the destructor BODY also keeps the original ordering guarantee: a view
+  // dies before the by-value scene it renders.
+  QPointer<ProcessGraphicsView> m_view;
   // Owned by the scene, not by value. m_scene is a QObject child of m_widget,
   // so ~QWidget destroys it -- and QGraphicsScene::clear() deletes its
   // top-level items -- before ScenarioDocumentView's own members are destroyed.
@@ -207,11 +221,14 @@ private:
   BaseGraphicsObject* m_baseObject{};
 
   QGraphicsScene m_timeRulerScene;
-  TimeRulerGraphicsView m_timeRulerView;
+  QPointer<TimeRulerGraphicsView> m_timeRulerView;
   TimeRulerBase* m_timeRuler{};
   QGraphicsScene m_minimapScene;
-  MinimapGraphicsView m_minimapView;
-  Minimap m_minimap;
+  QPointer<MinimapGraphicsView> m_minimapView;
+  // Same treatment as m_baseObject: a QGraphicsItem added to a scene that
+  // deletes its top-level items, so it must be heap-allocated and left to
+  // that scene. Never deleted here.
+  Minimap* m_minimap{};
 
   int m_timer{-1};
   bool m_transport{};

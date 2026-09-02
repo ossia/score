@@ -586,27 +586,30 @@ ScenarioDocumentView::ScenarioDocumentView(
     // allocation. m_timeRulerScene already gets this right. The members are
     // destroyed with the view, which is what owns them.
     , m_scene{nullptr}
-    , m_view{ctx.app, &m_scene, m_widget}
-    , m_timeRulerView{&m_timeRulerScene}
-    , m_timeRuler{new MusicalRuler{&m_timeRulerView}}
+    // Heap, not by value: the layout below reparents these three into
+    // m_widget, so Qt deletes them. See the note on their declarations.
+    , m_view{new ProcessGraphicsView{ctx.app, &m_scene, m_widget}}
+    , m_timeRulerView{new TimeRulerGraphicsView{&m_timeRulerScene}}
+    , m_timeRuler{new MusicalRuler{m_timeRulerView}}
     , m_minimapScene{nullptr}
-    , m_minimapView{&m_minimapScene}
+    , m_minimapView{new MinimapGraphicsView{&m_minimapScene}}
+    , m_minimap{new Minimap{}}
 {
   auto& scenario_settings = ctx.app.settings<Scenario::Settings::Model>();
 
   con(ctx.document.commandStack(), &score::CommandStack::stackChanged, this,
-      [&] { m_view.viewport()->update(); });
+      [&] { m_view->viewport()->update(); });
 
 #if defined(SCORE_WEBSOCKETS)
   auto wsview = new WebSocketView(m_scene, 9998, this);
 #endif
 
-  score::setHelp(&m_view, "Main score view. Drop things in here.");
+  score::setHelp(m_view, "Main score view. Drop things in here.");
   score::setHelp(
-      &m_timeRulerView, "The time ruler keeps track of time. Scroll by dragging it.");
+      m_timeRulerView, "The time ruler keeps track of time. Scroll by dragging it.");
   score::setHelp(
-      &m_minimapView, "A minimap which shows an overview of the topmost score");
-  m_view.setSizePolicy(QSizePolicy{QSizePolicy::Expanding, QSizePolicy::Expanding});
+      m_minimapView, "A minimap which shows an overview of the topmost score");
+  m_view->setSizePolicy(QSizePolicy{QSizePolicy::Expanding, QSizePolicy::Expanding});
 
   m_widget->addAction(new SnapshotAction{m_scene, m_widget});
 
@@ -619,12 +622,12 @@ ScenarioDocumentView::ScenarioDocumentView(
   m_widget->addAction(zoomIn);
   zoomIn->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   zoomIn->setShortcuts({QKeySequence::ZoomIn, tr("Ctrl+=")});
-  connect(zoomIn, &QAction::triggered, this, [&] { m_minimap.zoomIn(); });
+  connect(zoomIn, &QAction::triggered, this, [&] { m_minimap->zoomIn(); });
   QAction* zoomOut = new QAction(tr("Zoom out"), m_widget);
   m_widget->addAction(zoomOut);
   zoomOut->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   zoomOut->setShortcut(QKeySequence::ZoomOut);
-  connect(zoomOut, &QAction::triggered, this, [&] { m_minimap.zoomOut(); });
+  connect(zoomOut, &QAction::triggered, this, [&] { m_minimap->zoomOut(); });
   QAction* largeView = new QAction{tr("Large view"), m_widget};
   m_widget->addAction(largeView);
   largeView->setShortcutContext(Qt::WidgetWithChildrenShortcut);
@@ -632,7 +635,7 @@ ScenarioDocumentView::ScenarioDocumentView(
   connect(
       largeView, &QAction::triggered, this, [this] { setLargeView(); },
       Qt::QueuedConnection);
-  con(m_minimap, &Minimap::rescale, largeView, &QAction::trigger);
+  con(*m_minimap, &Minimap::rescale, largeView, &QAction::trigger);
 
   // Time Ruler
 
@@ -640,9 +643,9 @@ ScenarioDocumentView::ScenarioDocumentView(
     auto setupTimeRuler = [this, largeView](bool b) {
       delete m_timeRuler;
       if(b)
-        m_timeRuler = new MusicalRuler{&m_timeRulerView};
+        m_timeRuler = new MusicalRuler{m_timeRulerView};
       else
-        m_timeRuler = new TimeRuler{&m_timeRulerView};
+        m_timeRuler = new TimeRuler{m_timeRulerView};
 
       connect(m_timeRuler, &TimeRuler::rescale, largeView, &QAction::trigger);
       connect(
@@ -665,26 +668,26 @@ ScenarioDocumentView::ScenarioDocumentView(
   m_widget->setLayout(lay);
   m_widget->setContentsMargins(0, 0, 0, 0);
 
-  m_minimapScene.addItem(&m_minimap);
+  m_minimapScene.addItem(m_minimap);
   m_minimapScene.setItemIndexMethod(QGraphicsScene::NoIndex);
 
   m_timeRulerScene.setItemIndexMethod(QGraphicsScene::NoIndex);
 
-  lay->addWidget(&m_minimapView);
-  lay->addWidget(&m_timeRulerView);
-  lay->addWidget(&m_view);
+  lay->addWidget(m_minimapView);
+  lay->addWidget(m_timeRulerView);
+  lay->addWidget(m_view);
 
   lay->setSpacing(1);
 
-  m_view.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-  m_view.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+  m_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+  m_view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 
   auto& skin = score::Skin::instance();
   con(skin, &score::Skin::changed, this, [&] {
     auto& skin = Process::Style::instance();
-    m_timeRulerView.setBackgroundBrush(skin.MinimapBackground().darker300.brush);
-    m_minimapView.setBackgroundBrush(skin.MinimapBackground());
-    m_view.setBackgroundBrush(skin.Background());
+    m_timeRulerView->setBackgroundBrush(skin.MinimapBackground().darker300.brush);
+    m_minimapView->setBackgroundBrush(skin.MinimapBackground());
+    m_view->setBackgroundBrush(skin.Background());
   });
 
   skin.changed();
@@ -718,7 +721,7 @@ void ScenarioDocumentView::updateBackgroundMode()
   if(view().timebarVisible && view().timebarPlaying && !opengl)
     wantsFullUpdates = true;
 
-  else if(!m_view.m_globalRenderers.empty())
+  else if(!m_view->m_globalRenderers.empty())
     wantsFullUpdates = true;
 
   double refreshRate = defaultEditorRefreshRate();
@@ -738,26 +741,26 @@ void ScenarioDocumentView::updateBackgroundMode()
   {
     if(opengl)
     {
-      // m_minimapView.setViewport(new QOpenGLWidget);
-      // m_timeRulerView.setViewport(new QOpenGLWidget);
+      // m_minimapView->setViewport(new QOpenGLWidget);
+      // m_timeRulerView->setViewport(new QOpenGLWidget);
       auto vp = new QOpenGLWidget{};
-      m_view.setViewport(vp);
+      m_view->setViewport(vp);
 
-      // m_minimapView.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
-      // m_timeRulerView.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
-      m_view.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
+      // m_minimapView->setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
+      // m_timeRulerView->setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
+      m_view->setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
 
-      // m_minimapView.viewport()->setUpdatesEnabled(true);
-      // m_timeRulerView.viewport()->setUpdatesEnabled(true);
-      m_view.viewport()->setUpdatesEnabled(true);
+      // m_minimapView->viewport()->setUpdatesEnabled(true);
+      // m_timeRulerView->viewport()->setUpdatesEnabled(true);
+      m_view->viewport()->setUpdatesEnabled(true);
 
       m_timer = startTimer(refreshRate, Qt::PreciseTimer);
     }
     else
     {
-      // m_minimapView.setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
-      m_view.setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
-      // m_timeRulerView.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
+      // m_minimapView->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
+      m_view->setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
+      // m_timeRulerView->setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
     }
   }
   else
@@ -765,29 +768,49 @@ void ScenarioDocumentView::updateBackgroundMode()
 #if defined(__EMSCRIPTEN__)
     // On WASM, FullViewportUpdate at high rates starves the single-threaded event loop.
     // Use MinimalViewportUpdate and let the background renderer request updates explicitly.
-    m_view.setViewportUpdateMode(QGraphicsView::MinimalViewportUpdate);
+    m_view->setViewportUpdateMode(QGraphicsView::MinimalViewportUpdate);
     m_timer = startTimer(refreshRate, Qt::CoarseTimer);
 #else
-    m_view.setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
+    m_view->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
     m_timer = startTimer(refreshRate, Qt::PreciseTimer);
 #endif
   }
-  m_view.update();
+  m_view->update();
 }
 
-ScenarioDocumentView::~ScenarioDocumentView() { }
+ScenarioDocumentView::~ScenarioDocumentView()
+{
+  // The two teardown orders differ, and both have to be safe.
+  //
+  //  - App quit with a document open: QTabWidget owns m_widget and deletes it
+  //    first, so ~QWidget has already deleted these three as its children.
+  //    Every QPointer is null here and each delete is a no-op.
+  //  - Document close: Window::closeDocument uses removeTab, which ORPHANS
+  //    m_widget rather than deleting it, so nothing Qt-side ever frees them.
+  //    Here the QPointers are live and this is what frees them.
+  //
+  // Doing it in the destructor BODY, before the members are destroyed, keeps
+  // the ordering the by-value declarations used to give for free: a view is
+  // gone before the by-value QGraphicsScene it renders.
+  //
+  // m_minimap and m_baseObject are deliberately absent: they are top-level
+  // items of by-value scenes, and a QGraphicsScene deletes those itself.
+  delete m_view.data();
+  delete m_timeRulerView.data();
+  delete m_minimapView.data();
+}
 
 void ScenarioDocumentView::zoom(double zx, double zy)
 {
   if(zx > 0)
-    m_minimap.zoomIn();
+    m_minimap->zoomIn();
   else
-    m_minimap.zoomOut();
+    m_minimap->zoomOut();
 }
 
 void ScenarioDocumentView::scroll(double dx, double dy)
 {
-  auto& gv = this->m_view;
+  auto& gv = *this->m_view;
   if(dx != 0)
   {
     const auto hsb = gv.horizontalScrollBar();
@@ -803,13 +826,13 @@ void ScenarioDocumentView::scroll(double dx, double dy)
 
 void ScenarioDocumentView::addBackgroundRenderer(score::BackgroundRenderer* r)
 {
-  m_view.m_globalRenderers.push_back(r);
+  m_view->m_globalRenderers.push_back(r);
   updateBackgroundMode();
 }
 
 void ScenarioDocumentView::removeBackgroundRenderer(score::BackgroundRenderer* r)
 {
-  ossia::remove_erase(m_view.m_globalRenderers, r);
+  ossia::remove_erase(m_view->m_globalRenderers, r);
   updateBackgroundMode();
 }
 
@@ -820,25 +843,25 @@ QWidget* ScenarioDocumentView::getWidget()
 
 qreal ScenarioDocumentView::viewWidth() const
 {
-  return m_view.width();
+  return m_view->width();
 }
 
 QRectF ScenarioDocumentView::viewportRect() const
 {
-  return m_view.viewport()->rect();
+  return m_view->viewport()->rect();
 }
 
 QRectF ScenarioDocumentView::visibleSceneRect() const
 {
-  const auto viewRect = m_view.viewport()->rect();
+  const auto viewRect = m_view->viewport()->rect();
   return QRectF{
-      m_view.mapToScene(viewRect.topLeft()), m_view.mapToScene(viewRect.bottomRight())};
+      m_view->mapToScene(viewRect.topLeft()), m_view->mapToScene(viewRect.bottomRight())};
 }
 
 void ScenarioDocumentView::showRulers(bool b)
 {
-  m_minimapView.setVisible(b);
-  m_timeRulerView.setVisible(b);
+  m_minimapView->setVisible(b);
+  m_timeRulerView->setVisible(b);
 }
 
 void ScenarioDocumentView::ready()
@@ -862,8 +885,8 @@ void ScenarioDocumentView::ready()
 
 void ScenarioDocumentView::timerEvent(QTimerEvent* event)
 {
-  // m_minimapView.viewport()->update();
-  // m_timeRulerView.viewport()->update();
-  m_view.viewport()->update();
+  // m_minimapView->viewport()->update();
+  // m_timeRulerView->viewport()->update();
+  m_view->viewport()->update();
 }
 }
