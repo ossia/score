@@ -634,7 +634,8 @@ endif()
 # fallback, which is exactly why this looked like a pass to begin with.
 if(SCORE_HAS_SHELL_HARNESS)
   foreach(_le_scen baseline add-remove-storm cable-storm undo-redo-during-play
-                   transport-storm mixed-chaos window-storm camera-storm ndi-storm)
+                   transport-storm mixed-chaos window-storm scene-storm
+                   camera-storm ndi-storm)
     add_test(NAME test_live_edit.${_le_scen}
       COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/live-edit-sweep.sh" ${_le_scen}
       WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
