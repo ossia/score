@@ -1485,7 +1485,16 @@ private:
     }
 
     if(m_renderer)
-      if(auto inputRT = m_renderer->renderTargetForInputPort(*this->node.input[0]); inputRT.texture)
+      if(auto inputRT = m_renderer->renderTargetForInputPort(*this->node.input[0]);
+         inputRT.texture
+         && inputRT.texture->flags().testFlag(QRhiTexture::UsedWithGenerateMips))
+        // Only the texture's OWNER knows whether it was allocated with mip
+        // support; an input render target produced by an upstream node
+        // usually was not. qrhivulkan asserts on generateMips() for a
+        // texture created without UsedWithGenerateMips (GL silently
+        // tolerates it), which aborts the whole model pipeline in a debug
+        // Qt Vulkan build. Sampling mip 0 is correct when no mip chain
+        // exists, so skip the request rather than abort.
         res.generateMips(inputRT.texture);
   }
 
