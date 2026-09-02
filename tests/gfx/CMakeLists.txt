@@ -112,6 +112,12 @@ score_add_csf_test(image    CsfImage.cpp)
 # test_gfx_isf_findings, so the RED is attributable and can't pull down the
 # green 2D group. See the FINDING block in CsfImage3d.cpp.
 score_add_csf_test(image3d  CsfImage3d.cpp)
+# P1-21: the 3D storage image resized at runtime (64^3 -> 32^3 -> 96^3 in one
+# session) keeps writing the closed form at each size with no stale slice.
+# GREEN on both backends since the runtime resize landed in RenderedCSFNode
+# (previously a literal TODO: the allocate-once guard kept the 64^3 texture
+# forever and the 32^3/96^3 phases were red everywhere).
+score_add_csf_test(image3d_resize CsfImage3dResize.cpp)
 # CSF cube + array storage-image compute write, sampled downstream. ISOLATED like
 # image3d: the GL layered-storage workaround must cover cube/array (824a08d39),
 # else faces/layers past 0 read black on OpenGL. Green on both backends post-fix.
