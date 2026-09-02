@@ -266,3 +266,11 @@ score_add_test(test_threedim_inverse_kinematics
   SOURCES InverseKinematicsTest.cpp
   LIBS ${QT_PREFIX}::Gui)
 threedim_test_includes(test_threedim_inverse_kinematics)
+
+# MaterialOverride's material-table rewrite: clone targeting (All/ByIndex),
+# factor/texture override + revert, clone-pointer stability, dirty/version
+# algebra. Pure scene_state logic — no GPU, no Qt Gui, no exported gfx
+# symbols (rebuild()/operator()() reference no GpuResourceRegistry/RenderList).
+score_add_test(test_threedim_material_override
+  SOURCES MaterialOverrideTest.cpp "${THREEDIM_DIR}/MaterialOverride.cpp")
+threedim_test_includes(test_threedim_material_override)
