@@ -63,11 +63,11 @@ void checkUnitNormals(const Span& s)
   }
 }
 
-// createMesh writes (x, y) of each corner as its texcoord (the wedge-UV
-// branch is #if 0'd out, and the WedgeTexFromPlane call above it passes a
-// zero uVec anyway). For the Plane that IS the natural parameterization, so
-// it is pinned there; for solids it degenerates — see the [!shouldfail]
-// cube case below.
+// createMesh projects each corner onto the plane orthogonal to the face
+// normal's dominant axis (box mapping). For a Z-facing surface like the
+// Plane this reduces to uv = pos.xy, its natural parameterization, which
+// is pinned here; solid faces parallel to Z get their own projection —
+// see the cube UV-area case below.
 void checkTexcoordsArePositionXY(const Span& s)
 {
   for(int64_t i = 0; i < s.vertices; i++)
@@ -129,13 +129,12 @@ TEST_CASE("Cube generates the 12 triangles of a unit box", "[threedim][primitive
   checkUnitNormals(s);
 }
 
-// Defect: createMesh maps uv = pos.xy for every primitive, so the cube's
-// x = 0 / x = 1 faces (uv varies only in y) and y = 0 / y = 1 faces (uv
-// varies only in x) — 8 of its 12 triangles — have zero UV area and cannot
-// be textured. Fixing it means a per-face parameterization in createMesh;
-// when that lands this case passes and the [!shouldfail] tag comes off.
+// createMesh parameterizes per face (dominant-axis box mapping): a global
+// uv = pos.xy would give the cube's x = 0 / x = 1 faces (uv varying only
+// in y) and y = 0 / y = 1 faces (uv varying only in x) — 8 of its 12
+// triangles — zero UV area, making them untexturable.
 TEST_CASE(
-    "Cube faces have nonzero UV area", "[threedim][primitive][!shouldfail]")
+    "Cube faces have nonzero UV area", "[threedim][primitive]")
 {
   Threedim::Cube cube;
   cube.update();
@@ -367,20 +366,18 @@ TEST_CASE(
 
 TEST_CASE(
     "a zero-height cone publishes only the faces that survived cleanup",
-    "[threedim][primitive][!shouldfail]")
+    "[threedim][primitive]")
 {
   // Height 0 makes the top and bottom rings coincide, so all 2*subdiv side
   // triangles are zero-area and RemoveZeroAreaFace deletes them; the two cap
   // fans (2*subdiv faces) are the only real geometry left.
   //
-  // DEFECT: createMesh sizes and fills its output from `mesh.face.size()` —
-  // the raw vector length — while vcglib deletes lazily (a flag on the face,
-  // no compaction). Deleted faces are still expanded into the published
-  // buffer, so none of the three cleanup calls in createMesh
+  // vcglib deletes lazily (a flag on the face, no compaction), so
+  // createMesh compacts the mesh before sizing and filling its output from
+  // `mesh.face.size()` — otherwise deleted faces would still be expanded
+  // into the published buffer and none of the three cleanup calls
   // (RemoveUnreferencedVertex / RemoveZeroAreaFace / RemoveNonManifoldFace)
-  // can affect what the node emits: degenerate and non-manifold triangles are
-  // published as if they had never been removed. Compacting the mesh (or
-  // skipping IsD() faces while filling) is the fix.
+  // could affect what the node emits.
   Threedim::Cone cone;
   cone.inputs.r1.value = 1.f;
   cone.inputs.r2.value = 1.f;
