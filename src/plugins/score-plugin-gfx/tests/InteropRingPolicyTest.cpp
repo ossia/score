@@ -410,3 +410,75 @@ TEST_CASE("a readback in flight is not re-issued onto the same slot",
   ring.resetSlotReady(1);
 }
 
+
+// ---------------------------------------------------------------------------
+// HostPinnedRing move-assignment (4ad2a48f28). Impl has no destructor and
+// freeSlots() is reachable only from destroy(), so a DEFAULTED move-assign
+// dropped the destination's page-locked slots (16 MB across 4 objects,
+// measured) and skipped the CUDA/DVP/AMD-pinned teardown with it. operator=
+// routes through destroy() now.
+//
+// What a normal build can assert is the ownership contract below. The LEAK
+// half is only observable with LeakSanitizer: under the ASan/LSan build the
+// defaulted operator= reports the destination's slots as definitely lost --
+// that build is this case's negative control, since in a plain build the
+// defaulted and the fixed operator= produce identical observable state.
+// ---------------------------------------------------------------------------
+
+TEST_CASE("move-assignment hands the ring over and keeps none of it",
+          "[gfx][interop][hostring][move]")
+{
+  auto rhi = makeNullRhi();
+  if(!rhi)
+    SKIP("QRhi Null backend unavailable");
+
+  constexpr uint32_t w = 32, h = 16;
+  const auto make = [&](const char* name) {
+    HostPinnedRing r;
+    REQUIRE(r.create({.rhi = rhi.get(),
+                      .caps = nullptr,
+                      .format = VideoPixelFormat::BGRA8,
+                      .width = w,
+                      .height = h,
+                      .slotCount = 2,
+                      .debugName = name}));
+    return r;
+  };
+
+  HostPinnedRing a = make("move-src");
+  HostPinnedRing b = make("move-dst");
+  REQUIRE(a.valid());
+  REQUIRE(b.valid());
+
+  void* const aSlot0 = a.slot(0).host;
+  void* const aSlot1 = a.slot(1).host;
+  REQUIRE(aSlot0 != nullptr);
+
+  b = std::move(a);
+
+  // The destination now IS the source ring: same backend, same slots, and the
+  // slot memory did not move (a vendor DMA engine may already hold these
+  // pointers).
+  CHECK(b.valid());
+  CHECK(b.backend() == HostPinnedRingBackend::CpuStaging);
+  REQUIRE(b.slotCount() == 2);
+  CHECK(b.slot(0).host == aSlot0);
+  CHECK(b.slot(1).host == aSlot1);
+
+  // The source keeps nothing -- no half-owned pages, no double-free ahead.
+  CHECK_FALSE(a.valid());
+  CHECK(a.backend() == HostPinnedRingBackend::None);
+  CHECK(a.slotCount() == 0);
+  a.destroy(); // inert on a moved-from ring
+
+  // Self-move must not free the slots out from under the ring.
+  auto& bref = b;
+  b = std::move(bref);
+  CHECK(b.valid());
+  REQUIRE(b.slotCount() == 2);
+  CHECK(b.slot(0).host == aSlot0);
+
+  b.destroy();
+  CHECK_FALSE(b.valid());
+  b.destroy();
+}
