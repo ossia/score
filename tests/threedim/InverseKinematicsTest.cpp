@@ -21,9 +21,6 @@
 //     pointer, dirty == 0); a null scene clears the output.
 //   * A zero-length bone must not NaN.
 //
-// One TEST_CASE is [!shouldfail]: actually REACHING a reachable target.
-// See the DEFECT comment there — the expectations are the correct geometry
-// and are kept; the tag comes off the day the solver is fixed.
 
 #include <Threedim/InverseKinematics.hpp>
 
@@ -243,20 +240,17 @@ TEST_CASE("planar problem stays planar", "[threedim][ik]")
 
 // ========================================================== target reaching
 
-// DEFECT: solve2Bone derives rootDelta = QQuaternion::rotationTo(r2e_n,
-// r2t_n) from the PRE-elbow-bend end direction. Bending the elbow changes
-// the root->end direction whenever the elbow angle changes, so aligning the
-// OLD direction with the target leaves the actual end effector off target.
+// solve2Bone derives rootDelta from the POST-elbow-bend end direction
+// (rotationTo of the elbow-bent arm onto the target direction): bending the
+// elbow changes the root->end direction whenever the elbow angle changes,
+// so the pre-bend direction would leave the end effector off target.
 // Worked example (first section): straight arm along +X, target (1,1,0).
-// The 90 deg elbow bend alone already puts the end at (1,1,0) == target, so
-// the correct rootDelta is identity; the code applies an extra Rz(45 deg)
-// and lands the end at (0, sqrt(2), 0), ~1.08 away. The fix is to compute
-// rootDelta from the post-bend direction, rotationTo(normalize(elbowDelta
-// applied to the arm), r2t_n). Expectations below are the correct geometry
-// and must not be weakened; drop [!shouldfail] when the solver is fixed.
+// The 90 deg elbow bend alone already puts the end at (1,1,0) == target,
+// so the correct rootDelta is identity. Expectations below are the correct
+// geometry, derived on paper.
 TEST_CASE("end effector lands on a reachable target "
           "(and points at an unreachable one)",
-          "[threedim][ik][!shouldfail]")
+          "[threedim][ik]")
 {
   SECTION("straight arm, target (1,1,0)")
   {
