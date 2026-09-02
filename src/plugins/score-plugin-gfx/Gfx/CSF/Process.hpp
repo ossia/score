@@ -74,6 +74,15 @@ public:
   const QString& script() const noexcept { return m_compute; }
   void programChanged() W_SIGNAL(programChanged);
 
+  // Explicitly exported: the build hides inline methods
+  // (-fvisibility-inlines-hidden), which would give every DSO its own copy
+  // of this signal — and a PMF-based connect() from outside the plugin
+  // then fails with 'signal not found' because the pointer compared inside
+  // qt_static_metacall is the plugin's local copy. Default visibility
+  // makes the dynamic linker unify the copies so the signal is connectable
+  // across shared-library boundaries, which is what exporting the class
+  // promises.
+  SCORE_PLUGIN_GFX_EXPORT
   void errorMessage(int line, const QString& err) const
       W_SIGNAL(errorMessage, line, err);
 
