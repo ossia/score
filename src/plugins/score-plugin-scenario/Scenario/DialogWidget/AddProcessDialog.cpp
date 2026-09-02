@@ -95,6 +95,13 @@ void AddProcessDialog::updateProcesses(const QString& str)
   m_processes->clear();
   for(const auto& factory : m_factoryList)
   {
+    // Deprecated processes are kept registered so that documents which use one
+    // still load, but they must not be OFFERED -- the Library panel skips them
+    // too (ProcessesItemModel.cpp). Otherwise a deprecated process and its
+    // replacement show up as two entries with nothing to tell them apart.
+    if(factory.flags() & Process::ProcessFlags::Deprecated)
+      continue;
+
     if(factory.category() == str && ((int)factory.flags() & (int)m_flags))
     {
       auto item = new ProcessItem{factory.prettyName()};
@@ -110,6 +117,9 @@ void AddProcessDialog::setup()
   ossia::flat_set<QString, std::less<>> categories;
   for(const auto& factory : m_factoryList)
   {
+    if(factory.flags() & Process::ProcessFlags::Deprecated)
+      continue;
+
     auto cat = factory.category();
     if(!cat.isEmpty() && ((int)factory.flags() & (int)m_flags))
       categories.insert(std::move(cat));
