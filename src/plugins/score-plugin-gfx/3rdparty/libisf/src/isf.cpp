@@ -3938,17 +3938,53 @@ void parser::parse_raw_raster_pipeline()
   // per-draw data (per_draws[gl_BaseInstance], etc.). Harmless when unused.
   m_vertex += "#extension GL_ARB_shader_draw_parameters : require\n";
 
-  if(m_desc.multiview_count >= 2)
+  // Multiview: the two stages need DIFFERENT plumbing. gl_ViewIndex only
+  // translates to the GLSL target in the VERTEX stage — Qt bakes
+  // ovr_multiview_view_count for vertex shaders alone (qtshadertools
+  // qspirvshader.cpp gates on stage == VertexStage), so a fragment shader
+  // reading gl_ViewIndex fails to bake on OpenGL with
+  // "ovr_multiview_view_count must be non-zero when using
+  // GL_OVR_multiview2". The vertex stage therefore forwards the view index
+  // through an injected flat varying (written by a wrapper main emitted at
+  // the end of this function), and the fragment's VIEW_INDEX macro reads
+  // that varying — portable across every backend.
+  const bool mv_fragment_plumbing = m_desc.multiview_count >= 2;
+  if(mv_fragment_plumbing)
   {
-    std::string ext = isf_emit_multiview_extension(m_desc.multiview_count);
-    m_vertex += ext;
-    m_fragment += ext;
+    m_vertex += "#extension GL_EXT_multiview : require\n";
   }
 
   {
     std::string user_ext = isf_emit_user_extensions(m_desc.extensions);
     m_vertex += user_ext;
     m_fragment += user_ext;
+  }
+
+  int mv_varying_location = 0;
+  if(mv_fragment_plumbing)
+  {
+    // First location free of user varyings (VERTEX_OUTPUTS and
+    // FRAGMENT_INPUTS both count — they describe the same interface).
+    for(const auto& attr : m_desc.vertex_outputs)
+      mv_varying_location = std::max(mv_varying_location, attr.location + 1);
+    for(const auto& attr : m_desc.fragment_inputs)
+      mv_varying_location = std::max(mv_varying_location, attr.location + 1);
+
+    const auto nv = std::to_string(m_desc.multiview_count);
+    m_vertex += "#define VIEW_INDEX gl_ViewIndex\n";
+    m_vertex += "#define NUM_VIEWS " + nv + "\n";
+    m_vertex += fmt::format(
+        "layout(location = {}) flat out int isf_ViewIndexVarying;\n",
+        mv_varying_location);
+    // Rename the user's main so the wrapper emitted at the end of this
+    // function can run it after writing the varying.
+    m_vertex += "#define main isf_rawraster_user_main\n";
+
+    m_fragment += "#define NUM_VIEWS " + nv + "\n";
+    m_fragment += fmt::format(
+        "layout(location = {}) flat in int isf_ViewIndexVarying;\n",
+        mv_varying_location);
+    m_fragment += "#define VIEW_INDEX isf_ViewIndexVarying\n";
   }
 
   // LAYER_INDEX for layered outputs.
@@ -4354,6 +4390,20 @@ void parser::parse_raw_raster_pipeline()
   // Add the actual vert / frag code
   m_vertex += m_sourceVertex;
   m_fragment += fragWithoutISF;
+
+  // Multiview wrapper main: writes the injected view-index varying, then
+  // runs the user's (renamed) main. See the VIEW_INDEX plumbing note above.
+  if(mv_fragment_plumbing)
+  {
+    m_vertex += R"_(
+#undef main
+void main()
+{
+  isf_ViewIndexVarying = gl_ViewIndex;
+  isf_rawraster_user_main();
+}
+)_";
+  }
 
   // Replace the special ISF stuff
   boost::replace_all(m_fragment, "gl_FragColor", "isf_FragColor");
