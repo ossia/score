@@ -367,3 +367,16 @@ score_add_test(test_threedim_buffer_loader
   LIBS ${QT_PREFIX}::Gui miniply
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_buffer_loader)
+
+# InjectBuffer + ExtractSceneBuffer: the aux-buffer injection / scene-slot
+# extraction pair. InjectBuffer is pure scene_state algebra (no GPU symbol);
+# ExtractSceneBuffer.cpp references GpuResourceRegistry::buffer() and pulls in
+# RenderList.hpp, so score_plugin_gfx supplies those exported symbols (never
+# reached at runtime — the tests stop at the null-scene guard). GPU-side slot
+# resolution is out of scope here.
+score_add_test(test_threedim_buffer_inject_extract
+  SOURCES BufferInjectExtractTest.cpp
+    "${THREEDIM_DIR}/InjectBuffer.cpp"
+    "${THREEDIM_DIR}/ExtractSceneBuffer.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_buffer_inject_extract)
