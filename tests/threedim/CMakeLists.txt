@@ -317,3 +317,17 @@ score_add_test(test_threedim_structure_synth
           "${THREEDIM_DIR}/TinyObj.cpp"
   LIBS ssynth threedim_test_mikktspace ${QT_PREFIX}::Gui)
 threedim_test_includes(test_threedim_structure_synth)
+
+# BuffersToGeometry / BuffersToGeometry2 (Buffers to geometry): raw GPU
+# buffers + layout controls -> dynamic_gpu_geometry descriptor building.
+# Pure CPU state — handles are opaque — so no QRhi / display. Compiles both
+# engine .cpps for the out-of-line ctors and operator(); score_plugin_gfx
+# supplies the include set GeometryToBufferStrategies.hpp pulls in; Qt Gui
+# supplies QMatrix4x4/QQuaternion for TransformHelper.hpp / TinyObj.hpp.
+score_add_test(test_threedim_buffer_to_geometry
+  SOURCES BufferToGeometryTest.cpp
+    "${THREEDIM_DIR}/BufferToGeometry.cpp"
+    "${THREEDIM_DIR}/BufferToGeometry2.cpp"
+  PLUGINS score_plugin_gfx
+  LIBS ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_buffer_to_geometry)
