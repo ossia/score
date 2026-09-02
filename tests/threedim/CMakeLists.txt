@@ -380,3 +380,16 @@ score_add_test(test_threedim_buffer_inject_extract
     "${THREEDIM_DIR}/ExtractSceneBuffer.cpp"
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_buffer_inject_extract)
+
+# InjectTexture / ExtractTexture / TextureToBuffer — the aux-texture trio
+# around the scene cable. InjectTexture is pure scene_state algebra;
+# ExtractTexture's update()/release() never dereference their RenderList& /
+# batch& (inert-reference seam, as CameraRelease.cpp), with stub QRhiTexture/
+# QRhiBuffer subclasses providing the inline metadata getters; TextureToBuffer
+# is header-only and only its pre-QRhi guard paths are driven. No GPU/display.
+score_add_test(test_threedim_texture_inject_extract
+  SOURCES TextureInjectExtractTest.cpp
+    "${THREEDIM_DIR}/InjectTexture.cpp"
+    "${THREEDIM_DIR}/ExtractTexture.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_texture_inject_extract)
