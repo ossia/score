@@ -248,3 +248,13 @@ score_add_test(test_threedim_geometry_loader_formats
     "${THREEDIM_DIR}/VcgImporters.cpp"
   LIBS ${QT_PREFIX}::Gui miniply mikktspace)
 threedim_test_includes(test_threedim_geometry_loader_formats)
+
+# PCLToMesh2 (Pointcloud to mesh): GPU-buffer -> dynamic_gpu_geometry
+# descriptor building. Pure CPU state — the buffer handle is opaque — so no
+# QRhi / display. Compiles PCLToGeometry.cpp for the out-of-line ctor and
+# operator(); Qt Gui supplies QMatrix4x4/QQuaternion for TinyObj.hpp's
+# rebuild_transform.
+score_add_test(test_threedim_pcl_to_geometry
+  SOURCES PCLToGeometryTest.cpp "${THREEDIM_DIR}/PCLToGeometry.cpp"
+  LIBS ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_pcl_to_geometry)
