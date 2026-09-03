@@ -5,8 +5,16 @@
 
 #include <ossia/detail/math.hpp>
 
+#include <score/graphics/DefaultGraphicsSliderImpl.hpp>
+#include <score/widgets/DoubleSpinBox.hpp>
+#include <score/widgets/SignalUtils.hpp>
+
+#include <QGraphicsProxyWidget>
+#include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
+#include <QHBoxLayout>
 #include <QPainter>
+#include <QTimer>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::QGraphicsXYChooser);
@@ -162,17 +170,53 @@ void QGraphicsXYChooser::showTypeIn(QPointF scenePos)
   if(!sc)
     return;
 
-  showTypeInBox(
-      *sc, scenePos,
-      {TypeInField{QStringLiteral("x"), m_min[0], m_max[0], m_value[0]},
-       TypeInField{QStringLiteral("y"), m_min[1], m_max[1], m_value[1]}},
-      // Moved while typing, released once at the end: one command, as the
-      // sliders' type-in box does.
-      [this](int i, double v) {
-    m_value[i] = v;
-    sliderMoved();
-    update();
-  }, [this] { sliderReleased(); });
+  // Only one type-in box at a time, here as on the sliders.
+  closeRightClickWidget();
+
+  auto* holder = new QWidget;
+  auto* lay = new QHBoxLayout{holder};
+  lay->setContentsMargins(2, 2, 2, 2);
+  lay->setSpacing(2);
+
+  std::array<DoubleSpinboxWithEnter*, 2> boxes{};
+  for(int i = 0; i < 2; i++)
+  {
+    auto* b = new DoubleSpinboxWithEnter;
+    b->setRange(m_min[i], m_max[i]);
+    b->setDecimals(6);
+    b->setValue(m_value[i]);
+    b->setPrefix(i == 0 ? QStringLiteral("x ") : QStringLiteral("y "));
+    lay->addWidget(b);
+    boxes[i] = b;
+  }
+
+  auto* proxy
+      = sc->addWidget(holder, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
+  proxy->setPos(scenePos);
+  currentRightClickWidget() = proxy;
+
+  for(int i = 0; i < 2; i++)
+  {
+    // Moved while typing, released once at the end: one command, as the
+    // sliders' type-in box does.
+    connect(
+        boxes[i], SignalUtils::QDoubleSpinBox_valueChanged_double(), this,
+        [this, i](double v) {
+      m_value[i] = v;
+      sliderMoved();
+      update();
+        });
+
+    connect(boxes[i], &DoubleSpinboxWithEnter::editingFinished, this, [this, proxy] {
+      sliderReleased();
+      QTimer::singleShot(0, this, [proxy] {
+        if(currentRightClickWidget() == proxy)
+          closeRightClickWidget();
+      });
+    });
+  }
+
+  QTimer::singleShot(0, boxes[0], [b = boxes[0]] { b->setFocus(); });
 }
 
 //! QEvent::UngrabMouse: the scene took the implicit grab away and there will be
