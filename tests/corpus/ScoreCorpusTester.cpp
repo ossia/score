@@ -412,6 +412,23 @@ void run_document(
       // Play acts on the *current* document; put the original back.
       ctx.docManager.setCurrentDocument(ctx, doc);
 
+      // Investigation aid: with SCORE_CORPUS_ROUNDTRIP_DUMP=<dir> set, both
+      // passes are written out so the divergence can be diffed by field rather
+      // than reported as a byte offset. Off by default; costs nothing when the
+      // variable is unset.
+      if(const char* dump = std::getenv("SCORE_CORPUS_ROUNDTRIP_DUMP"))
+      {
+        const QString base = QString::fromUtf8(dump) + QDir::separator()
+                             + QFileInfo(path).completeBaseName();
+        const auto write_pass = [](const QString& path, const QByteArray& data) {
+          QFile f{path};
+          if(f.open(QIODevice::WriteOnly | QIODevice::Truncate))
+            f.write(data);
+        };
+        write_pass(base + ".pass1.json", pass1);
+        write_pass(base + ".pass2.json", pass2);
+      }
+
       if(pass1 != pass2)
       {
         int off = 0;
