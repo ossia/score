@@ -10,10 +10,13 @@
 # engine) and the frame is grabbed. Verdict = analyze.py VALUE assertions
 # (pixel coverage, bbox ordering across point sizes, centroid movement for
 # position, channel dominance for color, blank for empty string, recovery
-# after edge cases) + compare.py golden check against refs/llvmpipe for the
-# stable subset (default / base / unicode).
+# after edge cases) + compare.py golden check against refs/ for the
+# stable subset (default / base / unicode). The goldens are backend-independent
+# (one per case, not one per backend); compare.py owns the tolerance.
 #
-#   check mode (default) : run once, analyze + golden compare (profile strict).
+#   check mode (default) : run once, analyze + golden compare (profile shared).
+#                          On FAIL the golden, the actual and a diff image are
+#                          written to $OUT/diff/, named after the case.
 #   --update-refs        : run TWICE, accept refs only if both runs agree
 #                          (compare.py --profile self) AND analyze.py passes.
 #
@@ -25,8 +28,11 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 SRCROOT="$(cd "$HERE/../../.." && pwd)"   # tests/integration/text-render -> repo root
 BIN="${OSSIA_SCORE:-$SRCROOT/build-sanitizers/ossia-score}"
 OUT="${OUT:-/tmp/text-render}"
-REFS="$HERE/refs/llvmpipe"
+# One golden per case, shared by every backend -- see the compare.py docstring
+# for why the per-backend trees were collapsed and what tolerance replaced them.
+REFS="$HERE/refs"
 COMPARE="$HERE/../golden-render/compare.py"
+DIFFDIR="$OUT/diff"
 OSC=6666
 TIMEOUT="${TIMEOUT:-420}"
 SETTLE="${SETTLE:-1.2}"
@@ -53,7 +59,7 @@ command -v python3 >/dev/null || { echo "SKIP: python3 not found"; exit 77; }
 python3 -c "import numpy, PIL, scipy" 2>/dev/null \
   || { echo "SKIP: python numpy/PIL/scipy missing"; exit 77; }
 
-mkdir -p "$OUT" "$REFS"
+mkdir -p "$OUT" "$REFS" "$DIFFDIR"
 
 # Hermetic config home, GraphicsApi pinned to OpenGL (user conf may say Vulkan).
 CFG="$OUT/config-home"; mkdir -p "$CFG/ossia"
@@ -162,10 +168,13 @@ else
     if [ ! -f "$REFS/$g.png" ]; then
       echo "NOREF $g (run --update-refs)"; missing_refs=$((missing_refs+1)); continue
     fi
-    if res=$(python3 "$COMPARE" "$REFS/$g.png" "$OUT/run/$g.png" --profile strict); then
+    if res=$(python3 "$COMPARE" "$REFS/$g.png" "$OUT/run/$g.png" \
+               --profile shared --diff-dir "$DIFFDIR" --name "$g"); then
       echo "GOLDEN $g PASS ($res)"
     else
       FAILS+=" GOLDEN@$g($res)"
+      echo "GOLDEN $g FAIL ($res)"
+      echo "    artifacts=$DIFFDIR/$g.{golden,actual,diff}.png"
     fi
   done
   # No refs at all (fresh checkout on another rig): golden part SKIPs, value

@@ -513,10 +513,12 @@ if(SCORE_HAS_SHELL_HARNESS)
     ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
 
   # Golden-image render regression, one ctest per backend class. Each renders the
-  # pinned tests-scene corpus through the real binary and compares against
-  # golden-render/refs/<class>/. Skips (77) without the binary, the out-of-repo
-  # tests-scene corpus, oscsend/ImageMagick/numpy, an X server for the classes
-  # that need one, or a not-yet-generated reference set.
+  # pinned tests-scene corpus through the real binary and compares against the
+  # SHARED golden set in golden-render/refs/ -- one golden per case, not one per
+  # backend, so a regression on any single backend is condemned by the same
+  # reference every other backend is held to. Skips (77) without the binary, the
+  # out-of-repo tests-scene corpus, oscsend/ImageMagick/numpy, an X server for
+  # the classes that need one, or a not-yet-generated reference set.
   #
   # The backend a run actually got is asserted, not assumed: a class that lands on
   # a different GPU or rasteriser fails as WRONG-BACKEND. Without that assertion a
@@ -546,7 +548,11 @@ if(SCORE_HAS_SHELL_HARNESS)
         LABELS "gui;golden-render"
         REQUIRED_FILES
           "${CMAKE_CURRENT_SOURCE_DIR}/golden-render/compare.py;${CMAKE_CURRENT_SOURCE_DIR}/golden-render/assert-content.py"
-        ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+        # OUT puts the run's PNGs -- and, on failure, diff/<case>.{golden,actual,diff}.png
+        # -- in the build tree instead of /tmp, so CI can collect them.
+        ATTACHED_FILES_ON_FAIL
+          "${CMAKE_CURRENT_BINARY_DIR}/golden-artifacts/${_gr_backend}/diff"
+        ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score;OUT=${CMAKE_CURRENT_BINARY_DIR}/golden-artifacts/${_gr_backend}")
     endforeach()
   endforeach()
 endif()
@@ -844,8 +850,9 @@ endif()
 # /script and asserts pixel VALUES per case (analyze.py: coverage, bbox
 # ordering across sizes, centroid movement, channel dominance, blank empty
 # string, unicode/CJK/tofu/2000-char edge cases) + golden refs for the
-# stable subset (text-render/refs/llvmpipe, compare.py strict; regenerate
-# with text-render.sh --update-refs — double-render self-consistency).
+# stable subset (text-render/refs, backend-independent, compare.py profile
+# shared; regenerate with text-render.sh --update-refs — double-render
+# self-consistency).
 # Self-serializes on /tmp/score-harness.lock; SKIPs (77) without deps.
 if(SCORE_HAS_SHELL_HARNESS)
   add_test(NAME test_text_render
@@ -857,7 +864,9 @@ if(SCORE_HAS_SHELL_HARNESS)
     RUN_SERIAL TRUE
     REQUIRED_FILES
       "${CMAKE_CURRENT_SOURCE_DIR}/text-render/analyze.py;${CMAKE_CURRENT_SOURCE_DIR}/golden-render/compare.py"
-    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+    ATTACHED_FILES_ON_FAIL
+      "${CMAKE_CURRENT_BINARY_DIR}/golden-artifacts/text-render/diff"
+    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score;OUT=${CMAKE_CURRENT_BINARY_DIR}/golden-artifacts/text-render")
 endif()
 
 
@@ -910,9 +919,18 @@ score_add_test(test_integration_threedim_render
 target_compile_definitions(test_integration_threedim_render PRIVATE
   "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\""
   "THREEDIM_RENDER_REFS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/threedim-render/refs\""
+  # The one comparator. Every golden threshold in the tree is defined in this
+  # file and nowhere else; the C++ helper calls it rather than reimplementing
+  # the metrics. See tests/integration/GoldenImage.hpp.
+  "GOLDEN_COMPARE_PY=\"${CMAKE_CURRENT_SOURCE_DIR}/golden-render/compare.py\""
+  # Failure artifacts (golden / actual / diff, named after the case) land in
+  # the build tree so a CI failure is diagnosable without a local repro.
+  "GOLDEN_ARTIFACT_DIR=\"${CMAKE_CURRENT_BINARY_DIR}/golden-artifacts\""
   "GFX_TEST_CORPUS_DIR=\"${SCORE_ROOT_SOURCE_DIR}/tests/gfx/corpus\"")
 set_tests_properties(test_integration_threedim_render PROPERTIES
   RUN_SERIAL TRUE
   TIMEOUT 900
+  ATTACHED_FILES_ON_FAIL
+    "${CMAKE_CURRENT_BINARY_DIR}/golden-artifacts/threedim-render"
   REQUIRED_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/threedim-render/fetch-real-assets.sh")

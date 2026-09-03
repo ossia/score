@@ -9,14 +9,19 @@
 // finishes before the loader's worker lands its closure — measured), then a
 // grab requested over the OSC control port exactly as
 // tests/integration/scene-js-sweep.sh does. The grabbed frame is compared
-// against refs/<class>/<case>.png with a tolerance suited to GPU raster
-// differences.
+// against refs/<case>.png -- ONE golden per case, shared by every backend --
+// through tests/integration/golden-render/compare.py, which owns the only
+// golden tolerance in the tree. See GoldenImage.hpp for why the comparison is
+// not open-coded here any more.
 //
 // BACKEND IDENTITY IS ASSERTED, NOT ASSUMED (the golden-render.sh rule):
-// QT_LOGGING_RULES=qt.rhi.general=true makes QRhi print the renderer it got;
-// a case only compares when that line matches the ref class's regex, and
-// SKIPs otherwise — a silent fallback to another GPU/rasteriser must never
-// produce a quiet green or a bogus red.
+// QT_LOGGING_RULES=qt.rhi.general=true makes QRhi print the renderer it got,
+// and the line is reported with every verdict so a number always names what
+// produced it. The golden comparison itself no longer SKIPs on the vendor:
+// it ran only on NVIDIA and was Skipped on CI, on Mesa, and on every machine
+// without that card, which is a golden nothing else is ever measured against.
+// A handful of non-golden nonBlank checks below are STILL vendor-gated; they
+// are marked and are separate work.
 //
 // ASSETS are generated in-test, byte-for-byte, all self-authored (CC0):
 //   cube.obj        unit-ish cube, positions+normals+uvs, wound to the
@@ -51,11 +56,14 @@
 // Vulkan build renders the model pipeline instead of aborting.
 // =============================================================================
 
+#include "GoldenImage.hpp"
+
 #include <catch2/catch_test_macros.hpp>
 
 #include <QByteArray>
 #include <QDir>
 #include <QFile>
+#include <QFileInfo>
 #include <QImage>
 #include <QLockFile>
 #include <QProcess>
@@ -651,6 +659,11 @@ struct Diff
   double fracFar{1}; // fraction of pixels off by > 24 codes in some channel
 };
 
+// Retained for the cross-LEG oracles below (fam-off vs fam-stl and friends),
+// which compare two renders from the SAME run against each other rather than
+// against a stored golden. Those are difference oracles -- "these two must
+// agree" / "these two must differ" -- and are not subject to the golden
+// tolerance, which is owned by compare.py via GoldenImage.hpp.
 Diff diffImages(const QImage& a, const QImage& b)
 {
   Diff d;
@@ -680,19 +693,33 @@ Diff diffImages(const QImage& a, const QImage& b)
   return d;
 }
 
+//! Where failure artifacts (golden / actual / diff) are written.
+QString goldenArtifactDir()
+{
+#if defined(GOLDEN_ARTIFACT_DIR)
+  return QStringLiteral(GOLDEN_ARTIFACT_DIR) + "/threedim-render";
+#else
+  return QDir::tempPath() + "/threedim-render-golden";
+#endif
+}
+
 //! Compare against the committed golden, or write it when
 //! SCORE_THREEDIM_UPDATE_REFS=1 (used ONLY by a human who then LOOKS at it;
 //! see the header — never bless an unjudged image).
+//!
+//! The golden is shared across backends. This used to SKIP unless the renderer
+//! reported NVIDIA, which meant the comparison ran on exactly one vendor's
+//! driver and was Skipped everywhere else -- on CI, on Mesa, on every
+//! developer machine without that card. A golden that only one backend is ever
+//! measured against cannot condemn a regression on any other, which is the
+//! same defect the per-backend ref trees had, expressed as a skip instead of
+//! as a directory.
 void requireMatchesGolden(const RenderResult& r, const QString& caseName)
 {
-  if(!r.rendererLine.contains("NVIDIA"))
-    SKIP("renderer is not the nvidia-gl ref class: "
-         << r.rendererLine.toStdString());
-
-  const QString refPath = refsDir() + "/nvidia-gl/" + caseName + ".png";
+  const QString refPath = refsDir() + "/" + caseName + ".png";
   if(qEnvironmentVariableIsSet("SCORE_THREEDIM_UPDATE_REFS"))
   {
-    QDir().mkpath(refsDir() + "/nvidia-gl");
+    QDir().mkpath(refsDir());
     REQUIRE(nonBlank(r.frame));
     REQUIRE(r.frame.save(refPath));
     WARN("ref written (validate it visually before committing): "
@@ -700,16 +727,22 @@ void requireMatchesGolden(const RenderResult& r, const QString& caseName)
     return;
   }
 
-  QImage ref(refPath);
-  if(ref.isNull())
+  if(!QFileInfo::exists(refPath))
     FAIL("no golden ref at " << refPath.toStdString()
                              << " (renders exist but were never validated?)");
-  ref = ref.convertToFormat(QImage::Format_RGB888);
-  const Diff d = diffImages(r.frame, ref);
-  INFO(caseName.toStdString() << ": meanAbs=" << d.meanAbs
-                              << " fracFar=" << d.fracFar);
-  CHECK(d.meanAbs < 4.0);
-  CHECK(d.fracFar < 0.02);
+
+  const auto v = score::testing::compareToGolden(
+      r.frame, caseName, refsDir(), goldenArtifactDir());
+  if(!v.ran)
+    SKIP("golden comparator unavailable (python3 + numpy/PIL/scipy)");
+
+  INFO(caseName.toStdString() << " on " << r.rendererLine.toStdString() << ": "
+                              << v.metrics.toStdString());
+  if(!v.pass)
+    FAIL(caseName.toStdString()
+         << ": " << v.reason.toStdString() << "\n  artifacts: "
+         << v.artifacts.toStdString() << "/" << caseName.toStdString()
+         << ".{golden,actual,diff}.png");
 }
 } // namespace
 
@@ -753,7 +786,7 @@ TEST_CASE(
   if(!r.error.isEmpty())
     SKIP(r.error.toStdString());
   if(!r.rendererLine.contains("NVIDIA"))
-    SKIP("renderer is not the nvidia-gl ref class");
+    SKIP("still vendor-gated to NVIDIA (not a golden check; see requireMatchesGolden)");
   CHECK(nonBlank(r.frame));
 }
 
@@ -787,7 +820,7 @@ TEST_CASE(
     if(!r.error.isEmpty())
       SKIP(r.error.toStdString());
     if(!r.rendererLine.contains("NVIDIA"))
-      SKIP("renderer is not the nvidia-gl ref class");
+      SKIP("still vendor-gated to NVIDIA (not a golden check; see requireMatchesGolden)");
     CHECK(nonBlank(r.frame));
   };
 
@@ -815,7 +848,7 @@ TEST_CASE(
   if(!r.error.isEmpty())
     SKIP(r.error.toStdString());
   if(!r.rendererLine.contains("NVIDIA"))
-    SKIP("renderer is not the nvidia-gl ref class");
+    SKIP("still vendor-gated to NVIDIA (not a golden check; see requireMatchesGolden)");
   CHECK(nonBlank(r.frame));
 }
 
@@ -886,7 +919,7 @@ TEST_CASE(
   if(!ref.error.isEmpty())
     SKIP(ref.error.toStdString());
   if(!ref.rendererLine.contains("NVIDIA"))
-    SKIP("renderer is not the nvidia-gl ref class: "
+    SKIP("still vendor-gated to NVIDIA (not a golden check; see requireMatchesGolden): "
          << ref.rendererLine.toStdString());
   REQUIRE(nonBlank(ref.frame));
 
@@ -971,7 +1004,7 @@ TEST_CASE(
   if(!r.error.isEmpty())
     SKIP(r.error.toStdString());
   if(!r.rendererLine.contains("NVIDIA"))
-    SKIP("renderer is not the nvidia-gl ref class");
+    SKIP("still vendor-gated to NVIDIA (not a golden check; see requireMatchesGolden)");
   CHECK(nonBlank(r.frame));
 }
 
@@ -1151,7 +1184,7 @@ TEST_CASE(
     if(!r.error.isEmpty())
       SKIP(r.error.toStdString());
     if(!r.rendererLine.contains("NVIDIA"))
-      SKIP("renderer is not the nvidia-gl ref class: "
+      SKIP("still vendor-gated to NVIDIA (not a golden check; see requireMatchesGolden): "
            << r.rendererLine.toStdString());
     if(refRenderer.isEmpty())
       refRenderer = r.rendererLine;
@@ -1226,7 +1259,7 @@ TEST_CASE(
     if(!r.error.isEmpty())
       SKIP(r.error.toStdString());
     if(!r.rendererLine.contains("NVIDIA"))
-      SKIP("renderer is not the nvidia-gl ref class");
+      SKIP("still vendor-gated to NVIDIA (not a golden check; see requireMatchesGolden)");
     INFO("perspective control: " << drawnPixels(r.frame) << " px drawn");
     REQUIRE(drawnPixels(r.frame) > 64);
   }
@@ -1376,7 +1409,7 @@ TEST_CASE(
     if(!r.error.isEmpty())
       SKIP(r.error.toStdString());
     if(!r.rendererLine.contains("NVIDIA"))
-      SKIP("renderer is not the nvidia-gl ref class: "
+      SKIP("still vendor-gated to NVIDIA (not a golden check; see requireMatchesGolden): "
            << r.rendererLine.toStdString());
     if(refRenderer.isEmpty())
       refRenderer = r.rendererLine;
@@ -1565,7 +1598,7 @@ TEST_CASE(
     if(!r.error.isEmpty())
       SKIP(r.error.toStdString());
     if(!r.rendererLine.contains("NVIDIA"))
-      SKIP("renderer is not the nvidia-gl ref class: "
+      SKIP("still vendor-gated to NVIDIA (not a golden check; see requireMatchesGolden): "
            << r.rendererLine.toStdString());
     if(refRenderer.isEmpty())
       refRenderer = r.rendererLine;
