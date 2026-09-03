@@ -129,10 +129,11 @@ score_add_test(test_integration_js_cpu_node
 # defect was fixed and the bookkeeping was never done. Do not re-add one -- the
 # test passes, and a green test is what we want here.
 #
-# It TIMES OUT on Windows (measured on the Windows sweep). That is a separate,
-# live, Windows-specific defect, and it matters beyond this test: a ctest
-# timeout kills score before it can clear the failsafe bit, which forces every
-# later launch in the run into failsafe mode with opengl disabled.
+# It timed out on Windows in an earlier sweep. That was NOT a defect of its own:
+# the run had score's sticky failsafe bit set, and with SCORE_DISABLE_FAILSAFE
+# the test passes there. Measured by diffing the Vulkan serial failure sets --
+# 21 failures with failsafe active, 20 without, and this test is the single
+# difference.
 score_add_test(test_integration_js_setchannel
   SOURCES JsSetChannelTest.cpp
   GUI

@@ -33,10 +33,11 @@
 // signal could not fire -- the defect was fixed and the bookkeeping was never
 // done. See tests/integration/CMakeLists.txt.
 //
-// STILL BROKEN ON WINDOWS: this test TIMES OUT there. Live defect, separate
-// from the abort, and consequential -- a ctest timeout kills score before it
-// clears the failsafe bit, forcing every later launch in the run into failsafe
-// mode with opengl disabled.
+// It timed out on Windows in an earlier sweep, and that was NOT a defect of its
+// own: the run had score's sticky failsafe bit set. With SCORE_DISABLE_FAILSAFE
+// it passes there. Measured by diffing the Vulkan serial failure sets -- 21
+// failures with failsafe active, 20 without, and this test is the single
+// difference.
 
 #include <score_test/App.hpp>
 
