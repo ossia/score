@@ -73,5 +73,6 @@ private:
   QString m_subject;
   bool m_multiline{};
   bool m_binary{};
+  bool m_offeredPopup{};
 };
 }
