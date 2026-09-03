@@ -556,6 +556,9 @@ public:
     });
 
     connect(&m_edit, SignalUtils::QSpinBox_valueChanged_int(), this, [this](int v) {
+      // Blocked: the slider clamps to the declared domain, and letting that
+      // come back would overwrite a value the device holds outside it.
+      const QSignalBlocker b{m_slider};
       m_slider.setValue(v);
       markEdited();
     });
@@ -601,6 +604,8 @@ public:
     connect(
         &m_edit, SignalUtils::QDoubleSpinBox_valueChanged_double(), this,
         [this, min, max](double v) {
+      // Blocked: see the integer editor above.
+      const QSignalBlocker b{m_slider};
       m_slider.setValue(max > min ? (v - min) / (max - min) : 0.);
       markEdited();
         });

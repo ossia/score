@@ -166,8 +166,8 @@ TEST_CASE("a value editor fits the row it is opened in", "[integration][explorer
 
     for(int i = 0; i < 10; i++)
     {
-      // The bang has no editor at all: see the case below.
-      if(i == 8)
+      // The check box and the bang are the editor: see the case below.
+      if(i == 7 || i == 8)
         continue;
 
       const auto idx = t.valueIndex(i);
@@ -250,6 +250,10 @@ TEST_CASE("bool and impulse are always live in the row",
     // Ticking it writes the value, with no editor involved.
     CHECK(t.model->setData(flag, Qt::Unchecked, Qt::CheckStateRole));
     CHECK(flag.data(Qt::CheckStateRole).value<Qt::CheckState>() == Qt::Unchecked);
+
+    // And double-clicking opens nothing on top of the box, as for the bang.
+    CHECK_FALSE(t.model->flags(flag).testFlag(Qt::ItemIsEditable));
+    CHECK(openEditor(*t.view, flag) == nullptr);
 
     // The impulse row is painted as a button; double-clicking it must not open
     // a second, identical one on top.
@@ -898,6 +902,91 @@ TEST_CASE("the character column writes bytes too", "[integration][explorer][look
   });
 }
 
+// The caret maps to a byte and back by arithmetic rather than by rendering
+// the column, so the two have to agree on every line boundary -- and both
+// columns wrap at 16, which is where an off-by-one would hide.
+TEST_CASE("the byte columns agree with their own line wrapping",
+          "[integration][explorer][look]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    Tree t{ctx};
+    const auto idx = t.valueIndex(9); // the blob
+
+    // Empty, part of a line, exactly a line, one past it, and again.
+    for(int n : {0, 1, 15, 16, 17, 31, 32, 33})
+    {
+      REQUIRE(t.model->setData(
+          idx, QVariant::fromValue(ossia::value{std::string(n, 'a')}), Qt::EditRole));
+
+      auto* ed = openEditor(*t.view, idx);
+      REQUIRE(ed != nullptr);
+
+      // Plain one-line text does not raise the panel by itself.
+      auto* field = ed->findChild<State::ExpandableTextEdit*>();
+      REQUIRE(field != nullptr);
+      field->expand();
+      QApplication::processEvents();
+
+      auto* pop = QApplication::activePopupWidget();
+      REQUIRE(pop != nullptr);
+
+      auto* hex = pop->findChild<QPlainTextEdit*>("hexColumn");
+      auto* ascii = pop->findChild<QPlainTextEdit*>("charColumn");
+      REQUIRE(hex != nullptr);
+      REQUIRE(ascii != nullptr);
+
+      auto digits = [&] {
+        QString d;
+        for(QChar c : hex->toPlainText())
+          if(!c.isSpace())
+            d += c;
+        return d;
+      };
+
+      INFO(n << " bytes");
+      REQUIRE(digits().size() == 2 * n);
+
+      for(auto* col : {hex, ascii})
+      {
+        INFO(col->objectName().toStdString());
+
+        // The end of the text is the append spot, whatever the last line holds.
+        col->setFocus();
+        score::test::keyClick(*col, Qt::Key_End, Qt::ControlModifier);
+        score::test::keyClicks(*col, col == hex ? "41" : "A");
+        QApplication::processEvents();
+
+        CHECK(digits().size() == 2 * (n + 1));
+        CHECK(digits().endsWith("41"));
+        CHECK(ascii->toPlainText().endsWith('A'));
+
+        score::test::keyClick(*col, Qt::Key_Backspace);
+        QApplication::processEvents();
+        CHECK(digits().size() == 2 * n);
+      }
+
+      // Home on a line that is not the first lands on that line's first byte,
+      // which is where an off-by-one in the wrapping would show.
+      if(n > 16)
+      {
+        ascii->setFocus();
+        score::test::keyClick(*ascii, Qt::Key_End, Qt::ControlModifier);
+        score::test::keyClick(*ascii, Qt::Key_Home);
+        score::test::keyClicks(*ascii, "Z");
+        QApplication::processEvents();
+
+        auto expected = QString(n, 'a');
+        expected[16 * ((n - 1) / 16)] = 'Z';
+        CHECK(ascii->toPlainText().remove('\n') == expected);
+      }
+
+      pop->close();
+      QApplication::processEvents();
+      t.view->closePersistentEditor(idx);
+      QApplication::processEvents();
+    }
+  });
+}
 // An impulse row lights when a value arrives, not only when it is clicked: the
 // parameter holds nothing, so a row that did not blink looks like one that
 // never fired.
@@ -981,7 +1070,7 @@ TEST_CASE("leaving an editor does not confuse the view",
     };
 
     // Every editor the tree can build, left by every way out of one.
-    for(int r : {0, 1, 2, 4, 5, 6, 7})
+    for(int r : {0, 1, 2, 4, 5, 6})
     {
       row = r;
       const auto idx = t.valueIndex(row);
