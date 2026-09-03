@@ -46,6 +46,15 @@ struct BackgroundNode : OutputNode
       }
       else
       {
+        // Nothing upstream: the render list holds only this output. Clearing
+        // leaves pixelSize at QSize(-1,-1), which WindowDevice::grabTo reports
+        // as "nothing rendered ... no process is connected to this device's
+        // input". That message is a FALSE BLANK whenever the graph is in fact
+        // connected, so say which it is rather than leaving the caller to guess.
+        if(qEnvironmentVariableIsSet("SCORE_GFX_TRACE"))
+          fprintf(
+              stderr, "GFX-BACKGROUND readback cleared: renderers=%zu\n",
+              renderer->renderers.size());
         shared_readback->data.clear();
         shared_readback->pixelSize = {};
       }

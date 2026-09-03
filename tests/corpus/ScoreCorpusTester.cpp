@@ -289,7 +289,23 @@ void prepare_environment()
   }
   QCoreApplication::setOrganizationName("ossia");
   QCoreApplication::setOrganizationDomain("ossia.io");
-  QCoreApplication::setApplicationName("score-corpus-tester");
+  // "score", NOT "score-corpus-tester". The package/library search path is
+  // derived from QStandardPaths::DocumentsLocation + organization + APPLICATION
+  // NAME, so a distinct name pointed this at
+  //   ~/Documents/ossia/score-corpus-tester/packages
+  // which does not exist, and every document whose shader has an #include
+  // failed to compile. The process then kept a default-constructed
+  // ProcessedProgram: no RawRaster mode, no geometry port, the scene edge onto
+  // it refused as out-of-range, an empty render list, and finally
+  // "grabTo: nothing rendered" -- reported as status BLANK for a document that
+  // renders perfectly in the application. Measured on
+  // instanced-helmets-manual-expression.score: 'Shader include not found:
+  // "openpbr.h" (searched: .../score-corpus-tester/packages ...)'.
+  //
+  // Config isolation does NOT depend on this name: it comes from the
+  // XDG_CONFIG_HOME redirect above, which DocumentsLocation ignores. So the
+  // tester keeps its private settings and gains the user's real packages.
+  QCoreApplication::setApplicationName("score");
 }
 
 // ---------------------------------------------------------------------------
