@@ -547,32 +547,15 @@ void RenderedRawRasterPipelineNode::initMRTPass(
   m_mipRTs.clear();
   m_mipCount = 0;
 
-  // PerLayer depth-path resources. The color path's per-layer RTs are
-  // owned by m_mipRTs (cleared above); the shared scratch depth + RT
-  // used by the depth path live outside m_mipRTs and must be dropped
-  // explicitly here. m_perLayerOutputDepthArray aliases depthTex (owned
-  // by m_mrtRenderTarget) so it just gets nulled out.
-  if(m_perLayerSharedRT)
-  {
-    m_perLayerSharedRT->deleteLater();
-    m_perLayerSharedRT = nullptr;
-  }
-  if(m_perLayerSharedRP)
-  {
-    m_perLayerSharedRP->deleteLater();
-    m_perLayerSharedRP = nullptr;
-  }
-  if(m_perLayerScratchDepth)
-  {
-    m_perLayerScratchDepth->deleteLater();
-    m_perLayerScratchDepth = nullptr;
-  }
+  // PerLayer resources. Both paths now keep their per-layer render targets in
+  // m_mipRTs (cleared above); the depth path's entries alias the OUTPUT depth
+  // array through setDepthLayer and own no depth texture of their own, so
+  // entry.depth is null for them. Only the shared placeholder colour is ours.
   if(m_perLayerDummyColor)
   {
     m_perLayerDummyColor->deleteLater();
     m_perLayerDummyColor = nullptr;
   }
-  m_perLayerOutputDepthArray = nullptr;
   m_perLayerOutputIndex = -1;
   m_perLayerIsDepth = false;
 
@@ -1172,9 +1155,17 @@ void RenderedRawRasterPipelineNode::initMRTPass(
   // m_mipRTs holds N entries bound via setLayer(i), with a per-layer 2D D32F
   // depth so attachment shapes stay consistent.
   //
-  // A DEPTH target cannot: Qt RHI 6.11 has no per-layer depth attachment
-  // (setDepthTexture takes no layer). Render to a shared scratch 2D D32F,
-  // UsedAsTransferSource, and copy it into layer i after each endPass.
+  // A DEPTH target works the same way from Qt 6.12, which added
+  // QRhiTextureRenderTargetDescription::setDepthLayer: each layer gets its own
+  // render target attaching layer i of the OUTPUT depth array directly.
+  //
+  // It used to render to a shared scratch 2D D32F and copyTexture() it into
+  // layer i after each endPass. That shim NEVER WORKED on any backend and is
+  // not preserved: QRhi::copyTexture is colour-only -- qrhivulkan.cpp:4782 and
+  // :4792 set VK_IMAGE_ASPECT_COLOR_BIT unconditionally (VUID-vkCmdCopyImage-
+  // aspectMask-00142/00143), and the GL path attaches the source to
+  // GL_COLOR_ATTACHMENT0 -- so the depth array came back cleared and the
+  // cascade rendered nothing.
   if(m_executionMode == ExecutionMode::PerLayer && m_perLayerOutputIndex >= 0)
   {
     const auto& targetOut = outputs[m_perLayerOutputIndex];
@@ -1182,49 +1173,63 @@ void RenderedRawRasterPipelineNode::initMRTPass(
 
     if(m_perLayerIsDepth)
     {
-      // depthTex is the OUTPUT array (allocated as Texture2DArray
-      // earlier when maxLayers > 1). m_perLayerOutputDepthArray
-      // aliases it for the post-pass copy destination.
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+      // depthTex is the OUTPUT array (allocated as Texture2DArray earlier when
+      // maxLayers > 1). Each layer gets a render target that attaches it
+      // directly, so the pass writes the real destination and nothing is
+      // copied anywhere.
       if(depthTex && layerCount > 1)
       {
-        m_perLayerOutputDepthArray = depthTex;
-
-        const auto depthFmt = depthTex->format();
-        m_perLayerScratchDepth = rhi.newTexture(
-            depthFmt, sz, 1,
-            QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource);
-        m_perLayerScratchDepth->setName(
-            ("RRPNode::MRT::perLayerScratch::" + targetOut.name).c_str());
-        SCORE_ASSERT(m_perLayerScratchDepth->create());
-
         // Mirror createDepthOnlyRenderTarget's attachment shape, since the
         // pipeline is built against the render pass that helper produced and
-        // must stay compatible with this shared RT. It attaches a 1x1 dummy
-        // RGBA8 colour alongside the depth, required by GLES and harmless
-        // elsewhere; allocate our own rather than borrowing
-        // m_mrtRenderTarget's, whose lifetime it owns.
+        // must stay compatible with these. It attaches a dummy RGBA8 colour
+        // alongside the depth, required by GLES and harmless elsewhere.
+        //
+        // SIZED TO THE RENDER EXTENT, NOT 1x1. The old scratch RT allocated it
+        // at QSize(1, 1); the Vulkan backend derives the framebuffer and
+        // renderArea from the FIRST colour attachment whenever colorAttCount >
+        // 0 (qrhivulkan.cpp:8619-8620, :8782-8783) and only falls back to the
+        // depth texture's size at colorAttCount == 0, so that would have
+        // clamped every cascade to one pixel. It was invisible because the
+        // copy that followed was a no-op anyway; the same lesson is already
+        // written into createDepthOnlyRenderTarget (Utils.cpp:1586-1590). One
+        // texture is shared by all N targets: it is never written or read.
         m_perLayerDummyColor = rhi.newTexture(
-            QRhiTexture::RGBA8, QSize(1, 1), 1, QRhiTexture::RenderTarget);
+            QRhiTexture::RGBA8, sz, 1, QRhiTexture::RenderTarget);
         m_perLayerDummyColor->setName(
             ("RRPNode::MRT::perLayerDummyColor::" + targetOut.name).c_str());
         SCORE_ASSERT(m_perLayerDummyColor->create());
 
-        QRhiTextureRenderTargetDescription scratchDesc;
+        m_mipRTs.reserve(layerCount);
+        for(int layer = 0; layer < layerCount; ++layer)
         {
-          QRhiColorAttachment color0(m_perLayerDummyColor);
-          scratchDesc.setColorAttachments({color0});
-        }
-        scratchDesc.setDepthTexture(m_perLayerScratchDepth);
+          QRhiTextureRenderTargetDescription layerDesc;
+          {
+            QRhiColorAttachment color0(m_perLayerDummyColor);
+            layerDesc.setColorAttachments({color0});
+          }
+          layerDesc.setDepthTexture(depthTex);
+          layerDesc.setDepthLayer(layer);
 
-        m_perLayerSharedRT = rhi.newTextureRenderTarget(scratchDesc);
-        m_perLayerSharedRT->setName(
-            ("RRPNode::MRT::perLayerSharedRT::" + targetOut.name).c_str());
-        m_perLayerSharedRP
-            = m_perLayerSharedRT->newCompatibleRenderPassDescriptor();
-        m_perLayerSharedRP->setName(
-            ("RRPNode::MRT::perLayerSharedRP::" + targetOut.name).c_str());
-        m_perLayerSharedRT->setRenderPassDescriptor(m_perLayerSharedRP);
-        SCORE_ASSERT(m_perLayerSharedRT->create());
+          auto* layerRT = rhi.newTextureRenderTarget(layerDesc);
+          layerRT->setName(
+              ("RRPNode::MRT::perLayerDepthRT::" + std::to_string(layer))
+                  .c_str());
+          auto* layerRP = layerRT->newCompatibleRenderPassDescriptor();
+          layerRP->setName(
+              ("RRPNode::MRT::perLayerDepthRP::" + std::to_string(layer))
+                  .c_str());
+          layerRT->setRenderPassDescriptor(layerRP);
+          SCORE_ASSERT(layerRT->create());
+
+          MipRT entry;
+          entry.renderTarget = layerRT;
+          entry.renderPass = layerRP;
+          // The depth is the OUTPUT array, owned by m_mrtRenderTarget: this
+          // entry only points at one of its layers and must not free it.
+          entry.depth = nullptr;
+          m_mipRTs.push_back(entry);
+        }
 
         m_mipCount = layerCount;  // reuse for invocation count
       }
@@ -1236,6 +1241,22 @@ void RenderedRawRasterPipelineNode::initMRTPass(
             << "needs LAYERS > 1 — falling back to SINGLE";
         m_executionMode = ExecutionMode::Single;
       }
+#else
+      // Below Qt 6.12 there is no per-layer depth attachment, and there is no
+      // working substitute: the copyTexture shim that used to stand here was a
+      // no-op on every backend (copyTexture is colour-only), so the cascade
+      // array came back cleared and the shadows silently disappeared. Refuse
+      // the mode out loud instead. Releases target Qt 6.12+.
+      qWarning()
+          << "RawRaster EXECUTION_MODEL=PER_LAYER: depth target"
+          << QString::fromStdString(targetOut.name)
+          << "requires Qt 6.12 or newer (QRhiTextureRenderTargetDescription::"
+             "setDepthLayer); this build is"
+          << QT_VERSION_STR
+          << "- the per-layer depth cascade is DISABLED for this node. "
+             "Cascaded shadows will not render.";
+      m_executionMode = ExecutionMode::Single;
+#endif
     }
     else
     {
@@ -2229,30 +2250,15 @@ void RenderedRawRasterPipelineNode::releaseState(RenderList& r)
   m_perMipOutputIndex = -1;
   m_perCubeFaceOutputIndex = -1;
 
-  // PerLayer state — same shape as the init-time cleanup in update().
-  // Color path is held in m_mipRTs (cleared above); depth path keeps
-  // its scratch + shared RT outside m_mipRTs.
-  if(m_perLayerSharedRT)
-  {
-    m_perLayerSharedRT->deleteLater();
-    m_perLayerSharedRT = nullptr;
-  }
-  if(m_perLayerSharedRP)
-  {
-    m_perLayerSharedRP->deleteLater();
-    m_perLayerSharedRP = nullptr;
-  }
-  if(m_perLayerScratchDepth)
-  {
-    m_perLayerScratchDepth->deleteLater();
-    m_perLayerScratchDepth = nullptr;
-  }
+  // PerLayer state — same shape as the init-time cleanup in update(). Both
+  // paths keep their per-layer render targets in m_mipRTs (cleared above); the
+  // depth path's entries alias layers of the OUTPUT depth array and own no
+  // depth of their own. Only the shared placeholder colour is ours.
   if(m_perLayerDummyColor)
   {
     m_perLayerDummyColor->deleteLater();
     m_perLayerDummyColor = nullptr;
   }
-  m_perLayerOutputDepthArray = nullptr;
   m_perLayerOutputIndex = -1;
   m_perLayerIsDepth = false;
 
@@ -3146,16 +3152,11 @@ void RenderedRawRasterPipelineNode::runInitialPasses(
     }
     else if(m_executionMode == ExecutionMode::PerLayer)
     {
-      // Color path: one RT per layer (stored in m_mipRTs, same shape as
-      // PerCubeFace). Depth path: a single shared RT bound to the
-      // scratch depth — we copy into the OUTPUT array layer-i after
-      // endPass below, so the same RT is reused across iterations.
-      if(m_perLayerIsDepth && m_perLayerSharedRT)
-      {
-        rtForPass = m_perLayerSharedRT;
-      }
-      else if(!m_perLayerIsDepth && i < (int)m_mipRTs.size()
-              && m_mipRTs[i].renderTarget)
+      // Both paths are now one RT per layer in m_mipRTs, same shape as
+      // PerCubeFace: the colour path binds layer i with setLayer(), the depth
+      // path binds layer i of the OUTPUT depth array with setDepthLayer(). The
+      // pass writes its destination directly, so nothing is copied afterwards.
+      if(i < (int)m_mipRTs.size() && m_mipRTs[i].renderTarget)
       {
         rtForPass = m_mipRTs[i].renderTarget;
       }
@@ -3195,27 +3196,6 @@ void RenderedRawRasterPipelineNode::runInitialPasses(
             pass.fallback_bindings.slots});
 
     cb.endPass();
-
-    // PerLayer + depth: copy the just-rendered scratch into layer i of the
-    // OUTPUT depth array, since Qt RHI 6.11 has no per-layer depth attachment.
-    // Single format, single size; QRhi inserts the depth-write/transfer
-    // barriers itself.
-    if(m_executionMode == ExecutionMode::PerLayer && m_perLayerIsDepth
-       && m_perLayerScratchDepth && m_perLayerOutputDepthArray)
-    {
-      auto* copyBatch = rhi.nextResourceUpdateBatch();
-      QRhiTextureCopyDescription cdesc;
-      cdesc.setPixelSize(viewportSize);
-      cdesc.setSourceLayer(0);
-      cdesc.setSourceLevel(0);
-      cdesc.setSourceTopLeft(QPoint(0, 0));
-      cdesc.setDestinationLayer(i);
-      cdesc.setDestinationLevel(0);
-      cdesc.setDestinationTopLeft(QPoint(0, 0));
-      copyBatch->copyTexture(
-          m_perLayerOutputDepthArray, m_perLayerScratchDepth, cdesc);
-      cb.resourceUpdate(copyBatch);
-    }
   }
 
   // CUBEMAP + MULTIVIEW finaliser: once every pass has ended, copy each layer of

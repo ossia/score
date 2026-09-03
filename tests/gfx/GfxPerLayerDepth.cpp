@@ -13,10 +13,22 @@
 // WHAT IS UNDER TEST
 // -----------------------------------------------------------------------------
 // A RAW_RASTER_PIPELINE whose EXECUTION_MODEL is PER_LAYER and whose TARGET is a
-// multi-layer DEPTH output cannot bind one array layer per pass: Qt RHI 6.11
-// exposes no per-layer depth attachment. The engine therefore renders every
-// invocation into ONE shared scratch 2D D32F and copies that scratch into layer
-// i of the OUTPUT array after each endPass.
+// multi-layer DEPTH output binds one array layer per pass, through
+// QRhiTextureRenderTargetDescription::setDepthLayer (Qt >= 6.12). Each
+// invocation renders straight into layer i of the OUTPUT array; nothing is
+// copied.
+//
+// THIS CASE WAS PINNED EXPECTED-RED, and the pin was correct: the engine used
+// to render every invocation into one shared scratch 2D D32F and copyTexture()
+// it into layer i after each endPass, which is a NO-OP ON EVERY BACKEND --
+// QRhi::copyTexture is colour-only (qrhivulkan.cpp:4782/:4792 set
+// VK_IMAGE_ASPECT_COLOR_BIT unconditionally; the GL path attaches the source to
+// GL_COLOR_ATTACHMENT0). The depth array came back cleared and the cascade
+// rendered nothing, which is exactly what this case measured. The shim is gone
+// rather than fixed: it never worked.
+//
+// Below Qt 6.12 setDepthLayer does not exist, the engine refuses the mode with
+// a diagnostic and falls back to SINGLE, and this case SKIPs.
 //
 // State declaration (read, verified):
 //   Gfx/Graph/RenderedRawRasterPipelineNode.hpp:260-279
@@ -319,6 +331,8 @@
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 
+#include <QtGlobal>
+
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/generators/catch_generators_range.hpp>
@@ -598,9 +612,20 @@ ControlFacts run_perlayer_colour(score::gfx::GraphicsApi backend)
 // order. The only link it does not share is the depth copy.
 // =============================================================================
 TEST_CASE(
-    "per-layer depth renders through the copy shim",
-    "[gfx][l3][raster][execmodel][perlayer][depth][!shouldfail]")
+    "per-layer depth renders into every array layer",
+    "[gfx][l3][raster][execmodel][perlayer][depth]")
 {
+#if QT_VERSION < QT_VERSION_CHECK(6, 12, 0)
+  // Per-layer depth needs QRhiTextureRenderTargetDescription::setDepthLayer,
+  // which arrives in Qt 6.12. Below that the engine REFUSES the mode with a
+  // qWarning and falls back to SINGLE (RenderedRawRasterPipelineNode.cpp), so
+  // there is no cascade to assert -- by design, and out loud. SKIP, not fail:
+  // an unavailable feature on an older Qt is not a defect in this build.
+  // Releases target 6.12+.
+  SKIP(
+      "per-layer depth requires Qt >= 6.12 (setDepthLayer); this build is "
+      QT_VERSION_STR);
+#else
   const auto be = GENERATE(from_range(platform_backends()));
   CAPTURE(backend_name(be));
 
@@ -712,6 +737,7 @@ TEST_CASE(
       CHECK(found == 1);
     }
   }
+#endif
 }
 
 // =============================================================================
