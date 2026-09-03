@@ -186,7 +186,7 @@ void drawBang(QPainter& p, const QStyleOptionViewItem& option, bool lit)
   {
     // Pressed: the fill drops back and a ring is drawn inside it.
     const qreal inset = circle.width() * 0.125;
-    p.setPen(QPen{score::bangFill(option.palette, false).color(), 1.5});
+    p.setPen(QPen{score::bangFill(option.palette, false).color(), 2.});
     p.setBrush(Qt::NoBrush);
     p.drawEllipse(circle.adjusted(inset, inset, -inset, -inset));
   }

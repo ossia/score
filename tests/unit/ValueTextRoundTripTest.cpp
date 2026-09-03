@@ -281,3 +281,28 @@ TEST_CASE("what a one-line cell shows", "[state][value][text]")
     CHECK_FALSE(splitSingleLine(cell).marker.isEmpty());
   }
 }
+
+// "1" is an int. A whole float printed that way came back as one, and in a
+// list the changed element type was committed to the device.
+TEST_CASE("a whole float stays a float", "[state][value][text]")
+{
+  for(float f : {1.f, 0.f, -3.f, 2.5f, 1e-4f})
+  {
+    INFO(f);
+    const auto back = roundtrip(ossia::value{f});
+    CHECK(back.get_type() == ossia::val_type::FLOAT);
+    CHECK(back == ossia::value{f});
+  }
+
+  // Including as an element, where the type change used to go unnoticed: the
+  // reader checks the type of the list, not of what is in it.
+  const ossia::value v{std::vector<ossia::value>{1.f, 2.5f}};
+  const auto back = roundtrip(v);
+  const auto* l = back.target<std::vector<ossia::value>>();
+  REQUIRE(l != nullptr);
+  REQUIRE(l->size() == 2);
+  CHECK((*l)[0].get_type() == ossia::val_type::FLOAT);
+
+  // An int is still an int.
+  CHECK(roundtrip(ossia::value{3}).get_type() == ossia::val_type::INT);
+}
