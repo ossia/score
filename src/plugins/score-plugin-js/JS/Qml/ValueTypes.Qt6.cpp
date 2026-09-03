@@ -3,10 +3,44 @@
 #include <ossia-qt/token_request.hpp>
 
 #include <private/qqmlglobal_p.h>
+#include <private/qqmlmetatype_p.h>
 #include <private/qqmlvaluetype_p.h>
 
 namespace JS
 {
+
+bool registerQmlValueTypes()
+{
+  // Register the QtQuick module up front so Qt.vector2d / vector3d / vector4d
+  // / quaternion / matrix4x4 work in every engine.
+  //
+  // Those five go through QQmlValueTypeProvider::createValueType(), which needs
+  // a QML value type registered against the target QMetaType. With none, it
+  // returns an invalid QVariant and the caller does
+  //
+  //     return variant.isValid() ? variant : QVariant(type);   // qqmlbuiltinfunctions.cpp
+  //
+  // i.e. it swallows the failure and hands back a default-constructed value:
+  // nothing thrown, nothing logged, the script reads a zero vector.
+  //
+  // The five types are declared in QtQuick (qquickvaluetypes_p.h), and a QML
+  // module's types are registered only the first time something imports it. A
+  // JS process does import it -- the default script in JSProcessModel.cpp opens
+  // with `import Score` / `import QtQuick` -- but a `score --script` run, the
+  // console panel and a .mjs module import nothing.
+  //
+  // This registration is what that first import would have done. It is metadata
+  // only -- no scene graph, no window, no RHI -- and idempotent: both call sites
+  // of qmlRegisterModuleTypes() in qtdeclarative check QQmlMetaType::typeModule()
+  // first, so a later `import QtQuick` does not repeat it. Registration is global
+  // rather than per-engine, as is the lookup in createValueType(), so this covers
+  // the console engine, the per-thread engines of JS processes and the UI script
+  // engine alike.
+  //
+  // Returns false when QtQuick is not linked at all, a configuration score can
+  // be built in (the plugin only links Quick `if(TARGET Qt::Quick)`).
+  return QQmlMetaType::qmlRegisterModuleTypes(QStringLiteral("QtQuick"));
+}
 
 qreal Vec2fValueType::x() const
 {
