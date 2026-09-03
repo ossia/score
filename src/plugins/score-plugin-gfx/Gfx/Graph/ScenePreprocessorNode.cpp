@@ -2439,6 +2439,14 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       // regular range so we don't stomp the GPU-copied data. Instance
       // group slot ranges that overlap stale content from a previous
       // frame are overwritten by the per-frame GPU copy.
+      //
+      // The growBuf above is the one write in this batch that DOES overlap
+      // the GPU-copied ranges: on a (re)allocation it zero-clears the whole
+      // new capacity, which is necessary (Vulkan hands back uninitialised
+      // device memory) and cannot be narrowed here, since only the copies
+      // that follow know which slots they will cover. That overlap is a
+      // transfer-after-transfer hazard, resolved by the source scope of
+      // issuePendingGpuCopies' batch barrier, not by dropping a write.
       if(n_regular_cmds > 0)
       {
         std::vector<float> regular_translations(n_regular_cmds * 4, 0.f);
@@ -4688,8 +4696,14 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     if(!rhi)
       return;
     cb.beginExternal();
-    // One compute→transfer barrier for the whole batch instead of one per
-    // copy call — eliminates N−1 redundant pipeline stalls on Vulkan.
+    // One {compute,transfer}→transfer barrier for the whole batch instead of
+    // one per copy call — eliminates N−1 redundant pipeline stalls on Vulkan.
+    // The transfer half of its source scope is what orders these copies after
+    // the QRhiResourceUpdateBatch RenderList already submitted this frame:
+    // that batch's uploadStaticBuffer calls (growBuf's zero-clear of a freshly
+    // allocated buffer above all) are themselves vkCmdCopyBuffer, and nothing
+    // else orders them against these. Batch-wide is enough — the ops within
+    // one batch write disjoint destination ranges.
     score::gfx::beginBufferCopyBarrier(*rhi, cb);
     // Scratch reused across ops — avoids reallocating for each strided op.
     std::vector<score::gfx::BufferCopyRegion> regions;
