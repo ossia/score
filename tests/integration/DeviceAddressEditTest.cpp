@@ -31,6 +31,7 @@
 #include <QComboBox>
 #include <QLineEdit>
 #include <QDoubleSpinBox>
+#include <QMouseEvent>
 #include <QPushButton>
 #include <QStyleOptionViewItem>
 
@@ -370,35 +371,23 @@ TEST_CASE("a vec parameter is not zeroed by opening its editor",
   });
 }
 
-TEST_CASE("an impulse parameter can be fired from the tree",
+// The bang is painted in the cell and answers the press there: it needs no
+// editor, and an editor would only stack a second identical button on top of
+// the painted one.
+TEST_CASE("an impulse parameter is a button in the row, not an editor",
           "[integration][explorer]")
 {
   score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
     Fixture f{ctx};
     TreeEditor ed{*f.explorer, *f.impulseParam};
-    REQUIRE(ed.editor != nullptr);
+    CHECK(ed.editor == nullptr);
 
-    auto* button = ed.editor->findChild<QPushButton*>();
-    REQUIRE(button != nullptr);
-
-    // The button commits as it is pressed rather than when the editor closes.
-    int commits{};
-    QObject::connect(
-        &ed.delegate, &QAbstractItemDelegate::commitData, &ed.delegate,
-        [&](QWidget*) { commits++; });
-
-    button->click();
-    CHECK(commits == 1);
-
-    // Nothing was pressed the second time round, so nothing is written.
-    TreeEditor untouched{*f.explorer, *f.impulseParam};
-    REQUIRE(untouched.editor != nullptr);
-    int untouchedCommits{};
-    QObject::connect(
-        &untouched.delegate, &QAbstractItemDelegate::commitData, &untouched.delegate,
-        [&](QWidget*) { untouchedCommits++; });
-    untouched.commit(*f.explorer);
-    CHECK(untouchedCommits == 0);
+    // And the row does not offer to open one, so a double-click on the bang
+    // does nothing but press it. (What the press writes is covered where a
+    // real view can deliver the mouse events: DeviceExplorerEditorLookTest.)
+    const auto idx
+        = f.explorer->modelIndexFromNode(*f.impulseParam, (int)Explorer::Column::Value);
+    CHECK_FALSE(f.explorer->flags(idx).testFlag(Qt::ItemIsEditable));
   });
 }
 
