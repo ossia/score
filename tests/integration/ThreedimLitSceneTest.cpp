@@ -1,58 +1,32 @@
-// P1-1 (SPEC-SCENE-RENDER-TESTS.md:813-829) — the scene assembly chain renders
-// a lit model, end to end (topology T-A).
+// The scene assembly chain renders a lit model, end to end.
 //
 //   Asset Loader(Box.glb) + Camera + Light + Environment
 //        -> Scene Preprocessor -> Render Pipeline -> Window
 //
-// NO GOLDEN. Every verdict is a closed form or a difference oracle, in the
-// order §3.0 asks for. Nothing in this file was blessed from an image.
+// NO GOLDEN. Every verdict is a closed form or a difference oracle. Nothing in
+// this file was blessed from an image.
 //
 // =============================================================================
 // WHY THIS FILE LIVES IN tests/integration/ AND NOT tests/threedim/
 // =============================================================================
-// The work order named tests/threedim/ThreedimLitSceneTest.cpp. That directory
-// is for something else: its own CMakeLists.txt header (tests/threedim/
-// CMakeLists.txt:1-18) states that its targets COMPILE one engine .cpp into the
-// test binary and drive it in-process, and every one of its 30 entries does
-// exactly that — no target there starts the application. Every app-level driver
-// in this tree (QProcess + `--no-gui --script` + OSC /script injection) lives in
-// tests/integration/: ThreedimRenderTest.cpp, GfxNestedIntervalTest.cpp,
-// FrameDeterminismTest.cpp, ShaderSweepScene.cpp. P1-1's own "Drive" clause
-// (SPEC:820-821) says "App level, `ThreedimRenderTest.cpp` shape", and that file
-// is tests/integration/ThreedimRenderTest.cpp. So: same directory, same
-// registration shape, sibling of the file it is modelled on.
+// tests/threedim/ is for targets that COMPILE one engine .cpp into the test
+// binary and drive it in-process (tests/threedim/CMakeLists.txt:1-18); no target
+// there starts the application. Every app-level driver in this tree (QProcess +
+// `--no-gui --script` + OSC /script injection) lives in tests/integration/:
+// ThreedimRenderTest.cpp, GfxNestedIntervalTest.cpp, FrameDeterminismTest.cpp,
+// ShaderSweepScene.cpp. This test drives at app level, in the
+// `ThreedimRenderTest.cpp` shape, so it sits beside them.
 //
 // =============================================================================
-// INTENDED REGISTRATION — tests/integration/CMakeLists.txt
+// REGISTRATION
 // =============================================================================
-// Modelled on the test_integration_gfx_nested_interval block
-// (tests/integration/CMakeLists.txt:554-562), which is the ctest-safe shape:
-// the test SKIPs itself when the binary, the asset or a display is missing, so
-// it can be a real ctest entry rather than a manual harness.
-// cmake/ScoreTestRegistrationGuard.cmake FATAL_ERRORs the configure if a .cpp
-// under tests/ is reached by no ctest entry, so this block is REQUIRED for the
-// tree to configure at all once this file lands.
-//
-//   # P1-1: the scene assembly chain renders a lit model. Asset Loader(Box.glb)
-//   # + Camera + Light + Environment -> Scene Preprocessor -> Render Pipeline
-//   # -> Window, judged by a closed-form N.L inequality and a light-on/off
-//   # difference oracle -- no golden. Drives the application binary over the OSC
-//   # control port, so it must never run concurrently with the other OSC
-//   # harnesses (the in-test flock mirrors /tmp/score-harness.lock and
-//   # RUN_SERIAL keeps ctest honest). SKIPs itself when the binary, the
-//   # out-of-repo asset corpus or a display is missing.
-//   if(TARGET score AND TARGET score_plugin_gfx AND TARGET score_plugin_threedim
-//      AND NOT EMSCRIPTEN)
-//     score_add_test(test_integration_threedim_lit_scene
-//       SOURCES ThreedimLitSceneTest.cpp
-//       LIBS ${QT_PREFIX}::Gui)
-//     target_compile_definitions(test_integration_threedim_lit_scene PRIVATE
-//       "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\"")
-//     set_tests_properties(test_integration_threedim_lit_scene PROPERTIES
-//       TIMEOUT 900 RUN_SERIAL TRUE LABELS "gui")
-//   endif()
-//
-// ctest target name: test_integration_threedim_lit_scene
+// ctest target: test_integration_threedim_lit_scene, registered in
+// tests/integration/CMakeLists.txt on the test_integration_gfx_nested_interval
+// shape -- the ctest-safe one, where the test SKIPs itself when the binary, the
+// asset or a display is missing rather than being a manual harness. It drives
+// the application over the OSC control port, so it must never run concurrently
+// with the other OSC harnesses: the in-test flock takes /tmp/score-harness.lock
+// and RUN_SERIAL keeps ctest honest.
 //
 // =============================================================================
 // HARDWARE / BACKENDS
@@ -61,24 +35,17 @@
 // way GfxNestedIntervalTest.cpp:236-243 does (opengl on Linux, d3d11 on Windows,
 // metal on macOS) and overridable with SCORE_TEST_API.
 //
-// VULKAN IS IN SCOPE, as of 2026-09-03. The spec pinned the exclusion on "the
-// `UsedWithGenerateMips` abort (ThreedimRenderTest.cpp:32-50)" — a generateMips
-// issued on an input texture created without the flag, which qrhivulkan asserts
-// on and GL silently tolerates. That abort is FIXED: ModelDisplayNode.cpp:1490
-// guards the call on the texture's flag.
+// VULKAN IS IN SCOPE. The usual exclusion rests on the `UsedWithGenerateMips`
+// abort (ThreedimRenderTest.cpp:32-50) — a generateMips issued on an input
+// texture created without the flag, which qrhivulkan asserts on and GL silently
+// tolerates; ModelDisplayNode.cpp:1490 guards the call on the texture's flag.
+// This chain ends in RenderedRawRasterPipelineNode rather than ModelDisplayNode,
+// so that abort does not apply. Nothing here is backend-specific in
+// principle — every expected pixel value is 0 or 255 (see "GAMMA INDEPENDENCE"
+// below), so there is no ref class to gate on and no silent-fallback hazard of
+// the kind ThreedimRenderTest.cpp:15-19 has to guard against for its goldens.
 //
-// The exclusion was then kept conservatively one step further, because that fix
-// is in ModelDisplayNode while this chain ends in RenderedRawRasterPipelineNode,
-// and nobody had run THIS chain on Vulkan. That was the right call to make
-// without the measurement, and the measurement has now been taken: 75
-// assertions in 2 cases, green on Vulkan, on OpenGL, and on the default sweep
-// of both. Nothing was weakened to get there — deleting the skip was the whole
-// change. Nothing here is backend-specific in principle — every expected
-// pixel value is 0 or 255 (see "GAMMA INDEPENDENCE" below), so there is no ref
-// class to gate on and no silent-fallback hazard of the kind
-// ThreedimRenderTest.cpp:15-19 has to guard against for its goldens.
-//
-// The house rule from §3.0 applies: this case's verdict IS a pixel, so it never
+// The house rule applies: this case's verdict IS a pixel, so it never
 // falls back to QT_QPA_PLATFORM=offscreen / the Null backend. It SKIPs instead.
 //
 // =============================================================================
@@ -89,14 +56,14 @@
 // detail/scenario_execution.cpp:25-39) collecting only syncs with is_start(),
 // and only the scenario's own initial sync is ever marked one
 // (Scenario/Process/ScenarioModel.cpp:64) — so a Score.createBox box is
-// unreachable and is never ticked. This is measured and written up at
+// unreachable and is never ticked. This is written up at
 // GfxNestedIntervalTest.cpp:12-34.
 // The alternative that does execute is Score.startState(scen) +
 // Score.createIntervalAfter(...); this case needs no time structure at all, so
 // it takes the simpler root-interval route that ThreedimRenderTest.cpp:437-447
 // already uses.
 //
-// Other recipe constraints, all inherited from measured notes at
+// Other recipe constraints, all inherited from the notes at
 // GfxNestedIntervalTest.cpp:141-144: device addresses must be "Window:/", and
 // only `var` may be used in the injected script (QML scopes const/let inside
 // eval).
@@ -113,18 +80,17 @@
 // which drives the same six process types.
 //
 // All four producers are wired into the preprocessor's SINGLE "Scene In" inlet
-// (ScenePreprocessor/Process.cpp:33) and merged there — that is what P1-4
-// pinned. The Environment producer publishes no roots; NodeRenderer's merge
-// keeps a rootless env-only contribution rather than dropping it
-// (NodeRenderer.cpp:488-493, pinned green by P1-4 / commit 4b4b0567b3). It is
-// in the chain because SPEC:814-815 names it in the topology; it cannot move a
-// pixel here because the shader below never reads the `env` auxiliary.
+// (ScenePreprocessor/Process.cpp:33) and merged there. The Environment producer
+// publishes no roots; NodeRenderer's merge keeps a rootless env-only
+// contribution rather than dropping it (NodeRenderer.cpp:488-493). It is in the
+// chain because the topology under test names it; it cannot move a pixel here
+// because the shader below never reads the `env` auxiliary.
 //
 // =============================================================================
 // THE SHADER — WRITTEN BY THIS TEST, NOT COMMITTED
 // =============================================================================
-// §3.4 item 5 sanctions fixtures the test synthesises (the VoxelAssets.cpp /
-// GeometryLoaderFormats.cpp pattern). Both stages are emitted into the
+// Fixtures the test synthesises are the house pattern here (VoxelAssets.cpp /
+// GeometryLoaderFormats.cpp). Both stages are emitted into the
 // QTemporaryDir; Gfx::RenderPipeline::Model reads the .fs it is handed and picks
 // up the sibling .vs by base name (RenderPipeline/Process.cpp:28-42), so the stem
 // must contain no dot (QFileInfo::baseName cuts at the FIRST one).
@@ -142,7 +108,7 @@
 //     score::gfx::RawLightData (SceneGPUState.hpp:308-343, 64 B), addressed
 //     through scene_light_indices — ScenePreprocessorNode.cpp:2695-2707 and
 //     :2755-2767. That corpus shader is stale; using it would measure the wrong
-//     bytes. (Recorded, not fixed here — it is out of this repository.)
+//     bytes.
 //
 // So the shader is authored here, against the layouts this tree declares, and
 // its arithmetic is the source of every number asserted below.
@@ -181,44 +147,35 @@
 // a default (Camera.hpp:65-66, halp::range init 60); the eye and the target are
 // SET BY THIS TEST, and have to be.
 //
-// THE C++ DEFAULT IS NOT THE SCORE DEFAULT. Measured, and this is the second
-// thing that made the first run of this file red. Camera.hpp:58-62 declares
+// THE C++ DEFAULT IS NOT THE SCORE DEFAULT. Camera.hpp:58-62 declares
 //     struct Eye : halp::xyz_spinboxes_f32<"Eye", halp::range{-10000,10000,0.}>
 //     { Eye() { value = {0.f, 1.f, 3.f}; } } eye;
 // so the node's own member initialiser says (0,1,3) while the halp::range init
 // -- the only thing score's process model reads when it mints the ControlInlet
 // -- says 0, broadcast across x/y/z. The inlet's value is pushed into the node
-// on every tick, so the ctor's (0,1,3) is overwritten before the first frame.
-// MEASURED by printing the inlet straight out of the injected script:
-//     EYEVAL "[0, 0, 0]"    TGTVAL "[0, 0, 0]"    FOVVAL "60"
-// With eye == target the Camera's rebuild() takes its degenerate branch
+// on every tick, so the ctor's (0,1,3) is overwritten before the first frame:
+// Eye and Target both arrive as (0,0,0). With eye == target the Camera's rebuild() takes its degenerate branch
 // (Camera.hpp:143-158: forward.lengthSquared() <= 1e-8 -> identity rotation)
 // and emits a scene_transform of translation (0,0,0) + identity rotation. The
 // flattener stamps that as the camera's worldTransform (SceneGPUState.cpp:
 // 543-551) and packCameraUBO inverts it into the view matrix (CameraMath.cpp:
 // 13-15), so the shader sees view == identity and cameraPosition == (0,0,0):
 // the eye sits at the ORIGIN, i.e. INSIDE the unit cube, whose inner faces then
-// cover 100% of the frame. Measured directly with a probe shader that encoded
-// the camera UBO into colour: cameraPosition (0,0,0), view[3] (0,0,0), and
-// viewProjection's diagonal equal to projection's own, i.e. no view rotation
-// either -- while renderSize read (1280,720) and params read (0, 0.1, 1000),
-// which is how the same probe proves the block was bound and correctly laid
-// out. Note this is WORSE than having no Camera at all: with fs.cameras empty
+// cover 100% of the frame. This is WORSE than having no Camera at all: with
+// fs.cameras empty
 // the preprocessor synthesises lookAt((0,1,3),(0,0,0)) itself
 // (ScenePreprocessorNode.cpp:3668-3679), which is exactly the framing below.
 //
-// THE CAMERA CAN BE SCRIPTED. An earlier draft of this file claimed it could
-// not, on the grounds that EditJsContext::setValue's vec3 overload
-// (EditContext.port.cpp:296) needs a QVector3D and Qt.vector3d(x,y,z) returns a
-// zeroed vector in the console engine (ThreedimRenderTest.cpp:646-656). That
-// conclusion was wrong: there is a SECOND overload taking a plain JS array,
-// EditJsContext::setValue(QObject*, QList<qreal>) at EditContext.port.cpp:
-// 377-389, whose own doc comment is literally
+// THE CAMERA CAN BE SCRIPTED, through the JS-array overload rather than the
+// vec3 one. EditJsContext::setValue's vec3 overload (EditContext.port.cpp:296)
+// needs a QVector3D, and Qt.vector3d(x,y,z) returns a zeroed vector in the
+// console engine (ThreedimRenderTest.cpp:646-656); the SECOND overload takes a
+// plain JS array, EditJsContext::setValue(QObject*, QList<qreal>) at
+// EditContext.port.cpp:377-389, whose own doc comment is
 //     Score.setValue(Score.inlet(Score.find("Javascript"), 0), [ 0, 0.1, 2.0 ])
-// MEASURED: `Score.setValue(Score.inlet(cam, "Eye"), [0.0, 1.0, 3.0])` in the
-// setup script moves the camera -- the same probe then reads cameraPosition
-// (0, 1.0, 3.0) to its 0.063 quantisation, and world_transforms slot 1 carries
-// the same translation. The script below therefore sets Eye and Target
+// `Score.setValue(Score.inlet(cam, "Eye"), [0.0, 1.0, 3.0])` in the setup
+// script moves the camera, and world_transforms slot 1 carries the same
+// translation. The script below therefore sets Eye and Target
 // explicitly, and every number stated here is a number this test WRITES rather
 // than a default it hopes for. (The Light's Rotation is reachable the same way;
 // it is left alone because the derivation wants identity, not because it cannot
@@ -260,18 +217,14 @@
 //   total coverage ~ 7.0% of 921,600 px; bright:dark ~ 3.75 : 1
 // Asserted only as a loose band (1%..40% covered, each class >= 5% of covered)
 // because the exact projected area of a tilted quad is not area x cos.
-// MEASURED on OpenGL / 1280x720: background 863,630 px, lit (255,0,255) 50,512
-// px, unlit (0,0,255) 7,458 px, other 0 -- coverage 57,970 px = 6.29% of the
-// frame, bright:dark 6.8:1. The light-OFF run's white sentinel covers 57,970 px
-// too, to the pixel, which is the difference oracle's premise made exact.
-// The +Z estimate lands within 0.06 points (5.54% predicted, 5.48% measured);
-// the +Y one is the ~1.8x optimistic figure the "not area x cos" caveat above
-// exists for -- at |f.N| = 0.316 the quad's far edge sits at depth 3.48 and its
-// near edge at 2.53, and 1/d^2 over that spread is not the centre-depth value.
-// Both classes are far above the 5%-of-covered floor the test asserts, and the
-// class populations partition the coverage exactly: `other` is empty, so there
-// is no antialiased edge residue to account for even though the GL context
-// reports samples=4.
+// The light-OFF run's white sentinel covers the same pixels, to the pixel,
+// which is the difference oracle's premise made exact. The +Y estimate is the
+// optimistic one the "not area x cos" caveat above exists for -- at
+// |f.N| = 0.316 the quad's far edge sits at depth 3.48 and its near edge at
+// 2.53, and 1/d^2 over that spread is not the centre-depth value. Both classes
+// sit far above the 5%-of-covered floor the test asserts, and the class
+// populations partition the coverage exactly: `other` is empty, so there is no
+// antialiased edge residue to account for.
 //
 // FACE IDENTITY (spatial half). NDC y of each face centre:
 //   +Z face  y_v = u.(p-e) = -0.158114, depth 2.68794 -> ndc_y = -0.1019
@@ -280,24 +233,20 @@
 // near row 397 and the dark face's near row 262 — the LIT face is LOWER in the
 // image. This is asserted as an ordering only, and as a CHECK not a REQUIRE.
 //
-// The row direction of the offscreen readback (RGBA8888 out of
-// WindowDevice::grabTo, WindowDevice.cpp:145-151) is now MEASURED and is the
-// one assumed above. A probe shader that painted eight horizontal bands keyed
-// on int(gl_FragCoord.y / 90.0), with a distinguishable constant in the last
-// band, put that band at the TOP of the saved PNG: saved row 0 corresponds to
-// gl_FragCoord.y ~ 719, i.e. gl_FragCoord.y counts up from the bottom of the
-// stored image, so a larger NDC y is a smaller row index. The +Y face
+// In the offscreen readback (RGBA8888 out of WindowDevice::grabTo,
+// WindowDevice.cpp:145-151), saved row 0 corresponds to gl_FragCoord.y ~ 719:
+// gl_FragCoord.y counts up from the bottom of the stored image, so a larger NDC
+// y is a smaller row index. The +Y face
 // (ndc_y = +0.2735) is therefore the upper one and the lit +Z face
 // (ndc_y = -0.1019) the lower one, which is exactly the ordering asserted.
-// MEASURED centroids: lit 387.9, unlit 264.9, against the 397 / 262 predicted.
 // It stays a CHECK: if it ever fails while the class populations hold, the
 // finding is about the image Y convention, not about the light.
 //
 // =============================================================================
-// NEGATIVE CONTROL — VERIFIED TO BE REAL, AND POINTING THE RIGHT WAY
+// NEGATIVE CONTROL
 // =============================================================================
-// SPEC:824-825 proposes: "Flip the light direction sign in `Light.cpp`'s raw
-// write -> the bright/dark inequality inverts." That hook is CORRECT. Checked:
+// Flip the light direction sign in `Light.cpp`'s raw write -> the bright/dark
+// inequality inverts. That hook is CORRECT. Checked:
 //
 //   * The exact edit is src/plugins/score-plugin-threedim/Threedim/Light.cpp:213
 //         raw.local_direction[2] = -1.f;
@@ -324,12 +273,12 @@
 //   +Z face  N.L = -1  ->  (0, 255, 255)   the `lit` class empties into `backlit`
 //   +Y face  N.L =  0  ->  (0,   0, 255)   unchanged
 // The first assertion the flip meets is `REQUIRE(lit.lit > 0)` in section (a),
-// and it goes RED on the whole of the +Z face's 50,512 measured pixels moving
+// and it goes RED on the whole of the +Z face's pixels moving
 // out of `lit`. Being a REQUIRE it ABORTS the case there, so the assertions
 // after it -- CHECK(backlit ~ 0), the >= 245 R margin, the spatial ordering,
 // and the whole of the light-on/off difference oracle in section (b) -- are not
-// reached rather than "still green"; stated plainly because a control run's
-// summary will show fewer assertions, not a mix of red and green ones.
+// reached rather than "still green": a control run's summary shows fewer
+// assertions, not a mix of red and green ones.
 // Everything BEFORE it is unaffected, and that is what makes this a control and
 // not a smoke test: `REQUIRE(lit.white == 0)`, the coverage band, the
 // background partition and the residue bound all stay GREEN, because the flip
@@ -337,8 +286,8 @@
 // (scene_counts.light_count stays 1) nor one pixel of coverage.
 //
 // It also cannot be passed by accident. The `lit` and `backlit` classes are
-// disjoint 3-channel exact matches (255,0,255) vs (0,255,255), and the measured
-// run has 50,512 in the first and 0 in the second; there is no tolerance band
+// disjoint 3-channel exact matches (255,0,255) vs (0,255,255), with every
+// covered pixel in the first and none in the second; there is no tolerance band
 // that could absorb the swap.
 //
 // ONE CAVEAT ON THE CONTROL, recorded so a green run is not misread: Light::init
@@ -354,12 +303,14 @@
 // =============================================================================
 // Box.glb comes from tests/integration/threedim-render/fetch-real-assets.sh
 // (URL + sha256 pinned there, licence CC0 1.0). It is NEVER committed. The skip
-// convention is copied verbatim from the P1-5 loader test — assets_dir() and
+// convention is copied verbatim from the glTF loader test — assets_dir() and
 // fetch_hint at tests/unit/GltfLoaderTest.cpp:143-153, used at :367 and :487.
 
 #include <QElapsedTimer>
 #include <QFile>
 #include <QImage>
+
+#include <set>
 #include <QProcess>
 #include <QProcessEnvironment>
 #include <QTemporaryDir>
@@ -439,13 +390,12 @@ constexpr auto kUuidRenderPipeline = "dbfc2101-40d7-4807-8804-571e88992e7e";
 //     "QRhi forbids Dynamic + StorageBuffer, and Static + UniformBuffer fails
 //     create() on D3D11 and GLES ... All bundled shaders therefore declare
 //     scene_counts as a storage buffer" (ScenePreprocessorNode.cpp:4152-4168).
-//     MEASURED, and this is what made the first run of this file red: declaring
-//     scene_counts as "uniform" still NAME-MATCHES and still adopts the
-//     preprocessor's handle (IsfBindingsBuilder.cpp:995-1010, the store.ubos
+//     Declaring scene_counts as "uniform" still NAME-MATCHES and still adopts
+//     the preprocessor's handle (IsfBindingsBuilder.cpp:995-1010, the store.ubos
 //     loop), but the QRhi GL backend emulates uniform blocks out of the
 //     QRhiBuffer's CPU-side mirror, which a StorageBuffer-only buffer does not
-//     have -- so every member read back as 0, light_count included, and the
-//     shader took its "no light" branch on a scene that had a light. The
+//     have -- so every member reads back as 0, light_count included, and the
+//     shader takes its "no light" branch on a scene that has a light. The
 //     product's own note at :4165-4168 says a shader author "may still declare
 //     TYPE: uniform, but then owns the backend-support question"; this file
 //     does not, and declares storage/read_only like every bundled shader and
@@ -472,9 +422,9 @@ constexpr auto kUuidRenderPipeline = "dbfc2101-40d7-4807-8804-571e88992e7e";
 // no DEPTH_COMPARE. So DEPTH_COMPARE is deliberately NOT declared here: the pass
 // keeps the engine's own convention, matched to the projection the engine's own
 // camera packer built. TOPOLOGY is likewise not declared, so the material-mode
-// default (triangles) applies — the precedence rule pinned by P1-11 / 174a0798ad.
+// default (triangles) applies — the material-mode precedence rule.
 constexpr auto kFragmentShader = R"SHADER(/*{
-  "DESCRIPTION": "P1-1: the scene chain's own light, measured. Shades the flattened scene by the signed N.L of the first live light, encoded so that BOTH signs are visible: R = max(N.L, 0), G = max(-N.L, 0), B = 1 on every covered fragment. Every authored channel is exactly 0.0 or 1.0, which are fixed points of sRGB and of any power-law gamma, so the expectations are backend- and colourspace-independent. White = the scene carries no light at all; yellow = the light's world transform is degenerate (a named diagnostic, never a silent fallback).",
+  "DESCRIPTION": "the scene chain's own light, measured. Shades the flattened scene by the signed N.L of the first live light, encoded so that BOTH signs are visible: R = max(N.L, 0), G = max(-N.L, 0), B = 1 on every covered fragment. Every authored channel is exactly 0.0 or 1.0, which are fixed points of sRGB and of any power-law gamma, so the expectations are backend- and colourspace-independent. White = the scene carries no light at all; yellow = the light's world transform is degenerate (a named diagnostic, never a silent fallback).",
   "CREDIT": "test",
   "ISFVSN": "2.0",
   "MODE": "RAW_RASTER_PIPELINE",
@@ -588,7 +538,7 @@ constexpr auto kVertexShader = R"SHADER(void main()
 // Driver. Copied from the known-good tests/integration/GfxNestedIntervalTest.cpp
 // (:224-316): start the app on a setup script that defines phase functions and
 // leaves the event loop FREE, then inject those calls over OSC. The busy-wait
-// alternative is measured-bad — a JS `while` loop blocks the main thread and the
+// alternative does not work — a JS `while` loop blocks the main thread and the
 // asynchronous work (there, a mid-play interval start; here, the AssetLoader's
 // file worker) never completes (GfxNestedIntervalTest.cpp:90-108).
 
@@ -631,8 +581,7 @@ Run runPhased(
   env.insert("QT_LOGGING_RULES", "qt.rhi.general=true");
   env.insert("QT_FORCE_STDERR_LOGGING", "1");
   env.insert("QT_ASSUME_STDERR_HAS_CONSOLE", "1");
-  // The platform's own backend, as GfxNestedIntervalTest.cpp:236-243. Vulkan is
-  // out of scope for this case; see the header.
+  // The platform's own backend, as GfxNestedIntervalTest.cpp:236-243.
 #if defined(_WIN32)
   constexpr auto defaultApi = "d3d11";
 #elif defined(__APPLE__)
@@ -769,7 +718,7 @@ QString sceneScript(
   mk("rp", kUuidRenderPipeline, fs, 15);
 
   // Every producer into the preprocessor's single "Scene In"
-  // (ScenePreprocessor/Process.cpp:33); the merge is P1-4's subject.
+  // (ScenePreprocessor/Process.cpp:33), where they are merged.
   s += "var sin = Score.inlet(pre, \"Scene In\");\n";
   s += "if (!sin) { console.log(\"LIT-ERROR: no Scene In\"); Qt.exit(16); }\n";
   s += "function feed(p, tag) {\n"
@@ -918,7 +867,7 @@ QString notReady()
     return QStringLiteral("Box.glb not present in ") + assetsDir()
            + QStringLiteral(" - ") + QString::fromUtf8(kFetchHint);
   // The offscreen QPA has no GL: the readback comes back flat, proving nothing.
-  // §3.0's house rule -- never let a pixel verdict fall back to Null.
+  // House rule -- never let a pixel verdict fall back to Null.
   if(qEnvironmentVariable("QT_QPA_PLATFORM") == QStringLiteral("offscreen"))
     return QStringLiteral("QT_QPA_PLATFORM=offscreen makes a pixel verdict vacuous");
 #if defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__)
@@ -956,8 +905,8 @@ TEST_CASE(
 
   // The AssetLoader parses on a worker thread and lands its result through a
   // closure, so the frame must be grabbed on wall-clock time, not on the first
-  // render: ThreedimRenderTest.cpp:8-9 measured that a synchronous render pass
-  // finishes before the loader's closure does, and settles for 9 s. Same 9 s
+  // render: a synchronous render pass finishes before the loader's closure does
+  // (ThreedimRenderTest.cpp:8-9), which is why it settles for 9 s. Same 9 s
   // here, then `finish()` a second later.
   const auto phases = std::vector<std::pair<int, QByteArray>>{
       {9000, "grab()"}, {10500, "finish()"}};
@@ -1080,8 +1029,8 @@ TEST_CASE(
   // inside each face, so no interpolated intermediate shade can exist: the
   // covered pixels must partition into exactly these two classes.
   //
-  // DEVIATION FROM THE SPEC'S WORDING, stated plainly. SPEC:815-816 asks for
-  // "the face the light points at ... brighter than the opposite face". The
+  // A NOTE ON THE INEQUALITY. The natural phrasing is "the face the light
+  // points at ... brighter than the opposite face". The
   // opposite face (-Z) is on the far side of the cube, so no single camera
   // placement can hold both it and the +Z face: an opaque convex solid never
   // shows two opposite faces at once. (The camera IS scriptable -- this test
@@ -1103,10 +1052,10 @@ TEST_CASE(
               << " unlit=" << unlitFrac << " backlit="
               << double(lit.backlit) / covered);
 
-    // Both visible faces are present. MEASURED proportions of the covered set
-    // are 0.8713 lit (+Z, 50,512 px) and 0.1287 unlit (+Y, 7,458 px) -- see the
-    // header's coverage note for why the +Y closed form over-estimates.
-    // Asserted at >= 5% each, which is far below either and far above nothing.
+    // Both visible faces are present, the +Z face taking much the larger share
+    // of the covered set -- see the header's coverage note for why the +Y closed
+    // form over-estimates. Asserted at >= 5% each, which is far below either
+    // share and far above nothing.
     REQUIRE(lit.lit > 0);
     REQUIRE(lit.unlit > 0);
     CHECK(litFrac > 0.05);
@@ -1131,10 +1080,9 @@ TEST_CASE(
 
     // FACE IDENTITY, spatial half. Predicted centroid rows at 720 px:
     // bright ~397, dark ~262 (NDC y -0.1019 and +0.2735; derivation in the
-    // header). Only the ORDERING is asserted, and only as a CHECK: the row
-    // direction of the RGBA8888 offscreen readback is UNVERIFIED by this
-    // author. A failure here ALONE, with the class populations above green,
-    // is a finding about the image Y convention, not about the light.
+    // header). Only the ORDERING is asserted, and only as a CHECK: a failure
+    // here ALONE, with the class populations above green, is a finding about
+    // the image Y convention, not about the light.
     if(lit.lit > 0 && lit.unlit > 0)
     {
       const double litRow = lit.litRowSum / lit.lit;
@@ -1192,4 +1140,292 @@ TEST_CASE(
     // not have moved, which is (c) restated across the two runs.
     CHECK(far <= (long long)(lit.covered() + 0.005 * lit.total));
   }
+}
+
+// =============================================================================
+// glTF vertex colours reach the fragment stage.
+//
+// The case above renders the same box through the lit chain; this one uses
+// BoxVertexColors, asserting that the vertex colours actually reach the
+// fragment stage (a flat-shaded control must differ). The neighbouring
+// coverage stops short of it:
+//
+//   * tests/unit/GltfLoaderTest.cpp asserts the color0 stream at the
+//     LOADER, on the CPU: the file's VEC3 COLOR_0 padded to float4 with
+//     alpha 1. It stops at the mesh.
+//   * BoxVertexColors.glb appears in no other render test, so nothing else
+//     puts a vertex-coloured glTF on a GPU.
+//
+// A colour stream can be parsed perfectly and still never reach a fragment --
+// dropped when the scene is flattened, missing from the vertex layout the
+// pipeline builds, or bound to the wrong slot. Every one of those is invisible
+// to a CPU attribute assertion and to the lit-scene case above, whose shader
+// declares only position and normal.
+//
+// ORACLE, and why it needs two runs. The same asset, the same camera, the same
+// chain, rendered twice with the ONLY difference being whether the fragment
+// shader reads color0:
+//
+//   (a) both runs cover the same pixels -- same geometry, same camera, so a
+//       difference in coverage would mean the fixture moved something else;
+//   (b) the flat control has exactly ONE colour over its covered pixels. That
+//       is what makes it a control: it fixes the number this case is counting
+//       at the floor a colour-blind pipeline would produce;
+//   (c) the vertex-colour run has MANY. BoxVertexColors.glb's COLOR_0 spans
+//       [0,1] per channel across the cube's corners (GltfLoaderTest.cpp:538),
+//       so interpolation across the faces produces a continuum, not a palette.
+//
+// (c) alone would be satisfied by any shader that varies with position. (b)
+// alone would be satisfied by a chain that renders nothing. Together they say:
+// the only thing that changed is that the shader read color0, and the frame
+// changed accordingly.
+//
+// Deliberately NOT a closed-form per-pixel colour. Which corner of
+// BoxVertexColors carries which colour, and where the camera puts it, are facts
+// about a downloaded asset and about the flattening order; pinning them would
+// pin the fixture, not the plumbing. The count of distinct colours is
+// insensitive to all of that and still cannot be faked by a colour-blind
+// pipeline.
+//
+// NEGATIVE CONTROL: drop the get_accessor("COLOR_0") branch
+// in GltfParser.cpp (:699).
+// =============================================================================
+namespace
+{
+//! Reads color0 and outputs it. Everything else -- camera UBO, per_draws,
+//! PIPELINE_STATE -- is kFragmentShader's, unchanged.
+constexpr auto kVertexColorFragmentShader = R"SHADER(/*{
+  "DESCRIPTION": "emit the interpolated glTF COLOR_0 attribute verbatim.",
+  "CREDIT": "test",
+  "ISFVSN": "2.0",
+  "MODE": "RAW_RASTER_PIPELINE",
+  "CATEGORIES": ["TEST-SYNTHETIC", "TEST-SCENE"],
+  "PIPELINE_STATE": { "DEPTH_TEST": true, "DEPTH_WRITE": true, "CULL_MODE": "none" },
+  "VERTEX_INPUTS": [
+    { "TYPE": "vec3", "NAME": "position" },
+    { "TYPE": "vec4", "NAME": "color0" }
+  ],
+  "VERTEX_OUTPUTS": [ { "TYPE": "vec4", "NAME": "v_color" } ],
+  "FRAGMENT_INPUTS": [ { "TYPE": "vec4", "NAME": "v_color" } ],
+  "FRAGMENT_OUTPUTS": [ { "TYPE": "vec4", "NAME": "isf_FragColor" } ],
+  "TYPES": [
+    { "NAME": "PerDraw", "LAYOUT": [
+        { "NAME": "model",         "TYPE": "mat4"  },
+        { "NAME": "normal_matrix", "TYPE": "mat4"  },
+        { "NAME": "slots",         "TYPE": "uvec4" }
+    ] }
+  ],
+  "INPUTS": [
+    { "NAME": "camera", "TYPE": "uniform", "VISIBILITY": "vertex",
+      "LAYOUT": [
+        { "NAME": "view",           "TYPE": "mat4" },
+        { "NAME": "projection",     "TYPE": "mat4" },
+        { "NAME": "viewProjection", "TYPE": "mat4" },
+        { "NAME": "cameraPosition", "TYPE": "vec4" },
+        { "NAME": "renderSize",     "TYPE": "vec4" },
+        { "NAME": "params",         "TYPE": "vec4" }
+      ]
+    },
+    { "NAME": "per_draws", "TYPE": "storage", "ACCESS": "read_only",
+      "VISIBILITY": "vertex",
+      "LAYOUT": [ { "NAME": "data", "TYPE": "PerDraw[]" } ]
+    }
+  ]
+}*/
+
+void main()
+{
+    isf_FragColor = vec4(v_color.rgb, 1.0);
+}
+)SHADER";
+
+constexpr auto kVertexColorVertexShader = R"SHADER(void main()
+{
+    mat4 M = per_draws.data[0].model;
+    v_color = color0;
+    gl_Position = clipSpaceCorrMatrix * camera.viewProjection * M * vec4(position, 1.0);
+}
+)SHADER";
+
+//! The control: identical in every respect except that it never mentions
+//! color0. Same asset, same camera, same geometry -- one colour.
+constexpr auto kFlatFragmentShader = R"SHADER(/*{
+  "DESCRIPTION": "control: the same box, shaded flat, colour-blind.",
+  "CREDIT": "test",
+  "ISFVSN": "2.0",
+  "MODE": "RAW_RASTER_PIPELINE",
+  "CATEGORIES": ["TEST-SYNTHETIC", "TEST-SCENE"],
+  "PIPELINE_STATE": { "DEPTH_TEST": true, "DEPTH_WRITE": true, "CULL_MODE": "none" },
+  "VERTEX_INPUTS": [
+    { "TYPE": "vec3", "NAME": "position" }
+  ],
+  "VERTEX_OUTPUTS": [],
+  "FRAGMENT_INPUTS": [],
+  "FRAGMENT_OUTPUTS": [ { "TYPE": "vec4", "NAME": "isf_FragColor" } ],
+  "TYPES": [
+    { "NAME": "PerDraw", "LAYOUT": [
+        { "NAME": "model",         "TYPE": "mat4"  },
+        { "NAME": "normal_matrix", "TYPE": "mat4"  },
+        { "NAME": "slots",         "TYPE": "uvec4" }
+    ] }
+  ],
+  "INPUTS": [
+    { "NAME": "camera", "TYPE": "uniform", "VISIBILITY": "vertex",
+      "LAYOUT": [
+        { "NAME": "view",           "TYPE": "mat4" },
+        { "NAME": "projection",     "TYPE": "mat4" },
+        { "NAME": "viewProjection", "TYPE": "mat4" },
+        { "NAME": "cameraPosition", "TYPE": "vec4" },
+        { "NAME": "renderSize",     "TYPE": "vec4" },
+        { "NAME": "params",         "TYPE": "vec4" }
+      ]
+    },
+    { "NAME": "per_draws", "TYPE": "storage", "ACCESS": "read_only",
+      "VISIBILITY": "vertex",
+      "LAYOUT": [ { "NAME": "data", "TYPE": "PerDraw[]" } ]
+    }
+  ]
+}*/
+
+void main()
+{
+    isf_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+}
+)SHADER";
+
+constexpr auto kFlatVertexShader = R"SHADER(void main()
+{
+    mat4 M = per_draws.data[0].model;
+    gl_Position = clipSpaceCorrMatrix * camera.viewProjection * M * vec4(position, 1.0);
+}
+)SHADER";
+
+struct ColorStats
+{
+  bool loaded{false};
+  int w{0}, h{0};
+  long long covered{0};  //!< pixels that are not the (0,0,0) clear colour
+  int distinct{0};       //!< distinct RGB triples among covered pixels
+};
+
+//! Distinct colours over the drawn pixels. The clear colour is black
+//! (kFragmentShader's pass clears to 0,0,0), and both shaders here emit alpha 1
+//! with at least one channel at 1.0 over the box, so "not black" is coverage.
+ColorStats colorStats(const QString& path)
+{
+  ColorStats s;
+  const QImage im = loadRgb(path);
+  if(im.isNull())
+    return s;
+  s.loaded = true;
+  s.w = im.width();
+  s.h = im.height();
+  std::set<quint32> seen;
+  for(int y = 0; y < im.height(); ++y)
+  {
+    const uchar* row = im.constScanLine(y);
+    for(int x = 0; x < im.width(); ++x)
+    {
+      const int r = row[x * 3], g = row[x * 3 + 1], b = row[x * 3 + 2];
+      if(r + g + b <= 24)
+        continue;
+      ++s.covered;
+      seen.insert(quint32(r) << 16 | quint32(g) << 8 | quint32(b));
+    }
+  }
+  s.distinct = int(seen.size());
+  return s;
+}
+} // namespace
+
+TEST_CASE(
+    "glTF vertex colours reach the fragment stage",
+    "[integration][threedim][gfx][scene][render][gui]")
+{
+  if(const auto why = notReady(); !why.isEmpty())
+    SKIP(why.toStdString());
+
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  if(qEnvironmentVariableIsSet("SCORE_TEST_KEEP_ARTIFACTS"))
+  {
+    dir.setAutoRemove(false);
+    WARN("artifacts kept in " << dir.path().toStdString());
+  }
+
+  const QString glb = assetsDir() + QStringLiteral("/BoxVertexColors.glb");
+  if(!QFile::exists(glb))
+    SKIP(
+        "BoxVertexColors.glb not present in "
+        << assetsDir().toStdString() << " - " << kFetchHint);
+
+  // Stems hold no dot: RenderPipeline/Process.cpp:32 finds the vertex stage via
+  // QFileInfo::baseName(), which cuts at the first one.
+  const QString vcFs
+      = writeFile(dir, "p1-6-vcol.fs", QByteArray{kVertexColorFragmentShader});
+  writeFile(dir, "p1-6-vcol.vs", QByteArray{kVertexColorVertexShader});
+  const QString flatFs
+      = writeFile(dir, "p1-6-flat.fs", QByteArray{kFlatFragmentShader});
+  writeFile(dir, "p1-6-flat.vs", QByteArray{kFlatVertexShader});
+
+  const QString vcPng = dir.filePath("vcol.png");
+  const QString flatPng = dir.filePath("flat.png");
+
+  const auto phases = std::vector<std::pair<int, QByteArray>>{
+      {9000, "grab()"}, {10500, "finish()"}};
+
+  auto run = [&](const QString& fs, const QString& png, const char* name) {
+    const QString js = writeFile(
+        dir, QStringLiteral("%1.js").arg(QString::fromUtf8(name)),
+        // withLight = false: this case is about the colour attribute, and a
+        // light would multiply it by an N.L the case does not control.
+        sceneScript(glb, fs, png, false).toUtf8());
+    const Run r = runPhased(js, phases);
+    INFO(name << " renderer: " << r.rendererLine.toStdString());
+    INFO(name << " log:\n" << r.log.toStdString());
+    REQUIRE(r.started);
+    REQUIRE(r.sawReady);
+    CHECK_FALSE(r.log.contains("LIT-ERROR"));
+    REQUIRE(r.log.contains("MARK-GRAB"));
+    REQUIRE_FALSE(r.log.contains("capturing the SCREEN"));
+    if(!QFile::exists(png))
+      FAIL(
+          "no frame was grabbed for "
+          << name << "; the chain rendered nothing (see the log above)");
+    return r;
+  };
+
+  const Run vcRun = run(vcFs, vcPng, "vcol");
+  const Run flatRun = run(flatFs, flatPng, "flat");
+  CHECK_FALSE(vcRun.crashed);
+  CHECK_FALSE(flatRun.crashed);
+  REQUIRE(vcRun.rendererLine == flatRun.rendererLine);
+
+  const ColorStats vc = colorStats(vcPng);
+  const ColorStats flat = colorStats(flatPng);
+  REQUIRE(vc.loaded);
+  REQUIRE(flat.loaded);
+  REQUIRE(vc.w == flat.w);
+  REQUIRE(vc.h == flat.h);
+
+  INFO(
+      "vcol: covered=" << vc.covered << " distinct=" << vc.distinct
+                       << "  flat: covered=" << flat.covered
+                       << " distinct=" << flat.distinct);
+
+  // (a) Same box, same camera: the same pixels are covered. 2% for the edge
+  //     pixels the two shaders' different outputs can push over the threshold.
+  REQUIRE(flat.covered > 0);
+  REQUIRE(vc.covered > 0);
+  CHECK(
+      std::abs(double(vc.covered - flat.covered))
+      < 0.02 * double(std::max(vc.covered, flat.covered)));
+
+  // (b) The control is colour-blind: exactly one colour over the box.
+  CHECK(flat.distinct == 1);
+
+  // (c) Reading color0 produces a continuum. BoxVertexColors' COLOR_0 spans
+  //     [0,1] per channel across the corners, so interpolation across the faces
+  //     gives far more than the handful a palette would.
+  CHECK(vc.distinct > 64);
 }
