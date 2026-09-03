@@ -606,42 +606,49 @@ void CustomMesh::reload(const ossia::mesh_list &ml, const ossia::geometry_filter
 
 bool CustomMesh::drawSingleMesh(
     std::size_t mesh_index, std::size_t base, const MeshBuffers& bufs,
-    QRhiCommandBuffer& cb,
-    std::span<const FallbackBindingPlan::Slot> fallback_slots) const noexcept
+    QRhiCommandBuffer& cb, const FallbackBindingPlan& plan) const noexcept
 {
   if(mesh_index >= geom.meshes.size())
     return false;
   const auto& g = geom.meshes[mesh_index];
 
-  // Total vertex-input count = mesh bindings + fallback bindings. The
-  // fallback slots' binding_index values were allocated sequentially
-  // past the mesh's own bindings when the pipeline was built
-  // (remapPipelineVertexInputs); they land at indices sz, sz+1, ... here.
-  const auto mesh_input_count = g.input.size();
-  const auto total = mesh_input_count + fallback_slots.size();
+  // Total vertex-input count = the mesh bindings the pipeline kept, plus
+  // the fallback bindings. A compacted plan lists the kept ones by their
+  // index into g.input; without one, every input is bound in order --
+  // binding k has always been g.input[k], which is the invariant
+  // preparePipeline builds the layout on.
+  const auto& kept = plan.mesh_bindings;
+  const auto mesh_input_count
+      = plan.compacted ? kept.size() : g.input.size();
+  const auto total = mesh_input_count + plan.slots.size();
   QVarLengthArray<QRhiCommandBuffer::VertexInput> draw_inputs(total);
 
-  int i = 0;
-  for(auto& in : g.input)
+  for(std::size_t i = 0; i < mesh_input_count; ++i)
   {
+    const std::size_t input_index = plan.compacted ? (std::size_t)kept[i] : i;
+    if(input_index >= g.input.size())
+      return false;
+    const auto& in = g.input[input_index];
     const std::size_t flat = base + (std::size_t)in.buffer;
     if(flat >= bufs.buffers.size())
       return false;
     auto buf = bufs.buffers[flat].handle;
     if(!buf)
       return false;
-    draw_inputs[i++] = {buf, in.byte_offset};
+    draw_inputs[i] = {buf, in.byte_offset};
   }
 
   // Fallback slots. Each Slot::binding_index is expressed in the global
   // binding-index space; for a single-sub-mesh raw-raster draw it's
   // always `mesh_input_count + k` for the k'th slot, so we place the
   // buffers by index.
-  for(const auto& slot : fallback_slots)
+  for(const auto& slot : plan.slots)
   {
-    const std::size_t idx = (std::size_t)slot.binding_index;
-    if(idx >= total || !slot.buffer)
+    if(slot.binding_index < 0 || !slot.buffer)
       continue;   // defensive: skip malformed plans rather than dropping the draw
+    const std::size_t idx = (std::size_t)slot.binding_index;
+    if(idx >= total)
+      continue;
     draw_inputs[idx] = {slot.buffer, 0};
   }
 
@@ -797,17 +804,17 @@ void CustomMesh::draw(const MeshBuffers &bufs, QRhiCommandBuffer &cb) const noex
 
 void CustomMesh::drawWithFallbackBindings(
     const MeshBuffers& bufs, QRhiCommandBuffer& cb,
-    std::span<const FallbackBindingPlan::Slot> fallback_slots) const noexcept
+    const FallbackBindingPlan& plan) const noexcept
 {
-  // Same as draw() but with the caller's fallback-binding plan threaded
-  // down to drawSingleMesh so the extra PerInstance identity buffers
-  // land in the vertex-input array at the indices the pipeline
-  // allocated for them.
+  // Same as draw() but with the caller's binding plan threaded down to
+  // drawSingleMesh, so the draw binds exactly the streams the pipeline
+  // was built for and the extra PerInstance identity buffers land in the
+  // vertex-input array at the indices the pipeline allocated for them.
   std::size_t base = 0;
   for(std::size_t i = 0; i < geom.meshes.size(); ++i)
   {
     if(subMeshLayoutMatchesFirst(i))
-      drawSingleMesh(i, base, bufs, cb, fallback_slots);
+      drawSingleMesh(i, base, bufs, cb, plan);
     base += geom.meshes[i].buffers.size();
   }
 }

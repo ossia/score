@@ -92,7 +92,7 @@ private:
   // sub-mesh's bindings, and the next runRenderPass rebinds from scratch.
   void drawWithPerMeshAuxRebind(
       QRhiShaderResourceBindings& srb, QRhiCommandBuffer& cb,
-      std::span<const FallbackBindingPlan::Slot> fallback_slots = {});
+      const FallbackBindingPlan& plan = {});
 
   std::vector<Sampler> allSamplers() const noexcept;
 
