@@ -344,6 +344,17 @@ if(TARGET score AND NOT EMSCRIPTEN)
     TIMEOUT 900 RUN_SERIAL TRUE)
 endif()
 
+# Qt.vector3d() and the other QML value type constructors, which returned a
+# silent zero in every headless run because nothing had imported QtQuick.
+if(TARGET score AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_js_value_types
+    SOURCES JsValueTypesTest.cpp)
+  target_compile_definitions(test_integration_js_value_types PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\"")
+  set_tests_properties(test_integration_js_value_types PROPERTIES
+    TIMEOUT 900 RUN_SERIAL TRUE)
+endif()
+
 # PipeWire video input through the whole application, driven by the JS
 # scripting API. NO_CTEST: the ctest entries live in tests/hardware, where
 # score_add_media_test wraps them in the runner that requires the media stack.
