@@ -12,6 +12,7 @@
 #include <Scenario/Document/ScenarioDocument/SnapshotAction.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/plugins/panel/PanelDelegate.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
 
@@ -75,6 +76,45 @@ bool JsViewContext::grabMainWindow(QString path)
   if(!w)
     return false;
   return w->grab().save(path);
+}
+
+bool JsViewContext::grabWidget(QObject* widget, QString path)
+{
+  auto* w = qobject_cast<QWidget*>(widget);
+  if(!w)
+    return false;
+  return w->grab().save(path);
+}
+
+QObject* JsViewContext::panel(QString name)
+{
+  for(auto& p : score::GUIAppContext().panels())
+  {
+    if(p.defaultPanelStatus().prettyName.compare(name, Qt::CaseInsensitive) == 0)
+      return p.widget();
+  }
+  return nullptr;
+}
+
+QStringList JsViewContext::panels()
+{
+  QStringList out;
+  for(auto& p : score::GUIAppContext().panels())
+    out += p.defaultPanelStatus().prettyName;
+  return out;
+}
+
+QObject* JsViewContext::child(QObject* parent, QString className)
+{
+  if(!parent)
+    return nullptr;
+
+  // By class name: the widgets inside a panel are rarely named.
+  const auto utf8 = className.toUtf8();
+  for(auto* o : parent->findChildren<QObject*>())
+    if(o->inherits(utf8.constData()))
+      return o;
+  return nullptr;
 }
 
 bool JsViewContext::grabScreen(QString path)
