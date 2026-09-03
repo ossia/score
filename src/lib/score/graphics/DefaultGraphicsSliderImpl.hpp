@@ -27,6 +27,28 @@ struct RightClickImpl
   QPointer<QGraphicsProxyWidget> spinboxProxy{};
 };
 
+/**
+ * @brief The one type-in box a right-click may have open.
+ *
+ * Right-clicking a second control -- or the same one twice -- used to leave
+ * the first box floating over the scene with nobody owning it: it is parented
+ * to the scene, not to the control, so nothing took it down. One at a time,
+ * closed the same way the user closes it.
+ */
+SCORE_LIB_BASE_EXPORT QPointer<QGraphicsProxyWidget>& currentRightClickWidget();
+
+//! Takes down whatever right-click box is open, if any.
+inline void closeRightClickWidget()
+{
+  if(auto& cur = currentRightClickWidget())
+  {
+    if(auto* sc = cur->scene())
+      sc->removeItem(cur);
+    delete cur.data();
+    cur = nullptr;
+  }
+}
+
 struct DefaultGraphicsSliderImpl
 {
   template <typename T>
@@ -180,6 +202,12 @@ struct DefaultGraphicsSliderImpl
   static void contextMenuEvent(T& self, QPointF pos)
   {
     auto build = [&, self_p = &self, pos] {
+      // Whatever was open belongs to the previous right-click, including one
+      // on this same control.
+      closeRightClickWidget();
+      self_p->impl->spinbox = nullptr;
+      self_p->impl->spinboxProxy = nullptr;
+
       auto w = new DoubleSpinboxWithEnter;
       self.impl->spinbox = w;
       w->setRange(self.min, self.max);
@@ -190,6 +218,7 @@ struct DefaultGraphicsSliderImpl
           w, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
       obj->setPos(pos);
       self.impl->spinboxProxy = obj;
+      currentRightClickWidget() = obj;
 
 #if defined(__EMSCRIPTEN__)
       w->setFocus();
@@ -210,6 +239,8 @@ struct DefaultGraphicsSliderImpl
           self_p->sliderReleased();
           QObject::disconnect(con);
           QTimer::singleShot(0, self_p, [self_p, scene = self_p->scene(), obj] {
+            if(currentRightClickWidget() == obj)
+              currentRightClickWidget() = nullptr;
             scene->removeItem(obj);
             delete obj;
             self_p->impl->spinbox = nullptr;
