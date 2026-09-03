@@ -3198,10 +3198,7 @@ void RenderedRawRasterPipelineNode::runInitialPasses(
     // Pass the per-invocation SRB so each draw reads its own UBO.
     // Forward the pass's fallback-binding plan so "REQUIRED: false"
     // VERTEX_INPUTS get their identity buffers bound.
-    drawWithPerMeshAuxRebind(
-        *invSRB, cb,
-        std::span<const FallbackBindingPlan::Slot>{
-            pass.fallback_bindings.slots});
+    drawWithPerMeshAuxRebind(*invSRB, cb, pass.fallback_bindings);
 
     cb.endPass();
   }
@@ -3355,10 +3352,7 @@ void RenderedRawRasterPipelineNode::runRenderPass(
       cb.setViewport(QRhiViewport(
           0, 0, texture->pixelSize().width(), texture->pixelSize().height()));
 
-      drawWithPerMeshAuxRebind(
-          *srb, cb,
-          std::span<const FallbackBindingPlan::Slot>{
-              pass.fallback_bindings.slots});
+      drawWithPerMeshAuxRebind(*srb, cb, pass.fallback_bindings);
     }
   }
 }
@@ -3370,7 +3364,7 @@ void RenderedRawRasterPipelineNode::process(int32_t port, const ossia::transform
 
 void RenderedRawRasterPipelineNode::drawWithPerMeshAuxRebind(
     QRhiShaderResourceBindings& srb, QRhiCommandBuffer& cb,
-    std::span<const FallbackBindingPlan::Slot> fallback_slots)
+    const FallbackBindingPlan& plan)
 {
   // ScenePreprocessor's output geometry is always a single sub-mesh: regular
   // meshes and instance groups all ride one drawIndexedIndirect. The SRB is
@@ -3411,27 +3405,46 @@ void RenderedRawRasterPipelineNode::drawWithPerMeshAuxRebind(
       // buffer and the scene-wide SSBOs to g.buffers for the auxiliary mapping,
       // and binding those as vertex buffers trips
       // VUID-vkCmdBindVertexBuffers-pBuffers-00627. g.input is authoritative.
-      std::array<QRhiCommandBuffer::VertexInput, 8> inputs;
-      std::size_t nb = 0;
+      //
+      // Which of those inputs, and in what order, is the plan's business:
+      // the pipeline's layout was compacted to the streams the shader
+      // reads, so slot k is g.input[plan.mesh_bindings[k]]. Skipping an
+      // input on a null handle would shift every slot after it onto the
+      // wrong stream, so an incomplete set binds nothing at all -- which
+      // is what this path already did when no handle resolved.
+      QVarLengthArray<QRhiCommandBuffer::VertexInput, 8> inputs;
+      bool inputsOk = true;
       if(this->geometry.meshes && !this->geometry.meshes->meshes.empty())
       {
         const auto& g0 = this->geometry.meshes->meshes[0];
-        const std::size_t cap = inputs.size();
-        for(const auto& in : g0.input)
+        const auto slotCount
+            = plan.compacted ? plan.mesh_bindings.size() : g0.input.size();
+        for(std::size_t k = 0; k < slotCount && inputsOk; ++k)
         {
-          if(nb >= cap)
+          const std::size_t in_idx
+              = plan.compacted ? (std::size_t)plan.mesh_bindings[k] : k;
+          if(in_idx >= g0.input.size())
+          {
+            inputsOk = false;
             break;
+          }
+          const auto& in = g0.input[in_idx];
           const std::size_t idx = (std::size_t)in.buffer;
-          if(idx >= m_meshbufs.buffers.size())
-            continue;
-          auto* h = m_meshbufs.buffers[idx].handle;
+          QRhiBuffer* h
+              = idx < m_meshbufs.buffers.size() ? m_meshbufs.buffers[idx].handle
+                                                : nullptr;
           if(!h)
-            continue;
-          inputs[nb++] = {h, (quint32)in.byte_offset};
+          {
+            inputsOk = false;
+            break;
+          }
+          inputs.push_back({h, (quint32)in.byte_offset});
         }
       }
-      if(nb > 0)
-        cb.setVertexInput(0, (int)nb, inputs.data());
+      if(!inputsOk)
+        inputs.clear();
+      if(!inputs.isEmpty())
+        cb.setVertexInput(0, inputs.size(), inputs.data());
 
       if(vcount > 0 && icount > 0)
         cb.draw(vcount, icount, 0, 0);
@@ -3446,13 +3459,14 @@ void RenderedRawRasterPipelineNode::drawWithPerMeshAuxRebind(
   // downstream node configured by the user as a separate render pass.
   if(m_mesh)
   {
-    // Fallback-aware draw when the shader declared "REQUIRED: false"
-    // VERTEX_INPUTS whose semantics are missing from upstream geometry.
-    // Plain pass-through otherwise (zero overhead when the plan is empty).
-    if(!fallback_slots.empty())
+    // Plan-aware draw: the pipeline was built for a compacted binding
+    // set, and/or the shader declared "REQUIRED: false" VERTEX_INPUTS
+    // whose semantics are missing from upstream geometry. Plain
+    // pass-through otherwise (zero overhead when the plan is empty).
+    if(!plan.empty())
     {
       if(auto* cm2 = dynamic_cast<const CustomMesh*>(m_mesh))
-        cm2->drawWithFallbackBindings(m_meshbufs, cb, fallback_slots);
+        cm2->drawWithFallbackBindings(m_meshbufs, cb, plan);
       else
         m_mesh->draw(m_meshbufs, cb);
     }

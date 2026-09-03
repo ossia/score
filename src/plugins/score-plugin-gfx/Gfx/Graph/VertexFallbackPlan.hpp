@@ -32,8 +32,31 @@ struct FallbackBindingPlan
   };
   std::vector<Slot> slots;
 
-  bool empty() const noexcept { return slots.empty(); }
-  void clear() noexcept { slots.clear(); }
+  // Which of the upstream geometry's vertex bindings the pipeline
+  // actually consumes, in pipeline binding order: `mesh_bindings[k]` is
+  // the index into `geometry.bindings` / `geometry.input` that pipeline
+  // binding k was built from.
+  //
+  // A geometry publishes every stream it has; a shader reads the handful
+  // it declares. Without this the draw binds all of them, and the count
+  // is what the backend sees: Qt's D3D11 command buffer carries at most
+  // MAX_VERTEX_BUFFER_BINDING_COUNT == 8 (qrhid3d11_p.h) and silently
+  // drops the rest. Compacting to the consumed set keeps the draw within
+  // reach of the narrowest backend and skips buffer binds nothing reads.
+  //
+  // Only meaningful when `compacted` is true; the pipeline builders that
+  // do not compute a plan leave it false, and the draw path then binds
+  // the geometry's inputs one-to-one as before.
+  std::vector<int> mesh_bindings;
+  bool compacted{false};
+
+  bool empty() const noexcept { return slots.empty() && !compacted; }
+  void clear() noexcept
+  {
+    slots.clear();
+    mesh_bindings.clear();
+    compacted = false;
+  }
 };
 
 } // namespace score::gfx

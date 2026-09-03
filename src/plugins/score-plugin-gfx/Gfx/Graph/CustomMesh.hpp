@@ -92,7 +92,7 @@ public:
   // purpose — only CustomMesh participates in the fallback path.
   void drawWithFallbackBindings(
       const MeshBuffers& bufs, QRhiCommandBuffer& cb,
-      std::span<const FallbackBindingPlan::Slot> fallback_slots) const noexcept;
+      const FallbackBindingPlan& plan) const noexcept;
 
   // Draw a single sub-mesh (geom.meshes[mesh_index]) using the portion of
   // `bufs.buffers` starting at `buffer_offset`. `buffer_offset` must match
@@ -103,14 +103,16 @@ public:
   // swapping the per_draw SSBO between meshes) can iterate sub-meshes
   // themselves instead of invoking the fire-and-forget `draw()` above.
   //
-  // `fallback_slots` (default empty) is merged into the vertex-input
-  // array at each slot's binding_index — bindings appended by the
-  // fallback-aware remap land past the mesh's own bindings, so slot
-  // indices are always contiguous after geom.meshes[mesh_index].input.
+  // `plan` (default empty) says which of the mesh's own bindings the
+  // pipeline kept and in what order, and carries the fallback buffers to
+  // merge in at their binding_index — those land past the surviving mesh
+  // bindings, so their indices are always contiguous after them. An
+  // un-compacted plan means "bind every geometry input in order", which
+  // is what the pipeline builders that do not emit a plan expect.
   bool drawSingleMesh(
       std::size_t mesh_index, std::size_t buffer_offset,
       const MeshBuffers& bufs, QRhiCommandBuffer& cb,
-      std::span<const FallbackBindingPlan::Slot> fallback_slots = {}) const noexcept;
+      const FallbackBindingPlan& plan = {}) const noexcept;
 
   //! True when sub-mesh i shares meshes[0]'s vertex layout — the only
   //! layout the pipeline was built for; mismatching sub-meshes are

@@ -10,6 +10,9 @@
 
 #include <score/tools/Debug.hpp>
 
+#include <algorithm>
+#include <unordered_set>
+
 #if defined(__EMSCRIPTEN__)
 #include <emscripten/em_asm.h>
 #include <emscripten/val.h>
@@ -690,18 +693,33 @@ bool remapPipelineVertexInputs(
   for(const auto& vi : desc.vertex_inputs)
     descByName[vi.name] = &vi;
 
-  // Start from whatever bindings the pipeline already has (the mesh's
-  // per-vertex + per-instance buffers). Fallback slots get appended at
-  // the end; their binding_index in the extended vector is the index
-  // the draw-path then binds the fallback buffer at.
-  QVarLengthArray<QRhiVertexInputBinding> bindings;
+  // The bindings the pipeline already has are the mesh's: one per stream
+  // the upstream geometry publishes, whether or not this shader reads it.
+  // We keep only the ones an attribute lands on, in first-use order, and
+  // append the fallback bindings after them -- see FallbackBindingPlan
+  // for why the count matters.
+  QVarLengthArray<QRhiVertexInputBinding> meshBindings;
   {
     const auto& prev = pip.vertexInputLayout();
     for(auto it = prev.cbeginBindings(); it != prev.cendBindings(); ++it)
-      bindings.append(*it);
+      meshBindings.append(*it);
   }
+  const int meshBindingCount = meshBindings.size();
 
+  // Attributes are collected against the ORIGINAL mesh binding indices
+  // and renumbered once the consumed set is known; a fallback attribute
+  // carries -1 here and is resolved from `fallbackOfAttr`.
   QVarLengthArray<QRhiVertexInputAttribute> remappedAttrs;
+  QVarLengthArray<int> attrMeshBinding;
+  QVarLengthArray<int> fallbackOfAttr;
+  QVarLengthArray<QRhiVertexInputBinding> fallbackBindings;
+  const auto appendAttr
+      = [&](int mesh_binding, int fallback_index, QRhiVertexInputAttribute a) {
+    remappedAttrs.append(a);
+    attrMeshBinding.append(mesh_binding);
+    fallbackOfAttr.append(fallback_index);
+  };
+
   for(const auto& shader_var : shader_inputs)
   {
     const std::string_view var_name(
@@ -718,11 +736,25 @@ bool remapPipelineVertexInputs(
 
     if(const auto* match = findGeometryAttribute(geom, var_name, sem_key))
     {
-      remappedAttrs.append(QRhiVertexInputAttribute(
-          match->binding, shader_var.location,
-          static_cast<QRhiVertexInputAttribute::Format>(match->format),
-          match->byte_offset));
-      continue;
+      // An attribute pointing past the layout the mesh actually prepared
+      // would renumber onto nothing; treat it as a miss so the fallback
+      // path below can answer for it (or reject the pipeline outright).
+      if(match->binding >= 0 && match->binding < meshBindingCount)
+      {
+        appendAttr(
+            match->binding, -1,
+            QRhiVertexInputAttribute(
+                match->binding, shader_var.location,
+                static_cast<QRhiVertexInputAttribute::Format>(match->format),
+                match->byte_offset));
+        continue;
+      }
+      qDebug() << "remapPipelineVertexInputs: VERTEX_INPUT '"
+               << QString::fromUtf8(var_name.data(), (int)var_name.size())
+               << "' matched geometry binding" << match->binding
+               << "which is outside the pipeline's" << meshBindingCount
+               << "mesh bindings";
+      return false;
     }
 
     // Miss. Strict mode (no descriptor entry or REQUIRED=true) fails.
@@ -776,22 +808,77 @@ bool remapPipelineVertexInputs(
     // Append a PerInstance step_rate=1 binding to the layout, pointing
     // at a fresh binding index. Semantically: "one instance's worth of
     // this attribute is packed into a single-element buffer, broadcast
-    // to every vertex and every instance of the draw".
-    const int new_binding_index = bindings.size();
-    bindings.append(QRhiVertexInputBinding(
+    // to every vertex and every instance of the draw". The index is
+    // assigned below, once the surviving mesh bindings are counted.
+    const int fallback_index = fallbackBindings.size();
+    fallbackBindings.append(QRhiVertexInputBinding(
         fallbackEntry.stride,
         QRhiVertexInputBinding::PerInstance,
         /*stepRate=*/1));
 
-    remappedAttrs.append(QRhiVertexInputAttribute(
-        new_binding_index, shader_var.location,
-        static_cast<QRhiVertexInputAttribute::Format>(fallbackEntry.format),
-        /*offset=*/0));
+    appendAttr(
+        -1, fallback_index,
+        QRhiVertexInputAttribute(
+            0, shader_var.location,
+            static_cast<QRhiVertexInputAttribute::Format>(fallbackEntry.format),
+            /*offset=*/0));
 
     outPlan.slots.push_back(
         FallbackBindingPlan::Slot{
-            .binding_index = new_binding_index,
-            .buffer = fallbackEntry.buffer});
+            .binding_index = -1, .buffer = fallbackEntry.buffer});
+  }
+
+  // Renumber. `keep[old]` is the new index of a surviving mesh binding,
+  // -1 for the ones no attribute touched; first-use order keeps the
+  // relative order of the streams the shader does read.
+  QVarLengthArray<int> keep(meshBindingCount);
+  std::fill(keep.begin(), keep.end(), -1);
+  for(const auto old : attrMeshBinding)
+  {
+    if(old >= 0 && keep[old] < 0)
+    {
+      keep[old] = (int)outPlan.mesh_bindings.size();
+      outPlan.mesh_bindings.push_back(old);
+    }
+  }
+  outPlan.compacted = true;
+
+  QVarLengthArray<QRhiVertexInputBinding> bindings;
+  for(const auto old : outPlan.mesh_bindings)
+    bindings.append(meshBindings[old]);
+  const int firstFallbackBinding = bindings.size();
+  for(const auto& fb : fallbackBindings)
+    bindings.append(fb);
+
+  for(int i = 0; i < remappedAttrs.size(); ++i)
+  {
+    const int binding = attrMeshBinding[i] >= 0
+                            ? keep[attrMeshBinding[i]]
+                            : firstFallbackBinding + fallbackOfAttr[i];
+    remappedAttrs[i] = QRhiVertexInputAttribute(
+        binding, remappedAttrs[i].location(), remappedAttrs[i].format(),
+        remappedAttrs[i].offset());
+  }
+  for(std::size_t i = 0; i < outPlan.slots.size(); ++i)
+    outPlan.slots[i].binding_index = firstFallbackBinding + (int)i;
+
+  // Qt's D3D11 command buffer records at most
+  // QD3D11CommandBuffer::MAX_VERTEX_BUFFER_BINDING_COUNT == 8 vertex
+  // buffers per setVertexInput (qrhid3d11.cpp, "Too many vertex buffer
+  // bindings"): past that it warns and DROPS the tail, so the attributes
+  // on those bindings read zero and the draw is quietly wrong. D3D11
+  // itself allows 32; the cap is Qt's. Nothing here can raise it, so say
+  // which shader wanted what, once per pipeline build.
+  if(rhi.backend() == QRhi::D3D11 && bindings.size() > 8)
+  {
+    QStringList names;
+    for(const auto& shader_var : shader_inputs)
+      names << QString::fromUtf8(shader_var.name);
+    qWarning() << "remapPipelineVertexInputs: this shader needs"
+               << bindings.size()
+               << "vertex bindings; Qt's D3D11 backend records only 8 and will"
+                  " drop the rest. Inputs:"
+               << names.join(", ");
   }
 
   QRhiVertexInputLayout inputLayout;
@@ -1136,6 +1223,40 @@ makeShaders(const RenderState& v, QString vert, QString frag, int multiViewCount
     throw std::runtime_error("invalid vertex shader");
   if(!fragmentError.isEmpty() || !fragmentS.isValid())
     throw std::runtime_error("invalid fragment shader");
+
+  // A storage buffer read from the VERTEX stage cannot work on D3D11, and it
+  // fails silently, which is worth one line in the log.
+  //
+  // Qt bakes HLSL with SPVC_COMPILER_OPTION_HLSL_FORCE_STORAGE_BUFFER_AS_UAV
+  // set unconditionally (qspirvshader.cpp), so every SSBO -- `readonly` ones
+  // included -- lands in the vertex DXBC as `RWByteAddressBuffer : register(u#)`.
+  // QRhiD3D11 then reports MaxVertexStorageBuffers == 0 (qrhid3d11.cpp) and its
+  // SRB translation only ever appends storage-buffer UAVs to the compute and
+  // fragment stages. How loudly that fails depends on how the buffer was
+  // declared: an INPUTS entry with VISIBILITY "vertex" becomes a VertexStage-
+  // only binding (visibilityToStages) and Qt does print "Unordered access only
+  // supported at fragment/compute stage", while an AUXILIARY rides a blanket
+  // VertexStage|FragmentStage whose fragment half satisfies the same check and
+  // says nothing at all. Either way the vertex stage's u# register stays
+  // unbound, and an unbound UAV reads zero -- which is what a shader indexing
+  // per_draws[draw_id].model sees there.
+  //
+  // D3D12 reports 128 and binds by root-signature visibility, so it is unaffected.
+  if(v.rhi && v.rhi->resourceLimit(QRhi::MaxVertexStorageBuffers) == 0
+     && !vertexS.description().storageBlocks().isEmpty())
+  {
+    static std::unordered_set<std::size_t> warned;
+    if(warned.insert(std::hash<std::string>{}(vert.toStdString())).second)
+    {
+      QStringList blocks;
+      for(const auto& b : vertexS.description().storageBlocks())
+        blocks << QString::fromUtf8(b.blockName);
+      qWarning() << "This backend cannot bind a storage buffer to the vertex"
+                    " stage (MaxVertexStorageBuffers == 0), so these blocks"
+                    " read zero in the vertex shader:"
+                 << blocks.join(", ");
+    }
+  }
 
   return {vertexS, fragmentS};
 }
