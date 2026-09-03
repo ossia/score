@@ -19,6 +19,7 @@
 
 #include <QLocale>
 #include <QObject>
+#include <QStringDecoder>
 #include <QStringList>
 #include <QVector2D>
 #include <QVector3D>
@@ -562,6 +563,118 @@ char value(const ossia::value& val)
   return value<QChar>(val).toLatin1();
 }
 
+bool isMultiLine(const QString& text) noexcept
+{
+  return text.contains('\n') || text.contains('\r');
+}
+
+bool isBinary(const QByteArray& bytes) noexcept
+{
+  QStringDecoder dec{QStringDecoder::Utf8, QStringDecoder::Flag::Stateless};
+  (void)QString{dec(bytes)};
+  if(dec.hasError())
+    return true;
+
+  for(char c : bytes)
+  {
+    const auto u = (unsigned char)c;
+    if(u == '\t' || u == '\n' || u == '\r')
+      continue;
+    if(u < 0x20 || u == 0x7F)
+      return true;
+  }
+  return false;
+}
+
+QString binarySummary(const QByteArray& bytes)
+{
+  const auto head = QString::fromLatin1(bytes.left(6).toHex(' '));
+  return QObject::tr("%1%2  [%3 bytes]")
+      .arg(head)
+      .arg(bytes.size() > 6 ? QStringLiteral("…") : QString{})
+      .arg(bytes.size());
+}
+
+SingleLine splitSingleLine(const QString& text)
+{
+  const auto whole = toSingleLine(text);
+  if(!isMultiLine(text))
+    return {whole, {}};
+
+  // toSingleLine glues the two with a double space and nothing else does.
+  const int at = whole.lastIndexOf(QStringLiteral("  ["));
+  if(at < 0)
+    return {whole, {}};
+
+  return {whole.left(at), whole.mid(at + 2)};
+}
+
+QString toSingleLine(const QString& text)
+{
+  if(!isMultiLine(text))
+    return text;
+
+  // One pass rather than a split: CR, LF and CRLF all end one line.
+  int first = -1;
+  int hidden = 0;
+  for(int i = 0; i < text.size(); i++)
+  {
+    const QChar c = text[i];
+    if(c != '\n' && c != '\r')
+      continue;
+
+    if(first < 0)
+      first = i;
+    hidden++;
+    if(c == '\r' && i + 1 < text.size() && text[i + 1] == '\n')
+      i++;
+  }
+
+  // A text ending on a line break hides no *line* past it, but it still holds
+  // a break the cell cannot show; mark it, or the field goes read-only with
+  // nothing to say why.
+  if(text.endsWith('\n') || text.endsWith('\r'))
+    hidden--;
+
+  // Spelled out rather than tr("%n"): with no translator loaded Qt keeps the
+  // source string as it is, so the plural form would read "[+1 lines]".
+  if(hidden <= 1)
+    return QObject::tr("%1  [+1 line]").arg(text.left(first));
+
+  return QObject::tr("%1  [+%2 lines]").arg(text.left(first)).arg(hidden);
+}
+
+QString escapeStringLiteral(const QString& s)
+{
+  QString out;
+  out.reserve(s.size());
+  for(QChar c : s)
+  {
+    switch(c.unicode())
+    {
+      case '\\':
+        out += QStringLiteral("\\\\");
+        break;
+      case '"':
+        out += QStringLiteral("\\\"");
+        break;
+      case '\n':
+        out += QStringLiteral("\\n");
+        break;
+      case '\r':
+        out += QStringLiteral("\\r");
+        break;
+      case '\t':
+        out += QStringLiteral("\\t");
+        break;
+      default:
+        out += c;
+        break;
+    }
+  }
+  return out;
+}
+
 QString toPrettyString(float f)
 {
   // A float carries this many decimal digits; asking for more only prints the
@@ -617,8 +730,7 @@ QString toPrettyString(const ossia::value& val)
     }
     QString operator()(const QString& s) const
     {
-      // TODO escape ?
-      return QString("\"%1\"").arg(s);
+      return QString("\"%1\"").arg(escapeStringLiteral(s));
     }
     QString operator()(const std::string& s) const
     {
@@ -699,14 +811,20 @@ QString toPrettyString(const ossia::value& val)
       auto n = t.size();
       if(n >= 1)
       {
+        // UTF-8, matching the toStdString the readers use; Latin-1 turned a
+        // key like "clé" into mojibake on the way back in.
+        auto key = [](const auto& k) {
+          return escapeStringLiteral(
+              QString::fromUtf8(k.data(), (qsizetype)k.size()));
+        };
+
         auto it = t.begin();
-        s += QString{"\"%1\": "}.arg(QLatin1String(it->first.data(), it->first.size()));
+        s += QString{"\"%1\": "}.arg(key(it->first));
         s += ossia::apply(*this, it->second);
 
         for(++it; it != t.end(); ++it)
         {
-          s += QString{", \"%1\": "}.arg(
-              QLatin1String(it->first.data(), it->first.size()));
+          s += QString{", \"%1\": "}.arg(key(it->first));
           s += ossia::apply(*this, it->second);
         }
       }
