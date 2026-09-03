@@ -16,17 +16,27 @@
 // file like any other -- so `out.setChannel(0, 42)` is enough to take the
 // application down from a document.
 //
-// Its own executable because the abort kills the process: kept inside
+// FIXED: setChannel validates its argument now, so this runs to the end and
+// exits 0 on Linux. The scaffolding below is kept as a regression guard, not
+// because it is load-bearing today.
+//
+// Its own executable because the abort killed the process: kept inside
 // JsCpuNodeTest it truncated that binary's run and every case after it went
 // unreported. [!shouldfail] cannot help -- Catch2 never gets to report -- and
 // ctest's WILL_FAIL does not invert a test that died on a signal, it reports
 // "Subprocess aborted". So the test installs its own SIGABRT handler, over the
 // one Catch2 installs on entering a test case, and turns the abort into a
-// plain exit(1) that WILL_FAIL does invert.
+// plain exit(1).
 //
-// When setChannel validates its argument the run reaches the end, Catch2 exits
-// 0, and the ctest entry goes red: the signal to drop WILL_FAIL and fold the
-// case back into test_integration_js_cpu_node.
+// The paragraph that stood here said the entry going red would be "the signal
+// to drop WILL_FAIL". No WILL_FAIL was ever registered on this test, so that
+// signal could not fire -- the defect was fixed and the bookkeeping was never
+// done. See tests/integration/CMakeLists.txt.
+//
+// STILL BROKEN ON WINDOWS: this test TIMES OUT there. Live defect, separate
+// from the abort, and consequential -- a ctest timeout kills score before it
+// clears the failsafe bit, forcing every later launch in the run into failsafe
+// mode with opengl disabled.
 
 #include <score_test/App.hpp>
 

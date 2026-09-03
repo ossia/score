@@ -112,15 +112,27 @@ score_add_test(test_integration_js_cpu_node
   GUI
   PLUGINS score_plugin_scenario score_lib_process score_plugin_js score_plugin_library)
 
-# AudioOutlet::setChannel handed something that is not an array converts a NaN
-# to int and hands the result to QVector::resize(): the process aborts. Its own
-# executable because that abort truncates whatever binary it is in; the test
-# turns the abort into exit(1) with its own SIGABRT handler so WILL_FAIL can
-# invert it (ctest reports a signal death as "Subprocess aborted" and does not
-# invert that, and Catch2's [!shouldfail] never gets to report at all).
-# Registered with the CORRECT expectation: when the argument is validated this
-# test passes and the ctest entry goes red, which is the signal to drop
-# WILL_FAIL and fold the case back into test_integration_js_cpu_node.
+# AudioOutlet::setChannel handed something that is not an array USED TO convert
+# a NaN to int and hand the result to QVector::resize(), aborting the process --
+# from user content, since a JS script arrives in a .score like anything else.
+# The argument is validated now: on Linux this runs to the end and exits 0.
+#
+# It keeps its own executable and its SIGABRT handler. Both were written for the
+# abort, and neither is load-bearing today, but they are what make the case
+# report properly if the validation ever regresses -- ctest reports a signal
+# death as "Subprocess aborted" without inverting it, and Catch2's
+# [!shouldfail] never gets to report at all.
+#
+# NOTE: earlier prose here and in JsSetChannelTest.cpp described a WILL_FAIL
+# registration and called the entry going red "the signal to drop WILL_FAIL".
+# No WILL_FAIL was ever set on this test, so that signal could not fire; the
+# defect was fixed and the bookkeeping was never done. Do not re-add one -- the
+# test passes, and a green test is what we want here.
+#
+# It TIMES OUT on Windows (measured on the Windows sweep). That is a separate,
+# live, Windows-specific defect, and it matters beyond this test: a ctest
+# timeout kills score before it can clear the failsafe bit, which forces every
+# later launch in the run into failsafe mode with opengl disabled.
 score_add_test(test_integration_js_setchannel
   SOURCES JsSetChannelTest.cpp
   GUI
