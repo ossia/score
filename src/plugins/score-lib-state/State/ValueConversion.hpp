@@ -48,6 +48,36 @@ SCORE_LIB_STATE_EXPORT ossia::value_map_type value(const ossia::value& val);
 
 SCORE_LIB_STATE_EXPORT bool convert(const ossia::value& orig, ossia::value& toConvert);
 
+// Whether a string is text at all: valid UTF-8 with no control character
+// beyond tab, CR and LF. ossia's STRING is a std::string, so a device may put
+// a PNG in one, and decoding that as text destroys it.
+SCORE_LIB_STATE_EXPORT bool isBinary(const QByteArray& bytes) noexcept;
+
+// What a cell shows for bytes that are not text: the first few in hex, and the
+// count.
+SCORE_LIB_STATE_EXPORT QString binarySummary(const QByteArray& bytes);
+
+// The head of a one-line summary and its "[+N lines]" marker, so a delegate
+// can draw the marker in its own pen. `marker` is empty when the text fits.
+struct SingleLine
+{
+  QString head;
+  QString marker;
+};
+SCORE_LIB_STATE_EXPORT SingleLine splitSingleLine(const QString& text);
+
+// Text collapsed for a one-line table cell: the first line, then a count of
+// what did not fit.
+SCORE_LIB_STATE_EXPORT QString toSingleLine(const QString& text);
+
+// Whether text() has anything toSingleLine would have to fold away.
+SCORE_LIB_STATE_EXPORT bool isMultiLine(const QString& text) noexcept;
+
+// The body of a quoted string literal: backslash, double quote and the
+// whitespace a single line cannot carry become escapes, so that what
+// toPrettyString writes is what parseValue reads back.
+SCORE_LIB_STATE_EXPORT QString escapeStringLiteral(const QString& s);
+
 // Adornishments to allow to differentiate between different value types, e.g.
 // 'a', ['a', 12], or "str" for a string.
 SCORE_LIB_STATE_EXPORT QString toPrettyString(const ossia::value& val);
