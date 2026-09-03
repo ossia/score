@@ -897,8 +897,15 @@ bool DeviceInterface::listen_impl(const State::Address& addr, bool b)
       // An impulse is an event, not a state: the value an address holds when
       // we subscribe is worth reporting for every other type, but replaying an
       // impulse nobody sent makes listeners believe one just arrived.
-      if(ossia_addr->get_value_type() != ossia::val_type::IMPULSE)
-        valueUpdated(addr, ossia_addr->value());
+      //
+      // Both the declared type and what it happens to hold: a parameter of
+      // another type carrying an impulse is still an event nobody sent.
+      const auto v = ossia_addr->value();
+      if(ossia_addr->get_value_type() != ossia::val_type::IMPULSE
+         && v.get_type() != ossia::val_type::IMPULSE)
+      {
+        valueUpdated(addr, v);
+      }
     }
     else
     {

@@ -102,10 +102,23 @@ QObject* keep(QObject* o)
 
 QObject* JsViewContext::panel(QString name)
 {
+  // The pretty name is what the header shows, and it is translated; the
+  // widget's class name is not, so a script keeps working under a translated
+  // UI. panels() lists both.
   for(auto& p : score::GUIAppContext().panels())
   {
     if(p.defaultPanelStatus().prettyName.compare(name, Qt::CaseInsensitive) == 0)
       return keep(p.widget());
+  }
+
+  for(auto& p : score::GUIAppContext().panels())
+  {
+    auto* w = p.widget();
+    if(w
+       && name.compare(
+              QString::fromUtf8(w->metaObject()->className()), Qt::CaseInsensitive)
+              == 0)
+      return keep(w);
   }
   return nullptr;
 }
@@ -114,7 +127,11 @@ QStringList JsViewContext::panels()
 {
   QStringList out;
   for(auto& p : score::GUIAppContext().panels())
+  {
     out += p.defaultPanelStatus().prettyName;
+    if(auto* w = p.widget())
+      out += QString::fromUtf8(w->metaObject()->className());
+  }
   return out;
 }
 
