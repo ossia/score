@@ -523,48 +523,26 @@ TEST_CASE("VUYADecoder unpacks V,U,Y,A byte order", "[gfx][video][decoder][pixel
 
 #endif
 
-#if SCORE_TEST_VUYA_NAMEABLE && !SCORE_TEST_VUYA_SELECTABLE
-TEST_CASE(
-    "VUYA / VUYX / XV30 reach a decoder at all",
-    "[gfx][video][decoder][pixels][!shouldfail]")
-{
-  // FINDING, and the reason the three cases above compiled out of this build.
-  //
-  // AV_PIX_FMT_VUYA, AV_PIX_FMT_VUYX and AV_PIX_FMT_XV30LE are declared by
-  // libavutil 58.29.100 (ffmpeg 6.1) -- this file is only compiled when they
-  // are, since it names them. GPUVideoDecoderFactory.cpp nonetheless puts all
-  // three inside `#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(60, 8, 100)`,
-  // which is ffmpeg 8. So on every ffmpeg 6.x and 7.x build -- the ones
-  // currently shipping -- VUYADecoder and XV30Decoder are dead code: the switch
-  // falls through, createGpuDecoder() logs "Unhandled pixel format" and installs
-  // EmptyDecoder, and the frame renders black.
-  //
-  // Nothing is wrong with the decoders; the version gate is. Lowering the guard
-  // for these three cases (58.29.100, or whichever earlier release actually
-  // introduced each) restores them.
-  //
-  // Asserted as "not black": black is exactly what the EmptyDecoder path
-  // produces, so this is the smallest claim that distinguishes "the gate is
-  // wrong" from "the decoder is wrong", and it costs nothing when the gate is
-  // fixed -- the case then compiles out and the real pixel cases compile in.
-  const auto api = GENERATE(from_range(platform_backends()));
-  const auto fmt = GENERATE(AV_PIX_FMT_VUYA, AV_PIX_FMT_VUYX, AV_PIX_FMT_XV30LE);
-
-  Planes planes = (fmt == AV_PIX_FMT_XV30LE)
-                      ? packXv30([](int) { return 200; }, 128, 128)
-                      : packVuya([](int) { return 200; }, 128, 128);
-
-  const auto out = render_camera(api, fmt, std::move(planes));
-  INFO("backend " << out.backend << " format " << av_get_pix_fmt_name(fmt));
-  if(out.skipped)
-    SKIP(out.skip_reason);
-  REQUIRE(out.error.empty());
-  REQUIRE(out.img.valid());
-  const auto px = out.img.at(W / 2, H / 2);
-  INFO("got (" << int(px[0]) << "," << int(px[1]) << "," << int(px[2]) << ")");
-  CHECK(int(px[0]) + int(px[1]) + int(px[2]) > 0);
-}
-#endif
+// NO PIN HERE ANY MORE, and the reason is worth recording. This file used to
+// carry a [!shouldfail] case, "VUYA / VUYX / XV30 reach a decoder at all",
+// compiled in under `NAMEABLE && !SELECTABLE`. Its finding: libavutil declares
+// those three formats from 58.29.100 (ffmpeg 6.1), but GPUVideoDecoderFactory
+// gated all three behind AV_VERSION_INT(60, 8, 100) -- ffmpeg 8 -- so on every
+// shipping 6.x and 7.x build VUYADecoder and XV30Decoder were dead code, the
+// switch fell through to EmptyDecoder, and the frame rendered black.
+//
+// The gate was lowered to 58.29.100 (GPUVideoDecoderFactory.cpp:251) and the
+// finding is closed. SELECTABLE reproduces the product guard verbatim, so it
+// now equals NAMEABLE and the pin condition became unsatisfiable on every
+// ffmpeg -- an unreachable TEST_CASE, which is not a pin at all. Deleted rather
+// than left to rot: an inventory that lists a case which can never run lies
+// about what is covered.
+//
+// Nothing replaces it, and nothing needs to. If the product gate ever rises
+// again while SELECTABLE tracks it, the real pixel cases above compile out and
+// the suite gets quieter -- which is what the *_NAMEABLE bound is for. If it
+// rises and SELECTABLE is NOT updated, they compile in and fail loudly on the
+// black frame. Either way the divergence is visible without a pin.
 
 TEST_CASE(
     "The MSB-aligned semi-planar family unpacks to the right colour",
