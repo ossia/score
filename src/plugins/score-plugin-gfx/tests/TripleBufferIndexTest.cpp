@@ -224,9 +224,11 @@ TEST_CASE("a producer and a consumer thread never share a slot",
 }
 
 // ---------------------------------------------------------------------------
-// FINDING (expected RED): acquireReadIndex() never returns -1.
+// REGRESSION GUARD (green). acquireReadIndex() returns -1 when no frame has
+// been published yet. It used to return the initial read slot instead, which
+// is the defect this case was written against -- see below.
 //
-// Its own comment says "Returns the read index, or -1 if no new frame", and
+// The method's own comment says "Returns the read index, or -1 if no new frame", and
 // every backend is written to that contract:
 //
 //   int readSlot = m_tripleBuffer.acquireReadIndex();

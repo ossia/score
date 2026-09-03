@@ -559,57 +559,50 @@ ControlFacts run_perlayer_colour(score::gfx::GraphicsApi backend)
 }
 
 // =============================================================================
-// EXPECTED TO FAIL — `[!shouldfail]` pin. This case asserts the CORRECT
-// per-layer depths and the product does not deliver them. It fails-as-expected
-// today and turns into a loud unexpected-pass the day the defect below is
-// fixed, which is the signal we want. Nothing here is weakened to get green:
-// every assertion still demands 51/102/153/204.
+// GREEN regression guard on Qt >= 6.12, SKIPped below it. This case asserts the
+// CORRECT per-layer depths -- 51/102/153/204, nothing weakened -- and the
+// product delivers them. It goes red if the depth path regresses.
 //
-// THE DEFECT: QRhi's copyTexture is COLOUR-ONLY, and the whole PER_LAYER depth
-// shim (hpp:260-279, cpp:3199-3218) is built on it.
+// HISTORY, kept because the failure mode was subtle and silent on every
+// backend. This case was written as a RED pin against a real defect: the
+// PER_LAYER depth path used to render each cascade layer into a shared scratch
+// 2D D32F and then QRhi::copyTexture() it into layer i of the output array.
+// That shim never worked anywhere, because copyTexture is COLOUR-ONLY:
 //   * qrhivulkan.cpp:4782 and :4792 build the VkImageCopy region with
 //         region.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 //         region.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-//     unconditionally — the texture format is never consulted.
+//     unconditionally -- the texture format is never consulted. Measured:
+//     VUID-vkCmdCopyImage-aspectMask-00142 / -00143 fired 32 times in one run
+//     (4 invocations x 8 frames, src + dst).
 //   * qrhigles2.cpp:4077+ executes the same op by attaching the SOURCE to
 //     GL_COLOR_ATTACHMENT0 of a scratch FBO and calling glCopyTexSubImage3D,
-//     which reads the colour read-buffer. Same assumption, no validation layer
-//     to announce it — which is why OpenGL fails silently and identically.
-//   * Measured: VUID-vkCmdCopyImage-aspectMask-00142 / -00143 fire 32 times in
-//     one run (4 invocations x 8 frames, src + dst), naming
-//     RRPNode::MRT::perLayerScratch::cascade and
-//     RenderedRawRasterPipelineNode::MRT::depth::cascade — the copy loop's own
-//     two textures. Every copy is dropped, so every layer keeps its 0.0 clear.
+//     which reads the colour read-buffer. Same assumption, and no validation
+//     layer to announce it -- which is why OpenGL failed silently and
+//     identically. Every copy was dropped, so every layer kept its 0.0 clear.
 //
-// SECOND DEFECT, on the same path, currently MASKED by the first (the array
-// reads zero either way, so this case cannot observe it):
-// RenderedRawRasterPipelineNode.cpp:1206-1207 allocates the scratch render
-// target's dummy colour attachment at QSize(1, 1). Colour attachment 0 is what
-// sets the render target's pixelSize (qrhivulkan.cpp:8619-8620; the depth
-// texture is consulted only when colorAttCount == 0, :8661-8662) and that
-// pixelSize is the VkFramebuffer extent (:8782-8783), so the scratch pass
-// rasterises into a 1x1 framebuffer. Both createDepthOnlyRenderTarget overloads
-// already allocate their dummy at the depth extent for exactly this reason
-// (Utils.cpp:1589-1592, :1790-1792) — this one does not, despite its comment at
-// :1200-1205 claiming to mirror them.
+// THE FIX WAS TO STOP COPYING, not to repair the copy. Qt 6.12 added
+// QRhiTextureRenderTargetDescription::setDepthLayer (honoured at
+// qrhivulkan.cpp:8649), so each layer now gets its own render target attaching
+// layer i of the OUTPUT depth array directly --
+// RenderedRawRasterPipelineNode.cpp:1212, with the rationale at :1150-1169. The
+// scratch-and-copy shim is gone rather than kept as a fallback, and below 6.12
+// the engine REFUSES the mode with a qWarning and falls back to SINGLE, which
+// is why this case SKIPs there instead of failing. Releases target 6.12+.
 //
-// THE SHIM'S PREMISE IS OUTDATED: hpp:269-270 states "Qt RHI 6.11 exposes no
-// per-layer depth attachment", which is what motivates the scratch-and-copy
-// dance in the first place. qrhivulkan.cpp:8649 honours
-// QRhiTextureRenderTargetDescription::setDepthLayer for an array depth texture.
-// So the real fix is probably not to repair the copy but to stop routing depth
-// through a transfer copy at all — attach the layer directly, or blit through a
-// depth-sampling shader. That is a DESIGN decision about the product's render
-// path; it is FLAGGED HERE, NOT ATTEMPTED. This file is a test.
+// That fix also retired a SECOND defect on the same path, which the first had
+// masked (the array read zero either way, so no test could observe it): the
+// scratch render target allocated its dummy colour attachment at QSize(1, 1),
+// and colour attachment 0 is what sets the render target's pixelSize
+// (qrhivulkan.cpp:8619-8620 -- the depth texture is consulted only when
+// colorAttCount == 0, :8661-8662), which is in turn the VkFramebuffer extent
+// (:8782-8783). The scratch pass therefore rasterised into a 1x1 framebuffer.
 //
-// THE 16 REDS ARE THE PRODUCT, NOT THE RIG. The proof is the sibling case
-// "per-layer colour renders into every array layer (probe-path control)" at the
-// bottom of this file, which is plain GREEN on both backends: same 4-layer
-// array, same csf-array-image-read.fs probe, same GrabsFromSource wiring, same
-// RGBA8 sink, same probe_layer() quadrant map — only the target is colour
-// instead of depth. It rules out the invocation loop, PASSINDEX, the array
-// allocation, the sampler2DArray binding, the quadrant map and the readback row
-// order. The only link it does not share is the depth copy.
+// THE SIBLING CONTROL is still worth keeping: "per-layer colour renders into
+// every array layer (probe-path control)" at the bottom of this file shares the
+// 4-layer array, the csf-array-image-read.fs probe, the GrabsFromSource wiring,
+// the RGBA8 sink and the probe_layer() quadrant map, and differs only in
+// targeting colour instead of depth. When this case is red, that one says
+// whether the cause is the depth path or the rig.
 // =============================================================================
 TEST_CASE(
     "per-layer depth renders into every array layer",
