@@ -134,8 +134,11 @@ struct TestApplication final : public score::ApplicationInterface
 
 TestApplication& testApp()
 {
-  static TestApplication app;
-  return app;
+  // Deliberately leaked: TestApplication holds a QGuiApplication by value, and
+  // a static is destroyed from the atexit chain, after main returns and Qt's
+  // own static state is gone.
+  static auto* app = new TestApplication;
+  return *app;
 }
 
 // Decode a MIDI 2.0 UMP channel-voice packet produced by ossia's midi node.
@@ -548,8 +551,8 @@ TEST_CASE("Patternist pattern parsing", "[midi][pattern]")
 
   SECTION("cp is the clap, hc completes the conga trio")
   {
-    // The doc table listed HC under both 39 (clap, as CP/HC) and 66
-    // (hi conga); the parser's first branch shadowed the second. CP alone
+    // The doc table lists HC under both 39 (clap, as CP/HC) and 66 (hi
+    // conga), so the first parser branch must not shadow the second. CP alone
     // is the clap; LC/MC/HC are the congas 64/65/66.
     const auto cp = parsePatterns(QByteArray("CP x---\n"));
     REQUIRE(cp.size() == 1);
