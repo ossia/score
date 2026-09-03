@@ -7,6 +7,8 @@
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
 
+#include <score_plugin_deviceexplorer_export.h>
+
 struct DataStreamInput;
 struct DataStreamOutput;
 
@@ -15,7 +17,8 @@ namespace Explorer
 class DeviceDocumentPlugin;
 namespace Command
 {
-class UpdateAddressSettings final : public score::Command
+class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT UpdateAddressSettings final
+    : public score::Command
 {
   SCORE_COMMAND_DECL(
       DeviceExplorerCommandFactoryName(), UpdateAddressSettings, "Update an address")
