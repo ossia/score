@@ -73,6 +73,12 @@ SCORE_LIB_STATE_EXPORT QString toSingleLine(const QString& text);
 // Whether text() has anything toSingleLine would have to fold away.
 SCORE_LIB_STATE_EXPORT bool isMultiLine(const QString& text) noexcept;
 
+// The map form. The grammar has no rule for it, so a brace-delimited list of
+// `key: value` is scanned by hand. parseValue calls this for input that starts
+// with a brace; a map nested inside a list is still out of reach, since the
+// list rule is the grammar own.
+SCORE_LIB_STATE_EXPORT std::optional<ossia::value> parseMap(const QString& text);
+
 // What a one-line cell shows for a string value, and the tooltip that goes
 // with it: a summary for bytes that are not text, the first line and a marker
 // for text that does not fit, the text itself otherwise. The tooltip is empty
