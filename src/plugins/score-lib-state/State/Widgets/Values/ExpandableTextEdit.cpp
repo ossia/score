@@ -28,6 +28,7 @@
 #include <utility>
 
 #include <algorithm>
+#include <cctype>
 
 #include <wobjectimpl.h>
 
@@ -1030,12 +1031,8 @@ void ExpandableTextEdit::refresh()
   if(m_binary)
   {
     setReadOnly(true);
-    const auto head = m_bytes.left(8).toHex(' ');
-    QLineEdit::setText(
-        tr("%1%2  [%3]")
-            .arg(QString::fromLatin1(head))
-            .arg(m_bytes.size() > 8 ? QStringLiteral("…") : QString{})
-            .arg(tr("%n byte(s)", "", int(m_bytes.size()))));
+    // The same summary the cells show, so a row and its editor read alike.
+    QLineEdit::setText(State::convert::binarySummary(m_bytes));
     setToolTip(tr("Binary — edit as hex"));
   }
   else if(m_multiline)

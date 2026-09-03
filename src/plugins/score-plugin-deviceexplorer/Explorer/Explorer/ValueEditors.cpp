@@ -1393,13 +1393,21 @@ bool AddressValueWidget::eventFilter(QObject* obj, QEvent* ev)
     // Deferred: focus may simply be moving to another field of this same
     // editor, and the new focus widget is not known yet.
     QPointer self{this};
-    QTimer::singleShot(0, this, [self] {
+    auto check = [self](auto&& again) -> void {
       if(!self)
         return;
 
-      // A menu or a dialog of ours took the focus; it will give it back.
+      // A menu, our own value panel, a colour dialog: something took the focus
+      // and will hand it back. Ask again when it has gone rather than dropping
+      // the question, or the editor is left open for good.
       if(QApplication::activePopupWidget() || QApplication::activeModalWidget())
+      {
+        QTimer::singleShot(50, self, [self, again] {
+          if(self)
+            again(again);
+        });
         return;
+      }
 
       auto* f = QApplication::focusWidget();
       for(auto* w = f; w; w = w->parentWidget())
@@ -1414,10 +1422,15 @@ bool AddressValueWidget::eventFilter(QObject* obj, QEvent* ev)
       QCoreApplication::sendEvent(self, &out);
 
       self->editingFinished();
-    });
+    };
+
+    QTimer::singleShot(0, this, [check] { check(check); });
   }
 
-  if(ev->type() != QEvent::ContextMenu)
+  // The editor's own right-click goes to contextMenuEvent below; only the
+  // fields need intercepting, and letting both handle `this` would build the
+  // menu twice.
+  if(ev->type() != QEvent::ContextMenu || obj == this)
     return QWidget::eventFilter(obj, ev);
 
   auto* w = qobject_cast<QWidget*>(obj);
@@ -1566,23 +1579,31 @@ bool paintValueWithMarker(
                                             : QPalette::Text));
 
   const QFontMetrics fm{option.font};
-  const int headW = fm.horizontalAdvance(split.head);
+  QFont mf = option.font;
+  mf.setItalic(true);
+  const QFontMetrics mfm{mf};
+
+  // The marker keeps its room and the value gives way, elided as the base
+  // delegate would: a value cut off mid-glyph reads as a shorter value.
+  const int gap = fm.horizontalAdvance(QStringLiteral("  "));
+  const int markerW = mfm.horizontalAdvance(split.marker);
+  const int headRoom = std::max(0, area.width() - gap - markerW);
+
+  const auto head = fm.elidedText(split.head, option.textElideMode, headRoom);
+  const int headW = std::min(fm.horizontalAdvance(head), headRoom);
 
   painter.setFont(option.font);
-  painter.drawText(area, Qt::AlignVCenter, split.head);
+  painter.drawText(area.adjusted(0, 0, headRoom - area.width(), 0),
+                   Qt::AlignVCenter, head);
 
   // The marker is not part of the value: say so with the pen, not with a
   // symbol in the text.
-  QFont mf = option.font;
-  mf.setItalic(true);
   painter.setFont(mf);
 
   auto dim = painter.pen().color();
   dim.setAlphaF(0.6);
   painter.setPen(dim);
-  painter.drawText(
-      area.adjusted(headW + fm.horizontalAdvance(QStringLiteral("  ")), 0, 0, 0),
-      Qt::AlignVCenter, split.marker);
+  painter.drawText(area.adjusted(headW + gap, 0, 0, 0), Qt::AlignVCenter, split.marker);
 
   painter.restore();
   return true;
