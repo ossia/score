@@ -87,12 +87,25 @@ bool JsViewContext::grabWidget(QObject* widget, QString path)
   return w->grab().save(path);
 }
 
+namespace
+{
+//! The engine takes ownership of a QObject it is handed unless told not to,
+//! and a panel widget is parented late enough to look collectable. Without
+//! this, destroy() on one of these deletes the live panel.
+QObject* keep(QObject* o)
+{
+  if(o)
+    QQmlEngine::setObjectOwnership(o, QQmlEngine::CppOwnership);
+  return o;
+}
+}
+
 QObject* JsViewContext::panel(QString name)
 {
   for(auto& p : score::GUIAppContext().panels())
   {
     if(p.defaultPanelStatus().prettyName.compare(name, Qt::CaseInsensitive) == 0)
-      return p.widget();
+      return keep(p.widget());
   }
   return nullptr;
 }
@@ -114,7 +127,7 @@ QObject* JsViewContext::child(QObject* parent, QString className)
   const auto utf8 = className.toUtf8();
   for(auto* o : parent->findChildren<QObject*>())
     if(o->inherits(utf8.constData()))
-      return o;
+      return keep(o);
   return nullptr;
 }
 
