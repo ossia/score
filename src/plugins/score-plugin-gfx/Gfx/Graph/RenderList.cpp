@@ -1581,6 +1581,21 @@ void RenderState::Caps::populate(QRhi& rhi)
 #if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
   drawIndirect = rhi.isFeatureSupported(QRhi::DrawIndirect);
   drawIndirectMulti = rhi.isFeatureSupported(QRhi::DrawIndirectMulti);
+  // A GPU indirect draw reads its {indexCount, instanceCount, firstIndex,
+  // baseVertex, firstInstance} words out of a buffer the CPU never inspects, so
+  // a stale QRhiBuffer* recorded into drawIndexedIndirect() is not a wrong
+  // picture: it is an out-of-bounds index fetch and a lost device. The CPU
+  // fallback path in CustomMesh::draw() issues the same draws from
+  // cpu_draw_commands, where the counts are visible and bounded.
+  //
+  // SCORE_GFX_NO_GPU_INDIRECT=1 forces that fallback on a backend that does
+  // support DrawIndirect. It is how a VK_ERROR_DEVICE_LOST gets attributed:
+  // if the loss survives the switch the indirect buffer was not the source.
+  if(qEnvironmentVariableIntValue("SCORE_GFX_NO_GPU_INDIRECT") > 0)
+  {
+    drawIndirect = false;
+    drawIndirectMulti = false;
+  }
 #endif
 #if QT_VERSION >= QT_VERSION_CHECK(6, 11, 0)
   instanceIndexIncludesBaseInstance
