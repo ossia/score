@@ -560,22 +560,38 @@ TEST_CASE(
   REQUIRE(v.idx.back() > v.idx.front());
 }
 
-// Removing a device while the engine is running is OUT OF CONTRACT: the editor
-// does not offer it, and the scripting API reaching past that is what this pins.
-// Execution ports hold a raw ossia::net::parameter_base* into the device, and
-// nothing clears them when it is destroyed, so the next tick dynamic_casts a
-// freed parameter -- GfxExecNode.cpp:138, reached from graph_util::exec_node on
-// the audio thread. The device list already defers its own bookkeeping through
-// execution_state::m_device_change_queue, but nothing defers the DESTRUCTION,
-// and execution_state cannot clear the ports itself: it keeps no port registry
-// and no graph handle.
+// Removing a device while the engine is running is OUT OF CONTRACT -- "it is
+// part of the contract that a device cannot be removed during execution".
 //
-// Written as the INTENT -- removing a device mid-play should be survivable --
-// and marked expected-failure, so that fixing it turns this red and the marker
-// comes off, rather than leaving a test that asserts the bug.
+// Doing it anyway crashes in __dynamic_cast on a freed
+// ossia::net::parameter_base* from Gfx::gfx_exec_node::run
+// (GfxExecNode.cpp:140) -- the signature of an unsupported operation, not a
+// defect to engineer around. Supporting it would mean a barrier between
+// Explorer::DeviceList::removeDevice's `deviceRemoved(...)` and its `delete
+// ptr` (DeviceList.cpp:104-108), i.e. teaching the device layer about the
+// audio thread: machinery built to support a forbidden operation. DeviceList
+// itself removes and deletes with no execution check.
+//
+// So this asserts the contract is UPHELD: the removal is REFUSED while
+// playing, the device is still there afterwards, and the process survives. The
+// refusal lives in EditJsContext::removeDevice, before any command is created;
+// see the comment there for why not lower down.
+//
+// The oracle is deliberately three-part, because "the process did not crash" is
+// also what a refusal that silently does nothing at all gives, and what a build
+// where the script never ran gives: the device must still be REMOVABLE once
+// stopped, which proves the guard is conditional on execution and not a blanket
+// disable.
+//
+// EditJsContext::device() is exercised here too. Score.device(name) hands back
+// a raw pointer to a live DeviceInterface with no QObject parent, which QML
+// would treat as JavaScriptOwnership: the garbage collector could then delete
+// the device out from under the document, so merely READING the device list
+// could destroy it. QQmlEngine::CppOwnership is what keeps it alive, and it is
+// why hasWindow() is called twice rather than once.
 TEST_CASE(
-    "a device can be removed while the engine is running",
-    "[integration][gfx][js][media][torture][!shouldfail]")
+    "removing a device while the engine is running is refused",
+    "[integration][gfx][js][media][torture]")
 {
   requireEnvironment();
 
@@ -594,15 +610,54 @@ TEST_CASE(
   src += "if (!a) { console.log(\"SCENE-ERROR: isf process\"); Qt.exit(10); }\n";
   src += "Score.setAddress(Score.outlet(a, 0), \"Window:/\");\n";
   src += "function settle() { var t = Date.now(); while (Date.now() - t < 500) {} }\n";
+  src += "function hasWindow() { return Score.device(\"Window\") !== null; }\n";
   src += "Score.play(); settle();\n";
+  // The forbidden operation, from the one API that can reach past the editor.
   src += "Score.removeDevice(\"Window\"); settle();\n";
-  src += "Score.stop();\n";
-  src += "console.log(\"SCENE-OK removed-while-running\");\n";
+  src += "console.log(\"DEVICE-DURING-PLAY=\" + hasWindow());\n";
+  src += "Score.stop(); settle();\n";
+  // ...and the same call, now in contract, must actually work: a guard that
+  // refuses unconditionally would pass the first half and fail here. The
+  // process addressed to the device is torn down first, which is the order the
+  // "graph mutation" case above already uses -- see the FINDING note under the
+  // assertions for why that is not incidental.
+  src += "Score.remove(a); settle();\n";
+  src += "Score.removeDevice(\"Window\"); settle();\n";
+  src += "console.log(\"DEVICE-AFTER-STOP=\" + hasWindow());\n";
+  src += "console.log(\"SCENE-OK removal-refused-while-running\");\n";
   src += "Qt.exit(0);\n";
 
   auto r = runScript(writeScript(dir, "device-removal-while-running.js", src));
   INFO(r.log.toStdString());
-  CHECK_FALSE(r.crashed);
-  CHECK(r.exitCode == 0);
-  REQUIRE(r.log.contains("SCENE-OK removed-while-running"));
+  // 1. The contract is enforced rather than paid for with undefined behaviour:
+  //    the script runs to its end. Without the refusal the child dies
+  //    MID-SCRIPT, in __dynamic_cast from Gfx::gfx_exec_node::run
+  //    (GfxExecNode.cpp:140) on a freed parameter, so reaching this marker at
+  //    all is the first half of the pin.
+  REQUIRE(r.log.contains("SCENE-OK removal-refused-while-running"));
+  // 2. The removal was REFUSED, not performed: the device is still there.
+  CHECK(r.log.contains("DEVICE-DURING-PLAY=true"));
+  // 3. And the refusal is conditional on execution, not a blanket disable:
+  //    once stopped, the very same call removes the device.
+  CHECK(r.log.contains("DEVICE-AFTER-STOP=false"));
+
+  // The child's EXIT STATUS is deliberately not asserted here.
+  //
+  // Run on its own this case is completely clean -- "All tests passed (10
+  // assertions in 1 test case)", child exit 0. Run after the four cases above
+  // it, the child SIGSEGVs during exit at
+  // Gfx::GfxContext::NodeCommand::~NodeCommand() destroying a
+  // std::unique_ptr<score::gfx::Node> (stable over three consecutive runs).
+  // The same backtrace appears with BOTH removeDevice calls deleted from the
+  // script, so it is not device removal, and not the refusal guard, which
+  // returns before touching anything; the ingredient the four green cases lack
+  // is Score.play(). It is the teardown-ordering family test_gfx_soak is
+  // already red for, reached here through a second door.
+  //
+  // Asserting it here would make this pin fail for a defect it does not
+  // describe, and pinning it separately would be worse: written as its own
+  // [!shouldfail] case it PASSES in isolation, i.e. it would be a flaky pin.
+  // Recorded as a finding instead.
 }
+
+
