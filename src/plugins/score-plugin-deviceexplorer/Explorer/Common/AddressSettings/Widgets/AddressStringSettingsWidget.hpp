@@ -2,9 +2,10 @@
 
 #include "AddressSettingsWidget.hpp"
 
+#include <State/Widgets/Values/ExpandableTextEdit.hpp>
+
 #include <Device/Address/AddressSettings.hpp>
 
-class QLineEdit;
 class QWidget;
 
 namespace State
@@ -24,7 +25,7 @@ public:
   void setCanEditProperties(bool b) override;
 
 protected:
-  QLineEdit* m_valueEdit;
+  State::ExpandableTextEdit* m_valueEdit;
   State::StringValueSetDialog* m_values{};
 };
 }

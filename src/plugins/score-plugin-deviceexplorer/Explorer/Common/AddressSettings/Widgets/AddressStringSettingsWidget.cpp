@@ -9,7 +9,6 @@
 #include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
 
 #include <QFormLayout>
-#include <QLineEdit>
 #include <QPushButton>
 #include <QString>
 
@@ -20,7 +19,7 @@ namespace Explorer
 AddressStringSettingsWidget::AddressStringSettingsWidget(QWidget* parent)
     : AddressSettingsWidget(parent)
 {
-  m_valueEdit = new QLineEdit(this);
+  m_valueEdit = new State::ExpandableTextEdit(this);
 
   m_values = new State::StringValueSetDialog{this};
   auto pb = new QPushButton{tr("Values"), this};
@@ -41,7 +40,7 @@ AddressStringSettingsWidget::AddressStringSettingsWidget(QWidget* parent)
 Device::AddressSettings AddressStringSettingsWidget::getSettings() const
 {
   auto settings = getCommonSettings();
-  settings.value = m_valueEdit->text().toStdString();
+  settings.value = m_valueEdit->fullText().toStdString();
   settings.domain = ossia::domain_base<std::string>{m_values->values()};
   return settings;
 }
@@ -61,7 +60,7 @@ void AddressStringSettingsWidget::setCanEditProperties(bool b)
 void AddressStringSettingsWidget::setSettings(const Device::AddressSettings& settings)
 {
   setCommonSettings(settings);
-  m_valueEdit->setText(State::convert::value<QString>(settings.value));
+  m_valueEdit->setFullText(State::convert::value<QString>(settings.value));
 
   if(auto dom_p = settings.domain.get().v.target<ossia::domain_base<std::string>>())
     m_values->setValues(dom_p->values);
