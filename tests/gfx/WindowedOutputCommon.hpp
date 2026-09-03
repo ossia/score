@@ -182,6 +182,20 @@ struct ScreenRig
   {
     m_backend = backend_name(api);
 
+    // Null draws nothing, and its readback is a well-formed frame of one
+    // colour that no pixel assertion can tell from a real one -- measured, and
+    // pinned in GfxNullBackendRefuses.cpp. score_test/Gfx.hpp refuses Null for
+    // the GfxPipeline fixture; these windowed rigs build their own graph and so
+    // bypassed that, which is how test_gfx_window_pattern and
+    // test_gfx_screen_output stayed RED under SCORE_TEST_API=null while the
+    // other 116 gfx entries skipped. Same refusal, same reason string.
+    if(api == score::gfx::Null)
+    {
+      m_skipped = true;
+      m_skipReason = null_backend_skip_reason();
+      return false;
+    }
+
     if(!can_present())
     {
       m_skipped = true;
@@ -301,6 +315,20 @@ struct BareScreenRig
   bool build(score::gfx::GraphicsApi api, QSize size = {192, 144})
   {
     m_backend = backend_name(api);
+
+    // Null draws nothing, and its readback is a well-formed frame of one
+    // colour that no pixel assertion can tell from a real one -- measured, and
+    // pinned in GfxNullBackendRefuses.cpp. score_test/Gfx.hpp refuses Null for
+    // the GfxPipeline fixture; these windowed rigs build their own graph and so
+    // bypassed that, which is how test_gfx_window_pattern and
+    // test_gfx_screen_output stayed RED under SCORE_TEST_API=null while the
+    // other 116 gfx entries skipped. Same refusal, same reason string.
+    if(api == score::gfx::Null)
+    {
+      m_skipped = true;
+      m_skipReason = null_backend_skip_reason();
+      return false;
+    }
     if(!can_present())
     {
       m_skipped = true;
@@ -368,6 +396,20 @@ struct MultiWindowRig
       const QString& shader = QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-gradient-x.fs"))
   {
     m_backend = backend_name(api);
+
+    // Null draws nothing, and its readback is a well-formed frame of one
+    // colour that no pixel assertion can tell from a real one -- measured, and
+    // pinned in GfxNullBackendRefuses.cpp. score_test/Gfx.hpp refuses Null for
+    // the GfxPipeline fixture; these windowed rigs build their own graph and so
+    // bypassed that, which is how test_gfx_window_pattern and
+    // test_gfx_screen_output stayed RED under SCORE_TEST_API=null while the
+    // other 116 gfx entries skipped. Same refusal, same reason string.
+    if(api == score::gfx::Null)
+    {
+      m_skipped = true;
+      m_skipReason = null_backend_skip_reason();
+      return false;
+    }
 
     if(!can_present())
     {
