@@ -448,7 +448,8 @@ static void ensureSentinelBuffer(
 
   const auto make = [&](QRhiBuffer::UsageFlags usage,
                         const char* name) -> QRhiBuffer* {
-    auto* buf = rhi.newBuffer(QRhiBuffer::Static, usage, kSentinelBufferSize);
+    const auto type = bufferTypeFor(usage, QRhiBuffer::Static);
+    auto* buf = rhi.newBuffer(type, usage, kSentinelBufferSize);
     buf->setName(name);
     if(!buf->create())
     {
@@ -458,7 +459,10 @@ static void ensureSentinelBuffer(
     }
     // Zero-fill so disconnected SSBO/UBO reads return predictable zeros
     // rather than uninitialised memory.
-    res.uploadStaticBuffer(buf, 0, kSentinelBufferSize, zeros.data());
+    if(type == QRhiBuffer::Dynamic)
+      res.updateDynamicBuffer(buf, 0, kSentinelBufferSize, zeros.data());
+    else
+      res.uploadStaticBuffer(buf, 0, kSentinelBufferSize, zeros.data());
     return buf;
   };
 
@@ -960,14 +964,18 @@ void bindUpstreamBuffersFromGeometry(
           = geo_aux->byte_size > 0 ? geo_aux->byte_size : cpu->byte_size;
       const auto usage
           = is_uniform ? QRhiBuffer::UniformBuffer : QRhiBuffer::StorageBuffer;
-      auto* buf = rhi.newBuffer(QRhiBuffer::Immutable, usage, sz);
+      const auto type = bufferTypeFor(usage);
+      auto* buf = rhi.newBuffer(type, usage, sz);
       buf->setName(QByteArray("ISF_aux_geom_") + name.c_str());
       if(!buf->create())
       {
         delete buf;
         return {};
       }
-      res.uploadStaticBuffer(buf, 0, sz, cpu->raw_data.get());
+      if(type == QRhiBuffer::Dynamic)
+        res.updateDynamicBuffer(buf, 0, (quint32)sz, cpu->raw_data.get());
+      else
+        res.uploadStaticBuffer(buf, 0, sz, cpu->raw_data.get());
       return {buf, sz, true};
     }
     return {};

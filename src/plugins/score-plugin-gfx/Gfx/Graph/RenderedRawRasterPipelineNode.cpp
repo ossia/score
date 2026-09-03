@@ -284,9 +284,11 @@ void RenderedRawRasterPipelineNode::initPass(
                                     : QRhiBuffer::StorageBuffer;
         const int64_t dummySize = std::max<int64_t>(
             aux.declared_size, aux.is_uniform ? 256 : 16);
-        auto* dummy = rhi.newBuffer(QRhiBuffer::Immutable, usage, dummySize);
+        auto* dummy = rhi.newBuffer(bufferTypeFor(usage), usage, dummySize);
         dummy->setName(aux.is_uniform ? "RRP_ubo_dummy" : "RRP_aux_dummy");
-        dummy->create();
+        if(!dummy->create())
+          qWarning() << "RawRaster: could not create the placeholder buffer for"
+                     << aux.name.c_str();
         aux.buffer = dummy;
         aux.size = dummySize;
         aux.owned = true;
@@ -1388,9 +1390,11 @@ void RenderedRawRasterPipelineNode::initMRTPass(
                                     : QRhiBuffer::StorageBuffer;
         const int64_t dummySize = std::max<int64_t>(
             aux.declared_size, aux.is_uniform ? 256 : 16);
-        auto* dummy = rhi.newBuffer(QRhiBuffer::Immutable, usage, dummySize);
+        auto* dummy = rhi.newBuffer(bufferTypeFor(usage), usage, dummySize);
         dummy->setName(aux.is_uniform ? "RRP_ubo_dummy" : "RRP_aux_dummy");
-        dummy->create();
+        if(!dummy->create())
+          qWarning() << "RawRaster: could not create the placeholder buffer for"
+                     << aux.name.c_str();
         aux.buffer = dummy;
         aux.size = dummySize;
         aux.owned = true;
@@ -1778,10 +1782,22 @@ void RenderedRawRasterPipelineNode::initState(
         // the Vulkan validation layer.
         const auto usage = ssbo.is_uniform ? QRhiBuffer::UniformBuffer
                                            : QRhiBuffer::StorageBuffer;
-        auto* buf = rhi.newBuffer(QRhiBuffer::Immutable, usage, sz);
+        const auto type = bufferTypeFor(usage);
+        auto* buf = rhi.newBuffer(type, usage, sz);
         buf->setName(QByteArray("RRP_aux_") + ssbo.name.c_str());
-        buf->create();
-        res.uploadStaticBuffer(buf, 0, sz, cpu->raw_data.get());
+        if(!buf->create())
+        {
+          qWarning() << "RawRaster: could not create the auxiliary buffer for"
+                     << ssbo.name.c_str();
+          delete buf;
+          return;
+        }
+        // uploadStaticBuffer is only defined for non-Dynamic buffers, and a
+        // uniform block is Dynamic everywhere -- see bufferTypeFor.
+        if(type == QRhiBuffer::Dynamic)
+          res.updateDynamicBuffer(buf, 0, (quint32)sz, cpu->raw_data.get());
+        else
+          res.uploadStaticBuffer(buf, 0, sz, cpu->raw_data.get());
         ssbo.buffer = buf;
         ssbo.size = sz;
         ssbo.owned = true;

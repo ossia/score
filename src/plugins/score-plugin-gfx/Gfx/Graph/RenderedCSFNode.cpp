@@ -3424,9 +3424,12 @@ void RenderedCSFNode::buildComputeSrbBindings(
             const quint32 fallback_size = (quint32)std::max<int64_t>(
                 declared_size, aux.is_uniform ? 256 : 16);
             aux.buffer = rhi.newBuffer(
-                QRhiBuffer::Static, fallback_usage, fallback_size);
+                score::gfx::bufferTypeFor(fallback_usage, QRhiBuffer::Static),
+                fallback_usage, fallback_size);
             aux.buffer->setName(QByteArray("CSF_AuxFB_") + aux.name.c_str());
-            aux.buffer->create();
+            if(!aux.buffer->create())
+              qWarning() << "CSF: could not create the fallback buffer for"
+                         << aux.name.c_str();
             aux.size = fallback_size;
             aux.owned = true;
           }
@@ -3842,11 +3845,19 @@ void RenderedCSFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& r
         {
           const auto usage = aux.is_uniform ? QRhiBuffer::UniformBuffer
                                             : QRhiBuffer::StorageBuffer;
-          auto* buf = rhi.newBuffer(QRhiBuffer::Static, usage, requiredSize);
+          const auto type
+              = score::gfx::bufferTypeFor(usage, QRhiBuffer::Static);
+          auto* buf = rhi.newBuffer(type, usage, requiredSize);
           buf->setName(QByteArray("CSF_GeoAux_") + aux.name.c_str());
-          buf->create();
+          if(!buf->create())
+            qWarning() << "CSF: could not create the geometry aux buffer for"
+                       << aux.name.c_str();
           QByteArray zero(requiredSize, 0);
-          res.uploadStaticBuffer(buf, 0, requiredSize, zero.constData());
+          if(type == QRhiBuffer::Dynamic)
+            res.updateDynamicBuffer(
+                buf, 0, (quint32)requiredSize, zero.constData());
+          else
+            res.uploadStaticBuffer(buf, 0, requiredSize, zero.constData());
           ssbo.buffer = buf;
           ssbo.size = requiredSize;
           ssbo.owned = true;
