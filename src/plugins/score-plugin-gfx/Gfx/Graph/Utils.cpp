@@ -1242,6 +1242,14 @@ makeShaders(const RenderState& v, QString vert, QString frag, int multiViewCount
   // per_draws[draw_id].model sees there.
   //
   // D3D12 reports 128 and binds by root-signature visibility, so it is unaffected.
+  //
+  // Guarded: QRhi::MaxVertexStorageBuffers does not exist in any RELEASED Qt.
+  // It was added by qtbase f332defeace ("rhi: Report the per-stage storage
+  // buffer limits", 2026-08-17), 1564 commits after v6.12.0-beta1 -- absent
+  // from 6.9 and from 6.12.0-beta1 alike. Nix and AppImage build against a
+  // released Qt and failed to compile this. 6.13 is the first version certain
+  // to carry it; if it ships in 6.12.0 final, lower the check.
+#if QT_VERSION >= QT_VERSION_CHECK(6, 13, 0)
   if(v.rhi && v.rhi->resourceLimit(QRhi::MaxVertexStorageBuffers) == 0
      && !vertexS.description().storageBlocks().isEmpty())
   {
@@ -1257,6 +1265,7 @@ makeShaders(const RenderState& v, QString vert, QString frag, int multiViewCount
                  << blocks.join(", ");
     }
   }
+#endif
 
   return {vertexS, fragmentS};
 }
