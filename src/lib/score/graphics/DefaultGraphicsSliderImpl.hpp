@@ -28,6 +28,28 @@ struct RightClickImpl
   QPointer<QGraphicsProxyWidget> spinboxProxy{};
 };
 
+/**
+ * @brief The one type-in box a right-click may have open.
+ *
+ * Right-clicking a second control -- or the same one twice -- used to leave
+ * the first box floating over the scene with nobody owning it: it is parented
+ * to the scene, not to the control, so nothing took it down. One at a time,
+ * closed the same way the user closes it.
+ */
+SCORE_LIB_BASE_EXPORT QPointer<QGraphicsProxyWidget>& currentRightClickWidget();
+
+//! Takes down whatever right-click box is open, if any.
+inline void closeRightClickWidget()
+{
+  if(auto& cur = currentRightClickWidget())
+  {
+    if(auto* sc = cur->scene())
+      sc->removeItem(cur);
+    delete cur.data();
+    cur = nullptr;
+  }
+}
+
 struct DefaultGraphicsSliderImpl
 {
   template <typename T>
@@ -217,10 +239,9 @@ struct DefaultGraphicsSliderImpl
         {
           self_p->sliderReleased();
           QObject::disconnect(con);
-          // obj is the timer's context, not self: if the next right-click
-          // took this box down first, through closeRightClickWidget(), the
-          // teardown goes with it rather than freeing it a second time.
-          QTimer::singleShot(0, obj, [scene = self_p->scene(), obj] {
+          QTimer::singleShot(0, self_p, [self_p, scene = self_p->scene(), obj] {
+            if(currentRightClickWidget() == obj)
+              currentRightClickWidget() = nullptr;
             scene->removeItem(obj);
             delete obj;
           });

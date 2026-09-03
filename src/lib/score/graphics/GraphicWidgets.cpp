@@ -1,4 +1,5 @@
 #include <score/graphics/BangPainting.hpp>
+#include <score/graphics/DefaultGraphicsSliderImpl.hpp>
 #include <score/model/Skin.hpp>
 
 #include <QBrush>
@@ -17,5 +18,13 @@ QBrush bangFill(const QPalette& fallback, bool lit)
     return b;
 
   return QBrush{fallback.color(lit ? QPalette::Mid : QPalette::Highlight)};
+}
+
+// One per process: a right-click box is parented to the scene, so nothing
+// else owns it.
+QPointer<QGraphicsProxyWidget>& currentRightClickWidget()
+{
+  static QPointer<QGraphicsProxyWidget> current;
+  return current;
 }
 }
