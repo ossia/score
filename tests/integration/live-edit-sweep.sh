@@ -200,22 +200,23 @@ run_scenario() { # name nticks
   ) 9>/tmp/score-harness.lock
 }
 
-# Every scenario quits with a document open, which is the only condition under
-# which the four remaining by-value-but-Qt-owned members of ScenarioDocumentView
-# are freed by Qt at an address that was never malloc'd. That defect is real,
-# understood, filed, and deliberately not fixed here (m_view alone has ~26 call
-# sites); leaving it to fail every scenario would cost the whole sweep its signal.
+# Signature carve-out for AddressSanitizer reports from a KNOWN, filed,
+# deliberately-unfixed defect, so that one such defect cannot cost the whole
+# sweep its signal. It suppresses nothing by itself: a report counts as known
+# only if one of its frames matches, and any other report -- including a new
+# one in the same file -- still fails the scenario.
 #
-# So it is carved out BY SIGNATURE, not by disabling the check: a report is known
-# only if its allocating frame is one of these two destructors. Any other
-# AddressSanitizer report -- including a new one in the same file -- still fails.
-#
-# ScenarioDocumentView.cpp:778 is the empty ~ScenarioDocumentView, i.e. where
-# m_view / m_timeRulerView / m_minimapView / m_minimap are destroyed, and every
-# report anchors in one of those four. The last of the four is a SEGV rather
-# than an invalid free only because the three before it have already poisoned
-# ASan's shadow.
-KNOWN_ASAN_FRAMES='Scenario::ProcessGraphicsView::~ProcessGraphicsView|Scenario::MinimapGraphicsView::~MinimapGraphicsView|Scenario::TimeRulerGraphicsView::~TimeRulerGraphicsView|Scenario::ScenarioDocumentView::~ScenarioDocumentView'
+# THE LIST IS EMPTY. It used to carry the four destructors of
+# ScenarioDocumentView's by-value-but-Qt-owned members
+# (ProcessGraphicsView / MinimapGraphicsView / TimeRulerGraphicsView, plus
+# ~ScenarioDocumentView itself, where all four were destroyed): every scenario
+# quits with a document open, which is the only condition under which Qt frees
+# them at an address that was never malloc'd. Those members are heap-allocated
+# now, so the carve-out would only hide a regression. An empty list means every
+# report is a finding, which is the state this sweep should normally be in --
+# add a signature here only alongside a filed, understood defect, and delete it
+# again when that defect is fixed.
+KNOWN_ASAN_FRAMES=''
 
 # Prints "<total> <known>" for the AddressSanitizer reports in a log. A report
 # runs from its ERROR: line to its SUMMARY:, and counts as known only if one of
@@ -224,7 +225,7 @@ asan_census() {
   awk -v known="$KNOWN_ASAN_FRAMES" '
     /ERROR: AddressSanitizer/ { total++; inrep = 1; matched = 0; next }
     inrep && /SUMMARY: AddressSanitizer/ { if(matched) k++; inrep = 0; next }
-    inrep && $0 ~ known { matched = 1 }
+    inrep && known != "" && $0 ~ known { matched = 1 }
     END { if(inrep && matched) k++; print total+0, k+0 }' "$1" 2>/dev/null
 }
 
