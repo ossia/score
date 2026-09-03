@@ -58,6 +58,12 @@ score_add_test(test_unit_address_settings_widgets
   APP
   PLUGINS score_plugin_deviceexplorer score_lib_device score_lib_state)
 
+# The textual form of a value: printed by the editors, read back by the parser.
+score_add_test(test_unit_value_text
+  SOURCES ValueTextRoundTripTest.cpp
+  APP
+  PLUGINS score_lib_state)
+
 # The shared per-type value editors used by the tree, the address panel and the
 # address dialog.
 score_add_test(test_unit_value_editors

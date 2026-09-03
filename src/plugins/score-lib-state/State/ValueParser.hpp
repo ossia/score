@@ -92,6 +92,16 @@ struct BoolParse_map : qi::symbols<char, bool>
 {
   BoolParse_map() { add("true", true)("false", false); }
 };
+
+//! The escapes State::convert::escapeStringLiteral writes; the two have to
+//! stay in step or values stop round-tripping through their textual form.
+struct StringEscape_map : qi::symbols<char, char>
+{
+  StringEscape_map()
+  {
+    add("\\\\", '\\')("\\\"", '"')("\\n", '\n')("\\r", '\r')("\\t", '\t');
+  }
+};
 template <typename Iterator>
 struct Value_parser : qi::grammar<Iterator, ossia::value()>
 {
@@ -105,7 +115,11 @@ struct Value_parser : qi::grammar<Iterator, ossia::value()>
     using qi::alnum;
 
     char_parser %= "'" >> (char_ - "'") >> "'";
-    str_parser %= '"' >> qi::lexeme[*(char_ - '"')] >> '"';
+    // A known escape wins; anything else, a lone backslash included, is taken
+    // literally, so a hand-written Windows path still reads.
+    // Quotes inside the lexeme: the literal is skipper-free, so a leading
+    // space survives.
+    str_parser %= qi::lexeme['"' >> *(escape_parser | (char_ - '"')) >> '"'];
 
     list_parser %= skip(boost::spirit::standard::space)["[" >> -(start % ",") >> "]"];
     start %= real_parser<float, boost::spirit::qi::strict_real_policies<float>>() | int_
@@ -113,6 +127,7 @@ struct Value_parser : qi::grammar<Iterator, ossia::value()>
   }
 
   BoolParse_map bool_parser;
+  StringEscape_map escape_parser;
 
   qi::rule<Iterator, std::vector<ossia::value>()> list_parser;
   qi::rule<Iterator, char()> char_parser;
