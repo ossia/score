@@ -402,8 +402,17 @@ TEST_CASE("extension dispatch is case-insensitive", "[threedim][geomloader]")
   REQUIRE(load(loader, f.name));
   const auto vertices = loader.outputs.geometry.mesh.at(0).vertices;
 
+  // A DIFFERENT stem, not just a different extension case. On a
+  // case-insensitive filesystem -- Windows, and macOS by default --
+  // "<stem>.PLY" and "<stem>.ply" name the SAME file, so copy_file() is a
+  // self-copy, which the standard requires to fail (equivalent(from, to))
+  // even with overwrite_existing. It threw
+  //   copy_file: File exists ["...-5.PLY"] ["...-5.ply"]
+  // and took the whole case-insensitivity test with it. The stem change keeps
+  // the upper-case extension the case is actually about while making the two
+  // paths distinct files everywhere.
   auto upper = f.path;
-  upper.replace_extension(".PLY");
+  upper.replace_filename(upper.stem().string() + "-upper.PLY");
   std::filesystem::copy_file(
       f.path, upper, std::filesystem::copy_options::overwrite_existing);
 
