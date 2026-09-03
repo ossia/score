@@ -212,22 +212,30 @@ private:
  * digits once the row height is honoured. The arrows go entirely -- the wheel
  * and the keyboard still step the value.
  *
- * Geometry only, no colours or borders, so the skin still styles the fields.
+ * Widget API and not a style sheet: the deployment builds of Qt are configured
+ * with QT_NO_STYLE_STYLESHEET, where setStyleSheet is not declared at all.
  */
-constexpr auto compactEditorStyle = R"_(
-QAbstractSpinBox { padding: 0px 1px; margin: 0px; min-height: 0px; border: none; }
-QAbstractSpinBox::up-button, QAbstractSpinBox::down-button {
-  width: 0px; height: 0px; border: none; margin: 0px;
+void compactField(QWidget& w)
+{
+  w.setMinimumSize(0, 0);
+  w.setContentsMargins(0, 0, 0, 0);
+
+  // The cell is the frame: a sunken border costs ~4px of the row's 18.
+  if(auto* le = qobject_cast<QLineEdit*>(&w))
+  {
+    le->setFrame(false);
+    le->setTextMargins(2, 0, 2, 0);
+  }
+  else if(auto* sb = qobject_cast<QAbstractSpinBox*>(&w))
+  {
+    sb->setFrame(false);
+    sb->setButtonSymbols(QAbstractSpinBox::NoButtons);
+  }
+  else if(auto* cb = qobject_cast<QComboBox*>(&w))
+  {
+    cb->setFrame(false);
+  }
 }
-QLineEdit { padding: 0px 2px; margin: 0px; min-height: 0px; border: none; }
-QComboBox { padding: 0px 2px; margin: 0px; min-height: 0px; border: none; }
-QComboBox::drop-down { width: 10px; border: none; }
-QPushButton {
-  padding: 0px 4px; margin: 0px; min-height: 0px; min-width: 0px;
-  border: 1px solid palette(mid); border-radius: 2px;
-}
-QCheckBox { padding: 0px; margin: 0px; min-height: 0px; }
-)_";
 
 //! Lets an editor be squeezed into a tree row.
 //!
@@ -245,20 +253,9 @@ void makeRowSized(QWidget& w)
     l->setSpacing(3);
   }
 
-  w.setStyleSheet(QString::fromUtf8(compactEditorStyle));
-
-  w.setMinimumSize(0, 0);
+  compactField(w);
   for(auto* child : w.findChildren<QWidget*>())
-  {
-    child->setMinimumSize(0, 0);
-    child->setContentsMargins(0, 0, 0, 0);
-
-    // The cell is the frame: a sunken border costs ~4px of the row's 18.
-    if(auto* le = qobject_cast<QLineEdit*>(child))
-      le->setFrame(false);
-    else if(auto* sb = qobject_cast<QAbstractSpinBox*>(child))
-      sb->setFrame(false);
-  }
+    compactField(*child);
 
   // The delegate hands the editor the cell rect; it has to cover it.
   w.setAutoFillBackground(true);
@@ -1526,9 +1523,8 @@ void fitEditorToCell(QWidget& editor, const QRect& cell)
   {
     le->setFrame(false);
     le->setContentsMargins(0, 0, 0, 0);
-    le->setStyleSheet(
-        QStringLiteral("QLineEdit { padding: 0px 2px; margin: 0px; "
-                       "min-height: 0px; border: none; }"));
+    le->setTextMargins(2, 0, 2, 0);
+    le->setMinimumSize(0, 0);
   }
 
   const int target = cell.height();
