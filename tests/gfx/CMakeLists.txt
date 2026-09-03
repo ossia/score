@@ -355,6 +355,17 @@ score_add_gfx_test(incremental_findings GfxIncrementalFindings.cpp)
 # object tracking when present. The incremental_findings pin only asserts the
 # added output's pixels appear; green there is not evidence about the leak.
 score_add_gfx_test(render_pass_leak GfxRenderPassLeak.cpp)
+# A raw-Vulkan vkCmdCopyBuffer recorded through beginExternal() is invisible to
+# QRhi's own barrier tracking, so score's batch barrier is the only thing that
+# can order it against the staging copies of the QRhiResourceUpdateBatch
+# submitted earlier in the same command buffer. It named only the compute
+# stage, which is how growBuf's full-extent zero-clear of
+# ScenePreprocessor::inst.translations / .colors and issuePendingGpuCopies'
+# per-instance writes into the same buffer became a transfer WRITE_AFTER_WRITE.
+# Runs the engine path under synchronization validation, with a deliberately
+# unsynchronised copy as the positive control so a silent layer SKIPs instead
+# of going green.
+score_add_gfx_test(buffer_copy_barrier_sync GfxBufferCopyBarrierSync.cpp)
 # P0-4: the (now-fixed) resize-after-incremental-add Vulkan SIGSEGV, re-run in
 # a forked child so a future regression is a recorded verdict ("child killed by
 # signal 11") instead of a dead ctest run. The parent stays graphics-free
