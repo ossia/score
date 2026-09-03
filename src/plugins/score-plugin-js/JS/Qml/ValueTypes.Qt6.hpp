@@ -18,6 +18,10 @@
 namespace JS
 {
 
+//! Register the QML value types Qt.vector3d() and its siblings need.
+//! \see the comment on the definition. Returns false if QtQuick is not linked.
+bool registerQmlValueTypes();
+
 struct Vec2fValueType
 {
   QVector2D v;
