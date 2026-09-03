@@ -12,9 +12,8 @@ namespace score
  * Shared by score::QGraphicsButton in the node view and the device explorer's
  * tree rows and address panel.
  *
- * Falls back to the palette when the skin has not been loaded: its brushes are
- * default-constructed until the application installs the skin resource, and a
- * bang in transparent black is invisible.
+ * Falls back to the palette when the skin has no brushes to give -- a no-GUI
+ * application context leaves them default-constructed.
  *
  * @param lit The pressed state.
  */
