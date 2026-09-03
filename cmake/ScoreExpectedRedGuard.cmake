@@ -56,6 +56,7 @@ include_guard(GLOBAL)
 set(SCORE_EXPECTED_RED
   # -- Catch2 [!shouldfail] -------------------------------------------------
   "shouldfail@tests/integration/ScenarioContentRoundtripTest.cpp@A scenario with an added process stays a byte fixed point@A10: two non-determinism sources remain — view-geometry doubles recomputed on layout, and a random 62-byte tail"
+  "shouldfail@tests/integration/ScenarioContentRoundtripTest.cpp@a scenario with added processes is a JSON byte fixed point@A27: the process-order half is FIXED and its sibling order case is green and enforced. What is left is ONE named source — IntervalModel Zoom/Center, recomputed from the live viewport width by ScenarioDocumentPresenter::on_minimapChanged and written back into the model. A view-behavior change, not a serialization one"
   "shouldfail@tests/integration/MissingProcessRoundtripTest.cpp@a process whose factory is missing keeps its identity, its ports and its cables across a load@A16: ProcessFactory::loadMissing() is SCORE_TODO/return nullptr. Owned by PR #2179, not by this stack — goes green when #2179 lands"
   "shouldfail@tests/integration/RegressionSplatReloadTest.cpp@Splat's prettyName says Splat, not Model Display@A17: two processes share one display name"
   "shouldfail@tests/unit/AssetTableTest.cpp@AssetTable: zero-byte entries are not reclaimed by trim (current behavior)@trim() skips zero-byte entries, so a table of them never shrinks"
