@@ -5,7 +5,6 @@
 #include <Process/HeaderDelegate.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
-#include <Process/MissingProcess.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 
@@ -159,50 +158,9 @@ bool LayerFactory::matches(const UuidKey<Process::ProcessModel>& p) const
 ProcessFactoryList::object_type* ProcessFactoryList::loadMissing(
     const VisitorVariant& vis, const score::DocumentContext& ctx, QObject* parent) const
 {
-  // A process whose factory is not installed in this build. Returning nullptr
-  // here (which is what this did) makes the loader drop the process AND every
-  // cable attached to it, silently, while the document still reports as loaded
-  // — and the next save makes the loss permanent. Keep it instead: see
-  // Process::MissingProcess.
-  switch(vis.identifier)
-  {
-    case JSONObject::type(): {
-      auto& des = static_cast<JSONObject::Deserializer&>(vis.visitor);
-      return new Process::MissingProcess{des, parent};
-    }
-    case DataStream::type(): {
-      auto& des = static_cast<DataStream::Deserializer&>(vis.visitor);
-      auto proc = new Process::MissingProcess{des, parent};
-      if(proc->concreteKey() == UuidKey<Process::ProcessModel>{})
-      {
-        // The tail was written by the real process, not by us, so its uuid is
-        // unrecoverable: deserialize_interface consumed the abstract key before
-        // calling us and the DataStream deserializer cannot rewind. Inventing an
-        // identity would be worse than declining. Only reachable through the
-        // clipboard / undo stack — documents are JSON.
-        qWarning() << "Process::loadMissing: cannot preserve a binary-serialized "
-                      "process whose factory is missing";
-        delete proc;
-        return nullptr;
-      }
-      return proc;
-    }
-    default:
-      return nullptr;
-  }
+  SCORE_TODO;
+  return nullptr;
 }
-
-//! Stand-in for a process whose layer factory is not installed. Everything it
-//! does is LayerFactory's default behaviour; it exists only so that
-//! findDefaultFactory never returns null.
-class MissingLayerFactory final : public Process::LayerFactory
-{
-  SCORE_CONCRETE("1cc0e9e2-6b16-4b8a-a1a1-6c2e6b6e0d4f")
-
-  //! Never registered in the interface list; it is only ever handed out
-  //! explicitly by findDefaultFactory, so it claims nothing.
-  bool matches(const UuidKey<Process::ProcessModel>&) const override { return false; }
-};
 
 LayerFactory* LayerFactoryList::findDefaultFactory(const ProcessModel& proc) const
 {
@@ -217,15 +175,7 @@ LayerFactoryList::findDefaultFactory(const UuidKey<ProcessModel>& proc) const
     if(fac.matches(proc))
       return &fac;
   }
-
-  // No factory claims this key. That used to be impossible in practice, because
-  // a process with no factory never made it past loading; now Process::
-  // MissingProcess does, and the scenario presenters (TemporalIntervalPresenter,
-  // FullViewIntervalPresenter, LayerData::updateLoops) dereference this pointer
-  // unconditionally. Hand back a factory whose every method is the base-class
-  // default: the layer is the standard "name in a box" DefaultLayerView.
-  static MissingLayerFactory missing;
-  return &missing;
+  return nullptr;
 }
 
 QString ProcessModelFactory::customConstructionData() const noexcept

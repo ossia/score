@@ -1,4 +1,33 @@
 // =============================================================================
+// EXPECTED RED ON THIS BRANCH, ON PURPOSE. Read this before "fixing" it.
+//
+// This test asserts a CONTRACT, and it is deliberately implementation-agnostic:
+// it names no placeholder class and no factory internals, only what a user can
+// observe after a round trip -- the process is still there, under its original
+// uuid, with its ports, and the cable into it still resolves.
+//
+// The implementation it was written alongside (Process::MissingProcess,
+// f2b5a07da2) was REVERTED: the user decided PR #2179 "Survive a build that
+// does not have every plug-in" owns this problem, and it solves it far more
+// broadly -- ports, layers, document plug-ins, device protocols, network peers
+// and curve segments, where ours covered the process and its cables. Keeping
+// both would have conflicted on merge.
+//
+// The test is kept rather than reverted with it, because #2179's own pin
+// (a60e6e871b, tests/unit/HeterogeneousBuildTest.cpp "A process with no factory
+// keeps its identity and data") is a UNIT test over deserialize_interface: it
+// checks the uuid, the port COUNTS and a byte-identical payload round trip, all
+// of which are stronger than ours in their own way -- but it never builds a
+// document, never attaches a cable, and so cannot see a cable dropped because
+// its endpoint vanished. That was the actual reported symptom of A16. An
+// independent check written against someone else's implementation is worth more
+// than one written alongside it.
+//
+// So: this goes GREEN when #2179 lands, and the [!shouldfail] tag comes off in
+// the same commit. Until then loadMissing is back to `SCORE_TODO; return
+// nullptr;` and it fails by DETECTING THE LOSS rather than by crashing --
+// `CHECK(int(interval.processes.size()) == process_count)` reads 2 == 3.
+// =============================================================================
 // A16 — a document that names a process this build does not have must come back
 // WITH that process, its ports and its cables.
 //
@@ -113,7 +142,7 @@ QByteArray save_json(score::Document& doc)
 TEST_CASE(
     "a process whose factory is missing keeps its identity, its ports and its "
     "cables across a load",
-    "[integration][serialization][missing]")
+    "[integration][serialization][missing][!shouldfail]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
     auto& delegates = ctx.interfaces<score::DocumentDelegateList>();
