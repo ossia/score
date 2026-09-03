@@ -191,6 +191,42 @@ inline std::vector<score::gfx::GraphicsApi> platform_backends()
 #endif
 }
 
+// -----------------------------------------------------------------------------
+// THE NULL BACKEND REFUSES RATHER THAN PRETENDS (spec P2-15).
+//
+// QRhi's Null backend accepts every command and rasterizes nothing. It is a
+// legitimate target for the parts of a case that are DECISIONS -- which shim was
+// selected, which pass was recorded, which caps were queried -- and it is not a
+// legitimate target for anything that reads a pixel back.
+//
+// Before this, a pixel case run with SCORE_TEST_API=null went all the way
+// through create() and render() and then died on
+//     "readback of output 0 was empty/short (got 0 bytes ...)"
+// which is a RED that names the fixture rather than the code under test, and
+// which a reader triaging a platform run cannot tell from a real regression. The
+// symmetric hazard is worse: a case whose expected colour happens to be the zero
+// pixel would have gone GREEN against a buffer that was never drawn.
+//
+// So the fixture refuses: create()/render_isf_chain() report skipped=true with
+// this reason as soon as Null is the requested backend, and the standard
+//     if(r.skipped) SKIP(r.skip_reason);
+// prologue every case already carries turns that into a SKIP verdict.
+//
+// A case whose assertions are STRUCTURAL -- and which therefore wants to run on
+// Null on purpose, e.g. GfxCubemapSixFaces' shim-selection half -- opts back in
+// with GfxPipeline::allowNullBackend(). Opting in does not make pixels appear:
+// the readback is still empty, and readback().valid() is still false. That is
+// the "does not pretend" half, and it is asserted in GfxNullBackendRefuses.cpp.
+// -----------------------------------------------------------------------------
+inline const char* null_backend_skip_reason() noexcept
+{
+  return "RHI backend 'Null' accepts every command and rasterizes nothing, so no "
+         "pixel assertion can be made against it. The fixture refuses rather than "
+         "hand back a buffer that was never drawn; opt in with "
+         "GfxPipeline::allowNullBackend() for structural (decision-logic) "
+         "assertions only.";
+}
+
 /// Try to bring up a QRhi for `api`. Returns true (and the backend name) if a
 /// real device could be created, false otherwise. Non-destructive: the probe
 /// state is torn down before returning.
@@ -704,6 +740,15 @@ inline IsfResult render_isf_chain(
   //    this backend specifically — the caller iterates all backends and each
   //    reports its own availability.
   const score::gfx::GraphicsApi api = backend;
+
+  // Null draws nothing: every caller of this function reads pixels back, so the
+  // only honest verdict is SKIP. See null_backend_skip_reason().
+  if(api == score::gfx::Null)
+  {
+    r.skipped = true;
+    r.skip_reason = null_backend_skip_reason();
+    return r;
+  }
   {
     std::string probed;
     if(!probe_api(api, probed))
@@ -1171,11 +1216,24 @@ public:
   /// with skipped()=true when the backend cannot initialize here or the offscreen
   /// targets cannot be allocated headless; false with error() non-empty on a
   /// genuine build error. On success records the actual backend name.
+  /// Let create() proceed on GraphicsApi::Null. Only for a case whose
+  /// assertions are STRUCTURAL — which shim/pass/cap was selected — never for
+  /// one that reads a pixel: the readback stays empty and readback().valid()
+  /// stays false. See null_backend_skip_reason().
+  void allowNullBackend(bool v = true) { m_allowNull = v; }
+
   bool create(score::gfx::GraphicsApi api)
   {
     m_backend = backend_name(api);
     if(!m_error.empty())
       return false;
+
+    if(api == score::gfx::Null && !m_allowNull)
+    {
+      m_skipped = true;
+      m_skipReason = null_backend_skip_reason();
+      return false;
+    }
 
     std::string probed;
     if(!probe_api(api, probed))
@@ -1334,6 +1392,7 @@ public:
 private:
   int32_t m_nextId = 1;
   int64_t m_frame = 0;
+  bool m_allowNull = false;
   bool m_skipped = false;
   std::string m_skipReason;
   std::string m_error;

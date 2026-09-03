@@ -115,6 +115,15 @@ CubeFacts run_cube(score::gfx::GraphicsApi backend)
       return;
     }
 
+    // This case has a STRUCTURAL half that is meaningful on the Null backend
+    // (which shim the producer selected: cube vs shadow-array vs plain 2D), and
+    // it is written to hold "on EVERY backend that could build the pipeline,
+    // Null included" -- see the invariant below. So it opts back into Null,
+    // which the fixture otherwise refuses for pixel work (spec P2-15,
+    // null_backend_skip_reason()). The pixel half already excludes Null
+    // explicitly at the `isNull` guard further down.
+    p.allowNullBackend();
+
     // 96x64 sink => six 32x32 probe cells.
     const int sink = p.addSink({96, 64});
     p.wire(p.imageOut(prod, 0), p.imageIn(view, 0));
