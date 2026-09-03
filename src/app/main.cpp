@@ -780,10 +780,26 @@ static void setup_qml()
 
 struct failsafe
 {
-  const bool fs = this->read();
+  // An explicit way out, for automated runs. The bit is deliberately STICKY --
+  // clear() below refuses to remove it when this process itself started in
+  // failsafe, so a genuinely crashing install stays safe across restarts. The
+  // cost is that ONE crashed startup degrades every later launch (opengl forced
+  // off, see the use at the bottom of main) until the file is deleted by hand.
+  // In a test sweep that silently turns the rest of the run into failsafe-mode
+  // results: measured on Windows, 15 of 21 tests in one leg. Spelled like the
+  // neighbouring SCORE_DISABLE_AUDIOPLUGINS / SCORE_DISABLE_LV2.
+  //
+  // When set, failsafe is bypassed entirely: not read, not written, not
+  // cleared. Any existing bit is left alone rather than deleted, so this does
+  // not quietly discard state the user may want.
+  const bool disabled = qEnvironmentVariableIsSet("SCORE_DISABLE_FAILSAFE");
+  const bool fs = !disabled && this->read();
 
   explicit failsafe()
   {
+    if(disabled)
+      return;
+
     if(!fs)
     {
       this->write();
@@ -812,6 +828,9 @@ struct failsafe
 
   void clear()
   {
+    if(disabled)
+      return;
+
     // We only clear the failsafe if it was not set otherwise
     // it would crash every other time..
     if(!fs)
