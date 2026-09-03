@@ -7,7 +7,7 @@
 // proves real pixels, but only for what ffmpeg can round-trip through a
 // container that preserves the pix_fmt -- which excludes every packed format
 // here (no muxer stores y210/xv30/vuya, and yuva444p12 does not survive one).
-// So these four decoders were selectable and nothing more.
+// So these four decoders have no pixel-level coverage there.
 //
 // The frames are therefore synthesised: a std::vector of bytes laid out by hand
 // per the format's specification, handed to a fake Video::ExternalInput, and
@@ -23,8 +23,8 @@
 // Cr' = (Cr-128)/255 -- H.273 full range puts neutral chroma at code 128
 // and scales by 255, so the centre is 128/255, not 0.5 (a 0.5 centre puts
 // `cr-hi` green at 68; ffmpeg says 69).
-// BOTH the byte layouts and those RGB values were then cross-checked, before
-// this file was written, by feeding the exact same synthesised bytes to
+// BOTH the byte layouts and those RGB values are cross-checked by feeding the
+// exact same synthesised bytes to
 // `ffmpeg -f rawvideo -pix_fmt <fmt> ... -vf format=rgb24` and reading the
 // result. ffmpeg's swscale and this file agree on every cell of the table below;
 
@@ -43,34 +43,6 @@
 // the wrong 10-bit field, the wrong half of a macropixel, the wrong stride)
 // leaves the colour cases correct and only shows up as a wrong value at a known
 // x.
-//
-// WHAT THIS FOUND. The RGBA8 control decodes correctly on both backends. Four
-// defects:
-//
-//  1. Every full-range matrix in ColorSpace.hpp centred chroma on 0.5 instead of
-//     128/255, so R and B came back one code high at EVERY luma level, black
-//     included -- (1,0,1) for black, (129,128,129) for grey -- on 8-bit VUYA
-//     just as much as on 10-bit Y210. G moved by only -0.33 of a code and so
-//     stayed put. FIXED.
-//
-//  2. The high-bit-depth scale factors were all 0.39% low: P010 / P210 / P410 /
-//     P016 / RGB48 / RGBA64 / GRAY16 / YA16 / GBRP16 applied none at all, the
-//     LSB-aligned planar decoders used 64 and 16 where the format needs
-//     65535/1020 and 65535/4080, and XV30 took RGB10A2's code/1023 as final.
-//     FIXED; this is what kTol = 0 costs.
-//
-//  3. Y210Decoder allocated an RGBA16F texture and uploaded UNORM16 samples
-//     into it, so every sample was reinterpreted as a half-float and the
-//     picture collapsed to two constants. Same defect class as the
-//     rgba64le/bgra64le one video-decode-correctness.sh records as fixed. FIXED
-//     -- the decoder now uploads RG16 unorm at {w, h}; both Y210 cases below
-//     assert the correct pixels and are no longer [!shouldfail].
-//
-//  4. VUYADecoder and XV30Decoder are gated in GPUVideoDecoderFactory.cpp on a
-//     libavutil far later than the one that introduced their pixel formats, so
-//     on every shipping ffmpeg 6.x/7.x they are unreachable dead code and those
-//     formats render black. Still open; carries a [!shouldfail] case with the
-//     correct expectation and the evidence.
 //
 // NOT COVERED HERE, and why:
 //  - V210 / R210 / Bayer / PackedBitfield* are wire decoders: makeWireDecoder()
@@ -107,7 +79,7 @@ extern "C" {
 #include <vector>
 
 // Two different questions, and for VUYA / VUYX / XV30 they have different
-// answers on this host -- which is itself a finding, see the *_NAMEABLE cases.
+// answers -- see the *_NAMEABLE cases.
 //
 //  NAMEABLE   : this libavutil declares the AVPixelFormat, so a frame can carry
 //               it and a test can build one. Verified present in libavutil
@@ -454,20 +426,16 @@ TEST_CASE(
     "Y210Decoder unpacks 10-bit 4:2:2 to the right colour",
     "[gfx][video][decoder][pixels]")
 {
-  // WAS [!shouldfail]. Y210Decoder::init() allocated QRhiTexture::RGBA16F and
-  // exec() uploaded the raw y210 bytes into it, so the sampler reinterpreted
-  // UNORM16 sample data as IEEE half-floats: grey (0x8000 = -0.0) came back
-  // (0, 84, 0) and white (0xFFC0 = NaN) came back black, on both backends.
-  // Same defect that video-decode-correctness.sh records as fixed for
-  // rgba64le/bgra64le; y210 kept it because no container stores y210, so that
-  // harness could never reach it.
-  //
-  // The decoder now uploads into an RG16 unorm texture at {w, h} -- 4 bytes per
+  // Y210Decoder uploads into an RG16 unorm texture at {w, h} -- 4 bytes per
   // texel is exactly one luma plus one chroma sample of the macropixel -- and
-  // reassembles the triple with texelFetch.
+  // reassembles the triple with texelFetch. An RGBA16F texture instead would
+  // reinterpret the UNORM16 samples as IEEE half-floats and collapse the
+  // picture to two constants: grey (0x8000 = -0.0) reads (0, 84, 0), white
+  // (0xFFC0 = NaN) reads black.
   //
-  // The readback also ran 0.39% low (white 254 for 255) until the sampler's
-  // v/65535 was corrected by 65535/65280 -- see SCORE_GFX_MSB_ALIGNED_SCALE.
+  // The sampler's v/65535 is corrected by 65535/65280
+  // (SCORE_GFX_MSB_ALIGNED_SCALE); without it the readback runs 0.39% low,
+  // white 254 for 255.
   const auto api = GENERATE(from_range(platform_backends()));
   for(const auto& c : kColors)
   {
@@ -523,48 +491,12 @@ TEST_CASE("VUYADecoder unpacks V,U,Y,A byte order", "[gfx][video][decoder][pixel
 
 #endif
 
-#if SCORE_TEST_VUYA_NAMEABLE && !SCORE_TEST_VUYA_SELECTABLE
-TEST_CASE(
-    "VUYA / VUYX / XV30 reach a decoder at all",
-    "[gfx][video][decoder][pixels][!shouldfail]")
-{
-  // FINDING, and the reason the three cases above compiled out of this build.
-  //
-  // AV_PIX_FMT_VUYA, AV_PIX_FMT_VUYX and AV_PIX_FMT_XV30LE are declared by
-  // libavutil 58.29.100 (ffmpeg 6.1) -- this file is only compiled when they
-  // are, since it names them. GPUVideoDecoderFactory.cpp nonetheless puts all
-  // three inside `#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(60, 8, 100)`,
-  // which is ffmpeg 8. So on every ffmpeg 6.x and 7.x build -- the ones
-  // currently shipping -- VUYADecoder and XV30Decoder are dead code: the switch
-  // falls through, createGpuDecoder() logs "Unhandled pixel format" and installs
-  // EmptyDecoder, and the frame renders black.
-  //
-  // Nothing is wrong with the decoders; the version gate is. Lowering the guard
-  // for these three cases (58.29.100, or whichever earlier release actually
-  // introduced each) restores them.
-  //
-  // Asserted as "not black": black is exactly what the EmptyDecoder path
-  // produces, so this is the smallest claim that distinguishes "the gate is
-  // wrong" from "the decoder is wrong", and it costs nothing when the gate is
-  // fixed -- the case then compiles out and the real pixel cases compile in.
-  const auto api = GENERATE(from_range(platform_backends()));
-  const auto fmt = GENERATE(AV_PIX_FMT_VUYA, AV_PIX_FMT_VUYX, AV_PIX_FMT_XV30LE);
-
-  Planes planes = (fmt == AV_PIX_FMT_XV30LE)
-                      ? packXv30([](int) { return 200; }, 128, 128)
-                      : packVuya([](int) { return 200; }, 128, 128);
-
-  const auto out = render_camera(api, fmt, std::move(planes));
-  INFO("backend " << out.backend << " format " << av_get_pix_fmt_name(fmt));
-  if(out.skipped)
-    SKIP(out.skip_reason);
-  REQUIRE(out.error.empty());
-  REQUIRE(out.img.valid());
-  const auto px = out.img.at(W / 2, H / 2);
-  INFO("got (" << int(px[0]) << "," << int(px[1]) << "," << int(px[2]) << ")");
-  CHECK(int(px[0]) + int(px[1]) + int(px[2]) > 0);
-}
-#endif
+// VUYA / VUYX / XV30 need no pin of their own: libavutil declares all three
+// from 58.29.100 (ffmpeg 6.1) and GPUVideoDecoderFactory.cpp:251 gates them on
+// the same version, so NAMEABLE == SELECTABLE on every shipping ffmpeg. If the
+// product gate ever rises while SELECTABLE tracks it, the pixel cases above
+// compile out; if it rises and SELECTABLE is NOT updated, they compile in and
+// fail on the black frame. Either way the divergence is visible.
 
 TEST_CASE(
     "The MSB-aligned semi-planar family unpacks to the right colour",
@@ -739,12 +671,10 @@ TEST_CASE(
     "Y210Decoder addresses the right sample for the right pixel",
     "[gfx][video][decoder][pixels]")
 {
-  // WAS [!shouldfail]. Kept isolated from the case above because under the
-  // RGBA16F reinterpretation the staircase collapsed to two constants (bands
-  // 0/2/3 near (0,84,0), band 1 saturated to white) and said nothing about
-  // ADDRESSING. With the RG16 upload it does: the luma of pixel x is the .r of
-  // texel x and the two chroma samples are the .g of the macropixel's pair, so
-  // a half-macropixel or stride error moves a band.
+  // Kept isolated from the case above because this one is about ADDRESSING:
+  // the luma of pixel x is the .r of texel x and the two chroma samples are
+  // the .g of the macropixel's pair, so a half-macropixel or stride error
+  // moves a band.
   const auto api = GENERATE(from_range(platform_backends()));
   check_ramp(api, "y210le", AV_PIX_FMT_Y210LE, packY210(rampLumaAt, 128, 128));
 }
