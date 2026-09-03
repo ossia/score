@@ -64,6 +64,8 @@
 #include <QThread>
 #include <QUdpSocket>
 
+#include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <cstring>
 #include <string>
@@ -486,6 +488,47 @@ Score.play();
       .arg(texProj);
 }
 
+//! The same asset->ModelDisplay->Window pipeline, but with the camera framed
+//! and the `Camera` projection combo (inlet 9) driven.
+//!
+//! Two things the rest of this file does not do:
+//!  * inlet 4 (FOV) is opened wide, because every fisheye law normalises to
+//!    r=1 at the half-FOV and they only separate over a WIDE angular field;
+//!  * inlets 2/3 (Position/Center) are written as PLAIN JS ARRAYS. That is the
+//!    `setValue(QObject*, QList<qreal>)` overload (EditContext.port.cpp:376-389),
+//!    and it works. `Qt.vector3d(x,y,z)` does NOT -- see the .vox case below for
+//!    the root cause -- and the two are easy to confuse because the broken one
+//!    is the one that looks like Qt.
+QString fisheyeScene(
+    const QString& assetPath, int cameraMode, double fovDeg, double eye,
+    double centre)
+{
+  return QStringLiteral(R"JS(
+var UUID_WINDOW = "5a181207-7d40-4ad8-814e-879fcdf8cc31";
+Score.createDevice("Window", UUID_WINDOW, {});
+var s = Score.find("Scenario.1"); if (s) Score.remove(s);
+var root = Score.rootInterval();
+var loader = Score.createProcess(root, "5df71765-505f-4ab7-98c1-f305d10a01ef", "%1");
+if (!loader) { console.log("SCENE-ERROR: no loader"); Qt.exit(9); }
+var md = Score.createProcess(root, "9ce44e4b-eeb6-4042-bb7f-9d0b28190daf", "");
+if (!md) { console.log("SCENE-ERROR: no model display"); Qt.exit(9); }
+Score.createCable(Score.outlet(loader, 0), Score.inlet(md, 1));
+Score.setValue(Score.inlet(md, 2), [%4, %4, %4]);
+Score.setValue(Score.inlet(md, 3), [%5, %5, %5]);
+Score.setValue(Score.inlet(md, 4), %3);
+Score.setValue(Score.inlet(md, 7), 6);
+Score.setValue(Score.inlet(md, 8), 0);
+Score.setValue(Score.inlet(md, 9), %2);
+Score.setAddress(Score.outlet(md, 0), "Window:/");
+Score.play();
+)JS")
+      .arg(assetPath)
+      .arg(cameraMode)
+      .arg(fovDeg)
+      .arg(eye)
+      .arg(centre);
+}
+
 constexpr auto kGeometryLoader = "5df71765-505f-4ab7-98c1-f305d10a01ef";
 constexpr auto kVoxelLoader = "a7c3e1b4-9f2d-4e8a-b6c5-1d3f7e9a2b4c";
 constexpr int kProjLight = 6;
@@ -507,6 +550,59 @@ double meanLuma(const QImage& im)
 bool nonBlank(const QImage& im)
 {
   return meanLuma(im) > 0.5; // the BLANK_MEAN rule, in 8-bit units
+}
+
+//! Largest distance, in pixels, from the frame centre to a drawn pixel.
+//!
+//! For the fisheye cases this is a closed-form quantity and not a heuristic:
+//! the drawn silhouette of a convex mesh is the convex hull of its projected
+//! vertices, the farthest point of a convex polygon from any interior point is
+//! a VERTEX, and all four fisheye laws are strictly increasing in the view
+//! angle theta -- so the pixel that attains this maximum is the projection of
+//! the same cube corner (the one at maximum theta) under every law. That is
+//! what makes the ratios between the four renders a property of the LAWS alone,
+//! independent of viewport aspect handling, of which corner it happens to be,
+//! and of the absolute scale.
+//!
+//! Number of pixels above the `lit` threshold.
+//!
+//! nonBlank() is a MEAN over the whole frame, so it cannot be used as the
+//! "something was drawn" floor for the fisheye cases: under the perspective law
+//! at a 160-degree FOV the cube is legitimately a few percent of the frame and
+//! its mean luma is well under the BLANK_MEAN rule. Measured -- that is what
+//! this counter replaced.
+int drawnPixels(const QImage& im, int lit = 24)
+{
+  int n = 0;
+  for(int y = 0; y < im.height(); y++)
+  {
+    const uchar* row = im.constScanLine(y);
+    for(int x = 0; x < im.width(); x++)
+      if((int(row[x * 3]) + int(row[x * 3 + 1]) + int(row[x * 3 + 2])) / 3 > lit)
+        n++;
+  }
+  return n;
+}
+
+//! `lit` is a luma threshold; the clear colour here is black.
+double maxDrawnRadius(const QImage& im, int lit = 24)
+{
+  const double cx = (im.width() - 1) * 0.5;
+  const double cy = (im.height() - 1) * 0.5;
+  double best = -1.0;
+  for(int y = 0; y < im.height(); y++)
+  {
+    const uchar* row = im.constScanLine(y);
+    for(int x = 0; x < im.width(); x++)
+    {
+      const int l = (int(row[x * 3]) + int(row[x * 3 + 1]) + int(row[x * 3 + 2])) / 3;
+      if(l <= lit)
+        continue;
+      const double dx = x - cx, dy = y - cy;
+      best = std::max(best, std::sqrt(dx * dx + dy * dy));
+    }
+  }
+  return best;
 }
 
 struct Diff
@@ -839,6 +935,274 @@ TEST_CASE(
   CHECK(nonBlank(r.frame));
 }
 
+// =============================================================================
+// P2-3 -- the four fulldome projections.
+//
+// tests/threedim/FisheyeProjections.cpp guards the four GLSL snippets as SOURCE
+// TEXT. That catches a fov/2-vs-fov/4 mix-up in the shipped strings and nothing
+// else: it cannot tell whether the strings are compiled, whether the `Camera`
+// combo (ModelDisplay inlet 9) reaches them, or whether the four laws are
+// distinguishable in a frame. These two cases render them.
+//
+// THE ORACLE. Each law normalises to r=1 at the half-FOV h = fov/2 (q = fov/4),
+// so with t the view angle of a point from the dome forward axis:
+//
+//   equidistant    r(t) = t        / h
+//   equisolid      r(t) = sin(t/2) / sin(q)
+//   stereographic  r(t) = tan(t/2) / tan(q)
+//   orthographic   r(t) = sin(t)   / sin(h)
+//
+// The measured quantity is maxDrawnRadius() -- the farthest drawn pixel from the
+// frame centre. It is closed-form and not a heuristic, for three reasons that
+// have to hold together: the fisheye laws are applied PER VERTEX, so the
+// rasterised silhouette is the convex hull of the projected corners; the
+// farthest point of a convex polygon from an interior point is a vertex; and
+// every law is strictly increasing in t, so the SAME corner -- the one at
+// maximum t -- attains the maximum under all four.
+//
+// t_max is COMPUTED from the scene (eight known corners, a known eye, a known
+// target), not fitted, so the four predictions share exactly ONE free parameter:
+// the pixels-per-NDC scale along that corner's direction, fitted from the
+// equidistant leg. The other three are predictions, and because the scale
+// cancels in the ratio they are independent of viewport aspect handling and of
+// absolute framing. Measured on this host, they land within 0.2%:
+//
+//   scale 581.26 px/NDC       predicted px   measured px   rel
+//   equidistant  0.42055        244.45         244.45      (fitted)
+//   equisolid    0.45023        261.70         261.21      0.0019
+//   stereographic 0.36031       209.44         209.67      0.0011
+//   orthographic 0.56258        327.01         326.36      0.0020
+//
+// The strict ordering asserted alongside is a theorem about the laws, not a
+// fitted fact: sin is concave and tan convex on (0, pi/2) and each law is
+// normalised at h, so for every t in (0,h)
+//     r_ortho > r_equisolid > r_equidistant > r_stereographic.
+// Nothing in the scene can reorder them, so two modes that render the SAME
+// picture -- a combo that never reaches the shader -- cannot satisfy it.
+//
+// FOV is opened to 160 deg because all four laws agree to first order near the
+// axis; at the default 35 deg they sit within a couple of percent of each other
+// and no measurement separates them.
+//
+// -----------------------------------------------------------------------------
+// WHY THERE ARE TWO CASES: the laws are right and the axis is wrong.
+//
+// The first case below is GREEN and the second is an [!shouldfail] pin, and the
+// only difference between them is which way the camera points.
+//
+// ModelDisplayNode.cpp's four snippets all take the dome forward axis to be
+// view-space +Z:
+//     float theta = acos(clamp(d.z / r, -1.0, 1.0));
+// with d = (matrixModelView * position).xyz. score's view matrix is the usual
+// right-handed one -- it looks down view-space MINUS Z, which is what the
+// Perspective mode in the same file projects along. So a model IN FRONT of the
+// camera has d.z < 0, t comes out near pi, r_ndc = t/h is ~2.25 at a 160-degree
+// FOV, and every vertex lands outside the clip box. The four fulldome modes
+// image the hemisphere BEHIND the camera.
+//
+// Measured, 1280x720, cube at the origin, FOV 160:
+//
+//   eye (-0.7,-0.7,-0.7) -> centre (0,0,0)      [looking AT the cube]
+//     Perspective    684 px drawn
+//     equidistant      0 px      equisolid       0 px
+//     stereographic    0 px      orthographic    0 px
+//   eye (+0.7,+0.7,+0.7) -> centre (0,0,0)      [other side, still AT it]
+//     equidistant      0 px
+//   eye (-0.7,-0.7,-0.7) -> centre (-1.4,-1.4,-1.4)   [looking AWAY]
+//     equidistant  16345 px      equisolid   18858 px
+//     stereographic 11721 px     orthographic 29847 px
+//
+// So the maths in all four snippets is correct -- that is what the first case
+// proves, to 0.2% -- and the axis they measure it from is not, which is what the
+// second case pins. The fix is a sign, but WHICH sign is a product decision the
+// header comment does not settle: the snippets say ".xzy re-orients world +Z as
+// dome-up and world +Y as dome-forward; the view matrix then places the zenith
+// along view-space +Z", i.e. they may be written for a dome rig whose camera is
+// authored differently from the Position/Center pair the process actually
+// exposes. Reported, not fixed.
+//
+// NEGATIVE CONTROL (run, see the ledger): the spec's own -- swap equidistant and
+// equisolid in ModelDisplayNode.cpp's projections[].
+// =============================================================================
+
+namespace
+{
+constexpr double kFisheyeFovDeg = 160.0;
+constexpr double kFisheyeEye = -0.7;   // camera at (-0.7,-0.7,-0.7)
+constexpr double kFisheyePi = 3.14159265358979323846;
+
+struct FisheyeLaw
+{
+  int mode;
+  const char* name;
+  double r; // closed-form NDC radius at t_max
+};
+
+//! t_max: the largest view angle of any cube corner from the dome forward axis,
+//! which is -(centre - eye) normalised. Computed from the scene, never fitted.
+double fisheyeTmax(double eye, double centre)
+{
+  const double lx = centre - eye;
+  const double len = std::sqrt(3.0 * lx * lx);
+  if(len <= 0)
+    return 0.0;
+  const double f = -lx / len; // view +Z, all three components equal
+  double tmax = 0.0;
+  for(const auto& c : kCubeV)
+  {
+    const double vx = c.x - eye, vy = c.y - eye, vz = c.z - eye;
+    const double vl = std::sqrt(vx * vx + vy * vy + vz * vz);
+    if(vl <= 0)
+      continue;
+    const double ct = std::clamp((vx * f + vy * f + vz * f) / vl, -1.0, 1.0);
+    tmax = std::max(tmax, std::acos(ct));
+  }
+  return tmax;
+}
+
+std::array<FisheyeLaw, 4> fisheyeLaws(double tmax)
+{
+  const double h = (kFisheyeFovDeg * 0.5) * kFisheyePi / 180.0;
+  const double q = (kFisheyeFovDeg * 0.25) * kFisheyePi / 180.0;
+  return {FisheyeLaw{1, "equidistant", tmax / h},
+          FisheyeLaw{2, "equisolid", std::sin(tmax * 0.5) / std::sin(q)},
+          FisheyeLaw{3, "stereographic", std::tan(tmax * 0.5) / std::tan(q)},
+          FisheyeLaw{4, "orthographic", std::sin(tmax) / std::sin(h)}};
+}
+} // namespace
+
+TEST_CASE(
+    "the four fulldome projections are four different, predicted radial mappings",
+    "[integration][threedim][render][gui]")
+{
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString obj = dir.filePath("fisheye-cube.obj");
+  {
+    QFile f(obj);
+    REQUIRE(f.open(QIODevice::WriteOnly));
+    f.write(makeCubeObj(true));
+  }
+
+  // The camera points AWAY from the cube, because that is the hemisphere these
+  // shaders image (see the banner). This case is about the four LAWS; the axis
+  // is pinned by the case below.
+  constexpr double kCentre = 2.0 * kFisheyeEye;
+  const double tmax = fisheyeTmax(kFisheyeEye, kCentre);
+  REQUIRE(tmax > 0.1);
+  REQUIRE(tmax < (kFisheyeFovDeg * 0.5) * kFisheyePi / 180.0); // nothing clipped
+
+  const auto laws = fisheyeLaws(tmax);
+
+  // The ordering is a theorem about the laws. Asserted on the PREDICTIONS first,
+  // so an error in the closed forms above surfaces here rather than as a
+  // confusing pixel failure.
+  REQUIRE(laws[3].r > laws[1].r); // ortho > equisolid
+  REQUIRE(laws[1].r > laws[0].r); // equisolid > equidistant
+  REQUIRE(laws[0].r > laws[2].r); // equidistant > stereographic
+
+  double measured[5]{};
+  QString refRenderer;
+  for(const auto& L : laws)
+  {
+    const auto r = renderScene(
+        dir, QStringLiteral("fisheye-%1").arg(L.name),
+        fisheyeScene(obj, L.mode, kFisheyeFovDeg, kFisheyeEye, kCentre));
+    if(!r.error.isEmpty())
+      SKIP(r.error.toStdString());
+    if(!r.rendererLine.contains("NVIDIA"))
+      SKIP("renderer is not the nvidia-gl ref class: "
+           << r.rendererLine.toStdString());
+    if(refRenderer.isEmpty())
+      refRenderer = r.rendererLine;
+    REQUIRE(r.rendererLine == refRenderer);
+
+    const int drawn = drawnPixels(r.frame);
+    const double rad = maxDrawnRadius(r.frame);
+    INFO(L.name << ": mode " << L.mode << ", frame " << r.frame.width() << "x"
+                << r.frame.height() << ", drawn " << drawn << " px, radius "
+                << rad);
+    REQUIRE(drawn > 64);
+    REQUIRE(rad > 0.0);
+    measured[L.mode] = rad;
+  }
+
+  INFO("tmax = " << tmax * 180.0 / kFisheyePi
+                 << " deg, fov = " << kFisheyeFovDeg
+                 << " deg; measured radii px: equid=" << measured[1]
+                 << " equis=" << measured[2] << " stereo=" << measured[3]
+                 << " ortho=" << measured[4]);
+
+  // (a) The ordering the laws force, with a margin: two modes that render the
+  //     same picture cannot satisfy it.
+  CHECK(measured[4] > measured[2] + 2.0);
+  CHECK(measured[2] > measured[1] + 2.0);
+  CHECK(measured[1] > measured[3] + 2.0);
+
+  // (b) The closed forms. One free parameter -- the px-per-NDC scale -- fitted
+  //     from the equidistant leg; the other three are predictions. Measured
+  //     agreement is 0.2%, so 1% + 2px is a real gate and not a formality.
+  const double scale = measured[1] / laws[0].r;
+  for(const auto& L : laws)
+  {
+    if(L.mode == 1)
+      continue;
+    const double predicted = scale * L.r;
+    INFO(L.name << ": predicted " << predicted << " px, measured "
+                << measured[L.mode] << " px");
+    CHECK(std::abs(measured[L.mode] - predicted) <= 0.01 * predicted + 2.0);
+  }
+}
+
+// EXPECTED TO FAIL -- [!shouldfail] pin. Asserts the CORRECT behaviour: a model
+// in front of the camera is visible under every projection the Camera combo
+// offers. Perspective draws it; all four fulldome modes draw NOTHING, because
+// they take the dome forward axis to be view-space +Z while the view matrix
+// looks down -Z. Goes green the day the axis is fixed. See the banner above.
+TEST_CASE(
+    "a model in front of the camera is visible under every Camera projection",
+    "[integration][threedim][render][gui][!shouldfail]")
+{
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString obj = dir.filePath("fisheye-front-cube.obj");
+  {
+    QFile f(obj);
+    REQUIRE(f.open(QIODevice::WriteOnly));
+    f.write(makeCubeObj(true));
+  }
+
+  // Camera looks AT the cube: eye (-0.7,-0.7,-0.7), centre the origin. This is
+  // the rig the Perspective mode and every real Model Display uses.
+  constexpr double kCentre = 0.0;
+
+  // The control inside the pin: Perspective on this exact rig draws. Without it
+  // a reader cannot tell "the fisheye modes are broken" from "the scene is
+  // mis-framed", and the pin would be worth nothing.
+  {
+    const auto r = renderScene(
+        dir, "fisheye-front-perspective",
+        fisheyeScene(obj, 0, kFisheyeFovDeg, kFisheyeEye, kCentre));
+    if(!r.error.isEmpty())
+      SKIP(r.error.toStdString());
+    if(!r.rendererLine.contains("NVIDIA"))
+      SKIP("renderer is not the nvidia-gl ref class");
+    INFO("perspective control: " << drawnPixels(r.frame) << " px drawn");
+    REQUIRE(drawnPixels(r.frame) > 64);
+  }
+
+  for(const auto& L : fisheyeLaws(fisheyeTmax(kFisheyeEye, kCentre)))
+  {
+    const auto r = renderScene(
+        dir, QStringLiteral("fisheye-front-%1").arg(L.name),
+        fisheyeScene(obj, L.mode, kFisheyeFovDeg, kFisheyeEye, kCentre));
+    if(!r.error.isEmpty())
+      SKIP(r.error.toStdString());
+    INFO(L.name << " (mode " << L.mode << "): " << drawnPixels(r.frame)
+                << " px drawn");
+    CHECK(drawnPixels(r.frame) > 64);
+  }
+}
 TEST_CASE(
     "a MagicaVoxel file renders through the voxel loader",
     "[integration][threedim][render][gui]")

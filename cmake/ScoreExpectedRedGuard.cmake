@@ -63,6 +63,7 @@ set(SCORE_EXPECTED_RED
   "shouldfail@tests/gfx/GfxGeometryFilterShift.cpp@a geometry filter shifts the drawn silhouette by exactly the delta@P2-9 oracle, pixel form: the silhouette is not displaced"
   "shouldfail@tests/threedim/SceneApproximationPins.cpp@DEFECT P2-11: the render-thread light encoder collapses area lights onto point, and dome onto directional@light-type information is lost in the render-thread encoder"
   "shouldfail@tests/threedim/SceneApproximationPins.cpp@DEFECT P2-12 (re-scoped): SceneFilterNode mode 2 has no Name port, so it cannot be configured at all@mode 2 exposes no Name port"
+  "shouldfail@tests/integration/ThreedimRenderTest.cpp@a model in front of the camera is visible under every Camera projection@P2-3: all four fulldome snippets in ModelDisplayNode.cpp take the dome forward axis to be view-space +Z while the view matrix looks down -Z, so they image the hemisphere BEHIND the camera and a model in front of it draws 0 pixels. The four LAWS are correct -- the sibling case fits them to 0.2% with the camera reversed -- only the axis is wrong"
 
   # -- CMake WILL_FAIL ------------------------------------------------------
   # Cannot be a Catch2 tag: the defect aborts, so Catch2 never reports.
