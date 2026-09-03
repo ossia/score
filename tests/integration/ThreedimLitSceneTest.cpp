@@ -360,6 +360,8 @@
 #include <QElapsedTimer>
 #include <QFile>
 #include <QImage>
+
+#include <set>
 #include <QProcess>
 #include <QProcessEnvironment>
 #include <QTemporaryDir>
@@ -1198,4 +1200,294 @@ TEST_CASE(
     // not have moved, which is (c) restated across the two runs.
     CHECK(far <= (long long)(lit.covered() + 0.005 * lit.total));
   }
+}
+
+// =============================================================================
+// P1-6 -- glTF vertex colours reach the fragment stage.
+//
+// SPEC-SCENE-RENDER-TESTS.md puts P1-5 and P1-6 in one row, and P1-6 has been
+// treated as covered by P1-1. Half of it is: the case above renders Box.glb
+// through the whole T-A chain, which is P1-6's "the same box rendered through
+// T-A". The other half is not covered anywhere, and this is it --
+// "BoxVertexColors asserting that the vertex colours actually reach the
+// fragment stage (a flat-shaded control must differ)". Before this:
+//
+//   * tests/unit/GltfLoaderTest.cpp (P1-5) asserts the color0 stream at the
+//     LOADER, on the CPU: the file's VEC3 COLOR_0 padded to float4 with
+//     alpha 1. It stops at the mesh.
+//   * grep: BoxVertexColors.glb appears in no render test at all. Nothing
+//     anywhere puts a vertex-coloured glTF on a GPU.
+//
+// A colour stream can be parsed perfectly and still never reach a fragment --
+// dropped when the scene is flattened, missing from the vertex layout the
+// pipeline builds, or bound to the wrong slot. Every one of those is invisible
+// to a CPU attribute assertion and to P1-1, whose shader declares only position
+// and normal.
+//
+// ORACLE, and why it needs two runs. The same asset, the same camera, the same
+// chain, rendered twice with the ONLY difference being whether the fragment
+// shader reads color0:
+//
+//   (a) both runs cover the same pixels -- same geometry, same camera, so a
+//       difference in coverage would mean the fixture moved something else;
+//   (b) the flat control has exactly ONE colour over its covered pixels. That
+//       is what makes it a control: it fixes the number this case is counting
+//       at the floor a colour-blind pipeline would produce;
+//   (c) the vertex-colour run has MANY. BoxVertexColors.glb's COLOR_0 spans
+//       [0,1] per channel across the cube's corners (GltfLoaderTest.cpp:538),
+//       so interpolation across the faces produces a continuum, not a palette.
+//
+// (c) alone would be satisfied by any shader that varies with position. (b)
+// alone would be satisfied by a chain that renders nothing. Together they say:
+// the only thing that changed is that the shader read color0, and the frame
+// changed accordingly.
+//
+// Deliberately NOT a closed-form per-pixel colour. Which corner of
+// BoxVertexColors carries which colour, and where the camera puts it, are facts
+// about a downloaded asset and about the flattening order; pinning them would
+// pin the fixture, not the plumbing. The count of distinct colours is
+// insensitive to all of that and still cannot be faked by a colour-blind
+// pipeline.
+//
+// NEGATIVE CONTROL (run, see the ledger): the spec's own -- drop the
+// get_accessor("COLOR_0") branch in GltfParser.cpp.
+// =============================================================================
+namespace
+{
+//! Reads color0 and outputs it. Everything else -- camera UBO, per_draws,
+//! PIPELINE_STATE -- is kFragmentShader's, unchanged.
+constexpr auto kVertexColorFragmentShader = R"SHADER(/*{
+  "DESCRIPTION": "P1-6: emit the interpolated glTF COLOR_0 attribute verbatim.",
+  "CREDIT": "test",
+  "ISFVSN": "2.0",
+  "MODE": "RAW_RASTER_PIPELINE",
+  "CATEGORIES": ["TEST-SYNTHETIC", "TEST-SCENE"],
+  "PIPELINE_STATE": { "DEPTH_TEST": true, "DEPTH_WRITE": true, "CULL_MODE": "none" },
+  "VERTEX_INPUTS": [
+    { "TYPE": "vec3", "NAME": "position" },
+    { "TYPE": "vec4", "NAME": "color0" }
+  ],
+  "VERTEX_OUTPUTS": [ { "TYPE": "vec4", "NAME": "v_color" } ],
+  "FRAGMENT_INPUTS": [ { "TYPE": "vec4", "NAME": "v_color" } ],
+  "FRAGMENT_OUTPUTS": [ { "TYPE": "vec4", "NAME": "isf_FragColor" } ],
+  "TYPES": [
+    { "NAME": "PerDraw", "LAYOUT": [
+        { "NAME": "model",         "TYPE": "mat4"  },
+        { "NAME": "normal_matrix", "TYPE": "mat4"  },
+        { "NAME": "slots",         "TYPE": "uvec4" }
+    ] }
+  ],
+  "INPUTS": [
+    { "NAME": "camera", "TYPE": "uniform", "VISIBILITY": "vertex",
+      "LAYOUT": [
+        { "NAME": "view",           "TYPE": "mat4" },
+        { "NAME": "projection",     "TYPE": "mat4" },
+        { "NAME": "viewProjection", "TYPE": "mat4" },
+        { "NAME": "cameraPosition", "TYPE": "vec4" },
+        { "NAME": "renderSize",     "TYPE": "vec4" },
+        { "NAME": "params",         "TYPE": "vec4" }
+      ]
+    },
+    { "NAME": "per_draws", "TYPE": "storage", "ACCESS": "read_only",
+      "VISIBILITY": "vertex",
+      "LAYOUT": [ { "NAME": "data", "TYPE": "PerDraw[]" } ]
+    }
+  ]
+}*/
+
+void main()
+{
+    isf_FragColor = vec4(v_color.rgb, 1.0);
+}
+)SHADER";
+
+constexpr auto kVertexColorVertexShader = R"SHADER(void main()
+{
+    mat4 M = per_draws.data[0].model;
+    v_color = color0;
+    gl_Position = clipSpaceCorrMatrix * camera.viewProjection * M * vec4(position, 1.0);
+}
+)SHADER";
+
+//! The control: identical in every respect except that it never mentions
+//! color0. Same asset, same camera, same geometry -- one colour.
+constexpr auto kFlatFragmentShader = R"SHADER(/*{
+  "DESCRIPTION": "P1-6 control: the same box, shaded flat, colour-blind.",
+  "CREDIT": "test",
+  "ISFVSN": "2.0",
+  "MODE": "RAW_RASTER_PIPELINE",
+  "CATEGORIES": ["TEST-SYNTHETIC", "TEST-SCENE"],
+  "PIPELINE_STATE": { "DEPTH_TEST": true, "DEPTH_WRITE": true, "CULL_MODE": "none" },
+  "VERTEX_INPUTS": [
+    { "TYPE": "vec3", "NAME": "position" }
+  ],
+  "VERTEX_OUTPUTS": [],
+  "FRAGMENT_INPUTS": [],
+  "FRAGMENT_OUTPUTS": [ { "TYPE": "vec4", "NAME": "isf_FragColor" } ],
+  "TYPES": [
+    { "NAME": "PerDraw", "LAYOUT": [
+        { "NAME": "model",         "TYPE": "mat4"  },
+        { "NAME": "normal_matrix", "TYPE": "mat4"  },
+        { "NAME": "slots",         "TYPE": "uvec4" }
+    ] }
+  ],
+  "INPUTS": [
+    { "NAME": "camera", "TYPE": "uniform", "VISIBILITY": "vertex",
+      "LAYOUT": [
+        { "NAME": "view",           "TYPE": "mat4" },
+        { "NAME": "projection",     "TYPE": "mat4" },
+        { "NAME": "viewProjection", "TYPE": "mat4" },
+        { "NAME": "cameraPosition", "TYPE": "vec4" },
+        { "NAME": "renderSize",     "TYPE": "vec4" },
+        { "NAME": "params",         "TYPE": "vec4" }
+      ]
+    },
+    { "NAME": "per_draws", "TYPE": "storage", "ACCESS": "read_only",
+      "VISIBILITY": "vertex",
+      "LAYOUT": [ { "NAME": "data", "TYPE": "PerDraw[]" } ]
+    }
+  ]
+}*/
+
+void main()
+{
+    isf_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+}
+)SHADER";
+
+constexpr auto kFlatVertexShader = R"SHADER(void main()
+{
+    mat4 M = per_draws.data[0].model;
+    gl_Position = clipSpaceCorrMatrix * camera.viewProjection * M * vec4(position, 1.0);
+}
+)SHADER";
+
+struct ColorStats
+{
+  bool loaded{false};
+  int w{0}, h{0};
+  long long covered{0};  //!< pixels that are not the (0,0,0) clear colour
+  int distinct{0};       //!< distinct RGB triples among covered pixels
+};
+
+//! Distinct colours over the drawn pixels. The clear colour is black
+//! (kFragmentShader's pass clears to 0,0,0), and both shaders here emit alpha 1
+//! with at least one channel at 1.0 over the box, so "not black" is coverage.
+ColorStats colorStats(const QString& path)
+{
+  ColorStats s;
+  const QImage im = loadRgb(path);
+  if(im.isNull())
+    return s;
+  s.loaded = true;
+  s.w = im.width();
+  s.h = im.height();
+  std::set<quint32> seen;
+  for(int y = 0; y < im.height(); ++y)
+  {
+    const uchar* row = im.constScanLine(y);
+    for(int x = 0; x < im.width(); ++x)
+    {
+      const int r = row[x * 3], g = row[x * 3 + 1], b = row[x * 3 + 2];
+      if(r + g + b <= 24)
+        continue;
+      ++s.covered;
+      seen.insert(quint32(r) << 16 | quint32(g) << 8 | quint32(b));
+    }
+  }
+  s.distinct = int(seen.size());
+  return s;
+}
+} // namespace
+
+TEST_CASE(
+    "glTF vertex colours reach the fragment stage",
+    "[integration][threedim][gfx][scene][render][gui]")
+{
+  if(const auto why = notReady(); !why.isEmpty())
+    SKIP(why.toStdString());
+
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  if(qEnvironmentVariableIsSet("SCORE_TEST_KEEP_ARTIFACTS"))
+  {
+    dir.setAutoRemove(false);
+    WARN("artifacts kept in " << dir.path().toStdString());
+  }
+
+  const QString glb = assetsDir() + QStringLiteral("/BoxVertexColors.glb");
+  if(!QFile::exists(glb))
+    SKIP(
+        "BoxVertexColors.glb not present in "
+        << assetsDir().toStdString() << " - " << kFetchHint);
+
+  // Stems hold no dot: RenderPipeline/Process.cpp:32 finds the vertex stage via
+  // QFileInfo::baseName(), which cuts at the first one.
+  const QString vcFs
+      = writeFile(dir, "p1-6-vcol.fs", QByteArray{kVertexColorFragmentShader});
+  writeFile(dir, "p1-6-vcol.vs", QByteArray{kVertexColorVertexShader});
+  const QString flatFs
+      = writeFile(dir, "p1-6-flat.fs", QByteArray{kFlatFragmentShader});
+  writeFile(dir, "p1-6-flat.vs", QByteArray{kFlatVertexShader});
+
+  const QString vcPng = dir.filePath("vcol.png");
+  const QString flatPng = dir.filePath("flat.png");
+
+  const auto phases = std::vector<std::pair<int, QByteArray>>{
+      {9000, "grab()"}, {10500, "finish()"}};
+
+  auto run = [&](const QString& fs, const QString& png, const char* name) {
+    const QString js = writeFile(
+        dir, QStringLiteral("%1.js").arg(QString::fromUtf8(name)),
+        // withLight = false: this case is about the colour attribute, and a
+        // light would multiply it by an N.L the case does not control.
+        sceneScript(glb, fs, png, false).toUtf8());
+    const Run r = runPhased(js, phases);
+    INFO(name << " renderer: " << r.rendererLine.toStdString());
+    INFO(name << " log:\n" << r.log.toStdString());
+    REQUIRE(r.started);
+    REQUIRE(r.sawReady);
+    CHECK_FALSE(r.log.contains("LIT-ERROR"));
+    REQUIRE(r.log.contains("MARK-GRAB"));
+    REQUIRE_FALSE(r.log.contains("capturing the SCREEN"));
+    if(!QFile::exists(png))
+      FAIL(
+          "no frame was grabbed for "
+          << name << "; the chain rendered nothing (see the log above)");
+    return r;
+  };
+
+  const Run vcRun = run(vcFs, vcPng, "vcol");
+  const Run flatRun = run(flatFs, flatPng, "flat");
+  CHECK_FALSE(vcRun.crashed);
+  CHECK_FALSE(flatRun.crashed);
+  REQUIRE(vcRun.rendererLine == flatRun.rendererLine);
+
+  const ColorStats vc = colorStats(vcPng);
+  const ColorStats flat = colorStats(flatPng);
+  REQUIRE(vc.loaded);
+  REQUIRE(flat.loaded);
+  REQUIRE(vc.w == flat.w);
+  REQUIRE(vc.h == flat.h);
+
+  INFO(
+      "vcol: covered=" << vc.covered << " distinct=" << vc.distinct
+                       << "  flat: covered=" << flat.covered
+                       << " distinct=" << flat.distinct);
+
+  // (a) Same box, same camera: the same pixels are covered. 2% for the edge
+  //     pixels the two shaders' different outputs can push over the threshold.
+  REQUIRE(flat.covered > 0);
+  REQUIRE(vc.covered > 0);
+  CHECK(
+      std::abs(double(vc.covered - flat.covered))
+      < 0.02 * double(std::max(vc.covered, flat.covered)));
+
+  // (b) The control is colour-blind: exactly one colour over the box.
+  CHECK(flat.distinct == 1);
+
+  // (c) Reading color0 produces a continuum. BoxVertexColors' COLOR_0 spans
+  //     [0,1] per channel across the corners, so interpolation across the faces
+  //     gives far more than the handful a palette would.
+  CHECK(vc.distinct > 64);
 }
