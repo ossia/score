@@ -198,6 +198,16 @@ std::vector<uint8_t> rowPattern(int w, const std::vector<Rgba>& rows)
   return px;
 }
 
+// <windows.h> defines near/far as empty macros, and -DWIN32_LEAN_AND_MEAN does
+// not suppress them (they live in minwindef.h alongside `pascal`). A declaration
+// using those names degrades to `bool (int, int, int)` and the diagnostic --
+// "expected unqualified-id" -- points nowhere near the cause. Same guard as
+// tests/fixtures/score_test/Gfx.hpp.
+#if defined(_WIN32)
+#undef near
+#undef far
+#endif
+
 bool near(int a, int b, int tol = 1)
 {
   return std::abs(a - b) <= tol;
@@ -1049,8 +1059,8 @@ TEST_CASE("YUVPlanarEncoder 10-bit 4:2:0 (R16 planes)", "[gfx][encoders][gpu]")
   const auto& Cr = enc->readback(2);
 
   // Same *P10LE byte layout on both YUVPlanar 10-bit implementations
-  // (Qt >= 6.10 native R16 targets, or the Qt < 6.10 RGBA8-packing fallback
-  // added because the pre-6.10 GL readback expands R16 to 8-bit RGBA).
+  // (Qt >= 6.10 native R16 targets, or the Qt < 6.10 RGBA8-packing fallback,
+  // which the pre-6.10 GL readback needs since it expands R16 to 8-bit RGBA).
   REQUIRE(Y.data.size() == W * H * 2);
   REQUIRE(Cb.data.size() == (W / 2) * (H / 2) * 2);
   REQUIRE(Cr.data.size() == (W / 2) * (H / 2) * 2);
