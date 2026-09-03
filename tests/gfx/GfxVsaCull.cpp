@@ -1,21 +1,17 @@
 // =============================================================================
-// L3 -- VSA triangle cull-mode: ISOLATED, EXPECTED-RED. Do NOT weaken.
+// L3 -- VSA triangle cull-mode. Isolated in its own target, because a
+// cull-mode regression is the kind that would otherwise take an unrelated
+// group down with it.
 //
-// A single solid triangle (vsa-triangle.vs) rendered through the VSA node. The
-// design goal is that one procedurally-emitted front-facing triangle is visible
-// on every backend.
+// A single solid triangle (vsa-triangle.vs) rendered through the VSA node: one
+// procedurally-emitted front-facing triangle must be visible on every backend,
+// and the backends must agree.
 //
-// Measured on NVIDIA, GL 4.6 and Vulkan 1.4: with the winding in
-// vsa-triangle.vs, OpenGL draws the triangle (centre ~(229,102,25), ~2944 px)
-// while Vulkan culls it entirely. Reversing the winding flips which backend
-// culls. There is therefore no winding that renders on both: a front-facing VSA
-// triangle is culled on exactly one backend regardless. A per-backend cull mode
-// plus FrontFace plus the SPIRV-only Y-flip do not compose to a consistent
-// visible face across GL and Vulkan.
-//
-// The test asserts the intended behaviour -- front face visible everywhere and
-// backends agreeing -- and currently fails. Isolated in its own target so the
-// attributable RED cannot pull down test_gfx_vsa or any other group.
+// The hazard: for a given winding in vsa-triangle.vs, OpenGL draws the
+// triangle while Vulkan culls it entirely, and reversing the winding flips
+// which backend culls. No winding renders on both on its own; the per-backend
+// cull mode, FrontFace and the SPIRV-only Y-flip have to compose for the
+// visible face to be consistent across GL and Vulkan.
 // =============================================================================
 
 #include <score_test/Gfx.hpp>
@@ -75,7 +71,7 @@ IsfResult run_vsa(score::gfx::GraphicsApi be, const char* vs)
 }
 }
 
-TEST_CASE("VSA triangle: front face visible on every backend (R3-N4 RED)", "[gfx][l3][vsa][cull][finding]")
+TEST_CASE("VSA triangle: front face visible on every backend (R3-N4, fixed)", "[gfx][l3][vsa][cull][finding]")
 {
   const auto be = GENERATE(from_range(platform_backends()));
 
@@ -98,8 +94,7 @@ TEST_CASE("VSA triangle: front face visible on every backend (R3-N4 RED)", "[gfx
   const auto& img = r.outputs[0];
   REQUIRE(img.valid());
 
-  // Intended behaviour: the front-facing triangle covers the center on EVERY
-  // backend. Currently FAILS on the backend that culls it (see file header).
+  // The front-facing triangle covers the center on every backend.
   const auto center = img.at(img.width / 2, img.height / 2);
   INFO("center=(" << int(center[0]) << "," << int(center[1]) << ","
                   << int(center[2]) << "," << int(center[3]) << ")");
@@ -107,7 +102,7 @@ TEST_CASE("VSA triangle: front face visible on every backend (R3-N4 RED)", "[gfx
   CHECK(drawn_pixels(img) > (img.width * img.height) / 8);
 }
 
-TEST_CASE("VSA triangle: backends agree (R3-N4 RED)", "[gfx][l3][vsa][cull][finding]")
+TEST_CASE("VSA triangle: backends agree (R3-N4, fixed)", "[gfx][l3][vsa][cull][finding]")
 {
   std::vector<IsfResult> shots;
   for(auto be : platform_backends())
@@ -130,8 +125,8 @@ TEST_CASE("VSA triangle: backends agree (R3-N4 RED)", "[gfx][l3][vsa][cull][find
       refBackend = r.backend;
       continue;
     }
-    // The intended cross-backend agreement. Currently a huge divergence:
-    // one backend draws the triangle, the other culls it entirely.
+    // Cross-backend agreement: a large divergence here means one backend
+    // draws the triangle and the other culls it entirely.
     const int d = max_channel_diff(*ref, r.outputs[0]);
     INFO(refBackend << " vs " << r.backend << " max channel diff = " << d);
     CHECK(d <= 8);
