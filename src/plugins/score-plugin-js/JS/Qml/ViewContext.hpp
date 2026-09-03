@@ -54,9 +54,7 @@ public:
   QObject* child(QObject* parent, QString className);
   W_SLOT(child)
 
-  //! The names of the panels that exist: the translated one the header shows,
-  //! and the widget class name, which panel() also accepts and which does not
-  //! move with the language.
+  //! The names of the panels that exist, for when one is not sure.
   QStringList panels();
   W_SLOT(panels)
 
