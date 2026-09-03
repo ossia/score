@@ -41,8 +41,12 @@ QCoreApplication& app()
   static int argc = 1;
   static char arg0[] = "render-clock-test";
   static char* argv[] = {arg0, nullptr};
-  static QCoreApplication a{argc, argv};
-  return a;
+  // Deliberately leaked: a static Q*Application is destroyed from the atexit
+  // chain, after main returns and Qt's own static state is gone, which faults
+  // in ~QGuiApplication/~QCoreApplication on Windows. Same pattern as
+  // tests/unit/InfiniteScrollerTest.cpp.
+  static auto* a = new QCoreApplication{argc, argv};
+  return *a;
 }
 
 // Pump the main-thread event queue until pred() or the deadline.
