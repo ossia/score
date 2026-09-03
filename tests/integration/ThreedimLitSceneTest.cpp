@@ -61,19 +61,19 @@
 // way GfxNestedIntervalTest.cpp:236-243 does (opengl on Linux, d3d11 on Windows,
 // metal on macOS) and overridable with SCORE_TEST_API.
 //
-// VULKAN IS OUT OF SCOPE for this case, as SPEC:827-829 requires this file to
-// say. The spec pins that on "the `UsedWithGenerateMips` abort
-// (ThreedimRenderTest.cpp:32-50)". Having read those exact lines: they say the
-// abort ("utexD->m_flags.testFlag(QRhiTexture::UsedWithGenerateMips)", a
-// generateMips issued on an input texture created without the flag) WAS the
-// Vulkan blocker and is now FIXED — "ModelDisplayNode now guards the
-// generateMips call on the texture's flag, so a debug Qt Vulkan build renders
-// the model pipeline instead of aborting" (ThreedimRenderTest.cpp:45-50). That
-// fix is in ModelDisplayNode, a different node from the RenderedRawRasterPipeline
-// node this chain ends in, and no one has run this chain on Vulkan. So the spec's
-// clause is honoured conservatively: this test does not select Vulkan, and
-// SCORE_TEST_API=vulkan is not a supported configuration for it until someone
-// measures it. Nothing here is backend-specific in principle — every expected
+// VULKAN IS IN SCOPE, as of 2026-09-03. The spec pinned the exclusion on "the
+// `UsedWithGenerateMips` abort (ThreedimRenderTest.cpp:32-50)" — a generateMips
+// issued on an input texture created without the flag, which qrhivulkan asserts
+// on and GL silently tolerates. That abort is FIXED: ModelDisplayNode.cpp:1490
+// guards the call on the texture's flag.
+//
+// The exclusion was then kept conservatively one step further, because that fix
+// is in ModelDisplayNode while this chain ends in RenderedRawRasterPipelineNode,
+// and nobody had run THIS chain on Vulkan. That was the right call to make
+// without the measurement, and the measurement has now been taken: 75
+// assertions in 2 cases, green on Vulkan, on OpenGL, and on the default sweep
+// of both. Nothing was weakened to get there — deleting the skip was the whole
+// change. Nothing here is backend-specific in principle — every expected
 // pixel value is 0 or 255 (see "GAMMA INDEPENDENCE" below), so there is no ref
 // class to gate on and no silent-fallback hazard of the kind
 // ThreedimRenderTest.cpp:15-19 has to guard against for its goldens.
