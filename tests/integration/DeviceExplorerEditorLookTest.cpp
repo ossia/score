@@ -39,6 +39,7 @@
 #include <QLabel>
 #include <QPixmap>
 #include <QPlainTextEdit>
+#include <QSpinBox>
 #include <QToolButton>
 #include <QTreeView>
 
@@ -194,11 +195,16 @@ TEST_CASE("a value editor fits the row it is opened in", "[integration][explorer
 
       // A value the row cannot hold opens its popup on load; take it away
       // before the next row, or it sits over the tree.
-      while(auto* p = QApplication::activePopupWidget())
+      // Bounded: a popup that will not close is a failure, not a hang.
+      for(int tries = 0; tries < 8; tries++)
       {
+        auto* p = QApplication::activePopupWidget();
+        if(!p)
+          break;
         p->close();
         QApplication::processEvents();
       }
+      CHECK(QApplication::activePopupWidget() == nullptr);
 
       t.view->closePersistentEditor(idx);
       QApplication::processEvents();
@@ -225,10 +231,25 @@ TEST_CASE("the name editor is as legible as the value editors",
 
     t.view->grab().save(shotDir() + QStringLiteral("/editor-name.png"));
 
-    WARN("name: " << ed->height() << "px in " << rowH << "px row, font "
-                  << ed->font().pointSizeF() << "pt");
+    // Height in pixels, whether the font is sized in points or in pixels:
+    // pointSizeF() is -1 for a pixel-sized one, which passed any >= test by
+    // accident and failed any <= one.
+    const int nameH = QFontMetrics{ed->font()}.height();
+
+    WARN("name: " << ed->height() << "px in " << rowH << "px row, text "
+                  << nameH << "px");
     CHECK(ed->height() <= rowH);
-    CHECK(ed->font().pointSizeF() >= 8.0);
+
+    // As legible as the value editors it sits beside, which is the point.
+    t.view->closePersistentEditor(idx);
+    QApplication::processEvents();
+
+    auto* val = openEditor(*t.view, t.valueIndex(0));
+    REQUIRE(val != nullptr);
+    const int valueH = QFontMetrics{val->font()}.height();
+
+    INFO("name " << nameH << "px, value " << valueH << "px");
+    CHECK(nameH >= valueH);
   });
 }
 
@@ -712,17 +733,16 @@ TEST_CASE("the status line does not move between views",
     REQUIRE(asText != nullptr);
     REQUIRE(asHex != nullptr);
 
-    // The two labels of the footer, whatever they happen to say.
-    auto footer = [&] {
-      QRect r;
-      for(auto* l : pop->findChildren<QLabel*>())
-        if(l->isVisible())
-          r = r.united(l->geometry());
-      return r;
-    };
+    // The status line itself, not every label on the panel: the header's
+    // subject label would hold the union still whatever the footer did.
+    auto* count = pop->findChild<QLabel*>("byteCount");
+    REQUIRE(count != nullptr);
+
+    auto footer = [&] { return count->geometry(); };
 
     const QRect inHex = footer();
     REQUIRE(inHex.isValid());
+    REQUIRE(inHex.height() > 0);
 
     asText->click();
     QApplication::processEvents();
@@ -1027,6 +1047,116 @@ TEST_CASE("an arriving impulse lights its row", "[integration][explorer][look]")
     CHECK(rowShot() == idle);
   });
 }
+// Everything above checks what the panel *shows*. What matters is what it
+// writes: the panel commits into the field, the field into the row.
+TEST_CASE("the byte panel commits, and Escape throws the edit away",
+          "[integration][explorer][look]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    Tree t{ctx};
+    const auto idx = t.valueIndex(9); // the blob
+
+    const auto* addr = Explorer::DeviceExplorerDelegate::addressAt(idx);
+    REQUIRE(addr != nullptr);
+    const auto original = *addr->value.target<std::string>();
+
+    auto typeInPanel = [&](const char* keys, auto leave) {
+      auto* ed = openEditor(*t.view, idx);
+      REQUIRE(ed != nullptr);
+      QApplication::processEvents();
+
+      auto* pop = QApplication::activePopupWidget();
+      REQUIRE(pop != nullptr);
+
+      auto* hex = pop->findChild<QPlainTextEdit*>("hexColumn");
+      REQUIRE(hex != nullptr);
+
+      hex->setFocus();
+      score::test::keyClick(*hex, Qt::Key_End, Qt::ControlModifier);
+      score::test::keyClicks(*hex, QLatin1String(keys));
+      QApplication::processEvents();
+
+      leave(pop);
+      QApplication::processEvents();
+
+      // Then out of the row editor, the way clicking elsewhere leaves it.
+      t.view->setFocus();
+      QApplication::processEvents();
+      QApplication::processEvents();
+
+      t.view->closePersistentEditor(idx);
+      QApplication::processEvents();
+    };
+
+    // Ctrl+Return is "done": the byte reaches the address.
+    typeInPanel("7f", [](QWidget* pop) {
+      score::test::keyClick(*pop, Qt::Key_Return, Qt::ControlModifier);
+    });
+
+    const auto* after = Explorer::DeviceExplorerDelegate::addressAt(idx);
+    REQUIRE(after != nullptr);
+    const auto committed = *after->value.target<std::string>();
+    CHECK(committed.size() == original.size() + 1);
+    CHECK(committed.back() == '\x7f');
+
+    // Escape is "no": the address keeps what it had.
+    typeInPanel("41", [](QWidget* pop) { score::test::keyClick(*pop, Qt::Key_Escape); });
+
+    const auto* last = Explorer::DeviceExplorerDelegate::addressAt(idx);
+    REQUIRE(last != nullptr);
+    CHECK(*last->value.target<std::string>() == committed);
+  });
+}
+
+// The same question for an ordinary editor: clicking away commits what was
+// typed, Escape does not. Without these the warning test below passes on a
+// build where nothing is committed at all.
+TEST_CASE("clicking away commits and Escape reverts",
+          "[integration][explorer][look]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    Tree t{ctx};
+    const auto idx = t.valueIndex(0); // the int, value 5
+
+    auto value = [&] {
+      const auto* a = Explorer::DeviceExplorerDelegate::addressAt(idx);
+      REQUIRE(a != nullptr);
+      return *a->value.target<int>();
+    };
+    REQUIRE(value() == 5);
+
+    auto type = [&](const char* digits) {
+      auto* ed = openEditor(*t.view, idx);
+      REQUIRE(ed != nullptr);
+
+      auto* box = ed->findChild<QSpinBox*>();
+      REQUIRE(box != nullptr);
+      box->setFocus();
+      box->selectAll();
+      score::test::keyClicks(*box, QLatin1String(digits));
+      QApplication::processEvents();
+      return ed;
+    };
+
+    // Focus somewhere else entirely: the value goes in.
+    type("42");
+    t.view->setFocus();
+    QApplication::processEvents();
+    QApplication::processEvents();
+    CHECK(value() == 42);
+
+    t.view->closePersistentEditor(idx);
+    QApplication::processEvents();
+
+    // Escape: it does not.
+    auto* ed = type("77");
+    score::test::keyClick(*ed, Qt::Key_Escape);
+    QApplication::processEvents();
+    QApplication::processEvents();
+    CHECK(value() == 42);
+  });
+}
+
 // "commitData called with an editor that does not belong to this view" is only
 // a warning, but the commit it names went nowhere: the typed value is dropped.
 // Every way out of an editor, with the warnings captured.
@@ -1111,11 +1241,16 @@ TEST_CASE("leaving an editor does not confuse the view",
       openEditor(*t.view, t.valueIndex(row == 0 ? 1 : 0));
       QApplication::processEvents();
 
-      while(auto* p = QApplication::activePopupWidget())
+      // Bounded: a popup that will not close is a failure, not a hang.
+      for(int tries = 0; tries < 8; tries++)
       {
+        auto* p = QApplication::activePopupWidget();
+        if(!p)
+          break;
         p->close();
         QApplication::processEvents();
       }
+      CHECK(QApplication::activePopupWidget() == nullptr);
       t.view->closePersistentEditor(idx);
       QApplication::processEvents();
 

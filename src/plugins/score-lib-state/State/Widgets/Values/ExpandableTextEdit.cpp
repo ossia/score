@@ -717,6 +717,7 @@ public:
     // --- footer: the byte count, and the actions with their keys ----------
     auto* foot = new QHBoxLayout;
     m_count = new QLabel{this};
+    m_count->setObjectName("byteCount");
     m_count->setEnabled(false);
     m_count->setFixedHeight(m_count->sizeHint().height());
     foot->addWidget(m_count);

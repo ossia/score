@@ -610,6 +610,95 @@ SingleLine splitSingleLine(const QString& text)
   return {whole.left(at), whole.mid(at + 2)};
 }
 
+//! The map form. The grammar has no rule for it -- a brace-delimited list of
+//! `key: value` needs a hand-written scan to find the separators that are not
+//! inside a nested list or a quoted string.
+std::optional<ossia::value> parseMap(const QString& text)
+{
+  const auto t = text.trimmed();
+  if(!t.startsWith('{') || !t.endsWith('}'))
+    return std::nullopt;
+
+  ossia::value_map_type map;
+  const auto body = t.mid(1, t.size() - 2).trimmed();
+  if(body.isEmpty())
+    return ossia::value{map};
+
+  int depth = 0;
+  bool quoted = false;
+  bool escaped = false;
+  QString cur;
+  QStringList entries;
+  QList<int> seps; // the separating ':' of each entry, found while scanning
+  int sep = -1;
+  for(QChar c : body)
+  {
+    if(escaped)
+    {
+      // A \" inside a string is not the end of it.
+      escaped = false;
+      cur += c;
+      continue;
+    }
+
+    if(quoted && c == '\\')
+      escaped = true;
+    else if(c == '"')
+      quoted = !quoted;
+    else if(!quoted && (c == '[' || c == '{'))
+      depth++;
+    else if(!quoted && (c == ']' || c == '}'))
+      depth--;
+    else if(!quoted && c == ':' && depth == 0 && sep < 0)
+      sep = cur.size();
+
+    if(c == ',' && depth == 0 && !quoted)
+    {
+      entries.push_back(cur);
+      seps.push_back(sep);
+      cur.clear();
+      sep = -1;
+    }
+    else
+    {
+      cur += c;
+    }
+  }
+  entries.push_back(cur);
+  seps.push_back(sep);
+
+  for(int i = 0; i < entries.size(); i++)
+  {
+    const auto& entry = entries[i];
+    if(seps[i] < 0)
+      return std::nullopt;
+
+    // The key goes through the value parser too, so that its escapes read the
+    // same way as any other string's.
+    const auto keyText = entry.left(seps[i]).trimmed();
+    std::string key;
+    if(keyText.startsWith('"'))
+    {
+      auto parsed = parseValue(keyText.toStdString());
+      auto* str = parsed ? parsed->target<std::string>() : nullptr;
+      if(!str)
+        return std::nullopt;
+      key = *str;
+    }
+    else
+    {
+      key = keyText.toStdString();
+    }
+
+    auto val = parseValue(entry.mid(seps[i] + 1).trimmed().toStdString());
+    if(!val)
+      return std::nullopt;
+
+    map.emplace_back(std::move(key), *val);
+  }
+  return ossia::value{map};
+}
+
 QString stringCellText(const QByteArray& bytes)
 {
   if(isBinary(bytes))
