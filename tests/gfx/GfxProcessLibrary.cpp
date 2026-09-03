@@ -310,13 +310,20 @@ TEST_CASE(
     h->getCustomDrops(drops, other, doc->context());
     CHECK(drops.empty());
 
-    // FINDING (not asserted, because it ABORTS the process): a QMimeData that
-    // DOES declare score::mime::nodelist() but carries an empty payload takes
+    // The FINDING that used to sit here is FIXED and is now asserted, so this
+    // is a pointer rather than a banner. It read: a QMimeData that DOES
+    // declare score::mime::nodelist() but carries an empty payload takes
     // Gfx::Filter::VideoTextureDropHandler::dropCustom straight into
     // Mime<Device::FreeNodeList>::Deserializer::deserialize(), which hands ""
     // to rapidjson and trips its `IsArray()` assertion — SIGABRT, no
-    // recoverable error. Reproduce by setting each of h->mimeTypes() to an
-    // empty QByteArray here. Left out of the suite on purpose: a SIGABRT kills
-    // the whole binary, so it cannot be encoded even as [!shouldfail].
+    // recoverable error; left out of the suite because a SIGABRT kills the
+    // whole binary and so "cannot be encoded even as [!shouldfail]".
+    //
+    // It can: tests/gfx/GfxDropEmptyNodelistAbort.cpp runs the drop in a
+    // FORKED CHILD and asserts on its wait status, which turns the crash into
+    // a value. That test covers eight malformed payloads across both levels of
+    // the defect — the payload itself (b14337065e) and the array's CONTENTS
+    // (516368c8bc) — and the deserializer now refuses all of them with a
+    // qWarning. Add new malformed-mime cases there, not here.
   });
 }
