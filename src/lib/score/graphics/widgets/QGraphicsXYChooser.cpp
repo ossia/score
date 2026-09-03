@@ -4,12 +4,13 @@
 
 #include <ossia/detail/math.hpp>
 
-#include <score/graphics/DefaultGraphicsSliderImpl.hpp>
+#include <score/graphics/RightClickWidget.hpp>
 #include <score/widgets/DoubleSpinBox.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
 #include <QGraphicsProxyWidget>
 #include <QGraphicsScene>
+#include <QApplication>
 #include <QGraphicsSceneMouseEvent>
 #include <QHBoxLayout>
 #include <QPainter>
@@ -62,6 +63,14 @@ ossia::vec2f QGraphicsXYChooser::scaledValue(float x, float y) const noexcept
 
 void QGraphicsXYChooser::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 {
+  // Left button only, as for a drag: the second click of a right double-click
+  // must not recentre the point.
+  if(event->button() != Qt::LeftButton)
+  {
+    event->accept();
+    return;
+  }
+
   const ossia::vec2f newValue = scaledValue(0.5, 0.5);
   if(m_value != newValue)
   {
@@ -198,11 +207,21 @@ void QGraphicsXYChooser::showTypeIn(QPointF scenePos)
       update();
         });
 
+    // editingFinished is also emitted on focus-out, and tabbing from x to y
+    // is a focus-out: the box has to stay up while the focus is still on the
+    // other half of it. Deferred, because the new focus widget is not known
+    // until this event has been handled.
     connect(boxes[i], &DoubleSpinboxWithEnter::editingFinished, this, [this, proxy] {
       sliderReleased();
       QTimer::singleShot(0, this, [proxy] {
-        if(currentRightClickWidget() == proxy)
-          closeRightClickWidget();
+        if(currentRightClickWidget() != proxy)
+          return;
+
+        for(auto* w = QApplication::focusWidget(); w; w = w->parentWidget())
+          if(w == proxy->widget())
+            return;
+
+        closeRightClickWidget();
       });
     });
   }

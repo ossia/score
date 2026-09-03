@@ -1,5 +1,6 @@
 #pragma once
 #include <score/graphics/DefaultControlImpl.hpp>
+#include <score/graphics/RightClickWidget.hpp>
 #include <score/graphics/InfiniteScroller.hpp>
 #include <score/model/Skin.hpp>
 #include <score/tools/Cursor.hpp>
@@ -155,6 +156,9 @@ struct DefaultGraphicsSpinboxImpl
   static void contextMenuEvent(T& self, QPointF pos)
   {
     auto build = [&, self_p = &self, pos] {
+      // Whatever box is open belongs to the previous right-click.
+      closeRightClickWidget();
+
       auto w = new SpinboxWithEnter;
       w->setRange(self.min, self.max);
 
@@ -162,6 +166,7 @@ struct DefaultGraphicsSpinboxImpl
       auto obj = self.scene()->addWidget(
           w, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
       obj->setPos(pos);
+      currentRightClickWidget() = obj;
 
 #if defined(__EMSCRIPTEN__)
       w->setFocus();
@@ -205,6 +210,9 @@ struct DefaultGraphicsSpinboxImpl
     // FIXME to be safe we have to locate the object by path on every click as
     // some control changes may cause entire GUI rebuilds
     auto build = [&, self_p = &self, pos] {
+      // Whatever box is open belongs to the previous right-click.
+      closeRightClickWidget();
+
       auto w = new DoubleSpinboxWithEnter;
       w->setRange(self.min, self.max);
 
@@ -213,6 +221,7 @@ struct DefaultGraphicsSpinboxImpl
       auto obj = self.scene()->addWidget(
           w, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
       obj->setPos(pos);
+      currentRightClickWidget() = obj;
 
 #if defined(__EMSCRIPTEN__)
       w->setFocus();
