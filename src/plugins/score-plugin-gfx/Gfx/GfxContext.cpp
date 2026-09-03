@@ -1,3 +1,5 @@
+#include <typeinfo>
+
 #include <Gfx/GfxContext.hpp>
 #include <Gfx/Graph/Graph.hpp>
 #include <Gfx/Graph/Node.hpp>
@@ -583,9 +585,19 @@ void GfxContext::incrementalEdgeUpdate(
       // Ports don't grow after registration, so this spec can never apply —
       // not deferred, but not silent either: it means the producer published
       // a bad port index.
+      //
+      // Name the nodes and their port counts. Bare indices are not actionable:
+      // "8:0 -> 3:0" on a real document (instanced-helmets-manual-expression,
+      // A26) says an edge was dropped and the frame came out blank, without
+      // saying which node lacks the port or what either of them is, so the
+      // first step of every investigation is re-instrumenting this line.
       fprintf(
-          stderr, "gfx: dropping edge with out-of-range port: %d:%d -> %d:%d\n",
-          spec.first.node, spec.first.port, spec.second.node, spec.second.port);
+          stderr,
+          "gfx: dropping edge with out-of-range port: %d:%d -> %d:%d "
+          "(%s has %zu output(s), %s has %zu input(s))\n",
+          spec.first.node, spec.first.port, spec.second.node, spec.second.port,
+          typeid(*source_it->second).name(), source_ports.size(),
+          typeid(*sink_it->second).name(), sink_ports.size());
       continue;
     }
 
