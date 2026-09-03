@@ -4375,17 +4375,37 @@ void parser::parse_raw_raster_pipeline()
   // parse_isf, parse_shadertoy and parse_shadertoy_json all emit.
   m_fragment += GLSL45.defaultFunctions;
 
-  // The raw-raster path replaces gl_FragCoord → isf_FragCoord for the
-  // same Y-flip behaviour as fullscreen ISF, but unlike ISF the raw-raster
-  // FS prelude didn't define the macro — causing "isf_FragCoord :
-  // undeclared identifier" for any shader using gl_FragCoord.
-  m_fragment += R"_(
-#if defined(QSHADER_SPIRV) || defined(QSHADER_HLSL) || defined(QSHADER_MSL)
-#define isf_FragCoord vec4(gl_FragCoord.x, RENDERSIZE.y - gl_FragCoord.y, gl_FragCoord.z, gl_FragCoord.w)
-#else
-#define isf_FragCoord gl_FragCoord
-#endif
-)_";
+  // defaultFunctions carries the ONE definition of isf_FragCoord (and of the
+  // whole IMG_* family) that every generated fragment stage gets. It has to
+  // stay the only one.
+  //
+  // The raw-raster path replaces gl_FragCoord → isf_FragCoord and, back when
+  // its FS prelude did not include defaultFunctions, appended a second
+  // definition of the macro here so that a shader using gl_FragCoord would not
+  // hit "isf_FragCoord : undeclared identifier". The line above then started
+  // emitting defaultFunctions and the appended copy became a redefinition —
+  // silently, because the two guards do not agree: defaultFunctions branches on
+  // QSHADER_SPIRV alone, the appended copy branched on
+  // QSHADER_SPIRV || QSHADER_HLSL || QSHADER_MSL.
+  //
+  // ShaderCache sets setPerTargetCompilation(true), so the source is
+  // preprocessed once per target with that target's QSHADER_* macro defined:
+  //
+  //   SPIR-V target  both branches take the flipped form   -> same text, legal
+  //   GLSL target    both branches take gl_FragCoord       -> same text, legal
+  //   HLSL / MSL     defaultFunctions gives gl_FragCoord,
+  //                  the copy gives the flipped form       -> DIFFERENT text
+  //
+  // and glslang rejects a redefinition with different substitutions. So every
+  // raw-raster fragment stage failed to bake on Direct3D and on Metal, while
+  // baking fine on the two backends CI covers. That was 101 of the 105 shader
+  // bake failures in a full d3d11 test run, and the single cause behind 21 of
+  // the 23 tests that fail on both D3D backends and pass on Vulkan and OpenGL.
+  //
+  // Reproduced with Qt 6.4.2's qsb -p on the generated shader captured from the
+  // failing run: --hlsl 50 and --msl 12 fail with exactly
+  //   ERROR: :123: '#define' : Macro redefined; different substitutions: isf_FragCoord
+  // while SPIR-V and --glsl 460 bake; with this block gone all four bake.
 
   // Add the actual vert / frag code
   m_vertex += m_sourceVertex;
