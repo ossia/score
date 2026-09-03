@@ -437,6 +437,25 @@ void CustomMesh::update(
         = static_cast<QRhiBuffer*>(first_mesh.indirect_count.handle);
     output_meshbuf.useIndirectDraw = true;
     output_meshbuf.indirectDrawIndexed = (first_mesh.index.buffer >= 0);
+    // Count AND STRIDE, exactly as init() above computes them. Leaving them out
+    // was an abort, not a degradation: MeshBuffers::indirectDrawStride defaults
+    // to 0 (Mesh.hpp:53) and QRhi asserts `stride >= sizeof(QRhi[Indexed]
+    // IndirectDrawCommand)` inside drawIndirect / drawIndexedIndirect, so the
+    // process dies the first time this path draws.
+    //
+    // Only an ASYNCHRONOUS geometry producer reaches it. A producer that has
+    // its mesh when the node is built goes through init(), which sets both. One
+    // that publishes later -- Structure Synth, whose EisenScript is parsed on a
+    // halp worker thread -- is built with an empty geometry (no indirect handle,
+    // so init() leaves useIndirectDraw false and the stride at 0) and adopts the
+    // indirect buffer HERE, on the reload path, when the mesh finally lands.
+    // That is why no existing test saw it: every other geometry producer in the
+    // tree is synchronous.
+    output_meshbuf.indirectDrawCount
+        = first_mesh.indirect_count.byte_size / (5 * sizeof(uint32_t));
+    if(output_meshbuf.indirectDrawCount == 0)
+      output_meshbuf.indirectDrawCount = 1;
+    output_meshbuf.indirectDrawStride = 5 * sizeof(uint32_t);
   }
   else
   {
