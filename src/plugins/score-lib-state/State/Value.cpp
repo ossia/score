@@ -8,6 +8,8 @@
 #include <State/ValueConversion.hpp>
 #include <State/ValueSerialization.hpp>
 
+#include <cctype>
+
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
@@ -124,6 +126,15 @@ std::optional<ossia::value> parseValue(std::string_view input)
     bool ok = qi::phrase_parse(f, l, p, qi::standard::space, result);
 
     if(!ok)
+    {
+      return {};
+    }
+
+    // The whole input, or none of it: `"abc" junk` used to parse as "abc",
+    // which is how text that names no value gets committed as one.
+    while(f != l && std::isspace((unsigned char)*f))
+      ++f;
+    if(f != l)
     {
       return {};
     }
