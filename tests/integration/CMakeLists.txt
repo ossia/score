@@ -137,13 +137,38 @@ score_add_test(test_integration_js_process_ui
 # JS::ProcessModel::rootPath() caches the Library settings model in a
 # function-local static reference, so the second score application built in a
 # process reads the first one's freed settings when a Javascript process is
-# created. Its own executable and WILL_FAIL because ASan aborts: registered
-# with the CORRECT expectation, so fixing rootPath() turns this entry red.
+# created. Its own executable, because the failure takes the whole binary with
+# it.
+#
+# THE VERDICT IS ONLY RELIABLE UNDER ASan, and that is why the property is
+# conditional. Off ASan the defect still fires, and for exactly the documented
+# reason -- the freed QString's data pointer is garbage, so Qt's own
+# Q_ASSERT("p") in qarraydatapointer.h:111 goes off inside
+# Library::Settings::Model::getDefaultLibraryPath() <- JS::ProcessModel::
+# rootPath() <- JS::ComponentCache::getExecution(), and SafeQApplication::
+# DebugOutput raises SIGTRAP. But it fires only when the freed block happens to
+# hold a value that trips the assert. Measured on a plain Debug build here, ten
+# consecutive runs: 133 0 0 133 133 133 133 133 133 133. Eight red, two green,
+# same binary, same environment.
+#
+# So off ASan neither verdict can be trusted: WILL_FAIL turns the two green runs
+# into ctest failures, and no WILL_FAIL turns the eight red ones into failures.
+# DISABLED is the honest state -- ctest lists it and reports it as disabled,
+# which is visible, rather than dropping it silently or inventing a result. Under
+# ASan the read is caught on the FIRST access rather than only when the garbage
+# is unlucky, so the abort is deterministic and WILL_FAIL is exact.
+#
+# Registered with the CORRECT expectation, so under ASan, fixing rootPath()
+# turns this entry red: the signal to drop the WILL_FAIL entirely.
 score_add_test(test_integration_js_rootpath_static
   SOURCES JsRootPathStaticTest.cpp
   GUI
   PLUGINS score_plugin_scenario score_lib_process score_plugin_js score_plugin_library)
-set_tests_properties(test_integration_js_rootpath_static PROPERTIES WILL_FAIL TRUE)
+if(CMAKE_CXX_FLAGS MATCHES "sanitize=[a-z,]*address")
+  set_tests_properties(test_integration_js_rootpath_static PROPERTIES WILL_FAIL TRUE)
+else()
+  set_tests_properties(test_integration_js_rootpath_static PROPERTIES DISABLED TRUE)
+endif()
 
 # Opening a Javascript process UI never emits externalUIVisible(true), so the
 # controls that opened it stay in the closed state. [!shouldfail] with the

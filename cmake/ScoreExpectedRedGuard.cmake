@@ -60,14 +60,13 @@ set(SCORE_EXPECTED_RED
   "shouldfail@tests/integration/RegressionSplatReloadTest.cpp@Splat's prettyName says Splat, not Model Display@A17: two processes share one display name"
   "shouldfail@tests/unit/AssetTableTest.cpp@AssetTable: zero-byte entries are not reclaimed by trim (current behavior)@trim() skips zero-byte entries, so a table of them never shrinks"
   "shouldfail@tests/gfx/CroustiCpuNodes.cpp@a geometry filter displaces the mesh it is given@P2-9: the CPU geometry-filter path does not displace"
-  "shouldfail@tests/gfx/VideoDecoderPixels.cpp@VUYA / VUYX / XV30 reach a decoder at all@these three formats render black -- the decode axis is fixed, the render axis is not"
   "shouldfail@tests/gfx/GfxGeometryFilterShift.cpp@a geometry filter shifts the drawn silhouette by exactly the delta@P2-9 oracle, pixel form: the silhouette is not displaced"
   "shouldfail@tests/threedim/SceneApproximationPins.cpp@DEFECT P2-11: the render-thread light encoder collapses area lights onto point, and dome onto directional@light-type information is lost in the render-thread encoder"
   "shouldfail@tests/threedim/SceneApproximationPins.cpp@DEFECT P2-12 (re-scoped): SceneFilterNode mode 2 has no Name port, so it cannot be configured at all@mode 2 exposes no Name port"
 
   # -- CMake WILL_FAIL ------------------------------------------------------
   # Cannot be a Catch2 tag: the defect aborts, so Catch2 never reports.
-  "will_fail@tests/integration/CMakeLists.txt@test_integration_js_rootpath_static@rootPath()'s function-local static caches a dangling reference, and ASan aborts the process, so this needs its own executable plus a SIGABRT handler"
+  "will_fail@tests/integration/CMakeLists.txt@test_integration_js_rootpath_static@rootPath()'s function-local static caches a dangling reference. ASAN-ONLY -- off ASan the freed read trips Qt's own Q_ASSERT only when the garbage is unlucky (measured 8 red / 2 green in 10 runs), so the entry is WILL_FAIL under -fsanitize=address and DISABLED otherwise"
 
   # -- [finding] tag, genuinely red, enforced by NOTHING --------------------
   # These are the reason this guard exists. Each is a real reproduced defect
