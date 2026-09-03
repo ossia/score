@@ -1,5 +1,6 @@
 #pragma once
 #include <QPointer>
+#include <QTimer>
 #include <QSet>
 #include <QStyledItemDelegate>
 
@@ -58,7 +59,10 @@ private:
   mutable QSet<QWidget*> m_live;
   QPersistentModelIndex m_pressed;
   mutable QList<QPersistentModelIndex> m_lit;
+  mutable QPointer<QTimer> m_unlit;
+  mutable QPointer<const QAbstractItemModel> m_seen;
   mutable QPointer<const QAbstractItemModel> m_watched;
+  mutable QMetaObject::Connection m_traffic;
   mutable QPointer<QWidget> m_surface;
   void updateEditorGeometry(
       QWidget* editor, const QStyleOptionViewItem& option,
