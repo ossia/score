@@ -37,15 +37,23 @@ void main()
 {
   v_texcoord = texcoord;
   gl_Position = renderer.clipSpaceCorrMatrix * vec4(position.xy, 0.0, 1.);
-#if !defined(QSHADER_SPIRV) && !defined(QSHADER_HLSL) && !defined(QSHADER_MSL)
-  // OpenGL only: QRhi::isYUpInFramebuffer(). Same contract as the MRT blit in
-  // SimpleRenderedISFNode.cpp -- the copy from the intermediate MRT attachment
-  // to the output render target must not turn the image over on the way
-  // there. Direct3D and Metal put the framebuffer origin where Vulkan does,
-  // so like Vulkan they need nothing here: clipSpaceCorrMatrix already
-  // carries the whole difference. (Before this, the raw-raster MRT path was
-  // delivered vertically flipped on OpenGL while Vulkan was correct --
-  // caught by tests/gfx/GfxRawRasterMrtPattern.cpp.)
+#if !defined(QSHADER_SPIRV)
+  // Everything except Vulkan, measured rather than derived -- the same shape,
+  // and for the same reason, as ISF_STORE_COORD in libisf's computeMacros.
+  // The framebuffer origin does not predict this: Direct3D and Metal put it at
+  // the top like Vulkan, yet the copy from the intermediate MRT attachment to
+  // the output render target reaches the delivered picture mirrored on them
+  // exactly as it does on OpenGL. Gating on OpenGL alone
+  // (QRhi::isYUpInFramebuffer()) leaves D3D11 and D3D12 upside down:
+  // GfxRawRasterMrtPattern reports green=10 where 245 is expected at row 2, on
+  // every attachment, on both D3D backends, while OpenGL and Vulkan are green.
+  //
+  // The direct (single-output) raw-raster path does not go through this blit
+  // and is correctly oriented on all four backends, so the correction belongs
+  // here and nowhere else. SimpleRenderedISFNode.cpp's twin blit is NOT the
+  // same case: the ISF vertex prelude carries isf_vertShaderFinish, which
+  // already flips for QSHADER_HLSL/QSHADER_MSL, and GfxMrtPattern -- the ISF
+  // twin of this test, same closed form -- passes on both D3D backends.
   v_texcoord.y = 1. - v_texcoord.y;
 #endif
 }
