@@ -447,9 +447,13 @@ QVariant DeviceExplorerModel::data(const QModelIndex& index, int role) const
       // What the one-line cell had to fold away.
       if((Column)col == Column::Value)
       {
-        const auto text = State::convert::value<QString>(addr_set.value);
-        if(State::convert::isMultiLine(text))
-          return text;
+        if(const auto* s = addr_set.value.target<std::string>())
+        {
+          const auto tip
+              = State::convert::stringCellToolTip(QByteArray::fromStdString(*s));
+          if(!tip.isEmpty())
+            return tip;
+        }
       }
 
       if(const auto& desc = ossia::net::get_description(addr_set))
@@ -500,14 +504,17 @@ Qt::ItemFlags DeviceExplorerModel::flags(const QModelIndex& index) const
 
     if(n.isEditable() && index.column() == (int)Column::Value)
     {
-      f |= Qt::ItemIsEditable;
-
       // A boolean toggles on one click rather than opening an editor to say
-      // true or false in; the check box is always there to be clicked.
+      // true or false in; the check box painted in the row *is* the editor, so
+      // the row is not editable on top of it.
       if(n.is<Device::AddressSettings>()
          && n.get<Device::AddressSettings>().value.target<bool>())
       {
         f |= Qt::ItemIsUserCheckable;
+      }
+      else
+      {
+        f |= Qt::ItemIsEditable;
       }
     }
 

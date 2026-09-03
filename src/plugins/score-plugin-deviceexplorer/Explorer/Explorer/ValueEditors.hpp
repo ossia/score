@@ -97,11 +97,9 @@ public:
   /**
    * @brief Focus left the editor entirely.
    *
-   * The delegates commit and close on this. Qt does it for a plain editor,
-   * but not for a composite one: its filter watches the widget it was given
-   * while the focus actually lives on a child, so the FocusOut never arrives
-   * and the editor stays open over the row. Clicking away commits, as it does
-   * in every other table editor.
+   * Not what makes a cell editor commit -- eventFilter() hands Qt a FocusOut
+   * for that, so that the commit and the close stay Qt's. This is for anything
+   * else that wants to know, and it is emitted after the commit.
    */
   void editingFinished() E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, editingFinished)
 
