@@ -360,6 +360,13 @@ if(SCORE_TESTING)
   # API newer than that. See the header of the file for the two shapes it knows.
   include(ScoreRhiPortabilityGuard)
   score_check_rhi_portability()
+
+  # Same placement rationale again: this compares the expected-red inventory
+  # against the tree. Four different conventions grew for "this test is red on
+  # purpose" and no query saw more than one of them, which is why a Windows run
+  # could produce 11 failures nobody could sort into ours and new.
+  include(ScoreExpectedRedGuard)
+  score_check_expected_red()
 endif()
 
 # Backwards-compatible aliases for the legacy flags (kept temporarily).
