@@ -478,6 +478,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/GraphicsItem.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/WasmInputMethod.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/GraphicsLayout.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/BangPainting.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/GraphicWidgets.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/InfiniteScroller.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/RectItem.cpp"
