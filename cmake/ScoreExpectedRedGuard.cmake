@@ -68,17 +68,20 @@ set(SCORE_EXPECTED_RED
   # Cannot be a Catch2 tag: the defect aborts, so Catch2 never reports.
   "will_fail@tests/integration/CMakeLists.txt@test_integration_js_rootpath_static@rootPath()'s function-local static caches a dangling reference. ASAN-ONLY -- off ASan the freed read trips Qt's own Q_ASSERT only when the garbage is unlucky (measured 8 red / 2 green in 10 runs), so the entry is WILL_FAIL under -fsanitize=address and DISABLED otherwise"
 
-  # -- [finding] tag, genuinely red, enforced by NOTHING --------------------
-  # These are the reason this guard exists. Each is a real reproduced defect
-  # that presents to ctest as an ordinary failure, indistinguishable from a
-  # regression. Converting them to [!shouldfail] is tracked as OPEN-8b: they
-  # GENERATE over backends and SKIP on some, and Catch2's interaction between
-  # skip and !shouldfail has to be verified per case before flipping any.
-  "finding@tests/gfx/IsfFindings.cpp@FINDING isf-multipass-storage-rw final pass renders black@a multipass ISF with a read-write storage buffer renders its final pass all-black"
-  "finding@tests/gfx/IsfFindings.cpp@FINDING isf-multipass-persistent-ssbo final pass renders black@same shape with a persistent SSBO"
-  "finding@tests/gfx/IsfMrtPersistent.cpp@FINDING isf-mrt-persistent-ssbo second attachment / Vulkan binding@the second MRT attachment is wrong, and the Vulkan pipeline build hits an invalid descriptor and crashes inside QRhi"
-  "finding@tests/gfx/GfxVsaCull.cpp@VSA triangle: front face visible on every backend (R3-N4 RED)@R3-N4: the VSA triangle's front face is not visible"
-  "finding@tests/gfx/GfxVsaCull.cpp@VSA triangle: backends agree (R3-N4 RED)@R3-N4: the backends disagree about the VSA triangle"
+  # -- [finding] tag, VERIFIED GREEN ----------------------------------------
+  # These five were the reason this guard was written: real reproduced defects
+  # that presented to ctest as ordinary failures, indistinguishable from a
+  # regression, because a [finding] tag enforces nothing. Negative-controlling
+  # them under OPEN-10 found that all five now PASS -- OpenGL and Vulkan, on
+  # this NVIDIA host, 2026-09-03. So the category is empty: there is no longer
+  # any test in the tree that is red on purpose and unenforced. They are kept
+  # declared, and keep the word FINDING in their names, so that the history
+  # stays attached to the case that carries it.
+  "fixed@tests/gfx/IsfFindings.cpp@FINDING isf-multipass-storage-rw final pass renders black@a multipass ISF with a read-write storage buffer rendered its final pass all-black -- now renders the uv gradient, asserted"
+  "fixed@tests/gfx/IsfFindings.cpp@FINDING isf-multipass-persistent-ssbo final pass renders black@same shape with a persistent SSBO -- the uv pattern and the per-frame ramp are both back"
+  "fixed@tests/gfx/IsfMrtPersistent.cpp@FINDING isf-mrt-persistent-ssbo second attachment / Vulkan binding@the second MRT attachment came back blank and the Vulkan pipeline build hit an invalid descriptor -- both attachments are valid now and Vulkan builds"
+  "fixed@tests/gfx/GfxVsaCull.cpp@VSA triangle: front face visible on every backend@R3-N4 -- no winding used to render on both backends at once"
+  "fixed@tests/gfx/GfxVsaCull.cpp@VSA triangle: backends agree@R3-N4 -- OpenGL drew the triangle while Vulkan culled it"
 
   # -- [finding] tag, fixed, kept for the name ------------------------------
   # Green today. Declared so the guard does not report them as untracked, and

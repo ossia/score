@@ -10,6 +10,7 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 extern "C" {
 #include <libavformat/avformat.h>

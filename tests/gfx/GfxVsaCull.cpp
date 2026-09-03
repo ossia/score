@@ -1,5 +1,5 @@
 // =============================================================================
-// L3 -- VSA triangle cull-mode: ISOLATED, EXPECTED-RED. Do NOT weaken.
+// L3 -- VSA triangle cull-mode: ISOLATED, and GREEN since the fix. Do NOT weaken.
 //
 // A single solid triangle (vsa-triangle.vs) rendered through the VSA node. The
 // design goal is that one procedurally-emitted front-facing triangle is visible
@@ -14,8 +14,12 @@
 // visible face across GL and Vulkan.
 //
 // The test asserts the intended behaviour -- front face visible everywhere and
-// backends agreeing -- and currently fails. Isolated in its own target so the
-// attributable RED cannot pull down test_gfx_vsa or any other group.
+// backends agreeing. It was written as a RED pin against the measurement above
+// and it now PASSES: verified on this NVIDIA host, OpenGL and Vulkan, 17
+// assertions across the two cases, 2026-09-03. It stays isolated in its own
+// target -- that was the right call while it was red, and it costs nothing now
+// that it is green, because a cull-mode regression is exactly the kind that
+// would otherwise take an unrelated group down with it.
 // =============================================================================
 
 #include <score_test/Gfx.hpp>
@@ -75,7 +79,7 @@ IsfResult run_vsa(score::gfx::GraphicsApi be, const char* vs)
 }
 }
 
-TEST_CASE("VSA triangle: front face visible on every backend (R3-N4 RED)", "[gfx][l3][vsa][cull][finding]")
+TEST_CASE("VSA triangle: front face visible on every backend (R3-N4, fixed)", "[gfx][l3][vsa][cull][finding]")
 {
   const auto be = GENERATE(from_range(platform_backends()));
 
@@ -107,7 +111,7 @@ TEST_CASE("VSA triangle: front face visible on every backend (R3-N4 RED)", "[gfx
   CHECK(drawn_pixels(img) > (img.width * img.height) / 8);
 }
 
-TEST_CASE("VSA triangle: backends agree (R3-N4 RED)", "[gfx][l3][vsa][cull][finding]")
+TEST_CASE("VSA triangle: backends agree (R3-N4, fixed)", "[gfx][l3][vsa][cull][finding]")
 {
   std::vector<IsfResult> shots;
   for(auto be : platform_backends())
