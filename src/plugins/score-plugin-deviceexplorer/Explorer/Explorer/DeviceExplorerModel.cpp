@@ -265,6 +265,7 @@ void DeviceExplorerModel::updateValue(
   QModelIndex nodeIndex = modelIndexFromNode(*n, 1);
 
   dataChanged(nodeIndex, nodeIndex);
+  valueUpdated(n);
 }
 
 bool DeviceExplorerModel::checkDeviceInstantiatable(
@@ -442,6 +443,15 @@ QVariant DeviceExplorerModel::data(const QModelIndex& index, int role) const
     if(n.is<Device::AddressSettings>())
     {
       auto& addr_set = n.get<Device::AddressSettings>();
+
+      // What the one-line cell had to fold away.
+      if((Column)col == Column::Value)
+      {
+        const auto text = State::convert::value<QString>(addr_set.value);
+        if(State::convert::isMultiLine(text))
+          return text;
+      }
+
       if(const auto& desc = ossia::net::get_description(addr_set))
         return QString::fromStdString(*desc);
     }
@@ -491,6 +501,14 @@ Qt::ItemFlags DeviceExplorerModel::flags(const QModelIndex& index) const
     if(n.isEditable() && index.column() == (int)Column::Value)
     {
       f |= Qt::ItemIsEditable;
+
+      // A boolean toggles on one click rather than opening an editor to say
+      // true or false in; the check box is always there to be clicked.
+      if(n.is<Device::AddressSettings>()
+         && n.get<Device::AddressSettings>().value.target<bool>())
+      {
+        f |= Qt::ItemIsUserCheckable;
+      }
     }
 
     if(index.column() == (int)Column::Name && n.is<Device::AddressSettings>()
@@ -550,6 +568,7 @@ bool DeviceExplorerModel::setData(
       m_devicePlugin.updateProxy.updateRemoteValue(Device::address(n).address, copy);
 
       dataChanged(index, index);
+      valueUpdated(&n);
       return true;
     }
     else

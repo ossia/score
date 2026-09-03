@@ -161,10 +161,32 @@ QVariant valueColumnData(const Device::Node& node, int role)
       // Done here explicitely to avoid Qt's default scientific notation QLocale conversion
       return State::convert::toPrettyString(*val.target<float>());
     }
+    else if(role == Qt::DisplayRole && val.get_type() == ossia::val_type::STRING)
+    {
+      const auto bytes = QByteArray::fromStdString(*val.target<std::string>());
+
+      // Bytes that are not text: the row shows what they are, not a reading.
+      if(State::convert::isBinary(bytes))
+        return State::convert::binarySummary(bytes);
+
+      // The row is one line tall: say how much is not in it.
+      return State::convert::toSingleLine(QString::fromUtf8(bytes));
+    }
+    else if(role == Qt::DisplayRole && val.get_type() == ossia::val_type::BOOL)
+    {
+      // The check box below is the value; a "true" beside it says it twice.
+      return {};
+    }
     else
     {
       return State::convert::value<QVariant>(val);
     }
+  }
+  else if(role == Qt::CheckStateRole)
+  {
+    // A boolean is one click, not a double-click into a combo box.
+    if(const auto* b = node.get<AddressSettings>().value.target<bool>())
+      return *b ? Qt::Checked : Qt::Unchecked;
   }
   else if(role == Qt::ForegroundRole)
   {
