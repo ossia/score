@@ -214,6 +214,15 @@ score_add_gfx_test(cubemap_six_faces GfxCubemapSixFaces.cpp)
 # renders as a perspective one. Unit-math level: byte-identical UBOs provably
 # imply byte-identical frames (no other reader of camera projection exists).
 score_add_gfx_test(camera_projection_pin GfxCameraProjectionPin.cpp)
+# P2-15: the Null backend refuses rather than pretends. Null accepts every
+# command and rasterizes nothing, so `SCORE_TEST_API=null` used to turn every
+# pixel case into a red naming the FIXTURE ("readback ... empty/short") -- and
+# would have turned a case expecting a black pixel green against a buffer
+# nothing drew. score_test/Gfx.hpp now reports SKIP for Null, with an opt-in
+# (allowNullBackend) for the structural halves that want it. This case pins the
+# selection logic, the SKIP verdict shape, and that opting in still yields no
+# pixels. GPU-independent: it runs, and asserts the same thing, on any backend.
+score_add_gfx_test(null_backend_refuses GfxNullBackendRefuses.cpp)
 
 # The same closed-form pattern, but through ISF -> ScreenNode -> swapchain
 # readback: the path the golden gate exercises and the only one the analytic
