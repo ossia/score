@@ -844,7 +844,12 @@ endif()
 
 
 # TEXT node render validation (depends on the scene render path). One
-# headless llvmpipe app run: grabs the
+# llvmpipe app run under an Xvfb the harness starts itself (falling back to
+# $DISPLAY, SKIPping with neither): under QT_QPA_PLATFORM=offscreen there is no
+# GL at all and QRhi silently falls back to the Null backend, whose Qt::yellow
+# texture fill satisfied most of the value assertions below. The renderer QRhi
+# reports is now asserted to be llvmpipe and a Null backend fails the run.
+# Grabs the
 # Gfx::Text process with DEFAULT controls (off-screen-default visibility
 # regression), then live-edits text/font/size/position/scale/color over OSC
 # /script and asserts pixel VALUES per case (analyze.py: coverage, bbox
