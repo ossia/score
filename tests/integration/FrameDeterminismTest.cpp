@@ -1,13 +1,11 @@
 // The on-demand frame stepping every golden-image claim rests on:
 // GfxContext::renderFrames, WindowDevice::renderFrames / grabFrame /
-// setStepRate and the synthetic step clock (a16977f69a, e9ca948e21,
-// 0b6f3a34bd).
+// setStepRate and the synthetic step clock.
 //
-// None of it had a registered ctest. The only harnesses that reached it,
-// golden-render/frame-determinism.sh and golden-render/sweep.sh, were not
-// add_test'ed and need an out-of-repo shader corpus; setStepRate had no caller
-// anywhere in the tree. The registered gfx harnesses all use sleep-then-grabTo
-// and never touch grabFrame.
+// The other harnesses that reach it, golden-render/frame-determinism.sh and
+// golden-render/sweep.sh, are not add_test'ed and need an out-of-repo shader
+// corpus. The registered gfx harnesses all use sleep-then-grabTo and never
+// touch grabFrame.
 //
 // Separate processes rather than repeated grabs in one, because anything
 // cached in the process would hide exactly the nondeterminism this looks for.
@@ -165,8 +163,18 @@ bool ready()
     return false;
   // The offscreen QPA has no GL: the readback comes back as a single flat
   // colour, so there is nothing to compare.
+  if(qEnvironmentVariable("QT_QPA_PLATFORM") == "offscreen")
+    return false;
+  // DISPLAY and WAYLAND_DISPLAY are X11/Wayland variables and do not exist on
+  // Windows or macOS: testing them unconditionally would SKIP there whatever
+  // the display situation actually is. Same guard as GfxLightLiveTest.cpp's
+  // ready().
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__)
   return qEnvironmentVariableIsSet("DISPLAY")
          || qEnvironmentVariableIsSet("WAYLAND_DISPLAY");
+#else
+  return true;
+#endif
 }
 }
 
@@ -256,7 +264,7 @@ TEST_CASE("setStepRate changes the step the clock takes", "[integration][gfx][de
   auto half = render(dir, "half", "dev.setStepRate(30.0);\ndev.grabFrame(30, OUT);");
   requireRealRender(half);
   // At 30 fps the same 30 frames span twice the time, so TIME and TIMEDELTA
-  // both move. Nothing else in the tree calls setStepRate at all.
+  // both move.
   CHECK(digest(def.png) != digest(half.png));
 
   auto same = render(dir, "same", "dev.setStepRate(60.0);\ndev.grabFrame(30, OUT);");
