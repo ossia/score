@@ -118,6 +118,15 @@ QLatin1String prettyUnitText(const ossia::unit_t& u)
 
 std::optional<ossia::value> parseValue(std::string_view input)
 {
+  // The grammar has no rule for a map; convert::parseMap scans one by hand.
+  // Checked here so that toPrettyString round-trips a map like anything else,
+  // and so that a map nested in a list is read by the same code.
+  {
+    const auto trimmed = QString::fromUtf8(input).trimmed();
+    if(trimmed.startsWith('{'))
+      return convert::parseMap(trimmed);
+  }
+
   auto f(std::cbegin(input)), l(std::cend(input));
   Value_parser<decltype(f)> p;
   try

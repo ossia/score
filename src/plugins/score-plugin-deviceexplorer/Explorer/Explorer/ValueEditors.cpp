@@ -87,93 +87,6 @@ constexpr double unbounded_max = std::numeric_limits<double>::max();
 
 using range = std::pair<double, double>;
 
-//! The map form, which the value parser has no rule for.
-std::optional<ossia::value> readMap(const QString& text)
-{
-  const auto t = text.trimmed();
-  if(!t.startsWith('{') || !t.endsWith('}'))
-    return std::nullopt;
-
-  ossia::value_map_type map;
-  const auto body = t.mid(1, t.size() - 2).trimmed();
-  if(body.isEmpty())
-    return ossia::value{map};
-
-  int depth = 0;
-  bool quoted = false;
-  bool escaped = false;
-  QString cur;
-  QStringList entries;
-  QList<int> seps; // the separating ':' of each entry, found while scanning
-  int sep = -1;
-  for(QChar c : body)
-  {
-    if(escaped)
-    {
-      // A \" inside a string is not the end of it.
-      escaped = false;
-      cur += c;
-      continue;
-    }
-
-    if(quoted && c == '\\')
-      escaped = true;
-    else if(c == '"')
-      quoted = !quoted;
-    else if(!quoted && (c == '[' || c == '{'))
-      depth++;
-    else if(!quoted && (c == ']' || c == '}'))
-      depth--;
-    else if(!quoted && c == ':' && depth == 0 && sep < 0)
-      sep = cur.size();
-
-    if(c == ',' && depth == 0 && !quoted)
-    {
-      entries.push_back(cur);
-      seps.push_back(sep);
-      cur.clear();
-      sep = -1;
-    }
-    else
-    {
-      cur += c;
-    }
-  }
-  entries.push_back(cur);
-  seps.push_back(sep);
-
-  for(int i = 0; i < entries.size(); i++)
-  {
-    const auto& entry = entries[i];
-    if(seps[i] < 0)
-      return std::nullopt;
-
-    // The key goes through the value parser too, so that its escapes read the
-    // same way as any other string's.
-    const auto keyText = entry.left(seps[i]).trimmed();
-    std::string key;
-    if(keyText.startsWith('"'))
-    {
-      auto parsed = State::parseValue(keyText.toStdString());
-      auto* str = parsed ? parsed->target<std::string>() : nullptr;
-      if(!str)
-        return std::nullopt;
-      key = *str;
-    }
-    else
-    {
-      key = keyText.toStdString();
-    }
-
-    auto val = State::parseValue(entry.mid(seps[i] + 1).trimmed().toStdString());
-    if(!val)
-      return std::nullopt;
-
-    map.emplace_back(std::move(key), *val);
-  }
-  return ossia::value{map};
-}
-
 //! Marks a field whose text names no value; the editors refuse to commit one.
 //! `hint` is what it says when happy, so a field's own help is not wiped.
 void setFieldValid(
@@ -291,12 +204,6 @@ private:
   bool m_finished{};
 };
 
-//! Lets an editor be squeezed into a tree row.
-//!
-//! Two things stop it otherwise: the editor's own layout publishes a minimum
-//! size taken from the tallest field in it (a spin box asks for ~26px against
-//! an 18px row) and QWidget::setGeometry honours that, and a widget with no
-//! background of its own leaves the painted cell showing through behind it.
 /**
  * @brief Room for the text of an editor living in an 18px row.
  *
@@ -422,7 +329,7 @@ std::optional<ossia::value> readAs(const QString& text, ossia::val_type type)
       return ok ? std::optional<ossia::value>{v} : std::nullopt;
     }
     case ossia::val_type::MAP:
-      return readMap(text);
+      return State::convert::parseMap(text);
     default:
       break;
   }
