@@ -37,6 +37,15 @@ score_add_test(test_unit_port_factory_reuse
   APP
   PLUGINS score_lib_process)
 
+# --- A27: the file-chooser ports wrote "Filters" and never read it back ----
+# APP for the same reason as the test above: the FileChooser factory lives in
+# score_plugin_dataflow and the AudioFileChooser one in score_plugin_media,
+# both of which are discovered from <build>/plugins.
+score_add_test(test_unit_filechooser_filters
+  SOURCES FileChooserFiltersRoundtripTest.cpp
+  APP
+  PLUGINS score_lib_process)
+
 # Graphics-view combo box: drop-down editor and free-value entry.
 score_add_test(test_unit_graphics_combo
   SOURCES GraphicsComboTest.cpp
