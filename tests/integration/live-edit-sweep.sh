@@ -11,7 +11,7 @@
 # storms — exercising GfxContext::recompute_graph / add_edge / remove_edge,
 # Graph::recreateOutputRenderList and the execution engine's live-edit path.
 #
-# Verdict per scenario (teardown crash is fixed on this branch, so):
+# Verdict per scenario:
 #   PASS  = exit code 0  AND  no "ERROR: AddressSanitizer" in the log
 #           AND (where the scenario expects a live render) final grab
 #           non-blank  AND  no TICK-ERROR (mutation actually happened).
@@ -106,16 +106,14 @@ declare -A EXPECT=(
   # graph with no live editing at all. Its coverage gate below still applies.
   [undo-redo-during-play]=magenta
   # NOT magenta, for the same reason as cable-storm: mixed-chaos also ends on
-  # isf-image-passthrough.fs, and that shader is a sampling test card rather
-  # than the passthrough its name promises. Its own header ("tick_final()
-  # reconnects the cable so dst shows the solid color") assumed otherwise, and
-  # the magenta oracle was written from that assumption -- so this scenario has
-  # never met it. The render is right and deterministic: 76.01% magenta,
+  # isf-image-passthrough.fs, which is a sampling test card rather than the
+  # passthrough its name promises. The render is deterministic: 76.01% magenta,
   # byte-identical across two independently configured builds, and the extra
   # 4 points over cable-storm's 71.96% are the solid base this scene also
-  # wires to the window. The coverage gate above replaces it: the whole frame
-  # must be lit (nonblack = 1.0 here), which is what a live-edit scenario can
-  # actually assert about a composite whose top surface is a test card.
+  # wires to the window. The coverage gate above stands in for a magenta
+  # oracle: the whole frame must be lit (nonblack = 1.0 here), which is what a
+  # live-edit scenario can assert about a composite whose top surface is a
+  # test card.
   [window-storm]=magenta
   [gfx-process-storm]=magenta
   [scene-storm]=magenta
@@ -162,9 +160,8 @@ pump() { # name nticks — runs alongside the app, under the same lock
   # Stop and exit through /script, not the bare /stop and /exit. This oscsend
   # emits argument-less messages that score's OSC listener rejects outright --
   # "element size must be multiple of four" / "unterminated address pattern" --
-  # so the app never saw them and the run ended at the harness timeout instead.
-  # /script carries a string argument and is accepted, which is why the grabs
-  # above always worked while the shutdown silently did not.
+  # so the app never sees them and the run ends at the harness timeout instead.
+  # /script always carries a string argument and is accepted.
   send /script s "Score.stop()"; sleep 0.5
   send /exit s force
 }
@@ -211,31 +208,25 @@ run_scenario() { # name nticks
   ) 9>/tmp/score-harness.lock
 }
 
-# Every scenario quits with a document open, which is the only condition under
-# which the four remaining by-value-but-Qt-owned members of ScenarioDocumentView
-# are freed by Qt at an address that was never malloc'd. That defect is real,
-# understood, filed, and deliberately not fixed here (m_view alone has ~26 call
-# sites); leaving it to fail every scenario would cost the whole sweep its signal.
+# Signature carve-out for AddressSanitizer reports from a KNOWN, filed,
+# deliberately-unfixed defect, so that one such defect cannot cost the whole
+# sweep its signal. It suppresses nothing by itself: a report counts as known
+# only if one of its frames matches, and any other report -- including a new
+# one in the same file -- still fails the scenario.
 #
-# So it is carved out BY SIGNATURE, not by disabling the check: a report is known
-# only if its allocating frame is one of these two destructors. Any other
-# AddressSanitizer report -- including a new one in the same file -- still fails.
-#
-# ScenarioDocumentView.cpp:778 is the empty ~ScenarioDocumentView, i.e. where
-# m_view / m_timeRulerView / m_minimapView / m_minimap are destroyed, and every
-# report anchors in one of those four. The last of the four is a SEGV rather
-# than an invalid free only because the three before it have already poisoned
-# ASan's shadow.
-KNOWN_ASAN_FRAMES='Scenario::ProcessGraphicsView::~ProcessGraphicsView|Scenario::MinimapGraphicsView::~MinimapGraphicsView|Scenario::TimeRulerGraphicsView::~TimeRulerGraphicsView|Scenario::ScenarioDocumentView::~ScenarioDocumentView'
+# THE LIST IS EMPTY, which means every report is a finding -- the state this
+# sweep should normally be in. Add a signature here only alongside a filed,
+# understood defect, and delete it again when that defect is fixed.
+KNOWN_ASAN_FRAMES=''
 
 # Prints "<total> <known>" for the AddressSanitizer reports in a log. A report
 # runs from its ERROR: line to its SUMMARY:, and counts as known only if one of
-# the frames in between is a destructor above.
+# the frames in between matches KNOWN_ASAN_FRAMES.
 asan_census() {
   awk -v known="$KNOWN_ASAN_FRAMES" '
     /ERROR: AddressSanitizer/ { total++; inrep = 1; matched = 0; next }
     inrep && /SUMMARY: AddressSanitizer/ { if(matched) k++; inrep = 0; next }
-    inrep && $0 ~ known { matched = 1 }
+    inrep && known != "" && $0 ~ known { matched = 1 }
     END { if(inrep && matched) k++; print total+0, k+0 }' "$1" 2>/dev/null
 }
 
@@ -319,7 +310,7 @@ for name in "${ORDER[@]}"; do
   [ $# -gt 0 ] && { printf '%s\n' "$@" | grep -qx "$name" || continue; }
   read -r nticks require cover <<< "${CFG[$name]}"
   # A/B handle: NTICKS=0 runs a scenario's scene with no mutations at all, which
-  # is how you tell "this chain never worked" from "the storm broke it".
+  # separates "this chain never worked" from "the storm broke it".
   nticks="${NTICKS:-$nticks}"
   if ! why=$(precondition "$name"); then
     if [ "${SCORE_REQUIRE_DEVICES:-0}" = 1 ]; then
