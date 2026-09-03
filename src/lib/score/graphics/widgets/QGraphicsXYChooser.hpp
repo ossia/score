@@ -40,6 +40,11 @@ public:
   void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
 
 private:
+  //! Right-click: two boxes to type x and y into, the way a right-click puts
+  //! one box on a slider. A pad on its own can be dragged but never typed,
+  //! pasted, or read off precisely.
+  void showTypeIn(QPointF scenePos);
+
   ossia::vec2f scaledValue(float x, float y) const noexcept;
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
