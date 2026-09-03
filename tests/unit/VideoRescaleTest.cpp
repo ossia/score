@@ -75,6 +75,16 @@ Rgba pixelAt(const AVFrame& f, int x, int y)
   return {px[0], px[1], px[2], px[3]};
 }
 
+// <windows.h> defines near/far as empty macros, and -DWIN32_LEAN_AND_MEAN does
+// not suppress them (they live in minwindef.h alongside `pascal`). A declaration
+// using those names degrades to `bool (int, int, int)` and the diagnostic --
+// "expected unqualified-id" -- points nowhere near the cause. Same guard as
+// tests/fixtures/score_test/Gfx.hpp:74.
+#if defined(_WIN32)
+#undef near
+#undef far
+#endif
+
 bool near(Rgba got, Rgba want, int tol = 12)
 {
   return std::abs(int(got.r) - int(want.r)) <= tol
