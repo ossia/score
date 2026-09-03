@@ -838,7 +838,17 @@ QString toPrettyString(const ossia::value& val)
       str.remove(loc.groupSeparator());
       return str;
     }
-    QString operator()(float f) const { return toPrettyString(f); }
+    //! The adorned form has to read back as the same *type*: "1" is an int, so
+    //! a whole float keeps a point. toPrettyString(float) is the display
+    //! spelling, and stays trimmed.
+    QString operator()(float f) const
+    {
+      auto s = toPrettyString(f);
+      const bool plain
+          = !s.contains('.') && !s.contains('e') && !s.contains('E')
+            && !s.contains(QStringLiteral("inf")) && !s.contains(QStringLiteral("nan"));
+      return plain ? s + QStringLiteral(".0") : s;
+    }
     QString operator()(bool b) const
     {
       return QString::fromStdString(
