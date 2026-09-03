@@ -51,7 +51,12 @@ void ensureApp()
     static int argc = 1;
     static char arg0[] = "AssetTableTest";
     static char* argv[] = {arg0, nullptr};
-    static QGuiApplication app(argc, argv);
+    // Deliberately leaked: a static Q*Application is destroyed from the atexit
+    // chain, after main returns and Qt's own static state is gone, which faults
+    // in ~QGuiApplication/~QCoreApplication on Windows. Same pattern as
+    // tests/unit/InfiniteScrollerTest.cpp.
+    static auto* app = new QGuiApplication(argc, argv);
+    (void)app;
   }
 }
 
