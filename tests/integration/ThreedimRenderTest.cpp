@@ -277,8 +277,16 @@ QByteArray makeCubeOffAscii()
 // Minimal MagicaVoxel .vox: a solid 2x2x2 with default-palette colours.
 QByteArray makeTinyVox()
 {
+  // -> QByteArray is load-bearing, not style. Without it `auto` deduces the
+  // QStringBuilder<QByteArray&, const QByteArray&, ...> expression template
+  // that `c + content + children` builds; it holds REFERENCES to all three
+  // operands, every one of which dies at the return, and the caller converts a
+  // dangling proxy. Measured: SIGABRT inside QByteArray's constructor on a
+  // garbage length, the moment this function was first called for real. It
+  // never had been -- the .vox case below SKIPped unconditionally, so the
+  // fixture it exists to build had never once been executed.
   auto chunk = [](const char id[4], const QByteArray& content,
-                  const QByteArray& children = {}) {
+                  const QByteArray& children = {}) -> QByteArray {
     QByteArray c(id, 4);
     std::uint32_t n = content.size(), m = children.size();
     c.append(reinterpret_cast<char*>(&n), 4);
@@ -501,14 +509,14 @@ Score.play();
 //!    is the one that looks like Qt.
 QString fisheyeScene(
     const QString& assetPath, int cameraMode, double fovDeg, double eye,
-    double centre)
+    double centre, int drawMode = 0, const QString& loaderUuid = {})
 {
   return QStringLiteral(R"JS(
 var UUID_WINDOW = "5a181207-7d40-4ad8-814e-879fcdf8cc31";
 Score.createDevice("Window", UUID_WINDOW, {});
 var s = Score.find("Scenario.1"); if (s) Score.remove(s);
 var root = Score.rootInterval();
-var loader = Score.createProcess(root, "5df71765-505f-4ab7-98c1-f305d10a01ef", "%1");
+var loader = Score.createProcess(root, "%6", "%1");
 if (!loader) { console.log("SCENE-ERROR: no loader"); Qt.exit(9); }
 var md = Score.createProcess(root, "9ce44e4b-eeb6-4042-bb7f-9d0b28190daf", "");
 if (!md) { console.log("SCENE-ERROR: no model display"); Qt.exit(9); }
@@ -517,7 +525,7 @@ Score.setValue(Score.inlet(md, 2), [%4, %4, %4]);
 Score.setValue(Score.inlet(md, 3), [%5, %5, %5]);
 Score.setValue(Score.inlet(md, 4), %3);
 Score.setValue(Score.inlet(md, 7), 6);
-Score.setValue(Score.inlet(md, 8), 0);
+Score.setValue(Score.inlet(md, 8), %7);
 Score.setValue(Score.inlet(md, 9), %2);
 Score.setAddress(Score.outlet(md, 0), "Window:/");
 Score.play();
@@ -526,7 +534,12 @@ Score.play();
       .arg(cameraMode)
       .arg(fovDeg)
       .arg(eye)
-      .arg(centre);
+      .arg(centre)
+      .arg(
+          loaderUuid.isEmpty()
+              ? QStringLiteral("5df71765-505f-4ab7-98c1-f305d10a01ef")
+              : loaderUuid)
+      .arg(drawMode);
 }
 
 constexpr auto kGeometryLoader = "5df71765-505f-4ab7-98c1-f305d10a01ef";
@@ -1203,19 +1216,180 @@ TEST_CASE(
     CHECK(drawnPixels(r.frame) > 64);
   }
 }
+// =============================================================================
+// P2-7 -- a .vox model renders.
+//
+// THE RECORDED BLOCKER WAS WRONG, and the correction matters beyond this case.
+// This case used to SKIP with "blocked on the Qt.vector3d zeroing defect
+// (camera cannot be framed)". `Qt.vector3d(x,y,z)` really is dead in the
+// console engine -- root cause below -- but it is not the only way to write a
+// vec3 control, and the other way works:
+//
+//     Score.setValue(Score.inlet(md, 2), [-3.0, -3.0, -3.0]);
+//
+// That is EditContext.port.cpp:376-389, `setValue(QObject*, QList<qreal>)`,
+// which takes a plain JS array. Every camera in this file's fisheye cases and
+// the one below is written that way.
+//
+// Root cause of the Qt.vector3d defect, for whoever fixes it: the console
+// engine (JS/ApplicationPlugin.hpp:52) IS a QQmlEngine, so `Qt` exists and
+// `Qt.vector3d` resolves -- into libQt6Qml's QtObject::vector3d, which asks
+// QQmlValueTypeProvider::createValueType for a QVector3D, gets no registered
+// QML type, and returns the default-constructed out-variant WITHOUT checking
+// the failure. The registration lives in QQuickVector3DValueType, inside
+// libQt6Quick, and is only performed by qml_register_types_QtQuick() when
+// something does `import QtQuick`. A headless `--no-gui --script` run never
+// does. score_plugin_js.cpp:45-48 still has the Qt5-era hook for this, compiled
+// out under `#if QT_VERSION < 6` and calling a function that no longer exists
+// anywhere in the tree. Qt.vector2d/vector4d/quaternion/matrix4x4/rgba are dead
+// the same way; Qt.rect/point/size work, because those value types live in
+// libQt6Qml. Not fixed here -- the candidate fixes are a private generated
+// symbol or a dlopen of the QtQuick plugin at startup, both of which want their
+// own decision.
+//
+// WHAT THIS CASE CAN AND CANNOT ASSERT.
+//
+// The spec asks for "closed-form voxel colours from the palette", with
+// "corrupt the palette buffer" as the negative control. That oracle has no
+// consumer and the control cannot fire: VoxelLoader.cpp:143 publishes the
+// 256-entry palette as an auxiliary buffer named "vox_palette", and grepping
+// src/ for that name returns the producer and nothing else. No shader in the
+// tree binds it, ModelDisplay included; in the real scores the consumer is user
+// shader content. So a palette corruption is invisible to any in-repo render,
+// and asserting a colour here would be asserting the material's lighting rather
+// than the palette. Recorded rather than faked.
+//
+// What IS closed-form is the GEOMETRY, and it is the loader's own arithmetic.
+// VoxelLoader's Mode combo defaults to init{1} = "Mesh (Simple)"
+// (VoxelLoader.hpp:38-47), so the live path is VoxMeshFromFile, which places the
+// model with an INTEGER pivot of `size / 2` (Vox.cpp:300). For the 2x2x2 solid
+// makeTinyVox() writes, size/2 == 1 on every axis, so the surface mesh spans
+// exactly [-1,1]^3 -- a fact of the loader, not of the renderer.
+//
+// The case renders it from three distances along the view axis at a fixed
+// 60-degree perspective FOV and fits maxDrawnRadius() to
+//     r(e) = tan(t_max(e)) / tan(fov/2)
+// with t_max(e) computed from those eight corner coordinates. One free parameter
+// (the px-per-NDC scale, fitted as the MEAN over the three legs, so no leg is
+// privileged) against three measurements over a 3x range of distance -- and
+// because t_max depends on the actual coordinates, the fit pins the loader's
+// centring and unit scale, not merely the projection. Measured:
+//
+//   eye        t_max       r_ndc     measured px   scale px/NDC
+//   -3,-3,-3   19.4712 deg 0.61237     219.73        358.82
+//   -5,-5,-5   11.4218 deg 0.34993     125.50        358.65
+//   -8,-8,-8    7.0108 deg 0.21300      75.98        356.72
+//
+// Residual against the mean scale is 0.21% / 0.16% / 0.38%, so the 1.5% + 2px
+// gate is a real one.
+//
+// NEGATIVE CONTROL (run, see the ledger): neutralise the integer recentring
+// pivot at Vox.cpp:300, which moves the mesh off the origin.
+//
+// Recorded while getting here: the Point Cloud mode (Mode 0) also renders, and
+// its radii fit the same closed form to ~2% against voxel CENTRES at
+// (+-0.5,+-0.5,+-0.5) -- the looser residual is the point sprite's fixed pixel
+// size, which does not scale with distance and so does not cancel. The mesh leg
+// is asserted because it is the default and therefore the path real documents
+// take.
 TEST_CASE(
     "a MagicaVoxel file renders through the voxel loader",
     "[integration][threedim][render][gui]")
 {
-  // The 2x2x2 voxel solid spans [0,2]^3 at the loader's unit scale; whether
-  // its black frame under the FIXED default camera is a defect or just
-  // framing cannot be distinguished, because scripting the camera is itself
-  // broken: Qt.vector3d(x,y,z) in the console engine drops its arguments and
-  // returns a zeroed vector (measured -- position == center degenerates the
-  // view matrix). Revisit when the vec3 value type works; the equal-geometry
-  // discrimination used for the STL/PLY pins has no analog here.
-  SKIP("blocked on the Qt.vector3d zeroing defect (camera cannot be framed "
-       "for an asset that does not fit the default view)");
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString vox = dir.filePath("tiny.vox");
+  {
+    QFile f(vox);
+    REQUIRE(f.open(QIODevice::WriteOnly));
+    f.write(makeTinyVox());
+  }
+
+  constexpr double kVoxFovDeg = 60.0;
+  const double h = (kVoxFovDeg * 0.5) * kFisheyePi / 180.0;
+
+  // The eight corners of the surface mesh of a 2x2x2 solid after the loader's
+  // integer recentring. This is the claim under test, so it is written out
+  // rather than derived from anything the renderer says.
+  const double kVoxCorners[8][3]{{-1, -1, -1}, {1, -1, -1}, {-1, 1, -1},
+                                 {1, 1, -1},   {-1, -1, 1}, {1, -1, 1},
+                                 {-1, 1, 1},   {1, 1, 1}};
+
+  auto voxTmax = [&](double eye) {
+    const double f = 1.0 / std::sqrt(3.0); // view axis: eye -> origin
+    double t = 0.0;
+    for(const auto& p : kVoxCorners)
+    {
+      const double vx = p[0] - eye, vy = p[1] - eye, vz = p[2] - eye;
+      const double vl = std::sqrt(vx * vx + vy * vy + vz * vz);
+      if(vl <= 0)
+        continue;
+      const double ct = std::clamp((vx * f + vy * f + vz * f) / vl, -1.0, 1.0);
+      t = std::max(t, std::acos(ct));
+    }
+    return t;
+  };
+
+  const double eyes[3]{-3.0, -5.0, -8.0};
+  double measured[3]{};
+  int drawn[3]{};
+  double rndc[3]{};
+  QString refRenderer;
+
+  for(int i = 0; i < 3; i++)
+  {
+    const auto r = renderScene(
+        dir, QStringLiteral("vox-e%1").arg(int(-eyes[i])),
+        // Camera mode 0 (Perspective) and draw mode 0 (Triangles): the surface
+        // mesh the loader publishes by default, under the projection every real
+        // Model Display uses. Tex. Proj. 6 = Light, so the faces are shaded
+        // rather than relying on a texture nothing wires.
+        fisheyeScene(
+            vox, 0, kVoxFovDeg, eyes[i], 0.0, /*drawMode=*/0, kVoxelLoader));
+    if(!r.error.isEmpty())
+      SKIP(r.error.toStdString());
+    if(!r.rendererLine.contains("NVIDIA"))
+      SKIP("renderer is not the nvidia-gl ref class: "
+           << r.rendererLine.toStdString());
+    if(refRenderer.isEmpty())
+      refRenderer = r.rendererLine;
+    REQUIRE(r.rendererLine == refRenderer);
+
+    drawn[i] = drawnPixels(r.frame);
+    measured[i] = maxDrawnRadius(r.frame);
+    rndc[i] = std::tan(voxTmax(eyes[i])) / std::tan(h);
+
+    INFO("eye " << eyes[i] << ": drawn " << drawn[i] << " px, radius "
+                << measured[i] << " px, r_ndc " << rndc[i]);
+    REQUIRE(drawn[i] > 1000);
+    REQUIRE(measured[i] > 0.0);
+  }
+
+  INFO("radii px: " << measured[0] << " " << measured[1] << " " << measured[2]
+                    << "; drawn px: " << drawn[0] << " " << drawn[1] << " "
+                    << drawn[2]);
+
+  // Monotone: farther is smaller, in both extent and coverage. Cheap, and it
+  // fails loudly if the camera control never reached the process at all.
+  CHECK(measured[0] > measured[1] + 2.0);
+  CHECK(measured[1] > measured[2] + 2.0);
+  CHECK(drawn[0] > drawn[1]);
+  CHECK(drawn[1] > drawn[2]);
+
+  // The closed form. One free parameter over three measurements: the scale is
+  // the mean, so two of the three legs are predictions.
+  double scale = 0.0;
+  for(int i = 0; i < 3; i++)
+    scale += measured[i] / rndc[i];
+  scale /= 3.0;
+
+  for(int i = 0; i < 3; i++)
+  {
+    const double predicted = scale * rndc[i];
+    INFO("eye " << eyes[i] << ": predicted " << predicted << " px, measured "
+                << measured[i] << " px (scale " << scale << " px/NDC)");
+    CHECK(std::abs(measured[i] - predicted) <= 0.015 * predicted + 2.0);
+  }
 }
 
 TEST_CASE(
