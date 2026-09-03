@@ -186,7 +186,7 @@ void drawBang(QPainter& p, const QStyleOptionViewItem& option, bool lit)
   {
     // Pressed: the fill drops back and a ring is drawn inside it.
     const qreal inset = circle.width() * 0.125;
-    p.setPen(QPen{score::bangFill(option.palette, false).color(), 2.});
+    p.setPen(QPen{score::bangFill(option.palette, false).color(), 1.5});
     p.setBrush(Qt::NoBrush);
     p.drawEllipse(circle.adjusted(inset, inset, -inset, -inset));
   }
@@ -197,11 +197,8 @@ void drawBang(QPainter& p, const QStyleOptionViewItem& option, bool lit)
 
 void DeviceExplorerDelegate::watch(const QAbstractItemModel* model) const
 {
-  // paint() calls this for every cell it draws; the answer only changes when
-  // the view is given a different model.
-  if(!model || m_seen == model)
+  if(!model)
     return;
-  m_seen = model;
 
   // The traffic is reported by the tree, which may sit behind the filter.
   const QAbstractItemModel* src = model;
@@ -212,16 +209,12 @@ void DeviceExplorerDelegate::watch(const QAbstractItemModel* model) const
   if(!tree || m_watched == tree)
     return;
 
-  // A view swapped back to a model already watched would otherwise flash it
-  // twice per impulse.
-  QObject::disconnect(m_traffic);
   m_watched = tree;
   auto* self = const_cast<DeviceExplorerDelegate*>(this);
 
   // valueUpdated, not dataChanged: the latter also fires when an address's
   // settings are replaced, which opening a document does for every address.
-  m_traffic = connect(
-      tree, &DeviceExplorerModel::valueUpdated, self, [self, tree](Device::Node* n) {
+  connect(tree, &DeviceExplorerModel::valueUpdated, self, [self, tree](Device::Node* n) {
     if(!n || !n->is<Device::AddressSettings>())
       return;
     if(n->get<Device::AddressSettings>().value.get_type() != ossia::val_type::IMPULSE)
@@ -240,21 +233,15 @@ void DeviceExplorerDelegate::flash(const QModelIndex& index)
   if(m_surface)
     m_surface->update();
 
-  // One timer for the delegate, restarted, rather than one per impulse: at OSC
-  // rates that was thousands of timers a second, and the first of them to fire
-  // put every row out again.
-  if(!m_unlit)
-  {
-    m_unlit = new QTimer{const_cast<DeviceExplorerDelegate*>(this)};
-    m_unlit->setSingleShot(true);
-    m_unlit->setInterval(90);
-    connect(m_unlit, &QTimer::timeout, this, [this] {
-      m_lit.clear();
-      if(m_surface)
-        m_surface->update();
-    });
-  }
-  m_unlit->start();
+  QPointer self{this};
+  QPointer<QWidget> surface{m_surface};
+  QTimer::singleShot(90, this, [self, surface, p] {
+    if(!self)
+      return;
+    self->m_lit.removeAll(p);
+    if(surface)
+      surface->update();
+  });
 }
 
 void DeviceExplorerDelegate::paint(
@@ -291,39 +278,34 @@ bool DeviceExplorerDelegate::editorEvent(
   if(isImpulse(addressAt(index)))
   {
     auto* me = dynamic_cast<QMouseEvent*>(event);
-    const bool onBang = me && me->button() == Qt::LeftButton
-                        && bangHitArea(option).contains(me->position().toPoint());
-
-    if(onBang && event->type() == QEvent::MouseButtonPress)
+    if(me && me->button() == Qt::LeftButton
+       && bangHitArea(option).contains(me->position().toPoint()))
     {
-      m_pressed = sourceIndex(index);
-      if(auto* surface = paintSurface(option))
-        surface->update();
-      return true;
-    }
+      QPointer<QWidget> surface{paintSurface(option)};
 
-    if(event->type() == QEvent::MouseButtonRelease)
-    {
-      // A button pressed on one bang and released on another is not a press of
-      // either, as for any other button.
-      const auto src = sourceIndex(index);
-      const bool armed = onBang && m_pressed == src;
-      m_pressed = QModelIndex{};
-
-      if(auto* surface = paintSurface(option))
-        surface->update();
-
-      if(armed)
+      if(event->type() == QEvent::MouseButtonPress)
       {
+        m_pressed = sourceIndex(index);
+        if(surface)
+          surface->update();
+        return true;
+      }
+      if(event->type() == QEvent::MouseButtonRelease)
+      {
+        m_pressed = QModelIndex{};
+
         // Flash here too: the model does not always report the write back.
         model->setData(
             index, QVariant::fromValue(ossia::value{ossia::impulse{}}), Qt::EditRole);
-        flash(src);
+        flash(sourceIndex(index));
         return true;
       }
-
-      if(onBang)
-        return true;
+    }
+    if(event->type() == QEvent::MouseButtonRelease && m_pressed.isValid())
+    {
+      m_pressed = QModelIndex{};
+      if(auto* surface = paintSurface(option))
+        surface->update();
     }
   }
 
@@ -333,13 +315,8 @@ bool DeviceExplorerDelegate::editorEvent(
 void DeviceExplorerDelegate::updateEditorGeometry(
     QWidget* editor, const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
-  // The base puts the editor on the item text rect, which leaves the icon and
-  // the check indicator of a Name cell alone.
-  QStyledItemDelegate::updateEditorGeometry(editor, option, index);
-
-  // Exactly that rect, then: an editor grown to its size hint paints over the
-  // rows above and below it.
-  if(editor)
-    fitEditorToCell(*editor, editor->geometry());
+  // Exactly the cell: an editor grown to its size hint paints over the rows
+  // above and below it.
+  fitEditorToCell(*editor, option.rect);
 }
 }

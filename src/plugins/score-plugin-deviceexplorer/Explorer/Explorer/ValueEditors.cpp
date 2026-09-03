@@ -28,15 +28,7 @@
 #include <QComboBox>
 #include <QContextMenuEvent>
 #include <QFrame>
-#include <QDesktopServices>
 #include <QDoubleSpinBox>
-#include <QFileDialog>
-#include <QFileInfo>
-#include <QFontDatabase>
-#include <QtWidgets/qtwidgetsglobal.h>
-#if defined(QT_FEATURE_fontcombobox) && QT_CONFIG(fontcombobox)
-#include <QFontComboBox>
-#endif
 #include <QApplication>
 #include <QGuiApplication>
 #include <QHBoxLayout>
@@ -55,7 +47,6 @@
 #include <QStyle>
 #include <QStyleOptionViewItem>
 #include <QTimer>
-#include <QUrl>
 #include <QVBoxLayout>
 
 #include <algorithm>
@@ -267,6 +258,289 @@ void makeRowSized(QWidget& w)
   compactField(w);
   for(auto* child : w.findChildren<QWidget*>())
     compactField(*child);
+
+  // The delegate hands the editor the cell rect; it has to cover it.
+  w.setAutoFillBackground(true);
+  w.setBackgroundRole(QPalette::Base);
+}
+
+//! The value actions, tagged by QAction::data so the caller acts on them after
+//! the menu's event loop has gone rather than inside it.
+enum ValueAction
+{
+  NoValueAction = 0,
+  EditAsText,
+  CopyValue,
+  PasteValue,
+  ResetValue
+};
+
+//! A vec prints as a bracketed list and the parser has no rule for one, so the
+//! arity and the element types are what identify it.
+template <std::size_t N>
+std::optional<ossia::value> readVec(const QString& text)
+{
+  auto parsed = State::parseValue(text.toStdString());
+  if(!parsed)
+    return std::nullopt;
+
+  auto* lst = parsed->target<std::vector<ossia::value>>();
+  if(!lst || lst->size() != N)
+    return std::nullopt;
+
+  int depth = 0;
+  bool quoted = false;
+  bool escaped = false;
+  QString cur;
+  QStringList entries;
+  QList<int> seps; // the separating ':' of each entry, found while scanning
+  int sep = -1;
+  for(QChar c : body)
+  {
+    if(escaped)
+    {
+      // A \" inside a string is not the end of it.
+      escaped = false;
+      cur += c;
+      continue;
+    }
+
+    if(quoted && c == '\\')
+      escaped = true;
+    else if(c == '"')
+      quoted = !quoted;
+    else if(!quoted && (c == '[' || c == '{'))
+      depth++;
+    else if(!quoted && (c == ']' || c == '}'))
+      depth--;
+    else if(!quoted && c == ':' && depth == 0 && sep < 0)
+      sep = cur.size();
+
+    if(c == ',' && depth == 0 && !quoted)
+    {
+      entries.push_back(cur);
+      seps.push_back(sep);
+      cur.clear();
+      sep = -1;
+    }
+    else
+    {
+      cur += c;
+    }
+  }
+  entries.push_back(cur);
+  seps.push_back(sep);
+
+  for(int i = 0; i < entries.size(); i++)
+  {
+    const auto& entry = entries[i];
+    if(seps[i] < 0)
+      return std::nullopt;
+
+    // The key goes through the value parser too, so that its escapes read the
+    // same way as any other string's.
+    const auto keyText = entry.left(seps[i]).trimmed();
+    std::string key;
+    if(keyText.startsWith('"'))
+    {
+      auto parsed = State::parseValue(keyText.toStdString());
+      auto* str = parsed ? parsed->target<std::string>() : nullptr;
+      if(!str)
+        return std::nullopt;
+      key = *str;
+    }
+    else
+    {
+      key = keyText.toStdString();
+    }
+
+    auto val = State::parseValue(entry.mid(seps[i] + 1).trimmed().toStdString());
+    if(!val)
+      return std::nullopt;
+
+    map.emplace_back(std::move(key), *val);
+  }
+  return ossia::value{map};
+}
+
+//! Marks a field whose text names no value; the editors refuse to commit one.
+//! `hint` is what it says when happy, so a field's own help is not wiped.
+void setFieldValid(
+    QLineEdit& e, const QPalette& ok, bool valid, const QString& hint = {})
+{
+  if(valid)
+  {
+    e.setPalette(ok);
+    e.setToolTip(hint);
+    return;
+  }
+
+  QPalette bad = ok;
+  const QColor red{0xC0, 0x39, 0x2B};
+  bad.setColor(QPalette::Text, red);
+  bad.setColor(QPalette::WindowText, red);
+  e.setPalette(bad);
+  e.setToolTip(QObject::tr("This is not a value of the parameter's type; "
+                           "it will not be applied."));
+}
+
+//! What "Edit as text" opens: one field in a frameless Qt::Popup. Clicking
+//! away commits, Escape cancels, Return commits; text naming no value is
+//! refused rather than silently dropped.
+class TextFormPopup final : public QFrame
+{
+public:
+  using Done = std::function<void(std::optional<ossia::value>)>;
+
+  TextFormPopup(const AddressValueWidget& w, QWidget* anchor, Done done)
+      : QFrame{anchor, Qt::Popup | Qt::FramelessWindowHint}
+      , m_widget{w}
+      , m_done{std::move(done)}
+  {
+    setFrameShape(QFrame::StyledPanel);
+
+    auto* lay = new QHBoxLayout{this};
+    lay->setContentsMargins(4, 3, 4, 3);
+    lay->setSpacing(6);
+
+    m_edit = new QLineEdit{this};
+    m_edit->setText(w.toText());
+    m_edit->selectAll();
+    m_ok = m_edit->palette();
+    lay->addWidget(m_edit, 1);
+
+    m_status = new QLabel{this};
+    m_status->setEnabled(false);
+    lay->addWidget(m_status);
+
+    connect(m_edit, &QLineEdit::textChanged, this, [this] { revalidate(); });
+    connect(m_edit, &QLineEdit::returnPressed, this, [this] { close(); });
+
+    revalidate();
+    resize(360, sizeHint().height());
+  }
+
+  //! Empty when cancelled or when the text names no value.
+  std::optional<ossia::value> result() const
+  {
+    if(m_cancelled)
+      return std::nullopt;
+    return m_widget.fromText(m_edit->text());
+  }
+
+  void focusEditor() { m_edit->setFocus(Qt::PopupFocusReason); }
+
+private:
+  void revalidate()
+  {
+    const auto v = m_widget.fromText(m_edit->text());
+    setFieldValid(*m_edit, m_ok, v.has_value());
+    m_status->setText(v ? State::convert::prettyType(*v) : tr("?"));
+  }
+
+  void keyPressEvent(QKeyEvent* ev) override
+  {
+    if(ev->key() == Qt::Key_Escape)
+    {
+      m_cancelled = true;
+      close();
+      return;
+    }
+    QFrame::keyPressEvent(ev);
+  }
+
+  // Clicking away hides a Qt::Popup rather than closing it, so both paths
+  // report, once. A nested loop here would wedge a caller with no user present.
+  void hideEvent(QHideEvent* ev) override
+  {
+    QFrame::hideEvent(ev);
+    finish();
+  }
+  void closeEvent(QCloseEvent* ev) override
+  {
+    QFrame::closeEvent(ev);
+    finish();
+  }
+
+  void finish()
+  {
+    if(std::exchange(m_finished, true))
+      return;
+    if(m_done)
+      m_done(result());
+    deleteLater();
+  }
+
+  const AddressValueWidget& m_widget;
+  Done m_done;
+  QLineEdit* m_edit{};
+  QLabel* m_status{};
+  QPalette m_ok;
+  bool m_cancelled{};
+  bool m_finished{};
+};
+
+//! Lets an editor be squeezed into a tree row.
+//!
+//! Two things stop it otherwise: the editor's own layout publishes a minimum
+//! size taken from the tallest field in it (a spin box asks for ~26px against
+//! an 18px row) and QWidget::setGeometry honours that, and a widget with no
+//! background of its own leaves the painted cell showing through behind it.
+/**
+ * @brief Room for the text of an editor living in an 18px row.
+ *
+ * The stock widgets are laid out for a dialog: a spin box spends ~16px on
+ * arrows and another ~6 on frame and padding, leaving almost nothing for the
+ * digits once the row height is honoured. The arrows go entirely -- the wheel
+ * and the keyboard still step the value.
+ *
+ * Geometry only, no colours or borders, so the skin still styles the fields.
+ */
+constexpr auto compactEditorStyle = R"_(
+QAbstractSpinBox { padding: 0px 1px; margin: 0px; min-height: 0px; border: none; }
+QAbstractSpinBox::up-button, QAbstractSpinBox::down-button {
+  width: 0px; height: 0px; border: none; margin: 0px;
+}
+QLineEdit { padding: 0px 2px; margin: 0px; min-height: 0px; border: none; }
+QComboBox { padding: 0px 2px; margin: 0px; min-height: 0px; border: none; }
+QComboBox::drop-down { width: 10px; border: none; }
+QPushButton {
+  padding: 0px 4px; margin: 0px; min-height: 0px; min-width: 0px;
+  border: 1px solid palette(mid); border-radius: 2px;
+}
+QCheckBox { padding: 0px; margin: 0px; min-height: 0px; }
+)_";
+
+//! Lets an editor be squeezed into a tree row.
+//!
+//! Two things stop it otherwise: the editor's own layout publishes a minimum
+//! size taken from the tallest field in it (a spin box asks for ~26px against
+//! an 18px row) and QWidget::setGeometry honours that, and a widget with no
+//! background of its own leaves the painted cell showing through behind it.
+void makeRowSized(QWidget& w)
+{
+  if(auto* l = w.layout())
+  {
+    l->setSizeConstraint(QLayout::SetNoConstraint);
+    l->setContentsMargins(0, 0, 0, 0);
+    // Frameless fields sit side by side in a vec editor; this is the gap.
+    l->setSpacing(3);
+  }
+
+  w.setStyleSheet(QString::fromUtf8(compactEditorStyle));
+
+  w.setMinimumSize(0, 0);
+  for(auto* child : w.findChildren<QWidget*>())
+  {
+    child->setMinimumSize(0, 0);
+    child->setContentsMargins(0, 0, 0, 0);
+
+    // The cell is the frame: a sunken border costs ~4px of the row's 18.
+    if(auto* le = qobject_cast<QLineEdit*>(child))
+      le->setFrame(false);
+    else if(auto* sb = qobject_cast<QAbstractSpinBox*>(child))
+      sb->setFrame(false);
+  }
 
   // The delegate hands the editor the cell rect; it has to cover it.
   w.setAutoFillBackground(true);
@@ -658,58 +932,6 @@ public:
 private:
   score::MarginLess<QHBoxLayout> m_lay{this};
   State::ExpandableTextEdit m_edit;
-};
-
-/**
- * @brief A string the device says is a path, with the file dialog on it.
- *
- * The parameter carries the same std::string either way; EXTENDED_TYPE is the
- * device saying what the string means, and a path typed by hand into a line
- * edit is the one thing a file dialog exists to spare the user.
- */
-class FilePathValueWidget final : public AddressValueWidget
-{
-public:
-  explicit FilePathValueWidget(QWidget* parent)
-      : AddressValueWidget{parent}
-  {
-    m_edit.setContentsMargins(0, 0, 0, 0);
-    m_edit.setPlaceholderText(tr("Path to a file"));
-    this->setFocusProxy(&m_edit);
-    m_lay.addWidget(&m_edit);
-
-    m_browse.setIcon(QIcon(":/icons/search.png"));
-    m_browse.setToolTip(tr("Browse..."));
-    m_edit.addAction(&m_browse, QLineEdit::TrailingPosition);
-
-    connect(&m_edit, &QLineEdit::textEdited, this, [this] { markEdited(); });
-    connect(&m_browse, &QAction::triggered, this, [this] {
-      // Parented to this, so the delegate does not close the editor on the
-      // focus-out the dialog causes; guarded, because it can still go away.
-      QPointer self{this};
-      const QString picked = QFileDialog::getOpenFileName(
-          this, tr("Choose a file"), QFileInfo{m_edit.text()}.absolutePath());
-      if(!self || picked.isEmpty())
-        return;
-
-      m_edit.setText(picked);
-      markEdited();
-      changed(get());
-    });
-  }
-
-  ossia::value getImpl() const override { return m_edit.text().toStdString(); }
-  void setImpl(ossia::value t) override
-  {
-    m_edit.setText(State::convert::value<QString>(t));
-  }
-
-  bool isTextual() const noexcept override { return true; }
-
-private:
-  score::MarginLess<QHBoxLayout> m_lay{this};
-  QLineEdit m_edit;
-  QAction m_browse{this};
 };
 
 //! A string the device says is an URL: the same field, and a way to follow it.
@@ -1498,21 +1720,13 @@ bool AddressValueWidget::eventFilter(QObject* obj, QEvent* ev)
     // Deferred: focus may simply be moving to another field of this same
     // editor, and the new focus widget is not known yet.
     QPointer self{this};
-    auto check = [self](auto&& again) -> void {
+    QTimer::singleShot(0, this, [self] {
       if(!self)
         return;
 
-      // A menu, our own value panel, a colour dialog: something took the focus
-      // and will hand it back. Ask again when it has gone rather than dropping
-      // the question, or the editor is left open for good.
+      // A menu or a dialog of ours took the focus; it will give it back.
       if(QApplication::activePopupWidget() || QApplication::activeModalWidget())
-      {
-        QTimer::singleShot(50, self, [self, again] {
-          if(self)
-            again(again);
-        });
         return;
-      }
 
       auto* f = QApplication::focusWidget();
       for(auto* w = f; w; w = w->parentWidget())
@@ -1527,15 +1741,10 @@ bool AddressValueWidget::eventFilter(QObject* obj, QEvent* ev)
       QCoreApplication::sendEvent(self, &out);
 
       self->editingFinished();
-    };
-
-    QTimer::singleShot(0, this, [check] { check(check); });
+    });
   }
 
-  // The editor's own right-click goes to contextMenuEvent below; only the
-  // fields need intercepting, and letting both handle `this` would build the
-  // menu twice.
-  if(ev->type() != QEvent::ContextMenu || obj == this)
+  if(ev->type() != QEvent::ContextMenu)
     return QWidget::eventFilter(obj, ev);
 
   auto* w = qobject_cast<QWidget*>(obj);
@@ -1684,31 +1893,23 @@ bool paintValueWithMarker(
                                             : QPalette::Text));
 
   const QFontMetrics fm{option.font};
-  QFont mf = option.font;
-  mf.setItalic(true);
-  const QFontMetrics mfm{mf};
-
-  // The marker keeps its room and the value gives way, elided as the base
-  // delegate would: a value cut off mid-glyph reads as a shorter value.
-  const int gap = fm.horizontalAdvance(QStringLiteral("  "));
-  const int markerW = mfm.horizontalAdvance(split.marker);
-  const int headRoom = std::max(0, area.width() - gap - markerW);
-
-  const auto head = fm.elidedText(split.head, option.textElideMode, headRoom);
-  const int headW = std::min(fm.horizontalAdvance(head), headRoom);
+  const int headW = fm.horizontalAdvance(split.head);
 
   painter.setFont(option.font);
-  painter.drawText(area.adjusted(0, 0, headRoom - area.width(), 0),
-                   Qt::AlignVCenter, head);
+  painter.drawText(area, Qt::AlignVCenter, split.head);
 
   // The marker is not part of the value: say so with the pen, not with a
   // symbol in the text.
+  QFont mf = option.font;
+  mf.setItalic(true);
   painter.setFont(mf);
 
   auto dim = painter.pen().color();
   dim.setAlphaF(0.6);
   painter.setPen(dim);
-  painter.drawText(area.adjusted(headW + gap, 0, 0, 0), Qt::AlignVCenter, split.marker);
+  painter.drawText(
+      area.adjusted(headW + fm.horizontalAdvance(QStringLiteral("  ")), 0, 0, 0),
+      Qt::AlignVCenter, split.marker);
 
   painter.restore();
   return true;
@@ -1724,8 +1925,9 @@ void fitEditorToCell(QWidget& editor, const QRect& cell)
   {
     le->setFrame(false);
     le->setContentsMargins(0, 0, 0, 0);
-    le->setTextMargins(2, 0, 2, 0);
-    le->setMinimumSize(0, 0);
+    le->setStyleSheet(
+        QStringLiteral("QLineEdit { padding: 0px 2px; margin: 0px; "
+                       "min-height: 0px; border: none; }"));
   }
 
   const int target = cell.height();
@@ -1768,12 +1970,7 @@ void fitEditorToCell(QWidget& editor, const QRect& cell)
 AddressValueWidget* make_value_widget(
     const Device::AddressSettingsCommon& addr, QWidget* parent, ValueEditorSize size)
 {
-  // Most specific first: what the device says the string means, then what its
-  // unit says the numbers mean, then its type.
-  auto* widg = make_extended_type_widget(addr, parent);
-
-  if(!widg)
-    widg = make_unit_widget(addr, parent, size);
+  auto* widg = make_unit_widget(addr, parent, size);
 
   if(!widg)
   {
