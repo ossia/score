@@ -42,6 +42,12 @@ score_add_test(test_unit_graphics_combo
   SOURCES GraphicsComboTest.cpp
   APP)
 
+# The one right-click type-in box: two of them used to stay up, and taking one
+# down twice was a double free.
+score_add_test(test_unit_right_click_widget
+  SOURCES RightClickWidgetTest.cpp
+  APP)
+
 if(TARGET score_plugin_controlsurface)
   # Control choice for a device parameter dropped on a Control surface.
   score_add_test(test_unit_controlsurface_control

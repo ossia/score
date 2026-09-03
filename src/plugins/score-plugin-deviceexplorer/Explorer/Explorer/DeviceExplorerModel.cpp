@@ -504,18 +504,18 @@ Qt::ItemFlags DeviceExplorerModel::flags(const QModelIndex& index) const
 
     if(n.isEditable() && index.column() == (int)Column::Value)
     {
-      // A boolean toggles on one click rather than opening an editor to say
-      // true or false in; the check box painted in the row *is* the editor, so
-      // the row is not editable on top of it.
-      if(n.is<Device::AddressSettings>()
-         && n.get<Device::AddressSettings>().value.target<bool>())
-      {
+      // A boolean toggles on one click and an impulse is a bang painted in the
+      // cell: what the row draws *is* the editor in both cases, so the row is
+      // not editable on top of it.
+      const auto* addr = n.target<Device::AddressSettings>();
+      const bool boolean = addr && addr->value.target<bool>();
+      const bool impulse
+          = addr && addr->value.get_type() == ossia::val_type::IMPULSE;
+
+      if(boolean)
         f |= Qt::ItemIsUserCheckable;
-      }
-      else
-      {
+      else if(!impulse)
         f |= Qt::ItemIsEditable;
-      }
     }
 
     if(index.column() == (int)Column::Name && n.is<Device::AddressSettings>()
