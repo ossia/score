@@ -9,6 +9,7 @@
 #include <Process/State/MessageNode.hpp>
 
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
+#include <Scenario/Document/State/ItemModel/ValueItemDelegate.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -85,24 +86,37 @@ static QVariant nameColumnData(const MessageItemModel::node_type& node, int role
 
 QVariant valueColumnData(const MessageItemModel::node_type& node, int role)
 {
+  const auto& opt_val = node.value();
+  if(!opt_val)
+    return {};
+
+  const auto& val = *opt_val;
   if(role == Qt::DisplayRole || role == Qt::EditRole)
   {
-    const auto& opt_val = node.value();
-    if(opt_val)
+    if(ossia::is_array(val))
     {
-      auto& val = *opt_val;
-      if(ossia::is_array(val))
-      {
-        // TODO a nice editor for lists.
-        // TODO use AddressItemModel's !
-        return State::convert::toPrettyString(val);
-      }
-      else
-      {
-        return State::convert::value<QVariant>(val);
-      }
+      return State::convert::toPrettyString(val);
     }
-    return QVariant{};
+    else if(role == Qt::DisplayRole && val.get_type() == ossia::val_type::STRING)
+    {
+      // The row is one line tall: say how much is not in it rather than show a
+      // truncated half of the text as if it were the whole value.
+      return State::convert::toSingleLine(State::convert::value<QString>(val));
+    }
+    else
+    {
+      return State::convert::value<QVariant>(val);
+    }
+  }
+  else if(role == Qt::ToolTipRole)
+  {
+    const auto text = State::convert::value<QString>(val);
+    if(State::convert::isMultiLine(text))
+      return text;
+  }
+  else if(role == OssiaValueRole)
+  {
+    return QVariant::fromValue(val);
   }
 
   return {};
@@ -330,9 +344,14 @@ bool MessageItemModel::setData(
       case Column::Value: {
         if(!n.hasValue())
           return false;
-        auto value = State::convert::fromQVariant(value_received);
+
+        // A typed editor hands back the value itself; the stock one hands back
+        // text, which still has to be read as the node's type.
+        auto value = value_received.canConvert<ossia::value>()
+                         ? value_received.value<ossia::value>()
+                         : State::convert::fromQVariant(value_received);
         auto current_val = n.value();
-        if(current_val)
+        if(current_val && value.get_type() != current_val->get_type())
         {
           State::convert::convert(*current_val, value);
         }

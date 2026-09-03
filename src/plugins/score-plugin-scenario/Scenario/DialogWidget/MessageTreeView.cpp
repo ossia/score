@@ -8,6 +8,7 @@
 
 #include <Scenario/Commands/State/RemoveMessageNodes.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Document/State/ItemModel/ValueItemDelegate.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -47,6 +48,8 @@ MessageTreeView::MessageTreeView(const StateModel& model, QWidget* parent)
   setUniformRowHeights(true);
 
   this->setModel(&m_model.messages());
+  this->setItemDelegate(
+      new ValueItemDelegate{(int)MessageItemModel::Column::Value, this});
 
   m_removeNodesAction = new QAction(tr("Remove Nodes"), this);
   m_removeNodesAction->setShortcut(Qt::Key_Backspace);
