@@ -41,5 +41,25 @@ if(TARGET score_plugin_gfx AND TARGET score_plugin_engine AND TARGET score_plugi
   # See the note on the video tester above. This one builds a QApplication and
   # renders a frame, so it needs the GUI set (offscreen included).
   enable_minimal_qt_plugins(score_corpus_tester 1)
+
+  # And the second half of what score_add_test(... APP) provides, for the same
+  # reason this target misses the first: it is a raw add_executable.
+  # ScoreTests.cmake:146-150 links the WHOLE plugin list into every APP/GUI test
+  # under a static build, because static plugins have no runtime discovery from
+  # "<cwd>/plugins" -- they must be linked in to register at all. This target
+  # named a hand-picked six, so on a static Qt (the Windows and macOS SDKs) it
+  # booted with almost no process factories and the first
+  # ctx.interfaces<Process::ProcessFactoryList>() hit SCORE_ABORT
+  # (ApplicationComponents.hpp:187). Measured on Windows: rc=127, c0000409
+  # FAST_FAIL_FATAL_APP_EXIT through ucrtbase!abort, before any document is
+  # touched -- and unaffected by --no-render, by cwd, or by forcing offscreen,
+  # because none of those is the cause.
+  #
+  # Inert on a dynamic build, where the list is discovered at runtime instead.
+  if(SCORE_STATIC_PLUGINS)
+    set(_corpus_plugins "${SCORE_PLUGINS_LIST}")
+    list(REMOVE_ITEM _corpus_plugins score_plugin_jit)
+    target_link_libraries(score_corpus_tester PRIVATE ${_corpus_plugins})
+  endif()
   set_target_properties(score_corpus_tester PROPERTIES FOLDER "Tests")
 endif()
