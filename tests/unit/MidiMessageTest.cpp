@@ -134,8 +134,11 @@ struct TestApplication final : public score::ApplicationInterface
 
 TestApplication& testApp()
 {
-  static TestApplication app;
-  return app;
+  // Deliberately leaked: TestApplication holds a QGuiApplication by value, and
+  // a static is destroyed from the atexit chain, after main returns and Qt's
+  // own static state is gone.
+  static auto* app = new TestApplication;
+  return *app;
 }
 
 // Decode a MIDI 2.0 UMP channel-voice packet produced by ossia's midi node.
