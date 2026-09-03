@@ -4,6 +4,7 @@
 
 #include <ossia/detail/hash_map.hpp>
 
+#include <iterator>
 #include <list>
 #include <vector>
 // This file contains a fast map for items based on their identifier,
@@ -102,11 +103,16 @@ public:
     return score::IndirectContainer<Element>(m_order.begin(), m_order.end());
   }
 
+  //! Appends. This container's whole purpose is that iteration order is
+  //! stable and meaningful, and every serializer writes it front-to-back and
+  //! reads it back with insert() in the order it read. Inserting at the FRONT
+  //! instead reversed that order on every load, so save -> load -> save
+  //! oscillated and never reached a byte fixed point.
   void insert(value_type* t) INLINE_EXPORT
   {
     SCORE_ASSERT(m_map.find(t->id()) == m_map.end());
-    m_order.push_front(t);
-    m_map.insert({t->id(), {t, m_order.begin()}});
+    m_order.push_back(t);
+    m_map.insert({t->id(), {t, std::prev(m_order.end())}});
   }
 
   void remove(typename map_t::iterator it) INLINE_EXPORT
