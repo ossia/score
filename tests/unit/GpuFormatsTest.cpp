@@ -13,6 +13,24 @@
 // that MUST agree: a format the rescale gate lets through untouched and the
 // GPU factory has no decoder for renders nothing at all. Each table is
 // self-consistent, so nothing else can catch a disagreement.
+//
+// PROVENANCE. The disagreement these sweeps were written for ORIGINATES ON
+// MASTER and is still live there: `git show
+// master:src/plugins/score-plugin-media/Video/GpuFormats.hpp` lists
+// AV_PIX_FMT_GRAYF32BE at :174 and AV_PIX_FMT_GRAYF16BE at :202 among the
+// layouts that skip swscale, while the GPU factory only ever answered the
+// AV_PIX_FMT_NE() host-endian aliases. On a little-endian host a grayf32be
+// stream therefore skipped the CPU rescale AND got no GPU decoder, and the
+// video was a hole -- strictly worse than not being listed, which would at
+// least have rescaled it to RGBA. It was NOT introduced by this stack; it was
+// fixed here, by 807dd8dba1 "media: the grayscale float formats are host-endian
+// only", which is an ancestor of this branch and NOT of master. Reverting the
+// stack puts the defect back.
+//
+// The two sweeps below close the CLASS rather than that instance: they run
+// over every AVPixelFormat this ffmpeg build knows, in both directions, with
+// no exemption list and no [!shouldfail], so the next endian-pair mistake is
+// caught without anyone having to remember this one.
 
 #include <Gfx/Graph/decoders/GPUVideoDecoderFactory.hpp>
 #include <Video/GpuFormats.hpp>
