@@ -32,7 +32,8 @@ QVariant valueColumnData(const Process::ControlMessage& ctrl, int role)
     }
     else if(role == Qt::DisplayRole && val.get_type() == ossia::val_type::STRING)
     {
-      return State::convert::toSingleLine(State::convert::value<QString>(val));
+      return State::convert::stringCellText(
+          QByteArray::fromStdString(*val.target<std::string>()));
     }
     else
     {
@@ -41,9 +42,12 @@ QVariant valueColumnData(const Process::ControlMessage& ctrl, int role)
   }
   else if(role == Qt::ToolTipRole)
   {
-    const auto text = State::convert::value<QString>(val);
-    if(State::convert::isMultiLine(text))
-      return text;
+    if(const auto* s = val.target<std::string>())
+    {
+      const auto tip = State::convert::stringCellToolTip(QByteArray::fromStdString(*s));
+      if(!tip.isEmpty())
+        return tip;
+    }
   }
   else if(role == OssiaValueRole)
   {

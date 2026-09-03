@@ -73,6 +73,17 @@ SCORE_LIB_STATE_EXPORT QString toSingleLine(const QString& text);
 // Whether text() has anything toSingleLine would have to fold away.
 SCORE_LIB_STATE_EXPORT bool isMultiLine(const QString& text) noexcept;
 
+// What a one-line cell shows for a string value, and the tooltip that goes
+// with it: a summary for bytes that are not text, the first line and a marker
+// for text that does not fit, the text itself otherwise. The tooltip is empty
+// when the cell already shows the whole value.
+//
+// Every value column needs both, and decoding bytes that are not text -- to
+// show them, or worse to put a whole blob in a tooltip -- is the thing they
+// each have to avoid.
+SCORE_LIB_STATE_EXPORT QString stringCellText(const QByteArray& bytes);
+SCORE_LIB_STATE_EXPORT QString stringCellToolTip(const QByteArray& bytes);
+
 // The body of a quoted string literal: backslash, double quote and the
 // whitespace a single line cannot carry become escapes, so that what
 // toPrettyString writes is what parseValue reads back.

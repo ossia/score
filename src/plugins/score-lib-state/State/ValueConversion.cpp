@@ -570,9 +570,8 @@ bool isMultiLine(const QString& text) noexcept
 
 bool isBinary(const QByteArray& bytes) noexcept
 {
-  QStringDecoder dec{QStringDecoder::Utf8, QStringDecoder::Flag::Stateless};
-  (void)QString{dec(bytes)};
-  if(dec.hasError())
+  // No transcode: this runs per cell per repaint.
+  if(!bytes.isValidUtf8())
     return true;
 
   for(char c : bytes)
@@ -597,16 +596,48 @@ QString binarySummary(const QByteArray& bytes)
 
 SingleLine splitSingleLine(const QString& text)
 {
-  const auto whole = toSingleLine(text);
-  if(!isMultiLine(text))
-    return {whole, {}};
+  // Already collapsed, usually: the models put toSingleLine's output in the
+  // display role, and that is what a delegate is handed to paint.
+  const QString whole = isMultiLine(text) ? toSingleLine(text) : text;
 
-  // toSingleLine glues the two with a double space and nothing else does.
+  // toSingleLine and binarySummary both glue their marker on with a double
+  // space, and nothing else does. A translation that drops the brackets only
+  // costs the marker its own pen.
   const int at = whole.lastIndexOf(QStringLiteral("  ["));
-  if(at < 0)
+  if(at < 0 || !whole.endsWith(']'))
     return {whole, {}};
 
   return {whole.left(at), whole.mid(at + 2)};
+}
+
+QString stringCellText(const QByteArray& bytes)
+{
+  if(isBinary(bytes))
+    return binarySummary(bytes);
+  return toSingleLine(QString::fromUtf8(bytes));
+}
+
+QString stringCellToolTip(const QByteArray& bytes)
+{
+  // A blob has nothing to read and can be megabytes: the cell's own summary
+  // already says everything there is to say about it.
+  if(isBinary(bytes))
+    return {};
+
+  const auto text = QString::fromUtf8(bytes);
+  return isMultiLine(text) ? text : QString{};
+}
+
+//! What a collapsed cell says it is not showing. Spelled out rather than
+//! tr("%n"): with no translator loaded Qt keeps the source string as it is, so
+//! the plural form would read "[+1 lines]".
+static QString lineMarker(int hidden)
+{
+  if(hidden <= 0)
+    return QObject::tr("[+line break]");
+  if(hidden == 1)
+    return QObject::tr("[+1 line]");
+  return QObject::tr("[+%1 lines]").arg(hidden);
 }
 
 QString toSingleLine(const QString& text)
@@ -636,12 +667,9 @@ QString toSingleLine(const QString& text)
   if(text.endsWith('\n') || text.endsWith('\r'))
     hidden--;
 
-  // Spelled out rather than tr("%n"): with no translator loaded Qt keeps the
-  // source string as it is, so the plural form would read "[+1 lines]".
-  if(hidden <= 1)
-    return QObject::tr("%1  [+1 line]").arg(text.left(first));
-
-  return QObject::tr("%1  [+%2 lines]").arg(text.left(first)).arg(hidden);
+  // Concatenated, not %1: the head is the value, and a value containing "%2"
+  // would rewrite the count.
+  return text.left(first) + QStringLiteral("  ") + lineMarker(hidden);
 }
 
 QString escapeStringLiteral(const QString& s)
