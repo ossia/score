@@ -28,12 +28,17 @@
 // .stl/.off -> vcglib (from the file on disk), .splat/.spz -> PrimitiveCloud
 // binary codecs (from tv.bytes), anything else -> AssetLoaderRegistry.
 //
-// Today NOTHING on the failure path logs a warning, and the node has no error
-// output port — the user gets a silent black frame. That silence is pinned as
-// a defect below ([!shouldfail], "a failed asset load is diagnosable").
+// The failure path used to log NOTHING, and the node has no error output port,
+// so the user got a silent black frame. That was pinned here as [!shouldfail]
+// "a failed asset load is diagnosable"; the pin is GONE — the dispatch now
+// names the file it rejected and says which of the two failures it was, and
+// the case below asserts that (see it for why a log, and not an output port,
+// is the channel that can carry the common case).
 // Motivation: 24 real scores use Asset Loader and the corpus references
 // assets by four different path syntaxes, including C:/Users/... paths played
 // back on a Linux box — the missing file is the NORMAL case, not the edge.
+// The missing file specifically never reaches this node at all; that half is
+// pinned in tests/integration/AvndFilePortDiagnostic.cpp.
 //
 // The ForkProbe truncation matrix feeds every byte-prefix of one small valid
 // asset per supported format through the same entry points and requires (a)
