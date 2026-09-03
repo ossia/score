@@ -101,8 +101,7 @@ void ValueItemDelegate::setModelData(
 void ValueItemDelegate::updateEditorGeometry(
     QWidget* editor, const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
-  QStyledItemDelegate::updateEditorGeometry(editor, option, index);
-  if(editor)
-    Explorer::fitEditorToCell(*editor, editor->geometry());
+  // Exactly the cell, as in DeviceExplorerDelegate.
+  Explorer::fitEditorToCell(*editor, option.rect);
 }
 }
