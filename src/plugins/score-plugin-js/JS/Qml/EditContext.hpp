@@ -106,6 +106,12 @@ public:
   void createAddress(QString addr, QString type);
   W_SLOT(createAddress)
 
+  //! The unit of an existing address, spelled as the address panel shows it:
+  //! "color.rgba", "position.cart2D", "" to clear. The unit is what picks the
+  //! colour swatch and the XY pad over plain number fields.
+  void setUnit(QString addr, QString unit);
+  W_SLOT(setUnit)
+
   QObject* createProcess(QObject* interval, QString name, QString data);
   W_SLOT(createProcess)
 
