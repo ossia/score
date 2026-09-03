@@ -923,12 +923,6 @@ QString notReady()
   // §3.0's house rule -- never let a pixel verdict fall back to Null.
   if(qEnvironmentVariable("QT_QPA_PLATFORM") == QStringLiteral("offscreen"))
     return QStringLiteral("QT_QPA_PLATFORM=offscreen makes a pixel verdict vacuous");
-  if(qEnvironmentVariable("SCORE_TEST_API").compare(
-         QStringLiteral("vulkan"), Qt::CaseInsensitive)
-     == 0)
-    return QStringLiteral(
-        "Vulkan is out of scope for P1-1 (SPEC-SCENE-RENDER-TESTS.md:827-829); "
-        "see the header of this file");
 #if defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__)
   if(!qEnvironmentVariableIsSet("DISPLAY")
      && !qEnvironmentVariableIsSet("WAYLAND_DISPLAY"))
