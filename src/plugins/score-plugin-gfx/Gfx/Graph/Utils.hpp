@@ -483,6 +483,28 @@ const ossia::geometry::attribute* findGeometryAttribute(
     const ossia::geometry& geom, std::string_view name, std::string_view semantic_key);
 
 /**
+ * @brief The QRhi buffer type a usage flag is allowed to be created with.
+ *
+ * A uniform buffer must be Dynamic on D3D11: QD3D11Buffer::create() rejects
+ * anything else outright ("UniformBuffer must always be combined with Dynamic
+ * on D3D11"), leaves its ID3D11Buffer null and returns false. OpenGL ES says
+ * the same thing through the NonDynamicUniformBuffers feature. Every UBO this
+ * plugin allocates from a literal is already Dynamic; this exists for the few
+ * places that pick the usage at RUNTIME from a shader's declaration, where an
+ * unconditional Immutable silently produced a null-backed buffer on D3D11 and
+ * bound it anyway. Everything else keeps `nonDynamic`, which for a storage or
+ * vertex buffer is what it wants (and Dynamic + StorageBuffer is itself
+ * rejected).
+ */
+inline QRhiBuffer::Type bufferTypeFor(
+    QRhiBuffer::UsageFlags usage,
+    QRhiBuffer::Type nonDynamic = QRhiBuffer::Immutable) noexcept
+{
+  return usage.testFlag(QRhiBuffer::UniformBuffer) ? QRhiBuffer::Dynamic
+                                                   : nonDynamic;
+}
+
+/**
  * @brief Remap a pipeline's vertex input layout using semantic matching.
  *
  * Reflects the compiled vertex shader to find each `in` variable, then for
