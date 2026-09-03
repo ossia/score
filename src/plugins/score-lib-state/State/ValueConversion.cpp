@@ -570,8 +570,9 @@ bool isMultiLine(const QString& text) noexcept
 
 bool isBinary(const QByteArray& bytes) noexcept
 {
-  // No transcode: this runs per cell per repaint.
-  if(!bytes.isValidUtf8())
+  QStringDecoder dec{QStringDecoder::Utf8, QStringDecoder::Flag::Stateless};
+  (void)QString{dec(bytes)};
+  if(dec.hasError())
     return true;
 
   for(char c : bytes)
@@ -596,137 +597,16 @@ QString binarySummary(const QByteArray& bytes)
 
 SingleLine splitSingleLine(const QString& text)
 {
-  // Already collapsed, usually: the models put toSingleLine's output in the
-  // display role, and that is what a delegate is handed to paint.
-  const QString whole = isMultiLine(text) ? toSingleLine(text) : text;
+  const auto whole = toSingleLine(text);
+  if(!isMultiLine(text))
+    return {whole, {}};
 
-  // toSingleLine and binarySummary both glue their marker on with a double
-  // space, and nothing else does. A translation that drops the brackets only
-  // costs the marker its own pen.
+  // toSingleLine glues the two with a double space and nothing else does.
   const int at = whole.lastIndexOf(QStringLiteral("  ["));
-  if(at < 0 || !whole.endsWith(']'))
+  if(at < 0)
     return {whole, {}};
 
   return {whole.left(at), whole.mid(at + 2)};
-}
-
-//! The map form. The grammar has no rule for it -- a brace-delimited list of
-//! `key: value` needs a hand-written scan to find the separators that are not
-//! inside a nested list or a quoted string.
-std::optional<ossia::value> parseMap(const QString& text)
-{
-  const auto t = text.trimmed();
-  if(!t.startsWith('{') || !t.endsWith('}'))
-    return std::nullopt;
-
-  ossia::value_map_type map;
-  const auto body = t.mid(1, t.size() - 2).trimmed();
-  if(body.isEmpty())
-    return ossia::value{map};
-
-  int depth = 0;
-  bool quoted = false;
-  bool escaped = false;
-  QString cur;
-  QStringList entries;
-  QList<int> seps; // the separating ':' of each entry, found while scanning
-  int sep = -1;
-  for(QChar c : body)
-  {
-    if(escaped)
-    {
-      // A \" inside a string is not the end of it.
-      escaped = false;
-      cur += c;
-      continue;
-    }
-
-    if(quoted && c == '\\')
-      escaped = true;
-    else if(c == '"')
-      quoted = !quoted;
-    else if(!quoted && (c == '[' || c == '{'))
-      depth++;
-    else if(!quoted && (c == ']' || c == '}'))
-      depth--;
-    else if(!quoted && c == ':' && depth == 0 && sep < 0)
-      sep = cur.size();
-
-    if(c == ',' && depth == 0 && !quoted)
-    {
-      entries.push_back(cur);
-      seps.push_back(sep);
-      cur.clear();
-      sep = -1;
-    }
-    else
-    {
-      cur += c;
-    }
-  }
-  entries.push_back(cur);
-  seps.push_back(sep);
-
-  for(int i = 0; i < entries.size(); i++)
-  {
-    const auto& entry = entries[i];
-    if(seps[i] < 0)
-      return std::nullopt;
-
-    // The key goes through the value parser too, so that its escapes read the
-    // same way as any other string's.
-    const auto keyText = entry.left(seps[i]).trimmed();
-    std::string key;
-    if(keyText.startsWith('"'))
-    {
-      auto parsed = parseValue(keyText.toStdString());
-      auto* str = parsed ? parsed->target<std::string>() : nullptr;
-      if(!str)
-        return std::nullopt;
-      key = *str;
-    }
-    else
-    {
-      key = keyText.toStdString();
-    }
-
-    auto val = parseValue(entry.mid(seps[i] + 1).trimmed().toStdString());
-    if(!val)
-      return std::nullopt;
-
-    map.emplace_back(std::move(key), *val);
-  }
-  return ossia::value{map};
-}
-
-QString stringCellText(const QByteArray& bytes)
-{
-  if(isBinary(bytes))
-    return binarySummary(bytes);
-  return toSingleLine(QString::fromUtf8(bytes));
-}
-
-QString stringCellToolTip(const QByteArray& bytes)
-{
-  // A blob has nothing to read and can be megabytes: the cell's own summary
-  // already says everything there is to say about it.
-  if(isBinary(bytes))
-    return {};
-
-  const auto text = QString::fromUtf8(bytes);
-  return isMultiLine(text) ? text : QString{};
-}
-
-//! What a collapsed cell says it is not showing. Spelled out rather than
-//! tr("%n"): with no translator loaded Qt keeps the source string as it is, so
-//! the plural form would read "[+1 lines]".
-static QString lineMarker(int hidden)
-{
-  if(hidden <= 0)
-    return QObject::tr("[+line break]");
-  if(hidden == 1)
-    return QObject::tr("[+1 line]");
-  return QObject::tr("[+%1 lines]").arg(hidden);
 }
 
 QString toSingleLine(const QString& text)
@@ -756,9 +636,12 @@ QString toSingleLine(const QString& text)
   if(text.endsWith('\n') || text.endsWith('\r'))
     hidden--;
 
-  // Concatenated, not %1: the head is the value, and a value containing "%2"
-  // would rewrite the count.
-  return text.left(first) + QStringLiteral("  ") + lineMarker(hidden);
+  // Spelled out rather than tr("%n"): with no translator loaded Qt keeps the
+  // source string as it is, so the plural form would read "[+1 lines]".
+  if(hidden <= 1)
+    return QObject::tr("%1  [+1 line]").arg(text.left(first));
+
+  return QObject::tr("%1  [+%2 lines]").arg(text.left(first)).arg(hidden);
 }
 
 QString escapeStringLiteral(const QString& s)
