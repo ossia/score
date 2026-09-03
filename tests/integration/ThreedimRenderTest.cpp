@@ -152,6 +152,33 @@ QByteArray makeCubeObj(bool withNormals)
   return o;
 }
 
+// The same cube with normals but NO texture coordinates: no `vt` records and
+// `f v//vn` faces. TinyObj derives tangents only for a shape that has BOTH
+// texcoords and normals (TinyObj.cpp:311-325), so dropping the UVs drops the
+// tangents with them -- which is what makes this the no-UV AND no-tangent leg
+// of the attribute matrix below.
+QByteArray makeCubeObjNoUv()
+{
+  QByteArray o;
+  for(auto& v : kCubeV)
+    o += QStringLiteral("v %1 %2 %3\n").arg(v.x).arg(v.y).arg(v.z).toUtf8();
+  for(auto& n : kCubeN)
+    o += QStringLiteral("vn %1 %2 %3\n").arg(n.x).arg(n.y).arg(n.z).toUtf8();
+  for(int f = 0; f < 6; f++)
+  {
+    const int* q = kCubeF[f];
+    const int n = f + 1;
+    auto tri = [&](int a, int b, int c) {
+      o += QStringLiteral("f %1//%2 %3//%4 %5//%6\n")
+               .arg(q[a]).arg(n).arg(q[b]).arg(n).arg(q[c]).arg(n)
+               .toUtf8();
+    };
+    tri(0, 1, 2);
+    tri(0, 2, 3);
+  }
+  return o;
+}
+
 // The SAME cube as ASCII / binary STL -- the equal-geometry evidence for
 // the VCG-path pin: identical coordinates, winding and per-face normals as
 // makeCubeObj(true), only the container differs.
@@ -1427,4 +1454,151 @@ Score.play();
   if(!r.error.isEmpty())
     SKIP(r.error.toStdString());
   requireMatchesGolden(r, "csf-geometry");
+}
+
+
+
+
+// =============================================================================
+// P2-6 -- the attribute matrix, at the renderer.
+//
+// The CPU half is covered: GeometryLoaderFormats.cpp:223-237 pins the published
+// attribute SET for an OBJ with UVs and normals (position / texcoord0 / normal /
+// tangent, tangents derived by mikktspace whenever both are present --
+// TinyObj.cpp:111 `gen_tangents = texcoords && normals`), and :279-280 pins OBJ
+// vertex colours. What none of that says is whether any of it reaches a pixel.
+//
+// THREE ASSETS, one cube, differing only in which attributes the file carries:
+//
+//     full    v + vt + vn   -> pos / uv / normal / tangent
+//     nonrm   v + vt        -> pos / uv / normal, the normals SYNTHESIZED by
+//                              GeometryLoader::deriveMissingNormals; no tangent,
+//                              because gen_tangents was decided in TinyObj
+//                              before the derivation and the file had no `vn`
+//     nouv    v +      vn   -> pos / normal. No uv, and no tangent either
+//
+// WHAT IS OBSERVABLE, measured rather than assumed. The obvious handle looked
+// like ModelDisplay's `Tex. Proj.` combo (inlet 7), which names an attribute per
+// entry. It does not work that way: measured, mode 0 ("Texture coordinates")
+// with the full cube and no texture wired draws ZERO pixels. Every
+// texture-projection mode emits the projected TEXTURE, and with nothing on the
+// texture inlet that is black -- the same fact this file already documents for
+// the VCG family. There is no UV-shading leg; what attribute presence changes is
+// which MATERIAL the mesh lands on, and that is visible under Light.
+//
+// MEASURED, mode 6 (Light), mean luma over the frame:
+//
+//     full   4.81      nonrm  12.23      nouv  40.88
+//     full  vs nonrm   meanAbs 15.01   fracFar 0.492
+//     nonrm vs nouv    meanAbs 42.x    fracFar > 0.05
+//
+// TWO MEASURED FACTS, both recorded because both contradict a natural guess:
+//
+//  1. TANGENTS DO NOT REACH THE PICTURE at all through ModelDisplay. Forcing
+//     `gen_tangents = false` in TinyObj -- which strips `full` of the only
+//     attribute `nonrm` lacks besides authored normals -- moves `full`'s mean
+//     luma from 4.8145 to 4.80818 and leaves the full-vs-nonrm difference at
+//     meanAbs 15.00 / fracFar 0.491. So the tangent is transported
+//     (ScenePreprocessorNode.cpp:2600 gives it vertex slot 3) and no in-tree
+//     material reads it. In the real scores the consumer is user shader content.
+//
+//  2. Therefore the full-vs-nonrm difference is THE NORMALS, and a derived
+//     normal is NOT the authored one on this path -- which is the opposite of
+//     the VCG path, where the container-family case above measures OFF (no
+//     normals in the file, derived) against STL (a normal per facet, authored)
+//     agreeing inside meanAbs 4 on the same cube with the same winding. Open,
+//     and reported rather than pinned: the two paths reach deriveMissingNormals
+//     with the same eight corners and the same face list, so the difference is
+//     upstream of it, in what TinyObj hands over for an OBJ that carries UVs.
+//     Somebody should find out which; this case makes the disagreement visible
+//     instead of leaving it between two files that never meet.
+//
+// WHAT IS ASSERTED:
+//
+//   * each of the three renders is NON-BLANK. `nonrm` in particular would be
+//     black without deriveMissingNormals -- an unshaded mesh under the Light
+//     projection has nothing to dot against. That is the "the loader either
+//     supplies or derives" floor, and it is the assertion the negative control
+//     reddens.
+//   * each attribute difference MOVES THE FRAME: full != nonrm, nonrm != nouv.
+//     The second compares two meshes that both lack tangents, which is what
+//     isolates the UV.
+//
+// The remaining two of the four attributes:
+//   NORMALS supplied vs derived is asserted as picture IDENTITY by the
+//   container-family case above (OFF vs STL) -- the clean form, equal UV and
+//   tangent status on both sides.
+//   VERTEX COLOURS are asserted where the asset that has them lives:
+//   ThreedimLitSceneTest.cpp's "glTF vertex colours reach the fragment stage"
+//   renders BoxVertexColors.glb against a colour-blind control. OBJ vertex
+//   colours are pinned on the CPU at GeometryLoaderFormats.cpp:279.
+//
+// NEGATIVE CONTROL (run, see the ledger): neuter deriveMissingNormals
+// (GeometryLoader.cpp:239) so an OBJ with no `vn` keeps none.
+// =============================================================================
+TEST_CASE(
+    "the attribute matrix: normals are derived when missing, and each "
+    "attribute presence moves the frame",
+    "[integration][threedim][render][gui]")
+{
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+
+  auto write = [&](const char* file, const QByteArray& bytes) {
+    const QString path = dir.filePath(QString::fromUtf8(file));
+    QFile f(path);
+    REQUIRE(f.open(QIODevice::WriteOnly));
+    REQUIRE(f.write(bytes) == bytes.size());
+    f.close();
+    return path;
+  };
+
+  const QString full = write("attr-full.obj", makeCubeObj(true));
+  const QString nouv = write("attr-nouv.obj", makeCubeObjNoUv());
+  const QString nonrm = write("attr-nonrm.obj", makeCubeObj(false));
+
+  QString refRenderer;
+  auto render = [&](const char* name, const QString& asset) {
+    const auto r = renderScene(
+        dir, QString::fromUtf8(name),
+        loaderScene(kGeometryLoader, asset, kProjLight));
+    if(!r.error.isEmpty())
+      SKIP(r.error.toStdString());
+    if(!r.rendererLine.contains("NVIDIA"))
+      SKIP("renderer is not the nvidia-gl ref class: "
+           << r.rendererLine.toStdString());
+    if(refRenderer.isEmpty())
+      refRenderer = r.rendererLine;
+    REQUIRE(r.rendererLine == refRenderer);
+    return r.frame;
+  };
+
+  const QImage liFull = render("attr-li-full", full);
+  const QImage liNonrm = render("attr-li-nonrm", nonrm);
+  const QImage liNouv = render("attr-li-nouv", nouv);
+
+  INFO(
+      "mean luma: full=" << meanLuma(liFull) << " nonrm=" << meanLuma(liNonrm)
+                         << " nouv=" << meanLuma(liNouv));
+
+  // The floor: no attribute configuration is lost outright. `nonrm` carries no
+  // normals in the file, so this is deriveMissingNormals or nothing.
+  CHECK(nonBlank(liFull));
+  CHECK(nonBlank(liNonrm));
+  CHECK(nonBlank(liNouv));
+
+  {
+    const Diff d = diffImages(liFull, liNonrm);
+    INFO("full vs nonrm (authored vs derived normals; tangents measured "
+         "irrelevant): meanAbs="
+         << d.meanAbs << " fracFar=" << d.fracFar);
+    CHECK(d.fracFar > 0.05);
+  }
+  {
+    const Diff d = diffImages(liNonrm, liNouv);
+    INFO("nonrm vs nouv (UVs present vs absent, no tangents either side): "
+         "meanAbs="
+         << d.meanAbs << " fracFar=" << d.fracFar);
+    CHECK(d.fracFar > 0.05);
+  }
 }
