@@ -131,13 +131,68 @@ TEST_CASE("an unknown escape is taken literally", "[state][value][text]")
 }
 
 // The printer used to decode keys as Latin-1 while every reader treats them as
-// UTF-8, so a non-ASCII key came back as mojibake.
-TEST_CASE("a non-ASCII map key round-trips", "[state][value][text]")
+// UTF-8, so a non-ASCII key came back as mojibake. The grammar has no rule for
+// a map either, so this went nowhere near the parser until parseMap.
+TEST_CASE("a map round-trips, keys and all", "[state][value][text]")
 {
-  const ossia::value v{ossia::value_map_type{{"clé", ossia::value{1}}}};
+  const ossia::value v{ossia::value_map_type{
+      {"clé", ossia::value{1}},
+      {"a key with spaces", ossia::value{std::string{"and, a comma"}}},
+      {"nested", ossia::value{std::vector<ossia::value>{1, 2}}}}};
+
   const auto text = State::convert::toPrettyString(v);
   INFO(text.toStdString());
   CHECK(text.contains("clé"));
+
+  const auto back = State::parseValue(text.toStdString());
+  REQUIRE(back.has_value());
+
+  const auto* m = back->target<ossia::value_map_type>();
+  REQUIRE(m != nullptr);
+  REQUIRE(m->size() == 3);
+
+  auto entry = [&](const char* key) -> const ossia::value* {
+    for(const auto& [k, v] : *m)
+      if(k == key)
+        return &v;
+    return nullptr;
+  };
+
+  REQUIRE(entry("clé") != nullptr);
+  CHECK(*entry("clé") == ossia::value{1});
+
+  // A comma inside a quoted value is not an entry separator.
+  REQUIRE(entry("a key with spaces") != nullptr);
+  CHECK(*entry("a key with spaces") == ossia::value{std::string{"and, a comma"}});
+
+  CHECK(entry("nested") != nullptr);
+}
+
+// A map *inside* a list does not read back: the list rule is the grammar.s,
+// and the grammar has no rule for a map -- parseValue only reaches parseMap
+// for one that starts the input. Pinned so the limit is known rather than
+// discovered.
+TEST_CASE("a map nested in a list is a known gap", "[state][value][text]")
+{
+  const ossia::value v{std::vector<ossia::value>{
+      ossia::value{1}, ossia::value{ossia::value_map_type{{"k", ossia::value{2}}}}}};
+
+  const auto text = State::convert::toPrettyString(v);
+  INFO(text.toStdString());
+  CHECK(text.contains("{"));
+
+  CHECK_FALSE(State::parseValue(text.toStdString()).has_value());
+}
+
+// Text that names no value must not parse as the part of it that does.
+TEST_CASE("trailing junk is not a value", "[state][value][text]")
+{
+  CHECK_FALSE(State::parseValue(R"("abc" junk)").has_value());
+  CHECK_FALSE(State::parseValue("12 34").has_value());
+  CHECK_FALSE(State::parseValue("[1, 2] tail").has_value());
+
+  // Surrounding space is not junk.
+  CHECK(State::parseValue("  12  ").has_value());
 }
 
 // ossia's STRING is a std::string, so a device is free to put bytes that are
@@ -157,4 +212,72 @@ TEST_CASE("binary strings are recognised as such", "[state][value][text]")
   CHECK(isBinary(QByteArray{"a\0b", 3}));
   // Valid UTF-8 but not text.
   CHECK(isBinary(QByteArray{"\x01\x02\x03", 3}));
+}
+
+// A one-line cell has to summarise without decoding what it cannot show, and
+// the marker it appends has to be findable again by the delegate that paints
+// it -- the models store the *collapsed* form, so that is what splitSingleLine
+// is handed.
+TEST_CASE("what a one-line cell shows", "[state][value][text]")
+{
+  using namespace State::convert;
+
+  SECTION("text that fits is itself, with no marker")
+  {
+    CHECK(stringCellText("hello") == "hello");
+    CHECK(stringCellToolTip("hello").isEmpty());
+    CHECK(splitSingleLine("hello").marker.isEmpty());
+  }
+
+  SECTION("text that does not fit says how much is missing")
+  {
+    const auto cell = stringCellText("one\ntwo\nthree");
+    CHECK(cell.startsWith("one"));
+    CHECK(cell.contains("2"));
+
+    // The delegate is handed the collapsed cell, not the original.
+    const auto split = splitSingleLine(cell);
+    CHECK(split.head == "one");
+    CHECK_FALSE(split.marker.isEmpty());
+    CHECK(split.marker.startsWith('['));
+
+    // And the tooltip carries the whole of it.
+    CHECK(stringCellToolTip("one\ntwo\nthree") == "one\ntwo\nthree");
+  }
+
+  SECTION("bytes that are not text are never decoded")
+  {
+    const auto png = QByteArray::fromHex("89504e470d0a1a0a0000000d49484452");
+
+    const auto cell = stringCellText(png);
+    CHECK(cell.startsWith("89 50 4e"));
+    CHECK(cell.contains("16"));
+    CHECK_FALSE(cell.contains(QChar{QChar::ReplacementCharacter}));
+
+    // A blob can be megabytes: the tooltip is not the place for it.
+    CHECK(stringCellToolTip(png).isEmpty());
+
+    // Even one holding a line break, which used to make it look like prose.
+    auto withBreak = png;
+    withBreak.append('\n');
+    CHECK(stringCellToolTip(withBreak).isEmpty());
+  }
+
+  SECTION("a value cannot forge the marker")
+  {
+    // The head is concatenated, not substituted: a "%2" in the value used to
+    // rewrite the count.
+    const auto cell = stringCellText("a %2 b\nc\nd");
+    CHECK(cell.startsWith("a %2 b"));
+    CHECK(cell.contains("2"));
+    CHECK(splitSingleLine(cell).head == "a %2 b");
+  }
+
+  SECTION("a trailing line break is not a hidden line")
+  {
+    const auto cell = stringCellText("a\n");
+    CHECK(cell.startsWith("a"));
+    CHECK_FALSE(cell.contains("1 line"));
+    CHECK_FALSE(splitSingleLine(cell).marker.isEmpty());
+  }
 }
