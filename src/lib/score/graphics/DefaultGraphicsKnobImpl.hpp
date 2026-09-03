@@ -1,5 +1,6 @@
 #pragma once
 #include <score/graphics/DefaultControlImpl.hpp>
+#include <score/graphics/RightClickWidget.hpp>
 #include <score/graphics/InfiniteScroller.hpp>
 #include <score/graphics/widgets/Constants.hpp>
 #include <score/model/Skin.hpp>
@@ -171,6 +172,9 @@ struct DefaultGraphicsKnobImpl
   static void contextMenuEvent(T& self, QPointF pos)
   {
     auto build = [&, self_p = &self, pos] {
+      // Whatever box is open belongs to the previous right-click.
+      closeRightClickWidget();
+
       auto w = new SpinboxWithEnter;
       w->setRange(self.min, self.max);
 
@@ -178,6 +182,7 @@ struct DefaultGraphicsKnobImpl
       auto obj = self.scene()->addWidget(
           w, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
       obj->setPos(pos);
+      currentRightClickWidget() = obj;
 
 #if defined(__EMSCRIPTEN__)
       w->setFocus();
@@ -217,6 +222,9 @@ struct DefaultGraphicsKnobImpl
   static void contextMenuEvent(T& self, QPointF pos)
   {
     auto build = [&, self_p = &self, pos] {
+      // Whatever box is open belongs to the previous right-click.
+      closeRightClickWidget();
+
       auto w = new DoubleSpinboxWithEnter;
       w->setRange(self.min, self.max);
 
@@ -225,6 +233,7 @@ struct DefaultGraphicsKnobImpl
       auto obj = self.scene()->addWidget(
           w, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
       obj->setPos(pos);
+      currentRightClickWidget() = obj;
 
 #if defined(__EMSCRIPTEN__)
       w->setFocus();
