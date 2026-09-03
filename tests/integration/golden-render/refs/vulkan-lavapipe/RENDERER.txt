@@ -1,1 +1,0 @@
-Physical device 0: 'llvmpipe (LLVM 20.1.2, 256 bits)' 25.2.8 (api 1.4.318 vendor 0x10005 device 0x0 type 4)

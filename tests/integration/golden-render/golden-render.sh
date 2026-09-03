@@ -2,23 +2,48 @@
 # Golden-image render regression harness.
 #
 #   golden-render.sh [--backend <class>] [--update-refs] [--cases "name ..."]
-#                    [--keep-going] [--list-backends]
-#   golden-render.sh --compare <backendA> <backendB> [--profile cross|strict|loose]
+#                    [--keep-going] [--list-backends] [--rebless]
 #
 # Renders each pinned tests-scene pipeline (cases-<class>.txt, falling back to
 # cases-llvmpipe.txt) through the real ossia-score binary and compares the
-# grabbed frame against refs/<class>/<case>.png with compare.py.
+# grabbed frame against refs/<case>.png with compare.py.
+#
+# ---------------------------------------------------------------------------
+# ONE GOLDEN PER CASE, NOT ONE PER BACKEND.
+#
+# One golden per case, shared by every backend. A per-backend golden can
+# describe a regression but never condemn one: a golden blessed on llvmpipe says
+# nothing about what NVIDIA renders, so a change that breaks only NVIDIA is
+# measured against a reference that moved with it and the table stays green.
+# Backends agree with each other far more closely than the gate's tolerance, so
+# the split encoded no real difference. See the compare.py docstring for why the
+# gate is three axes and not a PSNR floor alone.
+#
+# Per-backend RUN STATE (which cases are unstable or blank ON THIS BACKEND, and
+# what renderer produced the run) is still per-backend and lives in
+# refs/.state/<class>/. That is an observation about a driver, not a golden.
+# ---------------------------------------------------------------------------
 #
 #   check mode (default)  : ref must exist; verdict per case is
 #                           PASS / FAIL / NOREF / NORENDER / WRONG-BACKEND /
 #                           SKIP-UNSTABLE / SKIP-BLANK.
 #                           Exit 0 iff no FAIL/NOREF/NORENDER/WRONG-BACKEND.
+#                           On FAIL the actual, the golden and a diff image are
+#                           written to $OUT/diff/ so a CI failure is
+#                           diagnosable without a local reproduction.
 #   --update-refs         : renders each case TWICE and accepts the ref only if
 #                           the two runs agree (compare.py --profile self) and
 #                           are non-blank. Disagreeing cases land in
-#                           refs/<class>/UNSTABLE.txt, blank ones in BLANK.txt.
-#   --compare A B         : compares refs/A/*.png against refs/B/*.png with the
-#                           given profile (default "cross"). No rendering.
+#                           refs/.state/<class>/UNSTABLE.txt, blank ones in
+#                           BLANK.txt. Because the golden is now shared, an
+#                           update that would move an EXISTING golden outside
+#                           the shared tolerance is refused unless --rebless is
+#                           given: otherwise running --update-refs on whatever
+#                           GPU happens to be at hand silently rebases the
+#                           reference for every other backend.
+#   --rebless             : allow --update-refs to replace a golden that the
+#                           new render does not match. Deliberate, and the
+#                           picture must be looked at.
 #
 # ---------------------------------------------------------------------------
 # BACKEND IDENTITY IS ASSERTED, NOT ASSUMED.
@@ -33,7 +58,7 @@
 # the wrong GPU/rasteriser is the exact way a "green" table ends up measuring
 # something other than what it claims.
 #
-# Measured on ai-workstation-01 (2026-08-21, NVIDIA 595.84, Mesa 25.2.8):
+# Two environment traps this harness works around:
 #   * LIBGL_ALWAYS_SOFTWARE=1 alone does NOT give llvmpipe when libglvnd
 #     resolves to the NVIDIA vendor library -- it silently keeps the GPU.
 #     Forcing software GL needs __GLX_VENDOR_LIBRARY_NAME=mesa as well.
@@ -43,8 +68,8 @@
 # ---------------------------------------------------------------------------
 #
 # Serialization: each app run holds flock /tmp/score-harness.lock (OSC port
-# 6666 is global). Do NOT wrap this whole script in that lock (see the
-# EXHAUSTIVE-TEST-PLAN consolidation note on self-deadlock).
+# 6666 is global). Do NOT wrap this whole script in that lock: it would
+# self-deadlock.
 set -u
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -62,8 +87,7 @@ UPDATE=0
 KEEPGOING=0
 CASES_OVERRIDE=""
 PROFILE=""
-COMPARE_A=""
-COMPARE_B=""
+REBLESS=0
 
 # ---- backend classes --------------------------------------------------------
 # name | graphics API | env | regex the reported renderer MUST match
@@ -83,7 +107,7 @@ backend_env() {
     llvmpipe)
       # Real GLX against Mesa's software rasteriser. __GLX_VENDOR_LIBRARY_NAME
       # is mandatory: without it libglvnd hands us the NVIDIA GPU and
-      # LIBGL_ALWAYS_SOFTWARE is silently ignored (measured 2026-08-21).
+      # LIBGL_ALWAYS_SOFTWARE is silently ignored.
       echo "DISPLAY=:0 QT_QPA_PLATFORM=xcb __GLX_VENDOR_LIBRARY_NAME=mesa LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe" ;;
     vulkan-lavapipe)
       echo "DISPLAY=:0 QT_QPA_PLATFORM=xcb VK_LOADER_DRIVERS_SELECT=lvp*" ;;
@@ -112,42 +136,12 @@ while [ $# -gt 0 ]; do
     --cases) CASES_OVERRIDE="$2"; shift 2 ;;
     --keep-going) KEEPGOING=1; shift ;;
     --profile) PROFILE="$2"; shift 2 ;;
-    --compare) COMPARE_A="$2"; COMPARE_B="$3"; shift 3 ;;
+    --rebless) REBLESS=1; shift ;;
     --list-backends) echo "$KNOWN_BACKENDS" | tr ' ' '\n'; exit 0 ;;
     *) echo "unknown arg: $1" >&2; exit 2 ;;
   esac
 done
 
-# ---- cross-backend comparison mode -----------------------------------------
-if [ -n "$COMPARE_A" ]; then
-  P="${PROFILE:-cross}"
-  A="$HERE/refs/$COMPARE_A" ; B="$HERE/refs/$COMPARE_B"
-  [ -d "$A" ] || { echo "no refs for $COMPARE_A"; exit 2; }
-  [ -d "$B" ] || { echo "no refs for $COMPARE_B"; exit 2; }
-  echo "renderer[$COMPARE_A] = $(cat "$A/RENDERER.txt" 2>/dev/null || echo '(unrecorded)')"
-  echo "renderer[$COMPARE_B] = $(cat "$B/RENDERER.txt" 2>/dev/null || echo '(unrecorded)')"
-  echo "profile = $P"
-  agree=0; differ=0; only=0
-  for f in "$A"/*.png; do
-    [ -e "$f" ] || continue
-    n="$(basename "$f" .png)"
-    printf '%-42s' "$n"
-    if [ ! -f "$B/$n.png" ]; then echo "ONLY-IN-$COMPARE_A"; only=$((only+1)); continue; fi
-    if res=$(python3 "$HERE/compare.py" "$f" "$B/$n.png" --profile "$P"); then
-      echo "AGREE  ($res)"; agree=$((agree+1))
-    else
-      echo "DIFFER ($res)"; differ=$((differ+1))
-    fi
-  done
-  for f in "$B"/*.png; do
-    [ -e "$f" ] || continue
-    n="$(basename "$f" .png)"
-    [ -f "$A/$n.png" ] || { printf '%-42s%s\n' "$n" "ONLY-IN-$COMPARE_B"; only=$((only+1)); }
-  done
-  echo "----"
-  echo "cross[$COMPARE_A vs $COMPARE_B] profile=$P: $agree agree, $differ differ, $only one-sided"
-  exit 0
-fi
 
 # Prerequisites -> ctest SKIP (return 77) rather than a hard failure.
 command -v oscsend  >/dev/null || { echo "SKIP: oscsend not found";        exit 77; }
@@ -171,9 +165,14 @@ case "$BENV" in
     [ -e /tmp/.X11-unix/X0 ] || { echo "SKIP: backend $BACKEND needs an X server on :0"; exit 77; } ;;
 esac
 
-REFS="$HERE/refs/$BACKEND"
+# One golden set for every backend; per-backend run state beside it.
+REFS="$HERE/refs"
+STATE="$HERE/refs/.state/$BACKEND"
 OUT="${OUT:-/tmp/golden-render/$BACKEND}"
-mkdir -p "$REFS" "$OUT"
+# Failure artifacts land in the build/output dir, named after the case, so a
+# red CI run carries its own evidence.
+DIFFDIR="$OUT/diff"
+mkdir -p "$REFS" "$STATE" "$OUT" "$DIFFDIR"
 
 CASES_FILE="$HERE/cases-$BACKEND.txt"
 [ -f "$CASES_FILE" ] || CASES_FILE="$HERE/cases-llvmpipe.txt"
@@ -224,17 +223,16 @@ extract_renderer() { # log -> one line, or "" if QRhi never reported
   # Vulkan / D3D / Metal: QRhi enumerates every device and then says which one
   # it kept on the NEXT line. Taking the first enumerated device instead would
   # be exactly the "we measured something else" bug this guard exists to catch:
-  # on this box device 0 is an RTX 4090 while the selected one is the Quadro.
+  # the first device enumerated is not necessarily the one QRhi kept.
   awk '/qt\.rhi\.general: (Physical device|Adapter|Device) /{last=$0}
        /using this (physical device|adapter|device)/{sub(/^qt\.rhi\.general: /,"",last); print last; found=1; exit}
        END{if(!found) exit 1}' "$1" 2>/dev/null && return
   # score builds its own QVulkanInstance and device, so QRhi *imports* them
   # rather than enumerating: there is no "using this physical device"
   # confirmation line, only one "Using imported physical device '<name>' ..."
-  # line. Not matching it made every Vulkan case report WRONG-BACKEND -- 15 of
-  # 16 in the nvidia-vulkan class -- while the runs were in fact correct, on the
-  # right GPU. The line still names the device, so the guard's intent (know what
-  # produced the number) is preserved.
+  # line. Matching it keeps Vulkan classes from reporting WRONG-BACKEND on a
+  # correct run; the line still names the device, so the guard's intent (know
+  # what produced the number) holds.
   grep -m1 -E 'qt\.rhi\.general: Using imported (physical device|device|adapter) ' "$1" 2>/dev/null \
     | sed 's/^qt\.rhi\.general: //'
 }
@@ -266,8 +264,8 @@ render_one() { # case_name out_png -> 0 ok, 2 no png, 3 wrong backend
 
   RENDERER="$(extract_renderer "$log")"
   printf '%s\n' "$RENDERER" > "$OUT/$name.renderer"
-  # An unidentified backend is as bad as a wrong one: we would be publishing a
-  # number without knowing what produced it.
+  # An unidentified backend is as bad as a wrong one: the number would be
+  # published without knowing what produced it.
   if [ -z "$RENDERER" ]; then WRONG="no qt.rhi device line in $log"; return 3; fi
   if ! printf '%s' "$RENDERER" | grep -qE "$EXPECT"; then
     WRONG="expected /$EXPECT/, got: $RENDERER"; return 3
@@ -304,12 +302,25 @@ for name in "${CASES[@]}"; do
     if [ "$rcA" = 0 ] && [ "$rcB" = 0 ]; then
       m=$(pixel_mean "$OUT/$name.A.png")
       if ! awk "BEGIN{exit !($m > $BLANK_MEAN)}"; then
-        echo "BLANK mean=$m (not accepted as ref)"; grep -qx "$name" "$REFS/BLANK.txt" 2>/dev/null || echo "$name" >> "$REFS/BLANK.txt"
+        echo "BLANK mean=$m (not accepted as ref)"; grep -qx "$name" "$STATE/BLANK.txt" 2>/dev/null || echo "$name" >> "$STATE/BLANK.txt"
         skips=$((skips+1)); continue
       fi
       if res=$(python3 "$HERE/compare.py" "$OUT/$name.A.png" "$OUT/$name.B.png" --profile self); then
+        # The golden is shared. Two self-consistent renders on THIS backend are
+        # necessary but not sufficient to replace it: if an existing golden
+        # disagrees with them, either this backend really is different (which
+        # the whole point of a shared golden is to surface) or the code changed.
+        # Both deserve a human, so refuse silently rebasing every other
+        # backend's reference off whichever GPU ran the update.
+        if [ -f "$REFS/$name.png" ] && [ "$REBLESS" = 0 ]; then
+          if ! chk=$(python3 "$HERE/compare.py" "$REFS/$name.png" "$OUT/$name.A.png" \
+                       --diff-dir "$DIFFDIR" --name "$name"); then
+            echo "REF-CONFLICT ($chk) — existing golden kept; --rebless to replace"
+            fails=$((fails+1)); continue
+          fi
+        fi
         cp "$OUT/$name.A.png" "$REFS/$name.png"
-        printf '%s\n' "$RENDERER" > "$REFS/RENDERER.txt"
+        printf '%s\n' "$RENDERER" > "$STATE/RENDERER.txt"
         # A reference image with no provenance is an assertion with no author:
         # when it later disagrees with a run, nobody can tell whether the code
         # regressed or the reference was made by a binary that no longer exists.
@@ -323,10 +334,10 @@ for name in "${CASES[@]}"; do
           echo "corpus:   $SCRIPTS"
         } > "$REFS/PROVENANCE.txt"
         # no longer unstable/blank if it stabilized
-        sed -i "/^$name\$/d" "$REFS/UNSTABLE.txt" "$REFS/BLANK.txt" 2>/dev/null
+        sed -i "/^$name\$/d" "$STATE/UNSTABLE.txt" "$STATE/BLANK.txt" 2>/dev/null
         echo "REF-UPDATED ($res)"; passes=$((passes+1))
       else
-        echo "UNSTABLE ($res) — excluded"; grep -qx "$name" "$REFS/UNSTABLE.txt" 2>/dev/null || echo "$name" >> "$REFS/UNSTABLE.txt"
+        echo "UNSTABLE ($res) — excluded"; grep -qx "$name" "$STATE/UNSTABLE.txt" 2>/dev/null || echo "$name" >> "$STATE/UNSTABLE.txt"
         skips=$((skips+1))
       fi
     else
@@ -336,17 +347,21 @@ for name in "${CASES[@]}"; do
   else
     if reason=$(broken_reason "$name"); then
       echo "SKIP-BROKEN  $reason"; skips=$((skips+1)); continue; fi
-    if listed "$name" "$REFS/UNSTABLE.txt"; then echo "SKIP-UNSTABLE"; skips=$((skips+1)); continue; fi
-    if listed "$name" "$REFS/BLANK.txt"; then echo "SKIP-BLANK"; skips=$((skips+1)); continue; fi
+    if listed "$name" "$STATE/UNSTABLE.txt"; then echo "SKIP-UNSTABLE"; skips=$((skips+1)); continue; fi
+    if listed "$name" "$STATE/BLANK.txt"; then echo "SKIP-BLANK"; skips=$((skips+1)); continue; fi
     if [ ! -f "$REFS/$name.png" ]; then echo "NOREF (run --update-refs)"; fails=$((fails+1)); continue; fi
     render_one "$name" "$OUT/$name.png"; rc=$?
     if [ "$rc" = 3 ]; then
       echo "WRONG-BACKEND ($WRONG)"; fails=$((fails+1))
     elif [ "$rc" = 0 ]; then
-      if res=$(python3 "$HERE/compare.py" "$REFS/$name.png" "$OUT/$name.png" --profile "${PROFILE:-strict}"); then
+      if res=$(python3 "$HERE/compare.py" "$REFS/$name.png" "$OUT/$name.png" \
+                 --profile "${PROFILE:-shared}" --diff-dir "$DIFFDIR" --name "$name"); then
         echo "PASS ($res)"; passes=$((passes+1))
       else
-        echo "FAIL ($res)  ref=$REFS/$name.png test=$OUT/$name.png"; fails=$((fails+1))
+        echo "FAIL ($res)"; fails=$((fails+1))
+        echo "    golden=$REFS/$name.png"
+        echo "    actual=$OUT/$name.png"
+        echo "    artifacts=$DIFFDIR/$name.{golden,actual,diff}.png"
       fi
     else
       echo "NORENDER (see $OUT/$name.log)"; fails=$((fails+1))
@@ -357,8 +372,8 @@ done
 # Intent assertions, reference-free: each case is checked against what its own
 # shader header says it must look like. A reference only pins what the renderer
 # DID -- a backend that quietly falls back and paints a constant produces a
-# perfectly stable, perfectly reproducible, perfectly wrong reference, and two
-# flipped refs in this very set passed the image gate for a whole campaign.
+# perfectly stable, perfectly reproducible, perfectly wrong reference, and a
+# flipped ref passes the image gate for as long as nobody looks at it.
 # Run in both modes: in --update-refs it gates what is allowed to become a ref.
 content_rc=0
 if [ -f "$HERE/assert-content.py" ]; then
@@ -377,6 +392,6 @@ echo "golden-render[$BACKEND]$([ "$UPDATE" = 1 ] && echo ' (update-refs)'): $pas
 # In check mode, if there are no refs at all yet, SKIP (77) instead of failing —
 # refs are generated once with --update-refs and committed alongside the branch.
 if [ "$UPDATE" = 0 ] && [ "$passes" = 0 ] && [ "$fails" -gt 0 ] && ! ls "$REFS"/*.png >/dev/null 2>&1; then
-  echo "SKIP: no references present — run --update-refs once and commit refs/$BACKEND/"; exit 77
+  echo "SKIP: no references present — run --update-refs once and commit refs/"; exit 77
 fi
 [ "$fails" = 0 ] && [ "$content_rc" = 0 ]
