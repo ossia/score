@@ -1,5 +1,6 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
+#include <Execution/DocumentPlugin.hpp>
 #include <JS/Qml/DeviceEnumerator.hpp>
 #include <JS/Qml/EditContext.hpp>
 #include <Protocols/OSC/OSCProtocolFactory.hpp>
@@ -11,6 +12,7 @@
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 
 #include <QQmlContext>
+#include <QQmlEngine>
 
 #include <ossia-config.hpp>
 #if defined(OSSIA_PROTOCOL_WEBSOCKETS)
@@ -55,7 +57,20 @@ QObject* EditJsContext::device(QString name)
     return nullptr;
 
   auto& plug = doc->plugin<Explorer::DeviceDocumentPlugin>();
-  return plug.list().findDevice(name);
+  auto* dev = plug.list().findDevice(name);
+
+  // The device belongs to Explorer::DeviceList, which deletes it in
+  // removeDevice(). A QObject returned from an invokable with NO QObject parent
+  // defaults to QQmlEngine::JavaScriptOwnership, so without this the QML
+  // garbage collector is free to delete a live device out from under the
+  // document -- and it does: merely CALLING Score.device("Window") twice in a
+  // script that has played was enough to turn a clean exit into a crash in
+  // Gfx::GfxContext::NodeCommand::~NodeCommand() destroying a
+  // std::unique_ptr<score::gfx::Node>. Reading the device list must not be able
+  // to destroy it.
+  if(dev)
+    QQmlEngine::setObjectOwnership(dev, QQmlEngine::CppOwnership);
+  return dev;
 }
 
 GlobalDeviceEnumerator* EditJsContext::enumerateDevices()
@@ -149,6 +164,42 @@ void EditJsContext::removeDevice(QString name)
   auto doc = ctx();
   if(!doc)
     return;
+
+  // OUT OF CONTRACT: a device cannot be removed while the score is executing.
+  //
+  // Execution ports cache a raw ossia::net::parameter_base* into the device --
+  // Gfx::gfx_exec_node::run reads three of them (GfxExecNode.cpp:96, :111,
+  // :140) -- and nothing invalidates those pointers when the device is
+  // destroyed. Explorer::DeviceList::removeDevice (DeviceList.cpp:104-108)
+  // emits deviceRemoved and then `delete ptr` immediately, while the only
+  // exec-side subscriber merely ENQUEUES onto
+  // execution_state::m_device_change_queue. So the next audio tick
+  // dynamic_casts freed memory. Making that survivable would mean a barrier
+  // between the signal and the delete, i.e. teaching the device layer about
+  // the audio thread -- machinery to support an operation the contract
+  // forbids.
+  //
+  // The editor does not offer this; this scripting API is the one place that
+  // could reach past it, and it is also the only layer where both sides are
+  // visible (score-plugin-js links score_plugin_engine; score-plugin-
+  // deviceexplorer does not know execution exists at all, by design). So the
+  // refusal belongs here, and it happens BEFORE any command is created --
+  // refusing inside the command, or inside NodeUpdateProxy::removeDevice,
+  // would desynchronise the undo stack, and refusing in DeviceList after
+  // NodeUpdateProxy has already called explorer().removeNode() would leave the
+  // tree inconsistent. Same shape as the missing-MIDI-backend refusal in
+  // 9512549400: say no clearly rather than proceed into undefined behaviour.
+  if(auto* exec = doc->findPlugin<Execution::DocumentPlugin>())
+  {
+    if(exec->isPlaying())
+    {
+      qWarning() << "Score.removeDevice(" << name
+                 << "): refused -- a device cannot be removed while the score "
+                    "is executing. Call Score.stop() first.";
+      return;
+    }
+  }
+
   auto& plug = doc->plugin<Explorer::DeviceDocumentPlugin>();
 
   auto cmd = new Explorer::Command::RemoveNodes;
