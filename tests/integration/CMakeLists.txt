@@ -13,9 +13,11 @@ score_add_test(test_integration_roundtrip
   SOURCES DocumentRoundtripTest.cpp
   APP)
 
-# A16: a process whose factory is not installed used to be dropped on load, with
-# its cables, silently. Asserting "the document opened" cannot see that, so this
-# one asserts on the content that came back.
+# A16: a process whose factory is not installed is dropped on load, with its
+# cables, silently. Asserting "the document opened" cannot see that, so this one
+# asserts on the content that came back. EXPECTED RED on this branch: our own
+# implementation was reverted in favour of PR #2179, which is not merged here.
+# See the file header.
 score_add_test(test_integration_missing_process_roundtrip
   SOURCES MissingProcessRoundtripTest.cpp
   GUI
