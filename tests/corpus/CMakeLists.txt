@@ -10,6 +10,13 @@ if(TARGET score_plugin_media)
     avcodec avformat avutil swscale
     ${QT_PREFIX}::Core)
   setup_score_common_exe_features(score_video_corpus_tester)
+  # Both testers are raw add_executable rather than score_add_test, so they miss
+  # the enable_minimal_qt_plugins() that ScoreTests.cmake:157 gives every other
+  # test. On a STATIC Qt -- which is what the Windows and macOS SDKs ship -- no
+  # platform plugin is linked in and the binary cannot start at all. The
+  # function early-returns on a dynamic Qt, so this is free on Linux.
+  # QCoreApplication only here: no GUI.
+  enable_minimal_qt_plugins(score_video_corpus_tester 0)
   set_target_properties(score_video_corpus_tester PROPERTIES FOLDER "Tests")
 endif()
 
@@ -31,5 +38,8 @@ if(TARGET score_plugin_gfx AND TARGET score_plugin_engine AND TARGET score_plugi
   target_compile_definitions(score_corpus_tester PRIVATE
     "SCORE_TEST_BINARY_DIR=\"${SCORE_ROOT_BINARY_DIR}\"")
   setup_score_common_exe_features(score_corpus_tester)
+  # See the note on the video tester above. This one builds a QApplication and
+  # renders a frame, so it needs the GUI set (offscreen included).
+  enable_minimal_qt_plugins(score_corpus_tester 1)
   set_target_properties(score_corpus_tester PROPERTIES FOLDER "Tests")
 endif()
