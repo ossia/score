@@ -40,7 +40,7 @@ AddressStringSettingsWidget::AddressStringSettingsWidget(QWidget* parent)
 Device::AddressSettings AddressStringSettingsWidget::getSettings() const
 {
   auto settings = getCommonSettings();
-  settings.value = m_valueEdit->fullText().toStdString();
+  settings.value = m_valueEdit->fullBytes().toStdString();
   settings.domain = ossia::domain_base<std::string>{m_values->values()};
   return settings;
 }
