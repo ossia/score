@@ -88,16 +88,10 @@ macro(find_component _component _pkgconfig _library _header)
   endif()
 
   if(OSSIA_SDK)
-    # The SDK is the only acceptable provider, so neither pkg-config's answer
-    # nor the platform paths get a say. ffmpeg 9 (SDK 39) dropped libpostproc:
-    # left to fall through, POSTPROC resolves to the distro's shared
-    # libpostproc.so -- which carries a DT_NEEDED on libavutil.so.59 -- and
-    # drags /usr/include/x86_64-linux-gnu (ffmpeg 7 headers) into
-    # FFMPEG_INCLUDE_DIRS and into the imported target's interface. Two libav*
-    # ABIs, one binary, and the failure only shows up at runtime.
-    #
-    # Purge a hit cached by an earlier configure that pointed outside the SDK,
-    # otherwise an existing build directory keeps the system library forever.
+    # The SDK is the only acceptable provider: otherwise a component the SDK's
+    # ffmpeg no longer ships (libpostproc, gone in ffmpeg 8) falls through to
+    # the distro's, dragging a second libavutil ABI and its headers in.
+    # Purge a hit cached by an earlier configure that pointed outside the SDK.
     foreach(_var ${_component}_INCLUDE_DIRS ${_component}_LIBRARIES)
       if(${_var})
         string(FIND "${${_var}}" "${OSSIA_SDK}" _ffmpeg_in_sdk)
@@ -221,28 +215,9 @@ if(TARGET postproc)
   endif()
 endif()
 
-# The SDK's libav* are static archives built against a pile of codec and
-# protocol libraries that live elsewhere in the SDK: dav1d, x264, x265, opus,
-# vpx, webp, SVT-JPEG-XS, mp3lame, libxml2, SRT (itself linking the SDK's
-# openssl), freetype+harfbuzz for the drawtext filter, and the compression
-# libraries libavformat demuxes with. pkg-config lists them all -- libavcodec.pc
-# ends in "-ldav1d ... -lsrt" -- but this module imports only the av* archives,
-# so nothing puts them on the link line.
-#
-# They belong on an imported ffmpeg target, NOT on a consumer such as
-# score_plugin_media. A static link resolves left to right and CMake orders a
-# target's dependencies *after* it, so with score_plugin_gfx naming
-# "avcodec avformat ... score_plugin_media", the av* archives are pushed past
-# score_plugin_media's entire interface: anything added over there lands
-# *before* libavcodec.a and every symbol it carries stays undefined. avutil is
-# the sink of the ffmpeg graph -- every other libav* links it -- so its
-# interface is the one position guaranteed to come after all of them.
-#
-# Each entry is looked up, never required: SDK 36 has none of these, and some
-# are target-dependent (Windows-on-ARM has no OpenSSL mingw target, so libsrt is
-# built there without encryption). Found => linked, missing => nothing changes,
-# which is what keeps a single tree building against several SDKs. The whole
-# block is inert for a distro or homebrew ffmpeg, which resolves its own deps.
+# The SDK's static libav* need private codec/protocol archives that nothing else
+# puts on the link line. avutil is the sink of the ffmpeg graph, so its
+# interface is the only position that lands after every libav*.
 if(OSSIA_SDK AND TARGET avutil)
   set(_ffmpeg_sdk_libdirs
     "${OSSIA_SDK}/sysroot/lib"     # Linux + Windows: shared dep prefix
@@ -254,48 +229,42 @@ if(OSSIA_SDK AND TARGET avutil)
     "${OSSIA_SDK}/harfbuzz/lib"
   )
 
-  # Ordered for a single left-to-right pass: dependants before dependencies.
-  # webpmux -> webp -> sharpyuv, srt -> ssl -> crypto, xml2 -> lzma, and bz2 /
-  # lzma are libavformat's, not libavcodec's, so they trail the codecs.
+  # Ordered for a single left-to-right pass: dependants before dependencies
+  # (webpmux -> webp -> sharpyuv, srt -> ssl -> crypto, xml2 -> lzma).
   #
-  # jpeg: the SDK builds libjpeg-turbo (Qt is configured -system-libjpeg), and
-  # on aarch64 Linux libavdevice reaches it too -- ffmpeg's --enable-libv4l2
-  # resolves libv4l2.pc statically, whose Libs.private ends in "-ljpeg".
+  # placebo: the SDK's ffmpeg is built --enable-libplacebo, so libavfilter has
+  # 80 undefined pl_* symbols and nothing was linking the archive. libplacebo
+  # needs glslang; its Vulkan backend is dispatched at runtime, so there is no
+  # loader to link. Only libglslang.a has content -- the SDK installs the other
+  # glslang component names as stub archives.
   foreach(_sdk_lib
       dav1d x264 x265 opus vpx webpmux webp sharpyuv SvtJpegxs mp3lame
+      placebo glslang glslang-default-resource-limits
       srt xml2 freetype harfbuzz jpeg bz2 lzma ssl crypto)
-    # NO_DEFAULT_PATH is deliberate: these have to be the SDK's own copies.
-    # Silently linking a system libssl or libfreetype here is exactly the kind
-    # of leak the SDK exists to prevent, and it would only show up as a crash
-    # on someone else's machine.
-    find_library(FFMPEG_SDK_LIB_${_sdk_lib}
+    # NO_DEFAULT_PATH: these have to be the SDK's own copies, not the system's.
+    string(MAKE_C_IDENTIFIER "${_sdk_lib}" _sdk_var)
+    find_library(FFMPEG_SDK_LIB_${_sdk_var}
       NAMES ${_sdk_lib}
       PATHS ${_ffmpeg_sdk_libdirs}
       NO_DEFAULT_PATH
     )
-    mark_as_advanced(FFMPEG_SDK_LIB_${_sdk_lib})
-    if(FFMPEG_SDK_LIB_${_sdk_lib})
-      imported_link_libraries(avutil "${FFMPEG_SDK_LIB_${_sdk_lib}}")
+    mark_as_advanced(FFMPEG_SDK_LIB_${_sdk_var})
+    if(FFMPEG_SDK_LIB_${_sdk_var})
+      imported_link_libraries(avutil "${FFMPEG_SDK_LIB_${_sdk_var}}")
     endif()
   endforeach()
 
-  # libvpx, libwebp, libsrt and x265 all use pthreads. Being raw archive paths
-  # they carry no dependency information for CMake to order around, so name this
-  # after them. No-op where the compiler driver already implies it.
+  # libvpx, libwebp, libsrt and x265 use pthreads; raw archive paths carry no
+  # dependency information, so name this after them.
   find_package(Threads)
   if(TARGET Threads::Threads)
     imported_link_libraries(avutil Threads::Threads)
   endif()
 
   if(WIN32)
-    # System import libraries the SDK's ffmpeg pulls in, taken from the Libs:
-    # lines of the .pc files it installs:
-    #   libavcodec   mediafoundation -> mfuuid, ole32, strmiids
-    #   libavformat  schannel        -> secur32, ncrypt, crypt32
-    #                srt             -> ws2_32, wsock32, advapi32, shell32
-    #   libavdevice                  -> psapi, uuid, oleaut32, shlwapi, gdi32
-    # All are OS import libraries present in both mingw and MSVC, so listing
-    # them costs nothing where they were already coming in via Qt.
+    # System import libraries named by the Libs: lines of the SDK's ffmpeg .pc
+    # files (mediafoundation, schannel, srt, avdevice), plus shlwapi for
+    # libplacebo.
     imported_link_libraries(avutil
       mfuuid ole32 oleaut32 uuid shlwapi psapi gdi32 advapi32 shell32
       secur32 ncrypt crypt32 ws2_32 wsock32
