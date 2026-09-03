@@ -1,7 +1,5 @@
 #include "ExpandableTextEdit.hpp"
 
-#include <score/model/Skin.hpp>
-
 #include <State/ValueConversion.hpp>
 
 #include <QAction>
@@ -25,12 +23,10 @@
 #include <QTimer>
 
 #include <functional>
-#include <memory>
 #include <optional>
 #include <utility>
 
 #include <algorithm>
-#include <cctype>
 
 #include <wobjectimpl.h>
 
@@ -66,9 +62,8 @@ QIcon ellipsisIcon(const QWidget& w, bool emphasized)
 
 QFont monospace()
 {
-  // QFontDatabase::systemFont gives a different family and size on every OS.
-  QFont f = score::Skin::instance().MonoFont;
-  f.setPixelSize(score::uiFontSize());
+  QFont f = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+  f.setPointSizeF(f.pointSizeF() - 0.5);
   return f;
 }
 
@@ -141,8 +136,7 @@ QString toOffsets(qsizetype size)
   return out;
 }
 
-//! Bytes from a run of hex digits. An odd count is read as a leading half
-//! byte, so that pasting "abc" gives 0a bc rather than dropping a digit.
+//! Bytes from a run of hex digits; a lone trailing nibble is a final low half.
 QByteArray bytesFromDigits(const QString& digits)
 {
   QByteArray out;
@@ -177,76 +171,17 @@ QByteArray bytesFromDigits(const QString& digits)
 class ByteColumn : public QPlainTextEdit
 {
 public:
-  /**
-   * @brief What Ctrl+Z walks back through.
-   *
-   * Shared by the two columns of one panel: an edit made in either is one step
-   * for both, or undo would mean something different depending on which half
-   * the cursor happens to be in.
-   *
-   * Capped by weight rather than by count -- a blob can be megabytes and each
-   * state is a full copy of it.
-   */
-  struct History
-  {
-    struct State
-    {
-      QByteArray bytes;
-      int nibble;
-    };
-
-    std::vector<State> states{State{{}, 0}};
-    std::size_t at{};
-    qsizetype held{};
-
-    static constexpr qsizetype max_held = 8 * 1024 * 1024;
-
-    void reset(const QByteArray& b)
-    {
-      states.assign(1, {b, 0});
-      at = 0;
-      held = b.size();
-    }
-
-    void push(const QByteArray& b, int nibble)
-    {
-      for(auto i = states.begin() + at + 1; i != states.end(); ++i)
-        held -= i->bytes.size();
-      states.resize(at + 1);
-
-      states.push_back({b, nibble});
-      held += b.size();
-
-      while(states.size() > 1 && held > max_held)
-      {
-        held -= states.front().bytes.size();
-        states.erase(states.begin());
-      }
-      at = states.size() - 1;
-    }
-  };
-
   //! Called whenever the user changes the bytes, never on setBytes().
   std::function<void(const QByteArray&)> onEdited;
 
   const QByteArray& bytes() const noexcept { return m_bytes; }
 
-  //! The two columns of a panel share one; by default a column has its own.
-  void setHistory(std::shared_ptr<History> h) { m_history = std::move(h); }
-
-  //! A new value from outside: the history starts over on it.
   void setBytes(const QByteArray& b)
   {
-    m_history->reset(b);
-    showBytes(b);
-  }
-
-  //! The same value, edited in the sibling column: shown, not recorded, since
-  //! the column that made the edit has already recorded it.
-  void followBytes(const QByteArray& b)
-  {
-    if(b != m_bytes)
-      showBytes(b);
+    m_bytes = b;
+    m_history.assign(1, {m_bytes, 0});
+    m_at = 0;
+    rewrite(std::min(m_nibble, endNibble()));
   }
 
   //! An empty byte before the caret, for the panel's button as well as Ins.
@@ -318,27 +253,18 @@ protected:
     m_nibble = std::clamp(caretNibble, 0, endNibble());
 
     const QSignalBlocker blocker{this};
-    const int scroll = verticalScrollBar()->value();
     setPlainText(render());
-    verticalScrollBar()->setValue(scroll);
 
     QTextCursor c = textCursor();
     c.setPosition(std::min(posOfNibble(m_nibble), document()->characterCount() - 1));
     setTextCursor(c);
   }
 
-  //! The bytes without touching the history: a value from elsewhere.
-  void showBytes(const QByteArray& b)
-  {
-    m_bytes = b;
-    rewrite(std::min(m_nibble, endNibble()));
-  }
-
   //! Apply an edit: redraw it, remember it, and tell the panel.
   void edited(int caretNibble)
   {
     rewrite(caretNibble);
-    m_history->push(m_bytes, m_nibble);
+    record();
     if(onEdited)
       onEdited(m_bytes);
   }
@@ -347,11 +273,26 @@ protected:
   int m_nibble{};
 
 private:
+  struct State
+  {
+    QByteArray bytes;
+    int nibble;
+  };
+
+  void record()
+  {
+    m_history.resize(m_at + 1);
+    m_history.push_back({m_bytes, m_nibble});
+    if(m_history.size() > 256)
+      m_history.erase(m_history.begin());
+    m_at = m_history.size() - 1;
+  }
+
   void restore(std::size_t at)
   {
-    m_history->at = at;
-    m_bytes = m_history->states[at].bytes;
-    rewrite(m_history->states[at].nibble);
+    m_at = at;
+    m_bytes = m_history[at].bytes;
+    rewrite(m_history[at].nibble);
     if(onEdited)
       onEdited(m_bytes);
   }
@@ -374,14 +315,14 @@ private:
   {
     if(ev->matches(QKeySequence::Undo))
     {
-      if(m_history->at > 0)
-        restore(m_history->at - 1);
+      if(m_at > 0)
+        restore(m_at - 1);
       return;
     }
     if(ev->matches(QKeySequence::Redo))
     {
-      if(m_history->at + 1 < m_history->states.size())
-        restore(m_history->at + 1);
+      if(m_at + 1 < m_history.size())
+        restore(m_at + 1);
       return;
     }
     if(ev->matches(QKeySequence::Copy) || ev->matches(QKeySequence::SelectAll)
@@ -408,19 +349,10 @@ private:
           return;
         }
 
-        // The byte before the caret, the way a keyboard is expected to; it is
-        // also how an append is undone. From the low half of the first byte
-        // there is none before it, so it takes that one -- doing nothing at
-        // all reads as a stuck key.
         if(m_nibble >= 2)
         {
           m_bytes.remove(m_nibble / 2 - 1, 1);
           edited(m_nibble - m_nibble % 2 - 2);
-        }
-        else if(m_nibble == 1 && !m_bytes.isEmpty())
-        {
-          m_bytes.remove(0, 1);
-          edited(0);
         }
         return;
       }
@@ -479,7 +411,8 @@ private:
     m_nibble = nibbleOfPos(textCursor().position());
   }
 
-  std::shared_ptr<History> m_history{std::make_shared<History>()};
+  std::vector<State> m_history{State{{}, 0}};
+  std::size_t m_at{};
 };
 
 //! The hex half: two digits a byte, sixteen bytes a line. Space types a zero.
@@ -501,25 +434,18 @@ private:
 
   QString render() const override { return toHex(m_bytes); }
 
-  //! Three characters a byte, a full line and its newline being 48 of them.
-  static constexpr int line_chars = 16 * 3;
-
   int posOfNibble(int nib) const override
   {
-    // Arithmetic rather than toHex().size(): this is on the keystroke path.
-    const int n = int(m_bytes.size());
-    const int byte = nib / 2, half = nib % 2;
+    const int byte = nib / 2, hi = nib % 2;
+    if(byte >= int(m_bytes.size()))
+      return int(toHex(m_bytes).size()); // just after the last digit
 
-    // Past the end: just after the last digit.
-    if(byte >= n)
-    {
-      if(n == 0)
-        return 0;
-      const int last = (n - 1) / 16;
-      return line_chars * last + lineChars(n - 16 * last);
-    }
+    const int line = byte / 16, idx = byte % 16;
 
-    return line_chars * (byte / 16) + 3 * (byte % 16) + half;
+    int pos = 0;
+    for(int l = 0; l < line; l++)
+      pos += lineChars(bytesOnLine(l)) + 1; // + the newline
+    return pos + 3 * idx + hi;
   }
 
   int nibbleOfPos(int pos) const override
@@ -601,23 +527,17 @@ private:
 
   QString render() const override { return toAscii(m_bytes); }
 
-  //! One character a byte, a full line and its newline being 17 of them.
-  static constexpr int line_chars = 16 + 1;
-
   int posOfNibble(int nib) const override
   {
-    const int n = int(m_bytes.size());
     const int byte = nib / 2;
+    if(byte >= int(m_bytes.size()))
+      return int(toAscii(m_bytes).size());
 
-    if(byte >= n)
-    {
-      if(n == 0)
-        return 0;
-      const int last = (n - 1) / 16;
-      return line_chars * last + (n - 16 * last);
-    }
-
-    return line_chars * (byte / 16) + byte % 16;
+    const int line = byte / 16;
+    int pos = 0;
+    for(int l = 0; l < line; l++)
+      pos += bytesOnLine(l) + 1; // + the newline
+    return pos + byte % 16;
   }
 
   int nibbleOfPos(int pos) const override
@@ -720,7 +640,6 @@ public:
     // --- footer: the byte count, and the actions with their keys ----------
     auto* foot = new QHBoxLayout;
     m_count = new QLabel{this};
-    m_count->setObjectName("byteCount");
     m_count->setEnabled(false);
     m_count->setFixedHeight(m_count->sizeHint().height());
     foot->addWidget(m_count);
@@ -838,9 +757,6 @@ private:
     m_ascii->setObjectName("charColumn");
     m_ascii->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
-    m_hex->setHistory(m_history);
-    m_ascii->setHistory(m_history);
-
     m_hex->onEdited = [this](const QByteArray& b) { setBytes(b, m_hex); };
     m_ascii->onEdited = [this](const QByteArray& b) { setBytes(b, m_ascii); };
 
@@ -865,27 +781,12 @@ private:
     m_syncing = true;
     m_bytes = std::move(b);
 
-    // The byte columns record their own edits; one made in the text pane has
-    // to be recorded for them, or Ctrl+Z in hex would step over it.
-    if(from == m_text)
-      m_history->push(m_bytes, 0);
-
     if(from != m_text)
       m_text->setPlainText(QString::fromUtf8(m_bytes));
-
-    // Bytes that are not text read back as replacement characters, and this
-    // pane writes what it shows: one keystroke here would turn every one of
-    // them into EF BF BD. The byte columns are the way to edit these.
-    const bool binary = State::convert::isBinary(m_bytes);
-    m_text->setReadOnly(binary);
-    m_text->setToolTip(binary ? tr("Not text: edit the bytes in hex") : QString{});
-
-    // followBytes, not setBytes: an edit in one column must not throw away
-    // what the panel has to undo.
     if(from != m_hex)
-      from ? m_hex->followBytes(m_bytes) : m_hex->setBytes(m_bytes);
+      m_hex->setBytes(m_bytes);
     if(from != m_ascii)
-      from ? m_ascii->followBytes(m_bytes) : m_ascii->setBytes(m_bytes);
+      m_ascii->setBytes(m_bytes);
     m_offsets->setPlainText(toOffsets(m_bytes.size()));
 
     m_syncing = false;
@@ -970,7 +871,6 @@ private:
   QPlainTextEdit* m_offsets{};
   HexEdit* m_hex{};
   AsciiEdit* m_ascii{};
-  std::shared_ptr<ByteColumn::History> m_history{std::make_shared<ByteColumn::History>()};
   QLabel* m_count{};
   QToolButton* m_insert{};
   QToolButton* m_remove{};
@@ -1035,8 +935,12 @@ void ExpandableTextEdit::refresh()
   if(m_binary)
   {
     setReadOnly(true);
-    // The same summary the cells show, so a row and its editor read alike.
-    QLineEdit::setText(State::convert::binarySummary(m_bytes));
+    const auto head = m_bytes.left(8).toHex(' ');
+    QLineEdit::setText(
+        tr("%1%2  [%3]")
+            .arg(QString::fromLatin1(head))
+            .arg(m_bytes.size() > 8 ? QStringLiteral("…") : QString{})
+            .arg(tr("%n byte(s)", "", int(m_bytes.size()))));
     setToolTip(tr("Binary — edit as hex"));
   }
   else if(m_multiline)
@@ -1062,13 +966,6 @@ void ExpandableTextEdit::setSubject(QString s)
 
 void ExpandableTextEdit::expandIfNeeded()
 {
-  // Once per editor. The delegates call this from setEditorData, which the
-  // view runs again on every dataChanged for the row -- so on a live device
-  // this would raise the panel again each time a value arrived, including
-  // right after the user pressed Escape on it.
-  if(std::exchange(m_offeredPopup, true))
-    return;
-
   if(needsPopup())
     QTimer::singleShot(0, this, [this] { expand(); });
 }
