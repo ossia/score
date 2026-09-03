@@ -165,8 +165,21 @@ bool ready()
     return false;
   // The offscreen QPA has no GL: the readback comes back as a single flat
   // colour, so there is nothing to compare.
+  if(qEnvironmentVariable("QT_QPA_PLATFORM") == "offscreen")
+    return false;
+  // DISPLAY and WAYLAND_DISPLAY are X11/Wayland variables and do not exist on
+  // Windows or macOS, so testing them unconditionally made this SKIP on those
+  // platforms whatever the display situation actually was. Measured on the
+  // Windows sweep: skipped on all four backends, reporting green while
+  // asserting nothing. Same guard the sibling cases already carry -- see
+  // GfxLightLiveTest.cpp:696, whose comment cites this file as the convention
+  // it follows, which is how the omission here went unnoticed.
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__)
   return qEnvironmentVariableIsSet("DISPLAY")
          || qEnvironmentVariableIsSet("WAYLAND_DISPLAY");
+#else
+  return true;
+#endif
 }
 }
 
