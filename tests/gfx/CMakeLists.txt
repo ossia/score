@@ -279,6 +279,45 @@ score_add_test(test_gfx_csf_orient_gate
 target_compile_definitions(test_gfx_csf_orient_gate PRIVATE
   GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
 
+# Writable cubemaps on Direct3D. HLSL has no RWTextureCube in any shader model
+# and SPIRV-Cross aborts the translation rather than approximating one, so every
+# shader declaring a cube storage image failed to bake for D3D11 and D3D12 --
+# and only for them. The fix declares the same texture as the 2D-array VIEW the
+# D3D UAV already was, gated on QSHADER_HLSL, with no change to the shader the
+# author writes; this pins both halves (it bakes everywhere; the API did not
+# move). Same no-device shape as csf_orient_gate: QShaderBaker cross-compiles to
+# HLSL on any host. The picture itself is gfx_csf_cube_array's job.
+score_add_test(test_gfx_cube_image_hlsl
+  SOURCES GfxCubeImageHlsl.cpp
+  PLUGINS score_plugin_gfx score_lib_process
+  LIBS test_gfx_engine_glue)
+target_compile_definitions(test_gfx_cube_image_hlsl PRIVATE
+  GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+
+# The same idea, widened from one shader to the whole corpus: EVERY shader in
+# corpus/, of every kind, generated through the path the application uses and
+# then baked for GLSL, SPIR-V, HLSL and MSL. QShaderBaker cross-compiles on any
+# host, so the two targets a Linux ctest run never otherwise asks for -- HLSL
+# and MSL -- are asked for here, on this machine, with no device and no display.
+#
+# It exists because 0411ad04bb: a duplicated `#define isf_FragCoord` with
+# mismatched QSHADER_* guards agreed on SPIR-V and GLSL and disagreed on HLSL
+# and MSL, so under setPerTargetCompilation(true) glslang rejected every
+# raw-raster fragment stage ("Macro redefined; different substitutions") -- and
+# no raw-raster ISF shader had ever compiled on Direct3D or Metal. Finding that
+# took a four-backend Windows sweep. This finds it in an ordinary ctest run.
+#
+# APP rather than plain, because ProgramCache::get reads Gfx::Settings::Model
+# out of score::AppContext() (ShaderProgram.cpp:534); GPU-less all the same, so
+# not GUI.
+score_add_test(test_gfx_shader_corpus_targets
+  SOURCES ShaderCorpusTargets.cpp
+  APP
+  PLUGINS score_plugin_gfx score_lib_process
+  LIBS test_gfx_engine_glue)
+target_compile_definitions(test_gfx_shader_corpus_targets PRIVATE
+  GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+
 # The QRhi<->CUDA fence, against a real device on every backend this box brings
 # up. The vendor GPU-direct rungs gate on InteropFence::valid() and trust
 # waitOnCuda() before letting a peer DMA-read a buffer, so what each backend's
