@@ -13,6 +13,11 @@
 // that MUST agree: a format the rescale gate lets through untouched and the
 // GPU factory has no decoder for renders nothing at all. Each table is
 // self-consistent, so nothing else can catch a disagreement.
+//
+// The two sweeps below close the CLASS rather than one instance: they run over
+// every AVPixelFormat this ffmpeg build knows, in both directions, with no
+// exemption list and no [!shouldfail], so an endian-pair mistake is caught
+// without anyone having had to anticipate it.
 
 #include <Gfx/Graph/decoders/GPUVideoDecoderFactory.hpp>
 #include <Video/GpuFormats.hpp>
@@ -167,7 +172,7 @@ TEST_CASE("the codecs score offers hardware decoding for", "[video][gpuformats]"
     CHECK(ffmpegCanDoHardwareDecoding(id));
   }
 
-  // Intra-only / lossless codecs no GPU block decodes.
+  // Intra-only / lossless codecs: no GPU block-decodes these.
   CHECK_FALSE(ffmpegCanDoHardwareDecoding(AV_CODEC_ID_NONE));
   CHECK_FALSE(ffmpegCanDoHardwareDecoding(AV_CODEC_ID_RAWVIDEO));
   CHECK_FALSE(ffmpegCanDoHardwareDecoding(AV_CODEC_ID_FFV1));
@@ -315,9 +320,9 @@ TEST_CASE("every format that skips swscale has a GPU decoder",
 
 // AV_PIX_FMT_GRAYF32 / AV_PIX_FMT_GRAYF16 are AV_PIX_FMT_NE() aliases: they
 // name the host-endian member of the pair, which is the only one
-// createGPUVideoDecoder() builds a PackedDecoder for. formatNeedsDecoding()
-// listed BOTH members, so the foreign-endian one skipped the CPU rescale and
-// then found no GPU decoder: it rendered as nothing at all.
+// createGPUVideoDecoder() builds a PackedDecoder for. Listing BOTH members in
+// formatNeedsDecoding() lets the foreign-endian one skip the CPU rescale and
+// then find no GPU decoder, so it renders as nothing at all.
 TEST_CASE("the grayscale float formats follow the host endianness",
           "[video][gpuformats]")
 {
