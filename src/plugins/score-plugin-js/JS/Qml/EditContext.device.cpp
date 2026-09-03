@@ -8,6 +8,8 @@
 
 #include <score/application/ApplicationContext.hpp>
 
+#include <ossia/network/dataspace/dataspace_visitors.hpp>
+
 #include <QQmlContext>
 
 #include <ossia-config.hpp>
@@ -30,6 +32,7 @@
 #include <Explorer/Commands/Add/LoadDevice.hpp>
 #include <Explorer/Commands/Remove.hpp>
 #include <Explorer/Commands/RemoveNodes.hpp>
+#include <Explorer/Commands/Update/UpdateAddressSettings.hpp>
 
 #include <Protocols/OSC/OSCSpecificSettings.hpp>
 
@@ -427,6 +430,41 @@ void EditJsContext::createAddress(QString addr, QString type)
     }
   }
   submit(*m, new Explorer::Command::AddWholeAddress{plug, std::move(set)});
+}
+
+void EditJsContext::setUnit(QString addr, QString unit)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+
+  auto a = State::Address::fromString(addr);
+  if(!a)
+    return;
+
+  auto& plug = doc->plugin<Explorer::DeviceDocumentPlugin>();
+  auto* node = Device::try_getNodeFromAddress(plug.rootNode(), *a);
+  if(!node || !node->is<Device::AddressSettings>())
+  {
+    qDebug() << "setUnit: no such address:" << addr;
+    return;
+  }
+
+  // Same spelling the address panel shows, e.g. "color.rgba", "position.cart2D".
+  const auto u = ossia::parse_pretty_unit(unit.toStdString());
+  if(!unit.isEmpty() && !u)
+  {
+    qDebug() << "setUnit: unknown unit:" << unit;
+    return;
+  }
+
+  auto after = node->get<Device::AddressSettings>();
+  after.unit = u;
+
+  auto [m, _] = macro(*doc);
+  submit(
+      *m, new Explorer::Command::UpdateAddressSettings{
+              plug, Device::NodePath{*node}, after});
 }
 
 JS::DeviceListener* EditJsContext::listenDevice(const QString& name)
