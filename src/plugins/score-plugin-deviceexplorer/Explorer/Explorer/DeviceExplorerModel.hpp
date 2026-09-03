@@ -171,6 +171,17 @@ public:
   void nodeChanged(Device::Node* n)
       E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, nodeChanged, n)
 
+  /**
+   * @brief A value arrived for this node.
+   *
+   * Not the same thing as dataChanged on the value column, which also fires
+   * when an address's *settings* are replaced -- opening a document does that
+   * for every address at once. Anything that reacts to traffic rather than to
+   * a repaint wants this instead.
+   */
+  void valueUpdated(Device::Node* n)
+      E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, valueUpdated, n)
+
   //! replaceDevice(): the device node's children are about to be swapped
   //! (rows removed then re-inserted), and have been.
   void deviceTreeAboutToChange(Device::Node* device)
