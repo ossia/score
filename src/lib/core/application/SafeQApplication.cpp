@@ -44,6 +44,8 @@ void SafeQApplication::DebugOutput(
   score::wasm::logMessage(type, context, msg);
   if(type == QtFatalMsg)
   {
+    // Same reason as the native branch below: nothing after terminate() runs.
+    fflush(stderr);
     SCORE_BREAKPOINT;
     std::terminate();
   }
@@ -81,6 +83,16 @@ void SafeQApplication::DebugOutput(
     case QtFatalMsg:
       fprintf(
           out_file, "Fatal: %s (%s:%u)\n", localMsg.constData(), basename, context.line);
+      // Flush HERE, not at the bottom: std::terminate() below never returns, so
+      // the fflush after the switch is unreachable on this path and the message
+      // dies in the stdio buffer. That is not theoretical -- it is why a Vulkan
+      // validation error arrived as a bare STATUS_FATAL_USER_CALLBACK_EXCEPTION
+      // with no text: the layer raises the message on its own C callback stack,
+      // Qt routes it here as QtFatalMsg, and the process died with the one line
+      // that said what was wrong still unwritten.
+      //
+      // qFatal is meant to terminate and still does; it just says why first.
+      fflush(out_file);
       SCORE_BREAKPOINT;
       std::terminate();
   }
