@@ -871,14 +871,21 @@ bool remapPipelineVertexInputs(
   // which shader wanted what, once per pipeline build.
   if(rhi.backend() == QRhi::D3D11 && bindings.size() > 8)
   {
-    QStringList names;
-    for(const auto& shader_var : shader_inputs)
-      names << QString::fromUtf8(shader_var.name);
+    // Name the attributes that land past binding 7, not merely the shader's
+    // whole input list: those are the ones whose buffer is never recorded,
+    // and reading an unbound D3D11 vertex slot yields zeroes rather than an
+    // error. Binding order here is first-use order over the shader's input
+    // variables, so which input falls off is a property of the reflection
+    // order, not of the geometry's own stream order.
+    QStringList dropped;
+    for(int i = 0; i < remappedAttrs.size(); ++i)
+      if(remappedAttrs[i].binding() >= 8)
+        dropped << QString::fromUtf8(shader_inputs[i].name);
     qWarning() << "remapPipelineVertexInputs: this shader needs"
                << bindings.size()
                << "vertex bindings; Qt's D3D11 backend records only 8 and will"
-                  " drop the rest. Inputs:"
-               << names.join(", ");
+                  " drop the rest. Reading zeroes:"
+               << dropped.join(", ");
   }
 
   QRhiVertexInputLayout inputLayout;
