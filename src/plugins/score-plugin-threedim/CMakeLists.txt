@@ -58,6 +58,19 @@ add_library(
   Threedim/PCLToGeometry.cpp
   Threedim/Ply.hpp
   Threedim/Ply.cpp
+
+  Threedim/BlobTracker/Clustering.hpp
+  Threedim/BlobTracker/Clustering.cpp
+  Threedim/BlobTracker/Tracking.hpp
+  Threedim/BlobTracker/Tracker.hpp
+  Threedim/BlobTracker/Tracker.cpp
+  Threedim/BlobTracker/GpuClustering.hpp
+  Threedim/BlobTracker/GpuClustering.cpp
+  Threedim/BlobTracker/BlobClustering.hpp
+  Threedim/BlobTracker/BlobClustering.cpp
+  Threedim/BlobTracker/BlobTracker.hpp
+  Threedim/BlobTracker/BlobTracker.cpp
+
   Threedim/Primitive.hpp
   Threedim/Primitive.cpp
   Threedim/StructureSynth.hpp
