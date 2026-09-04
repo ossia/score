@@ -33,12 +33,11 @@ class RenderList;
  * scene auxiliaries. No CPU→GPU work happens in the preprocessor's render
  * path — every upload is gated to a source-node message.
  *
- * Currently covers scalar UBO / SSBO arenas only. Texture-array layer
- * allocation (baseColorArray, metalRoughArray, …) stays inside the
- * existing ScenePreprocessor::ChannelState for now; it will migrate into
- * this registry later.
+ * Also owns the per-channel material texture arrays (baseColorArray,
+ * metalRoughArray, …) and the mesh attribute slabs.
  *
- * Lifetime: created on RenderList::init, destroyed on RenderList::release.
+ * Lifetime: owned by the OutputNode, init()'d once per QRhi from
+ * RenderList::init and torn down with the QRhi.
  * Not thread-safe — all calls must come from the render thread.
  */
 class SCORE_PLUGIN_GFX_EXPORT GpuResourceRegistry
@@ -105,12 +104,12 @@ public:
    * is a follow-up). If an arena runs out of room, allocate() returns
    * an invalid Slot and logs a warning.
    *
-   * Persist-across-rebuild contract: the registry now lives on the
+   * Persist-across-rebuild contract: the registry lives on the
    * OutputNode and survives RenderList rebuilds (e.g. viewport resize).
-   * The owning OutputNode lazy-calls init() exactly once for a given
-   * QRhi lifetime. Subsequent createRenderList calls reuse the registry
-   * as-is (texture arrays, mesh slabs, arena slot generations all
-   * preserved). Use isInitialized() to detect "registry already up".
+   * init() is called lazily, once per QRhi lifetime; later
+   * createRenderList calls reuse the registry as-is (texture arrays,
+   * mesh slabs, arena slot generations all preserved). isInitialized()
+   * tells the two paths apart.
    */
   void init(QRhi& rhi, QRhiResourceUpdateBatch& batch);
 
@@ -132,14 +131,12 @@ public:
   /**
    * @brief Seed reserved arena slots with sensible defaults.
    *
-   * Called by the owning RenderList after init() and after the initial
-   * resource-update batch is ready. Currently writes a default
-   * white-dielectric MaterialGPU into Material arena slot 0 — the slot
-   * `arenaSlotForMaterial(nullptr)` returns when a draw has no
-   * material assigned (e.g. a Primitive cube with the user never
-   * having dropped a Material node on it). Without this seed, slot 0
-   * carries whatever bytes the previous registered material left
-   * behind.
+   * Called by the owning RenderList after init(), once the initial
+   * resource-update batch is ready. Writes a default white-dielectric
+   * MaterialGPU into Material arena slot 0 — the slot
+   * `arenaSlotForMaterial(nullptr)` returns for a draw with no
+   * material assigned. Without the seed that slot holds whatever bytes
+   * the last registered material left behind.
    *
    * Idempotent — second call is a no-op once @c m_defaults_seeded is
    * set.
@@ -251,6 +248,25 @@ public:
   }
 
   /**
+   * @brief isLive, additionally requiring the ref to name the expected arena.
+   *
+   * isLive() validates internal_index against whichever arena the ref names,
+   * so a ref belonging to another arena still passes: a RawTransform slot
+   * (16384 of them) validates fine and yields an index up to 16383. `raw_slot`
+   * is the same ossia::gpu_slot_ref field on transform, light, camera and
+   * material components, so only producer discipline keeps them apart, and one
+   * crossed assignment has a consumer reading far outside what was sized for
+   * it.
+   *
+   * Use this wherever a slot index is about to be handed to a shader as an
+   * index into a specific arena's mirror buffers.
+   */
+  bool isLiveIn(const ossia::gpu_slot_ref& r, Arena expected) const noexcept
+  {
+    return r.arena == (uint32_t)expected && isLive(r);
+  }
+
+  /**
    * @brief Return true if the ref still points at a live allocation.
    *
    * O(1): one array access + one uint32 compare. The generation table
@@ -349,7 +365,8 @@ public:
       ossia::flat_map<const ossia::texture_source*, int> layerMap;
     };
 
-    // Currently buckets.size() <= 1; may grow up to kMaxBuckets.
+    // One bucket per distinct (format, pixelSize, sampler config), up to
+    // kMaxBuckets.
     std::vector<Bucket> buckets;
 
     // Dynamic (runtime-GPU) slot map, keyed by QRhiResource::globalResourceId()
@@ -370,9 +387,8 @@ public:
     // cleared before it can be bound.
     uint64_t                      dynamicSweepCheckpoint{0};
 
-    // Compatibility shims. Callers that haven't been updated to loop over
-    // buckets[] go through these for legacy single-bucket semantics.
-    // Returns null / 0 when no bucket has been allocated yet.
+    // Single-bucket accessors for callers that do not loop over buckets[].
+    // Return null / 0 when no bucket has been allocated yet.
     QRhiTexture* primaryArray() const noexcept
     {
       return buckets.empty() ? nullptr : buckets[0].array;
@@ -444,7 +460,7 @@ public:
   };
 
   /**
-   * @brief Shared state for one of the four PBR texture channels.
+   * @brief Shared state for one of the PBR texture channels.
    * Preprocessors / producers read-modify this in place; contents are
    * view-independent (asset identity drives layer assignment) so
    * sharing across preprocessors is correct.
@@ -460,13 +476,15 @@ public:
 
   /**
    * @brief Shader-visible aux-texture name for a channel's static array
-   * (`baseColorArray`, `metalRoughArray`, `normalArray`, `emissiveArray`).
+   * (`baseColorArray`, `metalRoughArray`, `normalArray`, `emissiveArray`,
+   * `occlusionArray`).
    */
   static const char* textureChannelArrayName(TextureChannel ch) noexcept;
 
   /**
    * @brief Shader-visible aux-texture name base for a channel's dynamic
-   * slots (`baseColorDyn`, `metalRoughDyn`, `normalDyn`, `emissiveDyn`).
+   * slots (`baseColorDyn`, `metalRoughDyn`, `normalDyn`, `emissiveDyn`,
+   * `occlusionDyn`).
    * Full name is `<base><slot_index>`, slot_index < kMaxDynamicSlots.
    */
   static const char* textureChannelDynBaseName(TextureChannel ch) noexcept;
@@ -483,25 +501,20 @@ public:
    * dynamic-slot set. Returns the slot index (0 .. kMaxDynamicSlots-1)
    * or -1 if the slot cap is exhausted.
    *
-   * Slot assignment is persistent across frames — once a handle is in
-   * the map, it keeps its slot until the registry is destroyed. This
-   * ordering-free property lets multiple producers AND the
-   * preprocessor all call resolveDynamicSlot concurrently within a
-   * frame and agree on the same answer for the same handle.
-   *
-   * The ~6-handle cap (4 channels × kMaxDynamicSlots ≈ 8 slots
-   * registry-wide) is fine for the common case of 1-2 live
-   * per-channel dynamic textures; more elaborate eviction (LRU,
-   * explicit release from producer teardown) is a future concern
-   * when the first real 3+-handle scene shows up.
+   * A handle keeps its slot for as long as it stays live: every
+   * resolve stamps the slot with a fresh access counter, so within one
+   * frame multiple producers and the preprocessor all get the same
+   * answer for the same handle. Slots freed by
+   * sweepStaleDynamicTextureSlots() are reused first; once the channel
+   * is at kMaxDynamicSlots the least recently used slot is evicted.
    */
   int resolveDynamicSlot(TextureChannel channel, void* native_handle) noexcept;
 
   // ─── Mesh arena manager ───────────────────────────────────────────
   //
-  // Per-mesh slab allocator over the 5 attribute streams of the MDI concatenated
-  // geometry -- positions, normals, texcoords, tangents, indices -- each a single
-  // growth-capped QRhiBuffer.
+  // Per-mesh slab allocator over the attribute streams of the MDI concatenated
+  // geometry -- positions, normals, texcoords, tangents, colors, texcoords1,
+  // indices -- each a single growth-capped QRhiBuffer.
   //
   // Indirect-draw correctness invariant: one baseVertex is applied to ALL vertex
   // bindings (VkDrawIndexedIndirectCommand::vertexOffset), so per-mesh byte
@@ -522,8 +535,8 @@ public:
   // The sweep frees slabs unseen for `grace` frames.
   //
   // Backing buffers are pointer-stable for the registry's lifetime, so downstream
-  // bindings resolve once: 128 MB each for positions, normals and tangents, 64 MB
-  // texcoords, 32 MB indices.
+  // bindings resolve once: 128 MB each for positions, normals, tangents and
+  // colors, 64 MB per texcoord stream, 32 MB indices.
 
   enum class MeshStream : uint8_t
   {
@@ -563,12 +576,11 @@ public:
    * @brief Slab handle returned by MeshArenaManager::acquire.
    *
    * One per mesh (keyed on stable_id). Holds ONE vertex-unit allocation
-   * (shared across positions / normals / texcoords / tangents) and ONE
-   * index-unit allocation. Per-stream byte offsets are derived in
+   * (shared across every vertex stream) and ONE index-unit allocation. Per-stream byte offsets are derived in
    * meshSlabOffsetBytes() as `vertex_slot.offset * stride` /
    * `index_slot.offset * 4`. This guarantees baseVertex consistency
    * across all vertex bindings even after fragmentation — see the
-   * "CRITICAL invariant" block above.
+   * indirect-draw invariant above.
    *
    * `last_seen_frame` is bumped each frame the owner calls
    * markSeen(); sweep() frees slabs whose last_seen is older than
@@ -677,8 +689,8 @@ private:
       m_textureChannels{};
 
   // Per-stream backing buffers, one QRhiBuffer per attribute. Allocation is not
-  // per-stream: a single m_vertexAllocator hands out vertex-unit slots that all
-  // four vertex streams interpret through their own stride, and m_indexAllocator
+  // per-stream: a single m_vertexAllocator hands out vertex-unit slots that every
+  // vertex stream interprets through its own stride, and m_indexAllocator
   // handles indices, keeping byte offsets in lockstep for baseVertex.
   struct MeshStreamState
   {
@@ -690,7 +702,7 @@ private:
 
   // Shared vertex / index allocators (slot units, not bytes).
   // capacity_slots = min(stream_capacity_bytes / stream_stride) across
-  // the four vertex streams = 8M for the default sizes; index pool
+  // the vertex streams = 8M for the default sizes; index pool
   // capacity = 8M slots.
   std::unique_ptr<OffsetAllocator::Allocator> m_vertexAllocator;
   std::unique_ptr<OffsetAllocator::Allocator> m_indexAllocator;
