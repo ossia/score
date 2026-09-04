@@ -93,6 +93,14 @@ score_add_isf_test(buffer_usage_mismatch GfxBufferUsageMismatch.cpp)
 # (qrhigles2.cpp bounds-checks and skips them; the other backends read out of
 # range).
 score_add_isf_test(large_uniform_input GfxLargeUniformInput.cpp)
+
+# Regression guard for the unbound top-level AUXILIARY placeholder: created and
+# never written, so on a RenderList rebuild it read back recycled device memory.
+# Shaders read those placeholders as sentinels (classic_pbr_openpbr gates its
+# clustered-lighting and volumetric paths on cluster_config.cluster_x == 0u and
+# then indexes 16-byte placeholder SSBOs with an id derived from that grid), so
+# a nonzero placeholder is a multi-gigabyte out-of-bounds fragment-stage read.
+score_add_isf_test(aux_placeholder_zeroed GfxAuxPlaceholderZeroed.cpp)
 # CSF (compute-shader) L3 tests reuse the same helper (GUI app, corpus dir).
 function(score_add_csf_test name source)
   score_add_test(test_gfx_csf_${name}
