@@ -360,7 +360,7 @@ score_add_gfx_test(render_pass_leak GfxRenderPassLeak.cpp)
 # can order it against the staging copies of the QRhiResourceUpdateBatch
 # submitted earlier in the same command buffer. It named only the compute
 # stage, which is how growBuf's full-extent zero-clear of
-# ScenePreprocessor::inst.translations / .colors and issuePendingGpuCopies'
+# ScenePreprocessor::inst.attribs and issuePendingGpuCopies'
 # per-instance writes into the same buffer became a transfer WRITE_AFTER_WRITE.
 # Runs the engine path under synchronization validation, with a deliberately
 # unsynchronised copy as the positive control so a silent layer SKIPs instead
@@ -430,6 +430,13 @@ score_add_gfx_test(scene_filter_nodes SceneFilterNodes.cpp)
 # times (pointer identity), a bump re-merges exactly once, one contributor
 # short-circuits to a pointer copy, an env-only rootless producer is kept.
 score_add_gfx_test(scene_merge_memo SceneMergeMemo.cpp)
+# A24(a): the unified-MDI geometry published nine vertex bindings, one past
+# QD3D11CommandBuffer::MAX_VERTEX_BUFFER_BINDING_COUNT, so a shader reading
+# every stream lost its ninth on D3D11 without an error. translation and
+# instance_color0 now share one interleaved 32-byte per-instance binding; this
+# pins the count (backend-independent, so it is checkable without Direct3D)
+# and reads both halves of the packed slot back as pixels.
+score_add_gfx_test(scene_instance_binding_pack GfxSceneInstanceBindingPack.cpp)
 
 # The Crousti CPU node path (oscr::ProcessModel + oscr::GfxNode). Its renderer
 # lives in Crousti/CpuFilterNode.hpp, which nothing in a default ctest run

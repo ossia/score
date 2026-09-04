@@ -108,7 +108,7 @@ namespace score::gfx
 // copy here then writes (or reads) again is a transfer-vs-transfer hazard, and
 // a barrier whose source scope names only the compute stage does nothing about
 // it. The concrete case: ScenePreprocessorNode's growBuf zero-clears a freshly
-// allocated inst.translations / inst.colors over [0, capacity) through the
+// allocated inst.attribs over [0, capacity) through the
 // update batch, and issuePendingGpuCopies then writes the per-instance slot
 // ranges of that same buffer with vkCmdCopyBuffer — WRITE_AFTER_WRITE over the
 // whole overlap, on every (re)allocation frame. The upstream Instancer's own

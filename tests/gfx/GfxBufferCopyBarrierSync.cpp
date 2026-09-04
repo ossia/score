@@ -58,7 +58,9 @@
 //     buffer, and zero naming the source transforms buffer, while a real
 //     ScenePreprocessorNode consumes a real instance_component whose
 //     instance_transforms is a GPU buffer -- the path that allocates
-//     inst.translations / inst.colors and then GPU-copies into them.
+//     inst.attribs (named inst.translations / inst.colors when the hazard
+//     above was captured, before the two were interleaved into one binding)
+//     and then GPU-copies into it.
 //
 // MEASURED, on this machine (Mesa, Vulkan, SCORE_GPU_VALIDATION=2), against
 // tests/gfx/GfxInstancerShrink.cpp's scenario which drives the same engine
@@ -204,7 +206,7 @@ int hazardLines(const std::string& log, const char* needle)
 //
 // One instance_component: a CPU-backed 2 px quad prototype, kInstances
 // instances, and a GPU-resident mat4 transforms buffer. That is the minimum
-// that makes rebuildMDI allocate inst.translations / inst.colors through
+// that makes rebuildMDI allocate inst.attribs through
 // growBuf (which zero-clears the whole new capacity through the update batch)
 // and then queue the per-instance GPU copies into them.
 
