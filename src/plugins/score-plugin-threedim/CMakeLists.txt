@@ -47,7 +47,29 @@ if(NOT TARGET spz)
   set(SPZ_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
   set(SPZ_BUILD_PYTHON_BINDINGS OFF CACHE BOOL "" FORCE)
   set(SPZ_BUILD_EXTENSIONS OFF CACHE BOOL "" FORCE)
+
+  # spz falls back to FetchContent for zlib and zstd when find_package misses,
+  # and a fetched dependency's own CMakeLists is then part of our configure --
+  # including its add_test() calls. zlib 1.3.2 defaults ZLIB_BUILD_TESTING to
+  # ON, which registers seventeen zlib_* entries in score's ctest; they are
+  # EXCLUDE_FROM_ALL, so their executables never build and they report Not Run
+  # in every full-suite run.
+  set(ZLIB_BUILD_TESTING OFF CACHE BOOL "" FORCE)
+  set(ZLIB_INSTALL OFF CACHE BOOL "" FORCE)
+  # Not ZLIB_BUILD_SHARED OFF, however tempting: spz's CMakeLists sets
+  # zlib_linkage_target to the SHARED target name `zlib` on its FetchContent
+  # path, and zlib 1.3.2 only defines that target when ZLIB_BUILD_SHARED is on.
+  # Turning it off deletes the target, so the bare name survives to the link
+  # line and mold reports "library not found: zlib" when relinking
+  # score_plugin_threedim.
+  # Belt and braces for any other dependency spz may fetch: the CTest module
+  # gates enable_testing()/add_test() on BUILD_TESTING for projects that use it.
+  set(old_BUILD_TESTING ${BUILD_TESTING})
+  set(BUILD_TESTING OFF)
+
   add_subdirectory("${3RDPARTY_FOLDER}/spz" "${CMAKE_CURRENT_BINARY_DIR}/spz" EXCLUDE_FROM_ALL)
+
+  set(BUILD_TESTING ${old_BUILD_TESTING})
 
   if(MSVC)
     # The prebuilt sysroot's zconf.h includes <unistd.h> unconditionally;
@@ -250,9 +272,9 @@ setup_score_plugin(score_plugin_threedim)
 
 score_generate_command_list_file(score_plugin_threedim "Threedim/RenderPipeline/Process.hpp") 
 
-# ufbx.c is compiled straight into this plug-in, so it still needs its header
-# path here. libssynth / vcglib / miniply / mikktspace / opengametools now come
-# in as targets from their own .cmake files and carry their own include dirs.
+# ufbx.c is compiled straight into this plug-in, so it needs its header path
+# here. libssynth / vcglib / miniply / mikktspace / opengametools come in as
+# targets from their own .cmake files and carry their own include dirs.
 target_include_directories(
   score_plugin_threedim SYSTEM
   PRIVATE
