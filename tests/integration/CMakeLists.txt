@@ -88,6 +88,13 @@ score_add_test(test_integration_nodal_controls
   GUI
   PLUGINS score_plugin_scenario score_lib_process)
 
+# The right-click type-in box on a pad of a real process node: the y field is
+# reachable, and each field typed into is one command on the document.
+score_add_test(test_integration_nodal_type_in
+  SOURCES NodalTypeInTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process)
+
 # Where nodes land when score picks the position itself (library double-click,
 # "create after this process", drops on a cable).
 score_add_test(test_integration_nodal_placement
