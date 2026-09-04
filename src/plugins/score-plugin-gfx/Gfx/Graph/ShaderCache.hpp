@@ -14,6 +14,20 @@
 
 namespace score::gfx
 {
+
+/**
+ * @brief The identifier a shader declares that collides with an HLSL intrinsic,
+ *        or empty if there is none.
+ *
+ * SPIRV-Cross rewrites GLSL builtins to their HLSL spellings but leaves the
+ * user's variable names alone, so `float frac` becomes `float frac = frac(...)`
+ * and only Direct3D rejects it. Checked before baking for D3D so the author is
+ * told which name to change, instead of getting an fxc error about a line that
+ * looks correct.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+QByteArray hlslIntrinsicCollision(const QByteArray& src) noexcept;
+
 /**
  * @brief Cache of baked QShader instances
  */
