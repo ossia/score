@@ -4101,34 +4101,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         if(slot.valid())
           maxArenaSlot = std::max(maxArenaSlot, slot.slot_index);
       }
-      // Size to the FULL material arena, not to the highest slot this frame
-      // happened to reach.
-      //
-      // scene_materials is bound with byte_size = sizeof(MaterialGPU) *
-      // arenaSlotCount(Arena::Material) -- the whole arena -- while these two
-      // were bound at (max_reachable_slot + 1). The comment on the
-      // scene_materials_ext binding says "Parallel to scene_materials: same
-      // element count, same indexing", and that was not true: the shader
-      // indexes all three with the same pd.material_index, so any slot above
-      // maxArenaSlot read in bounds from scene_materials and PAST THE END of
-      // the ext buffers.
-      //
-      // maxArenaSlot is derived from scene.state->materials plus
-      // m_loaderMaterialSlots, i.e. what the preprocessor can see this frame,
-      // while pd.material_index comes from per_draws, which can still name a
-      // slot from before a rebuild -- the staleness this file already warns
-      // about ("downstream shader bindings still reference the pre-rebuild MDI
-      // buffers until the next acquireMesh").
-      //
-      // Aftermath on Windows/Vulkan: MMU fault, GPU READ, fragment shader, all
-      // 82 warps at one instruction, faulting address different every run --
-      // an out-of-bounds SSBO read, not a dangling descriptor. Only shaders
-      // that read the ext buffers fault: classic_pbr_openpbr does, classic_pbr
-      // reads scene_materials alone and never has.
-      const std::size_t arenaSlotEntries = std::max<std::size_t>(
-          (std::size_t)maxArenaSlot + 1,
-          (std::size_t)renderer.registry().arenaSlotCount(
-              GpuResourceRegistry::Arena::Material));
+      const std::size_t arenaSlotEntries
+          = (std::size_t)maxArenaSlot + 1;
       const int64_t matsExtBytes
           = std::max<int64_t>(
               16,
