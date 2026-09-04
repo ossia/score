@@ -1596,8 +1596,57 @@ void RenderList::update(QRhiResourceUpdateBatch& res)
   }
 }
 
+//! Backend + device identity, printed for EVERY backend.
+//!
+//! Qt's own qt.rhi.general output names the device on exactly one backend: the
+//! OpenGL one, in qrhigles2.cpp's "OpenGL VENDOR: %s RENDERER: %s VERSION: %s".
+//! Vulkan prints "Using imported physical device '<name>' ... vendor 0x.. device
+//! 0x.. type N", D3D11 and D3D12 print adapter lines of their own shape, and
+//! none of them contains the word RENDERER. Anything that identifies the GPU by
+//! reading Qt's log therefore gets an empty string off every backend but GL --
+//! which is how tests/integration/ThreedimRenderTest.cpp came to skip itself on
+//! Vulkan, D3D11 and D3D12 regardless of the hardware underneath.
+//!
+//! QRhi::driverInfo() is the portable answer: deviceName, vendorId, deviceId and
+//! deviceType are filled in by all of them (Qt >= 6.4). One line, one format,
+//! every backend, so a frame can always be attributed to what produced it.
+static void logDeviceIdentity(QRhi& rhi)
+{
+  const auto info = rhi.driverInfo();
+  const char* type = "unknown";
+  switch(info.deviceType)
+  {
+    case QRhiDriverInfo::UnknownDevice:
+      type = "unknown";
+      break;
+    case QRhiDriverInfo::IntegratedDevice:
+      type = "integrated";
+      break;
+    case QRhiDriverInfo::DiscreteDevice:
+      type = "discrete";
+      break;
+    case QRhiDriverInfo::ExternalDevice:
+      type = "external";
+      break;
+    case QRhiDriverInfo::VirtualDevice:
+      type = "virtual";
+      break;
+    case QRhiDriverInfo::CpuDevice:
+      type = "cpu";
+      break;
+  }
+
+  qDebug().noquote().nospace()
+      << "score.gfx: RHI device: backend=" << rhi.backendName() << " device=\""
+      << QString::fromUtf8(info.deviceName) << "\" vendorId=0x"
+      << QString::number(info.vendorId, 16) << " deviceId=0x"
+      << QString::number(info.deviceId, 16) << " deviceType=" << type;
+}
+
 void RenderState::Caps::populate(QRhi& rhi)
 {
+  logDeviceIdentity(rhi);
+
 #if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
   drawIndirect = rhi.isFeatureSupported(QRhi::DrawIndirect);
   drawIndirectMulti = rhi.isFeatureSupported(QRhi::DrawIndirectMulti);

@@ -14,14 +14,38 @@
 // golden tolerance in the tree. See GoldenImage.hpp for why the comparison is
 // not open-coded here any more.
 //
-// BACKEND IDENTITY IS ASSERTED, NOT ASSUMED (the golden-render.sh rule):
-// QT_LOGGING_RULES=qt.rhi.general=true makes QRhi print the renderer it got,
-// and the line is reported with every verdict so a number always names what
-// produced it. The golden comparison itself no longer SKIPs on the vendor:
-// it ran only on NVIDIA and was Skipped on CI, on Mesa, and on every machine
-// without that card, which is a golden nothing else is ever measured against.
-// A handful of non-golden nonBlank checks below are STILL vendor-gated; they
-// are marked and are separate work.
+// BACKEND IDENTITY IS ASSERTED, NOT ASSUMED (the golden-render.sh rule), AND
+// NOTHING IN THIS FILE IS GATED ON IT.
+//
+// Every leg reports the device that produced it, read from score.gfx's own
+// "RHI device:" line, which RenderState::Caps::populate prints from
+// QRhi::backendName() and QRhi::driverInfo() -- available on every backend
+// since Qt 6.4 -- so a number always names what produced it.
+//
+// It used to be read out of Qt's qt.rhi.general log by looking for the literal
+// "RENDERER". That string is emitted by exactly ONE backend: qrhigles2.cpp's
+// "OpenGL VENDOR: %s RENDERER: %s VERSION: %s". Vulkan prints "Using imported
+// physical device '<name>' ... vendor 0x.. device 0x..", D3D11 and D3D12 print
+// adapter lines of their own, and none of them contains the word. The scrape
+// therefore returned an EMPTY string on every backend but OpenGL, and two
+// things followed silently:
+//
+//   * nine `if(!rendererLine.contains("NVIDIA")) SKIP(...)` sites were
+//     unconditionally true off OpenGL. Measured here on a machine with an
+//     NVIDIA card in it: on QSG_RHI_BACKEND=vulkan the file skipped every one
+//     of those cases anyway. It was not a hardware gate, it was a log-format
+//     accident, and it cost a full render (~16 s a leg, 183 s a leg on the
+//     Windows sweep) to reach a verdict of "skipped".
+//   * the cross-leg "the same renderer produced both frames" checks compared
+//     "" against "" and could never fire.
+//
+// Both are fixed. The nonBlank / ordering / closed-form assertions below are
+// statements about loaders, shaders and projection arithmetic, not about
+// drivers, and they now run on every backend and every vendor. The one thing
+// that still skips does so on a CHECKED capability fact and not on a string:
+// skipIfNothingIsRasterised() skips when QRhi::backendName() is "Null",
+// because that backend records commands and rasterises nothing, so every pixel
+// assertion in this file would be reading a cleared frame.
 //
 // ASSETS are generated in-test, byte-for-byte, all self-authored (CC0):
 //   cube.obj        unit-ish cube, positions+normals+uvs, wound to the
@@ -68,6 +92,7 @@
 #include <QLockFile>
 #include <QProcess>
 #include <QProcessEnvironment>
+#include <QRegularExpression>
 #include <QTemporaryDir>
 #include <QThread>
 #include <QUdpSocket>
@@ -349,14 +374,102 @@ QByteArray makeTinyVox()
 
 // ---------------------------------------------------------------- runner
 
+//! Who rendered the frame, as QRhi itself reports it.
+//!
+//! Read out of score.gfx's own "RHI device:" line, which RenderState::Caps
+//! ::populate prints from QRhi::backendName() + QRhi::driverInfo() on EVERY
+//! backend. It replaces a scrape of Qt's qt.rhi.general log for the literal
+//! "RENDERER", which only qrhigles2.cpp ever emits ("OpenGL VENDOR: %s
+//! RENDERER: %s VERSION: %s"): Vulkan, D3D11 and D3D12 print adapter lines of
+//! entirely different shapes, so that scrape returned an EMPTY string off
+//! every backend but OpenGL. Two things fell out of that, both of them silent:
+//! the vendor gates below were unconditionally true and skipped the whole file
+//! on three backends regardless of the hardware, and the cross-leg
+//! "same renderer" checks compared "" against "" and could never fire.
+//!
+//! Fields are populated per backend as the driver allows. deviceName is filled
+//! in everywhere; vendorId/deviceId are zero on Qt's GL backend (measured here:
+//! GL reports device="NVIDIA Corporation Quadro RTX 4000/PCIe/SSE2 4.6.0 NVIDIA
+//! 595.84" vendorId=0x0, Vulkan on the same box reports device="NVIDIA GeForce
+//! RTX 4090" vendorId=0x10de deviceId=0x2684) -- the same gap
+//! GpuCapabilities.cpp:213 documents. Nothing in this file GATES on any of it.
+struct DeviceIdentity
+{
+  QString line;       //!< the whole reported identity, verbatim
+  QString backend;    //!< QRhi::backendName(): OpenGL/Vulkan/D3D11/D3D12/Metal/Null
+  QString deviceName; //!< QRhiDriverInfo::deviceName
+  QString deviceType; //!< integrated/discrete/cpu/virtual/external/unknown
+  quint64 vendorId{0};
+  quint64 deviceId{0};
+
+  bool known() const noexcept { return !backend.isEmpty(); }
+};
+
 struct RenderResult
 {
   bool ran{false};
   QString error;
-  QString rendererLine; // what QRhi said it got
+  DeviceIdentity gpu; // what QRhi said it got, on every backend
   QImage frame;
   std::vector<QImage> extraFrames; // when extra grabs were requested
 };
+
+//! Parse the product's identity line:
+//!   score.gfx: RHI device: backend=Vulkan device="NVIDIA GeForce RTX 4090"
+//!   vendorId=0x10de deviceId=0x2684 deviceType=discrete
+DeviceIdentity parseDeviceIdentity(const QString& line)
+{
+  static const QRegularExpression re{
+      R"RX(score\.gfx: RHI device: backend=(\S+) device="(.*)" vendorId=0x([0-9a-f]+) )RX"
+      R"RX(deviceId=0x([0-9a-f]+) deviceType=(\S+))RX"};
+  DeviceIdentity id;
+  const auto m = re.match(line);
+  if(!m.hasMatch())
+    return id;
+  id.line = line.trimmed();
+  id.backend = m.captured(1);
+  id.deviceName = m.captured(2);
+  id.vendorId = m.captured(3).toULongLong(nullptr, 16);
+  id.deviceId = m.captured(4).toULongLong(nullptr, 16);
+  id.deviceType = m.captured(5);
+  return id;
+}
+
+//! The ONE remaining reason a leg of this file cannot be judged, and it is a
+//! checked capability fact rather than a log-format accident: QRhi came up on
+//! the Null backend, which validates and records commands and rasterises
+//! nothing. Every assertion here reads pixels, so on Null they would all be
+//! measuring a cleared frame. Everything else -- vendor, discrete vs
+//! integrated, and llvmpipe/lavapipe (deviceType=cpu) -- renders correctly and
+//! is asserted, not skipped.
+//!
+//! This is the same contract tests/gfx/GfxNullBackendRefuses.cpp pins for the
+//! in-process fixture (P2-15, "the Null backend refuses rather than pretends"),
+//! stated for the out-of-process harness: there the fixture knows the backend
+//! because it selected it, here the app reports it. It is reachable, not
+//! theoretical -- ScreenNode::createRenderState falls back to QRhi::Null
+//! whenever no GPU backend can be created, with a qWarning that spells out this
+//! exact hazard: "a harness that only checks 'the frame is not blank' passes on
+//! a constant colour and reports success while verifying nothing".
+void skipIfNothingIsRasterised(const RenderResult& r)
+{
+  if(r.gpu.backend == "Null")
+    SKIP("QRhi::backendName() == \"Null\": this backend rasterises nothing, so "
+         "no pixel assertion in this file can mean anything ("
+         << r.gpu.line.toStdString() << ")");
+}
+
+//! Cross-leg guard for the multi-render cases. They compare frames produced by
+//! separate app launches against each other, which is only an oracle if the
+//! same device produced them; and it is only a CHECK if the identity is
+//! actually known, which the old string compare of two empty scrapes was not.
+void requireSameDevice(const RenderResult& r, const DeviceIdentity& ref)
+{
+  INFO("leg rendered by: " << r.gpu.line.toStdString()
+                           << "\n  reference leg:  " << ref.line.toStdString());
+  REQUIRE(r.gpu.known());
+  REQUIRE(r.gpu.line == ref.line);
+}
 
 void oscSend(const QString& address, const QString& arg)
 {
@@ -486,8 +599,9 @@ RenderResult renderScene(const QTemporaryDir& dir, const QString& name,
 
   const QString log = QString::fromUtf8(p.readAll());
   for(const auto& line : log.split('\n'))
-    if(line.contains("qt.rhi.general") && line.contains("RENDERER"))
-      r.rendererLine = line.trimmed();
+    if(line.contains("score.gfx: RHI device:"))
+      if(const auto id = parseDeviceIdentity(line); id.known())
+        r.gpu = id;
 
   if(!QFile::exists(png))
   {
@@ -600,6 +714,36 @@ bool nonBlank(const QImage& im)
   return meanLuma(im) > 0.5; // the BLANK_MEAN rule, in 8-bit units
 }
 
+//! More than one colour in the frame.
+//!
+//! nonBlank() is a MEAN, so a frame filled edge to edge with a single mid-grey
+//! satisfies it. Measured, not supposed: a negative-control build of this file
+//! that replaces every grab with a uniform RGB(128,128,128) passes the four
+//! container cases and the container-family case outright, because their only
+//! floor is nonBlank and their only oracle is "two legs agree" -- which two
+//! identical flat fills satisfy perfectly.
+//!
+//! These cases render a lit cube against the black clear colour, so "something
+//! was drawn" means at least two distinct pixel values, on every backend and
+//! every vendor: there is no tolerance in it and nothing for a driver to
+//! disagree about. The same negative control fails every one of them with this
+//! floor in place.
+bool nonUniform(const QImage& im)
+{
+  if(im.isNull() || im.width() * im.height() < 2)
+    return false;
+  const uchar* first = im.constScanLine(0);
+  const int r0 = first[0], g0 = first[1], b0 = first[2];
+  for(int y = 0; y < im.height(); y++)
+  {
+    const uchar* row = im.constScanLine(y);
+    for(int x = 0; x < im.width(); x++)
+      if(row[x * 3] != r0 || row[x * 3 + 1] != g0 || row[x * 3 + 2] != b0)
+        return true;
+  }
+  return false;
+}
+
 //! Largest distance, in pixels, from the frame centre to a drawn pixel.
 //!
 //! For the fisheye cases this is a closed-form quantity and not a heuristic:
@@ -703,6 +847,22 @@ QString goldenArtifactDir()
 #endif
 }
 
+//! Probe the golden comparator BEFORE spending a render on it.
+//!
+//! requireMatchesGolden SKIPs when python3/numpy/PIL/scipy are missing, but it
+//! could only find that out after the case had already driven a full app launch
+//! and grab -- ~16 s of wall clock to reach a verdict of "no verdict".
+//! goldenComparatorUsable() is a cached one-shot probe (GoldenImage.hpp), so
+//! asking first costs nothing and skips in under a second.
+void skipUnlessGoldenComparatorUsable()
+{
+  if(!score::testing::goldenComparatorUsable()
+     || score::testing::goldenComparePath().isEmpty()
+     || !QFileInfo::exists(score::testing::goldenComparePath()))
+    SKIP("golden comparator unavailable (python3 + numpy/PIL/scipy); skipped "
+         "before rendering rather than after");
+}
+
 //! Compare against the committed golden, or write it when
 //! SCORE_THREEDIM_UPDATE_REFS=1 (used ONLY by a human who then LOOKS at it;
 //! see the header — never bless an unjudged image).
@@ -736,7 +896,7 @@ void requireMatchesGolden(const RenderResult& r, const QString& caseName)
   if(!v.ran)
     SKIP("golden comparator unavailable (python3 + numpy/PIL/scipy)");
 
-  INFO(caseName.toStdString() << " on " << r.rendererLine.toStdString() << ": "
+  INFO(caseName.toStdString() << " on " << r.gpu.line.toStdString() << ": "
                               << v.metrics.toStdString());
   if(!v.pass)
     FAIL(caseName.toStdString()
@@ -758,10 +918,12 @@ TEST_CASE(
     REQUIRE(f.open(QIODevice::WriteOnly));
     f.write(makeCubeObj(true));
   }
+  skipUnlessGoldenComparatorUsable();
   const auto r
       = renderScene(dir, "obj-cube", loaderScene(kGeometryLoader, obj, kProjLight));
   if(!r.error.isEmpty())
     SKIP(r.error.toStdString());
+  skipIfNothingIsRasterised(r);
   requireMatchesGolden(r, "obj-cube");
 }
 
@@ -785,9 +947,16 @@ TEST_CASE(
       dir, "obj-cube-nonormals", loaderScene(kGeometryLoader, obj, kProjLight));
   if(!r.error.isEmpty())
     SKIP(r.error.toStdString());
-  if(!r.rendererLine.contains("NVIDIA"))
-    SKIP("still vendor-gated to NVIDIA (not a golden check; see requireMatchesGolden)");
+  skipIfNothingIsRasterised(r);
+  // "the derived normals reach a lit pixel" is a statement about
+  // GeometryLoader::deriveMissingNormals and the Light material, not about a
+  // driver: nothing here is a vendor extension, an optional QRhi feature or a
+  // precision-sensitive quantity. nonBlank() is meanLuma > 0.5/255 against a
+  // measured 12.2, four orders of magnitude of headroom over the 2-code
+  // cross-backend spread this campaign measured. Runs everywhere.
+  INFO("rendered by: " << r.gpu.line.toStdString());
   CHECK(nonBlank(r.frame));
+  CHECK(nonUniform(r.frame));
 }
 
 // (Nomenclature correction, measured while adding the OFF case below: the VCG
@@ -819,9 +988,13 @@ TEST_CASE(
         dir, QString::fromUtf8(name), loaderScene(kGeometryLoader, stl, kProjLight));
     if(!r.error.isEmpty())
       SKIP(r.error.toStdString());
-    if(!r.rendererLine.contains("NVIDIA"))
-      SKIP("still vendor-gated to NVIDIA (not a golden check; see requireMatchesGolden)");
+    skipIfNothingIsRasterised(r);
+    // Same reasoning as the OBJ-without-normals case: the claim is that the
+    // triplanar path has a lighting floor, which is shader source, not driver
+    // behaviour. Runs on every backend and vendor.
+    INFO("rendered by: " << r.gpu.line.toStdString());
     CHECK(nonBlank(r.frame));
+    CHECK(nonUniform(r.frame));
   };
 
   SECTION("ascii") { run("stl-cube-ascii", makeCubeStlAscii()); }
@@ -847,9 +1020,11 @@ TEST_CASE(
       = renderScene(dir, "ply-cube", loaderScene(kGeometryLoader, ply, kProjLight));
   if(!r.error.isEmpty())
     SKIP(r.error.toStdString());
-  if(!r.rendererLine.contains("NVIDIA"))
-    SKIP("still vendor-gated to NVIDIA (not a golden check; see requireMatchesGolden)");
+  skipIfNothingIsRasterised(r);
+  // As above: the triplanar lighting floor is shader source. Runs everywhere.
+  INFO("rendered by: " << r.gpu.line.toStdString());
   CHECK(nonBlank(r.frame));
+  CHECK(nonUniform(r.frame));
 }
 
 // -----------------------------------------------------------------------------
@@ -918,10 +1093,19 @@ TEST_CASE(
   const auto ref = render("fam-obj", write("fam-cube.obj", makeCubeObj(true)));
   if(!ref.error.isEmpty())
     SKIP(ref.error.toStdString());
-  if(!ref.rendererLine.contains("NVIDIA"))
-    SKIP("still vendor-gated to NVIDIA (not a golden check; see requireMatchesGolden): "
-         << ref.rendererLine.toStdString());
+  skipIfNothingIsRasterised(ref);
+  // The oracle below is OFF vs STL, and BOTH legs are rendered in this same
+  // case, on this same machine, through this same backend -- a difference
+  // oracle between two frames from one device, never against a stored image.
+  // It therefore has no vendor content at all: whatever a driver does to a
+  // flat-shaded cube it does identically to both legs, and only a change in
+  // what the two LOADERS publish can move meanAbs off zero. That is why the
+  // meanAbs<4 / fracFar<0.02 pair needs no backend tolerance and the case
+  // needs no vendor gate.
+  INFO("reference leg rendered by: " << ref.gpu.line.toStdString());
+  REQUIRE(ref.gpu.known());
   REQUIRE(nonBlank(ref.frame));
+  REQUIRE(nonUniform(ref.frame));
 
   struct Member
   {
@@ -940,12 +1124,16 @@ TEST_CASE(
     INFO(m.name << ": " << r.error.toStdString());
     REQUIRE(r.error.isEmpty());
     // Same GPU, same run: a renderer-class change mid-case would invalidate the
-    // comparison, so it is checked rather than assumed.
-    REQUIRE(r.rendererLine == ref.rendererLine);
+    // comparison, so it is checked rather than assumed. It now actually IS
+    // checked -- the old form compared two log scrapes that were both empty on
+    // every backend except OpenGL, so "" == "" passed unconditionally.
+    requireSameDevice(r, ref.gpu);
 
     // Floor first, so a black frame names itself instead of surfacing as a
-    // large diff of unclear origin.
+    // large diff of unclear origin -- and a FLAT frame too, since the oracle
+    // below is an agreement one and two identical flat fills agree perfectly.
     CHECK(nonBlank(r.frame));
+    CHECK(nonUniform(r.frame));
     m.frame = r.frame;
 
     // Reported, never gated: the OBJ leg is NOT expected to match. Kept as a
@@ -1003,9 +1191,11 @@ TEST_CASE(
       = renderScene(dir, "off-cube", loaderScene(kGeometryLoader, off, kProjLight));
   if(!r.error.isEmpty())
     SKIP(r.error.toStdString());
-  if(!r.rendererLine.contains("NVIDIA"))
-    SKIP("still vendor-gated to NVIDIA (not a golden check; see requireMatchesGolden)");
+  skipIfNothingIsRasterised(r);
+  // Per-container reachability floor; no driver content. Runs everywhere.
+  INFO("rendered by: " << r.gpu.line.toStdString());
   CHECK(nonBlank(r.frame));
+  CHECK(nonUniform(r.frame));
 }
 
 // =============================================================================
@@ -1175,7 +1365,16 @@ TEST_CASE(
   REQUIRE(laws[0].r > laws[2].r); // equidistant > stereographic
 
   double measured[5]{};
-  QString refRenderer;
+  DeviceIdentity refDevice;
+  // What this case asserts about the four laws is a set of RATIOS between the
+  // silhouette radii of four renders of one cube, all four produced on the same
+  // device in this same case. A driver that scaled, biased or antialiased
+  // differently would move all four radii together and cancel out of both the
+  // ordering (a) and the one-parameter fit (b), whose free scale is refitted
+  // from this run's own equidistant leg. The residual budget, 1% + 2 px, is
+  // itself larger than the ~1 px an edge can move for the 2-code-out-of-255
+  // cross-backend spread this campaign measured. Nothing vendor-specific is
+  // touched: no extension, no optional QRhi feature, no fp64. Runs everywhere.
   for(const auto& L : laws)
   {
     const auto r = renderScene(
@@ -1183,12 +1382,13 @@ TEST_CASE(
         fisheyeScene(obj, L.mode, kFisheyeFovDeg, kFisheyeEye, kCentre));
     if(!r.error.isEmpty())
       SKIP(r.error.toStdString());
-    if(!r.rendererLine.contains("NVIDIA"))
-      SKIP("still vendor-gated to NVIDIA (not a golden check; see requireMatchesGolden): "
-           << r.rendererLine.toStdString());
-    if(refRenderer.isEmpty())
-      refRenderer = r.rendererLine;
-    REQUIRE(r.rendererLine == refRenderer);
+    skipIfNothingIsRasterised(r);
+    if(!refDevice.known())
+    {
+      REQUIRE(r.gpu.known());
+      refDevice = r.gpu;
+    }
+    requireSameDevice(r, refDevice);
 
     const int drawn = drawnPixels(r.frame);
     const double rad = maxDrawnRadius(r.frame);
@@ -1200,6 +1400,7 @@ TEST_CASE(
     measured[L.mode] = rad;
   }
 
+  INFO("rendered by: " << refDevice.line.toStdString());
   INFO("tmax = " << tmax * 180.0 / kFisheyePi
                  << " deg, fov = " << kFisheyeFovDeg
                  << " deg; measured radii px: equid=" << measured[1]
@@ -1258,9 +1459,16 @@ TEST_CASE(
         fisheyeScene(obj, 0, kFisheyeFovDeg, kFisheyeEye, kCentre));
     if(!r.error.isEmpty())
       SKIP(r.error.toStdString());
-    if(!r.rendererLine.contains("NVIDIA"))
-      SKIP("still vendor-gated to NVIDIA (not a golden check; see requireMatchesGolden)");
-    INFO("perspective control: " << drawnPixels(r.frame) << " px drawn");
+    skipIfNothingIsRasterised(r);
+    // The control leg of the pin: "a perspective render of a cube in front of
+    // the camera draws more than 64 lit pixels". Measured in the thousands, and
+    // no rasteriser draws a different NUMBER OF ORDERS OF MAGNITUDE. Gating it
+    // on the vendor was worse than useless here: a [!shouldfail] case that
+    // SKIPs is reported as skipped, not as failed, so on Vulkan, D3D11 and
+    // D3D12 the pin was inert and would not have gone green when the axis bug
+    // is fixed either.
+    INFO("perspective control on " << r.gpu.line.toStdString() << ": "
+                                   << drawnPixels(r.frame) << " px drawn");
     REQUIRE(drawnPixels(r.frame) > 64);
   }
 
@@ -1394,7 +1602,12 @@ TEST_CASE(
   double measured[3]{};
   int drawn[3]{};
   double rndc[3]{};
-  QString refRenderer;
+  // Same structure as the fisheye laws case, and the same reasoning: three
+  // renders on ONE device, a monotone ordering with a 2 px margin, and a
+  // one-parameter fit whose scale is the mean of this run's own three legs. Any
+  // per-driver difference in how the silhouette is resolved is common to all
+  // three legs and divides out. Runs on every backend and vendor.
+  DeviceIdentity refDevice;
 
   for(int i = 0; i < 3; i++)
   {
@@ -1408,12 +1621,13 @@ TEST_CASE(
             vox, 0, kVoxFovDeg, eyes[i], 0.0, /*drawMode=*/0, kVoxelLoader));
     if(!r.error.isEmpty())
       SKIP(r.error.toStdString());
-    if(!r.rendererLine.contains("NVIDIA"))
-      SKIP("still vendor-gated to NVIDIA (not a golden check; see requireMatchesGolden): "
-           << r.rendererLine.toStdString());
-    if(refRenderer.isEmpty())
-      refRenderer = r.rendererLine;
-    REQUIRE(r.rendererLine == refRenderer);
+    skipIfNothingIsRasterised(r);
+    if(!refDevice.known())
+    {
+      REQUIRE(r.gpu.known());
+      refDevice = r.gpu;
+    }
+    requireSameDevice(r, refDevice);
 
     drawn[i] = drawnPixels(r.frame);
     measured[i] = maxDrawnRadius(r.frame);
@@ -1425,6 +1639,7 @@ TEST_CASE(
     REQUIRE(measured[i] > 0.0);
   }
 
+  INFO("rendered by: " << refDevice.line.toStdString());
   INFO("radii px: " << measured[0] << " " << measured[1] << " " << measured[2]
                     << "; drawn px: " << drawn[0] << " " << drawn[1] << " "
                     << drawn[2]);
@@ -1463,6 +1678,7 @@ TEST_CASE(
   // (csf-vertex-count-expr.cs was tried first and is time-animated by
   // design: its particle cloud roams off-frame, five spaced grabs measured
   // all-blank on some runs).
+  skipUnlessGoldenComparatorUsable();
   const QString cs = gfxCorpusDir() + "/syn-geo-producer.cs";
   const QString fs = gfxCorpusDir() + "/raw-raster-basic.fs";
   REQUIRE(QFile::exists(cs));
@@ -1486,6 +1702,7 @@ Score.play();
   const auto r = renderScene(dir, "csf-geometry", js);
   if(!r.error.isEmpty())
     SKIP(r.error.toStdString());
+  skipIfNothingIsRasterised(r);
   requireMatchesGolden(r, "csf-geometry");
 }
 
@@ -1590,19 +1807,28 @@ TEST_CASE(
   const QString nouv = write("attr-nouv.obj", makeCubeObjNoUv());
   const QString nonrm = write("attr-nonrm.obj", makeCubeObj(false));
 
-  QString refRenderer;
+  // The three legs are compared against EACH OTHER, in one case, on one device.
+  // What is asserted is that each attribute configuration reaches a pixel
+  // (nonBlank, a mean-luma floor of 0.5/255 against measured 4.8/12.2/40.9) and
+  // that the frames DIFFER (fracFar > 0.05, i.e. more than 5% of the frame off
+  // by more than 24 codes -- measured 0.49). A driver difference of the 2 codes
+  // this campaign measured across backends cannot manufacture or erase a
+  // 24-code disagreement over half the frame. No vendor content; runs
+  // everywhere.
+  DeviceIdentity refDevice;
   auto render = [&](const char* name, const QString& asset) {
     const auto r = renderScene(
         dir, QString::fromUtf8(name),
         loaderScene(kGeometryLoader, asset, kProjLight));
     if(!r.error.isEmpty())
       SKIP(r.error.toStdString());
-    if(!r.rendererLine.contains("NVIDIA"))
-      SKIP("still vendor-gated to NVIDIA (not a golden check; see requireMatchesGolden): "
-           << r.rendererLine.toStdString());
-    if(refRenderer.isEmpty())
-      refRenderer = r.rendererLine;
-    REQUIRE(r.rendererLine == refRenderer);
+    skipIfNothingIsRasterised(r);
+    if(!refDevice.known())
+    {
+      REQUIRE(r.gpu.known());
+      refDevice = r.gpu;
+    }
+    requireSameDevice(r, refDevice);
     return r.frame;
   };
 
@@ -1610,6 +1836,7 @@ TEST_CASE(
   const QImage liNonrm = render("attr-li-nonrm", nonrm);
   const QImage liNouv = render("attr-li-nouv", nouv);
 
+  INFO("rendered by: " << refDevice.line.toStdString());
   INFO(
       "mean luma: full=" << meanLuma(liFull) << " nonrm=" << meanLuma(liNonrm)
                          << " nouv=" << meanLuma(liNouv));
