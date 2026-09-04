@@ -257,6 +257,29 @@ public:
    * is bumped on every allocate() and free(), so a ref from a prior
    * allocation at the same slot index fails the compare.
    */
+  /**
+   * @brief isLive, additionally requiring the ref to name the expected arena.
+   *
+   * isLive() validates internal_index against m_arenas[r.arena] -- WHICHEVER
+   * arena the ref happens to name. That is correct for what it does, but it
+   * means a ref belonging to another arena passes: a RawTransform slot (16384
+   * of them) validates fine and yields an index up to 16383.
+   *
+   * Nothing in the type system prevents that mix-up. `raw_slot` is the same
+   * ossia::gpu_slot_ref field on transform, light, camera AND material
+   * components -- `xform.raw_slot = m_xform_ref`, `cam->raw_slot =
+   * m_camera_ref`, `mat->raw_slot = ...` -- so only producer discipline keeps
+   * them apart. One crossed assignment and a consumer indexing by that value
+   * reads far outside what was sized for it.
+   *
+   * Use this wherever a slot index is about to be handed to a shader as an
+   * index into a specific arena's mirror buffers.
+   */
+  bool isLiveIn(const ossia::gpu_slot_ref& r, Arena expected) const noexcept
+  {
+    return r.arena == (uint32_t)expected && isLive(r);
+  }
+
   bool isLive(const ossia::gpu_slot_ref& r) const noexcept
   {
     if(r.arena >= (uint32_t)Arena::Count_ || r.size == 0)
