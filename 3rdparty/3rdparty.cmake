@@ -41,5 +41,13 @@ include(3rdparty/mimalloc.cmake)
 include(3rdparty/sh4lt.cmake)
 include(3rdparty/shmdata.cmake)
 include(3rdparty/snappy.cmake)
-include(3rdparty/zstd.cmake)
 endif()
+
+# Not under the NOT EMSCRIPTEN guard above: 3rdparty/spz is built on every
+# platform including wasm, and its CMakeLists does find_package(zstd QUIET)
+# and downloads its own zstd 1.5.6 when that fails. Leaving zstd out of the
+# wasm configure is what made it fail: the fetched copy is built with score's
+# global unity build, and zstd's legacy/ and dictBuilder/ sources are not
+# unity-safe -- every legacy version defines its own static FSE_endOfDState
+# and friends, so concatenating them is a wall of redefinition errors.
+include(3rdparty/zstd.cmake)
