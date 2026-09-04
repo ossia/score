@@ -2,10 +2,18 @@
 #include <score/model/Skin.hpp>
 #include <score/tools/Debug.hpp>
 
+#include <QColorDialog>
+#include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
+#include <QGraphicsView>
 #include <QPainter>
+#include <QPointer>
+#include <QTimer>
 
 #include <wobjectimpl.h>
+
+#include <algorithm>
+
 W_OBJECT_IMPL(score::QGraphicsHSVChooser);
 
 namespace score
@@ -145,6 +153,14 @@ void QGraphicsHSVChooser::setHsvValue(std::array<float, 4> v)
 
 void QGraphicsHSVChooser::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
+  // Left button only: the right one opens the colour dialog on release, and
+  // must not repaint the colour on the way there.
+  if(event->button() != Qt::LeftButton)
+  {
+    event->accept();
+    return;
+  }
+
   const auto p = event->pos();
   if(p.x() < 100.)
   {
@@ -235,7 +251,42 @@ void QGraphicsHSVChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     sliderReleased();
     m_grab = false;
   }
+  else if(event->button() == Qt::RightButton)
+  {
+    // Out of the event handler: the dialog runs its own event loop, and the
+    // scene is still in the middle of delivering this release.
+    QTimer::singleShot(0, this, [this] { showColorDialog(); });
+  }
   event->accept();
+}
+
+void QGraphicsHSVChooser::showColorDialog()
+{
+  const auto current = QColor::fromRgbF(
+      std::clamp(m_value[0], 0.f, 1.f), std::clamp(m_value[1], 0.f, 1.f),
+      std::clamp(m_value[2], 0.f, 1.f));
+
+  // Parented to the view so the dialog is modal to the window the pad is in.
+  auto* sc = scene();
+  const auto views = sc ? sc->views() : QList<QGraphicsView*>{};
+  QWidget* parent = views.isEmpty() ? nullptr : views.front();
+
+  QPointer<QGraphicsHSVChooser> self{this};
+  const QColor picked
+      = QColorDialog::getColor(current, parent, QObject::tr("Pick a colour"));
+
+  // The dialog ran an event loop: the control may have gone away under it,
+  // the way a process can be deleted while one of its controls holds a dialog.
+  if(!self || !picked.isValid() || picked == current)
+    return;
+
+  setRgbaValue(
+      ossia::vec4f{
+          {float(picked.redF()), float(picked.greenF()), float(picked.blueF()), 1.f}});
+
+  // Moved then released, as a drag would be: one command on the undo stack.
+  sliderMoved();
+  sliderReleased();
 }
 
 //! QEvent::UngrabMouse: the scene took the implicit grab away and there will be
