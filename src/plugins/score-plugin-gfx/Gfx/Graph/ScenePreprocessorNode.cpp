@@ -583,6 +583,14 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   // multi-glTF scenes.
   std::vector<uint64_t> m_cachedMaterialsFingerprint;
 
+  // Value computeDynamicSlotFingerprint() returned at the last full rebuild,
+  // i.e. the dynamic-slot table the currently-published m_outputSpec.meshes'
+  // auxiliary_textures and the currently-uploaded MaterialGPU::textureRefs
+  // were built from. Compared against the fresh value every frame so a live
+  // texture-handle reroute republishes on its own account instead of riding
+  // on whatever unrelated buffer happened to grow in the same frame.
+  uint64_t m_cachedDynamicSlotFingerprint{};
+
   // -- Granular invalidation state ------------------------------------------
   //
   // CPU mirrors of what is currently on the GPU for each small SSBO, plus a
@@ -749,6 +757,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     m_cachedSceneState = nullptr;
     m_cachedVersion = -1;
     m_cachedMaterialsFingerprint.clear();
+    m_cachedDynamicSlotFingerprint = 0;
     m_cachedMeshFingerprint.clear();
     m_cachedCloudFingerprint = 0;
     m_cachedMaterialExt.clear();
@@ -3026,6 +3035,46 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     return fallback;
   }
 
+  // Fingerprint of the registry's dynamic texture-slot table: for every
+  // material-texture channel, the ordered (slot -> QRhiTexture identity)
+  // mapping resolveDynamicSlot maintains.
+  //
+  // That table is the ONLY thing a live texture-handle reroute changes.
+  // computeMaterialsFingerprint below is keyed on material stable_id, which is
+  // deliberately preserved across such a swap (a MaterialOverride clone
+  // inherits it), so sameMaterialsContent stays true and rebuildChannel takes
+  // its fast path: no bucket array is reallocated, hence no channelReallocated
+  // and no auxBuffersChanged. Yet the table drives two pieces of state the
+  // consumer must re-read:
+  //   - the "<channel>Dyn<slot>" auxiliary_textures appendTextureAuxes emits
+  //     into the geometry, which name dynamicTextures[slot] by pointer and are
+  //     only refreshed when rebuildMDI republishes m_outputSpec.meshes;
+  //   - MaterialGPU::textureRefs[ch] = tex_ref_dynamic(slot), which only
+  //     reaches the arena through the gated updateSlot pass below.
+  // Both therefore need a term of their own — see the two use sites in
+  // update(). Cost is bounded by ChannelCount * kMaxDynamicSlots (5 * 4), so
+  // ~25 hash_combine per frame regardless of scene size.
+  //
+  // Keyed on globalResourceId, not the raw pointer, for the same
+  // pointer-recycling reason resolveDynamicSlot keys its map on it: a freed
+  // QRhiTexture's address can be handed back to a fresh one, which would make
+  // a real reroute look like no change at all.
+  uint64_t computeDynamicSlotFingerprint() noexcept
+  {
+    uint64_t fp = 0;
+    if(!m_registry)
+      return fp;
+    for(int i = 0; i < ChannelCount; ++i)
+    {
+      const auto& dyn
+          = texChannel(static_cast<MaterialChannel>(i)).dynamicTextures;
+      ossia::hash_combine(fp, (uint64_t)dyn.size());
+      for(auto* t : dyn)
+        ossia::hash_combine(fp, t ? (uint64_t)t->globalResourceId() : 0ull);
+    }
+    return fp;
+  }
+
   // Build a content fingerprint of the current materials list — keyed on
   // material_component::stable_id rather than the raw pointer. Stable
   // across producer rebuilds (the producer re-emits a fresh shared_ptr
@@ -3965,6 +4014,16 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       if(!sameMaterialsContent)
         m_cachedMaterialsFingerprint = std::move(fingerprint);
 
+      // The rebuildChannel loop above ran rebuildDynamicSlots for every
+      // channel, so the registry's dynamic-slot table is now final for this
+      // frame (sweepStaleDynamicTextureSlots only runs from rebuildMDI, on the
+      // full-rebuild branch, and is accounted for when the cache is reseeded
+      // there). Snapshot it: a reroute changes nothing else this node looks at.
+      const uint64_t freshDynamicSlotFingerprint
+          = computeDynamicSlotFingerprint();
+      const bool dynamicSlotsChanged
+          = (freshDynamicSlotFingerprint != m_cachedDynamicSlotFingerprint);
+
       // Loader-material arena slot upload: now that rebuildChannel has
       // patched fs.materials[i].textureRefs with the resolved per-channel
       // layer indices, stream each loader material's packed MaterialGPU
@@ -3974,10 +4033,13 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       //
       // Uploads happen only when the materials content actually changed
       // (sameMaterialsContent==false) OR when a channel reallocated and
-      // shifted layer indices. Steady-state frames with an unchanged
-      // scene touch zero bytes here.
+      // shifted layer indices OR when the dynamic-slot table moved, which
+      // renumbers tex_ref_dynamic(slot) without touching either of the other
+      // two. Steady-state frames with an unchanged scene touch zero bytes
+      // here.
       if(m_registry && this->scene.state
-         && (!sameMaterialsContent || channelReallocated))
+         && (!sameMaterialsContent || channelReallocated
+             || dynamicSlotsChanged))
       {
         const std::vector<ossia::material_component_ptr> empty_mats;
         const auto& mats = this->scene.state->materials
@@ -4526,6 +4588,16 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
             // rebuildMDI does this cleanly by building a fresh geometry
             // with wrapGpu() wrappers over the current buffer pointers.
             && !auxBuffersChanged
+            // The dynamic texture-slot table moved: the published geometry's
+            // "<channel>Dyn<slot>" auxiliary_textures name the OLD
+            // QRhiTexture*s, and downstream only re-resolves them on
+            // geometryChanged, which is shared_ptr identity on
+            // m_outputSpec.meshes (NodeRenderer.cpp). Only rebuildMDI
+            // republishes that vector, so a reroute has to leave the fast
+            // path on its own account. Before this term it reached the screen
+            // only when some unrelated aux buffer happened to grow in the
+            // same frame.
+            && !dynamicSlotsChanged
             // Cloud set unchanged: rebuildPrimitiveClouds only
             // runs on the full-rebuild branch and re-appends its bucket
             // geometries onto the freshly rebuilt mesh list, so any cloud
@@ -4591,6 +4663,13 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
 
         // Seed the CPU mirrors from the fresh data so subsequent frames
         // can take the fast path via diffUpload.
+        //
+        // The dynamic-slot fingerprint is RE-read here rather than seeded from
+        // freshDynamicSlotFingerprint: rebuildMDI runs sweepMeshSlabs, which
+        // sweeps orphaned dynamic slots to null, so the table the aux entries
+        // were just built from is the post-sweep one. Seeding the pre-sweep
+        // value would report a phantom change on the next frame.
+        m_cachedDynamicSlotFingerprint = computeDynamicSlotFingerprint();
         m_cachedMeshFingerprint = std::move(freshMeshFingerprint);
         m_cachedCloudFingerprint = freshCloudFingerprint;
         m_cachedLightIndices = std::move(freshLightIndices);
