@@ -12,6 +12,7 @@
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/ssize.hpp>
 #include <ossia/network/base/node_attributes.hpp>
+#include <ossia/network/common/extended_types.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 #include <ossia/network/domain/domain.hpp>
 #include <ossia/network/value/value_conversion.hpp>
@@ -27,7 +28,11 @@
 #include <QComboBox>
 #include <QContextMenuEvent>
 #include <QFrame>
+#include <QDesktopServices>
 #include <QDoubleSpinBox>
+#include <QFileDialog>
+#include <QFileInfo>
+#include <QFontComboBox>
 #include <QApplication>
 #include <QGuiApplication>
 #include <QHBoxLayout>
@@ -46,6 +51,7 @@
 #include <QStyle>
 #include <QStyleOptionViewItem>
 #include <QTimer>
+#include <QUrl>
 #include <QVBoxLayout>
 
 #include <algorithm>
@@ -53,6 +59,7 @@
 #include <functional>
 #include <limits>
 #include <optional>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -649,6 +656,141 @@ private:
   State::ExpandableTextEdit m_edit;
 };
 
+/**
+ * @brief A string the device says is a path, with the file dialog on it.
+ *
+ * The parameter carries the same std::string either way; EXTENDED_TYPE is the
+ * device saying what the string means, and a path typed by hand into a line
+ * edit is the one thing a file dialog exists to spare the user.
+ */
+class FilePathValueWidget final : public AddressValueWidget
+{
+public:
+  explicit FilePathValueWidget(QWidget* parent)
+      : AddressValueWidget{parent}
+  {
+    m_edit.setContentsMargins(0, 0, 0, 0);
+    m_edit.setPlaceholderText(tr("Path to a file"));
+    this->setFocusProxy(&m_edit);
+    m_lay.addWidget(&m_edit);
+
+    m_browse.setIcon(QIcon(":/icons/search.png"));
+    m_browse.setToolTip(tr("Browse..."));
+    m_edit.addAction(&m_browse, QLineEdit::TrailingPosition);
+
+    connect(&m_edit, &QLineEdit::textEdited, this, [this] { markEdited(); });
+    connect(&m_browse, &QAction::triggered, this, [this] {
+      // Parented to this, so the delegate does not close the editor on the
+      // focus-out the dialog causes; guarded, because it can still go away.
+      QPointer self{this};
+      const QString picked = QFileDialog::getOpenFileName(
+          this, tr("Choose a file"), QFileInfo{m_edit.text()}.absolutePath());
+      if(!self || picked.isEmpty())
+        return;
+
+      m_edit.setText(picked);
+      markEdited();
+      changed(get());
+    });
+  }
+
+  ossia::value getImpl() const override { return m_edit.text().toStdString(); }
+  void setImpl(ossia::value t) override
+  {
+    m_edit.setText(State::convert::value<QString>(t));
+  }
+
+  bool isTextual() const noexcept override { return true; }
+
+private:
+  score::MarginLess<QHBoxLayout> m_lay{this};
+  QLineEdit m_edit;
+  QAction m_browse{this};
+};
+
+//! A string the device says is an URL: the same field, and a way to follow it.
+class UrlValueWidget final : public AddressValueWidget
+{
+public:
+  explicit UrlValueWidget(QWidget* parent)
+      : AddressValueWidget{parent}
+  {
+    m_edit.setContentsMargins(0, 0, 0, 0);
+    m_edit.setPlaceholderText(tr("http://..."));
+    this->setFocusProxy(&m_edit);
+    m_lay.addWidget(&m_edit);
+
+    m_open.setIcon(QIcon(":/icons/load_on.png"));
+    m_open.setToolTip(tr("Open in the browser"));
+    m_edit.addAction(&m_open, QLineEdit::TrailingPosition);
+
+    connect(&m_edit, &QLineEdit::textEdited, this, [this] {
+      markEdited();
+      refreshOpenAction();
+    });
+    connect(&m_open, &QAction::triggered, this, [this] {
+      const QUrl u{m_edit.text(), QUrl::StrictMode};
+      if(u.isValid() && !u.scheme().isEmpty())
+        QDesktopServices::openUrl(u);
+    });
+    refreshOpenAction();
+  }
+
+  ossia::value getImpl() const override { return m_edit.text().toStdString(); }
+  void setImpl(ossia::value t) override
+  {
+    m_edit.setText(State::convert::value<QString>(t));
+    refreshOpenAction();
+  }
+
+  bool isTextual() const noexcept override { return true; }
+
+private:
+  //! An address with no scheme is not something to hand the desktop.
+  void refreshOpenAction()
+  {
+    const QUrl u{m_edit.text(), QUrl::StrictMode};
+    m_open.setEnabled(u.isValid() && !u.scheme().isEmpty());
+  }
+
+  score::MarginLess<QHBoxLayout> m_lay{this};
+  QLineEdit m_edit;
+  QAction m_open{this};
+};
+
+//! A string the device says names a font: the fonts this machine has, and
+//! still editable, since the name is the device's and need not be installed
+//! here.
+class FontValueWidget final : public AddressValueWidget
+{
+public:
+  explicit FontValueWidget(QWidget* parent)
+      : AddressValueWidget{parent}
+  {
+    m_edit.setContentsMargins(0, 0, 0, 0);
+    m_edit.setEditable(true);
+    m_edit.setInsertPolicy(QComboBox::NoInsert);
+    this->setFocusProxy(&m_edit);
+    m_lay.addWidget(&m_edit);
+
+    connect(&m_edit, &QComboBox::currentTextChanged, this, [this](const QString& t) {
+      markEdited();
+      changed(ossia::value{t.toStdString()});
+    });
+  }
+
+  ossia::value getImpl() const override { return m_edit.currentText().toStdString(); }
+  void setImpl(ossia::value t) override
+  {
+    m_edit.setCurrentText(State::convert::value<QString>(t));
+  }
+
+  bool isTextual() const noexcept override { return true; }
+
+private:
+  score::MarginLess<QHBoxLayout> m_lay{this};
+  QFontComboBox m_edit;
+};
 
 //! Anything whose textual form round-trips through the value parser.
 class ParsedValueWidget final : public AddressValueWidget
@@ -1157,6 +1299,42 @@ int colorComponents(const ossia::value& v) noexcept
   return v.get_type() == ossia::val_type::VEC3F ? 3 : 4;
 }
 
+//! A font name is not one of libossia's declared extended types; it is a name
+//! score answers to, so that a device that knows its string is a font can say
+//! so and get the picker.
+constexpr std::string_view font_type{"font"};
+
+/**
+ * @brief The editor an EXTENDED_TYPE asks for, if any.
+ *
+ * A parameter's value type says how the bytes travel; its extended type says
+ * what they mean. A path and an URL are both a STRING and both got a bare line
+ * edit -- the declaration was carried around, serialized and shown in the
+ * address panel without anything ever acting on it.
+ */
+AddressValueWidget*
+make_extended_type_widget(const Device::AddressSettingsCommon& addr, QWidget* parent)
+{
+  // Only strings, so far: the array-shaped extended types say how to read an
+  // array that the typed editors already cover.
+  if(addr.value.get_type() != ossia::val_type::STRING)
+    return nullptr;
+
+  const auto ext = ossia::net::get_extended_type(addr.extendedAttributes);
+  if(!ext)
+    return nullptr;
+
+  const std::string_view type{*ext};
+  if(type == ossia::filesystem_path_type())
+    return new FilePathValueWidget{parent};
+  if(type == ossia::url_type())
+    return new UrlValueWidget{parent};
+  if(type == font_type)
+    return new FontValueWidget{parent};
+
+  return nullptr;
+}
+
 AddressValueWidget* make_unit_widget(
     const Device::AddressSettingsCommon& addr, QWidget* parent, ValueEditorSize size)
 {
@@ -1567,7 +1745,12 @@ void fitEditorToCell(QWidget& editor, const QRect& cell)
 AddressValueWidget* make_value_widget(
     const Device::AddressSettingsCommon& addr, QWidget* parent, ValueEditorSize size)
 {
-  auto* widg = make_unit_widget(addr, parent, size);
+  // Most specific first: what the device says the string means, then what its
+  // unit says the numbers mean, then its type.
+  auto* widg = make_extended_type_widget(addr, parent);
+
+  if(!widg)
+    widg = make_unit_widget(addr, parent, size);
 
   if(!widg)
   {
