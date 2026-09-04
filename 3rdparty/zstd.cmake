@@ -12,6 +12,14 @@ if(NOT TARGET zstd::libzstd_static AND NOT TARGET zstd::libzstd_shared AND NOT T
   set(old_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
   set(BUILD_SHARED_LIBS OFF)
 
+  # zstd is not unity-safe and must never inherit score's global unity build:
+  # lib/legacy/zstd_v0*.c each define their own static FSE_decodeSymbolFast,
+  # FSE_endOfDState and FSE_decompress_usingDTable_generic, and
+  # dictBuilder/cover.c and fastcover.c both include cover.h. Batched into one
+  # translation unit they collide.
+  set(old_CMAKE_UNITY_BUILD ${CMAKE_UNITY_BUILD})
+  set(CMAKE_UNITY_BUILD OFF)
+
   if(NOT MSVC AND NOT CMAKE_CROSSCOMPILING)
     if(CMAKE_BUILD_TYPE MATCHES ".*Deb.*")
       set(old_CFLAGS "${CMAKE_C_FLAGS}")
@@ -31,6 +39,7 @@ if(NOT TARGET zstd::libzstd_static AND NOT TARGET zstd::libzstd_shared AND NOT T
   endif()
 
   set(BUILD_SHARED_LIBS ${old_BUILD_SHARED_LIBS})
+  set(CMAKE_UNITY_BUILD ${old_CMAKE_UNITY_BUILD})
 endif()
 
 # Make later find_package(zstd) calls (e.g. 3rdparty/spz) resolve to the
