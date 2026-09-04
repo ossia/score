@@ -43,6 +43,11 @@ public:
   void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
 
 private:
+  //! Right-click: the platform's colour dialog, with its palettes, its eye
+  //! dropper and its hex field. The pad alone can only be dragged, and picks
+  //! nothing outside the hundred-pixel square it paints.
+  void showColorDialog();
+
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
