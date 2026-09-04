@@ -388,6 +388,13 @@ if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
     SOURCES GfxProtocolSettingsTest.cpp)
   set_tests_properties(test_integration_gfx_protocol_settings
     PROPERTIES TIMEOUT 600)
+  # Mirror the exact condition score-plugin-gfx uses to build the Sh4lt devices
+  # (if(TARGET sh4lt)), so the test expects presence on precisely the builds
+  # that have it instead of assuming every platform does.
+  if(TARGET sh4lt)
+    target_compile_definitions(test_integration_gfx_protocol_settings
+      PRIVATE SCORE_TEST_HAS_SH4LT)
+  endif()
 
   foreach(_pw_tgt test_integration_pipewire_video_input
                   test_integration_pipewire_video_motion
