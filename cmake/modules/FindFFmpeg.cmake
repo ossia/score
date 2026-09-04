@@ -233,7 +233,7 @@ if(OSSIA_SDK AND TARGET avutil)
   # (webpmux -> webp -> sharpyuv, srt -> ssl -> crypto, xml2 -> lzma).
   #
   # placebo: the SDK's ffmpeg is built --enable-libplacebo, so libavfilter has
-  # 80 undefined pl_* symbols and nothing was linking the archive. libplacebo
+  # 80 undefined pl_* symbols unless the archive is on the link line. libplacebo
   # needs glslang; its Vulkan backend is dispatched at runtime, so there is no
   # loader to link. Only libglslang.a has content -- the SDK installs the other
   # glslang component names as stub archives.
@@ -253,6 +253,32 @@ if(OSSIA_SDK AND TARGET avutil)
       imported_link_libraries(avutil "${FFMPEG_SDK_LIB_${_sdk_var}}")
     endif()
   endforeach()
+
+  # bz2 is in the list above, and on Linux and Windows it resolves: ossia/sdk
+  # builds bzip2 in Linux/zlib.sh and MSYS/zlib.sh and installs libbz2.a into
+  # $INSTALL_PREFIX/sysroot/lib, which is the first entry of the search list.
+  #
+  # macOS is the outlier, by design: sdk/macOS/ has no zlib.sh and macOS/all.sh
+  # never builds zlib or bzip2, because macOS ships both itself --
+  # /usr/lib/libbz2.1.0.dylib is a public library, present in the dyld shared
+  # cache, with a .tbd stub in the platform SDK. There is deliberately no
+  # libbz2 in the prefix, so with NO_DEFAULT_PATH the entry would resolve to
+  # NOTFOUND and nothing would link bzip2 -- while libavformat.a keeps three
+  # undefined BZ2_bzDecompress* symbols in matroskadec.o. A static archive only
+  # pulls the member that is actually referenced, so only a target that drags
+  # matroskadec.o in fails: test_unit_libav_interrupt, which on macOS needs a
+  # tests-enabled build.
+  #
+  # Hence the fallback here to the platform's own libbz2, which is what the SDK
+  # expects macOS to do for zlib as well. An SDK copy still wins wherever one
+  # exists, leaving Linux and Windows on their static sysroot/lib/libbz2.a.
+  if(NOT FFMPEG_SDK_LIB_bz2)
+    find_library(FFMPEG_SYSTEM_LIB_BZ2 NAMES bz2 bzip2)
+    mark_as_advanced(FFMPEG_SYSTEM_LIB_BZ2)
+    if(FFMPEG_SYSTEM_LIB_BZ2)
+      imported_link_libraries(avutil "${FFMPEG_SYSTEM_LIB_BZ2}")
+    endif()
+  endif()
 
   # libvpx, libwebp, libsrt and x265 use pthreads; raw archive paths carry no
   # dependency information, so name this after them.
