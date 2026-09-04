@@ -467,22 +467,30 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   uint64_t m_primitiveCloudFrame{0};
 
   // ─── Unified-MDI per-instance concat buffers ────────────────────────
-  // Three parallel arrays sized to K = (Σ regular_cmd_count + Σ
-  // instance_group_count), one slot per (cmd, instance) pair, contiguous
-  // within a cmd. Each indirect cmd sets firstInstance to its first slot, so
-  // per-instance VERTEX_INPUTs step at the right offset on both the indirect
-  // and the CPU-fallback path (every QRhi backend honours firstInstance).
+  // Two arrays sized to K = (Σ regular_cmd_count + Σ instance_group_count),
+  // one slot per (cmd, instance) pair, contiguous within a cmd. Each indirect
+  // cmd sets firstInstance to its first slot, so per-instance VERTEX_INPUTs
+  // step at the right offset on both the indirect and the CPU-fallback path
+  // (every QRhi backend honours firstInstance).
   //
-  // m_instTranslations: vec4-padded translation, identity for regular meshes.
-  // m_instColors: vec4, identity (1,1,1,1) for regular meshes.
-  // m_instDrawIds: cmd-index of the owning draw. Stands in for gl_DrawID,
-  // which the CPU fallback does not provide, and for gl_BaseInstance, which
-  // stops equalling drawID once instanceCount > 1.
-  QRhiBuffer* m_instTranslations{};
-  QRhiBuffer* m_instColors{};
+  // m_instAttribs is INTERLEAVED, 32 bytes a slot: a vec4-padded translation
+  // at offset 0 (identity for regular meshes) then a vec4 color at offset 16
+  // (identity (1,1,1,1) for regular meshes). They used to be two buffers on
+  // two vertex bindings, which cost the geometry a ninth binding — one past
+  // what Qt's D3D11 command buffer records. Both are per-instance vec4s
+  // written by the same GPU copy pass, so one binding carries both.
+  //
+  // m_instDrawIds stays on its own: cmd-index of the owning draw, standing in
+  // for gl_DrawID, which the CPU fallback does not provide, and for
+  // gl_BaseInstance, which stops equalling drawID once instanceCount > 1. It
+  // is a 4-byte uint diff-uploaded from a CPU mirror as one contiguous range,
+  // which interleaving would turn into a per-slot scatter.
+  static constexpr int kInstSlotStride = 32;
+  static constexpr int kInstTranslationOffset = 0;
+  static constexpr int kInstColorOffset = 16;
+  QRhiBuffer* m_instAttribs{};
   QRhiBuffer* m_instDrawIds{};
-  int64_t m_instTranslationsCap{};
-  int64_t m_instColorsCap{};
+  int64_t m_instAttribsCap{};
   int64_t m_instDrawIdsCap{};
   uint32_t m_instSlotsUsed{};
 
@@ -522,6 +530,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     int size{};          // bytes if tight-copy, else element_size
     int vertex_count{};
     int src_stride{};    // 0 or element_size → tight; else strided
+    int dst_stride{};    // 0 or element_size → tight; else the destination
+                         // slot is wider than the element, as it is for the
+                         // interleaved per-instance array where translation
+                         // and color share a 32-byte slot
     int element_size{};  // BytesPerVertex for this attribute
     MdiAttr attr{};
   };
@@ -880,11 +892,9 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       dropBuf(bb.indirect);
     }
     m_primitiveCloudBuckets.clear();
-    dropBuf(m_instTranslations);
-    dropBuf(m_instColors);
+    dropBuf(m_instAttribs);
     dropBuf(m_instDrawIds);
-    m_instTranslationsCap = 0;
-    m_instColorsCap = 0;
+    m_instAttribsCap = 0;
     m_instDrawIdsCap = 0;
     m_instSlotsUsed = 0;
     m_lightIndicesCap = 0;
@@ -2380,10 +2390,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
 
     // ── Per-instance concat buffers (unified MDI) ───────────────────────
     //
-    // Three parallel arrays sized to slot_cursor: draw_ids[k] is the cmd index
-    // owning slot k; translations[k] and colors[k] are vec4, identity for
-    // regular cmd slots and GPU-copied per-particle values for instance-group
-    // slots.
+    // Two arrays sized to slot_cursor: draw_ids[k] is the cmd index owning
+    // slot k; attribs[k] is a 32-byte slot holding the vec4 translation then
+    // the vec4 color, identity for regular cmd slots and GPU-copied
+    // per-particle values for instance-group slots.
     //
     // Layout invariant: a regular fs.draws cmd at acc index i lands at slot i
     // (instanceCount == 1); instance groups follow contiguously, with the
@@ -2393,9 +2403,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     // only state involved.
     if(slot_cursor > 0)
     {
-      const int64_t drawIdsBytes      = (int64_t)slot_cursor * 4;
-      const int64_t translationsBytes = (int64_t)slot_cursor * 16;
-      const int64_t colorsBytes       = (int64_t)slot_cursor * 16;
+      const int64_t drawIdsBytes = (int64_t)slot_cursor * 4;
+      const int64_t attribsBytes = (int64_t)slot_cursor * kInstSlotStride;
 
       // m_instDrawIds is diff-uploaded against m_cachedInstDrawIds, so the
       // mirror MUST be cleared on realloc: an Instancer with one prototype
@@ -2407,13 +2416,9 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
                  UF(QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer),
                  "ScenePreprocessor::inst.draw_ids"))
         m_cachedInstDrawIds.clear();
-      growBuf(renderer, res,m_instTranslations, m_instTranslationsCap,
-              translationsBytes,
+      growBuf(renderer, res,m_instAttribs, m_instAttribsCap, attribsBytes,
               UF(QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer),
-              "ScenePreprocessor::inst.translations");
-      growBuf(renderer, res,m_instColors, m_instColorsCap, colorsBytes,
-              UF(QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer),
-              "ScenePreprocessor::inst.colors");
+              "ScenePreprocessor::inst.attribs");
 
       // Build the full draw_ids vector. For a regular fs.draws cmd at
       // acc index i: draw_ids[i] = i. For instance group records: the
@@ -2433,9 +2438,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       }
       diffUpload(res, m_instDrawIds, m_cachedInstDrawIds, fresh_draw_ids);
 
-      // Regular-slot identity values for translations + colors. Instance
-      // group slots (offset >= n_regular_cmds * 16) are filled by the
-      // GPU copies below — uploadStaticBuffer here covers ONLY the
+      // Regular-slot identity values for translations + colors, written as
+      // whole interleaved slots: zero translation then white color. Instance
+      // group slots (offset >= n_regular_cmds * kInstSlotStride) are filled by
+      // the GPU copies below — uploadStaticBuffer here covers ONLY the
       // regular range so we don't stomp the GPU-copied data. Instance
       // group slot ranges that overlap stale content from a previous
       // frame are overwritten by the per-frame GPU copy.
@@ -2449,16 +2455,14 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       // issuePendingGpuCopies' batch barrier, not by dropping a write.
       if(n_regular_cmds > 0)
       {
-        std::vector<float> regular_translations(n_regular_cmds * 4, 0.f);
-        std::vector<float> regular_colors(n_regular_cmds * 4, 1.f);
+        std::vector<float> regular_slots(n_regular_cmds * 8, 0.f);
+        for(std::size_t i = 0; i < n_regular_cmds; ++i)
+          for(int c = 4; c < 8; ++c)
+            regular_slots[i * 8 + c] = 1.f;
         res.uploadStaticBuffer(
-            m_instTranslations, 0,
-            (quint32)(n_regular_cmds * 16),
-            regular_translations.data());
-        res.uploadStaticBuffer(
-            m_instColors, 0,
-            (quint32)(n_regular_cmds * 16),
-            regular_colors.data());
+            m_instAttribs, 0,
+            (quint32)(n_regular_cmds * kInstSlotStride),
+            regular_slots.data());
       }
 
       // Queue GPU copies for instance groups: `count` instances from the
@@ -2469,10 +2473,15 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       //  - trs (vec3 T + ...): bytes [0..15]; the shader binds vec3 from
       //    offset 0, so the stray R bytes are never sampled.
       //  - mat4 (col-major):   bytes [48..63], column 3.
+      //
+      // The destination slot is 32 bytes wide and the element is 16, so both
+      // of these are strided writes even when the source is tight: every copy
+      // lands on its half of the interleaved slot and must step over the
+      // other half.
       auto queueInstanceCopy = [&](
           QRhiBuffer* src, uint32_t srcOffset, uint32_t srcStride,
-          QRhiBuffer* dst, uint32_t dstOffset, uint32_t count,
-          uint32_t elemSize)
+          QRhiBuffer* dst, uint32_t dstOffset, uint32_t dstStride,
+          uint32_t count, uint32_t elemSize)
       {
         if(!src || !dst || count == 0)
           return;
@@ -2484,16 +2493,18 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         op.dst_offset = (int)dstOffset;
         op.vertex_count = (int)count;
         op.src_stride = (int)srcStride;
+        op.dst_stride = (int)dstStride;
         op.element_size = (int)elemSize;
-        op.size = (op.src_stride == 0 || op.src_stride == op.element_size)
-                      ? op.vertex_count * op.element_size
-                      : op.element_size;
+        const bool tight
+            = (op.src_stride == 0 || op.src_stride == op.element_size)
+              && (op.dst_stride == 0 || op.dst_stride == op.element_size);
+        op.size = tight ? op.vertex_count * op.element_size : op.element_size;
         m_pendingGpuCopies.push_back(op);
       };
       for(const auto& rec : instanceRecords)
       {
         // Translation: copy 12 bytes per instance into the leading
-        // bytes of each vec4-stride slot. The slot's trailing 4 bytes
+        // bytes of each slot's translation half. The half's trailing 4 bytes
         // remain garbage / leftover (identity uploads only cover the
         // regular range above) — the shader binds vec3 from offset 0
         // so the trailing pad is never sampled.
@@ -2502,14 +2513,18 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           queueInstanceCopy(
               rec.src_translations, rec.src_translation_offset,
               rec.src_translation_stride,
-              m_instTranslations, rec.slot_base * 16, rec.count,
+              m_instAttribs,
+              rec.slot_base * kInstSlotStride + kInstTranslationOffset,
+              kInstSlotStride, rec.count,
               /*elemSize=*/16);
         }
         if(rec.src_colors)
         {
           queueInstanceCopy(
               rec.src_colors, rec.src_color_offset, /*srcStride=*/16,
-              m_instColors, rec.slot_base * 16, rec.count,
+              m_instAttribs,
+              rec.slot_base * kInstSlotStride + kInstColorOffset,
+              kInstSlotStride, rec.count,
               /*elemSize=*/16);
         }
       }
@@ -2594,10 +2609,11 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     g.input.push_back(GeomInput{.buffer = 5, .byte_offset = 0});
 
     auto pushAttr = [&](ossia::attribute_semantic sem, int binding,
-                        decltype(ossia::geometry::attribute::format) fmt) {
+                        decltype(ossia::geometry::attribute::format) fmt,
+                        int byte_offset = 0) {
       ossia::geometry::attribute a{};
       a.binding = binding;
-      a.byte_offset = 0;
+      a.byte_offset = byte_offset;
       a.format = fmt;
       a.semantic = sem;
       g.attributes.push_back(a);
@@ -2611,39 +2627,38 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
 
     // ── Per-instance vertex bindings (unified MDI) ──────────────────────
     //
-    // Three PerInstance step_rate=1 bindings. Each indirect cmd sets
+    // Two PerInstance step_rate=1 bindings. Each indirect cmd sets
     // firstInstance to its own slot offset, so they address the right slice of
     // each concat buffer on both the indirect and the CPU-fallback path.
     //
+    // Translation and color share the first of them: they are both
+    // per-instance vec4s stepping at the same rate, and the eight bindings
+    // above plus three of their own would be nine — one more than
+    // QD3D11CommandBuffer::MAX_VERTEX_BUFFER_BINDING_COUNT, which Qt's D3D11
+    // backend silently clamps to (qrhid3d11.cpp, "Too many vertex buffer
+    // bindings"). Interleaved they are eight, and a shader reading every
+    // stream this geometry publishes fits.
+    //
     // Buffer slot order in g.buffers: 0..5 per-vertex streams
-    // (pos/nrm/uv0/tan/col/uv1), 6 index, 7 inst_translations, 8 inst_colors,
-    // 9 inst_draw_ids. Inserting a slot here shifts every subsequent aux index;
-    // the auxiliary section computes its own base from g.buffers.size().
-    if(slot_cursor > 0 && m_instTranslations && m_instColors && m_instDrawIds)
+    // (pos/nrm/uv0/tan/col/uv1), 6 index, 7 inst_attribs, 8 inst_draw_ids.
+    // Inserting a slot here shifts every subsequent aux index; the auxiliary
+    // section computes its own base from g.buffers.size().
+    if(slot_cursor > 0 && m_instAttribs && m_instDrawIds)
     {
       // Index buffer must come before per-instance buffers since
       // g.index.buffer is hard-coded to slot 6 below; per-instance
-      // buffers occupy slots 7, 8, 9.
+      // buffers occupy slots 7 and 8.
       g.buffers.push_back(wrapGpu(
-          m_instTranslations, (int64_t)slot_cursor * 16));
-      g.buffers.push_back(wrapGpu(
-          m_instColors, (int64_t)slot_cursor * 16));
+          m_instAttribs, (int64_t)slot_cursor * kInstSlotStride));
       g.buffers.push_back(wrapGpu(
           m_instDrawIds, (int64_t)slot_cursor * 4));
 
-      ossia::geometry::binding bInstT{};
-      bInstT.byte_stride = 16;
-      bInstT.classification = ossia::geometry::binding::per_instance;
-      bInstT.step_rate = 1;
-      const int instTBindIdx = (int)g.bindings.size();
-      g.bindings.push_back(bInstT);
-
-      ossia::geometry::binding bInstC{};
-      bInstC.byte_stride = 16;
-      bInstC.classification = ossia::geometry::binding::per_instance;
-      bInstC.step_rate = 1;
-      const int instCBindIdx = (int)g.bindings.size();
-      g.bindings.push_back(bInstC);
+      ossia::geometry::binding bInst{};
+      bInst.byte_stride = kInstSlotStride;
+      bInst.classification = ossia::geometry::binding::per_instance;
+      bInst.step_rate = 1;
+      const int instBindIdx = (int)g.bindings.size();
+      g.bindings.push_back(bInst);
 
       ossia::geometry::binding bInstD{};
       bInstD.byte_stride = 4;
@@ -2654,7 +2669,6 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
 
       g.input.push_back(GeomInput{.buffer = 7, .byte_offset = 0});
       g.input.push_back(GeomInput{.buffer = 8, .byte_offset = 0});
-      g.input.push_back(GeomInput{.buffer = 9, .byte_offset = 0});
 
       // Translation reuses the `translation` semantic; no per-vertex
       // translation exists, so there is no collision. Color uses the
@@ -2662,9 +2676,11 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       // per-vertex `color0` in findGeometryAttribute. draw_id uses the
       // uint-typed `instance_draw_id`.
       pushAttr(ossia::attribute_semantic::translation,
-               instTBindIdx, ossia::geometry::attribute::float3);
+               instBindIdx, ossia::geometry::attribute::float3,
+               kInstTranslationOffset);
       pushAttr(ossia::attribute_semantic::instance_color0,
-               instCBindIdx, ossia::geometry::attribute::float4);
+               instBindIdx, ossia::geometry::attribute::float4,
+               kInstColorOffset);
       pushAttr(ossia::attribute_semantic::instance_draw_id,
                instDBindIdx, ossia::geometry::attribute::uint1);
     }
@@ -4710,14 +4726,18 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     for(const auto& op : m_pendingGpuCopies)
     {
       // Explicit dst wins over the mesh-stream lookup — used by the
-      // unified-MDI per-instance concat copies (translations / colors)
-      // which target preprocessor-owned buffers, not arena streams.
+      // unified-MDI per-instance concat copies (the interleaved attribs
+      // array) which target preprocessor-owned buffers, not arena streams.
       QRhiBuffer* dst = op.dst ? op.dst : mdiBufferFor(op.attr);
       if(!op.src || !dst)
         continue;
-      if(op.src_stride == 0 || op.src_stride == op.element_size)
+      const int src_stride
+          = op.src_stride == 0 ? op.element_size : op.src_stride;
+      const int dst_stride
+          = op.dst_stride == 0 ? op.element_size : op.dst_stride;
+      if(src_stride == op.element_size && dst_stride == op.element_size)
       {
-        // Tight source layout — one copy, no per-call barrier (batched).
+        // Tight on both ends — one copy, no per-call barrier (batched).
         score::gfx::copyBuffer(
             *rhi, cb, op.src, dst,
             op.vertex_count * op.element_size,
@@ -4726,21 +4746,24 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       }
       else
       {
-        // Strided source — src slot size differs from MDI slot size.
-        // Per-vertex copy of min(src_stride, element_size) bytes: the
-        // overlap between the two layouts (e.g. tight vec3 src (12 B) →
-        // padded-vec4 MDI slot (16 B) → copy the 12 B of real data into
-        // each slot's low bytes; zero-fill from uploadStaticBuffer covers
-        // the trailing padding).
+        // Strided on either end — the src slot size or the dst slot size
+        // differs from the element size. Per-vertex copy of
+        // min(src_stride, element_size) bytes: the overlap between the two
+        // layouts (e.g. tight vec3 src (12 B) → padded-vec4 MDI slot (16 B)
+        // → copy the 12 B of real data into each slot's low bytes;
+        // zero-fill from uploadStaticBuffer covers the trailing padding).
+        // A wider DESTINATION slot is what the interleaved per-instance
+        // array needs: translation writes bytes [0,16) of each 32-byte slot
+        // and color writes [16,32), so neither may advance by element_size.
         const int per_vertex
-            = std::min(op.src_stride, op.element_size);
+            = std::min(src_stride, op.element_size);
         regions.clear();
         regions.reserve(op.vertex_count);
         for(int v = 0; v < op.vertex_count; ++v)
         {
           regions.push_back(
-              {op.src_offset + v * op.src_stride,
-               op.dst_offset + v * op.element_size,
+              {op.src_offset + v * src_stride,
+               op.dst_offset + v * dst_stride,
                per_vertex});
         }
         score::gfx::copyBufferRegions(
