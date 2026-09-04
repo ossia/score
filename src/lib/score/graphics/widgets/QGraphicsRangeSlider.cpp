@@ -1,3 +1,4 @@
+#include <score/graphics/TypeInWidget.hpp>
 #include <score/graphics/widgets/QGraphicsRangeSlider.hpp>
 #include <score/model/Skin.hpp>
 
@@ -14,8 +15,8 @@ namespace score
 {
 QGraphicsRangeSlider::QGraphicsRangeSlider(QGraphicsItem* parent)
     : m_rangeRect{
-        m_rect.width() * m_start, m_rect.top(), m_rect.width() * (m_end - m_start),
-        m_rect.height()}
+          m_rect.width() * m_start, m_rect.top(), m_rect.width() * (m_end - m_start),
+          m_rect.height()}
 {
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorPointingHand);
@@ -171,10 +172,50 @@ void QGraphicsRangeSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
 void QGraphicsRangeSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  mouseMoveEvent(event);
-  handle = NONE;
-  sliderReleased();
+  // A right press never grabbed a handle, so there is nothing to finish: going
+  // through the drag path anyway emitted a move and a release on an untouched
+  // slider.
+  if(handle != NONE)
+  {
+    mouseMoveEvent(event);
+    handle = NONE;
+    sliderReleased();
+  }
+  else if(event->button() == Qt::RightButton)
+  {
+    showTypeIn(event->scenePos());
+  }
   event->accept();
+}
+
+void QGraphicsRangeSlider::showTypeIn(QPointF scenePos)
+{
+  auto* sc = scene();
+  if(!sc)
+    return;
+
+  const auto v = value();
+  showTypeInBox(
+      *sc, scenePos,
+      {TypeInField{QStringLiteral("min"), m_min, m_max, v[0]},
+       TypeInField{QStringLiteral("max"), m_min, m_max, v[1]}},
+      [this](int i, double val) {
+    // The bounds may not cross: typing a min past the max pushes the max
+    // rather than inverting the range, as dragging a handle does.
+    if(i == 0)
+    {
+      m_start = std::clamp(to01(val), 0., 1.);
+      m_end = std::max(m_start, m_end);
+    }
+    else
+    {
+      m_end = std::clamp(to01(val), 0., 1.);
+      m_start = std::min(m_start, m_end);
+    }
+    updateRect();
+    sliderMoved();
+    update();
+  }, [this] { sliderReleased(); });
 }
 
 //! QEvent::UngrabMouse: the scene took the implicit grab away and there will be

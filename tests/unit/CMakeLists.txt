@@ -48,6 +48,12 @@ score_add_test(test_unit_right_click_widget
   SOURCES RightClickWidgetTest.cpp
   APP)
 
+# The multi-field type-in box: clicking its second field used to take it down,
+# so every coordinate but the first was unreachable.
+score_add_test(test_unit_graphics_typein
+  SOURCES GraphicsTypeInTest.cpp
+  APP)
+
 if(TARGET score_plugin_controlsurface)
   # Control choice for a device parameter dropped on a Control surface.
   score_add_test(test_unit_controlsurface_control

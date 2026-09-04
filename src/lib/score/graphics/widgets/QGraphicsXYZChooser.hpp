@@ -44,6 +44,11 @@ public:
   void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
 
 private:
+  //! Right-click: three boxes to type x, y and z into, the way a right-click
+  //! puts one box on a slider. See QGraphicsXYChooser.
+  void showTypeIn(QPointF scenePos);
+
+  void rescale() noexcept;
   ossia::vec3f scaledValue(float x, float y, float z) const noexcept;
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
