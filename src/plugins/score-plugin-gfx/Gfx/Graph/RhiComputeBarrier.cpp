@@ -97,8 +97,9 @@ namespace score::gfx
 // COMPUTE_SHADER / SHADER_WRITE is the obvious half: these copies exist to
 // move what a compute pass just produced.
 //
-// TRANSFER / TRANSFER_WRITE is the half that was missing, and it is not
-// hypothetical. The copies here are recorded through beginExternal(), so QRhi
+// TRANSFER / TRANSFER_WRITE is the half that is easy to miss, and the hazard
+// it covers is not hypothetical. The copies here are recorded through
+// beginExternal(), so QRhi
 // never sees them and its per-buffer usageState tracking
 // (QRhiVulkan::trackedBufferBarrier, qrhivulkan.cpp) cannot order them against
 // anything. Meanwhile QRhi lowers every uploadStaticBuffer in a
@@ -108,15 +109,15 @@ namespace score::gfx
 // copy here then writes (or reads) again is a transfer-vs-transfer hazard, and
 // a barrier whose source scope names only the compute stage does nothing about
 // it. The concrete case: ScenePreprocessorNode's growBuf zero-clears a freshly
-// allocated inst.translations / inst.colors over [0, capacity) through the
+// allocated inst.attribs over [0, capacity) through the
 // update batch, and issuePendingGpuCopies then writes the per-instance slot
 // ranges of that same buffer with vkCmdCopyBuffer — WRITE_AFTER_WRITE over the
 // whole overlap, on every (re)allocation frame. The upstream Instancer's own
 // uploadStaticBuffer into the source buffer is the mirror-image READ_AFTER_WRITE.
 //
-// Widening the source scope costs nothing: it is the same single barrier, with
-// one more stage bit. It is emphatically NOT a barrier per copy — the batched
-// begin/endBufferCopyBarrier bracket around issuePendingGpuCopies is preserved.
+// The wider source scope costs nothing: it is one single barrier with one more
+// stage bit, not a barrier per copy — the batched begin/endBufferCopyBarrier
+// bracket around issuePendingGpuCopies still holds.
 inline constexpr VkPipelineStageFlags kCopySrcStages
     = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT;
 inline constexpr VkAccessFlags kCopySrcAccess
