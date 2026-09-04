@@ -973,9 +973,22 @@ void GfxContext::renderFrames(int frames)
   const bool step = m_stepRate > 0.;
   const int64_t frame_flicks
       = step ? int64_t(std::llround(ossia::flicks_per_second<double> / m_stepRate)) : 0;
-  // Held for the whole call so PROGRESS sweeps 0..1 across it rather than
-  // restarting on every frame.
-  const ossia::time_value span{frame_flicks * (m_stepFrame + frames)};
+  // The span must not depend on how the caller batched its frames.
+  //
+  // WindowDevice documents the contract: "the clock keeps counting across
+  // calls, so renderFrames(1) sixty times is the timeline renderFrames(60)
+  // is." The date already honours that -- frame k is at k * frame_flicks
+  // either way -- but the span was frame_flicks * (m_stepFrame + frames), so
+  // it carried the size of THIS call. renderFrames(60) gave PROGRESS k/60
+  // while renderFrames(1) sixty times gave k/(k+1): same frames, same dates,
+  // different PROGRESS, which is exactly what the contract says cannot happen.
+  //
+  // There is no total to normalise against -- renderFrames is a free-running
+  // stepper, nobody declares how many frames will ultimately be drawn -- so
+  // PROGRESS cannot be a true 0..1 sweep here, and the old comment claiming it
+  // was could only ever hold for a single batched call. What it CAN be is
+  // consistent, which is what was actually promised. Computed per frame from
+  // the step counter alone, both forms now yield k/(k+1).
 
   for(int i = 0; i < frames; i++)
   {
@@ -987,6 +1000,7 @@ void GfxContext::renderFrames(int frames)
     // the transport last sent.
     if(step)
     {
+      const ossia::time_value span{frame_flicks * (m_stepFrame + 1)};
       const score::gfx::Timings tk{
           .date = ossia::time_value{frame_flicks * m_stepFrame},
           .parent_duration = span};
