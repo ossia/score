@@ -287,6 +287,21 @@ score_add_test(test_gfx_csf_orient_gate
 target_compile_definitions(test_gfx_csf_orient_gate PRIVATE
   GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
 
+# Writable cubemaps on Direct3D. HLSL has no RWTextureCube in any shader model
+# and SPIRV-Cross aborts the translation rather than approximating one, so every
+# shader declaring a cube storage image failed to bake for D3D11 and D3D12 --
+# and only for them. The fix declares the same texture as the 2D-array VIEW the
+# D3D UAV already was, gated on QSHADER_HLSL, with no change to the shader the
+# author writes; this pins both halves (it bakes everywhere; the API did not
+# move). Same no-device shape as csf_orient_gate: QShaderBaker cross-compiles to
+# HLSL on any host. The picture itself is gfx_csf_cube_array's job.
+score_add_test(test_gfx_cube_image_hlsl
+  SOURCES GfxCubeImageHlsl.cpp
+  PLUGINS score_plugin_gfx score_lib_process
+  LIBS test_gfx_engine_glue)
+target_compile_definitions(test_gfx_cube_image_hlsl PRIVATE
+  GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+
 # The same idea, widened from one shader to the whole corpus: EVERY shader in
 # corpus/, of every kind, generated through the path the application uses and
 # then baked for GLSL, SPIR-V, HLSL and MSL. QShaderBaker cross-compiles on any
