@@ -83,9 +83,15 @@ constexpr Protocol sh4lt[] = {
     {"Sh4ltInput", "7b3a7adb-af9e-4dd5-9bd7-641f4d33fa2d", "Sh4lt Input"},
     {"Sh4ltOutput", "41e367e1-fc36-40b2-b8c4-8aecd5dfd4fc", "Sh4lt Output"},
 };
+// Lowercase, like every other uuid here and unlike how these two are spelled in
+// their SCORE_CONCRETE headers: the probe looks the factory up as a key of
+// Score.availableProtocols(), which builds its map with
+// score::uuids::toByteArray(), whose to_char() emits 'a' + (i - 10). A JS map
+// lookup is literal, so "398CEC01-..." never matched and Syphon read as ABSENT
+// on macOS even though it is built and linked there by default.
 constexpr Protocol syphon[] = {
-    {"SyphonInput", "398CEC01-C4EA-43B7-8281-D848748E0F68", "Syphon Input"},
-    {"SyphonOutput", "087D032D-9A42-4BC9-B3DF-AD9BA9E86C07", "Syphon Output"},
+    {"SyphonInput", "398cec01-c4ea-43b7-8281-d848748e0f68", "Syphon Input"},
+    {"SyphonOutput", "087d032d-9a42-4bc9-b3df-ad9ba9e86c07", "Syphon Output"},
 };
 
 struct Run
