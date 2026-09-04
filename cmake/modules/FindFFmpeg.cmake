@@ -254,6 +254,36 @@ if(OSSIA_SDK AND TARGET avutil)
     endif()
   endforeach()
 
+  # bz2 is in the list above, and on Linux and Windows it resolves: ossia/sdk
+  # builds bzip2 in Linux/zlib.sh and MSYS/zlib.sh and installs libbz2.a into
+  # $INSTALL_PREFIX/sysroot/lib, which is the first entry of the search list.
+  #
+  # macOS is the outlier, by design: sdk/macOS/ has no zlib.sh and macOS/all.sh
+  # never builds zlib or bzip2, because macOS ships both itself --
+  # /usr/lib/libbz2.1.0.dylib is a public library, present in the dyld shared
+  # cache, with a .tbd stub in the platform SDK. So there is deliberately no
+  # libbz2 in the prefix (verified on /opt/ossia-sdk-aarch64 and on the
+  # continuous build), and with NO_DEFAULT_PATH the entry resolves to NOTFOUND
+  # and nothing links bzip2 -- while libavformat.a keeps three undefined
+  # BZ2_bzDecompress* symbols in matroskadec.o.
+  #
+  # It stayed invisible because a static archive only pulls the member that is
+  # actually referenced: the app never drags matroskadec.o in, so only a target
+  # that does can fail -- test_unit_libav_interrupt, which on macOS needs a
+  # tests-enabled build, and the customer bundle deliberately has tests off.
+  #
+  # So the fix belongs here rather than in the SDK: fall back to the platform's
+  # own libbz2, which is what the SDK expects macOS to do for zlib as well. An
+  # SDK copy still wins wherever one exists, leaving Linux and Windows on their
+  # static sysroot/lib/libbz2.a exactly as before.
+  if(NOT FFMPEG_SDK_LIB_bz2)
+    find_library(FFMPEG_SYSTEM_LIB_BZ2 NAMES bz2 bzip2)
+    mark_as_advanced(FFMPEG_SYSTEM_LIB_BZ2)
+    if(FFMPEG_SYSTEM_LIB_BZ2)
+      imported_link_libraries(avutil "${FFMPEG_SYSTEM_LIB_BZ2}")
+    endif()
+  endif()
+
   # libvpx, libwebp, libsrt and x265 use pthreads; raw archive paths carry no
   # dependency information, so name this after them.
   find_package(Threads)
