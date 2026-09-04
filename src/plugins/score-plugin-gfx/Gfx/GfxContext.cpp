@@ -148,8 +148,8 @@ void GfxContext::destroyOutput(score::gfx::OutputNode* node)
 
     m_graph->destroyOutputRenderList(*node);
 
-    // Drop the edges too. Graph::removeNode is, by its own comment, "a pure
-    // pointer erase": it leaves m_edges holding Edges that point at this
+    // Drop the edges too. Graph::removeNode only erases the node pointer from
+    // m_nodes: it leaves m_edges holding Edges that point at this
     // output's Ports. The device is about to free the node and its Ports, so
     // ~Graph -> clearEdges() would then delete those Edges and, in ~Edge,
     // unlink them from the freed Ports. This is the same call the async
@@ -391,9 +391,8 @@ void GfxContext::recomputeTimers()
 
 
     // Clock #2 (the default): the shared wall-timer at manualRenderingRate.
-    // Outputs at the same rate coalesce onto one TimerClock / one shared timer,
-    // exactly as the old timer->set<OutputNode*> map did. The per-output
-    // fan-out closure is the old on_manual_timer body.
+    // Outputs at the same rate coalesce onto one TimerClock / one shared
+    // timer, which then fans out to each of its outputs.
     for(auto& output : m_graph->outputs())
     {
       auto conf = output->configuration();
@@ -491,12 +490,11 @@ void GfxContext::incrementalEdgeUpdate(
   // Pre-compute the set of sink ports that will be fed by an incoming edge
   // in this same batch. Handing that set to onEdgeRemoved prevents the
   // "remove A→B, add F→B" sequence from destroying B's input RT in the
-  // gap between the two, which was pure churn when the old and new feeds
-  // share a sink port (classic filter insertion). Reconcile reallocates
-  // RTs only when the slot is empty, so preserving the existing RT lets
-  // the new pass slot straight into place. Source: Graph.cpp
-  // createPassForEdgeIfMissing already treats a present RT as valid
-  // regardless of the edge that produced it.
+  // gap between the two -- pure churn when both feeds share a sink port
+  // (classic filter insertion). Reconcile reallocates RTs only when the
+  // slot is empty, so preserving the existing RT lets the new pass slot
+  // straight into place; Graph.cpp's createPassForEdgeIfMissing treats a
+  // present RT as valid regardless of the edge that produced it.
   ossia::hash_set<const score::gfx::Port*> preserveSinks;
   preserveSinks.reserve(added.size());
   for(auto& spec : added)
@@ -586,11 +584,9 @@ void GfxContext::incrementalEdgeUpdate(
       // not deferred, but not silent either: it means the producer published
       // a bad port index.
       //
-      // Name the nodes and their port counts. Bare indices are not actionable:
-      // "8:0 -> 3:0" on a real document (instanced-helmets-manual-expression,
-      // A26) says an edge was dropped and the frame came out blank, without
-      // saying which node lacks the port or what either of them is, so the
-      // first step of every investigation is re-instrumenting this line.
+      // Name the nodes and their port counts: bare indices such as
+      // "8:0 -> 3:0" say an edge was dropped without saying which node lacks
+      // the port or what either of them is.
       fprintf(
           stderr,
           "gfx: dropping edge with out-of-range port: %d:%d -> %d:%d "
@@ -973,9 +969,18 @@ void GfxContext::renderFrames(int frames)
   const bool step = m_stepRate > 0.;
   const int64_t frame_flicks
       = step ? int64_t(std::llround(ossia::flicks_per_second<double> / m_stepRate)) : 0;
-  // Held for the whole call so PROGRESS sweeps 0..1 across it rather than
-  // restarting on every frame.
-  const ossia::time_value span{frame_flicks * (m_stepFrame + frames)};
+  // The span must not depend on how the caller batched its frames.
+  // WindowDevice documents the contract: "the clock keeps counting across
+  // calls, so renderFrames(1) sixty times is the timeline renderFrames(60)
+  // is." Frame k is at k * frame_flicks either way, so the span must be
+  // computed per frame from the step counter alone -- deriving it from the
+  // size of THIS call would give PROGRESS k/60 for renderFrames(60) and
+  // k/(k+1) for sixty renderFrames(1): same frames, same dates, different
+  // PROGRESS.
+  //
+  // renderFrames is a free-running stepper and nobody declares how many
+  // frames will ultimately be drawn, so PROGRESS is not a true 0..1 sweep
+  // here; it is k/(k+1) in both forms, which is what the contract asks for.
 
   for(int i = 0; i < frames; i++)
   {
@@ -987,6 +992,7 @@ void GfxContext::renderFrames(int frames)
     // the transport last sent.
     if(step)
     {
+      const ossia::time_value span{frame_flicks * (m_stepFrame + 1)};
       const score::gfx::Timings tk{
           .date = ossia::time_value{frame_flicks * m_stepFrame},
           .parent_duration = span};
