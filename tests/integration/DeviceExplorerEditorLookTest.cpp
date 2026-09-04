@@ -36,6 +36,7 @@
 #include <QElapsedTimer>
 #include <QEventLoop>
 #include <QHeaderView>
+#include <QKeySequence>
 #include <QLabel>
 #include <QPixmap>
 #include <QPlainTextEdit>
@@ -132,7 +133,19 @@ struct Tree
     view->expandAll();
     view->show();
     QApplication::processEvents();
+
+    // Qt only delivers focus events inside an active window, and the cases
+    // below turn on them: an editor commits when the focus leaves it. There is
+    // no window manager on the CI display, so activation is a round trip to
+    // the X server rather than something show() already did.
+    view->raise();
+    view->activateWindow();
+    for(int i = 0; i < 200 && !view->isActiveWindow(); i++)
+      QApplication::processEvents(QEventLoop::AllEvents, 10);
   }
+
+  //! Whether a focus change in this window produces focus events at all.
+  bool canFocus() const { return view->isActiveWindow(); }
 
   QModelIndex valueIndex(int child) const
   {
@@ -153,6 +166,16 @@ QWidget* openEditor(QTreeView& v, const QModelIndex& idx)
     if(w->isVisible() && w->parent() == v.viewport())
       return w;
   return nullptr;
+}
+
+//! Redo, however the platform spells it: Ctrl+Y on Windows, Ctrl+Shift+Z on
+//! X11 and macOS. QPlainTextEdit matches the sequence, not the keys.
+void keyRedo(QWidget& w)
+{
+  const QKeySequence seq{QKeySequence::Redo};
+  REQUIRE(seq.count() > 0);
+  const auto combo = seq[0];
+  score::test::keyClick(w, combo.key(), combo.keyboardModifiers());
 }
 }
 
@@ -860,8 +883,8 @@ TEST_CASE("the hex column undoes and redoes", "[integration][explorer][look]")
     QApplication::processEvents();
     CHECK(digits() == before);
 
-    score::test::keyClick(*hex, Qt::Key_Y, Qt::ControlModifier);
-    score::test::keyClick(*hex, Qt::Key_Y, Qt::ControlModifier);
+    keyRedo(*hex);
+    keyRedo(*hex);
     QApplication::processEvents();
     CHECK(digits().startsWith("ff"));
 
@@ -1054,6 +1077,12 @@ TEST_CASE("the byte panel commits, and Escape throws the edit away",
 {
   score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
     Tree t{ctx};
+
+    // Every check below is about what happens when the focus leaves the
+    // editor, which is nothing at all in a window the platform never
+    // activated.
+    REQUIRE(t.canFocus());
+
     const auto idx = t.valueIndex(9); // the blob
 
     const auto* addr = Explorer::DeviceExplorerDelegate::addressAt(idx);
@@ -1116,6 +1145,12 @@ TEST_CASE("clicking away commits and Escape reverts",
 {
   score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
     Tree t{ctx};
+
+    // Every check below is about what happens when the focus leaves the
+    // editor, which is nothing at all in a window the platform never
+    // activated.
+    REQUIRE(t.canFocus());
+
     const auto idx = t.valueIndex(0); // the int, value 5
 
     auto value = [&] {
@@ -1189,6 +1224,12 @@ TEST_CASE("leaving an editor does not confuse the view",
 {
   score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
     Tree t{ctx};
+
+    // Every check below is about what happens when the focus leaves the
+    // editor, which is nothing at all in a window the platform never
+    // activated.
+    REQUIRE(t.canFocus());
+
     WarningWatch watch;
 
     // Reports which way out of the editor left the view confused.
