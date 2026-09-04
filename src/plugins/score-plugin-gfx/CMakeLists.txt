@@ -947,7 +947,16 @@ option(SCORE_READBACK_TESTER "Build the host-memory readback self-test" ON)
 # Static builds work too: the top-level CMakeLists completes the link with the
 # full plugin list via score_link_plugins_for_static (the EncoderTester
 # remedy), so no static gate here.
-if(SCORE_READBACK_TESTER)
+#
+# NOT EMSCRIPTEN for exactly the reason spelled out above EncoderTester: this
+# is a bare add_executable that never passes through
+# setup_score_common_features(), which is the only place emscripten's --bind is
+# added, so the link fails on the _emval_* symbols Qt6Gui pulls in via embind
+# (qlocalfileapi.cpp.o). It needs a GPU and an RHI, so it could never run in
+# the wasm job anyway. The sibling had the gate and this one did not; the wasm
+# build simply never reached the link stage to reveal it, because it was
+# failing earlier while compiling a second, FetchContent-downloaded zstd.
+if(SCORE_READBACK_TESTER AND NOT EMSCRIPTEN)
 add_executable(ReadbackTester tests/ReadbackTester.cpp)
 target_link_libraries(ReadbackTester PRIVATE
   score_plugin_gfx score_plugin_media ${QT_PREFIX}::Gui)
