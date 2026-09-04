@@ -32,7 +32,7 @@
 #include <QDoubleSpinBox>
 #include <QFileDialog>
 #include <QFileInfo>
-#include <QFontComboBox>
+#include <QFontDatabase>
 #include <QApplication>
 #include <QGuiApplication>
 #include <QHBoxLayout>
@@ -758,9 +758,16 @@ private:
   QAction m_open{this};
 };
 
-//! A string the device says names a font: the fonts this machine has, and
-//! still editable, since the name is the device's and need not be installed
-//! here.
+/**
+ * @brief A string the device says names a font: the fonts this machine has.
+ *
+ * Still editable, since the name is the device's and need not be a font
+ * installed here.
+ *
+ * A plain combo box off QFontDatabase rather than QFontComboBox, which draws
+ * each entry in its own face but does not exist in the deployment builds of Qt
+ * -- the same configurations that drop QT_NO_STYLE_STYLESHEET above.
+ */
 class FontValueWidget final : public AddressValueWidget
 {
 public:
@@ -770,6 +777,7 @@ public:
     m_edit.setContentsMargins(0, 0, 0, 0);
     m_edit.setEditable(true);
     m_edit.setInsertPolicy(QComboBox::NoInsert);
+    m_edit.addItems(QFontDatabase::families());
     this->setFocusProxy(&m_edit);
     m_lay.addWidget(&m_edit);
 
@@ -789,7 +797,7 @@ public:
 
 private:
   score::MarginLess<QHBoxLayout> m_lay{this};
-  QFontComboBox m_edit;
+  QComboBox m_edit;
 };
 
 //! Anything whose textual form round-trips through the value parser.
