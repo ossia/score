@@ -134,6 +134,7 @@ resolution drift IS a regression).
 """
 import argparse
 import json
+import math
 import os
 import sys
 
@@ -152,6 +153,21 @@ PROFILES = {
     "self": dict(psnr=45.0, ssim=None, max_abs=4, pixel_tol=1, max_frac=0.001),
 }
 DEFAULT_PROFILE = "shared"
+
+
+
+def _json_safe(o):
+    """json.dumps writes Infinity/NaN for non-finite floats. That is valid
+    Python but NOT valid JSON, and a strict parser rejects the whole document:
+    Qt's QJsonDocument::fromJson returns a null document, so GoldenImage.hpp
+    reported "comparator produced no verdict" and the case failed even though
+    the verdict was PASS. It only bites when two images are IDENTICAL over the
+    compared channels -- psnr = inf -- which is precisely what --channels makes
+    common. Emit a large finite number instead: 999 dB is unreachable for any
+    real pair and still orders correctly against every threshold."""
+    return {k: (999.0 if isinstance(v, float) and math.isinf(v)
+                else (None if isinstance(v, float) and math.isnan(v) else v))
+            for k, v in o.items()}
 
 
 def load(path):
@@ -277,7 +293,7 @@ def main():
 
     if a.shape != b.shape:
         out.update(verdict="FAIL", reason=f"size mismatch {a.shape} vs {b.shape}")
-        print(json.dumps(out) if args.json
+        print(json.dumps(_json_safe(out)) if args.json
               else f"FAIL size-mismatch {a.shape} vs {b.shape}")
         sys.exit(1)
 
@@ -324,7 +340,7 @@ def main():
                 out["diff"] = d
 
     if args.json:
-        print(json.dumps(out))
+        print(json.dumps(_json_safe(out)))
     else:
         line = (f"{out['verdict']} psnr={m['psnr']} ssim={m['ssim']} "
                 f"mean_abs={m['mean_abs']} max_abs={m['max_abs']} "
