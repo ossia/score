@@ -77,6 +77,7 @@ set(HDRS
     JitCpp/Compiler/MinGWCOFFPlatform.hpp
 
     Bytebeat/Bytebeat.hpp
+    Expr2/Expr2.hpp
 
     score_plugin_jit.hpp
 )
@@ -89,6 +90,7 @@ set(SRCS
     JitCpp/ApplicationPlugin.cpp
 
     Bytebeat/Bytebeat.cpp
+    Expr2/Expr2.cpp
 
     score_plugin_jit.cpp
 
