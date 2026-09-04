@@ -34,11 +34,15 @@
 //     WindowDevice.cpp shouldForceOffscreen). Grab each window with
 //     WindowDevice::grabTo, the same call Score.device(...).grabTo uses in
 //     integration/scene-js-sweep.sh. Any non-blank grab -> OK; texture
-//     outlets present but every grab blank or unwritten -> BLANK. A document
-//     with no texture outlet legitimately has no gfx output -> OK with a note.
+//     outlets present but every grab blank or unwritten -> BLANK, but ONLY if
+//     nothing logged a shader/build failure; otherwise -> NORENDER, because
+//     the document never got a working graph and its pixels say nothing about
+//     the renderer (A26). A document with no texture outlet legitimately has
+//     no gfx output -> OK with a note.
 //
 // Verdicts: OK / UNKNOWN_UUID:<uuid> / LOADFAIL / ROUNDTRIP / GRAPHFAIL /
-// BLANK — plus CRASH_SIG<n> / TIMEOUT which are synthesized by the driver
+// BLANK / NORENDER — plus CRASH_SIG<n> / TIMEOUT which are synthesized by the
+// driver
 // (run-score-corpus.sh) from the process's signal exit / timeout, exactly as
 // run-corpus.sh does for the video tester.
 //
@@ -99,6 +103,53 @@ namespace
 // tester's emit() so run-score-corpus.sh can build its summary with the same
 // '"mode":"...","file":"...","status":"..."' greps run-corpus.sh uses.
 // ---------------------------------------------------------------------------
+// A26 -- BLANK used to mean two different things and could not be told apart.
+//
+// A document whose shaders fail to build ends up with no RawRaster mode, no
+// geometry port, an empty render list and finally "grabTo: nothing rendered",
+// which reached the report as BLANK -- identical to a document that built
+// perfectly and legitimately drew nothing. One such false BLANK
+// (instanced-helmets-manual-expression.score) was filed as a product defect
+// that renders nothing on every platform; the user corrected it -- the
+// document renders fine in the real application. That mistake is the reason
+// this exists.
+//
+// One cause was found and fixed (the application name pointed the package
+// search at a directory that does not exist -- see prepare_environment). But
+// ANY shader build failure produces the same indistinguishable BLANK, so the
+// verdict needed to carry the distinction rather than rely on that one cause
+// staying fixed. Errors are recorded here and the render verdict below splits
+// into BLANK (built, drew nothing) and NORENDER (never built).
+namespace build_errors
+{
+inline std::vector<std::string> messages;
+inline QtMessageHandler chained = nullptr;
+
+inline bool is_build_failure(QStringView m) noexcept
+{
+  // Matched against what score actually logs on these paths.
+  static constexpr const char16_t* patterns[] = {
+      u"Shader include not found", u"could not compile",  u"Shader compilation",
+      u"nothing rendered",         u"Invalid shader",     u"ISF parse error",
+      u"could not create",         u"failed to create",
+  };
+  for(const auto* pat : patterns)
+    if(m.contains(QStringView{pat}, Qt::CaseInsensitive))
+      return true;
+  return false;
+}
+
+inline void handler(QtMsgType t, const QMessageLogContext& c, const QString& m)
+{
+  if(t >= QtWarningMsg && is_build_failure(m) && messages.size() < 8)
+    messages.push_back(m.toStdString());
+  if(chained)
+    chained(t, c, m);
+}
+
+inline void install() { chained = qInstallMessageHandler(&handler); }
+}
+
 struct Verdict
 {
   std::string status;
@@ -545,10 +596,23 @@ void run_document(
                       + " windows non-blank");
       finish(file, v);
     }
+    // BLANK now means exactly one thing: the graph built and drew nothing.
+    // A document that never got as far as a working shader is NORENDER, and
+    // carries the first error that says so, so it can never again be read as
+    // "this renders nothing on every platform".
+    if(!build_errors::messages.empty())
+    {
+      v.status = "NORENDER";
+      note_append(
+          v.note, std::to_string(grabbed) + "/" + std::to_string(windows)
+                      + " windows grabbed, none built: "
+                      + build_errors::messages.front());
+      finish(file, v);
+    }
     v.status = "BLANK";
     note_append(
         v.note, std::to_string(grabbed) + "/" + std::to_string(windows)
-                    + " windows grabbed, all blank");
+                    + " windows grabbed, all blank (no build errors logged)");
     finish(file, v);
   });
 }
@@ -594,6 +658,9 @@ int main(int argc, char** argv)
   // The pre-scan runs before the app boots: SCORE_FORCE_OFFSCREEN_WINDOW must
   // name each window device of THIS document (exact-name list, cached on first
   // use) before any WindowDevice is created during document load.
+  // Before anything can log a shader failure.
+  build_errors::install();
+
   const Prescan scan = prescan(bytes);
   if(!scan.device_names.isEmpty() && !qEnvironmentVariableIsSet("SCORE_FORCE_OFFSCREEN_WINDOW"))
     qputenv("SCORE_FORCE_OFFSCREEN_WINDOW", scan.device_names.join(',').toUtf8());
