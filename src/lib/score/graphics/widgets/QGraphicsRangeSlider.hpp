@@ -52,6 +52,10 @@ public:
   void sliderMoved() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved)
   void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
 private:
+  //! Right-click: two boxes to type the two bounds into, the way a right-click
+  //! puts one box on a plain slider. See QGraphicsXYChooser.
+  void showTypeIn(QPointF scenePos);
+
   [[nodiscard]] double to01(double v) const noexcept;
   [[nodiscard]] double from01(double v) const noexcept;
 

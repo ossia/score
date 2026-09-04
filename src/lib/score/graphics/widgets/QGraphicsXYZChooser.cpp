@@ -1,3 +1,4 @@
+#include <score/graphics/TypeInWidget.hpp>
 #include <score/graphics/widgets/QGraphicsXYZChooser.hpp>
 #include <score/model/Skin.hpp>
 #include <score/tools/Debug.hpp>
@@ -56,9 +57,21 @@ ossia::vec3f QGraphicsXYZChooser::scaledValue(float x, float y, float z) const n
       m_min[2] + z * (m_max[2] - m_min[2])};
 }
 
+//! The drag state, which the z strip carries across presses: a press in the
+//! xy square reads x and y off the click and keeps whatever z it had, so a
+//! value that came from elsewhere has to land here too or the next drag puts
+//! the old z back.
+void QGraphicsXYZChooser::rescale() noexcept
+{
+  for(int i = 0; i < 3; i++)
+    prev_v[i]
+        = (m_max[i] > m_min[i]) ? (m_value[i] - m_min[i]) / (m_max[i] - m_min[i]) : 0.f;
+}
+
 void QGraphicsXYZChooser::setValue(ossia::vec3f v)
 {
   m_value = v;
+  rescale();
   update();
 }
 
@@ -67,13 +80,19 @@ void QGraphicsXYZChooser::setRange(ossia::vec3f min, ossia::vec3f max, ossia::ve
   m_min = min;
   m_max = max;
   m_init = init;
-  prev_v[0] = (m_value[0] - m_min[0]) / (m_max[0] - m_min[0]);
-  prev_v[1] = (m_value[1] - m_min[2]) / (m_max[1] - m_min[1]);
-  prev_v[2] = (m_value[2] - m_min[2]) / (m_max[2] - m_min[2]);
+  rescale();
 }
 
 void QGraphicsXYZChooser::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
+  // Left button only: the right one raises the type-in boxes on release, and
+  // must not move the point on the way there.
+  if(event->button() != Qt::LeftButton)
+  {
+    event->accept();
+    return;
+  }
+
   const auto p = event->pos();
   if(p.x() < 100.)
   {
@@ -152,7 +171,30 @@ void QGraphicsXYZChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     sliderReleased();
     m_grab = false;
   }
+  else if(event->button() == Qt::RightButton)
+  {
+    showTypeIn(event->scenePos());
+  }
   event->accept();
+}
+
+void QGraphicsXYZChooser::showTypeIn(QPointF scenePos)
+{
+  auto* sc = scene();
+  if(!sc)
+    return;
+
+  showTypeInBox(
+      *sc, scenePos,
+      {TypeInField{QStringLiteral("x"), m_min[0], m_max[0], m_value[0]},
+       TypeInField{QStringLiteral("y"), m_min[1], m_max[1], m_value[1]},
+       TypeInField{QStringLiteral("z"), m_min[2], m_max[2], m_value[2]}},
+      [this](int i, double v) {
+    m_value[i] = v;
+    rescale();
+    sliderMoved();
+    update();
+  }, [this] { sliderReleased(); });
 }
 
 //! QEvent::UngrabMouse: the scene took the implicit grab away and there will be
