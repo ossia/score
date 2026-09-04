@@ -2,7 +2,7 @@
 """The golden-image comparator. One golden per case, every backend.
 
     compare.py <golden.png> <actual.png> [--profile shared|self] [--json]
-               [--diff-dir DIR] [--name NAME]
+               [--diff-dir DIR] [--name NAME] [--channels rgb]
 
 THIS FILE IS THE ONLY PLACE A GOLDEN TOLERANCE IS DEFINED. golden-render.sh,
 text-render.sh and the C++ GoldenImage.hpp helper all route through it, so a
@@ -83,6 +83,51 @@ roundness. The margins are deliberately wide on the axes where an unseen
 vendor could reasonably differ (max_abs, ssim) and tight on the axis that only
 moves when something is actually wrong (frac).
 
+-----------------------------------------------------------------------------
+--channels: WHICH CHANNELS CARRY A REPRODUCIBLE SIGNAL
+-----------------------------------------------------------------------------
+Default "rgb": everything. A caller may narrow it, and exactly one does today
+(threedim-render's obj-cube, "--channels rg"). The reason is not a tolerance
+dodge, it is that the excluded channel provably carries no reproducible signal
+at all, so comparing it states nothing about correctness.
+
+ModelDisplayNode.cpp's phong shader -- the one the "Light" texture projection
+(inlet 7 == 6) selects -- animates its own light every frame:
+
+    lightPosition.y = sin(TIME) * 20.;
+    lightPosition.z = cos(TIME) * 50.;
+
+TIME is Node.cpp:41's `tk.date.impl / flicks_per_second`, the transport date at
+the frame that happened to be grabbed, so it differs between runs by however
+much wall clock the settle drifted. Its materials route that animation into ONE
+channel: lightDiffuse*materialDiffuse == (0, 0.16, 0) is green-only and
+materialSpecular == (0,0,1) makes the specular blue-only, and the specular is
+pow(dotNH, 0.5) -- a sqrt, whose slope is unbounded as dotNH -> 0, so a
+sub-percent light rotation moves the specular terminator by a pixel and swings
+that pixel by ~70 codes.
+
+Measured, six independent renders of obj-cube on one machine (NVIDIA Quadro RTX
+4000, OpenGL 4.6 595.84), all 15 pairs:
+
+    max |dR|   0        max |dG|   0        pixels where R or G moved at all: 0
+    max |dB|  up to 75  pixels differing by >2: up to 5896 (0.64 % of frame)
+
+R and G are bit-identical across every pair. B is not reproducible even
+run-to-run on identical hardware: two consecutive runs scored max_abs 59 and
+0.47 % of pixels over the "self" profile's pixel_tol, i.e. the render fails the
+acceptance bar this file demands of a reference *against itself*. No golden for
+that channel can exist, and widening a threshold until 75 codes passes would
+admit an inverted block on any case.
+
+So the channel is dropped from the golden and asserted structurally instead
+(ThreedimRenderTest.cpp): the specular field's aggregate shape -- its peak, its
+number of distinct levels, its area -- is stable to ~1 % across those same six
+renders and dies outright if the specular or the normals break.
+
+Narrowing channels is only ever legitimate on that evidence: a channel that
+does not reproduce against ITSELF. Never use it to quiet a channel that merely
+differs.
+
 Exit codes: 0 pass, 1 fail, 2 usage/IO error. Identical files short-circuit to
 PASS with psnr=inf. A size mismatch is always FAIL (never resampled:
 resolution drift IS a regression).
@@ -126,10 +171,20 @@ def psnr(a, b):
 
 
 def ssim(a, b, sigma=1.5):
-    """Mean SSIM over the luma plane, gaussian-windowed (Wang et al. 2004)."""
-    # ITU-R BT.601 luma; SSIM on luma is the standard single-channel variant.
-    la = a @ np.array([0.299, 0.587, 0.114])
-    lb = b @ np.array([0.299, 0.587, 0.114])
+    """Mean SSIM over the luma plane, gaussian-windowed (Wang et al. 2004).
+
+    `a` and `b` carry only the channels under comparison. With all three that
+    is ITU-R BT.601 luma, the standard single-channel variant. With a narrowed
+    --channels set there is no standard weighting for a partial colour, so the
+    kept planes are averaged equally -- SSIM is a structure measure and the
+    weights only set which structure it sees.
+    """
+    if a.shape[2] == 3:
+        w = np.array([0.299, 0.587, 0.114])
+    else:
+        w = np.full(a.shape[2], 1.0 / a.shape[2])
+    la = a @ w
+    lb = b @ w
     c1, c2 = (0.01 * 255) ** 2, (0.03 * 255) ** 2
     mu_a = gaussian_filter(la, sigma)
     mu_b = gaussian_filter(lb, sigma)
@@ -155,6 +210,11 @@ def write_artifacts(outdir, name, golden, actual, per_pixel, pixel_tol):
     dimmed golden so the picture stays recognisable, and offending pixels are
     painted on a red->yellow->white ramp by severity, so the eye lands on the
     defect and its shape is readable (a block, an edge, a whole surface).
+
+    `golden` and `actual` are always the FULL colour images -- a diff is there
+    to be looked at -- while `per_pixel` may have been computed over a narrowed
+    --channels set, so the heat only marks pixels that moved in the channels
+    actually under comparison.
     """
     try:
         os.makedirs(outdir, exist_ok=True)
@@ -196,12 +256,24 @@ def main():
     ap.add_argument(
         "--name",
         help="basename for the artifacts (defaults to the golden's basename)")
+    ap.add_argument(
+        "--channels", default="rgb",
+        help="which channels the metrics are computed over, as a subset of "
+             "'rgb' (default: all three). Only legitimate for a channel that "
+             "does not reproduce against itself -- see the module docstring.")
     args = ap.parse_args()
+
+    chans = args.channels.lower()
+    if not chans or set(chans) - set("rgb") or len(set(chans)) != len(chans):
+        print(f"ERROR: --channels must be a non-empty subset of 'rgb', "
+              f"got {args.channels!r}", file=sys.stderr)
+        sys.exit(2)
+    sel = [{"r": 0, "g": 1, "b": 2}[c] for c in chans]
 
     name = args.name or os.path.splitext(os.path.basename(args.ref))[0]
     a, b = load(args.ref), load(args.test)
     out = {"ref": args.ref, "test": args.test, "profile": args.profile,
-           "name": name}
+           "name": name, "channels": chans}
 
     if a.shape != b.shape:
         out.update(verdict="FAIL", reason=f"size mismatch {a.shape} vs {b.shape}")
@@ -210,15 +282,18 @@ def main():
         sys.exit(1)
 
     th = PROFILES[args.profile]
-    diff = np.abs(a - b)
+    # Every metric below sees only the channels under comparison. With the
+    # default "rgb" that is the whole image and nothing changes.
+    av, bv = a[:, :, sel], b[:, :, sel]
+    diff = np.abs(av - bv)
     # Worst channel error at each pixel: a pixel is "differing" if ANY of its
     # channels moved, not if the average of the three did.
     per_pixel = diff.max(axis=2)
     frac = float((per_pixel > th["pixel_tol"]).sum()) / per_pixel.size
 
     m = {
-        "psnr": round(psnr(a, b), 3),
-        "ssim": round(ssim(a, b), 6),
+        "psnr": round(psnr(av, bv), 3),
+        "ssim": round(ssim(av, bv), 6),
         "mean_abs": round(float(diff.mean()), 4),
         "max_abs": float(diff.max()),
         "frac_over": round(frac, 8),
@@ -254,6 +329,8 @@ def main():
         line = (f"{out['verdict']} psnr={m['psnr']} ssim={m['ssim']} "
                 f"mean_abs={m['mean_abs']} max_abs={m['max_abs']} "
                 f"over{th['pixel_tol']}={100*frac:.4f}%")
+        if chans != "rgb":
+            line += f" channels={chans}"
         if fails:
             line += f"  [{out['reason']}]"
             if out.get("diff"):

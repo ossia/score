@@ -70,7 +70,17 @@
 // Cases found un-goldenable and asserted structurally instead:
 //   * csf-geometry: csf-vertex-count-expr.cs is time-animated by design, so
 //     two grabs never agree; asserted non-blank + blue-dominant (the raster's
-//     particle colour), which a missing geometry cable turns black.
+//     particle colour), which a missing geometry cable turns black. It now
+//     renders syn-geo-asym-tri.cs instead -- a fixed, clock-free, deliberately
+//     LOPSIDED triangle -- and is goldenable again; see the case.
+//
+// CHANNELS found un-goldenable, on an otherwise goldenable case:
+//   * obj-cube's BLUE. The phong shader the Light projection selects animates
+//     its own light off the transport clock, and its materials aim the whole
+//     animation at the specular, which is blue-only. Measured over six renders
+//     on one machine, R and G are bit-identical and B is not reproducible even
+//     against itself. The golden covers "rg"; the specular is asserted by its
+//     shape. Full derivation at the case.
 //
 // Vulkan note: this suite pins the GL class only, but the model pipeline no
 // longer ABORTS on the Vulkan backend. It used to hit a qrhivulkan.cpp assert
@@ -797,6 +807,46 @@ double maxDrawnRadius(const QImage& im, int lit = 24)
   return best;
 }
 
+//! What a single channel's field looks like, without pinning where it is.
+//!
+//! The three numbers are a shape, not a picture: the brightest value reached,
+//! how many distinct non-zero levels it is quantised into, and how much of the
+//! frame it covers. A term that has been switched off collapses all three to
+//! zero; a term that has lost its per-fragment input collapses `levels` to 1
+//! while leaving peak and area alone; a term that has flooded the frame moves
+//! `area`. None of them moves when the FIELD MERELY SLIDES, which is exactly
+//! the freedom the golden cannot be asked to pin (see the obj-cube case).
+struct ChannelShape
+{
+  int peak{0};   //!< brightest value in the channel
+  int levels{0}; //!< distinct non-zero values
+  double area{0.0}; //!< fraction of the frame where the channel is non-zero
+};
+
+ChannelShape channelShape(const QImage& im, int channel)
+{
+  ChannelShape s;
+  bool seen[256] = {};
+  std::int64_t n = 0;
+  for(int y = 0; y < im.height(); y++)
+  {
+    const uchar* row = im.constScanLine(y);
+    for(int x = 0; x < im.width(); x++)
+    {
+      const int v = row[x * 3 + channel];
+      if(v == 0)
+        continue;
+      n++;
+      s.peak = std::max(s.peak, v);
+      seen[v] = true;
+    }
+  }
+  for(bool b : seen)
+    s.levels += b ? 1 : 0;
+  s.area = double(n) / (double(im.width()) * im.height());
+  return s;
+}
+
 struct Diff
 {
   double meanAbs{999};
@@ -874,7 +924,14 @@ void skipUnlessGoldenComparatorUsable()
 //! measured against cannot condemn a regression on any other, which is the
 //! same defect the per-backend ref trees had, expressed as a skip instead of
 //! as a directory.
-void requireMatchesGolden(const RenderResult& r, const QString& caseName)
+//!
+//! `channels` is forwarded to compare.py. It is not a tolerance: see
+//! GoldenImage.hpp and compare.py's docstring for the one fact that licenses
+//! narrowing it (a channel the renderer cannot reproduce against itself), and
+//! the obj-cube case below for the only use of it in this file.
+void requireMatchesGolden(
+    const RenderResult& r, const QString& caseName,
+    const QString& channels = QStringLiteral("rgb"))
 {
   const QString refPath = refsDir() + "/" + caseName + ".png";
   if(qEnvironmentVariableIsSet("SCORE_THREEDIM_UPDATE_REFS"))
@@ -892,7 +949,7 @@ void requireMatchesGolden(const RenderResult& r, const QString& caseName)
                              << " (renders exist but were never validated?)");
 
   const auto v = score::testing::compareToGolden(
-      r.frame, caseName, refsDir(), goldenArtifactDir());
+      r.frame, caseName, refsDir(), goldenArtifactDir(), channels);
   if(!v.ran)
     SKIP("golden comparator unavailable (python3 + numpy/PIL/scipy)");
 
@@ -906,6 +963,49 @@ void requireMatchesGolden(const RenderResult& r, const QString& caseName)
 }
 } // namespace
 
+// THE GOLDEN HERE COVERS R AND G ONLY, AND THE REASON IS MEASURED.
+//
+// The Light projection (inlet 7 == 6) with an OBJ that carries UVs and normals
+// selects ModelDisplayNode.cpp's phong pair, and that shader animates its own
+// light off the transport clock:
+//
+//     lightPosition.y = sin(TIME) * 20.;
+//     lightPosition.z = cos(TIME) * 50.;
+//
+// TIME is Node.cpp:41's `tk.date.impl / flicks_per_second`, so it is whatever
+// the transport had reached at the frame the grab happened to catch. The
+// materials route that animation into exactly one channel. Ambient is
+// lightAmbient*materialAmbient == (0.01, 0.04, 0), constant. Diffuse is
+// lightDiffuse*materialDiffuse == (0, 0.16, 0), GREEN-only, and the mesh is
+// flat-shaded so it takes one value per face. Specular is
+// lightSpecular*materialSpecular == (0, 0, 0.9), BLUE-only, scaled by
+// pow(dotNH, 0.5) -- a square root, whose slope is unbounded as dotNH -> 0.
+//
+// So the frame is: R constant at 1, G a three-valued map of the FACE NORMALS
+// (5 / 6 / 23 -- exactly what this case is named after), and B a smooth
+// specular field with a terminator that a sub-percent light rotation drags
+// across a pixel, swinging it by ~70 codes.
+//
+// Six independent renders on one machine (NVIDIA Quadro RTX 4000, OpenGL 4.6
+// 595.84), all fifteen pairs:
+//
+//     max |dR| = 0      max |dG| = 0      pixels where R or G moved: 0
+//     max |dB| up to 75, up to 5896 pixels (0.64 %) past the shared pixel_tol
+//
+// Two CONSECUTIVE runs scored max_abs 59 with 0.47 % of pixels over tolerance
+// against each other -- so the blue channel fails compare.py's "self" profile,
+// the bar that file demands of an image before it may become a reference at
+// all. Re-blessing cannot help (the next run differs again) and widening the
+// gate to 75 codes would let an inverted block through on every case in the
+// tree. The channel simply has no golden.
+//
+// It is not dropped, it is asserted differently. What the animation moves is
+// WHERE the specular field sits; what it leaves alone is the field's shape,
+// and the shape is what a broken specular or a broken normal would destroy.
+// Measured over the same six renders: peak 87 in all six, 87 distinct non-zero
+// levels in all six, area 14.536 %..14.649 % of the frame. The floors below sit
+// well under those, because the light's +100 x term anchors the highlight but
+// its phase is not ours to pin.
 TEST_CASE(
     "an OBJ with normals renders through the model pipeline",
     "[integration][threedim][render][gui]")
@@ -924,7 +1024,22 @@ TEST_CASE(
   if(!r.error.isEmpty())
     SKIP(r.error.toStdString());
   skipIfNothingIsRasterised(r);
-  requireMatchesGolden(r, "obj-cube");
+
+  // R + G: the silhouette and the per-face diffuse shading, i.e. the geometry
+  // and the normals. Bit-exact against the golden on this machine (psnr=inf,
+  // max_abs=0), and a one-code shift in G alone already fails the gate.
+  requireMatchesGolden(r, "obj-cube", "rg");
+
+  // B: the specular term the clock animates. Shape, not position.
+  const auto spec = channelShape(r.frame, 2);
+  INFO("specular (blue) field: peak " << spec.peak << ", " << spec.levels
+                                      << " distinct levels, area "
+                                      << 100.0 * spec.area << " % of frame");
+  CHECK(spec.peak >= 48);    // measured 87 x6; 0 if the specular is gone
+  CHECK(spec.levels >= 32);  // measured 87 x6; 1 if it lost its per-fragment
+                             // half-vector and went flat
+  CHECK(spec.area >= 0.05);  // measured 0.1454..0.1465
+  CHECK(spec.area <= 0.35);  // and it must not flood the frame either
 }
 
 // GeometryLoader now derives flat per-face normals for any triangle mesh a
@@ -1673,13 +1788,35 @@ TEST_CASE(
 {
   QTemporaryDir dir;
   REQUIRE(dir.isValid());
-  // syn-geo-producer.cs: fixed VERTEX_COUNT, no TIME anywhere -- one
-  // viewport-covering solid-green triangle, so this case IS goldenable
-  // (csf-vertex-count-expr.cs was tried first and is time-animated by
-  // design: its particle cloud roams off-frame, five spaced grabs measured
+  // syn-geo-asym-tri.cs: fixed VERTEX_COUNT, no TIME anywhere, so this case IS
+  // goldenable (csf-vertex-count-expr.cs was tried first and is time-animated
+  // by design: its particle cloud roams off-frame, five spaced grabs measured
   // all-blank on some runs).
+  //
+  // It used to render syn-geo-producer.cs, and that was the whole defect. That
+  // shader exists to DRIVE other tests: it emits the standard oversized
+  // fullscreen triangle, (-1,-1) (3,-1) (-1,3), every vertex the same flat
+  // green. Rasterised, the frame it produces is 921600 pixels of exactly
+  // (0,255,0) -- measured, one distinct colour, and the committed golden was
+  // one distinct colour too. A comparison between two uniform fills is not a
+  // comparison. Nothing about the geometry reached a pixel:
+  //
+  //   * every vertex is off-screen, so no edge and no corner is visible and
+  //     any position error that still covers the viewport renders identically;
+  //   * the colour is constant, so per-vertex colour interpolation is
+  //     unobservable and a pipeline that ignored the `color` attribute
+  //     entirely, or bound a constant, would pass;
+  //   * only "the frame went black" could ever fail it, which is the one thing
+  //     skipIfNothingIsRasterised and nonUniform already say.
+  //
+  // syn-geo-asym-tri.cs is the same pipeline with a triangle worth looking at:
+  // fully on-screen, lopsided on both axes, red/green/blue corners. Its
+  // silhouette is now 19.281 % of the frame in closed form, computed below from
+  // the vertex coordinates in the shader rather than read off the golden, so a
+  // wrong vertex position fails the AREA check even on a machine with no
+  // golden and no comparator.
   skipUnlessGoldenComparatorUsable();
-  const QString cs = gfxCorpusDir() + "/syn-geo-producer.cs";
+  const QString cs = gfxCorpusDir() + "/syn-geo-asym-tri.cs";
   const QString fs = gfxCorpusDir() + "/raw-raster-basic.fs";
   REQUIRE(QFile::exists(cs));
   REQUIRE(QFile::exists(fs));
@@ -1703,6 +1840,61 @@ Score.play();
   if(!r.error.isEmpty())
     SKIP(r.error.toStdString());
   skipIfNothingIsRasterised(r);
+
+  // ---- what the compute shader wrote, read back off the screen ------------
+  //
+  // The golden pins the picture. These pin WHY it is that picture: they are
+  // the closed form of syn-geo-asym-tri.cs's main(), so they hold on any
+  // backend, on a machine with no python3, and against a golden nobody has
+  // blessed yet. Between them and the golden there is nothing left for a
+  // uniform frame to hide behind.
+
+  // (1) The frame is not a flat fill. This is the assertion the old case could
+  //     not make: its render and its golden were both one colour, so a Null
+  //     backend's cleared frame and a correct render were indistinguishable.
+  REQUIRE(nonUniform(r.frame));
+
+  // (2) Coverage. A raw-raster pipeline writes gl_Position directly, so the
+  //     [-1,1] clip square IS the viewport whatever its aspect, and the
+  //     triangle's share of the frame is its share of that square:
+  //         |(v1-v0) x (v2-v0)| / 2 / 4
+  //       = |(1.35,0.40) x (0.70,1.35)| / 8
+  //       = (1.8225 - 0.28) / 8 = 0.192813
+  //     Measured here: 0.19281, five decimals of agreement -- Samples=1 is
+  //     pinned in the harness config so there is no antialiased rim to
+  //     account for, and the only cross-backend freedom left is which side of
+  //     a fill-rule tie an edge pixel falls on. The triangle's perimeter is
+  //     ~1900 px, 0.2 % of the frame, so a 1-px disagreement along the WHOLE
+  //     boundary is 0.002; the band below is twice that.
+  const double covered = double(drawnPixels(r.frame, 8))
+                         / (double(r.frame.width()) * r.frame.height());
+  INFO("triangle coverage " << 100.0 * covered
+                            << " % of frame (closed form 19.2813 %)");
+  CHECK(covered > 0.1888);
+  CHECK(covered < 0.1968);
+
+  // (3) The colour attribute is read PER VERTEX and interpolated. A constant
+  //     colour -- the old shader's, or a pipeline that lost the attribute and
+  //     fell back to one -- gives one value per channel; a Gouraud triangle
+  //     between three primaries gives a wide gamut, and each channel spans
+  //     nearly the full range on its own because it is 1 at its own corner and
+  //     0 at the other two. Measured: 72997 distinct colours in the frame,
+  //     254..255 distinct non-zero levels in every channel.
+  for(int c = 0; c < 3; c++)
+  {
+    const auto s = channelShape(r.frame, c);
+    INFO("channel " << c << ": peak " << s.peak << ", " << s.levels
+                    << " distinct levels, area " << 100.0 * s.area << " %");
+    CHECK(s.peak >= 200);   // measured 254..255: its own corner is saturated
+    CHECK(s.levels >= 64);  // measured 254..255: it ramps away from that
+                            // corner rather than switching
+  }
+
+  // (4) And the picture itself, which is where the triangle SITS -- the one
+  //     thing the area and the ramps above cannot see, since both survive a
+  //     flip, a rotation and an attribute permutation. Three runs of this
+  //     scene were byte-identical, so unlike obj-cube's specular there is a
+  //     real reference to compare against.
   requireMatchesGolden(r, "csf-geometry");
 }
 

@@ -78,9 +78,18 @@ struct GoldenVerdict
 //! `artifactDir` named after the case, so a CI failure carries the evidence
 //! needed to tell a real regression from a driver difference without a local
 //! reproduction.
+//!
+//! `channels` narrows which colour channels the metrics see, and defaults to
+//! all of them. It is NOT a tolerance knob and compare.py's docstring states
+//! the only bar that justifies moving it: a channel may be dropped when the
+//! renderer cannot reproduce it against ITSELF -- measured, two runs on one
+//! machine -- so that comparing it states nothing about correctness. Exactly
+//! one case narrows it today (obj-cube, "rg": its blue channel carries a
+//! specular term whose light position is sin(TIME)/cos(TIME)); that case
+//! asserts the dropped channel structurally instead of dropping the coverage.
 inline GoldenVerdict compareToGolden(
     const QImage& actual, const QString& caseName, const QString& refsDir,
-    const QString& artifactDir)
+    const QString& artifactDir, const QString& channels = QStringLiteral("rgb"))
 {
   GoldenVerdict v;
 
@@ -111,7 +120,8 @@ inline GoldenVerdict compareToGolden(
   p.start(
       "python3",
       QStringList{py, golden, actualPath, "--json", "--profile", "shared",
-                  "--diff-dir", artifactDir, "--name", caseName});
+                  "--diff-dir", artifactDir, "--name", caseName, "--channels",
+                  channels});
   if(!p.waitForStarted(10000))
     return v; // no python3: caller SKIPs
   p.waitForFinished(120000);
@@ -139,6 +149,8 @@ inline GoldenVerdict compareToGolden(
                   .arg(o.value("max_abs").toDouble())
                   .arg(o.value("mean_abs").toDouble())
                   .arg(o.value("pixels_over").toInt());
+  if(channels != QStringLiteral("rgb"))
+    v.metrics += " channels=" + channels;
   return v;
 }
 
