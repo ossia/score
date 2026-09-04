@@ -4,7 +4,7 @@
 // whole corpus of real user documents ($SCORE_CORPUS_DIR) by
 // run-score-corpus.sh, one process per document so a crash or hang condemns
 // only that document — the same contract as VideoCorpusTester.cpp and
-// run-corpus.sh, which this pair is modelled on (spec case P1-15).
+// run-corpus.sh, which this pair is modelled on.
 //
 // Usage:
 //   score_corpus_tester <file.score> [--seconds N] [--no-render]
@@ -14,12 +14,12 @@
 //     registered Process::ProcessFactoryList. Any unknown uuid is verdict
 //     UNKNOWN_UUID:<uuid> and the document is NOT loaded: on load, an unknown
 //     process is silently dropped (ProcessFactoryList::loadMissing is
-//     SCORE_TODO -> nullptr, see IntervalModelSerialization.cpp:199), which
+//     SCORE_TODO -> nullptr, see IntervalModelSerialization.cpp), which
 //     would both hide the reference and break the round-trip check. ~20 of
 //     the user's real documents reference processes that exist in no branch;
 //     for those, UNKNOWN_UUID is the correct, *expected* baseline verdict.
 //  2. Load the document through the application path:
-//     DocumentManager::loadFile (DocumentManager.cpp:615). Failure -> LOADFAIL.
+//     DocumentManager::loadFile. Failure -> LOADFAIL.
 //  3. Round-trip: Document::saveAsJson, reload that byte-for-byte through
 //     DocumentManager::loadDocument, saveAsJson again, compare. A divergence
 //     is verdict ROUNDTRIP with the first differing byte offset in the note.
@@ -34,11 +34,15 @@
 //     WindowDevice.cpp shouldForceOffscreen). Grab each window with
 //     WindowDevice::grabTo, the same call Score.device(...).grabTo uses in
 //     integration/scene-js-sweep.sh. Any non-blank grab -> OK; texture
-//     outlets present but every grab blank or unwritten -> BLANK. A document
-//     with no texture outlet legitimately has no gfx output -> OK with a note.
+//     outlets present but every grab blank or unwritten -> BLANK, but ONLY if
+//     nothing logged a shader/build failure; otherwise -> NORENDER, because
+//     the document never got a working graph and its pixels say nothing about
+//     the renderer. A document with no texture outlet legitimately has
+//     no gfx output -> OK with a note.
 //
 // Verdicts: OK / UNKNOWN_UUID:<uuid> / LOADFAIL / ROUNDTRIP / GRAPHFAIL /
-// BLANK — plus CRASH_SIG<n> / TIMEOUT which are synthesized by the driver
+// BLANK / NORENDER — plus CRASH_SIG<n> / TIMEOUT which are synthesized by the
+// driver
 // (run-score-corpus.sh) from the process's signal exit / timeout, exactly as
 // run-corpus.sh does for the video tester.
 //
@@ -99,6 +103,48 @@ namespace
 // tester's emit() so run-score-corpus.sh can build its summary with the same
 // '"mode":"...","file":"...","status":"..."' greps run-corpus.sh uses.
 // ---------------------------------------------------------------------------
+// Keep "the graph built and drew nothing" distinguishable from "the graph
+// never built".
+//
+// A document whose shaders fail to build ends up with no RawRaster mode, no
+// geometry port, an empty render list and finally "grabTo: nothing rendered",
+// which on its own is indistinguishable from a document that built perfectly
+// and legitimately drew nothing -- and reporting the first as a renderer
+// defect is a false accusation against a document that renders fine in the
+// application. Any shader build failure produces that shape, so the verdict
+// carries the distinction itself: build errors are recorded here and the
+// render verdict below splits into BLANK (built, drew nothing) and NORENDER
+// (never built).
+namespace build_errors
+{
+inline std::vector<std::string> messages;
+inline QtMessageHandler chained = nullptr;
+
+inline bool is_build_failure(QStringView m) noexcept
+{
+  // Matched against what score actually logs on these paths.
+  static constexpr const char16_t* patterns[] = {
+      u"Shader include not found", u"could not compile",  u"Shader compilation",
+      u"nothing rendered",         u"Invalid shader",     u"ISF parse error",
+      u"could not create",         u"failed to create",
+  };
+  for(const auto* pat : patterns)
+    if(m.contains(QStringView{pat}, Qt::CaseInsensitive))
+      return true;
+  return false;
+}
+
+inline void handler(QtMsgType t, const QMessageLogContext& c, const QString& m)
+{
+  if(t >= QtWarningMsg && is_build_failure(m) && messages.size() < 8)
+    messages.push_back(m.toStdString());
+  if(chained)
+    chained(t, c, m);
+}
+
+inline void install() { chained = qInstallMessageHandler(&handler); }
+}
+
 struct Verdict
 {
   std::string status;
@@ -255,19 +301,17 @@ void prepare_environment()
   // score::PluginLoader::pluginsDir() probes "<cwd>/plugins", and this
   // executable does not live next to <build>/plugins the way the application
   // binary does. Without this anchor the app boots with ZERO plug-ins and the
-  // first ctx.interfaces<Process::ProcessFactoryList>() hits SCORE_ABORT --
-  // measured: SIGABRT at ApplicationComponents.hpp:187 before any document is
-  // touched. Same fix, same reason, as
-  // score::test::prepare_test_environment (tests/fixtures/score_test/App.hpp:44-53).
+  // first ctx.interfaces<Process::ProcessFactoryList>() hits SCORE_ABORT,
+  // before any document is touched. Same fix, same reason, as
+  // score::test::prepare_test_environment (tests/fixtures/score_test/App.hpp).
   // The document path is made absolute in main() before this runs.
   if(!QDir{QStringLiteral("plugins")}.exists())
     QDir::setCurrent(QStringLiteral(SCORE_TEST_BINARY_DIR));
 #endif
 
   // The offscreen QPA has NO GL: score::gfx::RenderList::init's
-  // SCORE_ASSERT(m_emptyTexture->create()) (RenderList.cpp:115) traps as soon
-  // as any document builds a render list -- measured, SIGTRAP on
-  // demo-naos.score. So only force offscreen when there is genuinely no
+  // SCORE_ASSERT(m_emptyTexture->create()) traps as soon as any document
+  // builds a render list. So only force offscreen when there is genuinely no
   // display; with one, the real platform is used and each WindowDevice is
   // still headless because SCORE_FORCE_OFFSCREEN_WINDOW names it (set from the
   // pre-scan in main()). Without a display the render leg is skipped rather
@@ -291,16 +335,13 @@ void prepare_environment()
   QCoreApplication::setOrganizationDomain("ossia.io");
   // "score", NOT "score-corpus-tester". The package/library search path is
   // derived from QStandardPaths::DocumentsLocation + organization + APPLICATION
-  // NAME, so a distinct name pointed this at
+  // NAME, so a distinct name points this at
   //   ~/Documents/ossia/score-corpus-tester/packages
   // which does not exist, and every document whose shader has an #include
-  // failed to compile. The process then kept a default-constructed
-  // ProcessedProgram: no RawRaster mode, no geometry port, the scene edge onto
-  // it refused as out-of-range, an empty render list, and finally
-  // "grabTo: nothing rendered" -- reported as status BLANK for a document that
-  // renders perfectly in the application. Measured on
-  // instanced-helmets-manual-expression.score: 'Shader include not found:
-  // "openpbr.h" (searched: .../score-corpus-tester/packages ...)'.
+  // fails to compile: a default-constructed ProcessedProgram, no RawRaster
+  // mode, no geometry port, the scene edge onto it refused as out-of-range, an
+  // empty render list, and finally "grabTo: nothing rendered" -- a BLANK for a
+  // document that renders perfectly in the application.
   //
   // Config isolation does NOT depend on this name: it comes from the
   // XDG_CONFIG_HOME redirect above, which DocumentsLocation ignores. So the
@@ -442,11 +483,11 @@ void run_document(
                         + " vs " + std::to_string(pass2.size()) + " bytes)");
         // NOT a finish(): the round-trip is a WEAKER signal than the graph
         // build, and it is currently non-deterministic tree-wide (the
-        // ScenarioContentRoundtrip pin in LEDGER-DEFECT-FIXES.md has 2 of its
-        // 3 sources still open: view-geometry doubles recomputed on layout,
-        // and a random tail). Short-circuiting here would hide the render leg
-        // for nearly every document. The verdict is only reported as
-        // ROUNDTRIP if nothing worse is found downstream.
+        // ScenarioContentRoundtrip case has 2 of its 3 sources still open:
+        // view-geometry doubles recomputed on layout, and a random tail).
+        // Short-circuiting here would hide the render leg for nearly every
+        // document. The verdict is only reported as ROUNDTRIP if nothing
+        // worse is found downstream.
       }
       else
       {
@@ -514,7 +555,7 @@ void run_document(
                           + "." + QString::number(windows) + ".png";
       QFile::remove(png);
       // grabFrame(n, path) drives n frames through the gfx context and THEN
-      // reads the shared readback (WindowDevice.cpp:234-238); a bare grabTo
+      // reads the shared readback (WindowDevice::grabFrame); a bare grabTo
       // reads whatever the last render clock tick left there, which for a
       // just-started document is often still the cleared buffer.
       wd->grabFrame(2, png);
@@ -545,10 +586,23 @@ void run_document(
                       + " windows non-blank");
       finish(file, v);
     }
+    // BLANK means exactly one thing: the graph built and drew nothing. A
+    // document that never got as far as a working shader is NORENDER, and
+    // carries the first error that says so, so it cannot be read as "this
+    // renders nothing on every platform".
+    if(!build_errors::messages.empty())
+    {
+      v.status = "NORENDER";
+      note_append(
+          v.note, std::to_string(grabbed) + "/" + std::to_string(windows)
+                      + " windows grabbed, none built: "
+                      + build_errors::messages.front());
+      finish(file, v);
+    }
     v.status = "BLANK";
     note_append(
         v.note, std::to_string(grabbed) + "/" + std::to_string(windows)
-                    + " windows grabbed, all blank");
+                    + " windows grabbed, all blank (no build errors logged)");
     finish(file, v);
   });
 }
@@ -594,6 +648,9 @@ int main(int argc, char** argv)
   // The pre-scan runs before the app boots: SCORE_FORCE_OFFSCREEN_WINDOW must
   // name each window device of THIS document (exact-name list, cached on first
   // use) before any WindowDevice is created during document load.
+  // Before anything can log a shader failure.
+  build_errors::install();
+
   const Prescan scan = prescan(bytes);
   if(!scan.device_names.isEmpty() && !qEnvironmentVariableIsSet("SCORE_FORCE_OFFSCREEN_WINDOW"))
     qputenv("SCORE_FORCE_OFFSCREEN_WINDOW", scan.device_names.join(',').toUtf8());
