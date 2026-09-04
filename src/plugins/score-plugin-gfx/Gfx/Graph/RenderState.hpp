@@ -55,20 +55,69 @@ struct RenderState
   GraphicsApi api{};
   QShaderVersion version{};
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
-  struct
+  struct Caps
   {
+    // Indirect draw — Qt 6.12+; populated only on compatible builds.
     bool drawIndirect{false};
     bool drawIndirectMulti{false};
+
+    // Always queryable.
+    bool multiview{false};
+    bool resolveDepthStencil{false};
+    bool tessellation{false};
+    bool geometryShader{false};
+
+    // Extended capability set, driving shader feature gating and observability.
+    //
+    // baseInstance: indirect draws can use firstInstance as the draw ID through
+    //   gl_BaseInstance (ARB_shader_draw_parameters), which MDI's per-draw lookup
+    //   reads.
+    // instanceIndexIncludesBaseInstance: whether gl_InstanceIndex already contains
+    //   the firstInstance offset. The shader prepass injects
+    //   SCORE_INSTANCE_INDEX_INCLUDES_BASE_INSTANCE from this so presets work on
+    //   both paths.
+    // variableRateShading: per-tile shading-rate maps
+    //   (VK_EXT_fragment_shading_rate, D3D12 VRS).
+    // timestamps: whether lastCompletedGpuTime() returns meaningful values.
+    // pipelineCacheDataLoadSave: pipeline binary cache round-trip, used by
+    //   tryLoadPipelineCache / tryStorePipelineCache.
+    // textureViewFormat: R32UI <-> R32F aliasing, needed by the visibility buffer
+    //   preset.
+    // depthClamp: reverse-Z shadow passes avoiding near-plane clipping.
+    bool baseInstance{false};
+    bool instanceIndexIncludesBaseInstance{false};
+    bool variableRateShading{false};
+    bool timestamps{false};
+    bool pipelineCacheDataLoadSave{false};
+    bool textureViewFormat{false};
+    bool depthClamp{false};
+
+    void populate(QRhi& rhi);
   } caps;
-#endif
 
   // Called after QRhi is destroyed to clean up an imported VkDevice
   std::function<void()> customDeviceCleanup;
 
+  // Called right before the QRhi is destroyed, while its pipeline cache is
+  // still accessible. Used to persist QRhi::pipelineCacheData() to disk.
+  std::function<void()> preRhiDestroy;
+
+  // Mid-session pipeline-cache flush. Same storage path
+  // as preRhiDestroy but callable during normal operation — invoked
+  // from RenderList::render after a PSO-compile burst so the cache
+  // survives crashes / force-quits without a clean shutdown. Null
+  // when the backend doesn't support PipelineCacheDataLoadSave.
+  std::function<void()> savePipelineCache;
+
   void destroy()
   {
     window.reset();
+
+    if(preRhiDestroy)
+    {
+      preRhiDestroy();
+      preRhiDestroy = nullptr;
+    }
 
     delete rhi;
     rhi = nullptr;

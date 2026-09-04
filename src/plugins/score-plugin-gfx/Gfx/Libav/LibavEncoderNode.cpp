@@ -153,18 +153,15 @@ score::gfx::RenderList* LibavEncoderNode::renderer() const
 
 void LibavEncoderNode::createOutput(score::gfx::OutputConfiguration conf)
 {
-  m_renderState = std::make_shared<score::gfx::RenderState>();
-
-  m_renderState->surface = QRhiGles2InitParams::newFallbackSurface();
-  QRhiGles2InitParams params;
-  params.fallbackSurface = m_renderState->surface;
-  score::GLCapabilities caps;
-  caps.setupFormat(params.format);
-  m_renderState->rhi = QRhi::create(QRhi::OpenGLES2, &params, {});
-  m_renderState->renderSize = QSize(m_settings.width, m_settings.height);
+  m_renderState = score::gfx::createRenderState(
+      conf.graphicsApi, QSize(m_settings.width, m_settings.height), nullptr);
+  if(!m_renderState || !m_renderState->rhi)
+  {
+    qWarning() << "LibavEncoderNode: failed to create QRhi";
+    m_renderState.reset();
+    return;
+  }
   m_renderState->outputSize = m_renderState->renderSize;
-  m_renderState->api = score::gfx::GraphicsApi::OpenGL;
-  m_renderState->version = caps.qShaderVersion;
 
   auto rhi = m_renderState->rhi;
   m_texture = rhi->newTexture(
@@ -226,6 +223,11 @@ void LibavEncoderNode::destroyOutput()
 
   if(m_renderState)
   {
+    // Persist-across-rebuild contract: registry survives RL teardown,
+    // so we tear down its QRhi resources here BEFORE
+    // RenderState::destroy() (called below) frees the device.
+    releaseRegistry();
+
     delete m_renderTarget;
     m_renderTarget = nullptr;
     delete m_renderState->renderPassDescriptor;
@@ -234,10 +236,10 @@ void LibavEncoderNode::destroyOutput()
     m_depthStencil = nullptr;
     delete m_texture;
     m_texture = nullptr;
-    delete m_renderState->rhi;
-    m_renderState->rhi = nullptr;
-    delete m_renderState->surface;
-    m_renderState->surface = nullptr;
+    // RenderState::destroy() flushes the pipeline cache via preRhiDestroy
+    // and then deletes rhi + surface. Doing the deletes manually (the
+    // previous approach) bypassed the cache flush.
+    m_renderState->destroy();
     m_renderState.reset();
   }
 }

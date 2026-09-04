@@ -67,10 +67,10 @@ struct TexgenNode : NodeModel
     ~Rendered() { }
 
     QRhiTexture* texture{};
-    void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override
+    void initState(RenderList& renderer, QRhiResourceUpdateBatch& res) override
     {
-      const auto& mesh = renderer.defaultTriangle();
-      defaultMeshInit(renderer, mesh, res);
+      m_mesh = &renderer.defaultTriangle();
+      defaultMeshInit(renderer, *m_mesh, res);
       processUBOInit(renderer);
       m_material.init(renderer, node.input, m_samplers);
       std::tie(m_vertexS, m_fragmentS)
@@ -93,7 +93,8 @@ struct TexgenNode : NodeModel
         sampler->create();
         m_samplers.push_back({sampler, texture});
       }
-      defaultPassesInit(renderer, mesh);
+
+      m_initialized = true;
     }
 
     void update(
@@ -116,8 +117,8 @@ struct TexgenNode : NodeModel
             QRhiTexture::RGBA8, sz, 1, QRhiTexture::Flag{});
         newtex->create();
         for(auto& [edge, pass] : this->m_p)
-          if(pass.srb)
-            score::gfx::replaceTexture(*pass.srb, m_samplers[0].sampler, newtex);
+          if(pass.p.srb)
+            score::gfx::replaceTexture(*pass.p.srb, m_samplers[0].sampler, newtex);
         texture = newtex;
 
         if(oldtex && oldtex != &renderer.emptyTexture())
@@ -139,12 +140,15 @@ struct TexgenNode : NodeModel
       }
     }
 
-    void release(RenderList& r) override
+    void releaseState(RenderList& r) override
     {
-      texture->deleteLater();
-      texture = nullptr;
+      if(texture)
+      {
+        texture->deleteLater();
+        texture = nullptr;
+      }
 
-      defaultRelease(r);
+      GenericNodeRenderer::releaseState(r);
     }
 
     int t = 0;
