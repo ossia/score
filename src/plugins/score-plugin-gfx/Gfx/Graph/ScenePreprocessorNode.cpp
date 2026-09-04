@@ -1222,7 +1222,14 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   {
     if(!mat || !m_registry)
       return 0u;
-    if(m_registry->isLive(mat->raw_slot))
+    // isLiveIn, not isLive: this index is stamped into
+    // PerDrawGPU.material_index and the shader reads scene_materials,
+    // scene_materials_ext and scene_material_uv_xforms with it. isLive()
+    // validates against whichever arena the ref names, so a raw_slot crossed
+    // in from another arena -- RawTransform has 16384 slots against the ext
+    // buffers' handful -- would pass and index far outside them. A36 showed
+    // that class of read is an MMU fault, not merely wrong pixels.
+    if(m_registry->isLiveIn(mat->raw_slot, GpuResourceRegistry::Arena::Material))
       return mat->raw_slot.internal_index;
     auto it = m_loaderMaterialSlots.find(mat);
     if(it != m_loaderMaterialSlots.end() && it->second.valid())
