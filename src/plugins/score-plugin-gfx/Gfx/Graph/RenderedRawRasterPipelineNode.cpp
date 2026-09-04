@@ -1,6 +1,7 @@
 #include <Gfx/Graph/CustomMesh.hpp>
 #include <Gfx/Graph/ISFVisitors.hpp>
 #include <Gfx/Graph/PipelineStateHelpers.hpp>
+#include <Gfx/Graph/RhiClearBuffer.hpp>
 #include <Gfx/Graph/RenderedISFSamplerUtils.hpp>
 #include <Gfx/Graph/RenderedRawRasterPipelineNode.hpp>
 #include <Gfx/Graph/SSBO.hpp>
@@ -15,6 +16,7 @@
 
 #include <boost/algorithm/string/replace.hpp>
 
+#include <atomic>
 #include <cctype>
 #include <chrono>
 
@@ -223,6 +225,51 @@ std::vector<Sampler> RenderedRawRasterPipelineNode::allSamplers() const noexcept
   return samplers;
 }
 
+// Diagnostic escape hatch, mirroring SCORE_GFX_NO_GPU_INDIRECT: set
+// SCORE_GFX_NO_AUX_PLACEHOLDER_ZERO=1 to restore the pre-fix behaviour where an
+// unbound AUXILIARY placeholder was created and never written. It exists so the
+// crash this fix addresses can be A/B'd on the machine that reproduces it
+// without a second build; nothing in score sets it.
+static bool auxPlaceholderZeroFillDisabled() noexcept
+{
+  static const bool off
+      = qEnvironmentVariableIntValue("SCORE_GFX_NO_AUX_PLACEHOLDER_ZERO") > 0;
+  return off;
+}
+
+// Companion to traceAuxPlaceholder: logged from init(), before initPass runs,
+// for EVERY declared AUXILIARY -- bound or not. An empty census means the node
+// declares none and the placeholder trace below can never print.
+static void traceAuxResolution(
+    const std::string& name, bool bound, int64_t size) noexcept
+{
+  static const bool on
+      = qEnvironmentVariableIntValue("SCORE_GFX_TRACE_AUX_PLACEHOLDER") > 0;
+  if(!on)
+    return;
+  qDebug(
+      "[AUX-RESOLVE] name=%s bound_from_geometry=%d bytes=%lld", name.c_str(),
+      int(bound), (long long)size);
+}
+
+// SCORE_GFX_TRACE_AUX_PLACEHOLDER=1 logs every producerless AUXILIARY the node
+// had to invent a buffer for. It is the positive control for the knob above: a
+// run that prints no lines never allocated a placeholder, so toggling the
+// zero-fill in that run proved nothing.
+static void traceAuxPlaceholder(
+    const std::string& name, int64_t size, bool uniform, bool zeroed) noexcept
+{
+  static const bool on
+      = qEnvironmentVariableIntValue("SCORE_GFX_TRACE_AUX_PLACEHOLDER") > 0;
+  if(!on)
+    return;
+  static std::atomic_int counter{0};
+  qDebug(
+      "[AUX-PLACEHOLDER #%d] name=%s kind=%s bytes=%lld zero_filled=%d",
+      counter.fetch_add(1) + 1, name.c_str(), uniform ? "ubo" : "ssbo",
+      (long long)size, int(zeroed));
+}
+
 void RenderedRawRasterPipelineNode::initPass(
     const TextureRenderTarget& renderTarget, RenderList& renderer,
     QRhiResourceUpdateBatch& res, Edge& edge)
@@ -282,13 +329,36 @@ void RenderedRawRasterPipelineNode::initPass(
       {
         auto usage = aux.is_uniform ? QRhiBuffer::UniformBuffer
                                     : QRhiBuffer::StorageBuffer;
-        const int64_t dummySize = std::max<int64_t>(
-            aux.declared_size, aux.is_uniform ? 256 : 16);
+        // Rounded up to 4: RhiClearBuffer's contract (vkCmdFillBuffer) wants a
+        // 4-byte-aligned size.
+        const int64_t dummySize
+            = (std::max<int64_t>(aux.declared_size, aux.is_uniform ? 256 : 16) + 3)
+              & ~int64_t(3);
         auto* dummy = rhi.newBuffer(bufferTypeFor(usage), usage, dummySize);
         dummy->setName(aux.is_uniform ? "RRP_ubo_dummy" : "RRP_aux_dummy");
         if(!dummy->create())
           qWarning() << "RawRaster: could not create the placeholder buffer for"
                      << aux.name.c_str();
+        else if(!auxPlaceholderZeroFillDisabled())
+          // Zero-fill. Vulkan does NOT initialise VkBuffer memory: a placeholder
+          // allocated on a RenderList rebuild lands on whatever the previous
+          // owner of that suballocation left behind (measured on an RTX 4090:
+          // a freshly created, never-uploaded 256-byte Dynamic UBO reads back
+          // the byte pattern of a UBO freed earlier in the same process).
+          // When the aux has no producer in the user's graph this placeholder
+          // IS the buffer the shader reads, and shaders read it as a SENTINEL:
+          // classic_pbr_openpbr gates its clustered-lighting and volumetric
+          // paths on `cluster_config.cluster_x == 0u`, then indexes
+          // cluster_light_counts / cluster_light_lists / vol_integrated with an
+          // id derived from that grid. Garbage there turns a 16-byte
+          // placeholder into a multi-gigabyte out-of-bounds read. Same
+          // Vulkan-doesn't-zero-VkBuffers reasoning, and the same helper, as
+          // the INPUTS-side placeholders in
+          // IsfBindingsBuilder::ensureStorageResources -- that fix only ever
+          // covered the INPUTS storage/uniform path, never top-level AUXILIARY.
+          RhiClearBuffer::clearBuffer(rhi, res, dummy, 0, (quint32)dummySize);
+        traceAuxPlaceholder(
+            aux.name, dummySize, aux.is_uniform, !auxPlaceholderZeroFillDisabled());
         aux.buffer = dummy;
         aux.size = dummySize;
         aux.owned = true;
@@ -1388,13 +1458,23 @@ void RenderedRawRasterPipelineNode::initMRTPass(
       {
         auto usage = aux.is_uniform ? QRhiBuffer::UniformBuffer
                                     : QRhiBuffer::StorageBuffer;
-        const int64_t dummySize = std::max<int64_t>(
-            aux.declared_size, aux.is_uniform ? 256 : 16);
+        // Rounded up to 4: RhiClearBuffer's contract (vkCmdFillBuffer) wants a
+        // 4-byte-aligned size.
+        const int64_t dummySize
+            = (std::max<int64_t>(aux.declared_size, aux.is_uniform ? 256 : 16) + 3)
+              & ~int64_t(3);
         auto* dummy = rhi.newBuffer(bufferTypeFor(usage), usage, dummySize);
         dummy->setName(aux.is_uniform ? "RRP_ubo_dummy" : "RRP_aux_dummy");
         if(!dummy->create())
           qWarning() << "RawRaster: could not create the placeholder buffer for"
                      << aux.name.c_str();
+        else if(!auxPlaceholderZeroFillDisabled())
+          // Zero-fill: an unwritten placeholder reads back recycled device
+          // memory, and the shader reads it as a sentinel. Same reasoning as
+          // the non-MRT path.
+          RhiClearBuffer::clearBuffer(rhi, res, dummy, 0, (quint32)dummySize);
+        traceAuxPlaceholder(
+            aux.name, dummySize, aux.is_uniform, !auxPlaceholderZeroFillDisabled());
         aux.buffer = dummy;
         aux.size = dummySize;
         aux.owned = true;
@@ -2050,6 +2130,13 @@ void RenderedRawRasterPipelineNode::initState(
       {
         try_bind_from_geometry(ssbo);
       }
+
+      // Resolution census, printed before any placeholder exists: which
+      // AUXILIARY names the upstream geometry actually published and which the
+      // node will have to invent a buffer for. Whoever reads the
+      // [AUX-PLACEHOLDER] lines below needs this list to know the trace was in
+      // a position to observe anything at all.
+      traceAuxResolution(ssbo.name, ssbo.buffer != nullptr, ssbo.size);
 
       m_auxiliarySSBOs.push_back(std::move(ssbo));
     }
