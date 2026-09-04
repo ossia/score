@@ -292,8 +292,35 @@ Application::~Application()
   this->setParent(nullptr);
   m_settings.teardownView();
   // FIXME projectSettings?
-  delete m_view;
+
+  // Presenter BEFORE view, and the order matters: score::DocumentView is a
+  // QObject child of the MAIN WINDOW, not of its Document (Document.cpp:147
+  // passes `parentview`). So `delete m_view` first destroys every
+  // ScenarioDocumentView -- and with it the by-value ScenarioScene, the
+  // BaseGraphicsObject and the ProcessGraphicsView -- while the matching
+  // ScenarioDocumentPresenter is still alive under m_presenter.
+  // ~ScenarioDocumentPresenter then runs against freed memory:
+  // ~CentralNodalDisplay does `parent.view().view().autoScrollHandler = {}`,
+  // and ScenarioDocumentView::view() is `return *m_view` on a QPointer read
+  // out of the freed block, then deletes a NodalIntervalView whose parent item
+  // and scene are already gone. `delete m_miniLayer` two statements earlier
+  // frees a MiniScenarioView that QGraphicsScene::clear() already deleted.
+  //
+  // ~Document already states the correct order and explains it -- presenter,
+  // then view, then model -- and deleting the presenter first lets that run
+  // with the window still standing. It is also the configuration every GUI
+  // test already uses: MinimalGUIApplication deletes its presenter and never
+  // its view.
+  //
+  // Reported as a Windows shutdown fault (A33) because Windows reuses the
+  // freed block before it is read back, so the pointer comes out as garbage
+  // and faults; glibc leaves it intact and only ASan flags it. Same defect on
+  // both, and not nodal-specific -- ~CentralIntervalDisplay has it too. It
+  // needs an exit that reaches ~Application with a document still open, which
+  // is why the supported path (Presenter::exit() -> closeAllDocuments()) never
+  // showed it, and a script's Qt.exit() does.
   delete m_presenter;
+  delete m_view;
   delete m_startScreen;
 
   score::DocumentBackups::clear();
