@@ -75,6 +75,7 @@ int qInitResources_qtconf();
 #if !defined(SCORE_DEBUG) && !defined(__EMSCRIPTEN__)
 #define SCORE_SPLASH_SCREEN 1
 #endif
+
 #include <phantom/phantomstyle.h>
 
 #if defined(SCORE_SPLASH_SCREEN)
