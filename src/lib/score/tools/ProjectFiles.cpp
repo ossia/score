@@ -151,7 +151,16 @@ QString locateFilePath(const QString& filename, const PathRoots& roots) noexcept
   }
   else if(isLibraryRelativePath(filename))
   {
-    path.replace(library_prefix, roots.library.isEmpty() ? QString{} : roots.library + "/");
+    if(roots.library.isEmpty())
+    {
+      // Nothing to resolve against: stripping the prefix is all that can be
+      // done, and the remainder must be handed back verbatim. It must NOT go
+      // through absoluteFilePath() below -- on Windows "/x.fs" is not absolute
+      // in Qt's sense (no drive letter), so it would be anchored and come back
+      // as "//x.fs", a UNC share pointing at a host named "x.fs".
+      return filename.mid(library_prefix.size());
+    }
+    path.replace(library_prefix, roots.library + "/");
   }
   else if(!QFileInfo{filename}.isAbsolute())
   {
