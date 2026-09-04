@@ -1,6 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
+#include <Gfx/Settings/DisplayConfigDialog.hpp>
 #include <Gfx/Settings/Model.hpp>
 #include <Gfx/Settings/Presenter.hpp>
 #include <Gfx/Settings/View.hpp>
@@ -13,6 +14,7 @@
 #include <QComboBox>
 #include <QFormLayout>
 #include <QSpinBox>
+#include <QTabWidget>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Gfx::Settings::View)
@@ -38,11 +40,15 @@ View::View()
 
   static constexpr int buffers_values[]{1, 2, 3};
   SETTINGS_UI_NUM_COMBOBOX_SETUP("Buffer count", Buffers, buffers_values);
+
+  m_tabs = new QTabWidget;
+  m_tabs->addTab(m_widg, tr("Rendering"));
+  m_tabs->addTab(new DisplayConfigWidget, tr("Displays"));
 }
 
 QWidget* View::getWidget()
 {
-  return m_widg;
+  return m_tabs;
 }
 
 SETTINGS_UI_COMBOBOX_IMPL(GraphicsApi)

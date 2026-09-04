@@ -26,5 +26,8 @@ public:
 
 protected:
   void on_createdDocument(score::Document& doc) override;
+
+private:
+  void installEditorEscapeHatch();
 };
 }
