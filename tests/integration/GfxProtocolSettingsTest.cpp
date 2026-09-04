@@ -61,8 +61,6 @@ constexpr Protocol protocols[] = {
     {"GPhoto2", "a7e5e6cc-3e7e-4f92-b5f6-0dca37e64c8a", "GPhoto2 DSLR"},
     {"ShmdataInput", "8062b2e5-c589-41f1-8977-96c5ba782f95", "Shmdata Input"},
     {"ShmdataOutput", "69bb8215-dae2-4ec9-b60c-79f4f4fc2390", "Shmdata Output"},
-    {"Sh4ltInput", "7b3a7adb-af9e-4dd5-9bd7-641f4d33fa2d", "Sh4lt Input"},
-    {"Sh4ltOutput", "41e367e1-fc36-40b2-b8c4-8aecd5dfd4fc", "Sh4lt Output"},
     {"WindowCapture", "a7c1e3f0-5d2b-4e8a-9f6c-1b3d5e7a9c0f", "Window Capture"},
     {"Libav", "8b3e4f2a-1d5c-4e7b-a9f3-6c2d8e4b1a7f", "FFmpeg"},
 };
@@ -73,6 +71,17 @@ constexpr Protocol protocols[] = {
 constexpr Protocol spout[] = {
     {"SpoutInput", "3c995cb6-052b-4c52-a8fd-841b33b81b29", "Spout Input"},
     {"SpoutOutput", "ddf45db7-9eaf-453c-8fc0-86ccdf21677c", "Spout Output"},
+};
+// Sh4lt is built only when its library is present -- score-plugin-gfx guards
+// the sources with if(TARGET sh4lt), and that target only exists on Linux. It
+// sat in the unconditional list above and was asserted PRESENT everywhere, so
+// this case failed on macOS ("PROTO Sh4ltInput ABSENT", measured on
+// macmini-m1) and on all four Windows backends, while passing on Linux. Same
+// treatment as spout/syphon: the buildsystem tells the test what to expect, so
+// the two can never disagree.
+constexpr Protocol sh4lt[] = {
+    {"Sh4ltInput", "7b3a7adb-af9e-4dd5-9bd7-641f4d33fa2d", "Sh4lt Input"},
+    {"Sh4ltOutput", "41e367e1-fc36-40b2-b8c4-8aecd5dfd4fc", "Sh4lt Output"},
 };
 constexpr Protocol syphon[] = {
     {"SyphonInput", "398CEC01-C4EA-43B7-8281-D848748E0F68", "Syphon Input"},
@@ -212,6 +221,8 @@ TEST_CASE("score-plugin-gfx registers its protocol factories", "[integration][gf
     emitCheck(p);
   for(const auto& p : spout)
     emitCheck(p);
+  for(const auto& p : sh4lt)
+    emitCheck(p);
   for(const auto& p : syphon)
     emitCheck(p);
   src += QStringLiteral("Qt.exit(0);\n");
@@ -234,6 +245,15 @@ TEST_CASE("score-plugin-gfx registers its protocol factories", "[integration][gf
     {
       INFO("protocol " << p.name);
 #if defined(_WIN32)
+      CHECK(r.log.contains(QStringLiteral("PROTO %1 PRESENT").arg(p.name)));
+#else
+      CHECK(r.log.contains(QStringLiteral("PROTO %1 ABSENT").arg(p.name)));
+#endif
+    }
+    for(const auto& p : sh4lt)
+    {
+      INFO("protocol " << p.name);
+#if defined(SCORE_TEST_HAS_SH4LT)
       CHECK(r.log.contains(QStringLiteral("PROTO %1 PRESENT").arg(p.name)));
 #else
       CHECK(r.log.contains(QStringLiteral("PROTO %1 ABSENT").arg(p.name)));
