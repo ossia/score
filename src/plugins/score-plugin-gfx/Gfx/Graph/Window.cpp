@@ -9,6 +9,7 @@
 #include <core/application/ApplicationInterface.hpp>
 
 #include <QGuiApplication>
+#include <QtCore/qscopeguard.h>
 #include <QPointer>
 #include <QStringList>
 
@@ -264,6 +265,21 @@ void Window::render()
   // "QRhiGles2: Context is lost." forever.
   if(m_deviceLost)
     return;
+
+  // A frame is not re-entrant. beginFrame/endFrame bracket per-swapchain state
+  // and, on Vulkan, a command buffer whose barriers endFrame records out of the
+  // pass resource tracker; entering a second time corrupts both and the device
+  // is lost. This is reachable: on Windows a border drag runs a modal resize
+  // loop that pumps its own messages, so QWindowsWindow::handleWmPaint delivers
+  // the expose through flushWindowSystemEvents synchronously from inside
+  // WndProc, and exposeEvent() calls render() directly.
+  //
+  // Dropping the nested call is safe: every caller is a repaint request and the
+  // outer frame is about to present anyway, so nothing is lost but a duplicate.
+  if(m_inRender)
+    return;
+  m_inRender = true;
+  const auto _render_guard = qScopeGuard([this] { m_inRender = false; });
 
   // Hold a copy across the call: onUpdate() runs updateGraph(), and a graph
   // rebuild triggered from within it can re-arm or clear the vsync callback

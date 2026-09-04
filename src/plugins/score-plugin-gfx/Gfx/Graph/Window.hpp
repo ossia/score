@@ -101,6 +101,13 @@ private:
   bool m_hasSwapChain = false;
   bool m_deviceLost = false;
   bool m_retryScheduled = false;
+  // render() is reachable from the vsync/timer path (ScreenNode::render),
+  // from QEvent::UpdateRequest, and DIRECTLY from exposeEvent(). On Windows
+  // a border drag puts the window in a modal resize loop that pumps its own
+  // messages, so QWindowsWindow::handleWmPaint delivers the expose through
+  // flushWindowSystemEvents SYNCHRONOUSLY from inside WndProc -- i.e. a
+  // second render() on top of one already between beginFrame and endFrame.
+  bool m_inRender = false;
 
   static constexpr int retry_interval_ms = 100;
   bool m_embeddedFullscreen = false;
