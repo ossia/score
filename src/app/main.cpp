@@ -795,6 +795,28 @@ struct failsafe
   const bool disabled = qEnvironmentVariableIsSet("SCORE_DISABLE_FAILSAFE");
   const bool fs = !disabled && this->read();
 
+  // Set once, when we arm the bit, and read back by the atexit handler below.
+  // A plain std::string and ::remove rather than QString/QFile: this runs
+  // during exit, when Qt may be past the point of being usable.
+  static inline std::string armed_path{};
+
+  // ::exit() does NOT run main()'s local destructors, so the failsafe object's
+  // own scope guarantees nothing -- but it DOES run atexit handlers. This is
+  // how the bit survived a --help or --version run: QCommandLineParser's
+  // showHelp() calls ::exit(0) from inside the Application constructor, which
+  // is above failsafe.clear() in main(), so the bit stayed armed and the NEXT
+  // real launch started degraded with opengl forced off. Any probe of the
+  // binary poisoned the run that followed it, which in a test sweep silently
+  // turned later results into failsafe-mode results.
+  static void clear_at_exit() noexcept
+  {
+    if(!armed_path.empty())
+    {
+      ::remove(armed_path.c_str());
+      armed_path.clear();
+    }
+  }
+
   explicit failsafe()
   {
     if(disabled)
@@ -803,6 +825,8 @@ struct failsafe
     if(!fs)
     {
       this->write();
+      armed_path = this->path().toStdString();
+      std::atexit(&failsafe::clear_at_exit);
     }
     else
     {
@@ -837,6 +861,9 @@ struct failsafe
     {
       QFile f{this->path()};
       f.remove();
+      // Nothing left for the atexit handler to do; also stops it touching the
+      // path again after a later launch may have legitimately re-armed it.
+      armed_path.clear();
     }
   }
 
