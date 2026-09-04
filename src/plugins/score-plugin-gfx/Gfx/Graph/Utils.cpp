@@ -195,7 +195,19 @@ TextureRenderTarget createRenderTarget(
     texture->deleteLater();
     return {};
   }
-  return createRenderTarget(state, texture, samples, depth, samplableDepth);
+  auto ret = createRenderTarget(state, texture, samples, depth, samplableDepth);
+  if(!ret)
+  {
+    // The overload above leaves `tex` alone when the backend refuses one of the
+    // attachments it has to build around it, because there `tex` is the
+    // caller's. Here the caller is this function: the texture was allocated two
+    // statements ago and nothing else has a pointer to it, so dropping the
+    // empty result on the floor would strand a live VkImage on the QRhi. It
+    // survives until vmaDestroyAllocator finds the block still occupied and
+    // aborts the process from inside ~QRhi.
+    texture->deleteLater();
+  }
+  return ret;
 }
 
 TextureRenderTarget createRenderTarget(
