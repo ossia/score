@@ -165,6 +165,17 @@ QString locateFilePath(const QString& filename, const PathRoots& roots) noexcept
     path += filename;
   }
 
+  // A path that is already absolute needs no anchoring, and must not be sent
+  // through absoluteFilePath() on Windows: a rooted path carrying no drive
+  // letter comes back with its leading slash doubled -- "/x.fs" becomes
+  // "//x.fs" and "/elsewhere/x.wav" becomes "//elsewhere/x.wav". On Windows a
+  // leading "//" is a UNC share, so score would go looking for a host named
+  // "x.fs" and can block on a network timeout rather than simply failing to
+  // find a local file. cleanPath() normalises separators and "." / ".."
+  // without inventing an anchor, and leaves a genuine UNC path alone.
+  if(QFileInfo{path}.isAbsolute())
+    return QDir::cleanPath(path);
+
   return QFileInfo{path}.absoluteFilePath();
 }
 
