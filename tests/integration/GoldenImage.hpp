@@ -6,14 +6,11 @@
 // golden threshold is defined, and turns its JSON verdict into a Catch2
 // assertion.
 //
-// That indirection is the point. Before it, there were three tolerance models
-// in the tree for the same job: compare.py's PSNR/SSIM/max_abs profiles, the
-// meanAbs<4.0 / fracFar<0.02 pair open-coded in ThreedimRenderTest.cpp, and
-// text-render.sh's choice of which compare.py profile to pass. They disagreed
-// about what "the same picture" means -- the C++ pair, in particular, allowed
-// 2% of the frame to be off by more than 24 codes, which on a 1280x720 grab is
-// eighteen thousand pixels, a 135x135 block of arbitrary garbage, passing as a
-// match. Reimplementing the metrics here in C++ would have made a fourth.
+// That indirection is the point. Reimplementing PSNR/SSIM/max_abs here in C++
+// would be a second definition of "the same picture", and an open-coded pair
+// such as meanAbs<4.0 / fracFar<0.02 a looser one: 2% of a 1280x720 frame off
+// by more than 24 codes is eighteen thousand pixels, a 135x135 block of
+// arbitrary garbage, passing as a match.
 //
 // The cost is a python3 + numpy/PIL/scipy dependency in a C++ test. It is the
 // same dependency golden-render.sh and text-render.sh already carry, the tests
@@ -78,9 +75,18 @@ struct GoldenVerdict
 //! `artifactDir` named after the case, so a CI failure carries the evidence
 //! needed to tell a real regression from a driver difference without a local
 //! reproduction.
+//!
+//! `channels` narrows which colour channels the metrics see, and defaults to
+//! all of them. It is NOT a tolerance knob and compare.py's docstring states
+//! the only bar that justifies moving it: a channel may be dropped when the
+//! renderer cannot reproduce it against ITSELF, so that comparing it states
+//! nothing about correctness. Exactly
+//! one case narrows it today (obj-cube, "rg": its blue channel carries a
+//! specular term whose light position is sin(TIME)/cos(TIME)); that case
+//! asserts the dropped channel structurally instead of dropping the coverage.
 inline GoldenVerdict compareToGolden(
     const QImage& actual, const QString& caseName, const QString& refsDir,
-    const QString& artifactDir)
+    const QString& artifactDir, const QString& channels = QStringLiteral("rgb"))
 {
   GoldenVerdict v;
 
@@ -111,7 +117,8 @@ inline GoldenVerdict compareToGolden(
   p.start(
       "python3",
       QStringList{py, golden, actualPath, "--json", "--profile", "shared",
-                  "--diff-dir", artifactDir, "--name", caseName});
+                  "--diff-dir", artifactDir, "--name", caseName, "--channels",
+                  channels});
   if(!p.waitForStarted(10000))
     return v; // no python3: caller SKIPs
   p.waitForFinished(120000);
@@ -139,6 +146,8 @@ inline GoldenVerdict compareToGolden(
                   .arg(o.value("max_abs").toDouble())
                   .arg(o.value("mean_abs").toDouble())
                   .arg(o.value("pixels_over").toInt());
+  if(channels != QStringLiteral("rgb"))
+    v.metrics += " channels=" + channels;
   return v;
 }
 
