@@ -128,13 +128,44 @@ let messageProcessor = {
     },
 }
 
+function setStatus(text) {
+    const el = document.getElementById("status");
+    if (el !== null) {
+        el.textContent = text;
+    }
+}
+
 function connectToWS() {
     var endpoint = document.getElementById("endpoint").value;
     if (ws !== undefined) {
         ws.close()
     }
 
+    // score requires a token, which it shows in its remote control settings.
+    // It goes on the URL because a browser cannot set headers on a WebSocket.
+    const tokenField = document.getElementById("token");
+    const token = tokenField === null ? "" : tokenField.value.trim();
+    if (token !== "" && endpoint.indexOf("token=") === -1) {
+        endpoint += (endpoint.indexOf("?") === -1 ? "?" : "&")
+            + "token=" + encodeURIComponent(token);
+    }
+
+    setStatus("connecting...");
     ws = new WebSocket(endpoint);
+    ws.onopen = function () {
+        setStatus("connected");
+    }
+    // Without these a wrong or missing token looks exactly like nothing
+    // happening: score closes the socket and the page says nothing.
+    ws.onclose = function (event) {
+        setStatus(event.wasClean && event.code === 1000
+            ? "disconnected"
+            : "refused -- check the token in score's remote control settings"
+              + " (code " + event.code + ")");
+    }
+    ws.onerror = function () {
+        setStatus("could not reach " + endpoint);
+    }
     ws.onmessage = function (event) {
         var obj = JSON.parse(event.data);
         const handler = messageProcessor[obj.Message];

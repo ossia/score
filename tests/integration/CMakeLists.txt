@@ -4,7 +4,10 @@
 
 score_add_test(test_integration_document
   SOURCES DocumentLifecycleTest.cpp
-  APP)
+  GUI
+  PLUGINS score_plugin_scenario)
+target_compile_definitions(test_integration_document PRIVATE
+  "SCORE_ROOT_SOURCE_DIR=\"${SCORE_ROOT_SOURCE_DIR}\"")
 
 score_add_test(test_integration_roundtrip
   SOURCES DocumentRoundtripTest.cpp
@@ -297,3 +300,21 @@ set_tests_properties(test_frame_determinism PROPERTIES
   RUN_SERIAL TRUE
   LABELS "gui"
   ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+# --- devices whose protocol this build does not have ------------------------
+score_add_test(test_integration_device_unimplemented
+  SOURCES DeviceWithoutImplementationTest.cpp
+  APP
+  PLUGINS score_plugin_scenario score_plugin_deviceexplorer)
+
+# --- remote control: who is allowed to drive this instance ------------------
+# The WebSocket API sets device parameters, drives transport and can evaluate
+# JavaScript, so the access controls are worth asserting rather than assuming.
+if(TARGET score_plugin_remotecontrol)
+  score_add_test(test_integration_remote_control_auth
+    SOURCES RemoteControlAuthTest.cpp
+    APP
+    PLUGINS score_plugin_remotecontrol score_plugin_deviceexplorer
+    LIBS ${QT_PREFIX}::WebSockets)
+  target_include_directories(test_integration_remote_control_auth PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-remotecontrol")
+endif()

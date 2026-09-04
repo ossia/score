@@ -123,6 +123,11 @@ const std::vector<DocumentPlugin*>& DocumentContext::pluginModels() const
   return document.model().pluginModels();
 }
 
+score::Environment& DocumentContext::environment() const noexcept
+{
+  return document.environment();
+}
+
 Document::Document(
     const QString& name, const Id<DocumentModel>& id, DocumentDelegateFactory& factory,
     QWidget* parentview, QObject* parent)
@@ -154,6 +159,19 @@ Document::Document(
 
   //    connect(m_model, &DocumentModel::fileNameChanged,
   //            this, &Document::fileNameChanged);
+}
+
+score::Environment& Document::environment() const noexcept
+{
+  if(!m_environment)
+    m_environment = std::make_unique<score::LocalEnvironment>(m_context);
+  return *m_environment;
+}
+
+void Document::setEnvironment(std::unique_ptr<score::Environment> env)
+{
+  SCORE_ASSERT(env);
+  m_environment = std::move(env);
 }
 
 void Document::init()

@@ -1,4 +1,5 @@
 #pragma once
+#include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #include <score/tools/Version.hpp>
 
 #include <core/document/DocumentBuilder.hpp>
@@ -107,11 +108,23 @@ public:
 
   bool preparingNewDocument() const;
 
+  struct Loadability
+  {
+    //! Whether the document can be opened at all.
+    bool loadable{};
+
+    //! Plug-ins the document names that this build does not have. It still
+    //! opens: what those plug-ins contributed -- processes, their ports,
+    //! devices -- is kept verbatim and written back unchanged, so the document
+    //! survives a round-trip through this machine.
+    std::vector<UuidKey<score::Plugin>> missingPlugins;
+  };
+
   /**
    * @brief checkAndUpdateJson
-   * @return boolean indicating if the document is loadable
+   * @return whether the document is loadable, and what it names that we lack
    */
-  static bool
+  static Loadability
   checkAndUpdateJson(rapidjson::Value&, const score::GUIApplicationContext& ctx);
 
 public:

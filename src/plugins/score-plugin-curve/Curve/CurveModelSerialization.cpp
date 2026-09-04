@@ -61,8 +61,8 @@ SCORE_PLUGIN_CURVE_EXPORT void DataStreamWriter::write(Curve::Model& curve)
     auto seg = deserialize_interface(csl, *this, &curve);
     if(seg)
       segts.push_back(seg);
-    else
-      SCORE_TODO;
+    // else: SegmentList::loadMissing has said why, and the curve is short a
+    // segment rather than wrong about one.
   }
   std::sort(
       segts.begin(), segts.end(), [](Curve::SegmentModel* a, Curve::SegmentModel* b) {

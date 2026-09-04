@@ -188,7 +188,21 @@ public:
     throw;
   }
 
+  //! Every command this build can instantiate, as {group, key}.
+  //!
+  //! Peers mirror each other by exchanging commands, so which ones exist is
+  //! part of what makes two builds able to work together.
+  std::vector<std::pair<CommandGroupKey, CommandKey>> availableCommands() const;
+
   score::Command* instantiateUndoCommand(const CommandData& cmd) const;
+
+  //! Same, but returns nullptr instead of aborting or throwing when the command
+  //! is not registered in this build.
+  //!
+  //! For commands that did not originate locally: a peer in a networked session
+  //! may run a build with plug-ins we do not have, so an unknown command is a
+  //! situation to report, not a programming error to abort on.
+  score::Command* instantiateUndoCommandIfAvailable(const CommandData& cmd) const noexcept;
 
 private:
   const score::ApplicationComponentsData& m_data;
