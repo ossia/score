@@ -285,6 +285,24 @@ void main()
 }
 )_";
 
+// The "Light" texture projection (inlet 7 == 6) selects this pair.
+//
+// Two lines of its main() animate the light off the transport clock:
+//
+//     lightPosition.y = sin(TIME) * 20.;
+//     lightPosition.z = cos(TIME) * 50.;
+//
+// overriding the lightPosition initialiser below, with no inlet to pin the
+// phase. A still frame of this shader is therefore NOT reproducible: which
+// frame you get depends on the transport date the grab happened to land on.
+// The materials funnel that animation into one channel -- materialSpecular is
+// (0,0,1), so the specular is blue-only, and pow(dotNH, 0.5) has unbounded
+// slope at its terminator. Measured over six renders of the obj-cube case in
+// tests/integration/ThreedimRenderTest.cpp: R and G bit-identical across all
+// fifteen pairs, B off by up to 75 codes. That is why the case's golden covers
+// "rg" only and asserts the specular by its shape. Remove this animation, or
+// move it onto an inlet with a fixed default, and the case can go back to a
+// full-colour golden.
 const constexpr auto model_display_fragment_shader_phong = R"_(#version 450
 
 )_" model_display_default_uniforms R"_(
