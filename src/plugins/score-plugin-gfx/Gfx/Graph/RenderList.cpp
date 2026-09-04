@@ -568,7 +568,27 @@ bool RenderList::maybeRebuild(bool force)
     // queue empty and the resources safe to tear down.
     //
     // Triggers only on the first frame after a resize or forced rebuild.
-    if(state.rhi && state.rhi->isRecordingFrame())
+    //
+    // NOT gated on isRecordingFrame(). The comment above is true of the path
+    // this code was written for -- renderInternal, inside Window::render's
+    // brackets -- but it is not the only one. A surface resize goes
+    // exposeEvent() -> resizeSwapChain() -> onResize(), which rebuilds from
+    // OUTSIDE a frame, and there the guard skipped the drain entirely: nodes
+    // were released while frames already submitted were still executing, so a
+    // descriptor set could outlive the texture it pointed at. Aftermath caught
+    // exactly that -- an MMU fault on a GPU READ from an unmapped address in a
+    // fragment shader, i.e. a fetch through a descriptor whose backing memory
+    // had been freed.
+    //
+    // QRhi::finish() is documented as callable "inside and outside of a frame,
+    // but not inside a pass", and outside one it both waits on the queue and
+    // "executes all deferred operations, like ... resource releases" -- which
+    // is precisely what has to happen before release() runs.
+    //
+    // It explains the discriminator too: Window:/rendersize rebuilds from
+    // inside render() and never faults; Window:/size, /fullscreen and a mouse
+    // drag recreate the surface and rebuild from exposeEvent, and those do.
+    if(state.rhi)
       state.rhi->finish();
 
     m_built = false;
