@@ -33,6 +33,10 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QFontDatabase>
+#include <QtWidgets/qtwidgetsglobal.h>
+#if defined(QT_FEATURE_fontcombobox) && QT_CONFIG(fontcombobox)
+#include <QFontComboBox>
+#endif
 #include <QApplication>
 #include <QGuiApplication>
 #include <QHBoxLayout>
@@ -758,15 +762,26 @@ private:
   QAction m_open{this};
 };
 
+// QFontComboBox draws each entry in its own face, and is behind a Qt feature
+// that some builds turn off -- the same family of switch as the
+// QT_NO_STYLE_STYLESHEET this file already works around. Where it is missing,
+// a plain combo box off QFontDatabase is the same list without the preview.
+#if defined(QT_FEATURE_fontcombobox) && QT_CONFIG(fontcombobox)
+using FontChooserBox = QFontComboBox;
+void fillFontNames(FontChooserBox&) { }
+#else
+using FontChooserBox = QComboBox;
+void fillFontNames(FontChooserBox& box)
+{
+  box.addItems(QFontDatabase::families());
+}
+#endif
+
 /**
  * @brief A string the device says names a font: the fonts this machine has.
  *
  * Still editable, since the name is the device's and need not be a font
  * installed here.
- *
- * A plain combo box off QFontDatabase rather than QFontComboBox, which draws
- * each entry in its own face but does not exist in the deployment builds of Qt
- * -- the same configurations that drop QT_NO_STYLE_STYLESHEET above.
  */
 class FontValueWidget final : public AddressValueWidget
 {
@@ -777,7 +792,7 @@ public:
     m_edit.setContentsMargins(0, 0, 0, 0);
     m_edit.setEditable(true);
     m_edit.setInsertPolicy(QComboBox::NoInsert);
-    m_edit.addItems(QFontDatabase::families());
+    fillFontNames(m_edit);
     this->setFocusProxy(&m_edit);
     m_lay.addWidget(&m_edit);
 
@@ -797,7 +812,7 @@ public:
 
 private:
   score::MarginLess<QHBoxLayout> m_lay{this};
-  QComboBox m_edit;
+  FontChooserBox m_edit;
 };
 
 //! Anything whose textual form round-trips through the value parser.
