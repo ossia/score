@@ -367,9 +367,17 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
       renderTarget = score::gfx::createRenderTarget(
           renderer.state, psampler->textures[0], renderer.samples(), false);
       m_innerPassTargets.push_back(renderTarget);
-      renderTarget.texture->setName("RenderedISFNode::createPass::renderTarget.texture");
-      renderTarget.renderTarget->setName(
-          "RenderedISFNode::createPass::renderTarget.renderTarget");
+      // createRenderTarget returns a default-constructed (null) target when the
+      // backend refuses one -- renderTargetFailed() releases what it made and
+      // hands back {}. That path is not hypothetical: it is what fires when a
+      // driver will not give us the multisample colour buffer, and naming a
+      // null texture crashes there.
+      if(renderTarget.texture)
+        renderTarget.texture->setName(
+            "RenderedISFNode::createPass::renderTarget.texture");
+      if(renderTarget.renderTarget)
+        renderTarget.renderTarget->setName(
+            "RenderedISFNode::createPass::renderTarget.renderTarget");
       createdRt = true;
     }
 
@@ -427,10 +435,13 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
         ret.second.renderTarget = score::gfx::createRenderTarget(
             renderer.state, psampler->textures[1], renderer.samples(), false);
         m_innerPassTargets.push_back(ret.second.renderTarget);
-        ret.second.renderTarget.texture->setName(
-            "RenderedISFNode::createPass::ret.second.renderTarget.texture");
-        ret.second.renderTarget.renderTarget->setName(
-            "RenderedISFNode::createPass::ret.second.renderTarget.renderTarget");
+        // Same null-on-refusal contract as the intermediary pass above.
+        if(ret.second.renderTarget.texture)
+          ret.second.renderTarget.texture->setName(
+              "RenderedISFNode::createPass::ret.second.renderTarget.texture");
+        if(ret.second.renderTarget.renderTarget)
+          ret.second.renderTarget.renderTarget->setName(
+              "RenderedISFNode::createPass::ret.second.renderTarget.renderTarget");
 
         // We necessarily use the main pass rendered-to samplers
         ret.second.p.srb = score::gfx::createDefaultBindings(
