@@ -57,8 +57,14 @@ if(NOT TARGET spz)
   # reports Not Run, permanently, in every full-suite run. They are not ours to
   # pass and they are not ours to fix; they must not be registered at all.
   set(ZLIB_BUILD_TESTING OFF CACHE BOOL "" FORCE)
-  set(ZLIB_BUILD_SHARED OFF CACHE BOOL "" FORCE)
   set(ZLIB_INSTALL OFF CACHE BOOL "" FORCE)
+  # NOT ZLIB_BUILD_SHARED OFF, however tempting: spz/CMakeLists.txt:43 sets
+  # zlib_linkage_target to the SHARED target name `zlib` on its FetchContent
+  # path, and zlib 1.3.2 only defines that target when ZLIB_BUILD_SHARED is on.
+  # Turning it off deletes the target, so the bare name survives to the link
+  # line and mold reports "library not found: zlib" when relinking
+  # score_plugin_threedim. Only ZLIB_BUILD_TESTING is needed to keep zlib's own
+  # ctest entries out of our suite, which is the whole point here.
   # Belt and braces for any other dependency spz may fetch: the CTest module
   # gates enable_testing()/add_test() on BUILD_TESTING for projects that use it.
   set(old_BUILD_TESTING ${BUILD_TESTING})
