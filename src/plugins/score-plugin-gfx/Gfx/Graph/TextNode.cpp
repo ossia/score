@@ -97,7 +97,29 @@ private:
     auto& n = static_cast<const TextNode&>(this->node);
 
     if(m_img.size().isNull())
+    {
       m_img = QImage(sz, QImage::Format::Format_ARGB32_Premultiplied);
+
+      // Pin the rasterisation DPI. The font carries a POINT size
+      // (setPointSizeF, the "Point size" control), and QPainter turns points
+      // into pixels through the paint device's logical DPI. A QImage with no
+      // dots-per-meter set falls back to the platform's -- 96 under xcb, 100
+      // under the offscreen plugin, whatever the desktop reports elsewhere --
+      // so the same project rendered text at a different glyph size depending
+      // on which platform plugin the process happened to be using, and
+      // differently again headless.
+      //
+      // This is an offscreen video texture whose dimensions the score chooses;
+      // it has no business asking the desktop how large a point is. 96 DPI
+      // (1 pt = 4/3 px) is the conventional reference and matches what xcb
+      // already reported here, so documents authored against that keep their
+      // sizes.
+      //
+      // 96 dpi = 96 / 0.0254 m = 3780 dots per meter.
+      constexpr int dots_per_meter_96dpi = 3780;
+      m_img.setDotsPerMeterX(dots_per_meter_96dpi);
+      m_img.setDotsPerMeterY(dots_per_meter_96dpi);
+    }
     m_img.fill(Qt::transparent);
     {
       QPainter p{&m_img};
