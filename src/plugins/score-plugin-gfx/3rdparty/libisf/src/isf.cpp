@@ -157,6 +157,19 @@ layout(std140, binding = 1) uniform process_t {
 #define IMG_STORE_LAYER(img, coord, val) imageStore(img, ISF_STORE_COORD_LAYER(img, coord), val)
 #define IMG_LOAD(img, coord) imageLoad(img, ISF_STORE_COORD(img, coord))
 #define IMG_STORE_CUBE(img, coord, val) imageStore(img, ivec3(coord), val)
+#define IMG_LOAD_CUBE(img, coord) imageLoad(img, ivec3(coord))
+
+// Face size of a writable cubemap, as ivec2, on every backend.
+//
+// A cube storage image is declared `image2DArray` when the target is HLSL --
+// Direct3D has no writable cube texture type, so `imageCube` cannot be
+// translated at all (isf_emit_cube_image_decl). imageStore / imageLoad take the
+// same ivec3 (x, y, face) coordinate for both spellings, so nothing else about
+// the author's source changes; imageSize() is the single exception, returning
+// ivec2 for a cube and ivec3 for a 2D array. Take the size through this macro
+// (or write `imageSize(img).xy`, which is what it expands to) and the shader is
+// identical on Direct3D and everywhere else.
+#define IMG_SIZE_CUBE(img) (imageSize(img).xy)
 
 #define IMG_NORM_PIXEL(tex, coord) texture(tex, ISF_FIXUP_COMPUTE_TEXCOORD(coord))
 #define IMG_PIXEL(tex, coord) texture(tex, ISF_FIXUP_COMPUTE_TEXCOORD((coord) / vec2(textureSize(tex, 0))))
@@ -3371,6 +3384,70 @@ static std::string isf_emit_ubo_decl(
   return out;
 }
 
+/**
+ * @brief Declare a writable cube storage image, as a 2D-array VIEW on HLSL.
+ *
+ * Direct3D has no writable cube texture type: HLSL's UAV types stop at
+ * RWTexture2DArray / RWTexture3D, there is no RWTextureCube. SPIRV-Cross does
+ * not paper over that — its HLSL backend aborts the entire bake with
+ *
+ *     Shader baking failed: RWTextureCube does not exist in HLSL.
+ *
+ * so ANY shader declaring `imageCube` fails to translate for D3D11 and D3D12
+ * alike, while OpenGL, Vulkan and Metal translate it fine. (Reproduced with
+ * this project's own qsb 6.13 and with qsb 6.4; the message comes from
+ * SPIRV-Cross's image_type_hlsl, not from fxc/dxc, so it is a code-generation
+ * failure, not a driver one.)
+ *
+ * The fix is to declare the SAME texture through the view Direct3D can express.
+ * Nothing on the runtime side has to move: Qt's D3D backends already create the
+ * UAV over a QRhiTexture::CubeMap as D3D11_UAV_DIMENSION_TEXTURE2DARRAY /
+ * D3D12_UAV_DIMENSION_TEXTURE2DARRAY with ArraySize 6 (qrhid3d11.cpp
+ * QD3D11Texture::unorderedAccessViewForLevel, qrhid3d12.cpp
+ * QD3D12ShaderResourceBindings UAV setup). The 2D-array view is what the engine
+ * was binding all along; only the shader's spelling of it was untranslatable.
+ *
+ * This is invisible to the shader author, which is the whole point:
+ *  - the ISF declaration stays `"TYPE": "image_cube"`;
+ *  - imageStore / imageLoad take the same ivec3 (x, y, face) coordinate for an
+ *    imageCube and for an image2DArray, so IMG_STORE_CUBE and raw builtin calls
+ *    are byte-identical source on both paths;
+ *  - the texture allocated is still a QRhiTexture::CubeMap, so every downstream
+ *    consumer still binds it as a samplerCube.
+ *
+ * The one spelling that is NOT identical between the two GLSL types is
+ * imageSize(): ivec2 for a cube, ivec3 for a 2D array. Author code that wants
+ * the face size on every backend must write `imageSize(img).xy` — which is what
+ * IMG_SIZE_CUBE() in the ISF prelude expands to, and what the corpus already
+ * does. There is no way to hide that one, because GLSL has no typedef and the
+ * preprocessor cannot dispatch on an argument's type.
+ *
+ * QSHADER_HLSL is defined by QShaderBaker for the HLSL target when per-target
+ * compilation is enabled; ShaderCache::Baker enables it unconditionally
+ * (setPerTargetCompilation(true)), and it is the same mechanism the prelude's
+ * QSHADER_SPIRV orientation macros already rely on.
+ *
+ * @param head everything up to and including the type prefix, e.g.
+ *             "layout(binding = 3, rgba8) writeonly uniform "
+ */
+static std::string
+isf_emit_cube_image_decl(std::string_view head, std::string_view name)
+{
+  std::string out;
+  out += "#if defined(QSHADER_HLSL)\n";
+  out += head;
+  out += "image2DArray ";
+  out += name;
+  out += ";\n";
+  out += "#else\n";
+  out += head;
+  out += "imageCube ";
+  out += name;
+  out += ";\n";
+  out += "#endif\n";
+  return out;
+}
+
 static std::string isf_emit_image_decl(
     int binding, std::string_view name, const csf_image_input& img,
     bool alias_prev = false)
@@ -3399,9 +3476,14 @@ static std::string isf_emit_image_decl(
   // VUID-VkGraphicsPipelineCreateInfo-layout-07990.
   // Priority: cubemap > 3D > array > 2D (matches the parser's own reject
   // table at isf.cpp:1446-1463 which forbids cube+array and array+3D).
+  //
+  // Cubes go through isf_emit_cube_image_decl, which declares them as a
+  // 2D-array view on HLSL because Direct3D has no writable cube type — see
+  // that function for why the runtime needs no matching change.
+  if(img.isCube())
+    return isf_emit_cube_image_decl(out, name);
   const char* shape = "image2D ";
-  if(img.isCube())      shape = "imageCube ";
-  else if(img.is3D())   shape = "image3D ";
+  if(img.is3D())        shape = "image3D ";
   else if(img.is_array) shape = "image2DArray ";
   out += shape;
   out += name;
@@ -4310,10 +4392,16 @@ void parser::parse_raw_raster_pipeline()
         // across the rasterizer-aux and csf-input code paths.
         std::string scalar_prefix = isf_glsl_type_prefix(atx.format);
 
-        aux_tex_decls += "layout(binding = " + std::to_string(sampler_binding)
-                         + ", " + atx.format + ") uniform " + access_q
-                         + scalar_prefix + image_type + " "
-                         + atx.name + ";\n";
+        const std::string aux_head = "layout(binding = "
+                                     + std::to_string(sampler_binding) + ", "
+                                     + atx.format + ") uniform " + access_q
+                                     + scalar_prefix;
+        // Cube storage images become a 2D-array view on HLSL: Direct3D has no
+        // writable cube type at all (isf_emit_cube_image_decl).
+        if(atx.is_cubemap)
+          aux_tex_decls += isf_emit_cube_image_decl(aux_head, atx.name);
+        else
+          aux_tex_decls += aux_head + image_type + " " + atx.name + ";\n";
         sampler_binding++;
       }
       else
@@ -6102,34 +6190,47 @@ void parser::parse_csf()
       // the shader sees current-frame writes on `<name>` and the previous
       // frame's state on `<name>_prev`.
       auto emit_image = [&](int b, const std::string& decl_name, bool alias_prev) {
-        m_fragment += "layout(binding = " + std::to_string(b);
+        // Built into a local first, not straight into m_fragment: a cube is
+        // emitted as a preprocessor-gated PAIR of declarations, so everything
+        // ahead of the shape token has to be repeated inside each branch.
+        std::string head = "layout(binding = " + std::to_string(b);
 
         if(!img.format.empty())
         {
           std::string format = img.format;
           boost::algorithm::to_lower(format);
-          m_fragment += ", " + format;
+          head += ", " + format;
         }
         else
         {
-          m_fragment += ", rgba8"; // Default format
+          head += ", rgba8"; // Default format
         }
 
-        m_fragment += ") ";
+        head += ") ";
 
         if(alias_prev || img.access == "read_only")
-          m_fragment += "readonly ";
+          head += "readonly ";
         else if(img.access == "write_only")
-          m_fragment += "writeonly ";
+          head += "writeonly ";
         else
-          m_fragment += "restrict ";
+          head += "restrict ";
 
         auto prefix = glsl_type_prefix(img.format);
+        head += "uniform " + prefix;
+
+        // Cubes take the HLSL 2D-array-view lowering: Direct3D has no writable
+        // cube texture type, so `imageCube` cannot be translated at all
+        // (isf_emit_cube_image_decl). Everything the author writes is
+        // unchanged — the coordinate for imageStore/imageLoad is ivec3 on both.
+        if(img.isCube())
+        {
+          m_fragment += isf_emit_cube_image_decl(head, decl_name);
+          return;
+        }
         const char* shape = "image2D";
-        if(img.isCube())      shape = "imageCube";
-        else if(img.is3D())   shape = "image3D";
+        if(img.is3D())        shape = "image3D";
         else if(img.is_array) shape = "image2DArray";
-        m_fragment += "uniform " + prefix + shape + " ";
+        m_fragment += head + shape + " ";
         m_fragment += decl_name + ";\n";
       };
 
@@ -6331,10 +6432,16 @@ void parser::parse_csf()
           // Integer formats (r32ui, r32i, …) require uimage*/iimage*.
           std::string scalar_prefix = isf_glsl_type_prefix(atx.format);
 
-          m_fragment += "layout(binding = " + std::to_string(binding)
-                        + ", " + atx.format + ") uniform " + access_q
-                        + scalar_prefix + image_type + " "
-                        + atx.name + ";\n";
+          const std::string aux_head = "layout(binding = "
+                                       + std::to_string(binding) + ", "
+                                       + atx.format + ") uniform " + access_q
+                                       + scalar_prefix;
+          // Cube storage images become a 2D-array view on HLSL: Direct3D has
+          // no writable cube type at all (isf_emit_cube_image_decl).
+          if(atx.is_cubemap)
+            m_fragment += isf_emit_cube_image_decl(aux_head, atx.name);
+          else
+            m_fragment += aux_head + image_type + " " + atx.name + ";\n";
           if(aliased)
             m_fragment += "#define " + aux_prefix + " " + atx.name + "\n";
           binding++;

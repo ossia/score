@@ -98,13 +98,21 @@
 // every target and that each offer came back as exactly one of {clean, known
 // gap, failure}. A sweep over an empty set produces the same empty failure list
 // as a sweep that works, so the counts are the part that says which one this
-// was. Measured on this tree, 2026-09-03, Qt 6.13: 179 generated stages, 179
-// clean GLSL / 179 SPIR-V / 179 MSL / 348 HLSL (two D3D backends) + 10 known
+// was. Measured on this tree, 2026-09-04, Qt 6.13: 183 generated stages, 183
+// clean GLSL / 183 SPIR-V / 183 MSL / 358 HLSL (two D3D backends) + 8 known
 // gaps.
+//
+// The HLSL figure moved with the cube fix: before isf_emit_cube_image_decl,
+// the same host measured 356 clean HLSL + 10 gaps, the two extra gaps being
+// csf-cube-image-write.cs on D3D11 and on D3D12 ("RWTextureCube does not exist
+// in HLSL"). Those two are now clean bakes, and COMPUTE_SHADER went from 148
+// bakes ok + 2 gaps to 150 bakes ok + 0 gaps.
 //
 // KNOWN GAPS, and what this file does with them
 //
-// Three real limitations exist that are NOT defects in this corpus. Each is
+// Two real limitations remain that are NOT defects in this corpus (a third,
+// listed first below, was fixed at the source and is kept only as a record of
+// what used to be tolerated here). Each is
 // declared in `known_gaps` / handled by an explicit rule below, and each is
 // reported BY NAME in the run's output with which way it went on this host --
 // they are properties of the SPIRV-Cross inside the host's qtshadertools and
@@ -114,9 +122,13 @@
 // the case counts every (stage, target) offer, and a gap has to be one of
 // {clean here, still fails here}.
 //
-//   1. RWTextureCube does not exist in HLSL. SPIRV-Cross cannot express a
-//      write-only/read-write cube storage image in any shader model; it fails
-//      identically at SM 5.0 and SM 6.1.
+//   1. (RETIRED) RWTextureCube does not exist in HLSL: SPIRV-Cross could not
+//      express a writable cube storage image in any shader model, failing
+//      identically at SM 5.0 and SM 6.1. Fixed at the source rather than
+//      tolerated -- isf_emit_cube_image_decl declares a cube storage image as
+//      the 2D-array VIEW the D3D UAV already was, gated on QSHADER_HLSL, with
+//      no change to the authored shader. The gap entry is GONE, so the cube
+//      shaders are now held to the same standard as the rest of the corpus.
 //   2. corpus/isf-long-numeric.fs declares a variable named `frac`, and
 //      SPIRV-Cross renames GLSL fract() to HLSL frac() without renaming the
 //      user's variable, so it emits `float frac = frac(...)`.
@@ -670,10 +682,15 @@ struct KnownGap
 };
 
 const KnownGap known_gaps[] = {
-    {"csf-cube-image-write.cs", Lang::Hlsl,
-     "RWTextureCube does not exist in HLSL: SPIRV-Cross cannot express a "
-     "writable cube storage image in any shader model (fails identically at "
-     "SM 5.0 and SM 6.1)"},
+    // csf-cube-image-write.cs used to sit here: "RWTextureCube does not exist
+    // in HLSL". It is no longer a gap. isf_emit_cube_image_decl declares a cube
+    // storage image as the 2D-array VIEW that Qt's D3D UAV already was
+    // (qrhid3d11.cpp / qrhid3d12.cpp both build TEXTURE2DARRAY with ArraySize 6
+    // over a CubeMap texture), gated on QSHADER_HLSL, with no change to the
+    // authored shader. Removing the entry is deliberate: the cube shaders now
+    // have to bake for HLSL like everything else, so a regression to the plain
+    // `imageCube` declaration comes back as a hard failure here instead of
+    // being tolerated. GfxCubeImageHlsl.cpp pins the same thing in detail.
     {"isf-long-numeric.fs", Lang::Hlsl,
      "the shader declares `float frac` (isf-long-numeric.fs:15) and older "
      "SPIRV-Cross renames GLSL fract() to HLSL frac() without renaming the "
