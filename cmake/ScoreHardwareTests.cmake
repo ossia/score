@@ -101,9 +101,40 @@ endfunction()
 # ctest runs a .sh through an explicit interpreter where the system shell is not
 # a POSIX one. On Windows that is msys2's bash, which also carries the ffmpeg and
 # GStreamer the harnesses need; elsewhere the shebang suffices and this is empty.
+#
+# It has to be the bash of the SAME msys2 installation the toolchain and ffmpeg
+# come from. A bare find_program(bash) picks whatever is first on PATH, and on a
+# machine that also has Git for Windows that is D:/apps/Git/usr/bin/bash.exe --
+# a different msys runtime with a different POSIX root. The harness then does
+# mktemp -d, gets /tmp/... resolved against Git's root, and hands that path to
+# the msys2-built ffmpeg, which resolves /tmp/... against msys2's root instead.
+# ffmpeg reports "Error opening output files: No such file or directory" and the
+# wrapper dies with "ffmpeg could not produce the matrix master clip" -- six
+# media tests red, with nothing wrong in score or in ffmpeg. Measured on
+# desktop-u6umokq: the identical wrapper, PATH and ffmpeg give rc=0 under
+# msys2's bash and that error under Git's.
+#
+# So look next to the compiler first: <msys2 root>/usr/bin/bash.exe, derived
+# from the toolchain, and only fall back to a PATH search if that is not there.
 if(WIN32 AND NOT DEFINED SCORE_MEDIA_TEST_SHELL)
+  # e.g. D:/msys64/clang64/bin/clang.exe -> D:/msys64
+  get_filename_component(_score_tc_bin "${CMAKE_C_COMPILER}" DIRECTORY)
+  get_filename_component(_score_tc_prefix "${_score_tc_bin}" DIRECTORY)
+  get_filename_component(_score_msys_root "${_score_tc_prefix}" DIRECTORY)
   find_program(SCORE_MEDIA_TEST_SHELL NAMES bash
+    HINTS "${_score_msys_root}/usr/bin"
+    NO_DEFAULT_PATH
     DOC "POSIX shell used to run the media test harnesses")
+  if(NOT SCORE_MEDIA_TEST_SHELL)
+    find_program(SCORE_MEDIA_TEST_SHELL NAMES bash
+      DOC "POSIX shell used to run the media test harnesses")
+    if(SCORE_MEDIA_TEST_SHELL)
+      message(STATUS
+        "score: media tests will use ${SCORE_MEDIA_TEST_SHELL}, which is not the "
+        "toolchain's own msys2 bash (${_score_msys_root}/usr/bin). If they fail "
+        "in ffmpeg with 'Error opening output files', that mismatch is why.")
+    endif()
+  endif()
 endif()
 
 function(score_add_media_test)
