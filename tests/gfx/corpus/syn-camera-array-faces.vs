@@ -33,7 +33,7 @@ void main()
     // camera.data is the raw std140 image of CameraUBOData[N] declared as a
     // flat vec4 array; see the .fs header for the byte-offset derivation.
     // 15 vec4 = 240 B = one CameraUBOData (CameraMath.hpp:23-32).
-    int base = gl_ViewIndex * 15;
+    int base = VIEW_INDEX * 15;
 
     // view = inverse(worldTransform) (CameraMath.cpp:15). For a rigid
     // transform W = [R | t], view's rotation part is R^T. In column-major

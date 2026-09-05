@@ -12,7 +12,7 @@ void main()
         (idx & 1) != 0 ? 3.0 : -1.0,
         (idx & 2) != 0 ? 3.0 : -1.0);
     v_uv = (ndc + 1.0) * 0.5;
-    v_face = gl_ViewIndex;
+    v_face = VIEW_INDEX;
     gl_Position = clipSpaceCorrMatrix * vec4(ndc, 0.0, 1.0);
 #if defined(QSHADER_SPIRV) || defined(QSHADER_HLSL) || defined(QSHADER_MSL)
     gl_Position.y = -gl_Position.y;

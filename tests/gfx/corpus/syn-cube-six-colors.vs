@@ -12,6 +12,6 @@ void main()
     vec2 ndc = vec2(
         (idx & 1) != 0 ? 3.0 : -1.0,
         (idx & 2) != 0 ? 3.0 : -1.0);
-    v_face = gl_ViewIndex;
+    v_face = VIEW_INDEX;
     gl_Position = vec4(ndc, 0.0, 1.0);
 }
