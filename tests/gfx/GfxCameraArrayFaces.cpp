@@ -364,6 +364,10 @@ struct FaceFacts
   // Structural (pixel-free) half — the lane that runs on GL / Null, the P1-7
   // pattern (GfxCubemapSixFaces.cpp:88-95).
   bool multiview_caps = false;
+  // caps.multiview alone does not mean multiview is USED: a D3D target whose
+  // shader model cannot compile SV_ViewID has the capability and still falls
+  // back to the per-pass path. See viewIndexNeedsPassIndexFallback().
+  bool multiview_lowered = false;
   bool renderer_found = false;
   bool out_tex_found = false;
   bool out_tex_is_cube = false;
@@ -461,6 +465,8 @@ FaceFacts run_faces(score::gfx::GraphicsApi api)
         continue;
       f.renderer_found = true;
       f.multiview_caps = renderList->state.caps.multiview;
+      f.multiview_lowered = score::gfx::viewIndexNeedsPassIndexFallback(
+          renderList->state.api, renderList->state.version);
       if(QRhiTexture* tex = renderer->textureForOutput(*outPort))
       {
         f.out_tex_found = true;
@@ -679,7 +685,7 @@ TEST_CASE(
   REQUIRE(f.out_tex_found);
   // Downstream samplerCube consumers bind textureForOutput's result directly.
   CHECK(f.out_tex_is_cube);
-  if(f.multiview_caps)
+  if(f.multiview_caps && !f.multiview_lowered)
   {
     // QRhi forbids setMultiViewCount on a cube texture, so MULTIVIEW+CUBEMAP
     // must go through the array-then-copy shim and publish its cube, not the
@@ -690,7 +696,13 @@ TEST_CASE(
   // ---- Pixel half, gated exactly as the header's backend scope says.
   const bool isGL = f.backend.find("OpenGL") != std::string::npos;
   const bool isNull = f.backend.find("Null") != std::string::npos;
-  if(isGL || isNull || !f.multiview_caps)
+  // ... unless the pass-index fallback is active, in which case the six
+  // faces ARE written -- as N explicit passes rather than one amplified
+  // draw -- so the oracle is expressible and must run. Before this, d3d11
+  // (caps.multiview == 0) reported a PASS having executed 6 of the 20
+  // assertions, and that vacuous green hid the missing-faces bug for
+  // three measurement cycles.
+  if(isGL || isNull || (!f.multiview_caps && !f.multiview_lowered))
   {
     SUCCEED(
         f.backend

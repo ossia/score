@@ -88,6 +88,10 @@ struct CubeFacts
   // harvested through the public NodeRenderer::textureForOutput while the
   // pipeline is alive. This is the pixel-free (Null-fallback) half of P1-7.
   bool multiview_caps = false;    // RenderList::state.caps.multiview
+  // caps.multiview alone does not mean multiview is USED: a D3D target whose
+  // shader model cannot compile SV_ViewID has the capability and still falls
+  // back to the per-pass path. See viewIndexNeedsPassIndexFallback().
+  bool multiview_lowered = false;
   bool renderer_found = false;    // the raster node had a live NodeRenderer
   bool out_tex_found = false;     // textureForOutput returned non-null
   bool out_tex_is_cube = false;   // handle carries QRhiTexture::CubeMap
@@ -157,6 +161,8 @@ CubeFacts run_cube(score::gfx::GraphicsApi backend)
         continue;
       f.renderer_found = true;
       f.multiview_caps = renderList->state.caps.multiview;
+      f.multiview_lowered = score::gfx::viewIndexNeedsPassIndexFallback(
+          renderList->state.api, renderList->state.version);
       if(QRhiTexture* tex = renderer->textureForOutput(*outPort))
       {
         f.out_tex_found = true;
@@ -193,7 +199,7 @@ TEST_CASE(
   // Downstream samplerCube consumers bind textureForOutput's result directly;
   // publishing anything but a cube texture would break every consumer.
   CHECK(f.out_tex_is_cube);
-  if(f.multiview_caps)
+  if(f.multiview_caps && !f.multiview_lowered)
   {
     // Multiview available => the CUBEMAP+MULTIVIEW array-then-copy shim must
     // be the selected path, and the public handle its cube — not the shadow
@@ -210,7 +216,13 @@ TEST_CASE(
   // cannot happen). The crash-free build + structural guards above still ran.
   const bool isGL = f.backend == "OpenGL";
   const bool isNull = f.backend == "Null";
-  if(isGL || isNull || !f.multiview_caps)
+  // ... unless the pass-index fallback is active, in which case the six
+  // faces ARE written -- as N explicit passes rather than one amplified
+  // draw -- so the oracle is expressible and must run. Before this, d3d11
+  // (caps.multiview == 0) reported a PASS having executed 6 of the 20
+  // assertions, and that vacuous green hid the missing-faces bug for
+  // three measurement cycles.
+  if(isGL || isNull || (!f.multiview_caps && !f.multiview_lowered))
   {
     SUCCEED(
         f.backend
