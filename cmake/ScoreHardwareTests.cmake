@@ -35,6 +35,10 @@ set(SCORE_HARDWARE_TEST_WRAPPER
     "${SCORE_ROOT_SOURCE_DIR}/tests/hardware/run-hardware-test.sh"
     CACHE INTERNAL "Probe-then-exec wrapper for hardware-gated tests")
 
+set(SCORE_MEDIA_TEST_WRAPPER
+    "${SCORE_ROOT_SOURCE_DIR}/tests/hardware/with-virtual-media.sh"
+    CACHE INTERNAL "provision-then-exec wrapper for media tests")
+
 function(score_add_hardware_test)
   cmake_parse_arguments(ARG
     ""
@@ -78,5 +82,135 @@ function(score_add_hardware_test)
   if(ARG_ENVIRONMENT)
     set_property(TEST ${ARG_NAME} APPEND PROPERTY
       ENVIRONMENT ${ARG_ENVIRONMENT})
+  endif()
+endfunction()
+
+# Media tests that are allowed to ASSUME a capable host: ffmpeg always, plus
+# whatever the requested provisioning needs. Unlike score_add_hardware_test
+# these do NOT declare SKIP_RETURN_CODE by default, so an absent dependency
+# fails the run instead of quietly vanishing from it.
+#
+#   VIRTUAL_VIDEO  publish a PipeWire Video/Source from videotestsrc
+#   PIPEWIRE       the harness talks to a PipeWire daemon itself, without
+#                  needing the wrapper to publish anything into it
+#                  (needs gstreamer + a live PipeWire daemon)
+#   GSTREAMER      the harness runs its own gst pipelines (needs gstreamer,
+#                  but no PipeWire graph)
+#   MEDIA          per-pixel-format H.264 / raw clips
+#   MATRIX         the container x codec matrix and its known-pixel master
+# ctest runs a .sh through an explicit interpreter where the system shell is not
+# a POSIX one. On Windows that is msys2's bash, which also carries the ffmpeg and
+# GStreamer the harnesses need; elsewhere the shebang suffices and this is empty.
+#
+# It has to be the bash of the SAME msys2 installation the toolchain and ffmpeg
+# come from. A bare find_program(bash) picks whatever is first on PATH, and on a
+# machine that also has Git for Windows that is D:/apps/Git/usr/bin/bash.exe --
+# a different msys runtime with a different POSIX root. The harness then does
+# mktemp -d, gets /tmp/... resolved against Git's root, and hands that path to
+# the msys2-built ffmpeg, which resolves /tmp/... against msys2's root instead.
+# ffmpeg reports "Error opening output files: No such file or directory" and the
+# wrapper dies with "ffmpeg could not produce the matrix master clip" -- six
+# media tests red, with nothing wrong in score or in ffmpeg. Measured on
+# desktop-u6umokq: the identical wrapper, PATH and ffmpeg give rc=0 under
+# msys2's bash and that error under Git's.
+#
+# So look next to the compiler first: <msys2 root>/usr/bin/bash.exe, derived
+# from the toolchain, and only fall back to a PATH search if that is not there.
+if(WIN32 AND NOT DEFINED SCORE_MEDIA_TEST_SHELL)
+  # e.g. D:/msys64/clang64/bin/clang.exe -> D:/msys64
+  get_filename_component(_score_tc_bin "${CMAKE_C_COMPILER}" DIRECTORY)
+  get_filename_component(_score_tc_prefix "${_score_tc_bin}" DIRECTORY)
+  get_filename_component(_score_msys_root "${_score_tc_prefix}" DIRECTORY)
+  find_program(SCORE_MEDIA_TEST_SHELL NAMES bash
+    HINTS "${_score_msys_root}/usr/bin"
+    NO_DEFAULT_PATH
+    DOC "POSIX shell used to run the media test harnesses")
+  if(NOT SCORE_MEDIA_TEST_SHELL)
+    find_program(SCORE_MEDIA_TEST_SHELL NAMES bash
+      DOC "POSIX shell used to run the media test harnesses")
+    if(SCORE_MEDIA_TEST_SHELL)
+      message(STATUS
+        "score: media tests will use ${SCORE_MEDIA_TEST_SHELL}, which is not the "
+        "toolchain's own msys2 bash (${_score_msys_root}/usr/bin). If they fail "
+        "in ffmpeg with 'Error opening output files', that mismatch is why.")
+    endif()
+  endif()
+endif()
+
+function(score_add_media_test)
+  cmake_parse_arguments(ARG
+    "VIRTUAL_VIDEO;GSTREAMER;MEDIA;MATRIX;OPTIONAL;PIPEWIRE"
+    "NAME;EXECUTABLE;TIMEOUT"
+    "ARGS;ENVIRONMENT"
+    ${ARGN})
+
+  if(NOT ARG_NAME OR NOT ARG_EXECUTABLE)
+    message(FATAL_ERROR "score_add_media_test: NAME and EXECUTABLE are required")
+  endif()
+  if(NOT ARG_TIMEOUT)
+    set(ARG_TIMEOUT 600)
+  endif()
+  if(TARGET "${ARG_EXECUTABLE}")
+    set(_exe "$<TARGET_FILE:${ARG_EXECUTABLE}>")
+  else()
+    set(_exe "${ARG_EXECUTABLE}")
+  endif()
+
+  set(_flags "")
+  if(ARG_VIRTUAL_VIDEO)
+    list(APPEND _flags --video)
+  endif()
+  if(ARG_PIPEWIRE)
+    list(APPEND _flags --pipewire)
+  endif()
+  if(ARG_GSTREAMER)
+    list(APPEND _flags --gstreamer)
+  endif()
+  if(ARG_MEDIA)
+    list(APPEND _flags --media)
+  endif()
+  if(ARG_MATRIX)
+    list(APPEND _flags --matrix)
+  endif()
+
+  # SCORE_MEDIA_TEST_WRAPPER is with-virtual-media.sh. ctest cannot exec a .sh
+  # directly on Windows. msys2 supplies bash, ffmpeg and the GStreamer stack,
+  # so the harnesses run once they are invoked THROUGH it.
+  if(SCORE_MEDIA_TEST_SHELL)
+    add_test(NAME ${ARG_NAME}
+      COMMAND "${SCORE_MEDIA_TEST_SHELL}" "${SCORE_MEDIA_TEST_WRAPPER}"
+              ${_flags} -- "${_exe}" ${ARG_ARGS})
+  elseif(SCORE_HAS_SHELL_HARNESS)
+    add_test(NAME ${ARG_NAME}
+      COMMAND "${SCORE_MEDIA_TEST_WRAPPER}" ${_flags} -- "${_exe}" ${ARG_ARGS})
+  else()
+    # No shell at all: registering it would report BAD_COMMAND, which reads as a
+    # failure of the test rather than of the machine.
+    return()
+  endif()
+
+  set_tests_properties(${ARG_NAME} PROPERTIES
+    LABELS "media"
+    TIMEOUT "${ARG_TIMEOUT}"
+    RUN_SERIAL TRUE
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}"
+    ENVIRONMENT "SCORE_AUDIO_BACKEND=dummy;SCORE_DISABLE_AUDIOPLUGINS=1")
+
+  # Only an explicitly OPTIONAL test may skip; everything else must run.
+  if(ARG_OPTIONAL)
+    set_property(TEST ${ARG_NAME} PROPERTY SKIP_RETURN_CODE 77)
+  endif()
+
+  # A v4l2loopback + PipeWire graph exists only on Linux. The wrapper already
+  # turns a missing prerequisite into exit 77 under SCORE_MEDIA_TESTS_OPTIONAL,
+  # so ask for that rather than letting the platform look like a broken test.
+  if((ARG_VIRTUAL_VIDEO OR ARG_PIPEWIRE) AND NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set_property(TEST ${ARG_NAME} APPEND PROPERTY
+      ENVIRONMENT "SCORE_MEDIA_TESTS_OPTIONAL=1")
+    set_property(TEST ${ARG_NAME} PROPERTY SKIP_RETURN_CODE 77)
+  endif()
+
+  if(ARG_ENVIRONMENT)
+    set_property(TEST ${ARG_NAME} APPEND PROPERTY ENVIRONMENT ${ARG_ENVIRONMENT})
   endif()
 endfunction()

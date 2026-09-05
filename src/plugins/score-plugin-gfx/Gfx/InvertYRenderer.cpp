@@ -1,6 +1,7 @@
 #include "InvertYRenderer.hpp"
 
 #include <Gfx/Graph/RenderList.hpp>
+#include <Gfx/Graph/ScreenNode.hpp>
 #include <Gfx/Graph/Utils.hpp>
 
 namespace Gfx
@@ -44,6 +45,15 @@ void InvertYRenderer::init(
   m_renderTarget = score::gfx::createRenderTarget(
       renderer.state, renderer.state.renderFormat, m_inputTarget.texture->pixelSize(),
       renderer.samples(), renderer.requiresDepth(*this->node.input[0]));
+
+  // The backend can refuse the configuration -- createRenderTarget says so and
+  // hands back an empty target. There is nothing to render into, so stop here
+  // instead of building a pipeline around it.
+  if(!m_renderTarget)
+  {
+    qWarning() << "InvertYRenderer: no render target, this output will not render";
+    return;
+  }
 
   const auto& mesh = renderer.defaultTriangle();
   m_mesh = renderer.initMeshBuffer(mesh, res);
@@ -107,6 +117,11 @@ void InvertYRenderer::finishFrame(
     score::gfx::RenderList& renderer, QRhiCommandBuffer& cb,
     QRhiResourceUpdateBatch*& res)
 {
+  // init() gives up without a render target when the backend refused to create
+  // one. beginPass would dereference it.
+  if(!m_renderTarget.renderTarget)
+    return;
+
   cb.beginPass(m_renderTarget.renderTarget, Qt::black, {0.0f, 0}, res);
   res = nullptr;
   // m_p.pipeline is null when buildPipeline's QRhiGraphicsPipeline::create()
@@ -206,6 +221,14 @@ void ScaledRenderer::finishFrame(score::gfx::RenderList &renderer, QRhiCommandBu
     m_renderTarget.renderTarget = m_swapChain->currentFrameRenderTarget();
 
   auto* rt = m_renderTarget.renderTarget;
+  if(qEnvironmentVariableIsSet("SCORE_GFX_TRACE"))
+  {
+    static int n = 0;
+    if(n++ % 120 == 0)
+      fprintf(
+          stderr, "GFX-SCALED finish #%d rt=%d pipeline=%d swap=%d\n", n, int(!!rt),
+          int(!!m_p.pipeline), int(!!m_swapChain));
+  }
   if(!rt)
     return;
 
@@ -230,7 +253,22 @@ void ScaledRenderer::finishFrame(score::gfx::RenderList &renderer, QRhiCommandBu
     const auto& mesh = renderer.defaultTriangle();
     mesh.draw(this->m_mesh, cb);
   }
-  cb.endPass();
+
+  // A readback with a null texture reads the swapchain's current backbuffer,
+  // which is what the window actually shows -- unlike QScreen::grabWindow,
+  // which reads the desktop at the window's geometry. It is only issued when
+  // grabTo armed it, because it copies the whole frame.
+  if(auto* screen = dynamic_cast<const score::gfx::ScreenNode*>(&this->node);
+     screen && m_swapChain && screen->takeReadbackRequest())
+  {
+    auto* rb = renderer.state.rhi->nextResourceUpdateBatch();
+    rb->readBackTexture(QRhiReadbackDescription{}, screen->readback().get());
+    cb.endPass(rb);
+  }
+  else
+  {
+    cb.endPass();
+  }
 }
 
 void ScaledRenderer::release(score::gfx::RenderList &)

@@ -58,6 +58,17 @@ public:
   void setInitialBatch(QRhiResourceUpdateBatch* batch) noexcept { m_initialBatch = batch; }
 
   /**
+   * @brief Submit the pending initial batch before destroying resources it may name.
+   *
+   * A QRhiResourceUpdateBatch stores raw QRhiBuffer / QRhiTexture pointers until
+   * it is committed, and QRhiResource::deleteLater() outside a frame deletes
+   * immediately. Graph mutations run between frames, so any path that tears down
+   * renderer resources while this batch is outstanding must call this first;
+   * otherwise the next render() submits updates naming freed resources.
+   */
+  void flushInitialBatch();
+
+  /**
    * @brief Create buffers for a mesh and mark them for upload.
    *
    * The meshes used by the nodes are cached
@@ -297,6 +308,18 @@ public:
    * createRenderList() has already fully initialized everything.
    */
   void markBuilt() noexcept { m_built = true; m_lastSize = state.renderSize; }
+
+  /**
+   * @brief Is this render list currently coherent with its output's GPU objects?
+   *
+   * False between the moment something invalidates the list (a fast-path
+   * viewport resize: resizeSwapchainSizedTargets) and the maybeRebuild() that
+   * runs on the next render frame. In that window the output node has ALREADY
+   * destroyed and replaced its QRhiTextureRenderTarget / QRhiRenderPassDescriptor
+   * while the renderers still hold the pre-resize snapshot, so nothing outside
+   * the rebuild may ask a renderer for a render target.
+   */
+  [[nodiscard]] bool isBuilt() const noexcept { return m_built; }
 
   /// Set the "any node requires depth" flag computed from the node graph.
   /// Mirrors what maybeRebuild() recomputes; called from

@@ -92,7 +92,7 @@ private:
   // sub-mesh's bindings, and the next runRenderPass rebinds from scratch.
   void drawWithPerMeshAuxRebind(
       QRhiShaderResourceBindings& srb, QRhiCommandBuffer& cb,
-      std::span<const FallbackBindingPlan::Slot> fallback_slots = {});
+      const FallbackBindingPlan& plan = {});
 
   std::vector<Sampler> allSamplers() const noexcept;
 
@@ -265,18 +265,16 @@ private:
   //   colour: m_mipRTs holds one entry per layer with a setLayer(i) attachment,
   //   structurally PER_CUBE_FACE with a variable layer count.
   //
-  //   depth: Qt RHI 6.11 exposes no per-layer depth attachment, so
-  //   m_perLayerScratchDepth is a single 2D D32F shared across iterations
-  //   (m_perLayerSharedRT/RP) and runInitialPasses copies it into layer i after
-  //   each endPass. m_perLayerOutputDepthArray aliases the OUTPUT array as the
-  //   copy destination.
+  //   depth: identical, using QRhiTextureRenderTargetDescription::setDepthLayer
+  //   (Qt >= 6.12) so the pass writes straight into layer i of the OUTPUT
+  //   depth array. Below 6.12 that API does not exist and the mode is REFUSED
+  //   with a diagnostic rather than silently producing an empty array -- see
+  //   initMRTPass. m_perLayerDummyColor is the placeholder colour attachment
+  //   some backends (GLES) require, shared by every layer's RT and sized to
+  //   the render extent, never 1x1.
   int  m_perLayerOutputIndex{-1};
   bool m_perLayerIsDepth{false};
-  QRhiTexture*              m_perLayerScratchDepth{nullptr};
   QRhiTexture*              m_perLayerDummyColor{nullptr};
-  QRhiTextureRenderTarget*  m_perLayerSharedRT{nullptr};
-  QRhiRenderPassDescriptor* m_perLayerSharedRP{nullptr};
-  QRhiTexture*              m_perLayerOutputDepthArray{nullptr};
 
   // Manual state. Re-evaluated every frame in runInitialPasses.
   int m_manualCount{1};

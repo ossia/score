@@ -1,4 +1,5 @@
 #pragma once
+#include <score_plugin_gfx_export.h>
 #include <QMatrix4x4>
 #include <QSize>
 #include <QVector3D>
@@ -80,10 +81,51 @@ inline void setReverseZPerspective(
   out(3, 3) = 0.f;
 }
 
+// Reverse-Z ORTHOGRAPHIC projection, in the same convention as
+// setReverseZPerspective above: view_z = -near -> NDC z = +1,
+// view_z = -far -> NDC z = -1, paired with a D32F attachment, a GREATER depth
+// compare and a clear-depth of 0.0.
+//
+// halfWidth / halfHeight are the half-extents of the view volume in view space
+// — glTF's `xmag` / `ymag`, which is what ossia::camera_component carries.
+//
+// Derivation of the z row: z_ndc = a*z_view + b with a*(-near) + b = +1 and
+// a*(-far) + b = -1  =>  a = 2/(far-near), b = (far+near)/(far-near). w stays 1
+// (no perspective divide), which is exactly what makes parallel edges stay
+// parallel.
+inline void setReverseZOrthographic(
+    QMatrix4x4& out, float halfWidth, float halfHeight, float nearPlane,
+    float farPlane)
+{
+  out.setToIdentity();
+  if(nearPlane == farPlane || halfWidth == 0.f || halfHeight == 0.f)
+    return;
+
+  const float clip = farPlane - nearPlane;
+  out(0, 0) = 1.f / halfWidth;
+  out(1, 1) = 1.f / halfHeight;
+  out(2, 2) = 2.f / clip;
+  out(2, 3) = (farPlane + nearPlane) / clip;
+  out(3, 2) = 0.f;
+  out(3, 3) = 1.f;
+}
+
+// The value packCameraUBO writes into CameraUBOData::params[3] (`camera.params.w`
+// in a scene shader) so the shader can tell which projection the author asked
+// for. 0 is what every camera got before this existed, and it is still what a
+// perspective camera gets, so no existing shader changes behaviour.
+enum class CameraProjectionMode : int
+{
+  Perspective = 0,
+  Orthographic = 1,
+  Fulldome = 2,
+};
+
 // Pack a camera_component's view/projection/position into a CameraUBOData.
 // `worldTransform` is the camera node's accumulated world matrix (its
 // column 3 is the eye position and its inverse is the view matrix).
 // `aspectOverride` of <= 0 falls back to `renderSize.width / renderSize.height`.
+SCORE_PLUGIN_GFX_EXPORT
 void packCameraUBO(
     CameraUBOData& out, const ossia::camera_component& cam,
     const QMatrix4x4& worldTransform, QSize renderSize, float timeSeconds,

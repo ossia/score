@@ -21,6 +21,7 @@ class QGraphicsView;
 namespace score::gfx
 {
 class Window;
+class ScreenNode;
 }
 namespace Gfx
 {
@@ -66,6 +67,7 @@ public:
   ~WindowDevice();
 
   score::gfx::Window* window() const noexcept;
+  score::gfx::ScreenNode* screenNode() const noexcept;
   W_SLOT(window)
 
   void addAddress(const Device::FullAddressSettings& settings) override;

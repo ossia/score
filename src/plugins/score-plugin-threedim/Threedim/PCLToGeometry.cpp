@@ -114,8 +114,12 @@ void PCLToMesh2::operator()()
   xyz_input.byte_offset = this->inputs.in.buffer.byte_offset;
   inputs.push_back(xyz_input);
 
-  // Vertices count.
-  outputs.geometry.mesh.vertices = (tex.byte_size / (sizeof(float) * vertice_stride));
+  // Vertices count. The fetch starts at byte_offset inside the buffer
+  // (halp::raw_buffer convention: byte_offset addresses into byte_size),
+  // so only byte_size - byte_offset bytes are addressable.
+  const auto usable_bytes
+      = tex.byte_size > tex.byte_offset ? tex.byte_size - tex.byte_offset : 0;
+  outputs.geometry.mesh.vertices = (usable_bytes / (sizeof(float) * vertice_stride));
 
   outputs.geometry.dirty_mesh = true;
 }

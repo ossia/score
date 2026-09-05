@@ -3,12 +3,18 @@
 #include "FbxParser.hpp"
 #include "GltfParser.hpp"
 #include "Ply.hpp"
+#include "PrimitiveCloud/FormatOverride.hpp"
+#include "PrimitiveCloud/PlyParser.hpp"
+#include "PrimitiveCloud/SceneFromCloud.hpp"
+#include "PrimitiveCloud/SplatBinary.hpp"
+#include "PrimitiveCloud/SpzCodec.hpp"
 #include "SceneFromMeshes.hpp"
 #include "VcgImporters.hpp"
 
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/SceneGPUState.hpp>
 
+#include <QDebug>
 #include <QFileInfo>
 #include <QQuaternion>
 #include <QString>
@@ -142,22 +148,24 @@ AssetLoader::ins::asset_t::process(file_type tv)
 
   const std::string_view fname{tv.filename};
   std::shared_ptr<const ossia::scene_state> loaded;
+  // Set by the dispatch below when an extension was recognised, so a rejection
+  // can say WHICH of the two failures happened: a format we do not handle, or
+  // a file whose parser refused it.
+  bool dispatched = false;
 
   if(hasSuffixCI(fname, "fbx"))
   {
+    dispatched = true;
     loaded = runInnerParser<FbxParser>(tv, &FbxParser::ins::fbx_t::process);
   }
   else if(hasSuffixCI(fname, "gltf") || hasSuffixCI(fname, "glb"))
   {
-    auto t0 = std::chrono::steady_clock::now();
+    dispatched = true;
     loaded = runInnerParser<GltfParser>(tv, &GltfParser::ins::gltf_t::process);
-    auto t1 = std::chrono::steady_clock::now();
-    qDebug() << "LOADING TIME"
-             << (std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0) / 1e6)
-                    .count();
   }
   else if(hasSuffixCI(fname, "obj"))
   {
+    dispatched = true;
     Threedim::float_vec buf;
     auto meshes = Threedim::ObjFromString(tv.bytes, buf);
     if(!meshes.empty())
@@ -170,18 +178,38 @@ AssetLoader::ins::asset_t::process(file_type tv)
   }
   else if(hasSuffixCI(fname, "ply"))
   {
-    Threedim::float_vec buf;
-    auto meshes = Threedim::PlyFromFile(fname, buf);
-    if(!meshes.empty())
+    dispatched = true;
+    // Sniff the header first: a PLY whose vertex element carries
+    // splat-style columns (or no face element) goes through the
+    // primitive-cloud path; everything else stays on the existing
+    // mesh path. The sniff only reads the textual header, no row data.
+    if(Threedim::PrimitiveCloud::ply_is_splat_shaped(fname))
     {
-      const QString label = QFileInfo(QString::fromStdString(std::string{fname}))
-                                .fileName();
-      loaded = Threedim::sceneStateFromMeshes(
-          std::move(meshes), std::move(buf), label.toStdString());
+      auto cloud = Threedim::PrimitiveCloud::parse_ply(fname);
+      if(cloud)
+      {
+        const QString label
+            = QFileInfo(QString::fromStdString(std::string{fname})).fileName();
+        loaded = Threedim::PrimitiveCloud::sceneStateFromCloud(
+            std::move(cloud), label.toStdString());
+      }
+    }
+    else
+    {
+      Threedim::float_vec buf;
+      auto meshes = Threedim::PlyFromFile(fname, buf);
+      if(!meshes.empty())
+      {
+        const QString label
+            = QFileInfo(QString::fromStdString(std::string{fname})).fileName();
+        loaded = Threedim::sceneStateFromMeshes(
+            std::move(meshes), std::move(buf), label.toStdString());
+      }
     }
   }
   else if(hasSuffixCI(fname, "stl"))
   {
+    dispatched = true;
     Threedim::float_vec buf;
     auto meshes = Threedim::StlFromFile(fname, buf);
     if(!meshes.empty())
@@ -194,6 +222,7 @@ AssetLoader::ins::asset_t::process(file_type tv)
   }
   else if(hasSuffixCI(fname, "off"))
   {
+    dispatched = true;
     Threedim::float_vec buf;
     auto meshes = Threedim::OffFromFile(fname, buf);
     if(!meshes.empty())
@@ -204,34 +233,98 @@ AssetLoader::ins::asset_t::process(file_type tv)
           std::move(meshes), std::move(buf), label.toStdString());
     }
   }
+  else if(hasSuffixCI(fname, "splat"))
+  {
+    dispatched = true;
+    // Antimatter15 binary .splat: 32 bytes/primitive, fixed schema.
+    auto cloud = Threedim::PrimitiveCloud::parse_splat_binary(tv.bytes);
+    if(cloud)
+    {
+      const QString label
+          = QFileInfo(QString::fromStdString(std::string{fname})).fileName();
+      loaded = Threedim::PrimitiveCloud::sceneStateFromCloud(
+          std::move(cloud), label.toStdString());
+    }
+  }
+  else if(hasSuffixCI(fname, "spz"))
+  {
+    dispatched = true;
+    // Niantic .spz v1-3: gzip-compressed column-grouped 3DGS data.
+    // Decoded via the vendored Niantic library (3rdparty/spz),
+    // transposed into the canonical 62-float row layout that the
+    // 3dgs.classic preset reads. v4 (NGSP-magic + ZSTD) returns
+    // nullptr — see 3rdparty/spz/CMakeLists.txt for the rationale.
+    auto cloud = Threedim::PrimitiveCloud::parse_spz(tv.bytes);
+    if(cloud)
+    {
+      const QString label
+          = QFileInfo(QString::fromStdString(std::string{fname})).fileName();
+      loaded = Threedim::PrimitiveCloud::sceneStateFromCloud(
+          std::move(cloud), label.toStdString());
+    }
+  }
   else
   {
     // Built-ins all missed — consult the addon-registered parsers.
     // score-addon-academy registers its USD loader here at module load.
     const std::string ext = extensionLowerCI(fname);
     if(auto fn = AssetLoaderRegistry::lookup(ext))
+    {
+      dispatched = true;
       loaded = fn(tv);
+    }
   }
 
   if(!loaded)
+  {
+    // Say so. Every path above used to return an empty function in silence,
+    // and the node has no way to observe its own failure afterwards: the
+    // avnd runtime applies nothing, so operator()() only ever sees "I have no
+    // scene", which is also what a brand-new instance sees. With 24 real
+    // scores using this node and a corpus that addresses assets through four
+    // different path syntaxes -- including C:/Users/... paths opened on
+    // Linux -- a rejected asset is the NORMAL outcome, and it used to produce
+    // a black frame with no message anywhere.
+    if(dispatched)
+      qWarning() << "Asset Loader: could not parse"
+                 << QString::fromUtf8(fname.data(), int(fname.size()))
+                 << "(" << qint64(tv.bytes.size()) << "bytes read)";
+    else
+      qWarning() << "Asset Loader: unsupported file type"
+                 << QString::fromUtf8(fname.data(), int(fname.size()))
+                 << "- no built-in parser and no registered parser for"
+                 << QString::fromStdString(extensionLowerCI(fname));
     return {};
+  }
 
   return [state = std::move(loaded)](AssetLoader& self) mutable {
-    self.m_raw_state = std::move(state);
+    self.m_parsed_state = std::move(state);
+    self.rebuild_format_state();        // m_parsed → m_overridden
     self.m_cached_xform.valid = false;  // force wrap rebuild
     self.rebuild_wrapped_state();
   };
 }
 
+void AssetLoader::rebuild_format_state()
+{
+  m_cached_format_override = inputs.format_override.value;
+  m_overridden_state = Threedim::PrimitiveCloud::applyFormatOverride(
+      m_parsed_state, m_cached_format_override);
+  // The wrapped state derives from m_overridden_state and must be
+  // rebuilt whenever the override changes.
+  m_cached_xform.valid = false;
+  rebuild_wrapped_state();
+}
+
 void AssetLoader::rebuild_wrapped_state()
 {
   m_wrapped_state = Threedim::wrapSceneWithTransform(
-      m_raw_state, inputs, m_cached_xform, m_version_counter, m_xform_ref);
+      m_overridden_state, inputs, m_cached_xform, m_version_counter, m_xform_ref);
 }
 
 void AssetLoader::operator()()
 {
-  if(!m_raw_state)
+  if(!m_parsed_state)
   {
     outputs.scene_out.scene.state = nullptr;
     outputs.scene_out.dirty = 0;
@@ -292,6 +385,12 @@ void AssetLoader::release(score::gfx::RenderList& r)
   if(raw_transform_slot.valid())
     r.registry().free(raw_transform_slot);
   m_xform_ref = {};
+  // Clear cached scene_state so the next operator()() rebuilds against
+  // the post-release registry.  m_parsed_state stays valid
+  // (parser output, no slot refs); only m_overridden_state and
+  // m_wrapped_state embed registry refs and need clearing.
+  m_overridden_state.reset();
+  m_wrapped_state.reset();
 }
 
 } // namespace Threedim

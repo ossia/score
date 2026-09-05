@@ -17,7 +17,12 @@ namespace Threedim
 class BuffersToGeometry
 {
 public:
-  halp_meta(name, "Buffers to geometry")
+  // "(v1)", not plain "Buffers to geometry": BuffersToGeometry2 in
+  // BufferToGeometry2.hpp carries the same name, and a document holding one of
+  // each showed two identical headers. Matches the c_name pair
+  // (buffers_to_geometry / buffers_to_geometry_v2). The uuid is untouched, so
+  // existing documents load exactly as before.
+  halp_meta(name, "Buffers to geometry (v1)")
   halp_meta(category, "Visuals/Utilities")
   halp_meta(c_name, "buffers_to_geometry")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/buffers-to-geometry.html")

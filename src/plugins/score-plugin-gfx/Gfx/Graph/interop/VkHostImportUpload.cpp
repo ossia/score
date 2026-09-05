@@ -347,9 +347,39 @@ void VkHostImportUpload::release()
   m_d = nullptr;
 }
 
+namespace
+{
+/// Bytes one texel occupies, for the formats a capture can land in. Only used
+/// to turn a byte stride into the texel count VkBufferImageCopy wants; 0 means
+/// "do not know", and the caller then falls back to tightly packed rather than
+/// computing a wrong row length.
+int texelBytes(QRhiTexture::Format f) noexcept
+{
+  switch(f)
+  {
+    case QRhiTexture::R8:
+      return 1;
+    case QRhiTexture::R16:
+    case QRhiTexture::RG8:
+      return 2;
+    case QRhiTexture::RGBA8:
+    case QRhiTexture::BGRA8:
+    case QRhiTexture::RG16:
+    case QRhiTexture::RGB10A2:
+      return 4;
+    case QRhiTexture::RGBA16F:
+      return 8;
+    case QRhiTexture::RGBA32F:
+      return 16;
+    default:
+      return 0;
+  }
+}
+}
+
 bool VkHostImportUpload::copyToTexture(
     QRhiCommandBuffer& cb, QRhiTexture& tex, std::size_t slot, int width,
-    int height, std::size_t srcOffset) noexcept
+    int height, std::size_t srcOffset, std::size_t rowPitchBytes) noexcept
 {
   if(!m_d || slot >= m_buffers.size() || width <= 0 || height <= 0)
     return false;
@@ -392,6 +422,17 @@ bool VkHostImportUpload::copyToTexture(
   region.bufferOffset = VkDeviceSize(srcOffset);
   region.imageSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1};
   region.imageExtent = {uint32_t(width), uint32_t(height), 1};
+
+  // Left at 0 this means "tightly packed", and a padded capture then skews:
+  // each row starts (pitch - width*texel) bytes early relative to the one
+  // above. bufferRowLength counts TEXELS, not bytes.
+  if(const int tb = texelBytes(tex.format());
+     tb > 0 && rowPitchBytes > 0 && rowPitchBytes % std::size_t(tb) == 0)
+  {
+    const auto texels = rowPitchBytes / std::size_t(tb);
+    if(texels >= std::size_t(width))
+      region.bufferRowLength = uint32_t(texels);
+  }
   m_d->df->vkCmdCopyBufferToImage(
       nh->commandBuffer, buf, img, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
@@ -431,7 +472,8 @@ bool VkHostImportUpload::init(QRhi&, const std::vector<void*>&, std::size_t)
 }
 void VkHostImportUpload::release() { }
 bool VkHostImportUpload::copyToTexture(
-    QRhiCommandBuffer&, QRhiTexture&, std::size_t, int, int, std::size_t) noexcept
+    QRhiCommandBuffer&, QRhiTexture&, std::size_t, int, int, std::size_t,
+    std::size_t) noexcept
 {
   return false;
 }

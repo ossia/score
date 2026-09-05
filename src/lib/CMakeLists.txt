@@ -269,6 +269,7 @@ set(HEADERS
 
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/ArrowDialog.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/BackgroundRenderer.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/BangPainting.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/GraphicWidgets.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/GraphicsItem.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/GraphicsLayout.hpp"
@@ -280,6 +281,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/InfiniteScroller.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/ItemBounder.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/PainterPath.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/RightClickWidget.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/RectItem.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/TextItem.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/ZoomItem.hpp"

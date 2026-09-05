@@ -4,20 +4,28 @@
 
 #include <Device/Address/AddressSettings.hpp>
 
+#include <State/ValueConversion.hpp>
+
+#include <State/Widgets/Values/ExpandableTextEdit.hpp>
+
 #include <Explorer/Explorer/ValueEditors.hpp>
 
 #include <score/widgets/IntSlider.hpp>
 
 #include <score_test/App.hpp>
+#include <score_test/Keyboard.hpp>
 
+#include <ossia/network/base/node_attributes.hpp>
 #include <ossia/network/dataspace/dataspace.hpp>
 #include <ossia/network/domain/domain.hpp>
 #include <ossia/network/value/value_traits.hpp>
 
 #include <QAbstractSlider>
 #include <QLineEdit>
+#include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
+#include <QAbstractButton>
 #include <QPushButton>
 #include <QSpinBox>
 
@@ -143,7 +151,7 @@ TEST_CASE("an impulse gets something to press", "[explorer][editors]")
   score::test::run_in_app([](const score::GUIApplicationContext&) {
     Editor e{param(ossia::impulse{}), ValueEditorSize::Compact};
     REQUIRE(e);
-    REQUIRE(e.countOf<QPushButton*>() == 1);
+    REQUIRE(e.countOf<QAbstractButton*>() == 1);
 
     // It acts instead of holding a value, so it commits as soon as it is used.
     CHECK(e->commitsImmediately());
@@ -156,7 +164,7 @@ TEST_CASE("an impulse gets something to press", "[explorer][editors]")
         sent++;
         });
 
-    e.w->findChild<QPushButton*>()->click();
+    e.w->findChild<QAbstractButton*>()->click();
     CHECK(sent == 1);
     CHECK(e->get().get_type() == ossia::val_type::IMPULSE);
   });
@@ -213,7 +221,11 @@ TEST_CASE("composite values round-trip through their text", "[explorer][editors]
   });
 }
 
-TEST_CASE("unparseable text leaves the value alone", "[explorer][editors]")
+// The editor reports "no value" rather than the one it was showing: handing
+// back the previous value looks to the caller like a successful edit, so the
+// row flashes back to what it was with nothing said. Every caller treats an
+// invalid value as "commit nothing", which leaves the parameter alone.
+TEST_CASE("unparseable text commits nothing", "[explorer][editors]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext&) {
     const auto lst = ossia::value{std::vector<ossia::value>{1, 2, 3}};
@@ -225,8 +237,15 @@ TEST_CASE("unparseable text leaves the value alone", "[explorer][editors]")
     REQUIRE(line != nullptr);
     line->setText("not a value at all");
 
-    // Rather than replacing the list with an empty one.
-    CHECK(e->get() == lst);
+    CHECK_FALSE(e->get().valid());
+
+    // ... and it says so while it is still open, rather than only on commit.
+    CHECK(!line->toolTip().isEmpty());
+
+    // Back to something readable and the field is itself again.
+    line->setText("[4, 5]");
+    CHECK(e->get() == ossia::value{std::vector<ossia::value>{4, 5}});
+    CHECK(line->toolTip().isEmpty());
   });
 }
 
@@ -306,6 +325,12 @@ TEST_CASE("a boolean and a string are editors of their own", "[explorer][editors
 {
   score::test::run_in_app([](const score::GUIApplicationContext&) {
     CHECK(roundtrip(param(false), ossia::value{true}) == ossia::value{true});
+
+    // A box to tick, not a two-item combo.
+    Editor b{param(false), ValueEditorSize::Compact};
+    REQUIRE(b);
+    CHECK(b.countOf<QCheckBox*>() == 1);
+    CHECK(b.countOf<QComboBox*>() == 0);
 
     // A string that looks like a list is still a string.
     const auto s = ossia::value{std::string{"[1, 2]"}};
@@ -482,8 +507,338 @@ TEST_CASE("a map can be typed in", "[explorer][editors]")
     CHECK(it->first == "x");
     CHECK(it->second == ossia::value{4});
 
-    // Nonsense keeps the previous value rather than emptying it.
+    // Nonsense commits nothing rather than emptying the address.
     line->setText("not a map");
-    CHECK(e->get() == map);
+    CHECK_FALSE(e->get().valid());
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Multi-line strings, and the text form of a value.
+// ---------------------------------------------------------------------------
+
+// A QLineEdit drops newlines on both typing and paste, so a value that has one
+// can only be shown and edited through the popup the field opens.
+TEST_CASE("a string editor carries a multi-line value", "[explorer][editors]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    const auto text = std::string{"first\nsecond\nthird"};
+    Editor e{param(std::string{}), ValueEditorSize::Compact};
+    REQUIRE(e);
+
+    CHECK(roundtrip(param(std::string{}), ossia::value{text}) == ossia::value{text});
+
+    e->set(ossia::value{text});
+    auto* field = e.w->findChild<State::ExpandableTextEdit*>();
+    REQUIRE(field != nullptr);
+    CHECK(field->isMultiLine());
+
+    // One line in the cell, saying what it had to fold away, and the whole
+    // text within reach in the tooltip.
+    CHECK_FALSE(field->text().contains('\n'));
+    CHECK(field->text().startsWith("first"));
+    CHECK(field->text().contains("2"));
+    CHECK(field->toolTip() == QString::fromStdString(text));
+
+    // Half-editing it in a one-line field is how the rest gets lost.
+    CHECK(field->isReadOnly());
+  });
+}
+
+// The escaping in State::convert is what makes this possible: the printed form
+// of the list has to stay one line and read back the same.
+TEST_CASE("a multi-line string survives inside a list", "[explorer][editors]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    const auto lst = ossia::value{std::vector<ossia::value>{
+        std::string{"one\ntwo"}, std::string{R"(say "hi")"}, 3}};
+    CHECK(roundtrip(param(lst), lst) == lst);
+  });
+}
+
+TEST_CASE("every editor offers the value as text", "[explorer][editors]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    auto check = [](const Device::AddressSettingsCommon& s, ossia::value v) {
+      Editor e{s, ValueEditorSize::Compact};
+      REQUIRE(e);
+      e->set(v);
+
+      INFO(e->toText().toStdString());
+      const auto back = e->fromText(e->toText());
+      REQUIRE(back.has_value());
+      CHECK(*back == v);
+    };
+
+    check(param(0.f), ossia::value{1.5f});
+    check(param(0), ossia::value{42});
+    check(param(ossia::vec3f{}), ossia::value{ossia::vec3f{{1.f, 2.f, 3.f}}});
+    check(param(std::string{}), ossia::value{std::string{"hello\nthere"}});
+    check(
+        param(ossia::value{std::vector<ossia::value>{}}),
+        ossia::value{std::vector<ossia::value>{1, 2}});
+
+    // A string's text form is the string itself, so that it pastes into
+    // anything else that takes text.
+    Editor str{param(std::string{}), ValueEditorSize::Compact};
+    REQUIRE(str);
+    str->set(ossia::value{std::string{R"(say "hi")"}});
+    CHECK(str->toText() == R"(say "hi")");
+
+    // An impulse is an act, not a value: there is nothing to copy.
+    Editor imp{param(ossia::impulse{}), ValueEditorSize::Compact};
+    REQUIRE(imp);
+    CHECK_FALSE(imp->hasTextForm());
+  });
+}
+
+TEST_CASE("text that names no value of the type is refused", "[explorer][editors]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    Editor e{param(ossia::vec3f{}), ValueEditorSize::Compact};
+    REQUIRE(e);
+    e->set(ossia::value{ossia::vec3f{{1.f, 2.f, 3.f}}});
+
+    CHECK_FALSE(e->fromText("nonsense").has_value());
+    CHECK_FALSE(e->fromText("[1, 2]").has_value());
+    CHECK(e->fromText("[4, 5, 6]").has_value());
+  });
+}
+
+// A pad alone can be dragged but never typed, pasted or read off precisely.
+TEST_CASE("the position pad comes with its numbers", "[explorer][editors]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    auto s = param(ossia::vec2f{{0.f, 0.f}});
+    s.unit = ossia::unit_t{ossia::cartesian_2d_u{}};
+
+    Editor e{s, ValueEditorSize::Full};
+    REQUIRE(e);
+    CHECK(e.countOf<QDoubleSpinBox*>() == 2);
+
+    // Typing into them moves the value, not only the pad.
+    auto boxes = e.w->findChildren<QDoubleSpinBox*>();
+    REQUIRE(boxes.size() == 2);
+    boxes[0]->setValue(-0.25);
+    boxes[1]->setValue(0.5);
+
+    const auto out = e->get();
+    const auto v = *out.target<ossia::vec2f>();
+    CHECK(v[0] == Catch::Approx(-0.25f));
+    CHECK(v[1] == Catch::Approx(0.5f));
+    CHECK(e->edited());
+  });
+}
+
+// A swatch alone has no text at all: nothing to read a hex code off, and
+// nothing to paste one into.
+TEST_CASE("a colour editor has a field as well as a swatch", "[explorer][editors]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    auto s = param(ossia::vec4f{{0.f, 0.f, 0.f, 1.f}});
+    s.unit = ossia::unit_t{ossia::rgba_u{}};
+
+    Editor e{s, ValueEditorSize::Compact};
+    REQUIRE(e);
+    CHECK(e.countOf<QPushButton*>() == 1);
+
+    auto* field = e.w->findChild<QLineEdit*>();
+    REQUIRE(field != nullptr);
+
+    e->set(ossia::value{ossia::vec4f{{1.f, 0.f, 0.f, 1.f}}});
+    CHECK(field->text().compare("#ffff0000", Qt::CaseInsensitive) == 0);
+
+    // Hex is what a picker, a stylesheet or a chat message would give back.
+    CHECK(e->toText().compare("#ffff0000", Qt::CaseInsensitive) == 0);
+
+    auto green = e->fromText("#ff00ff00");
+    REQUIRE(green.has_value());
+    const auto g = *green->target<ossia::vec4f>();
+    CHECK(g[1] == Catch::Approx(1.f).margin(0.01));
+
+    // ... and so is the parameter's own form.
+    auto listed = e->fromText("[0, 0, 1, 1]");
+    REQUIRE(listed.has_value());
+    const auto b = *listed->target<ossia::vec4f>();
+    CHECK(b[2] == Catch::Approx(1.f).margin(0.01));
+
+    CHECK_FALSE(e->fromText("not a colour").has_value());
+  });
+}
+
+// The parameter's declared default is what "Reset to default" puts back.
+TEST_CASE("an editor knows the parameter's default", "[explorer][editors]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    auto s = param(3);
+    ossia::net::set_default_value(s.extendedAttributes, ossia::value{7});
+
+    Editor e{s, ValueEditorSize::Compact};
+    REQUIRE(e);
+    e->set(ossia::value{3});
+    REQUIRE_FALSE(e->edited());
+
+    // Applied as the user's own edit, so that it commits like any other.
+    int sent{};
+    ossia::value got;
+    QObject::connect(
+        e.w.get(), &AddressValueWidget::changed, e.w.get(),
+        [&](const ossia::value& v) { sent++; got = v; });
+
+    CHECK(e->defaultValue() == ossia::value{7});
+    e->resetToDefault();
+
+    CHECK(sent == 1);
+    CHECK(got == ossia::value{7});
+    CHECK(e->get() == ossia::value{7});
+    CHECK(e->edited());
+  });
+}
+
+// Regression: the base toText/fromText pair was toPrettyString/readAs, which
+// are not inverses for a STRING -- toPrettyString quotes it, readAs takes the
+// text verbatim. ComboValueWidget overrides neither, so Copy then Paste on a
+// string enumeration wrote the quote characters into the parameter.
+TEST_CASE("a string enumeration copies and pastes without quoting itself",
+          "[explorer][editors]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    auto s = param(std::string{"a"});
+    s.domain = ossia::make_domain(
+        std::vector<ossia::value>{std::string{"a"}, std::string{"b"}});
+
+    Editor e{s, ValueEditorSize::Compact};
+    REQUIRE(e);
+    e->set(ossia::value{std::string{"a"}});
+
+    const auto text = e->toText();
+    CHECK(text == "a");
+    CHECK_FALSE(text.startsWith('"'));
+
+    const auto back = e->fromText(text);
+    REQUIRE(back.has_value());
+    CHECK(*back == ossia::value{std::string{"a"}});
+
+    // ... and showing the pasted value back keeps it inside the domain.
+    e->set(*back);
+    CHECK(e->get() == ossia::value{std::string{"a"}});
+  });
+}
+
+// Regression: an unparseable hex left m_color at the last colour that happened
+// to parse and getImpl() returned it, so a red "will not be applied" field
+// committed a value anyway.
+TEST_CASE("a half-typed colour commits nothing", "[explorer][editors]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    auto s = param(ossia::vec4f{{0.f, 0.f, 0.f, 1.f}});
+    s.unit = ossia::unit_t{ossia::rgba_u{}};
+
+    Editor e{s, ValueEditorSize::Compact};
+    REQUIRE(e);
+    e->set(ossia::value{ossia::vec4f{{1.f, 0.f, 0.f, 1.f}}});
+    REQUIRE(e->get().valid());
+
+    auto* field = e.w->findChild<QLineEdit*>();
+    REQUIRE(field != nullptr);
+
+    field->setText("#ff00");
+    CHECK_FALSE(e->get().valid());
+    CHECK(!field->toolTip().isEmpty());
+
+    field->setText("#ff00ff00");
+    REQUIRE(e->get().valid());
+    CHECK(e->get().get_type() == ossia::val_type::VEC4F);
+  });
+}
+
+// Regression: the pad's boxes were fixed to [-1; 1] and clamped on display, so
+// opening an out-of-range position rewrote it.
+TEST_CASE("the position editor does not clamp what it is shown",
+          "[explorer][editors]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    auto s = param(ossia::vec2f{{0.f, 0.f}});
+    s.unit = ossia::unit_t{ossia::cartesian_2d_u{}};
+
+    const auto out = roundtrip(s, ossia::vec2f{{2.f, -3.f}}, ValueEditorSize::Full);
+    REQUIRE(out.get_type() == ossia::val_type::VEC2F);
+    const auto v = *out.target<ossia::vec2f>();
+    CHECK(v[0] == Catch::Approx(2.f));
+    CHECK(v[1] == Catch::Approx(-3.f));
+  });
+}
+
+// A device may put anything in a STRING parameter -- ossia's is a std::string.
+// Decoding it as UTF-8 to display it turns every bad byte into U+FFFD, and
+// committing then writes the replacements back over the device's data.
+TEST_CASE("a binary string survives the editor", "[explorer][editors]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    const auto png = QByteArray::fromHex("89504e470d0a1a0a0000000d49484452");
+    const auto v = ossia::value{png.toStdString()};
+
+    Editor e{param(std::string{}), ValueEditorSize::Compact};
+    REQUIRE(e);
+    e->set(v);
+
+    auto* field = e.w->findChild<State::ExpandableTextEdit*>();
+    REQUIRE(field != nullptr);
+    CHECK(field->isBinary());
+    CHECK(field->needsPopup());
+    CHECK(field->isReadOnly());
+    CHECK(field->fullBytes() == png);
+
+    // Byte for byte, not "as much of it as was valid UTF-8".
+    CHECK(e->get() == v);
+  });
+}
+
+// The one-line field cannot show either of these, so the editor opens on the
+// popup rather than on a preview the user cannot type into.
+TEST_CASE("a value the row cannot hold asks for the popup", "[explorer][editors]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    Editor e{param(std::string{}), ValueEditorSize::Compact};
+    REQUIRE(e);
+    auto* field = e.w->findChild<State::ExpandableTextEdit*>();
+    REQUIRE(field != nullptr);
+
+    e->set(ossia::value{std::string{"one line"}});
+    CHECK_FALSE(field->needsPopup());
+    CHECK_FALSE(field->isReadOnly());
+
+    e->set(ossia::value{std::string{"one\ntwo"}});
+    CHECK(field->needsPopup());
+
+    e->set(ossia::value{std::string{"a\0b", 3}});
+    CHECK(field->needsPopup());
+  });
+}
+
+// Return means "send this", not "send this if it changed". A toggle or a bang
+// has to be repeatable: true twice in a row, without a detour through false to
+// make the value look different to the commit path.
+TEST_CASE("Return marks the value as sent even when nothing changed",
+          "[explorer][editors]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    for(const auto& s : {param(true), param(ossia::impulse{}), param(3),
+                         param(std::string{"x"})})
+    {
+      Editor e{s, ValueEditorSize::Compact};
+      REQUIRE(e);
+      e->set(s.value);
+
+      // Untouched: the delegates deliberately write nothing back.
+      REQUIRE_FALSE(e->edited());
+
+      // Return on whichever field holds the focus.
+      auto* field = e.w->focusProxy() ? e.w->focusProxy() : e.w.get();
+      score::test::keyClick(*field, Qt::Key_Return);
+
+      INFO(State::convert::prettyType(s.value).toStdString());
+      CHECK(e->edited());
+    }
   });
 }

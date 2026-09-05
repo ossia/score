@@ -71,14 +71,47 @@ enum IndexFormat
 namespace
 {
 
-[[nodiscard]] constexpr int32_t attributeFormatSize(AttributeFormat fmt) noexcept
-{
-  return Threedim::attributeFormatSize((halp::attribute_format)fmt);
-}
-
 [[nodiscard]] constexpr halp::attribute_format toHalpFormat(AttributeFormat fmt) noexcept
 {
-  return static_cast<halp::attribute_format>(fmt);
+  // A real switch, NOT a static_cast: the local enum mirrors
+  // QRhiVertexInputAttribute::Format, which has no 3-component
+  // int/short entries, while halp::attribute_format interleaves
+  // uint3/sint3/ushort3/sshort3 into the sequence. The two enums agree
+  // only for values 0..7 (Float4..UInt4); from UInt2 upward a cast
+  // lands every format on the wrong halp entry (UInt2 -> uint3,
+  // SInt4 -> uint1, UShort4 -> half2, ...).
+  switch(fmt)
+  {
+    case AttributeFormat::Float4:     return halp::attribute_format::float4;
+    case AttributeFormat::Float3:     return halp::attribute_format::float3;
+    case AttributeFormat::Float2:     return halp::attribute_format::float2;
+    case AttributeFormat::Float:      return halp::attribute_format::float1;
+    case AttributeFormat::UNormByte4: return halp::attribute_format::unormbyte4;
+    case AttributeFormat::UNormByte2: return halp::attribute_format::unormbyte2;
+    case AttributeFormat::UNormByte:  return halp::attribute_format::unormbyte1;
+    case AttributeFormat::UInt4:      return halp::attribute_format::uint4;
+    case AttributeFormat::UInt2:      return halp::attribute_format::uint2;
+    case AttributeFormat::UInt:       return halp::attribute_format::uint1;
+    case AttributeFormat::SInt4:      return halp::attribute_format::sint4;
+    case AttributeFormat::SInt2:      return halp::attribute_format::sint2;
+    case AttributeFormat::SInt:       return halp::attribute_format::sint1;
+    case AttributeFormat::Half4:      return halp::attribute_format::half4;
+    case AttributeFormat::Half3:      return halp::attribute_format::half3;
+    case AttributeFormat::Half2:      return halp::attribute_format::half2;
+    case AttributeFormat::Half:       return halp::attribute_format::half1;
+    case AttributeFormat::UShort4:    return halp::attribute_format::ushort4;
+    case AttributeFormat::UShort2:    return halp::attribute_format::ushort2;
+    case AttributeFormat::UShort:     return halp::attribute_format::ushort1;
+    case AttributeFormat::SShort4:    return halp::attribute_format::sshort4;
+    case AttributeFormat::SShort2:    return halp::attribute_format::sshort2;
+    case AttributeFormat::SShort:     return halp::attribute_format::sshort1;
+  }
+  return halp::attribute_format::float4;
+}
+
+[[nodiscard]] constexpr int32_t attributeFormatSize(AttributeFormat fmt) noexcept
+{
+  return Threedim::attributeFormatSize(toHalpFormat(fmt));
 }
 
 [[nodiscard]] constexpr halp::primitive_topology

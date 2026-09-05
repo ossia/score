@@ -71,11 +71,22 @@ void ExtractSceneBuffer::update(
     score::gfx::RenderList& renderer, QRhiResourceUpdateBatch&,
     score::gfx::Edge*)
 {
+  // Clear the outlet, ANNOUNCING the transition when a live handle
+  // vanishes: `changed` is exactly what downstream rebinds key on, so a
+  // wholesale {} would leave consumers bound to the old buffer.
+  auto clear_outlet = [this] {
+    const bool was_live = outputs.buffer.buffer.handle != nullptr
+                          || outputs.buffer.buffer.byte_size != 0
+                          || outputs.buffer.buffer.byte_offset != 0;
+    outputs.buffer.buffer = {};
+    outputs.buffer.buffer.changed = was_live;
+  };
+
   // No scene → clear outlet. Downstream consumers see buffer.handle ==
   // nullptr and fall back to whatever default they define.
   if(!inputs.scene_in.scene.state)
   {
-    outputs.buffer.buffer = {};
+    clear_outlet();
     return;
   }
 
@@ -89,14 +100,14 @@ void ExtractSceneBuffer::update(
   // mismatched-arena refs in one compare.
   if(!renderer.registry().isLive(ref))
   {
-    outputs.buffer.buffer = {};
+    clear_outlet();
     return;
   }
 
   QRhiBuffer* buf = renderer.registry().buffer(arenaOf(ref.arena));
   if(!buf)
   {
-    outputs.buffer.buffer = {};
+    clear_outlet();
     return;
   }
 

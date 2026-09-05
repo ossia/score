@@ -198,6 +198,16 @@ std::vector<uint8_t> rowPattern(int w, const std::vector<Rgba>& rows)
   return px;
 }
 
+// <windows.h> defines near/far as empty macros, and -DWIN32_LEAN_AND_MEAN does
+// not suppress them (they live in minwindef.h alongside `pascal`). A declaration
+// using those names degrades to `bool (int, int, int)` and the diagnostic --
+// "expected unqualified-id" -- points nowhere near the cause. Same guard as
+// tests/fixtures/score_test/Gfx.hpp:74.
+#if defined(_WIN32)
+#undef near
+#undef far
+#endif
+
 bool near(int a, int b, int tol = 1)
 {
   return std::abs(a - b) <= tol;

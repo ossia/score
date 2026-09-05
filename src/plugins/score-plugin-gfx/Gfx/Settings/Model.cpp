@@ -1,4 +1,5 @@
 #include <Gfx/Settings/Model.hpp>
+#include <QLibrary>
 
 #include <score/gfx/OpenGL.hpp>
 #include <score/gfx/Vulkan.hpp>
@@ -193,7 +194,25 @@ Model::Model(
 #endif
 
   qputenv("QT3D_RENDERER", "rhi");
-  if(const auto rhi = qEnvironmentVariable("QSG_RHI_BACKEND").toLower(); !rhi.isEmpty())
+
+  // Latched for the lifetime of the process, because qunsetenv() below removes
+  // it after the first read.
+  //
+  // The application constructs exactly one Model, so it never noticed. A test
+  // binary boots a MinimalGUIApplication per Catch2 case, so every Model after
+  // the first saw no QSG_RHI_BACKEND and fell through to the platform default
+  // -- Metal on macOS, above. A whole suite launched with
+  // QSG_RHI_BACKEND=opengl therefore ran OpenGL in its FIRST CASE ONLY and
+  // reported every later case as an OpenGL result. Measured on macmini-m1: one
+  // binary logged "backend=OpenGL" twice and "backend=Metal" four times in a
+  // single QSG_RHI_BACKEND=opengl run, and which case failed moved when the
+  // case order was changed with --order lex.
+  //
+  // Not macOS-specific: the same holds for QSG_RHI_BACKEND=vulkan anywhere.
+  static const QString requestedBackend
+      = qEnvironmentVariable("QSG_RHI_BACKEND").toLower();
+
+  if(const auto& rhi = requestedBackend; !rhi.isEmpty())
   {
     // User sets QSG_RHI_BACKEND from env: we respect it initially
     if(rhi == "opengl") {
@@ -259,6 +278,47 @@ score::gfx::GraphicsApi Model::graphicsApiEnum() const noexcept
   }
 }
 
+/**
+ * @brief The HLSL version to bake for Direct3D 12, decided by whether DXC is
+ *        actually loadable.
+ *
+ * Qt compiles shader model 6.x through DXC, which it loads from
+ * dxcompiler.dll at runtime. That library is not part of Windows: it ships
+ * with the DirectX Shader Compiler release, and the ossia SDK only began
+ * carrying it recently. Asking for 6.x without it is not a silent
+ * degradation -- Qt's search takes the first shader model it finds and stops,
+ * so a 6.x blob makes it fail where 5.0 would have worked.
+ *
+ * Probing the DLL rather than assuming it keeps a score built against a newer
+ * SDK working on a machine with an older one, and vice versa. Cached: the
+ * answer cannot change within a process, and this is called per shader.
+ */
+static QShaderVersion d3d12ShaderVersion() noexcept
+{
+#if defined(_WIN32)
+  static const QShaderVersion cached = [] {
+    // Same name Qt passes to LoadLibrary; if this resolves, Qt's will too.
+    QLibrary dxc{QStringLiteral("dxcompiler")};
+    if(dxc.load())
+    {
+      dxc.unload();
+      // 6.1 is the floor for SV_ViewID, which is what multiview needs. Higher
+      // models buy nothing score currently asks for, and every step up
+      // narrows the set of drivers that will accept the result.
+      return QShaderVersion(61);
+    }
+    qDebug() << "score: dxcompiler.dll not found, baking HLSL 5.0 for D3D12. "
+                "Shader model 6 features (multiview, wave intrinsics) are "
+                "unavailable until the DirectX shader compiler runtime is "
+                "installed alongside the application.";
+    return QShaderVersion(50);
+  }();
+  return cached;
+#else
+  return QShaderVersion(50);
+#endif
+}
+
 QShaderVersion shaderVersionForAPI(score::gfx::GraphicsApi api) noexcept
 {
   switch(api)
@@ -274,8 +334,21 @@ QShaderVersion shaderVersionForAPI(score::gfx::GraphicsApi api) noexcept
       return QShaderVersion(12);
 
     case score::gfx::D3D11:
-    case score::gfx::D3D12:
+      // fxc caps at 5.1 and Qt's D3D11 backend looks up exactly {HlslShader,
+      // 50} (qrhid3d11.cpp), so this is the only version it can use.
       return QShaderVersion(50);
+
+    case score::gfx::D3D12:
+      // D3D12 searches shader models 6.7 down to 5.0 and takes the FIRST it
+      // finds (qrhid3d12.cpp, compileHlslShaderSource). Anything at or above
+      // 6.0 is compiled through DXC, which Qt loads from dxcompiler.dll at
+      // runtime -- and because the search BREAKS at the first hit, baking 6.x
+      // on a machine without that DLL does not fall back to 5.0, it fails.
+      //
+      // So the version is chosen by whether the runtime is actually there.
+      // Present: 6.1, which is what SV_ViewID (multiview) needs and D3D11 can
+      // never provide. Absent: 5.0, exactly as before.
+      return d3d12ShaderVersion();
 
     default:
       return {};

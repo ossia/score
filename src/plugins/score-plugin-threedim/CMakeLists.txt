@@ -40,6 +40,49 @@ if(NOT TARGET fastgltf)
   add_subdirectory("${3RDPARTY_FOLDER}/fastgltf" "${CMAKE_CURRENT_BINARY_DIR}/fastgltf" EXCLUDE_FROM_ALL)
 endif()
 
+# spz — Niantic / Adobe reference SPZ decoder for compressed 3DGS files.
+# v1-3 only (v4/ZSTD stubbed; see 3rdparty/spz/CMakeLists.txt). Pulls
+# in zlib via ZLIB::ZLIB.
+if(NOT TARGET spz)
+  set(SPZ_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
+  set(SPZ_BUILD_PYTHON_BINDINGS OFF CACHE BOOL "" FORCE)
+  set(SPZ_BUILD_EXTENSIONS OFF CACHE BOOL "" FORCE)
+
+  # spz falls back to FetchContent for zlib and zstd when find_package misses,
+  # and a fetched dependency's own CMakeLists is then part of our configure --
+  # including its add_test() calls. zlib 1.3.2 defaults ZLIB_BUILD_TESTING to
+  # ON, which put seventeen zlib_* entries into score's ctest: zlib_example,
+  # zlib_install, zlib_find_package_* and zlib_add_subdirectory_*. They are
+  # EXCLUDE_FROM_ALL, so their executables never build and every one of them
+  # reports Not Run, permanently, in every full-suite run. They are not ours to
+  # pass and they are not ours to fix; they must not be registered at all.
+  set(ZLIB_BUILD_TESTING OFF CACHE BOOL "" FORCE)
+  set(ZLIB_INSTALL OFF CACHE BOOL "" FORCE)
+  # NOT ZLIB_BUILD_SHARED OFF, however tempting: spz/CMakeLists.txt:43 sets
+  # zlib_linkage_target to the SHARED target name `zlib` on its FetchContent
+  # path, and zlib 1.3.2 only defines that target when ZLIB_BUILD_SHARED is on.
+  # Turning it off deletes the target, so the bare name survives to the link
+  # line and mold reports "library not found: zlib" when relinking
+  # score_plugin_threedim. Only ZLIB_BUILD_TESTING is needed to keep zlib's own
+  # ctest entries out of our suite, which is the whole point here.
+  # Belt and braces for any other dependency spz may fetch: the CTest module
+  # gates enable_testing()/add_test() on BUILD_TESTING for projects that use it.
+  set(old_BUILD_TESTING ${BUILD_TESTING})
+  set(BUILD_TESTING OFF)
+
+  add_subdirectory("${3RDPARTY_FOLDER}/spz" "${CMAKE_CURRENT_BINARY_DIR}/spz" EXCLUDE_FROM_ALL)
+
+  set(BUILD_TESTING ${old_BUILD_TESTING})
+
+  if(MSVC)
+    # The prebuilt sysroot's zconf.h includes <unistd.h> unconditionally;
+    # provide a stub so spz's zlib usage compiles with MSVC / clang-cl.
+    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/spz-msvc-compat/unistd.h"
+         "#include <io.h>\n#include <process.h>\n")
+    target_include_directories(spz PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/spz-msvc-compat")
+  endif()
+endif()
+
 # threedim addon
 add_library(
   score_plugin_threedim
@@ -138,6 +181,8 @@ add_library(
   Threedim/InjectBuffer.cpp
   Threedim/InjectTexture.hpp
   Threedim/InjectTexture.cpp
+  Threedim/TagAs.hpp
+  Threedim/TagAs.cpp
   Threedim/PBRMesh.hpp
   Threedim/PBRMesh.cpp
   Threedim/MaterialOverride.hpp
@@ -179,6 +224,16 @@ add_library(
   Threedim/PCLToGeometry.cpp
   Threedim/Ply.hpp
   Threedim/Ply.cpp
+  Threedim/PrimitiveCloud/PlyParser.hpp
+  Threedim/PrimitiveCloud/PlyParser.cpp
+  Threedim/PrimitiveCloud/SplatBinary.hpp
+  Threedim/PrimitiveCloud/SplatBinary.cpp
+  Threedim/PrimitiveCloud/SpzCodec.hpp
+  Threedim/PrimitiveCloud/SpzCodec.cpp
+  Threedim/PrimitiveCloud/SceneFromCloud.hpp
+  Threedim/PrimitiveCloud/SceneFromCloud.cpp
+  Threedim/PrimitiveCloud/FormatOverride.hpp
+  Threedim/PrimitiveCloud/FormatOverride.cpp
   Threedim/Primitive.hpp
   Threedim/Primitive.cpp
   Threedim/StructureSynth.hpp
@@ -232,4 +287,4 @@ target_link_libraries(
   score_plugin_threedim PRIVATE score_plugin_engine score_plugin_avnd
                                 score_plugin_gfx fmt::fmt ssynth Eigen3::Eigen
                                 miniply mikktspace vcglib opengametools
-                                fastgltf::fastgltf)
+                                fastgltf::fastgltf spz)

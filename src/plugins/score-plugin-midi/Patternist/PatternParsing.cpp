@@ -19,7 +19,7 @@ namespace Patternist
   36 BD Bass drum
   37 RS Rim shot
   38 SD Snare drum
-  39 CP/HC Clap
+  39 CP Clap
   42 CH Closed hihat
   43 LT Low tom
   46 OH Open hihat
@@ -73,7 +73,7 @@ std::vector<Pattern> parsePatterns(const QByteArray& data) noexcept
           lane.note = 37;
         else if(split[0] == "sd")
           lane.note = 38;
-        else if(split[0] == "cp" || split[0] == "hc")
+        else if(split[0] == "cp")
           lane.note = 39;
         else if(split[0] == "ch")
           lane.note = 42;
@@ -122,8 +122,8 @@ std::vector<Pattern> parsePatterns(const QByteArray& data) noexcept
 
       if(ok)
       {
-        p.length = split[1].size();
-        for(int i = 0; i < p.length; i++)
+        const int length = split[1].size();
+        for(int i = 0; i < length; i++)
         {
           char c = split[1][i].toLatin1();
           switch(c)
@@ -149,7 +149,10 @@ std::vector<Pattern> parsePatterns(const QByteArray& data) noexcept
         if(!lane.pattern.empty())
         {
           if(p.lanes.empty() || lane.pattern.size() == p.lanes[0].pattern.size())
+          {
+            p.length = length;
             p.lanes.push_back(lane);
+          }
         }
       }
     }

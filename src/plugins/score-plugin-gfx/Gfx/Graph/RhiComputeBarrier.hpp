@@ -77,18 +77,25 @@ void insertComputeBarrier(QRhi& rhi, QRhiCommandBuffer& cb);
  *  - Metal  : MTLBlitCommandEncoder copyFromBuffer
  */
 // Controls whether the copy helpers emit their own pre/post pipeline
-// barriers. Default: Auto (each call emits a compute→transfer +
+// barriers. Default: Auto (each call emits a {compute,transfer}→transfer +
 // transfer→compute pair). Use `None` when you are batching N calls
 // inside explicit beginBufferCopyBarrier / endBufferCopyBarrier brackets
-// to avoid N−1 redundant pipeline stalls.
+// to avoid N−1 redundant pipeline stalls. `None` with no surrounding
+// bracket emits NO synchronisation at all — correct only when the caller
+// knows nothing else in the frame touches the range.
 enum class BufferCopyBarrier
 {
   Auto,
   None
 };
 
-/// Emit the compute→transfer barrier that must precede a buffer copy
-/// consuming data written by a compute shader. Pair with
+/// Emit the {compute,transfer}→transfer barrier that must precede a buffer
+/// copy. The compute half orders the copy after a compute shader that just
+/// produced the data; the transfer half orders it after the staging copies
+/// QRhi emits for a QRhiResourceUpdateBatch submitted earlier in the same
+/// command buffer. That second half is not optional: these helpers record
+/// through beginExternal(), so QRhi's own per-buffer barrier tracking never
+/// sees them and cannot order them against its own uploads. Pair with
 /// endBufferCopyBarrier(). No-op on backends that handle the transition
 /// implicitly (D3D11, Metal).
 SCORE_PLUGIN_GFX_EXPORT

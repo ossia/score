@@ -9,6 +9,8 @@
 
 #include <isf.hpp>
 
+#include <score_plugin_gfx_export.h>
+
 namespace Gfx::GeometryFilter
 {
 struct ProcessedGeometryProgram
@@ -17,7 +19,7 @@ struct ProcessedGeometryProgram
   QString shader;
 };
 
-class Model final : public Process::ProcessModel
+class SCORE_PLUGIN_GFX_EXPORT Model final : public Process::ProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Gfx::GeometryFilter::Model)
@@ -51,6 +53,11 @@ public:
     return m_processedProgram;
   }
 
+  // Explicitly exported so the signal has ONE address process-wide even
+  // under -fvisibility-inlines-hidden; see the note on CSF::Model's
+  // errorMessage — a cross-DSO PMF connect() otherwise fails with
+  // 'signal not found'.
+  SCORE_PLUGIN_GFX_EXPORT
   void errorMessage(int arg_1, const QString& arg_2) const
       W_SIGNAL(errorMessage, arg_1, arg_2);
 

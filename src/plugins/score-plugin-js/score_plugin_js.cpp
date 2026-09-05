@@ -33,6 +33,8 @@
 
 #include <ossia-qt/protocols/qml_oauth.hpp>
 
+#include <QDebug>
+
 #include <score_plugin_js_commands_files.hpp>
 #include <wobjectimpl.h>
 
@@ -42,10 +44,14 @@ W_OBJECT_IMPL(JS::ScriptUI)
 
 score_plugin_js::score_plugin_js()
 {
-  // FIXME
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-  JS::registerQmlValueTypeProvider();
-#endif
+  // Qt.vector3d() and its siblings need a QML value type registered for the
+  // metatype they build; without one they silently return a zero value. The
+  // registration lives in QtQuick and happens on first import, which a
+  // headless --script run never performs.
+  if(!JS::registerQmlValueTypes())
+    qWarning() << "score: QtQuick is not available -- Qt.vector2d(), "
+                  "Qt.vector3d(), Qt.vector4d(), Qt.quaternion() and "
+                  "Qt.matrix4x4() will return zeroed values in scripts.";
 
   ossia::qt::registerQVariantConverters();
   QMetaType::registerConverter<int64_t, TimeVal>(

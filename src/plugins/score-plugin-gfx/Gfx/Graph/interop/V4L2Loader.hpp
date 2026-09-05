@@ -83,6 +83,41 @@ inline int retryIoctl(int fd, unsigned long request, void* arg) noexcept
   return r;
 }
 
+/// The same three, bypassing libv4l2 outright.
+///
+/// libv4l2 dlopens every plugin in /usr/lib/libv4l/plugins and offers each one
+/// the fd. On Tegra that includes libv4l2_nvargus.so, the Argus-backed V4L2
+/// shim: with nvargus-daemon stopped -- which is exactly the state the raw
+/// Bayer path needs, since Argus otherwise sets bypass_mode=1 and V4L2 delivers
+/// nothing -- its open() fails, it stays attached to the fd anyway, and
+/// v4l2_close() then segfaults inside libnvargus_socketclient dereferencing
+/// state it never initialised. Closing the device or quitting score both take
+/// that path, so both crash.
+///
+/// The direct-video backend wants none of what libv4l2 offers regardless: its
+/// job is format emulation, and this path deliberately takes the sensor's raw
+/// Bayer and demosaics on the GPU. CameraDevice keeps the wrappers, where
+/// converting an odd webcam format is the whole point.
+inline int openDeviceRaw(const char* path, int flags) noexcept
+{
+  return ::open(path, flags);
+}
+
+inline void closeDeviceRaw(int fd) noexcept
+{
+  ::close(fd);
+}
+
+inline int retryIoctlRaw(int fd, unsigned long request, void* arg) noexcept
+{
+  int r;
+  do
+  {
+    r = ::ioctl(fd, request, arg);
+  } while(r == -1 && errno == EINTR);
+  return r;
+}
+
 inline int openDevice(const char* path, int flags) noexcept
 {
   const auto& lib = Libv4l2::instance();

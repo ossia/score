@@ -9,9 +9,11 @@
 #include <Library/LibraryInterface.hpp>
 
 #include <score/command/PropertyCommand.hpp>
+
+#include <score_plugin_gfx_export.h>
 namespace Gfx::Text
 {
-class Model final : public Process::ProcessModel
+class SCORE_PLUGIN_GFX_EXPORT Model final : public Process::ProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Gfx::Text::Model)

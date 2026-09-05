@@ -31,7 +31,9 @@ QRhiBuffer *CustomMesh::init_vbo(const ossia::geometry::cpu_buffer &buf, QRhi &r
   static std::atomic_int idx = 0;
   const auto vtx_buf_size = buf.byte_size;
   auto mesh_buf = rhi.newBuffer(
-      QRhiBuffer::Static, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer,
+      QRhiBuffer::Static,
+      compatibleBufferUsage(
+          rhi, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer),
       vtx_buf_size);
   mesh_buf->setName(
       QString("Mesh::vtx_buf.%1")
@@ -175,7 +177,9 @@ void CustomMesh::update_vbo(
   {
     static std::atomic_int idx = 0;
     auto* fresh = rhi.newBuffer(
-        QRhiBuffer::Static, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer,
+        QRhiBuffer::Static,
+        compatibleBufferUsage(
+            rhi, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer),
         vtx_buf.byte_size);
     fresh->setName(
         QString("Mesh::vtx_buf.%1")
@@ -437,6 +441,25 @@ void CustomMesh::update(
         = static_cast<QRhiBuffer*>(first_mesh.indirect_count.handle);
     output_meshbuf.useIndirectDraw = true;
     output_meshbuf.indirectDrawIndexed = (first_mesh.index.buffer >= 0);
+    // Count AND STRIDE, exactly as init() above computes them. Leaving them out
+    // was an abort, not a degradation: MeshBuffers::indirectDrawStride defaults
+    // to 0 (Mesh.hpp:53) and QRhi asserts `stride >= sizeof(QRhi[Indexed]
+    // IndirectDrawCommand)` inside drawIndirect / drawIndexedIndirect, so the
+    // process dies the first time this path draws.
+    //
+    // Only an ASYNCHRONOUS geometry producer reaches it. A producer that has
+    // its mesh when the node is built goes through init(), which sets both. One
+    // that publishes later -- Structure Synth, whose EisenScript is parsed on a
+    // halp worker thread -- is built with an empty geometry (no indirect handle,
+    // so init() leaves useIndirectDraw false and the stride at 0) and adopts the
+    // indirect buffer HERE, on the reload path, when the mesh finally lands.
+    // That is why no existing test saw it: every other geometry producer in the
+    // tree is synchronous.
+    output_meshbuf.indirectDrawCount
+        = first_mesh.indirect_count.byte_size / (5 * sizeof(uint32_t));
+    if(output_meshbuf.indirectDrawCount == 0)
+      output_meshbuf.indirectDrawCount = 1;
+    output_meshbuf.indirectDrawStride = 5 * sizeof(uint32_t);
   }
   else
   {
@@ -544,10 +567,18 @@ void CustomMesh::reload(const ossia::mesh_list &ml, const ossia::geometry_filter
   vertexBindings.clear();
   for(auto& binding : g.bindings)
   {
-    vertexBindings.emplace_back(
-        binding.byte_stride,
-        (QRhiVertexInputBinding::Classification)binding.classification,
-        binding.step_rate);
+    const auto classification
+        = (QRhiVertexInputBinding::Classification)binding.classification;
+    // Metal asserts that a per-vertex binding steps exactly once
+    // ("stepRate(0) must be one if stepFunction is MTLVertexStepFunctionPerVertex"),
+    // and geometry_port's step_rate is zero-initialised, so it only carries a
+    // meaningful value for instanced bindings.
+    const quint32 step_rate
+        = (classification == QRhiVertexInputBinding::PerInstance
+           && binding.step_rate > 0)
+              ? quint32(binding.step_rate)
+              : 1;
+    vertexBindings.emplace_back(binding.byte_stride, classification, step_rate);
   }
 
   vertexAttributes.clear();
@@ -579,42 +610,49 @@ void CustomMesh::reload(const ossia::mesh_list &ml, const ossia::geometry_filter
 
 bool CustomMesh::drawSingleMesh(
     std::size_t mesh_index, std::size_t base, const MeshBuffers& bufs,
-    QRhiCommandBuffer& cb,
-    std::span<const FallbackBindingPlan::Slot> fallback_slots) const noexcept
+    QRhiCommandBuffer& cb, const FallbackBindingPlan& plan) const noexcept
 {
   if(mesh_index >= geom.meshes.size())
     return false;
   const auto& g = geom.meshes[mesh_index];
 
-  // Total vertex-input count = mesh bindings + fallback bindings. The
-  // fallback slots' binding_index values were allocated sequentially
-  // past the mesh's own bindings when the pipeline was built
-  // (remapPipelineVertexInputs); they land at indices sz, sz+1, ... here.
-  const auto mesh_input_count = g.input.size();
-  const auto total = mesh_input_count + fallback_slots.size();
+  // Total vertex-input count = the mesh bindings the pipeline kept, plus
+  // the fallback bindings. A compacted plan lists the kept ones by their
+  // index into g.input; without one, every input is bound in order --
+  // binding k has always been g.input[k], which is the invariant
+  // preparePipeline builds the layout on.
+  const auto& kept = plan.mesh_bindings;
+  const auto mesh_input_count
+      = plan.compacted ? kept.size() : g.input.size();
+  const auto total = mesh_input_count + plan.slots.size();
   QVarLengthArray<QRhiCommandBuffer::VertexInput> draw_inputs(total);
 
-  int i = 0;
-  for(auto& in : g.input)
+  for(std::size_t i = 0; i < mesh_input_count; ++i)
   {
+    const std::size_t input_index = plan.compacted ? (std::size_t)kept[i] : i;
+    if(input_index >= g.input.size())
+      return false;
+    const auto& in = g.input[input_index];
     const std::size_t flat = base + (std::size_t)in.buffer;
     if(flat >= bufs.buffers.size())
       return false;
     auto buf = bufs.buffers[flat].handle;
     if(!buf)
       return false;
-    draw_inputs[i++] = {buf, in.byte_offset};
+    draw_inputs[i] = {buf, in.byte_offset};
   }
 
   // Fallback slots. Each Slot::binding_index is expressed in the global
   // binding-index space; for a single-sub-mesh raw-raster draw it's
   // always `mesh_input_count + k` for the k'th slot, so we place the
   // buffers by index.
-  for(const auto& slot : fallback_slots)
+  for(const auto& slot : plan.slots)
   {
-    const std::size_t idx = (std::size_t)slot.binding_index;
-    if(idx >= total || !slot.buffer)
+    if(slot.binding_index < 0 || !slot.buffer)
       continue;   // defensive: skip malformed plans rather than dropping the draw
+    const std::size_t idx = (std::size_t)slot.binding_index;
+    if(idx >= total)
+      continue;
     draw_inputs[idx] = {slot.buffer, 0};
   }
 
@@ -770,17 +808,17 @@ void CustomMesh::draw(const MeshBuffers &bufs, QRhiCommandBuffer &cb) const noex
 
 void CustomMesh::drawWithFallbackBindings(
     const MeshBuffers& bufs, QRhiCommandBuffer& cb,
-    std::span<const FallbackBindingPlan::Slot> fallback_slots) const noexcept
+    const FallbackBindingPlan& plan) const noexcept
 {
-  // Same as draw() but with the caller's fallback-binding plan threaded
-  // down to drawSingleMesh so the extra PerInstance identity buffers
-  // land in the vertex-input array at the indices the pipeline
-  // allocated for them.
+  // Same as draw() but with the caller's binding plan threaded down to
+  // drawSingleMesh, so the draw binds exactly the streams the pipeline
+  // was built for and the extra PerInstance identity buffers land in the
+  // vertex-input array at the indices the pipeline allocated for them.
   std::size_t base = 0;
   for(std::size_t i = 0; i < geom.meshes.size(); ++i)
   {
     if(subMeshLayoutMatchesFirst(i))
-      drawSingleMesh(i, base, bufs, cb, fallback_slots);
+      drawSingleMesh(i, base, bufs, cb, plan);
     base += geom.meshes[i].buffers.size();
   }
 }

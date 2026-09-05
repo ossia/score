@@ -90,6 +90,39 @@ void copyBufferRegionsMetal(
 namespace score::gfx
 {
 
+#if SCORE_HAS_VULKAN
+// Source scope of the pre-copy barrier every raw-Vulkan buffer copy in this
+// file emits.
+//
+// COMPUTE_SHADER / SHADER_WRITE is the obvious half: these copies exist to
+// move what a compute pass just produced.
+//
+// TRANSFER / TRANSFER_WRITE is the half that was missing, and it is not
+// hypothetical. The copies here are recorded through beginExternal(), so QRhi
+// never sees them and its per-buffer usageState tracking
+// (QRhiVulkan::trackedBufferBarrier, qrhivulkan.cpp) cannot order them against
+// anything. Meanwhile QRhi lowers every uploadStaticBuffer in a
+// QRhiResourceUpdateBatch to a staging vkCmdCopyBuffer — a TRANSFER_WRITE at
+// the COPY stage — and RenderList submits that batch earlier in the very same
+// command buffer. So a buffer that an update batch has just written and that a
+// copy here then writes (or reads) again is a transfer-vs-transfer hazard, and
+// a barrier whose source scope names only the compute stage does nothing about
+// it. The concrete case: ScenePreprocessorNode's growBuf zero-clears a freshly
+// allocated inst.attribs over [0, capacity) through the
+// update batch, and issuePendingGpuCopies then writes the per-instance slot
+// ranges of that same buffer with vkCmdCopyBuffer — WRITE_AFTER_WRITE over the
+// whole overlap, on every (re)allocation frame. The upstream Instancer's own
+// uploadStaticBuffer into the source buffer is the mirror-image READ_AFTER_WRITE.
+//
+// Widening the source scope costs nothing: it is the same single barrier, with
+// one more stage bit. It is emphatically NOT a barrier per copy — the batched
+// begin/endBufferCopyBarrier bracket around issuePendingGpuCopies is preserved.
+inline constexpr VkPipelineStageFlags kCopySrcStages
+    = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT;
+inline constexpr VkAccessFlags kCopySrcAccess
+    = VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
+#endif
+
 void insertComputeBarrier(QRhi& rhi, QRhiCommandBuffer& cb)
 {
   switch(rhi.backend())
@@ -284,10 +317,10 @@ void beginBufferCopyBarrier(QRhi& rhi, QRhiCommandBuffer& cb)
         break;
       VkMemoryBarrier pre{};
       pre.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
-      pre.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+      pre.srcAccessMask = kCopySrcAccess;
       pre.dstAccessMask
           = VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
-      barrierFn(native->commandBuffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+      barrierFn(native->commandBuffer, kCopySrcStages,
                 VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 1, &pre, 0, nullptr, 0, nullptr);
       break;
     }
@@ -391,7 +424,7 @@ void copyBuffer(
       if(srcBuf == VK_NULL_HANDLE || dstBuf == VK_NULL_HANDLE)
         break;
 
-      // Barrier: compute write → transfer read/write. Skipped when the
+      // Barrier: compute/transfer write → transfer read/write. Skipped when the
       // caller batches multiple copies inside explicit begin/endBufferCopyBarrier.
       auto barrierFn = reinterpret_cast<PFN_vkCmdPipelineBarrier>(
           inst->getInstanceProcAddr("vkCmdPipelineBarrier"));
@@ -399,9 +432,9 @@ void copyBuffer(
       {
         VkMemoryBarrier pre{};
         pre.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
-        pre.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+        pre.srcAccessMask = kCopySrcAccess;
         pre.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
-        barrierFn(native->commandBuffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+        barrierFn(native->commandBuffer, kCopySrcStages,
             VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 1, &pre, 0, nullptr, 0, nullptr);
       }
 
@@ -651,10 +684,10 @@ void copyBufferRegions(
       {
         VkMemoryBarrier pre{};
         pre.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
-        pre.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+        pre.srcAccessMask = kCopySrcAccess;
         pre.dstAccessMask
             = VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
-        barrierFn(native->commandBuffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+        barrierFn(native->commandBuffer, kCopySrcStages,
                   VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 1, &pre, 0, nullptr, 0, nullptr);
       }
 

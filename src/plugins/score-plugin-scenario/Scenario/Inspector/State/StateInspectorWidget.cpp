@@ -17,6 +17,7 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
+#include <Scenario/Document/State/ItemModel/ValueItemDelegate.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Inspector/MetadataWidget.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
@@ -342,6 +343,7 @@ StateInspectorWidget::StateInspectorWidget(
     auto proxy = new MessageListProxy{this};
     proxy->setSourceModel(&m_model.messages());
     lv->setModel(proxy);
+    lv->setItemDelegate(new ValueItemDelegate{1, lv});
 
     // tree view
     auto tv = new MessageTreeView{m_model, this};
@@ -372,6 +374,7 @@ StateInspectorWidget::StateInspectorWidget(
     lv->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
     lv->verticalHeader()->setDefaultSectionSize(14);
     lv->setModel(&this->m_model.controlMessages());
+    lv->setItemDelegate(new ValueItemDelegate{1, lv});
     properties.push_back(lv);
   }
   updateAreaLayout(properties);

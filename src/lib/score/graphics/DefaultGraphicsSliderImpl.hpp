@@ -1,5 +1,6 @@
 #pragma once
 #include <score/graphics/DefaultControlImpl.hpp>
+#include <score/graphics/RightClickWidget.hpp>
 #include <score/model/Skin.hpp>
 #include <score/widgets/DoubleSpinBox.hpp>
 #include <score/widgets/SignalUtils.hpp>
@@ -180,6 +181,12 @@ struct DefaultGraphicsSliderImpl
   static void contextMenuEvent(T& self, QPointF pos)
   {
     auto build = [&, self_p = &self, pos] {
+      // Whatever was open belongs to the previous right-click, including one
+      // on this same control.
+      closeRightClickWidget();
+      self_p->impl->spinbox = nullptr;
+      self_p->impl->spinboxProxy = nullptr;
+
       auto w = new DoubleSpinboxWithEnter;
       self.impl->spinbox = w;
       w->setRange(self.min, self.max);
@@ -190,6 +197,7 @@ struct DefaultGraphicsSliderImpl
           w, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
       obj->setPos(pos);
       self.impl->spinboxProxy = obj;
+      currentRightClickWidget() = obj;
 
 #if defined(__EMSCRIPTEN__)
       w->setFocus();
@@ -209,11 +217,12 @@ struct DefaultGraphicsSliderImpl
         {
           self_p->sliderReleased();
           QObject::disconnect(con);
-          QTimer::singleShot(0, self_p, [self_p, scene = self_p->scene(), obj] {
+          // obj is the timer's context, not self: if the next right-click
+          // took this box down first, through closeRightClickWidget(), the
+          // teardown goes with it rather than freeing it a second time.
+          QTimer::singleShot(0, obj, [scene = self_p->scene(), obj] {
             scene->removeItem(obj);
             delete obj;
-            self_p->impl->spinbox = nullptr;
-            self_p->impl->spinboxProxy = nullptr;
           });
           self_p->impl->spinbox = nullptr;
           self_p->impl->spinboxProxy = nullptr;

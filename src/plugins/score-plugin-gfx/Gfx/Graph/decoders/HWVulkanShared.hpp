@@ -55,6 +55,11 @@ struct HWVulkanSharedDecoder : GPUVideoDecoder
   Video::ImageFormat& decoder;
   PixelFormatInfo m_fmt;
   int m_numPlanes{0};
+  // Codec-aligned dimensions of the decoded VkImages (0 = not yet known).
+  // When larger than the display size, texcoords are scaled so sampling
+  // stops at the conformance crop instead of covering the padding rows.
+  int m_codedW{0};
+  int m_codedH{0};
 
   // Vulkan handles
   VkDevice m_dev{VK_NULL_HANDLE};
@@ -96,9 +101,12 @@ struct HWVulkanSharedDecoder : GPUVideoDecoder
   }
 
   explicit HWVulkanSharedDecoder(
-      Video::ImageFormat& d, QRhi& rhi, PixelFormatInfo fmt)
+      Video::ImageFormat& d, QRhi& rhi, PixelFormatInfo fmt, int codedW = 0,
+      int codedH = 0)
       : decoder{d}
       , m_fmt{fmt}
+      , m_codedW{codedW}
+      , m_codedH{codedH}
   {
     auto* nh
         = static_cast<const QRhiVulkanNativeHandles*>(rhi.nativeHandles());
@@ -107,10 +115,29 @@ struct HWVulkanSharedDecoder : GPUVideoDecoder
     m_funcs = nh->inst->functions();
     m_dfuncs = nh->inst->deviceFunctions(m_dev);
     m_gfxQueueFamilyIdx = nh->gfxQueueFamilyIdx;
-    m_vkWaitSemaphores = reinterpret_cast<PFN_vkWaitSemaphores>(
-        nh->inst->getInstanceProcAddr("vkWaitSemaphores"));
+    // vkWaitSemaphores is device-level: resolving it through
+    // getInstanceProcAddr yields a loader trampoline that crashes on the
+    // NVIDIA Windows driver. Go through vkGetDeviceProcAddr.
+    if(auto getDevProc = reinterpret_cast<PFN_vkGetDeviceProcAddr>(
+           nh->inst->getInstanceProcAddr("vkGetDeviceProcAddr")))
+      m_vkWaitSemaphores = reinterpret_cast<PFN_vkWaitSemaphores>(
+          getDevProc(m_dev, "vkWaitSemaphores"));
     m_dfuncs->vkGetDeviceQueue(
         m_dev, m_gfxQueueFamilyIdx, 0, &m_gfxQueue);
+  }
+
+  void release(RenderList& r) override
+  {
+    // The patched textures hold a VkImage owned by FFmpeg and a VkImageView
+    // owned by a ring slot; detach them so QVkTexture::destroy doesn't free
+    // resources it never owned (the slot views are destroyed in cleanupSlot).
+    for(auto& s : samplers)
+      if(auto* vkTex = static_cast<QVkTexture*>(s.texture); vkTex && !vkTex->owns)
+      {
+        vkTex->image = VK_NULL_HANDLE;
+        vkTex->imageView = VK_NULL_HANDLE;
+      }
+    GPUVideoDecoder::release(r);
   }
 
   ~HWVulkanSharedDecoder() override
@@ -182,6 +209,25 @@ struct HWVulkanSharedDecoder : GPUVideoDecoder
   //  init -- create placeholder textures and shaders
   // ------------------------------------------------------------------
 
+  // vertexShader() with the conformance crop baked into the texcoords when
+  // the decoded images are larger than the display size.
+  QString cropVertexShader() const
+  {
+    QString vtx = vertexShader();
+    const int w = decoder.width, h = decoder.height;
+    if(m_codedW > w || m_codedH > h)
+    {
+      const double sx = m_codedW > w ? double(w) / m_codedW : 1.;
+      const double sy = m_codedH > h ? double(h) / m_codedH : 1.;
+      vtx.replace(
+          "v_texcoord = texcoord;",
+          QString("v_texcoord = texcoord * vec2(%1, %2);")
+              .arg(sx, 0, 'f', 9)
+              .arg(sy, 0, 'f', 9));
+    }
+    return vtx;
+  }
+
   std::pair<QShader, QShader> init(RenderList& r) override
   {
     auto& rhi = *r.state.rhi;
@@ -206,7 +252,7 @@ struct HWVulkanSharedDecoder : GPUVideoDecoder
 
       if(is10)
         return score::gfx::makeShaders(
-            r.state, vertexShader(),
+            r.state, cropVertexShader(),
             QString(P010Decoder::frag).arg("").arg(colorMatrix(decoder)));
       else
       {
@@ -214,7 +260,7 @@ struct HWVulkanSharedDecoder : GPUVideoDecoder
         frag += "    vec3 yuv = vec3(y, u, v);\n";
         frag += NV12Decoder::nv12_filter_epilogue;
         return score::gfx::makeShaders(
-            r.state, vertexShader(),
+            r.state, cropVertexShader(),
             frag.arg("").arg(colorMatrix(decoder)));
       }
     }
@@ -229,14 +275,14 @@ struct HWVulkanSharedDecoder : GPUVideoDecoder
       if(!is10)
       {
         return score::gfx::makeShaders(
-            r.state, vertexShader(),
+            r.state, cropVertexShader(),
             QString(YUVA444Decoder::frag).arg("").arg(colorMatrix(decoder)));
       }
       else
       {
-        // R16_UNORM samples as raw_value/65535. Scale to actual bit range.
-        // 10-bit: 65535/1023 ≈ 64. 12-bit: 65535/4095 = 16. 16-bit: 1.
-        double scale = 65535.0 / ((1 << m_fmt.bitDepth) - 1);
+        // R16_UNORM samples as raw_value/65535. The 8-bit-equivalent code of
+        // an n-bit sample is code / 2^(n-8), so full scale is 255 * 2^(n-8).
+        double scale = 65535.0 / (255.0 * (1 << (m_fmt.bitDepth - 8)));
         QString frag = QString(R"_(#version 450
 
 )_" SCORE_GFX_VIDEO_UNIFORMS R"_(
@@ -270,7 +316,7 @@ void main()
 }
 )_").arg("").arg(colorMatrix(decoder)).arg(scale, 0, 'f', 6);
 
-        return score::gfx::makeShaders(r.state, vertexShader(), frag);
+        return score::gfx::makeShaders(r.state, cropVertexShader(), frag);
       }
     }
     else
@@ -282,14 +328,24 @@ void main()
 
       if(!is10)
       {
-        const char* fragSrc = YUV420Decoder::frag;
+        // YUV420Decoder::frag additionally parameterizes the chroma texture
+        // names (%3 / %4, for the YV12 swap); Vulkan Video always outputs
+        // U, V plane order.
         if(m_fmt.log2ChromaW == 1 && m_fmt.log2ChromaH == 0)
-          fragSrc = YUV422Decoder::frag;
+          return score::gfx::makeShaders(
+              r.state, cropVertexShader(),
+              QString(YUV422Decoder::frag).arg("").arg(colorMatrix(decoder)));
         else if(m_fmt.log2ChromaW == 0 && m_fmt.log2ChromaH == 0)
-          fragSrc = YUV444Decoder::frag;
+          return score::gfx::makeShaders(
+              r.state, cropVertexShader(),
+              QString(YUV444Decoder::frag).arg("").arg(colorMatrix(decoder)));
         return score::gfx::makeShaders(
-            r.state, vertexShader(),
-            QString(fragSrc).arg("").arg(colorMatrix(decoder)));
+            r.state, cropVertexShader(),
+            QString(YUV420Decoder::frag)
+                .arg("")
+                .arg(colorMatrix(decoder))
+                .arg("u")
+                .arg("v"));
       }
       else
       {
@@ -325,7 +381,7 @@ void main()
 }
 )_").arg("").arg(colorMatrix(decoder)).arg(scale, 0, 'f', 6);
 
-        return score::gfx::makeShaders(r.state, vertexShader(), frag);
+        return score::gfx::makeShaders(r.state, cropVertexShader(), frag);
       }
     }
   }
@@ -474,8 +530,12 @@ void main()
         slot.planeViews[i] = planeView;
         slot.numViews = i + 1;
 
-        // Destroy QRhi's current view
-        if(vkTex->imageView != VK_NULL_HANDLE)
+        // Destroy QRhi's own placeholder view the first time only. On later
+        // frames vkTex->imageView is a ring slot's plane view: it is owned
+        // by that slot and destroyed in cleanupSlot when the slot recycles,
+        // two frames later — destroying it here as well double-frees it,
+        // which crashes the NVIDIA Windows driver.
+        if(vkTex->owns && vkTex->imageView != VK_NULL_HANDLE)
           m_dfuncs->vkDestroyImageView(m_dev, vkTex->imageView, nullptr);
 
         vkTex->image = vkf->img[0];

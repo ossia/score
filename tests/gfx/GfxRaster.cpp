@@ -126,6 +126,8 @@ TEST_CASE("raw-raster basic: CSF geometry -> raster -> texture", "[gfx][l3][rast
 
   if(r.skipped)
     SKIP(r.backend << ": " << r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(be))
+    SKIP(why);
   INFO("backend=" << r.backend << " error=" << r.error);
   REQUIRE(r.error.empty());
   REQUIRE(r.outputs.size() == 1);
@@ -198,6 +200,8 @@ TEST_CASE("raw-raster: CSF geometry stride chain", "[gfx][l3][raster][stride]")
 
   if(r.skipped)
     SKIP(r.backend << ": " << r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(be))
+    SKIP(why);
   INFO("backend=" << r.backend << " error=" << r.error);
   REQUIRE(r.error.empty());
   REQUIRE(r.outputs.size() == 1);
@@ -222,6 +226,8 @@ TEST_CASE("raw-raster MRT: two attachments", "[gfx][l3][raster][mrt]")
 
   if(r.skipped)
     SKIP(r.backend << ": " << r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(be))
+    SKIP(why);
   INFO("backend=" << r.backend << " error=" << r.error);
   REQUIRE(r.error.empty());
   REQUIRE(r.outputs.size() == 2);
@@ -253,6 +259,8 @@ TEST_CASE("raw-raster auxiliary: SSBO travelling with geometry", "[gfx][l3][rast
 
   if(r.skipped)
     SKIP(r.backend << ": " << r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(be))
+    SKIP(why);
   INFO("backend=" << r.backend << " error=" << r.error);
   REQUIRE(r.error.empty());
   REQUIRE(r.outputs.size() == 1);

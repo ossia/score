@@ -20,5 +20,5 @@ void main()
         return;
 
     float v = float(pos.y) / float(size.y - 1);
-    imageStore(outputImage, pos, vec4(0.25, v, 0.75, 1.0));
+    IMG_STORE(outputImage, pos, vec4(0.25, v, 0.75, 1.0));
 }

@@ -265,6 +265,7 @@ void DeviceExplorerModel::updateValue(
   QModelIndex nodeIndex = modelIndexFromNode(*n, 1);
 
   dataChanged(nodeIndex, nodeIndex);
+  valueUpdated(n);
 }
 
 bool DeviceExplorerModel::checkDeviceInstantiatable(
@@ -442,6 +443,19 @@ QVariant DeviceExplorerModel::data(const QModelIndex& index, int role) const
     if(n.is<Device::AddressSettings>())
     {
       auto& addr_set = n.get<Device::AddressSettings>();
+
+      // What the one-line cell had to fold away.
+      if((Column)col == Column::Value)
+      {
+        if(const auto* s = addr_set.value.target<std::string>())
+        {
+          const auto tip
+              = State::convert::stringCellToolTip(QByteArray::fromStdString(*s));
+          if(!tip.isEmpty())
+            return tip;
+        }
+      }
+
       if(const auto& desc = ossia::net::get_description(addr_set))
         return QString::fromStdString(*desc);
     }
@@ -490,7 +504,18 @@ Qt::ItemFlags DeviceExplorerModel::flags(const QModelIndex& index) const
 
     if(n.isEditable() && index.column() == (int)Column::Value)
     {
-      f |= Qt::ItemIsEditable;
+      // A boolean toggles on one click and an impulse is a bang painted in the
+      // cell: what the row draws *is* the editor in both cases, so the row is
+      // not editable on top of it.
+      const auto* addr = n.target<Device::AddressSettings>();
+      const bool boolean = addr && addr->value.target<bool>();
+      const bool impulse
+          = addr && addr->value.get_type() == ossia::val_type::IMPULSE;
+
+      if(boolean)
+        f |= Qt::ItemIsUserCheckable;
+      else if(!impulse)
+        f |= Qt::ItemIsEditable;
     }
 
     if(index.column() == (int)Column::Name && n.is<Device::AddressSettings>()
@@ -535,8 +560,13 @@ bool DeviceExplorerModel::setData(
     {
       // In this case we don't make a command, but we directly push the
       // new value.
-      auto copy = value.canConvert<ossia::value>() ? value.value<ossia::value>()
-                                                   : State::convert::fromQVariant(value);
+      // A check state is a tri-state enum, not a number: read it as the
+      // boolean it stands for rather than leaving Qt::Checked == 2 to convert.
+      auto copy = role == Qt::CheckStateRole
+                      ? ossia::value{value.value<Qt::CheckState>() == Qt::Checked}
+                  : value.canConvert<ossia::value>()
+                      ? value.value<ossia::value>()
+                      : State::convert::fromQVariant(value);
 
       // We may have to convert types.
       const ossia::value& orig = n.get<Device::AddressSettings>().value;
@@ -550,6 +580,7 @@ bool DeviceExplorerModel::setData(
       m_devicePlugin.updateProxy.updateRemoteValue(Device::address(n).address, copy);
 
       dataChanged(index, index);
+      valueUpdated(&n);
       return true;
     }
     else

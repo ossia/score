@@ -10,7 +10,7 @@
 // kept. Strict undo/redo alternation only ever toggles the top of the
 // command stack, so the base scene underneath is never touched.
 // The permanent base process keeps the final grab non-blank either way.
-eval(Score.readFile("/home/jcelerier/ossia/wt/score-tests/tests/integration/live-edit/common.js"));
+eval(Score.readFile(LIVE_EDIT_DIR + "/common.js"));
 
 var NAME = "undo-redo-during-play";
 

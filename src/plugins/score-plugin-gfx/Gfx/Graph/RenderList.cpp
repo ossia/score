@@ -227,6 +227,31 @@ QRhiResourceUpdateBatch* RenderList::initialBatch() const noexcept
   return m_initialBatch;
 }
 
+void RenderList::flushInitialBatch()
+{
+  if(!m_initialBatch)
+    return;
+
+  auto* rhi = state.rhi;
+  if(!rhi)
+  {
+    m_initialBatch = nullptr;
+    return;
+  }
+
+  QRhiCommandBuffer* cb{};
+  if(rhi->beginOffscreenFrame(&cb) == QRhi::FrameOpSuccess)
+  {
+    cb->resourceUpdate(m_initialBatch);
+    rhi->endOffscreenFrame();
+  }
+  else
+  {
+    m_initialBatch->release();
+  }
+  m_initialBatch = nullptr;
+}
+
 QSize RenderList::resolveDownstreamSize(
     const Node* node,
     const ossia::small_flat_map<const Port*, RenderTargetSpecs, 16>& resolvedSpecs)
@@ -341,6 +366,11 @@ void RenderList::createAllInputRenderTargets()
 void RenderList::onEdgeRemoved(
     Edge& edge, const ossia::hash_set<const Port*>* preserveSinks)
 {
+  // removeOutputPass / removeInputRenderTarget below destroy resources that a
+  // still-pending initial batch may name (e.g. a processUBO uploaded by
+  // addOutputPass in this same inter-frame window).
+  flushInitialBatch();
+
   // Notify source renderer
   if(auto src_it = edge.source->node->renderedNodes.find(this);
      src_it != edge.source->node->renderedNodes.end())
@@ -538,7 +568,27 @@ bool RenderList::maybeRebuild(bool force)
     // queue empty and the resources safe to tear down.
     //
     // Triggers only on the first frame after a resize or forced rebuild.
-    if(state.rhi && state.rhi->isRecordingFrame())
+    //
+    // NOT gated on isRecordingFrame(). The comment above is true of the path
+    // this code was written for -- renderInternal, inside Window::render's
+    // brackets -- but it is not the only one. A surface resize goes
+    // exposeEvent() -> resizeSwapChain() -> onResize(), which rebuilds from
+    // OUTSIDE a frame, and there the guard skipped the drain entirely: nodes
+    // were released while frames already submitted were still executing, so a
+    // descriptor set could outlive the texture it pointed at. Aftermath caught
+    // exactly that -- an MMU fault on a GPU READ from an unmapped address in a
+    // fragment shader, i.e. a fetch through a descriptor whose backing memory
+    // had been freed.
+    //
+    // QRhi::finish() is documented as callable "inside and outside of a frame,
+    // but not inside a pass", and outside one it both waits on the queue and
+    // "executes all deferred operations, like ... resource releases" -- which
+    // is precisely what has to happen before release() runs.
+    //
+    // It explains the discriminator too: Window:/rendersize rebuilds from
+    // inside render() and never faults; Window:/size, /fullscreen and a mouse
+    // drag recreate the surface and rebuild from exposeEvent, and those do.
+    if(state.rhi)
       state.rhi->finish();
 
     m_built = false;
@@ -1325,7 +1375,11 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
             if(node != &output)
             {
               updateBatch = state.rhi->nextResourceUpdateBatch();
-              SCORE_ASSERT(updateBatch);
+              if(!updateBatch)
+              {
+                qWarning("RenderList: resource update batch pool exhausted");
+                return;
+              }
             }
           }
         }
@@ -1542,11 +1596,75 @@ void RenderList::update(QRhiResourceUpdateBatch& res)
   }
 }
 
+//! Backend + device identity, printed for EVERY backend.
+//!
+//! Qt's own qt.rhi.general output names the device on exactly one backend: the
+//! OpenGL one, in qrhigles2.cpp's "OpenGL VENDOR: %s RENDERER: %s VERSION: %s".
+//! Vulkan prints "Using imported physical device '<name>' ... vendor 0x.. device
+//! 0x.. type N", D3D11 and D3D12 print adapter lines of their own shape, and
+//! none of them contains the word RENDERER. Anything that identifies the GPU by
+//! reading Qt's log therefore gets an empty string off every backend but GL --
+//! which is how tests/integration/ThreedimRenderTest.cpp came to skip itself on
+//! Vulkan, D3D11 and D3D12 regardless of the hardware underneath.
+//!
+//! QRhi::driverInfo() is the portable answer: deviceName, vendorId, deviceId and
+//! deviceType are filled in by all of them (Qt >= 6.4). One line, one format,
+//! every backend, so a frame can always be attributed to what produced it.
+static void logDeviceIdentity(QRhi& rhi)
+{
+  const auto info = rhi.driverInfo();
+  const char* type = "unknown";
+  switch(info.deviceType)
+  {
+    case QRhiDriverInfo::UnknownDevice:
+      type = "unknown";
+      break;
+    case QRhiDriverInfo::IntegratedDevice:
+      type = "integrated";
+      break;
+    case QRhiDriverInfo::DiscreteDevice:
+      type = "discrete";
+      break;
+    case QRhiDriverInfo::ExternalDevice:
+      type = "external";
+      break;
+    case QRhiDriverInfo::VirtualDevice:
+      type = "virtual";
+      break;
+    case QRhiDriverInfo::CpuDevice:
+      type = "cpu";
+      break;
+  }
+
+  qDebug().noquote().nospace()
+      << "score.gfx: RHI device: backend=" << rhi.backendName() << " device=\""
+      << QString::fromUtf8(info.deviceName) << "\" vendorId=0x"
+      << QString::number(info.vendorId, 16) << " deviceId=0x"
+      << QString::number(info.deviceId, 16) << " deviceType=" << type;
+}
+
 void RenderState::Caps::populate(QRhi& rhi)
 {
+  logDeviceIdentity(rhi);
+
 #if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
   drawIndirect = rhi.isFeatureSupported(QRhi::DrawIndirect);
   drawIndirectMulti = rhi.isFeatureSupported(QRhi::DrawIndirectMulti);
+  // A GPU indirect draw reads its {indexCount, instanceCount, firstIndex,
+  // baseVertex, firstInstance} words out of a buffer the CPU never inspects, so
+  // a stale QRhiBuffer* recorded into drawIndexedIndirect() is not a wrong
+  // picture: it is an out-of-bounds index fetch and a lost device. The CPU
+  // fallback path in CustomMesh::draw() issues the same draws from
+  // cpu_draw_commands, where the counts are visible and bounded.
+  //
+  // SCORE_GFX_NO_GPU_INDIRECT=1 forces that fallback on a backend that does
+  // support DrawIndirect. It is how a VK_ERROR_DEVICE_LOST gets attributed:
+  // if the loss survives the switch the indirect buffer was not the source.
+  if(qEnvironmentVariableIntValue("SCORE_GFX_NO_GPU_INDIRECT") > 0)
+  {
+    drawIndirect = false;
+    drawIndirectMulti = false;
+  }
 #endif
 #if QT_VERSION >= QT_VERSION_CHECK(6, 11, 0)
   instanceIndexIncludesBaseInstance
@@ -1563,7 +1681,8 @@ void RenderState::Caps::populate(QRhi& rhi)
   resolveDepthStencil = rhi.isFeatureSupported(QRhi::ResolveDepthStencil);
 #endif
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
-  multiview = rhi.isFeatureSupported(QRhi::MultiView);
+  multiview = rhi.isFeatureSupported(QRhi::MultiView)
+              && !qEnvironmentVariableIsSet("SCORE_GFX_DISABLE_MULTIVIEW");
 #endif
 
   timestamps = rhi.isFeatureSupported(QRhi::Timestamps);

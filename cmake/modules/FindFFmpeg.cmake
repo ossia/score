@@ -10,10 +10,12 @@
 # For each of the components it will additionally set.
 #   - AVCODEC
 #   - AVDEVICE
+#   - AVFILTER
 #   - AVFORMAT
 #   - AVUTIL
-#   - POSTPROCESS
+#   - POSTPROC
 #   - SWSCALE
+#   - SWRESAMPLE
 # the following variables will be defined
 #  <component>_FOUND        - System has <component>
 #  <component>_INCLUDE_DIRS - Include directory necessary for using the <component> headers
@@ -85,21 +87,45 @@ macro(find_component _component _pkgconfig _library _header)
      endif ()
   endif()
 
-  find_path(${_component}_INCLUDE_DIRS ${_header}
-    HINTS
-      ${PC_${_component}_INCLUDEDIR}
-      ${PC_${_component}_INCLUDE_DIRS}
-      "${OSSIA_SDK}/ffmpeg/include"
-    PATH_SUFFIXES
-      ffmpeg
-  )
+  if(OSSIA_SDK)
+    # The SDK is the only acceptable provider: otherwise a component the SDK's
+    # ffmpeg no longer ships (libpostproc, gone in ffmpeg 8) falls through to
+    # the distro's, dragging a second libavutil ABI and its headers in.
+    # Purge a hit cached by an earlier configure that pointed outside the SDK.
+    foreach(_var ${_component}_INCLUDE_DIRS ${_component}_LIBRARIES)
+      if(${_var})
+        string(FIND "${${_var}}" "${OSSIA_SDK}" _ffmpeg_in_sdk)
+        if(NOT _ffmpeg_in_sdk EQUAL 0)
+          unset(${_var} CACHE)
+        endif()
+      endif()
+    endforeach()
 
-  find_library(${_component}_LIBRARIES NAMES ${_library}
+    find_path(${_component}_INCLUDE_DIRS ${_header}
+      HINTS "${OSSIA_SDK}/ffmpeg/include"
+      PATH_SUFFIXES ffmpeg
+      NO_DEFAULT_PATH
+    )
+
+    find_library(${_component}_LIBRARIES NAMES ${_library}
+      HINTS "${OSSIA_SDK}/ffmpeg/lib"
+      NO_DEFAULT_PATH
+    )
+  else()
+    find_path(${_component}_INCLUDE_DIRS ${_header}
       HINTS
-      ${PC_${_component}_LIBDIR}
-      ${PC_${_component}_LIBRARY_DIRS}
-      "${OSSIA_SDK}/ffmpeg/lib"
-  )
+        ${PC_${_component}_INCLUDEDIR}
+        ${PC_${_component}_INCLUDE_DIRS}
+      PATH_SUFFIXES
+        ffmpeg
+    )
+
+    find_library(${_component}_LIBRARIES NAMES ${_library}
+        HINTS
+        ${PC_${_component}_LIBDIR}
+        ${PC_${_component}_LIBRARY_DIRS}
+    )
+  endif()
 
   set(${_component}_DEFINITIONS  ${PC_${_component}_CFLAGS_OTHER} CACHE STRING "The ${_component} CFLAGS.")
   set(${_component}_VERSION      ${PC_${_component}_VERSION}      CACHE STRING "The ${_component} version number.")
@@ -189,6 +215,92 @@ if(TARGET postproc)
   endif()
 endif()
 
+# The SDK's static libav* need private codec/protocol archives that nothing else
+# puts on the link line. avutil is the sink of the ffmpeg graph, so its
+# interface is the only position that lands after every libav*.
+if(OSSIA_SDK AND TARGET avutil)
+  set(_ffmpeg_sdk_libdirs
+    "${OSSIA_SDK}/sysroot/lib"     # Linux + Windows: shared dep prefix
+    "${OSSIA_SDK}/sysroot/lib64"   # Linux, RedHat layout
+    "${OSSIA_SDK}/lib"             # macOS: media-deps installs into the prefix
+    "${OSSIA_SDK}/openssl/lib"
+    "${OSSIA_SDK}/openssl/lib64"
+    "${OSSIA_SDK}/freetype/lib"    # macOS keeps these in their own prefixes
+    "${OSSIA_SDK}/harfbuzz/lib"
+  )
+
+  # Ordered for a single left-to-right pass: dependants before dependencies
+  # (webpmux -> webp -> sharpyuv, srt -> ssl -> crypto, xml2 -> lzma).
+  #
+  # placebo: the SDK's ffmpeg is built --enable-libplacebo, so libavfilter has
+  # 80 undefined pl_* symbols and nothing was linking the archive. libplacebo
+  # needs glslang; its Vulkan backend is dispatched at runtime, so there is no
+  # loader to link. Only libglslang.a has content -- the SDK installs the other
+  # glslang component names as stub archives.
+  foreach(_sdk_lib
+      dav1d x264 x265 opus vpx webpmux webp sharpyuv SvtJpegxs mp3lame
+      placebo glslang glslang-default-resource-limits
+      srt xml2 freetype harfbuzz jpeg bz2 lzma ssl crypto)
+    # NO_DEFAULT_PATH: these have to be the SDK's own copies, not the system's.
+    string(MAKE_C_IDENTIFIER "${_sdk_lib}" _sdk_var)
+    find_library(FFMPEG_SDK_LIB_${_sdk_var}
+      NAMES ${_sdk_lib}
+      PATHS ${_ffmpeg_sdk_libdirs}
+      NO_DEFAULT_PATH
+    )
+    mark_as_advanced(FFMPEG_SDK_LIB_${_sdk_var})
+    if(FFMPEG_SDK_LIB_${_sdk_var})
+      imported_link_libraries(avutil "${FFMPEG_SDK_LIB_${_sdk_var}}")
+    endif()
+  endforeach()
+
+  # bz2 is in the list above, and on Linux and Windows it resolves: ossia/sdk
+  # builds bzip2 in Linux/zlib.sh and MSYS/zlib.sh and installs libbz2.a into
+  # $INSTALL_PREFIX/sysroot/lib, which is the first entry of the search list.
+  #
+  # macOS is the outlier, by design: sdk/macOS/ has no zlib.sh and macOS/all.sh
+  # never builds zlib or bzip2, because macOS ships both itself --
+  # /usr/lib/libbz2.1.0.dylib is a public library, present in the dyld shared
+  # cache, with a .tbd stub in the platform SDK. So there is deliberately no
+  # libbz2 in the prefix (verified on /opt/ossia-sdk-aarch64 and on the
+  # continuous build), and with NO_DEFAULT_PATH the entry resolves to NOTFOUND
+  # and nothing links bzip2 -- while libavformat.a keeps three undefined
+  # BZ2_bzDecompress* symbols in matroskadec.o.
+  #
+  # It stayed invisible because a static archive only pulls the member that is
+  # actually referenced: the app never drags matroskadec.o in, so only a target
+  # that does can fail -- test_unit_libav_interrupt, which on macOS needs a
+  # tests-enabled build, and the customer bundle deliberately has tests off.
+  #
+  # So the fix belongs here rather than in the SDK: fall back to the platform's
+  # own libbz2, which is what the SDK expects macOS to do for zlib as well. An
+  # SDK copy still wins wherever one exists, leaving Linux and Windows on their
+  # static sysroot/lib/libbz2.a exactly as before.
+  if(NOT FFMPEG_SDK_LIB_bz2)
+    find_library(FFMPEG_SYSTEM_LIB_BZ2 NAMES bz2 bzip2)
+    mark_as_advanced(FFMPEG_SYSTEM_LIB_BZ2)
+    if(FFMPEG_SYSTEM_LIB_BZ2)
+      imported_link_libraries(avutil "${FFMPEG_SYSTEM_LIB_BZ2}")
+    endif()
+  endif()
+
+  # libvpx, libwebp, libsrt and x265 use pthreads; raw archive paths carry no
+  # dependency information, so name this after them.
+  find_package(Threads)
+  if(TARGET Threads::Threads)
+    imported_link_libraries(avutil Threads::Threads)
+  endif()
+
+  if(WIN32)
+    # System import libraries named by the Libs: lines of the SDK's ffmpeg .pc
+    # files (mediafoundation, schannel, srt, avdevice), plus shlwapi for
+    # libplacebo.
+    imported_link_libraries(avutil
+      mfuuid ole32 oleaut32 uuid shlwapi psapi gdi32 advapi32 shell32
+      secur32 ncrypt crypt32 ws2_32 wsock32
+    )
+  endif()
+endif()
 if(TARGET avutil)
   if(UNIX OR MSYS OR MINGW)
     if(NOT APPLE)
@@ -246,7 +358,7 @@ mark_as_advanced(FFMPEG_INCLUDE_DIRS
 
 
 # Now set the noncached _FOUND vars for the components.
-foreach (_component AVCODEC AVDEVICE AVFORMAT AVUTIL POSTPROCESS SWSCALE SWRESAMPLE)
+foreach (_component AVCODEC AVDEVICE AVFILTER AVFORMAT AVUTIL POSTPROC SWSCALE SWRESAMPLE)
   set_component_found(${_component})
 endforeach ()
 

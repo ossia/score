@@ -292,8 +292,35 @@ Application::~Application()
   this->setParent(nullptr);
   m_settings.teardownView();
   // FIXME projectSettings?
-  delete m_view;
+
+  // Presenter BEFORE view, and the order matters: score::DocumentView is a
+  // QObject child of the MAIN WINDOW, not of its Document (Document.cpp:147
+  // passes `parentview`). So `delete m_view` first destroys every
+  // ScenarioDocumentView -- and with it the by-value ScenarioScene, the
+  // BaseGraphicsObject and the ProcessGraphicsView -- while the matching
+  // ScenarioDocumentPresenter is still alive under m_presenter.
+  // ~ScenarioDocumentPresenter then runs against freed memory:
+  // ~CentralNodalDisplay does `parent.view().view().autoScrollHandler = {}`,
+  // and ScenarioDocumentView::view() is `return *m_view` on a QPointer read
+  // out of the freed block, then deletes a NodalIntervalView whose parent item
+  // and scene are already gone. `delete m_miniLayer` two statements earlier
+  // frees a MiniScenarioView that QGraphicsScene::clear() already deleted.
+  //
+  // ~Document already states the correct order and explains it -- presenter,
+  // then view, then model -- and deleting the presenter first lets that run
+  // with the window still standing. It is also the configuration every GUI
+  // test already uses: MinimalGUIApplication deletes its presenter and never
+  // its view.
+  //
+  // Reported as a Windows shutdown fault (A33) because Windows reuses the
+  // freed block before it is read back, so the pointer comes out as garbage
+  // and faults; glibc leaves it intact and only ASan flags it. Same defect on
+  // both, and not nodal-specific -- ~CentralIntervalDisplay has it too. It
+  // needs an exit that reaches ~Application with a document still open, which
+  // is why the supported path (Presenter::exit() -> closeAllDocuments()) never
+  // showed it, and a script's Qt.exit() does.
   delete m_presenter;
+  delete m_view;
   delete m_startScreen;
 
   score::DocumentBackups::clear();
@@ -305,11 +332,19 @@ Application::~Application()
   svc.threadpool.reset();
 
 #if QT_HAS_VULKAN
-  if(auto vk = score::gfx::staticVulkanInstance(false))
-  {
-    delete vk;
-  }
-
+  // The process-wide QVulkanInstance is deliberately NOT destroyed here.
+  //
+  // vkDestroyInstance drops the loader's last reference to the ICD, and the
+  // loader dlcloses it; with the NVIDIA stack that unload also takes
+  // libGLX_nvidia down, and its destructor faults inside libnvidia-glcore while
+  // GL objects from the same process are still being torn down. The result is a
+  // SIGSEGV on exit, after the last frame and after every document is closed.
+  //
+  // Destroying it later does not help -- moving this below `delete m_app` was
+  // measured and still crashes -- because the fault is in the unload itself, not
+  // in the order Qt and score release their references. The process is exiting,
+  // so the instance is left to the OS: nothing observable outlives it, and the
+  // alternative is a crash on every windowed shutdown.
 #endif
   for(auto& settings : m_settings.settings())
     settings->setParent(nullptr);

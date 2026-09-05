@@ -74,9 +74,11 @@ TEST_CASE("Auto fold mode keeps the port-count heuristic", "[integration][fold]"
     auto& lfo = add_lfo(*doc, base_interval(*doc));
 
     // Untouched processes must behave exactly as they did before fold state was
-    // stored at all.
+    // stored at all: the LFO's handful of controls sits under the threshold,
+    // so Auto means open.
     CHECK(lfo.foldMode() == Process::FoldMode::Auto);
-    CHECK(lfo.folded() == (std::ssize(lfo.inlets()) > Process::MaxUnpaginatedControls));
+    REQUIRE(std::ssize(lfo.inlets()) <= Process::MaxUnpaginatedControls);
+    CHECK_FALSE(lfo.folded());
 
     // An explicit choice overrides the heuristic in both directions.
     lfo.setFoldMode(Process::FoldMode::Folded);

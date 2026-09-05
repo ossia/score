@@ -1,3 +1,4 @@
+#include <score_plugin_gfx_export.h>
 #include "OutputMapping.hpp"
 
 #include <score/serialization/DataStreamVisitor.hpp>
@@ -46,6 +47,9 @@ void OutputMappingItem::applyLockedState()
   {
     setFlags(QGraphicsItem::ItemIsSelectable | QGraphicsItem::ItemSendsGeometryChanges);
     setAcceptHoverEvents(false);
+    // The view applies item->cursor() on mouse-over even with hover events
+    // off, so a resize cursor left over from the unlocked state would stick.
+    setCursor(Qt::ArrowCursor);
   }
   else
   {
@@ -422,6 +426,13 @@ void OutputMappingItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 
 void OutputMappingItem::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
 {
+  if(lockMode == OutputLockMode::FullLock)
+  {
+    setCursor(Qt::ArrowCursor);
+    QGraphicsRectItem::hoverMoveEvent(event);
+    return;
+  }
+
   // Check blend handles first
   auto bh = hitTestBlendHandles(event->pos());
   if(bh == BlendLeft || bh == BlendRight)
@@ -1075,7 +1086,7 @@ void OutputMappingCanvas::keyPressEvent(QKeyEvent* event)
 }
 
 template <>
-void JSONReader::read(const Gfx::OutputMapping& n)
+SCORE_PLUGIN_GFX_EXPORT void JSONReader::read(const Gfx::OutputMapping& n)
 {
   stream.StartObject();
   stream.Key("SourceRect");
@@ -1153,7 +1164,7 @@ void JSONReader::read(const Gfx::OutputMapping& n)
 }
 
 template <>
-void DataStreamReader::read(const Gfx::OutputMapping& n)
+SCORE_PLUGIN_GFX_EXPORT void DataStreamReader::read(const Gfx::OutputMapping& n)
 {
   m_stream << n.sourceRect << n.screenIndex << n.windowPosition << n.windowSize
            << n.fullscreen;
@@ -1168,7 +1179,7 @@ void DataStreamReader::read(const Gfx::OutputMapping& n)
 }
 
 template <>
-void DataStreamWriter::write(Gfx::OutputMapping& n)
+SCORE_PLUGIN_GFX_EXPORT void DataStreamWriter::write(Gfx::OutputMapping& n)
 {
   m_stream >> n.sourceRect >> n.screenIndex >> n.windowPosition >> n.windowSize
       >> n.fullscreen;
@@ -1205,7 +1216,7 @@ bool readNumbers(const Obj& obj, const std::string& key, std::array<double, N>& 
 }
 
 template <>
-void JSONWriter::write(Gfx::OutputMapping& n)
+SCORE_PLUGIN_GFX_EXPORT void JSONWriter::write(Gfx::OutputMapping& n)
 {
   if(std::array<double, 4> r; readNumbers(obj, "SourceRect", r))
     n.sourceRect = QRectF(r[0], r[1], r[2], r[3]);

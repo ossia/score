@@ -329,8 +329,13 @@ endif()
 
 add_subdirectory(src)
 
-if(SCORE_STATIC_PLUGINS AND TARGET EncoderTester)
-  target_link_libraries(EncoderTester PRIVATE ${SCORE_PLUGINS_LIST})
+# Static builds: complete the tester executables' link with the full plugin
+# list (see score_link_plugins_for_static in cmake/ScoreTests.cmake for why,
+# and why this has to happen here, after add_subdirectory(src)).
+if(SCORE_TESTING)
+  score_link_plugins_for_static(EncoderTester)
+  score_link_plugins_for_static(ReadbackTester)
+  score_link_plugins_for_static(PipewireRoundtrip)
 endif()
 
 include(cmake/ScoreFeatureCheck.cmake)
@@ -343,6 +348,25 @@ endif()
 if(SCORE_TESTING)
   include(ScoreTests)
   add_subdirectory(tests)
+
+  # Deliberately here and not in tests/CMakeLists.txt: this compares what the
+  # test tree registers against what it contains, and a rework of that tree
+  # must not be able to delete its own guard along with the registrations.
+  include(ScoreTestRegistrationGuard)
+  score_check_test_registration()
+
+  # Same placement rationale: CI compiles the tests against Qt 6.4.2 while the
+  # reference build here is 6.13, and two tests have already shipped using an
+  # API newer than that. See the header of the file for the two shapes it knows.
+  include(ScoreRhiPortabilityGuard)
+  score_check_rhi_portability()
+
+  # Same placement rationale again: this compares the expected-red inventory
+  # against the tree. Four different conventions grew for "this test is red on
+  # purpose" and no query saw more than one of them, which is why a Windows run
+  # could produce 11 failures nobody could sort into ours and new.
+  include(ScoreExpectedRedGuard)
+  score_check_expected_red()
 endif()
 
 # Backwards-compatible aliases for the legacy flags (kept temporarily).

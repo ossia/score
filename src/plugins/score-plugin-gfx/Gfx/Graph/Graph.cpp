@@ -218,14 +218,40 @@ void Graph::createSingleRenderList(
 void Graph::createOutputRenderList(OutputNode& output)
 try
 {
+  static const bool trace = qEnvironmentVariableIsSet("SCORE_GFX_TRACE");
+  // Already built: multiple recovery paths (onReady, onResize, the per-tick
+  // createMissingRenderLists sweep) can race to build the same list.
+  if(auto* r = output.renderer())
+    for(auto& rl : m_renderers)
+      if(rl.get() == r)
+        return;
   if(output.renderState())
   {
     if(auto rl = createRenderList(&output, output.renderState()))
+    {
+      if(trace)
+        fprintf(
+            stderr, "GFX-RENDERLIST created for %p, %zu renderers\n", (void*)&output,
+            rl->renderers.size());
       m_renderers.push_back(std::move(rl));
+    }
+    else if(trace)
+      fprintf(stderr, "GFX-RENDERLIST creation FAILED for %p\n", (void*)&output);
   }
+  else if(trace)
+    fprintf(stderr, "GFX-RENDERLIST skipped, no renderState for %p\n", (void*)&output);
 }
 catch(...)
 {
+  // createRenderList sets output->setRenderer() before RenderList::init()
+  // runs; init() can throw (SCORE_ASSERT throws in release). Left as-is, the
+  // output holds a half-built RenderList that is not in m_renderers, which
+  // makes the resize fast path in initializeOutput report success forever
+  // and no recovery ever runs. Reset so retries see a renderer-less output.
+  fprintf(stderr, "gfx: render list creation threw for output %p\n", (void*)&output);
+  output.setRenderer({});
+  if(output.renderState())
+    output.renderState()->renderer = {};
 }
 
 void Graph::recreateOutputRenderList(OutputNode& output)
@@ -312,8 +338,20 @@ void Graph::recreateOutputRenderList(OutputNode& output)
   }
 }
 
+void Graph::createMissingRenderLists()
+{
+  for(auto* output : m_outputs)
+    if(output && output->canRender() && !output->renderer())
+      createOutputRenderList(*output);
+}
+
 void Graph::initializeOutput(OutputNode* output, GraphicsApi graphicsApi)
 {
+  static const bool trace = qEnvironmentVariableIsSet("SCORE_GFX_TRACE");
+  if(trace)
+    fprintf(
+        stderr, "GFX-INITOUT output=%p renderState=%d canRender=%d\n", (void*)output,
+        int(!!output->renderState()), int(output->canRender()));
   output->updateGraphicsAPI(graphicsApi);
   // Only when there is no output yet: createOutput() replaces ScreenNode's
   // Window outright, so calling it on a live output that merely is not ready
@@ -341,13 +379,26 @@ void Graph::initializeOutput(OutputNode* output, GraphicsApi graphicsApi)
       // sample-count change.
       if(auto* rl = output->renderer())
         if(auto rs = output->renderState(); rs)
-          if(rl->resizeSwapchainSizedTargets(rs->outputSize, rs->renderSize))
-            return;
+          // Only when the list is still built against this device. A window that
+          // was closed and re-shown comes back on a NEW QRhi -- exposeEvent's
+          // init() builds a fresh RenderState -- and resizing the old list
+          // succeeds against the dead one, which is a black window that nothing
+          // rebuilds. Window::releaseSwapChain() sets m_newlyExposed for the
+          // same reason.
+          if(rl->state.rhi == rs->rhi)
+            if(rl->resizeSwapchainSizedTargets(rs->outputSize, rs->renderSize))
+              return;
       recreateOutputRenderList(*output);
     };
 
+    auto onReleaseRenderList = [this, output] { releaseOutputRenderList(*output); };
+
     // TODO only works for one output !!
-    output->createOutput({.graphicsApi = graphicsApi, .onReady = onReady, .onResize = onResize});
+    output->createOutput(
+        {.graphicsApi = graphicsApi,
+         .onReady = onReady,
+         .onResize = onResize,
+         .onReleaseRenderList = onReleaseRenderList});
   }
   else if(output->canRender())
   {
@@ -363,6 +414,10 @@ void Graph::relinkGraph()
     auto& r = **r_it;
 
     assert(!r.nodes.empty());
+
+    // The reused renderers below go through release() before re-init; a pending
+    // initial batch may still name the resources release() deletes.
+    r.flushInitialBatch();
 
     auto out = r.nodes.back();
     r.nodes.clear();
@@ -605,6 +660,10 @@ void Graph::removeNodeFromRenderLists(Node* node)
 {
   for(auto& [rl, renderer] : node->renderedNodes)
   {
+    // releaseState deletes buffers the RL's pending initial batch may still
+    // name (e.g. a material UBO whose upload was queued by initState in this
+    // same inter-frame window); submit it first.
+    rl->flushInitialBatch();
     renderer->releaseState(*rl);
     delete renderer;
 
@@ -718,6 +777,19 @@ void Graph::createPassForEdgeIfMissing(Edge& edge)
     if(renderer->hasOutputPassForEdge(edge))
       continue;
 
+    // A render list that is pending a rebuild is INCOHERENT with its output's
+    // GPU objects: a fast-path viewport resize (RenderList::
+    // resizeSwapchainSizedTargets, reached from BackgroundNode::resize ->
+    // onResize) destroys the output's QRhiTextureRenderTarget and its
+    // QRhiRenderPassDescriptor, installs fresh ones, and only marks the list
+    // not-built — the renderers are re-init'd on the NEXT render frame, in
+    // maybeRebuild. Building a pass in that window reads the output renderer's
+    // pre-resize snapshot (e.g. InvertYRenderer::m_inputTarget) and calls
+    // through a freed QRhiRenderPassDescriptor. Nothing is lost by skipping:
+    // maybeRebuild's release() + init() re-adds an output pass for every edge.
+    if(!rl->isBuilt())
+      continue;
+
     // Ensure the sink port has a render target (if needed)
     Port* sink = edge.sink;
     if(sink->type == Types::Image
@@ -762,6 +834,10 @@ void Graph::createPassForEdgeIfMissing(Edge& edge)
     auto* batch = rl->state.rhi->nextResourceUpdateBatch();
     if(!batch)
       continue;
+    if(qEnvironmentVariableIsSet("SCORE_GFX_TRACE"))
+      fprintf(
+          stderr, "GFX-PASS add src=%p sink=%p rl=%p\n", (void*)source,
+          (void*)edge.sink->node, (void*)rl.get());
     renderer->addOutputPass(*rl, edge, *batch);
 
     if(rl->initialBatch())
@@ -876,6 +952,9 @@ void Graph::reconcileAllRenderLists()
                      << " (any downstream node still referencing this "
                         "renderer's buffers via process() caches will see "
                         "stale pointers → ASan target)";
+          // Same contract as removeNodeFromRenderLists: the pending initial
+          // batch may name resources releaseState is about to delete.
+          rl->flushInitialBatch();
           renderer->releaseState(*rl);
           delete renderer;
           node->renderedNodes.erase(rn_it);
@@ -945,6 +1024,10 @@ void Graph::reconcileAllRenderLists()
           // All renderers now implement initState(). Pass creation for
           // individual edges is handled by createPassForEdgeIfMissing
           // after reconciliation, ensuring all renderers + RTs exist first.
+          if(qEnvironmentVariableIsSet("SCORE_GFX_TRACE"))
+            fprintf(
+                stderr, "GFX-RECONCILE initState node=%p rl=%p\n", (void*)node,
+                (void*)rl.get());
           rn->initState(*rl, *batch);
           rn->checkForChanges();
           rn->materialChanged = true;
@@ -1008,7 +1091,7 @@ void Graph::reconcileAllRenderLists()
         rl->setInitialBatch(batch);
       }
     }
-    else
+    else if(batch)
     {
       batch->release();
     }
@@ -1126,7 +1209,14 @@ void Graph::removeEdge(Port* source, Port* sink)
   }
 }
 
-void Graph::destroyOutputRenderList(score::gfx::OutputNode& output)
+Edge* Graph::findEdge(Port* source, Port* sink)
+{
+  auto it = ossia::find_if(
+      m_edges, [=](Edge* e) { return e->source == source && e->sink == sink; });
+  return it != m_edges.end() ? *it : nullptr;
+}
+
+void Graph::releaseOutputRenderList(score::gfx::OutputNode& output)
 {
   auto it = ossia::find_if(
       m_renderers, [rend = output.renderer()](const std::shared_ptr<RenderList>& r) {
@@ -1148,6 +1238,11 @@ void Graph::destroyOutputRenderList(score::gfx::OutputNode& output)
     {
     }
   }
+}
+
+void Graph::destroyOutputRenderList(score::gfx::OutputNode& output)
+{
+  releaseOutputRenderList(output);
 
   output.destroyOutput();
   ossia::remove_erase(m_outputs, &output);

@@ -151,7 +151,16 @@ QString locateFilePath(const QString& filename, const PathRoots& roots) noexcept
   }
   else if(isLibraryRelativePath(filename))
   {
-    path.replace(library_prefix, roots.library.isEmpty() ? QString{} : roots.library + "/");
+    if(roots.library.isEmpty())
+    {
+      // Nothing to resolve against: stripping the prefix is all that can be
+      // done, and the remainder must be handed back verbatim. It must NOT go
+      // through absoluteFilePath() below -- on Windows "/x.fs" is not absolute
+      // in Qt's sense (no drive letter), so it would be anchored and come back
+      // as "//x.fs", a UNC share pointing at a host named "x.fs".
+      return filename.mid(library_prefix.size());
+    }
+    path.replace(library_prefix, roots.library + "/");
   }
   else if(!QFileInfo{filename}.isAbsolute())
   {
@@ -164,6 +173,17 @@ QString locateFilePath(const QString& filename, const PathRoots& roots) noexcept
       path += '/';
     path += filename;
   }
+
+  // A path that is already absolute needs no anchoring, and must not be sent
+  // through absoluteFilePath() on Windows: a rooted path carrying no drive
+  // letter comes back with its leading slash doubled -- "/x.fs" becomes
+  // "//x.fs" and "/elsewhere/x.wav" becomes "//elsewhere/x.wav". On Windows a
+  // leading "//" is a UNC share, so score would go looking for a host named
+  // "x.fs" and can block on a network timeout rather than simply failing to
+  // find a local file. cleanPath() normalises separators and "." / ".."
+  // without inventing an anchor, and leaves a genuine UNC path alone.
+  if(QFileInfo{path}.isAbsolute())
+    return QDir::cleanPath(path);
 
   return QFileInfo{path}.absoluteFilePath();
 }

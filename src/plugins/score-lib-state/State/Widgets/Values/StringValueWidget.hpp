@@ -2,12 +2,12 @@
 #include "ValueWidget.hpp"
 
 #include <State/Value.hpp>
+#include <State/Widgets/Values/ExpandableTextEdit.hpp>
 
 #include <ossia/network/domain/domain.hpp>
 
 #include <QDialog>
 
-class QLineEdit;
 class QWidget;
 
 namespace State
@@ -20,7 +20,7 @@ public:
   ossia::value value() const override;
 
 private:
-  QLineEdit* m_value{};
+  ExpandableTextEdit* m_value{};
 };
 
 class SCORE_LIB_STATE_EXPORT StringValueSetDialog final : public QDialog

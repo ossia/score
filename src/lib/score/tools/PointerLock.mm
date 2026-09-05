@@ -1,6 +1,7 @@
 #include <score/tools/PointerLock.hpp>
 
 #include <QCoreApplication>
+#include <QPointer>
 #include <QTimer>
 
 #import <AppKit/AppKit.h>
@@ -11,7 +12,10 @@ namespace score
 namespace
 {
 ::id g_monitor{};
-QTimer* g_watchdog{};
+// Parented to qApp, so it dies with the application while these statics outlive
+// it. A raw pointer dangles from there on: beginRelative() would skip its
+// !g_watchdog branch and start() freed memory, endRelative() would stop() it.
+QPointer<QTimer> g_watchdog{};
 PointerLock::MotionCallback g_callback{};
 PointerLock::ReleaseCallback g_release{};
 double g_dx{};
@@ -33,6 +37,17 @@ const Reassociate g_reassociate;
 bool PointerLock::beginRelative(
     QWindow*, MotionCallback onMotion, ReleaseCallback onRelease) noexcept
 {
+  // An application that went away mid-lock leaves g_active set and g_monitor
+  // pointing at a monitor its NSApplication already dropped. The watchdog dying
+  // with it is what makes that state detectable.
+  if(g_active && !g_watchdog)
+  {
+    g_monitor = nil;
+    g_callback = nullptr;
+    g_release = nullptr;
+    g_active = false;
+  }
+
   if(g_active)
     return true;
 

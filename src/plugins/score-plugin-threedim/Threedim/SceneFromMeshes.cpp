@@ -162,8 +162,9 @@ std::shared_ptr<ossia::scene_state> sceneStateFromMeshes(
                 2 * sizeof(float));
     if(m.colors)
       push_attr(ossia::attribute_semantic::color0,
-                ossia::vertex_format::float4, m.color_offset,
-                4 * sizeof(float));
+                m.color_components == 4 ? ossia::vertex_format::float4
+                                        : ossia::vertex_format::float3,
+                m.color_offset, m.color_components * sizeof(float));
     if(m.tangents)
       push_attr(ossia::attribute_semantic::tangent,
                 ossia::vertex_format::float4, m.tangent_offset,

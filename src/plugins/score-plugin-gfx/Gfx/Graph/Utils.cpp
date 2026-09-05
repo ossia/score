@@ -10,6 +10,9 @@
 
 #include <score/tools/Debug.hpp>
 
+#include <algorithm>
+#include <unordered_set>
+
 #if defined(__EMSCRIPTEN__)
 #include <emscripten/em_asm.h>
 #include <emscripten/val.h>
@@ -44,6 +47,8 @@ TextureRenderTarget renderTargetFailed(TextureRenderTarget& ret, const char* wha
     ret.depthRenderBuffer->deleteLater();
   if(ret.colorRenderBuffer)
     ret.colorRenderBuffer->deleteLater();
+  for(auto* rb : ret.additionalColorRenderBuffers)
+    rb->deleteLater();
   if(ret.dummyColorTexture)
     ret.dummyColorTexture->deleteLater();
 
@@ -190,7 +195,19 @@ TextureRenderTarget createRenderTarget(
     texture->deleteLater();
     return {};
   }
-  return createRenderTarget(state, texture, samples, depth, samplableDepth);
+  auto ret = createRenderTarget(state, texture, samples, depth, samplableDepth);
+  if(!ret)
+  {
+    // The overload above leaves `tex` alone when the backend refuses one of the
+    // attachments it has to build around it, because there `tex` is the
+    // caller's. Here the caller is this function: the texture was allocated two
+    // statements ago and nothing else has a pointer to it, so dropping the
+    // empty result on the floor would strand a live VkImage on the QRhi. It
+    // survives until vmaDestroyAllocator finds the block still occupied and
+    // aborts the process from inside ~QRhi.
+    texture->deleteLater();
+  }
+  return ret;
 }
 
 TextureRenderTarget createRenderTarget(
@@ -238,6 +255,12 @@ TextureRenderTarget createRenderTarget(
       auto* rb = state.rhi->newRenderBuffer(
           QRhiRenderBuffer::Color, tex->pixelSize(), effectiveSamples, {}, tex->format());
       rb->setName("createRenderTarget::MRT::colorRB");
+      // Record the MSAA attachments on the RT: sampleCount() reads
+      // colorRenderBuffer first, and every attachment has to be released.
+      if(!ret.colorRenderBuffer)
+        ret.colorRenderBuffer = rb;
+      else
+        ret.additionalColorRenderBuffers.push_back(rb);
       if(!rb->create())
         return renderTargetFailed(ret, "an MRT color buffer");
 
@@ -682,18 +705,33 @@ bool remapPipelineVertexInputs(
   for(const auto& vi : desc.vertex_inputs)
     descByName[vi.name] = &vi;
 
-  // Start from whatever bindings the pipeline already has (the mesh's
-  // per-vertex + per-instance buffers). Fallback slots get appended at
-  // the end; their binding_index in the extended vector is the index
-  // the draw-path then binds the fallback buffer at.
-  QVarLengthArray<QRhiVertexInputBinding> bindings;
+  // The bindings the pipeline already has are the mesh's: one per stream
+  // the upstream geometry publishes, whether or not this shader reads it.
+  // We keep only the ones an attribute lands on, in first-use order, and
+  // append the fallback bindings after them -- see FallbackBindingPlan
+  // for why the count matters.
+  QVarLengthArray<QRhiVertexInputBinding> meshBindings;
   {
     const auto& prev = pip.vertexInputLayout();
     for(auto it = prev.cbeginBindings(); it != prev.cendBindings(); ++it)
-      bindings.append(*it);
+      meshBindings.append(*it);
   }
+  const int meshBindingCount = meshBindings.size();
 
+  // Attributes are collected against the ORIGINAL mesh binding indices
+  // and renumbered once the consumed set is known; a fallback attribute
+  // carries -1 here and is resolved from `fallbackOfAttr`.
   QVarLengthArray<QRhiVertexInputAttribute> remappedAttrs;
+  QVarLengthArray<int> attrMeshBinding;
+  QVarLengthArray<int> fallbackOfAttr;
+  QVarLengthArray<QRhiVertexInputBinding> fallbackBindings;
+  const auto appendAttr
+      = [&](int mesh_binding, int fallback_index, QRhiVertexInputAttribute a) {
+    remappedAttrs.append(a);
+    attrMeshBinding.append(mesh_binding);
+    fallbackOfAttr.append(fallback_index);
+  };
+
   for(const auto& shader_var : shader_inputs)
   {
     const std::string_view var_name(
@@ -710,11 +748,25 @@ bool remapPipelineVertexInputs(
 
     if(const auto* match = findGeometryAttribute(geom, var_name, sem_key))
     {
-      remappedAttrs.append(QRhiVertexInputAttribute(
-          match->binding, shader_var.location,
-          static_cast<QRhiVertexInputAttribute::Format>(match->format),
-          match->byte_offset));
-      continue;
+      // An attribute pointing past the layout the mesh actually prepared
+      // would renumber onto nothing; treat it as a miss so the fallback
+      // path below can answer for it (or reject the pipeline outright).
+      if(match->binding >= 0 && match->binding < meshBindingCount)
+      {
+        appendAttr(
+            match->binding, -1,
+            QRhiVertexInputAttribute(
+                match->binding, shader_var.location,
+                static_cast<QRhiVertexInputAttribute::Format>(match->format),
+                match->byte_offset));
+        continue;
+      }
+      qDebug() << "remapPipelineVertexInputs: VERTEX_INPUT '"
+               << QString::fromUtf8(var_name.data(), (int)var_name.size())
+               << "' matched geometry binding" << match->binding
+               << "which is outside the pipeline's" << meshBindingCount
+               << "mesh bindings";
+      return false;
     }
 
     // Miss. Strict mode (no descriptor entry or REQUIRED=true) fails.
@@ -768,22 +820,84 @@ bool remapPipelineVertexInputs(
     // Append a PerInstance step_rate=1 binding to the layout, pointing
     // at a fresh binding index. Semantically: "one instance's worth of
     // this attribute is packed into a single-element buffer, broadcast
-    // to every vertex and every instance of the draw".
-    const int new_binding_index = bindings.size();
-    bindings.append(QRhiVertexInputBinding(
+    // to every vertex and every instance of the draw". The index is
+    // assigned below, once the surviving mesh bindings are counted.
+    const int fallback_index = fallbackBindings.size();
+    fallbackBindings.append(QRhiVertexInputBinding(
         fallbackEntry.stride,
         QRhiVertexInputBinding::PerInstance,
         /*stepRate=*/1));
 
-    remappedAttrs.append(QRhiVertexInputAttribute(
-        new_binding_index, shader_var.location,
-        static_cast<QRhiVertexInputAttribute::Format>(fallbackEntry.format),
-        /*offset=*/0));
+    appendAttr(
+        -1, fallback_index,
+        QRhiVertexInputAttribute(
+            0, shader_var.location,
+            static_cast<QRhiVertexInputAttribute::Format>(fallbackEntry.format),
+            /*offset=*/0));
 
     outPlan.slots.push_back(
         FallbackBindingPlan::Slot{
-            .binding_index = new_binding_index,
-            .buffer = fallbackEntry.buffer});
+            .binding_index = -1, .buffer = fallbackEntry.buffer});
+  }
+
+  // Renumber. `keep[old]` is the new index of a surviving mesh binding,
+  // -1 for the ones no attribute touched; first-use order keeps the
+  // relative order of the streams the shader does read.
+  QVarLengthArray<int> keep(meshBindingCount);
+  std::fill(keep.begin(), keep.end(), -1);
+  for(const auto old : attrMeshBinding)
+  {
+    if(old >= 0 && keep[old] < 0)
+    {
+      keep[old] = (int)outPlan.mesh_bindings.size();
+      outPlan.mesh_bindings.push_back(old);
+    }
+  }
+  outPlan.compacted = true;
+
+  QVarLengthArray<QRhiVertexInputBinding> bindings;
+  for(const auto old : outPlan.mesh_bindings)
+    bindings.append(meshBindings[old]);
+  const int firstFallbackBinding = bindings.size();
+  for(const auto& fb : fallbackBindings)
+    bindings.append(fb);
+
+  for(int i = 0; i < remappedAttrs.size(); ++i)
+  {
+    const int binding = attrMeshBinding[i] >= 0
+                            ? keep[attrMeshBinding[i]]
+                            : firstFallbackBinding + fallbackOfAttr[i];
+    remappedAttrs[i] = QRhiVertexInputAttribute(
+        binding, remappedAttrs[i].location(), remappedAttrs[i].format(),
+        remappedAttrs[i].offset());
+  }
+  for(std::size_t i = 0; i < outPlan.slots.size(); ++i)
+    outPlan.slots[i].binding_index = firstFallbackBinding + (int)i;
+
+  // Qt's D3D11 command buffer records at most
+  // QD3D11CommandBuffer::MAX_VERTEX_BUFFER_BINDING_COUNT == 8 vertex
+  // buffers per setVertexInput (qrhid3d11.cpp, "Too many vertex buffer
+  // bindings"): past that it warns and DROPS the tail, so the attributes
+  // on those bindings read zero and the draw is quietly wrong. D3D11
+  // itself allows 32; the cap is Qt's. Nothing here can raise it, so say
+  // which shader wanted what, once per pipeline build.
+  if(rhi.backend() == QRhi::D3D11 && bindings.size() > 8)
+  {
+    // Name the attributes that land past binding 7, not merely the shader's
+    // whole input list: those are the ones whose buffer is never recorded,
+    // and reading an unbound D3D11 vertex slot yields zeroes rather than an
+    // error. Binding order here is first-use order over the shader's input
+    // variables, so which input falls off is a property of the reflection
+    // order, not of the geometry's own stream order.
+    QStringList dropped;
+    for(int i = 0; i < remappedAttrs.size(); ++i)
+      if(remappedAttrs[i].binding() >= 8)
+        dropped << QString::fromUtf8(shader_inputs[i].name);
+    qWarning() << "remapPipelineVertexInputs: this shader needs"
+               << bindings.size()
+               << "vertex bindings; Qt's D3D11 backend records only 8 and will"
+                  " drop the rest. Reading zeroes:"
+               << dropped.join(", ");
   }
 
   QRhiVertexInputLayout inputLayout;
@@ -1084,8 +1198,18 @@ Pipeline buildPipelineWithState(
   // D3D12 ViewInstancing and Metal vertex amplification read it from the
   // pipeline itself via QRhiGraphicsPipeline::multiViewCount(). So we must set
   // it explicitly here for those backends to produce correct multiview output.
+//
+  // ... which is exactly why this must ALSO respect the pass-index fallback.
+  // When the shader has been lowered to read PASSINDEX, the node renders the
+  // views as N separate passes; leaving the count on the pipeline makes D3D12
+  // view-instance every one of those draws 6x on top of that. D3D11 has no
+  // ViewInstancing and so was unaffected -- which is precisely why
+  // cubemap_six_faces and camera_array_faces passed on d3d11 and still failed
+  // on d3d12 after the shader lowering landed.
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
-  if(multiViewCount > 1 && renderer.state.caps.multiview)
+  if(multiViewCount > 1 && renderer.state.caps.multiview
+     && !viewIndexNeedsPassIndexFallback(
+         renderer.state.api, renderer.state.version, multiViewCount))
     ps->setMultiViewCount(multiViewCount);
 #else
   (void)multiViewCount;
@@ -1128,6 +1252,65 @@ makeShaders(const RenderState& v, QString vert, QString frag, int multiViewCount
     throw std::runtime_error("invalid vertex shader");
   if(!fragmentError.isEmpty() || !fragmentS.isValid())
     throw std::runtime_error("invalid fragment shader");
+
+  // A storage buffer read from the VERTEX stage cannot work on D3D11, and it
+  // fails silently, which is worth one line in the log.
+  //
+  // Qt bakes HLSL with SPVC_COMPILER_OPTION_HLSL_FORCE_STORAGE_BUFFER_AS_UAV
+  // set unconditionally (qspirvshader.cpp), so every SSBO -- `readonly` ones
+  // included -- lands in the vertex DXBC as `RWByteAddressBuffer : register(u#)`.
+  // QRhiD3D11 then reports MaxVertexStorageBuffers == 0 (qrhid3d11.cpp) and its
+  // SRB translation only ever appends storage-buffer UAVs to the compute and
+  // fragment stages. How loudly that fails depends on how the buffer was
+  // declared: an INPUTS entry with VISIBILITY "vertex" becomes a VertexStage-
+  // only binding (visibilityToStages) and Qt does print "Unordered access only
+  // supported at fragment/compute stage", while an AUXILIARY rides a blanket
+  // VertexStage|FragmentStage whose fragment half satisfies the same check and
+  // says nothing at all. Either way the vertex stage's u# register stays
+  // unbound, and an unbound UAV reads zero -- which is what a shader indexing
+  // per_draws[draw_id].model sees there.
+  //
+  // D3D12 reports 128 and binds by root-signature visibility, so it is unaffected.
+  //
+  // QRhi::MaxVertexStorageBuffers does not exist in any RELEASED Qt. It was
+  // added by qtbase f332defeace ("rhi: Report the per-stage storage buffer
+  // limits", 2026-08-17), 1564 commits after v6.12.0-beta1 -- absent from 6.9
+  // and from 6.12.0-beta1 alike, so asking for it unconditionally broke the Nix
+  // and AppImage builds.
+  //
+  // But version-gating the whole diagnostic silenced it precisely where it
+  // matters: Nix and AppImage build against a released Qt, so the shipped
+  // binaries were the ones NOT warning. The limit is only a more precise way of
+  // asking a question we can already answer -- D3D11 is the sole backend whose
+  // SRB translation never binds a storage-buffer UAV to the vertex stage
+  // (qrhid3d11.cpp hardcodes MaxVertexStorageBuffers to 0 for every feature
+  // level) -- so fall back to naming it. QRhi::backend() has existed all along.
+  //
+  // Keep the query where it exists: it stays correct if a future backend gains
+  // or loses the ability, which a hardcoded backend name would not.
+  const bool cannot_bind_vertex_ssbo = v.rhi
+#if QT_VERSION >= QT_VERSION_CHECK(6, 13, 0)
+      && v.rhi->resourceLimit(QRhi::MaxVertexStorageBuffers) == 0;
+#else
+      && v.rhi->backend() == QRhi::D3D11;
+#endif
+
+  if(cannot_bind_vertex_ssbo
+     && !vertexS.description().storageBlocks().isEmpty())
+  {
+    static std::unordered_set<std::size_t> warned;
+    if(warned.insert(std::hash<std::string>{}(vert.toStdString())).second)
+    {
+      QStringList blocks;
+      for(const auto& b : vertexS.description().storageBlocks())
+        blocks << QString::fromUtf8(b.blockName);
+      qWarning() << "This backend" << v.rhi->backendName()
+                 << "cannot bind a storage buffer to the vertex stage, so these"
+                    " blocks read ZERO in the vertex shader (they are not"
+                    " bound, and an unbound UAV reads zero):"
+                 << blocks.join(", ");
+    }
+  }
 
   return {vertexS, fragmentS};
 }

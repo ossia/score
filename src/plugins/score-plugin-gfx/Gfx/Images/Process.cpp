@@ -13,8 +13,10 @@
 #include <span>
 #include <ossia/network/value/format_value.hpp>
 
+#include <QDebug>
 #include <QFileInfo>
 #include <QImageReader>
+#include <QMimeDatabase>
 
 #include <wobjectimpl.h>
 
@@ -154,6 +156,43 @@ void Model::on_imagesChanged(const ossia::value& v)
     spinbox->setDomain(ossia::make_domain(int(0), int(0)));
 }
 
+void Model::finishLoad()
+{
+  // Old documents predate the Tile / Scale ports; the executor and the
+  // render node index inlets positionally, so bring the list up to date
+  // (the JSON path used to do this inline; the DataStream path never did,
+  // which made the executor index out of bounds on old .scorebin files).
+  if(m_inlets.size() < 7)
+  {
+    std::vector<std::pair<QString, ossia::value>> combo{
+        {"Single", (int)score::gfx::ImageMode::Single},
+        {"Clamp", (int)score::gfx::ImageMode::Clamped},
+        {"Tile", (int)score::gfx::ImageMode::Tiled},
+        {"Mirror", (int)score::gfx::ImageMode::Mirrored},
+    };
+    m_inlets.push_back(
+        new Process::ComboBox{combo, 0, tr("Tile"), Id<Process::Port>(6), this});
+  }
+
+  if(m_inlets.size() < 8)
+  {
+    std::vector<std::pair<QString, ossia::value>> combo{
+        {"Original", (int)score::gfx::ScaleMode::Original},
+        {"Black bars", (int)score::gfx::ScaleMode::BlackBars},
+        {"Fill", (int)score::gfx::ScaleMode::Fill},
+        {"Stretch", (int)score::gfx::ScaleMode::Stretch},
+    };
+    m_inlets.push_back(
+        new Process::ComboBox{combo, 0, tr("Scale"), Id<Process::Port>(7), this});
+  }
+
+  if(auto* images = dynamic_cast<ImageListChooser*>(m_inlets[5]))
+  {
+    connect(images, &ImageListChooser::valueChanged, this, &Model::on_imagesChanged);
+    on_imagesChanged(images->value());
+  }
+}
+
 QString Model::prettyName() const noexcept
 {
   return tr("Images");
@@ -164,48 +203,82 @@ QSet<QString> DropHandler::mimeTypes() const noexcept
   return {}; // TODO
 }
 
+const QSet<QString>& supportedImageExtensions()
+{
+  // What this exact Qt build decodes — QtGui's built-in formats plus the
+  // linked imageformat plugins — instead of a hardcoded list that both
+  // missed linked plugins (webp, ico, tif...) and promised formats no
+  // plugin provides (heic, jp2 in the static SDK build).
+  static const QSet<QString> set = [] {
+    QSet<QString> s;
+    QMimeDatabase db;
+    for(const auto& mime : QImageReader::supportedMimeTypes())
+      for(const auto& suffix : db.mimeTypeForName(QString::fromUtf8(mime)).suffixes())
+        s.insert(suffix.toLower());
+    for(const auto& fmt : QImageReader::supportedImageFormats())
+      s.insert(QString::fromUtf8(fmt).toLower());
+    return s;
+  }();
+  return set;
+}
+
 QSet<QString> LibraryHandler::acceptedFiles() const noexcept
 {
-  return {"png",  "jpg",  "jpe", "jpeg", "gif", "bmp",
-          "tiff", "heic", "jp2", "svg",  "tga", "wbmp"};
+  return supportedImageExtensions();
 }
 
 QSet<QString> DropHandler::fileExtensions() const noexcept
 {
-  return {"png",  "jpg",  "jpe", "jpeg", "gif", "bmp",
-          "tiff", "heic", "jp2", "svg",  "tga", "wbmp"};
+  return supportedImageExtensions();
 }
 
 static bool isSupportedImage(const QFileInfo& filepath)
 {
-  static const auto set = DropHandler{}.fileExtensions();
-  return set.contains(filepath.suffix().toLower());
+  if(supportedImageExtensions().contains(filepath.suffix().toLower()))
+    return true;
+  // Content sniff for misnamed files; also the diagnostic gate for the
+  // qWarning below.
+  return !QImageReader::imageFormat(filepath.filePath()).isEmpty();
 }
 
 static std::optional<score::gfx::Image> readImage(const QString& filename)
 {
   QFileInfo info{filename};
   if(!isSupportedImage(info))
+  {
+    qWarning() << "Images: unsupported or unreadable file:" << filename;
     return {};
+  }
 
   QImageReader reader{filename};
   reader.setBackgroundColor(Qt::transparent);
   std::vector<QImage> frames;
-  while(reader.canRead())
+  // Animations (gif) auto-advance on read(); multi-image formats (ico,
+  // multi-page tiff) do NOT — canRead() stays true and read() returns the
+  // same frame forever unless we jump explicitly. Break on failed reads too
+  // (a truncated animation keeps canRead() true).
+  while(reader.canRead() && frames.size() < 4096)
   {
+    const int cur = reader.currentImageNumber();
     QImage img = reader.read();
 
     if(img.isNull() || img.size() == QSize{})
-      continue;
+      break;
 
     if(img.format() != QImage::Format_ARGB32)
       img.convertTo(QImage::Format_ARGB32);
 
     frames.push_back(std::move(img));
+
+    if(reader.currentImageNumber() == cur && !reader.jumpToNextImage())
+      break;
   }
 
   if(frames.empty())
+  {
+    qWarning() << "Images: could not decode:" << filename << reader.errorString();
     return {};
+  }
 
   return score::gfx::Image{filename, std::move(frames)};
 }
@@ -324,7 +397,7 @@ void DataStreamWriter::write(Gfx::Images::Model& proc)
       *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
       proc.m_outlets, &proc);
 
-  proc.on_imagesChanged(((Process::ControlInlet*)(proc.m_inlets[5]))->value());
+  proc.finishLoad();
 
   checkDelimiter();
 }
@@ -342,36 +415,7 @@ void JSONWriter::write(Gfx::Images::Model& proc)
       *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
       proc.m_outlets, &proc);
 
-  // Update to newer versions
-  if(proc.m_inlets.size() < 7)
-  {
-    std::vector<std::pair<QString, ossia::value>> combo{
-        {"Single", (int)score::gfx::ImageMode::Single},
-        {"Clamp", (int)score::gfx::ImageMode::Clamped},
-        {"Tile", (int)score::gfx::ImageMode::Tiled},
-        {"Mirror", (int)score::gfx::ImageMode::Mirrored},
-    };
-    auto port = new Process::ComboBox{
-        combo, 0, QObject::tr("Tile"), Id<Process::Port>(6), &proc};
-    proc.m_inlets.push_back(port);
-  }
-
-  if(proc.m_inlets.size() < 8)
-  {
-    {
-      std::vector<std::pair<QString, ossia::value>> combo{
-          {"Original", (int)score::gfx::ScaleMode::Original},
-          {"Black bars", (int)score::gfx::ScaleMode::BlackBars},
-          {"Fill", (int)score::gfx::ScaleMode::Fill},
-          {"Stretch", (int)score::gfx::ScaleMode::Stretch},
-      };
-      auto port = new Process::ComboBox{
-          combo, 0, QObject::tr("Scale"), Id<Process::Port>(7), &proc};
-      proc.m_inlets.push_back(port);
-    }
-  }
-
-  proc.on_imagesChanged(((Process::ControlInlet*)(proc.m_inlets[5]))->value());
+  proc.finishLoad();
 }
 
 static std::vector<ossia::value>

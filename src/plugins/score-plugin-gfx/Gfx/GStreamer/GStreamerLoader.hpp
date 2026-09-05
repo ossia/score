@@ -5,7 +5,9 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <initializer_list>
 #include <optional>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -91,6 +93,28 @@ typedef struct _GstMapInfo
   void* _gst_reserved[4];
 } GstMapInfo;
 
+// GstVideoMeta, from gst/video/gstvideometa.h. Read-only and only up to
+// stride[]: the map/unmap callbacks and the GstVideoAlignment that follow are
+// deliberately not declared, so nothing here depends on their layout.
+// GST_VIDEO_MAX_PLANES has been 4 since the API was introduced.
+#define GST_VIDEO_MAX_PLANES 4
+typedef struct _GstVideoMeta
+{
+  // GstMeta meta;
+  int meta_flags;
+  const void* meta_info;
+
+  struct _GstBuffer* buffer;
+  int flags;  // GstVideoFrameFlags
+  int format; // GstVideoFormat
+  unsigned int id;
+  unsigned int width;
+  unsigned int height;
+  unsigned int n_planes;
+  size_t offset[GST_VIDEO_MAX_PLANES];
+  int stride[GST_VIDEO_MAX_PLANES];
+} GstVideoMeta;
+
 // GError for error handling
 typedef struct _GError
 {
@@ -105,23 +129,25 @@ typedef uint64_t GstClockTime;
 #define GST_CLOCK_TIME_NONE ((GstClockTime)-1)
 #define GST_SECOND ((GstClockTime)1000000000)
 
+// GType is gsize, which is pointer-sized: eight bytes on the LP64 platforms
+// and on Windows, where unsigned long is four. Getting this wrong shifts every
+// field that follows a GType in the structures below.
+typedef std::size_t GType;
+
 // GLib type constants for gst_caps_new_simple varargs
 // GLib/GObject fundamental type IDs
-#define G_TYPE_BOOLEAN ((unsigned long)5 << 2)
-#define G_TYPE_INT ((unsigned long)6 << 2)
-#define G_TYPE_UINT ((unsigned long)7 << 2)
-#define G_TYPE_LONG ((unsigned long)8 << 2)
-#define G_TYPE_ULONG ((unsigned long)9 << 2)
-#define G_TYPE_INT64 ((unsigned long)10 << 2)
-#define G_TYPE_UINT64 ((unsigned long)11 << 2)
-#define G_TYPE_FLOAT ((unsigned long)14 << 2)
-#define G_TYPE_DOUBLE ((unsigned long)15 << 2)
-#define G_TYPE_STRING ((unsigned long)16 << 2)
-#define G_TYPE_ENUM ((unsigned long)12 << 2)
-#define G_TYPE_FLAGS ((unsigned long)13 << 2)
-
-// GType is unsigned long
-typedef unsigned long GType;
+#define G_TYPE_BOOLEAN ((GType)5 << 2)
+#define G_TYPE_INT ((GType)6 << 2)
+#define G_TYPE_UINT ((GType)7 << 2)
+#define G_TYPE_LONG ((GType)8 << 2)
+#define G_TYPE_ULONG ((GType)9 << 2)
+#define G_TYPE_INT64 ((GType)10 << 2)
+#define G_TYPE_UINT64 ((GType)11 << 2)
+#define G_TYPE_FLOAT ((GType)14 << 2)
+#define G_TYPE_DOUBLE ((GType)15 << 2)
+#define G_TYPE_STRING ((GType)16 << 2)
+#define G_TYPE_ENUM ((GType)12 << 2)
+#define G_TYPE_FLAGS ((GType)13 << 2)
 
 // GParamSpec: property metadata
 typedef struct _GParamSpec
@@ -228,6 +254,10 @@ GstBuffer* gst_buffer_new_wrapped_full(
 gboolean gst_buffer_map(GstBuffer* buffer, GstMapInfo* info, GstMapFlags flags);
 void gst_buffer_unmap(GstBuffer* buffer, GstMapInfo* info);
 
+// Video meta (from libgstvideo-1.0): the stride and plane offsets an upstream
+// element actually negotiated, when they are not the default for the caps.
+GstVideoMeta* gst_buffer_get_video_meta(GstBuffer* buffer);
+
 // GObject property introspection (from libgobject-2.0)
 GParamSpec** g_object_class_list_properties(void* oclass, unsigned int* n_properties);
 void* g_type_class_ref(GType type);
@@ -326,6 +356,10 @@ struct libgstreamer
   decltype(&::gst_buffer_map) buffer_map{};
   decltype(&::gst_buffer_unmap) buffer_unmap{};
 
+  // Optional: absent when libgstvideo-1.0 is not installed. Every use falls
+  // back to the default layout for the caps.
+  decltype(&::gst_buffer_get_video_meta) buffer_get_video_meta{};
+
   // GObject property introspection (from libgobject-2.0)
   decltype(&::g_object_class_list_properties) object_class_list_properties{};
   decltype(&::g_type_class_ref) type_class_ref{};
@@ -367,13 +401,36 @@ struct libgstreamer
   }
 
 private:
+#if defined(__APPLE__)
+  // dlopen searches DYLD_FALLBACK_LIBRARY_PATH, which covers neither the
+  // Homebrew nor the MacPorts prefix, so the install roots are named outright.
+  static std::optional<ossia::dylib_loader>
+  load_apple_library(std::initializer_list<std::string_view> sonames)
+  {
+    static constexpr std::string_view prefixes[]{
+        "", "/opt/homebrew/lib/", "/usr/local/lib/", "/opt/local/lib/",
+        "/Library/Frameworks/GStreamer.framework/Versions/1.0/lib/"};
+
+    std::vector<std::string> owned;
+    owned.reserve(sonames.size() * std::size(prefixes));
+    for(auto prefix : prefixes)
+      for(auto soname : sonames)
+        owned.emplace_back(std::string(prefix) + std::string(soname));
+
+    std::vector<std::string_view> names;
+    names.reserve(owned.size());
+    for(auto& candidate : owned)
+      names.emplace_back(candidate);
+    return score::try_load_library(std::move(names));
+  }
+#endif
+
   static std::optional<ossia::dylib_loader> load_core_library()
   {
 #if defined(_WIN32)
-    return score::try_load_library({"gstreamer-1.0-0.dll"});
+    return score::try_load_library({"gstreamer-1.0-0.dll", "libgstreamer-1.0-0.dll"});
 #elif defined(__APPLE__)
-    return score::try_load_library({
-        "libgstreamer-1.0.0.dylib", "libgstreamer-1.0.dylib"});
+    return load_apple_library({"libgstreamer-1.0.0.dylib", "libgstreamer-1.0.dylib"});
 #else
     return score::try_load_library({
         "libgstreamer-1.0.so.0", "libgstreamer-1.0.so"});
@@ -383,13 +440,24 @@ private:
   static std::optional<ossia::dylib_loader> load_app_library()
   {
 #if defined(_WIN32)
-    return score::try_load_library({"gstapp-1.0-0.dll"});
+    return score::try_load_library({"gstapp-1.0-0.dll", "libgstapp-1.0-0.dll"});
 #elif defined(__APPLE__)
-    return score::try_load_library({
-        "libgstapp-1.0.0.dylib", "libgstapp-1.0.dylib"});
+    return load_apple_library({"libgstapp-1.0.0.dylib", "libgstapp-1.0.dylib"});
 #else
     return score::try_load_library({
         "libgstapp-1.0.so.0", "libgstapp-1.0.so"});
+#endif
+  }
+
+  static std::optional<ossia::dylib_loader> load_video_library()
+  {
+#if defined(_WIN32)
+    return score::try_load_library({"gstvideo-1.0-0.dll", "libgstvideo-1.0-0.dll"});
+#elif defined(__APPLE__)
+    return load_apple_library({"libgstvideo-1.0.0.dylib", "libgstvideo-1.0.dylib"});
+#else
+    return score::try_load_library({
+        "libgstvideo-1.0.so.0", "libgstvideo-1.0.so"});
 #endif
   }
 
@@ -398,8 +466,7 @@ private:
 #if defined(_WIN32)
     return score::try_load_library({"gobject-2.0-0.dll", "libgobject-2.0-0.dll"});
 #elif defined(__APPLE__)
-    return score::try_load_library({
-        "libgobject-2.0.0.dylib", "libgobject-2.0.dylib"});
+    return load_apple_library({"libgobject-2.0.0.dylib", "libgobject-2.0.dylib"});
 #else
     return score::try_load_library({
         "libgobject-2.0.so.0", "libgobject-2.0.so"});
@@ -411,8 +478,7 @@ private:
 #if defined(_WIN32)
     return score::try_load_library({"glib-2.0-0.dll", "libglib-2.0-0.dll"});
 #elif defined(__APPLE__)
-    return score::try_load_library({
-        "libglib-2.0.0.dylib", "libglib-2.0.dylib"});
+    return load_apple_library({"libglib-2.0.0.dylib", "libglib-2.0.dylib"});
 #else
     return score::try_load_library({
         "libglib-2.0.so.0", "libglib-2.0.so"});
@@ -428,6 +494,7 @@ private:
     m_app = load_app_library();
     m_gobject = load_gobject_library();
     m_glib = load_glib_library();
+    m_video = load_video_library();
 
     // Not installed: available stays false and every entry point bails out
     if(!m_core || !m_app || !m_gobject || !m_glib)
@@ -486,6 +553,9 @@ private:
     GST_LOAD(m_core, buffer_map);
     GST_LOAD(m_core, buffer_unmap);
 
+    if(m_video)
+      GST_LOAD(m_video, buffer_get_video_meta);
+
     // GObject property introspection
 #define GOBJ_LOAD(name) \
   name = m_gobject->symbol<decltype(&::g_##name)>("g_" #name)
@@ -534,6 +604,7 @@ private:
   std::optional<ossia::dylib_loader> m_app;
   std::optional<ossia::dylib_loader> m_gobject;
   std::optional<ossia::dylib_loader> m_glib;
+  std::optional<ossia::dylib_loader> m_video;
 };
 
 // Call once from any code that needs GStreamer

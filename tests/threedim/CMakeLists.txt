@@ -57,7 +57,8 @@ endfunction()
 foreach(pair
     "shader_strings:ShaderStrings.cpp"       # #5 triplanar + #6 equirect
     "hdr_extensions:HdrExtensions.cpp"       # #12 HDR extension honesty
-    "extract_leak:ExtractLeak.cpp")          # #14 partial-init release (source)
+    "extract_leak:ExtractLeak.cpp"           # #14 partial-init release (source)
+    "fisheye:FisheyeProjections.cpp")
   string(REPLACE ":" ";" _p "${pair}")
   list(GET _p 0 _name)
   list(GET _p 1 _src)
@@ -138,6 +139,55 @@ score_add_test(test_threedim_camera_release
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_camera_release)
 
+# -----------------------------------------------------------------------------
+# The pure scene_state -> scene_state algebra, plus TagAs. Header-inline nodes
+# need no engine .cpp; the rest compile theirs in. score_plugin_gfx supplies
+# the GpuResourceRegistry / RenderList symbols
+# their init/update/release reference — none of which these tests call, so the
+# arena slots stay invalid and no GPU is touched.
+score_add_test(test_threedim_scene_graph_ops
+  SOURCES SceneGraphOps.cpp
+    "${THREEDIM_DIR}/SceneGroup.cpp"
+    "${THREEDIM_DIR}/SceneSelector.cpp"
+    "${THREEDIM_DIR}/SceneDuplicator.cpp"
+    "${THREEDIM_DIR}/TagAs.cpp"
+    "${THREEDIM_DIR}/PrimitiveCloud/FormatOverride.cpp"
+  PLUGINS score_plugin_gfx
+  LIBS ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_scene_graph_ops)
+
+# CameraArray's six cubemap faces — the producer side of issue #163. Entirely
+# header-inline; only Qt Gui is needed for QQuaternion.
+score_add_test(test_threedim_camera_array_faces
+  SOURCES CameraArrayFaces.cpp
+  LIBS ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_camera_array_faces)
+
+# Transform3D TRS composition + the TransformHelper free functions.
+score_add_test(test_threedim_transform3d
+  SOURCES Transform3DCompose.cpp "${THREEDIM_DIR}/Transform3D.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_transform3d)
+
+# ShadowCascadeSetup's cascade math: split scheme, findActiveCamera id
+# filtering, the reverse-Z NDC flip and the zPad direction.
+score_add_test(test_threedim_shadow_cascades
+  SOURCES ShadowCascades.cpp "${THREEDIM_DIR}/ShadowCascadeSetup.cpp"
+  LIBS ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_shadow_cascades)
+
+# EXPECTED RED. Contracts the engine does not satisfy yet (issue #163's
+# one-entry `camera` aux; CameraSwitch's Blend accumulating onto default-
+# constructed components). Isolated so an open defect does not mask the
+# green suites, and so the entry flips to PASS on the day it is fixed.
+score_add_test(test_threedim_known_defects
+  SOURCES KnownDefects.cpp
+  PLUGINS score_plugin_gfx
+  LIBS ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_known_defects)
+target_compile_definitions(test_threedim_known_defects PRIVATE
+  GFX_SRC_DIR="${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx/Gfx")
+
 # #3 CRASH — CubemapLoader must clamp the cube face size to the device
 # TextureSizeMax (and check create()). Drives createCubemapTexture() directly on
 # a REAL offscreen QRhi with an over-limit size and asserts the clamp. GPU —
@@ -150,3 +200,226 @@ score_add_test(test_threedim_cubemap_clamp
   GUI
   PLUGINS score_plugin_gfx score_plugin_scenario score_lib_process)
 threedim_test_includes(test_threedim_cubemap_clamp)
+
+# -----------------------------------------------------------------------------
+# ASSET INGESTION + MESH GENERATION. All CPU: parsers, primitive generators and
+# the descriptor-building code between them. None of these touch a QRhi, so they
+# run headless with no display.
+
+# The attribute-description layer every extraction strategy goes through
+# (attributeFormat*/isFloatFormat/findAttribute/attribute_lookup). Header-only;
+# score_plugin_gfx supplies the RenderState/RenderList declarations the header
+# pulls in.
+score_add_test(test_threedim_geometry_attributes
+  SOURCES GeometryAttributeLookup.cpp
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_geometry_attributes)
+
+# Primitive generators (Plane/Cube/Sphere/Icosahedron/Cone/Cylinder/Torus) and
+# ArrayToMesh. Both build on vcglib (header-only) and on the shared
+# createMesh/loadTriMesh expansion in Primitive.cpp; Qt Gui is needed for the
+# QMatrix4x4 in TinyObj.hpp.
+score_add_test(test_threedim_primitive_meshes
+  SOURCES PrimitiveMeshes.cpp
+    "${THREEDIM_DIR}/Primitive.cpp"
+    "${THREEDIM_DIR}/ArrayToGeometry.cpp"
+  LIBS ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_primitive_meshes)
+
+# MagicaVoxel ingestion: Vox.cpp (opengametools is header-only, pulled in by
+# Vox.cpp's own OGT_*_IMPLEMENTATION defines) plus the VoxelLoader node that
+# wraps it. Malformed .vox fixtures are driven in a forked child, so a parser
+# crash is reported instead of killing the executable.
+score_add_test(test_threedim_voxel_assets
+  SOURCES VoxelAssets.cpp
+    "${THREEDIM_DIR}/Vox.cpp"
+    "${THREEDIM_DIR}/VoxelLoader.cpp"
+  LIBS ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_voxel_assets)
+
+# GeometryLoader's extension dispatch and the four parsers behind it: TinyObj
+# (needs the mikktspace tangent generator), Ply (miniply) and VcgImporters
+# (STL/OFF, vcglib header-only). Also covers GaussianSplatsFromPly.
+score_add_test(test_threedim_geometry_loader_formats
+  SOURCES GeometryLoaderFormats.cpp
+    "${THREEDIM_DIR}/GeometryLoader.cpp"
+    "${THREEDIM_DIR}/TinyObj.cpp"
+    "${THREEDIM_DIR}/Ply.cpp"
+    "${THREEDIM_DIR}/VcgImporters.cpp"
+  LIBS ${QT_PREFIX}::Gui miniply mikktspace)
+threedim_test_includes(test_threedim_geometry_loader_formats)
+
+# PCLToMesh2 (Pointcloud to mesh): GPU-buffer -> dynamic_gpu_geometry
+# descriptor building. Pure CPU state — the buffer handle is opaque — so no
+# QRhi / display. Compiles PCLToGeometry.cpp for the out-of-line ctor and
+# operator(); Qt Gui supplies QMatrix4x4/QQuaternion for TinyObj.hpp's
+# rebuild_transform.
+score_add_test(test_threedim_pcl_to_geometry
+  SOURCES PCLToGeometryTest.cpp "${THREEDIM_DIR}/PCLToGeometry.cpp"
+  LIBS ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_pcl_to_geometry)
+
+# InverseKinematics (2-bone analytic solver). Entirely header-inline — pure
+# scene_state / QQuaternion math, no engine .cpp and no GPU; Qt Gui supplies
+# QQuaternion/QVector3D/QMatrix4x4 (same shape as test_threedim_camera_array_faces).
+score_add_test(test_threedim_inverse_kinematics
+  SOURCES InverseKinematicsTest.cpp
+  LIBS ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_inverse_kinematics)
+
+# MaterialOverride's material-table rewrite: clone targeting (All/ByIndex),
+# factor/texture override + revert, clone-pointer stability, dirty/version
+# algebra. Pure scene_state logic — no GPU, no Qt Gui, no exported gfx
+# symbols (rebuild()/operator()() reference no GpuResourceRegistry/RenderList).
+score_add_test(test_threedim_material_override
+  SOURCES MaterialOverrideTest.cpp "${THREEDIM_DIR}/MaterialOverride.cpp")
+threedim_test_includes(test_threedim_material_override)
+
+# SceneGraphFilter: the scene_state -> scene_state culling predicate walker.
+# Pure CPU — the whole unit is rebuild()/operator()(); no GPU, no Qt.
+score_add_test(test_threedim_scene_graph_filter
+  SOURCES SceneGraphFilterTest.cpp "${THREEDIM_DIR}/SceneGraphFilter.cpp")
+threedim_test_includes(test_threedim_scene_graph_filter)
+
+# GeometryPacker's CPU-side packing contract: interleave order, output stride,
+# per-attribute offsets, vec4 padding, missing-attribute skip, source-location
+# arithmetic and index passthrough — all computed in PackedExtractionStrategy::
+# init() before any QRhi work (the vertices==0 "Zero output size" guard returns
+# first). Compiles GeometryPacker.cpp for buildAttributeSpecs()/specsChanged();
+# score_plugin_gfx supplies the exported makeCompute / RenderList symbols the
+# header-inline strategy references (never reached at runtime). No GPU/display.
+score_add_test(test_threedim_geometry_packer
+  SOURCES GeometryPackerTest.cpp "${THREEDIM_DIR}/GeometryPacker.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_geometry_packer)
+
+# Humanoid pose/retarget family: presets, source maps, keypoint/tracker
+# adapters and the HumanoidRetarget offset math. Entirely header-inline
+# (HumanoidRetarget.hpp and friends), so no engine .cpp TU is compiled in;
+# score_plugin_gfx supplies the ossia scene_state/geometry_port declarations,
+# same as test_threedim_geometry_attributes. Pure state — no GPU / display.
+score_add_test(test_threedim_humanoid_retarget
+  SOURCES HumanoidRetargetTest.cpp
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_humanoid_retarget)
+
+# StrucSynth (Structure Synth): EisenScript -> mesh through the vendored
+# libssynth and ObjFromString. The unit's whole surface is the synchronous
+# static worker::work() seam, so no threads/GPU/QApplication (libssynth's
+# ProgressDialog is a stub). Compiles StructureSynth.cpp (the unit) and
+# TinyObj.cpp (ObjFromString); links the vendored `ssynth` static target
+# and threedim_test_mikktspace for TinyObj.cpp's genTangSpaceDefault reference
+# (never reached: ssynth OBJ output carries no texcoords); Qt Gui for
+# QMatrix4x4/QQuaternion in TinyObj.hpp.
+score_add_test(test_threedim_structure_synth
+  SOURCES StructureSynthTest.cpp
+          "${THREEDIM_DIR}/StructureSynth.cpp"
+          "${THREEDIM_DIR}/TinyObj.cpp"
+  LIBS ssynth threedim_test_mikktspace ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_structure_synth)
+
+# BuffersToGeometry / BuffersToGeometry2 (Buffers to geometry): raw GPU
+# buffers + layout controls -> dynamic_gpu_geometry descriptor building.
+# Pure CPU state — handles are opaque — so no QRhi / display. Compiles both
+# engine .cpps for the out-of-line ctors and operator(); score_plugin_gfx
+# supplies the include set GeometryToBufferStrategies.hpp pulls in; Qt Gui
+# supplies QMatrix4x4/QQuaternion for TransformHelper.hpp / TinyObj.hpp.
+score_add_test(test_threedim_buffer_to_geometry
+  SOURCES BufferToGeometryTest.cpp
+    "${THREEDIM_DIR}/BufferToGeometry.cpp"
+    "${THREEDIM_DIR}/BufferToGeometry2.cpp"
+  PLUGINS score_plugin_gfx
+  LIBS ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_buffer_to_geometry)
+
+# TextToMesh: the QRawFont -> QPainterPath -> ear-clip tessellation pipeline
+# and its scene_state / mesh-reuse / dirty contract. CPU-only (init/update/
+# release never called), but QFont needs a QGuiApplication + font database:
+# the test makes one on first use and defaults QT_QPA_PLATFORM=offscreen.
+# score_plugin_gfx supplies the exported GpuResourceRegistry/RenderList
+# symbols the compiled-in TU references (never reached at runtime).
+score_add_test(test_threedim_text_to_mesh
+  SOURCES TextToMeshTest.cpp "${THREEDIM_DIR}/TextToMesh.cpp"
+  PLUGINS score_plugin_gfx
+  LIBS ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_text_to_mesh)
+
+# Text to Texture — CPU rasterization of a string into an RGBA8 texture.
+# Header-only node (QPainter on QImage — no GPU / QRhi / engine .cpp), so
+# only the include set is needed. Qt Gui for QImage/QPainter/QFont; the test
+# makes a QGuiApplication on demand. Assertions are font-independent.
+score_add_test(test_threedim_text_to_texture
+  SOURCES TextToTextureTest.cpp
+  LIBS ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_text_to_texture)
+
+# SplatLoader ("Splat loader" node, BufferLoader.cpp): the file-port process()
+# closure that moves GaussianSplatsFromPly results into node state, and the
+# m_changed dirty-flag lifecycle. CPU seam only — init/update/release need a
+# live RenderList/QRhi. Compiles BufferLoader.cpp for the node's out-of-line
+# members and Ply.cpp for GaussianSplatsFromPly (miniply); score_plugin_gfx
+# exports the RenderList symbols BufferLoader.cpp's TU references; Qt Gui
+# supplies QMatrix4x4 (TinyObj.hpp) and the QRhi symbols.
+score_add_test(test_threedim_buffer_loader
+  SOURCES BufferLoaderTest.cpp
+    "${THREEDIM_DIR}/BufferLoader.cpp"
+    "${THREEDIM_DIR}/Ply.cpp"
+  LIBS ${QT_PREFIX}::Gui miniply
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_buffer_loader)
+
+# InjectBuffer + ExtractSceneBuffer: the aux-buffer injection / scene-slot
+# extraction pair. InjectBuffer is pure scene_state algebra (no GPU symbol);
+# ExtractSceneBuffer.cpp references GpuResourceRegistry::buffer() and pulls in
+# RenderList.hpp, so score_plugin_gfx supplies those exported symbols (never
+# reached at runtime — the tests stop at the null-scene guard). GPU-side slot
+# resolution is out of scope here.
+score_add_test(test_threedim_buffer_inject_extract
+  SOURCES BufferInjectExtractTest.cpp
+    "${THREEDIM_DIR}/InjectBuffer.cpp"
+    "${THREEDIM_DIR}/ExtractSceneBuffer.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_buffer_inject_extract)
+
+# InjectTexture / ExtractTexture / TextureToBuffer — the aux-texture trio
+# around the scene cable. InjectTexture is pure scene_state algebra;
+# ExtractTexture's update()/release() never dereference their RenderList& /
+# batch& (inert-reference seam, as CameraRelease.cpp), with stub QRhiTexture/
+# QRhiBuffer subclasses providing the inline metadata getters; TextureToBuffer
+# is header-only and only its pre-QRhi guard paths are driven. No GPU/display.
+score_add_test(test_threedim_texture_inject_extract
+  SOURCES TextureInjectExtractTest.cpp
+    "${THREEDIM_DIR}/InjectTexture.cpp"
+    "${THREEDIM_DIR}/ExtractTexture.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_texture_inject_extract)
+
+# P2-13: the four payload kinds SceneGPUState.cpp:617-618 admits it does not
+# render (gaussian_splat, voxel_field, point_cloud, volume) survive
+# merge_scenes + the SceneGraphFilter payload rebuild, and contribute ZERO
+# entries to every FlatScene counter. Compiles SceneGraphFilter.cpp (the
+# transport visitor under test); ossia::merge_scenes comes from libossia
+# through score_lib_base, and score::gfx::flattenScene is
+# SCORE_PLUGIN_GFX_EXPORT, so score_plugin_gfx is LINKED, not recompiled.
+# Qt Gui for the QMatrix4x4 in FlatScene. Pure CPU: no QRhi, no display.
+score_add_test(test_threedim_scene_payload_transport
+  SOURCES ScenePayloadTransportTest.cpp
+    "${THREEDIM_DIR}/SceneGraphFilter.cpp"
+  PLUGINS score_plugin_gfx
+  LIBS ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_scene_payload_transport)
+target_compile_definitions(test_threedim_scene_payload_transport PRIVATE
+  GFX_SRC_DIR="${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx/Gfx")
+
+# P2-11 / P2-12: the two scene approximations the product admits to in
+# comments -- area lights collapsed to points, and SceneFilterNode mode 2
+# behaving like mode 1 -- asserted as the CORRECT behaviour so they flip to a
+# plain pass the day they are implemented.
+score_add_test(test_threedim_scene_approximation_pins
+  SOURCES SceneApproximationPins.cpp
+    "${THREEDIM_DIR}/Light.cpp"
+  PLUGINS score_plugin_gfx
+  LIBS ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_scene_approximation_pins)
+target_compile_definitions(test_threedim_scene_approximation_pins
+  PRIVATE THREEDIM_SRC_DIR="${THREEDIM_DIR}")

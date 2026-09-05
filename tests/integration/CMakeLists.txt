@@ -1,4 +1,7 @@
 # Integration tests: full headless application + document lifecycle.
+
+# SCORE_HAS_SHELL_HARNESS is set once in cmake/ScoreTests.cmake so that
+# tests/hardware sees the same value.
 # These run from the build root so the dynamic plugins in <build>/plugins are
 # discovered at runtime (handled by score_add_test ... APP).
 
@@ -9,6 +12,28 @@ score_add_test(test_integration_document
 score_add_test(test_integration_roundtrip
   SOURCES DocumentRoundtripTest.cpp
   APP)
+
+# A16: a process whose factory is not installed is dropped on load, with its
+# cables, silently. Asserting "the document opened" cannot see that, so this one
+# asserts on the content that came back. EXPECTED RED on this branch: our own
+# implementation was reverted in favour of PR #2179, which is not merged here.
+# See the file header.
+score_add_test(test_integration_missing_process_roundtrip
+  SOURCES MissingProcessRoundtripTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_plugin_automation score_plugin_mapping score_lib_process)
+
+# A9: an avnd raw-file port pointed at a path that does not exist used to
+# produce nothing anywhere -- no load, no callback, no message. The diagnostic
+# lives in oscr::loadRawfile because that is the only layer that sees the
+# failure; the object's process() is never reached. Needs media (AudioDecoder,
+# pulled in by Crousti/File.hpp) and avnd.
+if(TARGET score_plugin_media AND TARGET score_plugin_avnd)
+  score_add_test(test_integration_avnd_file_port_diagnostic
+    SOURCES AvndFilePortDiagnostic.cpp
+    GUI
+    PLUGINS score_plugin_scenario score_plugin_media score_plugin_avnd score_lib_process)
+endif()
 
 score_add_test(test_integration_scenario_undo
   SOURCES ScenarioUndoTest.cpp
@@ -77,6 +102,107 @@ score_add_test(test_integration_js_presets
   GUI
   PLUGINS score_plugin_scenario score_lib_process score_plugin_js score_plugin_library)
 
+# The CPU executor of the Javascript process (JS::js_node), driven port by port
+# and tick by tick: audio in and out asserted by sample value, value messages
+# with their timestamps, MIDI, buffer-size and channel-count changes, a
+# throwing tick, an unparseable script, live script replacement and
+# determinism. JsPresetsTest above never touches the node itself.
+score_add_test(test_integration_js_cpu_node
+  SOURCES JsCpuNodeTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process score_plugin_js score_plugin_library)
+
+# AudioOutlet::setChannel handed something that is not an array USED TO convert
+# a NaN to int and hand the result to QVector::resize(), aborting the process --
+# from user content, since a JS script arrives in a .score like anything else.
+# The argument is validated now: on Linux this runs to the end and exits 0.
+#
+# It keeps its own executable and its SIGABRT handler. Both were written for the
+# abort, and neither is load-bearing today, but they are what make the case
+# report properly if the validation ever regresses -- ctest reports a signal
+# death as "Subprocess aborted" without inverting it, and Catch2's
+# [!shouldfail] never gets to report at all.
+#
+# NOTE: earlier prose here and in JsSetChannelTest.cpp described a WILL_FAIL
+# registration and called the entry going red "the signal to drop WILL_FAIL".
+# No WILL_FAIL was ever set on this test, so that signal could not fire; the
+# defect was fixed and the bookkeeping was never done. Do not re-add one -- the
+# test passes, and a green test is what we want here.
+#
+# It timed out on Windows in an earlier sweep. That was NOT a defect of its own:
+# the run had score's sticky failsafe bit set, and with SCORE_DISABLE_FAILSAFE
+# the test passes there. Measured by diffing the Vulkan serial failure sets --
+# 21 failures with failsafe active, 20 without, and this test is the single
+# difference.
+score_add_test(test_integration_js_setchannel
+  SOURCES JsSetChannelTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process score_plugin_js score_plugin_library)
+
+# The custom-UI half of the Javascript process: a UI script that loads, one
+# that does not parse, one whose root is not a ScriptUI, one that imports a
+# module that does not exist, no UI at all, and repeated show/hide.
+score_add_test(test_integration_js_process_ui
+  SOURCES JsProcessUiTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process score_plugin_js score_plugin_library)
+
+# JS::ProcessModel::rootPath() caches the Library settings model in a
+# function-local static reference, so the second score application built in a
+# process reads the first one's freed settings when a Javascript process is
+# created. Its own executable, because the failure takes the whole binary with
+# it.
+#
+# THE VERDICT IS ONLY RELIABLE UNDER ASan, and that is why the property is
+# conditional. Off ASan the defect still fires, and for exactly the documented
+# reason -- the freed QString's data pointer is garbage, so Qt's own
+# Q_ASSERT("p") in qarraydatapointer.h:111 goes off inside
+# Library::Settings::Model::getDefaultLibraryPath() <- JS::ProcessModel::
+# rootPath() <- JS::ComponentCache::getExecution(), and SafeQApplication::
+# DebugOutput raises SIGTRAP. But it fires only when the freed block happens to
+# hold a value that trips the assert. Measured on a plain Debug build here, ten
+# consecutive runs: 133 0 0 133 133 133 133 133 133 133. Eight red, two green,
+# same binary, same environment.
+#
+# So off ASan neither verdict can be trusted: WILL_FAIL turns the two green runs
+# into ctest failures, and no WILL_FAIL turns the eight red ones into failures.
+# DISABLED is the honest state -- ctest lists it and reports it as disabled,
+# which is visible, rather than dropping it silently or inventing a result. Under
+# ASan the read is caught on the FIRST access rather than only when the garbage
+# is unlucky, so the abort is deterministic and WILL_FAIL is exact.
+#
+# Registered with the CORRECT expectation, so under ASan, fixing rootPath()
+# turns this entry red: the signal to drop the WILL_FAIL entirely.
+score_add_test(test_integration_js_rootpath_static
+  SOURCES JsRootPathStaticTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process score_plugin_js score_plugin_library)
+if(CMAKE_CXX_FLAGS MATCHES "sanitize=[a-z,]*address")
+  set_tests_properties(test_integration_js_rootpath_static PROPERTIES WILL_FAIL TRUE)
+else()
+  set_tests_properties(test_integration_js_rootpath_static PROPERTIES DISABLED TRUE)
+endif()
+
+# Opening a Javascript process UI never emits externalUIVisible(true), so the
+# controls that opened it stay in the closed state. [!shouldfail] with the
+# correct expectation.
+score_add_test(test_integration_js_external_ui_visible
+  SOURCES JsExternalUiVisibleTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process score_plugin_js score_plugin_library)
+
+# Which executor a Javascript process gets is decided by the ports its script
+# declares (isGpu()): the texture ports must reach the model as Gfx ports and
+# editing the script must re-route the process in place. The GPU node's own
+# rendering is not covered here.
+score_add_test(test_integration_js_gpu_process
+  SOURCES JsGpuProcessTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process score_plugin_js score_plugin_library)
+if(TARGET score_plugin_gfx)
+  target_link_libraries(test_integration_js_gpu_process PRIVATE score_plugin_gfx)
+endif()
+
 score_add_test(test_integration_scenario_rename
   SOURCES ScenarioRenameTest.cpp
   APP
@@ -101,10 +227,25 @@ score_add_test(test_integration_scenario_create
   GUI
   PLUGINS score_plugin_scenario score_lib_process)
 
+# Qt-vs-by-value ownership of ScenarioDocumentView's members: the widget must
+# not be the Qt owner of anything the view holds by value (6227fbd07f), with
+# the deferred remainder pinned expected-red.
+score_add_test(test_integration_scenario_view_ownership
+  SOURCES ScenarioViewOwnershipTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process)
+
 # Device explorer address panel: editing values, accepted values, and the
 # absence of empty undo steps.
 score_add_test(test_integration_device_address_edit
   SOURCES DeviceAddressEditTest.cpp
+  GUI
+  PLUGINS score_plugin_deviceexplorer score_lib_device score_plugin_scenario)
+
+# How the value editors render inside a tree row: fitting the row, covering
+# the cell. Writes a PNG per editor to $SCORE_TEST_SHOT_DIR.
+score_add_test(test_integration_explorer_editor_look
+  SOURCES DeviceExplorerEditorLookTest.cpp
   GUI
   PLUGINS score_plugin_deviceexplorer score_lib_device score_plugin_scenario)
 
@@ -169,6 +310,17 @@ if(TARGET score AND NOT EMSCRIPTEN)
     "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\"")
   set_tests_properties(test_integration_script_exit_code PROPERTIES
     TIMEOUT 900 RUN_SERIAL TRUE)
+
+  # Every reachable slot of JS::EditJsContext called with null, a wrong-typed
+  # argument or a removed object handle, from a real --script run. Subprocess
+  # for the same reason: the behaviour under test is whether the application
+  # stays alive. Seven launches, so the timeout is generous.
+  score_add_test(test_integration_js_scripting_api
+    SOURCES JsScriptingApiTest.cpp)
+  target_compile_definitions(test_integration_js_scripting_api PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\"")
+  set_tests_properties(test_integration_js_scripting_api PROPERTIES
+    TIMEOUT 900 RUN_SERIAL TRUE)
 endif()
 
 # Score.remove() on a cable, which used to be a silent no-op. A subprocess test
@@ -191,6 +343,68 @@ if(TARGET score AND NOT EMSCRIPTEN)
     "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\"")
   set_tests_properties(test_integration_js_time_api PROPERTIES
     TIMEOUT 900 RUN_SERIAL TRUE)
+endif()
+
+# Qt.vector3d() and the other QML value type constructors, which returned a
+# silent zero in every headless run because nothing had imported QtQuick.
+if(TARGET score AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_js_value_types
+    SOURCES JsValueTypesTest.cpp)
+  target_compile_definitions(test_integration_js_value_types PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\"")
+  set_tests_properties(test_integration_js_value_types PROPERTIES
+    TIMEOUT 900 RUN_SERIAL TRUE)
+endif()
+
+# PipeWire video input through the whole application, driven by the JS
+# scripting API. NO_CTEST: the ctest entries live in tests/hardware, where
+# score_add_media_test wraps them in the runner that requires the media stack.
+#
+# The motion test is the one that can tell a live stream from a still: its
+# source publishes a frame-numbered pattern the test wrote itself, so both the
+# pixels and the fact that they change are asserted against a reference that
+# owes nothing to score.
+if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_pipewire_video_input
+    SOURCES PipewireVideoInputTest.cpp
+    NO_CTEST)
+  score_add_test(test_integration_pipewire_video_motion
+    SOURCES PipewireVideoMotionTest.cpp
+    NO_CTEST)
+
+  # Video graphs assembled entirely through the JS scripting API and asserted
+  # on their pixels: file -> filter -> window, one source into two windows, and
+  # the same graph built and torn down repeatedly in one process.
+  score_add_test(test_integration_js_graph_e2e
+    SOURCES JsGraphE2ETest.cpp
+    NO_CTEST)
+
+  # The gfx protocol factories and their device-settings parsers, reached the
+  # way a script reaches them: Score.availableProtocols() and
+  # Score.createDevice(name, uuid, obj). No device is expected to connect and
+  # nothing is rendered, so unlike the graph tests above this one needs no
+  # display and runs under ctest.
+  score_add_test(test_integration_gfx_protocol_settings
+    SOURCES GfxProtocolSettingsTest.cpp)
+  set_tests_properties(test_integration_gfx_protocol_settings
+    PROPERTIES TIMEOUT 600)
+  # Mirror the exact condition score-plugin-gfx uses to build the Sh4lt devices
+  # (if(TARGET sh4lt)), so the test expects presence on precisely the builds
+  # that have it instead of assuming every platform does.
+  if(TARGET sh4lt)
+    target_compile_definitions(test_integration_gfx_protocol_settings
+      PRIVATE SCORE_TEST_HAS_SH4LT)
+  endif()
+
+  foreach(_pw_tgt test_integration_pipewire_video_input
+                  test_integration_pipewire_video_motion
+                  test_integration_js_graph_e2e
+                  test_integration_gfx_protocol_settings)
+    target_link_libraries(${_pw_tgt} PRIVATE ${QT_PREFIX}::Gui)
+    target_compile_definitions(${_pw_tgt} PRIVATE
+      "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\""
+      "GFX_TEST_CORPUS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/../gfx/corpus\"")
+  endforeach()
 endif()
 
 # Closing a MODIFIED document with applicationSettings.gui false must not
@@ -294,91 +508,107 @@ score_add_test(test_integration_nodal_viewport
 # Frame-step determinism across two processes: the same case rendered to the same
 # frame index in two separate applications must be byte-identical.
 # Skips (77) without the binary or the out-of-repo tests-scene corpus.
-add_test(NAME test_frame_determinism
-  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/golden-render/frame-determinism.sh"
-  WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
-set_tests_properties(test_frame_determinism PROPERTIES
-  SKIP_RETURN_CODE 77
-  TIMEOUT 600
-  RUN_SERIAL TRUE
-  LABELS "gui"
-  ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+if(SCORE_HAS_SHELL_HARNESS)
+  add_test(NAME test_frame_determinism
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/golden-render/frame-determinism.sh"
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+  set_tests_properties(test_frame_determinism PROPERTIES
+    SKIP_RETURN_CODE 77
+    TIMEOUT 600
+    RUN_SERIAL TRUE
+    LABELS "gui"
+    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
 
-# Golden-image render regression.
-# Renders a pinned subset of the tests-scene JS corpus headless on llvmpipe and
-# compares each frame to refs/llvmpipe/*.png with compare.py (SSIM/PSNR).
-# Deterministic-headless -> CI-able. References are committed under
-# refs/llvmpipe/; regenerate with:  golden-render.sh --backend llvmpipe --update-refs
-# Self-serializes on /tmp/score-harness.lock; skips (77) if refs/oscsend/corpus absent.
-add_test(NAME test_golden_render_llvmpipe
-  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/golden-render/golden-render.sh" --backend llvmpipe
-  WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
-set_tests_properties(test_golden_render_llvmpipe PROPERTIES
-  SKIP_RETURN_CODE 77
-  TIMEOUT 1800
-  RUN_SERIAL TRUE
-  ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+  # Golden-image render regression, one ctest per backend class. Each renders the
+  # pinned tests-scene corpus through the real binary and compares against the
+  # SHARED golden set in golden-render/refs/ -- one golden per case, not one per
+  # backend, so a regression on any single backend is condemned by the same
+  # reference every other backend is held to. Skips (77) without the binary, the
+  # out-of-repo tests-scene corpus, oscsend/ImageMagick/numpy, an X server for
+  # the classes that need one, or a not-yet-generated reference set.
+  #
+  # The backend a run actually got is asserted, not assumed: a class that lands on
+  # a different GPU or rasteriser fails as WRONG-BACKEND. Without that assertion a
+  # run under QT_QPA_PLATFORM=offscreen falls back to the Null RHI backend and
+  # still emits a plausible, perfectly reproducible, WRONG picture.
+  # One ctest entry per (class, case) rather than per class. The script already
+  # takes --cases, and a case is ~20 s: as a single entry per class the group ran
+  # 188-423 s each, and one bad case reported as one opaque red covering sixteen.
+  # Split, a failure names the case it is.
+  foreach(_gr_backend nvidia nvidia-vulkan llvmpipe vulkan-lavapipe)
+    string(REPLACE "-" "_" _gr_name "${_gr_backend}")
+    set(_gr_cases_file "${CMAKE_CURRENT_SOURCE_DIR}/golden-render/cases-${_gr_backend}.txt")
+    if(NOT EXISTS "${_gr_cases_file}")
+      set(_gr_cases_file "${CMAKE_CURRENT_SOURCE_DIR}/golden-render/cases-llvmpipe.txt")
+    endif()
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${_gr_cases_file}")
+    file(STRINGS "${_gr_cases_file}" _gr_cases REGEX "^[A-Za-z0-9_-]+$")
+    foreach(_gr_case ${_gr_cases})
+      add_test(NAME test_golden_render_${_gr_name}.${_gr_case}
+        COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/golden-render/golden-render.sh"
+                --backend ${_gr_backend} --cases ${_gr_case}
+        WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+      set_tests_properties(test_golden_render_${_gr_name}.${_gr_case} PROPERTIES
+        SKIP_RETURN_CODE 77
+        TIMEOUT 120
+        RUN_SERIAL TRUE
+        LABELS "gui;golden-render"
+        REQUIRED_FILES
+          "${CMAKE_CURRENT_SOURCE_DIR}/golden-render/compare.py;${CMAKE_CURRENT_SOURCE_DIR}/golden-render/assert-content.py"
+        # OUT puts the run's PNGs -- and, on failure, diff/<case>.{golden,actual,diff}.png
+        # -- in the build tree instead of /tmp, so CI can collect them.
+        ATTACHED_FILES_ON_FAIL
+          "${CMAKE_CURRENT_BINARY_DIR}/golden-artifacts/${_gr_backend}/diff"
+        ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score;OUT=${CMAKE_CURRENT_BINARY_DIR}/golden-artifacts/${_gr_backend}")
+    endforeach()
+  endforeach()
+endif()
 
-# Resource/leak/lifetime soak.
-# Creates+destroys 4 gfx processes/cycle during playback via the JS harness and
-# asserts exit 0, ASAN-clean, and stable RSS/fd/process counts.
-# DISABLED: this reproducer currently FAILS on a REAL, unfixed heap-use-after-
-# free in the render-clock teardown path — GfxContext.cpp:341 (the TimerClock
-# tick lambda dereferences an offscreen BackgroundNode already freed by
-# ~offscreen_device, OffscreenDevice.hpp:97) fired from forceCloseDocument's
-# event pump on /exit. This is NEW render-clock code (RenderClock.cpp/TimerClock),
-# distinct from the 3 previously-fixed teardown UAFs. Flip DISABLED->FALSE once
-# that UAF is fixed; it then becomes the leak/teardown regression gate.
-# Deterministic-headless -> CI-able. Self-serializes on /tmp/score-harness.lock.
-add_test(NAME test_gfx_soak
-  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/gfx-soak/soak-leak.sh" 150
-  WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
-set_tests_properties(test_gfx_soak PROPERTIES
-  DISABLED TRUE
-  SKIP_RETURN_CODE 77
-  TIMEOUT 1200
-  RUN_SERIAL TRUE
-  ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
 
-# Timeline-driven scenario.
-# Seeks an automation ramp with OSC /transport, pausing + grabbing at fixed
-# positions, and asserts the rendered frame mean == position/duration.
-# Deterministic-headless -> CI-able. Self-serializes on /tmp/score-harness.lock.
-add_test(NAME test_timeline_scenario_ramp
-  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/timeline-scenarios/timeline-scenario.sh"
-  WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
-set_tests_properties(test_timeline_scenario_ramp PROPERTIES
-  SKIP_RETURN_CODE 77
-  TIMEOUT 600
-  RUN_SERIAL TRUE
-  ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+# The scene testers need the producers their `Wire:` clauses name — Primitive
+# cube, Camera, DirectionalLight — which are halp processes in
+# score_plugin_threedim, wrapped into score::gfx nodes by oscr::GfxNode<T>. The
+# plugin is built with hidden visibility, so (exactly as tests/threedim and
+# tests/unit already do) the specific engine .cpp files are compiled straight
+# into the test target and the plugin's own include set is pulled in via its
+# INCLUDE_DIRECTORIES property. score::gfx::ScenePreprocessorNode and
+# oscr::CustomGfxNodeBase are exported by score_plugin_gfx / score_plugin_avnd,
+# so those come from the link.
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  set(_3d "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
+  score_plugin_hidden_sources(_sweep_scene_hidden
+      "${_3d}/Camera.cpp"
+      "${_3d}/Light.cpp"
+      "${_3d}/Primitive.cpp")
+  score_add_test(test_integration_shader_sweep_scene
+    SOURCES
+      ShaderSweepScene.cpp
+      ${_sweep_scene_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_lib_process)
+  target_include_directories(test_integration_shader_sweep_scene
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../fixtures")
+  target_include_directories(test_integration_shader_sweep_scene SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
 
-# TEXT node render validation (depends on the scene render path). One
-# headless llvmpipe app run: grabs the
-# Gfx::Text process with DEFAULT controls (off-screen-default visibility
-# regression), then live-edits text/font/size/position/scale/color over OSC
-# /script and asserts pixel VALUES per case (analyze.py: coverage, bbox
-# ordering across sizes, centroid movement, channel dominance, blank empty
-# string, unicode/CJK/tofu/2000-char edge cases) + golden refs for the
-# stable subset (text-render/refs/llvmpipe, compare.py strict; regenerate
-# with text-render.sh --update-refs — double-render self-consistency).
-# Self-serializes on /tmp/score-harness.lock; SKIPs (77) without deps.
-add_test(NAME test_text_render
-  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/text-render/text-render.sh"
-  WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
-set_tests_properties(test_text_render PROPERTIES
-  SKIP_RETURN_CODE 77
-  TIMEOUT 900
-  RUN_SERIAL TRUE
-  ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
-
-# GPU video encoder matrix: instantiates every encoder in
-# src/plugins/score-plugin-gfx/Gfx/Graph/encoders on a real QRhi backend
+# Encoder matrix: renders through each available graphics API
 # (SCORE_TEST_API=opengl|vulkan) and byte-checks the outputs. Registered GUI
 # (-> LABELS gui) because GL/Vulkan context creation needs a windowing system;
-# exclude with `ctest -LE gui` on displayless machines. Static-plugin builds
-# can't link score_plugin_gfx directly (same constraint as EncoderTester).
-if(TARGET score_plugin_gfx AND NOT SCORE_STATIC_PLUGINS)
+# exclude with `ctest -LE gui` on displayless machines. Works under static
+# plugins too: score_add_test's GUI path links the whole SCORE_PLUGINS_LIST
+# there (cmake/ScoreTests.cmake), which is the same remedy EncoderTester gets
+# from score_link_plugins_for_static -- the old gate here mis-cited
+# EncoderTester as a reason to skip when it is the precedent for the fix.
+if(TARGET score_plugin_gfx)
   score_add_test(test_integration_encoder_matrix
     SOURCES EncoderMatrixTest.cpp
     GUI
@@ -389,17 +619,284 @@ if(TARGET score_plugin_gfx AND NOT SCORE_STATIC_PLUGINS)
     ENVIRONMENT "SCORE_AUDIO_BACKEND=dummy;ASAN_OPTIONS=detect_leaks=0:halt_on_error=0")
 endif()
 
+# On-demand frame stepping: renderFrames / grabFrame / setStepRate and the
+# synthetic step clock. Drives the application binary because the mechanism only
+# exists inside a real gfx document, and uses separate processes because anything
+# cached in one would hide the nondeterminism it looks for. Needs a real display:
+# the offscreen QPA has no GL and reads back a flat colour.
+if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_frame_determinism
+    SOURCES FrameDeterminismTest.cpp
+    LIBS ${QT_PREFIX}::Gui)
+  target_compile_definitions(test_integration_frame_determinism PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\""
+    "GFX_TEST_CORPUS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/../gfx/corpus\"")
+  set_tests_properties(test_integration_frame_determinism PROPERTIES
+    TIMEOUT 1800 RUN_SERIAL TRUE LABELS "gui")
+endif()
+
+# P1-18: a gfx process inside a sub-interval of the document's own Scenario.1
+# starts and stops cleanly during playback: three-phase pixel oracle (baseline
+# "renders nothing" / magenta / EXACTLY back to baseline) plus the
+# SCORE_GFX_TRACE GFX-EDGES half proving both transitions were consumed
+# incrementally (full=0, edge set grows at t1 and shrinks at t2). Drives the
+# application binary; SKIPs itself when the binary, the corpus or a display is
+# missing.
+if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_gfx_nested_interval
+    SOURCES GfxNestedIntervalTest.cpp
+    LIBS ${QT_PREFIX}::Gui)
+  target_compile_definitions(test_integration_gfx_nested_interval PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\""
+    "GFX_TEST_CORPUS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/../gfx/corpus\"")
+  set_tests_properties(test_integration_gfx_nested_interval PROPERTIES
+    TIMEOUT 600 RUN_SERIAL TRUE LABELS "gui")
+endif()
+
+# P1-2: a light added or removed mid-render changes the frame, and only that.
+# Adds the Light process and its cable live during playback, then removes it,
+# and requires the frame to return byte-for-byte; the SCORE_GFX_TRACE half
+# proves both transitions were consumed incrementally.
+if(TARGET score AND TARGET score_plugin_gfx AND TARGET score_plugin_threedim
+   AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_gfx_light_live
+    SOURCES GfxLightLiveTest.cpp
+    LIBS ${QT_PREFIX}::Gui)
+  target_compile_definitions(test_integration_gfx_light_live PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\"")
+  set_tests_properties(test_integration_gfx_light_live PROPERTIES
+    TIMEOUT 600 RUN_SERIAL TRUE LABELS "gui")
+endif()
+
+# P1-1: the T-A scene assembly chain renders a lit model -- closed-form
+# bright/dark inequality across the lit and unlit faces, difference oracle
+# light-on vs light-off, exact clear colour in the background, non-uniform
+# frame. Drives the application binary; SKIPs without a display, the asset or
+# the threedim processes.
+if(TARGET score AND TARGET score_plugin_gfx AND TARGET score_plugin_threedim
+   AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_threedim_lit_scene
+    SOURCES ThreedimLitSceneTest.cpp
+    LIBS ${QT_PREFIX}::Gui)
+  target_compile_definitions(test_integration_threedim_lit_scene PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\""
+    "GFX_TEST_CORPUS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/../gfx/corpus\"")
+  set_tests_properties(test_integration_threedim_lit_scene PROPERTIES
+    TIMEOUT 900 RUN_SERIAL TRUE LABELS "gui")
+endif()
+
+# P1-12: a decoded video frame textures 3D geometry -- the frame index visible
+# ON the geometry advances 1:1 with the decoder, and a still frame is exact
+# where the geometry is axis-aligned and unscaled. Drives the application
+# binary; SKIPs without a display, libav or the threedim processes.
+if(TARGET score AND TARGET score_plugin_gfx AND TARGET score_plugin_media
+   AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_gfx_video_on_geometry
+    SOURCES GfxVideoOnGeometryTest.cpp
+    LIBS ${QT_PREFIX}::Gui)
+  target_compile_definitions(test_integration_gfx_video_on_geometry PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\""
+    "GFX_TEST_CORPUS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/../gfx/corpus\"")
+  set_tests_properties(test_integration_gfx_video_on_geometry PROPERTIES
+    TIMEOUT 900 RUN_SERIAL TRUE LABELS "gui")
+endif()
+
+# Manual tool (not a ctest): enumerate and live-preview every registered
+# object.  Run:  <build>/tests/integration/ObjectGallery --list
+#          or:  cd <build> && ./tests/integration/ObjectGallery --filter camera
+add_executable(ObjectGallery "${CMAKE_CURRENT_SOURCE_DIR}/ObjectGallery.cpp")
+target_link_libraries(ObjectGallery PRIVATE
+  score_lib_base
+  score_plugin_scenario score_plugin_engine score_plugin_gfx
+  score_plugin_deviceexplorer score_lib_process score_lib_device
+  ${QT_PREFIX}::Core ${QT_PREFIX}::Gui ${QT_PREFIX}::Widgets
+  ${QT_PREFIX}::Network ${QT_PREFIX}::Xml)
+setup_score_common_exe_features(ObjectGallery)
+set_target_properties(ObjectGallery PROPERTIES FOLDER "Tests")
+
+# Splat ports stay stable across save/reload
+# (score_plugin_threedim is discovered dynamically at runtime).
+score_add_test(test_regression_splat_reload
+  SOURCES RegressionSplatReloadTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process)
+# ...and the two render-regression sweeps built on it. Both need a real X
+# display (llvmpipe over GLX) and skip with 77 without one; csf-sweep also
+# needs the out-of-repo shader corpus, keyed off SCORE_SHADER_LIBRARY_DIR
+# like the other shader sweeps. Labelled "gui" so display-less CI can gate
+# them out, RUN_SERIAL because each spawns a full GL app per case.
+if(SCORE_HAS_SHELL_HARNESS)
+foreach(sweep object_render_sweep:render-sweep.sh object_csf_sweep:csf-sweep.sh)
+  string(REPLACE ":" ";" _s "${sweep}")
+  list(GET _s 0 _sweep_name)
+  list(GET _s 1 _sweep_script)
+  add_test(NAME test_integration_${_sweep_name}
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/${_sweep_script}"
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+  set_tests_properties(test_integration_${_sweep_name} PROPERTIES
+    SKIP_RETURN_CODE 77
+    TIMEOUT 7200
+    RUN_SERIAL TRUE
+    LABELS "gui;sweep"
+    ENVIRONMENT "OBJECT_GALLERY=$<TARGET_FILE:ObjectGallery>;SCORE_AUDIO_BACKEND=dummy;ASAN_OPTIONS=detect_leaks=0:halt_on_error=0")
+endforeach()
+endif()
+
+
+
+
+
+# Live graph mutation DURING execution, one ctest entry per scenario. Each
+# builds a small ISF scene, plays it headless, and injects mutations over OSC
+# while frames flow -- process add/remove storms, cable storms, undo/redo
+# storms, transport storms, and window resize/full-screen storms.
+#
+# This suite existed in the tree but could not run: live-edit-sweep.sh hardcoded
+# SRCROOT to a worktree that no longer exists, every scenario eval'd common.js
+# through an absolute path into that same dead tree, and common.js pointed at a
+# shader corpus under ~/Documents. Nothing registered it with ctest either, so
+# none of that was visible. Paths are derived now and the corpus is the in-repo
+# one.
+#
+# The sweep runs on a real X server (Xvfb, else Xephyr) with QT_QPA_PLATFORM=xcb,
+# and grabs through the window's own swap chain rather than the desktop, so the
+# earlier choice between "vacuous green under the offscreen QPA" and "green by
+# screenshotting whatever is in front of the window" no longer applies.
+#
+# window-storm additionally drives the Window device's parameter tree while the
+# scene plays; it is the only entry here that covers GfxContext's clock and
+# updateGraph() between the window and the graph.
+#
+# camera-storm and ndi-storm run that identical viewport storm with a real
+# streaming device as the source instead of an ISF, so a failure in one of them
+# but not in window-storm belongs to the device rather than to the storm. Both
+# skip with a printed reason when the device is absent (no /dev/video*, no
+# libndi); a bench machine sets SCORE_REQUIRE_DEVICES=1 to turn that into a
+# failure. ndi-storm needs no external sender: score sends and receives its own
+# stream over localhost, covering both NDI nodes at once.
+#
+# Those two are EXPECTED RED on one shared finding: no device pixels reach the
+# window through this wiring. Both render the byte-identical disconnected-input
+# fallback -- 24% of the frame, the rest black -- from two unrelated sources, so
+# the cause is upstream of either device. The storm part passes underneath; it is
+# the coverage oracle that fails. Do NOT lower min_nonblack_coverage in
+# live-edit-sweep.sh's CFG to make them green: a non-blank check accepts that
+# fallback, which is exactly why this looked like a pass to begin with.
+if(SCORE_HAS_SHELL_HARNESS)
+  foreach(_le_scen baseline add-remove-storm cable-storm undo-redo-during-play
+                   transport-storm mixed-chaos window-storm scene-storm
+                   camera-storm ndi-storm)
+    add_test(NAME test_live_edit.${_le_scen}
+      COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/live-edit-sweep.sh" ${_le_scen}
+      WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+    set_tests_properties(test_live_edit.${_le_scen} PROPERTIES
+      SKIP_RETURN_CODE 77
+      # Above live-edit-sweep.sh's own `timeout --foreground 150`, so the harness
+      # reaches its verdict instead of ctest killing it first and reporting a bare
+      # Timeout.
+      TIMEOUT 240
+      RUN_SERIAL TRUE
+      LABELS "live-edit"
+      ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+  endforeach()
+endif()
+
+
+# Resource/leak/lifetime soak.
+# Creates+destroys 4 gfx processes/cycle during playback via the JS harness and
+# asserts exit 0, ASAN-clean, and stable RSS/fd/process counts.
+#
+# Re-enabled: the render-clock teardown UAF that disabled this is fixed --
+# destroyOutput now unregisters the output from every TimerClock before its
+# BackgroundNode is freed (GfxContext.cpp). Measured 2026-08-28 at 150 cycles:
+# 150/150 executed, zero AddressSanitizer reports, zero teardown errors.
+#
+# EXPECTED-RED, on a DIFFERENT and real defect: criterion 7, post-warmup RSS
+# slope, measures 75.8 KB/cycle against a 40 KB budget. It is monotonic and
+# near-linear across the whole run (1339 MB at cycle 20 to 1350 MB at cycle 140,
+# ~1530 KB per 20 cycles), so it is a steady leak of roughly 19 KB per gfx
+# process created and destroyed, not allocator noise. The summary line prints a
+# first-to-last range that can read as a decrease; the per-cycle samples in
+# samples.csv are what to trust. Do NOT raise SLOPE_KB_PER_CYCLE to make this
+# green -- that is the one thing that would hide the defect it now pins.
+# Deterministic-headless -> CI-able. Self-serializes on /tmp/score-harness.lock.
+if(SCORE_HAS_SHELL_HARNESS)
+  add_test(NAME test_gfx_soak
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/gfx-soak/soak-leak.sh" 150
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+  set_tests_properties(test_gfx_soak PROPERTIES
+    SKIP_RETURN_CODE 77
+    TIMEOUT 1200
+    RUN_SERIAL TRUE
+    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+endif()
+
+
+
+# Timeline-driven scenario.
+# Seeks an automation ramp with OSC /transport, pausing + grabbing at fixed
+# positions, and asserts the rendered frame mean == position/duration.
+# Deterministic-headless -> CI-able. Self-serializes on /tmp/score-harness.lock.
+if(SCORE_HAS_SHELL_HARNESS)
+  add_test(NAME test_timeline_scenario_ramp
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/timeline-scenarios/timeline-scenario.sh"
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+  set_tests_properties(test_timeline_scenario_ramp PROPERTIES
+    SKIP_RETURN_CODE 77
+    TIMEOUT 600
+    RUN_SERIAL TRUE
+    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+endif()
+
+
+
+# TEXT node render validation (depends on the scene render path). One
+# llvmpipe app run under an Xvfb the harness starts itself (falling back to
+# $DISPLAY, SKIPping with neither): under QT_QPA_PLATFORM=offscreen there is no
+# GL at all and QRhi silently falls back to the Null backend, whose Qt::yellow
+# texture fill satisfied most of the value assertions below. The renderer QRhi
+# reports is now asserted to be llvmpipe and a Null backend fails the run.
+# Grabs the
+# Gfx::Text process with DEFAULT controls (off-screen-default visibility
+# regression), then live-edits text/font/size/position/scale/color over OSC
+# /script and asserts pixel VALUES per case (analyze.py: coverage, bbox
+# ordering across sizes, centroid movement, channel dominance, blank empty
+# string, unicode/CJK/tofu/2000-char edge cases) + golden refs for the
+# stable subset (text-render/refs, backend-independent, compare.py profile
+# shared; regenerate with text-render.sh --update-refs — double-render
+# self-consistency).
+# Self-serializes on /tmp/score-harness.lock; SKIPs (77) without deps.
+if(SCORE_HAS_SHELL_HARNESS)
+  add_test(NAME test_text_render
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/text-render/text-render.sh"
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+  set_tests_properties(test_text_render PROPERTIES
+    SKIP_RETURN_CODE 77
+    TIMEOUT 900
+    RUN_SERIAL TRUE
+    REQUIRED_FILES
+      "${CMAKE_CURRENT_SOURCE_DIR}/text-render/analyze.py;${CMAKE_CURRENT_SOURCE_DIR}/golden-render/compare.py"
+    ATTACHED_FILES_ON_FAIL
+      "${CMAKE_CURRENT_BINARY_DIR}/golden-artifacts/text-render/diff"
+    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score;OUT=${CMAKE_CURRENT_BINARY_DIR}/golden-artifacts/text-render")
+endif()
+
+
 # Offscreen-teardown regression: a full-app offscreen
 # render followed by /stop + /exit must exit 0 (was SIGSEGV/UAF at teardown).
 # The script serializes itself on /tmp/score-harness.lock (global OSC port).
-add_test(NAME test_regression_offscreen_teardown
-  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/offscreen-teardown-regression.sh"
-  WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
-set_tests_properties(test_regression_offscreen_teardown PROPERTIES
-  SKIP_RETURN_CODE 77
-  TIMEOUT 600
-  RUN_SERIAL TRUE
-  ENVIRONMENT "SCORE_BIN=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+if(SCORE_HAS_SHELL_HARNESS)
+  add_test(NAME test_regression_offscreen_teardown
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/offscreen-teardown-regression.sh"
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+  set_tests_properties(test_regression_offscreen_teardown PROPERTIES
+    SKIP_RETURN_CODE 77
+    TIMEOUT 600
+    RUN_SERIAL TRUE
+    ENVIRONMENT "SCORE_BIN=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+endif()
+
+
 
 # Video decode-correctness matrix: every SOFTWARE-
 # decodable pixel format in Gfx/Graph/decoders is encoded as a known pattern
@@ -422,73 +919,30 @@ if(SCORE_VIDEO_TESTER)
     ENVIRONMENT "VIDEO_TESTER=${SCORE_ROOT_BINARY_DIR}/VideoDecoderTester;SCORE_AUDIO_BACKEND=dummy;ASAN_OPTIONS=detect_leaks=0:halt_on_error=0:handle_segv=1:detect_odr_violation=0:protect_shadow_gap=0")
 endif()
 
-# On-demand frame stepping: renderFrames / grabFrame / setStepRate and the
-# synthetic step clock. Drives the application binary because the mechanism only
-# exists inside a real gfx document, and uses separate processes because anything
-# cached in one would hide the nondeterminism it looks for. Needs a real display:
-# the offscreen QPA has no GL and reads back a flat colour.
-if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
-  score_add_test(test_integration_frame_determinism
-    SOURCES FrameDeterminismTest.cpp
-    LIBS ${QT_PREFIX}::Gui)
-  target_compile_definitions(test_integration_frame_determinism PRIVATE
-    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\""
-    "GFX_TEST_CORPUS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/../gfx/corpus\"")
-  set_tests_properties(test_integration_frame_determinism PROPERTIES
-    TIMEOUT 1800 RUN_SERIAL TRUE LABELS "gui")
-endif()
-# Manual tool (not a ctest): enumerate and live-preview every registered
-# object.  Run:  <build>/tests/integration/ObjectGallery --list
-#          or:  cd <build> && ./tests/integration/ObjectGallery --filter camera
-add_executable(ObjectGallery "${CMAKE_CURRENT_SOURCE_DIR}/ObjectGallery.cpp")
-target_link_libraries(ObjectGallery PRIVATE
-  score_lib_base
-  score_plugin_scenario score_plugin_engine score_plugin_gfx
-  score_plugin_deviceexplorer score_lib_process score_lib_device
-  ${QT_PREFIX}::Core ${QT_PREFIX}::Gui ${QT_PREFIX}::Widgets
-  ${QT_PREFIX}::Network ${QT_PREFIX}::Xml)
-setup_score_common_exe_features(ObjectGallery)
-set_target_properties(ObjectGallery PROPERTIES FOLDER "Tests")
-
-# Splat ports stay stable across save/reload
-# (score_plugin_threedim is discovered dynamically at runtime).
-score_add_test(test_regression_splat_reload
-  SOURCES RegressionSplatReloadTest.cpp
+# End-to-end threedim asset renders against visually-validated goldens
+# (tests/integration/ThreedimRenderTest.cpp). Drives the real ossia-score
+# binary over the OSC control port, so it must never run concurrently with
+# the other OSC harnesses; the in-test QLockFile mirrors their
+# /tmp/score-harness.lock convention and RUN_SERIAL keeps ctest honest.
+score_add_test(test_integration_threedim_render
+  SOURCES ThreedimRenderTest.cpp
   GUI
-  PLUGINS score_plugin_scenario score_lib_process)
-
-# The scene testers need the producers their `Wire:` clauses name — Primitive
-# cube, Camera, DirectionalLight — which are halp processes in
-# score_plugin_threedim, wrapped into score::gfx nodes by oscr::GfxNode<T>. The
-# plugin is built with hidden visibility, so (exactly as tests/threedim and
-# tests/unit already do) the specific engine .cpp files are compiled straight
-# into the test target and the plugin's own include set is pulled in via its
-# INCLUDE_DIRECTORIES property. score::gfx::ScenePreprocessorNode and
-# oscr::CustomGfxNodeBase are exported by score_plugin_gfx / score_plugin_avnd,
-# so those come from the link.
-if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
-  set(_3d "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
-  score_plugin_hidden_sources(_sweep_scene_hidden
-      "${_3d}/Camera.cpp"
-      "${_3d}/Light.cpp"
-      "${_3d}/Primitive.cpp")
-score_add_test(test_integration_shader_sweep_scene
-    SOURCES
-      ShaderSweepScene.cpp
-      ${_sweep_scene_hidden}
-    GUI
-    PLUGINS score_plugin_gfx score_plugin_avnd score_lib_process)
-  target_include_directories(test_integration_shader_sweep_scene
-    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../fixtures")
-  target_include_directories(test_integration_shader_sweep_scene SYSTEM PRIVATE
-    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
-    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
-    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
-    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
-    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
-    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
-    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
-endif()
-
+  PLUGINS score_lib_base)
+target_compile_definitions(test_integration_threedim_render PRIVATE
+  "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\""
+  "THREEDIM_RENDER_REFS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/threedim-render/refs\""
+  # The one comparator. Every golden threshold in the tree is defined in this
+  # file and nowhere else; the C++ helper calls it rather than reimplementing
+  # the metrics. See tests/integration/GoldenImage.hpp.
+  "GOLDEN_COMPARE_PY=\"${CMAKE_CURRENT_SOURCE_DIR}/golden-render/compare.py\""
+  # Failure artifacts (golden / actual / diff, named after the case) land in
+  # the build tree so a CI failure is diagnosable without a local repro.
+  "GOLDEN_ARTIFACT_DIR=\"${CMAKE_CURRENT_BINARY_DIR}/golden-artifacts\""
+  "GFX_TEST_CORPUS_DIR=\"${SCORE_ROOT_SOURCE_DIR}/tests/gfx/corpus\"")
+set_tests_properties(test_integration_threedim_render PROPERTIES
+  RUN_SERIAL TRUE
+  TIMEOUT 900
+  ATTACHED_FILES_ON_FAIL
+    "${CMAKE_CURRENT_BINARY_DIR}/golden-artifacts/threedim-render"
+  REQUIRED_FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/threedim-render/fetch-real-assets.sh")

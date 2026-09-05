@@ -49,6 +49,18 @@ if(TARGET PipewireRoundtrip)
     TIMEOUT    600
     ENVIRONMENT "${_pwrt_asan}")
 
+  # Strict counterparts: same harness, but run through the provisioning wrapper
+  # that REQUIRES gstreamer/ffmpeg/PipeWire and publishes a virtual Video/Source.
+  # These cannot skip, so a missing media stack shows up as a failure instead of
+  # silently removing the coverage.
+  score_add_media_test(
+    NAME       Media_PipewireRoundtrip_input
+    EXECUTABLE PipewireRoundtrip
+    VIRTUAL_VIDEO
+    ARGS       --seconds 2 --only pw2s
+    TIMEOUT    600
+    ENVIRONMENT "${_pwrt_asan}")
+
   score_add_hardware_test(
     NAME       PipewireRoundtrip_s2s
     EXECUTABLE PipewireRoundtrip
@@ -58,4 +70,93 @@ if(TARGET PipewireRoundtrip)
     ARGS       --seconds 2 --only s2s
     TIMEOUT    600
     ENVIRONMENT "${_pwrt_asan}")
+endif()
+
+# --- PipeWire video input through the application (tests/integration) --------
+# The harness above drives InputStream directly, against a producer built to
+# match its request exactly and with the link made by hand. This one goes
+# through the real app -- device settings, protocol, CameraNode, renderer --
+# against the runner's Video/Source, and asserts the producer's colour bars
+# come out of the window readback.
+#
+# Needs a real session: the window readback has no GL under the offscreen QPA.
+# Registered without OPTIONAL on purpose, like every other media test here --
+# an absent display or media stack must show up as a failure rather than
+# silently retiring the only end-to-end coverage of the input path.
+if(TARGET test_integration_pipewire_video_input)
+  score_add_media_test(
+    NAME       Media_PipewireVideoInput
+    EXECUTABLE test_integration_pipewire_video_input
+    VIRTUAL_VIDEO
+    TIMEOUT    600)
+endif()
+
+# --- PipeWire video input: live pixels, not a plausible still ---------------
+# Same route through the application, but the source publishes a frame-numbered
+# pattern the test wrote itself and replays through gst-launch, so the picture
+# is asserted pixel-for-pixel AND required to advance. The runner's videotestsrc
+# node is a static image: everything above passes on a stream that delivered one
+# buffer and stopped, which is why this one brings its own producer and asks
+# only for the media stack the wrapper guarantees.
+if(TARGET test_integration_pipewire_video_motion)
+  score_add_media_test(
+    NAME       Media_PipewireVideoMotion
+    EXECUTABLE test_integration_pipewire_video_motion
+    PIPEWIRE
+    TIMEOUT    600)
+endif()
+
+# --- Scripted end-to-end video graphs ---------------------------------------
+# Built through the JS scripting API in a real application process and asserted
+# on the window readback. Registered as a media test because the clip they play
+# is muxed with ffmpeg at run time, and because an absent display must fail
+# rather than retire the only end-to-end cover these graphs have.
+if(TARGET test_integration_js_graph_e2e)
+  score_add_media_test(
+    NAME       Media_JsGraphE2E
+    EXECUTABLE test_integration_js_graph_e2e
+    TIMEOUT    900)
+endif()
+
+# --- libav decode matrix (score-plugin-media) -------------------------------
+# The harness is built in tests/unit (NO_CTEST) and registered here, because it
+# is the provisioning wrapper that gives it something to decode: --media
+# generates one rawvideo-in-NUT clip per pixel format, at even AND odd sizes,
+# plus the malformed inputs the failure paths need.
+if(TARGET test_unit_libav_decode)
+  score_add_media_test(
+    NAME       Media_LibavDecode
+    EXECUTABLE test_unit_libav_decode
+    MEDIA
+    TIMEOUT    600)
+endif()
+
+# --- container x codec matrix (score-plugin-media) ---------------------------
+# --matrix builds one master clip of solid colour blocks, derives its rgb24
+# ground truth from that clip, and encodes the same master into every
+# container/codec pair the host's ffmpeg can produce -- plus the malformed
+# inputs, the file whose header lies about its geometry, and the streams that
+# gain or lose an audio track mid-play. Rows the host cannot build are recorded
+# by name in unavailable.txt and reported by the harness, so a smaller matrix is
+# visible instead of silently green.
+if(TARGET test_unit_video_codec_matrix)
+  score_add_media_test(
+    NAME       Media_VideoCodecMatrix
+    EXECUTABLE test_unit_video_codec_matrix
+    MATRIX
+    TIMEOUT    900)
+endif()
+
+# --- streaming protocols + device lifecycle (score-plugin-media) ------------
+# Same --matrix fixtures: the peers serve the known-pixel master, so what comes
+# off the wire is asserted per pixel. The harness owns the peer processes, which
+# is what lets it kill one mid-stream and assert that stop() and ~Input() still
+# return. RUN_SERIAL is inherited from score_add_media_test; the harness also
+# binds ephemeral ports, so it must not race another copy of itself.
+if(TARGET test_unit_streaming_protocol)
+  score_add_media_test(
+    NAME       Media_StreamingProtocols
+    EXECUTABLE test_unit_streaming_protocol
+    MATRIX
+    TIMEOUT    900)
 endif()

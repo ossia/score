@@ -855,8 +855,10 @@ bool DirectVideoNodeRenderer::isSequentialRead(int64_t flicks) const
       = static_cast<int64_t>(m_lastDecodedDts * m_flicks_per_dts);
   const int64_t delta = flicks - lastFlicks;
 
-  // Sequential if we're moving forward by 0–2 frames
-  return delta >= 0 && delta <= frameDurationFlicks * 2;
+  // Sequential if we're moving forward by 0–2 frames. The quarter-frame
+  // margin absorbs the rounding of date -> flicks -> dts conversions, which
+  // otherwise tips an exactly-two-frame delta into a spurious seek.
+  return delta >= 0 && delta <= frameDurationFlicks * 2 + frameDurationFlicks / 4;
 }
 
 bool DirectVideoNodeRenderer::readNextPacketRaw()
@@ -947,6 +949,23 @@ bool DirectVideoNodeRenderer::readNextPacketAVCodec()
     }
   }
 
+  if(!found)
+  {
+    // EOF: drain the frames still delayed by B-frame reordering.
+    // A later backward seek flushes the codec, which exits drain mode.
+    avcodec_send_packet(m_codecContext, nullptr);
+    if(avcodec_receive_frame(m_codecContext, m_decodedFrame) == 0)
+    {
+      int64_t ts = m_decodedFrame->best_effort_timestamp;
+      if(ts == AV_NOPTS_VALUE)
+        ts = m_decodedFrame->pts;
+      if(ts == AV_NOPTS_VALUE)
+        ts = m_decodedFrame->pkt_dts;
+      m_lastDecodedDts = ts;
+      found = true;
+    }
+  }
+
   av_packet_free(&packet);
   return found;
 }
@@ -986,7 +1005,26 @@ bool DirectVideoNodeRenderer::seekAndDecode(int64_t flicks)
       return false;
   }
 
-  return readNextPacketAVCodec();
+  // Decode until the requested time is reached. After a backward seek this
+  // replays the GOP up to the target; stopping at the keyframe instead would
+  // both show the wrong frame and leave m_lastDecodedDts at the keyframe,
+  // making every subsequent read look non-sequential (a seek per frame).
+  const double fps = m_fps > 0. ? m_fps : 24.;
+  const int64_t frameDurationFlicks
+      = static_cast<int64_t>(ossia::flicks_per_second<double> / fps);
+  bool ok = false;
+  for(int guard = sequential ? 4 : 4096; guard-- > 0;)
+  {
+    if(!readNextPacketAVCodec())
+      return ok; // EOF / error: keep the last frame that did decode
+    ok = true;
+    if(m_lastDecodedDts == AV_NOPTS_VALUE)
+      break;
+    if(static_cast<int64_t>(m_lastDecodedDts * m_flicks_per_dts) + frameDurationFlicks
+       > flicks)
+      break;
+  }
+  return ok;
 }
 
 // ============================================================
@@ -1032,10 +1070,19 @@ DirectVideoNodeRenderer::tryCreateZeroCopyDecoder(QRhi& rhi)
          && m_rhiApi == GraphicsApi::Vulkan
          && HWVulkanSharedDecoder::isAvailable(rhi))
       {
-        // qDebug() << "DirectVideoNodeRenderer: zero-copy: HWVulkanSharedDecoder"
-        //          << "sw_format:" << av_get_pix_fmt_name(m_hwSwFormat);
+        // The decoded VkImages have the codec-aligned (coded) size; when the
+        // display size is smaller (1080 lines coded as 1088), sampling must
+        // stop at the crop, so hand the coded extent to the decoder.
+        int codedW = 0, codedH = 0;
+        if(m_codecContext && m_codecContext->hw_frames_ctx)
+        {
+          auto* fc = reinterpret_cast<AVHWFramesContext*>(
+              m_codecContext->hw_frames_ctx->data);
+          codedW = fc->width;
+          codedH = fc->height;
+        }
         return std::make_unique<HWVulkanSharedDecoder>(
-            m_frameFormat, rhi, hwPixelFormatInfo());
+            m_frameFormat, rhi, hwPixelFormatInfo(), codedW, codedH);
       }
 #endif
 
@@ -1119,6 +1166,8 @@ void DirectVideoNodeRenderer::createGpuDecoder(QRhi& rhi)
 #if LIBAVUTIL_VERSION_MAJOR >= 57
   // If hardware acceleration is active, try zero-copy first,
   // then fall back to HWTransferDecoder (GPU decode + DMA transfer).
+  static const bool traceDecoder
+      = qEnvironmentVariableIsSet("SCORE_GFX_DEBUG_DECODER");
   if(m_hwPixelFormat != AV_PIX_FMT_NONE && m_hwDeviceCtx)
   {
     if(!m_zeroCopyFailed)
@@ -1127,6 +1176,9 @@ void DirectVideoNodeRenderer::createGpuDecoder(QRhi& rhi)
       if(zc)
       {
         m_gpu = std::move(zc);
+        if(traceDecoder)
+          fprintf(
+              stderr, "DECODER-PATH zero-copy %s\n", typeid(*m_gpu).name());
         m_recomputeScale = true;
         return;
       }
@@ -1138,8 +1190,10 @@ void DirectVideoNodeRenderer::createGpuDecoder(QRhi& rhi)
                               ? m_hwSwFormat
                               : AV_PIX_FMT_NV12;
     m_gpu = std::make_unique<HWTransferDecoder>(m_frameFormat, swFmt);
-    // qDebug() << "DirectVideoNodeRenderer: using HW transfer decoder, sw_format:"
-    //          << av_get_pix_fmt_name(swFmt);
+    if(traceDecoder)
+      fprintf(
+          stderr, "DECODER-PATH hw-transfer sw_format=%s\n",
+          av_get_pix_fmt_name(swFmt));
     m_recomputeScale = true;
     return;
   }
@@ -1151,8 +1205,10 @@ void DirectVideoNodeRenderer::createGpuDecoder(QRhi& rhi)
   m_gpu = createGPUVideoDecoder(m_frameFormat, filter.toStdString());
   if(m_gpu)
   {
-    // qDebug() << "DirectVideoNodeRenderer: using SW decoder for"
-    //          << av_get_pix_fmt_name(m_frameFormat.pixel_format);
+    if(traceDecoder)
+      fprintf(
+          stderr, "DECODER-PATH software %s\n",
+          av_get_pix_fmt_name(m_frameFormat.pixel_format));
   }
   else
   {
@@ -1310,7 +1366,12 @@ void DirectVideoNodeRenderer::update(
             auto* fc = reinterpret_cast<AVHWFramesContext*>(
                 m_codecContext->hw_frames_ctx->data);
             auto realSwFmt = static_cast<AVPixelFormat>(fc->sw_format);
-            if(realSwFmt != m_hwSwFormat)
+            // Recreate on sw_format change, and also once the frames context
+            // reveals a coded size larger than the display size: samplers
+            // built before the first decode assumed no crop.
+            if(realSwFmt != m_hwSwFormat
+               || fc->width != m_frameFormat.width
+               || fc->height != m_frameFormat.height)
             {
               m_hwSwFormat = realSwFmt;
               setupGpuDecoder(renderer);

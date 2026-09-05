@@ -57,17 +57,48 @@ pathlib.Path(dst).write_text(text)
 EOF
 
 send() { oscsend 127.0.0.1 $OSC "$@" 2>/dev/null; }
+if [ -z "${DISPLAY:-}" ]; then
+  for d in 99 98 97; do
+    if command -v Xvfb >/dev/null 2>&1; then Xvfb ":$d" -screen 0 1280x720x24 >/dev/null 2>&1 &
+    elif command -v Xephyr >/dev/null 2>&1; then Xephyr ":$d" -screen 1280x720 -ac -noreset >/dev/null 2>&1 &
+    else break; fi
+    OWN_X=$!; sleep 3
+    if DISPLAY=":$d" xdpyinfo >/dev/null 2>&1; then
+      export DISPLAY=":$d"; trap 'kill "$OWN_X" 2>/dev/null' EXIT; break
+    fi
+    kill "$OWN_X" 2>/dev/null
+  done
+fi
+if [ -z "${DISPLAY:-}" ]; then
+  echo "timeline-scenario: no X server; offscreen is not a fallback (no GL ->"
+  echo "  Null backend -> constant frame). SKIP."
+  exit 77
+fi
+
 mean_of() { convert "$1" -format '%[fx:mean]' info: 2>/dev/null || echo -1; }
 
 (
   flock -w 900 9 || { echo 98 > "$OUT/ramp.rc"; exit 0; }
-  env -u DISPLAY XDG_CONFIG_HOME="$CFG" \
+  # Stage with the scenario's own directory injected -- Score.readFile resolves
+  # nothing relative to the running script.
+  { printf 'var TIMELINE_DIR = "%s";\n' "$HERE"; cat "$HERE/scenario-ramp.js"; } \
+    > "$OUT/scenario-ramp.staged.js"
+  # A real X server with xcb and a real window, NOT QT_QPA_PLATFORM=offscreen.
+  # Qt's offscreen integration has GL only through GLX, so with no X there is no
+  # GL: QRhi::create fails, score falls back to the Null RHI backend and renders
+  # a constant. That is what made this scenario report a level frozen at
+  # 0.666667 -- it was measuring a Null-backend frame, not the ramp.
+  # SCORE_FORCE_OFFSCREEN_WINDOW is not used either: with real GL the offscreen
+  # device never gets the graph connected ("no process is connected to this
+  # device's input"), and grabTo reads the swapchain backbuffer now, so a real
+  # window is a true render and a true readback.
+  env XDG_CONFIG_HOME="$CFG" \
       SCORE_AUDIO_BACKEND=dummy SCORE_DISABLE_AUDIOPLUGINS=1 \
-      SCORE_FORCE_OFFSCREEN_WINDOW=Window QT_QPA_PLATFORM=offscreen \
+      SCORE_SANITIZE_SKIP_CHECKS=1 QT_QPA_PLATFORM=xcb \
       LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe \
       ASAN_OPTIONS="$ASAN" LLVM_PROFILE_FILE="$OUT/ramp.profraw" \
-    timeout --foreground 300 "$BIN" --no-gui --no-restore \
-      --script "$HERE/scenario-ramp.js" --wait 1 --autoplay >"$OUT/ramp.log" 2>&1 &
+    timeout --foreground 300 "$BIN" --no-restore \
+      --script "$OUT/scenario-ramp.staged.js" --wait 1 --autoplay >"$OUT/ramp.log" 2>&1 &
   APP=$!
 
   for _ in $(seq 1 120); do [ -s "$OUT/ramp-init.score" ] && break; sleep 1; done
@@ -93,8 +124,11 @@ mean_of() { convert "$1" -format '%[fx:mean]' info: 2>/dev/null || echo -1; }
     done
   done
 
-  send /stop; sleep 0.5
-  send /exit
+  # Through /script: this oscsend emits argument-less messages that score's OSC
+  # listener rejects ("element size must be multiple of four"), so bare /stop
+  # and /exit were never delivered and the run ended at the harness timeout.
+  send /script s "Score.stop()"; sleep 0.5
+  send /exit s force
   wait "$APP"; echo $? > "$OUT/ramp.rc"
 ) 9>/tmp/score-harness.lock
 

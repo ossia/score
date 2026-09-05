@@ -176,10 +176,17 @@ public:
     QQuaternion elbowDelta = QQuaternion::fromAxisAndAngle(
         planeNormal, (thetaCur - thetaNew) * 180.0f / float(M_PI));
 
-    // Rotate the shoulder so the new r2m points toward target minus the
-    // elbow contribution.
+    // Rotate the shoulder so the end effector lands on the target. The
+    // root realignment must be computed from the POST-bend end direction:
+    // bending the elbow changes the root->end direction whenever the elbow
+    // angle changes, so aligning the pre-bend direction would leave the
+    // end effector off target. With root fixed, the elbow bend alone puts
+    // the end at mid + elbowDelta*(end - mid); by the law of cosines its
+    // distance from the root is exactly lTgt, so aligning it with the
+    // target direction reaches any reachable target.
+    QVector3D newEnd = mid + elbowDelta.rotatedVector(m2e);
     QVector3D r2t_n = r2t.normalized();
-    QVector3D r2e_n = r2e.normalized();
+    QVector3D r2e_n = (newEnd - root).normalized();
     QQuaternion rootDelta = QQuaternion::rotationTo(r2e_n, r2t_n);
 
     return {rootDelta, elbowDelta};

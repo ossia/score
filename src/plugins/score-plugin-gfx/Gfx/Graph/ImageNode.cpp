@@ -439,6 +439,11 @@ private:
     if(this->node.output[0]->type != score::gfx::Types::Image)
       return;
 
+    // Retried by createPassForEdgeIfMissing whenever either variant is
+    // missing (see hasOutputPassForEdge): drop what exists for this edge
+    // first so retries never accumulate duplicate pipelines.
+    removeOutputPass(renderer, edge);
+
     auto rt = renderer.renderTargetForOutput(edge);
     if(rt.renderTarget)
     {
@@ -460,6 +465,21 @@ private:
           m_altPasses.emplace_back(&edge, Pass{rt, pip, nullptr});
       }
     }
+  }
+
+  bool hasOutputPassForEdge(Edge& edge) const override
+  {
+    // Both variants must exist: runRenderPass draws from m_altPasses for
+    // every non-Single tile mode. The inherited check looked only at m_p, so
+    // a failed tiled build was never retried (tile modes drew nothing) while
+    // a failed single build was retried forever, duplicating m_altPasses.
+    const bool single
+        = ossia::find_if(m_p, [&](const auto& p) { return p.first == &edge; })
+          != m_p.end();
+    const bool tiled
+        = ossia::find_if(m_altPasses, [&](const auto& p) { return p.first == &edge; })
+          != m_altPasses.end();
+    return single && tiled;
   }
 
   void removeOutputPass(RenderList& renderer, Edge& edge) override
@@ -519,6 +539,10 @@ private:
       }
 
       m_uploaded = false;
+      // The passes' SRBs may reference a texture that was just deleted;
+      // when the new list is empty no upload happens below, so force the
+      // rebind (it falls back to the RenderList's empty texture).
+      updateCurrentTexture = true;
     }
 
     recreateTextures(*renderer.state.rhi);
@@ -604,13 +628,25 @@ private:
 
       replace_texture(m_p, sampler, new_tex);
       replace_texture(m_altPasses, sampler, new_tex);
+      // Keep the sampler entry in sync: it is what addOutputPass bakes into
+      // pipelines built later (e.g. a preview cable added mid-playback), so
+      // leaving the old pointer here dangles once that texture is deleted.
+      m_samplers[0].texture = new_tex;
 
       m_ubo.currentImageIndex = n.ubo.currentImageIndex;
       mustRecomputeSize = true;
     }
 
-    // Copy the model UBO into the renderer
-    m_ubo = n.ubo;
+    // Copy the model UBO into the renderer, but keep the render-size-derived
+    // scale: the model's scale is the raw control value, and overwriting the
+    // computed one here meant any materialChanged upload happening between two
+    // recompute triggers sent the un-fitted scale to the GPU.
+    {
+      const float sx = m_ubo.scale[0], sy = m_ubo.scale[1];
+      m_ubo = n.ubo;
+      m_ubo.scale[0] = sx;
+      m_ubo.scale[1] = sy;
+    }
 
     if(edge)
     {
@@ -670,6 +706,20 @@ private:
         materialChanged = true;
         mustRecomputeSize = false;
       }
+    }
+
+    if(qEnvironmentVariableIsSet("SCORE_GFX_TRACE"))
+    {
+      static int frame = 0;
+      if(frame++ % 120 == 0)
+        fprintf(
+            stderr,
+            "GFX-IMAGES upd %p #%d imgs=%d texs=%d uploaded=%d idx=%d opacity=%f "
+            "pos=%f,%f scale=%f,%f edge=%p passes=%zu/%zu\n",
+            (void*)this, frame, int(n.linearImages.size()), int(m_textures.size()),
+            int(m_uploaded), m_ubo.currentImageIndex, m_ubo.opacity, m_ubo.position[0],
+            m_ubo.position[1], m_ubo.scale[0], m_ubo.scale[1], (void*)edge, m_p.size(),
+            m_altPasses.size());
     }
 
     // We can't use generic update since we need some modifications on the UBO

@@ -12,7 +12,7 @@ using namespace score::test::gfx::isf;
 // NOT be uniformly black.
 // -----------------------------------------------------------------------------
 TEST_CASE(
-    "FINDING isf-multipass-storage-rw final pass renders black",
+    "FINDING isf-multipass-storage-rw final pass renders black (fixed: the uv\n     gradient is present on OpenGL and Vulkan, and is asserted here)",
     "[gfx][l3][isf][multipass][finding]")
 {
   const auto backend = GENERATE(from_range(platform_backends()));
@@ -21,6 +21,8 @@ TEST_CASE(
   const IsfResult r = render(backend, {corpus("isf-multipass-storage-rw.fs")});
   if(r.skipped)
     SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = storage_buffer_skip_reason(backend))
+    SKIP(why);
   INFO("backend=" << r.backend);
   REQUIRE(r.error.empty());
   REQUIRE(r.outputs.size() == 1);
@@ -30,7 +32,7 @@ TEST_CASE(
   const auto c = img.center();
   INFO("centre = (" << (int)c[0] << "," << (int)c[1] << "," << (int)c[2] << ")");
   // Correct behaviour: uv.y*0.4 / uv.x*0.4 make a visible gradient.
-  CHECK(non_degenerate(img)); // RED: currently all-black
+  CHECK(non_degenerate(img)); // was all-black; now the gradient is there
 }
 
 // -----------------------------------------------------------------------------
@@ -39,7 +41,7 @@ TEST_CASE(
 // the per-frame red ramp must be visible.
 // -----------------------------------------------------------------------------
 TEST_CASE(
-    "FINDING isf-multipass-persistent-ssbo final pass renders black",
+    "FINDING isf-multipass-persistent-ssbo final pass renders black (fixed: the\n     uv pattern and the per-frame red ramp are both present and asserted)",
     "[gfx][l3][isf][multipass][persistent][finding]")
 {
   const auto backend = GENERATE(from_range(platform_backends()));
@@ -69,13 +71,15 @@ TEST_CASE(
 
   if(out.skipped)
     SKIP(out.backend + ": " + out.skip_reason);
+  if(const char* why = storage_buffer_skip_reason(backend))
+    SKIP(why);
   INFO("backend=" << out.backend);
   REQUIRE(out.error.empty());
   REQUIRE(out.f2.valid());
   REQUIRE(out.f8.valid());
 
   INFO("f8 centre red=" << (int)out.f8.center()[0]);
-  CHECK(non_degenerate(out.f8)); // RED: currently all-black
+  CHECK(non_degenerate(out.f8)); // was all-black
   // Correct behaviour: the counter ramp advances the red channel with frames.
-  CHECK(int(out.f8.center()[0]) > int(out.f2.center()[0])); // RED: 0 == 0
+  CHECK(int(out.f8.center()[0]) > int(out.f2.center()[0])); // was 0 == 0
 }

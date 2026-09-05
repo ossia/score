@@ -4,9 +4,12 @@
 
 #include <Process/ControlMessage.hpp>
 
+#include <Scenario/Commands/State/AddMessagesToState.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/State/ItemModel/ValueItemDelegate.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 
 #include <ossia/detail/ssize.hpp>
@@ -20,19 +23,35 @@ namespace
 {
 QVariant valueColumnData(const Process::ControlMessage& ctrl, int role)
 {
+  const auto& val = ctrl.value;
   if(role == Qt::DisplayRole || role == Qt::EditRole)
   {
-    const auto& val = ctrl.value;
     if(ossia::is_array(val))
     {
-      // TODO a nice editor for lists.
-      // TODO use AddressItemModel's !
       return State::convert::toPrettyString(val);
+    }
+    else if(role == Qt::DisplayRole && val.get_type() == ossia::val_type::STRING)
+    {
+      return State::convert::stringCellText(
+          QByteArray::fromStdString(*val.target<std::string>()));
     }
     else
     {
       return State::convert::value<QVariant>(val);
     }
+  }
+  else if(role == Qt::ToolTipRole)
+  {
+    if(const auto* s = val.target<std::string>())
+    {
+      const auto tip = State::convert::stringCellToolTip(QByteArray::fromStdString(*s));
+      if(!tip.isEmpty())
+        return tip;
+    }
+  }
+  else if(role == OssiaValueRole)
+  {
+    return QVariant::fromValue(val);
   }
 
   return {};
@@ -120,22 +139,44 @@ int ControlItemModel::columnCount(const QModelIndex& parent) const
 
 QVariant ControlItemModel::data(const QModelIndex& index, int role) const
 {
-  if(index.row() < std::ssize(m_msgs))
-  {
-    switch(role)
-    {
-      case Qt::DisplayRole:
-        switch(index.column())
-        {
-          case 0:
-            return m_msgs[index.row()].name(m_state.context());
-          case 1:
-            return valueColumnData(m_msgs[index.row()], role);
-        }
-    }
-  }
+  if(index.row() < 0 || index.row() >= std::ssize(m_msgs))
+    return {};
+
+  if(index.column() == 0)
+    return role == Qt::DisplayRole ? m_msgs[index.row()].name(m_state.context())
+                                   : QVariant{};
+
+  if(index.column() == 1)
+    return valueColumnData(m_msgs[index.row()], role);
 
   return {};
+}
+
+bool ControlItemModel::setData(const QModelIndex& index, const QVariant& value, int role)
+{
+  if(role != Qt::EditRole || index.column() != 1)
+    return false;
+  if(index.row() < 0 || index.row() >= std::ssize(m_msgs))
+    return false;
+
+  const auto& cur = m_msgs[index.row()];
+
+  auto next = value.canConvert<ossia::value>() ? value.value<ossia::value>()
+                                               : State::convert::fromQVariant(value);
+  if(!next.valid())
+    return false;
+
+  if(cur.value.valid() && next.get_type() != cur.value.get_type()
+     && !State::convert::convert(cur.value, next))
+    return false;
+
+  if(next == cur.value)
+    return false;
+
+  CommandDispatcher<>{m_state.context().commandStack}.submit(
+      new Command::AddControlMessagesToState{
+          m_state, std::vector<Process::ControlMessage>{{cur.port, next}}});
+  return true;
 }
 
 Qt::DropActions ControlItemModel::supportedDragActions() const

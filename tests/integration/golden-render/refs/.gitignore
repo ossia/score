@@ -1,0 +1,8 @@
+# The repo-root .gitignore excludes "build-*" to keep build directories out.
+# Every golden-render case is named after its tests-scene script, and those are
+# all called build-<something>.js, so that rule also swallows every reference
+# PNG in here -- silently: "git add refs/" stages the .txt files, reports no
+# error, and commits a reference set with no images in it. That is exactly how
+# refs/llvmpipe/ came to exist as an empty directory while the gate it feeds
+# reported Skipped in every CI run for a whole campaign.
+!build-*

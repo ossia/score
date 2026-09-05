@@ -155,6 +155,47 @@ RenderedCSFNode::RenderedCSFNode(const ISFNode& node) noexcept
 
 RenderedCSFNode::~RenderedCSFNode() { }
 
+
+// D3D11 is the only QRhi backend with no deferred release queue: grep
+// releaseQueue/DeferredReleaseEntry and qrhid3d12.cpp has 54 hits,
+// qrhivulkan.cpp 53, qrhigles2.cpp 26, qrhid3d11.cpp ZERO. It also records RAW
+// ID3D11Resource* into a command list it only replays at endFrame
+// (qrhid3d11.cpp:1958-1959 -> :3207), and QD3D11Buffer::destroy() is an
+// immediate Release().
+//
+// These resizes run inside BackgroundNode::render's
+// beginOffscreenFrame/endOffscreenFrame bracket, so destroy()ing a live buffer
+// frees an ID3D11Buffer that an uploadStaticBuffer already recorded THIS frame
+// still points at. Replaying it gives "D3D11 CORRUPTION:
+// ID3D11DeviceContext::UpdateSubresource: First parameter is corrupt or NULL"
+// and then an access violation inside QRhiD3D11::executeCommandBuffer --
+// measured 3/3 runs with the debug layer on, ~4/6 without, which is why it
+// reads as a flaky d3d11-only SEGFAULT (A24(b)) and why a debugger hides it.
+// Every other backend keeps the native object alive on its release queue, so
+// the identical score code is harmless there.
+//
+// RenderList::releaseBuffer is the discipline this file already follows at its
+// six other call sites, and its own comment says why: deleteLater() keeps the
+// handle valid for operations queued this frame. QRhi drains
+// pendingDeleteResources AFTER endOffscreenFrame (qrhi.cpp), which is what
+// makes it safe.
+static QRhiBuffer* regrowBuffer(
+    score::gfx::RenderList& renderer, QRhiBuffer* old, int64_t newSize) noexcept
+{
+  if(!old)
+    return old;
+  auto* fresh = renderer.state.rhi->newBuffer(old->type(), old->usage(), newSize);
+  fresh->setName(old->name());
+  if(!fresh->create())
+  {
+    qWarning() << "RenderedCSFNode: buffer regrow to" << newSize << "failed";
+    delete fresh;
+    return old;
+  }
+  renderer.releaseBuffer(old);
+  return fresh;
+}
+
 void RenderedCSFNode::updateInputTexture(const Port& input, QRhiTexture* tex, QRhiTexture* depthTex)
 {
   int sampler_idx = 0;
@@ -882,9 +923,7 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
       // Create new buffer with correct size
       if(storageBuffer.buffer)
       {
-        storageBuffer.buffer->destroy();
-        storageBuffer.buffer->setSize(requiredSize);
-        storageBuffer.buffer->create();
+        storageBuffer.buffer = regrowBuffer(renderer, storageBuffer.buffer, requiredSize);
       }
       else
       {
@@ -1072,9 +1111,7 @@ void RenderedCSFNode::updateGeometryBindings(
       {
         if(aux.buffer && aux.owned)
         {
-          aux.buffer->destroy();
-          aux.buffer->setSize(requiredSize);
-          aux.buffer->create();
+          aux.buffer = regrowBuffer(renderer, aux.buffer, requiredSize);
         }
         else
         {
@@ -1093,9 +1130,7 @@ void RenderedCSFNode::updateGeometryBindings(
         // Keep read_buffer in sync for feedback receivers
         if(aux.read_buffer)
         {
-          aux.read_buffer->destroy();
-          aux.read_buffer->setSize(requiredSize);
-          aux.read_buffer->create();
+          aux.read_buffer = regrowBuffer(renderer, aux.read_buffer, requiredSize);
           res.uploadStaticBuffer(aux.read_buffer, 0, requiredSize, zero.constData());
         }
       }
@@ -1190,28 +1225,53 @@ void RenderedCSFNode::updateGeometryBindings(
       }
     }
 
-    if(!binding_has_upstream && !binding.has_vertex_count_spec)
+    if(!binding_has_upstream)
     {
-      // No upstream geometry on this binding's port and no vertex_count spec.
-      // Clear any stale unowned pointers.
-      for(auto& ssbo : binding.attribute_ssbos)
-      {
-        if(!ssbo.owned)
+      // No upstream geometry on this binding's port: never wired, or the
+      // producer was just removed. Unowned pointers adopted from a departed
+      // upstream may already be DANGLING -- reconcile /
+      // removeNodeFromRenderLists destroys the producer renderer's buffers
+      // before our next update() -- so they must be dropped here for EVERY
+      // binding, not only the !has_vertex_count_spec case: a binding with a
+      // vertex-count expression used to keep the dead pointers, and the
+      // recreated SRB then crashed in setShaderResources (P0-9,
+      // tests/gfx/GfxGeometryProducerRemoval.cpp). Each dropped pointer is
+      // replaced by an owned zero-filled buffer of the same size (same
+      // treatment as the attribute-not-found fallback below) so the SRB
+      // stays complete and the dispatch stays valid -- the pass then
+      // processes zeros, i.e. degenerate geometry, until a new producer
+      // arrives.
+      const auto orphan = [&](auto& ssbo, const char* kind) {
+        if(ssbo.owned)
+          return;
+        const int64_t sz = std::max<int64_t>(ssbo.size, 16);
+        auto* buf = renderer.state.rhi->newBuffer(
+            QRhiBuffer::Static,
+            QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, sz);
+        buf->setName(QByteArray("CSF_GeomOrphanFallback_") + kind);
+        if(buf->create())
         {
+          QByteArray zero(sz, 0);
+          res.uploadStaticBuffer(buf, 0, sz, zero.constData());
+          ssbo.buffer = buf;
+          ssbo.size = sz;
+        }
+        else
+        {
+          delete buf;
           ssbo.buffer = nullptr;
-          ssbo.owned = true;
         }
-      }
+        ssbo.owned = true;
+      };
+      for(auto& ssbo : binding.attribute_ssbos)
+        orphan(ssbo, "attr");
       for(auto& aux : binding.auxiliary_ssbos)
+        orphan(aux, "aux");
+      if(!binding.has_vertex_count_spec)
       {
-        if(!aux.owned)
-        {
-          aux.buffer = nullptr;
-          aux.owned = true;
-        }
+        geo_binding_idx++;
+        continue;
       }
-      geo_binding_idx++;
-      continue;
     }
 
     if(binding_has_upstream && upstream_mesh)
@@ -1272,9 +1332,7 @@ void RenderedCSFNode::updateGeometryBindings(
             // Keep read_buffer in sync for feedback receivers
             if(ssbo.read_buffer)
             {
-              ssbo.read_buffer->destroy();
-              ssbo.read_buffer->setSize(needed);
-              ssbo.read_buffer->create();
+              ssbo.read_buffer = regrowBuffer(renderer, ssbo.read_buffer, needed);
               res.uploadStaticBuffer(ssbo.read_buffer, 0, needed, zero.constData());
             }
           }
@@ -1402,9 +1460,7 @@ void RenderedCSFNode::updateGeometryBindings(
             // ssbo.size reflects the new size, causing buffer overruns.
             if(ssbo.read_buffer)
             {
-              ssbo.read_buffer->destroy();
-              ssbo.read_buffer->setSize(needed);
-              ssbo.read_buffer->create();
+              ssbo.read_buffer = regrowBuffer(renderer, ssbo.read_buffer, needed);
             }
           }
 
@@ -1603,9 +1659,7 @@ void RenderedCSFNode::updateGeometryBindings(
           const int64_t needed = elem_stride * attr_count;
           if(needed > 0 && ssbo.size != needed)
           {
-            ssbo.buffer->destroy();
-            ssbo.buffer->setSize(needed);
-            ssbo.buffer->create();
+            ssbo.buffer = regrowBuffer(renderer, ssbo.buffer, needed);
             QByteArray zero(needed, 0);
             res.uploadStaticBuffer(ssbo.buffer, 0, needed, zero.constData());
             ssbo.size = needed;
@@ -1613,9 +1667,7 @@ void RenderedCSFNode::updateGeometryBindings(
             // Keep read_buffer in sync for feedback receivers
             if(binding.is_feedback_receiver && ssbo.read_buffer)
             {
-              ssbo.read_buffer->destroy();
-              ssbo.read_buffer->setSize(needed);
-              ssbo.read_buffer->create();
+              ssbo.read_buffer = regrowBuffer(renderer, ssbo.read_buffer, needed);
               res.uploadStaticBuffer(ssbo.read_buffer, 0, needed, zero.constData());
             }
           }
@@ -1665,9 +1717,7 @@ void RenderedCSFNode::updateGeometryBindings(
           {
             if(ssbo.owned && ssbo.buffer)
             {
-              ssbo.buffer->destroy();
-              ssbo.buffer->setSize(needed);
-              ssbo.buffer->create();
+              ssbo.buffer = regrowBuffer(renderer, ssbo.buffer, needed);
             }
             else
             {
@@ -1687,9 +1737,7 @@ void RenderedCSFNode::updateGeometryBindings(
             // Keep read_buffer in sync for feedback receivers
             if(binding.is_feedback_receiver && ssbo.read_buffer)
             {
-              ssbo.read_buffer->destroy();
-              ssbo.read_buffer->setSize(needed);
-              ssbo.read_buffer->create();
+              ssbo.read_buffer = regrowBuffer(renderer, ssbo.read_buffer, needed);
               res.uploadStaticBuffer(ssbo.read_buffer, 0, needed, zero.constData());
             }
           }
@@ -2114,6 +2162,28 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
         const std::string& src_geo_name = attr_req.forward->geometry;
         const std::string& src_attr_name = attr_req.forward->attribute;
 
+        // COPY_FROM names the source attribute as this shader's own declaration
+        // of it ("in_color"), not as the upstream mesh publishes it ("color0").
+        // Resolve it to a semantic, which both sides do share.
+        auto declared_semantic = ossia::attribute_semantic::custom;
+        for(const auto& inp : n.m_descriptor.inputs)
+        {
+          if(inp.name != src_geo_name)
+            continue;
+          auto* src_geo = ossia::get_if<isf::geometry_input>(&inp.data);
+          if(!src_geo)
+            break;
+          for(const auto& src_attr : src_geo->attributes)
+          {
+            if(src_attr.name == src_attr_name)
+            {
+              declared_semantic = ossia::name_to_semantic(src_attr.semantic);
+              break;
+            }
+          }
+          break;
+        }
+
         for(const auto& [port_key, geo_spec] : m_portGeometries)
         {
           if(!geo_spec.meshes || geo_spec.meshes->meshes.empty())
@@ -2139,9 +2209,7 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
           }
 
           if(!found_geo)
-          {
             continue;
-          }
 
           const auto& src_mesh = geo_spec.meshes->meshes[0];
           // Find the source attribute by name
@@ -2155,6 +2223,8 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
               name_match = (src_sem != ossia::attribute_semantic::custom
                             && in_attr.semantic == src_sem);
             }
+            if(!name_match && declared_semantic != ossia::attribute_semantic::custom)
+              name_match = (in_attr.semantic == declared_semantic);
             if(!name_match)
               continue;
 
@@ -3096,9 +3166,13 @@ void RenderedCSFNode::buildComputeSrbBindings(
             }
             else
             {
+              // No RenderTarget flag: nothing attaches a CSF storage image to a
+              // QRhiTextureRenderTarget; every consumer binds it as a sampler or a
+              // load/store image. On D3D12 the flag is the sole trigger for
+              // ALLOW_RENDER_TARGET, which puts the resource under the debug layer's
+              // "must be initialized with a Discard/Clear/Copy" rule.
               QRhiTexture::Flags flags
-                  = QRhiTexture::RenderTarget | QRhiTexture::UsedWithLoadStore
-                    | QRhiTexture::UsedAsTransferSource;
+                  = QRhiTexture::UsedWithLoadStore | QRhiTexture::UsedAsTransferSource;
               // Mip levels track the GENERATE_MIPS opt-in that gates the
               // generateMips() call in update(): without it nothing ever
               // writes levels > 0 and they stay uninitialized.
@@ -3116,6 +3190,87 @@ void RenderedCSFNode::buildComputeSrbBindings(
             return t;
           };
 
+          // Runtime resize (P1-21, tests/gfx/CsfImage3dResize.cpp): a
+          // $-driven WIDTH/HEIGHT/DEPTH (or layers) change must recreate the
+          // allocation -- this was the literal TODO "Check if texture size
+          // inputs have changed and recreate texture if needed". Compare the
+          // live texture against the freshly resolved size; on mismatch,
+          // recreate and re-point every SRB that binds the old handle (same
+          // replaceTexture idiom as the persistent ping-pong swap in
+          // runInitialPasses). The downstream consumers sample the per-edge
+          // render target the graphics blit pass draws into, so patching
+          // this node's own passes is sufficient.
+          const auto liveSizeMatches = [&](QRhiTexture* t) -> bool {
+            if(!t)
+              return true;
+            if(image->isCube())
+            {
+              const int edge = std::max(imageSize.width(), imageSize.height());
+              return t->pixelSize() == QSize(edge, edge);
+            }
+            if(image->is3D())
+            {
+              const int depth = !image->depth_expression.empty()
+                  ? resolveDispatchExpression(image->depth_expression)
+                  : imageSize.height();
+              return t->pixelSize() == imageSize && t->depth() == depth;
+            }
+            if(image->is_array)
+            {
+              int layers = !image->layers_expression.empty()
+                  ? resolveDispatchExpression(image->layers_expression)
+                  : 1;
+              if(layers < 1)
+                layers = 1;
+              return t->pixelSize() == imageSize && t->arraySize() == layers;
+            }
+            return t->pixelSize() == imageSize;
+          };
+          if(it->texture && !liveSizeMatches(it->texture))
+          {
+            QRhiTexture* oldTex = it->texture;
+            QRhiTexture* oldRead = it->read_texture;
+            if(QRhiTexture* newTex = make_tex(""))
+            {
+              it->texture = newTex;
+              if(it->persistent && oldRead)
+                it->read_texture = make_tex("_prev"); // null tolerated: guards below
+              for(auto& [e2, cp] : m_computePasses)
+              {
+                if(!cp.srb)
+                  continue;
+                if(it->binding >= 0)
+                  score::gfx::replaceTexture(*cp.srb, it->binding, newTex);
+                if(it->prev_binding >= 0 && it->read_texture)
+                  score::gfx::replaceTexture(
+                      *cp.srb, it->prev_binding, it->read_texture);
+              }
+              const int myIndex = int(it - m_storageImages.begin());
+              for(auto& [e2, gp] : m_graphicsPasses)
+              {
+                if(!gp.pipeline.srb || !gp.outputSampler)
+                  continue;
+                bool mine = false;
+                for(const auto& [port, index] : m_outStorageImages)
+                {
+                  if(port == e2->source)
+                  {
+                    mine = (index == myIndex);
+                    break;
+                  }
+                }
+                // Fallback-path passes sample m_outputTexture.
+                if(mine || m_outputTexture == oldTex)
+                  score::gfx::replaceTexture(
+                      *gp.pipeline.srb, gp.outputSampler, newTex);
+              }
+              if(m_outputTexture == oldTex)
+                m_outputTexture = newTex;
+              oldTex->deleteLater();
+              if(oldRead && oldRead != it->read_texture)
+                oldRead->deleteLater();
+            }
+          }
           if(!it->texture)
           {
             it->texture = make_tex("");
@@ -3292,9 +3447,12 @@ void RenderedCSFNode::buildComputeSrbBindings(
             const quint32 fallback_size = (quint32)std::max<int64_t>(
                 declared_size, aux.is_uniform ? 256 : 16);
             aux.buffer = rhi.newBuffer(
-                QRhiBuffer::Static, fallback_usage, fallback_size);
+                score::gfx::bufferTypeFor(fallback_usage, QRhiBuffer::Static),
+                fallback_usage, fallback_size);
             aux.buffer->setName(QByteArray("CSF_AuxFB_") + aux.name.c_str());
-            aux.buffer->create();
+            if(!aux.buffer->create())
+              qWarning() << "CSF: could not create the fallback buffer for"
+                         << aux.name.c_str();
             aux.size = fallback_size;
             aux.owned = true;
           }
@@ -3500,7 +3658,10 @@ void RenderedCSFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& r
   m_gpuScatterAvailable = m_gpuScatter.init(renderer.state);
 
   // Create the material UBO
-  m_materialSize = n.m_materialSize;
+  // Only the shader-visible part is bound: a USER pass appends dispatch-count
+  // ports past it, and binding those would take the slot the shader assigns to
+  // its first storage resource.
+  m_materialSize = n.m_materialUBOSize;
   if(m_materialSize > 0)
   {
     m_materialUBO = rhi.newBuffer(
@@ -3707,11 +3868,19 @@ void RenderedCSFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& r
         {
           const auto usage = aux.is_uniform ? QRhiBuffer::UniformBuffer
                                             : QRhiBuffer::StorageBuffer;
-          auto* buf = rhi.newBuffer(QRhiBuffer::Static, usage, requiredSize);
+          const auto type
+              = score::gfx::bufferTypeFor(usage, QRhiBuffer::Static);
+          auto* buf = rhi.newBuffer(type, usage, requiredSize);
           buf->setName(QByteArray("CSF_GeoAux_") + aux.name.c_str());
-          buf->create();
+          if(!buf->create())
+            qWarning() << "CSF: could not create the geometry aux buffer for"
+                       << aux.name.c_str();
           QByteArray zero(requiredSize, 0);
-          res.uploadStaticBuffer(buf, 0, requiredSize, zero.constData());
+          if(type == QRhiBuffer::Dynamic)
+            res.updateDynamicBuffer(
+                buf, 0, (quint32)requiredSize, zero.constData());
+          else
+            res.uploadStaticBuffer(buf, 0, requiredSize, zero.constData());
           ssbo.buffer = buf;
           ssbo.size = requiredSize;
           ssbo.owned = true;
@@ -4084,6 +4253,13 @@ void RenderedCSFNode::addInputEdge(
 
 void RenderedCSFNode::removeInputEdge(RenderList& renderer, Edge& edge)
 {
+  // Evict the cached per-(port, source) geometry/scene first: without this,
+  // findGeometryByPort keeps returning the departed producer's spec and
+  // updateGeometryBindings re-adopts its FREED gpu buffers into the compute
+  // SRB -> SIGSEGV in setShaderResources (P0-9,
+  // tests/gfx/GfxGeometryProducerRemoval.cpp). The base class does exactly
+  // this eviction; this override previously dropped it.
+  NodeRenderer::removeInputEdge(renderer, edge);
   if(edge.sink->type == Types::Image)
   {
     // See SimpleRenderedISFNode::removeInputEdge — same dangling-depth-
@@ -4380,6 +4556,11 @@ void RenderedCSFNode::runInitialPasses(
     }
     
     const auto& pass = m_computePasses[passIndex].second;
+    // A pass whose SRB failed to (re)create must be skipped, not recorded:
+    // setShaderResources on a null / half-built SRB is a crash, and the
+    // failure was already reported by recreateShaderResourceBindings.
+    if(!pass.pipeline || !pass.srb)
+      continue;
 
     // Use pass-specific local sizes
     int localX = passDesc.local_size[0];

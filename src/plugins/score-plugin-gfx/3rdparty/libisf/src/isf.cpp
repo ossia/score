@@ -120,6 +120,62 @@ layout(std140, binding = 1) uniform process_t {
 #define isf_NumWorkGroups isf_process_uniforms.NUMWORKGROUPS_
 )_";
 
+  // Storage-image access for compute shaders, in the author's coordinate system.
+  //
+  // imageStore() addresses a raw texel index, where row 0 is first in memory on
+  // every backend, while the render target the result is copied into is
+  // bottom-up on OpenGL and top-down everywhere else -- what
+  // QRhi::isYUpInFramebuffer() reports. The two spaces are therefore mirrored
+  // against each other on OpenGL, and a compute shader that only stores comes
+  // out upside down there.
+  //
+  // The gate is the inverse of the fragment macros above: a fragment shader
+  // needs its correction on Vulkan, a compute shader needs it everywhere else.
+  // Read and store are corrected TOGETHER, so a shader that samples an input and
+  // stores it at the matching index keeps agreeing with itself.
+  //
+  // A cube face is addressed by direction, so no Y convention applies to it.
+  static constexpr auto computeImageMacros =
+      R"_(
+// Everything except Vulkan, measured rather than derived. The framebuffer
+// origin does not predict this: Direct3D and Metal put it at the top like
+// Vulkan, yet a compute storage image reaches the delivered picture mirrored on
+// them exactly as it does on OpenGL. Gating this on OpenGL alone leaves D3D11,
+// D3D12 and Metal upside down -- csf_orient_macros reports green=255 where 0
+// is expected at row 0 on all three.
+#if defined(QSHADER_SPIRV)
+#define ISF_STORE_COORD(img, coord) ivec2(coord)
+#define ISF_STORE_COORD_LAYER(img, coord) ivec3(coord)
+#define ISF_FIXUP_COMPUTE_TEXCOORD(coord) (coord)
+#else
+#define ISF_STORE_COORD(img, coord) ivec2((coord).x, imageSize(img).y - 1 - (coord).y)
+#define ISF_STORE_COORD_LAYER(img, coord) ivec3((coord).x, imageSize(img).y - 1 - (coord).y, (coord).z)
+#define ISF_FIXUP_COMPUTE_TEXCOORD(coord) vec2((coord).x, 1. - (coord).y)
+#endif
+
+#define IMG_STORE(img, coord, val) imageStore(img, ISF_STORE_COORD(img, coord), val)
+#define IMG_STORE_LAYER(img, coord, val) imageStore(img, ISF_STORE_COORD_LAYER(img, coord), val)
+#define IMG_LOAD(img, coord) imageLoad(img, ISF_STORE_COORD(img, coord))
+#define IMG_STORE_CUBE(img, coord, val) imageStore(img, ivec3(coord), val)
+#define IMG_LOAD_CUBE(img, coord) imageLoad(img, ivec3(coord))
+
+// Face size of a writable cubemap, as ivec2, on every backend.
+//
+// A cube storage image is declared `image2DArray` when the target is HLSL --
+// Direct3D has no writable cube texture type, so `imageCube` cannot be
+// translated at all (isf_emit_cube_image_decl). imageStore / imageLoad take the
+// same ivec3 (x, y, face) coordinate for both spellings, so nothing else about
+// the author's source changes; imageSize() is the single exception, returning
+// ivec2 for a cube and ivec3 for a 2D array. Take the size through this macro
+// (or write `imageSize(img).xy`, which is what it expands to) and the shader is
+// identical on Direct3D and everywhere else.
+#define IMG_SIZE_CUBE(img) (imageSize(img).xy)
+
+#define IMG_NORM_PIXEL(tex, coord) texture(tex, ISF_FIXUP_COMPUTE_TEXCOORD(coord))
+#define IMG_PIXEL(tex, coord) texture(tex, ISF_FIXUP_COMPUTE_TEXCOORD((coord) / vec2(textureSize(tex, 0))))
+#define IMG_CUBE(tex, dir) texture(tex, dir)
+)_";
+
   static constexpr auto defaultFunctions =
       R"_(
 // GLSL's textureSize is overloaded by sampler dimensionality — sampler2D
@@ -1192,6 +1248,11 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
           // Default access to read_write if not specified
           if(ar.access.empty())
             ar.access = "read_write";
+
+          // A COPY_FROM attribute is filled from the geometry it names rather
+          // than by this shader, which is what access "none" means downstream.
+          if(ar.forward)
+            ar.access = "none";
 
           // Default semantic to the attribute name if not specified
           if(ar.semantic.empty())
@@ -3323,6 +3384,70 @@ static std::string isf_emit_ubo_decl(
   return out;
 }
 
+/**
+ * @brief Declare a writable cube storage image, as a 2D-array VIEW on HLSL.
+ *
+ * Direct3D has no writable cube texture type: HLSL's UAV types stop at
+ * RWTexture2DArray / RWTexture3D, there is no RWTextureCube. SPIRV-Cross does
+ * not paper over that — its HLSL backend aborts the entire bake with
+ *
+ *     Shader baking failed: RWTextureCube does not exist in HLSL.
+ *
+ * so ANY shader declaring `imageCube` fails to translate for D3D11 and D3D12
+ * alike, while OpenGL, Vulkan and Metal translate it fine. (Reproduced with
+ * this project's own qsb 6.13 and with qsb 6.4; the message comes from
+ * SPIRV-Cross's image_type_hlsl, not from fxc/dxc, so it is a code-generation
+ * failure, not a driver one.)
+ *
+ * The fix is to declare the SAME texture through the view Direct3D can express.
+ * Nothing on the runtime side has to move: Qt's D3D backends already create the
+ * UAV over a QRhiTexture::CubeMap as D3D11_UAV_DIMENSION_TEXTURE2DARRAY /
+ * D3D12_UAV_DIMENSION_TEXTURE2DARRAY with ArraySize 6 (qrhid3d11.cpp
+ * QD3D11Texture::unorderedAccessViewForLevel, qrhid3d12.cpp
+ * QD3D12ShaderResourceBindings UAV setup). The 2D-array view is what the engine
+ * was binding all along; only the shader's spelling of it was untranslatable.
+ *
+ * This is invisible to the shader author, which is the whole point:
+ *  - the ISF declaration stays `"TYPE": "image_cube"`;
+ *  - imageStore / imageLoad take the same ivec3 (x, y, face) coordinate for an
+ *    imageCube and for an image2DArray, so IMG_STORE_CUBE and raw builtin calls
+ *    are byte-identical source on both paths;
+ *  - the texture allocated is still a QRhiTexture::CubeMap, so every downstream
+ *    consumer still binds it as a samplerCube.
+ *
+ * The one spelling that is NOT identical between the two GLSL types is
+ * imageSize(): ivec2 for a cube, ivec3 for a 2D array. Author code that wants
+ * the face size on every backend must write `imageSize(img).xy` — which is what
+ * IMG_SIZE_CUBE() in the ISF prelude expands to, and what the corpus already
+ * does. There is no way to hide that one, because GLSL has no typedef and the
+ * preprocessor cannot dispatch on an argument's type.
+ *
+ * QSHADER_HLSL is defined by QShaderBaker for the HLSL target when per-target
+ * compilation is enabled; ShaderCache::Baker enables it unconditionally
+ * (setPerTargetCompilation(true)), and it is the same mechanism the prelude's
+ * QSHADER_SPIRV orientation macros already rely on.
+ *
+ * @param head everything up to and including the type prefix, e.g.
+ *             "layout(binding = 3, rgba8) writeonly uniform "
+ */
+static std::string
+isf_emit_cube_image_decl(std::string_view head, std::string_view name)
+{
+  std::string out;
+  out += "#if defined(QSHADER_HLSL)\n";
+  out += head;
+  out += "image2DArray ";
+  out += name;
+  out += ";\n";
+  out += "#else\n";
+  out += head;
+  out += "imageCube ";
+  out += name;
+  out += ";\n";
+  out += "#endif\n";
+  return out;
+}
+
 static std::string isf_emit_image_decl(
     int binding, std::string_view name, const csf_image_input& img,
     bool alias_prev = false)
@@ -3351,9 +3476,14 @@ static std::string isf_emit_image_decl(
   // VUID-VkGraphicsPipelineCreateInfo-layout-07990.
   // Priority: cubemap > 3D > array > 2D (matches the parser's own reject
   // table at isf.cpp:1446-1463 which forbids cube+array and array+3D).
+  //
+  // Cubes go through isf_emit_cube_image_decl, which declares them as a
+  // 2D-array view on HLSL because Direct3D has no writable cube type — see
+  // that function for why the runtime needs no matching change.
+  if(img.isCube())
+    return isf_emit_cube_image_decl(out, name);
   const char* shape = "image2D ";
-  if(img.isCube())      shape = "imageCube ";
-  else if(img.is3D())   shape = "image3D ";
+  if(img.is3D())        shape = "image3D ";
   else if(img.is_array) shape = "image2DArray ";
   out += shape;
   out += name;
@@ -3890,17 +4020,53 @@ void parser::parse_raw_raster_pipeline()
   // per-draw data (per_draws[gl_BaseInstance], etc.). Harmless when unused.
   m_vertex += "#extension GL_ARB_shader_draw_parameters : require\n";
 
-  if(m_desc.multiview_count >= 2)
+  // Multiview: the two stages need DIFFERENT plumbing. gl_ViewIndex only
+  // translates to the GLSL target in the VERTEX stage — Qt bakes
+  // ovr_multiview_view_count for vertex shaders alone (qtshadertools
+  // qspirvshader.cpp gates on stage == VertexStage), so a fragment shader
+  // reading gl_ViewIndex fails to bake on OpenGL with
+  // "ovr_multiview_view_count must be non-zero when using
+  // GL_OVR_multiview2". The vertex stage therefore forwards the view index
+  // through an injected flat varying (written by a wrapper main emitted at
+  // the end of this function), and the fragment's VIEW_INDEX macro reads
+  // that varying — portable across every backend.
+  const bool mv_fragment_plumbing = m_desc.multiview_count >= 2;
+  if(mv_fragment_plumbing)
   {
-    std::string ext = isf_emit_multiview_extension(m_desc.multiview_count);
-    m_vertex += ext;
-    m_fragment += ext;
+    m_vertex += "#extension GL_EXT_multiview : require\n";
   }
 
   {
     std::string user_ext = isf_emit_user_extensions(m_desc.extensions);
     m_vertex += user_ext;
     m_fragment += user_ext;
+  }
+
+  int mv_varying_location = 0;
+  if(mv_fragment_plumbing)
+  {
+    // First location free of user varyings (VERTEX_OUTPUTS and
+    // FRAGMENT_INPUTS both count — they describe the same interface).
+    for(const auto& attr : m_desc.vertex_outputs)
+      mv_varying_location = std::max(mv_varying_location, attr.location + 1);
+    for(const auto& attr : m_desc.fragment_inputs)
+      mv_varying_location = std::max(mv_varying_location, attr.location + 1);
+
+    const auto nv = std::to_string(m_desc.multiview_count);
+    m_vertex += "#define VIEW_INDEX gl_ViewIndex\n";
+    m_vertex += "#define NUM_VIEWS " + nv + "\n";
+    m_vertex += fmt::format(
+        "layout(location = {}) flat out int isf_ViewIndexVarying;\n",
+        mv_varying_location);
+    // Rename the user's main so the wrapper emitted at the end of this
+    // function can run it after writing the varying.
+    m_vertex += "#define main isf_rawraster_user_main\n";
+
+    m_fragment += "#define NUM_VIEWS " + nv + "\n";
+    m_fragment += fmt::format(
+        "layout(location = {}) flat in int isf_ViewIndexVarying;\n",
+        mv_varying_location);
+    m_fragment += "#define VIEW_INDEX isf_ViewIndexVarying\n";
   }
 
   // LAYER_INDEX for layered outputs.
@@ -4226,10 +4392,16 @@ void parser::parse_raw_raster_pipeline()
         // across the rasterizer-aux and csf-input code paths.
         std::string scalar_prefix = isf_glsl_type_prefix(atx.format);
 
-        aux_tex_decls += "layout(binding = " + std::to_string(sampler_binding)
-                         + ", " + atx.format + ") uniform " + access_q
-                         + scalar_prefix + image_type + " "
-                         + atx.name + ";\n";
+        const std::string aux_head = "layout(binding = "
+                                     + std::to_string(sampler_binding) + ", "
+                                     + atx.format + ") uniform " + access_q
+                                     + scalar_prefix;
+        // Cube storage images become a 2D-array view on HLSL: Direct3D has no
+        // writable cube type at all (isf_emit_cube_image_decl).
+        if(atx.is_cubemap)
+          aux_tex_decls += isf_emit_cube_image_decl(aux_head, atx.name);
+        else
+          aux_tex_decls += aux_head + image_type + " " + atx.name + ";\n";
         sampler_binding++;
       }
       else
@@ -4286,21 +4458,60 @@ void parser::parse_raw_raster_pipeline()
     m_fragment += material_ubos;
   }
 
-  // The raw-raster path replaces gl_FragCoord → isf_FragCoord for the
-  // same Y-flip behaviour as fullscreen ISF, but unlike ISF the raw-raster
-  // FS prelude didn't define the macro — causing "isf_FragCoord :
-  // undeclared identifier" for any shader using gl_FragCoord.
-  m_fragment += R"_(
-#if defined(QSHADER_SPIRV) || defined(QSHADER_HLSL) || defined(QSHADER_MSL)
-#define isf_FragCoord vec4(gl_FragCoord.x, RENDERSIZE.y - gl_FragCoord.y, gl_FragCoord.z, gl_FragCoord.w)
-#else
-#define isf_FragCoord gl_FragCoord
-#endif
-)_";
+  // Every IMG_* accessor -- IMG_NORM_PIXEL, IMG_PIXEL, IMG_THIS_PIXEL, the
+  // depth and cube variants, TEX_DIMENSIONS -- lives in defaultFunctions, which
+  // parse_isf, parse_shadertoy and parse_shadertoy_json all emit.
+  m_fragment += GLSL45.defaultFunctions;
+
+  // defaultFunctions carries the ONE definition of isf_FragCoord (and of the
+  // whole IMG_* family) that every generated fragment stage gets. It has to
+  // stay the only one.
+  //
+  // The raw-raster path replaces gl_FragCoord → isf_FragCoord and, back when
+  // its FS prelude did not include defaultFunctions, appended a second
+  // definition of the macro here so that a shader using gl_FragCoord would not
+  // hit "isf_FragCoord : undeclared identifier". The line above then started
+  // emitting defaultFunctions and the appended copy became a redefinition —
+  // silently, because the two guards do not agree: defaultFunctions branches on
+  // QSHADER_SPIRV alone, the appended copy branched on
+  // QSHADER_SPIRV || QSHADER_HLSL || QSHADER_MSL.
+  //
+  // ShaderCache sets setPerTargetCompilation(true), so the source is
+  // preprocessed once per target with that target's QSHADER_* macro defined:
+  //
+  //   SPIR-V target  both branches take the flipped form   -> same text, legal
+  //   GLSL target    both branches take gl_FragCoord       -> same text, legal
+  //   HLSL / MSL     defaultFunctions gives gl_FragCoord,
+  //                  the copy gives the flipped form       -> DIFFERENT text
+  //
+  // and glslang rejects a redefinition with different substitutions. So every
+  // raw-raster fragment stage failed to bake on Direct3D and on Metal, while
+  // baking fine on the two backends CI covers. That was 101 of the 105 shader
+  // bake failures in a full d3d11 test run, and the single cause behind 21 of
+  // the 23 tests that fail on both D3D backends and pass on Vulkan and OpenGL.
+  //
+  // Reproduced with Qt 6.4.2's qsb -p on the generated shader captured from the
+  // failing run: --hlsl 50 and --msl 12 fail with exactly
+  //   ERROR: :123: '#define' : Macro redefined; different substitutions: isf_FragCoord
+  // while SPIR-V and --glsl 460 bake; with this block gone all four bake.
 
   // Add the actual vert / frag code
   m_vertex += m_sourceVertex;
   m_fragment += fragWithoutISF;
+
+  // Multiview wrapper main: writes the injected view-index varying, then
+  // runs the user's (renamed) main. See the VIEW_INDEX plumbing note above.
+  if(mv_fragment_plumbing)
+  {
+    m_vertex += R"_(
+#undef main
+void main()
+{
+  isf_ViewIndexVarying = gl_ViewIndex;
+  isf_rawraster_user_main();
+}
+)_";
+  }
 
   // Replace the special ISF stuff
   boost::replace_all(m_fragment, "gl_FragColor", "isf_FragColor");
@@ -5688,6 +5899,12 @@ void parser::parse_csf()
   m_fragment += GLSL45.defaultUniforms;
   m_fragment += "\n";
 
+  // Storage-image and sampling macros. A CSF that uses them is orientation-
+  // portable; one that calls imageStore()/texture() directly still gets the
+  // raw texel index and is upside down on OpenGL.
+  m_fragment += GLSL45.computeImageMacros;
+  m_fragment += "\n";
+
   // Add local_size placeholder — substituted per-pass at pipeline creation time
   // to support different local_size per pass.
   m_fragment += "layout(local_size_x = ISF_LOCAL_SIZE_X"
@@ -5973,34 +6190,47 @@ void parser::parse_csf()
       // the shader sees current-frame writes on `<name>` and the previous
       // frame's state on `<name>_prev`.
       auto emit_image = [&](int b, const std::string& decl_name, bool alias_prev) {
-        m_fragment += "layout(binding = " + std::to_string(b);
+        // Built into a local first, not straight into m_fragment: a cube is
+        // emitted as a preprocessor-gated PAIR of declarations, so everything
+        // ahead of the shape token has to be repeated inside each branch.
+        std::string head = "layout(binding = " + std::to_string(b);
 
         if(!img.format.empty())
         {
           std::string format = img.format;
           boost::algorithm::to_lower(format);
-          m_fragment += ", " + format;
+          head += ", " + format;
         }
         else
         {
-          m_fragment += ", rgba8"; // Default format
+          head += ", rgba8"; // Default format
         }
 
-        m_fragment += ") ";
+        head += ") ";
 
         if(alias_prev || img.access == "read_only")
-          m_fragment += "readonly ";
+          head += "readonly ";
         else if(img.access == "write_only")
-          m_fragment += "writeonly ";
+          head += "writeonly ";
         else
-          m_fragment += "restrict ";
+          head += "restrict ";
 
         auto prefix = glsl_type_prefix(img.format);
+        head += "uniform " + prefix;
+
+        // Cubes take the HLSL 2D-array-view lowering: Direct3D has no writable
+        // cube texture type, so `imageCube` cannot be translated at all
+        // (isf_emit_cube_image_decl). Everything the author writes is
+        // unchanged — the coordinate for imageStore/imageLoad is ivec3 on both.
+        if(img.isCube())
+        {
+          m_fragment += isf_emit_cube_image_decl(head, decl_name);
+          return;
+        }
         const char* shape = "image2D";
-        if(img.isCube())      shape = "imageCube";
-        else if(img.is3D())   shape = "image3D";
+        if(img.is3D())        shape = "image3D";
         else if(img.is_array) shape = "image2DArray";
-        m_fragment += "uniform " + prefix + shape + " ";
+        m_fragment += head + shape + " ";
         m_fragment += decl_name + ";\n";
       };
 
@@ -6202,10 +6432,16 @@ void parser::parse_csf()
           // Integer formats (r32ui, r32i, …) require uimage*/iimage*.
           std::string scalar_prefix = isf_glsl_type_prefix(atx.format);
 
-          m_fragment += "layout(binding = " + std::to_string(binding)
-                        + ", " + atx.format + ") uniform " + access_q
-                        + scalar_prefix + image_type + " "
-                        + atx.name + ";\n";
+          const std::string aux_head = "layout(binding = "
+                                       + std::to_string(binding) + ", "
+                                       + atx.format + ") uniform " + access_q
+                                       + scalar_prefix;
+          // Cube storage images become a 2D-array view on HLSL: Direct3D has
+          // no writable cube type at all (isf_emit_cube_image_decl).
+          if(atx.is_cubemap)
+            m_fragment += isf_emit_cube_image_decl(aux_head, atx.name);
+          else
+            m_fragment += aux_head + image_type + " " + atx.name + ";\n";
           if(aliased)
             m_fragment += "#define " + aux_prefix + " " + atx.name + "\n";
           binding++;

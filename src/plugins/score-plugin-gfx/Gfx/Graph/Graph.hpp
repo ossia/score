@@ -47,6 +47,9 @@ struct SCORE_PLUGIN_GFX_EXPORT Graph
    */
   void removeEdge(Port* source, Port* sink);
 
+  /// Live edge for a port pair, or null.
+  Edge* findEdge(Port* source, Port* sink);
+
   /// Remove a node's renderers from all render lists.
   void removeNodeFromRenderLists(Node* node);
 
@@ -105,6 +108,16 @@ struct SCORE_PLUGIN_GFX_EXPORT Graph
   void destroyOutputRenderList(score::gfx::OutputNode& node);
 
   /**
+   * @brief Release + deregister the render list built against @p node's
+   *        QRhi, leaving the output itself alone.
+   *
+   * This is the half of destroyOutputRenderList() that must run before an
+   * output destroys its own device (live swapchain-flag / -format toggles).
+   * Handed to outputs as OutputConfiguration::onReleaseRenderList.
+   */
+  void releaseOutputRenderList(score::gfx::OutputNode& node);
+
+  /**
    * @brief Recreate the connections between renderers when edges changed.
    */
   void relinkGraph();
@@ -113,6 +126,17 @@ struct SCORE_PLUGIN_GFX_EXPORT Graph
    * @brief True if the graph supports being driven by the screen vertical synchronization.
    */
   bool canDoVSync() const noexcept;
+
+  /**
+   * @brief Build render lists for outputs that lost or never got one.
+   *
+   * An output whose swapchain was not ready when the graph was built gets no
+   * RenderList (initializeOutput does nothing when renderState() exists but
+   * canRender() is false), and a createOutputRenderList that threw leaves it
+   * renderer-less too. Both are invisible to every incremental path until
+   * the next full rebuild. Called once per graph tick as a recovery.
+   */
+  void createMissingRenderLists();
 
   const std::vector<std::shared_ptr<RenderList>>& renderLists() const noexcept
   {

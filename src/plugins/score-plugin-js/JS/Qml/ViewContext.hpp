@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QString>
+#include <QStringList>
 
 #include <verdigris>
 
@@ -33,6 +34,31 @@ public:
   W_SLOT(grabMainWindow)
   bool grabScreen(QString path);
   W_SLOT(grabScreen)
+
+  //! Any widget, not just the main window. QWidget::grab() is not invokable,
+  //! so it cannot be called from JS on a widget from panel() / child().
+  bool grabWidget(QObject* widget, QString path);
+  W_SLOT(grabWidget)
+
+  // Reaching the rest of the UI. Anything declared a slot on a QObject is
+  // already callable from QML; what was missing was a way to get at the
+  // objects. expandAll, setCurrentIndex, resize and the rest are Qt's own.
+
+  //! A dock panel's widget by the name it shows, e.g. "Device Explorer".
+  //! Case-insensitive; null when there is no such panel.
+  QObject* panel(QString name);
+  W_SLOT(panel)
+
+  //! The first descendant of the given class, e.g. child(p, "QTreeView").
+  //! Null when `parent` is null or nothing matches.
+  QObject* child(QObject* parent, QString className);
+  W_SLOT(child)
+
+  //! The names of the panels that exist: the translated one the header shows,
+  //! and the widget class name, which panel() also accepts and which does not
+  //! move with the language.
+  QStringList panels();
+  W_SLOT(panels)
 
   // Zoom / scroll
   void zoom(double zx, double zy);

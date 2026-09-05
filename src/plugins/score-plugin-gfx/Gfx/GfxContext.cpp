@@ -1,3 +1,5 @@
+#include <typeinfo>
+
 #include <Gfx/GfxContext.hpp>
 #include <Gfx/Graph/Graph.hpp>
 #include <Gfx/Graph/Node.hpp>
@@ -77,6 +79,8 @@ GfxContext::~GfxContext()
   m_vsyncClock.reset();
   m_no_vsync_timer = nullptr;
   m_watchdog_timer = nullptr;
+  delete m_freewheel_timer;
+  m_freewheel_timer = nullptr;
   std::destroy_at(&m_timers);
   std::construct_at(&m_timers);
 
@@ -193,17 +197,28 @@ void GfxContext::disconnect_preview_node(EdgeSpec e)
 
 void GfxContext::add_edge(EdgeSpec edge)
 {
+  static const bool trace = qEnvironmentVariableIsSet("SCORE_GFX_TRACE");
   auto source_node_it = this->nodes.find(edge.first.node);
   if(source_node_it == this->nodes.end())
+  {
+    if(trace) fprintf(stderr, "GFX-ADDEDGE drop: no source node %d\n", edge.first.node);
     return;
+  }
   auto sink_node_it = this->nodes.find(edge.second.node);
   if(sink_node_it == this->nodes.end())
+  {
+    if(trace) fprintf(stderr, "GFX-ADDEDGE drop: no sink node %d\n", edge.second.node);
     return;
+  }
   if(!source_node_it->second || !sink_node_it->second)
+  {
+    if(trace) fprintf(stderr, "GFX-ADDEDGE drop: null node %d->%d\n", edge.first.node, edge.second.node);
     return;
+  }
 
   auto& source_ports = source_node_it->second->output;
   auto& sink_ports = sink_node_it->second->input;
+  if(trace) fprintf(stderr, "GFX-ADDEDGE ok %d:%d -> %d:%d\n", edge.first.node, edge.first.port, edge.second.node, edge.second.port);
 
   // Silently drop malformed edges. A live-coded or half-wired patch can
   // produce an edge whose declared port index doesn't exist on either side
@@ -236,8 +251,14 @@ void GfxContext::remove_edge(EdgeSpec edge)
      || edge.second.port >= sink_ports.size())
     return;
 
-  m_graph->removeEdge(source_ports[edge.first.port],
-                      sink_ports[edge.second.port]);
+  // Release the per-edge passes / input RTs keyed on the Edge* before it is
+  // freed: this path (preview disconnect) does not go through
+  // incrementalEdgeUpdate, which does its own onEdgeRemoved.
+  auto* src = source_ports[edge.first.port];
+  auto* snk = sink_ports[edge.second.port];
+  if(auto* e = m_graph->findEdge(src, snk))
+    m_graph->onEdgeRemoved(*e);
+  m_graph->removeEdge(src, snk);
 }
 
 void GfxContext::recompute_edges()
@@ -281,6 +302,8 @@ void GfxContext::recomputeTimers()
     connect(m_watchdog_timer, &score::HighResolutionTimer::timeout, this, &GfxContext::on_watchdog_timer, Qt::UniqueConnection);
   }
   m_no_vsync_timer = nullptr;
+  delete m_freewheel_timer;
+  m_freewheel_timer = nullptr;
 
   for(auto& output : m_graph->outputs())
   {
@@ -341,6 +364,24 @@ void GfxContext::recomputeTimers()
       {
         rate = std::max(1000. / *conf.manualRenderingRate, rate);
       }
+    }
+
+    // Rate 0 with vsync off: free-wheel. A zero-interval timer fires once per
+    // event-loop pass, so update + render run back-to-back, bounded only by
+    // the GPU — not by timer granularity (the wall timers cap at 1000 Hz).
+    if(rate <= 0.)
+    {
+      m_freewheel_timer = new QTimer{this};
+      m_freewheel_timer->setTimerType(Qt::PreciseTimer);
+      m_freewheel_timer->setInterval(0);
+      connect(m_freewheel_timer, &QTimer::timeout, this, [this] {
+        updateGraph();
+        for(auto* output : m_graph->outputs())
+          if(output && output->canRender())
+            output->render();
+      });
+      m_freewheel_timer->start();
+      return;
     }
 
     rate = qBound(1.0, rate, 1000.);
@@ -540,7 +581,25 @@ void GfxContext::incrementalEdgeUpdate(
     auto& sink_ports = sink_it->second->input;
     if(spec.first.port >= source_ports.size()
        || spec.second.port >= sink_ports.size())
+    {
+      // Ports don't grow after registration, so this spec can never apply —
+      // not deferred, but not silent either: it means the producer published
+      // a bad port index.
+      //
+      // Name the nodes and their port counts. Bare indices are not actionable:
+      // "8:0 -> 3:0" on a real document (instanced-helmets-manual-expression,
+      // A26) says an edge was dropped and the frame came out blank, without
+      // saying which node lacks the port or what either of them is, so the
+      // first step of every investigation is re-instrumenting this line.
+      fprintf(
+          stderr,
+          "gfx: dropping edge with out-of-range port: %d:%d -> %d:%d "
+          "(%s has %zu output(s), %s has %zu input(s))\n",
+          spec.first.node, spec.first.port, spec.second.node, spec.second.port,
+          typeid(*source_it->second).name(), source_ports.size(),
+          typeid(*sink_it->second).name(), sink_ports.size());
       continue;
+    }
 
     auto* source_port = source_ports[spec.first.port];
     auto* sink_port = sink_ports[spec.second.port];
@@ -548,6 +607,10 @@ void GfxContext::incrementalEdgeUpdate(
     m_graph->addEdge(source_port, sink_port, spec.type);
   }
 
+  if(qEnvironmentVariableIsSet("SCORE_GFX_TRACE"))
+    fprintf(
+        stderr, "GFX-EDGES applied added=%zu deferred=%zu\n", added.size(),
+        deferred.size());
   if(!deferred.empty())
   {
     std::lock_guard l{edges_lock};
@@ -575,6 +638,39 @@ void GfxContext::incrementalEdgeUpdate(
 
 void GfxContext::update_inputs()
 {
+  // Controls are edge-triggered upstream: the exec node clears its `changed`
+  // flag when it builds the message, so a message dropped here is never sent
+  // again for the whole play — e.g. an Images list that never shows. A
+  // message can arrive before its node's ADD_NODE command has been processed
+  // (threaded config, or any off-UI-thread register_node), so retry unknown
+  // ids for a few ticks instead of dropping them.
+  if(!m_deferredMessages.empty())
+  {
+    auto pending = std::move(m_deferredMessages);
+    m_deferredMessages.clear();
+    for(auto& [m, tries] : pending)
+    {
+      if(auto it = nodes.find(m.node_id); it != nodes.end())
+      {
+        it->second->process(std::move(m));
+        if(m.input.capacity() > 0)
+          m_buffers.release(std::move(m).input);
+      }
+      else if(tries < 8)
+      {
+        m_deferredMessages.emplace_back(std::move(m), tries + 1);
+      }
+      else
+      {
+        // Normal on stop: messages in flight for a node just removed.
+        if(qEnvironmentVariableIsSet("SCORE_GFX_TRACE"))
+          fprintf(stderr, "GFX-MSG dropped for unregistered node %d\n", m.node_id);
+        if(m.input.capacity() > 0)
+          m_buffers.release(std::move(m).input);
+      }
+    }
+  }
+
   score::gfx::Message msg;
   while(tick_messages.try_dequeue(msg))
   {
@@ -582,6 +678,11 @@ void GfxContext::update_inputs()
     {
       auto& node = it->second;
       node->process(std::move(msg));
+    }
+    else
+    {
+      m_deferredMessages.emplace_back(std::move(msg), 0);
+      continue;
     }
 
     if(msg.input.capacity() > 0)
@@ -643,6 +744,7 @@ void GfxContext::run_commands()
   std::vector<std::unique_ptr<score::gfx::Node>> nursery;
 
   bool recompute = false;
+  bool preview_edges_changed = false;
   std::vector<score::gfx::Node*> add_output;
   Command c = NodeCommand{};
   while(tick_commands.try_dequeue(c))
@@ -741,6 +843,7 @@ void GfxContext::run_commands()
             this->preview_edges.emplace(cmd.edge);
           }
           add_edge(cmd.edge);
+          preview_edges_changed = true;
           break;
         }
         case EdgeCommand::DISCONNECT_PREVIEW_NODE: {
@@ -770,6 +873,17 @@ void GfxContext::run_commands()
     // applying an incremental diff would result in a half-built state.
     m_fullRebuildThisFrame = true;
   }
+  else if(preview_edges_changed)
+  {
+    // Rewiring an existing preview (setProducerNodeId) arrives with no node
+    // command: the bare add_edge above puts the edge in the graph but builds
+    // no renderer or output pass for the new source, so the preview clears
+    // to black every frame. Run the same repair pass incrementalEdgeUpdate
+    // ends with.
+    m_graph->reconcileAllRenderLists();
+    m_graph->createAllMissingPasses();
+    m_graph->updateAllSinkSamplers();
+  }
 
   // This will force the nodes to be deleted in the main thread a bit later
   // as for some reason when the ScreenNode is deleted, it still gets rendered to...
@@ -787,6 +901,15 @@ void GfxContext::updateGraph()
 
   update_inputs();
 
+  // A full rebuild ran in run_commands with no edge change pending: it used
+  // the current edge baseline, so don't let the flag linger and downgrade a
+  // future incremental diff into another full rebuild.
+  if(m_fullRebuildThisFrame && !edges_changed.load())
+    m_fullRebuildThisFrame = false;
+
+  if(m_graph)
+    m_graph->createMissingRenderLists();
+
   // Clear the flag BEFORE copying new_edges so a producer that publishes a
   // fresh edge set after our copy (and re-sets the flag) cannot have its
   // signal lost: the worst case is one redundant reprocess next tick, never a
@@ -802,6 +925,10 @@ void GfxContext::updateGraph()
       edges = new_edges;
       cur_edges = edges;
     }
+    if(qEnvironmentVariableIsSet("SCORE_GFX_TRACE"))
+      fprintf(
+          stderr, "GFX-EDGES consume old=%zu new=%zu full=%d\n", old_edges.size(),
+          cur_edges.size(), int(m_fullRebuildThisFrame));
 
     if(m_fullRebuildThisFrame)
     {
@@ -835,7 +962,7 @@ void GfxContext::on_no_vsync_timer(score::HighResolutionTimer* self)
 
 void GfxContext::on_watchdog_timer(score::HighResolutionTimer* self)
 {
-  if(m_renderClocks.empty() && !m_no_vsync_timer)
+  if(m_renderClocks.empty() && !m_no_vsync_timer && !m_freewheel_timer)
     updateGraph();
 }
 void GfxContext::renderFrames(int frames)
@@ -846,9 +973,22 @@ void GfxContext::renderFrames(int frames)
   const bool step = m_stepRate > 0.;
   const int64_t frame_flicks
       = step ? int64_t(std::llround(ossia::flicks_per_second<double> / m_stepRate)) : 0;
-  // Held for the whole call so PROGRESS sweeps 0..1 across it rather than
-  // restarting on every frame.
-  const ossia::time_value span{frame_flicks * (m_stepFrame + frames)};
+  // The span must not depend on how the caller batched its frames.
+  //
+  // WindowDevice documents the contract: "the clock keeps counting across
+  // calls, so renderFrames(1) sixty times is the timeline renderFrames(60)
+  // is." The date already honours that -- frame k is at k * frame_flicks
+  // either way -- but the span was frame_flicks * (m_stepFrame + frames), so
+  // it carried the size of THIS call. renderFrames(60) gave PROGRESS k/60
+  // while renderFrames(1) sixty times gave k/(k+1): same frames, same dates,
+  // different PROGRESS, which is exactly what the contract says cannot happen.
+  //
+  // There is no total to normalise against -- renderFrames is a free-running
+  // stepper, nobody declares how many frames will ultimately be drawn -- so
+  // PROGRESS cannot be a true 0..1 sweep here, and the old comment claiming it
+  // was could only ever hold for a single batched call. What it CAN be is
+  // consistent, which is what was actually promised. Computed per frame from
+  // the step counter alone, both forms now yield k/(k+1).
 
   for(int i = 0; i < frames; i++)
   {
@@ -860,6 +1000,7 @@ void GfxContext::renderFrames(int frames)
     // the transport last sent.
     if(step)
     {
+      const ossia::time_value span{frame_flicks * (m_stepFrame + 1)};
       const score::gfx::Timings tk{
           .date = ossia::time_value{frame_flicks * m_stepFrame},
           .parent_duration = span};

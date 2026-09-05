@@ -53,6 +53,7 @@
 #include <ossia/dataflow/texture_port.hpp>
 
 #include <score/gfx/Vulkan.hpp>
+#include <score/gfx/OpenGL.hpp>
 
 #include <isf.hpp>
 
@@ -191,6 +192,172 @@ inline std::vector<score::gfx::GraphicsApi> platform_backends()
 #endif
 }
 
+// -----------------------------------------------------------------------------
+// THE NULL BACKEND REFUSES RATHER THAN PRETENDS (spec P2-15).
+//
+// QRhi's Null backend accepts every command and rasterizes nothing. It is a
+// legitimate target for the parts of a case that are DECISIONS -- which shim was
+// selected, which pass was recorded, which caps were queried -- and it is not a
+// legitimate target for anything that reads a pixel back.
+//
+// Before this, a pixel case run with SCORE_TEST_API=null went all the way
+// through create() and render() and then died on
+//     "readback of output 0 was empty/short (got 0 bytes ...)"
+// which is a RED that names the fixture rather than the code under test, and
+// which a reader triaging a platform run cannot tell from a real regression. The
+// symmetric hazard is worse: a case whose expected colour happens to be the zero
+// pixel would have gone GREEN against a buffer that was never drawn.
+//
+// So the fixture refuses: create()/render_isf_chain() report skipped=true with
+// this reason as soon as Null is the requested backend, and the standard
+//     if(r.skipped) SKIP(r.skip_reason);
+// prologue every case already carries turns that into a SKIP verdict.
+//
+// A case whose assertions are STRUCTURAL -- and which therefore wants to run on
+// Null on purpose, e.g. GfxCubemapSixFaces' shim-selection half -- opts back in
+// with GfxPipeline::allowNullBackend(). Opting in does not make pixels appear:
+// the readback is still empty, and readback().valid() is still false. That is
+// the "does not pretend" half, and it is asserted in GfxNullBackendRefuses.cpp.
+// -----------------------------------------------------------------------------
+inline const char* null_backend_skip_reason() noexcept
+{
+  return "RHI backend 'Null' accepts every command and rasterizes nothing, so no "
+         "pixel assertion can be made against it. The fixture refuses rather than "
+         "hand back a buffer that was never drawn; opt in with "
+         "GfxPipeline::allowNullBackend() for structural (decision-logic) "
+         "assertions only.";
+}
+
+// -----------------------------------------------------------------------------
+// Storage buffers are not universally available, and the backend that lacks
+// them is not a broken one.
+//
+// SSBOs entered desktop GLSL at 4.30 and GLSL ES at 3.10. Apple froze its
+// OpenGL implementation at 4.1 core and never shipped 4.3, so on macOS the
+// OpenGL backend reports GLSL 410 and SPIRV-Cross refuses the translation
+// outright: "SSBOs not supported in legacy targets". The node then fails to
+// build and any case that needs a storage buffer fails with a compile error
+// rather than a wrong picture.
+//
+// That is a permanent platform limit, not a defect and not something a fix can
+// reach, so such a case must SKIP and say why. It was found by the first macOS
+// OpenGL suite run of this campaign, where it read as two ordinary failures
+// (test_gfx_isf_aux_placeholder_zeroed and test_gfx_regressions) on a backend
+// nobody had measured before.
+//
+// Returns nullptr when the backend CAN do storage buffers.
+inline const char* storage_buffer_skip_reason(score::gfx::GraphicsApi api) noexcept
+{
+  if(api != score::gfx::OpenGL)
+    return nullptr;
+
+#ifndef QT_NO_OPENGL
+  const score::GLCapabilities caps{};
+  // GLSL ES 310, desktop GLSL 430. shaderVersion is the integer form (410, 430).
+  const bool es = caps.type == QSurfaceFormat::OpenGLES;
+  const int floor_version = es ? 310 : 430;
+  if(caps.shaderVersion < floor_version)
+    return "this OpenGL implementation reports a GLSL version below the one that "
+           "introduced shader storage buffers (4.30 desktop / ES 3.10), so the "
+           "shader cannot be translated at all -- SPIRV-Cross reports 'SSBOs not "
+           "supported in legacy targets'. macOS caps OpenGL at 4.1 and is the "
+           "usual way to meet this.";
+#endif
+  return nullptr;
+}
+
+// -----------------------------------------------------------------------------
+// A storage buffer read from the VERTEX stage is a narrower capability than a
+// storage buffer, and D3D11 does not have it.
+//
+// Qt bakes HLSL with SPVC_COMPILER_OPTION_HLSL_FORCE_STORAGE_BUFFER_AS_UAV set
+// unconditionally, so every SSBO -- `readonly` ones included -- lands in the
+// vertex DXBC as `RWByteAddressBuffer : register(u#)`. D3D11 allows UAVs only
+// at the pixel and compute stages, so QRhiD3D11 reports
+// MaxVertexStorageBuffers == 0 and its SRB translation never appends a
+// storage-buffer UAV to the vertex stage. It says so, once per binding:
+//
+//     Unordered access only supported at fragment/compute stage
+//
+// and then leaves the register unbound. An unbound UAV reads ZERO, so a shader
+// indexing per_draws[draw_id].model gets an all-zero matrix and draws nothing
+// where the test expects placement. That is not a rasterizer fault and not a
+// score defect: it is the stage limit of the API.
+//
+// Scope this to D3D11 ONLY, and deliberately so. D3D12 reads zero from the same
+// shaders on our test machine, but for a DIFFERENT and still-unexplained
+// reason: it emits no such warning, the shader compiles, and Qt accepts the
+// vertex-visible binding. Skipping D3D12 here would turn a live defect into a
+// green skip -- exactly the vacuous pass this suite has been bitten by. Leave
+// it failing until somebody explains it.
+//
+// Returns nullptr where a vertex-stage storage buffer CAN be read.
+inline const char*
+vertex_storage_buffer_skip_reason(score::gfx::GraphicsApi api) noexcept
+{
+  if(const char* why = storage_buffer_skip_reason(api))
+    return why;
+
+  if(api == score::gfx::D3D11)
+    return "D3D11 cannot read a storage buffer from the vertex stage: Qt bakes "
+           "every SSBO as an RWByteAddressBuffer UAV, and D3D11 allows UAVs "
+           "only at the pixel and compute stages, so QRhi reports "
+           "MaxVertexStorageBuffers == 0, warns 'Unordered access only "
+           "supported at fragment/compute stage' and leaves the register "
+           "unbound -- an unbound UAV reads zero. A stage limit of the API, "
+           "not a defect.";
+  return nullptr;
+}
+
+// -----------------------------------------------------------------------------
+// Compute shaders are not universally available either, and the backend that
+// lacks them is not a broken one.
+//
+// score's CSF nodes (COMPUTE_SHADER_FORMAT: the .cs corpus files, the geometry
+// PRODUCERS and FILTERS built on them, the CSF-fed raw-raster chains) all end
+// up in RenderedCSFNode, which asks QRhi for a compute pipeline. Compute
+// shaders entered desktop GL at 4.30 and GLES at 3.10 -- the same versions that
+// brought shader storage buffers, because a compute shader with no SSBO to
+// write into would have nowhere to put its result. Apple froze desktop OpenGL
+// at 4.1 core and never shipped 4.3, so on macOS/OpenGL QRhi reports
+// isFeatureSupported(QRhi::Compute) == false and RenderedCSFNode says
+//     "Compute shaders not supported on this backend"
+// once, then produces nothing.
+//
+// That warning is the whole failure. The node still builds, the raster
+// downstream of it still runs, the render still succeeds and the readback is
+// still a valid image -- an empty one. So the case does NOT fail with an error
+// string a reader can act on: it fails as `drawn_pixels(img) > 0` with
+// `error=` blank, which reads exactly like a rasterizer regression and is why
+// this group was mistaken for one. A CSF case on a 4.1 context is not testing
+// anything; it is measuring the clear colour.
+//
+// Same permanent platform limit as storage_buffer_skip_reason() above, same
+// verdict: SKIP and say why. Put it in the CSF-dependent TEST_CASEs ONLY --
+// never at file scope -- so the non-CSF cases in the same binary keep running.
+//
+// Returns nullptr when the backend CAN run compute shaders.
+inline const char* compute_shader_skip_reason(score::gfx::GraphicsApi api) noexcept
+{
+  if(api != score::gfx::OpenGL)
+    return nullptr;
+
+#ifndef QT_NO_OPENGL
+  const score::GLCapabilities caps{};
+  // GLSL ES 310, desktop GLSL 430. shaderVersion is the integer form (410, 430).
+  const bool es = caps.type == QSurfaceFormat::OpenGLES;
+  const int floor_version = es ? 310 : 430;
+  if(caps.shaderVersion < floor_version)
+    return "this OpenGL implementation reports a GLSL version below the one that "
+           "introduced compute shaders (4.30 desktop / ES 3.10), so QRhi reports "
+           "no Compute feature and score's CSF nodes warn 'Compute shaders not "
+           "supported on this backend' and emit nothing -- the readback is a "
+           "valid but empty image, not a rasterizer fault. macOS caps OpenGL at "
+           "4.1 and is the usual way to meet this.";
+#endif
+  return nullptr;
+}
+
 /// Try to bring up a QRhi for `api`. Returns true (and the backend name) if a
 /// real device could be created, false otherwise. Non-destructive: the probe
 /// state is torn down before returning.
@@ -244,13 +411,28 @@ inline bool probe_api(score::gfx::GraphicsApi api, std::string& backendName)
      && st->rhi->backend() == QRhi::Implementation::Null)
     ok = false;
 
-  // Reject a legacy OpenGL context (GLSL < 330). The bare "offscreen" QPA plugin
+  // Reject a legacy OpenGL context. The bare "offscreen" QPA plugin
   // often hands out a GL 2.x context with no working GPU; a QRhi is created, but
   // score's shaders are generated as #version 450 and cannot cross-compile down
   // to GLSL 1.x. Treat it as unusable so the fixture falls through to the next
   // candidate API and SKIPs cleanly.
-  if(ok && api == score::gfx::OpenGL && st->version.version() < 330)
-    ok = false;
+  //
+  // The floor is per-language, not a single number. Desktop GLSL and GLSL ES
+  // are numbered in the same range but mean different things: desktop 330 is
+  // GL 3.3, where core-profile GL begins; the ES equivalent is 300 (ES 3.0),
+  // which is where texture arrays and 3D textures arrive. GLSL ES stops at
+  // 320, so measuring an ES context against the desktop 330 rejects EVERY
+  // GLES context that exists. That is not hypothetical: running this suite
+  // under SCORE_OPENGL_FORMAT=gles skipped 71 of 124 tests as "cannot
+  // initialize" on a GLES 3.2 context which is in fact fully capable --
+  // compute, SSBOs and texture arrays are all present at ES 3.1/3.2 -- and
+  // the skips read exactly like a machine with no GL driver.
+  if(ok && api == score::gfx::OpenGL)
+  {
+    const bool es = st->version.flags().testFlag(QShaderVersion::GlslEs);
+    if(st->version.version() < (es ? 300 : 330))
+      ok = false;
+  }
 
   if(ok)
     backendName = st->rhi->backendName();
@@ -677,7 +859,8 @@ inline void pump_frame(
 // -----------------------------------------------------------------------------
 inline IsfResult render_isf_chain(
     score::gfx::GraphicsApi backend, std::vector<QString> paths,
-    QSize size = {64, 64}, int frames = 3)
+    QSize size = {64, 64}, int frames = 3,
+    score::gfx::SharedDeviceMode deviceMode = score::gfx::SharedDeviceMode::Owned)
 {
   IsfResult r;
   r.backend = backend_name(backend);
@@ -703,6 +886,15 @@ inline IsfResult render_isf_chain(
   //    this backend specifically — the caller iterates all backends and each
   //    reports its own availability.
   const score::gfx::GraphicsApi api = backend;
+
+  // Null draws nothing: every caller of this function reads pixels back, so the
+  // only honest verdict is SKIP. See null_backend_skip_reason().
+  if(api == score::gfx::Null)
+  {
+    r.skipped = true;
+    r.skip_reason = null_backend_skip_reason();
+    return r;
+  }
   {
     std::string probed;
     if(!probe_api(api, probed))
@@ -749,7 +941,7 @@ inline IsfResult render_isf_chain(
   sinks.reserve(outPorts.size());
   for(std::size_t k = 0; k < outPorts.size(); ++k)
   {
-    auto bg = std::make_unique<score::gfx::BackgroundNode>();
+    auto bg = std::make_unique<score::gfx::BackgroundNode>(deviceMode);
     // BackgroundNode's constructor does NOT allocate shared_readback; its
     // renderer dereferences it (*shared_readback) to get the QRhiReadbackResult
     // to fill. A null here => a null QRhiReadbackResult* handed to
@@ -981,6 +1173,25 @@ public:
     return int(m_isf.size()) - 1;
   }
 
+  /// Build a CSF compute node and register it in the same index space as ISF,
+  /// raster and VSA nodes. This makes buffer, image and geometry producers
+  /// available to live-edit fixtures instead of leaving those cable operations
+  /// as null-port no-ops.
+  int addCsf(const QString& path)
+  {
+    auto built = make_csf_node(path);
+    if(!built.node)
+    {
+      if(m_error.empty())
+        m_error = built.error;
+      return -1;
+    }
+    built.node->nodeId = m_nextId++;
+    m_graph.addNode(built.node.get());
+    m_isf.push_back(std::move(built.node));
+    return int(m_isf.size()) - 1;
+  }
+
   /// Build a RAW_RASTER_PIPELINE node from a .vs + .fs pair and register it.
   /// Returns its node index (indexes the same space as addIsf), or -1 on error.
   int addRaster(const QString& vsPath, const QString& fsPath)
@@ -1151,11 +1362,24 @@ public:
   /// with skipped()=true when the backend cannot initialize here or the offscreen
   /// targets cannot be allocated headless; false with error() non-empty on a
   /// genuine build error. On success records the actual backend name.
+  /// Let create() proceed on GraphicsApi::Null. Only for a case whose
+  /// assertions are STRUCTURAL — which shim/pass/cap was selected — never for
+  /// one that reads a pixel: the readback stays empty and readback().valid()
+  /// stays false. See null_backend_skip_reason().
+  void allowNullBackend(bool v = true) { m_allowNull = v; }
+
   bool create(score::gfx::GraphicsApi api)
   {
     m_backend = backend_name(api);
     if(!m_error.empty())
       return false;
+
+    if(api == score::gfx::Null && !m_allowNull)
+    {
+      m_skipped = true;
+      m_skipReason = null_backend_skip_reason();
+      return false;
+    }
 
     std::string probed;
     if(!probe_api(api, probed))
@@ -1314,6 +1538,7 @@ public:
 private:
   int32_t m_nextId = 1;
   int64_t m_frame = 0;
+  bool m_allowNull = false;
   bool m_skipped = false;
   std::string m_skipReason;
   std::string m_error;

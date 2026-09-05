@@ -387,6 +387,15 @@ public:
       QObject* parent);
   ~FileChooser();
   using Process::FileChooserBase::FileChooserBase;
+
+  // Without these the inherited ControlInlet deserializing constructor runs
+  // instead, and `*this` is a ControlInlet& in its body -- so the
+  // FileChooser overload of writeTo is never reached and the "Filters" the
+  // serializer DOES write is never read back. Same pattern as Process::Enum.
+  FileChooser(DataStream::Deserializer& vis, QObject* parent);
+  FileChooser(JSONObject::Deserializer& vis, QObject* parent);
+  FileChooser(DataStream::Deserializer&& vis, QObject* parent);
+  FileChooser(JSONObject::Deserializer&& vis, QObject* parent);
 };
 
 struct SCORE_LIB_PROCESS_EXPORT FolderChooser : public Process::ControlInlet
@@ -413,6 +422,12 @@ public:
       QObject* parent);
   ~AudioFileChooser();
   using Process::FileChooserBase::FileChooserBase;
+
+  // See the note on FileChooser.
+  AudioFileChooser(DataStream::Deserializer& vis, QObject* parent);
+  AudioFileChooser(JSONObject::Deserializer& vis, QObject* parent);
+  AudioFileChooser(DataStream::Deserializer&& vis, QObject* parent);
+  AudioFileChooser(JSONObject::Deserializer&& vis, QObject* parent);
 };
 
 struct SCORE_LIB_PROCESS_EXPORT VideoFileChooser : public FileChooserBase
@@ -425,6 +440,12 @@ public:
       QObject* parent);
   ~VideoFileChooser();
   using Process::FileChooserBase::FileChooserBase;
+
+  // See the note on FileChooser.
+  VideoFileChooser(DataStream::Deserializer& vis, QObject* parent);
+  VideoFileChooser(JSONObject::Deserializer& vis, QObject* parent);
+  VideoFileChooser(DataStream::Deserializer&& vis, QObject* parent);
+  VideoFileChooser(JSONObject::Deserializer&& vis, QObject* parent);
 };
 
 struct SCORE_LIB_PROCESS_EXPORT ProgramEdit : public Process::ControlInlet

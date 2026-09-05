@@ -275,7 +275,8 @@ void ExecutionController::on_play_global(bool b)
 
 void ExecutionController::on_play_local(bool b, ::TimeVal t)
 {
-  if(auto scenar = currentScenarioPresenter())
+  if(auto scenar = currentScenarioPresenter();
+     scenar && scenar->displayedElements.initialized())
   {
     if(b)
     {

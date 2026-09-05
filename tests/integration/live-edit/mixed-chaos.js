@@ -19,7 +19,7 @@
 // Step 3 pushes a fresh command, truncating the redo tail left by 6/7 —
 // stack stays consistent across cycles. tick_final() reconnects the
 // cable so dst shows the solid color for the final grab.
-eval(Score.readFile("/home/jcelerier/ossia/wt/score-tests/tests/integration/live-edit/common.js"));
+eval(Score.readFile(LIVE_EDIT_DIR + "/common.js"));
 
 var NAME    = "mixed-chaos";
 var g_src   = null;

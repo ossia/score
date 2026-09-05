@@ -3,6 +3,31 @@ score_add_test(test_gfx_capture_sync
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/CaptureSyncGroupTest.cpp"
   PLUGINS score_plugin_gfx)
 
+# The description -> device-tree control-group builder (V4L2 / render /
+# Argus controls), fresh build and reload adoption.
+score_add_test(test_gfx_control_tree
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/ControlTreeTest.cpp"
+  PLUGINS score_plugin_gfx)
+
+# The shared dlopen'd libv4l2 loader and its ioctl retry wrapper.
+score_add_test(test_gfx_v4l2_loader
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/V4L2LoaderTest.cpp"
+  PLUGINS score_plugin_gfx)
+
+# The render-clock abstraction (timer / vsync / external genlock). The genlock
+# clock's hardware wait is an injected function, so its thread contract runs
+# with no card.
+score_add_test(test_gfx_render_clock
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/RenderClockTest.cpp"
+  PLUGINS score_plugin_gfx)
+
+# The borrowed-host zero-copy capture rung's init() refusal ladder, on the
+# Null QRhi (which genuinely has no host-import path, like GL/D3D11).
+score_add_test(test_gfx_borrowed_host_import
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/BorrowedHostImportTest.cpp"
+  PLUGINS score_plugin_gfx
+  LIBS ${QT_PREFIX}::Gui)
+
 score_add_test(test_gfx_capture_correlator
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/CaptureCorrelatorTest.cpp"
   PLUGINS score_plugin_gfx)
@@ -52,7 +77,7 @@ score_add_test(test_gfx_dmabuf_layout
 # compiled: without libdrm the plugin builds an inert stub whose constructor
 # creates no ports at all, and asserting on that would be asserting the stub.
 # SCORE_LIBDRM_FOUND comes from the parent scope (pkg_check_modules above
-# add_subdirectory(Tests)).
+# add_subdirectory(tests)).
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND SCORE_LIBDRM_FOUND)
   score_add_test(test_gfx_kms_output_port
     SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/KmsOutputPortTest.cpp"
@@ -61,3 +86,19 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND SCORE_LIBDRM_FOUND)
   target_include_directories(test_gfx_kms_output_port
     PRIVATE ${SCORE_LIBDRM_INCLUDE_DIRS})
 endif()
+# The slot rotation behind TextureShare. Header-only and atomic-only, so the
+# state machine that keeps the producer's render target and the consumer's
+# sampled texture apart is checkable exhaustively, with no QRhi and no GPU.
+score_add_test(test_gfx_triple_buffer_index
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/TripleBufferIndexTest.cpp"
+  PLUGINS score_plugin_gfx)
+
+# The ring/fence policy surface every GPU-direct video path consults before it
+# moves a byte: the BAR1 depth rule, the substituted no-op DMA lock, what a
+# stub fence is allowed to claim, and both slot rings' config gates. Uses
+# QRhi's Null backend for the bookkeeping around QRhi only -- never to conclude
+# anything about rendering.
+score_add_test(test_gfx_interop_ring_policy
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/InteropRingPolicyTest.cpp"
+  PLUGINS score_plugin_gfx
+  LIBS ${QT_PREFIX}::Gui)

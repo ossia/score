@@ -51,6 +51,11 @@ public:
 
   std::function<void()> onWindowReady;
   std::function<void()> onUpdate;
+  //! Refreshes whatever gates a frame, before m_canRender is read. The vsync
+  //! loop re-enters render() on its own, without ever passing through the
+  //! node's own render(), so a node that recomputes state per tick needs a hook
+  //! here or it only ever runs on the timer-driven path.
+  std::function<void()> onAboutToRender;
   std::function<void(QRhiCommandBuffer&)> onRender;
   std::function<void()> onResize;
   // Invoked when the window is closing or its platform surface is being
@@ -96,6 +101,13 @@ private:
   bool m_hasSwapChain = false;
   bool m_deviceLost = false;
   bool m_retryScheduled = false;
+  // render() is reachable from the vsync/timer path (ScreenNode::render),
+  // from QEvent::UpdateRequest, and DIRECTLY from exposeEvent(). On Windows
+  // a border drag puts the window in a modal resize loop that pumps its own
+  // messages, so QWindowsWindow::handleWmPaint delivers the expose through
+  // flushWindowSystemEvents SYNCHRONOUSLY from inside WndProc -- i.e. a
+  // second render() on top of one already between beginFrame and endFrame.
+  bool m_inRender = false;
 
   static constexpr int retry_interval_ms = 100;
   bool m_embeddedFullscreen = false;

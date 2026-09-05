@@ -38,6 +38,9 @@
 
 #ifdef Q_OS_WIN
 #include <QtGui/private/qrhid3d11_p.h>
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
+#include <d3d12sdklayers.h>
+#endif
 #endif
 
 #ifdef Q_OS_DARWIN
@@ -49,6 +52,7 @@
 #include <QFile>
 #include <QOffscreenSurface>
 #include <QScreen>
+#include <QOpenGLDebugLogger>
 #include <QStandardPaths>
 #include <QThreadPool>
 #include <QWindow>
@@ -73,6 +77,77 @@ bool gpuDebugRequested() noexcept
   return requested;
 #endif
 }
+#if defined(Q_OS_WIN) && QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
+// QRhi's enableDebugLayer flag turns on CPU-side D3D12 validation. Shader
+// descriptor accesses and resource states on the GPU timeline need GBV, which
+// must be enabled before QRhi creates its ID3D12Device.
+void enableD3D12GpuValidationIfRequested() noexcept
+{
+  if(qEnvironmentVariableIntValue("SCORE_GPU_VALIDATION") < 2)
+    return;
+
+  ID3D12Debug1* debug{};
+  if(FAILED(D3D12GetDebugInterface(
+         __uuidof(ID3D12Debug1), reinterpret_cast<void**>(&debug))))
+  {
+    qWarning() << "D3D12 GPU validation requested but Graphics Tools are unavailable";
+    return;
+  }
+
+  debug->EnableDebugLayer();
+  debug->SetEnableGPUBasedValidation(TRUE);
+  debug->SetEnableSynchronizedCommandQueueValidation(TRUE);
+  debug->Release();
+  qDebug() << "D3D12 GPU-based and synchronized queue validation active";
+}
+#endif
+
+#ifndef QT_NO_OPENGL
+// OpenGL's counterpart to the D3D debug layer and the Vulkan validation layers.
+// Without this, a GL run reports no errors because nothing is listening --
+// not because the driver had nothing to say. Needs a context created with
+// QSurfaceFormat::DebugContext and the KHR_debug entry points.
+void installGlDebugLogger(QRhi* rhi)
+{
+  if(!rhi || !gpuDebugRequested())
+    return;
+  auto* ctx = QOpenGLContext::currentContext();
+  if(!ctx)
+    return;
+  if(!ctx->hasExtension(QByteArrayLiteral("GL_KHR_debug")))
+  {
+    qDebug() << "GL validation requested but GL_KHR_debug is unavailable";
+    return;
+  }
+
+  auto* logger = new QOpenGLDebugLogger(ctx);
+  if(!logger->initialize())
+  {
+    delete logger;
+    return;
+  }
+  QObject::connect(
+      logger, &QOpenGLDebugLogger::messageLogged, logger,
+      [](const QOpenGLDebugMessage& m) {
+    // Drivers emit a lot of NotificationSeverity chatter (buffer placement
+    // hints and the like). Keeping it at debug level means a real warning is
+    // not buried in it; SCORE_GPU_VALIDATION=2 promotes everything.
+    const bool verbose = qEnvironmentVariableIntValue("SCORE_GPU_VALIDATION") > 1;
+    if(m.severity() == QOpenGLDebugMessage::NotificationSeverity && !verbose)
+    {
+      qDebug() << "gl-note:" << m.message();
+      return;
+    }
+    // Synchronous logging, so the message is emitted at the offending call and
+    // a backtrace under a debugger points at the real site.
+    qWarning() << "GL-VALIDATION:" << m.severity() << m.type() << m.source()
+               << m.message();
+      });
+  logger->startLogging(QOpenGLDebugLogger::SynchronousLogging);
+  logger->enableMessages();
+  qDebug() << "GL validation active (KHR_debug, synchronous)";
+}
+#endif
 
 // Persistent pipeline cache. Saved on QRhi destruction, loaded right after
 // QRhi creation. Keyed per backend so different APIs don't overwrite each
@@ -148,8 +223,9 @@ static void tryStorePipelineCacheAsync(QRhi* rhi, GraphicsApi api)
 }
 }
 
-std::shared_ptr<RenderState>
-createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
+std::shared_ptr<RenderState> createRenderState(
+    GraphicsApi graphicsApi, QSize sz, QWindow* window,
+    SharedDeviceMode deviceMode)
 {
   auto st = std::make_shared<RenderState>();
   RenderState& state = *st;
@@ -287,6 +363,8 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
     score::GLCapabilities caps;
     caps.setupFormat(params.format);
     params.format.setSamples(state.samples);
+    if(gpuDebugRequested())
+      params.format.setOption(QSurfaceFormat::DebugContext);
     state.version = caps.qShaderVersion;
     state.rhi = QRhi::create(QRhi::OpenGLES2, &params, flags);
     if(!state.rhi)
@@ -302,6 +380,7 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
     }
     else
     {
+      installGlDebugLogger(state.rhi);
       state.renderSize = sz;
       populateCaps(state);
       return st;
@@ -369,8 +448,12 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
     // Use the first physical device from QVulkanInstance — this matches
     // what QRhi would pick by default.
 #if defined(VK_KHR_video_decode_queue) && QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+    if(!qEnvironmentVariableIsSet("SCORE_GFX_NO_SHARED_VKDEVICE"))
     {
-      auto sharedDev = createSharedVulkanDevice(params.inst);
+      const bool cached = deviceMode == SharedDeviceMode::Cached
+                          && !sharedVulkanDeviceCacheDisabled();
+      auto sharedDev = cached ? sharedVulkanDeviceCache().acquire(params.inst)
+                              : createSharedVulkanDevice(params.inst);
       if(sharedDev)
       {
         // The shared device enables every queried feature, so interop fast
@@ -389,16 +472,25 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
         state.rhi = QRhi::create(QRhi::Vulkan, &params, flags, &importedHandles);
         if(state.rhi)
         {
-          state.customDeviceCleanup = [dev = sharedDev.dev, inst = params.inst]() {
-            if(auto fn = reinterpret_cast<PFN_vkDestroyDevice>(
-                   inst->getInstanceProcAddr("vkDestroyDevice")))
-              fn(dev, nullptr);
-          };
+          // Runs from RenderState::destroy(), i.e. after `delete rhi` — the
+          // QRhi still touches the imported device while shutting down.
+          if(cached)
+            state.customDeviceCleanup = [dev = sharedDev.dev]() {
+              sharedVulkanDeviceCache().release(dev);
+            };
+          else
+            state.customDeviceCleanup
+                = [dev = sharedDev.dev, inst = params.inst]() {
+              destroySharedVulkanDevice(inst, dev);
+            };
           state.renderSize = sz;
           populateCaps(state);
           return st;
         }
-        sharedDev.destroy();
+        if(cached)
+          sharedVulkanDeviceCache().release(sharedDev.dev);
+        else
+          sharedDev.destroy(params.inst);
       }
     }
 #endif
@@ -427,7 +519,51 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
     //   params.repeatDeviceKill = true;
     // }
     state.version = Gfx::Settings::shaderVersionForAPI(D3D11);
-    state.rhi = QRhi::create(QRhi::D3D11, &params, flags);
+
+    // Ask for feature level 11_1 explicitly (A24(c)).
+    //
+    // QRhiD3D11 passes pFeatureLevels == nullptr to D3D11CreateDevice unless a
+    // level was requested -- its own comment at qrhid3d11.cpp:307 says
+    // "Normally we won't specify a requested feature level list, except when a
+    // level was specified in importParams" -- and that form is documented never
+    // to return an 11_1 device, even on hardware that supports it. Measured on
+    // an RTX 3090: the default path gives 11_0 (0xb000), an explicit request
+    // gives 11_1 (0xb100).
+    //
+    // 11_0 is not merely a smaller number here. It has no UAVs outside the
+    // pixel and compute stages, and 8 compute UAV slots instead of 64. Qt bakes
+    // HLSL with FORCE_STORAGE_BUFFER_AS_UAV set unconditionally
+    // (qspirvshader.cpp), so EVERY SSBO -- read-only ones included -- becomes a
+    // UAV. On an 11_0 device that makes CreateVertexShader fail with
+    // E_INVALIDARG for any vertex shader carrying a storage block, and
+    // CreateComputeShader fail past 8 of them: the "Failed to create
+    // vertex/compute shader: COM error 0x80070057" seen across the
+    // scene-preprocessor documents in the Windows corpus. Both verified against
+    // a bare D3D11 device, and MaxFragmentStorageBuffers goes 8 -> 64
+    // (qrhid3d11.cpp:769) as a side benefit.
+    //
+    // featureLevel is honoured even with dev/context null: qrhid3d11.cpp:174
+    // reads it outside the imported-device branch. adapterLuid stays zero,
+    // which :256 explicitly ignores, so adapter selection is unchanged.
+    //
+    // This does NOT fix A28: MaxVertexStorageBuffers is hardcoded 0 at every
+    // feature level (qrhid3d11.cpp:766), so Qt's SRB translation still never
+    // binds a vertex-stage UAV. Such a shader stops failing to build and starts
+    // reading zero instead -- which is why the vertex-SSBO diagnostic had to be
+    // made to fire on released Qt first (db7000dd79), so that path is loud.
+    //
+    // A single-entry level list makes D3D11CreateDevice fail outright where
+    // 11_1 is unavailable, so fall back to QRhi's own probe. That matters for
+    // pre-11_1 hardware: NVIDIA Fermi/Kepler/Maxwell-1, AMD TeraScale, Intel
+    // Ivy Bridge. They keep exactly today's behaviour.
+    QRhiD3D11NativeHandles d3d11Handles{};
+    d3d11Handles.featureLevel = 0xb100; // D3D_FEATURE_LEVEL_11_1
+    state.rhi = QRhi::create(QRhi::D3D11, &params, flags, &d3d11Handles);
+    if(!state.rhi)
+    {
+      qDebug() << "score: no D3D11 feature level 11_1 device, falling back";
+      state.rhi = QRhi::create(QRhi::D3D11, &params, flags);
+    }
     if(state.rhi)
     {
       state.renderSize = sz;
@@ -440,6 +576,7 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
   {
     QRhiD3D12InitParams params;
     params.enableDebugLayer = gpuDebugRequested();
+    enableD3D12GpuValidationIfRequested();
     // if (framesUntilTdr > 0)
     // {
     //   params.framesUntilKillingDeviceViaTdr = framesUntilTdr;
@@ -474,7 +611,16 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
 
   if(!state.rhi)
   {
-    qDebug() << "Failed to create RHI backend, creating Null backend";
+    // Loud, and a warning rather than a debug line. The Null backend accepts
+    // every call and draws nothing, so a harness that only checks "the frame is
+    // not blank" passes on a constant colour and reports success while
+    // verifying nothing.
+    qWarning() << "score::gfx: NULL RHI BACKEND — no GPU backend could be "
+                  "created, so nothing will actually be rendered. Under "
+                  "QT_QPA_PLATFORM=offscreen this is expected: Qt's offscreen "
+                  "integration provides OpenGL only through GLX, so with no X "
+                  "server there is no GL at all. Use a real X server (Xvfb) "
+                  "with QT_QPA_PLATFORM=xcb for a run that renders.";
 
     QRhiNullInitParams params;
     state.version = QShaderVersion(120);
@@ -525,6 +671,18 @@ ScreenNode::~ScreenNode()
 
   if(m_window && m_window->state)
   {
+    // Same contract destroyOutput() honours, for the paths that reach the
+    // destructor without going through it: the registry outlives a RenderList
+    // rebuild, so its QRhi resources have to be freed while the QRhi is still
+    // alive. Skipping it leaks every registry buffer into the device that is
+    // deleted three lines below, and Vulkan turns that into a hard failure --
+    //   UNFREED ALLOCATION; Name: GpuResourceRegistry::env/0; Type: BUFFER
+    //   ASSERT "Some allocations were not freed before destruction of this
+    //           memory block!" (vk_mem_alloc.h)
+    // releaseRegistry() is idempotent, so calling it here costs nothing when
+    // destroyOutput() already ran.
+    releaseRegistry();
+
     delete m_window->state->renderPassDescriptor;
     m_window->state->renderPassDescriptor = nullptr;
 
@@ -554,6 +712,11 @@ void ScreenNode::startRendering()
     onFps(0.f);
   if(m_window)
   {
+    // Symmetric with stopRendering()'s clear: only createOutput used to
+    // install this, so a rebuild that kept the window alive left the vsync
+    // path with no per-frame m_canRender refresh (the timer path gets it
+    // from ScreenNode::render()).
+    m_window->onAboutToRender = [this] { onRendererChange(); };
     m_window->onRender = [this](QRhiCommandBuffer& commands) {
       if(auto r = m_window->state->renderer.lock())
       {
@@ -605,6 +768,8 @@ void ScreenNode::stopRendering()
   if(m_window)
   {
     m_window->m_canRender = false;
+    m_window->onAboutToRender = {};
+    m_window->onClose = {};
     m_window->onRender = [](QRhiCommandBuffer&) {};
     if(m_window->state)
       m_window->state->renderer = {};
@@ -673,8 +838,14 @@ void ScreenNode::setSwapchainFlag(Gfx::SwapchainFlag flag)
   // with the new flag bits — setFlags happens in createOutput at line ~667.
   // destroyOutput tears down; Graph::createOutputRenderList rebuilds on
   // next reconcile (same pattern updateGraphicsAPI uses for sample-count).
+  //
+  // The Graph-owned RenderList holds QRhiResources belonging to the QRhi
+  // destroyOutput() is about to `delete`; release it first.
   if(m_window)
+  {
+    releaseOwnedRenderList();
     destroyOutput();
+  }
 }
 
 void ScreenNode::setSwapchainFormat(Gfx::SwapchainFormat format)
@@ -686,7 +857,10 @@ void ScreenNode::setSwapchainFormat(Gfx::SwapchainFormat format)
   // the field stays updated but the live swapchain keeps its prior format
   // (HDR↔SDR toggle silently inert).
   if(m_window)
+  {
+    releaseOwnedRenderList();
     destroyOutput();
+  }
 }
 
 void ScreenNode::setSize(QSize sz)
@@ -744,26 +918,31 @@ void ScreenNode::setCursor(bool b)
 
 void ScreenNode::createOutput(score::gfx::OutputConfiguration conf)
 {
+  m_onReleaseRenderList = conf.onReleaseRenderList;
+
+  // A window outlives graph rebuilds, and it outlives being closed: only
+  // destroyOutput() resets it. Recreating the window is still what must not
+  // happen; re-binding the callbacks is what was missing.
+  const bool reusingWindow = bool(m_window);
   if(m_ownsWindow)
   {
-    // Idempotency guard for mid-play graph rebuilds. initializeOutput()
-    // re-enters here whenever renderState() is null — which is exactly the
-    // transient state of a freshly-created window that is still waiting for
-    // its first expose to build the swapchain. Re-creating the window here
-    // would free the in-flight Window (and the RenderState it co-owns) while
-    // queued expose/deferred-delete events and the surviving RenderLists still
-    // reference them -> the deterministic mid-play use-after-free/invalid-free.
-    // The onWindowReady set by the first createOutput() is still pending and
-    // completes the setup. A *deliberate* recreation (graphics-API or
-    // sample-count change) routes through destroyOutput() first, which resets
-    // m_window, so this guard never blocks it.
-    if(m_window)
-      return;
-    m_window = std::make_shared<Window>(conf.graphicsApi);
-    if(m_embedded)
-      m_window->unsetCursor();
+    // Recreating would free the in-flight Window, and the RenderState it
+    // co-owns, while queued expose and deferred-delete events still reference
+    // them. initializeOutput() re-enters here whenever renderState() is null,
+    // which is exactly the transient state of a freshly created window still
+    // waiting for its first expose.
+    if(!m_window)
+    {
+      m_window = std::make_shared<Window>(conf.graphicsApi);
+      if(m_embedded)
+        m_window->unsetCursor();
+    }
   }
 
+  // The signals fan out to this node's own callbacks, which do not change with
+  // the configuration, so they are connected once per window.
+  if(!reusingWindow)
+  {
   QObject::connect(m_window.get(), &Window::xChanged, [this](int x) {
     if(onWindowMove)
       onWindowMove(QPointF(x, m_window->y()));
@@ -792,8 +971,21 @@ void ScreenNode::createOutput(score::gfx::OutputConfiguration conf)
     if(onFps)
       onFps(f);
   });
+  }
+
+  m_window->onAboutToRender = [this] { onRendererChange(); };
   m_window->onUpdate = this->m_vsyncCallback;
   m_window->onWindowReady = [this, graphicsApi=conf.graphicsApi, onReady = std::move(conf.onReady)] {
+    // A window that comes back after a close builds a whole new device here.
+    // Everything the output carries across a RenderList rebuild -- the
+    // GpuResourceRegistry above all -- is bound to the OLD one, and
+    // RenderList::init() refuses to reuse a registry bound elsewhere (it
+    // throws, in a release build, so the list is silently never built and the
+    // window stays black). Let both go while that device is still alive, which
+    // is what makes destroying their QRhi resources legal.
+    releaseOwnedRenderList();
+    releaseRegistry();
+
     m_window->state = createRenderState(*m_window, graphicsApi);
     m_window->state->window = m_window;
     m_window->state->renderSize = QSize(1280, 720);
@@ -817,7 +1009,12 @@ void ScreenNode::createOutput(score::gfx::OutputConfiguration conf)
       m_swapChain->setDepthStencil(m_depthStencil);
       m_swapChain->setSampleCount(m_window->state->samples);
 
-      QRhiSwapChain::Flags flags = QRhiSwapChain::MinimalBufferCount;
+      // UsedAsTransferSource is what makes a backbuffer readback legal at all
+      // (QRhiReadbackDescription with a null texture); without it grabTo can
+      // only fall back to grabbing the screen, which captures whatever is in
+      // front of the window rather than what we rendered.
+      QRhiSwapChain::Flags flags
+          = QRhiSwapChain::MinimalBufferCount | QRhiSwapChain::UsedAsTransferSource;
       if(!score::AppContext().settings<Gfx::Settings::Model>().getVSync())
         flags |= QRhiSwapChain::NoVSync;
       if(m_swapchainFlag == Gfx::SwapchainFlag::sRGB)
@@ -831,6 +1028,21 @@ void ScreenNode::createOutput(score::gfx::OutputConfiguration conf)
       onReady();
     }
   };
+  // Closing the window, and any platform that destroys the surface when it is
+  // hidden, releases the swap chain from inside Window::event() -- a teardown of
+  // this output's QRhi resources that does not go through
+  // Graph::destroyOutputRenderList. The Graph would otherwise keep a RenderList
+  // built against what was just freed, and the re-expose that follows rebuilds
+  // on top of it. MultiWindowNode already answers onClose for the same reason.
+  m_window->onClose = [this] {
+    releaseOwnedRenderList();
+    // The registry deliberately outlives a RenderList rebuild, but not the QRhi
+    // it is bound to: a window that comes back after this gets a new device, and
+    // RenderList::init() asserts boundRhi() == &rhi on the reuse path. Only
+    // destroyOutput() released it, and closing the window never goes there.
+    releaseRegistry();
+  };
+
   m_window->onResize = [this, onResize = std::move(conf.onResize)] {
     if(m_window && m_window->state)
     {
@@ -916,6 +1128,11 @@ void ScreenNode::destroyOutput()
     // (between beginFrame and endFrame). If this fires, some upstream
     // path triggered a teardown mid-render — the cascade would be
     // worse than just deferring to next frame.
+    // An exception between beginFrame and endFrame (or a bailed-out render)
+    // can leave the frame recording; close it without presenting so teardown
+    // can proceed instead of asserting.
+    if(m_window->state->rhi->isRecordingFrame() && m_swapChain)
+      m_window->state->rhi->endFrame(m_swapChain, QRhi::SkipPresent);
     SCORE_ASSERT(!m_window->state->rhi->isRecordingFrame());
     m_window->state->rhi->finish();
   }
@@ -1041,7 +1258,7 @@ void ScreenNode::setVSyncCallback(std::function<void ()> f)
     // frame and the chain stays dead until a platform expose. Kick one on the
     // null -> non-null transition. Queued and window-scoped, so it is a no-op if
     // the window dies first and never runs re-entrantly inside the rebuild.
-    if(!wasArmed && m_vsyncCallback)
+    if(m_vsyncCallback)
     {
       auto* w = m_window.get();
       QMetaObject::invokeMethod(w, [w] { w->requestUpdate(); }, Qt::QueuedConnection);

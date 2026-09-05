@@ -19,6 +19,7 @@
 
 #include <QLocale>
 #include <QObject>
+#include <QStringDecoder>
 #include <QStringList>
 #include <QVector2D>
 #include <QVector3D>
@@ -562,6 +563,235 @@ char value(const ossia::value& val)
   return value<QChar>(val).toLatin1();
 }
 
+bool isMultiLine(const QString& text) noexcept
+{
+  return text.contains('\n') || text.contains('\r');
+}
+
+bool isBinary(const QByteArray& bytes) noexcept
+{
+  // No transcode: this runs per cell per repaint.
+  if(!bytes.isValidUtf8())
+    return true;
+
+  for(char c : bytes)
+  {
+    const auto u = (unsigned char)c;
+    if(u == '\t' || u == '\n' || u == '\r')
+      continue;
+    if(u < 0x20 || u == 0x7F)
+      return true;
+  }
+  return false;
+}
+
+QString binarySummary(const QByteArray& bytes)
+{
+  const auto head = QString::fromLatin1(bytes.left(6).toHex(' '));
+  return QObject::tr("%1%2  [%3 bytes]")
+      .arg(head)
+      .arg(bytes.size() > 6 ? QStringLiteral("…") : QString{})
+      .arg(bytes.size());
+}
+
+SingleLine splitSingleLine(const QString& text)
+{
+  // Already collapsed, usually: the models put toSingleLine's output in the
+  // display role, and that is what a delegate is handed to paint.
+  const QString whole = isMultiLine(text) ? toSingleLine(text) : text;
+
+  // toSingleLine and binarySummary both glue their marker on with a double
+  // space, and nothing else does. A translation that drops the brackets only
+  // costs the marker its own pen.
+  const int at = whole.lastIndexOf(QStringLiteral("  ["));
+  if(at < 0 || !whole.endsWith(']'))
+    return {whole, {}};
+
+  return {whole.left(at), whole.mid(at + 2)};
+}
+
+//! The map form. The grammar has no rule for it -- a brace-delimited list of
+//! `key: value` needs a hand-written scan to find the separators that are not
+//! inside a nested list or a quoted string.
+std::optional<ossia::value> parseMap(const QString& text)
+{
+  const auto t = text.trimmed();
+  if(!t.startsWith('{') || !t.endsWith('}'))
+    return std::nullopt;
+
+  ossia::value_map_type map;
+  const auto body = t.mid(1, t.size() - 2).trimmed();
+  if(body.isEmpty())
+    return ossia::value{map};
+
+  int depth = 0;
+  bool quoted = false;
+  bool escaped = false;
+  QString cur;
+  QStringList entries;
+  QList<int> seps; // the separating ':' of each entry, found while scanning
+  int sep = -1;
+  for(QChar c : body)
+  {
+    if(escaped)
+    {
+      // A \" inside a string is not the end of it.
+      escaped = false;
+      cur += c;
+      continue;
+    }
+
+    if(quoted && c == '\\')
+      escaped = true;
+    else if(c == '"')
+      quoted = !quoted;
+    else if(!quoted && (c == '[' || c == '{'))
+      depth++;
+    else if(!quoted && (c == ']' || c == '}'))
+      depth--;
+    else if(!quoted && c == ':' && depth == 0 && sep < 0)
+      sep = cur.size();
+
+    if(c == ',' && depth == 0 && !quoted)
+    {
+      entries.push_back(cur);
+      seps.push_back(sep);
+      cur.clear();
+      sep = -1;
+    }
+    else
+    {
+      cur += c;
+    }
+  }
+  entries.push_back(cur);
+  seps.push_back(sep);
+
+  for(int i = 0; i < entries.size(); i++)
+  {
+    const auto& entry = entries[i];
+    if(seps[i] < 0)
+      return std::nullopt;
+
+    // The key goes through the value parser too, so that its escapes read the
+    // same way as any other string's.
+    const auto keyText = entry.left(seps[i]).trimmed();
+    std::string key;
+    if(keyText.startsWith('"'))
+    {
+      auto parsed = parseValue(keyText.toStdString());
+      auto* str = parsed ? parsed->target<std::string>() : nullptr;
+      if(!str)
+        return std::nullopt;
+      key = *str;
+    }
+    else
+    {
+      key = keyText.toStdString();
+    }
+
+    auto val = parseValue(entry.mid(seps[i] + 1).trimmed().toStdString());
+    if(!val)
+      return std::nullopt;
+
+    map.emplace_back(std::move(key), *val);
+  }
+  return ossia::value{map};
+}
+
+QString stringCellText(const QByteArray& bytes)
+{
+  if(isBinary(bytes))
+    return binarySummary(bytes);
+  return toSingleLine(QString::fromUtf8(bytes));
+}
+
+QString stringCellToolTip(const QByteArray& bytes)
+{
+  // A blob has nothing to read and can be megabytes: the cell's own summary
+  // already says everything there is to say about it.
+  if(isBinary(bytes))
+    return {};
+
+  const auto text = QString::fromUtf8(bytes);
+  return isMultiLine(text) ? text : QString{};
+}
+
+//! What a collapsed cell says it is not showing. Spelled out rather than
+//! tr("%n"): with no translator loaded Qt keeps the source string as it is, so
+//! the plural form would read "[+1 lines]".
+static QString lineMarker(int hidden)
+{
+  if(hidden <= 0)
+    return QObject::tr("[+line break]");
+  if(hidden == 1)
+    return QObject::tr("[+1 line]");
+  return QObject::tr("[+%1 lines]").arg(hidden);
+}
+
+QString toSingleLine(const QString& text)
+{
+  if(!isMultiLine(text))
+    return text;
+
+  // One pass rather than a split: CR, LF and CRLF all end one line.
+  int first = -1;
+  int hidden = 0;
+  for(int i = 0; i < text.size(); i++)
+  {
+    const QChar c = text[i];
+    if(c != '\n' && c != '\r')
+      continue;
+
+    if(first < 0)
+      first = i;
+    hidden++;
+    if(c == '\r' && i + 1 < text.size() && text[i + 1] == '\n')
+      i++;
+  }
+
+  // A text ending on a line break hides no *line* past it, but it still holds
+  // a break the cell cannot show; mark it, or the field goes read-only with
+  // nothing to say why.
+  if(text.endsWith('\n') || text.endsWith('\r'))
+    hidden--;
+
+  // Concatenated, not %1: the head is the value, and a value containing "%2"
+  // would rewrite the count.
+  return text.left(first) + QStringLiteral("  ") + lineMarker(hidden);
+}
+
+QString escapeStringLiteral(const QString& s)
+{
+  QString out;
+  out.reserve(s.size());
+  for(QChar c : s)
+  {
+    switch(c.unicode())
+    {
+      case '\\':
+        out += QStringLiteral("\\\\");
+        break;
+      case '"':
+        out += QStringLiteral("\\\"");
+        break;
+      case '\n':
+        out += QStringLiteral("\\n");
+        break;
+      case '\r':
+        out += QStringLiteral("\\r");
+        break;
+      case '\t':
+        out += QStringLiteral("\\t");
+        break;
+      default:
+        out += c;
+        break;
+    }
+  }
+  return out;
+}
+
 QString toPrettyString(float f)
 {
   // A float carries this many decimal digits; asking for more only prints the
@@ -608,7 +838,17 @@ QString toPrettyString(const ossia::value& val)
       str.remove(loc.groupSeparator());
       return str;
     }
-    QString operator()(float f) const { return toPrettyString(f); }
+    //! The adorned form has to read back as the same *type*: "1" is an int, so
+    //! a whole float keeps a point. toPrettyString(float) is the display
+    //! spelling, and stays trimmed.
+    QString operator()(float f) const
+    {
+      auto s = toPrettyString(f);
+      const bool plain
+          = !s.contains('.') && !s.contains('e') && !s.contains('E')
+            && !s.contains(QStringLiteral("inf")) && !s.contains(QStringLiteral("nan"));
+      return plain ? s + QStringLiteral(".0") : s;
+    }
     QString operator()(bool b) const
     {
       return QString::fromStdString(
@@ -617,8 +857,7 @@ QString toPrettyString(const ossia::value& val)
     }
     QString operator()(const QString& s) const
     {
-      // TODO escape ?
-      return QString("\"%1\"").arg(s);
+      return QString("\"%1\"").arg(escapeStringLiteral(s));
     }
     QString operator()(const std::string& s) const
     {
@@ -699,14 +938,20 @@ QString toPrettyString(const ossia::value& val)
       auto n = t.size();
       if(n >= 1)
       {
+        // UTF-8, matching the toStdString the readers use; Latin-1 turned a
+        // key like "clé" into mojibake on the way back in.
+        auto key = [](const auto& k) {
+          return escapeStringLiteral(
+              QString::fromUtf8(k.data(), (qsizetype)k.size()));
+        };
+
         auto it = t.begin();
-        s += QString{"\"%1\": "}.arg(QLatin1String(it->first.data(), it->first.size()));
+        s += QString{"\"%1\": "}.arg(key(it->first));
         s += ossia::apply(*this, it->second);
 
         for(++it; it != t.end(); ++it)
         {
-          s += QString{", \"%1\": "}.arg(
-              QLatin1String(it->first.data(), it->first.size()));
+          s += QString{", \"%1\": "}.arg(key(it->first));
           s += ossia::apply(*this, it->second);
         }
       }

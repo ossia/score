@@ -8,6 +8,8 @@
 #include <State/ValueConversion.hpp>
 #include <State/ValueSerialization.hpp>
 
+#include <cctype>
+
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
@@ -116,6 +118,15 @@ QLatin1String prettyUnitText(const ossia::unit_t& u)
 
 std::optional<ossia::value> parseValue(std::string_view input)
 {
+  // The grammar has no rule for a map; convert::parseMap scans one by hand.
+  // Checked here so that toPrettyString round-trips a map like anything else,
+  // and so that a map nested in a list is read by the same code.
+  {
+    const auto trimmed = QString::fromUtf8(input).trimmed();
+    if(trimmed.startsWith('{'))
+      return convert::parseMap(trimmed);
+  }
+
   auto f(std::cbegin(input)), l(std::cend(input));
   Value_parser<decltype(f)> p;
   try
@@ -124,6 +135,15 @@ std::optional<ossia::value> parseValue(std::string_view input)
     bool ok = qi::phrase_parse(f, l, p, qi::standard::space, result);
 
     if(!ok)
+    {
+      return {};
+    }
+
+    // The whole input, or none of it: `"abc" junk` used to parse as "abc",
+    // which is how text that names no value gets committed as one.
+    while(f != l && std::isspace((unsigned char)*f))
+      ++f;
+    if(f != l)
     {
       return {};
     }

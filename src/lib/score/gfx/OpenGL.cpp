@@ -110,6 +110,30 @@ struct GLCapabilitiesResult
 };
 }
 
+void setupDefaultOpenGLFormat() noexcept
+{
+#ifndef QT_NO_OPENGL
+  QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
+#if(defined(__arm__) || defined(__aarch64__)) && !defined(_WIN32) && !defined(__APPLE__)
+  fmt.setRenderableType(QSurfaceFormat::OpenGLES);
+  fmt.setSwapInterval(1);
+  fmt.setVersion(3, 2);
+  QSurfaceFormat::setDefaultFormat(fmt);
+#elif defined(__APPLE__)
+  // Apple ships exactly two GL profiles and Qt's default is the wrong one:
+  //   legacy   -> "2.1 Metal - 90.5", GLSL 1.20
+  //   4.1 core -> "4.1 Metal - 90.5", GLSL 4.10
+  // A core profile below 3.2 does not exist there: ask for one and the legacy
+  // context comes back.
+  fmt.setRenderableType(QSurfaceFormat::OpenGL);
+  fmt.setProfile(QSurfaceFormat::CoreProfile);
+  fmt.setSwapInterval(1);
+  fmt.setVersion(4, 1);
+  QSurfaceFormat::setDefaultFormat(fmt);
+#endif
+#endif
+}
+
 GLCapabilities::GLCapabilities()
 {
 #ifndef QT_NO_OPENGL

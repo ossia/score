@@ -5,7 +5,7 @@
 // rebuild. 18 ticks = 6 full cycles; the cycle ends on play() so the
 // final grab happens on a running transport. PASS = clean exit (render
 // verdict is informational: the base proc should still show).
-eval(Score.readFile("/home/jcelerier/ossia/wt/score-tests/tests/integration/live-edit/common.js"));
+eval(Score.readFile(LIVE_EDIT_DIR + "/common.js"));
 
 var NAME  = "transport-storm";
 var g_tmp = null;

@@ -174,6 +174,8 @@ struct BorrowedHostImportCapture final : VideoCaptureStrategy
     // The producer's stride; D3D12 builds its copy footprint from it.
     const std::size_t rowPitch
         = cfg.height > 0 ? cfg.frameByteSize / std::size_t(cfg.height) : 0;
+    // Vulkan needs it too, not only D3D12.
+    m_rowPitch = rowPitch;
 
     const bool ok = vkAlign ? m_hostImport.init(*cfg.rhi, ptrs, cfg.frameByteSize)
                             : m_d3dImport.init(
@@ -240,8 +242,12 @@ struct BorrowedHostImportCapture final : VideoCaptureStrategy
       return;
     const auto s = static_cast<std::size_t>(slot);
     auto upload = [&](QRhiTexture& t, int w, int h, std::size_t off) {
-      return m_hostImport.valid() ? m_hostImport.copyToTexture(*cb, t, s, w, h, off)
-                                  : m_d3dImport.copyToTexture(*cb, t, s, w, h, off);
+      // Single-plane only: a planar layout gives each plane its own stride, and
+      // one number cannot describe them, so those stay tightly packed as before.
+      const std::size_t pitch = m_planeUploads.empty() ? m_rowPitch : 0;
+      return m_hostImport.valid()
+                 ? m_hostImport.copyToTexture(*cb, t, s, w, h, off, pitch)
+                 : m_d3dImport.copyToTexture(*cb, t, s, w, h, off);
     };
 
     if(!m_planeUploads.empty())
@@ -258,6 +264,10 @@ struct BorrowedHostImportCapture final : VideoCaptureStrategy
   void releaseAfterRender() override { }
 
 private:
+  /// The producer's row stride in bytes, 0 when unknown. A captured frame is
+  /// padded to the device's alignment far more often than not.
+  std::size_t m_rowPitch{};
+
   /// Per-plane destination for a planar layout; empty for single-plane, which
   /// keeps the common path a single copy with no indirection.
   struct PlaneUpload

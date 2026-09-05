@@ -12,12 +12,14 @@
 #include <Scenario/Document/ScenarioDocument/SnapshotAction.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/plugins/panel/PanelDelegate.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
 
 #include <core/document/Document.hpp>
 #include <core/document/DocumentView.hpp>
 
+#include <QQmlEngine>
 #include <QApplication>
 #include <QGuiApplication>
 #include <QMainWindow>
@@ -75,6 +77,75 @@ bool JsViewContext::grabMainWindow(QString path)
   if(!w)
     return false;
   return w->grab().save(path);
+}
+
+bool JsViewContext::grabWidget(QObject* widget, QString path)
+{
+  auto* w = qobject_cast<QWidget*>(widget);
+  if(!w)
+    return false;
+  return w->grab().save(path);
+}
+
+namespace
+{
+//! The engine takes ownership of a QObject it is handed unless told not to,
+//! and a panel widget is parented late enough to look collectable. Without
+//! this, destroy() on one of these deletes the live panel.
+QObject* keep(QObject* o)
+{
+  if(o)
+    QQmlEngine::setObjectOwnership(o, QQmlEngine::CppOwnership);
+  return o;
+}
+}
+
+QObject* JsViewContext::panel(QString name)
+{
+  // The pretty name is what the header shows, and it is translated; the
+  // widget's class name is not, so a script keeps working under a translated
+  // UI. panels() lists both.
+  for(auto& p : score::GUIAppContext().panels())
+  {
+    if(p.defaultPanelStatus().prettyName.compare(name, Qt::CaseInsensitive) == 0)
+      return keep(p.widget());
+  }
+
+  for(auto& p : score::GUIAppContext().panels())
+  {
+    auto* w = p.widget();
+    if(w
+       && name.compare(
+              QString::fromUtf8(w->metaObject()->className()), Qt::CaseInsensitive)
+              == 0)
+      return keep(w);
+  }
+  return nullptr;
+}
+
+QStringList JsViewContext::panels()
+{
+  QStringList out;
+  for(auto& p : score::GUIAppContext().panels())
+  {
+    out += p.defaultPanelStatus().prettyName;
+    if(auto* w = p.widget())
+      out += QString::fromUtf8(w->metaObject()->className());
+  }
+  return out;
+}
+
+QObject* JsViewContext::child(QObject* parent, QString className)
+{
+  if(!parent)
+    return nullptr;
+
+  // By class name: the widgets inside a panel are rarely named.
+  const auto utf8 = className.toUtf8();
+  for(auto* o : parent->findChildren<QObject*>())
+    if(o->inherits(utf8.constData()))
+      return keep(o);
+  return nullptr;
 }
 
 bool JsViewContext::grabScreen(QString path)

@@ -13,14 +13,17 @@
 
 #include <ossia/detail/hash_map.hpp>
 
+#include <score_plugin_gfx_export.h>
+
 namespace Gfx
 {
-std::vector<score::gfx::Image>
+SCORE_PLUGIN_GFX_EXPORT std::vector<score::gfx::Image>
 getImages(const ossia::value& val, const score::DocumentContext& ctx);
-ossia::value fromImageSet(const std::span<score::gfx::Image>& images);
-void releaseImages(std::vector<score::gfx::Image>& imgs);
+SCORE_PLUGIN_GFX_EXPORT ossia::value
+fromImageSet(const std::span<score::gfx::Image>& images);
+SCORE_PLUGIN_GFX_EXPORT void releaseImages(std::vector<score::gfx::Image>& imgs);
 
-struct ImageCache
+struct SCORE_PLUGIN_GFX_EXPORT ImageCache
 {
 public:
   std::optional<score::gfx::Image> acquire(const QString& path);
@@ -36,7 +39,7 @@ W_REGISTER_ARGTYPE(score::gfx::Image)
 
 namespace Gfx::Images
 {
-class Model final : public Process::ProcessModel
+class SCORE_PLUGIN_GFX_EXPORT Model final : public Process::ProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Gfx::Images::Model)
@@ -65,9 +68,16 @@ public:
   //
 private:
   void on_imagesChanged(const ossia::value& v);
+  //! Deserialization tail: upgrade old port lists, reconnect the image-list
+  //! port (writePorts rebuilds every port, severing the constructor's
+  //! connection) and refresh the Index domain.
+  void finishLoad();
   QString prettyName() const noexcept override;
   std::vector<score::gfx::Image> m_currentImages;
 };
+
+//! Suffixes this Qt build can actually decode (built-ins + linked plugins).
+SCORE_PLUGIN_GFX_EXPORT const QSet<QString>& supportedImageExtensions();
 
 using ProcessFactory = Process::ProcessFactory_T<Gfx::Images::Model>;
 

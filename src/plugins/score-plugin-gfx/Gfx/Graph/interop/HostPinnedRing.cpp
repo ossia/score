@@ -812,7 +812,18 @@ HostPinnedRing::HostPinnedRing() noexcept = default;
 HostPinnedRing::~HostPinnedRing() { destroy(); }
 
 HostPinnedRing::HostPinnedRing(HostPinnedRing&&) noexcept = default;
-HostPinnedRing& HostPinnedRing::operator=(HostPinnedRing&&) noexcept = default;
+
+HostPinnedRing& HostPinnedRing::operator=(HostPinnedRing&& other) noexcept
+{
+  // Impl has no destructor and freeSlots() is reachable only from destroy(),
+  // so the move-assignment must destroy() first.
+  if(this != &other)
+  {
+    destroy();
+    m_impl = std::move(other.m_impl);
+  }
+  return *this;
+}
 
 const char* hostPinnedBackendName(HostPinnedRingBackend b) noexcept
 {

@@ -31,6 +31,8 @@
 
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
 
+#include <score_plugin_gfx_export.h>
+
 #include <QFile>
 
 extern "C" {
@@ -44,6 +46,7 @@ namespace score::gfx
 /// advertises the external-image extension. Checked before the backend commits
 /// to it, because an external texture the driver will not sample is worse than
 /// the CPU path.
+SCORE_PLUGIN_GFX_EXPORT
 bool nv12ExternalOesUsable(QRhi::Implementation backend) noexcept;
 
 /// Rewrite baked GLSL so its `sampler2D tex` becomes `samplerExternalOES tex`,

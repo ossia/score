@@ -196,6 +196,9 @@ void VideoThumbnailer::onRequest(int64_t req, QVector<int64_t> flicks)
 
 QImage VideoThumbnailer::process(int64_t flicks)
 {
+  if(!m_formatContext || !m_codecContext || m_stream < 0 || !m_rescale || !m_rgb)
+    return {};
+
   AVFramePointer res;
   // 1. Seek and decode
   {
@@ -252,8 +255,16 @@ QImage VideoThumbnailer::process(int64_t flicks)
   // m_rgb's 32-byte-aligned stride instead left the columns past smallWidth
   // uninitialised and threw the aspect ratio away with them.
   QImage img{QSize(smallWidth, smallHeight), QImage::Format_RGB888};
-  uint8_t* data[1] = {(uint8_t*)img.bits()};
-  int strides[1] = {int(img.bytesPerLine())};
+  // Four planes, not one. sws_scale indexes dst[] and dstStride[] up to
+  // AV_NUM_DATA_POINTERS-worth of planes regardless of the destination pixel
+  // format -- it reads the unused slots before deciding they are unused. A
+  // one-element array on the stack therefore gets read out of bounds, which is
+  // what AddressSanitizer reports here. RGB888 is packed, so only plane 0 is
+  // ever written; the rest must simply exist and be null. The rescaler two
+  // files over gets this right for free by passing an AVFrame's own data /
+  // linesize, which are AV_NUM_DATA_POINTERS long (Rescale.cpp:105).
+  uint8_t* data[4] = {(uint8_t*)img.bits(), nullptr, nullptr, nullptr};
+  int strides[4] = {int(img.bytesPerLine()), 0, 0, 0};
   sws_scale(m_rescale, res->data, res->linesize, 0, this->height, data, strides);
 
   return img;

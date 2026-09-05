@@ -1,6 +1,7 @@
 #include "GeometryLoader.hpp"
 
 #include <QMatrix4x4>
+#include <cmath>
 #include <QString>
 
 #include <Threedim/Debug.hpp>
@@ -81,7 +82,7 @@ void GeometryLoader::rebuild_geometry()
     {
       geom.bindings.push_back(
           halp::geometry_binding{
-              .stride = 3 * sizeof(float),
+              .stride = int(m.color_components * sizeof(float)),
               .step_rate = 1,
               .classification = halp::binding_classification::per_vertex});
     }
@@ -129,7 +130,8 @@ void GeometryLoader::rebuild_geometry()
           halp::geometry_attribute{
               .binding = geom.attributes.back().binding + 1,
               .semantic = halp::attribute_semantic::color0,
-              .format = halp::attribute_format::float3,
+              .format = m.color_components == 4 ? halp::attribute_format::float4
+                                                : halp::attribute_format::float3,
               .byte_offset = 0});
     }
 
@@ -223,7 +225,55 @@ std::function<void(GeometryLoader&)> GeometryLoader::ins::geom_t::process(file_t
   // the execution thread and swaps into the loader instance's members,
   // then triggers rebuild_geometry to populate the dynamic_geometry
   // output.
-  auto upload = [](auto&& mesh, auto&& buf) {
+  // Derive flat per-face normals for any triangle mesh a loader returned
+  // without them. A mesh with no normals renders BLACK under any lit
+  // material (the Light projection has nothing to dot against): STL got
+  // its per-face normals in 1a02c5cabf, but the TinyObj path leaves an OBJ
+  // that carries no `vn` records normal-less. Deriving them here — at the
+  // loader that feeds the renderer, not in ObjFromString whose documented
+  // contract is to report normals as absent — keeps a loaded mesh visible.
+  auto deriveMissingNormals = [](std::vector<mesh>& meshes,
+                                 Threedim::float_vec& buf) {
+    for(auto& m : meshes)
+    {
+      if(m.normals || m.points || m.vertices <= 0)
+        continue;
+
+      const int64_t nrm_offset = int64_t(buf.size());
+      buf.resize(buf.size() + m.vertices * 3, 0.f);
+      const float* pos = buf.data() + m.pos_offset;
+      float* nrm = buf.data() + nrm_offset;
+      for(int64_t t = 0; t < m.vertices / 3; ++t)
+      {
+        const float* p0 = pos + 9 * t;
+        const float* p1 = p0 + 3;
+        const float* p2 = p0 + 6;
+        const float ux = p1[0] - p0[0], uy = p1[1] - p0[1], uz = p1[2] - p0[2];
+        const float vx = p2[0] - p0[0], vy = p2[1] - p0[1], vz = p2[2] - p0[2];
+        float nx = uy * vz - uz * vy;
+        float ny = uz * vx - ux * vz;
+        float nz = ux * vy - uy * vx;
+        const float len = std::sqrt(nx * nx + ny * ny + nz * nz);
+        if(len > 0.f)
+        {
+          nx /= len;
+          ny /= len;
+          nz /= len;
+        }
+        for(int c = 0; c < 3; ++c)
+        {
+          *nrm++ = nx;
+          *nrm++ = ny;
+          *nrm++ = nz;
+        }
+      }
+      m.normal_offset = nrm_offset;
+      m.normals = true;
+    }
+  };
+
+  auto upload = [&](auto&& mesh, auto&& buf) {
+    deriveMissingNormals(mesh, buf);
     return [mesh = std::move(mesh), buf = std::move(buf)](GeometryLoader& o) mutable {
       std::swap(o.meshinfo, mesh);
       std::swap(o.complete, buf);

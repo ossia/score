@@ -510,6 +510,27 @@ FileChooser::FileChooser(
 
 FileChooser::~FileChooser() { }
 
+FileChooser::FileChooser(DataStream::Deserializer& vis, QObject* parent)
+    : FileChooserBase{vis, parent}
+{
+  vis.writeTo(*this);
+}
+FileChooser::FileChooser(JSONObject::Deserializer& vis, QObject* parent)
+    : FileChooserBase{vis, parent}
+{
+  vis.writeTo(*this);
+}
+FileChooser::FileChooser(DataStream::Deserializer&& vis, QObject* parent)
+    : FileChooserBase{vis, parent}
+{
+  vis.writeTo(*this);
+}
+FileChooser::FileChooser(JSONObject::Deserializer&& vis, QObject* parent)
+    : FileChooserBase{vis, parent}
+{
+  vis.writeTo(*this);
+}
+
 FolderChooser::FolderChooser(
     QString init, const QString& name, Id<Port> id, QObject* parent)
     : Process::ControlInlet{name, id, parent}
@@ -536,6 +557,27 @@ AudioFileChooser::AudioFileChooser(
 }
 
 AudioFileChooser::~AudioFileChooser() { }
+
+AudioFileChooser::AudioFileChooser(DataStream::Deserializer& vis, QObject* parent)
+    : FileChooserBase{vis, parent}
+{
+  vis.writeTo(*this);
+}
+AudioFileChooser::AudioFileChooser(JSONObject::Deserializer& vis, QObject* parent)
+    : FileChooserBase{vis, parent}
+{
+  vis.writeTo(*this);
+}
+AudioFileChooser::AudioFileChooser(DataStream::Deserializer&& vis, QObject* parent)
+    : FileChooserBase{vis, parent}
+{
+  vis.writeTo(*this);
+}
+AudioFileChooser::AudioFileChooser(JSONObject::Deserializer&& vis, QObject* parent)
+    : FileChooserBase{vis, parent}
+{
+  vis.writeTo(*this);
+}
 
 static QString toFilters(const QSet<QString>& exts)
 {
@@ -566,6 +608,27 @@ VideoFileChooser::VideoFileChooser(
 }
 
 VideoFileChooser::~VideoFileChooser() { }
+
+VideoFileChooser::VideoFileChooser(DataStream::Deserializer& vis, QObject* parent)
+    : FileChooserBase{vis, parent}
+{
+  vis.writeTo(*this);
+}
+VideoFileChooser::VideoFileChooser(JSONObject::Deserializer& vis, QObject* parent)
+    : FileChooserBase{vis, parent}
+{
+  vis.writeTo(*this);
+}
+VideoFileChooser::VideoFileChooser(DataStream::Deserializer&& vis, QObject* parent)
+    : FileChooserBase{vis, parent}
+{
+  vis.writeTo(*this);
+}
+VideoFileChooser::VideoFileChooser(JSONObject::Deserializer&& vis, QObject* parent)
+    : FileChooserBase{vis, parent}
+{
+  vis.writeTo(*this);
+}
 
 Button::Button(const QString& name, Id<Port> id, QObject* parent)
     : ControlInlet{name, id, parent}
@@ -1211,9 +1274,14 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONWriter::write(Process::FileChooser& p)
 {
-  QString f;
-  f <<= obj["Filters"];
-  p.setFilters(f);
+  // tryGet: these three writers became REACHABLE when the deserializing
+  // constructors were added, and documents older than the "Filters" key exist.
+  if(auto it = obj.tryGet("Filters"))
+  {
+    QString f;
+    f <<= *it;
+    p.setFilters(f);
+  }
 }
 
 template <>
@@ -1265,9 +1333,12 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONWriter::write(Process::AudioFileChooser& p)
 {
-  QString f;
-  f <<= obj["Filters"];
-  p.setFilters(f);
+  if(auto it = obj.tryGet("Filters"))
+  {
+    QString f;
+    f <<= *it;
+    p.setFilters(f);
+  }
 }
 
 template <>
@@ -1292,9 +1363,12 @@ SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::VideoFileChooser& 
 template <>
 SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::VideoFileChooser& p)
 {
-  QString f;
-  f <<= obj["Filters"];
-  p.setFilters(f);
+  if(auto it = obj.tryGet("Filters"))
+  {
+    QString f;
+    f <<= *it;
+    p.setFilters(f);
+  }
 }
 
 template <>

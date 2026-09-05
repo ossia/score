@@ -1261,3 +1261,13 @@ if(SCORE_INSTALL_HEADERS)
     OPTIONAL
   )
 endif()
+
+
+# UBSan at -O1 is pathological on these TUs (>420 s / 5.7 GB on the worst one);
+# dropping the optimisation level under UBSan takes it to ~14 s with full
+# sanitizer coverage. A sanitizer build is not a performance build; this costs
+# nothing that matters there.
+if(CMAKE_CXX_FLAGS MATCHES "sanitize=[a-z,]*undefined")
+  target_compile_options(score_plugin_avnd PRIVATE -O0)
+  message(STATUS "score_plugin_avnd: -O0 (UBSan + -O1 is superlinear here)")
+endif()

@@ -7,6 +7,7 @@
 //
 //   DISPLAY=:0 SCORE_TEST_API=vulkan ctest -R gfx_orientation_findings   # green
 //   DISPLAY=:0 SCORE_TEST_API=opengl ctest -R gfx_orientation_findings   # RED
+
 // =============================================================================
 #include "IsfTestCommon.hpp"
 
@@ -45,6 +46,8 @@ TEST_CASE(
   });
   if(r.skipped)
     SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(backend))
+    SKIP(why);
   INFO("backend=" << r.backend);
   REQUIRE(r.error.empty());
   REQUIRE(r.outputs.size() == 1);

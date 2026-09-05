@@ -14,7 +14,8 @@ namespace score::gfx
 {
 struct BackgroundNode : OutputNode
 {
-  explicit BackgroundNode()
+  explicit BackgroundNode(SharedDeviceMode deviceMode = SharedDeviceMode::Owned)
+      : m_deviceMode{deviceMode}
   {
     input.push_back(new Port{this, {}, Types::Image, {}});
     auto& ctx = score::GUIAppContext();
@@ -45,6 +46,15 @@ struct BackgroundNode : OutputNode
       }
       else
       {
+        // Nothing upstream: the render list holds only this output. Clearing
+        // leaves pixelSize at QSize(-1,-1), which WindowDevice::grabTo reports
+        // as "nothing rendered ... no process is connected to this device's
+        // input". That message is a FALSE BLANK whenever the graph is in fact
+        // connected, so say which it is rather than leaving the caller to guess.
+        if(qEnvironmentVariableIsSet("SCORE_GFX_TRACE"))
+          fprintf(
+              stderr, "GFX-BACKGROUND readback cleared: renderers=%zu\n",
+              renderer->renderers.size());
         shared_readback->data.clear();
         shared_readback->pixelSize = {};
       }
@@ -60,6 +70,7 @@ struct BackgroundNode : OutputNode
   void createOutput(score::gfx::OutputConfiguration conf) override
   {
     m_onResize = conf.onResize;
+    m_onReleaseRenderList = conf.onReleaseRenderList;
     // Cache the requested graphics API so setSwapchainFormat can rebuild
     // through createOutput when the format actually changes (live HDR↔SDR
     // toggle). Without this the format setter was inert: m_swapchainFormat
@@ -73,7 +84,8 @@ struct BackgroundNode : OutputNode
     if(newSz.width() <= 0 || newSz.height() <= 0)
       newSz = QSize{1024, 1024};
 
-    m_renderState = score::gfx::createRenderState(conf.graphicsApi, newSz, nullptr);
+    m_renderState = score::gfx::createRenderState(
+        conf.graphicsApi, newSz, nullptr, m_deviceMode);
     if(!m_renderState || !m_renderState->rhi)
     {
       qWarning() << "BackgroundNode: failed to create QRhi";
@@ -183,6 +195,10 @@ struct BackgroundNode : OutputNode
       score::gfx::OutputConfiguration conf;
       conf.graphicsApi = m_lastGraphicsApi;
       conf.onResize = m_onResize;
+      conf.onReleaseRenderList = m_onReleaseRenderList;
+      // The Graph-owned RenderList holds QRhiResources belonging to the QRhi
+      // destroyOutput() is about to `delete`; release it first.
+      releaseOwnedRenderList();
       destroyOutput();
       createOutput(std::move(conf));
       if(m_onResize)
@@ -290,6 +306,7 @@ struct BackgroundNode : OutputNode
 
 private:
   Configuration m_conf;
+  SharedDeviceMode m_deviceMode{SharedDeviceMode::Owned};
 
   std::weak_ptr<score::gfx::RenderList> m_renderer{};
   QRhiTexture* m_texture{};

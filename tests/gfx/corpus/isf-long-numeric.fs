@@ -12,7 +12,7 @@ void main()
 {
     vec2 uv = isf_FragNormCoord;
     int row = int(floor(uv.y * float(inCount)));
-    float frac = fract(uv.y * float(inCount));
+    float bandFrac = fract(uv.y * float(inCount));
 
     // Alternating colored bars
     float hue = float(row) / float(inCount);
@@ -23,7 +23,7 @@ void main()
     );
 
     // Gap between bars
-    float mask = step(0.05, frac) * step(frac, 0.95);
+    float mask = step(0.05, bandFrac) * step(bandFrac, 0.95);
 
     gl_FragColor = vec4(col * mask, 1.0);
 }

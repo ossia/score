@@ -60,6 +60,8 @@ TEST_CASE("csf-3d-image-write feeds a 3D volume to an ISF slice viewer", "[gfx][
 
   if(r.skipped)
     SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = score::test::gfx::compute_shader_skip_reason(backend))
+    SKIP(why);
 
   INFO("backend=" << r.backend);
   REQUIRE(r.error.empty());

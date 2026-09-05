@@ -22,9 +22,29 @@
 # 77 = missing prerequisites (skip).
 set -u
 
-BIN="${SCORE_BIN:-/home/jcelerier/ossia/wt/score-tests/build-sanitizers/ossia-score}"
-JS="${1:-/home/jcelerier/Documents/ossia/score/packages/csf-examples/csf-testers/tests-scene/scripts/build-isf-solid-color.js}"
+HERE="$(cd "$(dirname "$0")" && pwd)"
+SRCROOT="$(cd "$HERE/../.." && pwd)"
+BIN="${SCORE_BIN:-${OSSIA_SCORE:-$SRCROOT/build-sanitizers/ossia-score}}"
+# The scene must come from the tests-scene builder: a live-edit-style scene
+# does not connect to the offscreen device (see the backend note below). The
+# corpus is out-of-repo, same provisioning contract as golden-render.sh.
+SCRIPTS="${SCRIPTS:-$HOME/Documents/ossia/score/packages/csf-examples/csf-testers/tests-scene/scripts}"
+JS="${1:-$SCRIPTS/build-isf-solid-color.js}"
 BACKEND="${2:-llvmpipe}"
+
+if [ -z "${DISPLAY:-}" ]; then
+  for d in 99 98 97; do
+    if command -v Xvfb >/dev/null 2>&1; then Xvfb ":$d" -screen 0 1280x720x24 >/dev/null 2>&1 &
+    elif command -v Xephyr >/dev/null 2>&1; then Xephyr ":$d" -screen 1280x720 -ac -noreset >/dev/null 2>&1 &
+    else break; fi
+    OWN_X=$!; sleep 3
+    if DISPLAY=":$d" xdpyinfo >/dev/null 2>&1; then
+      export DISPLAY=":$d"; trap 'kill "$OWN_X" 2>/dev/null' EXIT; break
+    fi
+    kill "$OWN_X" 2>/dev/null
+  done
+fi
+[ -n "${DISPLAY:-}" ] || { echo "SKIP: no X server (offscreen is not a fallback: no GL)"; exit 77; }
 
 command -v oscsend >/dev/null || { echo "SKIP: oscsend not found"; exit 77; }
 [ -x "$BIN" ] || { echo "SKIP: $BIN not built"; exit 77; }
@@ -46,7 +66,19 @@ case "$BACKEND" in
   nvidia) BE=(env DISPLAY="${DISPLAY:-:0}" QT_QPA_PLATFORM=xcb __GLX_VENDOR_LIBRARY_NAME=nvidia) ;;
   # llvmpipe must not see an inherited DISPLAY (e.g. from a ctest run that set
   # one for GUI tests): offscreen+GLX-on-NVIDIA breaks texture creation.
-  *)      BE=(env -u DISPLAY QT_QPA_PLATFORM=offscreen LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe) ;;
+  # A real X server with xcb, NOT QT_QPA_PLATFORM=offscreen. Offscreen has no
+  # GL (Qt's offscreen integration is GLX-only), so QRhi falls back to the Null
+  # backend, which draws nothing: this test's "grab a frame to prove rendering
+  # happened" step passed on a constant colour and the teardown assertion that
+  # follows it was therefore never reached on a real render.
+  #
+  # SCORE_FORCE_OFFSCREEN_WINDOW is kept: the offscreen device is what this test
+  # is about, and it renders correctly on a real GL context -- the grab comes
+  # back magenta, which is what the shader draws. (A scene built the way the
+  # live-edit scenarios build theirs does NOT connect to the offscreen device;
+  # that is a separate, unexplained difference between the two scene builders,
+  # not a fault in the device.)
+  *)      BE=(env QT_QPA_PLATFORM=xcb SCORE_SANITIZE_SKIP_CHECKS=1 LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe) ;;
 esac
 
 rc=125
@@ -59,7 +91,7 @@ rc=125
       oscsend 127.0.0.1 6666 /script s "Score.device('Window').grabTo('$PNG')" 2>/dev/null
       [ -s "$PNG" ] && break
     done
-    sleep 0.5; oscsend 127.0.0.1 6666 /stop; sleep 0.5; oscsend 127.0.0.1 6666 /exit ) \
+    sleep 0.5; oscsend 127.0.0.1 6666 /script s "Score.stop()"; sleep 0.5; oscsend 127.0.0.1 6666 /exit s force ) \
     >/dev/null 2>&1 &
 
   env "${COMMON[@]}" ASAN_OPTIONS="$ASAN" "${BE[@]}" \
@@ -72,8 +104,11 @@ rc=125
 rc=$?
 
 if [ ! -s "$PNG" ]; then
+  # Every prerequisite was present, so a missing frame is a finding of its
+  # own, not a skip: exit 2 as the header promises (ctest maps only 77 to
+  # SKIP, so this stays red instead of silently green).
   echo "NORENDER: no frame was grabbed (rc=$rc) — cannot conclude on teardown; see $LOG"
-  exit 77
+  exit 2
 fi
 
 if [ "$rc" -ne 0 ]; then

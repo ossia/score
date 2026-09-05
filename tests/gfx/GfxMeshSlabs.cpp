@@ -52,6 +52,12 @@ struct Arenas
   bool deadAfterFree = false;
   bool oldRefDeadAfterReuse = false;
   bool newRefLiveAfterReuse = false;
+  // A35 cross-arena probe. foreignProbeRan is the positive control:
+  // without it, three false flags look like a pass of an inert test.
+  bool foreignProbeRan = false;
+  bool foreignRefPassesIsLive = false;
+  bool foreignRefFailsIsLiveIn = false;
+  bool ownRefPassesIsLiveIn = false;
   bool reusedSameIndex = false;
   bool seedIsIdempotent = false;
 };
@@ -92,8 +98,19 @@ bool withRegistry(score::gfx::GraphicsApi backend, F&& f)
     // RenderState has no destructor: destroy() is the only thing that deletes
     // the QRhi (RenderState.hpp), so letting the shared_ptr drop leaks the
     // whole device. On D3D12 that is what every "Live Object" line at exit was
-    // about. The registry has to go first — ~GpuResourceRegistry deletes
-    // QRhiBuffers, which needs the QRhi still alive.
+    // about.
+    //
+    // The registry has to be torn down first, and with destroyOwned() rather
+    // than by going out of scope: ~GpuResourceRegistry calls destroy(), which
+    // is documented as a destructor fallback that nulls the pointers WITHOUT
+    // touching the QRhi and deliberately leaks the wrappers, because it cannot
+    // know whether the QRhi is still alive. Relying on the destructor left four
+    // arena buffers allocated (env/0, env/1, raw_camera/0, raw_camera/1) and
+    // Vulkan aborted the process on st->destroy():
+    //   ASSERT "Some allocations were not freed before destruction of this
+    //           memory block!" (vk_mem_alloc.h)
+    // destroyOwned() is the contract every real owner uses -- see
+    // OutputNode::releaseRegistry.
     auto st = score::gfx::createRenderState(backend, QSize{32, 32}, nullptr);
     if(!st)
       return;
@@ -116,6 +133,7 @@ bool withRegistry(score::gfx::GraphicsApi backend, F&& f)
         }
         batch->release();
       }
+      reg.destroyOwned();
     }
     st->destroy();
   });
@@ -155,6 +173,31 @@ TEST_CASE("GpuResourceRegistry: the scalar arenas and their ABA guard", "[gfx][l
         out.newRefLiveAfterReuse = reg.isLive(reg.toOssiaRef(again));
         reg.free(again);
 
+        // A35: a ref from ANOTHER arena passes isLive(), because isLive
+        // validates internal_index against whichever arena the ref names.
+        // Nothing in the type system stops that: raw_slot is the same
+        // gpu_slot_ref field on transform, light, camera and material
+        // components. A material carrying a RawTransform ref would yield an
+        // index up to 16383, in bounds for scene_materials (32768 entries) and
+        // far outside scene_materials_ext / _uv_xforms, which are sized to the
+        // highest material slot actually in use. isLiveIn() is what callers
+        // that are about to hand the index to a shader must use instead.
+        auto xf = reg.allocate(Reg::Arena::RawTransform, 64);
+        if(xf.valid())
+        {
+          const auto xref = reg.toOssiaRef(xf);
+          out.foreignRefPassesIsLive = reg.isLive(xref);
+          out.foreignRefFailsIsLiveIn
+              = !reg.isLiveIn(xref, Reg::Arena::Material);
+          out.ownRefPassesIsLiveIn
+              = reg.isLiveIn(reg.toOssiaRef(
+                                 reg.allocate(Reg::Arena::Material,
+                                              sizeof(score::gfx::MaterialGPU))),
+                             Reg::Arena::Material);
+          out.foreignProbeRan = true;
+          reg.free(xf);
+        }
+
         // Material slot 0 is reserved for the default-material sentinel at
         // init(); seeding it twice must not consume a second slot.
         reg.seedDefaults(batch);
@@ -186,6 +229,18 @@ TEST_CASE("GpuResourceRegistry: the scalar arenas and their ABA guard", "[gfx][l
   CHECK(out.reusedSameIndex);
   CHECK(out.oldRefDeadAfterReuse);
   CHECK(out.newRefLiveAfterReuse);
+
+  // A35. The positive control comes first: if the probe never ran, the
+  // three flags below are false for the wrong reason and the test would
+  // otherwise pass on silence.
+  INFO("A35 cross-arena probe ran: " << out.foreignProbeRan);
+  REQUIRE(out.foreignProbeRan);
+  // Documents the hazard: isLive() accepts a ref from another arena.
+  CHECK(out.foreignRefPassesIsLive);
+  // The guard: isLiveIn() rejects it.
+  CHECK(out.foreignRefFailsIsLiveIn);
+  // ...and does not reject a legitimate one.
+  CHECK(out.ownRefPassesIsLiveIn);
 
   CHECK(out.seedIsIdempotent);
 }

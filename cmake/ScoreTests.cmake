@@ -9,7 +9,13 @@
 #     APP                                # needs the full headless app (run from build root)
 #     GUI                                # needs a GUI QApplication (links Qt Widgets/Gui)
 #     STANDALONE                         # do not link score_lib_base, only use its headers
+#     NO_CTEST                           # build the executable, register it elsewhere
 #     LIBS      some_other_lib)          # arbitrary extra link libraries
+#
+# NO_CTEST is for a harness whose ctest entry needs a wrapper this function does
+# not know about -- score_add_media_test(), which provisions the media stack the
+# harness reads. Without it the harness would also be registered as a bare
+# ctest entry that runs with none of it provisioned.
 #
 # STANDALONE is for tests that recompile a score_lib_base source into the test
 # and substitute one of its dependencies: linking the library as well would
@@ -22,6 +28,17 @@
 # (see score::PluginLoader::pluginsDir(), which probes "<cwd>/plugins").
 
 include_guard(GLOBAL)
+
+# The .sh harnesses need flock/oscsend and POSIX tooling. On Windows ctest
+# cannot execute them at all and reports BAD_COMMAND, which counts as a failure
+# rather than a skip. Global rather than per-directory: tests/integration and
+# tests/hardware both gate on it, and a directory-scoped copy is invisible to
+# the score_add_media_test() function called from the latter.
+if(WIN32)
+  set(SCORE_HAS_SHELL_HARNESS 0 CACHE INTERNAL "shell harnesses are runnable")
+else()
+  set(SCORE_HAS_SHELL_HARNESS 1 CACHE INTERNAL "shell harnesses are runnable")
+endif()
 
 # Make the Catch2 target (Catch2::Catch2WithMain) available. Catch2 is vendored
 # inside libossia's 3rdparty tree; we add it ourselves (rather than relying on
@@ -52,6 +69,10 @@ endfunction()
 # Sources a test compiles directly because the shared plugin hides them
 # (visibility). A static plugin archive already provides them; compiling them
 # again duplicates every symbol at link time.
+#
+# Prefer exporting the symbol over adding a user here: when the test ALSO links
+# the shared plug-in, every type defined in both is an ODR violation, and ASan
+# aborts the test before its first assertion.
 function(score_plugin_hidden_sources OUT)
   if(SCORE_STATIC_PLUGINS OR NOT BUILD_SHARED_LIBS)
     set(${OUT} "" PARENT_SCOPE)
@@ -60,8 +81,27 @@ function(score_plugin_hidden_sources OUT)
   endif()
 endfunction()
 
+# Static plug-ins are interlinked through the global plugin registry: linking
+# ONE plugin target leaves the other plugins' registration symbols unresolved,
+# so a bare tester executable that links a plugin directly must link the WHOLE
+# list (minus score_plugin_jit, exactly as score_add_test does for its own
+# GUI/APP targets below). No-op on dynamic-plugin builds.
+#
+# ORDERING SEAM: SCORE_PLUGINS_LIST is only complete once add_subdirectory(src)
+# has returned, so for tester executables DEFINED inside src/ this must be
+# called from the top-level CMakeLists AFTER that point -- which is why the
+# application site for EncoderTester/ReadbackTester/PipewireRoundtrip lives
+# there and not next to their add_executable.
+function(score_link_plugins_for_static tgt)
+  if(SCORE_STATIC_PLUGINS AND TARGET ${tgt})
+    set(_static_plugins "${SCORE_PLUGINS_LIST}")
+    list(REMOVE_ITEM _static_plugins score_plugin_jit)
+    target_link_libraries(${tgt} PRIVATE ${_static_plugins})
+  endif()
+endfunction()
+
 function(score_add_test NAME)
-  cmake_parse_arguments(ARG "GUI;APP;STANDALONE;SANDBOXED" "" "SOURCES;PLUGINS;LIBS" ${ARGN})
+  cmake_parse_arguments(ARG "GUI;APP;STANDALONE;SANDBOXED;NO_CTEST" "" "SOURCES;PLUGINS;LIBS" ${ARGN})
 
   if(NOT ARG_SOURCES)
     message(FATAL_ERROR "score_add_test(${NAME}): no SOURCES given")
@@ -120,6 +160,10 @@ function(score_add_test NAME)
   endif()
 
   set_target_properties(${NAME} PROPERTIES FOLDER "Tests")
+
+  if(ARG_NO_CTEST)
+    return()
+  endif()
 
   # A test that exercises code which deletes or overwrites media files runs
   # with the filesystem read-only apart from /tmp, so a bug in it cannot reach

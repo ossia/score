@@ -26,13 +26,12 @@ void main()
 {
   v_texcoord = texcoord;
   gl_Position = renderer.clipSpaceCorrMatrix * vec4(position.xy, 0.0, 1.);
-#if defined(QSHADER_HLSL) || defined(QSHADER_MSL)
-  gl_Position.y = - gl_Position.y;
-#endif
 #if !defined(QSHADER_SPIRV) && !defined(QSHADER_HLSL) && !defined(QSHADER_MSL)
   // OpenGL only: QRhi::isYUpInFramebuffer(). The single-output path draws the
   // ISF pass straight into the destination; this copy must not turn the
-  // intermediate attachment over on the way there.
+  // intermediate attachment over on the way there. Direct3D and Metal put the
+  // framebuffer origin where Vulkan does, so like Vulkan they need nothing
+  // here: clipSpaceCorrMatrix already carries the whole difference.
   v_texcoord.y = 1. - v_texcoord.y;
 #endif
 }
@@ -291,7 +290,9 @@ void SimpleRenderedISFNode::initMRTPass(RenderList& renderer, QRhiResourceUpdate
       maxLayers = out.layers;
   const int mvCount = n.descriptor().multiview_count;
   const bool wantMultiview
-      = mvCount >= 2 && renderer.state.caps.multiview;
+      = mvCount >= 2 && renderer.state.caps.multiview
+        && !viewIndexNeedsPassIndexFallback(
+            renderer.state.api, renderer.state.version, mvCount);
   if(wantMultiview && mvCount > maxLayers)
     maxLayers = mvCount;
 

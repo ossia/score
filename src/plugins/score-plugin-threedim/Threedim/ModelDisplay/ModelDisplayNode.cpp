@@ -113,7 +113,7 @@ const constexpr auto vtx_projection_fulldome_equidistant = R"_(
 //
 vec4 v_projected = vec4(0.0, 0.0, 0.0, 1.0);
 {
-  vec4 viewspace = camera.matrixModelView * vec4(in_position.xzy, 1.0);
+  vec4 viewspace = camera.matrixModelView * vec4(in_position.xyz, 1.0);
   vec3 d = viewspace.xyz;
   float r = length(d);
 
@@ -121,7 +121,7 @@ vec4 v_projected = vec4(0.0, 0.0, 0.0, 1.0);
 
   if(r > 1e-6)
   {
-    float theta = acos(clamp(d.z / r, -1.0, 1.0));
+    float theta = acos(clamp(-d.z / r, -1.0, 1.0));
     float phi   = (length(d.xy) > 1e-6) ? atan(d.y, d.x) : 0.0;
     float half_fov_rad = max(radians(camera.fov * 0.5), 1e-6);
     float r_ndc = theta / half_fov_rad;
@@ -147,13 +147,13 @@ vec4 v_projected = vec4(0.0, 0.0, 0.0, 1.0);
 const constexpr auto vtx_projection_fulldome_equisolid = R"_(
 vec4 v_projected = vec4(0.0, 0.0, 0.0, 1.0);
 {
-  vec4 viewspace = camera.matrixModelView * vec4(in_position.xzy, 1.0);
+  vec4 viewspace = camera.matrixModelView * vec4(in_position.xyz, 1.0);
   vec3 d = viewspace.xyz;
   float r = length(d);
 
   if(r > 1e-6)
   {
-    float theta = acos(clamp(d.z / r, -1.0, 1.0));
+    float theta = acos(clamp(-d.z / r, -1.0, 1.0));
     float phi   = (length(d.xy) > 1e-6) ? atan(d.y, d.x) : 0.0;
     float quarter_fov_rad = max(radians(camera.fov * 0.25), 1e-6);
     float r_ndc = sin(theta * 0.5) / sin(quarter_fov_rad);
@@ -177,13 +177,13 @@ vec4 v_projected = vec4(0.0, 0.0, 0.0, 1.0);
 const constexpr auto vtx_projection_fulldome_stereographic = R"_(
 vec4 v_projected = vec4(0.0, 0.0, 0.0, 1.0);
 {
-  vec4 viewspace = camera.matrixModelView * vec4(in_position.xzy, 1.0);
+  vec4 viewspace = camera.matrixModelView * vec4(in_position.xyz, 1.0);
   vec3 d = viewspace.xyz;
   float r = length(d);
 
   if(r > 1e-6)
   {
-    float theta = acos(clamp(d.z / r, -1.0, 1.0));
+    float theta = acos(clamp(-d.z / r, -1.0, 1.0));
     float phi   = (length(d.xy) > 1e-6) ? atan(d.y, d.x) : 0.0;
     float quarter_fov_rad = max(radians(camera.fov * 0.25), 1e-6);
     // tan diverges at θ=π; rely on hardware clipping for θ ≥ FOV/2.
@@ -207,13 +207,13 @@ vec4 v_projected = vec4(0.0, 0.0, 0.0, 1.0);
 const constexpr auto vtx_projection_fulldome_orthographic = R"_(
 vec4 v_projected = vec4(0.0, 0.0, 0.0, 1.0);
 {
-  vec4 viewspace = camera.matrixModelView * vec4(in_position.xzy, 1.0);
+  vec4 viewspace = camera.matrixModelView * vec4(in_position.xyz, 1.0);
   vec3 d = viewspace.xyz;
   float r = length(d);
 
   if(r > 1e-6)
   {
-    float theta = acos(clamp(d.z / r, -1.0, 1.0));
+    float theta = acos(clamp(-d.z / r, -1.0, 1.0));
     float phi   = (length(d.xy) > 1e-6) ? atan(d.y, d.x) : 0.0;
     float half_fov_rad = max(radians(camera.fov * 0.5), 1e-6);
     float r_ndc = sin(theta) / sin(half_fov_rad);
@@ -285,6 +285,24 @@ void main()
 }
 )_";
 
+// The "Light" texture projection (inlet 7 == 6) selects this pair.
+//
+// Two lines of its main() animate the light off the transport clock:
+//
+//     lightPosition.y = sin(TIME) * 20.;
+//     lightPosition.z = cos(TIME) * 50.;
+//
+// overriding the lightPosition initialiser below, with no inlet to pin the
+// phase. A still frame of this shader is therefore NOT reproducible: which
+// frame you get depends on the transport date the grab happened to land on.
+// The materials funnel that animation into one channel -- materialSpecular is
+// (0,0,1), so the specular is blue-only, and pow(dotNH, 0.5) has unbounded
+// slope at its terminator. Measured over six renders of the obj-cube case in
+// tests/integration/ThreedimRenderTest.cpp: R and G bit-identical across all
+// fifteen pairs, B off by up to 75 codes. That is why the case's golden covers
+// "rg" only and asserts the specular by its shape. Remove this animation, or
+// move it onto an inlet with a fixed default, and the case can go back to a
+// full-colour golden.
 const constexpr auto model_display_fragment_shader_phong = R"_(#version 450
 
 )_" model_display_default_uniforms R"_(
@@ -308,9 +326,50 @@ float materialShininess = 0.5; // material specular shininess
 void main ()
 {
     vec3 normal = normalize(esNormal);
+
+    // Two-sided shading. An OBJ carries whatever normal orientation it was
+    // authored with, and a cube presented to this camera turns out to show
+    // faces whose normals point AWAY from it -- measured with a signed-normal
+    // probe: the three visible faces read -X, -Y and -Z. With a one-sided
+    // model every one of them has dot(N, L) < 0 for any light in front of the
+    // camera, max(dot, 0) clamps all three to zero, and the shading collapses
+    // to ambient alone: lightAmbient * materialAmbient = (0.01, 0.04, 0). A
+    // near-black cube with no diffuse and no specular at all.
+    //
+    // That is what broke the obj-cube golden after the light stopped being
+    // animated: the old sin/cos sweep put the light behind the geometry at
+    // some phases, so the faces WERE lit part of the time and the golden
+    // captured one of those frames. No single static direction can replace
+    // that -- pointing the light into the octant those faces face lights this
+    // cube and turns two other scenes black instead (measured: their
+    // "draws more than 64 lit pixels" checks fail).
+    //
+    // Flipping the normal toward the viewer fixes the class rather than one
+    // scene, and is what a renderer should do with geometry it does not
+    // control. Front faces are unaffected -- for them dot(N, view) is already
+    // positive.
+    vec3 view = normalize(-esVertex);
+    if(dot(normal, view) < 0.0)
+        normal = -normal;
+
     vec3 light;
-    lightPosition.y = sin(TIME) * 20.;
-    lightPosition.z = cos(TIME) * 50.;
+    // The light used to be animated off the transport clock here:
+    //     lightPosition.y = sin(TIME) * 20.;
+    //     lightPosition.z = cos(TIME) * 50.;
+    // Those two lines overrode the initialiser above unconditionally, so its y
+    // and z were dead, and there was no inlet to pin the phase or to turn the
+    // motion off -- it was not a feature anyone could configure, it just moved.
+    //
+    // It made a still frame of this shader unreproducible: which frame you get
+    // depends on the transport date the grab lands on. The materials funnel it
+    // into one channel (materialSpecular is (0,0,1), so the specular is
+    // blue-only) through pow(dotNH, 0.5), whose slope is unbounded at the
+    // terminator, so a sub-percent rotation swung blue by ~70 codes and the
+    // obj-cube golden could not reproduce AGAINST ITSELF: two consecutive
+    // renders differed by max_abs 59 over 0.47% of pixels.
+    //
+    // The light is now what its initialiser says it is. If animation is wanted
+    // it belongs on an inlet, where it can be pinned for a still frame.
     if(lightPosition.w == 0.0)
     {
         light = normalize(lightPosition.xyz);
@@ -319,7 +378,6 @@ void main ()
     {
         light = normalize(lightPosition.xyz - esVertex);
     }
-    vec3 view = normalize(-esVertex);
     vec3 halfv = normalize(light + view);
 
     vec3 color = lightAmbient.rgb * materialAmbient.rgb;        // begin with ambient
@@ -468,7 +526,17 @@ void main ()
   vec4 zaxis = texture(y_tex, v_coords.xy * scale);
   vec4 tex = xaxis * blending.x + yaxis * blending.y + zaxis * blending.z;
 
-  fragColor = tex;
+  // Lighting floor: without this the pass emits ONLY the projected texture,
+  // so a mesh routed here with no texture wired (the common case for a plain
+  // STL/PLY/OBJ that carries normals but no UVs) renders pure black — the
+  // geometry is invisible. Shade by the surface normal so the mesh is always
+  // visible; a wired texture still dominates via max().
+  vec3 N = normalize(v_normal);
+  vec3 L = normalize(vec3(0.4, 0.7, 1.0));
+  float dif = max(dot(N, L), 0.0);
+  vec3 lit = vec3(0.12, 0.16, 0.12) + vec3(0.2, 0.8, 0.0) * dif;
+
+  fragColor = vec4(max(tex.rgb, lit), 1.0);
 }
 )_";
 
@@ -1125,6 +1193,39 @@ private:
       pass.p.pipeline->setDepthWrite(true);
       pass.p.pipeline->setDepthOp(QRhiGraphicsPipeline::Greater);
 
+      // Every vertex shader in this file negates gl_Position.y under
+      // QSHADER_HLSL / QSHADER_MSL (eight sites, see the Y-convention note
+      // above) so an offscreen texture lands top-row-first everywhere. That
+      // mirror also flips the WINDOW-SPACE WINDING, which is what the
+      // rasteriser classifies front and back faces by -- and QRhi does not
+      // normalise winding across backends. RenderedVSANode.cpp:175-196 already
+      // records this hazard for the VSA path, where it was solved by disabling
+      // culling; a model needs its culling, so the front face is compensated
+      // instead.
+      //
+      // Without this, the SAME declared FrontFace culls OPPOSITE face sets:
+      // measured on the threedim cube, D3D11 and OpenGL/Vulkan each drew
+      // exactly the faces the other discarded. On a correctly wound
+      // (CCW-out) model that means its NEAR faces are culled on D3D and the
+      // viewer sees straight through it.
+      //
+      // GL and Vulkan pipelines are untouched: their baked shader does not
+      // mirror Y, so their winding already matches the declared front face.
+      switch(renderer.state.api)
+      {
+        case score::gfx::D3D11:
+        case score::gfx::D3D12:
+        case score::gfx::Metal:
+          if(pass.p.pipeline->cullMode() != QRhiGraphicsPipeline::None)
+            pass.p.pipeline->setFrontFace(
+                pass.p.pipeline->frontFace() == QRhiGraphicsPipeline::CCW
+                    ? QRhiGraphicsPipeline::CW
+                    : QRhiGraphicsPipeline::CCW);
+          break;
+        default:
+          break;
+      }
+
       pass.p.pipeline->create();
     }
   }
@@ -1475,7 +1576,16 @@ private:
     }
 
     if(m_renderer)
-      if(auto inputRT = m_renderer->renderTargetForInputPort(*this->node.input[0]); inputRT.texture)
+      if(auto inputRT = m_renderer->renderTargetForInputPort(*this->node.input[0]);
+         inputRT.texture
+         && inputRT.texture->flags().testFlag(QRhiTexture::UsedWithGenerateMips))
+        // Only the texture's OWNER knows whether it was allocated with mip
+        // support; an input render target produced by an upstream node
+        // usually was not. qrhivulkan asserts on generateMips() for a
+        // texture created without UsedWithGenerateMips (GL silently
+        // tolerates it), which aborts the whole model pipeline in a debug
+        // Qt Vulkan build. Sampling mip 0 is correct when no mip chain
+        // exists, so skip the request rather than abort.
         res.generateMips(inputRT.texture);
   }
 
@@ -1488,6 +1598,16 @@ private:
   void release(RenderList& r) override
   {
     m_renderer = nullptr;
+    // m_mesh belongs to the RenderList going away: acquireMesh() hands out a
+    // pointer into its custom-mesh cache, which RenderList::release() deletes
+    // right after this. Keeping it leaves a dangling Mesh for the next init()
+    // to pass to initMeshBuffer() -- a resize or a full-screen change away,
+    // since both rebuild the list mid-frame through maybeRebuild().
+    // Dropping it makes init() fall back to the default quad; geometryChanged
+    // brings the real mesh back on the next update against the new list.
+    m_mesh = nullptr;
+    m_meshbufs = {};
+    this->geometryChanged = true;
     defaultRelease(r);
   }
 };

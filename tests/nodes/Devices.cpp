@@ -101,10 +101,15 @@ struct DevResult
   std::string uuid;
   std::string name;
   bool crashed = false;
+  bool protocol_key_correct = false;
   bool datastream_roundtrip = false;
   bool datastream_fixedpoint = false;
+  bool datastream_stable = false;
+  bool datastream_payload_kept = false;
   bool json_roundtrip = false;
   bool json_fixedpoint = false;
+  bool json_stable = false;
+  bool json_payload_kept = false;
   std::string detail;
 };
 
@@ -129,7 +134,13 @@ bool same_settings(const Device::DeviceSettings& a, const Device::DeviceSettings
 
 void sweep_device(Device::ProtocolFactory& factory, DevResult& r)
 {
-  const Device::DeviceSettings s = factory.defaultSettings();
+  Device::DeviceSettings s = factory.defaultSettings();
+  // Serialization dispatches on s.protocol, so a defaultSettings() that
+  // forgets to set it (aja's video devices do) would bypass the payload
+  // path entirely and vacuously pass. Test the machinery under the correct
+  // key; the mismatch itself is reported by the WARN in the test body.
+  r.protocol_key_correct = (s.protocol == factory.concreteKey());
+  s.protocol = factory.concreteKey();
 
   // --- DataStream round-trip ---
   try
@@ -137,7 +148,17 @@ void sweep_device(Device::ProtocolFactory& factory, DevResult& r)
     const QByteArray bytes = score::marshall<DataStream>(s);
     const auto s2 = score::unmarshall<Device::DeviceSettings>(bytes);
     r.datastream_roundtrip = same_settings(s2, s);
-    r.datastream_fixedpoint = (score::marshall<DataStream>(s2) == bytes);
+    // Loss-only: a factory without default specific settings legitimately
+    // synthesizes them on load (Window, the aja video devices), but a valid
+    // payload must never come back invalid.
+    r.datastream_payload_kept = !s.deviceSpecificSettings.isValid()
+                                || s2.deviceSpecificSettings.isValid();
+    const QByteArray bytes2 = score::marshall<DataStream>(s2);
+    r.datastream_fixedpoint = (bytes2 == bytes);
+    // Even a protocol that normalizes fields on load must reach a byte fixed
+    // point after that first pass, deviceSpecificSettings included.
+    const auto s3 = score::unmarshall<Device::DeviceSettings>(bytes2);
+    r.datastream_stable = (score::marshall<DataStream>(s3) == bytes2);
   }
   catch(const std::exception& e)
   {
@@ -155,10 +176,17 @@ void sweep_device(Device::ProtocolFactory& factory, DevResult& r)
     jr.readFrom(s);
     const auto s2 = score::unmarshall<Device::DeviceSettings>(jr);
     r.json_roundtrip = same_settings(s2, s);
+    r.json_payload_kept = !s.deviceSpecificSettings.isValid()
+                          || s2.deviceSpecificSettings.isValid();
 
     JSONReader jr2;
     jr2.readFrom(s2);
     r.json_fixedpoint = (jr2.toByteArray() == jr.toByteArray());
+
+    const auto s3 = score::unmarshall<Device::DeviceSettings>(jr2);
+    JSONReader jr3;
+    jr3.readFrom(s3);
+    r.json_stable = (jr3.toByteArray() == jr2.toByteArray());
   }
   catch(const std::exception& e)
   {
@@ -241,9 +269,21 @@ TEST_CASE("Every protocol factory's settings round-trip", "[nodes][l1][device][s
     }
 
     // Hard invariant: a serialize/deserialize round-trip must preserve the
-    // settings on both the binary and JSON paths.
+    // settings on both the binary and JSON paths. protocol/name compare
+    // directly; deviceSpecificSettings has no usable QVariant operator==, so
+    // it is covered by the payload-presence check and the post-normalization
+    // byte fixed point below.
     CHECK(r.datastream_roundtrip);
+    CHECK(r.datastream_payload_kept);
+    CHECK(r.datastream_stable);
     CHECK(r.json_roundtrip);
+    CHECK(r.json_payload_kept);
+    CHECK(r.json_stable);
+
+    if(!r.protocol_key_correct)
+      WARN(
+          "defaultSettings().protocol != concreteKey(): " << r.name << " {" << r.uuid
+                                                          << "}");
 
     // Byte-exact fixed point is a stronger property that some protocols
     // legitimately do not hold (fields normalized on load). Report, do not fail.

@@ -132,24 +132,26 @@ TEST_CASE("the compressed subtypes are recognised as such", "[unit][dshow][video
   CHECK_FALSE(directShowSubtypeIsCompressed(MEDIASUBTYPE_RGB24));
 }
 
-TEST_CASE("every compressed subtype is offered as MJPEG, H264 included", "[unit][dshow][video]")
+TEST_CASE("MJPEG-family subtypes resolve to the MJPEG decoder", "[unit][dshow][video]")
 {
   CHECK(directShowSubtypeCodec(yuvSubtype(fcc('M', 'J', 'P', 'G'))) == AV_CODEC_ID_MJPEG);
   CHECK(directShowSubtypeCodec(yuvSubtype(fcc('T', 'V', 'M', 'J'))) == AV_CODEC_ID_MJPEG);
   CHECK(directShowSubtypeCodec(yuvSubtype(fcc('W', 'A', 'K', 'E'))) == AV_CODEC_ID_MJPEG);
   CHECK(directShowSubtypeCodec(yuvSubtype(fcc('P', 'l', 'u', 'm'))) == AV_CODEC_ID_MJPEG);
 
-  // Recorded as a defect, not as a specification. 9b688179e5 taught
-  // isDirectShowCompressedFourcc about H264, and enumerateCameraFormat hands
-  // every compressed subtype to the MJPEG decoder, so an H.264 camera is
-  // offered with the wrong decoder. Fixing it means dispatching on the fourcc
-  // in directShowSubtypeCodec, at which point this line goes red and names the
-  // change.
-  CHECK(directShowSubtypeCodec(yuvSubtype(fcc('H', '2', '6', '4'))) == AV_CODEC_ID_MJPEG);
-  CHECK(directShowSubtypeCodec(yuvSubtype(fcc('H', '2', '6', '4'))) != AV_CODEC_ID_H264);
-
   CHECK(directShowSubtypeCodec(yuvSubtype(fcc('N', 'V', '1', '2'))) == AV_CODEC_ID_RAWVIDEO);
   CHECK(directShowSubtypeCodec(MEDIASUBTYPE_RGB24) == AV_CODEC_ID_RAWVIDEO);
+}
+
+// 9b688179e5 taught isDirectShowCompressedFourcc about H264;
+// directShowSubtypeCodec now dispatches on the fourcc rather than collapsing
+// every compressed subtype to MJPEG, so an H.264 camera is offered with the
+// H.264 decoder instead of the wrong one.
+TEST_CASE(
+    "an H264 subtype resolves to the H264 decoder",
+    "[unit][dshow][video]")
+{
+  CHECK(directShowSubtypeCodec(yuvSubtype(fcc('H', '2', '6', '4'))) == AV_CODEC_ID_H264);
 }
 
 TEST_CASE("the raw subtypes resolve to the format FFmpeg names", "[unit][dshow][video]")

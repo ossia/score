@@ -21,14 +21,14 @@ StringValueWidget::StringValueWidget(const std::string& value, QWidget* parent)
     : ValueWidget{parent}
 {
   auto lay = new score::MarginLess<QGridLayout>{this};
-  m_value = new QLineEdit;
+  m_value = new ExpandableTextEdit;
   lay->addWidget(m_value);
-  m_value->setText(QString::fromStdString(value));
+  m_value->setFullBytes(QByteArray::fromStdString(value));
 }
 
 ossia::value StringValueWidget::value() const
 {
-  return ossia::value{m_value->text().toStdString()};
+  return ossia::value{m_value->fullBytes().toStdString()};
 }
 
 StringValueSetDialog::StringValueSetDialog(QWidget* parent)

@@ -1,4 +1,8 @@
 #include "WindowDevice.hpp"
+#include <Gfx/Graph/ScreenNode.hpp>
+
+#include <QCoreApplication>
+#include <QEventLoop>
 
 #include <Gfx/Window/BackgroundDevice.hpp>
 #include <Gfx/Window/MultiWindowDevice.hpp>
@@ -40,6 +44,17 @@ static bool shouldForceOffscreen(const QString& name)
       return true;
   }
   return false;
+}
+
+score::gfx::ScreenNode* WindowDevice::screenNode() const noexcept
+{
+  if(m_dev)
+  {
+    auto p = m_dev.get()->get_root_node().get_parameter();
+    if(auto param = safe_cast<gfx_parameter_base*>(p))
+      return dynamic_cast<score::gfx::ScreenNode*>(param->node);
+  }
+  return nullptr;
 }
 
 score::gfx::Window* WindowDevice::window() const noexcept
@@ -136,16 +151,62 @@ void WindowDevice::grabTo(const QString& path) const
     if(!img.save(path))
       qWarning() << "grabTo: could not write" << path;
   }
-  else if(auto win = this->window())
+  else if(auto* screen = this->screenNode())
   {
-    // QScreen::grabWindow reads the framebuffer at the window's geometry, not
-    // the window's own buffer: anything drawn on top lands in the file. Valid
-    // to eyeball an interactive session, never valid as a reference image.
-    qWarning() << "grabTo: capturing the SCREEN at" << m_settings.name
-               << "geometry, not the rendered frame. Set SCORE_FORCE_OFFSCREEN_WINDOW="
-               << m_settings.name << "for a real readback.";
-    auto grab = win->screen()->grabWindow(win->winId());
-    if(!grab.save(path))
+    // Read the swapchain's own backbuffer rather than QScreen::grabWindow,
+    // which reads the desktop at the window's geometry and therefore captures
+    // anything drawn on top of it. Arm the readback, then drive frames until
+    // the result lands: QRhi fills it when the frame it was queued in
+    // completes, which is not the call that queued it.
+    screen->requestReadback();
+    const auto& rbp = screen->readback();
+
+    rbp->data.clear();
+    rbp->pixelSize = {};
+
+    // The window may not be exposed yet, and until it is, canRender() is false
+    // and renderFrames() draws nothing. Pump the event loop between attempts so
+    // exposure can happen, and give QRhi a few frames to hand the result back --
+    // it fills the result when the frame it was queued in completes, which with
+    // a buffered swapchain is not the frame that queued it.
+    //
+    // Pumping re-enters: a queued OSC /script message calling grabTo again is
+    // dispatched from inside processEvents, and a harness that retries the grab
+    // sends several. Without this guard that recurses until the stack dies --
+    // observed at 200+ nested grabTo frames. Re-entrant calls return quietly;
+    // the outermost one is still driving frames for all of them.
+    static bool s_grabbing = false;
+    if(s_grabbing)
+      return;
+    s_grabbing = true;
+    for(int i = 0; i < 60 && rbp->data.isEmpty(); ++i)
+    {
+      QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents, 16);
+      renderFrames(1);
+    }
+    s_grabbing = false;
+
+    const auto& rb = *rbp;
+    const int w = rb.pixelSize.width();
+    const int h = rb.pixelSize.height();
+    if(w <= 0 || h <= 0 || rb.data.size() < w * h * 4)
+    {
+      qWarning() << "grabTo: the window produced no readback for" << m_settings.name;
+      return;
+    }
+
+    // A swapchain backbuffer is commonly BGRA8; the offscreen path is always
+    // RGBA8. Ask the result rather than assuming.
+    const auto fmt = rb.format == QRhiTexture::BGRA8 ? QImage::Format_ARGB32
+                                                     : QImage::Format_RGBA8888;
+    QImage img{
+        reinterpret_cast<const unsigned char*>(rb.data.constData()), w, h, w * 4, fmt};
+
+    // OpenGL hands back a bottom-up framebuffer; the other backends do not.
+    if(auto st = screen->renderState(); st && st->rhi && st->rhi->isYUpInFramebuffer())
+      img = img.mirrored(false, true);
+
+    if(!img.copy().save(path))
       qWarning() << "grabTo: could not write" << path;
   }
   else

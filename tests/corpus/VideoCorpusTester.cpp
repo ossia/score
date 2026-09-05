@@ -771,6 +771,14 @@ constexpr HwAccelName hw_accels[] = {
     {"vaapi", AV_PIX_FMT_VAAPI},   {"vdpau", AV_PIX_FMT_VDPAU},
     {"cuda", AV_PIX_FMT_CUDA},     {"qsv", AV_PIX_FMT_QSV},
     {"vulkan", AV_PIX_FMT_VULKAN}, {"drm", AV_PIX_FMT_DRM_PRIME},
+#if defined(__APPLE__)
+    {"videotoolbox", AV_PIX_FMT_VIDEOTOOLBOX},
+#endif
+#if defined(_WIN32)
+    {"d3d11va", AV_PIX_FMT_D3D11},
+    {"d3d12va", AV_PIX_FMT_D3D12},
+    {"dxva2", AV_PIX_FMT_DXVA2_VLD},
+#endif
 };
 
 int run_hw(const std::string& path, const std::string& accel, AVPixelFormat hwfmt)

@@ -3,6 +3,7 @@
 #include <State/Expression.hpp>
 #include <State/ValueConversion.hpp>
 #include <State/Widgets/UnitWidget.hpp>
+#include <State/Widgets/Values/ExpandableTextEdit.hpp>
 
 #include <Explorer/Commands/Update/UpdateAddressSettings.hpp>
 #include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
@@ -346,9 +347,24 @@ QVariant AddressItemModel::valueColumnData(const State::Value& val, int role) co
     {
       return State::convert::toPrettyString(val);
     }
+    else if(role == Qt::DisplayRole && val.get_type() == ossia::val_type::STRING)
+    {
+      return State::convert::stringCellText(
+          QByteArray::fromStdString(*val.target<std::string>()));
+    }
     else
     {
       return State::convert::value<QVariant>(val);
+    }
+  }
+  else if(role == Qt::ToolTipRole)
+  {
+    // What the one-line row had to fold away.
+    if(const auto* s = val.target<std::string>())
+    {
+      const auto tip = State::convert::stringCellToolTip(QByteArray::fromStdString(*s));
+      if(!tip.isEmpty())
+        return tip;
     }
   }
 
@@ -496,8 +512,8 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
               std::advance(it, idx);
               if(it->first == onet::text_description())
               {
-                return QString::fromStdString(
-                    ossia::any_cast<onet::description>(it->second));
+                return State::convert::toSingleLine(QString::fromStdString(
+                    ossia::any_cast<onet::description>(it->second)));
               }
               else if(it->first == onet::text_tags())
               {
@@ -605,6 +621,34 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
     {
       return {};
     }
+  }
+  else if(role == Qt::ToolTipRole)
+  {
+    // What a one-line row had to fold away, and nothing otherwise.
+    if(index.column() != 1)
+      return {};
+
+    if(index.row() == Rows::Value)
+      return valueColumnData(m_settings.value, role);
+
+    const int idx = index.row() - Rows::Count;
+    if(ossia::valid_index(idx, m_settings.extendedAttributes))
+    {
+      auto it = m_settings.extendedAttributes.begin();
+      std::advance(it, idx);
+      if(it->first == onet::text_description())
+      {
+        const auto text
+            = QString::fromStdString(ossia::any_cast<onet::description>(it->second));
+        if(State::convert::isMultiLine(text))
+          return text;
+      }
+      else if(it->first == onet::text_tags())
+      {
+        return tr("One tag per comma");
+      }
+    }
+    return {};
   }
   else if(role == Qt::CheckStateRole)
   {
@@ -727,6 +771,25 @@ Qt::ItemFlags AddressItemModel::flags(const QModelIndex& index) const
   return f;
 }
 
+namespace
+{
+namespace onet = ossia::net;
+
+//! The extended attribute a row past Rows::Count stands for, or nothing.
+const ossia::extended_attributes::value_type*
+extendedAttributeAt(const AddressItemModel& model, const QModelIndex& index)
+{
+  const auto& attrs = model.settings().extendedAttributes;
+  const int idx = index.row() - AddressItemModel::Rows::Count;
+  if(!ossia::valid_index(idx, attrs))
+    return nullptr;
+
+  auto it = attrs.begin();
+  std::advance(it, idx);
+  return &*it;
+}
+}
+
 AddressItemDelegate::AddressItemDelegate(QObject* parent)
     : QStyledItemDelegate(parent)
 {
@@ -793,6 +856,37 @@ QWidget* AddressItemDelegate::createEditor(
     case AddressItemModel::Rows::Values: {
       return make_values_widget(model->settings(), parent);
     }
+    default: {
+      // Rows past Rows::Count are the extended attributes; Qt's stock factory
+      // gives prose a one-line field and an ossia::value no editor at all.
+      auto* attr = extendedAttributeAt(*model, index);
+      if(!attr)
+        break;
+
+      if(attr->first == onet::text_description())
+      {
+        auto* t = new State::ExpandableTextEdit{parent};
+        t->setSubject(QObject::tr("Description"));
+        t->setFullText(index.data(Qt::EditRole).toString());
+        return t;
+      }
+
+      if(attr->first == onet::text_default_value())
+      {
+        // The default is a value of the parameter's own type, so it gets the
+        // value row's editor, domain and unit included.
+        Device::AddressSettingsCommon as = model->settings();
+        if(auto v = index.data(Qt::EditRole).value<ossia::value>(); v.valid())
+          as.value = v;
+
+        // Otherwise the row would offer to reset the default to itself.
+        as.extendedAttributes.erase(onet::text_default_value());
+
+        if(auto* t = make_value_widget(as, parent))
+          return t;
+      }
+      break;
+    }
   }
 
   return QStyledItemDelegate::createEditor(parent, option, index);
@@ -858,6 +952,20 @@ void AddressItemDelegate::setEditorData(QWidget* editor, const QModelIndex& inde
         cb->set(cur);
         return;
       }
+      break;
+    }
+    default: {
+      if(auto t = qobject_cast<State::ExpandableTextEdit*>(editor))
+      {
+        t->setFullText(index.data(Qt::EditRole).toString());
+        return;
+      }
+      if(auto cb = qobject_cast<AddressValueWidget*>(editor))
+      {
+        cb->set(index.data(Qt::EditRole).value<ossia::value>());
+        return;
+      }
+      break;
     }
   }
 
@@ -916,6 +1024,24 @@ void AddressItemDelegate::setModelData(
           model->setData(index, QVariant::fromValue(v), Qt::EditRole);
         return;
       }
+      break;
+    }
+    default: {
+      if(auto t = qobject_cast<State::ExpandableTextEdit*>(editor))
+      {
+        model->setData(index, t->fullText(), Qt::EditRole);
+        return;
+      }
+      if(auto cb = qobject_cast<AddressValueWidget*>(editor))
+      {
+        if(!cb->edited())
+          return;
+
+        if(auto v = cb->get(); v.valid())
+          model->setData(index, QVariant::fromValue(v), Qt::EditRole);
+        return;
+      }
+      break;
     }
   }
 

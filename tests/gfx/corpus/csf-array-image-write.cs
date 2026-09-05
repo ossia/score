@@ -27,6 +27,6 @@ void main()
             float(layer == 1 || layer == 3),
             float(layer == 2 || layer == 3),
             float(layer == 0));
-        imageStore(layers, ivec3(xy, layer), vec4(tint, 1.0));
+        IMG_STORE_LAYER(layers, ivec3(xy, layer), vec4(tint, 1.0));
     }
 }

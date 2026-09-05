@@ -22,7 +22,7 @@ using namespace score::test::gfx;
 using namespace score::test::gfx::isf;
 
 TEST_CASE(
-    "FINDING isf-mrt-persistent-ssbo second attachment / Vulkan binding",
+    "FINDING isf-mrt-persistent-ssbo second attachment / Vulkan binding (fixed:\n     both attachments come back valid, and Vulkan builds the pipeline)",
     "[gfx][l3][isf][mrt][persistent][finding]")
 {
   const auto backend = GENERATE(from_range(platform_backends()));
@@ -34,6 +34,8 @@ TEST_CASE(
   const IsfResult r = render(backend, {corpus("isf-mrt-persistent-ssbo.fs")}, {64, 64}, 5);
   if(r.skipped)
     SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = storage_buffer_skip_reason(backend))
+    SKIP(why);
   INFO("backend=" << r.backend);
   REQUIRE(r.error.empty());
   REQUIRE(r.outputs.size() == 2); // outA + outB ports
@@ -49,5 +51,5 @@ TEST_CASE(
   // outA carries the ramp (red) — attachment 0 works on OpenGL.
   CHECK(!near(a, black, 6));
   // Correct behaviour: outB must ALSO carry the counter (its blue channel).
-  CHECK(!near(b, black, 6)); // RED on OpenGL: outB is blank
+  CHECK(!near(b, black, 6)); // outB used to come back blank on OpenGL
 }
