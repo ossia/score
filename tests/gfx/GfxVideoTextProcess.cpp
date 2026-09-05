@@ -24,6 +24,7 @@
 
 #include <Process/Dataflow/WidgetInlets.hpp>
 
+#include <QFileInfo>
 #include <QProcess>
 #include <QStandardPaths>
 
@@ -42,17 +43,35 @@ constexpr auto UUID_TEXT = "88bd9718-2a36-42ba-8eab-da5f84e3978e";
 /// caller SKIPs — a clip is genuinely optional on a build host.
 QString test_clip()
 {
+  // A clip that EXISTS is not a clip that DECODES.
+  //
+  // `ffmpeg -y` creates its output before it encodes anything, so a run whose
+  // ffmpeg died -- a full disk is how this actually happened, on macOS on
+  // 4 Sept -- leaves a zero-byte clip.mp4 behind. That run correctly returned
+  // {} and SKIPped, but every LATER run in the same scratch dir hit the
+  // existence check below and handed the stub to the decoder, for good:
+  // ffprobe says "moov atom not found", makeDecoder() returns null, and the
+  // case fails. It read as a backend-specific defect on macOS/OpenGL and is
+  // nothing of the kind -- it fails identically on Metal.
+  //
+  // So: size-check what we hand back, and never leave a non-clip behind.
+  const auto usable = [](const QString& path) {
+    const QFileInfo fi{path};
+    return fi.isFile() && fi.size() > 1024;
+  };
+
   if(const auto d = qEnvironmentVariable("SCORE_TEST_MEDIA_DIR"); !d.isEmpty())
   {
     const QString p = d + QStringLiteral("/h264.mp4");
-    if(QFile::exists(p))
+    if(usable(p))
       return p;
   }
 
   const QString dir = scratch_dir("video");
   const QString out = dir + QStringLiteral("/clip.mp4");
-  if(QFile::exists(out))
+  if(usable(out))
     return out;
+  QFile::remove(out);
 
   const QString ffmpeg = QStandardPaths::findExecutable(QStringLiteral("ffmpeg"));
   if(ffmpeg.isEmpty())
@@ -64,9 +83,12 @@ QString test_clip()
       {"-nostdin", "-loglevel", "error", "-y", "-f", "lavfi", "-i",
        "testsrc=size=160x120:rate=25:duration=1", "-pix_fmt", "yuv420p", "-c:v",
        "libx264", "-preset", "ultrafast", out});
-  if(!p.waitForFinished(60000) || p.exitCode() != 0)
+  if(!p.waitForFinished(60000) || p.exitCode() != 0 || !usable(out))
+  {
+    QFile::remove(out);
     return {};
-  return QFile::exists(out) ? out : QString{};
+  }
+  return out;
 }
 
 /// An .mp4 whose bytes are not a video stream.
