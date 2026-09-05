@@ -148,6 +148,10 @@ TEST_CASE(
   if(skipped || (!built && err.empty()))
     SKIP("backend unavailable");
 
+  // This case needs a storage buffer, which pre-4.30 GLSL cannot express.
+  if(const char* why = storage_buffer_skip_reason(be))
+    SKIP(why);
+
   INFO("backend=" << backend_name(be) << " error=" << err);
   REQUIRE(err.empty());
   REQUIRE(built);
