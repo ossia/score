@@ -173,6 +173,19 @@ TEST_CASE("a producer and a consumer thread never share a slot",
   std::atomic<bool> stop{false};
   std::atomic<int> collisions{0};
   std::atomic<int> badIndex{0};
+  // acquireReadIndex() returns -1 for "no frame has ever been published", which
+  // the "no frame yet means no slot" case below pins. The
+  // consumer thread starts before the producer's first publishWriteIndex(),
+  // so it spins on that -1 for as long as thread startup takes. Counting it
+  // as a bad index fails this case on roughly 2 runs in 5 and reads as a
+  // producer/consumer race that is not there: `collisions`, the counter that
+  // actually detects a shared slot, stays 0 across all of them.
+  //
+  // A -1 *after* a frame has been acquired would be a real defect, since
+  // everReady latches on the first publish and is never cleared. Count the
+  // two separately and only assert on the second.
+  std::atomic<int> notReadyBeforeFirstFrame{0};
+  std::atomic<int> notReadyAfterFirstFrame{0};
 
   constexpr int kFrames = 200000;
 
@@ -196,6 +209,7 @@ TEST_CASE("a producer and a consumer thread never share a slot",
 
   std::thread consumer([&] {
     int cur = -1;
+    bool sawFrame = false;
     while(!stop.load(std::memory_order_acquire))
     {
       // Release the previous texture, then ask for the next one: that is the
@@ -203,12 +217,20 @@ TEST_CASE("a producer and a consumer thread never share a slot",
       if(cur >= 0)
         heldByConsumer[cur].store(false, std::memory_order_release);
       const int r = idx.acquireReadIndex();
+      if(r == -1)
+      {
+        (sawFrame ? notReadyAfterFirstFrame : notReadyBeforeFirstFrame)
+            .fetch_add(1, std::memory_order_relaxed);
+        cur = -1;
+        continue;
+      }
       if(r < 0 || r >= 3)
       {
         badIndex.fetch_add(1, std::memory_order_relaxed);
         cur = -1;
         continue;
       }
+      sawFrame = true;
       heldByConsumer[r].store(true, std::memory_order_release);
       cur = r;
     }
@@ -220,28 +242,25 @@ TEST_CASE("a producer and a consumer thread never share a slot",
   consumer.join();
 
   CHECK(badIndex.load() == 0);
+  CHECK(notReadyAfterFirstFrame.load() == 0);
   CHECK(collisions.load() == 0);
 }
 
 // ---------------------------------------------------------------------------
-// REGRESSION GUARD (green). acquireReadIndex() returns -1 when no frame has
-// been published yet. It used to return the initial read slot instead, which
-// is the defect this case was written against -- see below.
-//
-// The method's own comment says "Returns the read index, or -1 if no new frame", and
-// every backend is written to that contract:
+// acquireReadIndex() returns -1 when no frame has been published yet. The
+// method's own comment says "Returns the read index, or -1 if no new frame",
+// and every backend is written to that contract:
 //
 //   int readSlot = m_tripleBuffer.acquireReadIndex();
 //   if(readSlot < 0 || readSlot >= 3)
 //     return m_consumerTextureWrappers[m_currentReadSlot];
 //
-// Before the producer has published anything, acquireReadIndex() now returns
-// -1 rather than the initial read slot (2) -- a slot created with
-// QRhi::create() and never rendered into -- so
-// TextureShare::acquireConsumerTexture() honours its documented contract
-// ("the most recently completed texture, or nullptr if none ready"). An
-// everReady latch (set on the first publish) gates the steady-state
-// "keep the last frame" fallback against the never-written startup slot.
+// Handing out the initial read slot (2) instead would hand back a slot created
+// with QRhi::create() and never rendered into, breaking
+// TextureShare::acquireConsumerTexture()'s documented contract ("the most
+// recently completed texture, or nullptr if none ready"). An everReady latch
+// (set on the first publish) gates the steady-state "keep the last frame"
+// fallback against the never-written startup slot.
 // ---------------------------------------------------------------------------
 TEST_CASE("no frame yet means no slot", "[gfx][interop][triplebuffer]")
 {
