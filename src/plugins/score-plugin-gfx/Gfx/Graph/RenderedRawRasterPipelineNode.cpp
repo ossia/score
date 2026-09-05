@@ -776,7 +776,8 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     // the explicit per-face loop is the ONLY thing that writes the other five
     // faces. Disabling it there is what left five of six faces unwritten.
     const bool mvLowered = viewIndexNeedsPassIndexFallback(
-        renderer.state.api, renderer.state.version);
+        renderer.state.api, renderer.state.version,
+        n.descriptor().multiview_count);
     if(m_executionMode == ExecutionMode::PerCubeFace
        && n.descriptor().multiview_count >= 2 && !mvLowered)
     {
@@ -840,7 +841,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
   const bool wantMultiview
       = mvCount >= 2 && renderer.state.caps.multiview
         && !viewIndexNeedsPassIndexFallback(
-            renderer.state.api, renderer.state.version);
+            renderer.state.api, renderer.state.version, mvCount);
   if(wantMultiview && mvCount > maxLayers)
     maxLayers = mvCount;
 

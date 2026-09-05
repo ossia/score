@@ -229,11 +229,15 @@ compatibleBufferUsage(QRhi& rhi, QRhiBuffer::UsageFlags usage) noexcept
  * which passIndex never advanced past 0 -- and all six cube faces came back
  * carrying face 0's colour. Ask this function in both places.
  */
-inline bool
-viewIndexNeedsPassIndexFallback(GraphicsApi api, const QShaderVersion& version) noexcept
+inline bool viewIndexNeedsPassIndexFallback(
+    GraphicsApi api, const QShaderVersion& version, int multiViewCount) noexcept
 {
+  // SCORE_GFX_DISABLE_MULTIVIEW means "pretend this backend has no multiview".
+  // It also makes this path -- otherwise reachable only on a D3D target --
+  // testable everywhere.
   if(qEnvironmentVariableIsSet("SCORE_GFX_DISABLE_MULTIVIEW"))
     return true;
+
   if(api != GraphicsApi::D3D11 && api != GraphicsApi::D3D12)
     return false;
 
@@ -241,27 +245,36 @@ viewIndexNeedsPassIndexFallback(GraphicsApi api, const QShaderVersion& version) 
   if(api == GraphicsApi::D3D11)
     return true;
 
-  // D3D12 could, at SM 6.1 with dxcompiler.dll present -- and ossia/sdk
-  // 86207a70 now ships that runtime, so shipping builds DO reach SM 6.1. But
-  // its native path is measurably wrong. Measured on the interactive runner,
-  // RTX 3090, same binary, the only difference being dxcompiler.dll on PATH:
+  // D3D12 without dxcompiler.dll drops to SM 5.0, which has no SV_ViewID
+  // either. ossia/sdk 86207a70 ships that runtime, so shipping builds DO
+  // reach 6.1 -- but a source build without it still lands here.
+  if(version.version() < 61)
+    return true;
+
+  // D3D12 ViewInstancing is capped at D3D12_MAX_VIEW_INSTANCE_COUNT == 4.
+  // Above that, CreatePipelineState rejects the PSO outright:
   //
-  //   pass-index fallback (SM 5.0): cubemap_six_faces  19 assertions, PASS
-  //                                 camera_array_faces 112 assertions, PASS
-  //   native ViewInstancing (6.1):  cubemap_six_faces  20 assertions, 12 FAIL
-  //                                 camera_array_faces 113 assertions, 12 FAIL
+  //   Failed to create graphics pipeline state: COM error 0x80070057:
+  //   The parameter is incorrect.
+  //   Warning! MRT Pipeline not created
   //
-  // All six faces come back wrong -- six identity probes and six cardinality
-  // probes -- with an empty error string. test_gfx_multiview PASSES natively,
-  // so plain multiview amplification is fine; what is broken is the
-  // CUBEMAP+MULTIVIEW array-then-copy shim under real ViewInstancing.
+  // and with no pipeline nothing draws, so every cube face reads back
+  // (0,0,0,255) -- which looks like a rasterizer or copy fault and is neither.
+  // Qt encodes the same limit in its QVarLengthArray<D3D12_VIEW_INSTANCE_LOCATION, 4>.
   //
-  // Until that shim is fixed, take the path that produces correct pixels. This
-  // is deliberately NOT narrowed to cubemap outputs: the shader rewrite and the
-  // render path must agree, and this predicate is the single thing both ask --
-  // splitting it by output shape is what caused the half-applied fallback in
-  // bb3a03775b. Revisit when the shim is fixed; the assertion counts above are
-  // the regression test (20 / 113 means native ran).
-  return true;
+  // This is exactly the split measured on an RTX 3090 with the SDK's DXC
+  // installed: test_gfx_multiview declares MULTIVIEW:2 and PASSES natively,
+  // while cubemap_six_faces and camera_array_faces declare MULTIVIEW:6 and
+  // failed every face. A cubemap is inherently 6 views, so CUBEMAP+MULTIVIEW
+  // can never use D3D12 ViewInstancing -- it is not a Qt bug and not a shim
+  // bug, it is the API's limit.
+  //
+  // Keep the fast path where it is legal: 2- and 4-view shaders still get real
+  // ViewInstancing. Only what D3D12 cannot express falls back to N passes.
+  if(multiViewCount > 4)
+    return true;
+
+  return false;
 }
+
 }
