@@ -31,6 +31,16 @@ public:
 
   static ApplicationInterface& instance();
 
+  /**
+   * @brief Whether instance() has anything to return.
+   *
+   * instance() dereferences m_instance unconditionally, so calling it with no
+   * application built binds a reference to null. Code that can legitimately
+   * run outside an application -- the gfx graph is driven standalone by the
+   * PipeWire round-trip harness and by the corpus renderer -- must ask first.
+   */
+  static bool hasInstance() noexcept { return m_instance != nullptr; }
+
 protected:
   static ApplicationInterface* m_instance;
 };

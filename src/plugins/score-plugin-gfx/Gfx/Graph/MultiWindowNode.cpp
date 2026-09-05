@@ -1151,7 +1151,7 @@ void MultiWindowNode::updateGraphicsAPI(GraphicsApi api)
     return;
 
   int samples_request
-      = score::AppContext().settings<Gfx::Settings::Model>().resolveSamples(api);
+      = Gfx::Settings::samplesForCurrentApplication(api);
   const auto supported = rhi->supportedSampleCounts();
   if(supported.isEmpty())
   {

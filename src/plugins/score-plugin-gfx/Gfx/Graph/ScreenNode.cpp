@@ -231,8 +231,7 @@ std::shared_ptr<RenderState> createRenderState(
   RenderState& state = *st;
   state.api = graphicsApi;
 
-  const auto& settings = score::AppContext().settings<Gfx::Settings::Model>();
-  state.samples = settings.resolveSamples(graphicsApi);
+  state.samples = Gfx::Settings::samplesForCurrentApplication(graphicsApi);
 
   auto populateCaps = [graphicsApi](RenderState& s) {
     // Load persisted pipeline cache (if any) and set up a save-on-destroy
@@ -1201,8 +1200,7 @@ void ScreenNode::updateGraphicsAPI(GraphicsApi api)
     {
       // FIXME refactor with createRenderState
       // FIXME implement for other output nodes
-      int samples_request
-          = score::AppContext().settings<Gfx::Settings::Model>().resolveSamples(api);
+      int samples_request = Gfx::Settings::samplesForCurrentApplication(api);
 
       if(!s->rhi)
         return;
