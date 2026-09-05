@@ -1681,7 +1681,8 @@ void RenderState::Caps::populate(QRhi& rhi)
   resolveDepthStencil = rhi.isFeatureSupported(QRhi::ResolveDepthStencil);
 #endif
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
-  multiview = rhi.isFeatureSupported(QRhi::MultiView);
+  multiview = rhi.isFeatureSupported(QRhi::MultiView)
+              && !qEnvironmentVariableIsSet("SCORE_GFX_DISABLE_MULTIVIEW");
 #endif
 
   timestamps = rhi.isFeatureSupported(QRhi::Timestamps);
