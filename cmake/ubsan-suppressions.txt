@@ -1,0 +1,101 @@
+# UndefinedBehaviorSanitizer runtime suppressions for score.
+#
+# Format is <check>:<pattern>. The pattern is matched against the source file
+# name of the reporting location, the module name, and every function name in
+# the reporting frame. Keep every pattern anchored on a file path so it can
+# never accidentally match a score function name.
+#
+# NOTHING BELONGS HERE THAT SCORE CAN FIX. One entry, one third-party defect,
+# one comment saying why score cannot fix it.
+#
+# HOW THIS FILE IS CONSULTED. UBSan only looks at suppressions from a
+# *recoverable* handler: compiler-rt's ignoreReport() short-circuits to "do not
+# ignore" whenever Opts.FromUnrecoverableHandler is set, because an
+# unrecoverable handler has to print something before it dies. score builds
+# with -fno-sanitize-recover=all, so this file is inert on its own.
+# cmake/ScoreConfiguration.cmake therefore adds -fsanitize-recover=null and
+# pins UBSAN_OPTIONS=halt_on_error=1, which keeps every *unsuppressed* null
+# finding exactly as fatal as it was before.
+#
+# Measured on this SDK's clang (/opt/ossia-sdk-debug-x86_64/llvm), one null
+# reference binding in a two-line program:
+#   -fno-sanitize-recover=all + suppressions  -> still reports and dies
+#   -fsanitize-recover=null   + suppressions  -> suppressed, process continues
+#   -fsanitize-recover=null   + halt_on_error -> unsuppressed null still fatal
+
+# ---------------------------------------------------------------------------
+# libc++'s own transparent-comparator machinery binds a reference to a null
+# pointer on every std::map<K, V> insert into a NON-EMPTY map, whenever K has
+# no __default_three_way_comparator specialization (QString, and any user
+# type).
+#
+#   __tree::__find_equal() builds
+#     auto&& t = std::__as_transparent<key_type>(value_comp());
+#     auto c   = __lazy_synth_three_way_comparator<
+#                  __make_transparent_t<key_type, _Compare>, _Key, value_type>(t);
+#   The map specialization of __lazy_synth_three_way_comparator holds its inner
+#   comparator by value and initialises it from __comp.key_comp(); that inner
+#   one is the primary template, which stores "const _Comparator& __comp_;" --
+#   a reference to an *empty* subobject of a temporary. At -O0 the address of
+#   that empty subobject is materialised as null, and -fsanitize=null fires
+#   where the reference is forwarded on
+#   (__utility/lazy_synth_three_way_comparator.h:72).
+#
+# std::less<void> is stateless, so nothing is ever read through the reference:
+# this is UB on paper and cannot misbehave in a build without -fsanitize=null.
+# It is not a strict-weak-ordering violation and there is no score type with a
+# broken operator<. __tree:1949 returns early on an empty tree, which is why
+# the first insert is safe and the second is not.
+#
+# Do NOT "fix" this in score. The UB is per-std::map<K,V>-insert, not per call
+# site; patching one call site only relocates the report to the next such
+# insert on the startup path.
+#
+# Impact when unsuppressed: QMap::operator[] hits exactly this shape
+# (qmap.h:544, "d->m.insert({key, T()})"). QLanguage::load() -> QJSCompleter ->
+# JS::PanelDelegate -> registerPanel -> loadPluginData runs on every
+# score::MinimalGUIApplication construction, so with -fno-sanitize-recover the
+# process died before Catch2 ran a single assertion: 147 of 515 tests in the
+# 4f526348fc sanitizer run, 93 of them test_gfx_*, produced no signal at all.
+#
+# Delete this entry once /opt/ossia-sdk-debug-x86_64/llvm ships a libc++ whose
+# __lazy_synth_three_way_comparator does not do this.
+null:*/__utility/lazy_synth_three_way_comparator.h
+#
+# ...and the SECOND report the same null reference produces, one frame later.
+# __lazy_compare_result::__less() (lazy_synth_three_way_comparator.h:45) calls
+# __comp_(__lhs, __rhs) through that null reference, and the call is attributed
+# to the callee:
+#
+#   __functional/operations.h:374:60: runtime error: member call on null
+#       pointer of type 'const std::less<void> *'
+#     #0 std::less<void>::operator()<QString const&, QString const&>(...)
+#                                             __functional/operations.h:374
+#     #1 __lazy_compare_result<less<void>, QString, QString>::__less()
+#                            __utility/lazy_synth_three_way_comparator.h:45:21
+#     #2 __tree<...>::__find_equal<QString>(QString const&)      __tree:1962:20
+#     #3 __tree<...>::find<QString>(QString const&)              __tree:1260:31
+#     #4 map<QString, QList<QString>, ...>::find(QString const&) map:1389:20
+#     #5 QMap<QString, QList<QString>>::operator[](QString const&) qmap.h:542:23
+#     #6 QLanguage::load(QIODevice*)   QCodeEditor/src/internal/QLanguage.cpp:40
+#
+# Two things to note, because both contradict what the first report suggests:
+#
+#  * This is NOT a second defect and NOT a second call site. It is the same
+#    null `const std::less<void>&`, reported once where it is bound and once
+#    where it is called through. Suppressing only the first just relocates the
+#    abort by one frame -- measured: with only the entry above, the process
+#    still dies, at operations.h:374 instead of lazy_synth:72.
+#
+#  * It fires on the LOOKUP path (qmap.h:542, "d->m.find(key)"), not only on
+#    the insert path (qmap.h:544). __tree::find() calls __find_equal() too, so
+#    the "insert into a non-empty map" framing is too narrow: any
+#    std::map<QString, T> operation that reaches __find_equal on a non-empty
+#    tree can report.
+#
+# operations.h holds nothing but libc++'s stateless function objects
+# (less/greater/plus/...). Score code is never attributed to it, so this
+# cannot mask a score defect; a "member call on null pointer" there is
+# reachable only by calling such a functor through a null reference, which is
+# exactly the machinery above.
+null:*/__functional/operations.h
