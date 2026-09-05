@@ -336,7 +336,8 @@ struct InstancerShrinkRenderer final : score::gfx::NodeRenderer
     m_posBuf = rhi->newBuffer(
         QRhiBuffer::Static,
         QRhiBuffer::UsageFlags(
-            QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer),
+            score::gfx::compatibleBufferUsage(
+                *rhi, QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer)),
         kBigCount * 12);
     m_posBuf->setName("InstancerShrinkTest::points_positions");
     m_posBuf->create();
@@ -392,7 +393,8 @@ struct InstancerShrinkRenderer final : score::gfx::NodeRenderer
       self.bufA = rhi->newBuffer(
           QRhiBuffer::Static,
           QRhiBuffer::UsageFlags(
-              QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer),
+              score::gfx::compatibleBufferUsage(
+                *rhi, QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer)),
           kBigCount * 64);
       self.bufA->setName("InstancerShrinkTest::transforms_100");
       self.bufA->create();
@@ -415,7 +417,8 @@ struct InstancerShrinkRenderer final : score::gfx::NodeRenderer
       self.bufB = rhi->newBuffer(
           QRhiBuffer::Static,
           QRhiBuffer::UsageFlags(
-              QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer),
+              score::gfx::compatibleBufferUsage(
+                *rhi, QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer)),
           kSmallCount * 64);
       self.bufB->setName("InstancerShrinkTest::transforms_10");
       self.bufB->create();

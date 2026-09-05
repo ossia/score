@@ -156,4 +156,56 @@ std::shared_ptr<RenderState> createRenderState(
     SharedDeviceMode deviceMode = SharedDeviceMode::Owned);
 
 static const constexpr int32_t invalid_node_index = -1;
+
+/**
+ * @brief Drop a StorageBuffer usage the backend cannot actually honour.
+ *
+ * QGles2Buffer::create() picks the target it will run every glBufferData /
+ * glBufferSubData through from the usage flags, and StorageBuffer outranks both
+ * VertexBuffer and IndirectBuffer (qrhigles2.cpp):
+ *
+ *     targetForDataOps = GL_ARRAY_BUFFER;
+ *     if (usage & IndexBuffer)         targetForDataOps = GL_ELEMENT_ARRAY_BUFFER;
+ *     else if (usage & StorageBuffer)  targetForDataOps = GL_SHADER_STORAGE_BUFFER;
+ *     else if (usage & IndirectBuffer) targetForDataOps = GL_DRAW_INDIRECT_BUFFER;
+ *
+ * GL_SHADER_STORAGE_BUFFER arrived with GL 4.3 / GLES 3.1. macOS caps desktop
+ * OpenGL at 4.1, so on Apple's driver the bind and every upload against that
+ * target raise GL_INVALID_ENUM and do nothing: glGenBuffers still hands out a
+ * name, create() still returns true, and the object never receives a data store
+ * or a single byte of content. Nothing in score can see that, because the only
+ * thing it can check -- create() -- succeeded.
+ *
+ * The damage lands at draw time and looks like two unrelated bugs:
+ *   - bound as a VERTEX buffer, Apple's GL walks the storeless object and
+ *     faults inside gleRunVertexSubmitImmediate, EXC_BAD_ACCESS at the
+ *     attribute's own byte offset (0x0, 0x40, ...);
+ *   - bound as an INDIRECT buffer, the draw reads zeros and rasterises nothing,
+ *     silently and with an empty error string.
+ * Mesa and the NVIDIA driver expose 4.6, so the same code is correct on
+ * Linux/OpenGL, which is what makes this look platform-specific rather than
+ * backend-specific.
+ *
+ * A buffer a shader genuinely reads as an SSBO cannot be rescued here: below
+ * 4.3 there are no SSBOs to read. So a StorageBuffer-ONLY usage is returned
+ * untouched and fails honestly. This only demotes buffers whose storage role is
+ * an ADDITIONAL one alongside a vertex / index / indirect role the backend can
+ * still serve -- the mesh arena, the geometry VBOs, the MDI command buffer.
+ */
+inline QRhiBuffer::UsageFlags
+compatibleBufferUsage(QRhi& rhi, QRhiBuffer::UsageFlags usage) noexcept
+{
+  if(!usage.testFlag(QRhiBuffer::StorageBuffer))
+    return usage;
+  // Storage-only: there is no other role to fall back to, keep it as asked.
+  if(int(usage) == int(QRhiBuffer::StorageBuffer))
+    return usage;
+  // QRhi::Compute is exactly the GL backend's own SSBO line: caps.compute is
+  // set for GL >= 4.3 / GLES >= 3.1 (qrhigles2.cpp), the same versions that
+  // introduce GL_SHADER_STORAGE_BUFFER. Ask the capability, do not name a
+  // backend: it stays right if a backend gains or loses the ability.
+  if(rhi.isFeatureSupported(QRhi::Compute))
+    return usage;
+  return usage & ~QRhiBuffer::UsageFlags(QRhiBuffer::StorageBuffer);
+}
 }

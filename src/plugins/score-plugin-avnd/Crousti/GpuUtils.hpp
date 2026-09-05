@@ -711,7 +711,10 @@ static void recreateOutputBuffer(
     if(bytesize > 0)
     {
       buf.handle = renderer.state.rhi->newBuffer(
-          QRhiBuffer::Static, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer,
+          QRhiBuffer::Static,
+              score::gfx::compatibleBufferUsage(
+                  *renderer.state.rhi,
+                  QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer),
           bytesize);
       buf.handle->setName("GpuUtils::recreateOutputBuffer");
       buf.byte_offset = 0;
@@ -845,7 +848,10 @@ struct geometry_inputs_storage<T>
           meshes.readbacks.resize(buffer_index + 1);
 
           auto buf = renderer.state.rhi->newBuffer(
-              QRhiBuffer::Static, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer,
+              QRhiBuffer::Static,
+              score::gfx::compatibleBufferUsage(
+                  *renderer.state.rhi,
+                  QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer),
               bytesize);
           buf->setName(oscr::getUtf8Name<T>() + "::" + oscr::getUtf8Name(t));
           buf->create();
@@ -1020,7 +1026,10 @@ struct buffer_outputs_storage<T>
     auto& [gfx_port, buf] = m_buffers[N];
     gfx_port = parent.output[nf];
     buf.handle = renderer.state.rhi->newBuffer(
-        QRhiBuffer::Static, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, 1);
+        QRhiBuffer::Static,
+              score::gfx::compatibleBufferUsage(
+                  *renderer.state.rhi,
+                  QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer), 1);
     buf.handle->setName(oscr::getUtf8Name<T>() + "::" + oscr::getUtf8Name(port));
     buf.byte_offset = 0;
     buf.byte_size = 1;
@@ -1039,7 +1048,10 @@ struct buffer_outputs_storage<T>
         if(bytesize > 0)
         {
           buf.handle = renderer.state.rhi->newBuffer(
-              QRhiBuffer::Static, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer,
+              QRhiBuffer::Static,
+              score::gfx::compatibleBufferUsage(
+                  *renderer.state.rhi,
+                  QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer),
               bytesize);
           buf.handle->setName(oscr::getUtf8Name<T>() + "::" + oscr::getUtf8Name(port));
           buf.byte_offset = 0;
@@ -1051,7 +1063,10 @@ struct buffer_outputs_storage<T>
         else
         {
           buf.handle = renderer.state.rhi->newBuffer(
-              QRhiBuffer::Static, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer,
+              QRhiBuffer::Static,
+              score::gfx::compatibleBufferUsage(
+                  *renderer.state.rhi,
+                  QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer),
               1);
           buf.handle->setName(oscr::getUtf8Name<T>() + "::" + oscr::getUtf8Name(port));
           buf.byte_offset = 0;
