@@ -164,6 +164,8 @@ CubeFacts run_cube(score::gfx::GraphicsApi backend)
       // Both corpus shaders declare MULTIVIEW:6 -- a cubemap is six views by
       // definition, which is also why D3D12 ViewInstancing (max 4) cannot
       // serve them. The count is part of the predicate, so pass it.
+      f.multiview_lowered = score::gfx::viewIndexNeedsPassIndexFallback(
+          renderList->state.api, renderList->state.version, 6);
       if(QRhiTexture* tex = renderer->textureForOutput(*outPort))
       {
         f.out_tex_found = true;
