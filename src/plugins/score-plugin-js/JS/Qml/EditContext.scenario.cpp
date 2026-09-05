@@ -3,12 +3,19 @@
 #include <Process/ProcessList.hpp>
 
 #include <Scenario/Commands/CommandAPI.hpp>
+#include <Scenario/Commands/Event/SetCondition.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
+#include <Scenario/Commands/TimeSync/AddTrigger.hpp>
+#include <Scenario/Commands/TimeSync/RemoveTrigger.hpp>
+#include <Scenario/Commands/TimeSync/SetTrigger.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 
 #include <JS/Commands/ScriptMacro.hpp>
 #include <JS/Qml/EditContext.hpp>
@@ -18,6 +25,7 @@
 
 #include <ossia-qt/js_utilities.hpp>
 
+#include <QDebug>
 #include <QTime>
 
 #include <iterator>
@@ -189,8 +197,7 @@ QObject* EditJsContext::createProcess(QObject* interval, QString name, QString d
 // inserts at the front: index 0 is the most recently added process. It is
 // stable for a given document, which is what an index-based accessor needs;
 // scripts that care about timeline order should sort on what they need.
-static const score::EntityMap<Process::ProcessModel, true>*
-hostedProcesses(QObject* obj)
+static const score::EntityMap<Process::ProcessModel, true>* hostedProcesses(QObject* obj)
 {
   if(auto itv = qobject_cast<Scenario::IntervalModel*>(obj))
     return &itv->processes;
@@ -599,9 +606,10 @@ QVariantList EditJsContext::messages(QObject* obj)
   auto msgs = Process::flatten(s->messages().rootNode());
   for(const auto& msg : msgs)
   {
-    ret.push_back(QVariantMap{
-        {"address", msg.address.toString()},
-        {"value", msg.value.apply(ossia::qt::ossia_to_qvariant{})}});
+    ret.push_back(
+        QVariantMap{
+            {"address", msg.address.toString()},
+            {"value", msg.value.apply(ossia::qt::ossia_to_qvariant{})}});
   }
   return ret;
 }
@@ -653,6 +661,139 @@ void EditJsContext::replaceAddress(QObjectList objects, QString before, QString 
 
   auto [m, _] = macro(*doc);
   m->findAndReplace(objs, *addr_before, *addr_after);
+}
+
+// A trigger belongs to a time sync: intervals mean their end, states and events
+// the one they sit on.
+static const Scenario::TimeSyncModel* resolveTimeSync(QObject* obj)
+{
+  if(auto t = qobject_cast<Scenario::TimeSyncModel*>(obj))
+    return t;
+  if(auto ev = qobject_cast<Scenario::EventModel*>(obj))
+  {
+    if(auto scenar = qobject_cast<Scenario::ProcessModel*>(ev->parent()))
+      return &Scenario::parentTimeSync(*ev, *scenar);
+  }
+  else if(auto st = qobject_cast<Scenario::StateModel*>(obj))
+  {
+    if(auto scenar = qobject_cast<Scenario::ProcessModel*>(st->parent()))
+      return &Scenario::parentTimeSync(*st, *scenar);
+  }
+  else if(auto itv = qobject_cast<Scenario::IntervalModel*>(obj))
+  {
+    if(auto scenar = qobject_cast<Scenario::ProcessModel*>(itv->parent()))
+      return &Scenario::endTimeSync(*itv, *scenar);
+  }
+  return nullptr;
+}
+
+// A condition belongs to an event; a state means the event it sits on.
+static const Scenario::EventModel* resolveEvent(QObject* obj)
+{
+  if(auto e = qobject_cast<Scenario::EventModel*>(obj))
+    return e;
+  if(auto st = qobject_cast<Scenario::StateModel*>(obj))
+    if(auto scenar = qobject_cast<Scenario::ProcessModel*>(st->parent()))
+      return &Scenario::parentEvent(*st, *scenar);
+  return nullptr;
+}
+
+void EditJsContext::enableTrigger(QObject* obj)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+  auto ts = resolveTimeSync(obj);
+  // Only time syncs inside a scenario can be made interactive
+  if(!ts || !qobject_cast<Scenario::ProcessModel*>(ts->parent()) || ts->active())
+    return;
+
+  auto [m, _] = macro(*doc);
+  submit(*m, new Scenario::Command::AddTrigger<Scenario::ProcessModel>{*ts});
+}
+
+void EditJsContext::disableTrigger(QObject* obj)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+  auto ts = resolveTimeSync(obj);
+  if(!ts || !qobject_cast<Scenario::ProcessModel*>(ts->parent()) || !ts->active())
+    return;
+
+  auto [m, _] = macro(*doc);
+  submit(*m, new Scenario::Command::RemoveTrigger<Scenario::ProcessModel>{*ts});
+}
+
+void EditJsContext::enableCondition(QObject* obj)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+  auto ev = resolveEvent(obj);
+  if(!ev || ev->condition().hasChildren())
+    return;
+
+  auto [m, _] = macro(*doc);
+  submit(*m, new Scenario::Command::SetCondition{*ev, State::defaultTrueExpression()});
+}
+
+void EditJsContext::disableCondition(QObject* obj)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+  auto ev = resolveEvent(obj);
+  if(!ev || !ev->condition().hasChildren())
+    return;
+
+  auto [m, _] = macro(*doc);
+  submit(*m, new Scenario::Command::SetCondition{*ev, State::Expression{}});
+}
+
+void EditJsContext::setExpression(QObject* obj, QString expression)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+
+  auto parsed = State::parseExpression(expression);
+  if(!parsed)
+  {
+    qDebug() << "setExpression: cannot parse" << expression
+             << "- expected e.g. \"{ %device:/address% > 0.5 }\"";
+    return;
+  }
+
+  auto [m, _] = macro(*doc);
+  if(auto ev = qobject_cast<Scenario::EventModel*>(obj))
+  {
+    submit(*m, new Scenario::Command::SetCondition{*ev, std::move(*parsed)});
+  }
+  else if(auto st = qobject_cast<Scenario::StateModel*>(obj))
+  {
+    if(auto e = resolveEvent(st))
+      submit(*m, new Scenario::Command::SetCondition{*e, std::move(*parsed)});
+  }
+  else if(auto ts = resolveTimeSync(obj))
+  {
+    submit(*m, new Scenario::Command::SetTrigger{*ts, std::move(*parsed)});
+  }
+}
+
+QString EditJsContext::expression(QObject* obj)
+{
+  if(auto ev = qobject_cast<Scenario::EventModel*>(obj))
+    return ev->condition().toString();
+  if(auto st = qobject_cast<Scenario::StateModel*>(obj))
+  {
+    if(auto e = resolveEvent(st))
+      return e->condition().toString();
+    return {};
+  }
+  if(auto ts = resolveTimeSync(obj))
+    return ts->expression().toString();
+  return {};
 }
 
 void EditJsContext::setIntervalDuration(QObject* object, TimeVal flicks)

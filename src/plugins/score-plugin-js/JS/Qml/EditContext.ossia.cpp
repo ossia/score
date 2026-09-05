@@ -11,6 +11,13 @@
 namespace JS
 {
 
+QString EditJsContext::portName(QObject* obj)
+{
+  if(auto p = qobject_cast<Process::Port*>(obj))
+    return p->name();
+  return {};
+}
+
 QString EditJsContext::valueType(QObject* obj)
 {
   auto doc = ctx();
@@ -25,12 +32,10 @@ QString EditJsContext::valueType(QObject* obj)
     return {};
 
   QString ret;
-  ossia::apply_nonnull(
-      [&](const auto& t) {
+  ossia::apply_nonnull([&](const auto& t) {
     using type = std::decay_t<decltype(t)>;
     ret = Metadata<Json_k, type>::get();
-      },
-      v);
+  }, v);
   return ret;
 }
 

@@ -159,6 +159,23 @@ public:
   QObject* createIntervalBetween(QObject* startState, QObject* endState);
   W_SLOT(createIntervalBetween)
 
+  // Triggers and conditions.
+  // A trigger lives on a time sync; intervals (their end), states and events
+  // resolve to theirs. A condition lives on an event; states resolve to theirs.
+  void enableTrigger(QObject* obj);
+  W_SLOT(enableTrigger)
+  void disableTrigger(QObject* obj);
+  W_SLOT(disableTrigger)
+  void enableCondition(QObject* obj);
+  W_SLOT(enableCondition)
+  void disableCondition(QObject* obj);
+  W_SLOT(disableCondition)
+  //! Trigger expression of a time sync, or condition of an event, e.g. "osc:/x > 0.5"
+  void setExpression(QObject* obj, QString expression);
+  W_SLOT(setExpression)
+  QString expression(QObject* obj);
+  W_SLOT(expression)
+
   void setIntervalDuration(QObject* object, TimeVal flicks);
   W_SLOT(setIntervalDuration)
   void setIntervalMinDuration(QObject* object, TimeVal flicks);
@@ -247,6 +264,8 @@ public:
   void setValue(QObject* obj, QList<QVariant> value);
   W_SLOT(setValue, (QObject*, QList<QVariant>))
 
+  QString portName(QObject* port);
+  W_SLOT(portName)
   QString valueType(QObject* obj);
   W_SLOT(valueType)
 
