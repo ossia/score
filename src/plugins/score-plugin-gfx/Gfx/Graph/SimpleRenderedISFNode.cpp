@@ -290,7 +290,9 @@ void SimpleRenderedISFNode::initMRTPass(RenderList& renderer, QRhiResourceUpdate
       maxLayers = out.layers;
   const int mvCount = n.descriptor().multiview_count;
   const bool wantMultiview
-      = mvCount >= 2 && renderer.state.caps.multiview;
+      = mvCount >= 2 && renderer.state.caps.multiview
+        && !viewIndexNeedsPassIndexFallback(
+            renderer.state.api, renderer.state.version);
   if(wantMultiview && mvCount > maxLayers)
     maxLayers = mvCount;
 

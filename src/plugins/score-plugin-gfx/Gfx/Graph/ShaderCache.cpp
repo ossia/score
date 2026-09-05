@@ -45,20 +45,9 @@ namespace score::gfx
 // belongs to the TARGET. ShaderCache is already partitioned by
 // (api, version, multiViewCount), so the rewrite is cached per-backend and the
 // OpenGL/Vulkan bakes of the same node keep real multiview.
-static bool viewIndexNeedsLowering(GraphicsApi api, const QShaderVersion& version)
-{
-  // SCORE_GFX_DISABLE_MULTIVIEW means "pretend this backend has no multiview".
-  // It already makes RenderList report caps.multiview == false, which selects
-  // the N-pass path; the shader has to follow the same signal or the two
-  // halves disagree. It also makes this lowering -- otherwise reachable only
-  // on a D3D target, i.e. only on Windows -- testable everywhere.
-  if(qEnvironmentVariableIsSet("SCORE_GFX_DISABLE_MULTIVIEW"))
-    return true;
-
-  if(api != GraphicsApi::D3D11 && api != GraphicsApi::D3D12)
-    return false;
-  return version.version() < 61;
-}
+// The predicate lives in RenderState.hpp as
+// viewIndexNeedsPassIndexFallback(): the render path must agree with this
+// rewrite, so both ask the same function.
 
 // Replace every gl_ViewIndex reference with the PASSINDEX uniform. Both the
 // `#define VIEW_INDEX gl_ViewIndex` and the wrapper main's
@@ -143,7 +132,7 @@ const std::pair<QShader, QString>& ShaderCache::get(
   // already per-(api, version, multiViewCount), so each backend caches its
   // own bake of the same node.
   QByteArray source = shader;
-  if(multiViewCount >= 2 && viewIndexNeedsLowering(api, version))
+  if(multiViewCount >= 2 && viewIndexNeedsPassIndexFallback(api, version))
     source = lowerViewIndexToPassIndex(std::move(source));
 
   b.baker.setSourceString(source, stage);
@@ -201,7 +190,7 @@ ShaderCache::Baker::Baker(
   // gl_ViewIndex left to give a view count to, the target cannot express
   // multiview anyway, and asking for it makes QRhi expect a multiview render
   // target the N-pass fallback does not build.
-  if(multiViewCount >= 2 && !viewIndexNeedsLowering(api, version))
+  if(multiViewCount >= 2 && !viewIndexNeedsPassIndexFallback(api, version))
     baker.setMultiViewCount(multiViewCount);
 #endif
 }
