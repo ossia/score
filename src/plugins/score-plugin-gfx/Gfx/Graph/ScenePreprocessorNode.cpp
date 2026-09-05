@@ -1175,7 +1175,9 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     auto* old = buf;
     if(buf)
       renderer.releaseBuffer(buf);
-    buf = renderer.state.rhi->newBuffer(QRhiBuffer::Static, flags, newCap);
+    buf = renderer.state.rhi->newBuffer(
+        QRhiBuffer::Static,
+        score::gfx::compatibleBufferUsage(*renderer.state.rhi, flags), newCap);
     buf->setName(name);
     // create() returns false on driver-level allocation failure: out of VRAM,
     // over maxBufferSize, signed-32-bit overflow in the backend. A zombie

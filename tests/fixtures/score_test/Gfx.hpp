@@ -266,6 +266,55 @@ inline const char* storage_buffer_skip_reason(score::gfx::GraphicsApi api) noexc
   return nullptr;
 }
 
+// -----------------------------------------------------------------------------
+// Compute shaders are not universally available either, and the backend that
+// lacks them is not a broken one.
+//
+// score's CSF nodes (COMPUTE_SHADER_FORMAT: the .cs corpus files, the geometry
+// PRODUCERS and FILTERS built on them, the CSF-fed raw-raster chains) all end
+// up in RenderedCSFNode, which asks QRhi for a compute pipeline. Compute
+// shaders entered desktop GL at 4.30 and GLES at 3.10 -- the same versions that
+// brought shader storage buffers, because a compute shader with no SSBO to
+// write into would have nowhere to put its result. Apple froze desktop OpenGL
+// at 4.1 core and never shipped 4.3, so on macOS/OpenGL QRhi reports
+// isFeatureSupported(QRhi::Compute) == false and RenderedCSFNode says
+//     "Compute shaders not supported on this backend"
+// once, then produces nothing.
+//
+// That warning is the whole failure. The node still builds, the raster
+// downstream of it still runs, the render still succeeds and the readback is
+// still a valid image -- an empty one. So the case does NOT fail with an error
+// string a reader can act on: it fails as `drawn_pixels(img) > 0` with
+// `error=` blank, which reads exactly like a rasterizer regression and is why
+// this group was mistaken for one. A CSF case on a 4.1 context is not testing
+// anything; it is measuring the clear colour.
+//
+// Same permanent platform limit as storage_buffer_skip_reason() above, same
+// verdict: SKIP and say why. Put it in the CSF-dependent TEST_CASEs ONLY --
+// never at file scope -- so the non-CSF cases in the same binary keep running.
+//
+// Returns nullptr when the backend CAN run compute shaders.
+inline const char* compute_shader_skip_reason(score::gfx::GraphicsApi api) noexcept
+{
+  if(api != score::gfx::OpenGL)
+    return nullptr;
+
+#ifndef QT_NO_OPENGL
+  const score::GLCapabilities caps{};
+  // GLSL ES 310, desktop GLSL 430. shaderVersion is the integer form (410, 430).
+  const bool es = caps.type == QSurfaceFormat::OpenGLES;
+  const int floor_version = es ? 310 : 430;
+  if(caps.shaderVersion < floor_version)
+    return "this OpenGL implementation reports a GLSL version below the one that "
+           "introduced compute shaders (4.30 desktop / ES 3.10), so QRhi reports "
+           "no Compute feature and score's CSF nodes warn 'Compute shaders not "
+           "supported on this backend' and emit nothing -- the readback is a "
+           "valid but empty image, not a rasterizer fault. macOS caps OpenGL at "
+           "4.1 and is the usual way to meet this.";
+#endif
+  return nullptr;
+}
+
 /// Try to bring up a QRhi for `api`. Returns true (and the backend name) if a
 /// real device could be created, false otherwise. Non-destructive: the probe
 /// state is torn down before returning.
