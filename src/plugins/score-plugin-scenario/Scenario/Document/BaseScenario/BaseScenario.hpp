@@ -14,11 +14,14 @@ class DataStream;
 class JSONObject;
 class QObject;
 #include <score/model/Identifier.hpp>
+
+#include <score_plugin_scenario_export.h>
+
 namespace Scenario
 {
 class IntervalModel;
 class TimeSyncModel;
-class BaseScenario final
+class SCORE_PLUGIN_SCENARIO_EXPORT BaseScenario final
     : public IdentifiedObject<BaseScenario>
     , public BaseScenarioContainer
 {
@@ -48,7 +51,7 @@ public:
   using QObject::event;
 };
 
-const QVector<Id<IntervalModel>>
+SCORE_PLUGIN_SCENARIO_EXPORT const QVector<Id<IntervalModel>>
 intervalsBeforeTimeSync(const BaseScenario&, const Id<TimeSyncModel>& timeSyncId);
 }
 
