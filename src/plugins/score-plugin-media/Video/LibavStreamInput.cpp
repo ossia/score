@@ -157,6 +157,22 @@ static bool isDeviceFormat(const AVInputFormat* fmt) noexcept
 static bool
 urlIsLiveSource(const std::string& url, const AVInputFormat* input_fmt) noexcept
 {
+  using namespace std::literals;
+
+  // lavfi is in libavdevice's input-device registry -- "D lavfi  Libavfilter
+  // virtual input device" -- so isDeviceFormat() below says yes. But it is not
+  // a capture device: it is a deterministic generator that starts at frame 0,
+  // never runs late, and never has anything to drop. Opening it with
+  // AVFMT_FLAG_NOBUFFER makes avformat_find_stream_info() discard the packet it
+  // probed with, exactly as the comment above warns, so the FIRST FRAME of
+  // every filter graph was silently lost.
+  //
+  // Confirmed against the CLI, which does the same thing when told to:
+  //   ffmpeg -fflags nobuffer -f lavfi -i "mandelbrot=size=1280x720:rate=30"
+  // renders as its frame 0 what the unflagged command renders as frame 1.
+  if(input_fmt && input_fmt->name == "lavfi"sv)
+    return false;
+
   if(isDeviceFormat(input_fmt))
     return true;
 
