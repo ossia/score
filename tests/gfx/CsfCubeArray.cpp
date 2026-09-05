@@ -67,6 +67,8 @@ TEST_CASE("csf imageCube compute write is non-black on every face", "[gfx][l3][c
 
   if(r.skipped)
     SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = score::test::gfx::compute_shader_skip_reason(backend))
+    SKIP(why);
 
   INFO("backend=" << r.backend << " error=" << r.error);
   REQUIRE(r.error.empty());
@@ -78,7 +80,7 @@ TEST_CASE("csf imageCube compute write is non-black on every face", "[gfx][l3][c
   // Quadrant sample points (image is 64x64): TL=+X face0, BR=+Z face4.
   const int qx0 = img.width / 4, qx1 = 3 * img.width / 4;
   const int qy0 = img.height / 4, qy1 = 3 * img.height / 4;
-  const int tl = brightness(img, qx0, qy0); // +X face 0  (written even pre-fix)
+  const int tl = brightness(img, qx0, qy0); // +X face 0  (written on either path)
   const int tr = brightness(img, qx1, qy0); // -X face 1
   const int bl = brightness(img, qx0, qy1); // +Y face 2
   const int br = brightness(img, qx1, qy1); // +Z face 4  (THE guard)
@@ -102,6 +104,8 @@ TEST_CASE("csf image2DArray compute write is non-black on every layer", "[gfx][l
 
   if(r.skipped)
     SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = score::test::gfx::compute_shader_skip_reason(backend))
+    SKIP(why);
 
   INFO("backend=" << r.backend << " error=" << r.error);
   REQUIRE(r.error.empty());
@@ -112,7 +116,7 @@ TEST_CASE("csf image2DArray compute write is non-black on every layer", "[gfx][l
 
   const int qx0 = img.width / 4, qx1 = 3 * img.width / 4;
   const int qy0 = img.height / 4, qy1 = 3 * img.height / 4;
-  const int l0 = brightness(img, qx0, qy0); // layer 0 (written even pre-fix)
+  const int l0 = brightness(img, qx0, qy0); // layer 0 (written on either path)
   const int l1 = brightness(img, qx1, qy0); // layer 1
   const int l2 = brightness(img, qx0, qy1); // layer 2
   const int l3 = brightness(img, qx1, qy1); // layer 3 (THE guard)

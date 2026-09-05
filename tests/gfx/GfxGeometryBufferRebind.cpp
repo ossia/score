@@ -1,56 +1,46 @@
 // =============================================================================
 // L3 GEOMETRY-BUFFER LIFETIME — a geometry buffer released on the frame it is
-// rebound does not dangle (SPEC P0-8).
+// rebound does not dangle.
 //
 // Geometry-buffer sibling of GfxBatchLifetime.cpp (material UBOs, "Do NOT
 // weaken"). The defect class: QRhiResourceUpdateBatch stores raw QRhiBuffer*
-// until commit, so a buffer that is released while the current frame's batch
-// still holds a pending uploadStaticBuffer naming it dangles at submit time.
-// RenderList::releaseBuffer() defends against exactly that with a deliberate
-// deleteLater() (RenderList.cpp:523-550; the comment at :545-548 — "the buffer
-// may still be referenced by pending uploadStaticBuffer operations in the
-// current frame's batch" — and the deleteLater() itself at :549, which defers
-// native destruction past the frame; outside a frame, Qt deletes immediately,
-// which is why the incremental mutation path must submit the pending batch
-// before any teardown, the fix GfxBatchLifetime pins).
+// until commit, so a buffer released while the current frame's batch still
+// holds a pending uploadStaticBuffer naming it dangles at submit time.
+// RenderList::releaseBuffer() defends against that with a deliberate
+// deleteLater(), which defers native destruction past the frame. Outside a
+// frame Qt deletes immediately, so the incremental mutation path must submit
+// the pending batch before any teardown -- the guarantee GfxBatchLifetime
+// pins.
 //
-// Engine facts this file keys on (verified in this worktree):
+// Engine facts this file keys on, all in RenderedCSFNode.cpp unless noted:
 //  * A CSF geometry producer with an expression VERTEX_COUNT resolves the
 //    count from its own control inlet each update: resolveCountExpression
-//    (RenderedCSFNode.cpp:290) registers a long input's live value as
-//    var_<name> from *(int*)port->value (RenderedCSFNode.cpp:~505-511), the
-//    same slot the fixture's setControl() drives through
-//    ProcessNode::process(int32_t, ossia::value).
+//    registers a long input's live value as var_<name> from
+//    *(int*)port->value, the same slot the fixture's setControl() drives
+//    through ProcessNode::process(int32_t, ossia::value).
 //  * On a resolved-count change, the producer reallocates its owned attribute
 //    SSBOs and queues a zero-fill res.uploadStaticBuffer into the CURRENT
-//    frame's batch (standalone "CSF_GeomSpec_" resize block,
-//    RenderedCSFNode.cpp:1663-1686; upstream-fed "CSF_Geom_" reallocation via
-//    renderer.releaseBuffer + newBuffer at RenderedCSFNode.cpp:1386-1395).
+//    frame's batch (standalone "CSF_GeomSpec_" resize block; upstream-fed
+//    "CSF_Geom_" reallocation via renderer.releaseBuffer + newBuffer).
 //  * pushOutputGeometry detects the count change as a structural change
-//    (prev_vertex_count / prev_instance_count comparison,
-//    RenderedCSFNode.cpp:1779-1786; latched at :2320-2321), releases escaped
-//    COPY_FROM buffers through renderer.releaseBuffer (:1789-1791) and
-//    republishes a NEW mesh_list to the downstream renderer.
+//    (prev_vertex_count / prev_instance_count comparison), releases escaped
+//    COPY_FROM buffers through renderer.releaseBuffer and republishes a NEW
+//    mesh_list to the downstream renderer.
 //  * The downstream raw-raster consumer sees geometryChanged and rebinds
 //    through RenderList::acquireMesh IN THE SAME FRAME
-//    (RenderedRawRasterPipelineNode.cpp:2435-2441; acquireMesh re-key path,
-//    RenderList.cpp:684+).
+//    (RenderedRawRasterPipelineNode.cpp; acquireMesh re-key path).
 //  * At incremental teardown, RenderedCSFNode::release() hands every owned
-//    geometry buffer to RenderList::releaseBuffer
-//    (RenderedCSFNode.cpp:4012-4036) — while the pending initial batch may
-//    still hold the init-time zero-fill uploadStaticBuffer queued for those
-//    same buffers when the renderer was created
-//    (init pre-allocation "CSF_GeomSpec_" + upload,
-//    RenderedCSFNode.cpp:3694-3702).
+//    geometry buffer to RenderList::releaseBuffer — while the pending initial
+//    batch may still hold the init-time zero-fill uploadStaticBuffer queued
+//    for those same buffers when the renderer was created (init
+//    pre-allocation "CSF_GeomSpec_" + upload).
 //
-// FIXTURE NOTE (orchestrator): the producer shader is syn-geo-count-user.cs,
-// written for this test. The first draft reused csf-vertex-count-expr.cs,
-// whose spiral lies almost entirely OUTSIDE the viewport: whether any sample
-// hits a visible pixel depends non-monotonically on the count (measured:
-// 64/65/128/129/160/224/240 draw pixels, 192/255/256/448/512 draw none), so
-// the oracle went blank at the spec'd counts. The new shader tiles the
-// viewport with one real-area triangle per 3 vertices, so every legal count
-// rasterizes floor(count/3) triangles and both closed forms are non-blank.
+// FIXTURE NOTE: the producer shader is syn-geo-count-user.cs, written for this
+// test. It tiles the viewport with one real-area triangle per 3 vertices, so
+// every legal count rasterizes floor(count/3) triangles and both closed forms
+// are non-blank. csf-vertex-count-expr.cs cannot serve here: its spiral lies
+// almost entirely outside the viewport, and whether any sample hits a visible
+// pixel depends non-monotonically on the count.
 //
 // CASE 1 drives the reallocate-and-rebind frame: producer(count $numPoints) ->
 // raw-raster -> sink; flip the count 64 -> 512 -> 64 -> 512 between frames.
@@ -68,15 +58,11 @@
 // released; the sink must still show the original producer's picture.
 //
 // NEGATIVE CONTROL (product-side, do not commit): in RenderList::releaseBuffer
-// (src/plugins/score-plugin-gfx/Gfx/Graph/RenderList.cpp:523), replace
-//   buf->deleteLater();            // RenderList.cpp:549
-// with
-//   delete buf;
-// Under ASan this is a heap-use-after-free when the frame's batch commits the
-// pending uploadStaticBuffer that still names the buffer (queued at
-// RenderedCSFNode.cpp:3700 / :1267 / :1667-1686), reached through
-// RenderedCSFNode::release() -> releaseBuffer (RenderedCSFNode.cpp:4019) and
-// the update-path release sites (:1259, :1347, :1388, :1519, :1546, :1790).
+// (src/plugins/score-plugin-gfx/Gfx/Graph/RenderList.cpp), replace
+// buf->deleteLater() with delete buf. Under ASan this is a heap-use-after-free
+// when the frame's batch commits the pending uploadStaticBuffer that still
+// names the buffer, reached through RenderedCSFNode::release() ->
+// releaseBuffer and the update-path release sites.
 //
 // Intended registration: score_add_gfx_test(geometry_buffer_rebind
 // GfxGeometryBufferRebind.cpp)
@@ -211,6 +197,8 @@ TEST_CASE(
   const FixedShot refSmall = render_fixed(backend, kSmallCount);
   if(refSmall.skipped)
     SKIP(refSmall.backend + ": " + refSmall.skip_reason);
+  if(const char* why = compute_shader_skip_reason(backend))
+    SKIP(why);
   INFO("ref small: backend=" << refSmall.backend << " error=" << refSmall.error);
   REQUIRE(refSmall.error.empty());
   REQUIRE(refSmall.img.valid());
@@ -223,8 +211,7 @@ TEST_CASE(
   REQUIRE(refLarge.img.valid());
 
   // The oracle is only meaningful if the count is actually driveable and the
-  // two counts rasterize differently (GfxRaster.cpp proves count 64 draws
-  // blue-dominant points; 512 fills the visible slivers more densely).
+  // two counts rasterize differently.
   INFO(
       "drawn small=" << drawn_pixels(refSmall.img)
                      << " large=" << drawn_pixels(refLarge.img)
@@ -282,7 +269,7 @@ TEST_CASE(
 
     // 64 -> 512: the next render()'s single frame resolves the new count,
     // reallocates the SSBOs, zero-fills them through the frame batch,
-    // republishes the mesh and rebinds the raster — the P0-8 frame.
+    // republishes the mesh and rebinds the raster — the frame under test.
     setControl(*p.isf(prod), ctl, kLargeCount);
     p.render(1);
     out.t1 = p.readback(s0);
@@ -340,11 +327,10 @@ TEST_CASE(
 // -----------------------------------------------------------------------------
 // CASE 2 — geometry twin of GfxBatchLifetime: a geometry producer is torn down
 // through the incremental path while its init-time CSF_GeomSpec_ zero-fill
-// uploads are still pending in the initial batch. Pre-fix for the material-UBO
-// flavour this was a heap-use-after-free inside the backend's
-// enqueueResourceUpdates on the very next frame; the geometry buffers ride the
-// same batch-submission-before-teardown guarantee, and releaseBuffer's
-// deleteLater() covers the in-frame release sites.
+// uploads are still pending in the initial batch. Without the
+// batch-submission-before-teardown guarantee this is a heap-use-after-free
+// inside the backend's enqueueResourceUpdates on the very next frame;
+// releaseBuffer's deleteLater() covers the in-frame release sites.
 // -----------------------------------------------------------------------------
 TEST_CASE(
     "geometry producer removed while its init geometry uploads are still "
@@ -411,7 +397,7 @@ TEST_CASE(
     p.removeNodeIncremental(b);
     p.removeNodeIncremental(raster2);
 
-    // Pre-fix analog: the next frame submits the batch and writes through the
+    // Unguarded, the next frame submits the batch and writes through the
     // dangling pointers (hard crash under ASan before the readback).
     p.render(2);
     out.b = p.readback(s0);
@@ -421,13 +407,15 @@ TEST_CASE(
 
   if(out.skipped)
     SKIP(out.backend + ": " + out.skip_reason);
+  if(const char* why = compute_shader_skip_reason(backend))
+    SKIP(why);
   INFO("backend=" << out.backend);
   REQUIRE(out.error.empty());
   REQUIRE(ran);
 
   REQUIRE(out.a.valid());
   INFO("baseline drawn=" << drawn_pixels(out.a));
-  CHECK(drawn_pixels(out.a) > 0); // the spiral rasterized, not a blank clear
+  CHECK(drawn_pixels(out.a) > 0); // triangles rasterized, not a blank clear
 
   // Post-mutation frame rendered and still shows the original producer's
   // picture, pixel for pixel.

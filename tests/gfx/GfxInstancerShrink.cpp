@@ -1,5 +1,5 @@
 // =============================================================================
-// P0-3 -- THE INSTANCER CLAMPS A SHRINKING POINTS BUFFER WITHOUT OVER-READING:
+// THE INSTANCER CLAMPS A SHRINKING POINTS BUFFER WITHOUT OVER-READING:
 // the LIVE-RENDER half.
 //
 // (The clamp arithmetic alone is already pinned by
@@ -8,69 +8,41 @@
 // neither has: the REAL Threedim::Instancer feeding the REAL
 // score::gfx::ScenePreprocessorNode feeding a REAL instanced raster draw on a
 // real backend, with a Points transforms buffer that shrinks 100 -> 10
-// mid-session, byte_size shrinking AND the handle changing, exactly as the
-// spec's scenario states.)
-//
-// Intended registration (tests/gfx/CMakeLists.txt), mirroring the
-// test_gfx_crousti_cpu_nodes block -- Instancer.cpp is hidden-visibility
-// inside score_plugin_threedim, so it is compiled into the test target:
-//
-//   if(TARGET score_plugin_threedim)
-//     score_plugin_hidden_sources(_instancer_shrink_hidden
-//         "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim/Instancer.cpp")
-//     score_add_test(test_gfx_instancer_shrink
-//       SOURCES GfxInstancerShrink.cpp ${_instancer_shrink_hidden}
-//       GUI
-//       PLUGINS score_plugin_gfx score_plugin_scenario score_lib_process
-//       LIBS test_gfx_engine_glue)
-//     target_compile_definitions(test_gfx_instancer_shrink PRIVATE
-//       GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
-//     target_include_directories(test_gfx_instancer_shrink SYSTEM PRIVATE
-//       "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
-//       "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
-//       "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
-//       "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
-//       $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
-//       $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
-//   endif()
+// mid-session, byte_size shrinking AND the handle changing.)
 //
 // WHAT LEVEL IS DRIVEN, AND WHY. Everything from the Instancer's tick down to
 // the readback is the shipped engine:
 //   * Threedim::Instancer::operator()() / rebuild() -- the real fingerprint
-//     rebuild trigger (Instancer.cpp:525-533) and the real capacity clamp
-//     (Instancer.cpp:254-324: stride selection 262-275, capacityFor 279-309,
-//     clamp 311-323, publish at 363-364).
+//     rebuild trigger and the real capacity clamp (stride selection,
+//     capacityFor, clamp and publish, all in Instancer.cpp).
 //   * score::gfx::ScenePreprocessorNode -- the real instance-group draw
-//     emission (ScenePreprocessorNode.cpp:2159 zero-count skip, 2206-2226
-//     srcTranslations + per-format stride 16/40/64 and the mat4
-//     column-3-at-offset-48 rule, 2239/2245 emitDraw with
-//     inst.instance_count, 2269 rec.count, 2464-2499 queueInstanceCopy of
-//     rec.count regions, 4683+ issuePendingGpuCopies' strided
-//     copyBufferRegions at src_offset + v*64).
+//     emission: the zero-count skip, srcTranslations with its per-format
+//     stride 16/40/64 and the mat4 column-3-at-offset-48 rule, emitDraw with
+//     inst.instance_count, queueInstanceCopy of rec.count regions, and
+//     issuePendingGpuCopies' strided copyBufferRegions at src_offset + v*64.
 //   * A real RAW_RASTER_PIPELINE consumer (corpus/syn-instance-index-color)
 //     binding the preprocessor's per-instance `translation` attribute
-//     (published at ScenePreprocessorNode.cpp:2656, float3, per_instance),
-//     drawn on every real backend the box offers, read back as pixels.
+//     (float3, per_instance), drawn on every real backend the box offers,
+//     read back as pixels.
 //
 // The ONE thing the test supplies instead of an upstream producer chain is the
 // pair of QRhiBuffers holding the per-point mat4 transforms (plus a CPU quad
 // prototype). This is deliberate, not a shortcut:
 //   * The only in-tree live path that could produce a shrinking transforms
 //     buffer is Crousti's cpu_buffer_output upload
-//     (score-plugin-avnd/Crousti/GpuUtils.hpp:728-733, recreateOutputBuffer):
-//     on a size change it calls destroy()/setSize()/create() on the SAME
-//     QRhiBuffer object -- the handle pointer never changes. The P0-3
-//     scenario is "byte_size shrinks, handle changes", which therefore cannot
+//     (score-plugin-avnd/Crousti/GpuUtils.hpp, recreateOutputBuffer): on a
+//     size change it calls destroy()/setSize()/create() on the SAME
+//     QRhiBuffer object -- the handle pointer never changes. The scenario
+//     here is "byte_size shrinks, handle changes", which therefore cannot
 //     be produced by any in-tree producer without product changes; a fresh
 //     QRhiBuffer must come from the test.
 //   * ENGINE GAP, documented not asserted: because the live resize path keeps
-//     the handle, and Instancer::operator()()'s change detection
-//     (Instancer.cpp:525-533) keys on handles / vertices / dirty_mesh only --
-//     never byte_size -- a live byte_size-only shrink through
-//     recreateOutputBuffer would NOT rebuild, leaving instance_count at the
-//     old value against the smaller buffer. Closing that needs a product-side
-//     cache key (byte_size in the fingerprint); this test pins the
-//     handle-change contract the spec names.
+//     the handle, and Instancer::operator()()'s change detection keys on
+//     handles / vertices / dirty_mesh only -- never byte_size -- a live
+//     byte_size-only shrink through recreateOutputBuffer would NOT rebuild,
+//     leaving instance_count at the old value against the smaller buffer.
+//     Closing that needs a product-side cache key (byte_size in the
+//     fingerprint); this test pins the handle-change contract.
 //
 // SCENARIO. A Points cloud of 100 points whose buffers[1] carries a
 // transform_matrix attribute (so routing forces Mat4, stride 64, and
@@ -107,18 +79,18 @@
 //            column 60. A stale count of 100 (or garbage translations from an
 //            over-read) breaks the run count / extent immediately.
 //
-// NEGATIVE CONTROL (product-side, one line, for the orchestrator):
-//   src/plugins/score-plugin-threedim/Threedim/Instancer.cpp:263-264 --
-//   change `if(routing.has_matrix) transform_stride = 64;` to
+// NEGATIVE CONTROL (product-side, one line):
+//   src/plugins/score-plugin-threedim/Threedim/Instancer.cpp -- change
+//   `if(routing.has_matrix) transform_stride = 64;` to
 //   `... transform_stride = 16;`. The clamp then computes 640/16 = 40 for
 //   phase 2: the CPU assertion (instance_count == 10) goes red, the drawn
 //   strip count is wrong, and the copy loop reads up to byte 48 + 39*64 + 12
 //   = 2556 of the 640-byte buffer -- the over-read the Vulkan validation
-//   layer flags. (The spec's suggested control -- forcing 64 for the
-//   Translation format at Instancer.cpp:272 -- points the arithmetic the
-//   other way: a larger stride yields a SMALLER capacity, i.e. an
-//   under-count, and cannot fire an over-read. The control above is the
-//   over-counting direction for the mat4 path this test drives.)
+//   layer flags. (The alternative control -- forcing 64 for the
+//   Translation format -- points the arithmetic the other way: a larger
+//   stride yields a SMALLER capacity, i.e. an under-count, and cannot fire an
+//   over-read. The control above is the over-counting direction for the mat4
+//   path this test drives.)
 //
 //   DISPLAY=:0 SCORE_TEST_API=opengl ctest -R gfx_instancer_shrink
 //   DISPLAY=:0 SCORE_TEST_API=vulkan ctest -R gfx_instancer_shrink
@@ -186,8 +158,8 @@ void* handleOf(const ossia::buffer_resource_ptr& r)
 }
 
 // Column-major identity mat4 with translation (tx, ty, 0) in column 3
-// (floats 12..14 == byte offset 48 -- the offset
-// ScenePreprocessorNode.cpp:2216-2219 reads for transform_format::mat4).
+// (floats 12..14 == byte offset 48 -- the offset ScenePreprocessorNode reads
+// for transform_format::mat4).
 void writeMat4(float* out, float tx, float ty)
 {
   std::memset(out, 0, 16 * sizeof(float));
@@ -200,7 +172,7 @@ void writeMat4(float* out, float tx, float ty)
 // Prototype: a 2 px wide, full-height quad with CPU positions + uint32
 // indices -- the same CPU-backed mesh_primitive shape glTF/OBJ loaders
 // publish, which the preprocessor's slab path uploads
-// (ScenePreprocessorNode.cpp:1889 extractCpuAttribute<12>(position)).
+// (ScenePreprocessorNode's extractCpuAttribute<12>(position)).
 std::shared_ptr<ossia::scene_state> makePrototypeScene()
 {
   auto positions = std::make_shared<std::vector<float>>(std::vector<float>{
@@ -279,8 +251,8 @@ std::shared_ptr<ossia::scene_state> makePrototypeScene()
 // the transform QRhiBuffers, ticks the REAL Threedim::Instancer against them,
 // and publishes the resulting scene to its output edges the same way every
 // scene producer does: NodeRenderer::process(port, scene_spec, edge.source)
-// (the exact publish call in Crousti's scene_outputs_storage,
-// GpuUtils.hpp:1800+, and in RenderedMergeGeometriesNode::runInitialPasses).
+// (the exact publish call in Crousti's scene_outputs_storage, GpuUtils.hpp,
+// and in RenderedMergeGeometriesNode::runInitialPasses).
 
 struct InstancerShrinkNode final : score::gfx::ProcessNode
 {
@@ -331,12 +303,13 @@ struct InstancerShrinkRenderer final : score::gfx::NodeRenderer
     // prototype supplies the drawn vertices -- but the Instancer requires a
     // non-null handle on buffers[0] to detect a wired Points input, and it
     // participates in the all-buffers fingerprint, so make it real and keep
-    // it byte-stable across both phases (the P0-3 scenario shrinks ONLY the
+    // it byte-stable across both phases (the scenario shrinks ONLY the
     // secondary transforms buffer).
     m_posBuf = rhi->newBuffer(
         QRhiBuffer::Static,
         QRhiBuffer::UsageFlags(
-            QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer),
+            score::gfx::compatibleBufferUsage(
+                *rhi, QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer)),
         kBigCount * 12);
     m_posBuf->setName("InstancerShrinkTest::points_positions");
     m_posBuf->create();
@@ -372,7 +345,7 @@ struct InstancerShrinkRenderer final : score::gfx::NodeRenderer
     mesh.attributes[1].byte_offset = 0;
 
     // vertices stays 100 in BOTH phases: the shrink must be bounded by the
-    // buffer capacity clamp (Instancer.cpp:311-323), not by a vertex-count
+    // buffer capacity clamp in Instancer::rebuild(), not by a vertex-count
     // change.
     mesh.vertices = kBigCount;
     self.instancer.inputs.points.dirty_mesh = false;
@@ -392,7 +365,8 @@ struct InstancerShrinkRenderer final : score::gfx::NodeRenderer
       self.bufA = rhi->newBuffer(
           QRhiBuffer::Static,
           QRhiBuffer::UsageFlags(
-              QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer),
+              score::gfx::compatibleBufferUsage(
+                *rhi, QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer)),
           kBigCount * 64);
       self.bufA->setName("InstancerShrinkTest::transforms_100");
       self.bufA->create();
@@ -407,15 +381,16 @@ struct InstancerShrinkRenderer final : score::gfx::NodeRenderer
     }
     else
     {
-      // The shrink: a brand-NEW QRhiBuffer (fresh handle -- pointsBuffer-
-      // fingerprint changes, Instancer.cpp:525-533 fires rebuild) sized for
-      // EXACTLY 10 instances: 640 bytes, so the clamp's last mat4 column-3
+      // The shrink: a brand-NEW QRhiBuffer (fresh handle -- the pointsBuffer
+      // fingerprint changes and Instancer::operator()() fires rebuild) sized
+      // for EXACTLY 10 instances: 640 bytes, so the clamp's last mat4 column-3
       // read ends at byte 636 and one extra instance would read past the
       // end. Translations every 0.2 NDC: 10 disjoint 2 px strips.
       self.bufB = rhi->newBuffer(
           QRhiBuffer::Static,
           QRhiBuffer::UsageFlags(
-              QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer),
+              score::gfx::compatibleBufferUsage(
+                *rhi, QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer)),
           kSmallCount * 64);
       self.bufB->setName("InstancerShrinkTest::transforms_10");
       self.bufB->create();

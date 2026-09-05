@@ -3,9 +3,9 @@
 //
 // Builds CSF geometry producer -> raw-raster node -> offscreen sink on every
 // available RHI backend, renders a few frames and asserts the read-back RGBA8
-// pixels. That is both the raw-raster coverage and the indirect validation of the
-// CSF geometry producer path, whose buffers the headless fixture cannot read back
-// directly -- see the note in Gfx.hpp.
+// pixels. That covers raw-raster and, indirectly, the CSF geometry producer
+// path, whose buffers the headless fixture cannot read back directly -- see the
+// note in Gfx.hpp.
 //
 // Assertions key on cross-backend agreement plus analytic structure where the
 // geometry is analytic (a horizontal green-to-red line for 1d-no-stride), and on
@@ -113,9 +113,8 @@ int max_channel_diff(const ReadbackImage& a, const ReadbackImage& b)
 
 // The CSF geometry producer csf-vertex-count-expr draws a spiral of colored
 // points; only the low-t (small-radius, blue) end lands inside clip space, so
-// the readback shows a handful of blue-dominant points. This is BOTH raw-raster
-// coverage AND indirect validation that the CSF compute-produced geometry
-// (positions + colors + count) actually rasterized.
+// the readback shows a handful of blue-dominant points. Passing means the CSF
+// compute-produced geometry (positions + colors + count) rasterized.
 TEST_CASE("raw-raster basic: CSF geometry -> raster -> texture", "[gfx][l3][raster]")
 {
   const auto be = GENERATE(from_range(platform_backends()));
@@ -126,6 +125,8 @@ TEST_CASE("raw-raster basic: CSF geometry -> raster -> texture", "[gfx][l3][rast
 
   if(r.skipped)
     SKIP(r.backend << ": " << r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(be))
+    SKIP(why);
   INFO("backend=" << r.backend << " error=" << r.error);
   REQUIRE(r.error.empty());
   REQUIRE(r.outputs.size() == 1);
@@ -139,9 +140,8 @@ TEST_CASE("raw-raster basic: CSF geometry -> raster -> texture", "[gfx][l3][rast
   CHECK(m[2] > 40); // blue present => colored geometry, not a blank clear
 }
 
-// The whole point of L3: the SAME CSF-produced geometry must rasterize
-// IDENTICALLY on every backend. A backend-specific geometry-buffer / raster bug
-// shows up as divergence here.
+// The same CSF-produced geometry must rasterize identically on every backend:
+// a backend-specific geometry-buffer or raster bug shows up as divergence here.
 TEST_CASE("raw-raster basic: backends agree", "[gfx][l3][raster]")
 {
   std::vector<IsfResult> shots;
@@ -176,17 +176,17 @@ TEST_CASE("raw-raster basic: backends agree", "[gfx][l3][raster]")
     SKIP("fewer than two backends available to compare");
 }
 
-// Stride corpus: a read_write geometry PROCESSOR (1d-stride-x2) reads and strides
+// Stride corpus: a read_write geometry processor (1d-stride-x2) reads and strides
 // an upstream buffer, so it chains downstream of a write_only producer:
 //   csf-vertex-count-expr (write_only) -> 1d-stride-x2 (read_write) -> raster.
 //
-// Measured on GL and Vulkan alike: the read_write processor produces no geometry
-// through the manually wired fixture graph. The CSF-to-CSF geometry hand-off the
-// scene executor performs is not reproduced by a bare Graph::addEdge on the
-// Geometry ports, so the strided buffer never reaches the raster node -- drawn
-// == 0 on every backend, i.e. not a backend divergence. Render without error is
-// asserted; the pixel assertion SKIPs with that reason rather than baking in the
-// empty result.
+// On GL and Vulkan alike the read_write processor produces no geometry through
+// the manually wired fixture graph: the CSF-to-CSF geometry hand-off the scene
+// executor performs is not reproduced by a bare Graph::addEdge on the Geometry
+// ports, so the strided buffer never reaches the raster node -- drawn == 0 on
+// every backend, which is a fixture limit rather than a backend divergence.
+// Rendering without error is asserted; the pixel assertion skips with that
+// reason rather than baking in the empty result.
 TEST_CASE("raw-raster: CSF geometry stride chain", "[gfx][l3][raster][stride]")
 {
   const auto be = GENERATE(from_range(platform_backends()));
@@ -198,6 +198,8 @@ TEST_CASE("raw-raster: CSF geometry stride chain", "[gfx][l3][raster][stride]")
 
   if(r.skipped)
     SKIP(r.backend << ": " << r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(be))
+    SKIP(why);
   INFO("backend=" << r.backend << " error=" << r.error);
   REQUIRE(r.error.empty());
   REQUIRE(r.outputs.size() == 1);
@@ -222,6 +224,8 @@ TEST_CASE("raw-raster MRT: two attachments", "[gfx][l3][raster][mrt]")
 
   if(r.skipped)
     SKIP(r.backend << ": " << r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(be))
+    SKIP(why);
   INFO("backend=" << r.backend << " error=" << r.error);
   REQUIRE(r.error.empty());
   REQUIRE(r.outputs.size() == 2);
@@ -231,8 +235,8 @@ TEST_CASE("raw-raster MRT: two attachments", "[gfx][l3][raster][mrt]")
   // Attachment 0 = vertex color, attachment 1 = encoded position (pseudo-normal).
   CHECK(drawn_pixels(r.outputs[0]) > 0);
   CHECK(drawn_pixels(r.outputs[1]) > 0);
-  // The two attachments carry DIFFERENT data (color vs encoded position), so
-  // their channel maxima must differ — proves MRT wrote both, not one twice.
+  // The two attachments carry different data (color vs encoded position), so
+  // their channel maxima must differ: MRT wrote both, not one twice.
   const auto m0 = channel_max(r.outputs[0]);
   const auto m1 = channel_max(r.outputs[1]);
   CHECK((m0[0] != m1[0] || m0[1] != m1[1] || m0[2] != m1[2]));
@@ -253,6 +257,8 @@ TEST_CASE("raw-raster auxiliary: SSBO travelling with geometry", "[gfx][l3][rast
 
   if(r.skipped)
     SKIP(r.backend << ": " << r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(be))
+    SKIP(why);
   INFO("backend=" << r.backend << " error=" << r.error);
   REQUIRE(r.error.empty());
   REQUIRE(r.outputs.size() == 1);

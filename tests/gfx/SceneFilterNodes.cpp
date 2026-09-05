@@ -1,8 +1,8 @@
 // =============================================================================
 // L3 -- the three scene-filter nodes: FlattenedSceneFilterNode,
 // MergeGeometriesNode, SceneFilterNode. All three are user-facing processes;
-// tests/nodes/Processes.cpp round-trips their models, and nothing exercised the
-// filtering or the merging.
+// tests/nodes/Processes.cpp round-trips their models but exercises neither the
+// filtering nor the merging.
 //
 // The chain here is a CSF geometry producer rather than a Threedim cube through
 // ScenePreprocessorNode: the predicate reads geometry_spec metadata, which any
@@ -12,7 +12,7 @@
 // which makes the predicate decisive: "equals 0" draws the points, "differs from
 // 0" leaves nothing.
 //
-// SCOPE. SceneFilterNode takes a scene_spec, and the only scene_spec sources in
+// Scope: SceneFilterNode takes a scene_spec, and the only scene_spec sources in
 // the tree are halp producers reached through the Crousti wrapper; its
 // tree-rewriting visitor also lives in an anonymous namespace and is unreachable
 // from another translation unit. What is asserted for it is its port surface and
@@ -167,6 +167,8 @@ TEST_CASE(
 
   const auto kept = run_filtered(be, 0, 0, "");
   requireRan(kept);
+  if(const char* why = compute_shader_skip_reason(be))
+    SKIP(why);
   CHECK(kept.drawn > 0);
 
   const auto dropped = run_filtered(be, 1, 0, "");
@@ -207,6 +209,8 @@ TEST_CASE(
 
   const auto untagged = run_filtered(be, 12, 0, "");
   requireRan(untagged);
+  if(const char* why = compute_shader_skip_reason(be))
+    SKIP(why);
   CHECK(untagged.drawn > 0);
 
   const auto named = run_filtered(be, 12, 0, "nonexistent-format");
@@ -226,6 +230,8 @@ TEST_CASE(
 
   const auto out = run_filtered(be, 99, 0, "");
   requireRan(out);
+  if(const char* why = compute_shader_skip_reason(be))
+    SKIP(why);
   CHECK(out.drawn > 0);
 }
 
@@ -237,6 +243,8 @@ TEST_CASE(
 
   const auto onZero = run_merged(be, 0);
   requireRan(onZero);
+  if(const char* why = compute_shader_skip_reason(be))
+    SKIP(why);
   CHECK(onZero.drawn > 0);
 
   // findFirstByPort keys on (port, source); an implementation indexing a dense

@@ -1,51 +1,49 @@
 // =============================================================================
-// P1-21 -- A 3D STORAGE IMAGE RESIZED AT RUNTIME KEEPS WRITING CORRECT VOXELS.
+// A 3D STORAGE IMAGE RESIZED AT RUNTIME KEEPS WRITING CORRECT VOXELS.
 //
-// Intended registration: score_add_csf_test(image3d_resize CsfImage3dResize.cpp)
+// Registered as: score_add_csf_test(image3d_resize CsfImage3dResize.cpp)
 //
 // ISOLATION: this target needs the SAME treatment as test_gfx_csf_image3d --
 // ISOLATED in its own target, EXPECTED RED on OpenGL: the 3D storage-image
 // path is CORRECT on Vulkan but reads back all-black on OpenGL (a real
-// GL-specific engine bug, documented at CsfImage3d.cpp:1-14 and its CMake
-// registration comment, tests/gfx/CMakeLists.txt:109-114). Exactly like
+// GL-specific engine bug, documented in CsfImage3d.cpp and in its CMake
+// registration comment in tests/gfx/CMakeLists.txt). Exactly like
 // CsfImage3d.cpp, this file does NOT special-case GL in code: it asserts the
 // correct pixels on every backend and lets the isolated registration carry
-// the attributable GL RED, so the finding stays honest and visible.
+// the attributable GL RED, so the finding stays visible.
 //
 // ADDITIONALLY EXPECTED RED TODAY ON EVERY BACKEND for the resize phases
 // (32^3 and 96^3): the runtime resize this test asserts is NOT YET
-// IMPLEMENTED. RenderedCSFNode.cpp:4250-4251 says it in so many words:
+// IMPLEMENTED. RenderedCSFNode.cpp says it in so many words:
 //     // Update output texture size if it has changed
 //     // TODO: Check if texture size inputs have changed and recreate texture
+//     //       if needed
 // and the storage-image texture is allocated exactly once, lazily, in
-// buildComputeSrbBindings (RenderedCSFNode.cpp:3170-3172,
-// `if(!it->texture) it->texture = make_tex("")`) -- nothing ever compares the
-// live size expression against the existing allocation. Per the house rule
-// ("assert correct behaviour, not current behaviour") the phases assert the
-// spec'd contract; the 64^3 phase, which matches the initial allocation, is
-// GREEN on Vulkan, giving per-phase attribution. When the TODO is implemented
-// the whole case flips green on Vulkan.
+// buildComputeSrbBindings (`if(!it->texture) it->texture = make_tex("")`) --
+// nothing ever compares the live size expression against the existing
+// allocation. Per the house rule ("assert correct behaviour, not current
+// behaviour") the phases assert the intended contract; the 64^3 phase, which
+// matches the initial allocation, is GREEN on Vulkan, giving per-phase
+// attribution. When the TODO is implemented the whole case flips green on
+// Vulkan.
 //
-// WHAT IS DRIVEN (all verified in source, this worktree):
+// WHAT IS DRIVEN:
 //  * corpus/syn-3d-image-resize.cs declares a long INPUT `edge` (DEFAULT 64)
 //    and a write_only rgba8 volume with WIDTH/HEIGHT/DEPTH: "$edge".
-//    csf-3d-image-write.cs (the P1-21 spec shader) hard-codes 64x64x64 with
+//    csf-3d-image-write.cs hard-codes 64x64x64 with
 //    no control, so this synthesized twin follows its conventions (3D_IMAGE
 //    dispatch, imageSize guard, LOCAL_SIZE [4,4,4]) with the size made
-//    drivable -- the spec's "$USER/long-driven size" escape hatch.
-//  * WIDTH/HEIGHT strings are kept as expressions (libisf isf.cpp:1381-1406,
-//    DEPTH likewise) and evaluated by computeTextureSize
-//    (RenderedCSFNode.cpp:253, `$` -> `var_` at :268/:278) /
-//    resolveDispatchExpression for DEPTH (:3127-3129), against `var_edge`
-//    registered from the long control port's CURRENT value
-//    (registerCommonExpressionVariables, RenderedCSFNode.cpp:494-509,
-//    `*(int*)port->value`).
-//  * The 3D texture itself is created at RenderedCSFNode.cpp:3132-3133
-//    (`rhi.newTexture(format, w, h, depth, 1, ThreeDimensional |
-//    UsedWithLoadStore)`), size resolved at :3105-3107 via getImageSize
-//    (:701) -> computeTextureSize.
+//    drivable through a $USER/long-driven control.
+//  * WIDTH/HEIGHT/DEPTH strings are kept as expressions by libisf and
+//    evaluated by RenderedCSFNode::computeTextureSize (`$` -> `var_`) /
+//    resolveDispatchExpression for DEPTH, against `var_edge` registered from
+//    the long control port's CURRENT value
+//    (registerCommonExpressionVariables, `*(int*)port->value`).
+//  * The 3D texture itself is created through `rhi.newTexture(format, w, h,
+//    depth, 1, ThreeDimensional | UsedWithLoadStore)`, its size resolved via
+//    getImageSize -> computeTextureSize.
 //  * The 3D_IMAGE dispatch is sized from the LIVE texture every frame
-//    (RenderedCSFNode.cpp:4511-4521: pixelSize() + tex->depth()), so the
+//    (pixelSize() + tex->depth()), so the
 //    writer always covers exactly the actual allocation -- which is what
 //    makes the R == edge fingerprint below trustworthy: R reports the real
 //    allocated edge, not the requested one.
@@ -65,16 +63,14 @@
 // after 64^3, a kept texture reads R = 64 in the 32^3 phase (delta 32) and
 // R = 64 in the 96^3 phase (delta 32) -- far outside the +-6 tolerance.
 //
-// NEGATIVE CONTROL (product side, for the orchestrator): the spec's control
-// -- "keep the old QRhiTexture on a size change -> the 96^3 case samples the
-// 64^3 content" -- is TODAY'S SHIPPED CODE: the allocate-once guard at
-// src/plugins/score-plugin-gfx/Gfx/Graph/RenderedCSFNode.cpp:3170
-// (`if(!it->texture)`) plus the unimplemented TODO at
-// RenderedCSFNode.cpp:4251. Once the resize fix lands (re-running
-// getImageSize/computeTextureSize against the live allocation and
-// re-creating at :3132-3133 on a mismatch), reinstating the bare
-// `if(!it->texture)` guard at :3170 is the one-line revert that makes this
-// test's 96^3 phase read R = 64 again.
+// NEGATIVE CONTROL (product side): keeping the old QRhiTexture on a size
+// change -- so the 96^3 case samples the 64^3 content -- is TODAY'S SHIPPED
+// CODE: the allocate-once guard
+// (`if(!it->texture)`) in buildComputeSrbBindings plus the unimplemented TODO
+// above. Once the resize fix lands (re-running getImageSize /
+// computeTextureSize against the live allocation and re-creating the texture
+// on a mismatch), reinstating the bare `if(!it->texture)` guard is the
+// one-line revert that makes this test's 96^3 phase read R = 64 again.
 //
 //   DISPLAY=:0 SCORE_TEST_API=vulkan ctest -R gfx_csf_image3d_resize
 //   DISPLAY=:0 SCORE_TEST_API=opengl ctest -R gfx_csf_image3d_resize   (RED, GL finding)
@@ -106,7 +102,7 @@ constexpr int kFrames = 3;  // >= 2 so each setControl is picked up + rendered
 constexpr int kTol = 6;     // per-channel LSB slack across backends
 constexpr int kEdgeA = 64;  // matches the initial allocation (DEFAULT 64)
 constexpr int kEdgeB = 32;  // shrink
-constexpr int kEdgeC = 96;  // grow -- the spec's stale-allocation catch
+constexpr int kEdgeC = 96;  // grow -- the stale-allocation catch
 
 struct ResizeResult
 {
@@ -175,7 +171,7 @@ ResizeResult run_resize(score::gfx::GraphicsApi be)
     p.render(kFrames);
     r.at32 = p.readback(sink);
 
-    // Phase C: GROW to 96^3 -- the spec's negative-control catch: a kept
+    // Phase C: GROW to 96^3 -- the negative-control catch: a kept
     // 64^3 QRhiTexture reads back R = 64 here, not 96.
     setControl(*p.isf(writer), edgePort, ossia::value{kEdgeC});
     p.render(kFrames);
@@ -261,6 +257,8 @@ TEST_CASE(
 
   if(r.skipped)
     SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = score::test::gfx::compute_shader_skip_reason(backend))
+    SKIP(why);
 
   INFO("backend=" << r.backend);
   REQUIRE(r.error.empty());

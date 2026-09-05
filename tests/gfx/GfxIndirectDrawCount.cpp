@@ -1,11 +1,11 @@
 // =============================================================================
-// P1-8 -- AN INDIRECT DRAW TAKES ITS COUNT FROM THE BUFFER.
+// AN INDIRECT DRAW TAKES ITS COUNT FROM THE BUFFER.
 //
-// Intended registration: score_add_gfx_test(indirect_draw_count GfxIndirectDrawCount.cpp)
+// Registered as: score_add_gfx_test(indirect_draw_count GfxIndirectDrawCount.cpp)
 //
-// Closes gap G9: 15 real scores carry indirect_draw_cmds / indirect_draw_indexed,
-// and the only existing coverage (ShaderSweepWired's binding-indirect-draw)
-// asserts merely that the binding "does not disturb the draw" -- nothing checks
+// 15 real scores carry indirect_draw_cmds / indirect_draw_indexed,
+// and the other coverage (ShaderSweepWired's binding-indirect-draw) asserts
+// only that the binding "does not disturb the draw" -- nothing there checks
 // that the drawn count actually CAME FROM the GPU-written command buffer.
 //
 // A CSF compute shader (corpus/syn-indirect-count.cs) declares
@@ -27,7 +27,7 @@
 // one create(), setControl between render() calls). The frame must show
 // exactly 3 strips, then exactly 6.
 //
-// WHY A PASS PROVES THE INDIRECT PATH WAS TAKEN (the G9 asymmetry): the
+// WHY A PASS PROVES THE INDIRECT PATH WAS TAKEN (the asymmetry): the
 // CPU-visible instance count is pinned at 8 and never changes -- no control
 // touches it, no geometry rebuild happens. Every non-indirect draw the engine
 // could possibly issue is cb.draw(6, /*instances=*/ 8) and would paint 8
@@ -36,60 +36,52 @@
 // of the GPU-written command can paint 3 then 6. No trace line is needed --
 // the count itself is the witness.
 //
-// ENGINE SURFACE DRIVEN (all verified in source, this worktree):
+// ENGINE SURFACE DRIVEN (all verified in source):
 //  * "INDIRECT": { "COUNT": ... } on a geometry resource parses into
-//    geometry_input::indirect_request (libisf isf.cpp:1286-1311; struct at
-//    isf.hpp:428-432) and emits, in the compute GLSL, the std430 SSBO
+//    geometry_input::indirect_request (libisf isf.cpp, struct in isf.hpp) and
+//    emits, in the compute GLSL, the std430 SSBO
 //    `DrawIndirectCommand geo_indirect[]` with members {vertexCount,
-//    instanceCount, firstVertex, baseVertex, firstInstance}
-//    (isf.cpp:6356-6376).
+//    instanceCount, firstVertex, baseVertex, firstInstance}.
 //  * RenderedCSFNode allocates the zero-initialized command buffer with
-//    QRhiBuffer::IndirectBuffer usage on Qt >= 6.12 (RenderedCSFNode.cpp:
-//    3964-3989, binding.uses_indirect_draw = true at :3966), binds it to the
-//    compute SRB (:3485-3489), and stamps it onto the output geometry as
-//    out_geo.indirect_count (:2305-2309).
-//  * CustomMesh picks the handle up: first_mesh.indirect_count.handle sets
-//    useIndirectDraw = true in init (CustomMesh.cpp:141-151) and update
-//    (:434-446; indirectDrawIndexed = (index.buffer >= 0), false here -- our
-//    geometry is non-indexed).
-//  * The draw dispatches on it (CustomMesh.cpp:680-717):
+//    QRhiBuffer::IndirectBuffer usage on Qt >= 6.12
+//    (binding.uses_indirect_draw = true), binds it to the compute SRB, and
+//    stamps it onto the output geometry as out_geo.indirect_count.
+//  * CustomMesh picks the handle up: first_mesh.indirect_count.handle drives
+//    enableIndirectDraw() in both init() and update() (indirectDrawIndexed =
+//    (index.buffer >= 0), false here -- this geometry is non-indexed).
+//  * The draw dispatches on it, in CustomMesh:
 //      - GPU path (Qt >= 6.12 && caps.drawIndirect, set from
-//        QRhi::DrawIndirect at RenderList.cpp:1580-1583 and copied to
-//        gpuIndirectSupported at RenderedRawRasterPipelineNode.cpp:2462):
+//        QRhi::DrawIndirect in RenderState::Caps::populate and copied to
+//        gpuIndirectSupported in RenderedRawRasterPipelineNode):
 //        cb.drawIndirect(buf, 0, 1, 20) -- the GPU reads instanceCount from
 //        the buffer; the CPU-side g.instances is NOT consulted.
 //      - CPU fallback (no caps.drawIndirect, QRhi::ReadBackNonUniformBuffer
 //        available): RenderedRawRasterPipelineNode::runInitialPasses
-//        synchronously reads the SAME GPU-written buffer back every frame
-//        (RenderedRawRasterPipelineNode.cpp:2947-2977) and the draw loop
-//        issues cb.draw(cmd.index_or_vertex_count, cmd.instance_count, ...)
-//        (CustomMesh.cpp:701-717). Same contract, same witness -- so this
-//        test asserts pixels on BOTH paths and reports which one was active.
+//        synchronously reads the SAME GPU-written buffer back every frame and
+//        the draw loop issues cb.draw(cmd.index_or_vertex_count,
+//        cmd.instance_count, ...). Same contract, same witness -- so this test
+//        asserts pixels on BOTH paths and reports which one was active.
 //  * 4-word vs 5-word command: the non-indexed GPU read is a 4-word
 //    QRhiDrawIndirectCommand at stride 20, so its firstInstance slot reads
 //    the buffer's word 3 (baseVertex); the CPU fallback reads word 4
-//    (RenderList.cpp:810-822 documents the divergence). The corpus shader
-//    writes BOTH words as 0, making the two paths bit-identical here.
+//    (RenderList.cpp documents the divergence). The corpus shader writes BOTH
+//    words as 0, making the two paths bit-identical here.
 //
 // SKIP policy:
 //  * Backend not available -> fixture skip (p.skipped()).
 //  * Neither QRhi::DrawIndirect (Qt >= 6.12 + hardware) nor
-//    QRhi::ReadBackNonUniformBuffer -> SKIP: the engine itself degrades
-//    gracefully there (warns and draws stale/no commands,
-//    RenderedRawRasterPipelineNode.cpp:2979-2996), so no count contract
-//    exists to assert.
+//    QRhi::ReadBackNonUniformBuffer -> SKIP: the engine itself degrades there
+//    (warns and draws stale/no commands, RenderedRawRasterPipelineNode.cpp),
+//    so no count contract exists to assert.
 //
-// NEGATIVE CONTROL (product side, for the orchestrator; spec P1-8): force
-// useIndirectDraw = false at BOTH pick-up sites --
-//   src/plugins/score-plugin-gfx/Gfx/Graph/CustomMesh.cpp:144
-//     `ret.useIndirectDraw = true;`            -> `... = false;`
-//   src/plugins/score-plugin-gfx/Gfx/Graph/CustomMesh.cpp:438
-//     `output_meshbuf.useIndirectDraw = true;` -> `... = false;`
+// NEGATIVE CONTROL (product side): skip the enableIndirectDraw()
+// call at BOTH pick-up sites of
+// src/plugins/score-plugin-gfx/Gfx/Graph/CustomMesh.cpp -- the
+// `if(first_mesh.indirect_count.handle)` branches of init() and update().
 // The draw then falls through to the plain instanced path
 // cb.draw(g.vertices, g.instances) with the CPU-side instances == 8: both
 // phases paint 8 identical strips, and this test's "strips [count, 8) are
-// absent" checks go red in BOTH phases -- exactly the spec's "both dispatches
-// draw the same".
+// absent" checks go red in BOTH phases: both dispatches draw the same.
 //
 //   DISPLAY=:0 SCORE_TEST_API=opengl ctest -R gfx_indirect_draw_count
 //   DISPLAY=:0 SCORE_TEST_API=vulkan ctest -R gfx_indirect_draw_count
@@ -169,15 +161,16 @@ IndirectResult run_indirect(score::gfx::GraphicsApi be)
   score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
     // Capability probe on a throwaway RenderState (same construction the
     // fixture's own backend probe uses). caps.drawIndirect is populated only
-    // on Qt >= 6.12 builds (RenderList.cpp:1580-1583); ReadBackNonUniformBuffer
-    // gates the engine's CPU fallback (RenderedRawRasterPipelineNode.cpp:2951).
+    // on Qt >= 6.12 builds (RenderState::Caps::populate);
+    // ReadBackNonUniformBuffer gates the engine's CPU fallback in
+    // RenderedRawRasterPipelineNode.
     {
       auto st = score::gfx::createRenderState(be, QSize{16, 16}, nullptr);
       if(st && st->rhi)
       {
         // Caps::populate is not exported from the plugin; ask QRhi directly.
-        // caps.drawIndirect is QRhi::DrawIndirect on Qt >= 6.12
-        // (RenderList.cpp:1580-1583), which is what this mirrors.
+        // caps.drawIndirect is QRhi::DrawIndirect on Qt >= 6.12, which is what
+        // this mirrors.
 #if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
         r.gpuIndirect = st->rhi->isFeatureSupported(QRhi::DrawIndirect);
 #else
@@ -322,6 +315,8 @@ TEST_CASE(
   const IndirectResult r = run_indirect(backend);
   if(r.skipped)
     SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(backend))
+    SKIP(why);
   INFO("backend=" << r.backend);
   INFO(
       "indirect consumption path: "
@@ -339,7 +334,7 @@ TEST_CASE(
 
   // Belt-and-braces difference check: the exact strips phase B added (3..5)
   // must be present in B and absent in A -- the two dispatches produced
-  // different, predicted coverage (spec P1-8 wording).
+  // different, predicted coverage.
   for(int i = kCountA; i < kCountB; ++i)
   {
     const auto pxA = r.at3.at(i * kStripPx + 2, kSize / 2);

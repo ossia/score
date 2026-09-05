@@ -300,7 +300,8 @@ struct B2GInstancesRenderer final : score::gfx::NodeRenderer
     m_posBuf = rhi->newBuffer(
         QRhiBuffer::Static,
         QRhiBuffer::UsageFlags(
-            QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer),
+            score::gfx::compatibleBufferUsage(
+                *rhi, QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer)),
         6 * 16);
     m_posBuf->setName("B2GInstancesTest::positions");
     m_posBuf->create();
@@ -321,7 +322,8 @@ struct B2GInstancesRenderer final : score::gfx::NodeRenderer
     m_transBuf = rhi->newBuffer(
         QRhiBuffer::Static,
         QRhiBuffer::UsageFlags(
-            QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer),
+            score::gfx::compatibleBufferUsage(
+                *rhi, QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer)),
         kMaxInstances * 16);
     m_transBuf->setName("B2GInstancesTest::translations");
     m_transBuf->create();

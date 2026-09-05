@@ -2,24 +2,24 @@
 // L3 — storage-visibility binding-drift guard.
 //
 // isf-storage-visibility-drift.fs declares a storage_input `pad` VISIBILITY:"all"
-// BEFORE a PERSISTENT read_write storage `counter`. libisf's GLSL codegen only
-// emits / advances its binding counter for the graphics-visibility set, so it
-// SKIPS `pad`; the runtime SRB assignment must agree. The pre-fix runtime skipped
-// only stages=={} (visibilityToStages("all") is non-empty -> fragment), so `pad`
-// consumed a graphics binding the codegen never emitted, drifting `counter` (and
-// its `_prev` twin) one slot. `counter`'s writes then landed on `pad`'s buffer and
-// `counter_prev` read a buffer the shader never wrote — the persistent ping-pong
-// accumulator is stuck. Fix: gate collectGraphicsStorageResources on the same
-// is_graphics_visibility predicate as the codegen (skip "all"/unknown/compute).
+// before a PERSISTENT read_write storage `counter`. libisf's GLSL codegen only
+// emits and advances its binding counter for the graphics-visibility set, so it
+// skips `pad`, and the runtime SRB assignment must agree: skipping only
+// stages=={} is not enough, since visibilityToStages("all") is non-empty ->
+// fragment. `pad` would then consume a graphics binding the codegen never
+// emitted, drifting `counter` and its `_prev` twin one slot -- `counter`'s
+// writes land on `pad`'s buffer, `counter_prev` reads a buffer the shader never
+// wrote, and the persistent ping-pong accumulator is stuck.
+// collectGraphicsStorageResources is gated on the same is_graphics_visibility
+// predicate as the codegen (skip "all"/unknown/compute).
 //
-// OBSERVABLE (mirrors IsfPersistent's short-vs-long comparison): the counter
-// advances +1 per frame ONLY if the binding is correct. A short run (few frames)
-// and a long run (more frames) are compared — with the fix the encoded grey level
-// is higher for the long run; with the drift the accumulator is stuck and the two
-// runs read back the same grey.
+// Observable, mirroring IsfPersistent's short-vs-long comparison: the counter
+// advances +1 per frame only if the binding is correct. A short run (few frames)
+// and a long run (more frames) are compared -- with a correct binding the
+// encoded grey level is higher for the long run; with the drift both runs read
+// back the same grey.
 //
-// REGRESSION GUARD. long-run grey MUST exceed short-run grey on both backends.
-// GREEN on OpenGL and Vulkan. Do NOT weaken.
+// Regression guard: long-run grey must exceed short-run grey on both backends.
 //
 //   DISPLAY=:0 SCORE_TEST_API=opengl ctest -R gfx_storage_visibility
 //   DISPLAY=:0 SCORE_TEST_API=vulkan ctest -R gfx_storage_visibility
@@ -60,6 +60,8 @@ TEST_CASE(
 
   if(out.skipped)
     SKIP(out.backend + ": " + out.skip_reason);
+  if(const char* why = storage_buffer_skip_reason(backend))
+    SKIP(why);
   INFO("backend=" << out.backend);
   REQUIRE(out.error.empty());
   REQUIRE(out.shortRun.valid());

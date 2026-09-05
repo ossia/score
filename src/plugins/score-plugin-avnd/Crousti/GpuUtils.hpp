@@ -256,24 +256,18 @@ struct GpuProcessIns
   template <avnd::geometry_port Field, std::size_t NField>
   void operator()(Field& t, avnd::field_index<NField> field_index)
   {
-    // Intentional no-op. Geometry data flows through its own publish path
-    // (geometry_inputs_storage::readInputGeometries / etc.); the
-    // GpuProcessIns visitor only handles per-message control fields
-    // (texture/parameter) — geometry data is not in the control message.
-    // The empty body keeps GpuProcessIns instantiable for nodes whose
-    // input list contains geometry fields without forcing them to hit
-    // the `= delete` catch-all at the end of this struct.
+    // Intentional no-op: geometry is not in the control message, it flows
+    // through geometry_inputs_storage::readInputGeometries. The empty body
+    // keeps GpuProcessIns instantiable for nodes whose input list contains
+    // geometry fields, which would otherwise hit the `= delete` catch-all
+    // below.
   }
 
   template <scene_port Field, std::size_t NField>
   void operator()(Field& t, avnd::field_index<NField> field_index)
   {
     // Intentional no-op — same reasoning as the geometry_port overload above.
-    // Scene data flows through scene_inputs_storage / scene_outputs_storage
-    // separately; GpuProcessIns only handles per-message control fields.
-    // The empty body keeps GpuProcessIns instantiable for nodes whose
-    // input list contains scene_port fields without hitting the `= delete`
-    // catch-all at the end of this struct.
+    // Scene data flows through scene_inputs_storage / scene_outputs_storage.
   }
 
   void operator()(auto& t, auto field_index) = delete;
@@ -711,7 +705,10 @@ static void recreateOutputBuffer(
     if(bytesize > 0)
     {
       buf.handle = renderer.state.rhi->newBuffer(
-          QRhiBuffer::Static, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer,
+          QRhiBuffer::Static,
+              score::gfx::compatibleBufferUsage(
+                  *renderer.state.rhi,
+                  QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer),
           bytesize);
       buf.handle->setName("GpuUtils::recreateOutputBuffer");
       buf.byte_offset = 0;
@@ -845,7 +842,10 @@ struct geometry_inputs_storage<T>
           meshes.readbacks.resize(buffer_index + 1);
 
           auto buf = renderer.state.rhi->newBuffer(
-              QRhiBuffer::Static, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer,
+              QRhiBuffer::Static,
+              score::gfx::compatibleBufferUsage(
+                  *renderer.state.rhi,
+                  QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer),
               bytesize);
           buf->setName(oscr::getUtf8Name<T>() + "::" + oscr::getUtf8Name(t));
           buf->create();
@@ -1020,7 +1020,10 @@ struct buffer_outputs_storage<T>
     auto& [gfx_port, buf] = m_buffers[N];
     gfx_port = parent.output[nf];
     buf.handle = renderer.state.rhi->newBuffer(
-        QRhiBuffer::Static, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, 1);
+        QRhiBuffer::Static,
+              score::gfx::compatibleBufferUsage(
+                  *renderer.state.rhi,
+                  QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer), 1);
     buf.handle->setName(oscr::getUtf8Name<T>() + "::" + oscr::getUtf8Name(port));
     buf.byte_offset = 0;
     buf.byte_size = 1;
@@ -1039,7 +1042,10 @@ struct buffer_outputs_storage<T>
         if(bytesize > 0)
         {
           buf.handle = renderer.state.rhi->newBuffer(
-              QRhiBuffer::Static, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer,
+              QRhiBuffer::Static,
+              score::gfx::compatibleBufferUsage(
+                  *renderer.state.rhi,
+                  QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer),
               bytesize);
           buf.handle->setName(oscr::getUtf8Name<T>() + "::" + oscr::getUtf8Name(port));
           buf.byte_offset = 0;
@@ -1051,7 +1057,10 @@ struct buffer_outputs_storage<T>
         else
         {
           buf.handle = renderer.state.rhi->newBuffer(
-              QRhiBuffer::Static, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer,
+              QRhiBuffer::Static,
+              score::gfx::compatibleBufferUsage(
+                  *renderer.state.rhi,
+                  QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer),
               1);
           buf.handle->setName(oscr::getUtf8Name<T>() + "::" + oscr::getUtf8Name(port));
           buf.byte_offset = 0;
@@ -1731,9 +1740,8 @@ struct geometry_outputs_storage<T>
   }
 
   // Lifecycle parity with the other *_outs storages. The geometry_spec
-  // wrapper carries non-owning pointers + transform values today, so
-  // release is a no-op — wired so future RHI handles on the storage
-  // release cleanly.
+  // wrapper carries non-owning pointers + transform values, so release has
+  // nothing to do; it exists so RHI handles added later have a hook.
   void release(score::gfx::RenderList&) noexcept { }
 };
 
@@ -1845,12 +1853,11 @@ struct scene_outputs_storage<T>
   }
 
   // Lifecycle parity with texture_outputs_storage / buffer_outputs_storage:
-  // the storage owns no QRhi resources today (the scene_spec is a value-
-  // semantics struct + a shared_ptr to scene_state, both managed by their
-  // own destructors), so release is a documented no-op. Mirror the call
-  // site naming so future RHI handles added to the storage have a release
-  // hook ready, and so CpuFilterNode / CpuAnalysisNode releaseState calls
-  // are symmetric across all storages.
+  // the storage owns no QRhi resources (the scene_spec is a value-semantics
+  // struct plus a shared_ptr to scene_state, both managed by their own
+  // destructors), so release has nothing to do. It keeps CpuFilterNode /
+  // CpuAnalysisNode releaseState symmetric across all storages, and gives
+  // RHI handles added later a hook.
   void release(score::gfx::RenderList&) noexcept { }
 };
 

@@ -40,6 +40,8 @@ TEST_CASE("EXECUTION_MODEL 1D_BUFFER dispatches over the whole buffer",
     r = render_csf_image(api, corpus("syn-exec-1d-buffer.cs"), {}, {16, 16}, 3);
   });
   if(r.skipped) SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(api))
+    SKIP(why);
   INFO("backend=" << r.backend << " error: " << r.error);
   REQUIRE(r.error.empty());
   REQUIRE(r.outputs.size() == 1);
@@ -61,6 +63,8 @@ TEST_CASE("EXECUTION_MODEL MANUAL dispatches exactly WORKGROUPS x LOCAL_SIZE",
     r = render_csf_image(api, corpus("syn-exec-manual.cs"), {}, {16, 16}, 3);
   });
   if(r.skipped) SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(api))
+    SKIP(why);
   INFO("backend=" << r.backend << " error: " << r.error);
   REQUIRE(r.error.empty());
   REQUIRE(r.outputs.size() == 1);
@@ -82,6 +86,8 @@ TEST_CASE("a PERSISTENT buffer carries state across frames",
     r = render_csf_image(api, corpus("syn-feedback-persistent.cs"), {}, {16, 16}, 5);
   });
   if(r.skipped) SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(api))
+    SKIP(why);
   INFO("backend=" << r.backend << " error: " << r.error);
   REQUIRE(r.error.empty());
   REQUIRE(r.outputs.size() == 1);
@@ -103,6 +109,8 @@ TEST_CASE("PER_INSTANCE dispatches once per instance, not per vertex",
     r = render_csf_image(api, corpus("syn-instancing.cs"), {}, {16, 16}, 3);
   });
   if(r.skipped) SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(api))
+    SKIP(why);
   INFO("backend=" << r.backend << " error: " << r.error);
   REQUIRE(r.error.empty());
   REQUIRE(r.outputs.size() == 1);
@@ -128,6 +136,8 @@ TEST_CASE("COPY_FROM forwards an attribute buffer between geometries",
                       corpus("raw-raster-basic.vs"), corpus("raw-raster-basic.fs"));
   });
   if(r.skipped) SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(api))
+    SKIP(why);
   INFO("backend=" << r.backend << " error: " << r.error);
   REQUIRE(r.error.empty());
   REQUIRE(r.outputs.size() >= 1);
@@ -155,6 +165,8 @@ TEST_CASE("COPY_FROM forwards an attribute declared read_only",
                       corpus("raw-raster-basic.vs"), corpus("raw-raster-basic.fs"));
   });
   if(r.skipped) SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(api))
+    SKIP(why);
   INFO("backend=" << r.backend << " error: " << r.error);
   REQUIRE(r.error.empty());
   REQUIRE(r.outputs.size() >= 1);
@@ -178,6 +190,8 @@ TEST_CASE("the synthetic producer alone draws its colour",
                       corpus("raw-raster-basic.vs"), corpus("raw-raster-basic.fs"));
   });
   if(r.skipped) SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(api))
+    SKIP(why);
   INFO("backend=" << r.backend << " error: " << r.error);
   REQUIRE(r.error.empty());
   REQUIRE(r.outputs.size() >= 1);
@@ -200,6 +214,8 @@ TEST_CASE("a geometry filter copying attributes by hand keeps the colour",
                       corpus("raw-raster-basic.vs"), corpus("raw-raster-basic.fs"));
   });
   if(r.skipped) SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(api))
+    SKIP(why);
   INFO("backend=" << r.backend << " error: " << r.error);
   REQUIRE(r.error.empty());
   REQUIRE(r.outputs.size() >= 1);
@@ -224,6 +240,8 @@ TEST_CASE("REQUIRED false falls back to zeroes instead of failing the build",
                       corpus("raw-raster-basic.vs"), corpus("raw-raster-basic.fs"));
   });
   if(r.skipped) SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(api))
+    SKIP(why);
   INFO("backend=" << r.backend << " error: " << r.error);
   REQUIRE(r.error.empty());
   REQUIRE(r.outputs.size() >= 1);
@@ -248,6 +266,8 @@ TEST_CASE("EXECUTION_MODEL PER_MIP loops the pass once per level",
                       corpus("syn-raster-per-mip.vs"), corpus("syn-raster-per-mip.fs"));
   });
   if(r.skipped) SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(api))
+    SKIP(why);
   INFO("backend=" << r.backend << " error: " << r.error);
   REQUIRE(r.error.empty());
   REQUIRE(r.outputs.size() >= 1);
@@ -265,14 +285,16 @@ TEST_CASE("EXECUTION_MODEL USER dispatches from its generated ports",
   // exactly 4 invocations. A USER pass quietly treated as 2D_IMAGE would size
   // from an image and land elsewhere; one never dispatched reads 0.
   //
-  // USER is parser-supported and was exercised by nothing in the tree -- not
-  // one shader in packages/, not one test -- before this.
+  // USER is parser-supported but exercised by nothing else in the tree --
+  // not one shader in packages/, not one other test.
   const auto api = GENERATE(from_range(platform_backends()));
   IsfResult r;
   run_in_gui_app([&](const score::GUIApplicationContext&) {
     r = render_csf_image(api, corpus("syn-exec-user.cs"), {}, {16, 16}, 3);
   });
   if(r.skipped) SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(api))
+    SKIP(why);
   INFO("backend=" << r.backend << " error: " << r.error);
   REQUIRE(r.error.empty());
   REQUIRE(r.outputs.size() == 1);
@@ -300,6 +322,8 @@ TEST_CASE("a compute filter can ADD an attribute the input does not have",
                       corpus("raw-raster-basic.vs"), corpus("raw-raster-basic.fs"));
   });
   if(r.skipped) SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(api))
+    SKIP(why);
   INFO("backend=" << r.backend << " error: " << r.error);
   REQUIRE(r.error.empty());
   REQUIRE(r.outputs.size() >= 1);
@@ -323,6 +347,8 @@ TEST_CASE("a compute filter can MODIFY an attribute in flight",
                       corpus("raw-raster-basic.vs"), corpus("raw-raster-basic.fs"));
   });
   if(r.skipped) SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(api))
+    SKIP(why);
   INFO("backend=" << r.backend << " error: " << r.error);
   REQUIRE(r.error.empty());
   REQUIRE(r.outputs.size() >= 1);
@@ -345,6 +371,8 @@ TEST_CASE("EXECUTION_MODEL SINGLE runs the pass exactly once",
                       corpus("syn-raster-single.vs"), corpus("syn-raster-single.fs"));
   });
   if(r.skipped) SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(api))
+    SKIP(why);
   INFO("backend=" << r.backend << " error: " << r.error);
   REQUIRE(r.error.empty());
   REQUIRE(r.outputs.size() >= 1);
@@ -354,9 +382,9 @@ TEST_CASE("EXECUTION_MODEL SINGLE runs the pass exactly once",
   CHECK(int(px[0]) < 32);
 }
 
-// PER_CUBE_FACE is NOT tested here on purpose. The case was written and its
-// shader is committed (syn-raster-per-cube-face.*), but render_raster cannot
-// read back a cubemap attachment: the same output declared CUBEMAP reads black
-// under EXECUTION_MODEL SINGLE too, so a failure here would accuse the wrong
-// thing. Testing it needs either cubemap readback in the rig or a second pass
+// PER_CUBE_FACE is NOT tested here on purpose. Its shader is in the corpus
+// (syn-raster-per-cube-face.*), but render_raster cannot read back a cubemap
+// attachment: the same output declared CUBEMAP reads black under
+// EXECUTION_MODEL SINGLE too, so a failure here would accuse the wrong thing.
+// Testing it needs either cubemap readback in the rig or a second pass
 // sampling the cube into a 2D target.

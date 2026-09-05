@@ -1,70 +1,41 @@
 // =============================================================================
-// P1-11 -- A POINT CLOUD RENDERS AS N POINTS: the LIVE-RENDER half, with the
+// A POINT CLOUD RENDERS AS N POINTS: the LIVE-RENDER half, with the
 // byte_offset arithmetic guarded at render level.
 //
 // (The CPU descriptor arithmetic of Threedim::PCLToMesh2 -- "Pointcloud to
 // mesh", the node behind 19 of the 28 real Model Displays that run in Points
 // mode -- is already pinned by tests/threedim/PCLToGeometryTest.cpp, including
 // the byte_offset case: with a non-zero byte_offset the vertex count must be
-// (byte_size - byte_offset) / stride, NOT byte_size / stride. That over-read
-// defect was FIXED in 2b6234a6c3, so this file is a REGRESSION GUARD, not an
-// expected-red pin. What no test has yet is the render half: the REAL
-// PCLToMesh2 descriptor, converted through the REAL avnd geometry bridge,
-// consumed by a REAL raw-raster draw in Points topology on a real backend,
-// with the drawn point count counted from the frame.)
-//
-// Intended registration (tests/gfx/CMakeLists.txt), mirroring the
-// test_gfx_instancer_shrink block -- PCLToGeometry.cpp is compiled into the
-// plugin, so build it into the test target the same way
-// tests/threedim/CMakeLists.txt:257-258 does for the CPU test:
-//
-//   if(TARGET score_plugin_threedim)
-//     score_plugin_hidden_sources(_pcl_count_hidden
-//         "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim/PCLToGeometry.cpp")
-//     score_add_test(test_gfx_pointcloud_count
-//       SOURCES GfxPointCloudCount.cpp ${_pcl_count_hidden}
-//       GUI
-//       PLUGINS score_plugin_gfx score_plugin_scenario score_lib_process
-//       LIBS test_gfx_engine_glue)
-//     target_compile_definitions(test_gfx_pointcloud_count PRIVATE
-//       GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
-//     target_include_directories(test_gfx_pointcloud_count SYSTEM PRIVATE
-//       "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
-//       "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
-//       "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
-//       "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
-//       $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
-//       $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
-//   endif()
+// (byte_size - byte_offset) / stride, NOT byte_size / stride. This file is the
+// render half: the REAL PCLToMesh2 descriptor, converted through the REAL avnd
+// geometry bridge, consumed by a REAL raw-raster draw in Points topology on a
+// real backend, with the drawn point count counted from the frame.)
 //
 // WHAT LEVEL IS DRIVEN, AND WHY. Everything from the PCLToMesh2 tick down to
 // the readback is the shipped engine:
 //   * Threedim::PCLToMesh2::operator()() -- the real descriptor build,
-//     including the FIXED count arithmetic (PCLToGeometry.cpp:120-122:
-//     usable_bytes = byte_size - byte_offset; vertices = usable / stride) and
-//     the pass-through of the input's byte_offset into the geometry input
-//     (PCLToGeometry.cpp:114).
-//   * oscr::load_geometry (avnd/binding/ossia/geometry.hpp:356) -- the real
+//     including the count arithmetic (PCLToGeometry.cpp: usable_bytes =
+//     byte_size - byte_offset; vertices = usable / stride) and the
+//     pass-through of the input's byte_offset into the geometry input.
+//   * oscr::load_geometry (avnd/binding/ossia/geometry.hpp) -- the real
 //     halp::dynamic_gpu_geometry -> ossia::geometry bridge, the same function
 //     Crousti's geometry_outputs_storage::reload_mesh calls for this exact
-//     node in a real score (GpuUtils.hpp:1614-1633). It carries the GPU
-//     handle, the Points topology, the position attribute, and CRUCIALLY the
-//     input byte_offset and the vertex count into the ossia mesh.
+//     node in a real score. It carries the GPU handle, the Points topology,
+//     the position attribute, and -- the point of this test -- the input
+//     byte_offset and the vertex count into the ossia mesh.
 //   * The publish is the production call, verbatim: NodeRenderer::process(
-//     port, geometry_spec, edge.source) -- GpuUtils.hpp:1691 -- which lands
-//     in NodeRenderer.cpp:536 and raises geometryChanged on the raw-raster
-//     consumer.
-//   * The draw is the real CustomMesh path: topology cast at
-//     CustomMesh.cpp:583 (ossia points -> QRhiGraphicsPipeline::Points, enum
-//     orders match), pipeline topology at :515, the vertex-buffer BIND OFFSET
-//     taken from geom.input[i].byte_offset at CustomMesh.cpp:614, and the
-//     drawn vertex count taken from geom.vertices at CustomMesh.cpp:724
-//     (cb.draw(g.vertices, g.instances)).
+//     port, geometry_spec, edge.source) -- from Crousti/GpuUtils.hpp -- which
+//     raises geometryChanged on the raw-raster consumer.
+//   * The draw is the real CustomMesh path: the ossia-points ->
+//     QRhiGraphicsPipeline::Points topology cast (enum orders match), the
+//     pipeline topology, the vertex-buffer BIND OFFSET taken from
+//     geom.input[i].byte_offset, and the drawn vertex count taken from
+//     geom.vertices in cb.draw(g.vertices, g.instances).
 //
 // The ONE thing the test supplies instead of an upstream producer is the
-// QRhiBuffer holding the float3 positions (the spec's shape is CSF ->
+// QRhiBuffer holding the float3 positions (the full shape is CSF ->
 // Pointcloud to mesh; a CSF's buffer output cannot yet be routed into a
-// data-only harness -- the documented P1-9 gap). This mirrors
+// data-only harness). This mirrors
 // GfxInstancerShrink.cpp exactly, and is what lets the buffer carry SENTINEL
 // data (below) that makes both regression directions deterministic.
 //
@@ -92,22 +63,21 @@
 //     row (or its Y-flip, uniformly for all points);
 //   * the 5 prefix-sentinel columns and the 5 tail-sentinel columns hold NO
 //     lit pixel.
-// Both historical defect directions go red deterministically, on every
-// backend, with no reliance on out-of-bounds reads returning garbage:
-//   * count regression to byte_size / stride (the pre-2b6234a6c3 defect):
-//     vertices = 508 / 12 = 42 -> the draw walks 42 * 12 bytes from offset 64
-//     and renders the 5 TAIL sentinels -- valid, authored, on-screen points
-//     inside the real buffer -- so the frame shows 42 lit pixels and the tail
-//     columns light up. (In production the tail would be an over-read past
-//     the buffer; here it is made visible instead of merely invalid.)
-//   * byte_offset dropped anywhere down the chain (descriptor, bridge, or
-//     the CustomMesh.cpp:614 bind offset): the fetch starts at byte 0 and
-//     renders the 5 PREFIX sentinels; their columns light up and the real
-//     column set breaks.
+// Both defect directions go red deterministically, on every backend, with no
+// reliance on out-of-bounds reads returning garbage:
+//   * count regression to byte_size / stride: vertices = 508 / 12 = 42 -> the
+//     draw walks 42 * 12 bytes from offset 64 and renders the 5 TAIL
+//     sentinels -- valid, authored, on-screen points inside the real buffer --
+//     so the frame shows 42 lit pixels and the tail columns light up. (In
+//     production the tail would be an over-read past the buffer; here it is
+//     made visible instead of merely invalid.)
+//   * byte_offset dropped anywhere down the chain (descriptor, bridge, or the
+//     CustomMesh bind offset): the fetch starts at byte 0 and renders the 5
+//     PREFIX sentinels; their columns light up and the real column set breaks.
 //
-// GEOMETRY INFO CROSS-CHECK (the spec's second, independent measurement): the
-// spec asks for an OSC readback of the Geometry Info process's vertex-count
-// outlet; that is app-level (a device tree + OSC protocol + the Geometry Info
+// GEOMETRY INFO CROSS-CHECK (a second, independent measurement): an OSC
+// readback of the Geometry Info process's vertex-count outlet
+// is app-level (a device tree + OSC protocol + the Geometry Info
 // process) and out of reach of this unit fixture, so it is deliberately NOT
 // covered here. The same quantity is cross-checked CPU-side instead, at both
 // ends of the bridge: PCLToMesh2's own descriptor (mesh.vertices == 37,
@@ -116,24 +86,23 @@
 // points, gpu handle identity). Pixels and descriptor are computed by
 // different subsystems, so they are still two measurements.
 //
-// NEGATIVE CONTROLS (product-side, one line each, for the orchestrator):
-//   * Reintroduce the fixed defect:
-//     src/plugins/score-plugin-threedim/Threedim/PCLToGeometry.cpp:120-121 --
-//     replace
+// NEGATIVE CONTROLS (product-side, one line each):
+//   * Break the count arithmetic:
+//     src/plugins/score-plugin-threedim/Threedim/PCLToGeometry.cpp -- replace
 //       const auto usable_bytes
 //           = tex.byte_size > tex.byte_offset ? tex.byte_size - tex.byte_offset : 0;
 //     with
 //       const auto usable_bytes = tex.byte_size;
 //     -> cpuVertices becomes 42 (CPU check red) AND the frame shows 42 lit
 //     pixels with the 5 tail-sentinel columns lit (pixel checks red).
-//   * The spec's suggested control -- halve the count:
-//     src/plugins/score-plugin-threedim/Threedim/PCLToGeometry.cpp:122 --
-//     append "/ 2" to the vertices expression -> 18 vertices; CPU check and
-//     the lit-pixel count (18 != 37) go red together, proving the two
+//   * Halve the count: append "/ 2" to the
+//     vertices expression in the same file -> 18 vertices; CPU check and the
+//     lit-pixel count (18 != 37) go red together, proving the two
 //     measurements are independent.
 //   * Render-level offset drop:
-//     src/plugins/score-plugin-gfx/Gfx/Graph/CustomMesh.cpp:614 -- replace
-//     "in.byte_offset" with "0" -> the 5 prefix-sentinel columns light up.
+//     src/plugins/score-plugin-gfx/Gfx/Graph/CustomMesh.cpp -- replace
+//     "in.byte_offset" with "0" in the draw-input build -> the 5
+//     prefix-sentinel columns light up.
 //
 //   DISPLAY=:0 SCORE_TEST_API=opengl ctest -R gfx_pointcloud_count
 //   DISPLAY=:0 SCORE_TEST_API=vulkan ctest -R gfx_pointcloud_count
@@ -186,8 +155,8 @@ constexpr int kStride = 12; // XYZ layout: 3 floats per point
 constexpr int kPrefixFloats = 16;
 constexpr int64_t kByteOffset = kPrefixFloats * sizeof(float); // 64
 // What PCLToMesh2 is told: offset + the 37 real points. (508; NOT the real
-// buffer size.) 508 / 12 = 42 is the pre-fix over-count; (508 - 64) / 12 = 37
-// is the fixed count.
+// buffer size.) 508 / 12 = 42 is the over-count; (508 - 64) / 12 = 37 is the
+// correct count.
 constexpr int64_t kByteSize = kByteOffset + kRealPts * kStride; // 508
 // The real QRhiBuffer additionally holds the 5 tail sentinels, so a
 // regression to the 42-count draw renders authored data, not garbage.
@@ -220,7 +189,7 @@ constexpr float ndcOf(int pixel)
 // the REAL Threedim::PCLToMesh2 against it, converts the halp descriptor with
 // the REAL oscr::load_geometry, and publishes the geometry_spec to its output
 // edge with the exact production call Crousti's geometry_outputs_storage uses
-// (GpuUtils.hpp:1691): NodeRenderer::process(port, spec, edge.source).
+// in GpuUtils.hpp: NodeRenderer::process(port, spec, edge.source).
 
 struct PclPointsNode final : score::gfx::ProcessNode
 {
@@ -261,7 +230,8 @@ struct PclPointsRenderer final : score::gfx::NodeRenderer
     self.cloudBuf = rhi->newBuffer(
         QRhiBuffer::Static,
         QRhiBuffer::UsageFlags(
-            QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer),
+            score::gfx::compatibleBufferUsage(
+                *rhi, QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer)),
         kBufBytes);
     self.cloudBuf->setName("PclPointsTest::cloud");
     self.cloudBuf->create();
@@ -295,7 +265,7 @@ struct PclPointsRenderer final : score::gfx::NodeRenderer
     if(self.ticked.load())
       return;
 
-    // Feed the REAL node the P1-11 shape: a GPU buffer whose usable region
+    // Feed the REAL node the shape under test: a GPU buffer whose usable region
     // starts kByteOffset bytes in. This mirrors what a CSF buffer producer
     // publishes into "Pointcloud to mesh" in a real score.
     auto& in = self.pcl.inputs.in.buffer;
@@ -308,8 +278,8 @@ struct PclPointsRenderer final : score::gfx::NodeRenderer
     self.pcl();
 
     // Convert with the REAL bridge -- the same call reload_mesh
-    // (Crousti/GpuUtils.hpp:1628) makes for this node's halp geometry output
-    // in a running score.
+    // (Crousti/GpuUtils.hpp) makes for this node's halp geometry output in a
+    // running score.
     self.spec.meshes = std::make_shared<ossia::mesh_list>();
     self.spec.meshes->meshes.resize(1);
     oscr::load_geometry(self.pcl.outputs.geometry.mesh, self.spec.meshes->meshes[0]);
@@ -319,8 +289,8 @@ struct PclPointsRenderer final : score::gfx::NodeRenderer
   }
 
   // Publish to the downstream raster exactly as Crousti's
-  // geometry_outputs_storage::upload does (GpuUtils.hpp:1680-1691) -- every
-  // frame; the consumer short-circuits on spec identity and buffer dirt.
+  // geometry_outputs_storage::upload does -- every frame; the consumer
+  // short-circuits on spec identity and buffer dirt.
   void runInitialPasses(
       score::gfx::RenderList& renderer, QRhiCommandBuffer&,
       QRhiResourceUpdateBatch*&, score::gfx::Edge& edge) override
@@ -464,9 +434,8 @@ Outcome run_pointcloud(score::gfx::GraphicsApi api)
     p.render(4);
     out.ticked = harness->ticked.load();
 
-    // CPU cross-check 1 -- the descriptor PCLToMesh2 built (the fixed
-    // PCLToGeometry.cpp:120-122 arithmetic, plus the offset pass-through
-    // at :114).
+    // CPU cross-check 1 -- the descriptor PCLToMesh2 built (the
+    // PCLToGeometry.cpp count arithmetic, plus the offset pass-through).
     {
       const auto& mesh = harness->pcl.outputs.geometry.mesh;
       out.cpuVertices = mesh.vertices;
@@ -583,9 +552,8 @@ TEST_CASE(
     CHECK(r.px.colLit[colOf(k)] == 0);
   }
 
-  // The count stopped at byte_size: no tail sentinel drawn. This is the
-  // 2b6234a6c3 regression guard -- a return to the byte_size / stride count
-  // draws exactly these 5 authored points.
+  // The count stopped at byte_size: no tail sentinel drawn. A return to the
+  // byte_size / stride count draws exactly these 5 authored points.
   for(int t = 0; t < kTailPts; ++t)
   {
     const int k = kPrefixPts + kRealPts + t;

@@ -1,8 +1,8 @@
 // =============================================================================
-// P0-7 -- A RAW-RASTER PIPELINE FEEDING A SECOND, MRT RAW-RASTER PIPELINE
+// A RAW-RASTER PIPELINE FEEDING A SECOND, MRT RAW-RASTER PIPELINE
 // SURVIVES (and produces the right pixels, and survives a sink resize).
 //
-// Intended registration (tests/gfx/CMakeLists.txt):
+// Registered in tests/gfx/CMakeLists.txt as:
 //   score_add_gfx_test(raster_chain_mrt GfxRasterChainMrt.cpp)
 //
 // This is the topology of the user crash score
@@ -38,51 +38,42 @@
 //
 // ENGINE SURFACE DRIVEN (src/plugins/score-plugin-gfx/Gfx/Graph/
 // RenderedRawRasterPipelineNode.cpp unless noted):
-//   * m_hasMRT decision: line 2023-2024
-//     ("m_hasMRT = colorCount > 1 || hasDepth || hasLayered || hasCubemap ||
-//     multiview_count >= 2") -- true for stage #2 (2 colour outputs), false
-//     for stage #1.
-//   * Stage #2's input sampler: initState -> line 1693
-//     "m_inputSamplers = initInputSamplers(this->n, renderer, n.input, ...)";
-//     Utils.cpp:1376 initInputSamplers resolves a connected image port through
+//   * The m_hasMRT decision (more than one colour output, or depth, layered,
+//     cubemap, per-mip, multiview >= 2) -- true for stage #2 (2 colour
+//     outputs), false for stage #1.
+//   * Stage #2's input sampler: initState -> initInputSamplers (Utils.cpp),
+//     which resolves a connected image port through
 //     renderer.renderTargetForInputPort(*in) -- the RenderList-owned
-//     intermediate RT. Its texture lands at binding 3+ (line 1911 computes the
-//     base for what follows as "3 + m_inputSamplers.size() + ...").
+//     intermediate RT. Its texture lands at binding 3 and up.
 //   * Stage #1 (non-MRT) draws INTO that same intermediate RT through
-//     addOutputPass's single-target branch, line 2056-2062
-//     ("renderer.renderTargetForOutput(edge)" -> initPass) -- the identical
+//     addOutputPass's single-target branch
+//     (renderer.renderTargetForOutput(edge) -> initPass) -- the identical
 //     mechanism ISF->ISF chains use.
-//   * Stage #2 (MRT) renders through initMRTPass (line 520; all colour
-//     textures attached to one render target) and lands attachment k on
-//     output-port k's edge through initMRTBlitPasses/initMRTBlitPass
-//     (lines 1636/1599) via textureForOutput (line 156).
+//   * Stage #2 (MRT) renders through initMRTPass (all colour textures attached
+//     to one render target) and lands attachment k on output-port k's edge
+//     through initMRTBlitPasses/initMRTBlitPass via textureForOutput.
 //
-// EXPECTATION, from reading that code: the initial render should be GREEN --
-// the from-scratch build path resolves the raster->raster image edge exactly
-// like the well-tested ISF->ISF path. Two known sharp edges, either of which
-// would turn this red (the motivating score IS crash-named):
-//   1. RenderedRawRasterPipelineNode::addInputEdge (line 2285-2300) is a no-op
-//      when the UPSTREAM node is a non-MRT raster: textureForOutput returns
-//      nullptr when !m_hasMRT (line 158). That only matters on the INCREMENTAL
-//      edge path, which this test does not take (all edges exist before
-//      create()).
+// Two sharp edges, either of which would turn this red:
+//   1. RenderedRawRasterPipelineNode::addInputEdge is a no-op when the UPSTREAM
+//      node is a non-MRT raster: textureForOutput returns nullptr when
+//      !m_hasMRT. That only matters on the INCREMENTAL edge path, which this
+//      test does not take (all edges exist before create()).
 //   2. The resize half: recreateOutputRenderList tears the whole per-output
-//      RenderList down and rebuilds it. releaseState resets m_hasMRT
-//      (line 2275) and re-init asserts m_inputSamplers is empty (line 1690);
-//      a release-ordering bug for CHAINED rasters would surface here, as a
-//      crash or a black post-resize readback.
-// If this file is red or crashes today, the whole scenario lives in ONE helper
-// (run_chain below) so the orchestrator can fork-isolate it or pin the failure
-// without restructuring; the assertions state the CORRECT behaviour on
-// purpose. Do not weaken them to match a crash.
+//      RenderList down and rebuilds it. releaseState resets m_hasMRT and
+//      re-init asserts m_inputSamplers is empty; a release-ordering bug for
+//      CHAINED rasters would surface here, as a crash or a black post-resize
+//      readback.
+// The whole scenario lives in ONE helper (run_chain below) so it can be
+// fork-isolated or pinned without restructuring; the assertions state the
+// CORRECT behaviour on purpose. Do not weaken them to match a crash.
 //
-// NEGATIVE CONTROL (product-side, per the spec): in
+// NEGATIVE CONTROL (product-side): in
 // src/plugins/score-plugin-gfx/Gfx/Graph/RenderedRawRasterPipelineNode.cpp
 // force the second pipeline's MRT off by appending "m_hasMRT = false;" right
-// after the assignment at lines 2023-2024. Stage #2 then takes the
-// single-target branch (line 2056-2062) for both outgoing edges, attachment 1
-// never carries the second FRAGMENT_OUTPUT, and the attachment-1 closed-form
-// check below (B == 128, Y ramp) goes red.
+// after the m_hasMRT assignment. Stage #2 then takes the single-target branch
+// for both outgoing edges, attachment 1 never carries the second
+// FRAGMENT_OUTPUT, and the attachment-1 closed-form check below (B == 128,
+// Y ramp) goes red.
 //
 //   DISPLAY=:0 SCORE_TEST_API=opengl ctest -R gfx_raster_chain_mrt
 //   DISPLAY=:0 SCORE_TEST_API=vulkan ctest -R gfx_raster_chain_mrt
@@ -190,7 +181,7 @@ struct ChainResult
   ReadbackImage a0_resized, a1_resized;
 };
 
-/// THE WHOLE P0-7 SCENARIO. Kept in one function on purpose so a fork-isolate
+/// THE WHOLE SCENARIO. Kept in one function on purpose so a fork-isolate
 /// or crash-pinning wrapper only needs this single entry point.
 ChainResult run_chain(score::gfx::GraphicsApi backend)
 {
@@ -269,6 +260,8 @@ TEST_CASE(
   const ChainResult r = run_chain(backend);
   if(r.skipped)
     SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(backend))
+    SKIP(why);
   INFO("backend=" << r.backend);
   REQUIRE(r.error.empty());
 

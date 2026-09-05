@@ -5,8 +5,7 @@
 //
 //   DISPLAY=:0 SCORE_TEST_API=vulkan ctest -R gfx_buffer_copy_barrier_sync
 //
-// THE DEFECT THIS PINS. Vulkan synchronization validation reported, on
-// Windows/NVIDIA and reproduced here on Linux/Mesa:
+// THE DEFECT THIS PINS. Vulkan synchronization validation reports:
 //
 //   [ SYNC-HAZARD-WRITE-AFTER-WRITE ] vkCmdCopyBuffer(): Hazard
 //   WRITE_AFTER_WRITE for dstBuffer VkBuffer[ScenePreprocessor::inst.translations]
@@ -62,14 +61,7 @@
 //     above was captured, before the two were interleaved into one binding)
 //     and then GPU-copies into it.
 //
-// MEASURED, on this machine (Mesa, Vulkan, SCORE_GPU_VALIDATION=2), against
-// tests/gfx/GfxInstancerShrink.cpp's scenario which drives the same engine
-// path: 218 SYNC-HAZARD lines before the fix (100 WRITE_AFTER_WRITE on
-// ScenePreprocessor::inst.translations + 110 READ_AFTER_WRITE on the source
-// transforms buffers + 8 unrelated image-view ones), 8 after -- i.e. every
-// buffer hazard gone, the unrelated image-view ones untouched.
-//
-// NEGATIVE CONTROL (one line, for the orchestrator): in
+// NEGATIVE CONTROL (one line): in
 // src/plugins/score-plugin-gfx/Gfx/Graph/RhiComputeBarrier.cpp, drop
 // VK_PIPELINE_STAGE_TRANSFER_BIT from kCopySrcStages (or
 // VK_ACCESS_TRANSFER_WRITE_BIT from kCopySrcAccess). Run 2 goes red on both
@@ -328,7 +320,8 @@ struct HazardProbeRenderer final : score::gfx::NodeRenderer
     auto* b = rhi.newBuffer(
         QRhiBuffer::Static,
         QRhiBuffer::UsageFlags(
-            QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer),
+            score::gfx::compatibleBufferUsage(
+                rhi, QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer)),
         bytes);
     b->setName(name);
     b->create();
@@ -417,7 +410,7 @@ struct HazardProbeRenderer final : score::gfx::NodeRenderer
     {
       auto& rhi = *renderer.state.rhi;
 
-      // ORDER MATTERS, and the reason is the whole point of the fix.
+      // ORDER MATTERS, and it is the whole point of this test.
       // beginBufferCopyBarrier records a GLOBAL VkMemoryBarrier, so once one
       // has been recorded in this command buffer every later transfer in it is
       // ordered after the update batch too. The bare control must therefore

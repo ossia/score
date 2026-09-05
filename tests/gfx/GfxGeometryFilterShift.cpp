@@ -1,6 +1,6 @@
 // =============================================================================
-// P2-9 -- "the Geometry Filter changes geometry on the GPU thread"
-// (SPEC-SCENE-RENDER-TESTS.md §3.3, row P2-9: `syn-geofilter-shift.glsl` shifts
+// THE GEOMETRY FILTER CHANGES GEOMETRY ON THE GPU THREAD.
+// (`syn-geofilter-shift.glsl` shifts
 //  positions by a known delta; the drawn silhouette moves by exactly that;
 //  negative control "zero the delta".)
 //
@@ -14,7 +14,7 @@
 // ctest name: test_gfx_geometry_filter_shift
 //
 // -----------------------------------------------------------------------------
-// WHAT A GEOMETRY FILTER ACTUALLY DOES (read from the engine, not assumed)
+// WHAT A GEOMETRY FILTER ACTUALLY DOES
 // -----------------------------------------------------------------------------
 // A Geometry Filter does NOT rewrite vertex buffers. GeometryFilterNodeRenderer
 // has no compute pass at all: runRenderPass is empty
@@ -53,12 +53,11 @@
 // where its delta UBO is bound.
 //
 // -----------------------------------------------------------------------------
-// WHAT IS *NOT* HERE, AND WHY (the honest subset -- please read before adding to
-// this file)
+// WHAT IS *NOT* HERE, AND WHY
 // -----------------------------------------------------------------------------
-// The silhouette half of P2-9 cannot be made green from a `score_add_gfx_test`
+// The silhouette half cannot be made green from a `score_add_gfx_test`
 // target, because score_plugin_gfx contains NO consumer that applies geometry
-// filters. Verified by exhaustive grep over the whole tree:
+// filters:
 //
 //   * "%vtx_define_filters%" / "%vtx_do_filters%" occur in exactly two files:
 //       - Threedim/ModelDisplay/ModelDisplayNode.cpp  (the real consumer, in
@@ -68,17 +67,14 @@
 //         asks ShaderCache to compile it -- it never renders and never binds
 //         the material UBO)
 //   * RenderedRawRasterPipelineNode (the only geometry consumer reachable here)
-//     never reads mesh.filters at all -- the single occurrence of the word in
-//     that file is the FIXME at RenderedRawRasterPipelineNode.cpp:2630.
+//     never mentions mesh.filters at all.
 //   * RenderedCSFNode goes the other way and CLEARS them
-//     (RenderedCSFNode.cpp:2344  binding.outputGeometry.filters = {};).
+//     (RenderedCSFNode.cpp  binding.outputGeometry.filters = {};).
 //
-// This also EXPLAINS a defect the tree currently records as unexplained:
-// tests/gfx/CroustiCpuNodes.cpp's "a geometry filter displaces the mesh it is
-// given" is [!shouldfail] with a comment saying the failure "is still
-// unexplained. Do not assume one fix covers both." It is explained: that test
-// wires the filter into a raw-raster consumer (p.addRaster), and the raw raster
-// discards mesh.filters. Nothing is wrong with the filter node there.
+// The same cause covers tests/gfx/CroustiCpuNodes.cpp's [!shouldfail] "a
+// geometry filter displaces the mesh it is given": that test wires the filter
+// into a raw-raster consumer (p.addRaster), and the raw raster discards
+// mesh.filters. Nothing is wrong with the filter node there.
 //
 // So this file asserts, closed-form:
 //   (1) the exact vertex program the filter publishes  -- CPU, no RHI;
@@ -86,7 +82,7 @@
 //       renderer during a real offscreen render, i.e. on the GPU thread;
 //   (3) the drawing control: with the delta at 0 the chain draws the
 //       full-viewport silhouette, exactly;
-//   (4) [!shouldfail] the actual P2-9 oracle -- the silhouette displaced by
+//   (4) [!shouldfail] the actual oracle -- the silhouette displaced by
 //       exactly the delta. Red today for reason (WHAT IS NOT HERE) above, not
 //       because of anything in GeometryFilterNode.
 //
@@ -111,7 +107,7 @@
 //   with a zero-filled upload, e.g.
 //     { const std::vector<char> z(m_materialSize, 0);
 //       res.updateDynamicBuffer(m_materialUBO, 0, m_materialSize, z.data()); }
-//   This is the spec's named control. It is honestly NOT demonstrable today:
+//   It is NOT demonstrable today:
 //   the assertion it targets (the displaced silhouette, TEST_CASE 4) is already
 //   red for the structural reason above, so zeroing the delta cannot change its
 //   verdict. Record it here so that whoever makes TEST_CASE 4 green -- by
@@ -200,7 +196,7 @@
 //    everywhere.
 //
 // -----------------------------------------------------------------------------
-// A TRAP, DOCUMENTED SO NOBODY RE-DISCOVERS IT
+// A TRAP
 // -----------------------------------------------------------------------------
 // A freshly built GeometryFilterNode does NOT start at the shader's declared
 // DEFAULT. GeometryFilterNode.cpp:20-23 uses the DEFAULT only when it is
@@ -209,7 +205,7 @@
 // buffer is 10.0f, not 0.0f. (ISFNode.cpp:23-26 does the identical thing, so
 // this is a house-wide convention rather than a bug in the filter node -- it is
 // not asserted here either way.) Every leg below therefore sets the control
-// EXPLICITLY before create(); do not assume an unset filter is a no-op filter.
+// EXPLICITLY before create(): an unset filter is not a no-op filter.
 //
 // SKIP semantics follow the rest of tests/gfx/ exactly: GENERATE over
 // platform_backends(), and `if(r.skipped) SKIP(backend + ": " + reason)` when
@@ -525,7 +521,7 @@ void require_ran(const FilterRun& r)
 
 // -----------------------------------------------------------------------------
 // 1. CPU only: the program the filter publishes. No RHI, so this leg never
-//    skips -- it is the part of P2-9 that is verifiable everywhere.
+//    skips -- it is the part of this case that is verifiable everywhere.
 // -----------------------------------------------------------------------------
 TEST_CASE(
     "a geometry filter compiles to a per-node process_vertex program",
@@ -651,6 +647,8 @@ TEST_CASE(
   const FilterRun r = run_filter_chain(api, 0.0f);
   if(r.skipped)
     SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(api))
+    SKIP(why);
   require_ran(r);
 
   REQUIRE(r.width == kSize.width());
@@ -668,23 +666,19 @@ TEST_CASE(
 }
 
 // -----------------------------------------------------------------------------
-// 4. THE CASE ITSELF -- P2-9's oracle. EXPECTED TO FAIL today.
+// 4. THE CASE ITSELF -- the oracle. EXPECTED TO FAIL today.
 //
 // Not because of anything in GeometryFilterNode: the filter publishes the right
 // program to the right consumer with the right delta (case 2 proves all three).
 // It fails because score_plugin_gfx has no consumer that APPLIES a geometry
-// filter. RenderedRawRasterPipelineNode never reads mesh.filters -- the only
-// mention in the whole file is the FIXME at
-// RenderedRawRasterPipelineNode.cpp:2630 -- so the only splice site in the tree
-// is ModelDisplayNode.cpp:1157-1176, in score-plugin-threedim, which
-// score_add_gfx_test does not link. The silhouette therefore stays at s = 0's
-// full viewport: first lit column 0 instead of 16, 4096 lit pixels instead of
-// 3072.
+// filter. RenderedRawRasterPipelineNode never mentions mesh.filters, so the
+// only splice site in the tree is ModelDisplayNode.cpp:1157-1176, in
+// score-plugin-threedim, which score_add_gfx_test does not link. The silhouette
+// therefore stays at s = 0's full viewport: first lit column 0 instead of 16,
+// 4096 lit pixels instead of 3072.
 //
-// This also explains tests/gfx/CroustiCpuNodes.cpp's "a geometry filter
-// displaces the mesh it is given", which is [!shouldfail] with a comment
-// calling the failure "still unexplained": that chain also ends in
-// p.addRaster. Same cause, and the note there should be updated.
+// Same cause as tests/gfx/CroustiCpuNodes.cpp's [!shouldfail] "a geometry
+// filter displaces the mesh it is given": that chain also ends in p.addRaster.
 //
 // TO MAKE THIS GREEN, either:
 //   (a) give RenderedRawRasterPipelineNode the ModelDisplayNode.cpp:1157-1176
@@ -703,6 +697,8 @@ TEST_CASE(
   const FilterRun r = run_filter_chain(api, 0.5f);
   if(r.skipped)
     SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(api))
+    SKIP(why);
   require_ran(r);
 
   REQUIRE(r.width == kSize.width());

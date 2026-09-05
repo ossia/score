@@ -1,5 +1,5 @@
 // =============================================================================
-// P0-1 -- INSTANCE COUNT CHANGED MID-RENDER redraws the right number of
+// INSTANCE COUNT CHANGED MID-RENDER redraws the right number of
 // instances.
 //
 // Intended registration: score_add_gfx_test(instance_count_live GfxInstanceCountLive.cpp)
@@ -23,7 +23,7 @@
 //
 // Both identities are exactly representable: round(255 * i/255) == i on the
 // fixture's plain non-sRGB RGBA8 target. Undrawn area: the raster pass clears
-// to Qt::transparent (RenderedRawRasterPipelineNode.cpp:3148-3151), so a
+// to Qt::transparent (RenderedRawRasterPipelineNode.cpp), so a
 // never-drawn column cannot carry R == 255; the never-drawn reference pixel is
 // sampled from column strip 14 (x = 58), which no phase (max count 9) reaches.
 //
@@ -32,47 +32,38 @@
 // render() calls, no graph rebuild. Strip count and both identity channels
 // must track exactly, with no stale strip left from the previous count.
 //
-// ENGINE SURFACE DRIVEN (all verified in source, this worktree):
+// ENGINE SURFACE DRIVEN (all of it in RenderedCSFNode.cpp unless noted):
 //  * "$USER" in INSTANCE_COUNT creates an int control port with default 1
-//    (ISFNode.cpp:279-287) and a synthesized `geo_instance_count` int uniform
-//    in the compute GLSL (libisf isf.cpp:4127-4128 / 5946-5949).
+//    (ISFNode.cpp) and a synthesized `geo_instance_count` int uniform in the
+//    compute GLSL (libisf isf.cpp).
 //  * resolveCountExpression registers var_USER from the port's CURRENT value
-//    (`*(int*)port->value`, RenderedCSFNode.cpp:377-385) and is re-run by
-//    updateGeometryBindings (RenderedCSFNode.cpp:1048-1052), which update()
-//    calls every frame (RenderedCSFNode.cpp:4179) -- so a setControl between
-//    render() calls IS re-evaluated with no rebuild.
-//  * A changed count resizes the attribute SSBOs (elem_stride * count,
-//    RenderedCSFNode.cpp:1647-1670 no-upstream branch; 1589-1624 with
-//    upstream) and pushOutputGeometry's structural check
-//    `binding.prev_instance_count != binding.instance_count`
-//    (RenderedCSFNode.cpp:1782) forces the full output-geometry rebuild,
-//    committing prev at RenderedCSFNode.cpp:2321.
+//    (`*(int*)port->value`) and is re-run by updateGeometryBindings, which
+//    update() calls every frame -- so a setControl between render() calls IS
+//    re-evaluated with no rebuild.
+//  * A changed count resizes the attribute SSBOs (elem_stride * count, in
+//    both the no-upstream and the upstream-fed branch) and
+//    pushOutputGeometry's structural check
+//    `binding.prev_instance_count != binding.instance_count` forces the full
+//    output-geometry rebuild, committing prev afterwards.
 //  * The PER_INSTANCE dispatch is sized from the binding's live
-//    instance_count via TARGET (RenderedCSFNode.cpp:4519-4560).
+//    instance_count via TARGET.
 //  * RATE "instance" attributes become per_instance vertex bindings with
-//    step_rate 1 (RenderedCSFNode.cpp:1842-1845, 2233-2236; honoured by
-//    CustomMesh.cpp:552-558) and the draw issues cb.draw(g.vertices,
-//    g.instances) (CustomMesh.cpp:722-724).
-// Given all of the above, the CORRECT behaviour asserted here is also the
-// behaviour the source implements, so this is expected GREEN.
+//    step_rate 1, honoured by CustomMesh.cpp, whose draw issues
+//    cb.draw(g.vertices, g.instances).
 //
-// ALLOC-COUNT ASSERTION DROPPED (honestly): the spec asks to count
-// "CSF ALLOC [createStorageBuffer]" trace lines, but NO such string exists
-// anywhere in src/plugins/score-plugin-gfx (verified by grep).
-// RenderedCSFNode::createStorageBuffer (RenderedCSFNode.cpp:722) emits no
-// trace at all -- only a qWarning on FAILURE -- and the no-upstream resize
-// path (RenderedCSFNode.cpp:1647-1670) resizes buffers in place with no
-// trace either. SCORE_GFX_TRACE gates only Graph.cpp/ImageNode.cpp/Window.cpp
-// lines; the [BUFTRACE] channel (CustomMesh.cpp:15-22, on unless
-// SCORE_BUFTRACE=0) covers CustomMesh::reload, whose per-change invocation
-// count is not a specified contract (per-renderer, per-edge). No reliable
-// closed-form line count exists, so no fake one is asserted. The reallocation
-// is instead validated through its OBSERVABLE contract: the G channel is the
-// content of the reallocated buffer, so a size change without a correct
-// rewrite (stale or zeroed contents) breaks G while B survives.
+// NO ALLOC-COUNT ASSERTION: there is no trace line to count.
+// RenderedCSFNode::createStorageBuffer emits none (only a qWarning on
+// FAILURE), and the no-upstream resize path resizes buffers in place, also
+// silently. SCORE_GFX_TRACE gates only Graph.cpp / ImageNode.cpp / Window.cpp
+// lines; the [BUFTRACE] channel (CustomMesh.cpp, on unless SCORE_BUFTRACE=0)
+// covers CustomMesh::reload, whose per-change invocation count is not a
+// specified contract (per-renderer, per-edge). The reallocation is validated
+// through its OBSERVABLE contract instead: the G channel is the content of
+// the reallocated buffer, so a size change without a correct rewrite (stale
+// or zeroed contents) breaks G while B survives.
 //
-// NEGATIVE CONTROL (one line, product side, for the orchestrator): in
-// src/plugins/score-plugin-gfx/Gfx/Graph/RenderedCSFNode.cpp:1782 change
+// NEGATIVE CONTROL (one line, product side): in
+// src/plugins/score-plugin-gfx/Gfx/Graph/RenderedCSFNode.cpp change
 //   `|| binding.prev_instance_count != binding.instance_count`
 // to `|| false` -- the output geometry then keeps its old instance count, the
 // grow phase keeps drawing 4 strips where 9 are required, and this test's
@@ -116,7 +107,7 @@ constexpr int kCountC = 2; // shrink
 constexpr int kFrames = 4;
 
 // syn-instance-count-user.cs has exactly one descriptor input: the IntSpinBox
-// port synthesized for the $USER INSTANCE_COUNT (ISFNode.cpp:279-287; the
+// port synthesized for the $USER INSTANCE_COUNT (ISFNode.cpp; the
 // write_only geometry attributes create no geometry INPUT port, only the
 // geometry output). So the count control is raw input port 0.
 constexpr int kCountPort = 0;
@@ -265,6 +256,8 @@ TEST_CASE(
   const LiveResult r = run_live(backend);
   if(r.skipped)
     SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(backend))
+    SKIP(why);
   INFO("backend=" << r.backend);
   // An empty/short readback on a supported backend FAILS (img.valid() below),
   // never skips; a build/wiring failure fails here.

@@ -43,11 +43,11 @@ struct RampFit
   int expected = 0;
 };
 
-/// Compare the GREEN channel of `img`, column by column ignored (the ramp is
-/// constant along X), against a linear ramp over the rows.
+/// Compare the GREEN channel of `img` against a linear ramp over the rows; X is
+/// ignored, the ramp is constant along it.
 ///   topIsZero == false : green == 255 at row 0, 0 at the last row (ISF)
 ///   topIsZero == true  : green == 0 at row 0, 255 at the last row (compute)
-/// `denomIsRowCount` selects the fragment-centre form ((y+0.5)/H, what a
+/// `fragmentCentre` selects the fragment-centre form ((y+0.5)/H, what a
 /// rasterized fullscreen quad interpolates) over the texel-index form
 /// (y/(H-1), what the compute shader writes).
 RampFit
@@ -201,6 +201,8 @@ TEST_CASE(
       = render(backend, {corpus("isf-gradient-y.fs"), corpus("csf-texture-sampling.cs")});
   if(r.skipped)
     SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(backend))
+    SKIP(why);
   INFO("backend=" << r.backend);
   REQUIRE(r.error.empty());
   REQUIRE(r.outputs.size() == 1);
