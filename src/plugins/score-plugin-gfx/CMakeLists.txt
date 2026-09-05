@@ -194,7 +194,6 @@ set(HDRS
     
     Gfx/Graph/BackgroundNode.hpp
     Gfx/Graph/CommonUBOs.hpp
-    Gfx/Graph/PhongNode.hpp
     Gfx/Graph/CustomMesh.hpp
     Gfx/Graph/GeometryFilterNode.hpp
     Gfx/Graph/GeometryFilterNodeRenderer.hpp
@@ -485,7 +484,6 @@ set(SRCS
     Gfx/Graph/decoders/HAP.cpp
     Gfx/Graph/BackgroundNode.cpp
     Gfx/Graph/CustomMesh.cpp
-    Gfx/Graph/PhongNode.cpp
     Gfx/Graph/GeometryFilterNode.cpp
     Gfx/Graph/GeometryFilterNodeRenderer.cpp
     Gfx/Graph/RhiComputeBarrier.cpp
