@@ -33,6 +33,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QProcess>
+#include <QRegularExpression>
 #include <QProcessEnvironment>
 #include <QThread>
 #include <QUdpSocket>
@@ -53,6 +54,10 @@
 #include <score_test/VideoMaster.hpp>
 
 #include <Video/VideoInterface.hpp>
+
+extern "C" {
+#include <libavfilter/avfilter.h>
+}
 
 #include <ossia/network/base/node_functions.hpp>
 
@@ -106,6 +111,39 @@ struct Preset
   QString label;
   LibavSettings settings;
 };
+
+// Major version of the libavfilter that the `ffmpeg` on PATH is built against,
+// or 0 when it agrees with ours / cannot be determined.
+//
+// `ffmpeg -version` prints one line per library:
+//     libavfilter     10.  4.100 / 10.  4.100
+// The FIRST number is the major. A missing or unparseable ffmpeg returns 0:
+// the caller already handles an absent reference (it notes Skipped), and a
+// version we cannot read is not evidence of a mismatch.
+//
+// Returns the FOREIGN major on mismatch, so the caller can name both.
+inline int lavfiOracleVersionMismatch()
+{
+  static const int cached = [] {
+    QProcess ff;
+    ff.start(QStringLiteral("ffmpeg"), {QStringLiteral("-version")});
+    if(!ff.waitForStarted(10000))
+      return 0; // no ffmpeg on PATH at all
+    ff.waitForFinished(30000);
+    const QString out = QString::fromUtf8(ff.readAllStandardOutput())
+                        + QString::fromUtf8(ff.readAllStandardError());
+
+    static const QRegularExpression re{
+        QStringLiteral(R"(libavfilter\s+(\d+)\.)")};
+    const auto m = re.match(out);
+    if(!m.hasMatch())
+      return 0; // unparseable: do not invent a mismatch
+
+    const int theirs = m.captured(1).toInt();
+    return theirs == LIBAVFILTER_VERSION_MAJOR ? 0 : theirs;
+  }();
+  return cached;
+}
 
 enum class Verdict
 {
@@ -705,83 +743,116 @@ TEST_CASE("the libav preset probe", "[.probe]")
       {
         // The oracle is ffmpeg running the same filter graph: same source,
         // same geometry, compared per pixel.
-        const QString ref = scratch + QStringLiteral("/lavfi-%1.rgb").arg(only);
-        QFile::remove(ref);
-        QProcess ff;
-        ff.start(
-            QStringLiteral("ffmpeg"),
-            {QStringLiteral("-nostdin"), QStringLiteral("-loglevel"),
-             QStringLiteral("error"), QStringLiteral("-f"),
-             QStringLiteral("lavfi"), QStringLiteral("-i"), p.settings.path,
-             QStringLiteral("-frames:v"), QStringLiteral("3"),
-             QStringLiteral("-pix_fmt"), QStringLiteral("rgb24"),
-             QStringLiteral("-f"), QStringLiteral("rawvideo"),
-             QStringLiteral("-y"), ref});
-        ff.waitForFinished(60000);
-
-        QFile rf{ref};
-        QByteArray refBytes;
-        if(rf.open(QIODevice::ReadOnly))
-        {
-          refBytes = rf.readAll();
-          rf.close();
-        }
-        QFile::remove(ref);
-
-        const auto f = driveInput(plug, ctx, factory, p.settings, 3, 15000, 0, 0);
-        if(!f.connected || !f.hasVideo || f.rgbNative.empty())
+        //
+        // VERSION GATE. This is an EXTERNAL oracle, and that is the whole point
+        // of it: it is the only thing here that can catch a bug in score's own
+        // libav usage, because it renders the graph through a completely
+        // separate implementation. But it is only an oracle while that
+        // implementation agrees on what the graph MEANS. libavfilter changes
+        // filter output across major versions -- which is why `mandelbrot` had
+        // to be retired for `yuvtestsrc` (0d2b09215b) -- so on a machine whose
+        // PATH ffmpeg is a different major from the libavfilter score links,
+        // a per-pixel comparison measures the version difference, not score.
+        //
+        // The two wrong answers are (a) letting it fail there, which turns an
+        // environment mismatch into a red test, and (b) falling back to score's
+        // OWN libavfilter for the reference, which never fails and never
+        // catches anything -- score checking score. Both were considered and
+        // rejected.
+        //
+        // So: compare majors, and SKIP with both versions named when they
+        // differ. An honest skip that says why beats a pass that proved
+        // nothing, which is the rule the rest of this suite is built on.
+        const int mismatch = lavfiOracleVersionMismatch();
+        if(mismatch != 0)
         {
           note(Verdict::Skipped,
-               "connected=" + std::to_string(f.connected)
-                   + " video=" + std::to_string(f.hasVideo)
-                   + " frames=" + std::to_string(f.decoded));
-        }
-        else if(refBytes.isEmpty())
-        {
-          note(Verdict::Skipped,
-               "ffmpeg could not render the same lavfi graph as a reference");
+               "the ffmpeg on PATH links libavfilter major "
+                   + std::to_string(mismatch) + " but score links major "
+                   + std::to_string(LIBAVFILTER_VERSION_MAJOR)
+                   + "; filter output is not comparable across a major, so this "
+                     "would measure the version difference and not score");
         }
         else
         {
-          const std::size_t per = std::size_t(f.width) * f.height * 3;
-          const int refFrames = per ? int(std::size_t(refBytes.size()) / per) : 0;
-          if(refFrames == 0)
+          const QString ref = scratch + QStringLiteral("/lavfi-%1.rgb").arg(only);
+          QFile::remove(ref);
+          QProcess ff;
+          ff.start(
+              QStringLiteral("ffmpeg"),
+              {QStringLiteral("-nostdin"), QStringLiteral("-loglevel"),
+               QStringLiteral("error"), QStringLiteral("-f"),
+               QStringLiteral("lavfi"), QStringLiteral("-i"), p.settings.path,
+               QStringLiteral("-frames:v"), QStringLiteral("3"),
+               QStringLiteral("-pix_fmt"), QStringLiteral("rgb24"),
+               QStringLiteral("-f"), QStringLiteral("rawvideo"),
+               QStringLiteral("-y"), ref});
+          ff.waitForFinished(60000);
+
+          QFile rf{ref};
+          QByteArray refBytes;
+          if(rf.open(QIODevice::ReadOnly))
+          {
+            refBytes = rf.readAll();
+            rf.close();
+          }
+          QFile::remove(ref);
+
+          const auto f = driveInput(plug, ctx, factory, p.settings, 3, 15000, 0, 0);
+          if(!f.connected || !f.hasVideo || f.rgbNative.empty())
           {
             note(Verdict::Skipped,
-                 "the reference is " + std::to_string(refBytes.size())
-                     + " bytes for a " + std::to_string(f.width) + "x"
-                     + std::to_string(f.height) + " rgb24 frame");
+                 "connected=" + std::to_string(f.connected)
+                     + " video=" + std::to_string(f.hasVideo)
+                     + " frames=" + std::to_string(f.decoded));
+          }
+          else if(refBytes.isEmpty())
+          {
+            note(Verdict::Skipped,
+                 "ffmpeg could not render the same lavfi graph as a reference");
           }
           else
           {
-            int bestDev = 1 << 30;
-            for(const auto& got : f.rgbNative)
+            const std::size_t per = std::size_t(f.width) * f.height * 3;
+            const int refFrames = per ? int(std::size_t(refBytes.size()) / per) : 0;
+            if(refFrames == 0)
             {
-              if(got.size() != per)
-                continue;
-              for(int j = 0; j < refFrames; j++)
-              {
-                const auto* want
-                    = reinterpret_cast<const uint8_t*>(refBytes.constData())
-                      + std::size_t(j) * per;
-                int worst = 0;
-                for(std::size_t i = 0; i < per; i++)
-                  worst = std::max(worst, std::abs(int(got[i]) - int(want[i])));
-                bestDev = std::min(bestDev, worst);
-              }
+              note(Verdict::Skipped,
+                   "the reference is " + std::to_string(refBytes.size())
+                       + " bytes for a " + std::to_string(f.width) + "x"
+                       + std::to_string(f.height) + " rgb24 frame");
             }
-            if(bestDev <= kToleranceYuvExact)
-              note(Verdict::Works,
-                   "matched an ffmpeg render of the same lavfi graph at "
-                       + std::to_string(f.width) + "x" + std::to_string(f.height)
-                       + " to within " + std::to_string(bestDev));
             else
-              note(Verdict::Failed,
-                   "the closest ffmpeg reference frame differs by "
-                       + std::to_string(bestDev));
+            {
+              int bestDev = 1 << 30;
+              for(const auto& got : f.rgbNative)
+              {
+                if(got.size() != per)
+                  continue;
+                for(int j = 0; j < refFrames; j++)
+                {
+                  const auto* want
+                      = reinterpret_cast<const uint8_t*>(refBytes.constData())
+                        + std::size_t(j) * per;
+                  int worst = 0;
+                  for(std::size_t i = 0; i < per; i++)
+                    worst = std::max(worst, std::abs(int(got[i]) - int(want[i])));
+                  bestDev = std::min(bestDev, worst);
+                }
+              }
+              if(bestDev <= kToleranceYuvExact)
+                note(Verdict::Works,
+                     "matched an ffmpeg render of the same lavfi graph at "
+                         + std::to_string(f.width) + "x" + std::to_string(f.height)
+                         + " to within " + std::to_string(bestDev));
+              else
+                note(Verdict::Failed,
+                     "the closest ffmpeg reference frame differs by "
+                         + std::to_string(bestDev));
+            }
           }
-        }
-      }
+              }
+}
       else if(p.settings.path.startsWith(QStringLiteral("<PROJECT>:/video")))
       {
         LibavSettings s = p.settings;
