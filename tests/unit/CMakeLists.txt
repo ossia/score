@@ -821,46 +821,49 @@ if(TARGET score_plugin_gfx)
     LIBS ${QT_PREFIX}::Gui)
 endif()
 # --- threedim asset loaders ------------------------------------------------
-# The plugin is built with -fvisibility=hidden, so the loader entry points
-# (GltfParser/FbxParser/AssetLoader::process, ObjFromString, ...) are not
-# reachable through libscore_plugin_threedim.so. Compile the loader layer
-# straight into the test binary instead; linking the plugins still provides
-# the include dirs + the exported gfx/registry symbols.
+# Dynamic plugins hide the loader entry points, so those builds compile the
+# loader layer into the tests. Static plugins already contain the same objects;
+# recompiling them would duplicate ufbx and the loader symbols at link time.
 if(TARGET score_plugin_threedim)
   set(_threedim_src "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
+  set(_threedim_test_libs fastgltf spz)
+  get_target_property(_threedim_plugin_type score_plugin_threedim TYPE)
 
-  # C sources go in a separate static lib: mixing C into the test target
-  # breaks the score_lib_pch REUSE_FROM (PCH is C++-only).
-  add_library(test_unit_threedim_3rdparty STATIC
-    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/miniply/miniply.cpp"
-    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/mikktspace/mikktspace.c"
-    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/ufbx/ufbx.c")
-  target_include_directories(test_unit_threedim_3rdparty SYSTEM PUBLIC
-    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/miniply"
-    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/mikktspace"
-    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/ufbx")
-  set_target_properties(test_unit_threedim_3rdparty
-    PROPERTIES FOLDER "Tests" POSITION_INDEPENDENT_CODE ON)
+  if(NOT _threedim_plugin_type STREQUAL "STATIC_LIBRARY")
+    # C sources go in a separate static lib: mixing C into the test target
+    # breaks the score_lib_pch REUSE_FROM (PCH is C++-only).
+    add_library(test_unit_threedim_3rdparty STATIC
+      "${SCORE_ROOT_SOURCE_DIR}/3rdparty/miniply/miniply.cpp"
+      "${SCORE_ROOT_SOURCE_DIR}/3rdparty/mikktspace/mikktspace.c"
+      "${SCORE_ROOT_SOURCE_DIR}/3rdparty/ufbx/ufbx.c")
+    target_include_directories(test_unit_threedim_3rdparty SYSTEM PUBLIC
+      "${SCORE_ROOT_SOURCE_DIR}/3rdparty/miniply"
+      "${SCORE_ROOT_SOURCE_DIR}/3rdparty/mikktspace"
+      "${SCORE_ROOT_SOURCE_DIR}/3rdparty/ufbx")
+    set_target_properties(test_unit_threedim_3rdparty
+      PROPERTIES FOLDER "Tests" POSITION_INDEPENDENT_CODE ON)
+    list(PREPEND _threedim_test_libs test_unit_threedim_3rdparty)
 
-  score_plugin_hidden_sources(_threedim_hidden
-      "${_threedim_src}/AssetLoader.cpp"
-      "${_threedim_src}/GltfParser.cpp"
-      "${_threedim_src}/FbxParser.cpp"
-      "${_threedim_src}/TinyObj.cpp"
-      "${_threedim_src}/Ply.cpp"
-      "${_threedim_src}/VcgImporters.cpp"
-      "${_threedim_src}/SceneFromMeshes.cpp"
-      "${_threedim_src}/PrimitiveCloud/PlyParser.cpp"
-      "${_threedim_src}/PrimitiveCloud/SplatBinary.cpp"
-      "${_threedim_src}/PrimitiveCloud/SpzCodec.cpp"
-      "${_threedim_src}/PrimitiveCloud/SceneFromCloud.cpp"
-      "${_threedim_src}/PrimitiveCloud/FormatOverride.cpp")
+    score_plugin_hidden_sources(_threedim_hidden
+        "${_threedim_src}/AssetLoader.cpp"
+        "${_threedim_src}/GltfParser.cpp"
+        "${_threedim_src}/FbxParser.cpp"
+        "${_threedim_src}/TinyObj.cpp"
+        "${_threedim_src}/Ply.cpp"
+        "${_threedim_src}/VcgImporters.cpp"
+        "${_threedim_src}/SceneFromMeshes.cpp"
+        "${_threedim_src}/PrimitiveCloud/PlyParser.cpp"
+        "${_threedim_src}/PrimitiveCloud/SplatBinary.cpp"
+        "${_threedim_src}/PrimitiveCloud/SpzCodec.cpp"
+        "${_threedim_src}/PrimitiveCloud/SceneFromCloud.cpp"
+        "${_threedim_src}/PrimitiveCloud/FormatOverride.cpp")
+  endif()
 score_add_test(test_unit_threedim_loaders
     SOURCES
       ThreedimLoaderTest.cpp
       ${_threedim_hidden}
     PLUGINS score_plugin_threedim score_plugin_gfx score_plugin_avnd
-    LIBS test_unit_threedim_3rdparty fastgltf spz "${QT_PREFIX}::Gui")
+    LIBS ${_threedim_test_libs} "${QT_PREFIX}::Gui")
   target_include_directories(test_unit_threedim_loaders SYSTEM PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/vcglib"
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/eigen")
@@ -877,7 +880,7 @@ score_add_test(test_unit_threedim_loaders
       AssetLoaderFailure.cpp
       ${_threedim_hidden}
     PLUGINS score_plugin_threedim score_plugin_gfx score_plugin_avnd
-    LIBS test_unit_threedim_3rdparty fastgltf spz "${QT_PREFIX}::Gui")
+    LIBS ${_threedim_test_libs} "${QT_PREFIX}::Gui")
   target_include_directories(test_unit_threedim_asset_loader_failure SYSTEM PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/vcglib"
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/eigen")
@@ -892,7 +895,7 @@ score_add_test(test_unit_threedim_loaders
       GltfLoaderTest.cpp
       ${_threedim_hidden}
     PLUGINS score_plugin_threedim score_plugin_gfx score_plugin_avnd
-    LIBS test_unit_threedim_3rdparty fastgltf spz "${QT_PREFIX}::Gui")
+    LIBS ${_threedim_test_libs} "${QT_PREFIX}::Gui")
   target_include_directories(test_unit_threedim_gltf_loader SYSTEM PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/vcglib"
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/eigen")
@@ -905,7 +908,7 @@ score_add_test(test_unit_threedim_loaders
       FbxLoaderTest.cpp
       ${_threedim_hidden}
     PLUGINS score_plugin_threedim score_plugin_gfx score_plugin_avnd
-    LIBS test_unit_threedim_3rdparty fastgltf spz "${QT_PREFIX}::Gui")
+    LIBS ${_threedim_test_libs} "${QT_PREFIX}::Gui")
   target_include_directories(test_unit_threedim_fbx_loader SYSTEM PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/vcglib"
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/eigen")
