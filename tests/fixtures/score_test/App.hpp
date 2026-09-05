@@ -19,6 +19,7 @@
 // GUI presenter teardown must happen while the factory families are alive).
 
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/gfx/OpenGL.hpp>
 
 #include <core/application/MinimalApplication.hpp>
 #include <core/document/Document.hpp>
@@ -57,6 +58,22 @@ inline void prepare_test_environment(bool headless)
 #if !defined(__EMSCRIPTEN__)
   if(headless && !qEnvironmentVariableIsSet("QT_QPA_PLATFORM"))
     qputenv("QT_QPA_PLATFORM", "offscreen");
+
+  // The application requests its OpenGL profile in main.cpp's setup_opengl();
+  // nothing in the test bootstrap did, and setup_opengl is a static in the app
+  // that no test can reach. On macOS that left every test touching the OpenGL
+  // backend on Apple's LEGACY profile -- GL 2.1 / GLSL 1.20 -- instead of the
+  // 4.1 core the app itself runs on. There QRhi has no texture arrays and no 3D
+  // textures, RenderList creation throws, and no window ever presents a frame:
+  // measured as "render list creation threw for output ..." and a window
+  // lifecycle case counting zero frames.
+  //
+  // Before the QApplication and before any window, because it is the DEFAULT
+  // format that decides which profile Apple hands out.
+  if(const auto plat = qEnvironmentVariable("QT_QPA_PLATFORM");
+     plat != QLatin1String("offscreen") && plat != QLatin1String("minimal")
+     && plat != QLatin1String("vnc"))
+    score::setupDefaultOpenGLFormat();
 #endif
 
   // Nothing interactive: the package manager asks "Download the user library?"
