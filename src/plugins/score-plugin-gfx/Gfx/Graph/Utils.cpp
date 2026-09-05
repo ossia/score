@@ -1198,8 +1198,18 @@ Pipeline buildPipelineWithState(
   // D3D12 ViewInstancing and Metal vertex amplification read it from the
   // pipeline itself via QRhiGraphicsPipeline::multiViewCount(). So we must set
   // it explicitly here for those backends to produce correct multiview output.
+//
+  // ... which is exactly why this must ALSO respect the pass-index fallback.
+  // When the shader has been lowered to read PASSINDEX, the node renders the
+  // views as N separate passes; leaving the count on the pipeline makes D3D12
+  // view-instance every one of those draws 6x on top of that. D3D11 has no
+  // ViewInstancing and so was unaffected -- which is precisely why
+  // cubemap_six_faces and camera_array_faces passed on d3d11 and still failed
+  // on d3d12 after the shader lowering landed.
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
-  if(multiViewCount > 1 && renderer.state.caps.multiview)
+  if(multiViewCount > 1 && renderer.state.caps.multiview
+     && !viewIndexNeedsPassIndexFallback(
+         renderer.state.api, renderer.state.version))
     ps->setMultiViewCount(multiViewCount);
 #else
   (void)multiViewCount;
