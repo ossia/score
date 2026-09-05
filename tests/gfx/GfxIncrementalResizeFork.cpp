@@ -1,21 +1,16 @@
 // =============================================================================
-// P0-4 (SPEC-SCENE-RENDER-TESTS.md): resize after an incremental add survives
+// Resize after an incremental add survives
 // on every backend — FORK-ISOLATED regression guard.
 //
-// HISTORY. This exact scenario (render, resize the sink mid-render twice, read
-// back) used to SIGSEGV on Vulkan: the incremental path left a stale
-// VkRenderPass behind and the resize-triggered pipeline rebuild dereferenced
-// it. That defect was captured as the FINDING titled "resize after an
-// incremental add crashes on Vulkan" in GfxIncrementalFindings.cpp; per
-// LEDGER-DEFECT-FIXES.md the fix landed and both GfxIncrementalFindings pins
-// are green on OpenGL and Vulkan. This file is NOT a defect pin (no
-// [!shouldfail] — the correct behaviour is the current behaviour): it re-runs
-// the identical graph operations inside a forked child, so that a FUTURE
-// regression of the fix shows up as a recorded verdict ("child killed by
-// SIGSEGV") instead of a dead ctest run that takes the whole binary with it.
-// (CTest's WILL_FAIL does not invert abnormal terminations, so only a child
-// process turns a re-introduced crash into an assertable value — same
-// rationale as GfxDropEmptyNodelistAbort.cpp.)
+// WHY A FORK. The failure mode guarded here (render, resize the sink mid-render
+// twice, read back) is a SIGSEGV on Vulkan when the incremental path leaves a
+// stale VkRenderPass behind for the resize-triggered pipeline rebuild to
+// dereference. This is not a defect pin (no [!shouldfail]): it runs the same
+// graph operations as GfxIncrementalFindings.cpp inside a forked child, so a
+// regression shows up as a recorded verdict ("child killed by SIGSEGV") instead
+// of a dead ctest run that takes the whole binary with it. CTest's WILL_FAIL
+// does not invert abnormal terminations, so only a child process turns a crash
+// into an assertable value — same rationale as GfxDropEmptyNodelistAbort.cpp.
 //
 // FORK + GPU SAFETY ARGUMENT. Forking a process that already owns a GL/Vulkan
 // context (or a booted QApplication) is undefined-behaviour territory: driver
@@ -29,12 +24,12 @@
 //     run_in_gui_app (MinimalGUIApplication is constructed per call, inside
 //     the child), creates the QRhi, renders, resizes, reads back — exactly the
 //     single-process test does — then _exit()s with a verdict code.
-// This differs from the existing fork users: PrimitiveMeshes.cpp /
-// GfxDropEmptyNodelistAbort.cpp fork CPU-only work (the latter even forks
-// after app boot, which its header justifies by the child touching no event
-// loop / no GPU). We are the first GPU fork user, hence fork-before-any-
-// graphics: at fork time this process is single-threaded (Catch2 runner) with
-// no Qt application object, so the child is a clean slate.
+// The other fork users, PrimitiveMeshes.cpp / GfxDropEmptyNodelistAbort.cpp,
+// fork CPU-only work (the latter even forks after app boot, which its header
+// justifies by the child touching no event loop / no GPU). This is the only GPU
+// fork user, hence fork-before-any-graphics: at fork time this process is
+// single-threaded (Catch2 runner) with no Qt application object, so the child
+// is a clean slate.
 //
 // CHILD -> PARENT PROTOCOL. The child must not run Catch2 macros (fork +
 // Catch2 do not mix; ForkProbe.hpp resets the fatal-signal handlers for the
@@ -45,7 +40,7 @@
 //
 //   exit 0                  scenario ran; final readback is 40x40 solid
 //                           magenta {255,0,255,255} (tol 2) — the same
-//                           expectation GfxIncrementalFindings.cpp:84-86 pins.
+//                           expectation GfxIncrementalFindings.cpp pins.
 //   exit CHILD_SKIP (42)    backend unavailable on this box -> parent SKIPs.
 //   exit CHILD_* (43..46)   pipeline error / invalid / wrong-size / wrong-
 //                           colour readback -> parent fails with the message.
@@ -102,11 +97,11 @@ struct ForkedRun
   std::string message;   // whatever the child wrote on the status pipe
 };
 
-/// Fork; run the P0-4 scenario in the child on `backend`; reap the verdict.
-/// The scenario is a faithful clone of GfxIncrementalFindings.cpp:55-77
-/// ("resize after an incremental add"): one ISF solid-colour node wired to one
-/// 64x64 sink, render 3, resize to 96x48 (the historical SIGSEGV point),
-/// render 3, resize to 40x40, render 3, read back.
+/// Fork; run the resize scenario in the child on `backend`; reap the verdict.
+/// The scenario is a clone of GfxIncrementalFindings.cpp's "resize after an
+/// incremental add": one ISF solid-colour node wired to one 64x64 sink,
+/// render 3, resize to 96x48 (the SIGSEGV point), render 3, resize to 40x40,
+/// render 3, read back.
 inline ForkedRun run_scenario_forked(score::gfx::GraphicsApi backend)
 {
   ForkedRun out;
@@ -146,7 +141,7 @@ inline ForkedRun run_scenario_forked(score::gfx::GraphicsApi backend)
     // The child boots its OWN gui app; the parent never did. All QRhi /
     // backend work happens on this side of the fork.
     score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
-      // ---- graph ops cloned from GfxIncrementalFindings.cpp:56-76 ----
+      // ---- graph ops cloned from GfxIncrementalFindings.cpp ----
       GfxPipeline p;
       const int a = p.addIsf(corpus("isf-solid-color.fs"));
       const int s0 = p.addSink({64, 64});
@@ -168,15 +163,15 @@ inline ForkedRun run_scenario_forked(score::gfx::GraphicsApi backend)
       }
 
       p.render(3);
-      p.resizeSink(s0, {96, 48}); // historically: SIGSEGV here on Vulkan
+      p.resizeSink(s0, {96, 48}); // the resize that can SIGSEGV on Vulkan
       p.render(3);
       p.resizeSink(s0, {40, 40});
       p.render(3);
       const auto c = p.readback(s0);
       // ---- end of cloned scenario ----
 
-      // Catch2-free versions of the original CHECKs
-      // (GfxIncrementalFindings.cpp:82-86), most specific failure first.
+      // Catch2-free versions of the CHECKs in GfxIncrementalFindings.cpp,
+      // most specific failure first.
       if(!p.error().empty())
       {
         verdict = CHILD_PIPELINE_ERROR;
@@ -208,7 +203,7 @@ inline ForkedRun run_scenario_forked(score::gfx::GraphicsApi backend)
     if(!msg.empty())
     {
       const auto n = ::write(fds[1], msg.data(), msg.size());
-      (void)n; // best-effort: the exit code is the verdict, the text is gravy
+      (void)n; // best-effort: the exit code carries the verdict
     }
     ::close(fds[1]);
     ::_exit(verdict);
@@ -242,6 +237,36 @@ TEST_CASE(
   const auto backend = GENERATE(from_range(platform_backends()));
   CAPTURE(backend_name(backend));
 
+  // macOS: this rig cannot report anything meaningful here, so SKIP rather than
+  // fail. The harness forks and the CHILD boots a Qt GUI application WITHOUT
+  // exec()ing. On Apple platforms only async-signal-safe calls are permitted
+  // between fork() and exec(); CoreFoundation is explicitly not fork-safe, and
+  // the child dies in Qt's locale initialisation long before it reaches the
+  // teardown this case is about. From the child's own crash report:
+  //
+  //     __CFCheckCFInfoPACSignature            <- SIGSEGV
+  //     CFNotificationCenterAddObserver
+  //     NSLocale._current.getter / CFLocaleCopyCurrent
+  //     QSystemLocale::fallbackLocale() const
+  //
+  // Nothing graphical in it. The header's fork-safety argument -- fork first,
+  // single-threaded, before any Qt boot -- is correct on Linux and insufficient
+  // on macOS, where CF state inherited from the parent is poisoned by the fork
+  // no matter how early it happens.
+  //
+  // A signal-11 verdict here is not evidence that the resize path regressed on
+  // macOS: the messages are the harness's own labels for the child slot, not a
+  // diagnosis of where it died.
+  //
+  // FIX (tracked): the child must exec() before touching Qt -- re-exec this
+  // binary with a child-role argument, or posix_spawn. That needs an entry
+  // point before Catch2's main, so it is a deliberate change rather than a
+  // patch here.
+#if defined(__APPLE__)
+  SKIP("fork() without exec() cannot boot Qt on macOS: CoreFoundation is not "
+       "fork-safe, so the child dies in locale init before reaching the "
+       "behaviour under test. Needs a fork+exec child entry point.");
+#endif
   const ForkedRun run = run_scenario_forked(backend);
   REQUIRE_FALSE(run.fork_failed);
 
@@ -256,7 +281,7 @@ TEST_CASE(
     FAIL(
         "child killed by signal " << run.term_signal << " ("
                                   << strsignal(run.term_signal)
-                                  << ") — the P0-4 resize-after-incremental-add "
+                                  << ") — the resize-after-incremental-add "
                                      "crash is back on "
                                   << backend_name(backend));
 
