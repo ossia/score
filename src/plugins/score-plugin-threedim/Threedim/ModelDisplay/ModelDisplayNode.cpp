@@ -113,7 +113,7 @@ const constexpr auto vtx_projection_fulldome_equidistant = R"_(
 //
 vec4 v_projected = vec4(0.0, 0.0, 0.0, 1.0);
 {
-  vec4 viewspace = camera.matrixModelView * vec4(in_position.xzy, 1.0);
+  vec4 viewspace = camera.matrixModelView * vec4(in_position.xyz, 1.0);
   vec3 d = viewspace.xyz;
   float r = length(d);
 
@@ -121,7 +121,7 @@ vec4 v_projected = vec4(0.0, 0.0, 0.0, 1.0);
 
   if(r > 1e-6)
   {
-    float theta = acos(clamp(d.z / r, -1.0, 1.0));
+    float theta = acos(clamp(-d.z / r, -1.0, 1.0));
     float phi   = (length(d.xy) > 1e-6) ? atan(d.y, d.x) : 0.0;
     float half_fov_rad = max(radians(camera.fov * 0.5), 1e-6);
     float r_ndc = theta / half_fov_rad;
@@ -147,13 +147,13 @@ vec4 v_projected = vec4(0.0, 0.0, 0.0, 1.0);
 const constexpr auto vtx_projection_fulldome_equisolid = R"_(
 vec4 v_projected = vec4(0.0, 0.0, 0.0, 1.0);
 {
-  vec4 viewspace = camera.matrixModelView * vec4(in_position.xzy, 1.0);
+  vec4 viewspace = camera.matrixModelView * vec4(in_position.xyz, 1.0);
   vec3 d = viewspace.xyz;
   float r = length(d);
 
   if(r > 1e-6)
   {
-    float theta = acos(clamp(d.z / r, -1.0, 1.0));
+    float theta = acos(clamp(-d.z / r, -1.0, 1.0));
     float phi   = (length(d.xy) > 1e-6) ? atan(d.y, d.x) : 0.0;
     float quarter_fov_rad = max(radians(camera.fov * 0.25), 1e-6);
     float r_ndc = sin(theta * 0.5) / sin(quarter_fov_rad);
@@ -177,13 +177,13 @@ vec4 v_projected = vec4(0.0, 0.0, 0.0, 1.0);
 const constexpr auto vtx_projection_fulldome_stereographic = R"_(
 vec4 v_projected = vec4(0.0, 0.0, 0.0, 1.0);
 {
-  vec4 viewspace = camera.matrixModelView * vec4(in_position.xzy, 1.0);
+  vec4 viewspace = camera.matrixModelView * vec4(in_position.xyz, 1.0);
   vec3 d = viewspace.xyz;
   float r = length(d);
 
   if(r > 1e-6)
   {
-    float theta = acos(clamp(d.z / r, -1.0, 1.0));
+    float theta = acos(clamp(-d.z / r, -1.0, 1.0));
     float phi   = (length(d.xy) > 1e-6) ? atan(d.y, d.x) : 0.0;
     float quarter_fov_rad = max(radians(camera.fov * 0.25), 1e-6);
     // tan diverges at θ=π; rely on hardware clipping for θ ≥ FOV/2.
@@ -207,13 +207,13 @@ vec4 v_projected = vec4(0.0, 0.0, 0.0, 1.0);
 const constexpr auto vtx_projection_fulldome_orthographic = R"_(
 vec4 v_projected = vec4(0.0, 0.0, 0.0, 1.0);
 {
-  vec4 viewspace = camera.matrixModelView * vec4(in_position.xzy, 1.0);
+  vec4 viewspace = camera.matrixModelView * vec4(in_position.xyz, 1.0);
   vec3 d = viewspace.xyz;
   float r = length(d);
 
   if(r > 1e-6)
   {
-    float theta = acos(clamp(d.z / r, -1.0, 1.0));
+    float theta = acos(clamp(-d.z / r, -1.0, 1.0));
     float phi   = (length(d.xy) > 1e-6) ? atan(d.y, d.x) : 0.0;
     float half_fov_rad = max(radians(camera.fov * 0.5), 1e-6);
     float r_ndc = sin(theta) / sin(half_fov_rad);
