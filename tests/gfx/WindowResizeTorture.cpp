@@ -255,9 +255,23 @@ TEST_CASE(
       rig.render(3);
     }
 
-    pump_for(200);
+    // Wait for presentation to RESUME rather than assuming it has after a
+    // fixed delay. macOS animates fullscreen transitions over roughly half a
+    // second to a second, and during the animation the layer is not
+    // presentable -- so a fixed 200 ms settle could put the whole 20-frame
+    // sample inside the animation and count zero presents. Measured on an M2
+    // Pro: the Metal case failed 1 run in 3 with the fixed settle, and 4 of 4
+    // passed when it was lengthened, which says the assertion was racing the
+    // window server rather than catching a defect.
+    //
+    // A longer sleep would only move the race. Poll instead, so the case
+    // asserts something meaningful and bounded -- "presentation resumes within
+    // the timeout" -- and still fails honestly if it never does.
     presented = 0;
-    rig.render(20);
+    pump_until([&] {
+      rig.render(1);
+      return presented > 0;
+    });
     presentedAfter = presented;
 
     win->onRender = inner;
