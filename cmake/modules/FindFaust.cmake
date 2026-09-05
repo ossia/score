@@ -6,7 +6,10 @@ find_path(FAUST_INCLUDE_DIR faust/dsp/llvm-dsp.h
   /usr/local/include
   )
 
-set(FAUST_NAMES ${FAUST_NAMES} libfaust.so libfaust.dylib faust.dll faust libfaust)
+# Let find_library apply platform suffixes after searching the SDK hint. Listing
+# libfaust.so first makes CMake exhaust every system path for that exact filename
+# before it ever considers the SDK's static libfaust.a.
+set(FAUST_NAMES ${FAUST_NAMES} faust libfaust libfaust.so libfaust.dylib faust.dll)
 find_library(FAUST_LIBRARY
   NAMES ${FAUST_NAMES}
   HINTS
