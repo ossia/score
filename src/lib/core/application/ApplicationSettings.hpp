@@ -1,11 +1,20 @@
 #pragma once
 #include <score/tools/Version.hpp>
 
+#include <QString>
 #include <QStringList>
 
 #include <score_lib_base_export.h>
 namespace score
 {
+/**
+ * @brief The version as shown to users.
+ *
+ * "3.8.2" for a release build, "3.8.2+42" for a master build 42 commits after
+ * the release, "3.8.2+42 (branch @ commit)" for a build from another branch.
+ */
+SCORE_LIB_BASE_EXPORT QString displayedVersion();
+
 /**
  * @brief Load-time settings
  *

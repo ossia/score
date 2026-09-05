@@ -353,9 +353,67 @@ if(NOT "${SCORE_VERSION_EXTRA}" STREQUAL "")
   set(SCORE_VERSION_TAG "${SCORE_VERSION_TAG}-${SCORE_VERSION_EXTRA}")
 endif()
 
+# Branch and distance from the release tag, so that a build can tell whether it
+# is a release, a master build or a branch build. -1 when unknown (no git,
+# shallow clone without the tag...).
+set(GIT_BRANCH "")
+set(GIT_COMMITS_SINCE_RELEASE -1)
+if(EXISTS "${CMAKE_SOURCE_DIR}/.git")
+  find_package(Git QUIET)
+  if(GIT_FOUND)
+    execute_process(
+      COMMAND "${GIT_EXECUTABLE}" rev-parse --abbrev-ref HEAD
+      WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+      OUTPUT_VARIABLE GIT_BRANCH
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      ERROR_QUIET)
+    if("${GIT_BRANCH}" STREQUAL "HEAD")
+      # Detached head, e.g. on CI: the branch or tag being built if known
+      if(DEFINED ENV{GITHUB_REF_NAME})
+        set(GIT_BRANCH "$ENV{GITHUB_REF_NAME}")
+      else()
+        set(GIT_BRANCH "")
+      endif()
+    endif()
+
+    # Commits since the tag of this version; if it does not exist yet, since
+    # the latest release tag.
+    execute_process(
+      COMMAND "${GIT_EXECUTABLE}" rev-list --count "v${SCORE_VERSION_TAG}..HEAD"
+      WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+      RESULT_VARIABLE _git_count_res
+      OUTPUT_VARIABLE _git_count
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      ERROR_QUIET)
+    if(NOT _git_count_res EQUAL 0)
+      execute_process(
+        COMMAND "${GIT_EXECUTABLE}" describe --tags --match "v[0-9]*" --abbrev=0
+        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+        RESULT_VARIABLE _git_tag_res
+        OUTPUT_VARIABLE _git_tag
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET)
+      if(_git_tag_res EQUAL 0)
+        execute_process(
+          COMMAND "${GIT_EXECUTABLE}" rev-list --count "${_git_tag}..HEAD"
+          WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+          RESULT_VARIABLE _git_count_res
+          OUTPUT_VARIABLE _git_count
+          OUTPUT_STRIP_TRAILING_WHITESPACE
+          ERROR_QUIET)
+      endif()
+    endif()
+    if(_git_count_res EQUAL 0 AND "${_git_count}" MATCHES "^[0-9]+$")
+      set(GIT_COMMITS_SINCE_RELEASE ${_git_count})
+    endif()
+  endif()
+endif()
+
 score_write_file("${CMAKE_CURRENT_BINARY_DIR}/score_git_info.hpp"
 "#pragma once
 #define GIT_COMMIT \"${GIT_COMMIT_HASH}\"
+#define GIT_BRANCH \"${GIT_BRANCH}\"
+#define GIT_COMMITS_SINCE_RELEASE ${GIT_COMMITS_SINCE_RELEASE}
 #define SCORE_VERSION_MAJOR ${SCORE_VERSION_MAJOR}
 #define SCORE_VERSION_MINOR ${SCORE_VERSION_MINOR}
 #define SCORE_VERSION_PATCH ${SCORE_VERSION_PATCH}

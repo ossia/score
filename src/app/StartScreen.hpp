@@ -1476,8 +1476,15 @@ void StartScreen::paintEvent(QPaintEvent* event)
   // The version sits under the tagline, which is part of the artwork
   painter.setFont(m_versionFont);
   painter.setPen(QPen{StartScreenColors::Version});
-  painter.drawText(
-      QPointF(217 * scale, 188 * scale), QCoreApplication::applicationVersion());
+  {
+    // Branch builds carry the branch name: keep it inside the header
+    const qreal x = 217 * scale;
+    const QFontMetrics fm{m_versionFont};
+    painter.drawText(
+        QPointF(x, 188 * scale), fm.elidedText(
+                                     QCoreApplication::applicationVersion(),
+                                     Qt::ElideMiddle, int(width() - x - 60)));
+  }
 
   // Dim the artwork behind the navigation so that its text stays readable
   painter.fillRect(

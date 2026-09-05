@@ -16,6 +16,40 @@
 #include <thread>
 namespace score
 {
+QString displayedVersion()
+{
+  QString version = QStringLiteral("%1.%2.%3")
+                        .arg(SCORE_VERSION_MAJOR)
+                        .arg(SCORE_VERSION_MINOR)
+                        .arg(SCORE_VERSION_PATCH);
+  if(!QString(SCORE_VERSION_EXTRA).isEmpty())
+    version += QStringLiteral("-") + SCORE_VERSION_EXTRA;
+
+  const int ahead = GIT_COMMITS_SINCE_RELEASE;
+  const QString branch{GIT_BRANCH};
+  const QString commit = QString{GIT_COMMIT}.left(8);
+  const bool onMaster
+      = branch == QStringLiteral("master") || branch == QStringLiteral("main");
+
+  if(ahead == 0)
+    return version; // exactly the release
+
+  if(ahead > 0)
+    version += QStringLiteral("+%1").arg(ahead);
+
+  // A tarball has no commit at all and shows the bare version. A shallow clone
+  // knows its commit but not the distance: it cannot pass for a release, so the
+  // commit is shown even on master.
+  if(!commit.isEmpty() && (!onMaster || ahead < 0))
+  {
+    if(!branch.isEmpty() && !onMaster)
+      version += QStringLiteral(" (%1 @ %2)").arg(branch, commit);
+    else
+      version += QStringLiteral(" (%1)").arg(commit);
+  }
+  return version;
+}
+
 void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
 {
   arguments = cargs;
@@ -174,40 +208,28 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
 
 void setQApplicationMetadata()
 {
-  if(auto env = qEnvironmentVariable("SCORE_CUSTOM_APP_ORGANIZATION_NAME"); !env.isEmpty())
+  if(auto env = qEnvironmentVariable("SCORE_CUSTOM_APP_ORGANIZATION_NAME");
+     !env.isEmpty())
     QCoreApplication::setOrganizationName(env);
   else
     QCoreApplication::setOrganizationName("ossia");
 
-  if(auto env = qEnvironmentVariable("SCORE_CUSTOM_APP_ORGANIZATION_DOMAIN"); !env.isEmpty())
+  if(auto env = qEnvironmentVariable("SCORE_CUSTOM_APP_ORGANIZATION_DOMAIN");
+     !env.isEmpty())
     QCoreApplication::setOrganizationDomain(env);
   else
     QCoreApplication::setOrganizationDomain("ossia.io");
 
-  if(auto env = qEnvironmentVariable("SCORE_CUSTOM_APP_APPLICATION_NAME"); !env.isEmpty())
+  if(auto env = qEnvironmentVariable("SCORE_CUSTOM_APP_APPLICATION_NAME");
+     !env.isEmpty())
     QCoreApplication::setApplicationName(env);
   else
     QCoreApplication::setApplicationName("score");
 
-  if(auto env = qEnvironmentVariable("SCORE_CUSTOM_APP_APPLICATION_VERSION"); !env.isEmpty())
+  if(auto env = qEnvironmentVariable("SCORE_CUSTOM_APP_APPLICATION_VERSION");
+     !env.isEmpty())
     QCoreApplication::setApplicationVersion(env);
   else
-  {
-    if(QString(SCORE_VERSION_EXTRA).isEmpty())
-    {
-      QCoreApplication::setApplicationVersion(QString("%1.%2.%3")
-                                                  .arg(SCORE_VERSION_MAJOR)
-                                                  .arg(SCORE_VERSION_MINOR)
-                                                  .arg(SCORE_VERSION_PATCH));
-    }
-    else
-    {
-      QCoreApplication::setApplicationVersion(QString("%1.%2.%3-%4")
-                                                  .arg(SCORE_VERSION_MAJOR)
-                                                  .arg(SCORE_VERSION_MINOR)
-                                                  .arg(SCORE_VERSION_PATCH)
-                                                  .arg(SCORE_VERSION_EXTRA));
-    }
-  }
+    QCoreApplication::setApplicationVersion(score::displayedVersion());
 }
 }

@@ -209,9 +209,16 @@ AboutWidget::AboutWidget(const Style& st, QWidget* parent)
 
   // Version, commit, license
   {
-    QString version = tr("Version %1 “%2”")
-                          .arg(QCoreApplication::applicationVersion(), SCORE_CODENAME);
-    if(const QString commit{GIT_COMMIT}; !commit.isEmpty())
+    // "3.8.2+42 (branch @ commit)": the codename goes right after the number
+    QString version = QCoreApplication::applicationVersion();
+    const QString codename = QStringLiteral(" \u201c%1\u201d").arg(SCORE_CODENAME);
+    if(const int sp = version.indexOf(' '); sp >= 0)
+      version.insert(sp, codename);
+    else
+      version += codename;
+    version = tr("Version %1").arg(version);
+    if(const QString commit{GIT_COMMIT};
+       !commit.isEmpty() && !version.contains(commit.left(8)))
       version += tr(", commit %1").arg(commit.left(12));
     lay->addWidget(makeText(version, s.itemFont, s.version, this));
     lay->addWidget(makeText(
