@@ -1373,10 +1373,12 @@ TEST_CASE(
 // and no measurement separates them.
 //
 // -----------------------------------------------------------------------------
-// WHY THERE ARE TWO CASES: the laws are right and the axis is wrong.
+// WHY THERE ARE TWO CASES: one measures the four radial mappings, the other
+// asserts that a model in front of the camera is visible at all.
 //
-// The first case below is GREEN and the second is an [!shouldfail] pin, and the
-// only difference between them is which way the camera points.
+// Both now point the camera AT the cube, which is what every real Model Display
+// does. They used to differ in that, and the history is worth keeping because it
+// is what the fix had to undo.
 //
 // ModelDisplayNode.cpp's four snippets all take the dome forward axis to be
 // view-space +Z:
@@ -1400,14 +1402,20 @@ TEST_CASE(
 //     equidistant  16345 px      equisolid   18858 px
 //     stereographic 11721 px     orthographic 29847 px
 //
-// So the maths in all four snippets is correct -- that is what the first case
-// proves, to 0.2% -- and the axis they measure it from is not, which is what the
-// second case pins. The fix is a sign, but WHICH sign is a product decision the
-// header comment does not settle: the snippets say ".xzy re-orients world +Z as
-// dome-up and world +Y as dome-forward; the view matrix then places the zenith
-// along view-space +Z", i.e. they may be written for a dome rig whose camera is
-// authored differently from the Position/Center pair the process actually
-// exposes. Reported, not fixed.
+// So the maths in all four snippets was correct -- that is what the first case
+// proved, to 0.2% -- and the axis they measured it from was not.
+//
+// FIXED. Two edits per snippet, and BOTH were required: theta now comes from
+// -d.z (view-space -Z, where a right-handed lookAt points) instead of +d.z, and
+// the projected position is in_position.xyz instead of .xzy. Correcting only the
+// axis left the geometry right but the shading describing a differently-oriented
+// model, so nothing cleared drawnPixels' lit>24 threshold and the case stayed
+// red at ambient-only luma 3 -- which is exactly how a fixer would conclude the
+// axis theory was wrong.
+//
+// The orthographic law is the oracle: it is the one law invariant under
+// theta -> pi-theta, so its frame must be byte-identical across the axis flip,
+// and it measured so. The other three move, in the predicted ordering.
 //
 // NEGATIVE CONTROL (run, see the ledger): the spec's own -- swap equidistant and
 // equisolid in ModelDisplayNode.cpp's projections[].
@@ -1427,14 +1435,17 @@ struct FisheyeLaw
 };
 
 //! t_max: the largest view angle of any cube corner from the dome forward axis,
-//! which is -(centre - eye) normalised. Computed from the scene, never fitted.
+//! which is (centre - eye) normalised -- the direction the camera actually
+//! looks. Computed from the scene, never fitted.
 double fisheyeTmax(double eye, double centre)
 {
   const double lx = centre - eye;
   const double len = std::sqrt(3.0 * lx * lx);
   if(len <= 0)
     return 0.0;
-  const double f = -lx / len; // view +Z, all three components equal
+  // The snippets take theta from -d.z, i.e. view-space -Z, which is where a
+  // right-handed lookAt points. All three components equal.
+  const double f = lx / len;
   double tmax = 0.0;
   for(const auto& c : kCubeV)
   {
@@ -1475,7 +1486,10 @@ TEST_CASE(
   // The camera points AWAY from the cube, because that is the hemisphere these
   // shaders image (see the banner). This case is about the four LAWS; the axis
   // is pinned by the case below.
-  constexpr double kCentre = 2.0 * kFisheyeEye;
+  // Looks AT the cube, like every other case and like every real Model Display.
+  // This used to be 2.0 * kFisheyeEye -- pointing the camera AWAY -- which was
+  // the only way to get an image while the dome forward axis was inverted.
+  constexpr double kCentre = 0.0;
   const double tmax = fisheyeTmax(kFisheyeEye, kCentre);
   REQUIRE(tmax > 0.1);
   REQUIRE(tmax < (kFisheyeFovDeg * 0.5) * kFisheyePi / 180.0); // nothing clipped
@@ -1553,14 +1567,14 @@ TEST_CASE(
   }
 }
 
-// EXPECTED TO FAIL -- [!shouldfail] pin. Asserts the CORRECT behaviour: a model
+// Asserts the correct behaviour, and now passes: a model
 // in front of the camera is visible under every projection the Camera combo
 // offers. Perspective draws it; all four fulldome modes draw NOTHING, because
 // they take the dome forward axis to be view-space +Z while the view matrix
 // looks down -Z. Goes green the day the axis is fixed. See the banner above.
 TEST_CASE(
     "a model in front of the camera is visible under every Camera projection",
-    "[integration][threedim][render][gui][!shouldfail]")
+    "[integration][threedim][render][gui]")
 {
   QTemporaryDir dir;
   REQUIRE(dir.isValid());
@@ -1585,13 +1599,13 @@ TEST_CASE(
     if(!r.error.isEmpty())
       SKIP(r.error.toStdString());
     skipIfNothingIsRasterised(r);
-    // The control leg of the pin: "a perspective render of a cube in front of
-    // the camera draws more than 64 lit pixels". Measured in the thousands, and
-    // no rasteriser draws a different NUMBER OF ORDERS OF MAGNITUDE. Gating it
-    // on the vendor was worse than useless here: a [!shouldfail] case that
-    // SKIPs is reported as skipped, not as failed, so on Vulkan, D3D11 and
-    // D3D12 the pin was inert and would not have gone green when the axis bug
-    // is fixed either.
+    // The control leg: "a perspective render of a cube in front of the camera
+    // draws more than 64 lit pixels". Measured in the thousands, and no
+    // rasteriser draws a different NUMBER OF ORDERS OF MAGNITUDE. Gating it on
+    // the vendor was worse than useless while this case was still a pin: a
+    // shouldfail case that SKIPs is reported as skipped rather than failed, so
+    // on Vulkan, D3D11 and D3D12 it was inert and would not have gone green
+    // when the axis was fixed either. The gate is gone and the axis is fixed.
     INFO("perspective control on " << r.gpu.line.toStdString() << ": "
                                    << drawnPixels(r.frame) << " px drawn");
     REQUIRE(drawnPixels(r.frame) > 64);
