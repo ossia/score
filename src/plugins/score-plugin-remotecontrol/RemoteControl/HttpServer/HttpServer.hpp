@@ -8,6 +8,7 @@
 //
 
 #pragma once
+#include <score_git_info.hpp>
 
 #define BOOST_DATE_TIME_NO_LIB 1
 
@@ -30,11 +31,9 @@ namespace score
 {
 static std::string ossia_score_verison_agent()
 {
-  static QString agent{QCoreApplication::organizationDomain()
-      + '.'
-      + QCoreApplication::applicationName()
-      + '/'
-      + QCoreApplication::applicationVersion()};
+  static QString agent{
+      QCoreApplication::organizationDomain() + '.' + QCoreApplication::applicationName()
+      + '/' + SCORE_TAG_NO_V}; // the release only: no branch name leaks to clients
 
   return agent.toStdString();
 };

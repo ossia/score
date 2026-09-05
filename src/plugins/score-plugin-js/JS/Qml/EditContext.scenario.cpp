@@ -9,6 +9,7 @@
 #include <Scenario/Commands/TimeSync/AddTrigger.hpp>
 #include <Scenario/Commands/TimeSync/RemoveTrigger.hpp>
 #include <Scenario/Commands/TimeSync/SetTrigger.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
@@ -683,8 +684,28 @@ static const Scenario::TimeSyncModel* resolveTimeSync(QObject* obj)
   {
     if(auto scenar = qobject_cast<Scenario::ProcessModel*>(itv->parent()))
       return &Scenario::endTimeSync(*itv, *scenar);
+    if(auto base = qobject_cast<Scenario::BaseScenario*>(itv->parent()))
+      return &base->endTimeSync();
   }
   return nullptr;
+}
+
+// Triggers are added and removed with the command matching the time sync's
+// container, as the scenario's own trigger actions do
+template <typename F>
+static bool withTriggerCommand(const Scenario::TimeSyncModel& ts, F&& f)
+{
+  if(auto scenar = qobject_cast<Scenario::ProcessModel*>(ts.parent()))
+  {
+    f(*scenar);
+    return true;
+  }
+  if(auto base = qobject_cast<Scenario::BaseScenario*>(ts.parent()))
+  {
+    f(*base);
+    return true;
+  }
+  return false;
 }
 
 // A condition belongs to an event; a state means the event it sits on.
@@ -704,12 +725,13 @@ void EditJsContext::enableTrigger(QObject* obj)
   if(!doc)
     return;
   auto ts = resolveTimeSync(obj);
-  // Only time syncs inside a scenario can be made interactive
-  if(!ts || !qobject_cast<Scenario::ProcessModel*>(ts->parent()) || ts->active())
+  if(!ts || ts->active())
     return;
 
   auto [m, _] = macro(*doc);
-  submit(*m, new Scenario::Command::AddTrigger<Scenario::ProcessModel>{*ts});
+  withTriggerCommand(*ts, [&]<typename Scenar>(Scenar&) {
+    submit(*m, new Scenario::Command::AddTrigger<Scenar>{*ts});
+  });
 }
 
 void EditJsContext::disableTrigger(QObject* obj)
@@ -718,11 +740,13 @@ void EditJsContext::disableTrigger(QObject* obj)
   if(!doc)
     return;
   auto ts = resolveTimeSync(obj);
-  if(!ts || !qobject_cast<Scenario::ProcessModel*>(ts->parent()) || !ts->active())
+  if(!ts || !ts->active())
     return;
 
   auto [m, _] = macro(*doc);
-  submit(*m, new Scenario::Command::RemoveTrigger<Scenario::ProcessModel>{*ts});
+  withTriggerCommand(*ts, [&]<typename Scenar>(Scenar&) {
+    submit(*m, new Scenario::Command::RemoveTrigger<Scenar>{*ts});
+  });
 }
 
 void EditJsContext::enableCondition(QObject* obj)

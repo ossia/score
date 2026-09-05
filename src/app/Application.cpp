@@ -73,7 +73,6 @@ int qInitResources_score();
 int qInitResources_qtconf();
 #endif
 
-#define SCORE_SPLASH_SCREEN 1
 #if !defined(SCORE_DEBUG) && !defined(__EMSCRIPTEN__)
 #define SCORE_SPLASH_SCREEN 1
 #endif
@@ -86,6 +85,8 @@ namespace score
 {
 class StartScreen : public QWidget
 {
+public:
+  void dismiss() { }
 };
 }
 #endif
@@ -464,21 +465,31 @@ void Application::init()
       m_startScreen->close();
       openNewDocument();
     });
+    // The start screen steps aside while a document is being chosen or created;
+    // if nothing comes out of it (cancelled dialog, missing file...) it comes back
+    // instead of leaving an empty window behind.
+    auto settle = [this](score::Document* doc) {
+      if(doc)
+        m_startScreen->close();
+      else
+        m_startScreen->reopen();
+    };
     connect(
-        m_startScreen, &score::StartScreen::openFile, this, [&](const QString& file) {
-      m_startScreen->close();
-      m_presenter->documentManager().loadFile(ctx, file);
+        m_startScreen, &score::StartScreen::openFile, this,
+        [this, &ctx, settle](const QString& file) {
+      m_startScreen->hide();
+      settle(m_presenter->documentManager().loadFile(ctx, file));
     });
-    connect(m_startScreen, &score::StartScreen::openFileDialog, this, [&]() {
-      m_startScreen->close();
-      m_presenter->documentManager().loadFile(ctx);
+    connect(
+        m_startScreen, &score::StartScreen::openFileDialog, this, [this, &ctx, settle] {
+      m_startScreen->hide();
+      settle(m_presenter->documentManager().loadFile(ctx));
     });
     connect(
         m_startScreen, &score::StartScreen::openTemplate, this,
-        [&](const QString& file) {
-      m_startScreen->close();
-      if(!m_presenter->documentManager().newDocumentFromTemplate(ctx, file))
-        openNewDocument();
+        [this, &ctx, settle](const QString& file) {
+      m_startScreen->hide();
+      settle(m_presenter->documentManager().newDocumentFromTemplate(ctx, file));
     });
     connect(m_startScreen, &score::StartScreen::exitApp, this, [&]() { qApp->quit(); });
 
@@ -486,11 +497,14 @@ void Application::init()
     {
       m_startScreen->addJoinSession();
       connect(m_startScreen, &score::StartScreen::joinSession, this, [this, net] {
-        m_startScreen->close();
+        m_startScreen->hide();
         net->joinSession(m_view, [this](bool joined) {
-          // Cancelled or failed: do not leave the user with an empty window
-          if(!joined && m_presenter->documentManager().documents().empty())
-            openNewDocument();
+          if(joined)
+            m_startScreen->close();
+          else if(m_presenter->documentManager().documents().empty())
+            m_startScreen->reopen();
+          else
+            m_startScreen->close();
         });
       });
     }

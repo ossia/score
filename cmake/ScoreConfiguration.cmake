@@ -408,6 +408,9 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/.git")
     endif()
   endif()
 endif()
+# A ref name may legally contain characters that would break the string literal
+string(REPLACE "\\" "\\\\" GIT_BRANCH "${GIT_BRANCH}")
+string(REPLACE "\"" "\\\"" GIT_BRANCH "${GIT_BRANCH}")
 
 score_write_file("${CMAKE_CURRENT_BINARY_DIR}/score_git_info.hpp"
 "#pragma once

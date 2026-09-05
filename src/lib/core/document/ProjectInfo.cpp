@@ -74,8 +74,8 @@ SCORE_PROJECTSETTINGS_PARAMETER_CPP(bool, Model, AutomaticThumbnail)
 
 static QString dateText(const QDateTime& dt)
 {
-  return dt.isValid() ? QLocale{}.toString(dt, QLocale::ShortFormat)
-                      : QObject::tr("Never");
+  return dt.isValid() ? QLocale{}.toString(dt.toLocalTime(), QLocale::ShortFormat)
+                      : QObject::tr("Unknown");
 }
 
 View::View()
@@ -330,8 +330,8 @@ static std::optional<Info> parseInfo(const QByteArray& data)
       info.author = str("Author");
       info.description = str("Description");
       info.url = str("Url");
-      info.created = QDateTime::fromString(str("Created"), Qt::ISODate);
-      info.lastSaved = QDateTime::fromString(str("LastSaved"), Qt::ISODate);
+      info.created = QDateTime::fromString(str("Created"), Qt::ISODateWithMs);
+      info.lastSaved = QDateTime::fromString(str("LastSaved"), Qt::ISODateWithMs);
       if(const auto thumb = str("Thumbnail"); !thumb.isEmpty())
         info.thumbnail
             = QImage::fromData(QByteArray::fromBase64(thumb.toLatin1()), "PNG");
@@ -350,8 +350,8 @@ void DataStreamReader::read(const score::ProjectInfo::Model& m)
 {
   // Dates as ISO strings: the DataStream visitor has no QDateTime overload
   m_stream << m.m_Name << m.m_Author << m.m_Description << m.m_Url
-           << m.m_Created.toString(Qt::ISODateWithMs)
-           << m.m_LastSaved.toString(Qt::ISODateWithMs) << m.m_Thumbnail
+           << m.m_Created.toUTC().toString(Qt::ISODateWithMs)
+           << m.m_LastSaved.toUTC().toString(Qt::ISODateWithMs) << m.m_Thumbnail
            << m.m_AutomaticThumbnail;
   insertDelimiter();
 }
@@ -374,8 +374,9 @@ void JSONReader::read(const score::ProjectInfo::Model& m)
   obj["Author"] = m.m_Author;
   obj["Description"] = m.m_Description;
   obj["Url"] = m.m_Url;
-  obj["Created"] = m.m_Created.toString(Qt::ISODate);
-  obj["LastSaved"] = m.m_LastSaved.toString(Qt::ISODate);
+  // UTC with an explicit offset: unambiguous wherever the file is opened
+  obj["Created"] = m.m_Created.toUTC().toString(Qt::ISODateWithMs);
+  obj["LastSaved"] = m.m_LastSaved.toUTC().toString(Qt::ISODateWithMs);
   obj["Thumbnail"] = QString::fromLatin1(m.m_Thumbnail.toBase64());
   obj["AutomaticThumbnail"] = m.m_AutomaticThumbnail;
 }
@@ -383,20 +384,21 @@ void JSONReader::read(const score::ProjectInfo::Model& m)
 template <>
 void JSONWriter::write(score::ProjectInfo::Model& m)
 {
-  if(auto v = obj.tryGet("Name"))
-    m.m_Name = v->toString();
-  if(auto v = obj.tryGet("Author"))
-    m.m_Author = v->toString();
-  if(auto v = obj.tryGet("Description"))
-    m.m_Description = v->toString();
-  if(auto v = obj.tryGet("Url"))
-    m.m_Url = v->toString();
-  if(auto v = obj.tryGet("Created"))
-    m.m_Created = QDateTime::fromString(v->toString(), Qt::ISODate);
-  if(auto v = obj.tryGet("LastSaved"))
-    m.m_LastSaved = QDateTime::fromString(v->toString(), Qt::ISODate);
-  if(auto v = obj.tryGet("Thumbnail"))
+  // A hand-edited or damaged file may hold the wrong type: ignore such fields
+  auto str = [&](const std::string& key, QString& out) {
+    if(auto v = obj.tryGet(key); v && v->isString())
+      out = v->toString();
+  };
+  str("Name", m.m_Name);
+  str("Author", m.m_Author);
+  str("Description", m.m_Description);
+  str("Url", m.m_Url);
+  if(auto v = obj.tryGet("Created"); v && v->isString())
+    m.m_Created = QDateTime::fromString(v->toString(), Qt::ISODateWithMs);
+  if(auto v = obj.tryGet("LastSaved"); v && v->isString())
+    m.m_LastSaved = QDateTime::fromString(v->toString(), Qt::ISODateWithMs);
+  if(auto v = obj.tryGet("Thumbnail"); v && v->isString())
     m.m_Thumbnail = QByteArray::fromBase64(v->toString().toLatin1());
-  if(auto v = obj.tryGet("AutomaticThumbnail"))
+  if(auto v = obj.tryGet("AutomaticThumbnail"); v && v->obj.IsBool())
     m.m_AutomaticThumbnail = v->toBool();
 }

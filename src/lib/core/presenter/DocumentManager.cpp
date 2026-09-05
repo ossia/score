@@ -373,10 +373,27 @@ void updateProjectInfoBeforeSave(Document& doc)
   if(!widget || !widget->isVisible() || widget->width() < 64 || widget->height() < 64)
     return;
 
-  const QPixmap capture = widget->grab();
+  const QImage capture = widget->grab().toImage();
   if(capture.isNull())
     return;
-  info->setThumbnail(ProjectInfo::Model::encodeThumbnail(capture.toImage()));
+
+  // A view that could not be captured (e.g. an OpenGL viewport on some
+  // platforms) comes back as a flat color: keep the previous thumbnail then.
+  {
+    const QImage small = capture.scaled(16, 16, Qt::IgnoreAspectRatio);
+    const QRgb first = small.pixel(0, 0);
+    bool flat = true;
+    for(int y = 0; y < small.height() && flat; y++)
+      for(int x = 0; x < small.width(); x++)
+        if(small.pixel(x, y) != first)
+        {
+          flat = false;
+          break;
+        }
+    if(flat)
+      return;
+  }
+  info->setThumbnail(ProjectInfo::Model::encodeThumbnail(capture));
 }
 }
 
@@ -404,7 +421,7 @@ bool DocumentManager::saveDocument(Document& doc)
 {
   auto savename = doc.metadata().fileName();
 
-  if(savename.indexOf(tr("Untitled")) == 0)
+  if(QFileInfo{savename}.fileName().startsWith(tr("Untitled")))
   {
     saveDocumentAs(doc);
   }
@@ -459,13 +476,14 @@ bool DocumentManager::saveDocumentAs(Document& doc)
   // wasm cannot write to a local path: hand the serialized document to the
   // browser as a download via the async saveFileContent API. Default to the
   // JSON .score format (the binary format is desktop-oriented).
+  updateProjectInfoBeforeSave(doc);
   JSONReader w;
   w.buffer.Reserve(1024 * 1024 * 16);
   doc.saveAsJson(w);
   const QByteArray data{w.buffer.GetString(), (int)w.buffer.GetSize()};
 
   QString hint = doc.metadata().fileName();
-  if(hint.isEmpty() || hint == tr("Untitled"))
+  if(hint.isEmpty() || QFileInfo{hint}.fileName().startsWith(tr("Untitled")))
     hint = "untitled.score";
   QFileDialog::saveFileContent(data, hint, m_view);
   return true;
@@ -688,7 +706,7 @@ public:
     connect(m_folder, &QLineEdit::textChanged, this, [=](const QString& t) {
       buttons->button(QDialogButtonBox::Ok)->setEnabled(!t.trimmed().isEmpty());
     });
-    connect(m_folder, &QLineEdit::returnPressed, this, [=] {
+    connect(m_folder, &QLineEdit::returnPressed, this, [this, buttons] {
       if(buttons->button(QDialogButtonBox::Ok)->isEnabled())
         accept();
     });
@@ -815,6 +833,9 @@ Document* DocumentManager::loadFile(const score::GUIApplicationContext& ctx)
 #else
   QString loadname = QFileDialog::getOpenFileName(
       m_view, tr("Open"), getDialogDirectory(nullptr).absolutePath(), filter);
+
+  if(loadname.isEmpty())
+    return nullptr;
 
   QSettings s;
   s.setValue("score/last_open_doc", QFileInfo(loadname).absoluteDir().path());

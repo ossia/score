@@ -22,6 +22,10 @@ SCORE_DECLARE_ACTION(Documentation, "&Documentation", Common, QKeySequence::Unkn
 SCORE_DECLARE_ACTION(Issues, "&Report Issues", Common, QKeySequence::UnknownKey)
 SCORE_DECLARE_ACTION(Forum, "&Forum", Common, QKeySequence::UnknownKey)
 
+#include <QDialog>
+
+#include <limits>
+
 namespace score
 {
 
@@ -84,7 +88,12 @@ void CoreApplicationPlugin::openProjectSettings()
   if(doc)
   {
     m_presenter.m_projectSettings.setup(doc->context());
-    m_presenter.m_projectSettings.view().exec();
+    if(m_presenter.m_projectSettings.view().exec() == QDialog::Accepted)
+    {
+      // Project settings are applied outside of the undo stack: the document
+      // has to be flagged as modified by hand so that it gets saved.
+      doc->commandStack().setSavedIndex(std::numeric_limits<int>::min());
+    }
   }
 }
 
@@ -260,10 +269,12 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     // Project settings: name, author, thumbnail... stored in the score file
     {
       auto settings_act = new QAction(m_presenter.view());
+      settings_act->setDisabled(true);
       connect(
           settings_act, &QAction::triggered, this,
           &CoreApplicationPlugin::openProjectSettings);
       e.actions.add<Actions::OpenProjectSettings>(settings_act);
+      cond.add<Actions::OpenProjectSettings>();
       settings->addAction(settings_act);
     }
 

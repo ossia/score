@@ -713,6 +713,8 @@ public:
   void addJoinSession();
   //! Closes the start screen without opening anything (something else took over).
   void dismiss();
+  //! Shows the start screen again after an action that led nowhere (cancelled dialog...)
+  void reopen();
 
   static constexpr int Width = 880;
   static constexpr int Height = 640;
@@ -736,6 +738,9 @@ private:
 
   QWidget* createHeader();
   QWidget* createNavigation();
+  //! Pages other than Home are built the first time they are shown: scanning the
+  //! library for templates and examples must not delay the start screen.
+  int addPage(const QString& name, const QString& icon, std::function<QWidget*()> make);
   QWidget* createHomePage(const QPointer<QRecentFilesMenu>& recentFiles);
   QWidget* createTemplatesPage();
   QWidget* createAboutPage();
@@ -793,6 +798,7 @@ private:
 
   QStackedWidget* m_pages{};
   std::vector<InteractiveLabel*> m_navItems;
+  std::vector<std::function<QWidget*()>> m_pageFactories; //!< empty once built
   QVBoxLayout* m_navLayout{};
 
   InteractiveLabel* m_updateLabel{};
@@ -802,7 +808,6 @@ private:
   ThumbnailPopup* m_preview{};
 
   std::map<QString, std::optional<ProjectInfo::Info>> m_infos;
-  std::map<QString, std::vector<InteractiveLabel*>> m_scoreItems;
   std::vector<ExampleCard*> m_cards;
 
   bool m_firstRun{};
@@ -864,8 +869,9 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
   mainLayout->addLayout(body, 1);
 
   addPage(tr("Home"), "home", createHomePage(recentFiles));
-  m_templatesPage = addPage(tr("Templates"), "new_file", createTemplatesPage());
-  addPage(tr("Examples"), "load_examples", createExamplesPage());
+  m_templatesPage
+      = addPage(tr("Templates"), "new_file", [this] { return createTemplatesPage(); });
+  addPage(tr("Examples"), "load_examples", [this] { return createExamplesPage(); });
   addPage(
       tr("Learn"), "learn",
       createLinksPage(
@@ -892,7 +898,7 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
            {tr("Donate on Open Collective"), "https://opencollective.com/ossia",
             "contribute",
             tr("ossia score is free software: donations fund its development")}}));
-  addPage(tr("About"), "about", createAboutPage());
+  addPage(tr("About"), "about", [this] { return createAboutPage(); });
 
   m_navLayout->addStretch();
 
@@ -962,7 +968,21 @@ QWidget* StartScreen::createNavigation()
 
 int StartScreen::addPage(const QString& name, const QString& icon, QWidget* page)
 {
-  const int index = m_pages->addWidget(page);
+  const int index = addPage(name, icon, std::function<QWidget*()>{});
+  m_pages->widget(index)->layout()->addWidget(page);
+  return index;
+}
+
+int StartScreen::addPage(
+    const QString& name, const QString& icon, std::function<QWidget*()> make)
+{
+  // A host widget per page; the content is added to it now or on first display
+  auto host = new QWidget;
+  auto hostLayout = new QVBoxLayout{host};
+  hostLayout->setContentsMargins(0, 0, 0, 0);
+  const int index = m_pages->addWidget(host);
+  m_pageFactories.resize(index + 1);
+  m_pageFactories[index] = std::move(make);
 
   auto item = makeItem(name, icon, "", this);
   item->setCheckable(true);
@@ -980,6 +1000,11 @@ int StartScreen::addPage(const QString& name, const QString& icon, QWidget* page
 
 void StartScreen::setCurrentPage(int index)
 {
+  if(index >= 0 && index < int(m_pageFactories.size()))
+  {
+    if(auto make = std::exchange(m_pageFactories[index], {}))
+      m_pages->widget(index)->layout()->addWidget(make());
+  }
   m_pages->setCurrentIndex(index);
   for(int i = 0; i < int(m_navItems.size()); i++)
     m_navItems[i]->setChecked(i == index);
@@ -1063,7 +1088,6 @@ InteractiveLabel* StartScreen::makeScoreItem(
       m_preview->hide();
   });
 
-  m_scoreItems[path].push_back(label);
   requestInfo(path);
   return label;
 }
@@ -1415,11 +1439,18 @@ void StartScreen::dismiss()
   close();
 }
 
+void StartScreen::reopen()
+{
+  m_actionTaken = false;
+  show();
+  raise();
+  activateWindow();
+}
+
 void StartScreen::checkForNewVersion()
 {
-  // The request is issued from a pool thread so that a misconfigured network
-  // stack cannot block the start screen; the result is marshalled back to
-  // the GUI thread.
+  // The request itself is asynchronous (QNetworkAccessManager); the reply is
+  // handled on the GUI thread and only then touches the widgets.
   auto& tp = score::ThreadPool::instance();
   auto t = tp.acquireThread();
   QMetaObject::invokeMethod(t, [t, self = QPointer{this}] {

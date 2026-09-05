@@ -27,7 +27,10 @@ QString displayedVersion()
 
   const int ahead = GIT_COMMITS_SINCE_RELEASE;
   const QString branch{GIT_BRANCH};
-  const QString commit = QString{GIT_COMMIT}.left(8);
+  // CMake's git module leaves a "-NOTFOUND" sentinel when it cannot read HEAD
+  QString commit = QString{GIT_COMMIT}.left(8);
+  if(QString{GIT_COMMIT}.contains(QStringLiteral("NOTFOUND")))
+    commit.clear();
   const bool onMaster
       = branch == QStringLiteral("master") || branch == QStringLiteral("main");
 

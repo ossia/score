@@ -1,8 +1,5 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <core/document/ProjectInfo.hpp>
-
-#include <algorithm>
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/plugins/ProjectSettings/ProjectSettingsFactory.hpp>
 #include <score/plugins/ProjectSettings/ProjectSettingsModel.hpp>
@@ -11,11 +8,14 @@
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 
 #include <core/document/Document.hpp>
+#include <core/document/ProjectInfo.hpp>
 #include <core/settings/Settings.hpp>
 #include <core/settings/SettingsPresenter.hpp>
 #include <core/settings/SettingsView.hpp>
 
 #include <QCoreApplication>
+
+#include <algorithm>
 
 namespace score
 {
@@ -88,12 +88,18 @@ ProjectSettings::ProjectSettings() { }
 
 ProjectSettings::~ProjectSettings()
 {
-  if(m_settingsView)
-    m_settingsView->deleteLater();
+  delete m_settingsPresenter;
+  delete m_settingsView;
 }
 
 void ProjectSettings::setupView()
 {
+  // Rebuilt for every document: the previous dialog and its pages go away
+  delete m_settingsPresenter;
+  m_settingsPresenter = nullptr;
+  delete m_settingsView;
+  m_settingsView = nullptr;
+
   m_settingsView = new SettingsView<ProjectSettingsModel>(nullptr);
   m_settingsView->setWindowTitle(QObject::tr("Project Settings"));
   m_settingsPresenter
@@ -127,7 +133,7 @@ void ProjectSettings::setup(const DocumentContext& ctx)
 
         auto view = plugin.makeView();
         if(!view)
-          return;
+          continue;
 
         auto pres = plugin.makePresenter(*p, *view, m_settingsPresenter);
         if(pres)

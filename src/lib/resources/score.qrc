@@ -1,7 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file alias="about/AUTHORS">../../../AUTHORS</file>
-        <file>about/about_background.png</file>
         <file>about/logos/labri.png</file>
         <file>about/logos/scrime.png</file>
         <file>about/logos/blueyeti.png</file>
@@ -15,7 +14,6 @@
         <file>about/logos/cifre.png</file>
         <file>about/logos/mesr.png</file>
         <file>about/logos/culture.png</file>
-        <file>about/about_background@2x.png</file>
         <file>ossia-score.png</file>
         <file>dict.txt</file>
         <file>icons/next_disabled.png</file>

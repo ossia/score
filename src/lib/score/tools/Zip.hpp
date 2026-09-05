@@ -51,21 +51,30 @@ struct ZipArchiveSummary
  * @brief Look at a zip's table of contents without inflating anything.
  *
  * Returns nothing if the file is not a zip or holds no .score / .scorejson at
- * its root or one folder down. When several qualify, the one named like the
- * archive wins, then the shallowest.
+ * its root or one folder down. When several qualify, the shallowest wins,
+ * then the one named like the archive.
  */
 SCORE_LIB_BASE_EXPORT
 std::optional<ZipArchiveSummary> summarizeZipArchive(const QString& archive);
 
-//! Inflate a single member of the archive. Empty (and `error` set) on failure.
+//! False for a member name that would land outside the extraction folder:
+//! absolute paths, drive letters, backslashes, ".." components.
 SCORE_LIB_BASE_EXPORT
-QByteArray readZipMember(const QString& archive, const QString& member, QString& error);
+bool isSafeZipMemberName(const QString& name);
+
+//! Inflate a single member of the archive. Empty (and `error` set) on failure,
+//! including members larger than `maxSize` bytes (a score file is small).
+SCORE_LIB_BASE_EXPORT
+QByteArray readZipMember(
+    const QString& archive, const QString& member, QString& error,
+    quint64 maxSize = 256 * 1024 * 1024);
 
 /**
  * @brief Extract every member of `archive` under `destination`.
  *
  * Members that would escape the destination (absolute paths, "..") are refused.
- * Existing files are overwritten.
+ * Existing files are overwritten. On failure or cancellation the files written
+ * by this call are removed again; pre-existing files are left alone.
  */
 SCORE_LIB_BASE_EXPORT
 bool extractZipArchive(

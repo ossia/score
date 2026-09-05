@@ -1,5 +1,7 @@
 #include <State/OSSIASerializationImpl.hpp>
 
+#include <Process/Dataflow/Port.hpp>
+
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>

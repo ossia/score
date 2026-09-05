@@ -170,7 +170,9 @@ public:
   W_SLOT(enableCondition)
   void disableCondition(QObject* obj);
   W_SLOT(disableCondition)
-  //! Trigger expression of a time sync, or condition of an event, e.g. "osc:/x > 0.5"
+  //! The expression of what `obj` resolves to: the trigger for a time sync or an
+  //! interval (its end), the condition for an event or a state. Addresses are
+  //! written between % signs, e.g. "{ %osc:/x% > 0.5 }".
   void setExpression(QObject* obj, QString expression);
   W_SLOT(setExpression)
   QString expression(QObject* obj);

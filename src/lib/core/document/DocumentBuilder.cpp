@@ -6,6 +6,7 @@
 #include <score/plugins/ProjectSettings/ProjectSettingsFactory.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
+#include <score/plugins/documentdelegate/plugin/SerializableDocumentPlugin.hpp>
 #include <score/tools/RandomNameProvider.hpp>
 #include <score/widgets/MessageBox.hpp>
 
@@ -16,15 +17,16 @@
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentTemplates.hpp>
 #include <core/document/ProjectInfo.hpp>
-#include <score/plugins/documentdelegate/plugin/SerializableDocumentPlugin.hpp>
-#include <ossia/detail/algorithms.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/view/Window.hpp>
+
+#include <ossia/detail/algorithms.hpp>
 
 #include <QByteArray>
 #include <QDateTime>
 #include <QDir>
 #include <QFile>
+#include <QFileInfo>
 #include <QObject>
 #include <QString>
 
@@ -57,7 +59,13 @@ void ensureProjectSettingsModels(const score::GUIApplicationContext& ctx, Docume
       return sp && sp->concreteKey() == key;
     });
     if(!present)
-      model.addPluginModel(settings->makeModel(doc.context(), &model));
+    {
+      auto plug = settings->makeModel(doc.context(), &model);
+      // This document predates the plug-in: its creation date is unknown
+      if(auto info = dynamic_cast<ProjectInfo::Model*>(plug))
+        info->setCreated({});
+      model.addPluginModel(plug);
+    }
   }
 }
 }
@@ -106,8 +114,11 @@ Document* DocumentBuilder::newDocumentFromTemplate(
       return nullptr;
 
     // Detach from the template file
+    // Untitled, but in the template's folder so that its project-relative
+    // media (<PROJECT>:...) keeps resolving until the user saves elsewhere
     doc->metadata().setFileName(
-        "Untitled." + RandomNameProvider::generateShortRandomName());
+        QFileInfo{templatePath}.absoluteDir().filePath(
+            "Untitled." + RandomNameProvider::generateShortRandomName()));
     doc->model().setId(id);
     // TODO cables ?!
 
