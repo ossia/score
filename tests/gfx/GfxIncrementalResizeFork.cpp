@@ -242,6 +242,36 @@ TEST_CASE(
   const auto backend = GENERATE(from_range(platform_backends()));
   CAPTURE(backend_name(backend));
 
+  // macOS: this rig cannot report anything meaningful here, so SKIP rather than
+  // fail. The harness forks and the CHILD boots a Qt GUI application WITHOUT
+  // exec()ing. On Apple platforms only async-signal-safe calls are permitted
+  // between fork() and exec(); CoreFoundation is explicitly not fork-safe, and
+  // the child dies in Qt's locale initialisation long before it reaches the
+  // teardown this case is about. From the child's own crash report:
+  //
+  //     __CFCheckCFInfoPACSignature            <- SIGSEGV
+  //     CFNotificationCenterAddObserver
+  //     NSLocale._current.getter / CFLocaleCopyCurrent
+  //     QSystemLocale::fallbackLocale() const
+  //
+  // Nothing graphical in it. The header's fork-safety argument -- fork first,
+  // single-threaded, before any Qt boot -- is correct on Linux and insufficient
+  // on macOS, where CF state inherited from the parent is poisoned by the fork
+  // no matter how early it happens.
+  //
+  // The signal-11 verdict this produced was being read as "P0-4/P2-14 regressed
+  // on macOS". It is not evidence of that: the messages are the harness's own
+  // labels for the child slot, not a diagnosis of where it died.
+  //
+  // FIX (tracked): the child must exec() before touching Qt -- re-exec this
+  // binary with a child-role argument, or posix_spawn. That needs an entry
+  // point before Catch2's main, so it is a deliberate change rather than a
+  // patch here.
+#if defined(__APPLE__)
+  SKIP("fork() without exec() cannot boot Qt on macOS: CoreFoundation is not "
+       "fork-safe, so the child dies in locale init before reaching the "
+       "behaviour under test. Needs a fork+exec child entry point.");
+#endif
   const ForkedRun run = run_scenario_forked(backend);
   REQUIRE_FALSE(run.fork_failed);
 
