@@ -189,6 +189,10 @@ function(score_add_test NAME)
     set_property(TEST ${NAME} APPEND PROPERTY ENVIRONMENT_MODIFICATION
       "UBSAN_OPTIONS=set:${SCORE_UBSAN_OPTIONS}")
   endif()
+  if(SCORE_LSAN_OPTIONS)
+    set_property(TEST ${NAME} APPEND PROPERTY ENVIRONMENT_MODIFICATION
+      "LSAN_OPTIONS=set:${SCORE_LSAN_OPTIONS}")
+  endif()
 
   # App/integration tests rely on runtime dynamic-plugin discovery from
   # "<cwd>/plugins": run them from the build root where <build>/plugins lives.
