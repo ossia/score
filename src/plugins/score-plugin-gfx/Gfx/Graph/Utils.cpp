@@ -1209,7 +1209,7 @@ Pipeline buildPipelineWithState(
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
   if(multiViewCount > 1 && renderer.state.caps.multiview
      && !viewIndexNeedsPassIndexFallback(
-         renderer.state.api, renderer.state.version))
+         renderer.state.api, renderer.state.version, multiViewCount))
     ps->setMultiViewCount(multiViewCount);
 #else
   (void)multiViewCount;
