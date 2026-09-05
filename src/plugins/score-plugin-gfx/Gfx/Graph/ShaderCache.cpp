@@ -1,4 +1,5 @@
 #include "ShaderCache.hpp"
+#include <QHash>
 #include <QRegularExpression>
 
 #include <Gfx/Graph/RenderState.hpp>
@@ -239,14 +240,36 @@ QByteArray hlslIntrinsicCollision(const QByteArray& src) noexcept
 
     // Declaring the name is not enough to break anything. The generated HLSL
     // only becomes ill-formed when it contains BOTH the declaration and a CALL
-    // by that name -- `float frac = frac(...)`. A shader that declares
+    // that SPIRV-Cross will spell with that name. A shader that declares
     // `float step` and never calls step() compiles perfectly well, and
     // rejecting it would be a worse bug than the one being prevented: several
     // shaders in the corpus do exactly that.
+    //
+    // The call must be looked for under its GLSL spelling, not its HLSL one.
+    // This is what made the check miss the very shader its comment cites:
+    // isf-long-numeric.fs declares `float frac` and calls `fract()`, and
+    // `\bfrac\s*\(` does not match `fract(` -- "frac" there is followed by
+    // "t", not "(". The collision only comes into existence when SPIRV-Cross
+    // renames fract -> frac, by which point this source has long been read. So
+    // the shader sailed past the guard and died in fxc instead, with
+    //     error X3005: 'frac': identifier represents a variable, not a function
+    // and a bare "Pipeline not created" -- the exact unactionable failure this
+    // function was written to prevent.
+    static const QHash<QByteArray, QByteArray> glslSpelling{
+        {"frac", "fract"}, {"lerp", "mix"},   {"rsqrt", "inversesqrt"},
+        {"ddx", "dFdx"},   {"ddy", "dFdy"},   {"fmod", "mod"},
+        {"mad", "fma"}};
+    QByteArrayList callNames{name};
+    if(auto it = glslSpelling.find(name); it != glslSpelling.end())
+      callNames.push_back(it.value());
+
     static const QString callFmt = QStringLiteral(R"(\b%1\s*\()");
-    const QRegularExpression call(callFmt.arg(QString::fromUtf8(name)));
-    if(call.match(text).hasMatch())
-      return name;
+    for(const auto& cn : callNames)
+    {
+      const QRegularExpression call(callFmt.arg(QString::fromUtf8(cn)));
+      if(call.match(text).hasMatch())
+        return name;
+    }
   }
   return {};
 }
