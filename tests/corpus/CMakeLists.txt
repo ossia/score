@@ -38,9 +38,13 @@ if(TARGET score_plugin_gfx AND TARGET score_plugin_engine AND TARGET score_plugi
   target_compile_definitions(score_corpus_tester PRIVATE
     "SCORE_TEST_BINARY_DIR=\"${SCORE_ROOT_BINARY_DIR}\"")
   setup_score_common_exe_features(score_corpus_tester)
-  # See the note on the video tester above. This one builds a QApplication and
-  # renders a frame, so it needs the GUI set (offscreen included).
-  enable_minimal_qt_plugins(score_corpus_tester 1)
+  # The corpus runner does not execute Qt Quick3D QML modules. Importing those
+  # static plugins pulls Qt's bundled jsoncpp into the same executable as
+  # sh4lt's bundled jsoncpp, producing duplicate Json::* definitions.
+  block()
+    set(SCORE_QT_PLUGINS_NO_QTQUICK3D ON)
+    enable_minimal_qt_plugins(score_corpus_tester 1)
+  endblock()
 
   # And the second half of what score_add_test(... APP) provides, for the same
   # reason this target misses the first: it is a raw add_executable.
