@@ -194,7 +194,25 @@ Model::Model(
 #endif
 
   qputenv("QT3D_RENDERER", "rhi");
-  if(const auto rhi = qEnvironmentVariable("QSG_RHI_BACKEND").toLower(); !rhi.isEmpty())
+
+  // Latched for the lifetime of the process, because qunsetenv() below removes
+  // it after the first read.
+  //
+  // The application constructs exactly one Model, so it never noticed. A test
+  // binary boots a MinimalGUIApplication per Catch2 case, so every Model after
+  // the first saw no QSG_RHI_BACKEND and fell through to the platform default
+  // -- Metal on macOS, above. A whole suite launched with
+  // QSG_RHI_BACKEND=opengl therefore ran OpenGL in its FIRST CASE ONLY and
+  // reported every later case as an OpenGL result. Measured on macmini-m1: one
+  // binary logged "backend=OpenGL" twice and "backend=Metal" four times in a
+  // single QSG_RHI_BACKEND=opengl run, and which case failed moved when the
+  // case order was changed with --order lex.
+  //
+  // Not macOS-specific: the same holds for QSG_RHI_BACKEND=vulkan anywhere.
+  static const QString requestedBackend
+      = qEnvironmentVariable("QSG_RHI_BACKEND").toLower();
+
+  if(const auto& rhi = requestedBackend; !rhi.isEmpty())
   {
     // User sets QSG_RHI_BACKEND from env: we respect it initially
     if(rhi == "opengl") {
