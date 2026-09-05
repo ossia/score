@@ -521,7 +521,7 @@ TEST_CASE(
   // stage reads per_draws[draw_id].model out of a storage buffer -- and the
   // per_draws half of the second probe below does the same. Below GLSL 4.30
   // there is no such thing to read.
-  if(const char* why = storage_buffer_skip_reason(api))
+  if(const char* why = vertex_storage_buffer_skip_reason(api))
     SKIP(why);
   // Negative control: a shift assertion is vacuous if nothing was drawn.
   REQUIRE(centred.coverage > 0.01);
@@ -581,7 +581,7 @@ TEST_CASE(
   // stage reads per_draws[draw_id].model out of a storage buffer -- and the
   // per_draws half of the second probe below does the same. Below GLSL 4.30
   // there is no such thing to read.
-  if(const char* why = storage_buffer_skip_reason(api))
+  if(const char* why = vertex_storage_buffer_skip_reason(api))
     SKIP(why);
   // Control: the Cube through the same chain must draw, else the chain is at
   // fault rather than the Torus.
@@ -953,7 +953,7 @@ TEST_CASE(
   // stage reads per_draws[draw_id].model out of a storage buffer -- and the
   // per_draws half of the second probe below does the same. Below GLSL 4.30
   // there is no such thing to read.
-  if(const char* why = storage_buffer_skip_reason(api))
+  if(const char* why = vertex_storage_buffer_skip_reason(api))
     SKIP(why);
   // Control: translation 0 must encode as the mid-grey bias, else the shader is
   // not reporting the matrix at all and the comparison below means nothing.
