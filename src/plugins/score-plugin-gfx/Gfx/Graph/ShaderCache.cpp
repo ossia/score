@@ -9,6 +9,71 @@
 namespace score::gfx
 {
 
+// -----------------------------------------------------------------------------
+// gl_ViewIndex -> PASSINDEX lowering for the Direct3D targets.
+//
+// libisf expands the VIEW_INDEX macro to gl_ViewIndex in the vertex stage
+// (isf.cpp), and SPIRV-Cross translates that to HLSL's SV_ViewID, which needs
+// shader model 6.1:
+//
+//     Vertex shader error: View Index input is only supported in VS and PS
+//     6.1 or higher.
+//
+// That is fatal on both D3D backends we can actually reach:
+//
+//   * D3D11 is pinned to SM 5.0 for good -- fxc caps at 5.1 and
+//     qrhid3d11.cpp looks up exactly {HlslShader, 50}. It can NEVER have
+//     SV_ViewID.
+//   * D3D12 asks for 6.1, but only when dxcompiler.dll is present; without it
+//     d3d12ShaderVersion() falls back to 5.0 and lands in the same place. That
+//     DLL is not on every machine -- it is absent from our own Windows test
+//     box, which is why d3d12 failed identically to d3d11 and made the
+//     failure look like something other than multiview.
+//
+// The runtime already has the answer. Where QRhi reports no MultiView,
+// RenderedRawRasterPipelineNode renders the N views as N passes and stamps the
+// invocation index into ProcessUBO::passIndex -- which libisf already exposes
+// to both stages as PASSINDEX. On those targets the view index is therefore a
+// uniform we are already uploading, and the shader can just read it.
+//
+// This is the same sidestep libisf documents for gl_NumWorkGroups, whose
+// built-in SPIRV-Cross also refuses to emit on HLSL: route the reference
+// through a uniform and textually shadow the built-in.
+//
+// Rewriting here rather than in libisf is deliberate: the shader string is
+// generated once per NODE and shared by every renderer, while this decision
+// belongs to the TARGET. ShaderCache is already partitioned by
+// (api, version, multiViewCount), so the rewrite is cached per-backend and the
+// OpenGL/Vulkan bakes of the same node keep real multiview.
+static bool viewIndexNeedsLowering(GraphicsApi api, const QShaderVersion& version)
+{
+  // SCORE_GFX_DISABLE_MULTIVIEW means "pretend this backend has no multiview".
+  // It already makes RenderList report caps.multiview == false, which selects
+  // the N-pass path; the shader has to follow the same signal or the two
+  // halves disagree. It also makes this lowering -- otherwise reachable only
+  // on a D3D target, i.e. only on Windows -- testable everywhere.
+  if(qEnvironmentVariableIsSet("SCORE_GFX_DISABLE_MULTIVIEW"))
+    return true;
+
+  if(api != GraphicsApi::D3D11 && api != GraphicsApi::D3D12)
+    return false;
+  return version.version() < 61;
+}
+
+// Replace every gl_ViewIndex reference with the PASSINDEX uniform. Both the
+// `#define VIEW_INDEX gl_ViewIndex` and the wrapper main's
+// `isf_ViewIndexVarying = gl_ViewIndex;` are plain occurrences of the same
+// token, so one substitution covers the macro, the wrapper, and any shader
+// that spelled the built-in out itself. The GL_EXT_multiview require goes too:
+// nothing references the extension afterwards.
+static QByteArray lowerViewIndexToPassIndex(QByteArray src)
+{
+  src.replace("#extension GL_EXT_multiview : require\n", "");
+  src.replace("gl_ViewIndex", "isf_process_uniforms.PASSINDEX_");
+  return src;
+}
+
+
 const std::pair<QShader, QString>& ShaderCache::get(
     GraphicsApi api, const QShaderVersion& version, const QByteArray& shader,
     QShader::Stage stage, int multiViewCount)
@@ -71,7 +136,17 @@ const std::pair<QShader, QString>& ShaderCache::get(
     }
   }
 
-  b.baker.setSourceString(shader, stage);
+  // See viewIndexNeedsLowering() above: on a D3D target below SM 6.1 the
+  // SV_ViewID that gl_ViewIndex becomes cannot compile at all, so route the
+  // view index through the PASSINDEX uniform the N-pass fallback already
+  // stamps. Keyed on the ORIGINAL source, which is correct: the baker is
+  // already per-(api, version, multiViewCount), so each backend caches its
+  // own bake of the same node.
+  QByteArray source = shader;
+  if(multiViewCount >= 2 && viewIndexNeedsLowering(api, version))
+    source = lowerViewIndexToPassIndex(std::move(source));
+
+  b.baker.setSourceString(source, stage);
   b.baker.setPerTargetCompilation(true);
 
   // FIXME serialize / deserialize
@@ -122,7 +197,11 @@ ShaderCache::Baker::Baker(
   // emit. QShaderBaker gained this in 6.7, the same release as the QRhi
   // multiview API.
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
-  if(multiViewCount >= 2)
+  // Not when the view index has been lowered to a uniform: there is no
+  // gl_ViewIndex left to give a view count to, the target cannot express
+  // multiview anyway, and asking for it makes QRhi expect a multiview render
+  // target the N-pass fallback does not build.
+  if(multiViewCount >= 2 && !viewIndexNeedsLowering(api, version))
     baker.setMultiViewCount(multiViewCount);
 #endif
 }
