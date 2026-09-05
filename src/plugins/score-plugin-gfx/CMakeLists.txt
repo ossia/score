@@ -973,9 +973,9 @@ endif()
 option(SCORE_PIPEWIRE_TESTER "Build the PipeWire video round-trip harness" ON)
 # Every remaining gate is real: embind symbols under wasm, no pipewire off
 # Linux, and the harness's raw reference producer links libpipewire directly
-# (score itself only dlopens it), so the link library must exist. Static
-# linkage is handled by score_link_plugins_for_static at the top level, same
-# as EncoderTester/ReadbackTester.
+# (score itself only dlopens it), so the link library must exist. The harness
+# uses QApplication directly and does not initialize score's plugin registry,
+# avoiding a multi-gigabyte all-plugin static link.
 find_library(PIPEWIRE_LIBRARY NAMES pipewire-0.3)
 if(SCORE_PIPEWIRE_TESTER
    AND NOT EMSCRIPTEN AND NOT APPLE AND NOT WIN32
