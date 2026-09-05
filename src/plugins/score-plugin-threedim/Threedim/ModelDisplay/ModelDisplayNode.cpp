@@ -1168,6 +1168,39 @@ private:
       pass.p.pipeline->setDepthWrite(true);
       pass.p.pipeline->setDepthOp(QRhiGraphicsPipeline::Greater);
 
+      // Every vertex shader in this file negates gl_Position.y under
+      // QSHADER_HLSL / QSHADER_MSL (eight sites, see the Y-convention note
+      // above) so an offscreen texture lands top-row-first everywhere. That
+      // mirror also flips the WINDOW-SPACE WINDING, which is what the
+      // rasteriser classifies front and back faces by -- and QRhi does not
+      // normalise winding across backends. RenderedVSANode.cpp:175-196 already
+      // records this hazard for the VSA path, where it was solved by disabling
+      // culling; a model needs its culling, so the front face is compensated
+      // instead.
+      //
+      // Without this, the SAME declared FrontFace culls OPPOSITE face sets:
+      // measured on the threedim cube, D3D11 and OpenGL/Vulkan each drew
+      // exactly the faces the other discarded. On a correctly wound
+      // (CCW-out) model that means its NEAR faces are culled on D3D and the
+      // viewer sees straight through it.
+      //
+      // GL and Vulkan pipelines are untouched: their baked shader does not
+      // mirror Y, so their winding already matches the declared front face.
+      switch(renderer.state.api)
+      {
+        case score::gfx::D3D11:
+        case score::gfx::D3D12:
+        case score::gfx::Metal:
+          if(pass.p.pipeline->cullMode() != QRhiGraphicsPipeline::None)
+            pass.p.pipeline->setFrontFace(
+                pass.p.pipeline->frontFace() == QRhiGraphicsPipeline::CCW
+                    ? QRhiGraphicsPipeline::CW
+                    : QRhiGraphicsPipeline::CCW);
+          break;
+        default:
+          break;
+      }
+
       pass.p.pipeline->create();
     }
   }
