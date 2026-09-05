@@ -52,6 +52,7 @@ inline void init_apartment_sta() noexcept
 #include "Application.hpp"
 
 #include <score/widgets/MessageBox.hpp>
+#include <score/gfx/OpenGL.hpp>
 
 #include <ossia/detail/config.hpp>
 
@@ -520,25 +521,21 @@ static void setup_opengl(bool& enable_opengl_ui)
   {
     return;
   }
+  // Creates no context, so it is safe under a sanitizer -- and REQUIRED there:
+  // a run with SCORE_SANITIZE_SKIP_CHECKS used to fall out below with the
+  // default format untouched, i.e. on macOS's legacy GL 2.1 profile, where
+  // nothing renders. Shared with the test bootstrap, which never reaches this
+  // function at all.
+  score::setupDefaultOpenGLFormat();
+
   if(qEnvironmentVariableIsSet("SCORE_SANITIZE_SKIP_CHECKS"))
     return;
 
 #ifndef QT_NO_OPENGL
 #if (defined(__arm__) || defined(__aarch64__)) && !defined(_WIN32) && !defined(__APPLE__)
-  // Raspberry Pi & such
-  QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
-  fmt.setRenderableType(QSurfaceFormat::OpenGLES);
-  fmt.setSwapInterval(1);
-  fmt.setMajorVersion(3);
-  fmt.setMinorVersion(2);
-  fmt.setDefaultFormat(fmt);
+  // Raspberry Pi & such: handled by setupDefaultOpenGLFormat() above.
 #elif defined(__APPLE__)
-  QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
-  fmt.setProfile(QSurfaceFormat::CoreProfile);
-  fmt.setSwapInterval(1);
-  fmt.setMajorVersion(4);
-  fmt.setMinorVersion(1);
-  fmt.setDefaultFormat(fmt);
+  // Handled by setupDefaultOpenGLFormat() above.
 #else
   {
     // Desktop GL
