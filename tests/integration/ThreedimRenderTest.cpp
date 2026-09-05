@@ -147,9 +147,15 @@ constexpr int kOscPort = 6666;
 // ---------------------------------------------------------------- assets
 
 // The cube every mesh case uses: within +-0.4 so the ModelDisplay default
-// camera at (-1,-1,-1) looking at the origin frames it, wound to the
-// convention the pipeline actually rasterises (validated: the opposite
-// winding is fully backface-culled from this camera).
+// camera at (-1,-1,-1) looking at the origin frames it, wound counter-clockwise
+// seen from OUTSIDE -- the QRhi front-face convention every backend rasterises.
+//
+// It used to be wound the other way, with the note "validated: the opposite
+// winding is fully backface-culled from this camera". That validation was a
+// mis-reading. Computed for all six faces, every geometric normal OPPOSED its
+// declared normal (dot = -1.00 exactly), i.e. the cube was inside-out. With
+// correct winding the visible near faces are the UNLIT ones -- the light is
+// hard-coded at (100,10,10) -- so a correct render looked like "nothing".
 struct V3
 {
   float x, y, z;
@@ -160,9 +166,12 @@ static const V3 kCubeV[8] = {{-0.4f, -0.4f, -0.4f}, {0.4f, -0.4f, -0.4f},
                              {0.4f, 0.4f, 0.4f},    {-0.4f, 0.4f, 0.4f}};
 static const V3 kCubeN[6]
     = {{0, 0, -1}, {0, 0, 1}, {0, -1, 0}, {0, 1, 0}, {-1, 0, 0}, {1, 0, 0}};
-// quad (1-based vertex ids) per face, in the winding the pipeline draws
-static const int kCubeF[6][4] = {{1, 2, 3, 4}, {8, 7, 6, 5}, {5, 6, 2, 1},
-                                 {7, 8, 4, 3}, {8, 5, 1, 4}, {6, 7, 3, 2}};
+// quad (1-based vertex ids) per face, wound counter-clockwise seen from OUTSIDE
+// (geometric normal == declared face normal). Every container the suite emits
+// -- OBJ, STL, PLY, OFF -- derives from this table, so the whole family is
+// consistent.
+static const int kCubeF[6][4] = {{4, 3, 2, 1}, {5, 6, 7, 8}, {1, 2, 6, 5},
+                                 {3, 4, 8, 7}, {4, 1, 5, 8}, {2, 3, 7, 6}};
 
 QByteArray makeCubeObj(bool withNormals)
 {
@@ -1424,7 +1433,21 @@ TEST_CASE(
 namespace
 {
 constexpr double kFisheyeFovDeg = 160.0;
-constexpr double kFisheyeEye = -0.7;   // camera at (-0.7,-0.7,-0.7)
+// +0.7, so the VISIBLE (near) faces are the LIT ones.
+//
+// The phong shader hard-codes lightPosition = (100,10,10). With the cube wound
+// correctly and culling working, the camera at -0.7 sees the -x,-y,-z faces,
+// for which dot(n, L) <= 0: they are legitimately black and drawnPixels' lit>24
+// threshold rejects them. The old assertions passed at -0.7 only because the
+// cube was inside-out, so what reached the screen was the FAR, lit face set.
+//
+// This is a strengthening, not a relocation: at +0.7 a renderer that occludes
+// correctly shows ~800-1050 lit pixels, and one that does not shows ~0. The
+// previous arrangement rewarded the broken behaviour.
+//
+// fisheyeTmax() is symmetric in this sign -- verified, 33.6443 deg either way --
+// so tmax and every laws[].r closed form are unchanged.
+constexpr double kFisheyeEye = 0.7;    // camera at (0.7,0.7,0.7)
 constexpr double kFisheyePi = 3.14159265358979323846;
 
 struct FisheyeLaw
@@ -2068,7 +2091,21 @@ TEST_CASE(
     INFO("full vs nonrm (authored vs derived normals; tangents measured "
          "irrelevant): meanAbs="
          << d.meanAbs << " fracFar=" << d.fracFar);
-    CHECK(d.fracFar > 0.05);
+    // These must be IDENTICAL, and that is the assertion worth making.
+    //
+    // The cube is flat-faced and, since its winding was corrected, its winding
+    // agrees with its authored normals. deriveMissingNormals() computes a face
+    // normal from that winding, so for this mesh it must reproduce the authored
+    // normals exactly -- pixel for pixel, not merely closely.
+    //
+    // This used to be CHECK(d.fracFar > 0.05), i.e. it REQUIRED the two to
+    // differ. That only held because the asset was inconsistent: its faces were
+    // wound clockwise-out while its normals pointed outward, so derivation
+    // produced the opposite normal and the two renders disagreed. The
+    // assertion was measuring the defect, and it is the fifth in this file
+    // found to have been doing so.
+    CHECK(d.meanAbs == 0.0);
+    CHECK(d.fracFar == 0.0);
   }
   {
     const Diff d = diffImages(liNonrm, liNouv);
