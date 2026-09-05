@@ -17,6 +17,42 @@ if(MINGW)
         "${cxx_path}/libwinpthread-1.dll"
 #        ${MINGW64_LIB}/../bin/zlib1.dll
   )
+
+  # DirectX shader compiler runtime, shipped exactly like libc++ / libunwind
+  # above: appended to CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS so it flows through the
+  # same install(FILES) below, into the same directory as score.exe.
+  #
+  # WHY IT HAS TO SHIP. Qt's D3D12 backend runtime-compiles HLSL, and for shader
+  # model 6.0 and above it goes through DXC, which it loads by name at runtime
+  # (qrhid3d12.cpp, compileHlslShaderSource). The SDK's Qt is built WITH that
+  # support, but the library was not being deployed -- so score's
+  # d3d12ShaderVersion() found no dxcompiler and fell back to shader model 5.0,
+  # silently, on every user's machine. At SM 5.0 there is no SV_ViewID, so
+  # MULTIVIEW shaders cannot compile on D3D12 at all, and wave intrinsics are
+  # unavailable. Measured on an RTX 3090: with these two DLLs reachable, D3D12
+  # reports shader model 6.1 and native multiview works (up to
+  # D3D12_MAX_VIEW_INSTANCE_COUNT == 4 views).
+  #
+  # TWO libraries, not one. dxcompiler.dll is the compiler; dxil.dll is the
+  # signing library, and without it DXC emits UNSIGNED DXIL which D3D12 refuses
+  # to load unless Developer Mode is on -- i.e. it works for us and fails for
+  # every customer. Warn loudly rather than ship half of it.
+  #
+  # ossia/sdk 86207a70 (MSYS/dxc.sh) installs both into <sdk>/bin, which is two
+  # levels above the compiler's own directory.
+  get_filename_component(_score_sdk_root "${cxx_path}/../.." ABSOLUTE)
+  foreach(_score_dxc_dll dxcompiler.dll dxil.dll)
+    if(EXISTS "${_score_sdk_root}/bin/${_score_dxc_dll}")
+      list(APPEND CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS
+           "${_score_sdk_root}/bin/${_score_dxc_dll}")
+    else()
+      message(WARNING
+        "${_score_dxc_dll} not found in ${_score_sdk_root}/bin -- it will not be "
+        "shipped. Qt's D3D12 backend loads it at runtime for shader model 6.x; "
+        "without it score silently falls back to SM 5.0, losing multiview and "
+        "wave intrinsics. Update the ossia SDK (see MSYS/dxc.sh).")
+    endif()
+  endforeach()
 endif()
 
 include(InstallRequiredSystemLibraries)
