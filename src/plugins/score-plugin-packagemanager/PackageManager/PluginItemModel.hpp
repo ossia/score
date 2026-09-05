@@ -35,6 +35,7 @@ struct Package
   std::vector<QUrl> files; // URL to a file containing the current version.
   QMap<QString, std::vector<QUrl>> arch_files; // if there are per-architecture files
   QString url; // Link to the homepage of the package if any
+
   QString shortDescription;
   QString longDescription;
   QString smallImagePath;
@@ -65,8 +66,8 @@ private:
     Name,
     Version,
     Size,
-    ShortDesc,
-    Kind
+    Kind,
+    ShortDesc
   };
   static constexpr const int ColumnCount = 5;
 

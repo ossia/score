@@ -9,6 +9,8 @@
 #include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
 #include <score/widgets/SetIcons.hpp>
 
+#include <ossia/detail/ssize.hpp>
+
 #include <QApplication>
 #include <QDebug>
 #include <QHeaderView>
@@ -42,12 +44,14 @@ PluginSettingsPresenter::PluginSettingsPresenter(
   ps_view.localView()->setColumnWidth(0, 200);
   ps_view.localView()->setColumnWidth(1, 40);
   ps_view.localView()->setColumnWidth(2, 40);
+  ps_view.localView()->setColumnWidth(3, 80);
   ps_view.localView()->horizontalHeader()->setStretchLastSection(true);
 
   ps_view.remoteView()->setModel(&ps_model.remotePlugins);
   ps_view.remoteView()->setColumnWidth(0, 200);
   ps_view.remoteView()->setColumnWidth(1, 40);
   ps_view.remoteView()->setColumnWidth(2, 40);
+  ps_view.remoteView()->setColumnWidth(3, 80);
   ps_view.remoteView()->horizontalHeader()->setStretchLastSection(true);
 
   ps_view.remoteView()->setSelectionModel(&ps_model.remoteSelection);
@@ -55,16 +59,32 @@ PluginSettingsPresenter::PluginSettingsPresenter(
   connect(
       &ps_model.remoteSelection, &QItemSelectionModel::currentRowChanged, this,
       [&](const QModelIndex& current, const QModelIndex& previous) {
-    Package& addon = ps_model.remotePlugins.addons().at(current.row());
+    auto& addons = ps_model.remotePlugins.addons();
+    if(current.row() < 0 || current.row() >= std::ssize(addons))
+    {
+      ps_view.installButton().setEnabled(false);
+      return;
+    }
 
+    Package& addon = addons[current.row()];
     ps_view.installButton().setEnabled(!addon.files.empty() || addon.kind == "sdk");
-      });
+  });
 
   ps_view.installButton().setEnabled(false);
 
   /*
       con(ps_model,	&PluginSettingsModel::blacklistCommand,
       this,		&PluginSettingsPresenter::setBlacklistCommand);*/
+
+  for(QAbstractItemModel* m :
+      {static_cast<QAbstractItemModel*>(&ps_model.localPlugins),
+       static_cast<QAbstractItemModel*>(&ps_model.remotePlugins)})
+  {
+    connect(
+        m, &QAbstractItemModel::modelReset, &ps_view,
+        &PluginSettingsView::updateCategoryFilter);
+  }
+  ps_view.updateCategoryFilter();
 
   connect(
       &ps_model, &PluginSettingsModel::show_progress, &ps_view,

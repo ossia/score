@@ -114,11 +114,11 @@ QVariant PackagesModel::data(const QModelIndex& index, int role) const
         case Column::Kind:
           return addon.kind;
           break;
-        case Column::Size:
-          return addon.size;
-          break;
         case Column::Version:
           return addon.version;
+          break;
+        case Column::Size:
+          return addon.size;
           break;
         default:
           break;

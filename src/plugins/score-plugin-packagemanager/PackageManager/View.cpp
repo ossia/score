@@ -8,6 +8,8 @@
 
 #include <core/application/ApplicationInterface.hpp>
 
+#include <ossia/detail/ssize.hpp>
+
 #include <QApplication>
 #include <QBuffer>
 #include <QComboBox>
@@ -23,6 +25,7 @@
 #include <QMessageBox>
 #include <QNetworkReply>
 #include <QNetworkRequest>
+#include <QSignalBlocker>
 #include <QStandardPaths>
 #include <QTemporaryFile>
 #include <QTimer>
@@ -122,10 +125,10 @@ PluginSettingsView::PluginSettingsView()
   auto vlay = new QVBoxLayout{side_widget};
   grid->addWidget(side_widget, 0, 1, 2, 1);
 
-  auto categoryLabel = new QLabel("Select Kind:");
+  auto categoryLabel = new QLabel{tr("Filter by kind:")};
   vlay->addWidget(categoryLabel);
 
-  m_categoryComboBox = new QComboBox(m_widget);
+  m_categoryComboBox = new QComboBox;
   vlay->addWidget(m_categoryComboBox);
   vlay->addSpacing(20);
 
@@ -179,7 +182,7 @@ PluginSettingsView::PluginSettingsView()
       m_progress->setValue(0);
 
       refresh();
-      updateCategoryComboBox(1);
+      updateCategoryFilter();
     }
     else // Local
     {
@@ -187,7 +190,7 @@ PluginSettingsView::PluginSettingsView()
       m_install->setVisible(false);
       m_update->setVisible(true);
       m_updateAll->setVisible(true);
-      updateCategoryComboBox(0);
+      updateCategoryFilter();
     }
   });
 
@@ -203,7 +206,7 @@ PluginSettingsView::PluginSettingsView()
 
   connect(
       m_categoryComboBox, &QComboBox::currentIndexChanged, this,
-      &PluginSettingsView::onCategoryChanged);
+      &PluginSettingsView::applyCategoryFilter);
 
   refresh();
 }
@@ -290,13 +293,19 @@ void PluginSettingsView::uninstall()
 
   const auto& library{score::AppContext().settings<Library::Settings::Model>()};
 
-  if(addon.kind == "addon" || addon.kind == "nodes" || addon.kind == "media" || addon.kind == "ai-model")
-  {
-    success = QDir{library.getPackagesPath() + '/' + addon.raw_name}.removeRecursively();
-  }
-  else if(addon.kind == "sdk")
+  if(addon.kind == "sdk")
   {
     success = QDir{library.getSDKPath()}.removeRecursively();
+  }
+  else if(!addon.raw_name.isEmpty())
+  {
+    // Mirrors the install paths used by PluginSettingsModel::installAddon and
+    // installLibrary: every non-SDK kind is extracted into <path>/<raw_name>.
+    // Guarding on raw_name matters: with no selection selectedPackage() returns a
+    // default-constructed Package, and removing <path>/ would wipe the library.
+    const QString& installPath
+        = addon.kind == "support" ? library.getSupportPath() : library.getPackagesPath();
+    success = QDir{installPath + '/' + addon.raw_name}.removeRecursively();
   }
 
   if(success)
@@ -370,65 +379,77 @@ void PluginSettingsView::progress_from_bytes(qint64 bytesReceived, qint64 bytesT
   m_progress->setValue(((bytesReceived / 1024.) / (bytesTotal / 1024.)) * 100);
 }
 
-void PluginSettingsView::updateCategoryComboBox(int tabIndex)
+// Same rule as getCurrentModel(): the install button is only shown while browsing.
+QTableView* PluginSettingsView::getCurrentView()
 {
-  m_categoryComboBox->clear();
-  m_categoryComboBox->addItem("All");
-
-  PackagesModel* model = nullptr;
-  if(tabIndex == 0) // Local packages tab
-  {
-    model = static_cast<PackagesModel*>(m_addonsOnSystem->model());
-  }
-  else if(tabIndex == 1) // Remote packages tab
-  {
-    model = static_cast<PackagesModel*>(m_remoteAddons->model());
-  }
-
-  // If the model exists, add uniqueKind
-  if(model)
-  {
-    QList<QString> uniqueKinds;
-
-    for(const auto& addon : model->addons())
-    {
-      if(!uniqueKinds.contains(addon.kind))
-      {
-        uniqueKinds.append(addon.kind);
-      }
-    }
-
-    for(const QString& kind : uniqueKinds)
-    {
-      m_categoryComboBox->addItem(kind);
-    }
-  }
+  return m_install->isVisible() ? m_remoteAddons : m_addonsOnSystem;
 }
 
-void PluginSettingsView::onCategoryChanged(int index)
+void PluginSettingsView::updateCategoryFilter()
 {
-  // Filter table view to show only packages of the selected kind
-  QString selectedKind = m_categoryComboBox->itemText(index);
+  updateCategoryComboBox();
+  applyCategoryFilter();
+}
 
-  QTableView* activeView = m_install->isVisible() ? m_remoteAddons : m_addonsOnSystem;
-  PackagesModel* model = static_cast<PackagesModel*>(activeView->model());
+// Rebuild the list of kinds from the packages currently in the active model.
+// Packages trickle in asynchronously, so this runs again on every model reset:
+// keep the user's choice selected instead of snapping back to "All".
+void PluginSettingsView::updateCategoryComboBox()
+{
+  const QString previous = m_categoryComboBox->currentData().toString();
 
+  // Rebuilding would otherwise re-trigger the filter on every intermediate state.
+  const QSignalBlocker blocker{m_categoryComboBox};
+
+  m_categoryComboBox->clear();
+  m_categoryComboBox->addItem(tr("All"), QString{});
+
+  QStringList kinds;
+  if(auto* model = getCurrentModel())
+  {
+    for(const auto& addon : model->addons())
+    {
+      if(!addon.kind.isEmpty() && !kinds.contains(addon.kind))
+        kinds.push_back(addon.kind);
+    }
+    // Packages arrive in network order: sort so the list does not jump around.
+    kinds.sort();
+  }
+
+  for(const QString& kind : kinds)
+    m_categoryComboBox->addItem(kind, kind);
+
+  const int index = previous.isEmpty() ? 0 : m_categoryComboBox->findData(previous);
+  m_categoryComboBox->setCurrentIndex(index >= 0 ? index : 0);
+}
+
+// Note: the models reset themselves whenever a package is added, which clears the
+// views' hidden-row state - hence re-applying the filter on every change.
+void PluginSettingsView::applyCategoryFilter()
+{
+  auto* model = getCurrentModel();
   if(!model)
     return;
 
-  if(selectedKind == "All")
-  {
-    for(int row = 0; row < model->addons().size(); ++row)
-    {
-      activeView->setRowHidden(row, false);
-    }
-    return;
-  }
+  QTableView* view = getCurrentView();
 
-  for(int row = 0; row < model->addons().size(); ++row)
+  // Empty means "All": either the first entry, or an empty/-1 current index.
+  const QString kind = m_categoryComboBox->currentData().toString();
+
+  const int rows = std::ssize(model->addons());
+  for(int row = 0; row < rows; ++row)
+    view->setRowHidden(row, !kind.isEmpty() && model->addons()[row].kind != kind);
+
+  // Do not leave a hidden package selected: install / uninstall would then act
+  // on something the user cannot see.
+  if(auto* selection = view->selectionModel())
   {
-    QString rowKind = model->addons()[row].kind;
-    activeView->setRowHidden(row, rowKind != selectedKind);
+    const int current = selection->currentIndex().row();
+    if(current >= 0 && current < rows && view->isRowHidden(current))
+    {
+      selection->clearSelection();
+      selection->clearCurrentIndex();
+    }
   }
 }
 

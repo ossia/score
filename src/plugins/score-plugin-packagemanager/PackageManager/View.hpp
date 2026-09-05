@@ -43,6 +43,7 @@ public:
   void update_progress(double);
   void reset_progress();
   void progress_from_bytes(qint64 bytesReceived, qint64 bytesTotal);
+  void updateCategoryFilter();
 
   // To model
   void refresh() W_SIGNAL(refresh);
@@ -63,8 +64,9 @@ private:
   void checkAll();
   void update();
   void updateAll();
-  void updateCategoryComboBox(int tabIndex);
-  void onCategoryChanged(int index);
+  QTableView* getCurrentView();
+  void updateCategoryComboBox();
+  void applyCategoryFilter();
 
   QWidget* m_widget{new QWidget};
 
