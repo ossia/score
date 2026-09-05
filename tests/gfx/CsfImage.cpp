@@ -74,6 +74,8 @@ TEST_CASE("csf-image-r32f writes a radial R32F gradient", "[gfx][l3][csf]")
 
   if(r.skipped)
     SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = score::test::gfx::compute_shader_skip_reason(backend))
+    SKIP(why);
 
   INFO("backend=" << r.backend);
   REQUIRE(r.error.empty());
@@ -115,6 +117,8 @@ TEST_CASE("csf-image-rgba16f writes an HDR RGBA16F ramp", "[gfx][l3][csf]")
 
   if(r.skipped)
     SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = score::test::gfx::compute_shader_skip_reason(backend))
+    SKIP(why);
 
   INFO("backend=" << r.backend);
   REQUIRE(r.error.empty());
@@ -158,6 +162,8 @@ TEST_CASE("csf-texture-sampling inverts a sampled input texture", "[gfx][l3][csf
 
   if(r.skipped)
     SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = score::test::gfx::compute_shader_skip_reason(backend))
+    SKIP(why);
 
   INFO("backend=" << r.backend);
   REQUIRE(r.error.empty());

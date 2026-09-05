@@ -31,7 +31,9 @@ QRhiBuffer *CustomMesh::init_vbo(const ossia::geometry::cpu_buffer &buf, QRhi &r
   static std::atomic_int idx = 0;
   const auto vtx_buf_size = buf.byte_size;
   auto mesh_buf = rhi.newBuffer(
-      QRhiBuffer::Static, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer,
+      QRhiBuffer::Static,
+      compatibleBufferUsage(
+          rhi, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer),
       vtx_buf_size);
   mesh_buf->setName(
       QString("Mesh::vtx_buf.%1")
@@ -175,7 +177,9 @@ void CustomMesh::update_vbo(
   {
     static std::atomic_int idx = 0;
     auto* fresh = rhi.newBuffer(
-        QRhiBuffer::Static, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer,
+        QRhiBuffer::Static,
+        compatibleBufferUsage(
+            rhi, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer),
         vtx_buf.byte_size);
     fresh->setName(
         QString("Mesh::vtx_buf.%1")

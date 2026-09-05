@@ -149,6 +149,7 @@ void GpuResourceRegistry::init(QRhi& rhi, QRhiResourceUpdateBatch& batch)
     else
       usage = UF(QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer);
 
+    usage = compatibleBufferUsage(rhi, usage);
     s.buffer = rhi.newBuffer(QRhiBuffer::Static, usage, bytes);
     const char* names[(std::size_t)MeshStream::Count_] = {
         "MeshArena::positions", "MeshArena::normals",

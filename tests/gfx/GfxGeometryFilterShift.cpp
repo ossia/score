@@ -651,6 +651,8 @@ TEST_CASE(
   const FilterRun r = run_filter_chain(api, 0.0f);
   if(r.skipped)
     SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(api))
+    SKIP(why);
   require_ran(r);
 
   REQUIRE(r.width == kSize.width());
@@ -703,6 +705,8 @@ TEST_CASE(
   const FilterRun r = run_filter_chain(api, 0.5f);
   if(r.skipped)
     SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(api))
+    SKIP(why);
   require_ran(r);
 
   REQUIRE(r.width == kSize.width());

@@ -143,6 +143,8 @@ TEST_CASE(
   const IsfResult r = run_mrt(backend);
   if(r.skipped)
     SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(backend))
+    SKIP(why);
   INFO("backend=" << r.backend);
   // render_raster records an empty/short sink readback as an error, so an
   // empty readback on a supported backend FAILS here instead of vacuously
@@ -175,6 +177,8 @@ TEST_CASE(
   const IsfResult r = run_mrt(backend);
   if(r.skipped)
     SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(backend))
+    SKIP(why);
   INFO("backend=" << r.backend);
   REQUIRE(r.error.empty());
   REQUIRE(r.outputs.size() == std::size_t(kAttachments));

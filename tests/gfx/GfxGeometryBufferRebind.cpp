@@ -211,6 +211,8 @@ TEST_CASE(
   const FixedShot refSmall = render_fixed(backend, kSmallCount);
   if(refSmall.skipped)
     SKIP(refSmall.backend + ": " + refSmall.skip_reason);
+  if(const char* why = compute_shader_skip_reason(backend))
+    SKIP(why);
   INFO("ref small: backend=" << refSmall.backend << " error=" << refSmall.error);
   REQUIRE(refSmall.error.empty());
   REQUIRE(refSmall.img.valid());
@@ -421,6 +423,8 @@ TEST_CASE(
 
   if(out.skipped)
     SKIP(out.backend + ": " + out.skip_reason);
+  if(const char* why = compute_shader_skip_reason(backend))
+    SKIP(why);
   INFO("backend=" << out.backend);
   REQUIRE(out.error.empty());
   REQUIRE(ran);

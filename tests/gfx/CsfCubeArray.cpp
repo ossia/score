@@ -67,6 +67,8 @@ TEST_CASE("csf imageCube compute write is non-black on every face", "[gfx][l3][c
 
   if(r.skipped)
     SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = score::test::gfx::compute_shader_skip_reason(backend))
+    SKIP(why);
 
   INFO("backend=" << r.backend << " error=" << r.error);
   REQUIRE(r.error.empty());
@@ -102,6 +104,8 @@ TEST_CASE("csf image2DArray compute write is non-black on every layer", "[gfx][l
 
   if(r.skipped)
     SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = score::test::gfx::compute_shader_skip_reason(backend))
+    SKIP(why);
 
   INFO("backend=" << r.backend << " error=" << r.error);
   REQUIRE(r.error.empty());

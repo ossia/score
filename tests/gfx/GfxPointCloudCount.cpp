@@ -261,7 +261,8 @@ struct PclPointsRenderer final : score::gfx::NodeRenderer
     self.cloudBuf = rhi->newBuffer(
         QRhiBuffer::Static,
         QRhiBuffer::UsageFlags(
-            QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer),
+            score::gfx::compatibleBufferUsage(
+                *rhi, QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer)),
         kBufBytes);
     self.cloudBuf->setName("PclPointsTest::cloud");
     self.cloudBuf->create();

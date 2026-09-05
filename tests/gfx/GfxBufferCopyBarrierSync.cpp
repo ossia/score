@@ -328,7 +328,8 @@ struct HazardProbeRenderer final : score::gfx::NodeRenderer
     auto* b = rhi.newBuffer(
         QRhiBuffer::Static,
         QRhiBuffer::UsageFlags(
-            QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer),
+            score::gfx::compatibleBufferUsage(
+                rhi, QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer)),
         bytes);
     b->setName(name);
     b->create();

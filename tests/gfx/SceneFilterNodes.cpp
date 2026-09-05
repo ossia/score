@@ -167,6 +167,8 @@ TEST_CASE(
 
   const auto kept = run_filtered(be, 0, 0, "");
   requireRan(kept);
+  if(const char* why = compute_shader_skip_reason(be))
+    SKIP(why);
   CHECK(kept.drawn > 0);
 
   const auto dropped = run_filtered(be, 1, 0, "");
@@ -207,6 +209,8 @@ TEST_CASE(
 
   const auto untagged = run_filtered(be, 12, 0, "");
   requireRan(untagged);
+  if(const char* why = compute_shader_skip_reason(be))
+    SKIP(why);
   CHECK(untagged.drawn > 0);
 
   const auto named = run_filtered(be, 12, 0, "nonexistent-format");
@@ -226,6 +230,8 @@ TEST_CASE(
 
   const auto out = run_filtered(be, 99, 0, "");
   requireRan(out);
+  if(const char* why = compute_shader_skip_reason(be))
+    SKIP(why);
   CHECK(out.drawn > 0);
 }
 
@@ -237,6 +243,8 @@ TEST_CASE(
 
   const auto onZero = run_merged(be, 0);
   requireRan(onZero);
+  if(const char* why = compute_shader_skip_reason(be))
+    SKIP(why);
   CHECK(onZero.drawn > 0);
 
   // findFirstByPort keys on (port, source); an implementation indexing a dense

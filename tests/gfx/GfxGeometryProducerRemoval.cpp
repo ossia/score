@@ -228,6 +228,8 @@ TEST_CASE(
 
   if(out.skipped)
     SKIP(out.backend + ": " + out.skip_reason);
+  if(const char* why = compute_shader_skip_reason(backend))
+    SKIP(why);
   INFO("backend=" << out.backend);
   REQUIRE(out.error.empty()); // (a) pipeline error string empty
   REQUIRE(ran);

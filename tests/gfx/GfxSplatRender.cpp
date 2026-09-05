@@ -1108,6 +1108,8 @@ TEST_CASE(
 
   if(fwd.skipped)
     SKIP(fwd.backend + ": " + fwd.skip_reason);
+  if(const char* why = compute_shader_skip_reason(api))
+    SKIP(why);
 
   INFO("backend=" << fwd.backend << " error=" << fwd.error);
   REQUIRE(fwd.error.empty());

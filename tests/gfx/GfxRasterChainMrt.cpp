@@ -269,6 +269,8 @@ TEST_CASE(
   const ChainResult r = run_chain(backend);
   if(r.skipped)
     SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(backend))
+    SKIP(why);
   INFO("backend=" << r.backend);
   REQUIRE(r.error.empty());
 

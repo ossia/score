@@ -517,6 +517,12 @@ TEST_CASE(
 
   if(!okA || !okB)
     SKIP("backend unavailable");
+  // render_scene_chain rasterises with syn-scene-perdraw-solid, whose vertex
+  // stage reads per_draws[draw_id].model out of a storage buffer -- and the
+  // per_draws half of the second probe below does the same. Below GLSL 4.30
+  // there is no such thing to read.
+  if(const char* why = storage_buffer_skip_reason(api))
+    SKIP(why);
   // Negative control: a shift assertion is vacuous if nothing was drawn.
   REQUIRE(centred.coverage > 0.01);
   INFO("centroidX centred=" << centred.centroidX << " shifted=" << shifted.centroidX);
@@ -571,6 +577,12 @@ TEST_CASE(
 
   if(!okA || !okB)
     SKIP("backend unavailable");
+  // render_scene_chain rasterises with syn-scene-perdraw-solid, whose vertex
+  // stage reads per_draws[draw_id].model out of a storage buffer -- and the
+  // per_draws half of the second probe below does the same. Below GLSL 4.30
+  // there is no such thing to read.
+  if(const char* why = storage_buffer_skip_reason(api))
+    SKIP(why);
   // Control: the Cube through the same chain must draw, else the chain is at
   // fault rather than the Torus.
   REQUIRE(cube.coverage > 0.01);
@@ -937,6 +949,12 @@ TEST_CASE(
 
   if(red0 < 0 || red1 < 0)
     SKIP("backend unavailable");
+  // render_scene_chain rasterises with syn-scene-perdraw-solid, whose vertex
+  // stage reads per_draws[draw_id].model out of a storage buffer -- and the
+  // per_draws half of the second probe below does the same. Below GLSL 4.30
+  // there is no such thing to read.
+  if(const char* why = storage_buffer_skip_reason(api))
+    SKIP(why);
   // Control: translation 0 must encode as the mid-grey bias, else the shader is
   // not reporting the matrix at all and the comparison below means nothing.
   INFO("per_draws[draw_id].model translation.x: at 0 -> "

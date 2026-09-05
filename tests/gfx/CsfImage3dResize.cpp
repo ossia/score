@@ -261,6 +261,8 @@ TEST_CASE(
 
   if(r.skipped)
     SKIP(r.backend + ": " + r.skip_reason);
+  if(const char* why = score::test::gfx::compute_shader_skip_reason(backend))
+    SKIP(why);
 
   INFO("backend=" << r.backend);
   REQUIRE(r.error.empty());
