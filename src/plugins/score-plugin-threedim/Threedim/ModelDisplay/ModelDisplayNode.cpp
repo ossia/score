@@ -326,6 +326,32 @@ float materialShininess = 0.5; // material specular shininess
 void main ()
 {
     vec3 normal = normalize(esNormal);
+
+    // Two-sided shading. An OBJ carries whatever normal orientation it was
+    // authored with, and a cube presented to this camera turns out to show
+    // faces whose normals point AWAY from it -- measured with a signed-normal
+    // probe: the three visible faces read -X, -Y and -Z. With a one-sided
+    // model every one of them has dot(N, L) < 0 for any light in front of the
+    // camera, max(dot, 0) clamps all three to zero, and the shading collapses
+    // to ambient alone: lightAmbient * materialAmbient = (0.01, 0.04, 0). A
+    // near-black cube with no diffuse and no specular at all.
+    //
+    // That is what broke the obj-cube golden after the light stopped being
+    // animated: the old sin/cos sweep put the light behind the geometry at
+    // some phases, so the faces WERE lit part of the time and the golden
+    // captured one of those frames. No single static direction can replace
+    // that -- pointing the light into the octant those faces face lights this
+    // cube and turns two other scenes black instead (measured: their
+    // "draws more than 64 lit pixels" checks fail).
+    //
+    // Flipping the normal toward the viewer fixes the class rather than one
+    // scene, and is what a renderer should do with geometry it does not
+    // control. Front faces are unaffected -- for them dot(N, view) is already
+    // positive.
+    vec3 view = normalize(-esVertex);
+    if(dot(normal, view) < 0.0)
+        normal = -normal;
+
     vec3 light;
     // The light used to be animated off the transport clock here:
     //     lightPosition.y = sin(TIME) * 20.;
@@ -352,7 +378,6 @@ void main ()
     {
         light = normalize(lightPosition.xyz - esVertex);
     }
-    vec3 view = normalize(-esVertex);
     vec3 halfv = normalize(light + view);
 
     vec3 color = lightAmbient.rgb * materialAmbient.rgb;        // begin with ambient
