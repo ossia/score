@@ -42,7 +42,7 @@ score_add_test(test_unit_port_factory_reuse
   APP
   PLUGINS score_lib_process)
 
-# --- A27: the file-chooser ports wrote "Filters" and never read it back ----
+# --- the file-chooser ports round-trip their "Filters" setting -----------
 # APP for the same reason as the test above: the FileChooser factory lives in
 # score_plugin_dataflow and the AudioFileChooser one in score_plugin_media,
 # both of which are discovered from <build>/plugins.
@@ -564,15 +564,15 @@ score_add_test(test_unit_device_tree_reload
   APP
   PLUGINS score_plugin_deviceexplorer score_lib_device score_lib_state)
 
-# A17: two processes that a user can add must not carry the same label.
+# Two processes that a user can add must not carry the same label.
 score_add_test(test_unit_process_name_uniqueness
   SOURCES ProcessNameUniquenessTest.cpp
   APP
   PLUGINS score_lib_process)
 
-# A5: a MIDI device naming a backend this build does not have (an ALSA sequencer
-# port on a machine whose libremidi was built without ALSA) used to ABORT on
-# load, from a SCORE_ASSERT on external state. It must refuse, visibly.
+# A MIDI device naming a backend this build does not have (an ALSA sequencer
+# port on a machine whose libremidi was built without ALSA) must refuse to load,
+# visibly, rather than assert on external state.
 score_add_test(test_unit_midi_missing_api
   SOURCES MidiMissingApiTest.cpp
   APP
@@ -739,9 +739,6 @@ if(TARGET score_plugin_avnd AND TARGET score_plugin_engine)
 endif()
 # AssetTable is pure CPU logic; TextureLoader upload paths run on QRhi's Null
 # backend (score_plugin_gfx links Qt::GuiPrivate PUBLIC, providing qrhi_p.h).
-# Lives with the scene rework rather than with the AssetTable code itself: the
-# trim and decode-cache behaviour it pins is what this commit introduces, so
-# committed any earlier the suite is red for every commit in between.
 score_add_test(test_unit_gfx_assettable
   SOURCES AssetTableTest.cpp
   PLUGINS score_plugin_gfx
@@ -884,68 +881,71 @@ if(TARGET score_plugin_gfx)
     LIBS ${QT_PREFIX}::Gui)
 endif()
 # --- threedim asset loaders ------------------------------------------------
-# The plugin is built with -fvisibility=hidden, so the loader entry points
-# (GltfParser/FbxParser/AssetLoader::process, ObjFromString, ...) are not
-# reachable through libscore_plugin_threedim.so. Compile the loader layer
-# straight into the test binary instead; linking the plugins still provides
-# the include dirs + the exported gfx/registry symbols.
+# Dynamic plugins hide the loader entry points, so those builds compile the
+# loader layer into the tests. Static plugins already contain the same objects;
+# recompiling them would duplicate ufbx and the loader symbols at link time.
 if(TARGET score_plugin_threedim)
   set(_threedim_src "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
+  set(_threedim_test_libs fastgltf spz)
+  get_target_property(_threedim_plugin_type score_plugin_threedim TYPE)
 
-  # C sources go in a separate static lib: mixing C into the test target
-  # breaks the score_lib_pch REUSE_FROM (PCH is C++-only).
-  add_library(test_unit_threedim_3rdparty STATIC
-    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/miniply/miniply.cpp"
-    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/mikktspace/mikktspace.c"
-    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/ufbx/ufbx.c")
-  target_include_directories(test_unit_threedim_3rdparty SYSTEM PUBLIC
-    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/miniply"
-    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/mikktspace"
-    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/ufbx")
-  set_target_properties(test_unit_threedim_3rdparty
-    PROPERTIES FOLDER "Tests" POSITION_INDEPENDENT_CODE ON)
+  if(NOT _threedim_plugin_type STREQUAL "STATIC_LIBRARY")
+    # C sources go in a separate static lib: mixing C into the test target
+    # breaks the score_lib_pch REUSE_FROM (PCH is C++-only).
+    add_library(test_unit_threedim_3rdparty STATIC
+      "${SCORE_ROOT_SOURCE_DIR}/3rdparty/miniply/miniply.cpp"
+      "${SCORE_ROOT_SOURCE_DIR}/3rdparty/mikktspace/mikktspace.c"
+      "${SCORE_ROOT_SOURCE_DIR}/3rdparty/ufbx/ufbx.c")
+    target_include_directories(test_unit_threedim_3rdparty SYSTEM PUBLIC
+      "${SCORE_ROOT_SOURCE_DIR}/3rdparty/miniply"
+      "${SCORE_ROOT_SOURCE_DIR}/3rdparty/mikktspace"
+      "${SCORE_ROOT_SOURCE_DIR}/3rdparty/ufbx")
+    set_target_properties(test_unit_threedim_3rdparty
+      PROPERTIES FOLDER "Tests" POSITION_INDEPENDENT_CODE ON)
+    list(PREPEND _threedim_test_libs test_unit_threedim_3rdparty)
 
-  score_plugin_hidden_sources(_threedim_hidden
-      "${_threedim_src}/AssetLoader.cpp"
-      "${_threedim_src}/GltfParser.cpp"
-      "${_threedim_src}/FbxParser.cpp"
-      "${_threedim_src}/TinyObj.cpp"
-      "${_threedim_src}/Ply.cpp"
-      "${_threedim_src}/VcgImporters.cpp"
-      "${_threedim_src}/SceneFromMeshes.cpp"
-      "${_threedim_src}/PrimitiveCloud/PlyParser.cpp"
-      "${_threedim_src}/PrimitiveCloud/SplatBinary.cpp"
-      "${_threedim_src}/PrimitiveCloud/SpzCodec.cpp"
-      "${_threedim_src}/PrimitiveCloud/SceneFromCloud.cpp"
-      "${_threedim_src}/PrimitiveCloud/FormatOverride.cpp")
+    score_plugin_hidden_sources(_threedim_hidden
+        "${_threedim_src}/AssetLoader.cpp"
+        "${_threedim_src}/GltfParser.cpp"
+        "${_threedim_src}/FbxParser.cpp"
+        "${_threedim_src}/TinyObj.cpp"
+        "${_threedim_src}/Ply.cpp"
+        "${_threedim_src}/VcgImporters.cpp"
+        "${_threedim_src}/SceneFromMeshes.cpp"
+        "${_threedim_src}/PrimitiveCloud/PlyParser.cpp"
+        "${_threedim_src}/PrimitiveCloud/SplatBinary.cpp"
+        "${_threedim_src}/PrimitiveCloud/SpzCodec.cpp"
+        "${_threedim_src}/PrimitiveCloud/SceneFromCloud.cpp"
+        "${_threedim_src}/PrimitiveCloud/FormatOverride.cpp")
+  endif()
 score_add_test(test_unit_threedim_loaders
     SOURCES
       ThreedimLoaderTest.cpp
       ${_threedim_hidden}
     PLUGINS score_plugin_threedim score_plugin_gfx score_plugin_avnd
-    LIBS test_unit_threedim_3rdparty fastgltf spz "${QT_PREFIX}::Gui")
+    LIBS ${_threedim_test_libs} "${QT_PREFIX}::Gui")
   target_include_directories(test_unit_threedim_loaders SYSTEM PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/vcglib"
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/eigen")
 
-  # P0-13: the AssetLoader failure contract (empty / missing / corrupt /
+  # The AssetLoader failure contract (empty / missing / corrupt /
   # unknown-extension / truncated files publish nullptr + dirty 0, a failed
   # REPLACEMENT load keeps the previous scene), plus "a failed asset load is
-  # diagnosable" -- formerly a [!shouldfail] pin, green since the dispatch
-  # warns by name; see tests/integration/AvndFilePortDiagnostic.cpp for the
-  # missing-file half, which the node itself cannot observe.
+  # diagnosable" -- the dispatch warns by name; see
+  # tests/integration/AvndFilePortDiagnostic.cpp for the missing-file half,
+  # which the node itself cannot observe.
   # Same engine sources / libs as test_unit_threedim_loaders above.
   score_add_test(test_unit_threedim_asset_loader_failure
     SOURCES
       AssetLoaderFailure.cpp
       ${_threedim_hidden}
     PLUGINS score_plugin_threedim score_plugin_gfx score_plugin_avnd
-    LIBS test_unit_threedim_3rdparty fastgltf spz "${QT_PREFIX}::Gui")
+    LIBS ${_threedim_test_libs} "${QT_PREFIX}::Gui")
   target_include_directories(test_unit_threedim_asset_loader_failure SYSTEM PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/vcglib"
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/eigen")
 
-  # P1-5 / gap G4: first glTF/GLB coverage at any level. Khronos Box.glb /
+  # First glTF/GLB coverage at any level. Khronos Box.glb /
   # BoxVertexColors.glb closed forms (SKIP with the fetch command when the
   # fetched assets are absent), synthesized minimal GLB truncation matrix
   # (ForkProbe), and a synthesized .gltf + external .bin relative-resolution
@@ -955,12 +955,12 @@ score_add_test(test_unit_threedim_loaders
       GltfLoaderTest.cpp
       ${_threedim_hidden}
     PLUGINS score_plugin_threedim score_plugin_gfx score_plugin_avnd
-    LIBS test_unit_threedim_3rdparty fastgltf spz "${QT_PREFIX}::Gui")
+    LIBS ${_threedim_test_libs} "${QT_PREFIX}::Gui")
   target_include_directories(test_unit_threedim_gltf_loader SYSTEM PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/vcglib"
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/eigen")
 
-  # P2-5: the ufbx FBX path yields position / normal / UV streams with the
+  # The ufbx FBX path yields position / normal / UV streams with the
   # expected counts, plus a fork-isolated truncation matrix. Same wiring as
   # the loaders target above.
   score_add_test(test_unit_threedim_fbx_loader
@@ -968,7 +968,7 @@ score_add_test(test_unit_threedim_loaders
       FbxLoaderTest.cpp
       ${_threedim_hidden}
     PLUGINS score_plugin_threedim score_plugin_gfx score_plugin_avnd
-    LIBS test_unit_threedim_3rdparty fastgltf spz "${QT_PREFIX}::Gui")
+    LIBS ${_threedim_test_libs} "${QT_PREFIX}::Gui")
   target_include_directories(test_unit_threedim_fbx_loader SYSTEM PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/vcglib"
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/eigen")
@@ -1096,7 +1096,7 @@ endif()
 # The first-run "download the user library?" question. It is a modal
 # QDialog::exec() posted by a 1s timer, so a headless process that pumps events
 # gets it and never comes back. Registered without SCORE_SANITIZE_SKIP_CHECKS
-# on purpose: that variable used to be the only thing keeping it shut.
+# on purpose: the dialog must stay shut without that variable.
 if(TARGET score_plugin_packagemanager AND TARGET score_plugin_library)
   score_add_test(test_unit_packagemanager_firstrun
     SOURCES PackageManagerFirstRunTest.cpp
