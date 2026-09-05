@@ -53,6 +53,7 @@
 #include <ossia/dataflow/texture_port.hpp>
 
 #include <score/gfx/Vulkan.hpp>
+#include <score/gfx/OpenGL.hpp>
 
 #include <isf.hpp>
 
@@ -225,6 +226,44 @@ inline const char* null_backend_skip_reason() noexcept
          "hand back a buffer that was never drawn; opt in with "
          "GfxPipeline::allowNullBackend() for structural (decision-logic) "
          "assertions only.";
+}
+
+// -----------------------------------------------------------------------------
+// Storage buffers are not universally available, and the backend that lacks
+// them is not a broken one.
+//
+// SSBOs entered desktop GLSL at 4.30 and GLSL ES at 3.10. Apple froze its
+// OpenGL implementation at 4.1 core and never shipped 4.3, so on macOS the
+// OpenGL backend reports GLSL 410 and SPIRV-Cross refuses the translation
+// outright: "SSBOs not supported in legacy targets". The node then fails to
+// build and any case that needs a storage buffer fails with a compile error
+// rather than a wrong picture.
+//
+// That is a permanent platform limit, not a defect and not something a fix can
+// reach, so such a case must SKIP and say why. It was found by the first macOS
+// OpenGL suite run of this campaign, where it read as two ordinary failures
+// (test_gfx_isf_aux_placeholder_zeroed and test_gfx_regressions) on a backend
+// nobody had measured before.
+//
+// Returns nullptr when the backend CAN do storage buffers.
+inline const char* storage_buffer_skip_reason(score::gfx::GraphicsApi api) noexcept
+{
+  if(api != score::gfx::OpenGL)
+    return nullptr;
+
+#ifndef QT_NO_OPENGL
+  const score::GLCapabilities caps{};
+  // GLSL ES 310, desktop GLSL 430. shaderVersion is the integer form (410, 430).
+  const bool es = caps.type == QSurfaceFormat::OpenGLES;
+  const int floor_version = es ? 310 : 430;
+  if(caps.shaderVersion < floor_version)
+    return "this OpenGL implementation reports a GLSL version below the one that "
+           "introduced shader storage buffers (4.30 desktop / ES 3.10), so the "
+           "shader cannot be translated at all -- SPIRV-Cross reports 'SSBOs not "
+           "supported in legacy targets'. macOS caps OpenGL at 4.1 and is the "
+           "usual way to meet this.";
+#endif
+  return nullptr;
 }
 
 /// Try to bring up a QRhi for `api`. Returns true (and the backend name) if a
