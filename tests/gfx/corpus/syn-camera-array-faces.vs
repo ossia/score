@@ -1,28 +1,26 @@
-// P2-1 probe, vertex stage. Pairs with syn-camera-array-faces.fs.
+// Camera-array face probe, vertex stage. Pairs with syn-camera-array-faces.fs.
 //
 // MULTIVIEW:6 fires this once per view; gl_ViewIndex selects the layer the
-// fragment stage writes into AND the camera entry read out of the
+// fragment stage writes into and the camera entry read out of the
 // ScenePreprocessor's `camera` auxiliary UBO. The whole oracle is computed
-// HERE, in the vertex stage, and handed to the fragment stage as a plain
+// here, in the vertex stage, and handed to the fragment stage as a plain
 // vec3 varying, for two reasons:
 //
 //  1. gl_ViewIndex is only reliable in the vertex stage on this tree: Qt's
 //     SPIR-V shader tool applies ovr_multiview_view_count to the vertex stage
-//     only (qspirvshader.cpp:954 -- cited by SPEC-SCENE-RENDER-TESTS.md's
-//     "READ LEDGER-DEFECT-FIXES.md FIRST" preamble, which explicitly tells
-//     P1-7 and P2-1 not to assume fragment-stage VIEW_INDEX bakes on GL).
-//     syn-cube-six-colors.vs sets the same precedent (it computes v_face in
-//     the vertex stage).
+//     only (qspirvshader.cpp), so fragment-stage VIEW_INDEX cannot be assumed
+//     to bake on GL. syn-cube-six-colors.vs sets the same precedent (it
+//     computes v_face in the vertex stage).
 //  2. All three vertices of the fullscreen triangle carry the identical
 //     value, so interpolation is a no-op and no `flat` qualifier is needed.
 //
-// Coverage: a fullscreen triangle synthesised from gl_VertexIndex, NOT from
+// Coverage: a fullscreen triangle synthesised from gl_VertexIndex, not from
 // the bound mesh. The geometry edge exists only so the raw-raster node has an
 // upstream geometry to name-match the "camera" auxiliary against
-// (RenderedRawRasterPipelineNode.cpp:1725-1741, try_bind_from_geometry); WHERE
-// the mesh lands is not what P2-1 measures, and a synthesised triangle removes
-// any dependence on the cube's placement or on depth state. `position` is kept
-// live (multiplied by 0.0) so the declared VERTEX_INPUTS binding is used.
+// (try_bind_from_geometry in RenderedRawRasterPipelineNode.cpp); where the mesh
+// lands is not what this probe measures, and a synthesised triangle removes any
+// dependence on the cube's placement or on depth state. `position` is kept live
+// (multiplied by 0.0) so the declared VERTEX_INPUTS binding is used.
 void main()
 {
     int idx = gl_VertexIndex % 3;
@@ -32,10 +30,10 @@ void main()
 
     // camera.data is the raw std140 image of CameraUBOData[N] declared as a
     // flat vec4 array; see the .fs header for the byte-offset derivation.
-    // 15 vec4 = 240 B = one CameraUBOData (CameraMath.hpp:23-32).
-    int base = gl_ViewIndex * 15;
+    // 15 vec4 = 240 B = one CameraUBOData (CameraMath.hpp).
+    int base = VIEW_INDEX * 15;
 
-    // view = inverse(worldTransform) (CameraMath.cpp:15). For a rigid
+    // view = inverse(worldTransform) (packCameraUBO in CameraMath.cpp). For a rigid
     // transform W = [R | t], view's rotation part is R^T. In column-major
     // GLSL, view[c][r] = (R^T)[r][c] = R[c][r], so
     //   vec3(view[0][2], view[1][2], view[2][2]) == R's column 2
