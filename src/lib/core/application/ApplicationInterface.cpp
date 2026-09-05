@@ -7,6 +7,7 @@
 #include <score/model/ComponentSerialization.hpp>
 #include <score/model/ObjectEditor.hpp>
 #include <score/plugins/ProjectSettings/ProjectSettingsFactory.hpp>
+#include <core/document/ProjectInfo.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <score/plugins/panel/PanelDelegateFactory.hpp>
 #include <score/plugins/qt_interfaces/CommandFactory_QtInterface.hpp>
@@ -74,7 +75,9 @@ static void loadDefaultPlugins(
   panels->insert(std::make_unique<UndoPanelDelegateFactory>());
   panels->insert(std::make_unique<MessagesPanelDelegateFactory>());
   r.registerFactory(std::move(panels));
-  r.registerFactory(std::make_unique<DocumentPluginFactoryList>());
+  auto docplugins = std::make_unique<DocumentPluginFactoryList>();
+  docplugins->insert(std::make_unique<ProjectInfo::Factory>());
+  r.registerFactory(std::move(docplugins));
   r.registerFactory(std::make_unique<SettingsDelegateFactoryList>());
 
   r.registerGUIApplicationPlugin(new CoreApplicationPlugin{ctx, presenter});

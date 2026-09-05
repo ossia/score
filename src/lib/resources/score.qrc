@@ -1,6 +1,20 @@
 <RCC>
     <qresource prefix="/">
+        <file alias="about/AUTHORS">../../../AUTHORS</file>
         <file>about/about_background.png</file>
+        <file>about/logos/labri.png</file>
+        <file>about/logos/scrime.png</file>
+        <file>about/logos/blueyeti.png</file>
+        <file>about/logos/sat.png</file>
+        <file>about/logos/ossia.png</file>
+        <file>about/logos/unreal.png</file>
+        <file>about/logos/mozilla.png</file>
+        <file>about/logos/opencollective.png</file>
+        <file>about/logos/anr.png</file>
+        <file>about/logos/celtera.png</file>
+        <file>about/logos/cifre.png</file>
+        <file>about/logos/mesr.png</file>
+        <file>about/logos/culture.png</file>
         <file>about/about_background@2x.png</file>
         <file>ossia-score.png</file>
         <file>dict.txt</file>
@@ -21,6 +35,30 @@
         <file>icons/close_off@2x.png</file>
         <file>icons/close_on.png</file>
         <file>icons/close_on@2x.png</file>
+        <file>icons/home_off.png</file>
+        <file>icons/home_off@2x.png</file>
+        <file>icons/home_on.png</file>
+        <file>icons/home_on@2x.png</file>
+        <file>icons/about_off.png</file>
+        <file>icons/about_off@2x.png</file>
+        <file>icons/about_on.png</file>
+        <file>icons/about_on@2x.png</file>
+        <file>icons/net_session_off.png</file>
+        <file>icons/net_session_off@2x.png</file>
+        <file>icons/net_session_on.png</file>
+        <file>icons/net_session_on@2x.png</file>
+        <file>icons/learn_off.png</file>
+        <file>icons/learn_off@2x.png</file>
+        <file>icons/learn_on.png</file>
+        <file>icons/learn_on@2x.png</file>
+        <file>icons/community_off.png</file>
+        <file>icons/community_off@2x.png</file>
+        <file>icons/community_on.png</file>
+        <file>icons/community_on@2x.png</file>
+        <file>icons/close_window_off.png</file>
+        <file>icons/close_window_off@2x.png</file>
+        <file>icons/close_window_on.png</file>
+        <file>icons/close_window_on@2x.png</file>
         <file>icons/condition_add_off.png</file>
         <file>icons/condition_add_off@2x.png</file>
         <file>icons/condition_add_on.png</file>
@@ -347,6 +385,10 @@
         <file>icons/port_midi@2x.png</file>
         <file>icons/port_texture.png</file>
         <file>icons/port_texture@2x.png</file>
+        <file>icons/settings_project_off.png</file>
+        <file>icons/settings_project_off@2x.png</file>
+        <file>icons/settings_project_on.png</file>
+        <file>icons/settings_project_on@2x.png</file>
         <file>icons/settings_audio_off.png</file>
         <file>icons/settings_audio_off@2x.png</file>
         <file>icons/settings_audio_on.png</file>
@@ -781,6 +823,8 @@
         <file>icons_svg/scenario_tree_icons/state.svg</file>
         <file>icons_svg/scenario_tree_icons/interval.svg</file>
         <file>icons_svg/scenario_tree_icons/event.svg</file>
+        <file>icons_svg/settings_icons/settings_project_off.svg</file>
+        <file>icons_svg/settings_icons/settings_project_on.svg</file>
         <file>icons_svg/settings_icons/settings_audio_off.svg</file>
         <file>icons_svg/settings_icons/settings_audio_on.svg</file>
         <file>icons_svg/settings_icons/settings_device_explorer_off.svg</file>
@@ -809,6 +853,10 @@
         <file>icons_svg/start_screen/contribute_on.svg</file>
         <file>icons_svg/start_screen/forum_off.svg</file>
         <file>icons_svg/start_screen/forum_on.svg</file>
+        <file>icons_svg/start_screen/about_off.svg</file>
+        <file>icons_svg/start_screen/about_on.svg</file>
+        <file>icons_svg/start_screen/net_session_off.svg</file>
+        <file>icons_svg/start_screen/net_session_on.svg</file>
         <file>icons_svg/start_screen/load_examples_off.svg</file>
         <file>icons_svg/start_screen/load_examples_on.svg</file>
         <file>icons_svg/start_screen/load_off.svg</file>
@@ -823,6 +871,14 @@
         <file>icons_svg/start_screen/exit_on.svg</file>
         <file>icons_svg/start_screen/exit_on_.svg</file>
         <file>icons_svg/start_screen/version_on.svg</file>
+        <file>icons_svg/start_screen/home_off.svg</file>
+        <file>icons_svg/start_screen/home_on.svg</file>
+        <file>icons_svg/start_screen/learn_off.svg</file>
+        <file>icons_svg/start_screen/learn_on.svg</file>
+        <file>icons_svg/start_screen/community_off.svg</file>
+        <file>icons_svg/start_screen/community_on.svg</file>
+        <file>icons_svg/start_screen/close_window_off.svg</file>
+        <file>icons_svg/start_screen/close_window_on.svg</file>
         <file>icons_svg/start_screen_32/reload_crash_off.svg</file>
         <file>icons_svg/start_screen_32/reload_crash_on.svg</file>
         <file>icons_svg/waves/wave_noise1_off.svg</file>

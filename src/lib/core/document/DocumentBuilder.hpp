@@ -31,6 +31,16 @@ public:
   Document* newDocument(
       const score::GUIApplicationContext& ctx, const Id<DocumentModel>& id,
       score::DocumentDelegateFactory& doctype);
+
+  /**
+   * @brief Creates a new, untitled document from an existing .score file.
+   *
+   * The file is loaded like any document, then detached from its path so that
+   * saving never overwrites the template. Returns nullptr on failure.
+   */
+  Document* newDocumentFromTemplate(
+      const score::GUIApplicationContext& ctx, const Id<DocumentModel>& id,
+      const QString& templatePath, score::DocumentDelegateFactory& doctype);
   Document* loadDocument(
       const score::GUIApplicationContext& ctx, QString filename,
       score::DocumentDelegateFactory& doctype);

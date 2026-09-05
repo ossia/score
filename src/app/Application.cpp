@@ -8,6 +8,7 @@
 #include <score/model/Skin.hpp>
 #include <score/model/path/ObjectIdentifier.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
+#include <score/plugins/application/NetworkSessionInterface.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 #include <score/selection/Selection.hpp>
@@ -72,10 +73,10 @@ int qInitResources_score();
 int qInitResources_qtconf();
 #endif
 
+#define SCORE_SPLASH_SCREEN 1
 #if !defined(SCORE_DEBUG) && !defined(__EMSCRIPTEN__)
 #define SCORE_SPLASH_SCREEN 1
 #endif
-
 #include <phantom/phantomstyle.h>
 
 #if defined(SCORE_SPLASH_SCREEN)
@@ -121,9 +122,12 @@ static void loadApplicationResources()
   // Register fonts
   {
     QDirIterator it(":/fonts", QDirIterator::Subdirectories);
-    while (it.hasNext()) {
+    while(it.hasNext())
+    {
       auto font = it.next();
-      if(font.endsWith("ttf", Qt::CaseInsensitive) || font.endsWith("bdf", Qt::CaseInsensitive) || font.endsWith("otf", Qt::CaseInsensitive))
+      if(font.endsWith("ttf", Qt::CaseInsensitive)
+         || font.endsWith("bdf", Qt::CaseInsensitive)
+         || font.endsWith("otf", Qt::CaseInsensitive))
       {
         QFontDatabase::addApplicationFont(font);
       }
@@ -462,14 +466,34 @@ void Application::init()
     });
     connect(
         m_startScreen, &score::StartScreen::openFile, this, [&](const QString& file) {
-          m_startScreen->close();
-          m_presenter->documentManager().loadFile(ctx, file);
-        });
+      m_startScreen->close();
+      m_presenter->documentManager().loadFile(ctx, file);
+    });
     connect(m_startScreen, &score::StartScreen::openFileDialog, this, [&]() {
       m_startScreen->close();
       m_presenter->documentManager().loadFile(ctx);
     });
+    connect(
+        m_startScreen, &score::StartScreen::openTemplate, this,
+        [&](const QString& file) {
+      m_startScreen->close();
+      if(!m_presenter->documentManager().newDocumentFromTemplate(ctx, file))
+        openNewDocument();
+    });
     connect(m_startScreen, &score::StartScreen::exitApp, this, [&]() { qApp->quit(); });
+
+    if(auto net = score::findNetworkSessionInterface(ctx))
+    {
+      m_startScreen->addJoinSession();
+      connect(m_startScreen, &score::StartScreen::joinSession, this, [this, net] {
+        m_startScreen->close();
+        net->joinSession(m_view, [this](bool joined) {
+          // Cancelled or failed: do not leave the user with an empty window
+          if(!joined && m_presenter->documentManager().documents().empty())
+            openNewDocument();
+        });
+      });
+    }
   }
 #endif
 
@@ -516,6 +540,9 @@ void Application::initDocuments()
   {
     if(plug->handleLoading())
     {
+      // e.g. --network-join: the plug-in provides the document
+      if(m_startScreen)
+        m_startScreen->dismiss();
       return;
     }
   }
@@ -553,7 +580,7 @@ void Application::initDocuments()
 #endif
   }
 
-// If nothing was reloaded, open a normal document
+  // If nothing was reloaded, open a normal document
   if(!appSettings.ui.isEmpty())
   {
     // Custom UI mode always expects a new document

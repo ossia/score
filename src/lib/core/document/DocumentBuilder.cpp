@@ -14,11 +14,17 @@
 #include <core/document/DocumentBackupManager.hpp>
 #include <core/document/DocumentBackups.hpp>
 #include <core/document/DocumentModel.hpp>
+#include <core/document/DocumentTemplates.hpp>
+#include <core/document/ProjectInfo.hpp>
+#include <score/plugins/documentdelegate/plugin/SerializableDocumentPlugin.hpp>
+#include <ossia/detail/algorithms.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/view/Window.hpp>
 
 #include <QByteArray>
+#include <QDateTime>
 #include <QDir>
+#include <QFile>
 #include <QObject>
 #include <QString>
 
@@ -32,53 +38,90 @@ DocumentBuilder::DocumentBuilder(QObject* parentPresenter, QWidget* parentView)
 {
 }
 
+namespace
+{
+// A document saved before a project settings plug-in existed has no model for
+// it: create the missing ones so that ctx.plugin<T>() always works.
+void ensureProjectSettingsModels(const score::GUIApplicationContext& ctx, Document& doc)
+{
+  auto& model = doc.model();
+  for(auto& fact : ctx.interfaces<DocumentPluginFactoryList>())
+  {
+    auto settings = dynamic_cast<ProjectSettingsFactory*>(&fact);
+    if(!settings)
+      continue;
+
+    const auto key = fact.concreteKey();
+    const bool present = ossia::any_of(model.pluginModels(), [&](DocumentPlugin* p) {
+      auto sp = dynamic_cast<SerializableDocumentPlugin*>(p);
+      return sp && sp->concreteKey() == key;
+    });
+    if(!present)
+      model.addPluginModel(settings->makeModel(doc.context(), &model));
+  }
+}
+}
+
 SCORE_LIB_BASE_EXPORT
 Document* DocumentBuilder::newDocument(
     const score::GUIApplicationContext& ctx, const Id<DocumentModel>& id,
     DocumentDelegateFactory& doctype)
 {
-  QString docName = "Untitled." + RandomNameProvider::generateShortRandomName();
-
-  // FIXME we can't access Library::Settings::Model here :'(
-  QSettings set;
-  if(auto library = set.value("Library/RootPath").toString(); QDir{library}.exists())
+  if(const auto tpl = defaultDocumentTemplate(); !tpl.isEmpty())
   {
-    auto templateDocument = QString{"%1/default.score"}.arg(library);
-    if(QFile::exists(templateDocument))
-    {
-      try
-      {
-        auto doc = loadDocument(ctx, templateDocument, doctype);
-        doc->metadata().setFileName(docName);
-        //doc->metadata().set({});
-        doc->model().setId(id);
-        // TODO cables ?!
-        return doc;
-      }
-      catch(...)
-      {
-      }
-    }
+    if(auto doc = newDocumentFromTemplate(ctx, id, tpl, doctype))
+      return doc;
   }
-  auto doc = new Document{docName, id, doctype, m_parentView, m_parentPresenter};
 
+  QString docName = "Untitled." + RandomNameProvider::generateShortRandomName();
+  auto doc = new Document{docName, id, doctype, m_parentView, m_parentPresenter};
   for(auto& projectsettings : ctx.interfaces<DocumentPluginFactoryList>())
   {
     if(auto fact = dynamic_cast<ProjectSettingsFactory*>(&projectsettings))
       doc->model().addPluginModel(fact->makeModel(doc->context(), &doc->model()));
   }
-
   for(auto& appPlug : ctx.guiApplicationPlugins())
   {
     appPlug->on_newDocument(*doc);
   }
-
   for(auto& appPlug : ctx.guiApplicationPlugins())
   {
     appPlug->on_createdDocument(*doc);
   }
-
   return doc;
+}
+
+SCORE_LIB_BASE_EXPORT
+Document* DocumentBuilder::newDocumentFromTemplate(
+    const score::GUIApplicationContext& ctx, const Id<DocumentModel>& id,
+    const QString& templatePath, DocumentDelegateFactory& doctype)
+{
+  if(!QFile::exists(templatePath))
+    return nullptr;
+
+  try
+  {
+    auto doc = loadDocument(ctx, templatePath, doctype);
+    if(!doc)
+      return nullptr;
+
+    // Detach from the template file
+    doc->metadata().setFileName(
+        "Untitled." + RandomNameProvider::generateShortRandomName());
+    doc->model().setId(id);
+    // TODO cables ?!
+
+    if(auto info = doc->context().findPlugin<ProjectInfo::Model>())
+    {
+      info->setCreated(QDateTime::currentDateTime());
+      info->setLastSaved({});
+    }
+    return doc;
+  }
+  catch(...)
+  {
+    return nullptr;
+  }
 }
 
 SCORE_LIB_BASE_EXPORT
@@ -91,6 +134,7 @@ Document* DocumentBuilder::loadDocument(
   try
   {
     doc = new Document{filename, doctype, m_parentView, m_parentPresenter};
+    ensureProjectSettingsModels(ctx, *doc);
     for(auto& appPlug : ctx.guiApplicationPlugins())
     {
       appPlug->on_loadedDocument(*doc);
@@ -130,6 +174,7 @@ Document* DocumentBuilder::loadDocument(
   try
   {
     doc = new Document{filename, data, format, doctype, m_parentView, m_parentPresenter};
+    ensureProjectSettingsModels(ctx, *doc);
     for(auto& appPlug : ctx.guiApplicationPlugins())
     {
       appPlug->on_loadedDocument(*doc);
@@ -172,6 +217,7 @@ Document* DocumentBuilder::restoreDocument(
     // (potentially a blank document which is saved at the beginning, once
     // every plug-in has been loaded)
     doc = new Document{restore, doctype, m_parentView, m_parentPresenter};
+    ensureProjectSettingsModels(ctx, *doc);
     for(auto& appPlug : ctx.guiApplicationPlugins())
     {
       appPlug->on_loadedDocument(*doc);

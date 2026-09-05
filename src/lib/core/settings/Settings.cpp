@@ -1,5 +1,8 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <core/document/ProjectInfo.hpp>
+
+#include <algorithm>
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/plugins/ProjectSettings/ProjectSettingsFactory.hpp>
 #include <score/plugins/ProjectSettings/ProjectSettingsModel.hpp>
@@ -102,7 +105,13 @@ void ProjectSettings::setup(const DocumentContext& ctx)
   m_settings.clear();
   setupView();
 
-  for(auto& plug : ctx.document.model().pluginModels())
+  // The general "Project" page comes first, then the plug-in specific pages
+  auto plugins = ctx.document.model().pluginModels();
+  std::stable_partition(plugins.begin(), plugins.end(), [](DocumentPlugin* p) {
+    return dynamic_cast<ProjectInfo::Model*>(p) != nullptr;
+  });
+
+  for(auto& plug : plugins)
   {
     if(auto p = dynamic_cast<ProjectSettingsModel*>(plug))
     {

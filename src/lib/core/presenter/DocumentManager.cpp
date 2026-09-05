@@ -6,16 +6,17 @@
 #include <score/model/Identifier.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score/plugins/panel/PanelDelegate.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+#include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/File.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
+#include <score/tools/Zip.hpp>
 #include <score/tools/std/Optional.hpp>
 #include <score/widgets/MessageBox.hpp>
 #include <score/widgets/Pixmap.hpp>
-
-#include <score/serialization/JSONVisitor.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
 #include <core/application/OpenDocumentsFile.hpp>
@@ -24,6 +25,8 @@
 #include <core/document/DocumentBackupManager.hpp>
 #include <core/document/DocumentBackups.hpp>
 #include <core/document/DocumentModel.hpp>
+#include <core/document/DocumentView.hpp>
+#include <core/document/ProjectInfo.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/view/QRecentFilesMenu.h>
 #include <core/view/Window.hpp>
@@ -32,11 +35,18 @@
 
 #include <QApplication>
 #include <QByteArray>
-#include <QJsonDocument>
+#include <QDialogButtonBox>
 #include <QFile>
 #include <QFileDialog>
+#include <QFormLayout>
 #include <QIODevice>
+#include <QJsonDocument>
+#include <QLabel>
+#include <QLineEdit>
+#include <QLocale>
 #include <QMessageBox>
+#include <QProgressDialog>
+#include <QPushButton>
 #include <QSaveFile>
 #include <QSettings>
 #include <QStandardPaths>
@@ -123,14 +133,12 @@ void DocumentManager::init(const score::GUIApplicationContext& ctx)
   if(m_view)
   {
     connect(
-        m_view, &View::activeDocumentChanged, this,
-        [&](const Id<DocumentModel>& doc) {
+        m_view, &View::activeDocumentChanged, this, [&](const Id<DocumentModel>& doc) {
       prepareNewDocument(ctx);
       auto it = ossia::find_if(
           m_documents, [&](auto other) { return other->model().id() == doc; });
       setCurrentDocument(ctx, it != m_documents.end() ? *it : nullptr);
-    },
-        Qt::QueuedConnection);
+    }, Qt::QueuedConnection);
 
     connect(m_view, &View::closeRequested, this, [&](const Id<DocumentModel>& doc) {
       auto it = ossia::find_if(
@@ -332,7 +340,8 @@ static void writeJsonToFile(QSaveFile& f, const rapidjson::StringBuffer& buffer)
   if(qEnvironmentVariableIsSet("SCORE_PRETTIFY_JSON"))
   {
     [[unlikely]];
-    QJsonDocument doc = QJsonDocument::fromJson(QByteArray::fromRawData(buffer.GetString(),buffer.GetSize()));
+    QJsonDocument doc = QJsonDocument::fromJson(
+        QByteArray::fromRawData(buffer.GetString(), buffer.GetSize()));
     f.write(doc.toJson(QJsonDocument::JsonFormat::Indented));
   }
   else
@@ -340,6 +349,55 @@ static void writeJsonToFile(QSaveFile& f, const rapidjson::StringBuffer& buffer)
     [[likely]];
     f.write(buffer.GetString(), buffer.GetSize());
   }
+}
+
+namespace
+{
+// Refresh the project information that depends on the act of saving:
+// last-saved date and, unless the user chose a fixed image, a capture of the
+// document view as thumbnail.
+void updateProjectInfoBeforeSave(Document& doc)
+{
+  auto info = doc.context().findPlugin<ProjectInfo::Model>();
+  if(!info)
+    return;
+
+  info->setLastSaved(QDateTime::currentDateTime());
+
+  if(!info->getAutomaticThumbnail())
+    return;
+  auto view = doc.view();
+  if(!view)
+    return;
+  auto widget = view->viewDelegate().getWidget();
+  if(!widget || !widget->isVisible() || widget->width() < 64 || widget->height() < 64)
+    return;
+
+  const QPixmap capture = widget->grab();
+  if(capture.isNull())
+    return;
+  info->setThumbnail(ProjectInfo::Model::encodeThumbnail(capture.toImage()));
+}
+}
+
+Document* DocumentManager::newDocumentFromTemplate(
+    const score::GUIApplicationContext& ctx, const QString& templatePath)
+{
+  // An archived project needs its folder for its media: it opens as a real file
+  if(templatePath.endsWith(".zip", Qt::CaseInsensitive))
+    return openArchive(ctx, templatePath);
+
+  auto& doctypes = ctx.interfaces<DocumentDelegateList>();
+  if(doctypes.empty())
+    return nullptr;
+
+  prepareNewDocument(ctx);
+  auto doc = m_builder.newDocumentFromTemplate(
+      ctx, Id<score::DocumentModel>{score::random_id_generator::getRandomId()},
+      templatePath, *doctypes.begin());
+  if(!doc)
+    return nullptr;
+  return setupDocument(ctx, doc);
 }
 
 bool DocumentManager::saveDocument(Document& doc)
@@ -356,6 +414,8 @@ bool DocumentManager::saveDocument(Document& doc)
     if(!f.open(QIODevice::WriteOnly))
       return false;
 
+    updateProjectInfoBeforeSave(doc);
+
     if(savename.indexOf(".scorebin") != -1)
     {
       f.write(doc.saveAsByteArray());
@@ -370,7 +430,8 @@ bool DocumentManager::saveDocument(Document& doc)
 
     if(f.commit())
     {
-      if(m_recentFiles) {
+      if(m_recentFiles)
+      {
         m_recentFiles->addRecentFile(savename);
         saveRecentFilesState();
       }
@@ -465,6 +526,7 @@ bool DocumentManager::saveDocumentAs(Document& doc, const QString& savename)
     plug->on_documentSaveAs(doc, savename);
 
   doc.metadata().setFileName(savename);
+  updateProjectInfoBeforeSave(doc);
 
   if(savename.indexOf(".scorebin") != -1)
     f.write(doc.saveAsByteArray());
@@ -479,7 +541,8 @@ bool DocumentManager::saveDocumentAs(Document& doc, const QString& savename)
 
   if(f.commit())
   {
-    if(m_recentFiles) {
+    if(m_recentFiles)
+    {
       m_recentFiles->addRecentFile(savename);
       saveRecentFilesState();
     }
@@ -539,9 +602,8 @@ Document* DocumentManager::loadStack(const score::GUIApplicationContext& ctx)
   if(!m_view)
     return nullptr;
 
-  QString loadname
-      = QFileDialog::getOpenFileName(
-          m_view, tr("Open Stack"), getDialogDirectory(nullptr).absolutePath(), "*.stack");
+  QString loadname = QFileDialog::getOpenFileName(
+      m_view, tr("Open Stack"), getDialogDirectory(nullptr).absolutePath(), "*.stack");
   if(!loadname.isEmpty() && (loadname.indexOf(".stack") != -1))
   {
     return loadStack(ctx, loadname);
@@ -579,27 +641,176 @@ Document* DocumentManager::loadStack(
   return nullptr;
 }
 
+namespace
+{
+//! Asks where the folder of an archived project should be created
+class ArchiveDestinationDialog final : public QDialog
+{
+public:
+  ArchiveDestinationDialog(
+      const QString& archive, const ZipArchiveSummary& summary, const QString& suggested,
+      QWidget* parent)
+      : QDialog{parent}
+  {
+    setWindowTitle(tr("Open project archive"));
+    setMinimumWidth(520);
+
+    auto lay = new QVBoxLayout{this};
+    auto intro = new QLabel{
+        tr("%1 holds a score and %2 file(s), %3 in total.\n"
+           "Choose the folder where the project will be created:")
+            .arg(QFileInfo{archive}.fileName())
+            .arg(summary.files - 1)
+            .arg(QLocale{}.formattedDataSize(qint64(summary.uncompressedSize))),
+        this};
+    intro->setWordWrap(true);
+    lay->addWidget(intro);
+
+    auto row = new QHBoxLayout;
+    m_folder = new QLineEdit{suggested, this};
+    row->addWidget(m_folder, 1);
+    auto browse = new QPushButton{tr("Browse..."), this};
+    row->addWidget(browse);
+    lay->addLayout(row);
+
+    auto buttons
+        = new QDialogButtonBox{QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this};
+    buttons->button(QDialogButtonBox::Ok)->setText(tr("Create and open"));
+    buttons->button(QDialogButtonBox::Ok)->setDefault(true);
+    lay->addWidget(buttons);
+
+    connect(browse, &QPushButton::clicked, this, [this] {
+      const QString dir = QFileDialog::getExistingDirectory(
+          this, tr("Project folder"), QFileInfo{m_folder->text()}.absolutePath());
+      if(!dir.isEmpty())
+        m_folder->setText(dir);
+    });
+    connect(m_folder, &QLineEdit::textChanged, this, [=](const QString& t) {
+      buttons->button(QDialogButtonBox::Ok)->setEnabled(!t.trimmed().isEmpty());
+    });
+    connect(m_folder, &QLineEdit::returnPressed, this, [=] {
+      if(buttons->button(QDialogButtonBox::Ok)->isEnabled())
+        accept();
+    });
+    connect(buttons, &QDialogButtonBox::accepted, this, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
+  }
+
+  QString folder() const { return QDir::cleanPath(m_folder->text().trimmed()); }
+
+private:
+  QLineEdit* m_folder{};
+};
+}
+
+Document* DocumentManager::openArchive(
+    const score::GUIApplicationContext& ctx, const QString& archive)
+{
+  if(!m_view)
+    return nullptr;
+
+  const auto summary = summarizeZipArchive(archive);
+  if(!summary)
+  {
+    QMessageBox::warning(
+        m_view, tr("Not a project archive"),
+        tr("%1 does not contain a score.").arg(QFileInfo{archive}.fileName()));
+    return nullptr;
+  }
+
+  // Suggest a sibling of the last project rather than a folder inside it
+  const QString baseName = QFileInfo{archive}.completeBaseName();
+  QDir suggestedParent = getDialogDirectory(nullptr);
+  if(!suggestedParent.entryList({"*.score", "*.scorejson"}, QDir::Files).isEmpty())
+    suggestedParent.cdUp();
+  const QString suggested = suggestedParent.filePath(baseName);
+
+  ArchiveDestinationDialog dialog{archive, *summary, suggested, m_view};
+  if(dialog.exec() != QDialog::Accepted)
+    return nullptr;
+
+  const QString folder = dialog.folder();
+  const QString scorePath = QDir{folder}.filePath(summary->scoreFile);
+
+  // The folder may already hold this very project: offer to just open it
+  if(const QDir dir{folder}; dir.exists() && !dir.isEmpty())
+  {
+    if(QFile::exists(scorePath))
+    {
+      QMessageBox box{m_view};
+      box.setIcon(QMessageBox::Question);
+      box.setWindowTitle(tr("Project already extracted"));
+      box.setText(
+          tr("%1 already contains this project.\nOpen it as it is, or extract the "
+             "archive again and overwrite it?")
+              .arg(folder));
+      auto open = box.addButton(tr("Open existing"), QMessageBox::AcceptRole);
+      auto overwrite = box.addButton(tr("Overwrite"), QMessageBox::DestructiveRole);
+      box.addButton(QMessageBox::Cancel);
+      box.setDefaultButton(open);
+      box.exec();
+      if(box.clickedButton() == open)
+        return loadFile(ctx, scorePath);
+      if(box.clickedButton() != overwrite)
+        return nullptr;
+    }
+    else if(
+        QMessageBox::question(
+            m_view, tr("Folder not empty"),
+            tr("%1 is not empty. Extract the project into it anyway?").arg(folder),
+            QMessageBox::Yes | QMessageBox::Cancel)
+        != QMessageBox::Yes)
+    {
+      return nullptr;
+    }
+  }
+
+  QProgressDialog progress{
+      tr("Extracting %1...").arg(QFileInfo{archive}.fileName()), tr("Cancel"), 0,
+      summary->files, m_view};
+  progress.setWindowModality(Qt::WindowModal);
+  progress.setMinimumDuration(300);
+
+  QString error;
+  const bool ok = extractZipArchive(archive, folder, error, [&](int done, int total) {
+    progress.setMaximum(total);
+    progress.setValue(done);
+    QCoreApplication::processEvents();
+    return !progress.wasCanceled();
+  });
+  progress.close();
+
+  if(!ok)
+  {
+    QMessageBox::warning(m_view, tr("Extraction failed"), error);
+    return nullptr;
+  }
+
+  QSettings s;
+  s.setValue("score/last_open_doc", folder);
+  return loadFile(ctx, scorePath);
+}
+
 Document* DocumentManager::loadFile(const score::GUIApplicationContext& ctx)
 {
   if(!m_view)
     return nullptr;
 
-  static const QString filter{"Scores (*.scorebin *.score *.scorejson)"};
+  static const QString filter{"Scores (*.scorebin *.score *.scorejson *.zip)"};
 
 #if defined(__EMSCRIPTEN__)
   // wasm has neither a synchronous file dialog nor a local filesystem: use the
   // async callback API, which delivers the picked file's bytes to the lambda.
   // ctx is the application context (app-lifetime) so capturing it is safe.
   QFileDialog::getOpenFileContent(
-      filter,
-      [this, &ctx](const QString& name, const QByteArray& data) {
+      filter, [this, &ctx](const QString& name, const QByteArray& data) {
     if(name.isEmpty() || data.isEmpty())
       return;
-    const auto format = name.endsWith(".scorebin") ? DataStream::type() : JSONObject::type();
+    const auto format
+        = name.endsWith(".scorebin") ? DataStream::type() : JSONObject::type();
     auto& doctype = *ctx.interfaces<DocumentDelegateList>().begin();
     loadDocument(ctx, name, data, format, doctype);
-  },
-      m_view);
+  }, m_view);
   return nullptr;
 #else
   QString loadname = QFileDialog::getOpenFileName(
@@ -615,6 +826,9 @@ Document* DocumentManager::loadFile(const score::GUIApplicationContext& ctx)
 Document* DocumentManager::loadFile(
     const score::GUIApplicationContext& ctx, const QString& fileName)
 {
+  if(fileName.endsWith(".zip", Qt::CaseInsensitive))
+    return openArchive(ctx, fileName);
+
   Document* doc{};
   if(!fileName.isEmpty()
      && (fileName.indexOf(".scorebin") != -1 || fileName.indexOf(".scorejson") != -1

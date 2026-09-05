@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="24" height="24" viewBox="0 0 24 24">
+  <path style="fill:none;stroke:#f0f0f0;stroke-width:2;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:8" d="M 9,11 A 3,3 0 1 0 9,5 A 3,3 0 1 0 9,11 Z" />
+  <path style="fill:none;stroke:#f0f0f0;stroke-width:2;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:8" d="M 3,20 V 19 A 6,5 0 0 1 15,19 V 20" />
+  <path style="fill:none;stroke:#f0f0f0;stroke-width:2;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:8" d="M 15.5,11.5 A 2.5,2.5 0 1 0 15.5,6.5" />
+  <path style="fill:none;stroke:#f0f0f0;stroke-width:2;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:8" d="M 17,15.5 A 4,4 0 0 1 21,19.5 V 20" />
+</svg>

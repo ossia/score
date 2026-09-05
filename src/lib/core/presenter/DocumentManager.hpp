@@ -67,6 +67,10 @@ public:
     return setupDocument(ctx, m_builder.newDocument(ctx, std::forward<Args>(args)...));
   }
 
+  //! New untitled document initialized from a template or example .score file.
+  Document* newDocumentFromTemplate(
+      const score::GUIApplicationContext& ctx, const QString& templatePath);
+
   template <typename... Args>
   Document* loadDocument(const score::GUIApplicationContext& ctx, Args&&... args)
   {
@@ -102,6 +106,14 @@ public:
 
   Document* loadFile(const score::GUIApplicationContext& ctx);
   Document* loadFile(const score::GUIApplicationContext& ctx, const QString& filename);
+
+  /**
+   * @brief Open a project archive: a zip holding a .score and its media.
+   *
+   * Asks where the project folder should be created, extracts the archive
+   * there and opens the extracted score.
+   */
+  Document* openArchive(const score::GUIApplicationContext& ctx, const QString& archive);
 
   bool closeAllDocuments(const score::GUIApplicationContext& ctx);
 

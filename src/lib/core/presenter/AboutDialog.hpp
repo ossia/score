@@ -1,29 +1,14 @@
 #pragma once
 #include <QDialog>
 
+#include <score_lib_base_export.h>
+
 namespace score
 {
-class AboutDialog final : public QDialog
+//! Help > About: the same content as the start screen's About page
+class SCORE_LIB_BASE_EXPORT AboutDialog final : public QDialog
 {
 public:
-  AboutDialog(QWidget* parent = 0);
-
-  void mousePressEvent(QMouseEvent* event) override;
-  void mouseMoveEvent(QMouseEvent* event) override;
-
-  void paintEvent(QPaintEvent* event) override;
-
-private:
-  QSize m_windowSize;
-
-  QImage m_backgroundImage;
-  QFont m_catamaranFont;
-  QFont m_montserratFont;
-  QFont m_montserratLightFont;
-
-  QRectF m_mouseAreaOssiaScore;
-  QRectF m_mouseAreaLabri;
-  QRectF m_mouseAreaScrime;
-  QRectF m_mouseAreaBlueYeti;
+  AboutDialog(QWidget* parent = nullptr);
 };
 }
