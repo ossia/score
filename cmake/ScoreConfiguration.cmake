@@ -95,8 +95,8 @@ if(SCORE_COVERAGE)
 endif()
 
 # UBSan above -O0 is superlinear in the optimiser on this codebase: one
-# score_plugin_avnd TU measured >420 s and 5.7 GB at -O1 against ~14 s at -O0,
-# with identical sanitizer coverage.
+# score_plugin_avnd TU takes vastly longer and far more memory to compile at
+# -O1 than at -O0, with identical sanitizer coverage.
 #
 # This is a workaround for a toolchain defect, not a property worth keeping.
 # Configure with -DSCORE_UBSAN_KEEP_OPTIMISATION=1 to build a UBSan tree at the
@@ -139,6 +139,25 @@ if(CMAKE_CXX_FLAGS MATCHES "sanitize=[a-z,]*undefined")
   set(SCORE_UBSAN_OPTIONS
       "halt_on_error=1:print_stacktrace=1:suppressions=${SCORE_UBSAN_SUPPRESSIONS}")
   message(STATUS "score: UBSAN_OPTIONS for ctest = ${SCORE_UBSAN_OPTIONS}")
+endif()
+
+# LeakSanitizer, same shape as the UBSan block above and for the same reason:
+# one family of known leaks was drowning every other report.
+#
+# The makeGUIElements family dominates the leaked bytes in the test suite
+# because every Catch2 case builds its own MinimalGUIApplication and each
+# construction leaks the same parent-less toolbars and actions. A shipped
+# ossia-score builds ONE application, so there it is a single leak set at
+# exit; in the suite it repeats per test and hides everything underneath.
+#
+# Suppressing it is what makes the other leaks legible. See the file itself:
+# these are real ownership bugs, and the entries go away when they are fixed.
+#
+# LSan is part of ASan here, so this is keyed on the address sanitizer being on.
+if(CMAKE_CXX_FLAGS MATCHES "sanitize=[a-z,]*address")
+  set(SCORE_LSAN_SUPPRESSIONS "${CMAKE_CURRENT_LIST_DIR}/lsan-suppressions.txt")
+  set(SCORE_LSAN_OPTIONS "suppressions=${SCORE_LSAN_SUPPRESSIONS}")
+  message(STATUS "score: LSAN_OPTIONS for ctest = ${SCORE_LSAN_OPTIONS}")
 endif()
 
 # Note : if building with a Qt installed in e.g. /home/myuser/Qt/ or /Users/Qt or c:\Qt\
