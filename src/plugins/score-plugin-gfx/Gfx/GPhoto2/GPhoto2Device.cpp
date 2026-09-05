@@ -23,6 +23,8 @@
 
 #include <wobjectimpl.h>
 
+#include <memory>
+
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavutil/imgutils.h>
@@ -680,7 +682,12 @@ struct gphoto2_camera
     m_config_queue.enqueue({name, value});
   }
 
-  ::Video::FrameQueue frames;
+  // Shared, not held by value: the decoder handed to the gfx graph consumes
+  // this queue and outlives the camera. score::gfx::VideoFrameShare defers its
+  // decoder's destruction to a lambda posted to qApp, which runs well after
+  // ~gphoto2_device() has destroyed the protocol that owns this camera.
+  std::shared_ptr<::Video::FrameQueue> frames
+      = std::make_shared<::Video::FrameQueue>();
 
   // Set to true when preview is working, false when it's failing
   std::atomic_bool m_preview_active{};
@@ -745,7 +752,7 @@ private:
 
     while(m_running)
     {
-      if(frames.size() >= 4)
+      if(frames->size() >= 4)
       {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
         continue;
@@ -803,11 +810,11 @@ private:
       if(!decoded)
         continue;
 
-      auto f = frames.newFrame();
+      auto f = frames->newFrame();
       av_frame_ref(f.get(), decoded);
       av_frame_free(&decoded);
       f->best_effort_timestamp = 0;
-      frames.enqueue(f.release());
+      frames->enqueue(f.release());
 
       frame_count++;
 
@@ -956,11 +963,22 @@ private:
 
 class gphoto2_decoder : public ::Video::ExternalInput
 {
-  ::Video::FrameQueue& queue;
+  // Shared ownership, deliberately. The decoder is handed to
+  // score::gfx::CameraNode as a shared_ptr, and ~VideoFrameShare() moves that
+  // shared_ptr into a lambda posted to qApp over a queued connection, so
+  // ~gphoto2_decoder() runs on a later event-loop turn. By then the device,
+  // its protocol and its gphoto2_camera are gone: with a bare reference the
+  // queue->drain() below reads memory already freed by ~gphoto2_protocol
+  // (an ASan heap-use-after-free under test_integration_gfx_protocol_settings).
+  //
+  // The queue really is shared -- the camera's preview thread produces into
+  // it, the decoder consumes from it -- so it is share-owned rather than the
+  // drain being skipped.
+  std::shared_ptr<::Video::FrameQueue> queue;
 
 public:
-  gphoto2_decoder(::Video::FrameQueue& queue)
-      : queue{queue}
+  gphoto2_decoder(std::shared_ptr<::Video::FrameQueue> q)
+      : queue{std::move(q)}
   {
     this->pixel_format = AV_PIX_FMT_YUVJ422P;
     this->fps = 15;
@@ -969,26 +987,26 @@ public:
     this->flicks_per_dts = 0;
   }
 
-  ~gphoto2_decoder() { queue.drain(); }
+  ~gphoto2_decoder() { queue->drain(); }
 
   bool start() noexcept override { return true; }
   void stop() noexcept override { }
 
   AVFrame* dequeue_frame() noexcept override
   {
-    auto* f = queue.dequeue();
+    auto* f = queue->dequeue();
     dequeue_calls++;
     if(f)
       dequeue_got_frame++;
     if(dequeue_calls % 100 == 0)
       qDebug("GPhoto2 decoder: dequeue called %d times, got frame %d times (queue size ~%zu)",
-             dequeue_calls, dequeue_got_frame, queue.size());
+             dequeue_calls, dequeue_got_frame, queue->size());
     return f;
   }
   void release_frame(AVFrame* frame) noexcept override
   {
     release_calls++;
-    queue.release(frame);
+    queue->release(frame);
   }
 
   int dequeue_calls{};
