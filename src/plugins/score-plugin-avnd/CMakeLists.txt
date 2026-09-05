@@ -1246,6 +1246,8 @@ target_include_directories(Avnd_point_tracker_Test PRIVATE "${CMAKE_CURRENT_SOUR
 addAvndTest(entity_to_midi_Test
              "${CMAKE_CURRENT_SOURCE_DIR}/Tests/EntityToMidi_Test.cpp")
 target_include_directories(Avnd_entity_to_midi_Test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+addAvndTest(port_unit_Test
+             "${CMAKE_CURRENT_SOURCE_DIR}/Tests/port_unit_Test.cpp")
 endif()
 
 set(CMAKE_AUTOMOC OFF)

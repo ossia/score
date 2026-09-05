@@ -6,6 +6,7 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/PortSerialization.hpp>
+#include <Process/Dataflow/WidgetInlets.hpp>
 
 #include <Dataflow/AudioInletItem.hpp>
 #include <Dataflow/AudioOutletItem.hpp>
@@ -15,6 +16,9 @@
 #include <Dataflow/MidiOutletItem.hpp>
 #include <Dataflow/ValueInletItem.hpp>
 #include <Dataflow/ValueOutletItem.hpp>
+#include <Dataflow/WidgetInletFactory.hpp>
+
+#include <Process/Dataflow/ControlWidgets.hpp>
 
 #include <score/application/ApplicationComponents.hpp>
 #include <score/application/ApplicationContext.hpp>
@@ -121,6 +125,9 @@ struct TestApplication final : public score::ApplicationInterface
     ports->insert(std::make_unique<Dataflow::MidiOutletFactory>());
     ports->insert(std::make_unique<Dataflow::AudioInletFactory>());
     ports->insert(std::make_unique<Dataflow::AudioOutletFactory>());
+    ports->insert(
+        std::make_unique<Dataflow::WidgetInletFactory<
+            Process::HSVSlider, WidgetFactory::HSVSlider>>());
     m_compData.factories.emplace(ports->interfaceKey(), std::move(ports));
   }
 
@@ -569,5 +576,58 @@ TEST_CASE("fuzz: corrupt port and cable buffers are handled gracefully",
       }
     }
     SUCCEED("no crash on truncated polymorphic port buffers");
+  }
+}
+
+// unit() is virtual because a port loaded from a document is built by the
+// inherited deserializing constructors, which run no subclass code.
+TEST_CASE("A port's declared unit", "[dataflow][port][unit]")
+{
+  testApp();
+
+  const State::Unit rgba{ossia::unit_t{ossia::rgba_u{}}};
+
+  SECTION("an ordinary control declares nothing")
+  {
+    Process::ControlInlet inl{"ctl", Id<Process::Port>{0}, nullptr};
+    CHECK(!inl.unit().get());
+  }
+
+  SECTION("a colour control declares rgba")
+  {
+    Process::HSVSlider col{
+        ossia::vec4f{0.f, 0.f, 0.f, 1.f}, "col", Id<Process::Port>{0}, nullptr};
+    CHECK(col.unit() == rgba);
+
+    // including through the base class, which is how the execution setup asks
+    const Process::Port& base = col;
+    CHECK(base.unit() == rgba);
+  }
+
+  SECTION("and still declares it when it comes back from a document")
+  {
+    Process::HSVSlider src{
+        ossia::vec4f{0.f, 0.f, 0.f, 1.f}, "col", Id<Process::Port>{7}, nullptr};
+
+    QByteArray arr;
+    {
+      DataStream::Serializer s{&arr};
+      s.stream() << src;
+    }
+    DataStream::Deserializer des{arr};
+    auto loaded = Process::load_inlet(des, nullptr);
+    REQUIRE(loaded);
+
+    auto col = dynamic_cast<Process::HSVSlider*>(loaded.get());
+    REQUIRE(col);
+    CHECK(col->name() == "col");
+    CHECK(col->unit() == rgba);
+  }
+
+  SECTION("a port that picks its unit per instance")
+  {
+    Process::ControlInlet inl{"gain", Id<Process::Port>{0}, nullptr};
+    inl.setUnit(State::Unit{ossia::unit_t{ossia::decibel_u{}}});
+    CHECK(inl.unit() == State::Unit{ossia::unit_t{ossia::decibel_u{}}});
   }
 }

@@ -167,6 +167,29 @@ void SetupContext::connect_cable_impl(Process::Cable& cable, Impl&& impl)
   }
 }
 
+// Pushed once, when the node is registered; the address machinery never touches
+// `type` afterwards.
+template <typename T, typename Impl>
+static void set_declared_unit_impl(
+    const Process::Port& proc_port, const T& port, Impl&& append)
+{
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
+  const ossia::unit_t& u = proc_port.unit().get();
+  if(!u)
+    return;
+
+  append([port, u] {
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
+    if(ossia::value_port* dat = port->template target<ossia::value_port>())
+    {
+      // A unit the node declared is more precise than the widget's and wins; a
+      // plain value type does not.
+      if(!dat->type.target<ossia::unit_t>())
+        dat->type = u;
+    }
+  });
+}
+
 template <typename Impl>
 void SetupContext::register_inlet_impl(
     Process::Inlet& proc_port, const ossia::inlet_ptr& ossia_port,
@@ -185,16 +208,13 @@ void SetupContext::register_inlet_impl(
     OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
     set_destination(address, ossia_port);
   });
+  set_declared_unit_impl(proc_port, ossia_port, impl);
+
+  // Also registers the port with the execution state, once, when the address
+  // resolves.
   set_destination_impl(context, proc_port.address(), ossia_port, impl);
 
   inlets.insert({&proc_port, std::make_pair(node, ossia_port)});
-
-  std::weak_ptr<ossia::execution_state> ws = context.execState;
-  impl([ws, ossia_port] {
-    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
-    if(auto state = ws.lock())
-      state->register_port(*ossia_port);
-  });
 }
 
 template <typename Impl>
@@ -294,7 +314,7 @@ void set_destination_impl(
         port->address = {};
         if(ossia::value_port* dat = port->template target<ossia::value_port>())
         {
-          dat->type = {};
+          dat->address_unit = {};
           dat->index = {};
         }
         g->mark_dirty();
@@ -321,8 +341,9 @@ void set_destination_impl(
         port->address = p;
         if(ossia::value_port* dat = port->template target<ossia::value_port>())
         {
-          if(qual.unit)
-            dat->type = qual.unit;
+          // Unconditionally, like the index: dropping the qualifier has to give
+          // the process's declaration back.
+          dat->address_unit = qual.unit;
           dat->index = qual.accessors;
         }
         s->register_port(*port);
@@ -365,7 +386,7 @@ void set_destination_impl(
         port->address = std::move(p);
         if(ossia::value_port* dat = port->template target<ossia::value_port>())
         {
-          dat->type = {};
+          dat->address_unit = {};
           dat->index.clear();
         }
         s->register_port(*port);
@@ -386,7 +407,7 @@ void set_destination_impl(
         port->address = {};
         if(ossia::value_port* dat = port->template target<ossia::value_port>())
         {
-          dat->type = {};
+          dat->address_unit = {};
           dat->index.clear();
         }
         s->register_port(*port);
@@ -507,6 +528,8 @@ void SetupContext::register_outlet_impl(
     OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
     set_destination(address, ossia_port);
   });
+  set_declared_unit_impl(proc_port, ossia_port, impl);
+
   set_destination_impl(context, proc_port.address(), ossia_port, impl);
 
   outlets.insert({&proc_port, std::make_pair(node, ossia_port)});
