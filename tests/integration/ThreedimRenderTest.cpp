@@ -1054,11 +1054,20 @@ TEST_CASE(
   INFO("specular (blue) field: peak " << spec.peak << ", " << spec.levels
                                       << " distinct levels, area "
                                       << 100.0 * spec.area << " % of frame");
-  CHECK(spec.peak >= 48);    // measured 87 x6; 0 if the specular is gone
-  CHECK(spec.levels >= 32);  // measured 87 x6; 1 if it lost its per-fragment
+  // Re-measured after the phong shader became two-sided. Before that, a face
+  // whose normal pointed away from the light was clamped to ambient by
+  // max(dot(N,L), 0), so only PART of the cube carried a specular and the
+  // numbers below were correspondingly small. All three visible faces are now
+  // lit, so the highlight covers the cube rather than a slice of it.
+  CHECK(spec.peak >= 48);    // measured 115; 0 if the specular is gone
+  CHECK(spec.levels >= 32);  // measured 46; 1 if it lost its per-fragment
                              // half-vector and went flat
-  CHECK(spec.area >= 0.05);  // measured 0.1454..0.1465
-  CHECK(spec.area <= 0.35);  // and it must not flood the frame either
+  CHECK(spec.area >= 0.05);  // measured 0.5089
+  // ... and it must still not flood the FRAME. The cube's own silhouette is
+  // about half the frame, so "lit all over" is ~0.51 and a runaway specular
+  // spilling past the geometry is what this catches. 0.65 leaves headroom for
+  // the former without admitting the latter.
+  CHECK(spec.area <= 0.65);
 }
 
 // GeometryLoader now derives flat per-face normals for any triangle mesh a
