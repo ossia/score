@@ -155,6 +155,47 @@ RenderedCSFNode::RenderedCSFNode(const ISFNode& node) noexcept
 
 RenderedCSFNode::~RenderedCSFNode() { }
 
+
+// D3D11 is the only QRhi backend with no deferred release queue: grep
+// releaseQueue/DeferredReleaseEntry and qrhid3d12.cpp has 54 hits,
+// qrhivulkan.cpp 53, qrhigles2.cpp 26, qrhid3d11.cpp ZERO. It also records RAW
+// ID3D11Resource* into a command list it only replays at endFrame
+// (qrhid3d11.cpp:1958-1959 -> :3207), and QD3D11Buffer::destroy() is an
+// immediate Release().
+//
+// These resizes run inside BackgroundNode::render's
+// beginOffscreenFrame/endOffscreenFrame bracket, so destroy()ing a live buffer
+// frees an ID3D11Buffer that an uploadStaticBuffer already recorded THIS frame
+// still points at. Replaying it gives "D3D11 CORRUPTION:
+// ID3D11DeviceContext::UpdateSubresource: First parameter is corrupt or NULL"
+// and then an access violation inside QRhiD3D11::executeCommandBuffer --
+// measured 3/3 runs with the debug layer on, ~4/6 without, which is why it
+// reads as a flaky d3d11-only SEGFAULT (A24(b)) and why a debugger hides it.
+// Every other backend keeps the native object alive on its release queue, so
+// the identical score code is harmless there.
+//
+// RenderList::releaseBuffer is the discipline this file already follows at its
+// six other call sites, and its own comment says why: deleteLater() keeps the
+// handle valid for operations queued this frame. QRhi drains
+// pendingDeleteResources AFTER endOffscreenFrame (qrhi.cpp), which is what
+// makes it safe.
+static QRhiBuffer* regrowBuffer(
+    score::gfx::RenderList& renderer, QRhiBuffer* old, int64_t newSize) noexcept
+{
+  if(!old)
+    return old;
+  auto* fresh = renderer.state.rhi->newBuffer(old->type(), old->usage(), newSize);
+  fresh->setName(old->name());
+  if(!fresh->create())
+  {
+    qWarning() << "RenderedCSFNode: buffer regrow to" << newSize << "failed";
+    delete fresh;
+    return old;
+  }
+  renderer.releaseBuffer(old);
+  return fresh;
+}
+
 void RenderedCSFNode::updateInputTexture(const Port& input, QRhiTexture* tex, QRhiTexture* depthTex)
 {
   int sampler_idx = 0;
@@ -882,9 +923,7 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
       // Create new buffer with correct size
       if(storageBuffer.buffer)
       {
-        storageBuffer.buffer->destroy();
-        storageBuffer.buffer->setSize(requiredSize);
-        storageBuffer.buffer->create();
+        storageBuffer.buffer = regrowBuffer(renderer, storageBuffer.buffer, requiredSize);
       }
       else
       {
@@ -1072,9 +1111,7 @@ void RenderedCSFNode::updateGeometryBindings(
       {
         if(aux.buffer && aux.owned)
         {
-          aux.buffer->destroy();
-          aux.buffer->setSize(requiredSize);
-          aux.buffer->create();
+          aux.buffer = regrowBuffer(renderer, aux.buffer, requiredSize);
         }
         else
         {
@@ -1093,9 +1130,7 @@ void RenderedCSFNode::updateGeometryBindings(
         // Keep read_buffer in sync for feedback receivers
         if(aux.read_buffer)
         {
-          aux.read_buffer->destroy();
-          aux.read_buffer->setSize(requiredSize);
-          aux.read_buffer->create();
+          aux.read_buffer = regrowBuffer(renderer, aux.read_buffer, requiredSize);
           res.uploadStaticBuffer(aux.read_buffer, 0, requiredSize, zero.constData());
         }
       }
@@ -1297,9 +1332,7 @@ void RenderedCSFNode::updateGeometryBindings(
             // Keep read_buffer in sync for feedback receivers
             if(ssbo.read_buffer)
             {
-              ssbo.read_buffer->destroy();
-              ssbo.read_buffer->setSize(needed);
-              ssbo.read_buffer->create();
+              ssbo.read_buffer = regrowBuffer(renderer, ssbo.read_buffer, needed);
               res.uploadStaticBuffer(ssbo.read_buffer, 0, needed, zero.constData());
             }
           }
@@ -1427,9 +1460,7 @@ void RenderedCSFNode::updateGeometryBindings(
             // ssbo.size reflects the new size, causing buffer overruns.
             if(ssbo.read_buffer)
             {
-              ssbo.read_buffer->destroy();
-              ssbo.read_buffer->setSize(needed);
-              ssbo.read_buffer->create();
+              ssbo.read_buffer = regrowBuffer(renderer, ssbo.read_buffer, needed);
             }
           }
 
@@ -1628,9 +1659,7 @@ void RenderedCSFNode::updateGeometryBindings(
           const int64_t needed = elem_stride * attr_count;
           if(needed > 0 && ssbo.size != needed)
           {
-            ssbo.buffer->destroy();
-            ssbo.buffer->setSize(needed);
-            ssbo.buffer->create();
+            ssbo.buffer = regrowBuffer(renderer, ssbo.buffer, needed);
             QByteArray zero(needed, 0);
             res.uploadStaticBuffer(ssbo.buffer, 0, needed, zero.constData());
             ssbo.size = needed;
@@ -1638,9 +1667,7 @@ void RenderedCSFNode::updateGeometryBindings(
             // Keep read_buffer in sync for feedback receivers
             if(binding.is_feedback_receiver && ssbo.read_buffer)
             {
-              ssbo.read_buffer->destroy();
-              ssbo.read_buffer->setSize(needed);
-              ssbo.read_buffer->create();
+              ssbo.read_buffer = regrowBuffer(renderer, ssbo.read_buffer, needed);
               res.uploadStaticBuffer(ssbo.read_buffer, 0, needed, zero.constData());
             }
           }
@@ -1690,9 +1717,7 @@ void RenderedCSFNode::updateGeometryBindings(
           {
             if(ssbo.owned && ssbo.buffer)
             {
-              ssbo.buffer->destroy();
-              ssbo.buffer->setSize(needed);
-              ssbo.buffer->create();
+              ssbo.buffer = regrowBuffer(renderer, ssbo.buffer, needed);
             }
             else
             {
@@ -1712,9 +1737,7 @@ void RenderedCSFNode::updateGeometryBindings(
             // Keep read_buffer in sync for feedback receivers
             if(binding.is_feedback_receiver && ssbo.read_buffer)
             {
-              ssbo.read_buffer->destroy();
-              ssbo.read_buffer->setSize(needed);
-              ssbo.read_buffer->create();
+              ssbo.read_buffer = regrowBuffer(renderer, ssbo.read_buffer, needed);
               res.uploadStaticBuffer(ssbo.read_buffer, 0, needed, zero.constData());
             }
           }
