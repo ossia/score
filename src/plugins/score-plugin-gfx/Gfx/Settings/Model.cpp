@@ -1,4 +1,6 @@
 #include <Gfx/Settings/Model.hpp>
+
+#include <core/application/ApplicationInterface.hpp>
 #include <QLibrary>
 
 #include <score/gfx/OpenGL.hpp>
@@ -196,19 +198,12 @@ Model::Model(
   qputenv("QT3D_RENDERER", "rhi");
 
   // Latched for the lifetime of the process, because qunsetenv() below removes
-  // it after the first read.
-  //
-  // The application constructs exactly one Model, so it never noticed. A test
-  // binary boots a MinimalGUIApplication per Catch2 case, so every Model after
-  // the first saw no QSG_RHI_BACKEND and fell through to the platform default
-  // -- Metal on macOS, above. A whole suite launched with
-  // QSG_RHI_BACKEND=opengl therefore ran OpenGL in its FIRST CASE ONLY and
-  // reported every later case as an OpenGL result. Measured on macmini-m1: one
-  // binary logged "backend=OpenGL" twice and "backend=Metal" four times in a
-  // single QSG_RHI_BACKEND=opengl run, and which case failed moved when the
-  // case order was changed with --order lex.
-  //
-  // Not macOS-specific: the same holds for QSG_RHI_BACKEND=vulkan anywhere.
+  // it after the first read. The application constructs one Model, but a test
+  // binary boots a MinimalGUIApplication per Catch2 case: without the latch,
+  // every Model after the first sees no QSG_RHI_BACKEND and falls through to
+  // the platform default -- Metal on macOS, above -- so a suite launched with
+  // QSG_RHI_BACKEND=opengl would run OpenGL in its first case only. The same
+  // holds for QSG_RHI_BACKEND=vulkan on any platform.
   static const QString requestedBackend
       = qEnvironmentVariable("QSG_RHI_BACKEND").toLower();
 
@@ -242,14 +237,26 @@ Model::Model(
 
 int Model::resolveSamples(score::gfx::GraphicsApi api) const noexcept
 {
+  return resolveSamples(api, m_Samples);
+}
+
+int Model::resolveSamples(score::gfx::GraphicsApi api, int requested) noexcept
+{
   // Clamp the user setting against per-API minima. Hardware-level clamping
   // (vs. QRhi::supportedSampleCounts()) happens later, in createRenderState
   // once the QRhi instance exists, since the Settings model has no access
   // to a backend at this point.
-  int s = m_Samples < 1 ? 1 : m_Samples;
+  int s = requested < 1 ? 1 : requested;
   if(api == score::gfx::D3D12 && s < 2)
     s = 2; // D3D12 swap chains require at least 2 samples in QRhi
   return s;
+}
+
+int samplesForCurrentApplication(score::gfx::GraphicsApi api) noexcept
+{
+  if(!score::ApplicationInterface::hasInstance())
+    return Model::resolveSamples(api, 1);
+  return score::AppContext().settings<Model>().resolveSamples(api);
 }
 
 score::gfx::GraphicsApi Model::graphicsApiEnum() const noexcept
@@ -284,10 +291,9 @@ score::gfx::GraphicsApi Model::graphicsApiEnum() const noexcept
  *
  * Qt compiles shader model 6.x through DXC, which it loads from
  * dxcompiler.dll at runtime. That library is not part of Windows: it ships
- * with the DirectX Shader Compiler release, and the ossia SDK only began
- * carrying it recently. Asking for 6.x without it is not a silent
- * degradation -- Qt's search takes the first shader model it finds and stops,
- * so a 6.x blob makes it fail where 5.0 would have worked.
+ * with the DirectX Shader Compiler release. Asking for 6.x without it is not
+ * a silent degradation -- Qt's search takes the first shader model it finds
+ * and stops, so a 6.x blob fails where 5.0 would have worked.
  *
  * Probing the DLL rather than assuming it keeps a score built against a newer
  * SDK working on a machine with an older one, and vice versa. Cached: the
@@ -339,15 +345,14 @@ QShaderVersion shaderVersionForAPI(score::gfx::GraphicsApi api) noexcept
       return QShaderVersion(50);
 
     case score::gfx::D3D12:
-      // D3D12 searches shader models 6.7 down to 5.0 and takes the FIRST it
+      // D3D12 searches shader models 6.7 down to 5.0 and takes the first it
       // finds (qrhid3d12.cpp, compileHlslShaderSource). Anything at or above
       // 6.0 is compiled through DXC, which Qt loads from dxcompiler.dll at
-      // runtime -- and because the search BREAKS at the first hit, baking 6.x
+      // runtime -- and because the search stops at the first hit, baking 6.x
       // on a machine without that DLL does not fall back to 5.0, it fails.
       //
-      // So the version is chosen by whether the runtime is actually there.
-      // Present: 6.1, which is what SV_ViewID (multiview) needs and D3D11 can
-      // never provide. Absent: 5.0, exactly as before.
+      // So the version follows whether the runtime is there: 6.1 if it is,
+      // which is what SV_ViewID (multiview) needs, 5.0 otherwise.
       return d3d12ShaderVersion();
 
     default:

@@ -72,6 +72,7 @@ public:
 
   // Required as D3D12 requires a minimum of 2 samples
   int resolveSamples(score::gfx::GraphicsApi) const noexcept;
+  static int resolveSamples(score::gfx::GraphicsApi, int requested) noexcept;
 };
 
 SCORE_SETTINGS_PARAMETER(Model, GraphicsApi)
@@ -84,4 +85,16 @@ SCORE_SETTINGS_PARAMETER(Model, Buffers)
 
 SCORE_PLUGIN_GFX_EXPORT
 QShaderVersion shaderVersionForAPI(score::gfx::GraphicsApi) noexcept;
+
+/**
+ * @brief The configured sample count, or a usable default with no application.
+ *
+ * The gfx graph is not only driven by ossia-score: the PipeWire round-trip
+ * harness and the corpus renderer construct a bare QApplication and no
+ * score::ApplicationInterface at all. score::AppContext() then binds a
+ * reference to a null instance, which is a hard UBSan failure and a plain
+ * null dereference in a build without one.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+int samplesForCurrentApplication(score::gfx::GraphicsApi) noexcept;
 }
