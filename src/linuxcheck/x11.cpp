@@ -5,7 +5,9 @@
 #include <dlfcn.h>
 
 #include <cstdio>
+#include <string>
 #include <string_view>
+#include <vector>
 #define LOAD_SYM(name)                                                          \
   decltype(::name)* name = reinterpret_cast<decltype(name)>(dlsym(lib, #name)); \
   if(!(name))                                                                   \
