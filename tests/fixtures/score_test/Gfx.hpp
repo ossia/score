@@ -193,20 +193,20 @@ inline std::vector<score::gfx::GraphicsApi> platform_backends()
 }
 
 // -----------------------------------------------------------------------------
-// THE NULL BACKEND REFUSES RATHER THAN PRETENDS (spec P2-15).
+// THE NULL BACKEND REFUSES RATHER THAN PRETENDS.
 //
 // QRhi's Null backend accepts every command and rasterizes nothing. It is a
 // legitimate target for the parts of a case that are DECISIONS -- which shim was
 // selected, which pass was recorded, which caps were queried -- and it is not a
 // legitimate target for anything that reads a pixel back.
 //
-// Before this, a pixel case run with SCORE_TEST_API=null went all the way
-// through create() and render() and then died on
+// Left to run, a pixel case with SCORE_TEST_API=null gets all the way through
+// create() and render() and then dies on
 //     "readback of output 0 was empty/short (got 0 bytes ...)"
-// which is a RED that names the fixture rather than the code under test, and
-// which a reader triaging a platform run cannot tell from a real regression. The
+// -- a RED that names the fixture rather than the code under test, and that is
+// indistinguishable from a real regression when triaging a platform run. The
 // symmetric hazard is worse: a case whose expected colour happens to be the zero
-// pixel would have gone GREEN against a buffer that was never drawn.
+// pixel goes GREEN against a buffer that was never drawn.
 //
 // So the fixture refuses: create()/render_isf_chain() report skipped=true with
 // this reason as soon as Null is the requested backend, and the standard
@@ -240,10 +240,8 @@ inline const char* null_backend_skip_reason() noexcept
 // rather than a wrong picture.
 //
 // That is a permanent platform limit, not a defect and not something a fix can
-// reach, so such a case must SKIP and say why. It was found by the first macOS
-// OpenGL suite run of this campaign, where it read as two ordinary failures
-// (test_gfx_isf_aux_placeholder_zeroed and test_gfx_regressions) on a backend
-// nobody had measured before.
+// reach, so such a case must SKIP and say why. Without the skip it reads as an
+// ordinary failure on a backend nobody measured.
 //
 // Returns nullptr when the backend CAN do storage buffers.
 inline const char* storage_buffer_skip_reason(score::gfx::GraphicsApi api) noexcept
@@ -267,6 +265,48 @@ inline const char* storage_buffer_skip_reason(score::gfx::GraphicsApi api) noexc
 }
 
 // -----------------------------------------------------------------------------
+// A storage buffer read from the VERTEX stage is a narrower capability than a
+// storage buffer, and D3D11 does not have it.
+//
+// Qt bakes HLSL with SPVC_COMPILER_OPTION_HLSL_FORCE_STORAGE_BUFFER_AS_UAV set
+// unconditionally, so every SSBO -- `readonly` ones included -- lands in the
+// vertex DXBC as `RWByteAddressBuffer : register(u#)`. D3D11 allows UAVs only
+// at the pixel and compute stages, so QRhiD3D11 reports
+// MaxVertexStorageBuffers == 0 and its SRB translation never appends a
+// storage-buffer UAV to the vertex stage. It says so, once per binding:
+//
+//     Unordered access only supported at fragment/compute stage
+//
+// and then leaves the register unbound. An unbound UAV reads ZERO, so a shader
+// indexing per_draws[draw_id].model gets an all-zero matrix and draws nothing
+// where the test expects placement. That is not a rasterizer fault and not a
+// score defect: it is the stage limit of the API.
+//
+// Scope this to D3D11 ONLY, and deliberately so. D3D12 reads zero from the same
+// shaders on our test machine, but for a DIFFERENT and still-unexplained
+// reason: it emits no such warning, the shader compiles, and Qt accepts the
+// vertex-visible binding. Skipping D3D12 here would turn a live defect into a
+// green skip -- a vacuous pass. It stays failing until the cause is known.
+//
+// Returns nullptr where a vertex-stage storage buffer CAN be read.
+inline const char*
+vertex_storage_buffer_skip_reason(score::gfx::GraphicsApi api) noexcept
+{
+  if(const char* why = storage_buffer_skip_reason(api))
+    return why;
+
+  if(api == score::gfx::D3D11)
+    return "D3D11 cannot read a storage buffer from the vertex stage: Qt bakes "
+           "every SSBO as an RWByteAddressBuffer UAV, and D3D11 allows UAVs "
+           "only at the pixel and compute stages, so QRhi reports "
+           "MaxVertexStorageBuffers == 0, warns 'Unordered access only "
+           "supported at fragment/compute stage' and leaves the register "
+           "unbound -- an unbound UAV reads zero. A stage limit of the API, "
+           "not a defect.";
+  return nullptr;
+}
+
+// -----------------------------------------------------------------------------
 // Compute shaders are not universally available either, and the backend that
 // lacks them is not a broken one.
 //
@@ -285,9 +325,8 @@ inline const char* storage_buffer_skip_reason(score::gfx::GraphicsApi api) noexc
 // downstream of it still runs, the render still succeeds and the readback is
 // still a valid image -- an empty one. So the case does NOT fail with an error
 // string a reader can act on: it fails as `drawn_pixels(img) > 0` with
-// `error=` blank, which reads exactly like a rasterizer regression and is why
-// this group was mistaken for one. A CSF case on a 4.1 context is not testing
-// anything; it is measuring the clear colour.
+// `error=` blank, which reads exactly like a rasterizer regression. A CSF case
+// on a 4.1 context is not testing anything; it is measuring the clear colour.
 //
 // Same permanent platform limit as storage_buffer_skip_reason() above, same
 // verdict: SKIP and say why. Put it in the CSF-dependent TEST_CASEs ONLY --
@@ -321,7 +360,7 @@ inline const char* compute_shader_skip_reason(score::gfx::GraphicsApi api) noexc
 inline bool probe_api(score::gfx::GraphicsApi api, std::string& backendName)
 {
   // Cache the result per backend for the lifetime of the process. Backend
-  // availability doesn't change at runtime, and — importantly — repeatedly
+  // availability doesn't change at runtime, and repeatedly
   // asking Qt to create a QRhi that CANNOT initialize (e.g. OpenGL under the
   // bare "offscreen" QPA, which fails temporary-context creation) across the
   // app-boot/teardown cycles of successive test cases can segfault inside Qt's
@@ -379,11 +418,10 @@ inline bool probe_api(score::gfx::GraphicsApi api, std::string& backendName)
   // GL 3.3, where core-profile GL begins; the ES equivalent is 300 (ES 3.0),
   // which is where texture arrays and 3D textures arrive. GLSL ES stops at
   // 320, so measuring an ES context against the desktop 330 rejects EVERY
-  // GLES context that exists. That is not hypothetical: running this suite
-  // under SCORE_OPENGL_FORMAT=gles skipped 71 of 124 tests as "cannot
-  // initialize" on a GLES 3.2 context which is in fact fully capable --
-  // compute, SSBOs and texture arrays are all present at ES 3.1/3.2 -- and
-  // the skips read exactly like a machine with no GL driver.
+  // GLES context that exists: a fully capable GLES 3.2 context -- compute,
+  // SSBOs and texture arrays are all present at ES 3.1/3.2 -- would be skipped
+  // as "cannot initialize", and such skips read like a machine with no GL
+  // driver.
   if(ok && api == score::gfx::OpenGL)
   {
     const bool es = st->version.flags().testFlag(QShaderVersion::GlslEs);
@@ -1315,16 +1353,16 @@ public:
   /// The (single) input port of sink `sinkIdx`.
   score::gfx::Port* sinkInput(int sinkIdx) { return m_sinks.at(sinkIdx)->input[0]; }
 
-  /// Bring up all render lists on `api`, probing the backend first. Returns false
-  /// with skipped()=true when the backend cannot initialize here or the offscreen
-  /// targets cannot be allocated headless; false with error() non-empty on a
-  /// genuine build error. On success records the actual backend name.
   /// Let create() proceed on GraphicsApi::Null. Only for a case whose
   /// assertions are STRUCTURAL — which shim/pass/cap was selected — never for
   /// one that reads a pixel: the readback stays empty and readback().valid()
   /// stays false. See null_backend_skip_reason().
   void allowNullBackend(bool v = true) { m_allowNull = v; }
 
+  /// Bring up all render lists on `api`, probing the backend first. Returns false
+  /// with skipped()=true when the backend cannot initialize here or the offscreen
+  /// targets cannot be allocated headless; false with error() non-empty on a
+  /// genuine build error. On success records the actual backend name.
   bool create(score::gfx::GraphicsApi api)
   {
     m_backend = backend_name(api);
@@ -1516,7 +1554,7 @@ private:
 // terminal node. Returns one ReadbackImage per sink in IsfResult::outputs
 // (outputs[k] is sink k), so a test can assert all sinks agree.
 //
-// NOTE: because each BackgroundNode is its own OutputNode / RenderList, the
+// Because each BackgroundNode is its own OutputNode / RenderList, the
 // sinks render independently. This is exactly the shape the dangling-sink
 // sampler regression needs (A -> {B, C}, remove A->B, C survives). It is NOT
 // sufficient on its own to reproduce the persistent double-swap — see the

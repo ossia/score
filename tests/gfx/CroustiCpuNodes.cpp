@@ -132,8 +132,7 @@ TEST_CASE(
 {
   // Cube -> Transform 3D -> ScenePreprocessor -> raster, every producer a halp
   // process reaching the graph through oscr::GfxNode. This is the path
-  // CpuFilterNode.hpp's renderer serves, and nothing in a default ctest run
-  // entered it before.
+  // CpuFilterNode.hpp's renderer serves.
   //
   // SCOPE: this asserts that the chain builds, renders frames and tears down
   // without error, and nothing about pixels.
@@ -478,24 +477,16 @@ TEST_CASE(
     "Transform 3D moves the mesh it wraps",
     "[gfx][crousti][scene][threedim]")
 {
-  // THIS WAS AN EXPECTED-FAILURE PIN. It failed because the RIG read the wrong
-  // matrix, not because Transform 3D is broken.
-  //
-  // The old rig rasterised with syn-scene-solid.vs, whose one line is
-  // `gl_Position = clipSpaceCorrMatrix * MODEL_MATRIX * position`. MODEL_MATRIX
-  // is the RAW-RASTER convention: the only writer is
-  // RenderedRawRasterPipelineNode::process(int32_t, const ossia::transform3d&)
-  // (RenderedRawRasterPipelineNode.cpp:3378), fed by a transform3d message on
-  // the raster node's OWN port. Nothing in a scene chain writes it, so it was
-  // identity at every Transform 3D position and the silhouette could not move.
-  //
   // The scene path's per-object matrix is PerDrawGPU::model
-  // (ScenePreprocessorNode.cpp:41-49), published as the `per_draws` auxiliary
-  // and indexed by the per-instance `draw_id` VERTEX_INPUT. render_scene_chain
-  // now rasterises with syn-scene-perdraw-solid, which reads exactly that --
-  // the same thing shadow_cascades.vert and five real corpus documents do --
-  // and the centroid moves. See "a scene transform reaches the shader through
-  // per_draws" for the direct measurement of the matrix itself.
+  // (ScenePreprocessorNode.cpp), published as the `per_draws` auxiliary and
+  // indexed by the per-instance `draw_id` VERTEX_INPUT. render_scene_chain
+  // rasterises with syn-scene-perdraw-solid, which reads exactly that -- the
+  // same thing shadow_cascades.vert and five real corpus documents do -- and
+  // the centroid moves. Reading MODEL_MATRIX instead would measure nothing:
+  // its only writer is a transform3d message on the raster node's OWN port,
+  // which no scene chain sends, so it stays identity at every Transform 3D
+  // position. See "a scene transform reaches the shader through per_draws" for
+  // the direct measurement of the matrix itself.
   const auto api = GENERATE(from_range(platform_backends()));
   Placement centred, shifted;
   bool okA = false, okB = false;
@@ -521,7 +512,7 @@ TEST_CASE(
   // stage reads per_draws[draw_id].model out of a storage buffer -- and the
   // per_draws half of the second probe below does the same. Below GLSL 4.30
   // there is no such thing to read.
-  if(const char* why = storage_buffer_skip_reason(api))
+  if(const char* why = vertex_storage_buffer_skip_reason(api))
     SKIP(why);
   // Negative control: a shift assertion is vacuous if nothing was drawn.
   REQUIRE(centred.coverage > 0.01);
@@ -533,25 +524,17 @@ TEST_CASE(
     "a Torus reaches the rasterizer and draws",
     "[gfx][crousti][scene][threedim]")
 {
-  // THIS WAS AN EXPECTED-FAILURE PIN, and it was the SECOND rig mistake in this
-  // file, unrelated to the first (the retired MODEL_MATRIX one).
-  //
-  // The pin recorded that the rasterizer receives 1764 vertices for the Torus
-  // against 36 for the Cube, that the Cube draws through the identical chain,
-  // and that the Torus frame is nevertheless exactly empty. All three
-  // observations were correct. The missing one: WHERE those 1764 vertices are.
-  //
   // Threedim::Torus's default controls are R1 = 10 and R2 = 1, so every vertex
   // it emits satisfies 9 <= sqrt(x^2+y^2) <= 11. The rig has no camera -- the
   // rasteriser is `gl_Position = clipSpaceCorrMatrix * per_draws[draw_id].model
   // * position`, i.e. model space is clip space -- so the frame shows NDC
-  // [-1,1]^2, which lies entirely within the torus's 9-unit hole. The geometry
-  // was generated correctly, uploaded correctly and drawn correctly; all of it
-  // simply missed the viewport. Scaling the primitive to 0.05 (through the
+  // [-1,1]^2, which lies entirely within the torus's 9-unit hole: at default
+  // radii all 1764 vertices are generated, uploaded and drawn, and every one of
+  // them misses the viewport. Scaling the primitive to 0.05 (through the
   // scene transform the flattener already publishes in per_draws[].model)
-  // brings it into frame and it draws: measured coverage 0.078125, against the
-  // 0.0785 = pi*(0.55^2 - 0.45^2)/4 an annulus of those radii must cover in a
-  // 2x2 NDC square. Reverting just the scale returns coverage to exactly 0.
+  // brings it into frame and it draws, covering the 0.0785 =
+  // pi*(0.55^2 - 0.45^2)/4 an annulus of those radii must cover in a 2x2 NDC
+  // square. Without that scale nothing lands in the viewport at all.
   //
   // The oracle is therefore not "something was drawn" but "a RING was drawn":
   // the centre of the frame must stay dark, which no full silhouette (and no
@@ -581,7 +564,7 @@ TEST_CASE(
   // stage reads per_draws[draw_id].model out of a storage buffer -- and the
   // per_draws half of the second probe below does the same. Below GLSL 4.30
   // there is no such thing to read.
-  if(const char* why = storage_buffer_skip_reason(api))
+  if(const char* why = vertex_storage_buffer_skip_reason(api))
     SKIP(why);
   // Control: the Cube through the same chain must draw, else the chain is at
   // fault rather than the Torus.
@@ -626,23 +609,21 @@ TEST_CASE(
     "a geometry filter displaces the mesh it is given",
     "[gfx][gfxfilter][geometry][!shouldfail]")
 {
-  // GeometryFilterNode / GeometryFilterNodeRenderer had ZERO line coverage: the
-  // process is user-facing but nothing in the tree built one. The filter shifts
-  // every vertex along +X, so the oracle is that the silhouette MOVES -- a
-  // filter that was skipped still passes the mesh through and still draws, which
-  // a not-blank oracle would accept.
+  // GeometryFilterNode / GeometryFilterNodeRenderer is user-facing but nothing
+  // else in the tree builds one. The filter shifts every vertex along +X, so
+  // the oracle is that the silhouette MOVES -- a filter that was skipped still
+  // passes the mesh through and still draws, which a not-blank oracle would
+  // accept.
   //
-  // EXPECTED TO FAIL. An earlier note here blamed the raw-raster vertex binding
-  // for not reading threedim vertex positions; probing the layout DISPROVED that
-  // and it should not be chased again. The scene geometry is planar and
-  // self-consistent: one pooled arena per attribute (2^27 / 2^26 bytes), each
-  // attribute at its own binding with offset 0, position float3 padded into a
-  // 16-byte stride. The Cube's "fixed quadrant" is a correctly drawn unit-cube
-  // face: spanning [0,1] with no camera, its front face lands on exactly NDC
-  // [0,1]^2.
+  // The vertex binding is not the reason this is expected to fail: the scene
+  // geometry is planar and self-consistent, one pooled arena per attribute
+  // (2^27 / 2^26 bytes), each attribute at its own binding with offset 0,
+  // position float3 padded into a 16-byte stride. The Cube's "fixed quadrant"
+  // is a correctly drawn unit-cube face: spanning [0,1] with no camera, its
+  // front face lands on exactly NDC [0,1]^2.
   //
-  // EXPLAINED as of this session, and no longer a mystery: a Geometry Filter
-  // does not touch vertex buffers at all. GeometryFilterNodeRenderer's
+  // EXPECTED TO FAIL because a Geometry Filter does not touch vertex buffers
+  // at all. GeometryFilterNodeRenderer's
   // runRenderPass is empty (GeometryFilterNodeRenderer.cpp:128-132); all it
   // does is append one `ossia::geometry_filter` descriptor to the mesh's
   // filter list (:110-111). The DISPLACEMENT is spliced into the CONSUMER's
@@ -655,9 +636,6 @@ TEST_CASE(
   // Pipeline gets no error and no effect (a product gap worth its own fix).
   // Kept expected-red as the INTENT; see tests/gfx/GfxGeometryFilterShift.cpp,
   // which pins the parts that ARE reachable without a ModelDisplay.
-  // The old note here blamed the same cause as the Transform 3D pin; that pin
-  // turned out to be a rig mistake and is retired. These were never the same
-  // fault.
   const auto api = GENERATE(from_range(platform_backends()));
 
   auto run = [&](float shift, Placement& out, std::string& err) {
@@ -869,39 +847,33 @@ TEST_CASE(
     "a scene transform reaches the shader through per_draws",
     "[gfx][crousti][scene][threedim]")
 {
-  // THIS CASE USED TO BE AN EXPECTED-FAILURE PIN TITLED "a scene transform
-  // reaches MODEL_MATRIX". It was measuring the WRONG MECHANISM, and the pin
-  // was wrong, not the product. Traced through the engine:
+  // Where a scene transform actually lands, traced through the engine:
   //
   //  * MODEL_MATRIX is a UBO field libisf injects into every raw-raster shader
-  //    (isf.cpp:4358-4366). The ONLY thing that ever writes it is
+  //    (isf.cpp). The ONLY thing that ever writes it is
   //    RenderedRawRasterPipelineNode::process(int32_t, const
-  //    ossia::transform3d&) (RenderedRawRasterPipelineNode.cpp:3378), which
-  //    stores into m_modelTransform, uploaded to m_modelUBO at :2768. That is
-  //    a transform3d message delivered to the RASTER NODE'S OWN port.
+  //    ossia::transform3d&), which stores into m_modelTransform and uploads it
+  //    to m_modelUBO. That is a transform3d message delivered to the RASTER
+  //    NODE'S OWN port.
   //  * A Transform 3D in a SCENE chain never reaches that port. It reaches the
   //    ScenePreprocessor's renderer, where the base
-  //    NodeRenderer::process(port, transform3d) (NodeRenderer.cpp:612-689)
-  //    decomposes the matrix and wraps the last root under a
-  //    `scene_transform` payload.
+  //    NodeRenderer::process(port, transform3d) decomposes the matrix and wraps
+  //    the last root under a `scene_transform` payload.
   //  * The flattener bakes that into PerDrawGPU::model
-  //    (ScenePreprocessorNode.cpp:41-49, `float model[16]`), published as the
-  //    `per_draws` auxiliary (:2786) and indexed by the per-instance
-  //    `draw_id` VERTEX_INPUT (semantic instance_draw_id, :2660; the mechanism
-  //    is spelled out at :2390-2392).
+  //    (ScenePreprocessorNode.cpp, `float model[16]`), published as the
+  //    `per_draws` auxiliary and indexed by the per-instance `draw_id`
+  //    VERTEX_INPUT (semantic instance_draw_id).
   //
   // So MODEL_MATRIX being identity under a scene chain is CORRECT, not a
   // defect -- and it is what every real shader assumes: shadow_cascades.vert
   // in this corpus reads per_draws.data[draw_id].model, and five documents in
   // the user's corpus (2026/lgm/sponza-*, 2026/test-gltf-cubemap.score,
   // 2026/funky-depth-duck.score, 2026/lgm/model-depth.score) index `per_draws`
-  // the same way. Measured with syn-scene-perdraw: the encoded translation
-  // moves from the mid-grey bias at position 0 to a strictly larger value at
-  // position 0.5, on both backends.
+  // the same way. With syn-scene-perdraw, the encoded translation moves from
+  // the mid-grey bias at position 0 to a strictly larger value at position 0.5.
   //
-  // The second half keeps the OLD shader and pins the boundary explicitly:
-  // through a scene chain MODEL_MATRIX stays identity at both positions. That
-  // is the statement the deleted pin should have made.
+  // The second half reads MODEL_MATRIX instead and pins the boundary
+  // explicitly: through a scene chain it stays identity at both positions.
   const auto api = GENERATE(from_range(platform_backends()));
   int red0 = -1, red1 = -1;
   int mm0 = -1, mm1 = -1;
@@ -953,7 +925,7 @@ TEST_CASE(
   // stage reads per_draws[draw_id].model out of a storage buffer -- and the
   // per_draws half of the second probe below does the same. Below GLSL 4.30
   // there is no such thing to read.
-  if(const char* why = storage_buffer_skip_reason(api))
+  if(const char* why = vertex_storage_buffer_skip_reason(api))
     SKIP(why);
   // Control: translation 0 must encode as the mid-grey bias, else the shader is
   // not reporting the matrix at all and the comparison below means nothing.
