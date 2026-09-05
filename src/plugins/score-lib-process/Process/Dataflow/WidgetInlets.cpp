@@ -135,9 +135,10 @@ HSVSlider::HSVSlider(
 
 HSVSlider::~HSVSlider() { }
 
-void HSVSlider::setupExecution(ossia::inlet& i, QObject* exec_context) const noexcept
+const State::Unit& HSVSlider::unit() const noexcept
 {
-  safe_cast<ossia::value_inlet*>(&i)->data.type = ossia::rgba_u{};
+  static const State::Unit u{ossia::unit_t{ossia::rgba_u{}}};
+  return u;
 }
 
 FloatSlider::FloatSlider(

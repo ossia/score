@@ -166,6 +166,16 @@ const State::AddressAccessor& Port::address() const noexcept
   return m_address;
 }
 
+const State::Unit& Port::unit() const noexcept
+{
+  return m_unit;
+}
+
+void Port::setUnit(State::Unit u) noexcept
+{
+  m_unit = std::move(u);
+}
+
 const std::vector<Path<Cable>>& Port::cables() const noexcept
 {
   return m_cables;

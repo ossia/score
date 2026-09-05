@@ -515,7 +515,8 @@ struct SCORE_LIB_PROCESS_EXPORT HSVSlider : public Process::ControlInlet
       ossia::vec4f init, const QString& name, Id<Process::Port> id, QObject* parent);
   ~HSVSlider();
 
-  void setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept override;
+  //! rgba, however the port was constructed.
+  const State::Unit& unit() const noexcept override;
   auto getMin() const noexcept { return ossia::vec4f{0., 0., 0., 0.}; }
   auto getMax() const noexcept { return ossia::vec4f{1., 1., 1., 1.}; }
   using Process::ControlInlet::ControlInlet;

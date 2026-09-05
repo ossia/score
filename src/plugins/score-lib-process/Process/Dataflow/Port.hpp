@@ -1,6 +1,7 @@
 #pragma once
 #include <State/Address.hpp>
 #include <State/Domain.hpp>
+#include <State/Unit.hpp>
 
 #include <Device/Address/AddressSettings.hpp>
 
@@ -121,6 +122,13 @@ public:
   const QString& exposed() const noexcept;
   const QString& description() const noexcept;
 
+  //! The unit the process expects on this port, overridden by the @[unit] of its
+  //! address. Not serialized: the process declares it again when its ports are
+  //! built, which is why a port with a fixed unit overrides this rather than
+  //! calling setUnit().
+  virtual const State::Unit& unit() const noexcept;
+  void setUnit(State::Unit u) noexcept;
+
   virtual PortType type() const noexcept = 0;
 
   virtual Device::FullAddressAccessorSettings settings() const noexcept;
@@ -174,6 +182,7 @@ protected:
   QString m_exposed;
   QString m_description;
   State::AddressAccessor m_address;
+  State::Unit m_unit;
 };
 
 class SCORE_LIB_PROCESS_EXPORT Inlet : public Port
