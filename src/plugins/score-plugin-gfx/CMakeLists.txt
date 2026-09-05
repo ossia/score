@@ -906,10 +906,6 @@ add_executable(VideoDecoderTester tests/VideoDecoderTester.cpp)
 target_link_libraries(VideoDecoderTester PRIVATE score_plugin_gfx)
 endif()
 
-# Offscreen unit test for the GPU video encoders (no AJA/libav/gst needed).
-# In static-plugin builds score_init_static_plugins() references every
-# configured plugin, so the top-level CMakeLists completes the link with
-# SCORE_PLUGINS_LIST once all plugins have been declared.
 # App-free unit tests: no display, no GPU, runnable everywhere. Deliberately
 # outside the encoder-tester option: turning that off must not take the unit
 # tests with it.
@@ -917,6 +913,11 @@ if(SCORE_TESTING)
   add_subdirectory(tests)
 endif()
 
+# Offscreen self-test for the GPU video encoders (no AJA/libav/gst needed).
+# In static-plugin builds score_init_static_plugins() references every
+# configured plugin, so the top-level CMakeLists completes the link with
+# SCORE_PLUGINS_LIST once all plugins have been declared.
+#
 # EncoderTester needs a GPU and an RHI, so it can never run in the wasm job,
 # and it is a bare add_executable that never goes through
 # setup_score_common_features() -- which is where emscripten's --bind is added.
@@ -943,17 +944,15 @@ endif()
 # Offscreen self-test + micro-benchmark for the host-memory texture readback.
 option(SCORE_READBACK_TESTER "Build the host-memory readback self-test" ON)
 # Static builds work too: the top-level CMakeLists completes the link with the
-# full plugin list via score_link_plugins_for_static (the EncoderTester
-# remedy), so no static gate here.
+# full plugin list via score_link_plugins_for_static, as it does for
+# EncoderTester, so no static gate here.
 #
 # NOT EMSCRIPTEN for exactly the reason spelled out above EncoderTester: this
 # is a bare add_executable that never passes through
 # setup_score_common_features(), which is the only place emscripten's --bind is
 # added, so the link fails on the _emval_* symbols Qt6Gui pulls in via embind
 # (qlocalfileapi.cpp.o). It needs a GPU and an RHI, so it could never run in
-# the wasm job anyway. The sibling had the gate and this one did not; the wasm
-# build simply never reached the link stage to reveal it, because it was
-# failing earlier while compiling a second, FetchContent-downloaded zstd.
+# the wasm job anyway.
 if(SCORE_READBACK_TESTER AND NOT EMSCRIPTEN)
 add_executable(ReadbackTester tests/ReadbackTester.cpp)
 target_link_libraries(ReadbackTester PRIVATE
@@ -971,11 +970,11 @@ endif()
 # PipeWire video round-trip harness: drives the real Gfx/Pipewire producer +
 # consumer against the live daemon across all pixel formats and transports.
 option(SCORE_PIPEWIRE_TESTER "Build the PipeWire video round-trip harness" ON)
-# Every remaining gate is real: embind symbols under wasm, no pipewire off
+# Every gate here is real: embind symbols under wasm, no pipewire off
 # Linux, and the harness's raw reference producer links libpipewire directly
-# (score itself only dlopens it), so the link library must exist. Static
-# linkage is handled by score_link_plugins_for_static at the top level, same
-# as EncoderTester/ReadbackTester.
+# (score itself only dlopens it), so the link library must exist. The harness
+# uses QApplication directly and does not initialize score's plugin registry,
+# avoiding a multi-gigabyte all-plugin static link.
 find_library(PIPEWIRE_LIBRARY NAMES pipewire-0.3)
 if(SCORE_PIPEWIRE_TESTER
    AND NOT EMSCRIPTEN AND NOT APPLE AND NOT WIN32

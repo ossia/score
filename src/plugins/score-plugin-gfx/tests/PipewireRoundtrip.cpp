@@ -25,7 +25,6 @@
 
 #include <Video/ExternalInput.hpp>
 
-#include <core/application/MinimalApplication.hpp>
 
 extern "C" {
 #include <libavutil/frame.h>
@@ -41,6 +40,7 @@ extern "C" {
 
 #include <sys/mman.h>
 
+#include <QApplication>
 #include <QCommandLineParser>
 #include <QElapsedTimer>
 #include <QEventLoop>
@@ -308,7 +308,7 @@ struct PwFormat
   const char* name;      // CLI / matrix name
   uint32_t spa;          // SPA_VIDEO_FORMAT_*
   const char* urlFormat; // score input URL format= token
-  int blocks;            // spa_data planes for SHM (we use 1 buffer, packed)
+  int blocks;            // spa_data planes for SHM (one packed buffer)
   // fills one frame; stride = bytes per row of plane 0
   void (*fill)(uint8_t* base, int w, int h, int stride, int idx);
 };
@@ -416,7 +416,7 @@ void fillRgbaF16(uint8_t* d, int w, int h, int stride, int idx)
   }
 }
 // --- YUV fills (all take plane-0 stride; planes packed sequentially with
-// their natural strides, matching how we size the SHM buffer) ---
+// their natural strides, matching how the SHM buffer is sized) ---
 void fillI420(uint8_t* d, int w, int h, int stride, int idx)
 {
   std::vector<uint8_t> rgba(size_t(w) * h * 4);
@@ -615,8 +615,8 @@ struct RawProducer
     auto* self = static_cast<RawProducer*>(ud);
     pw_stream_trigger_process(self->stream);
   }
-  // Announce our buffer requirements once the format lands — without this
-  // the server sizes buffers from the format's natural stride and a padded
+  // Announce the buffer requirements once the format lands: otherwise the
+  // server sizes buffers from the format's natural stride and a padded
   // stride overruns them.
   static void on_param_changed_cb(void* ud, uint32_t id, const spa_pod* param)
   {
@@ -689,7 +689,7 @@ struct RawProducer
         PW_KEY_MEDIA_ROLE, "Camera", PW_KEY_NODE_NAME, nodeName.c_str(),
         // Publish as a camera-like device node: WirePlumber's standard
         // policy links consumers to Video/Source devices, not to
-        // Stream/Output/Video peers (OBS virtual camera does the same).
+        // Stream/Output/Video peers.
         PW_KEY_MEDIA_CLASS, "Video/Source", nullptr);
     stream = pw_stream_new_simple(
         pw_thread_loop_get_loop(loop), nodeName.c_str(), props, &events, this);
@@ -733,8 +733,8 @@ struct RawProducer
       return;
     // Stop the loop thread FIRST, then tear down without the lock:
     // pw_stream_destroy performs a blocking invoke on the stream's data
-    // loop (== this loop), which deadlocks if we hold the thread-loop
-    // lock while the loop thread is still running.
+    // loop (== this loop), which deadlocks if the thread-loop lock is still
+    // held while the loop thread runs.
     pw_thread_loop_stop(loop);
     if(timer)
       pw_loop_destroy_source(pw_thread_loop_get_loop(loop), timer);
@@ -996,11 +996,10 @@ Result runScoreToScore(
 
   r = finish(cell, transport, rcv.m, seconds, 24.0);
   r.sent = queued;
-  // Same demotion ladder as runPwToScore. Without the last rung a score->score
-  // cell in which the link was made, the producer published, and the consumer
-  // received nothing reported SKIP(no-frames) -- and since only FAIL sets the
-  // exit code, the whole matrix exited 0 while testing nothing. The pw->score
-  // direction has always called that case a failure.
+  // Same demotion ladder as runPwToScore. The last rung matters: a cell whose
+  // link was made and whose producer published, but whose consumer received
+  // nothing, is a failure, not a skip -- only FAIL sets the exit code, so a
+  // skip there would let the whole matrix exit 0 while testing nothing.
   if(r.status == "SKIP(no-frames)")
   {
     if(!lk.linked.load())
@@ -1130,7 +1129,7 @@ int main(int argc, char** argv)
   Q_INIT_RESOURCE(fonts);
 #endif
 
-  score::MinimalGUIApplication app(argc, argv);
+  QApplication app(argc, argv);
   pw_init(nullptr, nullptr);
 
   QTimer dialogKiller;
