@@ -25,7 +25,6 @@
 
 #include <Video/ExternalInput.hpp>
 
-#include <core/application/MinimalApplication.hpp>
 
 extern "C" {
 #include <libavutil/frame.h>
@@ -41,6 +40,7 @@ extern "C" {
 
 #include <sys/mman.h>
 
+#include <QApplication>
 #include <QCommandLineParser>
 #include <QElapsedTimer>
 #include <QEventLoop>
@@ -1130,7 +1130,7 @@ int main(int argc, char** argv)
   Q_INIT_RESOURCE(fonts);
 #endif
 
-  score::MinimalGUIApplication app(argc, argv);
+  QApplication app(argc, argv);
   pw_init(nullptr, nullptr);
 
   QTimer dialogKiller;
