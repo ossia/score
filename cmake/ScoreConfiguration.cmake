@@ -112,6 +112,35 @@ if(CMAKE_CXX_FLAGS MATCHES "sanitize=[a-z,]*undefined"
                  "set SCORE_UBSAN_KEEP_OPTIMISATION=1 to test without it)")
 endif()
 
+# UBSan runtime suppressions (cmake/ubsan-suppressions.txt).
+#
+# The suppression file only exists because of one libc++ header defect that
+# aborts every score binary that builds a MinimalGUIApplication -- see the file
+# itself for the mechanism and for what is and is not suppressed.
+#
+# The part that is not obvious: compiler-rt never consults a suppression file
+# from an *unrecoverable* handler. ubsan's ignoreReport() returns "do not
+# ignore" as soon as Opts.FromUnrecoverableHandler is set, since a handler that
+# is about to Die() has to print something first. With -fno-sanitize-recover=all
+# -- which this build uses, on purpose -- UBSAN_OPTIONS=suppressions=... is
+# therefore silently inert. Making just the `null` check recoverable is what
+# lets the file be read at all; UBSAN_OPTIONS=halt_on_error=1 (set on every
+# test below) then puts back the "first finding is fatal" behaviour for every
+# null report that is *not* suppressed. Nothing else changes: every other check
+# is still unrecoverable, straight from -fno-sanitize-recover=all.
+#
+# add_compile_options lands after CMAKE_CXX_FLAGS, so this wins over the
+# -fno-sanitize-recover=all the caller passed there.
+if(CMAKE_CXX_FLAGS MATCHES "sanitize=[a-z,]*undefined")
+  set(SCORE_UBSAN_SUPPRESSIONS "${CMAKE_CURRENT_LIST_DIR}/ubsan-suppressions.txt")
+  if(CMAKE_CXX_FLAGS MATCHES "fno-sanitize-recover")
+    add_compile_options(-fsanitize-recover=null)
+  endif()
+  set(SCORE_UBSAN_OPTIONS
+      "halt_on_error=1:print_stacktrace=1:suppressions=${SCORE_UBSAN_SUPPRESSIONS}")
+  message(STATUS "score: UBSAN_OPTIONS for ctest = ${SCORE_UBSAN_OPTIONS}")
+endif()
+
 # Note : if building with a Qt installed in e.g. /home/myuser/Qt/ or /Users/Qt or c:\Qt\
 # keep in mind that you have to call CMake with :
 # $ cmake -DCMAKE_MODULE_PATH={path/to/qt/5.3}/{gcc64,clang,msvc2013...}/lib/cmake/Qt5

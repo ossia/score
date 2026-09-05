@@ -182,6 +182,14 @@ function(score_add_test NAME)
   # is not a defect, and counting it as one silently inflates the failure count.
   set_tests_properties(${NAME} PROPERTIES SKIP_RETURN_CODE 4)
 
+  # Sanitizer builds: hand every test the suppression file. ENVIRONMENT_MODIFICATION
+  # rather than ENVIRONMENT so this does not fight the ENVIRONMENT values set
+  # below for APP/GUI tests. See cmake/ubsan-suppressions.txt.
+  if(SCORE_UBSAN_OPTIONS)
+    set_property(TEST ${NAME} APPEND PROPERTY ENVIRONMENT_MODIFICATION
+      "UBSAN_OPTIONS=set:${SCORE_UBSAN_OPTIONS}")
+  endif()
+
   # App/integration tests rely on runtime dynamic-plugin discovery from
   # "<cwd>/plugins": run them from the build root where <build>/plugins lives.
   if(ARG_APP OR ARG_GUI)
