@@ -205,5 +205,20 @@ function(score_add_test NAME)
     set_tests_properties(${NAME} PROPERTIES
       ENVIRONMENT "SCORE_AUDIO_BACKEND=dummy;SCORE_DISABLE_AUDIOPLUGINS=1"
       LABELS "gui")
+  else()
+    # Neither APP nor GUI, yet plenty of these link Qt::Gui and build a
+    # QGuiApplication (anything that touches QRhi has to). They got
+    # enable_minimal_qt_plugins(${NAME} 0) above, so the only platform plugins
+    # in the binary are offscreen and minimal -- there is no xcb, no wayland,
+    # no cocoa. Left to auto-detection, Qt sees DISPLAY in the environment,
+    # asks for "xcb", cannot find it, and qFatal()s. Catch2 then reports a bare
+    # SIGABRT against whichever TEST_CASE happened to be running, with the real
+    # message sitting far above at the top of the log.
+    #
+    # These tests cannot use a display even in principle, so say so.
+    # ENVIRONMENT_MODIFICATION rather than ENVIRONMENT so a caller that sets
+    # its own ENVIRONMENT afterwards does not silently drop this.
+    set_property(TEST ${NAME} APPEND PROPERTY ENVIRONMENT_MODIFICATION
+      "QT_QPA_PLATFORM=set:offscreen")
   endif()
 endfunction()
