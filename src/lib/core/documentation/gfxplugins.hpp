@@ -83,7 +83,7 @@
  *
  * // Mesh input. Most common case is a full-screen quad / triangle which is
  * // reflected by the 2d positions used.
- * // See PhongNode for a real 3D example.
+ * // See ModelDisplayNode (score-plugin-threedim) for a real 3D example.
  * layout(location = 0) in vec2 position;
  * layout(location = 1) in vec2 texcoord;
  *
