@@ -11,17 +11,17 @@
 // vol_integrated with an id derived from that grid -- so a nonzero sentinel in
 // a 16-byte placeholder is a multi-gigabyte out-of-bounds read.
 //
-// The placeholders were created and never written. Vulkan does not initialise
-// VkBuffer memory, so on a rebuild the fresh placeholder lands on whatever the
-// previous owner of that suballocation left there. Measured directly on an RTX
-// 4090 (Qt 6.9.1 QRhi, no score involved): allocate a 256-byte Dynamic UBO,
-// fill it with 0x5C, destroy it, then create a new one and read it back --
-// 14 of 64 fresh, never-uploaded placeholders came back 0x5C5C5C5C.
+// A placeholder that is created and never written is therefore a hazard:
+// Vulkan does not initialise VkBuffer memory, so on a rebuild the fresh
+// placeholder lands on whatever the previous owner of that suballocation left
+// there: at the QRhi level, allocate a Dynamic UBO, fill it with a pattern and
+// destroy it, and a freshly created one can read that pattern back without
+// anything ever having uploaded to it.
 //
 // IsfBindingsBuilder::ensureStorageResources already zero-fills the
 // INPUTS-side placeholders for exactly this reason (its comment names
-// cluster_light_counts / cluster_light_lists). The top-level AUXILIARY path
-// never got the same treatment.
+// cluster_light_counts / cluster_light_lists); this test covers the top-level
+// AUXILIARY path.
 //
 // This test builds a raster node with two producerless AUXILIARY blocks (one
 // std430 SSBO, one std140 UBO), then resizes the sink repeatedly.
@@ -31,8 +31,7 @@
 // memory. The shader paints green while every sentinel reads 0 and red as soon
 // as one does not.
 //
-// Measured on this box (NVIDIA RTX 4090, Vulkan), with the zero-fill reverted:
-// the readback goes red. See the commit message for both directions.
+// With the zero-fill reverted, the readback goes red.
 
 #include <score_test/Gfx.hpp>
 
@@ -147,6 +146,10 @@ TEST_CASE(
 
   if(skipped || (!built && err.empty()))
     SKIP("backend unavailable");
+
+  // This case needs a storage buffer, which pre-4.30 GLSL cannot express.
+  if(const char* why = storage_buffer_skip_reason(be))
+    SKIP(why);
 
   INFO("backend=" << backend_name(be) << " error=" << err);
   REQUIRE(err.empty());

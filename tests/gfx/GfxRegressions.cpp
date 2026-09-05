@@ -84,6 +84,10 @@ TEST_CASE(
   if(out.skipped)
     SKIP(out.backend + ": " + out.skip_reason);
 
+  // Needs a storage buffer, which pre-4.30 GLSL cannot express.
+  if(const char* why = score::test::gfx::storage_buffer_skip_reason(backend))
+    SKIP(why);
+
   INFO("backend=" << out.backend);
   REQUIRE(out.error.empty());
   REQUIRE(out.grey0 >= 0);
@@ -96,8 +100,8 @@ TEST_CASE(
   INFO("grey after N frames=" << out.grey0 << " after N+1=" << out.grey1
                               << " delta=" << delta);
 
-  // Once-per-frame advance == one 16-unit step (± 8-bit rounding). The bug
-  // would double this to ~32. Require a single step and reject the double.
+  // Once-per-frame advance == one 16-unit step (± 8-bit rounding); a double
+  // advance would show ~32. Require a single step and reject the double.
   CHECK(delta >= 10);
   CHECK(delta <= 22);
 }
