@@ -368,13 +368,28 @@ inline bool probe_api(score::gfx::GraphicsApi api, std::string& backendName)
      && st->rhi->backend() == QRhi::Implementation::Null)
     ok = false;
 
-  // Reject a legacy OpenGL context (GLSL < 330). The bare "offscreen" QPA plugin
+  // Reject a legacy OpenGL context. The bare "offscreen" QPA plugin
   // often hands out a GL 2.x context with no working GPU; a QRhi is created, but
   // score's shaders are generated as #version 450 and cannot cross-compile down
   // to GLSL 1.x. Treat it as unusable so the fixture falls through to the next
   // candidate API and SKIPs cleanly.
-  if(ok && api == score::gfx::OpenGL && st->version.version() < 330)
-    ok = false;
+  //
+  // The floor is per-language, not a single number. Desktop GLSL and GLSL ES
+  // are numbered in the same range but mean different things: desktop 330 is
+  // GL 3.3, where core-profile GL begins; the ES equivalent is 300 (ES 3.0),
+  // which is where texture arrays and 3D textures arrive. GLSL ES stops at
+  // 320, so measuring an ES context against the desktop 330 rejects EVERY
+  // GLES context that exists. That is not hypothetical: running this suite
+  // under SCORE_OPENGL_FORMAT=gles skipped 71 of 124 tests as "cannot
+  // initialize" on a GLES 3.2 context which is in fact fully capable --
+  // compute, SSBOs and texture arrays are all present at ES 3.1/3.2 -- and
+  // the skips read exactly like a machine with no GL driver.
+  if(ok && api == score::gfx::OpenGL)
+  {
+    const bool es = st->version.flags().testFlag(QShaderVersion::GlslEs);
+    if(st->version.version() < (es ? 300 : 330))
+      ok = false;
+  }
 
   if(ok)
     backendName = st->rhi->backendName();
