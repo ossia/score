@@ -141,6 +141,26 @@ if(CMAKE_CXX_FLAGS MATCHES "sanitize=[a-z,]*undefined")
   message(STATUS "score: UBSAN_OPTIONS for ctest = ${SCORE_UBSAN_OPTIONS}")
 endif()
 
+# LeakSanitizer, same shape as the UBSan block above and for the same reason:
+# one family of known leaks was drowning every other report.
+#
+# The makeGUIElements family accounts for 84% of all leaked bytes in the test
+# suite (9.51 MB of 11.32 MB, 31 of 58 leak-only tests) because every Catch2
+# case builds its own MinimalGUIApplication and each construction leaks the
+# same parent-less toolbars and actions. A shipped ossia-score builds ONE
+# application, so there it is a single leak set at exit; in the suite it is
+# ~400 blocks per test and it hides everything underneath.
+#
+# Suppressing it is what makes the other leaks legible. See the file itself:
+# these are real ownership bugs, and the entries go away when they are fixed.
+#
+# LSan is part of ASan here, so this is keyed on the address sanitizer being on.
+if(CMAKE_CXX_FLAGS MATCHES "sanitize=[a-z,]*address")
+  set(SCORE_LSAN_SUPPRESSIONS "${CMAKE_CURRENT_LIST_DIR}/lsan-suppressions.txt")
+  set(SCORE_LSAN_OPTIONS "suppressions=${SCORE_LSAN_SUPPRESSIONS}")
+  message(STATUS "score: LSAN_OPTIONS for ctest = ${SCORE_LSAN_OPTIONS}")
+endif()
+
 # Note : if building with a Qt installed in e.g. /home/myuser/Qt/ or /Users/Qt or c:\Qt\
 # keep in mind that you have to call CMake with :
 # $ cmake -DCMAKE_MODULE_PATH={path/to/qt/5.3}/{gcc64,clang,msvc2013...}/lib/cmake/Qt5
