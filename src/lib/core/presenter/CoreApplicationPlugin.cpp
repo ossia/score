@@ -20,6 +20,7 @@
 SCORE_DECLARE_ACTION(Website, "&Website", Common, QKeySequence::UnknownKey)
 SCORE_DECLARE_ACTION(Documentation, "&Documentation", Common, QKeySequence::UnknownKey)
 SCORE_DECLARE_ACTION(Issues, "&Report Issues", Common, QKeySequence::UnknownKey)
+SCORE_DECLARE_ACTION(Chat, "&Chat", Common, QKeySequence::UnknownKey)
 SCORE_DECLARE_ACTION(Forum, "&Forum", Common, QKeySequence::UnknownKey)
 
 #include <QDialog>
@@ -324,6 +325,16 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
       });
       e.actions.add<Actions::Issues>(issues_act);
       about->addAction(issues_act);
+    }
+
+    {
+      auto chat_act = new QAction(m_presenter.view());
+      score::setHelp(chat_act, tr("Open link to Discord https://discord.gg/8Hzm4UduaS"));
+      connect(chat_act, &QAction::triggered, this, [] {
+        QDesktopServices::openUrl(QUrl("https://discord.gg/8Hzm4UduaS"));
+      });
+      e.actions.add<Actions::Chat>(chat_act);
+      about->addAction(chat_act);
     }
 
     {

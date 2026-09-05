@@ -883,21 +883,30 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
             "watch?v=R-3d8K6gQkw&list=PLIHLSiZpIa6YoY1_aW1yetDgZ7tZcxfEC",
             "tutorials",
             {}},
-           {tr("Documentation"), "https://ossia.io/score-docs/", "learn", {}}}));
+              {tr("Documentation"), "https://ossia.io/score-docs/", "learn", {}},
+              {tr("Process reference"), "https://ossia.io/score-docs/processes.html", "learn", {}},
+              {tr("Device reference"), "https://ossia.io/score-docs/devices.html", "learn", {}},
+              {tr("Web version"), "https://ossia.io/score-web/", "tutorials", {}},
+          }));
   addPage(
       tr("Community"), "community",
       createLinksPage(
           tr("Get involved"),
           {{tr("GitHub Discussions"), "https://github.com/ossia/score/discussions",
             "forum", tr("Ask questions and share what you do with score")},
-           {tr("Discord chat"), "https://discord.gg/ossia", "chat", {}},
+           {tr("Discord Chat"), "https://discord.gg/8Hzm4UduaS", "chat", {}},
            {tr("Report a bug or suggest a feature"),
             "https://github.com/ossia/score/issues",
             "new_file",
             {}},
-           {tr("Donate on Open Collective"), "https://opencollective.com/ossia",
+           {tr("Support ossia score through the Suite SAT"), "https://suite.sat.qc.ca/en",
             "contribute",
-            tr("ossia score is free software: donations fund its development")}}));
+            tr("ossia score is free software: donations fund its development")},
+           {tr("Donate on Open Collective"), "https://opencollective.com/ossia",
+            "contribute", tr("ossia score is free software: donations fund its development")},
+           {tr("Contributing"), "https://ossia.io/score-docs/development", "contribute",
+               tr("Come implement your dream feature!")},
+          }));
   addPage(tr("About"), "about", [this] { return createAboutPage(); });
 
   m_navLayout->addStretch();
@@ -1105,7 +1114,7 @@ QWidget* StartScreen::createHomePage(const QPointer<QRecentFilesMenu>& recentFil
   {
     auto col = new QVBoxLayout;
     col->setSpacing(6);
-    col->addWidget(makeSectionTitle(tr("Create a new score"), page));
+    col->addWidget(makeSectionTitle(tr("Start"), page));
 
     auto newLabel = makeItem(tr("New empty score"), "new_file", "", page);
     connect(newLabel, &InteractiveLabel::labelPressed, this, [this] {
@@ -1147,7 +1156,7 @@ QWidget* StartScreen::createHomePage(const QPointer<QRecentFilesMenu>& recentFil
             page));
       }
       auto guided = makeAccentItem(
-          tr("Open the guided first score"), "version", firstRunScore, page);
+          tr("Open the demo project"), "version", firstRunScore, page);
       connect(guided, &InteractiveLabel::labelPressed, this, [this](const QString& f) {
         choose([&] { openTemplate(f); });
       });
@@ -1264,7 +1273,7 @@ QWidget* StartScreen::createExamplesPage()
 {
   return createCardsPage(
       tr("Example scores"),
-      tr("Each example opens as a new untitled score, so you can experiment freely."),
+      tr("Each example opens as a new, untitled score."),
       tr("No example scores are installed yet. Examples are .score files in the "
          "Examples folder of your user library (%1) or of an installed package.")
           .arg(QDir::toNativeSeparators(libraryRootPath())),
