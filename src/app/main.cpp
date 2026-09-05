@@ -52,6 +52,7 @@ inline void init_apartment_sta() noexcept
 #include "Application.hpp"
 
 #include <score/widgets/MessageBox.hpp>
+#include <score/gfx/OpenGL.hpp>
 
 #include <ossia/detail/config.hpp>
 
@@ -520,25 +521,21 @@ static void setup_opengl(bool& enable_opengl_ui)
   {
     return;
   }
+  // Creates no context, so it is safe under a sanitizer -- and required there:
+  // it runs before the SCORE_SANITIZE_SKIP_CHECKS early return below, which
+  // would otherwise leave the default format untouched, i.e. on macOS's legacy
+  // GL 2.1 profile, where nothing renders. Shared with the test bootstrap,
+  // which never reaches this function at all.
+  score::setupDefaultOpenGLFormat();
+
   if(qEnvironmentVariableIsSet("SCORE_SANITIZE_SKIP_CHECKS"))
     return;
 
 #ifndef QT_NO_OPENGL
 #if (defined(__arm__) || defined(__aarch64__)) && !defined(_WIN32) && !defined(__APPLE__)
-  // Raspberry Pi & such
-  QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
-  fmt.setRenderableType(QSurfaceFormat::OpenGLES);
-  fmt.setSwapInterval(1);
-  fmt.setMajorVersion(3);
-  fmt.setMinorVersion(2);
-  fmt.setDefaultFormat(fmt);
+  // Raspberry Pi & such: handled by setupDefaultOpenGLFormat() above.
 #elif defined(__APPLE__)
-  QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
-  fmt.setProfile(QSurfaceFormat::CoreProfile);
-  fmt.setSwapInterval(1);
-  fmt.setMajorVersion(4);
-  fmt.setMinorVersion(1);
-  fmt.setDefaultFormat(fmt);
+  // Handled by setupDefaultOpenGLFormat() above.
 #else
   {
     // Desktop GL
@@ -787,14 +784,13 @@ static void setup_qml()
 
 struct failsafe
 {
-  // An explicit way out, for automated runs. The bit is deliberately STICKY --
+  // An explicit way out, for automated runs. The bit is deliberately sticky --
   // clear() below refuses to remove it when this process itself started in
   // failsafe, so a genuinely crashing install stays safe across restarts. The
-  // cost is that ONE crashed startup degrades every later launch (opengl forced
-  // off, see the use at the bottom of main) until the file is deleted by hand.
-  // In a test sweep that silently turns the rest of the run into failsafe-mode
-  // results: measured on Windows, 15 of 21 tests in one leg. Spelled like the
-  // neighbouring SCORE_DISABLE_AUDIOPLUGINS / SCORE_DISABLE_LV2.
+  // cost is that one crashed startup degrades every later launch (opengl forced
+  // off, see the use at the bottom of main) until the file is deleted by hand,
+  // which in a test sweep turns the rest of the run into failsafe-mode results.
+  // Spelled like the neighbouring SCORE_DISABLE_AUDIOPLUGINS / SCORE_DISABLE_LV2.
   //
   // When set, failsafe is bypassed entirely: not read, not written, not
   // cleared. Any existing bit is left alone rather than deleted, so this does
@@ -807,14 +803,12 @@ struct failsafe
   // during exit, when Qt may be past the point of being usable.
   static inline std::string armed_path{};
 
-  // ::exit() does NOT run main()'s local destructors, so the failsafe object's
-  // own scope guarantees nothing -- but it DOES run atexit handlers. This is
-  // how the bit survived a --help or --version run: QCommandLineParser's
-  // showHelp() calls ::exit(0) from inside the Application constructor, which
-  // is above failsafe.clear() in main(), so the bit stayed armed and the NEXT
-  // real launch started degraded with opengl forced off. Any probe of the
-  // binary poisoned the run that followed it, which in a test sweep silently
-  // turned later results into failsafe-mode results.
+  // ::exit() does not run main()'s local destructors, so the failsafe object's
+  // own scope guarantees nothing -- but it does run atexit handlers. Without
+  // this handler the bit survives a --help or --version run: QCommandLineParser's
+  // showHelp() calls ::exit(0) from inside the Application constructor, above
+  // failsafe.clear() in main(), leaving the bit armed so the next real launch
+  // starts degraded with opengl forced off.
   static void clear_at_exit() noexcept
   {
     if(!armed_path.empty())
