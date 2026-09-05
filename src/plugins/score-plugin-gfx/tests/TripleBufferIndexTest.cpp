@@ -173,6 +173,20 @@ TEST_CASE("a producer and a consumer thread never share a slot",
   std::atomic<bool> stop{false};
   std::atomic<int> collisions{0};
   std::atomic<int> badIndex{0};
+  // acquireReadIndex() returns -1 for "no frame has ever been published", and
+  // the very next TEST_CASE is the regression guard that says it must. The
+  // consumer thread starts before the producer's first publishWriteIndex(),
+  // so it spins on that -1 for as long as thread startup takes. Counting it
+  // as a bad index made this case fail on roughly 2 runs in 5 here, and
+  // 1408/1048719 in the 4f526348fc sanitizer run -- which reads as a
+  // producer/consumer race that is not there: `collisions`, the counter that
+  // actually detects a shared slot, was 0 in every one of those runs.
+  //
+  // A -1 *after* a frame has been acquired would be a real defect, since
+  // everReady latches on the first publish and is never cleared. Count the
+  // two separately and only assert on the second.
+  std::atomic<int> notReadyBeforeFirstFrame{0};
+  std::atomic<int> notReadyAfterFirstFrame{0};
 
   constexpr int kFrames = 200000;
 
@@ -196,6 +210,7 @@ TEST_CASE("a producer and a consumer thread never share a slot",
 
   std::thread consumer([&] {
     int cur = -1;
+    bool sawFrame = false;
     while(!stop.load(std::memory_order_acquire))
     {
       // Release the previous texture, then ask for the next one: that is the
@@ -203,12 +218,20 @@ TEST_CASE("a producer and a consumer thread never share a slot",
       if(cur >= 0)
         heldByConsumer[cur].store(false, std::memory_order_release);
       const int r = idx.acquireReadIndex();
+      if(r == -1)
+      {
+        (sawFrame ? notReadyAfterFirstFrame : notReadyBeforeFirstFrame)
+            .fetch_add(1, std::memory_order_relaxed);
+        cur = -1;
+        continue;
+      }
       if(r < 0 || r >= 3)
       {
         badIndex.fetch_add(1, std::memory_order_relaxed);
         cur = -1;
         continue;
       }
+      sawFrame = true;
       heldByConsumer[r].store(true, std::memory_order_release);
       cur = r;
     }
@@ -220,6 +243,7 @@ TEST_CASE("a producer and a consumer thread never share a slot",
   consumer.join();
 
   CHECK(badIndex.load() == 0);
+  CHECK(notReadyAfterFirstFrame.load() == 0);
   CHECK(collisions.load() == 0);
 }
 
