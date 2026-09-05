@@ -83,11 +83,30 @@ QString addUniqueSuffix(const QString& fileName)
 
 QString locateFilePath(const QString& filename) noexcept
 {
-  if(filename.startsWith("<LIBRARY>:"))
+  static const QString library_prefix = QStringLiteral("<LIBRARY>:");
+  if(filename.startsWith(library_prefix))
   {
     QSettings set;
+    const QString root = set.value("Library/RootPath").toString();
+
+    // With nothing to resolve against, stripping the prefix is the whole
+    // operation and the remainder is returned as it was written. Substituting
+    // an empty root as `"" + "/"` would turn "<LIBRARY>:/x.fs" into "//x.fs",
+    // and on Windows a leading "//" is a UNC share: score would go looking for
+    // a host literally named "x.fs" and could block on a network timeout
+    // rather than failing to find a local file. The twin overload in
+    // ProjectFiles.cpp guards the same case.
+    if(root.isEmpty())
+      return filename.mid(library_prefix.size());
+
     QString path = filename;
-    path.replace("<LIBRARY>:", set.value("Library/RootPath").toString() + "/");
+    path.replace(library_prefix, root + "/");
+
+    // Already absolute: clean it rather than anchoring it. absoluteFilePath()
+    // on Windows rewrites a rooted path that carries no drive letter, doubling
+    // its leading slash into the same UNC form.
+    if(QFileInfo{path}.isAbsolute())
+      return QDir::cleanPath(path);
     return QFileInfo{path}.absoluteFilePath();
   }
   return filename;
