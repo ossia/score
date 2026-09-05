@@ -6,7 +6,7 @@
 // does: a JS build script through `ossia-score --no-gui --script ... --autoplay`,
 // SCORE_FORCE_OFFSCREEN_WINDOW so nothing touches the desktop, wall-clock
 // settling time for the asynchronous asset loaders (a sync renderFrames() run
-// finishes before the loader's worker lands its closure — measured), then a
+// finishes before the loader's worker lands its closure), then a
 // grab requested over the OSC control port exactly as
 // tests/integration/scene-js-sweep.sh does. The grabbed frame is compared
 // against refs/<case>.png -- ONE golden per case, shared by every backend --
@@ -22,30 +22,13 @@
 // QRhi::backendName() and QRhi::driverInfo() -- available on every backend
 // since Qt 6.4 -- so a number always names what produced it.
 //
-// It used to be read out of Qt's qt.rhi.general log by looking for the literal
-// "RENDERER". That string is emitted by exactly ONE backend: qrhigles2.cpp's
-// "OpenGL VENDOR: %s RENDERER: %s VERSION: %s". Vulkan prints "Using imported
-// physical device '<name>' ... vendor 0x.. device 0x..", D3D11 and D3D12 print
-// adapter lines of their own, and none of them contains the word. The scrape
-// therefore returned an EMPTY string on every backend but OpenGL, and two
-// things followed silently:
-//
-//   * nine `if(!rendererLine.contains("NVIDIA")) SKIP(...)` sites were
-//     unconditionally true off OpenGL. Measured here on a machine with an
-//     NVIDIA card in it: on QSG_RHI_BACKEND=vulkan the file skipped every one
-//     of those cases anyway. It was not a hardware gate, it was a log-format
-//     accident, and it cost a full render (~16 s a leg, 183 s a leg on the
-//     Windows sweep) to reach a verdict of "skipped".
-//   * the cross-leg "the same renderer produced both frames" checks compared
-//     "" against "" and could never fire.
-//
-// Both are fixed. The nonBlank / ordering / closed-form assertions below are
-// statements about loaders, shaders and projection arithmetic, not about
-// drivers, and they now run on every backend and every vendor. The one thing
-// that still skips does so on a CHECKED capability fact and not on a string:
-// skipIfNothingIsRasterised() skips when QRhi::backendName() is "Null",
-// because that backend records commands and rasterises nothing, so every pixel
-// assertion in this file would be reading a cleared frame.
+// The nonBlank / ordering / closed-form assertions below are statements about
+// loaders, shaders and projection arithmetic, not about drivers, so they run
+// on every backend and every vendor. The one thing that skips does so on a
+// CHECKED capability fact and not on a string: skipIfNothingIsRasterised()
+// skips when QRhi::backendName() is "Null", because that backend records
+// commands and rasterises nothing, so every pixel assertion in this file would
+// be reading a cleared frame.
 //
 // ASSETS are generated in-test, byte-for-byte, all self-authored (CC0):
 //   cube.obj        unit-ish cube, positions+normals+uvs, wound to the
@@ -55,39 +38,21 @@
 //   cube .stl (ascii+binary) / cube .ply (ascii) / cube .off (ascii)
 //                   the SAME cube in the other containers -- the equal-geometry
 //                   evidence for the pins and for the family oracle below
-//   tiny.vox        a MagicaVoxel 2x2x2 solid (case currently SKIPs, see it)
+//   tiny.vox        a MagicaVoxel 2x2x2 solid
 // Real-world third-party samples are deliberately NOT committed; see
 // threedim-render/fetch-real-assets.sh for the out-of-repo corpus.
-//
-// FORMERLY-PINNED DEFECTS, now fixed and asserting correct behaviour:
-//   * obj-no-normals: GeometryLoader left an OBJ without `vn` unshaded so it
-//     rendered BLACK under the Light projection; the loader now derives flat
-//     per-face normals (the treatment STL got in 1a02c5cabf).
-//   * stl-cube / ply-cube: the VCG import family (normals, no UVs) selected
-//     the triplanar shader, which emitted only a texture and rendered black
-//     untextured; the triplanar pass grew a normal-lighting floor.
-//
-// Cases found un-goldenable and asserted structurally instead:
-//   * csf-geometry: csf-vertex-count-expr.cs is time-animated by design, so
-//     two grabs never agree; asserted non-blank + blue-dominant (the raster's
-//     particle colour), which a missing geometry cable turns black. It now
-//     renders syn-geo-asym-tri.cs instead -- a fixed, clock-free, deliberately
-//     LOPSIDED triangle -- and is goldenable again; see the case.
 //
 // CHANNELS found un-goldenable, on an otherwise goldenable case:
 //   * obj-cube's BLUE. The phong shader the Light projection selects animates
 //     its own light off the transport clock, and its materials aim the whole
-//     animation at the specular, which is blue-only. Measured over six renders
-//     on one machine, R and G are bit-identical and B is not reproducible even
-//     against itself. The golden covers "rg"; the specular is asserted by its
+//     animation at the specular, which is blue-only. R and G are bit-identical
+//     from render to render and B is not reproducible even against itself.
+//     The golden covers "rg"; the specular is asserted by its
 //     shape. Full derivation at the case.
 //
-// Vulkan note: this suite pins the GL class only, but the model pipeline no
-// longer ABORTS on the Vulkan backend. It used to hit a qrhivulkan.cpp assert
-// ("utexD->m_flags.testFlag(QRhiTexture::UsedWithGenerateMips)" — generateMips
-// requested on an input texture created without the flag); ModelDisplayNode
-// now guards the generateMips call on the texture's flag, so a debug Qt
-// Vulkan build renders the model pipeline instead of aborting.
+// This suite pins the GL class only. ModelDisplayNode guards its generateMips
+// call on the texture's UsedWithGenerateMips flag, so a debug Qt Vulkan build
+// renders the model pipeline rather than tripping the qrhivulkan.cpp assert.
 // =============================================================================
 
 #include "GoldenImage.hpp"
@@ -150,12 +115,9 @@ constexpr int kOscPort = 6666;
 // camera at (-1,-1,-1) looking at the origin frames it, wound counter-clockwise
 // seen from OUTSIDE -- the QRhi front-face convention every backend rasterises.
 //
-// It used to be wound the other way, with the note "validated: the opposite
-// winding is fully backface-culled from this camera". That validation was a
-// mis-reading. Computed for all six faces, every geometric normal OPPOSED its
-// declared normal (dot = -1.00 exactly), i.e. the cube was inside-out. With
-// correct winding the visible near faces are the UNLIT ones -- the light is
-// hard-coded at (100,10,10) -- so a correct render looked like "nothing".
+// Every geometric normal agrees with its declared normal, so the visible near
+// faces from that camera are the UNLIT ones -- the phong light is hard-coded
+// at (100,10,10).
 struct V3
 {
   float x, y, z;
@@ -285,7 +247,7 @@ QByteArray makeCubeStlBinary()
 }
 
 // ASCII PLY: the cube with per-face flat normals (24 corner-vertices), the
-// exact layout measured black through the VCG path.
+// exact layout that comes out black through the VCG path.
 QByteArray makeCubePlyAscii()
 {
   QByteArray body;
@@ -327,8 +289,8 @@ QByteArray makeCubePlyAscii()
 // same vectors and the four containers are pixel-comparable.
 //
 // This also stays on the plain-"OFF" branch of VcgImporters' offStructureIsSane
-// pre-validation (2293b9d588): NOFF/COFF variants pass straight through to
-// vcglib, so a variant header would silently stop testing the guarded path.
+// pre-validation: NOFF/COFF variants pass straight through to vcglib, so a
+// variant header would silently stop testing the guarded path.
 QByteArray makeCubeOffAscii()
 {
   QByteArray verts;
@@ -360,10 +322,8 @@ QByteArray makeTinyVox()
   // QStringBuilder<QByteArray&, const QByteArray&, ...> expression template
   // that `c + content + children` builds; it holds REFERENCES to all three
   // operands, every one of which dies at the return, and the caller converts a
-  // dangling proxy. Measured: SIGABRT inside QByteArray's constructor on a
-  // garbage length, the moment this function was first called for real. It
-  // never had been -- the .vox case below SKIPped unconditionally, so the
-  // fixture it exists to build had never once been executed.
+  // dangling proxy, aborting inside QByteArray's constructor on a garbage
+  // length.
   auto chunk = [](const char id[4], const QByteArray& content,
                   const QByteArray& children = {}) -> QByteArray {
     QByteArray c(id, 4);
@@ -397,20 +357,11 @@ QByteArray makeTinyVox()
 //!
 //! Read out of score.gfx's own "RHI device:" line, which RenderState::Caps
 //! ::populate prints from QRhi::backendName() + QRhi::driverInfo() on EVERY
-//! backend. It replaces a scrape of Qt's qt.rhi.general log for the literal
-//! "RENDERER", which only qrhigles2.cpp ever emits ("OpenGL VENDOR: %s
-//! RENDERER: %s VERSION: %s"): Vulkan, D3D11 and D3D12 print adapter lines of
-//! entirely different shapes, so that scrape returned an EMPTY string off
-//! every backend but OpenGL. Two things fell out of that, both of them silent:
-//! the vendor gates below were unconditionally true and skipped the whole file
-//! on three backends regardless of the hardware, and the cross-leg
-//! "same renderer" checks compared "" against "" and could never fire.
+//! backend.
 //!
 //! Fields are populated per backend as the driver allows. deviceName is filled
-//! in everywhere; vendorId/deviceId are zero on Qt's GL backend (measured here:
-//! GL reports device="NVIDIA Corporation Quadro RTX 4000/PCIe/SSE2 4.6.0 NVIDIA
-//! 595.84" vendorId=0x0, Vulkan on the same box reports device="NVIDIA GeForce
-//! RTX 4090" vendorId=0x10de deviceId=0x2684) -- the same gap
+//! in everywhere; vendorId/deviceId are zero on Qt's GL backend while the other
+//! backends fill them in -- the same gap
 //! GpuCapabilities.cpp:213 documents. Nothing in this file GATES on any of it.
 struct DeviceIdentity
 {
@@ -434,7 +385,7 @@ struct RenderResult
 };
 
 //! Parse the product's identity line:
-//!   score.gfx: RHI device: backend=Vulkan device="NVIDIA GeForce RTX 4090"
+//!   score.gfx: RHI device: backend=Vulkan device="<renderer string>"
 //!   vendorId=0x10de deviceId=0x2684 deviceType=discrete
 DeviceIdentity parseDeviceIdentity(const QString& line)
 {
@@ -454,16 +405,16 @@ DeviceIdentity parseDeviceIdentity(const QString& line)
   return id;
 }
 
-//! The ONE remaining reason a leg of this file cannot be judged, and it is a
-//! checked capability fact rather than a log-format accident: QRhi came up on
-//! the Null backend, which validates and records commands and rasterises
+//! The one reason a leg of this file cannot be judged, and it is a checked
+//! capability fact rather than a string match: QRhi came up on the Null
+//! backend, which validates and records commands and rasterises
 //! nothing. Every assertion here reads pixels, so on Null they would all be
 //! measuring a cleared frame. Everything else -- vendor, discrete vs
 //! integrated, and llvmpipe/lavapipe (deviceType=cpu) -- renders correctly and
 //! is asserted, not skipped.
 //!
 //! This is the same contract tests/gfx/GfxNullBackendRefuses.cpp pins for the
-//! in-process fixture (P2-15, "the Null backend refuses rather than pretends"),
+//! in-process fixture -- the Null backend refuses rather than pretends --
 //! stated for the out-of-process harness: there the fixture knows the backend
 //! because it selected it, here the app reports it. It is reachable, not
 //! theoretical -- ScreenNode::createRenderState falls back to QRhi::Null
@@ -480,8 +431,7 @@ void skipIfNothingIsRasterised(const RenderResult& r)
 
 //! Cross-leg guard for the multi-render cases. They compare frames produced by
 //! separate app launches against each other, which is only an oracle if the
-//! same device produced them; and it is only a CHECK if the identity is
-//! actually known, which the old string compare of two empty scrapes was not.
+//! same device produced them, and only a CHECK if the identity is known.
 void requireSameDevice(const RenderResult& r, const DeviceIdentity& ref)
 {
   INFO("leg rendered by: " << r.gpu.line.toStdString()
@@ -573,19 +523,16 @@ RenderResult renderScene(const QTemporaryDir& dir, const QString& name,
   env.insert("XDG_CONFIG_HOME", cfg);
   // The app persists a shader/PSO cache under XDG_CACHE_HOME; without
   // isolating it, a product-shader edit can keep rendering the OLD compiled
-  // pipeline (measured: a negative control stayed green until this line).
+  // pipeline, which is enough to keep a negative control green.
   env.insert("XDG_CACHE_HOME", cfg + "/cache");
   env.insert("SCORE_FORCE_OFFSCREEN_WINDOW", "Window");
   env.insert("SCORE_AUDIO_BACKEND", "dummy");
   env.insert("SCORE_DISABLE_AUDIOPLUGINS", "1");
   env.insert("QT_LOGGING_RULES", "qt.rhi.general=true");
   // MergedChannels below joins the child's stderr into what we read, but on
-  // Windows Qt's default handler does not write to stderr at all -- it goes to
-  // OutputDebugString unless these are set, so the "score.gfx: RHI device:"
-  // line never reached p.readAll(), DeviceIdentity::backend stayed empty, and
-  // requireSameDevice's REQUIRE(gpu.known()) failed on every Windows backend.
-  // The device-identity assertions arrived with the NVIDIA-gate removal and
-  // were only ever exercised where logging already lands on stderr.
+  // Windows Qt's default handler writes to OutputDebugString rather than
+  // stderr unless these are set, so the "score.gfx: RHI device:" line would
+  // never reach p.readAll() and DeviceIdentity::backend would stay empty.
   // GfxProtocolSettingsTest sets the same pair for the same reason.
   env.insert("QT_FORCE_STDERR_LOGGING", "1");
   env.insert("QT_ASSUME_STDERR_HAS_CONSOLE", "1");
@@ -746,8 +693,8 @@ bool nonBlank(const QImage& im)
 //! More than one colour in the frame.
 //!
 //! nonBlank() is a MEAN, so a frame filled edge to edge with a single mid-grey
-//! satisfies it. Measured, not supposed: a negative-control build of this file
-//! that replaces every grab with a uniform RGB(128,128,128) passes the four
+//! satisfies it. A negative-control build of this file that replaces every grab
+//! with a uniform RGB(128,128,128) passes the four
 //! container cases and the container-family case outright, because their only
 //! floor is nonBlank and their only oracle is "two legs agree" -- which two
 //! identical flat fills satisfy perfectly.
@@ -773,25 +720,12 @@ bool nonUniform(const QImage& im)
   return false;
 }
 
-//! Largest distance, in pixels, from the frame centre to a drawn pixel.
-//!
-//! For the fisheye cases this is a closed-form quantity and not a heuristic:
-//! the drawn silhouette of a convex mesh is the convex hull of its projected
-//! vertices, the farthest point of a convex polygon from any interior point is
-//! a VERTEX, and all four fisheye laws are strictly increasing in the view
-//! angle theta -- so the pixel that attains this maximum is the projection of
-//! the same cube corner (the one at maximum theta) under every law. That is
-//! what makes the ratios between the four renders a property of the LAWS alone,
-//! independent of viewport aspect handling, of which corner it happens to be,
-//! and of the absolute scale.
-//!
 //! Number of pixels above the `lit` threshold.
 //!
-//! nonBlank() is a MEAN over the whole frame, so it cannot be used as the
-//! "something was drawn" floor for the fisheye cases: under the perspective law
-//! at a 160-degree FOV the cube is legitimately a few percent of the frame and
-//! its mean luma is well under the BLANK_MEAN rule. Measured -- that is what
-//! this counter replaced.
+//! nonBlank() is a MEAN over the whole frame, so it cannot be the "something
+//! was drawn" floor for the fisheye cases: under the perspective law at a
+//! 160-degree FOV the cube is legitimately a few percent of the frame and its
+//! mean luma is well under the BLANK_MEAN rule.
 int drawnPixels(const QImage& im, int lit = 24)
 {
   int n = 0;
@@ -805,7 +739,18 @@ int drawnPixels(const QImage& im, int lit = 24)
   return n;
 }
 
-//! `lit` is a luma threshold; the clear colour here is black.
+//! Largest distance, in pixels, from the frame centre to a drawn pixel; `lit`
+//! is a luma threshold and the clear colour here is black.
+//!
+//! For the fisheye cases this is a closed-form quantity and not a heuristic:
+//! the drawn silhouette of a convex mesh is the convex hull of its projected
+//! vertices, the farthest point of a convex polygon from any interior point is
+//! a VERTEX, and all four fisheye laws are strictly increasing in the view
+//! angle theta -- so the pixel that attains this maximum is the projection of
+//! the same cube corner (the one at maximum theta) under every law. That is
+//! what makes the ratios between the four renders a property of the LAWS alone,
+//! independent of viewport aspect handling, of which corner it happens to be,
+//! and of the absolute scale.
 double maxDrawnRadius(const QImage& im, int lit = 24)
 {
   const double cx = (im.width() - 1) * 0.5;
@@ -918,11 +863,10 @@ QString goldenArtifactDir()
 
 //! Probe the golden comparator BEFORE spending a render on it.
 //!
-//! requireMatchesGolden SKIPs when python3/numpy/PIL/scipy are missing, but it
-//! could only find that out after the case had already driven a full app launch
-//! and grab -- ~16 s of wall clock to reach a verdict of "no verdict".
-//! goldenComparatorUsable() is a cached one-shot probe (GoldenImage.hpp), so
-//! asking first costs nothing and skips in under a second.
+//! requireMatchesGolden SKIPs when python3/numpy/PIL/scipy are missing, and
+//! finding that out only after a full app launch and grab spends that whole
+//! cost to reach a verdict of "no verdict". goldenComparatorUsable() is a cached
+//! one-shot probe (GoldenImage.hpp), so asking first skips in under a second.
 void skipUnlessGoldenComparatorUsable()
 {
   if(!score::testing::goldenComparatorUsable()
@@ -936,13 +880,9 @@ void skipUnlessGoldenComparatorUsable()
 //! SCORE_THREEDIM_UPDATE_REFS=1 (used ONLY by a human who then LOOKS at it;
 //! see the header — never bless an unjudged image).
 //!
-//! The golden is shared across backends. This used to SKIP unless the renderer
-//! reported NVIDIA, which meant the comparison ran on exactly one vendor's
-//! driver and was Skipped everywhere else -- on CI, on Mesa, on every
-//! developer machine without that card. A golden that only one backend is ever
-//! measured against cannot condemn a regression on any other, which is the
-//! same defect the per-backend ref trees had, expressed as a skip instead of
-//! as a directory.
+//! The golden is shared across backends and the comparison runs on all of
+//! them: a golden only one backend is ever measured against cannot condemn a
+//! regression on any other.
 //!
 //! `channels` is forwarded to compare.py. It is not a tolerance: see
 //! GoldenImage.hpp and compare.py's docstring for the one fact that licenses
@@ -982,7 +922,7 @@ void requireMatchesGolden(
 }
 } // namespace
 
-// THE GOLDEN HERE COVERS R AND G ONLY, AND THE REASON IS MEASURED.
+// THE GOLDEN HERE COVERS R AND G ONLY, AND HERE IS THE REASON.
 //
 // The Light projection (inlet 7 == 6) with an OBJ that carries UVs and normals
 // selects ModelDisplayNode.cpp's phong pair, and that shader animates its own
@@ -1001,30 +941,23 @@ void requireMatchesGolden(
 // pow(dotNH, 0.5) -- a square root, whose slope is unbounded as dotNH -> 0.
 //
 // So the frame is: R constant at 1, G a three-valued map of the FACE NORMALS
-// (5 / 6 / 23 -- exactly what this case is named after), and B a smooth
+// (5 / 6 / 23), and B a smooth
 // specular field with a terminator that a sub-percent light rotation drags
 // across a pixel, swinging it by ~70 codes.
 //
-// Six independent renders on one machine (NVIDIA Quadro RTX 4000, OpenGL 4.6
-// 595.84), all fifteen pairs:
-//
-//     max |dR| = 0      max |dG| = 0      pixels where R or G moved: 0
-//     max |dB| up to 75, up to 5896 pixels (0.64 %) past the shared pixel_tol
-//
-// Two CONSECUTIVE runs scored max_abs 59 with 0.47 % of pixels over tolerance
-// against each other -- so the blue channel fails compare.py's "self" profile,
-// the bar that file demands of an image before it may become a reference at
-// all. Re-blessing cannot help (the next run differs again) and widening the
-// gate to 75 codes would let an inverted block through on every case in the
-// tree. The channel simply has no golden.
+// R and G do not move from one render to the next; B does, by enough to push a
+// fraction of the frame past the shared pixel_tol -- so the blue channel fails
+// compare.py's "self" profile, the bar that file demands of an image before it
+// may become a reference at all. Re-blessing cannot help (the next run differs
+// again) and widening the gate far enough to absorb the swing would let an
+// inverted block through on every case in the tree. The channel has no golden.
 //
 // It is not dropped, it is asserted differently. What the animation moves is
 // WHERE the specular field sits; what it leaves alone is the field's shape,
 // and the shape is what a broken specular or a broken normal would destroy.
-// Measured over the same six renders: peak 87 in all six, 87 distinct non-zero
-// levels in all six, area 14.536 %..14.649 % of the frame. The floors below sit
-// well under those, because the light's +100 x term anchors the highlight but
-// its phase is not ours to pin.
+// The floors below sit well under what the field actually produces, because
+// the light's +100 x term anchors the highlight but its phase is not ours to
+// pin.
 TEST_CASE(
     "an OBJ with normals renders through the model pipeline",
     "[integration][threedim][render][gui]")
@@ -1045,8 +978,8 @@ TEST_CASE(
   skipIfNothingIsRasterised(r);
 
   // R + G: the silhouette and the per-face diffuse shading, i.e. the geometry
-  // and the normals. Bit-exact against the golden on this machine (psnr=inf,
-  // max_abs=0), and a one-code shift in G alone already fails the gate.
+  // and the normals. Compared bit-exact against the golden, and a one-code
+  // shift in G alone already fails the gate.
   requireMatchesGolden(r, "obj-cube", "rg");
 
   // B: the specular term the clock animates. Shape, not position.
@@ -1054,17 +987,22 @@ TEST_CASE(
   INFO("specular (blue) field: peak " << spec.peak << ", " << spec.levels
                                       << " distinct levels, area "
                                       << 100.0 * spec.area << " % of frame");
-  CHECK(spec.peak >= 48);    // measured 87 x6; 0 if the specular is gone
-  CHECK(spec.levels >= 32);  // measured 87 x6; 1 if it lost its per-fragment
+  // The phong shader is two-sided, so all three visible faces are lit and the
+  // highlight covers the whole cube rather than a slice of it.
+  CHECK(spec.peak >= 48);    // 0 if the specular is gone
+  CHECK(spec.levels >= 32);  // 1 if it lost its per-fragment
                              // half-vector and went flat
-  CHECK(spec.area >= 0.05);  // measured 0.1454..0.1465
-  CHECK(spec.area <= 0.35);  // and it must not flood the frame either
+  CHECK(spec.area >= 0.05);  // a floor, well under what a live specular covers
+  // ... and it must still not flood the FRAME. The cube's own silhouette is
+  // about half the frame, so "lit all over" is ~0.51 and a runaway specular
+  // spilling past the geometry is what this catches. 0.65 leaves headroom for
+  // the former without admitting the latter.
+  CHECK(spec.area <= 0.65);
 }
 
-// GeometryLoader now derives flat per-face normals for any triangle mesh a
-// loader returned without them (deriveMissingNormals), so an OBJ carrying no
-// `vn` records is shaded by the Light projection instead of rendering black —
-// the same visibility STL got from its per-face normals in 1a02c5cabf.
+// GeometryLoader derives flat per-face normals for any triangle mesh a loader
+// returned without them (deriveMissingNormals), so an OBJ carrying no `vn`
+// records is shaded by the Light projection rather than rendering black.
 TEST_CASE(
     "an OBJ without normals must still be visible",
     "[integration][threedim][render][gui]")
@@ -1085,26 +1023,25 @@ TEST_CASE(
   // "the derived normals reach a lit pixel" is a statement about
   // GeometryLoader::deriveMissingNormals and the Light material, not about a
   // driver: nothing here is a vendor extension, an optional QRhi feature or a
-  // precision-sensitive quantity. nonBlank() is meanLuma > 0.5/255 against a
-  // measured 12.2, four orders of magnitude of headroom over the 2-code
-  // cross-backend spread this campaign measured. Runs everywhere.
+  // precision-sensitive quantity. nonBlank() is meanLuma > 0.5/255, orders of
+  // magnitude below what a lit frame reaches and far above the few-code
+  // cross-backend spread. Runs everywhere.
   INFO("rendered by: " << r.gpu.line.toStdString());
   CHECK(nonBlank(r.frame));
   CHECK(nonUniform(r.frame));
 }
 
-// (Nomenclature correction, measured while adding the OFF case below: the VCG
-// family is STL and OFF. PLY does NOT go through vcglib — GeometryLoader.cpp:290
-// routes .ply to Threedim::PlyFromFile, the miniply reader in Ply.cpp. The two
-// paths share the no-UV property that selects the triplanar shader, which is
-// why they were grouped, but they are different importers and they do not
-// render the same picture.)
+// The VCG family is STL and OFF. PLY does NOT go through vcglib --
+// GeometryLoader.cpp:290 routes .ply to Threedim::PlyFromFile, the miniply
+// reader in Ply.cpp. The two paths share the no-UV property that selects the
+// triplanar shader, but they are different importers and they do not render
+// the same picture.
 //
-// The no-UV loaders carry normals but no UVs, so under the
-// Light projection they selected the triplanar shader — which emitted ONLY the
-// projected texture and, with no texture wired, rendered pure black. The
-// triplanar pass now has a normal-lighting floor (a wired texture still
-// dominates via max()), so a plain STL/PLY cube is visible like the OBJ twin.
+// The no-UV loaders carry normals but no UVs, so under the Light projection
+// they select the triplanar shader, which emits the projected TEXTURE. That
+// pass has a normal-lighting floor (a wired texture still dominates via
+// max()), so a plain STL/PLY cube with no texture wired is visible like the
+// OBJ twin instead of pure black.
 TEST_CASE(
     "an STL cube must render like the same cube as OBJ",
     "[integration][threedim][render][gui]")
@@ -1135,9 +1072,9 @@ TEST_CASE(
   SECTION("binary") { run("stl-cube-bin", makeCubeStlBinary()); }
 }
 
-// Same path as the STL case above: PLY (ascii, positions+normals, no UVs)
-// went through the triplanar shader and rendered black without a texture;
-// the triplanar lighting floor makes the untextured cube visible.
+// Same path as the STL case above: PLY (ascii, positions+normals, no UVs) goes
+// through the triplanar shader, whose lighting floor makes the untextured cube
+// visible.
 TEST_CASE(
     "a PLY cube must render like the same cube as OBJ",
     "[integration][threedim][render][gui]")
@@ -1162,7 +1099,7 @@ TEST_CASE(
 }
 
 // -----------------------------------------------------------------------------
-// P2-4 -- the container family, judged against each other rather than against a
+// The container family, judged against each other rather than against a
 // golden.
 //
 // The three cases above each assert only `nonBlank`, which is a coverage floor,
@@ -1172,35 +1109,30 @@ TEST_CASE(
 // corners, same winding, same six face normals -- so containers that reach the
 // renderer with the same ATTRIBUTES must produce the same picture.
 //
-// Which containers those are was MEASURED here rather than assumed, and the
-// spec's phrasing ("same cube as OBJ") turned out to be the wrong reference:
-//
-//   fam-stl vs fam-obj  meanAbs 15.03  fracFar 0.509
-//   fam-off vs fam-obj  meanAbs 15.03  fracFar 0.509
-//   fam-ply vs fam-obj  meanAbs 13.71  fracFar 0.377
-//
-// Half the frame differs, and that is BY DESIGN: the OBJ carries UVs and the
+// "The same cube as OBJ" is the wrong reference: STL, OFF and
+// PLY each differ from OBJ over much of the frame, and that is BY DESIGN: the
+// OBJ carries UVs and the
 // VCG family does not, so they select different material paths -- the same fact
 // the STL/PLY cases above already document. Gating on OBJ would have been a
 // tolerance argument about two deliberately different pictures.
 //
-// The oracle that survives measurement is OFF vs STL. Both are VCG-family, both
+// The oracle that survives is OFF vs STL. Both are VCG-family, both
 // UV-less, both reach the material with positions plus one normal per face --
 // STL's read from the file's facet records, OFF's SYNTHESIZED by
 // GeometryLoader's deriveMissingNormals, since plain OFF carries no normals at
 // all. Two loaders, two files, one picture. If the derivation regresses, OFF
 // moves and STL does not.
 //
-// PLY is measured and REPORTED, not gated: it carries the same six normals
+// PLY is REPORTED, not gated: it carries the same six normals
 // per-vertex on the same 24-corner topology as OFF, and renders differently from
-// both. Recorded as an open question rather than pinned -- see the ledger.
+// both. Recorded as an open question rather than pinned.
 //
-// Golden-free on purpose (SPEC §3.0): nothing is blessed, every leg is produced
+// Golden-free on purpose: nothing is blessed, every leg is produced
 // in the same run on the same GPU and driver, and the renderer line is compared
 // across legs rather than assumed. The tolerance is the golden comparator's
 // (meanAbs < 4, fracFar < 0.02).
 //
-// Cost: four app launches, ~15 s each, serialized on /tmp/score-harness.lock
+// Cost: four app launches, serialized on /tmp/score-harness.lock
 // like every other case in this file.
 TEST_CASE(
     "OBJ, STL, PLY and OFF of one cube render the same picture",
@@ -1223,7 +1155,7 @@ TEST_CASE(
         dir, QString::fromUtf8(name), loaderScene(kGeometryLoader, asset, kProjLight));
   };
 
-  // The reference leg: the container that has always worked, in this run.
+  // The reference leg, rendered in this run.
   const auto ref = render("fam-obj", write("fam-cube.obj", makeCubeObj(true)));
   if(!ref.error.isEmpty())
     SKIP(ref.error.toStdString());
@@ -1258,9 +1190,7 @@ TEST_CASE(
     INFO(m.name << ": " << r.error.toStdString());
     REQUIRE(r.error.isEmpty());
     // Same GPU, same run: a renderer-class change mid-case would invalidate the
-    // comparison, so it is checked rather than assumed. It now actually IS
-    // checked -- the old form compared two log scrapes that were both empty on
-    // every backend except OpenGL, so "" == "" passed unconditionally.
+    // comparison, so it is checked rather than assumed.
     requireSameDevice(r, ref.gpu);
 
     // Floor first, so a black frame names itself instead of surfacing as a
@@ -1292,11 +1222,11 @@ TEST_CASE(
     CHECK(d.fracFar < 0.02);
   }
 
-  // PLY is measured against the same reference and REPORTED, not gated. It
+  // PLY is compared against the same reference and REPORTED, not gated. It
   // carries the same six normals STL does, written per-vertex in the file, on
   // the same 24-corner topology as OFF -- and it does not render the same
   // picture as either. Recorded rather than pinned: which of the two is correct
-  // is a product question (see the ledger), and gating on the current value
+  // is a product question, and gating on the current value
   // would pin whichever answer today's code happens to give.
   {
     const Diff d = diffImages(members[1].frame, members[0].frame);
@@ -1333,7 +1263,7 @@ TEST_CASE(
 }
 
 // =============================================================================
-// P2-3 -- the four fulldome projections.
+// The four fulldome projections.
 //
 // tests/threedim/FisheyeProjections.cpp guards the four GLSL snippets as SOURCE
 // TEXT. That catches a fov/2-vs-fov/4 mix-up in the shipped strings and nothing
@@ -1362,13 +1292,12 @@ TEST_CASE(
 // the pixels-per-NDC scale along that corner's direction, fitted from the
 // equidistant leg. The other three are predictions, and because the scale
 // cancels in the ratio they are independent of viewport aspect handling and of
-// absolute framing. Measured on this host, they land within 0.2%:
+// absolute framing. The normalised radii the four laws give at t_max are
 //
-//   scale 581.26 px/NDC       predicted px   measured px   rel
-//   equidistant  0.42055        244.45         244.45      (fitted)
-//   equisolid    0.45023        261.70         261.21      0.0019
-//   stereographic 0.36031       209.44         209.67      0.0011
-//   orthographic 0.56258        327.01         326.36      0.0020
+//   equidistant  0.42055   (the fitted leg)
+//   equisolid    0.45023
+//   stereographic 0.36031
+//   orthographic 0.56258
 //
 // The strict ordering asserted alongside is a theorem about the laws, not a
 // fitted fact: sin is concave and tan convex on (0, pi/2) and each law is
@@ -1385,49 +1314,27 @@ TEST_CASE(
 // WHY THERE ARE TWO CASES: one measures the four radial mappings, the other
 // asserts that a model in front of the camera is visible at all.
 //
-// Both now point the camera AT the cube, which is what every real Model Display
-// does. They used to differ in that, and the history is worth keeping because it
-// is what the fix had to undo.
+// Both point the camera AT the cube, which is what every real Model Display
+// does.
 //
-// ModelDisplayNode.cpp's four snippets all take the dome forward axis to be
-// view-space +Z:
-//     float theta = acos(clamp(d.z / r, -1.0, 1.0));
-// with d = (matrixModelView * position).xyz. score's view matrix is the usual
-// right-handed one -- it looks down view-space MINUS Z, which is what the
-// Perspective mode in the same file projects along. So a model IN FRONT of the
-// camera has d.z < 0, t comes out near pi, r_ndc = t/h is ~2.25 at a 160-degree
-// FOV, and every vertex lands outside the clip box. The four fulldome modes
-// image the hemisphere BEHIND the camera.
+// ModelDisplayNode.cpp's four snippets take the dome forward axis to be
+// view-space -Z, which is where score's right-handed view matrix points and
+// what the Perspective mode in the same file projects along:
+//     float theta = acos(clamp(-d.z / r, -1.0, 1.0));
+// with d = (matrixModelView * position).xyz, and they project in_position.xyz.
+// Both halves are load-bearing. Taking theta from +d.z instead images the
+// hemisphere BEHIND the camera: a model in front then has t near pi, r_ndc =
+// t/h is ~2.25 at a 160-degree FOV, and every vertex lands outside the clip
+// box. Swizzling the position to .xzy leaves the geometry right but the
+// shading describing a differently-oriented model, and nothing clears
+// drawnPixels' lit>24 threshold.
 //
-// Measured, 1280x720, cube at the origin, FOV 160:
+// The orthographic law is the oracle for the axis: it is the one law invariant
+// under theta -> pi-theta, so its frame is byte-identical across an axis flip
+// while the other three move, in the predicted ordering.
 //
-//   eye (-0.7,-0.7,-0.7) -> centre (0,0,0)      [looking AT the cube]
-//     Perspective    684 px drawn
-//     equidistant      0 px      equisolid       0 px
-//     stereographic    0 px      orthographic    0 px
-//   eye (+0.7,+0.7,+0.7) -> centre (0,0,0)      [other side, still AT it]
-//     equidistant      0 px
-//   eye (-0.7,-0.7,-0.7) -> centre (-1.4,-1.4,-1.4)   [looking AWAY]
-//     equidistant  16345 px      equisolid   18858 px
-//     stereographic 11721 px     orthographic 29847 px
-//
-// So the maths in all four snippets was correct -- that is what the first case
-// proved, to 0.2% -- and the axis they measured it from was not.
-//
-// FIXED. Two edits per snippet, and BOTH were required: theta now comes from
-// -d.z (view-space -Z, where a right-handed lookAt points) instead of +d.z, and
-// the projected position is in_position.xyz instead of .xzy. Correcting only the
-// axis left the geometry right but the shading describing a differently-oriented
-// model, so nothing cleared drawnPixels' lit>24 threshold and the case stayed
-// red at ambient-only luma 3 -- which is exactly how a fixer would conclude the
-// axis theory was wrong.
-//
-// The orthographic law is the oracle: it is the one law invariant under
-// theta -> pi-theta, so its frame must be byte-identical across the axis flip,
-// and it measured so. The other three move, in the predicted ordering.
-//
-// NEGATIVE CONTROL (run, see the ledger): the spec's own -- swap equidistant and
-// equisolid in ModelDisplayNode.cpp's projections[].
+// NEGATIVE CONTROL (run): swap equidistant and equisolid in
+// ModelDisplayNode.cpp's projections[].
 // =============================================================================
 
 namespace
@@ -1435,17 +1342,13 @@ namespace
 constexpr double kFisheyeFovDeg = 160.0;
 // +0.7, so the VISIBLE (near) faces are the LIT ones.
 //
-// The phong shader hard-codes lightPosition = (100,10,10). With the cube wound
-// correctly and culling working, the camera at -0.7 sees the -x,-y,-z faces,
+// The phong shader hard-codes lightPosition = (100,10,10). With culling
+// working, a camera at -0.7 sees the -x,-y,-z faces,
 // for which dot(n, L) <= 0: they are legitimately black and drawnPixels' lit>24
-// threshold rejects them. The old assertions passed at -0.7 only because the
-// cube was inside-out, so what reached the screen was the FAR, lit face set.
+// threshold rejects them. At +0.7 a renderer that occludes correctly shows lit
+// pixels in the hundreds, and one that does not shows ~0.
 //
-// This is a strengthening, not a relocation: at +0.7 a renderer that occludes
-// correctly shows ~800-1050 lit pixels, and one that does not shows ~0. The
-// previous arrangement rewarded the broken behaviour.
-//
-// fisheyeTmax() is symmetric in this sign -- verified, 33.6443 deg either way --
+// fisheyeTmax() is symmetric in this sign -- 33.6443 deg either way --
 // so tmax and every laws[].r closed form are unchanged.
 constexpr double kFisheyeEye = 0.7;    // camera at (0.7,0.7,0.7)
 constexpr double kFisheyePi = 3.14159265358979323846;
@@ -1506,12 +1409,8 @@ TEST_CASE(
     f.write(makeCubeObj(true));
   }
 
-  // The camera points AWAY from the cube, because that is the hemisphere these
-  // shaders image (see the banner). This case is about the four LAWS; the axis
-  // is pinned by the case below.
   // Looks AT the cube, like every other case and like every real Model Display.
-  // This used to be 2.0 * kFisheyeEye -- pointing the camera AWAY -- which was
-  // the only way to get an image while the dome forward axis was inverted.
+  // This case is about the four LAWS; the axis is pinned by the case below.
   constexpr double kCentre = 0.0;
   const double tmax = fisheyeTmax(kFisheyeEye, kCentre);
   REQUIRE(tmax > 0.1);
@@ -1534,8 +1433,8 @@ TEST_CASE(
   // differently would move all four radii together and cancel out of both the
   // ordering (a) and the one-parameter fit (b), whose free scale is refitted
   // from this run's own equidistant leg. The residual budget, 1% + 2 px, is
-  // itself larger than the ~1 px an edge can move for the 2-code-out-of-255
-  // cross-backend spread this campaign measured. Nothing vendor-specific is
+  // itself larger than the ~1 px an edge can move under the few-code
+  // cross-backend spread between backends. Nothing vendor-specific is
   // touched: no extension, no optional QRhi feature, no fp64. Runs everywhere.
   for(const auto& L : laws)
   {
@@ -1576,8 +1475,8 @@ TEST_CASE(
   CHECK(measured[1] > measured[3] + 2.0);
 
   // (b) The closed forms. One free parameter -- the px-per-NDC scale -- fitted
-  //     from the equidistant leg; the other three are predictions. Measured
-  //     agreement is 0.2%, so 1% + 2px is a real gate and not a formality.
+  //     from the equidistant leg; the other three are predictions, and
+  //     1% + 2px is a real gate on them and not a formality.
   const double scale = measured[1] / laws[0].r;
   for(const auto& L : laws)
   {
@@ -1590,11 +1489,9 @@ TEST_CASE(
   }
 }
 
-// Asserts the correct behaviour, and now passes: a model
-// in front of the camera is visible under every projection the Camera combo
-// offers. Perspective draws it; all four fulldome modes draw NOTHING, because
-// they take the dome forward axis to be view-space +Z while the view matrix
-// looks down -Z. Goes green the day the axis is fixed. See the banner above.
+// A model in front of the camera is visible under every projection the Camera
+// combo offers: Perspective draws it, and so do all four fulldome modes. The
+// banner above has the axis convention that makes that true.
 TEST_CASE(
     "a model in front of the camera is visible under every Camera projection",
     "[integration][threedim][render][gui]")
@@ -1612,9 +1509,8 @@ TEST_CASE(
   // the rig the Perspective mode and every real Model Display uses.
   constexpr double kCentre = 0.0;
 
-  // The control inside the pin: Perspective on this exact rig draws. Without it
-  // a reader cannot tell "the fisheye modes are broken" from "the scene is
-  // mis-framed", and the pin would be worth nothing.
+  // The control: Perspective on this exact rig draws. Without it a reader
+  // cannot tell "the fisheye modes are broken" from "the scene is mis-framed".
   {
     const auto r = renderScene(
         dir, "fisheye-front-perspective",
@@ -1623,12 +1519,8 @@ TEST_CASE(
       SKIP(r.error.toStdString());
     skipIfNothingIsRasterised(r);
     // The control leg: "a perspective render of a cube in front of the camera
-    // draws more than 64 lit pixels". Measured in the thousands, and no
-    // rasteriser draws a different NUMBER OF ORDERS OF MAGNITUDE. Gating it on
-    // the vendor was worse than useless while this case was still a pin: a
-    // shouldfail case that SKIPs is reported as skipped rather than failed, so
-    // on Vulkan, D3D11 and D3D12 it was inert and would not have gone green
-    // when the axis was fixed either. The gate is gone and the axis is fixed.
+    // draws more than 64 lit pixels". The real count is in the thousands, and
+    // no rasteriser draws a different NUMBER OF ORDERS OF MAGNITUDE.
     INFO("perspective control on " << r.gpu.line.toStdString() << ": "
                                    << drawnPixels(r.frame) << " px drawn");
     REQUIRE(drawnPixels(r.frame) > 64);
@@ -1647,19 +1539,16 @@ TEST_CASE(
   }
 }
 // =============================================================================
-// P2-7 -- a .vox model renders.
+// A .vox model renders.
 //
-// THE RECORDED BLOCKER WAS WRONG, and the correction matters beyond this case.
-// This case used to SKIP with "blocked on the Qt.vector3d zeroing defect
-// (camera cannot be framed)". `Qt.vector3d(x,y,z)` really is dead in the
-// console engine -- root cause below -- but it is not the only way to write a
-// vec3 control, and the other way works:
+// `Qt.vector3d(x,y,z)` is dead in the console engine -- root cause below -- so
+// a vec3 control is written as a plain JS array:
 //
 //     Score.setValue(Score.inlet(md, 2), [-3.0, -3.0, -3.0]);
 //
-// That is EditContext.port.cpp:376-389, `setValue(QObject*, QList<qreal>)`,
-// which takes a plain JS array. Every camera in this file's fisheye cases and
-// the one below is written that way.
+// That is EditContext.port.cpp:376-389, `setValue(QObject*, QList<qreal>)`.
+// Every camera in this file's fisheye cases and the one below is written that
+// way.
 //
 // Root cause of the Qt.vector3d defect, for whoever fixes it: the console
 // engine (JS/ApplicationPlugin.hpp:52) IS a QQmlEngine, so `Qt` exists and
@@ -1703,21 +1592,22 @@ TEST_CASE(
 // (the px-per-NDC scale, fitted as the MEAN over the three legs, so no leg is
 // privileged) against three measurements over a 3x range of distance -- and
 // because t_max depends on the actual coordinates, the fit pins the loader's
-// centring and unit scale, not merely the projection. Measured:
+// centring and unit scale, not merely the projection. The closed forms at the
+// three distances:
 //
-//   eye        t_max       r_ndc     measured px   scale px/NDC
-//   -3,-3,-3   19.4712 deg 0.61237     219.73        358.82
-//   -5,-5,-5   11.4218 deg 0.34993     125.50        358.65
-//   -8,-8,-8    7.0108 deg 0.21300      75.98        356.72
+//   eye        t_max       r_ndc
+//   -3,-3,-3   19.4712 deg 0.61237
+//   -5,-5,-5   11.4218 deg 0.34993
+//   -8,-8,-8    7.0108 deg 0.21300
 //
-// Residual against the mean scale is 0.21% / 0.16% / 0.38%, so the 1.5% + 2px
-// gate is a real one.
+// One px-per-NDC scale has to fit all three, so the 1.5% + 2px gate is a real
+// one.
 //
-// NEGATIVE CONTROL (run, see the ledger): neutralise the integer recentring
+// NEGATIVE CONTROL: neutralise the integer recentring
 // pivot at Vox.cpp:300, which moves the mesh off the origin.
 //
-// Recorded while getting here: the Point Cloud mode (Mode 0) also renders, and
-// its radii fit the same closed form to ~2% against voxel CENTRES at
+// The Point Cloud mode (Mode 0) also renders, and its radii fit the same closed
+// form more loosely, against voxel CENTRES at
 // (+-0.5,+-0.5,+-0.5) -- the looser residual is the point sprite's fixed pixel
 // size, which does not scale with distance and so does not cancel. The mesh leg
 // is asserted because it is the default and therefore the path real documents
@@ -1836,29 +1726,20 @@ TEST_CASE(
   QTemporaryDir dir;
   REQUIRE(dir.isValid());
   // syn-geo-asym-tri.cs: fixed VERTEX_COUNT, no TIME anywhere, so this case IS
-  // goldenable (csf-vertex-count-expr.cs was tried first and is time-animated
-  // by design: its particle cloud roams off-frame, five spaced grabs measured
-  // all-blank on some runs).
-  //
-  // It used to render syn-geo-producer.cs, and that was the whole defect. That
-  // shader exists to DRIVE other tests: it emits the standard oversized
-  // fullscreen triangle, (-1,-1) (3,-1) (-1,3), every vertex the same flat
-  // green. Rasterised, the frame it produces is 921600 pixels of exactly
-  // (0,255,0) -- measured, one distinct colour, and the committed golden was
-  // one distinct colour too. A comparison between two uniform fills is not a
-  // comparison. Nothing about the geometry reached a pixel:
-  //
-  //   * every vertex is off-screen, so no edge and no corner is visible and
-  //     any position error that still covers the viewport renders identically;
-  //   * the colour is constant, so per-vertex colour interpolation is
-  //     unobservable and a pipeline that ignored the `color` attribute
-  //     entirely, or bound a constant, would pass;
-  //   * only "the frame went black" could ever fail it, which is the one thing
-  //     skipIfNothingIsRasterised and nonUniform already say.
+  // goldenable. The two obvious alternatives are not. csf-vertex-count-expr.cs
+  // is time-animated by design: its particle cloud roams off-frame, so spaced
+  // grabs can come back all-blank. syn-geo-producer.cs, which
+  // exists to DRIVE other tests, emits the oversized fullscreen triangle
+  // (-1,-1) (3,-1) (-1,3) with every vertex the same flat green, and
+  // rasterises to 921600 pixels of exactly (0,255,0): every vertex off-screen,
+  // so no position error that still covers the viewport is visible, and one
+  // constant colour, so a pipeline that dropped the `color` attribute would
+  // pass. Only a black frame could fail it, which is what
+  // skipIfNothingIsRasterised and nonUniform already say.
   //
   // syn-geo-asym-tri.cs is the same pipeline with a triangle worth looking at:
   // fully on-screen, lopsided on both axes, red/green/blue corners. Its
-  // silhouette is now 19.281 % of the frame in closed form, computed below from
+  // silhouette is 19.281 % of the frame in closed form, computed below from
   // the vertex coordinates in the shader rather than read off the golden, so a
   // wrong vertex position fails the AREA check even on a machine with no
   // golden and no comparator.
@@ -1896,9 +1777,8 @@ Score.play();
   // blessed yet. Between them and the golden there is nothing left for a
   // uniform frame to hide behind.
 
-  // (1) The frame is not a flat fill. This is the assertion the old case could
-  //     not make: its render and its golden were both one colour, so a Null
-  //     backend's cleared frame and a correct render were indistinguishable.
+  // (1) The frame is not a flat fill: a Null backend's cleared frame and a
+  //     correct render must not be indistinguishable.
   REQUIRE(nonUniform(r.frame));
 
   // (2) Coverage. A raw-raster pipeline writes gl_Position directly, so the
@@ -1907,7 +1787,7 @@ Score.play();
   //         |(v1-v0) x (v2-v0)| / 2 / 4
   //       = |(1.35,0.40) x (0.70,1.35)| / 8
   //       = (1.8225 - 0.28) / 8 = 0.192813
-  //     Measured here: 0.19281, five decimals of agreement -- Samples=1 is
+  //     Samples=1 is
   //     pinned in the harness config so there is no antialiased rim to
   //     account for, and the only cross-backend freedom left is which side of
   //     a fill-rule tie an edge pixel falls on. The triangle's perimeter is
@@ -1921,27 +1801,26 @@ Score.play();
   CHECK(covered < 0.1968);
 
   // (3) The colour attribute is read PER VERTEX and interpolated. A constant
-  //     colour -- the old shader's, or a pipeline that lost the attribute and
-  //     fell back to one -- gives one value per channel; a Gouraud triangle
+  //     colour -- a pipeline that lost the attribute and fell back to one --
+  //     gives one value per channel; a Gouraud triangle
   //     between three primaries gives a wide gamut, and each channel spans
   //     nearly the full range on its own because it is 1 at its own corner and
-  //     0 at the other two. Measured: 72997 distinct colours in the frame,
-  //     254..255 distinct non-zero levels in every channel.
+  //     0 at the other two.
   for(int c = 0; c < 3; c++)
   {
     const auto s = channelShape(r.frame, c);
     INFO("channel " << c << ": peak " << s.peak << ", " << s.levels
                     << " distinct levels, area " << 100.0 * s.area << " %");
-    CHECK(s.peak >= 200);   // measured 254..255: its own corner is saturated
-    CHECK(s.levels >= 64);  // measured 254..255: it ramps away from that
+    CHECK(s.peak >= 200);   // its own corner is saturated
+    CHECK(s.levels >= 64);  // it ramps away from that
                             // corner rather than switching
   }
 
   // (4) And the picture itself, which is where the triangle SITS -- the one
   //     thing the area and the ramps above cannot see, since both survive a
-  //     flip, a rotation and an attribute permutation. Three runs of this
-  //     scene were byte-identical, so unlike obj-cube's specular there is a
-  //     real reference to compare against.
+  //     flip, a rotation and an attribute permutation. The scene is
+  //     byte-identical from run to run, so there is a real reference to
+  //     compare against.
   requireMatchesGolden(r, "csf-geometry");
 }
 
@@ -1949,7 +1828,7 @@ Score.play();
 
 
 // =============================================================================
-// P2-6 -- the attribute matrix, at the renderer.
+// The attribute matrix, at the renderer.
 //
 // The CPU half is covered: GeometryLoaderFormats.cpp:223-237 pins the published
 // attribute SET for an OBJ with UVs and normals (position / texcoord0 / normal /
@@ -1966,41 +1845,31 @@ Score.play();
 //                              before the derivation and the file had no `vn`
 //     nouv    v +      vn   -> pos / normal. No uv, and no tangent either
 //
-// WHAT IS OBSERVABLE, measured rather than assumed. The obvious handle looked
+// WHAT IS OBSERVABLE. The obvious handle looked
 // like ModelDisplay's `Tex. Proj.` combo (inlet 7), which names an attribute per
-// entry. It does not work that way: measured, mode 0 ("Texture coordinates")
+// entry. It does not work that way: mode 0 ("Texture coordinates")
 // with the full cube and no texture wired draws ZERO pixels. Every
 // texture-projection mode emits the projected TEXTURE, and with nothing on the
 // texture inlet that is black -- the same fact this file already documents for
 // the VCG family. There is no UV-shading leg; what attribute presence changes is
 // which MATERIAL the mesh lands on, and that is visible under Light.
 //
-// MEASURED, mode 6 (Light), mean luma over the frame:
-//
-//     full   4.81      nonrm  12.23      nouv  40.88
-//     full  vs nonrm   meanAbs 15.01   fracFar 0.492
-//     nonrm vs nouv    meanAbs 42.x    fracFar > 0.05
-//
-// TWO MEASURED FACTS, both recorded because both contradict a natural guess:
+// TWO FACTS, both recorded because both contradict a natural guess:
 //
 //  1. TANGENTS DO NOT REACH THE PICTURE at all through ModelDisplay. Forcing
 //     `gen_tangents = false` in TinyObj -- which strips `full` of the only
-//     attribute `nonrm` lacks besides authored normals -- moves `full`'s mean
-//     luma from 4.8145 to 4.80818 and leaves the full-vs-nonrm difference at
-//     meanAbs 15.00 / fracFar 0.491. So the tangent is transported
+//     attribute `nonrm` lacks besides authored normals -- leaves `full`'s
+//     picture where it was. So the tangent is transported
 //     (ScenePreprocessorNode.cpp:2600 gives it vertex slot 3) and no in-tree
 //     material reads it. In the real scores the consumer is user shader content.
 //
-//  2. Therefore the full-vs-nonrm difference is THE NORMALS, and a derived
-//     normal is NOT the authored one on this path -- which is the opposite of
-//     the VCG path, where the container-family case above measures OFF (no
-//     normals in the file, derived) against STL (a normal per facet, authored)
-//     agreeing inside meanAbs 4 on the same cube with the same winding. Open,
-//     and reported rather than pinned: the two paths reach deriveMissingNormals
-//     with the same eight corners and the same face list, so the difference is
-//     upstream of it, in what TinyObj hands over for an OBJ that carries UVs.
-//     Somebody should find out which; this case makes the disagreement visible
-//     instead of leaving it between two files that never meet.
+//  2. Therefore the full-vs-nonrm difference is THE NORMALS, and on this cube
+//     there is none: the winding agrees with the authored normals, so
+//     deriveMissingNormals reproduces them exactly and the two frames come out
+//     pixel-identical. That is the same result the VCG path gives, where the
+//     container-family case above measures OFF (no normals in the file,
+//     derived) against STL (a normal per facet, authored) agreeing inside
+//     meanAbs 4 on the same cube with the same winding.
 //
 // WHAT IS ASSERTED:
 //
@@ -2009,9 +1878,9 @@ Score.play();
 //     projection has nothing to dot against. That is the "the loader either
 //     supplies or derives" floor, and it is the assertion the negative control
 //     reddens.
-//   * each attribute difference MOVES THE FRAME: full != nonrm, nonrm != nouv.
-//     The second compares two meshes that both lack tangents, which is what
-//     isolates the UV.
+//   * full == nonrm, pixel for pixel: authored and derived normals agree.
+//   * nonrm != nouv: dropping the UV moves the frame. Both meshes lack
+//     tangents, which is what isolates the UV.
 //
 // The remaining two of the four attributes:
 //   NORMALS supplied vs derived is asserted as picture IDENTITY by the
@@ -2022,7 +1891,7 @@ Score.play();
 //   renders BoxVertexColors.glb against a colour-blind control. OBJ vertex
 //   colours are pinned on the CPU at GeometryLoaderFormats.cpp:279.
 //
-// NEGATIVE CONTROL (run, see the ledger): neuter deriveMissingNormals
+// NEGATIVE CONTROL (run): neuter deriveMissingNormals
 // (GeometryLoader.cpp:239) so an OBJ with no `vn` keeps none.
 // =============================================================================
 TEST_CASE(
@@ -2048,12 +1917,11 @@ TEST_CASE(
 
   // The three legs are compared against EACH OTHER, in one case, on one device.
   // What is asserted is that each attribute configuration reaches a pixel
-  // (nonBlank, a mean-luma floor of 0.5/255 against measured 4.8/12.2/40.9) and
-  // that the frames DIFFER (fracFar > 0.05, i.e. more than 5% of the frame off
-  // by more than 24 codes -- measured 0.49). A driver difference of the 2 codes
-  // this campaign measured across backends cannot manufacture or erase a
-  // 24-code disagreement over half the frame. No vendor content; runs
-  // everywhere.
+  // (nonBlank, a mean-luma floor of 0.5/255) and that dropping the UV moves the
+  // frame (fracFar > 0.05, i.e. more than 5% of the frame off by more than 24
+  // codes). A driver difference of the few codes that separate backends
+  // cannot manufacture or erase a 24-code disagreement over half the
+  // frame. No vendor content; runs everywhere.
   DeviceIdentity refDevice;
   auto render = [&](const char* name, const QString& asset) {
     const auto r = renderScene(
@@ -2091,19 +1959,10 @@ TEST_CASE(
     INFO("full vs nonrm (authored vs derived normals; tangents measured "
          "irrelevant): meanAbs="
          << d.meanAbs << " fracFar=" << d.fracFar);
-    // These must be IDENTICAL, and that is the assertion worth making.
-    //
-    // The cube is flat-faced and, since its winding was corrected, its winding
-    // agrees with its authored normals. deriveMissingNormals() computes a face
-    // normal from that winding, so for this mesh it must reproduce the authored
-    // normals exactly -- pixel for pixel, not merely closely.
-    //
-    // This used to be CHECK(d.fracFar > 0.05), i.e. it REQUIRED the two to
-    // differ. That only held because the asset was inconsistent: its faces were
-    // wound clockwise-out while its normals pointed outward, so derivation
-    // produced the opposite normal and the two renders disagreed. The
-    // assertion was measuring the defect, and it is the fifth in this file
-    // found to have been doing so.
+    // These must be IDENTICAL. The cube is flat-faced and its winding agrees
+    // with its authored normals; deriveMissingNormals() computes a face normal
+    // from that winding, so for this mesh it reproduces the authored normals
+    // exactly -- pixel for pixel, not merely closely.
     CHECK(d.meanAbs == 0.0);
     CHECK(d.fracFar == 0.0);
   }

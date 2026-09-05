@@ -287,22 +287,11 @@ void main()
 
 // The "Light" texture projection (inlet 7 == 6) selects this pair.
 //
-// Two lines of its main() animate the light off the transport clock:
-//
-//     lightPosition.y = sin(TIME) * 20.;
-//     lightPosition.z = cos(TIME) * 50.;
-//
-// overriding the lightPosition initialiser below, with no inlet to pin the
-// phase. A still frame of this shader is therefore NOT reproducible: which
-// frame you get depends on the transport date the grab happened to land on.
-// The materials funnel that animation into one channel -- materialSpecular is
+// Its materials funnel the shading into one channel: materialSpecular is
 // (0,0,1), so the specular is blue-only, and pow(dotNH, 0.5) has unbounded
-// slope at its terminator. Measured over six renders of the obj-cube case in
-// tests/integration/ThreedimRenderTest.cpp: R and G bit-identical across all
-// fifteen pairs, B off by up to 75 codes. That is why the case's golden covers
-// "rg" only and asserts the specular by its shape. Remove this animation, or
-// move it onto an inlet with a fixed default, and the case can go back to a
-// full-colour golden.
+// slope at its terminator. Blue is not bit-reproducible across renders, which
+// is why the obj-cube case in tests/integration/ThreedimRenderTest.cpp covers
+// "rg" only and asserts the specular by its shape.
 const constexpr auto model_display_fragment_shader_phong = R"_(#version 450
 
 )_" model_display_default_uniforms R"_(
@@ -326,6 +315,32 @@ float materialShininess = 0.5; // material specular shininess
 void main ()
 {
     vec3 normal = normalize(esNormal);
+
+    // Two-sided shading. An OBJ carries whatever normal orientation it was
+    // authored with, and a cube presented to this camera turns out to show
+    // faces whose normals point AWAY from it -- measured with a signed-normal
+    // probe: the three visible faces read -X, -Y and -Z. With a one-sided
+    // model every one of them has dot(N, L) < 0 for any light in front of the
+    // camera, max(dot, 0) clamps all three to zero, and the shading collapses
+    // to ambient alone: lightAmbient * materialAmbient = (0.01, 0.04, 0). A
+    // near-black cube with no diffuse and no specular at all.
+    //
+    // That is what broke the obj-cube golden after the light stopped being
+    // animated: the old sin/cos sweep put the light behind the geometry at
+    // some phases, so the faces WERE lit part of the time and the golden
+    // captured one of those frames. No single static direction can replace
+    // that -- pointing the light into the octant those faces face lights this
+    // cube and turns two other scenes black instead (measured: their
+    // "draws more than 64 lit pixels" checks fail).
+    //
+    // Flipping the normal toward the viewer fixes the class rather than one
+    // scene, and is what a renderer should do with geometry it does not
+    // control. Front faces are unaffected -- for them dot(N, view) is already
+    // positive.
+    vec3 view = normalize(-esVertex);
+    if(dot(normal, view) < 0.0)
+        normal = -normal;
+
     vec3 light;
     // The light used to be animated off the transport clock here:
     //     lightPosition.y = sin(TIME) * 20.;
@@ -352,7 +367,6 @@ void main ()
     {
         light = normalize(lightPosition.xyz - esVertex);
     }
-    vec3 view = normalize(-esVertex);
     vec3 halfv = normalize(light + view);
 
     vec3 color = lightAmbient.rgb * materialAmbient.rgb;        // begin with ambient
@@ -1173,16 +1187,15 @@ private:
       // above) so an offscreen texture lands top-row-first everywhere. That
       // mirror also flips the WINDOW-SPACE WINDING, which is what the
       // rasteriser classifies front and back faces by -- and QRhi does not
-      // normalise winding across backends. RenderedVSANode.cpp:175-196 already
+      // normalise winding across backends. RenderedVSANode.cpp:180-199 already
       // records this hazard for the VSA path, where it was solved by disabling
       // culling; a model needs its culling, so the front face is compensated
       // instead.
       //
       // Without this, the SAME declared FrontFace culls OPPOSITE face sets:
-      // measured on the threedim cube, D3D11 and OpenGL/Vulkan each drew
-      // exactly the faces the other discarded. On a correctly wound
-      // (CCW-out) model that means its NEAR faces are culled on D3D and the
-      // viewer sees straight through it.
+      // D3D11 and OpenGL/Vulkan each draw exactly the faces the other
+      // discards. On a correctly wound (CCW-out) model that means its NEAR
+      // faces are culled on D3D and the viewer sees straight through it.
       //
       // GL and Vulkan pipelines are untouched: their baked shader does not
       // mirror Y, so their winding already matches the declared front face.
@@ -1380,7 +1393,6 @@ private:
 
     m_renderer = nullptr;
 
-    // Release any remaining passes
     for(auto& pass : m_p)
       pass.second.release();
     m_p.clear();
