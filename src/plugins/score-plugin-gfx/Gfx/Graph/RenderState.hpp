@@ -236,6 +236,32 @@ viewIndexNeedsPassIndexFallback(GraphicsApi api, const QShaderVersion& version) 
     return true;
   if(api != GraphicsApi::D3D11 && api != GraphicsApi::D3D12)
     return false;
-  return version.version() < 61;
+
+  // D3D11 is pinned to SM 5.0 for good, so it can never have SV_ViewID.
+  if(api == GraphicsApi::D3D11)
+    return true;
+
+  // D3D12 could, at SM 6.1 with dxcompiler.dll present -- and ossia/sdk
+  // 86207a70 now ships that runtime, so shipping builds DO reach SM 6.1. But
+  // its native path is measurably wrong. Measured on the interactive runner,
+  // RTX 3090, same binary, the only difference being dxcompiler.dll on PATH:
+  //
+  //   pass-index fallback (SM 5.0): cubemap_six_faces  19 assertions, PASS
+  //                                 camera_array_faces 112 assertions, PASS
+  //   native ViewInstancing (6.1):  cubemap_six_faces  20 assertions, 12 FAIL
+  //                                 camera_array_faces 113 assertions, 12 FAIL
+  //
+  // All six faces come back wrong -- six identity probes and six cardinality
+  // probes -- with an empty error string. test_gfx_multiview PASSES natively,
+  // so plain multiview amplification is fine; what is broken is the
+  // CUBEMAP+MULTIVIEW array-then-copy shim under real ViewInstancing.
+  //
+  // Until that shim is fixed, take the path that produces correct pixels. This
+  // is deliberately NOT narrowed to cubemap outputs: the shader rewrite and the
+  // render path must agree, and this predicate is the single thing both ask --
+  // splitting it by output shape is what caused the half-applied fallback in
+  // bb3a03775b. Revisit when the shim is fixed; the assertion counts above are
+  // the regression test (20 / 113 means native ran).
+  return true;
 }
 }
