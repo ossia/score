@@ -327,8 +327,23 @@ void main ()
 {
     vec3 normal = normalize(esNormal);
     vec3 light;
-    lightPosition.y = sin(TIME) * 20.;
-    lightPosition.z = cos(TIME) * 50.;
+    // The light used to be animated off the transport clock here:
+    //     lightPosition.y = sin(TIME) * 20.;
+    //     lightPosition.z = cos(TIME) * 50.;
+    // Those two lines overrode the initialiser above unconditionally, so its y
+    // and z were dead, and there was no inlet to pin the phase or to turn the
+    // motion off -- it was not a feature anyone could configure, it just moved.
+    //
+    // It made a still frame of this shader unreproducible: which frame you get
+    // depends on the transport date the grab lands on. The materials funnel it
+    // into one channel (materialSpecular is (0,0,1), so the specular is
+    // blue-only) through pow(dotNH, 0.5), whose slope is unbounded at the
+    // terminator, so a sub-percent rotation swung blue by ~70 codes and the
+    // obj-cube golden could not reproduce AGAINST ITSELF: two consecutive
+    // renders differed by max_abs 59 over 0.47% of pixels.
+    //
+    // The light is now what its initialiser says it is. If animation is wanted
+    // it belongs on an inlet, where it can be pinned for a still frame.
     if(lightPosition.w == 0.0)
     {
         light = normalize(lightPosition.xyz);
