@@ -519,7 +519,51 @@ std::shared_ptr<RenderState> createRenderState(
     //   params.repeatDeviceKill = true;
     // }
     state.version = Gfx::Settings::shaderVersionForAPI(D3D11);
-    state.rhi = QRhi::create(QRhi::D3D11, &params, flags);
+
+    // Ask for feature level 11_1 explicitly (A24(c)).
+    //
+    // QRhiD3D11 passes pFeatureLevels == nullptr to D3D11CreateDevice unless a
+    // level was requested -- its own comment at qrhid3d11.cpp:307 says
+    // "Normally we won't specify a requested feature level list, except when a
+    // level was specified in importParams" -- and that form is documented never
+    // to return an 11_1 device, even on hardware that supports it. Measured on
+    // an RTX 3090: the default path gives 11_0 (0xb000), an explicit request
+    // gives 11_1 (0xb100).
+    //
+    // 11_0 is not merely a smaller number here. It has no UAVs outside the
+    // pixel and compute stages, and 8 compute UAV slots instead of 64. Qt bakes
+    // HLSL with FORCE_STORAGE_BUFFER_AS_UAV set unconditionally
+    // (qspirvshader.cpp), so EVERY SSBO -- read-only ones included -- becomes a
+    // UAV. On an 11_0 device that makes CreateVertexShader fail with
+    // E_INVALIDARG for any vertex shader carrying a storage block, and
+    // CreateComputeShader fail past 8 of them: the "Failed to create
+    // vertex/compute shader: COM error 0x80070057" seen across the
+    // scene-preprocessor documents in the Windows corpus. Both verified against
+    // a bare D3D11 device, and MaxFragmentStorageBuffers goes 8 -> 64
+    // (qrhid3d11.cpp:769) as a side benefit.
+    //
+    // featureLevel is honoured even with dev/context null: qrhid3d11.cpp:174
+    // reads it outside the imported-device branch. adapterLuid stays zero,
+    // which :256 explicitly ignores, so adapter selection is unchanged.
+    //
+    // This does NOT fix A28: MaxVertexStorageBuffers is hardcoded 0 at every
+    // feature level (qrhid3d11.cpp:766), so Qt's SRB translation still never
+    // binds a vertex-stage UAV. Such a shader stops failing to build and starts
+    // reading zero instead -- which is why the vertex-SSBO diagnostic had to be
+    // made to fire on released Qt first (db7000dd79), so that path is loud.
+    //
+    // A single-entry level list makes D3D11CreateDevice fail outright where
+    // 11_1 is unavailable, so fall back to QRhi's own probe. That matters for
+    // pre-11_1 hardware: NVIDIA Fermi/Kepler/Maxwell-1, AMD TeraScale, Intel
+    // Ivy Bridge. They keep exactly today's behaviour.
+    QRhiD3D11NativeHandles d3d11Handles{};
+    d3d11Handles.featureLevel = 0xb100; // D3D_FEATURE_LEVEL_11_1
+    state.rhi = QRhi::create(QRhi::D3D11, &params, flags, &d3d11Handles);
+    if(!state.rhi)
+    {
+      qDebug() << "score: no D3D11 feature level 11_1 device, falling back";
+      state.rhi = QRhi::create(QRhi::D3D11, &params, flags);
+    }
     if(state.rhi)
     {
       state.renderSize = sz;
