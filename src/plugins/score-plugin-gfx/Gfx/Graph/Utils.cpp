@@ -1262,14 +1262,30 @@ makeShaders(const RenderState& v, QString vert, QString frag, int multiViewCount
   //
   // D3D12 reports 128 and binds by root-signature visibility, so it is unaffected.
   //
-  // Guarded: QRhi::MaxVertexStorageBuffers does not exist in any RELEASED Qt.
-  // It was added by qtbase f332defeace ("rhi: Report the per-stage storage
-  // buffer limits", 2026-08-17), 1564 commits after v6.12.0-beta1 -- absent
-  // from 6.9 and from 6.12.0-beta1 alike. Nix and AppImage build against a
-  // released Qt and failed to compile this. 6.13 is the first version certain
-  // to carry it; if it ships in 6.12.0 final, lower the check.
+  // QRhi::MaxVertexStorageBuffers does not exist in any RELEASED Qt. It was
+  // added by qtbase f332defeace ("rhi: Report the per-stage storage buffer
+  // limits", 2026-08-17), 1564 commits after v6.12.0-beta1 -- absent from 6.9
+  // and from 6.12.0-beta1 alike, so asking for it unconditionally broke the Nix
+  // and AppImage builds.
+  //
+  // But version-gating the whole diagnostic silenced it precisely where it
+  // matters: Nix and AppImage build against a released Qt, so the shipped
+  // binaries were the ones NOT warning. The limit is only a more precise way of
+  // asking a question we can already answer -- D3D11 is the sole backend whose
+  // SRB translation never binds a storage-buffer UAV to the vertex stage
+  // (qrhid3d11.cpp hardcodes MaxVertexStorageBuffers to 0 for every feature
+  // level) -- so fall back to naming it. QRhi::backend() has existed all along.
+  //
+  // Keep the query where it exists: it stays correct if a future backend gains
+  // or loses the ability, which a hardcoded backend name would not.
+  const bool cannot_bind_vertex_ssbo = v.rhi
 #if QT_VERSION >= QT_VERSION_CHECK(6, 13, 0)
-  if(v.rhi && v.rhi->resourceLimit(QRhi::MaxVertexStorageBuffers) == 0
+      && v.rhi->resourceLimit(QRhi::MaxVertexStorageBuffers) == 0;
+#else
+      && v.rhi->backend() == QRhi::D3D11;
+#endif
+
+  if(cannot_bind_vertex_ssbo
      && !vertexS.description().storageBlocks().isEmpty())
   {
     static std::unordered_set<std::size_t> warned;
@@ -1278,13 +1294,13 @@ makeShaders(const RenderState& v, QString vert, QString frag, int multiViewCount
       QStringList blocks;
       for(const auto& b : vertexS.description().storageBlocks())
         blocks << QString::fromUtf8(b.blockName);
-      qWarning() << "This backend cannot bind a storage buffer to the vertex"
-                    " stage (MaxVertexStorageBuffers == 0), so these blocks"
-                    " read zero in the vertex shader:"
+      qWarning() << "This backend" << v.rhi->backendName()
+                 << "cannot bind a storage buffer to the vertex stage, so these"
+                    " blocks read ZERO in the vertex shader (they are not"
+                    " bound, and an unbound UAV reads zero):"
                  << blocks.join(", ");
     }
   }
-#endif
 
   return {vertexS, fragmentS};
 }
