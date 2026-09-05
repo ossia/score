@@ -1,40 +1,37 @@
 // =============================================================================
-// L3 GPU render + readback — a cubemap render target gets six distinct faces
-// (SPEC-SCENE-RENDER-TESTS.md P1-7, gap G8).
+// L3 GPU render + readback — a cubemap render target gets six distinct faces.
 //
-// The self-declared oracle from the user diagnostic score
-// 2026/test-cubemap-output.score: a RAW_RASTER_PIPELINE with MULTIVIEW:6 +
-// CUBEMAP:true (syn-cube-six-colors.{vs,fs}, lifted verbatim from the score;
-// only an explicit 64x64 OUTPUT size was added) writes one solid colour per
-// face; a downstream samplerCube viewer (syn-cube-six-probe.fs) samples all six
-// axis directions into a 3x2 grid. Expected, exactly:
+// The oracle: a RAW_RASTER_PIPELINE with MULTIVIEW:6 + CUBEMAP:true
+// (syn-cube-six-colors.{vs,fs}, at an explicit 64x64 OUTPUT size) writes one
+// solid colour per face; a downstream samplerCube viewer
+// (syn-cube-six-probe.fs) samples all six axis directions into a 3x2 grid.
+// Expected, exactly:
 //
 //     +X red    -X cyan    +Y green    -Y magenta    +Z blue    -Z yellow
 //
 // All six must be found, each exactly once.
 //
-// What this drives (verified against the current tree):
-//  * The transparent CUBEMAP+MULTIVIEW shim, RenderedRawRasterPipelineNode.hpp
-//    :298-312 (m_cubeCopyShadowArray / m_cubeCopyCube / m_cubeCopyOutputIdx):
+// What this drives:
+//  * The transparent CUBEMAP+MULTIVIEW shim in RenderedRawRasterPipelineNode
+//    (m_cubeCopyShadowArray / m_cubeCopyCube / m_cubeCopyOutputIdx):
 //    QRhi forbids setMultiViewCount on a cube texture, so the node renders into
 //    a 6-layer TextureArray and copies each layer into the matching cube face
-//    at end of frame (the copy loop in runInitialPasses,
-//    RenderedRawRasterPipelineNode.cpp:3215-3243).
-//  * textureForOutput's cube branch, RenderedRawRasterPipelineNode.cpp:179-184:
+//    at end of frame (the copy loop in runInitialPasses).
+//  * textureForOutput's cube branch:
 //    the PUBLIC handle downstream consumers bind as samplerCube must be the
 //    CubeMap, not the shadow array.
 //  * The samplerCube image edge: raster cube output -> ISF "cubemap" INPUT,
 //    the same wiring csf-cube-image-write.cs -> csf-cube-image-read.fs proves
 //    for compute producers (CsfCubeArray.cpp).
 //
-// Backend scope (GfxMultiview.cpp precedent, followed honestly):
+// Backend scope (GfxMultiview.cpp precedent):
 //  * Vulkan / D3D12 / Metal (caps.multiview true): full pixel oracle.
 //  * OpenGL: the offscreen GL context on a headless box does not render a
 //    procedural MULTIVIEW layered raster at all (GfxMultiview.cpp documents
-//    layer 0 reading back black even on the fixed engine), so the pixel guard
+//    layer 0 reading back black), so the pixel guard
 //    is not expressible; the crash-free-build guard plus the structural
 //    cube-handle guard below still run, then SUCCEED() with the reason.
-//  * Null / no-multiview-caps fallback: the structural half of P1-7 — the
+//  * Null / no-multiview-caps fallback: the structural half — the
 //    producer's public output handle must be a QRhiTexture::CubeMap, and when
 //    multiview caps are present it must be the shim's cube
 //    (RRPNode::MRT::cubeCopyCube::*), i.e. the array-then-copy path was
@@ -42,7 +39,7 @@
 //    pixels needed.
 //
 // Negative control (product-side, proposed — do not commit): in the cube-copy
-// finaliser loop, RenderedRawRasterPipelineNode.cpp:3232, change
+// finaliser loop of RenderedRawRasterPipelineNode::runInitialPasses, change
 //     desc.setSourceLayer(face);
 // to
 //     desc.setSourceLayer(0);
@@ -50,7 +47,7 @@
 // red instead of their own colour and this test goes red on every
 // multiview-capable backend (the +X probe alone stays green).
 //
-// Intended registration (tests/gfx/CMakeLists.txt):
+// Registered in tests/gfx/CMakeLists.txt as:
 //     score_add_gfx_test(cubemap_six_faces GfxCubemapSixFaces.cpp)
 //
 //   DISPLAY=:0 SCORE_TEST_API=vulkan ctest -R gfx_cubemap_six_faces
@@ -86,7 +83,7 @@ struct CubeFacts
 
   // Structural facts about the producer's public colour output handle,
   // harvested through the public NodeRenderer::textureForOutput while the
-  // pipeline is alive. This is the pixel-free (Null-fallback) half of P1-7.
+  // pipeline is alive. This is the pixel-free (Null-fallback) half.
   bool multiview_caps = false;    // RenderList::state.caps.multiview
   // caps.multiview alone does not mean multiview is USED: a D3D target whose
   // shader model cannot compile SV_ViewID has the capability and still falls
@@ -123,7 +120,7 @@ CubeFacts run_cube(score::gfx::GraphicsApi backend)
     // (which shim the producer selected: cube vs shadow-array vs plain 2D), and
     // it is written to hold "on EVERY backend that could build the pipeline,
     // Null included" -- see the invariant below. So it opts back into Null,
-    // which the fixture otherwise refuses for pixel work (spec P2-15,
+    // which the fixture otherwise refuses for pixel work (see
     // null_backend_skip_reason()). The pixel half already excludes Null
     // explicitly at the `isNull` guard further down.
     p.allowNullBackend();
@@ -150,9 +147,9 @@ CubeFacts run_cube(score::gfx::GraphicsApi backend)
     f.view = p.readback(sink);
 
     // Structural half: what does the producer publish as its colour output?
-    // With multiview caps this must be the shim's CubeMap (m_cubeCopyCube via
-    // the textureForOutput branch at RenderedRawRasterPipelineNode.cpp:183);
-    // without them, the direct cube-render fallback still publishes a CubeMap.
+    // With multiview caps this must be the shim's CubeMap (m_cubeCopyCube, via
+    // the cube branch of textureForOutput); without them, the direct cube-render
+    // fallback still publishes a CubeMap.
     auto* outPort = p.imageOut(prod, 0);
     auto& node = *p.isf(prod);
     for(auto& [renderList, renderer] : node.renderedNodes)
@@ -164,6 +161,8 @@ CubeFacts run_cube(score::gfx::GraphicsApi backend)
       // Both corpus shaders declare MULTIVIEW:6 -- a cubemap is six views by
       // definition, which is also why D3D12 ViewInstancing (max 4) cannot
       // serve them. The count is part of the predicate, so pass it.
+      f.multiview_lowered = score::gfx::viewIndexNeedsPassIndexFallback(
+          renderList->state.api, renderList->state.version, 6);
       if(QRhiTexture* tex = renderer->textureForOutput(*outPort))
       {
         f.out_tex_found = true;
@@ -209,9 +208,9 @@ TEST_CASE(
   }
 
   // ---- Pixel half: the six-face oracle.
-  // HONEST BACKEND SCOPE (GfxMultiview.cpp precedent): the offscreen OpenGL
-  // context on this box does not render a procedural MULTIVIEW layered raster
-  // headless — layers read back black even on the fixed engine — so the pixel
+  // Backend scope (GfxMultiview.cpp precedent): the offscreen OpenGL
+  // context does not render a procedural MULTIVIEW layered raster
+  // headless — layers read back black — so the pixel
   // oracle is not expressible on GL; nor on Null (no rasterization), nor
   // where multiview caps are absent (the one-draw-six-views amplification
   // cannot happen). The crash-free build + structural guards above still ran.
@@ -219,10 +218,9 @@ TEST_CASE(
   const bool isNull = f.backend == "Null";
   // ... unless the pass-index fallback is active, in which case the six
   // faces ARE written -- as N explicit passes rather than one amplified
-  // draw -- so the oracle is expressible and must run. Before this, d3d11
-  // (caps.multiview == 0) reported a PASS having executed 6 of the 20
-  // assertions, and that vacuous green hid the missing-faces bug for
-  // three measurement cycles.
+  // draw -- so the oracle is expressible and must run. Skipping it on a
+  // backend without caps.multiview (d3d11) makes the case pass vacuously,
+  // on a handful of assertions, while a missing face goes unnoticed.
   if(isGL || isNull || (!f.multiview_caps && !f.multiview_lowered))
   {
     SUCCEED(
@@ -255,9 +253,8 @@ TEST_CASE(
   // shader keys its rows on isf_FragNormCoord.y < 0.5, and under the house
   // ISF orientation contract (GfxOrientation / GfxMrtPattern: uv.y == 1 is
   // the TOP row of the Y-corrected delivered image) that puts shader row 0
-  // (faces 0..2) in the BOTTOM half of the readback -- measured on Vulkan:
-  // reading rows top-first swapped faces 0<->3, 1<->4, 2<->5 while all six
-  // colours were present exactly once. Hence height - 1 - ... here.
+  // (faces 0..2) in the BOTTOM half of the readback: reading rows top-first
+  // swaps faces 0<->3, 1<->4, 2<->5. Hence height - 1 - ... here.
   std::array<std::array<uint8_t, 4>, 6> got{};
   for(int face = 0; face < 6; ++face)
   {

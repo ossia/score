@@ -1,111 +1,54 @@
 // =============================================================================
-// P2-1 — `a camera array renders six faces`
-// (SPEC-SCENE-RENDER-TESTS.md §3.3, the P2-1 row).
+// A CAMERA ARRAY RENDERS SIX FACES.
 //
 // Threedim::CameraArray publishes six cameras — +X, -X, +Y, -Y, +Z, -Z at
-// yfov = pi/2 (CameraArray.hpp:105-112, :128-129). ScenePreprocessor flattens
-// them, packs them into a std140 CameraUBOData array and publishes that array
-// as the geometry-borne auxiliary buffer named "camera". A MULTIVIEW:6
-// raw-raster pass then indexes camera[gl_ViewIndex] and must get FACE
-// gl_ViewIndex — not face 0 six times, not the faces in some other order.
+// yfov = pi/2. ScenePreprocessor flattens them, packs them into a std140
+// CameraUBOData array and publishes that array as the geometry-borne auxiliary
+// buffer named "camera". A MULTIVIEW:6 raw-raster pass then indexes
+// camera[gl_ViewIndex] and must get FACE gl_ViewIndex — not face 0 six times,
+// not the faces in some other order.
 //
-// Intended registration (tests/gfx/CMakeLists.txt) — exact line:
-//     score_add_gfx_test(camera_array_faces GfxCameraArrayFaces.cpp)
-// -> ctest name `test_gfx_camera_array_faces`.
-//
-// BUT: Threedim::CameraArray is hidden-visibility inside score_plugin_threedim
-// (tests/gfx/CMakeLists.txt:384-385 says so in prose; :386-400 is the block for
-// test_gfx_crousti_cpu_nodes, which already compiles CameraArray.cpp in at
-// :393, and :419-434 repeats the shape for test_gfx_env_render_target_size),
-// so the plain one-liner above does NOT link.
-// The registration this file actually needs is the same guarded block, with
-// Primitive.cpp (Threedim::Cube) and CameraArray.cpp compiled in:
-//
-//   # P2-1: a Camera Array's six faces each reach their own MULTIVIEW view.
-//   # CameraArray/Primitive are compiled in because they are hidden-visibility
-//   # inside the plug-in, exactly as test_gfx_crousti_cpu_nodes does.
-//   if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
-//     set(_caf_3d "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
-//     score_plugin_hidden_sources(_caf_hidden
-//         "${_caf_3d}/Primitive.cpp"
-//         "${_caf_3d}/CameraArray.cpp")
-//     score_add_test(test_gfx_camera_array_faces
-//       SOURCES
-//         GfxCameraArrayFaces.cpp
-//         ${_caf_hidden}
-//       GUI
-//       PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
-//       LIBS test_gfx_engine_glue)
-//     target_compile_definitions(test_gfx_camera_array_faces PRIVATE
-//       GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
-//     target_include_directories(test_gfx_camera_array_faces SYSTEM PRIVATE
-//       "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
-//       "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
-//       "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
-//       "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
-//       "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
-//       "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
-//       $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
-//       $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
-//       $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
-//   endif()
+// ctest name `test_gfx_camera_array_faces`. Threedim::CameraArray and
+// Threedim::Cube are hidden-visibility inside score_plugin_threedim, so
+// CameraArray.cpp and Primitive.cpp are compiled into the test target, the way
+// test_gfx_crousti_cpu_nodes does it.
 //
 //   DISPLAY=:0 SCORE_TEST_API=vulkan ctest -R gfx_camera_array_faces
 //   DISPLAY=:0 SCORE_TEST_API=opengl ctest -R gfx_camera_array_faces
 //
 // -----------------------------------------------------------------------------
-// KnownDefects.cpp #163 — RE-DERIVED, 2026-09-02. IT IS FIXED. This case is
-// NOT an expected-red pin.
+// RELATION TO KnownDefects.cpp #163
 // -----------------------------------------------------------------------------
-// The spec's P2-1 row says "the `camera` aux still advertises one entry
-// (ScenePreprocessorNode.cpp:2731), so this case may legitimately be red until
-// that is fixed". That is STALE. Measured against today's tree:
-//
-//  * KnownDefects.cpp:131-159 asserts the CORRECT behaviour (house rule): both
-//    `.name = "camera"` publication sites must size their extent with
-//    `m_cachedCameras.size()`. It carries the [known-defect] tag but NOT
-//    [!shouldfail], so it is a green-when-fixed guard, not a red pin.
-//  * Both sites now do. `grep -n '\.name = "camera"'
-//    src/plugins/score-plugin-gfx/Gfx/Graph/ScenePreprocessorNode.cpp` gives
-//    exactly two hits, :1670 (cloud/CSF path) and :2800 (mesh/MDI path), and
-//    each takes `.byte_size = cameraAuxByteSize(m_cachedCameras.size())`
-//    (:1673 and :2802). cameraAuxByteSize is CameraMath.hpp:36-41:
-//    max(1, cameraCount) * sizeof(CameraUBOData).
-//  * The line number in the spec is a different statement. :2731 is
-//    `g.buffers.push_back(wrapGpu(m_camerasBuffer, sizeof(CameraUBOData)))`,
-//    the BUFFER wrapper, still one entry wide, and its comment at :2728-2730
-//    ("Only bind the ACTIVE camera slot (first 240 bytes)") is now stale prose.
-//    It is NOT the extent that reaches the descriptor: the consumer prefers the
-//    aux's byte_size and only falls back to the wrapper's when it is <= 0 —
-//    RenderedRawRasterPipelineNode.cpp:1739
-//        ssbo.size = geo_aux->byte_size > 0 ? geo_aux->byte_size : gpu->byte_size;
-//    (same expression on the re-match path at :2548). cameraAuxByteSize never
-//    returns <= 0, so the wrapper's size is dead here.
-//  * The underlying QRhiBuffer is big enough: ScenePreprocessorNode.cpp:3706
-//    pre-allocates max(bytes, 16 * 240) = 3840 B minimum, and :3744 uploads all
-//    N entries.
-// => The 1440-byte camera[6] block this test's shader declares is backed by a
-//    1440-byte binding. This test is a REGRESSION GUARD on the #163 fix: if
-//    either site reverts to `sizeof(CameraUBOData)`, the binding shrinks to 240
-//    bytes under a 1440-byte block and views 1..5 read out of range.
+// #163 is the "camera" aux advertising one entry for N cameras. Both
+// `.name = "camera"` publication sites in ScenePreprocessorNode.cpp size their
+// extent with cameraAuxByteSize(m_cachedCameras.size()) =
+// max(1, cameraCount) * sizeof(CameraUBOData), and the consumer prefers the
+// aux's byte_size over the buffer wrapper's, falling back only when it is <= 0
+// — which cameraAuxByteSize never returns. The underlying QRhiBuffer is
+// pre-allocated to max(bytes, 16 * 240) = 3840 B minimum and all N entries are
+// uploaded. So the 1440-byte camera[6] block this test's shader declares is
+// backed by a 1440-byte binding, and this case is a green regression guard, not
+// an expected-red pin: if either site reverts to `sizeof(CameraUBOData)` the
+// binding shrinks to 240 bytes under a 1440-byte block and views 1..5 read out
+// of range.
 //
 // -----------------------------------------------------------------------------
 // THE CLOSED FORM — six view directions => six predicted colours
 // -----------------------------------------------------------------------------
-// (1) CameraArray.hpp:105-112 declares, in GL cubemap face order:
+// (1) CameraArray.hpp declares, in GL cubemap face order:
 //         face 0 +X forward ( 1, 0, 0)   face 3 -Y forward ( 0,-1, 0)
 //         face 1 -X forward (-1, 0, 0)   face 4 +Z forward ( 0, 0, 1)
 //         face 2 +Y forward ( 0, 1, 0)   face 5 -Z forward ( 0, 0,-1)
-// (2) CameraArray.hpp:154 builds each node's rotation as
-//     QQuaternion::fromDirection(-forward, up). Qt's fromDirection makes
-//     `direction` the rotation's third basis vector, so the world-space matrix
-//     R has column 2 == -forward (GL cameras look down local -Z).
+// (2) it builds each node's rotation as QQuaternion::fromDirection(-forward,
+//     up). Qt's fromDirection makes `direction` the rotation's third basis
+//     vector, so the world-space matrix R has column 2 == -forward (GL cameras
+//     look down local -Z).
 // (3) flattenScene composes that into CameraEntry::worldTransform (scale is 1,
 //     so the 3x3 part is exactly R), and packCameraUBO writes
-//     view = worldTransform.inverted() (CameraMath.cpp:15). For a rigid
-//     transform the rotation part of the inverse is R^T.
-// (4) QMatrix4x4::constData() is column-major and writeMat4 memcpys it
-//     (CameraMath.hpp:43-46); std140 mat4 is column-major too. So in GLSL
+//     view = worldTransform.inverted(). For a rigid transform the rotation part
+//     of the inverse is R^T.
+// (4) QMatrix4x4::constData() is column-major and writeMat4 memcpys it; std140
+//     mat4 is column-major too. So in GLSL
 //     view[c][r] == (R^T)[r][c] == R[c][r], hence
 //         vec3(view[0][2], view[1][2], view[2][2]) == R's column 2 == -forward
 //     and the shader recovers  forward = -vec3(view[0][2], view[1][2], view[2][2]).
@@ -143,20 +86,18 @@
 //       class, never as a substitute for (a).
 //
 // -----------------------------------------------------------------------------
-// NEGATIVE CONTROL (product-side, proposed — do not commit)
+// NEGATIVE CONTROL (product-side, do not commit)
 // -----------------------------------------------------------------------------
-// Hook: src/plugins/score-plugin-threedim/Threedim/CameraArray.hpp:106-107,
-// the first two rows of the `kFaces` table inside rebuild(). Exact edit — swap
-// the two forward vectors, leaving everything else alone:
+// Swap the two forward vectors of the first two rows of the `kFaces` table
+// inside CameraArray.hpp's rebuild(), leaving everything else alone:
 //
 //       {{-1.f,  0.f,  0.f}, {0.f, -1.f,  0.f}},  // +X slot, now looking -X
 //       {{ 1.f,  0.f,  0.f}, {0.f, -1.f,  0.f}},  // -X slot, now looking +X
 //
 // (Only the .hpp copy: rebuild() is the scene_spec path this test drives.
-//  CameraArray.cpp:21-28 holds a SECOND copy of the same table, used for the
+//  CameraArray.cpp holds a SECOND copy of the same table, used for the
 //  RawCamera/RawTransform arena slots, under a "keep the two definitions in
-//  sync" comment — editing one and not the other is itself a latent hazard,
-//  noted here because the control makes it visible.)
+//  sync" comment — editing one and not the other is itself a latent hazard.)
 //
 // Must go RED:
 //   * CPU lane, "the six faces are the six axes": the face-0 and face-1
@@ -174,39 +115,37 @@
 //     plumbing.
 //
 // -----------------------------------------------------------------------------
-// HARDWARE / BACKEND SCOPE — following the GfxMultiview.cpp precedent honestly
+// HARDWARE / BACKEND SCOPE — following the GfxMultiview.cpp precedent
 // -----------------------------------------------------------------------------
 // MULTIVIEW is a Vulkan / D3D12 (/Metal) feature.
 //   * Vulkan / D3D12 / Metal with caps.multiview: the full six-colour pixel
 //     oracle runs.
-//   * OpenGL: GfxMultiview.cpp:64-77 records, measured, that the offscreen GL
-//     context on this box does not render a procedural MULTIVIEW layered raster
-//     at all — layer 0 reads back black even on the FIXED engine — and
-//     SPEC-SCENE-RENDER-TESTS.md's preamble adds that Qt applies
-//     ovr_multiview_view_count to the vertex stage only (qspirvshader.cpp:954),
-//     so P1-7 and P2-1 must not assume multiview bakes on GL. GfxCubemapSixFaces
-//     .cpp:196-212 turns that into the "structural lane": assert the decision
-//     logic (a cube handle is published, the array-then-copy shim was selected)
-//     and SUCCEED with the reason instead of pretending to have pixels. Same
-//     here, plus the CPU lane, which is the strongest part of this case that is
-//     hardware-independent.
+//   * OpenGL: GfxMultiview.cpp records that the offscreen GL context does not
+//     render a procedural MULTIVIEW layered raster at all — layer 0 reads back
+//     black even on the FIXED engine — and Qt applies
+//     ovr_multiview_view_count to the vertex stage only, so these cases must
+//     not assume multiview bakes on GL.
+//     GfxCubemapSixFaces.cpp turns that into the "structural lane": assert the
+//     decision logic (a cube handle is published, the array-then-copy shim was
+//     selected) and SUCCEED with the reason instead of pretending to have
+//     pixels. Same here, plus the CPU lane, which is the strongest part of
+//     this case that is hardware-independent.
 //   * Null / no multiview caps / no usable RHI: SKIP or structural lane only.
-//     Never a pixel verdict — SPEC §3.0's "do not fall back to Null for a case
-//     whose verdict is a pixel".
+//     Never a pixel verdict: do not fall back to Null for a case whose
+//     verdict is a pixel.
 //
 // -----------------------------------------------------------------------------
-// WHY A NEW CORPUS PAIR (SPEC §3.4 item 3 asks the question)
+// WHY A NEW CORPUS PAIR
 // -----------------------------------------------------------------------------
-// syn-cube-six-colors.{vs,fs} — added for P1-7 — was read first and does NOT
-// fit: it colours each face from a CONSTANT table indexed by gl_ViewIndex
-// (syn-cube-six-colors.fs:39-51) and never touches the camera UBO, so it cannot
-// distinguish "six cameras reached six views" from "no camera reached anything".
-// syn-raster-per-cube-face.{vs,fs} is EXECUTION_MODEL PER_CUBE_FACE (six passes
-// keyed on PASSINDEX), not MULTIVIEW, and also ignores the camera. The camera
-// probe in GfxEnvRenderTargetSize.cpp:195-231 reads the camera block as a
-// single struct (slot 0 only) and is not multiview. No committed shader reads
-// the camera aux as an ARRAY. Hence exactly one new pair,
-// syn-camera-array-faces.{vs,fs}; its READ side reuses the existing
+// syn-cube-six-colors.{vs,fs} does NOT fit: it colours each
+// face from a CONSTANT table indexed by gl_ViewIndex and never touches the
+// camera UBO, so it cannot distinguish "six cameras reached six views" from "no
+// camera reached anything". syn-raster-per-cube-face.{vs,fs} is EXECUTION_MODEL
+// PER_CUBE_FACE (six passes keyed on PASSINDEX), not MULTIVIEW, and also
+// ignores the camera. The camera probe in GfxEnvRenderTargetSize.cpp reads the
+// camera block as a single struct (slot 0 only) and is not multiview. No
+// committed shader reads the camera aux as an ARRAY. Hence exactly one new
+// pair, syn-camera-array-faces.{vs,fs}; its READ side reuses the existing
 // syn-cube-six-probe.fs viewer unchanged.
 // =============================================================================
 #include <score_test/Gfx.hpp>
@@ -256,8 +195,8 @@ QString corpus(const char* f)
 
 // The sink is SQUARE on purpose. packCameraUBO derives the projection aspect
 // from renderSize and only falls back to camera_component::aspect_ratio when
-// renderSize.height() <= 0 (CameraMath.cpp:18-24), so CameraArray's declared
-// aspect_ratio = 1 (CameraArray.hpp:129) does NOT by itself make the projection
+// renderSize.height() <= 0, so CameraArray's declared
+// aspect_ratio = 1 does NOT by itself make the projection
 // square — the render target has to be square too. The direction oracle below
 // is aspect-independent, but keeping the sink square lets the CPU lane also pin
 // projection[0][0] == 1 (see kProj00Square) instead of leaving yfov unchecked.
@@ -265,11 +204,11 @@ QString corpus(const char* f)
 constexpr int kSinkW = 96;
 constexpr int kSinkH = 96;
 
-// yfov = pi/2 => fovYDeg = 90 => cot(45 deg) = 1; setReverseZPerspective
-// (CameraMath.hpp:76) sets projection(0,0) = cot / aspect, aspect = 96/96 = 1.
+// yfov = pi/2 => fovYDeg = 90 => cot(45 deg) = 1; setReverseZPerspective sets
+// projection(0,0) = cot / aspect, aspect = 96/96 = 1.
 constexpr float kProj00Square = 1.f;
 
-// GL cubemap face order, the order CameraArray.hpp:105-112 declares.
+// GL cubemap face order, the order CameraArray.hpp declares.
 const char* const kFaceNames[6] = {"+X", "-X", "+Y", "-Y", "+Z", "-Z"};
 
 // Step (1) of the closed form in the header. Nothing else in this file
@@ -304,7 +243,7 @@ std::array<uint8_t, 4> predictedColour(int face) noexcept
 // makes two rgba8 round trips (cube face, then the viewer's own output).
 constexpr int kTol = 4;
 
-// --- Crousti glue (cloned from CroustiCpuNodes.cpp:56-86) --------------------
+// --- Crousti glue (cloned from CroustiCpuNodes.cpp) -------------------------
 
 //! Owns the ProcessModels the GfxNodes hold references to. Must outlive the
 //! GfxPipeline, so declare it first at every call site.
@@ -325,7 +264,7 @@ struct HalpProcesses
   }
 };
 
-//! Deliver control values to a Crousti node (CroustiCpuNodes.cpp:79-86).
+//! Deliver control values to a Crousti node, as CroustiCpuNodes.cpp does.
 void setInputs(score::gfx::Node& n, std::vector<ossia::value> vals)
 {
   score::gfx::Message m;
@@ -361,8 +300,8 @@ struct FaceFacts
   std::string error;
   std::string backend;
 
-  // Structural (pixel-free) half — the lane that runs on GL / Null, the P1-7
-  // pattern (GfxCubemapSixFaces.cpp:88-95).
+  // Structural (pixel-free) half — the lane that runs on GL / Null, the
+  // pattern of GfxCubemapSixFaces.cpp.
   bool multiview_caps = false;
   // caps.multiview alone does not mean multiview is USED: a D3D target whose
   // shader model cannot compile SV_ViewID has the capability and still falls
@@ -394,15 +333,14 @@ FaceFacts run_faces(score::gfx::GraphicsApi api)
 
     // A Cube is in the scene for one reason only: the raw-raster consumer
     // resolves its "camera" uniform by NAME against the incoming geometry's
-    // auxiliary list (RenderedRawRasterPipelineNode.cpp:1725-1741), so there
-    // has to be geometry on the edge. Its placement is irrelevant — the vertex
+    // auxiliary list, so there has to be geometry on the edge. Its placement is irrelevant — the vertex
     // shader synthesises a fullscreen triangle and ignores `position`.
     const int cube = p.addNode(procs.make<Threedim::Cube>(ctx));
     const int cams = p.addNode(procs.make<Threedim::CameraArray>(ctx));
     const int flat = p.addNode(std::make_unique<score::gfx::ScenePreprocessorNode>());
     const int prod = p.addRaster(
         corpus("syn-camera-array-faces.vs"), corpus("syn-camera-array-faces.fs"));
-    // Reused unchanged from P1-7: samples the six axis directions of the
+    // Samples the six axis directions of the
     // upstream cubemap into a 3x2 grid, each face exactly once.
     const int view = p.addIsf(corpus("syn-cube-six-probe.fs"));
     if(cube < 0 || cams < 0 || flat < 0 || prod < 0 || view < 0)
@@ -429,7 +367,7 @@ FaceFacts run_faces(score::gfx::GraphicsApi api)
     p.wire(p.imageOut(view, 0), p.sinkInput(sink));
 
     // Pin the controls so the oracle cannot drift with a default change.
-    // CameraArray::ins field order (CameraArray.hpp:55-65): origin, near, far.
+    // CameraArray::ins field order: origin, near, far.
     // The origin does not enter the direction oracle (it is the translation
     // column, not the rotation), but pinning it keeps the eye at the world
     // origin, which is what a cubemap probe array means.
@@ -456,7 +394,7 @@ FaceFacts run_faces(score::gfx::GraphicsApi api)
     f.view = p.readback(sink);
 
     // Structural half, harvested through the public NodeRenderer API while the
-    // pipeline is alive — GfxCubemapSixFaces.cpp:139-157.
+    // pipeline is alive — the same way GfxCubemapSixFaces.cpp does it.
     auto* outPort = p.imageOut(prod, 0);
     auto& node = *p.isf(prod);
     for(auto& [renderList, renderer] : node.renderedNodes)
@@ -468,6 +406,8 @@ FaceFacts run_faces(score::gfx::GraphicsApi api)
       // Both corpus shaders declare MULTIVIEW:6 -- a cubemap is six views by
       // definition, which is also why D3D12 ViewInstancing (max 4) cannot
       // serve them. The count is part of the predicate, so pass it.
+      f.multiview_lowered = score::gfx::viewIndexNeedsPassIndexFallback(
+          renderList->state.api, renderList->state.version, 6);
       if(QRhiTexture* tex = renderer->textureForOutput(*outPort))
       {
         f.out_tex_found = true;
@@ -488,7 +428,7 @@ FaceFacts run_faces(score::gfx::GraphicsApi api)
 // and re-derives the six predicted colours independently of the shader. If this
 // lane is green and the GPU lane's per-face equality is red, the fault is in
 // the transport (packing order / aux extent / view amplification), not in the
-// camera maths — which is exactly the split P2-1 needs to be diagnosable.
+// camera maths — which is exactly the split this case needs to be diagnosable.
 // =============================================================================
 
 TEST_CASE(
@@ -498,7 +438,7 @@ TEST_CASE(
   // Aggregate value-init: the GpuResourceRegistry::Slot arrays are only ever
   // touched by init()/update()/release(), which this GPU-free lane never calls.
   Threedim::CameraArray arr{};
-  // Defaults per CameraArray.hpp:59-64: origin (0,0,0), near 0.1, far 1000.
+  // Defaults per CameraArray.hpp: origin (0,0,0), near 0.1, far 1000.
   arr.rebuild();
   arr();
   REQUIRE(arr.outputs.scene_out.scene.state);
@@ -512,11 +452,10 @@ TEST_CASE(
   // Cardinality first: six cameras, no more, no fewer.
   REQUIRE(fs.cameras.size() == 6);
 
-  // packAndUploadCameras (ScenePreprocessorNode.cpp:3683-3696) hoists the
-  // ACTIVE camera to slot 0 and appends the rest in insertion order. That
-  // reorder is a no-op here only because CameraArray declares face 0 active
-  // (CameraArray.hpp:187), which flattenScene resolves to activeCameraIndex 0
-  // (SceneGPUState.cpp:933-947). Pinned explicitly: if the active camera were
+  // packAndUploadCameras hoists the ACTIVE camera to slot 0 and appends the
+  // rest in insertion order. That reorder is a no-op here only because
+  // CameraArray declares face 0 active, which flattenScene resolves to
+  // activeCameraIndex 0. Pinned explicitly: if the active camera were
   // ever anything but face 0, camera[gl_ViewIndex] would stop being face
   // gl_ViewIndex and the whole multiview correspondence would rotate.
   CHECK(fs.activeCameraIndex == 0);
@@ -527,8 +466,7 @@ TEST_CASE(
     const auto& e = fs.cameras[std::size_t(i)];
     REQUIRE(e.component);
 
-    // yfov / aspect_ratio as the spec's P2-1 row states them
-    // (CameraArray.hpp:128-129).
+    // yfov / aspect_ratio for the six faces.
     CHECK(e.component->yfov == Approx(float(M_PI) / 2.f));
     CHECK(e.component->aspect_ratio == Approx(1.f));
 
@@ -579,8 +517,9 @@ TEST_CASE(
       arr.outputs.scene_out.scene, fs, float(kSinkW) / float(kSinkH));
   REQUIRE(fs.cameras.size() == 6);
 
-  // Pack exactly as ScenePreprocessorNode.cpp:3686-3696 does, in the order it
-  // does (active first, then the rest) — here that is plain face order.
+  // Pack exactly as ScenePreprocessorNode's packAndUploadCameras does, in the
+  // order it does (active first, then the rest) — here that is plain face
+  // order.
   std::vector<score::gfx::CameraUBOData> packed;
   packed.reserve(6);
   const int active = std::max(0, fs.activeCameraIndex);
@@ -631,11 +570,10 @@ TEST_CASE(
     // yfov reaches the projection: with a SQUARE render target,
     // projection[0][0] = cot(yfov/2) / 1 = cot(45 deg) = 1. This is the only
     // place the pi/2 field of view is checked numerically rather than as a
-    // stored control value. NOTE (documented, not a defect pin): with a
-    // NON-square render target this would be 1/aspect — packCameraUBO ignores
-    // camera_component::aspect_ratio whenever renderSize.height() > 0
-    // (CameraMath.cpp:18-24), so CameraArray's declared aspect_ratio = 1 does
-    // not survive to the projection on its own.
+    // stored control value. With a NON-square render target this would be
+    // 1/aspect — packCameraUBO ignores camera_component::aspect_ratio whenever
+    // renderSize.height() > 0, so CameraArray's declared aspect_ratio = 1 does
+    // not survive to the projection on its own. Documented, not a defect pin.
     CHECK(d.projection[0] == Approx(kProj00Square).margin(1e-4));
   }
 
@@ -673,7 +611,7 @@ TEST_CASE(
   const FaceFacts f = run_faces(be);
   if(f.skipped)
   {
-    // SPEC §3.0: never fail for environment.
+    // Never fail for environment.
     SKIP(f.backend + ": " + f.skip_reason);
   }
 
@@ -690,7 +628,7 @@ TEST_CASE(
   {
     // QRhi forbids setMultiViewCount on a cube texture, so MULTIVIEW+CUBEMAP
     // must go through the array-then-copy shim and publish its cube, not the
-    // shadow array it actually renders into (P1-7 pins the copy loop itself).
+    // shadow array it actually renders into.
     CHECK(f.out_tex_is_shim_cube);
   }
 
@@ -699,10 +637,9 @@ TEST_CASE(
   const bool isNull = f.backend.find("Null") != std::string::npos;
   // ... unless the pass-index fallback is active, in which case the six
   // faces ARE written -- as N explicit passes rather than one amplified
-  // draw -- so the oracle is expressible and must run. Before this, d3d11
-  // (caps.multiview == 0) reported a PASS having executed 6 of the 20
-  // assertions, and that vacuous green hid the missing-faces bug for
-  // three measurement cycles.
+  // draw -- so the oracle is expressible and must run. Without this branch a
+  // backend with caps.multiview == 0 (d3d11) passes on a fraction of the
+  // assertions, and that vacuous green hides a missing-faces fault.
   if(isGL || isNull || (!f.multiview_caps && !f.multiview_lowered))
   {
     SUCCEED(
@@ -726,9 +663,9 @@ TEST_CASE(
   // isf_FragNormCoord.y < 0.5, and under the house ISF orientation contract
   // uv.y == 1 is the TOP row of the delivered image, so shader row 0
   // (faces 0..2) lands in the BOTTOM half of the readback. That flip is not a
-  // guess: GfxCubemapSixFaces.cpp:232-245 records it as MEASURED on Vulkan
-  // (reading top-first swapped 0<->3, 1<->4, 2<->5 while all six colours were
-  // still present exactly once). Same viewer, same correction.
+  // guess: GfxCubemapSixFaces.cpp records the same flip -- reading top-first
+  // swaps 0<->3, 1<->4, 2<->5 while all six colours stay present exactly once.
+  // Same viewer, same correction.
   std::array<std::array<uint8_t, 4>, 6> got{};
   for(int face = 0; face < 6; ++face)
   {

@@ -133,7 +133,7 @@ const std::pair<QShader, QString>& ShaderCache::get(
   // already per-(api, version, multiViewCount), so each backend caches its
   // own bake of the same node.
   QByteArray source = shader;
-  if(multiViewCount >= 2 && viewIndexNeedsPassIndexFallback(api, version))
+  if(multiViewCount >= 2 && viewIndexNeedsPassIndexFallback(api, version, multiViewCount))
     source = lowerViewIndexToPassIndex(std::move(source));
 
   b.baker.setSourceString(source, stage);
@@ -191,7 +191,7 @@ ShaderCache::Baker::Baker(
   // gl_ViewIndex left to give a view count to, the target cannot express
   // multiview anyway, and asking for it makes QRhi expect a multiview render
   // target the N-pass fallback does not build.
-  if(multiViewCount >= 2 && !viewIndexNeedsPassIndexFallback(api, version))
+  if(multiViewCount >= 2 && !viewIndexNeedsPassIndexFallback(api, version, multiViewCount))
     baker.setMultiViewCount(multiViewCount);
 #endif
 }
