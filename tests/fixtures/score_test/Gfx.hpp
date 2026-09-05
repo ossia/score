@@ -267,6 +267,49 @@ inline const char* storage_buffer_skip_reason(score::gfx::GraphicsApi api) noexc
 }
 
 // -----------------------------------------------------------------------------
+// A storage buffer read from the VERTEX stage is a narrower capability than a
+// storage buffer, and D3D11 does not have it.
+//
+// Qt bakes HLSL with SPVC_COMPILER_OPTION_HLSL_FORCE_STORAGE_BUFFER_AS_UAV set
+// unconditionally, so every SSBO -- `readonly` ones included -- lands in the
+// vertex DXBC as `RWByteAddressBuffer : register(u#)`. D3D11 allows UAVs only
+// at the pixel and compute stages, so QRhiD3D11 reports
+// MaxVertexStorageBuffers == 0 and its SRB translation never appends a
+// storage-buffer UAV to the vertex stage. It says so, once per binding:
+//
+//     Unordered access only supported at fragment/compute stage
+//
+// and then leaves the register unbound. An unbound UAV reads ZERO, so a shader
+// indexing per_draws[draw_id].model gets an all-zero matrix and draws nothing
+// where the test expects placement. That is not a rasterizer fault and not a
+// score defect: it is the stage limit of the API.
+//
+// Scope this to D3D11 ONLY, and deliberately so. D3D12 reads zero from the same
+// shaders on our test machine, but for a DIFFERENT and still-unexplained
+// reason: it emits no such warning, the shader compiles, and Qt accepts the
+// vertex-visible binding. Skipping D3D12 here would turn a live defect into a
+// green skip -- exactly the vacuous pass this suite has been bitten by. Leave
+// it failing until somebody explains it.
+//
+// Returns nullptr where a vertex-stage storage buffer CAN be read.
+inline const char*
+vertex_storage_buffer_skip_reason(score::gfx::GraphicsApi api) noexcept
+{
+  if(const char* why = storage_buffer_skip_reason(api))
+    return why;
+
+  if(api == score::gfx::D3D11)
+    return "D3D11 cannot read a storage buffer from the vertex stage: Qt bakes "
+           "every SSBO as an RWByteAddressBuffer UAV, and D3D11 allows UAVs "
+           "only at the pixel and compute stages, so QRhi reports "
+           "MaxVertexStorageBuffers == 0, warns 'Unordered access only "
+           "supported at fragment/compute stage' and leaves the register "
+           "unbound -- an unbound UAV reads zero. A stage limit of the API, "
+           "not a defect.";
+  return nullptr;
+}
+
+// -----------------------------------------------------------------------------
 // Compute shaders are not universally available either, and the backend that
 // lacks them is not a broken one.
 //
