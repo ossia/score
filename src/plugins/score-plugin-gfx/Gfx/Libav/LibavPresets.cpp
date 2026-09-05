@@ -70,7 +70,19 @@ void addInputEnumerators(Device::DeviceEnumerators& enums)
     add("Test: testsrc2", "testsrc2=size=1280x720:rate=30", {{"format", "lavfi"}});
     add("Test: solid color", "color=c=red:size=1280x720:rate=30",
         {{"format", "lavfi"}});
-    add("Test: mandelbrot", "mandelbrot=size=1280x720:rate=30",
+    // Sweeps the YUV space, which is the conversion path every real video
+    // source takes and which the three above do not cover systematically.
+    //
+    // An escape-time fractal such as mandelbrot is unusable in this slot: one
+    // ULP of arithmetic difference flips a boundary pixel's iteration count
+    // and gives it an unrelated palette entry. The ossia SDK's ffmpeg is built
+    // -O3 -march=x86-64-v3, which enables FMA contraction, and the system
+    // ffmpeg is not, so a scattering of boundary pixels gets an entirely
+    // different palette entry between the two builds. That tests the compiler,
+    // not the pipeline, and no tolerance can express "these few pixels are
+    // entirely the wrong colour".
+    // The well-conditioned generators agree between the same two builds.
+    add("Test: YUV test pattern", "yuvtestsrc=size=1280x720:rate=30",
         {{"format", "lavfi"}});
     enums.push_back({"Test Sources", e});
   }
