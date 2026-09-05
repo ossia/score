@@ -208,4 +208,34 @@ compatibleBufferUsage(QRhi& rhi, QRhiBuffer::UsageFlags usage) noexcept
     return usage;
   return usage & ~QRhiBuffer::UsageFlags(QRhiBuffer::StorageBuffer);
 }
+
+/**
+ * @brief Whether MULTIVIEW must be emulated with one pass per view.
+ *
+ * gl_ViewIndex becomes HLSL SV_ViewID, which requires shader model 6.1. D3D11
+ * is pinned to SM 5.0 for good, and D3D12 drops to 5.0 whenever dxcompiler.dll
+ * is absent, so on those targets a multiview shader cannot be COMPILED at all:
+ *
+ *     Vertex shader error: View Index input is only supported in VS and PS
+ *     6.1 or higher.
+ *
+ * ShaderCache answers this by rewriting gl_ViewIndex to the PASSINDEX uniform,
+ * which the N-pass path stamps per invocation.
+ *
+ * That rewrite and the choice of render path MUST be driven by the same
+ * predicate. When they disagree the failure is silent and looks like a
+ * rasterizer bug: on D3D12 the shader was lowered to read PASSINDEX while
+ * QRhi still reported MultiView, so the runtime issued ONE amplified draw in
+ * which passIndex never advanced past 0 -- and all six cube faces came back
+ * carrying face 0's colour. Ask this function in both places.
+ */
+inline bool
+viewIndexNeedsPassIndexFallback(GraphicsApi api, const QShaderVersion& version) noexcept
+{
+  if(qEnvironmentVariableIsSet("SCORE_GFX_DISABLE_MULTIVIEW"))
+    return true;
+  if(api != GraphicsApi::D3D11 && api != GraphicsApi::D3D12)
+    return false;
+  return version.version() < 61;
+}
 }
