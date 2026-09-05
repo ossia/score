@@ -38,22 +38,24 @@ if(TARGET score_plugin_gfx AND TARGET score_plugin_engine AND TARGET score_plugi
   target_compile_definitions(score_corpus_tester PRIVATE
     "SCORE_TEST_BINARY_DIR=\"${SCORE_ROOT_BINARY_DIR}\"")
   setup_score_common_exe_features(score_corpus_tester)
-  # See the note on the video tester above. This one builds a QApplication and
-  # renders a frame, so it needs the GUI set (offscreen included).
-  enable_minimal_qt_plugins(score_corpus_tester 1)
+  # The corpus runner does not execute Qt Quick3D QML modules. Importing those
+  # static plugins pulls Qt's bundled jsoncpp into the same executable as
+  # sh4lt's bundled jsoncpp, producing duplicate Json::* definitions.
+  block()
+    set(SCORE_QT_PLUGINS_NO_QTQUICK3D ON)
+    enable_minimal_qt_plugins(score_corpus_tester 1)
+  endblock()
 
   # And the second half of what score_add_test(... APP) provides, for the same
   # reason this target misses the first: it is a raw add_executable.
-  # ScoreTests.cmake:146-150 links the WHOLE plugin list into every APP/GUI test
+  # ScoreTests.cmake:146-150 links the whole plugin list into every APP/GUI test
   # under a static build, because static plugins have no runtime discovery from
-  # "<cwd>/plugins" -- they must be linked in to register at all. This target
-  # named a hand-picked six, so on a static Qt (the Windows and macOS SDKs) it
-  # booted with almost no process factories and the first
-  # ctx.interfaces<Process::ProcessFactoryList>() hit SCORE_ABORT
-  # (ApplicationComponents.hpp:187). Measured on Windows: rc=127, c0000409
-  # FAST_FAIL_FATAL_APP_EXIT through ucrtbase!abort, before any document is
-  # touched -- and unaffected by --no-render, by cwd, or by forcing offscreen,
-  # because none of those is the cause.
+  # "<cwd>/plugins" -- they must be linked in to register at all. Naming only a
+  # hand-picked few leaves a static Qt build (the Windows and macOS SDKs) with
+  # almost no process factories, and the first
+  # ctx.interfaces<Process::ProcessFactoryList>() hits SCORE_ABORT
+  # (ApplicationComponents.hpp:187), aborting the process before any document
+  # is touched, whatever the render mode or the working directory.
   #
   # Inert on a dynamic build, where the list is discovered at runtime instead.
   if(SCORE_STATIC_PLUGINS)
