@@ -570,6 +570,16 @@ RenderResult renderScene(const QTemporaryDir& dir, const QString& name,
   env.insert("SCORE_AUDIO_BACKEND", "dummy");
   env.insert("SCORE_DISABLE_AUDIOPLUGINS", "1");
   env.insert("QT_LOGGING_RULES", "qt.rhi.general=true");
+  // MergedChannels below joins the child's stderr into what we read, but on
+  // Windows Qt's default handler does not write to stderr at all -- it goes to
+  // OutputDebugString unless these are set, so the "score.gfx: RHI device:"
+  // line never reached p.readAll(), DeviceIdentity::backend stayed empty, and
+  // requireSameDevice's REQUIRE(gpu.known()) failed on every Windows backend.
+  // The device-identity assertions arrived with the NVIDIA-gate removal and
+  // were only ever exercised where logging already lands on stderr.
+  // GfxProtocolSettingsTest sets the same pair for the same reason.
+  env.insert("QT_FORCE_STDERR_LOGGING", "1");
+  env.insert("QT_ASSUME_STDERR_HAS_CONSOLE", "1");
 
   QProcess p;
   p.setProcessEnvironment(env);
