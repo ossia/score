@@ -770,8 +770,15 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     // iterating per face would collapse back to the same 6 writes.
     // Warn and disable the per-face loop — the cube-copy shim
     // (CUBEMAP + MULTIVIEW) handles everything downstream.
+    //
+    // ... but only while multiview actually amplifies anything. Where the view
+    // index has been lowered to PASSINDEX there is no amplification left, and
+    // the explicit per-face loop is the ONLY thing that writes the other five
+    // faces. Disabling it there is what left five of six faces unwritten.
+    const bool mvLowered = viewIndexNeedsPassIndexFallback(
+        renderer.state.api, renderer.state.version);
     if(m_executionMode == ExecutionMode::PerCubeFace
-       && n.descriptor().multiview_count >= 2)
+       && n.descriptor().multiview_count >= 2 && !mvLowered)
     {
       qWarning()
           << "RawRaster EXECUTION_MODEL=PER_CUBE_FACE + MULTIVIEW:"
@@ -781,6 +788,44 @@ void RenderedRawRasterPipelineNode::initMRTPass(
              " without multiview. Disabling PER_CUBE_FACE.";
       m_executionMode = ExecutionMode::Single;
       m_perCubeFaceOutputIndex = -1;
+    }
+
+    // MULTIVIEW:N with no EXECUTION_MODEL at all is the common shape -- the
+    // shader just declares MULTIVIEW and lets one draw fan out over the layers
+    // (syn-cube-six-colors, syn-camera-array-faces). When the view index is
+    // lowered, that fan-out is gone and nothing replaces it: the node writes
+    // layer 0 and leaves the rest at their clear colour, which reads back as
+    // "four of six faces missing" rather than as a disabled feature.
+    //
+    // Promote such a node to the explicit loop that the lowering assumes:
+    // PER_CUBE_FACE for a cube output, PER_LAYER for a plain layered one.
+    // Both already exist, already build one render target per layer, and
+    // already stamp the invocation index into ProcessUBO::passIndex -- which
+    // is exactly what the lowered shader now reads.
+    const int mvDecl = n.descriptor().multiview_count;
+    if(mvLowered && mvDecl >= 2 && m_executionMode == ExecutionMode::Single)
+    {
+      int colorIdx = 0;
+      for(int i = 0; i < (int)outputs.size(); ++i)
+      {
+        const auto& out = outputs[i];
+        if(out.type == "depth")
+          continue;
+        if(out.is_cubemap)
+        {
+          m_executionMode = ExecutionMode::PerCubeFace;
+          m_perCubeFaceOutputIndex = colorIdx;
+          break;
+        }
+        if(out.layers >= mvDecl)
+        {
+          m_executionMode = ExecutionMode::PerLayer;
+          m_perLayerOutputIndex = i;
+          m_perLayerIsDepth = false;
+          break;
+        }
+        ++colorIdx;
+      }
     }
   }
 
