@@ -22,7 +22,7 @@ std::function<void(T&)> set_destination_impl(
         port.address = {};
         if(ossia::value_port* dat = port.template target<ossia::value_port>())
         {
-          dat->type = {};
+          dat->address_unit = {};
           dat->index = {};
         }
         g.mark_dirty();
@@ -41,8 +41,7 @@ std::function<void(T&)> set_destination_impl(
         port.address = p;
         if(ossia::value_port* dat = port.template target<ossia::value_port>())
         {
-          if(qual.unit)
-            dat->type = qual.unit;
+          dat->address_unit = qual.unit;
           dat->index = qual.accessors;
         }
         s.register_port(port);
@@ -69,7 +68,7 @@ std::function<void(T&)> set_destination_impl(
         port.address = std::move(*path);
         if(ossia::value_port* dat = port.template target<ossia::value_port>())
         {
-          dat->type = {};
+          dat->address_unit = {};
           dat->index.clear();
         }
         s.register_port(port);
@@ -83,7 +82,7 @@ std::function<void(T&)> set_destination_impl(
         port.address = {};
         if(ossia::value_port* dat = port.template target<ossia::value_port>())
         {
-          dat->type = {};
+          dat->address_unit = {};
           dat->index.clear();
         }
         g.mark_dirty();
@@ -191,10 +190,12 @@ ProcessExecutorComponent::ProcessExecutorComponent(
     system().setup.set_destination(addr, &outlet);
     ctrl->setupExecution(inlet, this);
 
-    // set_destination sets the domain / type in the exec thread, so since
-    // we override it we have to schedul the change after to make sure it does
-    // not get overwritten:
-    in_exec([&in_port, &out_port] {
+    // The outlet is the port that carries an address here, and register_node()
+    // only pushes the declaration to the inlet.
+    const ossia::unit_t declared = ctrl->unit().get();
+    in_exec([&in_port, &out_port, declared] {
+      if(declared)
+        in_port.type = declared;
       out_port.domain = in_port.domain;
       out_port.type = in_port.type;
     });
@@ -226,9 +227,11 @@ void ProcessExecutorComponent::inletAdded(Process::ControlInlet& inl)
   auto set_addr
       = ossia::set_destination_impl<ossia::outlet>(*ctx.execState, *ctx.execGraph, addr);
 
+  const ossia::unit_t declared = inl.unit().get();
+
   std::weak_ptr<ossia::control_surface_node> weak_node
       = std::dynamic_pointer_cast<ossia::control_surface_node>(this->node);
-  in_exec([v, weak_node, set_addr, fake = std::move(fake)]() mutable {
+  in_exec([v, weak_node, set_addr, declared, fake = std::move(fake)]() mutable {
     if(auto node = weak_node.lock())
     {
       std::pair<ossia::value*, bool>& p = node->add_control();
@@ -243,9 +246,9 @@ void ProcessExecutorComponent::inletAdded(Process::ControlInlet& inl)
 
       auto& fake_port = *fake->target<ossia::value_port>();
       in_port.domain = fake_port.domain;
-      in_port.type = fake_port.type;
+      in_port.type = declared ? ossia::complex_type{declared} : fake_port.type;
       out_port.domain = fake_port.domain;
-      out_port.type = fake_port.type;
+      out_port.type = in_port.type;
     }
   });
 
