@@ -86,11 +86,11 @@ bool hostFontUsable()
   // Windows says so itself ("Cannot find font directory .../lib/fonts. Note
   // that Qt no longer ships fonts") -- QRawFont still reports isValid() and
   // still returns outlines, because every character maps to .notdef. Those
-  // outlines are hollow boxes, so this probe passed, the test ran, and it
-  // failed on things no assertion about text could be expected to hold.
+  // outlines are hollow boxes, which would let this probe pass and run the
+  // geometry cases against something that is not text.
   //
-  // Two measured signatures of that state, either one sufficient:
-  //   familyName() is empty       (measured: Linux "Noto Sans", Windows "")
+  // Two signatures of that state, either one sufficient:
+  //   familyName() is empty
   //   the SPACE glyph has an outline  (a real font draws nothing for a space)
   if(rf.familyName().isEmpty())
     return false;
@@ -254,11 +254,9 @@ TEST_CASE(
     SKIP("no usable scalable font on this host");
 
   // Diagnostic, not an assertion. hostFontUsable() proves a glyph path exists,
-  // but on Windows every case below came back with an EMPTY scene state while
-  // the probe passed, so the failure is somewhere between "the font has an
-  // outline" and "the node published a mesh". Mirror the node's own resolution
-  // -- same family, same pixel size -- and report each stage, so a run says
-  // which one is empty instead of only that the end result was.
+  // which does not prove the node published a mesh. Mirror the node's own
+  // resolution -- same family, same pixel size -- and report each stage, so a
+  // run says which one is empty instead of only that the end result was.
   {
     QFont qf(QStringLiteral("Sans"));
     qf.setPixelSize(72);
@@ -290,9 +288,8 @@ TEST_CASE(
         int(rf.isValid()), int(rf.pixelSize()), int(glyphs.size()),
         nonEmptyPaths, totalPolys, bigPolys);
 
-    // And the same for a single space, which must render nothing. On Windows
-    // " " started publishing a mesh once the triangulator stopped silently
-    // giving up, so report what Qt actually hands back for that glyph.
+    // And the same for a single space, which must render nothing: report what
+    // Qt hands back for that glyph.
     std::fprintf(
         stderr,
         "TEXT2MESH-FAMILY requested=Sans resolved=%s styleName=%s "
@@ -417,6 +414,11 @@ TEST_CASE(
     "[threedim][text_to_mesh]")
 {
   ensureApp();
+  // Needs a real font for the same reason the others do: with no font database
+  // every glyph is .notdef, so even " " comes back with a hollow-box outline
+  // and this case's "renders nothing" expectation cannot hold.
+  if(!hostFontUsable())
+    SKIP("no usable scalable font on this host");
 
   for(const char* txt : {"", " "})
   {
