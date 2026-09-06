@@ -60,6 +60,15 @@ TEST_CASE(
   const bool control = qEnvironmentVariableIsSet("DRAW_DISPATCH_ABI_CONTROL");
   const auto r = firstInstance(api, cpu, control);
   if(r.skipped) SKIP(r.why);
+  // Both cases drive a CSF COMPUTE producer writing an indirect command into a
+  // storage buffer. Desktop GL needs 4.30 for either and macOS caps OpenGL at
+  // 4.1: measured there, every strip is black on BOTH rungs, which is the
+  // pipeline producing nothing rather than the command ABI being wrong. Gate on
+  // the predicate the rest of the suite uses. It must come AFTER the render
+  // block -- it builds GLCapabilities, which needs a live context, and calling
+  // it first aborts.
+  if(const char* why = score::test::gfx::storage_buffer_skip_reason(api))
+    SKIP(why);
   CAPTURE(backend_name(api), cpu, control, r.error);
   REQUIRE(r.error.empty());
   REQUIRE(r.image.valid());
@@ -88,6 +97,15 @@ TEST_CASE("DrawDispatch layered indirect dispatch preserves volume slices", "[Dr
   });
   if(old.isNull()) qunsetenv("SCORE_GFX_NO_GPU_DISPATCH_INDIRECT"); else qputenv("SCORE_GFX_NO_GPU_DISPATCH_INDIRECT", old);
   if(r.skipped) SKIP(r.skip_reason);
+  // Both cases drive a CSF COMPUTE producer writing an indirect command into a
+  // storage buffer. Desktop GL needs 4.30 for either and macOS caps OpenGL at
+  // 4.1: measured there, every strip is black on BOTH rungs, which is the
+  // pipeline producing nothing rather than the command ABI being wrong. Gate on
+  // the predicate the rest of the suite uses. It must come AFTER the render
+  // block -- it builds GLCapabilities, which needs a live context, and calling
+  // it first aborts.
+  if(const char* why = score::test::gfx::storage_buffer_skip_reason(api))
+    SKIP(why);
   CAPTURE(backend_name(api), cpu, r.error);
   REQUIRE(r.error.empty());
   REQUIRE(r.outputs.size() == 1);
