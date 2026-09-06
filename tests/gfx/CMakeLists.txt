@@ -231,6 +231,10 @@ score_add_gfx_test(review_scene_fallback GfxReviewSceneFallback.cpp)
 score_add_gfx_test(review_draw_dispatch_edges GfxReviewDrawDispatchEdges.cpp)
 score_add_gfx_test(review_indirect_standalone GfxReviewIndirectStandalone.cpp)
 
+# Large-allocation limits: what the GPU and QRhi actually permit, and what the
+# engine does at the int64 -> quint32 boundary where a size silently narrows.
+score_add_gfx_test(buffer_limits GfxBufferLimits.cpp)
+
 # G1-G4 from the same review: graph reconciliation, incremental removal, rebuild
 # before the first frame, and incremental target mip flags.
 score_add_gfx_test(review_graph_lifecycle GfxReviewGraphLifecycle.cpp)
