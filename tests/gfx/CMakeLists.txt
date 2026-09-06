@@ -229,6 +229,10 @@ score_add_gfx_test(review_scene_fallback GfxReviewSceneFallback.cpp)
 # indirect dispatch, each driven through the GPU rung AND the CPU fallback rung
 # so the two are forced to agree.
 score_add_gfx_test(review_draw_dispatch_edges GfxReviewDrawDispatchEdges.cpp)
+
+# G1-G4 from the same review: graph reconciliation, incremental removal, rebuild
+# before the first frame, and incremental target mip flags.
+score_add_gfx_test(review_graph_lifecycle GfxReviewGraphLifecycle.cpp)
 # P1-7 / G8: the cubemap render target's six faces, against the self-declared
 # oracle of 2026/test-cubemap-output.score (+X red, -X cyan, +Y green,
 # -Y magenta, +Z blue, -Z yellow), through the MULTIVIEW-6 + CUBEMAP

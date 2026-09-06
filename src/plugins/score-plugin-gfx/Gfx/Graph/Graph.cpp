@@ -162,6 +162,16 @@ void Graph::createAllRenderLists(GraphicsApi graphicsApi)
 
   for(auto& renderer : m_renderers)
   {
+    // Commit anything still sitting in the initial batch before tearing the
+    // list down. Some of what it holds seeds PERSISTENT resources -- the
+    // GpuResourceRegistry arenas outlive the render list and the rebuilt list
+    // gets the same buffers back -- so dropping the batch would leave those
+    // buffers holding whatever was in VRAM; a rebuild with no render in
+    // between (live edit, backend switch) is enough to lose the seed.
+    // flushInitialBatch() no-ops when there is no batch and when the rhi is
+    // gone, and opens its own offscreen frame; rendering is already stopped
+    // above.
+    renderer->flushInitialBatch();
     renderer->release();
   }
 
@@ -284,7 +294,7 @@ void Graph::recreateOutputRenderList(OutputNode& output)
       // Pre-condition: recreateOutputRenderList MUST be called outside
       // any active beginFrame/endFrame block. The Window::resize ->
       // resizeSwapChain -> onResize -> here chain is invoked at the
-      // top of Window::render BEFORE beginFrame (Window.cpp:148-151),
+      // top of Window::render BEFORE beginFrame,
       // so this should always hold. Assert it to catch any future
       // path that triggers the resize from inside a render frame.
       if(auto rs = output.renderState(); rs && rs->rhi)
@@ -613,8 +623,8 @@ Graph::createRenderList(OutputNode* output, std::shared_ptr<RenderState> state)
     r.init();
 
     // Compute m_requiresDepth from the node graph BEFORE
-    // createAllInputRenderTargets — RT creation reads it. Mirrors
-    // maybeRebuild's recompute at RenderList.cpp:484-486.
+    // createAllInputRenderTargets -- RT creation reads it. Mirrors
+    // maybeRebuild's recompute.
     {
       bool requiresDepth = false;
       for(auto node : r.nodes)
@@ -622,15 +632,14 @@ Graph::createRenderList(OutputNode* output, std::shared_ptr<RenderState> state)
       r.markRequiresDepth(requiresDepth);
     }
 
-    // Create all input render targets centrally before any node init().
-    // This ensures RTs are available regardless of init order
-    // (matches what maybeRebuild does).
+    // Create all input render targets centrally before any node init(), so
+    // they are available regardless of init order (matches maybeRebuild).
     r.createAllInputRenderTargets();
 
-    // Always init all renderers, even when only the output node exists.
-    // This ensures the output renderer's internal render target (e.g.
-    // ScaledRenderer::m_inputTarget) is created and available for
-    // incremental edge additions later.
+    // Always init all renderers, even when only the output node exists, so the
+    // output renderer's internal render target (e.g.
+    // ScaledRenderer::m_inputTarget) exists for incremental edge additions
+    // later.
     auto batch = r.initialBatch();
     for(auto node : r.renderers)
     {
@@ -669,6 +678,17 @@ void Graph::removeNodeFromRenderLists(Node* node)
 
     ossia::remove_erase(rl->renderers, renderer);
     ossia::remove_erase(rl->nodes, node);
+
+    // Release the centralized input render targets this node's ports own.
+    //
+    // removeInputRenderTarget() is otherwise reached only from the EDGE
+    // removal path, keyed on edge.sink, so a port with NO edge into it would
+    // never be released -- and an unconnected image input is still allocated a
+    // centralized target by the RL. Removing such a node would leave its
+    // target allocated for the lifetime of the render list, keyed on a Port
+    // the graph no longer contains.
+    for(auto* in : node->input)
+      rl->removeInputRenderTarget(in);
   }
 
   node->renderedNodes.clear();
@@ -762,18 +782,15 @@ void Graph::createPassForEdgeIfMissing(Edge& edge)
 
   for(auto& rl : m_renderers)
   {
-    // Check if the source node has a renderer in this render list
     auto rn_it = source->renderedNodes.find(rl.get());
     if(rn_it == source->renderedNodes.end())
       continue;
 
     auto* renderer = rn_it->second;
 
-    // Check if the sink node is also in this render list
     if(!ossia::contains(rl->nodes, edge.sink->node))
       continue;
 
-    // Check if a pass already exists for this edge
     if(renderer->hasOutputPassForEdge(edge))
       continue;
 
@@ -816,9 +833,17 @@ void Graph::createPassForEdgeIfMissing(Edge& edge)
         bool wantsDepth = rl->requiresDepth(*sink);
         bool wantsSamplableDepth
             = (sink->flags & Flag::SamplableDepth) == Flag::SamplableDepth;
+        // Same mip rule as the full build in RenderList.cpp: a chain is only
+        // worth allocating when the consuming sampler filters across levels.
+        // Omitting it here is not a missing optimisation -- the texture is
+        // allocated with one level, so generateMips() has nowhere to write and
+        // a spec that asked for mipmaps silently gets none.
+        QRhiTexture::Flags texFlags{};
+        if(spec.mipmap_mode != QRhiSampler::None)
+          texFlags |= QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips;
         auto rt = createRenderTarget(
             rl->state, spec.format, spec.size, rl->samples(),
-            wantsDepth || wantsSamplableDepth, wantsSamplableDepth);
+            wantsDepth || wantsSamplableDepth, wantsSamplableDepth, texFlags);
         rl->m_inputRenderTargets[sink] = std::move(rt);
       }
     }
@@ -979,7 +1004,6 @@ void Graph::reconcileAllRenderLists()
         {
           if(rl->renderTargetForInputPort(*in).renderTarget == nullptr)
           {
-            // Create the missing render target
             auto spec = node->resolveRenderTargetSpecs(cur_port, *rl);
             if(!node->hasExplicitRenderTargetSize(cur_port))
             {
@@ -991,9 +1015,13 @@ void Graph::reconcileAllRenderLists()
             bool wantsDepth = rl->requiresDepth(*in);
             bool wantsSamplableDepth
                 = (in->flags & Flag::SamplableDepth) == Flag::SamplableDepth;
+            // Same mip rule as the full build -- see the sink path above.
+            QRhiTexture::Flags texFlags{};
+            if(spec.mipmap_mode != QRhiSampler::None)
+              texFlags |= QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips;
             auto rt = createRenderTarget(
                 rl->state, spec.format, spec.size, rl->samples(),
-                wantsDepth || wantsSamplableDepth, wantsSamplableDepth);
+                wantsDepth || wantsSamplableDepth, wantsSamplableDepth, texFlags);
             rl->m_inputRenderTargets[in] = std::move(rt);
           }
         }
@@ -1021,9 +1049,9 @@ void Graph::reconcileAllRenderLists()
           node->renderedNodes.emplace(rl.get(), rn);
           node->renderedNodesChanged();
 
-          // All renderers now implement initState(). Pass creation for
-          // individual edges is handled by createPassForEdgeIfMissing
-          // after reconciliation, ensuring all renderers + RTs exist first.
+          // Pass creation for individual edges is handled by
+          // createPassForEdgeIfMissing after reconciliation, once all
+          // renderers and RTs exist.
           if(qEnvironmentVariableIsSet("SCORE_GFX_TRACE"))
             fprintf(
                 stderr, "GFX-RECONCILE initState node=%p rl=%p\n", (void*)node,
@@ -1045,7 +1073,7 @@ void Graph::reconcileAllRenderLists()
       }
     }
 
-    // 6. Pass creation is now handled entirely by createPassForEdgeIfMissing
+    // 6. Pass creation is handled entirely by createPassForEdgeIfMissing
     //    in incrementalEdgeUpdate, after reconciliation completes and all
     //    renderers + RTs exist. No sweep needed here.
 
@@ -1057,7 +1085,6 @@ void Graph::reconcileAllRenderLists()
     //    could have stale indices, triggering a full release+init in the
     //    rt_changed block — which destroys the feedback ISF's persistent textures.
     rl->renderers.clear();
-    // Filter nodes to only those with renderers
     std::vector<score::gfx::Node*> validNodes;
     validNodes.reserve(rl->nodes.size());
     for(auto* node : rl->nodes)
@@ -1069,9 +1096,17 @@ void Graph::reconcileAllRenderLists()
         auto* rn = rn_it->second;
         rl->renderers.push_back(rn);
 
-        // Sync change indices and prevent spurious rt_changed
+        // Sync change indices.
+        //
+        // This renderer is RETAINED: it already ran initState() in an earlier
+        // build, so there is no spurious rt_changed to suppress here -- that
+        // concern belongs to the freshly-created path above, which is why
+        // syncRenderTargetIndex() exists. hasRenderTargetChanged() is
+        // edge-triggered on an index, so checkForChanges() CONSUMES a pending
+        // change; clearing the flag straight afterwards would throw away a
+        // real render-target change and the new size would never reach the
+        // target.
         rn->checkForChanges();
-        rn->renderTargetSpecsChanged = false;
       }
     }
     rl->nodes = std::move(validNodes);
@@ -1105,7 +1140,6 @@ void Graph::retopologicalSort(RenderList& rl)
   // Save the output node (always first in the list)
   auto* outputNode = rl.nodes.front();
 
-  // Clear and re-walk
   rl.nodes.clear();
   rl.nodes.push_back(outputNode);
   graphwalk(rl.nodes);
