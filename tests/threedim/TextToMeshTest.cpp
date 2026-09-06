@@ -284,6 +284,23 @@ TEST_CASE(
         int(rf.supportsCharacter(QChar(' '))),
         int(rf.supportsCharacter(QChar('H'))));
 
+    // Replicate the node's fallback exactly and report what IT resolves to.
+    {
+      QFont def;
+      def.setPixelSize(72);
+      QRawFont fb = QRawFont::fromFont(def);
+      const auto fsp = fb.glyphIndexesForString(QStringLiteral(" "));
+      int fbPathEmpty = -1;
+      if(!fsp.isEmpty())
+        fbPathEmpty = int(fb.pathForGlyph(fsp[0]).isEmpty());
+      std::fprintf(
+          stderr,
+          "TEXT2MESH-FALLBACK valid=%d resolved=%s spaceGlyphs=%d "
+          "spacePathEmpty=%d\n",
+          int(fb.isValid()), fb.familyName().toUtf8().constData(),
+          int(fsp.size()), fbPathEmpty);
+    }
+
     const auto sp = rf.glyphIndexesForString(QStringLiteral(" "));
     for(const auto g : sp)
     {
