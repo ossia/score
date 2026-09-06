@@ -648,6 +648,13 @@ static void setup_app_flags()
   if(!qEnvironmentVariableIsSet("FREETYPE_PROPERTIES"))
     qputenv("FREETYPE_PROPERTIES", "cff:no-stem-darkening=0 autofitter:no-stem-darkening=0 type1:no-stem-darkening=0 t1cid:no-stem-darkening=0");
 
+#if defined(__APPLE__)
+  // Same rasteriser as everywhere else: CoreText ignores
+  // QFont::HintingPreference. Packaged builds get this from qt.conf already.
+  if(!qEnvironmentVariableIsSet("QT_QPA_PLATFORM"))
+    qputenv("QT_QPA_PLATFORM", "cocoa:fontengine=freetype");
+#endif
+
 #if defined(__EMSCRIPTEN__)
   qRegisterMetaType<Qt::ApplicationState>();
   qRegisterMetaType<QItemSelection>();
