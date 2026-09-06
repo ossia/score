@@ -666,6 +666,18 @@ void MultiWindowNode::renderBlack()
     if(!wo.window || !wo.swapChain || !wo.hasSwapChain)
       continue;
 
+    // A window that is not exposed has no valid native drawable, and
+    // presenting to it is a hard crash rather than a no-op: on macOS
+    // QRhiGles2::endFrame -> QCocoaGLContext::swapBuffers -> CGLFlushDrawable
+    // dereferences null inside AppleMetalOpenGLRenderer
+    // (gldUpdateReadFramebuffer, EXC_BAD_ACCESS at 0xb8). An empty surface is
+    // unsafe for the same reason. This is the rule the single-window path
+    // already follows everywhere -- ScreenNode.cpp:1068 and Window.cpp gate on
+    // isExposed() in seven places -- and that MultiWindowNode did not follow in
+    // either of its two per-window loops.
+    if(!wo.window->isExposed() || wo.swapChain->surfacePixelSize().isEmpty())
+      continue;
+
     if(wo.swapChain->currentPixelSize() != wo.swapChain->surfacePixelSize())
       wo.hasSwapChain = wo.swapChain->createOrResize();
 
@@ -745,6 +757,18 @@ void MultiWindowNode::render()
   {
     auto& wo = m_windowOutputs[i];
     if(!wo.window || !wo.swapChain || !wo.hasSwapChain)
+      continue;
+
+    // A window that is not exposed has no valid native drawable, and
+    // presenting to it is a hard crash rather than a no-op: on macOS
+    // QRhiGles2::endFrame -> QCocoaGLContext::swapBuffers -> CGLFlushDrawable
+    // dereferences null inside AppleMetalOpenGLRenderer
+    // (gldUpdateReadFramebuffer, EXC_BAD_ACCESS at 0xb8). An empty surface is
+    // unsafe for the same reason. This is the rule the single-window path
+    // already follows everywhere -- ScreenNode.cpp:1068 and Window.cpp gate on
+    // isExposed() in seven places -- and that MultiWindowNode did not follow in
+    // either of its two per-window loops.
+    if(!wo.window->isExposed() || wo.swapChain->surfacePixelSize().isEmpty())
       continue;
 
     QRhi::FrameOpResult r = rhi->beginFrame(wo.swapChain);
