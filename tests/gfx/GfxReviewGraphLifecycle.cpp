@@ -126,7 +126,7 @@ TEST_CASE(
 
 TEST_CASE(
     "GraphLifecycle-4 incremental input target honors mip allocation",
-    "[GraphLifecycle][mips][!shouldfail]")
+    "[GraphLifecycle][mips]")
 {
   const auto api = GENERATE(from_range(platform_backends()));
   Result result; bool hasMips{}, canGenerate{};
