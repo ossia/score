@@ -489,7 +489,26 @@ void Window::exposeEvent(QExposeEvent* ev)
   // hot-plug) the flag is down, and gating on it here made a re-expose a
   // no-op — no render() kick, and the timer path is gated off by
   // canRender() — so the window stayed black forever.
-  const QSize surfaceSize = m_swapChain ? m_swapChain->surfacePixelSize() : QSize();
+  //
+  // ...but do NOT probe it while the window is unexposed. surfacePixelSize()
+  // reads the native surface: on Metal it is `layer.bounds` on the window's
+  // CAMetalLayer (qrhimetal.mm:7065), and after the window's native surface
+  // has gone that layer is released. Querying it then messages freed memory.
+  // window_output_torture crashed here in two different shapes depending on
+  // what reused the allocation -- EXC_BAD_ACCESS on a garbage pointer, and
+  //   NSInvalidArgumentException: -[_NSAutoresizingMaskXAxisAnchor bounds]
+  // when the layer's memory had been recycled into an unrelated class. Both
+  // through Window::exposeEvent -> QMetalSwapChain::surfacePixelSize.
+  // Calling destroy() first does not help: it nulls d->layer, and
+  // surfacePixelSize() then re-derives the layer from the QWindow through
+  // qrhi_objectFromProxyData, which is just as dead.
+  //
+  // Gating the PROBE on isExposed() changes no behaviour, because every use of
+  // surfaceSize below is already either inside an isExposed() branch or in one
+  // whose `!isExposed()` term short-circuits first. It is specifically NOT a
+  // gate on m_hasSwapChain, which is what the comment above forbids.
+  const QSize surfaceSize
+      = (isExposed() && m_swapChain) ? m_swapChain->surfacePixelSize() : QSize();
 
   if((!isExposed() || (m_hasSwapChain && surfaceSize.isEmpty())) && m_running)
     m_notExposed = true;
