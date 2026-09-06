@@ -4,6 +4,7 @@
 #include <Gfx/Graph/SceneGPUState.hpp>
 
 #include <QFont>
+#include <QDebug>
 #include <QPainterPath>
 #include <QPointF>
 #include <QPolygonF>
@@ -268,6 +269,15 @@ void TextToMesh::rebuild()
 
     if(positions.empty() || indices.empty())
     {
+      // Say so. Publishing an empty mesh silently is how this node failed on
+      // every Windows backend while looking healthy: the font resolved, the
+      // glyphs had outlines, and the only symptom was an empty scene state.
+      qWarning(
+          "TextToMesh: produced no geometry -- text=%d glyphs=%d pixelSize=%d "
+          "px_size=%f scale=%f positions=%d indices=%d",
+          int(str.size()), int(glyphs.size()), int(rf.pixelSize()),
+          double(px_size), double(pixel_to_world), int(positions.size()),
+          int(indices.size()));
       // Empty string or unrenderable font — keep m_wrapped_state valid
       // (reset mesh) but clear its content so republish emits empty.
       m_cached_mesh.reset();
