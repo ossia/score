@@ -182,25 +182,15 @@ BenchResult run_bench(
   return r;
 }
 
-/// Cell c: sample an interior pixel of its 2x2 quad.
-///
-/// On OpenGL and Vulkan the sink readback follows the fixture's pinned
-/// convention (row 0 == top, NDC +y up): NDC cell row cy occupies screen
-/// rows [253 - 4*cy, 255 - 4*cy). On METAL this CSF-geometry -> raw-raster
-/// -> sink path comes back VERTICALLY FLIPPED (measured 2026-09: NDC +y
-/// lands at the bottom; frame dumps show the poison band at rows 193..255
-/// instead of 0..63) — a pre-existing engine divergence that no earlier
-/// Metal test could see (they assert full-height strips, or skip Metal).
-/// The flip is handled explicitly here so the oracle stays exact; it does
-/// not affect the timing comparison. To be fixed engine-side separately —
-/// when that lands, this branch will fail loudly and should be removed.
-std::array<int, 2> cell_probe(int cell, bool metalFlipped)
+/// Cell c: sample the top-left interior pixel of its 2x2 quad.
+/// NDC row cy occupies screen rows [253 - 4*cy, 255 - 4*cy).
+std::array<int, 2> cell_probe(int cell)
 {
   const int cx = cell % 64, cy = cell / 64;
-  return {4 * cx + 1, metalFlipped ? 4 * cy + 1 : 253 - 4 * cy};
+  return {4 * cx + 1, 253 - 4 * cy};
 }
 
-void spot_check(const ReadbackImage& img, bool poisonVisible, bool metalFlipped)
+void spot_check(const ReadbackImage& img, bool poisonVisible)
 {
   REQUIRE(img.valid());
   REQUIRE(img.width == kSize);
@@ -209,7 +199,7 @@ void spot_check(const ReadbackImage& img, bool poisonVisible, bool metalFlipped)
   const std::array<uint8_t, 4> blue{0, 0, 255, 255};
   for(int c : {0, 1, kAlive / 2, kAlive - 1})
   {
-    const auto pr = cell_probe(c, metalFlipped);
+    const auto pr = cell_probe(c);
     const auto px = img.at(pr[0], pr[1]);
     INFO("lit cell " << c << " px=(" << int(px[0]) << "," << int(px[1]) << ","
                      << int(px[2]) << ")");
@@ -217,7 +207,7 @@ void spot_check(const ReadbackImage& img, bool poisonVisible, bool metalFlipped)
   }
   for(int c : {kAlive, kAlive + 1, kSlots - 1})
   {
-    const auto pr = cell_probe(c, metalFlipped);
+    const auto pr = cell_probe(c);
     const auto px = img.at(pr[0], pr[1]);
     INFO("dead cell " << c << " px=(" << int(px[0]) << "," << int(px[1]) << ","
                       << int(px[2]) << ")");
@@ -235,11 +225,9 @@ double percentile(std::vector<double> v, double p)
   return v[i];
 }
 
-void report(
-    const BenchResult& r, const char* path, bool poisonVisible,
-    bool metalFlipped)
+void report(const BenchResult& r, const char* path, bool poisonVisible)
 {
-  spot_check(r.shot, poisonVisible, metalFlipped);
+  spot_check(r.shot, poisonVisible);
   std::fprintf(
       stderr,
       "BENCH backend=%s path=%s slots=%d alive=%d frames=%d "
@@ -274,7 +262,7 @@ TEST_CASE(
 
   if(countRung)
   {
-    report(count, "count", /*poisonVisible=*/false, metal);
+    report(count, "count", /*poisonVisible=*/false);
   }
   else if(metal && count.capsCount == 1)
   {
@@ -300,7 +288,7 @@ TEST_CASE(
     REQUIRE(r.capsParsed);
     REQUIRE(r.capsCount == 0);
     if(r.capsDrawIndirect == 1)
-      report(r, "mdi", /*poisonVisible=*/true, metal);
+      report(r, "mdi", /*poisonVisible=*/true);
     else
       std::fprintf(
           stderr, "BENCH backend=%s path=mdi UNAVAILABLE (no drawIndirect)\n",
@@ -317,7 +305,7 @@ TEST_CASE(
     REQUIRE(r.capsCount == 0);
     REQUIRE(r.capsMulti == 0);
     if(r.capsDrawIndirect == 1)
-      report(r, "loop", /*poisonVisible=*/true, metal);
+      report(r, "loop", /*poisonVisible=*/true);
     else
       std::fprintf(
           stderr, "BENCH backend=%s path=loop UNAVAILABLE (no drawIndirect)\n",
@@ -330,6 +318,6 @@ TEST_CASE(
     REQUIRE(r.error.empty());
     REQUIRE(r.capsParsed);
     REQUIRE(r.capsDrawIndirect == 0);
-    report(r, "cpu", /*poisonVisible=*/false, metal);
+    report(r, "cpu", /*poisonVisible=*/false);
   }
 }
