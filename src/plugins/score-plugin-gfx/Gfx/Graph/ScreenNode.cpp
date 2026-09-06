@@ -361,7 +361,16 @@ std::shared_ptr<RenderState> createRenderState(
 
     score::GLCapabilities caps;
     caps.setupFormat(params.format);
-    params.format.setSamples(state.samples);
+    // Only ask for an explicit sample count when MSAA is actually wanted.
+    // Requesting samples=1 is NOT the same request as leaving it unset, and on
+    // macOS it makes a later present crash inside Apple's GL-on-Metal shim
+    // (gldUpdateReadFramebuffer, NULL colour attachment) once an offscreen
+    // frame has been interleaved with window frames on the same QRhi.
+    // Reproduced in ~150 lines of pure Qt, no score: samples unset/0 -> 0/20,
+    // samples 1 -> 8/10, 2 -> 10/10, 4 -> 10/10, and 0/20 in every case if the
+    // offscreen frame is removed. Both conditions are necessary.
+    if(state.samples > 1)
+      params.format.setSamples(state.samples);
     if(gpuDebugRequested())
       params.format.setOption(QSurfaceFormat::DebugContext);
     state.version = caps.qShaderVersion;
