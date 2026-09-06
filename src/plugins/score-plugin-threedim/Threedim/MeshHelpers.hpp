@@ -2,6 +2,7 @@
 #include <Threedim/TinyObj.hpp>
 #include <vcg/complex/algorithms/clean.h>
 #include <vcg/complex/algorithms/create/platonic.h>
+#include <vcg/complex/algorithms/update/bounding.h>
 #include <vcg/complex/algorithms/update/normal.h>
 #include <vcg/complex/algorithms/update/texture.h>
 
