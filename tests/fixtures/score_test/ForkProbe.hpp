@@ -7,6 +7,9 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <QString>
+#include <QtGlobal>
+
 #if defined(__unix__) || defined(__APPLE__)
 #define THREEDIM_HAS_FORK 1
 
@@ -33,6 +36,22 @@ bool survives(F&& f)
     // the verdict off waitpid().
     for(int sig : {SIGABRT, SIGSEGV, SIGBUS, SIGILL, SIGFPE})
       std::signal(sig, SIG_DFL);
+    // Qt's default message handler is not fork-safe on macOS: it reaches
+    // Foundation, and Foundation kills any child that was forked without a
+    // following exec() -- "Process N was forked to M without calling exec().
+    // This is not supported by FileManager. Aborting." The abort is delivered
+    // through os_log, so on a plain terminal the child just dies silently with
+    // SIGABRT and the probe reports a crash the code under test never had.
+    //
+    // Route the child's logging to fputs instead. It keeps the diagnostics --
+    // which is the point of logging a rejected file -- while touching nothing
+    // but stdio, and it stops probe children from interleaving their expected
+    // rejection messages into the parent's test output on every platform.
+    qInstallMessageHandler([](QtMsgType, const QMessageLogContext&,
+                              const QString& msg) {
+      std::fputs(qPrintable(QStringLiteral("[fork-probe] ") + msg), stderr);
+      std::fputc('\n', stderr);
+    });
     f();
     ::_exit(0);
   }
