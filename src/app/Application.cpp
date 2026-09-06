@@ -134,10 +134,6 @@ static void loadApplicationResources()
       }
     }
   }
-  // Read straight from QSettings rather than through
-  // Scenario::Settings::Model: the application font has to be in place before
-  // the plug-ins that own that model are loaded. Same keys, so the settings
-  // page stays authoritative -- it just needs a restart to take effect.
 }
 
 //! Must run after QApplication::setStyle(), which resets the widget font hash.
@@ -431,6 +427,7 @@ void Application::init()
   else if(!appSettings.ui.isEmpty())
   {
     score::loadApplicationResources();
+    score::setupApplicationFont();
   }
 
   m_presenter
