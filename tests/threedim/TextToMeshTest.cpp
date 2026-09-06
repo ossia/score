@@ -271,6 +271,34 @@ TEST_CASE(
         "polys=%d polysWith3plus=%d\n",
         int(rf.isValid()), int(rf.pixelSize()), int(glyphs.size()),
         nonEmptyPaths, totalPolys, bigPolys);
+
+    // And the same for a single space, which must render nothing. On Windows
+    // " " started publishing a mesh once the triangulator stopped silently
+    // giving up, so report what Qt actually hands back for that glyph.
+    const auto sp = rf.glyphIndexesForString(QStringLiteral(" "));
+    for(const auto g : sp)
+    {
+      const QPainterPath gp = rf.pathForGlyph(g);
+      const auto polys = gp.toFillPolygons();
+      std::fprintf(
+          stderr, "TEXT2MESH-SPACE pathEmpty=%d elementCount=%d polys=%d",
+          int(gp.isEmpty()), int(gp.elementCount()), int(polys.size()));
+      for(const auto& poly : polys)
+      {
+        double a = 0.;
+        for(int i = 0, n = int(poly.size()); i < n; ++i)
+        {
+          const auto& p0 = poly[i];
+          const auto& p1 = poly[(i + 1) % n];
+          a += p0.x() * p1.y() - p1.x() * p0.y();
+        }
+        const auto br = poly.boundingRect();
+        std::fprintf(
+            stderr, " | pts=%d area=%.6f bbox=%.2fx%.2f", int(poly.size()),
+            a * 0.5, br.width(), br.height());
+      }
+      std::fprintf(stderr, "\n");
+    }
   }
 
   auto b = build("Hello");
