@@ -1316,6 +1316,13 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
             else if(iv.get_type() == sajson::TYPE_DOUBLE)
               req.count = std::to_string((int)iv.get_double_value());
           }
+          else if(ik == "DRAW_COUNT")
+          {
+            auto iv = val.get_object_value(j);
+            req.draw_count = iv.get_type() == sajson::TYPE_TRUE
+                             || (iv.get_type() == sajson::TYPE_INTEGER
+                                 && iv.get_integer_value() != 0);
+          }
         }
         if(req.count.empty())
           req.count = "1";
@@ -2485,6 +2492,14 @@ static const ossia::string_map<root_fun>& root_parse{[] {
               }
             }
           }
+          if(auto off_k
+             = em_val.find_object_key_insensitive(sajson::literal("OFFSET"));
+             off_k != em_val.get_length())
+          {
+            auto off_val = em_val.get_object_value(off_k);
+            if(off_val.get_type() == sajson::TYPE_INTEGER)
+              dispatch.indirect_byte_offset = off_val.get_integer_value();
+          }
         }
       }
 
@@ -2595,6 +2610,14 @@ static const ossia::string_map<root_fun>& root_parse{[] {
                         dispatch.workgroups[idx] = elem.get_integer_value();
                     }
                   }
+                }
+                if(auto off_k
+                   = em_val.find_object_key_insensitive(sajson::literal("OFFSET"));
+                   off_k != em_val.get_length())
+                {
+                  auto off_val = em_val.get_object_value(off_k);
+                  if(off_val.get_type() == sajson::TYPE_INTEGER)
+                    dispatch.indirect_byte_offset = off_val.get_integer_value();
                 }
               }
             }
@@ -6500,6 +6523,23 @@ void parser::parse_csf()
                       "};\n";
         m_fragment += "#define ISF_INDIRECT(" + inp.name + ") " + buf_name + "\n\n";
         binding++;
+
+        // GPU-written draw count (INDIRECT: { DRAW_COUNT: true }): a single
+        // u32 the shader sets to the number of live commands. Binding order
+        // is load-bearing: RenderedCSFNode appends the count buffer to the
+        // compute SRB immediately after the command buffer — keep the two
+        // emissions adjacent.
+        if(geo.indirect->draw_count)
+        {
+          const std::string cnt_name = inp.name + "_indirect_count";
+          m_fragment += "layout(binding = " + std::to_string(binding)
+                        + ", std430) restrict buffer " + cnt_name + "_buf {\n"
+                        "    uint " + cnt_name + ";\n"
+                        "};\n";
+          m_fragment += "#define ISF_INDIRECT_COUNT(" + inp.name + ") "
+                        + cnt_name + "\n\n";
+          binding++;
+        }
       }
 
       // Element count uniform (packed into the material UBO or standalone)

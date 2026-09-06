@@ -61,6 +61,33 @@ struct RenderState
     bool drawIndirect{false};
     bool drawIndirectMulti{false};
 
+    // GPU-decided draw count / dispatch size — Qt 6.13-era QRhi API
+    // (QRhi::DrawIndirectCount, QRhi::DispatchIndirect). Populated through
+    // RhiIndirectCompat.hpp's member DETECTION, not QT_VERSION: the ossia SDK
+    // pins the Qt 6.12 branch with the 6.13 indirect changes cherry-picked,
+    // so version macros lie on the reference builds (see that header).
+    //
+    // Fallback ladder these caps select, from most to least capable — every
+    // rung must paint the SAME pixels (GfxIndirectFallbackLadder.cpp holds
+    // each rung to that):
+    //   drawIndirectCount  → drawIndexedIndirectCount / drawIndirectCount
+    //                        (count read by the GPU from a count buffer)
+    //   drawIndirect+multi → one drawIndexedIndirect of the full command
+    //                        capacity (producers MUST leave command slots
+    //                        beyond their GPU-written count zeroed: a zero
+    //                        command draws nothing, so capacity == count)
+    //   drawIndirect only  → per-command loop of drawCount=1 indirect draws
+    //   none               → CPU loop over cpuDrawCommands, filled by the
+    //                        producer or by the readback fallback (which also
+    //                        reads the count buffer and clamps).
+    //
+    // Kill switches (Caps::populate): SCORE_GFX_NO_GPU_INDIRECT_COUNT,
+    // SCORE_GFX_NO_GPU_INDIRECT_MULTI, SCORE_GFX_NO_GPU_DISPATCH_INDIRECT,
+    // and the pre-existing SCORE_GFX_NO_GPU_INDIRECT which forces the CPU
+    // rung outright. Each fallback stays exercisable on capable hardware.
+    bool drawIndirectCount{false};
+    bool dispatchIndirect{false};
+
     // Always queryable.
     bool multiview{false};
     bool resolveDepthStencil{false};
@@ -258,6 +285,37 @@ inline bool
 indirectDrawBreaksMultiView(GraphicsApi api, int multiViewCount) noexcept
 {
   return multiViewCount >= 2 && api == GraphicsApi::Metal;
+}
+
+/**
+ * @brief Whether the GPU-count draw path (drawIndexedIndirectCount) is usable.
+ *
+ * Ask this WITH caps.drawIndirectCount at every site that selects the count
+ * rung; QRhi's feature flag alone is not enough:
+ *
+ *  - Metal implements the count draw exclusively through Indirect Command
+ *    Buffers, which demand things the flag cannot express: the graphics
+ *    pipeline must be created with QRhiGraphicsPipeline::UsesIndirectDraws
+ *    (qrhimetal.mm icbUnavailableReason — the draw is SKIPPED with a warning
+ *    otherwise), the pipeline may not sample textures at all, and the pass is
+ *    interrupted/restarted so a transient DepthStencil renderbuffer loses its
+ *    contents unless created with NoTransientBacking. None of those three are
+ *    plumbed yet, so the count rung is declined on Metal wholesale; the plain
+ *    multi-draw rung there stays correct because producers zero dead command
+ *    slots. Lift this once the three prerequisites land together.
+ *
+ *  - The multiview-on-Metal indirect break applies to the count entry points
+ *    exactly as it does to drawIndexedIndirect (they share the encoder path),
+ *    so the existing predicate is folded in.
+ */
+inline bool
+drawIndirectCountUsable(GraphicsApi api, int multiViewCount) noexcept
+{
+  if(indirectDrawBreaksMultiView(api, multiViewCount))
+    return false;
+  if(api == GraphicsApi::Metal)
+    return false;
+  return true;
 }
 
 inline bool viewIndexNeedsPassIndexFallback(

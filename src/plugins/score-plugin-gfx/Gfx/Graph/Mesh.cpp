@@ -1,4 +1,5 @@
 #include <Gfx/Graph/Mesh.hpp>
+#include <Gfx/Graph/RhiIndirectCompat.hpp>
 #include <score/tools/Debug.hpp>
 
 namespace score::gfx
@@ -65,9 +66,43 @@ void BasicMesh::draw(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexc
 
   if(bufs.useIndirectDraw && bufs.indirectDrawBuffer)
   {
+    // Fallback ladder — every rung must paint the same pixels; see the
+    // RenderState::Caps declaration for the ladder and the producer
+    // contract (dead command slots stay zeroed) that makes the
+    // full-capacity rungs equivalent to the count rung.
+    if(bufs.gpuIndirectCountSupported && bufs.indirectCountBuffer
+       && bufs.gpuIndirectSupported)
+    {
+      if(score::gfx::drawIndirectCountCompat(
+             cb, bufs.indirectDrawIndexed, bufs.indirectDrawBuffer,
+             bufs.indirectDrawOffset, bufs.indirectCountBuffer,
+             bufs.indirectCountOffset, bufs.indirectDrawCount,
+             bufs.indirectDrawStride))
+        return;
+      // API missing in this Qt: fall through to the plain indirect rungs.
+    }
 #if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
     if(bufs.gpuIndirectSupported)
     {
+      if(!bufs.gpuIndirectMultiSupported && bufs.indirectDrawCount > 1)
+      {
+        // Single-indirect rung: one drawCount=1 call per command. Qt would
+        // emulate a multi-draw itself where DrawIndirectMulti is absent, but
+        // doing the loop here keeps the rung score-controlled and therefore
+        // forceable (SCORE_GFX_NO_GPU_INDIRECT_MULTI) on any hardware.
+        for(quint32 i = 0; i < bufs.indirectDrawCount; i++)
+        {
+          const quint32 off
+              = bufs.indirectDrawOffset + i * bufs.indirectDrawStride;
+          if(bufs.indirectDrawIndexed)
+            cb.drawIndexedIndirect(
+                bufs.indirectDrawBuffer, off, 1, bufs.indirectDrawStride);
+          else
+            cb.drawIndirect(
+                bufs.indirectDrawBuffer, off, 1, bufs.indirectDrawStride);
+        }
+        return;
+      }
       if(bufs.indirectDrawIndexed)
         cb.drawIndexedIndirect(
             bufs.indirectDrawBuffer, bufs.indirectDrawOffset,
