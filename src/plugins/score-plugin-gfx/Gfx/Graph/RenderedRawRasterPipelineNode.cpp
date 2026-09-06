@@ -3205,7 +3205,17 @@ void RenderedRawRasterPipelineNode::runInitialPasses(
     QRhi& rhi = *renderer.state.rhi;
     auto* rb = rhi.nextResourceUpdateBatch();
     const quint32 bufSize = m_meshbufs.indirectDrawBuffer->size();
-    m_meshbufs.readbackResult.completed = [this, bufSize]() {
+    // Word order is the GPU ABI of the record, and it differs between the two
+    // shapes the producer may have written (see the DrawIndirectCommand /
+    // DrawIndexedIndirectCommand emission in libisf):
+    //   indexed     { indexCount,  instanceCount, firstIndex,  baseVertex,
+    //                 firstInstance }
+    //   non-indexed { vertexCount, instanceCount, firstVertex, firstInstance,
+    //                 baseVertex (unused) }
+    // Reading the indexed order out of a non-indexed record is what made this
+    // rung disagree with drawIndirect() about firstInstance.
+    const bool indexedCmds = m_meshbufs.indirectDrawIndexed;
+    m_meshbufs.readbackResult.completed = [this, bufSize, indexedCmds]() {
       const auto& data = m_meshbufs.readbackResult.data;
       constexpr int cmdSize = 5 * sizeof(uint32_t);
       const int cmdCount = data.size() / cmdSize;
@@ -3219,8 +3229,8 @@ void RenderedRawRasterPipelineNode::runInitialPasses(
             .index_or_vertex_count = p[0],
             .instance_count = p[1],
             .first_index_or_vertex = p[2],
-            .base_vertex = static_cast<int32_t>(p[3]),
-            .first_instance = p[4]});
+            .base_vertex = static_cast<int32_t>(indexedCmds ? p[3] : p[4]),
+            .first_instance = indexedCmds ? p[4] : p[3]});
       }
     };
     rb->readBackBuffer(m_meshbufs.indirectDrawBuffer, 0, bufSize, &m_meshbufs.readbackResult);
