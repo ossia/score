@@ -37,7 +37,11 @@ AboutDialog::AboutDialog(QWidget* parent)
     header->addWidget(logo);
 
     auto title = new QLabel{QStringLiteral("ossia score"), this};
-    title->setFont(QFont("Montserrat", 26, QFont::Bold));
+    // px, not pt: pt would shrink on macOS' 72 DPI.
+    QFont titleFont("Montserrat");
+    titleFont.setPixelSize(35);
+    titleFont.setBold(true);
+    title->setFont(titleFont);
     QPalette tp = title->palette();
     tp.setColor(QPalette::WindowText, QColor{"#03C3DD"});
     title->setPalette(tp);

@@ -133,8 +133,15 @@ public:
 
   void paintEvent(QPaintEvent* ev) override
   {
-    static QFont font("Ubuntu", 11, QFont::Bold);
-    font.setHintingPreference(QFont::HintingPreference::PreferVerticalHinting);
+    // px, not pt: pt would shrink on macOS' 72 DPI.
+    static QFont font = [] {
+      QFont f("Ubuntu");
+      f.setPixelSize(15);
+      f.setBold(true);
+      f.setHintingPreference(score::uiFontHinting());
+      f.setStyleStrategy(score::uiFontStyleStrategy());
+      return f;
+    }();
 
     QPainter painter{this};
     painter.setFont(font);
