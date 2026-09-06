@@ -1,11 +1,10 @@
 // G1-G4 from the 2026-09 graphics review (section 5): graph reconciliation and
 // incremental node/edge changes.
 //
-// Measured out of tree by that review and never registered, so nothing in the
-// suite covered them. Each case carries its own corrective experiment behind
-// SCORE_REVIEW_FIX, which is what turns "the pixels are wrong" into "this
-// specific piece of state was consumed and not restored" -- set it and the case
-// passes, which localises the defect without patching the engine.
+// Each case carries its own corrective experiment behind SCORE_REVIEW_FIX,
+// which turns "the pixels are wrong" into "this specific piece of state was
+// consumed and not restored" -- set it and the case passes, which localises the
+// defect without patching the engine.
 #include <score_test/Gfx.hpp>
 #include <Gfx/Graph/GpuResourceRegistry.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
@@ -13,6 +12,7 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/generators/catch_generators_range.hpp>
 #include <cstring>
+#include <string>
 using namespace score::test::gfx;
 namespace {
 QString corpus(const char* name) { return QStringLiteral(GFX_TEST_CORPUS_DIR "/") + name; }
@@ -103,6 +103,40 @@ TEST_CASE(
     if(rhi->beginOffscreenFrame(&cb)!=QRhi::FrameOpSuccess) { frameError=1; return; }
     auto* u=rhi->nextResourceUpdateBatch(); u->uploadStaticBuffer(material,0,sizeof poison,poison);
     cb->resourceUpdate(u); rhi->endOffscreenFrame(); rhi->finish();
+    // Verify the poison actually landed before drawing any conclusion from
+    // what comes back later. On macOS OpenGL this readback path returns zeros
+    // even though ReadBackNonUniformBuffer is reported supported: the probe
+    // below reads 0,0,0,0 -- neither the poison nor the seed -- so the case
+    // would be measuring the readback, not the registry seeding it is about.
+    {
+      QRhiReadbackResult pr;
+      QRhiCommandBuffer* pcb{};
+      if(rhi->beginOffscreenFrame(&pcb) != QRhi::FrameOpSuccess)
+      {
+        frameError = 3;
+        return;
+      }
+      auto* pu = rhi->nextResourceUpdateBatch();
+      pu->readBackBuffer(material, 0, sizeof poison, &pr);
+      pcb->resourceUpdate(pu);
+      rhi->endOffscreenFrame();
+      rhi->finish();
+      float probe[4]{};
+      if(pr.data.size() == 16)
+        std::memcpy(probe, pr.data.constData(), 16);
+      if(pr.data.size() != 16 || probe[0] != -7.f)
+      {
+        result.skip = true;
+        result.reason
+            = "storage-buffer readback does not observe a host write here "
+              "(poison wrote -7, read back "
+              + (pr.data.size() == 16 ? std::to_string(probe[0])
+                                      : std::string("nothing"))
+              + "), so this case cannot measure registry seeding";
+        return;
+      }
+    }
+
     if(correction()) old->flushInitialBatch();
     p.graph().createAllRenderLists(api); // no render between builds
     auto* fresh=p.sink(s)->renderer();
