@@ -13,7 +13,25 @@ namespace Threedim
 static auto createMesh(TMesh& mesh, std::vector<float>& complete)
 {
   vcg::tri::Clean<TMesh>::RemoveUnreferencedVertex(mesh);
-  vcg::tri::Clean<TMesh>::RemoveZeroAreaFace(mesh);
+
+  // Not RemoveZeroAreaFace(): it deletes a face only when its doubled area is
+  // EXACTLY zero, and that test is not portable. vcglib sizes a face with a
+  // cross product whose terms are of the form `b*c - c*b`, which contracts to
+  // a single FMA on ARM64 -- Apple clang defaults to -ffp-contract=fast -- so
+  // one product is computed exactly inside the fused op and the other is
+  // rounded, and a truly degenerate face comes back with a rounding residue
+  // instead of a zero. A zero-height cone lost all 16 of its degenerate side
+  // triangles on x86-64 and only 8 of them on Apple silicon.
+  //
+  // Those faces are degenerate on either platform and must go: the normal
+  // pass below normalizes their ~0 cross product, so keeping them publishes
+  // NaN normals to the GPU. Size the threshold to the mesh rather than
+  // trusting an exact zero, so it holds whatever scale the primitive is at.
+  // 1e-6 of the bounding box area sits ~5 orders of magnitude under any real
+  // face and ~1 order over float rounding noise.
+  vcg::tri::UpdateBounding<TMesh>::Box(mesh);
+  const auto diag = mesh.bbox.Diag();
+  vcg::tri::Clean<TMesh>::RemoveFaceOutOfRangeArea(mesh, diag * diag * 1e-6f);
   vcg::tri::UpdateTopology<TMesh>::FaceFace(mesh);
   vcg::tri::Clean<TMesh>::RemoveNonManifoldFace(mesh);
   // vcglib deletes lazily — a flag on the element, no compaction — so
