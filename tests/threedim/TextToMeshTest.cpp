@@ -26,6 +26,8 @@
 #include <QPainterPath>
 #include <QRawFont>
 
+#include <cstdio>
+
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
@@ -232,6 +234,44 @@ TEST_CASE(
 {
   if(!hostFontUsable())
     SKIP("no usable scalable font on this host");
+
+  // Diagnostic, not an assertion. hostFontUsable() proves a glyph path exists,
+  // but on Windows every case below came back with an EMPTY scene state while
+  // the probe passed, so the failure is somewhere between "the font has an
+  // outline" and "the node published a mesh". Mirror the node's own resolution
+  // -- same family, same pixel size -- and report each stage, so a run says
+  // which one is empty instead of only that the end result was.
+  {
+    QFont qf(QStringLiteral("Sans"));
+    qf.setPixelSize(72);
+    QRawFont rf = QRawFont::fromFont(qf);
+    if(!rf.isValid())
+    {
+      QFont def;
+      def.setPixelSize(72);
+      rf = QRawFont::fromFont(def);
+    }
+    const auto glyphs = rf.glyphIndexesForString(QStringLiteral("Hello"));
+    int nonEmptyPaths = 0, totalPolys = 0, bigPolys = 0;
+    for(const auto g : glyphs)
+    {
+      const QPainterPath gp = rf.pathForGlyph(g);
+      if(gp.isEmpty())
+        continue;
+      ++nonEmptyPaths;
+      const auto polys = gp.toFillPolygons();
+      totalPolys += int(polys.size());
+      for(const auto& poly : polys)
+        if(poly.size() >= 3)
+          ++bigPolys;
+    }
+    std::fprintf(
+        stderr,
+        "TEXT2MESH-PROBE valid=%d pixelSize=%d glyphs=%d nonEmptyPaths=%d "
+        "polys=%d polysWith3plus=%d\n",
+        int(rf.isValid()), int(rf.pixelSize()), int(glyphs.size()),
+        nonEmptyPaths, totalPolys, bigPolys);
+  }
 
   auto b = build("Hello");
   REQUIRE(b.state);

@@ -434,6 +434,20 @@ if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
     target_compile_definitions(test_integration_gfx_protocol_settings
       PRIVATE SCORE_TEST_HAS_SH4LT)
   endif()
+  # Same treatment for Shmdata and Pipewire, mirroring score-plugin-gfx's own
+  # conditions: if(TARGET shmdata), and
+  # if(NOT EMSCRIPTEN AND NOT APPLE AND NOT WIN32 AND TARGET pipewire::pipewire).
+  # Both sat in the test's unconditional list and were asserted PRESENT
+  # everywhere, so the case failed on macOS and on all four Windows backends
+  # while passing on Linux -- exactly the sh4lt story above.
+  if(TARGET shmdata)
+    target_compile_definitions(test_integration_gfx_protocol_settings
+      PRIVATE SCORE_TEST_HAS_SHMDATA)
+  endif()
+  if(NOT EMSCRIPTEN AND NOT APPLE AND NOT WIN32 AND TARGET pipewire::pipewire)
+    target_compile_definitions(test_integration_gfx_protocol_settings
+      PRIVATE SCORE_TEST_HAS_PIPEWIRE)
+  endif()
 
   foreach(_pw_tgt test_integration_pipewire_video_input
                   test_integration_pipewire_video_motion
