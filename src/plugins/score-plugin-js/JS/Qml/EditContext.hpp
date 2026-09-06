@@ -440,6 +440,18 @@ public:
   void showProcessUI(QObject* process, bool show);
   W_SLOT(showProcessUI)
 
+  bool hasProcessScriptEditor(QObject* process);
+  W_SLOT(hasProcessScriptEditor)
+
+  void showProcessScriptEditor(QObject* process, bool show);
+  W_SLOT(showProcessScriptEditor)
+
+  //! "Window", "Side panel", "Central" or "" for the user's default
+  void setProcessScriptEditorPlacement(QObject* process, QString placement);
+  W_SLOT(setProcessScriptEditorPlacement)
+  void setProcessUIPlacement(QObject* process, QString placement);
+  W_SLOT(setProcessUIPlacement)
+
   /////////////////////
   /// Introspection ///
   /////////////////////

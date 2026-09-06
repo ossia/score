@@ -81,6 +81,45 @@ void EditJsContext::showProcessUI(QObject* process, bool show)
   Process::setupExternalUI(*proc, *doc, show);
 }
 
+bool EditJsContext::hasProcessScriptEditor(QObject* process)
+{
+  auto* proc = qobject_cast<Process::ProcessModel*>(process);
+  if(!proc)
+    return false;
+
+  return bool(proc->flags() & Process::ProcessFlags::ScriptEditingSupported);
+}
+
+void EditJsContext::showProcessScriptEditor(QObject* process, bool show)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+  auto* proc = qobject_cast<Process::ProcessModel*>(process);
+  if(!proc)
+    return;
+
+  Process::setupScriptUI(*proc, *doc, show);
+}
+
+void EditJsContext::setProcessScriptEditorPlacement(QObject* process, QString placement)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+  if(auto* proc = qobject_cast<Process::ProcessModel*>(process))
+    Process::moveProcessUI(*proc, *doc, Process::ProcessUIKind::ScriptEditor, placement);
+}
+
+void EditJsContext::setProcessUIPlacement(QObject* process, QString placement)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+  if(auto* proc = qobject_cast<Process::ProcessModel*>(process))
+    Process::moveProcessUI(*proc, *doc, Process::ProcessUIKind::ExternalUI, placement);
+}
+
 QVariant EditJsContext::prompt(QVariant v)
 {
   qDebug() << v;
