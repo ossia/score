@@ -62,6 +62,13 @@ float depthClearForCompare(QRhiGraphicsPipeline::CompareOp compare) noexcept
   }
 }
 
+float depthClearForState(const isf::pipeline_state& state) noexcept
+{
+  return depthClearForCompare(
+      state.depth_compare ? toCompareOp(*state.depth_compare)
+                          : QRhiGraphicsPipeline::Greater);
+}
+
 QRhiGraphicsPipeline::CullMode toCullMode(std::string_view s) noexcept
 {
   if(ieq(s, "none"))  return QRhiGraphicsPipeline::None;

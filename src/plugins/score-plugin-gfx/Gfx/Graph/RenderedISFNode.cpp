@@ -1,6 +1,8 @@
 #include <Gfx/Graph/PipelineStateHelpers.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/RenderedISFNode.hpp>
+
+#include <iterator>
 #include <Gfx/Graph/RenderedISFSamplerUtils.hpp>
 #include <Gfx/Graph/ShaderCache.hpp>
 
@@ -997,7 +999,21 @@ void RenderedISFNode::runInitialPasses(
     // Note: updateBatch ownership transfers to QRhi on beginPass; per-pass
     // state (pipeline/srb/processUBO/renderTarget) is owned by m_passes and
     // released in releaseState() / removeOutputPass(). Nothing to free here.
-    cb.beginPass(rt, Qt::black, {0.0f, 0}, updateBatch);
+    // Depth clear follows the shader's declared compare; see
+    // depthClearForState(). A fixed 0.0 is the reverse-Z far plane and rejects
+    // every fragment under `less`, so a DEPTH_COMPARE: less shader drew
+    // nothing. Merge the pass override the same way initPass() does, so a pass
+    // that redeclares the compare gets the clear that goes with it.
+    const auto passIdx
+        = static_cast<std::size_t>(std::distance(passes.begin(), it));
+    const auto& modelPasses = n.descriptor().passes;
+    const auto passState
+        = passIdx < modelPasses.size()
+              ? mergeState(
+                    n.descriptor().default_state,
+                    modelPasses[passIdx].override_state)
+              : n.descriptor().default_state;
+    cb.beginPass(rt, Qt::black, {depthClearForState(passState), 0}, updateBatch);
     updateBatch = nullptr;
     {
       cb.setGraphicsPipeline(pipeline);

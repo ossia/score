@@ -900,8 +900,13 @@ void SimpleRenderedISFNode::runInitialPasses(
   SCORE_ASSERT(pass.p.pipeline);
   SCORE_ASSERT(pass.p.srb);
 
+  // The depth clear has to follow the shader's DECLARED compare. A fixed 0.0
+  // is the reverse-Z far plane and admits nothing under `less`, so a
+  // DEPTH_COMPARE: less shader had every fragment fail the depth test and drew
+  // nothing at all.
   cb.beginPass(
-      pass.renderTarget.renderTarget, Qt::transparent, {0.0f, 0}, updateBatch);
+      pass.renderTarget.renderTarget, Qt::transparent,
+      {depthClearForState(n.descriptor().default_state), 0}, updateBatch);
   updateBatch = nullptr;
 
   cb.setGraphicsPipeline(pass.p.pipeline);
