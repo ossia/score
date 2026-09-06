@@ -679,6 +679,17 @@ void Graph::removeNodeFromRenderLists(Node* node)
 
     ossia::remove_erase(rl->renderers, renderer);
     ossia::remove_erase(rl->nodes, node);
+
+    // Release the centralized input render targets this node's ports own.
+    //
+    // removeInputRenderTarget() is otherwise reached only from the EDGE
+    // removal path, keyed on edge.sink, so a port with NO edge into it never
+    // got released -- and an unconnected image input is still allocated a
+    // centralized target by the RL. Removing such a node left its target
+    // allocated for the lifetime of the render list, keyed on a Port the graph
+    // no longer contains.
+    for(auto* in : node->input)
+      rl->removeInputRenderTarget(in);
   }
 
   node->renderedNodes.clear();

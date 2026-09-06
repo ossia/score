@@ -58,7 +58,7 @@ TEST_CASE("GraphLifecycle-1 retained renderer does not lose a pending RT specifi
 
 TEST_CASE(
     "GraphLifecycle-2 unreachable input render targets are reclaimed",
-    "[GraphLifecycle][retention][!shouldfail]")
+    "[GraphLifecycle][retention]")
 {
   const auto api = GENERATE(from_range(platform_backends()));
   Result result; bool allocated{}, retained{};
