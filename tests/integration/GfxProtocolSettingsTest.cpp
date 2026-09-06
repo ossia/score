@@ -55,12 +55,8 @@ struct Protocol
 constexpr Protocol protocols[] = {
     {"Camera", "d615690b-f2e2-447b-b70e-a800552db69c", "Camera input"},
     {"Window", "5a181207-7d40-4ad8-814e-879fcdf8cc31", "Window"},
-    {"PipewireInput", "cf6a355f-34d1-4d24-a6ea-3d204f93cde9", "PipeWire Video Input"},
-    {"PipewireOutput", "d5e7b22b-b7f6-4680-9610-2457509b7946", "PipeWire Video Output"},
     {"GStreamer", "2c644357-16a4-4c25-9e27-8e5c4a9a647d", "GStreamer"},
     {"GPhoto2", "a7e5e6cc-3e7e-4f92-b5f6-0dca37e64c8a", "GPhoto2 DSLR"},
-    {"ShmdataInput", "8062b2e5-c589-41f1-8977-96c5ba782f95", "Shmdata Input"},
-    {"ShmdataOutput", "69bb8215-dae2-4ec9-b60c-79f4f4fc2390", "Shmdata Output"},
     {"WindowCapture", "a7c1e3f0-5d2b-4e8a-9f6c-1b3d5e7a9c0f", "Window Capture"},
     {"Libav", "8b3e4f2a-1d5c-4e7b-a9f3-6c2d8e4b1a7f", "FFmpeg"},
 };
@@ -89,6 +85,21 @@ constexpr Protocol sh4lt[] = {
 // score::uuids::toByteArray(), whose to_char() emits 'a' + (i - 10). A JS map
 // lookup is literal, so "398CEC01-..." never matched and Syphon read as ABSENT
 // on macOS even though it is built and linked there by default.
+// Shmdata and Pipewire are Linux-only in practice: score-plugin-gfx guards the
+// former with if(TARGET shmdata) and the latter with NOT APPLE AND NOT WIN32
+// AND TARGET pipewire::pipewire. Both sat in the unconditional list above and
+// were asserted PRESENT everywhere, so this case failed on macOS and on all
+// four Windows backends while passing on Linux -- the same story as sh4lt, and
+// measured the same way ("PROTO ShmdataInput ABSENT", "PROTO PipewireInput
+// ABSENT" on DESKTOP-664CCKO). The buildsystem tells the test what to expect.
+constexpr Protocol shmdata[] = {
+    {"ShmdataInput", "8062b2e5-c589-41f1-8977-96c5ba782f95", "Shmdata Input"},
+    {"ShmdataOutput", "69bb8215-dae2-4ec9-b60c-79f4f4fc2390", "Shmdata Output"},
+};
+constexpr Protocol pipewire[] = {
+    {"PipewireInput", "cf6a355f-34d1-4d24-a6ea-3d204f93cde9", "PipeWire Video Input"},
+    {"PipewireOutput", "d5e7b22b-b7f6-4680-9610-2457509b7946", "PipeWire Video Output"},
+};
 constexpr Protocol syphon[] = {
     {"SyphonInput", "398cec01-c4ea-43b7-8281-d848748e0f68", "Syphon Input"},
     {"SyphonOutput", "087d032d-9a42-4bc9-b3df-ad9ba9e86c07", "Syphon Output"},
@@ -229,6 +240,10 @@ TEST_CASE("score-plugin-gfx registers its protocol factories", "[integration][gf
     emitCheck(p);
   for(const auto& p : sh4lt)
     emitCheck(p);
+  for(const auto& p : shmdata)
+    emitCheck(p);
+  for(const auto& p : pipewire)
+    emitCheck(p);
   for(const auto& p : syphon)
     emitCheck(p);
   src += QStringLiteral("Qt.exit(0);\n");
@@ -260,6 +275,24 @@ TEST_CASE("score-plugin-gfx registers its protocol factories", "[integration][gf
     {
       INFO("protocol " << p.name);
 #if defined(SCORE_TEST_HAS_SH4LT)
+      CHECK(r.log.contains(QStringLiteral("PROTO %1 PRESENT").arg(p.name)));
+#else
+      CHECK(r.log.contains(QStringLiteral("PROTO %1 ABSENT").arg(p.name)));
+#endif
+    }
+    for(const auto& p : shmdata)
+    {
+      INFO("protocol " << p.name);
+#if defined(SCORE_TEST_HAS_SHMDATA)
+      CHECK(r.log.contains(QStringLiteral("PROTO %1 PRESENT").arg(p.name)));
+#else
+      CHECK(r.log.contains(QStringLiteral("PROTO %1 ABSENT").arg(p.name)));
+#endif
+    }
+    for(const auto& p : pipewire)
+    {
+      INFO("protocol " << p.name);
+#if defined(SCORE_TEST_HAS_PIPEWIRE)
       CHECK(r.log.contains(QStringLiteral("PROTO %1 PRESENT").arg(p.name)));
 #else
       CHECK(r.log.contains(QStringLiteral("PROTO %1 ABSENT").arg(p.name)));
