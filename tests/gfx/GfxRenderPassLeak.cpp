@@ -363,7 +363,19 @@ TEST_CASE(
         "allocCount after create=" << out.allocAfterCreate << " cycle1=" << *first
                                    << " min=" << *mn << " max=" << *mx
                                    << " (cycles 1.." << K - 1 << ")");
-    CHECK(*mn == *mx);
+    // A leak is a TREND, not jitter. Requiring mn == mx assumed every
+    // allocator retires a cycle's transients within that same cycle. D3D12's
+    // does not: it retires some one cycle late, so the live count oscillates
+    // by exactly one between cycles while never climbing -- measured
+    // min=62 max=63 across cycles 1..19, with d3d11 and Vulkan exactly flat.
+    //
+    // Tolerating one does not weaken the guard. This test's own premise is
+    // that one leaked render target per cycle shows up as ~+18 over the
+    // compared range, and the second check below is the one that catches it:
+    // a real leak cannot end the range where it started.
+    constexpr int kAllocJitter = 1;
+    CHECK(*mx - *mn <= kAllocJitter);
+    CHECK(out.allocAfterCycle.back() - *first <= kAllocJitter);
   }
   else
   {
