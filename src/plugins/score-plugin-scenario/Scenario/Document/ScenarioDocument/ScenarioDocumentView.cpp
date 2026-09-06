@@ -2,6 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioDocumentView.hpp"
 
+#include "AddressBarWidget.hpp"
+
 #include <Process/Dataflow/CableDragAutoScroller.hpp>
 #include <Process/Dataflow/CableItem.hpp>
 #include <Process/Dataflow/PortItem.hpp>
@@ -129,8 +131,9 @@ void ProcessGraphicsView::scrollHorizontal(double dx)
 
 QRectF ProcessGraphicsView::visibleRect() const noexcept
 {
-  return QRectF{
-      this->mapToScene(QPoint{}), this->mapToScene(this->rect().bottomRight())};
+  // The viewport, not rect(): the scroll bars are not part of what is shown
+  const auto vp = this->viewport()->rect();
+  return QRectF{this->mapToScene(vp.topLeft()), this->mapToScene(vp.bottomRight())};
 }
 
 void ProcessGraphicsView::drawForeground(QPainter* painter, const QRectF& rect)
@@ -586,6 +589,7 @@ ScenarioDocumentView::ScenarioDocumentView(
     , m_timeRuler{new MusicalRuler{&m_timeRulerView}}
     , m_minimapScene{m_widget}
     , m_minimapView{&m_minimapScene}
+    , m_addressBar{new AddressBarWidget{ctx}}
 {
   auto& scenario_settings = ctx.app.settings<Scenario::Settings::Model>();
 
@@ -799,6 +803,17 @@ void ScenarioDocumentView::addBackgroundRenderer(score::BackgroundRenderer* r)
 {
   m_view.m_globalRenderers.push_back(r);
   updateBackgroundMode();
+}
+
+score::BackgroundRenderer*
+ScenarioDocumentView::activeBackgroundRenderer() const noexcept
+{
+  // Same precedence as ProcessGraphicsView::drawBackground
+  if(m_view.currentBackground)
+    return m_view.currentBackground;
+  if(!m_view.m_globalRenderers.empty())
+    return m_view.m_globalRenderers.back();
+  return nullptr;
 }
 
 void ScenarioDocumentView::removeBackgroundRenderer(score::BackgroundRenderer* r)

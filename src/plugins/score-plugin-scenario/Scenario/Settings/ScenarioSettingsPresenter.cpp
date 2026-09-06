@@ -24,6 +24,9 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
     : score::GlobalSettingsPresenter{m, v, parent}
 {
   SETTINGS_PRESENTER(DefaultEditor);
+  SETTINGS_PRESENTER(ScriptEditorPlacement);
+  SETTINGS_PRESENTER(ProcessUIPlacement);
+  SETTINGS_PRESENTER(ScriptEditorPreview);
   SETTINGS_PRESENTER(Skin);
   SETTINGS_PRESENTER(SlotHeight);
   SETTINGS_PRESENTER(AutoSequence);

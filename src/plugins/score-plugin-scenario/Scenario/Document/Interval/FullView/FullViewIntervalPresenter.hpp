@@ -16,6 +16,9 @@ class DefaultHeaderDelegate;
 }
 namespace Scenario
 {
+//! Space kept above the full view interval, for the time signature bar.
+inline constexpr double FullViewTopMargin = 24.;
+
 namespace Settings
 {
 class Model;
@@ -52,10 +55,6 @@ public:
   void on_visibleRectChanged(QRectF);
 
   void setSnapLine(TimeVal t, bool enabled);
-
-public:
-  void intervalSelected(IntervalModel* arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalSelected, arg_1)
 
 private:
   void updateTimeBars();

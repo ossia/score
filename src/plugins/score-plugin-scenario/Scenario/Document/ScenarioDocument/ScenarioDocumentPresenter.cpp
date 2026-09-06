@@ -30,6 +30,7 @@
 #include <Scenario/Document/Interval/LayerData.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
 #include <Scenario/Document/Minimap/Minimap.hpp>
+#include <Scenario/Document/ScenarioDocument/AddressBarWidget.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
@@ -59,6 +60,8 @@
 #include <score/widgets/DoubleSlider.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
+#include <core/document/DocumentView.hpp>
+#include <core/view/CentralViewStack.hpp>
 #include <core/view/Window.hpp>
 
 #include <ossia/detail/math.hpp>
@@ -236,6 +239,25 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
     con(processLib->processWidget().presetView(),
         &Library::PresetListView::doubleClicked, this,
         &ScenarioDocumentPresenter::on_addPresetFromLibrary);
+  }
+
+  // Address bar: in the navigation bar shared by every central view
+  {
+    auto& bar = view().addressBar();
+    if(auto docView = ctx.document.view())
+    {
+      docView->centralViews().setNavigationWidget(&bar);
+    }
+    con(bar, &AddressBarWidget::intervalSelected, this,
+        [this, &ctx](IntervalModel* itv) {
+      // Travelling in the hierarchy always brings the score back
+      if(auto docView = ctx.document.view())
+      {
+        auto& views = docView->centralViews();
+        views.showView(views.mainView());
+      }
+      setDisplayedInterval(itv);
+    });
   }
 
   setDisplayedInterval(&model().baseInterval());
@@ -522,6 +544,9 @@ void ScenarioDocumentPresenter::setLargeView()
   c.duration.setGuiDuration(c.contentDuration());
 
   updateMinimap();
+  // updateMinimap only sizes the minimap once there is a zoom; the large
+  // view is what gives the first one, from handles spanning the view.
+  view().minimap().setWidth(view().viewportRect().width());
   view().minimap().setLargeView();
 }
 
@@ -567,12 +592,22 @@ void ScenarioDocumentPresenter::setAutoScroll(bool c)
 static bool window_size_set = false;
 void ScenarioDocumentPresenter::on_windowSizeChanged(QSize sz)
 {
-  if(m_zoomRatio == -1)
-    return;
-
   // Keep the same zoom level with the new width.
   // Left handle should not move.
   auto new_w = view().viewWidth();
+  if(new_w <= 0)
+    return;
+
+  // The zoom could not be computed while the view had no width: fit the
+  // interval now that it has one.
+  if(m_zoomPending)
+  {
+    m_zoomPending = false;
+    restoreZoom();
+  }
+
+  if(m_zoomRatio == -1)
+    return;
 
   view().timeRuler().setWidth(new_w);
 
@@ -855,6 +890,14 @@ void ScenarioDocumentPresenter::on_timeRulerChanged()
 
 void ScenarioDocumentPresenter::on_minimapChanged(double l, double r)
 {
+  // Nothing to fit to yet: the view is not laid out. The zoom would come
+  // out as NaN and stick; it is computed again from the first resize.
+  if(view().viewportRect().width() <= 0 || view().minimap().width() <= 0)
+  {
+    m_zoomPending = true;
+    return;
+  }
+
   m_updatingMinimap = true;
   auto& c = displayedInterval();
   const auto dur = c.duration.guiDuration();
@@ -1084,6 +1127,8 @@ void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel* itv)
   }
 
   displayedElements.setDisplayedElements(std::move(elements));
+
+  view().addressBar().setTargetObject(score::IDocument::unsafe_path(interval));
 
   m_focusManager.focusNothing();
 

@@ -2,12 +2,11 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "FullViewIntervalPresenter.hpp"
 
-#include "AddressBarItem.hpp"
 #include "FullViewIntervalHeader.hpp"
 
+#include <Process/ApplicationPlugin.hpp>
 #include <Process/Dataflow/NodeItem.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
-#include <Process/ApplicationPlugin.hpp>
 #include <Process/HeaderDelegate.hpp>
 #include <Process/LayerView.hpp>
 #include <Process/ProcessContext.hpp>
@@ -55,14 +54,14 @@ W_OBJECT_IMPL(Scenario::FullViewIntervalPresenter)
 
 namespace Scenario
 {
-static double timeSignatureBarY = -45.;
+static double timeSignatureBarY = -(FullViewTopMargin - 3.);
 
 static SlotDragOverlay* full_slot_drag_overlay{};
 
 Timebars::Timebars(FullViewIntervalPresenter& self)
     : timebar{self, self.view()}
 {
-  timebar.setPos(0, -47);
+  timebar.setPos(0, -(FullViewTopMargin - 1.));
 }
 
 void FullViewIntervalPresenter::startSlotDrag(int curslot, QPointF pos) const
@@ -102,12 +101,6 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
 
   m_timebars->lightBars.setParentItem(m_view);
   m_timebars->lighterBars.setParentItem(m_view);
-
-  // Address bar
-  auto& addressBar = static_cast<FullViewIntervalHeader*>(m_header)->bar();
-  addressBar.setTargetObject(score::IDocument::unsafe_path(interval));
-  con(addressBar, &AddressBarItem::intervalSelected, this,
-      &FullViewIntervalPresenter::intervalSelected);
 
   con(interval.selection, &Selectable::changed, (FullViewIntervalView*)m_view,
       &FullViewIntervalView::setSelected);

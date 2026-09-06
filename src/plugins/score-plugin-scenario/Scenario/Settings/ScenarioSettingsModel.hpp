@@ -20,6 +20,9 @@ class SCORE_PLUGIN_SCENARIO_EXPORT Model final : public score::SettingsDelegateM
   W_OBJECT(Model)
   QString m_Skin;
   QString m_DefaultEditor;
+  QString m_ScriptEditorPlacement;
+  QString m_ProcessUIPlacement;
+  QString m_ScriptEditorPreview;
   double m_GraphicZoom{};
   qreal m_SlotHeight{};
   TimeVal m_DefaultDuration{TimeVal::fromMsecs(30000)};
@@ -44,6 +47,11 @@ public:
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, SkinChanged, arg_1);
 
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, QString, DefaultEditor)
+  SCORE_SETTINGS_PARAMETER_HPP(
+      SCORE_PLUGIN_SCENARIO_EXPORT, QString, ScriptEditorPlacement)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, QString, ProcessUIPlacement)
+  SCORE_SETTINGS_PARAMETER_HPP(
+      SCORE_PLUGIN_SCENARIO_EXPORT, QString, ScriptEditorPreview)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, double, GraphicZoom)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, qreal, SlotHeight)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, TimeVal, DefaultDuration)
@@ -61,6 +69,9 @@ public:
 };
 
 SCORE_SETTINGS_PARAMETER(Model, DefaultEditor)
+SCORE_SETTINGS_PARAMETER(Model, ScriptEditorPlacement)
+SCORE_SETTINGS_PARAMETER(Model, ProcessUIPlacement)
+SCORE_SETTINGS_PARAMETER(Model, ScriptEditorPreview)
 SCORE_SETTINGS_PARAMETER(Model, Skin)
 SCORE_SETTINGS_PARAMETER(Model, GraphicZoom)
 SCORE_SETTINGS_PARAMETER(Model, SlotHeight)

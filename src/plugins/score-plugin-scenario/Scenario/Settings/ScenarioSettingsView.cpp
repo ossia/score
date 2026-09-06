@@ -2,6 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioSettingsView.hpp"
 
+#include <Process/UIPlacement.hpp>
+
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
 #include <Library/LibrarySettings.hpp>
@@ -9,13 +11,12 @@
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/Skin.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+#include <score/tools/FilePath.hpp>
 #include <score/widgets/FormWidget.hpp>
 #include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/TimeSpinBox.hpp>
-
-#include <score/tools/FilePath.hpp>
 
 #include <QApplication>
 #include <QCheckBox>
@@ -248,6 +249,31 @@ View::View()
 
     lay->addRow(tr("Default editor"), subw);
   }
+
+  // Process UIs
+  SETTINGS_UI_COMBOBOX_SETUP(
+      "Script editors", ScriptEditorPlacement, Process::UIPlacementSettings::names());
+  score::setHelp(
+      m_ScriptEditorPlacement,
+      tr("Where the code editors of processes (JS, shaders, DSP...) open: "
+         "in a separate window, as a tab of the right pane next to the inspector, "
+         "or in the central area in place of the score."));
+  SETTINGS_UI_COMBOBOX_SETUP(
+      "Behind central editors", ScriptEditorPreview,
+      Process::UIPlacementSettings::previewNames());
+  score::setHelp(
+      m_ScriptEditorPreview,
+      tr("How a script editor opened in the central view looks: drawn without "
+         "chrome nor background over what the document shows behind itself (a "
+         "Background device, a watched texture port) when there is one, for live "
+         "coding; or a plain editor."));
+  SETTINGS_UI_COMBOBOX_SETUP(
+      "Process UIs", ProcessUIPlacement, Process::UIPlacementSettings::names());
+  score::setHelp(
+      m_ProcessUIPlacement,
+      tr("Where the custom user interfaces of processes open, when they can be "
+         "embedded (JS UIs). Plug-ins with a native window (VST, LV2, CLAP...) "
+         "always open in a separate window."));
   // ZOOM
   m_zoomSpinBox = new QSpinBox;
   m_zoomSpinBox->setMinimum(100);
@@ -302,6 +328,9 @@ View::View()
   SETTINGS_UI_TOGGLE_SETUP("Magnetism on musical metrics", MagneticMeasures);
 }
 
+SETTINGS_UI_COMBOBOX_IMPL(ScriptEditorPlacement)
+SETTINGS_UI_COMBOBOX_IMPL(ProcessUIPlacement)
+SETTINGS_UI_COMBOBOX_IMPL(ScriptEditorPreview)
 SETTINGS_UI_SPINBOX_IMPL(UpdateRate)
 SETTINGS_UI_SPINBOX_IMPL(ExecutionRefreshRate)
 SETTINGS_UI_TOGGLE_IMPL(TimeBar)
