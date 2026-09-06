@@ -6,10 +6,13 @@
 #include <QDragEnterEvent>
 #include <QDragLeaveEvent>
 #include <QPainter>
+#include <QTimer>
 #include <QToolBar>
 #include <QToolButton>
 
 #include <wobjectimpl.h>
+
+#include <algorithm>
 
 W_OBJECT_IMPL(score::FixedTabWidget)
 namespace score
@@ -107,6 +110,11 @@ FixedTabWidget::addTab(QWidget* widg, const PanelStatus& v, int index)
   bbtn->setAutoRaise(true);
   bbtn->setFocusPolicy(Qt::NoFocus);
   bbtn->setIconSize(m_buttons->iconSize());
+  bbtn->setContextMenuPolicy(Qt::CustomContextMenu);
+  connect(
+      bbtn, &QWidget::customContextMenuRequested, this, [this, bbtn, widg](QPoint p) {
+    tabContextMenuRequested(widg, bbtn->mapToGlobal(p));
+  });
 
   QAction* btn{};
   if(index < 0)
@@ -154,7 +162,92 @@ FixedTabWidget::addTab(QWidget* widg, const PanelStatus& v, int index)
     actionTriggered(btn, checked);
   });
 
+  m_widgetActions.emplace_back(widg, btn);
+  // A tab widget that gets deleted takes its tab with it. Only the pointer
+  // value is used then: the widget part is already gone in destroyed().
+  connect(widg, &QObject::destroyed, this, [this, widg] { forgetTab(widg); });
   return std::make_pair(idx, btn);
+}
+
+QAction* FixedTabWidget::actionFor(QWidget* widg) const noexcept
+{
+  for(auto& [w, act] : m_widgetActions)
+    if(w == widg)
+      return act;
+  return nullptr;
+}
+
+void FixedTabWidget::showTab(QWidget* widg)
+{
+  auto act = actionFor(widg);
+  if(!act)
+    return;
+
+  if(act->isChecked())
+  {
+    // QAction::trigger() would uncheck it (the group is ExclusiveOptional)
+    m_stack.setCurrentWidget(widg);
+    actionTriggered(act, true);
+  }
+  else
+  {
+    act->trigger();
+  }
+}
+
+void FixedTabWidget::removeTab(QWidget* widg)
+{
+  if(!actionFor(widg))
+    return;
+
+  disconnect(widg, &QObject::destroyed, this, nullptr);
+  if(m_stack.indexOf(widg) != -1)
+    m_stack.removeWidget(widg);
+  forgetTab(widg);
+}
+
+void FixedTabWidget::forgetTab(QWidget* widg)
+{
+  auto act = actionFor(widg);
+  if(!act)
+    return;
+
+  std::erase_if(m_widgetActions, [=](const auto& p) { return p.first == widg; });
+
+  const bool wasCurrent = act->isChecked();
+  m_actGrp->removeAction(act);
+  m_buttons->removeAction(act);
+  // The action owns the tab's button, which may be the one dispatching a
+  // context menu right now (moving a tab out from its own menu)
+  act->deleteLater();
+
+  // Fall back on the first tab, in the order of the buttons. Deferred: the
+  // widget may be in the middle of its destruction and still the stack's
+  // current widget, which the switch would have the stacked layout hide().
+  if(wasCurrent)
+  {
+    QTimer::singleShot(0, this, [this] {
+      // Another tab was shown in the meantime
+      if(m_actGrp->checkedAction())
+        return;
+      for(auto first : m_buttons->actions())
+      {
+        for(auto& [w, a] : m_widgetActions)
+        {
+          if(a == first)
+          {
+            showTab(w);
+            return;
+          }
+        }
+      }
+    });
+  }
+}
+
+QWidget* FixedTabWidget::currentWidget() const noexcept
+{
+  return m_stack.currentWidget();
 }
 
 QAction* FixedTabWidget::addAction(QWidget* widg, const PanelStatus& v)

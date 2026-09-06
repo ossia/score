@@ -2,3 +2,9 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DocumentDelegateView.hpp"
 score::DocumentDelegateView::~DocumentDelegateView() = default;
+
+score::BackgroundRenderer*
+score::DocumentDelegateView::activeBackgroundRenderer() const noexcept
+{
+  return nullptr;
+}

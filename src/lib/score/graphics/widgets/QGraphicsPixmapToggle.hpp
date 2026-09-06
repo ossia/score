@@ -30,8 +30,12 @@ public:
 
 public:
   void toggled(bool arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, toggled, arg_1)
+  //! Right-click; the position is in screen coordinates
+  void contextMenuRequested(QPoint pos)
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, contextMenuRequested, pos)
 
 protected:
+  void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;

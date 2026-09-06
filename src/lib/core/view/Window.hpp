@@ -56,6 +56,12 @@ public:
 
   void addTopToolbar(QToolBar* b);
 
+  //! Dock a widget as a tab of the right pane, next to the inspector.
+  //! The returned action toggles it; the widget is not owned by the view.
+  QAction* addRightPanel(QWidget* w, const PanelStatus& status);
+  void removeRightPanel(QWidget* w);
+  void showRightPanel(QWidget* w);
+
 public:
   void activeDocumentChanged(const Id<DocumentModel>& arg_1)
       E_SIGNAL(SCORE_LIB_BASE_EXPORT, activeDocumentChanged, arg_1)
@@ -72,10 +78,8 @@ public:
   QWidget* centralDocumentWidget{};
   QSplitter* rightSplitter{};
   QWidget* topleftToolbar{};
-  QWidget* topRightToolbar{};
   FixedTabWidget* leftTabs{};
   FixedTabWidget* rightTabs{};
-  // QTabWidget* rightTabs{};
   FixedTabWidget* bottomTabs{};
   QTabWidget* centralTabs{};
   QWidget* transportBar{};
@@ -83,7 +87,6 @@ public:
   PanelDelegate* objectPanel{};
   PanelDelegate* inspectorPanel{};
   PanelDelegate* infoPanel{};
-  PanelDelegate* scriptPanel{};
 
 private:
   bool event(QEvent* event) override;

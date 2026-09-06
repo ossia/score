@@ -293,6 +293,10 @@
         <file>icons/gfx.png</file>
         <file>icons/console_on.png</file>
         <file>icons/console_on@2x.png</file>
+        <file>icons/script_on.png</file>
+        <file>icons/script_on@2x.png</file>
+        <file>icons/script_off.png</file>
+        <file>icons/script_off@2x.png</file>
         <file>icons/history_on.png</file>
         <file>icons/history_on@2x.png</file>
         <file>icons/info_on.png</file>
