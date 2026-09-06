@@ -30,6 +30,10 @@ struct SCORE_LIB_BASE_EXPORT ApplicationSettings
   //! Force restoring last session, mainly useful for debugging
   bool forceRestore = false;
 
+  //! A --script was given. Parsed by the JS plug-in, but needed here as the
+  //! start screen is decided before plug-ins load.
+  bool hasScript = false;
+
   //! If true, will show the GUI upon loading.
   bool gui = true;
 
