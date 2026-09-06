@@ -166,11 +166,8 @@ inline const char* channelDynBaseName(MaterialChannel ch) noexcept
   }
 }
 
-// Authoritative kMaxDynamicSlots constant lives on
-// GpuResourceRegistry::kMaxDynamicSlots (header). Removed the local
-// duplicate that drifted out of sync; the registry value is what actually
-// gates the dynamic-slot cap (see resolveDynamicSlot at line ~386 in
-// GpuResourceRegistry.cpp).
+// The dynamic-slot cap is GpuResourceRegistry::kMaxDynamicSlots; that value
+// is what resolveDynamicSlot gates on, so no local copy is kept here.
 
 // sRGB channels (base color, emissive) get hardware sRGB→linear on sample.
 // Metallic-roughness and normal are data, not color — must stay linear.
@@ -424,11 +421,11 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   MDIState m_mdi;
 
   // ─── Primitive cloud (splat) bucket resources ───────────────────────
-  // One entry per bucket_key = hash(format_id), or stable_id when format_id
-  // is empty so each unformatted cloud gets its own bucket. A bucket holds
-  // raw_splats (concatenated raw_data), cloud_meta (CloudMetaGPU[]),
-  // cloud_id_lookup (uint per primitive -> cloud_meta index) and one
-  // IndirectCmd {6, total_primitives, 0, 0, 0}.
+  // One entry per bucket_key = hash(format_id), or the cloud's address when
+  // format_id is empty so each unformatted cloud gets its own bucket. A
+  // bucket holds raw_splats (concatenated raw_data), cloud_meta
+  // (CloudMetaGPU[]), cloud_id_lookup (uint per primitive -> cloud_meta
+  // index) and one IndirectCmd {total_primitives, 1, 0, 0, 0}.
   //
   // Buffers are growBuf-managed so downstream SRBs see pointer-stable
   // handles; a key that disappears is dropBuf'd in releaseStaleClouds().
@@ -475,10 +472,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   //
   // m_instAttribs is INTERLEAVED, 32 bytes a slot: a vec4-padded translation
   // at offset 0 (identity for regular meshes) then a vec4 color at offset 16
-  // (identity (1,1,1,1) for regular meshes). They used to be two buffers on
-  // two vertex bindings, which cost the geometry a ninth binding — one past
-  // what Qt's D3D11 command buffer records. Both are per-instance vec4s
-  // written by the same GPU copy pass, so one binding carries both.
+  // (identity (1,1,1,1) for regular meshes). Both are per-instance vec4s
+  // written by the same GPU copy pass, so one binding carries both; on two
+  // bindings the geometry would need a ninth, one past what Qt's D3D11
+  // command buffer records.
   //
   // m_instDrawIds stays on its own: cmd-index of the owning draw, standing in
   // for gl_DrawID, which the CPU fallback does not provide, and for
@@ -539,7 +536,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   };
   std::vector<PendingGpuCopy> m_pendingGpuCopies;
 
-  // Capacities (in bytes) of the two shared scene buffers — for growth-only.
+  // Capacity in bytes of m_materialsExtBuffer — growth-only.
   int64_t m_materialsExtCap{};
 
   // Per-channel material texture arrays are owned by GpuResourceRegistry and
@@ -1229,8 +1226,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     // scene_materials_ext and scene_material_uv_xforms with it. isLive()
     // validates against whichever arena the ref names, so a raw_slot crossed
     // in from another arena -- RawTransform has 16384 slots against the ext
-    // buffers' handful -- would pass and index far outside them. A36 showed
-    // that class of read is an MMU fault, not merely wrong pixels.
+    // buffers' handful -- would pass and index far outside them, which faults
+    // rather than merely producing wrong pixels.
     if(m_registry->isLiveIn(mat->raw_slot, GpuResourceRegistry::Arena::Material))
       return mat->raw_slot.internal_index;
     auto it = m_loaderMaterialSlots.find(mat);
@@ -1259,22 +1256,13 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     return it->second;
   }
 
-  // MDI rebuild: concatenate CPU-backed legacy_geometry meshes into shared
-  // vertex / index buffers and emit one output geometry with indirect draw
-  // metadata. GPU-backed or non-standard-format draws are skipped with a
-  // warning; they can still be rendered through per-mesh mode.
-  //
-  // TODO: replace the concatenated uploadStaticBuffer at offset 0 with
-  // per-slab registry.uploadMeshStream calls gated on slab->freshly_allocated,
-  // so adding one mesh uploads only that mesh's bytes.
-  //
-  // Primitive-cloud branch: buckets fs.primitive_clouds by format_id and emits
-  // one indirect-draw geometry per bucket, appended to m_outputSpec.meshes
-  // after the mesh MDI entry. Per bucket: `raw_splats`, `cloud_meta` and
-  // `cloud_id_lookup` auxiliary SSBOs plus one indirect cmd
-  // {vertex_count=6, instance_count=Σ primitive_counts}. The format's first CSF
-  // stage reads raw_splats through AUXILIARY LAYOUT, keeping the descriptor
-  // budget tight on integrated Metal.
+  // Bucket fs.primitive_clouds by format_id and emit one indirect-draw
+  // geometry per bucket, appended to m_outputSpec.meshes after the mesh MDI
+  // entry. Per bucket: `raw_splats`, `cloud_meta` and `cloud_id_lookup`
+  // auxiliary SSBOs plus one indirect cmd
+  // {vertex_count=Σ primitive_counts, instance_count=1}. The format's first
+  // CSF stage reads raw_splats through AUXILIARY LAYOUT, keeping the
+  // descriptor budget tight on integrated Metal.
   void rebuildPrimitiveClouds(
       RenderList& renderer, QRhiResourceUpdateBatch& res,
       const FlatScene& fs)
@@ -1282,18 +1270,13 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     ++m_primitiveCloudFrame;
     if(fs.primitive_clouds.empty())
     {
-      // No clouds this frame — keep buckets around for one frame in
-      // case the scene briefly goes empty during a graph rebuild, but
-      // the persistent buffers are released by releaseBuffer() when
-      // the renderer torn down. Stale eviction only fires when the
-      // primitive_clouds list is non-empty (below).
+      // No clouds this frame: keep the buckets in case the scene briefly goes
+      // empty during a graph rebuild. Stale eviction only fires when the
+      // primitive_clouds list is non-empty (below); release() drops the
+      // buffers for good.
       return;
     }
 
-    // Bucket the entries. flat_map<bucket_key, vector<entry index>>.
-    // bucket_key was already chosen by the visitor: hash(format_id) or
-    // stable_id when format_id is empty (each unformatted cloud
-    // becomes its own bucket).
     struct Bucket
     {
       uint32_t bucket_key;
@@ -1308,10 +1291,9 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     {
       if(!d.cloud || d.cloud->primitive_count == 0)
         continue;
-      // Bucket by format_id when set, else by cloud's address (stable
-      // pointer keyed bucket). Mirrors the visitor's intent. Hash matches
-      // the canonical filter_tag stamp (ossia::hash_string truncated to
-      // 32 bits) so a downstream FlattenedSceneFilterNode "format_id ==
+      // Bucket by format_id when set, else by the cloud's address. The hash
+      // matches the canonical filter_tag stamp (ossia::hash_string truncated
+      // to 32 bits) so a downstream FlattenedSceneFilterNode "format_id ==
       // match_str" route lines up byte-for-byte with this bucket key.
       uint32_t key = 0;
       if(!d.cloud->format_id.empty())
@@ -1402,13 +1384,20 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
 
       // ── Indirect-draw command shape (used both for size accounting
       // upfront and for the CPU build inside the upload guard).
+      // NON-INDEXED record layout: words 0..3 are a native
+      // QRhiDrawIndirectCommand { vertexCount, instanceCount, firstVertex,
+      // firstInstance }, so drawIndirect() reads firstInstance from word 3.
+      // The trailing baseVertex word is meaningless for a non-indexed draw and
+      // ignored by the GPU; it only keeps the 20-byte stride shared with the
+      // indexed shape (which is { indexCount, instanceCount, firstIndex,
+      // baseVertex, firstInstance } -- see the MDI Acc::IndirectCmd below).
       struct IndirectCmd
       {
-        uint32_t indexOrVertexCount;
+        uint32_t vertexCount;
         uint32_t instanceCount;
-        uint32_t firstIndexOrVertex;
-        int32_t  baseVertex; // for indexed draws — unused (vertex_count path)
+        uint32_t firstVertex;
         uint32_t baseInstance;
+        int32_t  baseVertex; // unused on the vertex_count path
       };
 
       // Upfront sizing, also used by the per-bucket geometry construction
@@ -1508,11 +1497,9 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           }
           else
           {
-            // GPU-resident raw_data: unsupported for now (would need a
-            // GPU-to-GPU copy via copyBuffer). Zero-fill so the bucket
-            // is at least well-defined. See PRIMITIVE-CLOUD-ARENA-DESIGN.md
-            // for the planned slot-based path where GPU-resident
-            // producers write into the per-format arena directly.
+            // GPU-resident raw_data is not supported yet (it would need a
+            // GPU-to-GPU copyBuffer). Zero-fill so the bucket is at least
+            // well-defined.
             std::memset(dst, 0, (std::size_t)bytes);
           }
           dst += bytes;
@@ -1599,11 +1586,11 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         // A format chain may rewrite this cmd post-cull; the unculled total is
         // the safe default.
         const IndirectCmd cmd{
-            /*indexOrVertexCount*/ (uint32_t)b.total_primitives,
-            /*instanceCount*/      1u,
-            /*firstIndexOrVertex*/ 0u,
-            /*baseVertex*/         0,
-            /*baseInstance*/       0u};
+            /*vertexCount*/   (uint32_t)b.total_primitives,
+            /*instanceCount*/ 1u,
+            /*firstVertex*/   0u,
+            /*baseInstance*/  0u,
+            /*baseVertex*/    0};
         res.uploadStaticBuffer(bb.indirect, 0, icBytes, &cmd);
 
         bb.content_fingerprint = fp;
@@ -1800,7 +1787,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       const std::vector<uint32_t>& materialTagHashes)
   {
     // Per-mesh slab allocation. Per draw: acquireMeshSlab(stable_id, vc, ic)
-    // against the 5 per-stream OffsetAllocators in GpuResourceRegistry;
+    // against the per-stream OffsetAllocators in GpuResourceRegistry;
     // on freshly_allocated, extract CPU bytes (or queue a GPU copy for
     // GPU-backed sources) and uploadMeshStream into the slab's byte offset;
     // indirect_draw_cmds baseVertex / firstIndex come from those offsets
@@ -1808,11 +1795,12 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     // it. The grace queue holds a reclaimed offset for 2 frames so an in-flight
     // draw cannot see it reused.
     //
-    // Output layout is four vertex bindings (pos/nrm/uv/tan), one index buffer
-    // and the scene auxiliaries. Vertex/index buffers are registry-owned and
-    // pre-sized at registry init, so nothing here grows or bulk-uploads them;
-    // this function owns only the per_draws + indirect_draw_cmds upload, the
-    // per-draw metadata pack and the output geometry construction.
+    // Output layout is six vertex bindings (pos/nrm/uv0/tan/col/uv1), one index
+    // buffer and the scene auxiliaries. Vertex/index buffers are
+    // registry-owned and pre-sized at registry init, so nothing here grows or
+    // bulk-uploads them; this function owns only the per_draws +
+    // indirect_draw_cmds upload, the per-draw metadata pack and the output
+    // geometry construction.
     auto& rhi = *renderer.state.rhi;
     const uint32_t current_frame = (uint32_t)renderer.frame;
 
@@ -1942,7 +1930,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           stable_id = 1;
       }
 
-      // CPU extraction — still the hot path for loaded glTF/FBX scenes.
+      // CPU extraction: the hot path for loaded glTF/FBX scenes.
       auto pos = extractCpuAttribute<12>(*mesh, ossia::attribute_semantic::position);
       auto nrm = extractCpuAttribute<12>(*mesh, ossia::attribute_semantic::normal);
       auto uv  = extractCpuAttribute<8>(*mesh, ossia::attribute_semantic::texcoord0);
@@ -2650,7 +2638,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     // each concat buffer on both the indirect and the CPU-fallback path.
     //
     // Translation and color share the first of them: they are both
-    // per-instance vec4s stepping at the same rate, and the eight bindings
+    // per-instance vec4s stepping at the same rate, and the six bindings
     // above plus three of their own would be nine — one more than
     // QD3D11CommandBuffer::MAX_VERTEX_BUFFER_BINDING_COUNT, which Qt's D3D11
     // backend silently clamps to (qrhid3d11.cpp, "Too many vertex buffer
@@ -2734,9 +2722,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     // scene lights / materials / per-draws / indirect / counts / camera
     // / env. The names here MUST match the shader's `INPUTS[].NAME`.
     const int baseBuf = (int)g.buffers.size();
-    // scene_lights → RawLight arena directly.
-    // Every classic_pbr_*.frag's Light struct now matches the arena
-    // layout and the light loop reads
+    // scene_lights → RawLight arena directly. Every classic_pbr_*.frag's
+    // Light struct matches the arena layout and the light loop reads
     // scene_lights.entries[scene_light_indices.data[i]], composing
     // world-space direction from world_transforms[transform_slot].
     {
@@ -2882,10 +2869,9 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     }
 
     // per_draw_bounds — sidecar to per_draws, one local-space AABB per
-    // draw (std430 2×vec4 = 32 B). Consumer: GPU culling shaders
-    // (scene_filter_aabb_cull.csf and the future HiZ variant) read this
-    // together with per_draws[i].model to frustum-test each draw and
-    // rewrite indirect_draw_cmds[i] with indexCount=0 when culled.
+    // draw (std430 2×vec4 = 32 B). GPU culling shaders read it together with
+    // per_draws[i].model to frustum-test each draw and rewrite
+    // indirect_draw_cmds[i] with indexCount=0 when culled.
     {
       const int buf_idx = (int)g.buffers.size();
       g.buffers.push_back(wrapGpu(m_mdi.per_draw_bounds, pdbBytes));
@@ -2894,7 +2880,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           .byte_offset = 0, .byte_size = pdbBytes});
     }
 
-    // shadow_cascades UBO, 544 B std140, populated from
+    // shadow_cascades UBO, 560 B std140, populated from
     // scene_state.shadow_cascades. Always published: cascade_count == 0 tells
     // consumers to skip shadow sampling.
     if(m_shadowCascadesBuffer)
@@ -3150,7 +3136,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     {
       if(!m)
         continue;
-      // Main channel ref (the existing path).
+      // Main channel ref.
       if(const auto* tref = channelRef(ch, *m); tref)
         resolve_dyn(*tref);
       // Ext-table refs whose pool matches this channel.
@@ -3458,8 +3444,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     // flag in update().
     const bool arrayReallocated = anyReallocated;
 
-    // Per-channel diagnostic — tells you bucket count, per-bucket size,
-    // layer count, and how many sources got dropped.
+    // Per-channel diagnostic: bucket count, pending uploads, per-bucket size
+    // and layer count.
     if(buftrace_enabled())
     {
       QString detail;
@@ -3597,10 +3583,11 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
 
   // Append all non-null material-texture channels + skybox to the emitted
   // geometry as auxiliary_texture entries. Consumer shaders auto-resolve
-  // by name (base_color_array / metal_rough_array / normal_array /
-  // emissive_array / skybox) via try_bind_texture_from_geometry — no
-  // manual cable required. Null handles are filtered out so a shader
-  // missing a given channel falls back to its own sampler default.
+  // by name (baseColorArray / metalRoughArray / normalArray /
+  // emissiveArray / occlusionArray / skybox) via
+  // try_bind_texture_from_geometry — no manual cable required. Null handles
+  // are filtered out so a shader missing a given channel falls back to its
+  // own sampler default.
   void appendTextureAuxes(ossia::geometry& g) const
   {
     if(!m_registry)
@@ -3703,10 +3690,9 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     }
   }
 
-  // Texture outputs have been removed — every material-texture array and
-  // the skybox now ride along on the Geometry output as auxiliary_texture
-  // entries. Left in place only to satisfy the virtual override; the
-  // single remaining output port (Geometry) never takes this path.
+  // Material-texture arrays and the skybox ride on the Geometry output as
+  // auxiliary_texture entries, so this override exists only to satisfy the
+  // interface: the single output port (Geometry) never takes this path.
   QRhiTexture* textureForOutput(const Port& /*output*/) override
   {
     return nullptr;
@@ -3815,7 +3801,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     // current and motion comes out zero. Same snapshot-before-overwrite pattern
     // as m_worldTransformsPrevBuffer: prev is a function of the GPU buffer's
     // last frame, not of cache-hit history. Current is uploaded unconditionally
-    // -- the diff-skip saved under 4 KB of Dynamic-UBO churn per frame.
+    // -- a diff-skip would save under 4 KB of Dynamic-UBO churn per frame.
     const auto& prevPayload
         = m_cachedCameras.empty() ? fresh : m_cachedCameras;
     const int64_t prevBytes
@@ -3827,10 +3813,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     m_cachedCameras = std::move(fresh);
     m_lastCameraUploadFrame = renderer.frame;
 
-    // The camera UBO isn't exposed on an external output port anymore —
-    // it rides along on the geometry as the `camera` auxiliary buffer
-    // (attached in rebuildMDI), so try_bind_from_geometry resolves the
-    // shader's `uniform camera` input by name without a dedicated cable.
+    // The camera UBO is not exposed on an output port: it rides on the
+    // geometry as the `camera` auxiliary buffer (attached in rebuildMDI), so
+    // try_bind_from_geometry resolves the shader's `uniform camera` input by
+    // name without a dedicated cable.
   }
 
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge*) override
@@ -4072,8 +4058,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         // Instancer-prototype materials registered above also need
         // their MaterialGPU bytes uploaded — they aren't in
         // fs.materials so we pack on the fly. textureRefs come from the
-        // rebuildChannel walk (which now also visits prototype
-        // materials) so dedup with channel buckets is preserved.
+        // rebuildChannel walk, which also visits prototype materials, so
+        // dedup with channel buckets is preserved.
         ossia::hash_set<const ossia::material_component*> uploaded;
         uploaded.reserve(mats.size() + fs.instances.size());
         for(const auto& mp : mats)
@@ -4109,7 +4095,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
               {
                 if(!tref->source && tref->texture.valid())
                 {
-                  // Stable-id keyed (GpuResourceRegistry.cpp).
+                  // Keyed on globalResourceId (see GpuResourceRegistry.cpp).
                   auto* dynTex = static_cast<QRhiTexture*>(
                       tref->texture.native_handle);
                   auto dit = dynTex
@@ -4204,12 +4190,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         auxBuffersChanged = true;
         return true;
       };
-      // scene_lights now points at the RawLight arena (fixed capacity)
-      // and scene_materials points at the Material arena — no grow here
-      // for either.
+      // scene_lights points at the RawLight arena (fixed capacity) and
+      // scene_materials at the Material arena — no grow here for either.
       // Realloc → clear the diffUpload mirror so the freshly-allocated
       // GPU buffer's prefix isn't left as garbage.
-      // Same prefix-staleness invariant as growBuf — see its comment.
       if(grow(m_materialsExtBuffer, m_materialsExtCap, matsExtBytes,
               "ScenePreprocessor::materials_ext"))
         m_cachedMaterialExt.clear();
@@ -4275,7 +4259,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
             rhi, res, m_sceneCountsBuffer, 0, sizeof(SceneCountsUBO));
       }
 
-      // Allocate the shadow_cascades UBO once (544 B, never grows). Lazy:
+      // Allocate the shadow_cascades UBO once (560 B, never grows). Lazy:
       // only materialise the buffer when a scene actually authors cascades
       // — the vast majority of scenes without shadow-receiving rasterizers
       // pay zero GPU memory for this path.
@@ -4452,7 +4436,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         nm.setRow(3, QVector4D(0, 0, 0, 1));
         writeMat4(pd.normal, nm);
         pd.material_index = arenaSlotForMaterial(dc.material.get());
-        // tag_hash still keyed on the scene-material index (CPU-only
+        // tag_hash is keyed on the scene-material index (CPU-only
         // per-pass filter — not shader-visible as material identity).
         pd.tag_hash
             = (dc.materialIndex >= 0
@@ -4603,9 +4587,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
             // geometryChanged, which is shared_ptr identity on
             // m_outputSpec.meshes (NodeRenderer.cpp). Only rebuildMDI
             // republishes that vector, so a reroute has to leave the fast
-            // path on its own account. Before this term it reached the screen
-            // only when some unrelated aux buffer happened to grow in the
-            // same frame.
+            // path on its own account.
             && !dynamicSlotsChanged
             // Cloud set unchanged: rebuildPrimitiveClouds only
             // runs on the full-rebuild branch and re-appends its bucket
@@ -4637,9 +4619,9 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         // per_draw_bounds is static across a frame (local-space AABB,
         // never changes per-frame for the same topology) — on the fast
         // path the mirror and fresh arrays match element-for-element and
-        // diffUpload short-circuits to zero uploads. Kept in the fast
-        // path for robustness (e.g. a material-swap flow that re-picks
-        // a primitive variant with different bounds under the hood).
+        // diffUpload short-circuits to zero uploads. Kept in the fast path
+        // so a material swap re-picking a primitive variant with different
+        // bounds still uploads.
         diffUpload(res, m_mdi.per_draw_bounds, m_cachedPerDrawBounds,
                    freshPerDrawBounds);
       }
@@ -4767,8 +4749,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     // downstream's update() reruns without missing a rebind.
   }
 
-  // Resolve an MDI attribute enum to the matching arena stream buffer
-  // (streams moved from MDIState to the registry).
+  // Resolve an MDI attribute enum to the matching registry arena stream
+  // buffer.
   QRhiBuffer* mdiBufferFor(MdiAttr a) const noexcept
   {
     if(!m_registry)
@@ -4936,9 +4918,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
               - src->node->output.begin())
         : -1;
 
-    // Only the Geometry output (port 0) pushes a geometry_spec — it's
-    // the sole remaining output. Guard kept for robustness in case the
-    // port layout is extended again.
+    // Only the Geometry output (port 0) pushes a geometry_spec. It is the
+    // only output port; the guard keeps that true if more are added.
     if(src_port_idx != 0)
       return;
     if(!m_outputSpec.meshes)

@@ -2,8 +2,8 @@
 #
 # A test that is RED ON PURPOSE is a valuable thing: it pins a defect we have
 # reproduced but not yet fixed, and it turns green the day someone fixes it.
-# The problem is not that we have them, it is that we grew FOUR unrelated ways
-# of saying so, and no two of them are visible to the same query:
+# The problem is not that they exist, it is that the tree has FOUR unrelated
+# ways of saying so, and no two of them are visible to the same query:
 #
 #   1. Catch2 `[!shouldfail]` on the TEST_CASE tag string. Catch2 enforces it:
 #      the case is expected to fail, and an unexpected PASS is reported as a
@@ -16,9 +16,9 @@
 #      cannot tell you which.
 #   4. A comment banner in the file, and nothing else at all.
 #
-# The cost is not theoretical. The Windows d3d11 run produced 11 failures that
-# COULD NOT BE TRIAGED MECHANICALLY, because answering "is this one of ours?"
-# meant reading four different conventions across three file types by hand.
+# The cost is triage: answering "is this failure one of ours?" on a platform
+# nobody is watching means reading four conventions across three file types by
+# hand.
 #
 # This guard does not try to abolish (2) — an abort really cannot be encoded in
 # Catch2 — nor to forbid (3) and (4), which carry prose a tag never could. It
@@ -60,30 +60,26 @@ include_guard(GLOBAL)
 # ---------------------------------------------------------------------------
 set(SCORE_EXPECTED_RED
   # -- Catch2 [!shouldfail] -------------------------------------------------
-  "shouldfail@tests/integration/ScenarioContentRoundtripTest.cpp@A scenario with an added process stays a byte fixed point@A10: two non-determinism sources remain — view-geometry doubles recomputed on layout, and a random 62-byte tail"
-  "shouldfail@tests/integration/ScenarioContentRoundtripTest.cpp@a scenario with added processes is a JSON byte fixed point@A27: the process-order half is FIXED and its sibling order case is green and enforced. What is left is ONE named source — IntervalModel Zoom/Center, recomputed from the live viewport width by ScenarioDocumentPresenter::on_minimapChanged and written back into the model. A view-behavior change, not a serialization one"
-  "shouldfail@tests/integration/MissingProcessRoundtripTest.cpp@a process whose factory is missing keeps its identity, its ports and its cables across a load@A16: ProcessFactory::loadMissing() is SCORE_TODO/return nullptr. Owned by PR #2179, not by this stack — goes green when #2179 lands"
-  "shouldfail@tests/integration/RegressionSplatReloadTest.cpp@Splat's prettyName says Splat, not Model Display@A17: two processes share one display name"
+  "shouldfail@tests/integration/ScenarioContentRoundtripTest.cpp@A scenario with an added process stays a byte fixed point@two non-determinism sources remain — view-geometry doubles recomputed on layout, and a random 62-byte tail"
+  "shouldfail@tests/integration/ScenarioContentRoundtripTest.cpp@a scenario with added processes is a JSON byte fixed point@the process-order half is FIXED and its sibling order case is green and enforced. What is left is ONE named source — IntervalModel Zoom/Center, recomputed from the live viewport width by ScenarioDocumentPresenter::on_minimapChanged and written back into the model. A view-behavior change, not a serialization one"
+  "shouldfail@tests/integration/MissingProcessRoundtripTest.cpp@a process whose factory is missing keeps its identity, its ports and its cables across a load@ProcessFactory::loadMissing() is SCORE_TODO/return nullptr. Owned by PR #2179, not by this stack — goes green when #2179 lands"
+  "shouldfail@tests/integration/RegressionSplatReloadTest.cpp@Splat's prettyName says Splat, not Model Display@two processes share one display name"
   "shouldfail@tests/unit/AssetTableTest.cpp@AssetTable: zero-byte entries are not reclaimed by trim (current behavior)@trim() skips zero-byte entries, so a table of them never shrinks"
-  "shouldfail@tests/gfx/CroustiCpuNodes.cpp@a geometry filter displaces the mesh it is given@P2-9: the CPU geometry-filter path does not displace"
-  "shouldfail@tests/gfx/GfxGeometryFilterShift.cpp@a geometry filter shifts the drawn silhouette by exactly the delta@P2-9 oracle, pixel form: the silhouette is not displaced"
-  "shouldfail@tests/gfx/GfxReviewDrawDispatchEdges.cpp@DrawDispatch-1 nonindexed firstInstance survives every draw rung@D1: for a NON-INDEXED mesh the GPU indirect rung drops firstInstance. Measured identically on OpenGL and Vulkan -- the GPU rung lights strips 0 and 1 while the CPU fallback rung lights 3 and 4 from the same command buffer, so the two rungs of one ladder disagree silently. Not a capability gap, since baseInstance=1 is reported on both. RenderList.cpp:840 documents the cause -- QRhiDrawIndirectCommand is 4 words while the engine emits the 5-word indexed shape, so drawIndirect would read firstInstance from the wrong word, and the non-indexed case therefore falls back to a plain draw that passes no firstInstance at all. The fix belongs in the producer, which must emit the 4-word non-indexed layout. DrawDispatch-2 (layered indirect dispatch) passes on both backends and both rungs and is the control showing the harness itself is sound"
-  "shouldfail@tests/threedim/SceneApproximationPins.cpp@DEFECT P2-11: the render-thread light encoder collapses area lights onto point, and dome onto directional@light-type information is lost in the render-thread encoder"
-  "shouldfail@tests/threedim/SceneApproximationPins.cpp@DEFECT P2-12 (re-scoped): SceneFilterNode mode 2 has no Name port, so it cannot be configured at all@mode 2 exposes no Name port"
+  "shouldfail@tests/gfx/CroustiCpuNodes.cpp@a geometry filter displaces the mesh it is given@the CPU geometry-filter path does not displace"
+  "shouldfail@tests/gfx/GfxGeometryFilterShift.cpp@a geometry filter shifts the drawn silhouette by exactly the delta@the silhouette is not displaced"
+  "shouldfail@tests/threedim/SceneApproximationPins.cpp@DEFECT: the render-thread light encoder collapses area lights onto point, and dome onto directional@light-type information is lost in the render-thread encoder"
+  "shouldfail@tests/threedim/SceneApproximationPins.cpp@DEFECT: SceneFilterNode mode 2 has no Name port, so it cannot be configured at all@mode 2 exposes no Name port"
 
   # -- CMake WILL_FAIL ------------------------------------------------------
   # Cannot be a Catch2 tag: the defect aborts, so Catch2 never reports.
   "will_fail@tests/integration/CMakeLists.txt@test_integration_js_rootpath_static@rootPath()'s function-local static caches a dangling reference. ASAN-ONLY -- off ASan the freed read trips Qt's own Q_ASSERT only when the garbage is unlucky (measured 8 red / 2 green in 10 runs), so the entry is WILL_FAIL under -fsanitize=address and DISABLED otherwise"
 
   # -- [finding] tag, VERIFIED GREEN ----------------------------------------
-  # These five were the reason this guard was written: real reproduced defects
-  # that presented to ctest as ordinary failures, indistinguishable from a
-  # regression, because a [finding] tag enforces nothing. Negative-controlling
-  # them under OPEN-10 found that all five now PASS -- OpenGL and Vulkan, on
-  # this NVIDIA host, 2026-09-03. So the category is empty: there is no longer
-  # any test in the tree that is red on purpose and unenforced. They are kept
-  # declared, and keep the word FINDING in their names, so that the history
-  # stays attached to the case that carries it.
+  # A [finding] tag enforces nothing, so a red one presents to ctest as an
+  # ordinary failure. These five pass on OpenGL and Vulkan: the category is
+  # empty, no test in the tree is red on purpose and unenforced. They stay
+  # declared, and keep the word FINDING in their names, so the history stays
+  # attached to the case that carries it.
   "fixed@tests/gfx/IsfFindings.cpp@FINDING isf-multipass-storage-rw final pass renders black@a multipass ISF with a read-write storage buffer rendered its final pass all-black -- now renders the uv gradient, asserted"
   "fixed@tests/gfx/IsfFindings.cpp@FINDING isf-multipass-persistent-ssbo final pass renders black@same shape with a persistent SSBO -- the uv pattern and the per-frame ramp are both back"
   "fixed@tests/gfx/IsfMrtPersistent.cpp@FINDING isf-mrt-persistent-ssbo second attachment / Vulkan binding@the second MRT attachment came back blank and the Vulkan pipeline build hit an invalid descriptor -- both attachments are valid now and Vulkan builds"
@@ -100,7 +96,7 @@ set(SCORE_EXPECTED_RED
 # Files whose comments discuss [!shouldfail] without registering one. A comment
 # ABOUT the convention is not a claim to be one, so these are not findings — but
 # the list has to be explicit, because a banner that says a case is pinned when
-# it is not is exactly the bug this guard found in GfxPerLayerDepth.cpp.
+# it is not is exactly what this guard is here to catch.
 set(SCORE_EXPECTED_RED_PROSE_ONLY
   tests/integration/GfxProtocolSettingsTest.cpp
   tests/integration/JsScriptingApiTest.cpp
@@ -128,8 +124,7 @@ function(score_check_expected_red)
   # A ';' anywhere in a row splits it into list fragments, because that is what
   # ';' means to CMake. The fragments then have fewer than four @-fields and the
   # list(GET)s below fail with three bare errors naming neither the row nor the
-  # reason -- which cost a debugging round when a reason text used a semicolon.
-  # Catch it here and say exactly which row is malformed.
+  # reason. Catch it here and say exactly which row is malformed.
   foreach(_entry IN LISTS SCORE_EXPECTED_RED)
     string(FIND "${_entry}" "@" _has_at)
     if(_has_at EQUAL -1)
@@ -173,13 +168,10 @@ function(score_check_expected_red)
   #     "[gfx][assettable][!shouldfail]")
   # Prose in a comment does not, and there is a lot of prose.
   #
-  # The tag need not be LAST. This regex used to be `\[!shouldfail\]"\)`,
-  # which required the pin to sit immediately before the closing quote --
-  # so `"[!shouldfail][gfx]"` registered a Catch2 expected-failure that this
-  # guard counted as zero. An untracked expected-red could then be added with
-  # no manifest row and the guard, whose entire purpose is preventing silent
-  # test loss, would report the file as clean. Every tag in tree happens to be
-  # in the matched order today, so this was latent, not active. (T1.)
+  # The tag need not be LAST: `"[!shouldfail][gfx]"` is a registered pin just
+  # as much as `"[gfx][!shouldfail]"`, so the regex allows further tags between
+  # it and the closing quote. A matcher that missed those would report a file
+  # carrying an undeclared pin as clean.
   set(_SF_RE "\\[!shouldfail\\](\\[[^]]*\\])*\"\\)")
 
   # Self-check: a guard that silently stops matching is worse than no guard.
@@ -241,14 +233,13 @@ function(score_check_expected_red)
     endif()
 
     # --- a banner that claims a pin the TEST_CASE does not carry -------------
-    # This is the shape that shipped in GfxPerLayerDepth.cpp: a 20-line banner
-    # opening "EXPECTED TO FAIL -- [!shouldfail] pin", above a TEST_CASE with no
-    # such tag. It therefore failed as an ordinary red, which is precisely the
+    # A banner opening "EXPECTED TO FAIL -- [!shouldfail] pin" above a
+    # TEST_CASE carrying no such tag fails as an ordinary red, which is the
     # confusion the manifest exists to remove.
     # Narrow on purpose. A bare "expected RED" also occurs in pixel prose --
-    # GfxPerLayerDepth.cpp:118 says "the expected RED channel value" about a
-    # colour channel -- so the parenthesised form is required, which is how the
-    # convention is actually written where it is meant as a verdict.
+    # GfxPerLayerDepth.cpp says "the expected RED byte" about a colour channel
+    # -- so the parenthesised form is required, which is how the convention is
+    # written where it is meant as a verdict.
     if(_text MATCHES "EXPECTED TO FAIL|\\(expected RED\\)")
       set(_is_declared 0)
       foreach(_d IN LISTS _declared_files)

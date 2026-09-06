@@ -1323,6 +1323,13 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
                              || (iv.get_type() == sajson::TYPE_INTEGER
                                  && iv.get_integer_value() != 0);
           }
+          else if(ik == "INDEXED")
+          {
+            auto iv = val.get_object_value(j);
+            req.indexed = iv.get_type() == sajson::TYPE_TRUE
+                          || (iv.get_type() == sajson::TYPE_INTEGER
+                              && iv.get_integer_value() != 0);
+          }
         }
         if(req.count.empty())
           req.count = "1";
@@ -6179,6 +6186,7 @@ void parser::parse_csf()
   // Generate resource bindings
   m_fragment += "// From RESOURCES - bindings assigned automatically\n";
   bool emitted_indirect_struct = false;
+  bool emitted_indexed_indirect_struct = false;
   for(const auto& inp : m_desc.inputs)
   {
     if(auto* storage_ptr = ossia::get_if<storage_input>(&inp.data))
@@ -6511,23 +6519,58 @@ void parser::parse_csf()
       }
 
       // Indirect draw command buffer (user-writable SSBO)
+      //
+      // Two record shapes, both 5 words / 20-byte stride, selected by
+      // INDIRECT: { "INDEXED": ... }. The word order is the GPU ABI, not a
+      // convention we are free to pick: the driver reads the command straight
+      // out of this buffer.
+      //
+      //   non-indexed (default) -- words 0..3 are a native
+      //     QRhiDrawIndirectCommand { vertexCount, instanceCount, firstVertex,
+      //     firstInstance }; word 4 is `baseVertex`, meaningless for a
+      //     non-indexed draw and ignored by the GPU, kept only so the stride
+      //     and the member names match the indexed shape.
+      //
+      //   indexed -- the 5 words are a native QRhiDrawIndexedIndirectCommand
+      //     { indexCount, instanceCount, firstIndex, baseVertex,
+      //       firstInstance }.
+      //
+      // Both structs expose the SAME member names, so shader source is
+      // identical either way; only the byte offsets move. Emitting the
+      // indexed order for a non-indexed draw is what made drawIndirect() read
+      // firstInstance out of word 3 (baseVertex) while the CPU readback rung
+      // read word 4, so the two rungs of the ladder silently disagreed.
       if(geo.indirect)
       {
-        if(!emitted_indirect_struct)
+        const bool indexed_layout = geo.indirect->indexed;
+        const char* cmd_type
+            = indexed_layout ? "DrawIndexedIndirectCommand" : "DrawIndirectCommand";
+        if(indexed_layout && !emitted_indexed_indirect_struct)
         {
-          m_fragment += "struct DrawIndirectCommand {\n"
+          m_fragment += "struct DrawIndexedIndirectCommand {\n"
                         "    uint vertexCount;\n"
                         "    uint instanceCount;\n"
                         "    uint firstVertex;\n"
                         "    int  baseVertex;\n"
                         "    uint firstInstance;\n"
                         "};\n\n";
+          emitted_indexed_indirect_struct = true;
+        }
+        else if(!indexed_layout && !emitted_indirect_struct)
+        {
+          m_fragment += "struct DrawIndirectCommand {\n"
+                        "    uint vertexCount;\n"
+                        "    uint instanceCount;\n"
+                        "    uint firstVertex;\n"
+                        "    uint firstInstance;\n"
+                        "    int  baseVertex;\n"
+                        "};\n\n";
           emitted_indirect_struct = true;
         }
         const std::string buf_name = inp.name + "_indirect";
         m_fragment += "layout(binding = " + std::to_string(binding) + ", std430) "
                       "restrict buffer " + buf_name + "_buf {\n"
-                      "    DrawIndirectCommand " + buf_name + "[];\n"
+                      "    " + cmd_type + " " + buf_name + "[];\n"
                       "};\n";
         m_fragment += "#define ISF_INDIRECT(" + inp.name + ") " + buf_name + "\n\n";
         binding++;
