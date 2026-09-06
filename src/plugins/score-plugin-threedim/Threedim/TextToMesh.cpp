@@ -228,9 +228,17 @@ void TextToMesh::rebuild()
     // size. Height control sets the target cap height; we approximate
     // cap height as pixelSize × 0.7 (typical for Latin fonts).
     const float cap_ratio = 0.7f;
+    // QRawFont::pixelSize() is not guaranteed to report the size we asked for.
+    // On Windows it comes back as -1 (measured: valid=1, glyphs=5, non-empty
+    // outlines=5, fill polygons=5 -- everything upstream fine, pixelSize=-1),
+    // which made pixel_to_world NEGATIVE. A negative scale mirrors every
+    // polygon, reversing its winding, and the ear clipper then emits no
+    // triangles at all: the node published an EMPTY mesh on Windows while
+    // working on Linux. Fall back to the size actually requested.
+    const float px_size = rf.pixelSize() > 0 ? float(rf.pixelSize())
+                                             : float(inputs.font_size.value);
     const float pixel_to_world
-        = inputs.height.value
-          / (float(rf.pixelSize()) * cap_ratio + 1e-6f);
+        = inputs.height.value / (px_size * cap_ratio + 1e-6f);
 
     std::vector<float> positions;
     std::vector<uint32_t> indices;
