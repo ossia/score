@@ -1,5 +1,7 @@
 #include "ExpandableTextEdit.hpp"
 
+#include <score/model/Skin.hpp>
+
 #include <State/ValueConversion.hpp>
 
 #include <QAction>
@@ -64,8 +66,9 @@ QIcon ellipsisIcon(const QWidget& w, bool emphasized)
 
 QFont monospace()
 {
-  QFont f = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-  f.setPointSizeF(f.pointSizeF() - 0.5);
+  // QFontDatabase::systemFont gives a different family and size on every OS.
+  QFont f = score::Skin::instance().MonoFont;
+  f.setPixelSize(score::uiFontSize());
   return f;
 }
 
