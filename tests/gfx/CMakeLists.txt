@@ -214,6 +214,11 @@ score_add_gfx_test(indirect_fallback_ladder GfxIndirectFallbackLadder.cpp)
 score_add_gfx_test(gpu_driven_lights GfxGpuDrivenLights.cpp)
 score_add_gfx_test(y_orientation GfxYOrientation.cpp)
 score_add_gfx_test(indirect_draw_bench GfxIndirectDrawBench.cpp)
+
+# Depth-clear polarity, recovered from the 2026-09 graphics review. The review
+# wrote this against the shared fixtures, measured it, and left it out of tree,
+# so nothing in the suite covered it.
+score_add_gfx_test(review_render_targets_depth GfxReviewRenderTargetsDepth.cpp)
 # P1-7 / G8: the cubemap render target's six faces, against the self-declared
 # oracle of 2026/test-cubemap-output.score (+X red, -X cyan, +Y green,
 # -Y magenta, +Z blue, -Z yellow), through the MULTIVIEW-6 + CUBEMAP
