@@ -176,6 +176,11 @@ function(score_add_test NAME)
     add_test(NAME ${NAME} COMMAND ${NAME})
   endif()
 
+  # Record the target this ctest entry actually runs, so the registration guard
+  # can check association instead of guessing it from names. See
+  # SCORE_TEST_TARGET_REGISTRY in cmake/ScoreTestRegistrationGuard.cmake.
+  set_property(GLOBAL APPEND PROPERTY SCORE_TEST_TARGET_REGISTRY "${NAME}")
+
   # Catch2 exits with 4 when every test case in the binary was skipped
   # (AllTestsSkippedExitCode, catch_session.cpp). A test that skips because its
   # precondition is absent -- no display, no shader library, no capture device --
