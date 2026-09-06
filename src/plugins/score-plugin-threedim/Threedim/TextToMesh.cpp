@@ -4,6 +4,9 @@
 #include <Gfx/Graph/SceneGPUState.hpp>
 
 #include <QFont>
+#include <algorithm>
+#include <cmath>
+
 #include <QDebug>
 #include <QPainterPath>
 #include <QPointF>
@@ -65,8 +68,6 @@ float polyArea(const std::vector<Vec2>& p) noexcept
   return s;
 }
 
-// Ear-clip `poly` into triangles; append indices (into `base_offset +
-// original polygon index`) to `out_indices`.
 // One ear-clipping attempt at a fixed orientation. Returns the number of
 // triangles emitted, appending to out_indices.
 std::size_t earClipPass(
@@ -131,11 +132,10 @@ std::size_t earClipPass(
 //
 // The orientation is TRIED, not trusted. Deciding it from polyArea() alone
 // assumes polyArea and triSign agree about handedness for the polygons Qt
-// hands back, and they do not everywhere: on Windows every glyph came out with
-// the orientation that makes triSign() call every vertex reflex, so the first
-// pass found no ear, broke immediately, and emitted NOTHING -- not a partial
-// mesh, zero indices. TextToMesh then published an empty scene state on all
-// four Windows backends while working on Linux.
+// hands back, and they do not everywhere: on Windows the glyphs come out with
+// the orientation that makes triSign() call every vertex reflex, so a single
+// pass finds no ear, breaks immediately, and emits NOTHING -- not a partial
+// mesh, zero indices.
 //
 // Trying the other orientation when the first yields nothing costs one extra
 // pass on a polygon that was going to produce no geometry anyway, and removes
@@ -147,7 +147,26 @@ void earClip(
   if(poly.size() < 3)
     return;
 
-  const bool preferReversed = polyArea(poly) < 0.f;
+  // A contour with no area is not geometry, whichever way round it is wound.
+  // This matters because of the retry below: a space glyph comes back from Qt
+  // on Windows as a polygon with three or more points and zero area, which the
+  // retry would otherwise triangulate into a mesh for " ". Scale the threshold
+  // to the contour's own bounding box so it holds at any font size or world
+  // scale.
+  const float area = polyArea(poly);
+  float minx = poly[0].x, maxx = poly[0].x, miny = poly[0].y, maxy = poly[0].y;
+  for(const auto& v : poly)
+  {
+    minx = std::min(minx, v.x);
+    maxx = std::max(maxx, v.x);
+    miny = std::min(miny, v.y);
+    maxy = std::max(maxy, v.y);
+  }
+  const float bbox = (maxx - minx) * (maxy - miny);
+  if(std::abs(area) <= 1e-6f * std::abs(bbox))
+    return;
+
+  const bool preferReversed = area < 0.f;
   if(earClipPass(poly, base_offset, preferReversed, out_indices) > 0)
     return;
   earClipPass(poly, base_offset, !preferReversed, out_indices);
@@ -234,10 +253,9 @@ void TextToMesh::rebuild()
     // isValid() alone is not enough to say the family resolved. "Sans" is a
     // fontconfig alias with no meaning on Windows or macOS, and QRawFont there
     // comes back isValid() while resolving to NO family: familyName() is empty
-    // and every character maps to .notdef. That is not a cosmetic difference --
-    // a space then has a real outline (measured on Windows: a hollow 68x68 box,
-    // 11 points, area 268), so " " rendered a box instead of nothing and the
-    // rest of the text rendered .notdef boxes too.
+    // and every character maps to .notdef. That is not cosmetic -- a space then
+    // has a real outline (a hollow box), so " " renders as a box instead of
+    // nothing and the rest of the text renders .notdef boxes too.
     //
     // An empty familyName is the reliable signal; supportsCharacter() still
     // answers true in that state, so it cannot be used for this.
@@ -260,13 +278,11 @@ void TextToMesh::rebuild()
     // size. Height control sets the target cap height; we approximate
     // cap height as pixelSize × 0.7 (typical for Latin fonts).
     const float cap_ratio = 0.7f;
-    // QRawFont::pixelSize() is not guaranteed to report the size we asked for.
-    // On Windows it comes back as -1 (measured: valid=1, glyphs=5, non-empty
-    // outlines=5, fill polygons=5 -- everything upstream fine, pixelSize=-1),
-    // which made pixel_to_world NEGATIVE. A negative scale mirrors every
-    // polygon, reversing its winding, and the ear clipper then emits no
-    // triangles at all: the node published an EMPTY mesh on Windows while
-    // working on Linux. Fall back to the size actually requested.
+    // QRawFont::pixelSize() is not guaranteed to report the size that was
+    // asked for: on Windows it comes back as -1, which would make
+    // pixel_to_world NEGATIVE. A negative scale mirrors every polygon,
+    // reversing its winding, and the ear clipper then emits no triangles at
+    // all. Fall back to the size actually requested.
     const float px_size = rf.pixelSize() > 0 ? float(rf.pixelSize())
                                              : float(inputs.font_size.value);
     const float pixel_to_world
@@ -300,9 +316,9 @@ void TextToMesh::rebuild()
 
     if(positions.empty() || indices.empty())
     {
-      // Say so. Publishing an empty mesh silently is how this node failed on
-      // every Windows backend while looking healthy: the font resolved, the
-      // glyphs had outlines, and the only symptom was an empty scene state.
+      // Say so. An empty mesh published silently looks healthy -- the font
+      // resolves, the glyphs have outlines -- and the only symptom is an empty
+      // scene state.
       qWarning(
           "TextToMesh: produced no geometry -- text=%d glyphs=%d pixelSize=%d "
           "px_size=%f scale=%f positions=%d indices=%d",
