@@ -138,6 +138,11 @@ static void loadApplicationResources()
   // Scenario::Settings::Model: the application font has to be in place before
   // the plug-ins that own that model are loaded. Same keys, so the settings
   // page stays authoritative -- it just needs a restart to take effect.
+}
+
+//! Must run after QApplication::setStyle(), which resets the widget font hash.
+static void setupApplicationFont()
+{
   QFont f("Ubuntu");
   f.setPixelSize(score::uiFontSize());
   f.setHintingPreference(score::uiFontHinting());
@@ -418,6 +423,7 @@ void Application::init()
   {
     score::loadApplicationResources();
     score::setQApplicationSettings(*qApp);
+    score::setupApplicationFont();
     m_settings.setupView();
     //m_projectSettings.setupView();
     m_view = new score::View{this};
