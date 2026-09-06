@@ -1,5 +1,5 @@
 /*{
-  "DESCRIPTION": "GPU-written indirect draw count (P1-8). The geometry resource declares a FIXED 'INSTANCE_COUNT': '8' -- the CPU-side geometry_spec always says 8 instances -- plus 'INDIRECT': { 'COUNT': 1 }, which makes the engine allocate a zero-initialized 5-word indirect command SSBO (RenderedCSFNode.cpp:3964-3988) and expose it to this compute source as geo_indirect[] (libisf isf.cpp:6356-6376 emits struct DrawIndirectCommand { uint vertexCount; uint instanceCount; uint firstVertex; int baseVertex; uint firstInstance; }). The PER_VERTEX pass writes one quad covering NDC x in [-1, -0.875] (pixel columns [0,4) at width 64) and, from invocation 0, writes the SINGLE indirect command with instanceCount = clamp(count, 0, 8) taken from the 'count' long control. The PER_INSTANCE pass writes a translation for ALL 8 instances (x offset i * 0.125 -> instance i owns pixel columns [4i, 4i+4); translation.w = i/255 carries the identity). Because the CPU-side instance count never moves, the ONLY way the drawn strip count can follow the control is through the GPU-written indirect command consumed by drawIndirect / the buffer-readback CPU fallback. baseVertex and firstInstance are both written 0 so the 4-word non-indexed GPU read (QRhiDrawIndirectCommand reads word 3 as firstInstance at stride 20) and the 5-word CPU fallback read (first_instance = word 4) agree exactly.",
+  "DESCRIPTION": "GPU-written indirect draw count (P1-8). The geometry resource declares a FIXED 'INSTANCE_COUNT': '8' -- the CPU-side geometry_spec always says 8 instances -- plus 'INDIRECT': { 'COUNT': 1 }, which makes the engine allocate a zero-initialized 5-word indirect command SSBO (RenderedCSFNode.cpp:3964-3988) and expose it to this compute source as geo_indirect[] (libisf emits struct DrawIndirectCommand { uint vertexCount; uint instanceCount; uint firstVertex; uint firstInstance; int baseVertex; } for a non-indexed geometry, so words 0..3 are a native QRhiDrawIndirectCommand). The PER_VERTEX pass writes one quad covering NDC x in [-1, -0.875] (pixel columns [0,4) at width 64) and, from invocation 0, writes the SINGLE indirect command with instanceCount = clamp(count, 0, 8) taken from the 'count' long control. The PER_INSTANCE pass writes a translation for ALL 8 instances (x offset i * 0.125 -> instance i owns pixel columns [4i, 4i+4); translation.w = i/255 carries the identity). Because the CPU-side instance count never moves, the ONLY way the drawn strip count can follow the control is through the GPU-written indirect command consumed by drawIndirect / the buffer-readback CPU fallback. baseVertex and firstInstance are both written 0, so this fixture is insensitive to which of the two word orders the producer uses; DrawDispatch-1 is the fixture that pins the non-indexed order.",
   "CREDIT": "test",
   "ISFVSN": "2.0",
   "MODE": "COMPUTE_SHADER",
@@ -54,11 +54,12 @@ void main()
     // drawn count differ from 8. Re-written every frame (the pass re-runs
     // per frame), so moving the control between renders moves the count.
     //
-    // Words 3 (baseVertex) and 4 (firstInstance) are BOTH 0 on purpose: the
-    // non-indexed GPU path reads a 4-word QRhiDrawIndirectCommand out of this
-    // 20-byte-stride buffer (word 3 lands in its firstInstance slot), while
-    // the CPU readback fallback reads all 5 words. Zeroing both makes the
-    // two engine paths bit-identical.
+    // baseVertex and firstInstance are BOTH 0 on purpose: this fixture is
+    // about the instance COUNT, so it stays insensitive to where in the
+    // 20-byte record firstInstance lives. The non-indexed record puts it in
+    // word 3 (words 0..3 are a native QRhiDrawIndirectCommand) and the CPU
+    // readback fallback reads the same word; DrawDispatch-1 is the fixture
+    // that pins that order with a NON-zero firstInstance.
     if(idx == 0u)
     {
       uint n = uint(clamp(count, 0, 8));

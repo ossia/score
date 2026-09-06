@@ -1402,13 +1402,20 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
 
       // ── Indirect-draw command shape (used both for size accounting
       // upfront and for the CPU build inside the upload guard).
+      // NON-INDEXED record layout: words 0..3 are a native
+      // QRhiDrawIndirectCommand { vertexCount, instanceCount, firstVertex,
+      // firstInstance }, so drawIndirect() reads firstInstance from word 3.
+      // The trailing baseVertex word is meaningless for a non-indexed draw and
+      // ignored by the GPU; it only keeps the 20-byte stride shared with the
+      // indexed shape (which is { indexCount, instanceCount, firstIndex,
+      // baseVertex, firstInstance } -- see the MDI Acc::IndirectCmd below).
       struct IndirectCmd
       {
-        uint32_t indexOrVertexCount;
+        uint32_t vertexCount;
         uint32_t instanceCount;
-        uint32_t firstIndexOrVertex;
-        int32_t  baseVertex; // for indexed draws — unused (vertex_count path)
+        uint32_t firstVertex;
         uint32_t baseInstance;
+        int32_t  baseVertex; // unused on the vertex_count path
       };
 
       // Upfront sizing, also used by the per-bucket geometry construction
@@ -1599,11 +1606,11 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         // A format chain may rewrite this cmd post-cull; the unculled total is
         // the safe default.
         const IndirectCmd cmd{
-            /*indexOrVertexCount*/ (uint32_t)b.total_primitives,
-            /*instanceCount*/      1u,
-            /*firstIndexOrVertex*/ 0u,
-            /*baseVertex*/         0,
-            /*baseInstance*/       0u};
+            /*vertexCount*/   (uint32_t)b.total_primitives,
+            /*instanceCount*/ 1u,
+            /*firstVertex*/   0u,
+            /*baseInstance*/  0u,
+            /*baseVertex*/    0};
         res.uploadStaticBuffer(bb.indirect, 0, icBytes, &cmd);
 
         bb.content_fingerprint = fp;
