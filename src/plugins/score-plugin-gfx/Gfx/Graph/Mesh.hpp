@@ -52,6 +52,25 @@ struct MeshBuffers
   quint32 indirectDrawCount{1};
   quint32 indirectDrawStride{0};
 
+  // --- GPU-decided draw count (Qt 6.13-era drawIndexedIndirectCount) ---
+  // When indirectCountBuffer is set AND gpuIndirectCountSupported, the draw
+  // reads its command count as a u32 out of this buffer at execution time,
+  // clamped to indirectDrawCount (which then acts as maxDrawCount == the
+  // command-slot capacity). Producers publish the buffer through the
+  // "_indirect_draw_count" auxiliary convention (CustomMesh picks it up).
+  //
+  // When the count rung is unavailable, correctness relies on the producer
+  // contract stated in RenderState::Caps: command slots beyond the written
+  // count stay zeroed, so the full-capacity multi-draw rung paints the same
+  // pixels. The CPU-readback fallback reads this buffer too and clamps
+  // cpuDrawCommands to the GPU-written count.
+  QRhiBuffer* indirectCountBuffer{};
+  quint32 indirectCountOffset{0};
+  bool gpuIndirectCountSupported{false}; // caps.drawIndirectCount &&
+                                         // drawIndirectCountUsable()
+  bool gpuIndirectMultiSupported{false}; // caps.drawIndirectMulti; false =>
+                                         // per-command drawCount=1 loop rung
+
   // CPU-side draw commands. Populated either:
   //   a) directly by the producer (ScenePreprocessor has CPU data), or
   //   b) via GPU readback when the indirect buffer is GPU-generated (CSF)
@@ -63,8 +82,12 @@ struct MeshBuffers
   // Qt < 6.6 has a separate type for buffer readbacks.
 #if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
   QRhiReadbackResult readbackResult;
+  // Second slot for the 4-byte GPU-written draw count, read back alongside
+  // the commands so the CPU loop can clamp to it (see indirectCountBuffer).
+  QRhiReadbackResult countReadbackResult;
 #else
   QRhiBufferReadbackResult readbackResult;
+  QRhiBufferReadbackResult countReadbackResult;
 #endif
 };
 /**

@@ -6,6 +6,8 @@
 #include <Gfx/Graph/OutputNode.hpp>
 #include <Gfx/Graph/PipelineStateHelpers.hpp>
 #include <Gfx/Graph/RenderList.hpp>
+
+#include <Gfx/Graph/RhiIndirectCompat.hpp>
 #include <Gfx/Graph/VertexFallbackPool.hpp>
 #include <Gfx/Settings/Model.hpp>
 
@@ -1665,7 +1667,28 @@ void RenderState::Caps::populate(QRhi& rhi)
     drawIndirect = false;
     drawIndirectMulti = false;
   }
+  // Finer-grained rung switches, same idea and same testing story as
+  // SCORE_GFX_NO_GPU_INDIRECT above: each one forces the next rung of the
+  // fallback ladder (see the Caps declaration) on hardware that supports the
+  // better one, so the fallbacks stay exercisable instead of rotting until a
+  // distro build hits them. NO_GPU_INDIRECT_MULTI declines the single-call
+  // multi-draw, making the draw loop issue one drawCount=1 indirect draw per
+  // command.
+  if(qEnvironmentVariableIntValue("SCORE_GFX_NO_GPU_INDIRECT_MULTI") > 0)
+    drawIndirectMulti = false;
 #endif
+
+  // 6.13-era API, detected rather than version-gated — the reference SDK
+  // builds are Qt 6.12 + cherry-picked 6.13 RHI changes, so QT_VERSION lies
+  // there (see RhiIndirectCompat.hpp). On Qt 6.4 and stock 6.12 these
+  // evaluate to false at compile time.
+  drawIndirectCount = score::gfx::rhiSupportsDrawIndirectCount(rhi);
+  dispatchIndirect = score::gfx::rhiSupportsDispatchIndirect(rhi);
+  if(qEnvironmentVariableIntValue("SCORE_GFX_NO_GPU_INDIRECT") > 0
+     || qEnvironmentVariableIntValue("SCORE_GFX_NO_GPU_INDIRECT_COUNT") > 0)
+    drawIndirectCount = false;
+  if(qEnvironmentVariableIntValue("SCORE_GFX_NO_GPU_DISPATCH_INDIRECT") > 0)
+    dispatchIndirect = false;
 #if QT_VERSION >= QT_VERSION_CHECK(6, 11, 0)
   instanceIndexIncludesBaseInstance
       = rhi.isFeatureSupported(QRhi::InstanceIndexIncludesBaseInstance);
@@ -1690,5 +1713,16 @@ void RenderState::Caps::populate(QRhi& rhi)
   geometryShader = rhi.isFeatureSupported(QRhi::GeometryShader);
   baseInstance = rhi.isFeatureSupported(QRhi::BaseInstance);
   pipelineCacheDataLoadSave = rhi.isFeatureSupported(QRhi::PipelineCacheDataLoadSave);
+
+  // One greppable line with the final (post-kill-switch) indirect rung caps.
+  // GfxIndirectFallbackLadder.cpp captures this through a message handler as
+  // its positive control that each SCORE_GFX_NO_GPU_* switch actually
+  // propagated into the caps a session renders with — without it a broken
+  // switch would leave the better rung active and the fallback untested,
+  // with identical (correct) pixels hiding the failure.
+  qDebug("score.gfx: RHI indirect caps: drawIndirect=%d multi=%d count=%d "
+         "dispatchIndirect=%d",
+         int(drawIndirect), int(drawIndirectMulti), int(drawIndirectCount),
+         int(dispatchIndirect));
 }
 }

@@ -131,7 +131,7 @@ private:
     QString access; // "read_only", "write_only", "read_write"
     std::vector<isf::storage_input::layout_field> layout; // For size calculation
     bool owned{true}; // false when buffer comes from geometry auxiliary
-    std::string buffer_usage; // "", "indirect_draw", "indirect_draw_indexed"
+    std::string buffer_usage; // "", "indirect_draw", "indirect_draw_indexed", "dispatch_args"
   };
   std::vector<StorageBuffer> m_storageBuffers; // Contains both ins and outs
 
@@ -261,8 +261,17 @@ private:
     int indirectCountResult{0};         // Resolved command count
     std::string indirectCountExpr;      // Expression string for dynamic re-resolve
     bool uses_indirect_draw{false};
+    // INDIRECT: { DRAW_COUNT: true } — 16-byte buffer whose word 0 is the
+    // GPU-written draw count, published via the "_indirect_draw_count"
+    // auxiliary and consumed by the drawIndexedIndirectCount rung.
+    QRhiBuffer* indirectCountBuffer{};
+    bool uses_indirect_count{false};
   };
   std::vector<GeometryBinding> m_geometryBindings;
+
+  // One-time "CSF indirect dispatch: gpu|cpu-fallback" log guard (per node
+  // instance, so per test session); see the dispatch site.
+  bool m_loggedIndirectDispatch{false};
 
   QRhiBuffer* m_materialUBO{};
   int m_materialSize{};
