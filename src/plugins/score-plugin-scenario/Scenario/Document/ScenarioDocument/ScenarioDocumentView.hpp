@@ -47,6 +47,7 @@ class BackgroundRenderer;
 
 namespace Scenario
 {
+class AddressBarWidget;
 class Minimap;
 class ScenarioScene;
 class IntervalDurations;
@@ -176,6 +177,9 @@ public:
 
   Minimap& minimap() { return m_minimap; }
 
+  //! Path of the displayed interval, shown in the document's navigation bar
+  AddressBarWidget& addressBar() { return *m_addressBar; }
+
   QRectF viewportRect() const;
   QRectF visibleSceneRect() const;
 
@@ -187,6 +191,7 @@ public:
 
   void addBackgroundRenderer(score::BackgroundRenderer*);
   void removeBackgroundRenderer(score::BackgroundRenderer*);
+  score::BackgroundRenderer* activeBackgroundRenderer() const noexcept override;
   void updateBackgroundMode();
 
   void elementsScaleChanged(double arg_1) W_SIGNAL(elementsScaleChanged, arg_1);
@@ -208,6 +213,8 @@ private:
   QGraphicsScene m_minimapScene;
   MinimapGraphicsView m_minimapView;
   Minimap m_minimap;
+
+  AddressBarWidget* m_addressBar{};
 
   int m_timer{-1};
   bool m_transport{};

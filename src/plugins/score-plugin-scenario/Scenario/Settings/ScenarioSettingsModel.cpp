@@ -4,6 +4,7 @@
 
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
+#include <Process/UIPlacement.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/Skin.hpp>
@@ -28,6 +29,18 @@ namespace Parameters
 {
 SETTINGS_PARAMETER_IMPL(Skin){QStringLiteral("Skin/Skin"), "Default"};
 SETTINGS_PARAMETER_IMPL(DefaultEditor){QStringLiteral("Skin/DefaultEditor"), ""};
+SETTINGS_PARAMETER_IMPL(ScriptEditorPlacement){
+    QString::fromUtf8(Process::UIPlacementSettings::scriptEditorKey),
+    Process::UIPlacementSettings::toString(
+        Process::UIPlacementSettings::defaultScriptEditorPlacement)};
+SETTINGS_PARAMETER_IMPL(ProcessUIPlacement){
+    QString::fromUtf8(Process::UIPlacementSettings::processUIKey),
+    Process::UIPlacementSettings::toString(
+        Process::UIPlacementSettings::defaultProcessUIPlacement)};
+SETTINGS_PARAMETER_IMPL(ScriptEditorPreview){
+    QString::fromUtf8(Process::UIPlacementSettings::scriptEditorPreviewKey),
+    Process::UIPlacementSettings::toString(
+        Process::UIPlacementSettings::defaultScriptEditorPreview)};
 SETTINGS_PARAMETER_IMPL(GraphicZoom){QStringLiteral("Skin/Zoom"), 1};
 SETTINGS_PARAMETER_IMPL(SlotHeight){QStringLiteral("Skin/slotHeight"), 200};
 SETTINGS_PARAMETER_IMPL(DefaultDuration){
@@ -56,7 +69,8 @@ SETTINGS_PARAMETER_IMPL(ExecutionUpdate){
 static auto list()
 {
   return std::tie(
-      Skin, DefaultEditor, GraphicZoom, SlotHeight, DefaultDuration, SnapshotOnCreate,
+      Skin, DefaultEditor, ScriptEditorPlacement, ProcessUIPlacement,
+      ScriptEditorPreview, GraphicZoom, SlotHeight, DefaultDuration, SnapshotOnCreate,
       AutoSequence, TimeBar, MeasureBars, MagneticMeasures, UpdateRate,
       ExecutionRefreshRate, ExecutionUpdate);
 }
@@ -78,6 +92,17 @@ Model::Model(
   {
     m_UpdateRate = 16;
   }
+
+  // Picking a placement from a process's menu changes the default
+  Process::UIPlacementSettings::addChangeListener(this, [this] {
+    QSettings s;
+    setScriptEditorPlacement(
+        s.value(Process::UIPlacementSettings::scriptEditorKey).toString());
+    setProcessUIPlacement(
+        s.value(Process::UIPlacementSettings::processUIKey).toString());
+    setScriptEditorPreview(
+        s.value(Process::UIPlacementSettings::scriptEditorPreviewKey).toString());
+  });
 
   bind(*this, Model::p_UpdateRate{}, this, [&ctx](int r) {
     auto& set = const_cast<score::ApplicationSettings&>(ctx.applicationSettings);
@@ -166,6 +191,9 @@ SCORE_SETTINGS_PARAMETER_CPP(double, Model, GraphicZoom)
 SCORE_SETTINGS_PARAMETER_CPP(qreal, Model, SlotHeight)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, SnapshotOnCreate)
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, DefaultEditor)
+SCORE_SETTINGS_PARAMETER_CPP(QString, Model, ScriptEditorPlacement)
+SCORE_SETTINGS_PARAMETER_CPP(QString, Model, ProcessUIPlacement)
+SCORE_SETTINGS_PARAMETER_CPP(QString, Model, ScriptEditorPreview)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, AutoSequence)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, TimeBar)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, MeasureBars)

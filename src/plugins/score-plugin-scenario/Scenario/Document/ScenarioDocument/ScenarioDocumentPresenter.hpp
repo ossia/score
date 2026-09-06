@@ -189,6 +189,8 @@ private:
   bool m_zooming{false};
   bool m_updatingMinimap{false};
   bool m_reloadingMinimap{false};
+  //! The zoom was asked for while the view had no width yet
+  bool m_zoomPending{false};
   bool m_updatingView{false};
   bool m_autoScroll{false};
 };

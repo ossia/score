@@ -27,12 +27,6 @@ CentralIntervalDisplay::~CentralIntervalDisplay()
   auto& view = parent.view();
   auto& gv = view.view();
   gv.autoScrollHandler = {};
-  if(auto itv_p = presenter.intervalPresenter())
-  {
-    QObject::disconnect(
-        itv_p, &FullViewIntervalPresenter::intervalSelected, &parent,
-        &ScenarioDocumentPresenter::setDisplayedInterval);
-  }
   QObject::disconnect(
       &gv, &ProcessGraphicsView::dropRequested, &parent,
       &ScenarioDocumentPresenter::on_dropInEmptyFullView);
@@ -65,9 +59,6 @@ void CentralIntervalDisplay::init()
   auto itv_p = presenter.intervalPresenter();
 
   SCORE_ASSERT(itv_p);
-  QObject::connect(
-      itv_p, &FullViewIntervalPresenter::intervalSelected, &parent,
-      &ScenarioDocumentPresenter::setDisplayedInterval, Qt::UniqueConnection);
 
   parent.on_viewReady();
   parent.updateMinimap();
