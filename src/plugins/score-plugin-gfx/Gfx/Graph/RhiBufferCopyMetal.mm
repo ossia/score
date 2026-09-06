@@ -13,6 +13,8 @@
 namespace score::gfx
 {
 
+#include <QDebug>
+
 namespace
 {
 // On the Metal backend, QRhiResourceUpdateBatch::uploadStaticBuffer does NOT
@@ -40,9 +42,29 @@ namespace
 // copy functions below already impose on their callers.
 void flushPendingHostWritesMetal(QRhi& rhi, QRhiCommandBuffer& cb, QRhiBuffer* buf)
 {
+  // nextResourceUpdateBatch() returns nullptr when QRhi's fixed batch pool is
+  // exhausted -- RenderList.cpp:1312 already handles that case explicitly, so
+  // it is reachable, and this path is a MULTIPLIER on it: issuePendingGpuCopies
+  // loops over every queued copy and each one flushes both src and dst, i.e.
+  // two batches per copy op per frame. Degrade instead of dereferencing null:
+  // skipping the flush can leave a copy reading stale bytes (the bug this
+  // function exists to prevent) but that is strictly better than a crash, and
+  // the warning names it rather than leaving it silent.
+  QRhiResourceUpdateBatch* batch = rhi.nextResourceUpdateBatch();
+  if(!batch)
+  {
+    static bool warned = false;
+    if(!warned)
+    {
+      warned = true;
+      qWarning("copyBuffer(Metal): resource update batch pool exhausted; "
+               "pending host writes could not be flushed and this copy may "
+               "read stale data");
+    }
+    return;
+  }
   auto* result = new QRhiReadbackResult;
   result->completed = [result] { delete result; };
-  QRhiResourceUpdateBatch* batch = rhi.nextResourceUpdateBatch();
   batch->readBackBuffer(buf, 0, 1, result);
   cb.resourceUpdate(batch);
 }
