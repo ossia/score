@@ -227,6 +227,12 @@ isf::pipeline_state mergeState(isf::pipeline_state base, const isf::pipeline_sta
   if(over.stencil_write_mask.has_value())     base.stencil_write_mask = over.stencil_write_mask;
   if(over.stencil_front.has_value())          base.stencil_front = over.stencil_front;
   if(over.stencil_back.has_value())           base.stencil_back = over.stencil_back;
+  // shading_rate was the one field this function forgot. It merges nineteen
+  // others, stateAffectsPipeline() already knows the field exists, and the
+  // pipeline applies it -- so a per-pass SHADING_RATE override was parsed,
+  // validated, and then silently replaced by the global value on the way to
+  // the pipeline. (S4 in the 2026-09 graphics review.)
+  if(over.shading_rate.has_value())           base.shading_rate = over.shading_rate;
   return base;
 }
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <limits>
 #include <Process/ProcessFlags.hpp>
 
 #include <ossia/dataflow/geometry_port.hpp>
@@ -37,6 +38,20 @@ struct BufferView
 
   inline operator bool() const noexcept { return handle; }
 };
+// A QRhiBuffer's size is a quint32 (qrhi.h: `quint32 size() const`,
+// `setSize(quint32)`), while score carries geometry sizes as int64_t. Narrowing
+// is SILENT and catastrophic: 4 GiB + 4 KiB becomes 4 KiB, the allocation
+// succeeds, and every upload and draw afterwards addresses it as though it held
+// the original size.
+//
+// So ask before narrowing. A size that does not survive the round trip is not
+// expressible and the caller must refuse it rather than hand QRhi a number that
+// means something else.
+inline bool bufferSizeIsExpressible(int64_t byte_size) noexcept
+{
+  return byte_size >= 0 && byte_size <= int64_t(std::numeric_limits<quint32>::max());
+}
+
 struct MeshBuffers
 {
   ossia::small_vector<BufferView, 2> buffers;

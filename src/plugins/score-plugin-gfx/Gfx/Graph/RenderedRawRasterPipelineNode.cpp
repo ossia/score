@@ -1198,15 +1198,17 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     if(targetTex)
     {
       QSize baseSize = targetTex->pixelSize();
-      int mipCount = 1;
-      {
-        int s = std::min(baseSize.width(), baseSize.height());
-        while(s > 1)
-        {
-          s >>= 1;
-          ++mipCount;
-        }
-      }
+      // MAX, not min. Qt allocates the chain from the LARGER dimension --
+      // QRhi::mipLevelsForSize is floor(log2(max(w, h))) + 1 (qrhi.cpp:12161) --
+      // so deriving the number of passes from the smaller one leaves the tail
+      // of a rectangular target unwritten. A 128x8 PER_MIP output has 8 levels
+      // allocated and, before this, only 4 rendered: levels 4..7 kept whatever
+      // was in the freshly allocated texture, and anything sampling across the
+      // chain read it.
+      //
+      // The per-mip viewport below already clamps each axis independently, so
+      // the extra passes are well-defined once they run.
+      const int mipCount = QRhi::mipLevelsForSize(baseSize);
       m_mipCount = mipCount;
       m_mipRTs.reserve(mipCount);
 
