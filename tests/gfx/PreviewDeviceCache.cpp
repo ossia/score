@@ -197,7 +197,21 @@ TEST_CASE("Cached previews create one VkDevice for the whole session", "[gfx]")
         "a preview costs no device pair on this box; nothing to accelerate");
     return;
   }
-  CHECK(cachedMs < 0.5 * ownedMs);
+  // 0.5 assumed the device pair DOMINATES a preview. That holds on the
+  // reference machine (cached 20.1 against owned 196.9, ratio 0.10) and does
+  // not hold everywhere: on an Intel Iris Xe D3D11 box the non-device work is
+  // ~151 ms of a ~190 ms preview, so the cache saves everything there is to
+  // save and still only reaches ~0.8. Measured there across three runs --
+  // owned 208.2 / 190.5 / 176.1 ms, cached 152.1 / 157.0 / 151.4 ms,
+  // devicesCreated 1 every time. The cache was working perfectly and the ratio
+  // was asserting a property of the GPU rather than of score.
+  //
+  // What this test exists for is already REQUIREd above: devicesCreated <= 1,
+  // i.e. selecting a shader does not pay for a device pair. That is exact and
+  // hardware-independent. The timing check stays, but only as "the saving is
+  // real and larger than run-to-run noise" -- it must not re-encode an
+  // assumption about which half of a preview is the expensive one.
+  CHECK(cachedMs < 0.9 * ownedMs);
 #endif
 }
 
