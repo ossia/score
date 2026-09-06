@@ -227,4 +227,10 @@ private:
 
   bool m_pulseDirection{false};
 };
+
+//! Base UI font settings. Read from QSettings directly as the font is needed
+//! before the settings plug-in is loaded; changing them requires a restart.
+SCORE_LIB_BASE_EXPORT int uiFontSize() noexcept;
+SCORE_LIB_BASE_EXPORT QFont::HintingPreference uiFontHinting() noexcept;
+
 }

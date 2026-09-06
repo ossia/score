@@ -286,6 +286,24 @@ View::View()
 
   lay->addRow(tr("Graphical Zoom (needs restart)"), m_zoomSpinBox);
 
+  // BASE FONT
+  SETTINGS_UI_SPINBOX_SETUP("Font size (needs restart)", FontSize);
+  m_FontSize->setRange(8, 32);
+  m_FontSize->setSuffix(tr(" px"));
+  score::setHelp(
+      this->m_FontSize,
+      tr("Size of the base user interface font, in pixels. Applies to both the "
+         "widgets and the Qt Quick panels, which share the same rasteriser."));
+
+  SETTINGS_UI_COMBOBOX_SETUP(
+      "Font hinting (needs restart)", FontHinting,
+      QStringList() << tr("None") << tr("Vertical") << tr("Full"));
+  score::setHelp(
+      this->m_FontHinting,
+      tr("How glyphs are snapped to the pixel grid. Full gives the crispest "
+         "stems at small sizes; Vertical keeps the font's designed letter "
+         "spacing and looks smoother; None leaves the outline unhinted."));
+
   // SLOT HEIGHT
   m_slotHeightBox = new QSpinBox;
   m_slotHeightBox->setMinimum(0);
@@ -331,6 +349,8 @@ View::View()
 SETTINGS_UI_COMBOBOX_IMPL(ScriptEditorPlacement)
 SETTINGS_UI_COMBOBOX_IMPL(ProcessUIPlacement)
 SETTINGS_UI_COMBOBOX_IMPL(ScriptEditorPreview)
+SETTINGS_UI_SPINBOX_IMPL(FontSize)
+SETTINGS_UI_COMBOBOX_IMPL(FontHinting)
 SETTINGS_UI_SPINBOX_IMPL(UpdateRate)
 SETTINGS_UI_SPINBOX_IMPL(ExecutionRefreshRate)
 SETTINGS_UI_TOGGLE_IMPL(TimeBar)

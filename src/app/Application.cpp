@@ -134,15 +134,13 @@ static void loadApplicationResources()
       }
     }
   }
-
-#if defined(__APPLE__)
-  constexpr const double defaultFontSize = 10. * 96. / 72.;
-#else
-  constexpr const double defaultFontSize = 10.;
-#endif
-
-  QFont f("Ubuntu", defaultFontSize);
-  f.setHintingPreference(QFont::HintingPreference::PreferVerticalHinting);
+  // Read straight from QSettings rather than through
+  // Scenario::Settings::Model: the application font has to be in place before
+  // the plug-ins that own that model are loaded. Same keys, so the settings
+  // page stays authoritative -- it just needs a restart to take effect.
+  QFont f("Ubuntu");
+  f.setPixelSize(score::uiFontSize());
+  f.setHintingPreference(score::uiFontHinting());
   qGuiApp->setFont(f);
 }
 

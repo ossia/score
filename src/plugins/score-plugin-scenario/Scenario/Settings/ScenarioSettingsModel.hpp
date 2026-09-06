@@ -24,6 +24,8 @@ class SCORE_PLUGIN_SCENARIO_EXPORT Model final : public score::SettingsDelegateM
   QString m_ProcessUIPlacement;
   QString m_ScriptEditorPreview;
   double m_GraphicZoom{};
+  int m_FontSize{12};
+  QString m_FontHinting{"Full"};
   qreal m_SlotHeight{};
   TimeVal m_DefaultDuration{TimeVal::fromMsecs(30000)};
   int m_UpdateRate{60};
@@ -53,6 +55,8 @@ public:
   SCORE_SETTINGS_PARAMETER_HPP(
       SCORE_PLUGIN_SCENARIO_EXPORT, QString, ScriptEditorPreview)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, double, GraphicZoom)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, int, FontSize)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, QString, FontHinting)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, qreal, SlotHeight)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, TimeVal, DefaultDuration)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, bool, SnapshotOnCreate)
@@ -74,6 +78,8 @@ SCORE_SETTINGS_PARAMETER(Model, ProcessUIPlacement)
 SCORE_SETTINGS_PARAMETER(Model, ScriptEditorPreview)
 SCORE_SETTINGS_PARAMETER(Model, Skin)
 SCORE_SETTINGS_PARAMETER(Model, GraphicZoom)
+SCORE_SETTINGS_PARAMETER(Model, FontSize)
+SCORE_SETTINGS_PARAMETER(Model, FontHinting)
 SCORE_SETTINGS_PARAMETER(Model, SlotHeight)
 SCORE_SETTINGS_PARAMETER(Model, DefaultDuration)
 SCORE_SETTINGS_PARAMETER(Model, SnapshotOnCreate)
