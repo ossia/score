@@ -253,11 +253,24 @@ void TextToMesh::rebuild()
     qf.setBold(inputs.bold.value);
     qf.setItalic(inputs.italic.value);
     QRawFont rf = QRawFont::fromFont(qf);
-    if(!rf.isValid())
+    // isValid() alone is not enough to say the family resolved. "Sans" is a
+    // fontconfig alias with no meaning on Windows or macOS, and QRawFont there
+    // comes back isValid() while resolving to NO family: familyName() is empty
+    // and every character maps to .notdef. That is not a cosmetic difference --
+    // a space then has a real outline (measured on Windows: a hollow 68x68 box,
+    // 11 points, area 268), so " " rendered a box instead of nothing and the
+    // rest of the text rendered .notdef boxes too.
+    //
+    // An empty familyName is the reliable signal; supportsCharacter() still
+    // answers true in that state, so it cannot be used for this.
+    if(!rf.isValid() || rf.familyName().isEmpty())
     {
-      // Fallback: default system font at the requested size.
+      // Fallback: default system font at the requested size, keeping the
+      // requested weight and slant.
       QFont def;
       def.setPixelSize(inputs.font_size.value);
+      def.setBold(inputs.bold.value);
+      def.setItalic(inputs.italic.value);
       rf = QRawFont::fromFont(def);
     }
 
