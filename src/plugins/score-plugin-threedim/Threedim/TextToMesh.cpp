@@ -4,6 +4,9 @@
 #include <Gfx/Graph/SceneGPUState.hpp>
 
 #include <QFont>
+#include <algorithm>
+#include <cmath>
+
 #include <QDebug>
 #include <QPainterPath>
 #include <QPointF>
@@ -147,7 +150,26 @@ void earClip(
   if(poly.size() < 3)
     return;
 
-  const bool preferReversed = polyArea(poly) < 0.f;
+  // A contour with no area is not geometry, whichever way round it is wound.
+  // This matters because of the retry below: a space glyph comes back from Qt
+  // on Windows as a polygon with three or more points and zero area, and
+  // without this the retry would happily triangulate it and TextToMesh would
+  // publish a mesh for " ". Scale the threshold to the contour's own bounding
+  // box so it holds at any font size or world scale.
+  const float area = polyArea(poly);
+  float minx = poly[0].x, maxx = poly[0].x, miny = poly[0].y, maxy = poly[0].y;
+  for(const auto& v : poly)
+  {
+    minx = std::min(minx, v.x);
+    maxx = std::max(maxx, v.x);
+    miny = std::min(miny, v.y);
+    maxy = std::max(maxy, v.y);
+  }
+  const float bbox = (maxx - minx) * (maxy - miny);
+  if(std::abs(area) <= 1e-6f * std::abs(bbox))
+    return;
+
+  const bool preferReversed = area < 0.f;
   if(earClipPass(poly, base_offset, preferReversed, out_indices) > 0)
     return;
   earClipPass(poly, base_offset, !preferReversed, out_indices);
