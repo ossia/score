@@ -232,7 +232,8 @@ Device::DeviceSettings OSCProtocolSettingsWidget::getSettings() const
   osc.configuration.bundle_strategy = this->m_bundle->isChecked()
                                           ? osc_bundle_t::ALWAYS_BUNDLE
                                           : osc_bundle_t::NEVER_BUNDLE;
-  osc.rate = m_rate->rate();
+
+  osc.rate = m_rate->configuration();
   osc.bonjour = m_bonjour->isChecked();
   osc.oscquery = m_oscquery->value();
   if(osc.oscquery.value() <= 0)
@@ -276,7 +277,7 @@ void OSCProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settin
         = decltype(ossia::net::osc_protocol_configuration::bundle_strategy);
     m_settings = settings.deviceSpecificSettings.value<OSCSpecificSettings>();
     m_oscVersion->setCurrentIndex(m_settings.configuration.version);
-    m_rate->setRate(m_settings.rate);
+    m_rate->setConfiguration(m_settings.rate);
     m_bonjour->setChecked(m_settings.bonjour);
     m_bundle->setChecked(
         m_settings.configuration.bundle_strategy == osc_bundle_t::ALWAYS_BUNDLE);
