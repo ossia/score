@@ -417,6 +417,11 @@ TEST_CASE(
     "[threedim][text_to_mesh]")
 {
   ensureApp();
+  // Needs a real font for the same reason the others do: with no font database
+  // every glyph is .notdef, so even " " comes back with a hollow-box outline
+  // and this case's "renders nothing" expectation cannot hold.
+  if(!hostFontUsable())
+    SKIP("no usable scalable font on this host");
 
   for(const char* txt : {"", " "})
   {
