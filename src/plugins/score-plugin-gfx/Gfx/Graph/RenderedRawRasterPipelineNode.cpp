@@ -7,6 +7,7 @@
 #include <Gfx/Graph/RenderedRawRasterPipelineNode.hpp>
 #include <Gfx/Graph/SSBO.hpp>
 #include <Gfx/Graph/Utils.hpp>
+#include <Gfx/Graph/VertexFallbackPool.hpp>
 
 #include <score/tools/Debug.hpp>
 
@@ -3010,6 +3011,53 @@ void RenderedRawRasterPipelineNode::update(
         score::gfx::replaceBuffer(*invSrb, aux.prev_binding, aux.prev_buffer);
         score::gfx::replaceBuffer(*invSrb, aux.binding, aux.buffer);
       }
+    }
+  }
+
+  // SR1: the vertex fallback buffers are bound PerInstance step_rate=1,
+  // which advances one element per instance instead of broadcasting, so
+  // the pooled buffer must hold one copy of the constant per instance of
+  // this draw. The pool replicates up to its own floor on acquire; here
+  // is where the instance count this frame is actually known, so grow
+  // past the floor when the draw needs it. The pool resizes the same
+  // QRhiBuffer object, so the plans' cached handles stay valid and no
+  // pipeline is rebuilt -- a vertex input layout fixes stride and
+  // classification, not buffer length.
+  {
+    bool anyFallback = false;
+    for(const auto& [e, pass] : m_passes)
+      if(!pass.fallback_bindings.slots.empty())
+      {
+        anyFallback = true;
+        break;
+      }
+
+    if(anyFallback)
+    {
+      uint32_t instances = 1;
+      if(const auto& ds = n.descriptor().default_state; ds.instance_count)
+        instances = std::max(instances, (uint32_t)*ds.instance_count);
+      if(geometry.meshes)
+      {
+        for(const auto& mesh : geometry.meshes->meshes)
+        {
+          instances = std::max(instances, (uint32_t)mesh.instances);
+          for(const auto& cmd : mesh.cpu_draw_commands)
+            instances = std::max(
+                instances, (uint32_t)cmd.first_instance + (uint32_t)cmd.instance_count);
+        }
+      }
+      // GPU-driven indirect draws keep their instance count in a buffer
+      // the host never reads; those are covered by the pool's floor only.
+      for(const auto& cmd : m_meshbufs.cpuDrawCommands)
+        instances = std::max(
+            instances, (uint32_t)cmd.first_instance + (uint32_t)cmd.instance_count);
+
+      auto& pool = renderer.vertexFallbackPool();
+      for(auto& [e, pass] : m_passes)
+        for(const auto& slot : pass.fallback_bindings.slots)
+          pool.ensureInstances(
+              *renderer.state.rhi, res, slot.buffer, instances);
     }
   }
 }
