@@ -7,6 +7,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <QLoggingCategory>
 #include <QString>
 #include <QtGlobal>
 
@@ -27,6 +28,23 @@ namespace threedim_test
 template <typename F>
 bool survives(F&& f)
 {
+  // Qt initializes its logging machinery lazily, on the first message, and
+  // that one-time init reaches Foundation. macOS kills outright any process
+  // that touches Foundation in a child forked without a following exec():
+  //
+  //   Process 67273 was forked to 67277 without calling exec().
+  //   This is not supported by FileManager. Aborting.
+  //
+  // The notice goes out over os_log, so on a plain terminal nothing is printed
+  // and the child simply dies with SIGABRT -- survives() would then report a
+  // crash the code under test never had.
+  //
+  // So do the init here, in the parent, before any fork. isDebugEnabled() is
+  // enough to force it and prints nothing.
+  static const bool loggingWarmedUp
+      = QLoggingCategory::defaultCategory()->isDebugEnabled();
+  (void)loggingWarmedUp;
+
   std::fflush(nullptr);
   const pid_t pid = ::fork();
   if(pid == 0)
@@ -36,17 +54,11 @@ bool survives(F&& f)
     // the verdict off waitpid().
     for(int sig : {SIGABRT, SIGSEGV, SIGBUS, SIGILL, SIGFPE})
       std::signal(sig, SIG_DFL);
-    // Qt's default message handler is not fork-safe on macOS: it reaches
-    // Foundation, and Foundation kills any child that was forked without a
-    // following exec() -- "Process N was forked to M without calling exec().
-    // This is not supported by FileManager. Aborting." The abort is delivered
-    // through os_log, so on a plain terminal the child just dies silently with
-    // SIGABRT and the probe reports a crash the code under test never had.
-    //
-    // Route the child's logging to fputs instead. It keeps the diagnostics --
-    // which is the point of logging a rejected file -- while touching nothing
-    // but stdio, and it stops probe children from interleaving their expected
-    // rejection messages into the parent's test output on every platform.
+    // Route the child's logging through fputs. The warm-up above is what
+    // keeps it alive; this keeps it quiet and keeps it off the platform
+    // backend entirely, so a child that logs touches nothing beyond stdio.
+    // It also stops probe children from interleaving their expected rejection
+    // messages into the parent's test output, on every platform.
     qInstallMessageHandler([](QtMsgType, const QMessageLogContext&,
                               const QString& msg) {
       std::fputs(qPrintable(QStringLiteral("[fork-probe] ") + msg), stderr);
@@ -60,7 +72,7 @@ bool survives(F&& f)
   ::waitpid(pid, &status, 0);
   if(WIFEXITED(status) && WEXITSTATUS(status) == 0)
     return true;
-  // Say HOW it died. A bare `false` sends every reader back to a debugger to
+  // Say how it died. A bare `false` sends every reader back to a debugger to
   // learn what a signal number would have told them: a SIGSEGV on one platform
   // and a SIGABRT on another are different defects, and the difference between
   // "the parser faulted" and "an assert fired" decides where to look.
