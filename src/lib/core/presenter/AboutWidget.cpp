@@ -79,7 +79,7 @@ private:
     {
       // No logo available: the name itself, set large on the card
       QFont f = m_style.itemFont;
-      f.setPointSizeF(f.pointSizeF() * 1.6);
+      f.setPixelSize(qRound(f.pixelSize() * 1.6));
       f.setWeight(QFont::DemiBold);
       p.setFont(f);
       p.setPen(QColor{"#1a1a1a"});
@@ -188,11 +188,16 @@ makeText(const QString& text, const QFont& font, const QColor& color, QWidget* p
 AboutWidget::Style AboutWidget::defaultStyle()
 {
   Style s;
-  s.sectionFont = QFont("Montserrat", 10, QFont::Medium);
+  // px, not pt: pt would shrink on macOS' 72 DPI.
+  s.sectionFont = QFont("Montserrat");
+  s.sectionFont.setPixelSize(13);
+  s.sectionFont.setWeight(QFont::Medium);
   s.sectionFont.setCapitalization(QFont::AllUppercase);
   s.sectionFont.setLetterSpacing(QFont::PercentageSpacing, 108);
-  s.itemFont = QFont("Ubuntu", 12, QFont::Normal);
-  s.smallFont = QFont("Ubuntu", 10, QFont::Normal);
+  s.itemFont = QFont("Ubuntu");
+  s.itemFont.setPixelSize(16);
+  s.smallFont = QFont("Ubuntu");
+  s.smallFont.setPixelSize(13);
   return s;
 }
 

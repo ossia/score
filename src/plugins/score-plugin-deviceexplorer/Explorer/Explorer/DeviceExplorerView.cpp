@@ -342,7 +342,8 @@ void DeviceExplorerView::paintEvent(QPaintEvent* event)
   QPainter p{this->viewport()};
   const auto& skin = score::Skin::instance();
   auto font = skin.Bold12Pt;
-  font.setPointSize(24);
+  // px, not pt: pt would shrink on macOS' 72 DPI.
+  font.setPixelSize(32);
   p.setFont(font);
   auto pen = p.pen();
   auto col = pen.color();
