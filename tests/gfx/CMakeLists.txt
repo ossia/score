@@ -224,6 +224,11 @@ score_add_gfx_test(review_render_targets_depth GfxReviewRenderTargetsDepth.cpp)
 # stream, drawn with two instances. Uses the production VertexFallbackPool and a
 # real QRhi readback, so it measures the binding the engine actually emits.
 score_add_gfx_test(review_scene_fallback GfxReviewSceneFallback.cpp)
+
+# D1/D2 from the same review: indirect-draw firstInstance ABI and layered
+# indirect dispatch, each driven through the GPU rung AND the CPU fallback rung
+# so the two are forced to agree.
+score_add_gfx_test(review_draw_dispatch_edges GfxReviewDrawDispatchEdges.cpp)
 # P1-7 / G8: the cubemap render target's six faces, against the self-declared
 # oracle of 2026/test-cubemap-output.score (+X red, -X cyan, +Y green,
 # -Y magenta, +Z blue, -Z yellow), through the MULTIVIEW-6 + CUBEMAP
