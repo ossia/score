@@ -70,7 +70,7 @@ endfunction()
 # (visibility). A static plugin archive already provides them; compiling them
 # again duplicates every symbol at link time.
 #
-# Prefer exporting the symbol over adding a user here: when the test ALSO links
+# Prefer exporting the symbol over adding a user here: when the test also links
 # the shared plug-in, every type defined in both is an ODR violation, and ASan
 # aborts the test before its first assertion.
 function(score_plugin_hidden_sources OUT)
@@ -82,14 +82,14 @@ function(score_plugin_hidden_sources OUT)
 endfunction()
 
 # Static plug-ins are interlinked through the global plugin registry: linking
-# ONE plugin target leaves the other plugins' registration symbols unresolved,
-# so a bare tester executable that links a plugin directly must link the WHOLE
+# one plugin target leaves the other plugins' registration symbols unresolved,
+# so a bare tester executable that links a plugin directly must link the whole
 # list (minus score_plugin_jit, exactly as score_add_test does for its own
 # GUI/APP targets below). No-op on dynamic-plugin builds.
 #
-# ORDERING SEAM: SCORE_PLUGINS_LIST is only complete once add_subdirectory(src)
-# has returned, so for tester executables DEFINED inside src/ this must be
-# called from the top-level CMakeLists AFTER that point -- which is why the
+# Ordering seam: SCORE_PLUGINS_LIST is only complete once add_subdirectory(src)
+# has returned, so for tester executables defined inside src/ this must be
+# called from the top-level CMakeLists after that point -- which is why the
 # application site for EncoderTester/ReadbackTester/PipewireRoundtrip lives
 # there and not next to their add_executable.
 function(score_link_plugins_for_static tgt)
@@ -175,6 +175,11 @@ function(score_add_test NAME)
   else()
     add_test(NAME ${NAME} COMMAND ${NAME})
   endif()
+
+  # Record the target this ctest entry actually runs, so the registration guard
+  # can check association instead of guessing it from names. See
+  # SCORE_TEST_TARGET_REGISTRY in cmake/ScoreTestRegistrationGuard.cmake.
+  set_property(GLOBAL APPEND PROPERTY SCORE_TEST_TARGET_REGISTRY "${NAME}")
 
   # Catch2 exits with 4 when every test case in the binary was skipped
   # (AllTestsSkippedExitCode, catch_session.cpp). A test that skips because its

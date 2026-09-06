@@ -60,6 +60,10 @@ function(score_add_hardware_test)
   # EXECUTABLE: prefer a target's real output file; fall back to a path.
   if(TARGET "${ARG_EXECUTABLE}")
     set(_exe "$<TARGET_FILE:${ARG_EXECUTABLE}>")
+    # This wrapper registers one executable under several ctest names; record
+    # the association so the registration guard does not have to infer it.
+    set_property(GLOBAL APPEND PROPERTY SCORE_TEST_TARGET_REGISTRY
+                 "${ARG_EXECUTABLE}")
   else()
     set(_exe "${ARG_EXECUTABLE}")
   endif()
@@ -85,9 +89,9 @@ function(score_add_hardware_test)
   endif()
 endfunction()
 
-# Media tests that are allowed to ASSUME a capable host: ffmpeg always, plus
+# Media tests that are allowed to assume a capable host: ffmpeg always, plus
 # whatever the requested provisioning needs. Unlike score_add_hardware_test
-# these do NOT declare SKIP_RETURN_CODE by default, so an absent dependency
+# these do not declare SKIP_RETURN_CODE by default, so an absent dependency
 # fails the run instead of quietly vanishing from it.
 #
 #   VIRTUAL_VIDEO  publish a PipeWire Video/Source from videotestsrc
@@ -102,7 +106,7 @@ endfunction()
 # a POSIX one. On Windows that is msys2's bash, which also carries the ffmpeg and
 # GStreamer the harnesses need; elsewhere the shebang suffices and this is empty.
 #
-# It has to be the bash of the SAME msys2 installation the toolchain and ffmpeg
+# It has to be the bash of the same msys2 installation the toolchain and ffmpeg
 # come from. A bare find_program(bash) picks whatever is first on PATH, and on a
 # machine that also has Git for Windows that is D:/apps/Git/usr/bin/bash.exe --
 # a different msys runtime with a different POSIX root. The harness then does
@@ -110,9 +114,7 @@ endfunction()
 # the msys2-built ffmpeg, which resolves /tmp/... against msys2's root instead.
 # ffmpeg reports "Error opening output files: No such file or directory" and the
 # wrapper dies with "ffmpeg could not produce the matrix master clip" -- six
-# media tests red, with nothing wrong in score or in ffmpeg. Measured on
-# desktop-u6umokq: the identical wrapper, PATH and ffmpeg give rc=0 under
-# msys2's bash and that error under Git's.
+# media tests red, with nothing wrong in score or in ffmpeg.
 #
 # So look next to the compiler first: <msys2 root>/usr/bin/bash.exe, derived
 # from the toolchain, and only fall back to a PATH search if that is not there.
@@ -152,6 +154,10 @@ function(score_add_media_test)
   endif()
   if(TARGET "${ARG_EXECUTABLE}")
     set(_exe "$<TARGET_FILE:${ARG_EXECUTABLE}>")
+    # This wrapper registers one executable under several ctest names; record
+    # the association so the registration guard does not have to infer it.
+    set_property(GLOBAL APPEND PROPERTY SCORE_TEST_TARGET_REGISTRY
+                 "${ARG_EXECUTABLE}")
   else()
     set(_exe "${ARG_EXECUTABLE}")
   endif()
@@ -175,7 +181,7 @@ function(score_add_media_test)
 
   # SCORE_MEDIA_TEST_WRAPPER is with-virtual-media.sh. ctest cannot exec a .sh
   # directly on Windows. msys2 supplies bash, ffmpeg and the GStreamer stack,
-  # so the harnesses run once they are invoked THROUGH it.
+  # so the harnesses run once they are invoked through it.
   if(SCORE_MEDIA_TEST_SHELL)
     add_test(NAME ${ARG_NAME}
       COMMAND "${SCORE_MEDIA_TEST_SHELL}" "${SCORE_MEDIA_TEST_WRAPPER}"
