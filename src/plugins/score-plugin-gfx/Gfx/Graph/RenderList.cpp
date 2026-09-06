@@ -862,22 +862,17 @@ RenderList::Buffers RenderList::acquireMesh(
         {
           if(gpu->handle)
           {
-            constexpr quint32 stride = 5 * sizeof(uint32_t); // 20, matches CustomMesh
-            meshbufs.indirectDrawBuffer = static_cast<QRhiBuffer*>(gpu->handle);
-            meshbufs.useIndirectDraw = true;
-            meshbufs.indirectDrawIndexed = true;
-            meshbufs.indirectDrawOffset = (quint32)std::max<int64_t>(0, aux_idx->byte_offset);
-            meshbufs.indirectDrawStride = stride;
-            // drawIndirect requires stride >= 16 and count >= 1; derive the
-            // command count from the aux region size (was never set before →
-            // count defaulted to 1, drawing only the first command).
+            // Derive the command count from the aux region size (was never
+            // set before -> count defaulted to 1, drawing only the first
+            // command). enableIndirectDraw() supplies the stride, which must
+            // never be omitted -- see its comment.
+            const int64_t off = std::max<int64_t>(0, aux_idx->byte_offset);
             const int64_t avail = (aux_idx->byte_size > 0)
                 ? aux_idx->byte_size
-                : (int64_t)gpu->byte_size - aux_idx->byte_offset;
-            meshbufs.indirectDrawCount
-                = (avail > 0) ? (quint32)(avail / stride) : 1u;
-            if(meshbufs.indirectDrawCount == 0)
-              meshbufs.indirectDrawCount = 1;
+                : (int64_t)gpu->byte_size - off;
+            meshbufs.enableIndirectDraw(
+                static_cast<QRhiBuffer*>(gpu->handle), true, avail,
+                (quint32)off);
           }
         }
       }
@@ -894,18 +889,13 @@ RenderList::Buffers RenderList::acquireMesh(
         {
           if(gpu->handle)
           {
-            constexpr quint32 stride = 5 * sizeof(uint32_t); // 20, matches CustomMesh
-            meshbufs.indirectDrawBuffer = static_cast<QRhiBuffer*>(gpu->handle);
-            meshbufs.useIndirectDraw = true;
-            meshbufs.indirectDrawIndexed = false;
-            meshbufs.indirectDrawOffset
-                = (quint32)std::max<int64_t>(0, aux_nonidx->byte_offset);
-            meshbufs.indirectDrawStride = stride;
+            const int64_t off = std::max<int64_t>(0, aux_nonidx->byte_offset);
             const int64_t avail = (aux_nonidx->byte_size > 0)
                 ? aux_nonidx->byte_size
-                : (int64_t)gpu->byte_size - aux_nonidx->byte_offset;
-            meshbufs.indirectDrawCount
-                = (avail > 0) ? (quint32)(avail / stride) : 1u;
+                : (int64_t)gpu->byte_size - off;
+            meshbufs.enableIndirectDraw(
+                static_cast<QRhiBuffer*>(gpu->handle), false, avail,
+                (quint32)off);
             if(meshbufs.indirectDrawCount == 0)
               meshbufs.indirectDrawCount = 1;
           }
