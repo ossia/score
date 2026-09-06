@@ -1721,8 +1721,9 @@ void RenderState::Caps::populate(QRhi& rhi)
   // switch would leave the better rung active and the fallback untested,
   // with identical (correct) pixels hiding the failure.
   qDebug("score.gfx: RHI indirect caps: drawIndirect=%d multi=%d count=%d "
-         "dispatchIndirect=%d",
+         "dispatchIndirect=%d baseInstance=%d instIdxInclBase=%d",
          int(drawIndirect), int(drawIndirectMulti), int(drawIndirectCount),
-         int(dispatchIndirect));
+         int(dispatchIndirect), int(baseInstance),
+         int(instanceIndexIncludesBaseInstance));
 }
 }
