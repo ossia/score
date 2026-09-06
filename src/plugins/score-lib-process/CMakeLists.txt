@@ -106,6 +106,7 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Script/ScriptEditor.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/UIPlacement.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Script/EditorOverlay.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Script/ScriptTabBar.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Script/MultiScriptEditor.hpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Effect/EffectFactory.hpp"
@@ -197,6 +198,7 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Script/ScriptEditor.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/UIPlacement.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Script/EditorOverlay.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Script/ScriptTabBar.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Script/ScriptWidget.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Execution/ProcessComponent.cpp"

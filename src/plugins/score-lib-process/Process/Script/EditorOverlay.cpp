@@ -1,9 +1,9 @@
 #include "EditorOverlay.hpp"
 
+#include "ScriptTabBar.hpp"
 #include "ScriptWidget.hpp"
 
 #include <score/graphics/BackgroundRenderer.hpp>
-#include <score/model/Skin.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
 
 #include <QAbstractScrollArea>
@@ -14,7 +14,6 @@
 #include <QHideEvent>
 #include <QLayout>
 #include <QPainter>
-#include <QRegularExpression>
 #include <QSettings>
 #include <QShowEvent>
 #include <QStackedLayout>
@@ -33,8 +32,10 @@ W_OBJECT_IMPL(Process::DocumentBackgroundPreview)
 
 namespace Process
 {
-static constexpr const char* originalStyleSheetProperty = "overlayOriginalStyleSheet";
+static constexpr const char* originalPaletteProperty = "overlayOriginalPalette";
 static constexpr const char* originalAutoFillProperty = "overlayOriginalAutoFill";
+static constexpr const char* originalViewportAutoFillProperty
+    = "overlayOriginalViewportAutoFill";
 
 void setEditorTransparent(QWidget* editor, bool transparent)
 {
@@ -42,57 +43,49 @@ void setEditorTransparent(QWidget* editor, bool transparent)
     return;
 
   editor->setAutoFillBackground(false);
-  // The tab pane behind the text areas is painted by the application style
   for(auto tabs : editor->findChildren<QTabWidget*>())
-  {
     tabs->setAutoFillBackground(false);
-    tabs->setStyleSheet(
-        transparent ? QStringLiteral("QTabWidget::pane { background: transparent; }")
-                    : QString{});
-  }
   for(auto stack : editor->findChildren<QStackedWidget*>())
     stack->setAutoFillBackground(false);
 
-  // The text areas may paint their background from a style sheet (QCodeEditor
-  // sets one from its syntax style, with an opaque colour): take that
-  // declaration out and leave the viewport unfilled.
-  static const QRegularExpression backgroundDecl{
-      QStringLiteral("(?<![\\w-])background(-color)?\\s*:[^;]*;")};
   // What to restore, taken before anything is touched
   for(auto area : editor->findChildren<QAbstractScrollArea*>())
   {
-    if(!area->property(originalStyleSheetProperty).isValid())
+    if(!area->property(originalAutoFillProperty).isValid())
     {
-      area->setProperty(originalStyleSheetProperty, area->styleSheet());
+      area->setProperty(originalPaletteProperty, QVariant::fromValue(area->palette()));
+      area->setProperty(originalAutoFillProperty, area->autoFillBackground());
       area->setProperty(
-          originalAutoFillProperty, area->viewport()->autoFillBackground());
+          originalViewportAutoFillProperty, area->viewport()->autoFillBackground());
     }
   }
 
-  // The theme paints the line numbers and the current line: swap it for its
-  // overlay variant first, as changing it re-applies the editor's style sheet.
+  // The theme paints the text background, the line numbers and the current
+  // line: the overlay variant has no background. It sets the editor's palette.
   for(auto code : editor->findChildren<QCodeEditor*>())
     code->setSyntaxStyle(transparent ? overlayScriptStyle() : scriptStyle());
 
+  // The other text areas (the log) get a transparent base
   for(auto area : editor->findChildren<QAbstractScrollArea*>())
   {
-    const QString original = area->property(originalStyleSheetProperty).toString();
-
     if(transparent)
     {
-      auto ss = original;
-      ss.remove(backgroundDecl);
-      area->setStyleSheet(
-          ss
-          + QStringLiteral("\nQTextEdit, QPlainTextEdit { background: transparent; }"));
+      if(!qobject_cast<QCodeEditor*>(area))
+      {
+        QPalette pal = area->palette();
+        pal.setColor(QPalette::Base, Qt::transparent);
+        area->setPalette(pal);
+      }
       area->setAutoFillBackground(false);
       area->viewport()->setAutoFillBackground(false);
     }
     else
     {
-      area->setStyleSheet(original);
+      if(!qobject_cast<QCodeEditor*>(area))
+        area->setPalette(area->property(originalPaletteProperty).value<QPalette>());
+      area->setAutoFillBackground(area->property(originalAutoFillProperty).toBool());
       area->viewport()->setAutoFillBackground(
-          area->property(originalAutoFillProperty).toBool());
+          area->property(originalViewportAutoFillProperty).toBool());
     }
   }
 }
@@ -171,27 +164,8 @@ void setEditorChromeless(QWidget* editor, bool chromeless)
       tabs->setProperty(savedDocumentModeProperty, tabs->documentMode());
     tabs->setDocumentMode(
         chromeless ? true : tabs->property(savedDocumentModeProperty).toBool());
-    auto bar = tabs->tabBar();
-    bar->setDrawBase(!chromeless);
-    bar->setAutoFillBackground(false);
-    if(chromeless)
-    {
-      auto& skin = score::Skin::instance();
-      bar->setStyleSheet(
-          QStringLiteral(
-              "QTabBar { background: transparent; }"
-              "QTabBar::tab { background: transparent; border: none; "
-              "border-bottom: 2px solid transparent; padding: 3px 10px; color: %1; }"
-              "QTabBar::tab:selected { color: %2; border-bottom: 2px solid %3; }"
-              "QTabBar::tab:hover { color: %2; }")
-              .arg(
-                  skin.HalfLight.color().name(), skin.Light.color().name(),
-                  skin.Base4.color().name()));
-    }
-    else
-    {
-      bar->setStyleSheet(QString{});
-    }
+    if(auto bar = qobject_cast<ScriptTabBar*>(tabs->tabBar()))
+      bar->setFlat(chromeless);
   }
 }
 

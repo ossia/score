@@ -1,6 +1,7 @@
 #include "ScriptEditor.hpp"
 
 #include "MultiScriptEditor.hpp"
+#include "ScriptTabBar.hpp"
 #include "ScriptWidget.hpp"
 
 #include <score/application/GUIApplicationContext.hpp>
@@ -274,7 +275,7 @@ MultiScriptDialog::MultiScriptDialog(const score::DocumentContext& ctx, QWidget*
   auto lay = new QVBoxLayout{this};
   this->setLayout(lay);
 
-  m_tabs = new QTabWidget;
+  m_tabs = new ScriptTabWidget;
   lay->addWidget(m_tabs);
 
   m_error = new QPlainTextEdit;
