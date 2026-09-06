@@ -275,6 +275,15 @@ TEST_CASE(
     // And the same for a single space, which must render nothing. On Windows
     // " " started publishing a mesh once the triangulator stopped silently
     // giving up, so report what Qt actually hands back for that glyph.
+    std::fprintf(
+        stderr,
+        "TEXT2MESH-FAMILY requested=Sans resolved=%s styleName=%s "
+        "supportsSpace=%d supportsH=%d\n",
+        rf.familyName().toUtf8().constData(),
+        rf.styleName().toUtf8().constData(),
+        int(rf.supportsCharacter(QChar(' '))),
+        int(rf.supportsCharacter(QChar('H'))));
+
     const auto sp = rf.glyphIndexesForString(QStringLiteral(" "));
     for(const auto g : sp)
     {
