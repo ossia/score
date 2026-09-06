@@ -197,21 +197,23 @@ TEST_CASE("Cached previews create one VkDevice for the whole session", "[gfx]")
         "a preview costs no device pair on this box; nothing to accelerate");
     return;
   }
-  // 0.5 assumed the device pair DOMINATES a preview. That holds on the
-  // reference machine (cached 20.1 against owned 196.9, ratio 0.10) and does
-  // not hold everywhere: on an Intel Iris Xe D3D11 box the non-device work is
-  // ~151 ms of a ~190 ms preview, so the cache saves everything there is to
-  // save and still only reaches ~0.8. Measured there across three runs --
-  // owned 208.2 / 190.5 / 176.1 ms, cached 152.1 / 157.0 / 151.4 ms,
-  // devicesCreated 1 every time. The cache was working perfectly and the ratio
-  // was asserting a property of the GPU rather than of score.
+  // MEASURED LIMITATION, not a threshold to tune. On the Intel Iris Xe box
+  // this comparison is noise-dominated: four samples of the SAME measurement
+  // (the test always drives the Vulkan path, whatever SCORE_TEST_API says)
+  // gave owned 195.6 / 176.6 / 173.1 / 168.5 ms against cached 155.0 / 157.7 /
+  // 190.8 / 187.1 ms -- a 23% spread on the cached side, with two samples
+  // saying the cache helps and two saying it hurts. devicesCreated was 1 every
+  // time, so the cache itself is working; there is simply no measurable saving
+  // to assert there.
   //
-  // What this test exists for is already REQUIREd above: devicesCreated <= 1,
-  // i.e. selecting a shader does not pay for a device pair. That is exact and
-  // hardware-independent. The timing check stays, but only as "the saving is
-  // real and larger than run-to-run noise" -- it must not re-encode an
-  // assumption about which half of a preview is the expensive one.
-  CHECK(cachedMs < 0.9 * ownedMs);
+  // Relaxing the constant to fit that box was tried and rejected: 0.9 made
+  // d3d11 and d3d12 pass while vulkan and opengl still failed, which is fitting
+  // a number to one machine's noise rather than testing score. The exact claim
+  // -- selecting a shader does not pay for a device pair -- is REQUIREd above
+  // as devicesCreated <= 1 and holds everywhere. This ratio stays at the value
+  // that means something where the pair dominates (Linux: owned 207.3 ms,
+  // cached 35.1 ms, ratio 0.17).
+  CHECK(cachedMs < 0.5 * ownedMs);
 #endif
 }
 
