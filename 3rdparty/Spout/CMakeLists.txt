@@ -73,4 +73,11 @@ target_link_libraries(Spout
     DXGI
     shlwapi
     Version
+    # SpoutFrameCount.cpp calls timeGetDevCaps/timeBeginPeriod/timeEndPeriod.
+    # SpoutFrameCount.h asks for the import with `#pragma comment(lib,
+    # "winmm.lib")`, which only MSVC honours -- clang/lld on mingw ignores it
+    # and the link fails with three undefined symbols. Every other library in
+    # that pragma family (shlwapi, Shell32, Advapi32, Version) is already
+    # listed here; winmm was the one missed.
+    winmm
 )
