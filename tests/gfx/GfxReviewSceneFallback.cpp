@@ -1,10 +1,8 @@
-// SR1, from the 2026-09 graphics review (section 8): a one-element vertex
-// fallback must reach EVERY instance.
+// A one-element vertex fallback must reach EVERY instance.
 //
 // The fallback pool hands out a single constant element. Utils.cpp binds it as
 // a PerInstance stream with the element's own stride, so instance 1 steps one
-// stride past the only element it has. The review measured this out of tree and
-// never registered it; nothing in the suite covers it.
+// stride past the only element it has.
 //
 // Two phases through the SAME pipeline, so the only variable is the buffer:
 //   baseline  - the real VertexFallbackPool entry (one element)
@@ -20,7 +18,7 @@
 
 TEST_CASE(
     "SceneResources fallback must reach every instance",
-    "[SceneResources][gpu][!shouldfail]")
+    "[SceneResources][gpu]")
 {
   using namespace score::gfx;
   using namespace score::test::gfx;
