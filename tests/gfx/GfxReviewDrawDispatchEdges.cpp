@@ -8,8 +8,6 @@
 //                   the same instances on every rung. Only strips 3 and 4 may
 //                   be lit; anything else lit means the command ABI shifted.
 //   DrawDispatch-2  a layered indirect dispatch must keep its volume slices.
-//
-// The review measured these out of tree and never registered them.
 #include <score_test/Gfx.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
@@ -60,6 +58,14 @@ TEST_CASE(
   const bool control = qEnvironmentVariableIsSet("DRAW_DISPATCH_ABI_CONTROL");
   const auto r = firstInstance(api, cpu, control);
   if(r.skipped) SKIP(r.why);
+  // Both cases drive a CSF compute producer writing an indirect command into a
+  // storage buffer. Desktop GL needs 4.30 for either and macOS caps OpenGL at
+  // 4.1, where every strip is black on both rungs -- the pipeline producing
+  // nothing rather than the command ABI being wrong. Gate on the predicate the
+  // rest of the suite uses. It must come after the render block: it builds
+  // GLCapabilities, which needs a live context, and calling it first aborts.
+  if(const char* why = score::test::gfx::storage_buffer_skip_reason(api))
+    SKIP(why);
   CAPTURE(backend_name(api), cpu, control, r.error);
   REQUIRE(r.error.empty());
   REQUIRE(r.image.valid());
@@ -88,6 +94,14 @@ TEST_CASE("DrawDispatch layered indirect dispatch preserves volume slices", "[Dr
   });
   if(old.isNull()) qunsetenv("SCORE_GFX_NO_GPU_DISPATCH_INDIRECT"); else qputenv("SCORE_GFX_NO_GPU_DISPATCH_INDIRECT", old);
   if(r.skipped) SKIP(r.skip_reason);
+  // Both cases drive a CSF compute producer writing an indirect command into a
+  // storage buffer. Desktop GL needs 4.30 for either and macOS caps OpenGL at
+  // 4.1, where every strip is black on both rungs -- the pipeline producing
+  // nothing rather than the command ABI being wrong. Gate on the predicate the
+  // rest of the suite uses. It must come after the render block: it builds
+  // GLCapabilities, which needs a live context, and calling it first aborts.
+  if(const char* why = score::test::gfx::storage_buffer_skip_reason(api))
+    SKIP(why);
   CAPTURE(backend_name(api), cpu, r.error);
   REQUIRE(r.error.empty());
   REQUIRE(r.outputs.size() == 1);
