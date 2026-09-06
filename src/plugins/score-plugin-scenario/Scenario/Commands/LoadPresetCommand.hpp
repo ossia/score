@@ -106,8 +106,9 @@ private:
       cmt.outlets()[i]->loadData(m_oldOutlets[i].data);
     }
 
-    // Recreate the old cables
+    // Recreate the old cables; the ports at the other end lost them too
     auto cables = Dataflow::restoreCablesWithoutTouchingPorts(m_oldCables, ctx);
+    Dataflow::reattachCablesToPorts(cables, ctx);
     cmt.inletsChanged();
     cmt.outletsChanged();
     Dataflow::notifyAddedCables(cables, ctx);
@@ -120,9 +121,10 @@ private:
     auto& cmt = m_path.find(ctx);
     cmt.loadPreset(m_new);
 
+    // Cables and addresses only: the values are the preset's now, and a
+    // controller given its old value back would resize the ports again.
     auto cables = Dataflow::reloadPortsInNewProcess(
-        m_oldInlets, m_oldOutlets, m_oldCables, cmt,
-        Process::PortLoadDataFlags::ReloadValue, ctx);
+        m_oldInlets, m_oldOutlets, m_oldCables, cmt, Process::PortLoadDataFlags{}, ctx);
 
     cmt.inletsChanged();
     cmt.outletsChanged();

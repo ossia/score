@@ -15,6 +15,7 @@
 
 #include <core/document/Document.hpp>
 
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/string_map.hpp>
 #include <ossia/detail/type_if.hpp>
 #include <ossia/detail/typelist.hpp>
@@ -92,7 +93,7 @@ public:
   oscr::dynamic_ports_storage<Info> dynamic_ports;
 
   [[no_unique_address]]
-  ossia::type_if<Info, oscr::has_controller_ports<Info>>
+  ossia::type_if<Info, oscr::has_ports_callbacks<Info>>
       object_storage_for_ports_callbacks;
 
   ProcessModel(
@@ -201,15 +202,63 @@ private:
     }
   }
 
+  //! A document saved before the controllers had a port type of their own has
+  //! the controller as the plain control it derives from (e.g. a
+  //! Process::IntSpinBox), which is what the port factory of that key loads.
+  //! It would work, but with the generic widget and command: the ones that
+  //! edit the value from inside the widget's own event, and lose the cables on
+  //! undo. Swap it for the port the process would create today, same id,
+  //! same data.
+  template <typename F, std::size_t Idx>
+  Process::ControlInlet* upgradeControllerPort(F& field, avnd::field_index<Idx> idx)
+  {
+    auto ports = avnd_input_idx_to_model_ports(Idx);
+    SCORE_ASSERT(ports.size() == 1);
+    auto old_inlet = qobject_cast<Process::ControlInlet*>(ports[0]);
+    SCORE_ASSERT(old_inlet);
+
+    Process::Inlets fresh;
+    InletInitFunc<Info> make{*this, fresh};
+    make.inlet = old_inlet->id().val();
+    make(field, idx);
+    if(fresh.size() != 1)
+    {
+      qDeleteAll(fresh);
+      return old_inlet;
+    }
+
+    auto new_inlet = qobject_cast<Process::ControlInlet*>(fresh[0]);
+    if(!new_inlet || new_inlet->concreteKey() == old_inlet->concreteKey())
+    {
+      qDeleteAll(fresh);
+      return old_inlet;
+    }
+
+    new_inlet->loadData(old_inlet->saveData(), Process::PortLoadDataFlags::ReloadValue);
+    new_inlet->setExposed(old_inlet->exposed());
+    new_inlet->setDescription(old_inlet->description());
+    new_inlet->displayHandledExplicitly = old_inlet->displayHandledExplicitly;
+
+    auto it = ossia::find(m_inlets, old_inlet);
+    SCORE_ASSERT(it != m_inlets.end());
+    *it = new_inlet;
+    delete old_inlet;
+    return new_inlet;
+  }
+
   void init_controller_ports()
   {
-    if constexpr(oscr::has_controller_ports<Info> || oscr::has_dynamic_ports<Info>)
+    if constexpr(oscr::has_ports_callbacks<Info>)
     {
       avnd::control_input_introspection<Info>::for_all_n2(
           avnd::get_inputs<Info>((Info&)this->object_storage_for_ports_callbacks),
           [this]<std::size_t Idx, typename F>(
-              F& field, auto pred_index, avnd::field_index<Idx>) {
+              F& field, auto pred_index, avnd::field_index<Idx> idx) {
         Info& obj = this->object_storage_for_ports_callbacks;
+        if constexpr(requires { F::on_controller_interaction(); })
+        {
+          upgradeControllerPort(field, idx);
+        }
         if constexpr(requires { F::on_controller_setup(); })
         {
           auto controller_inlets = avnd_input_idx_to_model_ports(Idx);
@@ -328,6 +377,34 @@ private:
     }
   }
 
+  //! Ports removed by a resize take their cables with them: a cable whose end
+  //! no longer exists is a dangling path in the document. When the resize
+  //! comes from SetControllerControlValue the cables were already saved and
+  //! removed by the command (and are restored by it), so this finds none.
+  template <typename Port_T>
+  void removeCablesOfPorts(const ossia::small_pod_vector<Port_T*, 4>& ports)
+  {
+    if(ports.empty())
+      return;
+
+    // Not score::IDocument::documentFromObject: it throws when there is no
+    // document, and a process can be resized outside of one.
+    score::Document* doc{};
+    for(QObject* o = this->parent(); o && !doc; o = o->parent())
+      doc = qobject_cast<score::Document*>(o);
+    if(!doc)
+      return;
+
+    QObjectList objs;
+    objs.reserve(ports.size());
+    for(auto p : ports)
+      objs.push_back(p);
+
+    const auto& ctx = doc->context();
+    if(auto cables = Dataflow::saveCables(objs, ctx); !cables.empty())
+      Dataflow::removeCables(cables, ctx);
+  }
+
   template <typename P, std::size_t N>
   void request_new_dynamic_input_count(P& port, avnd::field_index<N> idx, int count)
   {
@@ -378,6 +455,7 @@ private:
 
     dynamic_ports.num_in_ports(idx) = count;
 
+    removeCablesOfPorts(to_delete);
     inletsChanged();
     for(auto port : to_delete)
       delete port;
@@ -433,6 +511,7 @@ private:
 
     dynamic_ports.num_out_ports(idx) = count;
 
+    removeCablesOfPorts(to_delete);
     outletsChanged();
     for(auto port : to_delete)
       delete port;
@@ -635,7 +714,10 @@ public:
 
     // We have to adjust before accessing a port as there is the first "fake"
     // port if the processor takes audio by argument
+    // (same adjustment as avnd_input_idx_to_model_ports)
     if constexpr(avnd::audio_argument_processor<Info>)
+      model_index += 1;
+    else if constexpr(avnd::tag_cv<Info>)
       model_index += 1;
 
     // The "messages" ports also go before
@@ -677,11 +759,16 @@ public:
 
     // We have to adjust before accessing a port as there is the first "fake"
     // port if the processor takes audio by argument
+    // (same adjustment as avnd_output_idx_to_model_ports: no message outlets,
+    // and a cv processor only has an output if it returns something)
     if constexpr(avnd::audio_argument_processor<Info>)
       model_index += 1;
-
-    // The "messages" ports also go before
-    model_index += avnd::messages_introspection<Info>::size;
+    else if constexpr(avnd::tag_cv<Info>)
+    {
+      using operator_ret = typename avnd::function_reflection_o<Info>::return_type;
+      if constexpr(!std::is_void_v<operator_ret>)
+        model_index += 1;
+    }
 
     Process::Outlets::iterator ret;
     if constexpr(avnd::dynamic_ports_output_introspection<Info>::size == 0)

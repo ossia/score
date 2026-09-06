@@ -620,10 +620,13 @@ PortItem::~PortItem()
     if(cable->target() == this)
       cable->setTarget(nullptr);
   }
+  // An item whose deletion was deferred (deleteGraphicsItem) may outlive its
+  // model port, and the item of a port later allocated at the same address:
+  // only this item's own entry goes.
   auto& plug = m_context.dataflow;
   auto& p = plug.ports();
   auto it = p.find(&m_port);
-  if(it != p.end())
+  if(it != p.end() && it->second == this)
     p.erase(it);
 }
 

@@ -10,6 +10,7 @@
 #include <Effect/EffectLayout.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/graphics/GraphicsItem.hpp>
 #include <score/graphics/TextItem.hpp>
 #include <score/graphics/layouts/GraphicsGridLayout.hpp>
 #include <score/graphics/widgets/QGraphicsPixmapButton.hpp>
@@ -73,21 +74,32 @@ DefaultEffectItem::DefaultEffectItem(
 
 DefaultEffectItem::~DefaultEffectItem() { }
 
+// The port items register themselves by model port in the document's port map,
+// and the model ports of a process with dynamic ports may be deleted right
+// after inletsChanged(): they cannot wait for the deferred deletion of the
+// layout below, or the next port at the same address would come up as a
+// zombie. deleteGraphicsItem() still defers the one that is delivering an
+// event (a cable being dragged from it), see GraphicsItem.hpp.
 static void deletePortItems(QGraphicsItem* it)
 {
-  auto items = it->childItems();
+  const auto items = it->childItems();
   for(auto ptr : items)
   {
     if(auto r = qgraphicsitem_cast<Dataflow::PortItem*>(ptr))
-      delete r;
+      deleteGraphicsItem(r);
     else
       deletePortItems(ptr);
   }
 }
+
 void DefaultEffectItem::reset()
 {
   if(m_layout)
   {
+    // The rest of the layout is only hidden here: reset() runs from inside
+    // the edit of one of its own controls when that control resizes the
+    // process's ports, and the control must survive the delivery of its event.
+    // Hiding it also makes the scene release its mouse grab cleanly.
     deletePortItems(m_layout);
     m_layout->setVisible(false);
     m_layout->deleteLater();

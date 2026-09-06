@@ -192,6 +192,29 @@ restoreCables(const SerializedCables& cables, const score::DocumentContext& ctx)
   return ret;
 }
 
+static bool portHasCable(const Process::Port& port, const Process::Cable& c)
+{
+  for(auto& cbl : port.cables())
+  {
+    auto& vec = cbl.unsafePath().vec();
+    if(!vec.empty() && vec.back().id() == c.id().val())
+      return true;
+  }
+  return false;
+}
+
+void reattachCablesToPorts(
+    std::span<Process::Cable*> cbl, const score::DocumentContext& ctx)
+{
+  for(auto* cable : cbl)
+  {
+    if(auto src = cable->source().try_find(ctx); src && !portHasCable(*src, *cable))
+      src->addCable(*cable);
+    if(auto snk = cable->sink().try_find(ctx); snk && !portHasCable(*snk, *cable))
+      snk->addCable(*cable);
+  }
+}
+
 void notifyAddedCables(std::span<Process::Cable*> cbl, const score::DocumentContext& ctx)
 {
   Scenario::ScenarioDocumentModel& doc

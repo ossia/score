@@ -83,6 +83,14 @@ public:
       Execution::Transaction* commands)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, nodeChanged, old_node, new_node, commands)
 
+  //! The node stays but some of its ossia ports were replaced in `commands`
+  //! (a process with dynamic ports being resized); the edges of the ports
+  //! that went away are gone with them. Whoever keeps edges to this node
+  //! that are not document cables -- the interval's audio propagation --
+  //! brings them back in sync in `commands`, after the swap.
+  void portsReplaced(Execution::Transaction* commands)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, portsReplaced, commands)
+
 protected:
   std::shared_ptr<ossia::time_process> m_ossia_process;
 };

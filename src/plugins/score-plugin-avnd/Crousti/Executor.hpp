@@ -20,6 +20,8 @@
 #include <score/tools/Bind.hpp>
 #include <ossia/detail/flat_set.hpp>
 #include <ossia/dataflow/exec_state_facade.hpp>
+#include <ossia/dataflow/graph/graph_interface.hpp>
+#include <ossia/dataflow/graph_edge.hpp>
 #include <ossia/dataflow/node_process.hpp>
 #include <ossia/network/context.hpp>
 
@@ -323,142 +325,235 @@ public:
 #endif
   }
 
+  //! The model's ports changed (a dynamic port group was resized): rebuild the
+  //! exec node's port list to match, without replacing the node.
+  //!
+  //! Everything that allocates happens here, in the main thread; the exec
+  //! thread only swaps the new port vectors in. Order of the transaction:
+  //!   1. disconnect the edges of the cables of this process,
+  //!   2. unregister the old exec ports from the execution state,
+  //!   3. swap the new ports into the node (previous ones go back to be freed
+  //!      in the main thread),
+  //!   4. register the new exec ports, with their addresses,
+  //!   5. reconnect the cables against the new ports.
+  //! Then the UI -> exec connection is made for the control inlets that appeared.
   void recompute_ports()
   {
-    if constexpr(oscr::has_dynamic_ports<Node>)
+    if constexpr(oscr::has_dynamic_ports<Node> && !is_gpu<Node>)
     {
       using T = Node;
       auto n = std::dynamic_pointer_cast<safe_node<Node>>(this->node);
       if(!n)
         return;
-      this->m_generation++;
-      const auto& new_inlets = this->process().inlets();
-      for(auto port : this->m_oldInlets)
-      {
+
+      auto& element = this->process();
+      const Execution::Context& ctx = this->system();
+      Execution::SetupContext& setup = ctx.setup;
+
+      // The ports the exec node is currently set up for. Those that are not
+      // in the model anymore are about to be deleted (they are still alive
+      // here: ProcessModel deletes them after inletsChanged()).
+      const Process::Inlets old_inlets = std::move(this->m_oldInlets);
+      const Process::Outlets old_outlets = std::move(this->m_oldOutlets);
+      const Process::Inlets& new_inlets = element.inlets();
+      const Process::Outlets& new_outlets = element.outlets();
+
+      for(auto port : old_inlets)
         if(!ossia::contains(new_inlets, port))
-        {
-          // m_oldInlets holds Process::Inlet*; m_connectedControls is a
-          // flat_set<Process::ControlInlet*>, and only control inlets ever go in it.
-          if(auto ctl = qobject_cast<Process::ControlInlet*>(port))
-            this->m_connectedControls.erase(ctl);
-        }
-      }
+          this->m_connectedControls.erase(port);
 
-      this->m_oldInlets = this->process().inlets();
-      this->m_oldOutlets = this->process().outlets();
+      // The cables at either end of this process that are wired up in the
+      // graph: their edges point to the exec ports that are being replaced.
+      // A cable that is on the ports but not wired yet (restored by a command
+      // that announces it after inletsChanged()) is left to that announcement.
+      ossia::small_vector<Process::Cable*, 8> cables;
+      auto collect_cables = [&](const auto& ports) {
+        for(auto port : ports)
+          for(auto& cbl : port->cables())
+            if(auto c = cbl.try_find(ctx.doc))
+              if(setup.m_cables.find(c->id()) != setup.m_cables.end())
+                if(!ossia::contains(cables, c))
+                  cables.push_back(c);
+      };
+      collect_cables(old_inlets);
+      collect_cables(old_outlets);
+      collect_cables(new_inlets);
+      collect_cables(new_outlets);
 
+      // Build the new set of exec ports.
       struct port_storage
       {
         ossia::inlets new_inls_buffer;
         ossia::outlets new_outls_buffer;
-        inlet_reload_storage<T> reload_inlet{};
-        outlet_reload_storage<T> reload_outlet{};
-        port_storage(int ins, int outs)
+        inlet_reload_storage<T> reload_inlet;
+        outlet_reload_storage<T> reload_outlet;
+        port_storage(std::size_t ins, std::size_t outs)
         {
-          new_inls_buffer.reserve(16 + ins);
-          new_outls_buffer.reserve(16 + outs);
+          new_inls_buffer.reserve(ins);
+          new_outls_buffer.reserve(outs);
         }
       };
+      auto port_st = std::make_shared<port_storage>(new_inlets.size(), new_outlets.size());
+      auto& inbuf = port_st->new_inls_buffer;
+      auto& outbuf = port_st->new_outls_buffer;
 
-      auto port_st = std::make_shared<port_storage>(
-          this->m_oldInlets.size(), this->m_oldOutlets.size());
+      // Same order as safe_node_base::reinit() + initialize_all_ports():
+      // first the ports that do not come from a field of the object
+      // (audio / value argument of the processor, message inlets), then the fields.
+      n->audio_ports.init(inbuf, outbuf);
+      n->arg_value_ports.init(inbuf, outbuf);
+      n->message_ports.init(inbuf);
 
-      /// FIXME instead we want to duplicate initialize_all_ports,
-      /// in a way that allows to generate the port array in the
-      /// main thread. Problem : some are references to members of the node object.
-      /// The references shouldn't change though but we really want two passes:
-      /// One "take reference" pass (which would also create the new dynamic array
-      /// for dynamic in / outs, fully in the main thread), and one "replace by the new I/O ports in our object" pass,
-      /// which happens in the DSP thread .
-
-      auto& dp = this->process().dynamic_ports;
+      auto& dp = element.dynamic_ports;
+      if constexpr(avnd::inputs_type<T>::size > 0)
       {
-        // Setup inputs
-        if constexpr(avnd::inputs_type<T>::size > 0)
-        {
-          using in_info = avnd::input_introspection<T>;
-          using in_type = typename avnd::inputs_type<T>::type;
-          auto& port_tuple = n->ossia_inlets.ports;
+        using in_info = avnd::input_introspection<T>;
+        using in_type = typename avnd::inputs_type<T>::type;
+        auto& port_tuple = n->ossia_inlets.ports;
 
-          [&]<typename K, K... Index>(std::integer_sequence<K, Index...>) {
-            reload_inlets<safe_node_base_base<T>> init{*n, port_st->new_inls_buffer, dp};
-            (init(
-                 avnd::field_reflection<
-                     Index, avnd::pfr::tuple_element_t<Index, in_type>>{},
-                 tuplet::get<Index>(port_tuple),
-                 tuplet::get<Index>(port_st->reload_inlet.ports)),
-             ...);
-          }(typename in_info::indices_n{});
-        }
-
-        // Setup outputs
-        if constexpr(avnd::outputs_type<T>::size > 0)
-        {
-          using out_info = avnd::output_introspection<T>;
-          using out_type = typename avnd::outputs_type<T>::type;
-          auto& port_tuple = n->ossia_outlets.ports;
-
-          [&]<typename K, K... Index>(std::integer_sequence<K, Index...>) {
-            reload_outlets<safe_node_base_base<T>> init{
-                *n, port_st->new_outls_buffer, dp};
-            (init(
-                 avnd::field_reflection<
-                     Index, avnd::pfr::tuple_element_t<Index, out_type>>{},
-                 tuplet::get<Index>(port_tuple),
-                 tuplet::get<Index>(port_st->reload_outlet.ports)),
-             ...);
-          }(typename out_info::indices_n{});
-        }
+        [&]<typename K, K... Index>(std::integer_sequence<K, Index...>) {
+          reload_inlets<safe_node_base_base<T>> init{*n, inbuf, dp};
+          (init(
+               avnd::field_reflection<Index, avnd::pfr::tuple_element_t<Index, in_type>>{},
+               tuplet::get<Index>(port_tuple),
+               tuplet::get<Index>(port_st->reload_inlet.ports)),
+           ...);
+        }(typename in_info::indices_n{});
       }
 
-      Execution::SetupContext& setup = this->system().context().setup;
+      if constexpr(avnd::outputs_type<T>::size > 0)
+      {
+        using out_info = avnd::output_introspection<T>;
+        using out_type = typename avnd::outputs_type<T>::type;
+        auto& port_tuple = n->ossia_outlets.ports;
 
-      Execution::Transaction commands{this->system()};
-      setup.unregister_node_soft(
-          this->m_oldInlets, this->m_oldOutlets, this->node, commands);
-      commands.push_back([node = n] {
-        node->root_inputs().clear();
-        node->root_outputs().clear();
-        node->clear_all_ports();
-      });
-      commands.push_back([self = QPointer{this}, qed_ptr = weak_edit, dp = dp, node = n,
-                          port_st = port_st, gen = this->m_generation]() mutable {
+        [&]<typename K, K... Index>(std::integer_sequence<K, Index...>) {
+          reload_outlets<safe_node_base_base<T>> init{*n, outbuf, dp};
+          (init(
+               avnd::field_reflection<
+                   Index, avnd::pfr::tuple_element_t<Index, out_type>>{},
+               tuplet::get<Index>(port_tuple),
+               tuplet::get<Index>(port_st->reload_outlet.ports)),
+           ...);
+        }(typename out_info::indices_n{});
+      }
+
+      // The exec node must line up with the model port for port, otherwise
+      // cables and addresses would land on the wrong exec port.
+      SCORE_SOFT_ASSERT(inbuf.size() == new_inlets.size());
+      SCORE_SOFT_ASSERT(outbuf.size() == new_outlets.size());
+
+      Execution::Transaction commands{ctx};
+
+      // 1. The edges of the cables, before their ports go away
+      for(auto c : cables)
+        setup.removeCable(*c, commands);
+
+      // 2. Old ports out of the execution state and of the setup maps
+      setup.unregister_node_soft(old_inlets, old_outlets, this->node, commands);
+
+      // 3. Swap the ports in
+      commands.push_back(
+          [node = n, dp, port_st, gcq = ctx.weakGCQueue(),
+           wg = std::weak_ptr{ctx.execGraph}]() mutable {
+        OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
+
+        // Nothing may keep an edge to a port that is about to be freed: the
+        // cables were disconnected above, whatever else is still there (the
+        // interval's audio propagation, or an edge nobody tracks) is dropped.
+        // Ports that stay keep their edges.
+        if(auto g = wg.lock())
+        {
+          const auto& inbuf = port_st->new_inls_buffer;
+          const auto& outbuf = port_st->new_outls_buffer;
+          for(auto* p : node->root_inputs())
+          {
+            if(ossia::contains(inbuf, p))
+              continue;
+            const auto edges = p->sources;
+            for(auto e : edges)
+              g->disconnect(e);
+          }
+          for(auto* p : node->root_outputs())
+          {
+            if(ossia::contains(outbuf, p))
+              continue;
+            const auto edges = p->targets;
+            for(auto e : edges)
+              g->disconnect(e);
+          }
+        }
+
         node->dynamic_ports = dp;
-        node->reinit();
         node->reload_all_ports(port_st->reload_inlet, port_st->reload_outlet);
 
-        auto& new_ins = node->root_inputs();
         auto& inbuf = port_st->new_inls_buffer;
-        new_ins.assign(inbuf.begin(), inbuf.end());
-        auto& new_outs = node->root_outputs();
         auto& outbuf = port_st->new_outls_buffer;
-        new_outs.assign(outbuf.begin(), outbuf.end());
+        node->root_inputs().assign(inbuf.begin(), inbuf.end());
+        node->root_outputs().assign(outbuf.begin(), outbuf.end());
+
+        // Size the object's own port vectors right away: they are otherwise
+        // only resized on the next tick, and a value from the UI for a new
+        // port may arrive before that.
+        if constexpr(avnd::dynamic_ports_input_introspection<T>::size > 0)
+        {
+          for(auto state : node->impl.full_state())
+          {
+            avnd::dynamic_ports_input_introspection<T>::for_all_n2(
+                state.inputs, [&]<std::size_t Idx>(
+                                  auto& field, auto, avnd::field_index<Idx> idx) {
+              field.ports.resize(std::max(0, node->dynamic_ports.num_in_ports(idx)));
+            });
+          }
+        }
+        if constexpr(avnd::dynamic_ports_output_introspection<T>::size > 0)
+        {
+          for(auto state : node->impl.full_state())
+          {
+            avnd::dynamic_ports_output_introspection<T>::for_all_n2(
+                state.outputs, [&]<std::size_t Idx>(
+                                   auto& field, auto, avnd::field_index<Idx> idx) {
+              field.ports.resize(std::max(0, node->dynamic_ports.num_out_ports(idx)));
+            });
+          }
+        }
+
+        // port_st now holds the previous dynamic ports: free them in the main thread
+        if(auto q = gcq.lock())
+          q->enqueue(Execution::gc(std::move(port_st)));
       });
 
-      for(std::size_t i = 0; i < port_st->new_inls_buffer.size(); i++)
-      {
-        setup.register_inlet(
-            *this->m_oldInlets[i], port_st->new_inls_buffer[i], n, commands);
-      }
-      for(std::size_t i = 0; i < port_st->new_outls_buffer.size(); i++)
-      {
-        setup.register_outlet(
-            *this->m_oldOutlets[i], port_st->new_outls_buffer[i], n, commands);
-      }
+      // 4. New ports in
+      setup.proc_map[this->node.get()] = &element;
+      const std::size_t n_in = std::min(new_inlets.size(), inbuf.size());
+      for(std::size_t i = 0; i < n_in; i++)
+        setup.register_inlet(*new_inlets[i], inbuf[i], this->node, commands);
+
+      const std::size_t n_out = std::min(new_outlets.size(), outbuf.size());
+      for(std::size_t i = 0; i < n_out; i++)
+        setup.register_outlet(*new_outlets[i], outbuf[i], this->node, commands);
+
+      // 5. Cables against the new ports; then whoever keeps other edges to
+      //    this node (the interval's audio propagation) syncs them
+      for(auto c : cables)
+        setup.connectCable(*c, commands);
+      this->portsReplaced(&commands);
 
       commands.run_all();
 
+      this->m_oldInlets = new_inlets;
+      this->m_oldOutlets = new_outlets;
+
+      // UI -> exec for the control inlets that appeared
       using dynamic_ports_port_type = avnd::dynamic_ports_input_introspection<Node>;
-      using control_inputs_type = avnd::control_input_introspection<Node>;
       if constexpr(dynamic_ports_port_type::size > 0)
       {
-        safe_node<Node>& node = *n;
-        avnd::effect_container<Node>& eff = node.impl;
+        avnd::effect_container<Node>& eff = n->impl;
         for(auto state : eff.full_state())
         {
           dynamic_ports_port_type::for_all_n2(
-              state.inputs, dispatch_control_reconnect<Node>{
-                                this->process(), this->system(), n, *this, this});
+              state.inputs,
+              dispatch_control_reconnect<Node>{element, ctx, n, *this, this});
         }
       }
     }

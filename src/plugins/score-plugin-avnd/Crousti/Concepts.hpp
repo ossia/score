@@ -38,6 +38,15 @@
 
 namespace oscr
 {
+//! Whether the process model has to keep an instance of the object around, to
+//! run the callbacks that are declared on its ports: the controllers that
+//! resize the dynamic ports, and the on_controller_setup / on_controller_interaction
+//! hooks, which are also used by objects without dynamic ports.
+template <typename T>
+concept has_ports_callbacks
+    = oscr::has_controller_ports<T> || oscr::has_dynamic_ports<T>
+      || (avnd::controller_setup_port_input_introspection<T>::size > 0);
+
 template <typename Node, typename FieldIndex>
 struct CustomFloatControl;
 
@@ -380,7 +389,8 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
         return p;
       }
       else
-        return new Process::LineEdit{"", qname, id, parent};
+        return new ControlTypeToUse<Process::LineEdit, Node, T, avnd::field_index<N>>{
+            "", qname, id, parent};
     }
   }
   else if constexpr(widg.widget == avnd::widget_type::combobox)

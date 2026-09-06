@@ -60,8 +60,9 @@ private:
       cmt.outlets()[i]->loadData(m_oldOutlets[i].data);
     }
 
-    // Recreate the old cables
+    // Recreate the old cables; the ports at the other end lost them too
     auto cables = Dataflow::restoreCablesWithoutTouchingPorts(m_oldCables, ctx);
+    Dataflow::reattachCablesToPorts(cables, ctx);
     cmt.inletsChanged();
     cmt.outletsChanged();
     cmt.programChanged();

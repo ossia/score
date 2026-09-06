@@ -639,3 +639,27 @@ score_add_test(test_unit_dshow_subtype
   SOURCES DirectShowSubtypeResolveTest.cpp
   PLUGINS score_plugin_gfx
   LIBS avutil avcodec)
+
+# --- avendish dynamic ports --------------------------------------------------
+# A controller control resizes the ports of its process from inside its own
+# setValue(). Model side: port lists, save / load, SetControllerControlValue
+# (cables and values on undo), the controller widgets' deferred submit.
+if(TARGET score_plugin_avnd)
+  score_add_test(test_unit_avnd_dynamic_ports
+    SOURCES AvndDynamicPortsTest.cpp
+    APP
+    PLUGINS score_plugin_avnd score_plugin_scenario score_lib_process)
+endif()
+
+# Execution side: the exec node is rebuilt in place, the setup context maps
+# every model port to its exec port, cables are re-made, and values set on
+# ports that appeared reach the object. Pulls in the avendish binding headers
+# and two example objects.
+if(TARGET score_plugin_avnd AND TARGET score_plugin_engine)
+  score_add_test(test_unit_avnd_dynamic_ports_exec
+    SOURCES AvndDynamicPortsExecTest.cpp
+    APP
+    PLUGINS score_plugin_avnd score_plugin_dataflow score_plugin_engine score_plugin_scenario score_lib_process)
+  target_include_directories(test_unit_avnd_dynamic_ports_exec PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish")
+endif()

@@ -57,6 +57,13 @@ restoreCables(const SerializedCables& cbls, const score::DocumentContext& ctx);
 restoreCablesWithoutTouchingPorts(
     const SerializedCables& cbls, const score::DocumentContext& ctx);
 
+//! After restoreCablesWithoutTouchingPorts(): the ports of `proc` got their
+//! cable list back along with their saved data, but removeCables() had taken
+//! the cables off the ports at the other end too, and those were not reloaded.
+//! Puts the cables back on every port that does not have them.
+SCORE_PLUGIN_SCENARIO_EXPORT void
+reattachCablesToPorts(std::span<Process::Cable*>, const score::DocumentContext& ctx);
+
 //! Needed to prevent subtle issues where
 //! cableAdded() signal is emitted and received by the audio thread
 //! before we reached inletsChanged() / programChanged()
