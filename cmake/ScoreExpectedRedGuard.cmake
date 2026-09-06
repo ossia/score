@@ -127,10 +127,35 @@ function(score_check_expected_red)
   set(_problems "")
   set(_rows "")
 
+  # A ';' anywhere in a row splits it into list fragments, because that is what
+  # ';' means to CMake. The fragments then have fewer than four @-fields and the
+  # list(GET)s below fail with three bare errors naming neither the row nor the
+  # reason -- which cost a debugging round when a reason text used a semicolon.
+  # Catch it here and say exactly which row is malformed.
+  foreach(_entry IN LISTS SCORE_EXPECTED_RED)
+    string(FIND "${_entry}" "@" _has_at)
+    if(_has_at EQUAL -1)
+      message(FATAL_ERROR
+        "cmake/ScoreExpectedRedGuard.cmake: malformed SCORE_EXPECTED_RED row.\n"
+        "  ${_entry}\n"
+        "It has no '@' field separator, which almost always means an earlier "
+        "row contains a ';'. CMake splits a string on ';' into list elements, "
+        "so one semicolon turns one row into two fragments. Use ',' or '--' "
+        "instead -- see the format note at the top of this file.")
+    endif()
+  endforeach()
+
   # ---- what the manifest declares, as counts per (mechanism, file) ---------
   set(_declared_files "")
   foreach(_entry IN LISTS SCORE_EXPECTED_RED)
     string(REPLACE "@" ";" _fields "${_entry}")
+    list(LENGTH _fields _nfields)
+    if(_nfields LESS 4)
+      message(FATAL_ERROR
+        "cmake/ScoreExpectedRedGuard.cmake: SCORE_EXPECTED_RED row has "
+        "${_nfields} @-separated fields, expected 4 "
+        "(mechanism @ path @ case name @ why).\n  ${_entry}")
+    endif()
     list(GET _fields 0 _mech)
     list(GET _fields 1 _path)
     list(GET _fields 2 _case)
