@@ -380,12 +380,12 @@ void updateProjectInfoBeforeSave(Document& doc)
   // A view that could not be captured (e.g. an OpenGL viewport on some
   // platforms) comes back as a flat color: keep the previous thumbnail then.
   {
-    const QImage small = capture.scaled(16, 16, Qt::IgnoreAspectRatio);
-    const QRgb first = small.pixel(0, 0);
+    const QImage thumb = capture.scaled(16, 16, Qt::IgnoreAspectRatio);
+    const QRgb first = thumb.pixel(0, 0);
     bool flat = true;
-    for(int y = 0; y < small.height() && flat; y++)
-      for(int x = 0; x < small.width(); x++)
-        if(small.pixel(x, y) != first)
+    for(int y = 0; y < thumb.height() && flat; y++)
+      for(int x = 0; x < thumb.width(); x++)
+        if(thumb.pixel(x, y) != first)
         {
           flat = false;
           break;
