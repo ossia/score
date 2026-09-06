@@ -31,6 +31,8 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QFileSystemWatcher>
+#include <QGuiApplication>
+#include <QPointer>
 #include <QQmlComponent>
 #include <QQuickItem>
 #include <QQuickWindow>
@@ -106,7 +108,8 @@ Process::ProcessFlags ProcessModel::flags() const noexcept
 {
   auto flags = Metadata<Process::ProcessFlags_k, JS::ProcessModel>::get();
   if(m_ui_component)
-    flags |= Process::ExternalUIAvailable; // FIXME set in every relevant process
+    // The UI is a Qt Quick scene in a window container: it can be docked.
+    flags |= Process::ExternalUIAvailable | Process::ExternalUIEmbeddable;
   return flags;
 }
 
@@ -167,7 +170,8 @@ QString ProcessModel::rootPath() const noexcept
   }
   else
   {
-    static const auto& lib = score::AppContext().settings<Library::Settings::Model>();
+    // Not cached: tests run several applications in one process
+    const auto& lib = score::AppContext().settings<Library::Settings::Model>();
 
     return lib.getDefaultLibraryPath() + QDir::separator() + "Scripts"
            + QDir::separator() + "include" + QDir::separator() + "Script/Script.qml";
@@ -379,6 +383,62 @@ QWidget* ProcessModel::createWindowForUI(const score::DocumentContext& ctx,
   if(!m_ui_object)
     return nullptr;
 
+  // A close is deferred: by the time this runs the process may show a new
+  // UI, which must be left alone. The container pointer is only compared,
+  // the widget may be half-destroyed.
+  const auto cleanup_ui = [this](QQuickWindow* win, QWidget* container) {
+    if(m_ui_object && m_ui_object->window() == win)
+    {
+      delete m_ui_object;
+      m_ui_object = nullptr;
+    }
+
+    if(externalUI == container)
+    {
+      const_cast<QWidget*&>(externalUI) = nullptr;
+      externalUIVisible(false);
+    }
+  };
+
+  // Let the UI take the whole window: needed when the window is docked in
+  // the main window and follows the size of its pane.
+  const auto fitToWindow = [](QQuickWindow* win, QQuickItem* item) {
+    if(win && item)
+      item->setSize(QSizeF(win->width(), win->height()));
+  };
+
+  // On a new compile the UI object is recreated; put it back in the window
+  const auto reloadUI = [this, &ctx, fitToWindow](QQuickWindow* win) -> bool {
+    // A window closed and waiting for its deletion while a new one holds
+    // the UI: nothing to do in it
+    if(m_ui_object && m_ui_object->window() != win)
+      return true;
+
+    delete m_ui_object;
+    m_ui_object = nullptr;
+    if(!m_ui_component)
+      return false;
+
+    m_ui_object = createItemForUI(ctx);
+    if(!m_ui_object)
+      return false;
+    m_ui_object->setParentItem(win->contentItem());
+    m_ui_object->setParent(win->contentItem());
+    fitToWindow(win, m_ui_object);
+    return true;
+  };
+
+  // The requested size: the ScriptUI root asks for one through its implicit
+  // width / height (e.g. `implicitWidth: 1280`), defaulting to 640x640.
+  const QSize requested = [this] {
+    int w = 640, h = 640;
+    if(m_ui_object->implicitWidth() >= 100.)
+      w = static_cast<int>(m_ui_object->implicitWidth());
+    if(m_ui_object->implicitHeight() >= 100.)
+      h = static_cast<int>(m_ui_object->implicitHeight());
+    return QSize{w, h};
+  }();
+
   auto win = new QQuickWindow{};
   // QWidget gets these from QWidgetPrivate::adjustFlags; a bare QQuickWindow
   // does not, and on platforms where Qt draws the chrome itself (wasm) that
@@ -396,66 +456,48 @@ QWidget* ProcessModel::createWindowForUI(const score::DocumentContext& ctx,
 #endif
   win->setWidth(640);
   win->setHeight(640);
+  win->setColor(qApp->palette().color(QPalette::Window));
 
   m_ui_object->setParentItem(win->contentItem());
-
-  const auto cleanup_ui = [this] {
-    delete m_ui_object;
-    m_ui_object = nullptr;
-
-    const_cast<QWidget*&>(externalUI) = nullptr;
-    externalUIVisible(false);
-  };
+  connect(win, &QQuickWindow::widthChanged, this, [this, win, fitToWindow] {
+    fitToWindow(win, m_ui_object);
+  });
+  connect(win, &QQuickWindow::heightChanged, this, [this, win, fitToWindow] {
+    fitToWindow(win, m_ui_object);
+  });
 
   auto widg = QWidget::createWindowContainer(win, parent);
   if(!widg) {
-    cleanup_ui();
+    delete m_ui_object;
+    m_ui_object = nullptr;
+    delete win;
     return nullptr;
   }
   widg->setAttribute(Qt::WA_DeleteOnClose);
-
-  // The container widget does not follow the QQuickWindow's size: size it
-  // explicitly, letting the ScriptUI root ask for a size through its implicit
-  // width / height (e.g. `implicitWidth: 1280`), defaulting to 640x640.
-  {
-    int w = 640, h = 640;
-    if(m_ui_object->implicitWidth() >= 100.)
-      w = static_cast<int>(m_ui_object->implicitWidth());
-    if(m_ui_object->implicitHeight() >= 100.)
-      h = static_cast<int>(m_ui_object->implicitHeight());
-    widg->resize(w, h);
-  }
+  // The container widget does not follow the QQuickWindow's size
+  widg->resize(requested);
 
 #if QT_VERSION >= QT_VERSION_CHECK(6,8,2)
   // Bug in older Qt 6 versions:
   // QtCore/qmetatype.h:842:23: error: invalid application of 'sizeof' to an incomplete type 'QQuickCloseEvent'
   // static_assert(sizeof(T), "Type argument of Q_PROPERTY or Q_DECLARE_METATYPE(T*) must be fully defined");
-  connect(win, &QQuickWindow::closing, this, cleanup_ui);
+  connect(win, &QQuickWindow::closing, this, [cleanup_ui, win, widg] {
+    cleanup_ui(win, widg);
+  });
 #endif
-  connect(win, &QQuickWindow::destroyed, this, cleanup_ui);
-  connect(this, &JS::ProcessModel::uiScriptOk, win, [this, win, &ctx]() mutable {
-    delete m_ui_object;
-    m_ui_object = nullptr;
-    if(!m_ui_component)
+  connect(win, &QQuickWindow::destroyed, this, [cleanup_ui, win, widg] {
+    cleanup_ui(win, widg);
+  });
+  connect(
+      this, &JS::ProcessModel::uiScriptOk, win,
+      [reloadUI, win, container = QPointer<QWidget>{widg}] {
+    if(!reloadUI(win))
     {
-      win->close();
-      win->deleteLater();
-      const_cast<QWidget*&>(externalUI) = nullptr;
-      externalUIVisible(false);
-      return;
+      // The container is what the main window holds: closing it takes the
+      // window with it and runs the cleanup from destroyed()
+      if(container)
+        container->close();
     }
-
-    m_ui_object = createItemForUI(ctx);
-    if(!m_ui_object)
-    {
-      win->close();
-      win->deleteLater();
-      const_cast<QWidget*&>(externalUI) = nullptr;
-      externalUIVisible(false);
-      return;
-    }
-    m_ui_object->setParentItem(win->contentItem());
-    m_ui_object->setParent(win->contentItem());
   });
   return widg;
 }
@@ -547,18 +589,18 @@ void ProcessModel::updateState(const QString &k, const ossia::value& res)
 
   auto path = score::locateFilePath(trimmed, score::IDocument::documentContext(*this));
 
-  if(QFileInfo::exists(path))
-  {
-    if(res = setQmlData(path.toUtf8(), true); !res.valid)
-      return res;
-  }
-  else
-  {
-    if(res = setQmlData(data, false); !res.valid)
-      return res;
-  }
-
+  // setQmlData builds the UI component from m_program.ui: it must be the new
+  // one, otherwise every compile shows the UI of the previous compile.
+  const auto previous = m_program;
   m_program = script;
+
+  if(QFileInfo::exists(path))
+    res = setQmlData(path.toUtf8(), true);
+  else
+    res = setQmlData(data, false);
+
+  if(!res.valid)
+    m_program = previous;
   return res;
 }
 
