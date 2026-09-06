@@ -229,6 +229,37 @@ compatibleBufferUsage(QRhi& rhi, QRhiBuffer::UsageFlags usage) noexcept
  * which passIndex never advanced past 0 -- and all six cube faces came back
  * carrying face 0's colour. Ask this function in both places.
  */
+/**
+ * @brief Whether a GPU indirect draw silently loses multiview on this backend.
+ *
+ * Qt's Metal backend derives gl_ViewIndex by multiplying the instance count and
+ * binding a view-mask buffer, and it does BOTH only in adjustForMultiViewDraw()
+ * -- which qrhimetal.mm calls from draw() (:2499) and drawIndexed() (:2539) and
+ * from NEITHER drawIndirect() nor drawIndexedIndirect(). An indirect draw of a
+ * multiview shader therefore renders every amplified view into layer 0, with no
+ * qWarning: the warning inside adjustForMultiViewDraw cannot fire because the
+ * function is never entered. Metal's validation layer names it outright:
+ *
+ *   Vertex Function(main0): missing Buffer binding at index 24 for spvViewMask[0].
+ *
+ * Measured on camera_array_faces (Apple M2 Pro, Qt 6.12.0): pipeline and colour
+ * attachment both carried multiViewCount 6, the baked MSL declared spvViewMask
+ * at buffer(24) and wrote gl_Layer, and the draw was a drawIndexedIndirect --
+ * five of six cube faces came back (0,0,0).
+ *
+ * The CPU fallback in CustomMesh::drawSingleMesh issues one drawIndexed per
+ * command, which DOES go through adjustForMultiViewDraw, so declining GPU
+ * indirect restores correct multiview at the cost of N draw calls.
+ *
+ * Scoped to Metal deliberately: Vulkan and D3D12 implement multiview in the
+ * render pass / view instancing, so the indirect entry points inherit it.
+ */
+inline bool
+indirectDrawBreaksMultiView(GraphicsApi api, int multiViewCount) noexcept
+{
+  return multiViewCount >= 2 && api == GraphicsApi::Metal;
+}
+
 inline bool viewIndexNeedsPassIndexFallback(
     GraphicsApi api, const QShaderVersion& version, int multiViewCount) noexcept
 {
