@@ -2677,18 +2677,41 @@ void RenderedRawRasterPipelineNode::update(
           if(port->type == Types::Buffer && !port->edges.empty())
           {
             auto bv = renderer.bufferForInput(*port->edges.front());
-            if(bv.usage == BufferView::Usage::IndirectDraw)
-            {
+            // Count AND STRIDE, exactly as CustomMesh::init() and its reload
+            // path compute them. Setting the buffer and the flag without them
+            // is not a degradation, it is an abort:
+            // MeshBuffers::indirectDrawStride defaults to 0 (Mesh.hpp:53) and
+            // QRhi asserts `stride >= sizeof(QRhi[Indexed]IndirectDrawCommand)`
+            // inside drawIndirect / drawIndexedIndirect, so the process dies
+            // the first time this path draws. Measured before this fix:
+            //
+            //   ASSERT: "stride >= sizeof(QRhiIndirectDrawCommand)"
+            //     qrhi.cpp:11573, from CustomMesh::drawSingleMesh
+            //
+            // This is the THIRD site to make the same mistake -- see the same
+            // note on CustomMesh's asynchronous-producer reload path. A
+            // standalone indirect buffer is one arriving through a Buffer INPUT
+            // PORT rather than travelling with the geometry, which is why
+            // neither of the geometry-side fixes covered it.
+            const auto setIndirect = [&](bool indexed) {
               m_meshbufs.indirectDrawBuffer = bv.handle;
               m_meshbufs.useIndirectDraw = true;
-              m_meshbufs.indirectDrawIndexed = false;
+              m_meshbufs.indirectDrawIndexed = indexed;
+              m_meshbufs.indirectDrawOffset = quint32(bv.byte_offset);
+              m_meshbufs.indirectDrawStride = 5 * sizeof(uint32_t);
+              m_meshbufs.indirectDrawCount
+                  = quint32(bv.byte_size / (5 * sizeof(uint32_t)));
+              if(m_meshbufs.indirectDrawCount == 0)
+                m_meshbufs.indirectDrawCount = 1;
+            };
+            if(bv.usage == BufferView::Usage::IndirectDraw)
+            {
+              setIndirect(false);
               break;
             }
             else if(bv.usage == BufferView::Usage::IndirectDrawIndexed)
             {
-              m_meshbufs.indirectDrawBuffer = bv.handle;
-              m_meshbufs.useIndirectDraw = true;
-              m_meshbufs.indirectDrawIndexed = true;
+              setIndirect(true);
               break;
             }
           }
