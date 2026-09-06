@@ -830,18 +830,26 @@ RenderList::Buffers RenderList::acquireMesh(
   auto meshbufs = initMeshBuffer(*m, res);
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
-  // Well-known _indirect_draw auxiliary buffer convention.
+  // Well-known _indirect_draw / _indirect_draw_indexed auxiliary buffer
+  // convention.
   //
-  // The engine emits a uniform 5-word indirect command (stride 20):
-  // { index_or_vertex_count, instance_count, first_index_or_vertex, base_vertex,
-  // first_instance }, which matches QRhiDrawIndexedIndirectCommand exactly, so the
-  // INDEXED path is GPU-safe at stride 20.
+  // Both auxiliaries carry 5-word records at a uniform stride of 20, but the
+  // word ORDER is the GPU ABI and differs between them, because
+  // QRhiDrawIndirectCommand is 4 u32 and QRhiDrawIndexedIndirectCommand is 5:
   //
-  // QRhiDrawIndirectCommand is only 4 u32, so pointing drawIndirect() at the same
-  // buffer would make the GPU read firstInstance from word 3 rather than word 4,
-  // diverging from the CPU fallback. The producer's buffer cannot be reshaped
-  // here, so the GPU indirect path stays indexed-only and a non-indexed mesh falls
-  // back to its normal draw.
+  //   _indirect_draw_indexed  { indexCount, instanceCount, firstIndex,
+  //                             baseVertex, firstInstance }
+  //                           == QRhiDrawIndexedIndirectCommand
+  //
+  //   _indirect_draw          { vertexCount, instanceCount, firstVertex,
+  //                             firstInstance, baseVertex (unused) }
+  //                           words 0..3 == QRhiDrawIndirectCommand
+  //
+  // The producer picks the shape (libisf emits the matching GLSL struct for a
+  // geometry resource's INDIRECT block; ScenePreprocessor writes it directly),
+  // so both are GPU-safe here. Feeding the indexed order to drawIndirect() is
+  // what used to make the GPU rung read firstInstance out of word 3 while the
+  // CPU readback rung read word 4 -- two rungs of one ladder disagreeing.
   if(!meshbufs.useIndirectDraw && !p->meshes.empty())
   {
     const auto& mesh = p->meshes[0];
@@ -874,10 +882,35 @@ RenderList::Buffers RenderList::acquireMesh(
         }
       }
     }
-    else if(mesh.find_auxiliary("_indirect_draw"))
+    else if(auto* aux_nonidx = mesh.find_auxiliary("_indirect_draw"))
     {
-      // Non-indexed GPU MDI intentionally unsupported (see comment above).
-      // Leave useIndirectDraw=false so the mesh draws via its normal path.
+      // Non-indexed: words 0..3 of each record are a native
+      // QRhiDrawIndirectCommand, so drawIndirect() at stride 20 reads
+      // firstInstance from the right word.
+      if(aux_nonidx->buffer >= 0 && aux_nonidx->buffer < (int)mesh.buffers.size())
+      {
+        const auto& buf_data = mesh.buffers[aux_nonidx->buffer].data;
+        if(auto* gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&buf_data))
+        {
+          if(gpu->handle)
+          {
+            constexpr quint32 stride = 5 * sizeof(uint32_t); // 20, matches CustomMesh
+            meshbufs.indirectDrawBuffer = static_cast<QRhiBuffer*>(gpu->handle);
+            meshbufs.useIndirectDraw = true;
+            meshbufs.indirectDrawIndexed = false;
+            meshbufs.indirectDrawOffset
+                = (quint32)std::max<int64_t>(0, aux_nonidx->byte_offset);
+            meshbufs.indirectDrawStride = stride;
+            const int64_t avail = (aux_nonidx->byte_size > 0)
+                ? aux_nonidx->byte_size
+                : (int64_t)gpu->byte_size - aux_nonidx->byte_offset;
+            meshbufs.indirectDrawCount
+                = (avail > 0) ? (quint32)(avail / stride) : 1u;
+            if(meshbufs.indirectDrawCount == 0)
+              meshbufs.indirectDrawCount = 1;
+          }
+        }
+      }
     }
   }
 #endif

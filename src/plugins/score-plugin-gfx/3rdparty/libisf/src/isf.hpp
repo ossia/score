@@ -435,6 +435,19 @@ struct geometry_input
     // slots beyond the written count must stay zeroed by the shader so the
     // capacity-draw fallback rungs paint the same picture.
     bool draw_count{false};
+
+    // "INDEXED": true — the commands in this buffer drive an INDEXED draw
+    // (the geometry carries an index buffer, e.g. forwarded from upstream),
+    // so the record must be laid out as QRhiDrawIndexedIndirectCommand:
+    //   { indexCount, instanceCount, firstIndex, baseVertex, firstInstance }.
+    //
+    // Default (false) is the NON-INDEXED layout, whose first four words are
+    // a native QRhiDrawIndirectCommand:
+    //   { vertexCount, instanceCount, firstVertex, firstInstance }
+    // followed by an unused fifth word so that both shapes keep the same
+    // 20-byte stride. Getting this wrong shifts firstInstance by one word
+    // between the GPU indirect rung and the CPU readback rung.
+    bool indexed{false};
   };
   std::optional<indirect_request> indirect;
 };

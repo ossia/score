@@ -53,7 +53,7 @@ Shot firstInstance(score::gfx::GraphicsApi api, bool cpu, bool abiControl)
 }
 TEST_CASE(
     "DrawDispatch-1 nonindexed firstInstance survives every draw rung",
-    "[DrawDispatch][first-instance][!shouldfail]")
+    "[DrawDispatch][first-instance]")
 {
   const auto api = GENERATE(from_range(platform_backends()));
   const bool cpu = GENERATE(false, true);
