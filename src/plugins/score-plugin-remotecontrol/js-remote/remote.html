@@ -7,6 +7,8 @@
 <body>
     <form>
         IP: <input type="text" id="endpoint" name="endpoint" value="ws://127.0.0.1:10212" style="width: 200px"><br>
+        Token: <input type="text" id="token" name="token" value="" style="width: 300px"><br>
+        <span id="status"></span><br>
         <input type="button" onclick="connectToWS()" value="Connect" />
         <br/><br/>
         <input type="button" onclick="play()" value="Play" />

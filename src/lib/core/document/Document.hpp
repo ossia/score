@@ -1,5 +1,6 @@
 #pragma once
 #include <score/document/DocumentContext.hpp>
+#include <score/tools/Environment.hpp>
 #include <score/locking/ObjectLocker.hpp>
 #include <score/selection/FocusManager.hpp>
 #include <score/selection/SelectionStack.hpp>
@@ -15,6 +16,7 @@
 #include <QTimer>
 #include <QVariant>
 
+#include <memory>
 #include <verdigris>
 
 class QObject;
@@ -72,6 +74,16 @@ public:
   ObjectLocker& locker() noexcept { return m_objectLocker; }
 
   const DocumentContext& context() const noexcept { return m_context; }
+
+  //! Where this document's files are. Local unless something says otherwise.
+  //!
+  //! Created on demand rather than in init(): deserialization resolves paths,
+  //! and it runs from the constructors before init() would have had a chance.
+  score::Environment& environment() const noexcept;
+
+  //! Take the files of this document to be somewhere else -- another machine,
+  //! typically, once it is being edited through a session.
+  void setEnvironment(std::unique_ptr<score::Environment> env);
 
   DocumentModel& model() const noexcept { return *m_model; }
 
@@ -150,6 +162,7 @@ private:
   DocumentBackupManager* m_backupMgr{};
 
   DocumentContext m_context;
+  mutable std::unique_ptr<score::Environment> m_environment;
 
   std::optional<score::RestorableDocument> m_initialData{};
   bool m_virgin{false}; // Used to check if we can safely close it

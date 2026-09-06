@@ -21,12 +21,25 @@ struct DeviceSettings
   UuidKey<Device::ProtocolFactory> protocol;
   QString name;
   QVariant deviceSpecificSettings;
+
+  //! The protocol-specific settings as a JSON object, kept verbatim when this
+  //! build has no factory for `protocol`.
+  //!
+  //! Protocols are registered conditionally inside plug-ins that exist
+  //! everywhere -- Syphon and Spout are both compiled into score-plugin-gfx --
+  //! so a document authored on macOS routinely names protocols a Windows build
+  //! cannot instantiate. Without this, saving from such a build writes back a
+  //! device with the right name and UUID and no settings at all, silently
+  //! destroying the configuration for every machine that *does* have the
+  //! protocol. Empty whenever the factory was found, i.e. in the common case.
+  QByteArray opaqueSettings;
 };
 
 inline bool operator==(const DeviceSettings& lhs, const DeviceSettings& rhs) noexcept
 {
   return lhs.protocol == rhs.protocol && lhs.name == rhs.name
-         && lhs.deviceSpecificSettings == rhs.deviceSpecificSettings;
+         && lhs.deviceSpecificSettings == rhs.deviceSpecificSettings
+         && lhs.opaqueSettings == rhs.opaqueSettings;
 }
 
 struct UDPPortDeviceResource

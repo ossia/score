@@ -3,16 +3,26 @@
 #include "CurveSegmentFactory.hpp"
 
 #include "CurveSegmentList.hpp"
+
+#include <QDebug>
 namespace Curve
 {
 SegmentFactory::~SegmentFactory() { }
 
 SegmentList::~SegmentList() { }
 
-SegmentList::object_type*
-SegmentList::loadMissing(const VisitorVariant& vis, QObject* parent) const
+SegmentList::object_type* SegmentList::loadMissing(
+    const UuidKey<Curve::SegmentFactory>& key, const VisitorVariant& vis,
+    QObject* parent) const
 {
-  SCORE_TODO;
+  // Deliberately not preserved, unlike processes, ports, devices and document
+  // plug-ins. A segment is asked for its value at a point -- valueAt,
+  // makeDoubleFunction -- and those answers are played. A stand-in would have
+  // to invent them, and silently wrong automation is worse than a missing
+  // segment. It also cannot arise: segments come only from score-plugin-curve,
+  // so a build without it has no curves to put them in.
+  qWarning() << "Dropping a curve segment of unknown type"
+             << score::uuids::toByteArray(key.impl());
   return nullptr;
 }
 }

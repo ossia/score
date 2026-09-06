@@ -105,6 +105,18 @@ struct SCORE_LIB_BASE_EXPORT ApplicationContext
     return components.instantiateUndoCommand(cmd);
   }
 
+  /**
+   * @brief Like instantiateUndoCommand, but returns nullptr for a command this
+   * build does not have, instead of aborting.
+   *
+   * For commands that did not originate locally: a peer in a networked session
+   * may run a build with plug-ins we do not have.
+   */
+  auto instantiateUndoCommandIfAvailable(const CommandData& cmd) const noexcept
+  {
+    return components.instantiateUndoCommandIfAvailable(cmd);
+  }
+
   const score::DocumentContext* currentDocument() const noexcept;
 
   //! Access to start-up command-line settings

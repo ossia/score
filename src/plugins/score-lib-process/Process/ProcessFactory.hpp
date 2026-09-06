@@ -103,5 +103,10 @@ public:
 
   bool matches(const Process::ProcessModel& p) const;
   virtual bool matches(const UuidKey<Process::ProcessModel>&) const = 0;
+
+  //! A fallback is used only for processes no other factory claims, e.g. one
+  //! whose plug-in this build does not have. It is never consulted through
+  //! matches(), which would make the choice depend on hash-map ordering.
+  virtual bool isFallback() const noexcept;
 };
 }

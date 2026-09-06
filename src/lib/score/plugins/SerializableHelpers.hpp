@@ -25,10 +25,10 @@ auto deserialize_interface(
   DataStream::Deserializer sub{b};
 
   // Deserialize the interface identifier
+  typename FactoryList_T::factory_type::ConcreteKey k;
   try
   {
     SCORE_DEBUG_CHECK_DELIMITER2(sub);
-    typename FactoryList_T::factory_type::ConcreteKey k;
     TSerializer<DataStream, typename FactoryList_T::factory_type::ConcreteKey>::writeTo(
         sub, k);
 
@@ -49,8 +49,9 @@ auto deserialize_interface(
   }
 
   // If the object could not be loaded, we try to load a "missing" version of
-  // it.
-  return factories.loadMissing(sub.toVariant(), std::forward<Args>(args)...);
+  // it. The key is handed over so that the stand-in can keep the identity of
+  // what it replaces and save it back unchanged.
+  return factories.loadMissing(k, sub.toVariant(), std::forward<Args>(args)...);
 }
 
 template <typename FactoryList_T, typename... Args>
@@ -63,10 +64,10 @@ auto deserialize_interface(
   DataStream::Deserializer sub{b};
 
   // Deserialize the interface identifier
+  typename FactoryList_T::factory_type::ConcreteKey k;
   try
   {
     SCORE_DEBUG_CHECK_DELIMITER2(sub);
-    typename FactoryList_T::factory_type::ConcreteKey k;
     TSerializer<DataStream, typename FactoryList_T::factory_type::ConcreteKey>::writeTo(
         sub, k);
 
@@ -87,8 +88,9 @@ auto deserialize_interface(
   }
 
   // If the object could not be loaded, we try to load a "missing" version of
-  // it.
-  return factories.loadMissing(sub.toVariant(), std::forward<Args>(args)...);
+  // it. The key is handed over so that the stand-in can keep the identity of
+  // what it replaces and save it back unchanged.
+  return factories.loadMissing(k, sub.toVariant(), std::forward<Args>(args)...);
 }
 
 template <typename FactoryList_T, typename... Args>
@@ -97,9 +99,9 @@ auto deserialize_interface(
     typename FactoryList_T::object_type*
 {
   // Deserialize the interface identifier
+  typename FactoryList_T::factory_type::ConcreteKey k;
   try
   {
-    typename FactoryList_T::factory_type::ConcreteKey k;
     JSONWriter wr{des.obj[des.strings.uuid]};
     TSerializer<JSONObject, typename FactoryList_T::factory_type::ConcreteKey>::writeTo(
         wr, k);
@@ -116,8 +118,9 @@ auto deserialize_interface(
   }
 
   // If the object could not be loaded, we try to load a "missing" version of
-  // it.
-  return factories.loadMissing(des.toVariant(), std::forward<Args>(args)...);
+  // it. The key is handed over so that the stand-in can keep the identity of
+  // what it replaces and save it back unchanged.
+  return factories.loadMissing(k, des.toVariant(), std::forward<Args>(args)...);
 }
 
 template <typename FactoryList_T, typename... Args>
@@ -126,9 +129,9 @@ auto deserialize_interface(
     typename FactoryList_T::object_type*
 {
   // Deserialize the interface identifier
+  typename FactoryList_T::factory_type::ConcreteKey k;
   try
   {
-    typename FactoryList_T::factory_type::ConcreteKey k;
     JSONWriter wr{des.obj[des.strings.uuid]};
     TSerializer<JSONObject, typename FactoryList_T::factory_type::ConcreteKey>::writeTo(
         wr, k);
@@ -145,6 +148,7 @@ auto deserialize_interface(
   }
 
   // If the object could not be loaded, we try to load a "missing" version of
-  // it.
-  return factories.loadMissing(des.toVariant(), std::forward<Args>(args)...);
+  // it. The key is handed over so that the stand-in can keep the identity of
+  // what it replaces and save it back unchanged.
+  return factories.loadMissing(k, des.toVariant(), std::forward<Args>(args)...);
 }

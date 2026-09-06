@@ -38,7 +38,8 @@ public:
   using object_type = DocumentPlugin;
   ~DocumentPluginFactoryList();
   object_type* loadMissing(
-      const VisitorVariant& vis, score::DocumentContext& doc, QObject* parent) const;
+      const UuidKey<score::DocumentPluginFactory>& key, const VisitorVariant& vis,
+      score::DocumentContext& doc, QObject* parent) const;
 };
 
 template <typename T>

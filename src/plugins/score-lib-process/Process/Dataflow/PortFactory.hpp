@@ -83,7 +83,9 @@ class SCORE_LIB_PROCESS_EXPORT PortFactoryList final
 public:
   using object_type = Process::Port;
   ~PortFactoryList();
-  Process::Port* loadMissing(const VisitorVariant& vis, QObject* parent) const;
+  Process::Port* loadMissing(
+      const UuidKey<Process::Port>& key, const VisitorVariant& vis,
+      QObject* parent) const;
 };
 
 template <typename Model_T>

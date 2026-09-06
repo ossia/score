@@ -513,8 +513,7 @@ void TemporalIntervalPresenter::createCollapsedSlot(int pos, const Slot& slt)
     const Id<Process::ProcessModel>& id = *frontLayer;
     auto proc = m_model.processes.find(id);
     SCORE_ASSERT(proc != m_model.processes.end());
-    const auto& procKey = proc->concreteKey();
-    auto factory = m_context.processList.findDefaultFactory(procKey);
+    auto factory = m_context.processList.findDefaultFactory(*proc);
 
     {
       p.headerDelegate = factory->makeHeaderDelegate(*proc, m_context, nullptr);
@@ -861,8 +860,7 @@ void TemporalIntervalPresenter::on_layerModelPutToFront(
         {
           if(auto pres = ld.mainPresenter(); bool(pres))
           {
-            auto factory
-                = m_context.processList.findDefaultFactory(ld.model().concreteKey());
+            auto factory = m_context.processList.findDefaultFactory(ld.model());
             ld.putToFront();
             ld.setZValue(2);
             {

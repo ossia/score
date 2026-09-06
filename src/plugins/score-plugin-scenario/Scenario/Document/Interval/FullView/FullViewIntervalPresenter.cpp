@@ -252,7 +252,7 @@ void FullViewIntervalPresenter::setupSlot(
   auto& ld = slot.layers.emplace_back(&proc);
 
   // Create layers
-  const auto factory = m_context.processList.findDefaultFactory(proc.concreteKey());
+  const auto factory = m_context.processList.findDefaultFactory(proc);
 
   const auto gui_width = m_model.duration.guiDuration().toPixels(m_zoomRatio);
   const auto def_width = m_model.duration.defaultDuration().toPixels(m_zoomRatio);

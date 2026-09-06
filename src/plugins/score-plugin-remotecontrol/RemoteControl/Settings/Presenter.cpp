@@ -69,6 +69,9 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
     v.setServerPort(m.getServerPort());
     v.setServerEnabled(m.getServerEnabled());
   }
+
+  SETTINGS_PRESENTER(Token);
+  SETTINGS_PRESENTER(AllowScripting);
 }
 
 QString Presenter::settingsName()

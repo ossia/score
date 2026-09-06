@@ -2,6 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ProcessFactory.hpp"
 
+#include <Process/OpaqueProcess.hpp>
+
 #include <Process/HeaderDelegate.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
@@ -150,21 +152,48 @@ bool LayerFactory::matches(const ProcessModel& p) const
   return matches(p.concreteKey());
 }
 
+bool LayerFactory::isFallback() const noexcept
+{
+  return false;
+}
+
 bool LayerFactory::matches(const UuidKey<Process::ProcessModel>& p) const
 {
   return false;
 }
 
 ProcessFactoryList::object_type* ProcessFactoryList::loadMissing(
-    const VisitorVariant& vis, const score::DocumentContext& ctx, QObject* parent) const
+    const UuidKey<Process::ProcessModel>& key, const VisitorVariant& vis,
+    const score::DocumentContext& ctx, QObject* parent) const
 {
-  SCORE_TODO;
+  // No factory for this process: keep it as an opaque stand-in rather than
+  // dropping it, so that saving from here does not delete it from the document
+  // for everyone who does have the plug-in.
+  switch(vis.identifier)
+  {
+    case DataStream::type(): {
+      auto& des = static_cast<DataStream::Deserializer&>(vis.visitor);
+      return new OpaqueProcessModel{key, des, parent};
+    }
+    case JSONObject::type(): {
+      auto& des = static_cast<JSONObject::Deserializer&>(vis.visitor);
+      return new OpaqueProcessModel{key, des, parent};
+    }
+  }
   return nullptr;
 }
 
 LayerFactory* LayerFactoryList::findDefaultFactory(const ProcessModel& proc) const
 {
-  return findDefaultFactory(proc.concreteKey());
+  if(auto* fac = findDefaultFactory(proc.concreteKey()))
+    return fac;
+
+  // Only a process standing in for an absent plug-in gets the fallback. Plenty
+  // of ordinary processes have no layer either, and are deliberately not drawn
+  // in a slot: handing them one would start rendering them.
+  if(dynamic_cast<const OpaqueProcessModel*>(&proc))
+    return fallbackFactory();
+  return nullptr;
 }
 
 LayerFactory*
@@ -172,7 +201,19 @@ LayerFactoryList::findDefaultFactory(const UuidKey<ProcessModel>& proc) const
 {
   for(auto& fac : *this)
   {
+    if(fac.isFallback())
+      continue;
     if(fac.matches(proc))
+      return &fac;
+  }
+  return nullptr;
+}
+
+LayerFactory* LayerFactoryList::fallbackFactory() const
+{
+  for(auto& fac : *this)
+  {
+    if(fac.isFallback())
       return &fac;
   }
   return nullptr;

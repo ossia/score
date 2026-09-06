@@ -14,6 +14,8 @@ public:
   using object_type = Curve::SegmentModel;
   virtual ~SegmentList();
 
-  object_type* loadMissing(const VisitorVariant& vis, QObject* parent) const;
+  object_type* loadMissing(
+      const UuidKey<Curve::SegmentFactory>& key, const VisitorVariant& vis,
+      QObject* parent) const;
 };
 }
