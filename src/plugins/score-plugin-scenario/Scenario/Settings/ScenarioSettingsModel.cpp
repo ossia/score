@@ -42,6 +42,9 @@ SETTINGS_PARAMETER_IMPL(ScriptEditorPreview){
     Process::UIPlacementSettings::toString(
         Process::UIPlacementSettings::defaultScriptEditorPreview)};
 SETTINGS_PARAMETER_IMPL(GraphicZoom){QStringLiteral("Skin/Zoom"), 1};
+// Read directly from QSettings at startup, before this model exists.
+SETTINGS_PARAMETER_IMPL(FontSize){QStringLiteral("Skin/FontSize"), 12};
+SETTINGS_PARAMETER_IMPL(FontHinting){QStringLiteral("Skin/FontHinting"), QStringLiteral("Full")};
 SETTINGS_PARAMETER_IMPL(SlotHeight){QStringLiteral("Skin/slotHeight"), 200};
 SETTINGS_PARAMETER_IMPL(DefaultDuration){
     QStringLiteral("Skin/defaultDuration"), TimeVal::fromMsecs(15000)};
@@ -70,7 +73,8 @@ static auto list()
 {
   return std::tie(
       Skin, DefaultEditor, ScriptEditorPlacement, ProcessUIPlacement,
-      ScriptEditorPreview, GraphicZoom, SlotHeight, DefaultDuration, SnapshotOnCreate,
+      ScriptEditorPreview, GraphicZoom, FontSize, FontHinting, SlotHeight,
+      DefaultDuration, SnapshotOnCreate,
       AutoSequence, TimeBar, MeasureBars, MagneticMeasures, UpdateRate,
       ExecutionRefreshRate, ExecutionUpdate);
 }
@@ -188,6 +192,8 @@ void Model::setDefaultDuration(TimeVal val)
 }
 
 SCORE_SETTINGS_PARAMETER_CPP(double, Model, GraphicZoom)
+SCORE_SETTINGS_PARAMETER_CPP(int, Model, FontSize)
+SCORE_SETTINGS_PARAMETER_CPP(QString, Model, FontHinting)
 SCORE_SETTINGS_PARAMETER_CPP(qreal, Model, SlotHeight)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, SnapshotOnCreate)
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, DefaultEditor)

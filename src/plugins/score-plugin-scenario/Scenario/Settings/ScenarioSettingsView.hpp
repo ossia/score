@@ -35,6 +35,8 @@ public:
   SETTINGS_UI_COMBOBOX_HPP(ScriptEditorPlacement)
   SETTINGS_UI_COMBOBOX_HPP(ProcessUIPlacement)
   SETTINGS_UI_COMBOBOX_HPP(ScriptEditorPreview)
+  SETTINGS_UI_SPINBOX_HPP(FontSize)
+  SETTINGS_UI_COMBOBOX_HPP(FontHinting)
   SETTINGS_UI_SPINBOX_HPP(UpdateRate)
   SETTINGS_UI_SPINBOX_HPP(ExecutionRefreshRate)
   SETTINGS_UI_TOGGLE_HPP(ExecutionUpdate)

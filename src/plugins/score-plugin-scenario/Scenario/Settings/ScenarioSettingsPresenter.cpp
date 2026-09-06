@@ -34,6 +34,8 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   SETTINGS_PRESENTER(MeasureBars);
   SETTINGS_PRESENTER(MagneticMeasures);
   SETTINGS_PRESENTER(DefaultDuration);
+  SETTINGS_PRESENTER(FontSize);
+  SETTINGS_PRESENTER(FontHinting);
   SETTINGS_PRESENTER(UpdateRate);
   SETTINGS_PRESENTER(ExecutionRefreshRate);
   SETTINGS_PRESENTER(ExecutionUpdate);

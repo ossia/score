@@ -2,6 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Skin.hpp"
 
+#include <QSettings>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/widgets/Pixmap.hpp>
 
@@ -31,6 +33,24 @@ W_OBJECT_IMPL(score::Skin)
 
 namespace score
 {
+int uiFontSize() noexcept
+{
+  const int v = QSettings{}.value(QStringLiteral("Skin/FontSize"), 12).toInt();
+  return (v >= 8 && v <= 32) ? v : 12;
+}
+
+QFont::HintingPreference uiFontHinting() noexcept
+{
+  const auto v
+      = QSettings{}.value(QStringLiteral("Skin/FontHinting"), QStringLiteral("Full"))
+            .toString();
+  if(v == "None")
+    return QFont::PreferNoHinting;
+  if(v == "Vertical")
+    return QFont::PreferVerticalHinting;
+  return QFont::PreferFullHinting;
+}
+
 struct Skin::color_map
 {
   explicit color_map(std::initializer_list<std::pair<QString, Brush*>> list)
@@ -89,7 +109,7 @@ Skin::Skin() noexcept
   for(QFont* font : {&SansFont, &SansFontSmall, &MonoFont, &MonoFontSmall})
   {
     font->setStyleStrategy(QFont::ForceOutline);
-    font->setHintingPreference(QFont::PreferVerticalHinting);
+    font->setHintingPreference(uiFontHinting());
   }
 
   for(auto& c : m_defaultPalette)
@@ -178,7 +198,7 @@ Skin::Skin() noexcept
       &Medium7Pt, &Medium8Pt, &Medium10Pt,    &Medium12Pt,    &SliderFont, &TitleFont};
   for(QFont* font : fonts)
   {
-    font->setHintingPreference(QFont::HintingPreference::PreferVerticalHinting);
+    font->setHintingPreference(uiFontHinting());
     font->setStyleHint(QFont::StyleHint::SansSerif);
     font->setStyleStrategy(QFont::StyleStrategy(
         QFont::StyleStrategy::PreferQuality | QFont::StyleStrategy::PreferMatch
