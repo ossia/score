@@ -15,6 +15,7 @@
 
 #include <csignal>
 #include <cstdio>
+#include <cstring>
 
 namespace threedim_test
 {
@@ -38,7 +39,18 @@ bool survives(F&& f)
   REQUIRE(pid > 0);
   int status = 0;
   ::waitpid(pid, &status, 0);
-  return WIFEXITED(status) && WEXITSTATUS(status) == 0;
+  if(WIFEXITED(status) && WEXITSTATUS(status) == 0)
+    return true;
+  // Say HOW it died. A bare `false` sends every reader back to a debugger to
+  // learn what a signal number would have told them: a SIGSEGV on one platform
+  // and a SIGABRT on another are different defects, and the difference between
+  // "the parser faulted" and "an assert fired" decides where to look.
+  if(WIFSIGNALED(status))
+    UNSCOPED_INFO("child died with signal " << WTERMSIG(status) << " ("
+                  << ::strsignal(WTERMSIG(status)) << ")");
+  else if(WIFEXITED(status))
+    UNSCOPED_INFO("child exited " << WEXITSTATUS(status));
+  return false;
 }
 } // namespace threedim_test
 #endif
