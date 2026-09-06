@@ -9,6 +9,7 @@ namespace score
 {
 class QGraphicsDraggablePixmap;
 }
+class QMenu;
 namespace Process
 {
 
@@ -57,9 +58,32 @@ QGraphicsItem* makeScriptButton(
     QGraphicsItem* parent);
 
 SCORE_LIB_PROCESS_EXPORT
-    void setupScriptUI(
-        Process::ProcessModel& proc, const Process::LayerFactory& factory,
-        const score::DocumentContext& ctx, bool show);
+void setupScriptUI(
+    Process::ProcessModel& proc, const Process::LayerFactory& factory,
+    const score::DocumentContext& ctx, bool show);
+
+SCORE_LIB_PROCESS_EXPORT
+void setupScriptUI(
+    Process::ProcessModel& proc, const score::DocumentContext& ctx, bool show);
+
+enum class ProcessUIKind
+{
+  ScriptEditor,
+  ExternalUI
+};
+
+//! Changes where this process's editor / UI opens (see UIPlacementSettings::names(),
+//! an empty name meaning the user's default), moving it if it is open.
+SCORE_LIB_PROCESS_EXPORT
+void moveProcessUI(
+    Process::ProcessModel& proc, const score::DocumentContext& ctx, ProcessUIKind kind,
+    const QString& placement);
+
+//! Menu entries to pick the placement of this process's editor / UI
+SCORE_LIB_PROCESS_EXPORT
+void fillPlacementMenu(
+    QMenu& menu, Process::ProcessModel& proc, const score::DocumentContext& ctx,
+    ProcessUIKind kind);
 
 SCORE_LIB_PROCESS_EXPORT
 void setupExternalUI(

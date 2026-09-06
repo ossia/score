@@ -210,6 +210,20 @@ public:
   QWidget* scriptUI{};
   QWidget* externalUI{};
 
+  //! Where this process's script editor / custom UI open, overriding the
+  //! user's default when set (see Process::UIPlacementSettings). Kept in the
+  //! document; empty means "use the default".
+  const QString& scriptEditorPlacement() const noexcept
+  {
+    return m_scriptEditorPlacement;
+  }
+  void setScriptEditorPlacement(const QString& p) noexcept
+  {
+    m_scriptEditorPlacement = p;
+  }
+  const QString& processUIPlacement() const noexcept { return m_processUIPlacement; }
+  void setProcessUIPlacement(const QString& p) noexcept { m_processUIPlacement = p; }
+
   /// Execution
   bool executing() const noexcept { return m_executing; }
   void setExecuting(bool v);
@@ -273,6 +287,8 @@ private:
   TimeVal m_loopDuration{};
   QPointF m_position{};
   QSizeF m_size{};
+  QString m_scriptEditorPlacement;
+  QString m_processUIPlacement;
   bool m_loops{};
   bool m_executing{};
   FoldMode m_foldMode{FoldMode::Auto};

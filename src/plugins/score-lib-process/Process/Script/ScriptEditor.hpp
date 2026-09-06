@@ -5,6 +5,7 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/Bind.hpp>
 
+#include <QCloseEvent>
 #include <QDialog>
 
 #include <score_lib_process_export.h>
@@ -36,8 +37,10 @@ protected:
   virtual void on_accepted() = 0;
 
   void hideEvent(QHideEvent* event) override;
+  void keyPressEvent(QKeyEvent* event) override;
 
   const score::DocumentContext& m_context;
+  QObject* m_compileFilter{};
   QTextEdit* m_textedit{};
   QPlainTextEdit* m_error{};
 
@@ -57,8 +60,14 @@ public:
   {
     setText((m_process.*Property_T::get)());
     con(m_process, &Process_T::errorMessage, this, &ProcessScriptEditDialog::setError);
+    // The process goes first when its document closes: the dialog can still
+    // get closed after that (with the document's view) and must not look at
+    // it any more.
     con(m_process, &IdentifiedObjectAbstract::identified_object_destroying, this,
-        &QWidget::deleteLater);
+        [this] {
+      m_processGone = true;
+      deleteLater();
+    });
     con(m_process, Property_T::notify, this, &ProcessScriptEditDialog::setText);
   }
 
@@ -80,19 +89,21 @@ public:
 
 protected:
   const Process_T& m_process;
+  bool m_processGone{};
 
-  void reject() override
-  {
-    const_cast<QWidget*&>(m_process.scriptUI) = nullptr;
-    m_process.scriptUIVisible(false);
-    QDialog::reject();
-  }
+  // The editor may be a window or be docked in the main window: in both
+  // cases, going away means closing (which deletes it with WA_DeleteOnClose),
+  // not merely hiding like QDialog::reject() would do on Escape.
+  void reject() override { close(); }
 
   void closeEvent(QCloseEvent* event) override
   {
-    const_cast<QWidget*&>(m_process.scriptUI) = nullptr;
-    m_process.scriptUIVisible(false);
-    QDialog::closeEvent(event);
+    if(!m_processGone && m_process.scriptUI == this)
+    {
+      const_cast<QWidget*&>(m_process.scriptUI) = nullptr;
+      m_process.scriptUIVisible(false);
+    }
+    event->accept();
   }
 };
 

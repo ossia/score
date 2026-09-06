@@ -22,6 +22,7 @@
 
 #include <QCheckBox>
 #include <QFormLayout>
+#include <QMenu>
 #include <QScrollArea>
 #include <QToolButton>
 #include <QVBoxLayout>
@@ -202,15 +203,24 @@ public:
         uiToggle->setAutoRaise(true);
         uiToggle->setIconSize(QSize{28, 28});
         uiToggle->setCheckable(true);
-        uiToggle->setChecked(bool(process.externalUI));
+        uiToggle->setChecked(bool(process.scriptUI));
 
         connect(
             uiToggle, &QToolButton::toggled, this, [&process, fact, &doc](bool state) {
           Process::setupScriptUI(process, *fact, doc, state);
         });
-        connect(&process, &ProcessModel::externalUIVisible, uiToggle, [=](bool v) {
+        connect(&process, &ProcessModel::scriptUIVisible, uiToggle, [=](bool v) {
           QSignalBlocker block{uiToggle};
           uiToggle->setChecked(v);
+        });
+        uiToggle->setContextMenuPolicy(Qt::CustomContextMenu);
+        connect(
+            uiToggle, &QWidget::customContextMenuRequested, uiToggle,
+            [uiToggle, &process, &doc](QPoint pos) {
+          QMenu menu;
+          Process::fillPlacementMenu(
+              menu, process, doc, Process::ProcessUIKind::ScriptEditor);
+          menu.exec(uiToggle->mapToGlobal(pos));
         });
 
         m_buttons->addWidget(uiToggle);
@@ -241,6 +251,15 @@ public:
         connect(&process, &ProcessModel::externalUIVisible, uiToggle, [=](bool v) {
           QSignalBlocker block{uiToggle};
           uiToggle->setChecked(v);
+        });
+        uiToggle->setContextMenuPolicy(Qt::CustomContextMenu);
+        connect(
+            uiToggle, &QWidget::customContextMenuRequested, uiToggle,
+            [uiToggle, &process, &doc](QPoint pos) {
+          QMenu menu;
+          Process::fillPlacementMenu(
+              menu, process, doc, Process::ProcessUIKind::ExternalUI);
+          menu.exec(uiToggle->mapToGlobal(pos));
         });
 
         m_buttons->addWidget(uiToggle);

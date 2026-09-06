@@ -34,7 +34,8 @@ DataStreamReader::read(const Process::ProcessModel& process)
 {
   m_stream << process.m_duration << process.m_slotHeight << process.m_startOffset
            << process.m_loopDuration << process.m_position << process.m_size
-           << process.m_loops << process.m_foldMode;
+           << process.m_loops << process.m_foldMode << process.m_scriptEditorPlacement
+           << process.m_processUIPlacement;
 }
 
 // We only load the members of the process here.
@@ -43,7 +44,8 @@ SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::ProcessModel& pro
 {
   m_stream >> process.m_duration >> process.m_slotHeight >> process.m_startOffset
       >> process.m_loopDuration >> process.m_position >> process.m_size
-      >> process.m_loops >> process.m_foldMode;
+      >> process.m_loops >> process.m_foldMode >> process.m_scriptEditorPlacement
+      >> process.m_processUIPlacement;
 }
 
 template <>
@@ -57,6 +59,10 @@ SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::ProcessModel& proc
   obj["Size"] = process.m_size;
   obj["Loops"] = process.loops();
   obj["FoldMode"] = process.foldMode();
+  if(!process.m_scriptEditorPlacement.isEmpty())
+    obj["ScriptEditorPlacement"] = process.m_scriptEditorPlacement;
+  if(!process.m_processUIPlacement.isEmpty())
+    obj["ProcessUIPlacement"] = process.m_processUIPlacement;
 }
 
 template <>
@@ -80,4 +86,8 @@ SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::ProcessModel& process)
   // keep getting the heuristic, which is what Auto means.
   assign_with_default(
       process.m_foldMode, obj.tryGet("FoldMode"), Process::FoldMode::Auto);
+  assign_with_default(
+      process.m_scriptEditorPlacement, obj.tryGet("ScriptEditorPlacement"), QString{});
+  assign_with_default(
+      process.m_processUIPlacement, obj.tryGet("ProcessUIPlacement"), QString{});
 }
