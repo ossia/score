@@ -361,7 +361,14 @@ std::shared_ptr<RenderState> createRenderState(
 
     score::GLCapabilities caps;
     caps.setupFormat(params.format);
-    params.format.setSamples(state.samples);
+    // Only ask for an explicit sample count when MSAA is actually wanted.
+    // Requesting samples=1 is NOT the same request as leaving it unset, and on
+    // macOS it makes a later present crash inside Apple's GL-on-Metal shim
+    // (gldUpdateReadFramebuffer, NULL colour attachment) once an offscreen
+    // frame has been interleaved with window frames on the same QRhi. Both
+    // conditions are necessary.
+    if(state.samples > 1)
+      params.format.setSamples(state.samples);
     if(gpuDebugRequested())
       params.format.setOption(QSurfaceFormat::DebugContext);
     state.version = caps.qShaderVersion;
@@ -519,15 +526,13 @@ std::shared_ptr<RenderState> createRenderState(
     // }
     state.version = Gfx::Settings::shaderVersionForAPI(D3D11);
 
-    // Ask for feature level 11_1 explicitly (A24(c)).
+    // Ask for feature level 11_1 explicitly.
     //
     // QRhiD3D11 passes pFeatureLevels == nullptr to D3D11CreateDevice unless a
     // level was requested -- its own comment at qrhid3d11.cpp:307 says
     // "Normally we won't specify a requested feature level list, except when a
     // level was specified in importParams" -- and that form is documented never
-    // to return an 11_1 device, even on hardware that supports it. Measured on
-    // an RTX 3090: the default path gives 11_0 (0xb000), an explicit request
-    // gives 11_1 (0xb100).
+    // to return an 11_1 device, even on hardware that supports it.
     //
     // 11_0 is not merely a smaller number here. It has no UAVs outside the
     // pixel and compute stages, and 8 compute UAV slots instead of 64. Qt bakes
@@ -535,26 +540,24 @@ std::shared_ptr<RenderState> createRenderState(
     // (qspirvshader.cpp), so EVERY SSBO -- read-only ones included -- becomes a
     // UAV. On an 11_0 device that makes CreateVertexShader fail with
     // E_INVALIDARG for any vertex shader carrying a storage block, and
-    // CreateComputeShader fail past 8 of them: the "Failed to create
-    // vertex/compute shader: COM error 0x80070057" seen across the
-    // scene-preprocessor documents in the Windows corpus. Both verified against
-    // a bare D3D11 device, and MaxFragmentStorageBuffers goes 8 -> 64
-    // (qrhid3d11.cpp:769) as a side benefit.
+    // CreateComputeShader fail past 8 of them, with "Failed to create
+    // vertex/compute shader: COM error 0x80070057". MaxFragmentStorageBuffers
+    // also goes 8 -> 64 (qrhid3d11.cpp:769) as a side benefit.
     //
     // featureLevel is honoured even with dev/context null: qrhid3d11.cpp:174
     // reads it outside the imported-device branch. adapterLuid stays zero,
     // which :256 explicitly ignores, so adapter selection is unchanged.
     //
-    // This does NOT fix A28: MaxVertexStorageBuffers is hardcoded 0 at every
-    // feature level (qrhid3d11.cpp:766), so Qt's SRB translation still never
-    // binds a vertex-stage UAV. Such a shader stops failing to build and starts
-    // reading zero instead -- which is why the vertex-SSBO diagnostic had to be
-    // made to fire on released Qt first (db7000dd79), so that path is loud.
+    // A vertex-stage SSBO is still not usable: MaxVertexStorageBuffers is
+    // hardcoded 0 at every feature level (qrhid3d11.cpp:766), so Qt's SRB
+    // translation never binds a vertex-stage UAV. Such a shader stops failing
+    // to build and reads zero instead; the vertex-SSBO diagnostic fires on
+    // released Qt so that path stays loud.
     //
     // A single-entry level list makes D3D11CreateDevice fail outright where
     // 11_1 is unavailable, so fall back to QRhi's own probe. That matters for
     // pre-11_1 hardware: NVIDIA Fermi/Kepler/Maxwell-1, AMD TeraScale, Intel
-    // Ivy Bridge. They keep exactly today's behaviour.
+    // Ivy Bridge, which keep the unrequested-level behaviour.
     QRhiD3D11NativeHandles d3d11Handles{};
     d3d11Handles.featureLevel = 0xb100; // D3D_FEATURE_LEVEL_11_1
     state.rhi = QRhi::create(QRhi::D3D11, &params, flags, &d3d11Handles);
@@ -711,10 +714,10 @@ void ScreenNode::startRendering()
     onFps(0.f);
   if(m_window)
   {
-    // Symmetric with stopRendering()'s clear: only createOutput used to
-    // install this, so a rebuild that kept the window alive left the vsync
-    // path with no per-frame m_canRender refresh (the timer path gets it
-    // from ScreenNode::render()).
+    // Symmetric with stopRendering()'s clear, and installed here rather than
+    // only in createOutput: a rebuild that keeps the window alive would
+    // otherwise leave the vsync path with no per-frame m_canRender refresh
+    // (the timer path gets it from ScreenNode::render()).
     m_window->onAboutToRender = [this] { onRendererChange(); };
     m_window->onRender = [this](QRhiCommandBuffer& commands) {
       if(auto r = m_window->state->renderer.lock())
@@ -834,9 +837,9 @@ void ScreenNode::setSwapchainFlag(Gfx::SwapchainFlag flag)
     return;
   m_swapchainFlag = flag;
   // Live flag change (sRGB toggle) requires the swapchain to be recreated
-  // with the new flag bits — setFlags happens in createOutput at line ~667.
-  // destroyOutput tears down; Graph::createOutputRenderList rebuilds on
-  // next reconcile (same pattern updateGraphicsAPI uses for sample-count).
+  // with the new flag bits -- setFlags happens in createOutput. destroyOutput
+  // tears down; Graph::createOutputRenderList rebuilds on next reconcile (same
+  // pattern updateGraphicsAPI uses for sample-count).
   //
   // The Graph-owned RenderList holds QRhiResources belonging to the QRhi
   // destroyOutput() is about to `delete`; release it first.
@@ -920,8 +923,8 @@ void ScreenNode::createOutput(score::gfx::OutputConfiguration conf)
   m_onReleaseRenderList = conf.onReleaseRenderList;
 
   // A window outlives graph rebuilds, and it outlives being closed: only
-  // destroyOutput() resets it. Recreating the window is still what must not
-  // happen; re-binding the callbacks is what was missing.
+  // destroyOutput() resets it. So do not recreate the window here, but do
+  // re-bind its callbacks.
   const bool reusingWindow = bool(m_window);
   if(m_ownsWindow)
   {
@@ -1037,8 +1040,8 @@ void ScreenNode::createOutput(score::gfx::OutputConfiguration conf)
     releaseOwnedRenderList();
     // The registry deliberately outlives a RenderList rebuild, but not the QRhi
     // it is bound to: a window that comes back after this gets a new device, and
-    // RenderList::init() asserts boundRhi() == &rhi on the reuse path. Only
-    // destroyOutput() released it, and closing the window never goes there.
+    // RenderList::init() asserts boundRhi() == &rhi on the reuse path. Closing
+    // the window never goes through destroyOutput(), so release it here too.
     releaseRegistry();
   };
 
@@ -1123,13 +1126,10 @@ void ScreenNode::destroyOutput()
   // that was already ended. MultiWindowNode::destroyOutput does the same.
   if(m_window->state && m_window->state->rhi)
   {
-    // Pre-condition: destroyOutput must not be called inside a frame
-    // (between beginFrame and endFrame). If this fires, some upstream
-    // path triggered a teardown mid-render — the cascade would be
-    // worse than just deferring to next frame.
-    // An exception between beginFrame and endFrame (or a bailed-out render)
-    // can leave the frame recording; close it without presenting so teardown
-    // can proceed instead of asserting.
+    // Pre-condition: destroyOutput must not run inside a frame, between
+    // beginFrame and endFrame. An exception there (or a bailed-out render) can
+    // leave the frame recording; close it without presenting so teardown can
+    // proceed instead of asserting.
     if(m_window->state->rhi->isRecordingFrame() && m_swapChain)
       m_window->state->rhi->endFrame(m_swapChain, QRhi::SkipPresent);
     SCORE_ASSERT(!m_window->state->rhi->isRecordingFrame());
