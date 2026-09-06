@@ -7,8 +7,18 @@ namespace score::gfx
 #pragma pack(push, 1)
 /**
  * @brief UBO specific to individual processes / nodes.
+ *
+ * `alignas(4)` because the enclosing `#pragma pack(1)` drops the struct's
+ * alignment to 1 while every member is a 4-byte type sitting at a naturally
+ * 4-aligned offset (time 0, ... renderSize 24, date 32, numWorkgroups 48).
+ * The packing changes no byte of the layout -- it only removes the alignment
+ * guarantee, which lets `Node::standardUBO` land on an odd address; UBSan then
+ * flags the `std::copy_n(renderer.currentDate, 4, n.standardUBO.date)` store in
+ * RenderedRawRasterPipelineNode's update path as a misaligned store to a
+ * `float *`. Keeping the alignment at 4 leaves both sizeof and every member
+ * offset untouched, so the GPU-side std140 image is unchanged.
  */
-struct ProcessUBO
+struct alignas(4) ProcessUBO
 {
   float time{};
   float timeDelta{};
