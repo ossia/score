@@ -143,14 +143,9 @@ MeshBuffers CustomMesh::init(QRhi &rhi) const noexcept
   const auto& first_mesh = geom.meshes[0];
   if(first_mesh.indirect_count.handle)
   {
-    ret.indirectDrawBuffer = static_cast<QRhiBuffer*>(first_mesh.indirect_count.handle);
-    ret.useIndirectDraw = true;
-    ret.indirectDrawIndexed = (first_mesh.index.buffer >= 0);
-    ret.indirectDrawCount
-        = first_mesh.indirect_count.byte_size / (5 * sizeof(uint32_t));
-    ret.indirectDrawStride = 5 * sizeof(uint32_t);
-    if(ret.indirectDrawCount == 0)
-      ret.indirectDrawCount = 1;
+    ret.enableIndirectDraw(
+        static_cast<QRhiBuffer*>(first_mesh.indirect_count.handle),
+        first_mesh.index.buffer >= 0, first_mesh.indirect_count.byte_size);
   }
 
   // GPU-written draw count: the "_indirect_draw_count" auxiliary names a
@@ -457,10 +452,9 @@ void CustomMesh::update(
   const auto& first_mesh = geom.meshes[0];
   if(first_mesh.indirect_count.handle)
   {
-    output_meshbuf.indirectDrawBuffer
-        = static_cast<QRhiBuffer*>(first_mesh.indirect_count.handle);
-    output_meshbuf.useIndirectDraw = true;
-    output_meshbuf.indirectDrawIndexed = (first_mesh.index.buffer >= 0);
+    output_meshbuf.enableIndirectDraw(
+        static_cast<QRhiBuffer*>(first_mesh.indirect_count.handle),
+        first_mesh.index.buffer >= 0, first_mesh.indirect_count.byte_size);
     // Count AND STRIDE, exactly as init() above computes them. Leaving them out
     // was an abort, not a degradation: MeshBuffers::indirectDrawStride defaults
     // to 0 (Mesh.hpp:53) and QRhi asserts `stride >= sizeof(QRhi[Indexed]
@@ -475,11 +469,6 @@ void CustomMesh::update(
     // indirect buffer HERE, on the reload path, when the mesh finally lands.
     // That is why no existing test saw it: every other geometry producer in the
     // tree is synchronous.
-    output_meshbuf.indirectDrawCount
-        = first_mesh.indirect_count.byte_size / (5 * sizeof(uint32_t));
-    if(output_meshbuf.indirectDrawCount == 0)
-      output_meshbuf.indirectDrawCount = 1;
-    output_meshbuf.indirectDrawStride = 5 * sizeof(uint32_t);
   }
   else
   {

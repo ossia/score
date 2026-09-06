@@ -1,4 +1,6 @@
 #pragma once
+
+#include <cstdint>
 #include <Process/ProcessFlags.hpp>
 
 #include <ossia/dataflow/geometry_port.hpp>
@@ -51,6 +53,37 @@ struct MeshBuffers
   quint32 indirectDrawOffset{0};
   quint32 indirectDrawCount{1};
   quint32 indirectDrawStride{0};
+
+  // The uniform record the engine emits for one indirect command: 5 u32.
+  // Both layouts share it -- the non-indexed one is a native 4-word
+  // QRhiDrawIndirectCommand plus a trailing word, the indexed one is a native
+  // 5-word QRhiDrawIndexedIndirectCommand. See the libisf codegen.
+  static constexpr quint32 indirect_record_stride = 5 * sizeof(uint32_t);
+
+  // Turn the indirect path on. Use this rather than assigning the fields:
+  // setting useIndirectDraw without a stride is not a degradation, it is an
+  // ABORT -- indirectDrawStride defaults to 0 and QRhi asserts
+  // `stride >= sizeof(QRhi[Indexed]IndirectDrawCommand)` inside drawIndirect /
+  // drawIndexedIndirect, so the process dies the first time that mesh draws.
+  //
+  // THREE independent sites made exactly that mistake before this existed:
+  // CustomMesh::init(), CustomMesh's asynchronous-producer reload path, and
+  // RenderedRawRasterPipelineNode's standalone-buffer input port. Each was
+  // found by a different crash, months apart. The flag and the stride are not
+  // independently meaningful, so they are no longer independently settable.
+  void enableIndirectDraw(
+      QRhiBuffer* buffer, bool indexed, int64_t byte_size,
+      quint32 byte_offset = 0) noexcept
+  {
+    indirectDrawBuffer = buffer;
+    useIndirectDraw = true;
+    indirectDrawIndexed = indexed;
+    indirectDrawOffset = byte_offset;
+    indirectDrawStride = indirect_record_stride;
+    indirectDrawCount = quint32(byte_size / indirect_record_stride);
+    if(indirectDrawCount == 0)
+      indirectDrawCount = 1;
+  }
 
   // --- GPU-decided draw count (Qt 6.13-era drawIndexedIndirectCount) ---
   // When indirectCountBuffer is set AND gpuIndirectCountSupported, the draw
