@@ -60,6 +60,10 @@ function(score_add_hardware_test)
   # EXECUTABLE: prefer a target's real output file; fall back to a path.
   if(TARGET "${ARG_EXECUTABLE}")
     set(_exe "$<TARGET_FILE:${ARG_EXECUTABLE}>")
+    # This wrapper registers ONE executable under several ctest names; record
+    # the association so the registration guard does not have to infer it.
+    set_property(GLOBAL APPEND PROPERTY SCORE_TEST_TARGET_REGISTRY
+                 "${ARG_EXECUTABLE}")
   else()
     set(_exe "${ARG_EXECUTABLE}")
   endif()
@@ -152,6 +156,10 @@ function(score_add_media_test)
   endif()
   if(TARGET "${ARG_EXECUTABLE}")
     set(_exe "$<TARGET_FILE:${ARG_EXECUTABLE}>")
+    # This wrapper registers ONE executable under several ctest names; record
+    # the association so the registration guard does not have to infer it.
+    set_property(GLOBAL APPEND PROPERTY SCORE_TEST_TARGET_REGISTRY
+                 "${ARG_EXECUTABLE}")
   else()
     set(_exe "${ARG_EXECUTABLE}")
   endif()

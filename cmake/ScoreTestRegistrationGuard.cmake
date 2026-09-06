@@ -200,20 +200,27 @@ function(score_check_test_registration)
     endif()
   endforeach()
 
+  get_property(_target_registry GLOBAL PROPERTY SCORE_TEST_TARGET_REGISTRY)
+
   foreach(_target IN LISTS _executables)
     if(_target IN_LIST SCORE_TEST_GUARD_ALLOWED_TARGETS)
       continue()
     endif()
     set(_has_test 0)
-    foreach(_test IN LISTS _registered)
-      # Not equality: score_add_hardware_test() and score_add_media_test()
-      # register one harness executable under several test names.
-      string(FIND "${_test}" "${_target}" _found)
-      if(NOT _found EQUAL -1)
-        set(_has_test 1)
-        break()
-      endif()
-    endforeach()
+    # The registry every score_add_*_test() wrapper appends its target to. It
+    # records the association instead of inferring it, which the previous
+    # substring match got wrong in the one direction that matters: a target
+    # whose name is a PREFIX of a registered test name was reported as
+    # registered. An orphan `test_gfx_capture` was covered by an unrelated
+    # `test_gfx_capture_sync`, so the guard written to catch silent test loss
+    # could itself lose a test silently. Equality here, association there.
+    if("${_target}" IN_LIST _target_registry)
+      set(_has_test 1)
+    endif()
+    # Anything registered by hand with a bare add_test(NAME x COMMAND x).
+    if(NOT _has_test AND "${_target}" IN_LIST _registered)
+      set(_has_test 1)
+    endif()
     # A NO_CTEST target is registered by one of those wrappers instead, which
     # name it after their EXECUTABLE keyword.
     if(NOT _has_test AND _registrations MATCHES "EXECUTABLE[ \t\r\n]+${_target}[ \t\r\n]")
