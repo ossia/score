@@ -116,6 +116,12 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
       "");
   parser.addOption(uiOpt);
 
+  // Handled by the JS plug-in; declared here so that --help lists it.
+  QCommandLineOption scriptOpt(
+      "script", QCoreApplication::translate("main", "Run a script at startup."),
+      "Script", "");
+  parser.addOption(scriptOpt);
+
   QCommandLineOption uiOptDebug(
       "ui-debug",
       QCoreApplication::translate(
@@ -169,6 +175,7 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
     }
   }
 
+  hasScript = parser.isSet(scriptOpt);
   tryToRestore = !parser.isSet(noRestore);
   this->forceRestore = parser.isSet(forceRestore);
   gui = !parser.isSet(noGUI);

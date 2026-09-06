@@ -453,7 +453,9 @@ void Application::init()
 #endif
 
 #if defined(SCORE_SPLASH_SCREEN)
-  if(appSettings.gui && !appSettings.forceRestore && appSettings.loadList.empty())
+  // --script runs on document creation: with nothing to open, skip the start screen.
+  if(appSettings.gui && !appSettings.forceRestore && appSettings.loadList.empty()
+     && !appSettings.hasScript)
   {
     m_startScreen = new score::StartScreen{this->context().docManager.recentFiles()};
     m_startScreen->show();
