@@ -49,6 +49,16 @@ QRhiGraphicsPipeline::ColorMask toColorMask(std::string_view s) noexcept;
 SCORE_PLUGIN_GFX_EXPORT
 float depthClearForCompare(QRhiGraphicsPipeline::CompareOp compare) noexcept;
 
+// The same, for a shader's declared state: uses its DEPTH_COMPARE when it set
+// one, and otherwise the project-wide reverse-Z default.
+//
+// Every path that opens a pass with a depth attachment must go through this.
+// Picking the clear independently of the compare is not a cosmetic mismatch --
+// it silently discards the whole draw, because a clear of 0.0 admits nothing
+// under `less`.
+SCORE_PLUGIN_GFX_EXPORT
+float depthClearForState(const isf::pipeline_state& state) noexcept;
+
 // --- Conversion helpers ---------------------------------------------------
 
 SCORE_PLUGIN_GFX_EXPORT
@@ -73,9 +83,9 @@ bool stateAffectsPipeline(const isf::pipeline_state&) noexcept;
 // - `colorAttachmentCount`: used to size per-attachment blend vectors.
 // - `depthAttachmentAvailable`: true when the target RT has a depth attachment;
 //   depth-test/write are forced off otherwise.
-// - `wantsDepthByDefault`: legacy fallback. When state.depth_test is nullopt
-//   AND wantsDepthByDefault is false, depth test/write are force-disabled
-//   (equivalent to today's `!renderer.anyNodeRequiresDepth()` path).
+// - `wantsDepthByDefault`: when state.depth_test is nullopt and this is false,
+//   depth test/write are force-disabled; callers pass
+//   `renderer.anyNodeRequiresDepth()`.
 //
 // Only fields explicitly set in `state` are overridden. Cull, front-face,
 // polygon mode, blend, and stencil all preserve whatever the caller (or

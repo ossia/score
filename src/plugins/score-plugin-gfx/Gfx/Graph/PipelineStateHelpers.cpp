@@ -62,6 +62,13 @@ float depthClearForCompare(QRhiGraphicsPipeline::CompareOp compare) noexcept
   }
 }
 
+float depthClearForState(const isf::pipeline_state& state) noexcept
+{
+  return depthClearForCompare(
+      state.depth_compare ? toCompareOp(*state.depth_compare)
+                          : QRhiGraphicsPipeline::Greater);
+}
+
 QRhiGraphicsPipeline::CullMode toCullMode(std::string_view s) noexcept
 {
   if(ieq(s, "none"))  return QRhiGraphicsPipeline::None;
@@ -220,11 +227,11 @@ isf::pipeline_state mergeState(isf::pipeline_state base, const isf::pipeline_sta
   if(over.stencil_write_mask.has_value())     base.stencil_write_mask = over.stencil_write_mask;
   if(over.stencil_front.has_value())          base.stencil_front = over.stencil_front;
   if(over.stencil_back.has_value())           base.stencil_back = over.stencil_back;
-  // shading_rate was the one field this function forgot. It merges nineteen
-  // others, stateAffectsPipeline() already knows the field exists, and the
-  // pipeline applies it -- so a per-pass SHADING_RATE override was parsed,
-  // validated, and then silently replaced by the global value on the way to
-  // the pipeline. (S4 in the 2026-09 graphics review.)
+  // shading_rate has to be merged along with the nineteen other fields:
+  // stateAffectsPipeline() knows about it and the pipeline applies it, so
+  // leaving it out lets a per-pass SHADING_RATE override be parsed and
+  // validated, then silently replaced by the global value on the way to the
+  // pipeline.
   if(over.shading_rate.has_value())           base.shading_rate = over.shading_rate;
   return base;
 }
@@ -365,9 +372,8 @@ void applyPipelineState(
     pip.setStencilWriteMask(*state.stencil_write_mask);
 
   // ── Variable-rate shading (per-draw rate) ───────────────────────────
-  // NOTE: there is NO QRhiGraphicsPipeline::setShadingRate() and no
-  // QRhiGraphicsPipeline::ShadingRate enum in ANY Qt version (the previous
-  // code here did not compile on the >=6.12 builds it claimed to target).
+  // There is NO QRhiGraphicsPipeline::setShadingRate() and no
+  // QRhiGraphicsPipeline::ShadingRate enum in ANY Qt version.
   // The pipeline only carries the opt-in flag
   // QRhiGraphicsPipeline::UsesShadingRate, which Utils.cpp's
   // buildPipelineWithState() already sets when caps.variableRateShading is
