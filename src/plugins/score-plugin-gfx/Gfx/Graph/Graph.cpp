@@ -162,6 +162,16 @@ void Graph::createAllRenderLists(GraphicsApi graphicsApi)
 
   for(auto& renderer : m_renderers)
   {
+    // Commit anything still sitting in the initial batch before tearing the
+    // list down. Some of what it holds seeds PERSISTENT resources -- the
+    // GpuResourceRegistry arenas outlive the render list and the rebuilt list
+    // gets the same buffers back -- so dropping the batch here left those
+    // buffers holding whatever was in VRAM. A rebuild with no render in
+    // between (live edit, backend switch) was enough to lose the seed.
+    // flushInitialBatch() no-ops when there is no batch and when the rhi is
+    // gone, and opens its own offscreen frame; rendering is already stopped
+    // above.
+    renderer->flushInitialBatch();
     renderer->release();
   }
 
