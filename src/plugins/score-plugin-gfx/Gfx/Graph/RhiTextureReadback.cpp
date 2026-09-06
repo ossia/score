@@ -1032,10 +1032,48 @@ bool finishReadbackToHost(QRhi& rhi, ReadbackTarget& t)
     }
 #endif
 
+#if SCORE_HAS_VULKAN
+    case QRhi::Vulkan: {
+      // The copy lands straight in `dst` (host-imported, and the import
+      // REQUIRES host-coherent memory, so no invalidate is needed) -- but only
+      // once the GPU has actually executed it, and nothing above guarantees
+      // that.
+      //
+      // The old code returned true here on the theory that the caller's
+      // endOffscreenFrame() had already synchronized. It has not.
+      // QRhiVulkan::endOffscreenFrame (qrhivulkan.cpp:3202) waits on its fence
+      // ONLY under:
+      //
+      //     const bool readbacksPending = !activeTextureReadbacks.isEmpty()
+      //                                || !activeBufferReadbacks.isEmpty();
+      //
+      // Those lists hold QRhi's OWN readbacks, the ones scheduled through
+      // QRhiResourceUpdateBatch::readBackTexture. Our copy is a native
+      // vkCmdCopyImageToBuffer recorded inside beginExternal()/endExternal(),
+      // which QRhi does not know about and does not count. So the frame is
+      // submitted and NOT waited for, the host reads `dst` while the transfer
+      // is still in flight, and releasing the buffer afterwards trips
+      // VUID-vkDestroyBuffer-buffer-00922 ("currently in use by
+      // VkCommandBuffer").
+      //
+      // ReadbackTester showed exactly that shape: the FIRST frame read back
+      // 0xAB (the untouched fill) while "second frame identical" passed, since
+      // by then the previous frame's submission had long completed.
+      //
+      // Waiting here also matches what the other backends already do at this
+      // point: the GL path blocks in glClientWaitSync and the D3D11 path blocks
+      // in Map. finishReadbackToHost is the completion point on every backend.
+      if(!t.vkDf || !t.vkDev)
+        return true;
+      return t.vkDf->vkDeviceWaitIdle(t.vkDev) == VK_SUCCESS;
+    }
+#endif
+
     default:
-      // Vulkan and D3D12 write into dst directly; the frame synchronization
-      // the caller already performs (QRhi::finish() / frame fence) makes the
-      // bytes visible.
+      // D3D12 takes the same host-import path and has the SAME structural gap:
+      // nothing here waits for the recorded copy. Not fixed with the Vulkan
+      // case because it cannot be measured right now (the Windows machine is
+      // down); do not assume it works.
       return true;
   }
 }
