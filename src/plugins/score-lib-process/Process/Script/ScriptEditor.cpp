@@ -8,11 +8,12 @@
 #include <score/widgets/SetIcons.hpp>
 
 #include <QCodeEditor>
-#include <QMainWindow>
 #include <QCoreApplication>
 #include <QDialogButtonBox>
 #include <QDir>
 #include <QFile>
+#include <QKeyEvent>
+#include <QMainWindow>
 #include <QMessageBox>
 #include <QPlainTextEdit>
 #include <QProcess>
@@ -24,13 +25,65 @@
 
 namespace Process
 {
+// Ctrl+Return compiles. The code editor emits livecodeTrigger for it, but
+// only when the modifiers are exactly Control: the numeric keypad's Enter
+// carries KeypadModifier. So the key is also caught here, on the editors
+// themselves, before anything else looks at it. (With the completion popup
+// open the key goes to the popup first and completes instead.)
+class CompileKeyFilter final : public QObject
+{
+public:
+  CompileKeyFilter(QObject* parent, std::function<void()> compile)
+      : QObject{parent}
+      , m_compile{std::move(compile)}
+  {
+  }
+
+  static bool isCompileKey(QKeyEvent* ke) noexcept
+  {
+    const bool enter = ke->key() == Qt::Key_Return || ke->key() == Qt::Key_Enter;
+    const auto mods = ke->modifiers() & ~Qt::KeypadModifier;
+    return enter && mods == Qt::ControlModifier;
+  }
+
+  bool eventFilter(QObject* obj, QEvent* ev) override
+  {
+    switch(ev->type())
+    {
+      case QEvent::ShortcutOverride:
+      case QEvent::KeyPress: {
+        auto ke = static_cast<QKeyEvent*>(ev);
+        if(!isCompileKey(ke))
+          return false;
+        ke->accept();
+        if(ev->type() == QEvent::KeyPress)
+          m_compile();
+        return true;
+      }
+      default:
+        return false;
+    }
+  }
+
+private:
+  std::function<void()> m_compile;
+};
+
+static QObject* addCompileShortcuts(QDialog* dialog, std::function<void()> compile)
+{
+  auto filter = new CompileKeyFilter{dialog, std::move(compile)};
+  dialog->installEventFilter(filter);
+  for(auto w : dialog->findChildren<QWidget*>())
+    w->installEventFilter(filter);
+  return filter;
+}
+
 ScriptDialog::ScriptDialog(
     const std::string_view language, const score::DocumentContext& ctx, QWidget* parent)
     : QDialog{parent}
     , m_context{ctx}
 {
   this->resize(800, 800);
-  this->setWindowFlag(Qt::WindowCloseButtonHint, false);
   auto lay = new QVBoxLayout{this};
   this->setLayout(lay);
 
@@ -72,19 +125,42 @@ ScriptDialog::ScriptDialog(
 
   auto ce = qobject_cast<QCodeEditor*>(m_textedit);
   connect(ce, &QCodeEditor::livecodeTrigger, this, &ScriptDialog::on_accepted);
+  m_compileFilter = addCompileShortcuts(this, [this] { on_accepted(); });
   connect(bbox, &QDialogButtonBox::accepted, this, &ScriptDialog::on_accepted);
   connect(bbox, &QDialogButtonBox::rejected, this, &QDialog::reject);
-  connect(
-      bbox->button(QDialogButtonBox::Close), &QPushButton::clicked, this,
-      &QDialog::reject);
-  connect(
-      bbox->button(QDialogButtonBox::Close), &QPushButton::clicked, this,
-      &QDialog::close);
 }
 
 ScriptDialog::~ScriptDialog()
 {
   stopWatchingFile();
+}
+
+// Escape closes a QDialog, which is fine for an editor in its own window.
+// Docked in the main window it would tear the editor down in the middle of
+// a set from a key that also dismisses the completion popup and the search
+// bar (they handle it themselves before it gets here).
+static bool swallowEscape(const QDialog& dialog, QKeyEvent* event)
+{
+  if(event->key() == Qt::Key_Escape && !dialog.isWindow())
+  {
+    event->accept();
+    return true;
+  }
+  return false;
+}
+
+void ScriptDialog::keyPressEvent(QKeyEvent* event)
+{
+  if(swallowEscape(*this, event))
+    return;
+  QDialog::keyPressEvent(event);
+}
+
+void MultiScriptDialog::keyPressEvent(QKeyEvent* event)
+{
+  if(swallowEscape(*this, event))
+    return;
+  QDialog::keyPressEvent(event);
 }
 
 void ScriptDialog::hideEvent(QHideEvent* event)
@@ -195,7 +271,6 @@ MultiScriptDialog::MultiScriptDialog(const score::DocumentContext& ctx, QWidget*
     , m_context{ctx}
 {
   this->resize(800, 800);
-  this->setWindowFlag(Qt::WindowCloseButtonHint, false);
   auto lay = new QVBoxLayout{this};
   this->setLayout(lay);
 
@@ -220,14 +295,9 @@ MultiScriptDialog::MultiScriptDialog(const score::DocumentContext& ctx, QWidget*
     m_error->clear();
   });
 
+  m_compileFilter = addCompileShortcuts(this, [this] { on_accepted(); });
   connect(bbox, &QDialogButtonBox::accepted, this, &MultiScriptDialog::on_accepted);
   connect(bbox, &QDialogButtonBox::rejected, this, &QDialog::reject);
-  connect(
-      bbox->button(QDialogButtonBox::Close), &QPushButton::clicked, this,
-      &QDialog::reject);
-  connect(
-      bbox->button(QDialogButtonBox::Close), &QPushButton::clicked, this,
-      &QDialog::close);
 
   if(auto editorPath = QSettings{}.value("Skin/DefaultEditor").toString();
      !editorPath.isEmpty())
@@ -257,6 +327,8 @@ void MultiScriptDialog::addTab(
 
   m_tabs->addTab(textedit, name);
   m_editors.push_back({textedit});
+  if(m_compileFilter)
+    textedit->installEventFilter(m_compileFilter);
 }
 
 void MultiScriptDialog::hideEvent(QHideEvent* event)

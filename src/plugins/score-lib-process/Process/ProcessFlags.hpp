@@ -82,6 +82,10 @@ enum ProcessFlags : int64_t
   //! Process kind is deprecated
   Deprecated = SCORE_FLAG(20),
 
+  //! The custom UI is made of plain widgets / Qt Quick and can be shown
+  //! inside the main window (as opposed to plug-ins owning a native window).
+  ExternalUIEmbeddable = SCORE_FLAG(21),
+
   // clang-format off
   SupportsLasting = SupportsTemporal | TimeIndependent,
   ExternalEffect  = SupportsTemporal | TimeIndependent | RequiresCustomData | ControlSurface,

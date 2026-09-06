@@ -4,6 +4,7 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/Bind.hpp>
 
+#include <QCloseEvent>
 #include <QDialog>
 
 #include <score_lib_process_export.h>
@@ -33,8 +34,10 @@ protected:
   virtual void on_accepted() = 0;
 
   void hideEvent(QHideEvent* event) override;
+  void keyPressEvent(QKeyEvent* event) override;
 
   const score::DocumentContext& m_context;
+  QObject* m_compileFilter{};
   QTabWidget* m_tabs{};
   struct EditorTab
   {
@@ -72,8 +75,14 @@ public:
 
     con(m_process, &Process_T::errorMessage, this,
         &ProcessMultiScriptEditDialog::setError);
+    // The process goes first when its document closes: the dialog can still
+    // get closed after that (with the document's view) and must not look at
+    // it any more.
     con(m_process, &IdentifiedObjectAbstract::identified_object_destroying, this,
-        &QWidget::deleteLater);
+        [this] {
+      m_processGone = true;
+      deleteLater();
+    });
   }
 
   void on_accepted() override
@@ -94,18 +103,19 @@ public:
 
 protected:
   const Process_T& m_process;
+  bool m_processGone{};
 
-  void reject() override
-  {
-    const_cast<QWidget*&>(m_process.scriptUI) = nullptr;
-    m_process.scriptUIVisible(false);
-    QDialog::reject();
-  }
+  // See ProcessScriptEditDialog
+  void reject() override { close(); }
+
   void closeEvent(QCloseEvent* event) override
   {
-    const_cast<QWidget*&>(m_process.scriptUI) = nullptr;
-    m_process.scriptUIVisible(false);
-    QDialog::closeEvent(event);
+    if(!m_processGone && m_process.scriptUI == this)
+    {
+      const_cast<QWidget*&>(m_process.scriptUI) = nullptr;
+      m_process.scriptUIVisible(false);
+    }
+    event->accept();
   }
 };
 
