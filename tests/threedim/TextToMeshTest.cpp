@@ -80,6 +80,24 @@ bool hostFontUsable()
   }
   if(!rf.isValid())
     return false;
+
+  // isValid() is not enough, and neither is "the glyph has an outline".
+  // Where no font database exists at all -- the static Qt in the ossia SDK on
+  // Windows says so itself ("Cannot find font directory .../lib/fonts. Note
+  // that Qt no longer ships fonts") -- QRawFont still reports isValid() and
+  // still returns outlines, because every character maps to .notdef. Those
+  // outlines are hollow boxes, so this probe passed, the test ran, and it
+  // failed on things no assertion about text could be expected to hold.
+  //
+  // Two measured signatures of that state, either one sufficient:
+  //   familyName() is empty       (measured: Linux "Noto Sans", Windows "")
+  //   the SPACE glyph has an outline  (a real font draws nothing for a space)
+  if(rf.familyName().isEmpty())
+    return false;
+  const auto space = rf.glyphIndexesForString(QStringLiteral(" "));
+  if(!space.isEmpty() && !rf.pathForGlyph(space[0]).isEmpty())
+    return false;
+
   const auto glyphs = rf.glyphIndexesForString(QStringLiteral("H"));
   if(glyphs.isEmpty())
     return false;
