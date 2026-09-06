@@ -20,7 +20,7 @@
 
 TEST_CASE(
     "SceneResources fallback must reach every instance",
-    "[SceneResources][gpu][!shouldfail]")
+    "[SceneResources][gpu]")
 {
   using namespace score::gfx;
   using namespace score::test::gfx;
