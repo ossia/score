@@ -5,6 +5,8 @@
 
 #include <QDebug>
 
+#include <limits>
+
 #include <cstdlib>
 
 // TODO: extend MeshBufs to hold multiple buffers
@@ -31,6 +33,19 @@ QRhiBuffer *CustomMesh::init_vbo(const ossia::geometry::cpu_buffer &buf, QRhi &r
 {
   static std::atomic_int idx = 0;
   const auto vtx_buf_size = buf.byte_size;
+
+  // QRhiBuffer sizes are quint32 and geometry sizes are int64_t, so this is a
+  // narrowing conversion and it is silent: 4 GiB + 4 KiB would become 4 KiB,
+  // allocate happily, and be addressed afterwards as though it held the
+  // original size. Refuse what cannot be expressed instead.
+  if(!bufferSizeIsExpressible(vtx_buf_size))
+  {
+    qWarning() << "CustomMesh: vertex buffer of" << vtx_buf_size
+               << "bytes exceeds what QRhi can address (max"
+               << std::numeric_limits<quint32>::max() << "), refusing";
+    return nullptr;
+  }
+
   auto mesh_buf = rhi.newBuffer(
       QRhiBuffer::Static,
       compatibleBufferUsage(
@@ -40,7 +55,16 @@ QRhiBuffer *CustomMesh::init_vbo(const ossia::geometry::cpu_buffer &buf, QRhi &r
       QString("Mesh::vtx_buf.%1")
           .arg(idx.fetch_add(1, std::memory_order_relaxed))
           .toLatin1());
-  mesh_buf->create();
+  // create() can fail -- a device out of memory, or a size the driver refuses
+  // even though QRhi could express it. Ignoring the result leaves an unusable
+  // buffer in circulation and the failure surfaces much later, somewhere else.
+  if(!mesh_buf->create())
+  {
+    qWarning() << "CustomMesh: vertex buffer of" << vtx_buf_size
+               << "bytes failed to allocate";
+    delete mesh_buf;
+    return nullptr;
+  }
 
   return mesh_buf;
 }
