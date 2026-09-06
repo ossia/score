@@ -13,6 +13,41 @@
 namespace score::gfx
 {
 
+namespace
+{
+// On the Metal backend, QRhiResourceUpdateBatch::uploadStaticBuffer does NOT
+// write the MTLBuffer when the batch is submitted: the bytes are stashed in
+// QMetalBufferData::pendingUpdates and only memcpy'd into [buf contents] the
+// next time the buffer is used through QRhi's own binding machinery
+// (setShaderResources, setVertexInput, draw*Indirect, readBackBuffer).
+// QMetalBuffer::nativeBuffer() performs that flush for slotted (Dynamic)
+// buffers only; for Immutable/Static buffers it returns &d->buf[0] WITHOUT
+// executing the pending host writes (qrhimetal.mm, still true in Qt 6.12).
+//
+// This native-handle blit path reads the MTLBuffer directly, so a buffer that
+// is consumed ONLY through these copies — never bound through QRhi — keeps
+// its uploads stuck in pendingUpdates forever and the blit reads stale zeros.
+// Measured symptom: every per-instance translation copied out of the
+// world-transform buffer read back as (0,0,0) on Metal while Vulkan and
+// OpenGL rendered correctly (test_gfx_instancer_shrink).
+//
+// Force the flush through public API: enqueueing a buffer readback executes
+// the buffer's pending host writes immediately at enqueue time
+// (QRhiMetal::enqueueResourceUpdates, BufferOp::Read path). The 1-byte
+// readback result is a throwaway that deletes itself on completion.
+//
+// Must be called outside any render/compute pass — the same contract the
+// copy functions below already impose on their callers.
+void flushPendingHostWritesMetal(QRhi& rhi, QRhiCommandBuffer& cb, QRhiBuffer* buf)
+{
+  auto* result = new QRhiReadbackResult;
+  result->completed = [result] { delete result; };
+  QRhiResourceUpdateBatch* batch = rhi.nextResourceUpdateBatch();
+  batch->readBackBuffer(buf, 0, 1, result);
+  cb.resourceUpdate(batch);
+}
+}
+
 // Pre-condition: cb must NOT have an active render or compute pass.
 // Metal allows only one encoder open on a command buffer at a time; calling
 // [MTLCommandBuffer blitCommandEncoder] while a render or compute encoder is
@@ -39,6 +74,12 @@ void copyBufferMetal(
       = static_cast<const QRhiMetalCommandBufferNativeHandles*>(cb.nativeHandles());
   if(!handles || !handles->commandBuffer)
     return;
+
+  // Land any uploadStaticBuffer data still parked in Qt's pendingUpdates
+  // before reading/writing the MTLBuffers natively; see the comment on
+  // flushPendingHostWritesMetal.
+  flushPendingHostWritesMetal(rhi, cb, src);
+  flushPendingHostWritesMetal(rhi, cb, dst);
 
   auto srcNative = src->nativeBuffer();
   auto dstNative = dst->nativeBuffer();
@@ -86,6 +127,12 @@ void copyBufferRegionsMetal(
       = static_cast<const QRhiMetalCommandBufferNativeHandles*>(cb.nativeHandles());
   if(!handles || !handles->commandBuffer)
     return;
+
+  // Land any uploadStaticBuffer data still parked in Qt's pendingUpdates
+  // before reading/writing the MTLBuffers natively; see the comment on
+  // flushPendingHostWritesMetal.
+  flushPendingHostWritesMetal(rhi, cb, src);
+  flushPendingHostWritesMetal(rhi, cb, dst);
 
   auto srcNative = src->nativeBuffer();
   auto dstNative = dst->nativeBuffer();
