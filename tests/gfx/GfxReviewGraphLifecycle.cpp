@@ -85,7 +85,7 @@ TEST_CASE(
 
 TEST_CASE(
     "GraphLifecycle-3 rebuild commits persistent registry initialization",
-    "[GraphLifecycle][registry][!shouldfail]")
+    "[GraphLifecycle][registry]")
 {
   const auto api = GENERATE(from_range(platform_backends()));
   Result result; QByteArray bytes; bool ready{}, sameBuffer{}; int frameError{};
