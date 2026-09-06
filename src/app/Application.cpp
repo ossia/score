@@ -141,7 +141,20 @@ static void loadApplicationResources()
   QFont f("Ubuntu");
   f.setPixelSize(score::uiFontSize());
   f.setHintingPreference(score::uiFontHinting());
+  f.setStyleStrategy(score::uiFontStyleStrategy());
   qGuiApp->setFont(f);
+
+  // The platform theme seeds per-class fonts which override the application
+  // font; macOS provides most of this list, so set them explicitly.
+  for(const char* widgetClass :
+      {"QMenu", "QMenuBar", "QMenuItem", "QMessageBox", "QLabel", "QTipLabel",
+       "QTitleBar", "QStatusBar", "QMdiSubWindowTitleBar", "QDockWidgetTitle",
+       "QPushButton", "QCheckBox", "QRadioButton", "QToolButton",
+       "QAbstractItemView", "QListView", "QHeaderView", "QListBox",
+       "QComboMenuItem", "QComboLineEdit", "QSmallFont", "QMiniFont"})
+  {
+    QApplication::setFont(f, widgetClass);
+  }
 }
 
 static void setQApplicationSettings(QApplication& m_app)

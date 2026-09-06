@@ -51,6 +51,15 @@ QFont::HintingPreference uiFontHinting() noexcept
   return QFont::PreferFullHinting;
 }
 
+QFont::StyleStrategy uiFontStyleStrategy() noexcept
+{
+#if defined(__APPLE__)
+  return QFont::NoSubpixelAntialias;
+#else
+  return QFont::PreferDefault;
+#endif
+}
+
 struct Skin::color_map
 {
   explicit color_map(std::initializer_list<std::pair<QString, Brush*>> list)
@@ -108,7 +117,8 @@ Skin::Skin() noexcept
 
   for(QFont* font : {&SansFont, &SansFontSmall, &MonoFont, &MonoFontSmall})
   {
-    font->setStyleStrategy(QFont::ForceOutline);
+    font->setStyleStrategy(
+        QFont::StyleStrategy(QFont::ForceOutline | uiFontStyleStrategy()));
     font->setHintingPreference(uiFontHinting());
   }
 
@@ -202,7 +212,7 @@ Skin::Skin() noexcept
     font->setStyleHint(QFont::StyleHint::SansSerif);
     font->setStyleStrategy(QFont::StyleStrategy(
         QFont::StyleStrategy::PreferQuality | QFont::StyleStrategy::PreferMatch
-        | QFont::StyleStrategy::NoFontMerging));
+        | QFont::StyleStrategy::NoFontMerging | uiFontStyleStrategy()));
   }
   for(QFont* font : mono_fonts)
   {
