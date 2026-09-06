@@ -1069,9 +1069,16 @@ void Graph::reconcileAllRenderLists()
         auto* rn = rn_it->second;
         rl->renderers.push_back(rn);
 
-        // Sync change indices and prevent spurious rt_changed
+        // Sync change indices.
+        //
+        // This renderer is RETAINED: it already ran initState() in an earlier
+        // build, so there is no spurious rt_changed to suppress here -- that
+        // concern belongs to the freshly-created path above, which is why
+        // syncRenderTargetIndex() exists. hasRenderTargetChanged() is
+        // edge-triggered on an index, so checkForChanges() CONSUMES a pending
+        // change; clearing the flag straight afterwards threw away a real
+        // render-target change and the new size never reached the target.
         rn->checkForChanges();
-        rn->renderTargetSpecsChanged = false;
       }
     }
     rl->nodes = std::move(validNodes);
