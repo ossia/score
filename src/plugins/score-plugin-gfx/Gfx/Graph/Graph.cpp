@@ -162,6 +162,16 @@ void Graph::createAllRenderLists(GraphicsApi graphicsApi)
 
   for(auto& renderer : m_renderers)
   {
+    // Commit anything still sitting in the initial batch before tearing the
+    // list down. Some of what it holds seeds PERSISTENT resources -- the
+    // GpuResourceRegistry arenas outlive the render list and the rebuilt list
+    // gets the same buffers back -- so dropping the batch here left those
+    // buffers holding whatever was in VRAM. A rebuild with no render in
+    // between (live edit, backend switch) was enough to lose the seed.
+    // flushInitialBatch() no-ops when there is no batch and when the rhi is
+    // gone, and opens its own offscreen frame; rendering is already stopped
+    // above.
+    renderer->flushInitialBatch();
     renderer->release();
   }
 
@@ -669,6 +679,17 @@ void Graph::removeNodeFromRenderLists(Node* node)
 
     ossia::remove_erase(rl->renderers, renderer);
     ossia::remove_erase(rl->nodes, node);
+
+    // Release the centralized input render targets this node's ports own.
+    //
+    // removeInputRenderTarget() is otherwise reached only from the EDGE
+    // removal path, keyed on edge.sink, so a port with NO edge into it never
+    // got released -- and an unconnected image input is still allocated a
+    // centralized target by the RL. Removing such a node left its target
+    // allocated for the lifetime of the render list, keyed on a Port the graph
+    // no longer contains.
+    for(auto* in : node->input)
+      rl->removeInputRenderTarget(in);
   }
 
   node->renderedNodes.clear();
@@ -816,9 +837,17 @@ void Graph::createPassForEdgeIfMissing(Edge& edge)
         bool wantsDepth = rl->requiresDepth(*sink);
         bool wantsSamplableDepth
             = (sink->flags & Flag::SamplableDepth) == Flag::SamplableDepth;
+        // Same mip rule as the full build in RenderList.cpp: a chain is only
+        // worth allocating when the consuming sampler filters across levels.
+        // Omitting it here is not a missing optimisation -- the texture is
+        // allocated with one level, so generateMips() has nowhere to write and
+        // a spec that asked for mipmaps silently gets none.
+        QRhiTexture::Flags texFlags{};
+        if(spec.mipmap_mode != QRhiSampler::None)
+          texFlags |= QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips;
         auto rt = createRenderTarget(
             rl->state, spec.format, spec.size, rl->samples(),
-            wantsDepth || wantsSamplableDepth, wantsSamplableDepth);
+            wantsDepth || wantsSamplableDepth, wantsSamplableDepth, texFlags);
         rl->m_inputRenderTargets[sink] = std::move(rt);
       }
     }
@@ -991,9 +1020,13 @@ void Graph::reconcileAllRenderLists()
             bool wantsDepth = rl->requiresDepth(*in);
             bool wantsSamplableDepth
                 = (in->flags & Flag::SamplableDepth) == Flag::SamplableDepth;
+            // Same mip rule as the full build -- see the sink path above.
+            QRhiTexture::Flags texFlags{};
+            if(spec.mipmap_mode != QRhiSampler::None)
+              texFlags |= QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips;
             auto rt = createRenderTarget(
                 rl->state, spec.format, spec.size, rl->samples(),
-                wantsDepth || wantsSamplableDepth, wantsSamplableDepth);
+                wantsDepth || wantsSamplableDepth, wantsSamplableDepth, texFlags);
             rl->m_inputRenderTargets[in] = std::move(rt);
           }
         }
@@ -1069,9 +1102,16 @@ void Graph::reconcileAllRenderLists()
         auto* rn = rn_it->second;
         rl->renderers.push_back(rn);
 
-        // Sync change indices and prevent spurious rt_changed
+        // Sync change indices.
+        //
+        // This renderer is RETAINED: it already ran initState() in an earlier
+        // build, so there is no spurious rt_changed to suppress here -- that
+        // concern belongs to the freshly-created path above, which is why
+        // syncRenderTargetIndex() exists. hasRenderTargetChanged() is
+        // edge-triggered on an index, so checkForChanges() CONSUMES a pending
+        // change; clearing the flag straight afterwards threw away a real
+        // render-target change and the new size never reached the target.
         rn->checkForChanges();
-        rn->renderTargetSpecsChanged = false;
       }
     }
     rl->nodes = std::move(validNodes);
