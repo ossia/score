@@ -67,27 +67,17 @@ float polyArea(const std::vector<Vec2>& p) noexcept
 
 // Ear-clip `poly` into triangles; append indices (into `base_offset +
 // original polygon index`) to `out_indices`.
-void earClip(
-    const std::vector<Vec2>& poly, uint32_t base_offset,
+// One ear-clipping attempt at a fixed orientation. Returns the number of
+// triangles emitted, appending to out_indices.
+std::size_t earClipPass(
+    const std::vector<Vec2>& poly, uint32_t base_offset, bool reversed,
     std::vector<uint32_t>& out_indices)
 {
   const std::size_t n0 = poly.size();
-  if(n0 < 3)
-    return;
-
-  // Make a working copy of the polygon with flipped winding if needed
-  // so the triangulator always sees CCW.
+  const std::size_t before = out_indices.size();
   std::vector<int> idx(n0);
-  if(polyArea(poly) < 0.f)
-  {
-    for(std::size_t i = 0; i < n0; ++i)
-      idx[i] = int(n0 - 1 - i);
-  }
-  else
-  {
-    for(std::size_t i = 0; i < n0; ++i)
-      idx[i] = int(i);
-  }
+  for(std::size_t i = 0; i < n0; ++i)
+    idx[i] = reversed ? int(n0 - 1 - i) : int(i);
 
   int n = (int)idx.size();
   int guard = n * 3; // bail to avoid infinite loop on degenerate input
@@ -133,6 +123,34 @@ void earClip(
     out_indices.push_back(base_offset + uint32_t(idx[1]));
     out_indices.push_back(base_offset + uint32_t(idx[2]));
   }
+  return (out_indices.size() - before) / 3;
+}
+
+// Ear-clip `poly` into triangles; append indices (into `base_offset +
+// original polygon index`) to `out_indices`.
+//
+// The orientation is TRIED, not trusted. Deciding it from polyArea() alone
+// assumes polyArea and triSign agree about handedness for the polygons Qt
+// hands back, and they do not everywhere: on Windows every glyph came out with
+// the orientation that makes triSign() call every vertex reflex, so the first
+// pass found no ear, broke immediately, and emitted NOTHING -- not a partial
+// mesh, zero indices. TextToMesh then published an empty scene state on all
+// four Windows backends while working on Linux.
+//
+// Trying the other orientation when the first yields nothing costs one extra
+// pass on a polygon that was going to produce no geometry anyway, and removes
+// the dependency on the two sign conventions matching.
+void earClip(
+    const std::vector<Vec2>& poly, uint32_t base_offset,
+    std::vector<uint32_t>& out_indices)
+{
+  if(poly.size() < 3)
+    return;
+
+  const bool preferReversed = polyArea(poly) < 0.f;
+  if(earClipPass(poly, base_offset, preferReversed, out_indices) > 0)
+    return;
+  earClipPass(poly, base_offset, !preferReversed, out_indices);
 }
 
 // Convert a QPainterPath's filled polygons into (positions, indices),
