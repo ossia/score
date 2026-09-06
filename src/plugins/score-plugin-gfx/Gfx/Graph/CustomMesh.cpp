@@ -1,4 +1,5 @@
 #include "CustomMesh.hpp"
+#include <Gfx/Graph/RhiIndirectCompat.hpp>
 #include <score/tools/Debug.hpp>
 #include <Gfx/Graph/Utils.hpp>
 
@@ -150,6 +151,25 @@ MeshBuffers CustomMesh::init(QRhi &rhi) const noexcept
     ret.indirectDrawStride = 5 * sizeof(uint32_t);
     if(ret.indirectDrawCount == 0)
       ret.indirectDrawCount = 1;
+  }
+
+  // GPU-written draw count: the "_indirect_draw_count" auxiliary names a
+  // buffer holding the u32 command count the GPU decided on. Consumed by the
+  // drawIndexedIndirectCount rung; the capacity above stays the maxDrawCount
+  // clamp. Same single-mesh scoping as the indirect buffer itself.
+
+  if(const auto* cnt_aux = first_mesh.find_auxiliary("_indirect_draw_count");
+     cnt_aux && ret.indirectDrawBuffer && cnt_aux->buffer >= 0
+     && cnt_aux->buffer < (int)first_mesh.buffers.size())
+  {
+    if(const auto* gpu = ossia::get_if<ossia::geometry::gpu_buffer>(
+           &first_mesh.buffers[cnt_aux->buffer].data);
+       gpu && gpu->handle)
+    {
+      ret.indirectCountBuffer = static_cast<QRhiBuffer*>(gpu->handle);
+      ret.indirectCountOffset
+          = (quint32)std::max<int64_t>(0, cnt_aux->byte_offset);
+    }
   }
   if(!first_mesh.cpu_draw_commands.empty())
     ret.cpuDrawCommands.assign(
@@ -468,6 +488,26 @@ void CustomMesh::update(
     output_meshbuf.indirectDrawIndexed = false;
   }
 
+  // GPU-written draw count: the "_indirect_draw_count" auxiliary names a
+  // buffer holding the u32 command count the GPU decided on. Consumed by the
+  // drawIndexedIndirectCount rung; the capacity above stays the maxDrawCount
+  // clamp. Same single-mesh scoping as the indirect buffer itself.
+  output_meshbuf.indirectCountBuffer = nullptr;
+  output_meshbuf.indirectCountOffset = 0;
+  if(const auto* cnt_aux = first_mesh.find_auxiliary("_indirect_draw_count");
+     cnt_aux && output_meshbuf.indirectDrawBuffer && cnt_aux->buffer >= 0
+     && cnt_aux->buffer < (int)first_mesh.buffers.size())
+  {
+    if(const auto* gpu = ossia::get_if<ossia::geometry::gpu_buffer>(
+           &first_mesh.buffers[cnt_aux->buffer].data);
+       gpu && gpu->handle)
+    {
+      output_meshbuf.indirectCountBuffer = static_cast<QRhiBuffer*>(gpu->handle);
+      output_meshbuf.indirectCountOffset
+          = (quint32)std::max<int64_t>(0, cnt_aux->byte_offset);
+    }
+  }
+
   if(!first_mesh.cpu_draw_commands.empty())
   {
     output_meshbuf.cpuDrawCommands.assign(
@@ -709,9 +749,43 @@ bool CustomMesh::drawSingleMesh(
   // Only meaningful for single-sub-mesh MDI-mode geometries.
   if(bufs.useIndirectDraw && effIndirectBuf)
   {
+    // Fallback ladder — same rung order and producer contract as
+    // BasicMesh::draw; see the RenderState::Caps declaration. The count
+    // buffer is scoped to the single-mesh MDI path exactly like the
+    // indirect buffer itself (picked up from mesh[0]), so it pairs with
+    // bufs.indirectDrawBuffer; a per-mesh override buffer keeps the plain
+    // rungs.
+    if(bufs.gpuIndirectCountSupported && bufs.indirectCountBuffer
+       && bufs.gpuIndirectSupported && effIndirectBuf == bufs.indirectDrawBuffer)
+    {
+      if(score::gfx::drawIndirectCountCompat(
+             cb, bufs.indirectDrawIndexed, effIndirectBuf,
+             bufs.indirectDrawOffset, bufs.indirectCountBuffer,
+             bufs.indirectCountOffset, effIndirectCount,
+             bufs.indirectDrawStride))
+        return true;
+      // API missing in this Qt: fall through to the plain indirect rungs.
+    }
 #if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
     if(bufs.gpuIndirectSupported)
     {
+      if(!bufs.gpuIndirectMultiSupported && effIndirectCount > 1)
+      {
+        // Single-indirect rung: one drawCount=1 call per command slot (see
+        // BasicMesh::draw for why the loop lives here and not in Qt).
+        for(quint32 i = 0; i < effIndirectCount; i++)
+        {
+          const quint32 off
+              = bufs.indirectDrawOffset + i * bufs.indirectDrawStride;
+          if(bufs.indirectDrawIndexed)
+            cb.drawIndexedIndirect(
+                effIndirectBuf, off, 1, bufs.indirectDrawStride);
+          else
+            cb.drawIndirect(
+                effIndirectBuf, off, 1, bufs.indirectDrawStride);
+        }
+        return true;
+      }
       if(bufs.indirectDrawIndexed)
         cb.drawIndexedIndirect(
             effIndirectBuf, bufs.indirectDrawOffset,

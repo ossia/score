@@ -1,4 +1,5 @@
 #include <Gfx/Graph/CustomMesh.hpp>
+#include <cstring>
 #include <Gfx/Graph/ISFVisitors.hpp>
 #include <Gfx/Graph/PipelineStateHelpers.hpp>
 #include <Gfx/Graph/RhiClearBuffer.hpp>
@@ -1831,6 +1832,12 @@ void RenderedRawRasterPipelineNode::initState(
           = renderer.state.caps.drawIndirect
             && !indirectDrawBreaksMultiView(
                 renderer.state.api, n.descriptor().multiview_count);
+      m_meshbufs.gpuIndirectMultiSupported
+          = renderer.state.caps.drawIndirectMulti;
+      m_meshbufs.gpuIndirectCountSupported
+          = renderer.state.caps.drawIndirectCount
+            && drawIndirectCountUsable(
+                renderer.state.api, n.descriptor().multiview_count);
     }
     else
     {
@@ -1843,6 +1850,12 @@ void RenderedRawRasterPipelineNode::initState(
           = renderer.state.caps.drawIndirect
             && !indirectDrawBreaksMultiView(
                 renderer.state.api, n.descriptor().multiview_count);
+          m_meshbufs.gpuIndirectMultiSupported
+              = renderer.state.caps.drawIndirectMulti;
+          m_meshbufs.gpuIndirectCountSupported
+              = renderer.state.caps.drawIndirectCount
+                && drawIndirectCountUsable(
+                    renderer.state.api, n.descriptor().multiview_count);
         }
       }
     }
@@ -2645,6 +2658,12 @@ void RenderedRawRasterPipelineNode::update(
           = renderer.state.caps.drawIndirect
             && !indirectDrawBreaksMultiView(
                 renderer.state.api, n.descriptor().multiview_count);
+      m_meshbufs.gpuIndirectMultiSupported
+          = renderer.state.caps.drawIndirectMulti;
+      m_meshbufs.gpuIndirectCountSupported
+          = renderer.state.caps.drawIndirectCount
+            && drawIndirectCountUsable(
+                renderer.state.api, n.descriptor().multiview_count);
 
       this->meshChangedIndex = this->m_mesh->dirtyGeometryIndex;
 
@@ -3157,8 +3176,32 @@ void RenderedRawRasterPipelineNode::runInitialPasses(
       }
     };
     rb->readBackBuffer(m_meshbufs.indirectDrawBuffer, 0, bufSize, &m_meshbufs.readbackResult);
+    // GPU-written draw count: read it back alongside the commands so the CPU
+    // loop draws exactly what the GPU decided, clamping away the dead command
+    // slots (which the producer contract keeps zeroed — but a count buffer
+    // means the authoritative number is this one, and honouring it here keeps
+    // the CPU rung pixel-identical to the drawIndexedIndirectCount rung even
+    // for producers that poison their dead slots).
+    const bool wantCount = m_meshbufs.indirectCountBuffer != nullptr;
+    if(wantCount)
+    {
+      m_meshbufs.countReadbackResult.completed = [] {};
+      rb->readBackBuffer(
+          m_meshbufs.indirectCountBuffer, m_meshbufs.indirectCountOffset,
+          sizeof(uint32_t), &m_meshbufs.countReadbackResult);
+    }
     cb.resourceUpdate(rb);
     rhi.finish();
+    if(wantCount
+       && m_meshbufs.countReadbackResult.data.size() >= (qsizetype)sizeof(uint32_t))
+    {
+      uint32_t gpuCount = 0;
+      memcpy(
+          &gpuCount, m_meshbufs.countReadbackResult.data.constData(),
+          sizeof(uint32_t));
+      if(m_meshbufs.cpuDrawCommands.size() > gpuCount)
+        m_meshbufs.cpuDrawCommands.resize(gpuCount);
+    }
   }
   else if(
       m_meshbufs.useIndirectDraw && !m_meshbufs.gpuIndirectSupported
