@@ -830,24 +830,26 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
     s.setValue("score/StartScreenSeen", true);
   }
 
-  // Workaround until https://bugreports.qt.io/browse/QTBUG-103225 is fixed
-#if defined(__APPLE__)
-  static constexpr double font_factor = 96. / 72.;
-#else
-  static constexpr double font_factor = 1.;
-#endif
-
-  m_navFont = QFont("Montserrat", 12 * font_factor, QFont::DemiBold);
-  m_sectionFont = QFont("Montserrat", 10 * font_factor, QFont::Medium);
+  // px, not pt: pt would shrink on macOS' 72 DPI.
+  m_navFont = QFont("Montserrat");
+  m_navFont.setPixelSize(16);
+  m_navFont.setWeight(QFont::DemiBold);
+  m_sectionFont = QFont("Montserrat");
+  m_sectionFont.setPixelSize(13);
+  m_sectionFont.setWeight(QFont::Medium);
   m_sectionFont.setCapitalization(QFont::AllUppercase);
   m_sectionFont.setLetterSpacing(QFont::PercentageSpacing, 108);
-  m_itemFont = QFont("Ubuntu", 12 * font_factor, QFont::Normal);
+  m_itemFont = QFont("Ubuntu");
+  m_itemFont.setPixelSize(16);
   m_itemFont.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
   m_itemFont.setStyleStrategy(QFont::PreferAntialias);
-  m_smallFont = QFont("Ubuntu", 10 * font_factor, QFont::Normal);
+  m_smallFont = QFont("Ubuntu");
+  m_smallFont.setPixelSize(13);
   m_smallFont.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
   m_smallFont.setStyleStrategy(QFont::PreferAntialias);
-  m_versionFont = QFont("Ubuntu", 14 * font_factor, QFont::Light);
+  m_versionFont = QFont("Ubuntu");
+  m_versionFont.setPixelSize(19);
+  m_versionFont.setWeight(QFont::Light);
   m_versionFont.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
   m_versionFont.setStyleStrategy(QFont::PreferAntialias);
 

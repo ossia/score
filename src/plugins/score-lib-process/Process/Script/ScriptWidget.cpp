@@ -103,7 +103,9 @@ QSyntaxStyle* overlayScriptStyle()
 QTextEdit* createScriptWidget(const std::string_view language)
 {
   auto edit = new QCodeEditor{};
-  auto font = QFont("IBM Plex Mono", 10);
+  // px, not pt: pt would shrink on macOS' 72 DPI.
+  auto font = QFont("IBM Plex Mono");
+  font.setPixelSize(13);
   font.setFixedPitch(true);
   font.setStyleStrategy(QFont::PreferAntialias);
   font.setHintingPreference(QFont::HintingPreference::PreferVerticalHinting);
