@@ -28,6 +28,7 @@
 #include <QStyleOptionTitleBar>
 #include <QTabBar>
 #include <QTabWidget>
+#include <QTimer>
 #include <QToolBar>
 #include <QToolButton>
 #include <QVBoxLayout>
@@ -165,6 +166,9 @@ View::View(QObject* parent)
     });
     ((QVBoxLayout*)leftTabs->layout())->insertWidget(0, topleftToolbar);
     ((QVBoxLayout*)leftTabs->layout())->insertWidget(1, leftLabel);
+    // Breathing room on the window's edge, like the right pane's panels have
+    leftTabs->layout()->setContentsMargins(10, 10, 10, 10);
+    leftTabs->layout()->setSpacing(6);
   }
 
   auto rect = QGuiApplication::primaryScreen()->availableGeometry();
@@ -248,6 +252,26 @@ View::View(QObject* parent)
     ((QVBoxLayout*)rightTabs->layout())->insertWidget(0, rightLabel);
   }
   totalWidg->addWidget(rightTabs);
+  // Unchecking the shown tab folds the pane away, like the bottom one
+  connect(
+      rightTabs, &FixedTabWidget::actionTriggered, this, [totalWidg](QAction*, bool ok) {
+    QList<int> sz = totalWidg->sizes();
+    if(sz.size() < 3)
+      return;
+    if(ok)
+    {
+      if(sz[2] <= 1)
+      {
+        sz[2] = 200;
+        totalWidg->setSizes(sz);
+      }
+    }
+    else
+    {
+      sz[2] = 0;
+      totalWidg->setSizes(sz);
+    }
+  });
 
   setCentralWidget(totalWidg);
   connect(centralTabs, &QTabWidget::currentChanged, this, [&](int index) {
@@ -284,7 +308,7 @@ void View::setPresenter(Presenter* p)
 void View::addDocumentView(DocumentView* doc)
 {
   doc->setParent(this);
-  auto widg = doc->viewDelegate().getWidget();
+  auto widg = doc->widget();
   m_documents.insert(std::make_pair(widg, doc));
   centralTabs->addTab(widg, doc->document().metadata().fileName());
   centralTabs->setCurrentIndex(centralTabs->count() - 1);
@@ -319,7 +343,10 @@ void View::setupPanel(PanelDelegate* v)
       break;
     }
     case Qt::RightDockWidgetArea: {
-      auto status = v->defaultPanelStatus();
+      // The object tree, inspector and help text are stacked together in a
+      // single "Inspector" tab, set up once every panel is known.
+      // Every other right panel gets a tab of its own.
+      auto& status = v->defaultPanelStatus();
       if(status.prettyName == QObject::tr("Inspector"))
       {
         inspectorPanel = v;
@@ -334,7 +361,7 @@ void View::setupPanel(PanelDelegate* v)
       }
       else
       {
-        auto [idx, act] = rightTabs->addTab(w, v->defaultPanelStatus());
+        auto [idx, act] = rightTabs->addTab(w, status);
         toggle = act;
       }
 
@@ -365,63 +392,64 @@ void View::setupPanel(PanelDelegate* v)
 void View::allPanelsAdded()
 {
   auto splitter = (RectSplitter*)centralWidget();
-  std::map<QString, score::PanelDelegate*> inspectorPanels;
-  for(auto& panel : score::GUIAppContext().panels())
+
+  // Inspector tab: objects / inspector / help stacked vertically
   {
-    // rightTabs->addTab(panel.widget(), panel.defaultPanelStatus());
-    //rightSplitter->insertWidget(1, panel.widget());
-
-    // auto act
-    //     = bottomTabs->addAction(rightSplitter->widget(1), panel.defaultPanelStatus());
-    // bottomTabs->actionGroup()->removeAction(act);
-    // act->setChecked(true);
-    // connect(act, &QAction::toggled, this, [splitter](bool ok) {
-    //   QList<int> sz = splitter->sizes();
-    //   if(ok)
-    //   {
-    //     if(sz[2] <= 1)
-    //     {
-    //       sz[2] = 200;
-    //       splitter->setSizes(sz);
-    //     }
-    //   }
-    //   else
-    //   {
-    //     sz[2] = 0;
-    //     splitter->setSizes(sz);
-    //   }
-    // });
-  }
-
-  rightSplitter->addWidget(objectPanel->widget());
-  rightSplitter->addWidget(inspectorPanel->widget());
-  rightSplitter->addWidget(infoPanel->widget());
-  {
-    auto [idx, toggle]
-        = rightTabs->addTab(rightSplitter, inspectorPanel->defaultPanelStatus(), 0);
-
-    if(toggle)
+    PanelDelegate* title{};
+    for(auto panel : {objectPanel, inspectorPanel, infoPanel})
     {
-      auto& mw = inspectorPanel->context().menus.get().at(score::Menus::Windows());
+      if(!panel)
+        continue;
+      rightSplitter->addWidget(panel->widget());
+      if(!title || panel == inspectorPanel)
+        title = panel;
+    }
+
+    if(title)
+    {
+      auto [idx, toggle]
+          = rightTabs->addTab(rightSplitter, title->defaultPanelStatus(), 0);
+      auto& mw = title->context().menus.get().at(score::Menus::Windows());
       addAction(toggle);
       mw.menu()->addAction(toggle);
-
-      // Maybe show the panel
-      if(inspectorPanel->defaultPanelStatus().shown)
-        toggle->toggle();
+    }
+    else
+    {
+      rightSplitter->hide();
     }
   }
 
   // Show the device explorer first
-  leftTabs->toolbar()->actions().front()->trigger();
+  if(!leftTabs->actionGroup()->actions().empty())
+    leftTabs->setTab(0);
   // Show the inspector first
-  rightTabs->toolbar()->actions().front()->trigger();
+  if(rightTabs->actionFor(rightSplitter))
+    rightTabs->showTab(rightSplitter);
+  else if(!rightTabs->actionGroup()->actions().empty())
+    rightTabs->setTab(0);
+
   QTimer::singleShot(100, this, [=] {
     int w = splitter->width();
     {
       splitter->setSizes({int(0.19 * w), int(0.66 * w), int(0.15 * w)});
     }
   });
+}
+
+QAction* View::addRightPanel(QWidget* w, const PanelStatus& status)
+{
+  auto [idx, act] = rightTabs->addTab(w, status);
+  return act;
+}
+
+void View::removeRightPanel(QWidget* w)
+{
+  rightTabs->removeTab(w);
+}
+
+void View::showRightPanel(QWidget* w)
+{
+  rightTabs->showTab(w);
 }
 
 void View::addTopToolbar(QToolBar* b)
@@ -435,7 +463,7 @@ void View::closeDocument(DocumentView* doc)
 {
   for(int i = 0; i < centralTabs->count(); i++)
   {
-    auto widg = doc->viewDelegate().getWidget();
+    auto widg = doc->widget();
     if(widg == centralTabs->widget(i))
     {
       m_documents.erase(widg);
@@ -464,7 +492,7 @@ void View::on_fileNameChanged(DocumentView* d, const QString& newName)
 {
   for(int i = 0; i < centralTabs->count(); i++)
   {
-    if(d->viewDelegate().getWidget() == centralTabs->widget(i))
+    if(d->widget() == centralTabs->widget(i))
     {
       QString n = newName;
       while(n.contains("/"))

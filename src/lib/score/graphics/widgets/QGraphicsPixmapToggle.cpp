@@ -4,6 +4,7 @@
 
 #include <core/application/ApplicationSettings.hpp>
 
+#include <QGraphicsSceneContextMenuEvent>
 #include <QGraphicsSceneMouseEvent>
 #include <QGuiApplication>
 
@@ -45,8 +46,19 @@ void QGraphicsPixmapToggle::setState(bool toggled)
   }
 }
 
+void QGraphicsPixmapToggle::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
+{
+  contextMenuRequested(event->screenPos());
+  event->accept();
+}
+
 void QGraphicsPixmapToggle::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
+  if(event->button() != Qt::LeftButton)
+  {
+    event->accept();
+    return;
+  }
   m_toggled = !m_toggled;
   setPixmap(m_toggled ? m_pressed : m_released);
   toggled(m_toggled);

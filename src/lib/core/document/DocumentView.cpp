@@ -6,6 +6,9 @@
 
 #include <core/document/Document.hpp>
 #include <core/document/DocumentView.hpp>
+#include <core/view/CentralViewStack.hpp>
+
+#include <QWidget>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::DocumentView)
@@ -16,6 +19,19 @@ DocumentView::DocumentView(
     : QObject{parent}
     , m_document{doc}
     , m_view{fact.makeView(doc.context(), this)}
+    , m_central{new CentralViewStack{m_view->getWidget(), tr("Score")}}
 {
+}
+
+DocumentView::~DocumentView()
+{
+  // The delegate view manages its widget's lifetime itself
+  m_central->releaseMainView();
+  delete m_central;
+}
+
+QWidget* DocumentView::widget() const noexcept
+{
+  return m_central;
 }
 }
