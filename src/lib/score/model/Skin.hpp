@@ -233,4 +233,8 @@ private:
 SCORE_LIB_BASE_EXPORT int uiFontSize() noexcept;
 SCORE_LIB_BASE_EXPORT QFont::HintingPreference uiFontHinting() noexcept;
 
+//! NoSubpixelAntialias on macOS: QCocoaScreen rewrites Subpixel_None to
+//! Subpixel_RGB, so the style strategy is the only way to get grayscale AA.
+SCORE_LIB_BASE_EXPORT QFont::StyleStrategy uiFontStyleStrategy() noexcept;
+
 }
