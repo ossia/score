@@ -4081,9 +4081,6 @@ void parser::parse_raw_raster_pipeline()
     m_vertex += fmt::format(
         "layout(location = {}) flat out int isf_ViewIndexVarying;\n",
         mv_varying_location);
-    // Rename the user's main so the wrapper emitted at the end of this
-    // function can run it after writing the varying.
-    m_vertex += "#define main isf_rawraster_user_main\n";
 
     m_fragment += "#define NUM_VIEWS " + nv + "\n";
     m_fragment += fmt::format(
@@ -4519,22 +4516,33 @@ void parser::parse_raw_raster_pipeline()
   // while SPIR-V and --glsl 460 bake; with this block gone all four bake.
 
   // Add the actual vert / frag code
+  // Every RAW_RASTER shader writes its own main(), so rename it and run it
+  // from a generated wrapper (below) that owns the real entry point.
+  m_vertex += "#define main isf_rawraster_user_main\n";
   m_vertex += m_sourceVertex;
   m_fragment += fragWithoutISF;
 
   // Multiview wrapper main: writes the injected view-index varying, then
   // runs the user's (renamed) main. See the VIEW_INDEX plumbing note above.
+  // Generated entry point for every raw-raster vertex shader. Two jobs:
+  //   1. multiview: publish gl_ViewIndex to the fragment stage;
+  //   2. the Y correction that ISF-mode shaders get from isf_vertShaderFinish().
+  //      That prelude is only injected for an EMPTY vertex source or one calling
+  //      isf_vertShaderInit(), so a RAW_RASTER shader -- which always writes its
+  //      own main() -- never received it. InvertYRenderer inverts its input
+  //      unconditionally, so that input must arrive already negated on the APIs
+  //      whose clip space does not do it: Vulkan is covered by
+  //      clipSpaceCorrMatrix (measured ccmY = -1), Metal and D3D are not
+  //      (ccmY = +1).
+  m_vertex += "#undef main\n";
+  m_vertex += "void main()\n{\n";
   if(mv_fragment_plumbing)
-  {
-    m_vertex += R"_(
-#undef main
-void main()
-{
-  isf_ViewIndexVarying = gl_ViewIndex;
-  isf_rawraster_user_main();
-}
-)_";
-  }
+    m_vertex += "  isf_ViewIndexVarying = gl_ViewIndex;\n";
+  m_vertex += "  isf_rawraster_user_main();\n";
+  m_vertex += "#if defined(QSHADER_HLSL) || defined(QSHADER_MSL)\n";
+  m_vertex += "  gl_Position.y = -gl_Position.y;\n";
+  m_vertex += "#endif\n";
+  m_vertex += "}\n";
 
   // Replace the special ISF stuff
   boost::replace_all(m_fragment, "gl_FragColor", "isf_FragColor");

@@ -40,7 +40,7 @@ void main()
 {
   v_texcoord = texcoord;
   gl_Position = renderer.clipSpaceCorrMatrix * vec4(position.xy, 0.0, 1.);
-#if !defined(QSHADER_SPIRV)
+#if !defined(QSHADER_SPIRV) && !defined(QSHADER_HLSL) && !defined(QSHADER_MSL)
   // Everything except Vulkan, measured rather than derived -- the same shape,
   // and for the same reason, as ISF_STORE_COORD in libisf's computeMacros.
   // The framebuffer origin does not predict this: Direct3D and Metal put it at
