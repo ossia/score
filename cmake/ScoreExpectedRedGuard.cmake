@@ -47,6 +47,11 @@ include_guard(GLOBAL)
 #
 #   mechanism @ path @ case name @ why it is red
 #
+# NO SEMICOLONS anywhere in a row, the reason included. CMake splits a string
+# on ';' into list elements, so one semicolon turns a row into two fragments,
+# neither of which has four @-fields, and the guard then fails with three bare
+# `list(GET)` errors that name neither the row nor the cause. Use ',' or '--'.
+#
 # mechanism is one of:
 #   shouldfail  Catch2 [!shouldfail] tag        — enforced by Catch2
 #   will_fail   CMake WILL_FAIL property        — enforced by ctest
@@ -62,6 +67,7 @@ set(SCORE_EXPECTED_RED
   "shouldfail@tests/unit/AssetTableTest.cpp@AssetTable: zero-byte entries are not reclaimed by trim (current behavior)@trim() skips zero-byte entries, so a table of them never shrinks"
   "shouldfail@tests/gfx/CroustiCpuNodes.cpp@a geometry filter displaces the mesh it is given@P2-9: the CPU geometry-filter path does not displace"
   "shouldfail@tests/gfx/GfxGeometryFilterShift.cpp@a geometry filter shifts the drawn silhouette by exactly the delta@P2-9 oracle, pixel form: the silhouette is not displaced"
+  "shouldfail@tests/gfx/GfxReviewSceneFallback.cpp@SceneResources fallback must reach every instance@SR1: a one-element vertex fallback is bound PerInstance step_rate=1, so instance 1 steps past the only element it has and reads zero. Measured left=255 right=0 for the real pool entry, while the same draw with a two-element buffer gives 255/255 -- the pipeline and shader are fine and only the buffer length is wrong. No cheap portable fix exists: stepRate!=1 needs QRhi::CustomInstanceStepRate and Metal does not implement instanceStepRate at all, and stride 0 fails Metal validation. The fix is to grow the pooled buffer to the draw instance count at bind time -- the pipeline layout fixes stride and classification, not buffer length, so no pipeline rebuild is needed"
   "shouldfail@tests/threedim/SceneApproximationPins.cpp@DEFECT P2-11: the render-thread light encoder collapses area lights onto point, and dome onto directional@light-type information is lost in the render-thread encoder"
   "shouldfail@tests/threedim/SceneApproximationPins.cpp@DEFECT P2-12 (re-scoped): SceneFilterNode mode 2 has no Name port, so it cannot be configured at all@mode 2 exposes no Name port"
 
