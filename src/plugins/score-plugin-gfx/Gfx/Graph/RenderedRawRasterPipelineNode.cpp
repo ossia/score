@@ -2693,25 +2693,16 @@ void RenderedRawRasterPipelineNode::update(
             // standalone indirect buffer is one arriving through a Buffer INPUT
             // PORT rather than travelling with the geometry, which is why
             // neither of the geometry-side fixes covered it.
-            const auto setIndirect = [&](bool indexed) {
-              m_meshbufs.indirectDrawBuffer = bv.handle;
-              m_meshbufs.useIndirectDraw = true;
-              m_meshbufs.indirectDrawIndexed = indexed;
-              m_meshbufs.indirectDrawOffset = quint32(bv.byte_offset);
-              m_meshbufs.indirectDrawStride = 5 * sizeof(uint32_t);
-              m_meshbufs.indirectDrawCount
-                  = quint32(bv.byte_size / (5 * sizeof(uint32_t)));
-              if(m_meshbufs.indirectDrawCount == 0)
-                m_meshbufs.indirectDrawCount = 1;
-            };
             if(bv.usage == BufferView::Usage::IndirectDraw)
             {
-              setIndirect(false);
+              m_meshbufs.enableIndirectDraw(
+                  bv.handle, false, bv.byte_size, quint32(bv.byte_offset));
               break;
             }
             else if(bv.usage == BufferView::Usage::IndirectDrawIndexed)
             {
-              setIndirect(true);
+              m_meshbufs.enableIndirectDraw(
+                  bv.handle, true, bv.byte_size, quint32(bv.byte_offset));
               break;
             }
           }
