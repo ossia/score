@@ -192,6 +192,11 @@ Execution::ProcessComponent* NodalExecutorBase::make(
     auto child_p = comp->OSSIAProcessPtr();
     if(child_n && child_p)
     {
+      // Propagation edges across a resize of the child's ports
+      connect(
+          comp.get(), &Execution::ProcessComponent::portsReplaced, this,
+          Execution::HandlePortsReplaced{this->node, child_p, system().execGraph, proc});
+
       // FIXME refactor with IntervalComponentBase to not duplicate
       auto& oproc = child_p;
 

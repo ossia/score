@@ -96,6 +96,10 @@ void SetupContext::disconnect_cable_impl(const Process::Cable& c, Impl&& impl)
       OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
       graph->disconnect(cable);
     });
+    // The edge is gone from the graph: a later connectCable() for the same
+    // id makes a new one, and whoever asks whether the cable is wired up
+    // (a node rebuilding its ports) must not find this one.
+    m_cables.erase(it);
   }
 }
 

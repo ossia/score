@@ -17,6 +17,10 @@
 
 #include <ossia/detail/for_each.hpp>
 
+#include <boost/mp11/algorithm.hpp>
+
+#include <QPointer>
+
 namespace oscr
 {
 
@@ -180,6 +184,48 @@ struct CustomControlFactory<Node, avnd::field_reflection<N, Field>>
 {
 };
 
+//! The controller fields for which make_control_in (Concepts.hpp) makes a
+//! CustomGenericControl, and which thus need the matching port factory. Any
+//! other control with an on_controller_interaction hook -- a toggle, a float
+//! slider, a control without a widget -- is a plain control: it has nothing
+//! to register, and instantiating a factory for it must not be attempted.
+template <typename Field>
+concept controller_spinbox_field
+    = avnd::controller_interaction_port<Field> && avnd::has_widget<Field>
+      && std::is_integral_v<as_type(Field::value)>
+      && (avnd::get_widget<Field>().widget == avnd::widget_type::spinbox);
+
+template <typename Field>
+concept controller_lineedit_field
+    = avnd::controller_interaction_port<Field> && avnd::has_widget<Field>
+      && avnd::string_parameter<Field> && !avnd::program_parameter<Field>
+      && (avnd::get_widget<Field>().widget == avnd::widget_type::lineedit);
+
+//! Controls with an on_controller_interaction hook: editing one changes the
+//! ports of its process.
+//!
+//! The command is not submitted from inside the widget's own signal: the
+//! resize rebuilds the process's UI (DefaultEffectItem::reset, the port
+//! inspector...), that is, the very widget delivering the edit. Tearing it
+//! down mid-delivery is a use-after-free in the inspector, and in the graphics
+//! scene hiding the grabber re-emits the edit through QEvent::UngrabMouse
+//! before the first one is done, nesting a second redo() inside the first.
+//! So the command is posted, to run once the event is over. The inlet is the
+//! context: it lives in the main thread and going away cancels the post.
+//! A post that finds the value unchanged does nothing: the release of a
+//! spinbox emits the edit whether or not the value moved.
+template <typename Control_T>
+static void submitControllerValue(
+    Control_T& inlet, ossia::value val, const score::DocumentContext& ctx)
+{
+  ossia::qt::run_async(&inlet, [inlet = &inlet, val = std::move(val), &ctx]() mutable {
+    if(inlet->value() == val)
+      return;
+    CommandDispatcher<>{ctx.commandStack}.submit<Scenario::SetControllerControlValue>(
+        *inlet, std::move(val), ctx);
+  });
+}
+
 struct ControllerIntSpinBox
 {
   static Process::PortItemLayout layout() noexcept
@@ -195,15 +241,20 @@ struct ControllerIntSpinBox
     WidgetFactory::bindIntDomain(inlet, inlet, *sl);
     sl->setValue(ossia::convert<int>(inlet.value()));
     sl->setContentsMargins(0, 0, 0, 0);
+    // One command per edit, not one per keystroke
+    sl->setKeyboardTracking(false);
 
     QObject::connect(
-        sl, SignalUtils::QSpinBox_valueChanged_int(), context, [&inlet, &ctx](int val) {
-      CommandDispatcher<>{ctx.commandStack}.submit<Scenario::SetControllerControlValue>(
-          inlet, val, ctx);
-    });
+        sl, SignalUtils::QSpinBox_valueChanged_int(), context,
+        [&inlet, &ctx](int val) { submitControllerValue(inlet, val, ctx); });
 
     QObject::connect(&inlet, &T::valueChanged, sl, [sl](const ossia::value& val) {
-      sl->setValue(ossia::convert<int>(val));
+      const int v = ossia::convert<int>(val);
+      if(sl->value() != v)
+      {
+        QSignalBlocker b{sl};
+        sl->setValue(v);
+      }
     });
 
     return sl;
@@ -219,17 +270,28 @@ struct ControllerIntSpinBox
     WidgetFactory::bindIntDomain(slider, inlet, *sl);
     sl->setValue(ossia::convert<int>(inlet.value()));
 
-    QObject::connect(
-        sl, &score::QGraphicsIntSpinbox::sliderMoved, context, [=, &inlet, &ctx] {
-      sl->moving = true;
-      ctx.dispatcher.submit<Scenario::SetControllerControlValue>(
-          inlet, sl->value(), ctx);
-    });
-    QObject::connect(
-        sl, &score::QGraphicsIntSpinbox::sliderReleased, context, [&ctx, sl]() {
-      ctx.dispatcher.commit();
-      sl->moving = false;
-    });
+    if(inlet.noValueChangeOnMove)
+    {
+      // The default for a controller: the widget only reports a value on
+      // release, so a single, deferred command.
+      QObject::connect(
+          sl, &score::QGraphicsIntSpinbox::sliderMoved, context,
+          [sl, &inlet, &ctx] { submitControllerValue(inlet, sl->value(), ctx); });
+    }
+    else
+    {
+      QObject::connect(
+          sl, &score::QGraphicsIntSpinbox::sliderMoved, context, [=, &inlet, &ctx] {
+        sl->moving = true;
+        ctx.dispatcher.submit<Scenario::SetControllerControlValue>(
+            inlet, sl->value(), ctx);
+      });
+      QObject::connect(
+          sl, &score::QGraphicsIntSpinbox::sliderReleased, context, [&ctx, sl]() {
+        ctx.dispatcher.commit();
+        sl->moving = false;
+      });
+    }
 
     QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
       if(!sl->moving)
@@ -265,12 +327,13 @@ struct ControllerLineEdit
     sl->setContentsMargins(0, 0, 0, 0);
     sl->setMaximumWidth(70);
     QObject::connect(sl, &QLineEdit::editingFinished, context, [sl, &inlet, &ctx]() {
-      CommandDispatcher<>{ctx.commandStack}.submit<Scenario::SetControllerControlValue>(
-          inlet, sl->text().toStdString(), ctx);
+      submitControllerValue(inlet, sl->text().toStdString(), ctx);
     });
 
     QObject::connect(&inlet, &T::valueChanged, sl, [sl](const ossia::value& val) {
-      sl->setText(QString::fromStdString(ossia::convert<std::string>(val)));
+      const auto str = QString::fromStdString(ossia::convert<std::string>(val));
+      if(sl->text() != str)
+        sl->setText(str);
     });
 
     return sl;
@@ -290,14 +353,8 @@ struct ControllerLineEdit
     sl->setPlainText(QString::fromStdString(ossia::convert<std::string>(inlet.value())));
 
     auto doc = sl->document();
-    auto on_edit = [=, &inlet, &ctx] {
-      auto cur_str = ossia::convert<std::string>(inlet.value());
-      if(cur_str != doc->toPlainText().toStdString())
-      {
-        CommandDispatcher<>{ctx.commandStack}
-            .submit<Scenario::SetControllerControlValue>(
-                inlet, doc->toPlainText().toStdString(), ctx);
-      }
+    auto on_edit = [doc, &inlet, &ctx] {
+      submitControllerValue(inlet, doc->toPlainText().toStdString(), ctx);
     };
 
     if(!inlet.noValueChangeOnMove)
@@ -327,7 +384,7 @@ struct ControllerLineEdit
 };
 
 template <typename Node, std::size_t N, typename Field>
-  requires(avnd::controller_interaction_port<Field> && avnd::int_parameter<Field>)
+  requires controller_spinbox_field<Field>
 struct CustomControlFactory<Node, avnd::field_reflection<N, Field>>
     : public Dataflow::WidgetInletFactory<
           CustomGenericControl<Process::IntSpinBox, Node, Field, avnd::field_index<N>>,
@@ -336,7 +393,7 @@ struct CustomControlFactory<Node, avnd::field_reflection<N, Field>>
 };
 
 template <typename Node, std::size_t N, typename Field>
-  requires(avnd::controller_interaction_port<Field> && avnd::string_parameter<Field>)
+  requires controller_lineedit_field<Field>
 struct CustomControlFactory<Node, avnd::field_reflection<N, Field>>
     : public Dataflow::WidgetInletFactory<
           CustomGenericControl<Process::LineEdit, Node, Field, avnd::field_index<N>>,
@@ -344,9 +401,21 @@ struct CustomControlFactory<Node, avnd::field_reflection<N, Field>>
 {
 };
 
+template <typename Refl>
+struct controller_needs_factory : std::false_type
+{
+};
+template <std::size_t N, typename Field>
+struct controller_needs_factory<avnd::field_reflection<N, Field>>
+    : std::bool_constant<controller_spinbox_field<Field> || controller_lineedit_field<Field>>
+{
+};
+
+//! The controller fields that get a CustomGenericControl, and only those
 template <typename N>
-using reflect_controller_controls =
+using reflect_controller_controls = boost::mp11::mp_copy_if<
     typename avnd::controller_interaction_port_input_introspection<
-        N>::field_reflections_type;
+        N>::field_reflections_type,
+    controller_needs_factory>;
 
 }

@@ -244,6 +244,42 @@ struct ReconnectOutlets
   }
 };
 
+//! ProcessComponent::portsReplaced: the propagation edges follow the model's
+//! flags again. The list is taken now, in the UI thread, from the ports the
+//! node was just rebuilt for; updatePropagated() only adds what is missing
+//! and removes what is not wanted, so the outlets that kept their port keep
+//! their edge.
+struct HandlePortsReplaced
+{
+  std::weak_ptr<ossia::graph_node> cst_node_weak;
+  std::weak_ptr<ossia::time_process> oproc_weak;
+  std::weak_ptr<ossia::graph_interface> g_weak;
+  Process::ProcessModel& proc;
+
+  void operator()(Execution::Transaction* commands) const noexcept
+  {
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
+    commands->push_back([cst_node_weak = this->cst_node_weak,
+                         oproc_weak = this->oproc_weak, g_weak = this->g_weak,
+                         propagated = propagatedOutlets(proc.outlets())] {
+      OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
+      auto cst_node = cst_node_weak.lock();
+      if(!cst_node)
+        return;
+      auto g = g_weak.lock();
+      if(!g)
+        return;
+      auto oproc = oproc_weak.lock();
+      if(!oproc || !oproc->node)
+        return;
+
+      const std::size_t n = oproc->node->root_outputs().size();
+      for(std::size_t i = 0; i < n; i++)
+        updatePropagated(oproc->node, cst_node, *g, i, ossia::contains(propagated, i));
+    });
+  }
+};
+
 struct HandleNodeChange
 {
   std::weak_ptr<ossia::graph_node> cst_node_weak;
