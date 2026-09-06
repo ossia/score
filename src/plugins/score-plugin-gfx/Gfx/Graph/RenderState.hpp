@@ -61,6 +61,33 @@ struct RenderState
     bool drawIndirect{false};
     bool drawIndirectMulti{false};
 
+    // GPU-decided draw count / dispatch size — Qt 6.13-era QRhi API
+    // (QRhi::DrawIndirectCount, QRhi::DispatchIndirect). Populated through
+    // RhiIndirectCompat.hpp's member DETECTION, not QT_VERSION: the ossia SDK
+    // pins the Qt 6.12 branch with the 6.13 indirect changes cherry-picked,
+    // so version macros lie on the reference builds (see that header).
+    //
+    // Fallback ladder these caps select, from most to least capable — every
+    // rung must paint the SAME pixels (GfxIndirectFallbackLadder.cpp holds
+    // each rung to that):
+    //   drawIndirectCount  → drawIndexedIndirectCount / drawIndirectCount
+    //                        (count read by the GPU from a count buffer)
+    //   drawIndirect+multi → one drawIndexedIndirect of the full command
+    //                        capacity (producers MUST leave command slots
+    //                        beyond their GPU-written count zeroed: a zero
+    //                        command draws nothing, so capacity == count)
+    //   drawIndirect only  → per-command loop of drawCount=1 indirect draws
+    //   none               → CPU loop over cpuDrawCommands, filled by the
+    //                        producer or by the readback fallback (which also
+    //                        reads the count buffer and clamps).
+    //
+    // Kill switches (Caps::populate): SCORE_GFX_NO_GPU_INDIRECT_COUNT,
+    // SCORE_GFX_NO_GPU_INDIRECT_MULTI, SCORE_GFX_NO_GPU_DISPATCH_INDIRECT,
+    // and SCORE_GFX_NO_GPU_INDIRECT, which forces the CPU rung outright.
+    // Each fallback stays exercisable on capable hardware.
+    bool drawIndirectCount{false};
+    bool dispatchIndirect{false};
+
     // Always queryable.
     bool multiview{false};
     bool resolveDepthStencil{false};
@@ -137,12 +164,12 @@ struct RenderState
 /**
  * @brief Who owns the imported Vulkan device behind a RenderState.
  *
- * Owned is the historical behaviour: one vkCreateDevice per RenderState, one
+ * Owned is the default: one vkCreateDevice per RenderState, one
  * vkDestroyDevice when it goes away. Cached takes a reference on the
  * process-wide SharedVulkanDeviceCache instead, so a create/destroy pair is
  * not paid every time the state is rebuilt. Only the shader previews opt in —
  * they are rebuilt on every selection, whereas outputs and encoders are
- * long-lived and must keep their current behaviour.
+ * long-lived.
  */
 enum class SharedDeviceMode
 {
@@ -210,26 +237,6 @@ compatibleBufferUsage(QRhi& rhi, QRhiBuffer::UsageFlags usage) noexcept
 }
 
 /**
- * @brief Whether MULTIVIEW must be emulated with one pass per view.
- *
- * gl_ViewIndex becomes HLSL SV_ViewID, which requires shader model 6.1. D3D11
- * is pinned to SM 5.0 for good, and D3D12 drops to 5.0 whenever dxcompiler.dll
- * is absent, so on those targets a multiview shader cannot be COMPILED at all:
- *
- *     Vertex shader error: View Index input is only supported in VS and PS
- *     6.1 or higher.
- *
- * ShaderCache answers this by rewriting gl_ViewIndex to the PASSINDEX uniform,
- * which the N-pass path stamps per invocation.
- *
- * That rewrite and the choice of render path MUST be driven by the same
- * predicate. When they disagree the failure is silent and looks like a
- * rasterizer bug: on D3D12 the shader was lowered to read PASSINDEX while
- * QRhi still reported MultiView, so the runtime issued ONE amplified draw in
- * which passIndex never advanced past 0 -- and all six cube faces came back
- * carrying face 0's colour. Ask this function in both places.
- */
-/**
  * @brief Whether a GPU indirect draw silently loses multiview on this backend.
  *
  * Qt's Metal backend derives gl_ViewIndex by multiplying the instance count and
@@ -241,11 +248,6 @@ compatibleBufferUsage(QRhi& rhi, QRhiBuffer::UsageFlags usage) noexcept
  * function is never entered. Metal's validation layer names it outright:
  *
  *   Vertex Function(main0): missing Buffer binding at index 24 for spvViewMask[0].
- *
- * Measured on camera_array_faces (Apple M2 Pro, Qt 6.12.0): pipeline and colour
- * attachment both carried multiViewCount 6, the baked MSL declared spvViewMask
- * at buffer(24) and wrote gl_Layer, and the draw was a drawIndexedIndirect --
- * five of six cube faces came back (0,0,0).
  *
  * The CPU fallback in CustomMesh::drawSingleMesh issues one drawIndexed per
  * command, which DOES go through adjustForMultiViewDraw, so declining GPU
@@ -260,6 +262,57 @@ indirectDrawBreaksMultiView(GraphicsApi api, int multiViewCount) noexcept
   return multiViewCount >= 2 && api == GraphicsApi::Metal;
 }
 
+/**
+ * @brief Whether the GPU-count draw path (drawIndexedIndirectCount) is usable.
+ *
+ * Ask this WITH caps.drawIndirectCount at every site that selects the count
+ * rung; QRhi's feature flag alone is not enough:
+ *
+ *  - Metal implements the count draw exclusively through Indirect Command
+ *    Buffers, which demand things the flag cannot express: the graphics
+ *    pipeline must be created with QRhiGraphicsPipeline::UsesIndirectDraws
+ *    (qrhimetal.mm icbUnavailableReason — the draw is SKIPPED with a warning
+ *    otherwise), the pipeline may not sample textures at all, and the pass is
+ *    interrupted/restarted so a transient DepthStencil renderbuffer loses its
+ *    contents unless created with NoTransientBacking. None of those three are
+ *    plumbed yet, so the count rung is declined on Metal wholesale; the plain
+ *    multi-draw rung there stays correct because producers zero dead command
+ *    slots. Lift this once the three prerequisites land together.
+ *
+ *  - The multiview-on-Metal indirect break applies to the count entry points
+ *    exactly as it does to drawIndexedIndirect (they share the encoder path),
+ *    so the existing predicate is folded in.
+ */
+inline bool
+drawIndirectCountUsable(GraphicsApi api, int multiViewCount) noexcept
+{
+  if(indirectDrawBreaksMultiView(api, multiViewCount))
+    return false;
+  if(api == GraphicsApi::Metal)
+    return false;
+  return true;
+}
+
+/**
+ * @brief Whether MULTIVIEW must be emulated with one pass per view.
+ *
+ * gl_ViewIndex becomes HLSL SV_ViewID, which requires shader model 6.1. D3D11
+ * is pinned to SM 5.0 for good, and D3D12 drops to 5.0 whenever dxcompiler.dll
+ * is absent, so on those targets a multiview shader cannot be COMPILED at all:
+ *
+ *     Vertex shader error: View Index input is only supported in VS and PS
+ *     6.1 or higher.
+ *
+ * ShaderCache answers this by rewriting gl_ViewIndex to the PASSINDEX uniform,
+ * which the N-pass path stamps per invocation.
+ *
+ * That rewrite and the choice of render path MUST be driven by the same
+ * predicate. When they disagree the failure is silent and looks like a
+ * rasterizer bug: a D3D12 shader lowered to read PASSINDEX while QRhi still
+ * reports MultiView gets ONE amplified draw in which passIndex never advances
+ * past 0 -- and all six cube faces come back carrying face 0's colour. Ask
+ * this function in both places.
+ */
 inline bool viewIndexNeedsPassIndexFallback(
     GraphicsApi api, const QShaderVersion& version, int multiViewCount) noexcept
 {
@@ -277,8 +330,8 @@ inline bool viewIndexNeedsPassIndexFallback(
     return true;
 
   // D3D12 without dxcompiler.dll drops to SM 5.0, which has no SV_ViewID
-  // either. ossia/sdk 86207a70 ships that runtime, so shipping builds DO
-  // reach 6.1 -- but a source build without it still lands here.
+  // either. The ossia SDK ships that runtime, so shipping builds DO reach
+  // 6.1 -- but a source build without it still lands here.
   if(version.version() < 61)
     return true;
 
@@ -293,12 +346,9 @@ inline bool viewIndexNeedsPassIndexFallback(
   // (0,0,0,255) -- which looks like a rasterizer or copy fault and is neither.
   // Qt encodes the same limit in its QVarLengthArray<D3D12_VIEW_INSTANCE_LOCATION, 4>.
   //
-  // This is exactly the split measured on an RTX 3090 with the SDK's DXC
-  // installed: test_gfx_multiview declares MULTIVIEW:2 and PASSES natively,
-  // while cubemap_six_faces and camera_array_faces declare MULTIVIEW:6 and
-  // failed every face. A cubemap is inherently 6 views, so CUBEMAP+MULTIVIEW
-  // can never use D3D12 ViewInstancing -- it is not a Qt bug and not a shim
-  // bug, it is the API's limit.
+  // A cubemap is inherently 6 views, so CUBEMAP+MULTIVIEW can never use D3D12
+  // ViewInstancing -- it is not a Qt bug and not a shim bug, it is the API's
+  // limit.
   //
   // Keep the fast path where it is legal: 2- and 4-view shaders still get real
   // ViewInstancing. Only what D3D12 cannot express falls back to N passes.

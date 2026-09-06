@@ -5,6 +5,7 @@
 #include <Gfx/Graph/ISFVisitors.hpp>
 #include <Gfx/Graph/IsfBindingsBuilder.hpp>
 #include <Gfx/Graph/RenderedCSFNode.hpp>
+#include <Gfx/Graph/RhiIndirectCompat.hpp>
 #include <Gfx/Graph/RenderedISFSamplerUtils.hpp>
 #include <Gfx/Graph/RhiComputeBarrier.hpp>
 #include <Gfx/Graph/SSBO.hpp>
@@ -25,6 +26,45 @@
 
 namespace score::gfx
 {
+
+namespace
+{
+// Publish (or refresh) the GPU-written draw-count buffer on an output
+// geometry as the "_indirect_draw_count" auxiliary — a buffers[] entry
+// holding the gpu_buffer plus an auxiliary_buffer pointing at it. Idempotent:
+// the fast update path calls this every frame on a persistent geometry, so an
+// existing entry is updated in place instead of duplicated.
+void publishIndirectCountAux(ossia::geometry& out_geo, QRhiBuffer* cbuf)
+{
+  using aux_t = ossia::geometry::auxiliary_buffer;
+  constexpr int64_t count_size = 16;
+  for(aux_t& aux : out_geo.auxiliary)
+  {
+    if(aux.name == "_indirect_draw_count")
+    {
+      if(aux.buffer >= 0 && aux.buffer < (int)out_geo.buffers.size())
+      {
+        out_geo.buffers[aux.buffer].data
+            = ossia::geometry::gpu_buffer{cbuf, count_size};
+        return;
+      }
+      aux.buffer = (int)out_geo.buffers.size();
+      out_geo.buffers.push_back(
+          {.data = ossia::geometry::gpu_buffer{cbuf, count_size}});
+      return;
+    }
+  }
+  const int buf_idx = (int)out_geo.buffers.size();
+  out_geo.buffers.push_back(
+      {.data = ossia::geometry::gpu_buffer{cbuf, count_size}});
+  out_geo.auxiliary.push_back(aux_t{
+      .name = "_indirect_draw_count",
+      .buffer = buf_idx,
+      .byte_offset = 0,
+      .byte_size = count_size});
+}
+}
+
 static QRhiTexture::Format
 getTextureFormat(const QString& format)  noexcept
 {
@@ -930,7 +970,11 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
 #if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
         if(!storageBuffer.buffer_usage.empty()
            && (storageBuffer.buffer_usage == "indirect_draw"
-               || storageBuffer.buffer_usage == "indirect_draw_indexed"))
+               || storageBuffer.buffer_usage == "indirect_draw_indexed"
+               // "dispatch_args": holds a QRhiDispatchIndirectCommand for an
+               // EXECUTION_MODEL TYPE "INDIRECT" pass; needs IndirectBuffer
+               // usage for QRhiCommandBuffer::dispatchIndirect.
+               || storageBuffer.buffer_usage == "dispatch_args"))
         {
           QRhi& rhi = *renderer.state.rhi;
           storageBuffer.buffer = rhi.newBuffer(
@@ -2330,6 +2374,8 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
         out_geo.indirect_count = ossia::geometry::gpu_buffer{
             binding.indirectBuffer,
             binding.indirectBufferSize};
+        if(binding.uses_indirect_count && binding.indirectCountBuffer)
+          publishIndirectCountAux(out_geo, binding.indirectCountBuffer);
       }
       else if(binding_upstream
               && binding_upstream->indirect_count.handle)
@@ -2534,6 +2580,8 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
         out_geo.indirect_count = ossia::geometry::gpu_buffer{
             binding.indirectBuffer,
             binding.indirectBufferSize};
+        if(binding.uses_indirect_count && binding.indirectCountBuffer)
+          publishIndirectCountAux(out_geo, binding.indirectCountBuffer);
       }
       else if(binding_upstream
               && binding_upstream->indirect_count.handle)
@@ -3513,6 +3561,15 @@ void RenderedCSFNode::buildComputeSrbBindings(
           bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
               bindingIndex++, QRhiShaderResourceBinding::ComputeStage,
               binding.indirectBuffer));
+          // Count SSBO immediately after the command SSBO — libisf emits the
+          // two declarations adjacently in the same order (isf.cpp, the
+          // ISF_INDIRECT_COUNT emit); the binding numbers must line up.
+          if(binding.uses_indirect_count && binding.indirectCountBuffer)
+          {
+            bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
+                bindingIndex++, QRhiShaderResourceBinding::ComputeStage,
+                binding.indirectCountBuffer));
+          }
         }
 
         geo_binding_index++;
@@ -4020,6 +4077,22 @@ void RenderedCSFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& r
 
         binding.indirectBuffer = buf;
         binding.indirectBufferSize = indirectSize;
+
+        // GPU-written draw count (INDIRECT: { DRAW_COUNT: true }). 16 bytes
+        // so the allocation satisfies any backend's minimum storage-buffer
+        // alignment; the shader and the draw only ever touch word 0.
+        // Zero-initialized once: a shader that never writes it draws 0
+        // commands, not stale garbage.
+        if(geo->indirect->draw_count)
+        {
+          binding.uses_indirect_count = true;
+          auto* cbuf = rhi.newBuffer(QRhiBuffer::Static, usageFlags, 16);
+          cbuf->setName(QByteArray("CSF_IndirectCount_") + input.name.c_str());
+          cbuf->create();
+          QByteArray czero(16, 0);
+          res.uploadStaticBuffer(cbuf, 0, 16, czero.constData());
+          binding.indirectCountBuffer = cbuf;
+        }
       }
 
       // A geometry_input creates a score Geometry OUTLET only when its attributes are
@@ -4192,6 +4265,11 @@ void RenderedCSFNode::releaseState(RenderList& r)
     for(auto* buf : binding.copyFromBuffers)
       r.releaseBuffer(buf);
     binding.copyFromBuffers.clear();
+    if(binding.indirectCountBuffer)
+    {
+      r.releaseBuffer(binding.indirectCountBuffer);
+      binding.indirectCountBuffer = nullptr;
+    }
     if(binding.indirectBuffer)
     {
       r.releaseBuffer(binding.indirectBuffer);
@@ -4569,6 +4647,15 @@ void RenderedCSFNode::runInitialPasses(
 
     int dispatchX{}, dispatchY{}, dispatchZ{};
 
+    // EXECUTION_MODEL TYPE "INDIRECT": the workgroup counts are read by the
+    // device from this storage buffer at execution time (a u32 {x,y,z}
+    // triplet at indirect_byte_offset). dispatchX/Y/Z then carry the
+    // MANDATORY worst-case ceiling (WORKGROUPS), used verbatim when the
+    // backend cannot dispatch indirectly — the shader must bound itself by
+    // reading its own arguments, so both paths execute the same work.
+    QRhiBuffer* indirectDispatchArgs = nullptr;
+    quint32 indirectDispatchArgsOffset = 0;
+
     // Resolve per-axis stride expressions
     const int strideX = resolveDispatchExpression(passDesc.stride[0]);
     const int strideY = resolveDispatchExpression(passDesc.stride[1]);
@@ -4647,6 +4734,30 @@ void RenderedCSFNode::runInitialPasses(
       dispatchX = passDesc.workgroups[0];
       dispatchY = passDesc.workgroups[1];
       dispatchZ = passDesc.workgroups[2];
+    }
+    else if(passDesc.execution_type == "INDIRECT")
+    {
+      // Fallback ceiling first (also the numbers stamped into NUMWORKGROUPS_
+      // below — under a GPU indirect dispatch the true count is unknowable on
+      // the CPU, so INDIRECT passes must not read isf_NumWorkGroups).
+      dispatchX = std::max(1, passDesc.workgroups[0]);
+      dispatchY = std::max(1, passDesc.workgroups[1]);
+      dispatchZ = std::max(1, passDesc.workgroups[2]);
+      for(auto& sb : m_storageBuffers)
+      {
+        if(sb.buffer && sb.name.toStdString() == passDesc.target_resource)
+        {
+          indirectDispatchArgs = sb.buffer;
+          indirectDispatchArgsOffset
+              = (quint32)std::max(0, passDesc.indirect_byte_offset);
+          break;
+        }
+      }
+      if(!indirectDispatchArgs)
+      {
+        qWarning() << "CSF: INDIRECT dispatch target not found:"
+                   << QString::fromStdString(passDesc.target_resource);
+      }
     }
     else if(passDesc.execution_type == "USER")
     {
@@ -4882,7 +4993,28 @@ void RenderedCSFNode::runInitialPasses(
     // When a pass writes such an image on GL, dispatchComputeLayeredImages rebinds
     // it layered and issues the dispatch; it returns false on every other backend
     // and for the 2D path.
-    if(!score::gfx::dispatchComputeLayeredImages(
+    bool dispatchedIndirect = false;
+    if(indirectDispatchArgs && renderer.state.caps.dispatchIndirect)
+    {
+      dispatchedIndirect = score::gfx::dispatchIndirectCompat(
+          commands, indirectDispatchArgs, indirectDispatchArgsOffset);
+    }
+    if(indirectDispatchArgs && !m_loggedIndirectDispatch)
+    {
+      // One line per node instance; GfxIndirectFallbackLadder.cpp captures it
+      // as the positive control that the INDIRECT pass took the path the
+      // session expected (GPU vs. forced/absent-feature CPU ceiling), since
+      // both paths are required to paint identical pixels.
+      m_loggedIndirectDispatch = true;
+      if(dispatchedIndirect)
+        qDebug("score.gfx: CSF indirect dispatch: gpu");
+      else
+        qDebug(
+            "score.gfx: CSF indirect dispatch: cpu-fallback ceiling=%dx%dx%d",
+            dispatchX, dispatchY, dispatchZ);
+    }
+    if(!dispatchedIndirect
+       && !score::gfx::dispatchComputeLayeredImages(
            *renderer.state.rhi, commands, *pass.srb, dispatchX, dispatchY,
            dispatchZ))
     {

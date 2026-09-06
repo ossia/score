@@ -210,6 +210,7 @@ score_add_gfx_test(instance_count_live GfxInstanceCountLive.cpp)
 # the frame show 3 then 6 strips. SKIPs where neither DrawIndirect nor
 # ReadBackNonUniformBuffer exists (the engine only degrades there).
 score_add_gfx_test(indirect_draw_count GfxIndirectDrawCount.cpp)
+score_add_gfx_test(indirect_fallback_ladder GfxIndirectFallbackLadder.cpp)
 # P1-7 / G8: the cubemap render target's six faces, against the self-declared
 # oracle of 2026/test-cubemap-output.score (+X red, -X cyan, +Y green,
 # -Y magenta, +Z blue, -Z yellow), through the MULTIVIEW-6 + CUBEMAP

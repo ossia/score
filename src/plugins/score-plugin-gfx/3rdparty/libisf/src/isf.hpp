@@ -237,7 +237,7 @@ struct storage_input
 
   std::vector<layout_field> layout;
 
-  std::string buffer_usage; // "", "indirect_draw", "indirect_draw_indexed"
+  std::string buffer_usage; // "", "indirect_draw", "indirect_draw_indexed", "dispatch_args"
 
   // PERSISTENT: creates a ping-pong pair of SSBOs swapped each frame.
   // In GLSL, `name` is the current (read-write) buffer, `name_prev` is the
@@ -428,6 +428,13 @@ struct geometry_input
   struct indirect_request
   {
     std::string count; // expression string (same resolver as vertex_count)
+    // "DRAW_COUNT": true — additionally allocate a GPU-writable u32 draw
+    // count exposed to the compute pass as <name>_indirect_count and
+    // published downstream through the "_indirect_draw_count" auxiliary, for
+    // consumption by drawIndexedIndirectCount (Qt 6.13-era). The command
+    // slots beyond the written count must stay zeroed by the shader so the
+    // capacity-draw fallback rungs paint the same picture.
+    bool draw_count{false};
   };
   std::optional<indirect_request> indirect;
 };
@@ -803,9 +810,16 @@ struct descriptor
   struct dispatch_info
   {
     std::array<int, 3> local_size{16, 16, 1};
-    std::string execution_type{"2D_IMAGE"}; // "2D_IMAGE", "1D_BUFFER", "PER_VERTEX", "PER_INSTANCE", "MANUAL", "USER"
+    std::string execution_type{"2D_IMAGE"}; // "2D_IMAGE", "1D_BUFFER", "PER_VERTEX", "PER_INSTANCE", "MANUAL", "USER", "INDIRECT"
     std::string target_resource;
-    std::array<int, 3> workgroups{1, 1, 1}; // For MANUAL mode
+    // MANUAL: the dispatch size. INDIRECT: the mandatory worst-case CEILING
+    // used when the backend cannot dispatch indirectly (Qt < 6.13 or the
+    // feature is absent/killed): the pass is dispatched at this size and the
+    // shader must bound itself by reading its own arguments buffer.
+    std::array<int, 3> workgroups{1, 1, 1};
+    // INDIRECT only: byte offset of the {x,y,z} u32 triplet inside the
+    // TARGET storage buffer ("OFFSET" key, 4-byte aligned).
+    int indirect_byte_offset{0};
     std::array<std::string, 3> stride{"1", "1", "1"}; // Per-axis stride (supports formulas)
     std::array<int, 3> user_dispatch_ports{-1, -1, -1}; // Port indices for USER mode (X, Y, Z)
   };
