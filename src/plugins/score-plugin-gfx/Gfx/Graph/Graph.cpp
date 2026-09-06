@@ -816,9 +816,17 @@ void Graph::createPassForEdgeIfMissing(Edge& edge)
         bool wantsDepth = rl->requiresDepth(*sink);
         bool wantsSamplableDepth
             = (sink->flags & Flag::SamplableDepth) == Flag::SamplableDepth;
+        // Same mip rule as the full build in RenderList.cpp: a chain is only
+        // worth allocating when the consuming sampler filters across levels.
+        // Omitting it here is not a missing optimisation -- the texture is
+        // allocated with one level, so generateMips() has nowhere to write and
+        // a spec that asked for mipmaps silently gets none.
+        QRhiTexture::Flags texFlags{};
+        if(spec.mipmap_mode != QRhiSampler::None)
+          texFlags |= QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips;
         auto rt = createRenderTarget(
             rl->state, spec.format, spec.size, rl->samples(),
-            wantsDepth || wantsSamplableDepth, wantsSamplableDepth);
+            wantsDepth || wantsSamplableDepth, wantsSamplableDepth, texFlags);
         rl->m_inputRenderTargets[sink] = std::move(rt);
       }
     }
@@ -991,9 +999,13 @@ void Graph::reconcileAllRenderLists()
             bool wantsDepth = rl->requiresDepth(*in);
             bool wantsSamplableDepth
                 = (in->flags & Flag::SamplableDepth) == Flag::SamplableDepth;
+            // Same mip rule as the full build -- see the sink path above.
+            QRhiTexture::Flags texFlags{};
+            if(spec.mipmap_mode != QRhiSampler::None)
+              texFlags |= QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips;
             auto rt = createRenderTarget(
                 rl->state, spec.format, spec.size, rl->samples(),
-                wantsDepth || wantsSamplableDepth, wantsSamplableDepth);
+                wantsDepth || wantsSamplableDepth, wantsSamplableDepth, texFlags);
             rl->m_inputRenderTargets[in] = std::move(rt);
           }
         }
