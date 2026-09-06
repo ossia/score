@@ -229,6 +229,7 @@ score_add_gfx_test(review_scene_fallback GfxReviewSceneFallback.cpp)
 # indirect dispatch, each driven through the GPU rung AND the CPU fallback rung
 # so the two are forced to agree.
 score_add_gfx_test(review_draw_dispatch_edges GfxReviewDrawDispatchEdges.cpp)
+score_add_gfx_test(review_indirect_standalone GfxReviewIndirectStandalone.cpp)
 
 # G1-G4 from the same review: graph reconciliation, incremental removal, rebuild
 # before the first frame, and incremental target mip flags.
