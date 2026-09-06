@@ -271,7 +271,7 @@ jobs:
             portaudio:p
             fftw:p
             ffmpeg:p
-            SDL2:p
+            sdl3:p
 
       - name: Build
         shell: msys2 {0}

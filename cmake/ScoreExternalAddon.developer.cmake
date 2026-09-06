@@ -25,7 +25,7 @@ list(APPEND CMAKE_PREFIX_PATH "${CMAKE_MODULE_PATH}")
 
 set(CMAKE_PREFIX_PATH
     "${OSSIA_SDK}"
-    "${OSSIA_SDK}/SDL2"
+    "${OSSIA_SDK}/SDL3"
     "${OSSIA_SDK}/qt6-static-debug"
     "${OSSIA_SDK}/qt6-static"
     "${OSSIA_SDK}/llvm"
@@ -50,7 +50,7 @@ set(CMAKE_PREFIX_PATH
     "${OSSIA_SDK}/sysroot/lib/cmake/Snappy"
     "${OSSIA_SDK}/sysroot/lib/cmake/zstd"
 
-    "${OSSIA_SDK}/SDL2/lib64"
+    "${OSSIA_SDK}/SDL3/lib64"
     "${OSSIA_SDK}/qt6-static-debug/lib64"
     "${OSSIA_SDK}/qt6-static/lib64"
     "${OSSIA_SDK}/llvm-libs/lib64"

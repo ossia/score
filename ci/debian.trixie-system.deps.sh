@@ -10,7 +10,7 @@ source ci/common.setup.sh
 
 export CLANG_VERSION=19
 
-# libsdl2-dev libsdl2-2.0-0
+# libsdl3-dev libsdl3-0
 $SUDO apt-get update -qq
 $SUDO apt-get install -qq --force-yes \
      ${PACKAGES:=} \
@@ -51,7 +51,7 @@ $SUDO apt-get install -qq --force-yes \
      libonnxruntime-dev \
      faust \
      libgps-dev \
-     libsdl2-dev \
+     libsdl3-dev \
      glslang-dev glslang-tools \
      libzita-alsa-pcmi-dev \
      libvst3sdk-dev \
