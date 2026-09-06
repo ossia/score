@@ -10,9 +10,7 @@
 // rapidjson's operator[] and GetString()/GetInt()/GetDouble() do not fail on an
 // absent or mistyped member: they RAPIDJSON_ASSERT, which is a live assert() in
 // a build without NDEBUG. A settings writer that reaches for obj["Key"] without
-// checking therefore takes the whole application down. Before the guards, every
-// gfx protocol here except Window did exactly that on `{}` -- SIGABRT, 134,
-// no document, no message a user could act on.
+// checking therefore takes the whole application down on `{}`.
 //
 // Nothing here needs a display: no device is expected to connect. What is
 // asserted is that the factory is registered, that its settings parser accepts
@@ -55,12 +53,8 @@ struct Protocol
 constexpr Protocol protocols[] = {
     {"Camera", "d615690b-f2e2-447b-b70e-a800552db69c", "Camera input"},
     {"Window", "5a181207-7d40-4ad8-814e-879fcdf8cc31", "Window"},
-    {"PipewireInput", "cf6a355f-34d1-4d24-a6ea-3d204f93cde9", "PipeWire Video Input"},
-    {"PipewireOutput", "d5e7b22b-b7f6-4680-9610-2457509b7946", "PipeWire Video Output"},
     {"GStreamer", "2c644357-16a4-4c25-9e27-8e5c4a9a647d", "GStreamer"},
     {"GPhoto2", "a7e5e6cc-3e7e-4f92-b5f6-0dca37e64c8a", "GPhoto2 DSLR"},
-    {"ShmdataInput", "8062b2e5-c589-41f1-8977-96c5ba782f95", "Shmdata Input"},
-    {"ShmdataOutput", "69bb8215-dae2-4ec9-b60c-79f4f4fc2390", "Shmdata Output"},
     {"WindowCapture", "a7c1e3f0-5d2b-4e8a-9f6c-1b3d5e7a9c0f", "Window Capture"},
     {"Libav", "8b3e4f2a-1d5c-4e7b-a9f3-6c2d8e4b1a7f", "FFmpeg"},
 };
@@ -73,22 +67,29 @@ constexpr Protocol spout[] = {
     {"SpoutOutput", "ddf45db7-9eaf-453c-8fc0-86ccdf21677c", "Spout Output"},
 };
 // Sh4lt is built only when its library is present -- score-plugin-gfx guards
-// the sources with if(TARGET sh4lt), and that target only exists on Linux. It
-// sat in the unconditional list above and was asserted PRESENT everywhere, so
-// this case failed on macOS ("PROTO Sh4ltInput ABSENT", measured on
-// macmini-m1) and on all four Windows backends, while passing on Linux. Same
-// treatment as spout/syphon: the buildsystem tells the test what to expect, so
-// the two can never disagree.
+// the sources with if(TARGET sh4lt), and that target only exists on Linux.
+// Same treatment as spout/syphon: the buildsystem tells the test what to
+// expect, so the two can never disagree.
 constexpr Protocol sh4lt[] = {
     {"Sh4ltInput", "7b3a7adb-af9e-4dd5-9bd7-641f4d33fa2d", "Sh4lt Input"},
     {"Sh4ltOutput", "41e367e1-fc36-40b2-b8c4-8aecd5dfd4fc", "Sh4lt Output"},
 };
-// Lowercase, like every other uuid here and unlike how these two are spelled in
-// their SCORE_CONCRETE headers: the probe looks the factory up as a key of
+// Uuids are lowercase here, unlike the spelling in some SCORE_CONCRETE
+// headers: the probe looks the factory up as a key of
 // Score.availableProtocols(), which builds its map with
 // score::uuids::toByteArray(), whose to_char() emits 'a' + (i - 10). A JS map
-// lookup is literal, so "398CEC01-..." never matched and Syphon read as ABSENT
-// on macOS even though it is built and linked there by default.
+// lookup is literal, so an upper-case uuid never matches.
+// Shmdata and Pipewire are Linux-only in practice: score-plugin-gfx guards the
+// former with if(TARGET shmdata) and the latter with NOT APPLE AND NOT WIN32
+// AND TARGET pipewire::pipewire. The buildsystem tells the test what to expect.
+constexpr Protocol shmdata[] = {
+    {"ShmdataInput", "8062b2e5-c589-41f1-8977-96c5ba782f95", "Shmdata Input"},
+    {"ShmdataOutput", "69bb8215-dae2-4ec9-b60c-79f4f4fc2390", "Shmdata Output"},
+};
+constexpr Protocol pipewire[] = {
+    {"PipewireInput", "cf6a355f-34d1-4d24-a6ea-3d204f93cde9", "PipeWire Video Input"},
+    {"PipewireOutput", "d5e7b22b-b7f6-4680-9610-2457509b7946", "PipeWire Video Output"},
+};
 constexpr Protocol syphon[] = {
     {"SyphonInput", "398cec01-c4ea-43b7-8281-d848748e0f68", "Syphon Input"},
     {"SyphonOutput", "087d032d-9a42-4bc9-b3df-ad9ba9e86c07", "Syphon Output"},
@@ -229,6 +230,10 @@ TEST_CASE("score-plugin-gfx registers its protocol factories", "[integration][gf
     emitCheck(p);
   for(const auto& p : sh4lt)
     emitCheck(p);
+  for(const auto& p : shmdata)
+    emitCheck(p);
+  for(const auto& p : pipewire)
+    emitCheck(p);
   for(const auto& p : syphon)
     emitCheck(p);
   src += QStringLiteral("Qt.exit(0);\n");
@@ -260,6 +265,24 @@ TEST_CASE("score-plugin-gfx registers its protocol factories", "[integration][gf
     {
       INFO("protocol " << p.name);
 #if defined(SCORE_TEST_HAS_SH4LT)
+      CHECK(r.log.contains(QStringLiteral("PROTO %1 PRESENT").arg(p.name)));
+#else
+      CHECK(r.log.contains(QStringLiteral("PROTO %1 ABSENT").arg(p.name)));
+#endif
+    }
+    for(const auto& p : shmdata)
+    {
+      INFO("protocol " << p.name);
+#if defined(SCORE_TEST_HAS_SHMDATA)
+      CHECK(r.log.contains(QStringLiteral("PROTO %1 PRESENT").arg(p.name)));
+#else
+      CHECK(r.log.contains(QStringLiteral("PROTO %1 ABSENT").arg(p.name)));
+#endif
+    }
+    for(const auto& p : pipewire)
+    {
+      INFO("protocol " << p.name);
+#if defined(SCORE_TEST_HAS_PIPEWIRE)
       CHECK(r.log.contains(QStringLiteral("PROTO %1 PRESENT").arg(p.name)));
 #else
       CHECK(r.log.contains(QStringLiteral("PROTO %1 ABSENT").arg(p.name)));
@@ -326,36 +349,11 @@ TEST_CASE(
   }
 }
 
-// The parse is what the guards fixed; the exit is a separate set of defects the
-// guards uncovered, because before them the process aborted on the first device
-// and never reached teardown at all.
-//
-// Creating each of the twelve alone and exiting isolates three, each
-// attributable to one protocol; the other nine exit 0:
-//
-//  * PipewireInput -- heap-use-after-free at Gfx/GfxInputDevice.cpp:101 in
-//    Gfx::video_texture_input_parameter::~video_texture_input_parameter. The
-//    GfxContext it calls unregister_node() on was freed by
-//    Gfx::DocumentPlugin::~DocumentPlugin (Gfx/GfxApplicationPlugin.cpp:19),
-//    which runs with the document model while the device list outlives it.
-//  * GPhoto2 -- the same shape in
-//    Gfx::GPhoto2::gphoto2_parameter::~gphoto2_parameter.
-//  * ShmdataOutput -- no ASan report; the writer degrades correctly on an empty
-//    Path, but the output still builds a render target it never frees, and Qt's
-//    VulkanMemoryAllocator aborts on "Some allocations were not freed before
-//    destruction of this memory block". Rate 0 also reaches Timers.cpp:95 and
-//    :179 as inf, which UBSan flags and which lands as
-//    "QObject::startTimer: negative intervals aren't allowed".
-//
-// This case was pinned [!shouldfail] with the CORRECT expectation -- a
-// script that creates a gfx device and exits must exit 0 -- while the
-// three defects above made the exit dirty. The observable symptom (a
-// non-zero exit / crash on teardown) is gone since plug-in teardown was
-// made reverse-order (#2245): the device list no longer outlives the
-// GfxContext its parameters unregister from. The tag is off; the same
-// expectation now runs green. The ShmdataOutput render-target leak note
-// above may still hold under a leak checker -- it no longer changes the
-// exit code, which is what this asserts.
+// Teardown, not just parsing: a gfx device parameter calls unregister_node()
+// on the GfxContext from its destructor
+// (Gfx::video_texture_input_parameter, Gfx::GPhoto2::gphoto2_parameter), so
+// the device list has to go down before Gfx::DocumentPlugin frees the context.
+// Plug-in teardown runs in reverse order, which is what keeps the exit clean.
 TEST_CASE(
     "a script that creates gfx input devices exits cleanly",
     "[integration][gfx][device]")
