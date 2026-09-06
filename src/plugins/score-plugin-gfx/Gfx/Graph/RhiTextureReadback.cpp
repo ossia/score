@@ -1032,10 +1032,42 @@ bool finishReadbackToHost(QRhi& rhi, ReadbackTarget& t)
     }
 #endif
 
+#if SCORE_HAS_VULKAN
+    case QRhi::Vulkan: {
+      // The copy lands straight in `dst` (host-imported, and the import
+      // REQUIRES host-coherent memory, so no invalidate is needed) -- but only
+      // once the GPU has actually executed it, and nothing above guarantees
+      // that, hence the wait here.
+      //
+      // The caller's endOffscreenFrame() does NOT synchronize for us:
+      // QRhiVulkan::endOffscreenFrame waits on its fence ONLY under
+      //
+      //     const bool readbacksPending = !activeTextureReadbacks.isEmpty()
+      //                                || !activeBufferReadbacks.isEmpty();
+      //
+      // and those lists hold QRhi's OWN readbacks, the ones scheduled through
+      // QRhiResourceUpdateBatch::readBackTexture. Our copy is a native
+      // vkCmdCopyImageToBuffer recorded inside beginExternal()/endExternal(),
+      // which QRhi does not know about and does not count. Without the wait
+      // the frame is submitted and never waited for, the host reads `dst`
+      // while the transfer is still in flight, and releasing the buffer
+      // afterwards trips VUID-vkDestroyBuffer-buffer-00922 ("currently in use
+      // by VkCommandBuffer"). ReadbackTester sees it as a first frame reading
+      // back 0xAB, the untouched fill, while "second frame identical" passes.
+      //
+      // The other backends already block at this point -- the GL path in
+      // glClientWaitSync, the D3D11 path in Map. finishReadbackToHost is the
+      // completion point on every backend.
+      if(!t.vkDf || !t.vkDev)
+        return true;
+      return t.vkDf->vkDeviceWaitIdle(t.vkDev) == VK_SUCCESS;
+    }
+#endif
+
     default:
-      // Vulkan and D3D12 write into dst directly; the frame synchronization
-      // the caller already performs (QRhi::finish() / frame fence) makes the
-      // bytes visible.
+      // D3D12 takes the same host-import path and has the SAME structural gap:
+      // nothing here waits for the recorded copy. Unverified on real D3D12
+      // hardware; do not assume it works.
       return true;
   }
 }
