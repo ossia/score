@@ -3,6 +3,8 @@
 #include <Gfx/Graph/RenderedISFSamplerUtils.hpp>
 #include <Gfx/Graph/SimpleRenderedISFNode.hpp>
 
+#include <set>
+
 #include <score/tools/Debug.hpp>
 
 #include <ossia/detail/algorithms.hpp>
@@ -580,6 +582,53 @@ void SimpleRenderedISFNode::initState(RenderList& renderer, QRhiResourceUpdateBa
   m_inputSamplers = initInputSamplers(this->n, renderer, n.input, &n.descriptor());
 
   m_audioSamplers = initAudioTextures(renderer, n.m_audio_textures);
+
+  // Pass-target samplers.
+  //
+  // The GLSL generator emits one `uniform sampler2D <target>` per distinct
+  // pass target (isf.cpp, "Only emit target samplers..."), for EVERY renderer.
+  // initInputSamplers walks input PORTS only, so on this path nothing created
+  // them -- and two things went wrong at once:
+  //
+  //   1. If the shader actually samples a target, the SPIR-V references a
+  //      descriptor the pipeline layout never declared. Vulkan validation
+  //      flags VUID-VkGraphicsPipelineCreateInfo-layout-07988 at pipeline
+  //      creation and VUID-vkCmdDraw-None-08114 on the draw, and the process
+  //      SEGVs inside the validation layer. A shader took the app down instead
+  //      of failing to load. (Seen with an ISF v1 shader whose only
+  //      persistence marker was the removed top-level PERSISTENT_BUFFERS key,
+  //      so its pass parsed as non-persistent and landed here.)
+  //   2. firstStorageBinding below counts only input + audio samplers, so any
+  //      storage resource was ALSO bound one slot short per pass target.
+  //
+  // Deleting the declarations instead is not an option: shaders reference a
+  // target in GLSL whose use the optimiser then strips from the SPIR-V, so
+  // they need the declaration to compile but no descriptor at runtime.
+  // Measured: removing them broke 8 library shaders that had been fine.
+  //
+  // A single non-persistent pass has no defined contents to sample -- no
+  // earlier pass, no frame history -- so bind the empty texture. That keeps
+  // the pipeline valid and the result deterministic instead of undefined.
+  {
+    std::set<std::string> output_names;
+    for(const auto& out : n.descriptor().outputs)
+      output_names.insert(out.name);
+    std::set<std::string> emitted;
+    for(const std::string& target : n.descriptor().pass_targets)
+    {
+      if(output_names.count(target))
+        continue;
+      if(!emitted.insert(target).second)
+        continue;
+      auto* sampler = rhi.newSampler(
+          QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
+          QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
+      sampler->setName("SimpleRenderedISFNode::pass_target_sampler");
+      SCORE_ASSERT(sampler->create());
+      m_inputSamplers.push_back(
+          {sampler, &renderer.emptyTexture(), &renderer.emptyTexture()});
+    }
+  }
 
   // Collect graphics-visible storage buffers and images declared in the
   // shader (storage_input with visibility=fragment/vertex/both, or
