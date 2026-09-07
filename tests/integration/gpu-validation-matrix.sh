@@ -184,15 +184,29 @@ for label in $CELLS; do
   api="${def%%|*}"; rest="${def#*|}"; env_str="${rest%%|*}"; want="${rest#*|}"
   log="$OUT/$label.log"
 
-  # --- positive control 1: is the driver even present, and is it the RIGHT one?
-  dev=$(renderer_of "$api" "$env_str")
-  if [ -z "$dev" ]; then
-    printf "%-14s %-34s %s\n" "$label" "-" "SKIP (driver not present)"
-    continue
-  fi
-  if ! echo "$dev" | grep -qiE "$want"; then
-    printf "%-14s %-34s %s\n" "$label" "${dev:0:34}" "SKIP (wanted /$want/ — WRONG DEVICE)"
-    continue
+  # --- positive control 1 (Linux only): is the driver present, and the RIGHT one?
+  #
+  # An EMPTY probe means one of two very different things: the driver is
+  # absent, or there is no probe tool on this platform at all. Conflating them
+  # skipped every cell on macOS and Windows, where vulkaninfo/glxinfo do not
+  # exist. Only pre-flight when a probe is actually available; otherwise fall
+  # through and let the post-run device banner decide.
+  dev=""
+  probe_ok=no
+  case "$api" in
+    vulkan) command -v vulkaninfo >/dev/null 2>&1 && probe_ok=yes ;;
+    opengl) command -v glxinfo    >/dev/null 2>&1 && probe_ok=yes ;;
+  esac
+  if [ "$probe_ok" = yes ]; then
+    dev=$(renderer_of "$api" "$env_str")
+    if [ -z "$dev" ]; then
+      printf "%-14s %-34s %s\n" "$label" "-" "SKIP (driver not present)"
+      continue
+    fi
+    if ! echo "$dev" | grep -qiE "$want"; then
+      printf "%-14s %-34s %s\n" "$label" "${dev:0:34}" "SKIP (wanted /$want/ — WRONG DEVICE)"
+      continue
+    fi
   fi
 
   # shellcheck disable=SC2086
