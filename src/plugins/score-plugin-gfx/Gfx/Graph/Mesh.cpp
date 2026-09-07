@@ -2,8 +2,32 @@
 #include <Gfx/Graph/RhiIndirectCompat.hpp>
 #include <score/tools/Debug.hpp>
 
+#include <QDebug>
+
+#include <atomic>
+
 namespace score::gfx
 {
+static std::atomic<uint64_t> g_zeroCountSlotsSkipped{0};
+
+void noteZeroCountSlotsSkipped(int skipped) noexcept
+{
+  if(skipped <= 0)
+    return;
+  g_zeroCountSlotsSkipped.fetch_add((uint64_t)skipped, std::memory_order_relaxed);
+  static bool warned = false;
+  if(warned)
+    return;
+  warned = true;
+  qDebug() << "score.gfx: indirect CPU rung: skipped" << skipped
+           << "zero-count command slot(s)";
+}
+
+uint64_t zeroCountSlotsSkippedTotal() noexcept
+{
+  return g_zeroCountSlotsSkipped.load(std::memory_order_relaxed);
+}
+
 
 Mesh::Mesh() = default;
 
@@ -116,15 +140,25 @@ void BasicMesh::draw(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexc
 #endif
     if(!bufs.cpuDrawCommands.empty())
     {
+      int skipped = 0;
       for(const auto& cmd : bufs.cpuDrawCommands)
+      {
+        if(!drawCommandPaints(cmd))
+        {
+          ++skipped; // dead slot; see drawCommandPaints
+          continue;
+        }
         cb.draw(cmd.index_or_vertex_count, cmd.instance_count,
                 cmd.first_index_or_vertex, cmd.first_instance);
+      }
+      noteZeroCountSlotsSkipped(skipped);
       return;
     }
     return; // skip — no commands available yet
   }
 
-  cb.draw(vertexCount);
+  if(vertexCount > 0)
+    cb.draw(vertexCount);
 }
 
 DummyMesh::DummyMesh(int count)
@@ -278,9 +312,9 @@ void TexturedQuad::setupBindings(
 void drawMeshWithOptionalIndirect(
     const Mesh& mesh, const MeshBuffers& bufs, QRhiCommandBuffer& cb) noexcept
 {
-  // All Mesh subclasses (BasicMesh, CustomMesh) now handle useIndirectDraw
+  // All Mesh subclasses (BasicMesh, CustomMesh) handle useIndirectDraw
   // internally — they check bufs.useIndirectDraw after binding vertex inputs
-  // and dispatch to cb.drawIndirect/drawIndexedIndirect when set. So this
+  // and dispatch to cb.drawIndirect/drawIndexedIndirect when set — so this
   // helper just forwards to mesh.draw(). It exists as an explicit opt-in
   // marker for renderers that intend to support indirect multi-draw.
   mesh.draw(bufs, cb);

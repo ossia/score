@@ -120,23 +120,20 @@ score_add_csf_test(image    CsfImage.cpp)
 # test_gfx_isf_findings, so the RED is attributable and can't pull down the
 # green 2D group. See the FINDING block in CsfImage3d.cpp.
 score_add_csf_test(image3d  CsfImage3d.cpp)
-# P1-21: the 3D storage image resized at runtime (64^3 -> 32^3 -> 96^3 in one
-# session) keeps writing the closed form at each size with no stale slice.
-# GREEN on both backends since the runtime resize landed in RenderedCSFNode
-# (previously a literal TODO: the allocate-once guard kept the 64^3 texture
-# forever and the 32^3/96^3 phases were red everywhere).
+# The 3D storage image resized at runtime (64^3 -> 32^3 -> 96^3 in one run)
+# keeps writing the closed form at each size with no stale slice.
+# Green on both backends.
 score_add_csf_test(image3d_resize CsfImage3dResize.cpp)
 # CSF cube + array storage-image compute write, sampled downstream. ISOLATED like
-# image3d: the GL layered-storage workaround must cover cube/array (824a08d39),
-# else faces/layers past 0 read black on OpenGL. Green on both backends post-fix.
+# image3d: the GL layered-storage workaround must cover cube/array, else
+# faces/layers past 0 read black on OpenGL. Green on both backends.
 score_add_csf_test(cube_array CsfCubeArray.cpp)
 # CSF geometry / storage-buffer producers: parse + port-surface coverage; the
 # readback itself SKIPs (no Geometry/Buffer-consuming sink in this fixture yet).
 score_add_csf_test(geometry CsfGeometry.cpp)
 # CSF geometry / storage-buffer VALUE readback, through the BufferSinkNode
 # fixture (score_test/GfxBufferSink.hpp): closes the SKIP CsfGeometry.cpp
-# documents -- until this, CSF compute output values could not be read back at
-# all. Also carries the P0-2 instancing counter half (instanceHits SSBO).
+# documents. Also carries the instancing counter half (instanceHits SSBO).
 score_add_csf_test(buffer_readback GfxBufferReadback.cpp)
 
 score_add_isf_test(mrt            IsfMrt.cpp)
@@ -196,42 +193,40 @@ score_add_gfx_test(mrt_pattern GfxMrtPattern.cpp)
 # accepts ANY two non-identical non-blank images, so an attachment-order or
 # Y-flip regression in the MRT blit was invisible until this one.
 score_add_gfx_test(raw_raster_mrt_pattern GfxRawRasterMrtPattern.cpp)
-# P0-7: the topology of 2026/crash-renderpipeline-mrt.score -- a raw-raster
+# The topology of 2026/crash-renderpipeline-mrt.score -- a raw-raster
 # feeding a second, MRT raw-raster (raster#1 image out -> raster#2 sampler),
 # both attachments closed-form, then a sink resize the graph must survive.
 score_add_gfx_test(raster_chain_mrt GfxRasterChainMrt.cpp)
-# P0-1: a $USER-driven INSTANCE_COUNT changed mid-render (4 -> 9 -> 2 in one
-# session, no rebuild) redraws exactly the right number of instance strips,
+# A $USER-driven INSTANCE_COUNT changed mid-render (4 -> 9 -> 2 in one run,
+# no rebuild) redraws exactly the right number of instance strips,
 # each carrying its closed-form buffer identity (G) and draw identity (B) --
 # no stale strip from the previous count.
 score_add_gfx_test(instance_count_live GfxInstanceCountLive.cpp)
-# P1-8: the indirect draw takes its count from the GPU-written buffer. CPU
+# The indirect draw takes its count from the GPU-written buffer. CPU
 # instances pinned at 8; only the compute-written indirect command can make
 # the frame show 3 then 6 strips. SKIPs where neither DrawIndirect nor
 # ReadBackNonUniformBuffer exists (the engine only degrades there).
 score_add_gfx_test(indirect_draw_count GfxIndirectDrawCount.cpp)
 score_add_gfx_test(indirect_fallback_ladder GfxIndirectFallbackLadder.cpp)
+score_add_gfx_test(zero_count_draw GfxZeroCountDraw.cpp)
 score_add_gfx_test(gpu_driven_lights GfxGpuDrivenLights.cpp)
 score_add_gfx_test(y_orientation GfxYOrientation.cpp)
 score_add_gfx_test(indirect_draw_bench GfxIndirectDrawBench.cpp)
 
-# Depth-clear polarity, recovered from the 2026-09 graphics review. The review
-# wrote this against the shared fixtures, measured it, and left it out of tree,
-# so nothing in the suite covered it.
+# Depth-clear polarity: the only coverage of it in the suite.
 score_add_gfx_test(review_render_targets_depth GfxReviewRenderTargetsDepth.cpp)
 
-# Section 7 of the same review, cases 01-07. Triaged case by case -- the review
-# withdrew part of its own evidence there, so each case states a contract and
-# the red ones are declared in cmake/ScoreExpectedRedGuard.cmake with a
-# mechanism, not with "the review said so".
+# Render-target cases 01-07. Each case states a contract of its own, and the
+# red ones are declared in cmake/ScoreExpectedRedGuard.cmake with a mechanism
+# rather than a citation.
 score_add_gfx_test(review_render_targets GfxReviewRenderTargets.cpp)
 
-# SR1 from the same review: a one-element vertex fallback bound as a PerInstance
+# A one-element vertex fallback bound as a PerInstance
 # stream, drawn with two instances. Uses the production VertexFallbackPool and a
 # real QRhi readback, so it measures the binding the engine actually emits.
 score_add_gfx_test(review_scene_fallback GfxReviewSceneFallback.cpp)
 
-# D1/D2 from the same review: indirect-draw firstInstance ABI and layered
+# Indirect-draw firstInstance ABI and layered
 # indirect dispatch, each driven through the GPU rung AND the CPU fallback rung
 # so the two are forced to agree.
 score_add_gfx_test(review_draw_dispatch_edges GfxReviewDrawDispatchEdges.cpp)
@@ -241,29 +236,29 @@ score_add_gfx_test(review_indirect_standalone GfxReviewIndirectStandalone.cpp)
 # engine does at the int64 -> quint32 boundary where a size silently narrows.
 score_add_gfx_test(buffer_limits GfxBufferLimits.cpp)
 
-# G1-G4 from the same review: graph reconciliation, incremental removal, rebuild
-# before the first frame, and incremental target mip flags.
+# Graph reconciliation, incremental removal, rebuild before the first frame,
+# and incremental target mip flags.
 score_add_gfx_test(review_graph_lifecycle GfxReviewGraphLifecycle.cpp)
-# P1-7 / G8: the cubemap render target's six faces, against the self-declared
+# The cubemap render target's six faces, against the self-declared
 # oracle of 2026/test-cubemap-output.score (+X red, -X cyan, +Y green,
 # -Y magenta, +Z blue, -Z yellow), through the MULTIVIEW-6 + CUBEMAP
 # array-then-copy shim; samplerCube viewer probes each face exactly once.
 # GL follows GfxMultiview's headless-layered-raster precedent (structural
 # half + SUCCEED with the reason); Null asserts the shim selection only.
 score_add_gfx_test(cubemap_six_faces GfxCubemapSixFaces.cpp)
-# P1-14 / G17 pin, [!shouldfail]: packCameraUBO ignores camera_projection and
+# Pin, [!shouldfail]: packCameraUBO ignores camera_projection and
 # always builds reverse-Z perspective, so an orthographic or fulldome camera
 # renders as a perspective one. Unit-math level: byte-identical UBOs provably
 # imply byte-identical frames (no other reader of camera projection exists).
 score_add_gfx_test(camera_projection_pin GfxCameraProjectionPin.cpp)
-# P2-15: the Null backend refuses rather than pretends. Null accepts every
-# command and rasterizes nothing, so `SCORE_TEST_API=null` used to turn every
-# pixel case into a red naming the FIXTURE ("readback ... empty/short") -- and
-# would have turned a case expecting a black pixel green against a buffer
-# nothing drew. score_test/Gfx.hpp now reports SKIP for Null, with an opt-in
-# (allowNullBackend) for the structural halves that want it. This case pins the
-# selection logic, the SKIP verdict shape, and that opting in still yields no
-# pixels. GPU-independent: it runs, and asserts the same thing, on any backend.
+# The Null backend refuses rather than pretends. Null accepts every
+# command and rasterizes nothing, so a pixel case run against it would either go
+# red naming the FIXTURE ("readback ... empty/short") or, for a case expecting a
+# black pixel, go green against a buffer nothing drew. score_test/Gfx.hpp reports
+# SKIP for Null, with an opt-in (allowNullBackend) for the structural halves that
+# want it. This case pins the selection logic, the SKIP verdict shape, and that
+# opting in still yields no pixels. GPU-independent: it runs, and asserts the
+# same thing, on any backend.
 score_add_gfx_test(null_backend_refuses GfxNullBackendRefuses.cpp)
 
 # The same closed-form pattern, but through ISF -> ScreenNode -> swapchain
@@ -285,16 +280,16 @@ score_add_gfx_test(graph_torture GfxGraphTorture.cpp)
 # ISOLATED, EXPECTED-RED on OpenGL: the compute storage-image origin. A CSF that
 # only imageStore()s is flipped on OpenGL because a raw texel index and a
 # bottom-up GL render target disagree, and neither of the two one-line fixes is
-# correct (both measured — see the FINDING block in the file). Own target so the
-# attributable RED cannot take the green orientation group with it.
+# correct (see the FINDING block in the file). Own target so the attributable
+# RED cannot take the green orientation group with it.
 score_add_gfx_test(orientation_findings GfxOrientationFindings.cpp)
 
 # The storage-image macros that make a compute generator portable: they correct
-# the read and the store together, on every backend except Vulkan -- measured,
-# not derived from where each backend puts the framebuffer origin.
+# the read and the store together, on every backend except Vulkan -- a rule
+# that does not follow from where each backend puts the framebuffer origin.
 score_add_gfx_test(csf_orient_macros GfxCsfOrientMacros.cpp)
 
-# P1-16 / G16: the shader-include search path -- registration mechanism tested
+# The shader-include search path -- registration mechanism tested
 # directly (temp library root, header resolution + per-call path recompute),
 # the missing-include failure is DIAGNOSABLE by name (no pin needed: the
 # product already errors "Shader include not found" with the searched paths),
@@ -322,13 +317,13 @@ target_compile_definitions(test_gfx_csf_orient_gate PRIVATE
   GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
 
 # Writable cubemaps on Direct3D. HLSL has no RWTextureCube in any shader model
-# and SPIRV-Cross aborts the translation rather than approximating one, so every
-# shader declaring a cube storage image failed to bake for D3D11 and D3D12 --
-# and only for them. The fix declares the same texture as the 2D-array VIEW the
-# D3D UAV already was, gated on QSHADER_HLSL, with no change to the shader the
-# author writes; this pins both halves (it bakes everywhere; the API did not
-# move). Same no-device shape as csf_orient_gate: QShaderBaker cross-compiles to
-# HLSL on any host. The picture itself is gfx_csf_cube_array's job.
+# and SPIRV-Cross aborts the translation rather than approximating one, so a
+# cube storage image cannot bake for D3D11 and D3D12 -- and only for them. The
+# emitter declares it instead as the 2D-array VIEW the D3D UAV already is, gated
+# on QSHADER_HLSL, with no change to the shader the author writes; this pins both
+# halves (it bakes everywhere; the API is unchanged). Same no-device shape as
+# csf_orient_gate: QShaderBaker cross-compiles to HLSL on any host. The picture
+# itself is gfx_csf_cube_array's job.
 score_add_test(test_gfx_cube_image_hlsl
   SOURCES GfxCubeImageHlsl.cpp
   PLUGINS score_plugin_gfx score_lib_process
@@ -342,12 +337,12 @@ target_compile_definitions(test_gfx_cube_image_hlsl PRIVATE
 # host, so the two targets a Linux ctest run never otherwise asks for -- HLSL
 # and MSL -- are asked for here, on this machine, with no device and no display.
 #
-# It exists because 0411ad04bb: a duplicated `#define isf_FragCoord` with
-# mismatched QSHADER_* guards agreed on SPIR-V and GLSL and disagreed on HLSL
-# and MSL, so under setPerTargetCompilation(true) glslang rejected every
-# raw-raster fragment stage ("Macro redefined; different substitutions") -- and
-# no raw-raster ISF shader had ever compiled on Direct3D or Metal. Finding that
-# took a four-backend Windows sweep. This finds it in an ordinary ctest run.
+# It exists because of this failure shape: a duplicated `#define isf_FragCoord`
+# with mismatched QSHADER_* guards agrees on SPIR-V and GLSL and disagrees on
+# HLSL and MSL, so under setPerTargetCompilation(true) glslang rejects every
+# raw-raster fragment stage ("Macro redefined; different substitutions") and no
+# raw-raster ISF shader compiles on Direct3D or Metal. Catching that otherwise
+# takes a four-backend Windows sweep; this finds it in an ordinary ctest run.
 #
 # APP rather than plain, because ProgramCache::get reads Gfx::Settings::Model
 # out of score::AppContext() (ShaderProgram.cpp:534); GPU-less all the same, so
@@ -406,7 +401,7 @@ score_add_gfx_test(audio                GfxAudio.cpp)
 score_add_gfx_test(incremental          GfxIncremental.cpp)
 score_add_gfx_test(incremental_add      GfxIncrementalAdd.cpp)
 score_add_gfx_test(incremental_findings GfxIncrementalFindings.cpp)
-# P0-5: the (now-fixed) add-new-output render-pass leak, made COUNTABLE:
+# The add-new-output render-pass leak, made COUNTABLE:
 # per-cycle QRhi::statistics().allocCount (Vulkan/D3D12), QT_RHI_LEAK_CHECK=1
 # teardown accounting (all backends, unix), and the Vulkan validation layer's
 # object tracking when present. The incremental_findings pin only asserts the
@@ -415,23 +410,23 @@ score_add_gfx_test(render_pass_leak GfxRenderPassLeak.cpp)
 # A raw-Vulkan vkCmdCopyBuffer recorded through beginExternal() is invisible to
 # QRhi's own barrier tracking, so score's batch barrier is the only thing that
 # can order it against the staging copies of the QRhiResourceUpdateBatch
-# submitted earlier in the same command buffer. It named only the compute
-# stage, which is how growBuf's full-extent zero-clear of
-# ScenePreprocessor::inst.attribs and issuePendingGpuCopies'
-# per-instance writes into the same buffer became a transfer WRITE_AFTER_WRITE.
+# submitted earlier in the same command buffer. A barrier naming only the
+# compute stage leaves growBuf's full-extent zero-clear of
+# ScenePreprocessor::inst.attribs and issuePendingGpuCopies' per-instance writes
+# into the same buffer as a transfer WRITE_AFTER_WRITE.
 # Runs the engine path under synchronization validation, with a deliberately
 # unsynchronised copy as the positive control so a silent layer SKIPs instead
 # of going green.
 score_add_gfx_test(buffer_copy_barrier_sync GfxBufferCopyBarrierSync.cpp)
-# P0-4: the (now-fixed) resize-after-incremental-add Vulkan SIGSEGV, re-run in
+# The resize-after-incremental-add Vulkan SIGSEGV, re-run in
 # a forked child so a future regression is a recorded verdict ("child killed by
 # signal 11") instead of a dead ctest run. The parent stays graphics-free
 # before forking; the child boots its own GUI app.
 score_add_gfx_test(incremental_resize_fork GfxIncrementalResizeFork.cpp)
 
-# A4: an incremental edge add that lands between a fast-path sink resize and the
-# rebuild that resize defers used to build its pass against the render pass
-# descriptor BackgroundNode::resize() had already freed (SIGSEGV in
+# An incremental edge add that lands between a fast-path sink resize and the
+# rebuild that resize defers must not build its pass against the render pass
+# descriptor BackgroundNode::resize() has already freed (SIGSEGV in
 # GenericNodeRenderer::addOutputPass on the corpus document test-js-ui.score).
 # Its own target: the pin compares the handles the sink renderer hands out
 # against the sink's live ones, which must not be perturbed by a neighbour's
@@ -439,27 +434,26 @@ score_add_gfx_test(incremental_resize_fork GfxIncrementalResizeFork.cpp)
 score_add_gfx_test(sink_resize_stale_pass GfxSinkResizeStalePass.cpp)
 
 # -----------------------------------------------------------------------------
-# ISOLATED regression guards for the split/gfx-scene engine fixes (REVIEW-ROUND2).
+# ISOLATED regression guards for the split/gfx-scene engine fixes.
 # Each is its OWN executable so a crash-on-failure on the pre-fix engine (the
 # RED-proof) cannot perturb its neighbours — mirroring test_gfx_isf_mrt_persistent
 # / test_gfx_csf_image3d / test_gfx_incremental_findings.
 #
-#   rt_changed   R2-#4  surgical rt_changed must rebuild an intermediate node's
-#                       own output passes (3155a7f61).
-#   node_removal R2-#11 node removal must release transitively-unreachable
-#                       upstream renderers (48a9a1a7b).
-#   storage_vis  R2-#6  storage-visibility filter drift (8ab01f368).
-#   depth_sampler R2-#7 sampler-index miscount across SamplableDepth (8ab01f368).
-#   multiview    R2-#1  multiview UBO binding collision (8ab01f368).
-#   csf_cube_array R2-#10 GL layered rebind covers cube/array storage images
-#                       (824a08d39).
+#   rt_changed     surgical rt_changed must rebuild an intermediate node's
+#                  own output passes.
+#   node_removal   node removal must release transitively-unreachable
+#                  upstream renderers.
+#   storage_vis    storage-visibility filter drift.
+#   depth_sampler  sampler-index miscount across SamplableDepth.
+#   multiview      multiview UBO binding collision.
+#   csf_cube_array GL layered rebind covers cube/array storage images.
 score_add_gfx_test(rt_changed      GfxRtChanged.cpp)
-# P1-13: the FORMAT half of the surgical rt_changed path (rt_changed covers
+# The FORMAT half of the surgical rt_changed path (rt_changed covers
 # size): RGBA8 -> RGBA16F mid-render, oracle = a 2.0 write surviving the
 # round trip only in float (halver shader: red 128 clipped vs 255 preserved).
 score_add_gfx_test(rt_format_changed GfxRtFormatChanged.cpp)
 score_add_gfx_test(node_removal    GfxNodeRemoval.cpp)
-# P0-9: removing a CSF geometry producer (and then the geometry filter) while
+# Removing a CSF geometry producer (and then the geometry filter) while
 # the render loop is live: the raster consumer keeps rendering (uniform clear
 # or last valid frame, stable across 12 post-removal frames) and every
 # transitively-unreachable upstream node's renderedNodes drains to 0 --
@@ -470,7 +464,7 @@ score_add_gfx_test(geometry_producer_removal GfxGeometryProducerRemoval.cpp)
 # QRhi::enqueueResourceUpdates on the next frame — the GL/D3D11/Vulkan crash
 # triplet from the corpus run). ISOLATED so the pre-fix crash is attributable.
 score_add_gfx_test(batch_lifetime  GfxBatchLifetime.cpp)
-# P0-8: the geometry-buffer sibling of batch_lifetime -- a CSF geometry
+# The geometry-buffer sibling of batch_lifetime -- a CSF geometry
 # buffer reallocated in the same frame the raster rebinds it renders one of
 # the two closed forms (old size / new size), never garbage; plus the
 # teardown-with-pending-initial-batch scenario.
@@ -479,15 +473,15 @@ score_add_gfx_test(depth_sampler   GfxDepthSampler.cpp)
 score_add_gfx_test(storage_visibility GfxStorageVisibility.cpp)
 score_add_gfx_test(multiview       GfxMultiview.cpp)
 score_add_gfx_test(dynamic_slot    GfxDynamicSlot.cpp)
-# The three scene-filter nodes added by 45d1202327, which had zero references
-# anywhere under tests/ while being user-facing processes.
+# The three scene-filter nodes, which had no reference anywhere under tests/
+# while being user-facing processes.
 score_add_gfx_test(scene_filter_nodes SceneFilterNodes.cpp)
-# P1-4: N producers into ScenePreprocessor's single inlet merge additively and
+# N producers into ScenePreprocessor's single inlet merge additively and
 # memoize on {state.get(), version}: idle frames re-run merge_scenes ZERO
 # times (pointer identity), a bump re-merges exactly once, one contributor
 # short-circuits to a pointer copy, an env-only rootless producer is kept.
 score_add_gfx_test(scene_merge_memo SceneMergeMemo.cpp)
-# A24(a): the unified-MDI geometry published nine vertex bindings, one past
+# The unified-MDI geometry published nine vertex bindings, one past
 # QD3D11CommandBuffer::MAX_VERTEX_BUFFER_BINDING_COUNT, so a shader reading
 # every stream lost its ninth on D3D11 without an error. translation and
 # instance_color0 now share one interleaved 32-byte per-instance binding; this
@@ -529,7 +523,7 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
 
-# P2-8: an EisenScript rasterises. StructureSynthTest.cpp drives
+# An EisenScript rasterises. StructureSynthTest.cpp drives
 # StrucSynth::worker::work() as a pure function and pins the vertex buffer;
 # nothing anywhere puts that mesh on a GPU. Same hidden-sources shape as the
 # Crousti target above -- StructureSynth.cpp is hidden-visibility inside the
@@ -562,7 +556,7 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
 
-# P1-19: EnvironmentLoader's render_target_size override reaches the camera
+# EnvironmentLoader's render_target_size override reaches the camera
 # pass (packCameraUBO's renderSize/aspect), scoped to exactly that -- the
 # physical RT extent must NOT change. CPU producer/merge + camera-math halves
 # run GPU-less; the render half drives real Cube+Camera+EnvironmentLoader
@@ -589,7 +583,7 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
 
-# P1-3: switching the active camera mid-render moves the image (the drawn
+# Switching the active camera mid-render moves the image (the drawn
 # colour identifies WHICH camera is active), and switching back reproduces
 # the first frame byte-for-byte with zero texture-channel reallocation. CPU
 # halves pin the id mint, merge-order first-non-zero-wins, CameraSwitch
@@ -622,7 +616,7 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
 
-# P1-10 (render half): the Instances spinbox on Buffers-to-geometry v2 drives
+# Render half: the Instances spinbox on Buffers-to-geometry v2 drives
 # the drawn count, live, with exactly one CustomMesh::reload per flush. Also
 # PINS (green, flip-when-fixed) the engine gap that an Instances-ONLY edit is
 # absent from the node's change fingerprint and freezes until another control
@@ -646,10 +640,10 @@ if(TARGET score_plugin_threedim)
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
 
-# P1-11 (render half): a point cloud renders as exactly N points -- real
-# PCLToMesh2 descriptor with a NON-ZERO byte_offset (regression guard for the
-# fixed 2b6234a6c3 full-byte_size over-count), real avnd bridge, real point
-# draw; each point owns its own pixel.
+# Render half: a point cloud renders as exactly N points -- real
+# PCLToMesh2 descriptor with a NON-ZERO byte_offset (regression guard against a
+# full-byte_size over-count), real avnd bridge, real point draw; each point owns
+# its own pixel.
 if(TARGET score_plugin_threedim)
   score_plugin_hidden_sources(_pcl_count_hidden
       "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim/PCLToGeometry.cpp")
@@ -669,7 +663,7 @@ if(TARGET score_plugin_threedim)
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
 
-# P0-3 (render half): the Instancer clamps a shrinking transforms buffer
+# Render half: the Instancer clamps a shrinking transforms buffer
 # (byte_size shrinks AND handle changes) without over-reading -- real
 # Instancer tick + real ScenePreprocessor instance-group copy + real
 # instanced draw + pixels. Instancer.cpp is hidden-visibility, compiled in.
@@ -714,7 +708,7 @@ target_include_directories(test_gfx_dynamic_slot PRIVATE
 # acquireMeshSlab). Same OffsetAllocator inclusion as above, for the same reason.
 score_add_gfx_test(mesh_slabs GfxMeshSlabs.cpp)
 
-# P1-20: a material texture swapped live changes the frame WITHOUT a graph
+# A material texture swapped live changes the frame WITHOUT a graph
 # rebuild, and a layer-growth change legitimately reallocates the
 # QRhiTextureArray -- the test asserts WHICH path each change kind took via
 # registry snapshots. Case 2 ([!mayfail]) pins the statically-located gap
@@ -730,26 +724,26 @@ target_sources(test_gfx_mesh_slabs PRIVATE
 target_include_directories(test_gfx_mesh_slabs PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator")
 
-# R2-#8 (GfxContext incremental edge-to-not-yet-present-node) is a DOCUMENTED
+# The GfxContext incremental edge-to-not-yet-present-node case is a DOCUMENTED
 # GAP: the two-channel GfxContext baseline-diff bug is not reproducible through
 # the Graph-level L3 fixture. This target holds the honest SKIP anchor + rationale.
 score_add_gfx_test(incremental_edge_defer GfxIncrementalEdgeDefer.cpp)
 
 # -----------------------------------------------------------------------------
-# UNIT regression guards (REVIEW-ROUND2, round 2 fixes). These are non-GPU pure
-# logic/unit tests — no display, no QRhi — so they build as plain score_add_test
-# targets (Catch2WithMain), each its own executable.
+# UNIT regression guards. These are non-GPU pure logic/unit tests — no display,
+# no QRhi — so they build as plain score_add_test targets (Catch2WithMain), each
+# its own executable.
 #
-#   assettable_eviction  F12/R2-#12 AssetTable: a staged-but-never-acquired
-#                         entry must be trimmable (a7464ffef). Clean RED->GREEN
-#                         unit test constructing AssetTable directly (needs the
-#                         QImage member in DecodedAsset -> link Qt Gui).
-#   scatter_dispatch      F5/R2-#5  GPUBufferScatter dispatch-dims clamp + shader
-#                         index linearization (0efeab422). Pure-math UNIT test of
-#                         the algorithm (replicates the private helper + GLSL
+#   assettable_eviction   AssetTable: a staged-but-never-acquired entry must be
+#                         trimmable. Unit test constructing AssetTable directly
+#                         (needs the QImage member in DecodedAsset -> link
+#                         Qt Gui).
+#   scatter_dispatch      GPUBufferScatter dispatch-dims clamp + shader
+#                         index linearization. Pure-math UNIT test of the
+#                         algorithm (replicates the private helper + GLSL
 #                         formula; see the file header for scope/honesty).
-#   gstreamer_bus_classify F9/R2-#9 GStreamer bus WARNING-vs-ERROR classification
-#                         + feed/finalize decoupling (257035968). DOCUMENTED GAP
+#   gstreamer_bus_classify GStreamer bus WARNING-vs-ERROR classification
+#                         + feed/finalize decoupling. DOCUMENTED GAP
 #                         (device behind SCORE_HAS_GSTREAMER/dlopen, unexported)
 #                         + behavioral-model guard of the fix's contract.
 score_add_test(test_gfx_assettable_eviction
@@ -1044,9 +1038,9 @@ endif()
 # precondition this harness has.
 #
 # Deliberately NOT run with SCORE_SANITIZE_SKIP_CHECKS: this harness pumps the
-# event loop for several seconds, which is exactly what used to deliver
+# event loop for several seconds, which is what delivers
 # PM::PluginSettingsModel::firstTimeLibraryDownload()'s modal QMessageBox and
-# wedge the run under the offscreen QPA. Leaving the escape hatch off keeps
+# wedges the run under the offscreen QPA. Leaving the escape hatch off keeps
 # that regression visible here as a hang instead of hiding it.
 if(TARGET test_gfx_gstreamer_device)
   score_add_media_test(
@@ -1130,18 +1124,18 @@ score_add_gfx_process_test(images          GfxImagesProcess.cpp)
 score_add_gfx_process_test(video_text      GfxVideoTextProcess.cpp)
 score_add_gfx_process_test(library         GfxProcessLibrary.cpp)
 
-# OPEN-7 pin, its own single-test executable: an empty nodelist mime payload
+# Pin, its own single-test executable: an empty nodelist mime payload
 # SIGABRTs in rapidjson today. The case asserts the CORRECT behaviour (child
 # process survives, zero drops) and is [!shouldfail]; the drop runs in a
 # forked child because CTest's WILL_FAIL does not invert abnormal termination.
 score_add_gfx_process_test(drop_empty_nodelist GfxDropEmptyNodelistAbort.cpp)
 
-# OPEN-3: the run_commands full-rebuild flag must not latch across frames and
+# The run_commands full-rebuild flag must not latch across frames and
 # downgrade the next incremental edge diff. Drives the real document
 # GfxContext through GfxExecutionAction, observed via SCORE_GFX_TRACE.
 score_add_gfx_process_test(edge_consume_latch GfxEdgeConsumeLatch.cpp)
 
-# OPEN-4: within one incremental frame, every renderer (initState) precedes
+# Within one incremental frame, every renderer (initState) precedes
 # every pass creation. Observed via the GFX-RECONCILE / GFX-PASS trace lines.
 score_add_gfx_process_test(renderers_before_passes GfxRenderersBeforePasses.cpp)
 
@@ -1178,15 +1172,15 @@ score_add_test(test_gfx_video_direct_bench
   LIBS test_gfx_engine_glue avcodec avformat avutil
   NO_CTEST)
 
-# P2-9: a geometry filter displaces the mesh it is given, by a closed-form
+# A geometry filter displaces the mesh it is given, by a closed-form
 # delta.
 score_add_gfx_test(geometry_filter_shift GfxGeometryFilterShift.cpp)
 
-# P2-14: closing a document mid-render tears down cleanly, fork-isolated so a
+# Closing a document mid-render tears down cleanly, fork-isolated so a
 # crash is a red assertion in the parent rather than a dead run.
 score_add_gfx_test(document_close_teardown GfxDocumentCloseTeardown.cpp)
 
-# P2-1: a camera array renders six faces, each carrying its own camera's
+# A camera array renders six faces, each carrying its own camera's
 # encoded forward direction. Needs Threedim::CameraArray, which is
 # hidden-visibility inside the plug-in, so it is compiled in directly.
 if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
@@ -1216,11 +1210,11 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
 
-# P2-2: per-layer depth renders through the scratch-D32F + copyTexture shim,
+# Per-layer depth renders through the scratch-D32F + copyTexture shim,
 # each layer carrying its own closed-form depth.
 score_add_gfx_test(per_layer_depth GfxPerLayerDepth.cpp)
 
-# P1-17: a gaussian splat renders through the path real scores take
+# A gaussian splat renders through the path real scores take
 # (asset_loader(.ply) -> Scene Preprocessor -> scene_group -> Flattened Scene
 # Filter -> CSF chain -> Render Pipeline), on a .ply the test synthesises.
 # score_add_gfx_test() is not enough: the loader entry points are

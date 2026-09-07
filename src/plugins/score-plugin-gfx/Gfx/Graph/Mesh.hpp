@@ -52,6 +52,44 @@ inline bool bufferSizeIsExpressible(int64_t byte_size) noexcept
   return byte_size >= 0 && byte_size <= int64_t(std::numeric_limits<quint32>::max());
 }
 
+// A draw command whose index/vertex count or instance count is zero paints
+// nothing. Every backend agrees on the outcome -- but they do not agree on how
+// to get there. Vulkan, D3D and GL treat it as a legal no-op; Metal's API
+// validation layer treats it as a programming error and ABORTS the process
+// ("indexCount(0) must be non-zero" / "instanceCount(0) must be non-zero"),
+// taking the whole app down.
+//
+// That matters because zero-count commands are not a pathology here, they are
+// the CONTRACT. RenderState::Caps requires indirect producers to keep the
+// command slots beyond their written count ZEROED, which is what makes the
+// full-capacity multi-draw rung (R2) equivalent to the GPU-count rung (R1).
+// When a producer publishes no "_indirect_draw_count" auxiliary there is no
+// count to clamp with, so the CPU-readback rung (R4) replays every capacity
+// slot verbatim -- dead zeroed ones included -- as explicit draw calls. On the
+// indirect rungs the GPU discards them silently; on the CPU rung they become
+// exactly the API call Metal refuses.
+//
+// So the rungs are only equivalent if the CPU rung skips what the GPU rung
+// would have discarded. Filter here.
+inline bool drawCommandPaints(const ossia::geometry::draw_command& cmd) noexcept
+{
+  return cmd.index_or_vertex_count > 0 && cmd.instance_count > 0;
+}
+
+// Observability for the filter above. Without it the filter is invisible on
+// every backend that is not Metal: the pixels are identical whether the dead
+// slots were skipped or issued as no-op draws, so a test on Linux could not
+// tell a working filter from a deleted one.
+//
+// Two mechanisms, because they answer different questions. The log line is for
+// a human reading a session's output and is warn-once, so it costs nothing in
+// a real render loop. The counter is for tests: warn-once is useless as an
+// assertion when a Catch2 process runs several backends in sequence -- the
+// first session consumes the only line and every later one sees nothing. A
+// test brackets a session and asserts the delta.
+SCORE_PLUGIN_GFX_EXPORT void noteZeroCountSlotsSkipped(int skipped) noexcept;
+SCORE_PLUGIN_GFX_EXPORT uint64_t zeroCountSlotsSkippedTotal() noexcept;
+
 struct MeshBuffers
 {
   ossia::small_vector<BufferView, 2> buffers;
@@ -80,12 +118,8 @@ struct MeshBuffers
   // ABORT -- indirectDrawStride defaults to 0 and QRhi asserts
   // `stride >= sizeof(QRhi[Indexed]IndirectDrawCommand)` inside drawIndirect /
   // drawIndexedIndirect, so the process dies the first time that mesh draws.
-  //
-  // THREE independent sites made exactly that mistake before this existed:
-  // CustomMesh::init(), CustomMesh's asynchronous-producer reload path, and
-  // RenderedRawRasterPipelineNode's standalone-buffer input port. Each was
-  // found by a different crash, months apart. The flag and the stride are not
-  // independently meaningful, so they are no longer independently settable.
+  // The flag and the stride are not independently meaningful, so they are not
+  // independently settable.
   void enableIndirectDraw(
       QRhiBuffer* buffer, bool indexed, int64_t byte_size,
       quint32 byte_offset = 0) noexcept
