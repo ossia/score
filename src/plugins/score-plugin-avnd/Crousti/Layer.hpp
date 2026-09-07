@@ -166,6 +166,32 @@ struct SetGUIValue<T>
   }
 };
 
+// The inverse of SetGUIValue: an item hands back the absolute path it was
+// given, and the document must keep storing a template, or the project stops
+// being relocatable. Non-file ports pass through untouched.
+template <typename T>
+struct GetGUIValue
+{
+  const score::DocumentContext& ctx;
+  ossia::value operator()(ossia::value v) const { return v; }
+};
+
+template <typename T>
+  requires(
+      avnd::soundfile_port<T> || avnd::midifile_port<T> || avnd::file_port<T>
+      || requires { T::widget::folder; })
+struct GetGUIValue<T>
+{
+  const score::DocumentContext& ctx;
+  ossia::value operator()(ossia::value v) const
+  {
+    if(auto str = v.target<std::string>(); str && !str->empty())
+      return ossia::value{
+          score::relativizeFilePath(QString::fromStdString(*str), ctx).toStdString()};
+    return v;
+  }
+};
+
 template <typename Info>
 struct LayoutBuilder final : Process::LayoutBuilderBase
 {
@@ -218,7 +244,10 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
 
       if constexpr(requires { item.set = {}; })
       {
-        item.set = [inl](const auto& val) { inl->setValue(oscr::to_ossia_value(val)); };
+        item.set = [inl, &ctx = static_cast<const score::DocumentContext&>(this->doc)](
+                       const auto& val) {
+          inl->setValue(GetGUIValue<avnd_port_type>{ctx}(oscr::to_ossia_value(val)));
+        };
       }
     }
 
