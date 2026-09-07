@@ -92,7 +92,8 @@ void PortWidgetSetup::setupAlone(
     const Port& port, const score::DocumentContext& ctx, Inspector::Layout& lay,
     QWidget* parent)
 {
-  setupImpl(port.name(), port, ctx, lay, parent);
+  auto label = setupImpl(port.name(), port, ctx, lay, parent);
+  QObject::connect(&port, &Port::nameChanged, label, &QLabel::setText);
 }
 
 void PortWidgetSetup::setupInLayout(
@@ -110,6 +111,7 @@ void PortWidgetSetup::setupControl(
   auto advBtn = new score::ArrowButton{Qt::RightArrow, widg};
 
   auto lab = new TextLabel{inlet.name(), widg};
+  QObject::connect(&inlet, &Port::nameChanged, lab, &QLabel::setText);
   auto hl = new score::MarginLess<QHBoxLayout>{widg};
   hl->addWidget(advBtn);
   hl->addWidget(lab);
@@ -148,6 +150,7 @@ void PortWidgetSetup::setupControl(
   auto advBtn = new score::ArrowButton{Qt::RightArrow, widg};
 
   auto lab = new TextLabel{inlet.name(), widg};
+  QObject::connect(&inlet, &Port::nameChanged, lab, &QLabel::setText);
   auto hl = new score::MarginLess<QHBoxLayout>{widg};
   hl->addWidget(advBtn);
   hl->addWidget(lab);
@@ -206,7 +209,7 @@ QWidget* PortWidgetSetup::makeAddressWidget(
   return edit;
 }
 
-void PortWidgetSetup::setupImpl(
+QLabel* PortWidgetSetup::setupImpl(
     const QString& txt, const Port& port, const score::DocumentContext& ctx,
     Inspector::Layout& lay, QWidget* parent)
 {
@@ -246,5 +249,6 @@ void PortWidgetSetup::setupImpl(
       advBtn->setIcon(makeIcon(QStringLiteral(":/icons/port_texture.png")));
       break;
   }
+  return lab;
 }
 }

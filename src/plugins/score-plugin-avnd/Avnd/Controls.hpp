@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/Dataflow/ControlWidgets.hpp>
+#include <Process/Dataflow/StringListEditor.hpp>
 
 #include <Scenario/Commands/SetControllerControlValue.hpp>
 
@@ -19,6 +20,7 @@
 
 #include <boost/mp11/algorithm.hpp>
 
+#include <QGraphicsProxyWidget>
 #include <QPointer>
 
 namespace oscr
@@ -171,11 +173,14 @@ struct MatchingWidget<Field>
   using type = CustomTextGraphicsKnob<Field>;
 };
 
+template <typename Field>
+concept string_list_field = requires { Field::widget::string_list; };
+
 template <typename Node, typename Refl>
 struct CustomControlFactory;
 
 template <typename Node, std::size_t N, typename Field>
-  requires(!avnd::controller_interaction_port<Field>)
+  requires(!avnd::controller_interaction_port<Field> && !string_list_field<Field>)
 struct CustomControlFactory<Node, avnd::field_reflection<N, Field>>
     : public Dataflow::WidgetInletFactory<
           oscr::CustomFloatControl<Node, avnd::field_index<N>>,
@@ -383,6 +388,50 @@ struct ControllerLineEdit
   }
 };
 
+struct StringListControl
+{
+  static Process::PortItemLayout layout() noexcept
+  {
+    return Process::DefaultControlLayouts::lineedit();
+  }
+
+  template <typename T>
+  static auto make_widget(
+      T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
+  {
+    auto editor = new Process::StringListEditor{parent};
+    editor->setValue(inlet.value());
+    editor->on_edited = [&inlet, &ctx](ossia::value value) {
+      // The controller command snapshots ports and cables. Deferral also keeps
+      // the editor alive until its event has finished when a resize rebuilds UI.
+      submitControllerValue(inlet, std::move(value), ctx);
+    };
+    QObject::connect(
+        &inlet, &T::valueChanged, editor,
+        [editor](const ossia::value& value) { editor->setValue(value); });
+    return editor;
+  }
+
+  template <typename T, typename Control_T>
+  static auto make_item(
+      const T&, Control_T& inlet, const score::DocumentContext& ctx,
+      QGraphicsItem* parent, QObject* context)
+  {
+    auto proxy = new QGraphicsProxyWidget{parent};
+    proxy->setWidget(make_widget(inlet, ctx, nullptr, context));
+    return proxy;
+  }
+};
+
+template <typename Node, std::size_t N, typename Field>
+  requires string_list_field<Field>
+struct CustomControlFactory<Node, avnd::field_reflection<N, Field>>
+    : public Dataflow::WidgetInletFactory<
+          CustomGenericControl<Process::MultiSlider, Node, Field, avnd::field_index<N>>,
+          StringListControl>
+{
+};
+
 template <typename Node, std::size_t N, typename Field>
   requires controller_spinbox_field<Field>
 struct CustomControlFactory<Node, avnd::field_reflection<N, Field>>
@@ -407,15 +456,16 @@ struct controller_needs_factory : std::false_type
 };
 template <std::size_t N, typename Field>
 struct controller_needs_factory<avnd::field_reflection<N, Field>>
-    : std::bool_constant<controller_spinbox_field<Field> || controller_lineedit_field<Field>>
+    : std::bool_constant<
+          controller_spinbox_field<Field> || controller_lineedit_field<Field>
+          || string_list_field<Field>>
 {
 };
 
 //! The controller fields that get a CustomGenericControl, and only those
 template <typename N>
 using reflect_controller_controls = boost::mp11::mp_copy_if<
-    typename avnd::controller_interaction_port_input_introspection<
-        N>::field_reflections_type,
+    typename avnd::control_input_introspection<N>::field_reflections_type,
     controller_needs_factory>;
 
 }

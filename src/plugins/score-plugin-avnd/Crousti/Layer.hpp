@@ -1,4 +1,6 @@
 #pragma once
+#include <Process/Commands/SetControlValue.hpp>
+#include <Process/Dataflow/WidgetInlets.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
 
@@ -7,6 +9,7 @@
 #include <Crousti/Painter.hpp>
 #include <Crousti/ProcessModel.hpp>
 
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/graphics/layouts/GraphicsBoxLayout.hpp>
 #include <score/graphics/layouts/GraphicsGridLayout.hpp>
 #include <score/graphics/layouts/GraphicsSplitLayout.hpp>
@@ -105,6 +108,8 @@ static void setupRecursiveLayout(auto* new_l)
   }
   else if constexpr(avnd::tab_layout<Item>)
   {
+    if constexpr(avnd::tag_hide_tabs<Item>)
+      new_l->setTabBarVisible(false);
     [=]<typename... Ts>(avnd::typelist<Ts...> args) {
       (new_l->addTab(Ts::name()), ...);
     }(avnd::as_typelist<Item>{});
@@ -332,6 +337,64 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     setupItem(item, *new_l);
     layout = new_l;
     createdLayouts.push_back(new_l);
+    if constexpr(avnd::tab_layout<Item> && requires { Item::model; })
+    {
+      auto* tabs = static_cast<score::GraphicsTabLayout*>(new_l);
+      const int index
+          = avnd::index_in_struct(temp_inputs, recursive_members..., Item::model);
+      auto& model = static_cast<const ProcessModel<Info>&>(this->proc);
+      for(auto* base : model.avnd_input_idx_to_model_ports(index))
+      {
+        if(auto* port = dynamic_cast<Process::Enum*>(base))
+        {
+          auto select = [tabs, port](const ossia::value& value) {
+            if(auto* text = value.target<std::string>())
+            {
+              const auto label = QString::fromStdString(*text);
+              const auto it = std::find(port->values.begin(), port->values.end(), label);
+              if(it != port->values.end())
+                tabs->setCurrentIndex(it - port->values.begin());
+            }
+          };
+          select(port->value());
+          QObject::connect(port, &Process::ControlInlet::valueChanged, tabs, select);
+          if constexpr(!avnd::tag_hide_tabs<Item>)
+            tabs->onCurrentIndexChanged = [port, &doc = this->doc](int i) {
+              if(i < 0 || i >= std::ssize(port->values))
+                return;
+              ossia::value value = port->values[i].toStdString();
+              if(port->value() != value)
+                CommandDispatcher<>{doc.commandStack}.submit<Process::SetControlValue>(
+                    *port, value);
+            };
+          break;
+        }
+        if(auto* port = dynamic_cast<Process::ComboBox*>(base))
+        {
+          auto select = [tabs, port](const ossia::value& value) {
+            for(int i = 0; i < std::ssize(port->alternatives); ++i)
+              if(port->alternatives[i].second == value)
+              {
+                tabs->setCurrentIndex(i);
+                break;
+              }
+          };
+          select(port->value());
+          QObject::connect(port, &Process::ControlInlet::valueChanged, tabs, select);
+          if constexpr(!avnd::tag_hide_tabs<Item>)
+            tabs->onCurrentIndexChanged = [port, &doc = this->doc](int i) {
+              if(i < 0 || i >= std::ssize(port->alternatives))
+                return;
+              const auto& value = port->alternatives[i].second;
+              if(port->value() != value)
+                CommandDispatcher<>{doc.commandStack}.submit<Process::SetControlValue>(
+                    *port, value);
+            };
+          break;
+        }
+      }
+    }
+
 
     {
 #if AVND_USE_BOOST_PFR

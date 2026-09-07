@@ -99,7 +99,8 @@ reloadPortsInNewProcess(
     const std::vector<SavedPort>& m_oldInlets,
     const std::vector<SavedPort>& m_oldOutlets,
     const Dataflow::SerializedCables& m_oldCables, Process::ProcessModel& cmt,
-    Process::PortLoadDataFlags, const score::DocumentContext& ctx);
+    Process::PortLoadDataFlags, const score::DocumentContext& ctx,
+    std::span<const int> oldInletIds, std::span<const int> oldOutletIds);
 
 //! Same but without the cables
 SCORE_PLUGIN_SCENARIO_EXPORT

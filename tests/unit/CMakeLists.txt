@@ -664,8 +664,12 @@ score_add_test(test_unit_dshow_subtype
 if(TARGET score_plugin_avnd)
   score_add_test(test_unit_avnd_dynamic_ports
     SOURCES AvndDynamicPortsTest.cpp
+      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd/Tests/Switch_UI_Test.cpp"
+      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd/Tests/ValueSerialization_UI_Test.cpp"
     APP
     PLUGINS score_plugin_avnd score_plugin_scenario score_lib_process)
+  target_include_directories(test_unit_avnd_dynamic_ports PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
 endif()
 
 # Execution side: the exec node is rebuilt in place, the setup context maps

@@ -16,6 +16,7 @@
 
 #include <avnd/binding/ossia/dynamic_ports.hpp>
 #include <avnd/binding/ossia/qt.hpp>
+#include <avnd/binding/ossia/to_value.hpp>
 #include <avnd/binding/ossia/uuid.hpp>
 #include <avnd/common/concepts_polyfill.hpp>
 #include <avnd/common/struct_reflection.hpp>
@@ -117,6 +118,13 @@ template <typename BaseInletType, typename Node, typename T, typename FieldIndex
 struct CustomGenericControl : public BaseInletType
 {
   using BaseInletType::BaseInletType;
+  void setValue(const ossia::value& value) override
+  {
+    if constexpr(requires { T::migrate_value(value); })
+      BaseInletType::setValue(T::migrate_value(value));
+    else
+      BaseInletType::setValue(value);
+  }
 
   static BaseInletType::key_type static_concreteKey() noexcept
   {
@@ -320,6 +328,14 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
   {
     std::vector<ossia::value> init;
     return new Process::MultiSlider{init, qname, id, parent};
+  }
+  else if constexpr(widg.widget == avnd::widget_type::string_list)
+  {
+    auto p
+        = new CustomGenericControl<Process::MultiSlider, Node, T, avnd::field_index<N>>{
+            oscr::to_ossia_value(T{}.value), qname, id, parent};
+    p->setDomain(State::Domain{});
+    return p;
   }
   else if constexpr(widg.widget == avnd::widget_type::multi_slider_xy)
   {

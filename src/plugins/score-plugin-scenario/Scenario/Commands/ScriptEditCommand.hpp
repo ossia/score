@@ -79,7 +79,8 @@ private:
     cmt.programChanged();
 
     auto cables = Dataflow::reloadPortsInNewProcess(
-        m_oldInlets, m_oldOutlets, m_oldCables, cmt, Process::PortLoadDataFlags{}, ctx);
+        m_oldInlets, m_oldOutlets, m_oldCables, cmt, Process::PortLoadDataFlags{}, ctx,
+        {}, {});
 
     cmt.inletsChanged();
     cmt.outletsChanged();

@@ -46,6 +46,7 @@
 #include <Crousti/ProcessModel.hpp>
 #include <Scenario/Commands/SetControllerControlValue.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <examples/Advanced/AI/PromptComposer.hpp>
 #include <examples/Advanced/Utilities/Demux.hpp>
 #include <examples/Advanced/Utilities/Mux.hpp>
 #include <examples/Advanced/Utilities/ValueMixer.hpp>
@@ -978,5 +979,39 @@ TEST_CASE("Dynamic audio outlets keep the interval's propagation through resizes
     CHECK(total_edges_to_interval() == 2);
 
     spin(50);
+  });
+}
+
+TEST_CASE("Reordered keyword weights and later edits reach the matching DSP row")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto doc = score::test::new_document(ctx);
+    auto prompt = score::test::add_process(
+        *doc, QStringLiteral("a4227e94-cf7d-4776-9aa0-2f384be7d97f"), {});
+    REQUIRE(prompt);
+    controller(*prompt)->setValue(std::string{"sky\nsea"});
+    auto* sky = control(*prompt, 2);
+    auto* sea = control(*prompt, 3);
+    sky->setValue(0.25f);
+    sea->setValue(0.75f);
+    auto& plug = load_execution(*doc);
+    auto comp = component(plug, *prompt);
+    auto& object
+        = static_cast<oscr::safe_node<ai::PromptComposer>&>(*comp->node).impl.effect;
+    object();
+    CHECK(object.outputs.out.value == "(sky:0.25), (sea:0.75)");
+    controller(*prompt)->setValue(
+        std::vector<ossia::value>{
+            std::vector<ossia::value>{12001, "sea"},
+            std::vector<ossia::value>{12000, "sky"}});
+    run_exec(plug);
+    object();
+    CHECK(object.outputs.out.value == "(sea:0.75), (sky:0.25)");
+    sky->setValue(0.5f);
+    run_exec(plug);
+    object();
+    CHECK(object.outputs.out.value == "(sea:0.75), (sky:0.5)");
+    comp->cleanup();
+    run_exec(plug);
   });
 }

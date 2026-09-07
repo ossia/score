@@ -849,6 +849,81 @@ avnd_make_score(
   NAMESPACE ao
 )
 
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/StringTool.hpp"
+  TARGET string_tool
+  MAIN_CLASS StringTool
+  NAMESPACE ao
+)
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/StringTool.hpp"
+  TARGET string_split
+  MAIN_CLASS StringSplit
+  NAMESPACE ao
+)
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/StringTool.hpp"
+  TARGET string_join
+  MAIN_CLASS StringJoin
+  NAMESPACE ao
+)
+avnd_make_score(
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/StringBytes.hpp"
+  TARGET avnd_string_to_bytes
+  MAIN_CLASS StringToBytes
+  NAMESPACE avnd_tools
+)
+avnd_make_score(
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/StringBytes.hpp"
+  TARGET avnd_bytes_to_string
+  MAIN_CLASS BytesToString
+  NAMESPACE avnd_tools
+)
+
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/FileIO.hpp"
+  TARGET file_read
+  MAIN_CLASS FileRead
+  NAMESPACE examples
+)
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/FileIO.hpp"
+  TARGET file_read_line
+  MAIN_CLASS FileReadLine
+  NAMESPACE examples
+)
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/FileIO.hpp"
+  TARGET file_write
+  MAIN_CLASS FileWrite
+  NAMESPACE examples
+)
+
+avnd_make_score(
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/ValueSerialization.hpp"
+  TARGET deserialize
+  MAIN_CLASS Deserialize
+  NAMESPACE avnd_tools
+)
+avnd_make_score(
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/ValueSerialization.hpp"
+  TARGET serialize
+  MAIN_CLASS Serialize
+  NAMESPACE avnd_tools
+)
+avnd_make_score(
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/Rendezvous.hpp"
+  TARGET rendezvous
+  MAIN_CLASS Rendezvous
+  NAMESPACE avnd_tools
+)
+avnd_make_score(
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/Switch.hpp"
+  TARGET value_switch
+  MAIN_CLASS Switch
+  NAMESPACE ao
+)
+
 
 avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Tweener.hpp"
@@ -1250,6 +1325,29 @@ addAvndTest(entity_to_midi_Test
 target_include_directories(Avnd_entity_to_midi_Test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
 addAvndTest(port_unit_Test
              "${CMAKE_CURRENT_SOURCE_DIR}/Tests/port_unit_Test.cpp")
+addAvndTest(value_serialization_Test
+             "${CMAKE_CURRENT_SOURCE_DIR}/Tests/ValueSerialization_Test.cpp")
+target_include_directories(Avnd_value_serialization_Test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+target_link_libraries(Avnd_value_serialization_Test PRIVATE ${QT_PREFIX}::Core)
+addAvndTest(string_tool_Test
+             "${CMAKE_CURRENT_SOURCE_DIR}/Tests/StringTool_Test.cpp")
+target_include_directories(Avnd_string_tool_Test PRIVATE
+  "${AVND_FOLDER}/examples" "${CMAKE_CURRENT_SOURCE_DIR}")
+addAvndTest(file_io_Test
+             "${CMAKE_CURRENT_SOURCE_DIR}/Tests/FileIO_Test.cpp")
+target_include_directories(Avnd_file_io_Test PRIVATE "${AVND_FOLDER}/examples")
+target_link_libraries(Avnd_file_io_Test PRIVATE Threads::Threads)
+addAvndTest(rendezvous_Test
+             "${CMAKE_CURRENT_SOURCE_DIR}/Tests/Rendezvous_Test.cpp")
+target_include_directories(Avnd_rendezvous_Test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+addAvndTest(rate_limiter_Test
+             "${CMAKE_CURRENT_SOURCE_DIR}/Tests/RateLimiter_Test.cpp")
+target_include_directories(Avnd_rate_limiter_Test PRIVATE
+  "${CMAKE_CURRENT_SOURCE_DIR}/../score-plugin-fx")
+addAvndTest(switch_Test
+             "${CMAKE_CURRENT_SOURCE_DIR}/Tests/Switch_Test.cpp")
+target_include_directories(Avnd_switch_Test PRIVATE
+  "${CMAKE_CURRENT_SOURCE_DIR}" "${AVND_FOLDER}/examples")
 endif()
 
 set(CMAKE_AUTOMOC OFF)

@@ -119,12 +119,20 @@ private:
     Dataflow::removeCables(m_oldCables, ctx);
 
     auto& cmt = m_path.find(ctx);
+    std::vector<int> inletIds, outletIds;
+    inletIds.reserve(cmt.inlets().size());
+    outletIds.reserve(cmt.outlets().size());
+    for(auto* port : cmt.inlets())
+      inletIds.push_back(port->id().val());
+    for(auto* port : cmt.outlets())
+      outletIds.push_back(port->id().val());
     cmt.loadPreset(m_new);
 
     // Cables and addresses only: the values are the preset's now, and a
     // controller given its old value back would resize the ports again.
     auto cables = Dataflow::reloadPortsInNewProcess(
-        m_oldInlets, m_oldOutlets, m_oldCables, cmt, Process::PortLoadDataFlags{}, ctx);
+        m_oldInlets, m_oldOutlets, m_oldCables, cmt, Process::PortLoadDataFlags{}, ctx,
+        inletIds, outletIds);
 
     cmt.inletsChanged();
     cmt.outletsChanged();
