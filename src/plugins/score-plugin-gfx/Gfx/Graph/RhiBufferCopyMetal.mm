@@ -108,6 +108,34 @@ void copyBufferMetal(
   if(!srcNative.objects[0] || !dstNative.objects[0])
     return;
 
+  // Slot 0 unconditionally, which is only right for an UNSLOTTED buffer.
+  //
+  // Qt's Metal backend keeps QMTL_FRAMES_IN_FLIGHT copies of most buffers --
+  // qrhimetal.mm: "writing to a Managed buffer (which is what Immutable and
+  // Static maps to on macOS) is not safe when another frame reading from the
+  // same buffer is still in flight" -- and excludes exactly one usage:
+  //     d->slotted = !m_usage.testFlag(QRhiBuffer::StorageBuffer);
+  // Every caller of this helper copies storage buffers, so slotCount is 1 and
+  // objects[0] is the only slot there is. Hand it a slotted buffer and it
+  // would copy from or into whichever frame happens to sit at slot 0 --
+  // silently, and only sometimes wrong. (N2.)
+  //
+  // The precondition is checkable, so check it rather than trusting the
+  // caller list to stay this way.
+  if(srcNative.slotCount > 1 || dstNative.slotCount > 1)
+  {
+    static bool warned = false;
+    if(!warned)
+    {
+      warned = true;
+      qWarning() << "score.gfx: copyBufferMetal on a SLOTTED buffer (src slots"
+                 << srcNative.slotCount << ", dst slots" << dstNative.slotCount
+                 << ") -- this helper only ever addresses slot 0, so the copy "
+                    "would touch the wrong frame's buffer. Refusing it.";
+    }
+    return;
+  }
+
   id<MTLCommandBuffer> cmdBuf = (id<MTLCommandBuffer>)handles->commandBuffer;
   // QRhi documents NativeBuffer::objects[i] as a POINTER TO the native
   // handle, not the handle itself. On Metal the handle is an MTLBuffer
