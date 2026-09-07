@@ -64,7 +64,7 @@ public:
    * removing an output edge only creates/destroys one pass, without touching
    * the rest of the renderer's GPU resources.
    *
-   * Default implementations are no-ops for backward compatibility.
+   * Default implementations are no-ops.
    * @{
    */
 
@@ -136,13 +136,13 @@ public:
   /// Multiple producers converging on the same sink port each get their own
   /// storage slot, so their scenes accumulate additively instead of
   /// overwriting each other. Callers that don't care pass nullptr — all such
-  /// callers then share a single per-port slot (legacy behavior).
+  /// callers then share a single per-port slot.
   void process(int32_t port, const ossia::geometry_spec& v, const void* source_key);
   void process(int32_t port, const ossia::scene_spec& v, const void* source_key);
 
   /// Find the first geometry stored on the given sink port (across all
-  /// sources). Legacy single-producer-per-port consumers use this to
-  /// preserve pre-multi-producer behavior without caring who produced it.
+  /// sources). For single-producer-per-port consumers, which do not care
+  /// which source produced it.
   const ossia::geometry_spec* findGeometryByPort(int32_t port) const
   {
     for(const auto& [k, v] : m_portGeometries)
@@ -199,7 +199,7 @@ public:
    *
    * When a geometry_spec is received, it is auto-wrapped into a scene_spec
    * so that downstream scene-aware renderers can always work with scenes.
-   * Backward-compat renderers continue reading the `geometry` field.
+   * Renderers that only handle geometry read the `geometry` field instead.
    */
   ossia::scene_spec scene;
 
@@ -243,19 +243,18 @@ private:
 
 struct Pass
 {
-  // User-declared ctors (including the implicit ones made explicit
-  // here) suppress -Wmissing-field-initializers on the many call sites
-  // that brace-init this struct with three arguments — the fallback
-  // plan is always default-constructed into an empty list, which is
-  // exactly what non-fallback pipelines need. Removing aggregate-init
-  // eligibility is intentional; the tradeoff is one line per call
-  // site (if they want to set fallback_bindings, they assign after).
+  // User-declared ctors (including the implicit ones spelled out here)
+  // suppress -Wmissing-field-initializers on the many call sites that
+  // brace-init this struct with three arguments: the fallback plan is
+  // then default-constructed into an empty list, which is what
+  // non-fallback pipelines need. This costs aggregate initialization --
+  // call sites that want fallback_bindings assign it afterwards.
   Pass() = default;
   Pass(TextureRenderTarget rt, Pipeline pi, QRhiBuffer* ubo)
       : renderTarget{std::move(rt)}, p{pi}, processUBO{ubo} {}
-  // Compat for addons written against the old engine where PassMap stored
-  // a bare Pipeline per edge; such passes fetch their render target through
-  // renderer.renderTargetForOutput(edge) at draw time.
+  // Compat for addons that build a pass from a bare Pipeline; such passes
+  // fetch their render target through renderer.renderTargetForOutput(edge)
+  // at draw time.
   Pass(Pipeline pi)
       : p{pi} {}
 
@@ -317,6 +316,9 @@ public:
   }
 
   virtual ~GenericNodeRenderer() { }
+
+  //! The node's first Image outlet, or nullptr. Not always output[0].
+  score::gfx::Port* imageOutlet() const noexcept;
 
   ossia::small_vector<Sampler, 8> m_samplers;
 

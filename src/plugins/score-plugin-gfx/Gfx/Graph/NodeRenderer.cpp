@@ -181,12 +181,26 @@ void GenericNodeRenderer::defaultPassesInit(
   }
 }
 
+// The rendered image belongs to the node's first Image outlet, which is not
+// necessarily outlet zero: a Javascript Script declaring a value outlet before
+// its texture outlet publishes the texture as outlet 1. Keying the render pass
+// off output[0] would leave such a node with no pass at all: defaultRenderPass
+// finds nothing for the edge and the target stays black.
+score::gfx::Port* GenericNodeRenderer::imageOutlet() const noexcept
+{
+  for(auto* port : this->node.output)
+    if(port && port->type == score::gfx::Types::Image)
+      return port;
+  return nullptr;
+}
+
 void GenericNodeRenderer::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
   initState(renderer, res);
 
-  for(Edge* edge : this->node.output[0]->edges)
-    addOutputPass(renderer, *edge, res);
+  if(auto* out = imageOutlet())
+    for(Edge* edge : out->edges)
+      addOutputPass(renderer, *edge, res);
 }
 
 void GenericNodeRenderer::initState(RenderList& renderer, QRhiResourceUpdateBatch& res)
@@ -213,7 +227,7 @@ void GenericNodeRenderer::addOutputPass(
 {
   if(!m_mesh)
     return;
-  if(this->node.output[0]->type != score::gfx::Types::Image)
+  if(!imageOutlet())
     return;
 
   auto rt = renderer.renderTargetForOutput(edge);
@@ -222,7 +236,7 @@ void GenericNodeRenderer::addOutputPass(
 
   // Every edge gets its own SRB. Layout is identical across edges
   // (same node, same sampler count, same UBOs) so the SRBs are all
-  // layout-compatible — a requirement for sharing a pipeline built
+  // layout-compatible -- a requirement for sharing a pipeline built
   // against any one of them.
   auto* srb = score::gfx::createDefaultBindings(
       renderer, rt, m_processUBO, m_material.buffer, m_samplers);
@@ -235,7 +249,7 @@ void GenericNodeRenderer::addOutputPass(
   // which avoids the pointer-ABA hazard of keying on the rp-desc address.
   // But serializedFormat omits the sample count on Metal/D3D and is empty
   // on GL, while the pipeline bakes in per-RT sample and multiview counts
-  // — so fold those into the key too, or two out-edges at differing
+  // -- so fold those into the key too, or two out-edges at differing
   // sample counts would share a wrongly-multisampled pipeline.
   QVector<quint32> rpFormat = rt.renderPass->serializedFormat();
   rpFormat.push_back(quint32(rt.sampleCount()));
@@ -263,7 +277,7 @@ void GenericNodeRenderer::addOutputPass(
     m_pipelineCache.emplace_back(rpFormat, pipeline);
   }
 
-  // Pass::p.pipeline is non-owning here — the cache owns it. removeOutputPass
+  // Pass::p.pipeline is non-owning here -- the cache owns it. removeOutputPass
   // and releaseState null-out pipeline before Pipeline::release() so the
   // Pass release path only destroys the SRB.
   m_p.emplace_back(&edge, Pass{rt, Pipeline{pipeline, srb}, nullptr});
@@ -304,7 +318,7 @@ void GenericNodeRenderer::removeOutputPass(RenderList& renderer, Edge& edge)
   for(const auto& entry : m_p)
   {
     if(entry.second.p.pipeline == pipeline)
-      return; // still in use — leave the cache entry alone
+      return; // still in use -- leave the cache entry alone
   }
   pipeline->deleteLater();
   m_pipelineCache.erase(cacheIt);
@@ -326,7 +340,7 @@ void GenericNodeRenderer::releaseState(RenderList& renderer)
   // Pipeline::release(); any Pass whose p.pipeline is cache-owned gets
   // its pipeline zeroed out first so the Pass only drops its SRB.
   // Passes whose pipeline is NOT in the cache (produced by
-  // defaultPassesInit — see ImageNode::PreloadedRenderer) retain the
+  // defaultPassesInit -- see ImageNode::PreloadedRenderer) retain the
   // original owning release semantics.
   for(auto& pass : m_p)
   {
@@ -424,7 +438,7 @@ void GenericNodeRenderer::update(
 
 void GenericNodeRenderer::defaultRelease(RenderList&)
 {
-  // Mirror the ownership handling in releaseState — cache-owned pipelines
+  // Mirror the ownership handling in releaseState -- cache-owned pipelines
   // are destroyed by the cache, not by Pipeline::release().
   for(auto& pass : m_p)
   {
@@ -475,7 +489,7 @@ void NodeRenderer::runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge&
 // Rebuild `this->scene` as the merge of every m_portScenes entry,
 // memoized on the set of input scene_state pointers. When unchanged, the
 // previous merged scene_spec (and its scene_state shared_ptr) is reused
-// verbatim — which is what lets downstream consumers like
+// verbatim -- which is what lets downstream consumers like
 // ScenePreprocessorNode keep their version/pointer caches hot instead of
 // re-decoding textures and re-uploading vertex/index buffers per frame.
 void NodeRenderer::rebuildMergedScene()
@@ -485,11 +499,11 @@ void NodeRenderer::rebuildMergedScene()
   for(auto& kv : m_portScenes)
   {
     const auto& s = kv.second;
-    // Drop the `!s.state->empty()` filter: env-only producers
+    // No `!s.state->empty()` filter here: env-only producers
     // (EnvironmentLoader, CubemapLoader, …) have an empty roots vector
-    // but still contribute environment fields — dropping them here
-    // would make their skybox / ambient / fog updates invisible. Empty
-    // roots are handled gracefully by the downstream merge.
+    // but still contribute environment fields, and dropping them here
+    // would make their skybox / ambient / fog updates invisible. The
+    // downstream merge handles empty roots.
     if(s.state)
     {
       sig.push_back({s.state.get(), s.state->version});
@@ -567,7 +581,7 @@ void NodeRenderer::process(
 
   // Auto-wrap into scene for scene-aware renderers. The wrap is cached
   // per (port,source) keyed on the geometry_spec identity: if the same
-  // spec is re-pushed (common case — glTF / FBX loaders re-publish every
+  // spec is re-pushed (common case -- glTF / FBX loaders re-publish every
   // frame even when nothing changed) the wrapper's scene_state shared_ptr
   // stays stable across frames, which is what the merge memoization
   // relies on.
