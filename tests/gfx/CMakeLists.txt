@@ -220,6 +220,12 @@ score_add_gfx_test(indirect_draw_bench GfxIndirectDrawBench.cpp)
 # so nothing in the suite covered it.
 score_add_gfx_test(review_render_targets_depth GfxReviewRenderTargetsDepth.cpp)
 
+# Section 7 of the same review, cases 01-07. Triaged case by case -- the review
+# withdrew part of its own evidence there, so each case states a contract and
+# the red ones are declared in cmake/ScoreExpectedRedGuard.cmake with a
+# mechanism, not with "the review said so".
+score_add_gfx_test(review_render_targets GfxReviewRenderTargets.cpp)
+
 # SR1 from the same review: a one-element vertex fallback bound as a PerInstance
 # stream, drawn with two instances. Uses the production VertexFallbackPool and a
 # real QRhi readback, so it measures the binding the engine actually emits.
