@@ -98,39 +98,25 @@ int64_t glslTypeSizeBytes(std::string_view type, const isf::descriptor& d) noexc
   if(type == "mat3") return 48;
   if(type == "mat4") return 64;
 
-  // User-defined struct from the descriptor's TYPES section. Field sizes are
-  // summed without per-field 16-byte padding, so the result matches the GLSL
-  // std430 size of the emitted struct for scalar/vector-only layouts -- what
-  // producers compare against when binding a struct-typed ATTRIBUTE. The AUXILIARY
-  // path uses std430LayoutSize, which over-pads. For mixed-alignment layouts a
-  // producer should set element_byte_size, which the runtime trusts over this
-  // estimate.
+  // User-defined struct from the descriptor's TYPES section.
+  //
+  // Summing the field sizes is not the std430 size: std430 aligns each field to
+  // its own alignment and then rounds the STRUCT size up to its largest member
+  // alignment (OpenGL 4.6 core, 7.6.2.2 rule 9), so `struct { vec4 a; float b; }`
+  // sums to 20 and lays out as 32.
+  //
+  // The number is not advisory -- `std430ArrayStride` feeds it to the CSF SoA
+  // output buffer sizing in RenderedCSFNode, so an under-estimate under-
+  // allocates the buffer and every element after the first is read at the wrong
+  // offset. SSBO.hpp implements the real rules, recursively and including
+  // nested structs and array strides, so defer to them rather than keeping a
+  // second copy here.
   for(const auto& tdef : d.types)
   {
     if(tdef.name != type)
       continue;
-    int64_t sz = 0;
-    for(const auto& f : tdef.layout)
-    {
-      auto fty = f.type;
-      int64_t count = 1;
-      auto lbr = fty.find('[');
-      if(lbr != std::string::npos)
-      {
-        auto rbr = fty.find(']', lbr + 1);
-        if(rbr != std::string::npos && rbr > lbr + 1)
-        {
-          auto inner = fty.substr(lbr + 1, rbr - lbr - 1);
-          if(!inner.empty())
-          {
-            try { count = std::stoll(inner); } catch(...) { count = 1; }
-          }
-        }
-        fty = fty.substr(0, lbr);
-      }
-      sz += glslTypeSizeBytes(fty) * count;
-    }
-    return sz > 0 ? sz : 16;
+    const LayoutResult layout = calculateStructLayout(tdef.layout, d.types);
+    return layout.isValid() ? (int64_t)layout.size : 16;
   }
 
   // Unknown — match the lenient default of the no-descriptor overload.
@@ -151,8 +137,8 @@ int64_t std430ArrayStride(std::string_view type, const isf::descriptor& d) noexc
 
 namespace
 {
-// Internal alias for the existing AUXILIARY size sites that imported the old
-// name from this translation unit; defer to the public helper.
+// Internal alias for the AUXILIARY size sites in this translation unit;
+// defers to the public helper.
 inline int64_t isf_ssbo_elem_size(
     const std::vector<isf::storage_input::layout_field>& layout) noexcept
 {
@@ -207,12 +193,11 @@ void collectGraphicsStorageResources(
   int binding = firstBinding;
 
   // walk_descriptor_inputs() advances port_idx in lockstep with
-  // isf_input_port_vis (ISFNode.cpp / ISFVisitors.hpp). Pre-refactor, this
-  // function had its own bookkeeping that did `port_idx++` for every
-  // desc.inputs entry — wrong for write-only storage_input (no input port
-  // unless flex-array sizing) and for write-only csf_image_input (no
-  // input port at all). Now port_idx == cur.inlets, which matches the
-  // actual ports created by ISFNode.
+  // isf_input_port_vis (ISFNode.cpp / ISFVisitors.hpp), so port_idx ==
+  // cur.inlets matches the ports ISFNode actually creates. Counting one port
+  // per desc.inputs entry instead would be wrong for write-only storage_input
+  // (no input port unless flex-array sizing) and for write-only
+  // csf_image_input (no input port at all).
   walk_descriptor_inputs(
       desc, [&](const isf::input& inp, const port_counts& cur, const port_counts&) {
         const int port_idx = cur.inlets;
@@ -241,10 +226,11 @@ void collectGraphicsStorageResources(
             return;
           }
           // Gate on the SAME predicate the GLSL codegen uses
-          // (isf_emit_graphics_storage, isf.cpp:3413). visibilityToStages()
-          // maps "all"/unknown to a non-empty (fragment) stage set, so the
-          // old `stages == {}` skip let those consume a runtime binding the
-          // codegen never emitted — shifting every later storage binding.
+          // (isf_emit_graphics_storage, isf.cpp). Gating on an empty stage set
+          // instead would not do: visibilityToStages() maps "all"/unknown to a
+          // non-empty (fragment) stage set, so those would consume a runtime
+          // binding the codegen never emitted, shifting every later storage
+          // binding.
           if(!isGraphicsVisibility(s->visibility))
             return;
           auto stages = visibilityToStages(s->visibility);
@@ -266,9 +252,8 @@ void collectGraphicsStorageResources(
         }
         else if(auto* img = ossia::get_if<isf::csf_image_input>(&inp.data))
         {
-          // Match isf_emit_graphics_storage (isf.cpp:3429): only the graphics
-          // visibility set gets a binding. This also subsumes the previous
-          // compute-stage skip (compute is not a graphics visibility).
+          // Match isf_emit_graphics_storage (isf.cpp): only the graphics
+          // visibility set gets a binding, which also excludes compute.
           if(!isGraphicsVisibility(img->visibility))
             return;
           auto stages = visibilityToStages(img->visibility);
@@ -318,7 +303,7 @@ void collectGraphicsStorageResources(
         }
         else if(auto* uni = ossia::get_if<isf::uniform_input>(&inp.data))
         {
-          // Match isf_emit_graphics_storage (isf.cpp:3442): only the graphics
+          // Match isf_emit_graphics_storage (isf.cpp): only the graphics
           // visibility set gets a binding (compute UBOs are handled by the
           // compute path, unknown/"all" are skipped by the codegen too).
           if(!isGraphicsVisibility(uni->visibility))
@@ -338,10 +323,10 @@ void collectGraphicsStorageResources(
   // Record the next free binding after all graphics-visible storage. Because
   // the walk above assigns bindings from a single counter across SSBOs,
   // images AND uniform_input UBOs in declaration order — exactly as
-  // isf_emit_graphics_storage() does (isf.cpp:3406-3449) — `binding` now
-  // equals that function's return value. Callers append the multiview UBO at
-  // this slot (isf.cpp:3773-3783 emits it there), so they reuse this rather
-  // than re-deriving a max that would forget the UBOs.
+  // isf_emit_graphics_storage() does — `binding` equals that function's
+  // return value. Callers append the multiview UBO at this slot, where isf.cpp
+  // emits it, so they reuse this rather than re-deriving a max that would
+  // forget the UBOs.
   out.nextBinding = binding;
 }
 
@@ -517,8 +502,7 @@ void ensureStorageResources(
       // device-memory garbage (e.g. a huge cluster_light_count value
       // makes openpbr's light loop iterate thousands of slots, each
       // returning garbage indices into scene_lights → wildly different
-      // colours per resize). Mirrors the sentinel-buffer zero-fill at
-      // line 432.
+      // colours per resize). Mirrors the zero-fill in ensureSentinelBuffer.
       if(e.buffer)
         RhiClearBuffer::clearBuffer(
             rhi, res, e.buffer, 0, (quint32)target_size);
@@ -774,9 +758,8 @@ void bindUpstreamBuffers(
       // / camera UBO / env UBO into flattened-scene shaders). Those have
       // input_port_index >= 0 but no port edges — bindUpstreamBuffersFrom-
       // Geometry restores the binding immediately after this function.
-      // Without the guard, the sentinel temporarily clobbered them and
-      // (worse) flipped their state in a way that confused subsequent
-      // frames.
+      // Without the guard the sentinel clobbers them and leaves their
+      // state wrong for the frames that follow.
       if(e.buffer != store.sentinelBuffer)
       {
         e.buffer = store.sentinelBuffer;
@@ -859,7 +842,7 @@ void bindUpstreamBuffers(
       }
     }
   }
-  // No trailing srb->create() — replaceBuffer() now uses the
+  // No trailing srb->create() — replaceBuffer() uses the
   // updateResources() fast path, which already rebuilds the backend
   // descriptor set. Re-creating here would tear down the pool slot
   // we just refreshed.
@@ -1048,7 +1031,7 @@ void reapplyStorageBindings(
   // No trailing srb.create() — the replace*() helpers use updateResources()
   // which already refreshes the backend descriptor state. A create() here
   // would re-allocate the descriptor set pool slot and defeat the
-  // fast-path swap (qrhivulkan.cpp:8707, updateResources).
+  // fast-path swap (QRhi's updateResources).
 }
 
 void swapPersistentSSBOs(

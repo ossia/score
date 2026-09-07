@@ -20,6 +20,7 @@
 // =============================================================================
 #include <score_test/Gfx.hpp>
 
+#include <Gfx/Graph/IsfBindingsBuilder.hpp>
 #include <Gfx/Graph/SSBO.hpp>
 #include <Gfx/Graph/VertexFallbackDefaults.hpp>
 #include <Gfx/Graph/VertexFallbackPool.hpp>
@@ -31,6 +32,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <memory>
+#include <vector>
 
 using namespace score::test::gfx;
 
@@ -148,10 +150,10 @@ TEST_CASE(
     "the vertex fallback covers instance counts past its replication floor",
     "[gfx][limits][fallback]")
 {
-  // SR1 replicates the constant inside the buffer because a step_rate=1
-  // PerInstance binding advances one element per instance. The pool starts at
-  // a floor of VertexFallbackPool::default_instances, which exists for
-  // GPU-driven draws whose instance count the host never sees.
+  // The fallback replicates the constant inside the buffer because a
+  // step_rate=1 PerInstance binding advances one element per instance. The
+  // pool starts at a floor of VertexFallbackPool::default_instances, which
+  // exists for GPU-driven draws whose instance count the host never sees.
   //
   // This case is about the OTHER path: a draw whose count IS visible must grow
   // the entry past the floor rather than run off the end. It also pins the
@@ -231,24 +233,29 @@ TEST_CASE(
     "[gfx][limits][mips]")
 {
   // Qt allocates a mip chain from the LARGER dimension:
-  // QRhi::mipLevelsForSize == floor(log2(max(w, h))) + 1 (qrhi.cpp:12161).
+  // QRhi::mipLevelsForSize == floor(log2(max(w, h))) + 1.
   // Deriving the pass count from the smaller one leaves the tail of a
-  // rectangular target unwritten -- a 128x8 output has 8 levels allocated and
-  // had only 4 rendered.
+  // rectangular target unwritten -- a 128x8 output has 8 levels allocated but
+  // only 4 rendered.
   //
-  // This is arithmetic, not pixels, and deliberately so. The 2026-09 review
-  // reproduced the same defect by SAMPLING and then invalidated its own result
-  // as a "sampler/LOD confound, not proof of omitted tail mips". Comparing the
-  // engine's count against Qt's own formula settles it without a sampler in
-  // the path at all.
+  // This is arithmetic, not pixels, and deliberately so: sampling to detect an
+  // omitted tail mip cannot separate the omission from a sampler/LOD confound,
+  // while comparing the engine's count against Qt's own formula settles it
+  // without a sampler in the path at all.
   struct Case { int w, h; };
   const Case cases[] = {{128, 8}, {8, 128}, {256, 1}, {64, 64}, {1, 1}, {1920, 4}};
   for(const auto& c : cases)
   {
     const QSize sz(c.w, c.h);
-    const int qtLevels = QRhi::mipLevelsForSize(sz);
+    // Mirrors QRhi's rule. Not called through QRhi here: mipLevelsForSize is
+    // a non-static member on the Qt versions CI builds against and static on
+    // newer ones, so neither call form compiles everywhere, and this case has
+    // no QRhi by design.
+    int qtLevels = 1;
+    for(int s = std::max(c.w, c.h); s > 1; s >>= 1)
+      ++qtLevels;
 
-    // What the engine used to compute: a loop over the SMALLER dimension.
+    // The min-based rule: a loop over the SMALLER dimension.
     int oldCount = 1;
     for(int s = std::min(c.w, c.h); s > 1; s >>= 1)
       ++oldCount;
@@ -258,10 +265,8 @@ TEST_CASE(
         stderr, "GFX-LIMIT mips %4dx%-4d qt=%d min-based=%d\n", c.w, c.h,
         qtLevels, oldCount);
 
-    // The engine must now agree with Qt for every shape.
-    CHECK(QRhi::mipLevelsForSize(sz) == qtLevels);
-    // And the old rule must be visibly wrong on non-square shapes, so this
-    // case cannot quietly stop testing anything.
+    // And the min-based rule must be visibly wrong on non-square shapes, so
+    // this case cannot quietly stop testing anything.
     if(c.w != c.h)
       CHECK(oldCount < qtLevels);
     else
@@ -273,12 +278,11 @@ TEST_CASE(
     "storage-buffer layout arithmetic does not wrap at 2 GiB",
     "[gfx][limits][ssbo]")
 {
-  // calculateStorageBufferSize returns int64_t and accumulates in int64_t, but
-  // the per-element multiply was `int stride * int count` and overflowed BEFORE
-  // being widened. A 16-byte element with 134217728 entries is exactly 2^31, so
-  // the size came back as -2147483648: a buffer far too large reported a
-  // NEGATIVE size, and every downstream size check compared against it.
-  // (SR5 in the 2026-09 graphics review.)
+  // calculateStorageBufferSize returns int64_t and accumulates in int64_t; the
+  // per-element multiply has to widen before it multiplies. A 16-byte element
+  // with 134217728 entries is exactly 2^31, so an `int stride * int count`
+  // product wraps to -2147483648 -- a buffer far too large reporting a NEGATIVE
+  // size, which every downstream check then compares against.
   isf::descriptor d;
   std::vector<isf::storage_input::layout_field> layout;
   layout.push_back({.name = "v", .type = "vec4[]"}); // 16 bytes, flexible
@@ -301,5 +305,61 @@ TEST_CASE(
     // element count itself implies.
     CHECK(sz >= 0);
     CHECK(sz >= (int64_t)c.count);
+  }
+}
+
+TEST_CASE(
+    "struct element stride follows std430, not a naive field sum",
+    "[gfx][limits][std430]")
+{
+  // glslTypeSizeBytes(type, descriptor) must size a TYPES struct the way std430
+  // does: each field aligned to its own alignment, and the struct size rounded
+  // up to its largest member alignment (OpenGL 4.6 core, 7.6.2.2 rule 9). A
+  // plain sum of the field sizes is right only when no padding is needed.
+  //
+  // It is not an advisory number: std430ArrayStride feeds it to the CSF SoA
+  // output buffer sizing, so an under-estimate under-allocates and every
+  // element after the first is addressed at the wrong offset.
+  //
+  // The first case is the only TYPES struct that exists in tree; it must not
+  // move. The rest are layouts a user can write today.
+  struct Case
+  {
+    const char* what;
+    std::vector<isf::storage_input::layout_field> layout;
+    int64_t expected;
+  };
+  const std::vector<Case> cases{
+      {"PerDraw (in tree, must not move)",
+       {{.name = "model", .type = "mat4"},
+        {.name = "normal", .type = "mat4"},
+        {.name = "material_index", .type = "uint"},
+        {.name = "tag_hash", .type = "uint"},
+        {.name = "transform_slot", .type = "uint"},
+        {.name = "skeleton_offset", .type = "uint"}},
+       144},
+      // Sum 20; std430 rounds up to the vec4 alignment.
+      {"vec4 + float", {{.name = "a", .type = "vec4"}, {.name = "b", .type = "float"}}, 32},
+      // Sum 20; the float must also be PADDED to 16 before the vec4.
+      {"float + vec4", {{.name = "a", .type = "float"}, {.name = "b", .type = "vec4"}}, 32},
+      // No padding anywhere: sum and std430 agree, and must keep agreeing.
+      {"vec4 + vec4", {{.name = "a", .type = "vec4"}, {.name = "b", .type = "vec4"}}, 32},
+      {"float + float", {{.name = "a", .type = "float"}, {.name = "b", .type = "float"}}, 8},
+  };
+
+  for(const auto& c : cases)
+  {
+    isf::descriptor d;
+    d.types.push_back({.name = "S", .layout = c.layout});
+    const int64_t sz = score::gfx::glslTypeSizeBytes("S", d);
+    const int64_t stride = score::gfx::std430ArrayStride("S", d);
+    std::fprintf(
+        stderr, "GFX-LIMIT std430 %-34s size=%-5lld stride=%-5lld expected=%lld\n",
+        c.what, (long long)sz, (long long)stride, (long long)c.expected);
+    CAPTURE(c.what, sz, stride, c.expected);
+    CHECK(sz == c.expected);
+    // An array of the struct strides by the struct size; nothing else is a
+    // legal std430 stride for a struct element.
+    CHECK(stride == c.expected);
   }
 }
