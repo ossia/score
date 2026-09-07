@@ -37,12 +37,26 @@ struct DefaultComboImpl
     return std::clamp(int(std::round(v * last)), 0, last);
   }
 
+  //! Has the pointer travelled far enough since the press to mean "scrub"
+  //! rather than "click"? Below the platform's drag threshold a wobble of a
+  //! pixel or two is a click, and must not nudge the value.
+  static bool passedDragThreshold(QGraphicsSceneMouseEvent* event) noexcept
+  {
+    const auto delta
+        = event->screenPos() - event->buttonDownScreenPos(Qt::LeftButton);
+    return delta.manhattanLength() >= QApplication::startDragDistance();
+  }
+
   static void mousePressEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
   {
-    if(event->button() == Qt::LeftButton && draggable(self))
+    if(event->button() == Qt::LeftButton)
     {
-      self.m_grab = true;
-      InfiniteScroller::start(self, double(self.m_value) / (self.array.size() - 1));
+      self.m_dragged = false;
+      if(draggable(self))
+      {
+        self.m_grab = true;
+        InfiniteScroller::start(self, double(self.m_value) / (self.array.size() - 1));
+      }
     }
 
     event->accept();
@@ -50,14 +64,20 @@ struct DefaultComboImpl
 
   static void mouseMoveEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
   {
-    if((event->buttons() & Qt::LeftButton) && self.m_grab)
+    if(event->buttons() & Qt::LeftButton)
     {
-      int curPos = positionToIndex(self, InfiniteScroller::move(event));
-      if(curPos != self.m_value)
+      if(!self.m_dragged && passedDragThreshold(event))
+        self.m_dragged = true;
+
+      if(self.m_grab && self.m_dragged)
       {
-        self.m_value = curPos;
-        self.sliderMoved();
-        self.update();
+        int curPos = positionToIndex(self, InfiniteScroller::move(event));
+        if(curPos != self.m_value)
+        {
+          self.m_value = curPos;
+          self.sliderMoved();
+          self.update();
+        }
       }
     }
     event->accept();
@@ -67,18 +87,28 @@ struct DefaultComboImpl
   {
     if(event->button() == Qt::LeftButton)
     {
+      const bool wasDrag = self.m_dragged;
       if(self.m_grab)
       {
-        int curPos = positionToIndex(self, InfiniteScroller::move(event));
-        if(curPos != self.m_value)
+        if(wasDrag)
         {
-          self.m_value = curPos;
-          self.update();
+          int curPos = positionToIndex(self, InfiniteScroller::move(event));
+          if(curPos != self.m_value)
+          {
+            self.m_value = curPos;
+            self.update();
+          }
         }
         self.m_grab = false;
       }
+      self.m_dragged = false;
       InfiniteScroller::stop(self, event);
       self.sliderReleased();
+
+      // A click that did not scrub opens the drop-down, the way a combo box
+      // does everywhere else. Nothing to pick from means nothing to open.
+      if(!wasDrag && !self.array.isEmpty())
+        self.openEditor(event->scenePos());
     }
     else if(event->button() == Qt::RightButton)
     {
@@ -92,6 +122,9 @@ struct DefaultComboImpl
   //! goes wrong if the edit is left open.
   static void ungrabMouseEvent(QGraphicsCombo& self, QEvent* event)
   {
+    // The release that would have cleared this is never coming.
+    self.m_dragged = false;
+
     if(!self.m_grab)
       return;
 
@@ -155,6 +188,12 @@ void QGraphicsCombo::openEditor(QPointF scenePos)
     if(!self || !self->scene())
       return;
 
+    // One drop-down at a time. Both buttons open one and the build is deferred,
+    // so a second click arriving first would otherwise stack another editor on
+    // top of this one, and closing the pair double-frees the proxy.
+    if(self->m_editor)
+      return;
+
     auto& item = *self;
     auto w = new ComboBoxWithEnter;
     w->addItems(item.array);
@@ -166,6 +205,7 @@ void QGraphicsCombo::openEditor(QPointF scenePos)
     auto* scene = item.scene();
     auto obj = scene->addWidget(w, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
     obj->setPos(scenePos);
+    item.m_editor = obj;
 
 #if defined(__EMSCRIPTEN__)
     w->setFocus();
@@ -199,10 +239,24 @@ void QGraphicsCombo::openEditor(QPointF scenePos)
       self->sliderReleased();
     };
 
-    QObject::connect(w, &QComboBox::activated, w, [done, commit, close](int idx) {
+    // The editor lists a snapshot of the items. A runtime-populated combo box
+    // can be repopulated while the drop-down is open, so resolve what the user
+    // picked by its text against the list as it stands now: the same index may
+    // mean a different entry, or none at all.
+    auto commitByText = [self, commit](const QString& text) {
+      if(!self)
+        return;
+      const int idx = self->array.indexOf(text);
+      if(idx >= 0)
+        commit(idx);
+    };
+
+    QObject::connect(
+        w, &QComboBox::activated, w, [done, commitByText, close, w](int idx) {
       if(*done)
         return;
-      commit(idx);
+      if(idx >= 0 && idx < w->count())
+        commitByText(w->itemText(idx));
       close();
     });
 

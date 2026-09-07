@@ -3,12 +3,15 @@
 
 #include <QGraphicsItem>
 #include <QObject>
+#include <QPointer>
 #include <QStringList>
 
 #include <score_lib_base_export.h>
 
 #include <array>
 #include <verdigris>
+
+class QGraphicsProxyWidget;
 
 namespace score
 {
@@ -28,6 +31,15 @@ private:
   int m_value{};
   bool m_grab{};
   bool m_editable{};
+
+  //! Set once the pointer travels far enough to count as a drag, so that a
+  //! plain click can be told apart from scrubbing and open the drop-down.
+  bool m_dragged{};
+
+  //! The drop-down currently in the scene, if any. Both mouse buttons can open
+  //! one and it is built from the event loop, so without this a second click
+  //! before the first editor appears would leave two of them stacked up.
+  QPointer<QGraphicsProxyWidget> m_editor;
 
 public:
   template <std::size_t N>
