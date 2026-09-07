@@ -129,3 +129,78 @@ TEST_CASE(
   // The live texture B must remain bound.
   CHECK(out.bStillBound);
 }
+
+
+TEST_CASE(
+    "a slot ref stamped before a registry teardown is never live after it",
+    "[gfx][l3][registry][generation]")
+{
+  // isLive() compares the ref's generation against the arena's per-slot
+  // generation table. All three teardown paths bumped every generation -- and
+  // then cleared the table one line later, throwing the bump away. init()
+  // re-seeded every slot to 1, so a ref stamped before the teardown compared
+  // EQUAL to a freshly-allocated slot at the same index: the classic ABA, with
+  // the first post-init allocation landing on 2 to match a stale ref's 2.
+  //
+  // Consequence: a consumer validates a dead ref and reads GPU bytes that now
+  // belong to someone else. (SR6 in the 2026-09 graphics review.)
+  const auto backend = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(backend));
+
+  bool skipped = false;
+  std::string why;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    std::string probed;
+    if(!probe_api(backend, probed))
+    {
+      skipped = true;
+      why = probed;
+      return;
+    }
+    auto st = score::gfx::createRenderState(backend, QSize{32, 32}, nullptr);
+    if(!st || !st->rhi)
+    {
+      skipped = true;
+      why = "no rhi";
+      return;
+    }
+    QRhi& rhi = *st->rhi;
+
+    Reg reg;
+    auto* batch = rhi.nextResourceUpdateBatch();
+    reg.init(rhi, *batch);
+
+    const auto arena = Reg::Arena::RawTransform;
+    const auto slot = reg.allocate(arena, 64);
+    REQUIRE(slot.valid());
+    const auto stale = reg.toOssiaRef(slot);
+
+    // Positive control: the ref IS live before anything is torn down. Without
+    // this the assertions below pass just as well on a broken isLive() that
+    // always returns false.
+    REQUIRE(reg.isLive(stale));
+
+    reg.destroy();
+    CHECK_FALSE(reg.isLive(stale)); // table retired, nothing to match
+
+    // Re-init and take the SAME slot index again: this is the ABA. Its
+    // generation must not collide with the one the stale ref is carrying.
+    auto* batch2 = rhi.nextResourceUpdateBatch();
+    reg.init(rhi, *batch2);
+    const auto fresh = reg.allocate(arena, 64);
+    REQUIRE(fresh.valid());
+    CHECK(fresh.slot_index == slot.slot_index); // same slot: the A-B-A shape
+    CHECK(fresh.generation != stale.generation);
+
+    INFO(
+        "stale gen=" << stale.generation << " fresh gen=" << fresh.generation
+                     << " slot=" << fresh.slot_index);
+    CHECK_FALSE(reg.isLive(stale));
+    CHECK(reg.isLive(reg.toOssiaRef(fresh)));
+
+    reg.destroy();
+  });
+
+  if(skipped)
+    SKIP(why);
+}

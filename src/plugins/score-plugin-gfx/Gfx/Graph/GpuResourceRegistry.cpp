@@ -108,7 +108,21 @@ void GpuResourceRegistry::init(QRhi& rhi, QRhiResourceUpdateBatch& batch)
     a.type = cfg.type;
     // Generation table sized to slot_count. Start at 1 so a freshly-
     // default gpu_slot_ref (generation=0) never matches a real slot.
-    a.slot_generations.assign(cfg.slot_count, 1u);
+    //
+    // On a RE-init, resume ABOVE whatever the previous incarnation reached
+    // rather than restarting at 1: a stale ref from before the teardown holds
+    // one of those old values, and re-using them hands it a false "live".
+    // The teardown paths bump on the way out, so this only has to not go
+    // backwards. Slots beyond the retained table (a re-init that grew the
+    // arena) have never been handed out and start at 1. (SR6.)
+    {
+      std::vector<uint32_t> seeded(cfg.slot_count, 1u);
+      const auto carried
+          = std::min<std::size_t>(cfg.slot_count, a.slot_generations.size());
+      for(std::size_t i = 0; i < carried; ++i)
+        seeded[i] = a.slot_generations[i] + 1u;
+      a.slot_generations = std::move(seeded);
+    }
     // Free-list stack: push slots in reverse order so pop yields slot
     // index 0, 1, 2, ... in allocation order. Keeps the arena buffer
     // densely packed at the front, which downstream tooling may assume.
@@ -243,9 +257,16 @@ void GpuResourceRegistry::destroy(RenderList& renderer)
     }
     a.slot_stride = 0;
     a.slot_count = 0;
+    // Bump, and KEEP. This loop used to be followed by
+    // slot_generations.clear(), which threw the bump away one line later and
+    // made the whole retirement a no-op: init() then re-seeded every slot to 1,
+    // so a gpu_slot_ref stamped before the teardown compared EQUAL to a
+    // freshly-allocated slot at the same index and isLive() called it live.
+    // (First allocation after re-init took it to 2, matching a stale ref's 2 --
+    // the classic ABA.) The table is the retirement record; init() seeds from
+    // it so generations never go backwards. (SR6.)
     for(auto& g : a.slot_generations)
       ++g;
-    a.slot_generations.clear();
     a.free_slots.clear();
   }
   m_defaults_seeded = false;
@@ -312,9 +333,16 @@ void GpuResourceRegistry::destroyOwned()
     a.buffer = nullptr;
     a.slot_stride = 0;
     a.slot_count = 0;
+    // Bump, and KEEP. This loop used to be followed by
+    // slot_generations.clear(), which threw the bump away one line later and
+    // made the whole retirement a no-op: init() then re-seeded every slot to 1,
+    // so a gpu_slot_ref stamped before the teardown compared EQUAL to a
+    // freshly-allocated slot at the same index and isLive() called it live.
+    // (First allocation after re-init took it to 2, matching a stale ref's 2 --
+    // the classic ABA.) The table is the retirement record; init() seeds from
+    // it so generations never go backwards. (SR6.)
     for(auto& g : a.slot_generations)
       ++g;
-    a.slot_generations.clear();
     a.free_slots.clear();
   }
   m_defaults_seeded = false;
@@ -364,9 +392,16 @@ void GpuResourceRegistry::destroy()
     a.buffer = nullptr;
     a.slot_stride = 0;
     a.slot_count = 0;
+    // Bump, and KEEP. This loop used to be followed by
+    // slot_generations.clear(), which threw the bump away one line later and
+    // made the whole retirement a no-op: init() then re-seeded every slot to 1,
+    // so a gpu_slot_ref stamped before the teardown compared EQUAL to a
+    // freshly-allocated slot at the same index and isLive() called it live.
+    // (First allocation after re-init took it to 2, matching a stale ref's 2 --
+    // the classic ABA.) The table is the retirement record; init() seeds from
+    // it so generations never go backwards. (SR6.)
     for(auto& g : a.slot_generations)
       ++g;
-    a.slot_generations.clear();
     a.free_slots.clear();
   }
   m_defaults_seeded = false;
