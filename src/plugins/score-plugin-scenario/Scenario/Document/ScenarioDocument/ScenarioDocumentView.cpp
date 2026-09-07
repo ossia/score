@@ -597,6 +597,7 @@ ScenarioDocumentView::ScenarioDocumentView(
     , m_minimapScene{nullptr}
     , m_minimapView{new MinimapGraphicsView{&m_minimapScene}}
     , m_minimap{new Minimap{}}
+    , m_addressBar{new AddressBarWidget{ctx}}
 {
   auto& scenario_settings = ctx.app.settings<Scenario::Settings::Model>();
 

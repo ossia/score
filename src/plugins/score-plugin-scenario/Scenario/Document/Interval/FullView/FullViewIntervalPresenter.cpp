@@ -63,7 +63,7 @@ Timebars::Timebars(FullViewIntervalPresenter& self)
     , lightBars{new LightBars{}}
     , lighterBars{new LighterBars{}}
 {
-  timebar->setPos(0, -47);
+  timebar->setPos(0, -(FullViewTopMargin - 1.));
 }
 
 void FullViewIntervalPresenter::startSlotDrag(int curslot, QPointF pos) const
