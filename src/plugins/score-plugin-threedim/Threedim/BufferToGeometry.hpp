@@ -112,6 +112,7 @@ public:
   IndexFormat m_prevIndexFormat{};
   int32_t m_prevIndexOffset{};
   int32_t m_prevVertices{};
+  int32_t m_prevInstances{};
   PrimitiveTopology m_prevTopology{};
   CullMode m_prevCullMode{};
   FrontFace m_prevFrontFace{};
