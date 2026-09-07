@@ -111,19 +111,36 @@ void RenderList::init()
   // create() must succeed: a null handle reaches vkUpdateDescriptorSets as
   // VK_NULL_HANDLE and the NVIDIA driver segfaults dereferencing it in a later
   // vkCmdPipelineBarrier.
-  m_emptyTexture
-      = rhi.newTexture(QRhiTexture::RGBA8, QSize{1, 1}, 1, QRhiTexture::Flag{});
+  // UsedWithLoadStore on every placeholder.
+  //
+  // These stand in for an unconnected input, and an unconnected input can just
+  // as easily be a STORAGE IMAGE as a sampled texture -- a CSF declaring
+  // `TYPE: image, VISIBILITY: compute` binds one through the same fallback.
+  // Qt asserts outright when a texture reaches a storage-image binding without
+  // this flag:
+  //     ASSERT: texD->m_flags.testFlag(QRhiTexture::UsedWithLoadStore)
+  //     qrhivulkan.cpp:6336, from QRhiVulkan::setShaderResources
+  // so an unconnected compute image input aborted the process rather than
+  // rendering nothing. (Found sweeping csf-examples:
+  // presets/lighting/probe_voxel_orbit_view.csf.)
+  //
+  // The flag only widens the usage bits the backend requests at creation; it
+  // costs nothing when the texture is merely sampled, which is the other
+  // reason these exist.
+  constexpr auto emptyFlags = QRhiTexture::UsedWithLoadStore;
+
+  m_emptyTexture = rhi.newTexture(QRhiTexture::RGBA8, QSize{1, 1}, 1, emptyFlags);
   m_emptyTexture->setName("RenderList::m_emptyTexture");
   SCORE_ASSERT(m_emptyTexture->create());
 
   m_emptyTexture3D = rhi.newTexture(
       QRhiTexture::RGBA8, 1, 1, 1, 1,
-      QRhiTexture::ThreeDimensional);
+      QRhiTexture::ThreeDimensional | emptyFlags);
   m_emptyTexture3D->setName("RenderList::m_emptyTexture3D");
   SCORE_ASSERT(m_emptyTexture3D->create());
 
   m_emptyTextureCube = rhi.newTexture(
-      QRhiTexture::RGBA8, QSize{1, 1}, 1, QRhiTexture::CubeMap);
+      QRhiTexture::RGBA8, QSize{1, 1}, 1, QRhiTexture::CubeMap | emptyFlags);
   m_emptyTextureCube->setName("RenderList::m_emptyTextureCube");
   SCORE_ASSERT(m_emptyTextureCube->create());
 
@@ -134,7 +151,7 @@ void RenderList::init()
   // by earlier Qt builds on some backends but hits an assertion under the
   // current validation path.
   m_emptyTextureArray = rhi.newTextureArray(
-      QRhiTexture::RGBA8, /*arraySize*/ 1, QSize(1, 1));
+      QRhiTexture::RGBA8, /*arraySize*/ 1, QSize(1, 1), 1, emptyFlags);
   m_emptyTextureArray->setName("RenderList::m_emptyTextureArray");
   SCORE_ASSERT(m_emptyTextureArray->create());
 
