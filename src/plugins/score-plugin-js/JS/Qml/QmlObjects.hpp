@@ -880,6 +880,11 @@ public:
 
   void uiSend(const QJSValue& v) W_SIGNAL(uiSend, v);
 
+  // Persist execution-originated edits through the document command stack,
+  // including when no ScriptUI is open. The value is queued to the GUI thread.
+  void commitState(const QString& key, const QJSValue& value)
+      W_SIGNAL(commitState, key, value);
+
   const QJSValue& loadState() const noexcept { return m_loadState; }
   void setLoadState(const QJSValue& v) { m_loadState = v; }
   W_PROPERTY(QJSValue, loadState READ loadState WRITE setLoadState CONSTANT)

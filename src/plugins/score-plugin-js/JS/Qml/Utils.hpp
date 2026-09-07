@@ -3,6 +3,8 @@
 
 #include <JS/Qml/QmlObjects.hpp>
 
+#include <QColor>
+#include <QImage>
 #include <QJSValue>
 #include <QObject>
 #include <QProcess>
@@ -57,6 +59,11 @@ public:
       QJSValue onAccept);
   W_SLOT(saveFileDialog)
 
+  // Asynchronous RGBA picker, owned by the active editor or output window.
+  // Acceptance returns #AARRGGBB; cancellation returns an empty string.
+  void openColorDialog(QString title, QString initialColor, QJSValue onAccept);
+  W_SLOT(openColorDialog)
+
   QString layoutTextLines(QString text, QString font, int pointSize, int maxWidth);
   W_SLOT(layoutTextLines)
 
@@ -68,6 +75,11 @@ public:
 
   QVariantMap imageSize(QString path);
   W_SLOT(imageSize)
+
+  // Read a captured image in physical pixels, returning straight RGBA.
+  // Null images and out-of-bounds coordinates return transparent.
+  QColor imagePixelColor(const QImage& image, int x, int y);
+  W_SLOT(imagePixelColor)
 
   QString environmentVariable(QString name);
   W_SLOT(environmentVariable)

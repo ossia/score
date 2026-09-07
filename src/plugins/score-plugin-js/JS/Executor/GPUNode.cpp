@@ -8,11 +8,11 @@
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/RenderState.hpp>
 #include <Gfx/Graph/Window.hpp>
+#include <JS/Qml/DeviceContext.hpp>
 #include <JS/Qml/QmlObjects.hpp>
 #include <JS/Qml/QmlRhiObjects.hpp>
 #include <JS/Qml/Utils.hpp>
 #include <JS/ThreadLocalQmlEngine.hpp>
-#include <JS/Qml/DeviceContext.hpp>
 
 #include <score/gfx/Vulkan.hpp>
 
@@ -21,9 +21,11 @@
 
 #include <boost/unordered/concurrent_flat_map.hpp>
 
+#include <QKeyEvent>
+#include <QMouseEvent>
 #include <QQmlComponent>
-#include <QQmlEngine>
 #include <QQmlContext>
+#include <QQmlEngine>
 #include <QQuickGraphicsDevice>
 #include <QQuickRenderControl>
 #include <QQuickRenderTarget>
@@ -36,6 +38,28 @@
 #include <compare>
 namespace JS
 {
+namespace
+{
+class WindowRenderControl final : public QQuickRenderControl
+{
+public:
+  explicit WindowRenderControl(QWindow* window)
+      : m_window{window}
+  {
+  }
+
+  QWindow* renderWindow(QPoint* offset) override
+  {
+    if(offset)
+      *offset = {};
+    return m_window.data();
+  }
+
+private:
+  QPointer<QWindow> m_window;
+};
+}
+
 struct engine_key
 {
   std::thread::id id;
@@ -278,7 +302,8 @@ void main ()
     defaultPassesInit(renderer, mesh);
 
     // Init the QQuick render stuff
-    m_renderControl = new QQuickRenderControl{};
+    const auto win = renderer.state.window.lock();
+    m_renderControl = new WindowRenderControl{win.get()};
     m_window = new QQuickWindow{m_renderControl};
 
 #if QT_HAS_VULKAN
@@ -288,13 +313,67 @@ void main ()
     }
 #endif
 
-    if(auto win = renderer.state.window.lock())
+    if(win)
     {
       QObject::connect(
           win.get(), &score::gfx::Window::interactiveEvent, m_window,
-          [qqw = QPointer{m_window}](QEvent* e) {
-        if(auto q = qqw.get())
-          QCoreApplication::sendEvent(q, e);
+          [qqw = QPointer{m_window}, source = QPointer{win.get()}](QEvent* e) {
+        auto* q = qqw.data();
+        if(!q || !source)
+          return;
+        switch(e->type())
+        {
+          case QEvent::MouseButtonPress:
+          case QEvent::MouseButtonRelease:
+          case QEvent::MouseButtonDblClick:
+          case QEvent::MouseMove: {
+            const auto& mouse = *static_cast<QMouseEvent*>(e);
+            const QPointF position{
+                mouse.position().x() * q->width() / std::max(1, source->width()),
+                mouse.position().y() * q->height() / std::max(1, source->height())};
+            // Each offscreen scene needs its own event in render coordinates.
+            QMouseEvent mapped{
+                e->type(),
+                position,
+                position,
+                mouse.globalPosition(),
+                mouse.button(),
+                mouse.buttons(),
+                mouse.modifiers(),
+                mouse.source(),
+                mouse.pointingDevice()};
+            mapped.setTimestamp(mouse.timestamp());
+            mapped.setAccepted(false);
+            QCoreApplication::sendEvent(q, &mapped);
+            if(mapped.isAccepted())
+              e->accept();
+            break;
+          }
+          case QEvent::KeyPress:
+          case QEvent::KeyRelease: {
+            const auto& key = *static_cast<QKeyEvent*>(e);
+            QKeyEvent mapped{
+                e->type(),
+                key.key(),
+                key.modifiers(),
+                key.nativeScanCode(),
+                key.nativeVirtualKey(),
+                key.nativeModifiers(),
+                key.text(),
+                key.isAutoRepeat(),
+                quint16(key.count()),
+                key.device()};
+            mapped.setTimestamp(key.timestamp());
+            mapped.setAccepted(false);
+            QCoreApplication::sendEvent(q, &mapped);
+            if(mapped.isAccepted())
+              e->accept();
+            break;
+          }
+          default:
+            QCoreApplication::sendEvent(q, e);
+            break;
+        }
       }, Qt::DirectConnection);
     }
     m_window->setGraphicsDevice(QQuickGraphicsDevice::fromRhi(&rhi));
@@ -303,7 +382,7 @@ void main ()
     m_window->setWidth(sz.width());
     m_window->setHeight(sz.height());
     m_window->contentItem()->setWidth(sz.width());
-    m_window->contentItem()->setWidth(sz.height());
+    m_window->contentItem()->setHeight(sz.height());
     m_window->setColor(Qt::transparent);
 
     m_renderControl->initialize();
@@ -337,6 +416,7 @@ void main ()
       if(m_engine)
       {
         m_engine->init(*this, node, m_window);
+        processMessages();
 
         for(auto& [texture_in, i] : this->m_engine->m_texInlets)
         {
@@ -669,6 +749,7 @@ void GpuNode::Engine::releaseItem()
 
 void GpuNode::Engine::setupComponent(GpuRenderer& renderer, GpuNode& node)
 {
+  connectStateCommit(m_object, qobject_cast<ProcessModel*>(node.m_uiContext.data()));
   // FIXME refactor with CPUNode
   // FIXME only works because same thread right now.
   // Re-read QQuickRenderControl and use it to separate

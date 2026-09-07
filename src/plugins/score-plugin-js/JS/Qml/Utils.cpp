@@ -9,16 +9,19 @@
 
 #include <ossia/detail/algorithms.hpp>
 
+#include <QApplication>
+#include <QColorDialog>
 #include <QCoreApplication>
 #include <QDir>
 #include <QFile>
 #include <QFileDialog>
 #include <QFontMetrics>
+#include <QImageReader>
 #include <QMainWindow>
 #include <QProcess>
-#include <QImageReader>
-#include <QUrl>
 #include <QTemporaryFile>
+#include <QUrl>
+#include <QWindow>
 #if __has_include(<PackageManager/Model.hpp>)
 #include <PackageManager/Model.hpp>
 #endif
@@ -219,6 +222,55 @@ static void runFileDialog(
       onAccept->call(QJSValueList{} << path);
   });
   dialog->open();
+}
+
+void JsUtils::openColorDialog(QString title, QString initialColor, QJSValue onAccept)
+{
+  // Capture the owner before the dialog takes focus. Quick editors can be
+  // native children of a QWidget, or standalone output windows.
+  auto* window = QGuiApplication::focusWindow();
+  while(window)
+  {
+    if(window->parent())
+      window = window->parent();
+    else if(
+        (window->type() == Qt::Popup || window->type() == Qt::ToolTip)
+        && window->transientParent())
+      window = window->transientParent();
+    else
+      break;
+  }
+  auto* parent = window ? QWidget::find(window->winId()) : QApplication::activeWindow();
+  if(!window && !parent)
+    parent = score::GUIAppContext().mainWindow;
+
+  auto* dialog = new QColorDialog{QColor{initialColor}, parent};
+  dialog->setWindowTitle(title);
+  dialog->setOption(QColorDialog::ShowAlphaChannel);
+  dialog->setAttribute(Qt::WA_DeleteOnClose);
+  if(window && !parent)
+  {
+    dialog->winId();
+    dialog->windowHandle()->setTransientParent(window);
+    QObject::connect(window, &QObject::destroyed, dialog, &QObject::deleteLater);
+  }
+  QObject::connect(
+      dialog, &QColorDialog::finished, dialog,
+      [dialog, callback = std::move(onAccept)](int result) mutable {
+    if(callback.isCallable())
+      callback.call(
+          {result == QDialog::Accepted ? dialog->selectedColor().name(QColor::HexArgb)
+                                       : QString{}});
+  });
+  dialog->setWindowModality(parent || window ? Qt::WindowModal : Qt::ApplicationModal);
+  dialog->show();
+}
+
+QColor JsUtils::imagePixelColor(const QImage& image, int x, int y)
+{
+  if(!image.valid(x, y))
+    return Qt::transparent;
+  return image.pixelColor(x, y);
 }
 
 void JsUtils::openFileDialog(
