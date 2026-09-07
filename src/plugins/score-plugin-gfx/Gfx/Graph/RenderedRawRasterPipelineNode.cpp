@@ -516,8 +516,17 @@ void RenderedRawRasterPipelineNode::initPass(
       premulAlphaBlend.opAlpha = mat.op_alpha;
       ps->setTargetBlends({premulAlphaBlend});
 
-      ps->setDepthTest(true);
-      ps->setDepthWrite(true);
+      // Depth only when this target actually has a depth attachment: Metal's
+      // API validation aborts on a depth-enabled draw with a nil
+      // depthAttachment (the modern branch above gets this from
+      // applyPipelineState's depthAvailable; this legacy branch has no such
+      // call, so ask directly).
+      const bool depthAvailable
+          = (renderTarget.depthTexture != nullptr)
+            || (renderTarget.depthRenderBuffer != nullptr)
+            || (renderTarget.msDepthTexture != nullptr);
+      ps->setDepthTest(depthAvailable);
+      ps->setDepthWrite(depthAvailable);
       // Reverse-Z project rule.
       ps->setDepthOp(QRhiGraphicsPipeline::Greater);
     }
@@ -1688,8 +1697,17 @@ void RenderedRawRasterPipelineNode::initMRTPass(
         blends.append(premulAlphaBlend);
       ps->setTargetBlends(blends.begin(), blends.end());
 
-      ps->setDepthTest(true);
-      ps->setDepthWrite(true);
+      // Depth only when this target actually has a depth attachment: Metal's
+      // API validation aborts on a depth-enabled draw with a nil
+      // depthAttachment (the modern branch above gets this from
+      // applyPipelineState's depthAvailable; this legacy branch has no such
+      // call, so ask directly).
+      const bool depthAvailable
+          = (m_mrtRenderTarget.depthTexture != nullptr)
+            || (m_mrtRenderTarget.depthRenderBuffer != nullptr)
+            || (m_mrtRenderTarget.msDepthTexture != nullptr);
+      ps->setDepthTest(depthAvailable);
+      ps->setDepthWrite(depthAvailable);
       // Reverse-Z project rule.
       ps->setDepthOp(QRhiGraphicsPipeline::Greater);
     }
