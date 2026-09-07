@@ -26,6 +26,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <future>
 #include <semaphore>
 #include <thread>
 
@@ -304,4 +305,36 @@ TEST_CASE("stop() on the owner thread drains a parked tick instead of "
   clock.stop();
   ExternalGenlockClock never{&owner, {}};
   never.stop();
+}
+TEST_CASE("stop() off the owner thread returns as long as the owner pumps")
+{
+  app();
+  QObject owner;
+
+  std::counting_semaphore<64> vbi{0};
+  std::atomic<int> ticks{0};
+
+  ExternalGenlockClock clock{&owner, [&] { return vbi.try_acquire_for(10ms); }};
+  clock.start([&] { ++ticks; });
+
+  vbi.release(1);
+  std::this_thread::sleep_for(50ms);
+  REQUIRE(ticks.load() == 0);
+
+  std::atomic<bool> stopped{false};
+  auto fut = std::async(std::launch::async, [&] {
+    clock.stop();
+    stopped.store(true);
+  });
+
+  // Same call, same thread as the DEMO above — the only difference is that the owner
+  // thread keeps dispatching. Isolates the cause to "owner must be pumping".
+  const bool returned = pump_until([&] { return stopped.load(); }, 3000ms);
+  if(returned)
+    fut.wait();
+  else
+    REQUIRE(pump_until([&] { return stopped.load(); }, 5000ms));
+
+  CHECK(returned);
+  CHECK(ticks.load() == 1);
 }
