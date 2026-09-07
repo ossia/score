@@ -20,6 +20,7 @@
 // =============================================================================
 #include <score_test/Gfx.hpp>
 
+#include <Gfx/Graph/SSBO.hpp>
 #include <Gfx/Graph/VertexFallbackDefaults.hpp>
 #include <Gfx/Graph/VertexFallbackPool.hpp>
 
@@ -265,5 +266,40 @@ TEST_CASE(
       CHECK(oldCount < qtLevels);
     else
       CHECK(oldCount == qtLevels);
+  }
+}
+
+TEST_CASE(
+    "storage-buffer layout arithmetic does not wrap at 2 GiB",
+    "[gfx][limits][ssbo]")
+{
+  // calculateStorageBufferSize returns int64_t and accumulates in int64_t, but
+  // the per-element multiply was `int stride * int count` and overflowed BEFORE
+  // being widened. A 16-byte element with 134217728 entries is exactly 2^31, so
+  // the size came back as -2147483648: a buffer far too large reported a
+  // NEGATIVE size, and every downstream size check compared against it.
+  // (SR5 in the 2026-09 graphics review.)
+  isf::descriptor d;
+  std::vector<isf::storage_input::layout_field> layout;
+  layout.push_back({.name = "v", .type = "vec4[]"}); // 16 bytes, flexible
+
+  struct Case { int count; const char* what; };
+  const Case cases[] = {
+      {1024, "small"},
+      {134217728, "exactly 2^31 bytes"},
+      {268435456, "4 GiB"},
+      {1073741824, "16 GiB"},
+  };
+  for(const auto& c : cases)
+  {
+    const int64_t sz = score::gfx::calculateStorageBufferSize(layout, c.count, d);
+    std::fprintf(
+        stderr, "GFX-LIMIT ssbo %-20s count=%-11d size=%lld\n", c.what, c.count,
+        (long long)sz);
+    CAPTURE(c.what, c.count, sz);
+    // The point of the case: never negative, and never smaller than the
+    // element count itself implies.
+    CHECK(sz >= 0);
+    CHECK(sz >= (int64_t)c.count);
   }
 }
