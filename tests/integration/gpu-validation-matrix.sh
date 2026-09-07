@@ -68,21 +68,39 @@ export LSAN_OPTIONS="${LSAN_OPTIONS:-detect_leaks=0}"
 # needs this; =2 additionally enables D3D12 GPU-Based Validation.
 export SCORE_GPU_VALIDATION="${SCORE_GPU_VALIDATION:-1}"
 
-if [ -z "${DISPLAY:-}" ]; then export DISPLAY=:0; fi
-if [ -z "${XAUTHORITY:-}" ]; then
-  for x in "$HOME/.Xauthority" /run/user/$(id -u)/lyxauth /run/user/$(id -u)/gdm/Xauthority; do
-    [ -f "$x" ] && { export XAUTHORITY="$x"; break; }
-  done
+# X11 only exists on Linux; macOS and Windows use their native QPA plugin and
+# must NOT have QT_QPA_PLATFORM forced to xcb.
+if [ "$(uname -s)" = Linux ]; then
+  if [ -z "${DISPLAY:-}" ]; then export DISPLAY=:0; fi
+  if [ -z "${XAUTHORITY:-}" ]; then
+    for x in "$HOME/.Xauthority" /run/user/$(id -u)/lyxauth /run/user/$(id -u)/gdm/Xauthority; do
+      [ -f "$x" ] && { export XAUTHORITY="$x"; break; }
+    done
+  fi
+  export QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-xcb}"
 fi
-export QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-xcb}"
 
 # Vulkan goggles: core validation + synchronization + best practices.
 VKVAL='VK_LOADER_LAYERS_ENABLE=*validation* VK_INSTANCE_LAYERS=VK_LAYER_KHRONOS_validation VK_LAYER_ENABLES=VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT,VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT'
 
+# ---- platform ---------------------------------------------------------------
+case "$(uname -s)" in
+  Darwin)             OS=mac ;;
+  MINGW*|MSYS*|CYGWIN*) OS=win ;;
+  *)                  OS=linux ;;
+esac
+
 # ---- cell definitions -------------------------------------------------------
-# label | SCORE_TEST_API | env | expected renderer regex
+# label | SCORE_TEST_API | env | expected device regex
+#
+# The driver-selection variables are Mesa/loader specific and only meaningful
+# on Linux. macOS has exactly one Metal device and no GLX; Windows selects the
+# API rather than the driver, and its D3D validation is a score-level switch
+# (SCORE_GPU_VALIDATION=2 additionally turns on D3D12 GPU-Based Validation
+# before QRhi creates the device -- ScreenNode.cpp:84).
 cell_def() {
   case "$1" in
+    # -- Linux ---------------------------------------------------------------
     vk-nvidia)   echo "vulkan|VK_LOADER_DRIVERS_SELECT=nvidia*|NVIDIA|GeForce|Quadro|RTX" ;;
     vk-intel)    echo "vulkan|VK_LOADER_DRIVERS_SELECT=intel*|Intel|ARL|Arc|Iris" ;;
     vk-lavapipe) echo "vulkan|VK_LOADER_DRIVERS_SELECT=lvp*|llvmpipe|lavapipe" ;;
@@ -90,10 +108,23 @@ cell_def() {
     gl-nvidia)   echo "opengl|__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia|NVIDIA|GeForce|Quadro|RTX" ;;
     gl-intel)    echo "opengl|__GLX_VENDOR_LIBRARY_NAME=mesa MESA_LOADER_DRIVER_OVERRIDE=iris|Intel|ARL|Arc|Iris" ;;
     gl-llvmpipe) echo "opengl|__GLX_VENDOR_LIBRARY_NAME=mesa LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe|llvmpipe" ;;
+    # -- macOS ---------------------------------------------------------------
+    # METAL_DEVICE_WRAPPER_TYPE=1 is Metal's API validation layer.
+    metal)       echo "metal|METAL_DEVICE_WRAPPER_TYPE=1|Apple|AMD|Intel|Metal" ;;
+    mac-opengl)  echo "opengl||Apple|AMD|Intel|ATI" ;;
+    # -- Windows -------------------------------------------------------------
+    d3d11)       echo "d3d11|SCORE_GPU_VALIDATION=2|." ;;
+    d3d12)       echo "d3d12|SCORE_GPU_VALIDATION=2|." ;;
+    win-vulkan)  echo "vulkan|SCORE_GPU_VALIDATION=1|." ;;
+    win-opengl)  echo "opengl|SCORE_GPU_VALIDATION=1|." ;;
     *) echo "" ;;
   esac
 }
-ALL_CELLS="vk-nvidia vk-intel vk-lavapipe vk-amd gl-nvidia gl-intel gl-llvmpipe"
+case "$OS" in
+  mac)   ALL_CELLS="metal mac-opengl" ;;
+  win)   ALL_CELLS="d3d11 d3d12 win-vulkan win-opengl" ;;
+  *)     ALL_CELLS="vk-nvidia vk-intel vk-lavapipe vk-amd gl-nvidia gl-intel gl-llvmpipe" ;;
+esac
 CELLS="${CELLS:-$ALL_CELLS}"
 
 mkdir -p "$OUT"
@@ -124,13 +155,26 @@ echo " per-test budget  : ${SECONDS_PER_TEST}s  -> cell timeout $((CELL_TIMEOUT/
 echo " results          : $OUT"
 echo "==============================================================="
 
+# Pre-flight device probe. vulkaninfo / glxinfo only exist on Linux, so this
+# returns empty elsewhere and the cell relies on the post-run banner instead
+# (see device_from_log, which is the authoritative check on every platform).
 renderer_of() { # $1 = api, $2 = env
-  if [ "$1" = "vulkan" ]; then
-    env $2 vulkaninfo --summary 2>/dev/null | grep -m1 "deviceName" | sed 's/.*= //'
-  else
-    env $2 glxinfo -B 2>/dev/null | grep -m1 "OpenGL renderer" | sed 's/.*: //'
-  fi
+  case "$1" in
+    vulkan) command -v vulkaninfo >/dev/null 2>&1 || return 0
+            env $2 vulkaninfo --summary 2>/dev/null | grep -m1 "deviceName" | sed 's/.*= //' ;;
+    opengl) command -v glxinfo >/dev/null 2>&1 || return 0
+            env $2 glxinfo -B 2>/dev/null | grep -m1 "OpenGL renderer" | sed 's/.*: //' ;;
+    *)      return 0 ;;
+  esac
 }
+
+# THE portable positive control: score prints its own RHI device banner
+#   score.gfx: RHI device: backend=Vulkan device="NVIDIA GeForce RTX 4090" ...
+# into every test log, on every platform (RenderList.cpp:1682). It answers both
+# questions that matter -- which device did we really get, and did the backend
+# silently fall back to QRhi::Null and pass vacuously.
+device_from_log() { grep -ohE 'RHI device: backend=[^ ]+ device="[^"]*"' "$1" 2>/dev/null | sort -u | head -1; }
+backend_from_log() { device_from_log "$1" | sed -E 's/.*backend=([^ ]+).*/\1/'; }
 
 printf "\n%-14s %-34s %s\n" "CELL" "DEVICE (positive control)" "VERDICT"
 printf -- "---------------------------------------------------------------------------\n"
@@ -157,6 +201,13 @@ for label in $CELLS; do
   rc=$?
 
   ran=$(grep -cE "\.\.\.\.* +(Passed|\*\*\*Failed|\*\*\*Exception|\*\*\*Skipped)" "$log")
+  # Authoritative device check, every platform: what did score actually get?
+  banner=$(device_from_log "$log"); rhi_backend=$(backend_from_log "$log")
+  if [ -n "$banner" ]; then dev="${banner#*device=\"}"; dev="${dev%\"}"; fi
+  nullbe=""
+  if [ -n "$rhi_backend" ] && echo "$rhi_backend" | grep -qi "null"; then
+    nullbe=" !! QRhi::Null — VACUOUS PASS"
+  fi
   # ctest prints "100% tests passed out of N" when nothing fails and
   # "N% tests passed, M tests failed out of N" otherwise. Accept both.
   line=$(grep -oE "[0-9]+% tests passed(, [0-9]+ tests failed)? out of [0-9]+" "$log" | tail -1)
@@ -180,7 +231,7 @@ for label in $CELLS; do
   # --- positive control 3: truncated run?
   trunc=""; [ "$rc" -eq 124 ] && trunc=" TIMED-OUT@${ran}/${NTESTS}"
 
-  verdict="${line:-<no summary>}$trunc"
+  verdict="${line:-<no summary>}$trunc$nullbe"
   printf "%-14s %-34s %s\n" "$label" "${dev:0:34}" "$verdict"
   printf "%-14s   VUID=%-3s SYNC-HAZARD=%-4s ASan=%-3s UBSan=%-4s %s\n" "" "$vuid" "$sync" "$asan" "$ub" "$lyr"
   if [ "$vuid" -gt 0 ]; then
