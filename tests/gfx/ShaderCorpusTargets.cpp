@@ -1031,3 +1031,81 @@ TEST_CASE(
     CHECK(sw.stages_total >= 171);
   });
 }
+
+
+TEST_CASE(
+    "the HLSL-intrinsic guard reads code, not comments",
+    "[gfx][shader][hlsl][shadercache]")
+{
+  // hlslIntrinsicCollision REFUSES a shader outright, and only on D3D11/D3D12.
+  // Run over raw source it therefore rejects a working shader for a declaration
+  // the GLSL compiler never sees -- which is the Direct3D-only failure with no
+  // visible cause that the guard was written to prevent, produced by the guard
+  // itself. (S2 in the 2026-09 graphics review.)
+  using score::gfx::hlslIntrinsicCollision;
+
+  // Positive control FIRST: if this stops detecting, every "no collision"
+  // assertion below becomes vacuous and the test would still be green.
+  const QByteArray real = "void main() { float frac; frac = fract(1.0); }";
+  INFO("the guard must still catch a real collision");
+  REQUIRE(hlslIntrinsicCollision(real) == QByteArray("frac"));
+
+  struct Case { const char* what; QByteArray src; };
+  const Case clean[] = {
+      {"declaration in a line comment",
+       "void main() { // float frac;\n float x = fract(1.0); }"},
+      {"declaration in a block comment",
+       "void main() { /* float frac; */ float x = fract(1.0); }"},
+      {"declaration in code, call only in a comment",
+       "void main() { float frac; /* fract(1.0) */ }"},
+      {"whole body commented out",
+       "/*\nvoid main() { float frac; frac = fract(1.0); }\n*/\nvoid main() {}"},
+      {"a // sequence inside a block comment does not end it",
+       "/* // float frac; */ void main() { float x = fract(1.0); }"},
+      {"a /* sequence inside a line comment does not open a block",
+       "// /* float frac;\nvoid main() { float x = fract(1.0); }"},
+  };
+  for(const auto& c : clean)
+  {
+    const QByteArray bad = hlslIntrinsicCollision(c.src);
+    INFO(c.what << ": reported \"" << bad.toStdString() << "\"");
+    CHECK(bad.isEmpty());
+  }
+
+  // Commenting must not swallow real code that follows it.
+  INFO("code after a closed block comment is still scanned");
+  CHECK(
+      hlslIntrinsicCollision("/* nothing */ void main(){ float frac; frac = fract(1.0); }")
+      == QByteArray("frac"));
+}
+
+TEST_CASE(
+    "the shader cache does not alias two stages of one source",
+    "[gfx][shader][shadercache]")
+{
+  // The cache is keyed on source bytes, inside a baker that is already per
+  // (api, version, multiViewCount). The STAGE was in no part of that key, so
+  // the same source baked as vertex and as fragment shared one entry and the
+  // second caller got the first caller's stage. (S1 in the 2026-09 review.)
+  //
+  // Asserted on the slots themselves rather than on the baked SPIR-V: two
+  // stages must occupy two cache entries, which is true whether or not this
+  // machine can bake at all.
+  const auto api = score::gfx::GraphicsApi::Vulkan;
+  const QShaderVersion ver{450};
+  const QByteArray src = "#version 450\nvoid main() {}\n";
+
+  const auto& asVertex
+      = score::gfx::ShaderCache::get(api, ver, src, QShader::VertexStage);
+  const auto& asFragment
+      = score::gfx::ShaderCache::get(api, ver, src, QShader::FragmentStage);
+
+  INFO("one source, two stages, must be two distinct cache slots");
+  CHECK(&asVertex != &asFragment);
+
+  // And the cache must still BE a cache: asking twice for the same stage
+  // returns the same slot rather than re-baking.
+  const auto& againVertex
+      = score::gfx::ShaderCache::get(api, ver, src, QShader::VertexStage);
+  CHECK(&asVertex == &againVertex);
+}
