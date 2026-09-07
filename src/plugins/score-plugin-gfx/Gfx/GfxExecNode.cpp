@@ -130,14 +130,15 @@ void gfx_exec_node::run(
     inlet_i++;
   }
 
-  for(auto& outlet : this->m_outlets)
+  for(std::size_t outletIndex = 0; outletIndex < m_outlets.size(); ++outletIndex)
   {
+    auto* outlet = m_outlets[outletIndex];
     if(auto out = outlet->address.target<ossia::net::parameter_base*>())
     {
       // TODO same, ugh.
       if(auto p = dynamic_cast<gfx_parameter_base*>(*out))
       {
-        p->push_texture({this->id, 0});
+        p->push_texture({this->id, static_cast<int32_t>(outletIndex)});
       }
     }
   }

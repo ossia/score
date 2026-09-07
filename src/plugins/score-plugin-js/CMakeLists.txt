@@ -115,6 +115,9 @@ endif()
 set_target_properties(${PROJECT_NAME} PROPERTIES AUTOMOC 1)
 if(TARGET "${QT_PREFIX}::Quick")
     target_link_libraries(${PROJECT_NAME} PUBLIC ${QT_PREFIX}::Quick)
+    target_sources(${PROJECT_NAME} PRIVATE
+      JS/Qml/ImportedUi.hpp JS/Qml/ImportedUi.cpp)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE SCORE_HAS_IMPORTED_UI)
     if(TARGET score_plugin_gfx AND ${Qt6_VERSION} VERSION_GREATER_EQUAL 6.5.0)
       target_link_libraries(${PROJECT_NAME} PUBLIC ${QT_PREFIX}::QuickPrivate score_plugin_gfx)
       # PUBLIC: the flag gates class definitions in JS/Qml/QmlObjects.hpp, so
@@ -123,6 +126,7 @@ if(TARGET "${QT_PREFIX}::Quick")
       list(APPEND SCORE_FEATURES_LIST gpu_js)
     endif()
 endif()
+
 if(TARGET ${QT_PREFIX}::QmlIntegration)
   target_link_libraries(${PROJECT_NAME} PUBLIC ${QT_PREFIX}::QmlIntegration)
 endif()

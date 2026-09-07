@@ -96,6 +96,7 @@ public:
 
   score::gfx::Message m_lastState;
   std::function<void(QVariant)> m_messageToUi;
+  std::shared_ptr<GpuValueQueue> m_valueMessages;
 
   using js_message_type = ossia::variant<QVariant, std::pair<QString, ossia::value>>;
   void uiMessage(const QVariant& v);
@@ -115,6 +116,8 @@ public:
     std::vector<std::pair<Impulse*, int>> m_impulseInlets;
     std::vector<std::pair<ValueInlet*, int>> m_valInlets;
     std::vector<std::pair<TextureInlet*, int>> m_texInlets;
+    std::vector<std::pair<ValueOutlet*, std::size_t>> m_valueOutlets;
+    std::shared_ptr<GpuValueQueue> m_valueMessages;
 
     ossia::spsc_queue<js_message_type> ui_messages;
 
@@ -299,7 +302,17 @@ void main ()
       m_samplers.push_back({sampler, m_internalTex.texture});
     }
 
-    defaultPassesInit(renderer, mesh);
+    // Value outlets may precede the texture in a Script's declaration order.
+    // The rendered item belongs to its first TextureOutlet, not outlet zero.
+    for(auto* port : node.output)
+    {
+      if(port->type != score::gfx::Types::Image)
+        continue;
+      score::gfx::defaultPassesInit(
+          m_p, port->edges, renderer, mesh, m_vertexS, m_fragmentS,
+          m_processUBO, m_material.buffer, m_samplers);
+      break;
+    }
 
     // Init the QQuick render stuff
     const auto win = renderer.state.window.lock();
@@ -685,6 +698,16 @@ void GpuNode::Engine::tick()
   {
     tick.call();
   }
+  // UI events arrive on the rendering thread; publish their values on the
+  // next execution tick, without sharing QJSValue across engine threads.
+  for(auto [outlet, index] : m_valueOutlets)
+  {
+    if(!outlet->value().isUndefined())
+      m_valueMessages->enqueue(GpuValueMessage{index, ossia::qt::value_from_js(outlet->value())});
+    for(const auto& message : outlet->values)
+      m_valueMessages->enqueue(GpuValueMessage{index, ossia::qt::value_from_js(message.value)});
+    outlet->clear();
+  }
 }
 
 void GpuNode::Engine::processMessage(const score::gfx::Message& msg)
@@ -777,6 +800,8 @@ void GpuNode::Engine::setupComponent(GpuRenderer& renderer, GpuNode& node)
   }
 
   int input_i = 0;
+  std::size_t output_i = 0;
+  m_valueMessages = node.m_valueMessages;
 
   for(auto n : m_object->children())
   {
@@ -804,6 +829,14 @@ void GpuNode::Engine::setupComponent(GpuRenderer& renderer, GpuNode& node)
     {
       m_jsInlets.push_back(unknown);
       input_i++;
+    }
+    else if(auto value = qobject_cast<ValueOutlet*>(n))
+    {
+      m_valueOutlets.emplace_back(value, output_i++);
+    }
+    else if(qobject_cast<Outlet*>(n))
+    {
+      ++output_i;
     }
   }
 }
@@ -929,17 +962,49 @@ std::string gpu_exec_node::label() const noexcept
   return "JS::gpu_exec_node";
 }
 
+void gpu_exec_node::run(
+    const ossia::token_request& tk, ossia::exec_state_facade state) noexcept
+{
+  gfx_exec_node::run(tk, state);
+  if(!m_valueMessages)
+    return;
+  const auto [start, duration] = state.timings(tk);
+  GpuValueMessage message;
+  while(m_valueMessages->try_dequeue(message))
+  {
+    if(message.outlet < root_outputs().size())
+      if(auto port = root_outputs()[message.outlet]->target<ossia::value_port>())
+        port->write_value(std::move(message.value), start);
+  }
+}
+
 void gpu_exec_node::setScript(
     const QString& root, const QString& str, JS::JSState&& new_state)
 {
   exec_context->ui->unregister_node(id);
   id = score::gfx::invalid_node_index;
+  m_valueMessages = std::make_shared<GpuValueQueue>();
 
   //if(id < 0)
   {
     auto n = std::make_unique<JS::GpuNode>(
         m_context, std::move(new_state), root, str, this->root_inputs(),
         this->root_outputs());
+    n->m_valueMessages = m_valueMessages;
+
+    // A render target may be created after the controls' first execution tick.
+    // Seed its retained input snapshot instead of waiting for another change.
+    n->m_lastState.input.resize(root_inputs().size());
+    std::size_t controlIndex = 0;
+    for(std::size_t i = 0; i < root_inputs().size(); ++i)
+    {
+      if(root_inputs()[i]->target<ossia::value_port>())
+      {
+        const auto& value = controls[controlIndex++]->value;
+        if(value.valid())
+          n->m_lastState.input[i] = value;
+      }
+    }
 
     {
       auto& element = *m_context;

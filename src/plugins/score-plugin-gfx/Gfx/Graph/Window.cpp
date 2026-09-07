@@ -467,38 +467,46 @@ bool Window::event(QEvent* e)
     case QEvent::MouseButtonPress:
     case QEvent::MouseButtonRelease:
     case QEvent::MouseButtonDblClick:
+      e->setAccepted(false);
       this->interactiveEvent(e);
+      if(e->isAccepted())
+        return true;
       break;
 
     case QEvent::MouseMove: {
       auto ev = static_cast<QMouseEvent*>(e);
       this->mouseMove(ev->globalPosition(), ev->scenePosition());
+      e->setAccepted(false);
       this->interactiveEvent(e);
       break;
     }
     case QEvent::KeyPress: {
       auto ev = static_cast<QKeyEvent*>(e);
+      e->setAccepted(false);
+      this->interactiveEvent(e);
       if(!ev->isAutoRepeat())
       {
         this->key(ev->key(), ev->text());
-        this->interactiveEvent(e);
-        if(ev->key() == Qt::Key_Escape)
-          if(m_embeddedFullscreen)
-            QMetaObject::invokeMethod(
-                qGuiApp, [] { score::GUIApplicationInterface::instance().forceExit(); });
+        if(!e->isAccepted() && ev->key() == Qt::Key_Escape && m_embeddedFullscreen)
+          QMetaObject::invokeMethod(
+              qGuiApp, [] { score::GUIApplicationInterface::instance().forceExit(); });
       }
 
       break;
     }
     case QEvent::KeyRelease: {
       auto ev = static_cast<QKeyEvent*>(e);
+      e->setAccepted(false);
+      this->interactiveEvent(e);
       if(!ev->isAutoRepeat())
-      {
         this->keyRelease(ev->key(), ev->text());
-        this->interactiveEvent(e);
-      }
       break;
     }
+    case QEvent::FocusIn:
+    case QEvent::FocusOut:
+    case QEvent::UngrabMouse:
+      this->interactiveEvent(e);
+      break;
     case QEvent::PlatformSurface:
       if(static_cast<QPlatformSurfaceEvent*>(e)->surfaceEventType()
          == QPlatformSurfaceEvent::SurfaceAboutToBeDestroyed) // fallthrough
