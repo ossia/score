@@ -181,6 +181,13 @@ score_add_test(test_unit_port_visibility
   SOURCES PortVisibilityTest.cpp
   PLUGINS score_lib_process score_lib_state score_lib_device)
 
+# Runtime-populated combobox items: what happens to the selection when the list
+# changes under it, folder listing, and loading documents written before it.
+score_add_test(test_unit_combobox_alternatives
+  SOURCES ComboBoxAlternativesTest.cpp
+  APP
+  PLUGINS score_lib_process score_lib_state score_lib_device)
+
 score_add_test(test_unit_curve_sample
   SOURCES CurveSampleTest.cpp
   PLUGINS score_plugin_curve)
