@@ -7,6 +7,7 @@
 #include <score/command/PropertyCommand.hpp>
 
 #include <ossia/dataflow/texture_port.hpp>
+#include <ossia/gfx/port_index.hpp>
 
 #include <score_plugin_gfx_export.h>
 
@@ -92,6 +93,8 @@ public:
   }
 
   int nodeId{-1};
+  // Model outlet order includes value ports; unregistered outlets return {-1, -1}.
+  ossia::gfx::port_index graphicsPort() const noexcept;
 };
 
 struct TextureInletFactory final : public Dataflow::AutomatablePortFactory

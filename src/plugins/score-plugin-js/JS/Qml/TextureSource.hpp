@@ -68,7 +68,7 @@ private:
   // For texture extraction from the graph
   bool m_isConnected = false;
   bool m_needsRebuild = false;
-  int m_nodeId{-1};
+  Gfx::port_index m_source{-1, -1};
 };
 
 }

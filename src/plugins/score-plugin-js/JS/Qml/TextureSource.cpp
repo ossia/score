@@ -44,7 +44,7 @@ public:
   void rebuild();
   void clear()
   {
-    if(m_nodeId < 0)
+    if(m_source.node < 0)
       return;
     if(m_screenId < 0)
       return;
@@ -55,9 +55,9 @@ public:
 
     auto& graph = item->m_gfxPlugin->context;
     // fixme clear m_extractionNode
-    graph.disconnect_preview_node(Gfx::EdgeSpec{{m_nodeId, 0}, {m_screenId, 0}});
+    graph.disconnect_preview_node(Gfx::EdgeSpec{m_source, {m_screenId, 0}});
     graph.unregister_preview_node(m_screenId);
-    m_nodeId = -1;
+    m_source = {-1, -1};
     m_screenId = -1;
     m_extractionNode = nullptr;
   }
@@ -72,7 +72,8 @@ private:
 
   QRhi* m_rhi = nullptr;
   int m_sampleCount = 1;
-  int m_nodeId = -1;
+  Gfx::port_index m_source{-1, -1};
+  Gfx::port_index m_nextSource{-1, -1};
   int m_screenId = -1;
   QPointer<TextureSource> item{};
   bool m_needsRebuild{};
@@ -88,7 +89,8 @@ void TextureSourceRenderer::synchronize(QQuickRhiItem* rhiItem)
   auto new_item = static_cast<TextureSource*>(rhiItem);
   m_needsRebuild |= (new_item != item);
   item = new_item;
-  m_needsRebuild |= (item->m_nodeId != m_nodeId);
+  m_nextSource = item->m_source;
+  m_needsRebuild |= (m_nextSource != m_source);
 }
 
 void TextureSourceRenderer::rebuild()
@@ -111,12 +113,12 @@ void TextureSourceRenderer::rebuild()
     clear();
     return;
   }
-  if(item->m_nodeId == -1)
+  if(m_nextSource.node < 0)
   {
     clear();
     return;
   }
-  if(item->m_nodeId != m_nodeId)
+  if(m_nextSource != m_source)
     changed = true;
 
   QRhiTexture* finalTex = m_sampleCount > 1 ? resolveTexture() : colorTexture();
@@ -141,8 +143,8 @@ void TextureSourceRenderer::rebuild()
     m_screenId = graph.register_preview_node(std::move(extractionNode));
     if(m_screenId != -1)
     {
-      m_nodeId = item->m_nodeId;
-      graph.connect_preview_node(Gfx::EdgeSpec{{m_nodeId, 0}, {m_screenId, 0}});
+      m_source = m_nextSource;
+      graph.connect_preview_node(Gfx::EdgeSpec{m_source, {m_screenId, 0}});
       m_needsRebuild = false;
     }
   }
@@ -336,19 +338,10 @@ void TextureSource::do_rebuild()
 
 bool TextureSource::connectToOutlet()
 {
-  m_nodeId = -1;
-  if(!m_outlet || !m_gfxPlugin)
-  {
-    return false;
-  }
-
-  // Get the node ID from the outlet
-  m_nodeId = m_outlet->nodeId;
-  if(m_nodeId < 0)
-  {
-    return false;
-  }
-  return true;
+  m_source = {-1, -1};
+  if(m_outlet && m_gfxPlugin)
+    m_source = m_outlet->graphicsPort();
+  return m_source.node >= 0;
 }
 
 void TextureSource::disconnectFromOutlet()
@@ -366,7 +359,7 @@ void TextureSource::disconnectFromOutlet()
         &TextureSource::rebuild);
     m_processPtr = nullptr;
   }
-  m_nodeId = -1;
+  m_source = {-1, -1};
 }
 }
 #endif

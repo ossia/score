@@ -5,6 +5,7 @@
 #include <Device/Protocol/DeviceInterface.hpp>
 
 #include <Process/Dataflow/PortAddressComboBox.hpp>
+#include <Process/Process.hpp>
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
@@ -51,10 +52,11 @@ public:
     screenId = plug.context.register_preview_node(std::move(window));
     if(screenId != -1)
     {
-      if(outlet.nodeId != -1)
+      const auto source = outlet.graphicsPort();
+      if(source.node != -1)
       {
-        nodeId = outlet.nodeId;
-        e = {{nodeId, 0}, {screenId, 0}};
+        m_source = source;
+        e = {source, {screenId, 0}};
         plug.context.connect_preview_node(*e);
       }
       timerId = startTimer(16);
@@ -72,7 +74,8 @@ public:
 
     auto& outlet = *outlet_p;
 
-    if(outlet.nodeId != nodeId)
+    const auto source = outlet.graphicsPort();
+    if(source != m_source)
     {
       if(e)
       {
@@ -81,10 +84,10 @@ public:
         e = std::nullopt;
       }
 
-      if(outlet.nodeId != -1)
+      m_source = source;
+      if(source.node != -1)
       {
-        nodeId = outlet.nodeId;
-        e = {{nodeId, 0}, {screenId, 0}};
+        e = {source, {screenId, 0}};
 
         if(plug)
           plug->context.connect_preview_node(*e);
@@ -141,7 +144,7 @@ private:
   QWidget* container{};
 
   int screenId = score::gfx::invalid_node_index;
-  int nodeId = score::gfx::invalid_node_index;
+  port_index m_source{-1, -1};
   int timerId{};
 };
 
@@ -244,6 +247,21 @@ void TextureInlet::setupExecution(
     exec.data.address_v = v;
     exec.data.address_w = v;
   });
+}
+
+ossia::gfx::port_index TextureOutlet::graphicsPort() const noexcept
+{
+  if(nodeId >= 0)
+  {
+    if(auto process = qobject_cast<const Process::ProcessModel*>(parent()))
+    {
+      const auto& outlets = process->outlets();
+      for(int i = 0; i < outlets.size(); ++i)
+        if(outlets[i] == this)
+          return {nodeId, i};
+    }
+  }
+  return {-1, -1};
 }
 
 TextureOutlet::~TextureOutlet() { }
