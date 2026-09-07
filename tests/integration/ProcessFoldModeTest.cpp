@@ -73,9 +73,8 @@ TEST_CASE("Auto fold mode keeps the port-count heuristic", "[integration][fold]"
     REQUIRE(doc != nullptr);
     auto& lfo = add_lfo(*doc, base_interval(*doc));
 
-    // Untouched processes must behave exactly as they did before fold state was
-    // stored at all: the LFO's handful of controls sits under the threshold,
-    // so Auto means open.
+    // Untouched processes keep the heuristic behaviour: the LFO's handful of
+    // controls sits under the threshold, so Auto means open.
     CHECK(lfo.foldMode() == Process::FoldMode::Auto);
     REQUIRE(std::ssize(lfo.inlets()) <= Process::MaxUnpaginatedControls);
     CHECK_FALSE(lfo.folded());
@@ -189,6 +188,7 @@ struct DropFixture
   //! drop() defers the real work, so the event loop has to be pumped after.
   void dropPreset(Process::ProcessModel& on, const Process::Preset& preset)
   {
+    droppedKey = on.concreteKey();
     QPointer<Process::NodeItem> item = nodeFor(on);
     auto& sm = static_cast<Scenario::ScenarioDocumentModel&>(doc.model().modelDelegate());
 
@@ -204,14 +204,28 @@ struct DropFixture
     delete item.data();
   }
 
-  //! The process in the interval that is not `previous`.
+  //! The process the drop put in `previous`'s place.
+  //!
+  //! Not simply "the one that is not previous": the base interval also holds
+  //! the document's root Scenario, and IdContainer<Ordered>::insert appends --
+  //! so that save -> load -> save reaches a fixed point -- which puts the
+  //! Scenario first. That test would return it: a process whose foldMode is
+  //! Auto, satisfying the folded case below while checking nothing it means
+  //! to check.
+  //!
+  //! Matched on the dropped key, captured in dropPreset() while the process is
+  //! still alive: `previous` is a dangling reference by the time this is
+  //! called, since the drop removed and destroyed it. Address comparison
+  //! against it is fine; calling a virtual on it is not.
   Process::ProcessModel* replacementOf(const Process::ProcessModel& previous)
   {
     for(auto& p : interval.processes)
-      if(&p != &previous)
+      if(&p != &previous && p.concreteKey() == droppedKey)
         return &p;
     return nullptr;
   }
+
+  UuidKey<Process::ProcessModel> droppedKey{};
 };
 }
 
