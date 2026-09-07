@@ -87,6 +87,20 @@ score_add_test(test_integration_process_ui_placement
   GUI
   PLUGINS score_plugin_scenario score_lib_process score_plugin_js)
 
+get_target_property(_js_definitions score_plugin_js COMPILE_DEFINITIONS)
+if("SCORE_HAS_GPU_JS" IN_LIST _js_definitions)
+  score_add_test(test_integration_texture_preview
+    SOURCES TexturePreviewTest.cpp
+    GUI
+    PLUGINS score_plugin_scenario score_lib_process score_plugin_js
+            score_plugin_gfx score_plugin_engine score_plugin_transport)
+  score_add_test(test_integration_gpu_javascript
+    SOURCES GpuJavascriptTest.cpp
+    GUI
+    PLUGINS score_plugin_scenario score_lib_process score_plugin_js
+            score_plugin_gfx score_plugin_engine)
+endif()
+
 # Sweeps every Javascript preset in the user library through the real QML
 # engine: parses it, ticks it, and checks it never throws or emits a NaN.
 # Skips itself when the user library is not installed.
