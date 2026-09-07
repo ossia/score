@@ -337,6 +337,7 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     setupItem(item, *new_l);
     layout = new_l;
     createdLayouts.push_back(new_l);
+
     if constexpr(avnd::tab_layout<Item> && requires { Item::model; })
     {
       auto* tabs = static_cast<score::GraphicsTabLayout*>(new_l);
@@ -394,7 +395,6 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
         }
       }
     }
-
 
     {
 #if AVND_USE_BOOST_PFR

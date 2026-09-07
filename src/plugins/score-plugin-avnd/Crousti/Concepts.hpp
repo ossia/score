@@ -324,11 +324,6 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
                                             qname, id,    parent};
     }
   }
-  else if constexpr(widg.widget == avnd::widget_type::multi_slider)
-  {
-    std::vector<ossia::value> init;
-    return new Process::MultiSlider{init, qname, id, parent};
-  }
   else if constexpr(widg.widget == avnd::widget_type::string_list)
   {
     auto p
@@ -336,6 +331,11 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
             oscr::to_ossia_value(T{}.value), qname, id, parent};
     p->setDomain(State::Domain{});
     return p;
+  }
+  else if constexpr(widg.widget == avnd::widget_type::multi_slider)
+  {
+    std::vector<ossia::value> init;
+    return new Process::MultiSlider{init, qname, id, parent};
   }
   else if constexpr(widg.widget == avnd::widget_type::multi_slider_xy)
   {
