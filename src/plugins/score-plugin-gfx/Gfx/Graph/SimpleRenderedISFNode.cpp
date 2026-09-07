@@ -3,6 +3,8 @@
 #include <Gfx/Graph/RenderedISFSamplerUtils.hpp>
 #include <Gfx/Graph/SimpleRenderedISFNode.hpp>
 
+#include <set>
+
 #include <score/tools/Debug.hpp>
 
 #include <ossia/detail/algorithms.hpp>
@@ -132,9 +134,8 @@ void SimpleRenderedISFNode::updateInputSamplerFilter(
     {
       sampler_idx++;
       // Mirror updateInputTexture: a SamplableDepth port contributes a second
-      // (depth companion) sampler in initInputSamplers (Utils.cpp:1420-1432),
-      // so skip it too or every later port's filter edit lands on the wrong
-      // QRhiSampler.
+      // (depth companion) sampler in initInputSamplers, so skip it too or
+      // every later port's filter edit lands on the wrong QRhiSampler.
       if((p->flags & Flag::SamplableDepth) == Flag::SamplableDepth)
         sampler_idx++;
     }
@@ -256,8 +257,8 @@ void SimpleRenderedISFNode::initPass(
     // Multiview UBO binds right after ALL storage resources (SSBOs + images +
     // uniform_input UBOs). Reuse the next-free binding recorded by
     // collectGraphicsStorageResources — the exact slot isf_emit_multiview_ubo
-    // uses (isf.cpp:3773-3783). The old max over ssbos/images alone ignored
-    // uniform_input UBOs and collided the multiview binding with the last UBO.
+    // uses. A max over ssbos/images alone would ignore uniform_input UBOs and
+    // collide the multiview binding with the last UBO.
     const int mvBinding
         = m_storage.nextBinding >= 0 ? m_storage.nextBinding : m_firstStorageBinding;
 
@@ -307,7 +308,7 @@ void SimpleRenderedISFNode::initMRTPass(RenderList& renderer, QRhiResourceUpdate
   // render size. First non-zero explicit pair wins and every attachment of the
   // shared pass takes it, which is what the RAW_RASTER twin does
   // (RenderedRawRasterPipelineNode::initMRTPass). Without this the simple MRT
-  // path parsed WIDTH/HEIGHT and then silently allocated at renderSize.
+  // path would parse WIDTH/HEIGHT and then silently allocate at renderSize.
   // Expression forms ($-variables) are NOT resolved here -- that evaluator is a
   // member of the raw-raster renderer -- so a literal pair is required.
   for(const auto& out : outputs)
@@ -450,10 +451,9 @@ void SimpleRenderedISFNode::initMRTPass(RenderList& renderer, QRhiResourceUpdate
   auto extraRhiBindings = buildExtraBindings(m_storage);
   if(m_multiViewUBO)
   {
-    // Same slot as the codegen's multiview UBO (isf.cpp:3773-3783): the next
-    // free binding after ALL storage including uniform_input UBOs, recorded by
-    // collectGraphicsStorageResources. The old ssbos/images-only max ignored
-    // UBOs and collided the multiview binding — see initPass above.
+    // Same slot as the codegen's multiview UBO (isf_emit_multiview_ubo): the
+    // next free binding after ALL storage including uniform_input UBOs,
+    // recorded by collectGraphicsStorageResources — see initPass above.
     const int mvBinding
         = m_storage.nextBinding >= 0 ? m_storage.nextBinding : m_firstStorageBinding;
 
@@ -581,6 +581,49 @@ void SimpleRenderedISFNode::initState(RenderList& renderer, QRhiResourceUpdateBa
 
   m_audioSamplers = initAudioTextures(renderer, n.m_audio_textures);
 
+  // Pass-target samplers.
+  //
+  // The GLSL generator emits one `uniform sampler2D <target>` per distinct
+  // pass target, for EVERY renderer. initInputSamplers walks input PORTS only,
+  // so nothing on this path creates them, and two things break at once:
+  //
+  //   1. If the shader actually samples a target, the SPIR-V references a
+  //      descriptor the pipeline layout never declared. Vulkan validation
+  //      flags VUID-VkGraphicsPipelineCreateInfo-layout-07988 at pipeline
+  //      creation and VUID-vkCmdDraw-None-08114 on the draw, and the process
+  //      SEGVs inside the validation layer -- a shader takes the app down
+  //      instead of failing to load.
+  //   2. firstStorageBinding below counts only input + audio samplers, so any
+  //      storage resource is ALSO bound one slot short per pass target.
+  //
+  // Deleting the declarations instead is not an option: shaders reference a
+  // target in GLSL whose use the optimiser then strips from the SPIR-V, so
+  // they need the declaration to compile but no descriptor at runtime.
+  //
+  // A single non-persistent pass has no defined contents to sample -- no
+  // earlier pass, no frame history -- so bind the empty texture. That keeps
+  // the pipeline valid and the result deterministic instead of undefined.
+  {
+    std::set<std::string> output_names;
+    for(const auto& out : n.descriptor().outputs)
+      output_names.insert(out.name);
+    std::set<std::string> emitted;
+    for(const std::string& target : n.descriptor().pass_targets)
+    {
+      if(output_names.count(target))
+        continue;
+      if(!emitted.insert(target).second)
+        continue;
+      auto* sampler = rhi.newSampler(
+          QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
+          QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
+      sampler->setName("SimpleRenderedISFNode::pass_target_sampler");
+      SCORE_ASSERT(sampler->create());
+      m_inputSamplers.push_back(
+          {sampler, &renderer.emptyTexture(), &renderer.emptyTexture()});
+    }
+  }
+
   // Collect graphics-visible storage buffers and images declared in the
   // shader (storage_input with visibility=fragment/vertex/both, or
   // csf_image_input with non-compute visibility). Bindings start right
@@ -648,13 +691,13 @@ void SimpleRenderedISFNode::addOutputPass(RenderList& renderer, Edge& edge, QRhi
     // The existence test is the RT's own operator bool (texture OR
     // dummyColorTexture OR depthTexture), NOT `texture == nullptr`. A
     // depth-only shader goes through createDepthOnlyRenderTarget, which leaves
-    // `texture` null forever, so testing `texture` re-ran initMRTPass once per
-    // output edge: the second edge silently orphaned the first depth texture
-    // and render target (Vulkan reported them as unreleased at teardown, and
-    // VMA aborts on it), while runInitialPasses kept drawing into m_passes[0]
-    // -- the FIRST allocation -- and textureForOutput handed consumers the
-    // SECOND, which nothing had rendered into. Hence a black readback from a
-    // depth-only source the moment it feeds more than one edge.
+    // `texture` null forever, so testing `texture` would re-run initMRTPass
+    // once per output edge: the second edge orphans the first depth texture
+    // and render target (Vulkan reports them as unreleased at teardown, and
+    // VMA aborts on it), runInitialPasses keeps drawing into m_passes[0] --
+    // the FIRST allocation -- and textureForOutput hands consumers the SECOND,
+    // which nothing rendered into: a black readback from a depth-only source
+    // the moment it feeds more than one edge.
     if(!m_mrtRenderTarget)
     {
       initMRTPass(renderer, res);
@@ -952,9 +995,8 @@ void SimpleRenderedISFNode::runInitialPasses(
   SCORE_ASSERT(pass.p.srb);
 
   // The depth clear has to follow the shader's DECLARED compare. A fixed 0.0
-  // is the reverse-Z far plane and admits nothing under `less`, so a
-  // DEPTH_COMPARE: less shader had every fragment fail the depth test and drew
-  // nothing at all.
+  // is the reverse-Z far plane and admits nothing under `less`, so under it a
+  // DEPTH_COMPARE: less shader has every fragment fail the depth test.
   cb.beginPass(
       pass.renderTarget.renderTarget, Qt::transparent,
       {depthClearForState(n.descriptor().default_state), 0}, updateBatch);
