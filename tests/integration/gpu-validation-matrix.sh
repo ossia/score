@@ -216,6 +216,15 @@ for label in $CELLS; do
     fi
   fi
 
+  # Banner probe: ctest only prints a test's stdout when it FAILS, so a clean
+  # cell log contains no device banner at all. Run one test verbosely, purely
+  # to capture which device this cell really got. Cheap, and it is the only
+  # check that works on every platform -- the vulkaninfo/glxinfo pre-flight
+  # above exists only on Linux.
+  # shellcheck disable=SC2086
+  env $env_str $( [ "$api" = vulkan ] && echo $VKVAL ) SCORE_TEST_API="$api" \
+    ${TMO:+$TMO 600} ctest -R "$SCOPE" -E "$EXCL" -I 1,1 -V > "$log.banner" 2>&1
+
   # shellcheck disable=SC2086
   env $env_str $( [ "$api" = vulkan ] && echo $VKVAL ) SCORE_TEST_API="$api" \
     ${TMO:+$TMO $CELL_TIMEOUT} ctest -R "$SCOPE" -E "$EXCL" > "$log" 2>&1
@@ -223,7 +232,8 @@ for label in $CELLS; do
 
   ran=$(grep -cE "\.\.\.\.* +(Passed|\*\*\*Failed|\*\*\*Exception|\*\*\*Skipped)" "$log" | tr -d " ")
   # Authoritative device check, every platform: what did score actually get?
-  banner=$(device_from_log "$log"); rhi_backend=$(backend_from_log "$log")
+  banner=$(device_from_log "$log.banner"); rhi_backend=$(backend_from_log "$log.banner")
+  [ -z "$banner" ] && { banner=$(device_from_log "$log"); rhi_backend=$(backend_from_log "$log"); }
   if [ -n "$banner" ]; then dev="${banner#*device=\"}"; dev="${dev%\"}"; fi
   nullbe=""
   if [ -n "$rhi_backend" ] && echo "$rhi_backend" | grep -qi "null"; then
