@@ -98,39 +98,31 @@ int64_t glslTypeSizeBytes(std::string_view type, const isf::descriptor& d) noexc
   if(type == "mat3") return 48;
   if(type == "mat4") return 64;
 
-  // User-defined struct from the descriptor's TYPES section. Field sizes are
-  // summed without per-field 16-byte padding, so the result matches the GLSL
-  // std430 size of the emitted struct for scalar/vector-only layouts -- what
-  // producers compare against when binding a struct-typed ATTRIBUTE. The AUXILIARY
-  // path uses std430LayoutSize, which over-pads. For mixed-alignment layouts a
-  // producer should set element_byte_size, which the runtime trusts over this
-  // estimate.
+  // User-defined struct from the descriptor's TYPES section.
+  //
+  // This used to sum the field sizes and stop there, on the stated grounds that
+  // the sum "matches the GLSL std430 size for scalar/vector-only layouts". It
+  // does not, and the exception is not exotic: std430 aligns each field to its
+  // own alignment and then rounds the STRUCT size up to its largest member
+  // alignment (OpenGL 4.6 core, 7.6.2.2 rule 9). `struct { vec4 a; float b; }`
+  // sums to 20 and lays out as 32.
+  //
+  // That number is not advisory -- `std430ArrayStride` feeds it to the CSF SoA
+  // output buffer sizing in RenderedCSFNode, so an under-estimate under-
+  // allocates the buffer and every element after the first is read at the wrong
+  // offset. `element_byte_size` exists as an override, but a producer should not
+  // have to know the estimator is wrong in order to work around it.
+  //
+  // SSBO.hpp already implements the real rules -- recursively, including nested
+  // structs and array strides -- so use them instead of a second, worse copy.
+  // For the only TYPES struct in tree (PerDraw: mat4, mat4, 4x uint) both agree
+  // on 144, so this changes no existing layout.
   for(const auto& tdef : d.types)
   {
     if(tdef.name != type)
       continue;
-    int64_t sz = 0;
-    for(const auto& f : tdef.layout)
-    {
-      auto fty = f.type;
-      int64_t count = 1;
-      auto lbr = fty.find('[');
-      if(lbr != std::string::npos)
-      {
-        auto rbr = fty.find(']', lbr + 1);
-        if(rbr != std::string::npos && rbr > lbr + 1)
-        {
-          auto inner = fty.substr(lbr + 1, rbr - lbr - 1);
-          if(!inner.empty())
-          {
-            try { count = std::stoll(inner); } catch(...) { count = 1; }
-          }
-        }
-        fty = fty.substr(0, lbr);
-      }
-      sz += glslTypeSizeBytes(fty) * count;
-    }
-    return sz > 0 ? sz : 16;
+    const LayoutResult layout = calculateStructLayout(tdef.layout, d.types);
+    return layout.isValid() ? (int64_t)layout.size : 16;
   }
 
   // Unknown — match the lenient default of the no-descriptor overload.
