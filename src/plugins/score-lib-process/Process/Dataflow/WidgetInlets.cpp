@@ -154,7 +154,12 @@ void ComboBox::setAlternatives(std::vector<std::pair<QString, ossia::value>> val
   std::vector<ossia::value> vals;
   for(auto& v : alternatives)
     vals.push_back(v.second);
-  setDomain(State::Domain{ossia::make_domain(vals)});
+  // Not setDomain(): what changed is the item list, and alternativesChanged
+  // below says exactly that. Announcing a domain change instead makes the
+  // effect item rebuild every control of the process, which kills whatever
+  // edit is in flight -- and for a combo box refilled from the running score,
+  // that includes the control the user is dragging to refill it.
+  setDomainWithoutNotifying(State::Domain{ossia::make_domain(vals)});
 
   // Keep the current value if it is still in the list; otherwise fall back to
   // the init value when available. A value absent from the list is left
