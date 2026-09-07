@@ -18,10 +18,10 @@ class BuffersToGeometry
 {
 public:
   // "(v1)", not plain "Buffers to geometry": BuffersToGeometry2 in
-  // BufferToGeometry2.hpp carries the same name, and a document holding one of
-  // each showed two identical headers. Matches the c_name pair
-  // (buffers_to_geometry / buffers_to_geometry_v2). The uuid is untouched, so
-  // existing documents load exactly as before.
+  // BufferToGeometry2.hpp carries the same name, so a document holding one of
+  // each would show two identical headers. Matches the c_name pair
+  // (buffers_to_geometry / buffers_to_geometry_v2); the uuid is unchanged, so
+  // existing documents still load.
   halp_meta(name, "Buffers to geometry (v1)")
   halp_meta(category, "Visuals/Utilities")
   halp_meta(c_name, "buffers_to_geometry")
@@ -112,6 +112,7 @@ public:
   IndexFormat m_prevIndexFormat{};
   int32_t m_prevIndexOffset{};
   int32_t m_prevVertices{};
+  int32_t m_prevInstances{};
   PrimitiveTopology m_prevTopology{};
   CullMode m_prevCullMode{};
   FrontFace m_prevFrontFace{};

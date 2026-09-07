@@ -1,5 +1,5 @@
 // =============================================================================
-// P1-10 -- THE "INSTANCES" SPINBOX ON BUFFERS-TO-GEOMETRY DRIVES THE DRAWN
+// THE "INSTANCES" SPINBOX ON BUFFERS-TO-GEOMETRY DRIVES THE DRAWN
 // COUNT: the LIVE-RENDER half of tests/threedim/BufferToGeometryTest.cpp.
 //
 // (The CPU test pins the descriptor: `mesh.instances` is the Instances
@@ -7,84 +7,58 @@
 // Threedim::BuffersToGeometry2 ticked per frame, its halp geometry converted
 // through the REAL avnd conversion layer, published as an
 // ossia::geometry_spec to a REAL raw-raster consumer whose CustomMesh issues
-// cb.draw(g.vertices, g.instances) (CustomMesh.cpp:724) on a real backend,
+// cb.draw(g.vertices, g.instances) (CustomMesh.cpp:852) on a real backend,
 // read back as pixels -- with the reload count taken from the engine's own
 // [BUFTRACE] "CustomMesh::reload" trace.)
 //
-// Intended registration (tests/gfx/CMakeLists.txt), mirroring the
-// test_gfx_instancer_shrink block -- BufferToGeometry2.cpp is
-// hidden-visibility inside score_plugin_threedim, so it is compiled into the
-// test target (exactly as tests/threedim/CMakeLists.txt:327-333 does for the
-// CPU test):
-//
-//   if(TARGET score_plugin_threedim)
-//     score_plugin_hidden_sources(_b2g_instances_hidden
-//         "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim/BufferToGeometry2.cpp")
-//     score_add_test(test_gfx_buffer_to_geometry_instances
-//       SOURCES GfxBufferToGeometryInstances.cpp ${_b2g_instances_hidden}
-//       GUI
-//       PLUGINS score_plugin_gfx score_plugin_scenario score_lib_process
-//       LIBS test_gfx_engine_glue)
-//     target_compile_definitions(test_gfx_buffer_to_geometry_instances PRIVATE
-//       GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
-//     target_include_directories(test_gfx_buffer_to_geometry_instances SYSTEM PRIVATE
-//       "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
-//       "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
-//       "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
-//       "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
-//       $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
-//       $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
-//   endif()
+// BufferToGeometry2.cpp is hidden-visibility inside score_plugin_threedim, so
+// it is compiled into the test target (tests/gfx/CMakeLists.txt:632).
 //
 // WHICH SIBLING. BuffersToGeometry2 (c_name buffers_to_geometry_v2) is
 // driven: v1 (BufferToGeometry.cpp) carries halp_flag(deprecated) and every
 // new document instantiates v2. On the axis under test the two are
-// line-for-line identical -- same fingerprint block with the same omission
-// (v1 BufferToGeometry.cpp:118-129 / v2 BufferToGeometry2.cpp:84-93), same
-// verbatim write `mesh.instances = inputs.instances.value` (v1 :239 /
-// v2 :204), same `out.dirty_mesh = meshChanged` publish (v1 :320 / v2 :290)
+// line-for-line identical -- same fingerprint block (v1
+// BufferToGeometry.cpp:117-131 / v2 BufferToGeometry2.cpp:84-97), same
+// verbatim write `mesh.instances = inputs.instances.value` (v1 :250 /
+// v2 :216), same `out.dirty_mesh = meshChanged` publish (v1 :331 / v2 :312)
 // -- so every finding here reads onto v1 unchanged.
 //
 // ENGINE SURFACE DRIVEN (all verified in source, this worktree):
 //  * BuffersToGeometry2::operator()() -- the real change fingerprint
-//    (BufferToGeometry2.cpp:84-110: config compare 84-93, per-attribute
-//    compare 96-110 which compares ALL 8 slots whether enabled or not), the
-//    no-change early return (:131-148), the descriptor rebuild with
-//    `mesh.instances = inputs.instances.value` (:204) and
-//    `out.dirty_mesh = meshChanged` (:290).
+//    (BufferToGeometry2.cpp:84-113: config compare 84-97, per-attribute
+//    compare 99-113 which compares ALL 8 slots whether enabled or not), the
+//    no-change early return (:143-158), the descriptor rebuild with
+//    `mesh.instances = inputs.instances.value` (:216) and
+//    `out.dirty_mesh = meshChanged` (:312).
 //  * The avnd geometry conversion the shipped Crousti wrapper runs per frame:
 //    oscr::load_geometry / oscr::update_geometry
 //    (3rdparty/avendish/include/avnd/binding/ossia/geometry.hpp:356 / :756;
 //    :765-767 is the `geom.instances != ctrl.instances -> need_reload`
 //    check). The harness renderer mirrors geometry_outputs_storage::upload
-//    (score-plugin-avnd/Crousti/GpuUtils.hpp:1636-1692) verbatim: dirty_mesh
-//    -> reload_mesh builds a NEW ossia::mesh_list (GpuUtils.hpp:1614-1633),
+//    (score-plugin-avnd/Crousti/GpuUtils.hpp:1652) verbatim: dirty_mesh
+//    -> reload_mesh builds a NEW ossia::mesh_list (GpuUtils.hpp:1629-1649),
 //    else update_geometry, need_reload -> reload_mesh.
-//  * RenderList::acquireMesh (RenderList.cpp:684). SPEC NOTE, deviating from
-//    the P1-10 sketch with reason: the sketch says the control "bumps
-//    mesh_list::dirty_index" (PATH 1a, RenderList.cpp:715-733). For THIS
-//    node the production reload channel is dirty_mesh -> a FRESH mesh_list
-//    shared_ptr every rebuild (GpuUtils.hpp:1616), which acquireMesh picks up
-//    as a cache re-key, PATH 2 (RenderList.cpp:762-800); dirty_index of the
-//    fresh list is not what triggers it. Both paths funnel into
+//  * RenderList::acquireMesh (RenderList.cpp:703). The reload channel for
+//    THIS node is dirty_mesh -> a FRESH mesh_list shared_ptr every rebuild
+//    (GpuUtils.hpp:1631), which acquireMesh picks up as a cache re-key,
+//    PATH 2 (RenderList.cpp:793); the dirty_index re-key (PATH 1a,
+//    RenderList.cpp:736) is not what triggers it. Both paths funnel into
 //    CustomMesh::reload -- the observable counted here -- so the "exactly one
 //    reload per change" contract is asserted where the code really lives.
 //  * CustomMesh::reload / draw -- vertex layout from the published bindings
-//    and per_instance classification (CustomMesh.cpp:527-560), and the
-//    non-indexed draw `cb.draw(g.vertices, g.instances)` (CustomMesh.cpp:724).
+//    and per_instance classification (CustomMesh.cpp:618-640), and the
+//    non-indexed draw `cb.draw(g.vertices, g.instances)` (CustomMesh.cpp:852).
 //
-// RELOAD COUNTING (what gates BUFTRACE, verified): the "CustomMesh::reload"
-// line (CustomMesh.cpp:528-532) is a plain qDebug behind the BUFTRACE()
-// macro (CustomMesh.hpp:20), which is RUNTIME-gated only:
-// buftrace_enabled() (CustomMesh.cpp:15-22) returns true unless the
-// SCORE_BUFTRACE env var is set to a string starting with '0'. Nothing
-// compiles it out in release (no QT_NO_DEBUG_OUTPUT anywhere in the build),
-// so the line is emitted unconditionally at compile time and by default at
-// runtime. The test still forces SCORE_BUFTRACE=1 and re-enables the default
-// Qt logging category defensively, then captures fd 2 with the dup2 pattern
-// from tests/gfx/GfxEdgeConsumeLatch.cpp and counts occurrences. Unix-only,
-// like the precedent; on other platforms the reload-count checks are
-// skipped while every pixel assertion still runs.
+// RELOAD COUNTING: the "CustomMesh::reload" line (CustomMesh.cpp:604) is a
+// plain qDebug behind the BUFTRACE() macro (CustomMesh.hpp:20), gated at
+// runtime only: buftrace_enabled() (CustomMesh.cpp:18) returns true unless
+// the SCORE_BUFTRACE env var is set to a string starting with '0'. Nothing
+// compiles it out in release (no QT_NO_DEBUG_OUTPUT anywhere in the build).
+// The test still forces SCORE_BUFTRACE=1 and re-enables the default Qt
+// logging category, then captures fd 2 with the dup2 pattern from
+// tests/gfx/GfxEdgeConsumeLatch.cpp and counts occurrences. Unix-only, like
+// the precedent; on other platforms the reload-count checks are skipped
+// while every pixel assertion still runs.
 //
 // SCENARIO. One session, one create(), no graph rebuild. The node gets two
 // test-owned QRhiBuffers: buffer 0 = a 6-vertex float4 quad 2 px wide and
@@ -96,47 +70,31 @@
 // read from the translation buffer), B=i (gl_InstanceIndex of the draw).
 //
 //   Phase A: Instances = 4 (initial build)  -> 4 disjoint strips.
-//   Phase B: Instances = 8 PLUS one fingerprint nudge -> 8 strips, and
-//            exactly ONE CustomMesh::reload in the phase window.
-//   Phase C: Instances 8 -> 2, NOTHING else  -> [ENGINE GAP, pinned]: the
-//            frame FREEZES at 8 strips, ZERO reloads, byte-identical image.
-//   Phase D: the same nudge again (Instances still 2) -> the stale value
-//            flushes: 2 strips, exactly one reload.
+//   Phase B: Instances = 8, NOTHING else -> 8 strips, and exactly ONE
+//            CustomMesh::reload in the phase window.
+//   Phase C: Instances 8 -> 2, NOTHING else  -> 2 strips, one reload.
+//   Phase D: a nudge with Instances still 2 -> unchanged, one reload.
 //
-// THE GAP, stated plainly (found writing this test, pinned GREEN as current
-// behavior): `instances` is the ONE geometry control missing from the
-// change fingerprint. BufferToGeometry2.cpp:84-93 compares vertices /
-// topology / cull / front-face / index state, :96-110 the attribute slots --
-// `inputs.instances.value` appears in neither and no m_prevInstances member
-// exists (BufferToGeometry2.hpp:100-110). An Instances-only edit therefore
-// takes the early return (:131-148): `mesh.instances` keeps its old value,
-// dirty_mesh stays false, and the downstream converter's own
-// `geom.instances != ctrl.instances` check (avnd geometry.hpp:765-767)
-// never sees the new number because the node never wrote it. The drawn
-// count freezes until ANY fingerprinted control changes (phase D). The
-// product fix is one line each in v1/v2: add an m_prevInstances compare to
-// the :84-93 block. When that lands, phase C's three gap CHECKs go red --
-// flip them to the fixed expectation (2 strips, one reload) and delete the
-// nudge from phase B.
+// `instances` is part of the change fingerprint (m_prevInstances, compared in
+// the :84-97 block), so an Instances-only edit republishes the descriptor on
+// its own and phases B and C need no doorbell.
 //
-// The "nudge" is deliberately the most inert fingerprint hit that exists:
-// bumping `Attr7 offset` on a DISABLED attribute slot (buffer = -1). The
-// :96-110 compare fires on all 8 slots regardless of enabled, while the
+// The phase-D "nudge" is deliberately the most inert fingerprint hit that
+// exists: bumping `Attr7 offset` on a DISABLED attribute slot (buffer = -1).
+// The :99-113 compare fires on all 8 slots regardless of enabled, while the
 // rebuild skips disabled slots entirely -- so the republished descriptor is
-// byte-identical except for `instances`. Phase B is therefore still an
-// honest "the Instances value drives the drawn count" probe; the nudge is
-// only the doorbell the current fingerprint requires.
+// byte-identical to the one before it.
 //
-// NEGATIVE CONTROL (product-side, one line, for the orchestrator; the
-// spec's "stop bumping dirty_index" translated to this node's real dirty
+// NEGATIVE CONTROL (product-side, one line, for the orchestrator; "stop
+// bumping dirty_index" translated to this node's real dirty
 // channel): in src/plugins/score-plugin-threedim/Threedim/
-// BufferToGeometry2.cpp:290 change
+// BufferToGeometry2.cpp:312 change
 //   `out.dirty_mesh = meshChanged;`  to  `out.dirty_mesh = false;`
 // -- no rebuild is ever announced, the converter never reloads, the drawn
 // count freezes at the initial 4 forever: phase B's litRuns == 8 and
 // reloadsB == 1 go red, phase D's litRuns == 2 and reloadsD == 1 go red.
 // (An acquireMesh-level control -- neutering the PATH 2 re-key at
-// RenderList.cpp:762-800 -- fires the same assertions from the consumer
+// RenderList.cpp:793 -- fires the same assertions from the consumer
 // side, but touches a path shared by every geometry test; the one above is
 // scoped to the node this test is about.)
 //
@@ -377,9 +335,9 @@ struct B2GInstancesRenderer final : score::gfx::NodeRenderer
   }
 
   // The most inert fingerprint hit that exists: Attr7 is DISABLED
-  // (buffer = -1), but the compare loop (BufferToGeometry2.cpp:96-110) fires
+  // (buffer = -1), but the compare loop (BufferToGeometry2.cpp:99-113) fires
   // on all 8 slots regardless of enabled, while the rebuild skips disabled
-  // slots -- the republished descriptor differs ONLY in `instances`.
+  // slots -- so the republished descriptor is otherwise unchanged.
   void bumpNudge() { self.b2g.inputs.attribute_offset_7.value = ++m_nudge; }
 
   void configurePhase(int phase)
@@ -390,21 +348,20 @@ struct B2GInstancesRenderer final : score::gfx::NodeRenderer
       case 1: // initial build
         in.instances.value = kCountA;
         break;
-      case 2: // grow, with the fingerprint doorbell
+      case 2: // grow, Instances ONLY
         in.instances.value = kCountB;
-        bumpNudge();
         break;
-      case 3: // shrink, Instances ONLY -> the pinned gap: nothing may move
+      case 3: // shrink, Instances ONLY
         in.instances.value = kCountCD;
         break;
-      case 4: // same value, doorbell only -> the stale count flushes
+      case 4: // same value, nudge only -> nothing may move
         bumpNudge();
         break;
     }
   }
 
   // Mirrors oscr::geometry_outputs_storage::reload_mesh
-  // (GpuUtils.hpp:1614-1633): every rebuild publishes a FRESH mesh_list --
+  // (GpuUtils.hpp:1629-1649): every rebuild publishes a FRESH mesh_list --
   // the identity change acquireMesh's PATH 2 re-keys on.
   void reloadSpec()
   {
@@ -429,7 +386,7 @@ struct B2GInstancesRenderer final : score::gfx::NodeRenderer
     self.cpuInstancesAfterTick = self.b2g.outputs.geometry.mesh.instances;
 
     // The conversion the wrapper runs per frame
-    // (geometry_outputs_storage::upload, GpuUtils.hpp:1636-1692).
+    // (geometry_outputs_storage::upload, GpuUtils.hpp:1652).
     auto& ctrl = self.b2g.outputs.geometry;
     if(ctrl.dirty_mesh)
     {
@@ -475,7 +432,7 @@ struct B2GInstancesRenderer final : score::gfx::NodeRenderer
   void release(score::gfx::RenderList&) override
   {
     // CustomMesh borrows the handles unowned (update_vbo(gpu),
-    // CustomMesh.cpp:213-255), so the harness frees them.
+    // CustomMesh.cpp:256), so the harness frees them.
     delete m_posBuf;
     m_posBuf = nullptr;
     delete m_transBuf;
@@ -621,17 +578,17 @@ Outcome run_it(score::gfx::GraphicsApi api)
     const auto imgA = runPhase(out.a, 1);
     samplePhase(out.a, imgA);
 
-    // Phase B: Instances = 8 + the fingerprint nudge.
+    // Phase B: Instances = 8.
     const auto imgB = runPhase(out.b, 2);
     samplePhase(out.b, imgB);
 
-    // Phase C: Instances -> 2, NOTHING else. Gap: must currently freeze.
+    // Phase C: Instances -> 2, NOTHING else.
     const auto imgC = runPhase(out.c, 3);
     samplePhase(out.c, imgC);
     out.freezeIdentical
         = out.b.valid && out.c.valid && imgB.bytes == imgC.bytes;
 
-    // Phase D: nudge only -> the stale value flushes to 2.
+    // Phase D: nudge only, Instances still 2.
     const auto imgD = runPhase(out.d, 4);
     samplePhase(out.d, imgD);
     out.flushDiffers = out.c.valid && out.d.valid && imgC.bytes != imgD.bytes;
@@ -701,21 +658,15 @@ TEST_CASE(
   checkStrips(r.b, kCountB, "B(8)");
   CHECK(r.b.cpuInstances == kCountB);
 
-  // ---- Phase C: 8 -> 2, Instances ONLY. ENGINE GAP, pinned as current
-  // behavior: the fingerprint (BufferToGeometry2.cpp:84-110) omits
-  // `instances`, so the early return (:131-148) ships the STALE descriptor --
-  // the drawn count freezes at 8 and nothing reloads. When the product adds
-  // an m_prevInstances compare, these three CHECKs (and freezeIdentical) go
-  // red: flip them to count 2 / one reload, and drop bumpNudge() from
-  // configurePhase(2). ----
-  checkStrips(r.c, kCountB, "C(2 requested, frozen at 8 -- the gap)");
-  CHECK(r.c.cpuInstances == kCountB); // mesh.instances never rewritten
-  CHECK(r.freezeIdentical);           // byte-identical frame: a true freeze
+  // ---- Phase C: 8 -> 2, Instances ONLY. ----
+  checkStrips(r.c, kCountCD, "C(2)");
+  CHECK(r.c.cpuInstances == kCountCD);
+  CHECK_FALSE(r.freezeIdentical); // the frame MUST move now
 
-  // ---- Phase D: any fingerprint hit flushes the stale value -> 2. ----
+  // ---- Phase D: same value plus a nudge -> nothing more to flush. ----
   checkStrips(r.d, kCountCD, "D(2)");
   CHECK(r.d.cpuInstances == kCountCD);
-  CHECK(r.flushDiffers);
+  CHECK_FALSE(r.flushDiffers); // C already applied it, so D is identical
 
 #if defined(__unix__)
   // ---- The reload contract, from the engine's own BUFTRACE channel:
@@ -725,8 +676,8 @@ TEST_CASE(
                    << " C=" << r.c.reloads << " D=" << r.d.reloads);
   CHECK(r.a.reloads >= 1); // initial acquireMesh PATH 3 (fresh mesh)
   CHECK(r.b.reloads == 1); // the 4 -> 8 change: one reload, not per-frame
-  CHECK(r.c.reloads == 0); // the gap: no dirty channel fired at all
-  CHECK(r.d.reloads == 1); // the flush: again exactly one
+  CHECK(r.c.reloads == 1); // the 8 -> 2 change fires on its own
+  CHECK(r.d.reloads == 1); // the nudge still costs exactly one
 #else
   WARN("reload counting skipped: stderr capture via dup2 is unix-only "
        "(GfxEdgeConsumeLatch.cpp precedent); pixel assertions above still "
