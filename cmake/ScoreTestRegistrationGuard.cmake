@@ -1,11 +1,10 @@
-# ossia score — the suite-registration guard.
+# ossia score -- the suite-registration guard.
 #
-# A rework of tests/integration/CMakeLists.txt once truncated the file and took
-# eleven ctest registrations with it that had nothing to do with the rework.
-# Every harness and every source stayed in the tree, so the suite kept LOOKING
-# complete while eleven tests no longer ran, and it took three separate audits
-# to find them all. Nothing in the build could notice, because nothing compared
-# what tests/ registers against what tests/ contains.
+# A rework of a tests/ CMakeLists can truncate the file and take ctest
+# registrations with it that had nothing to do with the rework. Every harness
+# and every source stays in the tree, so the suite keeps LOOKING complete while
+# those tests no longer run, and nothing in the build notices, because nothing
+# compares what tests/ registers against what tests/ contains.
 #
 # This does that comparison and stops the configure when they disagree.
 #
@@ -18,7 +17,7 @@
 #     exits 0) while it aborts on a failed configure, so a FATAL_ERROR here is
 #     strictly louder than any test could be;
 #   * a test that checks whether tests are registered is itself a registration,
-#     and a rewrite that drops registrations can drop that one too — which is
+#     and a rewrite that drops registrations can drop that one too -- which is
 #     the exact failure being guarded.
 #
 # It is called from the top-level CMakeLists.txt rather than from
@@ -57,6 +56,12 @@ set(SCORE_TEST_GUARD_ALLOWED_HARNESSES
   # separate piece of work, not a regression.
   integration/scene-js-sweep.sh
   integration/video-decoder-sweep.sh
+  # The GPU validation matrix. It cannot be a ctest entry: it RUNS ctest, once
+  # per (backend, driver) cell, with a different driver-selection environment
+  # each time -- and in its default mode it also BUILDS each test before
+  # running it. A ctest entry that re-enters ctest and drives ninja is not a
+  # test, it is a harness. Meant to be started by hand on an idle machine.
+  integration/gpu-validation-matrix.sh
   # The FATE-corpus decode harness (video/corpus-decode-validation). fetch- and
   # generate- pull down or synthesize a multi-gigabyte corpus, and run-corpus /
   # run-hwdec drive it against a built score by hand; none of them can be a ctest
@@ -65,7 +70,7 @@ set(SCORE_TEST_GUARD_ALLOWED_HARNESSES
   corpus/generate-corpus.sh
   corpus/run-corpus.sh
   corpus/run-hwdec.sh
-  # The score-document corpus harness (P1-15). The corpus is the user's own
+  # The score-document corpus harness. The corpus is the user's own
   # working files, lives outside the repository (SCORE_CORPUS_DIR, default
   # $HOME/ossia/score-corpus) and must never be committed; and a document that
   # crashes or hangs has to be a report LINE, which means one process per
@@ -162,11 +167,10 @@ function(score_check_test_registration)
   # CONFIGURE_DEPENDS so that adding a file re-runs the configure by itself.
   # Deleting a registration always edits a CMakeLists and reconfigures anyway;
   # adding a source and never wiring it up touches nothing the buildsystem
-  # watches, and that is how the two unregistered harnesses below got in.
+  # watches.
   file(GLOB_RECURSE _sources CONFIGURE_DEPENDS RELATIVE "${_root}" "${_root}/*.cpp")
   file(GLOB_RECURSE _harnesses CONFIGURE_DEPENDS RELATIVE "${_root}" "${_root}/*.sh")
-  # .py too: assert-content.py sat unwired and unnoticed for a whole campaign
-  # because this glob only looked at .cpp and .sh.
+  # .py too: a Python harness is as easy to leave unwired as a shell one.
   file(GLOB_RECURSE _pysources CONFIGURE_DEPENDS RELATIVE "${_root}" "${_root}/*.py")
   list(APPEND _harnesses ${_pysources})
 
@@ -208,12 +212,12 @@ function(score_check_test_registration)
     endif()
     set(_has_test 0)
     # The registry every score_add_*_test() wrapper appends its target to. It
-    # records the association instead of inferring it, which the previous
-    # substring match got wrong in the one direction that matters: a target
-    # whose name is a PREFIX of a registered test name was reported as
-    # registered. An orphan `test_gfx_capture` was covered by an unrelated
-    # `test_gfx_capture_sync`, so the guard written to catch silent test loss
-    # could itself lose a test silently. Equality here, association there.
+    # records the association instead of inferring it: a substring match gets
+    # this wrong in the one direction that matters, reporting a target whose
+    # name is a PREFIX of a registered test name (an orphan `test_gfx_capture`
+    # covered by an unrelated `test_gfx_capture_sync`) as registered, so the
+    # guard written to catch silent test loss could itself lose a test
+    # silently. Equality here, association there.
     if("${_target}" IN_LIST _target_registry)
       set(_has_test 1)
     endif()
