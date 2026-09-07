@@ -190,8 +190,8 @@ QRhiTexture* RenderedRawRasterPipelineNode::textureForOutput(const Port& output)
 
       // CUBEMAP + MULTIVIEW shim: the public handle is the CubeMap,
       // not the shadow TextureArray that we actually render into.
-      // Consumers bind this as samplerCube without knowing about the
-      // array-then-copy dance happening under the hood.
+      // Consumers bind this as samplerCube; the array-then-copy step is
+      // internal.
       if(colorIdx == m_cubeCopyOutputIdx && m_cubeCopyCube)
         return m_cubeCopyCube;
 
@@ -228,10 +228,10 @@ std::vector<Sampler> RenderedRawRasterPipelineNode::allSamplers() const noexcept
 }
 
 // Diagnostic escape hatch, mirroring SCORE_GFX_NO_GPU_INDIRECT: set
-// SCORE_GFX_NO_AUX_PLACEHOLDER_ZERO=1 to restore the pre-fix behaviour where an
-// unbound AUXILIARY placeholder was created and never written. It exists so the
-// crash this fix addresses can be A/B'd on the machine that reproduces it
-// without a second build; nothing in score sets it.
+// SCORE_GFX_NO_AUX_PLACEHOLDER_ZERO=1 to leave an unbound AUXILIARY placeholder
+// created and never written. It exists so the resulting crash can be A/B'd on
+// the machine that reproduces it without a second build; nothing in score sets
+// it.
 static bool auxPlaceholderZeroFillDisabled() noexcept
 {
   static const bool off
@@ -257,7 +257,7 @@ static void traceAuxResolution(
 // SCORE_GFX_TRACE_AUX_PLACEHOLDER=1 logs every producerless AUXILIARY the node
 // had to invent a buffer for. It is the positive control for the knob above: a
 // run that prints no lines never allocated a placeholder, so toggling the
-// zero-fill in that run proved nothing.
+// zero-fill in that run proves nothing.
 static void traceAuxPlaceholder(
     const std::string& name, int64_t size, bool uniform, bool zeroed) noexcept
 {
@@ -344,9 +344,7 @@ void RenderedRawRasterPipelineNode::initPass(
         else if(!auxPlaceholderZeroFillDisabled())
           // Zero-fill. Vulkan does NOT initialise VkBuffer memory: a placeholder
           // allocated on a RenderList rebuild lands on whatever the previous
-          // owner of that suballocation left behind (measured on an RTX 4090:
-          // a freshly created, never-uploaded 256-byte Dynamic UBO reads back
-          // the byte pattern of a UBO freed earlier in the same process).
+          // owner of that suballocation left behind.
           // When the aux has no producer in the user's graph this placeholder
           // IS the buffer the shader reads, and shaders read it as a SENTINEL:
           // classic_pbr_openpbr gates its clustered-lighting and volumetric
@@ -356,8 +354,7 @@ void RenderedRawRasterPipelineNode::initPass(
           // placeholder into a multi-gigabyte out-of-bounds read. Same
           // Vulkan-doesn't-zero-VkBuffers reasoning, and the same helper, as
           // the INPUTS-side placeholders in
-          // IsfBindingsBuilder::ensureStorageResources -- that fix only ever
-          // covered the INPUTS storage/uniform path, never top-level AUXILIARY.
+          // IsfBindingsBuilder::ensureStorageResources.
           RhiClearBuffer::clearBuffer(rhi, res, dummy, 0, (quint32)dummySize);
         traceAuxPlaceholder(
             aux.name, dummySize, aux.is_uniform, !auxPlaceholderZeroFillDisabled());
@@ -516,8 +513,17 @@ void RenderedRawRasterPipelineNode::initPass(
       premulAlphaBlend.opAlpha = mat.op_alpha;
       ps->setTargetBlends({premulAlphaBlend});
 
-      ps->setDepthTest(true);
-      ps->setDepthWrite(true);
+      // Depth only when this target actually has a depth attachment: Metal's
+      // API validation aborts on a depth-enabled draw with a nil
+      // depthAttachment (the modern branch above gets this from
+      // applyPipelineState's depthAvailable; this legacy branch has no such
+      // call, so ask directly).
+      const bool depthAvailable
+          = (renderTarget.depthTexture != nullptr)
+            || (renderTarget.depthRenderBuffer != nullptr)
+            || (renderTarget.msDepthTexture != nullptr);
+      ps->setDepthTest(depthAvailable);
+      ps->setDepthWrite(depthAvailable);
       // Reverse-Z project rule.
       ps->setDepthOp(QRhiGraphicsPipeline::Greater);
     }
@@ -525,11 +531,10 @@ void RenderedRawRasterPipelineNode::initPass(
     // The material 'mode' control seeds the topology, but an EXPLICITLY
     // declared PIPELINE_STATE TOPOLOGY wins -- same precedence rule as
     // blend ("applyPipelineState only overrides blend when BLEND was
-    // explicitly declared"). Before this, the unconditional switch below ran
-    // AFTER applyPipelineState and silently clobbered every declared
-    // TOPOLOGY (measured: a RAW_RASTER shader with
-    // PIPELINE_STATE {TOPOLOGY: points} still drew triangles --
-    // tests/gfx/GfxPointCloudCount.cpp).
+    // explicitly declared"). Running the switch below unconditionally would
+    // clobber every declared TOPOLOGY -- a RAW_RASTER shader with
+    // PIPELINE_STATE {TOPOLOGY: points} would draw triangles
+    // (tests/gfx/GfxPointCloudCount.cpp).
     if(!desc.default_state.topology.has_value())
       switch(mat.mode)
     {
@@ -629,7 +634,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
   m_mipRTs.clear();
   m_mipCount = 0;
 
-  // PerLayer resources. Both paths now keep their per-layer render targets in
+  // PerLayer resources. Both paths keep their per-layer render targets in
   // m_mipRTs (cleared above); the depth path's entries alias the OUTPUT depth
   // array through setDepthLayer and own no depth texture of their own, so
   // entry.depth is null for them. Only the shared placeholder colour is ours.
@@ -776,7 +781,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     // ... but only while multiview actually amplifies anything. Where the view
     // index has been lowered to PASSINDEX there is no amplification left, and
     // the explicit per-face loop is the ONLY thing that writes the other five
-    // faces. Disabling it there is what left five of six faces unwritten.
+    // faces, so it is kept there.
     const bool mvLowered = viewIndexNeedsPassIndexFallback(
         renderer.state.api, renderer.state.version,
         n.descriptor().multiview_count);
@@ -803,8 +808,8 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     // Promote such a node to the explicit loop that the lowering assumes:
     // PER_CUBE_FACE for a cube output, PER_LAYER for a plain layered one.
     // Both already exist, already build one render target per layer, and
-    // already stamp the invocation index into ProcessUBO::passIndex -- which
-    // is exactly what the lowered shader now reads.
+    // already stamp the invocation index into ProcessUBO::passIndex, which is
+    // what the lowered shader reads.
     const int mvDecl = n.descriptor().multiview_count;
     if(mvLowered && mvDecl >= 2 && m_executionMode == ExecutionMode::Single)
     {
@@ -935,8 +940,8 @@ void RenderedRawRasterPipelineNode::initMRTPass(
       // PER_CUBE_FACE target: allocate as a real CubeMap (6 implicit
       // layers). setLayer(face) per per-face render target drives each
       // loop iteration. Mutually exclusive with the multiview-cube-copy
-      // shim above: PER_CUBE_FACE assumes you want the 6-pass behaviour
-      // explicitly; multiview would collapse the 6 passes back into 1.
+      // shim above: PER_CUBE_FACE is an explicit opt-in to the 6-pass
+      // behaviour; multiview would collapse the 6 passes back into 1.
       const bool useCubeDirect
           = (colorAllocIdx == perCubeFaceColorIdx)
             || (out.is_cubemap && !wantMultiview);
@@ -1199,16 +1204,15 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     {
       QSize baseSize = targetTex->pixelSize();
       // MAX, not min. Qt allocates the chain from the LARGER dimension --
-      // QRhi::mipLevelsForSize is floor(log2(max(w, h))) + 1 (qrhi.cpp:12161) --
+      // mipLevelsForSize is floor(log2(max(w, h))) + 1 --
       // so deriving the number of passes from the smaller one leaves the tail
-      // of a rectangular target unwritten. A 128x8 PER_MIP output has 8 levels
-      // allocated and, before this, only 4 rendered: levels 4..7 kept whatever
-      // was in the freshly allocated texture, and anything sampling across the
-      // chain read it.
+      // of a rectangular target unwritten: a 128x8 PER_MIP output has 8 levels
+      // allocated, and deriving 4 from min(w, h) would leave levels 4..7
+      // holding whatever the freshly allocated texture came up with.
       //
       // The per-mip viewport below already clamps each axis independently, so
       // the extra passes are well-defined once they run.
-      const int mipCount = QRhi::mipLevelsForSize(baseSize);
+      const int mipCount = rhi.mipLevelsForSize(baseSize);
       m_mipCount = mipCount;
       m_mipRTs.reserve(mipCount);
 
@@ -1291,13 +1295,12 @@ void RenderedRawRasterPipelineNode::initMRTPass(
   // QRhiTextureRenderTargetDescription::setDepthLayer: each layer gets its own
   // render target attaching layer i of the OUTPUT depth array directly.
   //
-  // It used to render to a shared scratch 2D D32F and copyTexture() it into
-  // layer i after each endPass. That shim NEVER WORKED on any backend and is
-  // not preserved: QRhi::copyTexture is colour-only -- qrhivulkan.cpp:4782 and
-  // :4792 set VK_IMAGE_ASPECT_COLOR_BIT unconditionally (VUID-vkCmdCopyImage-
-  // aspectMask-00142/00143), and the GL path attaches the source to
-  // GL_COLOR_ATTACHMENT0 -- so the depth array came back cleared and the
-  // cascade rendered nothing.
+  // Rendering to a scratch 2D D32F and copyTexture()-ing it into layer i is
+  // not an option on any backend: QRhi::copyTexture is colour-only --
+  // qrhivulkan.cpp:4782 and :4792 set VK_IMAGE_ASPECT_COLOR_BIT
+  // unconditionally (VUID-vkCmdCopyImage-aspectMask-00142/00143), and the GL
+  // path attaches the source to GL_COLOR_ATTACHMENT0 -- so the depth array
+  // comes back cleared.
   if(m_executionMode == ExecutionMode::PerLayer && m_perLayerOutputIndex >= 0)
   {
     const auto& targetOut = outputs[m_perLayerOutputIndex];
@@ -1317,13 +1320,11 @@ void RenderedRawRasterPipelineNode::initMRTPass(
         // must stay compatible with these. It attaches a dummy RGBA8 colour
         // alongside the depth, required by GLES and harmless elsewhere.
         //
-        // SIZED TO THE RENDER EXTENT, NOT 1x1. The old scratch RT allocated it
-        // at QSize(1, 1); the Vulkan backend derives the framebuffer and
-        // renderArea from the FIRST colour attachment whenever colorAttCount >
-        // 0 (qrhivulkan.cpp:8619-8620, :8782-8783) and only falls back to the
-        // depth texture's size at colorAttCount == 0, so that would have
-        // clamped every cascade to one pixel. It was invisible because the
-        // copy that followed was a no-op anyway; the same lesson is already
+        // SIZED TO THE RENDER EXTENT, NOT 1x1: the Vulkan backend derives the
+        // framebuffer and renderArea from the FIRST colour attachment whenever
+        // colorAttCount > 0 (qrhivulkan.cpp:8619-8620, :8782-8783) and only
+        // falls back to the depth texture's size at colorAttCount == 0, so a
+        // 1x1 dummy clamps every cascade to one pixel. The same constraint is
         // written into createDepthOnlyRenderTarget (Utils.cpp:1586-1590). One
         // texture is shared by all N targets: it is never written or read.
         m_perLayerDummyColor = rhi.newTexture(
@@ -1374,11 +1375,10 @@ void RenderedRawRasterPipelineNode::initMRTPass(
         m_executionMode = ExecutionMode::Single;
       }
 #else
-      // Below Qt 6.12 there is no per-layer depth attachment, and there is no
-      // working substitute: the copyTexture shim that used to stand here was a
-      // no-op on every backend (copyTexture is colour-only), so the cascade
-      // array came back cleared and the shadows silently disappeared. Refuse
-      // the mode out loud instead. Releases target Qt 6.12+.
+      // Below Qt 6.12 there is no per-layer depth attachment, and no working
+      // substitute: copyTexture is colour-only, so a scratch-then-copy shim
+      // leaves the cascade array cleared and the shadows gone. Refuse the mode
+      // out loud instead. Releases target Qt 6.12+.
       qWarning()
           << "RawRaster EXECUTION_MODEL=PER_LAYER: depth target"
           << QString::fromStdString(targetOut.name)
@@ -1606,8 +1606,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     // PerMip / PerCubeFace / PerLayer-colour draw exclusively into the
     // per-iteration RTs in m_mipRTs, so the pipeline must be built against
     // their render pass (1 colour attachment, 1 sample) to satisfy QRhi's
-    // compatibility check. The PerLayer depth path leaves m_mipRTs empty and
-    // mirrors m_mrtRenderTarget's attachment shape.
+    // compatibility check.
     QRhiRenderPassDescriptor* pipelineRP = m_mrtRenderTarget.renderPass;
     int pipelineColorCount = m_mrtRenderTarget.colorAttachmentCount();
     int pipelineSamples = m_mrtRenderTarget.sampleCount() > 0
@@ -1688,8 +1687,17 @@ void RenderedRawRasterPipelineNode::initMRTPass(
         blends.append(premulAlphaBlend);
       ps->setTargetBlends(blends.begin(), blends.end());
 
-      ps->setDepthTest(true);
-      ps->setDepthWrite(true);
+      // Depth only when this target actually has a depth attachment: Metal's
+      // API validation aborts on a depth-enabled draw with a nil
+      // depthAttachment (the modern branch above gets this from
+      // applyPipelineState's depthAvailable; this legacy branch has no such
+      // call, so ask directly).
+      const bool depthAvailable
+          = (m_mrtRenderTarget.depthTexture != nullptr)
+            || (m_mrtRenderTarget.depthRenderBuffer != nullptr)
+            || (m_mrtRenderTarget.msDepthTexture != nullptr);
+      ps->setDepthTest(depthAvailable);
+      ps->setDepthWrite(depthAvailable);
       // Reverse-Z project rule.
       ps->setDepthOp(QRhiGraphicsPipeline::Greater);
     }
@@ -2100,13 +2108,13 @@ void RenderedRawRasterPipelineNode::initState(
             if(!s->buffer_usage.empty())
               return; // indirect_draw handled elsewhere
           }
-          // INPUTS storage_input / uniform_input / csf_image_input now flow
+          // INPUTS storage_input / uniform_input / csf_image_input flow
           // through m_storage (initialised below). All other variants:
           // nothing to record here; the canonical walker still advances
           // port_idx correctly via `delta`.
         });
 
-    // Now init m_storage from desc.inputs (storage_input + csf_image_input
+    // Init m_storage from desc.inputs (storage_input + csf_image_input
     // + uniform_input). Bindings start at 3 + samplers count to align with
     // the GLSL emission order (samplers first in the binding range, then
     // INPUTS storage in declaration order via isf_emit_graphics_storage,
@@ -2234,15 +2242,14 @@ void RenderedRawRasterPipelineNode::initState(
         hasCubemap = true;
     }
     // EXECUTION_MODEL=PER_MIP is a term too. Every OTHER attachment shape that
-    // needs per-invocation control -- cubemap, layered, multiview -- happens to
-    // imply one of the flags above, but PER_MIP does not: a single-colour
-    // PER_MIP shader has colorCount==1 and nothing else set, so it took the
-    // single-target path, where the render target is the SINK's and
-    // textureForOutput() returns nullptr outright. The whole per-mip machinery
-    // (MipMapped allocation, one RT per level, m_mipCount invocations) lives in
-    // initMRTPass and was simply never reached, which is R3 in the 2026-09
-    // review: "select behavior by pass semantics, not by color-attachment count
-    // alone". m_executionMode is resolved inside initMRTPass, i.e. after this,
+    // needs per-invocation control -- cubemap, layered, multiview -- implies
+    // one of the flags above, but PER_MIP does not: a single-colour PER_MIP
+    // shader has colorCount==1 and nothing else set, and on the single-target
+    // path the render target is the SINK's and textureForOutput() returns
+    // nullptr outright, so the per-mip machinery (MipMapped allocation, one RT
+    // per level, m_mipCount invocations) in initMRTPass is never reached.
+    // Behaviour is selected by pass semantics, not by colour-attachment count
+    // alone. m_executionMode is resolved inside initMRTPass, i.e. after this,
     // so read the descriptor directly.
     bool perMip = false;
     {
@@ -2523,8 +2530,8 @@ void RenderedRawRasterPipelineNode::addInputEdge(
 void RenderedRawRasterPipelineNode::removeInputEdge(RenderList& renderer, Edge& edge)
 {
   // Evict the cached per-(port, source) geometry first (base class): without
-  // it the departed producer's spec lingers in m_portGeometries. Same P0-9
-  // class as RenderedCSFNode::removeInputEdge.
+  // it the departed producer's spec lingers in m_portGeometries. Same
+  // failure class as RenderedCSFNode::removeInputEdge.
   NodeRenderer::removeInputEdge(renderer, edge);
   if(edge.sink->type == Types::Image)
   {
@@ -2543,7 +2550,7 @@ void RenderedRawRasterPipelineNode::removeInputEdge(RenderList& renderer, Edge& 
     // GPU-produced mesh the vertex/index buffers the acquired CustomMesh
     // binds are owned by the departing producer's renderer and die with it
     // -- keeping the mesh meant vkCmdBindVertexBuffers on freed buffers
-    // (P0-9, tests/gfx/GfxGeometryProducerRemoval.cpp). Drop the cached
+    // (tests/gfx/GfxGeometryProducerRemoval.cpp). Drop the cached
     // spec and the acquired mesh; the draw path already handles a null
     // m_mesh ("m_mesh stays null and the draw call doesn't run") and the
     // pass is rebuilt when geometry comes back.
@@ -2708,16 +2715,15 @@ void RenderedRawRasterPipelineNode::update(
             // MeshBuffers::indirectDrawStride defaults to 0 (Mesh.hpp:53) and
             // QRhi asserts `stride >= sizeof(QRhi[Indexed]IndirectDrawCommand)`
             // inside drawIndirect / drawIndexedIndirect, so the process dies
-            // the first time this path draws. Measured before this fix:
+            // the first time this path draws:
             //
             //   ASSERT: "stride >= sizeof(QRhiIndirectDrawCommand)"
             //     qrhi.cpp:11573, from CustomMesh::drawSingleMesh
             //
-            // This is the THIRD site to make the same mistake -- see the same
-            // note on CustomMesh's asynchronous-producer reload path. A
-            // standalone indirect buffer is one arriving through a Buffer INPUT
-            // PORT rather than travelling with the geometry, which is why
-            // neither of the geometry-side fixes covered it.
+            // See the same note on CustomMesh's asynchronous-producer reload
+            // path. A standalone indirect buffer is one arriving through a
+            // Buffer INPUT PORT rather than travelling with the geometry, so
+            // the geometry-side handling does not cover it.
             if(bv.usage == BufferView::Usage::IndirectDraw)
             {
               m_meshbufs.enableIndirectDraw(
@@ -3053,7 +3059,7 @@ void RenderedRawRasterPipelineNode::update(
     }
   }
 
-  // SR1: the vertex fallback buffers are bound PerInstance step_rate=1,
+  // The vertex fallback buffers are bound PerInstance step_rate=1,
   // which advances one element per instance instead of broadcasting, so
   // the pooled buffer must hold one copy of the constant per instance of
   // this draw. The pool replicates up to its own floor on acquire; here
@@ -3251,8 +3257,8 @@ void RenderedRawRasterPipelineNode::runInitialPasses(
     //                 firstInstance }
     //   non-indexed { vertexCount, instanceCount, firstVertex, firstInstance,
     //                 baseVertex (unused) }
-    // Reading the indexed order out of a non-indexed record is what made this
-    // rung disagree with drawIndirect() about firstInstance.
+    // Reading the indexed order out of a non-indexed record makes this rung
+    // disagree with drawIndirect() about firstInstance.
     const bool indexedCmds = m_meshbufs.indirectDrawIndexed;
     m_meshbufs.readbackResult.completed = [this, bufSize, indexedCmds]() {
       const auto& data = m_meshbufs.readbackResult.data;
@@ -3305,8 +3311,8 @@ void RenderedRawRasterPipelineNode::runInitialPasses(
       && m_meshbufs.indirectDrawBuffer && m_meshbufs.indirectDrawBuffer->size() > 0
       && !renderer.state.rhi->isFeatureSupported(QRhi::ReadBackNonUniformBuffer))
   {
-    // Graceful degradation: the backend (e.g. OpenGL ES 2.0) can neither
-    // draw indirect nor read back the GPU-generated indirect buffer. The draw
+    // Degraded path: the backend (e.g. OpenGL ES 2.0) can neither draw
+    // indirect nor read back the GPU-generated indirect buffer. The draw
     // loop falls back to cpuDrawCommands (if a producer ever filled them) or a
     // single drawIndexed. Warn once so the missing GPU-culled commands are
     // diagnosable rather than a silent visual divergence.
@@ -3460,7 +3466,7 @@ void RenderedRawRasterPipelineNode::runInitialPasses(
     }
     else if(m_executionMode == ExecutionMode::PerLayer)
     {
-      // Both paths are now one RT per layer in m_mipRTs, same shape as
+      // Both paths are one RT per layer in m_mipRTs, same shape as
       // PerCubeFace: the colour path binds layer i with setLayer(), the depth
       // path binds layer i of the OUTPUT depth array with setDepthLayer(). The
       // pass writes its destination directly, so nothing is copied afterwards.
@@ -3710,8 +3716,7 @@ void RenderedRawRasterPipelineNode::drawWithPerMeshAuxRebind(
       // the pipeline's layout was compacted to the streams the shader
       // reads, so slot k is g.input[plan.mesh_bindings[k]]. Skipping an
       // input on a null handle would shift every slot after it onto the
-      // wrong stream, so an incomplete set binds nothing at all -- which
-      // is what this path already did when no handle resolved.
+      // wrong stream, so an incomplete set binds nothing at all.
       QVarLengthArray<QRhiCommandBuffer::VertexInput, 8> inputs;
       bool inputsOk = true;
       if(this->geometry.meshes && !this->geometry.meshes->meshes.empty())
