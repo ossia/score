@@ -1,5 +1,7 @@
 #pragma once
 
+#include <limits>
+
 #include <isf.hpp>
 
 namespace score::gfx
@@ -149,7 +151,10 @@ static inline LayoutResult calculateStructLayout(
   if(layout.empty())
     return {0, 0};
 
-  int currentOffset = 0;
+  // Accumulated in 64 bits although LayoutResult::size is an int: a layout that
+  // does not fit in an int is reported as invalid by the check below rather
+  // than wrapped into a plausible-looking value.
+  int64_t currentOffset = 0;
   int maxAlignment = 0;
 
   for(const auto& field : layout)
@@ -220,7 +225,11 @@ static inline LayoutResult calculateStructLayout(
   // Struct size must be a multiple of its largest member alignment
   currentOffset = alignUp(currentOffset, maxAlignment);
 
-  return {currentOffset, maxAlignment};
+  // A layout too large for LayoutResult::size is reported as invalid rather
+  // than truncated; isValid() rejects {0, 0}.
+  if(currentOffset > (int64_t)std::numeric_limits<int>::max())
+    return {0, 0};
+  return {(int)currentOffset, maxAlignment};
 }
 
 // --- std140 (uniform block) layout ---------------------------------------
@@ -470,17 +479,20 @@ static inline int64_t calculateStorageBufferSize(
       }
     }
 
-    int elementStride = alignUp(fieldSize, fieldAlign);
+    // The multiplication itself must be 64-bit: `int stride * int count` wraps
+    // before it is widened -- a 16-byte element with 134217728 entries is
+    // exactly 2^31, which would report a negative buffer size.
+    const int64_t elementStride = alignUp(fieldSize, fieldAlign);
     currentOffset = alignUp(currentOffset, fieldAlign);
     if(isFlexibleArray)
     {
       // Variable-length array: use provided arrayCount
-      currentOffset += elementStride * arrayCount;
+      currentOffset += elementStride * (int64_t)arrayCount;
     }
     else if(isFixedArray)
     {
       // Fixed-length array: use parsed count
-      currentOffset += elementStride * fixedArrayCount;
+      currentOffset += elementStride * (int64_t)fixedArrayCount;
     }
     else
     {
