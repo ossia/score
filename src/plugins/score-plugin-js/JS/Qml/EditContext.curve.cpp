@@ -8,6 +8,8 @@
 #include <Media/Step/Commands.hpp>
 #include <Media/Step/Model.hpp>
 #endif
+#include <cmath>
+
 namespace JS
 {
 
@@ -28,9 +30,15 @@ void EditJsContext::setCurvePoints(QObject* process, QVector<QVariantList> point
   if(!curve)
     return;
 
+  // A NaN or infinite coordinate is not merely a bad curve: the segments are
+  // ordered by x downstream, and a non-finite key makes that comparison
+  // non-transitive, which is undefined behaviour in std::sort rather than a
+  // wrong result. Refuse the whole call, as the shape checks above do.
   for(auto& pt : points)
   {
     if(pt.size() < 2)
+      return;
+    if(!std::isfinite(pt[0].toDouble()) || !std::isfinite(pt[1].toDouble()))
       return;
   }
 
