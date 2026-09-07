@@ -454,7 +454,11 @@ public:
   ~ComboBox();
 
   void setAlternatives(std::vector<std::pair<QString, ossia::value>> values);
-  void alternativesChanged() W_SIGNAL(alternativesChanged);
+  // E_SIGNAL, not W_SIGNAL: the widgets and the avnd executor connect to this
+  // from other plug-ins, and a non-exported signal silently never fires across
+  // a shared-library boundary.
+  void alternativesChanged()
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, alternativesChanged)
 
   // Folder-backed combobox (halp::folder_combobox): items are the files of the
   // sibling port named folderPortName, filtered by fileExtensions ("*.wav"…).
