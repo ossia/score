@@ -1,15 +1,13 @@
-// Section 9 of the 2026-09 graphics review: scene-object contracts.
+// Scene-object contracts.
 //
-// Six of the review's eight mismatches. Pure logic -- these nodes are compiled
-// into the test and no QRhi handle is ever dereferenced, so the cases say what
-// the node COMPUTES rather than what a GPU draws.
+// Pure logic -- these nodes are compiled into the test and no QRhi handle is
+// ever dereferenced, so the cases say what the node computes rather than what
+// a GPU draws.
 //
 // The two animation cases (STEP / CUBICSPLINE, and the skinning one) are
-// deliberately NOT here. The review invalidated its own animation fixture --
-// "the animation-skinning case failed its before-operation precondition
-// (before.draws.size() was zero, not one). That run does not prove a skinning
-// defect." They need re-deriving, not validating, and importing them as-is
-// would launder an admitted bad fixture into the suite.
+// deliberately absent: the available animation fixture failed its own
+// before-operation precondition (before.draws.size() was zero, not one), so it
+// proves nothing about skinning and needs re-deriving before it is imported.
 #include <Threedim/Instancer.hpp>
 #include <Threedim/CameraSwitch.hpp>
 #include <Threedim/BufferToGeometry.cpp>
@@ -74,8 +72,8 @@ template<class Node> void checkBufferControls() {
   CHECK(n.outputs.geometry.mesh.input[0].byte_offset == 32);
   n.inputs.buffer_0.buffer.byte_size = 64; n();
   CHECK(n.outputs.geometry.mesh.buffers[0].byte_size == 64);
-  // Causal correction experiment: invalidate the missing structural fingerprint.
-  // This does not purport to be the final production patch.
+  // Invalidating the cached structural fingerprint must not lose the control
+  // values.
   n.m_prevVertices = -1; n();
   CHECK(n.outputs.geometry.mesh.instances == 5);
   CHECK(n.outputs.geometry.mesh.input[0].byte_offset == 32);
@@ -99,14 +97,11 @@ TEST_CASE("SceneObjects-01 both geometry nodes respond to Instances and same-han
   SECTION("v2") { checkBufferControls<Threedim::BuffersToGeometry2>(); }
 }
 TEST_CASE("SceneObjects-02 a custom semantic keeps its authored name", "[SceneObjects][buffers]") {
-  // The review filed this as "named geometry attribute: `temperature` becomes
-  // empty". Measured, that expectation is wrong: `temperature` is a FIRST-CLASS
-  // semantic in ossia (attribute_semantic::temperature == 1401, right after
-  // density == 1400), so name_to_semantic resolves it and halp's contract --
-  // "name: For custom semantics; empty = use semantic name" -- makes an empty
-  // name the CORRECT outcome. The fixture picked a word it believed was custom.
-  //
-  // So test both halves of the real contract instead.
+  // `temperature` is a first-class semantic in ossia
+  // (attribute_semantic::temperature == 1401, right after density == 1400), so
+  // name_to_semantic resolves it and halp's contract -- "name: For custom
+  // semantics; empty = use semantic name" -- makes an empty name the correct
+  // outcome. Both halves of that contract are checked below.
   int opaque{};
   SECTION("a recognised semantic resolves and needs no name")
   {
@@ -140,7 +135,7 @@ TEST_CASE("SceneObjects-05 Instancer notices same-handle view shrink", "[SceneOb
   n.inputs.count.value = 2; n(); REQUIRE(instance(n).instance_count == 2);
   n.inputs.transforms.buffer.byte_size = 64; n();
   CHECK(instance(n).instance_count == 1);
-  n.rebuild(); // causal intervention: descriptor rebuild does apply correct clamp
+  n.rebuild(); // a descriptor rebuild applies the same clamp
   CHECK(instance(n).instance_count == 1);
 }
 TEST_CASE("SceneObjects-06 Instancer accepts tightly packed XYZ Points", "[SceneObjects][instancer]") {
@@ -175,4 +170,54 @@ TEST_CASE("SceneObjects-08 one weighted orthographic camera stays orthographic w
   ossia::scene_transform xf; ossia::camera_component cam;
   REQUIRE(Threedim::CameraSwitch::extractCameraPose(n.outputs.scene_out.scene, xf, cam));
   CHECK(cam.projection == ossia::camera_projection::orthographic);
+}
+
+
+TEST_CASE(
+    "SceneObjects-09 a camera published without any root node still reaches the scene",
+    "[SceneObjects][camera]")
+{
+  // scene_state carries roots, cameras, materials and skeletons as independent
+  // vectors, but scene_state::empty() reports on `roots` alone. flattenScene
+  // must not bail on that predicate: a producer publishing only a camera --
+  // which SceneGPUState.cpp's own camera block calls out as supported,
+  // "producers that don't want to embed a camera node can publish via
+  // `cameras` only" -- would have its whole scene dropped and the consumer
+  // would fall back to the default eye.
+  auto st = std::make_shared<ossia::scene_state>();
+  auto cam = std::make_shared<ossia::camera_component>();
+  cam->projection = ossia::camera_projection::orthographic;
+  st->cameras = std::make_shared<const std::vector<ossia::camera_component_ptr>>(
+      std::vector<ossia::camera_component_ptr>{cam});
+  // deliberately no roots: that is the whole point of the case
+  REQUIRE(!st->roots);
+  REQUIRE(st->empty()); // the predicate flattenScene must not stop on
+
+  ossia::scene_spec spec;
+  spec.state = st;
+
+  score::gfx::FlatScene out;
+  score::gfx::flattenScene(spec, out, 1.f);
+
+  INFO("cameras reaching the flattened scene: " << out.cameras.size());
+  CHECK(out.cameras.size() == 1);
+  CHECK(out.activeCameraIndex == 0);
+}
+
+TEST_CASE(
+    "SceneObjects-10 an empty scene_state is still dropped",
+    "[SceneObjects][camera]")
+{
+  // The control for the case above: relaxing the guard must not turn "nothing
+  // published" into work. A state with no roots, no cameras, no materials and
+  // no skeletons still returns immediately.
+  auto st = std::make_shared<ossia::scene_state>();
+  ossia::scene_spec spec;
+  spec.state = st;
+
+  score::gfx::FlatScene out;
+  score::gfx::flattenScene(spec, out, 1.f);
+
+  CHECK(out.cameras.empty());
+  CHECK(out.draws.empty());
 }

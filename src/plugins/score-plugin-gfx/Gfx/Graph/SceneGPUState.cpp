@@ -529,11 +529,11 @@ struct FlattenVisitor
     {
       if(*light && seenLights.insert(light->get()).second)
       {
-        // Arena slot index for shader-side arena-direct light reads
-        // (packLight path removed). 0xFFFFFFFF sentinel
-        // for producer-less lights (e.g. FBX/glTF-embedded lights that
-        // don't own a RawLight slot yet). Such lights are filtered out
-        // when building scene_light_indices.
+        // Arena slot index for shader-side arena-direct light reads.
+        // 0xFFFFFFFF is the sentinel for producer-less lights (e.g.
+        // FBX/glTF-embedded lights that don't own a RawLight slot
+        // yet); those are filtered out when building
+        // scene_light_indices.
         out.lightArenaSlots.push_back(
             (*light)->raw_slot.size != 0
                 ? (*light)->raw_slot.internal_index
@@ -627,9 +627,9 @@ struct FlattenVisitor
     if(!node.active)
       return;
 
-    // scene_node has no transform of its own in the new design.
-    // Transforms are scene_payload children (scene_transform).
-    // We process children in order; transform payloads affect subsequent siblings.
+    // scene_node has no transform of its own: transforms are scene_payload
+    // children (scene_transform). Children are processed in order, and a
+    // transform payload affects the siblings that follow it.
     if(!node.has_children())
       return;
 
@@ -726,7 +726,25 @@ void flattenScene(const ossia::scene_spec& scene, FlatScene& out, float aspectRa
 {
   out.clear();
 
-  if(!scene.state || scene.state->empty())
+  if(!scene.state)
+    return;
+
+  // scene_state::empty() reports on `roots` ALONE, but a scene_state also
+  // carries cameras, materials and skeletons as independent vectors: a
+  // camera-only scene is legitimate, as the camera block further down says
+  // in as many words ("producers that don't want to embed a camera node
+  // can publish via `cameras` only").
+  //
+  // Bailing on roots-empty would drop such a scene whole and leave the
+  // consumer on the default eye, as though no camera had been published
+  // at all. Bail only when there is genuinely nothing to flatten.
+  const bool hasRoots = scene.state->roots && !scene.state->roots->empty();
+  const bool hasCameras = scene.state->cameras && !scene.state->cameras->empty();
+  const bool hasMaterials
+      = scene.state->materials && !scene.state->materials->empty();
+  const bool hasSkeletons
+      = scene.state->skeletons && !scene.state->skeletons->empty();
+  if(!hasRoots && !hasCameras && !hasMaterials && !hasSkeletons)
     return;
 
   // Pack materials — base + extensions in lockstep. Both vectors grow
@@ -848,7 +866,10 @@ void flattenScene(const ossia::scene_spec& scene, FlatScene& out, float aspectRa
   // no variants are declared (typical) this stays at -1 and the
   // per-draw override branch compiles to a cheap null-check.
   vis.activeVariant = scene.state->active_variant_index;
-  const auto& roots = *scene.state->roots;
+  // Null-safe: reaching here does not imply roots exist -- a camera-only
+  // scene has none, and `roots` is a shared_ptr that is unset then.
+  const std::vector<ossia::scene_node_ptr> no_roots;
+  const auto& roots = scene.state->roots ? *scene.state->roots : no_roots;
   for(std::size_t ri = 0; ri < roots.size(); ++ri)
   {
     // Same dedup contract as visitPayload's scene_node_ptr branch:
