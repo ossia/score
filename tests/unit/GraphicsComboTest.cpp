@@ -10,9 +10,11 @@
 #include <score_test/App.hpp>
 #include <score_test/Keyboard.hpp>
 
+#include <QAbstractItemView>
 #include <QGraphicsProxyWidget>
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
+#include <QHideEvent>
 #include <QPainter>
 #include <QStyleOptionGraphicsItem>
 
@@ -566,5 +568,55 @@ TEST_CASE("losing the mouse grab mid-drag does not turn into a click")
     qApp->processEvents();
 
     CHECK(editorIn(scene) == nullptr);
+  });
+}
+
+// Dismissing the list by clicking away leaves a non-editable box with nothing
+// to do. ComboBoxWithEnter only reports a focus change while the list is down,
+// so without the popup watcher the collapsed editor stayed on the scene for
+// good -- and clicking again put a second one next to it.
+TEST_CASE("dismissing the drop-down takes the editor away with it")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    Scene scene;
+    score::QGraphicsCombo item{QStringList{"a", "b", "c"}, nullptr};
+    scene.addItem(&item);
+
+    leftClick(scene, item);
+    auto* editor = editorIn(scene);
+    REQUIRE(editor != nullptr);
+
+    // What clicking outside the list does: the view hides, nothing is
+    // activated. Sent directly, because an offscreen popup is never shown and
+    // so would never hide either.
+    QHideEvent hide;
+    qApp->sendEvent(editor->view(), &hide);
+    qApp->processEvents();
+    qApp->processEvents();
+
+    CHECK(editorIn(scene) == nullptr);
+    CHECK(item.value() == 0);
+  });
+}
+
+TEST_CASE("an editable combo box stays up when its list is dismissed")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    Scene scene;
+    score::QGraphicsCombo item{QStringList{"a", "b"}, nullptr};
+    scene.addItem(&item);
+    item.setEditable(true);
+
+    leftClick(scene, item);
+    auto* editor = editorIn(scene);
+    REQUIRE(editor != nullptr);
+
+    // Closing the list to type instead must not take the box away.
+    QHideEvent hide;
+    qApp->sendEvent(editor->view(), &hide);
+    qApp->processEvents();
+    qApp->processEvents();
+
+    CHECK(editorIn(scene) != nullptr);
   });
 }
