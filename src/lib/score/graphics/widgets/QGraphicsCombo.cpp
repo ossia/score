@@ -7,6 +7,7 @@
 #include <ossia/detail/math.hpp>
 
 #include <QApplication>
+#include <QAbstractItemView>
 #include <QGraphicsProxyWidget>
 #include <QGraphicsScene>
 #include <QGraphicsSceneContextMenuEvent>
@@ -24,6 +25,25 @@ W_OBJECT_IMPL(score::QGraphicsCombo);
 
 namespace score
 {
+namespace
+{
+//! Reports the drop-down list being hidden. QComboBox has no signal for it, and
+//! dismissing the list by clicking away is otherwise indistinguishable from
+//! leaving it open: no activation, and no focus change the box hears about.
+struct PopupDismissWatcher final : QObject
+{
+  using QObject::QObject;
+  std::function<void()> onHide;
+
+  bool eventFilter(QObject* watched, QEvent* event) override
+  {
+    if(event->type() == QEvent::Hide && onHide)
+      onHide();
+    return QObject::eventFilter(watched, event);
+  }
+};
+}
+
 struct DefaultComboImpl
 {
   static bool draggable(const QGraphicsCombo& self) noexcept
@@ -265,6 +285,25 @@ void QGraphicsCombo::openEditor(QPointF scenePos)
         return;
       close();
     });
+
+    // Dismissing the list by clicking away leaves a non-editable box with
+    // nothing to do: it exists only to pick from that list, and ComboBoxWithEnter
+    // only reports a focus change while the list is down, so nothing else would
+    // ever take it off the scene. Deferred by one turn because the list hides
+    // before `activated` arrives, and that must still be allowed to commit.
+    if(!item.m_editable)
+    {
+      auto* watcher = new PopupDismissWatcher{w};
+      watcher->onHide = [done, close, w = QPointer{w}] {
+        if(*done)
+          return;
+        QTimer::singleShot(0, w, [done, close] {
+          if(!*done)
+            close();
+        });
+      };
+      w->view()->installEventFilter(watcher);
+    }
 
     QObject::connect(
         w, &ComboBoxWithEnter::editingFinished, w, [self, done, commit, close, w] {
