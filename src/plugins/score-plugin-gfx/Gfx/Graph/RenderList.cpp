@@ -111,30 +111,39 @@ void RenderList::init()
   // create() must succeed: a null handle reaches vkUpdateDescriptorSets as
   // VK_NULL_HANDLE and the NVIDIA driver segfaults dereferencing it in a later
   // vkCmdPipelineBarrier.
-  m_emptyTexture
-      = rhi.newTexture(QRhiTexture::RGBA8, QSize{1, 1}, 1, QRhiTexture::Flag{});
+  //
+  // UsedWithLoadStore on every placeholder: an unconnected input can be a
+  // STORAGE IMAGE as easily as a sampled texture -- a CSF declaring
+  // `TYPE: image, VISIBILITY: compute` binds one through the same fallback --
+  // and Qt asserts when a texture reaches a storage-image binding without the
+  // flag:
+  //     ASSERT: texD->m_flags.testFlag(QRhiTexture::UsedWithLoadStore)
+  //     qrhivulkan.cpp:6336, from QRhiVulkan::setShaderResources
+  // The flag only widens the usage bits the backend requests at creation, so it
+  // costs nothing when the texture is merely sampled.
+  constexpr auto emptyFlags = QRhiTexture::UsedWithLoadStore;
+
+  m_emptyTexture = rhi.newTexture(QRhiTexture::RGBA8, QSize{1, 1}, 1, emptyFlags);
   m_emptyTexture->setName("RenderList::m_emptyTexture");
   SCORE_ASSERT(m_emptyTexture->create());
 
   m_emptyTexture3D = rhi.newTexture(
       QRhiTexture::RGBA8, 1, 1, 1, 1,
-      QRhiTexture::ThreeDimensional);
+      QRhiTexture::ThreeDimensional | emptyFlags);
   m_emptyTexture3D->setName("RenderList::m_emptyTexture3D");
   SCORE_ASSERT(m_emptyTexture3D->create());
 
   m_emptyTextureCube = rhi.newTexture(
-      QRhiTexture::RGBA8, QSize{1, 1}, 1, QRhiTexture::CubeMap);
+      QRhiTexture::RGBA8, QSize{1, 1}, 1, QRhiTexture::CubeMap | emptyFlags);
   m_emptyTextureCube->setName("RenderList::m_emptyTextureCube");
   SCORE_ASSERT(m_emptyTextureCube->create());
 
   // Must use newTextureArray — the 6-arg newTexture() overload is for 3D
   // textures (depth > 1 is a volume slice count, not an array layer count),
   // and QRhi rejects any texture with both ThreeDimensional and TextureArray
-  // flags. Passing TextureArray to the 3D overload happened to be tolerated
-  // by earlier Qt builds on some backends but hits an assertion under the
-  // current validation path.
+  // flags.
   m_emptyTextureArray = rhi.newTextureArray(
-      QRhiTexture::RGBA8, /*arraySize*/ 1, QSize(1, 1));
+      QRhiTexture::RGBA8, /*arraySize*/ 1, QSize(1, 1), 1, emptyFlags);
   m_emptyTextureArray->setName("RenderList::m_emptyTextureArray");
   SCORE_ASSERT(m_emptyTextureArray->create());
 
@@ -309,10 +318,10 @@ QSize RenderList::resolveDownstreamSize(
 
 void RenderList::createAllInputRenderTargets()
 {
-  // Step 1: resolve specs in reverse topological order (sinks first).
-  // This ensures downstream RTs are resolved before upstream ones,
-  // so that nodes without explicit sizes inherit the downstream size
-  // instead of defaulting to the global output resolution.
+  // Step 1: resolve specs in reverse topological order (sinks first), so
+  // downstream RTs are resolved before upstream ones and nodes without an
+  // explicit size inherit the downstream size instead of the global output
+  // resolution.
   ossia::small_flat_map<const Port*, RenderTargetSpecs, 16> resolvedSpecs;
 
   for(auto it = nodes.rbegin(); it != nodes.rend(); ++it)
@@ -380,7 +389,7 @@ void RenderList::onEdgeRemoved(
     src_it->second->removeOutputPass(*this, edge);
   }
 
-  // Notify sink renderer (needs a batch for potential resource updates)
+  // Notify sink renderer
   if(auto sink_it = edge.sink->node->renderedNodes.find(this);
      sink_it != edge.sink->node->renderedNodes.end())
   {
@@ -480,10 +489,6 @@ void RenderList::release()
   delete m_emptyTexture;
   m_emptyTexture = nullptr;
 
-  // The 3 typed empty-texture placeholders are also allocated in init()
-  // but were originally missing from the release path — they leaked on
-  // every maybeRebuild cycle (ASan flagged both createRenderList's and
-  // maybeRebuild's init() call sites).
   delete m_emptyTexture3D;
   m_emptyTexture3D = nullptr;
 
@@ -534,7 +539,7 @@ void RenderList::releaseBuffer(QRhiBuffer* buf)
       if(stored_buffer.handle != buf)
         continue;
 
-      // Owned entries are deleted by the pool teardown above.
+      // Owned entries are deleted by release().
       if(stored_buffer.owned)
         return;
 
@@ -571,25 +576,17 @@ bool RenderList::maybeRebuild(bool force)
     //
     // Triggers only on the first frame after a resize or forced rebuild.
     //
-    // NOT gated on isRecordingFrame(). The comment above is true of the path
-    // this code was written for -- renderInternal, inside Window::render's
-    // brackets -- but it is not the only one. A surface resize goes
-    // exposeEvent() -> resizeSwapChain() -> onResize(), which rebuilds from
-    // OUTSIDE a frame, and there the guard skipped the drain entirely: nodes
-    // were released while frames already submitted were still executing, so a
-    // descriptor set could outlive the texture it pointed at. Aftermath caught
-    // exactly that -- an MMU fault on a GPU READ from an unmapped address in a
-    // fragment shader, i.e. a fetch through a descriptor whose backing memory
-    // had been freed.
+    // Unconditional, not gated on isRecordingFrame(): a surface resize goes
+    // exposeEvent() -> resizeSwapChain() -> onResize() and rebuilds from
+    // OUTSIDE a frame, where skipping the drain releases nodes while already
+    // submitted frames are still executing, so a descriptor set outlives the
+    // texture it points at -- an MMU fault on a GPU read from an unmapped
+    // address in a fragment shader.
     //
     // QRhi::finish() is documented as callable "inside and outside of a frame,
     // but not inside a pass", and outside one it both waits on the queue and
     // "executes all deferred operations, like ... resource releases" -- which
     // is precisely what has to happen before release() runs.
-    //
-    // It explains the discriminator too: Window:/rendersize rebuilds from
-    // inside render() and never faults; Window:/size, /fullscreen and a mouse
-    // drag recreate the surface and rebuild from exposeEvent, and those do.
     if(state.rhi)
       state.rhi->finish();
 
@@ -847,9 +844,9 @@ RenderList::Buffers RenderList::acquireMesh(
   //
   // The producer picks the shape (libisf emits the matching GLSL struct for a
   // geometry resource's INDIRECT block; ScenePreprocessor writes it directly),
-  // so both are GPU-safe here. Feeding the indexed order to drawIndirect() is
-  // what used to make the GPU rung read firstInstance out of word 3 while the
-  // CPU readback rung read word 4 -- two rungs of one ladder disagreeing.
+  // so both are GPU-safe here. Feeding the indexed order to drawIndirect()
+  // makes the GPU read firstInstance out of word 3 while the CPU readback path
+  // reads word 4.
   if(!meshbufs.useIndirectDraw && !p->meshes.empty())
   {
     const auto& mesh = p->meshes[0];
@@ -862,10 +859,10 @@ RenderList::Buffers RenderList::acquireMesh(
         {
           if(gpu->handle)
           {
-            // Derive the command count from the aux region size (was never
-            // set before -> count defaulted to 1, drawing only the first
-            // command). enableIndirectDraw() supplies the stride, which must
-            // never be omitted -- see its comment.
+            // Derive the command count from the aux region size; without it
+            // the count defaults to 1 and only the first command is drawn.
+            // enableIndirectDraw() supplies the stride, which must never be
+            // omitted -- see its comment.
             const int64_t off = std::max<int64_t>(0, aux_idx->byte_offset);
             const int64_t avail = (aux_idx->byte_size > 0)
                 ? aux_idx->byte_size
@@ -1039,9 +1036,9 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
   // exposes CB-scoped timings, and lastCompletedGpuTime() returns the PREVIOUS
   // frame's elapsed time, which the panel reports as such.
 #if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
-  // Use the per-instance `frame` member (incremented at the end of render())
-  // as the diagnostic frame number rather than a process-/thread-global
-  // counter, so the number is attributed to THIS RenderList.
+  // Diagnostic frame number: the per-instance `frame` member (incremented at
+  // the end of render()), so it is attributed to THIS RenderList rather than
+  // to a process- or thread-global counter.
   const int64_t frameNumber = this->frame;
   if(state.caps.timestamps)
   {
@@ -1073,12 +1070,10 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
           << "[GPU] PSO compile stall on frame " << frameNumber
           << ": " << delta_ms << " ms — consider prewarming preset pipelines.";
 
-      // Mid-session pipeline-cache flush. When a stall
-      // hits we've just compiled one or more fresh PSOs — good time
-      // to persist the cache so the same compilation doesn't have to
-      // happen again on next launch, even if score crashes. Throttled
-      // to at most once per ~5s (300 frames at 60 Hz) to avoid
-      // churning the cache file on prolonged compile-heavy scenes.
+      // Mid-session pipeline-cache flush: a stall means fresh PSOs were just
+      // compiled, so persist the cache and spare the next launch the same
+      // compilation even if score crashes. Throttled to once per ~5s (300
+      // frames at 60 Hz) so compile-heavy scenes do not churn the cache file.
       if(s_flushCoolDown <= 0 && state.savePipelineCache)
       {
         state.savePipelineCache();
@@ -1228,12 +1223,11 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
       // Phase B: if ANY input RT actually changed shape, the renderer's
       // INTERNAL size-dependent state (intermediate RTs, MRT,
       // persistent AUX, depth/MSAA attachments sized to output, etc.)
-      // is stale and needs re-init. Without this, the resize-only
-      // fast path produced "internal render resolution not updated" --
-      // input RT was recreated correctly but the renderer's own
-      // internal RTs stayed at the old size. initState wires up
-      // samplers against the current m_inputRenderTargets so we
-      // don't need a separate updateInputTexture pass.
+      // is stale and needs re-init: without it the input RT is recreated
+      // at the new size while the renderer's own internal RTs stay at the
+      // old one. initState wires up samplers against the current
+      // m_inputRenderTargets, so no separate updateInputTexture pass is
+      // needed.
       //
       // Phase C: re-add upstream passes ONLY for the ports whose RT
       // was recreated (others kept their existing passes intact in
@@ -1627,10 +1621,8 @@ void RenderList::update(QRhiResourceUpdateBatch& res)
 //! OpenGL one, in qrhigles2.cpp's "OpenGL VENDOR: %s RENDERER: %s VERSION: %s".
 //! Vulkan prints "Using imported physical device '<name>' ... vendor 0x.. device
 //! 0x.. type N", D3D11 and D3D12 print adapter lines of their own shape, and
-//! none of them contains the word RENDERER. Anything that identifies the GPU by
-//! reading Qt's log therefore gets an empty string off every backend but GL --
-//! which is how tests/integration/ThreedimRenderTest.cpp came to skip itself on
-//! Vulkan, D3D11 and D3D12 regardless of the hardware underneath.
+//! none of them contains the word RENDERER, so anything that identifies the GPU
+//! by reading Qt's log gets an empty string off every backend but GL.
 //!
 //! QRhi::driverInfo() is the portable answer: deviceName, vendorId, deviceId and
 //! deviceType are filled in by all of them (Qt >= 6.4). One line, one format,
