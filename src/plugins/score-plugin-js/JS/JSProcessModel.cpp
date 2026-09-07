@@ -500,13 +500,10 @@ QWidget* ProcessModel::createWindowForUI(const score::DocumentContext& ctx,
     }
   });
 
-  // Announce that the external UI is now open, the way LV2 / VST / VST3
-  // windows do from their own show path (e.g. LV2/Window.cpp). setupExternalUI
-  // shows `widg` right after this returns, but only emits nothing itself, so
-  // without this the JS process only ever emitted externalUIVisible(false)
-  // (on close) and the header/inspector toggles that read the signal stayed
-  // in the closed state while the window was open.
-  externalUIVisible(true);
+  // No externalUIVisible(true) here: setupExternalUI emits it for every
+  // process type once the UI is placed, and only when one is actually created
+  // -- asking again for an open UI raises it instead. Emitting a second time
+  // from this path made a re-request report {true, true, false}.
   return widg;
 }
 
