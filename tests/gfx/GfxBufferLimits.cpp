@@ -20,6 +20,7 @@
 // =============================================================================
 #include <score_test/Gfx.hpp>
 
+#include <Gfx/Graph/IsfBindingsBuilder.hpp>
 #include <Gfx/Graph/SSBO.hpp>
 #include <Gfx/Graph/VertexFallbackDefaults.hpp>
 #include <Gfx/Graph/VertexFallbackPool.hpp>
@@ -31,6 +32,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <memory>
+#include <vector>
 
 using namespace score::test::gfx;
 
@@ -301,5 +303,62 @@ TEST_CASE(
     // element count itself implies.
     CHECK(sz >= 0);
     CHECK(sz >= (int64_t)c.count);
+  }
+}
+
+TEST_CASE(
+    "struct element stride follows std430, not a naive field sum",
+    "[gfx][limits][std430]")
+{
+  // glslTypeSizeBytes(type, descriptor) sized a TYPES struct by SUMMING its
+  // field sizes. std430 also aligns each field to its own alignment and rounds
+  // the struct size up to its largest member alignment (OpenGL 4.6 core,
+  // 7.6.2.2 rule 9), so the sum is right only when no padding is needed.
+  //
+  // It is not an advisory number: std430ArrayStride feeds it to the CSF SoA
+  // output buffer sizing, so an under-estimate under-allocates and every
+  // element after the first is addressed at the wrong offset. (S3 in the
+  // 2026-09 graphics review.)
+  //
+  // The first case is the only TYPES struct that exists in tree; it must not
+  // move. The rest are layouts a user can write today.
+  struct Case
+  {
+    const char* what;
+    std::vector<isf::storage_input::layout_field> layout;
+    int64_t expected;
+  };
+  const std::vector<Case> cases{
+      {"PerDraw (in tree, must not move)",
+       {{.name = "model", .type = "mat4"},
+        {.name = "normal", .type = "mat4"},
+        {.name = "material_index", .type = "uint"},
+        {.name = "tag_hash", .type = "uint"},
+        {.name = "transform_slot", .type = "uint"},
+        {.name = "skeleton_offset", .type = "uint"}},
+       144},
+      // Sum 20; std430 rounds up to the vec4 alignment.
+      {"vec4 + float", {{.name = "a", .type = "vec4"}, {.name = "b", .type = "float"}}, 32},
+      // Sum 20; the float must also be PADDED to 16 before the vec4.
+      {"float + vec4", {{.name = "a", .type = "float"}, {.name = "b", .type = "vec4"}}, 32},
+      // No padding anywhere: sum and std430 agree, and must keep agreeing.
+      {"vec4 + vec4", {{.name = "a", .type = "vec4"}, {.name = "b", .type = "vec4"}}, 32},
+      {"float + float", {{.name = "a", .type = "float"}, {.name = "b", .type = "float"}}, 8},
+  };
+
+  for(const auto& c : cases)
+  {
+    isf::descriptor d;
+    d.types.push_back({.name = "S", .layout = c.layout});
+    const int64_t sz = score::gfx::glslTypeSizeBytes("S", d);
+    const int64_t stride = score::gfx::std430ArrayStride("S", d);
+    std::fprintf(
+        stderr, "GFX-LIMIT std430 %-34s size=%-5lld stride=%-5lld expected=%lld\n",
+        c.what, (long long)sz, (long long)stride, (long long)c.expected);
+    CAPTURE(c.what, sz, stride, c.expected);
+    CHECK(sz == c.expected);
+    // An array of the struct strides by the struct size; nothing else is a
+    // legal std430 stride for a struct element.
+    CHECK(stride == c.expected);
   }
 }
