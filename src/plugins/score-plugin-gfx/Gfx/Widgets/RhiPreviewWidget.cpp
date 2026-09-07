@@ -45,23 +45,23 @@ void RhiPreviewWidget::useGraph(
   attach();
 }
 
-void RhiPreviewWidget::useContext(GfxContext* ctx, int32_t producerNodeId)
+void RhiPreviewWidget::useContext(GfxContext* ctx, port_index producer)
 {
   detach();
   m_backend = Backend::Context;
   m_ctx = ctx;
-  m_producerNodeId = producerNodeId;
+  m_producer = producer;
   m_graph = nullptr;
   attach();
 }
 
-void RhiPreviewWidget::setProducerNodeId(int32_t id)
+void RhiPreviewWidget::setProducer(port_index producer)
 {
-  if(id == m_producerNodeId)
+  if(producer == m_producer)
     return;
 
-  const int32_t oldId = m_producerNodeId;
-  m_producerNodeId = id;
+  const port_index old = m_producer;
+  m_producer = producer;
 
   // Hot-rewire the producer→preview edge. Only meaningful on the
   // Context backend; the Graph backend rewires through the caller's
@@ -72,13 +72,12 @@ void RhiPreviewWidget::setProducerNodeId(int32_t id)
     if(m_edgeConnected)
     {
       m_ctx->disconnect_preview_node(
-          EdgeSpec{{oldId, 0}, {m_screenNodeId, 0}});
+          EdgeSpec{old, {m_screenNodeId, 0}});
       m_edgeConnected = false;
     }
-    if(m_producerNodeId != score::gfx::invalid_node_index)
+    if(m_producer.node != score::gfx::invalid_node_index)
     {
-      m_ctx->connect_preview_node(
-          EdgeSpec{{m_producerNodeId, 0}, {m_screenNodeId, 0}});
+      m_ctx->connect_preview_node(EdgeSpec{m_producer, {m_screenNodeId, 0}});
       m_edgeConnected = true;
     }
   }
@@ -91,9 +90,9 @@ void RhiPreviewWidget::attach()
 
   m_readback = std::make_shared<QRhiReadbackResult>();
 
-  // Previews are rebuilt on every selection, and each rebuild used to cost a
-  // vkCreateDevice + vkDestroyDevice pair (~300 ms on the GUI thread). Take a
-  // reference on the process-wide device cache instead.
+  // Previews are rebuilt on every selection, and a rebuild that creates its
+  // own device costs a vkCreateDevice + vkDestroyDevice pair on the GUI
+  // thread. Take a reference on the process-wide device cache instead.
   auto node = std::make_unique<score::gfx::BackgroundNode>(
       score::gfx::SharedDeviceMode::Cached);
   node->shared_readback = m_readback;
@@ -145,10 +144,9 @@ void RhiPreviewWidget::attach()
         m_node = nullptr;
         return;
       }
-      if(m_producerNodeId != score::gfx::invalid_node_index)
+      if(m_producer.node != score::gfx::invalid_node_index)
       {
-        m_ctx->connect_preview_node(
-            EdgeSpec{{m_producerNodeId, 0}, {m_screenNodeId, 0}});
+        m_ctx->connect_preview_node(EdgeSpec{m_producer, {m_screenNodeId, 0}});
         m_edgeConnected = true;
       }
       break;
@@ -196,7 +194,7 @@ void RhiPreviewWidget::detach()
         if(m_edgeConnected)
         {
           m_ctx->disconnect_preview_node(
-              EdgeSpec{{m_producerNodeId, 0}, {m_screenNodeId, 0}});
+              EdgeSpec{m_producer, {m_screenNodeId, 0}});
           m_edgeConnected = false;
         }
         m_ctx->unregister_node(m_screenNodeId);
