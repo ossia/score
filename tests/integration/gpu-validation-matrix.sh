@@ -127,11 +127,18 @@ case "$OS" in
 esac
 CELLS="${CELLS:-$ALL_CELLS}"
 
+# macOS has no timeout(1) -- it is gtimeout from coreutils, and only if
+# installed. Without this the cell command dies instantly with
+# "env: timeout: No such file or directory" and reports an empty log.
+if command -v timeout >/dev/null 2>&1;      then TMO="timeout"
+elif command -v gtimeout >/dev/null 2>&1;   then TMO="gtimeout"
+else TMO=""; echo "-- note: no timeout(1)/gtimeout(1); cells run unbounded"; fi
+
 mkdir -p "$OUT"
 cd "$BUILD" || { echo "!! BUILD=$BUILD is not a directory"; exit 1; }
 [ -f CTestTestfile.cmake ] || { echo "!! $BUILD is not a CMake build dir"; exit 1; }
 
-NTESTS=$(ctest -R "$SCOPE" -E "$EXCL" -N 2>/dev/null | sed -n 's/^Total Tests: //p')
+NTESTS=$(ctest -R "$SCOPE" -E "$EXCL" -N 2>/dev/null | sed -n 's/^Total Tests: //p' | tr -d " ")
 [ -z "$NTESTS" ] && NTESTS=0
 if [ "$NTESTS" -eq 0 ]; then echo "!! no tests match scope '$SCOPE'"; exit 1; fi
 
@@ -141,7 +148,7 @@ if [ -z "$SECONDS_PER_TEST" ]; then
   echo "-- probing per-test cost..."
   t0=$SECONDS
   ctest -R "$SCOPE" -E "$EXCL" -N >/dev/null 2>&1
-  ctest -R "$SCOPE" -E "$EXCL" --stop-on-failure -I 1,1 >/dev/null 2>&1
+  ctest -R "$SCOPE" -E "$EXCL" -I 1,1 >/dev/null 2>&1
   probe=$(( SECONDS - t0 )); [ "$probe" -lt 30 ] && probe=30
   SECONDS_PER_TEST=$probe
 fi
@@ -211,10 +218,10 @@ for label in $CELLS; do
 
   # shellcheck disable=SC2086
   env $env_str $( [ "$api" = vulkan ] && echo $VKVAL ) SCORE_TEST_API="$api" \
-    timeout "$CELL_TIMEOUT" ctest -R "$SCOPE" -E "$EXCL" > "$log" 2>&1
+    ${TMO:+$TMO $CELL_TIMEOUT} ctest -R "$SCOPE" -E "$EXCL" > "$log" 2>&1
   rc=$?
 
-  ran=$(grep -cE "\.\.\.\.* +(Passed|\*\*\*Failed|\*\*\*Exception|\*\*\*Skipped)" "$log")
+  ran=$(grep -cE "\.\.\.\.* +(Passed|\*\*\*Failed|\*\*\*Exception|\*\*\*Skipped)" "$log" | tr -d " ")
   # Authoritative device check, every platform: what did score actually get?
   banner=$(device_from_log "$log"); rhi_backend=$(backend_from_log "$log")
   if [ -n "$banner" ]; then dev="${banner#*device=\"}"; dev="${dev%\"}"; fi
@@ -225,10 +232,10 @@ for label in $CELLS; do
   # ctest prints "100% tests passed out of N" when nothing fails and
   # "N% tests passed, M tests failed out of N" otherwise. Accept both.
   line=$(grep -oE "[0-9]+% tests passed(, [0-9]+ tests failed)? out of [0-9]+" "$log" | tail -1)
-  vuid=$(grep -oE "VUID-[A-Za-z0-9-]+" "$log" | sort -u | wc -l)
-  sync=$(grep -c "SYNC-HAZARD" "$log")
-  asan=$(grep -c "ERROR: AddressSanitizer" "$log")
-  ub=$(grep -c "runtime error:" "$log")
+  vuid=$(grep -oE "VUID-[A-Za-z0-9-]+" "$log" | sort -u | wc -l | tr -d " ")
+  sync=$(grep -c "SYNC-HAZARD" "$log" | tr -d " ")
+  asan=$(grep -c "ERROR: AddressSanitizer" "$log" | tr -d " ")
+  ub=$(grep -c "runtime error:" "$log" | tr -d " ")
   # --- positive control 2: is the Vulkan validation layer actually LOADED?
   # Inferring this from the test log is unsound: a clean run legitimately
   # prints nothing at all. Ask the loader directly, under the cell's own env.
