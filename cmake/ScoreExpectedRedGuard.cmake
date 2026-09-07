@@ -171,6 +171,38 @@ function(score_check_expected_red)
   # Only REGISTERED tags count. A TEST_CASE tag string closes with a quote:
   #     "[gfx][assettable][!shouldfail]")
   # Prose in a comment does not, and there is a lot of prose.
+  #
+  # The tag need not be LAST. This regex used to be `\[!shouldfail\]"\)`,
+  # which required the pin to sit immediately before the closing quote --
+  # so `"[!shouldfail][gfx]"` registered a Catch2 expected-failure that this
+  # guard counted as zero. An untracked expected-red could then be added with
+  # no manifest row and the guard, whose entire purpose is preventing silent
+  # test loss, would report the file as clean. Every tag in tree happens to be
+  # in the matched order today, so this was latent, not active. (T1.)
+  set(_SF_RE "\\[!shouldfail\\](\\[[^]]*\\])*\"\\)")
+
+  # Self-check: a guard that silently stops matching is worse than no guard.
+  # These are the forms the guard MUST see and the one it must NOT.
+  foreach(_probe
+      "X(\"a\", \"[gfx][!shouldfail]\")"
+      "X(\"b\", \"[!shouldfail][gfx]\")"
+      "X(\"c\", \"[!shouldfail]\")"
+      "X(\"d\", \"[a][!shouldfail][b][c]\")")
+    string(REGEX MATCHALL "${_SF_RE}" _hit "${_probe}")
+    list(LENGTH _hit _n)
+    if(NOT _n EQUAL 1)
+      message(FATAL_ERROR
+        "ScoreExpectedRedGuard: the [!shouldfail] matcher is broken -- it did "
+        "not match ${_probe}. Fix the regex before trusting any count below.")
+    endif()
+  endforeach()
+  string(REGEX MATCHALL "${_SF_RE}" _hit "// bare prose mentioning [!shouldfail]")
+  list(LENGTH _hit _n)
+  if(NOT _n EQUAL 0)
+    message(FATAL_ERROR
+      "ScoreExpectedRedGuard: the [!shouldfail] matcher counts unregistered "
+      "prose; it would inflate every file's count.")
+  endif()
   file(GLOB_RECURSE _sources
     "${_root}/tests/*.cpp" "${_root}/tests/*.hpp"
     "${_root}/src/*/tests/*.cpp" "${_root}/src/*/*/tests/*.cpp")
@@ -180,7 +212,7 @@ function(score_check_expected_red)
     file(READ "${_src}" _text)
 
     # --- Catch2 [!shouldfail], registered ------------------------------------
-    string(REGEX MATCHALL "\\[!shouldfail\\]\"\\)" _sf_hits "${_text}")
+    string(REGEX MATCHALL "${_SF_RE}" _sf_hits "${_text}")
     list(LENGTH _sf_hits _n_sf)
     set(_want_sf 0)
     foreach(_d IN LISTS _declared_files)
