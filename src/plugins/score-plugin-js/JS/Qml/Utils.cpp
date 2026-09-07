@@ -199,14 +199,63 @@ void JsUtils::shell(QString cmd, QJSValue onFinish)
 #endif
 }
 
-// Async native dialogs. We use the QWidget QFileDialog in non-blocking mode
-// (open() + finished signal) rather than the blocking static helpers, so the
-// Qt Quick render/event loop keeps running while the native picker is shown.
-// The dialog deletes itself on close; the callback always fires (empty path on
-// cancel). Everything here runs on the GUI thread, so the QJSValue can be
-// called back directly without thread marshalling.
+// Capture ownership before constructing a dialog: a focused Quick window may
+// be a native child of an embedded or detached QWidget editor, or a standalone
+// output window with no QWidget at all.
+struct DialogOwner
+{
+  QWidget* widget{};
+  QWindow* window{};
+};
+
+static DialogOwner activeDialogOwner()
+{
+  auto* window = QGuiApplication::focusWindow();
+  while(window)
+  {
+    if(auto* parent = window->parent())
+      window = parent;
+    else if(
+        (window->type() == Qt::Popup || window->type() == Qt::ToolTip)
+        && window->transientParent())
+      window = window->transientParent();
+    else
+      break;
+  }
+  if(window)
+    return {QWidget::find(window->winId()), window};
+
+  auto* widget = QApplication::activeWindow();
+  if(!widget)
+    widget = score::GUIAppContext().mainWindow;
+  return {widget, nullptr};
+}
+
+static void showDialog(QDialog* dialog, DialogOwner owner)
+{
+  if(!owner.widget && owner.window)
+  {
+    // Do not give a standalone QWindow's dialog a main-window QWidget parent:
+    // Qt's native dialog helper prefers that over the explicit transient parent.
+    dialog->winId();
+    dialog->windowHandle()->setTransientParent(owner.window);
+    // Transient parenting controls stacking, not QObject lifetime. Like widget
+    // parent destruction, owner teardown deletes without invoking the callback.
+    QObject::connect(owner.window, &QObject::destroyed, dialog, &QObject::deleteLater);
+  }
+  dialog->setWindowModality(
+      owner.widget || owner.window ? Qt::WindowModal : Qt::ApplicationModal);
+  // show() preserves explicit modality; open() forces WindowModal even if no
+  // owner exists. Neither show() nor the finished callback nests an event loop.
+  dialog->show();
+}
+
+// Async native dialogs delete themselves on close. Acceptance and cancellation
+// invoke the callback (empty string on cancel); destruction alone does not.
+// Invocation, owner capture and callbacks run on the GUI thread, and the JS
+// engine must remain alive until the dialog finishes or is destroyed.
 static void runFileDialog(
-    QFileDialog* dialog, std::shared_ptr<QJSValue> onAccept)
+    QFileDialog* dialog, DialogOwner owner, std::shared_ptr<QJSValue> onAccept)
 {
   dialog->setAttribute(Qt::WA_DeleteOnClose);
   QObject::connect(
@@ -221,49 +270,7 @@ static void runFileDialog(
     if(onAccept->isCallable())
       onAccept->call(QJSValueList{} << path);
   });
-  dialog->open();
-}
-
-void JsUtils::openColorDialog(QString title, QString initialColor, QJSValue onAccept)
-{
-  // Capture the owner before the dialog takes focus. Quick editors can be
-  // native children of a QWidget, or standalone output windows.
-  auto* window = QGuiApplication::focusWindow();
-  while(window)
-  {
-    if(window->parent())
-      window = window->parent();
-    else if(
-        (window->type() == Qt::Popup || window->type() == Qt::ToolTip)
-        && window->transientParent())
-      window = window->transientParent();
-    else
-      break;
-  }
-  auto* parent = window ? QWidget::find(window->winId()) : QApplication::activeWindow();
-  if(!window && !parent)
-    parent = score::GUIAppContext().mainWindow;
-
-  auto* dialog = new QColorDialog{QColor{initialColor}, parent};
-  dialog->setWindowTitle(title);
-  dialog->setOption(QColorDialog::ShowAlphaChannel);
-  dialog->setAttribute(Qt::WA_DeleteOnClose);
-  if(window && !parent)
-  {
-    dialog->winId();
-    dialog->windowHandle()->setTransientParent(window);
-    QObject::connect(window, &QObject::destroyed, dialog, &QObject::deleteLater);
-  }
-  QObject::connect(
-      dialog, &QColorDialog::finished, dialog,
-      [dialog, callback = std::move(onAccept)](int result) mutable {
-    if(callback.isCallable())
-      callback.call(
-          {result == QDialog::Accepted ? dialog->selectedColor().name(QColor::HexArgb)
-                                       : QString{}});
-  });
-  dialog->setWindowModality(parent || window ? Qt::WindowModal : Qt::ApplicationModal);
-  dialog->show();
+  showDialog(dialog, owner);
 }
 
 QColor JsUtils::imagePixelColor(const QImage& image, int x, int y)
@@ -276,24 +283,43 @@ QColor JsUtils::imagePixelColor(const QImage& image, int x, int y)
 void JsUtils::openFileDialog(
     QString title, QString filters, QString folder, QJSValue onAccept)
 {
-  auto* parent = score::GUIAppContext().mainWindow;
-  auto* dialog = new QFileDialog(parent, title, folder, filters);
+  const auto owner = activeDialogOwner();
+  auto* dialog = new QFileDialog(owner.widget, title, folder, filters);
   dialog->setAcceptMode(QFileDialog::AcceptOpen);
   dialog->setFileMode(QFileDialog::ExistingFile);
-  runFileDialog(dialog, std::make_shared<QJSValue>(std::move(onAccept)));
+  runFileDialog(dialog, owner, std::make_shared<QJSValue>(std::move(onAccept)));
 }
 
 void JsUtils::saveFileDialog(
     QString title, QString filters, QString folder, QString defaultName,
     QJSValue onAccept)
 {
-  auto* parent = score::GUIAppContext().mainWindow;
-  auto* dialog = new QFileDialog(parent, title, folder, filters);
+  const auto owner = activeDialogOwner();
+  auto* dialog = new QFileDialog(owner.widget, title, folder, filters);
   dialog->setAcceptMode(QFileDialog::AcceptSave);
   dialog->setFileMode(QFileDialog::AnyFile);
   if(!defaultName.isEmpty())
     dialog->selectFile(defaultName);
-  runFileDialog(dialog, std::make_shared<QJSValue>(std::move(onAccept)));
+  runFileDialog(dialog, owner, std::make_shared<QJSValue>(std::move(onAccept)));
+}
+
+void JsUtils::openColorDialog(
+    QString title, QString initialColor, QJSValue onAccept)
+{
+  const auto owner = activeDialogOwner();
+  auto* dialog = new QColorDialog(QColor{initialColor}, owner.widget);
+  dialog->setWindowTitle(title);
+  dialog->setOption(QColorDialog::ShowAlphaChannel);
+  dialog->setAttribute(Qt::WA_DeleteOnClose);
+  QObject::connect(
+      dialog, &QColorDialog::finished, dialog,
+      [dialog, callback = std::move(onAccept)](int result) mutable {
+        if(callback.isCallable())
+          callback.call({result == QDialog::Accepted
+                             ? dialog->selectedColor().name(QColor::HexArgb)
+                             : QString{}});
+      });
+  showDialog(dialog, owner);
 }
 
 QString JsUtils::layoutTextLines(QString text, QString font, int pointSize, int maxWidth)
