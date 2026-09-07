@@ -219,13 +219,13 @@ void RhiPreviewWidget::detach()
 void RhiPreviewWidget::resizeEvent(QResizeEvent* ev)
 {
   QWidget::resizeEvent(ev);
-  if(m_node)
+  if(auto* node = liveNode())
   {
     const qreal dpr = devicePixelRatioF();
     const QSize px{
         qMax(1, int(ev->size().width() * dpr)),
         qMax(1, int(ev->size().height() * dpr))};
-    m_node->setSize(px);
+    node->setSize(px);
   }
 }
 
@@ -240,8 +240,8 @@ void RhiPreviewWidget::timerEvent(QTimerEvent* ev)
   // Graph backend: drive the offscreen frame + readback ourselves
   // (the manager's private graph has no timer infrastructure).
   // Context backend: GfxContext drives render() via its manual timer.
-  if(m_backend == Backend::Graph && m_node)
-    m_node->render();
+  if(auto* node = liveNode(); node && m_backend == Backend::Graph)
+    node->render();
 
   update();
 }
