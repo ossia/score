@@ -97,6 +97,21 @@ bool matches(const QString& name, const QString& filter)
   return filter.isEmpty() || name.contains(filter, Qt::CaseInsensitive);
 }
 
+//! Construction data for a sweep, which has nobody to ask.
+//!
+//! ProcessFactory::customConstructionData() is by contract a user prompt: the
+//! VST, VST3, CLAP and LV2 factories all open a modal chooser from it. Called
+//! here it is a QDialog::exec() on an event loop nobody can click, so the whole
+//! process wedges -- the sweep reported CRASH(124) against whichever object was
+//! reached first (VST, alphabetically late enough that the packagemanager's own
+//! first-run modal used to mask it). Every object is still instantiated; a
+//! plugin host simply comes up with no plugin chosen, which is what a
+//! crash/render sweep is checking anyway.
+inline QString noConstructionData() noexcept
+{
+  return {};
+}
+
 QString arg_value(const QStringList& args, const QString& flag)
 {
   const int i = args.indexOf(flag);
@@ -160,7 +175,7 @@ void run_gallery(const QString& filter, int seconds)
 
     CommandDispatcher<> disp{doc->context().commandStack};
     disp.submit<Scenario::Command::AddOnlyProcessToInterval>(
-        itv, factory.concreteKey(), factory.customConstructionData(), QPointF{});
+        itv, factory.concreteKey(), noConstructionData(), QPointF{});
     ++created;
   }
 
@@ -235,7 +250,7 @@ void run_render_check(const QString& filter, int seconds)
     target = factory.prettyName();
     CommandDispatcher<> disp{doc->context().commandStack};
     disp.submit<Scenario::Command::AddOnlyProcessToInterval>(
-        itv, factory.concreteKey(), factory.customConstructionData(), QPointF{});
+        itv, factory.concreteKey(), noConstructionData(), QPointF{});
     break;
   }
   if(target.isEmpty())

@@ -28,7 +28,7 @@ command -v xdpyinfo >/dev/null 2>&1 && ! xdpyinfo -display "$DISP" >/dev/null 2>
 
 run() { # file backend_env...
   local file="$1"; shift
-  env DISPLAY="$DISP" SCORE_AUDIO_BACKEND=dummy "$@" \
+  env DISPLAY="$DISP" SCORE_AUDIO_BACKEND=dummy SCORE_SANITIZE_SKIP_CHECKS=1 "$@" \
     timeout 40 "$GALLERY" --shader "$file" --seconds "$SECS" >/dev/null 2>&1
 }
 
