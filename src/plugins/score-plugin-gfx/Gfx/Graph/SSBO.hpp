@@ -1,5 +1,7 @@
 #pragma once
 
+#include <limits>
+
 #include <isf.hpp>
 
 namespace score::gfx
@@ -149,7 +151,11 @@ static inline LayoutResult calculateStructLayout(
   if(layout.empty())
     return {0, 0};
 
-  int currentOffset = 0;
+  // 64-bit internally even though LayoutResult::size is an int: a struct whose
+  // layout does not fit in an int is not representable by this API, and
+  // returning a WRAPPED value is worse than returning an invalid one. The
+  // overflow check below turns it into {0, 0}, which isValid() already rejects.
+  int64_t currentOffset = 0;
   int maxAlignment = 0;
 
   for(const auto& field : layout)
@@ -220,7 +226,13 @@ static inline LayoutResult calculateStructLayout(
   // Struct size must be a multiple of its largest member alignment
   currentOffset = alignUp(currentOffset, maxAlignment);
 
-  return {currentOffset, maxAlignment};
+  // LayoutResult::size is an int. currentOffset is computed in 64 bits above so
+  // the arithmetic cannot wrap, but a layout that genuinely does not fit is not
+  // representable here -- report it as INVALID rather than truncate it into
+  // something that looks reasonable. isValid() already rejects {0, 0}.
+  if(currentOffset > (int64_t)std::numeric_limits<int>::max())
+    return {0, 0};
+  return {(int)currentOffset, maxAlignment};
 }
 
 // --- std140 (uniform block) layout ---------------------------------------
@@ -470,17 +482,22 @@ static inline int64_t calculateStorageBufferSize(
       }
     }
 
-    int elementStride = alignUp(fieldSize, fieldAlign);
+    // int64_t, and the MULTIPLY must be 64-bit too. currentOffset is already
+    // int64_t and this function already returns int64_t, but `int stride * int
+    // count` overflows BEFORE it is widened: a 16-byte element with 134217728
+    // entries is exactly 2^31 and came out as -2147483648, so a buffer far too
+    // large silently reported a negative size. (SR5 in the 2026-09 review.)
+    const int64_t elementStride = alignUp(fieldSize, fieldAlign);
     currentOffset = alignUp(currentOffset, fieldAlign);
     if(isFlexibleArray)
     {
       // Variable-length array: use provided arrayCount
-      currentOffset += elementStride * arrayCount;
+      currentOffset += elementStride * (int64_t)arrayCount;
     }
     else if(isFixedArray)
     {
       // Fixed-length array: use parsed count
-      currentOffset += elementStride * fixedArrayCount;
+      currentOffset += elementStride * (int64_t)fixedArrayCount;
     }
     else
     {
