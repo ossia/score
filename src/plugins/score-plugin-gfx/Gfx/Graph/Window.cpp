@@ -394,7 +394,8 @@ void Window::render()
       m_newlyExposed = true;
     {
       // 1. Calculate the time elapsed since the last frame
-      if(const auto frame_ns = m_timer.nsecsElapsed(); frame_ns > 0)
+      if(const auto frame_ns = m_timer.isValid() ? m_timer.nsecsElapsed() : 0;
+         frame_ns > 0)
       {
         const double fps = 1e9 / frame_ns;
 
@@ -448,7 +449,8 @@ void Window::render()
     m_fps = 0.;
   }
 
-  if(m_fpsPushTimer.elapsed() > 50)
+  // Same guard: render() is reachable without an expose having started them.
+  if(m_fpsPushTimer.isValid() && m_fpsPushTimer.elapsed() > 50)
   {
     fps(m_fps);
     m_fpsPushTimer.restart();
@@ -526,8 +528,12 @@ void Window::exposeEvent(QExposeEvent* ev)
 
   if(isExposed() && !surfaceSize.isEmpty())
   {
-    m_timer.restart();
-    m_fpsPushTimer.restart();
+    // start(), not restart(): this is the FIRST use of both timers, and a
+    // default-constructed QElapsedTimer holds INT64_MIN. restart() computes
+    // now - INT64_MIN to return the elapsed time nobody reads here, which is
+    // signed overflow -- fatal under -fno-sanitize-recover=all.
+    m_timer.start();
+    m_fpsPushTimer.start();
     render();
   }
 }
