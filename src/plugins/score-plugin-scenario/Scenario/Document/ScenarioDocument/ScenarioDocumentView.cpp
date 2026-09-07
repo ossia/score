@@ -838,10 +838,10 @@ score::BackgroundRenderer*
 ScenarioDocumentView::activeBackgroundRenderer() const noexcept
 {
   // Same precedence as ProcessGraphicsView::drawBackground
-  if(m_view.currentBackground)
-    return m_view.currentBackground;
-  if(!m_view.m_globalRenderers.empty())
-    return m_view.m_globalRenderers.back();
+  if(m_view->currentBackground)
+    return m_view->currentBackground;
+  if(!m_view->m_globalRenderers.empty())
+    return m_view->m_globalRenderers.back();
   return nullptr;
 }
 
