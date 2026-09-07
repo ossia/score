@@ -108,6 +108,9 @@ public:
   Selectable selection{this};
   bool displayHandledExplicitly{};
   bool noValueChangeOnMove{};
+  // Declared again by the process when constructing/loading its ports.
+  // Preset reloads match these by identity, not mutable name or row position.
+  bool stableIdentity{};
 
   void addCable(const Process::Cable& c);
   void removeCable(const Path<Process::Cable>& c);
@@ -251,7 +254,7 @@ public:
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, domainChanged, d)
 
 public:
-  void setValue(const ossia::value& value);
+  virtual void setValue(const ossia::value& value);
   W_SLOT(setValue)
   void setInit(const ossia::value& value);
   W_SLOT(setInit)

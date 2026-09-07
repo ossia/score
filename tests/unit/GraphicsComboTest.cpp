@@ -2,6 +2,7 @@
 // in the scene, and what it does with a value that is not in the list.
 
 #include <score/graphics/InfiniteScroller.hpp>
+#include <score/graphics/layouts/GraphicsTabLayout.hpp>
 #include <score/graphics/widgets/QGraphicsCombo.hpp>
 #include <score/graphics/widgets/QGraphicsEnum.hpp>
 #include <score/widgets/ComboBox.hpp>
@@ -305,5 +306,37 @@ TEST_CASE("the displayed entry stays selectable")
     REQUIRE(item.value() == 0);
     editor->activated(0);
     CHECK(moved == 1);
+  });
+}
+
+TEST_CASE("tab pages retain model selection before layout and through relayout")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    score::GraphicsTabLayout tabs{nullptr};
+    auto* json = new QGraphicsRectItem{QRectF{0., 0., 100., 30.}, &tabs};
+    auto* binary = new QGraphicsRectItem{QRectF{0., 0., 160., 80.}, &tabs};
+    tabs.addTab("JSON");
+    tabs.addTab("Binary");
+    SECTION("visible tab selector")
+    {
+      tabs.setTabBarVisible(true);
+    }
+    SECTION("model-only panes")
+    {
+      tabs.setTabBarVisible(false);
+    }
+
+    tabs.setCurrentIndex(1);
+    tabs.layout();
+    CHECK_FALSE(json->isVisible());
+    CHECK(binary->isVisible());
+
+    tabs.layout();
+    CHECK_FALSE(json->isVisible());
+    CHECK(binary->isVisible());
+
+    tabs.setCurrentIndex(0);
+    CHECK(json->isVisible());
+    CHECK_FALSE(binary->isVisible());
   });
 }

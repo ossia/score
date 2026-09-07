@@ -333,39 +333,40 @@ static ossia::small_vector<Process::Cable*, 4> restoreCables(
 ossia::small_vector<Process::Cable*, 4> reloadPortsInNewProcess(
     const std::vector<SavedPort>& oldInlets, const std::vector<SavedPort>& oldOutlets,
     const SerializedCables& oldCables, Process::ProcessModel& process,
-    Process::PortLoadDataFlags flags, const score::DocumentContext& ctx)
+    Process::PortLoadDataFlags flags, const score::DocumentContext& ctx,
+    std::span<const int> oldInletIds, std::span<const int> oldOutletIds)
 {
   ossia::small_vector<Process::Cable*, 4> ret;
-  // Try an optimistic matching. Type and name must match.
+  // Ordinary ports match position and name; keyed rows match persistent IDs.
   auto& doc = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
 
-  const std::size_t min_inlets = std::min(oldInlets.size(), process.inlets().size());
-  const std::size_t min_outlets = std::min(oldOutlets.size(), process.outlets().size());
-  for(std::size_t i = 0; i < min_inlets; i++)
-  {
-    auto new_p = process.inlets()[i];
-    auto& old_p = oldInlets[i];
-
-    if(new_p->type() == old_p.type && new_p->name() == old_p.name)
+  const auto reload
+      = [&](const auto& oldPorts, const auto& newPorts, std::span<const int> oldIds) {
+    for(std::size_t i = 0; i < newPorts.size(); ++i)
     {
-      new_p->loadData(old_p.data, flags);
-      auto rret = restoreCables(*new_p, doc, ctx, oldCables);
-      ret.insert(ret.end(), rret.begin(), rret.end());
+      auto* new_p = newPorts[i];
+      auto oldIndex = i;
+      if(new_p->stableIdentity)
+      {
+        auto it = std::find(oldIds.begin(), oldIds.end(), new_p->id().val());
+        if(it == oldIds.end())
+          continue;
+        oldIndex = it - oldIds.begin();
+      }
+      if(oldIndex >= oldPorts.size())
+        continue;
+      const auto& old_p = oldPorts[oldIndex];
+      if(new_p->type() == old_p.type
+         && (new_p->stableIdentity || new_p->name() == old_p.name))
+      {
+        new_p->loadData(old_p.data, flags);
+        auto restored = restoreCables(*new_p, doc, ctx, oldCables);
+        ret.insert(ret.end(), restored.begin(), restored.end());
+      }
     }
-  }
-
-  for(std::size_t i = 0; i < min_outlets; i++)
-  {
-    auto new_p = process.outlets()[i];
-    auto& old_p = oldOutlets[i];
-
-    if(new_p->type() == old_p.type && new_p->name() == old_p.name)
-    {
-      new_p->loadData(old_p.data, flags);
-      auto rret = restoreCables(*new_p, doc, ctx, oldCables);
-      ret.insert(ret.end(), rret.begin(), rret.end());
-    }
-  }
+  };
+  reload(oldInlets, process.inlets(), oldInletIds);
+  reload(oldOutlets, process.outlets(), oldOutletIds);
 
   return ret;
 }

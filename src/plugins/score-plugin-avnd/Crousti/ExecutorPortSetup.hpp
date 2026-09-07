@@ -4,7 +4,7 @@
 #include <Crousti/File.hpp>
 #include <Crousti/ProcessModel.hpp>
 
-#include <ossia/detail/flat_set.hpp>
+#include <ossia/detail/flat_map.hpp>
 
 #include <avnd/binding/ossia/node.hpp>
 
@@ -24,7 +24,8 @@ struct dynamic_ports_component_data<T>
 {
   Process::Inlets m_oldInlets;
   Process::Outlets m_oldOutlets;
-  ossia::flat_set<Process::Inlet*> m_connectedControls;
+  ossia::flat_map<Process::Inlet*, std::pair<int, QMetaObject::Connection>>
+      m_connectedControls;
 };
 
 // A halp::folder_port: a std::string control whose widget is a directory picker
@@ -208,28 +209,36 @@ struct setup_control_for_exec : setup_control_for_exec_base<Node, Field>
   {
     if constexpr(requires { control_data.m_connectedControls; })
     {
-      // Inlet already has the ui -> exec connection done
-      if(control_data.m_connectedControls.contains(inlet))
-        return false;
+      auto it = control_data.m_connectedControls.find(inlet);
+      if(it != control_data.m_connectedControls.end())
+      {
+        if constexpr(!avnd::dynamic_ports_port<Field>)
+          return false;
+        if(it->second.first == k)
+          return false;
+        QObject::disconnect(it->second.second);
+        control_data.m_connectedControls.erase(it);
+      }
     }
 
     // Connect to changes
     std::weak_ptr<ExecNode> weak_node = this->node_ptr;
+    QMetaObject::Connection connection;
     if constexpr(avnd::dynamic_ports_port<Field>)
     {
-      QObject::connect(
+      connection = QObject::connect(
           inlet, &Process::ControlInlet::valueChanged, this->parent,
           con_unvalidated_dynamic_port<Node, Field, N, NField>{this->ctx, weak_node, k});
     }
     else
     {
-      QObject::connect(
+      connection = QObject::connect(
           inlet, &Process::ControlInlet::valueChanged, this->parent,
           con_unvalidated<Node, Field, N, NField>{this->ctx, weak_node, param});
     }
 
     if constexpr(requires { control_data.m_connectedControls; })
-      control_data.m_connectedControls.insert(inlet);
+      control_data.m_connectedControls.emplace(inlet, std::pair{k, connection});
     return true;
   }
 
@@ -479,8 +488,9 @@ struct setup_control_for_exec<Node, Field, N, NField>
 //! nothing to set up here (and no `value` to convert to).
 template <typename Field>
 constexpr bool field_has_ui_controls
-    = !avnd::dynamic_ports_port<Field>
-      || avnd::parameter_port<avnd::concrete_port_type<Field>>;
+    = !ossia_port<avnd::concrete_port_type<Field>>
+      && (!avnd::dynamic_ports_port<Field>
+          || avnd::parameter_port<avnd::concrete_port_type<Field>>);
 
 template <typename Node>
 struct dispatch_control_setup

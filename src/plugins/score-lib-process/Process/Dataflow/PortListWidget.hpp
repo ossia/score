@@ -3,6 +3,8 @@
 
 #include <score_lib_process_export.h>
 
+class QLabel;
+
 namespace Inspector
 {
 class Layout;
@@ -43,7 +45,7 @@ public:
       const Process::Port& port, const score::DocumentContext& ctx, QWidget* parent);
 
 private:
-  static void setupImpl(
+  static QLabel* setupImpl(
       const QString& txt, const Port& port, const score::DocumentContext& ctx,
       Inspector::Layout& lay, QWidget* parent);
 };

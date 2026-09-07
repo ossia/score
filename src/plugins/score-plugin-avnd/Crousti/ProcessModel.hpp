@@ -258,6 +258,14 @@ private:
         if constexpr(requires { F::on_controller_interaction(); })
         {
           upgradeControllerPort(field, idx);
+          // Version migration for controls whose old document representation
+          // differs from their current value type (e.g. newline keywords).
+          if constexpr(requires(ossia::value v) { F::migrate_value(v); })
+          {
+            auto inlet = qobject_cast<Process::ControlInlet*>(
+                avnd_input_idx_to_model_ports(Idx)[0]);
+            inlet->setValue(F::migrate_value(inlet->value()));
+          }
         }
         if constexpr(requires { F::on_controller_setup(); })
         {
@@ -360,6 +368,11 @@ private:
         port.request_port_resize = [this, &port](int new_count) {
           this->request_new_dynamic_input_count(port, avnd::field_index<N>{}, new_count);
         };
+        if constexpr(requires { port.request_port_rows; })
+          port.request_port_rows = [this, &port](const auto& rows) {
+            this->template request_dynamic_rows<true>(
+                port, avnd::field_index<N>{}, rows);
+          };
       });
     }
 
@@ -373,8 +386,101 @@ private:
           this->request_new_dynamic_output_count(
               port, avnd::field_index<N>{}, new_count);
         };
+        if constexpr(requires { port.request_port_rows; })
+          port.request_port_rows = [this, &port](const auto& rows) {
+            this->template request_dynamic_rows<false>(
+                port, avnd::field_index<N>{}, rows);
+          };
       });
     }
+  }
+
+  template <bool Input, typename P, std::size_t N, typename Rows>
+  void request_dynamic_rows(P& port, avnd::field_index<N> idx, const Rows& rows)
+  {
+    if(rows.size() > 512)
+      return;
+    std::vector<int> keys;
+    keys.reserve(rows.size());
+    for(const auto& [key, text] : rows)
+    {
+      if(key < 10000 || ossia::contains(keys, key))
+        return;
+      keys.push_back(key);
+    }
+    auto& all = [&]() -> auto& {
+      if constexpr(Input)
+        return m_inlets;
+      else
+        return m_outlets;
+    }();
+    auto first = [&] {
+      if constexpr(Input)
+        return avnd_input_idx_to_iterator(idx);
+      else
+        return avnd_output_idx_to_iterator(idx);
+    }();
+    auto& count = [&]() -> auto& {
+      if constexpr(Input)
+        return dynamic_ports.num_in_ports(idx);
+      else
+        return dynamic_ports.num_out_ports(idx);
+    }();
+    using Ports = std::decay_t<decltype(all)>;
+    using Port = std::remove_pointer_t<typename Ports::value_type>;
+    Ports old{first, first + count}, next;
+    next.reserve(rows.size());
+    for(const auto& [key, text] : rows)
+    {
+      auto found
+          = ossia::find_if(old, [key](auto p) { return p && p->id().val() == key; });
+      Port* p{};
+      if(found != old.end())
+      {
+        p = *found;
+        *found = nullptr;
+      }
+      else
+      {
+        Ports added;
+        if constexpr(Input)
+        {
+          InletInitFunc<Info> make{*this, added};
+          make.inlet = key;
+          make(port, idx);
+        }
+        else
+        {
+          OutletInitFunc<Info> make{*this, added};
+          make.outlet = key;
+          make(port, idx);
+        }
+        SCORE_ASSERT(added.size() == 1);
+        p = added.front();
+      }
+      p->stableIdentity = true;
+      p->setName(QString::fromStdString(text));
+      next.push_back(p);
+    }
+    const bool changed = !std::equal(next.begin(), next.end(), first, first + count);
+    const auto offset = first - all.begin();
+    all.erase(first, first + count);
+    all.insert(all.begin() + offset, next.begin(), next.end());
+    count = rows.size();
+    ossia::small_pod_vector<Port*, 4> removed;
+    for(auto p : old)
+      if(p)
+        removed.push_back(p);
+    removeCablesOfPorts(removed);
+    if(changed)
+    {
+      if constexpr(Input)
+        inletsChanged();
+      else
+        outletsChanged();
+    }
+    for(auto p : removed)
+      delete p;
   }
 
   //! Ports removed by a resize take their cables with them: a cable whose end

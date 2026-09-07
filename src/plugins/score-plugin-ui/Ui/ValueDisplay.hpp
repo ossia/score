@@ -1,9 +1,10 @@
 #pragma once
+#include <State/ValuePrettyPrint.hpp>
+
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/Process.hpp>
-#include <State/ValuePrettyPrint.hpp>
 
 #include <Effect/EffectLayer.hpp>
 #include <Effect/EffectLayout.hpp>
@@ -27,6 +28,8 @@
 #include <halp/meta.hpp>
 #include <halp/polyfill.hpp>
 #include <halp/static_string.hpp>
+
+#include <cmath>
 
 #include <algorithm>
 #include <iterator>
@@ -57,6 +60,91 @@ struct Node
 
   static constexpr int max_log = 100;
 
+  enum class Format
+  {
+    Ordinary,
+    Pretty,
+    Hex
+  };
+
+  static std::optional<unsigned char> byteValue(float value) noexcept
+  {
+    if(value >= 0.f && value <= 255.f && std::trunc(value) == value)
+      return static_cast<unsigned char>(value);
+    return std::nullopt;
+  }
+
+  static std::optional<unsigned char> byteValue(const ossia::value& value) noexcept
+  {
+    if(auto* number = value.target<int>())
+    {
+      if(*number >= 0 && *number <= 255)
+        return static_cast<unsigned char>(*number);
+    }
+    else if(auto* number = value.target<float>())
+      return byteValue(*number);
+    else if(auto* boolean = value.target<bool>())
+      return static_cast<unsigned char>(*boolean);
+    return std::nullopt;
+  }
+
+  static void printHexValue(std::string& out, const ossia::value& value)
+  {
+    // Match the state value editor's HexEdit: lowercase pairs, spaces, sixteen
+    // bytes per row. Write directly to the retained buffer, not a temporary
+    // QByteArray / QString pair.
+    constexpr char digits[] = "0123456789abcdef";
+    const auto start = out.size();
+    std::size_t count = 0;
+    auto append = [&](unsigned char byte) {
+      if(count != 0)
+        out.push_back(count % 16 == 0 ? '\n' : ' ');
+      out.push_back(digits[byte >> 4]);
+      out.push_back(digits[byte & 0x0f]);
+      ++count;
+    };
+    auto appendNumbers = [&](const auto& numbers) {
+      for(const auto& number : numbers)
+      {
+        auto byte = byteValue(number);
+        if(!byte)
+          return false;
+        append(*byte);
+      }
+      return true;
+    };
+
+    bool valid = true;
+    if(auto* bytes = value.target<std::string>())
+    {
+      for(unsigned char byte : *bytes)
+        append(byte);
+    }
+    else if(auto* numbers = value.target<std::vector<ossia::value>>())
+      valid = appendNumbers(*numbers);
+    else if(auto* numbers = value.target<ossia::vec2f>())
+      valid = appendNumbers(*numbers);
+    else if(auto* numbers = value.target<ossia::vec3f>())
+      valid = appendNumbers(*numbers);
+    else if(auto* numbers = value.target<ossia::vec4f>())
+      valid = appendNumbers(*numbers);
+    else if(auto byte = byteValue(value))
+      append(*byte);
+    else
+      valid = false;
+
+    if(!valid)
+    {
+      // Do not truncate, wrap, flatten or reinterpret non-byte values. A bad
+      // element rejects the entire list, including any already appended bytes.
+      out.resize(start);
+      out += "[not byte data] ";
+      State::printValue(out, value);
+    }
+    else if(count == 0)
+      out += "[empty]";
+  }
+
   struct
   {
     // Reading the port directly rather than through a control input: a control
@@ -64,12 +152,32 @@ struct Node
     // would ever be seen, and a burst - a note-off immediately followed by a
     // note-on, several values written at the same sample - would show up as a
     // single entry.
-    raw_port<"in", ossia::value_port> port;
+    struct : raw_port<"Input", ossia::value_port>
+    {
+      halp_meta(description, "Values to display, including every event in a tick.")
+    } port;
 
-    halp::spinbox_i32<"Log", halp::range{1, max_log, 1}> log;
+    struct : halp::spinbox_i32<"Log", halp::range{1, max_log, 1}>
+    {
+      halp_meta(description, "Number of recent values to retain, newest first.")
+    } log;
 
-    // Spread nested lists and maps over indented lines instead of a single one.
-    halp::toggle<"Pretty"> pretty;
+    struct : halp::combobox_t<"Format", Format>
+    {
+      halp_meta(
+          description,
+          "Ordinary text, indented Pretty text, or Hex bytes. Hex shows raw "
+          "string bytes, including UTF-8 bytes, NUL and high-bit bytes. Numbers "
+          "must be exact integers from 0 to 255; booleans are 00 or 01. Flat "
+          "numeric lists and vectors use one byte per element. Empty strings "
+          "and lists show [empty]. Other values show [not byte data] followed "
+          "by ordinary text; no wrapping, truncation or memory reinterpretation.")
+      struct range
+      {
+        std::string_view values[3]{"Ordinary", "Pretty", "Hex"};
+        Format init{Format::Ordinary};
+      };
+    } format;
   } inputs;
 
   struct
@@ -77,6 +185,7 @@ struct Node
     // [sequence number of the first entry, values...]
     struct : halp::val_port<"values", std::optional<ossia::value>>
     {
+      halp_meta(description, "Recent values and their sequence number for the display.")
       enum widget
       {
         control
@@ -137,11 +246,10 @@ struct Node
     int m_next_seq = 0;
 
     Process::ControlInlet* log_inlet{};
-    Process::ControlInlet* pretty_inlet{};
+    Process::ControlInlet* format_inlet{};
 
-    // The rendered text. Rebuilt when the values, the log length or the pretty
-    // toggle change - not on every paint - through m_buf, whose capacity is
-    // kept across rebuilds.
+    // The rendered text. Rebuilt when values, log length or format change,
+    // never on paint; m_buf retains its capacity across rebuilds.
     QString txt_cache;
     std::string m_buf;
 
@@ -150,29 +258,32 @@ struct Node
       return std::clamp(ossia::convert<int>(log_inlet->value()), 1, max_log);
     }
 
-    bool pretty() const noexcept
+    Format format() const noexcept
     {
-      return pretty_inlet && ossia::convert<bool>(pretty_inlet->value());
+      return format_inlet
+                 ? static_cast<Format>(ossia::convert<int>(format_inlet->value()))
+                 : Format::Ordinary;
     }
 
     void rebuildText()
     {
       m_buf.clear();
-      if(pretty())
+      const auto mode = format();
+      for(const auto& line : this->values)
       {
-        for(auto& line : this->values)
+        switch(mode)
         {
-          State::prettyPrintValue(m_buf, line);
-          m_buf.push_back('\n');
+          case Format::Hex:
+            printHexValue(m_buf, line);
+            break;
+          case Format::Pretty:
+            State::prettyPrintValue(m_buf, line);
+            break;
+          default:
+            State::printValue(m_buf, line);
+            break;
         }
-      }
-      else
-      {
-        for(auto& line : this->values)
-        {
-          State::printValue(m_buf, line);
-          m_buf.push_back('\n');
-        }
+        m_buf.push_back('\n');
       }
       txt_cache = QString::fromUtf8(m_buf.data(), m_buf.size());
       update();
@@ -195,7 +306,7 @@ struct Node
 
       log_inlet = static_cast<Process::ControlInlet*>(process.inlets()[1]);
       if(process.inlets().size() > 2)
-        pretty_inlet = qobject_cast<Process::ControlInlet*>(process.inlets()[2]);
+        format_inlet = qobject_cast<Process::ControlInlet*>(process.inlets()[2]);
 
       auto* out = static_cast<Process::ControlOutlet*>(process.outlets()[0]);
       connect(
@@ -210,9 +321,9 @@ struct Node
         rebuildText();
           });
 
-      if(pretty_inlet)
+      if(format_inlet)
         connect(
-            pretty_inlet, &Process::ControlInlet::valueChanged, this,
+            format_inlet, &Process::ControlInlet::valueChanged, this,
             [this](const ossia::value&) { rebuildText(); });
     }
 

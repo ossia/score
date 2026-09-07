@@ -12,31 +12,51 @@ void GraphicsTabLayout::addTab(QString tab)
   m_tabs.push_back(tab);
 }
 
+void GraphicsTabLayout::setCurrentIndex(int index)
+{
+  if(index < 0 || index >= std::ssize(m_tabs))
+    return;
+  if(m_currentIndex < std::ssize(m_pages))
+    m_pages[m_currentIndex]->setVisible(false);
+  m_currentIndex = index;
+  if(index < std::ssize(m_pages))
+    m_pages[index]->setVisible(true);
+  if(m_tabBar)
+    m_tabBar->setValue(index);
+}
+
 void GraphicsTabLayout::layout()
 {
-  const auto& items = this->childItems();
+  auto items = this->childItems();
+  if(m_tabBar)
+    items.removeOne(m_tabBar);
   updateChildrenRects(items);
   m_pages.assign(items.begin(), items.end());
 
   SCORE_ASSERT(items.size() == std::ssize(m_tabs));
   const int N = items.size();
 
-  // Create a button for each item
-  auto tab_bar = new score::QGraphicsEnum{m_tabs, this};
-  tab_bar->setPos(m_padding, m_padding);
-  tab_bar->columns = m_tabs.size();
-  tab_bar->updateRect();
-  connect(tab_bar, &score::QGraphicsEnum::currentIndexChanged, this, [this](int idx) {
-    auto page = m_pages[idx];
-    if(page != current)
+  if(m_showTabBar && !m_tabBar)
+  {
+    m_tabBar = new score::QGraphicsEnum{m_tabs, this};
+    connect(m_tabBar, &score::QGraphicsEnum::currentIndexChanged, this, [this](int idx) {
+      setCurrentIndex(idx);
+      if(onCurrentIndexChanged)
+        onCurrentIndexChanged(idx);
+    });
+  }
+  double y = m_padding;
+  if(m_tabBar)
+  {
+    m_tabBar->setVisible(m_showTabBar);
+    if(m_showTabBar)
     {
-      page->setVisible(true);
-      current->setVisible(false);
-      current = page;
+      m_tabBar->setPos(m_padding, m_padding);
+      m_tabBar->columns = m_tabs.size();
+      m_tabBar->updateRect();
+      y += m_tabBar->boundingRect().height();
     }
-  });
-
-  const double y = tab_bar->boundingRect().height() + m_padding;
+  }
   // Layout the pages
   for(int i = 0; i < N; i++)
   {
@@ -45,12 +65,7 @@ void GraphicsTabLayout::layout()
     page->setVisible(false);
   }
 
-  // Show the first tab
-  if(N > 0)
-  {
-    current = items[0];
-    current->setVisible(true);
-  }
+  setCurrentIndex(m_currentIndex);
 }
 
 }

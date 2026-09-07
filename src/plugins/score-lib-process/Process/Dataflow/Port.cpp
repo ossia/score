@@ -24,6 +24,7 @@
 
 #include <QDebug>
 #include <QIODevice>
+#include <QSignalBlocker>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Process::Port)
@@ -352,11 +353,12 @@ void ControlInlet::loadData(const QByteArray& arr, PortLoadDataFlags flags) noex
 
   if(has_value)
   {
-    op >> m_value;
-  }
-
-  if(has_value)
-  {
+    ossia::value value;
+    op >> value;
+    {
+      const QSignalBlocker blocker{this};
+      setValue(value);
+    }
     valueChanged(m_value);
   }
 }
