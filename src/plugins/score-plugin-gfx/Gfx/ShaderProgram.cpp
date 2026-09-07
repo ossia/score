@@ -24,10 +24,9 @@ QStringList shaderIncludePaths()
 {
   QStringList shaderIncludePath;
 
-  // Default path: the library packages dir so users' own GLSL snippets
-  // drop in without ceremony. Additional search roots are expected to be
-  // supplied via a user-facing include-paths GUI (not yet wired up) —
-  // no static registration mechanism lives here anymore.
+  // Default path: the library packages dir, so users' own GLSL snippets drop
+  // in. Additional search roots are expected to come from a user-facing
+  // include-paths GUI (not yet wired up).
   auto& lib_settings = score::AppContext().settings<Library::Settings::Model>();
   const QString lib_path = lib_settings.getPackagesPath();
   if(QDir{}.exists(lib_path))
@@ -112,7 +111,23 @@ void updateToGlsl45(ShaderSource& program)
       const auto& match = in_expr.match(partialString);
       const int len = match.capturedLength(0);
 
-      const int loc = attributes_locations_map[match.captured(2)];
+      // A fragment `in` with no matching vertex `out` is an orphan: the
+      // vertex stage never produces it. flat_map::operator[] would silently
+      // default-construct 0 for it -- the same location the ISF prelude gives
+      // isf_FragNormCoord -- and the shader then fails to compile with
+      //     'location' : overlapping use of location 0
+      // which names neither the varying nor the missing declaration. The
+      // usual cause is a companion .vs that was not found or not paired.
+      // Location 0 is still injected, but the warning below says what happened.
+      const auto loc_it = attributes_locations_map.find(match.captured(2));
+      const int loc = (loc_it != attributes_locations_map.end()) ? loc_it->second : 0;
+      if(loc_it == attributes_locations_map.end())
+      {
+        qWarning() << "score.gfx: fragment input" << match.captured(2)
+                   << "has no matching vertex output -- no companion vertex "
+                      "shader declares it. It will collide at location 0; the "
+                      "compiler will report 'overlapping use of location 0'.";
+      }
 
       program.fragment.insert(match_idx, QString("layout(location = %1) ").arg(loc));
 
