@@ -318,6 +318,9 @@ public:
 
   virtual ~GenericNodeRenderer() { }
 
+  //! The node's first Image outlet, or nullptr. Not always output[0].
+  score::gfx::Port* imageOutlet() const noexcept;
+
   ossia::small_vector<Sampler, 8> m_samplers;
 
   QShader m_vertexS;
