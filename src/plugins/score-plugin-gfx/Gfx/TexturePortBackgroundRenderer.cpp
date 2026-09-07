@@ -28,10 +28,10 @@ public:
       screenId = exec.ui->register_node(std::unique_ptr<score::gfx::Node>{node});
       if(screenId != -1)
       {
-        if(target.nodeId != -1)
+        const auto source = target.graphicsPort();
+        if(source.node != -1)
         {
-          nodeId = target.nodeId;
-          e = {{nodeId, 0}, {screenId, 0}};
+          e = {source, {screenId, 0}};
           plug->context.connect_preview_node(*e);
         }
       }
@@ -75,7 +75,6 @@ private:
   std::optional<Gfx::EdgeSpec> e;
   std::shared_ptr<QRhiReadbackResult> shared_readback;
   int32_t screenId{-1};
-  int32_t nodeId{-1};
 };
 
 bool TextureOutletBackgroundRendererFactory::matches(
