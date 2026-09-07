@@ -176,3 +176,53 @@ TEST_CASE("SceneObjects-08 one weighted orthographic camera stays orthographic w
   REQUIRE(Threedim::CameraSwitch::extractCameraPose(n.outputs.scene_out.scene, xf, cam));
   CHECK(cam.projection == ossia::camera_projection::orthographic);
 }
+
+
+TEST_CASE(
+    "SceneObjects-09 a camera published without any root node still reaches the scene",
+    "[SceneObjects][camera]")
+{
+  // scene_state carries roots, cameras, materials and skeletons as INDEPENDENT
+  // vectors, but scene_state::empty() reports on `roots` alone. flattenScene
+  // bailed on that, so a producer publishing only a camera -- which
+  // SceneGPUState.cpp's own camera block calls out as supported, "producers
+  // that don't want to embed a camera node can publish via `cameras` only" --
+  // had its whole scene dropped, and the consumer fell back to the default eye
+  // as though nothing had been published. (SR4 in the 2026-09 review.)
+  auto st = std::make_shared<ossia::scene_state>();
+  auto cam = std::make_shared<ossia::camera_component>();
+  cam->projection = ossia::camera_projection::orthographic;
+  st->cameras = std::make_shared<const std::vector<ossia::camera_component_ptr>>(
+      std::vector<ossia::camera_component_ptr>{cam});
+  // deliberately NO roots: that is the whole point of the case
+  REQUIRE(!st->roots);
+  REQUIRE(st->empty()); // the predicate that used to end the function
+
+  ossia::scene_spec spec;
+  spec.state = st;
+
+  score::gfx::FlatScene out;
+  score::gfx::flattenScene(spec, out, 1.f);
+
+  INFO("cameras reaching the flattened scene: " << out.cameras.size());
+  CHECK(out.cameras.size() == 1);
+  CHECK(out.activeCameraIndex == 0);
+}
+
+TEST_CASE(
+    "SceneObjects-10 an empty scene_state is still dropped",
+    "[SceneObjects][camera]")
+{
+  // The control for the case above: relaxing the guard must not turn "nothing
+  // published" into work. A state with no roots, no cameras, no materials and
+  // no skeletons still returns immediately.
+  auto st = std::make_shared<ossia::scene_state>();
+  ossia::scene_spec spec;
+  spec.state = st;
+
+  score::gfx::FlatScene out;
+  score::gfx::flattenScene(spec, out, 1.f);
+
+  CHECK(out.cameras.empty());
+  CHECK(out.draws.empty());
+}
