@@ -49,11 +49,14 @@ public:
     m_rhiWidget->setMaximumWidth(300);
     m_rhiWidget->setMinimumHeight(200);
     m_rhiWidget->setMaximumHeight(200);
-    m_rhiWidget->useContext(&plug.context, outlet.nodeId);
+    m_rhiWidget->useContext(&plug.context, outlet.graphicsPort());
     layout()->addWidget(m_rhiWidget);
 
     // TextureOutlet::nodeId has no notifier — poll for changes so a
     // process re-instantiation rewires the preview to the new producer.
+    // graphicsPort() is the registered endpoint: the outlet's own index,
+    // not port zero, which is a different outlet whenever a value outlet is
+    // declared before the texture.
     startTimer(16);
   }
 
@@ -61,7 +64,7 @@ public:
   {
     if(!outlet_p || !m_rhiWidget)
       return;
-    m_rhiWidget->setProducerNodeId(outlet_p->nodeId);
+    m_rhiWidget->setProducer(outlet_p->graphicsPort());
   }
 
   ~GraphPreviewWidget() override = default;

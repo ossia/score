@@ -1,4 +1,6 @@
 #pragma once
+#include <ossia/gfx/port_index.hpp>
+
 #include <QPointer>
 #include <QWidget>
 
@@ -19,6 +21,7 @@ struct BackgroundNode;
 namespace Gfx
 {
 class GfxContext;
+using port_index = ossia::gfx::port_index;
 
 /**
  * @brief A QWidget that paints a score::gfx render-graph output without using
@@ -54,10 +57,12 @@ public:
       std::function<void(score::gfx::BackgroundNode&)> onAttached,
       std::function<void(score::gfx::BackgroundNode&)> onAboutToDetach);
 
-  /// Context backend. The producer node id can be updated at any time; the
-  /// widget rewires the preview edge accordingly.
-  void useContext(GfxContext* ctx, int32_t producerNodeId);
-  void setProducerNodeId(int32_t id);
+  /// Context backend. The producer endpoint can be updated at any time; the
+  /// widget rewires the preview edge accordingly. It is a (node, port) pair,
+  /// not just a node: a process whose texture outlet is not its first outlet
+  /// registers under that outlet's own index.
+  void useContext(GfxContext* ctx, port_index producer);
+  void setProducer(port_index producer);
 
 protected:
   void paintEvent(QPaintEvent* ev) override;
@@ -85,7 +90,7 @@ private:
   // the GfxContext (a queued DeferredDelete outliving ~DocumentPlugin), and
   // detach() then calls into it. QPointer makes the existing null check hold.
   QPointer<GfxContext> m_ctx;
-  int32_t m_producerNodeId{-1};
+  port_index m_producer{-1, -1};
   int32_t m_screenNodeId{-1};
   bool m_edgeConnected{false};
 

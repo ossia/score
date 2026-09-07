@@ -16,6 +16,7 @@
 #include <score_test/Keyboard.hpp>
 
 #include <ossia/network/base/node_attributes.hpp>
+#include <ossia/network/common/extended_types.hpp>
 #include <ossia/network/dataspace/dataspace.hpp>
 #include <ossia/network/domain/domain.hpp>
 #include <ossia/network/value/value_traits.hpp>
@@ -840,5 +841,70 @@ TEST_CASE("Return marks the value as sent even when nothing changed",
       INFO(State::convert::prettyType(s.value).toStdString());
       CHECK(e->edited());
     }
+  });
+}
+
+// EXTENDED_TYPE says what a value means, where the value type only says how it
+// travels: a path, an URL and a font name are all a STRING, and all three got
+// the same bare line edit until the declaration was acted on.
+TEST_CASE("an extended type picks the editor for a string", "[explorer][editors]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    auto declared = [](std::string type) {
+      auto s = param(std::string{});
+      ossia::net::set_extended_type(s.extendedAttributes, std::move(type));
+      return s;
+    };
+
+    // A path: the line edit keeps its browse action.
+    {
+      Editor e{declared(ossia::filesystem_path_type()), ValueEditorSize::Compact};
+      REQUIRE(e);
+      REQUIRE(e.countOf<QLineEdit*>() == 1);
+      CHECK(e.w->findChildren<QLineEdit*>().front()->actions().size() == 1);
+      CHECK(e->isTextual());
+    }
+
+    // A font: the fonts this machine has, and free text for those it has not.
+    {
+      Editor e{declared("font"), ValueEditorSize::Compact};
+      REQUIRE(e);
+      REQUIRE(e.countOf<QComboBox*>() == 1);
+      CHECK(e.w->findChildren<QComboBox*>().front()->isEditable());
+    }
+
+    // An extended type nothing answers to falls back on the plain string
+    // editor rather than leaving the parameter uneditable.
+    {
+      Editor e{declared("something-else"), ValueEditorSize::Compact};
+      REQUIRE(e);
+      CHECK(e.countOf<State::ExpandableTextEdit*>() == 1);
+    }
+  });
+}
+
+TEST_CASE("an extended type round-trips through its editor", "[explorer][editors]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    auto s = param(std::string{});
+    ossia::net::set_extended_type(s.extendedAttributes, ossia::filesystem_path_type());
+
+    const auto out = roundtrip(s, ossia::value{std::string{"/tmp/a.wav"}});
+    REQUIRE(out.get_type() == ossia::val_type::STRING);
+    CHECK(*out.target<std::string>() == "/tmp/a.wav");
+  });
+}
+
+// The extended type is only consulted for a string: it also names how to read
+// an array, and those already have an editor of their own.
+TEST_CASE("an extended type does not displace a typed editor", "[explorer][editors]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    auto s = param(ossia::vec3f{{0.f, 0.f, 0.f}});
+    ossia::net::set_extended_type(s.extendedAttributes, ossia::float_array_type());
+
+    Editor e{s, ValueEditorSize::Compact};
+    REQUIRE(e);
+    CHECK(e.countOf<QDoubleSpinBox*>() == 3);
   });
 }

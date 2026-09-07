@@ -132,7 +132,7 @@ void gfx_exec_node::run(
 
   static const bool trace_gfx_exec
       = qEnvironmentVariableIsSet("SCORE_GFX_TRACE");
-  for(auto& outlet : this->m_outlets)
+  for(std::size_t outletIndex = 0; outletIndex < m_outlets.size(); ++outletIndex)
   {
     auto* outlet = m_outlets[outletIndex];
     if(auto out = outlet->address.target<ossia::net::parameter_base*>())
@@ -142,7 +142,7 @@ void gfx_exec_node::run(
       {
         if(trace_gfx_exec)
           fprintf(stderr, "GFX-EXEC node %d push_texture\n", this->id);
-        p->push_texture({this->id, 0});
+        p->push_texture({this->id, static_cast<int32_t>(outletIndex)});
       }
       else if(trace_gfx_exec)
         fprintf(

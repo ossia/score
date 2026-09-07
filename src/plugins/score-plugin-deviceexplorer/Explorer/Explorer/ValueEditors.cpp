@@ -28,7 +28,15 @@
 #include <QComboBox>
 #include <QContextMenuEvent>
 #include <QFrame>
+#include <QDesktopServices>
 #include <QDoubleSpinBox>
+#include <QFileDialog>
+#include <QFileInfo>
+#include <QFontDatabase>
+#include <QtWidgets/qtwidgetsglobal.h>
+#if defined(QT_FEATURE_fontcombobox) && QT_CONFIG(fontcombobox)
+#include <QFontComboBox>
+#endif
 #include <QApplication>
 #include <QGuiApplication>
 #include <QHBoxLayout>
@@ -47,6 +55,7 @@
 #include <QStyle>
 #include <QStyleOptionViewItem>
 #include <QTimer>
+#include <QUrl>
 #include <QVBoxLayout>
 
 #include <algorithm>
@@ -649,6 +658,58 @@ public:
 private:
   score::MarginLess<QHBoxLayout> m_lay{this};
   State::ExpandableTextEdit m_edit;
+};
+
+/**
+ * @brief A string the device says is a path, with the file dialog on it.
+ *
+ * The parameter carries the same std::string either way; EXTENDED_TYPE is the
+ * device saying what the string means, and a path typed by hand into a line
+ * edit is the one thing a file dialog exists to spare the user.
+ */
+class FilePathValueWidget final : public AddressValueWidget
+{
+public:
+  explicit FilePathValueWidget(QWidget* parent)
+      : AddressValueWidget{parent}
+  {
+    m_edit.setContentsMargins(0, 0, 0, 0);
+    m_edit.setPlaceholderText(tr("Path to a file"));
+    this->setFocusProxy(&m_edit);
+    m_lay.addWidget(&m_edit);
+
+    m_browse.setIcon(QIcon(":/icons/search.png"));
+    m_browse.setToolTip(tr("Browse..."));
+    m_edit.addAction(&m_browse, QLineEdit::TrailingPosition);
+
+    connect(&m_edit, &QLineEdit::textEdited, this, [this] { markEdited(); });
+    connect(&m_browse, &QAction::triggered, this, [this] {
+      // Parented to this, so the delegate does not close the editor on the
+      // focus-out the dialog causes; guarded, because it can still go away.
+      QPointer self{this};
+      const QString picked = QFileDialog::getOpenFileName(
+          this, tr("Choose a file"), QFileInfo{m_edit.text()}.absolutePath());
+      if(!self || picked.isEmpty())
+        return;
+
+      m_edit.setText(picked);
+      markEdited();
+      changed(get());
+    });
+  }
+
+  ossia::value getImpl() const override { return m_edit.text().toStdString(); }
+  void setImpl(ossia::value t) override
+  {
+    m_edit.setText(State::convert::value<QString>(t));
+  }
+
+  bool isTextual() const noexcept override { return true; }
+
+private:
+  score::MarginLess<QHBoxLayout> m_lay{this};
+  QLineEdit m_edit;
+  QAction m_browse{this};
 };
 
 //! A string the device says is an URL: the same field, and a way to follow it.
@@ -1707,7 +1768,12 @@ void fitEditorToCell(QWidget& editor, const QRect& cell)
 AddressValueWidget* make_value_widget(
     const Device::AddressSettingsCommon& addr, QWidget* parent, ValueEditorSize size)
 {
-  auto* widg = make_unit_widget(addr, parent, size);
+  // Most specific first: what the device says the string means, then what its
+  // unit says the numbers mean, then its type.
+  auto* widg = make_extended_type_widget(addr, parent);
+
+  if(!widg)
+    widg = make_unit_widget(addr, parent, size);
 
   if(!widg)
   {
