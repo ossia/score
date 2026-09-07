@@ -13,6 +13,8 @@
 #include <QGraphicsProxyWidget>
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
+#include <QPainter>
+#include <QStyleOptionGraphicsItem>
 
 #include <catch2/catch_all.hpp>
 
@@ -338,5 +340,231 @@ TEST_CASE("tab pages retain model selection before layout and through relayout")
     tabs.setCurrentIndex(0);
     CHECK(json->isVisible());
     CHECK_FALSE(binary->isVisible());
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Clicking opens the drop-down. The editor is built from the event loop and
+// lives in the scene, so the ways it can outlive what it points at are what
+// these check: the combo box vanishing under it, the item list being replaced
+// while it is open, a second click arriving before it appears.
+
+namespace
+{
+void leftClick(Scene& scene, score::QGraphicsCombo& item, QPoint at = {500, 500})
+{
+  for(auto type : {QEvent::GraphicsSceneMousePress, QEvent::GraphicsSceneMouseRelease})
+  {
+    QGraphicsSceneMouseEvent ev{type};
+    ev.setButton(Qt::LeftButton);
+    ev.setButtons(type == QEvent::GraphicsSceneMousePress ? Qt::LeftButton
+                                                          : Qt::NoButton);
+    ev.setScreenPos(at);
+    ev.setLastScreenPos(at);
+    ev.setButtonDownScreenPos(Qt::LeftButton, at);
+    ev.setScenePos({10., 10.});
+    ev.setPos({1., 1.});
+    scene.sendEvent(&item, &ev);
+  }
+  qApp->processEvents();
+}
+
+void leftDrag(Scene& scene, score::QGraphicsCombo& item)
+{
+  const QPoint from{500, 500};
+  const QPoint to{500, 560};
+  for(auto type : {QEvent::GraphicsSceneMousePress, QEvent::GraphicsSceneMouseMove,
+                   QEvent::GraphicsSceneMouseRelease})
+  {
+    QGraphicsSceneMouseEvent ev{type};
+    ev.setButton(Qt::LeftButton);
+    ev.setButtons(type == QEvent::GraphicsSceneMouseRelease ? Qt::NoButton
+                                                            : Qt::LeftButton);
+    ev.setScreenPos(type == QEvent::GraphicsSceneMousePress ? from : to);
+    ev.setLastScreenPos(from);
+    ev.setButtonDownScreenPos(Qt::LeftButton, from);
+    scene.sendEvent(&item, &ev);
+  }
+  qApp->processEvents();
+}
+}
+
+TEST_CASE("a click opens the drop-down, a drag does not")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    Scene scene;
+    score::QGraphicsCombo item{QStringList{"a", "b", "c"}, nullptr};
+    scene.addItem(&item);
+
+    score::InfiniteScroller::cancel();
+    leftDrag(scene, item);
+    CHECK(editorIn(scene) == nullptr);
+
+    score::InfiniteScroller::cancel();
+    leftClick(scene, item);
+    CHECK(editorIn(scene) != nullptr);
+  });
+}
+
+TEST_CASE("clicking twice never leaves two drop-downs behind")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    Scene scene;
+    score::QGraphicsCombo item{QStringList{"a", "b", "c"}, nullptr};
+    scene.addItem(&item);
+
+    // Both clicks land before the deferred build runs, and a right click is
+    // thrown in because either button opens one.
+    for(int i = 0; i < 3; i++)
+    {
+      QGraphicsSceneMouseEvent press{QEvent::GraphicsSceneMousePress};
+      press.setButton(Qt::LeftButton);
+      press.setButtons(Qt::LeftButton);
+      press.setButtonDownScreenPos(Qt::LeftButton, {500, 500});
+      press.setScreenPos({500, 500});
+      scene.sendEvent(&item, &press);
+
+      QGraphicsSceneMouseEvent rel{QEvent::GraphicsSceneMouseRelease};
+      rel.setButton(Qt::LeftButton);
+      rel.setButtons(Qt::NoButton);
+      rel.setButtonDownScreenPos(Qt::LeftButton, {500, 500});
+      rel.setScreenPos({500, 500});
+      scene.sendEvent(&item, &rel);
+    }
+    rightClick(scene, item);
+    qApp->processEvents();
+
+    int editors = 0;
+    for(auto* it : scene.items())
+      if(auto* proxy = qgraphicsitem_cast<QGraphicsProxyWidget*>(it))
+        if(qobject_cast<score::ComboBoxWithEnter*>(proxy->widget()))
+          editors++;
+    CHECK(editors == 1);
+  });
+}
+
+// The runtime-populated case: an avnd object or a folder watcher can replace
+// the items from under an open drop-down.
+TEST_CASE("the drop-down survives its items being replaced under it")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    Scene scene;
+    score::QGraphicsCombo item{QStringList{"a", "b", "c"}, nullptr};
+    scene.addItem(&item);
+    item.setValue(2);
+
+    int moved{};
+    QObject::connect(&item, &score::QGraphicsCombo::sliderMoved, &item, [&] { moved++; });
+
+    leftClick(scene, item);
+    auto* editor = editorIn(scene);
+    REQUIRE(editor != nullptr);
+
+    SECTION("picking an entry that is still there selects it by name")
+    {
+      // The list is reordered while the popup shows the old order.
+      item.array = QStringList{"c", "b", "a"};
+      editor->activated(0); // "a" in the editor's snapshot
+      qApp->processEvents();
+      CHECK(item.value() == 2); // ... which is now index 2
+      CHECK(moved == 1);
+    }
+
+    SECTION("picking an entry that has since disappeared changes nothing")
+    {
+      item.array = QStringList{"x", "y"};
+      editor->activated(2); // "c", gone from the list
+      qApp->processEvents();
+      CHECK(moved == 0);
+      // The selection is left where it was rather than guessed at, exactly as
+      // Process::ComboBox::setAlternatives leaves a value it cannot find. That
+      // leaves the index pointing past the shorter list, which every reader
+      // has to tolerate -- so paint it and see.
+      CHECK(item.value() == 2);
+      QImage img{32, 32, QImage::Format_ARGB32};
+      QPainter p{&img};
+      QStyleOptionGraphicsItem opt;
+      item.paint(&p, &opt, nullptr);
+      SUCCEED("painting past the end of the list is guarded");
+    }
+
+    SECTION("the list emptying entirely does not take the editor down with it")
+    {
+      item.array = QStringList{};
+      editor->activated(1);
+      qApp->processEvents();
+      CHECK(moved == 0);
+    }
+  });
+}
+
+TEST_CASE("the combo box may be destroyed while its drop-down is open")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    Scene scene;
+    auto* item = new score::QGraphicsCombo{QStringList{"a", "b", "c"}, nullptr};
+    scene.addItem(item);
+
+    leftClick(scene, *item);
+    auto* editor = editorIn(scene);
+    REQUIRE(editor != nullptr);
+
+    // The process this control belongs to goes away while the popup is up.
+    scene.removeItem(item);
+    delete item;
+    qApp->processEvents();
+
+    // Whatever the user does next must not reach the dead combo box.
+    if(auto* still = editorIn(scene))
+    {
+      still->activated(1);
+      still->editingFinished();
+    }
+    qApp->processEvents();
+    SUCCEED("no crash");
+  });
+}
+
+TEST_CASE("a click on a degenerate combo box opens nothing and does not crash")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    Scene scene;
+    score::QGraphicsCombo none{QStringList{}, nullptr};
+    score::QGraphicsCombo one{QStringList{"only"}, nullptr};
+    scene.addItem(&none);
+    scene.addItem(&one);
+
+    score::InfiniteScroller::cancel();
+    leftClick(scene, none);
+    CHECK(editorIn(scene) == nullptr); // nothing to pick from
+    CHECK(none.value() == 0);
+
+    score::InfiniteScroller::cancel();
+    leftClick(scene, one);
+    CHECK(one.value() == 0);
+  });
+}
+
+// The scene can take the implicit grab away without ever sending a release.
+TEST_CASE("losing the mouse grab mid-drag does not turn into a click")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    Scene scene;
+    score::QGraphicsCombo item{QStringList{"a", "b", "c"}, nullptr};
+    scene.addItem(&item);
+    score::InfiniteScroller::cancel();
+
+    QGraphicsSceneMouseEvent press{QEvent::GraphicsSceneMousePress};
+    press.setButton(Qt::LeftButton);
+    press.setButtons(Qt::LeftButton);
+    press.setButtonDownScreenPos(Qt::LeftButton, {500, 500});
+    press.setScreenPos({500, 500});
+    scene.sendEvent(&item, &press);
+
+    QEvent ungrab{QEvent::UngrabMouse};
+    scene.sendEvent(&item, &ungrab);
+    qApp->processEvents();
+
+    CHECK(editorIn(scene) == nullptr);
   });
 }
