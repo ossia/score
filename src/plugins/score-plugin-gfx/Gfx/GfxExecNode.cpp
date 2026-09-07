@@ -142,7 +142,7 @@ void gfx_exec_node::run(
       {
         if(trace_gfx_exec)
           fprintf(stderr, "GFX-EXEC node %d push_texture\n", this->id);
-        p->push_texture({this->id, 0});
+        p->push_texture({this->id, static_cast<int32_t>(outletIndex)});
       }
       else if(trace_gfx_exec)
         fprintf(

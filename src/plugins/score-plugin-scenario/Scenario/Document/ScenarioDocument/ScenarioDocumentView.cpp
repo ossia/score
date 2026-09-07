@@ -583,7 +583,7 @@ ScenarioDocumentView::ScenarioDocumentView(
     : score::DocumentDelegateView{parent}
     , m_widget{new QWidget}
     , m_context{ctx}
-    // No QObject parent: these scenes are BY-VALUE members, so giving them
+    // No QObject parent: these scenes are by-value members, so giving them
     // m_widget as parent means ~QWidget deletes them via deleteChildren() --
     // `delete` on an address inside ScenarioDocumentView, which is not a heap
     // allocation. m_timeRulerScene already gets this right. The members are
@@ -597,6 +597,7 @@ ScenarioDocumentView::ScenarioDocumentView(
     , m_minimapScene{nullptr}
     , m_minimapView{new MinimapGraphicsView{&m_minimapScene}}
     , m_minimap{new Minimap{}}
+    , m_addressBar{new AddressBarWidget{ctx}}
 {
   auto& scenario_settings = ctx.app.settings<Scenario::Settings::Model>();
 
@@ -788,13 +789,12 @@ ScenarioDocumentView::~ScenarioDocumentView()
   //  - App quit with a document open: QTabWidget owns m_widget and deletes it
   //    first, so ~QWidget has already deleted these three as its children.
   //    Every QPointer is null here and each delete is a no-op.
-  //  - Document close: Window::closeDocument uses removeTab, which ORPHANS
+  //  - Document close: Window::closeDocument uses removeTab, which orphans
   //    m_widget rather than deleting it, so nothing Qt-side ever frees them.
   //    Here the QPointers are live and this is what frees them.
   //
-  // Doing it in the destructor BODY, before the members are destroyed, keeps
-  // the ordering the by-value declarations used to give for free: a view is
-  // gone before the by-value QGraphicsScene it renders.
+  // Doing it in the destructor body, before the members are destroyed, keeps
+  // each view gone before the by-value QGraphicsScene it renders.
   //
   // m_minimap and m_baseObject are deliberately absent: they are top-level
   // items of by-value scenes, and a QGraphicsScene deletes those itself.

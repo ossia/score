@@ -36,6 +36,7 @@
 #include <private/qsgcontext_p.h>
 #include <private/qsgdefaultrendercontext_p.h>
 
+#include <algorithm>
 #include <compare>
 #include <set>
 namespace JS
@@ -351,8 +352,10 @@ void main ()
     }
 
     SCORE_ASSERT(!m_engine->m_quickWindow);
+    // renderWindow() has to answer with the real window: Qt Quick reads it for
+    // the device pixel ratio and for delivering input to the scene.
     const auto win = renderer.state.window.lock();
-    m_engine->m_quickRenderControl = new QQuickRenderControl{};
+    m_engine->m_quickRenderControl = new WindowRenderControl{win.get()};
     m_engine->m_quickWindow = new QQuickWindow{m_engine->m_quickRenderControl};
 
 #if QT_HAS_VULKAN
@@ -366,9 +369,64 @@ void main ()
       QObject::connect(
           win.get(), &score::gfx::Window::interactiveEvent,
           m_engine->m_quickWindow,
-          [qqw = QPointer{m_engine->m_quickWindow}](QEvent* e) {
-        if(auto q = qqw.get())
-          QCoreApplication::sendEvent(q, e);
+          [qqw = QPointer{m_engine->m_quickWindow}, source = QPointer{win.get()}](
+              QEvent* e) {
+        auto* q = qqw.data();
+        if(!q || !source)
+          return;
+        switch(e->type())
+        {
+          case QEvent::MouseButtonPress:
+          case QEvent::MouseButtonRelease:
+          case QEvent::MouseButtonDblClick:
+          case QEvent::MouseMove: {
+            const auto& mouse = *static_cast<QMouseEvent*>(e);
+            const QPointF position{
+                mouse.position().x() * q->width() / std::max(1, source->width()),
+                mouse.position().y() * q->height() / std::max(1, source->height())};
+            // Each offscreen scene needs its own event in render coordinates.
+            QMouseEvent mapped{
+                e->type(),
+                position,
+                position,
+                mouse.globalPosition(),
+                mouse.button(),
+                mouse.buttons(),
+                mouse.modifiers(),
+                mouse.source(),
+                mouse.pointingDevice()};
+            mapped.setTimestamp(mouse.timestamp());
+            mapped.setAccepted(false);
+            QCoreApplication::sendEvent(q, &mapped);
+            if(mapped.isAccepted())
+              e->accept();
+            break;
+          }
+          case QEvent::KeyPress:
+          case QEvent::KeyRelease: {
+            const auto& key = *static_cast<QKeyEvent*>(e);
+            QKeyEvent mapped{
+                e->type(),
+                key.key(),
+                key.modifiers(),
+                key.nativeScanCode(),
+                key.nativeVirtualKey(),
+                key.nativeModifiers(),
+                key.text(),
+                key.isAutoRepeat(),
+                quint16(key.count()),
+                key.device()};
+            mapped.setTimestamp(key.timestamp());
+            mapped.setAccepted(false);
+            QCoreApplication::sendEvent(q, &mapped);
+            if(mapped.isAccepted())
+              e->accept();
+            break;
+          }
+          default:
+            QCoreApplication::sendEvent(q, e);
+            break;
+        }
       }, Qt::DirectConnection);
     }
     m_engine->m_quickWindow->setGraphicsDevice(
@@ -870,6 +928,7 @@ void GpuNode::Engine::setupComponent(
   //     is 0x0, delete paint node, return nullptr" branch on the first sync.
   int input_i = 0;
   std::size_t output_i = 0;
+  m_valueMessages = node.m_valueMessages;
 
   for(auto n : m_object->children())
   {
@@ -1094,6 +1153,23 @@ void gpu_exec_node::setScript(
   auto n = std::make_unique<JS::GpuNode>(
       m_context, std::move(new_state), root, str, this->root_inputs(),
       this->root_outputs());
+  n->m_valueMessages = m_valueMessages;
+
+  // A render target may be created after the controls' first execution tick.
+  // Seed its retained input snapshot instead of waiting for another change.
+  n->m_lastState.input.resize(root_inputs().size());
+  {
+    std::size_t controlIndex = 0;
+    for(std::size_t i = 0; i < root_inputs().size(); ++i)
+    {
+      if(root_inputs()[i]->target<ossia::value_port>())
+      {
+        const auto& value = controls[controlIndex++]->value;
+        if(value.valid())
+          n->m_lastState.input[i] = value;
+      }
+    }
+  }
 
   {
     auto& element = *m_context;
