@@ -1,7 +1,10 @@
 #pragma once
+
+#include <array>
 #include <Gfx/Graph/RenderState.hpp>
 
 #include <score/gfx/OpenGL.hpp>
+#include <score/tools/Debug.hpp>
 #include <score/tools/std/StringHash.hpp>
 
 #include <ossia/detail/hash_map.hpp>
@@ -57,7 +60,27 @@ private:
     QShaderVersion version;
     int multiViewCount{};
     QShaderBaker baker;
-    ossia::hash_map<QByteArray, std::pair<QShader, QString>> shaders;
+
+    // Keyed by SOURCE, per STAGE. The stage used to be absent from the key
+    // entirely: the same source text baked as a vertex shader and as a fragment
+    // shader shared one entry, so whichever stage was baked first was handed
+    // back for the other -- with the wrong stage's SPIR-V inside. The baker
+    // itself is already per (api, version, multiViewCount); the stage is the
+    // one input to bake() that was not reflected anywhere in the key. (S1.)
+    //
+    // An array rather than a composite key: QShader::Stage is a small dense
+    // enum, so this costs one indirection and, unlike appending the stage to
+    // the QByteArray, does not copy the whole shader source on every lookup.
+    static constexpr int stageCount = 6; // Vertex..Compute, QShader::Stage
+    std::array<ossia::hash_map<QByteArray, std::pair<QShader, QString>>, stageCount>
+        shaders;
+
+    auto& forStage(QShader::Stage s) noexcept
+    {
+      const int i = int(s);
+      SCORE_ASSERT(i >= 0 && i < stageCount);
+      return shaders[i];
+    }
   };
 
   std::vector<std::unique_ptr<Baker>> m_bakers;

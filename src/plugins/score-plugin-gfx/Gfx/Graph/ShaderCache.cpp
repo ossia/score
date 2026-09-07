@@ -92,7 +92,8 @@ const std::pair<QShader, QString>& ShaderCache::get(
   }
 
   Baker& b = *bb;
-  if(auto it = b.shaders.find(shader); it != b.shaders.end())
+  auto& cache = b.forStage(stage);
+  if(auto it = cache.find(shader); it != cache.end())
     return it->second;
 
   // A20: on the D3D targets, refuse a shader whose own identifiers collide
@@ -120,7 +121,7 @@ const std::pair<QShader, QString>& ShaderCache::get(
                            "builtins to their HLSL spellings but does not "
                            "rename your variables, so the Direct3D backends "
                            "would emit \"%1 = %1(...)\". Rename it.");
-      auto& slot = b.shaders[shader];
+      auto& slot = cache[shader];
       slot = {QShader{}, err.arg(QString::fromUtf8(bad))};
       return slot;
     }
@@ -141,7 +142,7 @@ const std::pair<QShader, QString>& ShaderCache::get(
 
   // FIXME serialize / deserialize
   QShader baked = b.baker.bake();
-  auto res = b.shaders.insert({shader, {std::move(baked), b.baker.errorMessage()}});
+  auto res = cache.insert({shader, {std::move(baked), b.baker.errorMessage()}});
   return res.first->second;
 }
 
@@ -208,8 +209,47 @@ namespace score::gfx
  * list -- every HLSL intrinsic in existence -- would reject shaders that
  * compile perfectly well, which is worse than the bug.
  */
-QByteArray hlslIntrinsicCollision(const QByteArray& src) noexcept
+//! Blank out // and /* */ comments, preserving length and newlines so any
+//! offset-based reporting still lines up.
+//!
+//! The collision scan below REFUSES the shader outright, and only on the D3D
+//! targets. Run over raw source it therefore rejects a working shader for a
+//! declaration the compiler never sees -- `// float frac = 1.0;` in a comment,
+//! or a commented-out block -- producing exactly the Direct3D-only failure with
+//! no visible cause that this function exists to prevent. The rename path above
+//! declined to do real tokenisation for good reasons; DETECTING safely needs
+//! only this much of it. (S2.)
+static QByteArray blankComments(const QByteArray& src) noexcept
 {
+  QByteArray out = src;
+  const int n = out.size();
+  enum { Code, Line, Block } st = Code;
+  for(int i = 0; i < n; ++i)
+  {
+    const char c = out[i];
+    const char d = (i + 1 < n) ? out[i + 1] : '\0';
+    switch(st)
+    {
+      case Code:
+        if(c == '/' && d == '/') { st = Line;  out[i] = ' '; out[i + 1] = ' '; ++i; }
+        else if(c == '/' && d == '*') { st = Block; out[i] = ' '; out[i + 1] = ' '; ++i; }
+        break;
+      case Line:
+        if(c == '\n') st = Code;
+        else out[i] = ' ';
+        break;
+      case Block:
+        if(c == '*' && d == '/') { st = Code; out[i] = ' '; out[i + 1] = ' '; ++i; }
+        else if(c != '\n') out[i] = ' ';
+        break;
+    }
+  }
+  return out;
+}
+
+QByteArray hlslIntrinsicCollision(const QByteArray& raw) noexcept
+{
+  const QByteArray src = blankComments(raw);
   // GLSL builtin -> HLSL spelling, for the ones whose HLSL name differs and is
   // a plausible variable name. `frac` is the one seen in the wild
   // (isf-long-numeric.fs). Names identical in both languages (sin, cos, abs...)
