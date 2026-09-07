@@ -828,13 +828,16 @@ endif()
 # failure. ndi-storm needs no external sender: score sends and receives its own
 # stream over localhost, covering both NDI nodes at once.
 #
-# Those two are EXPECTED RED on one shared finding: no device pixels reach the
-# window through this wiring. Both render the byte-identical disconnected-input
-# fallback -- 24% of the frame, the rest black -- from two unrelated sources, so
-# the cause is upstream of either device. The storm part passes underneath; it is
-# the coverage oracle that fails. Do NOT lower min_nonblack_coverage in
-# live-edit-sweep.sh's CFG to make them green: a non-blank check accepts that
-# fallback, which is exactly why this looked like a pass to begin with.
+# Both were recorded as EXPECTED RED on one shared finding (4b60762fe5): no
+# device pixels reached the window, both rendering the byte-identical
+# disconnected-input fallback -- 24% of the frame, the rest black. Both now pass
+# on a build that has the devices: /dev/video* present for camera-storm, and
+# score-addon-ndi actually configured for ndi-storm. The red was measured on a
+# build with SCORE_DISABLED_PLUGINS=score-addon-ndi, where the NDI sender and
+# receiver do not exist at all -- which produces exactly that fallback and is
+# indistinguishable from it in the frame. Keep the coverage gate as it is: it is
+# what tells a real device frame from the fallback, and it is the reason the
+# absent-plugin case was visible rather than passing as "non-blank".
 if(SCORE_HAS_SHELL_HARNESS)
   foreach(_le_scen baseline add-remove-storm cable-storm undo-redo-during-play
                    transport-storm mixed-chaos window-storm scene-storm
