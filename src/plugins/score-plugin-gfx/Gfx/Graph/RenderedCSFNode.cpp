@@ -2793,6 +2793,190 @@ layout(location = 0) out vec4 fragColor;
 void main() { fragColor = vec4(texture(outputTexture, v_texcoord).rrr, 1.0); }
 )_";
 
+  static const constexpr auto fragment_shader_rgba_3d = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform sampler3D outputTexture;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main() { fragColor = texture(outputTexture, vec3(v_texcoord, 0.5)); }
+)_";
+  static const constexpr auto fragment_shader_r_3d = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform sampler3D outputTexture;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main() { fragColor = vec4(texture(outputTexture, vec3(v_texcoord, 0.5)).rrr, 1.0); }
+)_";
+  static const constexpr auto fragment_shader_rgba_array = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform sampler2DArray outputTexture;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main() { fragColor = texture(outputTexture, vec3(v_texcoord, 0.0)); }
+)_";
+  static const constexpr auto fragment_shader_r_array = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform sampler2DArray outputTexture;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main() { fragColor = vec4(texture(outputTexture, vec3(v_texcoord, 0.0)).rrr, 1.0); }
+)_";
+  static const constexpr auto fragment_shader_rgba_cube = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform samplerCube outputTexture;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main() { fragColor = texture(outputTexture, vec3(v_texcoord * 2.0 - 1.0, 1.0)); }
+)_";
+  static const constexpr auto fragment_shader_r_cube = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform samplerCube outputTexture;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main() { fragColor = vec4(texture(outputTexture, vec3(v_texcoord * 2.0 - 1.0, 1.0)).rrr, 1.0); }
+)_";
+
+  static const constexpr auto fragment_shader_uint_2d = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform usampler2D outputTexture;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main() { fragColor = vec4(vec3(clamp(float(texture(outputTexture, v_texcoord).r), 0.0, 1.0)), 1.0); }
+)_";
+  static const constexpr auto fragment_shader_uint_3d = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform usampler3D outputTexture;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main() { fragColor = vec4(vec3(clamp(float(texture(outputTexture, vec3(v_texcoord, 0.5)).r), 0.0, 1.0)), 1.0); }
+)_";
+  static const constexpr auto fragment_shader_uint_array = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform usampler2DArray outputTexture;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main() { fragColor = vec4(vec3(clamp(float(texture(outputTexture, vec3(v_texcoord, 0.0)).r), 0.0, 1.0)), 1.0); }
+)_";
+  static const constexpr auto fragment_shader_uint_cube = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform usamplerCube outputTexture;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main() { fragColor = vec4(vec3(clamp(float(texture(outputTexture, vec3(v_texcoord * 2.0 - 1.0, 1.0)).r), 0.0, 1.0)), 1.0); }
+)_";
+  static const constexpr auto fragment_shader_iint_2d = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform isampler2D outputTexture;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main() { fragColor = vec4(vec3(clamp(float(texture(outputTexture, v_texcoord).r), 0.0, 1.0)), 1.0); }
+)_";
+  static const constexpr auto fragment_shader_iint_3d = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform isampler3D outputTexture;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main() { fragColor = vec4(vec3(clamp(float(texture(outputTexture, vec3(v_texcoord, 0.5)).r), 0.0, 1.0)), 1.0); }
+)_";
+  static const constexpr auto fragment_shader_iint_array = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform isampler2DArray outputTexture;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main() { fragColor = vec4(vec3(clamp(float(texture(outputTexture, vec3(v_texcoord, 0.0)).r), 0.0, 1.0)), 1.0); }
+)_";
+  static const constexpr auto fragment_shader_iint_cube = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform isamplerCube outputTexture;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main() { fragColor = vec4(vec3(clamp(float(texture(outputTexture, vec3(v_texcoord * 2.0 - 1.0, 1.0)).r), 0.0, 1.0)), 1.0); }
+)_";
+
   // Get the mesh for rendering a fullscreen quad
   const auto& mesh = renderer.defaultTriangle();
 
@@ -2804,8 +2988,115 @@ void main() { fragColor = vec4(texture(outputTexture, v_texcoord).rrr, 1.0); }
     return;
   }
 
+  // Integer storage formats need an INTEGER sampler: a usampler/isampler fetch
+  // returns uvec4/ivec4, and binding one to a float `sampler` is
+  // VUID-vkCmdDraw-format-07753 ("requires SINT/UINT component type"). These
+  // formats exist precisely so a CSF can pack counters per voxel, so the
+  // display pass has to be able to show them. Values are shown as occupancy --
+  // clamped to [0,1] -- because an arbitrary counter has no natural mapping to
+  // a colour, and 0-vs-nonzero is what these grids are usually inspected for.
+  const auto formatSignedness = [](QRhiTexture::Format f) -> int {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
+    switch(f)
+    {
+      case QRhiTexture::Format::R8UI:
+      case QRhiTexture::Format::R32UI:
+      case QRhiTexture::Format::RG32UI:
+      case QRhiTexture::Format::RGBA32UI:
+        return 1; // unsigned -> usampler
+      case QRhiTexture::Format::R8SI:
+      case QRhiTexture::Format::R32SI:
+      case QRhiTexture::Format::RG32SI:
+      case QRhiTexture::Format::RGBA32SI:
+        return 2; // signed -> isampler
+      default:
+        break;
+    }
+#else
+    Q_UNUSED(f);
+#endif
+    return 0; // float sampler
+  };
+
+  // Same format set the switch below treats as single-channel; factored out so
+  // the kind-specific variants agree with the 2D path by construction.
+  const auto isSingleChannelFormat = [](QRhiTexture::Format f) {
+    switch(f)
+    {
+      case QRhiTexture::Format::R8:
+      case QRhiTexture::Format::RED_OR_ALPHA8:
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
+      case QRhiTexture::Format::R8UI:
+      case QRhiTexture::Format::R32UI:
+#endif
+      case QRhiTexture::Format::R16:
+      case QRhiTexture::Format::R16F:
+      case QRhiTexture::Format::R32F:
+      case QRhiTexture::Format::D16:
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
+      case QRhiTexture::Format::D24:
+      case QRhiTexture::Format::D24S8:
+#endif
+      case QRhiTexture::Format::D32F:
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
+      case QRhiTexture::Format::D32FS8:
+#endif
+        return true;
+      default:
+        return false;
+    }
+  };
+
+  // Pick the display shader by the texture's KIND first, then its format.
+  //
+  // Both hardcoded shaders below declare `sampler2D`, and the switch that
+  // chose between them looked only at the FORMAT. A CSF output declared
+  // `DIMENSIONS: 3` (or a cube / array) therefore had a 3D view bound into a
+  // 2D sampler, which Vulkan rejects on every draw:
+  //     VUID-vkCmdDraw-viewType-07752: ImageView type is
+  //     VK_IMAGE_VIEW_TYPE_3D but the OpTypeImage has Dim = 2D
+  // and the pass rendered black. Measured over csf-examples: 592 such
+  // messages across 148 distinct shaders, most of shaderlib/volume/.
+  //
+  // SimpleRenderedISFNode::initMRTBlitPass already does exactly this for its
+  // layered case; this is the same rule applied to the CSF display pass.
+  // The plain-2D path is byte-identical to before, so shaders that worked are
+  // untouched.
+  const auto texFlags = textureToRender->flags();
+  const bool tex3D = texFlags.testFlag(QRhiTexture::ThreeDimensional);
+  const bool texCube = texFlags.testFlag(QRhiTexture::CubeMap);
+  const bool texArray = texFlags.testFlag(QRhiTexture::TextureArray);
+
   auto fmt = textureToRender->format();
+  const int intKind = formatSignedness(fmt);
   const char* fragment_shader{};
+  if(intKind != 0)
+  {
+    // Integer sampler type is forced by the FORMAT; kind still picks the Dim.
+    if(intKind == 1)
+      fragment_shader = tex3D     ? fragment_shader_uint_3d
+                        : texCube ? fragment_shader_uint_cube
+                        : texArray ? fragment_shader_uint_array
+                                   : fragment_shader_uint_2d;
+    else
+      fragment_shader = tex3D     ? fragment_shader_iint_3d
+                        : texCube ? fragment_shader_iint_cube
+                        : texArray ? fragment_shader_iint_array
+                                   : fragment_shader_iint_2d;
+  }
+  else if(tex3D || texCube || texArray)
+  {
+    // Single-channel and RGBA share one declaration per kind: the swizzle
+    // differs, not the sampler type, so branch on format inside each.
+    const bool single = isSingleChannelFormat(fmt);
+    if(tex3D)
+      fragment_shader = single ? fragment_shader_r_3d : fragment_shader_rgba_3d;
+    else if(texCube)
+      fragment_shader = single ? fragment_shader_r_cube : fragment_shader_rgba_cube;
+    else
+      fragment_shader = single ? fragment_shader_r_array : fragment_shader_rgba_array;
+  }
+  else
   switch(fmt)
   {
     case QRhiTexture::Format::R8:
@@ -2837,8 +3128,14 @@ void main() { fragColor = vec4(texture(outputTexture, v_texcoord).rrr, 1.0); }
   auto [vertexS, fragmentS] = score::gfx::makeShaders(renderer.state, vertex_shader, fragment_shader);
 
   // Create a sampler for our output texture
+  // Integer formats do not support linear filtering -- VUID-vkCmdDraw-magFilter-
+  // 04553 requires the format to advertise SAMPLED_IMAGE_FILTER_LINEAR, and the
+  // R/RG/RGBA {UI,SI} families do not. Nearest is also the only meaningful
+  // filter for a counter: interpolating two voxel occupancy values invents data.
+  const auto outputFilter
+      = (intKind != 0) ? QRhiSampler::Nearest : QRhiSampler::Linear;
   QRhiSampler* outputSampler = renderer.state.rhi->newSampler(
-    QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
+    outputFilter, outputFilter, QRhiSampler::None,
     QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
   outputSampler->setName("RenderedCSFNode::OutputSampler");
   outputSampler->create();
