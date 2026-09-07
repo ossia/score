@@ -331,7 +331,7 @@ void Window::render()
 
   // m_canRender is recomputed by the output node from its render list. The
   // timer-driven path refreshes it every tick through ScreenNode::render(); the
-  // vsync chain re-enters here directly and never did.
+  // vsync chain re-enters here directly, so it needs this hook to refresh it.
   if(onAboutToRender)
     onAboutToRender();
 
@@ -394,7 +394,8 @@ void Window::render()
       m_newlyExposed = true;
     {
       // 1. Calculate the time elapsed since the last frame
-      if(const auto frame_ns = m_timer.nsecsElapsed(); frame_ns > 0)
+      if(const auto frame_ns = m_timer.isValid() ? m_timer.nsecsElapsed() : 0;
+         frame_ns > 0)
       {
         const double fps = 1e9 / frame_ns;
 
@@ -448,7 +449,8 @@ void Window::render()
     m_fps = 0.;
   }
 
-  if(m_fpsPushTimer.elapsed() > 50)
+  // Same guard: render() is reachable without an expose having started them.
+  if(m_fpsPushTimer.isValid() && m_fpsPushTimer.elapsed() > 50)
   {
     fps(m_fps);
     m_fpsPushTimer.restart();
@@ -486,18 +488,18 @@ void Window::exposeEvent(QExposeEvent* ev)
   }
   // Probe the surface through the swapchain object, not the m_hasSwapChain
   // flag: after releaseSwapChain() (surface destroyed on close / monitor
-  // hot-plug) the flag is down, and gating on it here made a re-expose a
+  // hot-plug) the flag is down, and gating on it here makes a re-expose a
   // no-op — no render() kick, and the timer path is gated off by
-  // canRender() — so the window stayed black forever.
+  // canRender() — leaving the window black forever.
   //
   // ...but do NOT probe it while the window is unexposed. surfacePixelSize()
   // reads the native surface: on Metal it is `layer.bounds` on the window's
-  // CAMetalLayer (qrhimetal.mm:7065), and after the window's native surface
-  // has gone that layer is released. Querying it then messages freed memory.
-  // window_output_torture crashed here in two different shapes depending on
+  // CAMetalLayer, and after the window's native surface has gone that layer is
+  // released. Querying it then messages freed memory.
+  // window_output_torture crashes here in two different shapes depending on
   // what reused the allocation -- EXC_BAD_ACCESS on a garbage pointer, and
   //   NSInvalidArgumentException: -[_NSAutoresizingMaskXAxisAnchor bounds]
-  // when the layer's memory had been recycled into an unrelated class. Both
+  // when the layer's memory has been recycled into an unrelated class. Both
   // through Window::exposeEvent -> QMetalSwapChain::surfacePixelSize.
   // Calling destroy() first does not help: it nulls d->layer, and
   // surfacePixelSize() then re-derives the layer from the QWindow through
@@ -526,8 +528,12 @@ void Window::exposeEvent(QExposeEvent* ev)
 
   if(isExposed() && !surfaceSize.isEmpty())
   {
-    m_timer.restart();
-    m_fpsPushTimer.restart();
+    // start(), not restart(): this is the FIRST use of both timers, and a
+    // default-constructed QElapsedTimer holds INT64_MIN. restart() computes
+    // now - INT64_MIN to return the elapsed time nobody reads here, which is
+    // signed overflow -- fatal under -fno-sanitize-recover=all.
+    m_timer.start();
+    m_fpsPushTimer.start();
     render();
   }
 }
