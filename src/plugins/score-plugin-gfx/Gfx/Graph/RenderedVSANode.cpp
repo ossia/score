@@ -140,19 +140,17 @@ void SimpleRenderedVSANode::initPass(
   // above and are only ever adopted into m_passes on the success path below.
   // Every failure exit from the main-pass build (ps->create() failing, or any
   // exception out of makeShaders / SCORE_ASSERT) must release them, otherwise
-  // they leak on each addOutputPass — e.g. a TriangleFan primitive on D3D11,
-  // re-triggered on every render-target-spec change. bg_tri is NOT released:
-  // its buffers are cached/owned by RenderList::m_vertexBuffers (shared).
+  // they leak on each addOutputPass -- e.g. a TriangleFan primitive on D3D11,
+  // re-triggered on every render-target-spec change. bg_tri is not released:
+  // its buffers are cached and owned by RenderList::m_vertexBuffers.
   auto releaseBackground = [&] {
     delete bg_pip;
     delete bg_srb;
     delete bg_ubo;
   };
 
-  // Create the main pass.
-  // Apply cull-mode, front-face, and blend state BEFORE the first create()
-  // call so we only compile the PSO once instead of the previous two-compile
-  // pattern (buildPipeline::create + destroy + mutate + create).
+  // Create the main pass. Cull mode, front face and blend state are applied
+  // before the first create() call so that the PSO is compiled once.
   QRhiGraphicsPipeline* ps = nullptr;
   QRhiShaderResourceBindings* srb = nullptr;
   try
@@ -161,8 +159,8 @@ void SimpleRenderedVSANode::initPass(
     srb = score::gfx::createDefaultBindings(
         renderer, renderTarget, pubo, m_materialUBO, allSamplers());
 
-    // Inline the essential steps of buildPipeline(srb) so we can insert the
-    // VSA-specific cull/front-face/blend state before create().
+    // The essential steps of buildPipeline(srb), inlined so that the
+    // VSA-specific cull / front-face / blend state lands before create().
     ps = rhi.newGraphicsPipeline();
     SCORE_ASSERT(ps);
     ps->setName("SimpleRenderedVSANode::initPass::ps");
@@ -199,7 +197,14 @@ void SimpleRenderedVSANode::initPass(
     // versus back face is not meaningful. Points and line modes are unaffected.
     ps->setCullMode(QRhiGraphicsPipeline::CullMode::None);
 
-    if(!renderer.anyNodeRequiresDepth())
+    // anyNodeRequiresDepth() is graph-global and says nothing about this
+    // target; a depth-enabled draw with a nil depthAttachment aborts under
+    // Metal's API validation, so ask the render target as well.
+    const bool depthAvailable
+        = (renderTarget.depthTexture != nullptr)
+          || (renderTarget.depthRenderBuffer != nullptr)
+          || (renderTarget.msDepthTexture != nullptr);
+    if(!depthAvailable || !renderer.anyNodeRequiresDepth())
     {
       ps->setDepthTest(false);
       ps->setDepthWrite(false);

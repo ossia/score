@@ -143,7 +143,7 @@ createRenderTarget(const RenderState& state, QRhiTexture* tex, int samples, bool
     // Reverse-Z project rule: intermediate 3D render targets always use
     // D32F float depth. D24 fixed-point combined with reverse-Z yields
     // strictly worse precision than standard-Z would, so renderbuffer
-    // depth is no longer an option here. Stencil is dropped (no shader in
+    // depth is not an option here. Stencil is dropped (no shader in
     // the codebase currently uses it — revisit via D32FS8 if needed).
     ret.depthTexture = state.rhi->newTexture(
         QRhiTexture::D32F, tex->pixelSize(), effectiveSamples,
@@ -972,8 +972,20 @@ Pipeline buildPipeline(
     }
   }
 
-  // FIXME does that check make sense?
-  if(!renderer.anyNodeRequiresDepth())
+  // `anyNodeRequiresDepth()` is a GRAPH-GLOBAL question: it stays true as soon
+  // as any node anywhere in the graph wants depth, and says nothing about THIS
+  // render target. On its own it leaves depth test and write enabled on a
+  // pipeline drawing into a depth-less RT whenever some unrelated node needs
+  // depth. Vulkan/D3D/GL tolerate that; Metal's API validation aborts the
+  // process on a depth-enabled draw whose depthAttachment is nil. The predicate
+  // that matters is whether this rt has a depth attachment -- the same one
+  // buildPipelineWithState() already computes as `depthAvailable` before
+  // handing it to applyPipelineState(). The graph-global term is kept as the
+  // opt-out for graphs that need no depth at all.
+  const bool depthAvailable
+      = (rt.depthTexture != nullptr) || (rt.depthRenderBuffer != nullptr)
+        || (rt.msDepthTexture != nullptr);
+  if(!depthAvailable || !renderer.anyNodeRequiresDepth())
   {
     ps->setDepthTest(false);
     ps->setDepthWrite(false);
@@ -1198,14 +1210,12 @@ Pipeline buildPipelineWithState(
   // D3D12 ViewInstancing and Metal vertex amplification read it from the
   // pipeline itself via QRhiGraphicsPipeline::multiViewCount(). So we must set
   // it explicitly here for those backends to produce correct multiview output.
-//
-  // ... which is exactly why this must ALSO respect the pass-index fallback.
-  // When the shader has been lowered to read PASSINDEX, the node renders the
-  // views as N separate passes; leaving the count on the pipeline makes D3D12
-  // view-instance every one of those draws 6x on top of that. D3D11 has no
-  // ViewInstancing and so was unaffected -- which is precisely why
-  // cubemap_six_faces and camera_array_faces passed on d3d11 and still failed
-  // on d3d12 after the shader lowering landed.
+  //
+  // It must ALSO respect the pass-index fallback: when the shader has been
+  // lowered to read PASSINDEX, the node renders the views as N separate passes,
+  // and leaving the count on the pipeline makes D3D12 view-instance every one
+  // of those draws 6x on top of that. D3D11 has no ViewInstancing and is
+  // unaffected either way.
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
   if(multiViewCount > 1 && renderer.state.caps.multiview
      && !viewIndexNeedsPassIndexFallback(
@@ -1272,19 +1282,17 @@ makeShaders(const RenderState& v, QString vert, QString frag, int multiViewCount
   //
   // D3D12 reports 128 and binds by root-signature visibility, so it is unaffected.
   //
-  // QRhi::MaxVertexStorageBuffers does not exist in any RELEASED Qt. It was
-  // added by qtbase f332defeace ("rhi: Report the per-stage storage buffer
-  // limits", 2026-08-17), 1564 commits after v6.12.0-beta1 -- absent from 6.9
-  // and from 6.12.0-beta1 alike, so asking for it unconditionally broke the Nix
-  // and AppImage builds.
-  //
-  // But version-gating the whole diagnostic silenced it precisely where it
-  // matters: Nix and AppImage build against a released Qt, so the shipped
-  // binaries were the ones NOT warning. The limit is only a more precise way of
-  // asking a question we can already answer -- D3D11 is the sole backend whose
-  // SRB translation never binds a storage-buffer UAV to the vertex stage
-  // (qrhid3d11.cpp hardcodes MaxVertexStorageBuffers to 0 for every feature
-  // level) -- so fall back to naming it. QRhi::backend() has existed all along.
+  // QRhi::MaxVertexStorageBuffers exists in no RELEASED Qt: qtbase added it in
+  // "rhi: Report the per-stage storage buffer limits" (2026-08-17), after
+  // v6.12.0-beta1, so it is absent from 6.9 and 6.12.0-beta1 alike and cannot
+  // be queried unconditionally. Version-gating the whole diagnostic is wrong
+  // too -- Nix and AppImage build against a released Qt, so the shipped
+  // binaries are exactly the ones that would stop warning. The limit is only a
+  // more precise way of asking a question already answerable: D3D11 is the sole
+  // backend whose SRB translation never binds a storage-buffer UAV to the
+  // vertex stage (qrhid3d11.cpp hardcodes MaxVertexStorageBuffers to 0 for
+  // every feature level), so the fallback names the backend, which
+  // QRhi::backend() has always exposed.
   //
   // Keep the query where it exists: it stays correct if a future backend gains
   // or loses the ability, which a hardcoded backend name would not.
@@ -1559,9 +1567,9 @@ std::vector<Sampler> initInputSamplers(
   // 1:1 order with the Port array constructed by ISFNode's visitor, so
   // we can walk it in lockstep and capture each image_input's
   // sampler_config. Used by the GrabsFromSource branch below to honor
-  // shader-declared WRAP/FILTER on array / 3D textures (without this,
-  // those hardcoded to ClampToEdge — which broke any glTF whose UVs
-  // went outside [0,1]).
+  // shader-declared WRAP/FILTER on array / 3D textures; without it those are
+  // hardcoded to ClampToEdge, which is wrong for any glTF whose UVs go outside
+  // [0,1].
   std::vector<const isf::sampler_config*> port_sampler_cfg(ports.size(), nullptr);
   if(desc)
   {
@@ -1695,7 +1703,7 @@ std::vector<Sampler> initInputSamplers(
 }
 
 // ---------------------------------------------------------------------------
-// New render-target overloads (depth-only, layered, multiview)
+// Render-target overloads: depth-only, layered, multiview
 // ---------------------------------------------------------------------------
 
 TextureRenderTarget createDepthOnlyRenderTarget(
@@ -1835,9 +1843,8 @@ TextureRenderTarget createLayeredRenderTarget(
   if(depthTex)
   {
     ret.depthTexture = depthTex;
-    // For layered rendering with a depth *array* texture, we'd need to set
-    // the layer too. We expect a single shared 2D depth texture in most
-    // cases, which is fine.
+    // Layered rendering with a depth *array* texture would need the layer set
+    // too; the expected case here is a single shared 2D depth texture.
     desc.setDepthTexture(depthTex);
   }
 
