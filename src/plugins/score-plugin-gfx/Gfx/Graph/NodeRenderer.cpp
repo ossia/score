@@ -181,12 +181,26 @@ void GenericNodeRenderer::defaultPassesInit(
   }
 }
 
+// The rendered image belongs to the node's first Image outlet, which is not
+// necessarily outlet zero: a Javascript Script declaring a value outlet before
+// its texture outlet publishes the texture as outlet 1. Keying the render pass
+// off output[0] left such a node with no pass at all -- defaultRenderPass then
+// finds nothing for the edge and the target stays black.
+score::gfx::Port* GenericNodeRenderer::imageOutlet() const noexcept
+{
+  for(auto* port : this->node.output)
+    if(port && port->type == score::gfx::Types::Image)
+      return port;
+  return nullptr;
+}
+
 void GenericNodeRenderer::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
   initState(renderer, res);
 
-  for(Edge* edge : this->node.output[0]->edges)
-    addOutputPass(renderer, *edge, res);
+  if(auto* out = imageOutlet())
+    for(Edge* edge : out->edges)
+      addOutputPass(renderer, *edge, res);
 }
 
 void GenericNodeRenderer::initState(RenderList& renderer, QRhiResourceUpdateBatch& res)
@@ -213,7 +227,7 @@ void GenericNodeRenderer::addOutputPass(
 {
   if(!m_mesh)
     return;
-  if(this->node.output[0]->type != score::gfx::Types::Image)
+  if(!imageOutlet())
     return;
 
   auto rt = renderer.renderTargetForOutput(edge);
