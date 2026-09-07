@@ -117,6 +117,12 @@ struct PointCloudRouting
   ossia::buffer_resource_ptr colors;     // color0
   bool has_matrix{false};                // true if transform_matrix found
   int instance_count{-1};                // geometry.vertices, or -1
+  // The transforms attribute's ACTUAL per-instance stride, taken from the
+  // binding it resolves through. Assuming 16 (a vec4 translation) misreads a
+  // tightly packed float3 cloud, whose stride is 12: a 24-byte buffer then
+  // looks like ONE instance instead of two, and the cloud silently loses
+  // points. 0 = unknown, fall back to the per-format default.
+  uint32_t transform_stride{0};
 };
 
 // Resolve a geometry attribute to its source {handle, byte_offset}
@@ -160,12 +166,16 @@ PointCloudRouting extractPointCloud(
       // because it carries the full TRS.
       case S::transform_matrix:
         out.transforms = wrapAttributeAsBuffer(mesh, attr);
+        if(attr.binding >= 0 && attr.binding < (int)mesh.bindings.size())
+          out.transform_stride = (uint32_t)mesh.bindings[attr.binding].stride;
         out.has_matrix = true;
         break;
       case S::translation:
       case S::position:
         if(!out.has_matrix && !out.transforms)
           out.transforms = wrapAttributeAsBuffer(mesh, attr);
+        if(attr.binding >= 0 && attr.binding < (int)mesh.bindings.size())
+          out.transform_stride = (uint32_t)mesh.bindings[attr.binding].stride;
         break;
       case S::color0:
         if(!out.colors)
@@ -191,7 +201,11 @@ uintptr_t pointsBufferFingerprint(
   uintptr_t fp = 1469598103934665603ull; // FNV-1a offset basis
   for(const auto& b : mesh.buffers)
   {
+    // Fold the SIZE too, not just the handle: a producer can shrink a buffer
+    // in place and keep the pointer. (geometry_gpu_buffer carries no offset.)
     fp ^= reinterpret_cast<uintptr_t>(b.handle);
+    fp *= 1099511628211ull;
+    fp ^= uintptr_t(b.byte_size);
     fp *= 1099511628211ull;
   }
   return fp;
@@ -263,7 +277,8 @@ void Instancer::rebuild()
     if(routing.has_matrix)
       transform_stride = 64;
     else if(routing.transforms)
-      transform_stride = 16; // translation
+      transform_stride
+          = routing.transform_stride > 0 ? routing.transform_stride : 16u;
     else
     {
       switch(inputs.format.value)
@@ -331,9 +346,9 @@ void Instancer::rebuild()
   computeTRSMatrix(inputs, scratch, xformCache);
   m_cachedTRS = xformCache;
   m_cached_in_state = in_state;
-  m_cached_transforms = inputs.transforms.buffer.handle;
-  m_cached_colors = inputs.colors.buffer.handle;
-  m_cached_custom = inputs.custom.buffer.handle;
+  m_cached_transforms = viewOf(inputs.transforms.buffer);
+  m_cached_colors = viewOf(inputs.colors.buffer);
+  m_cached_custom = viewOf(inputs.custom.buffer);
   m_cached_count = effective_count;
   m_cached_format = inputs.format.value;
   m_cached_points_buf = points_primary;
@@ -523,9 +538,9 @@ void Instancer::operator()()
             : nullptr;
   const bool upstream_changed
       = m_cached_in_state != in_state
-        || m_cached_transforms != inputs.transforms.buffer.handle
-        || m_cached_colors != inputs.colors.buffer.handle
-        || m_cached_custom != inputs.custom.buffer.handle
+        || m_cached_transforms != viewOf(inputs.transforms.buffer)
+        || m_cached_colors != viewOf(inputs.colors.buffer)
+        || m_cached_custom != viewOf(inputs.custom.buffer)
         || m_cached_points_buf != points_primary
         || m_cached_points_vertices != inputs.points.mesh.vertices
         || m_cached_points_fingerprint
