@@ -198,9 +198,8 @@ void RenderedISFNode::updateInputSamplerFilter(
     {
       sampler_idx++;
       // A SamplableDepth port pushes TWO samplers (color + depth companion)
-      // in initInputSamplers (Utils.cpp:1420-1432); advance past both so this
-      // matches updateInputTexture's counting. Without it every port after a
-      // SamplableDepth image edited the wrong sampler.
+      // in initInputSamplers; advance past both so this matches
+      // updateInputTexture's counting.
       if((p->flags & Flag::SamplableDepth) == Flag::SamplableDepth)
         sampler_idx++;
     }
@@ -216,11 +215,11 @@ void RenderedISFNode::updateInputSamplerFilter(
        && sampler->addressV() == spec.address_v
        && sampler->addressW() == spec.address_w)
     {
-      // Nothing to update. The surgical rt_changed path calls this
-      // whenever renderTargetSpecsChanged fires, but filter/address
-      // state is often unchanged (the bump was for size or format).
-      // Skip the sampler->create() — it would destroy and re-allocate
-      // the backend QRhiSampler for no observable reason.
+      // Nothing to update. The rt_changed path calls this whenever
+      // renderTargetSpecsChanged fires, and filter/address state is often
+      // unchanged (the bump was for size or format). Skipping
+      // sampler->create() avoids destroying and re-allocating the backend
+      // QRhiSampler for no observable reason.
       return;
     }
     sampler->setMagFilter(spec.mag_filter);
@@ -257,6 +256,17 @@ void main()
 {
   v_texcoord = texcoord;
   gl_Position = renderer.clipSpaceCorrMatrix * vec4(position.xy, 0.0, 1.);
+#if !defined(QSHADER_SPIRV) && !defined(QSHADER_HLSL) && !defined(QSHADER_MSL)
+  // OpenGL only: QRhi::isYUpInFramebuffer(). A shader with no persistent pass
+  // draws straight into the destination render target -- this final copy from
+  // the persistent attachment must not turn the image over on the way there,
+  // or the same shader comes out mirrored purely because its last pass was
+  // declared PERSISTENT. Direct3D and Metal put the framebuffer origin where
+  // Vulkan does, so clipSpaceCorrMatrix already carries the whole difference
+  // there. Identical guard, and identical reason, to the MRT copy in
+  // SimpleRenderedISFNode.cpp.
+  v_texcoord.y = 1. - v_texcoord.y;
+#endif
 }
 )_";
 
@@ -337,10 +347,10 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
     // Multiview UBO binds right after ALL storage resources — SSBOs, images
     // AND uniform_input UBOs. collectGraphicsStorageResources records exactly
     // that slot in m_storage.nextBinding (== isf_emit_graphics_storage's
-    // return value, where the codegen places the multiview UBO at
-    // isf.cpp:3773-3783). The previous max over ssbos/images alone omitted the
-    // UBOs, so a graphics uniform_input holding the top binding collided the
-    // multiview UBO with the camera UBO and left the shader's real multiview
+    // return value, which is where the codegen places the multiview UBO).
+    // Taking the max over ssbos/images alone would omit the UBOs, so a
+    // graphics uniform_input holding the top binding would collide the
+    // multiview UBO with the camera UBO and leave the shader's real multiview
     // binding without an SRB descriptor → Vulkan/D3D12 crash / GL aliasing.
     const int mvBinding
         = m_storage.nextBinding >= 0 ? m_storage.nextBinding : m_firstStorageBinding;
@@ -371,9 +381,8 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
       m_innerPassTargets.push_back(renderTarget);
       // createRenderTarget returns a default-constructed (null) target when the
       // backend refuses one -- renderTargetFailed() releases what it made and
-      // hands back {}. That path is not hypothetical: it is what fires when a
-      // driver will not give us the multisample colour buffer, and naming a
-      // null texture crashes there.
+      // hands back {}. That happens when a driver will not give out the
+      // multisample colour buffer, and naming a null texture crashes there.
       if(renderTarget.texture)
         renderTarget.texture->setName(
             "RenderedISFNode::createPass::renderTarget.texture");
@@ -610,14 +619,11 @@ void RenderedISFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
   // Invariant: the color output is NOT necessarily n.output[0]. A write /
   // read_write storage_input declares a Types::Buffer OUTPUT port, and ISFNode
   // walks desc.inputs (appending those buffer output ports) BEFORE it appends
-  // the implicit color output (ISFNode.cpp: input walk at ~line 344, color
-  // output pushed at ~line 349). So for a multipass shader that also uses a
+  // the implicit color output. So for a multipass shader that also uses a
   // storage buffer, output[0] is the (usually edge-less) buffer port and the
-  // color output lands at output[1]. Hardcoding output[0] here created passes
-  // for the buffer port and none for the color output → runRenderPass found no
-  // pass for the sink's edge → the final pass never reached the sink (all-black
-  // output). Mirror SimpleRenderedISFNode::init: iterate every output port and
-  // restrict to Types::Image so buffer/geometry outputs are ignored.
+  // color output lands at output[1]. As in SimpleRenderedISFNode::init:
+  // iterate every output port and restrict to Types::Image so buffer/geometry
+  // outputs are ignored.
   for(auto* out_port : n.output)
   {
     if(out_port->type != Types::Image)
@@ -758,9 +764,8 @@ void RenderedISFNode::update(
   if(m_passes.empty())
     return;
 
-  // passIndex gets set per-pass in the processUBO update loop below; no
-  // need to seed a value here (previous code used m_passes.size() — which
-  // is the edge count, not the pass count — and was then overwritten).
+  // passIndex is set per-pass in the processUBO update loop below, so it
+  // needs no value here.
   n.standardUBO.frameIndex++;
   std::copy_n(renderer.currentDate, 4, n.standardUBO.date);
 
@@ -996,14 +1001,14 @@ void RenderedISFNode::runInitialPasses(
     auto srb = pass.p.srb;
     auto texture = pass.renderTarget.texture;
 
-    // Note: updateBatch ownership transfers to QRhi on beginPass; per-pass
-    // state (pipeline/srb/processUBO/renderTarget) is owned by m_passes and
-    // released in releaseState() / removeOutputPass(). Nothing to free here.
+    // updateBatch ownership transfers to QRhi on beginPass; per-pass state
+    // (pipeline/srb/processUBO/renderTarget) is owned by m_passes and released
+    // in releaseState() / removeOutputPass(). Nothing to free here.
     // Depth clear follows the shader's declared compare; see
-    // depthClearForState(). A fixed 0.0 is the reverse-Z far plane and rejects
-    // every fragment under `less`, so a DEPTH_COMPARE: less shader drew
-    // nothing. Merge the pass override the same way initPass() does, so a pass
-    // that redeclares the compare gets the clear that goes with it.
+    // depthClearForState(). A fixed 0.0 is the reverse-Z far plane and would
+    // reject every fragment under `less`. Merge the pass override the same way
+    // createPass() does, so a pass that redeclares the compare gets the clear
+    // that goes with it.
     const auto passIdx
         = static_cast<std::size_t>(std::distance(passes.begin(), it));
     const auto& modelPasses = n.descriptor().passes;
@@ -1188,8 +1193,7 @@ void AudioTextureUpload::processHistogram(
 
     // Histogram treats channel 0 as the source — it's a scrolling
     // spectrogram display and summing / interleaving channels would blur
-    // the visualisation. Explicitly use i=0 rather than the old
-    // `for(int i = 0; i < 1; i++)` single-iteration loop.
+    // the visualisation.
     const int i = 0;
     {
       float* inputData = audio.data.data() + i * audioInputBufferSize;
@@ -1233,9 +1237,8 @@ void AudioTextureUpload::processHistogram(
       }
     }
   }
-  // Copy it. setSourceSize makes the upload strides explicit so Qt RHI
-  // never second-guesses the row pitch — processSpectral sets it, keeping
-  // the histogram path aligned avoids a subtle inconsistency in validation.
+  // Copy it. setSourceSize makes the row pitch explicit, as processSpectral
+  // also does.
   QRhiTextureSubresourceUploadDescription subdesc(
       m_scratchpad.data(), m_scratchpad.size() * sizeof(float));
   subdesc.setSourceSize(QSize((int)fftSize, 240));
@@ -1356,12 +1359,12 @@ std::optional<Sampler> AudioTextureUpload::updateAudioTexture(
     {
       if(rhiTexture)
       {
-        // Audio went quiet: drop our texture and fall back to the
+        // Audio went quiet: drop the texture and fall back to the
         // RenderList's shared emptyTexture via the caller. Never resize
-        // the stored rhiTexture in-place — when that pointer aliased
-        // `&renderer.emptyTexture()` (old no-data init path) a resize
-        // would have destroyed the shared empty texture used by every
-        // unbound sampler in every node on this RenderList.
+        // the stored rhiTexture in place -- if that pointer aliased
+        // `&renderer.emptyTexture()`, a resize would destroy the shared
+        // empty texture used by every unbound sampler in every node on this
+        // RenderList.
         rhiTexture->destroy();
         rhiTexture->deleteLater();
         rhiTexture = nullptr;
