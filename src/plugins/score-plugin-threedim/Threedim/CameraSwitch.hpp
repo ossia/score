@@ -253,7 +253,24 @@ public:
     outCam.physical.focal_length = 0.f;
     outCam.physical.focus_distance = 0.f;
     outCam.physical.fstop = 0.f;
-    outCam.projection = cams[0].projection; // projection mode not blendable
+    // Projection mode is not blendable -- correct -- but that does not make
+    // camera 0 the right representative. With weights {0, 1, 0, 0} camera 0
+    // contributes NOTHING and is very likely still at its defaults, so an
+    // orthographic camera 1 came out perspective. Take the mode from the
+    // camera that actually dominates the blend.
+    {
+      int dominant = 0;
+      float best = -1.f;
+      for(int i = 0; i < 4; ++i)
+      {
+        if(effWeights[i] > best)
+        {
+          best = effWeights[i];
+          dominant = i;
+        }
+      }
+      outCam.projection = cams[dominant].projection;
+    }
     for(int i = 0; i < 4; ++i)
     {
       if(effWeights[i] <= 0.f) continue;
