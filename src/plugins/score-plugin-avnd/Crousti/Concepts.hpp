@@ -432,8 +432,15 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
       if(sp == std::string_view::npos)
         sp = ex.size();
       if(sp > pos)
-        combo->fileExtensions.push_back(
-            "*." + QString::fromUtf8(ex.data() + pos, int(sp - pos)));
+      {
+        auto suffix = QString::fromUtf8(ex.data() + pos, int(sp - pos));
+        // Both "wav" and ".wav" are natural to write; normalise so neither
+        // turns into the glob "*..wav", which matches nothing.
+        while(suffix.startsWith('.'))
+          suffix.remove(0, 1);
+        if(!suffix.isEmpty())
+          combo->fileExtensions.push_back("*." + suffix);
+      }
       pos = sp + 1;
     }
     return combo;

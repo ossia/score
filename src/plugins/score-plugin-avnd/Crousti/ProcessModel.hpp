@@ -20,6 +20,8 @@
 #include <ossia/detail/type_if.hpp>
 #include <ossia/detail/typelist.hpp>
 
+#include <score/tools/File.hpp>
+
 #include <QFileInfo>
 #include <QTimer>
 
@@ -202,14 +204,27 @@ private:
         }
       }
 
-      auto pathOf = [](Process::ControlInlet* p) -> QString {
+      auto pathOf = [this](Process::ControlInlet* p) -> QString {
         if(!p)
           return {};
         if(auto s = p->value().target<std::string>())
         {
+          // Stored paths are templates (<PROJECT>:..., <LIBRARY>:..., or
+          // document-relative); resolve before touching the filesystem, or a
+          // project-relative folder lists nothing.
+          auto path = QString::fromStdString(*s);
+          if(path.isEmpty())
+            return {};
+          // Walk up rather than score::IDocument::documentFromObject, which
+          // throws when there is no document -- ports are built before the
+          // process is attached to one.
+          score::Document* doc{};
+          for(QObject* o = this->parent(); o && !doc; o = o->parent())
+            doc = qobject_cast<score::Document*>(o);
+          if(doc)
+            path = score::locateFilePath(path, doc->context());
           // The sibling port may name a folder, or a file (e.g. a sound-file
           // port): in the latter case list the file's containing folder.
-          auto path = QString::fromStdString(*s);
           if(QFileInfo fi{path}; fi.isFile())
             return fi.absolutePath();
           return path;
