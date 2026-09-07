@@ -818,8 +818,14 @@ bool CustomMesh::drawSingleMesh(
     if(!effCpuCmds->empty())
     {
       const bool indexed = (g.index.buffer >= 0);
+      int skipped = 0;
       for(const auto& cmd : *effCpuCmds)
       {
+        if(!drawCommandPaints(cmd))
+        {
+          ++skipped; // dead slot; see drawCommandPaints
+          continue;
+        }
         if(indexed)
           cb.drawIndexed(
               cmd.index_or_vertex_count, cmd.instance_count,
@@ -829,6 +835,7 @@ bool CustomMesh::drawSingleMesh(
               cmd.index_or_vertex_count, cmd.instance_count,
               cmd.first_index_or_vertex, cmd.first_instance);
       }
+      noteZeroCountSlotsSkipped(skipped);
       return true;
     }
     // No CPU commands yet (readback pending or first frame) — skip.
@@ -836,9 +843,14 @@ bool CustomMesh::drawSingleMesh(
   }
 
   if(g.index.buffer > -1)
-    cb.drawIndexed(g.indices, g.instances);
-  else
+  {
+    if(g.indices > 0 && g.instances > 0)
+      cb.drawIndexed(g.indices, g.instances);
+  }
+  else if(g.vertices > 0 && g.instances > 0)
+  {
     cb.draw(g.vertices, g.instances);
+  }
   return true;
 }
 

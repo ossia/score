@@ -211,6 +211,7 @@ score_add_gfx_test(instance_count_live GfxInstanceCountLive.cpp)
 # ReadBackNonUniformBuffer exists (the engine only degrades there).
 score_add_gfx_test(indirect_draw_count GfxIndirectDrawCount.cpp)
 score_add_gfx_test(indirect_fallback_ladder GfxIndirectFallbackLadder.cpp)
+score_add_gfx_test(zero_count_draw GfxZeroCountDraw.cpp)
 score_add_gfx_test(gpu_driven_lights GfxGpuDrivenLights.cpp)
 score_add_gfx_test(y_orientation GfxYOrientation.cpp)
 score_add_gfx_test(indirect_draw_bench GfxIndirectDrawBench.cpp)
