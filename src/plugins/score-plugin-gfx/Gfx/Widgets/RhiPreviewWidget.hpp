@@ -91,6 +91,25 @@ private:
 
   std::shared_ptr<QRhiReadbackResult> m_readback;
   score::gfx::BackgroundNode* m_node{};  // owned by m_graph or m_ctx after attach
+
+  //! m_node, but only while its OWNER is still alive.
+  //!
+  //! m_node cannot be a QPointer -- BackgroundNode is not a QObject -- and it
+  //! is not owned by this widget in the Context backend: GfxContext owns it via
+  //! its command queue, so it dies with the context. detach() nulls m_node on
+  //! every path, but detach() runs when the WIDGET goes away, and the ordering
+  //! this class already documents for m_ctx is the other one: the GfxContext
+  //! can be destroyed first, with the widget outliving it on a queued
+  //! DeferredDelete. Between those two deaths m_node dangles, and resizeEvent()
+  //! dereferences it. Ask the owner instead of trusting the pointer. (W2.)
+  score::gfx::BackgroundNode* liveNode() const noexcept
+  {
+    if(!m_node)
+      return nullptr;
+    if(m_backend == Backend::Context && !m_ctx)
+      return nullptr; // owner already gone; m_node is dangling
+    return m_node;
+  }
   int m_timerId{};
 };
 }
