@@ -23,9 +23,9 @@ namespace score::gfx
 // it is not a broadcast. A buffer holding a single element therefore
 // reaches instance 0 only -- every later instance steps past the end and
 // fetches zero (SR1 in the 2026-09 review). Fixing that on the *binding*
-// is not portable: stepRate != 1 needs QRhi::CustomInstanceStepRate and
-// Metal does not implement instanceStepRate at all, and a stride of 0
-// fails Metal validation. So the constant is replicated inside the
+// is not portable: stepRate != 1 needs QRhi::CustomInstanceStepRate, which
+// OpenGL reports as false (qrhigles2.cpp:1732) -- and a stride of 0 fails
+// Metal validation. So the constant is replicated inside the
 // buffer instead -- an entry holds `Entry::instances` copies of the
 // payload and instance i reads copy i. The pipeline's vertex input
 // layout fixes stride and classification, NOT buffer length, so growing

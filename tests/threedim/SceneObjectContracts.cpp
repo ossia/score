@@ -1,0 +1,178 @@
+// Section 9 of the 2026-09 graphics review: scene-object contracts.
+//
+// Six of the review's eight mismatches. Pure logic -- these nodes are compiled
+// into the test and no QRhi handle is ever dereferenced, so the cases say what
+// the node COMPUTES rather than what a GPU draws.
+//
+// The two animation cases (STEP / CUBICSPLINE, and the skinning one) are
+// deliberately NOT here. The review invalidated its own animation fixture --
+// "the animation-skinning case failed its before-operation precondition
+// (before.draws.size() was zero, not one). That run does not prove a skinning
+// defect." They need re-deriving, not validating, and importing them as-is
+// would launder an admitted bad fixture into the suite.
+#include <Threedim/Instancer.hpp>
+#include <Threedim/CameraSwitch.hpp>
+#include <Threedim/BufferToGeometry.cpp>
+#include <Threedim/BufferToGeometry2.cpp>
+#include <Gfx/Graph/SceneGPUState.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_approx.hpp>
+#include <QMatrix4x4>
+#include <QQuaternion>
+
+namespace review_scene_objects {
+using Catch::Approx;
+ossia::mesh_primitive triangle() {
+  auto xyz = std::make_shared<std::vector<float>>(
+    std::initializer_list<float>{0,0,0, 1,0,0, 0,1,0});
+  auto buffer = std::make_shared<ossia::buffer_resource>();
+  buffer->resource = ossia::buffer_data{
+    .data = std::shared_ptr<const void>(xyz, xyz->data()), .byte_size = 36};
+  ossia::mesh_primitive prim;
+  prim.vertex_count = 3; prim.vertex_buffers.push_back(buffer);
+  ossia::vertex_attribute attr;
+  attr.semantic = ossia::attribute_semantic::position;
+  attr.format = ossia::vertex_format::float3;
+  attr.buffer_index = 0; attr.byte_offset = 0; attr.byte_stride = 12;
+  prim.attributes.push_back(attr);
+  return prim;
+}
+std::shared_ptr<ossia::scene_state> prototype(float sx = 1.f) {
+  auto st = std::make_shared<ossia::scene_state>();
+  auto root = std::make_shared<ossia::scene_node>();
+  root->id.value = 77;
+  ossia::scene_transform xf; xf.scale[0] = sx;
+  auto mesh = std::make_shared<ossia::mesh_component>();
+  mesh->primitives.push_back(triangle());
+  root->children = std::make_shared<const std::vector<ossia::scene_payload>>(
+    std::vector<ossia::scene_payload>{xf, ossia::mesh_component_ptr(mesh)});
+  st->roots = std::make_shared<const std::vector<ossia::scene_node_ptr>>(
+    std::vector<ossia::scene_node_ptr>{root});
+  return st;
+}
+const ossia::instance_component& instance(const Threedim::Instancer& n) {
+  const auto& r = *(*n.m_wrapped_state->roots)[0];
+  for (auto& p : *r.children)
+    if (auto* q = ossia::get_if<ossia::instance_component_ptr>(&p)) return **q;
+  throw std::runtime_error("no instance output");
+}
+template<class Node> void configureBuffers(Node& n, void* handle) {
+  n.inputs.attribute_buffer_0.value = 0;
+  n.inputs.format_0.value = Threedim::AttributeFormat::Float3;
+  n.inputs.vertices.value = 3;
+  n.inputs.instances.value = 1;
+  n.inputs.index_buffer.value = -1;
+  n.inputs.buffer_0.buffer.handle = handle;
+  n.inputs.buffer_0.buffer.byte_size = 128;
+}
+template<class Node> void checkBufferControls() {
+  int opaque{}; Node n; configureBuffers(n, &opaque); n();
+  REQUIRE(n.outputs.geometry.mesh.instances == 1);
+  n.inputs.instances.value = 5; n();
+  CHECK(n.outputs.geometry.mesh.instances == 5);
+  n.inputs.buffer_0.buffer.byte_offset = 32; n();
+  CHECK(n.outputs.geometry.mesh.input[0].byte_offset == 32);
+  n.inputs.buffer_0.buffer.byte_size = 64; n();
+  CHECK(n.outputs.geometry.mesh.buffers[0].byte_size == 64);
+  // Causal correction experiment: invalidate the missing structural fingerprint.
+  // This does not purport to be the final production patch.
+  n.m_prevVertices = -1; n();
+  CHECK(n.outputs.geometry.mesh.instances == 5);
+  CHECK(n.outputs.geometry.mesh.input[0].byte_offset == 32);
+  CHECK(n.outputs.geometry.mesh.buffers[0].byte_size == 64);
+}
+ossia::scene_spec camera(ossia::camera_projection projection) {
+  auto st = std::make_shared<ossia::scene_state>();
+  auto cam = std::make_shared<ossia::camera_component>(); cam->projection = projection;
+  auto root = std::make_shared<ossia::scene_node>();
+  root->children = std::make_shared<const std::vector<ossia::scene_payload>>(
+    std::vector<ossia::scene_payload>{ossia::scene_transform{}, ossia::camera_component_ptr(cam)});
+  st->roots = std::make_shared<const std::vector<ossia::scene_node_ptr>>(
+    std::vector<ossia::scene_node_ptr>{root});
+  ossia::scene_spec out; out.state = st; return out;
+}
+}
+using namespace review_scene_objects;
+
+TEST_CASE("SceneObjects-01 both geometry nodes respond to Instances and same-handle buffer views", "[SceneObjects][buffers]") {
+  SECTION("v1") { checkBufferControls<Threedim::BuffersToGeometry>(); }
+  SECTION("v2") { checkBufferControls<Threedim::BuffersToGeometry2>(); }
+}
+TEST_CASE("SceneObjects-02 a custom semantic keeps its authored name", "[SceneObjects][buffers]") {
+  // The review filed this as "named geometry attribute: `temperature` becomes
+  // empty". Measured, that expectation is wrong: `temperature` is a FIRST-CLASS
+  // semantic in ossia (attribute_semantic::temperature == 1401, right after
+  // density == 1400), so name_to_semantic resolves it and halp's contract --
+  // "name: For custom semantics; empty = use semantic name" -- makes an empty
+  // name the CORRECT outcome. The fixture picked a word it believed was custom.
+  //
+  // So test both halves of the real contract instead.
+  int opaque{};
+  SECTION("a recognised semantic resolves and needs no name")
+  {
+    Threedim::BuffersToGeometry2 n; configureBuffers(n, &opaque);
+    n.inputs.semantic_0.value = "temperature"; n();
+    REQUIRE(n.outputs.geometry.mesh.attributes.size() == 1);
+    CHECK(n.outputs.geometry.mesh.attributes[0].semantic
+          == static_cast<halp::attribute_semantic>(
+              ossia::attribute_semantic::temperature));
+    CHECK(n.outputs.geometry.mesh.attributes[0].name.empty());
+  }
+  SECTION("an unrecognised semantic keeps its text, or it is anonymous")
+  {
+    // Without this, every unrecognised attribute lands on `custom` with no
+    // name -- indistinguishable from every other one, and a shader asking for
+    // this attribute by name has nothing to match against.
+    Threedim::BuffersToGeometry2 n; configureBuffers(n, &opaque);
+    n.inputs.semantic_0.value = "vorticity_magnitude"; n();
+    REQUIRE(n.outputs.geometry.mesh.attributes.size() == 1);
+    CHECK(n.outputs.geometry.mesh.attributes[0].semantic
+          == static_cast<halp::attribute_semantic>(
+              ossia::attribute_semantic::custom));
+    CHECK(n.outputs.geometry.mesh.attributes[0].name == "vorticity_magnitude");
+  }
+}
+TEST_CASE("SceneObjects-05 Instancer notices same-handle view shrink", "[SceneObjects][instancer]") {
+  Threedim::Instancer n; int opaque{};
+  n.inputs.scene_in.scene.state = prototype();
+  n.inputs.transforms.buffer.handle = &opaque;
+  n.inputs.transforms.buffer.byte_size = 128;
+  n.inputs.count.value = 2; n(); REQUIRE(instance(n).instance_count == 2);
+  n.inputs.transforms.buffer.byte_size = 64; n();
+  CHECK(instance(n).instance_count == 1);
+  n.rebuild(); // causal intervention: descriptor rebuild does apply correct clamp
+  CHECK(instance(n).instance_count == 1);
+}
+TEST_CASE("SceneObjects-06 Instancer accepts tightly packed XYZ Points", "[SceneObjects][instancer]") {
+  Threedim::Instancer n; int opaque{};
+  n.inputs.scene_in.scene.state = prototype();
+  auto& g = n.inputs.points.mesh;
+  g.vertices = 2;
+  g.buffers.push_back({.handle=&opaque, .byte_size=24, .dirty=true});
+  g.bindings.push_back({.stride=12, .step_rate=1,
+    .classification=halp::binding_classification::per_vertex});
+  g.attributes.push_back({.binding=0, .semantic=halp::attribute_semantic::position,
+    .format=halp::attribute_format::float3, .byte_offset=0});
+  g.input.push_back({.buffer=0, .byte_offset=0});
+  n();
+  CHECK(instance(n).instance_count == 2);
+}
+TEST_CASE("SceneObjects-07 Instancer retains reflected prototype transform", "[SceneObjects][instancer]") {
+  Threedim::Instancer n;
+  n.inputs.scene_in.scene.state = prototype(-1.f); n();
+  const auto& children = *(*n.m_wrapped_state->roots)[0]->children;
+  auto& t = ossia::get<ossia::scene_transform>(children[1]);
+  QMatrix4x4 m; m.translate(t.translation[0],t.translation[1],t.translation[2]);
+  m.rotate(QQuaternion(t.rotation[3],t.rotation[0],t.rotation[1],t.rotation[2]));
+  m.scale(t.scale[0],t.scale[1],t.scale[2]);
+  CHECK(m.map(QVector3D(1,0,0)).x() == Approx(-1.f));
+}
+TEST_CASE("SceneObjects-08 one weighted orthographic camera stays orthographic without camera zero", "[SceneObjects][camera]") {
+  Threedim::CameraSwitch n;
+  n.inputs.mode.value = Threedim::CameraSwitch::ins::CameraMode::Blend;
+  n.inputs.cam1.scene = camera(ossia::camera_projection::orthographic);
+  n.inputs.weights.value = {0,1,0,0}; n.rebuild(); n();
+  ossia::scene_transform xf; ossia::camera_component cam;
+  REQUIRE(Threedim::CameraSwitch::extractCameraPose(n.outputs.scene_out.scene, xf, cam));
+  CHECK(cam.projection == ossia::camera_projection::orthographic);
+}

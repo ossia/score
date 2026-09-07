@@ -110,6 +110,15 @@ score_add_test(test_threedim_instancer_clamp
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_instancer_clamp)
 
+# Section 9 of the 2026-09 graphics review: scene-object contracts. Six of its
+# eight mismatches -- live buffer views, a named attribute, instancer subview
+# and packed points, a reflected prototype, and camera projection. Pure logic,
+# no GPU: the nodes are compiled in and no QRhi handle is dereferenced.
+score_add_test(test_threedim_scene_object_contracts
+  SOURCES SceneObjectContracts.cpp "${THREEDIM_DIR}/Instancer.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_scene_object_contracts)
+
 # #4 CRASH — Instancer must rebuild when ANY Points buffer handle changes (a
 # reallocated secondary attribute buffer left a dangling handle -> GPU UAF).
 # Pure logic — no GPU.

@@ -1,3 +1,4 @@
+#include <cstdio>
 #include "BufferToGeometry2.hpp"
 
 #include "GeometryToBufferStrategies.hpp"
@@ -81,7 +82,10 @@ void BuffersToGeometry2::operator()()
       = computeTRSMatrix(inputs, outputs.geometry.transform, m_cachedTRS);
 
   // Check mesh configuration changes
-  if(inputs.vertices.value != m_prevVertices || inputs.topology.value != m_prevTopology
+  // See BufferToGeometry.cpp: instances belongs in this comparison.
+  if(inputs.vertices.value != m_prevVertices
+     || inputs.instances.value != m_prevInstances
+     || inputs.topology.value != m_prevTopology
      || inputs.cull_mode.value != m_prevCullMode
      || inputs.front_face.value != m_prevFrontFace
      || inputs.index_buffer.value != m_prevUseIndexBuffer
@@ -110,7 +114,14 @@ void BuffersToGeometry2::operator()()
   }
   for(int i = 0; i < 8; ++i)
   {
-    if(inputBuffers[i]->handle != m_prevBuffers[i].handle)
+    // The VIEW is part of the identity, not just the handle. Comparing only
+    // the handle means a buffer re-pointed at a different offset, or shrunk to
+    // a smaller window of the same allocation, reads as unchanged -- and the
+    // published mesh keeps the previous view for the rest of the session.
+    // (That is what the `FIXME changed?` here was asking.)
+    if(inputBuffers[i]->handle != m_prevBuffers[i].handle
+       || inputBuffers[i]->byte_offset != m_prevBuffers[i].byte_offset
+       || inputBuffers[i]->byte_size != m_prevBuffers[i].byte_size)
     {
       buffersChanged = true;
       m_prevBuffers[i] = *inputBuffers[i];
@@ -119,6 +130,7 @@ void BuffersToGeometry2::operator()()
 
   // Update cached state
   m_prevVertices = inputs.vertices.value;
+  m_prevInstances = inputs.instances.value;
   m_prevTopology = inputs.topology.value;
   m_prevCullMode = inputs.cull_mode.value;
   m_prevFrontFace = inputs.front_face.value;
@@ -238,13 +250,23 @@ void BuffersToGeometry2::operator()()
     // Resolve semantic from user-provided name
     const int sem = resolveSemanticFromName(cfg.semantic);
 
-    // Add attribute with sequential location and resolved semantic
+    // Add attribute with sequential location and resolved semantic.
+    //
+    // Carry the authored text as well. halp::geometry_attribute documents
+    // `name` as "For custom semantics; empty = use semantic name", and
+    // resolveSemanticFromName maps anything it does not recognise onto
+    // `custom` -- so dropping the string left every custom attribute as an
+    // anonymous `custom`, indistinguishable from every other one. A shader
+    // asking for `temperature` had nothing to match against.
+    const bool isCustom
+        = sem == static_cast<int>(ossia::attribute_semantic::custom);
     mesh.attributes.push_back(
         halp::geometry_attribute{
             .binding = bindingIndex,
             .semantic = static_cast<halp::attribute_semantic>(sem),
             .format = toHalpFormat(cfg.format),
             .byte_offset = 0, // Offset within stride is 0 since we use input offset
+            .name = isCustom ? cfg.semantic : std::string{},
         });
 
     attr_idx++;
