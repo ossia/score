@@ -446,6 +446,11 @@ inline void sweepLibrary(
 
   std::map<QString, std::map<std::string, std::string>> failures;
 
+  // How many shaders this sweep actually LOADED and ran -- not how many paths
+  // the glob returned. A file that could not be opened, or that another sweep
+  // owns, is skipped below and must not count towards "we tested something".
+  int examined = 0;
+
   for(const QString& path : shaders)
   {
     const QString rel = QDir{root}.relativeFilePath(path);
@@ -464,6 +469,7 @@ inline void sweepLibrary(
     // Announce before rendering: on a backend that can hang or take the
     // process down, the last line printed names the shader responsible.
     qInfo().noquote() << "[sweep]" << rel;
+    ++examined;
 
     QString error;
     const auto program = load(path, data, error);
@@ -488,7 +494,19 @@ inline void sweepLibrary(
 
   qInstallMessageHandler(g_previous);
 
-  INFO("swept " << shaders.size() << " shaders, " << failures.size() << " failing");
+  // A sweep that examined NOTHING is not a passing sweep. diffAgainstBaseline
+  // only reports failures that are NEW, so with an empty corpus every list is
+  // empty, no regression is found, and the test reports green having tested
+  // nothing at all -- a wrong library root, a mode string no file matches, or a
+  // glob that stops matching all read as success. This campaign has already
+  // been burned twice by exactly that shape (a stashed baseline that ran over
+  // zero files; a grep whose binary was missing so every count was zero), so
+  // the sweep states its own coverage as an assertion rather than an INFO that
+  // is only printed once something else has already failed. (T3.)
+  INFO(
+      "globbed " << shaders.size() << " paths, examined " << examined << ", "
+                 << failures.size() << " failing");
+  REQUIRE(examined > 0);
 
   diffAgainstBaseline(failures, baseline);
 }
