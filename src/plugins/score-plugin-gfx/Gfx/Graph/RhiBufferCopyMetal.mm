@@ -29,9 +29,6 @@ namespace
 // This native-handle blit path reads the MTLBuffer directly, so a buffer that
 // is consumed ONLY through these copies — never bound through QRhi — keeps
 // its uploads stuck in pendingUpdates forever and the blit reads stale zeros.
-// Measured symptom: every per-instance translation copied out of the
-// world-transform buffer read back as (0,0,0) on Metal while Vulkan and
-// OpenGL rendered correctly (test_gfx_instancer_shrink).
 //
 // Force the flush through public API: enqueueing a buffer readback executes
 // the buffer's pending host writes immediately at enqueue time
@@ -43,13 +40,13 @@ namespace
 void flushPendingHostWritesMetal(QRhi& rhi, QRhiCommandBuffer& cb, QRhiBuffer* buf)
 {
   // nextResourceUpdateBatch() returns nullptr when QRhi's fixed batch pool is
-  // exhausted -- RenderList.cpp:1312 already handles that case explicitly, so
-  // it is reachable, and this path is a MULTIPLIER on it: issuePendingGpuCopies
+  // exhausted -- RenderList::render already handles that case explicitly, so it
+  // is reachable, and this path is a MULTIPLIER on it: issuePendingGpuCopies
   // loops over every queued copy and each one flushes both src and dst, i.e.
   // two batches per copy op per frame. Degrade instead of dereferencing null:
-  // skipping the flush can leave a copy reading stale bytes (the bug this
-  // function exists to prevent) but that is strictly better than a crash, and
-  // the warning names it rather than leaving it silent.
+  // skipping the flush can leave a copy reading stale bytes (the very thing
+  // this function prevents) but that beats a crash, and the warning names it
+  // rather than leaving it silent.
   QRhiResourceUpdateBatch* batch = rhi.nextResourceUpdateBatch();
   if(!batch)
   {
@@ -81,7 +78,7 @@ void flushPendingHostWritesMetal(QRhi& rhi, QRhiCommandBuffer& cb, QRhiBuffer* b
 // the same command buffer that accesses the same buffer. No explicit MTLFence
 // or MTLBarrier is required for tracked resources.
 //
-// Note: QRhi's own QRhiResourceUpdateBatch::copyBuffer enforces the
+// QRhi's own QRhiResourceUpdateBatch::copyBuffer enforces the
 // no-active-pass contract internally. This native-handle path bypasses that
 // check, so the caller is responsible for ensuring no encoder is open.
 void copyBufferMetal(
@@ -107,6 +104,34 @@ void copyBufferMetal(
   auto dstNative = dst->nativeBuffer();
   if(!srcNative.objects[0] || !dstNative.objects[0])
     return;
+
+  // Slot 0 unconditionally, which is only right for an UNSLOTTED buffer.
+  //
+  // Qt's Metal backend keeps QMTL_FRAMES_IN_FLIGHT copies of most buffers --
+  // qrhimetal.mm: "writing to a Managed buffer (which is what Immutable and
+  // Static maps to on macOS) is not safe when another frame reading from the
+  // same buffer is still in flight" -- and excludes exactly one usage:
+  //     d->slotted = !m_usage.testFlag(QRhiBuffer::StorageBuffer);
+  // Every caller of this helper copies storage buffers, so slotCount is 1 and
+  // objects[0] is the only slot there is. A slotted buffer would be copied
+  // from or into whichever frame happens to sit at slot 0 -- silently, and
+  // only sometimes wrong.
+  //
+  // The precondition is checkable, so check it rather than trusting the
+  // caller list to stay this way.
+  if(srcNative.slotCount > 1 || dstNative.slotCount > 1)
+  {
+    static bool warned = false;
+    if(!warned)
+    {
+      warned = true;
+      qWarning() << "score.gfx: copyBufferMetal on a SLOTTED buffer (src slots"
+                 << srcNative.slotCount << ", dst slots" << dstNative.slotCount
+                 << ") -- this helper only ever addresses slot 0, so the copy "
+                    "would touch the wrong frame's buffer. Refusing it.";
+    }
+    return;
+  }
 
   id<MTLCommandBuffer> cmdBuf = (id<MTLCommandBuffer>)handles->commandBuffer;
   // QRhi documents NativeBuffer::objects[i] as a POINTER TO the native
