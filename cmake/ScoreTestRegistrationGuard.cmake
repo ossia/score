@@ -57,6 +57,12 @@ set(SCORE_TEST_GUARD_ALLOWED_HARNESSES
   # separate piece of work, not a regression.
   integration/scene-js-sweep.sh
   integration/video-decoder-sweep.sh
+  # The GPU validation matrix. It cannot be a ctest entry: it RUNS ctest, once
+  # per (backend, driver) cell, with a different driver-selection environment
+  # each time -- and in its default mode it also BUILDS each test before
+  # running it. A ctest entry that re-enters ctest and drives ninja is not a
+  # test, it is a harness. Meant to be started by hand on an idle machine.
+  integration/gpu-validation-matrix.sh
   # The FATE-corpus decode harness (video/corpus-decode-validation). fetch- and
   # generate- pull down or synthesize a multi-gigabyte corpus, and run-corpus /
   # run-hwdec drive it against a built score by hand; none of them can be a ctest

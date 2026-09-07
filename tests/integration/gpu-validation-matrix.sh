@@ -12,6 +12,25 @@
 #   CELLS="vk-nvidia gl-llvmpipe" ./gpu-validation-matrix.sh
 #   SUBSET=heavy ./gpu-validation-matrix.sh        # ~30 GPU-heavy tests/cell
 #   SUBSET=all   ./gpu-validation-matrix.sh        # everything (SLOW, see below)
+#   BATCH=1      ./gpu-validation-matrix.sh        # one ctest run for the cell
+#   PRUNE=0      ./gpu-validation-matrix.sh        # keep each test's artefacts
+#
+# DEFAULT MODE IS ONE TEST AT A TIME: each test is BUILT, then RUN, then the
+# next. That matters on the debug-SDK configuration, where a full build is
+# ~1.1 TB and machines have ~400 GB: building everything up front simply does
+# not fit. Building per test also means a crash or an out-of-disk stops after
+# one target instead of losing the whole cell, and every test gets its own
+# log, its own device banner and its own validation census. BATCH=1 restores
+# the old behaviour (build nothing, one ctest invocation per cell) when the
+# build already exists and you want the cell to finish faster.
+#
+# PRUNE (default on in per-test mode) deletes each test's executable and its
+# object directory as soon as it has run. That is what keeps the working set
+# flat instead of growing to the size of the whole suite: on a -O0 -g3 build
+# with static sanitizer runtimes a single test binary is hundreds of MB, and
+# 163 of them is what makes the reference debug tree 1.1 TB. Shared libraries
+# and plugins are NEVER pruned -- every test needs them and rebuilding them
+# per test would dominate the runtime.
 #
 # ---------------------------------------------------------------------------
 # WHY THIS SCRIPT EXISTS RATHER THAN A ctest INVOCATION
@@ -48,6 +67,11 @@ BUILD="${BUILD:-$PWD}"
 OUT="${OUT:-/tmp/gpu-validation-matrix}"
 SUBSET="${SUBSET:-heavy}"
 SECONDS_PER_TEST="${SECONDS_PER_TEST:-}"
+BATCH="${BATCH:-0}"                 # 1 = one ctest run per cell (no building)
+BUILD_JOBS="${BUILD_JOBS:-4}"       # ninja parallelism; 62 GB/12 cores OOMs above ~4
+MIN_FREE_GB="${MIN_FREE_GB:-40}"    # stop rather than fill the filesystem
+TEST_TIMEOUT="${TEST_TIMEOUT:-900}" # per individual test
+PRUNE="${PRUNE:-1}"                 # delete each test's artefacts after running it
 
 # ---- scope ------------------------------------------------------------------
 EXCL='soak|object_csf_sweep|object_render_sweep|shader_sweep|golden_render|live_edit'
@@ -165,6 +189,18 @@ echo "==============================================================="
 # Pre-flight device probe. vulkaninfo / glxinfo only exist on Linux, so this
 # returns empty elsewhere and the cell relies on the post-run banner instead
 # (see device_from_log, which is the authoritative check on every platform).
+# Free space on the build filesystem, in GB. A debug build can consume
+# hundreds of GB; filling / on a shared machine is a genuinely damaging
+# outcome, so every per-test build checks this first and stops cleanly.
+free_gb() { df -Pk "$BUILD" 2>/dev/null | awk 'NR==2 {print int($4/1048576)}'; }
+
+# ctest name -> ninja target. The build lays tests out as tests/<dir>/<name>,
+# so ask ninja rather than guessing the directory.
+target_for() {
+  ninja -C "$BUILD" -t targets all 2>/dev/null \
+    | sed -n "s#^\(tests/[a-z0-9_]*/$1\):.*#\1#p" | head -1
+}
+
 renderer_of() { # $1 = api, $2 = env
   case "$1" in
     vulkan) command -v vulkaninfo >/dev/null 2>&1 || return 0
@@ -225,10 +261,52 @@ for label in $CELLS; do
   env $env_str $( [ "$api" = vulkan ] && echo $VKVAL ) SCORE_TEST_API="$api" \
     ${TMO:+$TMO 600} ctest -R "$SCOPE" -E "$EXCL" -I 1,1 -V > "$log.banner" 2>&1
 
-  # shellcheck disable=SC2086
-  env $env_str $( [ "$api" = vulkan ] && echo $VKVAL ) SCORE_TEST_API="$api" \
-    ${TMO:+$TMO $CELL_TIMEOUT} ctest -R "$SCOPE" -E "$EXCL" > "$log" 2>&1
-  rc=$?
+  if [ "$BATCH" = 1 ]; then
+    # shellcheck disable=SC2086
+    env $env_str $( [ "$api" = vulkan ] && echo $VKVAL ) SCORE_TEST_API="$api" \
+      ${TMO:+$TMO $CELL_TIMEOUT} ctest -R "$SCOPE" -E "$EXCL" > "$log" 2>&1
+    rc=$?
+  else
+    # ---- one test at a time: build it, run it, move on ---------------------
+    : > "$log"; rc=0
+    npass=0; nfail=0; nbuildfail=0; nskip=0
+    tests=$(ctest -R "$SCOPE" -E "$EXCL" -N 2>/dev/null \
+              | sed -n 's/^ *Test *#[0-9]*: *//p')
+    for t in $tests; do
+      free=$(free_gb)
+      if [ -n "$free" ] && [ "$free" -lt "$MIN_FREE_GB" ]; then
+        echo "!! STOPPING: only ${free} GB free on $BUILD (floor ${MIN_FREE_GB} GB)" >> "$log"
+        echo "   built and ran $((npass+nfail)) of the cell's tests before stopping." >> "$log"
+        rc=99; break
+      fi
+      tgt=$(target_for "$t")
+      if [ -n "$tgt" ]; then
+        if ! ${TMO:+$TMO 3600} ninja -C "$BUILD" -j"$BUILD_JOBS" "$tgt" >> "$log.build" 2>&1; then
+          echo "BUILD-FAILED $t" >> "$log"; nbuildfail=$((nbuildfail+1)); continue
+        fi
+      fi
+      # shellcheck disable=SC2086
+      env $env_str $( [ "$api" = vulkan ] && echo $VKVAL ) SCORE_TEST_API="$api" \
+        ${TMO:+$TMO $TEST_TIMEOUT} ctest -R "^$t\$" --output-on-failure >> "$log" 2>&1
+      case $? in
+        0) npass=$((npass+1)) ;;
+        4) nskip=$((nskip+1)) ;;   # SKIP_RETURN_CODE
+        *) nfail=$((nfail+1)) ;;
+      esac
+
+      # Delete this test's own artefacts before moving to the next one. Only
+      # the executable and its object dir -- shared libs stay, since every
+      # other test needs them.
+      if [ "$PRUNE" = 1 ] && [ -n "$tgt" ]; then
+        tdir=$(dirname "$tgt")
+        rm -f  "$BUILD/$tgt"
+        rm -rf "$BUILD/$tdir/CMakeFiles/$t.dir"
+      fi
+    done
+    total=$((npass+nfail+nbuildfail))
+    echo "PER-TEST SUMMARY: $npass passed, $nfail failed, $nbuildfail build-failed, $nskip skipped, of $total" >> "$log"
+    echo "disk free after cell: $(free_gb) GB (prune=$PRUNE)" >> "$log"
+  fi
 
   ran=$(grep -cE "\.\.\.\.* +(Passed|\*\*\*Failed|\*\*\*Exception|\*\*\*Skipped)" "$log" | tr -d " ")
   # Authoritative device check, every platform: what did score actually get?
@@ -242,6 +320,10 @@ for label in $CELLS; do
   # ctest prints "100% tests passed out of N" when nothing fails and
   # "N% tests passed, M tests failed out of N" otherwise. Accept both.
   line=$(grep -oE "[0-9]+% tests passed(, [0-9]+ tests failed)? out of [0-9]+" "$log" | tail -1)
+  # Per-test mode writes its own roll-up; prefer it when present.
+  pt=$(grep -m1 "^PER-TEST SUMMARY:" "$log" | sed 's/^PER-TEST SUMMARY: //')
+  [ -n "$pt" ] && line="$pt"
+  [ "$rc" = 99 ] && trunc_disk=" !! STOPPED — LOW DISK" || trunc_disk=""
   vuid=$(grep -oE "VUID-[A-Za-z0-9-]+" "$log" | sort -u | wc -l | tr -d " ")
   sync=$(grep -c "SYNC-HAZARD" "$log" | tr -d " ")
   asan=$(grep -c "ERROR: AddressSanitizer" "$log" | tr -d " ")
@@ -262,7 +344,7 @@ for label in $CELLS; do
   # --- positive control 3: truncated run?
   trunc=""; [ "$rc" -eq 124 ] && trunc=" TIMED-OUT@${ran}/${NTESTS}"
 
-  verdict="${line:-<no summary>}$trunc$nullbe"
+  verdict="${line:-<no summary>}$trunc${trunc_disk:-}$nullbe"
   printf "%-14s %-34s %s\n" "$label" "${dev:0:34}" "$verdict"
   printf "%-14s   VUID=%-3s SYNC-HAZARD=%-4s ASan=%-3s UBSan=%-4s %s\n" "" "$vuid" "$sync" "$asan" "$ub" "$lyr"
   if [ "$vuid" -gt 0 ]; then
