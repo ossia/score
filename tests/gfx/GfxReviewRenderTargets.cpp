@@ -80,7 +80,7 @@ TEST_CASE(
   Shot s;
   score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
     GfxPipeline p;
-    const int raw = p.addRaster(path("triangle.vs"), path("mip.fs"));
+    const int raw = p.addRaster(path("mip.vs"), path("mip.fs"));
     const int probe = p.addIsf(path("mip-probe.fs"));
     if(raw < 0 || probe < 0)
     {
@@ -170,7 +170,7 @@ TEST_CASE(
   Shot s;
   score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
     GfxPipeline p;
-    const int raw = p.addRaster(path("triangle.vs"), path("single-mip.fs"));
+    const int raw = p.addRaster(path("single-mip.vs"), path("single-mip.fs"));
     if(raw < 0)
     {
       status(s, p);
