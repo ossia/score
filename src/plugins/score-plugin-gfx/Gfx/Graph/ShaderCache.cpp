@@ -28,8 +28,8 @@ namespace score::gfx
 //   * D3D12 asks for 6.1, but only when dxcompiler.dll is present; without it
 //     d3d12ShaderVersion() falls back to 5.0 and lands in the same place. That
 //     DLL is not on every machine -- it is absent from our own Windows test
-//     box, which is why d3d12 failed identically to d3d11 and made the
-//     failure look like something other than multiview.
+//     box, where d3d12 therefore fails exactly like d3d11 and the failure does
+//     not look like a multiview problem at all.
 //
 // The runtime already has the answer. Where QRhi reports no MultiView,
 // RenderedRawRasterPipelineNode renders the N views as N passes and stamps the
@@ -92,10 +92,11 @@ const std::pair<QShader, QString>& ShaderCache::get(
   }
 
   Baker& b = *bb;
-  if(auto it = b.shaders.find(shader); it != b.shaders.end())
+  auto& cache = b.forStage(stage);
+  if(auto it = cache.find(shader); it != cache.end())
     return it->second;
 
-  // A20: on the D3D targets, refuse a shader whose own identifiers collide
+  // On the D3D targets, refuse a shader whose own identifiers collide
   // with an HLSL intrinsic, and say which one.
   //
   // SPIRV-Cross rewrites GLSL builtins to their HLSL spellings -- fract() ->
@@ -120,13 +121,13 @@ const std::pair<QShader, QString>& ShaderCache::get(
                            "builtins to their HLSL spellings but does not "
                            "rename your variables, so the Direct3D backends "
                            "would emit \"%1 = %1(...)\". Rename it.");
-      auto& slot = b.shaders[shader];
+      auto& slot = cache[shader];
       slot = {QShader{}, err.arg(QString::fromUtf8(bad))};
       return slot;
     }
   }
 
-  // See viewIndexNeedsLowering() above: on a D3D target below SM 6.1 the
+  // See the file header: on a D3D target below SM 6.1 the
   // SV_ViewID that gl_ViewIndex becomes cannot compile at all, so route the
   // view index through the PASSINDEX uniform the N-pass fallback already
   // stamps. Keyed on the ORIGINAL source, which is correct: the baker is
@@ -141,7 +142,7 @@ const std::pair<QShader, QString>& ShaderCache::get(
 
   // FIXME serialize / deserialize
   QShader baked = b.baker.bake();
-  auto res = b.shaders.insert({shader, {std::move(baked), b.baker.errorMessage()}});
+  auto res = cache.insert({shader, {std::move(baked), b.baker.errorMessage()}});
   return res.first->second;
 }
 
@@ -199,6 +200,44 @@ ShaderCache::Baker::Baker(
 
 namespace score::gfx
 {
+//! Blank out // and /* */ comments, preserving length and newlines so any
+//! offset-based reporting still lines up.
+//!
+//! The collision scan below REFUSES the shader outright, and only on the D3D
+//! targets. Run over raw source it would therefore reject a working shader for
+//! a declaration the compiler never sees -- `// float frac = 1.0;` in a
+//! comment, or a commented-out block -- producing exactly the Direct3D-only
+//! failure with no visible cause that the scan exists to prevent. The rename
+//! path above declined to do real tokenisation for good reasons; DETECTING
+//! safely needs only this much of it.
+static QByteArray blankComments(const QByteArray& src) noexcept
+{
+  QByteArray out = src;
+  const int n = out.size();
+  enum { Code, Line, Block } st = Code;
+  for(int i = 0; i < n; ++i)
+  {
+    const char c = out[i];
+    const char d = (i + 1 < n) ? out[i + 1] : '\0';
+    switch(st)
+    {
+      case Code:
+        if(c == '/' && d == '/') { st = Line;  out[i] = ' '; out[i + 1] = ' '; ++i; }
+        else if(c == '/' && d == '*') { st = Block; out[i] = ' '; out[i + 1] = ' '; ++i; }
+        break;
+      case Line:
+        if(c == '\n') st = Code;
+        else out[i] = ' ';
+        break;
+      case Block:
+        if(c == '*' && d == '/') { st = Code; out[i] = ' '; out[i + 1] = ' '; ++i; }
+        else if(c != '\n') out[i] = ' ';
+        break;
+    }
+  }
+  return out;
+}
+
 /**
  * @brief The identifier a shader declares that collides with an HLSL intrinsic.
  *
@@ -208,8 +247,9 @@ namespace score::gfx
  * list -- every HLSL intrinsic in existence -- would reject shaders that
  * compile perfectly well, which is worse than the bug.
  */
-QByteArray hlslIntrinsicCollision(const QByteArray& src) noexcept
+QByteArray hlslIntrinsicCollision(const QByteArray& raw) noexcept
 {
+  const QByteArray src = blankComments(raw);
   // GLSL builtin -> HLSL spelling, for the ones whose HLSL name differs and is
   // a plausible variable name. `frac` is the one seen in the wild
   // (isf-long-numeric.fs). Names identical in both languages (sin, cos, abs...)
@@ -245,16 +285,15 @@ QByteArray hlslIntrinsicCollision(const QByteArray& src) noexcept
     // rejecting it would be a worse bug than the one being prevented: several
     // shaders in the corpus do exactly that.
     //
-    // The call must be looked for under its GLSL spelling, not its HLSL one.
-    // This is what made the check miss the very shader its comment cites:
-    // isf-long-numeric.fs declares `float frac` and calls `fract()`, and
+    // The call must be looked for under its GLSL spelling as well as its HLSL
+    // one. isf-long-numeric.fs declares `float frac` and calls `fract()`, and
     // `\bfrac\s*\(` does not match `fract(` -- "frac" there is followed by
     // "t", not "(". The collision only comes into existence when SPIRV-Cross
-    // renames fract -> frac, by which point this source has long been read. So
-    // the shader sailed past the guard and died in fxc instead, with
+    // renames fract -> frac, by which point this source has long been read.
+    // Matching the HLSL spelling alone lets such a shader through to fxc,
     //     error X3005: 'frac': identifier represents a variable, not a function
-    // and a bare "Pipeline not created" -- the exact unactionable failure this
-    // function was written to prevent.
+    // plus a bare "Pipeline not created" -- the unactionable failure this
+    // function exists to prevent.
     static const QHash<QByteArray, QByteArray> glslSpelling{
         {"frac", "fract"}, {"lerp", "mix"},   {"rsqrt", "inversesqrt"},
         {"ddx", "dFdx"},   {"ddy", "dFdy"},   {"fmod", "mod"},
