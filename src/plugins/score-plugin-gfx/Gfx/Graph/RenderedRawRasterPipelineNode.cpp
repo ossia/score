@@ -2233,7 +2233,25 @@ void RenderedRawRasterPipelineNode::initState(
       if(out.is_cubemap)
         hasCubemap = true;
     }
-    m_hasMRT = colorCount > 1 || hasDepth || hasLayered || hasCubemap
+    // EXECUTION_MODEL=PER_MIP is a term too. Every OTHER attachment shape that
+    // needs per-invocation control -- cubemap, layered, multiview -- happens to
+    // imply one of the flags above, but PER_MIP does not: a single-colour
+    // PER_MIP shader has colorCount==1 and nothing else set, so it took the
+    // single-target path, where the render target is the SINK's and
+    // textureForOutput() returns nullptr outright. The whole per-mip machinery
+    // (MipMapped allocation, one RT per level, m_mipCount invocations) lives in
+    // initMRTPass and was simply never reached, which is R3 in the 2026-09
+    // review: "select behavior by pass semantics, not by color-attachment count
+    // alone". m_executionMode is resolved inside initMRTPass, i.e. after this,
+    // so read the descriptor directly.
+    bool perMip = false;
+    {
+      std::string et = n.descriptor().execution_model.type;
+      for(auto& c : et)
+        c = (char)std::toupper((unsigned char)c);
+      perMip = (et == "PER_MIP");
+    }
+    m_hasMRT = colorCount > 1 || hasDepth || hasLayered || hasCubemap || perMip
                || n.descriptor().multiview_count >= 2;
   }
 
@@ -2259,7 +2277,12 @@ void RenderedRawRasterPipelineNode::addOutputPass(
 
   if(m_hasMRT)
   {
-    if(m_mrtRenderTarget.texture == nullptr)
+    // operator bool, not `texture == nullptr`: a depth-only RAW_RASTER shader
+    // (shadow_cascades.frag and friends) has no colour attachment at all, so
+    // testing `texture` re-runs initMRTPass on every output edge and orphans
+    // the previous allocation. Same predicate bug as SimpleRenderedISFNode's,
+    // which is measured by RenderTargets-07.
+    if(!m_mrtRenderTarget)
     {
       initMRTPass(renderer, res);
     }

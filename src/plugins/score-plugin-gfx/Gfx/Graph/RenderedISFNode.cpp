@@ -257,6 +257,17 @@ void main()
 {
   v_texcoord = texcoord;
   gl_Position = renderer.clipSpaceCorrMatrix * vec4(position.xy, 0.0, 1.);
+#if !defined(QSHADER_SPIRV) && !defined(QSHADER_HLSL) && !defined(QSHADER_MSL)
+  // OpenGL only: QRhi::isYUpInFramebuffer(). A shader with no persistent pass
+  // draws straight into the destination render target -- this final copy from
+  // the persistent attachment must not turn the image over on the way there,
+  // or the same shader comes out mirrored purely because its last pass was
+  // declared PERSISTENT. Direct3D and Metal put the framebuffer origin where
+  // Vulkan does, so clipSpaceCorrMatrix already carries the whole difference
+  // there. Identical guard, and identical reason, to the MRT copy in
+  // SimpleRenderedISFNode.cpp.
+  v_texcoord.y = 1. - v_texcoord.y;
+#endif
 }
 )_";
 
