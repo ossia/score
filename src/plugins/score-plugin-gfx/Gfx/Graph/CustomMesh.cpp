@@ -205,8 +205,9 @@ void CustomMesh::update_vbo(
     return;
 
   auto& slot = meshbuf.buffers[buffer_index];
-  // Diag 009 — guard the cpu→over-unowned-slot UAF: the slot was last
-  // populated by an upstream gpu_buffer producer (owned=false). Calling
+  // Guard against a use-after-free when a cpu buffer lands on an unowned
+  // slot: the slot was last populated by an upstream gpu_buffer producer
+  // (owned=false). Calling
   // setSize/create on the upstream's QRhiBuffer destroys the underlying
   // VkBuffer through QRhi's deferred-release queue and bumps the
   // generation, silently clobbering every downstream consumer of that
@@ -310,7 +311,7 @@ void CustomMesh::update_index(
     if(const auto idx_buf_size = idx_buf.byte_size; idx_buf_size > 0)
     {
       idx_buf_data = idx_buf.raw_data.get();
-      // Diag 009 — same UAF guard as update_vbo(cpu): if the slot is
+      // Same use-after-free guard as update_vbo(cpu): if the slot is
       // empty or holds an upstream-owned (unowned) handle, do NOT
       // setSize/create on it; allocate a fresh owned index buffer.
       if(!slot.handle || !slot.owned)
@@ -410,7 +411,7 @@ void CustomMesh::update(
   // validation flags `pBuffers[N] is INDEX_BUFFER / STORAGE_BUFFER,
   // requires VERTEX_BUFFER`.
   //
-  // We *grow* rather than re-init: re-initialising forces init()
+  // Grow rather than re-init: re-initialising forces init()
   // through its any-buffer-null bail-out (which emits null placeholders
   // for the WHOLE sub-mesh whenever any single buffer is null), which
   // breaks scenes where a conditional aux buffer transiently goes
@@ -479,20 +480,17 @@ void CustomMesh::update(
     output_meshbuf.enableIndirectDraw(
         static_cast<QRhiBuffer*>(first_mesh.indirect_count.handle),
         first_mesh.index.buffer >= 0, first_mesh.indirect_count.byte_size);
-    // Count AND STRIDE, exactly as init() above computes them. Leaving them out
-    // was an abort, not a degradation: MeshBuffers::indirectDrawStride defaults
-    // to 0 (Mesh.hpp:53) and QRhi asserts `stride >= sizeof(QRhi[Indexed]
-    // IndirectDrawCommand)` inside drawIndirect / drawIndexedIndirect, so the
-    // process dies the first time this path draws.
+    // Count AND STRIDE, exactly as init() above computes them: leaving them
+    // out aborts rather than degrades, since MeshBuffers::indirectDrawStride
+    // defaults to 0 and QRhi asserts `stride >= sizeof(QRhi[Indexed]
+    // IndirectDrawCommand)` inside drawIndirect / drawIndexedIndirect.
     //
-    // Only an ASYNCHRONOUS geometry producer reaches it. A producer that has
+    // Only an ASYNCHRONOUS geometry producer reaches this. A producer that has
     // its mesh when the node is built goes through init(), which sets both. One
     // that publishes later -- Structure Synth, whose EisenScript is parsed on a
     // halp worker thread -- is built with an empty geometry (no indirect handle,
     // so init() leaves useIndirectDraw false and the stride at 0) and adopts the
-    // indirect buffer HERE, on the reload path, when the mesh finally lands.
-    // That is why no existing test saw it: every other geometry producer in the
-    // tree is synchronous.
+    // indirect buffer here, on the reload path, when the mesh finally lands.
   }
   else
   {
@@ -527,9 +525,9 @@ void CustomMesh::update(
         first_mesh.cpu_draw_commands.begin(), first_mesh.cpu_draw_commands.end());
   }
 
-  // Note: GPU readback for the indirect draw fallback is handled
-  // synchronously in RenderedRawRasterPipelineNode::runInitialPasses,
-  // which has access to both the command buffer and QRhi::finish().
+  // GPU readback for the indirect draw fallback is handled synchronously in
+  // RenderedRawRasterPipelineNode::runInitialPasses, which has access to both
+  // the command buffer and QRhi::finish().
 }
 
 Mesh::Flags CustomMesh::flags() const noexcept
@@ -696,9 +694,9 @@ bool CustomMesh::drawSingleMesh(
   }
 
   // Fallback slots. Each Slot::binding_index is expressed in the global
-  // binding-index space; for a single-sub-mesh raw-raster draw it's
-  // always `mesh_input_count + k` for the k'th slot, so we place the
-  // buffers by index.
+  // binding-index space; for a single-sub-mesh raw-raster draw it is
+  // always `mesh_input_count + k` for the k'th slot, so the buffers are
+  // placed by index.
   for(const auto& slot : plan.slots)
   {
     if(slot.binding_index < 0 || !slot.buffer)
@@ -719,9 +717,8 @@ bool CustomMesh::drawSingleMesh(
                             ? QRhiCommandBuffer::IndexUInt16
                             : QRhiCommandBuffer::IndexUInt32;
     // If this bind crashes with a dangling buffer, the `buf` pointer
-    // logged here will match ASan's freed-at report. The mesh= and
-    // slot= fields tell us which CustomMesh and which MeshBuffers
-    // entry retained it.
+    // logged here matches ASan's freed-at report. The mesh= and slot=
+    // fields name which CustomMesh and which MeshBuffers entry retained it.
     BUFTRACE() << "bindIndexBuffer mesh=" << (void*)this
                << " sub=" << mesh_index << " slot=" << flat_idx
                << " buf=" << (void*)buf
@@ -818,8 +815,14 @@ bool CustomMesh::drawSingleMesh(
     if(!effCpuCmds->empty())
     {
       const bool indexed = (g.index.buffer >= 0);
+      int skipped = 0;
       for(const auto& cmd : *effCpuCmds)
       {
+        if(!drawCommandPaints(cmd))
+        {
+          ++skipped; // dead slot; see drawCommandPaints
+          continue;
+        }
         if(indexed)
           cb.drawIndexed(
               cmd.index_or_vertex_count, cmd.instance_count,
@@ -829,6 +832,7 @@ bool CustomMesh::drawSingleMesh(
               cmd.index_or_vertex_count, cmd.instance_count,
               cmd.first_index_or_vertex, cmd.first_instance);
       }
+      noteZeroCountSlotsSkipped(skipped);
       return true;
     }
     // No CPU commands yet (readback pending or first frame) — skip.
@@ -836,9 +840,14 @@ bool CustomMesh::drawSingleMesh(
   }
 
   if(g.index.buffer > -1)
-    cb.drawIndexed(g.indices, g.instances);
-  else
+  {
+    if(g.indices > 0 && g.instances > 0)
+      cb.drawIndexed(g.indices, g.instances);
+  }
+  else if(g.vertices > 0 && g.instances > 0)
+  {
     cb.draw(g.vertices, g.instances);
+  }
   return true;
 }
 
