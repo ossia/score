@@ -3,13 +3,12 @@
 //
 // WHY THIS EXISTS
 //
-// 0411ad04bb fixed a defect that had been in the tree for as long as raw-raster
-// shaders have had IMG_* accessors: parse_raw_raster_pipeline() emitted
-// `#define isf_FragCoord` twice, once through GLSL45.defaultFunctions (guarded
-// on QSHADER_SPIRV alone) and once of its own (guarded on QSHADER_SPIRV ||
-// QSHADER_HLSL || QSHADER_MSL). ShaderCache sets setPerTargetCompilation(true),
-// so glslang preprocesses the source once per target with that target's
-// QSHADER_* macro defined:
+// ShaderCache sets setPerTargetCompilation(true), so glslang preprocesses the
+// source once per target with that target's QSHADER_* macro defined. A
+// generator emitting one `#define` from two differently-guarded branches --
+// e.g. `isf_FragCoord` from GLSL45.defaultFunctions (guarded on QSHADER_SPIRV
+// alone) and again from parse_raw_raster_pipeline() (guarded on QSHADER_SPIRV
+// || QSHADER_HLSL || QSHADER_MSL) -- therefore lands differently per target:
 //
 //   SPIR-V   both branches take the flipped form  -> identical text, accepted
 //   GLSL     both branches take gl_FragCoord      -> identical text, accepted
@@ -18,23 +17,15 @@
 //     ERROR: :123: '#define' : Macro redefined; different substitutions:
 //            isf_FragCoord
 //
-// So NO raw-raster shader had ever compiled on Direct3D or Metal, and the only
-// thing that could notice was a four-backend Windows sweep. The two backends
-// Linux CI runs -- OpenGL and Vulkan -- are exactly the two the defect spared.
+// Such a defect keeps every raw-raster shader from compiling on Direct3D and
+// Metal while nothing in an ordinary ctest run notices: the two backends Linux
+// CI runs -- OpenGL and Vulkan -- are exactly the two it spares, and nothing
+// else asks glslang for HLSL or MSL.
 //
-// The fix is one hunk. Nothing stopped the next one, because nothing in an
-// ordinary ctest run ever asked glslang for HLSL or MSL.
+// NEGATIVE CONTROL
 //
-// NEGATIVE CONTROL (this machine, Qt 6.13, 2026-09-03)
-//
-// With 0411ad04bb reverted -- `git revert -n 0411ad04bb`, its single isf.cpp
-// hunk, rebuilt -- this case goes RED:
-//
-//   RAW_RASTER_PIPELINE: 24 files, 48 stages, 160 bakes ok (was 232)
-//   GLSL:   179 clean  (unchanged)
-//   SPIR-V: 179 clean  (unchanged)
-//   MSL:    155 clean  (was 179) -- 24 fragment stages lost
-//   HLSL:   300 clean  (was 348) -- 48, the same 24 on both D3D backends
+// Reverting the isf.cpp hunk that stops the double `#define isf_FragCoord`
+// turns this case RED:
 //
 //   RAW_RASTER_PIPELINE raw-raster-basic.fs [fragment] on Metal (MSL):
 //     ERROR: :131: '#define' : Macro redefined; different substitutions:
@@ -42,9 +33,9 @@
 //     ERROR: :132: '' : missing #endif
 //     ERROR: 2 compilation errors.  No code generated.
 //
-// 72 (stage, target) failures, all 24 raw-raster fragment stages, on exactly
-// the two languages the defect lived behind and on neither of the other two --
-// which is the shape the fix's own message describes. Restored: green again.
+// The failures are the raw-raster fragment stages, on exactly the two
+// languages the defect lives behind and on neither of the other two. Restore
+// the hunk and the case is green again.
 //
 // WHAT MAKES THIS CHEAP
 //
@@ -98,41 +89,24 @@
 // every target and that each offer came back as exactly one of {clean, known
 // gap, failure}. A sweep over an empty set produces the same empty failure list
 // as a sweep that works, so the counts are the part that says which one this
-// was. Measured on this tree, 2026-09-04, Qt 6.13: 183 generated stages, 183
-// clean GLSL / 183 SPIR-V / 183 MSL / 358 HLSL (two D3D backends) + 8 known
-// gaps.
-//
-// The HLSL figure moved with the cube fix: before isf_emit_cube_image_decl,
-// the same host measured 356 clean HLSL + 10 gaps, the two extra gaps being
-// csf-cube-image-write.cs on D3D11 and on D3D12 ("RWTextureCube does not exist
-// in HLSL"). Those two are now clean bakes, and COMPUTE_SHADER went from 148
-// bakes ok + 2 gaps to 150 bakes ok + 0 gaps.
+// was.
 //
 // KNOWN GAPS, and what this file does with them
 //
-// Two real limitations remain that are NOT defects in this corpus (a third,
-// listed first below, was fixed at the source and is kept only as a record of
-// what used to be tolerated here). Each is
-// declared in `known_gaps` / handled by an explicit rule below, and each is
-// reported BY NAME in the run's output with which way it went on this host --
-// they are properties of the SPIRV-Cross inside the host's qtshadertools and
-// they do not answer the same way on every Qt, so tolerating either outcome
-// and printing it is the honest handling. What is NOT tolerated is a gap
-// turning into "not baked at all": the accounting identity at the bottom of
-// the case counts every (stage, target) offer, and a gap has to be one of
-// {clean here, still fails here}.
+// Two real limitations are NOT defects in this corpus. Each is declared in
+// `known_gaps` / handled by an explicit rule below, and each is reported BY
+// NAME in the run's output with which way it went on this host -- they are
+// properties of the SPIRV-Cross inside the host's qtshadertools and they do not
+// answer the same way on every Qt, so tolerating either outcome and printing it
+// is the honest handling. What is NOT tolerated is a gap turning into "not
+// baked at all": the accounting identity at the bottom of the case counts every
+// (stage, target) offer, and a gap has to be one of {clean here, still fails
+// here}.
 //
-//   1. (RETIRED) RWTextureCube does not exist in HLSL: SPIRV-Cross could not
-//      express a writable cube storage image in any shader model, failing
-//      identically at SM 5.0 and SM 6.1. Fixed at the source rather than
-//      tolerated -- isf_emit_cube_image_decl declares a cube storage image as
-//      the 2D-array VIEW the D3D UAV already was, gated on QSHADER_HLSL, with
-//      no change to the authored shader. The gap entry is GONE, so the cube
-//      shaders are now held to the same standard as the rest of the corpus.
-//   2. corpus/isf-long-numeric.fs declares a variable named `frac`, and
+//   1. corpus/isf-long-numeric.fs declares a variable named `frac`, and
 //      SPIRV-Cross renames GLSL fract() to HLSL frac() without renaming the
 //      user's variable, so it emits `float frac = frac(...)`.
-//   3. gl_ViewIndex needs SV_ViewID, which needs Shader Model >= 6.1, while
+//   2. gl_ViewIndex needs SV_ViewID, which needs Shader Model >= 6.1, while
 //      Gfx/Settings/Model.cpp:278 asks QShaderBaker for QShaderVersion(50).
 //      Handled as a RULE rather than a file list (it follows from the
 //      descriptor's multiview_count): a multiview shader that fails at SM 5.0
@@ -142,7 +116,7 @@
 //      is a plain failure, which is how the isf_FragCoord defect would still be
 //      caught in the multiview raw-rasters.
 //
-// A fourth, version-shaped one: QShaderBaker::setMultiViewCount arrived in Qt
+// A third, version-shaped one: QShaderBaker::setMultiViewCount arrived in Qt
 // 6.7 (ShaderCache.cpp:92-95 guards it). CI compiles the tests against distro
 // Qt 6.4.2, where ShaderCache cannot emit `layout(num_views = N)` at all and
 // every multiview shader fails for every target. On such a Qt the multiview
@@ -664,15 +638,14 @@ Generated generate_geometry_filter(const QString& path)
 // Known gaps: real limitations of SPIRV-Cross / of the requested shader model
 // that are NOT defects in these shaders.
 //
-// A gap is TOLERATED, not asserted-to-fail. Both entries below are properties
-// of the SPIRV-Cross that ships inside the host's qtshadertools, and they do
-// not answer the same way on every Qt: measured here on Qt 6.13, the `frac`
-// one no longer reproduces while the RWTextureCube one still does. Pinning a
-// gap as a hard expected-failure would therefore turn the test red on the very
-// Qt where the gap was fixed, which is the opposite of useful. So each outcome
-// is COUNTED and REPORTED by name -- "known gap, still fails" or "known gap,
-// no longer reproduces here" -- and the accounting identity at the bottom
-// makes sure neither outcome can quietly become "not baked at all".
+// A gap is TOLERATED, not asserted-to-fail. Each entry below is a property of
+// the SPIRV-Cross that ships inside the host's qtshadertools, and they do not
+// answer the same way on every Qt -- the `frac` one does not reproduce on Qt
+// 6.13. Pinning a gap as a hard expected-failure would therefore turn the test
+// red on the very Qt where the gap was fixed, which is the opposite of useful.
+// So each outcome is COUNTED and REPORTED by name -- "known gap, still fails"
+// or "known gap, does not reproduce here" -- and the accounting identity at the
+// bottom makes sure neither outcome can quietly become "not baked at all".
 // -----------------------------------------------------------------------------
 struct KnownGap
 {
@@ -682,15 +655,15 @@ struct KnownGap
 };
 
 const KnownGap known_gaps[] = {
-    // csf-cube-image-write.cs used to sit here: "RWTextureCube does not exist
-    // in HLSL". It is no longer a gap. isf_emit_cube_image_decl declares a cube
-    // storage image as the 2D-array VIEW that Qt's D3D UAV already was
-    // (qrhid3d11.cpp / qrhid3d12.cpp both build TEXTURE2DARRAY with ArraySize 6
-    // over a CubeMap texture), gated on QSHADER_HLSL, with no change to the
-    // authored shader. Removing the entry is deliberate: the cube shaders now
-    // have to bake for HLSL like everything else, so a regression to the plain
-    // `imageCube` declaration comes back as a hard failure here instead of
-    // being tolerated. GfxCubeImageHlsl.cpp pins the same thing in detail.
+    // csf-cube-image-write.cs is deliberately NOT listed, even though HLSL has
+    // no RWTextureCube: isf_emit_cube_image_decl declares a cube storage image
+    // as the 2D-array VIEW that Qt's D3D UAV already is (qrhid3d11.cpp /
+    // qrhid3d12.cpp both build TEXTURE2DARRAY with ArraySize 6 over a CubeMap
+    // texture), gated on QSHADER_HLSL, with no change to the authored shader.
+    // The cube shaders therefore bake for HLSL like everything else, and a
+    // regression to the plain `imageCube` declaration comes back as a hard
+    // failure here instead of being tolerated. GfxCubeImageHlsl.cpp pins the
+    // same thing in detail.
     {"isf-long-numeric.fs", Lang::Hlsl,
      "the shader declares `float frac` (isf-long-numeric.fs:15) and older "
      "SPIRV-Cross renames GLSL fract() to HLSL frac() without renaming the "
@@ -1030,4 +1003,82 @@ TEST_CASE(
     //     multiview; 8 fewer (the four MULTIVIEW raw-raster pairs) below 6.7.
     CHECK(sw.stages_total >= 171);
   });
+}
+
+
+TEST_CASE(
+    "the HLSL-intrinsic guard reads code, not comments",
+    "[gfx][shader][hlsl][shadercache]")
+{
+  // hlslIntrinsicCollision REFUSES a shader outright, and only on D3D11/D3D12.
+  // Run over raw source it therefore rejects a working shader for a declaration
+  // the GLSL compiler never sees -- which is the Direct3D-only failure with no
+  // visible cause that the guard was written to prevent, produced by the guard
+  // itself.
+  using score::gfx::hlslIntrinsicCollision;
+
+  // Positive control FIRST: if this stops detecting, every "no collision"
+  // assertion below becomes vacuous and the test would still be green.
+  const QByteArray real = "void main() { float frac; frac = fract(1.0); }";
+  INFO("the guard must still catch a real collision");
+  REQUIRE(hlslIntrinsicCollision(real) == QByteArray("frac"));
+
+  struct Case { const char* what; QByteArray src; };
+  const Case clean[] = {
+      {"declaration in a line comment",
+       "void main() { // float frac;\n float x = fract(1.0); }"},
+      {"declaration in a block comment",
+       "void main() { /* float frac; */ float x = fract(1.0); }"},
+      {"declaration in code, call only in a comment",
+       "void main() { float frac; /* fract(1.0) */ }"},
+      {"whole body commented out",
+       "/*\nvoid main() { float frac; frac = fract(1.0); }\n*/\nvoid main() {}"},
+      {"a // sequence inside a block comment does not end it",
+       "/* // float frac; */ void main() { float x = fract(1.0); }"},
+      {"a /* sequence inside a line comment does not open a block",
+       "// /* float frac;\nvoid main() { float x = fract(1.0); }"},
+  };
+  for(const auto& c : clean)
+  {
+    const QByteArray bad = hlslIntrinsicCollision(c.src);
+    INFO(c.what << ": reported \"" << bad.toStdString() << "\"");
+    CHECK(bad.isEmpty());
+  }
+
+  // Commenting must not swallow real code that follows it.
+  INFO("code after a closed block comment is still scanned");
+  CHECK(
+      hlslIntrinsicCollision("/* nothing */ void main(){ float frac; frac = fract(1.0); }")
+      == QByteArray("frac"));
+}
+
+TEST_CASE(
+    "the shader cache does not alias two stages of one source",
+    "[gfx][shader][shadercache]")
+{
+  // The cache is keyed on source bytes, inside a baker that is already per
+  // (api, version, multiViewCount). The STAGE has to be part of that key too:
+  // without it, one source baked as vertex and as fragment shares a single
+  // entry and the second caller gets the first caller's stage.
+  //
+  // Asserted on the slots themselves rather than on the baked SPIR-V: two
+  // stages must occupy two cache entries, which is true whether or not this
+  // machine can bake at all.
+  const auto api = score::gfx::GraphicsApi::Vulkan;
+  const QShaderVersion ver{450};
+  const QByteArray src = "#version 450\nvoid main() {}\n";
+
+  const auto& asVertex
+      = score::gfx::ShaderCache::get(api, ver, src, QShader::VertexStage);
+  const auto& asFragment
+      = score::gfx::ShaderCache::get(api, ver, src, QShader::FragmentStage);
+
+  INFO("one source, two stages, must be two distinct cache slots");
+  CHECK(&asVertex != &asFragment);
+
+  // And the cache must still BE a cache: asking twice for the same stage
+  // returns the same slot rather than re-baking.
+  const auto& againVertex
+      = score::gfx::ShaderCache::get(api, ver, src, QShader::VertexStage);
+  CHECK(&asVertex == &againVertex);
 }
