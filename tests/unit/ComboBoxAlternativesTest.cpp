@@ -11,6 +11,8 @@
 
 #include <Process/Dataflow/WidgetInlets.hpp>
 
+#include <ossia/network/domain/domain.hpp>
+
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
@@ -196,3 +198,27 @@ TEST_CASE("A JSON document without the new keys still loads", "[combobox][serial
 // ControlInlet round-trip aborts in checkDelimiter() on unmodified code too,
 // because ports are written through the port factory's own framing. Covering it
 // needs a document-level fixture.
+
+// Refilling the items must not announce a domain change. DefaultEffectItem
+// answers domainChanged by rebuilding every control of the process, so a combo
+// box refilled from the running score would tear down the very control being
+// dragged to refill it: the drag then dies after a single step, and the editor
+// it left behind never closes.
+TEST_CASE("Refilling the items does not announce a domain change", "[combobox]")
+{
+  QObject parent;
+  auto combo = make_combo(parent, alts({"a", "b"}), "a");
+
+  int domain = 0, items = 0;
+  QObject::connect(
+      &combo, &Process::ControlInlet::domainChanged, &parent, [&] { domain++; });
+  QObject::connect(
+      &combo, &Process::ComboBox::alternativesChanged, &parent, [&] { items++; });
+
+  combo.setAlternatives(alts({"a", "b", "c"}));
+
+  CHECK(items == 1);
+  CHECK(domain == 0);
+  // ... but the domain does follow the items, for whoever reads it later.
+  CHECK(ossia::get_values(combo.domain().get()).size() == 3);
+}

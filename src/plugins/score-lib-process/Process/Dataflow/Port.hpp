@@ -274,6 +274,19 @@ public:
   }
   W_SLOT(setDomain)
 
+protected:
+  //! Update the domain without announcing it.
+  //!
+  //! domainChanged means "this control's shape changed", and the effect item
+  //! answers it by rebuilding every control of the process
+  //! (DefaultEffectItem::reset). A port that restates its domain as a
+  //! consequence of something it already reported through a narrower signal
+  //! must not pay that price: the rebuild destroys the control the pointer is
+  //! dragging, and the edit dies with it.
+  void setDomainWithoutNotifying(const State::Domain& d) noexcept { m_domain = d; }
+
+public:
+
   PROPERTY(State::Domain, domain W_READ domain W_WRITE setDomain W_NOTIFY domainChanged)
   PROPERTY(ossia::value, value W_READ value W_WRITE setValue W_NOTIFY valueChanged)
   PROPERTY(ossia::value, init W_READ init W_WRITE setInit W_NOTIFY initChanged)
