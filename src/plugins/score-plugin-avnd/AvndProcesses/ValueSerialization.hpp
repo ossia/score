@@ -34,6 +34,24 @@
 #include <utility>
 #include <vector>
 
+// std::from_chars' floating-point overloads cannot be called on every platform
+// score builds for: libc++ deletes them where its runtime has no support, and
+// Apple's availability annotations gate them behind macOS 26 while our
+// deployment target is 12. The integer overloads are available everywhere.
+// Definable from the build to exercise the fallback on a platform that does not
+// need it.
+#if !defined(SCORE_HAS_STD_FLOAT_FROM_CHARS)
+#if defined(__cpp_lib_to_chars) && !defined(_LIBCPP_VERSION)
+#define SCORE_HAS_STD_FLOAT_FROM_CHARS 1
+#else
+#define SCORE_HAS_STD_FLOAT_FROM_CHARS 0
+#endif
+#endif
+
+#if !SCORE_HAS_STD_FLOAT_FROM_CHARS
+#include <boost/lexical_cast/try_lexical_convert.hpp>
+#endif
+
 namespace avnd_tools::value_serialization
 {
 // Deliberately ordinary JSON/CBOR, not OSCQuery's typetag-dependent wire format.
@@ -53,6 +71,31 @@ struct codec_error : std::runtime_error
 {
   using std::runtime_error::runtime_error;
 };
+
+// Parses exactly what std::from_chars accepts, so the two implementations below
+// cannot disagree about which tokens are valid. Boost differs in two ways that
+// are corrected here: it takes a leading '+', and it returns zero for a token
+// that underflows instead of reporting it, where from_chars fails outright.
+inline bool parse_float64(std::string_view text, double& out) noexcept
+{
+#if SCORE_HAS_STD_FLOAT_FROM_CHARS
+  const auto* const last = text.data() + text.size();
+  const auto parsed = std::from_chars(text.data(), last, out);
+  return parsed.ec == std::errc{} && parsed.ptr == last;
+#else
+  if(text.starts_with('+'))
+    return false;
+  if(!boost::conversion::try_lexical_convert(text, out))
+    return false;
+  if(out == 0.)
+  {
+    const auto mantissa = text.substr(0, text.find_first_of("eE"));
+    if(mantissa.find_first_of("123456789") != std::string_view::npos)
+      return false;
+  }
+  return true;
+#endif
+}
 
 struct limits
 {
@@ -148,8 +191,7 @@ struct json_reader : rapidjson::BaseReaderHandler<rapidjson::UTF8<>, json_reader
       return scalar(number);
     }
     double number{};
-    const auto parsed = std::from_chars(s, s + n, number);
-    if(parsed.ec != std::errc{} || parsed.ptr != s + n)
+    if(!parse_float64(token, number))
       throw codec_error{"Number outside finite float32 range"};
     return scalar(floating(number));
   }
@@ -572,8 +614,7 @@ inline ossia::value text_scalar(std::string_view text, TextType type)
       throw codec_error{"Expected int32 text"};
   }
   double number{};
-  auto parsed = std::from_chars(text.data(), text.data() + text.size(), number);
-  if(parsed.ec == std::errc{} && parsed.ptr == text.data() + text.size())
+  if(parse_float64(text, number))
     return floating(number);
   const bool numeric
       = !text.empty()
@@ -693,9 +734,7 @@ inline ossia::value from_pretty(std::string_view text)
         ++i;
       double number{};
       const auto token = text.substr(start, i - start);
-      const auto parsed
-          = std::from_chars(token.data(), token.data() + token.size(), number);
-      if(parsed.ec != std::errc{} || parsed.ptr != token.data() + token.size())
+      if(!parse_float64(token, number))
         throw codec_error{"Invalid pretty number"};
       floating(number);
     }
