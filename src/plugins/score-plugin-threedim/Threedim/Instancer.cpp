@@ -477,6 +477,22 @@ void Instancer::rebuild()
     if(protoXform.scale[0] > 1e-6f) c0 /= protoXform.scale[0];
     if(protoXform.scale[1] > 1e-6f) c1 /= protoXform.scale[1];
     if(protoXform.scale[2] > 1e-6f) c2 /= protoXform.scale[2];
+    // A length is never negative, so a REFLECTION -- any TRS with an odd
+    // number of negative scale axes, determinant < 0 -- came out of this as
+    // all-positive scale, and the basis handed to fromRotationMatrix was
+    // improper (det -1), which is not a rotation and has no quaternion. The
+    // reflection was silently dropped: a prototype scaled by -1 in x came back
+    // mapping +1 to +1 instead of -1.
+    //
+    // Fold the sign back onto one axis. Which axis is arbitrary -- any single
+    // negated axis reproduces the same linear map once the rotation is taken
+    // from the corrected basis -- so use x by convention, and correct the basis
+    // BEFORE building the rotation so it is proper.
+    if(QVector3D::dotProduct(c0, QVector3D::crossProduct(c1, c2)) < 0.f)
+    {
+      protoXform.scale[0] = -protoXform.scale[0];
+      c0 = -c0;
+    }
     QMatrix3x3 rotmat;
     rotmat(0,0)=c0.x(); rotmat(1,0)=c0.y(); rotmat(2,0)=c0.z();
     rotmat(0,1)=c1.x(); rotmat(1,1)=c1.y(); rotmat(2,1)=c1.z();
