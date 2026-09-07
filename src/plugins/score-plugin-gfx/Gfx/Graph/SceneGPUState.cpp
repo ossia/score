@@ -726,7 +726,25 @@ void flattenScene(const ossia::scene_spec& scene, FlatScene& out, float aspectRa
 {
   out.clear();
 
-  if(!scene.state || scene.state->empty())
+  if(!scene.state)
+    return;
+
+  // scene_state::empty() reports on `roots` ALONE, but a scene_state also
+  // carries cameras, materials and skeletons as independent vectors -- and
+  // the camera block further down says so in as many words: "producers that
+  // don't want to embed a camera node can publish via `cameras` only".
+  // Returning on roots-empty made that documented case unreachable: a
+  // camera-only scene was dropped whole, and the consumer fell back to the
+  // default eye as though no camera had been published at all. (SR4.)
+  //
+  // Bail only when there is genuinely nothing to flatten.
+  const bool hasRoots = scene.state->roots && !scene.state->roots->empty();
+  const bool hasCameras = scene.state->cameras && !scene.state->cameras->empty();
+  const bool hasMaterials
+      = scene.state->materials && !scene.state->materials->empty();
+  const bool hasSkeletons
+      = scene.state->skeletons && !scene.state->skeletons->empty();
+  if(!hasRoots && !hasCameras && !hasMaterials && !hasSkeletons)
     return;
 
   // Pack materials — base + extensions in lockstep. Both vectors grow
@@ -848,7 +866,10 @@ void flattenScene(const ossia::scene_spec& scene, FlatScene& out, float aspectRa
   // no variants are declared (typical) this stays at -1 and the
   // per-draw override branch compiles to a cheap null-check.
   vis.activeVariant = scene.state->active_variant_index;
-  const auto& roots = *scene.state->roots;
+  // Null-safe: reaching here no longer implies roots exist -- a camera-only
+  // scene has none, and `roots` is a shared_ptr that is simply unset then.
+  const std::vector<ossia::scene_node_ptr> no_roots;
+  const auto& roots = scene.state->roots ? *scene.state->roots : no_roots;
   for(std::size_t ri = 0; ri < roots.size(); ++ri)
   {
     // Same dedup contract as visitPayload's scene_node_ptr branch:
