@@ -1,25 +1,25 @@
 // =============================================================================
-// L3/registry — dynamic-texture-slot staleness sweep prevents a dangling bind
-//.
+// L3/registry — the dynamic-texture-slot staleness sweep prevents a dangling
+// bind.
 //
 // MECHANISM. resolveDynamicSlot() caches a NON-OWNING raw QRhiTexture* per slot,
 // keyed by globalResourceId. When a producer swaps its texture (new id) the old
-// slot keeps a dangling pointer that the consumer binds every frame (the 4-slot
-// map rarely fills, so LRU eviction never fires) -> use-after-free. The fix
-// stamps each slot resolved this frame and sweepStaleDynamicTextureSlots()
-// (invoked per-frame from sweepMeshSlabs, after the resolve pass, before the bind
-// pass) clears any slot not re-resolved since the previous sweep.
+// slot would keep a dangling pointer that the consumer binds every frame (the
+// 4-slot map rarely fills, so LRU eviction never fires) -> use-after-free. Each
+// slot is therefore stamped when it is resolved this frame, and
+// sweepStaleDynamicTextureSlots() (invoked per-frame from sweepMeshSlabs, after
+// the resolve pass, before the bind pass) clears any slot not re-resolved since
+// the previous sweep.
 //
-// This test drives ONLY public methods present in BOTH the pre- and post-fix
-// engine (resolveDynamicSlot / sweepMeshSlabs / textureChannel), so it builds
-// against either and observes the BEHAVIOUR: a slot whose texture is no longer
+// This test drives only public methods (resolveDynamicSlot / sweepMeshSlabs /
+// textureChannel) and observes the BEHAVIOUR: a slot whose texture is no longer
 // resolved must be cleared (nulled) so it can never be bound as a dangling
 // pointer.
 //
 // REGRESSION GUARD. After resolving texture A, then (a new frame) resolving only
-// texture B and running the per-frame sweep, A's slot must be nullptr. Pre-fix
-// (no sweep in sweepMeshSlabs) it stays pointing at the orphaned A. Backend-
-// independent, but run on each available backend so a real QRhi exists.
+// texture B and running the per-frame sweep, A's slot must be nullptr. Without
+// the sweep it stays pointing at the orphaned A. Backend-independent, but run
+// on each available backend so a real QRhi exists.
 //
 //   DISPLAY=:0 SCORE_TEST_API=opengl ctest -R gfx_dynamic_slot
 //   DISPLAY=:0 SCORE_TEST_API=vulkan ctest -R gfx_dynamic_slot
@@ -46,7 +46,7 @@ struct Outcome
   bool ran = false;
   // Slot-vector snapshot after the second sweep.
   int slotCount = 0;
-  bool slot0Cleared = false; // A's slot must be nulled by the fix
+  bool slot0Cleared = false; // A's slot must be nulled
   bool bStillBound = false;  // B's slot must remain valid
 };
 }
@@ -93,12 +93,12 @@ TEST_CASE(
 
       // Frame 1: the material resolves A -> slot for A is stamped this frame.
       const int slotA = reg.resolveDynamicSlot(ch, A);
-      reg.sweepMeshSlabs(1); // post-fix: sweep runs; A was just resolved -> kept
+      reg.sweepMeshSlabs(1); // A was just resolved -> the sweep keeps it
 
       // Frame 2: the producer swapped its texture; the material now resolves B
       // only. A is NOT re-resolved -> it is orphaned.
       const int slotB = reg.resolveDynamicSlot(ch, B);
-      reg.sweepMeshSlabs(2); // post-fix: sweep clears A's slot; keeps B
+      reg.sweepMeshSlabs(2); // the sweep clears A's slot; keeps B
 
       auto& state = reg.textureChannel(ch);
       out.slotCount = int(state.dynamicTextures.size());
@@ -128,4 +128,76 @@ TEST_CASE(
   CHECK(out.slot0Cleared);
   // The live texture B must remain bound.
   CHECK(out.bStillBound);
+}
+
+
+TEST_CASE(
+    "a slot ref stamped before a registry teardown is never live after it",
+    "[gfx][l3][registry][generation]")
+{
+  // isLive() compares the ref's generation against the arena's per-slot
+  // generation table. A teardown that bumps every generation and then clears
+  // the table throws the bump away: init() re-seeds every slot, and a ref
+  // stamped before the teardown compares EQUAL to a freshly-allocated slot at
+  // the same index -- the classic ABA. A consumer then validates a dead ref
+  // and reads GPU bytes that now belong to someone else.
+  const auto backend = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(backend));
+
+  bool skipped = false;
+  std::string why;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    std::string probed;
+    if(!probe_api(backend, probed))
+    {
+      skipped = true;
+      why = probed;
+      return;
+    }
+    auto st = score::gfx::createRenderState(backend, QSize{32, 32}, nullptr);
+    if(!st || !st->rhi)
+    {
+      skipped = true;
+      why = "no rhi";
+      return;
+    }
+    QRhi& rhi = *st->rhi;
+
+    Reg reg;
+    auto* batch = rhi.nextResourceUpdateBatch();
+    reg.init(rhi, *batch);
+
+    const auto arena = Reg::Arena::RawTransform;
+    const auto slot = reg.allocate(arena, 64);
+    REQUIRE(slot.valid());
+    const auto stale = reg.toOssiaRef(slot);
+
+    // Positive control: the ref IS live before anything is torn down. Without
+    // this the assertions below pass just as well on a broken isLive() that
+    // always returns false.
+    REQUIRE(reg.isLive(stale));
+
+    reg.destroy();
+    CHECK_FALSE(reg.isLive(stale)); // table retired, nothing to match
+
+    // Re-init and take the SAME slot index again: this is the ABA. Its
+    // generation must not collide with the one the stale ref is carrying.
+    auto* batch2 = rhi.nextResourceUpdateBatch();
+    reg.init(rhi, *batch2);
+    const auto fresh = reg.allocate(arena, 64);
+    REQUIRE(fresh.valid());
+    CHECK(fresh.slot_index == slot.slot_index); // same slot: the A-B-A shape
+    CHECK(fresh.generation != stale.generation);
+
+    INFO(
+        "stale gen=" << stale.generation << " fresh gen=" << fresh.generation
+                     << " slot=" << fresh.slot_index);
+    CHECK_FALSE(reg.isLive(stale));
+    CHECK(reg.isLive(reg.toOssiaRef(fresh)));
+
+    reg.destroy();
+  });
+
+  if(skipped)
+    SKIP(why);
 }

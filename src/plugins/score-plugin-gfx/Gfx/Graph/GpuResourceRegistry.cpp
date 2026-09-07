@@ -108,7 +108,21 @@ void GpuResourceRegistry::init(QRhi& rhi, QRhiResourceUpdateBatch& batch)
     a.type = cfg.type;
     // Generation table sized to slot_count. Start at 1 so a freshly-
     // default gpu_slot_ref (generation=0) never matches a real slot.
-    a.slot_generations.assign(cfg.slot_count, 1u);
+    //
+    // On a RE-init, resume ABOVE whatever the previous incarnation reached
+    // rather than restarting at 1: a stale ref from before the teardown holds
+    // one of those old values, and re-using them hands it a false "live".
+    // The teardown paths bump on the way out, so this only has to not go
+    // backwards. Slots beyond the retained table (a re-init that grew the
+    // arena) have never been handed out and start at 1.
+    {
+      std::vector<uint32_t> seeded(cfg.slot_count, 1u);
+      const auto carried
+          = std::min<std::size_t>(cfg.slot_count, a.slot_generations.size());
+      for(std::size_t i = 0; i < carried; ++i)
+        seeded[i] = a.slot_generations[i] + 1u;
+      a.slot_generations = std::move(seeded);
+    }
     // Free-list stack: push slots in reverse order so pop yields slot
     // index 0, 1, 2, ... in allocation order. Keeps the arena buffer
     // densely packed at the front, which downstream tooling may assume.
@@ -132,8 +146,8 @@ void GpuResourceRegistry::init(QRhi& rhi, QRhiResourceUpdateBatch& batch)
 
   // Mesh arena — one QRhiBuffer per attribute stream, plus TWO shared
   // OffsetAllocators (vertex-units and index-units). See the
-  // "CRITICAL invariant" block in GpuResourceRegistry.hpp for why the
-  // allocators are NOT per-stream: a single baseVertex applies to all
+  // "Indirect-draw correctness invariant" block in GpuResourceRegistry.hpp
+  // for why the allocators are NOT per-stream: a single baseVertex applies to all
   // vertex bindings, so per-mesh byte offsets across streams must be
   // proportional to per-stream stride. One allocator → one logical
   // vertex slot → guaranteed lockstep.
@@ -243,9 +257,13 @@ void GpuResourceRegistry::destroy(RenderList& renderer)
     }
     a.slot_stride = 0;
     a.slot_count = 0;
+    // Bump and keep the table: it is the retirement record, and init() seeds
+    // from it so generations never go backwards. Clearing it here would let
+    // init() re-seed every slot to 1, so a gpu_slot_ref stamped before the
+    // teardown would compare EQUAL to a freshly-allocated slot at the same
+    // index and isLive() would call it live -- the classic ABA.
     for(auto& g : a.slot_generations)
       ++g;
-    a.slot_generations.clear();
     a.free_slots.clear();
   }
   m_defaults_seeded = false;
@@ -312,9 +330,13 @@ void GpuResourceRegistry::destroyOwned()
     a.buffer = nullptr;
     a.slot_stride = 0;
     a.slot_count = 0;
+    // Bump and keep the table: it is the retirement record, and init() seeds
+    // from it so generations never go backwards. Clearing it here would let
+    // init() re-seed every slot to 1, so a gpu_slot_ref stamped before the
+    // teardown would compare EQUAL to a freshly-allocated slot at the same
+    // index and isLive() would call it live -- the classic ABA.
     for(auto& g : a.slot_generations)
       ++g;
-    a.slot_generations.clear();
     a.free_slots.clear();
   }
   m_defaults_seeded = false;
@@ -364,9 +386,13 @@ void GpuResourceRegistry::destroy()
     a.buffer = nullptr;
     a.slot_stride = 0;
     a.slot_count = 0;
+    // Bump and keep the table: it is the retirement record, and init() seeds
+    // from it so generations never go backwards. Clearing it here would let
+    // init() re-seed every slot to 1, so a gpu_slot_ref stamped before the
+    // teardown would compare EQUAL to a freshly-allocated slot at the same
+    // index and isLive() would call it live -- the classic ABA.
     for(auto& g : a.slot_generations)
       ++g;
-    a.slot_generations.clear();
     a.free_slots.clear();
   }
   m_defaults_seeded = false;
@@ -459,7 +485,7 @@ int GpuResourceRegistry::resolveDynamicSlot(
   // the previous QRhiTexture is destroyed (qrhivulkan.cpp:5909-5912
   // documents this exact hazard for QRhi's own SRB tracking, which
   // pairs the pointer with `m_id`). Using the id makes a stale entry
-  // simply mismatch instead of aliasing onto a fresh resource.
+  // mismatch instead of aliasing onto a fresh resource.
   const quint64 key = tex->globalResourceId();
   auto& ch = textureChannel(channel);
   const uint64_t now = ++ch.dynamicSlotCounter;
@@ -501,10 +527,10 @@ int GpuResourceRegistry::resolveDynamicSlot(
   }
 
   // Miss with full map: LRU-evict the slot with the oldest access stamp.
-  // Without this branch a long session that swaps capture sources or
-  // resizes a video texture more than kMaxDynamicSlots times pinned the
-  // map at its initial entries; every subsequent texture returned -1 and
-  // dynamic-textured materials silently blanked.
+  // Without this branch a long session that swaps capture sources or resizes
+  // a video texture more than kMaxDynamicSlots times would pin the map at its
+  // initial entries: every subsequent texture returns -1 and dynamic-textured
+  // materials blank out silently.
   int victim = 0;
   uint64_t victimStamp = ch.dynamicSlotLastUse[0];
   for(int i = 1; i < (int)ch.dynamicSlotLastUse.size(); ++i)
@@ -679,7 +705,7 @@ GpuResourceRegistry::MeshSlab* GpuResourceRegistry::acquireMeshSlab(
   if(stable_id == 0)
     return nullptr;  // caller without stable_id — skip slab caching
 
-  // Fast path: existing slab, same counts. Zero-cost hit.
+  // Fast path: existing slab, same counts.
   auto it = m_meshSlabs.find(stable_id);
   if(it != m_meshSlabs.end())
   {
