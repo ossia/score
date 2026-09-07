@@ -20,15 +20,15 @@
 # ~1.1 TB and machines have ~400 GB: building everything up front simply does
 # not fit. Building per test also means a crash or an out-of-disk stops after
 # one target instead of losing the whole cell, and every test gets its own
-# log, its own device banner and its own validation census. BATCH=1 restores
-# the old behaviour (build nothing, one ctest invocation per cell) when the
-# build already exists and you want the cell to finish faster.
+# log, its own device banner and its own validation census. BATCH=1 builds
+# nothing and issues one ctest invocation per cell, for when the build
+# already exists and the cell should finish faster.
 #
 # PRUNE (default on in per-test mode) deletes each test's executable and its
 # object directory as soon as it has run. That is what keeps the working set
 # flat instead of growing to the size of the whole suite: on a -O0 -g3 build
-# with static sanitizer runtimes a single test binary is hundreds of MB, and
-# 163 of them is what makes the reference debug tree 1.1 TB. Shared libraries
+# with static sanitizer runtimes a single test binary is hundreds of MB, and the
+# whole suite of them does not fit on the filesystem. Shared libraries
 # and plugins are NEVER pruned -- every test needs them and rebuilding them
 # per test would dominate the runtime.
 #
@@ -36,13 +36,13 @@
 # WHY THIS SCRIPT EXISTS RATHER THAN A ctest INVOCATION
 #
 # Four things silently produce confident, worthless numbers here. Each is
-# handled below and each was measured, not guessed:
+# handled below:
 #
 #  1. A cell can run on the WRONG DEVICE. `LIBGL_ALWAYS_SOFTWARE=1` alone does
 #     not give llvmpipe when libglvnd is present — it is silently ignored and
-#     you measure the discrete GPU. On a hybrid laptop the default GL renderer
-#     is the iGPU, so a "GL/NVIDIA" cell measures Intel unless PRIME offload is
-#     requested. EVERY cell here asserts its actual renderer before running.
+#     the measurement lands on the discrete GPU. On a hybrid laptop the default
+#     GL renderer is the iGPU, so a "GL/NVIDIA" cell measures Intel unless PRIME
+#     offload is requested. EVERY cell here asserts its renderer before running.
 #  2. A cell can run with NO VALIDATION LAYER and report zero errors for the
 #     wrong reason. Vulkan cells assert the layer is resident.
 #  3. A backend can silently fall back to QRhi::Null and pass vacuously. The
@@ -51,15 +51,13 @@
 #     "0 failures" without checking how many tests actually ran.
 #
 # ---------------------------------------------------------------------------
-# COST — measure before you budget
+# COST
 #
-# Per-test cost depends enormously on the build:
-#   Release / RelWithDebInfo ........  ~5-30 s
-#   Debug + ASan + UBSan + validation  ~193 s   (measured, lenovo-cachyos)
-#
-# So a 184-test cell is ~25 min on a release build and ~10 HOURS on the debug
-# one. SUBSET=heavy exists for that reason. Timeouts below are derived from the
-# measured cost, not assumed.
+# Per-test cost depends enormously on the build: a debug build with ASan, UBSan
+# and the validation layers costs orders of magnitude more per test than a
+# release one, so a full cell that is minutes on release is hours on debug.
+# SUBSET=heavy exists for that reason. Timeouts below are derived from a probe
+# run, not assumed.
 # =============================================================================
 set -u
 
@@ -121,7 +119,7 @@ esac
 # on Linux. macOS has exactly one Metal device and no GLX; Windows selects the
 # API rather than the driver, and its D3D validation is a score-level switch
 # (SCORE_GPU_VALIDATION=2 additionally turns on D3D12 GPU-Based Validation
-# before QRhi creates the device -- ScreenNode.cpp:84).
+# before QRhi creates the device -- see ScreenNode.cpp).
 cell_def() {
   case "$1" in
     # -- Linux ---------------------------------------------------------------
@@ -186,19 +184,47 @@ echo " per-test budget  : ${SECONDS_PER_TEST}s  -> cell timeout $((CELL_TIMEOUT/
 echo " results          : $OUT"
 echo "==============================================================="
 
-# Pre-flight device probe. vulkaninfo / glxinfo only exist on Linux, so this
-# returns empty elsewhere and the cell relies on the post-run banner instead
-# (see device_from_log, which is the authoritative check on every platform).
 # Free space on the build filesystem, in GB. A debug build can consume
 # hundreds of GB; filling / on a shared machine is a genuinely damaging
 # outcome, so every per-test build checks this first and stops cleanly.
 free_gb() { df -Pk "$BUILD" 2>/dev/null | awk 'NR==2 {print int($4/1048576)}'; }
 
-# ctest name -> ninja target. The build lays tests out as tests/<dir>/<name>,
-# so ask ninja rather than guessing the directory.
+# ctest name -> ninja target.
+#
+# Do not pattern-match the name against the target list. A ctest name is not a
+# target name: Avnd_value_serialization_Test_target builds Avnd_..._Test, and
+# test_gfx_triple_buffer_index lives under src/plugins/, not tests/. A
+# tests/<dir>/<name> regex misses hundreds of names, and an empty target skips
+# the build step entirely, so those tests silently never run.
+#
+# ctest itself knows the answer: --show-only reports each test's command, whose
+# argv[0] is the executable. Anything inside the build dir is a ninja target at
+# its relative path; the ~90 script-driven tests (sandboxed-test.sh,
+# golden-render.sh) legitimately have none and build nothing of their own.
+TARGET_MAP=""
+build_target_map() {
+  TARGET_MAP=$(mktemp)
+  ctest --test-dir "$BUILD" --show-only=json-v1 2>/dev/null | python3 -c '
+import json, os, sys
+try:
+    d = json.load(sys.stdin)
+except Exception:
+    sys.exit(0)
+bd = os.path.realpath(sys.argv[1]) + "/"
+for t in d.get("tests", []):
+    cmd = t.get("command") or []
+    if not cmd:
+        continue
+    p = os.path.realpath(cmd[0])
+    if p.startswith(bd):
+        print(t["name"] + "\t" + p[len(bd):])
+' "$BUILD" > "$TARGET_MAP" 2>/dev/null
+  echo "-- target map: $(wc -l < "$TARGET_MAP") of $NTESTS tests build a target of their own"
+}
+
 target_for() {
-  ninja -C "$BUILD" -t targets all 2>/dev/null \
-    | sed -n "s#^\(tests/[a-z0-9_]*/$1\):.*#\1#p" | head -1
+  [ -n "$TARGET_MAP" ] || return 0
+  awk -F'\t' -v n="$1" '$1 == n { print $2; exit }' "$TARGET_MAP"
 }
 
 renderer_of() { # $1 = api, $2 = env
@@ -212,10 +238,10 @@ renderer_of() { # $1 = api, $2 = env
 }
 
 # THE portable positive control: score prints its own RHI device banner
-#   score.gfx: RHI device: backend=Vulkan device="NVIDIA GeForce RTX 4090" ...
-# into every test log, on every platform (RenderList.cpp:1682). It answers both
-# questions that matter -- which device did we really get, and did the backend
-# silently fall back to QRhi::Null and pass vacuously.
+#   score.gfx: RHI device: backend=Vulkan device="<renderer string>" ...
+# into every test log, on every platform (see RenderList.cpp). It answers both
+# questions that matter -- which device the run really got, and whether the
+# backend silently fell back to QRhi::Null and passed vacuously.
 device_from_log() { grep -ohE 'RHI device: backend=[^ ]+ device="[^"]*"' "$1" 2>/dev/null | sort -u | head -1; }
 backend_from_log() { device_from_log "$1" | sed -E 's/.*backend=([^ ]+).*/\1/'; }
 
@@ -230,10 +256,10 @@ for label in $CELLS; do
   # --- positive control 1 (Linux only): is the driver present, and the RIGHT one?
   #
   # An EMPTY probe means one of two very different things: the driver is
-  # absent, or there is no probe tool on this platform at all. Conflating them
-  # skipped every cell on macOS and Windows, where vulkaninfo/glxinfo do not
-  # exist. Only pre-flight when a probe is actually available; otherwise fall
-  # through and let the post-run device banner decide.
+  # absent, or there is no probe tool on this platform at all -- macOS and
+  # Windows have no vulkaninfo/glxinfo, and conflating the two skips every cell
+  # there. Only pre-flight when a probe is available; otherwise fall through
+  # and let the post-run device banner decide.
   dev=""
   probe_ok=no
   case "$api" in
@@ -270,6 +296,7 @@ for label in $CELLS; do
     # ---- one test at a time: build it, run it, move on ---------------------
     : > "$log"; rc=0
     npass=0; nfail=0; nbuildfail=0; nskip=0
+    [ -n "$TARGET_MAP" ] || build_target_map
     tests=$(ctest -R "$SCOPE" -E "$EXCL" -N 2>/dev/null \
               | sed -n 's/^ *Test *#[0-9]*: *//p')
     for t in $tests; do
@@ -299,8 +326,11 @@ for label in $CELLS; do
       # other test needs them.
       if [ "$PRUNE" = 1 ] && [ -n "$tgt" ]; then
         tdir=$(dirname "$tgt")
+        # The object dir is named after the TARGET, not the ctest name: those
+        # differ wherever add_test() names a test something else.
+        tname=$(basename "$tgt")
         rm -f  "$BUILD/$tgt"
-        rm -rf "$BUILD/$tdir/CMakeFiles/$t.dir"
+        rm -rf "$BUILD/$tdir/CMakeFiles/$tname.dir"
       fi
     done
     total=$((npass+nfail+nbuildfail))
