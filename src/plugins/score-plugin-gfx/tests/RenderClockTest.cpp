@@ -1,6 +1,5 @@
-// Unit tests for Gfx/Graph/RenderClock.hpp — the render-clock abstraction the
-// genlock work introduced (TimerClock / DisplayVSyncClock /
-// ExternalGenlockClock).
+// Unit tests for Gfx/Graph/RenderClock.hpp — the render-clock abstraction
+// (TimerClock / DisplayVSyncClock / ExternalGenlockClock).
 //
 // No card and no GPU: the genlock clock's pull facet is an injected
 // std::function precisely so the SDK-free part — the tick thread, the
@@ -26,6 +25,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <future>
 #include <semaphore>
 #include <thread>
 
@@ -100,8 +100,8 @@ TEST_CASE("a timer clock's output set is a set")
   QObject owner;
   TimerClock clock{timers, &owner, 60.};
 
-  // The coalesced set mirrors the old timer->set<OutputNode*> map: adding an
-  // output twice must not make it render twice per tick.
+  // The output list is a set: adding an output twice must not make it render
+  // twice per tick.
   auto* fake1 = reinterpret_cast<OutputNode*>(0x1);
   auto* fake2 = reinterpret_cast<OutputNode*>(0x2);
 
@@ -304,4 +304,37 @@ TEST_CASE("stop() on the owner thread drains a parked tick instead of "
   clock.stop();
   ExternalGenlockClock never{&owner, {}};
   never.stop();
+}
+TEST_CASE("stop() off the owner thread returns as long as the owner pumps")
+{
+  app();
+  QObject owner;
+
+  std::counting_semaphore<64> vbi{0};
+  std::atomic<int> ticks{0};
+
+  ExternalGenlockClock clock{&owner, [&] { return vbi.try_acquire_for(10ms); }};
+  clock.start([&] { ++ticks; });
+
+  vbi.release(1);
+  std::this_thread::sleep_for(50ms);
+  REQUIRE(ticks.load() == 0);
+
+  std::atomic<bool> stopped{false};
+  auto fut = std::async(std::launch::async, [&] {
+    clock.stop();
+    stopped.store(true);
+  });
+
+  // Same call as the parked-tick case above — the only difference is that the
+  // owner thread keeps dispatching. Isolates the cause to "owner must be
+  // pumping".
+  const bool returned = pump_until([&] { return stopped.load(); }, 3000ms);
+  if(returned)
+    fut.wait();
+  else
+    REQUIRE(pump_until([&] { return stopped.load(); }, 5000ms));
+
+  CHECK(returned);
+  CHECK(ticks.load() == 1);
 }
