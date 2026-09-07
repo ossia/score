@@ -550,7 +550,8 @@ TEST_CASE("Window forwards input events", "[gfx][window][screen]")
       QCoreApplication::sendEvent(w, &rel);
     }
     {
-      // Auto-repeat is filtered out on both press and release.
+      // Auto-repeat is filtered out of key()/keyRelease() on both press and
+      // release, but still forwarded to interactiveEvent.
       QKeyEvent rep{
           QEvent::KeyPress, Qt::Key_A, Qt::NoModifier, QStringLiteral("a"), true};
       QCoreApplication::sendEvent(w, &rep);
@@ -581,8 +582,12 @@ TEST_CASE("Window forwards input events", "[gfx][window][screen]")
   CHECK(lastKey == int(Qt::Key_A));
   CHECK(lastText == QStringLiteral("a"));
   CHECK(mouseMoves == 1);
-  // key press + key release + mouse move + press + release
-  CHECK(interactive == 5);
+  // Every key event reaches interactiveEvent, auto-repeat included: an embedded
+  // QML scene needs held keys to get repeats, or a TextField cannot repeat a
+  // character. The score-level key()/keyRelease() callbacks still filter
+  // auto-repeat -- that is what keys == 1 and keyReleases == 1 above pin.
+  // key press + key release + 2 auto-repeat + mouse move + press + release
+  CHECK(interactive == 7);
 }
 
 TEST_CASE("Window swallows deferred deletion", "[gfx][window][screen]")

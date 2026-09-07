@@ -189,6 +189,7 @@ struct DropFixture
   //! drop() defers the real work, so the event loop has to be pumped after.
   void dropPreset(Process::ProcessModel& on, const Process::Preset& preset)
   {
+    droppedKey = on.concreteKey();
     QPointer<Process::NodeItem> item = nodeFor(on);
     auto& sm = static_cast<Scenario::ScenarioDocumentModel&>(doc.model().modelDelegate());
 
@@ -204,14 +205,31 @@ struct DropFixture
     delete item.data();
   }
 
-  //! The process in the interval that is not `previous`.
+  //! The process the drop put in `previous`'s place.
+  //!
+  //! Not simply "the one that is not previous": the base interval also holds
+  //! the document's root Scenario, so that test returned whichever of the two
+  //! the container yielded first. It only ever passed because
+  //! IdContainer<Ordered>::insert used to push to the FRONT, putting the
+  //! freshly dropped process ahead of the Scenario. Once insert() started
+  //! appending -- so that save -> load -> save reaches a fixed point -- the
+  //! Scenario came first and this returned it: a process whose foldMode is
+  //! Auto, which is also why the folded case below passed while checking
+  //! nothing it meant to check.
+  //!
+  //! Matched on the dropped key, captured in dropPreset() while the process is
+  //! still alive: `previous` is a dangling reference by the time this is
+  //! called, since the drop removed and destroyed it. Address comparison
+  //! against it is fine; calling a virtual on it is not.
   Process::ProcessModel* replacementOf(const Process::ProcessModel& previous)
   {
     for(auto& p : interval.processes)
-      if(&p != &previous)
+      if(&p != &previous && p.concreteKey() == droppedKey)
         return &p;
     return nullptr;
   }
+
+  UuidKey<Process::ProcessModel> droppedKey{};
 };
 }
 
