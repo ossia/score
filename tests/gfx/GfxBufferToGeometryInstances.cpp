@@ -98,13 +98,13 @@
 //   Phase A: Instances = 4 (initial build)  -> 4 disjoint strips.
 //   Phase B: Instances = 8 PLUS one fingerprint nudge -> 8 strips, and
 //            exactly ONE CustomMesh::reload in the phase window.
-//   Phase C: Instances 8 -> 2, NOTHING else  -> [ENGINE GAP, pinned]: the
-//            frame FREEZES at 8 strips, ZERO reloads, byte-identical image.
-//   Phase D: the same nudge again (Instances still 2) -> the stale value
-//            flushes: 2 strips, exactly one reload.
+//   Phase C: Instances 8 -> 2, NOTHING else  -> 2 strips, one reload. This
+//            used to be a pinned ENGINE GAP (frozen at 8, zero reloads).
+//   Phase D: a nudge with Instances still 2 -> unchanged, one reload.
 //
-// THE GAP, stated plainly (found writing this test, pinned GREEN as current
-// behavior): `instances` is the ONE geometry control missing from the
+// THE GAP, now CLOSED -- kept here because it records what was wrong and
+// why this test exists (it was found while writing this test, and pinned
+// green as current behaviour until the product caught up): `instances` is the ONE geometry control missing from the
 // change fingerprint. BufferToGeometry2.cpp:84-93 compares vertices /
 // topology / cull / front-face / index state, :96-110 the attribute slots --
 // `inputs.instances.value` appears in neither and no m_prevInstances member
@@ -392,7 +392,6 @@ struct B2GInstancesRenderer final : score::gfx::NodeRenderer
         break;
       case 2: // grow, with the fingerprint doorbell
         in.instances.value = kCountB;
-        bumpNudge();
         break;
       case 3: // shrink, Instances ONLY -> the pinned gap: nothing may move
         in.instances.value = kCountCD;
@@ -701,21 +700,21 @@ TEST_CASE(
   checkStrips(r.b, kCountB, "B(8)");
   CHECK(r.b.cpuInstances == kCountB);
 
-  // ---- Phase C: 8 -> 2, Instances ONLY. ENGINE GAP, pinned as current
-  // behavior: the fingerprint (BufferToGeometry2.cpp:84-110) omits
-  // `instances`, so the early return (:131-148) ships the STALE descriptor --
-  // the drawn count freezes at 8 and nothing reloads. When the product adds
-  // an m_prevInstances compare, these three CHECKs (and freezeIdentical) go
-  // red: flip them to count 2 / one reload, and drop bumpNudge() from
-  // configurePhase(2). ----
-  checkStrips(r.c, kCountB, "C(2 requested, frozen at 8 -- the gap)");
-  CHECK(r.c.cpuInstances == kCountB); // mesh.instances never rewritten
-  CHECK(r.freezeIdentical);           // byte-identical frame: a true freeze
+  // ---- Phase C: 8 -> 2, Instances ONLY. THE GAP IS CLOSED. ----
+  // This block used to pin the opposite: the fingerprint omitted `instances`,
+  // the early return shipped the stale descriptor, and the drawn count froze
+  // at 8 with zero reloads. The comment here prescribed the fix -- "one line
+  // each in v1/v2: add an m_prevInstances compare" -- and that is what landed,
+  // so the pin is flipped exactly as it instructed. Phase B above no longer
+  // needs its doorbell either: an Instances-only edit now lands on its own.
+  checkStrips(r.c, kCountCD, "C(2)");
+  CHECK(r.c.cpuInstances == kCountCD);
+  CHECK_FALSE(r.freezeIdentical); // the frame MUST move now
 
-  // ---- Phase D: any fingerprint hit flushes the stale value -> 2. ----
+  // ---- Phase D: same value plus a doorbell -> nothing more to flush. ----
   checkStrips(r.d, kCountCD, "D(2)");
   CHECK(r.d.cpuInstances == kCountCD);
-  CHECK(r.flushDiffers);
+  CHECK_FALSE(r.flushDiffers); // C already applied it, so D is identical
 
 #if defined(__unix__)
   // ---- The reload contract, from the engine's own BUFTRACE channel:
@@ -725,8 +724,8 @@ TEST_CASE(
                    << " C=" << r.c.reloads << " D=" << r.d.reloads);
   CHECK(r.a.reloads >= 1); // initial acquireMesh PATH 3 (fresh mesh)
   CHECK(r.b.reloads == 1); // the 4 -> 8 change: one reload, not per-frame
-  CHECK(r.c.reloads == 0); // the gap: no dirty channel fired at all
-  CHECK(r.d.reloads == 1); // the flush: again exactly one
+  CHECK(r.c.reloads == 1); // the 8 -> 2 change now fires on its own
+  CHECK(r.d.reloads == 1); // the doorbell still costs exactly one
 #else
   WARN("reload counting skipped: stderr capture via dup2 is unix-only "
        "(GfxEdgeConsumeLatch.cpp precedent); pixel assertions above still "

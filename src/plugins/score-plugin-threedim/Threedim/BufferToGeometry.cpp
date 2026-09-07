@@ -115,7 +115,11 @@ void BuffersToGeometry::operator()()
       = computeTRSMatrix(inputs, outputs.geometry.transform, m_cachedTRS);
 
   // Check mesh configuration changes
-  if(inputs.vertices.value != m_prevVertices || inputs.topology.value != m_prevTopology
+  // instances is a mesh-configuration input like the rest of these: leaving it
+  // out meant the Instances control moved and the published mesh did not.
+  if(inputs.vertices.value != m_prevVertices
+     || inputs.instances.value != m_prevInstances
+     || inputs.topology.value != m_prevTopology
      || inputs.cull_mode.value != m_prevCullMode
      || inputs.front_face.value != m_prevFrontFace
      || inputs.index_buffer.value != m_prevUseIndexBuffer
@@ -144,16 +148,23 @@ void BuffersToGeometry::operator()()
   }
   for(int i = 0; i < 8; ++i)
   {
-    if(inputBuffers[i]->handle != m_prevBuffers[i].handle)
+    // The VIEW is part of the identity, not just the handle. Comparing only
+    // the handle means a buffer re-pointed at a different offset, or shrunk to
+    // a smaller window of the same allocation, reads as unchanged -- and the
+    // published mesh keeps the previous view for the rest of the session.
+    // (That is what the `FIXME changed?` here was asking.)
+    if(inputBuffers[i]->handle != m_prevBuffers[i].handle
+       || inputBuffers[i]->byte_offset != m_prevBuffers[i].byte_offset
+       || inputBuffers[i]->byte_size != m_prevBuffers[i].byte_size)
     {
       buffersChanged = true;
       m_prevBuffers[i] = *inputBuffers[i];
-      // FIXME changed?
     }
   }
 
   // Update cached state
   m_prevVertices = inputs.vertices.value;
+  m_prevInstances = inputs.instances.value;
   m_prevTopology = inputs.topology.value;
   m_prevCullMode = inputs.cull_mode.value;
   m_prevFrontFace = inputs.front_face.value;
