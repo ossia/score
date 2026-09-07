@@ -194,11 +194,44 @@ echo "==============================================================="
 # outcome, so every per-test build checks this first and stops cleanly.
 free_gb() { df -Pk "$BUILD" 2>/dev/null | awk 'NR==2 {print int($4/1048576)}'; }
 
-# ctest name -> ninja target. The build lays tests out as tests/<dir>/<name>,
-# so ask ninja rather than guessing the directory.
+# ctest name -> ninja target.
+#
+# Do not pattern-match the name against the target list. A ctest name is not a
+# target name: Avnd_value_serialization_Test_target builds Avnd_..._Test, and
+# test_gfx_triple_buffer_index lives under src/plugins/, not tests/. A
+# tests/<dir>/<name> regex missed 132 of 472 names here -- and because an empty
+# target skips the build step entirely, every one of those silently never ran.
+# The device-banner probe was among them, so the harness's own positive control
+# was empty on every machine that used it.
+#
+# ctest itself knows the answer: --show-only reports each test's command, whose
+# argv[0] is the executable. Anything inside the build dir is a ninja target at
+# its relative path; the ~90 script-driven tests (sandboxed-test.sh,
+# golden-render.sh) legitimately have none and build nothing of their own.
+TARGET_MAP=""
+build_target_map() {
+  TARGET_MAP=$(mktemp)
+  ctest --test-dir "$BUILD" --show-only=json-v1 2>/dev/null | python3 -c '
+import json, os, sys
+try:
+    d = json.load(sys.stdin)
+except Exception:
+    sys.exit(0)
+bd = os.path.realpath(sys.argv[1]) + "/"
+for t in d.get("tests", []):
+    cmd = t.get("command") or []
+    if not cmd:
+        continue
+    p = os.path.realpath(cmd[0])
+    if p.startswith(bd):
+        print(t["name"] + "\t" + p[len(bd):])
+' "$BUILD" > "$TARGET_MAP" 2>/dev/null
+  echo "-- target map: $(wc -l < "$TARGET_MAP") of $NTESTS tests build a target of their own"
+}
+
 target_for() {
-  ninja -C "$BUILD" -t targets all 2>/dev/null \
-    | sed -n "s#^\(tests/[a-z0-9_]*/$1\):.*#\1#p" | head -1
+  [ -n "$TARGET_MAP" ] || return 0
+  awk -F'\t' -v n="$1" '$1 == n { print $2; exit }' "$TARGET_MAP"
 }
 
 renderer_of() { # $1 = api, $2 = env
@@ -270,6 +303,7 @@ for label in $CELLS; do
     # ---- one test at a time: build it, run it, move on ---------------------
     : > "$log"; rc=0
     npass=0; nfail=0; nbuildfail=0; nskip=0
+    [ -n "$TARGET_MAP" ] || build_target_map
     tests=$(ctest -R "$SCOPE" -E "$EXCL" -N 2>/dev/null \
               | sed -n 's/^ *Test *#[0-9]*: *//p')
     for t in $tests; do
@@ -299,8 +333,11 @@ for label in $CELLS; do
       # other test needs them.
       if [ "$PRUNE" = 1 ] && [ -n "$tgt" ]; then
         tdir=$(dirname "$tgt")
+        # The object dir is named after the TARGET, not the ctest name: those
+        # differ wherever add_test() names a test something else.
+        tname=$(basename "$tgt")
         rm -f  "$BUILD/$tgt"
-        rm -rf "$BUILD/$tdir/CMakeFiles/$t.dir"
+        rm -rf "$BUILD/$tdir/CMakeFiles/$tname.dir"
       fi
     done
     total=$((npass+nfail+nbuildfail))
