@@ -24,6 +24,8 @@
 #include <Threedim/Noise.hpp>
 #include <Threedim/ObjLoader.hpp>
 #include <Threedim/PCLToGeometry.hpp>
+#include <Threedim/BlobTracker/BlobClustering.hpp>
+#include <Threedim/BlobTracker/BlobTracker.hpp>
 #include <Threedim/VoxelLoader.hpp>
 #include <Threedim/Primitive.hpp>
 #include <Threedim/RenderPipeline/Executor.hpp>
@@ -302,6 +304,9 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
   oscr::instantiate_fx<Threedim::Noise>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::StrucSynth>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::ObjLoader>(fx, ctx, key);
+
+  oscr::instantiate_fx<Threedim::BlobClustering>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::BlobTracker>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::VoxelLoader>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Plane>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Cube>(fx, ctx, key);
