@@ -196,9 +196,9 @@ RenderedCSFNode::RenderedCSFNode(const ISFNode& node) noexcept
 RenderedCSFNode::~RenderedCSFNode() { }
 
 
-// D3D11 is the only QRhi backend with no deferred release queue: grep
-// releaseQueue/DeferredReleaseEntry and qrhid3d12.cpp has 54 hits,
-// qrhivulkan.cpp 53, qrhigles2.cpp 26, qrhid3d11.cpp ZERO. It also records RAW
+// D3D11 is the only QRhi backend with no deferred release queue:
+// qrhid3d12.cpp, qrhivulkan.cpp and qrhigles2.cpp each implement a
+// releaseQueue/DeferredReleaseEntry, qrhid3d11.cpp does not. It also records RAW
 // ID3D11Resource* into a command list it only replays at endFrame
 // (qrhid3d11.cpp:1958-1959 -> :3207), and QD3D11Buffer::destroy() is an
 // immediate Release().
@@ -208,9 +208,9 @@ RenderedCSFNode::~RenderedCSFNode() { }
 // frees an ID3D11Buffer that an uploadStaticBuffer already recorded THIS frame
 // still points at. Replaying it gives "D3D11 CORRUPTION:
 // ID3D11DeviceContext::UpdateSubresource: First parameter is corrupt or NULL"
-// and then an access violation inside QRhiD3D11::executeCommandBuffer --
-// measured 3/3 runs with the debug layer on, ~4/6 without, which is why it
-// reads as a flaky d3d11-only SEGFAULT (A24(b)) and why a debugger hides it.
+// and then an access violation inside QRhiD3D11::executeCommandBuffer, which
+// is why it reads as a flaky d3d11-only SEGFAULT and why a debugger
+// hides it.
 // Every other backend keeps the native object alive on its release queue, so
 // the identical score code is harmless there.
 //
@@ -1276,10 +1276,10 @@ void RenderedCSFNode::updateGeometryBindings(
       // upstream may already be DANGLING -- reconcile /
       // removeNodeFromRenderLists destroys the producer renderer's buffers
       // before our next update() -- so they must be dropped here for EVERY
-      // binding, not only the !has_vertex_count_spec case: a binding with a
-      // vertex-count expression used to keep the dead pointers, and the
-      // recreated SRB then crashed in setShaderResources (P0-9,
-      // tests/gfx/GfxGeometryProducerRemoval.cpp). Each dropped pointer is
+      // binding, not only the !has_vertex_count_spec case: keeping them on a
+      // binding with a vertex-count expression crashes the recreated SRB in
+      // setShaderResources
+      // (tests/gfx/GfxGeometryProducerRemoval.cpp). Each dropped pointer is
       // replaced by an owned zero-filled buffer of the same size (same
       // treatment as the attribute-not-found fallback below) so the SRB
       // stays complete and the dispatch stays valid -- the pass then
@@ -1918,10 +1918,9 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
 
         const int buf_index = (int)out_geo.buffers.size();
         // The buffer underneath is sized at std430 stride (16 bytes per
-        // vec3 element); declaring the binding stride to match is what
-        // lets a downstream raw-raster vertex shader read these
-        // attributes without the silent vec3-padding drift that left
-        // every fourth splat misaligned.
+        // vec3 element); the binding stride must match, otherwise a
+        // downstream raw-raster vertex shader reads these attributes with a
+        // silent vec3-padding drift that misaligns every fourth element.
         const int64_t elem_stride = std430ArrayStride(req.type, n.m_descriptor);
 
         ossia::geometry::buffer buf{
@@ -2793,7 +2792,190 @@ layout(location = 0) out vec4 fragColor;
 void main() { fragColor = vec4(texture(outputTexture, v_texcoord).rrr, 1.0); }
 )_";
 
-  // Get the mesh for rendering a fullscreen quad
+  static const constexpr auto fragment_shader_rgba_3d = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform sampler3D outputTexture;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main() { fragColor = texture(outputTexture, vec3(v_texcoord, 0.5)); }
+)_";
+  static const constexpr auto fragment_shader_r_3d = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform sampler3D outputTexture;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main() { fragColor = vec4(texture(outputTexture, vec3(v_texcoord, 0.5)).rrr, 1.0); }
+)_";
+  static const constexpr auto fragment_shader_rgba_array = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform sampler2DArray outputTexture;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main() { fragColor = texture(outputTexture, vec3(v_texcoord, 0.0)); }
+)_";
+  static const constexpr auto fragment_shader_r_array = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform sampler2DArray outputTexture;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main() { fragColor = vec4(texture(outputTexture, vec3(v_texcoord, 0.0)).rrr, 1.0); }
+)_";
+  static const constexpr auto fragment_shader_rgba_cube = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform samplerCube outputTexture;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main() { fragColor = texture(outputTexture, vec3(v_texcoord * 2.0 - 1.0, 1.0)); }
+)_";
+  static const constexpr auto fragment_shader_r_cube = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform samplerCube outputTexture;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main() { fragColor = vec4(texture(outputTexture, vec3(v_texcoord * 2.0 - 1.0, 1.0)).rrr, 1.0); }
+)_";
+
+  static const constexpr auto fragment_shader_uint_2d = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform usampler2D outputTexture;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main() { fragColor = vec4(vec3(clamp(float(texture(outputTexture, v_texcoord).r), 0.0, 1.0)), 1.0); }
+)_";
+  static const constexpr auto fragment_shader_uint_3d = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform usampler3D outputTexture;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main() { fragColor = vec4(vec3(clamp(float(texture(outputTexture, vec3(v_texcoord, 0.5)).r), 0.0, 1.0)), 1.0); }
+)_";
+  static const constexpr auto fragment_shader_uint_array = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform usampler2DArray outputTexture;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main() { fragColor = vec4(vec3(clamp(float(texture(outputTexture, vec3(v_texcoord, 0.0)).r), 0.0, 1.0)), 1.0); }
+)_";
+  static const constexpr auto fragment_shader_uint_cube = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform usamplerCube outputTexture;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main() { fragColor = vec4(vec3(clamp(float(texture(outputTexture, vec3(v_texcoord * 2.0 - 1.0, 1.0)).r), 0.0, 1.0)), 1.0); }
+)_";
+  static const constexpr auto fragment_shader_iint_2d = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform isampler2D outputTexture;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main() { fragColor = vec4(vec3(clamp(float(texture(outputTexture, v_texcoord).r), 0.0, 1.0)), 1.0); }
+)_";
+  static const constexpr auto fragment_shader_iint_3d = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform isampler3D outputTexture;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main() { fragColor = vec4(vec3(clamp(float(texture(outputTexture, vec3(v_texcoord, 0.5)).r), 0.0, 1.0)), 1.0); }
+)_";
+  static const constexpr auto fragment_shader_iint_array = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform isampler2DArray outputTexture;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main() { fragColor = vec4(vec3(clamp(float(texture(outputTexture, vec3(v_texcoord, 0.0)).r), 0.0, 1.0)), 1.0); }
+)_";
+  static const constexpr auto fragment_shader_iint_cube = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform isamplerCube outputTexture;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main() { fragColor = vec4(vec3(clamp(float(texture(outputTexture, vec3(v_texcoord * 2.0 - 1.0, 1.0)).r), 0.0, 1.0)), 1.0); }
+)_";
+
   const auto& mesh = renderer.defaultTriangle();
 
   // Find the texture for the specific output port this edge is connected to
@@ -2804,8 +2986,108 @@ void main() { fragColor = vec4(texture(outputTexture, v_texcoord).rrr, 1.0); }
     return;
   }
 
+  // Integer storage formats need an INTEGER sampler: a usampler/isampler fetch
+  // returns uvec4/ivec4, and binding one to a float `sampler` is
+  // VUID-vkCmdDraw-format-07753 ("requires SINT/UINT component type"). These
+  // formats exist precisely so a CSF can pack counters per voxel, so the
+  // display pass has to be able to show them. Values are shown as occupancy --
+  // clamped to [0,1] -- because an arbitrary counter has no natural mapping to
+  // a colour, and 0-vs-nonzero is what these grids are usually inspected for.
+  const auto formatSignedness = [](QRhiTexture::Format f) -> int {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
+    switch(f)
+    {
+      case QRhiTexture::Format::R8UI:
+      case QRhiTexture::Format::R32UI:
+      case QRhiTexture::Format::RG32UI:
+      case QRhiTexture::Format::RGBA32UI:
+        return 1; // unsigned -> usampler
+      case QRhiTexture::Format::R8SI:
+      case QRhiTexture::Format::R32SI:
+      case QRhiTexture::Format::RG32SI:
+      case QRhiTexture::Format::RGBA32SI:
+        return 2; // signed -> isampler
+      default:
+        break;
+    }
+#else
+    Q_UNUSED(f);
+#endif
+    return 0; // float sampler
+  };
+
+  // Same format set the switch below treats as single-channel; factored out so
+  // the kind-specific variants agree with the 2D path by construction.
+  const auto isSingleChannelFormat = [](QRhiTexture::Format f) {
+    switch(f)
+    {
+      case QRhiTexture::Format::R8:
+      case QRhiTexture::Format::RED_OR_ALPHA8:
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
+      case QRhiTexture::Format::R8UI:
+      case QRhiTexture::Format::R32UI:
+#endif
+      case QRhiTexture::Format::R16:
+      case QRhiTexture::Format::R16F:
+      case QRhiTexture::Format::R32F:
+      case QRhiTexture::Format::D16:
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
+      case QRhiTexture::Format::D24:
+      case QRhiTexture::Format::D24S8:
+#endif
+      case QRhiTexture::Format::D32F:
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
+      case QRhiTexture::Format::D32FS8:
+#endif
+        return true;
+      default:
+        return false;
+    }
+  };
+
+  // Pick the display shader by the texture's KIND first, then its format.
+  // Selecting on the format alone binds a 3D / cube / array view into a
+  // `sampler2D`, which Vulkan rejects on every draw:
+  //     VUID-vkCmdDraw-viewType-07752: ImageView type is
+  //     VK_IMAGE_VIEW_TYPE_3D but the OpTypeImage has Dim = 2D
+  // and the pass renders black.
+  // SimpleRenderedISFNode::initMRTBlitPass applies the same rule to its
+  // layered case.
+  const auto texFlags = textureToRender->flags();
+  const bool tex3D = texFlags.testFlag(QRhiTexture::ThreeDimensional);
+  const bool texCube = texFlags.testFlag(QRhiTexture::CubeMap);
+  const bool texArray = texFlags.testFlag(QRhiTexture::TextureArray);
+
   auto fmt = textureToRender->format();
+  const int intKind = formatSignedness(fmt);
   const char* fragment_shader{};
+  if(intKind != 0)
+  {
+    // Integer sampler type is forced by the FORMAT; kind still picks the Dim.
+    if(intKind == 1)
+      fragment_shader = tex3D     ? fragment_shader_uint_3d
+                        : texCube ? fragment_shader_uint_cube
+                        : texArray ? fragment_shader_uint_array
+                                   : fragment_shader_uint_2d;
+    else
+      fragment_shader = tex3D     ? fragment_shader_iint_3d
+                        : texCube ? fragment_shader_iint_cube
+                        : texArray ? fragment_shader_iint_array
+                                   : fragment_shader_iint_2d;
+  }
+  else if(tex3D || texCube || texArray)
+  {
+    // Single-channel and RGBA share one declaration per kind: the swizzle
+    // differs, not the sampler type, so branch on format inside each.
+    const bool single = isSingleChannelFormat(fmt);
+    if(tex3D)
+      fragment_shader = single ? fragment_shader_r_3d : fragment_shader_rgba_3d;
+    else if(texCube)
+      fragment_shader = single ? fragment_shader_r_cube : fragment_shader_rgba_cube;
+    else
+      fragment_shader = single ? fragment_shader_r_array : fragment_shader_rgba_array;
+  }
+  else
   switch(fmt)
   {
     case QRhiTexture::Format::R8:
@@ -2833,20 +3115,23 @@ void main() { fragColor = vec4(texture(outputTexture, v_texcoord).rrr, 1.0); }
       break;
   }
 
-  // Compile shaders
   auto [vertexS, fragmentS] = score::gfx::makeShaders(renderer.state, vertex_shader, fragment_shader);
 
   // Create a sampler for our output texture
+  // Integer formats do not support linear filtering -- VUID-vkCmdDraw-magFilter-
+  // 04553 requires the format to advertise SAMPLED_IMAGE_FILTER_LINEAR, and the
+  // R/RG/RGBA {UI,SI} families do not. Nearest is also the only meaningful
+  // filter for a counter: interpolating two voxel occupancy values invents data.
+  const auto outputFilter
+      = (intKind != 0) ? QRhiSampler::Nearest : QRhiSampler::Linear;
   QRhiSampler* outputSampler = renderer.state.rhi->newSampler(
-    QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
+    outputFilter, outputFilter, QRhiSampler::None,
     QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
   outputSampler->setName("RenderedCSFNode::OutputSampler");
   outputSampler->create();
     
-  // Initialize mesh buffers
   MeshBuffers meshBuffers = renderer.initMeshBuffer(mesh, res);
   
-  // Build the pipeline to render our compute result
   auto pip = score::gfx::buildPipeline(
       renderer, mesh, vertexS, fragmentS, rt, nullptr, nullptr, 
       std::array<Sampler, 1>{Sampler{outputSampler, textureToRender}});
@@ -2922,12 +3207,10 @@ void RenderedCSFNode::createComputePipeline(RenderList& renderer)
       auto it = pipelineCache.find(key);
       if(it != pipelineCache.end())
       {
-        // Reuse existing pipeline
         m_perPassPipelines.push_back(it->second);
       }
       else
       {
-        // Compile new pipeline for this local_size
         QString src = m_computeShaderSource;
         src.replace("ISF_LOCAL_SIZE_X", QString::number(key[0]));
         src.replace("ISF_LOCAL_SIZE_Y", QString::number(key[1]));
@@ -2943,7 +3226,6 @@ void RenderedCSFNode::createComputePipeline(RenderList& renderer)
       }
     }
 
-    // Store unique pipelines for cleanup
     m_ownedPipelines.clear();
     for(auto& [k, v] : pipelineCache)
       m_ownedPipelines.push_back(v);
@@ -3238,10 +3520,9 @@ void RenderedCSFNode::buildComputeSrbBindings(
             return t;
           };
 
-          // Runtime resize (P1-21, tests/gfx/CsfImage3dResize.cpp): a
+          // Runtime resize (tests/gfx/CsfImage3dResize.cpp): a
           // $-driven WIDTH/HEIGHT/DEPTH (or layers) change must recreate the
-          // allocation -- this was the literal TODO "Check if texture size
-          // inputs have changed and recreate texture if needed". Compare the
+          // allocation. Compare the
           // live texture against the freshly resolved size; on mismatch,
           // recreate and re-point every SRB that binds the old handle (same
           // replaceTexture idiom as the persistent ping-pong swap in
@@ -3593,10 +3874,10 @@ void RenderedCSFNode::buildComputeSrbBindings(
       }
       if(geo_creates_inlet)
         input_port_index++;
-      // Skip $USER ports for this geometry input. INDIRECT.COUNT is NOT counted:
-      // ISFNode's visitor creates no port for a $USER in INDIRECT.COUNT
-      // (ISFNode.cpp:244-287), so skipping one here shifted every later input
-      // port by one. (Mirrors the same removal in initState.)
+      // Skip $USER ports for this geometry input. INDIRECT.COUNT is not
+      // counted: ISFNode's visitor creates no port for a $USER in
+      // INDIRECT.COUNT (ISFNode.cpp:244-287), so counting one here would shift
+      // every later input port by one. (Mirrored in initState.)
       if(geo_input->vertex_count.find("$USER") != std::string::npos) input_port_index++;
       if(geo_input->instance_count.find("$USER") != std::string::npos) input_port_index++;
       for(const auto& aux : geo_input->auxiliary)
@@ -3702,7 +3983,6 @@ void RenderedCSFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& r
   // called -- see the matching comment in update().
   m_inputsHaveBeenWritten = false;
 
-  // Check for compute support
   if(!rhi.isFeatureSupported(QRhi::Compute))
   {
     qWarning() << "Compute shaders not supported on this backend";
@@ -3736,11 +4016,9 @@ void RenderedCSFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& r
     }
   }
 
-  // Initialize input samplers
   SCORE_ASSERT(m_computePasses.empty());
   SCORE_ASSERT(m_inputSamplers.empty());
 
-  // Create samplers for input textures
   m_inputSamplers = initInputSamplers(this->n, renderer, n.input, &n.descriptor());
 
   int sb_index = 0;
@@ -3771,11 +4049,11 @@ void RenderedCSFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& r
                      << QString::fromStdString(input.name);
         outlet_index++;
       }
-      // read_only storage creates an input port; a WRITE buffer whose layout
-      // ends in a flexible-array member ALSO gets a synthesized long_input
+      // read_only storage creates an input port; a write buffer whose layout
+      // ends in a flexible-array member also gets a synthesized long_input
       // sizing inlet (ISFNode.cpp:217-225 / isf_input_port_count_vis). Without
-      // this increment every later input port resolved one slot too low — the
-      // same drift buildComputeSrbBindings (~3063) already guards against.
+      // this increment every later input port resolves one slot too low --
+      // buildComputeSrbBindings guards against the same drift.
       if(storage->access == "read_only")
         input_port_index++;
       else if(storage->access.contains("write") && !storage->layout.empty()
@@ -4114,10 +4392,10 @@ void RenderedCSFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& r
         outlet_index++;
 
       // $USER ports also create input ports (IntSpinBox), track them.
-      // NOTE: INDIRECT.COUNT is intentionally NOT counted here — ISFNode's
-      // visitor (ISFNode.cpp:244-287) creates NO port for a $USER in
-      // INDIRECT.COUNT, so counting one shifted every subsequent input port by
-      // one. (Mirrors the same removal in buildComputeSrbBindings.)
+      // INDIRECT.COUNT is intentionally not counted here: ISFNode's visitor
+      // (ISFNode.cpp:244-287) creates no port for a $USER in INDIRECT.COUNT,
+      // so counting one would shift every subsequent input port by one.
+      // (Mirrored in buildComputeSrbBindings.)
       if(geo->vertex_count.find("$USER") != std::string::npos)
         input_port_index++;
       if(geo->instance_count.find("$USER") != std::string::npos)
@@ -4179,7 +4457,6 @@ void RenderedCSFNode::releaseState(RenderList& r)
   if(!m_initialized)
     return;
 
-  // Clean up remaining graphics passes
   for(auto& [edge, pass] : m_graphicsPasses)
   {
     pass.pipeline.release();
@@ -4187,7 +4464,6 @@ void RenderedCSFNode::releaseState(RenderList& r)
   }
   m_graphicsPasses.clear();
 
-  // Clean up compute passes
   for(auto& [edge, pass] : m_computePasses)
   {
     delete pass.srb;
@@ -4205,7 +4481,6 @@ void RenderedCSFNode::releaseState(RenderList& r)
   m_perPassPipelines.clear();
   m_computePipeline = nullptr;
 
-  // Clean up storage buffers
   for(auto& storageBuffer : m_storageBuffers)
   {
     if(storageBuffer.owned)
@@ -4213,11 +4488,9 @@ void RenderedCSFNode::releaseState(RenderList& r)
   }
   m_storageBuffers.clear();
 
-  // Clean up GPU scatter
   m_gpuScatter.release();
   m_gpuScatterAvailable = false;
 
-  // Clean up geometry bindings
   for(auto& binding : m_geometryBindings)
   {
     for(auto& ssbo : binding.attribute_ssbos)
@@ -4292,11 +4565,9 @@ void RenderedCSFNode::releaseState(RenderList& r)
   m_outStorageBuffers.clear();
   m_outputTexture = nullptr;
 
-  // Clean up buffers and textures
   delete m_materialUBO;
   m_materialUBO = nullptr;
 
-  // Clean up samplers
   for(auto sampler : m_inputSamplers)
   {
     delete sampler.sampler;
@@ -4315,7 +4586,6 @@ void RenderedCSFNode::addInputEdge(
 {
   if(edge.sink->type == Types::Image)
   {
-    // Find upstream texture
     if(auto it = edge.source->node->renderedNodes.find(&renderer);
        it != edge.source->node->renderedNodes.end())
     {
@@ -4334,9 +4604,9 @@ void RenderedCSFNode::removeInputEdge(RenderList& renderer, Edge& edge)
   // Evict the cached per-(port, source) geometry/scene first: without this,
   // findGeometryByPort keeps returning the departed producer's spec and
   // updateGeometryBindings re-adopts its FREED gpu buffers into the compute
-  // SRB -> SIGSEGV in setShaderResources (P0-9,
-  // tests/gfx/GfxGeometryProducerRemoval.cpp). The base class does exactly
-  // this eviction; this override previously dropped it.
+  // SRB -> SIGSEGV in setShaderResources
+  // (tests/gfx/GfxGeometryProducerRemoval.cpp). The base class does exactly
+  // this eviction, so this override must chain to it.
   NodeRenderer::removeInputEdge(renderer, edge);
   if(edge.sink->type == Types::Image)
   {
@@ -4355,7 +4625,6 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
   initState(renderer, res);
 
-  // Create graphics passes for each output edge
   for(auto* output_port : n.output)
   {
     for(Edge* edge : output_port->edges)
@@ -4386,14 +4655,12 @@ void RenderedCSFNode::update(
   {
     if(pass.processUBO)
     {
-      // Set the correct passIndex for this CSF pass
       n.standardUBO.passIndex = static_cast<int32_t>(passIdx);
       res.updateDynamicBuffer(pass.processUBO, 0, sizeof(ProcessUBO), &n.standardUBO);
       passIdx++;
     }
   }
   
-  // Update storage buffers (check for size changes and reallocate if needed)
   updateStorageBuffers(renderer, res);
 
   // Unowned buffer pointers reference external GPU buffers whose lifetime
