@@ -50,6 +50,26 @@ layout(location = 0) out vec4 fragColor;
 void main() { fragColor = texture(blitTexture, v_texcoord); }
 )_";
 
+// Same copy, for an output declared with LAYERS > 1. The attachment is then a
+// QRhiTexture created with newTextureArray, i.e. a VK_IMAGE_VIEW_TYPE_2D_ARRAY
+// view, and binding it to the sampler2D above is a descriptor-type violation:
+// Vulkan reports VUID-vkCmdDraw-viewType-07752 and OpenGL renders black,
+// because a sampler2D uniform cannot address a GL_TEXTURE_2D_ARRAY object.
+// (R1 in the 2026-09 review.) The preview shows layer 0, which is what a 2D
+// consumer of a layered producer can meaningfully be given.
+static const constexpr auto blit_array_fs = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform sampler2DArray blitTexture;
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main() { fragColor = texture(blitTexture, vec3(v_texcoord, 0.)); }
+)_";
+
 SimpleRenderedISFNode::SimpleRenderedISFNode(const ISFNode& node) noexcept
     : score::gfx::NodeRenderer{node}
     , n{const_cast<ISFNode&>(node)}
@@ -283,6 +303,22 @@ void SimpleRenderedISFNode::initMRTPass(RenderList& renderer, QRhiResourceUpdate
   const auto& outputs = n.descriptor().outputs;
   QSize sz = renderer.state.renderSize;
 
+  // Honour OUTPUTS.WIDTH / HEIGHT when declared, otherwise the renderer's
+  // render size. First non-zero explicit pair wins and every attachment of the
+  // shared pass takes it, which is what the RAW_RASTER twin does
+  // (RenderedRawRasterPipelineNode::initMRTPass). Without this the simple MRT
+  // path parsed WIDTH/HEIGHT and then silently allocated at renderSize.
+  // Expression forms ($-variables) are NOT resolved here -- that evaluator is a
+  // member of the raw-raster renderer -- so a literal pair is required.
+  for(const auto& out : outputs)
+  {
+    if(out.width > 0 && out.height > 0)
+    {
+      sz = QSize(out.width, out.height);
+      break;
+    }
+  }
+
   // Detect layered / multiview rendering needs.
   int maxLayers = 1;
   for(const auto& out : outputs)
@@ -468,7 +504,11 @@ void SimpleRenderedISFNode::initMRTBlitPass(RenderList& renderer, QRhiResourceUp
   if(!rt.renderTarget)
     return;
 
-  auto [vertexS, fragmentS] = score::gfx::makeShaders(renderer.state, blit_vs, blit_fs);
+  // Pick the blit shader by the texture KIND, not by assuming 2D: a LAYERS > 1
+  // output is a texture array and needs a sampler2DArray descriptor.
+  const bool isArray = srcTex->flags().testFlag(QRhiTexture::TextureArray);
+  auto [vertexS, fragmentS] = score::gfx::makeShaders(
+      renderer.state, blit_vs, isArray ? blit_array_fs : blit_fs);
 
   QRhiSampler* sampler = renderer.state.rhi->newSampler(
       QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
@@ -603,8 +643,19 @@ void SimpleRenderedISFNode::addOutputPass(RenderList& renderer, Edge& edge, QRhi
 {
   if(m_hasMRT)
   {
-    // Create the shared MRT internal render target on first output edge
-    if(m_mrtRenderTarget.texture == nullptr)
+    // Create the shared MRT internal render target on first output edge.
+    //
+    // The existence test is the RT's own operator bool (texture OR
+    // dummyColorTexture OR depthTexture), NOT `texture == nullptr`. A
+    // depth-only shader goes through createDepthOnlyRenderTarget, which leaves
+    // `texture` null forever, so testing `texture` re-ran initMRTPass once per
+    // output edge: the second edge silently orphaned the first depth texture
+    // and render target (Vulkan reported them as unreleased at teardown, and
+    // VMA aborts on it), while runInitialPasses kept drawing into m_passes[0]
+    // -- the FIRST allocation -- and textureForOutput handed consumers the
+    // SECOND, which nothing had rendered into. Hence a black readback from a
+    // depth-only source the moment it feeds more than one edge.
+    if(!m_mrtRenderTarget)
     {
       initMRTPass(renderer, res);
     }
