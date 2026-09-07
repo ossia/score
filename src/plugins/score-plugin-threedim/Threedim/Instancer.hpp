@@ -140,9 +140,25 @@ public:
   // Track input identity to detect when a rebuild is needed without
   // relying on buffer-contents equality.
   const ossia::scene_state* m_cached_in_state{};
-  void* m_cached_transforms{};
-  void* m_cached_colors{};
-  void* m_cached_custom{};
+  // The VIEW, not just the handle. A producer that re-points a buffer at a
+  // different offset, or shrinks it to a smaller window of the same
+  // allocation, keeps the handle -- and the instance-count capacity clamp
+  // below depends on the size. Comparing handles alone let a shrink go
+  // unnoticed and the cloud kept drawing past the end of its transforms.
+  struct CachedView
+  {
+    void* handle{};
+    int64_t byte_offset{};
+    int64_t byte_size{};
+    friend bool operator==(const CachedView&, const CachedView&) = default;
+  };
+  static CachedView viewOf(const halp::gpu_buffer& b) noexcept
+  {
+    return {b.handle, (int64_t)b.byte_offset, (int64_t)b.byte_size};
+  }
+  CachedView m_cached_transforms{};
+  CachedView m_cached_colors{};
+  CachedView m_cached_custom{};
   int32_t m_cached_count{-1};
   int m_cached_format{-1};
   // For the point-cloud input: cache the primary-buffer identity so we
