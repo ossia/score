@@ -55,6 +55,7 @@ void js_node::setupComponent()
   SCORE_ASSERT(m_object);
   SCORE_ASSERT(m_context);
   m_object->setParent(m_context);
+  connectStateCommit(m_object, m_modelContext);
 
   QObject::connect(m_object, &JS::Script::uiSend,
                    m_uiContext, [this] (const QJSValue& v) {

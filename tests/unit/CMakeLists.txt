@@ -69,6 +69,13 @@ if(TARGET score_plugin_controlsurface)
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-controlsurface")
 endif()
 
+if(TARGET Qt6::Quick AND TARGET score_plugin_js)
+  score_add_test(test_unit_js_image
+    SOURCES JsImageTest.cpp
+    APP
+    PLUGINS score_plugin_js)
+endif()
+
 # Coverage of the add / edit address dialog's per-type forms.
 score_add_test(test_unit_address_settings_widgets
   SOURCES AddressSettingsWidgetsTest.cpp

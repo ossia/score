@@ -1,13 +1,18 @@
 #pragma once
+#include <JS/Commands/EditScript.hpp>
+#include <JS/ConsolePanel.hpp>
 #include <JS/Qml/QmlObjects.hpp>
 #include <Library/LibrarySettings.hpp>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/document/DocumentInterface.hpp>
 
 #include <ossia/detail/logger.hpp>
+
 #include <ossia-qt/invoke.hpp>
 #include <ossia-qt/qml_engine_functions.hpp>
-#include <JS/ConsolePanel.hpp>
 
 #include <QDir>
 #include <QQmlComponent>
@@ -22,6 +27,27 @@
 
 namespace JS
 {
+
+inline void connectStateCommit(Script* script, ProcessModel* model)
+{
+  if(!model)
+    return;
+  QObject::connect(
+      script, &Script::commitState, model,
+      [context = QPointer{model}](const QString& key, const QJSValue& value) {
+    auto converted = ossia::qt::value_from_js(value);
+    QMetaObject::invokeMethod(qApp, [context, key, value = std::move(converted)] {
+      if(!context)
+        return;
+      const auto& state = context->state();
+      if(auto it = state.find(key); it != state.end() && it->second == value)
+        return;
+      CommandDispatcher<> dispatcher{
+          score::IDocument::documentContext(*context).commandStack};
+      dispatcher.submit<UpdateStateElement>(*context, key, value);
+    }, Qt::QueuedConnection);
+  }, Qt::DirectConnection);
+}
 
 static inline QString hashFileData(const QByteArray& str)
 {

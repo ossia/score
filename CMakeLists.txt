@@ -254,6 +254,8 @@ find_package(${QT_VERSION} REQUIRED
     Qml
     ShaderTools Quick QmlModels
   OPTIONAL_COMPONENTS
+    CanvasPainter
+    Canvas2DPrivate
     WebSockets
     WebView
     Svg

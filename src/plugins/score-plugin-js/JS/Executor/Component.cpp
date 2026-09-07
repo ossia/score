@@ -41,6 +41,7 @@ Component::Component(
     // FIXME also process in this GPU
     node->m_modelState = element.state();
     node->m_uiContext = this;
+    node->m_modelContext = &element;
     node->m_messageToUi = [this] (const QVariant& v){
       OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
       this->process().executionToUi(v);

@@ -69,6 +69,17 @@ score_add_test(test_integration_js_process
   GUI
   PLUGINS score_plugin_scenario score_lib_process score_plugin_js)
 
+if(TARGET Qt6::Canvas2DPrivate)
+  score_add_test(test_integration_canvas_painting
+    SOURCES CanvasPaintingTest.cpp
+    GUI
+    PLUGINS score_plugin_js score_plugin_library score_plugin_inspector)
+  score_add_test(test_integration_painter_state
+    SOURCES PainterStateTest.cpp
+    GUI
+    PLUGINS score_plugin_js score_plugin_library score_plugin_inspector score_plugin_scenario score_lib_process)
+endif()
+
 # Script editors and custom UIs of processes: placements, moves, closing paths,
 # the chromeless editor over the document's background, the navigation bar.
 score_add_test(test_integration_process_ui_placement

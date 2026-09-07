@@ -59,6 +59,7 @@ public:
   ossia::qt::qml_engine_functions* m_execFuncs{};
   std::optional<QJSValueList> m_tickCall;
   QPointer<QObject> m_uiContext;
+  QPointer<JS::ProcessModel> m_modelContext;
   std::function<void(QVariant)> m_messageToUi;
   std::size_t m_gcIndex{};
 
