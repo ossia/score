@@ -972,8 +972,22 @@ Pipeline buildPipeline(
     }
   }
 
-  // FIXME does that check make sense?
-  if(!renderer.anyNodeRequiresDepth())
+  // No, it did not make sense (the FIXME that used to sit here asked).
+  // `anyNodeRequiresDepth()` is a GRAPH-GLOBAL question: it stays true as soon
+  // as any node anywhere in the graph wants depth. It says nothing about THIS
+  // render target. So a pipeline drawing into a depth-less RT kept depth test
+  // and write enabled whenever some unrelated node needed depth.
+  //
+  // Vulkan/D3D/GL tolerate that; Metal's API validation aborts the process on a
+  // depth-enabled draw whose depthAttachment is nil. The predicate that matters
+  // is whether this rt has a depth attachment -- the same one
+  // buildPipelineWithState() already computes as `depthAvailable` before
+  // handing it to applyPipelineState(). Keep the graph-global term too: it is
+  // the historical opt-out for graphs that need no depth at all.
+  const bool depthAvailable
+      = (rt.depthTexture != nullptr) || (rt.depthRenderBuffer != nullptr)
+        || (rt.msDepthTexture != nullptr);
+  if(!depthAvailable || !renderer.anyNodeRequiresDepth())
   {
     ps->setDepthTest(false);
     ps->setDepthWrite(false);
