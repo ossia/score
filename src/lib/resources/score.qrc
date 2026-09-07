@@ -1166,5 +1166,11 @@
         <file>startscreen/startscreen.svg</file>
         <file>icons/exit_on@2x.png</file>
         <file>icons/exit_off@2x.png</file>
+        <file>fonts/Phosphor-Bold.ttf</file>
+        <file>fonts/Phosphor-Duotone.ttf</file>
+        <file>fonts/Phosphor-Fill.ttf</file>
+        <file>fonts/Phosphor-Light.ttf</file>
+        <file>fonts/Phosphor-Thin.ttf</file>
+        <file>fonts/Phosphor.ttf</file>
     </qresource>
 </RCC>
