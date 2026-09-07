@@ -199,7 +199,14 @@ void SimpleRenderedVSANode::initPass(
     // versus back face is not meaningful. Points and line modes are unaffected.
     ps->setCullMode(QRhiGraphicsPipeline::CullMode::None);
 
-    if(!renderer.anyNodeRequiresDepth())
+    // anyNodeRequiresDepth() is graph-global and says nothing about THIS
+    // target; a depth-enabled draw with a nil depthAttachment aborts under
+    // Metal's API validation. Ask the render target as well.
+    const bool depthAvailable
+        = (renderTarget.depthTexture != nullptr)
+          || (renderTarget.depthRenderBuffer != nullptr)
+          || (renderTarget.msDepthTexture != nullptr);
+    if(!depthAvailable || !renderer.anyNodeRequiresDepth())
     {
       ps->setDepthTest(false);
       ps->setDepthWrite(false);
