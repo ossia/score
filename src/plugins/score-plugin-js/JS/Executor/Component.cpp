@@ -17,6 +17,7 @@
 #include "GPUNode.hpp"
 
 #include <Gfx/GfxApplicationPlugin.hpp>
+#include <Gfx/TexturePort.hpp>
 #endif
 
 #include <score/tools/Bind.hpp>
@@ -85,6 +86,16 @@ Component::Component(
 
 Component::~Component() { }
 
+void Component::cleanup()
+{
+#if defined(SCORE_HAS_GPU_JS)
+  for(auto* outlet : process().outlets())
+    if(auto out = qobject_cast<Gfx::TextureOutlet*>(outlet))
+      out->nodeId = score::gfx::invalid_node_index;
+#endif
+  Execution::ProcessComponent::cleanup();
+}
+
 void Component::on_scriptChange()
 {
   enum Type
@@ -114,6 +125,11 @@ void Component::on_scriptChange()
   // 0. Unregister all the previous inlets / outlets
   auto& setup = system().setup;
   setup.unregister_node_soft(process().inlets(), process().outlets(), node, commands);
+#if defined(SCORE_HAS_GPU_JS)
+  for(auto* outlet : process().outlets())
+    if(auto out = qobject_cast<Gfx::TextureOutlet*>(outlet))
+      out->nodeId = score::gfx::invalid_node_index;
+#endif
 
   std::tuple<ossia::inlets, ossia::outlets, std::vector<Execution::ExecutionCommand>>
       new_ports;
@@ -348,6 +364,10 @@ Component::on_gpuScriptChange(const QString& script, Execution::Transaction& com
         }
 */
 
+        else if(qobject_cast<ValueOutlet*>(outlet))
+        {
+          outls.push_back(new ossia::value_outlet);
+        }
         else if([[maybe_unused]] auto tex_out = qobject_cast<TextureOutlet*>(outlet))
         {
           outls.push_back(new ossia::texture_outlet);
@@ -368,8 +388,10 @@ Component::on_gpuScriptChange(const QString& script, Execution::Transaction& com
   // Send the updates to the node
   auto recable = std::shared_ptr<ossia::recabler>(
       new ossia::recabler{node, system().execGraph, inls, outls});
-  commands.push_back([node, root = process().rootPath(), script, controls, recable,
-                      st = std::make_unique<JS::JSState>(process().state())]() mutable {
+  commands.push_back(
+      [node, controls, recable, self = QPointer{this}, weak_node, script_index,
+       source = std::make_unique<std::tuple<QString, QString, JS::JSState>>(
+           process().rootPath(), script, process().state())]() mutable {
     using namespace std;
     // Note: we need to do this because we try to keep the Javascript node around
     // because it's slow to recreate.
@@ -377,9 +399,20 @@ Component::on_gpuScriptChange(const QString& script, Execution::Transaction& com
     // process and entirely recreate a new node, + call update node.
     (*recable)();
 
-    node->setScript(root, std::move(script), std::move(*st));
-
     swap(node->controls, controls);
+    auto& [root, script, state] = *source;
+    node->setScript(root, script, std::move(state));
+    if(self)
+    {
+      QMetaObject::invokeMethod(self, [self, weak_node, script_index, id = node->id] {
+        const auto node = weak_node.lock();
+        if(!self || !node || self->node != node || node->script_index != script_index)
+          return;
+        for(auto* outlet : self->process().outlets())
+          if(auto out = qobject_cast<Gfx::TextureOutlet*>(outlet))
+            out->nodeId = id;
+      }, Qt::QueuedConnection);
+    }
   });
 
   SCORE_ASSERT(process().inlets().size() == inls.size());

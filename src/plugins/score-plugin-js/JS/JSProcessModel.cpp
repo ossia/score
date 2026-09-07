@@ -610,13 +610,6 @@ Process::ScriptChangeResult ProcessModel::setQmlData(const QByteArray& data, boo
   if(!isFile && !data.contains("import "))
     return res;
 
-  // When loading inline scripts, pre-create all cache files before loading any QML.
-  // Qt's QQmlTypeLoader caches directory listings on first access; if the UI cache file
-  // doesn't exist yet when the execution script triggers that scan, it gets flagged
-  // as "File name case mismatch" when loaded later.
-  if(!isFile && !this->m_program.ui.isEmpty())
-    ensureJSCacheFile(this->m_program.ui.toUtf8(), true);
-
   auto script = m_cache.getExecution(*this, data, isFile);
   if(!script)
     return res;

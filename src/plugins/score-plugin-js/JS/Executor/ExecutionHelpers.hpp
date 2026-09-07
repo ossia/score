@@ -1,29 +1,23 @@
 #pragma once
-#include <JS/Commands/EditScript.hpp>
-#include <JS/ConsolePanel.hpp>
 #include <JS/Qml/QmlObjects.hpp>
-#include <Library/LibrarySettings.hpp>
-
-#include <score/application/ApplicationContext.hpp>
-#include <score/application/GUIApplicationContext.hpp>
+#include <JS/Commands/EditScript.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
+#include <Library/LibrarySettings.hpp>
+#include <score/application/ApplicationContext.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 
 #include <ossia/detail/logger.hpp>
-
 #include <ossia-qt/invoke.hpp>
 #include <ossia-qt/qml_engine_functions.hpp>
+#include <JS/ConsolePanel.hpp>
 
 #include <QDir>
+#include <QFile>
 #include <QQmlComponent>
 #include <QQmlEngine>
-#include <QStandardPaths>
 #include <QUrl>
 
-#if __has_include(<boost/hash2/xxh3.hpp>)
-#include <boost/hash2/xxh3.hpp>
-#include <boost/algorithm/hex.hpp>
-#endif
 
 namespace JS
 {
@@ -35,139 +29,43 @@ inline void connectStateCommit(Script* script, ProcessModel* model)
   QObject::connect(
       script, &Script::commitState, model,
       [context = QPointer{model}](const QString& key, const QJSValue& value) {
-    auto converted = ossia::qt::value_from_js(value);
-    QMetaObject::invokeMethod(qApp, [context, key, value = std::move(converted)] {
-      if(!context)
-        return;
-      const auto& state = context->state();
-      if(auto it = state.find(key); it != state.end() && it->second == value)
-        return;
-      CommandDispatcher<> dispatcher{
-          score::IDocument::documentContext(*context).commandStack};
-      dispatcher.submit<UpdateStateElement>(*context, key, value);
-    }, Qt::QueuedConnection);
-  }, Qt::DirectConnection);
+        auto converted = ossia::qt::value_from_js(value);
+        QMetaObject::invokeMethod(
+            qApp, [context, key, value = std::move(converted)] {
+              if(!context)
+                return;
+              const auto& state = context->state();
+              if(auto it = state.find(key); it != state.end() && it->second == value)
+                return;
+              CommandDispatcher<> dispatcher{
+                  score::IDocument::documentContext(*context).commandStack};
+              dispatcher.submit<UpdateStateElement>(*context, key, value);
+            },
+            Qt::QueuedConnection);
+      },
+      Qt::DirectConnection);
 }
 
-static inline QString hashFileData(const QByteArray& str)
-{
-  QString hexName;
-#if __has_include(<boost/hash2/xxh3.hpp>)
-  boost::hash2::xxh3_128 hasher;
-  hasher.update(str.constData(), str.size());
-  const auto result = hasher.result();
-  std::string hexString;
-  boost::algorithm::hex(result.begin(), result.end(), std::back_inserter(hexString));
-
-  hexName.reserve(32);
-  hexName.push_back("-");
-  hexName.append(hexString.data());
-#endif
-  return hexName;
-}
-#include <QDir>
-#include <QFile>
-#include <QFileInfo>
-#include <QString>
-
-inline bool copyDirectoryRecursively(const QString& sourcePath, const QString& destPath)
-{
-  QDir sourceDir(sourcePath);
-  if(!sourceDir.exists())
-  {
-    return false;
-  }
-
-  QDir destDir(destPath);
-  // Create the destination directory if it doesn't exist
-  if(!destDir.exists() && !destDir.mkpath("."))
-  {
-    return false;
-  }
-
-  bool success = true;
-
-  // Get all files and directories, including hidden and system files, excluding "." and ".."
-  const QFileInfoList entries = sourceDir.entryInfoList(
-      QDir::NoDotAndDotDot | QDir::AllEntries | QDir::Hidden | QDir::System);
-
-  for(const QFileInfo& entryInfo : entries)
-  {
-    QString newDestPath = destDir.absoluteFilePath(entryInfo.fileName());
-
-    if(entryInfo.isDir())
-    {
-      // Recursively copy subdirectories
-      if(!copyDirectoryRecursively(entryInfo.absoluteFilePath(), newDestPath))
-      {
-        success = false;
-      }
-    }
-    else
-    {
-      // Overwrite existing files at the destination
-      if(QFile::exists(newDestPath))
-      {
-        QFile::remove(newDestPath);
-      }
-      // Copy the file
-      if(!QFile::copy(entryInfo.absoluteFilePath(), newDestPath))
-      {
-        success = false;
-      }
-    }
-  }
-
-  return success;
-}
-
-inline bool copyParentFolderContents(const QString& rootPath, const QString& dst)
-{
-  QFileInfo fileInfo(rootPath);
-
-  QString parentFolder = fileInfo.absolutePath();
-
-  return copyDirectoryRecursively(parentFolder, dst);
-}
-
-// Write str to a cache file on disk so that Qt's QML compilation cache can be used.
-// Returns the cache file path on success, empty string on failure.
-inline QString ensureJSCacheFile(const QByteArray& str, bool is_ui)
-{
-#if __has_include(<boost/hash2/xxh3.hpp>)
-  static const auto cache_path = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
-  QString path = cache_path + "/Script" + hashFileData(str) + (is_ui ? ".ui.qml" : ".qml");
-  QFile f{path};
-  if(f.open(QIODevice::ReadWrite))
-  {
-    if(str != f.readAll())
-    {
-      f.resize(0);
-      f.reset();
-      f.write(str);
-      f.flush();
-    }
-    f.close();
-    return path;
-  }
-#endif
-  return {};
-}
 
 inline void loadJSObjectFromString(
     const QString& rootPath, const QByteArray& str, QQmlComponent& comp, bool is_ui)
 {
-  auto path = ensureJSCacheFile(str, is_ui);
-  if(!path.isEmpty())
+  QString path = rootPath;
+  if(is_ui && path.endsWith(".qml"))
+    path.insert(path.size() - 4, ".ui");
+  const auto url = QUrl::fromLocalFile(path);
+  QFile original{path};
+  if(original.open(QIODevice::ReadOnly) && original.readAll() == str)
   {
-    static const auto cache_path = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
-    copyParentFolderContents(rootPath, cache_path);
-
-    comp.loadUrl(QUrl::fromLocalFile(path));
+    // Unmodified presets retain Qt's disk compilation cache and their own
+    // import directory. Never merge unrelated addon files in one cache folder.
+    comp.loadUrl(url);
   }
   else
   {
-    comp.setData(str, QUrl::fromLocalFile(rootPath));
+    // In-memory edits keep the original import base without creating files in
+    // a directory that QQmlTypeLoader may already have cached.
+    comp.setData(str, url);
   }
 }
 

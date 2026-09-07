@@ -23,6 +23,9 @@
 #include <JS/Qml/TextureSource.hpp>
 #include <JS/Qml/Utils.hpp>
 #include <JS/Qml/ValueTypes.Qt6.hpp>
+#if defined(SCORE_HAS_IMPORTED_UI)
+#include <JS/Qml/ImportedUi.hpp>
+#endif
 
 #include <score/plugins/FactorySetup.hpp>
 #include <score/plugins/InterfaceList.hpp>
@@ -98,6 +101,9 @@ score_plugin_js::score_plugin_js()
 #if defined(SCORE_HAS_GPU_JS)
   qmlRegisterType<JS::TextureInlet>("Score", 1, 0, "TextureInlet");
   qmlRegisterType<JS::TextureOutlet>("Score", 1, 0, "TextureOutlet");
+#endif
+#if defined(SCORE_HAS_IMPORTED_UI)
+  qmlRegisterType<JS::ImportedUi>("Score.ImportedUi", 1, 0, "ImportedUi");
 #endif
   qmlRegisterType<JS::MidiInlet>("Score", 1, 0, "MidiInlet");
   qmlRegisterType<JS::MidiOutlet>("Score", 1, 0, "MidiOutlet");

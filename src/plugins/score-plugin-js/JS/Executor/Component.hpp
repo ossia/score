@@ -25,6 +25,7 @@ class Component final
 public:
   Component(JS::ProcessModel& element, const Execution::Context& ctx, QObject* parent);
   ~Component() override;
+  void cleanup() override;
 
 private:
   void on_scriptChange();
