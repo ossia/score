@@ -1,4 +1,4 @@
-# L3 regression guards for the split/threedim hardening review (REVIEW-THREEDIM).
+# Regression guards for the split/threedim hardening work.
 #
 # The score_plugin_threedim symbols are hidden (default visibility), so the
 # execution tests COMPILE the specific engine .cpp under test directly into the
@@ -8,12 +8,12 @@
 # exported by score_plugin_gfx, so those targets link it.
 #
 # Shader-string / extension / leak-path findings are constant-text or failure-
-# path fixes; their honest GPU-free guard reads the SHIPPED engine source and
-# asserts the corrected text (THREEDIM_SRC_DIR).
+# path fixes; their GPU-free guard reads the SHIPPED engine source and asserts
+# the expected text (THREEDIM_SRC_DIR).
 #
-# Every target is its own executable so a crash-on-failure on the pre-fix engine
-# (the RED-proof, e.g. the OBJ OOB segfault) cannot perturb its neighbours —
-# mirroring the isolated gfx finding targets.
+# Every target is its own executable so a crash-on-failure (e.g. the OBJ OOB
+# segfault) cannot perturb its neighbours — mirroring the isolated gfx finding
+# targets.
 
 set(THREEDIM_DIR "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
 set(THREEDIM_MIKKT "${SCORE_ROOT_SOURCE_DIR}/3rdparty/mikktspace/mikktspace.c")
@@ -46,8 +46,8 @@ endfunction()
 # only constructs RenderLists for score::gfx graph nodes (ISF/CSF/BackgroundNode)
 # via Graph::createAllRenderLists — there is no standalone path to build one for
 # an avnd 3D CPU-filter node, and a bare RenderList(output,state) is unusable
-# until that Graph init runs. Proving the actual defect (all 6 faces come out
-# identical pre-fix) further needs a 6-face cubemap render + per-face readback.
+# until that Graph init runs. Proving the defect (all 6 faces coming out
+# identical) further needs a 6-face cubemap render + per-face readback.
 # That is real render infrastructure, not a unit seam, so #11 is left as an
 # honest gap rather than a faked pass. The sibling clamp fix (#3) IS covered
 # because createCubemapTexture() needs only a QRhi.
@@ -109,6 +109,15 @@ score_add_test(test_threedim_instancer_clamp
   SOURCES InstancerClamp.cpp "${THREEDIM_DIR}/Instancer.cpp"
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_instancer_clamp)
+
+# Scene-object contracts: live buffer views, a named attribute, instancer
+# subview and packed points, a reflected prototype, and camera projection.
+# Pure logic, no GPU: the nodes are compiled in and no QRhi handle is
+# dereferenced.
+score_add_test(test_threedim_scene_object_contracts
+  SOURCES SceneObjectContracts.cpp "${THREEDIM_DIR}/Instancer.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_scene_object_contracts)
 
 # #4 CRASH — Instancer must rebuild when ANY Points buffer handle changes (a
 # reallocated secondary attribute buffer left a dangling handle -> GPU UAF).
@@ -394,7 +403,7 @@ score_add_test(test_threedim_texture_inject_extract
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_texture_inject_extract)
 
-# P2-13: the four payload kinds SceneGPUState.cpp:617-618 admits it does not
+# The four payload kinds SceneGPUState.cpp:617-618 admits it does not
 # render (gaussian_splat, voxel_field, point_cloud, volume) survive
 # merge_scenes + the SceneGraphFilter payload rebuild, and contribute ZERO
 # entries to every FlatScene counter. Compiles SceneGraphFilter.cpp (the
@@ -411,7 +420,7 @@ threedim_test_includes(test_threedim_scene_payload_transport)
 target_compile_definitions(test_threedim_scene_payload_transport PRIVATE
   GFX_SRC_DIR="${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx/Gfx")
 
-# P2-11 / P2-12: the two scene approximations the product admits to in
+# The two scene approximations the product admits to in
 # comments -- area lights collapsed to points, and SceneFilterNode mode 2
 # behaving like mode 1 -- asserted as the CORRECT behaviour so they flip to a
 # plain pass the day they are implemented.
