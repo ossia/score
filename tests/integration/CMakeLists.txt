@@ -13,21 +13,20 @@ score_add_test(test_integration_roundtrip
   SOURCES DocumentRoundtripTest.cpp
   APP)
 
-# A16: a process whose factory is not installed is dropped on load, with its
+# A process whose factory is not installed is dropped on load, with its
 # cables, silently. Asserting "the document opened" cannot see that, so this one
-# asserts on the content that came back. EXPECTED RED on this branch: our own
-# implementation was reverted in favour of PR #2179, which is not merged here.
-# See the file header.
+# asserts on the content that came back. EXPECTED RED on this branch: the fix
+# lives in PR #2179, which is not merged here. See the file header.
 score_add_test(test_integration_missing_process_roundtrip
   SOURCES MissingProcessRoundtripTest.cpp
   GUI
   PLUGINS score_plugin_scenario score_plugin_automation score_plugin_mapping score_lib_process)
 
-# A9: an avnd raw-file port pointed at a path that does not exist used to
-# produce nothing anywhere -- no load, no callback, no message. The diagnostic
-# lives in oscr::loadRawfile because that is the only layer that sees the
-# failure; the object's process() is never reached. Needs media (AudioDecoder,
-# pulled in by Crousti/File.hpp) and avnd.
+# An avnd raw-file port pointed at a path that does not exist must be
+# reported -- otherwise nothing is emitted anywhere: no load, no callback, no
+# message. The diagnostic lives in oscr::loadRawfile because that is the only
+# layer that sees the failure; the object's process() is never reached. Needs
+# media (AudioDecoder, pulled in by Crousti/File.hpp) and avnd.
 if(TARGET score_plugin_media AND TARGET score_plugin_avnd)
   score_add_test(test_integration_avnd_file_port_diagnostic
     SOURCES AvndFilePortDiagnostic.cpp
@@ -144,28 +143,17 @@ score_add_test(test_integration_js_cpu_node
   GUI
   PLUGINS score_plugin_scenario score_lib_process score_plugin_js score_plugin_library)
 
-# AudioOutlet::setChannel handed something that is not an array USED TO convert
-# a NaN to int and hand the result to QVector::resize(), aborting the process --
-# from user content, since a JS script arrives in a .score like anything else.
-# The argument is validated now: on Linux this runs to the end and exits 0.
+# AudioOutlet::setChannel validates its argument: handed something that is not
+# an array it must not convert a NaN to int and hand the result to
+# QVector::resize(), which aborts the process -- reachable from user content,
+# since a JS script arrives in a .score like anything else. The case runs to the
+# end and exits 0.
 #
-# It keeps its own executable and its SIGABRT handler. Both were written for the
-# abort, and neither is load-bearing today, but they are what make the case
-# report properly if the validation ever regresses -- ctest reports a signal
+# It keeps its own executable and its SIGABRT handler: they are what make the
+# case report properly if the validation regresses -- ctest reports a signal
 # death as "Subprocess aborted" without inverting it, and Catch2's
-# [!shouldfail] never gets to report at all.
-#
-# NOTE: earlier prose here and in JsSetChannelTest.cpp described a WILL_FAIL
-# registration and called the entry going red "the signal to drop WILL_FAIL".
-# No WILL_FAIL was ever set on this test, so that signal could not fire; the
-# defect was fixed and the bookkeeping was never done. Do not re-add one -- the
-# test passes, and a green test is what we want here.
-#
-# It timed out on Windows in an earlier sweep. That was NOT a defect of its own:
-# the run had score's sticky failsafe bit set, and with SCORE_DISABLE_FAILSAFE
-# the test passes there. Measured by diffing the Vulkan serial failure sets --
-# 21 failures with failsafe active, 20 without, and this test is the single
-# difference.
+# [!shouldfail] never gets to report at all. Do not register a WILL_FAIL here;
+# the test passes, and a green test is what we want.
 score_add_test(test_integration_js_setchannel
   SOURCES JsSetChannelTest.cpp
   GUI
@@ -185,26 +173,22 @@ score_add_test(test_integration_js_process_ui
 # created. Its own executable, because the failure takes the whole binary with
 # it.
 #
-# THE VERDICT IS ONLY RELIABLE UNDER ASan, and that is why the property is
-# conditional. Off ASan the defect still fires, and for exactly the documented
-# reason -- the freed QString's data pointer is garbage, so Qt's own
-# Q_ASSERT("p") in qarraydatapointer.h:111 goes off inside
-# Library::Settings::Model::getDefaultLibraryPath() <- JS::ProcessModel::
-# rootPath() <- JS::ComponentCache::getExecution(), and SafeQApplication::
-# DebugOutput raises SIGTRAP. But it fires only when the freed block happens to
-# hold a value that trips the assert. Measured on a plain Debug build here, ten
-# consecutive runs: 133 0 0 133 133 133 133 133 133 133. Eight red, two green,
-# same binary, same environment.
+# THE VERDICT IS ONLY RELIABLE UNDER ASan, hence the conditional property. Off
+# ASan the defect still fires, for the documented reason -- the freed QString's
+# data pointer is garbage, so Qt's own Q_ASSERT("p") in qarraydatapointer.h:111
+# goes off inside Library::Settings::Model::getDefaultLibraryPath() <-
+# JS::ProcessModel::rootPath() <- JS::ComponentCache::getExecution(), and
+# SafeQApplication::DebugOutput raises SIGTRAP -- but only when the freed block
+# happens to hold a value that trips the assert. Ten consecutive runs on a plain
+# Debug build: 133 0 0 133 133 133 133 133 133 133, eight red and two green,
+# same binary, same environment. Neither verdict can be trusted there, so the
+# entry is DISABLED: ctest lists it and reports it as disabled, which is
+# visible. Under ASan the read is caught on the FIRST access rather than only
+# when the garbage is unlucky, so the abort is deterministic and WILL_FAIL is
+# exact.
 #
-# So off ASan neither verdict can be trusted: WILL_FAIL turns the two green runs
-# into ctest failures, and no WILL_FAIL turns the eight red ones into failures.
-# DISABLED is the honest state -- ctest lists it and reports it as disabled,
-# which is visible, rather than dropping it silently or inventing a result. Under
-# ASan the read is caught on the FIRST access rather than only when the garbage
-# is unlucky, so the abort is deterministic and WILL_FAIL is exact.
-#
-# Registered with the CORRECT expectation, so under ASan, fixing rootPath()
-# turns this entry red: the signal to drop the WILL_FAIL entirely.
+# Registered with the CORRECT expectation, so under ASan fixing rootPath() turns
+# this entry red: the signal to drop the WILL_FAIL entirely.
 score_add_test(test_integration_js_rootpath_static
   SOURCES JsRootPathStaticTest.cpp
   GUI
@@ -267,8 +251,8 @@ score_add_test(test_integration_scenario_create
   PLUGINS score_plugin_scenario score_lib_process)
 
 # Qt-vs-by-value ownership of ScenarioDocumentView's members: the widget must
-# not be the Qt owner of anything the view holds by value (6227fbd07f), with
-# the deferred remainder pinned expected-red.
+# not be the Qt owner of anything the view holds by value, with the deferred
+# remainder pinned expected-red.
 score_add_test(test_integration_scenario_view_ownership
   SOURCES ScenarioViewOwnershipTest.cpp
   GUI
@@ -384,8 +368,8 @@ if(TARGET score AND NOT EMSCRIPTEN)
     TIMEOUT 900 RUN_SERIAL TRUE)
 endif()
 
-# Qt.vector3d() and the other QML value type constructors, which returned a
-# silent zero in every headless run because nothing had imported QtQuick.
+# Qt.vector3d() and the other QML value type constructors, which return a silent
+# zero in a headless run unless something has imported QtQuick.
 if(TARGET score AND NOT EMSCRIPTEN)
   score_add_test(test_integration_js_value_types
     SOURCES JsValueTypesTest.cpp)
@@ -437,9 +421,6 @@ if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
   # Same treatment for Shmdata and Pipewire, mirroring score-plugin-gfx's own
   # conditions: if(TARGET shmdata), and
   # if(NOT EMSCRIPTEN AND NOT APPLE AND NOT WIN32 AND TARGET pipewire::pipewire).
-  # Both sat in the test's unconditional list and were asserted PRESENT
-  # everywhere, so the case failed on macOS and on all four Windows backends
-  # while passing on Linux -- exactly the sh4lt story above.
   if(TARGET shmdata)
     target_compile_definitions(test_integration_gfx_protocol_settings
       PRIVATE SCORE_TEST_HAS_SHMDATA)
@@ -584,10 +565,8 @@ if(SCORE_HAS_SHELL_HARNESS)
   # a different GPU or rasteriser fails as WRONG-BACKEND. Without that assertion a
   # run under QT_QPA_PLATFORM=offscreen falls back to the Null RHI backend and
   # still emits a plausible, perfectly reproducible, WRONG picture.
-  # One ctest entry per (class, case) rather than per class. The script already
-  # takes --cases, and a case is ~20 s: as a single entry per class the group ran
-  # 188-423 s each, and one bad case reported as one opaque red covering sixteen.
-  # Split, a failure names the case it is.
+  # One ctest entry per (class, case) rather than per class: a case is ~20 s, and
+  # a failure names the case it is instead of covering sixteen of them.
   foreach(_gr_backend nvidia nvidia-vulkan llvmpipe vulkan-lavapipe)
     string(REPLACE "-" "_" _gr_name "${_gr_backend}")
     set(_gr_cases_file "${CMAKE_CURRENT_SOURCE_DIR}/golden-render/cases-${_gr_backend}.txt")
@@ -659,8 +638,7 @@ endif()
 # exclude with `ctest -LE gui` on displayless machines. Works under static
 # plugins too: score_add_test's GUI path links the whole SCORE_PLUGINS_LIST
 # there (cmake/ScoreTests.cmake), which is the same remedy EncoderTester gets
-# from score_link_plugins_for_static -- the old gate here mis-cited
-# EncoderTester as a reason to skip when it is the precedent for the fix.
+# from score_link_plugins_for_static.
 if(TARGET score_plugin_gfx)
   score_add_test(test_integration_encoder_matrix
     SOURCES EncoderMatrixTest.cpp
@@ -688,7 +666,7 @@ if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
     TIMEOUT 1800 RUN_SERIAL TRUE LABELS "gui")
 endif()
 
-# P1-18: a gfx process inside a sub-interval of the document's own Scenario.1
+# A gfx process inside a sub-interval of the document's own Scenario.1
 # starts and stops cleanly during playback: three-phase pixel oracle (baseline
 # "renders nothing" / magenta / EXACTLY back to baseline) plus the
 # SCORE_GFX_TRACE GFX-EDGES half proving both transitions were consumed
@@ -706,7 +684,7 @@ if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
     TIMEOUT 600 RUN_SERIAL TRUE LABELS "gui")
 endif()
 
-# P1-2: a light added or removed mid-render changes the frame, and only that.
+# A light added or removed mid-render changes the frame, and only that.
 # Adds the Light process and its cable live during playback, then removes it,
 # and requires the frame to return byte-for-byte; the SCORE_GFX_TRACE half
 # proves both transitions were consumed incrementally.
@@ -721,7 +699,7 @@ if(TARGET score AND TARGET score_plugin_gfx AND TARGET score_plugin_threedim
     TIMEOUT 600 RUN_SERIAL TRUE LABELS "gui")
 endif()
 
-# P1-1: the T-A scene assembly chain renders a lit model -- closed-form
+# The T-A scene assembly chain renders a lit model -- closed-form
 # bright/dark inequality across the lit and unlit faces, difference oracle
 # light-on vs light-off, exact clear colour in the background, non-uniform
 # frame. Drives the application binary; SKIPs without a display, the asset or
@@ -738,7 +716,7 @@ if(TARGET score AND TARGET score_plugin_gfx AND TARGET score_plugin_threedim
     TIMEOUT 900 RUN_SERIAL TRUE LABELS "gui")
 endif()
 
-# P1-12: a decoded video frame textures 3D geometry -- the frame index visible
+# A decoded video frame textures 3D geometry -- the frame index visible
 # ON the geometry advances 1:1 with the decoder, and a still frame is exact
 # where the geometry is axis-aligned and unscaled. Drives the application
 # binary; SKIPs without a display, libav or the threedim processes.
@@ -804,17 +782,11 @@ endif()
 # while frames flow -- process add/remove storms, cable storms, undo/redo
 # storms, transport storms, and window resize/full-screen storms.
 #
-# This suite existed in the tree but could not run: live-edit-sweep.sh hardcoded
-# SRCROOT to a worktree that no longer exists, every scenario eval'd common.js
-# through an absolute path into that same dead tree, and common.js pointed at a
-# shader corpus under ~/Documents. Nothing registered it with ctest either, so
-# none of that was visible. Paths are derived now and the corpus is the in-repo
-# one.
+# Every path is derived from the tree, and the shader corpus is the in-repo one.
 #
 # The sweep runs on a real X server (Xvfb, else Xephyr) with QT_QPA_PLATFORM=xcb,
-# and grabs through the window's own swap chain rather than the desktop, so the
-# earlier choice between "vacuous green under the offscreen QPA" and "green by
-# screenshotting whatever is in front of the window" no longer applies.
+# and grabs through the window's own swap chain rather than the desktop, so a
+# grab shows what the scene rendered and not whatever is in front of the window.
 #
 # window-storm additionally drives the Window device's parameter tree while the
 # scene plays; it is the only entry here that covers GfxContext's clock and
@@ -828,16 +800,10 @@ endif()
 # failure. ndi-storm needs no external sender: score sends and receives its own
 # stream over localhost, covering both NDI nodes at once.
 #
-# Both were recorded as EXPECTED RED on one shared finding (4b60762fe5): no
-# device pixels reached the window, both rendering the byte-identical
-# disconnected-input fallback -- 24% of the frame, the rest black. Both now pass
-# on a build that has the devices: /dev/video* present for camera-storm, and
-# score-addon-ndi actually configured for ndi-storm. The red was measured on a
-# build with SCORE_DISABLED_PLUGINS=score-addon-ndi, where the NDI sender and
-# receiver do not exist at all -- which produces exactly that fallback and is
-# indistinguishable from it in the frame. Keep the coverage gate as it is: it is
-# what tells a real device frame from the fallback, and it is the reason the
-# absent-plugin case was visible rather than passing as "non-blank".
+# Keep the coverage gate as it is. A build where the device plugin is absent
+# renders the disconnected-input fallback -- 24% of the frame, the rest black --
+# and the gate is what tells a real device frame from that fallback rather than
+# passing it as "non-blank".
 if(SCORE_HAS_SHELL_HARNESS)
   foreach(_le_scen baseline add-remove-storm cable-storm undo-redo-during-play
                    transport-storm mixed-chaos window-storm scene-storm
@@ -862,19 +828,23 @@ endif()
 # Creates+destroys 4 gfx processes/cycle during playback via the JS harness and
 # asserts exit 0, ASAN-clean, and stable RSS/fd/process counts.
 #
-# Re-enabled: the render-clock teardown UAF that disabled this is fixed --
-# destroyOutput now unregisters the output from every TimerClock before its
-# BackgroundNode is freed (GfxContext.cpp). Measured 2026-08-28 at 150 cycles:
-# 150/150 executed, zero AddressSanitizer reports, zero teardown errors.
+# Criterion 7, post-warmup RSS slope, budgets 40 KB/cycle. Do not raise the
+# budget -- it is doing its job.
 #
-# EXPECTED-RED, on a DIFFERENT and real defect: criterion 7, post-warmup RSS
-# slope, measures 75.8 KB/cycle against a 40 KB budget. It is monotonic and
-# near-linear across the whole run (1339 MB at cycle 20 to 1350 MB at cycle 140,
-# ~1530 KB per 20 cycles), so it is a steady leak of roughly 19 KB per gfx
-# process created and destroyed, not allocator noise. The summary line prints a
-# first-to-last range that can read as a decrease; the per-cycle samples in
-# samples.csv are what to trust. Do NOT raise SLOPE_KB_PER_CYCLE to make this
-# green -- that is the one thing that would hide the defect it now pins.
+# EXPECTED-RED now on criterion 5, the final grab, and for a fully traced
+# reason that is NOT a leak: grabTo drives its readback with a loop that calls
+# QCoreApplication::processEvents(). At 150 cycles the document is heavy enough
+# that a frame costs ~0.25 s, so the 60-iteration loop spans ~15 s -- exactly
+# the harness's patience -- and the pump therefore dispatches the harness's own
+# queued Score.stop() *inside* the grab. Stopping execution destroys the
+# persistent ISF's executor node, which unregisters its gfx node; the Window
+# loses its only producer, RenderList::renderers falls 2 -> 1,
+# ScreenNode::onRendererChange gates on size() > 1 and sets canRender = false,
+# and the frame the grab is waiting for never arrives. At 3 cycles the readback
+# lands on iteration 0 and the test passes. The defect is that a capture
+# routine which re-enters the event loop can be dismantled by what it
+# dispatches; the s_grabbing guard in Gfx/WindowDevice.cpp stops recursion but
+# not teardown.
 # Deterministic-headless -> CI-able. Self-serializes on /tmp/score-harness.lock.
 if(SCORE_HAS_SHELL_HARNESS)
   add_test(NAME test_gfx_soak
@@ -906,12 +876,12 @@ endif()
 
 
 
-# TEXT node render validation (depends on the scene render path). One
-# llvmpipe app run under an Xvfb the harness starts itself (falling back to
-# $DISPLAY, SKIPping with neither): under QT_QPA_PLATFORM=offscreen there is no
-# GL at all and QRhi silently falls back to the Null backend, whose Qt::yellow
-# texture fill satisfied most of the value assertions below. The renderer QRhi
-# reports is now asserted to be llvmpipe and a Null backend fails the run.
+# TEXT node render validation (depends on the scene render path). One llvmpipe
+# app run under an Xvfb the harness starts itself (falling back to $DISPLAY,
+# SKIPping with neither). The renderer QRhi reports is asserted to be llvmpipe
+# and a Null backend fails the run: under QT_QPA_PLATFORM=offscreen there is no
+# GL at all, QRhi falls back to Null, and its Qt::yellow texture fill satisfies
+# most of the value assertions below.
 # Grabs the
 # Gfx::Text process with DEFAULT controls (off-screen-default visibility
 # regression), then live-edits text/font/size/position/scale/color over OSC
@@ -919,7 +889,7 @@ endif()
 # ordering across sizes, centroid movement, channel dominance, blank empty
 # string, unicode/CJK/tofu/2000-char edge cases) + golden refs for the
 # stable subset (text-render/refs, backend-independent, compare.py profile
-# shared; regenerate with text-render.sh --update-refs — double-render
+# shared; regenerate with text-render.sh --update-refs -- double-render
 # self-consistency).
 # Self-serializes on /tmp/score-harness.lock; SKIPs (77) without deps.
 if(SCORE_HAS_SHELL_HARNESS)
@@ -939,7 +909,7 @@ endif()
 
 
 # Offscreen-teardown regression: a full-app offscreen
-# render followed by /stop + /exit must exit 0 (was SIGSEGV/UAF at teardown).
+# render followed by /stop + /exit must exit 0, not segfault on a freed node.
 # The script serializes itself on /tmp/score-harness.lock (global OSC port).
 if(SCORE_HAS_SHELL_HARNESS)
   add_test(NAME test_regression_offscreen_teardown
@@ -959,7 +929,7 @@ endif()
 # (ffprobe-verified pix_fmt), played through VideoDecoderTester with
 # --expect/--psnr, and the rendered RGBA is asserted against ffmpeg's own
 # decode of the same clip (per-format PSNR bound), plus truncated/garbage
-# fuzz clips asserting graceful rejection. Needs an X display (llvmpipe over
+# fuzz clips asserting they are rejected. Needs an X display (llvmpipe over
 # GLX — the Qt 6.4 offscreen QPA has no headless GL/Vulkan): labeled gui,
 # skips (77) without ffmpeg/tester/display. Each tester run self-serializes
 # on /tmp/score-harness.lock.
