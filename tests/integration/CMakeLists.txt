@@ -867,14 +867,26 @@ endif()
 # BackgroundNode is freed (GfxContext.cpp). Measured 2026-08-28 at 150 cycles:
 # 150/150 executed, zero AddressSanitizer reports, zero teardown errors.
 #
-# EXPECTED-RED, on a DIFFERENT and real defect: criterion 7, post-warmup RSS
-# slope, measures 75.8 KB/cycle against a 40 KB budget. It is monotonic and
-# near-linear across the whole run (1339 MB at cycle 20 to 1350 MB at cycle 140,
-# ~1530 KB per 20 cycles), so it is a steady leak of roughly 19 KB per gfx
-# process created and destroyed, not allocator noise. The summary line prints a
-# first-to-last range that can read as a decrease; the per-cycle samples in
-# samples.csv are what to trust. Do NOT raise SLOPE_KB_PER_CYCLE to make this
-# green -- that is the one thing that would hide the defect it now pins.
+# The ~19 KB-per-gfx-process leak this test used to pin is FIXED. Criterion 7,
+# post-warmup RSS slope, measured 75.8 KB/cycle against the 40 KB budget when
+# that note was written; it now measures 0.0-3.5 KB/cycle over nine runs, with
+# RSS flat at 652-655 MB across 150 cycles. The budget stays at 40 -- it is
+# doing its job and must not be touched.
+#
+# EXPECTED-RED now on criterion 5, the final grab, and for a fully traced
+# reason that is NOT a leak: grabTo drives its readback with a loop that calls
+# QCoreApplication::processEvents(). At 150 cycles the document is heavy enough
+# that a frame costs ~0.25 s, so the 60-iteration loop spans ~15 s -- exactly
+# the harness's patience -- and the pump therefore dispatches the harness's own
+# queued Score.stop() *inside* the grab. Stopping execution destroys the
+# persistent ISF's executor node, which unregisters its gfx node; the Window
+# loses its only producer, RenderList::renderers falls 2 -> 1,
+# ScreenNode::onRendererChange gates on size() > 1 and sets canRender = false,
+# and the frame the grab is waiting for never arrives. At 3 cycles the readback
+# lands on iteration 0 and the test passes. The defect is that a capture
+# routine which re-enters the event loop can be dismantled by what it
+# dispatches; the s_grabbing guard below stops recursion but not teardown.
+# See TASK-LEDGER.md O72-O81 for the measurements.
 # Deterministic-headless -> CI-able. Self-serializes on /tmp/score-harness.lock.
 if(SCORE_HAS_SHELL_HARNESS)
   add_test(NAME test_gfx_soak
