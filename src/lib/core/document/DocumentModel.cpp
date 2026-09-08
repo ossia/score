@@ -28,14 +28,21 @@ DocumentModel::DocumentModel(
 
 DocumentModel::~DocumentModel()
 {
-  auto p = m_pluginModels;
-
   // We remove the plug-ins first, in reverse order of creation
   // (to maintain consistency with eg. execution plugin having to disappear before explorer plugin)
+  //
+  // The pointer leaves the vector *before* it is deleted. A plug-in destructor
+  // can reach DocumentContext::findPlugin() / plugin<T>(), both of which
+  // dynamic_cast every entry of this very vector; an entry that has already
+  // been deleted but is still listed makes that a read through a destroyed
+  // vtable. The window is one destructor wide and the freed page is usually
+  // still mapped and still holds the old pointer, so the fault only shows once
+  // the allocator reuses the block.
   while(!m_pluginModels.empty())
   {
-    delete m_pluginModels.back();
+    auto* plug = m_pluginModels.back();
     m_pluginModels.pop_back();
+    delete plug;
   }
   delete m_model;
 }
