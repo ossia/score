@@ -49,10 +49,16 @@ LibraryHandler::previewWidget(const QString& path, QWidget* parent) const noexce
 }
 
 QWidget* LibraryHandler::previewWidget(
-    const Process::Preset& path, QWidget* parent) const noexcept
+    const Process::Preset& preset, QWidget* parent) const noexcept
 {
+  // See Gfx::Filter::LibraryHandler::previewWidget: the library takes the
+  // first widget any interface hands it, so this one has to say no to presets
+  // that are not its own.
+  if(preset.key.key != Metadata<ConcreteKey_k, VSA::Model>::get())
+    return nullptr;
+
   if(!qEnvironmentVariableIsSet("SCORE_DISABLE_SHADER_PREVIEW"))
-    return new ShaderPreviewWidget{path, parent};
+    return new ShaderPreviewWidget{preset, parent};
   else
     return nullptr;
 }
