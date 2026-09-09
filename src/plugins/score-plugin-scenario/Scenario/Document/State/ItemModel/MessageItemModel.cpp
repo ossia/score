@@ -254,10 +254,11 @@ bool MessageItemModel::dropMimeData(
 
     auto cmd = new Command::AddMessagesToState{stateModel, std::move(ml)};
 
+    // No reset around this: applying the command assigns a new tree to this
+    // model, and that assignment resets it. Wrapping it in a second pair made
+    // Qt warn and sent the views two overlapping resets for one edit.
     CommandDispatcher<> disp(score::IDocument::documentContext(stateModel).commandStack);
-    beginResetModel();
     disp.submit(cmd);
-    endResetModel();
   }
   else if(data->hasUrls())
   {
@@ -337,9 +338,7 @@ bool MessageItemModel::setData(
 
         CommandDispatcher<> disp(
             score::IDocument::documentContext(stateModel).commandStack);
-        beginResetModel();
         disp.submit(cmd);
-        endResetModel();
         return true;
       }
 
@@ -362,9 +361,7 @@ bool MessageItemModel::setData(
 
         CommandDispatcher<> disp(
             score::IDocument::documentContext(stateModel).commandStack);
-        beginResetModel();
         disp.submit(cmd);
-        endResetModel();
         return true;
       }
       default:
