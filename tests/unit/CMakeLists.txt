@@ -68,6 +68,14 @@ score_add_test(test_unit_state_message_edit
   APP
   PLUGINS score_plugin_scenario)
 
+# The PipeWire video input panel: a picker over the live nodes.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_pipewire_settings_widget
+    SOURCES PipewireSettingsWidgetTest.cpp
+    APP
+    PLUGINS score_plugin_gfx score_lib_device)
+endif()
+
 # The waveform a soundfile control draws for a file that is already decoded.
 if(TARGET score_plugin_media)
   score_add_test(test_unit_waveform_button
