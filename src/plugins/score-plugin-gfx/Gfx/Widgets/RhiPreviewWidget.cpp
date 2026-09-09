@@ -132,12 +132,16 @@ void RhiPreviewWidget::attach()
         return;
       }
 
-      // register_node (not register_preview_node) so that GfxContext's
-      // recomputeTimers picks up BackgroundNode::configuration().
+      // register_preview_node, not register_node: an output arriving through
+      // the generic path makes GfxContext rebuild EVERY render list, so the
+      // window that was already rendering blinks for a frame each time an
+      // inspector opens or closes. The preview path brings this output up on
+      // its own and leaves the others running; it recomputes the timers too,
+      // so GfxContext still picks up BackgroundNode::configuration().
       // manualRenderingRate and drives render() automatically — the
       // BackgroundNode does its own offscreen frame + readback there.
       // We just trigger update() on the widget timer to repaint.
-      m_screenNodeId = m_ctx->register_node(
+      m_screenNodeId = m_ctx->register_preview_node(
           std::unique_ptr<score::gfx::Node>{node.release()});
       if(m_screenNodeId == score::gfx::invalid_node_index)
       {
@@ -197,7 +201,10 @@ void RhiPreviewWidget::detach()
               EdgeSpec{m_producer, {m_screenNodeId, 0}});
           m_edgeConnected = false;
         }
-        m_ctx->unregister_node(m_screenNodeId);
+        // Matches register_preview_node above: the generic removal makes
+        // GfxContext rebuild every render list when the node is an output,
+        // which is the same blink, on the way out.
+        m_ctx->unregister_preview_node(m_screenNodeId);
       }
       m_screenNodeId = score::gfx::invalid_node_index;
       // GfxContext owns the node lifetime via its command queue; we
