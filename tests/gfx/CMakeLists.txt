@@ -182,6 +182,11 @@ score_add_gfx_test(execmodel GfxExecutionModel.cpp)
 # every backend. Green on OpenGL and Vulkan.
 score_add_gfx_test(orientation GfxOrientation.cpp)
 
+# The multi-window soft-edge blend ramp: the pixels past its own edge stay
+# dark. Calling pow() on the negative base an extrapolated edge coordinate
+# produces is undefined, and the drivers that answer NaN lit them fully.
+score_add_gfx_test(soft_edge_blend SoftEdgeBlend.cpp)
+
 # MRT correctness against a closed-form pattern: GfxOrientation only reads
 # attachment 0 of a shader whose ramp is constant along X, so the horizontal axis,
 # the remaining attachments and per-attachment identity are all unpinned there.
