@@ -169,12 +169,28 @@ void QGraphicsWaveformButton::setFile(const QString& s)
   if(m_file)
     m_file->on_finishedDecoding
         .disconnect<&QGraphicsWaveformButton::on_finishedDecoding>(*this);
+
+  Media::Sound::QImagePool::instance().giveBack(m_images);
+  m_images.clear();
+
   m_string = std::move(s);
   m_file = Media::AudioFileManager::instance().get(m_string, 0);
   if(!m_file)
+  {
+    update();
     return;
+  }
 
   m_file->on_finishedDecoding.connect<&QGraphicsWaveformButton::on_finishedDecoding>(
       *this);
+
+  // The file may be decoded already -- the manager caches it, and on loading a
+  // document the same sound is often shared with a sound process that pulled it
+  // in first. Waiting for a signal that has already been emitted is how the
+  // waveform stayed blank until the file was picked again.
+  if(m_file->finishedDecoding())
+    on_finishedDecoding();
+  else
+    update();
 }
 }

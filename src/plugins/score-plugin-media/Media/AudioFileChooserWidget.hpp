@@ -32,6 +32,9 @@ public:
   void bang();
 
   const QString& text() const noexcept { return m_string; }
+  //! Whether there is a waveform to draw, as opposed to the "drop a file here"
+  //! placeholder.
+  bool hasWaveform() const noexcept { return !m_images.empty(); }
   void setFile(const QString& s);
   QRectF boundingRect() const override;
 
