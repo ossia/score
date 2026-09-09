@@ -215,6 +215,16 @@ const State::Unit& HSVSlider::unit() const noexcept
   return u;
 }
 
+void HSVSlider::setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept
+{
+  // The unit, not just the value type: it is what makes an address declared
+  // color.rgb (or hsv, or any other colour unit) arrive here as the rgba this
+  // control reads. Without it value_port::effective_type() is empty and
+  // adapt_value() has nothing to convert towards.
+  auto& port = **safe_cast<ossia::value_inlet*>(&inl);
+  port.type = unit().get();
+}
+
 FloatSlider::FloatSlider(
     float min, float max, float init, const QString& name, Id<Port> id, QObject* parent)
     : ControlInlet{name, id, parent}
