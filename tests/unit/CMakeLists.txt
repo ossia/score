@@ -68,6 +68,13 @@ score_add_test(test_unit_state_message_edit
   APP
   PLUGINS score_plugin_scenario)
 
+# The preview widget the library shows beside a preset: only the handler that
+# owns the process answers.
+score_add_test(test_unit_library_preset_preview
+  SOURCES LibraryPresetPreviewTest.cpp
+  APP
+  PLUGINS score_plugin_library score_lib_process)
+
 # The Point2D View's axis mapping: an inverted range is a range.
 if(EXISTS "${SCORE_AVND_SOURCE_DIR}/../../../3rdparty/avendish/examples/Advanced/UI/2DView.hpp")
   score_add_test(test_unit_point2d_view

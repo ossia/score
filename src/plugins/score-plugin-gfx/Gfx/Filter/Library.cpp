@@ -129,10 +129,16 @@ LibraryHandler::previewWidget(const QString& path, QWidget* parent) const noexce
 }
 
 QWidget* LibraryHandler::previewWidget(
-    const Process::Preset& path, QWidget* parent) const noexcept
+    const Process::Preset& preset, QWidget* parent) const noexcept
 {
+  // The library asks every interface in turn and takes the first widget it is
+  // handed, so a preset of some other process used to get a shader preview --
+  // an empty black one -- from here.
+  if(preset.key.key != Metadata<ConcreteKey_k, Filter::Model>::get())
+    return nullptr;
+
   if(!qEnvironmentVariableIsSet("SCORE_DISABLE_SHADER_PREVIEW"))
-    return new ShaderPreviewWidget{path, parent};
+    return new ShaderPreviewWidget{preset, parent};
   else
     return nullptr;
 }
