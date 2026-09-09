@@ -125,6 +125,19 @@ WindowSettingsWidget::WindowSettingsWidget(QWidget* parent)
         m_canvas->setSnapEnabled(checked);
       });
 
+      auto* borderCheck = new QCheckBox;
+      borderCheck->setChecked(true);
+      borderCheck->setToolTip(
+          tr("Keep the output quads inside the canvas.\n"
+             "Off: they may be dragged before (0,0) and past (1,1)."));
+      globalLayout->addRow(tr("Lock to border"), borderCheck);
+
+      // Only the source canvas: (0,0)-(1,1) is its space. The desktop canvas
+      // has no border to lock to.
+      connect(borderCheck, &QCheckBox::toggled, this, [this](bool checked) {
+        m_canvas->setLockToBorderEnabled(checked);
+      });
+
       auto* resetWarpBtn = new QPushButton(tr("Reset Warp"));
       globalLayout->addRow(resetWarpBtn);
       connect(resetWarpBtn, &QPushButton::clicked, this, [this] {
@@ -189,7 +202,8 @@ WindowSettingsWidget::WindowSettingsWidget(QWidget* parent)
           double srcY = r.y() / m_canvas->canvasHeight();
           double srcW = r.width() / m_canvas->canvasWidth();
           double srcH = r.height() / m_canvas->canvasHeight();
-          newest->windowPosition = QPoint(int(srcX * inW), int(srcY * inH));
+          newest->windowPosition = windowPositionForSource(QPoint(
+              int(srcX * inW), int(srcY * inH)));
           newest->windowSize
               = QSize(qMax(1, int(srcW * inW)), qMax(1, int(srcH * inH)));
 
@@ -230,12 +244,12 @@ WindowSettingsWidget::WindowSettingsWidget(QWidget* parent)
 
       m_srcX = new QDoubleSpinBox;
       m_srcX->setRange(0.0, 1.0);
-      m_srcX->setSingleStep(0.01);
-      m_srcX->setDecimals(3);
+      m_srcX->setSingleStep(0.001);
+      m_srcX->setDecimals(5);
       m_srcY = new QDoubleSpinBox;
       m_srcY->setRange(0.0, 1.0);
-      m_srcY->setSingleStep(0.01);
-      m_srcY->setDecimals(3);
+      m_srcY->setSingleStep(0.001);
+      m_srcY->setDecimals(5);
       auto* srcPosLayout = new QHBoxLayout;
       srcPosLayout->addWidget(m_srcX);
       srcPosLayout->addWidget(m_srcY);
@@ -244,14 +258,14 @@ WindowSettingsWidget::WindowSettingsWidget(QWidget* parent)
       srcLayout->addRow(tr("Position"), srcPosLayout);
 
       m_srcW = new QDoubleSpinBox;
-      m_srcW->setRange(0.01, 1.0);
-      m_srcW->setSingleStep(0.01);
-      m_srcW->setDecimals(3);
+      m_srcW->setRange(0.00001, 1.0);
+      m_srcW->setSingleStep(0.001);
+      m_srcW->setDecimals(5);
       m_srcW->setValue(1.0);
       m_srcH = new QDoubleSpinBox;
-      m_srcH->setRange(0.01, 1.0);
-      m_srcH->setSingleStep(0.01);
-      m_srcH->setDecimals(3);
+      m_srcH->setRange(0.00001, 1.0);
+      m_srcH->setSingleStep(0.001);
+      m_srcH->setDecimals(5);
       m_srcH->setValue(1.0);
       auto* srcSizeLayout = new QHBoxLayout;
       srcSizeLayout->addWidget(m_srcW);
@@ -323,8 +337,8 @@ WindowSettingsWidget::WindowSettingsWidget(QWidget* parent)
                               QDoubleSpinBox*& gammaSpin) {
         widthSpin = new QDoubleSpinBox;
         widthSpin->setRange(0.0, 0.5);
-        widthSpin->setSingleStep(0.01);
-        widthSpin->setDecimals(3);
+        widthSpin->setSingleStep(0.001);
+        widthSpin->setDecimals(5);
         widthSpin->setValue(0.0);
         gammaSpin = new QDoubleSpinBox;
         gammaSpin->setRange(0.1, 4.0);
@@ -945,8 +959,12 @@ void WindowSettingsWidget::updatePixelLabels()
     const QSignalBlocker bw(m_winWidth);
     const QSignalBlocker bh(m_winHeight);
 
-    m_winPosX->setValue(pxX);
-    m_winPosY->setValue(pxY);
+    // Auto-matching an output that starts at the top-left of the source puts
+    // its window on the desktop origin, where it is hard to grab by its title
+    // bar and where a tiling window manager may not map it at all.
+    const QPoint autoPos = windowPositionForSource(QPoint(pxX, pxY));
+    m_winPosX->setValue(autoPos.x());
+    m_winPosY->setValue(autoPos.y());
     m_winWidth->setValue(pxW);
     m_winHeight->setValue(pxH);
 

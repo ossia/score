@@ -263,16 +263,21 @@ QVariant OutputMappingItem::itemChange(GraphicsItemChange change, const QVariant
     if(m_canvas && m_canvas->snapEnabled())
       newPos = m_canvas->snapPosition(this, newPos);
 
-    // Clamp to canvas bounds (not scene rect, which includes margin for warp handles)
-    auto r = rect();
-    QRectF sr(0, 0, m_canvas ? m_canvas->canvasWidth() : 400, m_canvas ? m_canvas->canvasHeight() : 300);
+    // Clamp to canvas bounds (not scene rect, which includes margin for warp
+    // handles). Optional: with "Lock to border" off the quad may go before
+    // (0,0) and past (1,1).
+    if(!m_canvas || m_canvas->lockToBorderEnabled())
+    {
+      auto r = rect();
+      QRectF sr(0, 0, m_canvas ? m_canvas->canvasWidth() : 400, m_canvas ? m_canvas->canvasHeight() : 300);
 
-    double minX = sr.left() - r.left();
-    double maxX = sr.right() - r.right();
-    double minY = sr.top() - r.top();
-    double maxY = sr.bottom() - r.bottom();
-    newPos.setX(qBound(std::min(minX, maxX), newPos.x(), std::max(minX, maxX)));
-    newPos.setY(qBound(std::min(minY, maxY), newPos.y(), std::max(minY, maxY)));
+      double minX = sr.left() - r.left();
+      double maxX = sr.right() - r.right();
+      double minY = sr.top() - r.top();
+      double maxY = sr.bottom() - r.bottom();
+      newPos.setX(qBound(std::min(minX, maxX), newPos.x(), std::max(minX, maxX)));
+      newPos.setY(qBound(std::min(minY, maxY), newPos.y(), std::max(minY, maxY)));
+    }
     return newPos;
   }
   if(change == ItemPositionHasChanged)
@@ -703,6 +708,11 @@ void OutputMappingCanvas::removeSelectedOutput()
 void OutputMappingCanvas::setSnapEnabled(bool enabled)
 {
   m_snapEnabled = enabled;
+}
+
+void OutputMappingCanvas::setLockToBorderEnabled(bool enabled)
+{
+  m_lockToBorder = enabled;
 }
 
 QPointF OutputMappingCanvas::snapPosition(

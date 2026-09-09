@@ -23,7 +23,7 @@ public:
 
   // Per-output window properties stored on the item
   int screenIndex{-1};
-  QPoint windowPosition{0, 0};
+  QPoint windowPosition{defaultWindowPosition};
   QSize windowSize{1280, 720};
   bool fullscreen{false};
 
@@ -107,6 +107,12 @@ public:
 
   bool snapEnabled() const noexcept { return m_snapEnabled; }
   void setSnapEnabled(bool enabled);
+
+  //! Whether an output quad is kept inside the canvas. Off, it may be dragged
+  //! before (0,0) and past (1,1) -- a projector aimed outside the source
+  //! image, or a window that overhangs the desktop.
+  bool lockToBorderEnabled() const noexcept { return m_lockToBorder; }
+  void setLockToBorderEnabled(bool enabled);
   QPointF snapPosition(const OutputMappingItem* item, QPointF proposedPos) const;
 
   // Warp mode: double-click an item to enter/exit
@@ -137,6 +143,7 @@ private:
   double m_canvasWidth{400.0};
   double m_canvasHeight{300.0};
   bool m_snapEnabled{true};
+  bool m_lockToBorder{true};
 
   // Warp mode state
   int m_warpItemIndex{-1};
