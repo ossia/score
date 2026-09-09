@@ -40,6 +40,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/ValueEditors.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/DeviceExplorerView.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/DeviceExplorerWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/LearnRollback.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/ExplorationWorker.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/ExplorationWorkerWrapper.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/ListeningManager.hpp"
@@ -102,6 +103,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/DeviceExplorerDelegate.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/ValueEditors.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/DeviceExplorerWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/LearnRollback.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/ListeningManager.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Listening/ListeningHandler.cpp"
