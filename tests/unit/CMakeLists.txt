@@ -61,6 +61,13 @@ score_add_test(test_unit_slider_defaults
   SOURCES SliderDefaultsTest.cpp
   APP)
 
+# Editing the messages of a state: one balanced reset per edit, so that the
+# execution component hears about it exactly once.
+score_add_test(test_unit_state_message_edit
+  SOURCES StateMessageEditTest.cpp
+  APP
+  PLUGINS score_plugin_scenario)
+
 # The one right-click type-in box: two of them used to stay up, and taking one
 # down twice was a double free.
 score_add_test(test_unit_right_click_widget
