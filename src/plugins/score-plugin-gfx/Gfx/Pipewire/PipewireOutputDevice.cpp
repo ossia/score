@@ -571,6 +571,16 @@ public:
     // immediate target: the stream sits in CONNECTING / PAUSED until a consumer
     // subscribes.
     //
+    // KNOWN GAP: a consumer that is not itself a driver -- GStreamer's
+    // pipewiresrc, OBS -- gets linked and negotiates the format, and then never
+    // receives a buffer: nothing schedules this node. Frames do reach such a
+    // consumer while score's own PipeWire input is attached to the same output,
+    // which is what drives the graph today. Adding PW_STREAM_FLAG_DRIVER plus
+    // pw_stream_trigger_process() after each queued buffer was tried and is not
+    // enough on its own; the producer most likely has to grow a real process
+    // callback that publishes the newest rendered frame. Reproduce with
+    //   PipewireRoundtrip --only s2gst
+    //
     // DMA-BUF mode uses PW_STREAM_FLAG_ALLOC_BUFFERS, so pipewire calls back
     // through add_buffer / remove_buffer and we stamp an exportable VkImage's FD
     // and size into each spa_buffer. Sysmem mode uses PW_STREAM_FLAG_MAP_BUFFERS,
