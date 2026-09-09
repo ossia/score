@@ -1560,9 +1560,53 @@ static void parse_input(audioFFT_input& inp, const sajson::value& v)
   parse_audio_sampler_config(inp.sampler, v);
 }
 
+//! Position of \p needle in \p values, comparing numbers numerically and
+//! strings by name.
+static std::optional<std::size_t> index_of_value(
+    const std::vector<ossia::variant<int64_t, double, std::string>>& values,
+    const ossia::variant<int64_t, double, std::string>& needle) noexcept
+{
+  const auto* wanted_str = ossia::get_if<std::string>(&needle);
+  double wanted_num = 0.;
+  if(!wanted_str)
+  {
+    if(auto* i = ossia::get_if<int64_t>(&needle))
+      wanted_num = double(*i);
+    else if(auto* d = ossia::get_if<double>(&needle))
+      wanted_num = *d;
+  }
+
+  for(std::size_t i = 0; i < values.size(); i++)
+  {
+    const auto& v = values[i];
+    if(wanted_str)
+    {
+      if(auto* s = ossia::get_if<std::string>(&v); s && *s == *wanted_str)
+        return i;
+    }
+    else if(auto* iv = ossia::get_if<int64_t>(&v))
+    {
+      if(double(*iv) == wanted_num)
+        return i;
+    }
+    else if(auto* dv = ossia::get_if<double>(&v))
+    {
+      if(*dv == wanted_num)
+        return i;
+    }
+  }
+  return std::nullopt;
+}
+
 static void parse_input(long_input& inp, const sajson::value& v)
 {
   std::size_t N = v.get_length();
+
+  // ISF says a long input's DEFAULT names one of VALUES, not a position in it.
+  // long_input::def stays an index because every input libisf synthesizes
+  // fills it in as one, so the value is resolved here, once, at parse time.
+  bool has_default = false;
+  ossia::variant<int64_t, double, std::string> raw_default{int64_t{}};
 
   for(std::size_t i = 0; i < N; i++)
   {
@@ -1612,6 +1656,22 @@ static void parse_input(long_input& inp, const sajson::value& v)
     else if(k == "DEFAULT")
     {
       auto val = v.get_object_value(i);
+      has_default = true;
+      switch(val.get_type())
+      {
+        case sajson::TYPE_INTEGER:
+          raw_default = int64_t(val.get_integer_value());
+          break;
+        case sajson::TYPE_DOUBLE:
+          raw_default = val.get_double_value();
+          break;
+        case sajson::TYPE_STRING:
+          raw_default = std::string(val.as_string());
+          break;
+        default:
+          raw_default = int64_t(parse_input_impl(val, int64_t{}));
+          break;
+      }
       inp.def = parse_input_impl(val, int64_t{});
     }
     else if(k == "MIN")
@@ -1632,9 +1692,17 @@ static void parse_input(long_input& inp, const sajson::value& v)
     }
   }
 
-  // If we have VALUES/LABELS (enum mode), clamp def to valid index
+  // If we have VALUES/LABELS (enum mode), resolve DEFAULT and clamp the index
   if(!inp.values.empty())
   {
+    if(has_default)
+    {
+      if(auto idx = index_of_value(inp.values, raw_default))
+        inp.def = *idx;
+      // Otherwise DEFAULT names nothing in VALUES: shaders in the wild do
+      // write a position there, so keep reading it as one rather than
+      // dropping what the author asked for.
+    }
     inp.def = std::min((int64_t)inp.def, (int64_t)(inp.values.size()) - 1);
     auto min_size = std::min(inp.labels.size(), inp.values.size());
     if(min_size > 0)
@@ -5233,6 +5301,19 @@ std::string parser::write_isf() const
           oss << "      \"DEFAULT\": " << f.def << "\n";
         }
 
+        //! One entry of VALUES as JSON: numbers bare, strings quoted.
+        void write_value(const ossia::variant<int64_t, double, std::string>& v)
+        {
+          if(auto* i = ossia::get_if<int64_t>(&v))
+            oss << *i;
+          else if(auto* d = ossia::get_if<double>(&v))
+            oss << *d;
+          else if(auto* str = ossia::get_if<std::string>(&v))
+            oss << "\"" << escape_json(*str) << "\"";
+          else
+            oss << 0;
+        }
+
         void operator()(const long_input& l)
         {
           oss << "      \"TYPE\": \"long\",\n";
@@ -5241,7 +5322,7 @@ std::string parser::write_isf() const
             oss << "      \"VALUES\": [";
             for(size_t i = 0; i < l.values.size(); ++i)
             {
-              oss << l.values[i];
+              write_value(l.values[i]);
               if(i < l.values.size() - 1)
                 oss << ", ";
             }
@@ -5262,7 +5343,18 @@ std::string parser::write_isf() const
             oss << "      \"MIN\": " << *l.min << ",\n";
           if(l.max)
             oss << "      \"MAX\": " << *l.max << ",\n";
-          oss << "      \"DEFAULT\": " << l.def << "\n";
+          // Enum mode: DEFAULT is one of VALUES, so write the entry `def`
+          // points at rather than the position itself.
+          if(!l.values.empty() && l.def < l.values.size())
+          {
+            oss << "      \"DEFAULT\": ";
+            write_value(l.values[l.def]);
+            oss << "\n";
+          }
+          else
+          {
+            oss << "      \"DEFAULT\": " << l.def << "\n";
+          }
         }
 
         void operator()(const bool_input& b)

@@ -921,3 +921,101 @@ TEST_CASE(
   const auto eight = raw_raster_vertex(R"(, "CLIP_DISTANCES": 8)");
   CHECK(contains(eight, "float gl_ClipDistance[8];"));
 }
+
+// ---------------------------------------------------------------------------
+// long_input DEFAULT
+//
+// ISF says a "long" input's DEFAULT names one of the entries of VALUES, not a
+// position in it. libisf read it as a position, so "Video Mixer" -- VALUES
+// [1..25], DEFAULT 17, LABELS with "Normal" at index 16 -- came up on
+// "Overlay". long_input::def stays an index, because every synthesized input
+// in libisf fills it in as one; the value is resolved at parse time.
+
+namespace
+{
+isf::long_input parse_long_input(const std::string& extraJson)
+{
+  const std::string src
+      = "/*{ \"ISFVSN\": \"2\", \"INPUTS\": [ { \"NAME\": \"mode\", \"TYPE\": "
+        "\"long\""
+        + extraJson
+        + " } ] }*/\n"
+          "void main() { isf_FragColor = vec4(float(mode)); }\n";
+  parser p{{}, src, 450, parser::ShaderType::ISF};
+  auto d = p.data();
+  REQUIRE(d.inputs.size() == 1);
+  auto* l = ossia::get_if<isf::long_input>(&d.inputs[0].data);
+  REQUIRE(l);
+  return *l;
+}
+}
+
+TEST_CASE("REGRESSION: a long input's DEFAULT is one of its VALUES")
+{
+  // Video Mixer, cut down to the entries that matter.
+  auto in = parse_long_input(
+      R"(, "VALUES": [1, 2, 3, 17, 18], "LABELS": ["Add", "Average", "Burn", "Normal", "Overlay"], "DEFAULT": 17)");
+
+  REQUIRE(in.values.size() == 5);
+  REQUIRE(in.def < in.labels.size());
+  CHECK(in.labels[in.def] == "Normal");
+}
+
+TEST_CASE("a long input whose VALUES are their own indices is unchanged")
+{
+  auto in = parse_long_input(
+      R"(, "VALUES": [0, 1, 2], "LABELS": ["a", "b", "c"], "DEFAULT": 1)");
+  CHECK(in.def == 1);
+  CHECK(in.labels[in.def] == "b");
+}
+
+TEST_CASE("a long input whose DEFAULT is in no VALUES falls back to a position")
+{
+  // Shaders in the wild do write a position here; reading it as one is better
+  // than dropping the author's intent on the floor.
+  auto in = parse_long_input(
+      R"(, "VALUES": [10, 20, 30], "LABELS": ["a", "b", "c"], "DEFAULT": 2)");
+  CHECK(in.def == 2);
+}
+
+TEST_CASE("a long input's DEFAULT out of every reading lands on the first entry")
+{
+  auto in = parse_long_input(
+      R"(, "VALUES": [10, 20, 30], "LABELS": ["a", "b", "c"], "DEFAULT": 99)");
+  CHECK(in.def < in.values.size());
+}
+
+TEST_CASE("a string-valued long input matches its DEFAULT by name")
+{
+  auto in = parse_long_input(
+      R"(, "VALUES": ["low", "mid", "high"], "LABELS": ["Low", "Mid", "High"], "DEFAULT": "high")");
+  REQUIRE(in.def < in.labels.size());
+  CHECK(in.labels[in.def] == "High");
+}
+
+TEST_CASE("a numeric long input keeps DEFAULT as the value it is")
+{
+  // No VALUES/LABELS: MIN/MAX mode, where DEFAULT has always been the value.
+  auto in = parse_long_input(R"(, "MIN": 0, "MAX": 100, "DEFAULT": 42)");
+  CHECK(in.values.empty());
+  CHECK(in.def == 42);
+}
+
+TEST_CASE("REGRESSION: writing a long input back out emits a VALUE, not a position")
+{
+  const std::string src
+      = "/*{ \"ISFVSN\": \"2\", \"INPUTS\": [ { \"NAME\": \"mode\", \"TYPE\": "
+        "\"long\", \"VALUES\": [1, 2, 3, 17, 18], \"LABELS\": [\"Add\", "
+        "\"Average\", \"Burn\", \"Normal\", \"Overlay\"], \"DEFAULT\": 17 } ] }*/\n"
+        "void main() { isf_FragColor = vec4(float(mode)); }\n";
+  parser p{{}, src, 450, parser::ShaderType::ISF};
+
+  const std::string written = p.write_isf();
+  parser again{{}, written, 450, parser::ShaderType::ISF};
+  auto d = again.data();
+  REQUIRE(d.inputs.size() == 1);
+  auto* l = ossia::get_if<isf::long_input>(&d.inputs[0].data);
+  REQUIRE(l);
+  REQUIRE(l->def < l->labels.size());
+  CHECK(l->labels[l->def] == "Normal");
+}
