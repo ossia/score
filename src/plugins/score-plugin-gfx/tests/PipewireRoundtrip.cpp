@@ -48,7 +48,9 @@ extern "C" {
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QDir>
 #include <QProcess>
+#include <QTemporaryDir>
 #include <QTimer>
 
 #include <map>
@@ -1024,6 +1026,260 @@ Result runScoreToScore(
 }
 
 // ---------------------------------------------------------------------------
+// Cell C: score -> GStreamer, and GStreamer -> score.
+//
+// The two directions a user actually reaches for: OBS, a GStreamer pipeline,
+// anything that is not score. They go through the session manager rather than
+// through a link this harness makes by hand, so they are the only cells that
+// notice whether score's output is reachable from outside at all.
+//
+// gst2s passes. s2gst is RED and is the open half of that: with media.class
+// left to default nothing even links, and with it set to Video/Source the link
+// is made and the format negotiated and still not one buffer arrives, because
+// nothing drives score's output node. Frames do reach an outside consumer while
+// score's own PipeWire input is attached to the same output -- that input is
+// what ticks the graph -- so the cell is a faithful reproduction of what OBS
+// sees. Neither ctest entry runs it; ask for it by name:
+//   PipewireRoundtrip --only s2gst
+// ---------------------------------------------------------------------------
+bool haveGstLaunch()
+{
+  QProcess p;
+  p.start("gst-launch-1.0", {"--version"});
+  return p.waitForFinished(4000) && p.exitCode() == 0;
+}
+
+//! object.serial of the node named \p name, or -1.
+int64_t nodeSerial(const QString& name)
+{
+  QProcess dump;
+  dump.start("pw-dump", {});
+  if(!dump.waitForFinished(4000))
+    return -1;
+  const auto doc = QJsonDocument::fromJson(dump.readAllStandardOutput());
+  if(!doc.isArray())
+    return -1;
+  int64_t best = -1;
+  for(const auto& v : doc.array())
+  {
+    const auto o = v.toObject();
+    if(o.value("type").toString() != "PipeWire:Interface:Node")
+      continue;
+    const auto props
+        = o.value("info").toObject().value("props").toObject();
+    if(props.value("node.name").toString() != name)
+      continue;
+    best = std::max<int64_t>(best, props.value("object.serial").toInteger(-1));
+  }
+  return best;
+}
+
+//! Not a flat image: the test signal is a gradient, so a frame that came
+//! through carries a spread of values. Guards against a consumer that gets
+//! buffers of zeroes.
+bool looksLikeTestSignal(const QImage& img)
+{
+  if(img.isNull() || img.width() < 8 || img.height() < 8)
+    return false;
+  int lo = 255, hi = 0;
+  for(int y = img.height() / 2; y < img.height(); y += 4)
+    for(int x = 0; x < img.width(); x += 4)
+    {
+      const int v = qGray(img.pixel(x, y));
+      lo = std::min(lo, v);
+      hi = std::max(hi, v);
+    }
+  return (hi - lo) > 40;
+}
+
+Result runScoreToGstreamer(
+    score::gfx::GraphicsApi api, const char* apiName, int w, int h, double fps,
+    double seconds)
+{
+  const std::string cell = std::string("s2gst-") + apiName;
+  Result r;
+  r.cell = cell;
+  r.transport = "shm";
+
+  if(!haveGstLaunch())
+  {
+    r.status = "SKIP(no-gst)";
+    return r;
+  }
+
+  Gfx::SharedOutputSettings s;
+  const QString nodeName = QString("score-rt-gst-%1").arg(apiName);
+  s.path = nodeName + "?format=rgba";
+  s.width = w;
+  s.height = h;
+  s.rate = fps;
+
+  auto* src = new score::gfx::TexgenNode;
+  src->function = &g_paint;
+  score::gfx::OutputNode* out = Gfx::PipeWire::makePipewireOutput(s);
+
+  auto graph = std::make_unique<score::gfx::Graph>();
+  graph->addNode(src);
+  graph->addNode(out);
+  graph->addEdge(src->output[0], out->input[0], Process::CableType::ImmediateGlutton);
+  graph->createAllRenderLists(api);
+
+  if(!out->canRender())
+  {
+    r.status = "SKIP(out-init)";
+    graph.reset();
+    delete out;
+    delete src;
+    return r;
+  }
+
+  QTimer render;
+  render.setTimerType(Qt::PreciseTimer);
+  QObject::connect(&render, &QTimer::timeout, [&] { out->render(); });
+  render.start(int(1000.0 / fps));
+
+  // Let the node appear and the stream settle before asking for it by name.
+  runSeconds(std::min(2.0, seconds));
+
+  const int64_t serial = nodeSerial(nodeName);
+  if(serial < 0)
+  {
+    render.stop();
+    r.status = "SKIP(no-node)";
+    graph.reset();
+    delete out;
+    delete src;
+    return r;
+  }
+
+  QTemporaryDir dir;
+  QProcess gst;
+  gst.setProcessChannelMode(QProcess::MergedChannels);
+  gst.start(
+      "gst-launch-1.0",
+      {"pipewiresrc", QString("target-object=%1").arg(serial), "num-buffers=8",
+       "!", "videoconvert", "!", "video/x-raw,format=RGB", "!", "pngenc", "!",
+       "multifilesink", QString("location=%1/f_%2.png").arg(dir.path(), "%d")});
+
+  // WirePlumber's policy is what is under test, but if it declines to make
+  // the link the harness must still be able to say so rather than report a
+  // dead cell: wire them up by hand after a grace period.
+  Linker lk;
+  lk.start(nodeName, "gst-launch-1.0");
+
+  // The pipeline only runs while score keeps rendering, so pump the event loop
+  // rather than blocking on the process.
+  QElapsedTimer t;
+  t.start();
+  while(gst.state() != QProcess::NotRunning && t.elapsed() < seconds * 1000 + 8000)
+  {
+    QApplication::processEvents(QEventLoop::AllEvents, 10);
+    gst.waitForFinished(20);
+  }
+  if(gst.state() != QProcess::NotRunning)
+    gst.kill();
+  gst.waitForFinished(2000);
+
+  lk.stop();
+  render.stop();
+  const int queued = Gfx::PipeWire::pipewireOutputFramesQueued(*out);
+  r.sent = queued;
+
+  const auto files = QDir{dir.path()}.entryList({"f_*.png"}, QDir::Files);
+  if(files.isEmpty())
+    std::printf(
+        "  gst-launch said: %s\n", gst.readAll().constData());
+  r.recv = files.size();
+  r.fps = r.recv / seconds;
+
+  if(files.isEmpty())
+  {
+    // The producer published and the consumer got nothing: that is the defect,
+    // not a missing environment.
+    r.status = queued > 0 ? "FAIL(no-frames)" : "SKIP(no-frames)";
+  }
+  else
+  {
+    QImage img{dir.filePath(files.last())};
+    if(img.width() != w || img.height() != h)
+      r.status = "FAIL(geometry)";
+    else if(!looksLikeTestSignal(img))
+      r.status = "FAIL(blank)";
+    else
+      r.status = "PASS";
+  }
+
+  graph.reset();
+  delete out;
+  delete src;
+  return r;
+}
+
+Result runGstreamerToScore(int w, int h, double fps, double seconds)
+{
+  const std::string cell = "gst2s";
+  Result r;
+  r.cell = cell;
+  r.transport = "shm";
+
+  if(!haveGstLaunch())
+  {
+    r.status = "SKIP(no-gst)";
+    return r;
+  }
+
+  const QString nodeName = QStringLiteral("pwrt-gst-src");
+  QProcess gst;
+  gst.start(
+      "gst-launch-1.0",
+      {"videotestsrc", "is-live=true", "!",
+       QString("video/x-raw,format=RGBA,width=%1,height=%2,framerate=%3/1")
+           .arg(w)
+           .arg(h)
+           .arg(int(fps)),
+       "!", "pipewiresink", QString("stream-properties=p,node.name=%1").arg(nodeName)});
+  if(!gst.waitForStarted(4000))
+  {
+    r.status = "SKIP(no-gst)";
+    return r;
+  }
+
+  Receiver rcv;
+  const QString url = QString("pipewire://%1?width=%2&height=%3&fps=%4&format=rgba")
+                          .arg(nodeName)
+                          .arg(w)
+                          .arg(h)
+                          .arg(fps);
+  if(!rcv.open(url))
+  {
+    gst.kill();
+    gst.waitForFinished(2000);
+    r.status = "SKIP(in-open)";
+    return r;
+  }
+  rcv.start();
+
+  Linker lk;
+  lk.start(nodeName, "PipewireRoundtrip");
+
+  runSeconds(seconds);
+  lk.stop();
+  rcv.stop();
+  gst.kill();
+  gst.waitForFinished(2000);
+
+  r.recv = rcv.m.frames;
+  r.fps = r.recv / seconds;
+  // videotestsrc paints its own pattern, so the index/PSNR verification does
+  // not apply: what is under test is that frames cross the boundary at all.
+  if(r.recv == 0)
+    r.status = lk.linked.load() ? "FAIL(no-frames)" : "SKIP(no-link)";
+  else
+    r.status = "PASS";
+  return r;
+}
+
+// ---------------------------------------------------------------------------
 // Cell B: raw pw producer -> score InputStream.
 // ---------------------------------------------------------------------------
 Result runPwToScore(
@@ -1233,6 +1489,23 @@ int main(int argc, char** argv)
           std::printf("[ %-26s shm ] running...\n", cell.c_str());
           std::fflush(stdout);
           rows.push_back(runPwToScore(f, W, H, FPS, seconds, 64, false));
+        }
+
+        // --- C: score <-> gstreamer, through the session manager ---
+        for(const auto& a : apis)
+        {
+          const std::string cell = std::string("s2gst-") + a.name;
+          if(!want(cell))
+            continue;
+          std::printf("[ %-26s shm ] running...\n", cell.c_str());
+          std::fflush(stdout);
+          rows.push_back(runScoreToGstreamer(a.api, a.name, W, H, FPS, seconds));
+        }
+        if(want("gst2s"))
+        {
+          std::printf("[ %-26s shm ] running...\n", "gst2s");
+          std::fflush(stdout);
+          rows.push_back(runGstreamerToScore(W, H, FPS, seconds));
         }
 
         printMatrix(rows);

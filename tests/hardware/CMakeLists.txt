@@ -60,6 +60,18 @@ if(TARGET PipewireRoundtrip)
     TIMEOUT    600
     ENVIRONMENT "${_pwrt_asan}")
 
+  # GStreamer -> score: a pipewiresink producer feeding score's input, through
+  # the session manager rather than a link the harness makes itself. The other
+  # direction (score -> pipewiresrc) is red and is not registered; see the
+  # s2gst cell in the harness for what it reproduces.
+  score_add_media_test(
+    NAME       Media_PipewireGstToScore
+    EXECUTABLE PipewireRoundtrip
+    PIPEWIRE
+    ARGS       --seconds 3 --only gst2s
+    TIMEOUT    300
+    ENVIRONMENT "${_pwrt_asan}")
+
   score_add_hardware_test(
     NAME       PipewireRoundtrip_s2s
     EXECUTABLE PipewireRoundtrip
