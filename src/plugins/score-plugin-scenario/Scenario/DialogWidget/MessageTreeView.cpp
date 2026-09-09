@@ -52,7 +52,10 @@ MessageTreeView::MessageTreeView(const StateModel& model, QWidget* parent)
       new ValueItemDelegate{(int)MessageItemModel::Column::Value, this});
 
   m_removeNodesAction = new QAction(tr("Remove Nodes"), this);
-  m_removeNodesAction->setShortcut(Qt::Key_Backspace);
+  // Del is what every other tree in the application answers to; Backspace is
+  // kept because that is what this one has always used.
+  m_removeNodesAction->setShortcuts({QKeySequence{Qt::Key_Backspace},
+                                     QKeySequence{Qt::Key_Delete}});
   m_removeNodesAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   m_removeNodesAction->setEnabled(true);
   connect(m_removeNodesAction, &QAction::triggered, this, &MessageTreeView::removeNodes);
