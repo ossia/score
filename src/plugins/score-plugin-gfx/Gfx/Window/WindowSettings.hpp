@@ -70,11 +70,30 @@ enum class OutputLockMode : int
   FullLock = 3     // Cannot move or resize in graphics scenes
 };
 
+//! Where a new output window goes when nothing says otherwise.
+static const constexpr QPoint defaultWindowPosition{100, 100};
+
+/**
+ * @brief Where to put the window of an output whose source starts at \p p.
+ *
+ * The desktop origin is a bad place for a window: it is hard to grab by its
+ * title bar on Windows, and a tiling window manager may not map it at all --
+ * on i3 the first output window stayed invisible until it was moved by one
+ * pixel. Only that exact spot is moved; anywhere else is left alone.
+ */
+inline QPoint windowPositionForSource(QPoint p) noexcept
+{
+  return p.isNull() ? defaultWindowPosition : p;
+}
+
 struct OutputMapping
 {
   QRectF sourceRect{0.0, 0.0, 1.0, 1.0}; // UV coords in input texture
   int screenIndex{-1};                   // -1 = default screen
-  QPoint windowPosition{0, 0};
+  //! Not the origin: a window there is hard to grab by its title bar on
+  //! Windows, and a tiling window manager may not map it at all (on i3 the
+  //! first output window stayed invisible until it was moved by one pixel).
+  QPoint windowPosition{defaultWindowPosition};
   QSize windowSize{1280, 720};
   bool fullscreen{false};
 

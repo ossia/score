@@ -558,3 +558,106 @@ TEST_CASE("WindowSettingsWidget add and remove outputs", "[gfx][window][settings
     CHECK(outputButtonCount(w) == 2);
   });
 }
+
+// ---------------------------------------------------------------------------
+// Precision, borders and where a new window lands.
+
+TEST_CASE("the source mapping spin boxes carry five decimals", "[gfx][window][settingswidget]")
+{
+  score::test::run_in_app([&](const score::GUIApplicationContext&) {
+    WindowSettingsWidget w;
+
+    WindowSettings ws;
+    ws.mode = WindowMode::MultiWindow;
+    ws.outputs = {mapping({0.0, 0.0, 1.0, 1.0}, {10, 20}, {640, 480})};
+    w.setSettings(makeSettings(ws));
+    auto* btn = outputButton(w, 0);
+    REQUIRE(btn);
+    btn->click();
+
+    for(int i : {0, 1})
+    {
+      auto* sb = fieldAs<QDoubleSpinBox>(w, QStringLiteral("Position"), i);
+      REQUIRE(sb);
+      INFO("Position spin box " << i);
+      CHECK(sb->decimals() == 5);
+    }
+    for(int i : {0, 1})
+    {
+      auto* sb = fieldAs<QDoubleSpinBox>(w, QStringLiteral("Size"), i);
+      REQUIRE(sb);
+      INFO("Size spin box " << i);
+      CHECK(sb->decimals() == 5);
+    }
+
+    // A value only expressible at five decimals survives the round trip: at
+    // three it was rounded away before it ever reached the settings.
+    auto* x = fieldAs<QDoubleSpinBox>(w, QStringLiteral("Position"), 0);
+    REQUIRE(x);
+    x->setValue(0.12345);
+    const auto got = settingsOf(w);
+    REQUIRE(got.outputs.size() == 1);
+    CHECK(got.outputs[0].sourceRect.x() == Approx(0.12345).margin(1e-6));
+  });
+}
+
+TEST_CASE("Lock to border sits next to Snap and releases the canvas", "[gfx][window][settingswidget]")
+{
+  score::test::run_in_app([&](const score::GUIApplicationContext&) {
+    WindowSettingsWidget w;
+
+    auto* check = fieldAs<QCheckBox>(w, QStringLiteral("Lock to border"));
+    REQUIRE(check);
+    CHECK(check->isChecked()); // the behaviour there has always been
+
+    OutputMappingCanvas* canvas{};
+    for(auto* child : w.findChildren<QWidget*>())
+      if(auto* c = dynamic_cast<OutputMappingCanvas*>(child))
+        canvas = c;
+    REQUIRE(canvas);
+    CHECK(canvas->lockToBorderEnabled());
+
+    check->setChecked(false);
+    CHECK_FALSE(canvas->lockToBorderEnabled());
+    check->setChecked(true);
+    CHECK(canvas->lockToBorderEnabled());
+  });
+}
+
+// A window at the origin is hard to grab by its title bar on Windows, and on
+// i3 the first output window stayed unmapped until it was moved by a pixel.
+TEST_CASE("a new output window does not land on the origin", "[gfx][window][settingswidget]")
+{
+  score::test::run_in_app([&](const score::GUIApplicationContext&) {
+    CHECK(OutputMapping{}.windowPosition != QPoint{0, 0});
+
+    WindowSettingsWidget w;
+    WindowSettings ws;
+    ws.mode = WindowMode::MultiWindow;
+    w.setSettings(makeSettings(ws));
+
+    // "Add" derives the window position from the new quad's source rect,
+    // which starts at the top-left of the canvas.
+    QPushButton* add{};
+    for(auto* b : w.findChildren<QPushButton*>())
+      if(b->text() == QStringLiteral("Add"))
+        add = b;
+    REQUIRE(add);
+    add->click();
+
+    const auto got = settingsOf(w);
+    REQUIRE(got.outputs.size() == 1);
+    INFO("pos " << got.outputs[0].windowPosition.x() << ","
+                << got.outputs[0].windowPosition.y());
+    // Its source rect starts at the top-left, so auto-matching would put the
+    // window on the desktop origin.
+    CHECK(got.outputs[0].sourceRect.topLeft() == QPointF{0., 0.});
+    CHECK(got.outputs[0].windowPosition != QPoint{0, 0});
+    CHECK(got.outputs[0].windowPosition == defaultWindowPosition);
+
+    // An output that is not at the origin keeps the position it derives.
+    CHECK(windowPositionForSource({0, 0}) == defaultWindowPosition);
+    CHECK(windowPositionForSource({0, 40}) == QPoint{0, 40});
+    CHECK(windowPositionForSource({1920, 0}) == QPoint{1920, 0});
+  });
+}

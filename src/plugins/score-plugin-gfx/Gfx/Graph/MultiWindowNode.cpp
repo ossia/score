@@ -1056,8 +1056,15 @@ void MultiWindowNode::createOutput(score::gfx::OutputConfiguration conf)
     {
       if(targetScreen)
         wo.window->setScreen(targetScreen);
-      wo.window->setGeometry(QRect(mapping.windowPosition, mapping.windowSize));
+      const QRect geom(mapping.windowPosition, mapping.windowSize);
+      wo.window->setGeometry(geom);
       wo.window->show();
+      // Ask again now that the platform window exists. A tiling window
+      // manager is free to ignore a geometry set before the window is mapped,
+      // and on i3 the first output window stayed invisible until it was moved
+      // by one pixel; asking after show() is what makes it configure it.
+      if(wo.window->geometry() != geom)
+        wo.window->setGeometry(geom);
     }
   }
 
