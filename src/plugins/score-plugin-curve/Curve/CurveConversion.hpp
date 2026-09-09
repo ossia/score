@@ -41,12 +41,13 @@ std::shared_ptr<ossia::curve<X_T, Y_T>> curve(
   auto curve = std::make_shared<ossia::curve<X_T, Y_T>>();
   curve->reserve(segments.size() + 1);
 
+  // Where the curve begins, wherever that is. The first segment is not
+  // required to start at 0: leaving x0/y0 at their defaults there made the
+  // ossia curve ramp from (0, 0) to the first segment's end, which throws that
+  // segment away and shifts everything after it.
   auto start = segments[0]->start();
-  if(start.x() == 0.)
-  {
-    curve->set_x0(scale_x(start.x()));
-    curve->set_y0(scale_y(start.y()));
-  }
+  curve->set_x0(scale_x(start.x()));
+  curve->set_y0(scale_y(start.y()));
 
   for(const auto& score_segment : segments)
   {
@@ -70,12 +71,10 @@ floatCurve(const Segments& segments, const std::optional<ossia::destination>& tw
 {
   ossia::curve<double, float> curve;
 
+  // See above: the first segment need not start at 0.
   auto start = segments[0]->start();
-  if(start.x() == 0.)
-  {
-    curve.set_x0(start.x());
-    curve.set_y0(start.y());
-  }
+  curve.set_x0(start.x());
+  curve.set_y0(start.y());
 
   for(const auto& score_segment : segments)
   {
