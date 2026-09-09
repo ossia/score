@@ -10,7 +10,7 @@
 // sample library through the batched delivery pattern of RecursiveWatch and
 // asserts the GUI-thread cost stays in the same class as the old silent
 // insertion path (baseline measured before this change: ~233 ms total,
-// ~9.4 ms max batch, Debug build — see commit message).
+// see commit message).
 
 #include <Process/ProcessList.hpp>
 
@@ -436,7 +436,7 @@ TEST_CASE("publish: 36k-entry storm, hot proxy mirrors the tree", "[library][ben
     REQUIRE(spy.count() < 2 * 6300 + 200);
 
     // Performance envelope (Debug build; baseline silent path: ~233 ms total,
-    // ~9.4 ms max batch). Generous bounds — this guards against complexity
+    // Generous bounds — this guards against complexity
     // regressions (an O(n²) path costs tens of seconds), not micro-drift.
     REQUIRE(total_ns / 1'000'000 < 3000);
     REQUIRE(max_batch_ns / 1'000'000 < 200);

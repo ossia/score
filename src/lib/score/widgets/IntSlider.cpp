@@ -97,6 +97,22 @@ void IntSlider::mouseReleaseEvent(QMouseEvent* event)
 {
   sliderReleased();
 }
+
+void IntSlider::mouseDoubleClickEvent(QMouseEvent* event)
+{
+  // See DoubleSlider::mouseDoubleClickEvent: reset to the declared default.
+  if(m_max == m_min)
+  {
+    event->ignore();
+    return;
+  }
+  m_value = clamp(m_init, m_min, m_max);
+  repaint();
+  valueChanged(m_value);
+  sliderMoved(m_value);
+  sliderReleased();
+  event->accept();
+}
 void IntSlider::createPopup(QPoint pos)
 {
   auto w = new QSpinBox();

@@ -56,6 +56,11 @@ score_add_test(test_unit_graphics_combo
   SOURCES GraphicsComboTest.cpp
   APP)
 
+# Double-click on a control puts it back to the default the process declared.
+score_add_test(test_unit_slider_defaults
+  SOURCES SliderDefaultsTest.cpp
+  APP)
+
 # The one right-click type-in box: two of them used to stay up, and taking one
 # down twice was a double free.
 score_add_test(test_unit_right_click_widget

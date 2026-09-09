@@ -627,6 +627,15 @@ SpeedSlider::~SpeedSlider()
   ossia::remove_one(speedSliders, this);
 }
 
+void SpeedSlider::mouseDoubleClickEvent(QMouseEvent* event)
+{
+  // The speed slider has no declared domain -- its default is simply x1.
+  setSpeed(1.0);
+  sliderMoved(value());
+  sliderReleased();
+  event->accept();
+}
+
 double SpeedSlider::speed() const noexcept
 {
   return std::round(1000 * speedFromValue(value())) / 1000;

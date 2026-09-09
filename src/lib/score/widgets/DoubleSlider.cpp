@@ -58,12 +58,14 @@ void DoubleSlider::setValue(double val)
 
 double DoubleSlider::map(double v) const
 {
-  return min + m_value * (max - min);
+  return min + v * (max - min);
 }
 
 double DoubleSlider::unmap(double v) const
 {
-  return (v / (max - min)) - min;
+  if(max == min)
+    return 0.;
+  return (v - min) / (max - min);
 }
 
 void DoubleSlider::updateValue(QPointF mousePos)
@@ -104,6 +106,25 @@ void DoubleSlider::mouseMoveEvent(QMouseEvent* event)
 void DoubleSlider::mouseReleaseEvent(QMouseEvent* event)
 {
   sliderReleased();
+}
+
+void DoubleSlider::mouseDoubleClickEvent(QMouseEvent* event)
+{
+  // Same gesture as the graphics-view controls: back to the default the
+  // process declared. The press that opened the double click already moved the
+  // value under the cursor, so this has to overwrite it.
+  if(max == min)
+  {
+    // No domain was ever set on this slider: there is no default to go to.
+    event->ignore();
+    return;
+  }
+  m_value = clamp(unmap(init), 0., 1.);
+  repaint();
+  valueChanged(m_value);
+  sliderMoved(m_value);
+  sliderReleased();
+  event->accept();
 }
 void DoubleSlider::createPopup(QPoint pos)
 {
