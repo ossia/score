@@ -68,6 +68,14 @@ score_add_test(test_unit_state_message_edit
   APP
   PLUGINS score_plugin_scenario)
 
+# Kabang / Minibang pitch modulation: pure math, no sampler around it.
+if(TARGET score_addon_synthimi)
+  score_add_test(test_unit_kabang_pitch_envelope
+    SOURCES KabangPitchEnvelopeTest.cpp)
+  target_include_directories(test_unit_kabang_pitch_envelope
+    PRIVATE "${SCORE_ROOT_SOURCE_DIR}/src/addons/score-addon-synthimi")
+endif()
+
 # The one right-click type-in box: two of them used to stay up, and taking one
 # down twice was a double free.
 score_add_test(test_unit_right_click_widget
