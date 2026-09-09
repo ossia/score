@@ -68,6 +68,12 @@ score_add_test(test_unit_state_message_edit
   APP
   PLUGINS score_plugin_scenario)
 
+# The comment box: trailing spaces and reflow, both QTextDocument behaviour.
+score_add_test(test_unit_textbox_layout
+  SOURCES TextBoxLayoutTest.cpp
+  APP
+  PLUGINS score_plugin_ui score_lib_process)
+
 # A colour control fed from an address whose unit is not rgba.
 score_add_test(test_unit_color_control_unit
   SOURCES ColorControlUnitTest.cpp
