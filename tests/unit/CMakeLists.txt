@@ -589,6 +589,12 @@ score_add_test(test_unit_device_tree_reload
   APP
   PLUGINS score_plugin_deviceexplorer score_lib_device score_lib_state)
 
+# Cancelling a Learn takes back what it added without taking the device down.
+score_add_test(test_unit_learn_rollback
+  SOURCES LearnRollbackTest.cpp
+  APP
+  PLUGINS score_plugin_deviceexplorer score_lib_device score_lib_state)
+
 # Two processes that a user can add must not carry the same label.
 score_add_test(test_unit_process_name_uniqueness
   SOURCES ProcessNameUniquenessTest.cpp

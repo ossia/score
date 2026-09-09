@@ -21,6 +21,7 @@
 
 #include <Explorer/Commands/Add/AddAddress.hpp>
 #include <Explorer/Commands/Add/LoadDevice.hpp>
+#include <Explorer/Explorer/LearnRollback.hpp>
 #include <Explorer/Commands/Remove.hpp>
 #include <Explorer/Commands/RemoveNodes.hpp>
 #include <Explorer/Commands/ReplaceDevice.hpp>
@@ -1363,12 +1364,13 @@ void DeviceExplorerWidget::learn()
   }
   else
   {
-    // We still have to rollback the messages that may have been received
-    Explorer::Command::ReloadWholeDevice cmd{
-        m->deviceModel(), std::move(oldDevice), std::move(newDevice)};
-
-    // No need to push anything
-    cmd.undo(m_cmdDispatcher->stack().context());
+    // Take back what the learn added, one address at a time. Rolling back with
+    // ReloadWholeDevice::undo instead removes the device and builds a new one,
+    // which drops everything the outside world had attached to it -- with
+    // PipeWire, cancelling a learn that added nothing at all still cost the
+    // user their MIDI cable.
+    rollbackLearnedNodes(
+        m->deviceModel(), n.get<Device::DeviceSettings>().name, oldDevice);
   }
 }
 
