@@ -244,20 +244,27 @@ public:
           // Soft-edge blending
           // v_texcoord.y is Y-up on both GL and Vulkan (Qt RHI normalizes this),
           // so tc.y=0 is screen bottom and tc.y=1 is screen top.
+          // pow() of a negative base is undefined in GLSL, and the drivers
+          // that answer NaN turn it into a fully lit pixel on the way into a
+          // UNORM attachment: that is the one-pixel bright fringe that used to
+          // reappear along a blended border. The ramp coordinate leaves [0;1]
+          // whenever the fragment centre of an edge pixel falls outside the
+          // triangle, which multisampling makes routine, so it is clamped.
           float alpha = 1.0;
           // Left edge
           if(blendWidths.x > 0.0 && tc.x < blendWidths.x)
-              alpha *= pow(tc.x / blendWidths.x, blendGammas.x);
+              alpha *= pow(clamp(tc.x / blendWidths.x, 0.0, 1.0), blendGammas.x);
           // Right edge
           if(blendWidths.y > 0.0 && tc.x > 1.0 - blendWidths.y)
-              alpha *= pow((1.0 - tc.x) / blendWidths.y, blendGammas.y);
+              alpha *= pow(clamp((1.0 - tc.x) / blendWidths.y, 0.0, 1.0), blendGammas.y);
           // Top edge (tc.y near 1.0 = screen top)
           if(blendWidths.z > 0.0 && tc.y > 1.0 - blendWidths.z)
-              alpha *= pow((1.0 - tc.y) / blendWidths.z, blendGammas.z);
+              alpha *= pow(clamp((1.0 - tc.y) / blendWidths.z, 0.0, 1.0), blendGammas.z);
           // Bottom edge (tc.y near 0.0 = screen bottom)
           if(blendWidths.w > 0.0 && tc.y < blendWidths.w)
-              alpha *= pow(tc.y / blendWidths.w, blendGammas.w);
+              alpha *= pow(clamp(tc.y / blendWidths.w, 0.0, 1.0), blendGammas.w);
 
+          alpha = clamp(alpha, 0.0, 1.0);
           fragColor = vec4(fragColor.rgb * alpha, alpha);
       }
       )_";
