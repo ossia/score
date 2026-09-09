@@ -166,6 +166,7 @@ then
   clone_addon    https://github.com/ossia/score-addon-deuterium
   clone_addon         https://github.com/ossia/score-addon-hdf5
   clone_addon          https://github.com/ossia/score-addon-led
+  clone_addon          https://github.com/ossia/score-addon-lavfi
   clone_addon          https://github.com/ossia/score-addon-lsl
   clone_addon          https://github.com/ossia/score-addon-ndi
   clone_addon      https://github.com/ossia/score-addon-openzen
