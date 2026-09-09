@@ -1176,6 +1176,11 @@ score_add_gfx_process_test(edge_consume_latch GfxEdgeConsumeLatch.cpp)
 # every pass creation. Observed via the GFX-RECONCILE / GFX-PASS trace lines.
 score_add_gfx_process_test(renderers_before_passes GfxRenderersBeforePasses.cpp)
 
+# Opening a texture-outlet preview used to force a full rebuild of every render
+# list, so whatever was already on screen blinked. Drives the real preview
+# widget against the real document GfxContext.
+score_add_gfx_process_test(preview_output_rebuild GfxPreviewOutputRebuild.cpp)
+
 # -----------------------------------------------------------------------------
 # Gfx/Spout (Windows/x86_64) and Gfx/Syphon (macOS). Neither compiles on Linux,
 # so this target must build EVERYWHERE and change what it asserts instead of

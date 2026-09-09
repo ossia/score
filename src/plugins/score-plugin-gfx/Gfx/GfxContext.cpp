@@ -452,16 +452,22 @@ void GfxContext::add_preview_output(score::gfx::OutputNode& node)
 
   m_graph->createSingleRenderList(node, api);
 
-  // rate in fps
-  double rate = m_context.app.settings<Gfx::Settings::Model>().getRate();
-
-  // Timer for graph update
-  if(m_no_vsync_timer == nullptr) {
-    m_no_vsync_timer = m_timers.acquireTimer(this, rate);
-    connect(m_no_vsync_timer, &score::HighResolutionTimer::timeout, this, &GfxContext::on_no_vsync_timer, Qt::UniqueConnection);
-  }
-
-  // Render is done in the widget
+  // Then the clocks, but ONLY for a preview that expects to be driven from
+  // here. The old preview widget rendered its own node off its own 16ms timer
+  // -- hence "render is done in the widget" -- and the QML texture source
+  // still does; those declare no manualRenderingRate and must be left exactly
+  // as they were, because recomputeTimers rebuilds the whole timer pool and
+  // would, as a side effect, drop a lone window off its vsync clock the moment
+  // a second output appeared.
+  //
+  // The inspector's texture-port preview is the other kind: a BackgroundNode
+  // that declares a rate and needs its TimerClock to be rendered at all. It
+  // used to obtain one by registering through the generic node path, which
+  // rebuilt every render list to get there and blinked whatever was already on
+  // screen. recomputeTimers touches no render list, so it gets its clock and
+  // the outputs already running keep theirs.
+  if(node.configuration().manualRenderingRate)
+    recomputeTimers();
 }
 
 void GfxContext::recompute_connections()
@@ -767,9 +773,17 @@ void GfxContext::run_commands()
           break;
         }
         case NodeCommand::REMOVE_PREVIEW_NODE: {
-          auto& node = nodes.at(cmd.index);
-          auto n = dynamic_cast<score::gfx::OutputNode*>(node.get());
-          SCORE_ASSERT(n);
+          // find, not at(): the inspector's preview widget outlives its
+          // GfxContext on a queued DeferredDelete (see RhiPreviewWidget's
+          // liveNode()), so a removal can arrive for a node some other
+          // teardown path has already taken out. That is a no-op, not a
+          // std::out_of_range in the middle of a tick.
+          auto node_it = nodes.find(cmd.index);
+          if(node_it == nodes.end())
+            break;
+          auto n = dynamic_cast<score::gfx::OutputNode*>(node_it->second.get());
+          if(!n)
+            break;
           {
             // recompute_edges snapshots preview_edges under edges_lock,
             // so guard reads/mutations of it here too. remove_edge only
@@ -794,8 +808,17 @@ void GfxContext::run_commands()
               this->preview_edges.erase(to_remove);
             }
           }
+          // Whether this output was on a clock decides if the pool has to be
+          // rebuilt once it is gone: a rate-driven preview leaving restores
+          // the single-output case, and with it the vsync clock the window
+          // gave up when the preview arrived. Read it before remove_node,
+          // which destroys the node.
+          const bool wasClocked = bool(n->configuration().manualRenderingRate);
+
           m_graph->destroyOutputRenderList(*n);
           remove_node(nursery, cmd.index);
+          if(wasClocked)
+            recomputeTimers();
           break;
         }
         case NodeCommand::REMOVE_NODE: {
