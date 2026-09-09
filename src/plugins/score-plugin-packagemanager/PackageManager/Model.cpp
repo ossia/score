@@ -212,7 +212,7 @@ void PluginSettingsModel::firstTimeLibraryDownload()
       }, [](qint64 bytesReceived, qint64 bytesTotal) {
         qDebug() << (((bytesReceived / 1024.) / (bytesTotal / 1024.)) * 100)
                  << "% downloaded";
-      }, [] {});
+      }, [](const QString& err) { qDebug() << "user library:" << err; });
     }
   }
   else
@@ -311,11 +311,11 @@ void PluginSettingsModel::installAddon(const Package& addon)
       if(total < received)
         total = sz_bytes;
       progress_from_bytes(received, total); },
-        [this, addon] {
+        [this, addon](const QString& err) {
       reset_progress();
       warning(
           tr("Download failed"),
-          tr("The package %1 could not be downloaded.").arg(addon.name));
+          tr("The package %1 could not be downloaded.\n\n%2").arg(addon.name).arg(err));
     });
 }
 
@@ -345,9 +345,10 @@ void PluginSettingsModel::installSDK()
 
     set_info();
   }, [this](qint64 received, qint64 total) { progress_from_bytes(received, total); },
-      [this] {
+      [this](const QString& err) {
     reset_progress();
-    warning(tr("Download failed"), tr("The SDK could not be downloaded."));
+    warning(
+        tr("Download failed"), tr("The SDK could not be downloaded.\n\n%1").arg(err));
   });
 }
 
@@ -374,7 +375,7 @@ void PluginSettingsModel::installLibrary(const Package& addon)
         total = sz_bytes;
       progress_from_bytes(received, total);
     },
-        [this, addon] { on_packageInstallFailure(addon); });
+        [this, addon](const QString& err) { on_packageInstallFailure(addon, err); });
 }
 
 void PluginSettingsModel::on_packageInstallSuccess(
@@ -437,11 +438,14 @@ void PluginSettingsModel::on_packageInstallSuccess(
   set_info();
 }
 
-void PluginSettingsModel::on_packageInstallFailure(const Package& addon)
+void PluginSettingsModel::on_packageInstallFailure(
+    const Package& addon, const QString& error)
 {
   reset_progress();
+  // What went wrong, not just that something did: a package that fails to
+  // download on one machine and not another is only diagnosable from here.
   warning(
       tr("Download failed"),
-      tr("The package %1 could not be downloaded.").arg(addon.name));
+      tr("The package %1 could not be downloaded.\n\n%2").arg(addon.name).arg(error));
 }
 }

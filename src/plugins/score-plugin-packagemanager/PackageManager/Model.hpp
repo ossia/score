@@ -49,7 +49,7 @@ public:
 
   void on_packageInstallSuccess(
       const Package& addon, const QDir& destination, const std::vector<QString>& res);
-  void on_packageInstallFailure(const Package& addon);
+  void on_packageInstallFailure(const Package& addon, const QString& error);
 
   LocalPackagesModel localPlugins;
   RemotePackagesModel remotePlugins;
