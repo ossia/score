@@ -669,3 +669,11 @@ Device::DeviceSettings InputSettingsWidget::getSettings() const
 
 }
 W_OBJECT_IMPL(Gfx::Syphon::InputDevice)
+
+namespace Gfx::Syphon
+{
+score::gfx::ProcessNode* makeSyphonInput(const InputSettings& s)
+{
+  return new SyphonInputNode{s};
+}
+}

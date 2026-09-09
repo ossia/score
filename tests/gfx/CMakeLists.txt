@@ -199,6 +199,21 @@ score_add_test(test_gfx_video_output_orientation
 target_compile_definitions(test_gfx_video_output_orientation PRIVATE
   GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
 
+# Syphon shares a texture instead of reading pixels back, so none of the flips
+# the readback outputs apply are in play: whether a client sees the picture the
+# right way up can only be answered by being one. macOS only, and it SKIPs
+# without a window-server session because a Syphon server needs one.
+if(APPLE)
+  score_plugin_hidden_sources(_syphon_orient_hidden
+      "${_gfx_src}/Gfx/Syphon/SyphonOutput.mm"
+      "${_gfx_src}/Gfx/Syphon/SyphonInput.mm")
+  score_add_test(test_gfx_syphon_orientation
+    SOURCES GfxSyphonOrientation.mm
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue Syphon)
+endif()
+
 # The multi-window soft-edge blend ramp: the pixels past its own edge stay
 # dark. Calling pow() on the negative base an extrapolated edge coordinate
 # produces is undefined, and the drivers that answer NaN lit them fully.
