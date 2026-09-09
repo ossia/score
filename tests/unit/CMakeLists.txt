@@ -68,6 +68,14 @@ score_add_test(test_unit_state_message_edit
   APP
   PLUGINS score_plugin_scenario)
 
+# The waveform a soundfile control draws for a file that is already decoded.
+if(TARGET score_plugin_media)
+  score_add_test(test_unit_waveform_button
+    SOURCES WaveformButtonTest.cpp
+    APP
+    PLUGINS score_plugin_media score_lib_process)
+endif()
+
 # Where a node draws its outlets when it has no inlets to balance them.
 score_add_test(test_unit_outlet_layout
   SOURCES OutletLayoutTest.cpp
