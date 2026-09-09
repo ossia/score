@@ -357,6 +357,9 @@ QSizeF nodeFootprint(const Process::ProcessModel& process) noexcept;
 //! Horizontal gap left between two nodes chained one after the other.
 static const constexpr double nodeHorizontalMargin = 40.;
 
+//! Vertical gap left between two nodes that would otherwise cover each other.
+static const constexpr double nodeVerticalMargin = 20.;
+
 //! Slides `desired` horizontally until a node of that size does not overlap
 //! any process of `model`. `towardsRight` picks the direction, so that a
 //! chain of processes keeps reading left-to-right.
@@ -364,6 +367,15 @@ SCORE_PLUGIN_SCENARIO_EXPORT
 QPointF freeProcessPosition(
     const Scenario::IntervalModel& model, QPointF desired, QSizeF size,
     bool towardsRight = true, const Process::ProcessModel* ignore = nullptr) noexcept;
+
+//! Slides `desired` downwards until a node of that size does not overlap any
+//! process of `model`. The X is left where the caller put it, so a node
+//! chained after another one stays next to it however much is drawn further
+//! to the right.
+SCORE_PLUGIN_SCENARIO_EXPORT
+QPointF freeProcessPositionBelow(
+    const Scenario::IntervalModel& model, QPointF desired, QSizeF size,
+    const Process::ProcessModel* ignore = nullptr) noexcept;
 
 SCORE_PLUGIN_SCENARIO_EXPORT
 QPointF newProcessPosition(const Scenario::IntervalModel& model) noexcept;
