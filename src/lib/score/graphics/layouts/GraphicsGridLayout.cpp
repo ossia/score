@@ -1,5 +1,7 @@
 #include "GraphicsGridLayout.hpp"
 
+#include <algorithm>
+
 #include <score/graphics/layouts/Constants.hpp>
 
 #include <QPainter>
@@ -229,6 +231,10 @@ void GraphicsDefaultInletLayout::layout()
 }
 
 GraphicsDefaultOutletLayout::~GraphicsDefaultOutletLayout() { }
+void GraphicsDefaultOutletLayout::setMinimumWidth(double w)
+{
+  m_minimumWidth = w;
+}
 void GraphicsDefaultOutletLayout::layout()
 {
   const auto items = this->childItems();
@@ -239,15 +245,18 @@ void GraphicsDefaultOutletLayout::layout()
     if(auto ww = items[i]->boundingRect().width(); ww > w)
       w = ww;
 
-  double cur_x = 0;
+  // Right edge of the column: the node's width when it is the wider of the
+  // two. A node with outlets and no inlets used to leave this at the column's
+  // own width, which put its outlets against the LEFT edge of the node.
+  const double right = std::max(w, m_minimumWidth);
+
   double cur_y = 0;
 
   for(int i = 0; i < items.size(); i++)
   {
     auto it = items[i];
     auto rect = it->boundingRect();
-    cur_x = w - rect.width();
-    it->setPos(cur_x, cur_y);
+    it->setPos(right - rect.width(), cur_y);
     cur_y += rect.height();
   }
 }
