@@ -300,7 +300,13 @@ void DefaultEffectItem::recreate_onlyOutlets()
 {
   auto& portFactory = m_ctx.app.interfaces<Process::PortFactoryList>();
 
-  m_layout = new score::GraphicsDefaultOutletLayout{this};
+  auto outlet_layout = new score::GraphicsDefaultOutletLayout{this};
+  // Against the right-hand edge, as GraphicsIORootLayout puts it when the node
+  // also has inlets. Without this a node with outlets only -- a generator such
+  // as the Random Characters shader, folded -- drew its texture outlet on the
+  // left.
+  outlet_layout->setMinimumWidth(m_minimumWidth);
+  m_layout = outlet_layout;
   m_allLayouts.push_back(m_layout);
   LayoutBuilderBase b{*this,       m_effect,          m_ctx,
                       portFactory, m_effect.inlets(), m_effect.outlets(),

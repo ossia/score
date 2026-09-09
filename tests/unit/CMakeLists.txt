@@ -68,6 +68,11 @@ score_add_test(test_unit_state_message_edit
   APP
   PLUGINS score_plugin_scenario)
 
+# Where a node draws its outlets when it has no inlets to balance them.
+score_add_test(test_unit_outlet_layout
+  SOURCES OutletLayoutTest.cpp
+  APP)
+
 # The preview widget the library shows beside a preset: only the handler that
 # owns the process answers.
 score_add_test(test_unit_library_preset_preview

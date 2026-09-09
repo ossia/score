@@ -57,7 +57,14 @@ public:
   using GraphicsLayout::GraphicsLayout;
   ~GraphicsDefaultOutletLayout();
 
+  //! Outlets belong against the right-hand edge of the node. The column lays
+  //! itself out against this width when the node is wider than the column,
+  //! which is what GraphicsIORootLayout does for a node that also has inlets.
+  void setMinimumWidth(double w);
   void layout() override;
+
+private:
+  double m_minimumWidth{};
 };
 
 class SCORE_LIB_BASE_EXPORT GraphicsIORootLayout : public GraphicsLayout
