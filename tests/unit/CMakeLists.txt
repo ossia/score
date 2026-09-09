@@ -68,6 +68,16 @@ score_add_test(test_unit_state_message_edit
   APP
   PLUGINS score_plugin_scenario)
 
+# The Point2D View's axis mapping: an inverted range is a range.
+if(EXISTS "${SCORE_AVND_SOURCE_DIR}/../../../3rdparty/avendish/examples/Advanced/UI/2DView.hpp")
+  score_add_test(test_unit_point2d_view
+    SOURCES Point2DViewTest.cpp
+    APP
+    PLUGINS score_lib_process)
+  target_include_directories(test_unit_point2d_view
+    PRIVATE "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples/Advanced")
+endif()
+
 # The comment box: trailing spaces and reflow, both QTextDocument behaviour.
 score_add_test(test_unit_textbox_layout
   SOURCES TextBoxLayoutTest.cpp
