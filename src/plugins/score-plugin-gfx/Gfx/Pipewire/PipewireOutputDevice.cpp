@@ -470,12 +470,23 @@ public:
     auto* lp = m_shared->thread_loop_handle();
     pw.thread_loop_lock(lp);
 
+    // media.class is what decides whether anything outside score can use this.
+    // Left to itself an output stream is classed "Stream/Output/Video", and a
+    // session manager only links a video consumer -- OBS, GStreamer's
+    // pipewiresrc, another application -- to a node classed "Video/Source":
+    // the format negotiates against the node's parameters and then not one
+    // buffer ever moves, which is exactly what those consumers saw.
     auto* props = pw.properties_new(
         PW_KEY_MEDIA_TYPE, "Video", PW_KEY_MEDIA_CATEGORY, "Source",
-        PW_KEY_MEDIA_ROLE, "Camera", nullptr);
+        PW_KEY_MEDIA_ROLE, "Camera", PW_KEY_MEDIA_CLASS, "Video/Source", nullptr);
     if(!m_nodeName.isEmpty())
+    {
       pw.properties_set(
           props, PW_KEY_NODE_NAME, m_nodeName.toUtf8().constData());
+      // What a consumer's device list shows. Without it the entry is blank.
+      pw.properties_set(
+          props, PW_KEY_NODE_DESCRIPTION, m_nodeName.toUtf8().constData());
+    }
 
     m_stream = pw.stream_new(m_shared->pw_core_ptr(), "score-output", props);
     if(!m_stream)
