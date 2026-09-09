@@ -46,7 +46,12 @@ struct V210ComputeEncoder final : ComputeEncoder
     };
 
     vec2 flip_y(vec2 tc) {
-    #if defined(QSHADER_MSL) || defined(QSHADER_HLSL)
+    // Only OpenGL. The rest of the engine puts its geometry through
+    // renderer.clipSpaceCorrMatrix, which negates Y on Vulkan; this pass draws
+    // a hardcoded triangle in raw NDC and does not, so the correction it needs
+    // is not the same one. Flipping on Vulkan as well handed libav, GStreamer,
+    // NDI and every other consumer an upside-down picture.
+    #if defined(QSHADER_SPIRV) || defined(QSHADER_MSL) || defined(QSHADER_HLSL)
       return tc;
     #else
       return vec2(tc.x, 1.0 - tc.y);
@@ -65,9 +70,12 @@ struct V210ComputeEncoder final : ComputeEncoder
       if (group_x >= groups_per_row || int(y) >= src_size.y)
         return;
 
-      // Y-flip on backends that need it (matches the fragment encoders).
+      // Y-flip on backends that need it (matches the fragment encoders):
+      // only OpenGL. The rest of the engine negates Y through
+      // renderer.clipSpaceCorrMatrix on Vulkan; this pass indexes texels
+      // directly and does not, so it must not flip there.
       ivec2 srcSize = src_size;
-    #if defined(QSHADER_MSL) || defined(QSHADER_HLSL)
+    #if defined(QSHADER_SPIRV) || defined(QSHADER_MSL) || defined(QSHADER_HLSL)
       int src_y = int(y);
     #else
       int src_y = srcSize.y - 1 - int(y);

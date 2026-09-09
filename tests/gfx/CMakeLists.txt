@@ -182,6 +182,23 @@ score_add_gfx_test(execmodel GfxExecutionModel.cpp)
 # every backend. Green on OpenGL and Vulkan.
 score_add_gfx_test(orientation GfxOrientation.cpp)
 
+# Which way up each video output hands its pixels over: the InvertYRenderer
+# readback that Libav/GStreamer/Shmdata/Sh4lt/NDI/PipeWire share, against the
+# GPU encoders that Libav and GStreamer use for yuv420p, nv12 and friends.
+# The encoders include GPUVideoDecoder.hpp, which needs score_plugin_media's
+# Video/VideoInterface.hpp; the end-to-end cell drives the real
+# Gfx::LibavEncoderNode, whose symbols the shared plug-in hides.
+score_plugin_hidden_sources(_orient_libav_hidden
+    "${_gfx_src}/Gfx/Libav/LibavEncoder.cpp"
+    "${_gfx_src}/Gfx/Libav/LibavEncoderNode.cpp")
+score_add_test(test_gfx_video_output_orientation
+  SOURCES GfxVideoOutputOrientation.cpp ${_orient_libav_hidden}
+  GUI
+  PLUGINS score_plugin_gfx score_plugin_media score_plugin_scenario score_lib_process
+  LIBS test_gfx_engine_glue avutil avformat avcodec swscale)
+target_compile_definitions(test_gfx_video_output_orientation PRIVATE
+  GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+
 # The multi-window soft-edge blend ramp: the pixels past its own edge stay
 # dark. Calling pow() on the negative base an extrapolated edge coordinate
 # produces is undefined, and the drivers that answer NaN lit them fully.

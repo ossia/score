@@ -43,7 +43,12 @@ struct P010Encoder : GPUVideoEncoder
     )_" "%1" R"_(
     )_" "%2" R"_(
     vec2 flip_y(vec2 tc) {
-    #if defined(QSHADER_MSL) || defined(QSHADER_HLSL)
+    // Only OpenGL. The rest of the engine puts its geometry through
+    // renderer.clipSpaceCorrMatrix, which negates Y on Vulkan; this pass draws
+    // a hardcoded triangle in raw NDC and does not, so the correction it needs
+    // is not the same one. Flipping on Vulkan as well handed libav, GStreamer,
+    // NDI and every other consumer an upside-down picture.
+    #if defined(QSHADER_SPIRV) || defined(QSHADER_MSL) || defined(QSHADER_HLSL)
       return tc;
     #else
       return vec2(tc.x, 1.0 - tc.y);
@@ -64,7 +69,12 @@ struct P010Encoder : GPUVideoEncoder
     )_" "%1" R"_(
     )_" "%2" R"_(
     vec2 flip_y(vec2 tc) {
-    #if defined(QSHADER_MSL) || defined(QSHADER_HLSL)
+    // Only OpenGL. The rest of the engine puts its geometry through
+    // renderer.clipSpaceCorrMatrix, which negates Y on Vulkan; this pass draws
+    // a hardcoded triangle in raw NDC and does not, so the correction it needs
+    // is not the same one. Flipping on Vulkan as well handed libav, GStreamer,
+    // NDI and every other consumer an upside-down picture.
+    #if defined(QSHADER_SPIRV) || defined(QSHADER_MSL) || defined(QSHADER_HLSL)
       return tc;
     #else
       return vec2(tc.x, 1.0 - tc.y);
@@ -209,7 +219,10 @@ struct P010Encoder : GPUVideoEncoder
 {
   static constexpr const char* common = R"_(
     int flip_y_int(int y, int h) {
-    #if defined(QSHADER_MSL) || defined(QSHADER_HLSL)
+    // See GPUVideoEncoder::y_flip_glsl: only OpenGL. The rest of the engine
+    // negates Y through renderer.clipSpaceCorrMatrix on Vulkan; this pass
+    // indexes texels directly and does not, so it must not flip there.
+    #if defined(QSHADER_SPIRV) || defined(QSHADER_MSL) || defined(QSHADER_HLSL)
       return y;
     #else
       return h - 1 - y;

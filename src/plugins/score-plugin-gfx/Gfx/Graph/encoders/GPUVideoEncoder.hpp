@@ -102,7 +102,12 @@ struct GPUVideoEncoder
   /// Fragment shader Y-flip: on GL, flip v_texcoord.y. On Metal/HLSL, no flip.
   static constexpr const char* y_flip_glsl = R"_(
     vec2 flip_y(vec2 tc) {
-    #if defined(QSHADER_MSL) || defined(QSHADER_HLSL)
+    // Only OpenGL. The rest of the engine puts its geometry through
+    // renderer.clipSpaceCorrMatrix, which negates Y on Vulkan; this pass draws
+    // a hardcoded triangle in raw NDC and does not, so the correction it needs
+    // is not the same one. Flipping on Vulkan as well handed libav, GStreamer,
+    // NDI and every other consumer an upside-down picture.
+    #if defined(QSHADER_SPIRV) || defined(QSHADER_MSL) || defined(QSHADER_HLSL)
       return tc;
     #else
       return vec2(tc.x, 1.0 - tc.y);

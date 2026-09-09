@@ -978,24 +978,29 @@ struct PwWireRenderer final : score::gfx::OutputNodeRenderer
     const auto& mesh = renderer.defaultTriangle();
     m_mesh = renderer.initMeshBuffer(mesh, res);
 
-    // GL renders bottom-up (Y-up framebuffer): flip to get top-down wire
-    // memory. Vulkan/D3D/Metal are already top-down: sample straight.
+    // The same correction Gfx::InvertYRenderer applies, and for the same
+    // reason: this pass draws the engine's default triangle, whose vertex
+    // shader puts the geometry through renderer.clipSpaceCorrMatrix, so what
+    // it needs is decided by that and not by QRhi::isYUpInFramebuffer().
+    // Deciding it on the framebuffer origin left this pass without a flip on
+    // Vulkan and put an upside-down picture on the wire -- which the
+    // score-to-score round trip could not see, because the TexgenNode it
+    // painted with was upside down on Vulkan too.
     static const constexpr auto flip_filter = R"_(#version 450
     layout(location = 0) in vec2 v_texcoord;
     layout(location = 0) out vec4 fragColor;
     layout(binding = 3) uniform sampler2D tex;
-    void main() { fragColor = texture(tex, vec2(v_texcoord.x, 1. - v_texcoord.y)); }
+    void main()
+    {
+#if defined(QSHADER_MSL) || defined(QSHADER_HLSL)
+      fragColor = texture(tex, v_texcoord);
+#else
+      fragColor = texture(tex, vec2(v_texcoord.x, 1. - v_texcoord.y));
+#endif
+    }
     )_";
-    static const constexpr auto copy_filter = R"_(#version 450
-    layout(location = 0) in vec2 v_texcoord;
-    layout(location = 0) out vec4 fragColor;
-    layout(binding = 3) uniform sampler2D tex;
-    void main() { fragColor = texture(tex, v_texcoord); }
-    )_";
-    const bool flip = renderer.state.rhi->isYUpInFramebuffer();
     std::tie(m_vertexS, m_fragmentS) = score::gfx::makeShaders(
-        renderer.state, mesh.defaultVertexShader(),
-        flip ? flip_filter : copy_filter);
+        renderer.state, mesh.defaultVertexShader(), flip_filter);
 
     auto sampler = renderer.state.rhi->newSampler(
         QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
