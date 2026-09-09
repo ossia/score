@@ -15,6 +15,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/DialogWidget/MessageTreeView.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -27,6 +28,9 @@
 #include <ossia/network/value/value_conversion.hpp>
 
 #include <QAbstractItemModel>
+#include <QAction>
+#include <QItemSelectionModel>
+#include <QKeySequence>
 
 #include <catch2/catch_all.hpp>
 
@@ -197,5 +201,50 @@ TEST_CASE("dropping messages on a state keeps its resets balanced")
     CHECK(updated == 1);
     CHECK_FALSE(
         WarningCatcher::messages.filter("without calling endResetModel").size() > 0);
+  });
+}
+
+// Removing a message was bound to Backspace only, so the Del key -- the one
+// every other tree in the application answers to -- did nothing.
+TEST_CASE("the state message tree removes on both Backspace and Del")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+
+    auto& st = some_state(*doc);
+    addMessage(*doc, st, "dev:/a/b", 0.25f);
+
+    Scenario::MessageTreeView view{st, nullptr};
+
+    QAction* remove{};
+    for(auto* a : view.actions())
+      if(a->text().contains("Remove"))
+        remove = a;
+    REQUIRE(remove);
+
+    const auto keys = remove->shortcuts();
+    CHECK(keys.contains(QKeySequence{Qt::Key_Backspace}));
+    CHECK(keys.contains(QKeySequence{Qt::Key_Delete}));
+  });
+}
+
+TEST_CASE("removing a selected message takes it out of the state")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+
+    auto& st = some_state(*doc);
+    auto& model = st.messages();
+    addMessage(*doc, st, "dev:/a/b", 0.25f);
+    REQUIRE(firstValued(model).isValid());
+
+    Scenario::MessageTreeView view{st, nullptr};
+    view.selectionModel()->select(
+        firstValued(model), QItemSelectionModel::Select | QItemSelectionModel::Rows);
+    view.removeNodes();
+
+    CHECK_FALSE(firstValued(model).isValid());
   });
 }

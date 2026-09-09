@@ -1,6 +1,8 @@
 #pragma once
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 
+#include <score_plugin_scenario_export.h>
+
 #include <QTreeView>
 
 class QAction;
@@ -11,7 +13,7 @@ namespace Scenario
 {
 class MessageItemModel;
 class StateModel;
-class MessageTreeView final : public QTreeView
+class SCORE_PLUGIN_SCENARIO_EXPORT MessageTreeView final : public QTreeView
 {
 public:
   MessageTreeView(const StateModel& model, QWidget* parent);
