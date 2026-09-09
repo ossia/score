@@ -21,7 +21,14 @@ fi
 SDK=/c/ossia-sdk-$SDK_ARCH
 SDK_CMAKE=c:/ossia-sdk-$SDK_ARCH
 
-export PATH="$PATH:$SDK/cmake/bin:$SDK/llvm/bin"
+# $SDK/llvm/bin goes FIRST because the Qt host tools in qt6-static/bin ship
+# no DLLs of their own and import libc++.dll by name. On the ARM64 runner,
+# Git for Windows is a CLANGARM64 build and puts its own older libc++.dll
+# earlier on PATH, so rcc.exe resolved against that one and died with
+# STATUS_ENTRYPOINT_NOT_FOUND (0xc0000139) on a libc++ 23 symbol, before
+# AUTORCC could run. moc.exe does not import that symbol, which is why
+# AUTOMOC passed and AUTORCC was the first thing to fail.
+export PATH="$SDK/llvm/bin:$PATH:$SDK/cmake/bin"
 
 cmake -GNinja -S "$PWD" -B build \
   "${SCORE_CMAKE_CACHE_CMD[@]}" \
