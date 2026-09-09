@@ -41,6 +41,7 @@ public:
   void mousePressEvent(QMouseEvent* event) override;
   void mouseMoveEvent(QMouseEvent* event) override;
   void mouseReleaseEvent(QMouseEvent* event) override;
+  void mouseDoubleClickEvent(QMouseEvent* event) override;
   virtual void createPopup(QPoint pos);
   virtual void setRange(double min, double max, double init) noexcept;
 

@@ -90,6 +90,11 @@ void QGraphicsIntSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   DefaultGraphicsSliderImpl::mouseReleaseEvent(*this, event);
 }
 
+void QGraphicsIntSlider::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
+{
+  DefaultGraphicsSliderImpl::mouseDoubleClickEvent(*this, event);
+}
+
 bool QGraphicsIntSlider::sceneEvent(QEvent* event)
 {
   if(event->type() == QEvent::UngrabMouse)

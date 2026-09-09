@@ -60,6 +60,7 @@ protected:
 
   void paintEvent(QPaintEvent* event) override;
   void mousePressEvent(QMouseEvent*) override;
+  void mouseDoubleClickEvent(QMouseEvent*) override;
   void createPopup(QPoint pos) override;
 };
 
