@@ -41,6 +41,7 @@
 #include <QGraphicsRectItem>
 #include <QGraphicsScene>
 
+#include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
 namespace
@@ -156,6 +157,62 @@ TEST_CASE("Automatic node positions never overlap", "[integration][nodal][gui]")
                 << " at " << b.position().x() << "," << b.position().y());
             CHECK(!nodeRect(a).intersects(nodeRect(b)));
           }
+    }
+
+    // A node added at the head of a chain used to slide right past every
+    // process it overlapped, one after the other, and land beyond the far end
+    // of the chain: "most of the time it puts the objects very far".
+    SECTION("a node chained after the head of a chain stays next to its source")
+    {
+      std::vector<Process::ProcessModel*> chain;
+      double x = 400.;
+      for(int i = 0; i < 5; i++)
+      {
+        auto p = createProcess(*doc, itv, automationData(), QPointF{x, 400.});
+        REQUIRE(p);
+        p->setSize({200., 80.});
+        chain.push_back(p);
+        x += 240.;
+      }
+
+      const auto pos = Scenario::newProcessPositionAfter(itv, *chain.front());
+
+      // Just past its own source, not past the tail of what follows it.
+      CHECK(pos.x() == Catch::Approx(400. + 200. + Scenario::nodeHorizontalMargin));
+      CHECK(pos.x() < chain.back()->position().x());
+
+      // ... and still on top of nothing.
+      for(const Process::ProcessModel& p : itv.processes)
+      {
+        INFO("against a node at " << p.position().x() << "," << p.position().y());
+        CHECK(!QRectF(pos, Scenario::nodeFootprint(*chain.front()))
+                   .intersects(nodeRect(p)));
+      }
+    }
+
+    SECTION("a node chained before the tail of a chain stays next to its source")
+    {
+      std::vector<Process::ProcessModel*> chain;
+      double x = 400.;
+      for(int i = 0; i < 5; i++)
+      {
+        auto p = createProcess(*doc, itv, automationData(), QPointF{x, 400.});
+        REQUIRE(p);
+        p->setSize({200., 80.});
+        chain.push_back(p);
+        x += 240.;
+      }
+
+      auto created = createProcess(*doc, itv, automationData(), QPointF{5000., 5000.});
+      REQUIRE(created);
+      created->setSize({200., 80.});
+
+      const auto pos
+          = Scenario::newProcessPositionBefore(itv, *chain.back(), created);
+      CHECK(pos.x() == Catch::Approx(
+                           chain.back()->position().x() - 200.
+                           - Scenario::nodeHorizontalMargin));
+      CHECK(pos.x() > chain.front()->position().x());
     }
 
     SECTION("a node chained before another one clears it on the left")

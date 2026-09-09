@@ -1107,6 +1107,27 @@ QPointF freeProcessPosition(
   return rect.topLeft();
 }
 
+QPointF freeProcessPositionBelow(
+    const IntervalModel& model, QPointF desired, QSizeF size,
+    const Process::ProcessModel* ignore) noexcept
+{
+  QRectF rect{desired, size};
+
+  // Each step moves the candidate strictly below the process it overlaps, so
+  // at most one step per process is needed.
+  for(std::size_t i = 0, n = model.processes.size(); i <= n; i++)
+  {
+    const auto* hit = firstOverlappingProcess(model, rect, ignore);
+    if(!hit)
+      break;
+
+    rect.moveTop(
+        hit->position().y() + nodeFootprint(*hit).height() + nodeVerticalMargin);
+  }
+
+  return rect.topLeft();
+}
+
 QPointF newProcessPosition(const IntervalModel& cst) noexcept
 {
   // Cascade new nodes along the diagonal, jumping past the ones already there.
@@ -1133,21 +1154,25 @@ QPointF newProcessPosition(const IntervalModel& cst) noexcept
 QPointF newProcessPositionAfter(
     const IntervalModel& model, const Process::ProcessModel& previous) noexcept
 {
+  // Anchored to the node it is chained after, and never pushed further right
+  // by what is drawn beyond it: sliding horizontally past every process in the
+  // way sent a node added at the head of a long chain out past the tail of it.
   const auto prevSize = nodeFootprint(previous);
   const QPointF desired{
       previous.position().x() + prevSize.width() + nodeHorizontalMargin,
       previous.position().y()};
-  return freeProcessPosition(model, desired, minimumNodeFootprint, true, nullptr);
+  return freeProcessPositionBelow(model, desired, minimumNodeFootprint, nullptr);
 }
 
 QPointF newProcessPositionBefore(
     const IntervalModel& model, const Process::ProcessModel& next,
     const Process::ProcessModel* created) noexcept
 {
+  // See newProcessPositionAfter: the X belongs to the node it is chained to.
   const auto size = created ? nodeFootprint(*created) : minimumNodeFootprint;
   const QPointF desired{
       next.position().x() - size.width() - nodeHorizontalMargin, next.position().y()};
-  return freeProcessPosition(model, desired, size, false, created);
+  return freeProcessPositionBelow(model, desired, size, created);
 }
 
 // TODO refactor by grepping for _cast.*IntervalModel
