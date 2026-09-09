@@ -1283,8 +1283,13 @@ public:
 
 private:
   void updatePath();
+  //! The node.name the URL carries, whichever way it was chosen.
+  QString currentNode() const;
+  void setCurrentNode(const QString& name);
 
-  QLineEdit* m_nodeEdit{};
+  //! Editable: the live nodes are offered, and a name can still be typed for
+  //! a producer that is not up yet.
+  QComboBox* m_nodeEdit{};
   QSpinBox* m_widthEdit{};
   QSpinBox* m_heightEdit{};
   QDoubleSpinBox* m_fpsEdit{};
@@ -1325,16 +1330,46 @@ bool PipeWireDevice::reconnect()
   return connected();
 }
 
+//! The Video/Source nodes the daemon is publishing, as (node.name, label).
+static std::vector<std::pair<QString, QString>> liveVideoSources()
+{
+  std::vector<std::pair<QString, QString>> out;
+  auto shared = libremidi::pipewire::shared_context();
+  if(!shared || !shared->ok())
+    return out;
+
+  const auto snap = shared->snapshot();
+  for(const auto& node : snap.nodes_of(libremidi::pipewire::media_class::video))
+  {
+    if(node.media_class_str.find("Source") == std::string::npos)
+      continue;
+    const QString name = QString::fromStdString(node.name);
+    if(name.isEmpty())
+      continue;
+    const QString descr = QString::fromStdString(node.description);
+    out.push_back({name, descr.isEmpty() ? name : (descr + " (" + name + ")")});
+  }
+  return out;
+}
+
 PipeWireSettingsWidget::PipeWireSettingsWidget(QWidget* parent)
     : Device::ProtocolSettingsWidget(parent)
 {
-  m_nodeEdit = new QLineEdit(this);
+  m_nodeEdit = new QComboBox(this);
+  m_nodeEdit->setEditable(true);
   m_widthEdit = new QSpinBox(this);
   m_heightEdit = new QSpinBox(this);
   m_fpsEdit = new QDoubleSpinBox(this);
   m_formatEdit = new QComboBox(this);
 
-  m_nodeEdit->setPlaceholderText("Leave empty for auto-connect");
+  m_nodeEdit->lineEdit()->setPlaceholderText(
+      tr("Leave empty for auto-connect"));
+  // What PipeWire is actually publishing right now, rather than a name the
+  // user has to know and type: the entry text is the node.name the URL wants,
+  // the label is the description the rest of the desktop shows.
+  m_nodeEdit->addItem(tr("(default source)"), QString{});
+  for(const auto& [name, label] : liveVideoSources())
+    m_nodeEdit->addItem(label, name);
 
   m_widthEdit->setRange(1, 7680);
   m_widthEdit->setValue(1920);
@@ -1360,6 +1395,30 @@ PipeWireSettingsWidget::PipeWireSettingsWidget(QWidget* parent)
 
 void PipeWireSettingsWidget::updatePath() { }
 
+QString PipeWireSettingsWidget::currentNode() const
+{
+  // A picked entry carries its node.name as data; anything typed by hand is
+  // the name itself.
+  const int idx = m_nodeEdit->currentIndex();
+  if(idx >= 0 && m_nodeEdit->itemText(idx) == m_nodeEdit->currentText())
+    return m_nodeEdit->itemData(idx).toString();
+  return m_nodeEdit->currentText();
+}
+
+void PipeWireSettingsWidget::setCurrentNode(const QString& name)
+{
+  for(int i = 0; i < m_nodeEdit->count(); i++)
+  {
+    if(m_nodeEdit->itemData(i).toString() == name)
+    {
+      m_nodeEdit->setCurrentIndex(i);
+      return;
+    }
+  }
+  // Not published (yet): keep what the document asked for.
+  m_nodeEdit->setCurrentText(name);
+}
+
 Device::DeviceSettings PipeWireSettingsWidget::getSettings() const
 {
   Device::DeviceSettings s;
@@ -1367,7 +1426,7 @@ Device::DeviceSettings PipeWireSettingsWidget::getSettings() const
   s.name = "PipeWire";
 
   SharedInputSettings set;
-  QString path = "pipewire://" + m_nodeEdit->text();
+  QString path = "pipewire://" + currentNode();
   const QStringList params{
       QString("width=%1").arg(m_widthEdit->value()),
       QString("height=%1").arg(m_heightEdit->value()),
@@ -1390,7 +1449,7 @@ void PipeWireSettingsWidget::setSettings(const Device::DeviceSettings& settings)
   if(!m.hasMatch())
     return;
 
-  m_nodeEdit->setText(m.captured(1));
+  setCurrentNode(m.captured(1));
   const QString params = m.captured(2);
   if(params.isEmpty())
     return;
