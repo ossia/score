@@ -68,6 +68,11 @@ score_add_test(test_unit_state_message_edit
   APP
   PLUGINS score_plugin_scenario)
 
+# A colour control fed from an address whose unit is not rgba.
+score_add_test(test_unit_color_control_unit
+  SOURCES ColorControlUnitTest.cpp
+  PLUGINS score_lib_process)
+
 # Kabang / Minibang pitch modulation: pure math, no sampler around it.
 if(TARGET score_addon_synthimi)
   score_add_test(test_unit_kabang_pitch_envelope
