@@ -43,7 +43,10 @@ struct BGRAComputeEncoder final : ComputeEncoder
       if (int(x) >= src_size.x || int(y) >= src_size.y)
         return;
 
-    #if defined(QSHADER_MSL) || defined(QSHADER_HLSL)
+    // See GPUVideoEncoder::y_flip_glsl: only OpenGL. The rest of the engine
+    // negates Y through renderer.clipSpaceCorrMatrix on Vulkan; this pass
+    // indexes texels directly and does not, so it must not flip there.
+    #if defined(QSHADER_SPIRV) || defined(QSHADER_MSL) || defined(QSHADER_HLSL)
       int src_y = int(y);
     #else
       int src_y = src_size.y - 1 - int(y);

@@ -29,7 +29,12 @@ struct TexgenNode : NodeModel
   {
     v_texcoord = texcoord;
     gl_Position = renderer.clipSpaceCorrMatrix * vec4(position.xy, 0.0, 1.);
-#if !(defined(QSHADER_SPIRV) || defined(QSHADER_HLSL) || defined(QSHADER_MSL))
+// The uploaded buffer's row 0 is its top, and it must come out at the top on
+// every backend. Vulkan was left out of this correction, so a JIT Texgen -- and
+// anything else painting a texture from C++ -- came out upside down there,
+// through every sink: the window, the readback outputs and the GPU encoders
+// alike.
+#if !(defined(QSHADER_HLSL) || defined(QSHADER_MSL))
   gl_Position.y = - gl_Position.y;
 #endif
   }
