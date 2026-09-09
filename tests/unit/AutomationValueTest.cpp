@@ -210,3 +210,77 @@ TEST_CASE("Automation serialization round-trips values, domain and address", "[a
     }
   });
 }
+
+// A curve whose first segment does not start at t = 0. CurveConversion only
+// carried the first segment's start point over to the ossia curve when it sat
+// exactly at 0, so anything before that segment fell back to y0 = 0 and the
+// segment itself was stretched back to the origin: the first segment was, in
+// effect, thrown away.
+TEST_CASE("Automation curve starting after zero holds its first value", "[automation][values]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    QObject* owner = new QObject{&doc->model()};
+
+    Automation::ProcessModel proc{
+        TimeVal::fromMsecs(1000.), Id<Process::ProcessModel>{1}, owner};
+    proc.setMin(0.);
+    proc.setMax(1.);
+
+    // Nothing until t = 0.25, then 0.5 -> 1 over [0.25, 0.75].
+    auto& cm = proc.curve();
+    cm.clear();
+    auto seg = new Curve::LinearSegment{Id<Curve::SegmentModel>{1}, &cm};
+    seg->setStart({0.25, 0.5});
+    seg->setEnd({0.75, 1.});
+    cm.addSegment(seg);
+
+    auto curve = make_execution_curve(proc);
+
+    // Before the segment: its start value, held.
+    CHECK(curve->value_at(0.) == Approx(0.5f).margin(1e-6));
+    CHECK(curve->value_at(0.2) == Approx(0.5f).margin(1e-6));
+
+    // Inside it: interpolated across its own span, not stretched to the origin.
+    CHECK(curve->value_at(0.25) == Approx(0.5f).margin(1e-6));
+    CHECK(curve->value_at(0.5) == Approx(0.75f).margin(1e-6));
+    CHECK(curve->value_at(0.75) == Approx(1.f).margin(1e-6));
+
+    // After it: the last value, held.
+    CHECK(curve->value_at(1.) == Approx(1.f).margin(1e-6));
+  });
+}
+
+// The same for a curve with several segments, where only the first is offset.
+TEST_CASE("Automation curve offset from zero keeps every later segment", "[automation][values]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    QObject* owner = new QObject{&doc->model()};
+
+    Automation::ProcessModel proc{
+        TimeVal::fromMsecs(1000.), Id<Process::ProcessModel>{1}, owner};
+    proc.setMin(0.);
+    proc.setMax(1.);
+
+    auto& cm = proc.curve();
+    cm.clear();
+    auto a = new Curve::LinearSegment{Id<Curve::SegmentModel>{1}, &cm};
+    a->setStart({0.2, 1.});
+    a->setEnd({0.6, 0.});
+    auto b = new Curve::LinearSegment{Id<Curve::SegmentModel>{2}, &cm};
+    b->setStart({0.6, 0.});
+    b->setEnd({1., 1.});
+    cm.addSegment(a);
+    cm.addSegment(b);
+
+    auto curve = make_execution_curve(proc);
+    CHECK(curve->value_at(0.) == Approx(1.f).margin(1e-6));
+    CHECK(curve->value_at(0.4) == Approx(0.5f).margin(1e-6));
+    CHECK(curve->value_at(0.6) == Approx(0.f).margin(1e-6));
+    CHECK(curve->value_at(0.8) == Approx(0.5f).margin(1e-6));
+    CHECK(curve->value_at(1.) == Approx(1.f).margin(1e-6));
+  });
+}
