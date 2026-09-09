@@ -4,14 +4,23 @@
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 
+#include <Gfx/Graph/OutputNode.hpp>
 #include <Gfx/GfxDevice.hpp>
 #include <Gfx/SharedOutputSettings.hpp>
+
+#include <score_plugin_gfx_export.h>
 
 #include <QLineEdit>
 
 namespace Gfx
 {
 class gfx_protocol_base;
+
+/** Headless factory for the Syphon publishing node, so a test harness can
+ *  drive the real output without the Device / Document machinery -- the same
+ *  hook Gfx::PipeWire::makePipewireOutput provides. */
+SCORE_PLUGIN_GFX_EXPORT
+score::gfx::OutputNode* makeSyphonOutput(const SharedOutputSettings& s);
 class SyphonProtocolFactory final : public SharedOutputProtocolFactory
 {
   SCORE_CONCRETE("087D032D-9A42-4BC9-B3DF-AD9BA9E86C07")

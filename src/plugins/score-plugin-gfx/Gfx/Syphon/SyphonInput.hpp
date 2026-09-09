@@ -3,6 +3,7 @@
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 
+#include <Gfx/Graph/Node.hpp>
 #include <Gfx/GfxInputDevice.hpp>
 #include <Gfx/SharedInputSettings.hpp>
 
@@ -10,11 +11,20 @@
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/protocol.hpp>
 
+#include <score_plugin_gfx_export.h>
+
 #include <QLineEdit>
 class QComboBox;
 namespace Gfx::Syphon
 {
 using InputSettings = Gfx::SharedInputSettings;
+
+/** Headless factory for the Syphon subscribing node, the counterpart of
+ *  Gfx::makeSyphonOutput: a test can build a real Syphon receiver and put it in
+ *  a graph without the Device / Document machinery. `settings.path` is the
+ *  server UUID, as SyphonServerDirectory reports it. */
+SCORE_PLUGIN_GFX_EXPORT
+score::gfx::ProcessNode* makeSyphonInput(const InputSettings& s);
 class InputFactory final : public SharedInputProtocolFactory
 {
   SCORE_CONCRETE("398CEC01-C4EA-43B7-8281-D848748E0F68")

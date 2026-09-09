@@ -427,3 +427,10 @@ Device::DeviceSettings SyphonSettingsWidget::getSettings() const
 }
 }
 
+namespace Gfx
+{
+score::gfx::OutputNode* makeSyphonOutput(const SharedOutputSettings& s)
+{
+  return new SyphonNode{s};
+}
+}
