@@ -410,6 +410,17 @@ if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
   score_add_test(test_integration_js_texture_source_ui
     SOURCES JsTextureSourceUiTest.cpp
     GUI)
+
+  # score's PipeWire video OUTPUT through the real application: a device, a
+  # process, playing, and a GStreamer consumer reading it. Pixels AND rate --
+  # the producer harness drives the node from its own timer, so it can say
+  # nothing about how fast the app itself feeds a consumer.
+  score_add_test(test_integration_pipewire_video_output
+    SOURCES PipewireVideoOutputTest.cpp
+    GUI
+    LIBS ${QT_PREFIX}::Gui)
+  set_tests_properties(test_integration_pipewire_video_output
+    PROPERTIES TIMEOUT 900 RUN_SERIAL TRUE)
   set_tests_properties(test_integration_js_texture_source_ui
     PROPERTIES TIMEOUT 900 RUN_SERIAL TRUE)
 
@@ -445,6 +456,7 @@ if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
                   test_integration_pipewire_video_motion
                   test_integration_js_graph_e2e
                   test_integration_js_texture_source_ui
+                  test_integration_pipewire_video_output
                   test_integration_gfx_protocol_settings)
     target_link_libraries(${_pw_tgt} PRIVATE ${QT_PREFIX}::Gui)
     target_compile_definitions(${_pw_tgt} PRIVATE

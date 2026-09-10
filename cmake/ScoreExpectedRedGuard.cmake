@@ -70,6 +70,8 @@ set(SCORE_EXPECTED_RED
   "shouldfail@tests/threedim/SceneApproximationPins.cpp@DEFECT: the render-thread light encoder collapses area lights onto point, and dome onto directional@light-type information is lost in the render-thread encoder"
   "shouldfail@tests/threedim/SceneApproximationPins.cpp@DEFECT: SceneFilterNode mode 2 has no Name port, so it cannot be configured at all@mode 2 exposes no Name port"
 
+  "shouldfail@tests/integration/PipewireVideoOutputTest.cpp@a PipeWire video output can hand over DMA-BUF memory@the dma-buf modifier handshake ends in \"no more output formats\": nothing survives the modifier intersection with this consumer, and score errors instead of falling back to host memory. The shm path in the same file is green, pixels and rate both"
+
   # -- CMake WILL_FAIL ------------------------------------------------------
   # Cannot be a Catch2 tag: the defect aborts, so Catch2 never reports.
   "will_fail@tests/integration/CMakeLists.txt@test_integration_js_rootpath_static@rootPath()'s function-local static caches a dangling reference. ASAN-ONLY -- off ASan the freed read trips Qt's own Q_ASSERT only when the garbage is unlucky (measured 8 red / 2 green in 10 runs), so the entry is WILL_FAIL under -fsanitize=address and DISABLED otherwise"
