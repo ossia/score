@@ -98,6 +98,23 @@ struct ExternalImageDesc
   // dedicated=true: required for D3D11_TEXTURE_KMT (Spout); harmless for OPAQUE_*.
   bool dedicated{true};
   bool preferDeviceLocal{true};
+
+  /** DRM format modifiers to offer, for an image that will be exported as a
+   *  dma-buf. When non-empty the image is created with
+   *  VK_IMAGE_TILING_DRM_FORMAT_MODIFIER_EXT and the driver picks one of these,
+   *  which `tiling` above no longer decides.
+   *
+   *  This is the fast path and the documented one: LINEAR is "universally
+   *  supported" and "typically offers poor performance", OPTIMAL cannot be
+   *  shared because no importer knows the layout, and the modifier list is what
+   *  gets a layout that is both shareable and fast: at 8K a full-frame copy
+   *  into a modifier-tiled export is as quick as one into an ordinary texture,
+   *  while a LINEAR host-visible one is slower by an order of magnitude -- see
+   *  tests/hardware/dmabuf-export-bandwidth.cpp. Leave empty to keep
+   *  `tiling`, which is what a consumer on another GPU may need.
+   */
+  const uint64_t* drmModifiers{};
+  uint32_t drmModifierCount{};
 };
 
 /** @brief Description of a buffer to create with exportable / importable memory. */
@@ -131,6 +148,9 @@ struct ExternalImage
   VkImage image{VK_NULL_HANDLE};
   VkDeviceMemory memory{VK_NULL_HANDLE};
   VkDeviceSize size{0};
+  //! The modifier the driver chose, when drmModifiers was given.
+  //! DRM_FORMAT_MOD_INVALID (all ones in 56 bits) when it was not.
+  uint64_t drmModifier{(1ull << 56) - 1};
 };
 
 struct ExternalBuffer

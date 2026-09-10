@@ -194,6 +194,52 @@ public:
   {
     m_vk = vk;
     m_dmabufBackend = DmaBufBackend::Vulkan;
+    enumerate_modifiers();
+  }
+
+  /** Every DRM format modifier the driver can render our wire format with.
+   *
+   *  These are the layouts we can offer a consumer, and the reason to offer
+   *  them: a modifier-tiled export is written and copied into far faster than
+   *  a LINEAR one in host memory (see
+   *  tests/hardware/dmabuf-export-bandwidth.cpp). An empty list is not a
+   *  failure -- it means the driver has no shareable tiled layout for the
+   *  format, and LINEAR is what we fall back to.
+   */
+  void enumerate_modifiers() noexcept
+  {
+    m_drmModifiers.clear();
+    if(!m_vk.qInst || !m_vk.physDev)
+      return;
+    auto getProps2 = (PFN_vkGetPhysicalDeviceFormatProperties2)
+        m_vk.qInst->getInstanceProcAddr("vkGetPhysicalDeviceFormatProperties2");
+    if(!getProps2)
+      return;
+
+    VkDrmFormatModifierPropertiesListEXT list{};
+    list.sType = VK_STRUCTURE_TYPE_DRM_FORMAT_MODIFIER_PROPERTIES_LIST_EXT;
+    VkFormatProperties2 props{};
+    props.sType = VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_2;
+    props.pNext = &list;
+
+    const VkFormat fmt = vkFormatFromTag(m_fmt);
+    getProps2(m_vk.physDev, fmt, &props);
+    if(list.drmFormatModifierCount == 0)
+      return;
+
+    std::vector<VkDrmFormatModifierPropertiesEXT> mods(
+        list.drmFormatModifierCount);
+    list.pDrmFormatModifierProperties = mods.data();
+    getProps2(m_vk.physDev, fmt, &props);
+
+    for(const auto& m : mods)
+    {
+      // It has to be usable as the thing we render into and copy to.
+      const auto need = VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT
+                        | VK_FORMAT_FEATURE_TRANSFER_DST_BIT;
+      if((m.drmFormatModifierTilingFeatures & need) == need)
+        m_drmModifiers.push_back(m.drmFormatModifier);
+    }
   }
 #endif
 
@@ -599,12 +645,21 @@ public:
           &b, SPA_FORMAT_VIDEO_modifier,
           SPA_POD_PROP_FLAG_MANDATORY | SPA_POD_PROP_FLAG_DONT_FIXATE);
       spa_pod_builder_push_choice(&b, &f[1], SPA_CHOICE_Enum, 0);
-      // First entry is both the default and an alternative, hence the repeat.
-      // INVALID before LINEAR: it means "implicit modifier, ask the driver",
-      // which is the one a GStreamer or EGL consumer imports without having to
-      // agree on an explicit layout, and the buffers we export really are
-      // linear so either description is truthful.
-      spa_pod_builder_long(&b, kDrmModifierInvalid);
+      // The driver's own shareable layouts first, then INVALID, then LINEAR.
+      // Order is preference: a modifier-tiled export is written far faster
+      // than a LINEAR one in host memory, so the tiled layouts go first and
+      // the universally-importable ones stay at the back as the fallback for a
+      // consumer that cannot take them -- which is what a second GPU is.
+      //
+      // The first entry is both the default and an alternative, hence the
+      // repeat, and INVALID means "implicit, ask the driver", which is what a
+      // consumer that does not negotiate explicit modifiers imports.
+      const uint64_t first
+          = m_drmModifiers.empty() ? uint64_t(kDrmModifierInvalid)
+                                   : m_drmModifiers.front();
+      spa_pod_builder_long(&b, int64_t(first));
+      for(uint64_t m : m_drmModifiers)
+        spa_pod_builder_long(&b, int64_t(m));
       spa_pod_builder_long(&b, kDrmModifierInvalid);
       spa_pod_builder_long(&b, 0); // DRM_FORMAT_MOD_LINEAR
       spa_pod_builder_pop(&b, &f[1]);
@@ -850,6 +905,8 @@ private:
           if(n > 0)
             chosenModifier = vals[0];
         }
+        // What on_add_buffer will create the exported images with.
+        self->m_chosenModifier = chosenModifier;
 
         uint8_t fixbuf[1024];
         spa_pod_builder fb = SPA_POD_BUILDER_INIT(fixbuf, sizeof(fixbuf));
@@ -891,7 +948,12 @@ private:
             SPA_POD_PROP_FLAG_MANDATORY | SPA_POD_PROP_FLAG_DONT_FIXATE);
         spa_pod_frame ac;
         spa_pod_builder_push_choice(&fb, &ac, SPA_CHOICE_Enum, 0);
-        spa_pod_builder_long(&fb, kDrmModifierInvalid);
+        const uint64_t altFirst
+            = self->m_drmModifiers.empty() ? uint64_t(kDrmModifierInvalid)
+                                           : self->m_drmModifiers.front();
+        spa_pod_builder_long(&fb, int64_t(altFirst));
+        for(uint64_t m : self->m_drmModifiers)
+          spa_pod_builder_long(&fb, int64_t(m));
         spa_pod_builder_long(&fb, kDrmModifierInvalid);
         spa_pod_builder_long(&fb, 0);
         spa_pod_builder_pop(&fb, &ac);
@@ -952,10 +1014,24 @@ private:
                  | VK_IMAGE_USAGE_TRANSFER_DST_BIT
                  | VK_IMAGE_USAGE_TRANSFER_SRC_BIT
                  | VK_IMAGE_USAGE_SAMPLED_BIT;
-    // LINEAR, still: an OPTIMAL export was measured at 8K and made no
-    // difference (14.3 vs 15.1 buffers/s), and linear is the layout an
-    // importer can always make sense of.
+    // The layout the consumer agreed to, when it agreed to a real one. A
+    // modifier-tiled export is written far faster than LINEAR in host memory;
+    // LINEAR is what is left when the consumer could only take the implicit
+    // modifier, which is the cross-GPU case.
     desc.tiling = VK_IMAGE_TILING_LINEAR;
+    const uint64_t chosen = self->m_chosenModifier;
+    if(chosen != uint64_t(kDrmModifierInvalid))
+    {
+      // The consumer named a layout: give it exactly that one.
+      desc.drmModifiers = &self->m_chosenModifier;
+      desc.drmModifierCount = 1;
+    }
+    // If the consumer took the IMPLICIT modifier we must stay LINEAR. Letting
+    // the driver pick its best layout and calling it "implicit" was tried: the
+    // rate did not move and the picture came back wrong -- the importer read a
+    // tiled buffer as if it were linear
+    // and the gradient turned into three flat values. Implicit means the
+    // importer will not ask, so it has to be a layout it can assume.
     desc.handleType
         = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
     desc.dedicated = true;
@@ -1128,6 +1204,10 @@ private:
 public:
   /** Buffers actually handed to pipewire, over every publish path. */
   std::atomic_int m_framesQueued{0};
+
+  //! Layouts we can export, best first, and the one the consumer settled on.
+  std::vector<uint64_t> m_drmModifiers;
+  uint64_t m_chosenModifier{uint64_t(kDrmModifierInvalid)};
 
   //! The newest rendered frame, waiting for the graph to ask for one.
   std::mutex m_stagingMutex;

@@ -225,6 +225,22 @@ createExportableImage(const VulkanCtx& v, const ExternalImageDesc& desc)
   imgInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
   imgInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
+  // A modifier list overrides the tiling: the driver picks a layout out of what
+  // the caller can share, which is both the documented way to export a dma-buf
+  // and the only fast one. The chain is modifierList -> externalMemory, so the
+  // external-memory info stays reachable.
+  VkImageDrmFormatModifierListCreateInfoEXT modInfo{};
+  if(desc.drmModifierCount > 0 && desc.drmModifiers)
+  {
+    modInfo.sType
+        = VK_STRUCTURE_TYPE_IMAGE_DRM_FORMAT_MODIFIER_LIST_CREATE_INFO_EXT;
+    modInfo.drmFormatModifierCount = desc.drmModifierCount;
+    modInfo.pDrmFormatModifiers = desc.drmModifiers;
+    modInfo.pNext = &extImgInfo;
+    imgInfo.pNext = &modInfo;
+    imgInfo.tiling = VK_IMAGE_TILING_DRM_FORMAT_MODIFIER_EXT;
+  }
+
   ExternalImage out{};
   if(df->vkCreateImage(v.dev, &imgInfo, nullptr, &out.image) != VK_SUCCESS)
   {
@@ -277,6 +293,21 @@ createExportableImage(const VulkanCtx& v, const ExternalImageDesc& desc)
     qWarning() << "createExportableImage: vkBindImageMemory failed";
     destroyExternal(v, out);
     return std::nullopt;
+  }
+
+  // Which layout the driver actually chose, so the caller can tell a consumer
+  // the truth about the buffer it is handing over.
+  if(desc.drmModifierCount > 0 && desc.drmModifiers)
+  {
+    if(auto* fn = (PFN_vkGetImageDrmFormatModifierPropertiesEXT)
+           v.qInst->functions()->vkGetDeviceProcAddr(
+               v.dev, "vkGetImageDrmFormatModifierPropertiesEXT"))
+    {
+      VkImageDrmFormatModifierPropertiesEXT p{};
+      p.sType = VK_STRUCTURE_TYPE_IMAGE_DRM_FORMAT_MODIFIER_PROPERTIES_EXT;
+      if(fn(v.dev, out.image, &p) == VK_SUCCESS)
+        out.drmModifier = p.drmFormatModifier;
+    }
   }
   return out;
 }
