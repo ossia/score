@@ -192,6 +192,15 @@ TextureSource::TextureSource(QQuickItem* parent)
 
 TextureSource::~TextureSource()
 {
+  // ~QQuickItem, which runs after this body, detaches the item from its window
+  // and derefWindow() emits windowChanged(nullptr) on the way. The three
+  // connections made in the constructor are all from this to this, so Qt then
+  // calls handleWindowChanged on an object whose derived part is already gone
+  // and aborts: "Called object is not of the correct type (class destructor
+  // may have already run)". Deleting a TextureSource from QML -- which is how
+  // a custom --ui adds and removes them -- did that every time.
+  disconnect(this, nullptr, this, nullptr);
+
   disconnectFromOutlet();
 }
 
