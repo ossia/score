@@ -1205,6 +1205,13 @@ public:
   /** Buffers actually handed to pipewire, over every publish path. */
   std::atomic_int m_framesQueued{0};
 
+  //! True once the consumer agreed to an explicit, tiled layout -- the only
+  //! case where writing into the shared image directly is worth it.
+  bool exported_layout_is_tiled() const noexcept
+  {
+    return m_chosenModifier != uint64_t(kDrmModifierInvalid);
+  }
+
   //! Layouts we can export, best first, and the one the consumer settled on.
   std::vector<uint64_t> m_drmModifiers;
   uint64_t m_chosenModifier{uint64_t(kDrmModifierInvalid)};
@@ -1266,6 +1273,7 @@ struct PwWireRenderer final : score::gfx::OutputNodeRenderer
 
   score::gfx::TextureRenderTarget m_inputTarget;
   score::gfx::TextureRenderTarget m_renderTarget;
+  score::gfx::TextureRenderTarget m_externalTarget{};
   QRhiTexture::Format m_wireFormat{QRhiTexture::RGBA8};
   QShader m_vertexS, m_fragmentS;
   std::vector<score::gfx::Sampler> m_samplers;
@@ -1283,6 +1291,18 @@ struct PwWireRenderer final : score::gfx::OutputNodeRenderer
    *  input texture): on GL the upstream render is Y-up, and only this
    *  pass applies the orientation correction. */
   QRhiTexture* wireTexture() const noexcept { return m_renderTarget.texture; }
+
+  /** Draw this frame's wire pass straight into \p rt instead of into our own
+   *  texture. Empty means "use my own".
+   *
+   *  This is what makes the hand-over a true share rather than a copy: the
+   *  final pass writes into the pipewire buffer the consumer will import, so
+   *  the frame is produced once and read once, the way Spout and Syphon work.
+   */
+  void setExternalTarget(const score::gfx::TextureRenderTarget& rt) noexcept
+  {
+    m_externalTarget = rt;
+  }
 
   void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
@@ -1347,7 +1367,9 @@ struct PwWireRenderer final : score::gfx::OutputNodeRenderer
       score::gfx::RenderList& renderer, QRhiCommandBuffer& cb,
       QRhiResourceUpdateBatch*& res) override
   {
-    cb.beginPass(m_renderTarget.renderTarget, Qt::black, {0.0f, 0}, res);
+    auto* target = m_externalTarget.renderTarget ? m_externalTarget.renderTarget
+                                                 : m_renderTarget.renderTarget;
+    cb.beginPass(target, Qt::black, {0.0f, 0}, res);
     res = nullptr;
     {
       const auto sz = renderer.state.renderSize;
@@ -1442,7 +1464,7 @@ struct PipewireOutputNode : score::gfx::OutputNode
   //! layout work per frame on top of the copy. pipewire rotates a FIXED pool,
   //! so wrapping each image once and reusing the wrapper keeps QRhi's tracked
   //! layout stable and the transition disappears.
-  ossia::hash_map<quint64, QRhiTexture*> m_dmabufBridgeCache;
+  ossia::hash_map<quint64, score::gfx::TextureRenderTarget> m_dmabufTargets;
   score::gfx::vkinterop::VulkanCtx m_vk{};
 #endif
 
@@ -1504,24 +1526,47 @@ void PipewireOutputNode::render()
       return;
     }
 
-    // Wrap the dequeued buffer's VkImage as our bridge texture.
-    // QRhi's copyTexture writes via vkCmdCopyImage which uses the
-    // current native handle.
-    QRhiTexture* bridge{};
-    if(auto it = m_dmabufBridgeCache.find(quint64(targetImage));
-       it != m_dmabufBridgeCache.end())
+    // Wrap the dequeued buffer's VkImage, once per image and kept: a render
+    // target over it as well as a texture, because the wire pass draws INTO
+    // the pipewire buffer rather than into a texture we then copy. That is
+    // what makes this a share and not a copy -- the same image the consumer
+    // imports is the one the last pass writes.
+    score::gfx::TextureRenderTarget wireTarget{};
+    if(auto it = m_dmabufTargets.find(quint64(targetImage));
+       it != m_dmabufTargets.end())
     {
-      bridge = it->second;
+      wireTarget = it->second;
     }
     else
     {
-      bridge = rhi->newTexture(
+      auto* tex = rhi->newTexture(
           m_dmabufBridge->format(), m_dmabufBridge->pixelSize(), 1,
-          QRhiTexture::UsedAsTransferSource);
-      bridge->createFrom(QRhiTexture::NativeTexture{
-          quint64(targetImage), VK_IMAGE_LAYOUT_UNDEFINED});
-      m_dmabufBridgeCache.emplace(quint64(targetImage), bridge);
+          QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource);
+      if(tex->createFrom(QRhiTexture::NativeTexture{
+             quint64(targetImage), VK_IMAGE_LAYOUT_UNDEFINED}))
+      {
+        auto* rt = rhi->newTextureRenderTarget({tex});
+        auto* rp = rt->newCompatibleRenderPassDescriptor();
+        rt->setRenderPassDescriptor(rp);
+        if(rt->create())
+        {
+          wireTarget = score::gfx::TextureRenderTarget{
+              .texture = tex, .renderPass = rp, .renderTarget = rt};
+          m_dmabufTargets.emplace(quint64(targetImage), wireTarget);
+        }
+        else
+        {
+          delete rt;
+          delete rp;
+          delete tex;
+        }
+      }
+      else
+      {
+        delete tex;
+      }
     }
+    QRhiTexture* bridge = wireTarget.texture;
 
     QRhiCommandBuffer* cb{};
     if(rhi->beginOffscreenFrame(&cb) != QRhi::FrameOpSuccess)
@@ -1530,7 +1575,22 @@ void PipewireOutputNode::render()
       return;
     }
 
+    // Write into the shared image directly -- the Spout/Syphon shape, one
+    // texture written once and read once -- but ONLY when that image has a
+    // tiled layout. Rendering into a LINEAR host-visible export is far worse
+    // than rendering into an ordinary texture and copying: measured at 8K the
+    // direct write is about half the rate of the copy, with 4K unchanged. A
+    // bulk transfer copes with linear memory; a fragment shader scattering
+    // writes across it does not.
+    const bool direct = bool(wireTarget.renderTarget) && m_wireRenderer
+                        && m_producer->exported_layout_is_tiled();
+    if(direct)
+      m_wireRenderer->setExternalTarget(wireTarget);
+
     rl->render(*cb);
+
+    if(direct)
+      m_wireRenderer->setExternalTarget({});
 
     // Queue the texture-to-texture copy. QRhi inserts the
     // appropriate layout transitions + barriers around vkCmdCopyImage.
@@ -1538,15 +1598,18 @@ void PipewireOutputNode::render()
     // wire-format — the same texture the readback path verifies), not
     // the upstream render target: copying m_texture directly puts a
     // vertically-flipped raster on the wire.
-    auto* batch = rhi->nextResourceUpdateBatch();
-    QRhiTextureCopyDescription cdesc;
-    cdesc.setPixelSize(QSize{m_settings.width, m_settings.height});
-    QRhiTexture* wireSrc
-        = (m_wireRenderer && m_wireRenderer->wireTexture())
-              ? m_wireRenderer->wireTexture()
-              : m_texture;
-    batch->copyTexture(bridge, wireSrc, cdesc);
-    cb->resourceUpdate(batch);
+    if(!direct)
+    {
+      auto* batch = rhi->nextResourceUpdateBatch();
+      QRhiTextureCopyDescription cdesc;
+      cdesc.setPixelSize(QSize{m_settings.width, m_settings.height});
+      QRhiTexture* wireSrc
+          = (m_wireRenderer && m_wireRenderer->wireTexture())
+                ? m_wireRenderer->wireTexture()
+                : m_texture;
+      batch->copyTexture(bridge, wireSrc, cdesc);
+      cb->resourceUpdate(batch);
+    }
 
     rhi->endOffscreenFrame();
 
