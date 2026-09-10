@@ -1033,13 +1033,12 @@ Result runScoreToScore(
 // through a link this harness makes by hand, so they are the only cells that
 // notice whether score's output is reachable from outside at all.
 //
-// gst2s passes. s2gst is RED and is the open half of that: with media.class
-// left to default nothing even links, and with it set to Video/Source the link
-// is made and the format negotiated and still not one buffer arrives, because
-// nothing drives score's output node. Frames do reach an outside consumer while
-// score's own PipeWire input is attached to the same output -- that input is
-// what ticks the graph -- so the cell is a faithful reproduction of what OBS
-// sees. Neither ctest entry runs it; ask for it by name:
+// Both pass. s2gst was the reproduction of what OBS saw and took two fixes to
+// get there: media.class had to say Video/Source before anything would link at
+// all, and then the link was made, the format negotiated, and not one usable
+// buffer arrived -- score announced no SPA_PARAM_Buffers, so the server handed
+// out buffers whose maxsize was zero and score dutifully queued hundreds of
+// empty ones. Run either by name:
 //   PipewireRoundtrip --only s2gst
 // ---------------------------------------------------------------------------
 bool haveGstLaunch()

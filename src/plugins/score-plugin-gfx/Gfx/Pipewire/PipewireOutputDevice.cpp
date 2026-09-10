@@ -32,6 +32,8 @@
 // readback and memcpy.
 
 #include <atomic>
+#include <mutex>
+#include <vector>
 #include "PipewireOutputDevice.hpp"
 
 #include "PipewireFormats.hpp"
@@ -86,6 +88,7 @@
 #include <QSpinBox>
 
 #include <pipewire/pipewire.h>
+#include <spa/param/buffers.h>
 #include <spa/param/video/format-utils.h>
 
 #include <wobjectimpl.h>
@@ -501,6 +504,7 @@ public:
       e.version = PW_VERSION_STREAM_EVENTS;
       e.state_changed = &PipewireProducer::on_state_changed;
       e.param_changed = &PipewireProducer::on_param_changed;
+      e.process = &PipewireProducer::on_process;
       return e;
     }();
 #if defined(SCORE_PIPEWIRE_OUT_DMABUF)
@@ -566,19 +570,15 @@ public:
 
     // Passive producer: pipewire pulls frames when the consumer is ready.
     // PW_STREAM_FLAG_DRIVER would make us the timing master, but score drives its
-    // own render tick, so frames are pushed from PipewireOutputNode::render() and
-    // the consumer paces itself. Without DRIVER, AUTOCONNECT does not require an
-    // immediate target: the stream sits in CONNECTING / PAUSED until a consumer
-    // subscribes.
+    // own render tick, so PipewireOutputNode::render() publishes the newest frame
+    // and on_process hands it to whatever buffer the graph offers. Without
+    // DRIVER, AUTOCONNECT does not require an immediate target: the stream sits
+    // in CONNECTING / PAUSED until a consumer subscribes.
     //
-    // KNOWN GAP: a consumer that is not itself a driver -- GStreamer's
-    // pipewiresrc, OBS -- gets linked and negotiates the format, and then never
-    // receives a buffer: nothing schedules this node. Frames do reach such a
-    // consumer while score's own PipeWire input is attached to the same output,
-    // which is what drives the graph today. Adding PW_STREAM_FLAG_DRIVER plus
-    // pw_stream_trigger_process() after each queued buffer was tried and is not
-    // enough on its own; the producer most likely has to grow a real process
-    // callback that publishes the newest rendered frame. Reproduce with
+    // What used to fail here, and what fixed it, is in on_param_changed and
+    // on_process. Short version: the stream announced no SPA_PARAM_Buffers, so
+    // the server allocated buffers of size zero and every outside consumer
+    // dropped what it received. Covered by
     //   PipewireRoundtrip --only s2gst
     //
     // DMA-BUF mode uses PW_STREAM_FLAG_ALLOC_BUFFERS, so pipewire calls back
@@ -642,42 +642,21 @@ public:
    *  (typical: consumer didn't release them yet — frame is dropped). */
   bool push_frame(const uint8_t* data, std::size_t size) noexcept
   {
-    auto* lp = loop();
-    if(!lp || !m_stream || !data || size == 0)
+    if(!m_stream || !data || size == 0)
       return false;
     auto& pw = libremidi::pipewire::load();
     if(!pw.stream_available || !m_streaming.load(std::memory_order_acquire))
       return false;
 
-    pw.thread_loop_lock(lp);
-    pw_buffer* b = pw.stream_dequeue_buffer(m_stream);
-    if(!b)
+    // Publish, do not queue: on_process fills whatever buffer the graph hands
+    // it from here. score renders on its own clock and the consumer is
+    // scheduled on the graph's, so the newest frame wins and a consumer slower
+    // than score simply skips the ones in between.
     {
-      pw.thread_loop_unlock(lp);
-      return false;
+      std::lock_guard l{m_stagingMutex};
+      m_staging.resize(size);
+      std::memcpy(m_staging.data(), data, size);
     }
-
-    spa_buffer* buf = b->buffer;
-    auto* dst = static_cast<uint8_t*>(buf->datas[0].data);
-    if(!dst)
-    {
-      pw.stream_queue_buffer(m_stream, b);
-      pw.thread_loop_unlock(lp);
-      return false;
-    }
-
-    const std::size_t cap = buf->datas[0].maxsize;
-    const std::size_t toCopy = std::min(size, cap);
-    std::memcpy(dst, data, toCopy);
-
-    auto* chunk = buf->datas[0].chunk;
-    chunk->offset = 0;
-    chunk->size = uint32_t(toCopy);
-    chunk->stride = int32_t(m_width * m_bpp);
-
-    pw.stream_queue_buffer(m_stream, b);
-    m_framesQueued.fetch_add(1, std::memory_order_relaxed);
-    pw.thread_loop_unlock(lp);
     return true;
   }
 
@@ -701,12 +680,108 @@ private:
              << (error ? error : "");
   }
 
+  /** pipewire pulls: the node is scheduled by the graph driver, and THIS is
+   *  where a buffer may be dequeued, filled and queued.
+   *
+   *  Queueing from score's render thread instead -- dequeue, memcpy, queue,
+   *  under the thread-loop lock -- puts the buffer on the stream's queued list
+   *  and there it stayed: score reported hundreds of frames queued while
+   *  GStreamer's pipewiresrc, linked and negotiated, received none. Filling
+   *  the buffer the graph just handed us is the shape every pipewire video
+   *  producer uses, and the one an outside consumer actually receives.
+   *
+   *  Runs on the data thread, already inside the loop: no thread_loop_lock
+   *  here, that would deadlock.
+   */
+  static void on_process(void* self_)
+  {
+    auto* self = static_cast<PipewireProducer*>(self_);
+    if(!self || !self->m_stream)
+      return;
+    auto& pw = libremidi::pipewire::load();
+    if(!pw.stream_available)
+      return;
+
+    pw_buffer* b = pw.stream_dequeue_buffer(self->m_stream);
+    if(!b)
+      return;
+
+    spa_buffer* buf = b->buffer;
+    auto* dst = static_cast<uint8_t*>(buf->datas[0].data);
+    if(!dst)
+    {
+      pw.stream_queue_buffer(self->m_stream, b);
+      return;
+    }
+
+    std::size_t copied = 0;
+    {
+      std::lock_guard l{self->m_stagingMutex};
+      if(!self->m_staging.empty())
+      {
+        copied = std::min<std::size_t>(
+            self->m_staging.size(), buf->datas[0].maxsize);
+        std::memcpy(dst, self->m_staging.data(), copied);
+      }
+    }
+
+    auto* chunk = buf->datas[0].chunk;
+    chunk->offset = 0;
+    chunk->size = uint32_t(copied);
+    chunk->stride = int32_t(self->m_width * self->m_bpp);
+
+    pw.stream_queue_buffer(self->m_stream, b);
+    if(copied > 0)
+      self->m_framesQueued.fetch_add(1, std::memory_order_relaxed);
+  }
+
   static void
-  on_param_changed(void* /*self*/, uint32_t id, const spa_pod* param)
+  on_param_changed(void* self_, uint32_t id, const spa_pod* param)
   {
     if(!param || id != SPA_PARAM_Format)
       return;
     qDebug() << "PipeWire output stream format negotiated";
+
+    auto* self = static_cast<PipewireProducer*>(self_);
+    if(!self || !self->m_stream)
+      return;
+    auto& pw = libremidi::pipewire::load();
+    if(!pw.stream_available || !pw.stream_update_params)
+      return;
+
+    // Sysmem only. The DMA-BUF modes allocate their own buffers through
+    // add_buffer and stamp the FD, size and stride into each one themselves;
+    // announcing host-memory buffer types here makes the server hand out
+    // MemPtr buffers instead and the dma-buf path stops receiving anything.
+#if defined(SCORE_PIPEWIRE_OUT_DMABUF) || defined(SCORE_PIPEWIRE_OUT_DMABUF_EGL)
+    if(self->m_dmabufBackend != DmaBufBackend::None)
+      return;
+#endif
+
+    // Answer the negotiated format with the buffers it implies. Without this
+    // the server has no size to allocate and hands out spa_buffers whose
+    // maxsize is 0: score filled 0 bytes into every one of them, marked the
+    // chunk 0 bytes long and queued it, and an outside consumer -- GStreamer's
+    // pipewiresrc, OBS -- dropped the lot. It looked like frames never
+    // arriving; they arrived empty. score's own input never noticed because
+    // the two sides negotiate a size between them.
+    const int stride = int(self->m_width * self->m_bpp);
+    const int size = stride * int(self->m_height);
+    if(stride <= 0 || size <= 0)
+      return;
+
+    uint8_t buffer[1024];
+    spa_pod_builder b = SPA_POD_BUILDER_INIT(buffer, sizeof(buffer));
+    const spa_pod* params[1];
+    params[0] = (const spa_pod*)spa_pod_builder_add_object(
+        &b, SPA_TYPE_OBJECT_ParamBuffers, SPA_PARAM_Buffers,
+        SPA_PARAM_BUFFERS_buffers, SPA_POD_CHOICE_RANGE_Int(4, 2, 16),
+        SPA_PARAM_BUFFERS_blocks, SPA_POD_Int(1), SPA_PARAM_BUFFERS_size,
+        SPA_POD_Int(size), SPA_PARAM_BUFFERS_stride, SPA_POD_Int(stride),
+        SPA_PARAM_BUFFERS_dataType,
+        SPA_POD_CHOICE_FLAGS_Int((1 << SPA_DATA_MemPtr) | (1 << SPA_DATA_MemFd)));
+
+    pw.stream_update_params(self->m_stream, params, 1);
   }
 
 #if defined(SCORE_PIPEWIRE_OUT_DMABUF)
@@ -897,6 +972,10 @@ private:
 public:
   /** Buffers actually handed to pipewire, over every publish path. */
   std::atomic_int m_framesQueued{0};
+
+  //! The newest rendered frame, waiting for the graph to ask for one.
+  std::mutex m_stagingMutex;
+  std::vector<uint8_t> m_staging;
 
 private:
 

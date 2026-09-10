@@ -61,14 +61,25 @@ if(TARGET PipewireRoundtrip)
     ENVIRONMENT "${_pwrt_asan}")
 
   # GStreamer -> score: a pipewiresink producer feeding score's input, through
-  # the session manager rather than a link the harness makes itself. The other
-  # direction (score -> pipewiresrc) is red and is not registered; see the
-  # s2gst cell in the harness for what it reproduces.
+  # the session manager rather than a link the harness makes itself.
   score_add_media_test(
     NAME       Media_PipewireGstToScore
     EXECUTABLE PipewireRoundtrip
     PIPEWIRE
     ARGS       --seconds 3 --only gst2s
+    TIMEOUT    300
+    ENVIRONMENT "${_pwrt_asan}")
+
+  # score -> GStreamer: score's output read by pipewiresrc, one decoded frame
+  # checked for the test signal. This is what OBS does, and it is the direction
+  # that used to deliver nothing: the stream announced no buffer size, so the
+  # server handed out zero-length buffers and every consumer that was not score
+  # itself dropped them. Renders on the GPU, so it is display-gated like s2s.
+  score_add_media_test(
+    NAME       Media_PipewireScoreToGst
+    EXECUTABLE PipewireRoundtrip
+    PIPEWIRE
+    ARGS       --seconds 3 --only s2gst
     TIMEOUT    300
     ENVIRONMENT "${_pwrt_asan}")
 
