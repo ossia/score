@@ -565,7 +565,8 @@ public:
       fmt.modifier = 0; // DRM_FORMAT_MOD_LINEAR = fourcc_mod_code(NONE, 0) = 0
     }
 #endif
-    const spa_pod* params[1];
+    const spa_pod* params[2];
+    int nparams = 1;
 #if defined(SCORE_PIPEWIRE_OUT_DMABUF) || defined(SCORE_PIPEWIRE_OUT_DMABUF_EGL)
     if(m_dmabufBackend != DmaBufBackend::None)
     {
@@ -599,6 +600,19 @@ public:
           &b, SPA_FORMAT_VIDEO_size, SPA_POD_Rectangle(&fmt.size),
           SPA_FORMAT_VIDEO_framerate, SPA_POD_Fraction(&fmt.framerate), 0);
       params[0] = (const spa_pod*)spa_pod_builder_pop(&b, &f[0]);
+
+      // ... and the same format again WITHOUT a modifier, as a second
+      // alternative. A consumer that cannot import our dma-buf otherwise has
+      // nothing left to agree on: the negotiation ends in "no more output
+      // formats", the stream errors, and the source is black. With this it
+      // picks host memory instead and gets a picture. Offering it costs the
+      // consumers that CAN do dma-buf nothing -- score's own input still
+      // negotiates the dma-buf alternative and still gets it zero-copy.
+      spa_video_info_raw plain = fmt;
+      plain.flags = 0;
+      plain.modifier = 0;
+      params[1] = spa_format_video_raw_build(&b, SPA_PARAM_EnumFormat, &plain);
+      nparams = 2;
     }
     else
 #endif
@@ -635,7 +649,7 @@ public:
                            : (pw_stream_flags)(PW_STREAM_FLAG_AUTOCONNECT
                                               | PW_STREAM_FLAG_MAP_BUFFERS);
     const int rc = pw.stream_connect(
-        m_stream, PW_DIRECTION_OUTPUT, PW_ID_ANY, flags, params, 1);
+        m_stream, PW_DIRECTION_OUTPUT, PW_ID_ANY, flags, params, nparams);
 
     pw.thread_loop_unlock(lp);
 
@@ -812,6 +826,18 @@ private:
         spa_video_info_raw got{};
         spa_format_video_raw_parse(param, &got);
 
+        // Which modifier to fix on: the reply's choice is the INTERSECTION of
+        // what we offered and what the consumer can import, so take its first
+        // value rather than assuming ours survived. An empty intersection is
+        // the case where dma-buf cannot happen at all with this consumer.
+        uint64_t chosenModifier = 0;
+        {
+          const auto* vals = (const uint64_t*)SPA_POD_CHOICE_VALUES(&mod->value);
+          const uint32_t n = SPA_POD_CHOICE_N_VALUES(&mod->value);
+          if(n > 0)
+            chosenModifier = vals[0];
+        }
+
         uint8_t fixbuf[1024];
         spa_pod_builder fb = SPA_POD_BUILDER_INIT(fixbuf, sizeof(fixbuf));
         spa_pod_frame ff;
@@ -820,9 +846,17 @@ private:
         spa_pod_builder_add(
             &fb, SPA_FORMAT_mediaType, SPA_POD_Id(SPA_MEDIA_TYPE_video),
             SPA_FORMAT_mediaSubtype, SPA_POD_Id(SPA_MEDIA_SUBTYPE_raw),
-            SPA_FORMAT_VIDEO_format, SPA_POD_Id(got.format),
-            SPA_FORMAT_VIDEO_modifier, SPA_POD_Long(0), // LINEAR: all we make
-            SPA_FORMAT_VIDEO_size, SPA_POD_Rectangle(&got.size),
+            SPA_FORMAT_VIDEO_format, SPA_POD_Id(got.format), 0);
+        // MANDATORY, and written through spa_pod_builder_prop: a modifier
+        // handed to spa_pod_builder_add carries no flags, and the server reads
+        // an unflagged modifier as "not really required" and drops it from the
+        // intersection -- which leaves no format at all. This is the shape
+        // pipewire's own fixate_format() writes.
+        spa_pod_builder_prop(
+            &fb, SPA_FORMAT_VIDEO_modifier, SPA_POD_PROP_FLAG_MANDATORY);
+        spa_pod_builder_long(&fb, chosenModifier);
+        spa_pod_builder_add(
+            &fb, SPA_FORMAT_VIDEO_size, SPA_POD_Rectangle(&got.size),
             SPA_FORMAT_VIDEO_framerate, SPA_POD_Fraction(&got.framerate), 0);
         const spa_pod* fixated
             = (const spa_pod*)spa_pod_builder_pop(&fb, &ff);
