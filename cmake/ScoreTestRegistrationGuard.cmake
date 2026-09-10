@@ -51,6 +51,11 @@ set(SCORE_TEST_GUARD_ALLOWED_HARNESSES
   hardware/probe-aja.sh
   hardware/probe-decklink.sh
   hardware/probe-magewell.sh
+  # A single-file Vulkan probe, built by hand with the g++ line in its header:
+  # it needs no score, no Qt and no pipewire, and it answers "how fast can this
+  # driver write into an exported dma-buf image" on a machine that may not have
+  # a score build at all.
+  hardware/dmabuf-export-bandwidth.cpp
   # Developer tools rather than tests: they were never registered, drive a
   # built score by hand and report to the terminal. Registering them is a
   # separate piece of work, not a regression.

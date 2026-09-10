@@ -1277,14 +1277,31 @@ struct PwWireRenderer final : score::gfx::OutputNodeRenderer
       const auto& mesh = renderer.defaultTriangle();
       mesh.draw(this->m_mesh, cb);
     }
-    auto next = renderer.state.rhi->nextResourceUpdateBatch();
-    QRhiReadbackDescription rb(m_renderTarget.texture);
-    next->readBackTexture(rb, m_readback);
-    cb.endPass(next);
+    // The readback is for the SYSMEM path only: push_frame copies out of
+    // m_readback. In dma-buf mode nothing ever reads it, and enqueuing it
+    // anyway costs a full frame pulled back across the bus plus a memcpy on
+    // the CPU -- most of an 8K frame, measured with perf, while the render
+    // itself was a fraction of a millisecond.
+    if(m_wantReadback && m_readback)
+    {
+      auto next = renderer.state.rhi->nextResourceUpdateBatch();
+      QRhiReadbackDescription rb(m_renderTarget.texture);
+      next->readBackTexture(rb, m_readback);
+      cb.endPass(next);
+    }
+    else
+    {
+      cb.endPass(res);
+      res = nullptr;
+    }
   }
+
+  //! Off in dma-buf mode: see finishFrame.
+  void setReadbackEnabled(bool b) noexcept { m_wantReadback = b; }
 
 private:
   QRhiReadbackResult* m_readback{};
+  bool m_wantReadback{true};
 };
 
 } // namespace
@@ -1912,6 +1929,8 @@ score::gfx::OutputNodeRenderer* PipewireOutputNode::createRenderer(
   // rebuilds it through this same function, so the cached pointer is
   // refreshed with it.
   m_wireRenderer = r;
+  // Nothing consumes the readback when the frame is handed over as a dma-buf.
+  r->setReadbackEnabled(!(m_dmabufMode || m_dmabufEglMode));
   return r;
 }
 
