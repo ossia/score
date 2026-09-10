@@ -109,14 +109,31 @@ struct Fixture
   }
 };
 
-static void primeLibrarySettings(const score::GUIApplicationContext& ctx)
+//! Points the library somewhere empty so the model's own scan is a no-op, and
+//! puts the old root back on the way out.
+//!
+//! The put-back is not tidiness. The test fixture points XDG_CONFIG_HOME at a
+//! shared /tmp/score-tests/config so test processes never touch the user's
+//! settings, and setRootPath persists there -- so leaving the bench directory
+//! behind hands it to every test process that runs afterwards, in this run and
+//! in every later one. That is what made the six shader sweeps skip: they
+//! resolved the library through this same setting and found an empty bench.
+struct PrimedLibrarySettings
 {
-  // Point the library somewhere empty so the model's own scan is a no-op.
-  auto& set = ctx.settings<Library::Settings::Model>();
-  const QString tmp = QDir::tempPath() + "/score-tests/library-bench";
-  QDir{}.mkpath(tmp);
-  set.setRootPath(tmp);
-}
+  Library::Settings::Model& set;
+  QString previous;
+
+  explicit PrimedLibrarySettings(const score::GUIApplicationContext& ctx)
+      : set{ctx.settings<Library::Settings::Model>()}
+      , previous{set.getRootPath()}
+  {
+    const QString tmp = QDir::tempPath() + "/score-tests/library-bench";
+    QDir{}.mkpath(tmp);
+    set.setRootPath(tmp);
+  }
+
+  ~PrimedLibrarySettings() { set.setRootPath(previous); }
+};
 
 // Recursively check that the proxy mirrors the source subtree exactly.
 static void
@@ -146,7 +163,7 @@ static QStringList childNames(const QAbstractItemModel& m, const QModelIndex& pa
 TEST_CASE("publish: model invariants and structure", "[library]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
-    primeLibrarySettings(ctx);
+    PrimedLibrarySettings primed{ctx};
     Fixture f{ctx};
 
     // Deep new path, single entry
@@ -199,7 +216,7 @@ TEST_CASE("publish: model invariants and structure", "[library]")
 TEST_CASE("publish: coalescing boundaries and signal counts", "[library]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
-    primeLibrarySettings(ctx);
+    PrimedLibrarySettings primed{ctx};
     Fixture f{ctx};
     score::test::SignalCounter spy{&f.model, &QAbstractItemModel::rowsInserted};
 
@@ -242,7 +259,7 @@ TEST_CASE("publish: coalescing boundaries and signal counts", "[library]")
 TEST_CASE("publish: generations drop stale scans", "[library]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
-    primeLibrarySettings(ctx);
+    PrimedLibrarySettings primed{ctx};
     Fixture f{ctx};
 
     // Entry captured under the current generation, delivered after a rescan:
@@ -272,7 +289,7 @@ TEST_CASE("publish: generations drop stale scans", "[library]")
 TEST_CASE("replaceChildren: exact ranges, proxy stays consistent", "[library]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
-    primeLibrarySettings(ctx);
+    PrimedLibrarySettings primed{ctx};
     Fixture f{ctx};
 
     Library::ProcessFilterProxy proxy;
@@ -377,7 +394,7 @@ TEST_CASE("end-to-end: a real scan publishes through the handlers", "[library]")
 TEST_CASE("publish: 36k-entry storm, hot proxy mirrors the tree", "[library][bench]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
-    primeLibrarySettings(ctx);
+    PrimedLibrarySettings primed{ctx};
     Fixture f{ctx};
 
     const QString tmp = QDir::tempPath() + "/score-tests/library-bench";

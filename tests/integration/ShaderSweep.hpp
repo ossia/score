@@ -27,6 +27,7 @@
 
 #include <QDir>
 #include <QDirIterator>
+#include <QStandardPaths>
 #include <QRegularExpression>
 #include <QFile>
 #include <QFileInfo>
@@ -97,7 +98,19 @@ QString libraryRoot(const score::ApplicationContext& ctx)
 #if defined(SCORE_SHADER_SWEEP_WASM_LIBRARY)
   return QStringLiteral(SCORE_SHADER_SWEEP_WASM_LIBRARY);
 #else
-  return ctx.settings<Library::Settings::Model>().getDefaultLibraryPath();
+  // The settings first, then the installed library. A test process runs under
+  // its own application name, so its default library path points at a
+  // "score-test" directory nobody ever installs anything into -- ask the
+  // setting, and if what it names is not there, look where score itself keeps
+  // the library. Same two-step as JsPresetsTest's find_presets_root.
+  const QStringList candidates{
+      ctx.settings<Library::Settings::Model>().getDefaultLibraryPath(),
+      QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)
+          + "/ossia/score/packages/default"};
+  for(const auto& c : candidates)
+    if(QFileInfo{c}.isDir())
+      return c;
+  return candidates.front();
 #endif
 }
 
@@ -414,9 +427,19 @@ inline void sweepLibrary(
     ProgramLoader load, const QString& baseline, const QString& wantMode = {},
     bool blankIsFailure = true)
 {
+  // The sweeps render for real. Under the offscreen platform the GL context has
+  // no depth textures and no 3D textures, and the first shader that wants one
+  // takes the process down rather than failing a comparison -- a crash that
+  // says nothing about the shader.
+  if(qEnvironmentVariable("QT_QPA_PLATFORM") == "offscreen")
+    SKIP("the offscreen platform has no usable GL for a shader sweep");
+
   const QString root = libraryRoot(ctx);
   if(root.isEmpty() || !QFileInfo::exists(root))
-    SKIP("no shader library available (set SCORE_SHADER_LIBRARY_DIR)");
+    SKIP(QString("no shader library at \"%1\" (set SCORE_SHADER_LIBRARY_DIR "
+                 "to point at one)")
+             .arg(root)
+             .toStdString());
 
   QStringList shaders;
   QDirIterator it{
