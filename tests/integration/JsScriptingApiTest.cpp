@@ -49,6 +49,11 @@ Run runScript(const QString& js)
   QProcess p;
   auto env = QProcessEnvironment::systemEnvironment();
   env.insert("ASAN_OPTIONS", "detect_leaks=0:detect_odr_violation=0");
+  // Every verdict here is read out of the child's log, and the child's stderr
+  // is a pipe: where Qt is built with journald support it logs there instead,
+  // qDebug never reaches this process, and the checks all read an empty string.
+  env.insert("QT_FORCE_STDERR_LOGGING", "1");
+  env.insert("QT_ASSUME_STDERR_HAS_CONSOLE", "1");
   p.setProcessEnvironment(env);
   p.setProcessChannelMode(QProcess::MergedChannels);
   p.start(appBinary(), {"--no-gui", "--no-restore", "--script", js, "--wait", "0"});
