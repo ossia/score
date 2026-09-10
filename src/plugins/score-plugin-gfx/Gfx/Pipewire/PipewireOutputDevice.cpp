@@ -31,7 +31,10 @@
 // QRhi's render-target caching; the copyTexture bridge still drops the CPU
 // readback and memcpy.
 
+#include <ossia/detail/hash_map.hpp>
+
 #include <atomic>
+#include <chrono>
 #include <mutex>
 #include <vector>
 #include "PipewireOutputDevice.hpp"
@@ -949,14 +952,19 @@ private:
                  | VK_IMAGE_USAGE_TRANSFER_DST_BIT
                  | VK_IMAGE_USAGE_TRANSFER_SRC_BIT
                  | VK_IMAGE_USAGE_SAMPLED_BIT;
-    desc.tiling = VK_IMAGE_TILING_LINEAR; // LINEAR for max DRM-modifier
-                                          // compat (most consumers
-                                          // accept it).
+    // LINEAR, still: an OPTIMAL export was measured at 8K and made no
+    // difference (14.3 vs 15.1 buffers/s), and linear is the layout an
+    // importer can always make sense of.
+    desc.tiling = VK_IMAGE_TILING_LINEAR;
     desc.handleType
         = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
     desc.dedicated = true;
-    desc.preferDeviceLocal = false; // DMA-BUF needs HOST_VISIBLE on some
-                                    // drivers; let helper pick.
+    // Device-local. The old comment said dma-buf "needs HOST_VISIBLE on some
+    // drivers" and let the helper pick, which put a 133 MB 8K frame in host
+    // memory and made every copy cross the bus: 8K went from 10.4 to 15.1
+    // buffers/s by asking for device-local instead. The helper still falls
+    // back if no device-local type can be exported.
+    desc.preferDeviceLocal = true;
 
     auto extImg = score::gfx::vkinterop::createExportableImage(
         self->m_vk, desc);
@@ -1327,6 +1335,15 @@ struct PipewireOutputNode : score::gfx::OutputNode
   // QRhi copyTexture from m_texture to m_dmabufBridge.
   bool m_dmabufMode{false};
   QRhiTexture* m_dmabufBridge{};
+  //! One QRhi wrapper per exported VkImage, kept for the pool's lifetime.
+  //!
+  //! createFrom(..., VK_IMAGE_LAYOUT_UNDEFINED) on every frame tells QRhi that
+  //! the destination's contents are undefined and its layout unknown, so the
+  //! copy re-transitions the whole image each time. At 8K that is 133 MB of
+  //! layout work per frame on top of the copy. pipewire rotates a FIXED pool,
+  //! so wrapping each image once and reusing the wrapper keeps QRhi's tracked
+  //! layout stable and the transition disappears.
+  ossia::hash_map<quint64, QRhiTexture*> m_dmabufBridgeCache;
   score::gfx::vkinterop::VulkanCtx m_vk{};
 #endif
 
@@ -1391,9 +1408,21 @@ void PipewireOutputNode::render()
     // Wrap the dequeued buffer's VkImage as our bridge texture.
     // QRhi's copyTexture writes via vkCmdCopyImage which uses the
     // current native handle.
-    m_dmabufBridge->createFrom(
-        QRhiTexture::NativeTexture{quint64(targetImage),
-                                   VK_IMAGE_LAYOUT_UNDEFINED});
+    QRhiTexture* bridge{};
+    if(auto it = m_dmabufBridgeCache.find(quint64(targetImage));
+       it != m_dmabufBridgeCache.end())
+    {
+      bridge = it->second;
+    }
+    else
+    {
+      bridge = rhi->newTexture(
+          m_dmabufBridge->format(), m_dmabufBridge->pixelSize(), 1,
+          QRhiTexture::UsedAsTransferSource);
+      bridge->createFrom(QRhiTexture::NativeTexture{
+          quint64(targetImage), VK_IMAGE_LAYOUT_UNDEFINED});
+      m_dmabufBridgeCache.emplace(quint64(targetImage), bridge);
+    }
 
     QRhiCommandBuffer* cb{};
     if(rhi->beginOffscreenFrame(&cb) != QRhi::FrameOpSuccess)
@@ -1417,7 +1446,7 @@ void PipewireOutputNode::render()
         = (m_wireRenderer && m_wireRenderer->wireTexture())
               ? m_wireRenderer->wireTexture()
               : m_texture;
-    batch->copyTexture(m_dmabufBridge, wireSrc, cdesc);
+    batch->copyTexture(bridge, wireSrc, cdesc);
     cb->resourceUpdate(batch);
 
     rhi->endOffscreenFrame();
