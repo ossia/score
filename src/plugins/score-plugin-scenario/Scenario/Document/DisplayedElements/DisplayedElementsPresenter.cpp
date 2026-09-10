@@ -254,9 +254,23 @@ void DisplayedElementsPresenter::setVisible(bool b)
 
 void DisplayedElementsPresenter::remove()
 {
-  auto& magnetismHandler = (Process::MagnetismAdjuster&)m_model.context()
-                               .app.interfaces<Process::MagnetismAdjuster>();
-  magnetismHandler.unregisterHandler(m_intervalPresenter);
+  // remove() has two callers. From setDisplayedElements() the application
+  // components are alive and this lookup is fine. From the destructor chain at
+  // shutdown (~ScenarioDocumentPresenter -> ~CentralIntervalDisplay) the
+  // interface lists have already been torn down, and interfaces<T>() is
+  // abort-on-missing (ApplicationComponents.hpp: SCORE_ABORT), so the
+  // unconditional lookup turned every --script exit into a SIGABRT. That is
+  // why score's exit code is unusable from a script and why every scripted run
+  // leaves its crash marker behind.
+  //
+  // findInterfaces<T>() is the non-aborting form. If the list is gone there is
+  // nothing left to unregister from: the handler is being destroyed anyway.
+  if(auto* magnetism
+     = m_model.context().app.components.findInterfaces<Process::MagnetismAdjuster>())
+  {
+    const_cast<Process::MagnetismAdjuster*>(magnetism)->unregisterHandler(
+        m_intervalPresenter);
+  }
 
   disconnect(
       &m_model.context().execTimer, &QTimer::timeout, this,
