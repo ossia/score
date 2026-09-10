@@ -40,7 +40,7 @@ struct GPUVideoEncoder
   ///        If empty, defaults to BT.709 full range.
   virtual void init(
       QRhi& rhi, const RenderState& state, QRhiTexture* inputRGBA, int width, int height,
-      const QString& colorConversion = colorMatrixOut())
+      const QString& colorConversion)
       = 0;
 
   /// Execute the conversion pass. Call inside beginOffscreenFrame/endOffscreenFrame.

@@ -39,7 +39,7 @@ struct ComputeEncoder
   virtual bool init(
       QRhi& rhi, const RenderState& state, QRhiTexture* src, int width,
       int height, QRhiBuffer* outputBuffer,
-      const QString& colorConversion = colorMatrixOut())
+      const QString& colorConversion)
       = 0;
 
   virtual void exec(
