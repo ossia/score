@@ -103,6 +103,10 @@
 
 namespace Gfx::PipeWire
 {
+//! DRM_FORMAT_MOD_INVALID: "whatever layout the driver chose". A consumer that
+//! does not negotiate explicit modifiers imports this one.
+static constexpr int64_t kDrmModifierInvalid = int64_t((1ull << 56) - 1);
+
 
 // ============================================================================
 // PipewireProducer — wraps pw_thread_loop + pw_stream for output
@@ -592,8 +596,14 @@ public:
           &b, SPA_FORMAT_VIDEO_modifier,
           SPA_POD_PROP_FLAG_MANDATORY | SPA_POD_PROP_FLAG_DONT_FIXATE);
       spa_pod_builder_push_choice(&b, &f[1], SPA_CHOICE_Enum, 0);
-      spa_pod_builder_long(&b, 0); // DRM_FORMAT_MOD_LINEAR, the default
-      spa_pod_builder_long(&b, 0); // ... and the only alternative
+      // First entry is both the default and an alternative, hence the repeat.
+      // INVALID before LINEAR: it means "implicit modifier, ask the driver",
+      // which is the one a GStreamer or EGL consumer imports without having to
+      // agree on an explicit layout, and the buffers we export really are
+      // linear so either description is truthful.
+      spa_pod_builder_long(&b, kDrmModifierInvalid);
+      spa_pod_builder_long(&b, kDrmModifierInvalid);
+      spa_pod_builder_long(&b, 0); // DRM_FORMAT_MOD_LINEAR
       spa_pod_builder_pop(&b, &f[1]);
 
       spa_pod_builder_add(
@@ -878,7 +888,8 @@ private:
             SPA_POD_PROP_FLAG_MANDATORY | SPA_POD_PROP_FLAG_DONT_FIXATE);
         spa_pod_frame ac;
         spa_pod_builder_push_choice(&fb, &ac, SPA_CHOICE_Enum, 0);
-        spa_pod_builder_long(&fb, 0);
+        spa_pod_builder_long(&fb, kDrmModifierInvalid);
+        spa_pod_builder_long(&fb, kDrmModifierInvalid);
         spa_pod_builder_long(&fb, 0);
         spa_pod_builder_pop(&fb, &ac);
         spa_pod_builder_add(

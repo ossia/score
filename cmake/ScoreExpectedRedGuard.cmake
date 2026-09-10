@@ -70,9 +70,8 @@ set(SCORE_EXPECTED_RED
   "shouldfail@tests/threedim/SceneApproximationPins.cpp@DEFECT: the render-thread light encoder collapses area lights onto point, and dome onto directional@light-type information is lost in the render-thread encoder"
   "shouldfail@tests/threedim/SceneApproximationPins.cpp@DEFECT: SceneFilterNode mode 2 has no Name port, so it cannot be configured at all@mode 2 exposes no Name port"
 
-  "shouldfail@tests/integration/PipewireVideoOutputTest.cpp@a PipeWire video output can hand over DMA-BUF memory@the dma-buf modifier handshake ends in \"no more output formats\": nothing survives the modifier intersection with this consumer, and score errors instead of falling back to host memory. The shm path in the same file is green, pixels and rate both"
 
-  "shouldfail@tests/integration/PipewireVideoOutputTest.cpp@a PipeWire video output keeps up at 7680x4320@the readback path copies 132 MB per frame through host memory and delivers 3.5 distinct frames a second against the 60 the device asks for. Spout and Syphon carry 8K because they hand over a texture; this goes green when the dma-buf path negotiates with an outside consumer"
+  "shouldfail@tests/integration/PipewireVideoOutputTest.cpp@a PipeWire video output keeps up at 7680x4320@the readback path copies 132 MB per frame through host memory and delivers 3.5 distinct frames a second against the 60 the device asks for. Spout and Syphon carry 8K because they hand over a texture -- this goes green when the dma-buf path negotiates with an outside consumer"
 
   # -- CMake WILL_FAIL ------------------------------------------------------
   # Cannot be a Catch2 tag: the defect aborts, so Catch2 never reports.

@@ -259,6 +259,45 @@ Capture capture(
   return c;
 }
 
+//! Read `count` frames as RAW bytes, forcing DMA-BUF memory. filesink takes
+//! whatever memory arrives and writes the mapped bytes, so this stays on the
+//! zero-copy path -- glupload cannot consume our dma-buf on every driver, and
+//! going through it would silently measure the host-memory fallback instead.
+struct RawCapture
+{
+  int frames{};
+  QByteArray bytes;
+  QString log;
+};
+
+RawCapture captureRawDmaBuf(
+    int64_t serial, int count, const QTemporaryDir& dir, int w, int h)
+{
+  RawCapture c;
+  const QString out = dir.filePath("dma.raw");
+  QProcess gst;
+  gst.setProcessChannelMode(QProcess::MergedChannels);
+  gst.start(
+      "gst-launch-1.0",
+      {"pipewiresrc", QStringLiteral("target-object=%1").arg(serial),
+       QStringLiteral("num-buffers=%1").arg(count), "!",
+       "video/x-raw(memory:DMABuf),format=RGBA", "!", "filesink",
+       QStringLiteral("location=%1").arg(out)});
+  if(!gst.waitForStarted(10000) || !gst.waitForFinished(60000))
+  {
+    gst.kill();
+    gst.waitForFinished(2000);
+  }
+  c.log = QString::fromUtf8(gst.readAll());
+
+  QFile f{out};
+  if(f.open(QIODevice::ReadOnly))
+    c.bytes = f.readAll();
+  const qint64 frameBytes = qint64(w) * h * 4;
+  c.frames = frameBytes > 0 ? int(c.bytes.size() / frameBytes) : 0;
+  return c;
+}
+
 //! isf-gradient-x paints red = x: dark at the left edge, bright at the right.
 //! Checks the picture is that gradient, at the requested geometry.
 struct PixelVerdict
@@ -518,19 +557,13 @@ TEST_CASE(
   CHECK(v.ok);
 }
 
-// [!shouldfail]: zero-copy does not negotiate yet. score offers the modifier as
-// a DONT_FIXATE choice and answers the consumer's reply with a fixated format
-// plus the alternatives, which is the handshake pipewire's own
-// video-src-fixate example performs -- and the server still ends the
-// negotiation with "no more output formats". The remaining suspect is that no
-// modifier survives the intersection here (LINEAR from a Vulkan export against
-// what this GStreamer/driver pair will import), in which case the fix is to
-// offer host memory alongside dma-buf so the link falls back instead of dying.
-// Until then a dmabuf=on device is unusable from outside score, which is the
-// black source in OBS.
+// Zero-copy, and the whole point of the dma-buf mode: score exports images the
+// consumer imports by file descriptor, and not one pixel travels through host
+// memory. The caps ask for DMA-BUF explicitly, so a fallback to shared memory
+// fails the case rather than passing quietly as a copy.
 TEST_CASE(
-    "a PipeWire video output can hand over DMA-BUF memory",
-    "[integration][gfx][pipewire][media][dmabuf][!shouldfail]")
+    "a PipeWire video output hands over DMA-BUF memory",
+    "[integration][gfx][pipewire][media][dmabuf]")
 {
   if(const auto gap = environmentGap(); !gap.isEmpty())
     SKIP(gap.toStdString());
@@ -545,14 +578,22 @@ TEST_CASE(
   const auto serial = waitForNode(node, 45000);
   REQUIRE(serial >= 0);
 
-  constexpr int kFrames = 60;
-  const auto cap = capture(serial, kFrames, dir, "dma", true);
+  constexpr int kFrames = 5;
+  const auto cap = captureRawDmaBuf(serial, kFrames, dir, kWidth, kHeight);
   INFO(cap.log.toStdString());
 
-  REQUIRE(cap.frames > 0);
-  CHECK(cap.frames == kFrames);
+  // Every frame, whole: a short file means the negotiation fell back or the
+  // stream stopped part way.
+  REQUIRE(cap.frames == kFrames);
 
-  const auto v = verifyGradient(cap.files.back());
-  INFO("dma-buf frame: " << v.why.toStdString());
-  CHECK(v.ok);
+  // ... and the picture in them is the gradient, read straight out of the
+  // imported buffer.
+  const int row = kHeight / 2;
+  const auto at = [&](int x) {
+    const int o = (row * kWidth + x) * 4;
+    return int(uint8_t(cap.bytes[o])); // red
+  };
+  INFO("left " << at(4) << " mid " << at(kWidth / 2) << " right " << at(kWidth - 5));
+  CHECK(at(kWidth - 5) - at(4) > 100);
+  CHECK(std::abs(at(kWidth / 2) - (at(4) + at(kWidth - 5)) / 2) < 40);
 }
