@@ -34,6 +34,8 @@
  *   4. `release()` at shutdown.
  */
 
+#include <QString>
+
 #include <cstdint>
 
 class QRhi;
@@ -75,6 +77,15 @@ struct VideoOutputStrategyConfig
   /// buffer ring at this byte size and the vendor pin callback receives
   /// it directly.
   std::uint32_t frameByteSize{};
+
+  /// The RGB->wire colour conversion the encoder must use, from
+  /// DirectVideoOutputBackend::colorConversion(). A GPU-direct strategy builds
+  /// its own encoder, so without this it has no way to learn the backend's
+  /// colour decision and has to invent one -- which is how AJA ended up
+  /// emitting SDR BT.709 on the RDMA path while the host-staged path honoured
+  /// HDR10, on the same device and the same setting. Empty means "not
+  /// supplied"; a strategy may then fall back, but should not have to.
+  QString colorConversion;
 };
 
 /**
