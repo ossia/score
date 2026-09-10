@@ -65,7 +65,7 @@ void testYUV422P10(
 {
   std::printf("YUV422P10Encoder (planar 4:2:2, low 10 bits):\n");
   YUV422P10Encoder enc;
-  enc.init(rhi, state, input, w, h);
+  enc.init(rhi, state, input, w, h, score::gfx::colorMatrixOut());
   uploadAndExec(rhi, enc, input, px);
 
   const auto& Y = enc.readback(0);
@@ -101,7 +101,7 @@ void testP010(
 {
   std::printf("P010Encoder (semi-planar 4:2:0, high 10 bits):\n");
   P010Encoder enc;
-  enc.init(rhi, state, input, w, h);
+  enc.init(rhi, state, input, w, h, score::gfx::colorMatrixOut());
   uploadAndExec(rhi, enc, input, px);
 
   const auto& Y = enc.readback(0);
@@ -161,7 +161,7 @@ void testBGRA(QRhi& rhi, const RenderState& state)
   for(const auto& c : cases)
   {
     BGRAEncoder enc(c.s);
-    enc.init(rhi, state, input, w, h);
+    enc.init(rhi, state, input, w, h, score::gfx::colorMatrixOut());
     uploadAndExec(rhi, enc, input, px);
     const auto& rb = enc.readback(0);
     const auto* b = reinterpret_cast<const uint8_t*>(rb.data.constData());
@@ -217,7 +217,7 @@ void testPackedRGB(QRhi& rhi, const RenderState& state)
     for(int k = 0; k < 4; ++k)
       e[k] = uint8_t((c.word >> (8 * (c.bigEndian ? 3 - k : k))) & 0xFF);
 
-    c.enc->init(rhi, state, input, w, h);
+    c.enc->init(rhi, state, input, w, h, score::gfx::colorMatrixOut());
     uploadAndExec(rhi, *c.enc, input, px);
     const auto& rb = c.enc->readback(0);
     const auto* b = reinterpret_cast<const uint8_t*>(rb.data.constData());
@@ -237,7 +237,7 @@ void testPackedRGB(QRhi& rhi, const RenderState& state)
   // texture still carries the exact wire bytes.
   {
     auto enc = PackedRGBEncoder::r210be();
-    enc->init(rhi, state, input, w, h);
+    enc->init(rhi, state, input, w, h, score::gfx::colorMatrixOut());
     enc->setReadbackEnabled(false);
     uploadAndExec(rhi, *enc, input, px);
     check(enc->readback(0).data.isEmpty(), "readback disabled -> no readback");
