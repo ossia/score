@@ -150,6 +150,11 @@ Run run(const QTemporaryDir& dir, const QString& node, const QString& request)
   env.insert("SCORE_FORCE_OFFSCREEN_WINDOW", "Window");
   env.insert("SCORE_AUDIO_BACKEND", "dummy");
   env.insert("SCORE_DISABLE_AUDIOPLUGINS", "1");
+  // Every verdict here is read out of the child's log, and the child's stderr
+  // is a pipe: where Qt is built with journald support it logs there instead,
+  // qDebug never reaches this process, and the checks all read an empty string.
+  env.insert("QT_FORCE_STDERR_LOGGING", "1");
+  env.insert("QT_ASSUME_STDERR_HAS_CONSOLE", "1");
 
   QProcess p;
   p.setProcessEnvironment(env);

@@ -91,6 +91,12 @@ Grab render(const QTemporaryDir& dir, const QString& name, const QString& body)
   env.insert("SCORE_FORCE_OFFSCREEN_WINDOW", "Window");
   env.insert("SCORE_AUDIO_BACKEND", "dummy");
   env.insert("SCORE_DISABLE_AUDIOPLUGINS", "1");
+  // Two of the checks below assert the ABSENCE of a warning in the child's
+  // log. The child's stderr is a pipe, and where Qt is built with journald
+  // support qDebug goes there instead: without this the log is empty and those
+  // checks pass no matter what the child printed.
+  env.insert("QT_FORCE_STDERR_LOGGING", "1");
+  env.insert("QT_ASSUME_STDERR_HAS_CONSOLE", "1");
 
   QProcess p;
   p.setProcessEnvironment(env);

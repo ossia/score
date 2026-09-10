@@ -170,6 +170,11 @@ Run runScore(const QTemporaryDir& dir, const QString& name, const QString& src)
   env.insert("SCORE_FORCE_OFFSCREEN_WINDOW", "Window,WindowA,WindowB");
   env.insert("SCORE_AUDIO_BACKEND", "dummy");
   env.insert("SCORE_DISABLE_AUDIOPLUGINS", "1");
+  // Every verdict here is read out of the child's log, and the child's stderr
+  // is a pipe: where Qt is built with journald support it logs there instead,
+  // qDebug never reaches this process, and the checks all read an empty string.
+  env.insert("QT_FORCE_STDERR_LOGGING", "1");
+  env.insert("QT_ASSUME_STDERR_HAS_CONSOLE", "1");
   // Pick the backend rather than inheriting whatever the developer last saved
   // in the settings. Not offscreen: QT_QPA_PLATFORM=offscreen resolves to the
   // Null RHI, which writes a stable, reproducible, wrong picture.
