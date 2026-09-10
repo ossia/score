@@ -18,6 +18,9 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <cmath>
+#include <set>
+#include <string>
+#include <cstdio>
 #include <limits>
 
 using Catch::Approx;
@@ -465,4 +468,47 @@ TEST_CASE("ArrayToMesh triangulation keeps the buffer self-consistent",
   CHECK(g.mesh.vertices >= 0);
   CHECK(g.mesh.vertices % 3 == 0);
   CHECK(g.mesh.buffers.main_buffer.element_count == g.mesh.vertices * 8);
+}
+
+// The shading model a primitive publishes, which decides whether a closed-form
+// render oracle can use one. createMesh ends with PerVertexNormalized, so a
+// corner shared by three faces carries ONE averaged normal, not three face
+// normals -- the cube is de-indexed to 36 corners but only 8 distinct normals
+// appear among them, and not one of them is axis-aligned:
+//
+//   +/-(0.577, 0.577, 0.577)   the two corners the triangulation treats
+//                              symmetrically
+//   permutations of            the other six, where the weighting of the
+//   (0.667, 0.667, -0.333)     adjoining triangles is not equal
+//
+// The cube is therefore SMOOTH-shaded: no face has a constant normal across
+// it. That is why tests/integration/ThreedimLitSceneTest.cpp reaches for the
+// Khronos Box asset instead of this primitive -- Box.glb is flat-shaded, one
+// constant normal per face, which is what makes its per-face expectations
+// closed-form. Swapping the asset for this primitive is not a substitution;
+// it is a different oracle.
+TEST_CASE("Cube normals are averaged at its corners", "[threedim][primitive]")
+{
+  Threedim::Cube cube;
+  cube.update();
+  auto s = checkLayout(cube.outputs);
+  REQUIRE(s.vertices == 36);
+
+  std::set<std::string> distinct;
+  int axisAligned = 0;
+  for(int64_t v = 0; v < s.vertices; v++)
+  {
+    const float* n = s.nrm + v * 3;
+    char buf[64];
+    std::snprintf(buf, sizeof buf, "%.3f %.3f %.3f", n[0], n[1], n[2]);
+    distinct.insert(buf);
+    for(int c = 0; c < 3; c++)
+      if(std::abs(std::abs(n[c]) - 1.f) < 1e-3f)
+        axisAligned++;
+  }
+
+  // One per corner, shared by every triangle that meets there.
+  CHECK(distinct.size() == 8);
+  // Not one face normal among them.
+  CHECK(axisAligned == 0);
 }
