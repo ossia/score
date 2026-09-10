@@ -566,7 +566,45 @@ public:
     }
 #endif
     const spa_pod* params[1];
-    params[0] = spa_format_video_raw_build(&b, SPA_PARAM_EnumFormat, &fmt);
+#if defined(SCORE_PIPEWIRE_OUT_DMABUF) || defined(SCORE_PIPEWIRE_OUT_DMABUF_EGL)
+    if(m_dmabufBackend != DmaBufBackend::None)
+    {
+      // The modifier has to be a CHOICE, not a fixed value, or the consumer has
+      // nothing to answer with: pipewire's dma-buf negotiation is a two-step
+      // handshake where the consumer picks one modifier out of the offered set
+      // and the producer is told which in param_changed. Offering a single
+      // fixed value the way spa_format_video_raw_build does makes the server
+      // tear the link down mid-negotiation -- the consumer sees "clear format"
+      // and then "unconnected", which is what a black OBS source is.
+      //
+      // The first entry of a CHOICE_ENUM is both the default and the first
+      // alternative, so LINEAR appears twice on purpose.
+      spa_pod_frame f[2];
+      spa_pod_builder_push_object(
+          &b, &f[0], SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat);
+      spa_pod_builder_add(
+          &b, SPA_FORMAT_mediaType, SPA_POD_Id(SPA_MEDIA_TYPE_video),
+          SPA_FORMAT_mediaSubtype, SPA_POD_Id(SPA_MEDIA_SUBTYPE_raw),
+          SPA_FORMAT_VIDEO_format, SPA_POD_Id(fmt.format), 0);
+
+      spa_pod_builder_prop(
+          &b, SPA_FORMAT_VIDEO_modifier,
+          SPA_POD_PROP_FLAG_MANDATORY | SPA_POD_PROP_FLAG_DONT_FIXATE);
+      spa_pod_builder_push_choice(&b, &f[1], SPA_CHOICE_Enum, 0);
+      spa_pod_builder_long(&b, 0); // DRM_FORMAT_MOD_LINEAR, the default
+      spa_pod_builder_long(&b, 0); // ... and the only alternative
+      spa_pod_builder_pop(&b, &f[1]);
+
+      spa_pod_builder_add(
+          &b, SPA_FORMAT_VIDEO_size, SPA_POD_Rectangle(&fmt.size),
+          SPA_FORMAT_VIDEO_framerate, SPA_POD_Fraction(&fmt.framerate), 0);
+      params[0] = (const spa_pod*)spa_pod_builder_pop(&b, &f[0]);
+    }
+    else
+#endif
+    {
+      params[0] = spa_format_video_raw_build(&b, SPA_PARAM_EnumFormat, &fmt);
+    }
 
     // Passive producer: pipewire pulls frames when the consumer is ready.
     // PW_STREAM_FLAG_DRIVER would make us the timing master, but score drives its
@@ -749,13 +787,77 @@ private:
     if(!pw.stream_available || !pw.stream_update_params)
       return;
 
-    // Sysmem only. The DMA-BUF modes allocate their own buffers through
-    // add_buffer and stamp the FD, size and stride into each one themselves;
-    // announcing host-memory buffer types here makes the server hand out
-    // MemPtr buffers instead and the dma-buf path stops receiving anything.
+    // Which MEMORY the buffers are made of is negotiated here too, and it is
+    // the difference between zero-copy and nothing at all. A consumer that
+    // asks for video/x-raw(memory:DMABuf) gets "not-negotiated" unless this
+    // says SPA_DATA_DmaBuf; a consumer reading host memory needs MemPtr.
+    // Announcing the wrong one is not a fallback, it is a dead link.
+    uint32_t dataTypes = (1u << SPA_DATA_MemPtr) | (1u << SPA_DATA_MemFd);
 #if defined(SCORE_PIPEWIRE_OUT_DMABUF) || defined(SCORE_PIPEWIRE_OUT_DMABUF_EGL)
     if(self->m_dmabufBackend != DmaBufBackend::None)
-      return;
+    {
+      dataTypes = (1u << SPA_DATA_DmaBuf);
+
+      // Second half of the dma-buf handshake. We offered the modifier as a
+      // DONT_FIXATE choice, so the format that comes back still carries a
+      // choice: the consumer has said which modifiers IT can import and it is
+      // now our turn to pick one and re-announce the format fixed to it.
+      // Skipping this step is what left the link half-negotiated -- the
+      // consumer saw "clear format" and then "unconnected", which is a black
+      // source in OBS and "not-negotiated" in a GStreamer pipeline.
+      if(const spa_pod_prop* mod
+         = spa_pod_find_prop(param, nullptr, SPA_FORMAT_VIDEO_modifier);
+         mod && (mod->flags & SPA_POD_PROP_FLAG_DONT_FIXATE))
+      {
+        spa_video_info_raw got{};
+        spa_format_video_raw_parse(param, &got);
+
+        uint8_t fixbuf[1024];
+        spa_pod_builder fb = SPA_POD_BUILDER_INIT(fixbuf, sizeof(fixbuf));
+        spa_pod_frame ff;
+        spa_pod_builder_push_object(
+            &fb, &ff, SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat);
+        spa_pod_builder_add(
+            &fb, SPA_FORMAT_mediaType, SPA_POD_Id(SPA_MEDIA_TYPE_video),
+            SPA_FORMAT_mediaSubtype, SPA_POD_Id(SPA_MEDIA_SUBTYPE_raw),
+            SPA_FORMAT_VIDEO_format, SPA_POD_Id(got.format),
+            SPA_FORMAT_VIDEO_modifier, SPA_POD_Long(0), // LINEAR: all we make
+            SPA_FORMAT_VIDEO_size, SPA_POD_Rectangle(&got.size),
+            SPA_FORMAT_VIDEO_framerate, SPA_POD_Fraction(&got.framerate), 0);
+        const spa_pod* fixated
+            = (const spa_pod*)spa_pod_builder_pop(&fb, &ff);
+
+        // Both, and in this order: the fixated format first, the unfixated
+        // offer after it. Announcing only the fixated one leaves the server
+        // with nothing to fall back on and it gives up with "no more output
+        // formats" -- the same two-entry answer pipewire's own
+        // video-src-fixate example sends.
+        spa_pod_frame af;
+        spa_pod_builder_push_object(
+            &fb, &af, SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat);
+        spa_pod_builder_add(
+            &fb, SPA_FORMAT_mediaType, SPA_POD_Id(SPA_MEDIA_TYPE_video),
+            SPA_FORMAT_mediaSubtype, SPA_POD_Id(SPA_MEDIA_SUBTYPE_raw),
+            SPA_FORMAT_VIDEO_format, SPA_POD_Id(got.format), 0);
+        spa_pod_builder_prop(
+            &fb, SPA_FORMAT_VIDEO_modifier,
+            SPA_POD_PROP_FLAG_MANDATORY | SPA_POD_PROP_FLAG_DONT_FIXATE);
+        spa_pod_frame ac;
+        spa_pod_builder_push_choice(&fb, &ac, SPA_CHOICE_Enum, 0);
+        spa_pod_builder_long(&fb, 0);
+        spa_pod_builder_long(&fb, 0);
+        spa_pod_builder_pop(&fb, &ac);
+        spa_pod_builder_add(
+            &fb, SPA_FORMAT_VIDEO_size, SPA_POD_Rectangle(&got.size),
+            SPA_FORMAT_VIDEO_framerate, SPA_POD_Fraction(&got.framerate), 0);
+        const spa_pod* alternatives
+            = (const spa_pod*)spa_pod_builder_pop(&fb, &af);
+
+        const spa_pod* fixParams[2]{fixated, alternatives};
+        pw.stream_update_params(self->m_stream, fixParams, 2);
+        return; // the buffers come with the next param_changed, once fixed
+      }
+    }
 #endif
 
     // Answer the negotiated format with the buffers it implies. Without this
@@ -778,8 +880,7 @@ private:
         SPA_PARAM_BUFFERS_buffers, SPA_POD_CHOICE_RANGE_Int(4, 2, 16),
         SPA_PARAM_BUFFERS_blocks, SPA_POD_Int(1), SPA_PARAM_BUFFERS_size,
         SPA_POD_Int(size), SPA_PARAM_BUFFERS_stride, SPA_POD_Int(stride),
-        SPA_PARAM_BUFFERS_dataType,
-        SPA_POD_CHOICE_FLAGS_Int((1 << SPA_DATA_MemPtr) | (1 << SPA_DATA_MemFd)));
+        SPA_PARAM_BUFFERS_dataType, SPA_POD_CHOICE_FLAGS_Int(dataTypes));
 
     pw.stream_update_params(self->m_stream, params, 1);
   }
