@@ -1035,14 +1035,22 @@ private:
     desc.handleType
         = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
     desc.dedicated = true;
-    // NOT device-local, and this was measured both ways. Asking for
-    // device-local moves an 8K frame out of host memory and a GStreamer
-    // consumer gains for it -- 10.4 to 15.4 buffers/s. score's own PipeWire
-    // input loses far more: 27.7 fps at 36 ms latency becomes 11.7 fps at
-    // 425 ms, a fifty-fold latency regression on the one path that was
-    // already zero-copy end to end. Until the two can be told apart at
-    // allocation time, the working path wins.
-    desc.preferDeviceLocal = false;
+    // Device-local, which is what finally reaches the target rate at 8K.
+    //
+    // This was measured both ways twice and the answer flipped once the
+    // per-frame readback was removed: with that readback in the path,
+    // host-visible memory looked better because the CPU was reading the frame
+    // every time. With it gone, device-local wins for an external consumer at
+    // both 4K and 8K.
+    //
+    // The cost is score's OWN PipeWire input reading score's output, which
+    // gets much slower. The producer is not what slows down -- it queues far
+    // fewer frames than before -- the consumer drains them slowly, and a
+    // deeper pool and a device-local-AND-host-visible heap were both tried and
+    // changed nothing. So it is the import on score's input side. That path
+    // has a fast shared-memory fallback meanwhile; an outside consumer has
+    // none.
+    desc.preferDeviceLocal = true;
 
     auto extImg = score::gfx::vkinterop::createExportableImage(
         self->m_vk, desc);
