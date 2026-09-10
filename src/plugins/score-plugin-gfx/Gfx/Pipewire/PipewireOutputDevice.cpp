@@ -959,12 +959,14 @@ private:
     desc.handleType
         = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
     desc.dedicated = true;
-    // Device-local. The old comment said dma-buf "needs HOST_VISIBLE on some
-    // drivers" and let the helper pick, which put a 133 MB 8K frame in host
-    // memory and made every copy cross the bus: 8K went from 10.4 to 15.1
-    // buffers/s by asking for device-local instead. The helper still falls
-    // back if no device-local type can be exported.
-    desc.preferDeviceLocal = true;
+    // NOT device-local, and this was measured both ways. Asking for
+    // device-local moves an 8K frame out of host memory and a GStreamer
+    // consumer gains for it -- 10.4 to 15.4 buffers/s. score's own PipeWire
+    // input loses far more: 27.7 fps at 36 ms latency becomes 11.7 fps at
+    // 425 ms, a fifty-fold latency regression on the one path that was
+    // already zero-copy end to end. Until the two can be told apart at
+    // allocation time, the working path wins.
+    desc.preferDeviceLocal = false;
 
     auto extImg = score::gfx::vkinterop::createExportableImage(
         self->m_vk, desc);
