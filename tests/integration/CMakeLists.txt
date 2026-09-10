@@ -402,6 +402,17 @@ if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
     SOURCES JsGraphE2ETest.cpp
     NO_CTEST)
 
+  # Texture sources in a custom `--ui` QML interface: created, destroyed,
+  # hidden and shown while the document plays. Each one wires a preview node
+  # into the live GfxContext, so this is the path a mapping UI lives on.
+  # Runs under ctest (GUI: it needs a display, and skips saying so if the
+  # scene graph never rendered).
+  score_add_test(test_integration_js_texture_source_ui
+    SOURCES JsTextureSourceUiTest.cpp
+    GUI)
+  set_tests_properties(test_integration_js_texture_source_ui
+    PROPERTIES TIMEOUT 900 RUN_SERIAL TRUE)
+
   # The gfx protocol factories and their device-settings parsers, reached the
   # way a script reaches them: Score.availableProtocols() and
   # Score.createDevice(name, uuid, obj). No device is expected to connect and
@@ -433,6 +444,7 @@ if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
   foreach(_pw_tgt test_integration_pipewire_video_input
                   test_integration_pipewire_video_motion
                   test_integration_js_graph_e2e
+                  test_integration_js_texture_source_ui
                   test_integration_gfx_protocol_settings)
     target_link_libraries(${_pw_tgt} PRIVATE ${QT_PREFIX}::Gui)
     target_compile_definitions(${_pw_tgt} PRIVATE
