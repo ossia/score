@@ -906,7 +906,7 @@ private:
             chosenModifier = vals[0];
         }
         // What on_add_buffer will create the exported images with.
-        self->m_chosenModifier = chosenModifier;
+        self->m_chosenModifier.store(chosenModifier, std::memory_order_release);
 
         uint8_t fixbuf[1024];
         spa_pod_builder fb = SPA_POD_BUILDER_INIT(fixbuf, sizeof(fixbuf));
@@ -1019,11 +1019,14 @@ private:
     // LINEAR is what is left when the consumer could only take the implicit
     // modifier, which is the cross-GPU case.
     desc.tiling = VK_IMAGE_TILING_LINEAR;
-    const uint64_t chosen = self->m_chosenModifier;
+    // A local, not the member: the member is atomic and has no stable address
+    // to hand to Vulkan, and the list must outlive the create call, which this
+    // does.
+    const uint64_t chosen = self->m_chosenModifier.load(std::memory_order_acquire);
     if(chosen != uint64_t(kDrmModifierInvalid))
     {
       // The consumer named a layout: give it exactly that one.
-      desc.drmModifiers = &self->m_chosenModifier;
+      desc.drmModifiers = &chosen;
       desc.drmModifierCount = 1;
     }
     // If the consumer took the IMPLICIT modifier we must stay LINEAR. Letting
@@ -1217,12 +1220,17 @@ public:
   //! case where writing into the shared image directly is worth it.
   bool exported_layout_is_tiled() const noexcept
   {
-    return m_chosenModifier != uint64_t(kDrmModifierInvalid);
+    return m_chosenModifier.load(std::memory_order_acquire)
+           != uint64_t(kDrmModifierInvalid);
   }
 
   //! Layouts we can export, best first, and the one the consumer settled on.
   std::vector<uint64_t> m_drmModifiers;
-  uint64_t m_chosenModifier{uint64_t(kDrmModifierInvalid)};
+  //! Written by on_param_changed on the pipewire thread, read by the render
+  //! thread through exported_layout_is_tiled(). Atomic because those are two
+  //! different threads and a torn 64-bit read would pick a layout nobody
+  //! agreed to.
+  std::atomic<uint64_t> m_chosenModifier{uint64_t(kDrmModifierInvalid)};
 
   //! The newest rendered frame, waiting for the graph to ask for one.
   std::mutex m_stagingMutex;
