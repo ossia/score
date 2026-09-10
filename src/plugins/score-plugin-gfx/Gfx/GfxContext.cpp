@@ -51,15 +51,28 @@ GfxContext::GfxContext(const score::DocumentContext& ctx)
   rate = qBound(1.0, rate, 1000.);
 
 
+  // Queued, both of these, and it matters. Both callbacks call updateGraph(),
+  // updateGraph() can reach recomputeTimers(), and recomputeTimers() destroys
+  // the timer pool -- including the very timer whose timerEvent() is on the
+  // stack, since HighResolutionTimer emits timeout() synchronously from it and
+  // the pool owns its timers by unique_ptr. A direct connection therefore
+  // returns into freed memory. recomputeTimers() already reconnects the
+  // no-vsync timer queued; these two were the ones left direct.
   {
     m_no_vsync_timer = m_timers.acquireTimer(this, rate);
-    connect(m_no_vsync_timer, &score::HighResolutionTimer::timeout, this, &GfxContext::on_no_vsync_timer, Qt::UniqueConnection);
+    connect(
+        m_no_vsync_timer, &score::HighResolutionTimer::timeout, this,
+        &GfxContext::on_no_vsync_timer,
+        Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
   }
 
   // A safety timer necessary to handle graph updates in case we had vsync and lost it
   {
     m_watchdog_timer = m_timers.acquireTimer(this, 20.);
-    connect(m_watchdog_timer, &score::HighResolutionTimer::timeout, this, &GfxContext::on_watchdog_timer, Qt::UniqueConnection);
+    connect(
+        m_watchdog_timer, &score::HighResolutionTimer::timeout, this,
+        &GfxContext::on_watchdog_timer,
+        Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
   }
 }
 
@@ -299,7 +312,12 @@ void GfxContext::recomputeTimers()
   std::construct_at(&m_timers);
   {
     m_watchdog_timer = m_timers.acquireTimer(this, 20.);
-    connect(m_watchdog_timer, &score::HighResolutionTimer::timeout, this, &GfxContext::on_watchdog_timer, Qt::UniqueConnection);
+    // Queued for the same reason as the constructor's: on_watchdog_timer calls
+    // updateGraph(), which can reach back into here and destroy this timer.
+    connect(
+        m_watchdog_timer, &score::HighResolutionTimer::timeout, this,
+        &GfxContext::on_watchdog_timer,
+        Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
   }
   m_no_vsync_timer = nullptr;
   delete m_freewheel_timer;
