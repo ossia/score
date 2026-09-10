@@ -48,6 +48,24 @@ CustomGpuOutputNodeBase::CustomGpuOutputNodeBase(
 
 CustomGpuOutputNodeBase::~CustomGpuOutputNodeBase()
 {
+  // The GpuResourceRegistry owns QRhiBuffer wrappers, and RenderList::init
+  // acquires one for every OutputNode whether the node asks or not. Their
+  // destructors have to run while the QRhi is still alive, which is what
+  // score::gfx::OutputNode::releaseRegistry() is for -- "concrete subclasses
+  // MUST call this from destroyOutput() BEFORE the QRhi is torn down".
+  //
+  // Without it the allocator still holds live blocks at teardown:
+  //
+  //   ASSERT "Some allocations were not freed before destruction of this
+  //           memory block!"  (vk_mem_alloc.h)
+  //
+  // That cannot fire today, because this node hardcodes GraphicsApi::OpenGL
+  // above and OpenGL has no VMA. It becomes reachable the moment this follows
+  // the graph's backend the way the other output nodes do -- which is exactly
+  // how it surfaced in score-addon-ndi. Calling it now costs nothing and
+  // removes the trap. Idempotent.
+  releaseRegistry();
+
   m_renderState->destroy();
 }
 
