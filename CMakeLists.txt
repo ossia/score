@@ -355,9 +355,10 @@ if(SCORE_TESTING)
   include(ScoreTestRegistrationGuard)
   score_check_test_registration()
 
-  # Same placement rationale: CI compiles the tests against Qt 6.4.2 while the
-  # reference build here is 6.13, and two tests have already shipped using an
-  # API newer than that. See the header of the file for the two shapes it knows.
+  # Same placement rationale: CI compiles against Qt 6.4.2 while the reference
+  # build here is 6.13, so code using a newer API compiles here and breaks the
+  # one job on 6.4. See the header of the file for the shapes it knows and for
+  # which of them cover src/ as well as tests/.
   include(ScoreRhiPortabilityGuard)
   score_check_rhi_portability()
 
