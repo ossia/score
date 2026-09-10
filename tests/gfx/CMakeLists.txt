@@ -1181,6 +1181,18 @@ score_add_gfx_process_test(renderers_before_passes GfxRenderersBeforePasses.cpp)
 # widget against the real document GfxContext.
 score_add_gfx_process_test(preview_output_rebuild GfxPreviewOutputRebuild.cpp)
 
+# What a frame costs as the target grows, with no readback and no output device
+# in the way. Answers "is the renderer the wall at 8K" -- it is not.
+score_add_test(test_gfx_render_scaling
+  SOURCES GfxRenderScaling.cpp
+  GUI
+  PLUGINS score_plugin_gfx score_lib_process)
+target_include_directories(test_gfx_render_scaling
+  PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+target_compile_definitions(test_gfx_render_scaling PRIVATE
+  GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+set_tests_properties(test_gfx_render_scaling PROPERTIES TIMEOUT 600 RUN_SERIAL TRUE)
+
 # -----------------------------------------------------------------------------
 # Gfx/Spout (Windows/x86_64) and Gfx/Syphon (macOS). Neither compiles on Linux,
 # so this target must build EVERYWHERE and change what it asserts instead of
