@@ -442,10 +442,82 @@ TEST_CASE(
   CHECK(cap.distinctFps() >= kRate / 2.);
 }
 
+// 8K. Spout and Syphon carry it because they hand over a GPU texture and copy
+// nothing; this path reads the frame back and copies it through host memory,
+// which at this resolution is more memcpy bandwidth than a host bus has. The
+// case exists to say plainly where the readback path stops being viable, and
+// to be the thing that turns green when zero-copy carries it.
+TEST_CASE(
+    "a PipeWire video output keeps up at 7680x4320",
+    "[integration][gfx][pipewire][media][perf][8k][!shouldfail]")
+{
+  if(const auto gap = environmentGap(); !gap.isEmpty())
+    SKIP(gap.toStdString());
+
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+
+  const QString node = uniqueNodeName("k8");
+  Publisher pub;
+  pub.start(write(
+      dir, "scene.js",
+      sceneScript(node, false, "isf-time-uniforms.fs", 7680, 4320)));
+
+  const auto serial = waitForNode(node, 60000);
+  REQUIRE(serial >= 0);
+
+  (void)capture(serial, 5, dir, "k8warm", false);
+
+  constexpr int kFrames = 30;
+  const auto cap = capture(serial, kFrames, dir, "k8", false);
+  INFO(cap.log.toStdString());
+  REQUIRE(cap.frames == kFrames);
+
+  INFO(
+      "7680x4320: " << cap.frames << " buffers (" << cap.distinct
+                    << " distinct) in " << cap.seconds << " s = "
+                    << cap.distinctFps() << " frames/s, asked for " << kRate);
+
+  CHECK(cap.distinctFps() >= kRate / 2.);
+}
+
 // Zero-copy. score allocates exportable images and hands the consumer their
 // DMA-BUF file descriptors instead of copying pixels through host memory, so
 // this asks GStreamer for DMA-BUF memory explicitly: the pipeline fails to
 // negotiate rather than silently falling back to a copy.
+// A dmabuf=on device must still show a picture to a consumer that cannot take
+// dma-buf. It used to show nothing at all: score offered the modifier and
+// nothing else, the intersection came out empty, the stream errored with "no
+// more output formats" and the source stayed black. It now offers the same
+// format without a modifier as a second alternative, so such a consumer picks
+// host memory and gets frames.
+TEST_CASE(
+    "a dmabuf device still delivers to a consumer that cannot take dma-buf",
+    "[integration][gfx][pipewire][media][dmabuf]")
+{
+  if(const auto gap = environmentGap(); !gap.isEmpty())
+    SKIP(gap.toStdString());
+
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+
+  const QString node = uniqueNodeName("dmafall");
+  Publisher pub;
+  pub.start(write(dir, "scene.js", sceneScript(node, true)));
+
+  const auto serial = waitForNode(node, 45000);
+  REQUIRE(serial >= 0);
+
+  constexpr int kFrames = 20;
+  const auto cap = capture(serial, kFrames, dir, "dmafall", false);
+  INFO(cap.log.toStdString());
+  REQUIRE(cap.frames == kFrames);
+
+  const auto v = verifyGradient(cap.files.back());
+  INFO("fallback frame: " << v.why.toStdString());
+  CHECK(v.ok);
+}
+
 // [!shouldfail]: zero-copy does not negotiate yet. score offers the modifier as
 // a DONT_FIXATE choice and answers the consumer's reply with a fixated format
 // plus the alternatives, which is the handshake pipewire's own
