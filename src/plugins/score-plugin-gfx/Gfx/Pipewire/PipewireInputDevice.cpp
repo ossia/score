@@ -89,6 +89,15 @@ namespace
 // MAX_BUFFERS lower bound and keeps memory reasonable at 1080p.
 constexpr int kDefaultPoolSize = 8;
 
+// How many DMA-BUF frames the input may keep waiting for the renderer.
+//
+// A DMA-BUF frame is the producer's own buffer, not a copy: one waiting here
+// is one the producer cannot write into. pipewire negotiates four, so an
+// unbounded queue took all four and the producer then found none free on half
+// its dequeues. Keep one being sampled and one ready; past that the oldest is
+// dropped, which hands its buffer straight back.
+constexpr std::size_t kMaxQueuedDmaBufFrames = 2;
+
 // Thin wrappers around formats::*, kept as named functions for readability.
 // The Tag-based helper handles the full HDR / planar / packed matrix.
 AVPixelFormat spaToAvPixFmt(uint32_t spaFmt) noexcept
@@ -238,12 +247,13 @@ struct PwBufferReleaseCtx
 };
 
 // Runs on whichever thread is unrefing the AVFrame (typically score's
-// render thread). Synchronously hops to the pipewire loop thread to
-// queue-back the pipewire buffer, then cleans up the descriptor +
-// release context. invoke_sync waits for the queued callback to run
-// before returning, so the `delete ctx` below happens AFTER pipewire
-// has consumed ctx — not before, which would be the heap-use-after-
-// free bug.
+// render thread). Queues the pipewire buffer back on the pipewire loop
+// thread, then frees the descriptor and the release context.
+//
+// Asynchronous: invoke_sync blocked the render thread once a frame on a loop
+// busy with its own callbacks. It was synchronous so that `delete ctx` ran
+// after pipewire was done with ctx; giving ctx to the callback does the same
+// without anyone waiting.
 extern "C" void score_pw_release_avframe(void* opaque, uint8_t* /*data*/)
 {
   auto* ctx = static_cast<PwBufferReleaseCtx*>(opaque);
@@ -253,14 +263,16 @@ extern "C" void score_pw_release_avframe(void* opaque, uint8_t* /*data*/)
   // and only free our descriptor.
   if(auto shared = ctx->weak_ctx.lock(); shared && ctx->token && ctx->buffer)
   {
-    auto& pw = libremidi::pipewire::load();
-    pw_buffer* buf = ctx->buffer;
-    const auto& token = ctx->token;
-    shared->invoke_sync([&] {
-      if(pw_stream* stream = token->stream.load(std::memory_order_relaxed))
+    shared->invoke_async([ctx] {
+      auto& pw = libremidi::pipewire::load();
+      if(pw_stream* stream = ctx->token->stream.load(std::memory_order_relaxed))
         if(pw.stream_queue_buffer)
-          pw.stream_queue_buffer(stream, buf);
+          pw.stream_queue_buffer(stream, ctx->buffer);
+      if(ctx->desc)
+        std::free(ctx->desc);
+      delete ctx;
     });
+    return;
   }
   if(ctx->desc)
     std::free(ctx->desc);
@@ -982,9 +994,22 @@ void InputStream::on_stream_process(void* data)
         f->pts = int64_t(hdr->pts);
         f->pkt_dts = f->pts;
       }
+      // Dropped outside the lock: releasing a DRM_PRIME frame queues its
+      // buffer back to the producer.
+      for(;;)
       {
-        std::lock_guard<std::mutex> lock(self->m_frameMutex);
-        self->m_usedFrames.push_back(f);
+        AVFrame* stale = nullptr;
+        {
+          std::lock_guard<std::mutex> lock(self->m_frameMutex);
+          if(self->m_usedFrames.size() < kMaxQueuedDmaBufFrames)
+          {
+            self->m_usedFrames.push_back(f);
+            break;
+          }
+          stale = self->m_usedFrames.front();
+          self->m_usedFrames.erase(self->m_usedFrames.begin());
+        }
+        av_frame_free(&stale);
       }
       // pipewire buffer queue-back is deferred to score_pw_release_avframe
       return;
