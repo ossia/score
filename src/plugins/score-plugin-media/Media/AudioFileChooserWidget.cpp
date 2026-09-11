@@ -164,7 +164,7 @@ void QGraphicsWaveformButton::on_finishedDecoding()
   m_computer->recompute(req);
 }
 
-void QGraphicsWaveformButton::setFile(const QString& s)
+void QGraphicsWaveformButton::setFile(const QString& s, const QString& absolute)
 {
   if(m_file)
     m_file->on_finishedDecoding
@@ -174,7 +174,11 @@ void QGraphicsWaveformButton::setFile(const QString& s)
   m_images.clear();
 
   m_string = std::move(s);
-  m_file = Media::AudioFileManager::instance().get(m_string, 0);
+  // The RESOLVED path: this overload of get() opens what it is handed, so a
+  // "<PROJECT>:" path reached it as a filename that does not exist and the
+  // waveform stayed empty with no error anywhere.
+  m_file = Media::AudioFileManager::instance().get(
+      absolute.isEmpty() ? m_string : absolute, 0);
   if(!m_file)
   {
     update();
