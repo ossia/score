@@ -22,8 +22,10 @@
 //   I420 / YUV420P                                  3 samplers, all R8, the
 //               YUV420.hpp shader
 //
-// A 2-slot import ring per plane keeps the GPU from being handed a slot it has
-// not finished sampling.
+// Imports are cached by the inode of the dma-buf, so a producer rotating a
+// fixed pool -- which is what pipewire negotiates -- imports each buffer once
+// instead of once a frame. Planes that cannot be cached fall back to a 2-slot
+// ring, so the GPU is never handed a slot it has not finished sampling.
 
 #if defined(__linux__)
 #include <Gfx/Graph/decoders/ColorSpace.hpp>
@@ -38,6 +40,11 @@
 #include <Video/VideoInterface.hpp>
 
 #include <score/gfx/Vulkan.hpp>
+
+#include <sys/stat.h>
+
+#include <optional>
+#include <unordered_map>
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -83,27 +90,107 @@ struct DRMPrimeDecoder : GPUVideoDecoder
   Family m_family{Family::PackedRGB};
   bool m_is_10bit{false}; // P010 vs NV12
 
+  /** Identifies one imported dma-buf.
+   *
+   *  Keyed on the INODE, not the file descriptor: descriptor numbers are
+   *  recycled as soon as one is closed, an inode is not reused while the
+   *  dma-buf lives. The rest is layout -- the same buffer at a different
+   *  offset, stride or format is a different image.
+   *
+   *  Importing is a vkCreateImage plus an external-memory import on Vulkan,
+   *  an eglCreateImage on GL, and it is most of what a frame costs here:
+   *  PipewireRoundtrip's s2sgpu-vk-rgba dma-buf cell measures more than twice
+   *  the per-frame cost without this cache.
+   */
+  struct DmaBufImportKey
+  {
+    unsigned long long ino{};
+    unsigned long long dev{};
+    uint64_t modifier{};
+    long long offset{};
+    long long pitch{};
+    int w{}, h{};
+    uint32_t fmt{};
+
+    friend bool operator==(const DmaBufImportKey&, const DmaBufImportKey&)
+        = default;
+  };
+  struct DmaBufImportKeyHash
+  {
+    std::size_t operator()(const DmaBufImportKey& k) const noexcept
+    {
+      std::size_t h = std::hash<unsigned long long>{}(k.ino);
+      auto mix = [&h](std::size_t v) { h ^= v + 0x9e3779b9 + (h << 6) + (h >> 2); };
+      mix(std::hash<unsigned long long>{}(k.dev));
+      mix(std::hash<uint64_t>{}(k.modifier));
+      mix(std::hash<long long>{}(k.offset));
+      mix(std::hash<long long>{}(k.pitch));
+      mix(std::hash<int>{}(k.w));
+      mix(std::hash<int>{}(k.h));
+      mix(std::hash<uint32_t>{}(k.fmt));
+      return h;
+    }
+  };
+
+  /** Nothing when the kernel will not name the dma-buf; the caller then
+   *  imports into the scratch rotation instead of the cache. */
+  static std::optional<DmaBufImportKey> importKey(
+      int fd, uint64_t modifier, long long offset, long long pitch, int w, int h,
+      uint32_t fmt) noexcept
+  {
+    struct ::stat st
+    {
+    };
+    if(fd < 0 || ::fstat(fd, &st) != 0)
+      return std::nullopt;
+
+    DmaBufImportKey key{};
+    key.ino = st.st_ino;
+    key.dev = st.st_dev;
+    key.modifier = modifier;
+    key.offset = offset;
+    key.pitch = pitch;
+    key.w = w;
+    key.h = h;
+    key.fmt = fmt;
+    return key;
+  }
+
+  //! Cached imports are never evicted, only released with the decoder, so
+  //! nothing can be destroyed while the GPU still reads it. Past this bound a
+  //! plane goes to the scratch rotation. A sane producer never comes close.
+  static constexpr std::size_t kMaxImports = 32;
+
+  //! Two, so the import a frame is sampling is not the one the next frame
+  //! destroys.
+  static constexpr int kNumScratchSlots = 2;
+
 #if QT_HAS_VULKAN && defined(VK_EXT_image_drm_format_modifier) \
     && defined(VK_KHR_external_memory_fd)
   DMABufPlaneImporter m_vk_importer;
-  static constexpr int kNumVkSlots = 2;
-  struct VkSlot
+
+  std::unordered_map<DmaBufImportKey, DMABufPlaneImporter::PlaneImport,
+                     DmaBufImportKeyHash>
+      m_vk_imports;
+  struct VkScratch
   {
     DMABufPlaneImporter::PlaneImport planes[3]{};
   };
-  VkSlot m_vk_slots[kNumVkSlots]{};
-  int m_vk_slotIdx{0};
+  VkScratch m_vk_scratch[kNumScratchSlots]{};
+  int m_vk_scratchIdx{0};
   VkFormat m_vk_plane_fmt[3]{}; // per-plane VkFormat
 #endif
 
   EglDmaBufImporter m_gl_importer;
-  static constexpr int kNumGlSlots = 2;
-  struct GlSlot
+  std::unordered_map<DmaBufImportKey, EglDmaBufImporter::PlaneImport,
+                     DmaBufImportKeyHash>
+      m_gl_imports;
+  struct GlScratch
   {
     EglDmaBufImporter::PlaneImport planes[3]{};
   };
-  GlSlot m_gl_slots[kNumGlSlots]{};
-  int m_gl_slotIdx{0};
+  GlScratch m_gl_scratch[kNumScratchSlots]{};
+  int m_gl_scratchIdx{0};
   unsigned int m_gl_textures[3]{0, 0, 0}; // persistent GL ids per plane
   uint32_t m_gl_plane_fourcc[3]{};        // per-plane DRM fourcc
 
@@ -146,22 +233,61 @@ struct DRMPrimeDecoder : GPUVideoDecoder
     }
   }
 
-  ~DRMPrimeDecoder() override
+  /** Drop every imported dma-buf. Idempotent.
+   *
+   *  The caller must first drop anything referencing these images: the sampler
+   *  textures adopted them through createFrom and hold image views on them,
+   *  and destroying an image under a live view segfaults inside the driver's
+   *  vkDestroyImage. release() below does that. */
+  void releaseImports() noexcept
   {
 #if QT_HAS_VULKAN && defined(VK_EXT_image_drm_format_modifier) \
     && defined(VK_KHR_external_memory_fd)
     if(m_backend == Backend::Vulkan)
     {
-      for(auto& slot : m_vk_slots)
+      // The GPU may still be reading the frames that sampled these.
+      m_vk_importer.waitIdle();
+      for(auto& [k, pl] : m_vk_imports)
+        m_vk_importer.cleanupPlane(pl);
+      m_vk_imports.clear();
+      for(auto& slot : m_vk_scratch)
         for(auto& p : slot.planes)
           m_vk_importer.cleanupPlane(p);
     }
 #endif
     if(m_backend == Backend::OpenGL)
     {
-      for(auto& slot : m_gl_slots)
+      for(auto& [k, pl] : m_gl_imports)
+        m_gl_importer.cleanupPlane(pl);
+      m_gl_imports.clear();
+      for(auto& slot : m_gl_scratch)
         for(auto& p : slot.planes)
           m_gl_importer.cleanupPlane(p);
+    }
+  }
+
+  void release(RenderList& r) override
+  {
+    // The base only deleteLater()s the sampler textures, leaving their image
+    // views alive past this call. Drop them and let the RHI run its deferred
+    // releases first.
+    for(auto& s : samplers)
+      if(s.texture)
+        s.texture->destroy();
+    if(r.state.rhi)
+      r.state.rhi->finish();
+
+    releaseImports();
+    GPUVideoDecoder::release(r);
+  }
+
+  ~DRMPrimeDecoder() override
+  {
+    // Normally already done by release(); this covers a decoder that is
+    // dropped without one.
+    releaseImports();
+    if(m_backend == Backend::OpenGL)
+    {
       if(auto* ctx = QOpenGLContext::currentContext())
       {
         if(auto* funcs = ctx->extraFunctions())
@@ -249,7 +375,10 @@ struct DRMPrimeDecoder : GPUVideoDecoder
     switch(m_family)
     {
       case Family::PackedRGB:
-        // Placeholder format; createFrom replaces the native handle.
+        // Placeholder until the first frame's DRM fourcc gives the real
+        // channel order; exec() fixes the format before adopting the image.
+        // createFrom keeps the texture's format, and Qt builds the image view
+        // from it, so a BGRA8 view over an R8G8B8A8 image swaps red and blue.
         makeSamplerTexture(QRhiTexture::BGRA8, QSize{w, h});
 #if QT_HAS_VULKAN && defined(VK_EXT_image_drm_format_modifier) \
     && defined(VK_KHR_external_memory_fd)
@@ -353,6 +482,29 @@ struct DRMPrimeDecoder : GPUVideoDecoder
 
 #if QT_HAS_VULKAN && defined(VK_EXT_image_drm_format_modifier) \
     && defined(VK_KHR_external_memory_fd)
+  /** Packed RGB DRM fourcc → the QRhi format with the same channel order.
+   *  UnknownFormat leaves the texture as it was. */
+  static QRhiTexture::Format qrhiPackedFmtFromDrmFourcc(uint32_t fourcc) noexcept
+  {
+    switch(fourcc)
+    {
+      case 0x34325241: // ARGB8888
+      case 0x34325258: // XRGB8888
+        return QRhiTexture::BGRA8;
+      case 0x34324241: // ABGR8888
+      case 0x34324258: // XBGR8888
+        return QRhiTexture::RGBA8;
+      case 0x30334241: // ABGR2101010
+      case 0x30334258: // XBGR2101010
+        return QRhiTexture::RGB10A2;
+      case 0x48344241: // ABGR16161616F
+      case 0x48344258: // XBGR16161616F
+        return QRhiTexture::RGBA16F;
+      // ARGB2101010 has no QRhi equivalent: RGB10A2 is A2B10G10R10.
+      default: return QRhiTexture::UnknownFormat;
+    }
+  }
+
   /** Packed RGB DRM fourcc → Vulkan packed RGB format. */
   static VkFormat vkPackedFmtFromDrmFourcc(uint32_t fourcc) noexcept
   {
@@ -450,33 +602,65 @@ struct DRMPrimeDecoder : GPUVideoDecoder
          && m_vk_plane_fmt[0] == VK_FORMAT_UNDEFINED)
       {
         m_vk_plane_fmt[0] = vkPackedFmtFromDrmFourcc(desc->layers[0].format);
+        if(const auto qfmt = qrhiPackedFmtFromDrmFourcc(desc->layers[0].format);
+           qfmt != QRhiTexture::UnknownFormat && !samplers.empty()
+           && samplers[0].texture)
+        {
+          // Before the createFrom below, which is what builds the view.
+          samplers[0].texture->setFormat(qfmt);
+        }
         if(m_vk_plane_fmt[0] == VK_FORMAT_UNDEFINED)
         {
-          qDebug()
-              << "DRMPrimeDecoder: unsupported packed DRM fourcc"
-              << Qt::hex << desc->layers[0].format;
+          qDebug() << "DRMPrimeDecoder: unsupported packed DRM fourcc" << Qt::hex
+                   << desc->layers[0].format;
           return;
         }
       }
 
-      auto& slot = m_vk_slots[m_vk_slotIdx];
-      for(auto& pl : slot.planes)
-        m_vk_importer.cleanupPlane(pl);
-      m_vk_slotIdx = (m_vk_slotIdx + 1) % kNumVkSlots;
-
       for(int i = 0; i < np; ++i)
       {
         const auto& obj = desc->objects[p[i].obj_idx];
-        if(!m_vk_importer.importPlane(
-               slot.planes[i], obj.fd, obj.format_modifier, p[i].offset,
-               p[i].pitch, m_vk_plane_fmt[i], p[i].w, p[i].h))
+        const auto key = importKey(
+            obj.fd, obj.format_modifier, p[i].offset, p[i].pitch, p[i].w, p[i].h,
+            uint32_t(m_vk_plane_fmt[i]));
+
+        if(key)
         {
-          qDebug() << "DRMPrimeDecoder: Vulkan importPlane failed for plane"
-                   << i << "fd" << obj.fd;
+          if(auto it = m_vk_imports.find(*key); it != m_vk_imports.end())
+          {
+            samplers[i].texture->createFrom(QRhiTexture::NativeTexture{
+                quint64(it->second.image), VK_IMAGE_LAYOUT_GENERAL});
+            continue;
+          }
+        }
+
+        DMABufPlaneImporter::PlaneImport imported{};
+        if(!m_vk_importer.importPlane(
+               imported, obj.fd, obj.format_modifier, p[i].offset, p[i].pitch,
+               m_vk_plane_fmt[i], p[i].w, p[i].h))
+        {
+          qDebug() << "DRMPrimeDecoder: Vulkan importPlane failed for plane" << i
+                   << "fd" << obj.fd;
           return;
         }
+
+        if(key && m_vk_imports.size() < kMaxImports)
+        {
+          m_vk_imports.emplace(*key, imported);
+        }
+        else
+        {
+          // Uncacheable or cache full: park it in the rotation, where the
+          // slot two frames old is the one destroyed.
+          auto& slot = m_vk_scratch[m_vk_scratchIdx];
+          m_vk_importer.cleanupPlane(slot.planes[i]);
+          slot.planes[i] = imported;
+          if(i == np - 1)
+            m_vk_scratchIdx = (m_vk_scratchIdx + 1) % kNumScratchSlots;
+        }
+
         samplers[i].texture->createFrom(QRhiTexture::NativeTexture{
-            quint64(slot.planes[i].image), VK_IMAGE_LAYOUT_UNDEFINED});
+            quint64(imported.image), VK_IMAGE_LAYOUT_GENERAL});
       }
       hasFrame = true;
       return;
@@ -490,22 +674,50 @@ struct DRMPrimeDecoder : GPUVideoDecoder
       if(m_family == Family::PackedRGB)
         m_gl_plane_fourcc[0] = desc->layers[0].format;
 
-      auto& slot = m_gl_slots[m_gl_slotIdx];
-      for(auto& pl : slot.planes)
-        m_gl_importer.cleanupPlane(pl);
-      m_gl_slotIdx = (m_gl_slotIdx + 1) % kNumGlSlots;
-
       for(int i = 0; i < np; ++i)
       {
         const auto& obj = desc->objects[p[i].obj_idx];
+        const auto key = importKey(
+            obj.fd, obj.format_modifier, p[i].offset, p[i].pitch, p[i].w, p[i].h,
+            m_gl_plane_fourcc[i]);
+
+        if(key)
+        {
+          if(auto it = m_gl_imports.find(*key); it != m_gl_imports.end())
+          {
+            // The EGLImage is still good but the texture points at the last
+            // frame's buffer, so re-bind it. A pointer swap, not an import.
+            if(!m_gl_importer.bindPlane(m_gl_textures[i], it->second))
+            {
+              qDebug() << "DRMPrimeDecoder: EGL bindPlane failed for plane" << i;
+              return;
+            }
+            continue;
+          }
+        }
+
+        EglDmaBufImporter::PlaneImport imported{};
         if(!m_gl_importer.importPlane(
-               slot.planes[i], m_gl_textures[i], obj.fd, obj.format_modifier,
+               imported, m_gl_textures[i], obj.fd, obj.format_modifier,
                p[i].offset, p[i].pitch, m_gl_plane_fourcc[i], p[i].w, p[i].h))
         {
-          qDebug() << "DRMPrimeDecoder: EGL importPlane failed for plane"
-                   << i << "fd" << obj.fd << "fourcc" << Qt::hex
+          qDebug() << "DRMPrimeDecoder: EGL importPlane failed for plane" << i
+                   << "fd" << obj.fd << "fourcc" << Qt::hex
                    << m_gl_plane_fourcc[i];
           return;
+        }
+
+        if(key && m_gl_imports.size() < kMaxImports)
+        {
+          m_gl_imports.emplace(*key, imported);
+        }
+        else
+        {
+          auto& slot = m_gl_scratch[m_gl_scratchIdx];
+          m_gl_importer.cleanupPlane(slot.planes[i]);
+          slot.planes[i] = imported;
+          if(i == np - 1)
+            m_gl_scratchIdx = (m_gl_scratchIdx + 1) % kNumScratchSlots;
         }
       }
       hasFrame = true;
