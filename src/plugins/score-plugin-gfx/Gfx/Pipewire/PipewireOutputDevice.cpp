@@ -2089,7 +2089,15 @@ score::gfx::OutputNodeRenderer* PipewireOutputNode::createRenderer(
   // refreshed with it.
   m_wireRenderer = r;
   // Nothing consumes the readback when the frame is handed over as a dma-buf.
-  r->setReadbackEnabled(!(m_dmabufMode || m_dmabufEglMode));
+  // Both flags only exist when their backend is compiled in.
+  bool dmabuf = false;
+#if defined(SCORE_PIPEWIRE_OUT_DMABUF)
+  dmabuf = dmabuf || m_dmabufMode;
+#endif
+#if defined(SCORE_PIPEWIRE_OUT_DMABUF_EGL)
+  dmabuf = dmabuf || m_dmabufEglMode;
+#endif
+  r->setReadbackEnabled(!dmabuf);
   return r;
 }
 
