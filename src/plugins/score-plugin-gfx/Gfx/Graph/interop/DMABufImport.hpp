@@ -118,6 +118,17 @@ struct DMABufPlaneImporter
 #endif
   }
 
+  /** Block until the device is idle.
+   *
+   *  The RHI's deferred-release list does not know about images it did not
+   *  create, so a caller releasing imports has to wait for the frames that
+   *  sampled them itself. Only used at teardown. */
+  void waitIdle() noexcept
+  {
+    if(m_dfuncs && m_dev != VK_NULL_HANDLE)
+      m_dfuncs->vkDeviceWaitIdle(m_dev);
+  }
+
   void cleanupPlane(PlaneImport& p)
   {
     if(p.image != VK_NULL_HANDLE)
