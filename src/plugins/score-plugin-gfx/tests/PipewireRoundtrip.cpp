@@ -19,7 +19,11 @@
 #include <Gfx/Graph/OutputNode.hpp>
 #include <Gfx/Graph/interop/DrmFourcc.hpp>
 #include <Gfx/Graph/RenderState.hpp>
+#include <Gfx/Graph/NodeRenderer.hpp>
+#include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/TexgenNode.hpp>
+#include <Gfx/Graph/VideoNode.hpp>
+#include <Gfx/InvertYRenderer.hpp>
 #include <Gfx/Pipewire/PipewireInputDevice.hpp>
 #include <Gfx/Pipewire/PipewireOutputDevice.hpp>
 
@@ -917,7 +921,353 @@ Result finish(
 }
 
 // ---------------------------------------------------------------------------
-// Cell A: score -> score round-trip.
+// An offscreen sink: renders a graph into a texture and reads it back on
+// demand. Reading back every frame would measure the readback instead.
+// ---------------------------------------------------------------------------
+class OffscreenSink final : public score::gfx::OutputNode
+{
+public:
+  explicit OffscreenSink(QSize sz)
+      : m_size{sz}
+  {
+    input.push_back(new score::gfx::Port{this, {}, score::gfx::Types::Image, {}});
+  }
+  ~OffscreenSink() override { }
+
+  bool canRender() const override { return bool(m_renderState); }
+  void startRendering() override { }
+  void stopRendering() override { }
+  void onRendererChange() override { }
+  void setRenderer(std::shared_ptr<score::gfx::RenderList> r) override
+  {
+    m_renderer = r;
+  }
+  score::gfx::RenderList* renderer() const override { return m_renderer.lock().get(); }
+  std::shared_ptr<score::gfx::RenderState> renderState() const override
+  {
+    return m_renderState;
+  }
+  Configuration configuration() const noexcept override
+  {
+    return {.manualRenderingRate = 1000. / 60.};
+  }
+
+  void createOutput(score::gfx::OutputConfiguration conf) override
+  {
+    m_renderState = score::gfx::createRenderState(conf.graphicsApi, m_size, nullptr);
+    if(!m_renderState || !m_renderState->rhi)
+    {
+      m_renderState.reset();
+      return;
+    }
+    m_renderState->outputSize = m_renderState->renderSize;
+    auto rhi = m_renderState->rhi;
+    m_renderState->renderFormat = QRhiTexture::RGBA8;
+    m_texture = rhi->newTexture(
+        QRhiTexture::RGBA8, m_renderState->renderSize, 1,
+        QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource);
+    if(!m_texture->create())
+    {
+      m_renderState.reset();
+      return;
+    }
+    m_renderTarget = rhi->newTextureRenderTarget({m_texture});
+    m_renderState->renderPassDescriptor
+        = m_renderTarget->newCompatibleRenderPassDescriptor();
+    m_renderTarget->setRenderPassDescriptor(m_renderState->renderPassDescriptor);
+    m_renderTarget->create();
+    if(conf.onReady)
+      conf.onReady();
+  }
+
+  void destroyOutput() override
+  {
+    if(!m_renderState)
+      return;
+    delete m_renderTarget;
+    m_renderTarget = nullptr;
+    delete m_renderState->renderPassDescriptor;
+    m_renderState->renderPassDescriptor = nullptr;
+    delete m_texture;
+    m_texture = nullptr;
+    m_renderState->destroy();
+    m_renderState.reset();
+  }
+
+  score::gfx::OutputNodeRenderer*
+  createRenderer(score::gfx::RenderList&) const noexcept override
+  {
+    return new Gfx::BasicRenderer{
+        score::gfx::TextureRenderTarget{
+            .texture = m_texture,
+            .renderPass = m_renderState->renderPassDescriptor,
+            .renderTarget = m_renderTarget},
+        *m_renderState, *this};
+  }
+
+  void render() override
+  {
+    auto renderer = m_renderer.lock();
+    if(!renderer || !m_renderState)
+      return;
+    auto rhi = m_renderState->rhi;
+    QRhiCommandBuffer* cb{};
+    if(rhi->beginOffscreenFrame(&cb) != QRhi::FrameOpSuccess)
+      return;
+    renderer->render(*cb);
+    // endOffscreenFrame waits for the GPU, so the caller's clock around
+    // render() measures the frame and not the recording of it.
+    rhi->endOffscreenFrame();
+  }
+
+  //! OpenGL puts the framebuffer origin at the bottom left, Vulkan at the
+  //! top: a readback from the former arrives bottom-up and needs flipping.
+  bool yUpInFramebuffer() const
+  {
+    return m_renderState && m_renderState->rhi
+           && m_renderState->rhi->isYUpInFramebuffer();
+  }
+
+  //! One frame, read back. Separate from render() so a caller pays for the
+  //! readback only when it wants pixels.
+  QByteArray grab()
+  {
+    auto renderer = m_renderer.lock();
+    if(!renderer || !m_renderState)
+      return {};
+    auto rhi = m_renderState->rhi;
+    QRhiCommandBuffer* cb{};
+    if(rhi->beginOffscreenFrame(&cb) != QRhi::FrameOpSuccess)
+      return {};
+    renderer->render(*cb);
+
+    QRhiReadbackResult rb;
+    auto* batch = rhi->nextResourceUpdateBatch();
+    batch->readBackTexture(QRhiReadbackDescription{m_texture}, &rb);
+    cb->resourceUpdate(batch);
+    rhi->endOffscreenFrame();
+    return rb.data;
+  }
+
+private:
+  QSize m_size;
+  std::weak_ptr<score::gfx::RenderList> m_renderer{};
+  QRhiTexture* m_texture{};
+  QRhiTextureRenderTarget* m_renderTarget{};
+  std::shared_ptr<score::gfx::RenderState> m_renderState{};
+};
+
+// ---------------------------------------------------------------------------
+// Cell A': score -> score, consumed on the GPU.
+//
+// Cell A below converts every frame on the CPU, which for a DMA-BUF frame
+// means reading the shared buffer with the CPU. score exports it device-local,
+// so that read is slow enough to dominate the frame -- all of it in the
+// memcpy, mmap and munmap being negligible. Cell A's dmabuf fps and latency
+// are therefore its own readback, and DRMPrimeDecoder, the consumer score
+// actually uses, never runs there at all.
+//
+// This cell is that consumer: same producer, feeding a CameraNode rendered
+// into an offscreen target, timed per frame. Pixels are checked once at the
+// end through a single GPU readback.
+// ---------------------------------------------------------------------------
+Result runScoreToScoreGpu(
+    score::gfx::GraphicsApi api, const char* apiName, const std::string& fmt,
+    bool dmabuf, int w, int h, double fps, double seconds)
+{
+  const std::string cell = std::string("s2sgpu-") + apiName + "-" + fmt;
+  const std::string transport = dmabuf ? "dmabuf" : "shm";
+
+  Result r;
+  r.cell = cell;
+  r.transport = transport;
+
+  Gfx::SharedOutputSettings s;
+  const QString nodeName
+      = QString("score-rtgpu-%1-%2").arg(apiName).arg(fmt.c_str());
+  s.path = nodeName + "?format=" + QString::fromStdString(fmt)
+           + (dmabuf ? "&dmabuf=on" : "");
+  s.width = w;
+  s.height = h;
+  s.rate = fps;
+
+  auto* src = new score::gfx::TexgenNode;
+  src->function = &g_paint;
+  score::gfx::OutputNode* out = Gfx::PipeWire::makePipewireOutput(s);
+
+  auto prodGraph = std::make_unique<score::gfx::Graph>();
+  prodGraph->addNode(src);
+  prodGraph->addNode(out);
+  prodGraph->addEdge(
+      src->output[0], out->input[0], Process::CableType::ImmediateGlutton);
+  prodGraph->createAllRenderLists(api);
+
+  if(!out->canRender())
+  {
+    r.status = "SKIP(out-init)";
+    prodGraph.reset();
+    delete out;
+    delete src;
+    return r;
+  }
+
+  const QString url = QString("pipewire://%1?width=%2&height=%3&fps=%4&format=%5")
+                          .arg(nodeName)
+                          .arg(w)
+                          .arg(h)
+                          .arg(fps)
+                          .arg(QString::fromStdString(fmt));
+  auto input = Gfx::PipeWire::makePipewireCapture(url);
+  if(!input)
+  {
+    r.status = "SKIP(in-open)";
+    prodGraph.reset();
+    delete out;
+    delete src;
+    return r;
+  }
+
+  // CameraNode pulls from the input and picks the decoder the frame's format
+  // calls for -- DRMPrimeDecoder for the DMA-BUF frames this cell is about.
+  auto* cam = new score::gfx::CameraNode{input};
+  auto* sink = new OffscreenSink{QSize{w, h}};
+  auto consGraph = std::make_unique<score::gfx::Graph>();
+  consGraph->addNode(cam);
+  consGraph->addNode(sink);
+  consGraph->addEdge(
+      cam->output[0], sink->input[0], Process::CableType::ImmediateGlutton);
+  consGraph->createAllRenderLists(api);
+
+  if(!sink->canRender())
+  {
+    r.status = "SKIP(in-init)";
+    consGraph.reset();
+    delete sink;
+    prodGraph.reset();
+    delete out;
+    delete src;
+    return r;
+  }
+
+  input->start();
+
+  Linker lk;
+  lk.start(nodeName, "PipewireRoundtrip");
+
+  // Both ends on one timer, serially: that is how a score document with an
+  // input and an output runs them.
+  int consFrames = 0;
+  int64_t consNs = 0;
+  bool warm = true;
+  QElapsedTimer warmup, countedFrom;
+  warmup.start();
+
+  QTimer render;
+  render.setTimerType(Qt::PreciseTimer);
+  QObject::connect(&render, &QTimer::timeout, [&] {
+    out->render();
+    // The first second is the link coming up and the decoder rebuilding on
+    // the first DMA-BUF frame.
+    if(warm && warmup.elapsed() > 1000)
+    {
+      warm = false;
+      countedFrom.start();
+    }
+    const int64_t t0 = nowNs();
+    // What the execution engine does for a camera node every tick: pull what
+    // the device decoded and hand it to the renderer. Without this the node
+    // has no current frame and the graph renders black, very fast.
+    cam->process(score::gfx::Message{});
+    sink->render();
+    if(!warm)
+    {
+      consNs += nowNs() - t0;
+      ++consFrames;
+    }
+  });
+  render.start(int(1000.0 / fps));
+  runSeconds(seconds);
+  render.stop();
+  lk.stop();
+
+  const std::string wire
+      = Gfx::PipeWire::pipewireInputNegotiatedTransport(*input).toStdString();
+  const int queued = Gfx::PipeWire::pipewireOutputFramesQueued(*out);
+
+  // Pixels, once: a consumer that negotiated the transport and drew nothing
+  // would otherwise report an excellent number.
+  std::vector<uint8_t> rgba;
+  const QByteArray px = sink->grab();
+  double psnr = 0;
+  int idx = -1;
+  if(px.size() >= qsizetype(w) * h * 4)
+  {
+    const auto* src = reinterpret_cast<const uint8_t*>(px.constData());
+    rgba.resize(size_t(w) * h * 4);
+    const size_t rowBytes = size_t(w) * 4;
+    if(sink->yUpInFramebuffer())
+      for(int y = 0; y < h; ++y)
+        std::memcpy(
+            rgba.data() + size_t(y) * rowBytes,
+            src + size_t(h - 1 - y) * rowBytes, rowBytes);
+    else
+      std::memcpy(rgba.data(), src, rgba.size());
+    idx = idxFromRgba(rgba.data(), w, h);
+    if(!qgetenv("SCORE_PWRT_DUMP").isEmpty())
+      QImage(rgba.data(), w, h, QImage::Format_RGBA8888)
+          .save(QString::fromUtf8(qgetenv("SCORE_PWRT_DUMP")) + "-"
+                + QString::fromStdString(cell) + "-"
+                + QString::fromStdString(transport) + ".png");
+    if(idx >= 0)
+    {
+      std::vector<uint8_t> ref(size_t(w) * h * 4);
+      paint(ref.data(), w, h, idx);
+      psnr = psnrGradient(rgba.data(), ref.data(), w, h);
+    }
+  }
+
+  consGraph.reset();
+  input->stop();
+  delete sink;
+  prodGraph.reset();
+  delete out;
+  delete src;
+
+  r.wire = wire;
+  r.sent = queued;
+  r.recv = consFrames;
+  // Over the counted window: the warm-up second is not in consFrames, and
+  // dividing by the whole run would under-report by a third.
+  const double countedSec = countedFrom.isValid()
+                                ? double(countedFrom.elapsed()) / 1000.0
+                                : 0.0;
+  r.fps = countedSec > 0 ? consFrames / countedSec : 0;
+  r.drmPrime = (wire == "dmabuf");
+  r.minPsnr = psnr;
+  // Not a latency: the mean cost of one consumer frame, which is what this
+  // cell exists to report.
+  r.meanLatMs = consFrames ? double(consNs) / 1e6 / consFrames : 0;
+
+  if(consFrames == 0)
+    r.status = lk.linked.load() ? "FAIL(no-frames)" : "SKIP(no-link)";
+  else if(idx < 0)
+    r.status = "FAIL(no-index)";
+  else if(psnr < 24.0)
+    r.status = "FAIL(psnr)";
+  else if(dmabuf && wire != "dmabuf")
+    r.status = "PASS(fallback)";
+  else
+    r.status = "PASS";
+  return r;
+}
+
+// ---------------------------------------------------------------------------
+// Cell A: score -> score round-trip, verified on the CPU.
+//
+// The pixel-correctness cell: swscale converts every frame, which is what lets
+// it check every format score can emit. Read its dmabuf rows for `status` and
+// `minPSNR` only -- their fps and latency are the harness reading a
+// device-local buffer with the CPU, not score. s2sgpu above measures that.
 // ---------------------------------------------------------------------------
 Result runScoreToScore(
     score::gfx::GraphicsApi api, const char* apiName, const std::string& fmt,
@@ -1359,6 +1709,18 @@ void printMatrix(const std::vector<Result>& rows)
         r.wire.empty() ? "-" : r.wire.c_str(), r.sent, r.recv, r.fps, r.gaps,
         r.repeats, r.badConvert, r.meanLatMs, r.minPsnr,
         r.drmPrime ? "yes" : "no", r.status.c_str());
+
+  // The s2sgpu rows use two of these columns for something else.
+  bool anyGpu = false;
+  for(const auto& r : rows)
+    if(r.cell.rfind("s2sgpu-", 0) == 0)
+      anyGpu = true;
+  if(anyGpu)
+    std::printf(
+        "\ns2sgpu rows: lat(ms) is the mean cost of one consumer frame, not a "
+        "latency, and\nrecv counts consumer frames after a one-second warm-up. "
+        "The other rows verify on\nthe CPU, so their dmabuf timings are the "
+        "harness reading device-local memory.\n");
 }
 
 } // namespace
@@ -1463,6 +1825,26 @@ int main(int argc, char** argv)
             std::fflush(stdout);
             rows.push_back(
                 runScoreToScore(a.api, a.name, f, true, W, H, FPS, seconds));
+          }
+        }
+
+        // --- A': score -> score, consumed on the GPU ---
+        for(const auto& a : apis)
+        {
+          for(const std::string f : {"rgba", "bgra"})
+          {
+            const std::string cell = std::string("s2sgpu-") + a.name + "-" + f;
+            for(const bool dma : {false, true})
+            {
+              if(!want(cell + (dma ? "-dmabuf" : "-shm")))
+                continue;
+              std::printf(
+                  "[ %-26s %s ] running...\n", cell.c_str(),
+                  dma ? "dmabuf" : "shm");
+              std::fflush(stdout);
+              rows.push_back(
+                  runScoreToScoreGpu(a.api, a.name, f, dma, W, H, FPS, seconds));
+            }
           }
         }
 
