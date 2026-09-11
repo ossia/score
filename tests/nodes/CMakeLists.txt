@@ -16,3 +16,11 @@ score_add_test(test_nodes_devices
   SOURCES Devices.cpp
   APP
   PLUGINS score_lib_device)
+
+score_add_test(test_nodes_veltonote
+  SOURCES VelToNoteTest.cpp VelToNoteBindingTest.cpp
+  PLUGINS score_plugin_fx)
+
+score_add_test(test_nodes_ossia_midi
+  SOURCES "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/tests/test_ossia_midi.cpp"
+  PLUGINS score_plugin_fx)

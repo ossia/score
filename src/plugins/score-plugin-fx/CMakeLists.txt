@@ -40,6 +40,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Quantifier.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/RateLimiter.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/VelToNote.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/VelToNoteCore.hpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_fx.hpp"
  )
