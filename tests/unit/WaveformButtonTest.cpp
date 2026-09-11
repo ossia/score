@@ -15,6 +15,7 @@
 
 #include <QApplication>
 #include <QElapsedTimer>
+#include <QFileInfo>
 #include <QGraphicsScene>
 #include <QTemporaryDir>
 
@@ -53,7 +54,7 @@ TEST_CASE("a soundfile control shows the waveform of an already-decoded file")
     scene.addItem(&bt);
 
     CHECK_FALSE(bt.hasWaveform());
-    bt.setFile(wav);
+    bt.setFile(wav, wav);
     CHECK(bt.text() == wav);
 
     // The computation itself is threaded; what matters is that it was asked
@@ -78,10 +79,41 @@ TEST_CASE("a soundfile control forgets the waveform when the file is cleared")
     score::QGraphicsWaveformButton bt{nullptr};
     scene.addItem(&bt);
 
-    bt.setFile(wav);
+    bt.setFile(wav, wav);
     REQUIRE(spin_until([&] { return bt.hasWaveform(); }));
 
-    bt.setFile({});
+    bt.setFile({}, {});
     CHECK_FALSE(bt.hasWaveform());
+  });
+}
+
+
+// What the document stores is not always what can be opened. A sound picked
+// from next to the .score file is saved as "<PROJECT>:name.wav", and the audio
+// file manager's two-argument get() opens the path it is handed -- so the
+// widget has to be given the resolved one as well as the stored one. Handing
+// it only the stored form left audiofx.score's Granola with no waveform and no
+// error anywhere.
+TEST_CASE("the waveform button decodes the resolved path, not the stored one")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const QString wav = dir.path() + "/tone.wav";
+    score::test::write_wav(wav, 1.0);
+
+    QGraphicsScene scene;
+    score::QGraphicsWaveformButton bt{nullptr};
+    scene.addItem(&bt);
+
+    // The stored form, of the shape a document holds, with the resolved path
+    // beside it.
+    const QString stored = QStringLiteral("<PROJECT>:") + QFileInfo{wav}.fileName();
+    bt.setFile(stored, wav);
+
+    // The label keeps what the document said...
+    CHECK(bt.text() == stored);
+    // ... and the decode used the path that exists.
+    REQUIRE(spin_until([&] { return bt.hasWaveform(); }));
   });
 }

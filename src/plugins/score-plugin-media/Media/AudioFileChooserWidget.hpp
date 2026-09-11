@@ -5,6 +5,8 @@
 
 #include <Media/MediaFileHandle.hpp>
 
+#include <score/tools/ProjectFiles.hpp>
+
 #include <nano_observer.hpp>
 #include <score_plugin_media_export.h>
 namespace Media::Sound
@@ -35,7 +37,11 @@ public:
   //! Whether there is a waveform to draw, as opposed to the "drop a file here"
   //! placeholder.
   bool hasWaveform() const noexcept { return !m_images.empty(); }
-  void setFile(const QString& s);
+  //! \p s is what the document stores and what text() returns -- it may be a
+  //! "<PROJECT>:" or document-relative path. \p absolute is the same file
+  //! resolved against the document, which is the only form the audio file
+  //! manager can open: its two-argument get() takes the path as it stands.
+  void setFile(const QString& s, const QString& absolute);
   QRectF boundingRect() const override;
 
 private:
@@ -93,14 +99,14 @@ struct AudioFileChooser : WidgetFactory::FileChooser
     };
     QObject::connect(bt, &score::QGraphicsWaveformButton::pressed, &inlet, on_open);
     QObject::connect(bt, &score::QGraphicsWaveformButton::dropped, &inlet, on_set);
-    auto set = [=](const ossia::value& val) {
+    auto set = [bt, &ctx](const ossia::value& val) {
       auto str = QString::fromStdString(ossia::convert<std::string>(val));
       if(str != bt->text())
       {
         if(!str.isEmpty())
-          bt->setFile(str);
+          bt->setFile(str, score::locateFilePath(str, ctx));
         else
-          bt->setFile({});
+          bt->setFile({}, {});
       }
     };
 
