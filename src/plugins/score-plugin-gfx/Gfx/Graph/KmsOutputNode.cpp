@@ -465,6 +465,19 @@ void KmsOutputNode::destroyOutput()
   }
   d->kms.close();
   d->currentTarget = {};
+
+  // d->state owns the QRhi built at line ~332, so resetting it destroys the
+  // device. OutputNode's contract: concrete outputs MUST releaseRegistry()
+  // before that happens, or the registry's QRhiBuffer / texture / sampler
+  // wrappers are freed against a device that no longer exists. RenderList::init
+  // acquires a registry for every output node whether it asks or not, so this
+  // applies even though nothing here calls acquireRegistry().
+  //
+  // Latent today only because this builds QRhi::OpenGLES2 and OpenGL has no
+  // VMA, so the allocator never asserts -- the use-after-free is there either
+  // way. ~KmsOutputNode() calls destroyOutput(), so both paths are covered.
+  releaseRegistry();
+
   d->state.reset();
   d->rhi = nullptr;
 }

@@ -36,6 +36,8 @@
 
 #include <wobjectimpl.h>
 
+#include <mutex>
+
 namespace Gfx::GStreamer
 {
 
@@ -73,8 +75,31 @@ static QString colorShaderFromColorimetry(
     return score::gfx::colorMatrixOut(
         AVCOL_SPC_SMPTE240M, AVCOL_TRC_SMPTE240M, AVCOL_RANGE_MPEG, AVCOL_PRI_SMPTE240M, input_trc);
 
-  // GStreamer also supports "range/matrix/transfer/primaries" format.
-  // Fall back to default for unsupported strings.
+  // bt2020-10 is in GStreamer's predefined list (GST_VIDEO_COLORIMETRY_BT2020_10,
+  // gst/video/video-color.h) and was the one name missing here. Same primaries
+  // and matrix as bt2020; the 10-bit transfer is BT.2020-10.
+  if(colorimetry == "bt2020-10")
+    return score::gfx::colorMatrixOut(
+        AVCOL_SPC_BT2020_NCL, AVCOL_TRC_BT2020_10, AVCOL_RANGE_MPEG, AVCOL_PRI_BT2020,
+        input_trc);
+
+  // Anything else is GStreamer's general "range:matrix:transfer:primaries" form,
+  // which this does not parse. Falling through silently would emit BT.709 FULL
+  // range for a caps string that may well have said limited, so say so once
+  // rather than quietly producing the wrong picture.
+  //
+  // The right fix is to call GStreamer's own parser rather than reimplement its
+  // token grammar: libgstvideo-1.0 is already dlopen'd by the loader (see
+  // GStreamerLoader's gstvideo section), so binding gst_video_colorimetry_from_string
+  // and mapping GstVideoColorimetry -> AVCol* is a small, exact change. It wants a
+  // pipeline emitting that form to test against, which is why it is not done here.
+  static std::once_flag warned;
+  std::call_once(warned, [&] {
+    qWarning() << "GStreamer output: unrecognised colorimetry" << colorimetry
+               << "-- falling back to BT.709 full range. The general "
+                  "range:matrix:transfer:primaries form is not parsed yet.";
+  });
+
   return score::gfx::colorMatrixOut(
       AVCOL_SPC_BT709, AVCOL_TRC_BT709, AVCOL_RANGE_JPEG, AVCOL_PRI_BT709, input_trc);
 }

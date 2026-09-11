@@ -658,6 +658,7 @@ endif()
 if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
   score_add_test(test_integration_frame_determinism
     SOURCES FrameDeterminismTest.cpp
+    GUI
     LIBS ${QT_PREFIX}::Gui)
   target_compile_definitions(test_integration_frame_determinism PRIVATE
     "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\""
@@ -676,6 +677,7 @@ endif()
 if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
   score_add_test(test_integration_gfx_nested_interval
     SOURCES GfxNestedIntervalTest.cpp
+    GUI
     LIBS ${QT_PREFIX}::Gui)
   target_compile_definitions(test_integration_gfx_nested_interval PRIVATE
     "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\""
@@ -692,6 +694,7 @@ if(TARGET score AND TARGET score_plugin_gfx AND TARGET score_plugin_threedim
    AND NOT EMSCRIPTEN)
   score_add_test(test_integration_gfx_light_live
     SOURCES GfxLightLiveTest.cpp
+    GUI
     LIBS ${QT_PREFIX}::Gui)
   target_compile_definitions(test_integration_gfx_light_live PRIVATE
     "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\"")
@@ -708,6 +711,7 @@ if(TARGET score AND TARGET score_plugin_gfx AND TARGET score_plugin_threedim
    AND NOT EMSCRIPTEN)
   score_add_test(test_integration_threedim_lit_scene
     SOURCES ThreedimLitSceneTest.cpp
+    GUI
     LIBS ${QT_PREFIX}::Gui)
   target_compile_definitions(test_integration_threedim_lit_scene PRIVATE
     "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\""
@@ -724,6 +728,7 @@ if(TARGET score AND TARGET score_plugin_gfx AND TARGET score_plugin_media
    AND NOT EMSCRIPTEN)
   score_add_test(test_integration_gfx_video_on_geometry
     SOURCES GfxVideoOnGeometryTest.cpp
+    GUI
     LIBS ${QT_PREFIX}::Gui)
   target_compile_definitions(test_integration_gfx_video_on_geometry PRIVATE
     "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\""

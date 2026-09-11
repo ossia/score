@@ -699,10 +699,14 @@ ScenarioDocumentView::ScenarioDocumentView(
   m_widget->setObjectName("ScenarioViewer");
 
   // Cursors
+  // focusedOut also fires while the view is being torn down at shutdown, by
+  // which point the GUI application plug-ins are gone. guiApplicationPlugin<T>()
+  // is abort-on-missing (ApplicationComponents.hpp: SCORE_ABORT), so the
+  // unguarded lookup made every --script exit a SIGABRT. Use the non-aborting
+  // form: with no plug-in there is no edition state left to reset.
   con(this->view(), &ProcessGraphicsView::focusedOut, this, [&] {
-    auto& es
-        = ctx.app.guiApplicationPlugin<ScenarioApplicationPlugin>().editionSettings();
-    es.setTool(Scenario::Tool::Select);
+    if(auto* plug = ctx.app.components.findGuiApplicationPlugin<ScenarioApplicationPlugin>())
+      plug->editionSettings().setTool(Scenario::Tool::Select);
   });
 
   updateBackgroundMode();

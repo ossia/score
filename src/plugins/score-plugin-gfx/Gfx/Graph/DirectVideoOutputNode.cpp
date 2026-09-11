@@ -198,13 +198,18 @@ void DirectVideoOutputNode::createOutput(OutputConfiguration conf)
   auto candidates = m_backend->gpuDirectCandidates(m_rhi, conf.graphicsApi);
   if(!candidates.empty())
   {
+    // The same colour decision the host-staged encoders get below. Without it
+    // a GPU-direct strategy has to invent one, and the two paths of one device
+    // disagree: AJA honoured HDR10 host-staged and emitted SDR BT.709 over
+    // RDMA, while the card signalled HDR10 downstream either way.
     interop::VideoOutputStrategyConfig rcfg{
         .rhi = m_rhi,
         .state = m_renderState.get(),
         .sourceTexture = m_texture,
         .width = m_backend->width(),
         .height = m_backend->height(),
-        .frameByteSize = m_backend->frameByteSize()};
+        .frameByteSize = m_backend->frameByteSize(),
+        .colorConversion = m_backend->colorConversion()};
     m_rdma = interop::selectVideoOutputStrategy(
         rcfg, std::move(candidates),
         [](const char* n) {

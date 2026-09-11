@@ -459,7 +459,7 @@ TEST_CASE("UYVYEncoder packs U,Y0,V,Y1", "[gfx][encoders][gpu]")
   auto px = columns(W, H, BLACK, WHITE);
 
   UYVYEncoder enc;
-  enc.init(rhi, *ctx.state, input, W, H);
+  enc.init(rhi, *ctx.state, input, W, H, score::gfx::colorMatrixOut());
   CHECK(enc.planeCount() == 1);
   CHECK(enc.outputTexture() != nullptr);
   runFragment(rhi, enc, input, px);
@@ -496,7 +496,7 @@ TEST_CASE("YUY2Encoder packs Y0,U,Y1,V", "[gfx][encoders][gpu]")
   auto px = columns(W, H, BLACK, WHITE);
 
   YUY2Encoder enc;
-  enc.init(rhi, *ctx.state, input, W, H);
+  enc.init(rhi, *ctx.state, input, W, H, score::gfx::colorMatrixOut());
   CHECK(enc.planeCount() == 1);
   runFragment(rhi, enc, input, px);
 
@@ -568,7 +568,7 @@ TEST_CASE("BGRAEncoder all four swizzles", "[gfx][encoders][gpu]")
   for(const auto& c : cases)
   {
     BGRAEncoder enc(c.s);
-    enc.init(rhi, *ctx.state, input, W, H);
+    enc.init(rhi, *ctx.state, input, W, H, score::gfx::colorMatrixOut());
     runFragment(rhi, enc, input, px);
     const auto& rb = enc.readback(0);
     REQUIRE(rb.data.size() == W * H * 4);
@@ -587,7 +587,7 @@ TEST_CASE("BGRAEncoder all four swizzles", "[gfx][encoders][gpu]")
   // setReadbackEnabled(false) / outputTexture() branch.
   {
     BGRAEncoder enc(BGRAEncoder::Swizzle::BGRA);
-    enc.init(rhi, *ctx.state, input, W, H);
+    enc.init(rhi, *ctx.state, input, W, H, score::gfx::colorMatrixOut());
     CHECK(enc.outputTexture() != nullptr);
     CHECK(enc.planeCount() == 1);
     enc.setReadbackEnabled(false);
@@ -610,7 +610,7 @@ TEST_CASE("BGRAEncoder vertical orientation (uploaded texture)", "[gfx][encoders
   auto px = rowPattern(W, {RED, BLUE});
 
   BGRAEncoder enc(BGRAEncoder::Swizzle::RGBA);
-  enc.init(rhi, *ctx.state, input, W, H);
+  enc.init(rhi, *ctx.state, input, W, H, score::gfx::colorMatrixOut());
   runFragment(rhi, enc, input, px);
   const auto& rb = enc.readback(0);
   REQUIRE(rb.data.size() == W * H * 4);
@@ -645,7 +645,7 @@ void checkPackedRGB(
   auto* input = makeInput(rhi, W, H);
   auto px = halves(W, H, RED, BLUE);
 
-  enc->init(rhi, *ctx.state, input, W, H);
+  enc->init(rhi, *ctx.state, input, W, H, score::gfx::colorMatrixOut());
   CHECK(enc->planeCount() == 1);
   runFragment(rhi, *enc, input, px);
 
@@ -682,7 +682,7 @@ void checkPackedRGBGroup9(
   auto* input = makeInput(rhi, W, H);
   auto px = halves(W, H, RED, BLUE);
 
-  enc->init(rhi, *ctx.state, input, W, H);
+  enc->init(rhi, *ctx.state, input, W, H, score::gfx::colorMatrixOut());
   runFragment(rhi, *enc, input, px);
 
   const auto& rb = enc->readback(0);
@@ -772,7 +772,7 @@ TEST_CASE("V210Encoder field placement (width % 6 == 0)", "[gfx][encoders][gpu]"
   auto px = solid(W, H, RED);
 
   V210Encoder enc;
-  enc.init(rhi, *ctx.state, input, W, H);
+  enc.init(rhi, *ctx.state, input, W, H, score::gfx::colorMatrixOut());
   CHECK(enc.planeCount() == 1);
   CHECK(enc.outputTexture() != nullptr);
   runFragment(rhi, enc, input, px);
@@ -825,7 +825,7 @@ TEST_CASE("V210Encoder width % 6 != 0 pads the wire row", "[gfx][encoders][gpu]"
   auto px = solid(W, H, RED);
 
   V210Encoder enc;
-  enc.init(rhi, *ctx.state, input, W, H);
+  enc.init(rhi, *ctx.state, input, W, H, score::gfx::colorMatrixOut());
   runFragment(rhi, enc, input, px);
 
   const auto& rb = enc.readback(0);
@@ -859,7 +859,7 @@ TEST_CASE("I420Encoder plane sizes and U/V placement", "[gfx][encoders][gpu]")
   auto px = solid(W, H, RED);
 
   I420Encoder enc;
-  enc.init(rhi, *ctx.state, input, W, H);
+  enc.init(rhi, *ctx.state, input, W, H, score::gfx::colorMatrixOut());
   CHECK(enc.planeCount() == 3);
   // Base-class defaults (multi-plane encoders have no single output texture,
   // setReadbackEnabled is a no-op).
@@ -898,7 +898,7 @@ TEST_CASE("NV12Encoder UV interleave order", "[gfx][encoders][gpu]")
   auto px = solid(W, H, RED);
 
   NV12Encoder enc;
-  enc.init(rhi, *ctx.state, input, W, H);
+  enc.init(rhi, *ctx.state, input, W, H, score::gfx::colorMatrixOut());
   CHECK(enc.planeCount() == 2);
   runFragment(rhi, enc, input, px);
 
@@ -935,7 +935,7 @@ TEST_CASE("P010Encoder 10-bit values sit in the high bits", "[gfx][encoders][gpu
   auto px = solid(W, H, RED);
 
   P010Encoder enc;
-  enc.init(rhi, *ctx.state, input, W, H);
+  enc.init(rhi, *ctx.state, input, W, H, score::gfx::colorMatrixOut());
   CHECK(enc.planeCount() == 2);
   runFragment(rhi, enc, input, px);
 
@@ -974,7 +974,7 @@ TEST_CASE("YUV422P10Encoder 10-bit values sit in the low bits", "[gfx][encoders]
   auto px = solid(W, H, RED);
 
   YUV422P10Encoder enc;
-  enc.init(rhi, *ctx.state, input, W, H);
+  enc.init(rhi, *ctx.state, input, W, H, score::gfx::colorMatrixOut());
   CHECK(enc.planeCount() == 3);
   runFragment(rhi, enc, input, px);
 
@@ -1020,7 +1020,7 @@ TEST_CASE("YUVPlanarEncoder 8-bit 4:2:2 and 4:2:0", "[gfx][encoders][gpu]")
 
   for(auto& c : cases)
   {
-    c.enc->init(rhi, *ctx.state, input, W, H);
+    c.enc->init(rhi, *ctx.state, input, W, H, score::gfx::colorMatrixOut());
     CHECK(c.enc->planeCount() == 3);
     runFragment(rhi, *c.enc, input, px);
     const auto& Y = c.enc->readback(0);
@@ -1051,7 +1051,7 @@ TEST_CASE("YUVPlanarEncoder 10-bit 4:2:0 (R16 planes)", "[gfx][encoders][gpu]")
   auto px = solid(W, H, RED);
 
   auto enc = YUVPlanarEncoder::p420_10();
-  enc->init(rhi, *ctx.state, input, W, H);
+  enc->init(rhi, *ctx.state, input, W, H, score::gfx::colorMatrixOut());
   runFragment(rhi, *enc, input, px);
 
   const auto& Y = enc->readback(0);
@@ -1179,9 +1179,9 @@ TEST_CASE("UYVYComputeEncoder packs Cb,Y0,Cr,Y1 words", "[gfx][encoders][gpu][co
 
   UYVYComputeEncoder enc;
   // init() failure branches: null buffer, odd width
-  CHECK_FALSE(enc.init(rhi, *ctx.state, input, W, H, nullptr));
-  CHECK_FALSE(enc.init(rhi, *ctx.state, input, 7, H, out));
-  REQUIRE(enc.init(rhi, *ctx.state, input, W, H, out));
+  CHECK_FALSE(enc.init(rhi, *ctx.state, input, W, H, nullptr, score::gfx::colorMatrixOut()));
+  CHECK_FALSE(enc.init(rhi, *ctx.state, input, 7, H, out, score::gfx::colorMatrixOut()));
+  REQUIRE(enc.init(rhi, *ctx.state, input, W, H, out, score::gfx::colorMatrixOut()));
   auto data = runCompute(rhi, enc, input, px, out, size);
   REQUIRE(data.size() == size);
   const auto* b = reinterpret_cast<const uint8_t*>(data.constData());
@@ -1215,9 +1215,9 @@ TEST_CASE("V210ComputeEncoder packs the wire row", "[gfx][encoders][gpu][compute
   // init() failure branches: null buffer, odd width (note: the compute
   // encoder itself only rejects odd widths; the %6 gate lives in
   // wireComputeSupports).
-  CHECK_FALSE(enc.init(rhi, *ctx.state, input, W, H, nullptr));
-  CHECK_FALSE(enc.init(rhi, *ctx.state, input, 11, H, out));
-  REQUIRE(enc.init(rhi, *ctx.state, input, W, H, out));
+  CHECK_FALSE(enc.init(rhi, *ctx.state, input, W, H, nullptr, score::gfx::colorMatrixOut()));
+  CHECK_FALSE(enc.init(rhi, *ctx.state, input, 11, H, out, score::gfx::colorMatrixOut()));
+  REQUIRE(enc.init(rhi, *ctx.state, input, W, H, out, score::gfx::colorMatrixOut()));
   auto data = runCompute(rhi, enc, input, px, out, size);
   REQUIRE(data.size() == size);
 

@@ -137,7 +137,7 @@ struct P010Encoder : GPUVideoEncoder
 
   void init(
       QRhi& rhi, const RenderState& state, QRhiTexture* inputRGBA, int width,
-      int height, const QString& colorConversion = colorMatrixOut()) override
+      int height, const QString& colorConversion) override
   {
     m_width = width;
     m_height = height;
@@ -335,7 +335,7 @@ struct P010Encoder : GPUVideoEncoder
 
   void init(
       QRhi& rhi, const RenderState& state, QRhiTexture* inputRGBA, int width,
-      int height, const QString& colorConversion = colorMatrixOut()) override
+      int height, const QString& colorConversion) override
   {
     m_width = width;
     m_height = height;

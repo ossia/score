@@ -118,7 +118,7 @@ struct V210ComputeEncoder final : ComputeEncoder
   bool init(
       QRhi& rhi, const RenderState& state, QRhiTexture* inputRGBA, int width,
       int height, QRhiBuffer* outputBuffer,
-      const QString& colorConversion = colorMatrixOut()) override
+      const QString& colorConversion) override
   {
     if(!outputBuffer || width % 2 != 0)
       return false;
