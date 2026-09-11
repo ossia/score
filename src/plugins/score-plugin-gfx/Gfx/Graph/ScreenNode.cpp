@@ -894,6 +894,10 @@ void ScreenNode::setFullScreen(bool b)
   {
     if(b)
     {
+      // Same as at show time: land on the screen's top-left pixel at its full
+      // size first, or the platform may keep the offset the window had.
+      if(auto* scr = m_screen ? m_screen : m_window->screen())
+        m_window->setGeometry(scr->geometry());
       m_window->showFullScreen();
     }
     else
@@ -1084,6 +1088,13 @@ void ScreenNode::createOutput(score::gfx::OutputConfiguration conf)
 
     if(m_fullScreen)
     {
+      // Put the window exactly on its screen before asking for full screen.
+      // Windows honours the window's existing geometry when it goes full
+      // screen, so a window that was anywhere else stays offset by that much
+      // and paints outside the display. The screen's own geometry is the
+      // answer: its top-left pixel in the virtual desktop, and its size.
+      if(auto* scr = m_screen ? m_screen : m_window->screen())
+        m_window->setGeometry(scr->geometry());
       m_window->showFullScreen();
     }
     else
