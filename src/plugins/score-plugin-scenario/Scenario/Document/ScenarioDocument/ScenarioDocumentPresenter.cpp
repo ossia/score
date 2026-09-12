@@ -163,12 +163,11 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
       &ScenarioDocumentPresenter::setFocusedPresenter, Qt::QueuedConnection);
 
   auto& set = ctx.app.settings<Settings::Model>();
-  con(set, &Settings::Model::GraphicZoomChanged, this, [&](double d) {
-    auto& skin = Process::Style::instance();
-    skin.setIntervalWidth(d);
-  });
   con(set, &Settings::Model::TimeBarChanged, this,
       &ScenarioDocumentPresenter::updateTimeBar);
+
+  con(set, &Settings::Model::GraphicZoomChanged, this,
+      [](double d) { Process::Style::instance().setIntervalWidth(d); });
 
   // Help for the FocusDispatcher.
   connect(

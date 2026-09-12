@@ -51,5 +51,23 @@
 "Port3" : [0, 147, 255],
 
 "Pulse1" : [34, 224, 0],
-"Pulse2" : [3, 150, 250]
+"Pulse2" : [3, 150, 250],
+
+"fonts" : {
+  "_comment" : "The default fonts. This is where every font size is set: there is no longer a global font-size setting, and Skin::setupFonts() in C++ only provides a fallback for skins that name nothing and for the moment before any skin has loaded. Sizes are in pixels throughout, on purpose: a point size goes through the screen DPI and lands wherever it lands, which is what made small text render unevenly. The values here are the pixel sizes Qt resolved the previous point sizes to at 96 DPI (10 pt -> 13 px for the application font, 12 pt -> 16 px, 9 pt -> 12 px, 13 pt -> 17 px), so the UI looks as it did. Weights are the Qt 6 scale: Normal 400, DemiBold 600, Black 900.",
+
+  "application" : { "family" : "Ubuntu", "pixelSize" : 13 },
+  "sans"        : { "family" : "Ubuntu", "pixelSize" : 16 },
+  "sansSmall"   : { "family" : "Ubuntu", "pixelSize" : 12 },
+  "mono"        : { "family" : "Courier Prime", "pixelSize" : 17, "weight" : 900, "fixedPitch" : true },
+  "monoSmall"   : { "family" : "Ubuntu", "pixelSize" : 12, "weight" : 400 },
+  "bold10"      : { "family" : "Ubuntu", "pixelSize" : 13, "bold" : true },
+  "bold12"      : { "family" : "Ubuntu", "pixelSize" : 16, "bold" : true },
+  "medium7"     : { "family" : "Ubuntu", "pixelSize" : 9 },
+  "medium8"     : { "family" : "Ubuntu", "pixelSize" : 10 },
+  "medium10"    : { "family" : "Ubuntu", "pixelSize" : 13 },
+  "medium12"    : { "family" : "Ubuntu", "pixelSize" : 16 },
+  "title"       : { "family" : "Ubuntu", "pixelSize" : 14, "bold" : true },
+  "slider"      : { "family" : "Ubuntu", "pixelSize" : 13, "weight" : 600 }
+}
 }

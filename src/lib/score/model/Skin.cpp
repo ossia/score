@@ -11,8 +11,27 @@
 
 #include <ossia/detail/flat_map.hpp>
 
+// Live scale-factor changes need QHighDpiScaling, which is Qt private API.
+// It has existed since Qt 5.6, but until 6.5 setGlobalFactor() only updated
+// an internal field: it gained the screen updateGeometry() call in 6.5 and
+// the QScreen change signals in 6.6. Below 6.6 the call is therefore a no-op
+// as far as the UI is concerned, so we do not pretend otherwise and the
+// setting keeps its "needs restart" behaviour. (Verified against qtbase tags:
+// 6.2/6.3/6.4 have neither, 6.5 has updateGeometry, 6.6 adds UpdateEmitter.)
+#if __has_include(<QtGui/private/qhighdpiscaling_p.h>) \
+    && QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+#include <QtGui/private/qhighdpiscaling_p.h>
+#define SCORE_HAS_LIVE_SCALE_FACTOR 1
+#else
+#define SCORE_HAS_LIVE_SCALE_FACTOR 0
+#endif
+
+#include <QApplication>
 #include <QBrush>
 #include <QColor>
+#include <QDirIterator>
+#include <QFontDatabase>
+#include <QFontMetrics>
 #include <QGuiApplication>
 #include <QJsonArray>
 #include <QJsonObject>
@@ -35,8 +54,19 @@ namespace score
 {
 int uiFontSize() noexcept
 {
-  const int v = QSettings{}.value(QStringLiteral("Skin/FontSize"), 12).toInt();
-  return (v >= 8 && v <= 32) ? v : 12;
+  // Font sizes live in the skin now, so there is no setting behind this any
+  // more. It is only the size the application font has between QApplication
+  // starting and the first skin loading, which is a few hundred milliseconds
+  // of splash screen. The skin's "application" role replaces it immediately
+  // afterwards.
+  //
+  // 13 px, not 12: before the font size became a setting the application font
+  // was QFont("Ubuntu", 10), and that constructor takes a *point* size, so at
+  // 96 DPI it rendered at 13 px. Making it configurable wrote setPixelSize(12)
+  // and silently shrank the whole UI by a pixel; this restores it.
+  if(qEnvironmentVariableIsSet("SCORE_SMOL_FONT"))
+    return 11;
+  return 13;
 }
 
 QFont::HintingPreference uiFontHinting() noexcept
@@ -53,11 +83,157 @@ QFont::HintingPreference uiFontHinting() noexcept
 
 QFont::StyleStrategy uiFontStyleStrategy() noexcept
 {
+  if(qEnvironmentVariableIsSet("SCORE_SMOL_FONT"))
+  {
+    return (QFont::StyleStrategy)(QFont::NoAntialias | QFont::PreferBitmap
+                                  | QFont::PreferNoShaping);
+  }
+  else
+  {
 #if defined(__APPLE__)
-  return QFont::NoSubpixelAntialias;
+    return QFont::NoSubpixelAntialias;
 #else
-  return QFont::PreferDefault;
+    return QFont::PreferDefault;
 #endif
+  }
+}
+
+int pixelFontGrid(const QString& family) noexcept
+{
+  // Measured from the font outlines: every coordinate in these is a multiple
+  // of unitsPerEm / grid. Kept next to the fonts they describe rather than in
+  // the settings UI, since the skin generators assert on the same numbers.
+  static const std::pair<QLatin1String, int> grids[]{
+      {QLatin1String("Galmuri7"), 8},
+      {QLatin1String("Galmuri9"), 10},
+      {QLatin1String("Galmuri11"), 12},
+      {QLatin1String("Galmuri14"), 15},
+      {QLatin1String("GalmuriMono7"), 8},
+      {QLatin1String("GalmuriMono9"), 10},
+      {QLatin1String("GalmuriMono11"), 12},
+      {QLatin1String("Departure Mono"), 11},
+      // The bitmap is exact by construction. CozetteVector is a traced copy
+      // whose 2048-unit em does not divide by 13, so its outlines cannot sit
+      // exactly on the grid and adjacent glyphs occasionally lose their 1 px
+      // gap; prefer "Cozette" and keep the vector for sizes above 13.
+      {QLatin1String("Cozette"), 13},
+      {QLatin1String("CozetteVector"), 13},
+      {QLatin1String("Ark Pixel 10px Prop latin"), 10},
+      {QLatin1String("Ark Pixel 12px Prop latin"), 12},
+      {QLatin1String("Ark Pixel 16px Prop latin"), 16},
+  };
+
+  for(auto& [name, grid] : grids)
+    if(family == name)
+      return grid;
+  return 0;
+}
+
+void registerApplicationFonts()
+{
+  // Idempotent: skins, the application and the tests all want the fonts
+  // present, and whichever runs first should be the one that pays for it.
+  // Keyed on the application instance rather than a plain flag, because the
+  // font database is per-QGuiApplication: a test that builds a second
+  // application gets an empty one, and a process-wide flag would leave it
+  // that way.
+  static QCoreApplication* registeredFor = nullptr;
+  if(!qApp || registeredFor == qApp)
+    return;
+  registeredFor = qApp;
+
+  QDirIterator it(":/fonts", QDirIterator::Subdirectories);
+  while(it.hasNext())
+  {
+    const auto font = it.next();
+    if(font.endsWith("ttf", Qt::CaseInsensitive)
+       || font.endsWith("otf", Qt::CaseInsensitive)
+       || font.endsWith("bdf", Qt::CaseInsensitive))
+    {
+      QFontDatabase::addApplicationFont(font);
+    }
+  }
+}
+
+QFont defaultApplicationFont() noexcept
+{
+  registerApplicationFonts();
+
+  QFont f{qEnvironmentVariableIsSet("SCORE_SMOL_FONT") ? "Departure Mono" : "Ubuntu"};
+  f.setPixelSize(uiFontSize());
+  f.setHintingPreference(uiFontHinting());
+  f.setStyleStrategy(uiFontStyleStrategy());
+  return f;
+}
+
+bool canSetGlobalScaleFactorLive() noexcept
+{
+#if SCORE_HAS_LIVE_SCALE_FACTOR && QT_CONFIG(highdpiscaling)
+  return true;
+#else
+  return false;
+#endif
+}
+
+bool setGlobalScaleFactor(double factor)
+{
+  if(!qGuiApp)
+    return false;
+
+  // Same bounds Application.cpp applies when it reads Skin/Zoom at startup.
+  if(!(factor >= 1.0 && factor <= 10.0))
+    return false;
+
+#if SCORE_HAS_LIVE_SCALE_FACTOR && QT_CONFIG(highdpiscaling)
+  QHighDpiScaling::setGlobalFactor(factor);
+
+  // setGlobalFactor updates the screens, but a window that already exists
+  // keeps the ratio it was created with, in both directions. Measured: after
+  // setGlobalFactor(2) the screen reports 2.0 while the open window still
+  // reports 1.0, and it only picks the new value up across a hide/show. This
+  // is what Qt's "should only be called when no windows exist" warning is
+  // about; cycling the top-level windows is what makes it actually apply.
+  const auto windows = QApplication::topLevelWidgets();
+  for(QWidget* w : windows)
+  {
+    if(w->isWindow() && w->isVisible())
+    {
+      w->hide();
+      w->show();
+    }
+  }
+
+  // Every glyph image and pixmap in the UI was rasterised at the previous
+  // ratio; score::newImage() bakes it in at creation. Bumping the Skin drops
+  // the caches that key on LoadIndex and, through changed(), the ones that
+  // clear on a skin change.
+  Skin& skin = Skin::instance();
+  skin.LoadIndex++;
+  skin.changed();
+  return true;
+#else
+  return false;
+#endif
+}
+
+void setupApplicationFont(const QFont& f)
+{
+  if(!qGuiApp)
+    return;
+
+  qGuiApp->setFont(f);
+
+  // The platform theme seeds per-class fonts which override the application
+  // font; macOS provides most of this list, so set them explicitly.
+  for(const char* widgetClass :
+      {"QMenu", "QMenuBar", "QMenuItem", "QMessageBox", "QLabel", "QTipLabel",
+       "QTitleBar", "QStatusBar", "QMdiSubWindowTitleBar", "QDockWidgetTitle",
+       "QPushButton", "QCheckBox", "QRadioButton", "QToolButton", "QAbstractItemView",
+       "QListView", "QHeaderView", "QListBox", "QComboMenuItem", "QComboLineEdit",
+       "QSmallFont", "QMiniFont"})
+  {
+    QApplication::setFont(f, widgetClass);
+  }
 }
 
 struct Skin::color_map
@@ -79,11 +255,7 @@ Skin::~Skin()
   delete m_colorMap;
 }
 Skin::Skin() noexcept
-    : SansFont{"Ubuntu"}
-    , MonoFont{"Courier Prime", int(10 * 96. / 72.), QFont::Black}
-    , MonoFontSmall{"Courier Prime", int(7 * 96. / 72.), QFont::Normal}
-    , SansFontSmall{"Ubuntu", int(7 * 96. / 72.)}
-    , TransparentPen{Qt::transparent}
+    : TransparentPen{Qt::transparent}
     , TransparentBrush{Qt::transparent}
     , NoPen{Qt::NoPen}
     , NoBrush{Qt::NoBrush}
@@ -111,16 +283,17 @@ Skin::Skin() noexcept
           SCORE_INSERT_COLOR_CUSTOM("#FFFFFF", "White"),
           SCORE_INSERT_COLOR_CUSTOM("#000000", "Black")}
 {
-  MonoFont.setFamilies({"Courier Prime"});
-  MonoFontSmall.setFamilies({"Ubuntu"});
-  MonoFont.setFixedPitch(true);
+  setupFonts();
 
-  for(QFont* font : {&SansFont, &SansFontSmall, &MonoFont, &MonoFontSmall})
-  {
-    font->setStyleStrategy(
-        QFont::StyleStrategy(QFont::ForceOutline | uiFontStyleStrategy()));
-    font->setHintingPreference(uiFontHinting());
-  }
+  // A skin may name a different application font; re-apply it when one loads.
+  // Owned here rather than by the application, because Skin::instance() needs
+  // the application context and the early font setup runs before that exists.
+  // changed() is only emitted on skin load and on a theme edit, never by the
+  // pulse timer, so this is not a per-frame cost.
+  connect(this, &Skin::changed, this, [this] {
+    if(qGuiApp && qGuiApp->font() != ApplicationFont)
+      score::setupApplicationFont(ApplicationFont);
+  });
 
   for(auto& c : m_defaultPalette)
   {
@@ -137,37 +310,11 @@ Skin::Skin() noexcept
 
   this->startTimer(32, Qt::CoarseTimer);
 
-  Bold10Pt = SansFont;
-  Bold10Pt.setPixelSize(10 * 96. / 72.);
-  Bold10Pt.setBold(true);
-
-  Bold12Pt = Bold10Pt;
-  Bold12Pt.setPixelSize(12 * 96. / 72.);
-
-  Medium7Pt = SansFont;
-  Medium7Pt.setPixelSize(7 * 96. / 72.);
-
-  Medium8Pt = SansFont;
-  Medium8Pt.setPixelSize(8 * 96. / 72.);
-
-  Medium10Pt = SansFont;
-  Medium10Pt.setPixelSize(10 * 96. / 72.);
-
-  Medium12Pt = SansFont;
-  Medium12Pt.setPixelSize(12 * 96. / 72.);
-
-  TitleFont = SansFont;
-  TitleFont.setPixelSize(14);
-  TitleFont.setBold(true);
-
   SliderBrush = QColor{"#161514"};
   SliderPen = QPen{QColor{"#62400a"}, 1};
   SliderInteriorBrush = QColor{"#62400a"};
   SliderLine = QPen{QColor{"#c58014"}, 1, Qt::SolidLine, Qt::FlatCap};
   SliderTextPen = QColor{"#d0d0d0"};
-  SliderFont = SansFont;
-  SliderFont.setPixelSize(10 * 96. / 72.);
-  SliderFont.setWeight(QFont::DemiBold);
 
   int hotspotX = 12;
   int hotspotY = 10;
@@ -201,6 +348,74 @@ Skin::Skin() noexcept
       = score::get_cursor(":/icons/cursor_play_from_here.png", hotspotX, hotspotY);
   CursorCreationMode
       = score::get_cursor(":/icons/cursor_creation_mode.png", hotspotY, hotspotX);
+}
+
+std::vector<std::pair<const char*, QFont*>> Skin::fonts() noexcept
+{
+  return {
+      {"application", &ApplicationFont},
+      {"sans", &SansFont},
+      {"sansSmall", &SansFontSmall},
+      {"mono", &MonoFont},
+      {"monoSmall", &MonoFontSmall},
+      {"bold10", &Bold10Pt},
+      {"bold12", &Bold12Pt},
+      {"medium7", &Medium7Pt},
+      {"medium8", &Medium8Pt},
+      {"medium10", &Medium10Pt},
+      {"medium12", &Medium12Pt},
+      {"title", &TitleFont},
+      {"slider", &SliderFont}};
+}
+
+void Skin::setupFonts()
+{
+  registerApplicationFonts();
+
+  SansFont = QFont{"Ubuntu"};
+  MonoFont = QFont{"Courier Prime", int(10 * 96. / 72.), QFont::Black};
+  MonoFontSmall = QFont{"Courier Prime", int(7 * 96. / 72.), QFont::Normal};
+  SansFontSmall = QFont{"Ubuntu", int(7 * 96. / 72.)};
+
+  MonoFont.setFamilies({"Courier Prime"});
+  MonoFontSmall.setFamilies({"Ubuntu"});
+  MonoFont.setFixedPitch(true);
+
+  for(QFont* font : {&SansFont, &SansFontSmall, &MonoFont, &MonoFontSmall})
+  {
+    font->setStyleStrategy(
+        QFont::StyleStrategy(QFont::ForceOutline | uiFontStyleStrategy()));
+    font->setHintingPreference(uiFontHinting());
+  }
+
+  Bold10Pt = SansFont;
+  Bold10Pt.setPixelSize(10 * 96. / 72.);
+  Bold10Pt.setBold(true);
+
+  Bold12Pt = Bold10Pt;
+  Bold12Pt.setPixelSize(12 * 96. / 72.);
+
+  Medium7Pt = SansFont;
+  Medium7Pt.setPixelSize(7 * 96. / 72.);
+
+  Medium8Pt = SansFont;
+  Medium8Pt.setPixelSize(8 * 96. / 72.);
+
+  Medium10Pt = SansFont;
+  Medium10Pt.setPixelSize(10 * 96. / 72.);
+
+  Medium12Pt = SansFont;
+  Medium12Pt.setPixelSize(12 * 96. / 72.);
+
+  TitleFont = SansFont;
+  TitleFont.setPixelSize(14);
+  TitleFont.setBold(true);
+
+  SliderFont = SansFont;
+  SliderFont.setPixelSize(10 * 96. / 72.);
+  SliderFont.setWeight(QFont::DemiBold);
+
+  ApplicationFont = defaultApplicationFont();
 
   std::initializer_list<QFont*> mono_fonts = {&MonoFont, &MonoFontSmall};
   std::initializer_list<QFont*> fonts = {
@@ -266,6 +481,10 @@ Skin& score::Skin::instance() noexcept
   } while(0)
 void Skin::load(const QJsonObject& obj)
 {
+  // Reset first, so a skin that names no fonts gets the built-in ones rather
+  // than whatever the previously loaded skin left behind.
+  setupFonts();
+
   auto fromColor = [&](const QString& key, Brush& col) {
     auto arr = obj[key].toArray();
     if(arr.size() == 3)
@@ -334,8 +553,168 @@ void Skin::load(const QJsonObject& obj)
     Transparent1.lighter180 = HalfLight.main;
   }
 
+  loadFonts(obj["fonts"].toObject());
+
   LoadIndex++;
   changed();
+}
+
+static QFont::HintingPreference hintingFromString(
+    const QString& v, QFont::HintingPreference fallback) noexcept
+{
+  if(v == "None")
+    return QFont::PreferNoHinting;
+  if(v == "Vertical")
+    return QFont::PreferVerticalHinting;
+  if(v == "Full")
+    return QFont::PreferFullHinting;
+  if(v == "Default")
+    return QFont::PreferDefaultHinting;
+  return fallback;
+}
+
+static QString hintingToString(QFont::HintingPreference h) noexcept
+{
+  switch(h)
+  {
+    case QFont::PreferNoHinting:
+      return QStringLiteral("None");
+    case QFont::PreferVerticalHinting:
+      return QStringLiteral("Vertical");
+    case QFont::PreferFullHinting:
+      return QStringLiteral("Full");
+    default:
+      return QStringLiteral("Default");
+  }
+}
+
+void Skin::reloadFonts(const QJsonObject& skin)
+{
+  setupFonts();
+  loadFonts(skin["fonts"].toObject());
+
+  // Same bump load() does: caches keyed on LoadIndex (Scenario::IntervalPixmaps)
+  // compare against it to decide whether to regenerate, so a font reload that
+  // left it alone would leave them stale.
+  LoadIndex++;
+  changed();
+}
+
+void Skin::loadFonts(const QJsonObject& spec_obj)
+{
+  if(spec_obj.isEmpty())
+    return;
+
+  // A "defaults" entry applies to every font the skin does not mention, so a
+  // skin can switch the whole UI to one family without repeating itself.
+  const QJsonObject defaults = spec_obj["defaults"].toObject();
+
+  auto apply = [](QFont& font, const QJsonObject& spec) {
+    if(spec.isEmpty())
+      return;
+
+    if(const auto fam = spec["families"].toArray(); !fam.isEmpty())
+    {
+      QStringList families;
+      for(const auto& f : fam)
+        families.push_back(f.toString());
+      font.setFamilies(families);
+    }
+    else if(const auto f = spec["family"].toString(); !f.isEmpty())
+    {
+      font.setFamilies({f});
+    }
+
+    // Pixel size, not point size: a pixel font is only sharp at a whole
+    // multiple of its design grid, and points go through DPI first.
+    if(const auto px = spec["pixelSize"].toInt(); px > 0)
+      font.setPixelSize(px);
+    else if(const auto pt = spec["pointSize"].toInt(); pt > 0)
+      font.setPointSize(pt);
+
+    if(const auto s = spec["styleName"].toString(); !s.isEmpty())
+      font.setStyleName(s);
+
+    if(spec.contains("bold"))
+      font.setBold(spec["bold"].toBool());
+    if(spec.contains("fixedPitch"))
+      font.setFixedPitch(spec["fixedPitch"].toBool());
+
+    // Absolute, in pixels, so it does not scale with the size the way
+    // percentage spacing does: these fonts are drawn on a fixed cell.
+    if(spec.contains("letterSpacing"))
+      font.setLetterSpacing(
+          QFont::AbsoluteSpacing, spec["letterSpacing"].toDouble());
+    if(spec.contains("italic"))
+      font.setItalic(spec["italic"].toBool());
+    if(const auto w = spec["weight"].toInt(); w > 0)
+      font.setWeight(QFont::Weight(w));
+
+    if(spec.contains("hinting"))
+      font.setHintingPreference(
+          hintingFromString(spec["hinting"].toString(), font.hintingPreference()));
+
+    // Antialiasing is a bit in the style strategy, so flip it rather than
+    // replacing the strategy and losing ForceOutline / NoFontMerging.
+    if(spec.contains("antialias"))
+    {
+      auto strategy = int(font.styleStrategy());
+      if(spec["antialias"].toBool())
+        strategy &= ~int(QFont::NoAntialias);
+      else
+        strategy |= int(QFont::NoAntialias);
+      font.setStyleStrategy(QFont::StyleStrategy(strategy));
+    }
+  };
+
+  for(auto& [key, font] : fonts())
+  {
+    apply(*font, defaults);
+    apply(*font, spec_obj[QLatin1String(key)].toObject());
+  }
+}
+
+QJsonObject Skin::saveFonts() const
+{
+  QJsonObject fonts;
+  for(auto& [key, font] : const_cast<Skin*>(this)->fonts())
+  {
+    QJsonObject spec;
+    spec["family"] = font->families().empty() ? font->family() : font->families().front();
+    // Only fonts that were given an explicit pixel size get one written back.
+    // Writing a computed height instead would pin a font that was deliberately
+    // left to the point size, and save/load would not be a no-op.
+    if(font->pixelSize() > 0)
+      spec["pixelSize"] = font->pixelSize();
+    else if(font->pointSize() > 0)
+      spec["pointSize"] = font->pointSize();
+    spec["bold"] = font->bold();
+    spec["italic"] = font->italic();
+    if(font->fixedPitch())
+      spec["fixedPitch"] = true;
+    if(font->letterSpacingType() == QFont::AbsoluteSpacing
+       && font->letterSpacing() != 0.)
+      spec["letterSpacing"] = font->letterSpacing();
+    spec["weight"] = int(font->weight());
+    spec["hinting"] = hintingToString(font->hintingPreference());
+    spec["antialias"] = !(int(font->styleStrategy()) & int(QFont::NoAntialias));
+    if(const auto s = font->styleName(); !s.isEmpty())
+      spec["styleName"] = s;
+    fonts[QLatin1String(key)] = spec;
+  }
+  return fonts;
+}
+
+QJsonObject Skin::toJson() const
+{
+  QJsonObject obj;
+  for(auto& col : getColors())
+  {
+    obj.insert(
+        col.second, QJsonArray{col.first.red(), col.first.green(), col.first.blue()});
+  }
+  obj["fonts"] = saveFonts();
+  return obj;
 }
 
 #define SCORE_MAKE_PAIR_COLOR(Col) \

@@ -67,9 +67,9 @@ QIcon ellipsisIcon(const QWidget& w, bool emphasized)
 QFont monospace()
 {
   // QFontDatabase::systemFont gives a different family and size on every OS.
-  QFont f = score::Skin::instance().MonoFont;
-  f.setPixelSize(score::uiFontSize());
-  return f;
+  // The size comes from the skin's mono role rather than being overridden
+  // here: font sizes are expressed in the skin now.
+  return score::Skin::instance().MonoFont;
 }
 
 QString toHex(const QByteArray& b)

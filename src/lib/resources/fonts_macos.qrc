@@ -36,6 +36,37 @@
 <file>fonts/progsole-10.bdf</file>
 <file>fonts/scientifica-11.bdf</file>
 
+<file>fonts/DepartureMono-Regular.otf</file>
+
+<!-- Pixel fonts. These are drawn on a pixel grid and only render
+     sharply at a pixel size that is a multiple of their grid, with
+     QFont::NoAntialias set. Off-grid sizes give uneven stem widths.
+       Galmuri7, GalmuriMono7                      8 px  (16, 24, ...)
+       Galmuri9, GalmuriMono9, ark-pixel-10px     10 px  (20, 30, ...)
+       Galmuri11, -Bold, -Condensed,
+         GalmuriMono11, ark-pixel-12px            12 px  (24, 36, ...)
+       CozetteVector                              13 px  (26, 39, ...)
+       Galmuri14                                  15 px  (30, 45, ...)
+       ark-pixel-16px                             16 px  (32, 48, ...)
+       DepartureMono                              11 px  (22, 33, ...)
+     Galmuri11-Bold and Galmuri11-Condensed share the "Galmuri11"
+     family; select them with QFont::setStyleName("Bold"/"Condensed").
+     Remember the device pixel ratio multiplies the size: a fractional
+     ratio such as 1.5 puts every one of these off the grid. -->
+<file>fonts/Galmuri7.ttf</file>
+<file>fonts/Galmuri9.ttf</file>
+<file>fonts/Galmuri11.ttf</file>
+<file>fonts/Galmuri11-Bold.ttf</file>
+<file>fonts/Galmuri11-Condensed.ttf</file>
+<file>fonts/Galmuri14.ttf</file>
+<file>fonts/GalmuriMono7.ttf</file>
+<file>fonts/GalmuriMono9.ttf</file>
+<file>fonts/GalmuriMono11.ttf</file>
+<file>fonts/ark-pixel-10px-proportional-latin.otf</file>
+<file>fonts/ark-pixel-12px-proportional-latin.otf</file>
+<file>fonts/ark-pixel-16px-proportional-latin.otf</file>
+<file>fonts/CozetteVector.otf</file>
+
 <file>fonts/Catamaran-VariableFont_100.ttf</file>
 <file>fonts/Catamaran-VariableFont_200.ttf</file>
 <file>fonts/Catamaran-VariableFont_300.ttf</file>

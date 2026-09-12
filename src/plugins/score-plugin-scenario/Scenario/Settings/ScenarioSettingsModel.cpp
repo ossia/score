@@ -28,6 +28,7 @@ namespace Settings
 namespace Parameters
 {
 SETTINGS_PARAMETER_IMPL(Skin){QStringLiteral("Skin/Skin"), "Default"};
+SETTINGS_PARAMETER_IMPL(GraphicZoom){QStringLiteral("Skin/Zoom"), 1};
 SETTINGS_PARAMETER_IMPL(DefaultEditor){QStringLiteral("Skin/DefaultEditor"), ""};
 SETTINGS_PARAMETER_IMPL(ScriptEditorPlacement){
     QString::fromUtf8(Process::UIPlacementSettings::scriptEditorKey),
@@ -41,10 +42,6 @@ SETTINGS_PARAMETER_IMPL(ScriptEditorPreview){
     QString::fromUtf8(Process::UIPlacementSettings::scriptEditorPreviewKey),
     Process::UIPlacementSettings::toString(
         Process::UIPlacementSettings::defaultScriptEditorPreview)};
-SETTINGS_PARAMETER_IMPL(GraphicZoom){QStringLiteral("Skin/Zoom"), 1};
-// Read directly from QSettings at startup, before this model exists.
-SETTINGS_PARAMETER_IMPL(FontSize){QStringLiteral("Skin/FontSize"), 12};
-SETTINGS_PARAMETER_IMPL(FontHinting){QStringLiteral("Skin/FontHinting"), QStringLiteral("Full")};
 SETTINGS_PARAMETER_IMPL(SlotHeight){QStringLiteral("Skin/slotHeight"), 200};
 SETTINGS_PARAMETER_IMPL(DefaultDuration){
     QStringLiteral("Skin/defaultDuration"), TimeVal::fromMsecs(15000)};
@@ -72,18 +69,24 @@ SETTINGS_PARAMETER_IMPL(ExecutionUpdate){
 static auto list()
 {
   return std::tie(
-      Skin, DefaultEditor, ScriptEditorPlacement, ProcessUIPlacement,
-      ScriptEditorPreview, GraphicZoom, FontSize, FontHinting, SlotHeight,
-      DefaultDuration, SnapshotOnCreate,
-      AutoSequence, TimeBar, MeasureBars, MagneticMeasures, UpdateRate,
-      ExecutionRefreshRate, ExecutionUpdate);
+      Skin, GraphicZoom, DefaultEditor, ScriptEditorPlacement, ProcessUIPlacement, ScriptEditorPreview,
+      SlotHeight, DefaultDuration, SnapshotOnCreate, AutoSequence, TimeBar,
+      MeasureBars, MagneticMeasures, UpdateRate, ExecutionRefreshRate,
+      ExecutionUpdate);
 }
 }
+
+struct Model::Impl
+{
+  //! The skin as loaded, so a font change can be re-applied over it.
+  QJsonObject skinJson;
+};
 
 Model::Model(
     const UuidKey<score::SettingsDelegateFactory>& k, QSettings& set,
     const score::ApplicationContext& ctx)
     : score::SettingsDelegateModel{k, nullptr}
+    , m_impl{new Impl}
 {
   score::setupDefaultSettings(set, Parameters::list(), *this);
 
@@ -123,6 +126,11 @@ QString Model::getSkin() const
   return m_Skin;
 }
 
+const QJsonObject& Model::currentSkinJson() const noexcept
+{
+  return m_impl->skinJson;
+}
+
 void Model::initSkin(const QString& skin)
 {
   m_Skin = skin;
@@ -144,8 +152,8 @@ void Model::initSkin(const QString& skin)
     }
     else
     {
-      auto obj = doc.object();
-      score::Skin::instance().load(obj);
+      m_impl->skinJson = doc.object();
+      score::Skin::instance().load(m_impl->skinJson);
     }
   }
   else
@@ -191,11 +199,9 @@ void Model::setDefaultDuration(TimeVal val)
   s.setValue(Parameters::DefaultDuration.key, QVariant::fromValue(m_DefaultDuration));
 }
 
-SCORE_SETTINGS_PARAMETER_CPP(double, Model, GraphicZoom)
-SCORE_SETTINGS_PARAMETER_CPP(int, Model, FontSize)
-SCORE_SETTINGS_PARAMETER_CPP(QString, Model, FontHinting)
 SCORE_SETTINGS_PARAMETER_CPP(qreal, Model, SlotHeight)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, SnapshotOnCreate)
+SCORE_SETTINGS_PARAMETER_CPP(double, Model, GraphicZoom)
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, DefaultEditor)
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, ScriptEditorPlacement)
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, ProcessUIPlacement)

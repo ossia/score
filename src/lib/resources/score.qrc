@@ -646,7 +646,34 @@
         <file>icons/scale_content_off@2x.png</file>
         <file>icons/scale_content_on.png</file>
         <file>icons/scale_content_on@2x.png</file>
+        <file>skin/ArkPixelSkin.json</file>
+        <file>skin/CatppuccinMochaSkin.json</file>
+        <file>skin/ColorBlindSkin.json</file>
+        <file>skin/CozetteSkin.json</file>
+        <file>skin/Default11pxSkin.json</file>
+        <file>skin/Default12pxSkin.json</file>
         <file>skin/DefaultSkin.json</file>
+        <file>skin/DepartureMonoSkin.json</file>
+        <file>skin/DeuteranopiaSkin.json</file>
+        <file>skin/DraculaSkin.json</file>
+        <file>skin/EverforestDarkSkin.json</file>
+        <file>skin/EvergardenWinterSkin.json</file>
+        <file>skin/Galmuri11FacesSkin.json</file>
+        <file>skin/GalmuriMicroSkin.json</file>
+        <file>skin/GalmuriMonoMicroSkin.json</file>
+        <file>skin/GalmuriMonoSkin.json</file>
+        <file>skin/GalmuriNanoSkin.json</file>
+        <file>skin/GalmuriSkin.json</file>
+        <file>skin/GalmuriTinySkin.json</file>
+        <file>skin/GruvboxDarkSkin.json</file>
+        <file>skin/KanagawaWaveSkin.json</file>
+        <file>skin/NordSkin.json</file>
+        <file>skin/ProtanopiaSkin.json</file>
+        <file>skin/RosePineSkin.json</file>
+        <file>skin/SmallScreenSkin.json</file>
+        <file>skin/SolarizedDarkSkin.json</file>
+        <file>skin/TokyoNightSkin.json</file>
+        <file>skin/TritanopiaSkin.json</file>
         <file>gfx/testcard-1.png</file>
         <file>gfx/testcard-3.png</file>
         <file>gfx/testcard-2.jpeg</file>
