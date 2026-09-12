@@ -12,6 +12,11 @@
 
 namespace Gfx
 {
+score::gfx::BackgroundNode* RhiPreviewWidget::liveNode() const noexcept
+{
+  return liveNodeImpl();
+}
+
 namespace
 {
 constexpr int kPreviewIntervalMs = 16;  // ~60 Hz
