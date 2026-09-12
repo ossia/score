@@ -63,6 +63,7 @@ TEST_CASE(
   const void* rlAfterAttach{};
   const void* rlAfterDetach{};
   bool previewHasRenderer{};
+  bool previewInOutputs{};
   int previewRendererCount{-1};
 
   score::test::run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
@@ -121,6 +122,13 @@ TEST_CASE(
       previewHasRenderer = n->renderer() != nullptr;
       if(auto* r = n->renderer())
         previewRendererCount = int(r->renderers.size());
+
+      // And the other half of "there will be a picture": the render clocks
+      // only drive what is in the graph's output list, so a preview missing
+      // from it is built, wired, and never rendered again.
+      for(auto* out : g.outputs())
+        if(out == static_cast<score::gfx::OutputNode*>(n))
+          previewInOutputs = true;
     }
 
     // ... and closes again.
@@ -154,4 +162,5 @@ TEST_CASE(
                           << previewRendererCount);
   CHECK(previewHasRenderer);
   CHECK(previewRendererCount > 0);
+  CHECK(previewInOutputs);
 }

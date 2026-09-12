@@ -1,4 +1,5 @@
 #pragma once
+#include <span>
 #include <Process/Dataflow/CableData.hpp>
 
 #include <Gfx/AssetTable.hpp>
@@ -87,6 +88,10 @@ public:
   // is drained — without this the graph is left with a dangling output pointer
   // and a RenderList referencing an already-freed QRhi.
   void destroyOutput(score::gfx::OutputNode* node);
+
+  //! The outputs the render clocks will drive. An output missing from here
+  //! is never rendered, whatever else was built for it.
+  std::span<score::gfx::OutputNode* const> outputs() const noexcept;
 
   void recompute_edges();
   void recompute_graph();

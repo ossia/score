@@ -221,6 +221,15 @@ void Graph::createSingleRenderList(
   }
 #endif
 
+  // Promote it into m_outputs before bringing it up. That vector is what
+  // outputs() returns, and GfxContext::recomputeTimers() walks it to decide
+  // what to put on a render clock. Only createAllRenderLists used to fill it,
+  // so an output brought up through this function was invisible to the clocks:
+  // it got a render list, a renderer and an edge, and then nothing ever called
+  // render() on it. That is the inspector's texture-port preview, black.
+  if(!ossia::contains(m_outputs, &output))
+    m_outputs.push_back(&output);
+
   initializeOutput(&output, graphicsApi);
   output.startRendering();
 }
@@ -1202,6 +1211,11 @@ void Graph::addNode(Node* n)
 void Graph::removeNode(Node* n)
 {
   ossia::remove_erase(m_nodes, n);
+  // m_outputs holds raw pointers and is no longer rebuilt from scratch on
+  // every topology change: createSingleRenderList adds to it directly, so a
+  // node leaving has to leave it too or the clocks keep rendering a corpse.
+  if(auto* out = dynamic_cast<OutputNode*>(n))
+    ossia::remove_erase(m_outputs, out);
 }
 
 void Graph::clearEdges()

@@ -488,6 +488,13 @@ void GfxContext::add_preview_output(score::gfx::OutputNode& node)
     recomputeTimers();
 }
 
+std::span<score::gfx::OutputNode* const> GfxContext::outputs() const noexcept
+{
+  if(!m_graph)
+    return {};
+  return m_graph->outputs();
+}
+
 void GfxContext::recompute_connections()
 {
   recompute_graph();
