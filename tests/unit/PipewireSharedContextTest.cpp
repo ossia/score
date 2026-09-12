@@ -3,12 +3,18 @@
 //
 // The process-wide libremidi::pipewire::context is shared by the gfx output
 // producer, the gfx input consumer, the audio engine and the MIDI backends.
-// Any -ENOENT reply from the daemon — including the per-object error a stream
-// gets when its autoconnect finds no target node — flips the whole connection
-// to connection_state::broken. A device that then calls reconnect() on it
-// destroys the pw_core, pw_context and pw_thread_loop; every pw_stream another
-// holder created on that core is left pointing at freed memory, and the next
-// pw_stream_destroy() faults inside pw_loop_check().
+// An -ENOENT reply from the daemon used to flip the whole connection to
+// connection_state::broken, including the per-object error a stream gets when
+// its autoconnect finds no target node. A device that then calls reconnect()
+// on it destroys the pw_core, pw_context and pw_thread_loop; every pw_stream
+// another holder created on that core is left pointing at freed memory, and
+// the next pw_stream_destroy() faults inside pw_loop_check().
+//
+// libremidi now reads the id the error carries and only treats PW_ID_CORE as
+// connection loss, so the misclassification that started the teardown cannot
+// happen. This case asserts both halves: the per-object error leaves the
+// connection alone, and the context another holder picks up afterwards is
+// still the same loop and core.
 //
 // Skips when no daemon can be started (no pipewire binary, no libpipewire).
 
@@ -135,13 +141,15 @@ TEST_CASE(
   pw.thread_loop_unlock(loopBefore);
   REQUIRE(stream != nullptr);
 
-  for(int i = 0; i < 100
-                 && holderA->state() != libremidi::pipewire::connection_state::broken;
-      i++)
+  // Give the daemon time to deliver the error and the context time to act on
+  // it. The assertion below is that it does NOT act on it: a per-object error
+  // says nothing about the socket, and treating it as connection loss is what
+  // used to start the teardown this case is named after.
+  for(int i = 0; i < 25; i++)
     std::this_thread::sleep_for(20ms);
 
-  REQUIRE(
-      holderA->state() == libremidi::pipewire::connection_state::broken);
+  REQUIRE(holderA->state() != libremidi::pipewire::connection_state::broken);
+  CHECK(holderA->state() == libremidi::pipewire::connection_state::connected);
 
   // Holder B: stands in for the gfx input device starting up afterwards.
   auto holderB = Gfx::PipeWire::acquireSharedContext("regression test");

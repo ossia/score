@@ -429,7 +429,16 @@ TimeChooser::TimeChooser(
     : ControlInlet{name, id, parent}
 {
   displayHandledExplicitly = true;
-  setValue(ossia::vec2f{init, 1.f});
+  // The second component is the mode: 0 is a time in seconds, anything else is
+  // a musical denomination. It starts at 0, which is what the object declaring
+  // the control says too -- halp::time_chooser_t has `bool sync{false}`.
+  //
+  // It used to start synced, and that made every such control's default wrong:
+  // the value the process declared as its init was read as a number of quarter
+  // notes and converted to seconds against the tempo, so a control asking for
+  // two seconds got two quarters instead. Deuterium's sampler carries a
+  // work-around for exactly this.
+  setValue(ossia::vec2f{init, 0.f});
   setInit(value());
   setDomain(ossia::make_domain(ossia::vec2f{min, 0.f}, ossia::vec2f{max, 1.f}));
 }
