@@ -375,6 +375,17 @@ void reloadPortsInNewProcess(
     const std::vector<SavedPort>& oldInlets, const std::vector<SavedPort>& oldOutlets,
     Process::ProcessModel& process)
 {
+  // Values come back here, unlike the overload above. This one exists for a
+  // process whose spec drifted -- an add-on gained or lost a port since the
+  // document was saved -- where the ports are rebuilt from the new spec and
+  // the user's saved values are the only thing left to preserve. Without the
+  // flag, loadData restores cables and addresses and silently drops every
+  // value, so the whole process came back at its defaults.
+  //
+  // The preset and script-edit callers pass no flag on purpose: there the new
+  // values are the point and an old one restored over them would be wrong.
+  constexpr auto flags = Process::PortLoadDataFlags::ReloadValue;
+
   // Try an optimistic matching. Type and name must match.
   const std::size_t min_inlets = std::min(oldInlets.size(), process.inlets().size());
   const std::size_t min_outlets = std::min(oldOutlets.size(), process.outlets().size());
@@ -385,7 +396,7 @@ void reloadPortsInNewProcess(
 
     if(new_p->type() == old_p.type && new_p->name() == old_p.name)
     {
-      new_p->loadData(old_p.data);
+      new_p->loadData(old_p.data, flags);
     }
   }
 
@@ -396,7 +407,7 @@ void reloadPortsInNewProcess(
 
     if(new_p->type() == old_p.type && new_p->name() == old_p.name)
     {
-      new_p->loadData(old_p.data);
+      new_p->loadData(old_p.data, flags);
     }
   }
 }
