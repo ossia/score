@@ -1,45 +1,38 @@
 #pragma once
-#include <score/command/CommandStackFacade.hpp>
+#include <score_lib_base_export.h>
+namespace score
+{
+class CommandStackFacade;
+class Command;
+struct DocumentContext;
+}
 
 namespace SendStrategy
 {
-struct Simple
+struct SCORE_LIB_BASE_EXPORT Simple
 {
-  static void send(const score::CommandStackFacade& stack, score::Command* other)
-  {
-    stack.redoAndPush(other);
-  }
+  static void send(const score::CommandStackFacade& stack, score::Command* other);
 };
 
-struct Quiet
+struct SCORE_LIB_BASE_EXPORT Quiet
 {
-  static void send(const score::CommandStackFacade& stack, score::Command* other)
-  {
-    stack.push(other);
-  }
+  static void send(const score::CommandStackFacade& stack, score::Command* other);
 };
 
-struct UndoRedo
+struct SCORE_LIB_BASE_EXPORT UndoRedo
 {
-  static void send(const score::CommandStackFacade& stack, score::Command* other)
-  {
-    other->undo(stack.context());
-    stack.redoAndPush(other);
-  }
+  static void send(const score::CommandStackFacade& stack, score::Command* other);
 };
 }
 namespace RedoStrategy
 {
-struct Redo
+struct SCORE_LIB_BASE_EXPORT Redo
 {
-  static void redo(const score::DocumentContext& ctx, score::Command& cmd)
-  {
-    cmd.redo(ctx);
-  }
+  static void redo(const score::DocumentContext& ctx, score::Command& cmd);
 };
 
-struct Quiet
+struct SCORE_LIB_BASE_EXPORT Quiet
 {
-  static void redo(const score::DocumentContext& ctx, score::Command& cmd) { }
+  static void redo(const score::DocumentContext& ctx, score::Command& cmd);
 };
 }

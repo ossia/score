@@ -5,6 +5,7 @@ namespace score
 {
 class Command;
 class CommandStack;
+struct CommandTransaction;
 struct DocumentContext;
 
 /**
@@ -22,14 +23,16 @@ private:
   score::CommandStack& m_stack;
 
 public:
-  explicit CommandStackFacade(score::CommandStack& stack);
+  explicit CommandStackFacade(score::CommandStack& stack) noexcept;
 
-  const score::DocumentContext& context() const;
+  const score::DocumentContext& context() const noexcept;
 
   void push(score::Command* cmd) const;
   void redoAndPush(score::Command* cmd) const;
 
   void disableActions() const;
   void enableActions() const;
+
+  CommandTransaction transaction() const;
 };
 }
