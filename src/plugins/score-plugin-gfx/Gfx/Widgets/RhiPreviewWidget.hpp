@@ -64,6 +64,10 @@ public:
   void useContext(GfxContext* ctx, port_index producer);
   void setProducer(port_index producer);
 
+  //! The attached node, or null once its owner is gone. See the note on
+  //! m_node below for why this is not simply the pointer.
+  score::gfx::BackgroundNode* liveNode() const noexcept;
+
 protected:
   void paintEvent(QPaintEvent* ev) override;
   void resizeEvent(QResizeEvent* ev) override;
@@ -107,7 +111,7 @@ private:
   //! can be destroyed first, with the widget outliving it on a queued
   //! DeferredDelete. Between those two deaths m_node dangles, and resizeEvent()
   //! dereferences it. Ask the owner instead of trusting the pointer. (W2.)
-  score::gfx::BackgroundNode* liveNode() const noexcept
+  score::gfx::BackgroundNode* liveNodeImpl() const noexcept
   {
     if(!m_node)
       return nullptr;

@@ -30,6 +30,8 @@
 #include <Gfx/Graph/ImageNode.hpp>
 #include <Gfx/Widgets/RhiPreviewWidget.hpp>
 
+#include <Gfx/Graph/RenderList.hpp>
+
 #include <core/document/Document.hpp>
 
 #include <catch2/catch_test_macros.hpp>
@@ -60,6 +62,8 @@ TEST_CASE(
   const void* rlBaseline{};
   const void* rlAfterAttach{};
   const void* rlAfterDetach{};
+  bool previewHasRenderer{};
+  int previewRendererCount{-1};
 
   score::test::run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
     score::Document* doc = score::test::new_document(ctx);
@@ -108,6 +112,17 @@ TEST_CASE(
     afterAttach = sink->stops;
     rlAfterAttach = sink->renderer();
 
+    // Does the preview have anything to draw? Not pixels, but the thing that
+    // decides whether there will be any: an output whose render list carries
+    // renderers. A preview brought up without its edge wired has a render list
+    // with nothing in it, and clears to black every frame.
+    if(auto* n = preview->liveNode())
+    {
+      previewHasRenderer = n->renderer() != nullptr;
+      if(auto* r = n->renderer())
+        previewRendererCount = int(r->renderers.size());
+    }
+
     // ... and closes again.
     delete preview;
     g.updateGraph();
@@ -132,4 +147,11 @@ TEST_CASE(
 
   CHECK(rlAfterAttach == rlBaseline);
   CHECK(rlAfterDetach == rlBaseline);
+
+  // The point of the optimisation is that the preview still WORKS afterwards.
+  INFO(
+      "preview renderer " << previewHasRenderer << ", renderers in its list "
+                          << previewRendererCount);
+  CHECK(previewHasRenderer);
+  CHECK(previewRendererCount > 0);
 }
