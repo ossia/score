@@ -1042,14 +1042,39 @@ struct ProgramEdit
 // dialog); `onPicked` then receives a real, readable path. On desktop it is the
 // usual synchronous getOpenFileName, opened in `startDir` (see
 // score::pickerStartFolder). `onPicked(const QString& path)`.
+//! True while a file or folder dialog is up. One flag for the whole process:
+//! these dialogs are modal and only one should ever be on screen.
+inline bool& pickerInFlight() noexcept
+{
+  static bool b = false;
+  return b;
+}
+
 template <typename F>
 inline void openFileToImport(const QString& filters, const QString& startDir, F onPicked)
 {
+  // One picker at a time, process-wide.
+  //
+  // getOpenFileName runs a nested event loop, and that loop keeps delivering
+  // clicks to the widget underneath the dialog: clicking a file control a
+  // second time while its dialog was up opened another one the instant the
+  // first closed. The wasm branch is asynchronous rather than nested, and has
+  // the same problem for the same reason, so the flag is cleared from its
+  // callback instead of on the way out.
+  //
+  // The flag lives outside this template on purpose. A static inside it would
+  // be one flag per callable type, so only a repeat click on the SAME control
+  // would be caught, and two different controls could still stack dialogs.
+  if(pickerInFlight())
+    return;
+  pickerInFlight() = true;
+
 #if defined(__EMSCRIPTEN__)
   QFileDialog::getOpenFileContent(
       filters,
       [onPicked = std::move(onPicked)](
           const QString& name, const QByteArray& data) mutable {
+    pickerInFlight() = false;
     if(name.isEmpty() || data.isEmpty())
       return;
     if(QString staged = score::stageImportedFile(name, data); !staged.isEmpty())
@@ -1058,9 +1083,26 @@ inline void openFileToImport(const QString& filters, const QString& startDir, F 
 #else
   const QString fn
       = QFileDialog::getOpenFileName(nullptr, QObject::tr("Open File"), startDir, filters);
+  pickerInFlight() = false;
   if(!fn.isEmpty())
     onPicked(fn);
 #endif
+}
+
+//! Same re-entrancy guard as openFileToImport, for the folder pickers.
+//! getExistingDirectory nests an event loop too, so a second click while it is
+//! up queues a second dialog.
+template <typename F>
+inline void
+openFolderToImport(const QString& title, const QString& startDir, F onPicked)
+{
+  if(pickerInFlight())
+    return;
+  pickerInFlight() = true;
+  const QString dir = QFileDialog::getExistingDirectory(nullptr, title, startDir);
+  pickerInFlight() = false;
+  if(!dir.isEmpty())
+    onPicked(dir);
 }
 
 struct FileChooser
@@ -1190,15 +1232,13 @@ struct FolderChooser
     act->setIcon(QIcon(":/icons/search.png"));
     sl->setPlaceholderText(QObject::tr("Open Folder"));
     auto on_open = [=, &ctx, &inlet] {
-      auto filename
-          = QFileDialog::getExistingDirectory(
-              nullptr, "Open Folder",
-              score::pickerStartFolder(
-                  QString::fromStdString(ossia::convert<std::string>(inlet.value())), ctx));
-      if(filename.isEmpty())
-        return;
-      auto path = score::relativizeFilePath(filename, ctx);
-      sl->setText(path);
+      openFolderToImport(
+          "Open Folder",
+          score::pickerStartFolder(
+              QString::fromStdString(ossia::convert<std::string>(inlet.value())), ctx),
+          [=, &ctx](const QString& filename) {
+        sl->setText(score::relativizeFilePath(filename, ctx));
+      });
     };
 
     QObject::connect(sl, &QLineEdit::returnPressed, on_open);
@@ -1228,17 +1268,14 @@ struct FolderChooser
     auto bt = new score::QGraphicsTextButton{"Choose a folder...", parent};
     initWidgetProperties(inlet, *bt);
     auto on_open = [&inlet, &ctx] {
-      auto filename
-          = QFileDialog::getExistingDirectory(
-              nullptr, "Open Folder",
-              score::pickerStartFolder(
-                  QString::fromStdString(ossia::convert<std::string>(inlet.value())), ctx));
-      if(filename.isEmpty())
-        return;
-
-      auto path = score::relativizeFilePath(filename, ctx);
-      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
-          inlet, path.toStdString());
+      openFolderToImport(
+          "Open Folder",
+          score::pickerStartFolder(
+              QString::fromStdString(ossia::convert<std::string>(inlet.value())), ctx),
+          [&inlet, &ctx](const QString& filename) {
+        CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
+            inlet, score::relativizeFilePath(filename, ctx).toStdString());
+      });
     };
     auto on_set = [&inlet, &ctx](const QString& filename) {
       if(filename.isEmpty())
