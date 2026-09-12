@@ -96,9 +96,21 @@ inline void prepare_test_environment(bool headless)
     qputenv("XDG_CONFIG_HOME", cfg.toUtf8());
   }
 
+  // Run under a name of our own: it decides the QSettings file, the standard
+  // paths, and the crash-recovery document list the start screen offers to
+  // restore, so a test that leaves a document open does not put it in front of
+  // the developer the next time they start score.
+  //
+  // Through the environment rather than straight to QCoreApplication, because a
+  // test that spawns the real score binary has to get the same name -- that is
+  // what SCORE_CUSTOM_APP_APPLICATION_NAME is for. See setQApplicationMetadata().
+  if(!qEnvironmentVariableIsSet("SCORE_CUSTOM_APP_APPLICATION_NAME"))
+    qputenv("SCORE_CUSTOM_APP_APPLICATION_NAME", "score-test");
+
   QCoreApplication::setOrganizationName("ossia");
   QCoreApplication::setOrganizationDomain("ossia.io");
-  QCoreApplication::setApplicationName("score-test");
+  QCoreApplication::setApplicationName(
+      qEnvironmentVariable("SCORE_CUSTOM_APP_APPLICATION_NAME"));
 }
 
 /// Close every open document while the application is still alive.
