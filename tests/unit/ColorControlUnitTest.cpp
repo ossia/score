@@ -168,3 +168,22 @@ TEST_CASE("a colour sent without alpha keeps the alpha it had", "[unit][color]")
     CHECK(uniform[3] == 1.f);
   }
 }
+
+// The time chooser's second component is its mode: 0 means the value is in
+// seconds, anything else means musical denominations. The port used to start
+// at 1 while the object declaring it (halp::time_chooser_t) declares
+// `sync{false}`, so a control's declared init was read as quarter notes and
+// converted against the tempo -- two seconds became two quarters.
+TEST_CASE("a time chooser starts in seconds, as its object declares", "[unit][ui]")
+{
+  Process::TimeChooser tc{0.f, 10.f, 2.f, "Duration", Id<Process::Port>{0}, nullptr};
+
+  const auto v = ossia::convert<ossia::vec2f>(tc.value());
+  CHECK(v[0] == 2.f);
+  CHECK(v[1] == 0.f);
+
+  // init mirrors it, so a reset does not flip the mode either.
+  const auto i = ossia::convert<ossia::vec2f>(tc.init());
+  CHECK(i[0] == 2.f);
+  CHECK(i[1] == 0.f);
+}
