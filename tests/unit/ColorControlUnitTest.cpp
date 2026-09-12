@@ -119,3 +119,52 @@ TEST_CASE("a color.hsv address reaches a colour control as rgba")
   CHECK(v[1] == Catch::Approx(0.f).margin(1e-4));
   CHECK(v[2] == Catch::Approx(0.f).margin(1e-4));
 }
+
+// A colour sent without its alpha.
+//
+// The gfx uniform update used ossia::convert<vec4f>(list), which starts from a
+// zeroed vector and fills only what the list carries. Three floats therefore
+// wrote a zero into the fourth component, and on a colour that is alpha: an
+// OSC address carrying rgb turned the shape black. A cable never showed it,
+// because it carries all four.
+//
+// This pins the rule the uniform update follows now: take what the list
+// supplies, leave the rest alone.
+namespace
+{
+template <std::size_t N>
+void assign_prefix_ref(
+    std::array<float, N>& val, const std::vector<ossia::value>& v) noexcept
+{
+  const std::size_t n = std::min(v.size(), N);
+  for(std::size_t i = 0; i < n; i++)
+    val[i] = ossia::convert<float>(v[i]);
+}
+}
+
+TEST_CASE("a colour sent without alpha keeps the alpha it had", "[unit][color]")
+{
+  // What the old code did, for contrast: everything the list omits is zeroed.
+  CHECK(ossia::convert<ossia::vec4f>(std::vector<ossia::value>{1.f, 1.f, 1.f})[3]
+        == 0.f);
+
+  ossia::vec4f uniform{0.2f, 0.4f, 0.6f, 1.f};
+  assign_prefix_ref(uniform, std::vector<ossia::value>{1.f, 0.5f, 0.25f});
+
+  CHECK(uniform[0] == 1.f);
+  CHECK(uniform[1] == 0.5f);
+  CHECK(uniform[2] == 0.25f);
+  CHECK(uniform[3] == 1.f); // untouched, not zeroed
+
+  SECTION("a full rgba still overwrites everything")
+  {
+    assign_prefix_ref(uniform, std::vector<ossia::value>{0.f, 0.f, 0.f, 0.5f});
+    CHECK(uniform[3] == 0.5f);
+  }
+  SECTION("a longer list does not run past the uniform")
+  {
+    assign_prefix_ref(
+        uniform, std::vector<ossia::value>{1.f, 1.f, 1.f, 1.f, 9.f, 9.f});
+    CHECK(uniform[3] == 1.f);
+  }
+}

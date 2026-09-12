@@ -49,30 +49,58 @@ void ProcessNode::process(Timings tk)
   UBO.passIndex = 0;
 }
 
+namespace
+{
+//! Take what the list supplies and leave the rest of the uniform alone.
+//!
+//! ossia::convert<vec4f>(list) starts from a zeroed vector and fills only the
+//! components the list has, so three floats arriving at a four-component
+//! uniform wrote a zero into the fourth. On a colour that is alpha, and the
+//! shape went black: an OSC address carrying rgb, or anything else that sends
+//! a colour without its alpha. A cable never showed it because it carries all
+//! four components.
+//!
+//! Leaving the missing components untouched is also the right answer for a
+//! non-colour uniform: a partial update should not silently zero what it did
+//! not mention.
+template <std::size_t N>
+void assign_prefix(
+    std::array<float, N>& val, const std::vector<ossia::value>& v) noexcept
+{
+  const std::size_t n = std::min(v.size(), N);
+  for(std::size_t i = 0; i < n; i++)
+    val[i] = ossia::convert<float>(v[i]);
+}
+}
+
 void ProcessNode::process(int32_t port, const ossia::value& v)
 {
   using namespace score::gfx;
   struct vec_visitor
   {
     const std::vector<ossia::value>& v;
+
+    //! Take what the list supplies and leave the rest of the uniform alone.
+    //!
+    //! ossia::convert<vec4f>(list) starts from a zeroed vector and fills the
+    //! components the list has, so three floats arriving at a four-component
+    //! uniform wrote a zero into the fourth. On a colour that is alpha, and
+    //! the shape went black: an OSC address carrying rgb, or anything else
+    //! that sends a colour without its alpha. A cable did not show it because
+    //! it carries all four.
+    //!
+    //! Leaving the missing components untouched is also the right answer for
+    //! a non-colour uniform: a partial update should not silently zero what
+    //! it did not mention.
     void operator()(ossia::monostate) const noexcept { }
     void operator()(float& val) const noexcept
     {
       if(!v.empty())
         val = ossia::convert<float>(v[0]);
     }
-    void operator()(ossia::vec2f& val) const noexcept
-    {
-      val = ossia::convert<ossia::vec2f>(v);
-    }
-    void operator()(ossia::vec3f& val) const noexcept
-    {
-      val = ossia::convert<ossia::vec3f>(v);
-    }
-    void operator()(ossia::vec4f& val) const noexcept
-    {
-      val = ossia::convert<ossia::vec4f>(v);
-    }
+    void operator()(ossia::vec2f& val) const noexcept { assign_prefix(val, v); }
+    void operator()(ossia::vec3f& val) const noexcept { assign_prefix(val, v); }
+    void operator()(ossia::vec4f& val) const noexcept { assign_prefix(val, v); }
     void operator()(image& val) const noexcept { }
   };
 
