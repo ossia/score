@@ -120,42 +120,20 @@ static void loadApplicationResources()
 {
   loadResources();
 
-  // Register fonts
-  {
-    QDirIterator it(":/fonts", QDirIterator::Subdirectories);
-    while(it.hasNext())
-    {
-      auto font = it.next();
-      if(font.endsWith("ttf", Qt::CaseInsensitive)
-         || font.endsWith("bdf", Qt::CaseInsensitive)
-         || font.endsWith("otf", Qt::CaseInsensitive))
-      {
-        QFontDatabase::addApplicationFont(font);
-      }
-    }
-  }
+  // Lives next to the Skin, so that tests and alternate hosts get the fonts
+  // too rather than only the application bootstrap.
+  score::registerApplicationFonts();
 }
 
 //! Must run after QApplication::setStyle(), which resets the widget font hash.
+//!
+//! Deliberately does not go through score::Skin::instance(): this runs early in
+//! Application::init, before the application context exists, and the Skin
+//! constructor dereferences it. A skin that names its own application font
+//! re-applies it when it loads; the Skin owns that connection.
 static void setupApplicationFont()
 {
-  QFont f("Ubuntu");
-  f.setPixelSize(score::uiFontSize());
-  f.setHintingPreference(score::uiFontHinting());
-  f.setStyleStrategy(score::uiFontStyleStrategy());
-  qGuiApp->setFont(f);
-
-  // The platform theme seeds per-class fonts which override the application
-  // font; macOS provides most of this list, so set them explicitly.
-  for(const char* widgetClass :
-      {"QMenu", "QMenuBar", "QMenuItem", "QMessageBox", "QLabel", "QTipLabel",
-       "QTitleBar", "QStatusBar", "QMdiSubWindowTitleBar", "QDockWidgetTitle",
-       "QPushButton", "QCheckBox", "QRadioButton", "QToolButton",
-       "QAbstractItemView", "QListView", "QHeaderView", "QListBox",
-       "QComboMenuItem", "QComboLineEdit", "QSmallFont", "QMiniFont"})
-  {
-    QApplication::setFont(f, widgetClass);
-  }
+  score::setupApplicationFont(score::defaultApplicationFont());
 }
 
 static void setQApplicationSettings(QApplication& m_app)

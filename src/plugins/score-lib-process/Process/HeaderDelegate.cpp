@@ -20,6 +20,7 @@
 #include <QCursor>
 #include <QDebug>
 #include <QGuiApplication>
+#include <QApplication>
 #include <QPainter>
 #include <QTextLayout>
 #include <QTextLine>
@@ -38,10 +39,26 @@ struct hash<std::pair<QString, const QPen*>>
 namespace Process
 {
 
-static auto& glyphCache() noexcept
+using GlyphCache = ossia::hash_map<std::pair<QString, const QPen*>, QPixmap>;
+
+static GlyphCache& glyphCache() noexcept
 {
   // FIXME LRU
-  static ossia::hash_map<std::pair<QString, const QPen*>, QPixmap> cache;
+  static GlyphCache cache;
+
+  // The key is the text and the pen, but the glyphs are rasterised with
+  // Skin::Medium8Pt and at the current devicePixelRatio, so neither the font
+  // nor the ratio is part of it. Drop the whole cache when the skin changes
+  // instead of widening the key: these are cheap to redraw, and a stale entry
+  // here means a process header keeps the previous font forever.
+  static bool connected = false;
+  if(!connected)
+  {
+    connected = true;
+    QObject::connect(&score::Skin::instance(), &score::Skin::changed, qApp, [] {
+      glyphCache().clear();
+    });
+  }
   return cache;
 }
 

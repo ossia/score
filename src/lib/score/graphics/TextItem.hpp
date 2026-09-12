@@ -34,6 +34,10 @@ public:
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
       final override;
 
+  //! @p f must outlive the item: the item keeps a reference to it so that it
+  //! can re-render when the skin changes, the same way setColor() keeps a
+  //! reference to its BrushSet. In practice this is always a score::Skin
+  //! member, which is a singleton.
   void setFont(const QFont& f);
   void setText(const QString& s);
   void setText(std::string_view s);
@@ -50,7 +54,9 @@ private:
 
   QRectF m_rect;
   const score::BrushSet* m_color{};
-  QFont m_font;
+  //! The skin font this item follows, so a font change re-renders instead of
+  //! waiting for the item to be recreated.
+  const QFont* m_font{};
   QString m_string;
   QImage m_line;
 };

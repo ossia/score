@@ -308,6 +308,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioSelection.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioView.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/MiniScenarioView.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Settings/SkinEditorWidget.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Settings/ScenarioSettingsFactory.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Settings/ScenarioSettingsModel.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Settings/ScenarioSettingsPresenter.hpp"
@@ -590,6 +591,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioSelection.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Settings/SkinEditorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Settings/ScenarioSettingsModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Settings/ScenarioSettingsView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Settings/ScenarioSettingsPresenter.cpp"

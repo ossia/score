@@ -36,7 +36,13 @@ SimpleTextItem::SimpleTextItem(const score::BrushSet& col, QGraphicsItem* p)
     : QGraphicsItem{p}
     , m_color{&col}
 {
-  setFont(score::Skin::instance().Medium8Pt);
+  auto& skin = score::Skin::instance();
+  setFont(skin.Medium8Pt);
+
+  // Follow the skin: the glyphs are cached into m_line, so without this the
+  // label keeps the font it was built with until the item is recreated, which
+  // is what made the font settings look like they needed a restart.
+  QObject::connect(&skin, &score::Skin::changed, this, [this] { updateImpl(); });
 }
 
 QRectF SimpleTextItem::boundingRect() const
@@ -53,7 +59,8 @@ void SimpleTextItem::paint(
     static const auto& skin = score::Skin::instance();
     if(m_color)
       painter->setPen(m_color->pen1);
-    painter->setFont(m_font);
+    if(m_font)
+      painter->setFont(*m_font);
     painter->setBrush(skin.NoBrush);
     painter->drawText(QPointF{0, (float)m_rect.height() - 2.}, m_string);
   }
@@ -66,8 +73,15 @@ void SimpleTextItem::paint(
 
 void SimpleTextItem::setFont(const QFont& f)
 {
-  m_font = f;
-  m_font.setStyleStrategy(QFont::PreferAntialias);
+  // A reference, not a copy, so that a skin change re-renders this label.
+  //
+  // Note also what is *not* here: the style strategy is left alone. Forcing
+  // PreferAntialias turns on subpixel glyph positioning, and these items are
+  // laid out at fractional device offsets (measured: x fractions of .11 to
+  // .81), so a pixel font's 1 px stems get split across two columns and the
+  // label looks smeared. NoAntialias is what makes Qt snap the glyph origin
+  // to a whole pixel.
+  m_font = &f;
   updateImpl();
 }
 
@@ -104,7 +118,7 @@ void SimpleTextItem::updateImpl()
   }
   else
   {
-    QTextLayout layout(m_string, m_font);
+    QTextLayout layout(m_string, m_font ? *m_font : QFont{});
     layout.beginLayout();
     auto line = layout.createLine();
     layout.endLayout();

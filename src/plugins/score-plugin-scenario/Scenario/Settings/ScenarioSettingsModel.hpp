@@ -7,6 +7,8 @@
 
 #include <verdigris>
 
+class QJsonObject;
+
 namespace Process
 {
 class ProcessModel;
@@ -24,8 +26,6 @@ class SCORE_PLUGIN_SCENARIO_EXPORT Model final : public score::SettingsDelegateM
   QString m_ProcessUIPlacement;
   QString m_ScriptEditorPreview;
   double m_GraphicZoom{};
-  int m_FontSize{12};
-  QString m_FontHinting{"Full"};
   qreal m_SlotHeight{};
   TimeVal m_DefaultDuration{TimeVal::fromMsecs(30000)};
   int m_UpdateRate{60};
@@ -48,6 +48,10 @@ public:
   void SkinChanged(const QString& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, SkinChanged, arg_1);
 
+  //! The skin document in effect, kept so a font change can be re-applied
+  //! over it without re-reading the file.
+  const QJsonObject& currentSkinJson() const noexcept;
+
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, QString, DefaultEditor)
   SCORE_SETTINGS_PARAMETER_HPP(
       SCORE_PLUGIN_SCENARIO_EXPORT, QString, ScriptEditorPlacement)
@@ -55,8 +59,6 @@ public:
   SCORE_SETTINGS_PARAMETER_HPP(
       SCORE_PLUGIN_SCENARIO_EXPORT, QString, ScriptEditorPreview)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, double, GraphicZoom)
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, int, FontSize)
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, QString, FontHinting)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, qreal, SlotHeight)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, TimeVal, DefaultDuration)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, bool, SnapshotOnCreate)
@@ -70,16 +72,18 @@ public:
 
 public:
   SCORE_SETTINGS_PROPERTY(QString, Skin)
+
+private:
+  struct Impl;
+  Impl* m_impl{};
 };
 
+SCORE_SETTINGS_PARAMETER(Model, Skin)
+SCORE_SETTINGS_PARAMETER(Model, GraphicZoom)
 SCORE_SETTINGS_PARAMETER(Model, DefaultEditor)
 SCORE_SETTINGS_PARAMETER(Model, ScriptEditorPlacement)
 SCORE_SETTINGS_PARAMETER(Model, ProcessUIPlacement)
 SCORE_SETTINGS_PARAMETER(Model, ScriptEditorPreview)
-SCORE_SETTINGS_PARAMETER(Model, Skin)
-SCORE_SETTINGS_PARAMETER(Model, GraphicZoom)
-SCORE_SETTINGS_PARAMETER(Model, FontSize)
-SCORE_SETTINGS_PARAMETER(Model, FontHinting)
 SCORE_SETTINGS_PARAMETER(Model, SlotHeight)
 SCORE_SETTINGS_PARAMETER(Model, DefaultDuration)
 SCORE_SETTINGS_PARAMETER(Model, SnapshotOnCreate)

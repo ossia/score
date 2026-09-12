@@ -10,6 +10,9 @@
 #include <score_lib_base_export.h>
 
 #include <verdigris>
+
+#include <utility>
+#include <vector>
 class QJsonObject;
 namespace score
 {
@@ -98,6 +101,27 @@ public:
   ~Skin() override;
 
   void load(const QJsonObject& style);
+
+  //! Colours and fonts, in the form load() reads back. Used to write skin
+  //! files, so anything added here must have a load() counterpart.
+  QJsonObject toJson() const;
+
+  //! Every font a skin may name, paired with the key it uses in a skin file.
+  //! One list, so load, save, the defaults and the skin editor cannot drift
+  //! apart. Writing through these pointers then emitting changed() is how the
+  //! editor applies a font live.
+  std::vector<std::pair<const char*, QFont*>> fonts() noexcept;
+
+  //! Rebuilds every font from the Skin/Font* settings and the given skin's
+  //! "fonts" block, then emits changed(). Call this when a font setting is
+  //! edited: nothing about the fonts is frozen at startup, so no restart is
+  //! needed, but something has to ask for the rebuild.
+  void reloadFonts(const QJsonObject& skin);
+
+  //! Font for the widget UI as a whole. A skin may override it; applying it
+  //! to the QApplication is score::setupApplicationFont()'s job, since the
+  //! per-widget-class font hash has to be reseeded too.
+  QFont ApplicationFont;
 
   QFont SansFont;
   QFont MonoFont;
@@ -220,6 +244,17 @@ private:
   };
   explicit Skin(NoGUI);
 
+  //! Builds every font member from the built-in defaults plus the
+  //! Skin/Font* QSettings. Called by the constructor, and again by load()
+  //! so that switching skins does not inherit the previous skin's fonts.
+  void setupFonts();
+
+  //! Applies the "fonts" object of a skin file over the defaults.
+  void loadFonts(const QJsonObject& spec_obj);
+
+  //! Serialises every font member, for toJson().
+  QJsonObject saveFonts() const;
+
   struct color_map;
   color_map* initColorMap() noexcept;
   color_map* m_colorMap{};
@@ -228,13 +263,63 @@ private:
   bool m_pulseDirection{false};
 };
 
-//! Base UI font settings. Read from QSettings directly as the font is needed
-//! before the settings plug-in is loaded; changing them requires a restart.
+//! The application font size used before any skin has loaded. Not a setting:
+//! font sizes are expressed in the skin, and the "application" role replaces
+//! this as soon as one loads.
 SCORE_LIB_BASE_EXPORT int uiFontSize() noexcept;
+
+//! Hinting for the pre-skin font, from the Skin/FontHinting setting. A skin
+//! can set hinting per role, which wins over this.
 SCORE_LIB_BASE_EXPORT QFont::HintingPreference uiFontHinting() noexcept;
 
 //! NoSubpixelAntialias on macOS: QCocoaScreen rewrites Subpixel_None to
 //! Subpixel_RGB, so the style strategy is the only way to get grayscale AA.
 SCORE_LIB_BASE_EXPORT QFont::StyleStrategy uiFontStyleStrategy() noexcept;
+
+//! The design grid, in pixels, of a pixel font score ships, or 0 for anything
+//! else. These fonts are drawn on a grid and only render sharply at whole
+//! multiples of it; the skin editor uses this to say which sizes are usable.
+SCORE_LIB_BASE_EXPORT int pixelFontGrid(const QString& family) noexcept;
+
+//! Registers every font in the :/fonts resource with the QFontDatabase, so
+//! that a skin naming one of them resolves instead of falling back. Idempotent,
+//! and called by the Skin itself, so tests and alternate hosts get the fonts
+//! without going through the application bootstrap.
+SCORE_LIB_BASE_EXPORT void registerApplicationFonts();
+
+//! The application font built from the Skin/Font* settings alone. Does not
+//! touch Skin::instance(), so it is callable during early application startup,
+//! before the application context exists.
+SCORE_LIB_BASE_EXPORT QFont defaultApplicationFont() noexcept;
+
+//! Whether setGlobalScaleFactor() can actually do anything in this build.
+//!
+//! False below Qt 6.6, or when Qt was built without high-DPI scaling. The
+//! private QHighDpiScaling API has existed since Qt 5.6, but setGlobalFactor()
+//! only started updating the screens in 6.5 and only started emitting the
+//! QScreen change signals in 6.6; before that it sets a field nothing reads.
+//! Use this to decide whether a zoom control can apply live or has to say
+//! "needs restart".
+SCORE_LIB_BASE_EXPORT bool canSetGlobalScaleFactorLive() noexcept;
+
+//! Changes the global high-DPI scale factor of a running application, the
+//! thing QT_SCALE_FACTOR sets at startup.
+//!
+//! Goes through QHighDpiScaling, which is Qt private API: it updates each
+//! screen's geometry, which propagates a re-layout to every window. Qt warns
+//! when this is called with windows open, since it is meant for startup, so
+//! expect a message on the console; the factor is still applied.
+//!
+//! Everything cached at a given device pixel ratio has to be dropped
+//! afterwards, which is why this bumps the Skin and emits changed(): the
+//! glyph and pixmap caches hang off that signal. Returns false if the factor
+//! is out of range or scaling is unavailable in this Qt build.
+SCORE_LIB_BASE_EXPORT bool setGlobalScaleFactor(double factor);
+
+//! Sets the application-wide font and reseeds the per-widget-class fonts the
+//! platform theme installs, which would otherwise override it. Must run after
+//! QApplication::setStyle(), which resets that hash. Safe to call again when
+//! the skin changes.
+SCORE_LIB_BASE_EXPORT void setupApplicationFont(const QFont& f);
 
 }
