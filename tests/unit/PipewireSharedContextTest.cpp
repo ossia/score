@@ -29,6 +29,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include <atomic>
 #include <chrono>
 #include <cstdlib>
 #include <string>
@@ -120,8 +121,27 @@ TEST_CASE(
   REQUIRE(loopBefore != nullptr);
   REQUIRE(coreBefore != nullptr);
 
+  // The error the daemon sends back for the bad request below. The test waits
+  // for this rather than for a wall-clock interval: without proof that the
+  // error arrived, asserting that it did not break the connection proves
+  // nothing at all.
+  std::atomic_int perObjectErrors{0};
+  static std::atomic_int* s_errors{};
+  s_errors = &perObjectErrors;
+
+  static constexpr pw_proxy_events proxyEvents = [] {
+    pw_proxy_events e{};
+    e.version = PW_VERSION_PROXY_EVENTS;
+    e.error = [](void*, int, int res, const char*) {
+      if(res != 0 && s_errors)
+        s_errors->fetch_add(1, std::memory_order_release);
+    };
+    return e;
+  }();
+
   pw_stream* stream{};
   void* badProxy{};
+  spa_hook proxyHook{};
   pw.thread_loop_lock(loopBefore);
   {
     auto* props = pw.properties_new(
@@ -137,19 +157,33 @@ TEST_CASE(
     badProxy = pw_core_create_object(
         coreBefore, "score-no-such-factory", PW_TYPE_INTERFACE_Node,
         PW_VERSION_NODE, nullptr, 0);
+    if(badProxy && pw.proxy_add_listener)
+      pw.proxy_add_listener(
+          static_cast<pw_proxy*>(badProxy), &proxyHook, &proxyEvents, nullptr);
   }
   pw.thread_loop_unlock(loopBefore);
   REQUIRE(stream != nullptr);
+  REQUIRE(badProxy != nullptr);
 
-  // Give the daemon time to deliver the error and the context time to act on
-  // it. The assertion below is that it does NOT act on it: a per-object error
-  // says nothing about the socket, and treating it as connection loss is what
-  // used to start the teardown this case is named after.
-  for(int i = 0; i < 25; i++)
-    std::this_thread::sleep_for(20ms);
+  // A core round-trip, not a sleep. The daemon answers in order, so once this
+  // returns, the reply to the create_object above has been delivered and the
+  // context has already classified it.
+  //
+  // Its return value is the assertion. synchronize() is false exactly when the
+  // connection has been marked broken, which is what a per-object error used
+  // to do -- and a device reacting to `broken` by reconnecting is what tore
+  // the loop out from under the other holders. The id the error carries says
+  // it belongs to one object, not to the socket.
+  for(int i = 0; i < 50 && perObjectErrors.load(std::memory_order_acquire) == 0; i++)
+    REQUIRE(holderA->synchronize());
 
-  REQUIRE(holderA->state() != libremidi::pipewire::connection_state::broken);
+  // The premise: the daemon really did refuse the request.
+  REQUIRE(perObjectErrors.load(std::memory_order_acquire) > 0);
+
+  // The property: refusing it left the connection alone.
+  CHECK(holderA->ok());
   CHECK(holderA->state() == libremidi::pipewire::connection_state::connected);
+  CHECK(holderA->synchronize());
 
   // Holder B: stands in for the gfx input device starting up afterwards.
   auto holderB = Gfx::PipeWire::acquireSharedContext("regression test");
@@ -164,7 +198,11 @@ TEST_CASE(
   // faulted inside pw_loop_check() once the loop had been rebuilt.
   pw.thread_loop_lock(loopBefore);
   if(badProxy && pw.proxy_destroy)
+  {
+    spa_hook_remove(&proxyHook);
     pw.proxy_destroy(static_cast<pw_proxy*>(badProxy));
+  }
+  s_errors = nullptr;
   pw.stream_destroy(stream);
   pw.thread_loop_unlock(loopBefore);
 
