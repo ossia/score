@@ -118,30 +118,19 @@ int SpeakerSetup::maxOutputPatch() const noexcept
 
 bool SpeakerSetup::isDomeLike() const noexcept
 {
-  // Same test as StructGRIS: all spatialized speakers within 1% of the same
-  // radius means the setup describes a dome.
-  constexpr float tolerance = 0.01f;
+  // Same test as StructGRIS: every speaker that takes part in spatialisation
+  // sits on the unit sphere, within 0.02.
+  constexpr float tolerance = 0.02f;
 
-  bool first = true;
-  float reference{};
   for(auto const& group : groups)
-  {
     for(auto const& speaker : group.speakers)
     {
       if(speaker.data.isDirectOutOnly)
         continue;
-      auto const radius = speaker.data.position.getPolar().length;
-      if(first)
-      {
-        reference = radius;
-        first = false;
-        continue;
-      }
-      if(std::abs(radius - reference) > tolerance)
+      if(std::abs(speaker.data.position.getPolar().length - 1.f) > tolerance)
         return false;
     }
-  }
-  return !first;
+  return true;
 }
 
 } // namespace Gris

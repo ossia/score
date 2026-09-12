@@ -73,6 +73,20 @@ void Spatializer::rebuild()
     if(spatialized.size() >= 2)
     {
       m_mbap = mbapInit(spatialized);
+
+      // mbapInit() leaves the field exponent unset; SpatGRIS fills it in from
+      // the setup's diffusion, inverted, in sg_MbapSpatAlgorithm.cpp. Without
+      // it the exponent is zero, every gain becomes pow(g, 0) == 1 and the
+      // source spreads evenly over every speaker.
+      constexpr float DIFFUSION_IN_MIN{1.f};
+      constexpr float DIFFUSION_IN_MAX{0.f};
+      constexpr float DIFFUSION_OUT_MIN{1.f};
+      constexpr float DIFFUSION_OUT_MAX{8.f};
+      m_mbap.fieldExponent
+          = ((m_setup.diffusion - DIFFUSION_IN_MIN) * (DIFFUSION_OUT_MAX - DIFFUSION_OUT_MIN)
+             / (DIFFUSION_IN_MAX - DIFFUSION_IN_MIN))
+            + DIFFUSION_OUT_MIN;
+
       m_mbapUsable = true;
     }
   }

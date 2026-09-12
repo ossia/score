@@ -383,14 +383,20 @@ struct CartesianVector
     return {x, y, z + d};
   }
 
-  [[nodiscard]] float length() const noexcept { return std::sqrt(x * x + y * y + z * z); }
+  [[nodiscard]] constexpr float length2() const noexcept { return x * x + y * y + z * z; }
+  [[nodiscard]] float length() const noexcept { return std::sqrt(length2()); }
   [[nodiscard]] constexpr float dotProduct(CartesianVector const& o) const noexcept
   {
     return x * o.x + y * o.y + z * o.z;
   }
-  [[nodiscard]] constexpr CartesianVector crossProduct(CartesianVector const& o) const noexcept
+  /** Note: StructGRIS normalises the cross product, and the VBAP triangulation
+   *  depends on it -- parallelepipedVolumeSideLength() takes the dot of this
+   *  against a third speaker. Leaving it unnormalised lets far too many
+   *  triplets past the volume test. */
+  [[nodiscard]] CartesianVector crossProduct(CartesianVector const& o) const noexcept
   {
-    return {y * o.z - z * o.y, z * o.x - x * o.z, x * o.y - y * o.x};
+    CartesianVector const unscaled{y * o.z - z * o.y, z * o.x - x * o.z, x * o.y - y * o.x};
+    return unscaled / unscaled.length();
   }
   [[nodiscard]] CartesianVector normalized() const noexcept
   {
@@ -399,7 +405,7 @@ struct CartesianVector
   }
   [[nodiscard]] float angleWith(CartesianVector const& o) const noexcept
   {
-    auto inner = dotProduct(o) / std::sqrt(length() * o.length());
+    auto inner = dotProduct(o) / std::sqrt(length2() * o.length2());
     inner = std::clamp(inner, -1.f, 1.f);
     return std::abs(std::acos(inner));
   }
@@ -491,25 +497,33 @@ struct PolarVector
 //==============================================================================
 inline CartesianVector::CartesianVector(PolarVector const& p) noexcept
 {
-  // Copied from StructGRIS sg_CartesianVector.cpp so that the conversion is
-  // bit-identical to SpatGRIS.
-  auto const cosEl = std::cos(p.elevation.get());
-  x = p.length * std::cos(p.azimuth.get()) * cosEl;
-  y = p.length * std::sin(p.azimuth.get()) * cosEl;
-  z = p.length * std::sin(p.elevation.get());
+  // Copied from StructGRIS sg_CartesianVector.cpp. GRIS measures elevation from
+  // the equator rather than from the pole, hence the complement; the epsilon
+  // keeps a source exactly at the zenith off the degenerate axis.
+  auto const diffElev = HALF_PI_F - p.elevation.get();
+  auto const inverseElevation = std::fpclassify(diffElev) == FP_ZERO ? 0.0000001f : diffElev;
+
+  x = p.length * std::sin(inverseElevation) * std::cos(p.azimuth.get());
+  y = p.length * std::sin(inverseElevation) * std::sin(p.azimuth.get());
+  z = p.length * std::cos(inverseElevation);
 }
 
 inline PolarVector::PolarVector(CartesianVector const& c) noexcept
 {
+  // Mirrors StructGRIS sg_PolarVector.cpp.
   length = std::sqrt(c.x * c.x + c.y * c.y + c.z * c.z);
-  if(length == 0.f)
-  {
-    azimuth = radians_t{};
-    elevation = radians_t{};
+  if(std::fpclassify(length) == FP_ZERO)
     return;
-  }
-  azimuth = radians_t::angleOf(c.x, c.y);
-  elevation = radians_t{std::asin(std::clamp(c.z / length, -1.f, 1.f))};
+
+  elevation
+      = radians_t{HALF_PI_F} - radians_t{std::acos(std::clamp(c.z / length, -1.f, 1.f))};
+
+  if(std::fpclassify(c.x) == FP_ZERO && std::fpclassify(c.y) == FP_ZERO)
+    return;
+
+  azimuth = radians_t{
+      std::acos(std::clamp(c.x / std::sqrt(c.x * c.x + c.y * c.y), -1.f, 1.f))
+      * (c.y < 0.f ? -1.f : 1.f)};
 }
 
 //==============================================================================
