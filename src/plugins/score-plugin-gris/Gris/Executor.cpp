@@ -27,9 +27,9 @@ namespace
 
 /** The execution node.
  *
- * Inlet order mirrors SpatModel's: audio, speaker setup, interpolation, source
- * count, then four value inlets per source (position, azimuth span, zenith
- * span, mode). One audio outlet, as wide as the setup's highest output patch.
+ * Inlet order mirrors SpatModel's: audio, speaker setup, interpolation, then
+ * four value inlets per source (position, azimuth span, zenith span, mode).
+ * One audio outlet, as wide as the setup's highest output patch.
  */
 class SpatNode final : public ossia::nonowning_graph_node
 {
@@ -40,7 +40,6 @@ public:
     m_inlets.push_back(&audio_in);
     m_inlets.push_back(&setup_in);
     m_inlets.push_back(&interp_in);
-    m_inlets.push_back(&count_in);
 
     m_sourcePorts.resize(std::size_t(sourceCount) * SpatModel::SourceInletCount);
     for(auto& port : m_sourcePorts)
@@ -193,7 +192,6 @@ public:
   ossia::audio_inlet audio_in;
   ossia::value_inlet setup_in;
   ossia::value_inlet interp_in;
-  ossia::value_inlet count_in;
   ossia::audio_outlet audio_out;
 
 private:

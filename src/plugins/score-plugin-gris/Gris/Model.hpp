@@ -33,7 +33,6 @@ public:
     AudioIn = 0,
     SpeakerSetupPort,
     Interpolation,
-    SourceCount,
     FixedInletCount
   };
   /** Ports per source, in order. */
@@ -65,8 +64,12 @@ public:
   [[nodiscard]] SpeakerSetup speakerSetup() const noexcept;
 
   [[nodiscard]] int sourceCount() const noexcept { return m_sourceCount; }
-  /** Recreates the per-source ports. */
+  /** Grows or shrinks the per-source ports, keeping the ones already there so
+   *  that cables and automations on existing sources survive. Goes through
+   *  Gris::SetSourceCount rather than being called directly, so it lands on
+   *  the undo stack. */
   void setSourceCount(int count);
+  W_SLOT(setSourceCount);
   void sourceCountChanged(int count) W_SIGNAL(sourceCountChanged, count);
 
   /** Index of the first inlet belonging to `source`. */
@@ -75,9 +78,13 @@ public:
     return FixedInletCount + source * SourceInletCount;
   }
 
+  PROPERTY(
+      int, sourceCount READ sourceCount WRITE setSourceCount NOTIFY sourceCountChanged)
+
 private:
   void init();
-  void rebuildSourcePorts();
+  /** Appends the four ports of one source. */
+  void addSourcePorts(int source, int& nextId);
 
   int m_sourceCount{defaultSourceCount};
 };

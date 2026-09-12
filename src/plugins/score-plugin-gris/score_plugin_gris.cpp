@@ -1,6 +1,8 @@
 #include "score_plugin_gris.hpp"
 
+#include <Gris/Commands.hpp>
 #include <Gris/Executor.hpp>
+#include <Gris/Inspector.hpp>
 #include <Gris/Model.hpp>
 #include <Gris/SpeakerSetupInlet.hpp>
 
@@ -10,6 +12,8 @@
 
 #include <Control/DefaultEffectItem.hpp>
 #include <Effect/EffectFactory.hpp>
+
+#include <Inspector/InspectorWidgetFactoryInterface.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
 
@@ -30,7 +34,8 @@ std::vector<score::InterfaceBase*> score_plugin_gris::factories(
       FW<Process::PortFactory,
          Dataflow::WidgetInletFactory<
              Gris::SpeakerSetupInlet, WidgetFactory::SpeakerSetupWidget>>,
-      FW<Execution::ProcessComponentFactory, Gris::ExecutorFactory>>(ctx, key);
+      FW<Execution::ProcessComponentFactory, Gris::ExecutorFactory>,
+      FW<Inspector::InspectorWidgetFactory, Gris::InspectorFactory>>(ctx, key);
 }
 
 std::vector<score::PluginKey> score_plugin_gris::required() const
