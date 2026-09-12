@@ -123,6 +123,19 @@ if(TARGET score_addon_synthimi)
     SOURCES KabangPitchEnvelopeTest.cpp)
   target_include_directories(test_unit_kabang_pitch_envelope
     PRIVATE "${SCORE_ROOT_SOURCE_DIR}/src/addons/score-addon-synthimi")
+
+  # Unlike the pitch-envelope case, this one needs DrumChannel, which drags in
+  # the addon's whole dependency chain: link the plug-in for its include dirs.
+  score_add_test(test_unit_minibang_no_sample
+    SOURCES MinibangNoSampleTest.cpp
+      "${SCORE_ROOT_SOURCE_DIR}/src/addons/score-addon-synthimi/Kabang/Kabang.cpp"
+      "${SCORE_ROOT_SOURCE_DIR}/src/addons/score-addon-synthimi/Kabang/Sampler.cpp"
+    PLUGINS score_addon_synthimi)
+  target_include_directories(test_unit_minibang_no_sample
+    PRIVATE "${SCORE_ROOT_SOURCE_DIR}/src/addons/score-addon-synthimi")
+  if(TARGET rubberband)
+    target_link_libraries(test_unit_minibang_no_sample PRIVATE rubberband)
+  endif()
 endif()
 
 # The one right-click type-in box: two of them used to stay up, and taking one
