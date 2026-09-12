@@ -31,10 +31,10 @@ public:
   SetMaxDuration(const IntervalModel& cst, TimeVal newval, bool isInfinite)
       : m_path{cst}
       , m_oldVal{cst.duration.maxDuration()}
-      , m_newVal{std::move(newval)}
       , m_newInfinite{isInfinite}
       , m_oldInfinite{cst.duration.isMaxInfinite()}
   {
+    update(cst, newval, isInfinite);
   }
 
   void update(const IntervalModel& cst, const TimeVal& newval, bool isInfinite)

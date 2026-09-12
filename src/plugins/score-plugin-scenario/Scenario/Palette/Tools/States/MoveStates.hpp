@@ -82,11 +82,14 @@ public:
         {
           auto& scenar = stateMachine.model();
           auto& cstr = scenar.interval(*this->clickedInterval);
-          auto date = this->currentPoint.date - *m_initialDate + *m_initialDuration;
+          const auto duration
+              = this->currentPoint.date - *m_initialDate + *m_initialDuration;
 
-          date = stateMachine.magnetic().getPosition(&stateMachine.model(), date);
+          // Magnetism operates on scenario dates, not interval durations.
+          const TimeVal date = stateMachine.magnetic().getPosition(
+              &stateMachine.model(), cstr.date() + duration);
 
-          this->m_dispatcher.submit(cstr, date, false);
+          this->m_dispatcher.submit(cstr, date - cstr.date(), false);
         }
       });
 

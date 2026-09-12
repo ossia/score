@@ -29,10 +29,10 @@ public:
   SetMinDuration(const IntervalModel& cst, TimeVal newval, bool isMinNull)
       : m_path{cst}
       , m_oldVal{cst.duration.minDuration()}
-      , m_newVal{newval}
       , m_oldMinNull{cst.duration.isMinNull()}
       , m_newMinNull{isMinNull}
   {
+    update(cst, newval, isMinNull);
   }
 
   void update(const IntervalModel& cst, TimeVal newval, bool isMinNull)
