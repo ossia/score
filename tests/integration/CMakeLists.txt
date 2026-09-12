@@ -1,5 +1,10 @@
 # Integration tests: full headless application + document lifecycle.
 
+# Every shell harness below spawns the real score binary and maps real windows.
+# Put them behind the same private X server score_add_test(GUI) uses, so they do
+# not land on the developer's session. Empty when SCORE_TESTS_XVFB is off.
+score_test_display_wrapper(_display_wrapper)
+
 # SCORE_HAS_SHELL_HARNESS is set once in cmake/ScoreTests.cmake so that
 # tests/hardware sees the same value.
 # These run from the build root so the dynamic plugins in <build>/plugins are
@@ -12,6 +17,13 @@ score_add_test(test_integration_document
 score_add_test(test_integration_roundtrip
   SOURCES DocumentRoundtripTest.cpp
   APP)
+
+# Skin files carry fonts as well as colours. Needs the GUI stack: the fonts
+# come from the application's Qt resources, and QFontDatabase needs a GUI app.
+score_add_test(test_integration_skin_fonts
+  SOURCES SkinFontsTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario)
 
 # A process whose factory is not installed is dropped on load, with its
 # cables, silently. Asserting "the document opened" cannot see that, so this one
@@ -573,7 +585,7 @@ score_add_test(test_integration_nodal_viewport
 # Skips (77) without the binary or the out-of-repo tests-scene corpus.
 if(SCORE_HAS_SHELL_HARNESS)
   add_test(NAME test_frame_determinism
-    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/golden-render/frame-determinism.sh"
+    COMMAND ${_display_wrapper} "${CMAKE_CURRENT_SOURCE_DIR}/golden-render/frame-determinism.sh"
     WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
   set_tests_properties(test_frame_determinism PROPERTIES
     SKIP_RETURN_CODE 77
@@ -606,7 +618,7 @@ if(SCORE_HAS_SHELL_HARNESS)
     file(STRINGS "${_gr_cases_file}" _gr_cases REGEX "^[A-Za-z0-9_-]+$")
     foreach(_gr_case ${_gr_cases})
       add_test(NAME test_golden_render_${_gr_name}.${_gr_case}
-        COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/golden-render/golden-render.sh"
+        COMMAND ${_display_wrapper} "${CMAKE_CURRENT_SOURCE_DIR}/golden-render/golden-render.sh"
                 --backend ${_gr_backend} --cases ${_gr_case}
         WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
       set_tests_properties(test_golden_render_${_gr_name}.${_gr_case} PROPERTIES
@@ -796,7 +808,7 @@ foreach(sweep object_render_sweep:render-sweep.sh object_csf_sweep:csf-sweep.sh)
   list(GET _s 0 _sweep_name)
   list(GET _s 1 _sweep_script)
   add_test(NAME test_integration_${_sweep_name}
-    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/${_sweep_script}"
+    COMMAND ${_display_wrapper} "${CMAKE_CURRENT_SOURCE_DIR}/${_sweep_script}"
     WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
   set_tests_properties(test_integration_${_sweep_name} PROPERTIES
     SKIP_RETURN_CODE 77
@@ -843,7 +855,7 @@ if(SCORE_HAS_SHELL_HARNESS)
                    transport-storm mixed-chaos window-storm scene-storm
                    camera-storm ndi-storm)
     add_test(NAME test_live_edit.${_le_scen}
-      COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/live-edit-sweep.sh" ${_le_scen}
+      COMMAND ${_display_wrapper} "${CMAKE_CURRENT_SOURCE_DIR}/live-edit-sweep.sh" ${_le_scen}
       WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
     set_tests_properties(test_live_edit.${_le_scen} PROPERTIES
       SKIP_RETURN_CODE 77
@@ -882,7 +894,7 @@ endif()
 # Deterministic-headless -> CI-able. Self-serializes on /tmp/score-harness.lock.
 if(SCORE_HAS_SHELL_HARNESS)
   add_test(NAME test_gfx_soak
-    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/gfx-soak/soak-leak.sh" 150
+    COMMAND ${_display_wrapper} "${CMAKE_CURRENT_SOURCE_DIR}/gfx-soak/soak-leak.sh" 150
     WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
   set_tests_properties(test_gfx_soak PROPERTIES
     SKIP_RETURN_CODE 77
@@ -899,7 +911,7 @@ endif()
 # Deterministic-headless -> CI-able. Self-serializes on /tmp/score-harness.lock.
 if(SCORE_HAS_SHELL_HARNESS)
   add_test(NAME test_timeline_scenario_ramp
-    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/timeline-scenarios/timeline-scenario.sh"
+    COMMAND ${_display_wrapper} "${CMAKE_CURRENT_SOURCE_DIR}/timeline-scenarios/timeline-scenario.sh"
     WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
   set_tests_properties(test_timeline_scenario_ramp PROPERTIES
     SKIP_RETURN_CODE 77
@@ -928,7 +940,7 @@ endif()
 # Self-serializes on /tmp/score-harness.lock; SKIPs (77) without deps.
 if(SCORE_HAS_SHELL_HARNESS)
   add_test(NAME test_text_render
-    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/text-render/text-render.sh"
+    COMMAND ${_display_wrapper} "${CMAKE_CURRENT_SOURCE_DIR}/text-render/text-render.sh"
     WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
   set_tests_properties(test_text_render PROPERTIES
     SKIP_RETURN_CODE 77
@@ -947,7 +959,7 @@ endif()
 # The script serializes itself on /tmp/score-harness.lock (global OSC port).
 if(SCORE_HAS_SHELL_HARNESS)
   add_test(NAME test_regression_offscreen_teardown
-    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/offscreen-teardown-regression.sh"
+    COMMAND ${_display_wrapper} "${CMAKE_CURRENT_SOURCE_DIR}/offscreen-teardown-regression.sh"
     WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
   set_tests_properties(test_regression_offscreen_teardown PROPERTIES
     SKIP_RETURN_CODE 77
@@ -969,7 +981,7 @@ endif()
 # on /tmp/score-harness.lock.
 if(SCORE_VIDEO_TESTER)
   add_test(NAME test_video_decode_correctness
-    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/video-decode-correctness.sh"
+    COMMAND ${_display_wrapper} "${CMAKE_CURRENT_SOURCE_DIR}/video-decode-correctness.sh"
     WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
   set_tests_properties(test_video_decode_correctness PROPERTIES
     SKIP_RETURN_CODE 77
@@ -1011,3 +1023,17 @@ score_add_test(test_integration_port_value_restore
   SOURCES PortValueRestoreTest.cpp
   GUI
   PLUGINS score_plugin_scenario score_lib_process score_plugin_media)
+
+# The shell harnesses register themselves with add_test() rather than through
+# score_add_test(), so they get none of its environment. Each starts a score
+# process that can be killed mid-document, which leaves the document in the
+# crash-recovery list the developer's next real session offers to restore: give
+# them a temp directory of their own so that list is not the one score reads.
+get_property(_integration_tests DIRECTORY PROPERTY TESTS)
+get_property(_score_registered GLOBAL PROPERTY SCORE_TEST_TARGET_REGISTRY)
+foreach(_t ${_integration_tests})
+  if(NOT "${_t}" IN_LIST _score_registered)
+    set_property(TEST ${_t} APPEND PROPERTY
+      ENVIRONMENT_MODIFICATION ${SCORE_TEST_HARNESS_ENVIRONMENT})
+  endif()
+endforeach()

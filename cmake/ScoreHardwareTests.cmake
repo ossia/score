@@ -182,13 +182,16 @@ function(score_add_media_test)
   # SCORE_MEDIA_TEST_WRAPPER is with-virtual-media.sh. ctest cannot exec a .sh
   # directly on Windows. msys2 supplies bash, ffmpeg and the GStreamer stack,
   # so the harnesses run once they are invoked through it.
+  # These harnesses open real windows, so keep them off the developer's session
+  # the same way score_add_test(GUI) does.
+  score_test_display_wrapper(_display_wrapper)
   if(SCORE_MEDIA_TEST_SHELL)
     add_test(NAME ${ARG_NAME}
-      COMMAND "${SCORE_MEDIA_TEST_SHELL}" "${SCORE_MEDIA_TEST_WRAPPER}"
+      COMMAND ${_display_wrapper} "${SCORE_MEDIA_TEST_SHELL}" "${SCORE_MEDIA_TEST_WRAPPER}"
               ${_flags} -- "${_exe}" ${ARG_ARGS})
   elseif(SCORE_HAS_SHELL_HARNESS)
     add_test(NAME ${ARG_NAME}
-      COMMAND "${SCORE_MEDIA_TEST_WRAPPER}" ${_flags} -- "${_exe}" ${ARG_ARGS})
+      COMMAND ${_display_wrapper} "${SCORE_MEDIA_TEST_WRAPPER}" ${_flags} -- "${_exe}" ${ARG_ARGS})
   else()
     # No shell at all: registering it would report BAD_COMMAND, which reads as a
     # failure of the test rather than of the machine.
@@ -201,6 +204,9 @@ function(score_add_media_test)
     RUN_SERIAL TRUE
     WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}"
     ENVIRONMENT "SCORE_AUDIO_BACKEND=dummy;SCORE_DISABLE_AUDIOPLUGINS=1")
+
+  set_property(TEST ${ARG_NAME} APPEND PROPERTY
+    ENVIRONMENT_MODIFICATION ${SCORE_TEST_HARNESS_ENVIRONMENT})
 
   # Only an explicitly OPTIONAL test may skip; everything else must run.
   if(ARG_OPTIONAL)
