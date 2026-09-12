@@ -5,6 +5,7 @@
 #include <Gris/SpeakerSetupInlet.hpp>
 
 #include <Process/Dataflow/PortFactory.hpp>
+#include <Process/Dataflow/WidgetInlets.hpp>
 #include <Process/GenericProcessFactory.hpp>
 
 #include <Control/DefaultEffectItem.hpp>
@@ -27,7 +28,8 @@ std::vector<score::InterfaceBase*> score_plugin_gris::factories(
       FW<Process::LayerFactory,
          Process::EffectLayerFactory_T<Gris::SpatModel, Process::DefaultEffectItem>>,
       FW<Process::PortFactory,
-         Process::PortFactory_T<Gris::SpeakerSetupInlet, WidgetFactory::SpeakerSetupWidget>>,
+         Dataflow::WidgetInletFactory<
+             Gris::SpeakerSetupInlet, WidgetFactory::SpeakerSetupWidget>>,
       FW<Execution::ProcessComponentFactory, Gris::ExecutorFactory>>(ctx, key);
 }
 

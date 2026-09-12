@@ -12,6 +12,19 @@
 
 namespace Gris
 {
+namespace
+{
+/** The most recent value a control port received this tick, or null when it
+ *  received none. */
+[[nodiscard]] ossia::value const* lastValue(ossia::value_inlet const& inlet) noexcept
+{
+  auto const& data = inlet.data.get_data();
+  if(data.empty())
+    return nullptr;
+  return &data.back().value;
+}
+} // namespace
+
 /** The execution node.
  *
  * Inlet order mirrors SpatModel's: audio, speaker setup, interpolation, source
@@ -122,7 +135,7 @@ private:
   {
     // Speaker setup: only reparsed when the serialised form actually changed,
     // since rebuilding both algorithms allocates.
-    if(auto* v = setup_in.data.get_first(); v && v->valid())
+    if(auto const* v = lastValue(setup_in))
     {
       auto str = ossia::convert<std::string>(*v);
       if(str != m_setupXml)
@@ -133,15 +146,14 @@ private:
       }
     }
 
-    if(auto* v = interp_in.data.get_first(); v && v->valid())
+    if(auto const* v = lastValue(interp_in))
       m_interpolation = std::clamp(ossia::convert<float>(*v), 0.f, 1.f);
 
     for(int source = 0; source < m_sourceCount; ++source)
     {
       auto const base = std::size_t(source) * SpatModel::SourceInletCount;
 
-      if(auto* v = m_sourcePorts[base + SpatModel::Position].data.get_first();
-         v && v->valid())
+      if(auto const* v = lastValue(m_sourcePorts[base + SpatModel::Position]))
       {
         auto const vec = ossia::convert<ossia::vec3f>(*v);
         m_spat.setSourcePosition(
@@ -151,14 +163,12 @@ private:
       float azimuthSpan{m_spans[std::size_t(source)].first};
       float zenithSpan{m_spans[std::size_t(source)].second};
       bool spansChanged{};
-      if(auto* v = m_sourcePorts[base + SpatModel::AzimuthSpan].data.get_first();
-         v && v->valid())
+      if(auto const* v = lastValue(m_sourcePorts[base + SpatModel::AzimuthSpan]))
       {
         azimuthSpan = ossia::convert<float>(*v);
         spansChanged = true;
       }
-      if(auto* v = m_sourcePorts[base + SpatModel::ZenithSpan].data.get_first();
-         v && v->valid())
+      if(auto const* v = lastValue(m_sourcePorts[base + SpatModel::ZenithSpan]))
       {
         zenithSpan = ossia::convert<float>(*v);
         spansChanged = true;
@@ -169,8 +179,7 @@ private:
         m_spat.setSourceSpans(std::size_t(source), azimuthSpan, zenithSpan);
       }
 
-      if(auto* v = m_sourcePorts[base + SpatModel::Mode].data.get_first();
-         v && v->valid())
+      if(auto const* v = lastValue(m_sourcePorts[base + SpatModel::Mode]))
       {
         auto const mode = ossia::convert<std::string>(*v);
         m_spat.setSourceMode(
