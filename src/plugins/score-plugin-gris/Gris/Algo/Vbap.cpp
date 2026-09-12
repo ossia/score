@@ -67,6 +67,14 @@ static void computeGains(std::vector<SpeakerSet> & sets,
                          Position const & position,
                          std::size_t const dim) noexcept
 {
+    // SpatGRIS indexes `sets` through juce::Array::operator[], which returns a
+    // default-constructed element when out of range; std::vector does not, so
+    // the empty case (a setup with no usable triplet or pair) is handled here.
+    if (sets.empty()) {
+        gains.fill(0.0f);
+        return;
+    }
+
     float vec[3]{};
     /* Direction of the virtual source in cartesian coordinates. */
     vec[0] = position.getCartesian().x;
@@ -96,16 +104,16 @@ static void computeGains(std::vector<SpeakerSet> & sets,
     int j{};
     auto tmp = sets[0].smallestWt;
     auto tmp2 = sets[0].negGAm;
-    for (auto i{ 1 }; i < sets.size(); ++i) {
+    for (std::size_t i{ 1 }; i < sets.size(); ++i) {
         if (sets[i].negGAm < tmp2) {
             tmp = sets[i].smallestWt;
             tmp2 = sets[i].negGAm;
-            j = i;
+            j = narrow<int>(i);
         } else if (sets[i].negGAm == tmp2) {
             if (sets[i].smallestWt > tmp) {
                 tmp = sets[i].smallestWt;
                 tmp2 = sets[i].negGAm;
-                j = i;
+                j = narrow<int>(i);
             }
         }
     }

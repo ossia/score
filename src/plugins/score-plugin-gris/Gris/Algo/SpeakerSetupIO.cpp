@@ -64,11 +64,15 @@ constexpr auto MAIN_GROUP_NAME = "Main Speaker Group";
   return value == QStringLiteral("1") || value.compare(QStringLiteral("true"), Qt::CaseInsensitive) == 0;
 }
 
-/** The v4 format stores a position as the "x, y, z" string that
+/** The v4 format stores a position as the "(x, y, z)" string that
  *  juce::VariantConverter<Position> produces. */
 [[nodiscard]] std::optional<CartesianVector> parseCartesianString(QStringView str) noexcept
 {
-  auto const parts = str.toString().split(QLatin1Char(','), Qt::SkipEmptyParts);
+  auto trimmed = str.toString().trimmed();
+  if(trimmed.startsWith(QLatin1Char('(')) && trimmed.endsWith(QLatin1Char(')')))
+    trimmed = trimmed.mid(1, trimmed.size() - 2);
+
+  auto const parts = trimmed.split(QLatin1Char(','), Qt::SkipEmptyParts);
   if(parts.size() != 3)
     return std::nullopt;
 
@@ -83,7 +87,7 @@ constexpr auto MAIN_GROUP_NAME = "Main Speaker Group";
 
 [[nodiscard]] QString cartesianToString(CartesianVector const& v)
 {
-  return QStringLiteral("%1, %2, %3")
+  return QStringLiteral("(%1, %2, %3)")
       .arg(v.x, 0, 'g', 9)
       .arg(v.y, 0, 'g', 9)
       .arg(v.z, 0, 'g', 9);
@@ -225,7 +229,12 @@ constexpr auto MAIN_GROUP_NAME = "Main Speaker Group";
 //==============================================================================
 // 3. current v4: <SPEAKER_SETUP> with nested <SPEAKER_GROUP>/<SPEAKER>
 //==============================================================================
-void readValueTreeGroup(QXmlStreamReader& xml, SpeakerSetup& setup)
+/** Groups nest. A speaker's absolute position is its parent group's transform
+ *  applied to its stored one -- StructGRIS only ever looks at the immediate
+ *  parent, so the group's own yaw/pitch/roll is left for flattened() to apply
+ *  and only the ancestors' placement is folded in here. */
+void readValueTreeGroup(
+    QXmlStreamReader& xml, SpeakerSetup& setup, CartesianVector const& parentOrigin)
 {
   SpeakerGroup group;
   auto const attrs = xml.attributes();
@@ -235,6 +244,7 @@ void readValueTreeGroup(QXmlStreamReader& xml, SpeakerSetup& setup)
   group.roll = degrees_t{attrFloat(attrs, QLatin1String(VT_ROLL))};
   if(auto const pos = parseCartesianString(attrs.value(QLatin1String(VT_CARTESIAN))))
     group.position = *pos;
+  group.position = group.position + parentOrigin;
 
   while(!xml.atEnd())
   {
@@ -260,9 +270,7 @@ void readValueTreeGroup(QXmlStreamReader& xml, SpeakerSetup& setup)
     }
     else if(xml.name() == QLatin1String(VT_GROUP))
     {
-      // Nested groups are flattened one level at a time: the child group keeps
-      // its own transform, which is what StructGRIS does when it walks the tree.
-      readValueTreeGroup(xml, setup);
+      readValueTreeGroup(xml, setup, group.position);
     }
   }
 
@@ -289,7 +297,7 @@ void readValueTreeGroup(QXmlStreamReader& xml, SpeakerSetup& setup)
     if(token == QXmlStreamReader::EndElement && xml.name() == QLatin1String(LEGACY_ROOT))
       break;
     if(token == QXmlStreamReader::StartElement && xml.name() == QLatin1String(VT_GROUP))
-      readValueTreeGroup(xml, setup);
+      readValueTreeGroup(xml, setup, CartesianVector{});
   }
 
   result.setup = std::move(setup);
