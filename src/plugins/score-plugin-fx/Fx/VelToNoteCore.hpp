@@ -64,6 +64,16 @@ decode_pair(double pitch, double velocity, bool normalized_velocity) noexcept
   return DecodedNote{static_cast<std::uint8_t>(*p), static_cast<std::uint8_t>(iv)};
 }
 
+// A duration bound in whichever unit the chooser was in. Zero disables it.
+// Each bound carries its own unit because the two choosers sync independently.
+struct Bound
+{
+  double value{};
+  DurationUnit unit{DurationUnit::quarters};
+
+  friend bool operator==(const Bound&, const Bound&) = default;
+};
+
 struct Settings
 {
   // The score selectors contain fractions of a whole note, NOT rates.
@@ -72,6 +82,12 @@ struct Settings
   double start_quant{0.25};
   double tightness{1.};
   double end_quant{0.25}; // > 0: grid; == 0: one sample; < 0: explicit release.
+  // Quantized mode only: a floor and a ceiling on how long a note may hold.
+  // The floor extends to the first grid point at or after it, so a bounded
+  // note still lands on the grid. The ceiling clamps exactly -- snapping back
+  // to the previous grid point can land before the note started.
+  Bound min_duration{};
+  Bound max_duration{};
   EndMode end_mode{EndMode::quantized};
   DurationUnit duration_unit{DurationUnit::model_seconds};
   double duration{}; // Already converted to the unit above by the host adapter.
@@ -139,6 +155,8 @@ inline Settings sanitize(Settings s) noexcept
   s.end_quant
       = std::isfinite(s.end_quant) && s.end_quant < 0. ? -1. : quant(s.end_quant);
   s.duration = finite_clamp(s.duration, 0., 86400., 0.);
+  s.min_duration.value = finite_clamp(s.min_duration.value, 0., 86400., 0.);
+  s.max_duration.value = finite_clamp(s.max_duration.value, 0., 86400., 0.);
   s.channel = std::clamp(s.channel, 1, 16);
   s.pitch_shift = std::clamp(s.pitch_shift, -127, 127);
   s.pitch_random = std::clamp(s.pitch_random, 0, 127);
@@ -303,7 +321,12 @@ class Engine
     frame_t arrival_frame{}, not_before{};
     std::int64_t model_anchor{}; // end_target is relative to this for model durations.
     position_t arrival_quarter{}, start_target{}, end_target{};
+    // Where the note actually began, and its bounds resolved into quarters.
+    // Both are fixed when the note starts: a bound asked for in seconds must
+    // not move later because the tempo did.
+    position_t activation_quarter{}, min_quarters{}, max_quarters{};
     double start_quant{}, tightness{}, end_quant{}, duration{};
+    Bound min_duration{}, max_duration{};
     int direction{};
     int due{}; // Slice-local deadline; Block::frames means not in this slice.
   };
@@ -479,7 +502,9 @@ public:
         set_start_target(v, grid, b, qd);
       if(v.state == State::active && v.end_kind == EndKind::grid && meter_changed && qd
          && qd * (v.end_target - b.quarters_begin) > 0.L)
-        v.end_target = grid.next(b.quarters_begin, v.end_quant, qd);
+        v.end_target = clamp_grid_end(
+            v, v.activation_quarter, grid.next(b.quarters_begin, v.end_quant, qd),
+            grid);
       if(v.state != State::free)
         v.due = deadline(v, b, grid);
     }
@@ -630,6 +655,47 @@ private:
   {
     return at(b.quarters_begin, b.quarters_end, f, b.frames);
   }
+  // A bound in quarters, or zero when it is disabled or cannot be resolved.
+  // A seconds bound needs a tempo, and the slice is the only place one is
+  // known; a slice that advances no musical time cannot supply it, so the
+  // bound is dropped rather than guessed.
+  static position_t resolve_bound(const Bound& bound, const Block& b) noexcept
+  {
+    if(!(bound.value > 0.))
+      return 0.L;
+    if(bound.unit == DurationUnit::quarters)
+      return position_t(bound.value);
+    const auto seconds
+        = std::abs(model_delta(b.model_end, b.model_begin)) / flicks_per_second;
+    const auto quarters = std::abs(position_t(b.quarters_end) - position_t(b.quarters_begin));
+    if(!(seconds > 0.L) || !(quarters > 0.L))
+      return 0.L;
+    return position_t(bound.value) * (quarters / seconds);
+  }
+  // Apply the quantized-mode bounds to a grid deadline. `from` is where the
+  // note began. Order matters: the floor moves the target out to a grid point,
+  // then the ceiling caps it, so a ceiling below the floor yields exactly the
+  // floor rather than cancelling the note.
+  static position_t clamp_grid_end(
+      const Voice& v, position_t from, position_t target, const Grid& grid) noexcept
+  {
+    const int dir = v.direction;
+    if(dir == 0)
+      return target;
+    if(v.min_quarters > 0.L)
+    {
+      const auto floor_at = from + dir * v.min_quarters;
+      if(dir * (floor_at - target) > 0.L)
+        target = grid.next(floor_at, v.end_quant, dir);
+    }
+    if(v.max_quarters > 0.L)
+    {
+      const auto ceil_at = from + dir * std::max(v.max_quarters, v.min_quarters);
+      if(dir * (target - ceil_at) > 0.L)
+        target = ceil_at;
+    }
+    return target;
+  }
   // Cast AFTER unsigned subtraction. This handles the complete int64 range
   // without signed overflow or losing small deltas at a large model origin on
   // platforms where long double has only double precision (notably MSVC).
@@ -764,6 +830,8 @@ private:
     v.tightness = s.tightness;
     v.end_quant = s.end_quant;
     v.duration = s.duration;
+    v.min_duration = s.min_duration;
+    v.max_duration = s.max_duration;
     v.end_kind
         = s.end_mode == EndMode::duration
               ? (s.duration == 0.                                 ? EndKind::sample
@@ -799,7 +867,14 @@ private:
     else if(v.end_kind == EndKind::musical)
       v.end_target = quarter_at(b, frame) + v.direction * v.duration;
     else if(v.end_kind == EndKind::grid)
-      v.end_target = grid.next(quarter_at(b, frame), v.end_quant, v.direction, true);
+    {
+      v.activation_quarter = quarter_at(b, frame);
+      v.min_quarters = resolve_bound(v.min_duration, b);
+      v.max_quarters = resolve_bound(v.max_duration, b);
+      v.end_target = clamp_grid_end(
+          v, v.activation_quarter,
+          grid.next(v.activation_quarter, v.end_quant, v.direction, true), grid);
+    }
     v.due = deadline(v, b, grid);
     return true;
   }

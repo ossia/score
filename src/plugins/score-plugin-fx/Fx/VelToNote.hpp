@@ -110,6 +110,20 @@ inline double canonical_quarters(double q) noexcept
   return q;
 }
 
+// One duration bound off its own chooser. Each bound syncs independently, so
+// each carries its own unit. A synchronized chooser with no usable tempo
+// yields no bound rather than a wrong one.
+inline Bound bound_from_time_chooser(double value, bool sync, double tempo) noexcept
+{
+  if(!std::isfinite(value) || value <= 0.)
+    return {};
+  if(!sync)
+    return {value, DurationUnit::model_seconds};
+  if(!(std::isfinite(tempo) && tempo > 0.))
+    return {};
+  return {canonical_quarters(value * tempo / 60.), DurationUnit::quarters};
+}
+
 // The ossia binding passes free values through. In synchronized mode it gives
 // q * 60 / tempo, where q is the selected quarter-note duration. Recover q ONCE.
 inline Settings
@@ -145,6 +159,8 @@ struct Node
       "[pitch, integer velocity]: MIDI velocity; float velocity: normalized 0..1. "
       "Zero velocity releases owned notes for that source pitch. "
       "Starts may be quantized; ends use a grid or a duration. "
+      "In quantized mode, min duration extends to the next grid point and "
+      "max duration caps the hold exactly. "
       "Tightness blends from immediate (0) to the next grid point (1).")
 
   struct
@@ -163,6 +179,9 @@ struct Node
     halp::toggle<"Fixed duration"> fixed_duration;
     halp::time_chooser<"Duration", halp::range{0., 10., 0.}> duration;
     halp::enum_t<detail::PitchDirection, "Pitch direction"> pitch_direction;
+    // Quantized mode only; zero disables. Appended, like the rest.
+    halp::time_chooser<"Min duration", halp::range{0., 10., 0.}> min_duration;
+    halp::time_chooser<"Max duration", halp::range{0., 10., 0.}> max_duration;
   } inputs;
   struct
   {
@@ -313,6 +332,10 @@ struct Node
         .pitch_random = inputs.note_random.value,
         .velocity_random = inputs.vel_random.value,
         .pitch_direction = inputs.pitch_direction.value};
+    settings.min_duration = detail::bound_from_time_chooser(
+        inputs.min_duration.value, inputs.min_duration.sync, tk.tempo);
+    settings.max_duration = detail::bound_from_time_chooser(
+        inputs.max_duration.value, inputs.max_duration.sync, tk.tempo);
     settings = detail::settings_from_time_chooser(
         settings, inputs.duration.value, inputs.duration.sync, tk.tempo);
     auto sink = [this](const detail::MidiEvent& e) noexcept { emit(e); };
