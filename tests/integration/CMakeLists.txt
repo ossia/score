@@ -533,6 +533,11 @@ score_add_test(test_integration_lost_mouse_grab
   GUI
   PLUGINS score_plugin_scenario score_lib_process score_plugin_fx)
 
+score_add_test(test_integration_interval_brace_drag
+  SOURCES IntervalBraceDragTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process)
+
 # Fold state lives on the process so that it survives save/reload and follows a
 # preset dropped onto an open node.
 score_add_test(test_integration_process_fold_mode
