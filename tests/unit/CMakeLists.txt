@@ -138,6 +138,10 @@ if(TARGET score_addon_synthimi)
   endif()
 endif()
 
+# A file control clicked twice used to open two dialogs, one after the other.
+score_add_test(test_unit_file_picker_reentrancy
+  SOURCES FilePickerReentrancyTest.cpp)
+
 # The one right-click type-in box: two of them used to stay up, and taking one
 # down twice was a double free.
 score_add_test(test_unit_right_click_widget
