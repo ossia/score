@@ -551,22 +551,22 @@ RenderResult renderScene(const QTemporaryDir& dir, const QString& name,
 
   // Let the graph build and the async loaders land, then grab (twice: the
   // first grab also warms the readback path), then ask the app to leave.
-  QThread::sleep(9);
+  QThread::msleep(3000);
   oscSend("/script",
           QStringLiteral("Score.device('Window').grabTo('%1')").arg(png));
-  QThread::sleep(3);
+  QThread::msleep(1000);
   oscSend("/script",
           QStringLiteral("Score.device('Window').grabTo('%1')").arg(png));
   // Extra spaced grabs for time-animated cases whose content roams the frame.
   for(int k = 0; k < extraGrabs; k++)
   {
-    QThread::sleep(2);
+    QThread::msleep(667);
     oscSend(
         "/script", QStringLiteral("Score.device('Window').grabTo('%1.%2.png')")
                        .arg(png)
                        .arg(k));
   }
-  QThread::sleep(2);
+  QThread::msleep(667);
   oscSend("/exit", "force");
   // Teardown SIGSEGV after the grab is a known, documented nuisance
   // (scene-js-sweep.sh header); the PNG is the verdict, not the exit code.
