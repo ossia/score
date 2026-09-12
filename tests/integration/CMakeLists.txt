@@ -1001,3 +1001,8 @@ set_tests_properties(test_integration_threedim_render PROPERTIES
     "${CMAKE_CURRENT_BINARY_DIR}/golden-artifacts/threedim-render"
   REQUIRED_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/threedim-render/fetch-real-assets.sh")
+
+score_add_test(test_integration_port_value_restore
+  SOURCES PortValueRestoreTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process score_plugin_media)
