@@ -245,6 +245,21 @@ struct DRMPrimeDecoder : GPUVideoDecoder
     && defined(VK_KHR_external_memory_fd)
     if(m_backend == Backend::Vulkan)
     {
+      const bool scratch_held = std::any_of(
+          std::begin(m_vk_scratch), std::end(m_vk_scratch), [](const VkScratch& s) {
+        return std::any_of(
+            std::begin(s.planes), std::end(s.planes),
+            [](const DMABufPlaneImporter::PlaneImport& p) {
+          return p.image != VK_NULL_HANDLE;
+        });
+      });
+      // Nothing to free means nothing to wait for. The destructor calls this
+      // after release() already emptied it, and by then the device is being
+      // torn down: waiting on it there is not just wasted, it is a call the
+      // validation layer rejects.
+      if(m_vk_imports.empty() && !scratch_held)
+        return;
+
       // The GPU may still be reading the frames that sampled these.
       m_vk_importer.waitIdle();
       for(auto& [k, pl] : m_vk_imports)
