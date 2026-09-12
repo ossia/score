@@ -545,6 +545,13 @@ TEST_CASE(
   if(!ready())
     SKIP("needs the score binary, the gfx corpus, ffmpeg and a display");
 
+  // The verdict is that the geometry leg advances at the decoder's rate. On a
+  // software rasteriser it cannot: the render takes three times as long and
+  // the geometry leg falls ten frames behind a decoder that does not slow down
+  // with it. That is a property of llvmpipe, not of the code under test.
+  if(qEnvironmentVariableIsSet("SCORE_TESTS_SOFTWARE_GL"))
+    SKIP("the geometry leg cannot keep the decoder's rate on software OpenGL");
+
   QTemporaryDir dir;
   REQUIRE(dir.isValid());
   if(qEnvironmentVariableIsSet("SCORE_TEST_KEEP_ARTIFACTS"))

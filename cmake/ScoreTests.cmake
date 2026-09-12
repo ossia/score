@@ -8,6 +8,7 @@
 #     PLUGINS   score_lib_state          # extra score libs/plugins to link
 #     APP                                # needs the full headless app (run from build root)
 #     GUI                                # needs a GUI QApplication (links Qt Widgets/Gui)
+#                                      # and a display: runs under a private Xvfb
 #     STANDALONE                         # do not link score_lib_base, only use its headers
 #     NO_CTEST                           # build the executable, register it elsewhere
 #     LIBS      some_other_lib)          # arbitrary extra link libraries
@@ -39,6 +40,60 @@ if(WIN32)
 else()
   set(SCORE_HAS_SHELL_HARNESS 1 CACHE INTERNAL "shell harnesses are runnable")
 endif()
+
+# A GUI test maps real windows. Left on the developer's display they flash over
+# their session, take focus, and -- for the ones that drive input -- grab the
+# pointer and the keyboard. Run them against a throwaway X server instead.
+#
+# Vulkan is unaffected: its ICD enumerates devices without the X server, so the
+# GPU tests still run on real hardware. OpenGL drops to llvmpipe.
+find_program(SCORE_XVFB_EXECUTABLE Xvfb)
+if(UNIX AND NOT APPLE AND NOT EMSCRIPTEN AND SCORE_XVFB_EXECUTABLE)
+  set(_score_xvfb_default ON)
+else()
+  set(_score_xvfb_default OFF)
+endif()
+option(SCORE_TESTS_XVFB
+  "Run tests that need a display against a private Xvfb" ${_score_xvfb_default})
+
+# Prefix that puts a ctest COMMAND behind that private X server, or nothing when
+# the feature is off. For score_add_test(GUI) below and for the handful of shell
+# harnesses in tests/integration that register themselves.
+function(score_test_display_wrapper OUT)
+  if(SCORE_TESTS_XVFB)
+    set(${OUT} "${SCORE_ROOT_SOURCE_DIR}/tests/tools/run-with-display.sh" PARENT_SCOPE)
+  else()
+    set(${OUT} "" PARENT_SCOPE)
+  endif()
+endfunction()
+
+# The identity a test process runs under. The application name decides the
+# QSettings file, the standard paths and -- see score::OpenDocumentsFile -- the
+# crash-recovery list the start screen offers to restore, so a test that leaves
+# a document open does not put it in front of the developer at their next real
+# start. Same pair of variables that lets two people share one machine; see
+# setQApplicationMetadata().
+#
+# On the ctest entry as well as in the C++ fixture, so a test that spawns a
+# score process of its own hands the name down to it.
+# TMPDIR alongside the name because the crash-recovery list lives in the temp
+# directory: a child that loses one of the two is still isolated by the other.
+set(SCORE_TEST_ENVIRONMENT
+  "SCORE_CUSTOM_APP_APPLICATION_NAME=set:score-test"
+  "XDG_CONFIG_HOME=set:${SCORE_ROOT_BINARY_DIR}/test-home/config"
+  "TMPDIR=set:${SCORE_ROOT_BINARY_DIR}/test-home/tmp"
+  CACHE INTERNAL "hermetic identity for test processes")
+file(MAKE_DIRECTORY "${SCORE_ROOT_BINARY_DIR}/test-home/config")
+
+# The shell harnesses cannot take that name: each writes its own score.conf and
+# runs the real binary against it, and under another name score would read a
+# file that is not there. Isolate the one thing that reaches the developer
+# instead -- the crash-recovery list lives in the temp directory, and a harness
+# that kills score leaves entries in it.
+set(SCORE_TEST_HARNESS_ENVIRONMENT
+  "TMPDIR=set:${SCORE_ROOT_BINARY_DIR}/test-home/tmp"
+  CACHE INTERNAL "temp isolation for harnesses that spawn score")
+file(MAKE_DIRECTORY "${SCORE_ROOT_BINARY_DIR}/test-home/tmp")
 
 # Make the Catch2 target (Catch2::Catch2WithMain) available. Catch2 is vendored
 # inside libossia's 3rdparty tree; we add it ourselves (rather than relying on
@@ -168,13 +223,16 @@ function(score_add_test NAME)
   # A test that exercises code which deletes or overwrites media files runs
   # with the filesystem read-only apart from /tmp, so a bug in it cannot reach
   # anything of the developer's. See tests/tools/sandboxed-test.sh.
+  set(_cmd "$<TARGET_FILE:${NAME}>")
   if(ARG_SANDBOXED AND UNIX AND NOT APPLE AND NOT EMSCRIPTEN)
-    add_test(NAME ${NAME}
-      COMMAND "${SCORE_ROOT_SOURCE_DIR}/tests/tools/sandboxed-test.sh"
-              "$<TARGET_FILE:${NAME}>")
-  else()
-    add_test(NAME ${NAME} COMMAND ${NAME})
+    set(_cmd "${SCORE_ROOT_SOURCE_DIR}/tests/tools/sandboxed-test.sh" ${_cmd})
   endif()
+  # Outermost: the X server belongs to the test, not to the sandbox it runs in.
+  if(ARG_GUI)
+    score_test_display_wrapper(_display_wrapper)
+    set(_cmd ${_display_wrapper} ${_cmd})
+  endif()
+  add_test(NAME ${NAME} COMMAND ${_cmd})
 
   # Record the target this ctest entry actually runs, so the registration guard
   # can check association instead of guessing it from names. See
@@ -186,6 +244,9 @@ function(score_add_test NAME)
   # precondition is absent -- no display, no shader library, no capture device --
   # is not a defect, and counting it as one silently inflates the failure count.
   set_tests_properties(${NAME} PROPERTIES SKIP_RETURN_CODE 4)
+
+  set_property(TEST ${NAME} APPEND PROPERTY
+    ENVIRONMENT_MODIFICATION ${SCORE_TEST_ENVIRONMENT})
 
   # Sanitizer builds: hand every test the suppression file. ENVIRONMENT_MODIFICATION
   # rather than ENVIRONMENT so this does not fight the ENVIRONMENT values set
@@ -217,8 +278,9 @@ function(score_add_test NAME)
     set_tests_properties(${NAME} PROPERTIES
       ENVIRONMENT "QT_QPA_PLATFORM=offscreen;SCORE_AUDIO_BACKEND=dummy;SCORE_DISABLE_AUDIOPLUGINS=1")
   elseif(ARG_GUI)
-    # GUI tests need a real display (X11 locally, Xvfb in CI): do NOT force
-    # offscreen. Labelled "gui" so CI can gate them behind a display.
+    # GUI tests need a real X server -- the private one from
+    # score_test_display_wrapper() -- so do NOT force offscreen. Labelled "gui"
+    # so CI can gate them behind a display.
     set_tests_properties(${NAME} PROPERTIES
       ENVIRONMENT "SCORE_AUDIO_BACKEND=dummy;SCORE_DISABLE_AUDIOPLUGINS=1"
       LABELS "gui")
