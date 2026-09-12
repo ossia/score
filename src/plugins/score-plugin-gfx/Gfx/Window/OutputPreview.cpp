@@ -109,9 +109,15 @@ static void setGammaGradientStops(QLinearGradient& grad, float gamma)
 }
 
 static void paintBlendGradients(
-    QPainter& p, const QRect& r, const EdgeBlend& left, const EdgeBlend& right,
+    QPainter& p, const QRect& rect, const EdgeBlend& left, const EdgeBlend& right,
     const EdgeBlend& top, const EdgeBlend& bottom)
 {
+  // QRectF, deliberately. QRect::right() and bottom() are the LAST pixel, not
+  // the edge past it, so a gradient anchored on them stopped one pixel short
+  // and left the final column and row of the quad unshaded -- the one-pixel
+  // fully lit fringe along a blended border. QRectF's right() and bottom() are
+  // the exclusive edges and give the whole span.
+  const QRectF r = rect;
   p.setPen(Qt::NoPen);
 
   if(left.width > 0.f)

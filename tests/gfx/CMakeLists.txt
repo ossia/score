@@ -1307,3 +1307,9 @@ if(TARGET score_plugin_threedim AND TARGET test_unit_threedim_3rdparty)
     $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
+
+# The panel's edge-blend overlay is a QPainter gradient, and stopped one pixel
+# short of the quad's right and bottom edges.
+score_add_test(test_gfx_blend_preview_fringe
+  SOURCES BlendPreviewFringe.cpp
+  GUI)
