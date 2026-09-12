@@ -484,3 +484,112 @@ TEST_CASE(
   REQUIRE(out == std::vector<MidiEvent>{{0, 0, 60, 100, true}, {2, 0, 60, 0, false}});
   REQUIRE(engine.statistics().dropped_triggers == 1);
 }
+
+// Quantized mode only. The grid here is one quarter, and the test blocks run
+// ten frames to the quarter, so a grid deadline lands on a multiple of ten and
+// a clamped one does not have to.
+TEST_CASE("VelToNote quantized minimum extends to the next grid point", "[nodes][veltonote]")
+{
+  const auto run = [](Bound lo, Bound hi) {
+    Engine<2, 2> engine;
+    Settings s{.start_quant = 0., .end_quant = 0.25, .min_duration = lo, .max_duration = hi};
+    std::vector<MidiEvent> out;
+    engine.push(0, {60, 100});
+    engine.process(
+        block(0, 40, 0., 4., 0, 28224000), s, [&](MidiEvent e) { out.push_back(e); });
+    return out;
+  };
+
+  SECTION("unbounded ends at the first grid point")
+  {
+    REQUIRE(
+        run({}, {})
+        == std::vector<MidiEvent>{{0, 0, 60, 100, true}, {10, 0, 60, 0, false}});
+  }
+  SECTION("a minimum past that grid point moves out to the next one")
+  {
+    // 1.5 quarters is not a grid point; the note holds to quarter 2, not to 1.5.
+    REQUIRE(
+        run({1.5, DurationUnit::quarters}, {})
+        == std::vector<MidiEvent>{{0, 0, 60, 100, true}, {20, 0, 60, 0, false}});
+  }
+  SECTION("a minimum already satisfied changes nothing")
+  {
+    REQUIRE(
+        run({0.5, DurationUnit::quarters}, {})
+        == std::vector<MidiEvent>{{0, 0, 60, 100, true}, {10, 0, 60, 0, false}});
+  }
+  SECTION("a minimum in seconds is converted with the slice's own tempo")
+  {
+    // The slice spans four quarters in 0.04 s, so 0.015 s is 1.5 quarters and
+    // lands on the same grid point as the musical case above.
+    REQUIRE(
+        run({0.015, DurationUnit::model_seconds}, {})
+        == std::vector<MidiEvent>{{0, 0, 60, 100, true}, {20, 0, 60, 0, false}});
+  }
+  SECTION("a maximum shorter than the grid clamps exactly, off the grid")
+  {
+    REQUIRE(
+        run({}, {0.5, DurationUnit::quarters})
+        == std::vector<MidiEvent>{{0, 0, 60, 100, true}, {5, 0, 60, 0, false}});
+  }
+  SECTION("a maximum longer than the grid changes nothing")
+  {
+    REQUIRE(
+        run({}, {3., DurationUnit::quarters})
+        == std::vector<MidiEvent>{{0, 0, 60, 100, true}, {10, 0, 60, 0, false}});
+  }
+  SECTION("a maximum below the minimum yields exactly the minimum")
+  {
+    REQUIRE(
+        run({1.5, DurationUnit::quarters}, {0.5, DurationUnit::quarters})
+        == std::vector<MidiEvent>{{0, 0, 60, 100, true}, {15, 0, 60, 0, false}});
+  }
+}
+
+TEST_CASE("VelToNote quantized bounds run from the note, not its arrival", "[nodes][veltonote]")
+{
+  Engine<2, 2> engine;
+  // Start quantization delays the on to quarter 1; the bound is measured there.
+  Settings s{
+      .start_quant = 0.25,
+      .tightness = 1.,
+      .end_quant = 0.25,
+      .max_duration = {0.5, DurationUnit::quarters}};
+  std::vector<MidiEvent> out;
+  engine.push(3, {60, 100});
+  engine.process(
+      block(0, 40, 0., 4., 0, 28224000), s, [&](MidiEvent e) { out.push_back(e); });
+  REQUIRE(out == std::vector<MidiEvent>{{10, 0, 60, 100, true}, {15, 0, 60, 0, false}});
+}
+
+TEST_CASE("VelToNote quantized bounds survive a meter change", "[nodes][veltonote]")
+{
+  // A meter change re-derives an active note's grid deadline. The ceiling has
+  // to be re-applied there too, or a signature change silently drops it.
+  const auto run = [](Bound hi) {
+    Engine<2, 2> engine;
+    Settings s{.start_quant = 0., .end_quant = 0.25, .max_duration = hi};
+    std::vector<MidiEvent> out;
+    auto sink = [&](MidiEvent e) { out.push_back(e); };
+    engine.push(0, {60, 100});
+    auto first = block(0, 2, 0., .2, 0, 1411200);
+    first.numerator = 4;
+    first.last_signature = 0.;
+    engine.process(first, s, sink);
+    REQUIRE(out == std::vector<MidiEvent>{{0, 0, 60, 100, true}});
+    out.clear();
+    auto second = block(2, 10, .2, 1.2, 1411200, 8467200);
+    second.numerator = 3;
+    second.last_signature = .2;
+    engine.process(second, s, sink);
+    return out;
+  };
+
+  // Ten frames to the quarter: the re-derived grid point is a whole quarter
+  // away, the ceiling is half of one.
+  REQUIRE(run({}) == std::vector<MidiEvent>{{8, 0, 60, 0, false}});
+  REQUIRE(
+      run({0.5, DurationUnit::quarters})
+      == std::vector<MidiEvent>{{3, 0, 60, 0, false}});
+}
