@@ -29,6 +29,7 @@ int main(int argc, char** argv)
   QApplication app{argc, argv};
 
   QString node = "score-publish";
+  QString format = "rgba";
   int w = 1920, h = 1080;
   bool dmabuf = false, opengl = false;
   for(int i = 1; i < argc; i++)
@@ -36,13 +37,14 @@ int main(int argc, char** argv)
     QString a = argv[i];
     if(a == "--dmabuf") dmabuf = true;
     else if(a == "--opengl") opengl = true;
+    else if(a.startsWith("--format=")) format = a.mid(9);
     else if(a.contains('x') && a[0].isDigit())
     { w = a.section('x', 0, 0).toInt(); h = a.section('x', 1, 1).toInt(); }
     else node = a;
   }
 
   Gfx::SharedOutputSettings s;
-  s.path = node + "?format=rgba" + (dmabuf ? "&dmabuf=on" : "");
+  s.path = node + "?format=" + format + (dmabuf ? "&dmabuf=on" : "");
   s.width = w; s.height = h; s.rate = 60;
 
   auto* src = new score::gfx::TexgenNode;
@@ -62,8 +64,10 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  std::printf("pwpublish: node '%s' %dx%d %s on %s\n", node.toUtf8().constData(), w, h,
-              dmabuf ? "dmabuf=on" : "shm", opengl ? "opengl" : "vulkan");
+  std::printf(
+      "pwpublish: node '%s' %dx%d %s %s on %s\n", node.toUtf8().constData(), w, h,
+      format.toUtf8().constData(), dmabuf ? "dmabuf=on" : "shm",
+      opengl ? "opengl" : "vulkan");
   std::fflush(stdout);
 
   QTimer render;
