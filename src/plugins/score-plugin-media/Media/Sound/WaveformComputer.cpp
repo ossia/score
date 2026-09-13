@@ -10,6 +10,8 @@
 
 #include <ossia/detail/math.hpp>
 
+#include <score/model/Skin.hpp>
+
 #include <QColor>
 #include <QGraphicsView>
 #include <QPainter>
@@ -243,23 +245,21 @@ struct WaveformComputerImpl
     int64_t rightmost_sample;
   };
 
-  static constexpr const auto orange = qRgba(250, 180, 15, 255);
-  static constexpr const auto gray = qRgba(20, 81, 120, 255);
-  const QPen orange_pen = [] {
+  // The peak envelope and the RMS body inside it, from the skin. Re-read on
+  // every recompute rather than cached: a waveform is only redrawn when the
+  // view changes, and a skin change is one of the things that changes it.
+  static QPen skin_pen(const score::Brush& b)
+  {
     QPen p;
-    p.setColor(orange);
+    p.setColor(b.color());
     p.setWidth(1);
     return p;
-  }();
-  const QPen gray_pen = [] {
-    QPen p;
-    p.setColor(gray);
-    p.setWidth(1);
-    return p;
-  }();
+  }
+  const QPen orange_pen = skin_pen(score::Skin::instance().Waveform1);
+  const QPen gray_pen = skin_pen(score::Skin::instance().Waveform2);
 
-  const unsigned int main_color = request.colors ? orange : gray;
   const QPen& main_pen = request.colors ? orange_pen : gray_pen;
+  const unsigned int main_color = main_pen.color().rgba();
 
   struct QPainterCleanup
   {

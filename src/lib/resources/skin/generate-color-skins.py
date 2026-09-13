@@ -190,17 +190,29 @@ def build(p):
         "Tender2": rgb(p["yellow"]),
         "Tender3": rgb(p["bg3"]),
 
-        # Cables: audio, midi, value. Same hues as the ports, translucent.
+        # Five port and cable types: audio, data, midi, texture, geometry.
+        # The cables carry the ports' hues, translucent.
         "Cable1": rgb(p["red"]) + [CABLE_ALPHA],
         "Cable2": rgb(p["green"]) + [CABLE_ALPHA],
-        "Cable3": rgb(p["purple"]) + [CABLE_ALPHA],
+        "Cable3": rgb(p["blue"]) + [CABLE_ALPHA],
+        "Cable4": rgb(p["fg_dim"]) + [CABLE_ALPHA],
+        "Cable5": rgb(p["purple"]) + [CABLE_ALPHA],
         "SelectedCable1": rgb(p["red"]) + [SELECTED_CABLE_ALPHA],
         "SelectedCable2": rgb(p["green"]) + [SELECTED_CABLE_ALPHA],
-        "SelectedCable3": rgb(p["purple"]) + [SELECTED_CABLE_ALPHA],
+        "SelectedCable3": rgb(p["blue"]) + [SELECTED_CABLE_ALPHA],
+        "SelectedCable4": rgb(p["fg_dim"]) + [SELECTED_CABLE_ALPHA],
+        "SelectedCable5": rgb(p["purple"]) + [SELECTED_CABLE_ALPHA],
 
         "Port1": rgb(p["red"]),
         "Port2": rgb(p["green"]),
         "Port3": rgb(p["blue"]),
+        "Port4": rgb(p["fg_dim"]),
+        "Port5": rgb(p["purple"]),
+
+        # The waveform: peaks in the palette's warm accent, the RMS body in a
+        # cooler one so the two read apart inside the same shape.
+        "Waveform1": rgb(p["orange"]),
+        "Waveform2": rgb(p["blue"]),
 
         # The playback dash animates on top of Base3, so it must not be
         # Base3. Near-foreground for playing, grey for waiting: both keep

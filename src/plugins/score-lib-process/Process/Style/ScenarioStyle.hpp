@@ -220,11 +220,11 @@ struct SCORE_LIB_PROCESS_EXPORT Style
   }
   const QPen& TextureCablePen() const noexcept
   {
-    return skin.LightGray.main.pen3_solid_round_round;
+    return skin.Cable4.main.pen3_solid_round_round;
   }
   const QPen& GeometryCablePen() const noexcept
   {
-    return skin.Emphasis3.main.pen3_solid_round_round;
+    return skin.Cable5.main.pen3_solid_round_round;
   }
 
   const QPen& SelectedAudioCablePen() const noexcept
@@ -241,11 +241,11 @@ struct SCORE_LIB_PROCESS_EXPORT Style
   }
   const QPen& SelectedTextureCablePen() const noexcept
   {
-    return skin.LightGray.lighter.pen3_solid_round_round;
+    return skin.SelectedCable4.lighter.pen3_solid_round_round;
   }
   const QPen& SelectedGeometryCablePen() const noexcept
   {
-    return skin.Emphasis3.lighter.pen3_solid_round_round;
+    return skin.SelectedCable5.lighter.pen3_solid_round_round;
   }
 
   const QPen& DragDropAudioCablePen() const noexcept
@@ -262,29 +262,29 @@ struct SCORE_LIB_PROCESS_EXPORT Style
   }
   const QPen& DragDropTextureCablePen() const noexcept
   {
-    return skin.LightGray.lighter.pen2_dotted_square_miter;
+    return skin.SelectedCable4.lighter.pen2_dotted_square_miter;
   }
   const QPen& DragDropGeometryCablePen() const noexcept
   {
-    return skin.Emphasis3.lighter.pen2_dotted_square_miter;
+    return skin.SelectedCable5.lighter.pen2_dotted_square_miter;
   }
 
   const QPen& AudioPortPen() const noexcept { return skin.Port1.main.pen1_5; }
   const QPen& DataPortPen() const noexcept { return skin.Port2.main.pen1_5; }
   const QPen& MidiPortPen() const noexcept { return skin.Port3.main.pen1_5; }
-  const QPen& TexturePortPen() const noexcept { return skin.LightGray.main.pen1_5; }
-  const QPen& GeometryPortPen() const noexcept { return skin.Emphasis3.main.pen1_5; }
+  const QPen& TexturePortPen() const noexcept { return skin.Port4.main.pen1_5; }
+  const QPen& GeometryPortPen() const noexcept { return skin.Port5.main.pen1_5; }
 
   const score::BrushSet& AudioPortBrush() const noexcept { return skin.Port1.darker; }
   const score::BrushSet& DataPortBrush() const noexcept { return skin.Port2.darker; }
   const score::BrushSet& MidiPortBrush() const noexcept { return skin.Port3.darker; }
   const score::BrushSet& TexturePortBrush() const noexcept
   {
-    return skin.LightGray.darker;
+    return skin.Port4.darker;
   }
   const score::BrushSet& GeometryPortBrush() const noexcept
   {
-    return skin.Emphasis3.darker;
+    return skin.Port5.darker;
   }
 
   const QPen& SlotHeaderTextPen() const noexcept

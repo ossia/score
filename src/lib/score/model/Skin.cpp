@@ -90,7 +90,14 @@ QSize scaledIcon(int px) noexcept
 
 void onSkinChange(QObject* owner, std::function<void()> f)
 {
-  f();
+  // Only if the Skin can be reached: a caller building the main window runs
+  // before the application context it needs, and the deferred call below is
+  // then the first one. Callers that read nothing but the application font
+  // still get their immediate call, since the Skin is built by then in every
+  // path that has one.
+  if(Skin::exists())
+    f();
+
   QTimer::singleShot(0, owner, [owner, f = std::move(f)] {
     QObject::connect(&Skin::instance(), &Skin::changed, owner, f);
     // A skin may have loaded in between, with nobody connected.
@@ -319,6 +326,16 @@ Skin::Skin() noexcept
           SCORE_INSERT_COLOR_CUSTOM("#FFFFFF", "White"),
           SCORE_INSERT_COLOR_CUSTOM("#000000", "Black")}
 {
+  // Defaults for the roles DefaultSkin.json does not have to name.
+  Port4 = QColor{163, 163, 163};
+  Port5 = QColor{179, 90, 209};
+  Cable4 = QColor{163, 163, 163, 136};
+  Cable5 = QColor{179, 90, 209, 136};
+  SelectedCable4 = QColor{163, 163, 163, 204};
+  SelectedCable5 = QColor{179, 90, 209, 204};
+  Waveform1 = QColor{250, 180, 15};
+  Waveform2 = QColor{20, 81, 120};
+
   setupFonts();
   setupPalette();
 
@@ -646,7 +663,22 @@ Skin::color_map* Skin::initColorMap() noexcept
       SCORE_INSERT_COLOR(SelectedCable1), SCORE_INSERT_COLOR(SelectedCable2),
       SCORE_INSERT_COLOR(SelectedCable3), SCORE_INSERT_COLOR(Port1),
       SCORE_INSERT_COLOR(Port2),          SCORE_INSERT_COLOR(Port3),
+      SCORE_INSERT_COLOR(Port4),          SCORE_INSERT_COLOR(Port5),
+      SCORE_INSERT_COLOR(Cable4),         SCORE_INSERT_COLOR(Cable5),
+      SCORE_INSERT_COLOR(SelectedCable4), SCORE_INSERT_COLOR(SelectedCable5),
+      SCORE_INSERT_COLOR(Waveform1),      SCORE_INSERT_COLOR(Waveform2),
       SCORE_INSERT_COLOR(Pulse1),         SCORE_INSERT_COLOR(Pulse2)};
+}
+
+static bool& skinBuilt() noexcept
+{
+  static bool built = false;
+  return built;
+}
+
+bool score::Skin::exists() noexcept
+{
+  return skinBuilt();
 }
 
 Skin& score::Skin::instance() noexcept
@@ -654,6 +686,7 @@ Skin& score::Skin::instance() noexcept
   static const auto s = score::AppContext().applicationSettings.gui
                             ? std::unique_ptr<Skin>(new Skin())
                             : std::unique_ptr<Skin>(new Skin(Skin::NoGUI{}));
+  skinBuilt() = true;
   return *s;
 }
 
@@ -734,15 +767,23 @@ void Skin::load(const QJsonObject& obj, int parts)
   SCORE_CONVERT_COLOR(Cable1);
   SCORE_CONVERT_COLOR(Cable2);
   SCORE_CONVERT_COLOR(Cable3);
+  SCORE_CONVERT_COLOR(Cable4);
+  SCORE_CONVERT_COLOR(Cable5);
   SCORE_CONVERT_COLOR(SelectedCable1);
   SCORE_CONVERT_COLOR(SelectedCable2);
   SCORE_CONVERT_COLOR(SelectedCable3);
+  SCORE_CONVERT_COLOR(SelectedCable4);
+  SCORE_CONVERT_COLOR(SelectedCable5);
   SCORE_CONVERT_COLOR(Port1);
   SCORE_CONVERT_COLOR(Port2);
   SCORE_CONVERT_COLOR(Port3);
+  SCORE_CONVERT_COLOR(Port4);
+  SCORE_CONVERT_COLOR(Port5);
 
   SCORE_CONVERT_COLOR(Pulse1);
   SCORE_CONVERT_COLOR(Pulse2);
+  SCORE_CONVERT_COLOR(Waveform1);
+  SCORE_CONVERT_COLOR(Waveform2);
 
   // make the "lighter" of black more light.
   {
