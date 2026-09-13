@@ -355,7 +355,8 @@ struct midi_device_protocol final : public ossia::net::protocol_base
   {
     std::size_t total = 0;
     for(const auto& d : m_settings.devices)
-      total += d.map.controls.size();
+      for(const auto& c : d.map.controls)
+        total += isNoteName(c) ? 0 : 1;
     m_bindings.reserve(total);
 
     for(const auto& d : m_settings.devices)
@@ -373,7 +374,13 @@ struct midi_device_protocol final : public ossia::net::protocol_base
         continue;
 
       for(const auto& c : d.map.controls)
+      {
+        // Note names are what the description says a note means, not something
+        // to send: they belong to whatever comes to read them, not to the tree.
+        if(isNoteName(c))
+          continue;
         addControl(*under, c, d.channel);
+      }
     }
   }
 

@@ -675,10 +675,13 @@ void MCUSettingsWidget::updatePreview()
     int shown = 0;
     for(const auto& c : map->controls)
     {
+      if(MIDIDevices::isNoteName(c))
+        continue;
+
       if(shown++ >= maxControls)
       {
         new QTreeWidgetItem{
-            device, {tr("... %1 more").arg(int(map->controls.size()) - maxControls)}};
+            device, {tr("... and more")}};
         break;
       }
 
