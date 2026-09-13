@@ -53,8 +53,7 @@ enum InstrumentRole
   //! "Moog Matriarch" on a device row, "Moog" on a manufacturer row, so that
   //! either half of the name matches.
   SearchRole = Qt::UserRole + 1,
-  //! A device map's identity, "ardour/donnerdmk25.midimap.json". Empty on a
-  //! MIDI Guide row, which is named by manufacturer and device instead.
+  //! A description's identity, as `<source>/<file>.midimap.json`.
   MapRole
 };
 
@@ -479,9 +478,9 @@ void MCUSettingsWidget::applyAutoName(const QString& name)
 }
 
 /**
- * Grouped by manufacturer, and by the source the map was converted from where
- * the manufacturer is unknown: a Cubase Generic Remote export names only the
- * user's own control labels, and several hundred rows called "(unnamed)" would
+ * Grouped by manufacturer, and by the source the description came from where
+ * the manufacturer is unknown -- some sources describe only the control labels
+ * a user gave their own hardware. Several hundred rows called "(unnamed)" would
  * be worse than one group saying where they came from.
  */
 void MCUSettingsWidget::populateDeviceMaps()

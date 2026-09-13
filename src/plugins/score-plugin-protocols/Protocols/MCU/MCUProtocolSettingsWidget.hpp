@@ -46,9 +46,9 @@ namespace Protocols
 {
 /**
  * Settings for the MIDI Controller device: a Mackie Control surface, which
- * needs only its two ports, or a MIDI Guide instrument, which also needs
- * picking out of a few hundred and a channel. The picker is a filtered tree
- * because that many instruments do not fit a drop-down.
+ * needs only its two ports, or the devices on the port, each of which needs
+ * picking out of a few hundred descriptions and giving a channel. The picker is
+ * a filtered tree because that many devices do not fit a drop-down.
  */
 class MCUSettingsWidget final : public Device::ProtocolSettingsWidget
 {

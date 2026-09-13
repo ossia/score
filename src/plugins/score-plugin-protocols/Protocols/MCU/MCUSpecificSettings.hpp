@@ -31,9 +31,9 @@ struct MCUSpecificSettings
   /**
    * One device on the port, and the channel it is set to.
    *
-   * The map is named as "ardour/donnerdmk25.midimap.json" rather than by path:
-   * a score has to keep pointing at the same description across a package
-   * update, a different machine, or a user's own copy of the maps.
+   * The map is named as `<source>/<file>.midimap.json` rather than by path: a
+   * score has to keep pointing at the same description across a package update,
+   * a different machine, or a user's own copy of the maps.
    */
   struct MapSlot
   {

@@ -12,10 +12,10 @@
  * `mixxx` -- which is worth keeping because it says what kind of device to
  * expect: a controller's knobs, or an instrument's parameters.
  *
- * Unlike the MIDI Guide index, which reads a device's name off its path, a
- * description names itself. Scanning therefore has to open every file, so it
- * reads a bounded prefix and stops at the first control: an instrument's patch
- * names run to hundreds of kilobytes and a listing must not pay for them.
+ * A description names itself rather than being named by its path, so scanning
+ * has to open every file. It reads a bounded prefix and stops at the first
+ * control: an instrument's patch names run to hundreds of kilobytes, and a
+ * listing must not pay for them.
  * @see Protocols/MIDIDevices/MidiDeviceMap.hpp
  */
 
@@ -40,7 +40,7 @@ struct DeviceEntry
   QString source;
 
   /**
-   * "ardour/donnerdmk25.midimap.json": how a score refers to this map.
+   * `<source>/<file>.midimap.json`: how a score refers to this map.
    * Stored rather than the absolute path, which is not the same on another
    * machine, and rather than the model name, which several documents share --
    * one device has as many maps as it has configurations.
@@ -67,8 +67,8 @@ SCORE_PLUGIN_PROTOCOLS_EXPORT
 std::vector<QString> libraryPaths();
 
 /**
- * A process-wide singleton like MidiGuide::Database: read-only, one scan,
- * wanted by every settings widget. Exported so the tests can reach it.
+ * Process-wide and read-only: one scan, wanted by every settings widget.
+ * Exported so the tests can reach it.
  */
 class SCORE_PLUGIN_PROTOCOLS_EXPORT Database
 {

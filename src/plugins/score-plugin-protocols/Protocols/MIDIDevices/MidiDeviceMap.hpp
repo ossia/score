@@ -10,9 +10,8 @@
  * between them is direction rather than shape: an instrument that responds to
  * CC and NRPN, and a controller whose knobs and pads send them.
  *
- * Free of Qt and ossia, like Protocols/MIDIGuide/MidiGuideMap.hpp and
- * Protocols/CAN/DBCParser.hpp, so that it can be tested without an application,
- * a MIDI port or a device tree.
+ * Free of Qt and ossia, like Protocols/CAN/DBCParser.hpp, so that it can be
+ * tested without an application, a MIDI port or a device tree.
  */
 
 #include <optional>
