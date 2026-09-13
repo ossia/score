@@ -96,7 +96,8 @@ private:
   void addChosenDevice(const QString& identity, int channel);
 
   //! The lowest channel @p identity is not already on, or -1 past sixteen.
-  int freeChannelFor(const QString& identity) const;
+  //! The lowest channel no chosen device is on, or -1 when all sixteen are.
+  int freeChannel() const;
 
   //! Fill the preview with the tree the chosen descriptions would build.
   void updatePreview();
@@ -140,6 +141,9 @@ private:
 
   //! @see chosenMap()
   QString m_chosenMap;
+
+  //! The user took the last device off the port, rather than never adding one.
+  bool m_listEmptied{};
 
   //! The name this widget last filled in by itself: picking an instrument
   //! renames the device only while the user has not named it.

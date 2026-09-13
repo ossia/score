@@ -123,8 +123,7 @@ QString hardwareName(QString raw, const QString& manufacturer)
       R"([ _-]*(MIDI|Port)[ _-]*\d*$)", QRegularExpression::CaseInsensitiveOption};
   raw.remove(tail);
 
-  if(!manufacturer.isEmpty() && raw.startsWith(manufacturer, Qt::CaseInsensitive))
-    raw = raw.mid(manufacturer.size());
+  raw = MIDIDevices::withoutBrand(raw, manufacturer);
 
   // A brand the port names but the manufacturer field does not.
   static const QRegularExpression brand{
@@ -166,6 +165,31 @@ struct ChannelDelegate final : QStyledItemDelegate
     auto* box = new QSpinBox{parent};
     box->setRange(1, 16);
     return box;
+  }
+};
+
+/**
+ * A name as the device tree would spell it.
+ *
+ * Through the std::string overload, which is the one the protocol uses: the
+ * QString one walks QChars rather than bytes, so the two disagree on every
+ * name outside ASCII and the preview would show a tree that is not built.
+ */
+QString sanitized(std::string name)
+{
+  ossia::net::sanitize_name(name);
+  return QString::fromStdString(name);
+}
+
+//! A column that shows but does not take dictation.
+struct ReadOnlyDelegate final : QStyledItemDelegate
+{
+  using QStyledItemDelegate::QStyledItemDelegate;
+
+  QWidget* createEditor(
+      QWidget*, const QStyleOptionViewItem&, const QModelIndex&) const override
+  {
+    return nullptr;
   }
 };
 
@@ -272,6 +296,9 @@ MCUSettingsWidget::MCUSettingsWidget(QWidget* parent)
         QAbstractItemView::DoubleClicked | QAbstractItemView::SelectedClicked
         | QAbstractItemView::EditKeyPressed);
     m_chosen->setItemDelegateForColumn(1, new ChannelDelegate{m_chosen});
+    // The channel is the only thing on a row the user decides; the name is the
+    // description's, and an edit of it would be dropped on the next read.
+    m_chosen->setItemDelegateForColumn(0, new ReadOnlyDelegate{m_chosen});
     m_chosen->setMaximumHeight(120);
     m_chosen->header()->setSectionResizeMode(0, QHeaderView::Stretch);
     m_chosen->header()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
@@ -297,6 +324,7 @@ MCUSettingsWidget::MCUSettingsWidget(QWidget* parent)
       if(auto* item = m_chosen->currentItem())
       {
         delete item;
+        m_listEmptied = m_chosen->topLevelItemCount() == 0;
         updatePreview();
         changed();
       }
@@ -411,7 +439,6 @@ MCUSettingsWidget::MCUSettingsWidget(QWidget* parent)
 
   setLayout(lay);
 
-  populateDeviceMaps();
   updateKind();
 }
 
@@ -672,14 +699,14 @@ void MCUSettingsWidget::addChosenDevice(const QString& identity, int channel)
     return;
 
   // Repeating a description is a rack of identical modules; repeating a
-  // channel would be two subtrees on the same messages.
-  if(channel < 1)
-    channel = freeChannelFor(identity);
+  // channel would be two subtrees listening to the same messages, whether or
+  // not they are the same description.
+  channel = channel < 1 ? freeChannel() : std::clamp(channel, 1, 16);
   if(channel < 1)
     return;
 
   for(int i = 0; i < m_chosen->topLevelItemCount(); i++)
-    if(const auto slot = slotAt(i); slot.map == identity && slot.channel == channel)
+    if(slotAt(i).channel == channel)
       return;
 
   auto name = genericLabel(identity);
@@ -690,19 +717,17 @@ void MCUSettingsWidget::addChosenDevice(const QString& identity, int channel)
       name = e->name();
   }
 
-  auto* item = new QTreeWidgetItem{
-      m_chosen, {name, QString::number(std::clamp(channel, 1, 16))}};
+  auto* item = new QTreeWidgetItem{m_chosen, {name, QString::number(channel)}};
   item->setData(0, MapRole, identity);
-  item->setFlags(item->flags() | Qt::ItemIsEditable);
+  m_listEmptied = false;
 }
 
-int MCUSettingsWidget::freeChannelFor(const QString& identity) const
+int MCUSettingsWidget::freeChannel() const
 {
   std::array<bool, 17> taken{};
   for(int i = 0; i < m_chosen->topLevelItemCount(); i++)
-    if(const auto slot = slotAt(i); slot.map == identity)
-      if(slot.channel >= 1 && slot.channel <= 16)
-        taken[slot.channel] = true;
+    if(const auto slot = slotAt(i); slot.channel >= 1 && slot.channel <= 16)
+      taken[slot.channel] = true;
 
   for(int ch = 1; ch <= 16; ch++)
     if(!taken[ch])
@@ -813,13 +838,11 @@ void MCUSettingsWidget::updatePreview()
     QTreeWidgetItem* parent{};
     for(const auto& level : c.group)
     {
-      auto lvl = QString::fromStdString(level);
-      ossia::net::sanitize_name(lvl);
+      const auto lvl = sanitized(level);
       parent = parent ? childNamed(parent, lvl) : topNamed(lvl);
     }
 
-    auto leaf = QString::fromStdString(c.name);
-    ossia::net::sanitize_name(leaf);
+    const auto leaf = sanitized(c.name);
 
     auto* node = parent
                      ? new QTreeWidgetItem{parent, {uniqueChild(parent, leaf)}}
@@ -978,8 +1001,9 @@ void MCUSettingsWidget::updateKind()
   if(!picks)
     return;
 
-  // The two kinds fill the same tree from different libraries, so switching
-  // between them has to refill it.
+  // Filled the first time the tree is shown, not on construction: the scan
+  // reads every description in the library, and a Mackie Control device never
+  // looks at one.
   if(mode != m_populated)
   {
     m_populated = mode;
@@ -1027,6 +1051,12 @@ Device::DeviceSettings MCUSettingsWidget::getSettings() const
     for(int i = 0; i < m_chosen->topLevelItemCount(); i++)
       midi.maps.push_back(slotAt(i));
   }
+  else if(m_listEmptied)
+  {
+    // Taking the last device off the port is something the user did, not a
+    // list that was never filled in.
+    midi.maps.clear();
+  }
   else if(const auto picked = chosenMap(); !picked.isEmpty())
   {
     // Only a chain needs the list; picking one device is enough.
@@ -1041,6 +1071,7 @@ Device::DeviceSettings MCUSettingsWidget::getSettings() const
 void MCUSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 {
   m_current = settings;
+  m_listEmptied = false;
   const auto& s = m_current.deviceSpecificSettings.value<MCUSpecificSettings>();
 
   // Clean up the name a bit
