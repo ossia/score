@@ -1178,7 +1178,7 @@ SpoutSettingsWidget::SpoutSettingsWidget(QWidget* parent)
 {
   m_deviceNameEdit->setText("Spout Out");
 
-  ((QLabel*)m_layout->labelForField(m_shmPath))->setText("Identifier");
+  setPathLabel(tr("Identifier"));
   setSettings(SpoutProtocolFactory{}.defaultSettings());
 }
 

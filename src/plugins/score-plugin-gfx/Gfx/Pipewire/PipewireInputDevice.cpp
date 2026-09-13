@@ -446,6 +446,9 @@ private:
   // both publish AVFrames as YUV420P, but negotiate different SPA
   // formats and need a U/V plane swap on copy.
   formats::Tag m_formatTag{formats::Tag::RGB24};
+  //! False when the URL names no format: offer the open-ended pod alone, so
+  //! the producer's own list decides rather than a default nobody asked for.
+  bool m_formatRequested{};
   // When the producer chose DMA-BUF allocation (latched on first
   // DmaBuf frame), m_pixelFormat above transitions to AV_PIX_FMT_DRM_PRIME
   // and m_sw_format below tracks the underlying SW pixel format
@@ -509,6 +512,7 @@ InputStream::InputStream(const QString& path) noexcept
           {
             m_formatTag = tag;
             m_pixelFormat = av;
+            m_formatRequested = true;
           }
           else
           {
@@ -704,12 +708,19 @@ bool InputStream::start() noexcept
     if(params.empty())
       throw std::runtime_error("format_negotiation produced no params");
 
+    // The exact pod pins one format; keep it only when one was asked for.
+    if(!m_formatRequested)
+      params.clear();
+
     // Preference is expressed by order: the exact request first, then the
     // open-ended fallback the server can actually intersect with a real
     // producer's own format list.
     if(const spa_pod* open = build_permissive_enum_format(
            b, m_formatTag, m_width, m_height, m_fps))
       params.push_back(open);
+
+    if(params.empty())
+      throw std::runtime_error("no EnumFormat to offer");
 
     // stream_connect also goes through the proxy layer — lock.
     int connect_ret = 0;
@@ -1396,16 +1407,23 @@ PipeWireSettingsWidget::PipeWireSettingsWidget(QWidget* parent)
   for(const auto& [name, label] : liveVideoSources())
     m_nodeEdit->addItem(label, name);
 
-  m_widthEdit->setRange(1, 7680);
+  // The limits the permissive EnumFormat actually offers the producer, not a
+  // narrower guess: these are a preferred value, not a demand.
+  m_widthEdit->setRange(1, 16384);
   m_widthEdit->setValue(1920);
-  m_heightEdit->setRange(1, 4320);
+  m_heightEdit->setRange(1, 16384);
   m_heightEdit->setValue(1080);
-  m_fpsEdit->setRange(1.0, 240.0);
+  m_fpsEdit->setRange(1.0, 1000.0);
   m_fpsEdit->setValue(30.0);
   m_fpsEdit->setSuffix(" fps");
-  m_formatEdit->addItems(
-      {"rgb24", "rgba", "bgra", "rgb10a2", "bgr10a2", "rgba16f",
-       "p010", "p210", "yuv420p", "yuyv422", "uyvy422", "nv12"});
+
+  // Format is negotiated: both sides publish what they can do and the server
+  // picks the intersection. Asking for one is a preference, and a producer
+  // that cannot meet it is not a reason to refuse the link, so the default
+  // asks for nothing.
+  m_formatEdit->addItem(tr("Any"), QString{});
+  for(const auto& f : formats::allTagNames())
+    m_formatEdit->addItem(f, f);
 
   auto* layout = new QFormLayout;
   layout->addRow(tr("PipeWire Node:"), m_nodeEdit);
@@ -1452,11 +1470,14 @@ Device::DeviceSettings PipeWireSettingsWidget::getSettings() const
 
   SharedInputSettings set;
   QString path = "pipewire://" + currentNode();
-  const QStringList params{
+  QStringList params{
       QString("width=%1").arg(m_widthEdit->value()),
       QString("height=%1").arg(m_heightEdit->value()),
-      QString("fps=%1").arg(m_fpsEdit->value()),
-      QString("format=%1").arg(m_formatEdit->currentText())};
+      QString("fps=%1").arg(m_fpsEdit->value())};
+  // "Any" carries no data: leave the key out entirely rather than write a
+  // spelling the parser would have to learn.
+  if(const auto fmt = m_formatEdit->currentData().toString(); !fmt.isEmpty())
+    params += QString("format=%1").arg(fmt);
   path += "?" + params.join("&");
   set.path = path;
   s.deviceSpecificSettings = QVariant::fromValue(set);
@@ -1493,9 +1514,11 @@ void PipeWireSettingsWidget::setSettings(const Device::DeviceSettings& settings)
       m_fpsEdit->setValue(v.toDouble());
     else if(k == "format")
     {
-      const int idx = m_formatEdit->findText(v);
-      if(idx >= 0)
-        m_formatEdit->setCurrentIndex(idx);
+      // Match on the data, so an alias spelling from an older document still
+      // selects the canonical entry.
+      const int idx = m_formatEdit->findData(
+          formats::tagToString(formats::tagFromString(v)));
+      m_formatEdit->setCurrentIndex(idx >= 0 ? idx : 0);
     }
   }
 }

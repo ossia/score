@@ -58,7 +58,7 @@ SharedInputSettingsWidget::SharedInputSettingsWidget(QWidget* parent)
 
   m_layout = new QFormLayout;
   m_layout->addRow(tr("Device Name"), m_deviceNameEdit);
-  m_layout->addRow(tr("Spout path"), m_shmPath = new QLineEdit);
+  m_layout->addRow(tr("Path"), m_shmPath = new QLineEdit);
   setLayout(m_layout);
 }
 
@@ -70,6 +70,12 @@ Device::DeviceSettings SharedInputSettingsWidget::getSettings() const
   set.path = m_shmPath->text();
   s.deviceSpecificSettings = QVariant::fromValue(set);
   return s;
+}
+
+void SharedInputSettingsWidget::setPathLabel(const QString& text)
+{
+  if(auto* l = qobject_cast<QLabel*>(m_layout->labelForField(m_shmPath)))
+    l->setText(text);
 }
 
 void SharedInputSettingsWidget::setSettings(const Device::DeviceSettings& settings)
