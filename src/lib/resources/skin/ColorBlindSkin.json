@@ -20,9 +20,9 @@
   3
  ],
  "Base3": [
-  255,
+  206,
   0,
-  181
+  146
  ],
  "Base4": [
   224,
@@ -30,14 +30,14 @@
   30
  ],
  "Base5": [
-  24,
-  24,
-  24
+  105,
+  105,
+  105
  ],
  "Cable1": [
-  153,
-  102,
-  102
+  162,
+  108,
+  108
  ],
  "Cable2": [
   102,
@@ -60,9 +60,9 @@
   92
  ],
  "Emphasis1": [
-  194,
-  30,
-  59
+  170,
+  26,
+  52
  ],
  "Emphasis2": [
   163,
@@ -85,14 +85,14 @@
   117
  ],
  "Gray": [
-  127,
-  127,
-  127
+  153,
+  153,
+  153
  ],
  "HalfDark": [
-  55,
-  55,
-  55
+  100,
+  100,
+  100
  ],
  "HalfLight": [
   200,
@@ -110,29 +110,29 @@
   163
  ],
  "Port1": [
-  219,
-  36,
-  31
+  255,
+  224,
+  223
  ],
  "Port2": [
-  167,
-  221,
-  13
+  187,
+  248,
+  15
  ],
  "Port3": [
-  0,
-  147,
+  204,
+  233,
   255
  ],
  "Pulse1": [
-  87,
-  26,
-  28
+  196,
+  175,
+  176
  ],
  "Pulse2": [
-  253,
-  23,
-  66
+  255,
+  203,
+  213
  ],
  "SelectedCable1": [
   153,
@@ -197,7 +197,7 @@
  "Warn1": [
   255,
   255,
-  0
+  60
  ],
  "Warn2": [
   200,
@@ -205,8 +205,8 @@
   0
  ],
  "Warn3": [
-  255,
-  250,
+  202,
+  198,
   0
  ],
  "_comment": "The colour-blind-friendly scheme added for issue #540 in 2021. It lived in resources/colorblind.json, outside every .qrc, so nothing could load it from the application; only the copy in the user library was reachable."
