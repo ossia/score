@@ -352,11 +352,28 @@ TEST_CASE("The header is read without the controls", "[midimap]")
   // The point of the header read: a prefix that stops anywhere inside the
   // controls is enough, so a listing never pays for an instrument's patch
   // names.
-  for(std::size_t n = head.size() + 12; n < full.size(); n += 7)
+  // From one byte into the header onwards, so the cut lands inside `match`,
+  // inside the `"controls"` key itself and everywhere between -- not only past
+  // the point where the abort trigger is already complete.
+  for(std::size_t n = 1; n < full.size(); n++)
   {
     auto partial = parseDeviceMapHeader(std::string_view{full}.substr(0, n));
-    REQUIRE(partial.has_value());
+    if(!partial)
+      continue;
+
+    // Whatever it reports having read must be what the document says, never a
+    // fragment of it.
+    INFO("prefix of " << n << " bytes");
     CHECK(partial->model == "MPK 225");
+    CHECK(partial->manufacturer == "Akai");
+    CHECK(partial->preset.name == "Preset 6");
+  }
+
+  // And once the controls begin, it must always succeed.
+  for(std::size_t n = head.size() + 12; n < full.size(); n++)
+  {
+    INFO("prefix of " << n << " bytes");
+    REQUIRE(parseDeviceMapHeader(std::string_view{full}.substr(0, n)).has_value());
   }
 
   // A prefix that stops before the header is done says so rather than
