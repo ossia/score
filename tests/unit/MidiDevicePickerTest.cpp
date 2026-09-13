@@ -135,13 +135,21 @@ TEST_CASE("choosing a description fills the preview", "[mididevice][gui]")
     // One brand, one group, however its documents spell it -- and spelled the
     // way most of them do.
     auto* model = picker->model();
-    REQUIRE(model->rowCount() == 3);
-    const auto korg = model->index(0, 0);
+    REQUIRE(model->rowCount() == 4);
+
+    // Raw MIDI first: the one row that is not a brand.
+    const auto generic = model->index(0, 0);
+    CHECK(generic.data().toString() == "Generic");
+    CHECK(
+        childNames(*picker, generic)
+        == QStringList{"MIDI channel", "MIDI channel, every note and control"});
+
+    const auto korg = model->index(1, 0);
     CHECK(korg.data().toString() == "Korg");
-    CHECK(model->index(1, 0).data().toString() == "Test");
+    CHECK(model->index(2, 0).data().toString() == "Test");
 
     // A document that names no model is named by the file it lives in.
-    const auto yamaha = model->index(2, 0);
+    const auto yamaha = model->index(3, 0);
     CHECK(yamaha.data().toString() == "Yamaha");
     CHECK(childNames(*picker, yamaha) == QStringList{"PLG100 XG Expansion"});
 
@@ -187,5 +195,27 @@ TEST_CASE("choosing a description fills the preview", "[mididevice][gui]")
     // The same device twice would be two subtrees listening to one message.
     picker->doubleClicked(idx);
     CHECK(chosen->topLevelItemCount() == 1);
+
+    // A raw channel goes on the port beside a description, and previews the
+    // nodes it would build rather than nothing.
+    const auto raw = rowNamed(*picker, generic, "MIDI channel, every note and control");
+    REQUIRE(raw.isValid());
+
+    picker->selectionModel()->setCurrentIndex(
+        raw, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+
+    REQUIRE(preview->topLevelItemCount() == 5);
+    CHECK(preview->topLevelItem(0)->text(0) == "on");
+    CHECK(preview->topLevelItem(0)->childCount() == 1);
+    CHECK(preview->topLevelItem(4)->text(0) == "pitchbend");
+
+    picker->doubleClicked(raw);
+    REQUIRE(chosen->topLevelItemCount() == 2);
+    CHECK(chosen->topLevelItem(1)->text(0) == "MIDI channel, every note and control");
+
+    const auto both = widget->getSettings()
+                          .deviceSpecificSettings.value<Protocols::MCUSpecificSettings>();
+    REQUIRE(both.maps.size() == 2);
+    CHECK(both.maps[1].map == "generic:channel+all");
   });
 }

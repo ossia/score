@@ -1113,3 +1113,210 @@ TEST_CASE("one named value is still worth naming", "[mididevice][midi]")
   CHECK(at(root, "Synth/Ranged/choice") == nullptr);
   CHECK(at(root, "Synth/Plain/choice") == nullptr);
 }
+
+namespace
+{
+//! The same tap-and-inject arrangement as @ref bidir, for a port carrying a
+//! raw channel instead of a description.
+struct raw_bidir
+{
+  raw_bidir(const loopback& lb, GenericChannel channel)
+  {
+    libremidi::input_configuration ic{};
+    ic.on_message = [this](const libremidi::message& m) {
+      std::lock_guard lock{m_mutex};
+      m_seen.push_back(m);
+    };
+    tap = std::make_unique<libremidi::midi_in>(ic, lb.api);
+    REQUIRE(tap->open_port(lb.in) == stdx::error{});
+
+    libremidi::output_configuration oc{};
+    inject = std::make_unique<libremidi::midi_out>(oc, lb.api);
+    REQUIRE(inject->open_port(lb.out) == stdx::error{});
+
+    ProtocolSettings conf;
+    conf.api = lb.api;
+    conf.input = lb.in;
+    conf.output = lb.out;
+    conf.generic.push_back(channel);
+    dev = std::make_unique<ossia::net::generic_device>(
+        makeProtocol(std::move(conf)), "raw");
+  }
+
+  ~raw_bidir()
+  {
+    dev.reset();
+    tap.reset();
+  }
+
+  ossia::net::parameter_base& param(const std::string& path)
+  {
+    auto* n = at(dev->get_root_node(), path);
+    REQUIRE(n);
+    REQUIRE(n->get_parameter());
+    return *n->get_parameter();
+  }
+
+  void send(std::initializer_list<unsigned char> bytes)
+  {
+    std::vector<unsigned char> v{bytes};
+    inject->send_message(v.data(), v.size());
+  }
+
+  std::size_t count(std::initializer_list<unsigned char> bytes)
+  {
+    std::lock_guard lock{m_mutex};
+    return std::count_if(m_seen.begin(), m_seen.end(), [&](const auto& m) {
+      return std::equal(m.bytes.begin(), m.bytes.end(), bytes.begin(), bytes.end());
+    });
+  }
+
+  std::unique_ptr<ossia::net::generic_device> dev;
+  std::unique_ptr<libremidi::midi_in> tap;
+  std::unique_ptr<libremidi::midi_out> inject;
+
+private:
+  std::mutex m_mutex;
+  std::vector<libremidi::message> m_seen;
+};
+}
+
+TEST_CASE("a raw channel is one level with the five message kinds",
+          "[mididevice][midi]")
+{
+  const auto found = anyOutput();
+  if(!found)
+  {
+    WARN("no MIDI output port on this machine; tree not built");
+    SUCCEED();
+    return;
+  }
+
+  ProtocolSettings conf;
+  conf.api = found->first;
+  conf.output = found->second;
+  conf.generic.push_back({3, false});
+  conf.generic.push_back({10, true});
+
+  auto dev = std::make_unique<ossia::net::generic_device>(
+      makeProtocol(std::move(conf)), "raw");
+  auto& root = dev->get_root_node();
+
+  for(const auto* name : {"on", "off", "control", "program", "pitchbend"})
+  {
+    auto* n = at(root, std::string{"3/"} + name);
+    REQUIRE(n);
+    REQUIRE(n->get_parameter());
+  }
+
+  // The number is half of the value, so the node is a list of two.
+  CHECK(at(root, "3/on")->get_parameter()->get_value_type() == ossia::val_type::LIST);
+  CHECK(at(root, "3/program")->get_parameter()->get_value_type() == ossia::val_type::INT);
+
+  // A wheel rests at its midpoint, as a described one does.
+  CHECK(ossia::convert<int>(at(root, "3/pitchbend")->get_parameter()->value()) == 8192);
+
+  // Plain: nothing below the five.
+  CHECK(at(root, "3/on/60") == nullptr);
+  CHECK(at(root, "3/control/7") == nullptr);
+
+  // Expanded: one node per number, and a program change has nothing left to
+  // say once its number is the address.
+  REQUIRE(at(root, "10/on/60"));
+  REQUIRE(at(root, "10/control/7"));
+  REQUIRE(at(root, "10/program/3"));
+  CHECK(at(root, "10/on/127"));
+  CHECK(at(root, "10/on/128") == nullptr);
+  CHECK(
+      at(root, "10/program/3")->get_parameter()->get_value_type()
+      == ossia::val_type::IMPULSE);
+}
+
+TEST_CASE("a raw channel sends what it is written", "[mididevice][midi]")
+{
+  const auto lb = findLoopback();
+  if(!lb)
+  {
+    WARN("no loopback MIDI port on this machine");
+    SUCCEED();
+    return;
+  }
+
+  raw_bidir w{*lb, GenericChannel{2, true}};
+
+  w.param("2/on").push_value(std::vector<ossia::value>{60, 100});
+  CHECK(waitFor([&] { return w.count({0x91, 60, 100}) == 1; }));
+
+  // Writing the pair moves the node that addresses that one note, so the two
+  // ways of saying it agree.
+  CHECK(ossia::convert<int>(w.param("2/on/60").value()) == 100);
+
+  w.param("2/on/64").push_value(80);
+  CHECK(waitFor([&] { return w.count({0x91, 64, 80}) == 1; }));
+
+  // A note on at no velocity is how most hardware releases a note.
+  w.param("2/on/64").push_value(0);
+  CHECK(waitFor([&] { return w.count({0x81, 64, 0}) == 1; }));
+
+  w.param("2/off").push_value(std::vector<ossia::value>{60, 0});
+  CHECK(waitFor([&] { return w.count({0x81, 60, 0}) == 1; }));
+
+  w.param("2/control").push_value(std::vector<ossia::value>{7, 90});
+  CHECK(waitFor([&] { return w.count({0xB1, 7, 90}) == 1; }));
+
+  w.param("2/control/10").push_value(20);
+  CHECK(waitFor([&] { return w.count({0xB1, 10, 20}) == 1; }));
+
+  w.param("2/program").push_value(5);
+  CHECK(waitFor([&] { return w.count({0xC1, 5}) == 1; }));
+
+  w.param("2/program/9").push_value(ossia::impulse{});
+  CHECK(waitFor([&] { return w.count({0xC1, 9}) == 1; }));
+
+  w.param("2/pitchbend").push_value(0);
+  CHECK(waitFor([&] { return w.count({0xE1, 0, 0}) == 1; }));
+
+  w.param("2/pitchbend").push_value(16383);
+  CHECK(waitFor([&] { return w.count({0xE1, 127, 127}) == 1; }));
+}
+
+TEST_CASE("a raw channel follows the wire", "[mididevice][midi]")
+{
+  const auto lb = findLoopback();
+  if(!lb)
+  {
+    WARN("no loopback MIDI port on this machine");
+    SUCCEED();
+    return;
+  }
+
+  raw_bidir w{*lb, GenericChannel{5, true}};
+
+  const auto list = [&](const std::string& path) {
+    return ossia::convert<std::vector<ossia::value>>(w.param(path).value());
+  };
+
+  w.send({0x94, 60, 100});
+  CHECK(waitFor([&] { return ossia::convert<int>(w.param("5/on/60").value()) == 100; }));
+  CHECK(list("5/on") == std::vector<ossia::value>{60, 100});
+
+  // A note on at no velocity arrives as the note off it is.
+  w.send({0x94, 60, 0});
+  CHECK(waitFor([&] { return list("5/off") == std::vector<ossia::value>{60, 0}; }));
+
+  w.send({0xB4, 7, 42});
+  CHECK(waitFor([&] { return ossia::convert<int>(w.param("5/control/7").value()) == 42; }));
+  CHECK(list("5/control") == std::vector<ossia::value>{7, 42});
+
+  w.send({0xC4, 11});
+  CHECK(waitFor([&] { return ossia::convert<int>(w.param("5/program").value()) == 11; }));
+
+  w.send({0xE4, 0x00, 0x60});
+  CHECK(waitFor(
+      [&] { return ossia::convert<int>(w.param("5/pitchbend").value()) == (0x60 << 7); }));
+
+  // Another channel is not this one.
+  w.send({0xB5, 7, 1});
+  std::this_thread::sleep_for(std::chrono::milliseconds{150});
+  CHECK(ossia::convert<int>(w.param("5/control/7").value()) == 42);
+}

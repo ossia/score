@@ -42,6 +42,32 @@ struct MappedDevice
   int channel{1};
 };
 
+/**
+ * A channel addressed as raw MIDI, for what no description covers: one node
+ * per message kind, under a level named by the channel.
+ *
+ *     1/on          (note, velocity)
+ *     1/off         (note, velocity)
+ *     1/control     (control, value)
+ *     1/program     program
+ *     1/pitchbend   0-16383, centred on 8192
+ *
+ * The same structure ossia's plain MIDI device builds, so a score written
+ * against one reads against the other.
+ */
+struct GenericChannel
+{
+  //! 1-16.
+  int channel{1};
+
+  /**
+   * Also one node per note, control and program -- `1/on/60`, `1/control/7`,
+   * `1/program/3` -- which address a single message each rather than carrying
+   * the number as half of their value.
+   */
+  bool expanded{};
+};
+
 struct ProtocolSettings
 {
   libremidi::API api{};
@@ -63,6 +89,9 @@ struct ProtocolSettings
    * address says which device it belongs to.
    */
   std::vector<MappedDevice> devices;
+
+  //! Raw channels, which need no description and may share the port with any.
+  std::vector<GenericChannel> generic;
 };
 
 //! Throws std::runtime_error when the ports cannot be opened or the settings

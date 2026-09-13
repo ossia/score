@@ -87,6 +87,10 @@ private:
   //! What the user picked, which survives the search box filtering it away.
   QString chosenMap() const;
 
+  //! What a raw MIDI channel is called; empty for a description.
+  //! @see Protocols/MIDIDevices/MidiDeviceDatabase.hpp
+  QString genericLabel(const QString& identity) const;
+
   //! The devices on the port, as the list holds them.
   MCUSpecificSettings::MapSlot slotAt(int row) const;
   void addChosenDevice(const QString& identity, int channel);

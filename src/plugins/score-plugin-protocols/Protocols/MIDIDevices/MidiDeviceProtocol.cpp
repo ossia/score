@@ -97,6 +97,51 @@ struct binding
   std::vector<std::pair<std::string, int>> labels;
 };
 
+/**
+ * One MIDI channel addressed as itself, for what no description covers.
+ *
+ * The nodes carry no state of their own: what a channel means is whatever the
+ * device at the other end makes of it, so a message read from the wire lands
+ * on the node and a value written to the node leaves as a message, and that is
+ * all.
+ */
+struct raw_channel
+{
+  int channel{1};
+
+  //! (note, velocity) and (control, value): the number is half of the value.
+  ossia::net::parameter_base* on{};
+  ossia::net::parameter_base* off{};
+  ossia::net::parameter_base* control{};
+  ossia::net::parameter_base* program{};
+  ossia::net::parameter_base* pitchbend{};
+
+  //! Empty, or 128 nodes each addressing one number.
+  std::vector<ossia::net::parameter_base*> noteOn;
+  std::vector<ossia::net::parameter_base*> noteOff;
+  std::vector<ossia::net::parameter_base*> controls;
+  std::vector<ossia::net::parameter_base*> programs;
+};
+
+//! Which message a raw node stands for, for the one push() that reaches it.
+struct raw_address
+{
+  enum Kind
+  {
+    NoteOn,
+    NoteOff,
+    Control,
+    Program,
+    PitchBend
+  };
+
+  raw_channel* chan{};
+  Kind kind{};
+
+  //! The number the node addresses, or -1 when the value carries it.
+  int number{-1};
+};
+
 //! Find or make a child. A group is shared by every control that names it, so
 //! unlike a control node it must not be uniquified into `Filter.1`.
 ossia::net::node_base*
@@ -224,7 +269,7 @@ struct midi_device_protocol final : public ossia::net::protocol_base
   {
     if(!m_settings.input && !m_settings.output)
       throw std::runtime_error("no MIDI port to talk to");
-    if(m_settings.devices.empty())
+    if(m_settings.devices.empty() && m_settings.generic.empty())
       throw std::runtime_error("no device description to build a tree from");
 
     for(auto& d : m_settings.devices)
@@ -384,6 +429,99 @@ struct midi_device_protocol final : public ossia::net::protocol_base
         addControl(*under, c, d.channel);
       }
     }
+
+    for(const auto& g : m_settings.generic)
+      addGenericChannel(root, g);
+  }
+
+  /**
+   * The same shape ossia's plain MIDI device builds, under a level named by
+   * the channel: `1/on`, `1/control`, and with @ref GenericChannel::expanded
+   * a node per number under each.
+   */
+  void addGenericChannel(ossia::net::node_base& root, const GenericChannel& g)
+  {
+    const int ch = std::clamp(g.channel, 1, 16);
+
+    auto* under = root.create_child(std::to_string(ch));
+    if(!under)
+      return;
+
+    m_rawChannels.push_back(std::make_unique<raw_channel>());
+    auto& c = *m_rawChannels.back();
+    c.channel = ch;
+
+    const auto pair = [&](const char* name, raw_address::Kind kind) {
+      auto* param = addRawNode(*under, name, ossia::val_type::LIST, kind, &c, -1);
+      if(param)
+        param->set_domain(
+            ossia::make_domain(std::vector<ossia::value>{0, 0},
+                               std::vector<ossia::value>{127, 127}));
+      return param;
+    };
+
+    c.on = pair("on", raw_address::NoteOn);
+    c.off = pair("off", raw_address::NoteOff);
+    c.control = pair("control", raw_address::Control);
+
+    c.program = addRawNode(
+        *under, "program", ossia::val_type::INT, raw_address::Program, &c, -1);
+    if(c.program)
+      c.program->set_domain(ossia::make_domain(0, 127));
+
+    c.pitchbend = addRawNode(
+        *under, "pitchbend", ossia::val_type::INT, raw_address::PitchBend, &c, -1);
+    if(c.pitchbend)
+    {
+      c.pitchbend->set_domain(ossia::make_domain(0, 16383));
+      c.pitchbend->set_value(8192);
+    }
+
+    if(!g.expanded)
+      return;
+
+    /*
+     * A node per number, under the node that carries it as a value: `on/60`
+     * is the C the pair `on 60 <velocity>` also plays. A program change has
+     * nothing left to say once its number is the address, so those are
+     * impulses.
+     */
+    const auto numbered
+        = [&](ossia::net::parameter_base* parent, raw_address::Kind kind,
+              ossia::val_type type, std::vector<ossia::net::parameter_base*>& out) {
+      if(!parent)
+        return;
+      auto& node = parent->get_node();
+      out.resize(128);
+      for(int i = 0; i < 128; i++)
+      {
+        out[i] = addRawNode(node, std::to_string(i), type, kind, &c, i);
+        if(out[i] && type == ossia::val_type::INT)
+          out[i]->set_domain(ossia::make_domain(0, 127));
+      }
+    };
+
+    numbered(c.on, raw_address::NoteOn, ossia::val_type::INT, c.noteOn);
+    numbered(c.off, raw_address::NoteOff, ossia::val_type::INT, c.noteOff);
+    numbered(c.control, raw_address::Control, ossia::val_type::INT, c.controls);
+    numbered(c.program, raw_address::Program, ossia::val_type::IMPULSE, c.programs);
+  }
+
+  ossia::net::parameter_base* addRawNode(
+      ossia::net::node_base& parent, const std::string& name, ossia::val_type type,
+      raw_address::Kind kind, raw_channel* chan, int number)
+  {
+    auto* node = parent.create_child(name);
+    if(!node)
+      return nullptr;
+
+    auto* param = node->create_parameter(type);
+    if(!param)
+      return nullptr;
+
+    param->set_access(accessMode(Direction::Both));
+    m_rawOf[param] = raw_address{chan, kind, number};
+    return param;
   }
 
   void addControl(ossia::net::node_base& root, const Control& c, int defaultChannel)
@@ -470,6 +608,9 @@ struct midi_device_protocol final : public ossia::net::protocol_base
    */
   bool push(const ossia::net::parameter_base& p, const ossia::value& v) override
   {
+    if(const auto raw = m_rawOf.find(&p); raw != m_rawOf.end())
+      return sendRaw(raw->second, v);
+
     const auto it = m_bindingOf.find(&p);
     if(it == m_bindingOf.end())
       return false;
@@ -494,6 +635,119 @@ struct midi_device_protocol final : public ossia::net::protocol_base
       if(const auto name = labelFor(b, value); !name.empty())
         b.choice->set_value(name);
     return send(b, value);
+  }
+
+  //! The two numbers of a node that carries one as half of its value.
+  static std::pair<int, int> numberAndValue(const ossia::value& v) noexcept
+  {
+    const auto l = ossia::convert<std::vector<ossia::value>>(v);
+    const auto at = [&l](std::size_t i) {
+      return i < l.size() ? std::clamp(ossia::convert<int>(l[i]), 0, 127) : 0;
+    };
+    return {at(0), at(1)};
+  }
+
+  /**
+   * A raw node sends what it is written and keeps nothing: one channel of MIDI
+   * is whatever the device at the other end makes of it.
+   *
+   * Writing the pair also moves the numbered node it covers, and the other way
+   * round, so the two ways of saying the same thing agree. set_value() rather
+   * than push_value(): the twin has already been sent.
+   */
+  bool sendRaw(const raw_address& a, const ossia::value& v)
+  {
+    using ce = libremidi::channel_events;
+    auto& c = *a.chan;
+    const int ch = c.channel;
+
+    const auto numbered
+        = [](const std::vector<ossia::net::parameter_base*>& nodes, int i) {
+      return i >= 0 && std::size_t(i) < nodes.size() ? nodes[i] : nullptr;
+    };
+    const auto pairOf = [](ossia::net::parameter_base* p, int number, int value) {
+      if(p)
+        p->set_value(std::vector<ossia::value>{number, value});
+    };
+
+    switch(a.kind)
+    {
+      case raw_address::NoteOn:
+      case raw_address::NoteOff:
+      {
+        const bool off = a.kind == raw_address::NoteOff;
+        const auto& nodes = off ? c.noteOff : c.noteOn;
+
+        int note = a.number;
+        int velocity = 0;
+        if(a.number < 0)
+          std::tie(note, velocity) = numberAndValue(v);
+        else
+          velocity = std::clamp(ossia::convert<int>(v), 0, 127);
+
+        if(a.number < 0)
+        {
+          if(auto* twin = numbered(nodes, note))
+            twin->set_value(velocity);
+        }
+        else
+        {
+          pairOf(off ? c.off : c.on, note, velocity);
+        }
+
+        // A note on at no velocity is a note off, which is how most hardware
+        // releases a note and what the plain MIDI device does with one.
+        if(off || velocity == 0)
+          write(ce::note_off(ch, note, velocity));
+        else
+          write(ce::note_on(ch, note, velocity));
+        return bool(m_output);
+      }
+
+      case raw_address::Control:
+      {
+        int number = a.number;
+        int value = 0;
+        if(a.number < 0)
+        {
+          std::tie(number, value) = numberAndValue(v);
+          if(auto* twin = numbered(c.controls, number))
+            twin->set_value(value);
+        }
+        else
+        {
+          value = std::clamp(ossia::convert<int>(v), 0, 127);
+          pairOf(c.control, number, value);
+        }
+
+        write(ce::control_change(ch, number, value));
+        return bool(m_output);
+      }
+
+      case raw_address::Program:
+      {
+        const int number = a.number >= 0
+                               ? a.number
+                               : std::clamp(ossia::convert<int>(v), 0, 127);
+        if(a.number < 0)
+        {
+          if(auto* twin = numbered(c.programs, number))
+            twin->set_value(ossia::impulse{});
+        }
+        else if(c.program)
+        {
+          c.program->set_value(number);
+        }
+
+        write(ce::program_change(ch, number));
+        return bool(m_output);
+      }
+
+      case raw_address::PitchBend:
+        write(ce::pitch_bend(ch, std::clamp(ossia::convert<int>(v), 0, 16383)));
+        return bool(m_output);
+    }
+    return false;
   }
 
   //! Whether a message went out.
@@ -646,6 +900,8 @@ struct midi_device_protocol final : public ossia::net::protocol_base
     if(status == 0xB0)
       onParameterNumber(channel, d1, d2);
 
+    receiveRaw(status, channel, d1, d2);
+
     for(auto& held : m_bindings)
     {
       auto& b = *held;
@@ -725,6 +981,65 @@ struct midi_device_protocol final : public ossia::net::protocol_base
    * selection stays latched between them: a device may write the same
    * parameter again with nothing but a further data entry.
    */
+  /**
+   * A raw channel follows the wire and nothing else: set_value(), so that what
+   * arrives is not sent straight back out.
+   */
+  void receiveRaw(int status, int channel, int d1, int d2)
+  {
+    const auto numbered
+        = [](const std::vector<ossia::net::parameter_base*>& nodes, int i, auto value) {
+      if(i >= 0 && std::size_t(i) < nodes.size() && nodes[i])
+        nodes[i]->set_value(value);
+    };
+    const auto pair = [](ossia::net::parameter_base* p, int a, int b) {
+      if(p)
+        p->set_value(std::vector<ossia::value>{a, b});
+    };
+
+    for(auto& held : m_rawChannels)
+    {
+      auto& c = *held;
+      if(c.channel != channel)
+        continue;
+
+      switch(status)
+      {
+        case 0x90:
+          if(d2 > 0)
+          {
+            pair(c.on, d1, d2);
+            numbered(c.noteOn, d1, d2);
+            break;
+          }
+          [[fallthrough]];
+        case 0x80:
+          pair(c.off, d1, d2);
+          numbered(c.noteOff, d1, d2);
+          break;
+
+        case 0xB0:
+          pair(c.control, d1, d2);
+          numbered(c.controls, d1, d2);
+          break;
+
+        case 0xC0:
+          if(c.program)
+            c.program->set_value(d1);
+          numbered(c.programs, d1, ossia::impulse{});
+          break;
+
+        case 0xE0:
+          if(c.pitchbend)
+            c.pitchbend->set_value((d2 << 7) | d1);
+          break;
+
+        default:
+          break;
+      }
+    }
+  }
+
   void onParameterNumber(int channel, int cc, int value)
   {
     auto& sel = m_selected[channel - 1];
@@ -844,6 +1159,11 @@ struct midi_device_protocol final : public ossia::net::protocol_base
   //! A control's numeric node and its choice both resolve to the one binding;
   //! push() tells them apart by identity.
   ossia::hash_map<const ossia::net::parameter_base*, binding*> m_bindingOf;
+
+  //! Stable addresses: m_rawOf points into them.
+  std::vector<std::unique_ptr<raw_channel>> m_rawChannels;
+
+  ossia::hash_map<const ossia::net::parameter_base*, raw_address> m_rawOf;
 };
 }
 

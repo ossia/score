@@ -843,6 +843,12 @@ MCUDevice::makeMidiDeviceMapProtocol(const MCUSpecificSettings& set)
 
   for(const auto& slot : set.maps)
   {
+    if(const auto expanded = MIDIDevices::genericChannel(slot.map))
+    {
+      conf.generic.push_back({slot.channel, *expanded});
+      continue;
+    }
+
     const auto* entry = MIDIDevices::Database::instance().find(slot.map);
     if(!entry)
     {
@@ -866,7 +872,7 @@ MCUDevice::makeMidiDeviceMapProtocol(const MCUSpecificSettings& set)
     conf.devices.push_back({std::move(*map), slot.channel});
   }
 
-  if(conf.devices.empty())
+  if(conf.devices.empty() && conf.generic.empty())
   {
     qWarning() << "MIDI Controller" << settings().name
                << ": none of its device maps could be read.";
