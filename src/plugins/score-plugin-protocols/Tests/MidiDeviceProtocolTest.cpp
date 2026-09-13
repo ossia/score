@@ -457,6 +457,10 @@ TEST_CASE("an incoming note only moves the control it addresses", "[mididevice][
     ]})_");
   auto& root = inj.dev->get_root_node();
 
+  // A control that addresses a bank of notes holds which note, so it starts at
+  // the bottom of the bank rather than at a note it cannot name.
+  CHECK(valueOf(root, "Drums/Slices") == 12);
+
   // Note 36 is Kick's own address.
   inj.send({0x90, 36, 100});
   CHECK(waitFor([&] { return valueOf(root, "Drums/Kick") == 100; }));
@@ -467,7 +471,7 @@ TEST_CASE("an incoming note only moves the control it addresses", "[mididevice][
   inj.send({0x90, 60, 100});
   std::this_thread::sleep_for(std::chrono::milliseconds{200});
   CHECK(valueOf(root, "Drums/Snare") == 0);
-  CHECK(valueOf(root, "Drums/Slices") == 0);
+  CHECK(valueOf(root, "Drums/Slices") == 12);
 
   // A note inside the range is the range control's value.
   inj.send({0x90, 20, 100});
@@ -1401,4 +1405,110 @@ TEST_CASE("a level of the tree is a MIDI port of its own", "[mididevice][midi]")
   out->write(st);
 
   CHECK(waitFor([&] { return w.count({0x93, 0x2A, 0x64}) == 1; }));
+
+  // A level sends on its own channel whatever channel the message was written
+  // on, so that a port reads back what it writes.
+  out->target<ossia::midi_port>()->messages.clear();
+  libremidi::ump elsewhere;
+  elsewhere.data[0] = 0x20902B65;
+  out->target<ossia::midi_port>()->messages.push_back(elsewhere);
+  out->write(st);
+
+  CHECK(waitFor([&] { return w.count({0x93, 0x2B, 0x65}) == 1; }));
+  CHECK(w.count({0x90, 0x2B, 0x65}) == 0);
+
+  // A port that propagates nothing sends nothing.
+  out->scope = ossia::port::scope_t::none;
+  out->target<ossia::midi_port>()->messages.clear();
+  out->target<ossia::midi_port>()->messages.push_back(note);
+  out->write(st);
+
+  std::this_thread::sleep_for(std::chrono::milliseconds{200});
+  CHECK(w.count({0x93, 0x2A, 0x64}) == 1);
+}
+
+TEST_CASE("a parameter number writes the value it means", "[mididevice][midi]")
+{
+  const auto lb = findLoopback();
+  if(!lb)
+  {
+    WARN("no loopback MIDI port on this machine");
+    SUCCEED();
+    return;
+  }
+
+  auto inj = makeReceiver(*lb, R"_({
+    "format": "score.midi-device/1", "model": "Synth",
+    "controls": [
+      {"name": "Cutoff", "kind": "knob", "direction": "in",
+       "message": {"type": "nrpn", "channel": 1, "number": 1, "lsb": 2},
+       "value": {"min": 0, "max": 16383}},
+      {"name": "Depth", "kind": "knob", "direction": "in",
+       "message": {"type": "nrpn", "channel": 1, "number": 1, "lsb": 3},
+       "value": {"min": 0, "max": 127}}
+    ]})_");
+  auto& root = inj.dev->get_root_node();
+
+  const auto select = [&](int lsb) {
+    inj.send({0xB0, 99, 1});
+    inj.send({0xB0, 98, (unsigned char)lsb});
+  };
+
+  // A 14-bit parameter whose device sends only the coarse half means that half
+  // shifted up, not a value a hundred and twenty-eight times too small.
+  select(2);
+  inj.send({0xB0, 6, 64});
+  CHECK(waitFor([&] { return valueOf(root, "Synth/Cutoff") == 8192; }));
+
+  // And then the fine half completes it, without passing through anything else.
+  inj.send({0xB0, 38, 3});
+  CHECK(waitFor([&] { return valueOf(root, "Synth/Cutoff") == 8195; }));
+
+  // A 7-bit parameter keeps the coarse half when the device sends both, rather
+  // than ending on the fine one.
+  select(3);
+  inj.send({0xB0, 6, 100});
+  CHECK(waitFor([&] { return valueOf(root, "Synth/Depth") == 100; }));
+  inj.send({0xB0, 38, 0});
+  std::this_thread::sleep_for(std::chrono::milliseconds{200});
+  CHECK(valueOf(root, "Synth/Depth") == 100);
+
+  // Selecting another parameter drops the data entry held for the last: a
+  // fine-only write after it must not be given the previous coarse half.
+  select(2);
+  const int before = valueOf(root, "Synth/Cutoff");
+  inj.send({0xB0, 38, 5});
+  std::this_thread::sleep_for(std::chrono::milliseconds{200});
+  CHECK(valueOf(root, "Synth/Cutoff") == before);
+}
+
+TEST_CASE("a coarse control change is latched, not consumed", "[mididevice][midi]")
+{
+  const auto lb = findLoopback();
+  if(!lb)
+  {
+    WARN("no loopback MIDI port on this machine");
+    SUCCEED();
+    return;
+  }
+
+  auto inj = makeReceiver(*lb, R"_({
+    "format": "score.midi-device/1", "model": "Fader",
+    "controls": [
+      {"name": "Level", "kind": "fader", "direction": "in",
+       "message": {"type": "cc14", "channel": 1, "number": 1, "lsb": 33},
+       "value": {"min": 0, "max": 16383}}
+    ]})_");
+  auto& root = inj.dev->get_root_node();
+
+  inj.send({0xB0, 1, 64});
+  inj.send({0xB0, 33, 0});
+  CHECK(waitFor([&] { return valueOf(root, "Fader/Level") == 8192; }));
+
+  // A slow move sends the coarse half once and then a run of fine halves
+  // inside that step; every one of them is a value, not a message to drop.
+  inj.send({0xB0, 33, 1});
+  CHECK(waitFor([&] { return valueOf(root, "Fader/Level") == 8193; }));
+  inj.send({0xB0, 33, 2});
+  CHECK(waitFor([&] { return valueOf(root, "Fader/Level") == 8194; }));
 }
