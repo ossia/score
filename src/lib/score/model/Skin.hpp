@@ -124,12 +124,6 @@ public:
   //! editor applies a font live.
   std::vector<std::pair<const char*, QFont*>> fonts() noexcept;
 
-  //! Rebuilds every font from the Skin/Font* settings and the given skin's
-  //! "fonts" block, then emits changed(). Call this when a font setting is
-  //! edited: nothing about the fonts is frozen at startup, so no restart is
-  //! needed, but something has to ask for the rebuild.
-  void reloadFonts(const QJsonObject& skin);
-
   //! Font for the widget UI as a whole. A skin may override it; applying it
   //! to the QApplication is score::setupApplicationFont()'s job, since the
   //! per-widget-class font hash has to be reseeded too.
@@ -352,8 +346,9 @@ SCORE_LIB_BASE_EXPORT QFont::StyleStrategy uiFontStyleStrategy() noexcept;
 //! multiples of it; the skin editor uses this to say which sizes are usable.
 SCORE_LIB_BASE_EXPORT int pixelFontGrid(const QString& family) noexcept;
 
-//! \p px rounded down to a size at which \p f's family renders sharply, and
-//! never below one grid step. \p px unchanged for an outline font.
+//! \p px snapped to a size at which \p f's family renders sharply: rounded
+//! down to a whole multiple of its grid, or up to a single step when \p px is
+//! smaller than one. \p px unchanged for an outline font.
 //!
 //! Code that computes a font size instead of taking one from the skin has to
 //! go through this. A pixel font at a size that is not a whole multiple of

@@ -48,10 +48,6 @@ public:
   void SkinChanged(const QString& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, SkinChanged, arg_1);
 
-  //! The skin document in effect, kept so a font change can be re-applied
-  //! over it without re-reading the file.
-  const QJsonObject& currentSkinJson() const noexcept;
-
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, QString, DefaultEditor)
   SCORE_SETTINGS_PARAMETER_HPP(
       SCORE_PLUGIN_SCENARIO_EXPORT, QString, ScriptEditorPlacement)
@@ -73,9 +69,6 @@ public:
 public:
   SCORE_SETTINGS_PROPERTY(QString, Skin)
 
-private:
-  struct Impl;
-  Impl* m_impl{};
 };
 
 SCORE_SETTINGS_PARAMETER(Model, Skin)

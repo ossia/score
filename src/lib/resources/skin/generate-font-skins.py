@@ -64,6 +64,12 @@ def check(stem, fonts):
                 f"{stem}: {role} asks for bold {family}, which has no bold "
                 f"face, so Qt would smear the glyphs"
             )
+        if grid and "bold" not in spec and "weight" not in spec:
+            raise SystemExit(
+                f"{stem}: {role} pins no weight, so it inherits whatever "
+                f"Skin::setupFonts() left on that role -- 900 for mono, 600 "
+                f"for slider -- and {family} has no such face"
+            )
 
 
 # Families that actually ship a Bold face. Asking for bold on any other one
@@ -91,30 +97,42 @@ def emphasis(family, px):
     return spec
 
 
+def plain(family, px, **extra):
+    """A role at its plain weight.
+
+    "bold": false is written for every role, not only the emphasised ones:
+    Skin::load() rebuilds the fonts through setupFonts() before applying the
+    file, and that gives MonoFont weight 900 and SliderFont weight 600. A role
+    that names only a family and a size inherits those, and Qt then picks the
+    nearest face it has -- or fakes one.
+    """
+    return {"family": family, "pixelSize": px, "bold": False, **extra}
+
+
 def graded(name, small, body, large, mono, mono_small, scale):
     """A family with several hand-drawn grid sizes."""
     s, b, l = (small[1] * scale, body[1] * scale, large[1] * scale)
     return {
-        "application": {"family": body[0], "pixelSize": b},
-        "sans": {"family": body[0], "pixelSize": b},
-        "sansSmall": {"family": small[0], "pixelSize": s},
-        "mono": {"family": mono[0], "pixelSize": mono[1] * scale},
-        "monoSmall": {"family": mono_small[0], "pixelSize": mono_small[1] * scale},
+        "application": plain(body[0], b),
+        "sans": plain(body[0], b),
+        "sansSmall": plain(small[0], s),
+        "mono": plain(mono[0], mono[1] * scale),
+        "monoSmall": plain(mono_small[0], mono_small[1] * scale),
         "bold10": emphasis(body[0], b),
         "bold12": emphasis(large[0], l),
-        "medium7": {"family": small[0], "pixelSize": s},
-        "medium8": {"family": small[0], "pixelSize": s},
-        "medium10": {"family": body[0], "pixelSize": b},
-        "medium12": {"family": body[0], "pixelSize": b},
+        "medium7": plain(small[0], s),
+        "medium8": plain(small[0], s),
+        "medium10": plain(body[0], b),
+        "medium12": plain(body[0], b),
         # Hierarchy comes from the larger grid size, not from a faked weight.
         "title": emphasis(large[0], l),
         # An inspector heading. One grid step above the body, like the panel
         # banner: with several hand-drawn sizes to choose from, that reads as
         # a heading without anything having to be faked.
         "sectionTitle": emphasis(large[0], l),
-        "slider": {"family": small[0], "pixelSize": s},
+        "slider": plain(small[0], s),
         # Code wants the monospaced face at the body size.
-        "code": {"family": mono[0], "pixelSize": mono[1] * scale, "fixedPitch": True},
+        "code": plain(mono[0], mono[1] * scale, fixedPitch=True),
         # The transport readout. Heaviest face the family has, at its grid:
         # this is the largest text on screen, so an off-grid size shows.
         "timecode": emphasis(body[0], b),
@@ -140,7 +158,7 @@ def uniform(family, grid, scale, big_title=True):
     large = px * 2 if (big_title and family not in BITMAP_ONLY) else px
     fonts = {}
     for role in ROLES:
-        fonts[role] = {"family": family, "pixelSize": px}
+        fonts[role] = plain(family, px)
     fonts["bold10"] = emphasis(family, px)
     fonts["bold12"] = emphasis(family, large)
     fonts["title"] = emphasis(family, large)

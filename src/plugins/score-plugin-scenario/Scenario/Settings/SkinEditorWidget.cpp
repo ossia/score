@@ -5,15 +5,18 @@
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/Skin.hpp>
 #include <score/tools/FilePath.hpp>
+#include <score/widgets/MessageBox.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDir>
 #include <QDirIterator>
+#include <QFile>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QFontDatabase>
+#include <QFontInfo>
 #include <QFontMetrics>
 #include <QFormLayout>
 #include <QGroupBox>
@@ -190,15 +193,27 @@ QWidget* SkinEditorWidget::makeSkinRow()
         QStringLiteral("*.json"));
     if(f.isEmpty())
       return;
+
+    // The skin list only iterates *.json, so a name typed without one would
+    // save and then be invisible.
+    if(QFileInfo{f}.suffix().isEmpty())
+      f += QStringLiteral(".json");
+
     QFile fl{f};
-    fl.open(QIODevice::WriteOnly);
-    if(!fl.isOpen())
+    if(!fl.open(QIODevice::WriteOnly))
+    {
+      score::warning(this, tr("Skin"), tr("Could not write %1").arg(f));
       return;
+    }
 
     // Colours and fonts both, so a saved skin reloads as it was edited.
     QJsonDocument doc;
     doc.setObject(score::Skin::instance().toJson());
     fl.write(doc.toJson());
+
+    // Closed before the reload, not left to the destructor: skinChanged()
+    // reads this same path back synchronously, and QFile buffers its writes.
+    fl.close();
     skinChanged(f);
   });
 
@@ -276,8 +291,8 @@ QWidget* SkinEditorWidget::makeColorEditor()
     {
       m_loading = true;
       m_wheel->setColor(b->color());
-      // The hex box used to be written only by the wheel's own signal, so
-      // picking a different colour in the list left the previous value here.
+      // Written here as well as from the wheel's own signal, so that picking
+      // a different colour in the list refreshes it too.
       m_hex->setText(b->color().name(QColor::HexRgb));
       m_loading = false;
     }
@@ -430,7 +445,13 @@ void SkinEditorWidget::loadFontRole()
 
   m_loading = true;
   const QString fam = f->families().value(0, f->family());
-  m_fontFamily->setCurrentText(fam);
+  // setCurrentText is a no-op on a non-editable combo when the text is not in
+  // the list, which would leave the previous role's family showing -- and the
+  // next edit would write that one into this role. A skin may legitimately
+  // name a font this machine does not have, so carry it rather than drop it.
+  if(m_fontFamily->findText(fam) == -1)
+    m_fontFamily->insertItem(0, fam);
+  m_fontFamily->setCurrentIndex(m_fontFamily->findText(fam));
 
   m_fontStyle->clear();
   const QStringList styles = QFontDatabase::styles(fam);
@@ -448,7 +469,10 @@ void SkinEditorWidget::loadFontRole()
     idx = m_fontStyle->findText(QStringLiteral("Regular"));
   m_fontStyle->setCurrentIndex(std::max(0, idx));
 
-  m_fontSize->setValue(f->pixelSize() > 0 ? f->pixelSize() : QFontMetrics{*f}.height());
+  // QFontInfo, not QFontMetrics::height(): a role that names no size at all
+  // resolves to one, and height() is ascent+descent+leading rather than the
+  // em size, so it would pin the role a couple of pixels larger than it drew.
+  m_fontSize->setValue(f->pixelSize() > 0 ? f->pixelSize() : QFontInfo{*f}.pixelSize());
   m_fontAntialias->setChecked(!(int(f->styleStrategy()) & int(QFont::NoAntialias)));
 
   switch(f->hintingPreference())

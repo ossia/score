@@ -1,9 +1,6 @@
 // Does the live zoom actually reach a running score UI?
 #include <score_test/App.hpp>
 
-#include <Scenario/Settings/ScenarioSettingsModel.hpp>
-
-
 #include <score/model/Skin.hpp>
 
 #include <QApplication>
@@ -15,6 +12,16 @@
 TEST_CASE("The graphical zoom applies to a running application", "[integration][skin]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext&) {
+    if(!score::canSetGlobalScaleFactorLive())
+    {
+      // Below Qt 6.6, or a Qt built without high-DPI scaling: the function
+      // reports that it cannot do anything, and there is nothing to assert
+      // beyond that. Same predicate the settings UI uses to decide whether
+      // the zoom control can apply live.
+      CHECK_FALSE(score::setGlobalScaleFactor(2.0));
+      return;
+    }
+
     auto w = new QWidget;
     w->resize(300, 200);
     w->show();

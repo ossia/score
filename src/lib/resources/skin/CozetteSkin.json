@@ -223,23 +223,28 @@
   },
   "application": {
    "family": "Cozette",
-   "pixelSize": 13
+   "pixelSize": 13,
+   "bold": false
   },
   "sans": {
    "family": "Cozette",
-   "pixelSize": 13
+   "pixelSize": 13,
+   "bold": false
   },
   "sansSmall": {
    "family": "Cozette",
-   "pixelSize": 13
+   "pixelSize": 13,
+   "bold": false
   },
   "mono": {
    "family": "Cozette",
-   "pixelSize": 13
+   "pixelSize": 13,
+   "bold": false
   },
   "monoSmall": {
    "family": "Cozette",
-   "pixelSize": 13
+   "pixelSize": 13,
+   "bold": false
   },
   "bold10": {
    "family": "Cozette",
@@ -253,19 +258,23 @@
   },
   "medium7": {
    "family": "Cozette",
-   "pixelSize": 13
+   "pixelSize": 13,
+   "bold": false
   },
   "medium8": {
    "family": "Cozette",
-   "pixelSize": 13
+   "pixelSize": 13,
+   "bold": false
   },
   "medium10": {
    "family": "Cozette",
-   "pixelSize": 13
+   "pixelSize": 13,
+   "bold": false
   },
   "medium12": {
    "family": "Cozette",
-   "pixelSize": 13
+   "pixelSize": 13,
+   "bold": false
   },
   "title": {
    "family": "Cozette",
@@ -279,11 +288,13 @@
   },
   "slider": {
    "family": "Cozette",
-   "pixelSize": 13
+   "pixelSize": 13,
+   "bold": false
   },
   "code": {
    "family": "Cozette",
-   "pixelSize": 13
+   "pixelSize": 13,
+   "bold": false
   },
   "timecode": {
    "family": "Cozette",

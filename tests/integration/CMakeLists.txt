@@ -36,8 +36,10 @@ score_add_test(test_integration_skin_editor
   PLUGINS score_plugin_scenario)
 
 
-# Needs a real window, so GUI rather than headless: the scale factor only
-# reaches a window across a hide/show cycle.
+# GUI so that the test gets its own X server: it maps a window and cycles every
+# top-level one. The score_test fixture still runs it on the offscreen platform,
+# which is enough -- the assertions are on devicePixelRatio, which the offscreen
+# plugin reports like any other.
 score_add_test(test_integration_graphical_zoom
   SOURCES GraphicalZoomTest.cpp
   GUI

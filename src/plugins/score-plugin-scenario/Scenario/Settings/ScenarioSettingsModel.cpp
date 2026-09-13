@@ -78,17 +78,10 @@ static auto list()
 }
 }
 
-struct Model::Impl
-{
-  //! The skin as loaded, so a font change can be re-applied over it.
-  QJsonObject skinJson;
-};
-
 Model::Model(
     const UuidKey<score::SettingsDelegateFactory>& k, QSettings& set,
     const score::ApplicationContext& ctx)
     : score::SettingsDelegateModel{k, nullptr}
-    , m_impl{new Impl}
 {
   score::setupDefaultSettings(set, Parameters::list(), *this);
 
@@ -128,11 +121,6 @@ QString Model::getSkin() const
   return m_Skin;
 }
 
-const QJsonObject& Model::currentSkinJson() const noexcept
-{
-  return m_impl->skinJson;
-}
-
 void Model::initSkin(const QString& skin)
 {
   m_Skin = skin;
@@ -154,11 +142,9 @@ void Model::initSkin(const QString& skin)
     }
     else
     {
-      m_impl->skinJson = doc.object();
       // Only the halves the user asked for: switching skin to try a palette
       // should not have to bring its fonts along, or the other way round.
-      score::Skin::instance().load(
-          m_impl->skinJson, SkinEditorWidget::selectedParts());
+      score::Skin::instance().load(doc.object(), SkinEditorWidget::selectedParts());
     }
   }
   else

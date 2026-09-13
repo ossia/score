@@ -40,8 +40,7 @@ SimpleTextItem::SimpleTextItem(const score::BrushSet& col, QGraphicsItem* p)
   setFont(skin.Medium8Pt);
 
   // Follow the skin: the glyphs are cached into m_line, so without this the
-  // label keeps the font it was built with until the item is recreated, which
-  // is what made the font settings look like they needed a restart.
+  // label keeps the font it was built with until the item is recreated.
   QObject::connect(&skin, &score::Skin::changed, this, [this] { updateImpl(); });
 }
 
@@ -59,8 +58,7 @@ void SimpleTextItem::paint(
     static const auto& skin = score::Skin::instance();
     if(m_color)
       painter->setPen(m_color->pen1);
-    if(m_font)
-      painter->setFont(*m_font);
+    painter->setFont(m_paintFont);
     painter->setBrush(skin.NoBrush);
     painter->drawText(QPointF{0, (float)m_rect.height() - 2.}, m_string);
   }
@@ -74,13 +72,14 @@ void SimpleTextItem::paint(
 void SimpleTextItem::setFont(const QFont& f)
 {
   // A reference, not a copy, so that a skin change re-renders this label.
+  // \a f must outlive the item; every caller passes a score::Skin member.
   //
-  // Note also what is *not* here: the style strategy is left alone. Forcing
-  // PreferAntialias turns on subpixel glyph positioning, and these items are
-  // laid out at fractional device offsets (measured: x fractions of .11 to
-  // .81), so a pixel font's 1 px stems get split across two columns and the
-  // label looks smeared. NoAntialias is what makes Qt snap the glyph origin
-  // to a whole pixel.
+  // The style strategy is deliberately not forced to PreferAntialias: that
+  // also turns on subpixel glyph positioning, and these items are laid out at
+  // fractional device offsets (measured: x fractions of .11 to .81), so a
+  // pixel font's 1 px stems get split across two columns and the label looks
+  // smeared. NoAntialias is what makes Qt snap the glyph origin to a whole
+  // pixel.
   m_font = &f;
   updateImpl();
 }
@@ -111,6 +110,15 @@ void SimpleTextItem::updateImpl()
 {
   prepareGeometryChange();
 
+  // The skin's fonts turn font merging off, which is right for a widget label
+  // in a pixel font: it should not silently mix in another family. These
+  // labels carry names the user typed, in any script the user pleases, and a
+  // row of tofu is the worse trade -- so merging comes back on here, and only
+  // here.
+  m_paintFont = m_font ? *m_font : QFont{};
+  m_paintFont.setStyleStrategy(QFont::StyleStrategy(
+      int(m_paintFont.styleStrategy()) & ~int(QFont::NoFontMerging)));
+
   if(m_string.isEmpty())
   {
     m_rect = QRectF{};
@@ -118,7 +126,7 @@ void SimpleTextItem::updateImpl()
   }
   else
   {
-    QTextLayout layout(m_string, m_font ? *m_font : QFont{});
+    QTextLayout layout(m_string, m_paintFont);
     layout.beginLayout();
     auto line = layout.createLine();
     layout.endLayout();

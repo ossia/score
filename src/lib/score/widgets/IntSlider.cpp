@@ -37,9 +37,10 @@ IntSlider::IntSlider(Qt::Orientation ort, QWidget* widg)
 
 int IntSlider::skinExtent() const noexcept
 {
-  // One line of text, its border on both sides, and a pixel of air.
+  // One line of text, its border on both sides, and enough air that the
+  // default skin's 14 px line lands on the 20 px these controls are drawn at.
   return QFontMetrics{score::Skin::instance().SliderFont}.height()
-         + 2 * qRound(m_borderWidth) + 2;
+         + 2 * qRound(m_borderWidth) + 4;
 }
 
 void IntSlider::updateSkinMetrics()

@@ -223,24 +223,29 @@
   },
   "application": {
    "family": "Galmuri11",
-   "pixelSize": 12
+   "pixelSize": 12,
+   "bold": false
   },
   "sans": {
    "family": "Galmuri11",
-   "pixelSize": 12
+   "pixelSize": 12,
+   "bold": false
   },
   "sansSmall": {
    "family": "Galmuri11",
    "pixelSize": 12,
+   "bold": false,
    "styleName": "Condensed"
   },
   "mono": {
    "family": "GalmuriMono11",
-   "pixelSize": 12
+   "pixelSize": 12,
+   "bold": false
   },
   "monoSmall": {
    "family": "GalmuriMono11",
-   "pixelSize": 12
+   "pixelSize": 12,
+   "bold": false
   },
   "bold10": {
    "family": "Galmuri11",
@@ -256,19 +261,23 @@
   },
   "medium7": {
    "family": "Galmuri11",
-   "pixelSize": 12
+   "pixelSize": 12,
+   "bold": false
   },
   "medium8": {
    "family": "Galmuri11",
-   "pixelSize": 12
+   "pixelSize": 12,
+   "bold": false
   },
   "medium10": {
    "family": "Galmuri11",
-   "pixelSize": 12
+   "pixelSize": 12,
+   "bold": false
   },
   "medium12": {
    "family": "Galmuri11",
-   "pixelSize": 12
+   "pixelSize": 12,
+   "bold": false
   },
   "title": {
    "family": "Galmuri11",
@@ -284,11 +293,13 @@
   },
   "slider": {
    "family": "Galmuri11",
-   "pixelSize": 12
+   "pixelSize": 12,
+   "bold": false
   },
   "code": {
    "family": "GalmuriMono11",
    "pixelSize": 12,
+   "bold": false,
    "fixedPitch": true
   },
   "timecode": {

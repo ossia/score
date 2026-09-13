@@ -10,10 +10,11 @@ namespace score
  *
  * Qt computes the height of a text-entry widget as at least 14 pixels of
  * content whatever the font is -- see QLineEdit::sizeHint and
- * QComboBoxPrivate::recomputeSizeHint. That floor was written for desktop
- * type; under a skin whose application font is 8 px it leaves a full-size box
- * around a line of text half its height, and every form in the inspector ends
- * up mostly padding.
+ * QComboBoxPrivate::recomputeSizeHint, which floor differently and have to be
+ * corrected separately. That floor was written for desktop type; under a skin
+ * whose application font is 8 px it leaves a full-size box around a line of
+ * text half its height, and every form in the inspector ends up mostly
+ * padding.
  *
  * Everything else is the wrapped style's.
  */
