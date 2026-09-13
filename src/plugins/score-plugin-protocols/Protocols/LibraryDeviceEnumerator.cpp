@@ -9,6 +9,8 @@
 #include <QDirIterator>
 #include <QFile>
 #include <QFileInfo>
+
+#include <memory>
 #include <QTimer>
 
 namespace Protocols
@@ -35,11 +37,34 @@ LibraryDeviceEnumerator::LibraryDeviceEnumerator(
   m_watch.setWatchedFolder(
       ctx.app.settings<Library::Settings::Model>().getPackagesPath().toStdString());
 
+  // Matching happens on a scanning thread, so it works from its own copy of
+  // what it needs rather than reaching into this object, which may be gone by
+  // then. What it hands back runs on the gui thread, where the scan's guard on
+  // this object already decides whether it runs at all.
+  struct matcher_data
+  {
+    std::string pattern;
+    Device::ProtocolFactory::ConcreteKey key;
+    std::function<QVariant(QByteArray, const QString&)> make;
+  };
+  auto matcher
+      = std::make_shared<matcher_data>(m_pattern, m_key, m_createDeviceSettings);
+
   for(auto& e : ext)
   {
     score::RecursiveWatch::AsyncCallbacks cb;
-    cb.filter = [this](std::string_view path) -> std::function<void()> {
-      return asyncNext(path);
+    cb.filter = [this, m = matcher](std::string_view path) -> std::function<void()> {
+      const QString filepath = QString::fromUtf8(path.data(), path.length());
+
+      std::function<void()> result;
+      score::findStringInFile(filepath, m->pattern.c_str(), [&](QFile& f) {
+        Device::DeviceSettings s;
+        s.name = QFileInfo{filepath}.baseName();
+        s.protocol = m->key;
+        s.deviceSpecificSettings = m->make(score::mapAsByteArray(f), filepath);
+        result = [this, s = std::move(s)]() mutable { deviceAdded(s.name, s); };
+      });
+      return result;
     };
     m_watch.registerWatch(e.toStdString(), std::move(cb));
   }
@@ -60,24 +85,6 @@ void LibraryDeviceEnumerator::next(std::string_view path)
         = m_createDeviceSettings(score::mapAsByteArray(f), filepath);
     deviceAdded(s.name, s);
   });
-}
-
-std::function<void()> LibraryDeviceEnumerator::asyncNext(std::string_view path)
-{
-  QString filepath = QString::fromUtf8(path.data(), path.length());
-
-  std::function<void()> result;
-  score::findStringInFile(filepath, m_pattern.c_str(), [&](QFile& f) {
-    Device::DeviceSettings s;
-    s.name = QFileInfo{filepath}.baseName();
-    s.protocol = m_key;
-    s.deviceSpecificSettings
-        = m_createDeviceSettings(score::mapAsByteArray(f), filepath);
-    result = [this, s = std::move(s)]() mutable {
-      deviceAdded(s.name, s);
-    };
-  });
-  return result;
 }
 
 void LibraryDeviceEnumerator::enumerate(

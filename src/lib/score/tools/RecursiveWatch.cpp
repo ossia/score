@@ -350,6 +350,11 @@ void RecursiveWatch::scanAsync(QObject* context)
     };
 
     for_all_files(state.root, [&](std::string_view path) {
+      // The handlers were handed over by the object that asked for the scan and
+      // are free to reach back into it. Once it is gone there is nothing left
+      // for them to reach, and the walk has nobody to report to either.
+      if(!state.ctx)
+        return;
       if(path.empty())
         return;
       auto last_dot = path.find_last_of('.');
