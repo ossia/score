@@ -1066,3 +1066,50 @@ TEST_CASE("note names stay out of the tree, note controls do not",
             [](const Control& c) { return isNoteName(c); })
         == 2);
 }
+
+TEST_CASE("one named value is still worth naming", "[mididevice][midi]")
+{
+  const auto found = anyOutput();
+  if(!found)
+  {
+    SUCCEED();
+    return;
+  }
+  const auto& [api, out] = *found;
+
+  auto map = parseDeviceMap(R"_({
+    "format": "score.midi-device/1", "model": "Synth",
+    "controls": [
+      {"name": "Single", "kind": "parameter", "direction": "out",
+       "message": {"type": "program", "channel": 1, "bank": {"msb": 0, "lsb": 25}},
+       "value": {"labels": [{"from": 0, "to": 0, "name": "Grand Piano"}]}},
+      {"name": "Ranged", "kind": "knob", "direction": "out",
+       "message": {"type": "cc", "channel": 1, "number": 20},
+       "value": {"labels": [{"from": 0, "to": 63, "name": "Off"},
+                            {"from": 64, "to": 127, "name": "On"}]}},
+      {"name": "Plain", "kind": "knob", "direction": "out",
+       "message": {"type": "cc", "channel": 1, "number": 21}, "value": {}}
+    ]})_");
+  REQUIRE(map.has_value());
+
+  ProtocolSettings conf;
+  conf.api = api;
+  conf.output = out;
+  conf.devices.push_back({*map, 1});
+
+  auto dev = std::make_unique<ossia::net::generic_device>(
+      makeProtocol(std::move(conf)), "synth");
+  auto& root = dev->get_root_node();
+
+  // A bank holding one patch names it, and that name is the only thing the
+  // document says about it.
+  auto* single = at(root, "Synth/Single/choice");
+  REQUIRE(single);
+  REQUIRE(single->get_parameter());
+  CHECK(single->get_parameter()->get_value_type() == ossia::val_type::STRING);
+
+  // A label spanning a range has no single value to send back, so those still
+  // get no choice however many there are.
+  CHECK(at(root, "Synth/Ranged/choice") == nullptr);
+  CHECK(at(root, "Synth/Plain/choice") == nullptr);
+}

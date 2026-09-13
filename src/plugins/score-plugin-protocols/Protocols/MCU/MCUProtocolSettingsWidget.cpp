@@ -697,9 +697,8 @@ void MCUSettingsWidget::updatePreview()
       ossia::net::sanitize_name(leaf);
       auto* node = new QTreeWidgetItem{parent, {uniqueChild(parent, leaf)}};
 
-      // The string node that names the values, where the description names
-      // them all.
-      if(c.value.labels.size() >= 2)
+      // The string node that names the values.
+      if(!c.value.labels.empty())
         new QTreeWidgetItem{node, {QStringLiteral("choice")}};
     }
   }
