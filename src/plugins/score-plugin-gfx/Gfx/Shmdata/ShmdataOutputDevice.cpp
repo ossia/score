@@ -329,7 +329,7 @@ ShmdataOutputSettingsWidget::ShmdataOutputSettingsWidget(QWidget* parent)
     : SharedOutputSettingsWidget{parent}
 {
   m_deviceNameEdit->setText("Shmdata Out");
-  ((QLabel*)m_layout->labelForField(m_shmPath))->setText("Shmdata path");
+  setPathLabel(tr("Shmdata path"));
 
   auto helpLabel
       = new QLabel{tr("To test, use the following command: \n"

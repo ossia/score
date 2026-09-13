@@ -25,6 +25,7 @@ extern "C" {
 #include <private/qrhi_p.h>
 
 #include <QString>
+#include <QStringList>
 
 #include <cstdint>
 
@@ -56,6 +57,53 @@ enum class Tag : uint8_t
   RGB24,        /**< Packed 8-bit RGB without alpha. */
   Unknown
 };
+
+/** The canonical spelling of each tag: what a settings combo shows and what
+ *  goes in the URL query. One list, so a tag added above cannot be missed by
+ *  a panel. `tagFromString` accepts these plus a few aliases. */
+inline QString tagToString(Tag t) noexcept
+{
+  switch(t)
+  {
+    case Tag::RGBA8:    return QStringLiteral("rgba8");
+    case Tag::BGRA8:    return QStringLiteral("bgra8");
+    case Tag::RGB10A2:  return QStringLiteral("rgb10a2");
+    case Tag::BGR10A2:  return QStringLiteral("bgr10a2");
+    case Tag::RGBA16F:  return QStringLiteral("rgba16f");
+    case Tag::RGBA32F:  return QStringLiteral("rgba32f");
+    case Tag::P010:     return QStringLiteral("p010");
+    case Tag::P210:     return QStringLiteral("p210");
+    case Tag::YUV420P:  return QStringLiteral("yuv420p");
+    case Tag::YV12:     return QStringLiteral("yv12");
+    case Tag::NV12:     return QStringLiteral("nv12");
+    case Tag::YUYV422:  return QStringLiteral("yuyv422");
+    case Tag::UYVY422:  return QStringLiteral("uyvy422");
+    case Tag::RGB24:    return QStringLiteral("rgb24");
+    case Tag::Unknown:  break;
+  }
+  return QStringLiteral("rgba8");
+}
+
+/** Every tag, in declaration order. */
+inline QStringList allTagNames()
+{
+  QStringList r;
+  for(int i = 0; i < int(Tag::Unknown); i++)
+    r += tagToString(Tag(i));
+  return r;
+}
+
+/** The tags a QRhi target can be rendered into directly. The output path
+ *  refuses everything else rather than publish RGBA bytes under a YUV
+ *  fourcc, so this is what its combo may offer. */
+inline QStringList renderableTagNames()
+{
+  QStringList r;
+  for(auto t : {Tag::RGBA8, Tag::BGRA8, Tag::RGB10A2, Tag::BGR10A2, Tag::RGBA16F,
+                Tag::RGBA32F})
+    r += tagToString(t);
+  return r;
+}
 
 /** Parse a user-facing format identifier (URL query, settings combo).
  *  Case-insensitive. Returns Tag::Unknown on no match. */

@@ -665,7 +665,7 @@ Kinect2SettingsWidget::Kinect2SettingsWidget(QWidget* parent)
     : SharedInputSettingsWidget(parent)
 {
   m_deviceNameEdit->setText("Kinect2");
-  ((QLabel*)m_layout->labelForField(m_shmPath))->setText("Identifier");
+  setPathLabel(tr("Identifier"));
   setSettings(ProtocolFactory{}.defaultSettings());
 }
 

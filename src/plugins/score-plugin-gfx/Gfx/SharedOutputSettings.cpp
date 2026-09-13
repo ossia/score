@@ -58,7 +58,7 @@ SharedOutputSettingsWidget::SharedOutputSettingsWidget(QWidget* parent)
 
   m_layout = new QFormLayout;
   m_layout->addRow(tr("Device Name"), m_deviceNameEdit);
-  m_layout->addRow(tr("Shmdata path"), m_shmPath = new QLineEdit);
+  m_layout->addRow(tr("Path"), m_shmPath = new QLineEdit);
   m_layout->addRow(tr("Width"), m_width = new QSpinBox);
   m_layout->addRow(tr("Height"), m_height = new QSpinBox);
   m_layout->addRow(tr("Rate"), m_rate = new QSpinBox);
@@ -84,6 +84,12 @@ Device::DeviceSettings SharedOutputSettingsWidget::getSettings() const
   s.deviceSpecificSettings = QVariant::fromValue(set);
 
   return s;
+}
+
+void SharedOutputSettingsWidget::setPathLabel(const QString& text)
+{
+  if(auto* l = qobject_cast<QLabel*>(m_layout->labelForField(m_shmPath)))
+    l->setText(text);
 }
 
 void SharedOutputSettingsWidget::setSettings(const Device::DeviceSettings& settings)

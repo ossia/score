@@ -380,7 +380,7 @@ InputSettingsWidget::InputSettingsWidget(QWidget* parent)
     : SharedInputSettingsWidget{parent}
 {
   m_deviceNameEdit->setText("Shmdata In");
-  ((QLabel*)m_layout->labelForField(m_shmPath))->setText("Shmdata path");
+  setPathLabel(tr("Shmdata path"));
   setSettings(InputFactory{}.defaultSettings());
 }
 

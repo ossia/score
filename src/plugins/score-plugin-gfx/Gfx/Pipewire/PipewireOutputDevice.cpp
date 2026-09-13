@@ -2196,9 +2196,10 @@ public:
     // toggle for Vulkan zero-copy output. Both choices ride on the
     // path's `?key=value` query since SharedOutputSettings has no
     // native fields for them.
+    setPathLabel(tr("PipeWire node"));
+
     m_formatEdit = new QComboBox(this);
-    m_formatEdit->addItems(
-        {"rgba8", "bgra8", "rgb10a2", "bgr10a2", "rgba16f", "rgba32f"});
+    m_formatEdit->addItems(formats::renderableTagNames());
     m_layout->addRow(tr("Pixel Format"), m_formatEdit);
 
     m_dmabufEdit = new QCheckBox(tr("Zero-copy DMA-BUF"), this);

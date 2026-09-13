@@ -415,7 +415,7 @@ SyphonSettingsWidget::SyphonSettingsWidget(QWidget* parent)
 {
   m_deviceNameEdit->setText("Syphon Out");
 
-  ((QLabel*)m_layout->labelForField(m_shmPath))->setText("Identifier");
+  setPathLabel(tr("Identifier"));
   setSettings(SyphonProtocolFactory{}.defaultSettings());
 }
 

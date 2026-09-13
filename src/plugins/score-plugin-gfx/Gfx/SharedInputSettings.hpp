@@ -57,6 +57,9 @@ public:
   void setSettings(const Device::DeviceSettings& settings) override;
 
 protected:
+  //! The path row is generic; each protocol calls it something else.
+  void setPathLabel(const QString& text);
+
   Device::DeviceSettings m_settings;
   QFormLayout* m_layout{};
   QLineEdit* m_deviceNameEdit{};

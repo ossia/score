@@ -385,7 +385,7 @@ InputSettingsWidget::InputSettingsWidget(QWidget* parent)
     : SharedInputSettingsWidget{parent}
 {
   m_deviceNameEdit->setText("Sh4lt In");
-  ((QLabel*)m_layout->labelForField(m_shmPath))->setText("Sh4lt label");
+  setPathLabel(tr("Sh4lt label"));
   setSettings(InputFactory{}.defaultSettings());
 }
 

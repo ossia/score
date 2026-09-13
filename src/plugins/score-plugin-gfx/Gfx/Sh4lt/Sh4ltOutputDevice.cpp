@@ -349,7 +349,7 @@ Sh4ltOutputSettingsWidget::Sh4ltOutputSettingsWidget(QWidget* parent)
     : SharedOutputSettingsWidget{parent}
 {
   m_deviceNameEdit->setText("Sh4lt Out");
-  ((QLabel*)m_layout->labelForField(m_shmPath))->setText("Sh4lt label");
+  setPathLabel(tr("Sh4lt label"));
 
   auto helpLabel
       = new QLabel{tr("To test, use the following command: \n"
