@@ -217,6 +217,14 @@ function(setup_score_library PluginName)
   endif()
 endfunction()
 
+### Record an optional feature as present in this build ###
+# The list has to go through the cache: the call sites are in
+# src/plugins/*/CMakeLists.txt, and a plain list(APPEND) there only creates a
+# directory-scoped variable that the top-level ScoreFeatureCheck never sees.
+function(score_declare_feature)
+  set(SCORE_FEATURES_LIST ${SCORE_FEATURES_LIST} ${ARGN} CACHE INTERNAL "List of features")
+endfunction()
+
 ### Call with a plug-in target ###
 function(setup_score_plugin PluginName)
   setup_score_common_lib_features("${PluginName}")

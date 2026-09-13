@@ -123,7 +123,7 @@ if(TARGET "${QT_PREFIX}::Quick")
       # PUBLIC: the flag gates class definitions in JS/Qml/QmlObjects.hpp, so
       # anything including that header has to agree with the plugin about it.
       target_compile_definitions(${PROJECT_NAME} PUBLIC SCORE_HAS_GPU_JS)
-      list(APPEND SCORE_FEATURES_LIST gpu_js)
+      score_declare_feature(gpu_js)
     endif()
 endif()
 

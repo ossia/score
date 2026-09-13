@@ -6,18 +6,29 @@ endif()
 set(SCORE_MISSING_PLUGINS)
 set(SCORE_MISSING_FEATURES)
 
+# IN_LIST takes the NAME of a list variable, not its contents: passing
+# "${SCORE_PLUGINS_LIST}" makes CMake look up a variable named after the whole
+# expanded list, find nothing, and report every plug-in as missing. The results
+# also have to be lifted with PARENT_SCOPE, or the appends die with the
+# function frame and the checks below always see an empty list.
 function(score_assert_plugin name)
-  if("${name}" IN_LIST "${SCORE_DISABLED_PLUGINS}")
+  # The asserts below spell plug-ins the way the directories are named, while
+  # SCORE_PLUGINS_LIST holds target names.
+  string(REPLACE "-" "_" target "${name}")
+
+  if("${name}" IN_LIST SCORE_DISABLED_PLUGINS OR "${target}" IN_LIST SCORE_DISABLED_PLUGINS)
     return()
   endif()
-  if(NOT "${name}" IN_LIST "${SCORE_PLUGINS_LIST}")
+  if(NOT "${target}" IN_LIST SCORE_PLUGINS_LIST)
     list(APPEND SCORE_MISSING_PLUGINS "${name}")
+    set(SCORE_MISSING_PLUGINS "${SCORE_MISSING_PLUGINS}" PARENT_SCOPE)
   endif()
 endfunction()
 
 function(score_assert_feature name)
-  if(NOT "${name}" IN_LIST "${SCORE_FEATURES_LIST}")
+  if(NOT "${name}" IN_LIST SCORE_FEATURES_LIST)
     list(APPEND SCORE_MISSING_FEATURES "${name}")
+    set(SCORE_MISSING_FEATURES "${SCORE_MISSING_FEATURES}" PARENT_SCOPE)
   endif()
 endfunction()
 
