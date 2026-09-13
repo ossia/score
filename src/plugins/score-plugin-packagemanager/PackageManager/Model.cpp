@@ -78,7 +78,12 @@ static bool interactiveSession() noexcept
 {
   if(qEnvironmentVariableIsSet("SCORE_SANITIZE_SKIP_CHECKS"))
     return false;
-  if(!score::AppContext().applicationSettings.gui)
+  const auto& settings = score::AppContext().applicationSettings;
+  if(!settings.gui)
+    return false;
+  // A script drives the session; the library question would sit in a nested
+  // event loop with nobody to answer it.
+  if(settings.hasScript)
     return false;
   if(!qobject_cast<QApplication*>(qApp))
     return false;
