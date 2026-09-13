@@ -4,6 +4,7 @@
 
 #include <JitCpp/Compiler/Driver.hpp>
 #include <JitCpp/EditScript.hpp>
+#include <JitCpp/JitUtils.hpp>
 
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -47,7 +48,10 @@ Model::Model(
     (void)setScript(jitProgram);
 }
 
-Model::~Model() { }
+Model::~Model()
+{
+  Jit::parkCompiler(std::move(m_compiler));
+}
 
 Model::Model(JSONObject::Deserializer& vis, QObject* parent)
     : Process::ProcessModel{vis, parent}
@@ -286,14 +290,7 @@ std::shared_ptr<NodeFactory> Model::getJitFactory()
     return it->second;
   }
 
-  // FIXME dispos of them once unused at execution
-  static std::list<std::shared_ptr<NodeCompiler>> old_compilers;
-  if(m_compiler)
-  {
-    old_compilers.push_front(std::move(m_compiler));
-    // if (old_compilers.size() > 5)
-    //   old_compilers.pop_back();
-  }
+  Jit::parkCompiler(std::move(m_compiler));
 
   m_compiler = std::make_unique<NodeCompiler>("avnd_factory");
 
