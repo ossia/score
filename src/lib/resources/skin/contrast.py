@@ -284,14 +284,21 @@ HUE_FLOOR = {"text": None, "thin": 25.0, "shape": 15.0, "fill": 45.0,
              "hint": 4.5}
 
 # Colours whose whole job is to be told apart from each other.
+# (name, roles, minimum pairwise dE). 12 is comfortably above "a different
+# colour" at these patch sizes. The last group asks for 30, around what
+# separates blue from green: idle, running and failed is the reading taken at
+# a glance across a whole score, and confusing them is expensive. DefaultSkin
+# keeps those 43.9 apart; a palette as muted as Everforest cannot reach that
+# without being bleached, and lands just over the bar.
 GROUPS = [
-    ("port types",      ["Port1", "Port2", "Port3"]),
-    ("cable types",     ["Cable1", "Cable2", "Cable3"]),
-    ("condition state", ["Smooth1", "Smooth2", "Smooth3"]),
-    ("interval state",  ["Base1", "Base2", "Base3"]),
-    ("warning level",   ["Warn1", "Warn2", "Warn3"]),
+    ("port types",      ["Port1", "Port2", "Port3"], 12.0),
+    ("cable types",     ["Cable1", "Cable2", "Cable3"], 12.0),
+    ("condition state", ["Smooth1", "Smooth2", "Smooth3"], 12.0),
+    ("interval state",  ["Base1", "Base2", "Base3"], 12.0),
+    ("warning level",   ["Warn1", "Warn2", "Warn3"], 12.0),
+    ("idle/running/failed", ["Base1", "Base3", "Warn3"], 30.0),
 ]
-MIN_DE = 12.0  # CAM16-UCS; comfortably above "different colour" for large areas
+MIN_DE = 12.0  # the default, for anything that does not state its own
 
 # The surfaces everything else is painted on. Moving one of these moves every
 # mark that sits on it, so the repair pass leaves them exactly as the palette
@@ -341,7 +348,7 @@ def measure(skin):
         bgc = parse(skin[bg])
         fgc = resolve(skin, fg, bgc)
         out[label] = (apca(fgc, bgc), delta_e(fgc, bgc))
-    for name, roles in GROUPS:
+    for name, roles, _min in GROUPS:
         cs = [parse(skin[r]) for r in roles]
         bgc = parse(skin["Background1"])
         cs = [over(c, bgc) if c[3] < 255 else c for c in cs]
@@ -538,7 +545,7 @@ def separate(skin, passes=80):
     is the reason a group that relies on it alone counts as a failure here.
     """
     skin = dict(skin)
-    for _name, roles in GROUPS:
+    for _name, roles, want in GROUPS:
         bgc = parse(skin["Background1"])
         for _ in range(passes):
             cs = []
@@ -550,13 +557,17 @@ def separate(skin, passes=80):
                  for i in range(len(cs)) for j in range(i + 1, len(cs))),
                 key=lambda t: t[0],
             )
-            if worst[0] >= MIN_DE:
+            if worst[0] >= want:
                 break
             _d, i, j = worst
             hi, lo = (i, j) if cam16_ucs(cs[i])[0] >= cam16_ucs(cs[j])[0] else (j, i)
             for idx, k in ((hi, 1.06), (lo, 1 / 1.06)):
                 cur = parse(skin[roles[idx]])
                 nxt = _scale_value(cur, k)
+                # Same rule as the repair: separating two colours must not
+                # bleach either of them into a neutral.
+                if not _keeps_chroma(nxt, cur):
+                    continue
                 skin[roles[idx]] = list(nxt[:3]) + (
                     [cur[3]] if len(skin[roles[idx]]) > 3 else [])
     return skin
@@ -616,7 +627,8 @@ def audit(skin, ref, tol=12.0, name=None):
         if name and (name, label.lstrip("~")) in ACCEPTED:
             continue
         if label.startswith("~"):
-            if v < MIN_DE and r[label] >= MIN_DE:
+            want = dict((n, m) for n, _r, m in GROUPS)[label[1:]]
+            if v < want and r[label] >= want:
                 bad.append((label, v, 0.0, r[label], 0.0, "indistinct"))
             continue
         lc, de = v
@@ -668,10 +680,10 @@ def main():
         flag = "  <-- neither" if fails(label, lc, de) else ""
         print(f"  {label:<22} Lc {lc:7.1f} / {FLOOR[kind]:<4.0f}"
               f"  dE {de:6.1f}{flag}")
-    for name, _roles in GROUPS:
+    for name, _roles, want in GROUPS:
         v = m["~" + name]
-        flag = "  <-- indistinct" if v < MIN_DE else ""
-        print(f"  {name:<22} dE {v:6.1f}   min {MIN_DE:.0f}{flag}")
+        flag = "  <-- indistinct" if v < want else ""
+        print(f"  {name:<22} dE {v:6.1f}   min {want:.0f}{flag}")
 
     print("\n\nEvery other skin, against that\n")
     total = 0

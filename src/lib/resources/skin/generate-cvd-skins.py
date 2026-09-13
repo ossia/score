@@ -336,7 +336,7 @@ def verify_doc(doc, deficiency):
     dichromat. The accent-level check runs before contrast.improve() moves
     anything, so the roles have to be re-checked afterwards."""
     worst = (None, 1e9)
-    for group, roles in contrast.GROUPS:
+    for group, roles, _min in contrast.GROUPS:
         sim = {}
         for r in roles:
             c = doc[r][:3]
