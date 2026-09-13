@@ -242,8 +242,7 @@ MCUSettingsWidget::MCUSettingsWidget(QWidget* parent)
     m_instruments->setObjectName("picker");
     m_instruments->setModel(m_instrumentFilter);
 
-    // The header is what the user drags to widen the name column, so it has to
-    // be visible; with two columns it also says which is which.
+    // Visible: it is what the user drags to widen the name column.
     auto* header = m_instruments->header();
     header->setSectionResizeMode(QHeaderView::Interactive);
     header->setStretchLastSection(true);
@@ -339,15 +338,12 @@ MCUSettingsWidget::MCUSettingsWidget(QWidget* parent)
 
   connect(m_search, &QLineEdit::textChanged, this, [this](const QString& text) {
     m_instrumentFilter->setFilterFixedString(text);
-    // A filtered tree is only useful expanded, an unfiltered one collapsed.
     if(text.isEmpty())
       m_instruments->collapseAll();
     else
       m_instruments->expandAll();
   });
 
-  // The picker is a list of things to put on the port, so opening a row puts
-  // it there.
   connect(m_instruments, &QTreeView::doubleClicked, this,
           [this](const QModelIndex& idx) {
     addChosenDevice(idx.data(MapRole).toString(), 0);
@@ -506,7 +502,6 @@ QString MCUSettingsWidget::defaultName()
 
 QString MCUSettingsWidget::nameFromPorts() const
 {
-  // The input first: a controller is a controller because it sends.
   if(const int in = portIndex(*m_midiin); in >= 0 && in < std::ssize(m_ins))
   {
     const auto& p = m_ins[in];
@@ -603,8 +598,6 @@ void MCUSettingsWidget::populateDeviceMaps()
         tr("... and one node per note, control and program"));
   }
 
-  // Keyed rather than run-length encoded: two spellings of one brand are not
-  // adjacent, the sort having no reason to keep them apart or together.
   QHash<QString, QStandardItem*> groups;
 
   // Already sorted by manufacturer, then model, then preset.
@@ -628,9 +621,8 @@ void MCUSettingsWidget::populateDeviceMaps()
       m_instrumentModel->appendRow(groupItem);
     }
 
-    // The brand names the group this row sits in; the row names the device.
     auto* item = new QStandardItem{entry.name()};
-    // Searchable by what it is called anywhere else, not only by what it shows.
+    // Searchable by the full name, not only by what the row shows.
     item->setData(QString{group + " " + entry.label() + " " + entry.source}, SearchRole);
     item->setData(entry.identity, MapRole);
 
@@ -679,11 +671,8 @@ void MCUSettingsWidget::addChosenDevice(const QString& identity, int channel)
   if(identity.isEmpty())
     return;
 
-  /*
-   * Eight of one controller on one port is an ordinary rig, and each answers
-   * on its own channel. What cannot be repeated is a channel: two identical
-   * subtrees would listen to the same messages and both send on them.
-   */
+  // Repeating a description is a rack of identical modules; repeating a
+  // channel would be two subtrees on the same messages.
   if(channel < 1)
     channel = freeChannelFor(identity);
   if(channel < 1)
@@ -781,17 +770,12 @@ void MCUSettingsWidget::updatePreview()
 {
   m_preview->clear();
 
-  // Whatever the user is looking at, which is not the same as what the device
-  // will hold: this answers "does this description have the controls I want",
-  // so it shows one description and starts at its groups. The level naming the
-  // device is what the tree adds around it, and would be the same word on
-  // every row here.
+  // One description, starting at its groups: the level naming the device is
+  // what the tree adds around it, and would be the same word on every row.
   const auto identity = chosenMap();
 
   if(const auto expanded = MIDIDevices::genericChannel(identity))
   {
-    // The channel is a level of its own in the tree, as a description is, so
-    // the preview starts below it the same way.
     for(const auto* name : {"on", "off", "control", "program"})
     {
       auto* node = new QTreeWidgetItem{m_preview, {QString::fromLatin1(name)}};
@@ -1045,8 +1029,7 @@ Device::DeviceSettings MCUSettingsWidget::getSettings() const
   }
   else if(const auto picked = chosenMap(); !picked.isEmpty())
   {
-    // Picking one device and pressing OK is the ordinary case; only a chain
-    // needs the list, so it should not be the price of the simple case.
+    // Only a chain needs the list; picking one device is enough.
     midi.maps = {{picked, 1}};
   }
 

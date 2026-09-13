@@ -417,14 +417,8 @@ struct midi_device_protocol final
 
     for(const auto& d : m_settings.devices)
     {
-      /*
-       * One level per description, so that two instruments on one cable keep
-       * their controls apart and an address says which one it belongs to.
-       *
-       * create_child rather than findOrCreateChild: two of the same model are
-       * two devices, and sharing a level would merge their controls and point
-       * both at whichever channel came first.
-       */
+      // One level per description: two of the same model on one cable are two
+      // devices, and merging their levels would point both at one channel.
       auto* under = root.create_child(deviceNodeName(d.map));
       if(!under)
         continue;
@@ -994,8 +988,7 @@ struct midi_device_protocol final
 
         case MessageType::NRPN:
         case MessageType::RPN:
-          // The parameter is selected by four separate control changes, which
-          // this reader does not yet follow.
+          // Carried by four control changes; onParameterNumber follows them.
           break;
       }
     }

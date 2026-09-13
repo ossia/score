@@ -1,10 +1,7 @@
-// The MIDI Controller's settings dialog at application level: choosing a
-// description in the picker has to fill the preview beside it, which is the
-// only thing that tells the user whether it has the controls they want, and
-// has to be enough on its own to produce settings.
+// The MIDI Controller's settings dialog at application level.
 //
-// Driven through the picker's selection model rather than through
-// setSettings(), because the two reach the preview by different paths.
+// Driven through the picker's selection model, not setSettings(): the two
+// reach the preview by different paths.
 
 #include <Library/LibrarySettings.hpp>
 #include <Protocols/MCU/MCUProtocolFactory.hpp>
@@ -58,13 +55,10 @@ QByteArray map(const char* manufacturer, const char* model)
 }
 
 /**
- * Point the library at a package of our own: the developer's installed maps
- * are not a fixture, and without any the test would pass by having nothing to
- * do.
+ * Point the library at a package of our own: whatever maps are installed are
+ * not a fixture, and with none the test would pass by having nothing to do.
  *
- * Two spellings of one brand, and a model that repeats it, because that is
- * what the corpus is like -- 95 documents call themselves Korg, 30 of them
- * shouting.
+ * Two spellings of one brand, and a model that repeats it, as the corpus has.
  */
 QString installFixture()
 {
@@ -153,7 +147,7 @@ TEST_CASE("choosing a description fills the preview", "[mididevice][gui]")
     CHECK(yamaha.data().toString() == "Yamaha");
     CHECK(childNames(*picker, yamaha) == QStringList{"PLG100 XG Expansion"});
 
-    // Sorted by model, and none of them says Korg twice.
+    // Sorted by model, none of them saying Korg twice.
     CHECK(childNames(*picker, korg) == QStringList{"Volca Keys", "M1", "minilogue"});
 
     // Nothing chosen yet: the preview has nothing to show and must not pretend.
