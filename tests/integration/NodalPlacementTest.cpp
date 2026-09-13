@@ -11,6 +11,7 @@
 #include <score_test/Document.hpp>
 
 #include <Process/Dataflow/NodeItem.hpp>
+#include <Process/Dataflow/PortItem.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessFactory.hpp>
@@ -367,6 +368,101 @@ TEST_CASE(
     const auto pos = Scenario::newProcessPositionAfter(itv, *first);
     CHECK(pos.x() >= first->position().x() + first->size().width());
     CHECK(!QRectF(pos, Scenario::nodeFootprint(*first)).intersects(nodeRect(*first)));
+  });
+}
+
+// A node is at least 75 wide whatever its title, so a short one leaves the
+// width decided by something other than the text.
+TEST_CASE("An outlet is drawn inside the node it belongs to", "[integration][nodal][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    score::Document* doc = score::test::new_document(ctx);
+    REQUIRE(doc != nullptr);
+    auto& itv = baseInterval(*doc);
+
+    auto presenter
+        = score::IDocument::try_presenterDelegate<Scenario::ScenarioDocumentPresenter>(
+            *doc);
+    REQUIRE(presenter != nullptr);
+
+    auto proc = createProcess(*doc, itv, automationData(), QPointF{400., 400.});
+    REQUIRE(proc);
+    REQUIRE(!proc->outlets().empty());
+
+    QGraphicsScene scene;
+    auto root = new QGraphicsRectItem;
+    scene.addItem(root);
+
+    auto item = new Process::NodeItem{
+        *proc, presenter->context(), itv.duration.defaultDuration(), root};
+    spin(100);
+
+    const QRectF node = item->contentRect();
+    for(auto* child : item->childItems())
+    {
+      auto* port = qgraphicsitem_cast<Dataflow::PortItem*>(child);
+      if(!port)
+        continue;
+      // The bounding rect is deliberately generous for repaints, so compare
+      // against what is actually drawn.
+      const QRectF drawn = port->mapRectToParent(port->drawnRect());
+      INFO("port right " << drawn.right() << " node right " << node.right());
+      CHECK(drawn.right() <= node.right());
+      CHECK(drawn.left() >= node.left());
+    }
+
+    delete item;
+    spin(20);
+  });
+}
+
+// A fully-custom item draws its own contents and places its own ports. The
+// node has to be at least as wide, or the border is drawn inside the item and
+// whatever the item put on its right edge -- a texture outlet, in the case
+// this came from -- sits outside the node. A short title is what exposes it:
+// that is when the title is not what decides the width.
+TEST_CASE("A node is at least as wide as the item it draws", "[integration][nodal][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    score::Document* doc = score::test::new_document(ctx);
+    REQUIRE(doc != nullptr);
+    auto& itv = baseInterval(*doc);
+
+    auto presenter
+        = score::IDocument::try_presenterDelegate<Scenario::ScenarioDocumentPresenter>(
+            *doc);
+    REQUIRE(presenter != nullptr);
+
+    auto proc = createProcess(*doc, itv, automationData(), QPointF{400., 400.});
+    REQUIRE(proc);
+    proc->metadata().setName("ab");
+
+    QGraphicsScene scene;
+    auto root = new QGraphicsRectItem;
+    scene.addItem(root);
+
+    auto item = new Process::NodeItem{
+        *proc, presenter->context(), itv.duration.defaultDuration(), root};
+    spin(100);
+
+    // Whatever the node draws inside itself has to fit in what it publishes as
+    // its own box.
+    const QRectF content = item->contentRect();
+    for(auto* child : item->childItems())
+    {
+      // Ports have a deliberately generous bounding rect and are checked on
+      // what they draw, in the case above.
+      if(qgraphicsitem_cast<Dataflow::PortItem*>(child))
+        continue;
+      const QRectF drawn = child->mapRectToParent(child->boundingRect());
+      if(drawn.isEmpty())
+        continue;
+      INFO("child right " << drawn.right() << " content right " << content.right());
+      CHECK(drawn.right() <= content.right() + 1.);
+    }
+
+    delete item;
+    spin(20);
   });
 }
 
