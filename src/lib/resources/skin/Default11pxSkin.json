@@ -227,17 +227,17 @@
   },
   "sansSmall": {
    "family": "Ubuntu",
-   "pixelSize": 10
+   "pixelSize": 7
   },
   "mono": {
    "family": "Courier Prime",
-   "pixelSize": 15,
+   "pixelSize": 11,
    "weight": 900,
    "fixedPitch": true
   },
   "monoSmall": {
    "family": "Ubuntu",
-   "pixelSize": 10,
+   "pixelSize": 7,
    "weight": 400
   },
   "bold10": {
