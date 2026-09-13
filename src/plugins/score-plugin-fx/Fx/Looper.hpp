@@ -801,6 +801,7 @@ struct Node
       halp_meta(background, halp::colors::background_mid)
       halp::control<&ins::postaction> p;
       halp::control<&ins::postaction_bars> b;
+      halp::control<&ins::restart> r;
     } right;
   };
 };
