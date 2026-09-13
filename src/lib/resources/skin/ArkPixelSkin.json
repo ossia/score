@@ -223,23 +223,28 @@
   },
   "application": {
    "family": "Ark Pixel 12px Prop latin",
-   "pixelSize": 12
+   "pixelSize": 12,
+   "bold": false
   },
   "sans": {
    "family": "Ark Pixel 12px Prop latin",
-   "pixelSize": 12
+   "pixelSize": 12,
+   "bold": false
   },
   "sansSmall": {
    "family": "Ark Pixel 10px Prop latin",
-   "pixelSize": 10
+   "pixelSize": 10,
+   "bold": false
   },
   "mono": {
    "family": "Ark Pixel 12px Prop latin",
-   "pixelSize": 12
+   "pixelSize": 12,
+   "bold": false
   },
   "monoSmall": {
    "family": "Ark Pixel 10px Prop latin",
-   "pixelSize": 10
+   "pixelSize": 10,
+   "bold": false
   },
   "bold10": {
    "family": "Ark Pixel 12px Prop latin",
@@ -253,19 +258,23 @@
   },
   "medium7": {
    "family": "Ark Pixel 10px Prop latin",
-   "pixelSize": 10
+   "pixelSize": 10,
+   "bold": false
   },
   "medium8": {
    "family": "Ark Pixel 10px Prop latin",
-   "pixelSize": 10
+   "pixelSize": 10,
+   "bold": false
   },
   "medium10": {
    "family": "Ark Pixel 12px Prop latin",
-   "pixelSize": 12
+   "pixelSize": 12,
+   "bold": false
   },
   "medium12": {
    "family": "Ark Pixel 12px Prop latin",
-   "pixelSize": 12
+   "pixelSize": 12,
+   "bold": false
   },
   "title": {
    "family": "Ark Pixel 16px Prop latin",
@@ -279,11 +288,13 @@
   },
   "slider": {
    "family": "Ark Pixel 10px Prop latin",
-   "pixelSize": 10
+   "pixelSize": 10,
+   "bold": false
   },
   "code": {
    "family": "Ark Pixel 12px Prop latin",
    "pixelSize": 12,
+   "bold": false,
    "fixedPitch": true
   },
   "timecode": {

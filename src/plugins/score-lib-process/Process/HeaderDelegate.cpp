@@ -49,8 +49,8 @@ static GlyphCache& glyphCache() noexcept
   // The key is the text and the pen, but the glyphs are rasterised with
   // Skin::Medium8Pt and at the current devicePixelRatio, so neither the font
   // nor the ratio is part of it. Drop the whole cache when the skin changes
-  // instead of widening the key: these are cheap to redraw, and a stale entry
-  // here means a process header keeps the previous font forever.
+  // instead of widening the key: these are cheap to redraw. Each delegate
+  // holds its own copy of the result, so it has to ask for a new one too.
   static bool connected = false;
   if(!connected)
   {
@@ -160,6 +160,16 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(
     update();
       },
       Qt::QueuedConnection);
+
+  con(score::Skin::instance(), &score::Skin::changed, this, [this] {
+    // updateText() keeps its pixmap unless the text or the pen changed, and a
+    // font change moves neither. Clear both so it rasterises again.
+    m_lastText.clear();
+    m_lastPen = nullptr;
+    m_bench = QPixmap{};
+    updateText();
+    update();
+  });
 }
 
 DefaultHeaderDelegate::~DefaultHeaderDelegate() { }

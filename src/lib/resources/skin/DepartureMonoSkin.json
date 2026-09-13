@@ -223,23 +223,28 @@
   },
   "application": {
    "family": "Departure Mono",
-   "pixelSize": 11
+   "pixelSize": 11,
+   "bold": false
   },
   "sans": {
    "family": "Departure Mono",
-   "pixelSize": 11
+   "pixelSize": 11,
+   "bold": false
   },
   "sansSmall": {
    "family": "Departure Mono",
-   "pixelSize": 11
+   "pixelSize": 11,
+   "bold": false
   },
   "mono": {
    "family": "Departure Mono",
-   "pixelSize": 11
+   "pixelSize": 11,
+   "bold": false
   },
   "monoSmall": {
    "family": "Departure Mono",
-   "pixelSize": 11
+   "pixelSize": 11,
+   "bold": false
   },
   "bold10": {
    "family": "Departure Mono",
@@ -253,19 +258,23 @@
   },
   "medium7": {
    "family": "Departure Mono",
-   "pixelSize": 11
+   "pixelSize": 11,
+   "bold": false
   },
   "medium8": {
    "family": "Departure Mono",
-   "pixelSize": 11
+   "pixelSize": 11,
+   "bold": false
   },
   "medium10": {
    "family": "Departure Mono",
-   "pixelSize": 11
+   "pixelSize": 11,
+   "bold": false
   },
   "medium12": {
    "family": "Departure Mono",
-   "pixelSize": 11
+   "pixelSize": 11,
+   "bold": false
   },
   "title": {
    "family": "Departure Mono",
@@ -279,11 +288,13 @@
   },
   "slider": {
    "family": "Departure Mono",
-   "pixelSize": 11
+   "pixelSize": 11,
+   "bold": false
   },
   "code": {
    "family": "Departure Mono",
-   "pixelSize": 11
+   "pixelSize": 11,
+   "bold": false
   },
   "timecode": {
    "family": "Departure Mono",

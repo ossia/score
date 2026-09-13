@@ -158,9 +158,8 @@ void TransportActions::makeGUIElements(score::GUIElements& ref)
           setAlignment(Qt::AlignRight);
           setText("00:00:00.000");
 
-          // From the skin's "timecode" role rather than a hardcoded
-          // QFont("Ubuntu", 18, DemiBold): this is the largest text in the
-          // UI, so a pixel-font skin needs it on its own grid.
+          // From the skin's "timecode" role: this is the largest text in
+          // the UI, so a pixel-font skin needs it on its own grid.
           applySkinFont();
           QObject::connect(
               &score::Skin::instance(), &score::Skin::changed, this,

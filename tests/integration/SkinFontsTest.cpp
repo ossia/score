@@ -139,7 +139,7 @@ TEST_CASE("The shipped pixel fonts are registered", "[integration][skin]")
     const QStringList families = QFontDatabase::families();
     for(const char* f : {"Galmuri7", "Galmuri9", "Galmuri11", "Galmuri14",
                          "GalmuriMono7", "GalmuriMono9", "GalmuriMono11",
-                         "Departure Mono", "CozetteVector"})
+                         "Departure Mono", "Cozette", "CozetteVector"})
     {
       CHECK(families.contains(QString::fromUtf8(f)));
     }
@@ -153,10 +153,10 @@ TEST_CASE("The shipped pixel fonts are registered", "[integration][skin]")
 
 TEST_CASE("Font sizes come from the skin, not from a setting", "[integration][skin]")
 {
-  // There is no Skin/FontSize any more: sizes are expressed per role in the
-  // skin, which is the only way a per-skin font and a global size can coexist
-  // without one silently overriding the other. score::uiFontSize() survives
-  // only as the size the application font has before any skin has loaded.
+  // Sizes are expressed per role in the skin, which is the only way a
+  // per-skin font and a global size can coexist without one silently
+  // overriding the other. score::uiFontSize() is only the size the
+  // application font has before any skin has loaded.
   score::test::run_in_app([](const score::GUIApplicationContext&) {
     score::Skin& skin = score::Skin::instance();
     QSettings s;
@@ -167,7 +167,7 @@ TEST_CASE("Font sizes come from the skin, not from a setting", "[integration][sk
     REQUIRE(withFonts.contains("fonts"));
     REQUIRE(dflt.contains("fonts"));
 
-    // Writing the old key changes nothing: nothing reads it.
+    // Skin/FontSize is not read by anything; writing it must change nothing.
     s.setValue("Skin/FontSize", 29);
     skin.load(dflt);
     const int fromSkin
@@ -193,10 +193,10 @@ TEST_CASE("Font sizes come from the skin, not from a setting", "[integration][sk
 TEST_CASE("The default skin keeps the sizes the point sizes resolved to",
           "[integration][skin]")
 {
-  // This branch moved the skin from point sizes to pixel sizes so that the
-  // rasteriser is not left rounding through the screen DPI. The pixel values
-  // are the ones Qt resolved the old point sizes to at 96 DPI, so the UI is
-  // meant to look identical: 12 pt -> 16 px, 9 pt -> 12 px, 13 pt -> 17 px.
+  // Sizes are in pixels so that the rasteriser is not left rounding through
+  // the screen DPI. The values are the ones Qt resolves the equivalent point
+  // sizes to at 96 DPI -- 12 pt -> 16 px, 9 pt -> 12 px, 13 pt -> 17 px -- so
+  // that the UI is proportioned as it is on a 96 DPI screen.
   score::test::run_in_app([](const score::GUIApplicationContext&) {
     score::Skin& skin = score::Skin::instance();
     skin.load(read_skin(QStringLiteral(":/skin/DefaultSkin.json")));
@@ -231,6 +231,7 @@ TEST_CASE("Every built-in skin keeps its fonts on their pixel grid", "[integrati
       {"GalmuriMono9", 10},
       {"GalmuriMono11", 12},
       {"Departure Mono", 11},
+      {"Cozette", 13},
       {"CozetteVector", 13},
       {"Ark Pixel 10px Prop latin", 10},
       {"Ark Pixel 12px Prop latin", 12},
@@ -273,10 +274,6 @@ TEST_CASE("Every built-in skin keeps its fonts on their pixel grid", "[integrati
         // one by smearing the glyphs, which turns a pixel font's 1 px stems
         // into ragged 2 px ones. A skin may only set bold on a family that
         // actually ships the face.
-        //
-        // Note that leaving "bold" out is not the same as setting it false:
-        // Skin::setupFonts() builds Bold10Pt and TitleFont with
-        // setBold(true), so a skin that omits the key inherits it.
         const bool hasBoldFace
             = QFontDatabase::styles(family).contains(QStringLiteral("Bold"));
         INFO(
@@ -286,16 +283,18 @@ TEST_CASE("Every built-in skin keeps its fonts on their pixel grid", "[integrati
                                << (hasBoldFace ? "has" : "does NOT have")
                                << " a Bold face");
         if(!hasBoldFace)
-        {
           CHECK_FALSE(spec["bold"].toBool());
 
-          // These three are the roles Skin::setupFonts() makes bold, so for
-          // them silence is not enough: the key has to be there and false.
-          if(role == "bold10" || role == "bold12" || role == "title")
-          {
-            CHECK(spec.contains("bold"));
-          }
-        }
+        // Silence is not the same as false. Skin::load() rebuilds every font
+        // through setupFonts() before applying the file, and that leaves
+        // weights on several roles -- 900 on mono, 700 on the bold ones, 600
+        // on slider and timecode. A role that pins no weight inherits one and
+        // Qt matches it to the nearest face it has, or fakes it. So every
+        // role of a pixel font has to say what weight it wants.
+        INFO(
+            file.toStdString() << " role '" << role.toStdString()
+                               << "' pins no weight, so it inherits one");
+        CHECK((spec.contains("bold") || spec.contains("weight")));
 
         if(const QString style = spec["styleName"].toString(); !style.isEmpty())
         {

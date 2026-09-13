@@ -216,7 +216,7 @@
   250
  ],
  "fonts": {
-  "_comment": "The default fonts. This is where every font size is set: there is no longer a global font-size setting, and Skin::setupFonts() in C++ only provides a fallback for skins that name nothing and for the moment before any skin has loaded. Sizes are in pixels throughout, on purpose: a point size goes through the screen DPI and lands wherever it lands, which is what made small text render unevenly. The values here are the pixel sizes Qt resolved the previous point sizes to at 96 DPI (10 pt -> 13 px for the application font, 12 pt -> 16 px, 9 pt -> 12 px, 13 pt -> 17 px), so the UI looks as it did. Weights are the Qt 6 scale: Normal 400, DemiBold 600, Black 900.",
+  "_comment": "The default fonts, and the values Skin::setupFonts() mirrors in C++. Sizes are in pixels throughout, on purpose: a point size goes through the screen DPI and lands wherever it lands, which is what makes small text render unevenly. The values are the pixel sizes Qt resolves the equivalent point sizes to at 96 DPI (10 pt -> 13 px for the application font, 12 pt -> 16 px, 9 pt -> 12 px, 13 pt -> 17 px). Weights are the Qt 6 scale: Normal 400, DemiBold 600, Black 900.",
   "application": {
    "family": "Ubuntu",
    "pixelSize": 13

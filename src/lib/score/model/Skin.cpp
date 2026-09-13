@@ -59,16 +59,13 @@ namespace score
 {
 int uiFontSize() noexcept
 {
-  // Font sizes live in the skin now, so there is no setting behind this any
-  // more. It is only the size the application font has between QApplication
-  // starting and the first skin loading, which is a few hundred milliseconds
-  // of splash screen. The skin's "application" role replaces it immediately
-  // afterwards.
+  // Not a setting: this is only the size the application font has between
+  // QApplication starting and the first skin loading, a few hundred
+  // milliseconds of splash screen. The skin's "application" role replaces it
+  // immediately afterwards.
   //
-  // 13 px, not 12: before the font size became a setting the application font
-  // was QFont("Ubuntu", 10), and that constructor takes a *point* size, so at
-  // 96 DPI it rendered at 13 px. Making it configurable wrote setPixelSize(12)
-  // and silently shrank the whole UI by a pixel; this restores it.
+  // 13 px because QFont("Ubuntu", 10) is a *point* size, which is what the
+  // rest of the UI is proportioned against, and 10 pt is 13 px at 96 DPI.
   if(qEnvironmentVariableIsSet("SCORE_SMOL_FONT"))
     return 11;
   return 13;
@@ -182,8 +179,10 @@ int snapToFontGrid(const QFont& f, int px) noexcept
   if(grid <= 0 || px <= 0)
     return px;
 
-  // Down rather than to the nearest: a label that grew a step would overflow
-  // the box that was measured for it.
+  // Down rather than to the nearest, so a label cannot grow out of a box that
+  // was measured for it -- except below one step, where there is no smaller
+  // size the font can be drawn at. Callers that shrink in a loop have to stop
+  // when the result comes back no smaller than what they asked for.
   return std::max(1, px / grid) * grid;
 }
 
@@ -259,11 +258,20 @@ bool setGlobalScaleFactor(double factor)
   const auto windows = QApplication::topLevelWidgets();
   for(QWidget* w : windows)
   {
-    if(w->isWindow() && w->isVisible())
-    {
-      w->hide();
-      w->show();
-    }
+    // Actual windows only. topLevelWidgets() also returns dialogs, menus and
+    // tooltips, and hiding a QDialog exits its exec() loop
+    // (QDialogPrivate::setVisible) -- which would tear down the settings
+    // dialog that the zoom control lives in, from under itself.
+    if(!w->isVisible() || w->windowType() != Qt::Window)
+      continue;
+
+    // Some window managers drop a maximised or fullscreen window back to its
+    // normal geometry across the cycle.
+    const auto state = w->windowState();
+    w->hide();
+    w->show();
+    if(w->windowState() != state)
+      w->setWindowState(state);
   }
 
   // Every glyph image and pixmap in the UI was rasterised at the previous
@@ -477,7 +485,7 @@ void Skin::setupFonts()
   TitleFont.setPixelSize(14);
   TitleFont.setBold(true);
 
-  // What InspectorWidgetBase used to build from the application font.
+  // A heading over an inspector page: bold, one step under the panel title.
   SectionTitleFont = SansFont;
   SectionTitleFont.setPixelSize(12);
   SectionTitleFont.setBold(true);
@@ -486,13 +494,13 @@ void Skin::setupFonts()
   SliderFont.setPixelSize(10 * 96. / 72.);
   SliderFont.setWeight(QFont::DemiBold);
 
-  // What TransportActions.cpp used to hardcode: QFont("Ubuntu", 18,
-  // DemiBold). 18 pt is 24 px at 96 DPI.
+  // The transport readout, proportioned as 18 pt, which is 24 px at 96 DPI.
   TimecodeFont = QFont{"Ubuntu"};
   TimecodeFont.setPixelSize(24);
   TimecodeFont.setWeight(QFont::DemiBold);
 
-  // The values createScriptWidget() used to hardcode.
+  // Script and shader editors. Vertical hinting only: code is read in
+  // columns, and full hinting shifts glyphs off them.
   CodeFont = QFont{"IBM Plex Mono"};
   CodeFont.setPixelSize(13);
   CodeFont.setFixedPitch(true);
@@ -567,8 +575,8 @@ void Skin::load(const QJsonObject& obj, int parts)
 {
   if(parts & Fonts)
   {
-    // Reset first, so a skin that names no fonts gets the built-in ones
-    // rather than whatever the previously loaded skin left behind.
+    // Reset first: a skin that names no fonts must get the built-in ones,
+    // not whatever the skin before it set.
     setupFonts();
     loadFonts(obj["fonts"].toObject());
   }
@@ -681,18 +689,6 @@ static QString hintingToString(QFont::HintingPreference h) noexcept
   }
 }
 
-void Skin::reloadFonts(const QJsonObject& skin)
-{
-  setupFonts();
-  loadFonts(skin["fonts"].toObject());
-
-  // Same bump load() does: caches keyed on LoadIndex (Scenario::IntervalPixmaps)
-  // compare against it to decide whether to regenerate, so a font reload that
-  // left it alone would leave them stale.
-  LoadIndex++;
-  changed();
-}
-
 void Skin::loadFonts(const QJsonObject& spec_obj)
 {
   if(spec_obj.isEmpty())
@@ -773,7 +769,20 @@ QJsonObject Skin::saveFonts() const
   for(auto& [key, font] : const_cast<Skin*>(this)->fonts())
   {
     QJsonObject spec;
-    spec["family"] = font->families().empty() ? font->family() : font->families().front();
+    const auto families = font->families();
+    if(families.size() > 1)
+    {
+      // A fallback chain has to be written back as one, or saving a skin that
+      // has one collapses it to its first entry.
+      QJsonArray arr;
+      for(const auto& f : families)
+        arr.push_back(f);
+      spec["families"] = arr;
+    }
+    else
+    {
+      spec["family"] = families.empty() ? font->family() : families.front();
+    }
     // Only fonts that were given an explicit pixel size get one written back.
     // Writing a computed height instead would pin a font that was deliberately
     // left to the point size, and save/load would not be a no-op.
@@ -783,8 +792,10 @@ QJsonObject Skin::saveFonts() const
       spec["pointSize"] = font->pointSize();
     spec["bold"] = font->bold();
     spec["italic"] = font->italic();
-    if(font->fixedPitch())
-      spec["fixedPitch"] = true;
+    // Written either way: setupFonts() marks mono and code fixed-pitch, and
+    // load() runs it before applying the file, so leaving the key out would
+    // put the flag back rather than clear it.
+    spec["fixedPitch"] = font->fixedPitch();
     if(font->letterSpacingType() == QFont::AbsoluteSpacing
        && font->letterSpacing() != 0.)
       spec["letterSpacing"] = font->letterSpacing();

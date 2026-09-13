@@ -55,8 +55,12 @@ private:
   QRectF m_rect;
   const score::BrushSet* m_color{};
   //! The skin font this item follows, so a font change re-renders instead of
-  //! waiting for the item to be recreated.
+  //! waiting for the item to be recreated. Owned by the skin.
   const QFont* m_font{};
+
+  //! What actually draws: the skin font with font merging restored. Rebuilt
+  //! whenever the label or the skin changes, so painting costs no copy.
+  QFont m_paintFont;
   QString m_string;
   QImage m_line;
 };
