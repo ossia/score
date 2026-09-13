@@ -26,6 +26,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QPalette>
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QSettings>
@@ -359,9 +360,16 @@ QWidget* SkinEditorWidget::makeFontEditor()
       QStringLiteral("Interval 3 - gain -6.0 dB\nAaBbCc 0123456789"));
   m_fontPreview->setMinimumHeight(64);
   m_fontPreview->setLineWrapMode(QPlainTextEdit::NoWrap);
-  m_fontPreview->setStyleSheet(
-      QStringLiteral("QPlainTextEdit { background: #131313; color: #d0d0d0;"
-                     " border: 1px solid #3d3d3d; }"));
+
+  // Palette and not a style sheet: the deployment builds of Qt are configured
+  // with QT_NO_STYLE_STYLESHEET, where setStyleSheet is not declared at all.
+  {
+    auto pal = m_fontPreview->palette();
+    pal.setColor(QPalette::Base, QColor("#131313"));
+    pal.setColor(QPalette::Text, QColor("#d0d0d0"));
+    m_fontPreview->setPalette(pal);
+  }
+  m_fontPreview->setFrameShape(QFrame::Box);
 
   m_fontHint = new QLabel;
   m_fontHint->setWordWrap(true);
