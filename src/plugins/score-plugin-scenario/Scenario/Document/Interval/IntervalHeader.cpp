@@ -5,11 +5,23 @@
 #include "IntervalPresenter.hpp"
 #include "IntervalView.hpp"
 
+#include <score/model/Skin.hpp>
+
 #include <QCursor>
 
 class QGraphicsSceneMouseEvent;
 namespace Scenario
 {
+IntervalHeader::IntervalHeader(QGraphicsItem* parent)
+    : QGraphicsItem{parent}
+{
+  // The name is rasterised into a pixmap; a font or colour change moves
+  // neither the text nor the selection, so nothing else invalidates it.
+  QObject::connect(
+      &score::Skin::instance(), &score::Skin::changed, this,
+      [this] { on_textChanged(); });
+}
+
 void IntervalHeader::setWidth(double width)
 {
   prepareGeometryChange();
