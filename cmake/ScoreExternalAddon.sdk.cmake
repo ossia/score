@@ -10,6 +10,40 @@ set(CMAKE_MODULE_PATH
 # Useful variables
 set(SCORE_AVND_SOURCE_DIR "${SCORE_SDK}/lib/cmake/score")
 
+# Add-ons call qt_add_resources, qt_wrap_cpp and friends unconditionally, and those
+# come from Qt6CoreMacros, which only exists once find_package(Qt6) has run.
+#
+# Only the commands are wanted: score_lib_base does not link the Qt6:: targets. An
+# add-on resolves Qt at load time against the score binary it is loaded into, and
+# its include directories come from the SDK below, not from Qt's own targets.
+list(APPEND CMAKE_PREFIX_PATH
+    "${OSSIA_SDK}"
+    "${OSSIA_SDK}/qt6-static"
+    "${OSSIA_SDK}/qt6-static/lib64"
+    "${OSSIA_SDK}/sysroot"
+    "${OSSIA_SDK}/zlib"
+)
+
+find_package(Qt6 6.2 COMPONENTS Core
+  OPTIONAL_COMPONENTS
+    Gui
+    Network
+    Qml
+    Quick
+    ShaderTools
+    Svg
+    WebSockets
+    Widgets
+    Xml
+)
+
+if(NOT Qt6_FOUND)
+  message(WARNING
+    "Qt6 was not found in '${OSSIA_SDK}': add-ons that call qt_add_resources or "
+    "any other qt_* command will fail to configure. Fetch the SDK with "
+    "score/tools/fetch-sdk.sh.")
+endif()
+
 # Use the resource dir of the compiler actually in use, so that the builtin headers
 # always match it (e.g. AppleClang vs the LLVM the SDK was built with); fall back to
 # the headers shipped in the SDK.
@@ -35,6 +69,13 @@ foreach(dir ${QTCORE_FILES})
     continue()
   endif()
 endforeach()
+
+include(CheckCXXCompilerFlag)
+
+# Add-ons gate on these. In-tree they come from libossia's OssiaConfiguration.cmake,
+# which an SDK build never loads.
+check_cxx_compiler_flag(-std=c++23 has_std_23_flag)
+check_cxx_compiler_flag(-std=c++2b has_std_2b_flag)
 
 # Create all the targets for the score plug-ins
 foreach(_lib ${SCORE_PLUGINS})
@@ -97,11 +138,8 @@ else()
   )
 endif()
 
-# Derived from what the SDK actually ships rather than hand-maintained. The
-# hand-kept list had no QtShaderTools, so every add-on that includes score's Gfx
-# headers died on qshaderbaker -- the VFX template included. It also had no
-# QtQuick, QtSvg, QtSerialPort or QtWebSockets, whose QT_*_LIB definitions are
-# set below regardless, and it listed QtWidgets twice.
+# The SDK ships no Qt CMake package, so the include layout is read off the headers
+# it does ship.
 set(SCORE_SDK_QT_INCLUDES
   "${SCORE_SDK}/include/score"
   "${SCORE_SDK}/include/qt")
@@ -124,6 +162,62 @@ foreach(_qt_module_dir ${_qt_module_dirs})
 endforeach()
 
 target_include_directories(score_lib_base SYSTEM INTERFACE ${SCORE_SDK_QT_INCLUDES})
+
+# For clang on non-Windows, qmetatype.h gives QMetaTypeForType and
+# QMetaTypeInterfaceWrapper hidden visibility and externs them for every builtin
+# type, on the assumption that each library emits its own copy. An add-on does not
+# link Qt -- it resolves Qt from the score binary once dlopen'd -- and a hidden
+# undefined symbol cannot be resolved that way, so declaring any Qt property fails
+# to link. Emit that copy here, over exactly the type lists qmetatype.h externs.
+# QMetaTypeForType has to come along: the wrapper's initialiser takes the addresses
+# of its members, which `extern template class` suppresses too.
+if(NOT WIN32 AND "${CMAKE_CXX_COMPILER_ID}" MATCHES ".*Clang")
+  file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/score_sdk_qt_metatypes.cpp" CONTENT [==[
+#include <QtCore/qabstractitemmodel.h>
+#include <QtCore/qbitarray.h>
+#include <QtCore/qcborarray.h>
+#include <QtCore/qcbormap.h>
+#include <QtCore/qcborvalue.h>
+#include <QtCore/qdatetime.h>
+#include <QtCore/qeasingcurve.h>
+#include <QtCore/qfloat16.h>
+#include <QtCore/qjsonarray.h>
+#include <QtCore/qjsondocument.h>
+#include <QtCore/qjsonobject.h>
+#include <QtCore/qjsonvalue.h>
+#include <QtCore/qline.h>
+#include <QtCore/qlocale.h>
+#include <QtCore/qmetatype.h>
+#include <QtCore/qobject.h>
+#include <QtCore/qpoint.h>
+#include <QtCore/qrect.h>
+#include <QtCore/qregularexpression.h>
+#include <QtCore/qsize.h>
+#include <QtCore/qstringlist.h>
+#include <QtCore/qurl.h>
+#include <QtCore/quuid.h>
+#include <QtCore/qvariant.h>
+
+QT_BEGIN_NAMESPACE
+namespace QtPrivate
+{
+#define SCORE_SDK_DEFINE_METATYPE(TypeName, Id, Name) \
+  template class QMetaTypeForType<Name>;              \
+  template struct QMetaTypeInterfaceWrapper<Name>;
+
+QT_FOR_EACH_STATIC_PRIMITIVE_NON_VOID_TYPE(SCORE_SDK_DEFINE_METATYPE)
+QT_FOR_EACH_STATIC_PRIMITIVE_POINTER(SCORE_SDK_DEFINE_METATYPE)
+QT_FOR_EACH_STATIC_CORE_CLASS(SCORE_SDK_DEFINE_METATYPE)
+QT_FOR_EACH_STATIC_CORE_POINTER(SCORE_SDK_DEFINE_METATYPE)
+QT_FOR_EACH_STATIC_CORE_TEMPLATE(SCORE_SDK_DEFINE_METATYPE)
+
+#undef SCORE_SDK_DEFINE_METATYPE
+}
+QT_END_NAMESPACE
+]==])
+  target_sources(score_lib_base INTERFACE
+    "${CMAKE_CURRENT_BINARY_DIR}/score_sdk_qt_metatypes.cpp")
+endif()
 
 target_compile_definitions(score_lib_base INTERFACE
   BOOST_MATH_DISABLE_FLOAT128=1

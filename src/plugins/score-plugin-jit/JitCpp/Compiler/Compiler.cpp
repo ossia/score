@@ -42,25 +42,15 @@ static void jitAtExit(void (*f)())
 
 void setTargetOptions(llvm::TargetOptions& opts, bool useNativePlatform, bool isMachO)
 {
-  // MachO with an Orc Platform (orc_rt) in use is the only combination here that
-  // supports native thread-locals; every other one needs emulated TLS, which
-  // routes through __emutls_get_address in the compiler-rt builtins archive
-  // that is part of the add-on's link order (see the platform setup below).
+  // MachO with an Orc Platform is the only combination here that supports native
+  // thread-locals. Everything else goes through __emutls_get_address, from the
+  // compiler-rt builtins archive in the add-on's link order (see below).
   //
-  // Without a platform the JIT has no TLS runtime at all.
-  //
-  // On COFF, native Windows TLS needs a per-module _tls_index and a registered
-  // .tls directory that only the CRT startup / loader provide; the JIT has
-  // neither, so a thread_local add-on fails to link ("Symbols not found:
-  // _tls_index").
-  //
-  // On ELF the platform is supposed to give native thread-locals, but JITLink's
-  // x86-64 backend accepts none of the relocations the code generator emits for
-  // a non-preemptible thread_local: local-exec gives R_X86_64_TPOFF32, and
-  // forcing PIC only moves it to local-dynamic and R_X86_64_TLSLD. Both are
-  // rejected with "Unsupported x86-64 relocation type", and a single such
-  // variable anywhere in the add-on's transitive includes fails the whole
-  // compile -- the vendored concurrentqueue has one.
+  // COFF needs a per-module _tls_index and a registered .tls directory that only
+  // the CRT startup and the loader provide. On ELF, JITLink's x86-64 backend
+  // accepts neither relocation the code generator emits for a non-preemptible
+  // thread_local -- R_X86_64_TPOFF32 under local-exec, R_X86_64_TLSLD under PIC --
+  // and one such variable anywhere in the transitive includes fails the compile.
   opts.EmulatedTLS = !useNativePlatform || !isMachO;
 
   //opts.ExplicitEmulatedTLS = false;
@@ -82,14 +72,11 @@ void setTargetOptions(llvm::TargetOptions& opts, bool useNativePlatform, bool is
   opts.NoTrappingFPMath = true;
   opts.HonorSignDependentRoundingFPMathOption = false;
   opts.EnableIPRA = true;
-  // FastISel is a -O0 compile-speed path, and this target machine is built with
-  // CodeGenOptLevel::Aggressive, so forcing it on only cost code quality. It also
-  // crashes: LLVM 23 turned <N x ptr> zeroinitializer into a vector-typed
-  // ConstantPointerNull, and FastISel::materializeConstant still hands it to
-  // X86MaterializeInt, which answers a GR64 zero for a YMM vreg and leaves
-  // copyPhysReg with no instruction to emit. Any AVX2 host JIT-compiling an
-  // add-on that zeroes four consecutive pointers -- QObject::connect's functor
-  // storage, for one -- dies with "Cannot emit physreg copy instruction".
+  // FastISel is a -O0 compile-speed path, at odds with the Aggressive opt level
+  // this target machine is built with. It also cannot lower a vector-typed
+  // ConstantPointerNull: X86MaterializeInt answers a GR64 zero for a YMM vreg,
+  // and copyPhysReg then has no instruction to emit. On an AVX2 host that is any
+  // add-on zeroing four consecutive pointers.
   opts.EnableFastISel = false;
   opts.EnableGlobalISel = false;
 }
@@ -179,14 +166,10 @@ static std::unique_ptr<llvm::orc::LLJIT> jitBuilder(JitCompiler& self)
 
   JTMB->setCodeGenOptLevel(llvm::CodeGenOptLevel::Aggressive);
 
-  // PIC, so that thread-locals keep the TLS model the front end asked for.
-  // detectHost() leaves the relocation model unset, which means static, and the
-  // backend then downgrades a non-preemptible thread_local to local-exec no
-  // matter what -ftls-model says. Local-exec emits R_X86_64_TPOFF32 -- an offset
-  // into the initial TLS block that JIT-loaded code is not part of -- and
-  // JITLink rejects it outright ("Unsupported x86-64 relocation type"). A single
-  // such variable anywhere in the add-on's transitive includes is enough; the
-  // vendored concurrentqueue has one.
+  // detectHost() leaves the relocation model unset, i.e. static, under which the
+  // backend downgrades a non-preemptible thread_local to local-exec whatever
+  // -ftls-model says. That emits an offset into the initial TLS block, which
+  // JIT-loaded code is not part of.
   if(!JTMB->getTargetTriple().isOSBinFormatCOFF())
     JTMB->setRelocationModel(llvm::Reloc::PIC_);
 
@@ -415,31 +398,30 @@ static std::unique_ptr<llvm::orc::LLJIT> jitBuilder(JitCompiler& self)
           llvm::consumeError(G.takeError());
       }
 
-      // libmingwex's _assert / iswctype wrappers call the CRT through *renamed*
-      // imports (__imp___msvcrt_assert -> ucrt's _assert) that exist only inside
-      // the import lib, so neither the process generator nor the DLLImport
-      // generator can resolve them. Provide the import GOT slots directly:
-      // host-allocated pointers filled with the ucrt export addresses -- exactly
-      // the indirection an AOT link produces, so JIT'd code goes through the
-      // same mingwex wrapper -> ucrt path as code linked by the driver.
+      // mingw-w64's libmingwex reaches three CRT entry points through renamed
+      // imports, declared `__msvcrt_X DATA == X` in the .def files. Being DATA,
+      // the short-import member exposes only __imp___msvcrt_X, never a thunk, so
+      // the plain name is defined nowhere -- and COFFImportFileScanner keeps those
+      // members out of the static generator above. An add-on referencing _assert,
+      // which any asserting header does, then fails to find __msvcrt_assert.
+      //
+      // Alias the renamed names to the UCRT exports they stand for. The process
+      // generator resolves those from ucrtbase, and DLLImportDefinitionGenerator
+      // builds __imp___msvcrt_X on top: the indirection an AOT link gets from the
+      // import member.
       {
-        auto& ES = J.getExecutionSession();
-        // (import slot storage, __imp_ name, ucrt export it renames)
-        static void* Slots[2];
-        static constexpr std::pair<const char*, const char*> Renames[] = {
-            {"__imp___msvcrt_assert", "_assert"},
-            {"__imp___msvcrt_iswctype", "iswctype"},
+        llvm::orc::SymbolAliasMap Renames;
+        auto rename = [&](const char* mingwName, const char* ucrtExport) {
+          Renames[ES.intern(mingwName)]
+              = {ES.intern(ucrtExport),
+                 llvm::JITSymbolFlags::Exported | llvm::JITSymbolFlags::Callable};
         };
-        llvm::orc::SymbolMap m;
-        for(int i = 0; i < 2; i++)
-          if((Slots[i] = llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(
-                  Renames[i].second)))
-            m[ES.intern(Renames[i].first)]
-                = {llvm::orc::ExecutorAddr::fromPtr(&Slots[i]),
-                   llvm::JITSymbolFlags::Exported};
-        if(!m.empty())
-          if(auto Err = PlatformJD.define(llvm::orc::absoluteSymbols(std::move(m))))
-            llvm::consumeError(std::move(Err));
+        rename("__msvcrt_assert", "_assert");
+        rename("__msvcrt_iswctype", "iswctype");
+        rename("__msvcrt_towctrans", "towctrans");
+        if(auto Err = ProcessSymbolsJD->define(
+               llvm::orc::symbolAliases(std::move(Renames))))
+          llvm::consumeError(std::move(Err));
       }
 
       auto P = Jit::MinGWCOFFPlatform::Create(
