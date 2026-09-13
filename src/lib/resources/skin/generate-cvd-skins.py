@@ -194,10 +194,12 @@ ACCENTS = {
         warn_low=OI["green"], warn_mid=OI["purple"], warn_high=OI["vermilion"],
         accent=OI["green"], accent2=OI["purple"],
         curve_a=OI["vermilion"], curve_b=OI["green"], curve_c="#b0b8c4",
-        # Blue/yellow is unusable, so playback runs on the red <-> green axis
-        # with a pale dash for the moving part.
-        interval_base="#258f77", play_fill=OI["vermilion"],
-        pulse_play="#ffe4d6", pulse_wait="#7f8f88",
+        # Blue/yellow is unusable, so playback runs on the red <-> green axis.
+        # The fill takes the green end: vermilion is spoken for by warn_high
+        # and the curves, and a running interval must not read as a failed
+        # one. dE 85 between the two under simulation.
+        interval_base="#258f77", play_fill="#7fe8c0",
+        pulse_play="#ffffff", pulse_wait="#7f8f88",
     ),
 }
 

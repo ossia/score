@@ -244,6 +244,12 @@ PAIRS = [
     ("header text on body",  "Light",      "Base1",       "text"),
     ("header side border",   "Emphasis1",  "Base1",       "thin"),
 
+    # The measure grid, from Timebar.hpp: LightBars paints DarkGray and
+    # LighterBars its darker300 variant. Deliberately faint, so they are held
+    # to a colour difference rather than to a lightness floor.
+    ("grid bar",             "DarkGray",   "Background1", "hint"),
+    ("grid subdivision",     "DarkGray|d300", "Background1", "hint"),
+
     # The time ruler has its own ground.
     ("ruler marks",          "Base1",      "DarkGray",    "thin"),
     ("local ruler marks",    "Gray",       "DarkGray",    "thin"),
@@ -266,13 +272,16 @@ PAIRS = [
 # text; 30 is the "spot reading" level the draft gives for non-text elements
 # that carry meaning. A one-pixel line needs more than a wide fill of the same
 # colour does, hence the split.
-FLOOR = {"text": 45.0, "thin": 30.0, "shape": 20.0, "fill": 35.0}
+# A floor of zero means the mark is meant to be faint and is judged on
+# colour difference alone.
+FLOOR = {"text": 45.0, "thin": 30.0, "shape": 20.0, "fill": 35.0, "hint": 0.0}
 
 # A mark can also be found by hue alone: APCA measures lightness only, and
 # reports 0 for two colours of the same luminance however different they look.
 # So a pair fails only when it is neither light enough nor coloured enough --
 # except text, which needs the lightness whatever its hue.
-HUE_FLOOR = {"text": None, "thin": 25.0, "shape": 15.0, "fill": 45.0}
+HUE_FLOOR = {"text": None, "thin": 25.0, "shape": 15.0, "fill": 45.0,
+             "hint": 4.5}
 
 # Colours whose whole job is to be told apart from each other.
 GROUPS = [
@@ -287,7 +296,7 @@ MIN_DE = 12.0  # CAM16-UCS; comfortably above "different colour" for large areas
 # The surfaces everything else is painted on. Moving one of these moves every
 # mark that sits on it, so the repair pass leaves them exactly as the palette
 # author wrote them.
-GROUNDS = {"Background1", "Background2", "DarkGray"}
+GROUNDS = {"Background1", "Background2"}
 
 # Pairs a palette cannot satisfy without giving up something worth more than
 # the contrast. Listed rather than quietly tolerated, so that a new failure is
@@ -304,13 +313,24 @@ ACCEPTED = {
 }
 
 
+def split_spec(spec):
+    """"Role|modifier" to (role, modifier)."""
+    role, _, mod = spec.partition("|")
+    return role, mod
+
+
+def apply_mod(c, mod):
+    if mod == "dark":
+        return qt_darker(c)
+    if mod == "d300":
+        return qt_darker(c, 150)
+    return c
+
+
 def resolve(skin, spec, bg):
     """A PAIRS entry's role name to a composited opaque colour."""
-    dark = spec.endswith("|dark")
-    role = spec[:-5] if dark else spec
-    c = parse(skin[role])
-    if dark:
-        c = qt_darker(c)
+    role, mod = split_spec(spec)
+    c = apply_mod(parse(skin[role]), mod)
     return over(c, bg) if c[3] < 255 else c
 
 
@@ -385,7 +405,7 @@ def _scale_value(c, k):
 # How much lightness contrast the repair will chase. It stops at the cap even
 # when DefaultSkin has more: pushing a muted palette to match a neon one would
 # just replace the palette.
-CAP = {"text": 60.0, "thin": 45.0, "shape": 45.0, "fill": 45.0}
+CAP = {"text": 60.0, "thin": 45.0, "shape": 45.0, "fill": 45.0, "hint": 0.0}
 
 
 def target_lc(kind, ref_lc, tol):
@@ -438,28 +458,34 @@ def fails_values(kind, lc, de):
     return hue is None or de < hue
 
 
-def _constraints(skin, role, rm, tol):
-    """Every (bg, kind, want, darkened) this role must satisfy."""
+def _constraints(skin, role, rm, tol, own=None):
+    """Every (bg, kind, want_lc, want_de, modifier) this role must satisfy."""
     out = []
     for label, fgspec, bgrole, kind in PAIRS:
-        dark = fgspec.endswith("|dark")
-        if (fgspec[:-5] if dark else fgspec) != role:
+        r, mod = split_spec(fgspec)
+        if r != role:
             continue
         want = target_lc(kind, rm[label][0], tol) if rm else FLOOR[kind]
-        out.append((parse(skin[bgrole]), kind, want, dark))
+        de = HUE_FLOOR[kind] or 0.0
+        if FLOOR[kind] <= 0 and own:
+            # A faint mark is judged on colour difference, so the repair has
+            # to keep whatever difference it already had -- fixing one of
+            # these would otherwise be free to spend the other.
+            ceiling = rm[label][1] if rm else de
+            de = max(de, min(own[label][1], ceiling))
+        out.append((parse(skin[bgrole]), kind, want, de, mod))
     return out
 
 
 def _satisfies(colour, cons):
-    for bg, kind, want, dark in cons:
-        c = qt_darker(colour) if dark else colour
+    for bg, kind, want, want_de, mod in cons:
+        c = apply_mod(colour, mod)
         if c[3] < 255:
             c = over(c, bg)
         lc, de = apca(c, bg), delta_e(c, bg)
-        if abs(lc) >= want:
+        if want > 0 and abs(lc) >= want:
             continue
-        hue = HUE_FLOOR[kind]
-        if hue is not None and de >= hue and abs(lc) >= FLOOR[kind]:
+        if HUE_FLOOR[kind] is not None and de >= want_de and abs(lc) >= FLOOR[kind]:
             continue
         return False
     return True
@@ -479,14 +505,15 @@ def repair(skin, ref=None, tol=12.0):
     """
     skin = dict(skin)
     rm = measure(ref) if ref else None
+    own = measure(skin)
     roles = []
     for _label, fgspec, _bg, _kind in PAIRS:
-        r = fgspec[:-5] if fgspec.endswith("|dark") else fgspec
+        r, _mod = split_spec(fgspec)
         if r not in GROUNDS and r not in roles:
             roles.append(r)
 
     for role in roles:
-        cons = _constraints(skin, role, rm, tol)
+        cons = _constraints(skin, role, rm, tol, own)
         cur = parse(skin[role])
         if _satisfies(cur, cons):
             continue
@@ -571,7 +598,7 @@ def kind_of(label):
 def fails(label, lc, de):
     """Neither light enough nor coloured enough to be found."""
     kind = kind_of(label)
-    if abs(lc) >= FLOOR[kind]:
+    if FLOOR[kind] > 0 and abs(lc) >= FLOOR[kind]:
         return False
     hue = HUE_FLOOR[kind]
     return hue is None or de < hue
