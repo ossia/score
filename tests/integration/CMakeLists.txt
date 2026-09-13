@@ -50,6 +50,11 @@ score_add_test(test_integration_pixmaps_skin
   GUI
   PLUGINS score_plugin_scenario)
 
+score_add_test(test_integration_skin_palette
+  SOURCES SkinPaletteTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario)
+
 
 # GUI so that the test gets its own X server: it maps a window and cycles every
 # top-level one. The score_test fixture still runs it on the offscreen platform,

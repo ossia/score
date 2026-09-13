@@ -350,6 +350,7 @@ Skin::Skin() noexcept
   Waveform2 = QColor{20, 81, 120};
 
   setupFonts();
+  m_basePalette = qApp ? qApp->palette() : QPalette{};
   setupPalette();
 
   // Owned here rather than by the application: the early font setup runs
@@ -453,27 +454,31 @@ Skin::paletteRoles() noexcept
   return roles;
 }
 
+// Mirrors DefaultSkin's "palette" block, for skins that name none of it and
+// for the window that exists before any skin has loaded.
+void applyDefaultPalette(QPalette& p)
+{
+  p.setBrush(QPalette::Window, QColor("#222222"));
+  p.setBrush(QPalette::Base, QColor("#161514"));
+  p.setBrush(QPalette::AlternateBase, QColor("#1e1d1c"));
+  p.setBrush(QPalette::Highlight, QColor("#9062400a"));
+  p.setBrush(QPalette::HighlightedText, QColor("#FDFDFD"));
+  p.setBrush(QPalette::WindowText, QColor("silver"));
+  p.setBrush(QPalette::Text, QColor("#d0d0d0"));
+  p.setBrush(QPalette::Button, QColor("#1d1c1a"));
+  p.setBrush(QPalette::ButtonText, QColor("#f0f0f0"));
+  p.setBrush(QPalette::PlaceholderText, QColor("#80d0d0d0"));
+  p.setBrush(QPalette::ToolTipBase, QColor("#161514"));
+  p.setBrush(QPalette::ToolTipText, QColor("silver"));
+  p.setBrush(QPalette::Midlight, QColor("#62400a"));
+  p.setBrush(QPalette::Light, QColor("#c58014"));
+  p.setBrush(QPalette::Mid, QColor("#252930"));
+}
+
 void Skin::setupPalette()
 {
-  WidgetPalette = qApp ? qApp->palette() : QPalette{};
-
-  // Mirrors DefaultSkin's "palette" block, for skins that name none of it and
-  // for the window that exists before any skin has loaded.
-  WidgetPalette.setBrush(QPalette::Window, QColor("#222222"));
-  WidgetPalette.setBrush(QPalette::Base, QColor("#161514"));
-  WidgetPalette.setBrush(QPalette::AlternateBase, QColor("#1e1d1c"));
-  WidgetPalette.setBrush(QPalette::Highlight, QColor("#9062400a"));
-  WidgetPalette.setBrush(QPalette::HighlightedText, QColor("#FDFDFD"));
-  WidgetPalette.setBrush(QPalette::WindowText, QColor("silver"));
-  WidgetPalette.setBrush(QPalette::Text, QColor("#d0d0d0"));
-  WidgetPalette.setBrush(QPalette::Button, QColor("#1d1c1a"));
-  WidgetPalette.setBrush(QPalette::ButtonText, QColor("#f0f0f0"));
-  WidgetPalette.setBrush(QPalette::PlaceholderText, QColor("#80d0d0d0"));
-  WidgetPalette.setBrush(QPalette::ToolTipBase, QColor("#161514"));
-  WidgetPalette.setBrush(QPalette::ToolTipText, QColor("silver"));
-  WidgetPalette.setBrush(QPalette::Midlight, QColor("#62400a"));
-  WidgetPalette.setBrush(QPalette::Light, QColor("#c58014"));
-  WidgetPalette.setBrush(QPalette::Mid, QColor("#252930"));
+  WidgetPalette = m_basePalette;
+  score::applyDefaultPalette(WidgetPalette);
 }
 
 void Skin::loadPalette(const QJsonObject& spec)
@@ -495,13 +500,16 @@ void Skin::loadPalette(const QJsonObject& spec)
     return std::nullopt;
   };
 
-  // A "disabled" object sets the same roles for the disabled group; anything
-  // it leaves out keeps the value Qt derived.
+  // An "inactive" or "disabled" object sets the same roles for that group;
+  // anything they leave out keeps the value Qt derived.
+  const QJsonObject inactive = spec["inactive"].toObject();
   const QJsonObject disabled = spec["disabled"].toObject();
   for(auto& [key, role] : paletteRoles())
   {
     if(auto c = colour(spec[QLatin1String(key)]))
       WidgetPalette.setBrush(QPalette::All, role, *c);
+    if(auto c = colour(inactive[QLatin1String(key)]))
+      WidgetPalette.setBrush(QPalette::Inactive, role, *c);
     if(auto c = colour(disabled[QLatin1String(key)]))
       WidgetPalette.setBrush(QPalette::Disabled, role, *c);
   }
@@ -509,7 +517,7 @@ void Skin::loadPalette(const QJsonObject& spec)
 
 QJsonObject Skin::savePalette() const
 {
-  QJsonObject out, disabled;
+  QJsonObject out, inactive, disabled;
   for(auto& [key, role] : paletteRoles())
   {
     auto write = [&](QPalette::ColorGroup g, QJsonObject& dst) {
@@ -520,10 +528,17 @@ QJsonObject Skin::savePalette() const
       dst[QLatin1String(key)] = a;
     };
     write(QPalette::Active, out);
+    // loadPalette writes the top-level value to every group, so a group that
+    // differs has to be spelled out or the round-trip flattens it.
+    if(WidgetPalette.brush(QPalette::Inactive, role)
+       != WidgetPalette.brush(QPalette::Active, role))
+      write(QPalette::Inactive, inactive);
     if(WidgetPalette.brush(QPalette::Disabled, role)
        != WidgetPalette.brush(QPalette::Active, role))
       write(QPalette::Disabled, disabled);
   }
+  if(!inactive.isEmpty())
+    out["inactive"] = inactive;
   if(!disabled.isEmpty())
     out["disabled"] = disabled;
   return out;

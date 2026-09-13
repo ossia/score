@@ -141,28 +141,11 @@ static void setQApplicationSettings(QApplication& m_app)
   // manually
   m_app.setStyle(new score::ApplicationStyle{new PhantomStyle});
 
+  // Not through score::Skin::instance(): this runs before the application
+  // context the Skin constructor dereferences, and the Skin reseeds from the
+  // palette left here.
   auto pal = qApp->palette();
-  pal.setBrush(QPalette::Window, QColor("#222222"));        //#1A2024"));
-  pal.setBrush(QPalette::Base, QColor("#161514"));          //12171A"));
-  pal.setBrush(QPalette::AlternateBase, QColor("#1e1d1c")); //1f2a30")); // alternate bg
-  pal.setBrush(QPalette::Highlight, QColor{"#9062400a"});
-  pal.setBrush(QPalette::HighlightedText, QColor("#FDFDFD"));
-  pal.setBrush(QPalette::WindowText, QColor("silver"));
-  pal.setBrush(QPalette::Text, QColor("#d0d0d0"));
-
-  pal.setBrush(QPalette::Button, QColor("#1d1c1a"));
-  pal.setBrush(QPalette::ButtonText, QColor("#f0f0f0"));
-  pal.setBrush(QPalette::PlaceholderText, QColor("#80d0d0d0"));
-  pal.setBrush(QPalette::ToolTipBase, QColor("#161514"));
-  pal.setBrush(QPalette::ToolTipText, QColor("silver"));
-
-  pal.setBrush(QPalette::Midlight, QColor{"#62400a"});
-  pal.setBrush(QPalette::Light, QColor{"#c58014"});
-  pal.setBrush(QPalette::Mid, QColor("#252930"));
-
-  //  pal.setBrush(QPalette::Dark, QColor("#808080"));
-  // pal.setBrush(QPalette::Shadow, QColor("#666666"));
-
+  score::applyDefaultPalette(pal);
   qGuiApp->setPalette(pal);
 }
 
