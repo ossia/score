@@ -103,7 +103,7 @@ def idle_hue(p):
     """
     ha, _s, _v = contrast.rgb_to_hsv(tuple(rgb(p["aqua"])) + (255,))
     hg, _s, _v = contrast.rgb_to_hsv(tuple(rgb(p["green"])) + (255,))
-    return p["blue"] if abs((ha - hg + 180) % 360 - 180) < 45 else p["aqua"]
+    return p["blue"] if abs((ha - hg + 180) % 360 - 180) < 65 else p["aqua"]
 
 
 def cap_lightness(colour, max_j):

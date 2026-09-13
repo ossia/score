@@ -340,6 +340,10 @@ ACCEPTED = {
     # Magenta play fill on a teal body: both are fixed by the palette's own
     # colour-blind contract, which outranks the lightness here.
     ("ColorBlind", "play fill on body"),
+    # Everforest's red and purple are 29 degrees apart in the source palette
+    # and both dusty; at the cables' 53% alpha there is nothing left to
+    # separate without inventing a hue the palette does not have.
+    ("EverforestDark", "cable types"),
 }
 
 
@@ -523,7 +527,7 @@ def _satisfies(colour, cons):
     return True
 
 
-def repair(skin, ref=None, tol=12.0):
+def repair(skin, ref=None, tol=12.0, origin=None):
     """Lift every role that cannot be seen where score paints it.
 
     Solved per role rather than per pair: a role is usually painted on more
@@ -536,6 +540,7 @@ def repair(skin, ref=None, tol=12.0):
     every mark that sits on it.
     """
     skin = dict(skin)
+    origin = origin or skin
     rm = measure(ref) if ref else None
     own = measure(skin)
     roles = []
@@ -553,8 +558,12 @@ def repair(skin, ref=None, tol=12.0):
         j0 = cam16_ucs(cur)[0]
         bright = role in PREFER_BRIGHT
         guarded = role in SEMANTIC_HUE
+        src = parse(origin.get(role, skin[role]))
         for cand in _candidates(cur):
-            if _keeps_chroma(cand, cur, guarded) and _satisfies(cand, cons):
+            # Against the palette's own colour, not the current one: a guard
+            # that only looks one step back lets the saturation compound away
+            # over the rounds.
+            if _keeps_chroma(cand, src, guarded) and _satisfies(cand, cons):
                 # Sorts darker candidates behind brighter ones for the roles
                 # that should read as active, and by distance otherwise.
                 key = (0 if (not bright or cam16_ucs(cand)[0] >= j0) else 1,
@@ -567,7 +576,7 @@ def repair(skin, ref=None, tol=12.0):
     return skin
 
 
-def separate(skin, passes=80):
+def separate(skin, passes=80, origin=None):
     """Push apart roles whose whole job is to be told from each other.
 
     Lightness again, and both members of the closest pair move, so a group of
@@ -576,6 +585,7 @@ def separate(skin, passes=80):
     is the reason a group that relies on it alone counts as a failure here.
     """
     skin = dict(skin)
+    origin = origin or skin
     for _name, roles, want in GROUPS:
         bgc = parse(skin["Background1"])
         for _ in range(passes):
@@ -597,7 +607,8 @@ def separate(skin, passes=80):
                 nxt = _scale_value(cur, k)
                 # Same rule as the repair: separating two colours must not
                 # bleach either of them into a neutral.
-                if not _keeps_chroma(nxt, cur, roles[idx] in SEMANTIC_HUE):
+                src = parse(origin.get(roles[idx], skin[roles[idx]]))
+                if not _keeps_chroma(nxt, src, roles[idx] in SEMANTIC_HUE):
                     continue
                 skin[roles[idx]] = list(nxt[:3]) + (
                     [cur[3]] if len(skin[roles[idx]]) > 3 else [])
@@ -613,10 +624,11 @@ def improve(skin, ref=None, rounds=6):
     than the last.
     """
     ref = ref or skin
+    origin = dict(skin)
     best, best_n = skin, len(audit(skin, ref))
     cur = skin
     for _ in range(rounds):
-        cur = repair(separate(cur), ref)
+        cur = repair(separate(cur, origin=origin), ref, origin=origin)
         n = len(audit(cur, ref))
         if n < best_n:
             best, best_n = cur, n
