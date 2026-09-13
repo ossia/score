@@ -51,7 +51,7 @@ namespace Scenario
 EventInspectorWidget::EventInspectorWidget(
     const EventModel& object, const score::DocumentContext& doc, QWidget* parent)
     : Inspector::
-        InspectorWidgetBase{object, doc, parent, tr("Event (%1)").arg(object.metadata().getName())}
+        InspectorWidgetBase{object, doc, parent, tr("Event\n%1").arg(object.metadata().getName())}
     , m_model{&object}
     , m_context{doc}
     , m_commandDispatcher{doc.commandStack}
