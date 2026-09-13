@@ -37,12 +37,42 @@ struct Node
     Overdub
   };
 
+  // Order matters: this replaced a toggle, and a stored 0/1 has to keep
+  // meaning what it did.
+  enum class Passthrough
+  {
+    None,   ///< The input is never heard, in any mode.
+    Record, ///< Heard while recording and overdubbing; playback is the loop alone.
+    Full    ///< Always heard, mixed over the loop during playback.
+  };
+
+  struct passthrough_selector
+  {
+    static clang_buggy_consteval auto name() { return std::string_view{"Passthrough"}; }
+    enum widget
+    {
+      combobox
+    };
+    struct range
+    {
+      decltype(avnd::enum_names<Passthrough>()) values = avnd::enum_names<Passthrough>();
+      Passthrough init = Passthrough::Record;
+    };
+    Passthrough value = Passthrough::Record;
+    operator Passthrough() const noexcept { return value; }
+    auto& operator=(Passthrough t) noexcept
+    {
+      value = t;
+      return *this;
+    }
+  };
+
   struct ins
   {
     halp::dynamic_audio_bus<"in", double> audio;
     halp::enum_t<LoopMode, "Loop"> mode;
     quant_selector<"Quantif"> quantif;
-    halp::toggle<"Passthrough", halp::toggle_setup{.init = true}> passthrough;
+    passthrough_selector passthrough;
     halp::enum_t<Postaction, "Post-action"> postaction;
     halp::spinbox_i32<"Bars", halp::irange{0, 64, 4}> postaction_bars;
   } inputs;
@@ -206,7 +236,7 @@ struct Node
     const int postaction_bars = this->inputs.postaction_bars;
     const Postaction postaction = this->inputs.postaction;
     const float quantif = this->inputs.quantif.value;
-    const bool passthrough = this->inputs.passthrough;
+    const Passthrough passthrough = this->inputs.passthrough;
 
     state.this_buffer_quantif_time = std::nullopt;
     state.this_buffer_quantif_sample = std::nullopt;
@@ -312,7 +342,7 @@ struct Node
 
   void preAction(
       ossia::token_request tk, Postaction postaction, int postaction_bars,
-      bool passthrough)
+      Passthrough passthrough)
   {
     using namespace ossia;
     if(state.recordStartBar == -1.)
@@ -396,30 +426,35 @@ struct Node
     }
   }
 
-  void action(const ossia::token_request& tk, bool echoRecord)
+  void action(const ossia::token_request& tk, Passthrough pt)
   {
     auto timings = ossia_state.timings(tk);
-    action(timings.start_sample - state.tickStartSample, timings.length, echoRecord);
+    action(timings.start_sample - state.tickStartSample, timings.length, pt);
   }
 
-  void action(int64_t start, int64_t length, bool echoRecord)
+  void action(int64_t start, int64_t length, Passthrough pt)
   {
+    const bool echo = pt != Passthrough::None;
     switch(state.actualMode)
     {
       case LoopMode::Play:
         if(state.channels() == 0 || state.audio[0].size() == 0)
-          stop(start, length);
+          echo ? stop(start, length) : silence(start, length);
         else
+        {
           play(start, length);
+          if(pt == Passthrough::Full)
+            mix_input(start, length);
+        }
         break;
       case LoopMode::Stop:
-        stop(start, length);
+        echo ? stop(start, length) : silence(start, length);
         break;
       case LoopMode::Record:
-        echoRecord ? record(start, length) : record_noecho(start, length);
+        echo ? record(start, length) : record_noecho(start, length);
         break;
       case LoopMode::Overdub:
-        echoRecord ? overdub(start, length) : overdub_noecho(start, length);
+        echo ? overdub(start, length) : overdub_noecho(start, length);
         break;
     }
   }
@@ -468,6 +503,35 @@ struct Node
   }
 
   // We just copy input to output
+  //! Outlet buffers come from a pool and are resized, not cleared: writing
+  //! nothing leaves the previous tick's audio in them.
+  void silence(int64_t first_pos, int64_t samples)
+  {
+    auto& p2 = outputs.audio;
+    const int64_t last = first_pos + samples;
+    for(int i = 0; i < p2.channels; i++)
+    {
+      auto& out = p2.samples[i];
+      for(int64_t j = first_pos; j < last; j++)
+        out[j] = 0.;
+    }
+  }
+
+  void mix_input(int64_t first_pos, int64_t samples)
+  {
+    auto& p1 = inputs.audio;
+    auto& p2 = outputs.audio;
+    const int chans = std::min(p1.channels, p2.channels);
+    const int64_t last = first_pos + samples;
+    for(int i = 0; i < chans; i++)
+    {
+      auto& in = p1.samples[i];
+      auto& out = p2.samples[i];
+      for(int64_t j = first_pos; j < last; j++)
+        out[j] += in[j];
+    }
+  }
+
   void stop(int64_t first_pos, int64_t samples)
   {
     auto& p1 = inputs.audio;
