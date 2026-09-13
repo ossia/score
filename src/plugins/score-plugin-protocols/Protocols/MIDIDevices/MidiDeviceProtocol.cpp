@@ -542,7 +542,15 @@ struct midi_device_protocol final
     if(!param)
       return;
 
-    const auto [lo, hi] = resolvedRange(c.value, c.message.type);
+    auto [lo, hi] = resolvedRange(c.value, c.message.type);
+
+    // A control that addresses a bank of notes holds which note of the bank,
+    // so the bank is its range -- the note's own 0..127 is not reachable.
+    if(c.message.hasRange() && !c.value.min && !c.value.max)
+    {
+      lo = c.message.rangeFrom;
+      hi = c.message.rangeTo;
+    }
 
     m_bindings.push_back(std::make_unique<binding>());
     auto& b = *m_bindings.back();
@@ -943,11 +951,10 @@ struct midi_device_protocol final
             break;
           if(d1 == msg.number)
             b.pendingMsb = d2;
+          // The coarse half is latched, not consumed: a slow move sends it
+          // once and then a run of fine halves inside that step.
           else if(d1 == msg.lsb && b.pendingMsb >= 0)
-          {
             receive(b, (b.pendingMsb << 7) | d2);
-            b.pendingMsb = -1;
-          }
           break;
 
         case MessageType::Note:
@@ -1066,16 +1073,20 @@ struct midi_device_protocol final
     auto& sel = m_selected[channel - 1];
     switch(cc)
     {
-      case cc_nrpn_msb: sel.number = value; sel.registered = false; return;
-      case cc_nrpn_lsb: sel.lsb = value;    sel.registered = false; return;
-      case cc_rpn_msb:  sel.number = value; sel.registered = true;  return;
-      case cc_rpn_lsb:  sel.lsb = value;    sel.registered = true;  return;
+      // Selecting a parameter drops the data entry held for the previous one:
+      // a fine-only write that follows belongs to whatever this one turns out
+      // to be, not to the coarse half of the last.
+      case cc_nrpn_msb: sel.number = value; sel.registered = false; sel.data = -1; return;
+      case cc_nrpn_lsb: sel.lsb = value;    sel.registered = false; sel.data = -1; return;
+      case cc_rpn_msb:  sel.number = value; sel.registered = true;  sel.data = -1; return;
+      case cc_rpn_lsb:  sel.lsb = value;    sel.registered = true;  sel.data = -1; return;
 
+      // Both halves dispatch a 14-bit value, so that a device that sends only
+      // the coarse half still writes the value it means: dispatchParameter
+      // narrows it to what the control is.
       case cc_data_msb:
         sel.data = value;
-        // A 7-bit parameter is complete here; a 14-bit one is written again by
-        // the data LSB below, which is why both dispatch.
-        dispatchParameter(channel, sel, value);
+        dispatchParameter(channel, sel, value << 7);
         return;
 
       case cc_data_lsb:
@@ -1106,7 +1117,7 @@ struct midi_device_protocol final
       if(!acceptsChannel(b, channel))
         continue;
 
-      receive(b, is14Bit(*b.control) ? value : (value & 0x7F));
+      receive(b, is14Bit(*b.control) ? value : (value >> 7));
     }
   }
 
