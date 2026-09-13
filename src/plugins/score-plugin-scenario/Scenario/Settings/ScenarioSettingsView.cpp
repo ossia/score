@@ -106,8 +106,7 @@ View::View()
       tr("Where the custom user interfaces of processes open, when they can be "
          "embedded (JS UIs). Plug-ins with a native window (VST, LV2, CLAP...) "
          "always open in a separate window."));
-  // ZOOM. Below Qt 6.6 the scale factor cannot be changed on a running
-  // application, so the label says so rather than silently doing nothing.
+  // Below Qt 6.6 the factor cannot change on a running application; say so.
   m_zoomSpinBox = new QSpinBox;
   m_zoomSpinBox->setMinimum(100);
   m_zoomSpinBox->setMaximum(200);
@@ -201,8 +200,8 @@ QWidget* View::getWidget()
     m_tabs = new QTabWidget;
     m_tabs->addTab(m_widg, tr("Interface"));
 
-    // The skin editor is inlined rather than opened as a dialog: it edits the
-    // live skin, so there is nothing to confirm or cancel.
+    // Inlined rather than a dialog: it edits the live skin, so there is
+    // nothing to confirm.
     m_skinEditor = new SkinEditorWidget;
     m_tabs->addTab(m_skinEditor, tr("Skin"));
     connect(

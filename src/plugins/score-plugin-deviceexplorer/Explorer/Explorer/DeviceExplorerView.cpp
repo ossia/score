@@ -342,9 +342,8 @@ void DeviceExplorerView::paintEvent(QPaintEvent* event)
   QPainter p{this->viewport()};
   const auto& skin = score::Skin::instance();
   auto font = skin.Bold12Pt;
-  // px, not pt: pt would shrink on macOS' 72 DPI. Scaled, so that the one
-  // deliberately oversized piece of text in the UI stays in proportion with
-  // the rest of it under a small-font skin.
+  // px, not pt: pt shrinks on macOS' 72 DPI. Scaled so the one oversized
+  // piece of text in the UI stays in proportion under a small-font skin.
   score::setSnappedPixelSize(font, score::scaledPixels(32));
   p.setFont(font);
   auto pen = p.pen();

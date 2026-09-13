@@ -121,17 +121,13 @@ static void loadApplicationResources()
 {
   loadResources();
 
-  // Lives next to the Skin, so that tests and alternate hosts get the fonts
-  // too rather than only the application bootstrap.
   score::registerApplicationFonts();
 }
 
 //! Must run after QApplication::setStyle(), which resets the widget font hash.
 //!
-//! Deliberately does not go through score::Skin::instance(): this runs early in
-//! Application::init, before the application context exists, and the Skin
-//! constructor dereferences it. A skin that names its own application font
-//! re-applies it when it loads; the Skin owns that connection.
+//! Not through score::Skin::instance(): this runs before the application
+//! context the Skin constructor dereferences. The Skin owns the re-apply.
 static void setupApplicationFont()
 {
   score::setupApplicationFont(score::defaultApplicationFont());

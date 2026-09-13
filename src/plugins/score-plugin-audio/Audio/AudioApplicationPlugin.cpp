@@ -148,9 +148,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
   {
     auto bar = new QToolBar(tr("Volume"));
     auto sl = new score::VolumeSlider{bar};
-    // Pinned rather than left to the toolbar, which would stretch it across
-    // whatever room is left. The height follows the skin, the track keeps its
-    // length in proportion to it.
+    // Pinned, or the toolbar stretches it across whatever room is left.
     score::onSkinChange(sl, [sl] {
       sl->setFixedSize(score::scaledPixels(100), sl->skinExtent());
     });

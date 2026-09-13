@@ -1,11 +1,6 @@
-// The skin settings live as a sub-tab of "User interface", the way the Effects
-// settings hold one tab per plug-in format, and the skin editor is inlined
-// there rather than opened as a dialog.
-//
-// Also pins the font-style behaviour: the style combo has to show the style
-// the font is actually in. It used to show whichever style sorted first for
-// the family, which both misreported a Regular font as Bold and then wrote
-// that wrong style back on the next edit.
+// The skin editor is a sub-tab of "User interface", inlined rather than a
+// dialog. Also pins the style combo: it used to show whichever style sorted
+// first, misreporting a Regular font as Bold and writing that back.
 
 #include <score_test/App.hpp>
 
@@ -27,8 +22,7 @@ TEST_CASE("The skin editor is a sub-tab of the interface settings", "[integratio
     score::registerApplicationFonts();
 
     Scenario::Settings::View v;
-    // getWidget() is public on the base and private on the override, so go
-    // through the base the way the settings dialog itself does.
+    // getWidget() is private on the override; go through the base.
     score::GlobalSettingsView& base = v;
     auto* w = base.getWidget();
     REQUIRE(w != nullptr);

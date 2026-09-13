@@ -39,8 +39,7 @@ MusicalRuler::MusicalRuler(QGraphicsView* v)
   m_width = 800;
   setY(-30.5);
 
-  // The cached glyph runs are keyed on the time they spell, not on the font,
-  // so they have to go when the font changes.
+  // m_stringCache is keyed on the time spelled, not on the font.
   score::onSkinChange(this, [this] {
     m_layout.setFont(score::Skin::instance().RulerFont);
     m_stringCache.clear();
@@ -278,8 +277,7 @@ TimeRuler::TimeRuler(QGraphicsView* v)
   m_width = 800;
   setY(-30.5);
 
-  // The cached glyph runs are keyed on the time they spell, not on the font,
-  // so they have to go when the font changes.
+  // m_stringCache is keyed on the time spelled, not on the font.
   score::onSkinChange(this, [this] {
     m_layout.setFont(score::Skin::instance().RulerFont);
     m_stringCache.clear();

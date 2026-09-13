@@ -46,11 +46,9 @@ static GlyphCache& glyphCache() noexcept
   // FIXME LRU
   static GlyphCache cache;
 
-  // The key is the text and the pen, but the glyphs are rasterised with
-  // Skin::Medium8Pt and at the current devicePixelRatio, so neither the font
-  // nor the ratio is part of it. Drop the whole cache when the skin changes
-  // instead of widening the key: these are cheap to redraw. Each delegate
-  // holds its own copy of the result, so it has to ask for a new one too.
+  // The key has neither the font nor the devicePixelRatio in it, so drop the
+  // whole cache rather than widen it. Each delegate also holds its own copy
+  // of the result and has to ask again.
   static bool connected = false;
   if(!connected)
   {
@@ -162,8 +160,8 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(
       Qt::QueuedConnection);
 
   con(score::Skin::instance(), &score::Skin::changed, this, [this] {
-    // updateText() keeps its pixmap unless the text or the pen changed, and a
-    // font change moves neither. Clear both so it rasterises again.
+    // updateText() keeps its pixmap unless the text or pen changed, and a
+    // font change moves neither.
     m_lastText.clear();
     m_lastPen = nullptr;
     m_bench = QPixmap{};

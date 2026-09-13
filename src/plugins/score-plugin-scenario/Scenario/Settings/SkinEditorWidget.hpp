@@ -22,17 +22,11 @@ namespace Scenario
 namespace Settings
 {
 /**
- * @brief The skin editor, inlined as a settings sub-tab rather than a dialog.
+ * @brief The skin editor, inlined as a settings sub-tab.
  *
- * Picks the skin, and edits the live one: colours on the left list, fonts on
- * the right. Everything writes straight into score::Skin and emits changed(),
- * so the whole UI updates as you edit, and Save writes Skin::toJson(), which
- * carries both the colours and the fonts.
- *
- * Fonts are per-role here on purpose. A global font size cannot coexist with
- * per-skin fonts, because the skin's "fonts" block is applied over it and
- * therefore wins; the roles are also what actually lets you pick a different
- * size for a title than for a port label.
+ * Writes straight into score::Skin and emits changed(), so the UI updates as
+ * you edit. Fonts are per-role: a global size cannot coexist with per-skin
+ * fonts, since the skin's "fonts" block is applied over it and wins.
  */
 class SCORE_PLUGIN_SCENARIO_EXPORT SkinEditorWidget final : public QWidget
 {
@@ -43,9 +37,8 @@ public:
   //! Select a skin in the list without emitting skinChanged().
   void setSkin(const QString& skin);
 
-  //! Which halves of a skin the user wants applied when switching. Stored in
-  //! QSettings so the model can honour them without a round trip through the
-  //! settings machinery.
+  //! In QSettings, so the model can honour them without a round trip through
+  //! the settings machinery.
   static int selectedParts() noexcept;
 
   void skinChanged(const QString& arg_1) W_SIGNAL(skinChanged, arg_1);
@@ -55,7 +48,7 @@ private:
   QWidget* makeColorEditor();
   QWidget* makeFontEditor();
 
-  //! Re-read the whole editor from the skin, after a different one loads.
+  //! Re-read the editor from the skin.
   void reloadFromSkin();
   //! Re-read the selected role into the font widgets.
   void loadFontRole();
@@ -82,8 +75,8 @@ private:
 
   //! Guards the widget -> skin direction while we are loading skin -> widget.
   bool m_loading{false};
-  //! Set while this widget is the one changing the skin, so that its own
-  //! edits do not bounce back through Skin::changed as a full reload.
+  //! Set while this widget is the one changing the skin, so its own edits do
+  //! not bounce back as a reload.
   bool m_applying{false};
 };
 }

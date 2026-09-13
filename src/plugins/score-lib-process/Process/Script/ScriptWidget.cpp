@@ -105,8 +105,6 @@ QTextEdit* createScriptWidget(const std::string_view language)
 {
   auto edit = new QCodeEditor{};
 
-  // From the skin's "code" role rather than hardcoded here, so it can be
-  // changed with the rest of the fonts, and follow a skin switch.
   auto& skin = score::Skin::instance();
   edit->setFont(skin.CodeFont);
   QObject::connect(&skin, &score::Skin::changed, edit, [edit] {

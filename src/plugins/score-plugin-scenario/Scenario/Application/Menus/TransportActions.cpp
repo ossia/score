@@ -158,16 +158,13 @@ void TransportActions::makeGUIElements(score::GUIElements& ref)
           setAlignment(Qt::AlignRight);
           setText("00:00:00.000");
 
-          // From the skin's "timecode" role: this is the largest text in
-          // the UI, so a pixel-font skin needs it on its own grid.
           applySkinFont();
           QObject::connect(
               &score::Skin::instance(), &score::Skin::changed, this,
               [this] { applySkinFont(); });
         }
 
-        //! The size is cached to avoid constant relayout, so a font change
-        //! has to re-measure as well as re-apply.
+        //! The size is cached against relayout, so re-measure as well.
         void applySkinFont()
         {
           const QFont& f = score::Skin::instance().TimecodeFont;

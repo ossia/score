@@ -37,9 +37,8 @@ ROLES = [
 ]
 
 
-# The design grid of every pixel font score ships, mirroring pixelFontGrid()
-# in Skin.cpp. A size that is not a whole multiple of these puts the glyph
-# outlines between pixels, and every stem comes out a different width.
+# Mirrors pixelFontGrid() in Skin.cpp. A size that is not a whole multiple of
+# these puts the outlines between pixels and every stem comes out different.
 GRIDS = {
     "Galmuri7": 8, "Galmuri9": 10, "Galmuri11": 12, "Galmuri14": 15,
     "GalmuriMono7": 8, "GalmuriMono9": 10, "GalmuriMono11": 12,
@@ -66,28 +65,18 @@ def check(stem, fonts):
             )
         if grid and "bold" not in spec and "weight" not in spec:
             raise SystemExit(
-                f"{stem}: {role} pins no weight, so it inherits whatever "
-                f"Skin::setupFonts() left on that role -- 900 for mono, 600 "
-                f"for slider -- and {family} has no such face"
+                f"{stem}: {role} pins no weight, so it inherits the one "
+                f"Skin::setupFonts() left on that role"
             )
 
 
-# Families that actually ship a Bold face. Asking for bold on any other one
-# makes Qt synthesise it by smearing the glyphs, which on a pixel font turns
-# 1 px stems into ragged 2 px ones -- the exact "blurry label" symptom. Only
-# Galmuri11 has a real bold, and it lives in the same family, so it has to be
-# asked for by style name.
+# Families that ship a Bold face; Qt smears the glyphs to fake one on any
+# other. Galmuri11's is in the same family, so it needs a style name.
 HAS_BOLD_FACE = {"Galmuri11"}
 
 
 def emphasis(family, px):
-    """The heaviest thing this family can do without Qt faking it.
-
-    "bold": false is written explicitly, not left out: Skin::setupFonts()
-    builds Bold10Pt and friends with setBold(true), and a skin that only names
-    a family and a size inherits that flag. On a family with no Bold face that
-    is what makes Qt smear the glyphs.
-    """
+    """The heaviest face this family has, without Qt faking one."""
     spec = {"family": family, "pixelSize": px}
     if family in HAS_BOLD_FACE:
         spec["styleName"] = "Bold"
@@ -100,11 +89,9 @@ def emphasis(family, px):
 def plain(family, px, **extra):
     """A role at its plain weight.
 
-    "bold": false is written for every role, not only the emphasised ones:
-    Skin::load() rebuilds the fonts through setupFonts() before applying the
-    file, and that gives MonoFont weight 900 and SliderFont weight 600. A role
-    that names only a family and a size inherits those, and Qt then picks the
-    nearest face it has -- or fakes one.
+    Every role writes "bold": false. load() rebuilds through setupFonts()
+    first, which leaves weight 900 on mono and 600 on slider, and a role
+    naming only a family and a size inherits those.
     """
     return {"family": family, "pixelSize": px, "bold": False, **extra}
 
@@ -126,26 +113,21 @@ def graded(name, small, body, large, mono, mono_small, scale):
         "medium12": plain(body[0], b),
         # Hierarchy comes from the larger grid size, not from a faked weight.
         "title": emphasis(large[0], l),
-        # An inspector heading. One grid step above the body, like the panel
-        # banner: with several hand-drawn sizes to choose from, that reads as
-        # a heading without anything having to be faked.
+        # One grid step above the body, like the panel banner.
         "sectionTitle": emphasis(large[0], l),
         "slider": plain(small[0], s),
-        # The timeline ruler: the smallest text on screen, on a dense scale,
-        # so the smallest grid the family has and its monospaced face where
-        # there is one -- the numbers sit in columns.
+        # Smallest text on screen and in columns: the smallest grid the
+        # family has, monospaced where there is one.
         "ruler": plain(mono_small[0], mono_small[1] * scale),
         # Code wants the monospaced face at the body size.
         "code": plain(mono[0], mono[1] * scale, fixedPitch=True),
-        # The transport readout. Heaviest face the family has, at its grid:
-        # this is the largest text on screen, so an off-grid size shows.
+        # Largest text on screen, so an off-grid size shows.
         "timecode": emphasis(body[0], b),
     }
 
 
-# Bitmap families have a single strike and ignore setPixelSize entirely:
-# cozette.bdf is 13 px whatever you ask for. A skin using one must therefore
-# not claim a larger title, or it would silently render at the body size.
+# A single strike, ignoring setPixelSize: cozette.bdf is 13 px whatever you
+# ask for, so these must not claim a larger title.
 BITMAP_ONLY = {"Cozette"}
 
 

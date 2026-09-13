@@ -145,9 +145,7 @@ public:
     if(!m_skinConnected)
     {
       // Deferred to the first paint: the window is built before the
-      // application context exists, and Skin::instance() needs it. Until
-      // then the header is drawn in a bold application font, which is what
-      // the skin's title role usually amounts to anyway.
+      // application context Skin::instance() needs.
       m_skinConnected = true;
       QObject::connect(
           &score::Skin::instance(), &score::Skin::changed, this,

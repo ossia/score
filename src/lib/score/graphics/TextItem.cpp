@@ -39,8 +39,7 @@ SimpleTextItem::SimpleTextItem(const score::BrushSet& col, QGraphicsItem* p)
   auto& skin = score::Skin::instance();
   setFont(skin.Medium8Pt);
 
-  // Follow the skin: the glyphs are cached into m_line, so without this the
-  // label keeps the font it was built with until the item is recreated.
+  // The glyphs are cached into m_line, so nothing re-renders without this.
   QObject::connect(&skin, &score::Skin::changed, this, [this] { updateImpl(); });
 }
 
@@ -71,15 +70,9 @@ void SimpleTextItem::paint(
 
 void SimpleTextItem::setFont(const QFont& f)
 {
-  // A reference, not a copy, so that a skin change re-renders this label.
-  // \a f must outlive the item; every caller passes a score::Skin member.
-  //
-  // The style strategy is deliberately not forced to PreferAntialias: that
-  // also turns on subpixel glyph positioning, and these items are laid out at
-  // fractional device offsets (measured: x fractions of .11 to .81), so a
-  // pixel font's 1 px stems get split across two columns and the label looks
-  // smeared. NoAntialias is what makes Qt snap the glyph origin to a whole
-  // pixel.
+  // Deliberately no setStyleStrategy(PreferAntialias): that also turns on
+  // subpixel glyph positioning, and these items sit at fractional device
+  // offsets, which splits a pixel font's 1 px stems across two columns.
   m_font = &f;
   updateImpl();
 }
@@ -110,11 +103,9 @@ void SimpleTextItem::updateImpl()
 {
   prepareGeometryChange();
 
-  // The skin's fonts turn font merging off, which is right for a widget label
-  // in a pixel font: it should not silently mix in another family. These
-  // labels carry names the user typed, in any script the user pleases, and a
-  // row of tofu is the worse trade -- so merging comes back on here, and only
-  // here.
+  // The skin's fonts disable merging, right for a widget label in a pixel
+  // font. These carry names the user typed, in any script, so it comes back
+  // on here and only here.
   m_paintFont = m_font ? *m_font : QFont{};
   m_paintFont.setStyleStrategy(QFont::StyleStrategy(
       int(m_paintFont.styleStrategy()) & ~int(QFont::NoFontMerging)));

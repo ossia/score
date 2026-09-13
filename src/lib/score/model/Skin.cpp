@@ -10,13 +10,9 @@
 
 #include <ossia/detail/flat_map.hpp>
 
-// Live scale-factor changes need QHighDpiScaling, which is Qt private API.
-// It has existed since Qt 5.6, but until 6.5 setGlobalFactor() only updated
-// an internal field: it gained the screen updateGeometry() call in 6.5 and
-// the QScreen change signals in 6.6. Below 6.6 the call is therefore a no-op
-// as far as the UI is concerned, so we do not pretend otherwise and the
-// setting keeps its "needs restart" behaviour. (Verified against qtbase tags:
-// 6.2/6.3/6.4 have neither, 6.5 has updateGeometry, 6.6 adds UpdateEmitter.)
+// QHighDpiScaling is private API. setGlobalFactor() exists from 5.6 but only
+// updates the screens from 6.5 and only emits the QScreen signals from 6.6,
+// so below that it is a no-op as far as the UI is concerned.
 #if __has_include(<QtGui/private/qhighdpiscaling_p.h>) \
     && QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
 #include <QtGui/private/qhighdpiscaling_p.h>
@@ -58,13 +54,8 @@ namespace score
 {
 int uiFontSize() noexcept
 {
-  // Not a setting: this is only the size the application font has between
-  // QApplication starting and the first skin loading, a few hundred
-  // milliseconds of splash screen. The skin's "application" role replaces it
-  // immediately afterwards.
-  //
-  // 13 px because QFont("Ubuntu", 10) is a *point* size, which is what the
-  // rest of the UI is proportioned against, and 10 pt is 13 px at 96 DPI.
+  // 13 px: the UI is proportioned against QFont("Ubuntu", 10), a *point*
+  // size, which is 13 px at 96 DPI.
   if(qEnvironmentVariableIsSet("SCORE_SMOL_FONT"))
     return 11;
   return 13;
@@ -72,16 +63,12 @@ int uiFontSize() noexcept
 
 double fontScale() noexcept
 {
-  // The application's font rather than Skin::ApplicationFont, although the
-  // two are kept equal: the main window is built before the application
-  // context exists, and Skin::instance() needs that context. Widget sizes
-  // are wanted exactly there.
+  // qGuiApp's font, not Skin::ApplicationFont: the two are kept equal, and
+  // this has to work before the application context exists.
   if(!qGuiApp)
     return 1.;
 
-  // QFontInfo, not pixelSize(): a skin may name a point size, and then
-  // pixelSize() is -1. QFontInfo resolves whichever of the two was set
-  // against the screen the same way the painter will.
+  // QFontInfo: pixelSize() is -1 on a point-sized font.
   const double px = QFontInfo{qGuiApp->font()}.pixelSize();
   if(px <= 0)
     return 1.;
@@ -104,8 +91,7 @@ void onSkinChange(QObject* owner, std::function<void()> f)
   f();
   QTimer::singleShot(0, owner, [owner, f = std::move(f)] {
     QObject::connect(&Skin::instance(), &Skin::changed, owner, f);
-    // A skin may well have loaded between the construction and this turn of
-    // the event loop, and its changed() went to nobody.
+    // A skin may have loaded in between, with nobody connected.
     f();
   });
 }
@@ -134,9 +120,8 @@ QFont::StyleStrategy uiFontStyleStrategy() noexcept
 
 int pixelFontGrid(const QString& family) noexcept
 {
-  // Measured from the font outlines: every coordinate in these is a multiple
-  // of unitsPerEm / grid. Kept next to the fonts they describe rather than in
-  // the settings UI, since the skin generators assert on the same numbers.
+  // Measured from the outlines: every coordinate is a multiple of
+  // unitsPerEm / grid. generate-font-skins.py mirrors this table.
   static const std::pair<QLatin1String, int> grids[]{
       {QLatin1String("Galmuri7"), 8},
       {QLatin1String("Galmuri9"), 10},
@@ -146,10 +131,9 @@ int pixelFontGrid(const QString& family) noexcept
       {QLatin1String("GalmuriMono9"), 10},
       {QLatin1String("GalmuriMono11"), 12},
       {QLatin1String("Departure Mono"), 11},
-      // The bitmap is exact by construction. CozetteVector is a traced copy
-      // whose 2048-unit em does not divide by 13, so its outlines cannot sit
-      // exactly on the grid and adjacent glyphs occasionally lose their 1 px
-      // gap; prefer "Cozette" and keep the vector for sizes above 13.
+      // CozetteVector is a traced copy whose 2048-unit em does not divide by
+      // 13, so adjacent glyphs occasionally lose their 1 px gap. Prefer the
+      // bitmap below 13.
       {QLatin1String("Cozette"), 13},
       {QLatin1String("CozetteVector"), 13},
       {QLatin1String("Ark Pixel 10px Prop latin"), 10},
@@ -171,10 +155,9 @@ int snapToFontGrid(const QFont& f, int px) noexcept
   if(grid <= 0 || px <= 0)
     return px;
 
-  // Down rather than to the nearest, so a label cannot grow out of a box that
-  // was measured for it -- except below one step, where there is no smaller
-  // size the font can be drawn at. Callers that shrink in a loop have to stop
-  // when the result comes back no smaller than what they asked for.
+  // Down, so a label cannot grow out of a box measured for it -- except below
+  // one step, where the font has no smaller size. A caller shrinking in a loop
+  // must stop when the result comes back no smaller than it asked for.
   return std::max(1, px / grid) * grid;
 }
 
@@ -185,12 +168,9 @@ void setSnappedPixelSize(QFont& f, int px) noexcept
 
 void registerApplicationFonts()
 {
-  // Idempotent: skins, the application and the tests all want the fonts
-  // present, and whichever runs first should be the one that pays for it.
-  // Keyed on the application instance rather than a plain flag, because the
-  // font database is per-QGuiApplication: a test that builds a second
-  // application gets an empty one, and a process-wide flag would leave it
-  // that way.
+  // Keyed on the instance, not a flag: the font database is per
+  // QGuiApplication, so a test that builds a second one needs registering
+  // again.
   static QCoreApplication* registeredFor = nullptr;
   if(!qApp || registeredFor == qApp)
     return;
@@ -241,24 +221,17 @@ bool setGlobalScaleFactor(double factor)
 #if SCORE_HAS_LIVE_SCALE_FACTOR && QT_CONFIG(highdpiscaling)
   QHighDpiScaling::setGlobalFactor(factor);
 
-  // setGlobalFactor updates the screens, but a window that already exists
-  // keeps the ratio it was created with, in both directions. Measured: after
-  // setGlobalFactor(2) the screen reports 2.0 while the open window still
-  // reports 1.0, and it only picks the new value up across a hide/show. This
-  // is what Qt's "should only be called when no windows exist" warning is
-  // about; cycling the top-level windows is what makes it actually apply.
+  // An existing window keeps the ratio it was created with, both ways round,
+  // and only picks up the new one across a hide/show.
   const auto windows = QApplication::topLevelWidgets();
   for(QWidget* w : windows)
   {
-    // Actual windows only. topLevelWidgets() also returns dialogs, menus and
-    // tooltips, and hiding a QDialog exits its exec() loop
-    // (QDialogPrivate::setVisible) -- which would tear down the settings
-    // dialog that the zoom control lives in, from under itself.
+    // Windows only: hiding a QDialog exits its exec() loop, and the zoom
+    // control that gets here lives in one.
     if(!w->isVisible() || w->windowType() != Qt::Window)
       continue;
 
-    // Some window managers drop a maximised or fullscreen window back to its
-    // normal geometry across the cycle.
+    // Some WMs drop the maximised/fullscreen state across the cycle.
     const auto state = w->windowState();
     w->hide();
     w->show();
@@ -266,10 +239,8 @@ bool setGlobalScaleFactor(double factor)
       w->setWindowState(state);
   }
 
-  // Every glyph image and pixmap in the UI was rasterised at the previous
-  // ratio; score::newImage() bakes it in at creation. Bumping the Skin drops
-  // the caches that key on LoadIndex and, through changed(), the ones that
-  // clear on a skin change.
+  // Every glyph image and pixmap was rasterised at the previous ratio, which
+  // score::newImage() bakes in at creation.
   Skin& skin = Skin::instance();
   skin.LoadIndex++;
   skin.changed();
@@ -348,11 +319,8 @@ Skin::Skin() noexcept
 {
   setupFonts();
 
-  // A skin may name a different application font; re-apply it when one loads.
-  // Owned here rather than by the application, because Skin::instance() needs
-  // the application context and the early font setup runs before that exists.
-  // changed() is only emitted on skin load and on a theme edit, never by the
-  // pulse timer, so this is not a per-frame cost.
+  // Owned here rather than by the application: the early font setup runs
+  // before the application context Skin::instance() needs.
   connect(this, &Skin::changed, this, [this] {
     if(qGuiApp && qGuiApp->font() != ApplicationFont)
       score::setupApplicationFont(ApplicationFont);
@@ -439,9 +407,8 @@ void Skin::setupFonts()
 {
   registerApplicationFonts();
 
-  // Pixels throughout, the way a skin file states them. A point size resolves
-  // against the screen's logical DPI -- 72 on macOS, 96 elsewhere -- so the
-  // same number draws a quarter smaller there.
+  // Pixels throughout: a point size resolves against the logical DPI, 72 on
+  // macOS and 96 elsewhere.
   SansFont = QFont{"Ubuntu"};
   SansFont.setPixelSize(16);
 
@@ -489,7 +456,6 @@ void Skin::setupFonts()
   TitleFont.setPixelSize(14);
   TitleFont.setBold(true);
 
-  // A heading over an inspector page: bold, one step under the panel title.
   SectionTitleFont = SansFont;
   SectionTitleFont.setPixelSize(12);
   SectionTitleFont.setBold(true);
@@ -503,13 +469,13 @@ void Skin::setupFonts()
   RulerFont.setWeight(QFont::Normal);
   RulerFont.setBold(false);
 
-  // The transport readout, proportioned as 18 pt, which is 24 px at 96 DPI.
+  // 18 pt at 96 DPI.
   TimecodeFont = QFont{"Ubuntu"};
   TimecodeFont.setPixelSize(24);
   TimecodeFont.setWeight(QFont::DemiBold);
 
-  // Script and shader editors. Vertical hinting only: code is read in
-  // columns, and full hinting shifts glyphs off them.
+  // Vertical hinting: code is read in columns, full hinting shifts glyphs off
+  // them.
   CodeFont = QFont{"IBM Plex Mono"};
   CodeFont.setPixelSize(13);
   CodeFont.setFixedPitch(true);
@@ -584,8 +550,8 @@ void Skin::load(const QJsonObject& obj, int parts)
 {
   if(parts & Fonts)
   {
-    // Reset first: a skin that names no fonts must get the built-in ones,
-    // not whatever the skin before it set.
+    // Reset first: a skin naming no fonts gets the built-in ones, not the
+    // previous skin's.
     setupFonts();
     loadFonts(obj["fonts"].toObject());
   }
@@ -703,8 +669,7 @@ void Skin::loadFonts(const QJsonObject& spec_obj)
   if(spec_obj.isEmpty())
     return;
 
-  // A "defaults" entry applies to every font the skin does not mention, so a
-  // skin can switch the whole UI to one family without repeating itself.
+  // "defaults" applies to every role the skin does not mention.
   const QJsonObject defaults = spec_obj["defaults"].toObject();
 
   auto apply = [](QFont& font, const QJsonObject& spec) {
@@ -723,8 +688,8 @@ void Skin::loadFonts(const QJsonObject& spec_obj)
       font.setFamilies({f});
     }
 
-    // Pixel size, not point size: a pixel font is only sharp at a whole
-    // multiple of its design grid, and points go through DPI first.
+    // Pixels preferred: a point size goes through the DPI, and a pixel font
+    // is only sharp at a multiple of its grid.
     if(const auto px = spec["pixelSize"].toInt(); px > 0)
       font.setPixelSize(px);
     else if(const auto pt = spec["pointSize"].toInt(); pt > 0)
@@ -738,8 +703,7 @@ void Skin::loadFonts(const QJsonObject& spec_obj)
     if(spec.contains("fixedPitch"))
       font.setFixedPitch(spec["fixedPitch"].toBool());
 
-    // Absolute, in pixels, so it does not scale with the size the way
-    // percentage spacing does: these fonts are drawn on a fixed cell.
+    // Absolute: these fonts are drawn on a fixed cell.
     if(spec.contains("letterSpacing"))
       font.setLetterSpacing(
           QFont::AbsoluteSpacing, spec["letterSpacing"].toDouble());
@@ -752,8 +716,8 @@ void Skin::loadFonts(const QJsonObject& spec_obj)
       font.setHintingPreference(
           hintingFromString(spec["hinting"].toString(), font.hintingPreference()));
 
-    // Antialiasing is a bit in the style strategy, so flip it rather than
-    // replacing the strategy and losing ForceOutline / NoFontMerging.
+    // Flip the bit rather than replace the strategy, which would lose
+    // ForceOutline / NoFontMerging.
     if(spec.contains("antialias"))
     {
       auto strategy = int(font.styleStrategy());
@@ -781,8 +745,7 @@ QJsonObject Skin::saveFonts() const
     const auto families = font->families();
     if(families.size() > 1)
     {
-      // A fallback chain has to be written back as one, or saving a skin that
-      // has one collapses it to its first entry.
+      // Written back as a chain, or saving collapses it to its first entry.
       QJsonArray arr;
       for(const auto& f : families)
         arr.push_back(f);
@@ -792,18 +755,17 @@ QJsonObject Skin::saveFonts() const
     {
       spec["family"] = families.empty() ? font->family() : families.front();
     }
-    // Only fonts that were given an explicit pixel size get one written back.
-    // Writing a computed height instead would pin a font that was deliberately
-    // left to the point size, and save/load would not be a no-op.
+    // Only an explicit size is written back: computing one would pin a font
+    // deliberately left unsized, and save/load would stop being a no-op.
     if(font->pixelSize() > 0)
       spec["pixelSize"] = font->pixelSize();
     else if(font->pointSize() > 0)
       spec["pointSize"] = font->pointSize();
     spec["bold"] = font->bold();
     spec["italic"] = font->italic();
-    // Written either way: setupFonts() marks mono and code fixed-pitch, and
-    // load() runs it before applying the file, so leaving the key out would
-    // put the flag back rather than clear it.
+    // Written either way: load() runs setupFonts() first, which sets the flag
+    // on mono and code, so omitting the key would restore it rather than
+    // clear it.
     spec["fixedPitch"] = font->fixedPitch();
     if(font->letterSpacingType() == QFont::AbsoluteSpacing
        && font->letterSpacing() != 0.)
