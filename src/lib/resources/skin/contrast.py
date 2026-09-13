@@ -228,6 +228,9 @@ PAIRS = [
     ("condition false",      "Smooth1",    "Background1", "shape"),
     ("condition true",       "Smooth2",    "Background1", "shape"),
     ("slot header",          "Base5",      "Background1", "shape"),
+    # The step sequencer draws the loop in Base4 and its duplicated
+    # iterations in the darker variant; they have to stay apart.
+    ("step iterations",      "Base4|dark", "Base4",       "shape"),
     ("process view border",  "Gray",       "Background1", "thin"),
 
     # Playback, which is drawn over the interval body rather than the canvas.

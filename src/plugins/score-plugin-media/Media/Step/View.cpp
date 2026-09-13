@@ -37,13 +37,15 @@ void View::paint_impl(QPainter* p) const
   {
     p->setRenderHint(QPainter::Antialiasing, true);
 
-    // The amber ramp comes off the skin's "lit" role, whose Brush already
-    // carries the lighter variants this wants.
+    // The loop in the "lit" role, the duplicated iterations below it. Below
+    // and not above: lighter() scales the HSV value, so from a role that is
+    // already pale -- Dracula's, Nord's -- both lighter variants clamp to
+    // white and the two become the same colour.
     auto& skin = score::Skin::instance();
     QPen pen{skin.Base4.main.brush, 2.};
     const QBrush& br = skin.Base4.lighter.brush;
-    QPen pen2{skin.Base4.lighter.brush, 2.};
-    const QBrush& br2 = skin.Base4.lighter180.brush;
+    QPen pen2{skin.Base4.darker300.brush, 2.};
+    const QBrush& br2 = skin.Base4.darker.brush;
     p->setPen(pen);
 
     const auto h = boundingRect().height();
@@ -139,8 +141,8 @@ void Item::paint(QPainter* p, const QStyleOptionGraphicsItem* option, QWidget* w
   auto& skin = score::Skin::instance();
   QPen pen{skin.Base4.main.brush, 2.};
   const QBrush& br = skin.Base4.lighter.brush;
-  QPen pen2{skin.Base4.lighter.brush, 2.};
-  const QBrush& br2 = skin.Base4.lighter180.brush;
+  QPen pen2{skin.Base4.darker300.brush, 2.};
+  const QBrush& br2 = skin.Base4.darker.brush;
   p->setPen(pen);
 
   const auto h = boundingRect().height();
