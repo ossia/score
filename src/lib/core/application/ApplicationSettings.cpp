@@ -177,6 +177,12 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
 
   hasScript = parser.isSet(scriptOpt);
   tryToRestore = !parser.isSet(noRestore);
+
+  // A script expects the document it is given, empty or loaded. Restoring a
+  // previous session hands it someone else's, and the start screen that offers
+  // to do so has nobody to answer it.
+  if(hasScript)
+    tryToRestore = false;
   this->forceRestore = parser.isSet(forceRestore);
   gui = !parser.isSet(noGUI);
 
