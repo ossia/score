@@ -149,6 +149,7 @@ public:
     ~Engine();
 
     void processMessage(const score::gfx::Message& msg);
+    void restoreControls(const score::gfx::Message& msg);
 
     void tick();
 
@@ -813,6 +814,36 @@ void GpuNode::Engine::tick()
   }
 }
 
+void GpuNode::Engine::restoreControls(const score::gfx::Message& msg)
+{
+  // The values only. An impulse is something that happened once, and handing a
+  // remembered one to a new item would be saying it happened again.
+  for(std::size_t i = 0; i < msg.input.size(); i++)
+  {
+    auto it = ossia::get_if<ossia::value>(&msg.input[i]);
+    if(!it)
+      continue;
+    if(m_jsInlets.size() <= i)
+      return;
+
+    auto inl = m_jsInlets[i];
+    if(qobject_cast<Impulse*>(inl))
+      continue;
+
+    auto var = it->apply(ossia::qt::ossia_to_qvariant{});
+    if(auto v = qobject_cast<ValueInlet*>(inl))
+    {
+      v->clear();
+      v->setValue(std::move(var));
+    }
+    else if(auto v = qobject_cast<ControlInlet*>(inl))
+    {
+      v->clear();
+      v->setValue(std::move(var));
+    }
+  }
+}
+
 void GpuNode::Engine::processMessage(const score::gfx::Message& msg)
 {
   for(std::size_t i = 0; i < msg.input.size(); i++)
@@ -1073,6 +1104,13 @@ void GpuNode::Engine::init(
       setupExecFuncs(this, &node, m_execFuncs->m_impl);
     }
     createItem(renderer, node, rl);
+
+    // A render target that changes size is built again from scratch, and this
+    // item with it: its controls come up at whatever qml gave them, while the
+    // values the process holds were handed to the item that just went away.
+    // Give them to this one too -- a shape whose subdivision count arrives that
+    // way is otherwise built with none of them, and disappears.
+    restoreControls(node.m_lastState);
   }
 
   updateItemTextureOut(window);
