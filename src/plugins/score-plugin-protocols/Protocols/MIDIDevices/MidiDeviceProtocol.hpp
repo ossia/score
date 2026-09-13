@@ -40,6 +40,17 @@ struct MappedDevice
    * whatever the user set on the front panel.
    */
   int channel{1};
+
+  /**
+   * Build the controls under a level of their own, named after the
+   * description, rather than straight onto the root.
+   *
+   * A port carrying one device does not need the level: it lengthens every
+   * address by a step named after whatever the document calls itself, which
+   * for an instrument patch can be a whole sentence. A port carrying several
+   * does, or their controls would collide.
+   */
+  bool level{true};
 };
 
 /**

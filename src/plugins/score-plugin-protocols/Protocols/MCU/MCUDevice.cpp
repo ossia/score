@@ -879,7 +879,7 @@ MCUDevice::makeMidiDeviceMapProtocol(const MCUSpecificSettings& set)
       continue;
     }
 
-    conf.devices.push_back({std::move(*map), slot.channel});
+    conf.devices.push_back({std::move(*map), slot.channel, slot.level});
   }
 
   if(conf.devices.empty() && conf.generic.empty())

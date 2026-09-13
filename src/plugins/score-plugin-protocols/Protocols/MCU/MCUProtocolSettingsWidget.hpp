@@ -94,7 +94,7 @@ private:
 
   //! The devices on the port, as the list holds them.
   MCUSpecificSettings::MapSlot slotAt(int row) const;
-  void addChosenDevice(const QString& identity, int channel);
+  void addChosenDevice(const QString& identity, int channel, bool level = true);
 
   //! The lowest channel @p identity is not already on, or -1 past sixteen.
   //! The lowest channel no chosen device is on, or -1 when all sixteen are.

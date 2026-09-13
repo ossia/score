@@ -127,7 +127,7 @@ void DataStreamReader::read(const Protocols::MCUSpecificSettings& n)
   m_stream << n.input_handle << n.output_handle << n.api << n.mode;
   m_stream << (int32_t)n.maps.size();
   for(const auto& slot : n.maps)
-    m_stream << slot.map << slot.channel;
+    m_stream << slot.map << slot.channel << slot.level;
   insertDelimiter();
 }
 
@@ -141,7 +141,7 @@ void DataStreamWriter::write(Protocols::MCUSpecificSettings& n)
     throw std::runtime_error("Corrupt save file - MCU device map count");
   n.maps.resize(count);
   for(auto& slot : n.maps)
-    m_stream >> slot.map >> slot.channel;
+    m_stream >> slot.map >> slot.channel >> slot.level;
   checkDelimiter();
 }
 
@@ -161,13 +161,16 @@ void JSONReader::read(const Protocols::MCUSpecificSettings& n)
     // of strings and a container of ints as they are.
     QStringList maps;
     std::vector<int> channels;
+    std::vector<int> levels;
     for(const auto& slot : n.maps)
     {
       maps.push_back(slot.map);
       channels.push_back(slot.channel);
+      levels.push_back(slot.level);
     }
     obj["Maps"] = maps;
     obj["Channels"] = channels;
+    obj["Levels"] = levels;
   }
 }
 
@@ -191,6 +194,12 @@ void JSONWriter::write(Protocols::MCUSpecificSettings& n)
       for(const auto& c : ch->toArray())
         channels.push_back(c.IsInt() ? c.GetInt() : 1);
 
+    // Written since the level became optional; a score from before it has one.
+    std::vector<int> levels;
+    if(auto lv = obj.tryGet("Levels"))
+      for(const auto& l : lv->toArray())
+        levels.push_back(l.IsInt() ? l.GetInt() : 1);
+
     for(std::size_t i = 0; i < names.Size(); i++)
     {
       if(!names[i].IsString())
@@ -199,6 +208,7 @@ void JSONWriter::write(Protocols::MCUSpecificSettings& n)
       slot.map = QString::fromUtf8(names[i].GetString());
       if(i < channels.size())
         slot.channel = channels[i];
+      slot.level = i < levels.size() ? bool(levels[i]) : true;
       n.maps.push_back(std::move(slot));
     }
   }

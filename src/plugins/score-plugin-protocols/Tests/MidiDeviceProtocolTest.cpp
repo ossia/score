@@ -1512,3 +1512,62 @@ TEST_CASE("a coarse control change is latched, not consumed", "[mididevice][midi
   inj.send({0xB0, 33, 2});
   CHECK(waitFor([&] { return valueOf(root, "Fader/Level") == 8194; }));
 }
+
+TEST_CASE("a device need not have a level of its own", "[mididevice]")
+{
+  const auto found = anyOutput();
+  if(!found)
+  {
+    WARN("no MIDI output port on this machine; tree not built");
+    SUCCEED();
+    return;
+  }
+  const auto& [api, out] = *found;
+
+  // A model named the way an instrument patch names itself: the level it would
+  // add is a sentence, and a port carrying one device does not need it.
+  const auto doc = R"_({
+    "format": "score.midi-device/1",
+    "model": "07 2nd Violins Sus KS C0-G#0 Ni DIV B",
+    "controls": [
+      {"name": "Cutoff", "kind": "knob", "group": ["Filter"], "direction": "in",
+       "message": {"type": "cc", "channel": 1, "number": 74}, "value": {}}
+    ]})_";
+
+  auto map = parseDeviceMap(doc);
+  REQUIRE(map.has_value());
+
+  SECTION("with the level, the description names a step of every address")
+  {
+    ProtocolSettings conf;
+    conf.api = api;
+    conf.output = out;
+    conf.devices.push_back({*map, 1, true});
+
+    auto dev = std::make_unique<ossia::net::generic_device>(
+        makeProtocol(std::move(conf)), "kit");
+    auto& root = dev->get_root_node();
+
+    CHECK(at(root, "07 2nd Violins Sus KS C0-G_0 Ni DIV B/Filter/Cutoff"));
+    CHECK(!at(root, "Filter/Cutoff"));
+  }
+
+  SECTION("without it, the controls sit on the root")
+  {
+    ProtocolSettings conf;
+    conf.api = api;
+    conf.output = out;
+    conf.devices.push_back({*map, 1, false});
+
+    auto dev = std::make_unique<ossia::net::generic_device>(
+        makeProtocol(std::move(conf)), "kit");
+    auto& root = dev->get_root_node();
+
+    CHECK(at(root, "Filter/Cutoff"));
+    CHECK(!at(root, "07 2nd Violins Sus KS C0-G_0 Ni DIV B"));
+
+    // And the root is then the level that stands for the channel, so it still
+    // works as a MIDI port of its own.
+    CHECK(root.children().size() == 1);
+  }
+}
