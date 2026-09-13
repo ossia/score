@@ -400,6 +400,33 @@ TEST_CASE(
 // for.
 // The document's own metadata is not a child of anything metadata(obj) reaches,
 // so a script had no way to read or set the document's name.
+// An object's colour is a pointer into the skin: it reads from QML as an
+// opaque value and cannot be written at all. The name beside it can do both.
+TEST_CASE("an object's colour reads and writes by name", "[integration][js][scripting]")
+{
+  requireBinary();
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+
+  const auto r = runOne(
+      dir, "colorname",
+      "var itv = Score.rootInterval();"
+      "var m = Score.metadata(itv);"
+      "console.log('HAVE ' + (m !== null));"
+      "console.log('WAS ' + m.colorName);"
+      "m.colorName = 'Tender1';"
+      "console.log('NOW ' + m.colorName);"
+      "m.colorName = 'not a colour at all';"
+      "console.log('KEPT ' + m.colorName);");
+  INFO(r.log.right(8000).toStdString());
+  CHECK(r.log.contains(QStringLiteral("HAVE true")));
+  CHECK(r.log.contains(QStringLiteral("NOW Tender1")));
+  // A name the skin does not know leaves the colour as it was.
+  CHECK(r.log.contains(QStringLiteral("KEPT Tender1")));
+  CHECK_FALSE(r.crashed);
+  CHECK(r.exitCode == 0);
+}
+
 TEST_CASE("Score.documentMetadata reaches the document", "[integration][js][scripting]")
 {
   requireBinary();
