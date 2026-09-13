@@ -100,7 +100,7 @@ endif()
 
 if(OSSIA_ENABLE_JACK)
   target_link_libraries(${PROJECT_NAME} PRIVATE $<BUILD_INTERFACE:jack::jack>)
-  list(APPEND SCORE_FEATURES_LIST jack_transport)
+  score_declare_feature(jack_transport)
 endif()
 
 setup_score_plugin(${PROJECT_NAME})
