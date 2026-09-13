@@ -137,6 +137,8 @@ void DataStreamWriter::write(Protocols::MCUSpecificSettings& n)
   m_stream >> n.input_handle >> n.output_handle >> n.api >> n.mode;
   int32_t count{};
   m_stream >> count;
+  if(count < 0 || count > 16)
+    throw std::runtime_error("Corrupt save file - MCU device map count");
   n.maps.resize(count);
   for(auto& slot : n.maps)
     m_stream >> slot.map >> slot.channel;
@@ -176,7 +178,9 @@ void JSONWriter::write(Protocols::MCUSpecificSettings& n)
   n.input_handle <<= obj["Input"];
   n.output_handle <<= obj["Output"];
 
-  // A score with none of these keys is a Mackie Control device.
+  // A score with none of these keys is a Mackie Control device: the struct's
+  // own default is the one a new device gets, not the one an old file meant.
+  n.mode = Protocols::MCUSpecificSettings::MCU;
   if(auto mode = obj.tryGet("Mode"))
     n.mode = static_cast<Protocols::MCUSpecificSettings::Mode>(mode->toInt());
   if(auto maps = obj.tryGet("Maps"))
@@ -185,10 +189,12 @@ void JSONWriter::write(Protocols::MCUSpecificSettings& n)
     std::vector<int> channels;
     if(auto ch = obj.tryGet("Channels"))
       for(const auto& c : ch->toArray())
-        channels.push_back(c.GetInt());
+        channels.push_back(c.IsInt() ? c.GetInt() : 1);
 
     for(std::size_t i = 0; i < names.Size(); i++)
     {
+      if(!names[i].IsString())
+        continue;
       Protocols::MCUSpecificSettings::MapSlot slot;
       slot.map = QString::fromUtf8(names[i].GetString());
       if(i < channels.size())

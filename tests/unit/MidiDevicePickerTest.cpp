@@ -15,8 +15,11 @@
 
 #include <score/application/GUIApplicationContext.hpp>
 
+#include <score/serialization/JSONVisitor.hpp>
+
 #include <QDir>
 #include <QFile>
+#include <QPushButton>
 #include <QStringList>
 #include <QItemSelectionModel>
 #include <QTreeView>
@@ -217,14 +220,112 @@ TEST_CASE("choosing a description fills the preview", "[mididevice][gui]")
     CHECK(preview->topLevelItem(0)->childCount() == 1);
     CHECK(preview->topLevelItem(4)->text(0) == "pitchbend");
 
+    // Beside, not on top of: a channel carries one device, and the M1 already
+    // has channel 1.
     picker->doubleClicked(raw);
     REQUIRE(chosen->topLevelItemCount() == 2);
     CHECK(chosen->topLevelItem(1)->text(0) == "MIDI channel, every note and control");
-    CHECK(chosen->topLevelItem(1)->text(1) == "1");
+    CHECK(chosen->topLevelItem(1)->text(1) == "2");
 
     const auto both = widget->getSettings()
                           .deviceSpecificSettings.value<Protocols::MCUSpecificSettings>();
     REQUIRE(both.maps.size() == 2);
     CHECK(both.maps[1].map == "generic:channel+all");
+  });
+}
+
+TEST_CASE("a document that names no mode is a Mackie Control", "[mididevice][gui]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* factory = ctx.interfaces<Device::ProtocolFactoryList>().get(
+        Protocols::MCUProtocolFactory::static_concreteKey());
+    REQUIRE(factory);
+
+    // Through the factory, which is the path a document load takes.
+    const auto read = [&](const char* text) {
+      rapidjson::Document doc;
+      doc.Parse(text);
+      REQUIRE(!doc.HasParseError());
+      JSONWriter wrt{doc};
+      return factory->makeProtocolSpecificSettings(wrt.toVariant())
+          .value<Protocols::MCUSpecificSettings>();
+    };
+
+    // What a released score wrote: ports and an API, and nothing about a mode
+    // or a device map, neither of which existed then.
+    const auto old = read(R"_({"API": 0, "Input": [], "Output": []})_");
+    CHECK(old.mode == Protocols::MCUSpecificSettings::MCU);
+    CHECK(old.maps.empty());
+
+    // And one that does name it keeps what it says.
+    const auto mapped = read(R"_({
+      "API": 0, "Input": [], "Output": [],
+      "Mode": 1, "Maps": ["test/m1.midimap.json"], "Channels": [4]
+    })_");
+    CHECK(mapped.mode == Protocols::MCUSpecificSettings::MidiDeviceMap);
+    REQUIRE(mapped.maps.size() == 1);
+    CHECK(mapped.maps[0].map == "test/m1.midimap.json");
+    CHECK(mapped.maps[0].channel == 4);
+  });
+}
+
+TEST_CASE("taking the last device off the port leaves it empty", "[mididevice][gui]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    ctx.settings<Library::Settings::Model>().setRootPath(installFixture());
+    Protocols::MIDIDevices::Database::instance().rescan();
+
+    auto* factory = ctx.interfaces<Device::ProtocolFactoryList>().get(
+        Protocols::MCUProtocolFactory::static_concreteKey());
+    REQUIRE(factory);
+    std::unique_ptr<Device::ProtocolSettingsWidget> widget{
+        factory->makeSettingsWidget()};
+
+    auto* picker = widget->findChild<QTreeView*>("picker");
+    auto* chosen = widget->findChild<QTreeWidget*>("chosen");
+    REQUIRE(picker);
+    REQUIRE(chosen);
+
+    auto* model = picker->model();
+    QModelIndex korg;
+    for(int r = 0; r < model->rowCount(); r++)
+      if(model->index(r, 0).data().toString() == "Korg")
+        korg = model->index(r, 0);
+    REQUIRE(korg.isValid());
+
+    const auto m1 = rowNamed(*picker, korg, "M1");
+    const auto mini = rowNamed(*picker, korg, "minilogue");
+    REQUIRE(m1.isValid());
+    REQUIRE(mini.isValid());
+
+    // A channel carries one device, whichever description it is: two different
+    // maps must not both land on channel 1.
+    picker->doubleClicked(m1);
+    picker->doubleClicked(mini);
+    REQUIRE(chosen->topLevelItemCount() == 2);
+    CHECK(chosen->topLevelItem(0)->text(1) == "1");
+    CHECK(chosen->topLevelItem(1)->text(1) == "2");
+
+    // Through the button, which is the only way a user has of doing it.
+    QPushButton* remove{};
+    for(auto* b : widget->findChildren<QPushButton*>())
+      if(b->text() == QObject::tr("Remove"))
+        remove = b;
+    REQUIRE(remove);
+
+    const auto pressRemove = [&](int row) {
+      chosen->setCurrentItem(chosen->topLevelItem(row));
+      remove->click();
+    };
+
+    pressRemove(1);
+    pressRemove(0);
+    REQUIRE(chosen->topLevelItemCount() == 0);
+
+    // An empty list is a port with nothing on it, not a list that was never
+    // filled in: the device the user just took off must not come back.
+    const auto midi = widget->getSettings()
+                          .deviceSpecificSettings.value<Protocols::MCUSpecificSettings>();
+    CHECK(midi.maps.empty());
   });
 }
