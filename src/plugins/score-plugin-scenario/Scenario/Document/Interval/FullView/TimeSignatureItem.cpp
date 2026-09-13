@@ -1,6 +1,7 @@
 #include "TimeSignatureItem.hpp"
 
 #include <Process/Style/Pixmaps.hpp>
+#include <score/model/Skin.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 
 #include <Scenario/Commands/Signature/SignatureCommands.hpp>
@@ -37,15 +38,16 @@ LineTextItem::LineTextItem(QGraphicsItem* parent) noexcept
 {
   setFlags(QGraphicsItem::ItemIsFocusable | QGraphicsItem::ItemIsSelectable | flags());
   setTextInteractionFlags(Qt::TextEditorInteraction);
-  setDefaultTextColor(Qt::black);
+  setDefaultTextColor(score::Skin::instance().Dark.color());
 }
 
 void LineTextItem::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   painter->setRenderHint(QPainter::Antialiasing, true);
-  painter->setPen(Qt::black);
-  painter->setBrush(Qt::white);
+  auto& skin = score::Skin::instance();
+  painter->setPen(skin.Dark.color());
+  painter->setBrush(skin.Light.main.brush);
   painter->drawRect(boundingRect());
 
   QGraphicsTextItem::paint(painter, option, widget);

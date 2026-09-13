@@ -111,9 +111,9 @@ public:
 
       painter.setPen(skin.TransparentPen());
       if(m_selectedPoint && 0 != *m_selectedPoint)
-        painter.setBrush(QColor(170, 220, 20));
+        painter.setBrush(skin.skin.Base3.main.brush);
       else
-        painter.setBrush(QColor(170, 220, 220));
+        painter.setBrush(skin.skin.Base1.main.brush);
 
       {
         auto fp = mapToCanvas(m_spline.points[0]);
@@ -143,11 +143,11 @@ public:
             QPointF p2 = mapToCanvas(m_spline.points[i + 1]);
             painter.drawLine(p, p2);
           }
-          painter.setBrush(QColor(170, 220, 220));
+          painter.setBrush(skin.skin.Base1.main.brush);
         }
         else
         {
-          painter.setBrush(QColor(170, 220, 20));
+          painter.setBrush(skin.skin.Base3.main.brush);
         }
 
         painter.setPen(skin.TransparentPen());

@@ -2,9 +2,12 @@
 #include <State/MessageListSerialization.hpp>
 #include <State/Widgets/AddressValidator.hpp>
 
+#include <score/model/Skin.hpp>
+
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 
 #include <QDropEvent>
+#include <QGuiApplication>
 #include <QLineEdit>
 #include <QPalette>
 #include <QValidator>
@@ -33,7 +36,10 @@ public:
   {
     QString s = str;
     int i = 0;
-    QPalette palette{this->palette()};
+    // Starts from the application palette, not this widget's: it may still
+    // carry the tint from the last time the text was wrong.
+    auto& skin = score::Skin::instance();
+    QPalette palette{qApp->palette()};
     if(m_validator.validate(s, i) == QValidator::State::Acceptable)
     {
       if(m_model)
@@ -43,29 +49,24 @@ public:
 
         if(Device::try_getNodeFromAddress(m_model->rootNode(), addr->address))
         {
-          palette.setColor(QPalette::Base, QColor{"#161514"});
-          palette.setColor(QPalette::Light, QColor{"#c58014"});
-          palette.setColor(QPalette::Midlight, QColor{"#161514"});
+          // Valid and present: the application palette, untinted.
         }
         else
         {
-          palette.setColor(QPalette::Base, QColor{"#402500"});
-          palette.setColor(QPalette::Light, QColor{"#660000"});
-          palette.setColor(QPalette::Midlight, QColor{"#500000"});
+          palette.setColor(QPalette::Base, skin.Warn2.darker.brush.color());
+          palette.setColor(QPalette::Light, skin.Warn3.color());
+          palette.setColor(QPalette::Midlight, skin.Warn3.darker.brush.color());
         }
       }
       else
       {
-        palette.setColor(QPalette::Base, QColor{"#161514"});
-        palette.setColor(QPalette::Light, QColor{"#c58014"});
-        palette.setColor(QPalette::Midlight, QColor{"#161514"});
       }
     }
     else
     {
-      palette.setColor(QPalette::Base, QColor{"#300000"});
-      palette.setColor(QPalette::Light, QColor{"#660000"});
-      palette.setColor(QPalette::Midlight, QColor{"#500000"});
+      palette.setColor(QPalette::Base, skin.Warn3.darker.brush.color());
+      palette.setColor(QPalette::Light, skin.Warn3.color());
+      palette.setColor(QPalette::Midlight, skin.Warn3.darker300.brush.color());
     }
     this->setPalette(palette);
   }

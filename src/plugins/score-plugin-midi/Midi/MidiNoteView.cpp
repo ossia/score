@@ -33,7 +33,7 @@ NoteView::NoteView(const Note& n, Presenter& p, View* parent)
 void NoteView::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  static const MidiStyle s;
+  const MidiStyle& s = MidiStyle::instance();
 
   painter->setRenderHint(QPainter::Antialiasing, false);
 

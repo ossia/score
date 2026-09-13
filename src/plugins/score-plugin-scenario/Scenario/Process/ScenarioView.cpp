@@ -9,6 +9,8 @@
 #include <Scenario/Process/ScenarioPresenter.hpp>
 
 #include <QApplication>
+#include <score/model/Skin.hpp>
+
 #include <QColor>
 #include <QDrag>
 #include <QGraphicsItem>
@@ -36,9 +38,10 @@ ScenarioView::~ScenarioView() = default;
 void ScenarioView::paint_impl(QPainter* painter) const
 {
   painter->setRenderHint(QPainter::Antialiasing, false);
+  auto& skin = score::Skin::instance();
   if(m_lock)
   {
-    painter->setBrush({Qt::red, Qt::DiagCrossPattern});
+    painter->setBrush({skin.Warn3.color(), Qt::DiagCrossPattern});
     painter->drawRect(boundingRect());
   }
 
@@ -46,7 +49,8 @@ void ScenarioView::paint_impl(QPainter* painter) const
   {
     painter->setCompositionMode(QPainter::CompositionMode_Xor);
     painter->setPen(
-        QPen{QColor{0, 0, 0, 127}, 2, Qt::DashLine, Qt::SquareCap, Qt::BevelJoin});
+        QPen{skin.Transparent1.color(), 2, Qt::DashLine, Qt::SquareCap,
+             Qt::BevelJoin});
     painter->setBrush(Qt::transparent);
     painter->drawRect(m_selectArea);
     painter->setCompositionMode(QPainter::CompositionMode::CompositionMode_SourceOver);
@@ -54,7 +58,7 @@ void ScenarioView::paint_impl(QPainter* painter) const
 
   if(m_snapLine)
   {
-    painter->setPen(QPen{Qt::gray, 1, Qt::DashLine});
+    painter->setPen(QPen{skin.Gray.color(), 1, Qt::DashLine});
 
     double x = *m_snapLine;
     painter->drawLine(x, 0, x, height());
@@ -64,7 +68,7 @@ void ScenarioView::paint_impl(QPainter* painter) const
   {
     painter->setRenderHint(QPainter::Antialiasing, true);
     const QRectF& rec = *m_dragLine;
-    painter->setPen(QPen{Qt::gray, 2, Qt::DashLine});
+    painter->setPen(QPen{skin.Gray.color(), 2, Qt::DashLine});
     painter->drawLine(rec.topLeft(), rec.bottomLeft());
     painter->drawLine(rec.bottomLeft(), rec.bottomRight());
     painter->drawEllipse(rec.bottomRight(), 3., 3.);

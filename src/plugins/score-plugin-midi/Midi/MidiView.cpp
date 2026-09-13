@@ -19,7 +19,7 @@ W_OBJECT_IMPL(Midi::View)
 namespace Midi
 {
 
-static const MidiStyle style;
+static const MidiStyle& style = MidiStyle::instance();
 View::View(QGraphicsItem* parent)
     : Process::LayerView{parent}
 {
