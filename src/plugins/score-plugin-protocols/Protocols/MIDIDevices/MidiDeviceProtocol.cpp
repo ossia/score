@@ -11,11 +11,13 @@
 #include <ossia/network/common/parameter_properties.hpp>
 #include <ossia/network/domain/domain.hpp>
 #include <ossia/network/value/value_conversion.hpp>
+#include <ossia/protocols/midi/midi_stream.hpp>
 
 #include <QDebug>
 
 #include <atomic>
 
+#include <libremidi/detail/conversion.hpp>
 #include <libremidi/libremidi.hpp>
 #include <libremidi/message.hpp>
 
@@ -261,7 +263,14 @@ std::string describe(const Control& c)
   return s;
 }
 
-struct midi_device_protocol final : public ossia::net::protocol_base
+/**
+ * @see ossia::net::midi::midi_stream for the second half of what this is: a
+ * tree of parameters, and the raw stream the same port carries, so that a
+ * channel can be played from a MIDI port as well as read control by control.
+ */
+struct midi_device_protocol final
+    : public ossia::net::protocol_base
+    , public ossia::net::midi::midi_stream
 {
   explicit midi_device_protocol(ProtocolSettings settings)
       : protocol_base{flags{}}
@@ -420,6 +429,8 @@ struct midi_device_protocol final : public ossia::net::protocol_base
       if(!under)
         continue;
 
+      m_levelChannel[under] = d.channel;
+
       for(const auto& c : d.map.controls)
       {
         // Note names are what the description says a note means, not something
@@ -446,6 +457,8 @@ struct midi_device_protocol final : public ossia::net::protocol_base
     auto* under = root.create_child(std::to_string(ch));
     if(!under)
       return;
+
+    m_levelChannel[under] = ch;
 
     m_rawChannels.push_back(std::make_unique<raw_channel>());
     auto& c = *m_rawChannels.back();
@@ -887,6 +900,21 @@ struct midi_device_protocol final : public ossia::net::protocol_base
 
   void onMessage(const libremidi::message& m)
   {
+    // Before anything is read out of it: a MIDI port is given the message as
+    // it came, whatever the description makes of it afterwards.
+    if(m_streaming.load(std::memory_order_relaxed))
+    {
+      m_toUmp.convert(
+          m.bytes.data(), m.bytes.size(), m.timestamp,
+          [this](const uint32_t* ump, int count, auto ts) {
+        libremidi::ump u;
+        std::copy_n(ump, std::min(count, 4), u.data);
+        u.timestamp = ts;
+        messages.enqueue(u);
+        return stdx::error{};
+      });
+    }
+
     if(m.size() < 2)
       return;
 
@@ -1139,6 +1167,28 @@ struct midi_device_protocol final : public ossia::net::protocol_base
   void request(ossia::net::parameter_base&) override { }
   std::future<void> pull_async(ossia::net::parameter_base&) override { return {}; }
 
+  libremidi::midi_in* midi_in() const noexcept override { return m_input.get(); }
+
+  void enable_registration() override { m_streaming.store(true); }
+
+  void push_value(const libremidi::ump& m) override
+  {
+    if(m_output)
+      m_output->send_ump(m);
+  }
+
+  /**
+   * A level of the tree stands for one device: a raw channel for the channel
+   * it was added on, a description for the channel its controls default to.
+   * The root stands for the port, and hears all sixteen.
+   */
+  std::optional<int> stream_channel(const ossia::net::node_base& n) const noexcept override
+  {
+    if(const auto it = m_levelChannel.find(&n); it != m_levelChannel.end())
+      return it->second;
+    return std::nullopt;
+  }
+
   bool push_raw(const ossia::net::full_parameter_data&) override { return false; }
   bool observe(ossia::net::parameter_base&, bool) override { return true; }
   bool update(ossia::net::node_base&) override { return false; }
@@ -1164,6 +1214,15 @@ struct midi_device_protocol final : public ossia::net::protocol_base
   std::vector<std::unique_ptr<raw_channel>> m_rawChannels;
 
   ossia::hash_map<const ossia::net::parameter_base*, raw_address> m_rawOf;
+
+  //! The channel each level of the tree stands for. @see stream_channel
+  ossia::hash_map<const ossia::net::node_base*, int> m_levelChannel;
+
+  //! Whether anything reads this port as a stream: the conversion to MIDI 2
+  //! and the queue are not worth paying for otherwise.
+  std::atomic_bool m_streaming{};
+
+  libremidi::midi1_to_midi2 m_toUmp;
 };
 }
 

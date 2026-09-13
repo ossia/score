@@ -21,6 +21,8 @@
 #include <ossia/network/base/node.hpp>
 #include <ossia/network/base/parameter.hpp>
 #include <ossia/network/domain/domain.hpp>
+#include <ossia/dataflow/execution_state.hpp>
+#include <ossia/dataflow/port.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 
 #include <catch2/catch_all.hpp>
@@ -206,7 +208,7 @@ TEST_CASE("a description becomes a tree", "[mididevice][midi]")
     auto* wave = at(root, "Surface/Osc 1/Shape/Wave");
     REQUIRE(wave);
 
-    auto* choice = wave->find_child("choice");
+    auto* choice = at(root, "Surface/Osc 1/Shape/Wave/choice");
     REQUIRE(choice);
     REQUIRE(choice->get_parameter());
     CHECK(choice->get_parameter()->get_value_type() == ossia::val_type::STRING);
@@ -214,7 +216,7 @@ TEST_CASE("a description becomes a tree", "[mididevice][midi]")
     // A control whose values are not named has no choice node.
     auto* fader = at(root, "Surface/Strip 1/Fader 1");
     REQUIRE(fader);
-    CHECK(fader->find_child("choice") == nullptr);
+    CHECK(at(root, "Surface/Strip 1/Fader 1/choice") == nullptr);
   }
 
   SECTION("a relative encoder starts at the bottom of its range")
@@ -1121,6 +1123,11 @@ namespace
 struct raw_bidir
 {
   raw_bidir(const loopback& lb, GenericChannel channel)
+      : raw_bidir{lb, std::vector<GenericChannel>{channel}}
+  {
+  }
+
+  raw_bidir(const loopback& lb, std::vector<GenericChannel> channels)
   {
     libremidi::input_configuration ic{};
     ic.on_message = [this](const libremidi::message& m) {
@@ -1138,7 +1145,7 @@ struct raw_bidir
     conf.api = lb.api;
     conf.input = lb.in;
     conf.output = lb.out;
-    conf.generic.push_back(channel);
+    conf.generic = std::move(channels);
     dev = std::make_unique<ossia::net::generic_device>(
         makeProtocol(std::move(conf)), "raw");
   }
@@ -1319,4 +1326,79 @@ TEST_CASE("a raw channel follows the wire", "[mididevice][midi]")
   w.send({0xB5, 7, 1});
   std::this_thread::sleep_for(std::chrono::milliseconds{150});
   CHECK(ossia::convert<int>(w.param("5/control/7").value()) == 42);
+}
+
+TEST_CASE("a level of the tree is a MIDI port of its own", "[mididevice][midi]")
+{
+  const auto lb = findLoopback();
+  if(!lb)
+  {
+    WARN("no loopback MIDI port on this machine");
+    SUCCEED();
+    return;
+  }
+
+  raw_bidir w{*lb, std::vector<GenericChannel>{{4, false}, {9, false}}};
+
+  auto& root = w.dev->get_root_node();
+  auto* four = at(root, "4");
+  REQUIRE(four);
+
+  ossia::execution_state st;
+  st.register_device(w.dev.get());
+  st.apply_device_changes();
+
+  auto in = std::make_unique<ossia::midi_inlet>();
+  in->address = four;
+  st.register_port(*in);
+
+  // A tick empties the queue, so what arrived has to be kept as it comes.
+  std::vector<libremidi::ump> got;
+  const auto tick = [&] {
+    st.begin_tick();
+    auto& port = *in->target<ossia::midi_port>();
+    port.messages.clear();
+    st.copy_from_global_node(*four, *in);
+    for(const auto& m : port.messages)
+      got.push_back(m);
+    return got.size();
+  };
+
+  // A loopback is shared, so anything already on it is drained and forgotten
+  // before the messages this test is about are sent.
+  std::this_thread::sleep_for(std::chrono::milliseconds{200});
+  tick();
+  got.clear();
+
+  // Everything the wire carries on that channel, whether or not a control of
+  // some description is reading the same message.
+  w.send({0x93, 60, 100});
+  w.send({0xB3, 7, 42});
+
+  // Another channel is another device: this level does not hear it.
+  w.send({0xB8, 7, 1});
+
+  REQUIRE(waitFor([&] { return tick() >= 2; }, std::chrono::seconds{3}));
+
+  // And nothing more: waiting for "at least" then checking "exactly" is what
+  // tells two messages from three.
+  std::this_thread::sleep_for(std::chrono::milliseconds{200});
+  tick();
+  REQUIRE(got.size() == 2);
+  for(const auto& m : got)
+    CHECK(m.get_channel() == 4);
+
+  st.unregister_port(*in);
+
+  // And the other way: what is written to a level goes out of the port.
+  auto out = std::make_unique<ossia::midi_outlet>();
+  out->address = four;
+  out->scope = ossia::port::scope_t::global;
+
+  libremidi::ump note;
+  note.data[0] = 0x20932A64;
+  out->target<ossia::midi_port>()->messages.push_back(note);
+  out->write(st);
+
+  CHECK(waitFor([&] { return w.count({0x93, 0x2A, 0x64}) == 1; }));
 }
