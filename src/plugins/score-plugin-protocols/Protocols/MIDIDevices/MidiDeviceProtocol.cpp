@@ -76,6 +76,10 @@ struct binding
 
   const Control* control{};
 
+  //! The channel of the description this control came from, for a control
+  //! whose own message states none.
+  int defaultChannel{1};
+
   int lo{};
   int hi{};
 
@@ -225,8 +229,11 @@ struct midi_device_protocol final : public ossia::net::protocol_base
   {
     if(!m_settings.input && !m_settings.output)
       throw std::runtime_error("no MIDI port to talk to");
+    if(m_settings.devices.empty())
+      throw std::runtime_error("no device description to build a tree from");
 
-    m_settings.channel = std::clamp(m_settings.channel, 1, 16);
+    for(auto& d : m_settings.devices)
+      d.channel = std::clamp(d.channel, 1, 16);
 
     // Every transport group: a port the resolver cannot see is one it would
     // decide had disappeared.
@@ -295,9 +302,9 @@ struct midi_device_protocol final : public ossia::net::protocol_base
 
     openInput();
 
-    for(const auto& w : m_settings.map.warnings)
-      qWarning() << "MIDI device map:" << m_settings.map.label().c_str() << ":"
-                 << w.c_str();
+    for(const auto& d : m_settings.devices)
+      for(const auto& w : d.map.warnings)
+        qWarning() << "MIDI device map:" << d.map.label().c_str() << ":" << w.c_str();
   }
 
   //! Only safe once the tree its callback dispatches into is complete.
@@ -345,20 +352,50 @@ struct midi_device_protocol final : public ossia::net::protocol_base
 
   //! 1-16. A description that states several means the control exists on each;
   //! we drive the first and accept any of them.
-  int sendChannel(const Message& m) const noexcept
+  static int sendChannel(const binding& b) noexcept
   {
-    return m.channels.empty() ? m_settings.channel : m.channels.front();
+    const auto& m = b.control->message;
+    return m.channels.empty() ? b.defaultChannel : m.channels.front();
   }
 
   void buildTree(ossia::net::node_base& root)
   {
-    m_bindings.reserve(m_settings.map.controls.size());
+    std::size_t total = 0;
+    for(const auto& d : m_settings.devices)
+      total += d.map.controls.size();
+    m_bindings.reserve(total);
 
-    for(const auto& c : m_settings.map.controls)
-      addControl(root, c);
+    for(const auto& d : m_settings.devices)
+    {
+      /*
+       * One level per description, so that two instruments on one cable keep
+       * their controls apart and an address says which one it belongs to.
+       *
+       * create_child rather than findOrCreateChild: two of the same model are
+       * two devices, and sharing a level would merge their controls and point
+       * both at whichever channel came first.
+       */
+      auto* under = root.create_child(deviceNodeName(d.map));
+      if(!under)
+        continue;
+
+      for(const auto& c : d.map.controls)
+        addControl(*under, c, d.channel);
+    }
   }
 
-  void addControl(ossia::net::node_base& root, const Control& c)
+  //! What a description's level of the tree is called: the model, or whatever
+  //! else the document can be identified by.
+  static std::string deviceNodeName(const DeviceMap& map)
+  {
+    if(!map.model.empty())
+      return map.model;
+    if(!map.manufacturer.empty())
+      return map.manufacturer;
+    return "device";
+  }
+
+  void addControl(ossia::net::node_base& root, const Control& c, int defaultChannel)
   {
     auto& parent = groupNode(root, c.group);
     auto* node = parent.create_child(c.name);
@@ -375,6 +412,7 @@ struct midi_device_protocol final : public ossia::net::protocol_base
     auto& b = *m_bindings.back();
     b.param = param;
     b.control = &c;
+    b.defaultChannel = defaultChannel;
     b.lo = lo;
     b.hi = hi;
     // Rounded up, so a bipolar 14-bit control starts at 8192 and a 7-bit one
@@ -478,7 +516,7 @@ struct midi_device_protocol final : public ossia::net::protocol_base
       return false;
 
     const auto& msg = b.control->message;
-    const int ch = sendChannel(msg);
+    const int ch = sendChannel(b);
 
     using ce = libremidi::channel_events;
 
@@ -621,7 +659,7 @@ struct midi_device_protocol final : public ossia::net::protocol_base
     {
       auto& b = *held;
       const auto& msg = b.control->message;
-      if(!acceptsChannel(msg, channel))
+      if(!acceptsChannel(b, channel))
         continue;
 
       switch(msg.type)
@@ -738,17 +776,24 @@ struct midi_device_protocol final : public ossia::net::protocol_base
         continue;
       if(msg.lsb >= 0 && msg.lsb != sel.lsb)
         continue;
-      if(!acceptsChannel(msg, channel))
+      if(!acceptsChannel(b, channel))
         continue;
 
       receive(b, is14Bit(*b.control) ? value : (value & 0x7F));
     }
   }
 
-  static bool acceptsChannel(const Message& m, int channel) noexcept
+  /**
+   * A description that states no channel means "whichever the device is set
+   * to", and the slot it was loaded under is where the user said that. Taking
+   * it as "any channel" would make every device on a chain answer for all the
+   * others.
+   */
+  static bool acceptsChannel(const binding& b, int channel) noexcept
   {
+    const auto& m = b.control->message;
     if(m.channels.empty())
-      return true;
+      return channel == b.defaultChannel;
     return std::find(m.channels.begin(), m.channels.end(), channel) != m.channels.end();
   }
 

@@ -116,7 +116,7 @@ bool MCUProtocolFactory::checkCompatibility(
     // Only a Mackie surface is a dialogue. Everything else is usable one-way:
     // send-only to drive an instrument, receive-only to follow a controller's
     // knobs.
-    if(specif.map.isEmpty())
+    if(specif.maps.empty())
       return false;
 
     const bool hasInput

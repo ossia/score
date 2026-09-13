@@ -1,4 +1,6 @@
 #pragma once
+#include <Protocols/MCU/MCUSpecificSettings.hpp>
+
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 
@@ -32,6 +34,7 @@ class QCheckBox;
 class QComboBox;
 class QLabel;
 class QLineEdit;
+class QListWidget;
 class QRadioButton;
 class QSortFilterProxyModel;
 class QSpinBox;
@@ -82,6 +85,11 @@ private:
 
   //! What the user picked, which survives the search box filtering it away.
   QString chosenMap() const;
+
+  //! The devices on the port, as the list holds them.
+  MCUSpecificSettings::MapSlot slotAt(int row) const;
+  QString labelForSlot(const MCUSpecificSettings::MapSlot& slot) const;
+  void addChosenDevice(const QString& identity, int channel);
   void selectMap(const QString& identity);
   void updateDeviceMapSummary();
 
@@ -106,6 +114,7 @@ private:
   QStandardItemModel* m_instrumentModel{};
   QSortFilterProxyModel* m_instrumentFilter{};
   QSpinBox* m_channel{};
+  QListWidget* m_chosen{};
   QLabel* m_summary{};
 
   Device::DeviceSettings m_current;

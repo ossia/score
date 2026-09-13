@@ -124,16 +124,22 @@ void JSONWriter::write(libremidi::output_port& n)
 template <>
 void DataStreamReader::read(const Protocols::MCUSpecificSettings& n)
 {
-  m_stream << n.input_handle << n.output_handle << n.api << n.mode << n.map
-           << n.channel;
+  m_stream << n.input_handle << n.output_handle << n.api << n.mode;
+  m_stream << (int32_t)n.maps.size();
+  for(const auto& slot : n.maps)
+    m_stream << slot.map << slot.channel;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(Protocols::MCUSpecificSettings& n)
 {
-  m_stream >> n.input_handle >> n.output_handle >> n.api >> n.mode >> n.map
-      >> n.channel;
+  m_stream >> n.input_handle >> n.output_handle >> n.api >> n.mode;
+  int32_t count{};
+  m_stream >> count;
+  n.maps.resize(count);
+  for(auto& slot : n.maps)
+    m_stream >> slot.map >> slot.channel;
   checkDelimiter();
 }
 
@@ -149,8 +155,17 @@ void JSONReader::read(const Protocols::MCUSpecificSettings& n)
   // a map whose package is missing.
   if(n.mode == Protocols::MCUSpecificSettings::MidiDeviceMap)
   {
-    obj["Map"] = n.map;
-    obj["Channel"] = n.channel;
+    // Two lists rather than a list of pairs: the JSON helpers take a container
+    // of strings and a container of ints as they are.
+    QStringList maps;
+    std::vector<int> channels;
+    for(const auto& slot : n.maps)
+    {
+      maps.push_back(slot.map);
+      channels.push_back(slot.channel);
+    }
+    obj["Maps"] = maps;
+    obj["Channels"] = channels;
   }
 }
 
@@ -164,8 +179,30 @@ void JSONWriter::write(Protocols::MCUSpecificSettings& n)
   // A score with none of these keys is a Mackie Control device.
   if(auto mode = obj.tryGet("Mode"))
     n.mode = static_cast<Protocols::MCUSpecificSettings::Mode>(mode->toInt());
-  if(auto m = obj.tryGet("Map"))
-    n.map = m->toString();
-  if(auto c = obj.tryGet("Channel"))
-    n.channel = c->toInt();
+  if(auto maps = obj.tryGet("Maps"))
+  {
+    const auto names = maps->toArray();
+    std::vector<int> channels;
+    if(auto ch = obj.tryGet("Channels"))
+      for(const auto& c : ch->toArray())
+        channels.push_back(c.GetInt());
+
+    for(std::size_t i = 0; i < names.Size(); i++)
+    {
+      Protocols::MCUSpecificSettings::MapSlot slot;
+      slot.map = QString::fromUtf8(names[i].GetString());
+      if(i < channels.size())
+        slot.channel = channels[i];
+      n.maps.push_back(std::move(slot));
+    }
+  }
+  else if(auto m = obj.tryGet("Map"))
+  {
+    // A document saved before one port could carry several devices.
+    Protocols::MCUSpecificSettings::MapSlot slot;
+    slot.map = m->toString();
+    if(auto c = obj.tryGet("Channel"))
+      slot.channel = c->toInt();
+    n.maps.push_back(std::move(slot));
+  }
 }
