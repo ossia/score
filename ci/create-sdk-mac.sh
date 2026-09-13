@@ -40,9 +40,16 @@ ship_orc_runtime "$OSSIA_SDK/llvm-libs/lib/clang" "$LIB"
 # Copy Qt frameworks
 QT_FRAMEWORKS=$(find "$OSSIA_SDK/qt6-static/lib" -name '*.framework' | grep -E --only-matching 'Qt[a-zA-Z0-9_]+') 
 
+# The contents of Headers, not the directory: create-sdk-common.sh has already
+# populated $INCLUDE/qt/$qt_framework from qt6-static/include with one-line
+# #include_next shims, which resolve through framework search (-F) in a normal
+# build but dead-end in the SDK, where the .framework suffix is gone. Copying the
+# contents overwrites them with the real headers, and leaves the Qt version
+# directory as the only subdirectory -- what ScoreExternalAddon.sdk.cmake globs for.
 for qt_framework in $QT_FRAMEWORKS; do
   if [[ -d "$OSSIA_SDK/qt6-static/lib/$qt_framework.framework/Versions/A/Headers" ]]; then
-    cp -rf "$OSSIA_SDK/qt6-static/lib/$qt_framework.framework/Versions/A/Headers" "$INCLUDE/qt/$qt_framework"
+    mkdir -p "$INCLUDE/qt/$qt_framework"
+    cp -rf "$OSSIA_SDK/qt6-static/lib/$qt_framework.framework/Versions/A/Headers/." "$INCLUDE/qt/$qt_framework/"
   fi
 done
 
