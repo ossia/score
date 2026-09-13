@@ -296,6 +296,21 @@ public:
   QObject* metadata(QObject* obj) const noexcept;
   W_SLOT(metadata)
 
+  //! The document's own metadata, which is not a child of anything the other
+  //! accessors reach. Its fileName, author, creation and lastEdition are
+  //! properties, so they read and write from QML directly.
+  QObject* documentMetadata() const noexcept;
+  W_SLOT(documentMetadata)
+
+  //! What the title bar shows: the file's base name, or "Untitled..." before
+  //! it has been saved anywhere.
+  QString documentName() const noexcept;
+  W_SLOT(documentName)
+
+  //! Renames the document. Not a save: it sets the name the next save uses.
+  void setDocumentName(QString name);
+  W_SLOT(setDocumentName)
+
   QObject* startState(QObject* obj);
   W_SLOT(startState)
 
