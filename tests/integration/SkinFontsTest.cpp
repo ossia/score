@@ -1,12 +1,6 @@
-// Skin files carry fonts, not just colours, so that a skin can retarget the
-// whole UI at a different family and size. This covers the three things that
-// can silently go wrong:
-//
-//  * a skin's "fonts" block must actually reach the Skin members;
-//  * loading a second skin must not inherit the first skin's fonts, which is
-//    why Skin::load() resets to the built-in defaults first;
-//  * toJson() must write back what load() reads, or the Save button in the
-//    theme editor quietly drops the fonts.
+// The three things that can silently go wrong with a skin's "fonts" block: it
+// never reaches the Skin members, a second skin inherits the first one's
+// fonts, or toJson() fails to write back what load() reads.
 //
 // The pixel sizes asserted here are the design grids of the shipped pixel
 // fonts. Off-grid sizes render with uneven stem widths, so the numbers are

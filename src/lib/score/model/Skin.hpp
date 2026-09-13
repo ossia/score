@@ -102,9 +102,7 @@ public:
   static Skin& instance() noexcept;
   ~Skin() override;
 
-  //! Which halves of a skin file to apply. Colours and fonts are separable
-  //! so that trying a different palette does not also change every font, and
-  //! vice versa.
+  //! Which halves of a skin file to apply.
   enum Part
   {
     Colours = 1,
@@ -114,19 +112,16 @@ public:
 
   void load(const QJsonObject& style, int parts = Everything);
 
-  //! Colours and fonts, in the form load() reads back. Used to write skin
-  //! files, so anything added here must have a load() counterpart.
+  //! In the form load() reads back: anything added here needs a load()
+  //! counterpart.
   QJsonObject toJson() const;
 
-  //! Every font a skin may name, paired with the key it uses in a skin file.
-  //! One list, so load, save, the defaults and the skin editor cannot drift
-  //! apart. Writing through these pointers then emitting changed() is how the
-  //! editor applies a font live.
+  //! Every font a skin may name, keyed as in the file. Single list so load,
+  //! save, the defaults and the editor cannot drift apart; the editor writes
+  //! through these pointers and emits changed().
   std::vector<std::pair<const char*, QFont*>> fonts() noexcept;
 
-  //! Font for the widget UI as a whole. A skin may override it; applying it
-  //! to the QApplication is score::setupApplicationFont()'s job, since the
-  //! per-widget-class font hash has to be reseeded too.
+  //! Applying this to the QApplication is setupApplicationFont()'s job.
   QFont ApplicationFont;
 
   QFont SansFont;
@@ -143,25 +138,19 @@ public:
 
   QFont TitleFont;
 
-  //! The heading over an inspector page -- "Interval (foo)", "Process (bar)".
-  //! Its own role because it is bold text one step above the body, and a
-  //! pixel font cannot be emboldened or resized freely: both would have to be
-  //! faked, which smears the one-pixel stems these fonts are drawn with.
+  //! Inspector page heading. Separate role: a pixel font can be neither
+  //! emboldened nor resized freely without Qt faking it.
   QFont SectionTitleFont;
 
-  //! The transport bar's time readout. Its own role because it is the one
-  //! large piece of text in the UI: a pixel-font skin wants it on the grid
-  //! and unantialiased, which a scaled-up body font cannot give.
+  //! Transport time readout. Separate role: the one large piece of text, so
+  //! a pixel-font skin needs it on its own grid.
   QFont TimecodeFont;
 
-  //! The timeline ruler's bar and time numbers. Its own role because it is
-  //! the smallest text score draws and it sits on a dense scale, so a skin
-  //! wants to choose the face and the size together -- and a pixel font has
-  //! to land on its grid to stay legible at that size.
+  //! Timeline ruler numbers. Separate role: the smallest text score draws,
+  //! so a pixel font has to land on its grid to stay legible.
   QFont RulerFont;
 
-  //! Script and shader editors. Monospaced and usually a size of its own,
-  //! since code wants more lines on screen than a settings form does.
+  //! Script and shader editors.
   QFont CodeFont;
 
   Brush Dark;
@@ -271,9 +260,8 @@ private:
   };
   explicit Skin(NoGUI);
 
-  //! Builds every font member from the built-in defaults plus the
-  //! Skin/Font* QSettings. Called by the constructor, and again by load()
-  //! so that switching skins does not inherit the previous skin's fonts.
+  //! Also called by load(), so a skin does not inherit the previous one's
+  //! fonts.
   void setupFonts();
 
   //! Applies the "fonts" object of a skin file over the defaults.
@@ -290,49 +278,32 @@ private:
   bool m_pulseDirection{false};
 };
 
-//! The application font size used before any skin has loaded. Not a setting:
-//! font sizes are expressed in the skin, and the "application" role replaces
-//! this as soon as one loads.
+//! Application font size before any skin has loaded; the "application" role
+//! replaces it.
 SCORE_LIB_BASE_EXPORT int uiFontSize() noexcept;
 
-//! The application font size every hardcoded length in the widget UI was
-//! drawn against. Icon edges, toolbar heights, the paddings hand-painted
-//! inside the custom controls: all of them were picked with 13 px text on
-//! screen, and none of them mean the same thing next to 8 px text.
+//! The font size every hardcoded pixel length in the widget UI was drawn
+//! against.
 inline constexpr int referenceFontSize = 13;
 
-//! How much bigger or smaller the current skin's text is than that.
-//!
-//! A skin is free to ask for 8 px text, but the boxes around it have to
-//! follow or the UI turns into padding with a few characters in it. Read
-//! from the application font, which the "application" role drives: it is the
-//! one font every skin sets, and the one the user thinks of as "the font
-//! size".
+//! Current application font size over referenceFontSize.
 SCORE_LIB_BASE_EXPORT double fontScale() noexcept;
 
-//! A length measured against referenceFontSize, in the current skin's terms.
-//! Clamped to at least one pixel: a control scaled out of existence is worse
-//! than one a pixel too wide.
+//! A referenceFontSize-relative length in the current skin's terms, floored
+//! at one pixel.
 SCORE_LIB_BASE_EXPORT int scaledPixels(int px) noexcept;
 
-//! Shorthand for the common call site, setIconSize(score::scaledIcon(24)).
+//! scaledPixels() as a square.
 SCORE_LIB_BASE_EXPORT QSize scaledIcon(int px) noexcept;
 
-//! Runs \p f now, and again on every skin change, for the widget geometry
-//! that is derived from the fonts.
+//! Runs \p f now and on every skin change. Needed for any size derived from
+//! a font: the window and the toolbars are built before the first skin loads.
 //!
-//! Sizes set once at construction are wrong by the time the user sees them:
-//! the main window and the toolbars are built while the application font is
-//! still the bootstrap one, and the skin -- with the font size the user
-//! actually chose -- only loads once the scenario plugin's settings do.
-//!
-//! Safe to call while the window is being built. Skin::instance() needs the
-//! application context, which does not exist that early, so the subscription
-//! itself is made on the next turn of the event loop.
+//! Callable during that construction -- Skin::instance() needs the application
+//! context, so the subscription is deferred by one event loop turn.
 SCORE_LIB_BASE_EXPORT void onSkinChange(QObject* owner, std::function<void()> f);
 
-//! An icon size that follows the skin's font. \p px is the edge the icon had
-//! when every length in the UI was written against referenceFontSize.
+//! onSkinChange(widget, setIconSize(scaledIcon(px))).
 template <typename T>
 void setSkinIconSize(T* widget, int px)
 {
@@ -347,64 +318,40 @@ SCORE_LIB_BASE_EXPORT QFont::HintingPreference uiFontHinting() noexcept;
 //! Subpixel_RGB, so the style strategy is the only way to get grayscale AA.
 SCORE_LIB_BASE_EXPORT QFont::StyleStrategy uiFontStyleStrategy() noexcept;
 
-//! The design grid, in pixels, of a pixel font score ships, or 0 for anything
-//! else. These fonts are drawn on a grid and only render sharply at whole
-//! multiples of it; the skin editor uses this to say which sizes are usable.
+//! Design grid of a pixel font score ships, 0 for anything else. These only
+//! render sharply at whole multiples of it.
 SCORE_LIB_BASE_EXPORT int pixelFontGrid(const QString& family) noexcept;
 
-//! \p px snapped to a size at which \p f's family renders sharply: rounded
-//! down to a whole multiple of its grid, or up to a single step when \p px is
-//! smaller than one. \p px unchanged for an outline font.
-//!
-//! Code that computes a font size instead of taking one from the skin has to
-//! go through this. A pixel font at a size that is not a whole multiple of
-//! its grid puts every outline between pixels, and the label comes out with
-//! stems of two different widths -- which is the whole thing these fonts are
-//! chosen to avoid.
+//! \p px rounded down to a multiple of \p f's grid, or up to one step when
+//! smaller than that; unchanged for an outline font. Any computed font size
+//! has to go through this.
 SCORE_LIB_BASE_EXPORT int snapToFontGrid(const QFont& f, int px) noexcept;
 
 //! setPixelSize through snapToFontGrid.
 SCORE_LIB_BASE_EXPORT void setSnappedPixelSize(QFont& f, int px) noexcept;
 
-//! Registers every font in the :/fonts resource with the QFontDatabase, so
-//! that a skin naming one of them resolves instead of falling back. Idempotent,
-//! and called by the Skin itself, so tests and alternate hosts get the fonts
-//! without going through the application bootstrap.
+//! Idempotent, and called by the Skin itself, so tests and alternate hosts
+//! get the fonts without the application bootstrap.
 SCORE_LIB_BASE_EXPORT void registerApplicationFonts();
 
-//! The application font built from the Skin/Font* settings alone. Does not
-//! touch Skin::instance(), so it is callable during early application startup,
-//! before the application context exists.
+//! Does not touch Skin::instance(), so it is callable before the application
+//! context exists.
 SCORE_LIB_BASE_EXPORT QFont defaultApplicationFont() noexcept;
 
-//! Whether setGlobalScaleFactor() can actually do anything in this build.
-//!
-//! False below Qt 6.6, or when Qt was built without high-DPI scaling. The
-//! private QHighDpiScaling API has existed since Qt 5.6, but setGlobalFactor()
-//! only started updating the screens in 6.5 and only started emitting the
-//! QScreen change signals in 6.6; before that it sets a field nothing reads.
-//! Use this to decide whether a zoom control can apply live or has to say
-//! "needs restart".
+//! False below Qt 6.6, or without QT_CONFIG(highdpiscaling): QHighDpiScaling
+//! exists from 5.6 but only updates the screens from 6.5 and only emits the
+//! QScreen signals from 6.6.
 SCORE_LIB_BASE_EXPORT bool canSetGlobalScaleFactorLive() noexcept;
 
-//! Changes the global high-DPI scale factor of a running application, the
-//! thing QT_SCALE_FACTOR sets at startup.
-//!
-//! Goes through QHighDpiScaling, which is Qt private API: it updates each
-//! screen's geometry, which propagates a re-layout to every window. Qt warns
-//! when this is called with windows open, since it is meant for startup, so
-//! expect a message on the console; the factor is still applied.
-//!
-//! Everything cached at a given device pixel ratio has to be dropped
-//! afterwards, which is why this bumps the Skin and emits changed(): the
-//! glyph and pixmap caches hang off that signal. Returns false if the factor
-//! is out of range or scaling is unavailable in this Qt build.
+//! QT_SCALE_FACTOR, live, through Qt private API. Qt warns on the console
+//! when windows are open; the factor still applies. Bumps the Skin and emits
+//! changed() so the caches keyed on the device pixel ratio drop. False if the
+//! factor is out of range or scaling is unavailable.
 SCORE_LIB_BASE_EXPORT bool setGlobalScaleFactor(double factor);
 
-//! Sets the application-wide font and reseeds the per-widget-class fonts the
-//! platform theme installs, which would otherwise override it. Must run after
-//! QApplication::setStyle(), which resets that hash. Safe to call again when
-//! the skin changes.
+//! Also reseeds the per-widget-class fonts the platform theme installs, which
+//! would otherwise win. Must run after QApplication::setStyle(), which resets
+//! that hash.
 SCORE_LIB_BASE_EXPORT void setupApplicationFont(const QFont& f);
 
 }

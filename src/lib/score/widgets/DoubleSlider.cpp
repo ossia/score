@@ -39,8 +39,8 @@ DoubleSlider::DoubleSlider(Qt::Orientation ort, QWidget* widg)
 
 int DoubleSlider::skinExtent() const noexcept
 {
-  // One line of text, its border on both sides, and enough air that the
-  // default skin's 14 px line lands on the 20 px these controls are drawn at.
+  // One line, its border both sides, and the air that puts the default
+  // skin's 14 px line on the 20 px these are drawn at.
   return QFontMetrics{score::Skin::instance().SliderFont}.height()
          + 2 * qRound(m_borderWidth) + 4;
 }
@@ -53,10 +53,9 @@ void DoubleSlider::updateSkinMetrics()
 
   update();
 
-  // Only ever take back a minimum this class imposed. A caller that pinned
-  // the control with setFixedSize has decided its size, and setting a smaller
-  // minimum under it would collapse it to that minimum, since a plain QWidget
-  // has no size hint of its own for the layout to fall back on.
+  // Only take back a minimum this class imposed: a plain QWidget has no size
+  // hint, so shrinking the minimum under a caller's setFixedSize would
+  // collapse the control to it.
   if(m_skinMinimum.isValid() && minimumSize() != m_skinMinimum)
     return;
 
@@ -241,8 +240,7 @@ void DoubleSlider::paintWithText(const QString& s)
   p.setPen(skin.SliderTextPen);
   p.setFont(skin.SliderFont);
 
-  // Vertically centred: the box is only as tall as one line of the slider
-  // font, so a top-aligned line would sit against the border.
+  // The box is one line tall, so a top-aligned line sits on the border.
   const double pad = score::scaledPixels(4);
   p.drawText(
       QRectF{pad, 0., width() - 4. * pad, (double)height()}, s,

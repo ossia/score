@@ -44,9 +44,8 @@ public:
         &AddressBarButton::applySkinFont);
   }
 
-  //! The bar is only rebuilt when the user navigates, so it has to pick up a
-  //! skin change on its own; its width comes from the font metrics, hence the
-  //! updateGeometry rather than a plain repaint.
+  //! The bar is only rebuilt on navigation. Its width comes from the font
+  //! metrics, hence updateGeometry rather than a plain repaint.
   void applySkinFont()
   {
     setFont(score::Skin::instance().Bold10Pt);

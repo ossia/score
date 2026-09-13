@@ -302,9 +302,8 @@ void DeviceEditDialog::initAvailableProtocols()
 
   m_protocols->sortItems(0, Qt::AscendingOrder);
 
-  // A QTreeWidgetItem is not a QObject and cannot own a subscription, so the
-  // dialog re-styles them itself and the headings survive a skin change made
-  // while it is open. Both trees, since both use the category style.
+  // A QTreeWidgetItem is no QObject and cannot own a subscription, so the
+  // dialog re-styles both trees itself.
   score::onSkinChange(this, [this] {
     for(QTreeWidget* tree : {m_protocols, m_devices})
     {

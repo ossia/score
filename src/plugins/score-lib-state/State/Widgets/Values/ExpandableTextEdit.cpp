@@ -67,9 +67,8 @@ QIcon ellipsisIcon(const QWidget& w, bool emphasized)
 QFont monospace()
 {
   // QFontDatabase::systemFont gives a different family and size on every OS.
-  // The code role, not mono: mono is a display face at a display size (17 px
-  // under the default skin), and this is a dense hex dump whose column widths
-  // are measured from it.
+  // The code role, not mono: this is a dense hex dump whose column widths are
+  // measured from it.
   return score::Skin::instance().CodeFont;
 }
 

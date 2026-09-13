@@ -54,10 +54,8 @@ SkinEditorWidget::SkinEditorWidget(QWidget* parent)
   editors->addWidget(makeFontEditor(), 1);
   lay->addLayout(editors, 1);
 
-  // Loading a different skin replaces every colour and font, so the controls
-  // have to be re-read or they keep showing the previous skin's values.
-  // m_applying keeps this widget's own edits from bouncing back as a reload,
-  // which would fight the control the user is dragging.
+  // m_applying: this widget's own edits must not bounce back as a reload and
+  // fight the control being dragged.
   connect(&score::Skin::instance(), &score::Skin::changed, this, [this] {
     if(!m_applying)
       reloadFromSkin();
@@ -68,7 +66,6 @@ void SkinEditorWidget::reloadFromSkin()
 {
   score::Skin& s = score::Skin::instance();
 
-  // Colours: refresh the swatches, and the wheel for the selected one.
   for(int i = 0; i < m_colorList->count(); i++)
   {
     auto* item = m_colorList->item(i);
@@ -89,7 +86,6 @@ void SkinEditorWidget::reloadFromSkin()
     }
   }
 
-  // Fonts: the selected role's family, style, size and antialiasing.
   loadFontRole();
 }
 
@@ -100,8 +96,7 @@ QWidget* SkinEditorWidget::makeSkinRow()
   lay->setContentsMargins(0, 0, 0, 0);
 
   m_skin = new QComboBox;
-  // Built-in skins from the resource, so adding a file to score.qrc is enough
-  // to make it selectable.
+  // From the resource, so adding a file to score.qrc is enough.
   m_skin->addItem(tr("Default"), QStringLiteral(":/skin/DefaultSkin.json"));
   {
     QDirIterator builtin{
@@ -117,9 +112,8 @@ QWidget* SkinEditorWidget::makeSkinRow()
     names.sort();
     for(const QString& base : names)
     {
-      // "GalmuriMicroSkin" reads better as "Galmuri Micro", and
-      // "Default12pxSkin" as "Default 12px", so split on both a case change
-      // and the start of a number.
+      // "GalmuriMicroSkin" -> "Galmuri Micro", "Default12pxSkin" -> "Default
+      // 12px".
       QString label = base;
       label.remove(QStringLiteral("Skin"));
       label.replace(QRegularExpression{QStringLiteral("([a-z0-9])([A-Z])")},
@@ -145,8 +139,6 @@ QWidget* SkinEditorWidget::makeSkinRow()
   auto browse = new QPushButton{tr("Browse...")};
   auto save = new QPushButton{tr("Save as...")};
 
-  // Colours and fonts are separable: trying a palette should not have to
-  // change every font as well.
   QSettings set;
   m_applyColours = new QCheckBox{tr("Apply colours")};
   m_applyFonts = new QCheckBox{tr("Apply fonts")};
@@ -194,8 +186,7 @@ QWidget* SkinEditorWidget::makeSkinRow()
     if(f.isEmpty())
       return;
 
-    // The skin list only iterates *.json, so a name typed without one would
-    // save and then be invisible.
+    // The list only iterates *.json.
     if(QFileInfo{f}.suffix().isEmpty())
       f += QStringLiteral(".json");
 
@@ -206,13 +197,11 @@ QWidget* SkinEditorWidget::makeSkinRow()
       return;
     }
 
-    // Colours and fonts both, so a saved skin reloads as it was edited.
     QJsonDocument doc;
     doc.setObject(score::Skin::instance().toJson());
     fl.write(doc.toJson());
 
-    // Closed before the reload, not left to the destructor: skinChanged()
-    // reads this same path back synchronously, and QFile buffers its writes.
+    // skinChanged() reads this path back synchronously and QFile buffers.
     fl.close();
     skinChanged(f);
   });
@@ -235,10 +224,8 @@ void SkinEditorWidget::setSkin(const QString& skin)
 {
   int idx = m_skin->findData(QVariant::fromValue(skin));
 
-  // The setting's own default is the bare word "Default", not a path, and a
-  // skin loaded through Browse is a path that is in no list. Handle both, so
-  // the combo shows what is actually loaded rather than staying on the first
-  // entry.
+  // The setting is either the bare word "Default" or a path, and a path from
+  // Browse is in no list.
   if(idx == -1 && (skin.isEmpty() || skin == QLatin1String("Default")))
     idx = m_skin->findData(QStringLiteral(":/skin/DefaultSkin.json"));
   if(idx == -1)
@@ -291,8 +278,6 @@ QWidget* SkinEditorWidget::makeColorEditor()
     {
       m_loading = true;
       m_wheel->setColor(b->color());
-      // Written here as well as from the wheel's own signal, so that picking
-      // a different colour in the list refreshes it too.
       m_hex->setText(b->color().name(QColor::HexRgb));
       m_loading = false;
     }
@@ -362,14 +347,13 @@ QWidget* SkinEditorWidget::makeFontEditor()
   m_fontSize->setSuffix(tr(" px"));
   m_fontAntialias = new QCheckBox{tr("Antialias")};
   m_fontHinting = new QComboBox;
-  // Same four values QFont::HintingPreference has; the skin stores the name.
+  // QFont::HintingPreference; the skin stores the name.
   m_fontHinting->addItems({tr("Default"), tr("None"), tr("Vertical"), tr("Full")});
   m_fontHinting->setToolTip(
       tr("How glyphs are snapped to the pixel grid. Full gives the crispest "
          "stems at small sizes; Vertical keeps the designed letter spacing; "
          "None leaves the outline unhinted."));
-  // Editable, so you can type your own text and judge it, and on its own
-  // dark ground rather than floating next to a form label.
+  // Editable, so you can type your own sample.
   m_fontPreview = new QPlainTextEdit;
   m_fontPreview->setPlainText(
       QStringLiteral("Interval 3 - gain -6.0 dB\nAaBbCc 0123456789"));
@@ -385,7 +369,6 @@ QWidget* SkinEditorWidget::makeFontEditor()
   form->addRow(tr("Family"), m_fontFamily);
   form->addRow(tr("Style"), m_fontStyle);
   form->addRow(tr("Size"), m_fontSize);
-  // Right under the size, since it is about which sizes are worth picking.
   form->addRow(QString{}, m_fontHint);
   form->addRow(tr("Hinting"), m_fontHinting);
   form->addRow(QString{}, m_fontAntialias);
@@ -397,8 +380,8 @@ QWidget* SkinEditorWidget::makeFontEditor()
   connect(m_fontFamily, &QComboBox::currentTextChanged, this, [this](const QString& fam) {
     if(m_loading)
       return;
-    // A new family has its own set of styles; keep the closest one rather
-    // than silently applying whichever happens to sort first.
+    // A new family has its own styles; keep the closest rather than whichever
+    // sorts first.
     const QString wanted = m_fontStyle->currentText();
     {
       QSignalBlocker b{m_fontStyle};
@@ -445,10 +428,9 @@ void SkinEditorWidget::loadFontRole()
 
   m_loading = true;
   const QString fam = f->families().value(0, f->family());
-  // setCurrentText is a no-op on a non-editable combo when the text is not in
-  // the list, which would leave the previous role's family showing -- and the
-  // next edit would write that one into this role. A skin may legitimately
-  // name a font this machine does not have, so carry it rather than drop it.
+  // setCurrentText is a no-op on a non-editable combo when the text is absent,
+  // which would leave the previous role's family showing and then write it
+  // back. A skin may name a font this machine does not have.
   if(m_fontFamily->findText(fam) == -1)
     m_fontFamily->insertItem(0, fam);
   m_fontFamily->setCurrentIndex(m_fontFamily->findText(fam));
@@ -457,10 +439,8 @@ void SkinEditorWidget::loadFontRole()
   const QStringList styles = QFontDatabase::styles(fam);
   m_fontStyle->addItems(styles);
 
-  // Show the style the font is actually in. styleName() is only set when a
-  // skin asked for one by name, so fall back to what Qt resolved the font to
-  // (weight and italic); otherwise the combo would show whichever style sorts
-  // first and misreport a Regular font as Bold.
+  // styleName() is only set when the skin asked for one by name; otherwise
+  // ask Qt what it resolved to, or the combo misreports whichever sorts first.
   QString style = f->styleName();
   if(style.isEmpty() || !styles.contains(style))
     style = QFontDatabase::styleString(*f);
@@ -469,9 +449,8 @@ void SkinEditorWidget::loadFontRole()
     idx = m_fontStyle->findText(QStringLiteral("Regular"));
   m_fontStyle->setCurrentIndex(std::max(0, idx));
 
-  // QFontInfo, not QFontMetrics::height(): a role that names no size at all
-  // resolves to one, and height() is ascent+descent+leading rather than the
-  // em size, so it would pin the role a couple of pixels larger than it drew.
+  // QFontInfo, not QFontMetrics::height(), which is ascent+descent+leading
+  // and would pin an unsized role larger than it drew.
   m_fontSize->setValue(f->pixelSize() > 0 ? f->pixelSize() : QFontInfo{*f}.pixelSize());
   m_fontAntialias->setChecked(!(int(f->styleStrategy()) & int(QFont::NoAntialias)));
 
@@ -506,8 +485,7 @@ void SkinEditorWidget::applyFontRole()
   f->setFamilies({m_fontFamily->currentText()});
   f->setPixelSize(m_fontSize->value());
 
-  // Only pin a style name when the family really has that style: setting one
-  // a family does not provide makes Qt fall back and fake it.
+  // Only pin a style the family really has, or Qt fakes it.
   const QString style = m_fontStyle->currentText();
   if(QFontDatabase::styles(m_fontFamily->currentText()).contains(style))
     f->setStyleName(style);
@@ -539,8 +517,6 @@ void SkinEditorWidget::applyFontRole()
 
   refreshFontPreview();
 
-  // Live: every SimpleTextItem follows its skin font and the application font
-  // is re-applied, so the whole UI updates from here.
   m_applying = true;
   score::Skin::instance().changed();
   m_applying = false;
@@ -552,11 +528,9 @@ void SkinEditorWidget::refreshFontPreview()
   if(!f)
     return;
 
-  // Font only: the text is the user's to edit.
   m_fontPreview->setFont(*f);
 
-  // A pixel font is only sharp at whole multiples of its design grid, so say
-  // which sizes those are rather than leaving it to be discovered by squinting.
+  // Name the grid multiples rather than leaving them to be found by squinting.
   const int grid = score::pixelFontGrid(f->families().value(0, f->family()));
   if(grid > 0)
   {

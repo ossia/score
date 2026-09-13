@@ -58,16 +58,14 @@ public:
 private:
   QWidget* getWidget() override;
 
-  //! The page is a tab widget so that the skin editor gets its own sub-tab,
-  //! the way the Effects settings hold one tab per plug-in format.
+  //! A tab widget, so the skin editor gets its own sub-tab.
   QTabWidget* m_tabs{};
   score::FormWidget* m_widg{};
   QSpinBox* m_zoomSpinBox{};
   class SkinEditorWidget* m_skinEditor{};
 
-  //! The presenter pushes the current skin at construction, but the editor is
-  //! only built when the settings page is first shown, so hold the value
-  //! until there is something to put it in.
+  //! The presenter pushes the skin at construction; the editor is built on
+  //! first show, so hold the value until there is something to put it in.
   QString m_pendingSkin;
 
   QLineEdit* m_editor{};

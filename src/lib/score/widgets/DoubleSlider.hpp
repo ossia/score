@@ -54,16 +54,13 @@ public:
   virtual void createPopup(QPoint pos);
   virtual void setRange(double min, double max, double init) noexcept;
 
-  //! The thickness one line of the slider font needs -- the height of a
-  //! horizontal slider, the width of a vertical one. A caller that pins the
-  //! control with setFixedSize should take its size from here, so that the
-  //! control still follows the skin.
+  //! Thickness of one line of the slider font: the height of a horizontal
+  //! slider, the width of a vertical one. A caller pinning the control with
+  //! setFixedSize should size it from here.
   int skinExtent() const noexcept;
 
 protected:
-  //! Sizes the control from one line of the slider font. It is a box around a
-  //! piece of text, so it has to be measured from that text: a skin with 8 px
-  //! type would otherwise keep a 20 px tall box around it.
+  //! Sizes the control from one line of the slider font.
   void updateSkinMetrics();
 
   void paintEvent(QPaintEvent*) override;

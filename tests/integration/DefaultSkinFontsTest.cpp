@@ -1,17 +1,7 @@
-// DefaultSkin's "fonts" block is where the default fonts are set. The C++ in
-// Skin::setupFonts() is the fallback, for skins that name nothing and for the
-// window that exists before any skin has loaded.
-//
-// So this deliberately does NOT pin the values: changing a default font is a
-// matter of editing the skin, and a test asserting the block still equals the
-// C++ would stand in the way of exactly that. What it checks is that the block
-// is wired up and cannot fail silently:
-//
-//   * every key names a real role, so a typo is caught rather than ignored;
-//   * every family named is actually available, since a missing one falls
-//     back to some other font with no error;
-//   * the block genuinely reaches the Skin, rather than being parsed and
-//     dropped.
+// DefaultSkin's "fonts" block sets the default fonts; Skin::setupFonts() is
+// the fallback for skins naming nothing. The values are deliberately not
+// pinned here -- editing them is the point of the file -- only that the block
+// is wired up and cannot fail silently.
 
 #include <score_test/App.hpp>
 
@@ -54,17 +44,14 @@ TEST_CASE("DefaultSkin's font block is wired up", "[integration][skin]")
       if(key.startsWith('_') || key == "defaults")
         continue;
 
-      // A key that is not a role is silently ignored by loadFonts(), so a
-      // typo would simply never apply.
+      // loadFonts() ignores an unknown key, so a typo never applies.
       INFO("'" << key.toStdString() << "' is not one of the Skin's font roles");
       CHECK(known.contains(key));
 
       const QString family = fonts[key].toObject()["family"].toString();
       if(!family.isEmpty())
       {
-        // A family score does not ship resolves to something else with no
-        // warning, which is how you end up with one smooth label in a
-        // pixel-font UI.
+        // An unshipped family resolves to something else with no warning.
         INFO("role '" << key.toStdString() << "' names the family '"
                       << family.toStdString() << "', which is not available");
         CHECK(QFontDatabase::families().contains(family));
