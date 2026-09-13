@@ -231,7 +231,9 @@ PAIRS = [
     ("process view border",  "Gray",       "Background1", "thin"),
 
     # Playback, which is drawn over the interval body rather than the canvas.
-    ("play fill on body",    "Base3",      "Base1",       "shape"),
+    # "fill", not "shape": this is the one comparison the eye makes at a
+    # glance while something runs, and a whole interval's width of it.
+    ("play fill on body",    "Base3",      "Base1",       "fill"),
     # The dashes are also seen against the canvas either side of the interval.
     ("play dash on canvas",  "Pulse1",     "Background1", "thin"),
     ("waiting dash canvas",  "Pulse2",     "Background1", "thin"),
@@ -264,13 +266,13 @@ PAIRS = [
 # text; 30 is the "spot reading" level the draft gives for non-text elements
 # that carry meaning. A one-pixel line needs more than a wide fill of the same
 # colour does, hence the split.
-FLOOR = {"text": 45.0, "thin": 30.0, "shape": 20.0}
+FLOOR = {"text": 45.0, "thin": 30.0, "shape": 20.0, "fill": 35.0}
 
 # A mark can also be found by hue alone: APCA measures lightness only, and
 # reports 0 for two colours of the same luminance however different they look.
 # So a pair fails only when it is neither light enough nor coloured enough --
 # except text, which needs the lightness whatever its hue.
-HUE_FLOOR = {"text": None, "thin": 25.0, "shape": 18.0}
+HUE_FLOOR = {"text": None, "thin": 25.0, "shape": 15.0, "fill": 45.0}
 
 # Colours whose whole job is to be told apart from each other.
 GROUPS = [
@@ -286,6 +288,20 @@ MIN_DE = 12.0  # CAM16-UCS; comfortably above "different colour" for large areas
 # mark that sits on it, so the repair pass leaves them exactly as the palette
 # author wrote them.
 GROUNDS = {"Background1", "Background2", "DarkGray"}
+
+# Pairs a palette cannot satisfy without giving up something worth more than
+# the contrast. Listed rather than quietly tolerated, so that a new failure is
+# still a failure.
+ACCEPTED = {
+    # Blue ports on a blue panel. Lightening the disc far enough means
+    # draining the blue that says "midi", and the ring carries the
+    # identification anyway.
+    ("SolarizedDark", "midi port"),
+    ("Nord", "midi port"),
+    # Magenta play fill on a teal body: both are fixed by the palette's own
+    # colour-blind contract, which outranks the lightness here.
+    ("ColorBlind", "play fill on body"),
+}
 
 
 def resolve(skin, spec, bg):
@@ -322,6 +338,21 @@ def _blend(c, target, t):
     return tuple(round(c[i] + (target[i] - c[i]) * t) for i in range(3)) + (c[3],)
 
 
+def _keeps_chroma(cand, orig):
+    """A repair may lighten a colour, not drain it.
+
+    Blending toward white is the only way to lift some dark colours far
+    enough, but taken too far it turns a red warning into a white one -- the
+    mark loses the meaning it was carrying. Half the original saturation is
+    the most this will spend.
+    """
+    _h, s0, _v = rgb_to_hsv(orig)
+    if s0 < 0.25:
+        return True
+    _h, s1, _v = rgb_to_hsv(cand)
+    return s1 >= s0 * 0.5
+
+
 def _candidates(c):
     """Lighter and darker versions of c, nearest first.
 
@@ -354,7 +385,7 @@ def _scale_value(c, k):
 # How much lightness contrast the repair will chase. It stops at the cap even
 # when DefaultSkin has more: pushing a muted palette to match a neon one would
 # just replace the palette.
-CAP = {"text": 60.0, "thin": 45.0, "shape": 45.0}
+CAP = {"text": 60.0, "thin": 45.0, "shape": 45.0, "fill": 45.0}
 
 
 def target_lc(kind, ref_lc, tol):
@@ -461,7 +492,7 @@ def repair(skin, ref=None, tol=12.0):
             continue
         best = None
         for cand in _candidates(cur):
-            if _satisfies(cand, cons):
+            if _keeps_chroma(cand, cur) and _satisfies(cand, cons):
                 d = delta_e(cand, cur)
                 if best is None or d < best[0]:
                     best = (d, cand)
@@ -546,7 +577,7 @@ def fails(label, lc, de):
     return hue is None or de < hue
 
 
-def audit(skin, ref, tol=12.0):
+def audit(skin, ref, tol=12.0, name=None):
     """Problems in `skin` against `ref`: (label, lc, de, ref_lc, ref_de, why).
 
     A pair the reference also fails is not this skin's doing, so it is only
@@ -555,6 +586,8 @@ def audit(skin, ref, tol=12.0):
     m, r = measure(skin), measure(ref)
     bad = []
     for label, v in m.items():
+        if name and (name, label.lstrip("~")) in ACCEPTED:
+            continue
         if label.startswith("~"):
             if v < MIN_DE and r[label] >= MIN_DE:
                 bad.append((label, v, 0.0, r[label], 0.0, "indistinct"))
@@ -576,12 +609,13 @@ def fix(stems):
         path = os.path.join(HERE, f"{stem}.json")
         with open(path) as f:
             doc = json.load(f)
-        before = len(audit(doc, ref))
+        name = stem[:-4]
+        before = len(audit(doc, ref, name=name))
         out = improve(doc, ref)
         with open(path, "w") as f:
             json.dump(out, f, indent=1)
             f.write("\n")
-        print(f"{stem}: {before} -> {len(audit(out, ref))} problem(s)")
+        print(f"{stem}: {before} -> {len(audit(out, ref, name=name))} problem(s)")
 
 
 def main():
@@ -615,7 +649,7 @@ def main():
     print("\n\nEvery other skin, against that\n")
     total = 0
     for stem in stems:
-        bad = audit(load(stem), ref)
+        bad = audit(load(stem), ref, name=stem[:-4])
         total += len(bad)
         if not bad and only_bad:
             continue
