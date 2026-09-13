@@ -7,6 +7,7 @@
 
 class QComboBox;
 class QLineEdit;
+class QPlainTextEdit;
 class QLabel;
 class QListWidget;
 class QSpinBox;
@@ -76,7 +77,7 @@ private:
   QSpinBox* m_fontSize{};
   QCheckBox* m_fontAntialias{};
   QComboBox* m_fontHinting{};
-  QLabel* m_fontPreview{};
+  QPlainTextEdit* m_fontPreview{};
   QLabel* m_fontHint{};
 
   //! Guards the widget -> skin direction while we are loading skin -> widget.

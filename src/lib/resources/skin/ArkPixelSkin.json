@@ -280,6 +280,11 @@
    "family": "Ark Pixel 12px Prop latin",
    "pixelSize": 12,
    "fixedPitch": true
+  },
+  "timecode": {
+   "family": "Ark Pixel 12px Prop latin",
+   "pixelSize": 12,
+   "bold": false
   }
  }
 }

@@ -32,7 +32,7 @@ PALETTE = {k: v for k, v in DEFAULT.items() if not k.startswith("_") and k != "f
 ROLES = [
     "application", "sans", "sansSmall", "mono", "monoSmall",
     "bold10", "bold12", "medium7", "medium8", "medium10", "medium12",
-    "title", "slider", "code",
+    "title", "slider", "code", "timecode",
 ]
 
 
@@ -81,6 +81,9 @@ def graded(name, small, body, large, mono, mono_small, scale):
         "slider": {"family": small[0], "pixelSize": s},
         # Code wants the monospaced face at the body size.
         "code": {"family": mono[0], "pixelSize": mono[1] * scale, "fixedPitch": True},
+        # The transport readout. Heaviest face the family has, at its grid:
+        # this is the largest text on screen, so an off-grid size shows.
+        "timecode": emphasis(body[0], b),
     }
 
 
@@ -107,6 +110,7 @@ def uniform(family, grid, scale, big_title=True):
     fonts["bold10"] = emphasis(family, px)
     fonts["bold12"] = emphasis(family, large)
     fonts["title"] = emphasis(family, large)
+    fonts["timecode"] = emphasis(family, px)
     return fonts
 
 

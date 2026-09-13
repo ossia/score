@@ -367,7 +367,8 @@ std::vector<std::pair<const char*, QFont*>> Skin::fonts() noexcept
       {"medium12", &Medium12Pt},
       {"title", &TitleFont},
       {"slider", &SliderFont},
-      {"code", &CodeFont}};
+      {"code", &CodeFont},
+      {"timecode", &TimecodeFont}};
 }
 
 void Skin::setupFonts()
@@ -416,6 +417,12 @@ void Skin::setupFonts()
   SliderFont = SansFont;
   SliderFont.setPixelSize(10 * 96. / 72.);
   SliderFont.setWeight(QFont::DemiBold);
+
+  // What TransportActions.cpp used to hardcode: QFont("Ubuntu", 18,
+  // DemiBold). 18 pt is 24 px at 96 DPI.
+  TimecodeFont = QFont{"Ubuntu"};
+  TimecodeFont.setPixelSize(24);
+  TimecodeFont.setWeight(QFont::DemiBold);
 
   // The values createScriptWidget() used to hardcode.
   CodeFont = QFont{"IBM Plex Mono"};

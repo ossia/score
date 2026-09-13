@@ -147,6 +147,11 @@ public:
 
   QFont TitleFont;
 
+  //! The transport bar's time readout. Its own role because it is the one
+  //! large piece of text in the UI: a pixel-font skin wants it on the grid
+  //! and unantialiased, which a scaled-up body font cannot give.
+  QFont TimecodeFont;
+
   //! Script and shader editors. Monospaced and usually a size of its own,
   //! since code wants more lines on screen than a settings form does.
   QFont CodeFont;
