@@ -135,7 +135,11 @@ def build(p):
 
         "Base1": rgb(p["aqua"]),
         "Base2": rgb(p["blue"]),
-        "Base3": rgb(p["green"]),
+        # Toward yellow, the way DefaultSkin's play fill is a chartreuse
+        # rather than a green: a plain green sits right next to Base1's aqua,
+        # and telling a running interval from an idle one is the reading you
+        # take at a glance.
+        "Base3": mix(p["green"], p["yellow"], 0.55),
         "Base4": rgb(p["yellow"]),
         "Base5": rgb(p["bg0"]),
 
