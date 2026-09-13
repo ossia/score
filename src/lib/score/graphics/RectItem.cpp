@@ -206,8 +206,15 @@ QRectF BackgroundItem::boundingRect() const
 
 void BackgroundItem::fitChildrenRect()
 {
+  // The rect starts at the origin, so what it has to cover is how far the
+  // children reach from there -- not how wide they are between themselves.
+  // Taking their extent instead left anything sitting at a positive offset
+  // hanging off the far side by exactly that offset, which is how a port ended
+  // up drawn past the edge of the node holding it.
   const auto cld = childrenBoundingRect();
-  setRect(QRectF{0., 0., cld.right() + default_padding - cld.left(), cld.bottom() + default_padding - cld.top()});
+  setRect(QRectF{
+      0., 0., std::max(0., cld.right()) + default_padding,
+      std::max(0., cld.bottom()) + default_padding});
 }
 
 void BackgroundItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
