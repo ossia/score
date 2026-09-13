@@ -40,6 +40,7 @@
 
 #include <score/document/DocumentContext.hpp>
 
+#include <QCheckBox>
 #include <QComboBox>
 #include <QDebug>
 #include <QDoubleSpinBox>
@@ -449,6 +450,9 @@ private:
   //! False when the URL names no format: offer the open-ended pod alone, so
   //! the producer's own list decides rather than a default nobody asked for.
   bool m_formatRequested{};
+  //! dmabuf=off in the URL: offer no modifiers, so the producer can only
+  //! answer with shared memory.
+  bool m_allowDmaBuf{true};
   // When the producer chose DMA-BUF allocation (latched on first
   // DmaBuf frame), m_pixelFormat above transitions to AV_PIX_FMT_DRM_PRIME
   // and m_sw_format below tracks the underlying SW pixel format
@@ -502,6 +506,10 @@ InputStream::InputStream(const QString& path) noexcept
           m_height = v.toInt();
         else if(k == "fps")
           m_fps = v.toDouble();
+        else if(k == "dmabuf")
+        {
+          m_allowDmaBuf = !(v == "off" || v == "false" || v == "0");
+        }
         else if(k == "format")
         {
           // Use the shared Tag-based helper so the URL accepts the
@@ -682,11 +690,12 @@ bool InputStream::start() noexcept
     (void)ok;
 
     // Modifier-aware EnumFormat building via the shared format
-    // negotiation helper. SCORE_PIPEWIRE_FORCE_SHM=1 disables the
-    // DMA-BUF path entirely (useful for debugging modifier mismatches
-    // and for headless test rigs without a working GPU import path).
+    // negotiation helper. dmabuf=off in the URL, or SCORE_PIPEWIRE_FORCE_SHM=1
+    // for a whole run, disables the DMA-BUF path entirely (modifier
+    // mismatches, and headless rigs with no working GPU import path).
     const bool force_shm
-        = qEnvironmentVariableIntValue("SCORE_PIPEWIRE_FORCE_SHM") == 1;
+        = !m_allowDmaBuf
+          || qEnvironmentVariableIntValue("SCORE_PIPEWIRE_FORCE_SHM") == 1;
 
     libremidi::pipewire::format_negotiation neg;
     neg.set_size(m_width, m_height);
@@ -1330,6 +1339,7 @@ private:
   QSpinBox* m_heightEdit{};
   QDoubleSpinBox* m_fpsEdit{};
   QComboBox* m_formatEdit{};
+  QCheckBox* m_dmabufEdit{};
 };
 
 PipeWireDevice::~PipeWireDevice() = default;
@@ -1425,12 +1435,21 @@ PipeWireSettingsWidget::PipeWireSettingsWidget(QWidget* parent)
   for(const auto& f : formats::allTagNames())
     m_formatEdit->addItem(f, f);
 
+  m_dmabufEdit = new QCheckBox(tr("Zero-copy DMA-BUF"), this);
+  m_dmabufEdit->setChecked(true);
+  m_dmabufEdit->setToolTip(
+      tr("Offer DRM format modifiers, so a producer that can hand over a "
+         "DMA-BUF does instead of copying through shared memory. The producer "
+         "decides: shared memory stays on offer either way, and turning this "
+         "off is what to do when a modifier mismatch needs ruling out."));
+
   auto* layout = new QFormLayout;
   layout->addRow(tr("PipeWire Node:"), m_nodeEdit);
   layout->addRow(tr("Width:"), m_widthEdit);
   layout->addRow(tr("Height:"), m_heightEdit);
   layout->addRow(tr("Frame Rate:"), m_fpsEdit);
   layout->addRow(tr("Pixel Format:"), m_formatEdit);
+  layout->addRow(QString(), m_dmabufEdit);
   setLayout(layout);
 
   setSettings(InputFactory{}.defaultSettings());
@@ -1478,6 +1497,8 @@ Device::DeviceSettings PipeWireSettingsWidget::getSettings() const
   // spelling the parser would have to learn.
   if(const auto fmt = m_formatEdit->currentData().toString(); !fmt.isEmpty())
     params += QString("format=%1").arg(fmt);
+  if(!m_dmabufEdit->isChecked())
+    params += QStringLiteral("dmabuf=off");
   path += "?" + params.join("&");
   set.path = path;
   s.deviceSpecificSettings = QVariant::fromValue(set);
@@ -1519,6 +1540,10 @@ void PipeWireSettingsWidget::setSettings(const Device::DeviceSettings& settings)
       const int idx = m_formatEdit->findData(
           formats::tagToString(formats::tagFromString(v)));
       m_formatEdit->setCurrentIndex(idx >= 0 ? idx : 0);
+    }
+    else if(k == "dmabuf")
+    {
+      m_dmabufEdit->setChecked(!(v == "off" || v == "false" || v == "0"));
     }
   }
 }
