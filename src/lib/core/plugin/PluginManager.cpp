@@ -13,6 +13,7 @@
 
 #include <QCoreApplication>
 #include <QDir>
+#include <QStringList>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
@@ -328,7 +329,23 @@ std::optional<score::Addon> makeAddon(
   }
 
   if(add.name.isEmpty() || add.path.isEmpty() || add.key.impl().is_nil())
+  {
+    // Without this, a mismatched architecture key, a missing uuid or a forgotten
+    // name are indistinguishable from the add-on not being there.
+    QStringList reasons;
+    if(add.name.isEmpty())
+      reasons << QStringLiteral("no \"name\"");
+    if(add.key.impl().is_nil())
+      reasons << QStringLiteral("no valid 36-character \"key\" uuid");
+    if(add.path.isEmpty())
+      reasons << QStringLiteral("no library for this architecture (expected key \"%1\", "
+                                "found: %2)")
+                     .arg(addonArchitecture(), json_addon.keys().join(QStringLiteral(", ")));
+
+    qWarning() << "Add-on" << addon_path
+               << "was not loaded:" << reasons.join(QStringLiteral("; "));
     return std::nullopt;
+  }
 
   return add;
 }
