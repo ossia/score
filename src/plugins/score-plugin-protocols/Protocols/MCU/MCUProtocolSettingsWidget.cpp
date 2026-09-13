@@ -197,14 +197,13 @@ MCUSettingsWidget::MCUSettingsWidget(QWidget* parent)
     m_instruments = new QTreeView{m_instrumentBox};
     m_instruments->setModel(m_instrumentFilter);
 
-    // Device names are long and the second column is a hint, so give the first
-    // column the room and let the user take it back.
+    // The header is what the user drags to widen the name column, so it has to
+    // be visible; with two columns it also says which is which.
     auto* header = m_instruments->header();
     header->setSectionResizeMode(QHeaderView::Interactive);
     header->setStretchLastSection(true);
     header->setMinimumSectionSize(60);
-    header->resizeSection(0, 320);
-    m_instruments->setHeaderHidden(true);
+    m_instruments->setHeaderHidden(false);
     m_instruments->setUniformRowHeights(true);
     m_instruments->setAllColumnsShowFocus(true);
     m_instruments->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -434,6 +433,9 @@ void MCUSettingsWidget::populateDeviceMaps()
 {
   m_instrumentModel->clear();
   m_instrumentModel->setHorizontalHeaderLabels({tr("Device"), tr("Configuration")});
+
+  // clear() takes the columns and their widths with it.
+  m_instruments->header()->resizeSection(0, 320);
 
   QStandardItem* groupItem{};
   QString currentGroup;
