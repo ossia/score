@@ -31,10 +31,12 @@
 #include <QGuiApplication>
 #include <QWidget>
 #include <QJsonArray>
+#include <QPalette>
 #include <QJsonObject>
 #include <QTimer>
 
 #include <algorithm>
+#include <optional>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::Skin)
@@ -318,12 +320,15 @@ Skin::Skin() noexcept
           SCORE_INSERT_COLOR_CUSTOM("#000000", "Black")}
 {
   setupFonts();
+  setupPalette();
 
   // Owned here rather than by the application: the early font setup runs
   // before the application context Skin::instance() needs.
   connect(this, &Skin::changed, this, [this] {
     if(qGuiApp && qGuiApp->font() != ApplicationFont)
       score::setupApplicationFont(ApplicationFont);
+    if(qGuiApp && qGuiApp->palette() != WidgetPalette)
+      qGuiApp->setPalette(WidgetPalette);
   });
 
   for(auto& c : m_defaultPalette)
@@ -379,6 +384,117 @@ Skin::Skin() noexcept
       = score::get_cursor(":/icons/cursor_play_from_here.png", hotspotX, hotspotY);
   CursorCreationMode
       = score::get_cursor(":/icons/cursor_creation_mode.png", hotspotY, hotspotX);
+}
+
+const std::vector<std::pair<const char*, QPalette::ColorRole>>&
+Skin::paletteRoles() noexcept
+{
+  // Every role Qt offers, so a skin can name any of them. The keys are Qt's
+  // own names; a skin that leaves one out gets whatever the style computed
+  // for it, which is what keeps the Disabled group sane without spelling it
+  // out role by role.
+  static const std::vector<std::pair<const char*, QPalette::ColorRole>> roles{
+      {"Window", QPalette::Window},
+      {"WindowText", QPalette::WindowText},
+      {"Base", QPalette::Base},
+      {"AlternateBase", QPalette::AlternateBase},
+      {"Text", QPalette::Text},
+      {"PlaceholderText", QPalette::PlaceholderText},
+      {"Button", QPalette::Button},
+      {"ButtonText", QPalette::ButtonText},
+      {"BrightText", QPalette::BrightText},
+      {"Highlight", QPalette::Highlight},
+      {"HighlightedText", QPalette::HighlightedText},
+      {"ToolTipBase", QPalette::ToolTipBase},
+      {"ToolTipText", QPalette::ToolTipText},
+      {"Light", QPalette::Light},
+      {"Midlight", QPalette::Midlight},
+      {"Mid", QPalette::Mid},
+      {"Dark", QPalette::Dark},
+      {"Shadow", QPalette::Shadow},
+      {"Link", QPalette::Link},
+      {"LinkVisited", QPalette::LinkVisited},
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+      {"Accent", QPalette::Accent},
+#endif
+  };
+  return roles;
+}
+
+void Skin::setupPalette()
+{
+  WidgetPalette = qApp ? qApp->palette() : QPalette{};
+
+  // Mirrors DefaultSkin's "palette" block, for skins that name none of it and
+  // for the window that exists before any skin has loaded.
+  WidgetPalette.setBrush(QPalette::Window, QColor("#222222"));
+  WidgetPalette.setBrush(QPalette::Base, QColor("#161514"));
+  WidgetPalette.setBrush(QPalette::AlternateBase, QColor("#1e1d1c"));
+  WidgetPalette.setBrush(QPalette::Highlight, QColor("#9062400a"));
+  WidgetPalette.setBrush(QPalette::HighlightedText, QColor("#FDFDFD"));
+  WidgetPalette.setBrush(QPalette::WindowText, QColor("silver"));
+  WidgetPalette.setBrush(QPalette::Text, QColor("#d0d0d0"));
+  WidgetPalette.setBrush(QPalette::Button, QColor("#1d1c1a"));
+  WidgetPalette.setBrush(QPalette::ButtonText, QColor("#f0f0f0"));
+  WidgetPalette.setBrush(QPalette::PlaceholderText, QColor("#80d0d0d0"));
+  WidgetPalette.setBrush(QPalette::ToolTipBase, QColor("#161514"));
+  WidgetPalette.setBrush(QPalette::ToolTipText, QColor("silver"));
+  WidgetPalette.setBrush(QPalette::Midlight, QColor("#62400a"));
+  WidgetPalette.setBrush(QPalette::Light, QColor("#c58014"));
+  WidgetPalette.setBrush(QPalette::Mid, QColor("#252930"));
+}
+
+void Skin::loadPalette(const QJsonObject& spec)
+{
+  if(spec.isEmpty())
+    return;
+
+  auto colour = [](const QJsonValue& v) -> std::optional<QColor> {
+    if(v.isString())
+    {
+      QColor c{v.toString()};
+      return c.isValid() ? std::optional{c} : std::nullopt;
+    }
+    const auto arr = v.toArray();
+    if(arr.size() == 3)
+      return QColor(arr[0].toInt(), arr[1].toInt(), arr[2].toInt());
+    if(arr.size() == 4)
+      return QColor(arr[0].toInt(), arr[1].toInt(), arr[2].toInt(), arr[3].toInt());
+    return std::nullopt;
+  };
+
+  // A "disabled" object sets the same roles for the disabled group; anything
+  // it leaves out keeps the value Qt derived.
+  const QJsonObject disabled = spec["disabled"].toObject();
+  for(auto& [key, role] : paletteRoles())
+  {
+    if(auto c = colour(spec[QLatin1String(key)]))
+      WidgetPalette.setBrush(QPalette::All, role, *c);
+    if(auto c = colour(disabled[QLatin1String(key)]))
+      WidgetPalette.setBrush(QPalette::Disabled, role, *c);
+  }
+}
+
+QJsonObject Skin::savePalette() const
+{
+  QJsonObject out, disabled;
+  for(auto& [key, role] : paletteRoles())
+  {
+    auto write = [&](QPalette::ColorGroup g, QJsonObject& dst) {
+      const QColor c = WidgetPalette.brush(g, role).color();
+      QJsonArray a{c.red(), c.green(), c.blue()};
+      if(c.alpha() != 255)
+        a.push_back(c.alpha());
+      dst[QLatin1String(key)] = a;
+    };
+    write(QPalette::Active, out);
+    if(WidgetPalette.brush(QPalette::Disabled, role)
+       != WidgetPalette.brush(QPalette::Active, role))
+      write(QPalette::Disabled, disabled);
+  }
+  if(!disabled.isEmpty())
+    out["disabled"] = disabled;
+  return out;
 }
 
 std::vector<std::pair<const char*, QFont*>> Skin::fonts() noexcept
@@ -562,6 +678,11 @@ void Skin::load(const QJsonObject& obj, int parts)
     changed();
     return;
   }
+
+  // Same reset-then-overlay as the fonts, so a skin that names no widget
+  // colours gets the built-in ones rather than the previous skin's.
+  setupPalette();
+  loadPalette(obj["palette"].toObject());
 
   auto fromColor = [&](const QString& key, Brush& col) {
     auto arr = obj[key].toArray();
@@ -789,6 +910,7 @@ QJsonObject Skin::toJson() const
         col.second, QJsonArray{col.first.red(), col.first.green(), col.first.blue()});
   }
   obj["fonts"] = saveFonts();
+  obj["palette"] = savePalette();
   return obj;
 }
 

@@ -92,6 +92,20 @@ def mix(a, b, t):
     return [round(x + (y - x) * t) for x, y in zip(ca, cb)]
 
 
+def idle_hue(p):
+    """The palette entry for the idle interval body.
+
+    Normally the aqua. Some palettes -- Gruvbox is the clearest -- have an
+    aqua that is really a green, and then the idle body and the play fill are
+    the same hue: all the separation has to come out of lightness, and the
+    brighter of the two ends up reading yellow. Where that happens the blue
+    stands in, so the two differ by hue and neither has to be pushed.
+    """
+    ha, _s, _v = contrast.rgb_to_hsv(tuple(rgb(p["aqua"])) + (255,))
+    hg, _s, _v = contrast.rgb_to_hsv(tuple(rgb(p["green"])) + (255,))
+    return p["blue"] if abs((ha - hg + 180) % 360 - 180) < 45 else p["aqua"]
+
+
 def cap_lightness(colour, max_j):
     """Darken `colour` until its CAM16-UCS lightness is at most `max_j`."""
     c = tuple(rgb(colour)) + (255,)
@@ -149,13 +163,11 @@ def build(p):
         # is read against, and several palettes' aqua is so pale that there
         # is no room above it -- the fill then has to go darker than idle,
         # which reads backwards. DefaultSkin keeps idle at J 72.
-        "Base1": cap_lightness(p["aqua"], 76.0),
+        "Base1": cap_lightness(idle_hue(p), 76.0),
         "Base2": rgb(p["blue"]),
-        # Toward yellow, the way DefaultSkin's play fill is a chartreuse
-        # rather than a green: a plain green sits right next to Base1's aqua,
-        # and telling a running interval from an idle one is the reading you
-        # take at a glance.
-        "Base3": mix(p["green"], p["yellow"], 0.55),
+        # The palette's own green, unmixed. Separation from Base1 comes from
+        # the lightness cap on that role, not from tinting this one.
+        "Base3": rgb(p["green"]),
         "Base4": rgb(p["yellow"]),
         "Base5": rgb(p["bg0"]),
 
