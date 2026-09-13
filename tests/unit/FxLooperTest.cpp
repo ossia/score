@@ -15,6 +15,7 @@ namespace
 using Looper = Nodes::AudioLooper::Node;
 using LoopMode = Looper::LoopMode;
 using Postaction = Looper::Postaction;
+using Passthrough = Looper::Passthrough;
 
 // Drives a Looper the way avnd's ossia binding does: the sample pointers handed
 // to the node are already offset by the tick's start sample, and the node is
@@ -314,7 +315,7 @@ TEST_CASE("Looper: recording without passthrough emits silence, not the previous
           "[fx][audio][looper]")
 {
   looper_harness h;
-  h.node.inputs.passthrough.value = false;
+  h.node.inputs.passthrough = Passthrough::None;
   h.fill_input(0, [](int64_t i) { return double(i + 1); });
 
   h.node.inputs.mode = LoopMode::Record;
@@ -322,6 +323,78 @@ TEST_CASE("Looper: recording without passthrough emits silence, not the previous
 
   for(int i = 0; i < 64; i++)
     CHECK(h.out_buf[0][i] == Approx(0.));
+}
+
+// None means none: not in Stop either, which used to bypass whatever the
+// control said.
+TEST_CASE("Looper: no passthrough is silent while stopped", "[fx][audio][looper]")
+{
+  looper_harness h;
+  h.node.inputs.passthrough = Passthrough::None;
+  h.fill_input(0, [](int64_t i) { return double(i + 1); });
+
+  h.node.inputs.mode = LoopMode::Stop;
+  h.run(64);
+
+  for(int i = 0; i < 64; i++)
+    CHECK(h.out_buf[0][i] == Approx(0.));
+}
+
+TEST_CASE("Looper: no passthrough is silent in play with nothing recorded",
+          "[fx][audio][looper]")
+{
+  looper_harness h;
+  h.node.inputs.passthrough = Passthrough::None;
+  h.fill_input(0, [](int64_t i) { return double(i + 1); });
+
+  h.node.inputs.mode = LoopMode::Play;
+  h.run(64);
+
+  for(int i = 0; i < 64; i++)
+    CHECK(h.out_buf[0][i] == Approx(0.));
+}
+
+// Record passthrough is the historical behaviour of the toggle when on: heard
+// while recording, and playback is the loop on its own.
+TEST_CASE("Looper: record passthrough plays the loop without the input",
+          "[fx][audio][looper]")
+{
+  looper_harness h;
+  h.node.inputs.passthrough = Passthrough::Record;
+  h.fill_input(0, [](int64_t i) { return double(i + 1); });
+
+  h.node.inputs.mode = LoopMode::Record;
+  h.run(64);
+  REQUIRE(h.loop().size() == 64);
+
+  h.node.inputs.mode = LoopMode::Play;
+  h.fill_input(0, [](int64_t) { return 100.; });
+  h.reset_output();
+  h.run(64);
+
+  for(int i = 0; i < 64; i++)
+    CHECK(h.out_buf[0][i] == Approx(h.loop()[i]));
+}
+
+TEST_CASE("Looper: full passthrough mixes the input over the loop",
+          "[fx][audio][looper]")
+{
+  looper_harness h;
+  h.node.inputs.passthrough = Passthrough::Record;
+  h.fill_input(0, [](int64_t i) { return double(i + 1); });
+
+  h.node.inputs.mode = LoopMode::Record;
+  h.run(64);
+  REQUIRE(h.loop().size() == 64);
+
+  h.node.inputs.passthrough = Passthrough::Full;
+  h.node.inputs.mode = LoopMode::Play;
+  h.fill_input(0, [](int64_t) { return 100.; });
+  h.reset_output();
+  h.run(64);
+
+  for(int i = 0; i < 64; i++)
+    CHECK(h.out_buf[0][i] == Approx(h.loop()[i] + 100.));
 }
 
 TEST_CASE("Looper: the first buffer, with nothing recorded, is a passthrough",
