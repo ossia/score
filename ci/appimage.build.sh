@@ -1,5 +1,5 @@
 #!/bin/bash -e
-export BUILD_FOLDER=/tmp/build
+export BUILD_FOLDER="${BUILD_FOLDER:-/tmp/build}"
 export SOURCE_FOLDER="$PWD"
 export OSSIA_SDK="/opt/ossia-sdk-${CPU_ARCH}"
 
@@ -48,7 +48,14 @@ fi
 # Under rootless docker the container's root maps to us, so $BUILD_FOLDER is
 # already ours -- no sudo (which the self-hosted runner user isn't granted).
 # Under rootful docker (GitHub-hosted) the files are root-owned and sudo works.
-sudo chown -R "$(whoami)" "$BUILD_FOLDER" 2>/dev/null || chown -R "$(whoami)" "$BUILD_FOLDER" 2>/dev/null || true
+# The container runs as root, so under rootful docker the build output is
+# root-owned. Doing the chown from a container needs no sudo -- being in the
+# docker group is already root-equivalent -- and works the same under rootless
+# docker, where the files are ours to begin with. This must not be allowed to
+# fail quietly: everything below writes into the AppDir, and a swallowed
+# failure here surfaces much later as an unrelated appimagetool error.
+docker run --rm -v "$BUILD_FOLDER":/build_folder alpine \
+  chown -R "$(id -u):$(id -g)" /build_folder
 
 
 wget -nv "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${CPU_ARCH}.AppImage"
@@ -64,7 +71,7 @@ sed -i "s/3.0.0/$GITTAGNOV/" build/score.AppDir/ossia-score.desktop
 cp "$SOURCE_FOLDER/src/lib/resources/ossia-score.png" build/score.AppDir/
 cp "$SOURCE_FOLDER/src/lib/resources/ossia-score.png" build/score.AppDir/.DirIcon
 
-./appimagetool-${CPU_ARCH}.AppImage -n "/tmp/build/score.AppDir" "Score.AppImage" --runtime-file runtime-${CPU_ARCH}
+./appimagetool-${CPU_ARCH}.AppImage -n "$BUILD_FOLDER/score.AppDir" "Score.AppImage" --runtime-file runtime-${CPU_ARCH}
 
 if [[ ! -f "Score.AppImage" ]]; then
   echo "Build failure, Score.AppImage could not be created"
