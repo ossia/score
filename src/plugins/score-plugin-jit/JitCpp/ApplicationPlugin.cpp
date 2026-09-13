@@ -10,8 +10,111 @@
 #include <QCommandLineParser>
 #include <QDir>
 #include <QDirIterator>
+#include <QRegularExpression>
+
+#include <optional>
+#include <vector>
+
 namespace Jit
 {
+namespace
+{
+//! Qualified name of the type whose body contains `pos`.
+//!
+//! An avendish object is an ordinary C++ type, and the factory has to name it.
+//! All the file gives us is where its uuid sits, so walk the scopes that are
+//! still open at that point. Strings, character literals and comments are
+//! skipped because their braces would unbalance the count.
+QString enclosingTypeName(const QString& src, int pos)
+{
+  static const QRegularExpression decl{
+      R"(\b(namespace|struct|class)\s+([A-Za-z_][A-Za-z_0-9]*(?:\s*::\s*[A-Za-z_][A-Za-z_0-9]*)*))"};
+
+  struct Scope
+  {
+    QString name;
+    bool isType{};
+  };
+  std::vector<Scope> open;
+  std::optional<Scope> pending;
+
+  auto matches = decl.globalMatch(src);
+  auto next = matches.hasNext() ? matches.next() : QRegularExpressionMatch{};
+
+  for(int i = 0; i < pos && i < src.size(); ++i)
+  {
+    if(next.hasMatch() && next.capturedStart() == i)
+    {
+      QString name = next.captured(2);
+      name.remove(QChar(' '));
+      pending = Scope{name, next.captured(1) != QLatin1String("namespace")};
+      i = next.capturedEnd() - 1;
+      next = matches.hasNext() ? matches.next() : QRegularExpressionMatch{};
+      continue;
+    }
+
+    const QChar c = src[i];
+    if(c == '/' && i + 1 < src.size())
+    {
+      if(src[i + 1] == '/')
+      {
+        i = src.indexOf(QChar('\n'), i);
+        if(i < 0)
+          break;
+        continue;
+      }
+      if(src[i + 1] == '*')
+      {
+        i = src.indexOf(QStringLiteral("*/"), i + 2);
+        if(i < 0)
+          break;
+        ++i;
+        continue;
+      }
+    }
+    else if(c == '"' || c == '\'')
+    {
+      const QChar quote = c;
+      for(++i; i < src.size(); ++i)
+      {
+        if(src[i] == QChar('\\'))
+          ++i;
+        else if(src[i] == quote)
+          break;
+      }
+      continue;
+    }
+    else if(c == '{')
+    {
+      open.push_back(pending ? *pending : Scope{});
+      pending.reset();
+    }
+    else if(c == '}')
+    {
+      if(!open.empty())
+        open.pop_back();
+    }
+    else if(c == ';')
+    {
+      pending.reset();
+    }
+  }
+
+  QStringList parts;
+  bool sawType = false;
+  for(const Scope& s : open)
+  {
+    if(s.name.isEmpty())
+      continue;
+    parts << s.name;
+    if(s.isType)
+      sawType = true;
+  }
+  if(!sawType)
+    return {};
+  return parts.join(QStringLiteral("::"));
+}
+}
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
     : score::GUIApplicationPlugin{ctx}
 {
@@ -194,18 +297,14 @@ bool ApplicationPlugin::setupNode(const QString& f)
     {
       auto node = file.readAll();
 
-      // score's generic nodes spell it make_uuid("..."), Avendish objects
-      // halp_meta(uuid, "...").
-      //
-      // Note that nothing downstream compiles yet for either: the TU this builds
-      // refers to Control::score_generic_plugin, which does not exist anywhere in
-      // the tree and has to be written before --compile-node works at all.
-      int uuid_decl = node.indexOf("make_uuid");
-      int skip = sizeof("make_uuid") - 1;
+      // Avendish objects spell it halp_meta(uuid, "..."); score's own generic
+      // nodes used make_uuid("...").
+      int uuid_decl = node.indexOf("halp_meta(uuid");
+      int skip = sizeof("halp_meta(uuid") - 1;
       if(uuid_decl == -1)
       {
-        uuid_decl = node.indexOf("halp_meta(uuid");
-        skip = sizeof("halp_meta(uuid") - 1;
+        uuid_decl = node.indexOf("make_uuid");
+        skip = sizeof("make_uuid") - 1;
       }
       if(uuid_decl == -1)
         return false;
@@ -217,19 +316,72 @@ bool ApplicationPlugin::setupNode(const QString& f)
         return false;
       if((umax - umin) != 37)
         return false;
-      auto uuid = QString{node.mid(umin + 1, 36)};
-      uuid.remove(QChar('-'));
+      const auto uuid = QString{node.mid(umin + 1, 36)};
 
-      node.append(
-          R"_(
-            #include <score/plugins/PluginInstances.hpp>
+      const QString source = QString::fromUtf8(node);
+      const QString type = enclosingTypeName(source, umin);
+      if(type.isEmpty())
+      {
+        qDebug() << "Could not find the object declaring the uuid in" << f;
+        return false;
+      }
 
-            SCORE_EXPORT_PLUGIN(Control::score_generic_plugin<Node>)
-            )_");
+      // The same pair of translation units CMake generates for an add-on with a
+      // single avendish object: prototype.cpp.in's custom_factories<T>
+      // specialisation, and plugin_prototype.cpp.in's plug-in around it.
+      QString tu = source;
+      tu += QStringLiteral(R"_(
+#include <Avnd/Factories.hpp>
 
-      qDebug() << "Registering JIT node" << f;
+namespace oscr
+{
+template <>
+void custom_factories<%1>(
+    std::vector<score::InterfaceBase*>& fx,
+    const score::ApplicationContext& ctx, const score::InterfaceKey& key)
+{
+  oscr::instantiate_fx<%1>(fx, ctx, key);
+}
+}
+
+#include <score/application/ApplicationContext.hpp>
+#include <score/plugins/Interface.hpp>
+#include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
+#include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+#include <score/plugins/FactorySetup.hpp>
+#include <score_plugin_engine.hpp>
+
+struct score_jit_node final
+    : public score::FactoryInterface_QtInterface
+    , public score::Plugin_QtInterface
+{
+  SCORE_PLUGIN_METADATA(1, "%2")
+
+  std::vector<score::InterfaceBase*> factories(
+      const score::ApplicationContext& ctx,
+      const score::InterfaceKey& key) const override
+  {
+    std::vector<score::InterfaceBase*> fx;
+    ::oscr::custom_factories<%1>(fx, ctx, key);
+    return fx;
+  }
+
+  std::vector<score::PluginKey> required() const override
+  {
+    return {score_plugin_engine::static_key()};
+  }
+};
+
+#include <score/plugins/PluginInstances.hpp>
+SCORE_EXPORT_PLUGIN(score_jit_node)
+)_")
+                .arg(type, uuid);
+
+      QString id = uuid;
+      id.remove(QChar('-'));
+      qDebug() << "Registering JIT node" << f << "as" << type;
       m_compiler.submitJob(
-          uuid.toStdString(), node.toStdString(), {}, CompilerOptions{false});
+          id.toStdString(), tu.toStdString(), {}, CompilerOptions{false});
       return true;
     }
   }
