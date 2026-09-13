@@ -33,7 +33,7 @@ PALETTE = {k: v for k, v in DEFAULT.items() if not k.startswith("_") and k != "f
 ROLES = [
     "application", "sans", "sansSmall", "mono", "monoSmall",
     "bold10", "bold12", "medium7", "medium8", "medium10", "medium12",
-    "title", "sectionTitle", "slider", "code", "timecode",
+    "title", "sectionTitle", "slider", "ruler", "code", "timecode",
 ]
 
 
@@ -131,6 +131,10 @@ def graded(name, small, body, large, mono, mono_small, scale):
         # a heading without anything having to be faked.
         "sectionTitle": emphasis(large[0], l),
         "slider": plain(small[0], s),
+        # The timeline ruler: the smallest text on screen, on a dense scale,
+        # so the smallest grid the family has and its monospaced face where
+        # there is one -- the numbers sit in columns.
+        "ruler": plain(mono_small[0], mono_small[1] * scale),
         # Code wants the monospaced face at the body size.
         "code": plain(mono[0], mono[1] * scale, fixedPitch=True),
         # The transport readout. Heaviest face the family has, at its grid:
@@ -167,6 +171,8 @@ def uniform(family, grid, scale, big_title=True):
     # the body size is twice it, which reads as a title bar rather than a
     # heading. It takes the family's real bold instead, where there is one.
     fonts["sectionTitle"] = emphasis(family, px)
+    # One grid, so the ruler gets the same size as everything else.
+    fonts["ruler"] = plain(family, px)
     fonts["timecode"] = emphasis(family, px)
     return fonts
 

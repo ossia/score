@@ -39,11 +39,13 @@ MusicalRuler::MusicalRuler(QGraphicsView* v)
   m_width = 800;
   setY(-30.5);
 
-  auto font = score::Skin::instance().MonoFont;
-  font.setWeight(QFont::Normal);
-  font.setPixelSize(10);
-  font.setBold(false);
-  m_layout.setFont(font);
+  // The cached glyph runs are keyed on the time they spell, not on the font,
+  // so they have to go when the font changes.
+  score::onSkinChange(this, [this] {
+    m_layout.setFont(score::Skin::instance().RulerFont);
+    m_stringCache.clear();
+    update();
+  });
 
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setX(0);
@@ -276,11 +278,13 @@ TimeRuler::TimeRuler(QGraphicsView* v)
   m_width = 800;
   setY(-30.5);
 
-  auto font = score::Skin::instance().MonoFont;
-  font.setWeight(QFont::Normal);
-  font.setPixelSize(10);
-  font.setBold(false);
-  m_layout.setFont(font);
+  // The cached glyph runs are keyed on the time they spell, not on the font,
+  // so they have to go when the font changes.
+  score::onSkinChange(this, [this] {
+    m_layout.setFont(score::Skin::instance().RulerFont);
+    m_stringCache.clear();
+    update();
+  });
 
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setX(10);

@@ -291,6 +291,11 @@
    "pixelSize": 11,
    "bold": false
   },
+  "ruler": {
+   "family": "Departure Mono",
+   "pixelSize": 11,
+   "bold": false
+  },
   "code": {
    "family": "Departure Mono",
    "pixelSize": 11,

@@ -281,6 +281,12 @@
    "pixelSize": 13,
    "weight": 600
   },
+  "ruler": {
+   "family": "Courier Prime",
+   "pixelSize": 10,
+   "weight": 400,
+   "fixedPitch": true
+  },
   "code": {
    "family": "IBM Plex Mono",
    "pixelSize": 13,
