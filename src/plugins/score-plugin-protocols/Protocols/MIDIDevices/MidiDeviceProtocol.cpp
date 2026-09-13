@@ -144,13 +144,6 @@ std::vector<std::pair<std::string, int>> uniqueLabels(const Value& v)
   return out;
 }
 
-//! Anything addressed or sent has to fit in a data byte: a value with the top
-//! bit set would be read as the start of another message.
-constexpr bool isDataByte(int v) noexcept
-{
-  return v >= 0 && v <= 127;
-}
-
 //! 14-bit values travel as two 7-bit halves, high first.
 constexpr int msb_of(int v) noexcept
 {
