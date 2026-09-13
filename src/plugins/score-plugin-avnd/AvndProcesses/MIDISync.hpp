@@ -7,6 +7,7 @@
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/protocol.hpp>
 #include <ossia/protocols/midi/midi_protocol.hpp>
+#include <ossia/protocols/midi/midi_stream.hpp>
 
 #include <halp/audio.hpp>
 #include <halp/controls.hpp>
@@ -108,7 +109,7 @@ struct MIDISyncOut
   halp_flag(process_exec);
 
   ossia::exec_state_facade ossia_state;
-  std::atomic<ossia::net::midi::midi_protocol*> midi_out{};
+  std::atomic<ossia::net::midi::midi_stream*> midi_out{};
   std::atomic<MidiStartStopEvent> next_event_midiclock{};
   std::atomic<MidiStartStopEvent> next_event_mtc{};
   std::atomic<double> current_song_pos{};
@@ -537,7 +538,7 @@ struct MIDISyncOut
     if(outputs.midi.ossia_node)
     {
       auto& proto = outputs.midi.ossia_node->get_device().get_protocol();
-      if(auto mp = dynamic_cast<ossia::net::midi::midi_protocol*>(&proto))
+      if(auto mp = dynamic_cast<ossia::net::midi::midi_stream*>(&proto))
         midi_out = mp;
     }
 
