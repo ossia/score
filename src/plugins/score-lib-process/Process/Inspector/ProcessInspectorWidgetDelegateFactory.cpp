@@ -10,6 +10,7 @@
 #include <Effect/EffectLayer.hpp>
 #include <Inspector/InspectorLayout.hpp>
 
+#include <score/model/Skin.hpp>
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -96,10 +97,9 @@ public:
               ? QStringLiteral("Process (%1)").arg(proc_name)
               : QStringLiteral("Process (%1: %2)").arg(type_name, proc_name);
     auto label = new TextLabel{label_text, this};
-    auto f = label->font();
-    f.setBold(true);
-    f.setPixelSize(12); // See InspectorWidgetBase
-    label->setFont(f);
+    score::onSkinChange(label, [label] {
+      label->setFont(score::Skin::instance().SectionTitleFont);
+    });
     lay->addWidget(label);
 
     QWidget* loop_w{};
@@ -133,7 +133,7 @@ public:
         loop_btn->setToolTip(tr("Loop"));
 
         loop_btn->setAutoRaise(true);
-        loop_btn->setIconSize(QSize{28, 28});
+        score::setSkinIconSize(loop_btn, 28);
         loop_btn->setCheckable(true);
         loop_btn->setChecked(process.loops());
         connect(loop_btn, &QToolButton::toggled, this, [&](bool b) {
@@ -201,7 +201,7 @@ public:
         score::setHelp(uiToggle, tr("Edit this plug-in script"));
         uiToggle->setToolTip(tr("Open script editor"));
         uiToggle->setAutoRaise(true);
-        uiToggle->setIconSize(QSize{28, 28});
+        score::setSkinIconSize(uiToggle, 28);
         uiToggle->setCheckable(true);
         uiToggle->setChecked(bool(process.scriptUI));
 
@@ -240,7 +240,7 @@ public:
         score::setHelp(uiToggle, tr("Show the custom user interface of this plug-in"));
         uiToggle->setToolTip(tr("Open plug-in"));
         uiToggle->setAutoRaise(true);
-        uiToggle->setIconSize(QSize{28, 28});
+        score::setSkinIconSize(uiToggle, 28);
         uiToggle->setCheckable(true);
         uiToggle->setChecked(bool(process.externalUI));
 
@@ -281,7 +281,7 @@ public:
                              "in the main window"));
       controlsToggle->setToolTip(tr("Edit controls"));
       controlsToggle->setAutoRaise(true);
-      controlsToggle->setIconSize(QSize{28, 28});
+      score::setSkinIconSize(controlsToggle, 28);
       controlsToggle->setCheckable(true);
       controlsToggle->setChecked(false);
       connect(controlsToggle, &QToolButton::toggled, this, [&process](bool state) {

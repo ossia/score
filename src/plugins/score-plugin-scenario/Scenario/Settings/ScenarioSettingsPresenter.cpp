@@ -8,6 +8,7 @@
 #include <score/command/Command.hpp>
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/SettingsCommand.hpp>
+#include <score/model/Skin.hpp>
 #include <score/widgets/SetIcons.hpp>
 
 #include <QApplication>
@@ -23,30 +24,31 @@ namespace Settings
 Presenter::Presenter(Model& m, View& v, QObject* parent)
     : score::GlobalSettingsPresenter{m, v, parent}
 {
+  SETTINGS_PRESENTER(Skin);
   SETTINGS_PRESENTER(DefaultEditor);
   SETTINGS_PRESENTER(ScriptEditorPlacement);
   SETTINGS_PRESENTER(ProcessUIPlacement);
   SETTINGS_PRESENTER(ScriptEditorPreview);
-  SETTINGS_PRESENTER(Skin);
   SETTINGS_PRESENTER(SlotHeight);
   SETTINGS_PRESENTER(AutoSequence);
   SETTINGS_PRESENTER(TimeBar);
   SETTINGS_PRESENTER(MeasureBars);
   SETTINGS_PRESENTER(MagneticMeasures);
   SETTINGS_PRESENTER(DefaultDuration);
-  SETTINGS_PRESENTER(FontSize);
-  SETTINGS_PRESENTER(FontHinting);
   SETTINGS_PRESENTER(UpdateRate);
   SETTINGS_PRESENTER(ExecutionRefreshRate);
   SETTINGS_PRESENTER(ExecutionUpdate);
 
   con(v, &View::zoomChanged, this, [&](auto val) {
     if(val != m.getGraphicZoom())
-    {
       m_disp.submit<SetModelGraphicZoom>(this->model(this), 0.01 * double(val));
-    }
   });
-  con(m, &Model::GraphicZoomChanged, this, [&](double z) { v.setZoom((100 * z)); });
+  con(m, &Model::GraphicZoomChanged, this, [&m, &v](double z) {
+    v.setZoom((100 * z));
+    // Apply to the running application where the Qt version allows it,
+    // rather than only on the next start.
+    score::setGlobalScaleFactor(z);
+  });
   v.setZoom(m.getGraphicZoom() * 100);
 }
 

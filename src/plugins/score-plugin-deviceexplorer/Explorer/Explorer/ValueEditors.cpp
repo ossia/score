@@ -4,6 +4,7 @@
 #include <State/ValueConversion.hpp>
 #include <State/Widgets/Values/ExpandableTextEdit.hpp>
 
+#include <score/model/Skin.hpp>
 #include <score/widgets/DoubleSlider.hpp>
 #include <score/widgets/IntSlider.hpp>
 #include <score/widgets/MarginLess.hpp>
@@ -1753,7 +1754,10 @@ void fitEditorToCell(QWidget& editor, const QRect& cell)
       {
         if(f.pixelSize() <= 7)
           break;
-        f.setPixelSize(f.pixelSize() - 1);
+        const int smaller = score::snapToFontGrid(f, f.pixelSize() - 1);
+        if(smaller >= f.pixelSize())
+          break; // A pixel font with no smaller grid step: stop shrinking.
+        f.setPixelSize(smaller);
       }
 
       editor.setFont(f);

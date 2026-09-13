@@ -1,55 +1,302 @@
 {
-"Dark" : [ 0, 0, 0 ],
-"HalfDark" : [55, 55, 55 ],
-"DarkGray" : [61, 61, 61],
-"Gray" : [ 127, 127, 127],
-"LightGray" : [163, 163, 163],
-"HalfLight" : [ 200, 200, 200 ],
-"Light" : [ 255, 255, 255 ],
-
-"Emphasis1" : [ 0, 255, 255 ],
-"Emphasis2" : [54, 54, 54],
-"Emphasis3" : [179, 90, 209],
-"Emphasis4" : [255, 255, 255],
-"Emphasis5" : [47, 47, 47],
-
-"Base1" : [103, 171, 172],
-"Base2" : [3, 150, 250],
-"Base3" : [148, 255, 0],
-"Base4" : [224, 176, 30],
-"Base5" : [24, 24, 24],
-
-"Warn1" : [255, 255, 0],
-"Warn2" : [200,150,0],
-"Warn3" : [255, 0, 0],
-
-"Background1" : [31, 31, 32],
-"Background2" : [36, 37, 38],
-
-"Transparent1" : [19,19,19],
-"Transparent2" : [170, 170, 170],
-"Transparent3" : [37, 41, 48],
-
-"Smooth1" : [222, 0, 0],
-"Smooth2" : [109,222,0],
-"Smooth3" : [240, 220, 0],
-
-"Tender1" : [199, 31, 44],
-"Tender2" : [216, 178, 24],
-"Tender3" : [56, 51, 40],
-
-"Cable1" : [153, 102, 102, 136],
-"Cable2" : [102, 153, 102, 136],
-"Cable3" : [153, 102, 221, 136],
-
-"SelectedCable1" : [153, 102, 102, 204],
-"SelectedCable2" : [102, 153, 102, 204],
-"SelectedCable3" : [153, 102, 221, 204],
-
-"Port1" : [219, 36, 31],
-"Port2" : [167, 221, 13],
-"Port3" : [0, 147, 255],
-
-"Pulse1" : [34, 224, 0],
-"Pulse2" : [3, 150, 250]
+ "Dark": [
+  0,
+  0,
+  0
+ ],
+ "HalfDark": [
+  55,
+  55,
+  55
+ ],
+ "DarkGray": [
+  61,
+  61,
+  61
+ ],
+ "Gray": [
+  127,
+  127,
+  127
+ ],
+ "LightGray": [
+  163,
+  163,
+  163
+ ],
+ "HalfLight": [
+  200,
+  200,
+  200
+ ],
+ "Light": [
+  255,
+  255,
+  255
+ ],
+ "Emphasis1": [
+  0,
+  255,
+  255
+ ],
+ "Emphasis2": [
+  54,
+  54,
+  54
+ ],
+ "Emphasis3": [
+  179,
+  90,
+  209
+ ],
+ "Emphasis4": [
+  255,
+  255,
+  255
+ ],
+ "Emphasis5": [
+  47,
+  47,
+  47
+ ],
+ "Base1": [
+  103,
+  171,
+  172
+ ],
+ "Base2": [
+  3,
+  150,
+  250
+ ],
+ "Base3": [
+  148,
+  255,
+  0
+ ],
+ "Base4": [
+  224,
+  176,
+  30
+ ],
+ "Base5": [
+  24,
+  24,
+  24
+ ],
+ "Warn1": [
+  255,
+  255,
+  0
+ ],
+ "Warn2": [
+  200,
+  150,
+  0
+ ],
+ "Warn3": [
+  255,
+  0,
+  0
+ ],
+ "Background1": [
+  31,
+  31,
+  32
+ ],
+ "Background2": [
+  36,
+  37,
+  38
+ ],
+ "Transparent1": [
+  19,
+  19,
+  19
+ ],
+ "Transparent2": [
+  170,
+  170,
+  170
+ ],
+ "Transparent3": [
+  37,
+  41,
+  48
+ ],
+ "Smooth1": [
+  222,
+  0,
+  0
+ ],
+ "Smooth2": [
+  109,
+  222,
+  0
+ ],
+ "Smooth3": [
+  240,
+  220,
+  0
+ ],
+ "Tender1": [
+  199,
+  31,
+  44
+ ],
+ "Tender2": [
+  216,
+  178,
+  24
+ ],
+ "Tender3": [
+  56,
+  51,
+  40
+ ],
+ "Cable1": [
+  153,
+  102,
+  102,
+  136
+ ],
+ "Cable2": [
+  102,
+  153,
+  102,
+  136
+ ],
+ "Cable3": [
+  153,
+  102,
+  221,
+  136
+ ],
+ "SelectedCable1": [
+  153,
+  102,
+  102,
+  204
+ ],
+ "SelectedCable2": [
+  102,
+  153,
+  102,
+  204
+ ],
+ "SelectedCable3": [
+  153,
+  102,
+  221,
+  204
+ ],
+ "Port1": [
+  219,
+  36,
+  31
+ ],
+ "Port2": [
+  167,
+  221,
+  13
+ ],
+ "Port3": [
+  0,
+  147,
+  255
+ ],
+ "Pulse1": [
+  34,
+  224,
+  0
+ ],
+ "Pulse2": [
+  3,
+  150,
+  250
+ ],
+ "fonts": {
+  "_comment": "The default fonts, and the values Skin::setupFonts() mirrors in C++. Sizes are in pixels throughout, on purpose: a point size goes through the screen DPI -- 72 on macOS, 96 elsewhere -- and lands somewhere different on each, which is what made the same score look shrunk on a Mac. Weights are the Qt 6 scale: Normal 400, DemiBold 600, Black 900.",
+  "application": {
+   "family": "Ubuntu",
+   "pixelSize": 13
+  },
+  "sans": {
+   "family": "Ubuntu",
+   "pixelSize": 16
+  },
+  "sansSmall": {
+   "family": "Ubuntu",
+   "pixelSize": 9
+  },
+  "mono": {
+   "family": "Courier Prime",
+   "pixelSize": 13,
+   "weight": 900,
+   "fixedPitch": true
+  },
+  "monoSmall": {
+   "family": "Ubuntu",
+   "pixelSize": 9,
+   "weight": 400
+  },
+  "bold10": {
+   "family": "Ubuntu",
+   "pixelSize": 13,
+   "bold": true
+  },
+  "bold12": {
+   "family": "Ubuntu",
+   "pixelSize": 16,
+   "bold": true
+  },
+  "medium7": {
+   "family": "Ubuntu",
+   "pixelSize": 9
+  },
+  "medium8": {
+   "family": "Ubuntu",
+   "pixelSize": 10
+  },
+  "medium10": {
+   "family": "Ubuntu",
+   "pixelSize": 13
+  },
+  "medium12": {
+   "family": "Ubuntu",
+   "pixelSize": 16
+  },
+  "title": {
+   "family": "Ubuntu",
+   "pixelSize": 14,
+   "bold": true
+  },
+  "sectionTitle": {
+   "family": "Ubuntu",
+   "pixelSize": 12,
+   "bold": true
+  },
+  "slider": {
+   "family": "Ubuntu",
+   "pixelSize": 13,
+   "weight": 600
+  },
+  "ruler": {
+   "family": "Courier Prime",
+   "pixelSize": 10,
+   "weight": 400,
+   "fixedPitch": true
+  },
+  "code": {
+   "family": "IBM Plex Mono",
+   "pixelSize": 13,
+   "fixedPitch": true,
+   "hinting": "Vertical"
+  },
+  "timecode": {
+   "family": "Ubuntu",
+   "pixelSize": 24,
+   "weight": 600
+  }
+ }
 }

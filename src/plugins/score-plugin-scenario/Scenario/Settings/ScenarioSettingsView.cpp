@@ -2,6 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioSettingsView.hpp"
 
+#include <Scenario/Settings/SkinEditorWidget.hpp>
+
 #include <Process/UIPlacement.hpp>
 
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
@@ -23,6 +25,7 @@
 #include <QComboBox>
 #include <QDialog>
 #include <QDir>
+#include <QDirIterator>
 #include <QFileDialog>
 #include <QFormLayout>
 #include <QJsonArray>
@@ -33,7 +36,9 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
+#include <QRegularExpression>
 #include <QSpinBox>
+#include <QTabWidget>
 #include <QTextEdit>
 #include <QtColorWidgets/ColorWheel>
 
@@ -44,118 +49,6 @@ namespace Scenario
 namespace Settings
 {
 
-class ThemeDialog : public QDialog
-{
-  W_OBJECT(ThemeDialog)
-
-public:
-  QHBoxLayout layout;
-  QFormLayout sublay;
-  QListWidget list;
-  QLineEdit hexa;
-  QLineEdit rgb;
-  QPushButton save{tr("Save")};
-  color_widgets::ColorWheel wheel;
-
-  void skinSaved(const QString& arg_1) W_SIGNAL(skinSaved, arg_1);
-
-  ThemeDialog(const QString& skinFile, QWidget* p)
-      : QDialog{p}
-  {
-    setWindowTitle(tr("Edit skin"));
-
-    layout.addWidget(&list);
-    layout.addLayout(&sublay);
-
-    wheel.setMinimumSize(QSize{100, 100});
-    wheel.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    sublay.setWidget(0, QFormLayout::SpanningRole, &wheel);
-
-    sublay.addRow(tr("HEX"), &hexa);
-    sublay.addRow(tr("RGB"), &rgb);
-    sublay.addWidget(&save);
-    this->setLayout(&layout);
-    score::Skin& s = score::Skin::instance();
-    for(auto& col : s.getColors())
-    {
-      QPixmap p{16, 16};
-      p.fill(col.first);
-      list.addItem(new QListWidgetItem(p, col.second));
-    }
-
-    connect(
-        &list, &QListWidget::currentItemChanged, this,
-        [&](QListWidgetItem* cur, auto prev) {
-      if(cur)
-        wheel.setColor(s.fromString(cur->text())->color());
-        });
-
-    connect(&wheel, &color_widgets::ColorWheel::colorChanged, this, [&](QColor c) {
-      if(list.currentItem())
-      {
-        if(auto brush = s.fromString(list.currentItem()->text()))
-          brush->reload(c);
-        QPixmap p{16, 16};
-        p.fill(c);
-        list.currentItem()->setIcon(p);
-        s.changed();
-        hexa.setText(c.name(QColor::HexRgb));
-        rgb.setText(QString("%1, %2, %3").arg(c.red()).arg(c.green()).arg(c.blue()));
-      }
-    });
-
-    connect(&hexa, &QLineEdit::textChanged, this, [this, &s](const QString& txt) {
-      auto item = list.currentItem();
-      if(!item)
-        return;
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-      if(!QColor::isValidColorName(txt))
-        return;
-#else
-      if(!QColor::isValidColor(txt))
-        return;
-#endif
-      auto c = QColor(txt);
-      auto brush = s.fromString(item->text());
-      if(brush->color() != c)
-      {
-        QPixmap p{16, 16};
-        p.fill(c);
-        item->setIcon(p);
-        brush->reload(c);
-        rgb.setText(QString("%1, %2, %3").arg(c.red()).arg(c.green()).arg(c.blue()));
-        s.changed();
-        wheel.setColor(c);
-      }
-    });
-
-    connect(&save, &QPushButton::clicked, this, [&] {
-      auto f = QFileDialog::getSaveFileName(
-          nullptr, tr("Save edited skin file"), score::pickerStartFolder(skinFile),
-          tr("*.json"));
-      if(f.isEmpty())
-        return;
-      QFile fl{f};
-      fl.open(QIODevice::WriteOnly);
-      if(!fl.isOpen())
-        return;
-
-      QJsonObject obj;
-      for(auto& col : score::Skin::instance().getColors())
-      {
-        obj.insert(
-            col.second,
-            QJsonArray{col.first.red(), col.first.green(), col.first.blue()});
-      }
-
-      QJsonDocument doc;
-      doc.setObject(obj);
-      fl.write(doc.toJson());
-      skinSaved(f);
-    });
-  }
-};
-W_OBJECT_IMPL(ThemeDialog);
 
 View::View()
 {
@@ -164,67 +57,6 @@ View::View()
   auto lay = m_widg->layout();
   lay->setLabelAlignment(Qt::AlignLeft);
   lay->setSpacing(10);
-
-  // SKIN
-  {
-
-    m_skin = new QComboBox;
-    m_skin->addItem("Default", ":/skin/DefaultSkin.json");
-
-    const QString skinPath = score::AppContext()
-                                 .settings<Library::Settings::Model>()
-                                 .getDefaultLibraryPath()
-                             + "/Skins/";
-    QDir skinDir(skinPath, "*.json");
-    auto skinList = skinDir.entryList();
-    for(const auto& skin : skinList)
-    {
-      auto name = skin;
-      name.remove(".json");
-      m_skin->addItem(name, QVariant{skinPath + "/" + skin});
-    }
-
-    auto ls = new QPushButton{tr("Browse...")};
-    ls->setMaximumWidth(100);
-    connect(ls, &QPushButton::clicked, this, [this, skinPath] {
-      auto f = QFileDialog::getOpenFileName(
-          nullptr, tr("Load skin"), score::pickerStartFolder(skinPath), tr("*.json"));
-      if(!f.isEmpty())
-      {
-        SkinChanged(f);
-      }
-    });
-
-    auto es = new QPushButton{tr("Edit")};
-    es->setMaximumWidth(100);
-
-    connect(es, &QPushButton::clicked, this, [=] {
-      QString skinToEditPath = m_skin->currentData().toString();
-      if(m_skin->currentText() == tr("Default"))
-        skinToEditPath = skinPath;
-      ThemeDialog d{skinToEditPath, nullptr};
-      connect(&d, &ThemeDialog::skinSaved, this, [&](const QString& skin) {
-        SkinChanged(skin);
-      });
-
-      d.exec();
-    });
-
-    auto subw = new QWidget;
-    auto sublay = new score::MarginLess<QHBoxLayout>{subw};
-    sublay->addWidget(m_skin);
-    sublay->addWidget(ls);
-    sublay->addWidget(es);
-
-    lay->addRow(tr("Skin"), subw);
-
-    connect(
-        m_skin, SignalUtils::QComboBox_currentIndexChanged_int(), this,
-        [this](int index) {
-      auto skinPath = m_skin->itemData(index).toString();
-      SkinChanged(skinPath);
-        });
-  }
 
   {
     auto subw = new QWidget;
@@ -274,35 +106,17 @@ View::View()
       tr("Where the custom user interfaces of processes open, when they can be "
          "embedded (JS UIs). Plug-ins with a native window (VST, LV2, CLAP...) "
          "always open in a separate window."));
-  // ZOOM
+  // Below Qt 6.6 the factor cannot change on a running application; say so.
   m_zoomSpinBox = new QSpinBox;
   m_zoomSpinBox->setMinimum(100);
   m_zoomSpinBox->setMaximum(200);
-
+  m_zoomSpinBox->setSuffix(tr("%"));
   connect(
       m_zoomSpinBox, SignalUtils::QSpinBox_valueChanged_int(), this, &View::zoomChanged);
-
-  m_zoomSpinBox->setSuffix(tr("%"));
-
-  lay->addRow(tr("Graphical Zoom (needs restart)"), m_zoomSpinBox);
-
-  // BASE FONT
-  SETTINGS_UI_SPINBOX_SETUP("Font size (needs restart)", FontSize);
-  m_FontSize->setRange(8, 32);
-  m_FontSize->setSuffix(tr(" px"));
-  score::setHelp(
-      this->m_FontSize,
-      tr("Size of the base user interface font, in pixels. Applies to both the "
-         "widgets and the Qt Quick panels, which share the same rasteriser."));
-
-  SETTINGS_UI_COMBOBOX_SETUP(
-      "Font hinting (needs restart)", FontHinting,
-      QStringList() << tr("None") << tr("Vertical") << tr("Full"));
-  score::setHelp(
-      this->m_FontHinting,
-      tr("How glyphs are snapped to the pixel grid. Full gives the crispest "
-         "stems at small sizes; Vertical keeps the font's designed letter "
-         "spacing and looks smoother; None leaves the outline unhinted."));
+  lay->addRow(
+      score::canSetGlobalScaleFactorLive() ? tr("Graphical Zoom")
+                                           : tr("Graphical Zoom (needs restart)"),
+      m_zoomSpinBox);
 
   // SLOT HEIGHT
   m_slotHeightBox = new QSpinBox;
@@ -349,8 +163,6 @@ View::View()
 SETTINGS_UI_COMBOBOX_IMPL(ScriptEditorPlacement)
 SETTINGS_UI_COMBOBOX_IMPL(ProcessUIPlacement)
 SETTINGS_UI_COMBOBOX_IMPL(ScriptEditorPreview)
-SETTINGS_UI_SPINBOX_IMPL(FontSize)
-SETTINGS_UI_COMBOBOX_IMPL(FontHinting)
 SETTINGS_UI_SPINBOX_IMPL(UpdateRate)
 SETTINGS_UI_SPINBOX_IMPL(ExecutionRefreshRate)
 SETTINGS_UI_TOGGLE_IMPL(TimeBar)
@@ -358,38 +170,15 @@ SETTINGS_UI_TOGGLE_IMPL(MeasureBars)
 SETTINGS_UI_TOGGLE_IMPL(MagneticMeasures)
 SETTINGS_UI_TOGGLE_IMPL(ExecutionUpdate)
 
-void View::setSkin(const QString& val)
-{
-  if(val != m_skin->currentText())
-  {
-    int index = m_skin->findData(val);
-    if(index != -1)
-    {
-      m_skin->setCurrentIndex(index);
-    }
-    else
-    {
-      m_skin->addItem(val, QVariant{val});
-      m_skin->setCurrentIndex(m_skin->count() - 1);
-    }
-  }
-}
-
 void View::setDefaultEditor(QString val)
 {
   if(val != m_editor->text())
     m_editor->setText(val);
 }
-void View::setZoom(const int val)
-{
-  if(val != m_zoomSpinBox->value())
-    m_zoomSpinBox->setValue(val);
-}
 
 void View::setDefaultDuration(const TimeVal& t)
 {
-  if(t != m_defaultDur->time())
-    m_defaultDur->setTime(t);
+  m_defaultDur->setTime(t);
 }
 
 void View::setSlotHeight(const double val)
@@ -406,7 +195,37 @@ void View::setAutoSequence(const bool val)
 
 QWidget* View::getWidget()
 {
-  return m_widg;
+  if(!m_tabs)
+  {
+    m_tabs = new QTabWidget;
+    m_tabs->addTab(m_widg, tr("Interface"));
+
+    // Inlined rather than a dialog: it edits the live skin, so there is
+    // nothing to confirm.
+    m_skinEditor = new SkinEditorWidget;
+    m_tabs->addTab(m_skinEditor, tr("Skin"));
+    connect(
+        m_skinEditor, &SkinEditorWidget::skinChanged, this,
+        [this](const QString& s) { SkinChanged(s); });
+
+    // Whatever the presenter told us before this existed.
+    if(!m_pendingSkin.isEmpty())
+      m_skinEditor->setSkin(m_pendingSkin);
+  }
+  return m_tabs;
+}
+
+void View::setSkin(const QString& val)
+{
+  m_pendingSkin = val;
+  if(m_skinEditor)
+    m_skinEditor->setSkin(val);
+}
+
+void View::setZoom(const int val)
+{
+  if(val != m_zoomSpinBox->value())
+    m_zoomSpinBox->setValue(val);
 }
 }
 }

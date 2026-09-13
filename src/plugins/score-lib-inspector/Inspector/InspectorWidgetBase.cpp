@@ -4,6 +4,7 @@
 
 #include <Inspector/InspectorLayout.hpp>
 
+#include <score/model/Skin.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/IdentifiedObjectAbstract.hpp>
@@ -30,10 +31,9 @@ InspectorWidgetBase::InspectorWidgetBase(
   setLayout(m_layout);
 
   m_label = new TextLabel{name, this};
-  auto f = m_label->font();
-  f.setBold(true);
-  f.setPixelSize(12);
-  m_label->setFont(f);
+  score::onSkinChange(m_label, [l = m_label] {
+    l->setFont(score::Skin::instance().SectionTitleFont);
+  });
   m_sections.push_back(m_label);
 
   // scroll Area

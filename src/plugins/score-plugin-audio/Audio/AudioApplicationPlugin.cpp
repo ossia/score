@@ -9,6 +9,7 @@
 #include <Audio/AudioTick.hpp>
 #include <Audio/Settings/Model.hpp>
 
+#include <score/model/Skin.hpp>
 #include <score/actions/ActionManager.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/widgets/ControlWidgets.hpp>
@@ -147,7 +148,10 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
   {
     auto bar = new QToolBar(tr("Volume"));
     auto sl = new score::VolumeSlider{bar};
-    sl->setFixedSize(100, 20);
+    // Pinned, or the toolbar stretches it across whatever room is left.
+    score::onSkinChange(sl, [sl] {
+      sl->setFixedSize(score::scaledPixels(100), sl->skinExtent());
+    });
     sl->setValue(0.5);
     score::setHelp(sl, "Change the master volume");
     bar->addWidget(sl);

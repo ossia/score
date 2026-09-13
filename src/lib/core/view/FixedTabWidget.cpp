@@ -1,5 +1,6 @@
 #include "FixedTabWidget.hpp"
 
+#include <score/model/Skin.hpp>
 #include <score/widgets/HelpInteraction.hpp>
 
 #include <QActionGroup>
@@ -33,7 +34,7 @@ FixedTabWidget::FixedTabWidget() noexcept
   QPalette transp = this->palette();
   transp.setColor(QPalette::Window, Qt::transparent);
   m_buttons->setPalette(transp);
-  m_buttons->setIconSize(QSize{24, 24});
+  score::setSkinIconSize(m_buttons, 24);
   m_buttons->setContentsMargins(0, 0, 0, 0);
 
   m_actGrp = new QActionGroup{m_buttons};

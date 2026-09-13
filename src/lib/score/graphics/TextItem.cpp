@@ -36,7 +36,11 @@ SimpleTextItem::SimpleTextItem(const score::BrushSet& col, QGraphicsItem* p)
     : QGraphicsItem{p}
     , m_color{&col}
 {
-  setFont(score::Skin::instance().Medium8Pt);
+  auto& skin = score::Skin::instance();
+  setFont(skin.Medium8Pt);
+
+  // The glyphs are cached into m_line, so nothing re-renders without this.
+  QObject::connect(&skin, &score::Skin::changed, this, [this] { updateImpl(); });
 }
 
 QRectF SimpleTextItem::boundingRect() const
@@ -53,7 +57,7 @@ void SimpleTextItem::paint(
     static const auto& skin = score::Skin::instance();
     if(m_color)
       painter->setPen(m_color->pen1);
-    painter->setFont(m_font);
+    painter->setFont(m_paintFont);
     painter->setBrush(skin.NoBrush);
     painter->drawText(QPointF{0, (float)m_rect.height() - 2.}, m_string);
   }
@@ -66,8 +70,10 @@ void SimpleTextItem::paint(
 
 void SimpleTextItem::setFont(const QFont& f)
 {
-  m_font = f;
-  m_font.setStyleStrategy(QFont::PreferAntialias);
+  // Deliberately no setStyleStrategy(PreferAntialias): that also turns on
+  // subpixel glyph positioning, and these items sit at fractional device
+  // offsets, which splits a pixel font's 1 px stems across two columns.
+  m_font = &f;
   updateImpl();
 }
 
@@ -97,6 +103,13 @@ void SimpleTextItem::updateImpl()
 {
   prepareGeometryChange();
 
+  // The skin's fonts disable merging, right for a widget label in a pixel
+  // font. These carry names the user typed, in any script, so it comes back
+  // on here and only here.
+  m_paintFont = m_font ? *m_font : QFont{};
+  m_paintFont.setStyleStrategy(QFont::StyleStrategy(
+      int(m_paintFont.styleStrategy()) & ~int(QFont::NoFontMerging)));
+
   if(m_string.isEmpty())
   {
     m_rect = QRectF{};
@@ -104,7 +117,7 @@ void SimpleTextItem::updateImpl()
   }
   else
   {
-    QTextLayout layout(m_string, m_font);
+    QTextLayout layout(m_string, m_paintFont);
     layout.beginLayout();
     auto line = layout.createLine();
     layout.endLayout();

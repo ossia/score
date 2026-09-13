@@ -10,6 +10,7 @@
 
 #include <Inspector/InspectorLayout.hpp>
 
+#include <score/model/Skin.hpp>
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -217,7 +218,7 @@ QLabel* PortWidgetSetup::setupImpl(
   auto hl = new score::MarginLess<QHBoxLayout>{widg};
 
   auto advBtn = new QToolButton{widg};
-  advBtn->setIconSize(QSize{16, 16});
+  score::setSkinIconSize(advBtn, 16);
   hl->addWidget(advBtn);
 
   auto lab = new TextLabel{txt, widg};

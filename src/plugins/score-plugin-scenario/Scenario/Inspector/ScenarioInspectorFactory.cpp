@@ -2,6 +2,7 @@
 
 #include <Scenario/Commands/Scenario/Properties.hpp>
 
+#include <score/model/Skin.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/widgets/HelpInteraction.hpp>
@@ -52,7 +53,7 @@ void InspectorWidgetDelegateFactory::addButtons(
     sigWidg->setCheckable(true);
     sigWidg->setAutoRaise(true);
     sigWidg->setChecked(model.exclusive());
-    sigWidg->setIconSize(QSize{28, 28});
+    score::setSkinIconSize(sigWidg, 28);
 
     QObject::connect(
         sigWidg, &QToolButton::toggled, (QObject*)&proc, [&doc, &model](bool b) {

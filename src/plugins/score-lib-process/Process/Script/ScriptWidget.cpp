@@ -1,6 +1,7 @@
 #include <Process/Script/ScriptWidget.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/model/Skin.hpp>
 #include <score/tools/File.hpp>
 
 #include <QCXXHighlighter>
@@ -103,14 +104,12 @@ QSyntaxStyle* overlayScriptStyle()
 QTextEdit* createScriptWidget(const std::string_view language)
 {
   auto edit = new QCodeEditor{};
-  // px, not pt: pt would shrink on macOS' 72 DPI.
-  auto font = QFont("IBM Plex Mono");
-  font.setPixelSize(13);
-  font.setFixedPitch(true);
-  font.setStyleStrategy(QFont::PreferAntialias);
-  font.setHintingPreference(QFont::HintingPreference::PreferVerticalHinting);
 
-  edit->setFont(font);
+  auto& skin = score::Skin::instance();
+  edit->setFont(skin.CodeFont);
+  QObject::connect(&skin, &score::Skin::changed, edit, [edit] {
+    edit->setFont(score::Skin::instance().CodeFont);
+  });
 
   auto [highlight, complete] = getLanguageStyle(language);
 

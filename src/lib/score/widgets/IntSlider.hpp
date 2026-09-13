@@ -1,5 +1,6 @@
 #pragma once
 #include <QProxyStyle>
+#include <QSize>
 #include <QWidget>
 
 #include <score_lib_base_export.h>
@@ -26,7 +27,11 @@ public:
     m_init = init;
     update();
   }
-  void setOrientation(Qt::Orientation ort) { m_orientation = ort; }
+  void setOrientation(Qt::Orientation ort)
+  {
+    m_orientation = ort;
+    updateSkinMetrics();
+  }
 
   int value() const { return m_value; }
   int minimum() const { return m_min; }
@@ -42,7 +47,15 @@ public:
   void mouseDoubleClickEvent(QMouseEvent* event) override;
   virtual void createPopup(QPoint pos);
 
+  //! Thickness of one line of the slider font: the height of a horizontal
+  //! slider, the width of a vertical one. A caller pinning the control with
+  //! setFixedSize should size it from here.
+  int skinExtent() const noexcept;
+
 protected:
+  //! Sizes the control from one line of the slider font.
+  void updateSkinMetrics();
+
   void paintEvent(QPaintEvent*) override;
   void paint(QPainter& p);
   void paintWithText(const QString& s);
@@ -57,5 +70,6 @@ private:
 
   Qt::Orientation m_orientation{};
   double m_borderWidth{};
+  QSize m_skinMinimum;
 };
 }

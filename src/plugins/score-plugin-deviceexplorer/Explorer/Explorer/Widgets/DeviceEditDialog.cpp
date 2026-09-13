@@ -49,6 +49,12 @@
 W_OBJECT_IMPL(Explorer::DeviceEditDialog)
 namespace Explorer
 {
+static void setCategoryStyle(QTreeWidgetItem* catItem)
+{
+  catItem->setFont(0, score::Skin::instance().SectionTitleFont);
+  catItem->setExpanded(true);
+}
+
 DeviceEditDialog::DeviceEditDialog(
     const DeviceExplorerModel& model, const Device::ProtocolFactoryList& pl, Mode mode,
     QWidget* parent)
@@ -235,14 +241,6 @@ DeviceEditDialog::DeviceEditDialog(
   setAcceptEnabled(false);
 }
 
-static void setCategoryStyle(QTreeWidgetItem* catItem)
-{
-  auto font = catItem->font(0);
-  font.setPixelSize(13);
-  font.setBold(true);
-  catItem->setFont(0, font);
-  catItem->setExpanded(true);
-}
 DeviceEditDialog::~DeviceEditDialog()
 {
   clearEnumerators();
@@ -304,10 +302,17 @@ void DeviceEditDialog::initAvailableProtocols()
 
   m_protocols->sortItems(0, Qt::AscendingOrder);
 
-  for(int i = 0; i < m_protocols->topLevelItemCount(); i++)
-  {
-    setCategoryStyle(m_protocols->topLevelItem(i));
-  }
+  // A QTreeWidgetItem is no QObject and cannot own a subscription, so the
+  // dialog re-styles both trees itself.
+  score::onSkinChange(this, [this] {
+    for(QTreeWidget* tree : {m_protocols, m_devices})
+    {
+      if(!tree)
+        continue;
+      for(int i = 0; i < tree->topLevelItemCount(); i++)
+        setCategoryStyle(tree->topLevelItem(i));
+    }
+  });
 
   m_protocols->setRootIsDecorated(false);
   m_protocols->setExpandsOnDoubleClick(false);

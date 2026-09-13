@@ -5,11 +5,16 @@
 #include <QObject>
 #include <QPair>
 #include <QPen>
+#include <QSize>
 #include <QVector>
 
 #include <score_lib_base_export.h>
 
 #include <verdigris>
+
+#include <functional>
+#include <utility>
+#include <vector>
 class QJsonObject;
 namespace score
 {
@@ -97,7 +102,27 @@ public:
   static Skin& instance() noexcept;
   ~Skin() override;
 
-  void load(const QJsonObject& style);
+  //! Which halves of a skin file to apply.
+  enum Part
+  {
+    Colours = 1,
+    Fonts = 2,
+    Everything = Colours | Fonts
+  };
+
+  void load(const QJsonObject& style, int parts = Everything);
+
+  //! In the form load() reads back: anything added here needs a load()
+  //! counterpart.
+  QJsonObject toJson() const;
+
+  //! Every font a skin may name, keyed as in the file. Single list so load,
+  //! save, the defaults and the editor cannot drift apart; the editor writes
+  //! through these pointers and emits changed().
+  std::vector<std::pair<const char*, QFont*>> fonts() noexcept;
+
+  //! Applying this to the QApplication is setupApplicationFont()'s job.
+  QFont ApplicationFont;
 
   QFont SansFont;
   QFont MonoFont;
@@ -112,6 +137,21 @@ public:
   QFont Medium12Pt;
 
   QFont TitleFont;
+
+  //! Inspector page heading. Separate role: a pixel font can be neither
+  //! emboldened nor resized freely without Qt faking it.
+  QFont SectionTitleFont;
+
+  //! Transport time readout. Separate role: the one large piece of text, so
+  //! a pixel-font skin needs it on its own grid.
+  QFont TimecodeFont;
+
+  //! Timeline ruler numbers. Separate role: the smallest text score draws,
+  //! so a pixel font has to land on its grid to stay legible.
+  QFont RulerFont;
+
+  //! Script and shader editors.
+  QFont CodeFont;
 
   Brush Dark;
   Brush HalfDark;
@@ -220,6 +260,16 @@ private:
   };
   explicit Skin(NoGUI);
 
+  //! Also called by load(), so a skin does not inherit the previous one's
+  //! fonts.
+  void setupFonts();
+
+  //! Applies the "fonts" object of a skin file over the defaults.
+  void loadFonts(const QJsonObject& spec_obj);
+
+  //! Serialises every font member, for toJson().
+  QJsonObject saveFonts() const;
+
   struct color_map;
   color_map* initColorMap() noexcept;
   color_map* m_colorMap{};
@@ -228,13 +278,80 @@ private:
   bool m_pulseDirection{false};
 };
 
-//! Base UI font settings. Read from QSettings directly as the font is needed
-//! before the settings plug-in is loaded; changing them requires a restart.
+//! Application font size before any skin has loaded; the "application" role
+//! replaces it.
 SCORE_LIB_BASE_EXPORT int uiFontSize() noexcept;
+
+//! The font size every hardcoded pixel length in the widget UI was drawn
+//! against.
+inline constexpr int referenceFontSize = 13;
+
+//! Current application font size over referenceFontSize.
+SCORE_LIB_BASE_EXPORT double fontScale() noexcept;
+
+//! A referenceFontSize-relative length in the current skin's terms, floored
+//! at one pixel.
+SCORE_LIB_BASE_EXPORT int scaledPixels(int px) noexcept;
+
+//! scaledPixels() as a square.
+SCORE_LIB_BASE_EXPORT QSize scaledIcon(int px) noexcept;
+
+//! Runs \p f now and on every skin change. Needed for any size derived from
+//! a font: the window and the toolbars are built before the first skin loads.
+//!
+//! Callable during that construction -- Skin::instance() needs the application
+//! context, so the subscription is deferred by one event loop turn.
+SCORE_LIB_BASE_EXPORT void onSkinChange(QObject* owner, std::function<void()> f);
+
+//! onSkinChange(widget, setIconSize(scaledIcon(px))).
+template <typename T>
+void setSkinIconSize(T* widget, int px)
+{
+  onSkinChange(widget, [widget, px] { widget->setIconSize(scaledIcon(px)); });
+}
+
+//! Hinting for the fonts built before any skin has loaded. A skin sets it per
+//! role, which wins over this.
 SCORE_LIB_BASE_EXPORT QFont::HintingPreference uiFontHinting() noexcept;
 
 //! NoSubpixelAntialias on macOS: QCocoaScreen rewrites Subpixel_None to
 //! Subpixel_RGB, so the style strategy is the only way to get grayscale AA.
 SCORE_LIB_BASE_EXPORT QFont::StyleStrategy uiFontStyleStrategy() noexcept;
+
+//! Design grid of a pixel font score ships, 0 for anything else. These only
+//! render sharply at whole multiples of it.
+SCORE_LIB_BASE_EXPORT int pixelFontGrid(const QString& family) noexcept;
+
+//! \p px rounded down to a multiple of \p f's grid, or up to one step when
+//! smaller than that; unchanged for an outline font. Any computed font size
+//! has to go through this.
+SCORE_LIB_BASE_EXPORT int snapToFontGrid(const QFont& f, int px) noexcept;
+
+//! setPixelSize through snapToFontGrid.
+SCORE_LIB_BASE_EXPORT void setSnappedPixelSize(QFont& f, int px) noexcept;
+
+//! Idempotent, and called by the Skin itself, so tests and alternate hosts
+//! get the fonts without the application bootstrap.
+SCORE_LIB_BASE_EXPORT void registerApplicationFonts();
+
+//! Does not touch Skin::instance(), so it is callable before the application
+//! context exists.
+SCORE_LIB_BASE_EXPORT QFont defaultApplicationFont() noexcept;
+
+//! False below Qt 6.6, or without QT_CONFIG(highdpiscaling): QHighDpiScaling
+//! exists from 5.6 but only updates the screens from 6.5 and only emits the
+//! QScreen signals from 6.6.
+SCORE_LIB_BASE_EXPORT bool canSetGlobalScaleFactorLive() noexcept;
+
+//! QT_SCALE_FACTOR, live, through Qt private API. Qt warns on the console
+//! when windows are open; the factor still applies. Bumps the Skin and emits
+//! changed() so the caches keyed on the device pixel ratio drop. False if the
+//! factor is out of range or scaling is unavailable.
+SCORE_LIB_BASE_EXPORT bool setGlobalScaleFactor(double factor);
+
+//! Also reseeds the per-widget-class fonts the platform theme installs, which
+//! would otherwise win. Must run after QApplication::setStyle(), which resets
+//! that hash.
+SCORE_LIB_BASE_EXPORT void setupApplicationFont(const QFont& f);
 
 }

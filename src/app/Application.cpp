@@ -13,6 +13,7 @@
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
+#include <score/widgets/ApplicationStyle.hpp>
 #include <score/widgets/Pixmap.hpp>
 
 #include <core/application/ApplicationRegistrar.hpp>
@@ -120,42 +121,16 @@ static void loadApplicationResources()
 {
   loadResources();
 
-  // Register fonts
-  {
-    QDirIterator it(":/fonts", QDirIterator::Subdirectories);
-    while(it.hasNext())
-    {
-      auto font = it.next();
-      if(font.endsWith("ttf", Qt::CaseInsensitive)
-         || font.endsWith("bdf", Qt::CaseInsensitive)
-         || font.endsWith("otf", Qt::CaseInsensitive))
-      {
-        QFontDatabase::addApplicationFont(font);
-      }
-    }
-  }
+  score::registerApplicationFonts();
 }
 
 //! Must run after QApplication::setStyle(), which resets the widget font hash.
+//!
+//! Not through score::Skin::instance(): this runs before the application
+//! context the Skin constructor dereferences. The Skin owns the re-apply.
 static void setupApplicationFont()
 {
-  QFont f("Ubuntu");
-  f.setPixelSize(score::uiFontSize());
-  f.setHintingPreference(score::uiFontHinting());
-  f.setStyleStrategy(score::uiFontStyleStrategy());
-  qGuiApp->setFont(f);
-
-  // The platform theme seeds per-class fonts which override the application
-  // font; macOS provides most of this list, so set them explicitly.
-  for(const char* widgetClass :
-      {"QMenu", "QMenuBar", "QMenuItem", "QMessageBox", "QLabel", "QTipLabel",
-       "QTitleBar", "QStatusBar", "QMdiSubWindowTitleBar", "QDockWidgetTitle",
-       "QPushButton", "QCheckBox", "QRadioButton", "QToolButton",
-       "QAbstractItemView", "QListView", "QHeaderView", "QListBox",
-       "QComboMenuItem", "QComboLineEdit", "QSmallFont", "QMiniFont"})
-  {
-    QApplication::setFont(f, widgetClass);
-  }
+  score::setupApplicationFont(score::defaultApplicationFont());
 }
 
 static void setQApplicationSettings(QApplication& m_app)
@@ -164,7 +139,7 @@ static void setQApplicationSettings(QApplication& m_app)
   // Sadly Qt asserts so wh have to simulate the loading of a plugin (see above).
   // For older Qts we won't be debugging anyways and will be linking against distro Qt versions so we just set the style
   // manually
-  m_app.setStyle(new PhantomStyle);
+  m_app.setStyle(new score::ApplicationStyle{new PhantomStyle});
 
   auto pal = qApp->palette();
   pal.setBrush(QPalette::Window, QColor("#222222"));        //#1A2024"));

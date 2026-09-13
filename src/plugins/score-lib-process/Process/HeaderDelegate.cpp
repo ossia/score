@@ -20,6 +20,7 @@
 #include <QCursor>
 #include <QDebug>
 #include <QGuiApplication>
+#include <QApplication>
 #include <QPainter>
 #include <QTextLayout>
 #include <QTextLine>
@@ -38,10 +39,24 @@ struct hash<std::pair<QString, const QPen*>>
 namespace Process
 {
 
-static auto& glyphCache() noexcept
+using GlyphCache = ossia::hash_map<std::pair<QString, const QPen*>, QPixmap>;
+
+static GlyphCache& glyphCache() noexcept
 {
   // FIXME LRU
-  static ossia::hash_map<std::pair<QString, const QPen*>, QPixmap> cache;
+  static GlyphCache cache;
+
+  // The key has neither the font nor the devicePixelRatio in it, so drop the
+  // whole cache rather than widen it. Each delegate also holds its own copy
+  // of the result and has to ask again.
+  static bool connected = false;
+  if(!connected)
+  {
+    connected = true;
+    QObject::connect(&score::Skin::instance(), &score::Skin::changed, qApp, [] {
+      glyphCache().clear();
+    });
+  }
   return cache;
 }
 
@@ -143,6 +158,16 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(
     update();
       },
       Qt::QueuedConnection);
+
+  con(score::Skin::instance(), &score::Skin::changed, this, [this] {
+    // updateText() keeps its pixmap unless the text or pen changed, and a
+    // font change moves neither.
+    m_lastText.clear();
+    m_lastPen = nullptr;
+    m_bench = QPixmap{};
+    updateText();
+    update();
+  });
 }
 
 DefaultHeaderDelegate::~DefaultHeaderDelegate() { }

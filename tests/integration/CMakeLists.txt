@@ -18,6 +18,33 @@ score_add_test(test_integration_roundtrip
   SOURCES DocumentRoundtripTest.cpp
   APP)
 
+# Skin files carry fonts as well as colours. Needs the GUI stack: the fonts
+# come from the application's Qt resources, and QFontDatabase needs a GUI app.
+score_add_test(test_integration_skin_fonts
+  SOURCES SkinFontsTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario)
+
+score_add_test(test_integration_default_skin_fonts
+  SOURCES DefaultSkinFontsTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario)
+
+score_add_test(test_integration_skin_editor
+  SOURCES SkinEditorTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario)
+
+
+# GUI so that the test gets its own X server: it maps a window and cycles every
+# top-level one. The score_test fixture still runs it on the offscreen platform,
+# which is enough -- the assertions are on devicePixelRatio, which the offscreen
+# plugin reports like any other.
+score_add_test(test_integration_graphical_zoom
+  SOURCES GraphicalZoomTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario)
+
 # A process whose factory is not installed is dropped on load, with its
 # cables, silently. Asserting "the document opened" cannot see that, so this one
 # asserts on the content that came back. EXPECTED RED on this branch: the fix

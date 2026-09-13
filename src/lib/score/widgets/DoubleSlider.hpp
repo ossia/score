@@ -1,5 +1,6 @@
 #pragma once
 #include <QProxyStyle>
+#include <QSize>
 #include <QSlider>
 
 #include <score_lib_base_export.h>
@@ -24,8 +25,16 @@ public:
   ~DoubleSlider() override;
   bool moving = false;
   void setValue(double val);
-  void setOrientation(Qt::Orientation ort) { m_orientation = ort; }
-  void setBorderWidth(double border) { m_borderWidth = border; }
+  void setOrientation(Qt::Orientation ort)
+  {
+    m_orientation = ort;
+    updateSkinMetrics();
+  }
+  void setBorderWidth(double border)
+  {
+    m_borderWidth = border;
+    m_borderOverridden = true;
+  }
 
   double value() const { return m_value; }
   virtual double map(double v) const;
@@ -45,7 +54,15 @@ public:
   virtual void createPopup(QPoint pos);
   virtual void setRange(double min, double max, double init) noexcept;
 
+  //! Thickness of one line of the slider font: the height of a horizontal
+  //! slider, the width of a vertical one. A caller pinning the control with
+  //! setFixedSize should size it from here.
+  int skinExtent() const noexcept;
+
 protected:
+  //! Sizes the control from one line of the slider font.
+  void updateSkinMetrics();
+
   void paintEvent(QPaintEvent*) override;
   void paint(QPainter& p);
   void paintWithText(const QString& s);
@@ -56,5 +73,7 @@ private:
   double m_value{};
   Qt::Orientation m_orientation{};
   double m_borderWidth{};
+  QSize m_skinMinimum;
+  bool m_borderOverridden{};
 };
 }

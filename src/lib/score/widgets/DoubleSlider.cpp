@@ -8,6 +8,7 @@
 #include <score/tools/Clamp.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
+#include <QFontMetrics>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QStyleOptionSlider>
@@ -30,18 +31,41 @@ DoubleSlider::DoubleSlider(Qt::Orientation ort, QWidget* widg)
   setSizePolicy(sp);
   setAttribute(Qt::WA_WState_OwnSizePolicy, false);
 
-  auto& skin = score::Skin::instance();
-  m_borderWidth = skin.SliderPen.width();
+  updateSkinMetrics();
+  connect(
+      &score::Skin::instance(), &score::Skin::changed, this,
+      &DoubleSlider::updateSkinMetrics);
+}
 
-  switch(ort)
-  {
-    case Qt::Vertical:
-      setMinimumSize(20, 30);
-      break;
-    case Qt::Horizontal:
-      setMinimumSize(30, 20);
-      break;
-  }
+int DoubleSlider::skinExtent() const noexcept
+{
+  // One line, its border both sides, and the air that puts the default
+  // skin's 14 px line on the 20 px these are drawn at.
+  return QFontMetrics{score::Skin::instance().SliderFont}.height()
+         + 2 * qRound(m_borderWidth) + 4;
+}
+
+void DoubleSlider::updateSkinMetrics()
+{
+  auto& skin = score::Skin::instance();
+  if(!m_borderOverridden)
+    m_borderWidth = skin.SliderPen.width();
+
+  update();
+
+  // Only take back a minimum this class imposed: a plain QWidget has no size
+  // hint, so shrinking the minimum under a caller's setFixedSize would
+  // collapse the control to it.
+  if(m_skinMinimum.isValid() && minimumSize() != m_skinMinimum)
+    return;
+
+  const int line = skinExtent();
+  const int span = score::scaledPixels(30);
+
+  m_skinMinimum
+      = m_orientation == Qt::Vertical ? QSize{line, span} : QSize{span, line};
+  setMinimumSize(m_skinMinimum);
+  updateGeometry();
 }
 
 DoubleSlider::DoubleSlider(QWidget* widg)
@@ -215,8 +239,12 @@ void DoubleSlider::paintWithText(const QString& s)
   paint(p);
   p.setPen(skin.SliderTextPen);
   p.setFont(skin.SliderFont);
+
+  // The box is one line tall, so a top-aligned line sits on the border.
+  const double pad = score::scaledPixels(4);
   p.drawText(
-      QRectF{4., 2., (width() - 16.), height() - 4.}, s, QTextOption(Qt::AlignLeft));
+      QRectF{pad, 0., width() - 4. * pad, (double)height()}, s,
+      QTextOption(Qt::AlignLeft | Qt::AlignVCenter));
 }
 
 }

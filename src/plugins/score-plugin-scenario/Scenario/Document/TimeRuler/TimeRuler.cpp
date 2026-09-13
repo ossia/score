@@ -39,11 +39,12 @@ MusicalRuler::MusicalRuler(QGraphicsView* v)
   m_width = 800;
   setY(-30.5);
 
-  auto font = score::Skin::instance().MonoFont;
-  font.setWeight(QFont::Normal);
-  font.setPixelSize(10);
-  font.setBold(false);
-  m_layout.setFont(font);
+  // m_stringCache is keyed on the time spelled, not on the font.
+  score::onSkinChange(this, [this] {
+    m_layout.setFont(score::Skin::instance().RulerFont);
+    m_stringCache.clear();
+    update();
+  });
 
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setX(0);
@@ -276,11 +277,12 @@ TimeRuler::TimeRuler(QGraphicsView* v)
   m_width = 800;
   setY(-30.5);
 
-  auto font = score::Skin::instance().MonoFont;
-  font.setWeight(QFont::Normal);
-  font.setPixelSize(10);
-  font.setBold(false);
-  m_layout.setFont(font);
+  // m_stringCache is keyed on the time spelled, not on the font.
+  score::onSkinChange(this, [this] {
+    m_layout.setFont(score::Skin::instance().RulerFont);
+    m_stringCache.clear();
+    update();
+  });
 
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setX(10);

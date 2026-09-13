@@ -34,6 +34,8 @@ public:
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
       final override;
 
+  //! @p f must outlive the item, which keeps a reference so it can re-render
+  //! on a skin change. Always a score::Skin member in practice.
   void setFont(const QFont& f);
   void setText(const QString& s);
   void setText(std::string_view s);
@@ -50,7 +52,12 @@ private:
 
   QRectF m_rect;
   const score::BrushSet* m_color{};
-  QFont m_font;
+  //! Owned by the skin.
+  const QFont* m_font{};
+
+  //! m_font with merging restored, rebuilt on change so painting costs no
+  //! copy.
+  QFont m_paintFont;
   QString m_string;
   QImage m_line;
 };

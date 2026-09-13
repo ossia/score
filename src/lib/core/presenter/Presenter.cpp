@@ -3,6 +3,7 @@
 
 #include <score/actions/Menu.hpp>
 #include <score/application/ApplicationComponents.hpp>
+#include <score/model/Skin.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
@@ -174,7 +175,7 @@ void Presenter::setupGUI()
           }
         }
         bl->addWidget(tb.toolbar(), 0, i, Qt::AlignCenter);
-        tb.toolbar()->setIconSize({24, 24});
+        score::setSkinIconSize(tb.toolbar(), 24);
         tb.toolbar()->setFloatable(false);
         tb.toolbar()->setMovable(false);
 
@@ -185,7 +186,7 @@ void Presenter::setupGUI()
         i++;
 
         auto sp = new QWidget;
-        sp->setFixedSize(10, 10);
+        score::onSkinChange(sp, [sp] { sp->setFixedSize(score::scaledIcon(10)); });
         bl->addWidget(sp, 0, i, Qt::AlignCenter);
         i++;
       }
