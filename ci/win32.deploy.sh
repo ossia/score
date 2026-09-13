@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 export SCORE_DIR="$PWD"
 export SDK_DIR="$PWD/build/SDK"
 
@@ -22,6 +22,15 @@ fi
 )
 
 ./ci/create-sdk-mingw.sh
+
+# ScoreExternalAddon.sdk.cmake compiles add-ons with -nostdinc against
+# include/c++/v1, so an SDK without the toolchain headers can build nothing at all.
+for required in "$SDK_DIR/usr/include/c++" "$SDK_DIR/usr/include/_mingw.h"; do
+  if [[ ! -e "$required" ]]; then
+    echo "error: the SDK is incomplete, '$required' is missing" >&2
+    exit 1
+  fi
+done
 
 # Copy SDK
 (
