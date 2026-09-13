@@ -108,6 +108,10 @@ set(MIDI_HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MCU/MCUDevice.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MCU/MCUProtocolSettingsWidget.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MCU/MCUSpecificSettings.hpp"
+
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDIDevices/MidiDeviceMap.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDIDevices/MidiDeviceDatabase.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDIDevices/MidiDeviceProtocol.hpp"
 )
 set(MIDI_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIProtocolSettingsWidget.cpp"
@@ -119,6 +123,10 @@ set(MIDI_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MCU/MCUDevice.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MCU/MCUProtocolFactory.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MCU/MCUSpecificSettingsSerialization.cpp"
+
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDIDevices/MidiDeviceMap.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDIDevices/MidiDeviceDatabase.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDIDevices/MidiDeviceProtocol.cpp"
 )
 
 set(HTTP_HDRS
@@ -471,6 +479,10 @@ endif()
 if(WIN32)
   target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32)
 endif()
+
+# rapidjson, for the .midimap.json device descriptions. Header-only.
+target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE
+  "$<BUILD_INTERFACE:${OSSIA_3RDPARTY_FOLDER}/rapidjson/include>")
 
 setup_score_plugin(${PROJECT_NAME})
 

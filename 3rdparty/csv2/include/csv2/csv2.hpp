@@ -246,7 +246,14 @@ public:
               {
                 escaped = (last_quote_location == i - 1);
                 last_quote_location += (i - last_quote_location) * size_t(!escaped);
-                quote_opened = escaped || (buffer_[i + 1] != delimiter::value);
+                // The bound matters: for the last row of a file with no
+                // trailing newline, end_ == buffer_size_, so i + 1 is one past
+                // the buffer. Harmless where the caller owns a std::string
+                // (data()[size()] is a readable NUL) but not where it mmaps the
+                // file: a size that is an exact page multiple leaves byte
+                // [size] unmapped.
+                quote_opened
+                    = escaped || (i + 1 < end_ && buffer_[i + 1] != delimiter::value);
               }
             }
           }

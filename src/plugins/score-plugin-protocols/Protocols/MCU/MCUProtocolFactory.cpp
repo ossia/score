@@ -99,19 +99,39 @@ void MCUProtocolFactory::serializeProtocolSpecificSettings(
   serializeProtocolSpecificSettings_T<MCUSpecificSettings>(data, visitor);
 }
 
+
+static bool isOpenable(const libremidi::port_information& p) noexcept
+{
+  return p.port != libremidi::port_information{}.port;
+}
+
 bool MCUProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a, const Device::DeviceSettings& b) const noexcept
 {
   // FIXME check if we can open the same device multiple times ?
   auto specif = a.deviceSpecificSettings.value<MCUSpecificSettings>();
+
+  if(specif.mode != MCUSpecificSettings::MCU)
+  {
+    // Only a Mackie surface is a dialogue. Everything else is usable one-way:
+    // send-only to drive an instrument, receive-only to follow a controller's
+    // knobs.
+    if(specif.maps.empty())
+      return false;
+
+    const bool hasInput
+        = !specif.input_handle.empty() && isOpenable(specif.input_handle[0]);
+    const bool hasOutput
+        = !specif.output_handle.empty() && isOpenable(specif.output_handle[0]);
+    return hasInput || hasOutput;
+  }
+
+  // A Mackie surface is a dialogue: faders in, LEDs and motor positions out.
   if(specif.input_handle.empty())
     return false;
   if(specif.output_handle.empty())
     return false;
   // FIXME improve when we have multiple devices in one control surface
-  return
-      specif.input_handle[0].port != libremidi::port_information{}.port
-         && specif.output_handle[0].port != libremidi::port_information{}.port
-      ;
+  return isOpenable(specif.input_handle[0]) && isOpenable(specif.output_handle[0]);
 }
 }
