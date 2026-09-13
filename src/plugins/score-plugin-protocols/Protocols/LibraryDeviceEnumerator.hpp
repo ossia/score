@@ -35,7 +35,6 @@ public:
       const score::DocumentContext& ctx);
 
   void next(std::string_view path);
-  std::function<void()> asyncNext(std::string_view path);
 
   void enumerate(std::function<void(const QString&, const Device::DeviceSettings&)>
                      onDevice) const override;
