@@ -39,7 +39,7 @@ target_link_libraries(score_plugin_analysis PUBLIC score_plugin_engine score_plu
 if(OSSIA_ENABLE_KFR AND TARGET kfr)
   link_whole_archive(score_plugin_analysis PRIVATE kfr)
   link_whole_archive(score_plugin_analysis PRIVATE kfr_dsp)
-  list(APPEND SCORE_FEATURES_LIST analysis_kfr)
+  score_declare_feature(analysis_kfr)
 endif()
 setup_score_plugin(score_plugin_analysis)
 
