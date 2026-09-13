@@ -234,3 +234,82 @@ TEST_CASE("An unmodified library script reaches the executor as its file",
     CHECK(onDisk != js->qmlData());
   });
 }
+
+namespace
+{
+QStringList stagedFoldersFor(const QString& originalFile)
+{
+  const QString root = JS::editStagingRoot();
+  return QDir{root}.entryList(
+      {JS::stagingFolderPrefix(originalFile) + "*"}, QDir::Dirs | QDir::NoDotAndDotDot);
+}
+}
+
+TEST_CASE("An edited script keeps the imports of the folder it came from",
+          "[integration][js][gui]")
+{
+  // Editing a script while the engine runs must not cost a parse on the audio
+  // thread, and a parse can only be avoided -- or moved elsewhere -- for
+  // something qml can reach by url. An edit is in no file, so it is given one,
+  // in the cache rather than in the user's library. What it asks of the folder
+  // it now sits in is sent back to the folder it was edited from.
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir lib;
+    REQUIRE(lib.isValid());
+    const QString qml = lib.path() + "/preset.qml";
+    write(lib.path() + "/Helper.js", "function bump(x) { return x + 1; }\n");
+    QDir().mkpath(lib.path() + "/Parts");
+    write(lib.path() + "/Parts/Widget.qml", "import QtQuick\nItem { property int k: 7 }\n");
+    write(lib.path() + "/Parts/qmldir", "Widget 1.0 Widget.qml\n");
+
+    const auto script = [](const QString& body) {
+      return QStringLiteral("import Score\nimport \"Helper.js\" as Helper\n"
+                            "import \"./Parts\" as Parts\n"
+                            "Script {\n  ValueInlet { id: i }\n  ValueOutlet { id: o }\n"
+                            "  property int viaJs: Helper.bump(1)\n"
+                            "  property var viaQmldir: Parts.Widget { }\n%1}\n").arg(body);
+    };
+    write(qml, script({}));
+
+    score::Document* doc = score::test::new_document(ctx);
+    REQUIRE(doc != nullptr);
+    auto* js = add_js_from(*doc, qml);
+    REQUIRE(js != nullptr);
+    REQUIRE(js->outlets().size() == 1);
+    CHECK(stagedFoldersFor(qml).isEmpty());   // straight out of its file
+
+    SECTION("both a .js import and a qmldir type survive the move")
+    {
+      REQUIRE(js->setProgram({script("  property int extra: Helper.bump(2)\n"), {}}).valid);
+      CHECK(js->currentExecutionObject() != nullptr);
+      CHECK(js->outlets().size() == 1);
+
+      // it went to the cache, and the user's folder is untouched
+      CHECK(stagedFoldersFor(qml).size() == 1);
+      CHECK(QDir{lib.path()}.entryList({".*"}, QDir::Files | QDir::Hidden).isEmpty());
+      CHECK(QDir{lib.path()}.entryList({"*.qml"}, QDir::Files).size() == 1);
+    }
+
+    SECTION("a later edit replaces what the previous one staged")
+    {
+      REQUIRE(js->setProgram({script("  property int a: 1\n"), {}}).valid);
+      const auto first = stagedFoldersFor(qml);
+      REQUIRE(first.size() == 1);
+
+      REQUIRE(js->setProgram({script("  property int b: 2\n"), {}}).valid);
+      const auto second = stagedFoldersFor(qml);
+      REQUIRE(second.size() == 1);
+      CHECK(second.first() != first.first());
+    }
+
+    SECTION("going back to what the file says stages nothing")
+    {
+      REQUIRE(js->setProgram({script("  property int a: 1\n"), {}}).valid);
+      REQUIRE(stagedFoldersFor(qml).size() == 1);
+
+      REQUIRE(js->setProgram({script({}), {}}).valid);
+      CHECK(js->followsRootFile());
+      CHECK(js->currentExecutionObject() != nullptr);
+    }
+  });
+}

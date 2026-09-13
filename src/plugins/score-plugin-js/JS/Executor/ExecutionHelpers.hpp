@@ -16,6 +16,9 @@
 #include <vector>
 
 #include <QCryptographicHash>
+#include <QQmlAbstractUrlInterceptor>
+#include <QReadWriteLock>
+#include <QStandardPaths>
 #include <QPointer>
 #include <QDir>
 #include <QFile>
@@ -106,27 +109,252 @@ inline void loadJSObjectFromUrl(
     comp.setData(str, url);
 }
 
+//! Path of a program's ui half: foo.qml -> foo.ui.qml.
+inline QString uiPathOf(const QString& rootPath)
+{
+  QString path = rootPath;
+  if(path.endsWith(".qml"))
+    path.insert(path.size() - 4, ".ui");
+  return path;
+}
+
+//! Whether `str` is what `path` holds.
+//!
+//! Compared trimmed: what arrives here is the process' script, trimmed on its
+//! way into the model, while the file it came from almost always ends in a
+//! newline. Comparing the bytes as they are meant that a script straight out of
+//! a file did not count as being that file.
+inline bool scriptIsItsFile(const QString& path, const QByteArray& str)
+{
+  QFile f{path};
+  return f.open(QIODevice::ReadOnly) && f.readAll().trimmed() == str.trimmed();
+}
+
+namespace detail
+{
+//! What each staged folder stands in for. Read from whichever thread qml
+//! resolves a url on, which is not the one that stages.
+struct StagedScripts
+{
+  struct Entry
+  {
+    QString fileName;    //!< the staged script, the one file that is really there
+    QString originalDir; //!< where everything else it asks for lives
+  };
+  QReadWriteLock lock;
+  QHash<QString, Entry> byDir;
+};
+
+inline StagedScripts& stagedScripts()
+{
+  static StagedScripts s;
+  return s;
+}
+}
+
+//! Where edited scripts are put: under the cache, never in the folder they were
+//! edited from. A folder of its own for each of them, because qml keeps the
+//! listing it took of a folder the first time it read from it and reports a
+//! file that turns up afterwards as a name-case mismatch.
+inline const QString& editStagingRoot()
+{
+  static const QString root = [] {
+    const auto cache = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
+    return cache.isEmpty() ? QString{} : cache + QStringLiteral("/qml-edits");
+  }();
+  return root;
+}
+
+//! Sends what a staged script asks of its folder back to the folder it was
+//! edited from, so that its imports resolve as they did there.
+//!
+//! Reaches everything named outright: a .js import, a type a qmldir declares.
+//! It cannot reach a bare type name -- qml looks for one of those by listing
+//! the component's own folder, and gives up before there is a url to redirect.
+class EditedScriptRedirect final : public QQmlAbstractUrlInterceptor
+{
+public:
+  QUrl intercept(const QUrl& url, DataType) override
+  {
+    const QString& root = editStagingRoot();
+    if(root.isEmpty() || !url.isLocalFile())
+      return url;
+
+    // Staged folders are the children of one root, so what is asked for is
+    // <root>/<staged folder>/<what the script wants>, however deep that goes.
+    const QString path = url.toLocalFile();
+    if(!path.startsWith(root) || path.size() <= root.size() + 1
+       || path[root.size()] != QLatin1Char('/'))
+      return url;
+
+    const QString rest = path.mid(root.size() + 1);
+    const int slash = rest.indexOf(QLatin1Char('/'));
+    if(slash <= 0)
+      return url;
+
+    const QString wanted = rest.mid(slash + 1);
+
+    auto& s = detail::stagedScripts();
+    QReadLocker _{&s.lock};
+    const auto it = s.byDir.constFind(root + QLatin1Char('/') + rest.left(slash));
+    if(it == s.byDir.cend() || wanted == it->fileName)
+      return url;
+    return QUrl::fromLocalFile(it->originalDir + QLatin1Char('/') + wanted);
+  }
+};
+
+namespace detail
+{
+//! Owns one redirect for the engine it is parented to.
+struct RedirectHolder : QObject
+{
+  EditedScriptRedirect interceptor;
+  QQmlEngine* engine{};
+  ~RedirectHolder() override
+  {
+    if(engine)
+      engine->removeUrlInterceptor(&interceptor);
+  }
+};
+}
+
+//! Put the redirect on an engine, once. Every url the engine resolves goes
+//! through it, so it does nothing but one hash lookup for anything that is not
+//! under a staged folder.
+inline void installEditRedirect(QQmlEngine& engine)
+{
+  static constexpr auto marker = "score_qml_edit_redirect";
+  if(engine.property(marker).toBool())
+    return;
+
+  auto* holder = new detail::RedirectHolder;
+  holder->engine = &engine;
+  holder->setParent(&engine);
+  engine.addUrlInterceptor(&holder->interceptor);
+  engine.setProperty(marker, true);
+}
+
+//! Folders staged for one script share a prefix, so that a new edit can drop
+//! what the previous one left. The folder it came from is part of it: two
+//! scripts of the same name in different folders are not the same script.
+inline QString stagingFolderPrefix(const QString& originalPath)
+{
+  const QFileInfo fi{originalPath};
+  QString stem = fi.fileName();
+  for(QChar& c : stem)
+    if(!c.isLetterOrNumber())
+      c = QLatin1Char('_');
+  return stem + QLatin1Char('-')
+         + QString::fromLatin1(QCryptographicHash::hash(
+                                   fi.absolutePath().toUtf8(), QCryptographicHash::Sha1)
+                                   .toHex()
+                                   .left(8))
+         + QLatin1Char('-');
+}
+
+//! Drop what earlier edits of the same script left behind. Removal may fail --
+//! another process can still have a file open -- and the next edit tries again.
+inline void sweepStagedFolders(
+    const QString& root, const QString& prefix, const QString& keep)
+{
+  QDir dir{root};
+  const auto stale = dir.entryList({prefix + "*"}, QDir::Dirs | QDir::NoDotAndDotDot);
+  auto& s = detail::stagedScripts();
+  for(const auto& name : stale)
+  {
+    if(name == keep)
+      continue;
+    const QString path = dir.filePath(name);
+    if(QDir{path}.removeRecursively())
+    {
+      QWriteLocker _{&s.lock};
+      s.byDir.remove(path);
+    }
+  }
+}
+
+//! Give an edited script a file of its own so that it can be compiled by url
+//! like any other, and note where the rest of what it needs lives. Empty when
+//! there is nowhere to write it, which is not an error: the caller compiles it
+//! from the bytes instead.
+inline QString stageEditedScript(const QString& originalPath, const QByteArray& str)
+{
+  const QString root = editStagingRoot();
+  if(root.isEmpty())
+    return {};
+
+  const QFileInfo fi{originalPath};
+  if(fi.fileName().isEmpty())
+    return {};
+
+  // Not the name it had: a folder lends its .qml files to whatever sits in it
+  // as types, and a script staged under its own name would shadow the very
+  // type it is declaring itself to be. A leading dot is not an identifier, so
+  // nothing is lent.
+  const QString name = QStringLiteral(".score-edit")
+                       + (originalPath.endsWith(QStringLiteral(".ui.qml"))
+                              ? QStringLiteral(".ui.qml")
+                              : QStringLiteral(".qml"));
+
+  const QString prefix = stagingFolderPrefix(originalPath);
+  const QString folder
+      = prefix
+        + QString::fromLatin1(
+            QCryptographicHash::hash(str, QCryptographicHash::Sha1).toHex().left(16));
+  const QString dir = root + QLatin1Char('/') + folder;
+  const QString file = dir + QLatin1Char('/') + name;
+
+  if(!QFileInfo::exists(file))
+  {
+    if(!QDir{}.mkpath(dir))
+      return {};
+    QFile f{file};
+    if(!f.open(QIODevice::WriteOnly))
+      return {};
+    const bool written = f.write(str) == str.size();
+    f.close();
+    if(!written)
+    {
+      QDir{dir}.removeRecursively();
+      return {};
+    }
+  }
+
+  {
+    auto& s = detail::stagedScripts();
+    QWriteLocker _{&s.lock};
+    s.byDir.insert(dir, {name, fi.absolutePath()});
+  }
+
+  sweepStagedFolders(root, prefix, folder);
+  return file;
+}
+
 inline void loadJSObjectFromString(
     const QString& rootPath, const QByteArray& str, QQmlComponent& comp, bool is_ui)
 {
-  QString path = rootPath;
-  if(is_ui && path.endsWith(".qml"))
-    path.insert(path.size() - 4, ".ui");
-  const auto url = QUrl::fromLocalFile(path);
+  const QString path = is_ui ? uiPathOf(rootPath) : rootPath;
 
-  // Compared trimmed: what arrives here is the process' script, which is
-  // trimmed on its way into the model, while the file it came from almost
-  // always ends in a newline. Comparing the bytes as they are meant that a
-  // script straight out of a file did not count as being that file, and the
-  // loader -- the whole point of naming the file at all -- was skipped for
-  // every one of them.
-  QFile original{path};
-  if(original.open(QIODevice::ReadOnly) && original.readAll().trimmed() == str.trimmed())
-    loadJSObjectFromUrl(url, str, comp);
-  else
-    // An in-memory edit is not in any file: it keeps the original import base
-    // without the loader ever seeing it.
-    comp.setData(str, url);
+  if(scriptIsItsFile(path, str))
+  {
+    loadJSObjectFromUrl(QUrl::fromLocalFile(path), str, comp);
+    return;
+  }
+
+  // An edit is in no file, and only something with a file can be compiled by
+  // url -- which is what lets qml hand back an already compiled form, and what
+  // will let it compile off this thread. So it is given one.
+  if(auto* engine = comp.engine())
+  {
+    if(const QString staged = stageEditedScript(path, str); !staged.isEmpty())
+    {
+      installEditRedirect(*engine);
+      loadJSObjectFromUrl(QUrl::fromLocalFile(staged), str, comp);
+      return;
+    }
+  }
+
+  comp.setData(str, QUrl::fromLocalFile(path));
 }
 
 //! Compile a script that lives in a file, through the loader where that is
