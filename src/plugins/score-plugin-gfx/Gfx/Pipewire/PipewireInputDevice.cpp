@@ -1336,6 +1336,9 @@ public:
 
 private:
   void updatePath();
+  //! Narrow the format list and the size/rate limits to what the picked node
+  //! advertises, or restore the full set when it advertises nothing.
+  void applyNodeCaps();
   //! The node.name the URL carries, whichever way it was chosen.
   QString currentNode() const;
   void setCurrentNode(const QString& name);
@@ -1388,7 +1391,34 @@ bool PipeWireDevice::reconnect()
 //! target, so the port shows up bare in a patchbay.
 static const QString kUnconnected = QStringLiteral("\x01unconnected");
 
-//! The Video/Source nodes the daemon is publishing, as (node.name, label).
+//! Anything that puts video into the graph: a capture device, or an
+//! application publishing a stream.
+static bool producesVideo(const std::string& media_class) noexcept
+{
+  return media_class.find("Video/Source") != std::string::npos
+         || media_class.find("Stream/Output/Video") != std::string::npos;
+}
+
+//! What a node says it can do, or an empty vector when it has not answered
+//! yet. Empty means unknown, so the caller falls back to the whole table.
+static std::vector<libremidi::pipewire::video_format_caps>
+nodeVideoCaps(const QString& node_name)
+{
+  if(node_name.isEmpty())
+    return {};
+  auto shared = libremidi::pipewire::shared_context();
+  if(!shared || !shared->ok())
+    return {};
+
+  const auto target = node_name.toStdString();
+  for(const auto& node :
+      shared->snapshot().nodes_of(libremidi::pipewire::media_class::video))
+    if(node.name == target)
+      return node.video_formats;
+  return {};
+}
+
+//! The video-producing nodes the daemon is publishing, as (node.name, label).
 static std::vector<std::pair<QString, QString>> liveVideoSources()
 {
   std::vector<std::pair<QString, QString>> out;
@@ -1399,7 +1429,10 @@ static std::vector<std::pair<QString, QString>> liveVideoSources()
   const auto snap = shared->snapshot();
   for(const auto& node : snap.nodes_of(libremidi::pipewire::media_class::video))
   {
-    if(node.media_class_str.find("Source") == std::string::npos)
+    // A device publishes as "Video/Source"; an application publishing a
+    // stream is "Stream/Output/Video", which produces video just the same and
+    // a "Source" test rejects.
+    if(!producesVideo(node.media_class_str))
       continue;
     const QString name = QString::fromStdString(node.name);
     if(name.isEmpty())
@@ -1429,6 +1462,10 @@ PipeWireSettingsWidget::PipeWireSettingsWidget(QWidget* parent)
   m_nodeEdit->addItem(tr("(unconnected: link it yourself)"), kUnconnected);
   for(const auto& [name, label] : liveVideoSources())
     m_nodeEdit->addItem(label, name);
+
+  QObject::connect(
+      m_nodeEdit, &QComboBox::currentIndexChanged, this,
+      [this] { applyNodeCaps(); });
 
   // The limits the permissive EnumFormat actually offers the producer, not a
   // narrower guess: these are a preferred value, not a demand.
@@ -1466,6 +1503,68 @@ PipeWireSettingsWidget::PipeWireSettingsWidget(QWidget* parent)
   setLayout(layout);
 
   setSettings(InputFactory{}.defaultSettings());
+}
+
+void PipeWireSettingsWidget::applyNodeCaps()
+{
+  const auto caps = nodeVideoCaps(currentNode());
+
+  const QString wanted = m_formatEdit->currentData().toString();
+  m_formatEdit->clear();
+  m_formatEdit->addItem(tr("Any"), QString{});
+
+  if(caps.empty())
+  {
+    for(const auto& f : formats::allTagNames())
+      m_formatEdit->addItem(f, f);
+    m_widthEdit->setRange(1, 16384);
+    m_heightEdit->setRange(1, 16384);
+    m_fpsEdit->setRange(1.0, 1000.0);
+  }
+  else
+  {
+    // A candidate that names no format leaves it open, so it constrains
+    // nothing and only its size and rate count.
+    QStringList offered;
+    std::uint32_t wmin = 0, wmax = 0, hmin = 0, hmax = 0;
+    double fmin = 0., fmax = 0.;
+    for(const auto& c : caps)
+    {
+      if(c.format != 0)
+      {
+        const auto name = formats::tagToString(formats::tagFromSpa(c.format));
+        if(!offered.contains(name))
+          offered += name;
+      }
+      if(c.max_width > 0)
+      {
+        wmin = wmin ? std::min(wmin, c.min_width) : c.min_width;
+        wmax = std::max(wmax, c.max_width);
+        hmin = hmin ? std::min(hmin, c.min_height) : c.min_height;
+        hmax = std::max(hmax, c.max_height);
+      }
+      const auto lo = c.min_fps_denom ? double(c.min_fps_num) / c.min_fps_denom : 0.;
+      const auto hi = c.max_fps_denom ? double(c.max_fps_num) / c.max_fps_denom : 0.;
+      if(hi > 0.)
+      {
+        fmin = fmin > 0. ? std::min(fmin, lo) : lo;
+        fmax = std::max(fmax, hi);
+      }
+    }
+
+    if(offered.isEmpty())
+      for(const auto& f : formats::allTagNames())
+        offered += f;
+    for(const auto& f : offered)
+      m_formatEdit->addItem(f, f);
+
+    m_widthEdit->setRange(wmax ? int(wmin) : 1, wmax ? int(wmax) : 16384);
+    m_heightEdit->setRange(hmax ? int(hmin) : 1, hmax ? int(hmax) : 16384);
+    m_fpsEdit->setRange(fmax > 0. ? fmin : 1.0, fmax > 0. ? fmax : 1000.0);
+  }
+
+  if(const int idx = m_formatEdit->findData(wanted); idx >= 0)
+    m_formatEdit->setCurrentIndex(idx);
 }
 
 void PipeWireSettingsWidget::updatePath() { }
