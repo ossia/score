@@ -21,7 +21,10 @@
 #include <QComboBox>
 #include <QDebug>
 #include <QFormLayout>
+#include <QHBoxLayout>
 #include <QHeaderView>
+#include <QListWidget>
+#include <QPushButton>
 #include <QLabel>
 #include <QLineEdit>
 #include <QRadioButton>
@@ -221,6 +224,58 @@ MCUSettingsWidget::MCUSettingsWidget(QWidget* parent)
            "cannot tell us."));
     checkForChanges(m_channel);
     sub->addRow(tr("Channel"), m_channel);
+
+    /*
+     * A MIDI cable carries sixteen channels, so one port can reach several
+     * instruments at once. The picker chooses one; this is the list of those
+     * actually on the port, each with the channel it is set to.
+     */
+    m_chosen = new QListWidget{m_instrumentBox};
+    m_chosen->setSelectionMode(QAbstractItemView::SingleSelection);
+    m_chosen->setMaximumHeight(96);
+
+    auto* add = new QPushButton{tr("Add device"), m_instrumentBox};
+    auto* remove = new QPushButton{tr("Remove"), m_instrumentBox};
+
+    auto* row = new QHBoxLayout;
+    row->addWidget(add);
+    row->addWidget(remove);
+    row->addStretch(1);
+
+    sub->addRow(tr("On this port"), m_chosen);
+    sub->addRow(QString{}, row);
+
+    connect(add, &QPushButton::clicked, this, [this] {
+      addChosenDevice(chosenMap(), m_channel->value());
+      changed();
+    });
+    connect(remove, &QPushButton::clicked, this, [this] {
+      if(auto* item = m_chosen->currentItem())
+      {
+        delete m_chosen->takeItem(m_chosen->row(item));
+        changed();
+      }
+    });
+    connect(
+        m_chosen, &QListWidget::currentRowChanged, this, [this](int row) {
+      if(row < 0)
+        return;
+      const auto slot = slotAt(row);
+      m_channel->setValue(slot.channel);
+      selectMap(slot.map);
+    });
+    connect(m_channel, qOverload<int>(&QSpinBox::valueChanged), this, [this](int v) {
+      // Editing the channel edits the device the list has selected, so the
+      // spin box is not a separate setting the user has to remember to apply.
+      if(auto* item = m_chosen->currentItem())
+      {
+        auto slot = slotAt(m_chosen->row(item));
+        slot.channel = v;
+        item->setText(labelForSlot(slot));
+        item->setData(Qt::UserRole, slot.map);
+        item->setData(Qt::UserRole + 1, slot.channel);
+      }
+    });
     box->addLayout(sub);
 
     m_summary = new QLabel{m_instrumentBox};
@@ -488,6 +543,42 @@ QString MCUSettingsWidget::selectedMap() const
  * be showing: typing in the search box filters the selected row out and clears
  * the selection, and that must not read as unpicking the device.
  */
+MCUSpecificSettings::MapSlot MCUSettingsWidget::slotAt(int row) const
+{
+  MCUSpecificSettings::MapSlot slot;
+  if(auto* item = m_chosen->item(row))
+  {
+    slot.map = item->data(Qt::UserRole).toString();
+    slot.channel = item->data(Qt::UserRole + 1).toInt();
+  }
+  return slot;
+}
+
+QString MCUSettingsWidget::labelForSlot(const MCUSpecificSettings::MapSlot& slot) const
+{
+  auto name = slot.map;
+  if(const auto* e = MIDIDevices::Database::instance().find(slot.map))
+    name = e->label();
+  return tr("%1 - channel %2").arg(name).arg(slot.channel);
+}
+
+void MCUSettingsWidget::addChosenDevice(const QString& identity, int channel)
+{
+  if(identity.isEmpty())
+    return;
+
+  // The same description twice on one port would build two identical subtrees
+  // listening to the same messages.
+  for(int i = 0; i < m_chosen->count(); i++)
+    if(slotAt(i).map == identity)
+      return;
+
+  MCUSpecificSettings::MapSlot slot{identity, std::clamp(channel, 1, 16)};
+  auto* item = new QListWidgetItem{labelForSlot(slot), m_chosen};
+  item->setData(Qt::UserRole, slot.map);
+  item->setData(Qt::UserRole + 1, slot.channel);
+}
+
 QString MCUSettingsWidget::chosenMap() const
 {
   if(const auto live = selectedMap(); !live.isEmpty())
@@ -620,10 +711,13 @@ Device::DeviceSettings MCUSettingsWidget::getSettings() const
   else if(m_midiout->currentIndex() == 0 && m_portsResolved)
     midi.output_handle.clear();
 
-  // Likewise the instrument: a missing package must not repoint the device.
-  if(const auto identity = chosenMap(); !identity.isEmpty())
-    midi.map = identity;
-  midi.channel = m_channel->value();
+  // Likewise the devices: a missing package must not empty the list.
+  if(m_chosen->count() > 0)
+  {
+    midi.maps.clear();
+    for(int i = 0; i < m_chosen->count(); i++)
+      midi.maps.push_back(slotAt(i));
+  }
 
   s.deviceSpecificSettings = QVariant::fromValue(midi);
 
@@ -658,12 +752,18 @@ void MCUSettingsWidget::setSettings(const Device::DeviceSettings& settings)
   if(!s.output_handle.empty())
     m_portsResolved &= selectPort(*m_midiout, portName(s.output_handle.front()));
 
-  m_channel->setValue(std::clamp(s.channel, 1, 16));
-
   // Before the selection: the tree has to hold the right library first.
   updateKind();
 
-  selectMap(s.map);
+  m_chosen->clear();
+  for(const auto& slot : s.maps)
+    addChosenDevice(slot.map, slot.channel);
+
+  if(!s.maps.empty())
+  {
+    m_channel->setValue(std::clamp(s.maps.front().channel, 1, 16));
+    selectMap(s.maps.front().map);
+  }
 
   updateDeviceMapSummary();
 }

@@ -1,6 +1,8 @@
 #pragma once
 #include <QString>
 
+#include <vector>
+
 #include <libremidi/api.hpp>
 #include <libremidi/observer_configuration.hpp>
 
@@ -27,15 +29,25 @@ struct MCUSpecificSettings
   } mode{MCU};
 
   /**
-   * The device map, as "ardour/donnerdmk25.midimap.json". Not a path: a score
-   * has to keep pointing at the same description across a package update, a
-   * different machine, or a user's own copy of the maps.
+   * One device on the port, and the channel it is set to.
+   *
+   * The map is named as "ardour/donnerdmk25.midimap.json" rather than by path:
+   * a score has to keep pointing at the same description across a package
+   * update, a different machine, or a user's own copy of the maps.
    */
-  QString map;
+  struct MapSlot
+  {
+    QString map;
+    int channel{1};
 
-  //! The channel, 1-16, the instrument is set to: the dataset documents
-  //! parameter CCs without one.
-  int channel{1};
+    bool operator==(const MapSlot&) const noexcept = default;
+  };
+
+  /**
+   * A MIDI cable carries sixteen channels, so one port can reach several
+   * instruments at once. Each is a description of its own, on its own channel.
+   */
+  std::vector<MapSlot> maps;
 };
 }
 Q_DECLARE_METATYPE(Protocols::MCUSpecificSettings)

@@ -141,9 +141,8 @@ TEST_CASE("a description becomes a tree", "[mididevice][midi]")
 
   ProtocolSettings conf;
   conf.api = api;
-  conf.channel = 1;
-  conf.output = out;
-  conf.map = *map;
+    conf.output = out;
+  conf.devices.push_back({*map, 1});
 
   // Output only: nothing is ever received, so no node may claim to be readable.
   auto dev = std::make_unique<ossia::net::generic_device>(
@@ -152,16 +151,16 @@ TEST_CASE("a description becomes a tree", "[mididevice][midi]")
 
   SECTION("a group becomes a level, and an array member keeps its colon")
   {
-    REQUIRE(at(root, "Strip 1/Fader 1"));
+    REQUIRE(at(root, "Surface/Strip 1/Fader 1"));
 
     // "Bank B : Equalizer" was written as one array member, so it is one level.
-    REQUIRE(at(root, "Bank B : Equalizer/Knobs/Encoder 1"));
+    REQUIRE(at(root, "Surface/Bank B : Equalizer/Knobs/Encoder 1"));
 
     // The string form nests on the colon, so this one is two levels.
-    REQUIRE(at(root, "Osc 1/Shape/Wave"));
+    REQUIRE(at(root, "Surface/Osc 1/Shape/Wave"));
 
     // A control with no group sits at the root.
-    REQUIRE(at(root, "Cutoff"));
+    REQUIRE(at(root, "Surface/Cutoff"));
   }
 
   SECTION("the open ports narrow what a control claims to do")
@@ -169,42 +168,42 @@ TEST_CASE("a description becomes a tree", "[mididevice][midi]")
     // Output only. A control the document calls `in` cannot be reached at all,
     // so it is readable-but-never-updated rather than writable: writing it
     // would put a message on the cable the device never said it listens to.
-    auto* fader = at(root, "Strip 1/Fader 1");
+    auto* fader = at(root, "Surface/Strip 1/Fader 1");
     REQUIRE(fader);
     REQUIRE(fader->get_parameter());
     CHECK(fader->get_parameter()->get_access() == ossia::access_mode::GET);
 
     // `both` narrows to what the one open port can do.
-    auto* cutoff = at(root, "Cutoff");
+    auto* cutoff = at(root, "Surface/Cutoff");
     REQUIRE(cutoff);
     CHECK(cutoff->get_parameter()->get_access() == ossia::access_mode::SET);
 
     // `out` is what an output port is for.
-    auto* wave = at(root, "Osc 1/Shape/Wave");
+    auto* wave = at(root, "Surface/Osc 1/Shape/Wave");
     REQUIRE(wave);
     CHECK(wave->get_parameter()->get_access() == ossia::access_mode::SET);
   }
 
   SECTION("an omitted bound is the message type's natural range")
   {
-    auto* fader = at(root, "Strip 1/Fader 1");
+    auto* fader = at(root, "Surface/Strip 1/Fader 1");
     REQUIRE(fader);
     CHECK(domainOf(*fader->get_parameter()) == std::pair{0, 127});
 
     // 14-bit, and unsigned: pitch bend is centred on 8192 rather than
     // renumbered.
-    auto* bend = at(root, "Bend");
+    auto* bend = at(root, "Surface/Bend");
     REQUIRE(bend);
     CHECK(domainOf(*bend->get_parameter()) == std::pair{0, 16383});
 
-    auto* cutoff = at(root, "Cutoff");
+    auto* cutoff = at(root, "Surface/Cutoff");
     REQUIRE(cutoff);
     CHECK(domainOf(*cutoff->get_parameter()) == std::pair{0, 16383});
   }
 
   SECTION("named values get a choice beside the number")
   {
-    auto* wave = at(root, "Osc 1/Shape/Wave");
+    auto* wave = at(root, "Surface/Osc 1/Shape/Wave");
     REQUIRE(wave);
 
     auto* choice = wave->find_child("choice");
@@ -213,14 +212,14 @@ TEST_CASE("a description becomes a tree", "[mididevice][midi]")
     CHECK(choice->get_parameter()->get_value_type() == ossia::val_type::STRING);
 
     // A control whose values are not named has no choice node.
-    auto* fader = at(root, "Strip 1/Fader 1");
+    auto* fader = at(root, "Surface/Strip 1/Fader 1");
     REQUIRE(fader);
     CHECK(fader->find_child("choice") == nullptr);
   }
 
   SECTION("a relative encoder starts at the bottom of its range")
   {
-    auto* enc = at(root, "Bank B : Equalizer/Knobs/Encoder 1");
+    auto* enc = at(root, "Surface/Bank B : Equalizer/Knobs/Encoder 1");
     REQUIRE(enc);
 
     // An encoder sends deltas, so the node holds the accumulated position and
@@ -248,9 +247,8 @@ TEST_CASE("the same port can be used again after the device goes away", "[midide
   const auto build = [&] {
     ProtocolSettings conf;
     conf.api = api;
-    conf.channel = 1;
-    conf.output = out;
-    conf.map = *map;
+        conf.output = out;
+    conf.devices.push_back({*map, 1});
     return std::make_unique<ossia::net::generic_device>(
         makeProtocol(std::move(conf)), "surface");
   };
@@ -319,9 +317,8 @@ TEST_CASE("a port survives a device cycle while an observer is watching",
   const auto build = [&] {
     ProtocolSettings conf;
     conf.api = api;
-    conf.channel = 1;
-    conf.output = out;
-    conf.map = *map;
+        conf.output = out;
+    conf.devices.push_back({*map, 1});
     return std::make_unique<ossia::net::generic_device>(
         makeProtocol(std::move(conf)), "surface");
   };
@@ -413,9 +410,8 @@ injector makeReceiver(const loopback& lb, const std::string& doc)
 
   ProtocolSettings conf;
   conf.api = lb.api;
-  conf.channel = 1;
-  conf.input = lb.in;
-  conf.map = *map;
+    conf.input = lb.in;
+  conf.devices.push_back({*map, 1});
 
   injector inj;
   inj.dev = std::make_unique<ossia::net::generic_device>(
@@ -461,28 +457,28 @@ TEST_CASE("an incoming note only moves the control it addresses", "[mididevice][
 
   // Note 36 is Kick's own address.
   inj.send({0x90, 36, 100});
-  CHECK(waitFor([&] { return valueOf(root, "Kick") == 100; }));
-  CHECK(valueOf(root, "Snare") == 0);
+  CHECK(waitFor([&] { return valueOf(root, "Drums/Kick") == 100; }));
+  CHECK(valueOf(root, "Drums/Snare") == 0);
 
   // Note 60 addresses none of the three: it is not 36, not 38, and outside
   // 12..24. Nothing may move.
   inj.send({0x90, 60, 100});
   std::this_thread::sleep_for(std::chrono::milliseconds{200});
-  CHECK(valueOf(root, "Snare") == 0);
-  CHECK(valueOf(root, "Slices") == 0);
+  CHECK(valueOf(root, "Drums/Snare") == 0);
+  CHECK(valueOf(root, "Drums/Slices") == 0);
 
   // A note inside the range is the range control's value.
   inj.send({0x90, 20, 100});
-  CHECK(waitFor([&] { return valueOf(root, "Slices") == 20; }));
-  CHECK(valueOf(root, "Snare") == 0);
+  CHECK(waitFor([&] { return valueOf(root, "Drums/Slices") == 20; }));
+  CHECK(valueOf(root, "Drums/Snare") == 0);
 
   // A note-off for a note that never sounded must not release another pad.
   inj.send({0x80, 60, 0});
   std::this_thread::sleep_for(std::chrono::milliseconds{200});
-  CHECK(valueOf(root, "Kick") == 100);
+  CHECK(valueOf(root, "Drums/Kick") == 100);
 
   inj.send({0x80, 36, 0});
-  CHECK(waitFor([&] { return valueOf(root, "Kick") == 0; }));
+  CHECK(waitFor([&] { return valueOf(root, "Drums/Kick") == 0; }));
 }
 
 TEST_CASE("an incoming poly aftertouch only moves its own note", "[mididevice][midi]")
@@ -505,8 +501,8 @@ TEST_CASE("an incoming poly aftertouch only moves its own note", "[mididevice][m
   auto& root = inj.dev->get_root_node();
 
   inj.send({0xA0, 40, 77});
-  CHECK(waitFor([&] { return valueOf(root, "PressA") == 77; }));
-  CHECK(valueOf(root, "PressB") == 0);
+  CHECK(waitFor([&] { return valueOf(root, "T/PressA") == 77; }));
+  CHECK(valueOf(root, "T/PressB") == 0);
 }
 
 TEST_CASE("a relative encoder accumulates the deltas it receives", "[mididevice][midi]")
@@ -532,15 +528,15 @@ TEST_CASE("a relative encoder accumulates the deltas it receives", "[mididevice]
   inj.send({0xB0, 74, 1});
   inj.send({0xB0, 74, 1});
   inj.send({0xB0, 74, 1});
-  CHECK(waitFor([&] { return valueOf(root, "Enc") == 3; }));
+  CHECK(waitFor([&] { return valueOf(root, "T/Enc") == 3; }));
 
   inj.send({0xB0, 74, 127});
-  CHECK(waitFor([&] { return valueOf(root, "Enc") == 2; }));
+  CHECK(waitFor([&] { return valueOf(root, "T/Enc") == 2; }));
 
   // It cannot run past the end of its range.
   for(int i = 0; i < 8; i++)
     inj.send({0xB0, 74, 127});
-  CHECK(waitFor([&] { return valueOf(root, "Enc") == 0; }));
+  CHECK(waitFor([&] { return valueOf(root, "T/Enc") == 0; }));
 }
 
 TEST_CASE("the same document narrows the other way on an input", "[mididevice][midi]")
@@ -558,12 +554,11 @@ TEST_CASE("the same document narrows the other way on an input", "[mididevice][m
   const auto access = [&](bool in, bool out, const std::string& path) {
     ProtocolSettings conf;
     conf.api = lb->api;
-    conf.channel = 1;
-    if(in)
+        if(in)
       conf.input = lb->in;
     if(out)
       conf.output = lb->out;
-    conf.map = *map;
+    conf.devices.push_back({*map, 1});
 
     auto dev = std::make_unique<ossia::net::generic_device>(
         makeProtocol(std::move(conf)), "narrow");
@@ -575,14 +570,14 @@ TEST_CASE("the same document narrows the other way on an input", "[mididevice][m
 
   // Input only: what the hardware sends is readable, and an instrument
   // parameter there is unreachable rather than writable.
-  CHECK(access(true, false, "Strip 1/Fader 1") == ossia::access_mode::GET);
-  CHECK(access(true, false, "Osc 1/Shape/Wave") == ossia::access_mode::GET);
-  CHECK(access(true, false, "Cutoff") == ossia::access_mode::GET);
+  CHECK(access(true, false, "Surface/Strip 1/Fader 1") == ossia::access_mode::GET);
+  CHECK(access(true, false, "Surface/Osc 1/Shape/Wave") == ossia::access_mode::GET);
+  CHECK(access(true, false, "Surface/Cutoff") == ossia::access_mode::GET);
 
   // Both: each control gets exactly what it declares.
-  CHECK(access(true, true, "Strip 1/Fader 1") == ossia::access_mode::GET);
-  CHECK(access(true, true, "Osc 1/Shape/Wave") == ossia::access_mode::SET);
-  CHECK(access(true, true, "Cutoff") == ossia::access_mode::BI);
+  CHECK(access(true, true, "Surface/Strip 1/Fader 1") == ossia::access_mode::GET);
+  CHECK(access(true, true, "Surface/Osc 1/Shape/Wave") == ossia::access_mode::SET);
+  CHECK(access(true, true, "Surface/Cutoff") == ossia::access_mode::BI);
 }
 
 TEST_CASE("a bipolar control starts at the centre the device calls centre",
@@ -601,16 +596,15 @@ TEST_CASE("a bipolar control starts at the centre the device calls centre",
 
   ProtocolSettings conf;
   conf.api = api;
-  conf.channel = 1;
-  conf.output = out;
-  conf.map = *map;
+    conf.output = out;
+  conf.devices.push_back({*map, 1});
 
   auto dev = std::make_unique<ossia::net::generic_device>(
       makeProtocol(std::move(conf)), "centre");
 
   // 14-bit bipolar: 8192, not 8191. The wire range is 0..16383 and the value
   // a pitch bend wheel rests at is its midpoint.
-  auto* bend = at(dev->get_root_node(), "Bend");
+  auto* bend = at(dev->get_root_node(), "Surface/Bend");
   REQUIRE(bend);
   CHECK(ossia::convert<int>(bend->get_parameter()->value()) == 8192);
 }
@@ -644,11 +638,10 @@ struct bidir
 
     ProtocolSettings conf;
     conf.api = lb.api;
-    conf.channel = 1;
-    if(withInput)
+        if(withInput)
       conf.input = lb.in;
     conf.output = lb.out;
-    conf.map = *map;
+    conf.devices.push_back({*map, 1});
     dev = std::make_unique<ossia::net::generic_device>(
         makeProtocol(std::move(conf)), "bidir");
   }
@@ -660,9 +653,12 @@ struct bidir
     tap.reset();
   }
 
+  //! The description's own level of the tree, which every control sits under.
+  std::string deviceNode{"Wire"};
+
   ossia::net::parameter_base& param(const std::string& path)
   {
-    auto* n = at(dev->get_root_node(), path);
+    auto* n = at(dev->get_root_node(), deviceNode + "/" + path);
     REQUIRE(n);
     REQUIRE(n->get_parameter());
     return *n->get_parameter();
@@ -759,7 +755,7 @@ TEST_CASE("a named control sends once whichever of its two nodes is written",
   choice.push_value(std::string{"Triangle"});
   CHECK(w.settledCount(2) == 2);
   CHECK(w.count({0xB0, 30, 2}) == 1);
-  CHECK(valueOf(w.dev->get_root_node(), "Wave") == 2);
+  CHECK(valueOf(w.dev->get_root_node(), "Wire/Wave") == 2);
 
   // A name the control does not have goes nowhere.
   choice.push_value(std::string{"Sine"});
@@ -807,7 +803,7 @@ TEST_CASE("a write made while another control is being updated is not dropped",
     w.send({0xB0, 20, 1});
     CHECK(w.settledCount(2) == 2);
     CHECK(w.count({0xB0, 7, 100}) == 1);
-    CHECK(valueOf(w.dev->get_root_node(), "Mode") == 1);
+    CHECK(valueOf(w.dev->get_root_node(), "Wire/Mode") == 1);
     CHECK(ossia::convert<std::string>(w.param("Mode/choice").value()) == "B");
   }
 }
@@ -885,6 +881,7 @@ TEST_CASE("a relative control sends the step from where it really was",
        "value": {"mode": "relative", "encoding": "twos_complement"}}
     ]})_",
       false};
+  w.deviceNode = "T";
   auto& enc = w.param("Enc");
 
   enc.push_value(10);
@@ -931,28 +928,84 @@ TEST_CASE("an NRPN arrives as the four messages that carry it", "[mididevice][mi
   inj.send({0xB0, 98, 2});
   inj.send({0xB0, 6, 0x40});
   inj.send({0xB0, 38, 0x01});
-  CHECK(waitFor([&] { return valueOf(root, "Wide") == ((0x40 << 7) | 1); }));
+  CHECK(waitFor([&] { return valueOf(root, "T/Wide") == ((0x40 << 7) | 1); }));
 
   // The selection stays latched: a further data entry writes the same
   // parameter without naming it again.
   inj.send({0xB0, 6, 0x10});
   inj.send({0xB0, 38, 0x02});
-  CHECK(waitFor([&] { return valueOf(root, "Wide") == ((0x10 << 7) | 2); }));
+  CHECK(waitFor([&] { return valueOf(root, "T/Wide") == ((0x10 << 7) | 2); }));
 
   // A 7-bit parameter takes its value from the data MSB alone.
   inj.send({0xB0, 99, 1});
   inj.send({0xB0, 98, 3});
   inj.send({0xB0, 6, 99});
-  CHECK(waitFor([&] { return valueOf(root, "Narrow") == 99; }));
+  CHECK(waitFor([&] { return valueOf(root, "T/Narrow") == 99; }));
 
   // Selecting 1/3 must not have moved 1/2.
-  CHECK(valueOf(root, "Wide") == ((0x10 << 7) | 2));
+  CHECK(valueOf(root, "T/Wide") == ((0x10 << 7) | 2));
 
   // An RPN is a different address space from an NRPN with the same numbers.
   inj.send({0xB0, 101, 0});
   inj.send({0xB0, 100, 0});
   inj.send({0xB0, 6, 0x02});
   inj.send({0xB0, 38, 0x00});
-  CHECK(waitFor([&] { return valueOf(root, "Reg") == (0x02 << 7); }));
-  CHECK(valueOf(root, "Narrow") == 99);
+  CHECK(waitFor([&] { return valueOf(root, "T/Reg") == (0x02 << 7); }));
+  CHECK(valueOf(root, "T/Narrow") == 99);
+}
+
+TEST_CASE("two devices on one port keep their controls apart", "[mididevice][midi]")
+{
+  const auto lb = findLoopback();
+  if(!lb)
+  {
+    SUCCEED();
+    return;
+  }
+
+  // The same description twice, as two instruments of one model on one cable
+  // set to different channels -- the case a single tree could not express.
+  const std::string one = R"_({"format":"score.midi-device/1","model":"Synth",
+    "controls":[{"name":"Cutoff","direction":"in",
+      "message":{"type":"cc","number":74},"value":{}}]})_";
+
+  auto map = parseDeviceMap(one);
+  REQUIRE(map.has_value());
+
+  ProtocolSettings conf;
+  conf.api = lb->api;
+  conf.input = lb->in;
+  conf.devices.push_back({*map, 1});
+  conf.devices.push_back({*map, 5});
+
+  auto dev = std::make_unique<ossia::net::generic_device>(
+      makeProtocol(std::move(conf)), "chain");
+  auto& root = dev->get_root_node();
+
+  // Two of the same model cannot share a level, so the second is uniquified
+  // rather than merged into the first.
+  REQUIRE(root.children().size() == 2);
+  const auto first = "Synth/Cutoff";
+  auto* second = at(root, "Synth.1/Cutoff");
+  REQUIRE(at(root, first));
+  REQUIRE(second);
+
+  libremidi::output_configuration oc{};
+  auto port = std::make_unique<libremidi::midi_out>(oc, lb->api);
+  REQUIRE(port->open_port(lb->out) == stdx::error{});
+  const auto send = [&](std::initializer_list<unsigned char> b) {
+    std::vector<unsigned char> v{b};
+    port->send_message(v.data(), v.size());
+  };
+
+  // The description states no channel, so each device answers on the channel
+  // its slot gives it and ignores the other's.
+  send({0xB0, 74, 100});
+  CHECK(waitFor([&] { return valueOf(root, first) == 100; }));
+  CHECK(ossia::convert<int>(second->get_parameter()->value()) == 0);
+
+  send({0xB4, 74, 60});
+  CHECK(waitFor(
+      [&] { return ossia::convert<int>(second->get_parameter()->value()) == 60; }));
+  CHECK(valueOf(root, first) == 100);
 }

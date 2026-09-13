@@ -828,28 +828,9 @@ std::unique_ptr<ossia::net::protocol_base> MCUDevice::makeMCUProtocol(
 std::unique_ptr<ossia::net::protocol_base>
 MCUDevice::makeMidiDeviceMapProtocol(const MCUSpecificSettings& set)
 {
-  if(set.map.isEmpty())
+  if(set.maps.empty())
   {
     qWarning() << "MIDI Controller" << settings().name << "has no device map selected.";
-    return {};
-  }
-
-  const auto* entry = MIDIDevices::Database::instance().find(set.map);
-  if(!entry)
-  {
-    // The package is a separate download, so a score can arrive on a machine
-    // without it: report and leave the device disconnected.
-    qWarning() << "MIDI Controller" << settings().name << ": the device map" << set.map
-               << "is not in the library. Install the \"MIDI device maps\" package to "
-                  "get it; the rest of the document is unaffected.";
-    return {};
-  }
-
-  auto map = MIDIDevices::Database::load(*entry);
-  if(!map)
-  {
-    qWarning() << "MIDI Controller" << settings().name
-               << ": nothing could be read from the device map" << set.map;
     return {};
   }
 
@@ -859,8 +840,38 @@ MCUDevice::makeMidiDeviceMapProtocol(const MCUSpecificSettings& set)
     conf.input = set.input_handle[0];
   if(!set.output_handle.empty())
     conf.output = set.output_handle[0];
-  conf.channel = set.channel;
-  conf.map = std::move(*map);
+
+  for(const auto& slot : set.maps)
+  {
+    const auto* entry = MIDIDevices::Database::instance().find(slot.map);
+    if(!entry)
+    {
+      // The package is a separate download, so a score can arrive on a machine
+      // without it. One missing description does not take the others with it.
+      qWarning() << "MIDI Controller" << settings().name << ": the device map"
+                 << slot.map
+                 << "is not in the library. Install the \"MIDI device maps\" "
+                    "package to get it; the rest of the document is unaffected.";
+      continue;
+    }
+
+    auto map = MIDIDevices::Database::load(*entry);
+    if(!map)
+    {
+      qWarning() << "MIDI Controller" << settings().name
+                 << ": nothing could be read from the device map" << slot.map;
+      continue;
+    }
+
+    conf.devices.push_back({std::move(*map), slot.channel});
+  }
+
+  if(conf.devices.empty())
+  {
+    qWarning() << "MIDI Controller" << settings().name
+               << ": none of its device maps could be read.";
+    return {};
+  }
 
   return MIDIDevices::makeProtocol(std::move(conf));
 }

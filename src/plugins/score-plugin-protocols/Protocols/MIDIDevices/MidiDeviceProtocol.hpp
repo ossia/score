@@ -24,9 +24,23 @@
 
 #include <memory>
 #include <optional>
+#include <vector>
 
 namespace Protocols::MIDIDevices
 {
+
+//! One description, and the channel the device it describes is set to.
+struct MappedDevice
+{
+  DeviceMap map;
+
+  /**
+   * 1-16, for a control whose description states no channel of its own -- an
+   * instrument documents its parameters without one, because the channel is
+   * whatever the user set on the front panel.
+   */
+  int channel{1};
+};
 
 struct ProtocolSettings
 {
@@ -41,13 +55,14 @@ struct ProtocolSettings
   std::optional<libremidi::output_port> output;
 
   /**
-   * The channel, 1-16, for a control whose description states none -- an
-   * instrument documents its parameters without one, because the channel is
-   * whatever the user set on the front panel.
+   * The descriptions reachable through those ports.
+   *
+   * More than one is the ordinary case for a MIDI chain: several instruments
+   * on one cable, each listening on its own channel. Each gets its own level
+   * of the tree, so two of the same model do not collide and a control's
+   * address says which device it belongs to.
    */
-  int channel{1};
-
-  DeviceMap map;
+  std::vector<MappedDevice> devices;
 };
 
 //! Throws std::runtime_error when the ports cannot be opened or the settings
