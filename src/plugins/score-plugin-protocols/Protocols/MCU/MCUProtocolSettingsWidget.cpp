@@ -406,7 +406,14 @@ MCUSettingsWidget::MCUSettingsWidget(QWidget* parent)
 
   // Enumerated with the API the settings will name: a port handle only means
   // something to the backend that produced it.
+  //
+  // Every transport group, because the protocol resolves every transport
+  // group: a port the picker does not offer is one the user cannot choose but
+  // a saved score can still name.
   libremidi::observer_configuration conf;
+  conf.track_hardware = true;
+  conf.track_virtual = true;
+  conf.track_network = true;
   conf.input_added = [this](const libremidi::input_port& p) {
     QMetaObject::invokeMethod(this, [this, p] { addInput(p); });
   };
