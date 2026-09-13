@@ -42,8 +42,8 @@ include(ScoreDeploymentWindowsStore)
 endif()
 
 if(SCORE_INSTALL_HEADERS)
-  # Out-of-tree add-ons have no way to see the version from the SDK otherwise,
-  # and a hardcoded copy in ScoreExternalAddon.cmake goes stale unnoticed.
+  # The only way an out-of-tree add-on can see the version of the score it will be
+  # loaded into.
   file(CONFIGURE
     OUTPUT "${CMAKE_BINARY_DIR}/ScoreVersion.cmake"
     CONTENT "set(SCORE_VERSION_MAJOR ${SCORE_VERSION_MAJOR})
@@ -69,12 +69,14 @@ set(SCORE_VERSION \"${SCORE_VERSION}\")
     OPTIONAL
   )
 
-  # Add-ons converging on find_package(Avendish) + avnd_addon_* need Avendish's
-  # CMake package, not just the headers create-sdk-common.sh copies. Callers
-  # pass -DCMAKE_MODULE_PATH=<sdk>/lib/cmake/score without touching
-  # CMAKE_PREFIX_PATH, so the entry point is a FindAvendish module there rather
-  # than a config package: find_package() tries module mode first, and this
-  # keeps it working without every add-on or CI caller changing its flags.
+  # Add-ons using find_package(Avendish) + avnd_addon_* need Avendish's CMake
+  # package, not just the headers create-sdk-common.sh copies. Callers pass
+  # -DCMAKE_MODULE_PATH=<sdk>/lib/cmake/score and leave CMAKE_PREFIX_PATH alone, so
+  # the entry point has to be a Find module -- find_package() tries module mode
+  # first -- rather than a config package.
+  #
+  # @ONLY: file(CONFIGURE) runs a ${} pass of its own over CONTENT, which would
+  # otherwise expand \${CMAKE_CURRENT_LIST_DIR} here instead of in the shim.
   file(CONFIGURE
     OUTPUT "${CMAKE_BINARY_DIR}/FindAvendish.cmake"
     CONTENT "get_filename_component(_avnd_sdk_root \"\${CMAKE_CURRENT_LIST_DIR}/../avendish\" ABSOLUTE)
@@ -83,7 +85,8 @@ if(EXISTS \"\${_avnd_sdk_root}/AvendishConfig.cmake\")
 else()
   set(Avendish_FOUND FALSE)
 endif()
-")
+"
+    @ONLY)
 
   install(
     FILES
