@@ -4,10 +4,13 @@
 
 #include <score/application/ApplicationContext.hpp>
 
+#include <QDateTime>
 #include <QDir>
 #include <QDirIterator>
 #include <QFile>
 #include <QFileInfo>
+
+#include <mutex>
 
 #include <algorithm>
 
@@ -26,25 +29,6 @@ QString nameFromFile(const QString& path)
   return name.replace('_', ' ').simplified();
 }
 
-//! "Korg M1" of the brand "Korg" is "M1"; "Korgasmatron" stays whole.
-QString withoutBrand(const QString& model, const QString& brand)
-{
-  if(brand.isEmpty() || !model.startsWith(brand, Qt::CaseInsensitive))
-    return model;
-
-  const auto separator
-      = [](QChar c) { return c.isSpace() || c == '-' || c == '_' || c == ':'; };
-
-  auto rest = model.mid(brand.size());
-  if(!rest.isEmpty() && !separator(rest.front()))
-    return model;
-
-  while(!rest.isEmpty() && separator(rest.front()))
-    rest.remove(0, 1);
-
-  return rest.isEmpty() ? model : rest;
-}
-
 /**
  * How much of a file the scan reads before giving up on finding its header.
  *
@@ -53,6 +37,13 @@ QString withoutBrand(const QString& model, const QString& brand)
  * is longer is read in full rather than skipped.
  */
 constexpr qint64 headerPrefix = 32768;
+
+/**
+ * The second try, for a document whose header runs past the prefix. Still
+ * bounded: the packages folder is a user directory, and a listing must not read
+ * a gigabyte because a file there happens to end in `.midimap.json`.
+ */
+constexpr qint64 headerLimit = 1024 * 1024;
 
 bool lessThan(const DeviceEntry& a, const DeviceEntry& b) noexcept
 {
@@ -77,6 +68,25 @@ std::optional<std::string> readFile(const QString& path, qint64 max)
   const auto bytes = max > 0 ? f.read(max) : f.readAll();
   return std::string{bytes.constData(), std::size_t(bytes.size())};
 }
+}
+
+//! "Korg M1" of the brand "Korg" is "M1"; "Korgasmatron" stays whole.
+QString withoutBrand(const QString& model, const QString& brand)
+{
+  if(brand.isEmpty() || !model.startsWith(brand, Qt::CaseInsensitive))
+    return model;
+
+  const auto separator
+      = [](QChar c) { return c.isSpace() || c == '-' || c == '_' || c == ':'; };
+
+  auto rest = model.mid(brand.size());
+  if(!rest.isEmpty() && !separator(rest.front()))
+    return model;
+
+  while(!rest.isEmpty() && separator(rest.front()))
+    rest.remove(0, 1);
+
+  return rest.isEmpty() ? model : rest;
 }
 
 QString DeviceEntry::name() const
@@ -159,8 +169,8 @@ void Database::rescan()
     // rather than a bigger one for every file.
     if(!parsed && head->size() == std::size_t(headerPrefix))
     {
-      if(const auto whole = readFile(path, 0))
-        parsed = parseDeviceMapHeader(*whole);
+      if(const auto more = readFile(path, headerLimit))
+        parsed = parseDeviceMapHeader(*more);
     }
     if(!parsed)
       return;
@@ -195,10 +205,28 @@ const DeviceEntry* Database::find(const QString& identity) const noexcept
 
 std::optional<DeviceMap> Database::load(const DeviceEntry& entry)
 {
-  const auto text = readFile(entry.file, 0);
-  if(!text)
-    return std::nullopt;
-  return parseDeviceMap(*text);
+  // One entry is enough: the settings widget asks for the same description
+  // two or three times over for a single click -- the summary, the preview and
+  // the tree it would build -- and an instrument's patch lists make a parse
+  // cost tens of milliseconds.
+  static std::mutex mut;
+  static QString cachedFile;
+  static QDateTime cachedTime;
+  static std::optional<DeviceMap> cached;
+
+  const QDateTime modified = QFileInfo{entry.file}.lastModified();
+
+  std::lock_guard _{mut};
+  if(cachedFile == entry.file && cachedTime == modified)
+    return cached;
+
+  cachedFile = entry.file;
+  cachedTime = modified;
+  cached = std::nullopt;
+
+  if(const auto text = readFile(entry.file, 0))
+    cached = parseDeviceMap(*text);
+  return cached;
 }
 
 }

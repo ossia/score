@@ -64,6 +64,13 @@ struct DeviceEntry
 };
 
 /**
+ * "Korg M1" of the brand "Korg" is "M1"; "Korgasmatron" stays whole -- the
+ * brand only comes off at a word boundary.
+ */
+SCORE_PLUGIN_PROTOCOLS_EXPORT
+QString withoutBrand(const QString& model, const QString& brand);
+
+/**
  * A channel addressed as raw MIDI rather than through a description: note
  * on/off, control change, program change and pitch bend, for a device nothing
  * in the library describes.
