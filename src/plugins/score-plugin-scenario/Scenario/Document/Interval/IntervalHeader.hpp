@@ -3,12 +3,14 @@
 
 #include <QGraphicsItem>
 
+#include <score_plugin_scenario_export.h>
+
 class QGraphicsSceneMouseEvent;
 
 namespace Scenario
 {
 class IntervalView;
-class IntervalHeader
+class SCORE_PLUGIN_SCENARIO_EXPORT IntervalHeader
     : public QObject
     , public QGraphicsItem
 {
@@ -20,7 +22,7 @@ public:
     RackShown   // There is a rack currently shown
   };
 
-  using QGraphicsItem::QGraphicsItem;
+  explicit IntervalHeader(QGraphicsItem* parent = nullptr);
 
   static const constexpr int Type = ItemType::IntervalHeader;
   int type() const final override { return Type; }
