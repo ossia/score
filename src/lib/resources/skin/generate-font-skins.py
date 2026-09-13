@@ -32,7 +32,7 @@ PALETTE = {k: v for k, v in DEFAULT.items() if not k.startswith("_") and k != "f
 ROLES = [
     "application", "sans", "sansSmall", "mono", "monoSmall",
     "bold10", "bold12", "medium7", "medium8", "medium10", "medium12",
-    "title", "slider",
+    "title", "slider", "code",
 ]
 
 
@@ -79,6 +79,8 @@ def graded(name, small, body, large, mono, mono_small, scale):
         # Hierarchy comes from the larger grid size, not from a faked weight.
         "title": emphasis(large[0], l),
         "slider": {"family": small[0], "pixelSize": s},
+        # Code wants the monospaced face at the body size.
+        "code": {"family": mono[0], "pixelSize": mono[1] * scale, "fixedPitch": True},
     }
 
 

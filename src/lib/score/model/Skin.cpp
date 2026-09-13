@@ -33,6 +33,7 @@
 #include <QFontDatabase>
 #include <QFontMetrics>
 #include <QGuiApplication>
+#include <QWidget>
 #include <QJsonArray>
 #include <QJsonObject>
 
@@ -365,7 +366,8 @@ std::vector<std::pair<const char*, QFont*>> Skin::fonts() noexcept
       {"medium10", &Medium10Pt},
       {"medium12", &Medium12Pt},
       {"title", &TitleFont},
-      {"slider", &SliderFont}};
+      {"slider", &SliderFont},
+      {"code", &CodeFont}};
 }
 
 void Skin::setupFonts()
@@ -414,6 +416,12 @@ void Skin::setupFonts()
   SliderFont = SansFont;
   SliderFont.setPixelSize(10 * 96. / 72.);
   SliderFont.setWeight(QFont::DemiBold);
+
+  // The values createScriptWidget() used to hardcode.
+  CodeFont = QFont{"IBM Plex Mono"};
+  CodeFont.setPixelSize(13);
+  CodeFont.setFixedPitch(true);
+  CodeFont.setHintingPreference(QFont::PreferVerticalHinting);
 
   ApplicationFont = defaultApplicationFont();
 
@@ -479,11 +487,22 @@ Skin& score::Skin::instance() noexcept
   {                              \
     fromColor(#Col, Col);        \
   } while(0)
-void Skin::load(const QJsonObject& obj)
+void Skin::load(const QJsonObject& obj, int parts)
 {
-  // Reset first, so a skin that names no fonts gets the built-in ones rather
-  // than whatever the previously loaded skin left behind.
-  setupFonts();
+  if(parts & Fonts)
+  {
+    // Reset first, so a skin that names no fonts gets the built-in ones
+    // rather than whatever the previously loaded skin left behind.
+    setupFonts();
+    loadFonts(obj["fonts"].toObject());
+  }
+
+  if(!(parts & Colours))
+  {
+    LoadIndex++;
+    changed();
+    return;
+  }
 
   auto fromColor = [&](const QString& key, Brush& col) {
     auto arr = obj[key].toArray();
@@ -552,8 +571,6 @@ void Skin::load(const QJsonObject& obj)
     Transparent1.lighter = Gray.main;
     Transparent1.lighter180 = HalfLight.main;
   }
-
-  loadFonts(obj["fonts"].toObject());
 
   LoadIndex++;
   changed();

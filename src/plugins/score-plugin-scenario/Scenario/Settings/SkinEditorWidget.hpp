@@ -6,6 +6,7 @@
 #include <QWidget>
 
 class QComboBox;
+class QLineEdit;
 class QLabel;
 class QListWidget;
 class QSpinBox;
@@ -41,6 +42,11 @@ public:
   //! Select a skin in the list without emitting skinChanged().
   void setSkin(const QString& skin);
 
+  //! Which halves of a skin the user wants applied when switching. Stored in
+  //! QSettings so the model can honour them without a round trip through the
+  //! settings machinery.
+  static int selectedParts() noexcept;
+
   void skinChanged(const QString& arg_1) W_SIGNAL(skinChanged, arg_1);
 
 private:
@@ -57,15 +63,19 @@ private:
   void refreshFontPreview();
 
   QComboBox* m_skin{};
+  QCheckBox* m_applyColours{};
+  QCheckBox* m_applyFonts{};
 
   QListWidget* m_colorList{};
   color_widgets::ColorWheel* m_wheel{};
+  QLineEdit* m_hex{};
 
   QListWidget* m_fontList{};
   QComboBox* m_fontFamily{};
   QComboBox* m_fontStyle{};
   QSpinBox* m_fontSize{};
   QCheckBox* m_fontAntialias{};
+  QComboBox* m_fontHinting{};
   QLabel* m_fontPreview{};
   QLabel* m_fontHint{};
 

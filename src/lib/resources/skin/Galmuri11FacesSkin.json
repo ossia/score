@@ -279,6 +279,11 @@
   "slider": {
    "family": "Galmuri11",
    "pixelSize": 12
+  },
+  "code": {
+   "family": "GalmuriMono11",
+   "pixelSize": 12,
+   "fixedPitch": true
   }
  }
 }

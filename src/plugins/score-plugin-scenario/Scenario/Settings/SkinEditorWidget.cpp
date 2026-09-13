@@ -24,6 +24,7 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
+#include <QSettings>
 #include <QRegularExpression>
 #include <QSpinBox>
 #include <QVBoxLayout>
@@ -140,8 +141,31 @@ QWidget* SkinEditorWidget::makeSkinRow()
   auto browse = new QPushButton{tr("Browse...")};
   auto save = new QPushButton{tr("Save as...")};
 
+  // Colours and fonts are separable: trying a palette should not have to
+  // change every font as well.
+  QSettings set;
+  m_applyColours = new QCheckBox{tr("Apply colours")};
+  m_applyFonts = new QCheckBox{tr("Apply fonts")};
+  m_applyColours->setChecked(set.value(QStringLiteral("Skin/ApplyColours"), true).toBool());
+  m_applyFonts->setChecked(set.value(QStringLiteral("Skin/ApplyFonts"), true).toBool());
+  m_applyColours->setToolTip(
+      tr("Take the colours from the skin you pick. Turn off to keep the "
+         "current ones."));
+  m_applyFonts->setToolTip(
+      tr("Take the fonts from the skin you pick. Turn off to keep the "
+         "current ones."));
+
+  connect(m_applyColours, &QCheckBox::toggled, this, [](bool v) {
+    QSettings{}.setValue(QStringLiteral("Skin/ApplyColours"), v);
+  });
+  connect(m_applyFonts, &QCheckBox::toggled, this, [](bool v) {
+    QSettings{}.setValue(QStringLiteral("Skin/ApplyFonts"), v);
+  });
+
   lay->addWidget(new QLabel{tr("Skin")});
   lay->addWidget(m_skin, 1);
+  lay->addWidget(m_applyColours);
+  lay->addWidget(m_applyFonts);
   lay->addWidget(browse);
   lay->addWidget(save);
 
@@ -178,6 +202,17 @@ QWidget* SkinEditorWidget::makeSkinRow()
   });
 
   return w;
+}
+
+int SkinEditorWidget::selectedParts() noexcept
+{
+  QSettings s;
+  int parts = 0;
+  if(s.value(QStringLiteral("Skin/ApplyColours"), true).toBool())
+    parts |= score::Skin::Colours;
+  if(s.value(QStringLiteral("Skin/ApplyFonts"), true).toBool())
+    parts |= score::Skin::Fonts;
+  return parts;
 }
 
 void SkinEditorWidget::setSkin(const QString& skin)
@@ -220,8 +255,8 @@ QWidget* SkinEditorWidget::makeColorEditor()
   m_wheel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   form->setWidget(0, QFormLayout::SpanningRole, m_wheel);
 
-  auto hexa = new QLineEdit;
-  form->addRow(tr("Hex"), hexa);
+  m_hex = new QLineEdit;
+  form->addRow(tr("Hex"), m_hex);
 
   score::Skin& s = score::Skin::instance();
   for(auto& col : s.getColors())
@@ -240,13 +275,16 @@ QWidget* SkinEditorWidget::makeColorEditor()
     {
       m_loading = true;
       m_wheel->setColor(b->color());
+      // The hex box used to be written only by the wheel's own signal, so
+      // picking a different colour in the list left the previous value here.
+      m_hex->setText(b->color().name(QColor::HexRgb));
       m_loading = false;
     }
       });
 
   connect(
       m_wheel, &color_widgets::ColorWheel::colorChanged, this,
-      [this, &s, hexa](QColor c) {
+      [this, &s](QColor c) {
     auto item = m_colorList->currentItem();
     if(!item || m_loading)
       return;
@@ -255,17 +293,17 @@ QWidget* SkinEditorWidget::makeColorEditor()
     QPixmap p{16, 16};
     p.fill(c);
     item->setIcon(p);
-    hexa->setText(c.name(QColor::HexRgb));
+    m_hex->setText(c.name(QColor::HexRgb));
     m_applying = true;
     s.changed();
     m_applying = false;
       });
 
-  connect(hexa, &QLineEdit::editingFinished, this, [this, &s, hexa] {
+  connect(m_hex, &QLineEdit::editingFinished, this, [this, &s] {
     auto item = m_colorList->currentItem();
     if(!item)
       return;
-    const QColor c{hexa->text()};
+    const QColor c{m_hex->text()};
     if(!c.isValid())
       return;
     if(auto brush = s.fromString(item->text()); brush && brush->color() != c)
@@ -307,6 +345,13 @@ QWidget* SkinEditorWidget::makeFontEditor()
   m_fontSize->setRange(4, 96);
   m_fontSize->setSuffix(tr(" px"));
   m_fontAntialias = new QCheckBox{tr("Antialias")};
+  m_fontHinting = new QComboBox;
+  // Same four values QFont::HintingPreference has; the skin stores the name.
+  m_fontHinting->addItems({tr("Default"), tr("None"), tr("Vertical"), tr("Full")});
+  m_fontHinting->setToolTip(
+      tr("How glyphs are snapped to the pixel grid. Full gives the crispest "
+         "stems at small sizes; Vertical keeps the designed letter spacing; "
+         "None leaves the outline unhinted."));
   m_fontPreview = new QLabel;
   m_fontPreview->setMinimumHeight(44);
   m_fontPreview->setWordWrap(true);
@@ -316,6 +361,7 @@ QWidget* SkinEditorWidget::makeFontEditor()
   form->addRow(tr("Family"), m_fontFamily);
   form->addRow(tr("Style"), m_fontStyle);
   form->addRow(tr("Size"), m_fontSize);
+  form->addRow(tr("Hinting"), m_fontHinting);
   form->addRow(QString{}, m_fontAntialias);
   form->addRow(tr("Preview"), m_fontPreview);
   form->addRow(QString{}, m_fontHint);
@@ -347,6 +393,9 @@ QWidget* SkinEditorWidget::makeFontEditor()
     applyFontRole();
   });
   connect(m_fontAntialias, &QCheckBox::toggled, this, [this](bool) { applyFontRole(); });
+  connect(m_fontHinting, &QComboBox::currentTextChanged, this, [this](const QString&) {
+    applyFontRole();
+  });
 
   m_fontList->setCurrentRow(0);
   loadFontRole();
@@ -391,6 +440,22 @@ void SkinEditorWidget::loadFontRole()
 
   m_fontSize->setValue(f->pixelSize() > 0 ? f->pixelSize() : QFontMetrics{*f}.height());
   m_fontAntialias->setChecked(!(int(f->styleStrategy()) & int(QFont::NoAntialias)));
+
+  switch(f->hintingPreference())
+  {
+    case QFont::PreferNoHinting:
+      m_fontHinting->setCurrentIndex(1);
+      break;
+    case QFont::PreferVerticalHinting:
+      m_fontHinting->setCurrentIndex(2);
+      break;
+    case QFont::PreferFullHinting:
+      m_fontHinting->setCurrentIndex(3);
+      break;
+    default:
+      m_fontHinting->setCurrentIndex(0);
+      break;
+  }
   m_loading = false;
 
   refreshFontPreview();
@@ -414,6 +479,22 @@ void SkinEditorWidget::applyFontRole()
     f->setStyleName(style);
   else
     f->setStyleName(QString{});
+
+  switch(m_fontHinting->currentIndex())
+  {
+    case 1:
+      f->setHintingPreference(QFont::PreferNoHinting);
+      break;
+    case 2:
+      f->setHintingPreference(QFont::PreferVerticalHinting);
+      break;
+    case 3:
+      f->setHintingPreference(QFont::PreferFullHinting);
+      break;
+    default:
+      f->setHintingPreference(QFont::PreferDefaultHinting);
+      break;
+  }
 
   auto strat = int(f->styleStrategy());
   if(m_fontAntialias->isChecked())
