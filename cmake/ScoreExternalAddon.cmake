@@ -29,10 +29,33 @@ if(NOT EXISTS "${OSSIA_SDK}")
   message(FATAL_ERROR "Please fetch the SDK with the score/tools/fetch-sdk.sh script")
 endif()
 
-set(SCORE_VERSION_MAJOR 3)
-set(SCORE_VERSION_MINOR 0)
-set(SCORE_VERSION_PATCH 0)
-set(SCORE_VERSION "${SCORE_VERSION_MAJOR}.${SCORE_VERSION_MINOR}.${SCORE_VERSION_PATCH}")
+# The version is read from score itself rather than repeated here: a literal
+# copy silently goes stale, and an add-on then compiles against a version
+# number that has nothing to do with the score it will be loaded into.
+# ScoreVersion.cmake is generated and shipped by the SDK; a developer build
+# against a source tree reads the top-level CMakeLists directly.
+include(ScoreVersion OPTIONAL)
+
+if(NOT SCORE_VERSION)
+  if(EXISTS "${SCORE_SOURCE_DIR}/CMakeLists.txt")
+    file(READ "${SCORE_SOURCE_DIR}/CMakeLists.txt" _score_root_cmakelists)
+    foreach(_component MAJOR MINOR PATCH)
+      if(_score_root_cmakelists MATCHES "set\\(SCORE_VERSION_${_component} ([0-9]+)\\)")
+        set(SCORE_VERSION_${_component} "${CMAKE_MATCH_1}")
+      endif()
+    endforeach()
+  endif()
+
+  if(NOT DEFINED SCORE_VERSION_MAJOR
+     OR NOT DEFINED SCORE_VERSION_MINOR
+     OR NOT DEFINED SCORE_VERSION_PATCH)
+    message(FATAL_ERROR
+      "Could not determine the score version: neither ScoreVersion.cmake nor "
+      "'${SCORE_SOURCE_DIR}/CMakeLists.txt' were readable")
+  endif()
+
+  set(SCORE_VERSION "${SCORE_VERSION_MAJOR}.${SCORE_VERSION_MINOR}.${SCORE_VERSION_PATCH}")
+endif()
 
 # Addons written against the in-tree build use ${QT_VERSION} in their
 # find_package calls; it is set by score's top-level CMakeLists, which an
