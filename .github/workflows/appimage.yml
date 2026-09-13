@@ -49,6 +49,18 @@ jobs:
           mkdir -p "$BUILD_ARTIFACTSTAGINGDIRECTORY"
           ./ci/appimage.deploy.sh
 
+      # Before upload/release: an SDK that cannot build an add-on must not ship.
+      # In the build container, since cmake and ninja are there, not on the runner.
+      - name: SDK smoke test
+        run: |
+          export CPU_ARCH=${{ matrix.cpu_arch }}
+          docker run --rm \
+            -e OSSIA_SDK="/opt/ossia-sdk-${CPU_ARCH}" \
+            --mount type=bind,source="$PWD/opt/ossia-sdk-${CPU_ARCH}",target="/opt/ossia-sdk-${CPU_ARCH}" \
+            --mount type=bind,source="$PWD",target=/score \
+            ossia/score-package-linux \
+            /bin/bash -c "export PATH=\$PATH:/cmake/bin; cd /score && ./ci/sdk-smoke.sh 'staging/sdk-linux-${CPU_ARCH}.zip' /tmp/sdk-smoke"
+
       - name: Upload build
         uses: actions/upload-artifact@v7
         with:
