@@ -398,6 +398,51 @@ TEST_CASE(
 // before it is dereferenced -- a `if(!main_view)` guard on the qobject_cast
 // result is too late. --no-gui --script is the mode this whole API exists
 // for.
+// The document's own metadata is not a child of anything metadata(obj) reaches,
+// so a script had no way to read or set the document's name.
+TEST_CASE("Score.documentMetadata reaches the document", "[integration][js][scripting]")
+{
+  requireBinary();
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+
+  const auto r = runOne(
+      dir, "docmeta",
+      "var m = Score.documentMetadata();"
+      "console.log('HAVE ' + (m !== null));"
+      "console.log('NAME ' + Score.documentName());"
+      "m.author = 'someone';"
+      "console.log('AUTHOR ' + m.author);");
+  INFO(r.log.right(8000).toStdString());
+  CHECK(r.log.contains(QStringLiteral("HAVE true")));
+  CHECK(r.log.contains(QStringLiteral("AUTHOR someone")));
+  // A fresh document has not been saved anywhere yet.
+  CHECK(r.log.contains(QStringLiteral("NAME Untitled")));
+  CHECK(r.log.contains(QStringLiteral("DONE")));
+  // Reaching it used to end the session in a double free: the metadata is a
+  // member of the Document with no QObject parent, so the engine adopted it.
+  CHECK_FALSE(r.crashed);
+  CHECK(r.exitCode == 0);
+}
+
+TEST_CASE("Score.setDocumentName renames the document", "[integration][js][scripting]")
+{
+  requireBinary();
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+
+  const auto r = runOne(
+      dir, "setdocname",
+      "Score.setDocumentName('renamed');"
+      "console.log('NAME ' + Score.documentName());"
+      "console.log('FILE ' + Score.documentMetadata().fileName);");
+  INFO(r.log.right(8000).toStdString());
+  CHECK(r.log.contains(QStringLiteral("NAME renamed")));
+  CHECK(r.log.contains(QStringLiteral("FILE renamed")));
+  CHECK_FALSE(r.crashed);
+  CHECK(r.exitCode == 0);
+}
+
 TEST_CASE(
     "Score.zoom with no document view", "[integration][js][scripting]")
 {
