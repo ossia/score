@@ -47,6 +47,15 @@ jobs:
           mkdir -p "$BUILD_ARTIFACTSTAGINGDIRECTORY"
           ./ci/win32.deploy.sh
 
+      # Before upload/release: an SDK that cannot build an add-on must not ship.
+      - name: SDK smoke test
+        shell: bash
+        run: |
+          if [[ "${RUNNER_ARCH:-X64}" == "ARM64" ]]; then SDK_ARCH=aarch64; else SDK_ARCH=x86_64; fi
+          export OSSIA_SDK="/c/ossia-sdk-$SDK_ARCH"
+          export PATH="$OSSIA_SDK/llvm/bin:$PATH:$OSSIA_SDK/cmake/bin"
+          ./ci/sdk-smoke.sh "staging/sdk-windows-$SDK_ARCH.zip"
+
       - name: Upload build
         uses: actions/upload-artifact@v7
         with:
@@ -111,6 +120,15 @@ jobs:
           export BUILD_ARTIFACTSTAGINGDIRECTORY="$PWD/staging"
           mkdir -p "$BUILD_ARTIFACTSTAGINGDIRECTORY"
           ./ci/win32.deploy.sh
+
+      # Before upload/release: an SDK that cannot build an add-on must not ship.
+      - name: SDK smoke test
+        shell: bash
+        run: |
+          if [[ "${RUNNER_ARCH:-X64}" == "ARM64" ]]; then SDK_ARCH=aarch64; else SDK_ARCH=x86_64; fi
+          export OSSIA_SDK="/c/ossia-sdk-$SDK_ARCH"
+          export PATH="$OSSIA_SDK/llvm/bin:$PATH:$OSSIA_SDK/cmake/bin"
+          ./ci/sdk-smoke.sh "staging/sdk-windows-$SDK_ARCH.zip"
 
       - name: Upload build
         uses: actions/upload-artifact@v7

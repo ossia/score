@@ -192,6 +192,12 @@ jobs:
           MACOS_ARCH: "aarch64"
           MAC_ALTOOL_PASSWORD: ${{ secrets.MAC_ALTOOL_PASSWORD }}
 
+      # Before upload/release: an SDK that cannot build an add-on must not ship.
+      - name: SDK smoke test
+        run: |
+          export OSSIA_SDK="/opt/ossia-sdk-aarch64"
+          ./ci/sdk-smoke.sh "staging/sdk-darwin-aarch64.zip"
+
       - name: Upload build
         uses: actions/upload-artifact@v7
         with:
