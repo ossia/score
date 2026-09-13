@@ -647,6 +647,15 @@ std::string DeviceMap::label() const
   return manufacturer + ": " + model;
 }
 
+std::string deviceNodeName(const DeviceMap& map)
+{
+  if(!map.model.empty())
+    return map.model;
+  if(!map.manufacturer.empty())
+    return map.manufacturer;
+  return "device";
+}
+
 std::pair<int, int> naturalRange(MessageType t) noexcept
 {
   switch(t)

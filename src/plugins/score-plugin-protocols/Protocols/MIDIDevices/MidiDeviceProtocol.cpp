@@ -377,17 +377,6 @@ struct midi_device_protocol final : public ossia::net::protocol_base
     }
   }
 
-  //! What a description's level of the tree is called: the model, or whatever
-  //! else the document can be identified by.
-  static std::string deviceNodeName(const DeviceMap& map)
-  {
-    if(!map.model.empty())
-      return map.model;
-    if(!map.manufacturer.empty())
-      return map.manufacturer;
-    return "device";
-  }
-
   void addControl(ossia::net::node_base& root, const Control& c, int defaultChannel)
   {
     auto& parent = groupNode(root, c.group);

@@ -40,6 +40,8 @@ class QSortFilterProxyModel;
 class QSpinBox;
 class QStandardItemModel;
 class QTreeView;
+class QTreeWidget;
+class QTreeWidgetItem;
 class QWidget;
 
 namespace Protocols
@@ -90,6 +92,11 @@ private:
   MCUSpecificSettings::MapSlot slotAt(int row) const;
   QString labelForSlot(const MCUSpecificSettings::MapSlot& slot) const;
   void addChosenDevice(const QString& identity, int channel);
+
+  //! Fill the preview with the tree the chosen descriptions would build.
+  void updatePreview();
+  static QTreeWidgetItem* childNamed(QTreeWidgetItem* parent, const QString& name);
+  static QString uniqueChild(QTreeWidgetItem* parent, const QString& name);
   void selectMap(const QString& identity);
   void updateDeviceMapSummary();
 
@@ -115,6 +122,9 @@ private:
   QSortFilterProxyModel* m_instrumentFilter{};
   QSpinBox* m_channel{};
   QListWidget* m_chosen{};
+
+  //! The tree the chosen descriptions would build.
+  QTreeWidget* m_preview{};
   QLabel* m_summary{};
 
   Device::DeviceSettings m_current;

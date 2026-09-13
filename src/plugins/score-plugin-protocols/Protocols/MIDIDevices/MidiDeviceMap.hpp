@@ -317,6 +317,14 @@ struct DeviceMap
   bool empty() const noexcept { return controls.empty(); }
 };
 
+/**
+ * What a description's level of the tree is called: the model, or whatever else
+ * the document can be identified by.
+ *
+ * Shared so that a preview of the tree and the tree itself cannot disagree.
+ */
+std::string deviceNodeName(const DeviceMap& map);
+
 //! The range a message type carries when the document states no bounds.
 std::pair<int, int> naturalRange(MessageType t) noexcept;
 
