@@ -272,6 +272,11 @@
    "pixelSize": 16,
    "bold": false
   },
+  "sectionTitle": {
+   "family": "Ark Pixel 16px Prop latin",
+   "pixelSize": 16,
+   "bold": false
+  },
   "slider": {
    "family": "Ark Pixel 10px Prop latin",
    "pixelSize": 10

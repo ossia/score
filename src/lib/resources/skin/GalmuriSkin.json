@@ -273,6 +273,11 @@
    "pixelSize": 15,
    "bold": false
   },
+  "sectionTitle": {
+   "family": "Galmuri14",
+   "pixelSize": 15,
+   "bold": false
+  },
   "slider": {
    "family": "Galmuri9",
    "pixelSize": 10

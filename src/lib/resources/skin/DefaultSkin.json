@@ -271,6 +271,11 @@
    "pixelSize": 14,
    "bold": true
   },
+  "sectionTitle": {
+   "family": "Ubuntu",
+   "pixelSize": 12,
+   "bold": true
+  },
   "slider": {
    "family": "Ubuntu",
    "pixelSize": 13,

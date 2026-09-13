@@ -345,7 +345,7 @@ void DeviceExplorerView::paintEvent(QPaintEvent* event)
   // px, not pt: pt would shrink on macOS' 72 DPI. Scaled, so that the one
   // deliberately oversized piece of text in the UI stays in proportion with
   // the rest of it under a small-font skin.
-  font.setPixelSize(score::scaledPixels(32));
+  score::setSnappedPixelSize(font, score::scaledPixels(32));
   p.setFont(font);
   auto pen = p.pen();
   auto col = pen.color();

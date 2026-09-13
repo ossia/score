@@ -174,6 +174,24 @@ int pixelFontGrid(const QString& family) noexcept
   return 0;
 }
 
+int snapToFontGrid(const QFont& f, int px) noexcept
+{
+  const auto& families = f.families();
+  const int grid
+      = pixelFontGrid(families.isEmpty() ? f.family() : families.constFirst());
+  if(grid <= 0 || px <= 0)
+    return px;
+
+  // Down rather than to the nearest: a label that grew a step would overflow
+  // the box that was measured for it.
+  return std::max(1, px / grid) * grid;
+}
+
+void setSnappedPixelSize(QFont& f, int px) noexcept
+{
+  f.setPixelSize(snapToFontGrid(f, px));
+}
+
 void registerApplicationFonts()
 {
   // Idempotent: skins, the application and the tests all want the fonts
@@ -410,6 +428,7 @@ std::vector<std::pair<const char*, QFont*>> Skin::fonts() noexcept
       {"medium10", &Medium10Pt},
       {"medium12", &Medium12Pt},
       {"title", &TitleFont},
+      {"sectionTitle", &SectionTitleFont},
       {"slider", &SliderFont},
       {"code", &CodeFont},
       {"timecode", &TimecodeFont}};
@@ -458,6 +477,11 @@ void Skin::setupFonts()
   TitleFont.setPixelSize(14);
   TitleFont.setBold(true);
 
+  // What InspectorWidgetBase used to build from the application font.
+  SectionTitleFont = SansFont;
+  SectionTitleFont.setPixelSize(12);
+  SectionTitleFont.setBold(true);
+
   SliderFont = SansFont;
   SliderFont.setPixelSize(10 * 96. / 72.);
   SliderFont.setWeight(QFont::DemiBold);
@@ -479,7 +503,8 @@ void Skin::setupFonts()
   std::initializer_list<QFont*> mono_fonts = {&MonoFont, &MonoFontSmall};
   std::initializer_list<QFont*> fonts = {
       &SansFont,  &MonoFont,  &MonoFontSmall, &SansFontSmall, &Bold10Pt,   &Bold12Pt,
-      &Medium7Pt, &Medium8Pt, &Medium10Pt,    &Medium12Pt,    &SliderFont, &TitleFont};
+      &Medium7Pt, &Medium8Pt, &Medium10Pt,    &Medium12Pt,    &SliderFont, &TitleFont,
+      &SectionTitleFont};
   for(QFont* font : fonts)
   {
     font->setHintingPreference(uiFontHinting());

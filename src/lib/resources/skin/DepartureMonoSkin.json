@@ -272,6 +272,11 @@
    "pixelSize": 22,
    "bold": false
   },
+  "sectionTitle": {
+   "family": "Departure Mono",
+   "pixelSize": 11,
+   "bold": false
+  },
   "slider": {
    "family": "Departure Mono",
    "pixelSize": 11

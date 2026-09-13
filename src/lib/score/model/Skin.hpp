@@ -149,6 +149,12 @@ public:
 
   QFont TitleFont;
 
+  //! The heading over an inspector page -- "Interval (foo)", "Process (bar)".
+  //! Its own role because it is bold text one step above the body, and a
+  //! pixel font cannot be emboldened or resized freely: both would have to be
+  //! faked, which smears the one-pixel stems these fonts are drawn with.
+  QFont SectionTitleFont;
+
   //! The transport bar's time readout. Its own role because it is the one
   //! large piece of text in the UI: a pixel-font skin wants it on the grid
   //! and unantialiased, which a scaled-up body font cannot give.
@@ -345,6 +351,19 @@ SCORE_LIB_BASE_EXPORT QFont::StyleStrategy uiFontStyleStrategy() noexcept;
 //! else. These fonts are drawn on a grid and only render sharply at whole
 //! multiples of it; the skin editor uses this to say which sizes are usable.
 SCORE_LIB_BASE_EXPORT int pixelFontGrid(const QString& family) noexcept;
+
+//! \p px rounded down to a size at which \p f's family renders sharply, and
+//! never below one grid step. \p px unchanged for an outline font.
+//!
+//! Code that computes a font size instead of taking one from the skin has to
+//! go through this. A pixel font at a size that is not a whole multiple of
+//! its grid puts every outline between pixels, and the label comes out with
+//! stems of two different widths -- which is the whole thing these fonts are
+//! chosen to avoid.
+SCORE_LIB_BASE_EXPORT int snapToFontGrid(const QFont& f, int px) noexcept;
+
+//! setPixelSize through snapToFontGrid.
+SCORE_LIB_BASE_EXPORT void setSnappedPixelSize(QFont& f, int px) noexcept;
 
 //! Registers every font in the :/fonts resource with the QFontDatabase, so
 //! that a skin naming one of them resolves instead of falling back. Idempotent,

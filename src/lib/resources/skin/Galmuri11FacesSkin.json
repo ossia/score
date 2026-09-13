@@ -276,6 +276,12 @@
    "styleName": "Bold",
    "bold": true
   },
+  "sectionTitle": {
+   "family": "Galmuri11",
+   "pixelSize": 12,
+   "styleName": "Bold",
+   "bold": true
+  },
   "slider": {
    "family": "Galmuri11",
    "pixelSize": 12
