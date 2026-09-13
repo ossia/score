@@ -984,5 +984,14 @@ add_executable(PipewireRoundtrip tests/PipewireRoundtrip.cpp)
 target_link_libraries(PipewireRoundtrip PRIVATE
   score_plugin_gfx score_plugin_media ${QT_PREFIX}::Gui ${QT_PREFIX}::Widgets
   pipewire::pipewire ${PIPEWIRE_LIBRARY} swscale)
+
+# Holds one output up until killed, for pointing an outside consumer at it by
+# hand: OBS, a patchbay, a browser. The round-trip harness brings its own
+# consumer and exits, so it cannot be used for that.
+add_executable(PipewirePublish tests/PipewirePublish.cpp)
+target_link_libraries(PipewirePublish PRIVATE
+  score_plugin_gfx score_plugin_media ${QT_PREFIX}::Gui ${QT_PREFIX}::Widgets
+  pipewire::pipewire ${PIPEWIRE_LIBRARY})
+set_target_properties(PipewirePublish PROPERTIES FOLDER "Tests")
 endif()
 
