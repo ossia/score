@@ -134,3 +134,62 @@ TEST_CASE("Members that would escape the destination are refused", "[zip][securi
     CHECK(!QFile::exists("/tmp/evil.score"));
   }
 }
+
+TEST_CASE("An archive with folders extracts into the same folders", "[zip]")
+{
+  Fixture fx;
+  const auto sc = fx.write("src/proj.score", R"({"Plugins":[]})");
+  const auto kick = fx.write("src/kick.wav", QByteArray(1000, 'k'));
+  const auto snare = fx.write("src/snare.wav", QByteArray(500, 's'));
+  const auto note = fx.write("src/readme.txt", "hello");
+  const auto zip = fx.archive(
+      "proj.zip", {{sc, "proj/proj.score"},
+                   {kick, "proj/media/kick.wav"},
+                   {snare, "proj/media/deep/snare.wav"},
+                   {note, "readme.txt"}});
+
+  const auto summary = score::summarizeZipArchive(zip);
+  REQUIRE(summary.has_value());
+  CHECK(summary->scoreFile == "proj/proj.score");
+
+  SECTION("every member keeps the path it had in the archive")
+  {
+    const QString out = fx.root + "/out";
+    QString error;
+    REQUIRE(score::extractZipArchive(zip, out, error));
+
+    CHECK(QFile::exists(out + "/proj/proj.score"));
+    CHECK(QFileInfo{out + "/proj/media/kick.wav"}.size() == 1000);
+    CHECK(QFileInfo{out + "/proj/media/deep/snare.wav"}.size() == 500);
+    CHECK(QFile::exists(out + "/readme.txt"));
+
+    // Nothing flattened into the destination, and no folder invented for it
+    CHECK(!QFile::exists(out + "/proj.score"));
+    CHECK(!QFile::exists(out + "/kick.wav"));
+
+    // What DocumentManager opens afterwards is this exact join
+    CHECK(QFile::exists(QDir{out}.filePath(summary->scoreFile)));
+  }
+
+  SECTION("a cancelled extraction leaves no folder behind either")
+  {
+    const QString out = fx.root + "/cancelled";
+    QString error;
+    CHECK(!score::extractZipArchive(zip, out, error, [](int done, int) {
+      return done < 3; // stop once the nested folders exist
+    }));
+    CHECK(!QDir{out}.exists());
+  }
+
+  SECTION("a cancelled extraction removes folders it made several at a time")
+  {
+    // The first member is several levels down, so one mkpath creates all of
+    // them: rolling back only the deepest would leave the rest of the chain.
+    const auto deep = fx.archive("deep.zip", {{kick, "a/b/c/kick.wav"}});
+    const QString out = fx.root + "/deep-cancelled";
+    QString error;
+    CHECK(!score::extractZipArchive(deep, out, error, [](int, int) { return false; }));
+    CHECK(!QDir{out + "/a"}.exists());
+    CHECK(!QDir{out}.exists());
+  }
+}
