@@ -34,6 +34,7 @@ class QCheckBox;
 class QComboBox;
 class QLabel;
 class QLineEdit;
+class QPushButton;
 class QRadioButton;
 class QSortFilterProxyModel;
 class QSpinBox;
@@ -99,6 +100,9 @@ private:
   //! The lowest channel no chosen device is on, or -1 when all sixteen are.
   int freeChannel() const;
 
+  //! Offer "Add device" only while there is a channel left to put one on.
+  void updateAddEnabled();
+
   //! Fill the preview with the tree the chosen descriptions would build.
   void updatePreview();
   static QTreeWidgetItem* childNamed(QTreeWidgetItem* parent, const QString& name);
@@ -144,6 +148,8 @@ private:
 
   //! The user took the last device off the port, rather than never adding one.
   bool m_listEmptied{};
+
+  QPushButton* m_add{};
 
   //! The name this widget last filled in by itself: picking an instrument
   //! renames the device only while the user has not named it.

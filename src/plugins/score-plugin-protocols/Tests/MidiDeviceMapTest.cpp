@@ -568,3 +568,33 @@ TEST_CASE("a description says where it came from", "[midimap]")
   CHECK(bare.source.url.empty());
   CHECK(bare.source.authors.empty());
 }
+
+TEST_CASE("a value range the wire cannot carry is refused", "[midimap]")
+{
+  // The natural way to write a signed bend, and the one that would go out as
+  // the top half of the range instead of the bottom.
+  const auto signedBend = parse(doc(
+      R"_({"name":"Bend","kind":"knob","message":{"type":"pitchbend","channel":1},)_"
+      R"_("value":{"mode":"absolute","min":-8192,"max":8191}})_"));
+  CHECK(signedBend.controls.empty());
+
+  // Likewise a control change asked to carry more than seven bits.
+  const auto wideCC = parse(doc(
+      R"_({"name":"Level","kind":"fader","message":{"type":"cc","channel":1,"number":7},)_"
+      R"_("value":{"mode":"absolute","min":0,"max":16383}})_"));
+  CHECK(wideCC.controls.empty());
+
+  // What the wire does carry is kept.
+  const auto ok = parse(doc(
+      R"_({"name":"Bend","kind":"knob","message":{"type":"pitchbend","channel":1},)_"
+      R"_("value":{"mode":"absolute","min":0,"max":16383}})_"));
+  REQUIRE(ok.controls.size() == 1);
+  CHECK(ok.controls[0].value.max == 16383);
+
+  // A relative control carries a delta rather than the value, so its range is
+  // not the wire's and is left alone.
+  const auto rel = parse(doc(
+      R"_({"name":"Jog","kind":"encoder","message":{"type":"cc","channel":1,"number":20},)_"
+      R"_("value":{"mode":"relative","encoding":"twos_complement","min":-1000,"max":1000}})_"));
+  CHECK(rel.controls.size() == 1);
+}

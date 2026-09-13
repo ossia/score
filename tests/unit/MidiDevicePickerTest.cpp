@@ -199,10 +199,18 @@ TEST_CASE("choosing a description fills the preview", "[mididevice][gui]")
       CHECK(chosen->topLevelItem(i - 1)->text(1) == QString::number(i));
     }
 
-    // A cable carries sixteen channels and no more.
+    // A cable carries sixteen channels and no more, and the button that would
+    // add a seventeenth says so rather than doing nothing.
     for(int i = 9; i <= 20; i++)
       picker->doubleClicked(idx);
     CHECK(chosen->topLevelItemCount() == 16);
+
+    QPushButton* add{};
+    for(auto* b : widget->findChildren<QPushButton*>())
+      if(b->text() == QObject::tr("Add device"))
+        add = b;
+    REQUIRE(add);
+    CHECK(!add->isEnabled());
 
     while(chosen->topLevelItemCount() > 1)
       delete chosen->topLevelItem(chosen->topLevelItemCount() - 1);

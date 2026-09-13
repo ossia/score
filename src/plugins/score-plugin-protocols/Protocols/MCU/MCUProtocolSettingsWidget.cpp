@@ -304,7 +304,8 @@ MCUSettingsWidget::MCUSettingsWidget(QWidget* parent)
     m_chosen->header()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     m_chosen->header()->setStretchLastSection(false);
 
-    auto* add = new QPushButton{tr("Add device"), left};
+    m_add = new QPushButton{tr("Add device"), left};
+    auto* add = m_add;
     auto* remove = new QPushButton{tr("Remove"), left};
 
     auto* row = new QHBoxLayout;
@@ -317,6 +318,7 @@ MCUSettingsWidget::MCUSettingsWidget(QWidget* parent)
 
     connect(add, &QPushButton::clicked, this, [this] {
       addChosenDevice(chosenMap(), 0);
+      updateAddEnabled();
       updatePreview();
       changed();
     });
@@ -325,6 +327,7 @@ MCUSettingsWidget::MCUSettingsWidget(QWidget* parent)
       {
         delete item;
         m_listEmptied = m_chosen->topLevelItemCount() == 0;
+        updateAddEnabled();
         updatePreview();
         changed();
       }
@@ -375,6 +378,7 @@ MCUSettingsWidget::MCUSettingsWidget(QWidget* parent)
   connect(m_instruments, &QTreeView::doubleClicked, this,
           [this](const QModelIndex& idx) {
     addChosenDevice(idx.data(MapRole).toString(), 0);
+    updateAddEnabled();
     updatePreview();
     changed();
   });
@@ -722,6 +726,23 @@ void MCUSettingsWidget::addChosenDevice(const QString& identity, int channel)
   m_listEmptied = false;
 }
 
+/**
+ * A cable carries sixteen channels, and the seventeenth device on it would be
+ * indistinguishable from one of the others -- which is worth saying where the
+ * user would otherwise press a button that does nothing.
+ */
+void MCUSettingsWidget::updateAddEnabled()
+{
+  if(!m_add)
+    return;
+
+  const bool room = freeChannel() >= 1;
+  m_add->setEnabled(room);
+  m_add->setToolTip(
+      room ? QString{}
+           : tr("All sixteen channels of this port already carry a device."));
+}
+
 int MCUSettingsWidget::freeChannel() const
 {
   std::array<bool, 17> taken{};
@@ -1022,11 +1043,6 @@ Device::DeviceSettings MCUSettingsWidget::getSettings() const
   midi.mode
       = static_cast<MCUSpecificSettings::Mode>(m_kind->currentData().toInt());
 
-  // The API that produced the handles below. Stored rather than re-derived on
-  // connection: the user may change the setting afterwards, and the handles
-  // would then belong to the wrong backend.
-  midi.api = m_api;
-
   /*
    * A port is only overwritten when a row names one. setSettings can only
    * select a row when a live port matches what was saved, so an unplugged
@@ -1034,15 +1050,29 @@ Device::DeviceSettings MCUSettingsWidget::getSettings() const
    * would leave a device that checkCompatibility refuses, with no way back.
    * Choosing "(none)" deliberately is the only case that should erase.
    */
+  bool live = false;
   if(const int in = portIndex(*m_midiin); in >= 0 && in < std::ssize(m_ins))
+  {
     midi.input_handle = {m_ins[in]};
+    live = true;
+  }
   else if(m_midiin->currentIndex() == 0 && m_portsResolved)
     midi.input_handle.clear();
 
   if(const int out = portIndex(*m_midiout); out >= 0 && out < std::ssize(m_outs))
+  {
     midi.output_handle = {m_outs[out]};
+    live = true;
+  }
   else if(m_midiout->currentIndex() == 0 && m_portsResolved)
     midi.output_handle.clear();
+
+  // The API that produced those handles, which is this widget's only when the
+  // handles are: a saved handle kept because its interface is unplugged was
+  // produced by whichever backend was in use then, and saying otherwise sends
+  // the port lookup after it with the wrong answer.
+  if(live || (midi.input_handle.empty() && midi.output_handle.empty()))
+    midi.api = m_api;
 
   // Likewise the devices: a missing package must not empty the list.
   if(m_chosen->topLevelItemCount() > 0)
@@ -1103,6 +1133,8 @@ void MCUSettingsWidget::setSettings(const Device::DeviceSettings& settings)
   m_chosen->clear();
   for(const auto& slot : s.maps)
     addChosenDevice(slot.map, slot.channel);
+  m_listEmptied = false;
+  updateAddEnabled();
 
   if(!s.maps.empty())
     selectMap(s.maps.front().map);

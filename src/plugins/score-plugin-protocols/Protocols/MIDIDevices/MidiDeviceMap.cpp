@@ -468,6 +468,20 @@ std::optional<Control> parseControl(const json_value& v, std::string& why)
   if(!addressable(c.message, why))
     return std::nullopt;
 
+  // An absolute value goes out as the data bytes it is, so a range the wire
+  // cannot carry does not clip -- it wraps, and the bottom of the range comes
+  // out somewhere in the middle.
+  if(c.value.mode == ValueMode::Absolute)
+  {
+    const auto [lo, hi] = naturalRange(c.message.type);
+    if((c.value.min && (*c.value.min < lo || *c.value.min > hi))
+       || (c.value.max && (*c.value.max < lo || *c.value.max > hi)))
+    {
+      why = "value range is outside what the message carries";
+      return std::nullopt;
+    }
+  }
+
   // Anything but the two spellings is a control whose direction of travel is
   // unknown, and "absolute" is the reading that breaks an encoder silently.
   if(const auto* val = member(v, "value"))
