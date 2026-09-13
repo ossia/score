@@ -677,13 +677,13 @@ public:
       // picks host memory instead and gets a picture. Offering it costs the
       // consumers that CAN do dma-buf nothing -- score's own input still
       // negotiates the dma-buf alternative and still gets it zero-copy.
-      params[1] = buildEnumFormat(b, fmt);
+      params[1] = buildEnumFormat(b, fmt, {m_fmt});
       nparams = 2;
     }
     else
 #endif
     {
-      params[0] = buildEnumFormat(b, fmt);
+      params[0] = buildEnumFormat(b, fmt, swizzleGroup(m_fmt));
     }
 
     // Passive producer: pipewire pulls frames when the consumer is ready.
@@ -760,6 +760,12 @@ public:
    *  produce tightly-packed RGBA at the configured geometry).
    *  Returns true on success, false if pipewire is out of buffers
    *  (typical: consumer didn't release them yet — frame is dropped). */
+  //! What the consumer settled on out of the formats that were offered.
+  formats::Tag negotiated() const noexcept
+  {
+    return m_negotiated.load(std::memory_order_relaxed);
+  }
+
   bool push_frame(const uint8_t* data, std::size_t size) noexcept
   {
     if(!m_stream || !data || size == 0)
@@ -855,6 +861,27 @@ private:
       self->m_framesQueued.fetch_add(1, std::memory_order_relaxed);
   }
 
+  //! The formats the readback can hand out without re-rendering: the ones
+  //! whose texture is the same, so the difference is a repack of the bytes
+  //! already read back. Offering the whole set lets the consumer choose, which
+  //! is what a consumer that cannot take our first choice needs.
+  static std::vector<formats::Tag> swizzleGroup(formats::Tag t)
+  {
+    switch(t)
+    {
+      case formats::Tag::RGBA8:
+      case formats::Tag::BGRA8:
+        return {t, t == formats::Tag::RGBA8 ? formats::Tag::BGRA8
+                                            : formats::Tag::RGBA8};
+      case formats::Tag::RGB10A2:
+      case formats::Tag::BGR10A2:
+        return {t, t == formats::Tag::RGB10A2 ? formats::Tag::BGR10A2
+                                              : formats::Tag::RGB10A2};
+      default:
+        return {t};
+    }
+  }
+
   //! The framerate a consumer may ask for.
   //!
   //! Pinning it to the configured value is what made every consumer that is
@@ -880,17 +907,35 @@ private:
 
   //! Same shape as spa_format_video_raw_build, except that the framerate is a
   //! range rather than one value.
-  static const spa_pod* buildEnumFormat(spa_pod_builder& b, const spa_video_info_raw& fmt)
+  static const spa_pod* buildEnumFormat(
+      spa_pod_builder& b, const spa_video_info_raw& fmt,
+      const std::vector<formats::Tag>& offered)
   {
-    spa_pod_frame f{};
-    spa_pod_builder_push_object(&b, &f, SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat);
+    spa_pod_frame f[2]{};
+    spa_pod_builder_push_object(&b, &f[0], SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat);
     spa_pod_builder_add(
         &b, SPA_FORMAT_mediaType, SPA_POD_Id(SPA_MEDIA_TYPE_video),
-        SPA_FORMAT_mediaSubtype, SPA_POD_Id(SPA_MEDIA_SUBTYPE_raw),
-        SPA_FORMAT_VIDEO_format, SPA_POD_Id(fmt.format),
-        SPA_FORMAT_VIDEO_size, SPA_POD_Rectangle(&fmt.size), 0);
+        SPA_FORMAT_mediaSubtype, SPA_POD_Id(SPA_MEDIA_SUBTYPE_raw), 0);
+
+    if(offered.size() > 1)
+    {
+      // The first value of an Enum choice is the default as well as the first
+      // alternative, so the configured format is written twice on purpose.
+      spa_pod_builder_prop(&b, SPA_FORMAT_VIDEO_format, 0);
+      spa_pod_builder_push_choice(&b, &f[1], SPA_CHOICE_Enum, 0);
+      spa_pod_builder_id(&b, formats::toSpa(offered.front()));
+      for(auto t : offered)
+        spa_pod_builder_id(&b, formats::toSpa(t));
+      spa_pod_builder_pop(&b, &f[1]);
+    }
+    else
+    {
+      spa_pod_builder_add(&b, SPA_FORMAT_VIDEO_format, SPA_POD_Id(fmt.format), 0);
+    }
+
+    spa_pod_builder_add(&b, SPA_FORMAT_VIDEO_size, SPA_POD_Rectangle(&fmt.size), 0);
     addFramerateRange(b, fmt.framerate);
-    return (const spa_pod*)spa_pod_builder_pop(&b, &f);
+    return (const spa_pod*)spa_pod_builder_pop(&b, &f[0]);
   }
 
   static void
@@ -903,6 +948,15 @@ private:
     auto* self = static_cast<PipewireProducer*>(self_);
     if(!self || !self->m_stream)
       return;
+
+    // Several formats may have been offered, so the readback has to write the
+    // one that was picked rather than the one that was configured.
+    {
+      spa_video_info_raw got{};
+      if(spa_format_video_raw_parse(param, &got) >= 0 && got.format != 0)
+        if(const auto t = formats::tagFromSpa(got.format); t != formats::Tag::Unknown)
+          self->m_negotiated.store(t, std::memory_order_relaxed);
+    }
     auto& pw = libremidi::pipewire::load();
     if(!pw.stream_available || !pw.stream_update_params)
       return;
@@ -1240,6 +1294,8 @@ private:
   int m_height{};
   double m_fps{};
   formats::Tag m_fmt{formats::Tag::RGBA8};
+  //! What the consumer settled on, which is m_fmt unless several were offered.
+  std::atomic<formats::Tag> m_negotiated{formats::Tag::RGBA8};
   int m_bpp{4};
   QString m_nodeName;
 
@@ -1787,7 +1843,7 @@ void PipewireOutputNode::render()
     //  - RGB10A2: QRhi words are A2B10G10R10 with R in bits 0-9, SPA xRGB_210LE
     //    wants R in bits 20-29, so swap the two 10-bit fields.
     //  - BGR10A2 matches SPA xBGR_210LE, and RGBA8 / RGBA16F / RGBA32F are raw.
-    switch(m_tag)
+    switch(m_producer->negotiated())
     {
       case formats::Tag::BGRA8: {
         m_repack.resize(std::size_t(sz));
