@@ -453,6 +453,9 @@ private:
   //! dmabuf=off in the URL: offer no modifiers, so the producer can only
   //! answer with shared memory.
   bool m_allowDmaBuf{true};
+  //! autoconnect=off: publish the node with nothing linked to it, for an
+  //! external patchbay to wire.
+  bool m_autoconnect{true};
   // When the producer chose DMA-BUF allocation (latched on first
   // DmaBuf frame), m_pixelFormat above transitions to AV_PIX_FMT_DRM_PRIME
   // and m_sw_format below tracks the underlying SW pixel format
@@ -509,6 +512,10 @@ InputStream::InputStream(const QString& path) noexcept
         else if(k == "dmabuf")
         {
           m_allowDmaBuf = !(v == "off" || v == "false" || v == "0");
+        }
+        else if(k == "autoconnect")
+        {
+          m_autoconnect = !(v == "off" || v == "false" || v == "0");
         }
         else if(k == "format")
         {
@@ -737,7 +744,8 @@ bool InputStream::start() noexcept
       connect_ret = pw.stream_connect(
           m_data->stream, PW_DIRECTION_INPUT, PW_ID_ANY,
           (enum pw_stream_flags)(
-              PW_STREAM_FLAG_AUTOCONNECT | PW_STREAM_FLAG_MAP_BUFFERS),
+              (m_autoconnect ? PW_STREAM_FLAG_AUTOCONNECT : PW_STREAM_FLAG_NONE)
+              | PW_STREAM_FLAG_MAP_BUFFERS),
           const_cast<const spa_pod**>(params.data()),
           static_cast<std::uint32_t>(params.size()));
     });
@@ -1376,6 +1384,10 @@ bool PipeWireDevice::reconnect()
   return connected();
 }
 
+//! Chosen instead of a node: connect without autoconnect and without a
+//! target, so the port shows up bare in a patchbay.
+static const QString kUnconnected = QStringLiteral("\x01unconnected");
+
 //! The Video/Source nodes the daemon is publishing, as (node.name, label).
 static std::vector<std::pair<QString, QString>> liveVideoSources()
 {
@@ -1414,6 +1426,7 @@ PipeWireSettingsWidget::PipeWireSettingsWidget(QWidget* parent)
   // user has to know and type: the entry text is the node.name the URL wants,
   // the label is the description the rest of the desktop shows.
   m_nodeEdit->addItem(tr("(default source)"), QString{});
+  m_nodeEdit->addItem(tr("(unconnected: link it yourself)"), kUnconnected);
   for(const auto& [name, label] : liveVideoSources())
     m_nodeEdit->addItem(label, name);
 
@@ -1488,7 +1501,11 @@ Device::DeviceSettings PipeWireSettingsWidget::getSettings() const
   s.name = "PipeWire";
 
   SharedInputSettings set;
-  QString path = "pipewire://" + currentNode();
+  // The unconnected entry is a mode, not a node: it names nothing and asks
+  // not to be linked.
+  const QString node = currentNode();
+  const bool unconnected = (node == kUnconnected);
+  QString path = "pipewire://" + (unconnected ? QString{} : node);
   QStringList params{
       QString("width=%1").arg(m_widthEdit->value()),
       QString("height=%1").arg(m_heightEdit->value()),
@@ -1499,6 +1516,8 @@ Device::DeviceSettings PipeWireSettingsWidget::getSettings() const
     params += QString("format=%1").arg(fmt);
   if(!m_dmabufEdit->isChecked())
     params += QStringLiteral("dmabuf=off");
+  if(unconnected)
+    params += QStringLiteral("autoconnect=off");
   path += "?" + params.join("&");
   set.path = path;
   s.deviceSpecificSettings = QVariant::fromValue(set);
@@ -1517,6 +1536,8 @@ void PipeWireSettingsWidget::setSettings(const Device::DeviceSettings& settings)
     return;
 
   setCurrentNode(m.captured(1));
+  if(m.captured(2).contains(QStringLiteral("autoconnect=off")))
+    setCurrentNode(kUnconnected);
   const QString params = m.captured(2);
   if(params.isEmpty())
     return;

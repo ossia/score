@@ -165,13 +165,14 @@ class PipewireProducer
 public:
   PipewireProducer(
       int width, int height, double fps, formats::Tag fmt,
-      QString node_name)
+      QString node_name, bool autoconnect = true)
       : m_width(width)
       , m_height(height)
       , m_fps(fps)
       , m_fmt(fmt)
       , m_bpp(int(formats::bytesPerPixel(fmt)))
       , m_nodeName(std::move(node_name))
+      , m_autoconnect(autoconnect)
   {
     // pw_init / deinit lifecycle is owned by the shared context's
     // libremidi::pipewire::instance singleton — no per-producer init.
@@ -711,11 +712,13 @@ public:
 #else
         false;
 #endif
-    const auto flags = useDmaBuf
-                           ? (pw_stream_flags)(PW_STREAM_FLAG_AUTOCONNECT
-                                              | PW_STREAM_FLAG_ALLOC_BUFFERS)
-                           : (pw_stream_flags)(PW_STREAM_FLAG_AUTOCONNECT
-                                              | PW_STREAM_FLAG_MAP_BUFFERS);
+    // Without AUTOCONNECT the node appears in the graph with nothing wired to
+    // it, for a patchbay or pw-cli to link by hand.
+    const auto base = m_autoconnect ? PW_STREAM_FLAG_AUTOCONNECT
+                                    : PW_STREAM_FLAG_NONE;
+    const auto flags
+        = useDmaBuf ? (pw_stream_flags)(base | PW_STREAM_FLAG_ALLOC_BUFFERS)
+                    : (pw_stream_flags)(base | PW_STREAM_FLAG_MAP_BUFFERS);
     const int rc = pw.stream_connect(
         m_stream, PW_DIRECTION_OUTPUT, PW_ID_ANY, flags, params, nparams);
 
@@ -1255,6 +1258,9 @@ private:
 
 #if defined(SCORE_PIPEWIRE_OUT_DMABUF) || defined(SCORE_PIPEWIRE_OUT_DMABUF_EGL)
   DmaBufBackend m_dmabufBackend{DmaBufBackend::None};
+  //! False publishes the node with nothing linked to it, for an external
+  //! patchbay to wire.
+  bool m_autoconnect{true};
 #endif
 
 #if defined(SCORE_PIPEWIRE_OUT_DMABUF_EGL)
@@ -1802,6 +1808,7 @@ void PipewireOutputNode::createOutput(score::gfx::OutputConfiguration conf)
   QString nodeName = m_settings.path;
   formats::Tag tag = formats::Tag::RGBA8;
   bool wantDmaBuf = false;
+  bool autoconnect = true;
   {
     static const QRegularExpression urlRe("([^?]*)(?:\\?(.*))?");
     const auto m = urlRe.match(m_settings.path);
@@ -1842,6 +1849,10 @@ void PipewireOutputNode::createOutput(score::gfx::OutputConfiguration conf)
         {
           wantDmaBuf = (v == "on" || v == "true" || v == "1");
         }
+        else if(k == "autoconnect")
+        {
+          autoconnect = !(v == "off" || v == "false" || v == "0");
+        }
       }
     }
   }
@@ -1859,7 +1870,8 @@ void PipewireOutputNode::createOutput(score::gfx::OutputConfiguration conf)
 
   m_tag = tag;
   m_producer = std::make_unique<PipewireProducer>(
-      m_settings.width, m_settings.height, m_settings.rate, tag, nodeName);
+      m_settings.width, m_settings.height, m_settings.rate, tag, nodeName,
+      autoconnect);
 
   m_renderState = score::gfx::createRenderState(
       conf.graphicsApi, QSize(m_settings.width, m_settings.height), nullptr);
@@ -2186,6 +2198,32 @@ bool PipewireOutputDevice::reconnect()
 // shared path / width / height / rate fields)
 // ============================================================================
 
+//! Chosen instead of a target: connect without autoconnect, so the node shows
+//! up bare in a patchbay.
+static const QString kUnconnected = QStringLiteral("\x01unconnected");
+
+//! The Video/Sink nodes the daemon is publishing, as (node.name, label).
+static std::vector<std::pair<QString, QString>> liveVideoSinks()
+{
+  std::vector<std::pair<QString, QString>> out;
+  auto shared = libremidi::pipewire::shared_context();
+  if(!shared || !shared->ok())
+    return out;
+
+  for(const auto& node :
+      shared->snapshot().nodes_of(libremidi::pipewire::media_class::video))
+  {
+    if(node.media_class_str.find("Sink") == std::string::npos)
+      continue;
+    const QString name = QString::fromStdString(node.name);
+    if(name.isEmpty())
+      continue;
+    const QString descr = QString::fromStdString(node.description);
+    out.push_back({name, descr.isEmpty() ? name : (descr + " (" + name + ")")});
+  }
+  return out;
+}
+
 class PipewireOutputSettingsWidget final : public Gfx::SharedOutputSettingsWidget
 {
 public:
@@ -2197,6 +2235,15 @@ public:
     // path's `?key=value` query since SharedOutputSettings has no
     // native fields for them.
     setPathLabel(tr("PipeWire node"));
+
+    // What the daemon is publishing right now, so a sink can be picked rather
+    // than typed. The entry data is the node.name the path wants.
+    m_sinkEdit = new QComboBox(this);
+    m_sinkEdit->addItem(tr("(autoconnect)"), QString{});
+    m_sinkEdit->addItem(tr("(unconnected: link it yourself)"), kUnconnected);
+    for(const auto& [name, label] : liveVideoSinks())
+      m_sinkEdit->addItem(label, name);
+    m_layout->addRow(tr("Target"), m_sinkEdit);
 
     m_formatEdit = new QComboBox(this);
     m_formatEdit->addItems(formats::renderableTagNames());
@@ -2226,9 +2273,19 @@ public:
     const int q = path.indexOf('?');
     if(q >= 0)
       path.truncate(q);
+    // A picked sink overrides whatever the path field holds; the unconnected
+    // entry is a mode, not a target, so it names nothing.
+    const QString target = m_sinkEdit->currentData().toString();
+    const bool unconnected = (target == kUnconnected);
+    if(unconnected)
+      path.clear();
+    else if(!target.isEmpty())
+      path = target;
     QString query = "format=" + m_formatEdit->currentText();
     if(m_dmabufEdit->isChecked())
       query += "&dmabuf=on";
+    if(unconnected)
+      query += "&autoconnect=off";
     set.path = path + "?" + query;
     s.deviceSpecificSettings = QVariant::fromValue(set);
     return s;
@@ -2249,11 +2306,23 @@ public:
     }
     static const QRegularExpression dmabufRe("dmabuf=(on|true|1)");
     m_dmabufEdit->setChecked(dmabufRe.match(set.path).hasMatch());
+
+    if(set.path.contains(QStringLiteral("autoconnect=off")))
+      m_sinkEdit->setCurrentIndex(m_sinkEdit->findData(kUnconnected));
+    else
+    {
+      QString node = set.path;
+      if(const int qq = node.indexOf('?'); qq >= 0)
+        node.truncate(qq);
+      const int idx = m_sinkEdit->findData(node);
+      m_sinkEdit->setCurrentIndex(idx >= 0 ? idx : 0);
+    }
   }
 
 private:
   QComboBox* m_formatEdit{};
   QCheckBox* m_dmabufEdit{};
+  QComboBox* m_sinkEdit{};
 };
 
 // ============================================================================
