@@ -95,6 +95,9 @@ private:
   MCUSpecificSettings::MapSlot slotAt(int row) const;
   void addChosenDevice(const QString& identity, int channel);
 
+  //! The lowest channel @p identity is not already on, or -1 past sixteen.
+  int freeChannelFor(const QString& identity) const;
+
   //! Fill the preview with the tree the chosen descriptions would build.
   void updatePreview();
   static QTreeWidgetItem* childNamed(QTreeWidgetItem* parent, const QString& name);

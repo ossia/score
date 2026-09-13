@@ -43,6 +43,8 @@
 #include <QVBoxLayout>
 #include <QVariant>
 
+#include <array>
+
 #include <libremidi/libremidi.hpp>
 
 #include <wobjectimpl.h>
@@ -288,7 +290,7 @@ MCUSettingsWidget::MCUSettingsWidget(QWidget* parent)
     sub->addRow(QString{}, row);
 
     connect(add, &QPushButton::clicked, this, [this] {
-      addChosenDevice(chosenMap(), 1);
+      addChosenDevice(chosenMap(), 0);
       updatePreview();
       changed();
     });
@@ -348,7 +350,7 @@ MCUSettingsWidget::MCUSettingsWidget(QWidget* parent)
   // it there.
   connect(m_instruments, &QTreeView::doubleClicked, this,
           [this](const QModelIndex& idx) {
-    addChosenDevice(idx.data(MapRole).toString(), 1);
+    addChosenDevice(idx.data(MapRole).toString(), 0);
     updatePreview();
     changed();
   });
@@ -677,10 +679,18 @@ void MCUSettingsWidget::addChosenDevice(const QString& identity, int channel)
   if(identity.isEmpty())
     return;
 
-  // The same description twice on one port would build two identical subtrees
-  // listening to the same messages.
+  /*
+   * Eight of one controller on one port is an ordinary rig, and each answers
+   * on its own channel. What cannot be repeated is a channel: two identical
+   * subtrees would listen to the same messages and both send on them.
+   */
+  if(channel < 1)
+    channel = freeChannelFor(identity);
+  if(channel < 1)
+    return;
+
   for(int i = 0; i < m_chosen->topLevelItemCount(); i++)
-    if(slotAt(i).map == identity)
+    if(const auto slot = slotAt(i); slot.map == identity && slot.channel == channel)
       return;
 
   auto name = genericLabel(identity);
@@ -695,6 +705,23 @@ void MCUSettingsWidget::addChosenDevice(const QString& identity, int channel)
       m_chosen, {name, QString::number(std::clamp(channel, 1, 16))}};
   item->setData(0, MapRole, identity);
   item->setFlags(item->flags() | Qt::ItemIsEditable);
+}
+
+int MCUSettingsWidget::freeChannelFor(const QString& identity) const
+{
+  std::array<bool, 17> taken{};
+  for(int i = 0; i < m_chosen->topLevelItemCount(); i++)
+    if(const auto slot = slotAt(i); slot.map == identity)
+      if(slot.channel >= 1 && slot.channel <= 16)
+        taken[slot.channel] = true;
+
+  for(int ch = 1; ch <= 16; ch++)
+    if(!taken[ch])
+      return ch;
+
+  // A cable carries sixteen channels, and the seventeenth device on it would
+  // be indistinguishable from one of the others.
+  return -1;
 }
 
 QString MCUSettingsWidget::genericLabel(const QString& identity) const

@@ -192,9 +192,23 @@ TEST_CASE("choosing a description fills the preview", "[mididevice][gui]")
     CHECK(chosen->topLevelItem(0)->text(0) == "M1");
     CHECK(chosen->topLevelItem(0)->text(1) == "1");
 
-    // The same device twice would be two subtrees listening to one message.
-    picker->doubleClicked(idx);
-    CHECK(chosen->topLevelItemCount() == 1);
+    // Eight of one controller on one port is an ordinary rig: each opening
+    // puts another on the next free channel.
+    for(int i = 2; i <= 8; i++)
+    {
+      picker->doubleClicked(idx);
+      REQUIRE(chosen->topLevelItemCount() == i);
+      CHECK(chosen->topLevelItem(i - 1)->text(0) == "M1");
+      CHECK(chosen->topLevelItem(i - 1)->text(1) == QString::number(i));
+    }
+
+    // A cable carries sixteen channels and no more.
+    for(int i = 9; i <= 20; i++)
+      picker->doubleClicked(idx);
+    CHECK(chosen->topLevelItemCount() == 16);
+
+    while(chosen->topLevelItemCount() > 1)
+      delete chosen->topLevelItem(chosen->topLevelItemCount() - 1);
 
     // A raw channel goes on the port beside a description, and previews the
     // nodes it would build rather than nothing.
@@ -212,6 +226,7 @@ TEST_CASE("choosing a description fills the preview", "[mididevice][gui]")
     picker->doubleClicked(raw);
     REQUIRE(chosen->topLevelItemCount() == 2);
     CHECK(chosen->topLevelItem(1)->text(0) == "MIDI channel, every note and control");
+    CHECK(chosen->topLevelItem(1)->text(1) == "1");
 
     const auto both = widget->getSettings()
                           .deviceSpecificSettings.value<Protocols::MCUSpecificSettings>();
