@@ -9,6 +9,8 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <Protocols/MCU/MCUSpecificSettings.hpp>
+#include <Protocols/MIDIDevices/MidiDeviceDatabase.hpp>
+#include <Protocols/MIDIDevices/MidiDeviceProtocol.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -802,6 +804,67 @@ MCUDevice::MCUDevice(
 
 MCUDevice::~MCUDevice() { }
 
+//! The surface drives the controls of the document, not addresses, so this
+//! device has no node tree.
+std::unique_ptr<ossia::net::protocol_base> MCUDevice::makeMCUProtocol(
+    const MCUSpecificSettings& set)
+{
+  auto& remote_controls
+      = this->m_doc.app.interfaces<Process::RemoteControlProviderList>();
+
+  if(remote_controls.empty() || set.input_handle.empty() || set.output_handle.empty())
+    return {};
+
+  auto rc = remote_controls.begin()->make(this->m_doc);
+  if(!rc)
+    return {};
+
+  return std::make_unique<mcu_protocol>(
+      this->m_doc, rc, this->m_ctx, set.api, set.input_handle[0],
+      set.output_handle[0]);
+}
+
+//! @see Protocols/MIDIDevices/MidiDeviceProtocol.hpp
+std::unique_ptr<ossia::net::protocol_base>
+MCUDevice::makeMidiDeviceMapProtocol(const MCUSpecificSettings& set)
+{
+  if(set.map.isEmpty())
+  {
+    qWarning() << "MIDI Controller" << settings().name << "has no device map selected.";
+    return {};
+  }
+
+  const auto* entry = MIDIDevices::Database::instance().find(set.map);
+  if(!entry)
+  {
+    // The package is a separate download, so a score can arrive on a machine
+    // without it: report and leave the device disconnected.
+    qWarning() << "MIDI Controller" << settings().name << ": the device map" << set.map
+               << "is not in the library. Install the \"MIDI device maps\" package to "
+                  "get it; the rest of the document is unaffected.";
+    return {};
+  }
+
+  auto map = MIDIDevices::Database::load(*entry);
+  if(!map)
+  {
+    qWarning() << "MIDI Controller" << settings().name
+               << ": nothing could be read from the device map" << set.map;
+    return {};
+  }
+
+  MIDIDevices::ProtocolSettings conf;
+  conf.api = set.api;
+  if(!set.input_handle.empty())
+    conf.input = set.input_handle[0];
+  if(!set.output_handle.empty())
+    conf.output = set.output_handle[0];
+  conf.channel = set.channel;
+  conf.map = std::move(*map);
+
+  return MIDIDevices::makeProtocol(std::move(conf));
+}
+
 bool MCUDevice::reconnect()
 {
   disconnect();
@@ -811,30 +874,35 @@ bool MCUDevice::reconnect()
     MCUSpecificSettings set
         = settings().deviceSpecificSettings.value<MCUSpecificSettings>();
 
-    auto& remote_controls
-        = this->m_doc.app.interfaces<Process::RemoteControlProviderList>();
-
-    if(!remote_controls.empty() && !set.input_handle.empty()
-       && !set.output_handle.empty())
+    std::unique_ptr<ossia::net::protocol_base> proto;
+    switch(set.mode)
     {
-      auto rc = remote_controls.begin()->make(this->m_doc);
-      if(rc)
-      {
-        auto proto = std::make_unique<mcu_protocol>(
-            this->m_doc, rc, this->m_ctx, set.api, set.input_handle[0],
-            set.output_handle[0]);
+      case MCUSpecificSettings::MidiDeviceMap:
+        proto = makeMidiDeviceMapProtocol(set);
+        break;
+      case MCUSpecificSettings::MCU:
+        proto = makeMCUProtocol(set);
+        break;
+    }
 
-        auto dev = std::make_unique<ossia::net::generic_device>(
-            std::move(proto), settings().name.toStdString());
-        m_dev = std::move(dev);
-      }
+    if(proto)
+    {
+      m_dev = std::make_unique<ossia::net::generic_device>(
+          std::move(proto), settings().name.toStdString());
     }
 
     deviceChanged(nullptr, m_dev.get());
   }
   catch(std::exception& e)
   {
-    qDebug() << e.what();
+    // Named and a warning: the usual cause is a missing MIDI port, which is
+    // the user's to fix and is not reported anywhere else.
+    qWarning() << "MIDI Controller" << settings().name << "could not connect:"
+               << e.what();
+  }
+  catch(...)
+  {
+    qWarning() << "MIDI Controller" << settings().name << "could not connect.";
   }
   m_capas.canSerialize = false;
 

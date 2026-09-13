@@ -1,3 +1,32 @@
+# Tests for the `.midimap.json` device-description reader. Compiled into the
+# test like the MIDI Guide reader below: it is free of Qt and ossia, and only
+# needs rapidjson, which is header-only.
+score_add_test(test_protocol_midi_device_map
+  SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/MidiDeviceMapTest.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../Protocols/MIDIDevices/MidiDeviceMap.cpp")
+
+target_include_directories(test_protocol_midi_device_map
+  PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
+target_include_directories(test_protocol_midi_device_map
+  SYSTEM PRIVATE "${OSSIA_3RDPARTY_FOLDER}/rapidjson/include")
+
+# Standing a tree up needs the real backends, so this links ossia and reports
+# what the machine could not do rather than failing.
+if(OSSIA_PROTOCOL_MIDI)
+  score_add_test(test_protocol_midi_device_protocol
+    SOURCES
+      "${CMAKE_CURRENT_SOURCE_DIR}/MidiDeviceProtocolTest.cpp"
+      "${CMAKE_CURRENT_SOURCE_DIR}/../Protocols/MIDIDevices/MidiDeviceProtocol.cpp"
+      "${CMAKE_CURRENT_SOURCE_DIR}/../Protocols/MIDIDevices/MidiDeviceMap.cpp"
+    LIBS ossia ${QT_PREFIX}::Core)
+
+  target_include_directories(test_protocol_midi_device_protocol
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
+  target_include_directories(test_protocol_midi_device_protocol
+    SYSTEM PRIVATE "${OSSIA_3RDPARTY_FOLDER}/rapidjson/include")
+endif()
+
 # Tests for the CAN protocol.
 #
 # Split in two on purpose:
