@@ -20,7 +20,11 @@ fi
 
 cp -rf "$SCORE_DIR/3rdparty/avendish/include/." "$INCLUDE/"
 cp -rf "$SCORE_DIR/3rdparty/csv2/include/." "$INCLUDE/"
-cp -rf "$SCORE_DIR/3rdparty/DSPFilters/include/." "$INCLUDE/"
+# Through the real path, not the 3rdparty/DSPFilters/include symlink: git checks
+# symlinks out as plain text files on Windows, and this file is sourced under
+# `set -e`, so the failed copy takes the whole SDK build with it. The directory
+# rather than its contents, because consumers include <DspFilters/Dsp.h>.
+cp -rf "$SCORE_DIR/3rdparty/DSPFilters/DSPFilters/include/DspFilters" "$INCLUDE/"
 cp -rf "$SCORE_DIR/3rdparty/xsimd/include/." "$INCLUDE/"
 cp -rf "$SCORE_DIR/3rdparty/xtensor/include/." "$INCLUDE/"
 cp -rf "$SCORE_DIR/3rdparty/xtl/include/." "$INCLUDE/"
