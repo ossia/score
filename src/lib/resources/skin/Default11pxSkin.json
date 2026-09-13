@@ -275,6 +275,12 @@
    "family": "Ubuntu",
    "pixelSize": 11,
    "weight": 600
+  },
+  "code": {
+   "family": "IBM Plex Mono",
+   "pixelSize": 11,
+   "fixedPitch": true,
+   "hinting": "Vertical"
   }
  }
 }

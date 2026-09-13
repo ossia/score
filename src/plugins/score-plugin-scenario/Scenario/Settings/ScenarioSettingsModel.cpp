@@ -2,6 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioSettingsModel.hpp"
 
+#include <Scenario/Settings/SkinEditorWidget.hpp>
+
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 #include <Process/UIPlacement.hpp>
@@ -153,7 +155,10 @@ void Model::initSkin(const QString& skin)
     else
     {
       m_impl->skinJson = doc.object();
-      score::Skin::instance().load(m_impl->skinJson);
+      // Only the halves the user asked for: switching skin to try a palette
+      // should not have to bring its fonts along, or the other way round.
+      score::Skin::instance().load(
+          m_impl->skinJson, SkinEditorWidget::selectedParts());
     }
   }
   else

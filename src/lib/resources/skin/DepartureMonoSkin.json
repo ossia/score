@@ -275,6 +275,10 @@
   "slider": {
    "family": "Departure Mono",
    "pixelSize": 11
+  },
+  "code": {
+   "family": "Departure Mono",
+   "pixelSize": 11
   }
  }
 }

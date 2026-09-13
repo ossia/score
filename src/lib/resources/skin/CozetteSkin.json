@@ -275,6 +275,10 @@
   "slider": {
    "family": "Cozette",
    "pixelSize": 13
+  },
+  "code": {
+   "family": "Cozette",
+   "pixelSize": 13
   }
  }
 }

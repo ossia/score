@@ -100,7 +100,17 @@ public:
   static Skin& instance() noexcept;
   ~Skin() override;
 
-  void load(const QJsonObject& style);
+  //! Which halves of a skin file to apply. Colours and fonts are separable
+  //! so that trying a different palette does not also change every font, and
+  //! vice versa.
+  enum Part
+  {
+    Colours = 1,
+    Fonts = 2,
+    Everything = Colours | Fonts
+  };
+
+  void load(const QJsonObject& style, int parts = Everything);
 
   //! Colours and fonts, in the form load() reads back. Used to write skin
   //! files, so anything added here must have a load() counterpart.
@@ -136,6 +146,10 @@ public:
   QFont Medium12Pt;
 
   QFont TitleFont;
+
+  //! Script and shader editors. Monospaced and usually a size of its own,
+  //! since code wants more lines on screen than a settings form does.
+  QFont CodeFont;
 
   Brush Dark;
   Brush HalfDark;
