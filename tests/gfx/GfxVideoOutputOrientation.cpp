@@ -215,7 +215,7 @@ public:
     if(auto enc = makeEncoder(m_path))
     {
       m_encoder = std::move(enc);
-      m_encoder->init(*rhi, *m_renderState, m_texture, kW, kH);
+      m_encoder->init(*rhi, *m_renderState, m_texture, kW, kH, QString{});
     }
 
     if(conf.onReady)
