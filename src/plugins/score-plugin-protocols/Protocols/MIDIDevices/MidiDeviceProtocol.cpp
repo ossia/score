@@ -363,7 +363,11 @@ struct midi_device_protocol final
       return;
 
     libremidi::input_configuration conf{};
-    conf.ignore_sysex = true;
+
+    // Kept, because a level of this tree is also a raw MIDI port: a
+    // description addresses no system-exclusive message, but a port carries
+    // whatever the device sends and that is the point of offering one.
+    conf.ignore_sysex = false;
     conf.on_message = [this](const libremidi::message& m) { onMessage(m); };
     m_input = std::make_unique<libremidi::midi_in>(conf, m_settings.api);
     if(m_input->open_port(*m_resolvedInput) != stdx::error{})
@@ -910,10 +914,15 @@ struct midi_device_protocol final
       m_toUmp.convert(
           m.bytes.data(), m.bytes.size(), m.timestamp,
           [this](const uint32_t* ump, int count, auto ts) {
-        libremidi::ump u;
-        std::copy_n(ump, std::min(count, 4), u.data);
-        u.timestamp = ts;
-        receive_ump(u);
+        // A message longer than one packet -- system-exclusive -- arrives as
+        // the packets it is made of, all of them.
+        for(int at = 0; at < count; at += 4)
+        {
+          libremidi::ump u;
+          std::copy_n(ump + at, std::min(count - at, 4), u.data);
+          u.timestamp = ts;
+          receive_ump(u);
+        }
         return stdx::error{};
       });
     }
