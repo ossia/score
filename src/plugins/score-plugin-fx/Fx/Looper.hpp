@@ -64,34 +64,34 @@ struct Node
     float quantif{0.0};
     std::optional<ossia::time_value> this_buffer_quantif_time;
     std::optional<int64_t> this_buffer_quantif_sample;
+    int64_t tickStartSample{};
     int postaction_bars{};
     double sampleRate{48000.};
     bool isPostRecording{false};
+    bool faded{false};
 
     static constexpr int64_t default_buffer_size = 192000 * 32;
     void reset_elapsed() { }
     int channels() const noexcept { return actualChannels; }
     void set_channels(int chans)
     {
-      const int64_t cur_channels = std::ssize(audio);
-      actualChannels = chans;
-      if(actualChannels > cur_channels)
-      {
-        audio.resize(actualChannels);
+      if(chans == actualChannels)
+        return;
 
-        int64_t min_size = audio[0].size();
-        int64_t min_capa = std::max(int64_t(audio[0].capacity()), default_buffer_size);
-        for(int i = cur_channels; i < actualChannels; i++)
-        {
-          audio[i].reserve(min_capa);
-          audio[i].resize(min_size);
-        }
-      }
-      else if(actualChannels < cur_channels)
+      const int prev_channels = actualChannels;
+      actualChannels = chans;
+      if(std::ssize(audio) < chans)
+        audio.resize(chans);
+
+      // Channels that come back after the input narrowed must line up with the
+      // ones that stayed: play() and overdub() index them all with one position.
+      const int64_t len = prev_channels > 0 ? std::ssize(audio[0]) : 0;
+      for(int i = prev_channels; i < chans; i++)
       {
-        for(int i = actualChannels; i < cur_channels; i++)
+        if(std::ssize(audio[i]) != len)
         {
-          audio[i].resize(0);
+          audio[i].reserve(std::max(int64_t(audio[i].capacity()), default_buffer_size));
+          audio[i].resize(len);
         }
       }
     }
@@ -106,13 +106,20 @@ struct Node
 
   void fade(const ossia::token_request& tk)
   {
+    // Every mode change goes through here; the ramp must only ever be applied
+    // to material that was recorded since the last one.
+    if(state.faded)
+      return;
+    state.faded = true;
+
     const double sr = state.sampleRate;
     const double bar_samples
         = sr * 4. * (double(tk.signature.upper) / tk.signature.lower) * (60. / tk.tempo);
     const double total_samples = std::floor(state.postaction_bars * bar_samples);
 
     // If there are more samples than expected we crop
-    const bool quantify_length = (state.quantif > 0.f) && (state.channels() > 0);
+    const bool quantify_length = (state.quantif > 0.f) && (state.postaction_bars > 0)
+                                 && (state.channels() > 0);
     if(quantify_length)
     {
       if(total_samples < state.audio[0].size())
@@ -125,18 +132,18 @@ struct Node
     // Apply a small fade on the first and last samples
     for(auto& chan : state.audio)
     {
-      int samples = chan.size();
-      if(int min_n = std::min(samples, (int)128); min_n > 0)
+      const int64_t samples = std::ssize(chan);
+      if(int64_t min_n = std::min(samples, int64_t(128)); min_n > 0)
       {
         float f = 1. / min_n;
         float ff = 0.;
-        for(int i = 0; i < min_n; i++)
+        for(int64_t i = 0; i < min_n; i++)
         {
           chan[i] *= ff;
           ff += f;
         }
 
-        for(int i = samples - min_n; i < samples; i++)
+        for(int64_t i = samples - min_n; i < samples; i++)
         {
           chan[i] *= ff;
           ff -= f;
@@ -157,7 +164,9 @@ struct Node
 
   void changeAction(const ossia::token_request& tk)
   {
-    if(state.quantizedPlayMode == LoopMode::Record)
+    // Zero bars means no automatic post-action: the end bar would otherwise be
+    // the start bar and preAction() would leave Record on its first tick.
+    if(state.quantizedPlayMode == LoopMode::Record && state.postaction_bars > 0)
     {
       state.recordStart = tk.prev_date;
       state.recordStartBar = tk.musical_start_position;
@@ -204,6 +213,10 @@ struct Node
     state.postaction_bars = postaction_bars;
     state.sampleRate = ossia_state.sampleRate();
 
+    // The sample pointers we were handed already start at this tick's first
+    // sample; every span below is expressed relative to that.
+    state.tickStartSample = ossia_state.timings(tk).start_sample;
+
     if(quantif != 0 && tk.prev_date != 0_tv)
     {
       state.quantif = quantif;
@@ -238,10 +251,12 @@ struct Node
           // tempo = 120 -> 1 bar = 2 second
           if(*time > tk.prev_date)
           {
-            // Finish what we were doing until the quantization date
+            // Finish what we were doing until the quantization date. The span
+            // is half-open, so the two halves tile the tick exactly; ending a
+            // flick early instead rounds down to a sample nobody writes.
             {
               auto sub_tk = tk;
-              sub_tk.set_end_time(*time - 1_tv);
+              sub_tk.set_end_time(*time);
 
               preAction(sub_tk, postaction, postaction_bars, passthrough);
             }
@@ -339,41 +354,38 @@ struct Node
       // Change of bar in the middle
       else if(tk.musical_end_last_bar >= state.recordEndBar)
       {
-        if(auto quant_date = tk.get_quantification_date(1.0))
+        const auto quant_date = tk.get_quantification_date(1.0);
+        if(quant_date && *quant_date > tk.prev_date && *quant_date < tk.date)
         {
-          ossia::time_value t = *quant_date;
-          if(t > tk.prev_date)
+          const ossia::time_value t = *quant_date;
+
+          // Finish what we were doing until the quantization date
           {
-            // Finish what we were doing until the quantization date
-            {
-              auto sub_tk = tk;
-              sub_tk.set_end_time(t - 1_tv);
-              action(sub_tk, passthrough);
-            }
-
-            // We can switch to the new mode
-            switch_to_main_mode();
-            fade(tk);
-
-            // Remaining of the tick
-            {
-              auto sub_tk = tk;
-              sub_tk.set_start_time(t);
-
-              action(sub_tk, passthrough);
-            }
+            auto sub_tk = tk;
+            sub_tk.set_end_time(t);
+            action(sub_tk, passthrough);
           }
-          else
+
+          // We can switch to the new mode
+          switch_to_main_mode();
+          fade(tk);
+
+          // Remaining of the tick
           {
-            qDebug("very weird");
+            auto sub_tk = tk;
+            sub_tk.set_start_time(t);
+
+            action(sub_tk, passthrough);
           }
         }
         else
         {
-          qDebug("weird");
+          // The bar line is not locatable inside the tick: switch on its first
+          // sample rather than leaving the buffer unwritten.
+          switch_to_main_mode();
+          fade(tk);
+          action(tk, passthrough);
         }
-        // just in case:
-        switch_to_main_mode();
       }
 
       // No change of bar yet, we continue
@@ -387,7 +399,7 @@ struct Node
   void action(const ossia::token_request& tk, bool echoRecord)
   {
     auto timings = ossia_state.timings(tk);
-    action(timings.start_sample, timings.length, echoRecord);
+    action(timings.start_sample - state.tickStartSample, timings.length, echoRecord);
   }
 
   void action(int64_t start, int64_t length, bool echoRecord)
@@ -415,83 +427,41 @@ struct Node
   void play(int64_t first_pos, int64_t samples)
   {
     auto& p2 = outputs.audio;
-    // Copy input to output, and append input to buffer
-    const auto chans = state.channels();
-
-    if(chans == 0)
-      return;
+    const int64_t last = first_pos + samples;
+    const int out_chans = p2.channels;
+    const int loop_chans = std::min(state.channels(), out_chans);
 
     int64_t k = state.playbackPos;
-    for(int i = 0; i < chans; i++)
+    for(int i = 0; i < loop_chans; i++)
     {
       auto& out = p2.samples[i];
       auto& record = state.audio[i];
-      const int64_t chan_samples = record.size();
+      const int64_t chan_samples = std::ssize(record);
 
-      k = state.playbackPos;
-      if(state.playbackPos + samples < chan_samples)
+      if(chan_samples <= 0)
       {
-        for(int64_t j = first_pos; j < samples; j++)
-        {
-          out[j] = record[k];
-          k++;
-        }
+        for(int64_t j = first_pos; j < last; j++)
+          out[j] = 0.;
+        continue;
       }
-      else
+
+      // The loop is free to be shorter than the tick, and to end anywhere
+      // inside it.
+      k = state.playbackPos % chan_samples;
+      for(int64_t j = first_pos; j < last; j++)
       {
-        int64_t max = chan_samples - state.playbackPos;
-        int64_t j = first_pos;
-        for(; j < max; j++)
-        {
-          out[j] = record[k];
-          k++;
-        }
-
-        //if(state.quantif == 0.f)
-        {
-          // No quantification, we directly loop the content
+        out[j] = record[k];
+        if(++k == chan_samples)
           k = 0;
-
-          // TODO refactor sound_reader so that we can use it to have the proper repeated loop behaviour here...
-          for(; j < std::min(samples, chan_samples); j++)
-          {
-            out[j] = record[k];
-            k++;
-          }
-        }
-
-        /*
-        else if(state.this_buffer_quantif_sample)
-        {
-          // Quantification in this tick
-          int64_t last_silence  = std::min(N, *state.this_buffer_quantif_sample);
-
-          // First silence
-          for (; j < last_silence; j++)
-          {
-            out[j] = 0.f;
-            k++;
-          }
-
-          // Then loop our content back
-          k = 0;
-          for (; j < std::min(N, chan_samples); j++)
-          {
-            out[j] = record[k];
-            k++;
-          }
-        }
-        else
-        {
-          // Quantification not in this tick, just silence
-          for (; j < N; j++)
-          {
-            out[j] = 0.f;
-            k++;
-          }
-        }
-        */
       }
+    }
+
+    // The bus can carry more channels than the loop was recorded with.
+    for(int i = loop_chans; i < out_chans; i++)
+    {
+      auto& out = p2.samples[i];
+      for(int64_t j = first_pos; j < last; j++)
+        out[j] = 0.;
     }
 
     state.playbackPos = k;
@@ -503,13 +473,14 @@ struct Node
     auto& p1 = inputs.audio;
     auto& p2 = outputs.audio;
     const auto chans = p1.channels;
+    const int64_t last = first_pos + samples;
 
     for(int i = 0; i < chans; i++)
     {
       auto& in = p1.samples[i];
       auto& out = p2.samples[i];
 
-      for(int64_t j = first_pos; j < samples; j++)
+      for(int64_t j = first_pos; j < last; j++)
       {
         out[j] = in[j];
       }
@@ -523,6 +494,7 @@ struct Node
     // Copy input to output, and append input to buffer
     const auto chans = p1.channels;
     state.set_channels(chans);
+    const int64_t last = first_pos + samples;
 
     for(int i = 0; i < chans; i++)
     {
@@ -533,7 +505,7 @@ struct Node
       record.resize(state.playbackPos + samples);
       int64_t k = state.playbackPos;
 
-      for(int64_t j = first_pos; j < samples; j++)
+      for(int64_t j = first_pos; j < last; j++)
       {
         out[j] = in[j];
         record[k] = in[j];
@@ -541,14 +513,17 @@ struct Node
       }
     }
     state.playbackPos += samples;
+    state.faded = false;
   }
 
   void record_noecho(int64_t first_pos, int64_t samples)
   {
     auto& p1 = inputs.audio;
-    // Copy input to output, and append input to buffer
+    auto& p2 = outputs.audio;
+    // Append input to buffer, and silence the output
     const auto chans = p1.channels;
     state.set_channels(chans);
+    const int64_t last = first_pos + samples;
 
     for(int i = 0; i < chans; i++)
     {
@@ -558,81 +533,101 @@ struct Node
       record.resize(state.playbackPos + samples);
       int64_t k = state.playbackPos;
 
-      for(int64_t j = first_pos; j < samples; j++)
+      for(int64_t j = first_pos; j < last; j++)
       {
         record[k] = in[j];
         k++;
       }
     }
+
+    for(int i = 0; i < p2.channels; i++)
+    {
+      auto& out = p2.samples[i];
+      for(int64_t j = first_pos; j < last; j++)
+        out[j] = 0.;
+    }
+
     state.playbackPos += samples;
+    state.faded = false;
   }
 
   void overdub(int64_t first_pos, int64_t samples)
   {
     auto& p1 = inputs.audio;
     auto& p2 = outputs.audio;
-    //! if we go past the end we have to start from the beginning ? or we keep
-    //! extending ?
 
-    // Copy input to output, and append input to buffer
+    // Mix input into the buffer, and copy the result to the output
     const auto chans = p1.channels;
     state.set_channels(chans);
+    const int64_t last = first_pos + samples;
 
+    int64_t k = state.playbackPos;
     for(int i = 0; i < chans; i++)
     {
       auto& in = p1.samples[i];
       auto& out = p2.samples[i];
       auto& record = state.audio[i];
-      const int64_t record_samples = record.size();
+      const int64_t record_samples = std::ssize(record);
 
-      int64_t k = state.playbackPos;
-
-      for(int64_t j = first_pos; j < samples; j++)
+      // Nothing to layer onto: an overdub of an empty loop is an echo.
+      if(record_samples <= 0)
       {
-        if(k >= record_samples)
-          k = 0;
+        for(int64_t j = first_pos; j < last; j++)
+          out[j] = in[j];
+        continue;
+      }
 
+      k = state.playbackPos % record_samples;
+      for(int64_t j = first_pos; j < last; j++)
+      {
         record[k] += in[j];
         out[j] = record[k];
 
-        k++;
+        if(++k == record_samples)
+          k = 0;
       }
     }
-    state.playbackPos += samples;
+    state.playbackPos = k;
+    state.faded = false;
   }
 
   void overdub_noecho(int64_t first_pos, int64_t samples)
   {
     auto& p1 = inputs.audio;
     auto& p2 = outputs.audio;
-    //! if we go past the end we have to start from the beginning ? or we keep
-    //! extending ?
 
-    // Copy input to output, and append input to buffer
+    // Mix input into the buffer, and copy what was there to the output
     const auto chans = p1.channels;
     state.set_channels(chans);
+    const int64_t last = first_pos + samples;
 
+    int64_t k = state.playbackPos;
     for(int i = 0; i < chans; i++)
     {
       auto& in = p1.samples[i];
       auto& out = p2.samples[i];
       auto& record = state.audio[i];
-      const int64_t record_samples = record.size();
+      const int64_t record_samples = std::ssize(record);
 
-      int64_t k = state.playbackPos;
-
-      for(int64_t j = first_pos; j < samples; j++)
+      if(record_samples <= 0)
       {
-        if(k >= record_samples)
-          k = 0;
+        for(int64_t j = first_pos; j < last; j++)
+          out[j] = 0.;
+        continue;
+      }
 
+      k = state.playbackPos % record_samples;
+      for(int64_t j = first_pos; j < last; j++)
+      {
         out[j] = record[k];
         record[k] += in[j];
 
-        k++;
+        if(++k == record_samples)
+          k = 0;
       }
     }
-    state.playbackPos += samples;
+    state.playbackPos = k;
+    state.faded = false;
   }
 
   struct ui

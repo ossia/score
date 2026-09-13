@@ -430,6 +430,13 @@ if(TARGET score_plugin_fx)
   score_add_test(test_unit_expression_presets
     SOURCES ExpressionPresetsTest.cpp
     PLUGINS score_plugin_fx)
+
+  # The audio Looper, driven the way avnd's ossia binding drives it: sample
+  # pointers already offset by the tick's start sample.
+  score_add_test(test_unit_fx_looper
+    SOURCES FxLooperTest.cpp
+    PLUGINS score_plugin_fx)
+
 endif()
 
 # --- ExprTK wrapper ----------------------------------------------------------
