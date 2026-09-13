@@ -4,6 +4,7 @@
 #include <QFont>
 #include <QObject>
 #include <QPair>
+#include <QPalette>
 #include <QPen>
 #include <QSize>
 #include <QVector>
@@ -116,6 +117,11 @@ public:
   //! counterpart.
   QJsonObject toJson() const;
 
+  //! Every QPalette role a skin may name, keyed as in the file. Same shape as
+  //! fonts(): one list for load, save and the editor.
+  static const std::vector<std::pair<const char*, QPalette::ColorRole>>&
+  paletteRoles() noexcept;
+
   //! Every font a skin may name, keyed as in the file. Single list so load,
   //! save, the defaults and the editor cannot drift apart; the editor writes
   //! through these pointers and emits changed().
@@ -207,6 +213,14 @@ public:
   Brush Pulse1;
   Brush Pulse2;
 
+  //! The widget palette. Separate from the Brush roles above, which only
+  //! reach the graphics scene: this is what the Qt widgets are drawn from,
+  //! and without it a skin can only restyle half the application.
+  //!
+  //! Only the roles a skin names are set; the rest keep whatever the style
+  //! computed, which is how Qt derives a sane Disabled group.
+  QPalette WidgetPalette;
+
   const QPen TransparentPen;
   const QBrush TransparentBrush;
   const QPen NoPen;
@@ -269,6 +283,16 @@ private:
 
   //! Serialises every font member, for toJson().
   QJsonObject saveFonts() const;
+
+  //! The widget palette a skin starts from, mirrored in DefaultSkin's
+  //! "palette" block.
+  void setupPalette();
+
+  //! Applies the "palette" object of a skin file over that.
+  void loadPalette(const QJsonObject& spec);
+
+  //! Serialises the roles this skin sets, for toJson().
+  QJsonObject savePalette() const;
 
   struct color_map;
   color_map* initColorMap() noexcept;
