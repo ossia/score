@@ -57,6 +57,7 @@ set(SCORE_VERSION \"${SCORE_VERSION}\")
     FILES
       ${CMAKE_BINARY_DIR}/ScoreVersion.cmake
       ${SCORE_ROOT_SOURCE_DIR}/cmake/ScoreAddonArchitecture.cmake
+      ${SCORE_ROOT_SOURCE_DIR}/cmake/ScoreAddonSetup.cmake
       ${SCORE_ROOT_SOURCE_DIR}/cmake/ScoreAvndHelper.cmake
       ${SCORE_ROOT_SOURCE_DIR}/cmake/ScoreExternalAddon.cmake
       ${SCORE_ROOT_SOURCE_DIR}/cmake/ScoreExternalAddon.developer.cmake

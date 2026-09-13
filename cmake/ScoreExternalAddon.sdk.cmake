@@ -97,38 +97,33 @@ else()
   )
 endif()
 
-target_include_directories(score_lib_base SYSTEM INTERFACE
+# Derived from what the SDK actually ships rather than hand-maintained. The
+# hand-kept list had no QtShaderTools, so every add-on that includes score's Gfx
+# headers died on qshaderbaker -- the VFX template included. It also had no
+# QtQuick, QtSvg, QtSerialPort or QtWebSockets, whose QT_*_LIB definitions are
+# set below regardless, and it listed QtWidgets twice.
+set(SCORE_SDK_QT_INCLUDES
   "${SCORE_SDK}/include/score"
-  "${SCORE_SDK}/include/qt"
-  "${SCORE_SDK}/include/qt/QtCore"
-  "${SCORE_SDK}/include/qt/QtCore/${QT_INCLUDE_VERSION}"
-  "${SCORE_SDK}/include/qt/QtCore/${QT_INCLUDE_VERSION}/QtCore"
-  "${SCORE_SDK}/include/qt/QtCore/${QT_INCLUDE_VERSION}/QtCore/private"
-  "${SCORE_SDK}/include/qt/QtGui"
-  "${SCORE_SDK}/include/qt/QtGui/${QT_INCLUDE_VERSION}"
-  "${SCORE_SDK}/include/qt/QtGui/${QT_INCLUDE_VERSION}/QtGui"
-  "${SCORE_SDK}/include/qt/QtGui/${QT_INCLUDE_VERSION}/QtGui/private"
-  "${SCORE_SDK}/include/qt/QtWidgets"
-  "${SCORE_SDK}/include/qt/QtWidgets/${QT_INCLUDE_VERSION}"
-  "${SCORE_SDK}/include/qt/QtWidgets/${QT_INCLUDE_VERSION}/QtWidgets"
-  "${SCORE_SDK}/include/qt/QtWidgets/${QT_INCLUDE_VERSION}/QtWidgets/private"
-  "${SCORE_SDK}/include/qt/QtNetwork"
-  "${SCORE_SDK}/include/qt/QtNetwork/${QT_INCLUDE_VERSION}"
-  "${SCORE_SDK}/include/qt/QtNetwork/${QT_INCLUDE_VERSION}/QtNetwork"
-  "${SCORE_SDK}/include/qt/QtNetwork/${QT_INCLUDE_VERSION}/QtNetwork/private"
-  "${SCORE_SDK}/include/qt/QtQml"
-  "${SCORE_SDK}/include/qt/QtQml/${QT_INCLUDE_VERSION}"
-  "${SCORE_SDK}/include/qt/QtQml/${QT_INCLUDE_VERSION}/QtQml"
-  "${SCORE_SDK}/include/qt/QtQml/${QT_INCLUDE_VERSION}/QtQml/private"
-  "${SCORE_SDK}/include/qt/QtXml"
-  "${SCORE_SDK}/include/qt/QtXml/${QT_INCLUDE_VERSION}"
-  "${SCORE_SDK}/include/qt/QtXml/${QT_INCLUDE_VERSION}/QtXml"
-  "${SCORE_SDK}/include/qt/QtXml/${QT_INCLUDE_VERSION}/QtXml/private"
-  "${SCORE_SDK}/include/qt/QtWidgets"
-  "${SCORE_SDK}/include/qt/QtWidgets/${QT_INCLUDE_VERSION}"
-  "${SCORE_SDK}/include/qt/QtWidgets/${QT_INCLUDE_VERSION}/QtWidgets"
-  "${SCORE_SDK}/include/qt/QtWidgets/${QT_INCLUDE_VERSION}/QtWidgets/private"
-)
+  "${SCORE_SDK}/include/qt")
+
+file(GLOB _qt_module_dirs LIST_DIRECTORIES true "${SCORE_SDK}/include/qt/Qt*")
+foreach(_qt_module_dir ${_qt_module_dirs})
+  if(NOT IS_DIRECTORY "${_qt_module_dir}")
+    continue()
+  endif()
+  cmake_path(GET _qt_module_dir FILENAME _qt_module)
+  list(APPEND SCORE_SDK_QT_INCLUDES "${_qt_module_dir}")
+  foreach(_sub
+      "${_qt_module_dir}/${QT_INCLUDE_VERSION}"
+      "${_qt_module_dir}/${QT_INCLUDE_VERSION}/${_qt_module}"
+      "${_qt_module_dir}/${QT_INCLUDE_VERSION}/${_qt_module}/private")
+    if(IS_DIRECTORY "${_sub}")
+      list(APPEND SCORE_SDK_QT_INCLUDES "${_sub}")
+    endif()
+  endforeach()
+endforeach()
+
+target_include_directories(score_lib_base SYSTEM INTERFACE ${SCORE_SDK_QT_INCLUDES})
 
 target_compile_definitions(score_lib_base INTERFACE
   BOOST_MATH_DISABLE_FLOAT128=1

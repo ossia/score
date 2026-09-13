@@ -292,20 +292,3 @@ endfunction()
 
 include("${SCORE_SOURCE_DIR}/cmake/ScoreFunctions.cmake")
 
-function(setup_score_addon)
-    cmake_parse_arguments(SETUP_ADDON "" "TARGET;NAME;METADATA" "" ${ARGN})
-
-    setup_score_common_lib_features("${SETUP_ADDON_TARGET}")
-
-    set(ADDON_FOLDER "${CMAKE_BINARY_DIR}/addons/${SETUP_ADDON_NAME}/")
-    set(ADDON_PLATFORM "${SCORE_PLUGIN_PLATFORM}")
-    set(ADDON_FILENAME "${SETUP_ADDON_NAME}-${SCORE_PLUGIN_SUFFIX}")
-
-    set_target_properties(${AddonTarget} PROPERTIES
-        LIBRARY_OUTPUT_DIRECTORY "${ADDON_FOLDER}/"
-        PREFIX ""
-        SUFFIX ""
-        OUTPUT_NAME "${ADDON_FILENAME}")
-    configure_file("${SETUP_ADDON_METADATA}" "${ADDON_FOLDER}/localaddon.json")
-
-endfunction()

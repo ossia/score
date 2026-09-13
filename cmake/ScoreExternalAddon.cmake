@@ -140,4 +140,5 @@ elseif(NOT WIN32)
   )
 endif()
 
+include(ScoreAddonSetup)
 include(ScoreAvndHelper)
