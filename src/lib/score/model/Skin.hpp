@@ -316,6 +316,10 @@ private:
   //! leaves out keep the previous skin's values.
   QVector<QPair<QColor, QString>> m_builtinColours;
 
+  //! The application palette before any skin wrote to it. setupPalette()
+  //! reseeds from this, so a role no skin names comes back to the style's.
+  QPalette m_basePalette;
+
   struct color_map;
   color_map* initColorMap() noexcept;
   color_map* m_colorMap{};
@@ -347,6 +351,10 @@ SCORE_LIB_BASE_EXPORT QSize scaledIcon(int px) noexcept;
 //!
 //! Callable during that construction -- Skin::instance() needs the application
 //! context, so the subscription is deferred by one event loop turn.
+//! The built-in widget colours, applied over whatever the style gave us.
+//! Shared with the startup path, which runs before the Skin can be built.
+SCORE_LIB_BASE_EXPORT void applyDefaultPalette(QPalette& p);
+
 SCORE_LIB_BASE_EXPORT void onSkinChange(QObject* owner, std::function<void()> f);
 
 //! onSkinChange(widget, setIconSize(scaledIcon(px))).
