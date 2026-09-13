@@ -647,6 +647,7 @@
         <file>icons/scale_content_on.png</file>
         <file>icons/scale_content_on@2x.png</file>
         <file>skin/ArkPixelSkin.json</file>
+        <file>skin/AyuDarkSkin.json</file>
         <file>skin/CatppuccinMochaSkin.json</file>
         <file>skin/ColorBlindSkin.json</file>
         <file>skin/CozetteSkin.json</file>
@@ -667,12 +668,14 @@
         <file>skin/GalmuriTinySkin.json</file>
         <file>skin/GruvboxDarkSkin.json</file>
         <file>skin/KanagawaWaveSkin.json</file>
+        <file>skin/MonokaiSkin.json</file>
         <file>skin/NordSkin.json</file>
         <file>skin/ProtanopiaSkin.json</file>
         <file>skin/RosePineSkin.json</file>
         <file>skin/SmallScreenSkin.json</file>
         <file>skin/SolarizedDarkSkin.json</file>
         <file>skin/TokyoNightSkin.json</file>
+        <file>skin/TomorrowNightBrightSkin.json</file>
         <file>skin/TritanopiaSkin.json</file>
         <file>gfx/testcard-1.png</file>
         <file>gfx/testcard-3.png</file>
