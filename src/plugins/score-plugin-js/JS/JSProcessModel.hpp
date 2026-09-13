@@ -85,6 +85,10 @@ struct ComponentCache
   getUi(const JS::ProcessModel& process, const QByteArray& str, bool isFile) noexcept;
   const Cache* tryGet(const QByteArray& str, bool isFile) const noexcept;
 
+  //! What identifies a compiled script: the text it came from, read out of the
+  //! file when `str` names one. Empty if that file cannot be read.
+  static QByteArray key(const QByteArray& str, bool isFile) noexcept;
+
   ComponentCache();
   ~ComponentCache();
 

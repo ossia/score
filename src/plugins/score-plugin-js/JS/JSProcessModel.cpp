@@ -739,22 +739,25 @@ bool ProcessModel::isGpu() const noexcept
 ComponentCache::ComponentCache() { }
 ComponentCache::~ComponentCache() { }
 
+QByteArray ComponentCache::key(const QByteArray& str, bool isFile) noexcept
+{
+  if(!isFile)
+    return str;
+
+  // What is cached is a compiled script, so what identifies it is the text it
+  // was compiled from -- not the name of the file that happened to hold it,
+  // which says nothing about whether that file still says the same thing.
+  QFile f{QString::fromUtf8(str)};
+  if(!f.open(QIODevice::ReadOnly))
+    return {};
+  return f.readAll();
+}
+
 const ComponentCache::Cache* ComponentCache::tryGet(const QByteArray& str, bool isFile) const noexcept
 {
-  QByteArray content;
-  QFile f;
-  if(isFile)
-  {
-    f.setFileName(str);
-    if(f.open(QIODevice::ReadOnly))
-      content = score::mapAsByteArray(f);
-    else
-      return nullptr;
-  }
-  else
-  {
-    content = str;
-  }
+  const QByteArray content = key(str, isFile);
+  if(content.isEmpty())
+    return nullptr;
 
   if(auto it = ossia::find_if(m_map, [&](const auto& k) { return k.key == content; });
      it != m_map.end())
@@ -781,7 +784,8 @@ Script* ComponentCache::getExecution(
   }
   else
   {
-    comp = std::make_unique<QQmlComponent>(&dummyEngine, QUrl::fromLocalFile(str));
+    comp = std::make_unique<QQmlComponent>(&dummyEngine);
+    loadJSObjectFromFile(QString::fromUtf8(str), *comp);
   }
 
   const auto& errs = comp->errors();
@@ -803,7 +807,7 @@ Script* ComponentCache::getExecution(
       m_map.erase(m_map.begin());
 
     m_map.emplace_back(
-        Cache{str, std::move(comp), std::unique_ptr<JS::Script>(script)});
+        Cache{key(str, isFile), std::move(comp), std::unique_ptr<JS::Script>(script)});
     return script;
   }
   else
@@ -835,7 +839,8 @@ QQmlComponent* ComponentCache::getUi(
   }
   else
   {
-    comp = std::make_unique<QQmlComponent>(&dummyEngine, QUrl::fromLocalFile(str));
+    comp = std::make_unique<QQmlComponent>(&dummyEngine);
+    loadJSObjectFromFile(QString::fromUtf8(str), *comp);
   }
 
   const auto& errs = comp->errors();
@@ -865,7 +870,7 @@ QQmlComponent* ComponentCache::getUi(
       m_map.erase(m_map.begin());
 
     m_map.emplace_back(
-        Cache{str, std::move(comp), {}});
+        Cache{key(str, isFile), std::move(comp), {}});
     delete script;
     return m_map.back().component.get();
   }

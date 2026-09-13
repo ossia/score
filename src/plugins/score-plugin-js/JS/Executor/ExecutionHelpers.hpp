@@ -53,20 +53,26 @@ inline void loadJSObjectFromString(
   QString path = rootPath;
   if(is_ui && path.endsWith(".qml"))
     path.insert(path.size() - 4, ".ui");
-  const auto url = QUrl::fromLocalFile(path);
-  QFile original{path};
-  if(original.open(QIODevice::ReadOnly) && original.readAll() == str)
-  {
-    // Unmodified presets retain Qt's disk compilation cache and their own
-    // import directory. Never merge unrelated addon files in one cache folder.
-    comp.loadUrl(url);
-  }
-  else
-  {
-    // In-memory edits keep the original import base without creating files in
-    // a directory that QQmlTypeLoader may already have cached.
-    comp.setData(str, url);
-  }
+  // The url is the script's own, so relative imports and a neighbouring qmldir
+  // resolve against the folder it came from.
+  //
+  // Compiling from the bytes rather than asking the loader for the url: the
+  // type loader keeps one compiled type per url for as long as the engine
+  // lives and does not go back to the file, so a script edited on disk and used
+  // again within the same session came back as the version compiled the first
+  // time -- the text in the editor was the new one while the ports and the
+  // behaviour were the old one.
+  comp.setData(str, QUrl::fromLocalFile(path));
+}
+
+//! Compile a script that lives in a file, for the same reason and in the same
+//! way as loadJSObjectFromString: through its bytes, not through the url.
+inline void loadJSObjectFromFile(const QString& path, QQmlComponent& comp)
+{
+  QFile f{path};
+  if(!f.open(QIODevice::ReadOnly))
+    return;
+  comp.setData(f.readAll(), QUrl::fromLocalFile(path));
 }
 
 inline JS::Script* createJSObject(QQmlComponent& c, QQmlContext* context)
@@ -102,7 +108,8 @@ inline JS::Script* createJSObject(
   }
   else if(QFile::exists(val))
   {
-    QQmlComponent c{engine, QUrl::fromLocalFile(val)};
+    QQmlComponent c{engine};
+    loadJSObjectFromFile(val, c);
     return createJSObject(c, context);
   }
   return nullptr;
