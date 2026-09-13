@@ -201,15 +201,16 @@ QUrl MIDIInputProtocolFactory::manual() const noexcept
 Device::DeviceEnumerators
 MIDIInputProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
-  // One observer per transport group. Network ports get their own: they used
-  // to arrive under "Hardware" by accident, because the old filter asked
-  // whether a port had a device behind it rather than what it was, and once
-  // that was corrected nothing asked for them at all.
+  // One observer per transport group, each stating every flag: network ports
+  // are default-on so that a caller who asks for nothing loses nothing, which
+  // is the opposite of what three disjoint groups want.
   libremidi::observer_configuration obs_hw, obs_sw, obs_net;
   obs_hw.track_hardware = true;
   obs_hw.track_virtual = false;
+  obs_hw.track_network = false;
   obs_sw.track_hardware = false;
   obs_sw.track_virtual = true;
+  obs_sw.track_network = false;
   obs_net.track_hardware = false;
   obs_net.track_network = true;
   return {
@@ -302,15 +303,16 @@ QUrl MIDIOutputProtocolFactory::manual() const noexcept
 Device::DeviceEnumerators
 MIDIOutputProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
-  // One observer per transport group. Network ports get their own: they used
-  // to arrive under "Hardware" by accident, because the old filter asked
-  // whether a port had a device behind it rather than what it was, and once
-  // that was corrected nothing asked for them at all.
+  // One observer per transport group, each stating every flag: network ports
+  // are default-on so that a caller who asks for nothing loses nothing, which
+  // is the opposite of what three disjoint groups want.
   libremidi::observer_configuration obs_hw, obs_sw, obs_net;
   obs_hw.track_hardware = true;
   obs_hw.track_virtual = false;
+  obs_hw.track_network = false;
   obs_sw.track_hardware = false;
   obs_sw.track_virtual = true;
+  obs_sw.track_network = false;
   obs_net.track_hardware = false;
   obs_net.track_network = true;
   return {
