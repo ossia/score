@@ -26,7 +26,7 @@ struct MCUSpecificSettings
     //! and pads, or an instrument's parameters.
     //! @see Protocols/MIDIDevices/MidiDeviceProtocol.hpp
     MidiDeviceMap
-  } mode{MCU};
+  } mode{MidiDeviceMap};
 
   /**
    * One device on the port, and the channel it is set to.

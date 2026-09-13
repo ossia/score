@@ -25,8 +25,9 @@
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
 #include <QHeaderView>
-#include <QListWidget>
 #include <QPushButton>
+#include <QStringList>
+#include <QStyledItemDelegate>
 #include <QLabel>
 #include <QLineEdit>
 #include <QRadioButton>
@@ -133,6 +134,21 @@ QString hardwareName(QString raw, const QString& manufacturer)
   return raw;
 }
 
+//! A channel is 1-16 and nothing else, so it is edited by something that
+//! cannot say otherwise.
+struct ChannelDelegate final : QStyledItemDelegate
+{
+  using QStyledItemDelegate::QStyledItemDelegate;
+
+  QWidget* createEditor(
+      QWidget* parent, const QStyleOptionViewItem&, const QModelIndex&) const override
+  {
+    auto* box = new QSpinBox{parent};
+    box->setRange(1, 16);
+    return box;
+  }
+};
+
 //! Is this port currently offered by @p combo? The port vector keeps entries
 //! whose row has been removed, so it cannot answer this.
 bool isListed(const QComboBox& combo, int portIdx)
@@ -221,23 +237,24 @@ MCUSettingsWidget::MCUSettingsWidget(QWidget* parent)
     box->addWidget(m_instruments, 1);
 
     auto sub = new QFormLayout;
-    m_channel = new QSpinBox{left};
-    m_channel->setRange(1, 16);
-    m_channel->setToolTip(
-        tr("The MIDI channel the instrument is set to. The dataset documents "
-           "parameter numbers without a channel, so this is the one thing it "
-           "cannot tell us."));
-    checkForChanges(m_channel);
-    sub->addRow(tr("Channel"), m_channel);
-
     /*
      * A MIDI cable carries sixteen channels, so one port can reach several
-     * instruments at once. The picker chooses one; this is the list of those
-     * actually on the port, each with the channel it is set to.
+     * instruments at once. Each row is one of them, with the channel it is set
+     * to edited where it is read.
      */
-    m_chosen = new QListWidget{left};
+    m_chosen = new QTreeWidget{left};
+    m_chosen->setHeaderLabels({tr("Device"), tr("Channel")});
+    m_chosen->setRootIsDecorated(false);
+    m_chosen->setUniformRowHeights(true);
     m_chosen->setSelectionMode(QAbstractItemView::SingleSelection);
-    m_chosen->setMaximumHeight(96);
+    m_chosen->setEditTriggers(
+        QAbstractItemView::DoubleClicked | QAbstractItemView::SelectedClicked
+        | QAbstractItemView::EditKeyPressed);
+    m_chosen->setItemDelegateForColumn(1, new ChannelDelegate{m_chosen});
+    m_chosen->setMaximumHeight(120);
+    m_chosen->header()->setSectionResizeMode(QHeaderView::Interactive);
+    m_chosen->header()->setStretchLastSection(false);
+    m_chosen->header()->resizeSection(0, 260);
 
     auto* add = new QPushButton{tr("Add device"), left};
     auto* remove = new QPushButton{tr("Remove"), left};
@@ -251,38 +268,26 @@ MCUSettingsWidget::MCUSettingsWidget(QWidget* parent)
     sub->addRow(QString{}, row);
 
     connect(add, &QPushButton::clicked, this, [this] {
-      addChosenDevice(chosenMap(), m_channel->value());
+      addChosenDevice(chosenMap(), 1);
       updatePreview();
       changed();
     });
     connect(remove, &QPushButton::clicked, this, [this] {
       if(auto* item = m_chosen->currentItem())
       {
-        delete m_chosen->takeItem(m_chosen->row(item));
+        delete item;
         updatePreview();
         changed();
       }
     });
-    connect(
-        m_chosen, &QListWidget::currentRowChanged, this, [this](int row) {
-      if(row < 0)
-        return;
-      const auto slot = slotAt(row);
-      m_channel->setValue(slot.channel);
-      selectMap(slot.map);
+    connect(m_chosen, &QTreeWidget::currentItemChanged, this,
+            [this](QTreeWidgetItem* item) {
+      if(item)
+        selectMap(item->data(0, MapRole).toString());
+      updatePreview();
     });
-    connect(m_channel, qOverload<int>(&QSpinBox::valueChanged), this, [this](int v) {
-      // Editing the channel edits the device the list has selected, so the
-      // spin box is not a separate setting the user has to remember to apply.
-      if(auto* item = m_chosen->currentItem())
-      {
-        auto slot = slotAt(m_chosen->row(item));
-        slot.channel = v;
-        item->setText(labelForSlot(slot));
-        item->setData(Qt::UserRole, slot.map);
-        item->setData(Qt::UserRole + 1, slot.channel);
-      }
-    });
+    connect(m_chosen, &QTreeWidget::itemChanged, this, [this] { changed(); });
+
     box->addLayout(sub);
 
     m_summary = new QLabel{left};
@@ -571,21 +576,14 @@ QString MCUSettingsWidget::selectedMap() const
 MCUSpecificSettings::MapSlot MCUSettingsWidget::slotAt(int row) const
 {
   MCUSpecificSettings::MapSlot slot;
-  if(auto* item = m_chosen->item(row))
+  if(auto* item = m_chosen->topLevelItem(row))
   {
-    slot.map = item->data(Qt::UserRole).toString();
-    slot.channel = item->data(Qt::UserRole + 1).toInt();
+    slot.map = item->data(0, MapRole).toString();
+    slot.channel = std::clamp(item->text(1).toInt(), 1, 16);
   }
   return slot;
 }
 
-QString MCUSettingsWidget::labelForSlot(const MCUSpecificSettings::MapSlot& slot) const
-{
-  auto name = slot.map;
-  if(const auto* e = MIDIDevices::Database::instance().find(slot.map))
-    name = e->label();
-  return tr("%1 - channel %2").arg(name).arg(slot.channel);
-}
 
 void MCUSettingsWidget::addChosenDevice(const QString& identity, int channel)
 {
@@ -594,14 +592,18 @@ void MCUSettingsWidget::addChosenDevice(const QString& identity, int channel)
 
   // The same description twice on one port would build two identical subtrees
   // listening to the same messages.
-  for(int i = 0; i < m_chosen->count(); i++)
+  for(int i = 0; i < m_chosen->topLevelItemCount(); i++)
     if(slotAt(i).map == identity)
       return;
 
-  MCUSpecificSettings::MapSlot slot{identity, std::clamp(channel, 1, 16)};
-  auto* item = new QListWidgetItem{labelForSlot(slot), m_chosen};
-  item->setData(Qt::UserRole, slot.map);
-  item->setData(Qt::UserRole + 1, slot.channel);
+  auto name = identity;
+  if(const auto* e = MIDIDevices::Database::instance().find(identity))
+    name = e->label();
+
+  auto* item = new QTreeWidgetItem{
+      m_chosen, {name, QString::number(std::clamp(channel, 1, 16))}};
+  item->setData(0, MapRole, identity);
+  item->setFlags(item->flags() | Qt::ItemIsEditable);
 }
 
 QString MCUSettingsWidget::chosenMap() const
@@ -653,55 +655,63 @@ void MCUSettingsWidget::updatePreview()
 {
   m_preview->clear();
 
+  // Whatever the user is looking at, which is not the same as what the device
+  // will hold: this answers "does this description have the controls I want",
+  // so it shows one description and starts at its groups. The level naming the
+  // device is what the tree adds around it, and would be the same word on
+  // every row here.
+  const auto* entry = MIDIDevices::Database::instance().find(chosenMap());
+  if(!entry)
+    return;
+
+  const auto map = MIDIDevices::Database::load(*entry);
+  if(!map)
+    return;
+
   //! Enough to show the shape of a device without paying for all of it.
   constexpr int maxControls = 200;
 
-  for(int i = 0; i < m_chosen->count(); i++)
+  int shown = 0;
+  for(const auto& c : map->controls)
   {
-    const auto slot = slotAt(i);
-    const auto* entry = MIDIDevices::Database::instance().find(slot.map);
-    if(!entry)
+    if(MIDIDevices::isNoteName(c))
       continue;
 
-    const auto map = MIDIDevices::Database::load(*entry);
-    if(!map)
-      continue;
-
-    auto name = QString::fromStdString(MIDIDevices::deviceNodeName(*map));
-    ossia::net::sanitize_name(name);
-    auto* device = new QTreeWidgetItem{m_preview, {uniqueChild(m_preview->invisibleRootItem(), name)}};
-    device->setExpanded(true);
-
-    int shown = 0;
-    for(const auto& c : map->controls)
+    if(shown++ >= maxControls)
     {
-      if(MIDIDevices::isNoteName(c))
-        continue;
-
-      if(shown++ >= maxControls)
-      {
-        new QTreeWidgetItem{
-            device, {tr("... and more")}};
-        break;
-      }
-
-      auto* parent = device;
-      for(const auto& level : c.group)
-      {
-        auto lvl = QString::fromStdString(level);
-        ossia::net::sanitize_name(lvl);
-        parent = childNamed(parent, lvl);
-      }
-
-      auto leaf = QString::fromStdString(c.name);
-      ossia::net::sanitize_name(leaf);
-      auto* node = new QTreeWidgetItem{parent, {uniqueChild(parent, leaf)}};
-
-      // The string node that names the values.
-      if(!c.value.labels.empty())
-        new QTreeWidgetItem{node, {QStringLiteral("choice")}};
+      new QTreeWidgetItem{m_preview, {tr("... and more")}};
+      break;
     }
+
+    QTreeWidgetItem* parent{};
+    for(const auto& level : c.group)
+    {
+      auto lvl = QString::fromStdString(level);
+      ossia::net::sanitize_name(lvl);
+      parent = parent ? childNamed(parent, lvl) : topNamed(lvl);
+    }
+
+    auto leaf = QString::fromStdString(c.name);
+    ossia::net::sanitize_name(leaf);
+
+    auto* node = parent
+                     ? new QTreeWidgetItem{parent, {uniqueChild(parent, leaf)}}
+                     : new QTreeWidgetItem{
+                           m_preview, {uniqueChild(m_preview->invisibleRootItem(), leaf)}};
+
+    if(!c.value.labels.empty())
+      new QTreeWidgetItem{node, {QStringLiteral("choice")}};
   }
+  m_preview->expandAll();
+}
+
+//! A top-level level of that name, or a new one.
+QTreeWidgetItem* MCUSettingsWidget::topNamed(const QString& name)
+{
+  for(int i = 0; i < m_preview->topLevelItemCount(); i++)
+    if(m_preview->topLevelItem(i)->text(0) == name)
+      return m_preview->topLevelItem(i);
+  return new QTreeWidgetItem{m_preview, {name}};
 }
 
 //! An existing level of that name, or a new one: a group is shared by every
@@ -758,7 +768,13 @@ void MCUSettingsWidget::updateDeviceMapSummary()
     return;
   }
 
-  auto text = tr("%n control(s).", "", int(map->controls.size()));
+  int controls = 0;
+  for(const auto& c : map->controls)
+    controls += MIDIDevices::isNoteName(c) ? 0 : 1;
+
+  auto text = tr("%n control(s).", "", controls);
+  if(const int names = int(map->controls.size()) - controls; names > 0)
+    text += " " + tr("%n note name(s), which the tree leaves out.", "", names);
 
   // A map is only true for the configuration it describes, so anything the
   // description asks of the user belongs in front of them before they connect.
@@ -767,6 +783,45 @@ void MCUSettingsWidget::updateDeviceMapSummary()
                       .arg(QString::fromStdString(map->preset.name));
   if(!map->requirement.empty())
     text += " " + QString::fromStdString(map->requirement);
+
+  /*
+   * Where the description came from and who wrote it. Attribution is a
+   * condition of redistributing most of these, so it belongs where someone
+   * choosing one can see it rather than only in the file.
+   */
+  const auto& src = map->source;
+  QStringList origin;
+  if(!src.project.empty())
+    origin << QString::fromStdString(src.project);
+  if(!src.format.empty())
+    origin << QString::fromStdString(src.format);
+  if(!origin.isEmpty())
+    text += "\n" + tr("From: %1").arg(origin.join(", "));
+
+  if(!src.authors.empty())
+  {
+    QStringList who;
+    for(const auto& a : src.authors)
+      who << QString::fromStdString(a);
+
+    // A description touched by a dozen people credits all of them; the summary
+    // is not the place for the whole list.
+    constexpr int shown = 4;
+    const int extra = who.size() - shown;
+    if(extra > 0)
+      who = who.mid(0, shown) << tr("and %n other(s)", "", extra);
+    text += "\n" + tr("By: %1").arg(who.join("; "));
+  }
+
+  if(!src.license.empty())
+  {
+    auto lic = QString::fromStdString(src.license);
+    if(src.license == "NOASSERTION")
+      lic = src.redistribution == "factual-documentation"
+                ? tr("no licence: factual documentation of the hardware")
+                : tr("no licence established");
+    text += "\n" + tr("Licence: %1").arg(lic);
+  }
 
   m_summary->setText(text);
 }
@@ -824,10 +879,10 @@ Device::DeviceSettings MCUSettingsWidget::getSettings() const
     midi.output_handle.clear();
 
   // Likewise the devices: a missing package must not empty the list.
-  if(m_chosen->count() > 0)
+  if(m_chosen->topLevelItemCount() > 0)
   {
     midi.maps.clear();
-    for(int i = 0; i < m_chosen->count(); i++)
+    for(int i = 0; i < m_chosen->topLevelItemCount(); i++)
       midi.maps.push_back(slotAt(i));
   }
 
@@ -872,10 +927,7 @@ void MCUSettingsWidget::setSettings(const Device::DeviceSettings& settings)
     addChosenDevice(slot.map, slot.channel);
 
   if(!s.maps.empty())
-  {
-    m_channel->setValue(std::clamp(s.maps.front().channel, 1, 16));
     selectMap(s.maps.front().map);
-  }
 
   updateDeviceMapSummary();
   updatePreview();

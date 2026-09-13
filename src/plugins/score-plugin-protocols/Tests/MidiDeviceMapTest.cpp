@@ -540,3 +540,31 @@ TEST_CASE("a modifier layer is read, not discarded", "[midimap]")
 
   CHECK(parse(doc(minimal_control)).controls[0].layer.empty());
 }
+
+TEST_CASE("a description says where it came from", "[midimap]")
+{
+  auto m = parse(doc(
+      minimal_control,
+      R"_(,"source":{"format":"ardour-midi-binding-map",)_"
+      R"_("upstream":{"project":"Ardour","url":"https://github.com/Ardour/ardour",)_"
+      R"_("path":"share/midi_maps/X.map","commit":"9a4b9e048d5d5cea40b7461fbc0714edee3a0f16"},)_"
+      R"_("license":{"spdx":"NOASSERTION","from":"file header",)_"
+      R"_("redistribution":"factual-documentation"},)_"
+      R"_("authors":[{"name":"Jane Doe","from":"git"}]})_"));
+
+  CHECK(m.source.project == "Ardour");
+  CHECK(m.source.url == "https://github.com/Ardour/ardour");
+  CHECK(m.source.path == "share/midi_maps/X.map");
+  CHECK(m.source.format == "ardour-midi-binding-map");
+  CHECK(m.source.license == "NOASSERTION");
+  CHECK(m.source.redistribution == "factual-documentation");
+  REQUIRE(m.source.authors.size() == 1);
+  CHECK(m.source.authors[0] == "Jane Doe");
+
+  // A description that says none of it is not an error; the fields are simply
+  // absent, and a reader must not invent a project for it.
+  auto bare = parse(doc(minimal_control));
+  CHECK(bare.source.project.empty());
+  CHECK(bare.source.url.empty());
+  CHECK(bare.source.authors.empty());
+}

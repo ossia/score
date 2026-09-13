@@ -34,7 +34,6 @@ class QCheckBox;
 class QComboBox;
 class QLabel;
 class QLineEdit;
-class QListWidget;
 class QRadioButton;
 class QSortFilterProxyModel;
 class QSpinBox;
@@ -90,12 +89,12 @@ private:
 
   //! The devices on the port, as the list holds them.
   MCUSpecificSettings::MapSlot slotAt(int row) const;
-  QString labelForSlot(const MCUSpecificSettings::MapSlot& slot) const;
   void addChosenDevice(const QString& identity, int channel);
 
   //! Fill the preview with the tree the chosen descriptions would build.
   void updatePreview();
   static QTreeWidgetItem* childNamed(QTreeWidgetItem* parent, const QString& name);
+  QTreeWidgetItem* topNamed(const QString& name);
   static QString uniqueChild(QTreeWidgetItem* parent, const QString& name);
   void selectMap(const QString& identity);
   void updateDeviceMapSummary();
@@ -120,8 +119,7 @@ private:
   QTreeView* m_instruments{};
   QStandardItemModel* m_instrumentModel{};
   QSortFilterProxyModel* m_instrumentFilter{};
-  QSpinBox* m_channel{};
-  QListWidget* m_chosen{};
+  QTreeWidget* m_chosen{};
 
   //! The tree the chosen descriptions would build.
   QTreeWidget* m_preview{};
