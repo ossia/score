@@ -12,6 +12,11 @@
 #include <ossia-qt/qml_engine_functions.hpp>
 #include <JS/ConsolePanel.hpp>
 
+#include <algorithm>
+#include <vector>
+
+#include <QCryptographicHash>
+#include <QPointer>
 #include <QDir>
 #include <QFile>
 #include <QQmlComponent>
@@ -47,32 +52,91 @@ inline void connectStateCommit(Script* script, ProcessModel* model)
 }
 
 
+namespace detail
+{
+//! Whether the loader may be asked for `url` in this engine: either it has not
+//! compiled that url yet, or it compiled exactly these bytes. The type loader
+//! keeps one compiled type per url for as long as the engine lives and never
+//! goes back to the file, so asking it for a url whose file has since changed
+//! hands back the script it compiled the first time.
+//!
+//! Records the bytes on the first answer, which is the call that goes on to
+//! compile them. A record may only be dropped once its engine is gone: an
+//! engine that is still around still holds what it compiled. Engines are the
+//! gui's or thread-local to an execution thread and are each used from one
+//! thread only, so the records are kept per thread and need no lock.
+inline bool loaderIsCurrent(QQmlEngine& e, const QUrl& url, const QByteArray& str)
+{
+  using Record = std::pair<QPointer<QQmlEngine>, QHash<QUrl, QByteArray>>;
+  thread_local std::vector<Record> known;
+
+  auto it = std::find_if(
+      known.begin(), known.end(), [&](const Record& r) { return r.first == &e; });
+  if(it == known.end())
+  {
+    std::erase_if(known, [](const Record& r) { return r.first.isNull(); });
+    it = known.emplace(known.end(), &e, QHash<QUrl, QByteArray>{});
+  }
+
+  const auto digest = QCryptographicHash::hash(str, QCryptographicHash::Sha1);
+  auto& digests = it->second;
+  const auto known_digest = digests.constFind(url);
+  if(known_digest == digests.cend())
+  {
+    digests.insert(url, digest);
+    return true;
+  }
+  return *known_digest == digest;
+}
+}
+
+//! Compile the script at `url`, whose current contents are `str`.
+//!
+//! Going through the loader is what lets Qt hand back an already compiled form
+//! -- from this engine, or from its on-disk cache -- instead of parsing the
+//! script again. The execution and render threads both come through here, and
+//! one thread-local engine is shared by every node on that thread, so several
+//! instances of one preset compile it once between them.
+inline void loadJSObjectFromUrl(
+    const QUrl& url, const QByteArray& str, QQmlComponent& comp)
+{
+  if(auto* engine = comp.engine(); engine && detail::loaderIsCurrent(*engine, url, str))
+    comp.loadUrl(url);
+  else
+    comp.setData(str, url);
+}
+
 inline void loadJSObjectFromString(
     const QString& rootPath, const QByteArray& str, QQmlComponent& comp, bool is_ui)
 {
   QString path = rootPath;
   if(is_ui && path.endsWith(".qml"))
     path.insert(path.size() - 4, ".ui");
-  // The url is the script's own, so relative imports and a neighbouring qmldir
-  // resolve against the folder it came from.
-  //
-  // Compiling from the bytes rather than asking the loader for the url: the
-  // type loader keeps one compiled type per url for as long as the engine
-  // lives and does not go back to the file, so a script edited on disk and used
-  // again within the same session came back as the version compiled the first
-  // time -- the text in the editor was the new one while the ports and the
-  // behaviour were the old one.
-  comp.setData(str, QUrl::fromLocalFile(path));
+  const auto url = QUrl::fromLocalFile(path);
+
+  // Compared trimmed: what arrives here is the process' script, which is
+  // trimmed on its way into the model, while the file it came from almost
+  // always ends in a newline. Comparing the bytes as they are meant that a
+  // script straight out of a file did not count as being that file, and the
+  // loader -- the whole point of naming the file at all -- was skipped for
+  // every one of them.
+  QFile original{path};
+  if(original.open(QIODevice::ReadOnly) && original.readAll().trimmed() == str.trimmed())
+    loadJSObjectFromUrl(url, str, comp);
+  else
+    // An in-memory edit is not in any file: it keeps the original import base
+    // without the loader ever seeing it.
+    comp.setData(str, url);
 }
 
-//! Compile a script that lives in a file, for the same reason and in the same
-//! way as loadJSObjectFromString: through its bytes, not through the url.
+//! Compile a script that lives in a file, through the loader where that is
+//! still current. See loadJSObjectFromUrl.
 inline void loadJSObjectFromFile(const QString& path, QQmlComponent& comp)
 {
   QFile f{path};
   if(!f.open(QIODevice::ReadOnly))
     return;
-  comp.setData(f.readAll(), QUrl::fromLocalFile(path));
+  loadJSObjectFromUrl(QUrl::fromLocalFile(path), f.readAll(), comp);
 }
 
 inline JS::Script* createJSObject(QQmlComponent& c, QQmlContext* context)
