@@ -331,6 +331,42 @@ def verify(name, accents):
     return worst, worst_cr
 
 
+def widget_palette(accents):
+    """The Qt palette, from the shared neutral ramp.
+
+    Neutral rather than tinted: a dichromat gains nothing from a hued panel,
+    and the accents are spent where they carry meaning.
+    """
+    n = NEUTRAL
+    return {
+        "Window": hex_to_rgb(n["bg1"]),
+        "WindowText": hex_to_rgb(n["fg_dim"]),
+        "Base": hex_to_rgb(n["bg_dim"]),
+        "AlternateBase": hex_to_rgb(n["bg0"]),
+        "Text": hex_to_rgb(n["fg"]),
+        "PlaceholderText": hex_to_rgb(n["grey"]) + [128],
+        "Button": hex_to_rgb(n["bg0"]),
+        "ButtonText": hex_to_rgb(n["fg"]),
+        "BrightText": hex_to_rgb(accents["warn_high"]),
+        "Highlight": hex_to_rgb(accents["accent"]) + [144],
+        "HighlightedText": hex_to_rgb(n["fg"]),
+        "ToolTipBase": hex_to_rgb(n["bg_dim"]),
+        "ToolTipText": hex_to_rgb(n["fg"]),
+        "Light": hex_to_rgb(n["bg3"]),
+        "Midlight": hex_to_rgb(n["bg2"]),
+        "Mid": hex_to_rgb(n["bg2"]),
+        "Dark": hex_to_rgb(n["bg_dim"]),
+        "Shadow": hex_to_rgb(n["bg_dim"]),
+        "Link": hex_to_rgb(accents["accent"]),
+        "LinkVisited": hex_to_rgb(accents["accent2"]),
+        "disabled": {
+            "Text": hex_to_rgb(n["grey"]),
+            "WindowText": hex_to_rgb(n["grey"]),
+            "ButtonText": hex_to_rgb(n["grey"]),
+        },
+    }
+
+
 def verify_doc(doc, deficiency):
     """The worst must-differ separation in the finished skin, as seen by a
     dichromat. The accent-level check runs before contrast.improve() moves
@@ -365,6 +401,7 @@ if __name__ == "__main__":
         # The hues come from Okabe-Ito and are already safe under simulation;
         # this is what makes each of them visible where score paints it.
         doc = contrast.improve(build(accents), DEFAULT_SKIN)
+        doc["palette"] = widget_palette(accents)
 
         (grp, worst_sim) = verify_doc(doc, DEFICIENCY_OF[name])
         if worst_sim < THRESHOLD:
