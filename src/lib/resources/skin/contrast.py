@@ -305,6 +305,29 @@ MIN_DE = 12.0  # the default, for anything that does not state its own
 # author wrote them.
 GROUNDS = {"Background1", "Background2"}
 
+# Roles that mean "this is happening": the play fill, its dash, and the lit
+# state of a toggle. Contrast can be had by going either way, and the repair
+# takes the nearest -- which on a light interval body means darkening the
+# thing that is running. Brighter reads as more active, so these prefer it
+# and only darken when nothing brighter will do.
+PREFER_BRIGHT = {"Base3", "Pulse1", "Base4"}
+
+# Roles whose hue is the meaning: the severity of a warning, the type of a
+# port or cable, the state of a condition or an interval. Draining one of
+# these is how a red error becomes a white one, so the repair may not. The
+# rest -- the playback dashes, the greys, the surfaces -- carry their meaning
+# by position or animation and can be lightened as far as it takes.
+SEMANTIC_HUE = {
+    "Warn1", "Warn2", "Warn3",
+    "Smooth1", "Smooth2", "Smooth3",
+    "Tender1", "Tender2", "Tender3",
+    "Port1", "Port2", "Port3",
+    "Cable1", "Cable2", "Cable3",
+    "SelectedCable1", "SelectedCable2", "SelectedCable3",
+    "Base1", "Base2", "Base3",
+    "Emphasis3",
+}
+
 # Pairs a palette cannot satisfy without giving up something worth more than
 # the contrast. Listed rather than quietly tolerated, so that a new failure is
 # still a failure.
@@ -365,7 +388,7 @@ def _blend(c, target, t):
     return tuple(round(c[i] + (target[i] - c[i]) * t) for i in range(3)) + (c[3],)
 
 
-def _keeps_chroma(cand, orig):
+def _keeps_chroma(cand, orig, guarded=True):
     """A repair may lighten a colour, not drain it.
 
     Blending toward white is the only way to lift some dark colours far
@@ -373,6 +396,8 @@ def _keeps_chroma(cand, orig):
     mark loses the meaning it was carrying. Half the original saturation is
     the most this will spend.
     """
+    if not guarded:
+        return True
     _h, s0, _v = rgb_to_hsv(orig)
     if s0 < 0.25:
         return True
@@ -525,11 +550,17 @@ def repair(skin, ref=None, tol=12.0):
         if _satisfies(cur, cons):
             continue
         best = None
+        j0 = cam16_ucs(cur)[0]
+        bright = role in PREFER_BRIGHT
+        guarded = role in SEMANTIC_HUE
         for cand in _candidates(cur):
-            if _keeps_chroma(cand, cur) and _satisfies(cand, cons):
-                d = delta_e(cand, cur)
-                if best is None or d < best[0]:
-                    best = (d, cand)
+            if _keeps_chroma(cand, cur, guarded) and _satisfies(cand, cons):
+                # Sorts darker candidates behind brighter ones for the roles
+                # that should read as active, and by distance otherwise.
+                key = (0 if (not bright or cam16_ucs(cand)[0] >= j0) else 1,
+                       delta_e(cand, cur))
+                if best is None or key < best[0]:
+                    best = (key, cand)
         if best is not None:
             skin[role] = list(best[1][:3]) + (
                 [cur[3]] if len(skin[role]) > 3 else [])
@@ -566,7 +597,7 @@ def separate(skin, passes=80):
                 nxt = _scale_value(cur, k)
                 # Same rule as the repair: separating two colours must not
                 # bleach either of them into a neutral.
-                if not _keeps_chroma(nxt, cur):
+                if not _keeps_chroma(nxt, cur, roles[idx] in SEMANTIC_HUE):
                     continue
                 skin[roles[idx]] = list(nxt[:3]) + (
                     [cur[3]] if len(skin[roles[idx]]) > 3 else [])

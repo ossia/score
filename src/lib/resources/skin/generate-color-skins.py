@@ -92,6 +92,18 @@ def mix(a, b, t):
     return [round(x + (y - x) * t) for x, y in zip(ca, cb)]
 
 
+def cap_lightness(colour, max_j):
+    """Darken `colour` until its CAM16-UCS lightness is at most `max_j`."""
+    c = tuple(rgb(colour)) + (255,)
+    if contrast.cam16_ucs(c)[0] <= max_j:
+        return list(c[:3])
+    for i in range(1, 60):
+        cand = contrast._scale_value(c, 1.0 / (1.0 + 0.02 * i))
+        if contrast.cam16_ucs(cand)[0] <= max_j:
+            return list(cand[:3])
+    return list(c[:3])
+
+
 def lift_to_contrast(colour, toward, backgrounds, target):
     """Blend `colour` toward `toward` until it clears `target` on every bg.
 
@@ -133,7 +145,11 @@ def build(p):
         "Emphasis4": rgb(p["fg"]),
         "Emphasis5": rgb(p["bg1"]),
 
-        "Base1": rgb(p["aqua"]),
+        # Capped in lightness: the idle interval is the ground the play fill
+        # is read against, and several palettes' aqua is so pale that there
+        # is no room above it -- the fill then has to go darker than idle,
+        # which reads backwards. DefaultSkin keeps idle at J 72.
+        "Base1": cap_lightness(p["aqua"], 76.0),
         "Base2": rgb(p["blue"]),
         # Toward yellow, the way DefaultSkin's play fill is a chartreuse
         # rather than a green: a plain green sits right next to Base1's aqua,
