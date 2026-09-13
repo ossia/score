@@ -274,6 +274,15 @@ include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/unordered_dense/include")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/verdigris/src")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/magic_enum/include")
 
+# sdk40 ships no boost/, so this only ever resolved through a system-wide copy --
+# which Linux distributions tend to have and macOS does not. libossia vendors its
+# own; the directory carries the version, so find it rather than name it.
+file(GLOB _ossia_boost_dirs "${OSSIA_3RDPARTY_FOLDER}/boost_*")
+foreach(_ossia_boost_dir IN LISTS _ossia_boost_dirs)
+  if(IS_DIRECTORY "${_ossia_boost_dir}")
+    include_directories(SYSTEM "${_ossia_boost_dir}")
+  endif()
+endforeach()
 include_directories(SYSTEM "${OSSIA_SDK}/boost/include")
 
 include_directories(SYSTEM "${3RDPARTY_FOLDER}/magicitems/include/")
