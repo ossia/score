@@ -118,7 +118,12 @@ private:
 
   void updateTitlePos();
   QRectF boundingRect() const final override;
+
+public:
+  //! Where the node draws itself: the box the ports have to stay inside.
   QRectF contentRect() const noexcept;
+
+private:
   void updateContentRect();
 
   double minimalContentWidth() const noexcept;
