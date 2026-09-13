@@ -214,6 +214,18 @@ score_add_test(test_unit_device_edit_dialog
   APP
   PLUGINS score_plugin_deviceexplorer score_lib_device score_lib_state)
 
+# The MIDI Controller's settings dialog: the picker, and the preview that has
+# to follow it. Needs the full app (APP) for the library settings the device
+# map index reads its packages path from.
+if(TARGET score_plugin_protocols AND TARGET score_plugin_library)
+  score_add_test(test_unit_midi_device_picker
+    APP
+    SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/MidiDevicePickerTest.cpp"
+    PLUGINS score_plugin_protocols score_plugin_library score_lib_device)
+  target_include_directories(test_unit_midi_device_picker PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-protocols")
+endif()
+
 # The CAN protocol's device browser entry: the .dbc databases of the user
 # library, plus the default interface against an independent walk of
 # /sys/class/net.

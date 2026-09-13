@@ -219,6 +219,7 @@ MCUSettingsWidget::MCUSettingsWidget(QWidget* parent)
     m_instrumentFilter->setRecursiveFilteringEnabled(true);
 
     m_instruments = new QTreeView{left};
+    m_instruments->setObjectName("picker");
     m_instruments->setModel(m_instrumentFilter);
 
     // The header is what the user drags to widen the name column, so it has to
@@ -243,6 +244,7 @@ MCUSettingsWidget::MCUSettingsWidget(QWidget* parent)
      * to edited where it is read.
      */
     m_chosen = new QTreeWidget{left};
+    m_chosen->setObjectName("chosen");
     m_chosen->setHeaderLabels({tr("Device"), tr("Channel")});
     m_chosen->setRootIsDecorated(false);
     m_chosen->setUniformRowHeights(true);
@@ -252,9 +254,9 @@ MCUSettingsWidget::MCUSettingsWidget(QWidget* parent)
         | QAbstractItemView::EditKeyPressed);
     m_chosen->setItemDelegateForColumn(1, new ChannelDelegate{m_chosen});
     m_chosen->setMaximumHeight(120);
-    m_chosen->header()->setSectionResizeMode(QHeaderView::Interactive);
+    m_chosen->header()->setSectionResizeMode(0, QHeaderView::Stretch);
+    m_chosen->header()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     m_chosen->header()->setStretchLastSection(false);
-    m_chosen->header()->resizeSection(0, 260);
 
     auto* add = new QPushButton{tr("Add device"), left};
     auto* remove = new QPushButton{tr("Remove"), left};
@@ -303,6 +305,7 @@ MCUSettingsWidget::MCUSettingsWidget(QWidget* parent)
      */
     auto* panes = qobject_cast<QHBoxLayout*>(m_instrumentBox->layout());
     m_preview = new QTreeWidget{m_instrumentBox};
+    m_preview->setObjectName("preview");
     m_preview->setHeaderLabels({tr("Preview")});
     m_preview->setSelectionMode(QAbstractItemView::NoSelection);
     m_preview->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -330,6 +333,7 @@ MCUSettingsWidget::MCUSettingsWidget(QWidget* parent)
       m_chosenMap = live;
     refreshAutoName();
     updateDeviceMapSummary();
+    updatePreview();
     changed();
   });
 
@@ -884,6 +888,12 @@ Device::DeviceSettings MCUSettingsWidget::getSettings() const
     midi.maps.clear();
     for(int i = 0; i < m_chosen->topLevelItemCount(); i++)
       midi.maps.push_back(slotAt(i));
+  }
+  else if(const auto picked = chosenMap(); !picked.isEmpty())
+  {
+    // Picking one device and pressing OK is the ordinary case; only a chain
+    // needs the list, so it should not be the price of the simple case.
+    midi.maps = {{picked, 1}};
   }
 
   s.deviceSpecificSettings = QVariant::fromValue(midi);
