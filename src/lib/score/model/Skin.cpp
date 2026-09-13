@@ -354,6 +354,8 @@ Skin::Skin() noexcept
     m_colorMap->right.insert({&c.second, c.first});
   }
 
+  m_builtinColours = getColors();
+
   // make the "lighter" of black more light.
   {
     Brush& blackBrush = m_defaultPalette.back().second;
@@ -716,6 +718,13 @@ void Skin::load(const QJsonObject& obj, int parts)
   // colours gets the built-in ones rather than the previous skin's.
   setupPalette();
   loadPalette(obj["palette"].toObject());
+
+  // Reset first, as the fonts and the palette do: a skin names only what it
+  // changes, and anything it leaves out must come back to the built-in value
+  // rather than stay on the previous skin's.
+  for(const auto& [colour, name] : m_builtinColours)
+    if(Brush* b = fromString(name))
+      *b = colour;
 
   auto fromColor = [&](const QString& key, Brush& col) {
     auto arr = obj[key].toArray();

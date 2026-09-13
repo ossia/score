@@ -106,14 +106,30 @@ def idle_hue(p):
     return p["blue"] if abs((ha - hg + 180) % 360 - 180) < 65 else p["aqua"]
 
 
-def cap_lightness(colour, max_j):
-    """Darken `colour` until its CAM16-UCS lightness is at most `max_j`."""
+def constrain_idle(colour, canvas, margin=22.0):
+    """Keep the idle interval body a given distance from the canvas.
+
+    On a dark skin that means a ceiling -- several palettes' aqua is so pale
+    that there is no room above it for the play fill. On a light one it means
+    a floor, or the header text drawn on the body has nothing to contrast
+    with. Same rule either way: stay `margin` away from the canvas, on the
+    ink side of it.
+    """
     c = tuple(rgb(colour)) + (255,)
-    if contrast.cam16_ucs(c)[0] <= max_j:
+    canvas_j = contrast.cam16_ucs(tuple(rgb(canvas)) + (255,))[0]
+    light_skin = canvas_j > 50.0
+    limit = canvas_j - margin if light_skin else min(76.0, canvas_j + 100.0)
+
+    def ok(x):
+        j = contrast.cam16_ucs(x)[0]
+        return j >= limit if light_skin else j <= limit
+
+    if ok(c):
         return list(c[:3])
     for i in range(1, 60):
-        cand = contrast._scale_value(c, 1.0 / (1.0 + 0.02 * i))
-        if contrast.cam16_ucs(cand)[0] <= max_j:
+        k = (1.0 + 0.02 * i) if light_skin else (1.0 / (1.0 + 0.02 * i))
+        cand = contrast._scale_value(c, k)
+        if ok(cand):
             return list(cand[:3])
     return list(c[:3])
 
@@ -163,7 +179,7 @@ def build(p):
         # is read against, and several palettes' aqua is so pale that there
         # is no room above it -- the fill then has to go darker than idle,
         # which reads backwards. DefaultSkin keeps idle at J 72.
-        "Base1": cap_lightness(idle_hue(p), 76.0),
+        "Base1": constrain_idle(idle_hue(p), p["bg0"]),
         "Base2": rgb(p["blue"]),
         # The palette's own green, unmixed. Separation from Base1 comes from
         # the lightness cap on that role, not from tinting this one.
@@ -317,7 +333,74 @@ PALETTES = {
         fg="#bfbdb6", fg_dim="#8a9199", grey="#565b66",
         red="#f07178", orange="#ff8f40", yellow="#e6b450", green="#aad94c",
         aqua="#95e6cb", blue="#59c2ff", purple="#d2a6ff", pink="#f07178"),
+    # Light skins. build() maps the ramp from the background end to the
+    # foreground end rather than literally dark to light, so a light palette
+    # needs no inversion -- only light values at the bg end and dark ones at
+    # the fg end. bg2/bg3 are blends: neither palette defines that many
+    # background steps.
+    "SolarizedLight": dict(
+        bg_dim="#fdf6e3", bg0="#fdf6e3", bg1="#eee8d5", bg2="#ddd6c1",
+        bg3="#c9c2ad", grey="#93a1a1", fg_dim="#657b83", fg="#002b36",
+        red="#dc322f", orange="#cb4b16", yellow="#b58900", green="#859900",
+        aqua="#2aa198", blue="#268bd2", purple="#6c71c4", pink="#d33682"),
+
+    # catppuccin/palette, latte
+    "CatppuccinLatte": dict(
+        bg_dim="#eff1f5", bg0="#eff1f5", bg1="#e6e9ef", bg2="#ccd0da",
+        bg3="#bcc0cc", grey="#9ca0b0", fg_dim="#6c6f85", fg="#4c4f69",
+        red="#d20f39", orange="#fe640b", yellow="#df8e1d", green="#40a02b",
+        aqua="#179299", blue="#1e66f5", purple="#8839ef", pink="#ea76cb"),
+
 }
+
+
+# Grey levels for the greyscale skin, as CAM16-UCS lightness. Assigned by
+# role rather than mapped from hues: greyscale has one degree of freedom, and
+# the generic passes spend it fighting each other -- pushing the error colour
+# to near-white to get away from the interval body, and the body down to get
+# away from the paper.
+IEEE_LEVELS = {
+    "Background1": 100, "Background2": 97, "Base5": 94,
+    "Dark": 100, "HalfDark": 96, "Gray": 55,
+    # A dark band for the ruler, so its pale marks read on it.
+    "DarkGray": 26,
+    "LightGray": 40, "HalfLight": 25, "Light": 8,
+    "Emphasis1": 30, "Emphasis2": 92, "Emphasis3": 62, "Emphasis4": 8,
+    "Emphasis5": 96,
+    # Idle body pale enough to carry dark text, running the densest ink,
+    # error between the two and well clear of both.
+    "Base1": 80, "Base2": 55, "Base3": 12, "Base4": 70,
+    "Warn1": 72, "Warn2": 58, "Warn3": 44,
+    "Smooth1": 20, "Smooth2": 50, "Smooth3": 75,
+    "Tender1": 20, "Tender2": 50, "Tender3": 88,
+    "Transparent1": 100, "Transparent2": 60, "Transparent3": 90,
+    # Kept to the dark half: a cable is drawn at 53% alpha, which pulls it
+    # most of the way to the paper before it is seen.
+    "Port1": 6, "Port2": 20, "Port3": 34, "Port4": 48, "Port5": 62,
+    # The play dash has to read against the dense running fill and against
+    # the paper either side of it, which pull opposite ways: mid grey clears
+    # both. The waiting dash only crosses the pale idle body.
+    "Pulse1": 48, "Pulse2": 26,
+    "Waveform1": 22, "Waveform2": 68,
+}
+
+
+def grey_at(j):
+    """The neutral whose CAM16-UCS lightness is closest to j."""
+    best = (1e9, 0)
+    for v in range(256):
+        d = abs(contrast.cam16_ucs((v, v, v, 255))[0] - j)
+        if d < best[0]:
+            best = (d, v)
+    return [best[1]] * 3
+
+
+def build_ieee():
+    doc = {r: grey_at(j) for r, j in IEEE_LEVELS.items()}
+    for i, alpha in (("", CABLE_ALPHA), ("Selected", SELECTED_CABLE_ALPHA)):
+        for n in range(1, 6):
+            doc[f"{i}Cable{n}"] = doc[f"Port{n}"] + [alpha]
+    return doc
 
 
 def widget_palette(p):
@@ -384,6 +467,36 @@ def write(name, palette):
 
 
 
+def write_ieee():
+    doc = build_ieee()
+    doc["_comment"] = (
+        "For figures printed in greyscale. Every role is a neutral at a "
+        "chosen lightness, since that is all that survives the print; "
+        "generated by generate-color-skins.py."
+    )
+    n = NEUTRAL_IEEE = None
+    doc["palette"] = {
+        "Window": doc["Emphasis2"], "WindowText": doc["HalfLight"],
+        "Base": doc["Background1"], "AlternateBase": doc["Emphasis5"],
+        "Text": doc["Light"], "PlaceholderText": doc["Gray"] + [128],
+        "Button": doc["Emphasis5"], "ButtonText": doc["Light"],
+        "BrightText": doc["Warn3"],
+        "Highlight": doc["Base2"] + [144], "HighlightedText": doc["Background1"],
+        "ToolTipBase": doc["Background1"], "ToolTipText": doc["Light"],
+        "Light": doc["Background1"], "Midlight": doc["Emphasis5"],
+        "Mid": doc["DarkGray"], "Dark": doc["LightGray"],
+        "Shadow": doc["Gray"], "Link": doc["Base2"], "LinkVisited": doc["Emphasis3"],
+        "disabled": {
+            "Text": doc["Gray"], "WindowText": doc["Gray"], "ButtonText": doc["Gray"],
+        },
+    }
+    path = os.path.join(HERE, "IEEESkin.json")
+    with open(path, "w") as f:
+        json.dump(doc, f, indent=1)
+        f.write("\n")
+    return path
+
+
 if __name__ == "__main__":
     problems = {}
     for name, palette in PALETTES.items():
@@ -400,7 +513,14 @@ if __name__ == "__main__":
         worst = min((abs(m[l][0]) for l, _f, _b, _k in contrast.PAIRS))
         print(f"{os.path.basename(path):<30} worst Lc {worst:5.1f}"
               + ("   " + "; ".join(problems.get(name, [])) if bad else ""))
-    print(f"\n{len(PALETTES)} colour skins written. Add them to ../score.qrc.")
+    path = write_ieee()
+    with open(path) as f:
+        bad = contrast.audit(json.load(f), DEFAULT_SKIN, name="IEEE")
+    if bad:
+        problems["IEEE"] = [f"{b[0].lstrip('~')} {b[5]}" for b in bad]
+    print(f"{os.path.basename(path):<30} greyscale")
+
+    print(f"\n{len(PALETTES) + 1} colour skins written. Add them to ../score.qrc.")
     if problems:
         print("\ncontrast problems:")
         for n, bad in problems.items():

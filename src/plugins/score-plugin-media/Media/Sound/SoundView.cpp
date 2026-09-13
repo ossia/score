@@ -1,6 +1,7 @@
 #include "SoundView.hpp"
 
 #include <Media/RMSData.hpp>
+#include <score/model/Skin.hpp>
 #include <Media/Sound/QImagePool.hpp>
 #include <Media/Sound/SoundModel.hpp>
 
@@ -30,6 +31,13 @@ LayerView::LayerView(const ProcessModel& m, QGraphicsItem* parent)
         view->horizontalScrollBar(), &QScrollBar::valueChanged, this,
         &Media::Sound::LayerView::scrollValueChanged);
   }
+  // The waveform is rasterised once and kept; a skin change is one of the
+  // few things that invalidates it without the zoom or the data moving.
+  score::onSkinChange(this, [this] {
+    m_recomputed = false;
+    recompute();
+  });
+
   connect(
       m_cpt, &WaveformComputer::ready, this,
       [this](QVector<QImage*> img, ComputedWaveform wf) {
