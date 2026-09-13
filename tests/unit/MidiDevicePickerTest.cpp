@@ -20,6 +20,7 @@
 
 #include <QDir>
 #include <QFile>
+#include <QStringList>
 #include <QItemSelectionModel>
 #include <QTreeView>
 #include <QTreeWidget>
@@ -29,10 +30,12 @@
 
 namespace
 {
-constexpr auto fixture = R"_({
+QByteArray map(const char* manufacturer, const char* model)
+{
+  return QStringLiteral(R"_({
   "format": "score.midi-device/1",
-  "manufacturer": "Test",
-  "model": "Two Knobs",
+  "manufacturer": "%1",
+  "model": "%2",
   "controls": [
     {
       "name": "Volume",
@@ -49,12 +52,19 @@ constexpr auto fixture = R"_({
       "message": { "type": "cc", "channel": 1, "number": 10 }
     }
   ]
-})_";
+})_")
+      .arg(QLatin1String{manufacturer}, QLatin1String{model})
+      .toUtf8();
+}
 
 /**
- * Point the library at a package of our own so the picker has exactly one
- * description to choose: the developer's installed maps are not a fixture, and
- * without any the test would pass by having nothing to do.
+ * Point the library at a package of our own: the developer's installed maps
+ * are not a fixture, and without any the test would pass by having nothing to
+ * do.
+ *
+ * Two spellings of one brand, and a model that repeats it, because that is
+ * what the corpus is like -- 95 documents call themselves Korg, 30 of them
+ * shouting.
  */
 QString installFixture()
 {
@@ -64,24 +74,36 @@ QString installFixture()
   const QString dir = root + "/packages/midi-device-maps/maps/test";
   REQUIRE(QDir{}.mkpath(dir));
 
-  QFile f{dir + "/two-knobs.midimap.json"};
-  REQUIRE(f.open(QIODevice::WriteOnly));
-  f.write(fixture);
-  f.close();
+  const auto write = [&dir](const QString& name, const QByteArray& text) {
+    QFile f{dir + "/" + name + ".midimap.json"};
+    REQUIRE(f.open(QIODevice::WriteOnly));
+    f.write(text);
+  };
+
+  write("two-knobs", map("Test", "Two Knobs"));
+  write("m1", map("Korg", "M1"));
+  write("minilogue", map("Korg", "minilogue"));
+  write("volca", map("KORG", "Korg Volca Keys"));
   return root;
 }
 
-//! The first row that names a description; the manufacturer rows do not.
-QModelIndex firstDevice(QTreeView& picker)
+//! The row of a group, by what it shows.
+QModelIndex rowNamed(QTreeView& picker, const QModelIndex& group, const QString& name)
 {
   auto* model = picker.model();
-  for(int m = 0; m < model->rowCount(); m++)
-  {
-    const auto group = model->index(m, 0);
-    if(model->rowCount(group) > 0)
-      return model->index(0, 0, group);
-  }
+  for(int r = 0; r < model->rowCount(group); r++)
+    if(const auto idx = model->index(r, 0, group); idx.data().toString() == name)
+      return idx;
   return {};
+}
+
+QStringList childNames(QTreeView& picker, const QModelIndex& group)
+{
+  QStringList names;
+  auto* model = picker.model();
+  for(int r = 0; r < model->rowCount(group); r++)
+    names << model->index(r, 0, group).data().toString();
+  return names;
 }
 }
 
@@ -92,7 +114,7 @@ TEST_CASE("choosing a description fills the preview", "[mididevice][gui]")
 
     auto& db = Protocols::MIDIDevices::Database::instance();
     db.rescan();
-    REQUIRE(db.devices().size() == 1);
+    REQUIRE(db.devices().size() == 4);
 
     auto* factory = ctx.interfaces<Device::ProtocolFactoryList>().get(
         Protocols::MCUProtocolFactory::static_concreteKey());
@@ -107,10 +129,21 @@ TEST_CASE("choosing a description fills the preview", "[mididevice][gui]")
     REQUIRE(picker);
     REQUIRE(preview);
 
+    // One brand, one group, however its documents spell it -- and spelled the
+    // way most of them do.
+    auto* model = picker->model();
+    REQUIRE(model->rowCount() == 2);
+    const auto korg = model->index(0, 0);
+    CHECK(korg.data().toString() == "Korg");
+    CHECK(model->index(1, 0).data().toString() == "Test");
+
+    // Sorted by model, and none of them says Korg twice.
+    CHECK(childNames(*picker, korg) == QStringList{"Volca Keys", "M1", "minilogue"});
+
     // Nothing chosen yet: the preview has nothing to show and must not pretend.
     CHECK(preview->topLevelItemCount() == 0);
 
-    const auto idx = firstDevice(*picker);
+    const auto idx = rowNamed(*picker, korg, "M1");
     REQUIRE(idx.isValid());
 
     picker->selectionModel()->setCurrentIndex(
@@ -129,7 +162,7 @@ TEST_CASE("choosing a description fills the preview", "[mididevice][gui]")
         = settings.deviceSpecificSettings.value<Protocols::MCUSpecificSettings>();
     CHECK(midi.mode == Protocols::MCUSpecificSettings::MidiDeviceMap);
     REQUIRE(midi.maps.size() == 1);
-    CHECK(midi.maps[0].map == "test/two-knobs.midimap.json");
+    CHECK(midi.maps[0].map == "test/m1.midimap.json");
     CHECK(midi.maps[0].channel == 1);
   });
 }
