@@ -10,12 +10,14 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
+#include <JS/Executor/ExecutionHelpers.hpp>
 #include <JS/JSProcessModel.hpp>
 
 #include <core/document/Document.hpp>
 
 #include <QFile>
 #include <QPointF>
+#include <QQmlEngine>
 #include <QQuickItem>
 #include <QTemporaryDir>
 
@@ -33,8 +35,7 @@ QString script_with(int outlets)
     ports += QStringLiteral("  ValueOutlet { id: out%1 }\n").arg(i);
   return QStringLiteral("import Score 1.0\nScript {\n  ValueInlet { id: in1 }\n%1"
                         "  function onTick(oldtime, time, position, offset) { }\n}\n")
-      .arg(ports)
-      .trimmed();
+      .arg(ports);
 }
 
 void write(const QString& path, const QString& content)
@@ -166,5 +167,70 @@ ScriptUI { objectName: "%1" })_")
     REQUIRE(secondItem != nullptr);
     CHECK(secondItem->objectName().toStdString() == "second");
     delete secondItem;
+  });
+}
+
+TEST_CASE("The type loader is used for every script still in its file",
+          "[integration][js][gui]")
+{
+  // Compiling through the loader is what lets Qt hand back an already compiled
+  // script instead of parsing it again, and both the execution and the render
+  // thread come through there -- with one engine shared by every node on the
+  // thread, so several instances of one preset pay for it once. Skipping it
+  // costs a full parse on those threads, so the conditions under which it is
+  // taken are worth pinning down.
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    QQmlEngine engine;
+    const auto url = QUrl::fromLocalFile("/where/ever/thing.qml");
+    const QByteArray v1 = "Script { }";
+    const QByteArray v2 = "Script { property int x: 1 }";
+
+    // Never compiled here: nothing stale can come back.
+    CHECK(JS::detail::loaderIsCurrent(engine, url, v1));
+    // Same script again: this is the hit that the whole arrangement is for.
+    CHECK(JS::detail::loaderIsCurrent(engine, url, v1));
+    // Changed underneath: the loader still holds the first one and would hand
+    // that back, so it must not be asked.
+    CHECK_FALSE(JS::detail::loaderIsCurrent(engine, url, v2));
+    CHECK_FALSE(JS::detail::loaderIsCurrent(engine, url, v2));
+
+    // Another engine has compiled nothing, and is not held back by this one.
+    QQmlEngine other;
+    CHECK(JS::detail::loaderIsCurrent(other, url, v2));
+
+    // A url nobody has asked for is free regardless.
+    CHECK(JS::detail::loaderIsCurrent(
+        engine, QUrl::fromLocalFile("/where/ever/other.qml"), v2));
+  });
+}
+
+TEST_CASE("An unmodified library script reaches the executor as its file",
+          "[integration][js][gui]")
+{
+  // What the executor hands to the qml engine is rootPath() and qmlData(), and
+  // the loader is used only when those two agree -- the file named must be the
+  // script given. qmlData() is trimmed on its way into the model and a .qml
+  // ends in a newline, so agreeing here means agreeing once trimmed.
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir lib;
+    REQUIRE(lib.isValid());
+    const QString qml = lib.path() + "/preset.qml";
+    write(qml, script_with(2));
+
+    score::Document* doc = score::test::new_document(ctx);
+    REQUIRE(doc != nullptr);
+
+    auto* js = add_js_from(*doc, qml);
+    REQUIRE(js != nullptr);
+
+    CHECK(js->rootPath() == qml);
+
+    QFile f{qml};
+    REQUIRE(f.open(QIODevice::ReadOnly));
+    const QByteArray onDisk = f.readAll();
+    CHECK(onDisk.trimmed() == js->qmlData().trimmed());
+    // The file ends in a newline and qmlData() does not: comparing them as
+    // they are is what used to send every file-backed script down the slow path.
+    CHECK(onDisk != js->qmlData());
   });
 }
