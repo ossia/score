@@ -84,6 +84,9 @@ QString installFixture()
   write("m1", map("Korg", "M1"));
   write("minilogue", map("Korg", "minilogue"));
   write("volca", map("KORG", "Korg Volca Keys"));
+
+  // A MIDNAM that extends another document states "?" for the model.
+  write("Yamaha_PLG100_XG_Expansion", map("Yamaha", "?"));
   return root;
 }
 
@@ -114,7 +117,7 @@ TEST_CASE("choosing a description fills the preview", "[mididevice][gui]")
 
     auto& db = Protocols::MIDIDevices::Database::instance();
     db.rescan();
-    REQUIRE(db.devices().size() == 4);
+    REQUIRE(db.devices().size() == 5);
 
     auto* factory = ctx.interfaces<Device::ProtocolFactoryList>().get(
         Protocols::MCUProtocolFactory::static_concreteKey());
@@ -132,10 +135,15 @@ TEST_CASE("choosing a description fills the preview", "[mididevice][gui]")
     // One brand, one group, however its documents spell it -- and spelled the
     // way most of them do.
     auto* model = picker->model();
-    REQUIRE(model->rowCount() == 2);
+    REQUIRE(model->rowCount() == 3);
     const auto korg = model->index(0, 0);
     CHECK(korg.data().toString() == "Korg");
     CHECK(model->index(1, 0).data().toString() == "Test");
+
+    // A document that names no model is named by the file it lives in.
+    const auto yamaha = model->index(2, 0);
+    CHECK(yamaha.data().toString() == "Yamaha");
+    CHECK(childNames(*picker, yamaha) == QStringList{"PLG100 XG Expansion"});
 
     // Sorted by model, and none of them says Korg twice.
     CHECK(childNames(*picker, korg) == QStringList{"Volca Keys", "M1", "minilogue"});
@@ -164,5 +172,20 @@ TEST_CASE("choosing a description fills the preview", "[mididevice][gui]")
     REQUIRE(midi.maps.size() == 1);
     CHECK(midi.maps[0].map == "test/m1.midimap.json");
     CHECK(midi.maps[0].channel == 1);
+
+    // Opening a row is how a device gets onto the port, and it goes there
+    // called what the picker calls it rather than "Korg: M1".
+    auto* chosen = widget->findChild<QTreeWidget*>("chosen");
+    REQUIRE(chosen);
+    REQUIRE(chosen->topLevelItemCount() == 0);
+
+    picker->doubleClicked(idx);
+    REQUIRE(chosen->topLevelItemCount() == 1);
+    CHECK(chosen->topLevelItem(0)->text(0) == "M1");
+    CHECK(chosen->topLevelItem(0)->text(1) == "1");
+
+    // The same device twice would be two subtrees listening to one message.
+    picker->doubleClicked(idx);
+    CHECK(chosen->topLevelItemCount() == 1);
   });
 }
