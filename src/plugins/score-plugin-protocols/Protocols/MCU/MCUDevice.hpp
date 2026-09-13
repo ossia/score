@@ -15,8 +15,8 @@ struct MCUSpecificSettings;
 /**
  * The MIDI Controller device. Two unrelated things behind one protocol, chosen
  * by MCUSpecificSettings::mode: a Mackie Control surface mapped onto score's
- * remote control interface, or a MIDI Guide instrument whose documented CC and
- * NRPN parameters become the device's tree.
+ * remote control interface, or the devices a `.midimap.json` description names,
+ * whose controls become the device's tree.
  */
 class MCUDevice final : public Device::OwningDeviceInterface
 {
