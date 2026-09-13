@@ -287,6 +287,13 @@ struct Source
 
   //! Everyone credited, as the source credited them.
   std::vector<std::string> authors;
+
+  //! The project the description was converted from, and where it lives.
+  std::string project;
+  std::string url;
+
+  //! The file within that project.
+  std::string path;
 };
 
 struct DeviceMap

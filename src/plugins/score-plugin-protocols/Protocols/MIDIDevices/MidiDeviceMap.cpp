@@ -318,6 +318,13 @@ Source parseSource(const json_value& v)
           s.notices.emplace_back(notice.GetString(), notice.GetStringLength());
   }
 
+  if(const auto* up = member(v, "upstream"))
+  {
+    s.project = str(*up, "project");
+    s.url = str(*up, "url");
+    s.path = str(*up, "path");
+  }
+
   // A declared author may carry only `verbatim`: a string naming three parties
   // has no one `name`, and picking one would drop the others.
   if(const auto* authors = member(v, "authors"); authors && authors->IsArray())
