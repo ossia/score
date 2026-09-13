@@ -3,6 +3,7 @@
 #include <State/Widgets/AddressValidator.hpp>
 
 #include <score/model/Skin.hpp>
+#include <score/widgets/ValidationPalette.hpp>
 
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 
@@ -36,10 +37,7 @@ public:
   {
     QString s = str;
     int i = 0;
-    // Starts from the application palette, not this widget's: it may still
-    // carry the tint from the last time the text was wrong.
-    auto& skin = score::Skin::instance();
-    QPalette palette{qApp->palette()};
+    auto validity = score::InputValidity::Valid;
     if(m_validator.validate(s, i) == QValidator::State::Acceptable)
     {
       if(m_model)
@@ -47,28 +45,15 @@ public:
         // Look into the tree to see if the node actually exists
         auto addr = State::parseAddressAccessor(s);
 
-        if(Device::try_getNodeFromAddress(m_model->rootNode(), addr->address))
-        {
-          // Valid and present: the application palette, untinted.
-        }
-        else
-        {
-          palette.setColor(QPalette::Base, skin.Warn2.darker.brush.color());
-          palette.setColor(QPalette::Light, skin.Warn3.color());
-          palette.setColor(QPalette::Midlight, skin.Warn3.darker.brush.color());
-        }
-      }
-      else
-      {
+        if(!Device::try_getNodeFromAddress(m_model->rootNode(), addr->address))
+          validity = score::InputValidity::Unknown;
       }
     }
     else
     {
-      palette.setColor(QPalette::Base, skin.Warn3.darker.brush.color());
-      palette.setColor(QPalette::Light, skin.Warn3.color());
-      palette.setColor(QPalette::Midlight, skin.Warn3.darker300.brush.color());
+      validity = score::InputValidity::Invalid;
     }
-    this->setPalette(palette);
+    score::setInputValidity(*this, validity);
   }
 
 private:
