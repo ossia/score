@@ -1025,7 +1025,10 @@ void GpuNode::Engine::createItem(
 {
   m_component = new QQmlComponent{this->m_engine.get()};
 
-  m_component->setData(node.source.toUtf8(), QUrl::fromLocalFile(node.m_root));
+  // Same route as the cpu node: a script that is still its file goes through
+  // the type loader, so the render thread gets an already compiled one rather
+  // than parsing it again for every renderer that wants it.
+  loadJSObjectFromString(node.m_root, node.source.toUtf8(), *m_component, false);
   if(m_component->isError())
   {
     qWarning() << m_component->errorString();
