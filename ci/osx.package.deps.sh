@@ -27,6 +27,10 @@
 set +e
 
 export HOMEBREW_NO_AUTO_UPDATE=1
+
+# Removing half of Homebrew and deleting the command-line tools only makes sense on
+# a throwaway CI runner; on a developer Mac it takes the machine apart.
+if [[ -n "${GITHUB_ACTIONS:-}" ]]; then
 brew list
 brew remove -f opusfile sox ffmpeg libsndfile flac opus libbluray libogg libvorbis libshout speex theora qt qt@5 qtkeychain
 brew install gnu-tar ninja xz
@@ -43,6 +47,7 @@ ls "/opt/ossia-sdk-$MACOS_ARCH/"
 
 sudo rm -rf /Library/Developer/CommandLineTools
 sudo rm -rf /usr/local/include/c++
+fi
 
 wait || true
 gtar xhaf cninja.tgz

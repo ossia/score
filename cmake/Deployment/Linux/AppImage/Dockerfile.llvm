@@ -21,7 +21,7 @@ RUN yum -y install llvm-toolset gcc-toolset-14 \
 
 
 RUN yum -y install boost-devel && \
-    git clone --recursive https://github.com/jcelerier/cninja/ && \
+    git clone --recursive --branch v3.7.9 --depth 1 https://github.com/jcelerier/cninja/ && \
     cmake -S cninja -B cninja-build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr && \
     cmake --build cninja-build && \
     cmake --install cninja-build && \

@@ -29,11 +29,8 @@ if(NOT EXISTS "${OSSIA_SDK}")
   message(FATAL_ERROR "Please fetch the SDK with the score/tools/fetch-sdk.sh script")
 endif()
 
-# The version is read from score itself rather than repeated here: a literal
-# copy silently goes stale, and an add-on then compiles against a version
-# number that has nothing to do with the score it will be loaded into.
-# ScoreVersion.cmake is generated and shipped by the SDK; a developer build
-# against a source tree reads the top-level CMakeLists directly.
+# ScoreVersion.cmake is generated and shipped by the SDK; a developer build against
+# a source tree reads the top-level CMakeLists instead.
 include(ScoreVersion OPTIONAL)
 
 if(NOT SCORE_VERSION)
@@ -62,6 +59,8 @@ endif()
 # external addon never sees. Without it those calls degenerate into a bare
 # find_package(REQUIRED ...) and fail. Keep in sync with CMakeLists.txt.
 set(QT_VERSION Qt6 6.2)
+# Add-ons write ${QT_PREFIX}::Core, which without this expands to "::Core".
+list(GET QT_VERSION 0 QT_PREFIX)
 
 set(SCORE_DYNAMIC_PLUGINS 1)
 

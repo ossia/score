@@ -189,11 +189,21 @@ bool ApplicationPlugin::setupNode(const QString& f)
     if(QFile file{f}; file.open(QIODevice::ReadOnly))
     {
       auto node = file.readAll();
-      constexpr auto make_uuid_s = "make_uuid";
-      auto make_uuid = node.indexOf(make_uuid_s);
-      if(make_uuid == -1)
+
+      // score's own generic nodes spell it make_uuid("..."); Avendish objects
+      // spell it halp_meta(uuid, "..."). Only the former was recognised, so
+      // --compile-node silently exited on every Avendish header, which is most
+      // of what anyone would want to try it on.
+      int uuid_decl = node.indexOf("make_uuid");
+      int skip = sizeof("make_uuid") - 1;
+      if(uuid_decl == -1)
+      {
+        uuid_decl = node.indexOf("halp_meta(uuid");
+        skip = sizeof("halp_meta(uuid") - 1;
+      }
+      if(uuid_decl == -1)
         return false;
-      int umin = node.indexOf('"', make_uuid + 9);
+      int umin = node.indexOf('"', uuid_decl + skip);
       if(umin == -1)
         return false;
       int umax = node.indexOf('"', umin + 1);

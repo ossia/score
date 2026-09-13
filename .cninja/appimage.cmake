@@ -1,6 +1,10 @@
 cninja_require(static-release)
 
 set_cache(SCORE_DEPLOYMENT_BUILD 1)
+
+# Our own release build controls the whole dependency set, so a missing plug-in or
+# feature is a bug rather than a packaging choice.
+set_cache(SCORE_STRICT_FEATURE_CHECK 1)
 set_cache(CMAKE_SKIP_RPATH 1)
 set_cache(BUILD_SHARED_LIBS OFF)
 set_cache(CMAKE_FIND_LIBRARY_SUFFIXES .a)
