@@ -212,6 +212,7 @@ MIDIInputProtocolFactory::getEnumerators(const score::DocumentContext& ctx) cons
   obs_sw.track_virtual = true;
   obs_sw.track_network = false;
   obs_net.track_hardware = false;
+  obs_net.track_virtual = false;
   obs_net.track_network = true;
   return {
       {"Default", new DefaultMidiInEnumerator},
@@ -314,6 +315,7 @@ MIDIOutputProtocolFactory::getEnumerators(const score::DocumentContext& ctx) con
   obs_sw.track_virtual = true;
   obs_sw.track_network = false;
   obs_net.track_hardware = false;
+  obs_net.track_virtual = false;
   obs_net.track_network = true;
   return {
       {"Default", new DefaultMidiOutEnumerator},
