@@ -2,6 +2,7 @@
 
 #include <Protocols/MIDIDevices/MidiPortResolve.hpp>
 
+#include <ossia/detail/hash_map.hpp>
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/name_validation.hpp>
 #include <ossia/network/base/node.hpp>
@@ -12,6 +13,8 @@
 #include <ossia/network/value/value_conversion.hpp>
 
 #include <QDebug>
+
+#include <atomic>
 
 #include <libremidi/libremidi.hpp>
 #include <libremidi/message.hpp>
@@ -46,6 +49,12 @@ enum : int
  * A relative encoder keeps its own value here rather than in the parameter: it
  * sends a delta, so there is nothing on the wire to read the position from, and
  * the node has to hold what the deltas have added up to.
+ *
+ * Two threads meet in a binding: the input port's callback, which receives,
+ * and whichever thread pushes the node, which sends. Only @ref position is
+ * used by both, so only it is atomic; the rest belongs to one side. Pushes
+ * are not concurrent with one another: the output port could not take them
+ * if they were.
  */
 struct binding
 {
@@ -59,13 +68,15 @@ struct binding
   int lo{};
   int hi{};
 
-  //! Accumulated position of a relative encoder.
-  int position{};
+  //! Where the device is believed to be. The wire and the writer both move
+  //! it, each starting from wherever the other left it.
+  std::atomic<int> position{};
 
-  //! The high half of a 14-bit value, held until its low half arrives.
+  //! The high half of a 14-bit value, held until its low half arrives. Input
+  //! callback only: both halves come through the same port.
   int pendingMsb{-1};
 
-  //! The note a single-note control is currently sounding, or -1.
+  //! The note a single-note control is currently sounding, or -1. Sender only.
   int sounding{-1};
 
   std::vector<std::pair<std::string, int>> labels;
@@ -372,9 +383,9 @@ struct midi_device_protocol final : public ossia::net::protocol_base
 
     // The value the device is assumed to be at until it says otherwise; a
     // relative encoder has no other way of ever having one.
-    param->set_value(b.position);
+    param->set_value(b.position.load());
 
-    param->add_callback([this, &b](const ossia::value& v) { onWrite(b, v); });
+    m_bindingOf[param] = &b;
   }
 
   //! A string node beside the numeric one, naming the values it can take.
@@ -398,7 +409,7 @@ struct midi_device_protocol final : public ossia::net::protocol_base
     choice->set_bounding(ossia::bounding_mode::CLIP);
     b.choice = choice;
 
-    choice->add_callback([this, &b](const ossia::value& v) { onChoice(b, v); });
+    m_bindingOf[choice] = &b;
   }
 
   //! The label naming @p value, or the empty string when none does.
@@ -410,48 +421,50 @@ struct midi_device_protocol final : public ossia::net::protocol_base
     return {};
   }
 
-  void onChoice(binding& b, const ossia::value& v)
+  /**
+   * Outbound and inbound never meet. push() is what push_value() calls once
+   * the node holds its new value; set_value(), which is how the wire and a
+   * control's twin update a node, never reaches it. So an incoming message
+   * cannot come back out and a twin cannot send a second time, and neither
+   * has to be suppressed.
+   */
+  bool push(const ossia::net::parameter_base& p, const ossia::value& v) override
   {
-    if(m_echoing)
-      return;
+    const auto it = m_bindingOf.find(&p);
+    if(it == m_bindingOf.end())
+      return false;
+    auto& b = *it->second;
 
-    const auto name = ossia::convert<std::string>(v);
-    for(const auto& [label, value] : b.labels)
+    if(&p == b.choice)
     {
-      if(label == name)
+      const auto name = ossia::convert<std::string>(v);
+      for(const auto& [label, value] : b.labels)
       {
-        b.param->push_value(value);
-        return;
+        if(label == name)
+        {
+          b.param->set_value(value);
+          return send(b, value);
+        }
       }
+      return false;
     }
-  }
-
-  void onWrite(binding& b, const ossia::value& v)
-  {
-    if(m_echoing)
-      return;
 
     const int value = std::clamp(ossia::convert<int>(v), b.lo, b.hi);
-    const int previous = b.position;
-    b.position = value;
-
     if(b.choice)
-    {
       if(const auto name = labelFor(b, value); !name.empty())
-      {
-        m_echoing = true;
         b.choice->set_value(name);
-        m_echoing = false;
-      }
-    }
-
-    send(b, value, previous);
+    return send(b, value);
   }
 
-  void send(binding& b, int value, int previous)
+  //! Whether a message went out.
+  bool send(binding& b, int value)
   {
+    // Before the port check: the position follows every write, so that a
+    // relative control sends the step from where the node really was.
+    const int previous = b.position.exchange(value, std::memory_order_relaxed);
+
     if(!m_output)
-      return;
+      return false;
 
     const auto& msg = b.control->message;
     const int ch = sendChannel(msg);
@@ -467,12 +480,12 @@ struct midi_device_protocol final : public ossia::net::protocol_base
     {
       const int delta = value - previous;
       if(delta == 0)
-        return;
-      if(msg.type == MessageType::CC)
-        write(ce::control_change(
-            ch, msg.number,
-            encodeRelative(delta, *b.control->value.encoding)));
-      return;
+        return false;
+      if(msg.type != MessageType::CC)
+        return false;
+      write(ce::control_change(
+          ch, msg.number, encodeRelative(delta, *b.control->value.encoding)));
+      return true;
     }
 
     switch(msg.type)
@@ -533,6 +546,7 @@ struct midi_device_protocol final : public ossia::net::protocol_base
         write(ce::poly_pressure(ch, msg.number, lsb_of(value)));
         break;
     }
+    return true;
   }
 
   /**
@@ -678,27 +692,31 @@ struct midi_device_protocol final : public ossia::net::protocol_base
     if(b.control->value.mode == ValueMode::Relative)
     {
       const auto e = b.control->value.encoding.value_or(Encoding::TwosComplement);
-      value = std::clamp(b.position + decodeRelative(wire, e), b.lo, b.hi);
+      const int delta = decodeRelative(wire, e);
+
+      // A step is applied to the position as it is at that moment, even if a
+      // write moved it since the load: neither side's move is lost.
+      int current = b.position.load(std::memory_order_relaxed);
+      do
+        value = std::clamp(current + delta, b.lo, b.hi);
+      while(!b.position.compare_exchange_weak(
+          current, value, std::memory_order_relaxed));
+    }
+    else
+    {
+      b.position.store(value, std::memory_order_relaxed);
     }
 
-    b.position = value;
-
-    m_echoing = true;
     b.param->set_value(value);
     if(b.choice)
       if(const auto name = labelFor(b, value); !name.empty())
         b.choice->set_value(name);
-    m_echoing = false;
   }
 
   bool pull(ossia::net::parameter_base&) override { return false; }
   void request(ossia::net::parameter_base&) override { }
   std::future<void> pull_async(ossia::net::parameter_base&) override { return {}; }
 
-  bool push(const ossia::net::parameter_base&, const ossia::value&) override
-  {
-    return false;
-  }
   bool push_raw(const ossia::net::full_parameter_data&) override { return false; }
   bool observe(ossia::net::parameter_base&, bool) override { return true; }
   bool update(ossia::net::node_base&) override { return false; }
@@ -709,12 +727,12 @@ struct midi_device_protocol final : public ossia::net::protocol_base
   std::unique_ptr<libremidi::midi_in> m_input;
   std::unique_ptr<libremidi::midi_out> m_output;
 
-  //! Stable addresses: the callbacks capture a binding by reference.
+  //! Stable addresses: m_bindingOf points into them.
   std::vector<std::unique_ptr<binding>> m_bindings;
 
-  //! Set while a node is being updated from the wire or from its own twin, so
-  //! that the update does not come straight back as a send.
-  bool m_echoing{};
+  //! A control's numeric node and its choice both resolve to the one binding;
+  //! push() tells them apart by identity.
+  ossia::hash_map<const ossia::net::parameter_base*, binding*> m_bindingOf;
 };
 }
 

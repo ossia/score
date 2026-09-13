@@ -7,6 +7,11 @@
  * bounds, and the `choice` node that appears beside a control whose values are
  * all named.
  *
+ * The second half drives the wire through a loopback port: what comes in moves
+ * only the node it addresses, and what is written to a node goes out exactly
+ * once -- also while the device is hearing itself, which is what a motorised
+ * fader amounts to.
+ *
  * A protocol needs a port, so these open a real one. When the machine has none
  * the test says so and passes rather than failing for the absence of hardware.
  */
@@ -24,11 +29,15 @@
 
 #include <magic_enum/magic_enum.hpp>
 
+#include <algorithm>
+#include <atomic>
 #include <chrono>
 #include <cstdlib>
 #include <memory>
-#include <thread>
+#include <mutex>
 #include <string>
+#include <thread>
+#include <vector>
 
 using namespace Protocols::MIDIDevices;
 
@@ -209,14 +218,16 @@ TEST_CASE("a description becomes a tree", "[mididevice][midi]")
     CHECK(fader->find_child("choice") == nullptr);
   }
 
-  SECTION("a relative encoder starts somewhere rather than nowhere")
+  SECTION("a relative encoder starts at the bottom of its range")
   {
     auto* enc = at(root, "Bank B : Equalizer/Knobs/Encoder 1");
     REQUIRE(enc);
 
     // An encoder sends deltas, so the node holds the accumulated position and
-    // has to have one before the first delta arrives.
-    CHECK(enc->get_parameter()->value().valid());
+    // has to have one before the first delta arrives. Checking that it is
+    // merely valid proves nothing: a new parameter is already an int 0.
+    CHECK(ossia::convert<int>(enc->get_parameter()->value()) == 0);
+    CHECK(domainOf(*enc->get_parameter()) == std::pair{0, 127});
   }
 }
 
@@ -259,14 +270,20 @@ TEST_CASE("the same port can be used again after the device goes away", "[midide
   // or refuses, but the refusal must not outlive the first device.
   {
     auto first = build();
+
+    // Whether a second writer is allowed is the backend's business -- a
+    // sequencer port shares, a raw device does not -- but it must answer
+    // rather than block, and either answer must leave the port usable.
+    bool opened = false;
     try
     {
       auto second = build();
+      opened = true;
     }
     catch(const std::exception&)
     {
-      // Some backends allow only one writer; that is the backend's business.
     }
+    INFO("a second device on the same port " << (opened ? "opened" : "was refused"));
   }
   REQUIRE_NOTHROW(build());
 }
@@ -596,4 +613,290 @@ TEST_CASE("a bipolar control starts at the centre the device calls centre",
   auto* bend = at(dev->get_root_node(), "Bend");
   REQUIRE(bend);
   CHECK(ossia::convert<int>(bend->get_parameter()->value()) == 8192);
+}
+
+namespace
+{
+/**
+ * A device with both of its ports on the loopback, so that it hears every
+ * message it sends, plus a tap that records everything on the wire and a port
+ * to inject from. What the tap counts is the whole truth: a message sent twice
+ * or not at all shows up as a count, not as a guess about timing.
+ */
+struct bidir
+{
+  bidir(const loopback& lb, const std::string& doc, bool withInput = true)
+  {
+    libremidi::input_configuration ic{};
+    ic.on_message = [this](const libremidi::message& m) {
+      std::lock_guard lock{m_mutex};
+      m_seen.push_back(m);
+    };
+    tap = std::make_unique<libremidi::midi_in>(ic, lb.api);
+    REQUIRE(tap->open_port(lb.in) == stdx::error{});
+
+    libremidi::output_configuration oc{};
+    inject = std::make_unique<libremidi::midi_out>(oc, lb.api);
+    REQUIRE(inject->open_port(lb.out) == stdx::error{});
+
+    auto map = parseDeviceMap(doc);
+    REQUIRE(map.has_value());
+
+    ProtocolSettings conf;
+    conf.api = lb.api;
+    conf.channel = 1;
+    if(withInput)
+      conf.input = lb.in;
+    conf.output = lb.out;
+    conf.map = *map;
+    dev = std::make_unique<ossia::net::generic_device>(
+        makeProtocol(std::move(conf)), "bidir");
+  }
+
+  ~bidir()
+  {
+    // The device first: its input callback must be gone before the tap's.
+    dev.reset();
+    tap.reset();
+  }
+
+  ossia::net::parameter_base& param(const std::string& path)
+  {
+    auto* n = at(dev->get_root_node(), path);
+    REQUIRE(n);
+    REQUIRE(n->get_parameter());
+    return *n->get_parameter();
+  }
+
+  void send(std::initializer_list<unsigned char> bytes)
+  {
+    std::vector<unsigned char> v{bytes};
+    inject->send_message(v.data(), v.size());
+  }
+
+  std::size_t count()
+  {
+    std::lock_guard lock{m_mutex};
+    return m_seen.size();
+  }
+
+  //! How many times @p bytes went over the wire.
+  std::size_t count(std::initializer_list<unsigned char> bytes)
+  {
+    std::lock_guard lock{m_mutex};
+    return std::count_if(m_seen.begin(), m_seen.end(), [&](const auto& m) {
+      return std::equal(m.bytes.begin(), m.bytes.end(), bytes.begin(), bytes.end());
+    });
+  }
+
+  /**
+   * The number of messages on the wire once @p expected have arrived and
+   * nothing has followed them for a while. Waiting for "at least" and then
+   * checking "exactly" is what tells one message from two.
+   */
+  std::size_t settledCount(std::size_t expected)
+  {
+    waitFor([&] { return count() >= expected; }, std::chrono::seconds{5});
+    std::this_thread::sleep_for(std::chrono::milliseconds{150});
+    return count();
+  }
+
+  std::unique_ptr<ossia::net::generic_device> dev;
+  std::unique_ptr<libremidi::midi_in> tap;
+  std::unique_ptr<libremidi::midi_out> inject;
+
+private:
+  std::mutex m_mutex;
+  std::vector<libremidi::message> m_seen;
+};
+
+//! Wave is written and has names; Level is a motorised fader, written and
+//! heard; Mode is only heard and has names.
+const std::string wireDocument = R"_({
+  "format": "score.midi-device/1", "model": "Wire",
+  "controls": [
+    {"name": "Wave", "kind": "parameter", "direction": "out",
+     "message": {"type": "cc", "channel": 1, "number": 30},
+     "value": {"mode": "absolute", "labels": [
+       {"from": 0, "to": 0, "name": "Saw"},
+       {"from": 1, "to": 1, "name": "Square"},
+       {"from": 2, "to": 2, "name": "Triangle"}]}},
+    {"name": "Level", "kind": "fader", "direction": "both",
+     "message": {"type": "cc", "channel": 1, "number": 7},
+     "value": {"mode": "absolute"}},
+    {"name": "Mode", "kind": "switch", "direction": "in",
+     "message": {"type": "cc", "channel": 1, "number": 20},
+     "value": {"mode": "absolute", "labels": [
+       {"from": 0, "to": 0, "name": "A"},
+       {"from": 1, "to": 1, "name": "B"},
+       {"from": 2, "to": 2, "name": "C"}]}}
+  ]})_";
+}
+
+TEST_CASE("a named control sends once whichever of its two nodes is written",
+          "[mididevice][midi]")
+{
+  const auto lb = findLoopback();
+  if(!lb)
+  {
+    WARN("no loopback MIDI port on this machine");
+    SUCCEED();
+    return;
+  }
+
+  bidir w{*lb, wireDocument};
+  auto& wave = w.param("Wave");
+  auto& choice = w.param("Wave/choice");
+
+  // The number: one message, and the name follows.
+  wave.push_value(1);
+  CHECK(w.settledCount(1) == 1);
+  CHECK(w.count({0xB0, 30, 1}) == 1);
+  CHECK(ossia::convert<std::string>(choice.value()) == "Square");
+
+  // The name: one message, and the number follows. Setting the number is what
+  // makes the name apply; it must not also count as a second write.
+  choice.push_value(std::string{"Triangle"});
+  CHECK(w.settledCount(2) == 2);
+  CHECK(w.count({0xB0, 30, 2}) == 1);
+  CHECK(valueOf(w.dev->get_root_node(), "Wave") == 2);
+
+  // A name the control does not have goes nowhere.
+  choice.push_value(std::string{"Sine"});
+  CHECK(w.settledCount(2) == 2);
+}
+
+TEST_CASE("a write made while another control is being updated is not dropped",
+          "[mididevice][midi]")
+{
+  const auto lb = findLoopback();
+  if(!lb)
+  {
+    SUCCEED();
+    return;
+  }
+
+  bidir w{*lb, wireDocument};
+  auto& level = w.param("Level");
+
+  // A mapping reacting to one control by driving another runs inside the
+  // first control's notification: that is when the second write happens.
+  std::atomic<int> reactions{0};
+
+  SECTION("from a write: the twin of a named control is being mirrored")
+  {
+    w.param("Wave/choice").add_callback([&](const ossia::value&) {
+      if(reactions.fetch_add(1) == 0)
+        level.push_value(64);
+    });
+
+    w.param("Wave").push_value(1);
+    CHECK(w.settledCount(2) == 2);
+    CHECK(w.count({0xB0, 30, 1}) == 1);
+    CHECK(w.count({0xB0, 7, 64}) == 1);
+  }
+
+  SECTION("from the wire: a control is being updated by the device")
+  {
+    w.param("Mode").add_callback([&](const ossia::value&) {
+      if(reactions.fetch_add(1) == 0)
+        level.push_value(100);
+    });
+
+    // The injected message itself is on the wire, then Level's.
+    w.send({0xB0, 20, 1});
+    CHECK(w.settledCount(2) == 2);
+    CHECK(w.count({0xB0, 7, 100}) == 1);
+    CHECK(valueOf(w.dev->get_root_node(), "Mode") == 1);
+    CHECK(ossia::convert<std::string>(w.param("Mode/choice").value()) == "B");
+  }
+}
+
+TEST_CASE("concurrent writes and receipts neither echo nor go missing",
+          "[mididevice][midi]")
+{
+  const auto lb = findLoopback();
+  if(!lb)
+  {
+    SUCCEED();
+    return;
+  }
+
+  bidir w{*lb, wireDocument};
+  auto& wave = w.param("Wave");
+  auto& level = w.param("Level");
+
+  /*
+   * One thread writes, the wire delivers, both to controls with names so that
+   * every event also mirrors a twin, and Level is hit from both sides at once.
+   * Short bursts with a pause keep within what the loopback carries: the
+   * PipeWire bridge drops what it cannot fit in a cycle, and a loss of that
+   * kind would look like a swallowed write.
+   */
+  constexpr int rounds = 200;
+  constexpr int burst = 3;
+
+  std::thread writer{[&] {
+    for(int r = 0; r < rounds; r++)
+    {
+      for(int i = 0; i < burst; i++)
+      {
+        wave.push_value((r + i) % 3);
+        level.push_value((r * burst + i) % 128);
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds{1});
+    }
+  }};
+
+  for(int r = 0; r < rounds; r++)
+  {
+    for(int i = 0; i < burst; i++)
+    {
+      w.send({0xB0, 20, static_cast<unsigned char>((r + i) % 3)});
+      w.send({0xB0, 7, static_cast<unsigned char>((r * burst + i) % 128)});
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds{1});
+  }
+  writer.join();
+
+  // Every write and every injection, once: a receipt that came back out would
+  // add to this, a write that was swallowed would take from it.
+  const std::size_t expected = 4 * rounds * burst;
+  CHECK(w.settledCount(expected) == expected);
+}
+
+TEST_CASE("a relative control sends the step from where it really was",
+          "[mididevice][midi]")
+{
+  const auto lb = findLoopback();
+  if(!lb)
+  {
+    SUCCEED();
+    return;
+  }
+
+  // Output only: a step that came back in would be taken as the device moving.
+  bidir w{
+      *lb, R"_({
+    "format": "score.midi-device/1", "model": "T",
+    "controls": [
+      {"name": "Enc", "kind": "encoder", "direction": "both",
+       "message": {"type": "cc", "channel": 1, "number": 74},
+       "value": {"mode": "relative", "encoding": "twos_complement"}}
+    ]})_",
+      false};
+  auto& enc = w.param("Enc");
+
+  enc.push_value(10);
+  CHECK(w.settledCount(1) == 1);
+  CHECK(w.count({0xB0, 74, 10}) == 1);
+
+  // From 10 to 7 is -3, which two's complement writes as 125.
+  enc.push_value(7);
+  CHECK(w.settledCount(2) == 2);
+  CHECK(w.count({0xB0, 74, 125}) == 1);
+
+  // Nothing moved, nothing to say.
+  enc.push_value(7);
+  CHECK(w.settledCount(2) == 2);
 }
