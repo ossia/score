@@ -10,6 +10,7 @@
 
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 
+#include <score/model/Skin.hpp>
 #include <score/widgets/MarginLess.hpp>
 
 #include <ossia/network/value/value_conversion.hpp>
@@ -97,18 +98,17 @@ static void makeValidator(QLineEdit* widg, QString rx)
 
     QString s = str;
     int i = 0;
-    QPalette palette{widg->palette()};
+    QPalette palette{qApp->palette()};
     if(widg->validator()->validate(s, i) == QValidator::State::Acceptable)
     {
-      palette.setColor(QPalette::Base, QColor{"#161514"});
-      palette.setColor(QPalette::Light, QColor{"#c58014"});
-      palette.setColor(QPalette::Midlight, QColor{"#161514"});
+      // Valid: the application palette, untinted.
     }
     else
     {
-      palette.setColor(QPalette::Base, QColor{"#300000"});
-      palette.setColor(QPalette::Light, QColor{"#660000"});
-      palette.setColor(QPalette::Midlight, QColor{"#500000"});
+      auto& skin = score::Skin::instance();
+      palette.setColor(QPalette::Base, skin.Warn3.darker.brush.color());
+      palette.setColor(QPalette::Light, skin.Warn3.color());
+      palette.setColor(QPalette::Midlight, skin.Warn3.darker300.brush.color());
     }
     widg->setPalette(palette);
   });

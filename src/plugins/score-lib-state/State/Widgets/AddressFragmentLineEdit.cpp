@@ -2,6 +2,10 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AddressFragmentLineEdit.hpp"
 
+#include <score/model/Skin.hpp>
+
+#include <QGuiApplication>
+
 namespace State
 {
 AddressFragmentLineEdit::~AddressFragmentLineEdit() = default;
@@ -17,18 +21,17 @@ AddressFragmentLineEdit::AddressFragmentLineEdit(QWidget* parent)
 
     QString s = str;
     int i = 0;
-    QPalette palette{this->palette()};
+    auto& skin = score::Skin::instance();
+    QPalette palette{qApp->palette()};
     if(validator()->validate(s, i) == QValidator::State::Acceptable)
     {
-      palette.setColor(QPalette::Base, QColor{"#161514"});
-      palette.setColor(QPalette::Light, QColor{"#c58014"});
-      palette.setColor(QPalette::Midlight, QColor{"#161514"});
+      // Valid: the application palette, untinted.
     }
     else
     {
-      palette.setColor(QPalette::Base, QColor{"#300000"});
-      palette.setColor(QPalette::Light, QColor{"#660000"});
-      palette.setColor(QPalette::Midlight, QColor{"#500000"});
+      palette.setColor(QPalette::Base, skin.Warn3.darker.brush.color());
+      palette.setColor(QPalette::Light, skin.Warn3.color());
+      palette.setColor(QPalette::Midlight, skin.Warn3.darker300.brush.color());
     }
     this->setPalette(palette);
   });
