@@ -384,7 +384,7 @@ static AddonData loadAddon(const QString& addon)
 //! Generates the score_myaddon_commands.hpp and score_myaddon_command_list.hpp
 //! files
 static void generateCommandFiles(
-    const QString& output, const QString& addon_path,
+    const QString& output, const QString& addon_name, const QString& addon_path,
     const std::vector<std::pair<QString, QString>>& files)
 {
   QRegularExpression decl(
@@ -417,7 +417,10 @@ static void generateCommandFiles(
   commands.remove(commands.length() - 2, 2);
   commands.push_back("\n");
   QDir{}.mkpath(output);
-  auto out_name = QFileInfo{addon_path}.fileName().replace("-", "_");
+  // score_generate_command_list_file() names these after the CMake target, which
+  // is what the add-on includes; the folder only matches it by convention.
+  QString out_name = addon_name;
+  out_name.replace("-", "_");
   {
     QFile cmd_f{output + "/" + out_name + "_commands_files.hpp"};
     cmd_f.open(QIODevice::WriteOnly);
@@ -462,7 +465,7 @@ static QString generateAddonFiles(
   QString addon_files_path = QDir::tempPath() + "/score-tmp-build/" + addon_name;
   QDir{}.mkpath(addon_files_path);
   generateExportFile(addon_files_path, addon_name, addon_export);
-  generateCommandFiles(addon_files_path, addon, files);
+  generateCommandFiles(addon_files_path, addon_name, addon, files);
   return addon_files_path;
 }
 
