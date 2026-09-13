@@ -20,6 +20,13 @@ AddonCompiler::~AddonCompiler()
 {
   //m_thread.exit(0);
   //m_thread.wait();
+
+  // Abandoned, not closed: endSession() hands the linked graphs back to the memory
+  // manager, and the deallocation actions it runs on the way out are calls into
+  // the add-on's own JIT-mapped memory, which faults on macOS/arm64. The add-on is
+  // still registered with the application here in any case.
+  for(auto& compiler : m_compilers)
+    (void)compiler.release();
 }
 
 void AddonCompiler::on_job(
@@ -33,16 +40,14 @@ void AddonCompiler::on_job(
     // is not necessary anymore and remove it.
     using compiler_t = Driver;
 
-    static std::list<std::unique_ptr<compiler_t>> ctx;
-
     flags.push_back("-DSCORE_JIT_ID=" + id);
 
     qDebug() << "Creating compiler...";
-    ctx.push_back(std::make_unique<compiler_t>("plugin_instance_" + id));
+    m_compilers.push_back(std::make_unique<compiler_t>("plugin_instance_" + id));
 
     qDebug() << "Calling compiler...";
-    auto jitedFn
-        = (*ctx.back()).operator()<score::Plugin_QtInterface*()>(cpp, flags, opts);
+    auto jitedFn = (*m_compilers.back())
+                       .operator()<score::Plugin_QtInterface*()>(cpp, flags, opts);
 
     if(!jitedFn)
     {

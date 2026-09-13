@@ -4,6 +4,9 @@
 
 #include <QThread>
 
+#include <list>
+#include <memory>
+
 #include <score_plugin_jit_export.h>
 
 #include <verdigris>
@@ -17,6 +20,8 @@ class Plugin_QtInterface;
 
 namespace Jit
 {
+struct Driver;
+
 //! Compiles jobs asynchronously
 class AddonCompiler final : public QObject
 {
@@ -36,6 +41,12 @@ public:
 
 private:
   QThread m_thread;
+
+  // One JIT session per add-on compiled during this run. Nothing ever takes back
+  // what a JIT add-on gave the application -- its factories, commands and plug-in
+  // object stay in the component lists -- so its code must stay mapped, and the
+  // sessions are abandoned rather than closed. See ~AddonCompiler().
+  std::list<std::unique_ptr<Driver>> m_compilers;
 };
 
 using FactoryFunction = std::function<void()>;

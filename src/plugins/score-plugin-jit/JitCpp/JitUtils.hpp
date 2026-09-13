@@ -8,6 +8,8 @@
 
 #include <chrono>
 #include <iostream>
+#include <list>
+#include <memory>
 #include <string>
 
 namespace Jit
@@ -27,6 +29,17 @@ struct Exception final : std::runtime_error
 private:
   std::string m_err;
 };
+
+//! Keeps a retired JIT compiler alive for the rest of the process.
+//!
+//! Destroying a Driver ends its ExecutionSession and unmaps the code it compiled,
+//! which nothing ever takes back out of the executor or the component lists.
+inline void parkCompiler(std::shared_ptr<void> compiler)
+{
+  static std::list<std::shared_ptr<void>> parked;
+  if(compiler)
+    parked.push_back(std::move(compiler));
+}
 
 struct Timer
 {
