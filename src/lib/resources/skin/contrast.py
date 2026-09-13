@@ -309,11 +309,12 @@ MIN_DE = 12.0  # the default, for anything that does not state its own
 GROUNDS = {"Background1", "Background2"}
 
 # Roles that mean "this is happening": the play fill, its dash, and the lit
-# state of a toggle. Contrast can be had by going either way, and the repair
-# takes the nearest -- which on a light interval body means darkening the
-# thing that is running. Brighter reads as more active, so these prefer it
-# and only darken when nothing brighter will do.
-PREFER_BRIGHT = {"Base3", "Pulse1", "Base4"}
+# state of a toggle. Contrast can be had by going either way and the repair
+# takes the nearest, which on a light interval body means dimming the thing
+# that is running. These prefer the direction away from the canvas instead --
+# brighter on a dark skin, darker on a light one -- and only go the other way
+# when nothing in the preferred direction will do.
+PREFER_AWAY_FROM_CANVAS = {"Base3", "Pulse1", "Base4"}
 
 # Roles whose hue is the meaning: the severity of a warning, the type of a
 # port or cable, the state of a condition or an interval. Draining one of
@@ -560,7 +561,9 @@ def repair(skin, ref=None, tol=12.0, origin=None):
             continue
         best = None
         j0 = cam16_ucs(cur)[0]
-        bright = role in PREFER_BRIGHT
+        away = role in PREFER_AWAY_FROM_CANVAS
+        canvas_j = cam16_ucs(parse(skin["Background1"]))[0]
+        want_brighter = canvas_j < j0
         guarded = role in SEMANTIC_HUE
         src = parse(origin.get(role, skin[role]))
         for cand in _candidates(cur):
@@ -570,8 +573,9 @@ def repair(skin, ref=None, tol=12.0, origin=None):
             if _keeps_chroma(cand, src, guarded) and _satisfies(cand, cons):
                 # Sorts darker candidates behind brighter ones for the roles
                 # that should read as active, and by distance otherwise.
-                key = (0 if (not bright or cam16_ucs(cand)[0] >= j0) else 1,
-                       delta_e(cand, cur))
+                cj = cam16_ucs(cand)[0]
+                preferred = (cj >= j0) if want_brighter else (cj <= j0)
+                key = (0 if (not away or preferred) else 1, delta_e(cand, cur))
                 if best is None or key < best[0]:
                     best = (key, cand)
         if best is not None:
@@ -606,6 +610,16 @@ def separate(skin, passes=80, origin=None):
                 break
             _d, i, j = worst
             hi, lo = (i, j) if cam16_ucs(cs[i])[0] >= cam16_ucs(cs[j])[0] else (j, i)
+
+            # A role that means "this is happening" goes away from the canvas
+            # whichever side it started on, so the running interval is the one
+            # with more ink on a light skin and more light on a dark one.
+            canvas_j = cam16_ucs(bgc)[0]
+            for idx in (i, j):
+                if roles[idx] in PREFER_AWAY_FROM_CANVAS:
+                    other = j if idx == i else i
+                    hi, lo = (other, idx) if canvas_j > 50.0 else (idx, other)
+                    break
             for idx, k in ((hi, 1.06), (lo, 1 / 1.06)):
                 cur = parse(skin[roles[idx]])
                 nxt = _scale_value(cur, k)

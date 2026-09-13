@@ -311,6 +311,11 @@ private:
   //! Serialises the roles this skin sets, for toJson().
   QJsonObject savePalette() const;
 
+  //! Every colour as the constructor left it, so that load() can reset to it.
+  //! A skin file names only what it changes, and without this the roles it
+  //! leaves out keep the previous skin's values.
+  QVector<QPair<QColor, QString>> m_builtinColours;
+
   struct color_map;
   color_map* initColorMap() noexcept;
   color_map* m_colorMap{};
