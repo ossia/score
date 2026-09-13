@@ -253,6 +253,30 @@ PALETTES = {
         grey="#6f8788", fg_dim="#adc9bc", fg="#f8f9e8",
         red="#f57f82", orange="#f7a182", yellow="#f5d098", green="#cbe3b3",
         aqua="#b3e3ca", blue="#b2caed", purple="#d2bdf3", pink="#f3c0e5"),
+    # chriskempson/tomorrow-theme, Tomorrow Night Bright. A black canvas and
+    # bright accents: the highest-contrast of the set.
+    "TomorrowNightBright": dict(
+        bg_dim="#000000", bg0="#0b0b0b", bg1="#2a2a2a", bg2="#424242", bg3="#545454",
+        fg="#eaeaea", fg_dim="#c5c8c6", grey="#969896",
+        red="#d54e53", orange="#e78c45", yellow="#e7c547", green="#b9ca4a",
+        aqua="#70c0b1", blue="#7aa6da", purple="#c397d8", pink="#d54e53"),
+
+    # The original Monokai. The most saturated palette here by some way, and
+    # the closest to DefaultSkin's own chroma. It has no blue of its own --
+    # the cyan serves for both, and the separation pass spreads the interval
+    # states apart in lightness.
+    "Monokai": dict(
+        bg_dim="#1b1c18", bg0="#272822", bg1="#3e3d32", bg2="#49483e", bg3="#5c5b4f",
+        fg="#f8f8f2", fg_dim="#cfcfc2", grey="#75715e",
+        red="#f92672", orange="#fd971f", yellow="#e6db74", green="#a6e22e",
+        aqua="#66d9ef", blue="#66d9ef", purple="#ae81ff", pink="#f92672"),
+
+    # ayu-theme/ayu-colors, dark. Near-black canvas, vivid accents.
+    "AyuDark": dict(
+        bg_dim="#06080d", bg0="#0b0e14", bg1="#151a23", bg2="#1f2430", bg3="#2d3340",
+        fg="#bfbdb6", fg_dim="#8a9199", grey="#565b66",
+        red="#f07178", orange="#ff8f40", yellow="#e6b450", green="#aad94c",
+        aqua="#95e6cb", blue="#59c2ff", purple="#d2a6ff", pink="#f07178"),
 }
 
 
