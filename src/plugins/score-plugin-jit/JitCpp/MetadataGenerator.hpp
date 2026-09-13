@@ -19,6 +19,9 @@ namespace Jit
 struct AddonData
 {
   QJsonObject addon_info;
+  //! The add-on's CMake target, when it could be determined. The generated headers
+  //! are named after it, not after the folder.
+  QString target;
   std::string unity_cpp;
   // Warning ! if ever changing that to QByteArray, look for mapFile usage as right now the file is read with mmap
   std::vector<std::pair<QString, QString>> files;
@@ -55,6 +58,16 @@ static void loadBasicAddon(const QString& addon, AddonData& data)
 
 static void loadCMakeAddon(const QString& addon, AddonData& data, QString cm)
 {
+  // score_generate_command_list_file() names its output after the target, which the
+  // add-on includes as <${target}_commands_files.hpp>. The Avendish paths below
+  // refine this when they declare a base target of their own.
+  {
+    static const QRegularExpression project_re{
+        R"_(project\s*\(\s*([A-Za-z_][A-Za-z_0-9]*))_"};
+    if(auto m = project_re.match(cm); m.hasMatch())
+      data.target = m.captured(1);
+  }
+
   static const QRegularExpression space{R"_(\s+)_"};
   static const QRegularExpression sourceFiles{
       R"_(add_library\(\s*[[:graph:]]+([a-zA-Z0-9_.\/\n ]*)\))_"};
@@ -157,7 +170,10 @@ static void loadCMakeAddon(const QString& addon, AddonData& data, QString cm)
       {
         ++it;
         if(it != res.end())
+        {
           plug.base_target = *it;
+          data.target = *it;
+        }
       }
       else if(*it == "PLUGIN_VERSION" || *it == "VERSION")
       {

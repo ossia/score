@@ -158,7 +158,7 @@ bool ApplicationPlugin::setupAddon(const QString& addon)
   if(addonFolderName == "Nodes")
     return false;
 
-  auto [json, cpp_files, files, flags] = loadAddon(addon);
+  auto [json, target, cpp_files, files, flags] = loadAddon(addon);
 
   if(cpp_files.empty())
   {
@@ -166,7 +166,11 @@ bool ApplicationPlugin::setupAddon(const QString& addon)
     return false;
   }
 
-  auto addon_files_path = generateAddonFiles(addonFolderName, addon, files);
+  // The generated headers are named after the CMake target, which is how the
+  // add-on's sources include them; the folder name is only a fallback for add-ons
+  // with no CMakeLists to read the target from.
+  auto addon_files_path
+      = generateAddonFiles(!target.isEmpty() ? target : addonFolderName, addon, files);
   flags.push_back("-I" + addon.toStdString());
   flags.push_back("-I" + addon_files_path.toStdString());
 
@@ -190,10 +194,12 @@ bool ApplicationPlugin::setupNode(const QString& f)
     {
       auto node = file.readAll();
 
-      // score's own generic nodes spell it make_uuid("..."); Avendish objects
-      // spell it halp_meta(uuid, "..."). Only the former was recognised, so
-      // --compile-node silently exited on every Avendish header, which is most
-      // of what anyone would want to try it on.
+      // score's generic nodes spell it make_uuid("..."), Avendish objects
+      // halp_meta(uuid, "...").
+      //
+      // Note that nothing downstream compiles yet for either: the TU this builds
+      // refers to Control::score_generic_plugin, which does not exist anywhere in
+      // the tree and has to be written before --compile-node works at all.
       int uuid_decl = node.indexOf("make_uuid");
       int skip = sizeof("make_uuid") - 1;
       if(uuid_decl == -1)
