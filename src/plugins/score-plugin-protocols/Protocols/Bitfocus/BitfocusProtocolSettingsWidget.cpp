@@ -10,7 +10,7 @@
 
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 
-#include <score/model/Skin.hpp>
+#include <score/widgets/ValidationPalette.hpp>
 #include <score/widgets/MarginLess.hpp>
 
 #include <ossia/network/value/value_conversion.hpp>
@@ -98,19 +98,10 @@ static void makeValidator(QLineEdit* widg, QString rx)
 
     QString s = str;
     int i = 0;
-    QPalette palette{qApp->palette()};
-    if(widg->validator()->validate(s, i) == QValidator::State::Acceptable)
-    {
-      // Valid: the application palette, untinted.
-    }
-    else
-    {
-      auto& skin = score::Skin::instance();
-      palette.setColor(QPalette::Base, skin.Warn3.darker.brush.color());
-      palette.setColor(QPalette::Light, skin.Warn3.color());
-      palette.setColor(QPalette::Midlight, skin.Warn3.darker300.brush.color());
-    }
-    widg->setPalette(palette);
+    score::setInputValidity(
+        *widg, widg->validator()->validate(s, i) == QValidator::State::Acceptable
+                   ? score::InputValidity::Valid
+                   : score::InputValidity::Invalid);
   });
 }
 
