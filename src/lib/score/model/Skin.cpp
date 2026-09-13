@@ -2,7 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Skin.hpp"
 
-#include <QSettings>
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/widgets/Pixmap.hpp>
@@ -113,13 +112,6 @@ void onSkinChange(QObject* owner, std::function<void()> f)
 
 QFont::HintingPreference uiFontHinting() noexcept
 {
-  const auto v
-      = QSettings{}.value(QStringLiteral("Skin/FontHinting"), QStringLiteral("Full"))
-            .toString();
-  if(v == "None")
-    return QFont::PreferNoHinting;
-  if(v == "Vertical")
-    return QFont::PreferVerticalHinting;
   return QFont::PreferFullHinting;
 }
 

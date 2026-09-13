@@ -333,8 +333,8 @@ void setSkinIconSize(T* widget, int px)
   onSkinChange(widget, [widget, px] { widget->setIconSize(scaledIcon(px)); });
 }
 
-//! Hinting for the pre-skin font, from the Skin/FontHinting setting. A skin
-//! can set hinting per role, which wins over this.
+//! Hinting for the fonts built before any skin has loaded. A skin sets it per
+//! role, which wins over this.
 SCORE_LIB_BASE_EXPORT QFont::HintingPreference uiFontHinting() noexcept;
 
 //! NoSubpixelAntialias on macOS: QCocoaScreen rewrites Subpixel_None to
