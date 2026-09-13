@@ -79,12 +79,59 @@ struct Node
   struct ins
   {
     halp::dynamic_audio_bus<"in", double> audio;
-    halp::enum_t<LoopMode, "Loop"> mode;
-    quant_selector<"Quantif"> quantif;
-    passthrough_selector passthrough;
-    halp::enum_t<Postaction, "Post-action"> postaction;
-    halp::spinbox_i32<"Bars", halp::irange{0, 64, 4}> postaction_bars;
-    halp::enum_t<Restart, "Restart"> restart;
+
+    struct : halp::enum_t<LoopMode, "Loop">
+    {
+      using halp::enum_t<LoopMode, "Loop">::operator=;
+      halp_meta(
+          description,
+          "What the looper is doing: playing the loop, recording a new one over "
+          "it, overdubbing on top of it, or nothing.")
+    } mode;
+
+    struct : quant_selector<"Quantif">
+    {
+      halp_meta(
+          description,
+          "Waits for the next point of this grid before changing mode, so a "
+          "loop starts and ends in time. Whole is a bar. None changes at once.")
+    } quantif;
+
+    struct : passthrough_selector
+    {
+      using passthrough_selector::operator=;
+      halp_meta(
+          description,
+          "Whether the input is heard as well as the loop. Record passthrough "
+          "is heard only while recording or overdubbing; Full is heard always.")
+    } passthrough;
+
+    struct : halp::enum_t<Postaction, "Post-action">
+    {
+      using halp::enum_t<Postaction, "Post-action">::operator=;
+      halp_meta(
+          description,
+          "What recording gives way to once it has run for Bars bars, without "
+          "the mode being touched.")
+    } postaction;
+
+    struct : halp::spinbox_i32<"Bars", halp::irange{0, 64, 4}>
+    {
+      halp_meta(
+          description,
+          "How long a recording runs before the post-action takes over, and so "
+          "how long the loop it leaves is. Zero leaves recording to be ended by "
+          "hand, and the loop is then as long as it was played for.")
+    } postaction_bars;
+
+    struct : halp::enum_t<Restart, "Restart"> {
+      using halp::enum_t<Restart, "Restart">::operator=;
+      halp_meta(
+          description,
+          "Where the loop is read from when the mode changes. Always reads it "
+          "from the beginning again; Recording lets playing and overdubbing "
+          "carry on from where they were.")
+    } restart;
   } inputs;
   struct
   {
