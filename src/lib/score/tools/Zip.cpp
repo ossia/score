@@ -239,9 +239,21 @@ bool extractZipArchive(
   const auto mkpath = [&](const QString& dir) {
     if(QDir{dir}.exists())
       return true;
+    // mkpath makes every missing level in one go, so note each of them:
+    // recording only the deepest leaves the rest of the chain -- and the
+    // destination itself, which is then no longer empty -- behind on rollback.
+    std::vector<QString> missing;
+    for(QString p = QDir{dir}.absolutePath(); !p.isEmpty() && !QDir{p}.exists();)
+    {
+      missing.push_back(p);
+      const QString up = QFileInfo{p}.absolutePath();
+      if(up == p)
+        break;
+      p = up;
+    }
     if(!QDir{}.mkpath(dir))
       return false;
-    createdDirs.push_back(dir);
+    createdDirs.insert(createdDirs.end(), missing.rbegin(), missing.rend());
     return true;
   };
   const auto abort = [&](QString why) {
