@@ -39,6 +39,7 @@ Makefile
 # temporary files
 *~
 *.o
+*.dwo
 
 # Eclipse
 .cproject
