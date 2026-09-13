@@ -2202,7 +2202,15 @@ bool PipewireOutputDevice::reconnect()
 //! up bare in a patchbay.
 static const QString kUnconnected = QStringLiteral("\x01unconnected");
 
-//! The Video/Sink nodes the daemon is publishing, as (node.name, label).
+//! Anything that takes video out of the graph: a sink device, or an
+//! application consuming a stream.
+static bool consumesVideo(const std::string& media_class) noexcept
+{
+  return media_class.find("Video/Sink") != std::string::npos
+         || media_class.find("Stream/Input/Video") != std::string::npos;
+}
+
+//! The video-consuming nodes the daemon is publishing, as (node.name, label).
 static std::vector<std::pair<QString, QString>> liveVideoSinks()
 {
   std::vector<std::pair<QString, QString>> out;
@@ -2213,7 +2221,7 @@ static std::vector<std::pair<QString, QString>> liveVideoSinks()
   for(const auto& node :
       shared->snapshot().nodes_of(libremidi::pipewire::media_class::video))
   {
-    if(node.media_class_str.find("Sink") == std::string::npos)
+    if(!consumesVideo(node.media_class_str))
       continue;
     const QString name = QString::fromStdString(node.name);
     if(name.isEmpty())
