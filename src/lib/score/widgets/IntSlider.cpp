@@ -35,27 +35,34 @@ IntSlider::IntSlider(Qt::Orientation ort, QWidget* widg)
       &IntSlider::updateSkinMetrics);
 }
 
+int IntSlider::skinExtent() const noexcept
+{
+  // One line of text, its border on both sides, and a pixel of air.
+  return QFontMetrics{score::Skin::instance().SliderFont}.height()
+         + 2 * qRound(m_borderWidth) + 2;
+}
+
 void IntSlider::updateSkinMetrics()
 {
   auto& skin = score::Skin::instance();
   m_borderWidth = skin.SliderPen.width();
 
-  // One line of text, its border on both sides, and a pixel of air.
-  const int line
-      = QFontMetrics{skin.SliderFont}.height() + 2 * qRound(m_borderWidth) + 2;
+  update();
+
+  // Only ever take back a minimum this class imposed. A caller that pinned
+  // the control with setFixedSize has decided its size, and setting a smaller
+  // minimum under it would collapse it to that minimum, since a plain QWidget
+  // has no size hint of its own for the layout to fall back on.
+  if(m_skinMinimum.isValid() && minimumSize() != m_skinMinimum)
+    return;
+
+  const int line = skinExtent();
   const int span = score::scaledPixels(30);
 
-  switch(m_orientation)
-  {
-    case Qt::Vertical:
-      setMinimumSize(line, span);
-      break;
-    case Qt::Horizontal:
-      setMinimumSize(span, line);
-      break;
-  }
+  m_skinMinimum
+      = m_orientation == Qt::Vertical ? QSize{line, span} : QSize{span, line};
+  setMinimumSize(m_skinMinimum);
   updateGeometry();
-  update();
 }
 
 IntSlider::IntSlider(QWidget* widg)

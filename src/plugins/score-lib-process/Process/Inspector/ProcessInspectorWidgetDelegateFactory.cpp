@@ -97,10 +97,9 @@ public:
               ? QStringLiteral("Process (%1)").arg(proc_name)
               : QStringLiteral("Process (%1: %2)").arg(type_name, proc_name);
     auto label = new TextLabel{label_text, this};
-    auto f = label->font();
-    f.setBold(true);
-    f.setPixelSize(12); // See InspectorWidgetBase
-    label->setFont(f);
+    score::onSkinChange(label, [label] {
+      label->setFont(score::Skin::instance().SectionTitleFont);
+    });
     lay->addWidget(label);
 
     QWidget* loop_w{};

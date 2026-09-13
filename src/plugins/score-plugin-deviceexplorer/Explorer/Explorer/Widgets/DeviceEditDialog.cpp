@@ -237,10 +237,7 @@ DeviceEditDialog::DeviceEditDialog(
 
 static void setCategoryStyle(QTreeWidgetItem* catItem)
 {
-  auto font = catItem->font(0);
-  font.setPixelSize(13);
-  font.setBold(true);
-  catItem->setFont(0, font);
+  catItem->setFont(0, score::Skin::instance().SectionTitleFont);
   catItem->setExpanded(true);
 }
 DeviceEditDialog::~DeviceEditDialog()

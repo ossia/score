@@ -13,6 +13,7 @@
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
+#include <score/widgets/ApplicationStyle.hpp>
 #include <score/widgets/Pixmap.hpp>
 
 #include <core/application/ApplicationRegistrar.hpp>
@@ -142,7 +143,7 @@ static void setQApplicationSettings(QApplication& m_app)
   // Sadly Qt asserts so wh have to simulate the loading of a plugin (see above).
   // For older Qts we won't be debugging anyways and will be linking against distro Qt versions so we just set the style
   // manually
-  m_app.setStyle(new PhantomStyle);
+  m_app.setStyle(new score::ApplicationStyle{new PhantomStyle});
 
   auto pal = qApp->palette();
   pal.setBrush(QPalette::Window, QColor("#222222"));        //#1A2024"));

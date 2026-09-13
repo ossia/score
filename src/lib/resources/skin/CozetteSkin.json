@@ -272,6 +272,11 @@
    "pixelSize": 13,
    "bold": false
   },
+  "sectionTitle": {
+   "family": "Cozette",
+   "pixelSize": 13,
+   "bold": false
+  },
   "slider": {
    "family": "Cozette",
    "pixelSize": 13

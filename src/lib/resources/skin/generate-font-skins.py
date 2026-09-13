@@ -19,6 +19,7 @@ Run from this directory:  python3 generate-font-skins.py
 Then add any new file to ../score.qrc.
 """
 
+import glob
 import json
 import os
 
@@ -32,8 +33,37 @@ PALETTE = {k: v for k, v in DEFAULT.items() if not k.startswith("_") and k != "f
 ROLES = [
     "application", "sans", "sansSmall", "mono", "monoSmall",
     "bold10", "bold12", "medium7", "medium8", "medium10", "medium12",
-    "title", "slider", "code", "timecode",
+    "title", "sectionTitle", "slider", "code", "timecode",
 ]
+
+
+# The design grid of every pixel font score ships, mirroring pixelFontGrid()
+# in Skin.cpp. A size that is not a whole multiple of these puts the glyph
+# outlines between pixels, and every stem comes out a different width.
+GRIDS = {
+    "Galmuri7": 8, "Galmuri9": 10, "Galmuri11": 12, "Galmuri14": 15,
+    "GalmuriMono7": 8, "GalmuriMono9": 10, "GalmuriMono11": 12,
+    "Departure Mono": 11, "Cozette": 13, "CozetteVector": 13,
+    "Ark Pixel 10px Prop latin": 10, "Ark Pixel 12px Prop latin": 12,
+    "Ark Pixel 16px Prop latin": 16,
+}
+
+
+def check(stem, fonts):
+    """Refuses to write a skin that would render with uneven stems."""
+    for role, spec in fonts.items():
+        family, px = spec.get("family"), spec.get("pixelSize")
+        grid = GRIDS.get(family)
+        if grid and px % grid:
+            raise SystemExit(
+                f"{stem}: {role} asks for {family} at {px} px, "
+                f"which is not a multiple of its {grid} px grid"
+            )
+        if grid and family not in HAS_BOLD_FACE and spec.get("bold"):
+            raise SystemExit(
+                f"{stem}: {role} asks for bold {family}, which has no bold "
+                f"face, so Qt would smear the glyphs"
+            )
 
 
 # Families that actually ship a Bold face. Asking for bold on any other one
@@ -78,6 +108,10 @@ def graded(name, small, body, large, mono, mono_small, scale):
         "medium12": {"family": body[0], "pixelSize": b},
         # Hierarchy comes from the larger grid size, not from a faked weight.
         "title": emphasis(large[0], l),
+        # An inspector heading. One grid step above the body, like the panel
+        # banner: with several hand-drawn sizes to choose from, that reads as
+        # a heading without anything having to be faked.
+        "sectionTitle": emphasis(large[0], l),
         "slider": {"family": small[0], "pixelSize": s},
         # Code wants the monospaced face at the body size.
         "code": {"family": mono[0], "pixelSize": mono[1] * scale, "fixedPitch": True},
@@ -110,6 +144,11 @@ def uniform(family, grid, scale, big_title=True):
     fonts["bold10"] = emphasis(family, px)
     fonts["bold12"] = emphasis(family, large)
     fonts["title"] = emphasis(family, large)
+    # Not doubled, unlike the panel banner: this heading sits over every
+    # inspector page, and with only one grid to work with the alternative to
+    # the body size is twice it, which reads as a title bar rather than a
+    # heading. It takes the family's real bold instead, where there is one.
+    fonts["sectionTitle"] = emphasis(family, px)
     fonts["timecode"] = emphasis(family, px)
     return fonts
 
@@ -190,13 +229,14 @@ SKINS.append((
 for scale, suffix in ((1, ""),):
     f = graded("Galmuri11", ("Galmuri11", 12), ("Galmuri11", 12), ("Galmuri11", 12),
                ("GalmuriMono11", 12), ("GalmuriMono11", 12), scale)
-    for role in ("bold10", "bold12", "title"):
+    for role in ("bold10", "bold12", "title", "sectionTitle"):
         f[role]["styleName"] = "Bold"
     f["sansSmall"]["styleName"] = "Condensed"
     SKINS.append((f"Galmuri11Faces{suffix}", f))
 
 
 def write(stem, fonts):
+    check(stem, fonts)
     doc = dict(PALETTE)
     sizes = sorted({spec["pixelSize"] for spec in fonts.values()})
     doc["_comment"] = (
@@ -218,3 +258,13 @@ if __name__ == "__main__":
         path, sizes = write(stem, fonts)
         print(f"{os.path.basename(path):<34} sizes {sizes}")
     print(f"\n{len(SKINS)} skins written. Add them to ../score.qrc.")
+
+    # The hand-written and derived skins are subject to the same rule.
+    for other in sorted(glob.glob(os.path.join(HERE, "*Skin.json"))):
+        stem = os.path.basename(other)[:-len("Skin.json")]
+        if stem in {s for s, _ in SKINS}:
+            continue
+        with open(other) as fp:
+            fonts = json.load(fp).get("fonts", {})
+        check(stem, {r: s for r, s in fonts.items() if isinstance(s, dict)})
+    print("Every skin on file uses its pixel fonts at grid multiples.")
