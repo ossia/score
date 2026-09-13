@@ -41,6 +41,19 @@
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::Skin)
 
+//! The colour roles, in one place: the colour map, load() and getColors()
+//! must agree or a role silently stops being loaded, reset or saved.
+#define SCORE_FOR_EACH_SKIN_COLOR(X) \
+  X(Dark) X(HalfDark) X(DarkGray) X(Gray) X(LightGray) X(HalfLight) \
+  X(Light) X(Emphasis1) X(Emphasis2) X(Emphasis3) X(Emphasis4) X(Emphasis5) \
+  X(Base1) X(Base2) X(Base3) X(Base4) X(Base5) X(Warn1) \
+  X(Warn2) X(Warn3) X(Background1) X(Background2) X(Transparent1) X(Transparent2) \
+  X(Transparent3) X(Smooth1) X(Smooth2) X(Smooth3) X(Tender1) X(Tender2) \
+  X(Tender3) X(Cable1) X(Cable2) X(Cable3) X(Cable4) X(Cable5) \
+  X(SelectedCable1) X(SelectedCable2) X(SelectedCable3) X(SelectedCable4) X(SelectedCable5) X(Port1) \
+  X(Port2) X(Port3) X(Port4) X(Port5) X(Pulse1) X(Pulse2) \
+  X(Waveform1) X(Waveform2)
+
 #define SCORE_INSERT_COLOR(Col) \
   {                             \
     #Col, &Col                  \
@@ -644,33 +657,11 @@ Skin::Skin(Skin::NoGUI)
 
 Skin::color_map* Skin::initColorMap() noexcept
 {
-  return new Skin::color_map{
-      SCORE_INSERT_COLOR(Dark),           SCORE_INSERT_COLOR(HalfDark),
-      SCORE_INSERT_COLOR(DarkGray),       SCORE_INSERT_COLOR(Gray),
-      SCORE_INSERT_COLOR(LightGray),      SCORE_INSERT_COLOR(HalfLight),
-      SCORE_INSERT_COLOR(Light),          SCORE_INSERT_COLOR(Emphasis1),
-      SCORE_INSERT_COLOR(Emphasis2),      SCORE_INSERT_COLOR(Emphasis3),
-      SCORE_INSERT_COLOR(Emphasis4),      SCORE_INSERT_COLOR(Emphasis5),
-      SCORE_INSERT_COLOR(Base1),          SCORE_INSERT_COLOR(Base2),
-      SCORE_INSERT_COLOR(Base3),          SCORE_INSERT_COLOR(Base4),
-      SCORE_INSERT_COLOR(Base5),          SCORE_INSERT_COLOR(Warn1),
-      SCORE_INSERT_COLOR(Warn2),          SCORE_INSERT_COLOR(Warn3),
-      SCORE_INSERT_COLOR(Background1),    SCORE_INSERT_COLOR(Background2),
-      SCORE_INSERT_COLOR(Transparent1),   SCORE_INSERT_COLOR(Transparent2),
-      SCORE_INSERT_COLOR(Transparent3),   SCORE_INSERT_COLOR(Smooth1),
-      SCORE_INSERT_COLOR(Smooth2),        SCORE_INSERT_COLOR(Smooth3),
-      SCORE_INSERT_COLOR(Tender1),        SCORE_INSERT_COLOR(Tender2),
-      SCORE_INSERT_COLOR(Tender3),        SCORE_INSERT_COLOR(Cable1),
-      SCORE_INSERT_COLOR(Cable2),         SCORE_INSERT_COLOR(Cable3),
-      SCORE_INSERT_COLOR(SelectedCable1), SCORE_INSERT_COLOR(SelectedCable2),
-      SCORE_INSERT_COLOR(SelectedCable3), SCORE_INSERT_COLOR(Port1),
-      SCORE_INSERT_COLOR(Port2),          SCORE_INSERT_COLOR(Port3),
-      SCORE_INSERT_COLOR(Port4),          SCORE_INSERT_COLOR(Port5),
-      SCORE_INSERT_COLOR(Cable4),         SCORE_INSERT_COLOR(Cable5),
-      SCORE_INSERT_COLOR(SelectedCable4), SCORE_INSERT_COLOR(SelectedCable5),
-      SCORE_INSERT_COLOR(Waveform1),      SCORE_INSERT_COLOR(Waveform2),
-      SCORE_INSERT_COLOR(Pulse1),         SCORE_INSERT_COLOR(Pulse2)};
+#define X(Col) SCORE_INSERT_COLOR(Col),
+  return new Skin::color_map{SCORE_FOR_EACH_SKIN_COLOR(X)};
+#undef X
 }
+
 
 static bool& skinBuilt() noexcept
 {
@@ -692,11 +683,6 @@ Skin& score::Skin::instance() noexcept
   return *s;
 }
 
-#define SCORE_CONVERT_COLOR(Col) \
-  do                             \
-  {                              \
-    fromColor(#Col, Col);        \
-  } while(0)
 void Skin::load(const QJsonObject& obj, int parts)
 {
   if(parts & Fonts)
@@ -734,65 +720,9 @@ void Skin::load(const QJsonObject& obj, int parts)
       col = QColor(arr[0].toInt(), arr[1].toInt(), arr[2].toInt(), arr[3].toInt());
   };
 
-  SCORE_CONVERT_COLOR(Dark);
-  SCORE_CONVERT_COLOR(HalfDark);
-  SCORE_CONVERT_COLOR(DarkGray);
-  SCORE_CONVERT_COLOR(Gray);
-  SCORE_CONVERT_COLOR(LightGray);
-  SCORE_CONVERT_COLOR(HalfLight);
-  SCORE_CONVERT_COLOR(Light);
-
-  SCORE_CONVERT_COLOR(Emphasis1);
-  SCORE_CONVERT_COLOR(Emphasis2);
-  SCORE_CONVERT_COLOR(Emphasis3);
-  SCORE_CONVERT_COLOR(Emphasis4);
-  SCORE_CONVERT_COLOR(Emphasis5);
-
-  SCORE_CONVERT_COLOR(Base1);
-  SCORE_CONVERT_COLOR(Base2);
-  SCORE_CONVERT_COLOR(Base3);
-  SCORE_CONVERT_COLOR(Base4);
-  SCORE_CONVERT_COLOR(Base5);
-
-  SCORE_CONVERT_COLOR(Warn1);
-  SCORE_CONVERT_COLOR(Warn2);
-  SCORE_CONVERT_COLOR(Warn3);
-
-  SCORE_CONVERT_COLOR(Background1);
-  SCORE_CONVERT_COLOR(Background2);
-
-  SCORE_CONVERT_COLOR(Transparent1);
-  SCORE_CONVERT_COLOR(Transparent2);
-  SCORE_CONVERT_COLOR(Transparent3);
-
-  SCORE_CONVERT_COLOR(Smooth1);
-  SCORE_CONVERT_COLOR(Smooth2);
-  SCORE_CONVERT_COLOR(Smooth3);
-
-  SCORE_CONVERT_COLOR(Tender1);
-  SCORE_CONVERT_COLOR(Tender2);
-  SCORE_CONVERT_COLOR(Tender3);
-
-  SCORE_CONVERT_COLOR(Cable1);
-  SCORE_CONVERT_COLOR(Cable2);
-  SCORE_CONVERT_COLOR(Cable3);
-  SCORE_CONVERT_COLOR(Cable4);
-  SCORE_CONVERT_COLOR(Cable5);
-  SCORE_CONVERT_COLOR(SelectedCable1);
-  SCORE_CONVERT_COLOR(SelectedCable2);
-  SCORE_CONVERT_COLOR(SelectedCable3);
-  SCORE_CONVERT_COLOR(SelectedCable4);
-  SCORE_CONVERT_COLOR(SelectedCable5);
-  SCORE_CONVERT_COLOR(Port1);
-  SCORE_CONVERT_COLOR(Port2);
-  SCORE_CONVERT_COLOR(Port3);
-  SCORE_CONVERT_COLOR(Port4);
-  SCORE_CONVERT_COLOR(Port5);
-
-  SCORE_CONVERT_COLOR(Pulse1);
-  SCORE_CONVERT_COLOR(Pulse2);
-  SCORE_CONVERT_COLOR(Waveform1);
-  SCORE_CONVERT_COLOR(Waveform2);
+#define X(Col) fromColor(#Col, Col);
+  SCORE_FOR_EACH_SKIN_COLOR(X)
+#undef X
 
   // make the "lighter" of black more light.
   {
@@ -956,63 +886,25 @@ QJsonObject Skin::toJson() const
   QJsonObject obj;
   for(auto& col : getColors())
   {
-    obj.insert(
-        col.second, QJsonArray{col.first.red(), col.first.green(), col.first.blue()});
+    const QColor& c = col.first;
+    QJsonArray a{c.red(), c.green(), c.blue()};
+    if(c.alpha() != 255)
+      a.push_back(c.alpha());
+    obj.insert(col.second, a);
   }
   obj["fonts"] = saveFonts();
   obj["palette"] = savePalette();
   return obj;
 }
 
-#define SCORE_MAKE_PAIR_COLOR(Col) \
-  vec.push_back(qMakePair(Col.color(), QStringLiteral(#Col)));
 QVector<QPair<QColor, QString>> Skin::getColors() const
 {
   QVector<QPair<QColor, QString>> vec;
-  vec.reserve(27);
+  vec.reserve(50);
 
-  SCORE_MAKE_PAIR_COLOR(Dark);
-  SCORE_MAKE_PAIR_COLOR(HalfDark);
-  SCORE_MAKE_PAIR_COLOR(DarkGray);
-  SCORE_MAKE_PAIR_COLOR(Gray);
-  SCORE_MAKE_PAIR_COLOR(LightGray);
-  SCORE_MAKE_PAIR_COLOR(HalfLight);
-  SCORE_MAKE_PAIR_COLOR(Light);
-  SCORE_MAKE_PAIR_COLOR(Emphasis1);
-  SCORE_MAKE_PAIR_COLOR(Emphasis2);
-  SCORE_MAKE_PAIR_COLOR(Emphasis3);
-  SCORE_MAKE_PAIR_COLOR(Emphasis4);
-  SCORE_MAKE_PAIR_COLOR(Emphasis5);
-  SCORE_MAKE_PAIR_COLOR(Base1);
-  SCORE_MAKE_PAIR_COLOR(Base2);
-  SCORE_MAKE_PAIR_COLOR(Base3);
-  SCORE_MAKE_PAIR_COLOR(Base4);
-  SCORE_MAKE_PAIR_COLOR(Base5);
-  SCORE_MAKE_PAIR_COLOR(Warn1);
-  SCORE_MAKE_PAIR_COLOR(Warn2);
-  SCORE_MAKE_PAIR_COLOR(Warn3);
-  SCORE_MAKE_PAIR_COLOR(Background1);
-  SCORE_MAKE_PAIR_COLOR(Background2);
-  SCORE_MAKE_PAIR_COLOR(Transparent1);
-  SCORE_MAKE_PAIR_COLOR(Transparent2);
-  SCORE_MAKE_PAIR_COLOR(Transparent3);
-  SCORE_MAKE_PAIR_COLOR(Smooth1);
-  SCORE_MAKE_PAIR_COLOR(Smooth2);
-  SCORE_MAKE_PAIR_COLOR(Smooth3);
-  SCORE_MAKE_PAIR_COLOR(Tender1);
-  SCORE_MAKE_PAIR_COLOR(Tender2);
-  SCORE_MAKE_PAIR_COLOR(Tender3);
-  SCORE_MAKE_PAIR_COLOR(Cable1);
-  SCORE_MAKE_PAIR_COLOR(Cable2);
-  SCORE_MAKE_PAIR_COLOR(Cable3);
-  SCORE_MAKE_PAIR_COLOR(SelectedCable1);
-  SCORE_MAKE_PAIR_COLOR(SelectedCable2);
-  SCORE_MAKE_PAIR_COLOR(SelectedCable3);
-  SCORE_MAKE_PAIR_COLOR(Port1);
-  SCORE_MAKE_PAIR_COLOR(Port2);
-  SCORE_MAKE_PAIR_COLOR(Port3);
-  SCORE_MAKE_PAIR_COLOR(Pulse1);
-  SCORE_MAKE_PAIR_COLOR(Pulse2);
+#define X(Col) vec.push_back(qMakePair(Col.color(), QStringLiteral(#Col)));
+  SCORE_FOR_EACH_SKIN_COLOR(X)
+#undef X
 
   return vec;
 }
@@ -1327,6 +1219,4 @@ void BrushSet::setupPens()
 }
 
 #undef SCORE_INSERT_COLOR
-#undef SCORE_CONVERT_COLOR
-#undef SCORE_MAKE_PAIR_COLOR
 }

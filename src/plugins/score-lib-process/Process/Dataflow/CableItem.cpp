@@ -155,9 +155,9 @@ void CableItem::setPen(QPainter& painter, const Process::Style& style)
         case Process::PortType::Midi:
           return style.skin.Cable3.main;
         case Process::PortType::Texture:
-          return style.skin.LightGray.main;
+          return style.skin.Cable4.main;
         case Process::PortType::Geometry:
-          return style.skin.Emphasis3.main;
+          return style.skin.Cable5.main;
           break;
       }
     }
@@ -172,9 +172,9 @@ void CableItem::setPen(QPainter& painter, const Process::Style& style)
         case Process::PortType::Midi:
           return style.skin.SelectedCable3.lighter;
         case Process::PortType::Texture:
-          return style.skin.LightGray.lighter; // FIXME also selected color for those
+          return style.skin.SelectedCable4.lighter;
         case Process::PortType::Geometry:
-          return style.skin.Emphasis3.lighter;
+          return style.skin.SelectedCable5.lighter;
           break;
       }
     }
