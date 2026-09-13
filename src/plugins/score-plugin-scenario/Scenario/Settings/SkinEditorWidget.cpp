@@ -23,6 +23,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QPlainTextEdit>
 #include <QPushButton>
 #include <QSettings>
 #include <QRegularExpression>
@@ -352,19 +353,28 @@ QWidget* SkinEditorWidget::makeFontEditor()
       tr("How glyphs are snapped to the pixel grid. Full gives the crispest "
          "stems at small sizes; Vertical keeps the designed letter spacing; "
          "None leaves the outline unhinted."));
-  m_fontPreview = new QLabel;
-  m_fontPreview->setMinimumHeight(44);
-  m_fontPreview->setWordWrap(true);
+  // Editable, so you can type your own text and judge it, and on its own
+  // dark ground rather than floating next to a form label.
+  m_fontPreview = new QPlainTextEdit;
+  m_fontPreview->setPlainText(
+      QStringLiteral("Interval 3 - gain -6.0 dB\nAaBbCc 0123456789"));
+  m_fontPreview->setMinimumHeight(64);
+  m_fontPreview->setLineWrapMode(QPlainTextEdit::NoWrap);
+  m_fontPreview->setStyleSheet(
+      QStringLiteral("QPlainTextEdit { background: #131313; color: #d0d0d0;"
+                     " border: 1px solid #3d3d3d; }"));
+
   m_fontHint = new QLabel;
   m_fontHint->setWordWrap(true);
 
   form->addRow(tr("Family"), m_fontFamily);
   form->addRow(tr("Style"), m_fontStyle);
   form->addRow(tr("Size"), m_fontSize);
+  // Right under the size, since it is about which sizes are worth picking.
+  form->addRow(QString{}, m_fontHint);
   form->addRow(tr("Hinting"), m_fontHinting);
   form->addRow(QString{}, m_fontAntialias);
   form->addRow(tr("Preview"), m_fontPreview);
-  form->addRow(QString{}, m_fontHint);
 
   connect(m_fontList, &QListWidget::currentRowChanged, this, [this](int) {
     loadFontRole();
@@ -518,9 +528,8 @@ void SkinEditorWidget::refreshFontPreview()
   if(!f)
     return;
 
+  // Font only: the text is the user's to edit.
   m_fontPreview->setFont(*f);
-  m_fontPreview->setText(
-      QStringLiteral("Interval 3 - gain -6.0 dB\nAaBbCc 0123456789"));
 
   // A pixel font is only sharp at whole multiples of its design grid, so say
   // which sizes those are rather than leaving it to be discovered by squinting.

@@ -281,6 +281,11 @@
    "pixelSize": 13,
    "fixedPitch": true,
    "hinting": "Vertical"
+  },
+  "timecode": {
+   "family": "Ubuntu",
+   "pixelSize": 24,
+   "weight": 600
   }
  }
 }

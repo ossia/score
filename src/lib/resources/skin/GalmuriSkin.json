@@ -281,6 +281,12 @@
    "family": "GalmuriMono11",
    "pixelSize": 12,
    "fixedPitch": true
+  },
+  "timecode": {
+   "family": "Galmuri11",
+   "pixelSize": 12,
+   "styleName": "Bold",
+   "bold": true
   }
  }
 }

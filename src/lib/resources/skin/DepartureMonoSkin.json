@@ -279,6 +279,11 @@
   "code": {
    "family": "Departure Mono",
    "pixelSize": 11
+  },
+  "timecode": {
+   "family": "Departure Mono",
+   "pixelSize": 11,
+   "bold": false
   }
  }
 }

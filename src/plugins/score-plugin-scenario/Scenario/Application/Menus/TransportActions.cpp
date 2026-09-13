@@ -11,6 +11,7 @@
 #include <score/actions/Menu.hpp>
 #include <score/actions/MenuManager.hpp>
 #include <score/widgets/HelpInteraction.hpp>
+#include <score/model/Skin.hpp>
 #include <score/widgets/SetIcons.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
@@ -154,18 +155,32 @@ void TransportActions::makeGUIElements(score::GUIElements& ref)
         {
           setObjectName("TimeLabel");
           setTextFormat(Qt::PlainText);
-          QFont time_font("Ubuntu", 18, QFont::Weight::DemiBold);
-          setFont(time_font);
           setAlignment(Qt::AlignRight);
+          setText("00:00:00.000");
 
-          QFontMetrics mf{time_font};
+          // From the skin's "timecode" role rather than a hardcoded
+          // QFont("Ubuntu", 18, DemiBold): this is the largest text in the
+          // UI, so a pixel-font skin needs it on its own grid.
+          applySkinFont();
+          QObject::connect(
+              &score::Skin::instance(), &score::Skin::changed, this,
+              [this] { applySkinFont(); });
+        }
+
+        //! The size is cached to avoid constant relayout, so a font change
+        //! has to re-measure as well as re-apply.
+        void applySkinFont()
+        {
+          const QFont& f = score::Skin::instance().TimecodeFont;
+          setFont(f);
+
+          QFontMetrics mf{f};
           sz = mf.boundingRect("0000:00:00.000").size();
 
-          // Necessary to avoid constant relayout,
           // see QWidgetPrivate::updateGeometry_helper
           setMinimumSize(sz);
           setMaximumSize(sz);
-          setText("00:00:00.000");
+          updateGeometry();
         }
 
         QSize sizeHint() const override { return sz; }

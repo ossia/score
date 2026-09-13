@@ -279,6 +279,11 @@
   "code": {
    "family": "Cozette",
    "pixelSize": 13
+  },
+  "timecode": {
+   "family": "Cozette",
+   "pixelSize": 13,
+   "bold": false
   }
  }
 }

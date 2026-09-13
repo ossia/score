@@ -280,6 +280,11 @@
    "family": "GalmuriMono7",
    "pixelSize": 8,
    "fixedPitch": true
+  },
+  "timecode": {
+   "family": "GalmuriMono7",
+   "pixelSize": 8,
+   "bold": false
   }
  }
 }

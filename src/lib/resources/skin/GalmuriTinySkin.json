@@ -282,6 +282,11 @@
    "family": "GalmuriMono9",
    "pixelSize": 10,
    "fixedPitch": true
+  },
+  "timecode": {
+   "family": "Galmuri9",
+   "pixelSize": 10,
+   "bold": false
   }
  }
 }
