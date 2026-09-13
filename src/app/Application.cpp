@@ -651,6 +651,13 @@ void Application::initDocuments()
     // Custom UI mode always expects a new document
     openNewDocument();
   }
+  else if(appSettings.hasScript)
+  {
+    // A script runs against the document it is given. Whatever the mode, and
+    // whether or not a file was named, there has to be one: openNewDocument()
+    // keeps the loaded one if it is already there.
+    openNewDocument();
+  }
   else
   {
     if(!m_startScreen)

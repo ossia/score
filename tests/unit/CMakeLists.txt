@@ -268,6 +268,11 @@ score_add_test(test_unit_state_serialization
   PLUGINS score_lib_state)
 
 # Port / Cable / ProcessModel object graph + DataStream & JSON round-trips.
+# What the command line means, for the flags that decide whether a dialog can
+# appear before a script gets its document.
+score_add_test(test_unit_application_settings
+  SOURCES ApplicationSettingsTest.cpp)
+
 score_add_test(test_unit_process_model
   SOURCES ProcessModelTest.cpp
   PLUGINS score_lib_process score_lib_state score_lib_device)
