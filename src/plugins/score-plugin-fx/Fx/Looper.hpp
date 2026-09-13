@@ -456,27 +456,30 @@ struct Node
 
   void action(int64_t start, int64_t length, Passthrough pt)
   {
-    const bool echo = pt != Passthrough::None;
+    // Record passthrough is what its name says: the input while something is
+    // being taken in, and nothing else. Only Full is heard the rest of the time.
+    const bool echo_while_taking_in = pt != Passthrough::None;
+    const bool echo_otherwise = pt == Passthrough::Full;
     switch(state.actualMode)
     {
       case LoopMode::Play:
         if(state.channels() == 0 || state.audio[0].size() == 0)
-          echo ? stop(start, length) : silence(start, length);
+          echo_otherwise ? stop(start, length) : silence(start, length);
         else
         {
           play(start, length);
-          if(pt == Passthrough::Full)
+          if(echo_otherwise)
             mix_input(start, length);
         }
         break;
       case LoopMode::Stop:
-        echo ? stop(start, length) : silence(start, length);
+        echo_otherwise ? stop(start, length) : silence(start, length);
         break;
       case LoopMode::Record:
-        echo ? record(start, length) : record_noecho(start, length);
+        echo_while_taking_in ? record(start, length) : record_noecho(start, length);
         break;
       case LoopMode::Overdub:
-        echo ? overdub(start, length) : overdub_noecho(start, length);
+        echo_while_taking_in ? overdub(start, length) : overdub_noecho(start, length);
         break;
     }
   }

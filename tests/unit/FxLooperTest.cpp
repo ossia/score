@@ -103,9 +103,11 @@ struct looper_harness
 };
 }
 
-TEST_CASE("Looper: stopped, the input passes through untouched", "[fx][audio][looper]")
+TEST_CASE("Looper: stopped with full passthrough, the input passes through untouched",
+          "[fx][audio][looper]")
 {
   looper_harness h;
+  h.node.inputs.passthrough = Passthrough::Full;
   h.node.inputs.mode = LoopMode::Stop;
   h.fill_input(0, [](int64_t i) { return double(i + 1); });
 
@@ -141,6 +143,7 @@ TEST_CASE("Looper: record then play repeats the recorded material", "[fx][audio]
 TEST_CASE("Looper: a tick starting mid-buffer writes its own span", "[fx][audio][looper]")
 {
   looper_harness h;
+  h.node.inputs.passthrough = Passthrough::Full;
   h.node.inputs.mode = LoopMode::Stop;
   h.fill_input(0, [](int64_t i) { return double(i + 1); });
 
@@ -405,6 +408,7 @@ TEST_CASE("Looper: the first buffer, with nothing recorded, is a passthrough",
           "[fx][audio][looper]")
 {
   looper_harness h;
+  h.node.inputs.passthrough = Passthrough::Full;
   h.node.inputs.quantif.value = 0.25f; // the shipped default
   h.fill_input(0, [](int64_t i) { return double(i + 1); });
 
@@ -659,4 +663,50 @@ TEST_CASE("Looper: a post-action recording is trimmed to the bars it was given",
   h.run_bars(4); // twice what it was given: the post-action stops it at two
 
   CHECK(h.loop().size() == Approx(2. * h.bar_samples()).margin(h.buffer_size));
+}
+
+TEST_CASE("Looper: record passthrough is heard only while taking something in",
+          "[fx][audio][looper]")
+{
+  // "Record passthrough" is the input while recording or overdubbing. Stopped,
+  // or playing, the loop is what comes out -- alone.
+  looper_harness h;
+  h.node.inputs.passthrough = Passthrough::Record;
+  h.fill_input(0, [](int64_t) { return 1.0; });
+
+  SECTION("stopped, nothing comes out")
+  {
+    h.node.inputs.mode = LoopMode::Stop;
+    h.run(64);
+    for(int i = 0; i < 64; i++)
+      CHECK(h.out_buf[0][i] == Approx(0.));
+  }
+
+  SECTION("recording, the input comes out")
+  {
+    h.node.inputs.mode = LoopMode::Record;
+    h.run(64);
+    for(int i = 0; i < 64; i++)
+      CHECK(h.out_buf[0][i] == Approx(1.));
+  }
+
+  SECTION("playing, the loop alone comes out")
+  {
+    h.node.inputs.mode = LoopMode::Record;
+    h.run(64);
+    h.node.inputs.mode = LoopMode::Play;
+    h.reset_output();
+    h.run(64);
+    // what comes out is the loop as it was kept, with nothing added on top
+    for(int i = 0; i < 64; i++)
+      CHECK(h.out_buf[0][i] == Approx(h.loop()[i]));
+  }
+
+  SECTION("playing with nothing recorded, nothing comes out")
+  {
+    h.node.inputs.mode = LoopMode::Play;
+    h.run(64);
+    for(int i = 0; i < 64; i++)
+      CHECK(h.out_buf[0][i] == Approx(0.));
+  }
 }
