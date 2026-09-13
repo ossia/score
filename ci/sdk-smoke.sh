@@ -78,11 +78,18 @@ else
   find "$ADDON_SRC" -name '*.bak' -delete
 fi
 
+### An absolute compiler path has to carry the .exe on Windows: cmake checks the
+### name it was given exists and does not add the suffix itself.
+EXE_SUFFIX=""
+case "$(uname -s)" in
+  MINGW*|MSYS*|CYGWIN*) EXE_SUFFIX=".exe" ;;
+esac
+
 CMAKE_COMPILERS=()
-if [[ -x "$OSSIA_SDK/llvm/bin/clang++" ]]; then
+if [[ -x "$OSSIA_SDK/llvm/bin/clang++$EXE_SUFFIX" ]]; then
   CMAKE_COMPILERS=(
-    "-DCMAKE_C_COMPILER=$OSSIA_SDK/llvm/bin/clang"
-    "-DCMAKE_CXX_COMPILER=$OSSIA_SDK/llvm/bin/clang++")
+    "-DCMAKE_C_COMPILER=$OSSIA_SDK/llvm/bin/clang$EXE_SUFFIX"
+    "-DCMAKE_CXX_COMPILER=$OSSIA_SDK/llvm/bin/clang++$EXE_SUFFIX")
   export PATH="$OSSIA_SDK/llvm/bin:$PATH"
 fi
 

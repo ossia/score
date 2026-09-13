@@ -72,7 +72,12 @@ endif()
 if(WIN32)
     # Check for portaudio asio support
     # Check for portaudio wasapi support
-    score_assert_feature(spout)
+    # Spout is Direct3D 11 and x86-only: score-plugin-gfx gates SCORE_HAS_SPOUT on
+    # the same processor match, so asserting it unconditionally fails the arm64
+    # build over a feature that platform never builds.
+    if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "(x86_64|AMD64)")
+      score_assert_feature(spout)
+    endif()
 endif()
 
 if(APPLE)
