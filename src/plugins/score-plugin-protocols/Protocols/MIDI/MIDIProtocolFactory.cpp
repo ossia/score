@@ -201,17 +201,25 @@ QUrl MIDIInputProtocolFactory::manual() const noexcept
 Device::DeviceEnumerators
 MIDIInputProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
-  libremidi::observer_configuration obs_hw, obs_sw;
+  // One observer per transport group. Network ports get their own: they used
+  // to arrive under "Hardware" by accident, because the old filter asked
+  // whether a port had a device behind it rather than what it was, and once
+  // that was corrected nothing asked for them at all.
+  libremidi::observer_configuration obs_hw, obs_sw, obs_net;
   obs_hw.track_hardware = true;
   obs_hw.track_virtual = false;
   obs_sw.track_hardware = false;
   obs_sw.track_virtual = true;
+  obs_net.track_hardware = false;
+  obs_net.track_network = true;
   return {
       {"Default", new DefaultMidiInEnumerator},
       {"Hardware inputs",
        new MidiEnumerator<ossia::net::midi::midi_info::Type::Input>(obs_hw)},
       {"Software inputs",
        new MidiEnumerator<ossia::net::midi::midi_info::Type::Input>(obs_sw)},
+      {"Network inputs",
+       new MidiEnumerator<ossia::net::midi::midi_info::Type::Input>(obs_net)},
       {"Other", new MidiKeyboardEnumerator},
   };
 }
@@ -294,17 +302,25 @@ QUrl MIDIOutputProtocolFactory::manual() const noexcept
 Device::DeviceEnumerators
 MIDIOutputProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
-  libremidi::observer_configuration obs_hw, obs_sw;
+  // One observer per transport group. Network ports get their own: they used
+  // to arrive under "Hardware" by accident, because the old filter asked
+  // whether a port had a device behind it rather than what it was, and once
+  // that was corrected nothing asked for them at all.
+  libremidi::observer_configuration obs_hw, obs_sw, obs_net;
   obs_hw.track_hardware = true;
   obs_hw.track_virtual = false;
   obs_sw.track_hardware = false;
   obs_sw.track_virtual = true;
+  obs_net.track_hardware = false;
+  obs_net.track_network = true;
   return {
       {"Default", new DefaultMidiOutEnumerator},
       {"Hardware outputs",
        new MidiEnumerator<ossia::net::midi::midi_info::Type::Output>(obs_hw)},
       {"Software outputs",
        new MidiEnumerator<ossia::net::midi::midi_info::Type::Output>(obs_sw)},
+      {"Network outputs",
+       new MidiEnumerator<ossia::net::midi::midi_info::Type::Output>(obs_net)},
   };
 }
 
