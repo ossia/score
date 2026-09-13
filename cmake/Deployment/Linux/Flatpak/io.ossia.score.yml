@@ -6,6 +6,7 @@ sdk-extensions:
   - org.freedesktop.Sdk.Extension.llvm21
 build-options:
   env:
+    CC: /usr/lib/sdk/llvm21/bin/clang
     CXX: /usr/lib/sdk/llvm21/bin/clang++
 command: ossia-score
 rename-desktop-file: ossia-score.desktop
@@ -22,8 +23,8 @@ finish-args:
   # Required for USB, Webcam devices support as well as raw GPIO I/O & GPU rendering
   - --device=all
 
-  # X11 is used by default
-  - --socket=x11
+  # X11 only when there is no Wayland compositor
+  - --socket=fallback-x11
 
   # Wayland is available
   - --socket=wayland
@@ -40,10 +41,6 @@ finish-args:
   # Audio support through pipewire
   - --filesystem=xdg-run/pipewire-0
 
-  # Plugins
-  - --env=VST_PATH=/app/extensions/Plugins/vst
-  - --env=VST3_PATH=/app/extensions/Plugins/vst3
-
   # Required to allow screensaver/idle inhibition
   - --talk-name=org.freedesktop.ScreenSaver
 
@@ -51,9 +48,9 @@ add-extensions:
   # Linux audio plugins base extension
   org.freedesktop.LinuxAudio.Plugins:
     directory: extensions/Plugins
-    version: "24.08"
+    version: "25.08"
     add-ld-path: lib
-    merge-dirs: vst;vst3;lv2
+    merge-dirs: vst;vst3;lv2;clap
     subdirectories: true
     no-autodownload: true
 
@@ -70,6 +67,7 @@ cleanup:
   - /share/faust/AU
   - /share/faust/audiokit
   - /share/faust/autodiff
+  - /share/faust/android
   - /share/faust/chaos-stratus
   - /share/faust/cmajor
   - /share/faust/daisy
@@ -113,15 +111,12 @@ modules:
   - shared-modules/linux-audio/lilv.json
   - modules/dr_libs.yaml
   - modules/portaudio.yaml
-  - modules/libsamplerate.yaml
   - modules/rubberband.yaml
   - modules/rapidfuzz-cpp.yaml
-  - modules/abseil-cpp.yaml
   - modules/re2.yaml
   - modules/libcoap.yaml
   - modules/boost.yaml
   - modules/snappy.yaml
-  - modules/avahi.yaml
   - modules/suil.yaml
   - modules/spdlog.yaml
   - modules/hdf5.yaml
@@ -139,7 +134,10 @@ modules:
       - type: script
         dest-filename: run
         commands:
-          - export LV2_PATH=$HOME/.lv2:/app/extensions/Plugins/lv2:/app/lib/lv2
+          - export LV2_PATH="$HOME/.lv2:/app/extensions/Plugins/lv2:/app/lib/lv2"
+          - export VST_PATH="/app/extensions/Plugins/vst"
+          - export VST3_PATH="/app/extensions/Plugins/vst3"
+          - export CLAP_PATH="/app/extensions/Plugins/clap"
           - exec ossia-score.bin "$@"
 
     config-opts:
@@ -156,6 +154,9 @@ modules:
       - -DOSSIA_USE_SYSTEM_LIBRARIES=1
       - -DSCORE_USE_SYSTEM_LIBRARIES=1
       - -DSCORE_NO_QTCONF=1
+      # SCORE_USE_SYSTEM_LIBRARIES otherwise picks FFTW over KFR, and a deployment
+      # build asserts on the analysis_kfr feature (cmake/ScoreFeatureCheck.cmake).
+      - -DOSSIA_ENABLE_KFR=1
       - -DCMAKE_CXX_FLAGS="-Wl,--strip-all"
       - -DBOOST_ROOT="${FLATPAK_DEST}/include"
 
