@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "InspectorSectionWidget.hpp"
 
+#include <score/model/Skin.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/widgets/SetIcons.hpp>
 
@@ -21,7 +22,7 @@ MenuButton::MenuButton(QWidget* parent)
   setIcon(makeIcons(
       QStringLiteral(":/icons/gear_on.png"), QStringLiteral(":/icons/gear_off.png"),
       QStringLiteral(":/icons/gear_disabled.png")));
-  setIconSize(QSize(16, 16));
+  score::setSkinIconSize(this, 16);
 }
 
 InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent)

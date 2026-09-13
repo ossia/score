@@ -10,6 +10,7 @@
 #include <Scenario/Inspector/MetadataWidget.hpp>
 #include <Scenario/Inspector/TimeSync/TriggerInspectorWidget.hpp>
 
+#include <score/model/Skin.hpp>
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -63,7 +64,7 @@ This is only relevant for subgraphs not connected
 to the root of a score.)_"));
 
     m_autotrigger->setAutoRaise(true);
-    m_autotrigger->setIconSize(QSize{28, 28});
+    score::setSkinIconSize(m_autotrigger, 28);
     m_autotrigger->setCheckable(true);
     m_autotrigger->setChecked(object.autotrigger());
 
@@ -93,7 +94,7 @@ to the root of a score.)_"));
                                    entering this scenario.)_"));
 
     m_isStart->setAutoRaise(true);
-    m_isStart->setIconSize(QSize{28, 28});
+    score::setSkinIconSize(m_isStart, 28);
     m_isStart->setCheckable(true);
     m_isStart->setChecked(object.isStartPoint());
 

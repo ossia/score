@@ -18,6 +18,7 @@
 
 #include <Inspector/InspectorLayout.hpp>
 
+#include <score/model/Skin.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/MarginLess.hpp>
@@ -80,7 +81,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
         tr("Display the content of the selected interval in full view\n"
            "Same effect as double clicking on its name"));
     fullview->setAutoRaise(true);
-    fullview->setIconSize(QSize{28, 28});
+    score::setSkinIconSize(fullview, 28);
 
     connect(fullview, &QToolButton::clicked, this, [this] {
       auto base = get<ScenarioDocumentPresenter>(*documentFromObject(m_model));
@@ -108,7 +109,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
     busWidg->setCheckable(true);
     busWidg->setChecked(ossia::contains(doc.busIntervals, &m_model));
     busWidg->setAutoRaise(true);
-    busWidg->setIconSize(QSize{28, 28});
+    score::setSkinIconSize(busWidg, 28);
 
     connect(busWidg, &QToolButton::toggled, this, [this, &ctx, &doc](bool b) {
       bool is_bus = ossia::contains(doc.busIntervals, &m_model);
@@ -138,7 +139,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
     sigWidg->setCheckable(true);
     sigWidg->setAutoRaise(true);
     sigWidg->setChecked(this->m_model.hasTimeSignature());
-    sigWidg->setIconSize(QSize{28, 28});
+    score::setSkinIconSize(sigWidg, 28);
 
     connect(sigWidg, &QToolButton::toggled, this, [this](bool b) {
       if(b != this->m_model.hasTimeSignature())
@@ -161,7 +162,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
         QStringLiteral(":/icons/interpolate_hover.png"),
         QStringLiteral(":/icons/interpolate_off.png"),
         QStringLiteral(":/icons/interpolate_disabled.png")));
-    interp->setIconSize(QSize{28, 28});
+    score::setSkinIconSize(interp, 28);
     interp->setAutoRaise(true);
 
     connect(interp, &QToolButton::clicked, this, [&] {

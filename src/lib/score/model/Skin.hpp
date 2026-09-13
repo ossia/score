@@ -5,12 +5,14 @@
 #include <QObject>
 #include <QPair>
 #include <QPen>
+#include <QSize>
 #include <QVector>
 
 #include <score_lib_base_export.h>
 
 #include <verdigris>
 
+#include <functional>
 #include <utility>
 #include <vector>
 class QJsonObject;
@@ -286,6 +288,50 @@ private:
 //! font sizes are expressed in the skin, and the "application" role replaces
 //! this as soon as one loads.
 SCORE_LIB_BASE_EXPORT int uiFontSize() noexcept;
+
+//! The application font size every hardcoded length in the widget UI was
+//! drawn against. Icon edges, toolbar heights, the paddings hand-painted
+//! inside the custom controls: all of them were picked with 13 px text on
+//! screen, and none of them mean the same thing next to 8 px text.
+inline constexpr int referenceFontSize = 13;
+
+//! How much bigger or smaller the current skin's text is than that.
+//!
+//! A skin is free to ask for 8 px text, but the boxes around it have to
+//! follow or the UI turns into padding with a few characters in it. Read
+//! from the application font, which the "application" role drives: it is the
+//! one font every skin sets, and the one the user thinks of as "the font
+//! size".
+SCORE_LIB_BASE_EXPORT double fontScale() noexcept;
+
+//! A length measured against referenceFontSize, in the current skin's terms.
+//! Clamped to at least one pixel: a control scaled out of existence is worse
+//! than one a pixel too wide.
+SCORE_LIB_BASE_EXPORT int scaledPixels(int px) noexcept;
+
+//! Shorthand for the common call site, setIconSize(score::scaledIcon(24)).
+SCORE_LIB_BASE_EXPORT QSize scaledIcon(int px) noexcept;
+
+//! Runs \p f now, and again on every skin change, for the widget geometry
+//! that is derived from the fonts.
+//!
+//! Sizes set once at construction are wrong by the time the user sees them:
+//! the main window and the toolbars are built while the application font is
+//! still the bootstrap one, and the skin -- with the font size the user
+//! actually chose -- only loads once the scenario plugin's settings do.
+//!
+//! Safe to call while the window is being built. Skin::instance() needs the
+//! application context, which does not exist that early, so the subscription
+//! itself is made on the next turn of the event loop.
+SCORE_LIB_BASE_EXPORT void onSkinChange(QObject* owner, std::function<void()> f);
+
+//! An icon size that follows the skin's font. \p px is the edge the icon had
+//! when every length in the UI was written against referenceFontSize.
+template <typename T>
+void setSkinIconSize(T* widget, int px)
+{
+  onSkinChange(widget, [widget, px] { widget->setIconSize(scaledIcon(px)); });
+}
 
 //! Hinting for the pre-skin font, from the Skin/FontHinting setting. A skin
 //! can set hinting per role, which wins over this.

@@ -26,6 +26,7 @@
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
 
+#include <score/model/Skin.hpp>
 #include <score/actions/ActionManager.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
@@ -188,7 +189,7 @@ StateInspectorWidget::StateInspectorWidget(
     score::setHelp(splitEvent, tr("Split condition"));
 
     splitEvent->setAutoRaise(true);
-    splitEvent->setIconSize(QSize{28, 28});
+    score::setSkinIconSize(splitEvent, 28);
     m_btnLayout.addWidget(splitEvent);
     connect(
         splitEvent, &QPushButton::clicked, this, &StateInspectorWidget::splitFromEvent);
@@ -204,7 +205,7 @@ StateInspectorWidget::StateInspectorWidget(
     score::setHelp(desynchronize, tr("Desynchronize"));
 
     desynchronize->setAutoRaise(true);
-    desynchronize->setIconSize(QSize{28, 28});
+    score::setSkinIconSize(desynchronize, 28);
 
     m_btnLayout.addWidget(desynchronize);
 
@@ -221,7 +222,7 @@ StateInspectorWidget::StateInspectorWidget(
         QStringLiteral(":/icons/snapshot_hover.png"),
         QStringLiteral(":/icons/snapshot_off.png"),
         QStringLiteral(":/icons/snapshot_disabled.png")));
-    snapshot->setIconSize(QSize{28, 28});
+    score::setSkinIconSize(snapshot, 28);
     snapshot->setAutoRaise(true);
 
     connect(snapshot, &QToolButton::clicked, this, [this] {
@@ -238,7 +239,7 @@ StateInspectorWidget::StateInspectorWidget(
         QStringLiteral(":/icons/refresh_hover.png"),
         QStringLiteral(":/icons/refresh_off.png"),
         QStringLiteral(":/icons/refresh_disabled.png")));
-    refresh->setIconSize(QSize{28, 28});
+    score::setSkinIconSize(refresh, 28);
     refresh->setAutoRaise(true);
 
     connect(refresh, &QToolButton::clicked, this, [this] {
@@ -257,7 +258,7 @@ StateInspectorWidget::StateInspectorWidget(
         QStringLiteral(":/icons/trigger_off.png"),
         QStringLiteral(":/icons/trigger_disabled.png")));
     trigger->setAutoRaise(true);
-    trigger->setIconSize(QSize{28, 28});
+    score::setSkinIconSize(trigger, 28);
 
     connect(trigger, &QToolButton::toggled, this, [this](bool b) {
       if(b)
@@ -283,7 +284,7 @@ StateInspectorWidget::StateInspectorWidget(
         QStringLiteral(":/icons/condition_hover.png"),
         QStringLiteral(":/icons/condition_off.png"),
         QStringLiteral(":/icons/condition_disabled.png")));
-    condition->setIconSize(QSize{28, 28});
+    score::setSkinIconSize(condition, 28);
     condition->setAutoRaise(true);
 
     connect(condition, &QToolButton::toggled, this, [this](bool b) {

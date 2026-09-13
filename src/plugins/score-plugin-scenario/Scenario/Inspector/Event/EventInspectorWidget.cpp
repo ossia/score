@@ -20,6 +20,7 @@
 
 #include <Inspector/InspectorWidgetBase.hpp>
 
+#include <score/model/Skin.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -82,7 +83,7 @@ EventInspectorWidget::EventInspectorWidget(
   auto tnBtn = SelectionButton::make(
       tr("Parent Sync"), &scenar->timeSync(timeSync), m_selectionDispatcher, this);
 
-  tnBtn->setIconSize(QSize{28, 28});
+  score::setSkinIconSize(tnBtn, 28);
   tnBtn->setAutoRaise(true);
   btnLay->addWidget(tnBtn);
 

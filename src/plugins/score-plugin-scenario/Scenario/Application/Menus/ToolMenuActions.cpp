@@ -9,6 +9,7 @@
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Palette/Tool.hpp>
 
+#include <score/model/Skin.hpp>
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/Menu.hpp>
 #include <score/actions/MenuManager.hpp>
@@ -228,7 +229,7 @@ void ToolMenuActions::makeGUIElements(score::GUIElements& ref)
     bar->addSeparator();
     bar->addAction(m_lockAction);
     bar->addAction(m_scaleAction);
-    bar->setIconSize(QSize{24, 24});
+    score::setSkinIconSize(bar, 24);
 
     ref.toolbars.emplace_back(
         bar, StringKey<score::Toolbar>("Tools"), Qt::TopToolBarArea, 800);
