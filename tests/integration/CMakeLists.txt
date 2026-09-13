@@ -1017,6 +1017,21 @@ score_add_test(test_integration_port_value_restore
   GUI
   PLUGINS score_plugin_scenario score_lib_process score_plugin_media)
 
+# score's video output against gstreamer consumers of several shapes. Needs the
+# PipewirePublish tool, which only exists when the pipewire tester is built.
+if(SCORE_HAS_SHELL_HARNESS AND TARGET PipewirePublish)
+  add_test(NAME test_integration_pipewire_gst_matrix
+    COMMAND ${_display_wrapper}
+            "${CMAKE_CURRENT_SOURCE_DIR}/pipewire-gst-matrix.sh" --seconds 3
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+  set_tests_properties(test_integration_pipewire_gst_matrix PROPERTIES
+    SKIP_RETURN_CODE 77
+    TIMEOUT 900
+    RUN_SERIAL TRUE
+    LABELS "gui;pipewire"
+    ENVIRONMENT "SCORE_BUILD=${SCORE_ROOT_BINARY_DIR}")
+endif()
+
 # The shell harnesses register themselves with add_test() rather than through
 # score_add_test(), so they get none of its environment. Each starts a score
 # process that can be killed mid-document, which leaves the document in the
