@@ -40,6 +40,18 @@ struct MCUSpecificSettings
     QString map;
     int channel{1};
 
+    /**
+     * Put this device's controls under a level of their own, named after the
+     * description.
+     *
+     * On by default, because two devices on one port would otherwise merge
+     * into one subtree. Worth turning off for the ordinary case of a single
+     * device, where the level adds a step to every address and is named by
+     * whatever the document calls itself -- which for an instrument patch can
+     * be a sentence.
+     */
+    bool level{true};
+
     bool operator==(const MapSlot&) const noexcept = default;
   };
 

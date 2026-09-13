@@ -423,9 +423,15 @@ struct midi_device_protocol final
     {
       // One level per description: two of the same model on one cable are two
       // devices, and merging their levels would point both at one channel.
-      auto* under = root.create_child(deviceNodeName(d.map));
-      if(!under)
-        continue;
+      // Without it the controls sit on the root, which is then the level that
+      // stands for the channel.
+      auto* under = &root;
+      if(d.level)
+      {
+        under = root.create_child(deviceNodeName(d.map));
+        if(!under)
+          continue;
+      }
 
       m_levelChannel[under] = d.channel;
 

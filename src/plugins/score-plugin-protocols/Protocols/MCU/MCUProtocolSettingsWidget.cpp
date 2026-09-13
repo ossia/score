@@ -288,7 +288,7 @@ MCUSettingsWidget::MCUSettingsWidget(QWidget* parent)
      */
     m_chosen = new QTreeWidget{left};
     m_chosen->setObjectName("chosen");
-    m_chosen->setHeaderLabels({tr("Device"), tr("Channel")});
+    m_chosen->setHeaderLabels({tr("Device"), tr("Channel"), tr("Own level")});
     m_chosen->setRootIsDecorated(false);
     m_chosen->setUniformRowHeights(true);
     m_chosen->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -296,12 +296,14 @@ MCUSettingsWidget::MCUSettingsWidget(QWidget* parent)
         QAbstractItemView::DoubleClicked | QAbstractItemView::SelectedClicked
         | QAbstractItemView::EditKeyPressed);
     m_chosen->setItemDelegateForColumn(1, new ChannelDelegate{m_chosen});
-    // The channel is the only thing on a row the user decides; the name is the
-    // description's, and an edit of it would be dropped on the next read.
+    // The name is the description's, and an edit of it would be dropped on the
+    // next read; the level is a checkbox and needs no editor either.
     m_chosen->setItemDelegateForColumn(0, new ReadOnlyDelegate{m_chosen});
+    m_chosen->setItemDelegateForColumn(2, new ReadOnlyDelegate{m_chosen});
     m_chosen->setMaximumHeight(120);
     m_chosen->header()->setSectionResizeMode(0, QHeaderView::Stretch);
     m_chosen->header()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+    m_chosen->header()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
     m_chosen->header()->setStretchLastSection(false);
 
     m_add = new QPushButton{tr("Add device"), left};
@@ -699,12 +701,14 @@ MCUSpecificSettings::MapSlot MCUSettingsWidget::slotAt(int row) const
   {
     slot.map = item->data(0, MapRole).toString();
     slot.channel = std::clamp(item->text(1).toInt(), 1, 16);
+    slot.level = item->checkState(2) == Qt::Checked;
   }
   return slot;
 }
 
 
-void MCUSettingsWidget::addChosenDevice(const QString& identity, int channel)
+void MCUSettingsWidget::addChosenDevice(
+    const QString& identity, int channel, bool level)
 {
   if(identity.isEmpty())
     return;
@@ -730,6 +734,12 @@ void MCUSettingsWidget::addChosenDevice(const QString& identity, int channel)
 
   auto* item = new QTreeWidgetItem{m_chosen, {name, QString::number(channel)}};
   item->setData(0, MapRole, identity);
+  item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
+  item->setCheckState(2, level ? Qt::Checked : Qt::Unchecked);
+  item->setToolTip(
+      2, tr("Put this device's controls under a level of their own, named "
+            "after the description.\nSeveral devices on one port each need "
+            "one; a single device usually does not."));
   m_listEmptied = false;
 }
 
@@ -1139,7 +1149,7 @@ void MCUSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 
   m_chosen->clear();
   for(const auto& slot : s.maps)
-    addChosenDevice(slot.map, slot.channel);
+    addChosenDevice(slot.map, slot.channel, slot.level);
   m_listEmptied = false;
   updateAddEnabled();
 
