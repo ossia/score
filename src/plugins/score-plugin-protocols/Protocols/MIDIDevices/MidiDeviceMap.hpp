@@ -194,6 +194,26 @@ struct Value
   bool pickup{};
 };
 
+/**
+ * A second use of a physical control the surface already has, reached by
+ * holding a modifier.
+ *
+ * The two addresses are otherwise unrelated -- nothing in either message says
+ * they are one piece of hardware -- so without this a host shows two knobs
+ * where the player has one.
+ */
+struct Layer
+{
+  //! The modifier as printed on the panel: "Shift", "Shift+Hotcue".
+  std::string name;
+
+  //! The `group/name` path of the control it shares hardware with. Empty when
+  //! the modifier selects a whole-surface mode rather than pairing two.
+  std::string of;
+
+  bool empty() const noexcept { return name.empty(); }
+};
+
 //! The control exists only while this program is selected.
 struct Condition
 {
@@ -222,6 +242,9 @@ struct Control
   //! Empty when the control is always present; several conditions mean the
   //! control exists while any one of them holds.
   std::vector<Condition> when;
+
+  //! Empty unless the control is a modifier layer of another.
+  Layer layer;
 
   std::string description;
 };

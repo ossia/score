@@ -20,6 +20,7 @@
 #include <libremidi/message.hpp>
 
 #include <algorithm>
+#include <array>
 #include <stdexcept>
 
 namespace Protocols::MIDIDevices
@@ -56,6 +57,16 @@ enum : int
  * are not concurrent with one another: the output port could not take them
  * if they were.
  */
+//! The parameter a channel currently has selected, which the four control
+//! changes of an NRPN or RPN build up between them.
+struct selection
+{
+  int number{-1};
+  int lsb{-1};
+  int data{-1};
+  bool registered{};
+};
+
 struct binding
 {
   ossia::net::parameter_base* param{};
@@ -603,6 +614,9 @@ struct midi_device_protocol final : public ossia::net::protocol_base
     const int d1 = m.bytes[1] & 0x7F;
     const int d2 = m.size() > 2 ? (m.bytes[2] & 0x7F) : 0;
 
+    if(status == 0xB0)
+      onParameterNumber(channel, d1, d2);
+
     for(auto& held : m_bindings)
     {
       auto& b = *held;
@@ -674,6 +688,63 @@ struct midi_device_protocol final : public ossia::net::protocol_base
     }
   }
 
+  /**
+   * Follow the control changes that carry an NRPN or RPN.
+   *
+   * The parameter is named by one pair of control changes and written by
+   * another, so a value only exists once four messages have arrived, and the
+   * selection stays latched between them: a device may write the same
+   * parameter again with nothing but a further data entry.
+   */
+  void onParameterNumber(int channel, int cc, int value)
+  {
+    auto& sel = m_selected[channel - 1];
+    switch(cc)
+    {
+      case cc_nrpn_msb: sel.number = value; sel.registered = false; return;
+      case cc_nrpn_lsb: sel.lsb = value;    sel.registered = false; return;
+      case cc_rpn_msb:  sel.number = value; sel.registered = true;  return;
+      case cc_rpn_lsb:  sel.lsb = value;    sel.registered = true;  return;
+
+      case cc_data_msb:
+        sel.data = value;
+        // A 7-bit parameter is complete here; a 14-bit one is written again by
+        // the data LSB below, which is why both dispatch.
+        dispatchParameter(channel, sel, value);
+        return;
+
+      case cc_data_lsb:
+        if(sel.data >= 0)
+          dispatchParameter(channel, sel, (sel.data << 7) | value);
+        return;
+
+      default:
+        return;
+    }
+  }
+
+  void dispatchParameter(int channel, const selection& sel, int value)
+  {
+    if(sel.number < 0)
+      return;
+
+    const auto wanted = sel.registered ? MessageType::RPN : MessageType::NRPN;
+
+    for(auto& held : m_bindings)
+    {
+      auto& b = *held;
+      const auto& msg = b.control->message;
+      if(msg.type != wanted || msg.number != sel.number)
+        continue;
+      if(msg.lsb >= 0 && msg.lsb != sel.lsb)
+        continue;
+      if(!acceptsChannel(msg, channel))
+        continue;
+
+      receive(b, is14Bit(*b.control) ? value : (value & 0x7F));
+    }
+  }
+
   static bool acceptsChannel(const Message& m, int channel) noexcept
   {
     if(m.channels.empty())
@@ -726,6 +797,10 @@ struct midi_device_protocol final : public ossia::net::protocol_base
   std::optional<libremidi::input_port> m_resolvedInput;
   std::unique_ptr<libremidi::midi_in> m_input;
   std::unique_ptr<libremidi::midi_out> m_output;
+
+  //! One per MIDI channel: a device may have a different parameter selected on
+  //! each, and the selection outlives the message that set it.
+  std::array<selection, 16> m_selected{};
 
   //! Stable addresses: m_bindingOf points into them.
   std::vector<std::unique_ptr<binding>> m_bindings;
