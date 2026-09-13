@@ -55,6 +55,12 @@ struct QmlSource {
                                                               MemberSpec{QObject::tr("GUI"), &QmlSource::ui, "QML"},
   };
 
+  friend bool operator==(const QmlSource& lhs, const QmlSource& rhs) {
+    return lhs.execution == rhs.execution && lhs.ui == rhs.ui;
+  }
+  friend bool operator!=(const QmlSource& lhs, const QmlSource& rhs) {
+    return !(lhs == rhs);
+  }
   friend bool operator!=(const QmlSource& lhs, const std::vector<QString>& rhs) {
     return rhs.size() != 2 || lhs.execution != rhs[0]|| lhs.ui != rhs[1];
   }
@@ -134,6 +140,21 @@ public:
   ~ProcessModel() override;
 
   QString rootPath() const noexcept;
+
+  //! Path of the .qml this script was taken from; empty if it was written here.
+  const QString& rootFile() const noexcept { return m_root; }
+
+  //! True while the program is still exactly what rootFile() holds. The
+  //! document then saves the path alone, so that a later version of that file
+  //! -- a library update -- is what the user gets when reopening.
+  bool followsRootFile() const noexcept { return !m_root.isEmpty() && !m_modified; }
+
+  //! The sources a .qml holds, together with those of its .ui.qml sibling.
+  //! Members the disk has nothing for come back empty.
+  static QmlSource readProgramFromFile(const QString& qmlPath) noexcept;
+
+  //! "foo.qml" -> "foo.ui.qml". Empty if the name is not a .qml at all.
+  static QString uiPathFor(const QString& qmlPath) noexcept;
   bool validate(const std::vector<QString>& str) const noexcept;
   void errorMessage(const QString& arg_2) const
       W_SIGNAL(errorMessage, arg_2);
@@ -159,6 +180,9 @@ private:
 
   QString m_root;
   QmlSource m_program;
+  //! Recomputed whenever the program changes: see followsRootFile().
+  void updateFileLink() noexcept;
+
   QByteArray m_qmlData;
 
   QQmlComponent* m_ui_component{};
@@ -167,6 +191,7 @@ private:
   mutable ComponentCache m_cache;
   JS::JSState m_state;
   bool m_isFile{};
+  bool m_modified{true};
 };
 }
 

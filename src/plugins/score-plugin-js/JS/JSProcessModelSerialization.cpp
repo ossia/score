@@ -29,7 +29,10 @@ template <>
 void DataStreamReader::read(const JS::ProcessModel& proc)
 {
   auto& ctx = score::IDocument::documentContext(proc);
-  m_stream << proc.m_program << proc.m_state
+  // A script still identical to the .qml it came from travels as that path
+  // alone: embedding a copy would freeze the document on today's version of a
+  // library file the user expects to keep receiving updates for.
+  m_stream << (proc.followsRootFile() ? JS::QmlSource{} : proc.m_program) << proc.m_state
            << score::relativizeFilePath(proc.m_root, ctx);
 
   readPorts(*this, proc.m_inlets, proc.m_outlets);
@@ -47,6 +50,8 @@ void DataStreamWriter::write(JS::ProcessModel& proc)
   {
     auto& ctx = score::IDocument::documentContext(proc);
     proc.m_root = score::locateFilePath(proc.m_root, ctx);
+    if(str.execution.isEmpty())
+      str = JS::ProcessModel::readProgramFromFile(proc.m_root);
   }
   proc.setState(st);
   (void)proc.setProgram(str);
@@ -61,9 +66,15 @@ void DataStreamWriter::write(JS::ProcessModel& proc)
 template <>
 void JSONReader::read(const JS::ProcessModel& proc)
 {
-  obj["Script"] = proc.program().execution;
-  if(const auto& ui = proc.program().ui; !ui.isEmpty())
-    obj["Ui"] = ui;
+  // A script still identical to the .qml it came from travels as that path
+  // alone: embedding a copy would freeze the document on today's version of a
+  // library file the user expects to keep receiving updates for.
+  if(!proc.followsRootFile())
+  {
+    obj["Script"] = proc.program().execution;
+    if(const auto& ui = proc.program().ui; !ui.isEmpty())
+      obj["Ui"] = ui;
+  }
   if(const auto& st = proc.state(); !st.empty())
     obj["State"] = st;
   if(const auto& r = proc.m_root; !r.isEmpty())
@@ -79,7 +90,8 @@ void JSONWriter::write(JS::ProcessModel& proc)
 {
   JS::QmlSource p;
   JS::JSState st;
-  p.execution = obj["Script"].toString();
+  if(auto script = obj.tryGet("Script"))
+    p.execution = script->toString();
 
   if(auto ui = obj.tryGet("Ui"))
     p.ui = ui->toString();
@@ -94,6 +106,9 @@ void JSONWriter::write(JS::ProcessModel& proc)
     {
       auto& ctx = score::IDocument::documentContext(proc);
       proc.m_root = score::locateFilePath(proc.m_root, ctx);
+      // Saved as a path alone: the file is the script.
+      if(p.execution.isEmpty())
+        p = JS::ProcessModel::readProgramFromFile(proc.m_root);
     }
   }
 

@@ -84,20 +84,8 @@ ProcessModel::ProcessModel(
       (void)setProgram({data, {}});
     }
     else {
-      auto path = data;
-      QFile f{path};
-      m_root = path;
-      QString exec_data;
-      if(f.open(QIODevice::ReadOnly))
-        exec_data = f.readAll();
-
-      path.resize(data.size() - 3);
-      path.append("ui.qml");
-      QString ui_data;
-      if(QFile ui_f{path}; ui_f.open(QIODevice::ReadOnly)) {
-        ui_data = ui_f.readAll();
-      }
-      (void)setProgram({exec_data, ui_data});
+      m_root = data;
+      (void)setProgram(readProgramFromFile(data));
     }
   }
 
@@ -160,6 +148,31 @@ void ProcessModel::mapExternalFiles(Process::ExternalFileMap& map)
 
   if(changed)
     map.addCommand(new JS::EditScript{*this, next, ctx});
+}
+
+QString ProcessModel::uiPathFor(const QString& qmlPath) noexcept
+{
+  if(!qmlPath.endsWith(".qml", Qt::CaseInsensitive))
+    return {};
+  return qmlPath.chopped(3) + QStringLiteral("ui.qml");
+}
+
+QmlSource ProcessModel::readProgramFromFile(const QString& qmlPath) noexcept
+{
+  const auto read = [](const QString& path) -> QString {
+    if(path.isEmpty())
+      return {};
+    QFile f{path};
+    if(!f.open(QIODevice::ReadOnly))
+      return {};
+    return QString::fromUtf8(f.readAll());
+  };
+  return {read(qmlPath), read(uiPathFor(qmlPath))};
+}
+
+void ProcessModel::updateFileLink() noexcept
+{
+  m_modified = m_root.isEmpty() || m_program != readProgramFromFile(m_root);
 }
 
 QString ProcessModel::rootPath() const noexcept
@@ -606,6 +619,7 @@ void ProcessModel::updateState(const QString &k, const ossia::value& res)
 
   if(!res.valid)
     m_program = previous;
+  updateFileLink();
   return res;
 }
 
