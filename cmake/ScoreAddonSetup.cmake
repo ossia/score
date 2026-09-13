@@ -1,10 +1,38 @@
-# Standalone on purpose, like ScoreAddonArchitecture: ScoreExternalAddon.sdk.cmake
-# cannot include ScoreFunctions.cmake, so anything both the developer-tree and
-# the SDK add-on paths need has to live outside it. setup_score_addon used to sit
-# in ScoreExternalAddon.developer.cmake and was therefore unreachable from an SDK
-# build -- which is why a non-Avendish add-on built against the SDK produced a
-# library and no manifest, and so could never be installed.
+# Standalone for the same reason as ScoreAddonArchitecture: ScoreExternalAddon.sdk.cmake
+# cannot include ScoreFunctions.cmake, and both add-on paths need what is here.
 include("${CMAKE_CURRENT_LIST_DIR}/ScoreAddonArchitecture.cmake")
+
+
+### The single place localaddon.json is written, shared by setup_score_addon below
+### and by avnd_score_plugin_finalize in ScoreAvndHelper.cmake.
+function(score_write_addon_manifest)
+  cmake_parse_arguments(MANIFEST "" "TARGET;NAME;UUID;VERSION" "" ${ARGN})
+
+  score_addon_architectures(_addon_architectures)
+  if(NOT _addon_architectures)
+    message(FATAL_ERROR
+      "score_write_addon_manifest(${MANIFEST_TARGET}): no add-on architecture key for this platform")
+  endif()
+
+  set(_addon_architecture_entries "")
+  foreach(_addon_architecture IN LISTS _addon_architectures)
+    string(APPEND _addon_architecture_entries
+      "  \"${_addon_architecture}\": \"$<TARGET_FILE_NAME:${MANIFEST_TARGET}>\",\n")
+  endforeach()
+
+  file(GENERATE OUTPUT plugins/localaddon.json
+    CONTENT
+      "{
+${_addon_architecture_entries}  \"name\": \"${MANIFEST_NAME}\",
+  \"raw_name\": \"${MANIFEST_TARGET}\",
+  \"version\": \"${MANIFEST_VERSION}\",
+  \"kind\": \"addon\",
+  \"short\": \"${MANIFEST_NAME}\",
+  \"long\": \"${MANIFEST_NAME}\",
+  \"key\": \"${MANIFEST_UUID}\"
+}"
+  )
+endfunction()
 
 ### Everything setup_score_plugin does, plus the localaddon.json that makes the
 ### result loadable as a run-time add-on.
@@ -12,7 +40,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/ScoreAddonArchitecture.cmake")
 ### setup_score_addon(
 ###   TARGET   score_addon_foo         # the library
 ###   [NAME    "Foo"]                  # shown in the add-on manager; default: the target
-###   [UUID    "xxxxxxxx-...."]        # must equal the uuid the plug-in reports
+###   [UUID    "xxxxxxxx-...."]        # the add-on's identity; normally the plug-in's own
 ###   [VERSION 1]
 ###   [METADATA addon.json]            # default: addon.json next to the CMakeLists
 ### )
@@ -31,8 +59,7 @@ function(setup_score_addon)
 
   setup_score_plugin("${SETUP_ADDON_TARGET}")
 
-  # A manifest pointing at a .a describes something score cannot dlopen;
-  # score-addon-academy shipped exactly that. Better to say so at configure time.
+  # A manifest pointing at a .a describes something score cannot dlopen.
   get_target_property(_addon_type "${SETUP_ADDON_TARGET}" TYPE)
   if(NOT SCORE_STATIC_PLUGINS AND NOT _addon_type MATCHES "^(MODULE|SHARED)_LIBRARY$")
     message(FATAL_ERROR
@@ -56,9 +83,10 @@ function(setup_score_addon)
     set(SETUP_ADDON_METADATA "${CMAKE_CURRENT_SOURCE_DIR}/addon.json")
   endif()
 
-  # The uuid is what score matches against the one the plug-in reports; a wrong
-  # or absent one makes makeAddon() discard the add-on without a word, so refuse
-  # to emit a manifest that is known to be unloadable.
+  # makeAddon() drops an add-on whose key is not a 36-character uuid, as silently
+  # as one with the wrong architecture, so refuse to emit a manifest known to be
+  # dead. The value is what PluginDependencyGraph indexes the add-on by, so it
+  # should be the uuid the plug-in itself reports.
   if(NOT SETUP_ADDON_UUID AND EXISTS "${SETUP_ADDON_METADATA}")
     file(READ "${SETUP_ADDON_METADATA}" _addon_metadata)
     string(JSON SETUP_ADDON_UUID ERROR_VARIABLE _json_err GET "${_addon_metadata}" "key")
@@ -70,28 +98,13 @@ function(setup_score_addon)
       "'${SETUP_ADDON_METADATA}' a \"key\". Without it score drops the add-on silently at load time.")
   endif()
 
-  score_addon_architectures(_addon_architectures)
-  if(NOT _addon_architectures)
-    message(FATAL_ERROR
-      "setup_score_addon(${SETUP_ADDON_TARGET}): no add-on architecture key for this platform")
-  endif()
+  score_write_addon_manifest(
+    TARGET "${SETUP_ADDON_TARGET}"
+    NAME "${SETUP_ADDON_NAME}"
+    UUID "${SETUP_ADDON_UUID}"
+    VERSION "${SETUP_ADDON_VERSION}")
 
-  set(_addon_architecture_entries "")
-  foreach(_addon_architecture IN LISTS _addon_architectures)
-    string(APPEND _addon_architecture_entries
-      "  \"${_addon_architecture}\": \"$<TARGET_FILE_NAME:${SETUP_ADDON_TARGET}>\",\n")
-  endforeach()
-
-  file(GENERATE OUTPUT plugins/localaddon.json
-    CONTENT
-      "{
-${_addon_architecture_entries}  \"name\": \"${SETUP_ADDON_NAME}\",
-  \"raw_name\": \"${SETUP_ADDON_TARGET}\",
-  \"version\": \"${SETUP_ADDON_VERSION}\",
-  \"kind\": \"addon\",
-  \"short\": \"${SETUP_ADDON_NAME}\",
-  \"long\": \"${SETUP_ADDON_NAME}\",
-  \"key\": \"${SETUP_ADDON_UUID}\"
-}"
-  )
+  # Or the add-on installs a library with no manifest beside it.
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/plugins/localaddon.json
+          DESTINATION .)
 endfunction()

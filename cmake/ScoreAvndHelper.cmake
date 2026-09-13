@@ -1,4 +1,4 @@
-include("${CMAKE_CURRENT_LIST_DIR}/ScoreAddonArchitecture.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/ScoreAddonSetup.cmake")
 
 get_filename_component(_avnd_root "${CMAKE_CURRENT_LIST_DIR}/../3rdparty/avendish" ABSOLUTE)
 if(EXISTS "${_avnd_root}/AvendishConfig.cmake")
@@ -80,31 +80,11 @@ function(avnd_score_plugin_finalize)
   endif()
 
   # Setup for dynamic plug-in generation
-  score_addon_architectures(PLUGIN_PLATFORMS)
-  if(NOT PLUGIN_PLATFORMS)
-    message(FATAL_ERROR
-      "${AVND_BASE_TARGET}: no add-on architecture key for this platform, "
-      "the generated localaddon.json would never be loaded")
-  endif()
-
-  set(PLUGIN_PLATFORM_ENTRIES "")
-  foreach(PLUGIN_PLATFORM IN LISTS PLUGIN_PLATFORMS)
-    string(APPEND PLUGIN_PLATFORM_ENTRIES
-      "  \"${PLUGIN_PLATFORM}\": \"$<TARGET_FILE_NAME:${AVND_BASE_TARGET}>\",\n")
-  endforeach()
-
-  file(GENERATE OUTPUT plugins/localaddon.json
-    CONTENT
-      "{
-${PLUGIN_PLATFORM_ENTRIES}  \"name\": \"${AVND_BASE_TARGET}\",
-  \"raw_name\": \"${AVND_BASE_TARGET}\",
-  \"version\": \"${AVND_PLUGIN_VERSION}\",
-  \"kind\": \"addon\",
-  \"short\": \"${AVND_BASE_TARGET}\",
-  \"long\": \"${AVND_BASE_TARGET}\",
-  \"key\": \"${AVND_PLUGIN_UUID}\"
-}"
-  )
+  score_write_addon_manifest(
+    TARGET "${AVND_BASE_TARGET}"
+    NAME "${AVND_BASE_TARGET}"
+    UUID "${AVND_PLUGIN_UUID}"
+    VERSION "${AVND_PLUGIN_VERSION}")
 
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/plugins/localaddon.json
           DESTINATION .)
