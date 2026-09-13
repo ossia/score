@@ -16,6 +16,7 @@
 #include <core/presenter/DocumentManager.hpp>
 
 #include <QFile>
+#include <QQmlEngine>
 
 namespace JS
 {
@@ -30,6 +31,36 @@ QObject* EditJsContext::metadata(QObject* obj) const noexcept
   if(!obj)
     return nullptr;
   return obj->findChild<score::ModelMetadata*>({}, Qt::FindDirectChildrenOnly);
+}
+
+QObject* EditJsContext::documentMetadata() const noexcept
+{
+  auto doc = score::GUIAppContext().currentDocument();
+  if(!doc)
+    return nullptr;
+
+  auto& meta = doc->document.metadata();
+  // It is a member of the Document and has no QObject parent, so the engine
+  // would take it for its own and delete it: the document then frees it a
+  // second time on the way out.
+  QQmlEngine::setObjectOwnership(&meta, QQmlEngine::CppOwnership);
+  return &meta;
+}
+
+QString EditJsContext::documentName() const noexcept
+{
+  auto doc = score::GUIAppContext().currentDocument();
+  if(!doc)
+    return {};
+  return doc->document.metadata().documentName();
+}
+
+void EditJsContext::setDocumentName(QString name)
+{
+  auto doc = score::GUIAppContext().currentDocument();
+  if(!doc)
+    return;
+  doc->document.metadata().setFileName(std::move(name));
 }
 
 void EditJsContext::undo()
