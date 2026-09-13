@@ -559,6 +559,7 @@ struct midi_device_protocol final
     b.defaultChannel = defaultChannel;
     b.lo = lo;
     b.hi = hi;
+    indexBinding(b);
     // Rounded up, so a bipolar 14-bit control starts at 8192 and a 7-bit one
     // at 64: the values those devices call centre.
     b.position = c.value.def.value_or(c.value.bipolar ? (lo + hi + 1) / 2 : lo);
@@ -912,7 +913,7 @@ struct midi_device_protocol final
         libremidi::ump u;
         std::copy_n(ump, std::min(count, 4), u.data);
         u.timestamp = ts;
-        messages.enqueue(u);
+        receive_ump(u);
         return stdx::error{};
       });
     }
@@ -932,12 +933,16 @@ struct midi_device_protocol final
 
     receiveRaw(status, channel, d1, d2);
 
-    for(auto& held : m_bindings)
+    // An instrument's description runs to thousands of controls, and one of
+    // its messages addresses at most a handful of them.
+    const auto addressed = m_byMessage.find(keyOf(status, channel, addressByte(status, d1)));
+    if(addressed == m_byMessage.end())
+      return;
+
+    for(auto* held : addressed->second)
     {
       auto& b = *held;
       const auto& msg = b.control->message;
-      if(!acceptsChannel(b, channel))
-        continue;
 
       switch(msg.type)
       {
@@ -1106,7 +1111,11 @@ struct midi_device_protocol final
 
     const auto wanted = sel.registered ? MessageType::RPN : MessageType::NRPN;
 
-    for(auto& held : m_bindings)
+    const auto named = m_byNumber.find(parameterKey(sel.registered, sel.number));
+    if(named == m_byNumber.end())
+      return;
+
+    for(auto* held : named->second)
     {
       auto& b = *held;
       const auto& msg = b.control->message;
@@ -1118,6 +1127,95 @@ struct midi_device_protocol final
         continue;
 
       receive(b, is14Bit(*b.control) ? value : (value >> 7));
+    }
+  }
+
+  /**
+   * What a message addresses, as one number: its kind, its channel, and the
+   * data byte that is an address rather than a value.
+   *
+   * The dispatch is a lookup on this rather than a walk, because a MIDNAM
+   * instrument states thousands of parameters and a controller can stream a
+   * thousand messages a second into the callback thread the audio graph reads.
+   */
+  static constexpr uint32_t keyOf(int status, int channel, int number) noexcept
+  {
+    return (uint32_t(status & 0xF0) << 16) | (uint32_t(channel & 0x1F) << 8)
+           | uint32_t(number & 0xFF);
+  }
+
+  //! Program change, pitch bend and channel aftertouch carry a value where the
+  //! others carry an address, so every one of them reaches the same bucket.
+  static constexpr int addressByte(int status, int d1) noexcept
+  {
+    switch(status)
+    {
+      case 0x80:
+      case 0x90:
+      case 0xA0:
+      case 0xB0:
+        return d1;
+      default:
+        return 0;
+    }
+  }
+
+  //! @see keyOf, for the parameter numbers, which no status byte names.
+  static constexpr uint32_t parameterKey(bool registered, int number) noexcept
+  {
+    return (uint32_t(registered) << 8) | uint32_t(number & 0xFF);
+  }
+
+  void indexBinding(binding& b)
+  {
+    const auto& m = b.control->message;
+    const std::vector<int> channels
+        = m.channels.empty() ? std::vector<int>{b.defaultChannel} : m.channels;
+
+    const auto add = [&](int status, int number) {
+      for(const int ch : channels)
+        m_byMessage[keyOf(status, ch, number)].push_back(&b);
+    };
+
+    switch(m.type)
+    {
+      case MessageType::CC:
+        add(0xB0, m.number);
+        break;
+      case MessageType::CC14:
+        add(0xB0, m.number);
+        add(0xB0, m.lsb);
+        break;
+      case MessageType::Note:
+        if(m.hasRange())
+          for(int n = m.rangeFrom; n <= m.rangeTo; n++)
+          {
+            add(0x90, n);
+            add(0x80, n);
+          }
+        else
+        {
+          add(0x90, m.number);
+          add(0x80, m.number);
+        }
+        break;
+      case MessageType::Program:
+        add(0xC0, 0);
+        break;
+      case MessageType::PitchBend:
+        add(0xE0, 0);
+        break;
+      case MessageType::Aftertouch:
+        add(0xD0, 0);
+        break;
+      case MessageType::PolyAftertouch:
+        add(0xA0, m.number);
+        break;
+      case MessageType::NRPN:
+      case MessageType::RPN:
+        // Four control changes name these; onParameterNumber follows them.
+        m_byNumber[parameterKey(m.type == MessageType::RPN, m.number)].push_back(&b);
+        break;
     }
   }
 
@@ -1175,6 +1273,8 @@ struct midi_device_protocol final
 
   void enable_registration() override { m_streaming.store(true); }
 
+  void push_value(const libremidi::message& m) override { write(m); }
+
   void push_value(const libremidi::ump& m) override
   {
     if(m_output)
@@ -1209,6 +1309,11 @@ struct midi_device_protocol final
 
   //! Stable addresses: m_bindingOf points into them.
   std::vector<std::unique_ptr<binding>> m_bindings;
+
+  //! What each message addresses, so that dispatching one is a lookup rather
+  //! than a walk. @see keyOf, parameterKey
+  ossia::hash_map<uint32_t, std::vector<binding*>> m_byMessage;
+  ossia::hash_map<uint32_t, std::vector<binding*>> m_byNumber;
 
   //! A control's numeric node and its choice both resolve to the one binding;
   //! push() tells them apart by identity.

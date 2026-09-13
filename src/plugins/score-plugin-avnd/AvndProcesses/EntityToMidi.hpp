@@ -10,6 +10,7 @@
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/protocol.hpp>
 #include <ossia/protocols/midi/midi_protocol.hpp>
+#include <ossia/protocols/midi/midi_stream.hpp>
 
 #include <halp/audio.hpp>
 #include <halp/controls.enums.hpp>
@@ -1114,7 +1115,7 @@ struct EntityToMidi
   // exec-state hookup: lets the binding resolve outputs.midi.ossia_node so
   // the stop-time panic can reach the device even though ticks have ended.
   ossia::exec_state_facade ossia_state;
-  std::atomic<ossia::net::midi::midi_protocol*> midi_out{};
+  std::atomic<ossia::net::midi::midi_stream*> midi_out{};
 
   void prepare(halp::setup s)
   {
@@ -2891,7 +2892,7 @@ private:
   }
 
   void send_direct(
-      ossia::net::midi::midi_protocol* proto, uint8_t b0, uint8_t b1, uint8_t b2)
+      ossia::net::midi::midi_stream* proto, uint8_t b0, uint8_t b1, uint8_t b2)
   {
     if(last_direct_panic.size() < 4096)
       last_direct_panic.push_back({b0, b1, b2});
@@ -2904,7 +2905,7 @@ private:
     if(outputs.midi.ossia_node)
     {
       auto& proto = outputs.midi.ossia_node->get_device().get_protocol();
-      if(auto mp = dynamic_cast<ossia::net::midi::midi_protocol*>(&proto))
+      if(auto mp = dynamic_cast<ossia::net::midi::midi_stream*>(&proto))
         midi_out.store(mp);
     }
   }
