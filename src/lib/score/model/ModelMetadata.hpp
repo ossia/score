@@ -30,6 +30,9 @@ public:
   const QString& getName() const noexcept;
   const QString& getComment() const noexcept;
   ColorRef getColor() const noexcept;
+  //! The colour as a skin entry name. ColorRef is a pointer into the skin and
+  //! means nothing to a script; the name is what can be read and written.
+  QString getColorName() const noexcept;
   const QString& getLabel() const noexcept;
 
   template <typename T>
@@ -43,6 +46,8 @@ public:
   void setName(const QString&) noexcept;
   void setComment(const QString&) noexcept;
   void setColor(ColorRef) noexcept;
+  //! Ignores a name the skin does not know, rather than clearing the colour.
+  void setColorName(const QString&) noexcept;
   void setLabel(const QString&) noexcept;
 
   void NameChanged(const QString& arg) E_SIGNAL(SCORE_LIB_BASE_EXPORT, NameChanged, arg)
@@ -57,6 +62,8 @@ public:
   PROPERTY(QString, name READ getName WRITE setName NOTIFY NameChanged)
   PROPERTY(QString, comment READ getComment WRITE setComment NOTIFY CommentChanged)
   PROPERTY(ColorRef, color READ getColor WRITE setColor NOTIFY ColorChanged)
+  PROPERTY(
+      QString, colorName READ getColorName WRITE setColorName NOTIFY ColorChanged)
   PROPERTY(QString, label READ getLabel WRITE setLabel NOTIFY LabelChanged)
 
 private:

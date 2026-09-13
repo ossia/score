@@ -133,6 +133,19 @@ void ModelMetadata::setColor(ColorRef arg) noexcept
   metadataChanged();
 }
 
+QString ModelMetadata::getColorName() const noexcept
+{
+  return m_color.name();
+}
+
+void ModelMetadata::setColorName(const QString& arg) noexcept
+{
+  // A name the skin does not know leaves the colour alone: clearing it would
+  // give the object no brush at all, and every painter dereferences that.
+  if(auto col = ColorRef::ColorFromString(arg))
+    setColor(*col);
+}
+
 void ModelMetadata::setLabel(const QString& arg) noexcept
 {
   if(m_label == arg)
