@@ -650,12 +650,23 @@ void NodeItem::updateSize()
       m_presenter->setWidth(m_contentSize.width(), m_contentSize.width());
       m_presenter->setHeight(m_contentSize.height());
     }
-    QSizeF sz{10.0, 10.0};
+    // A fully-custom item lays out its own ports, so the node has to be at
+    // least as wide as that item: keeping the width the title asked for draws
+    // the border inside the item, and the ports it placed on its own right
+    // edge end up outside the node. Short titles are where this shows, since
+    // that is when the title is not what decides the width.
+    QSizeF sz{minimalContentWidth(), minimalContentHeight()};
     if(m_fx)
     {
       auto fx_sz = m_fx->boundingRect().size();
       sz.rwidth() = std::max(sz.width(), fx_sz.width());
       sz.rheight() = std::max(sz.height(), fx_sz.height());
+    }
+    if(sz != m_contentSize)
+    {
+      prepareGeometryChange();
+      m_contentSize = sz;
+      publishSize();
     }
     updateContentRect();
     update();

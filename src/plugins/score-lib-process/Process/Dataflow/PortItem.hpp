@@ -64,6 +64,14 @@ public:
 
   void setHighlight(bool b);
 
+  //! What paint() actually draws, as opposed to boundingRect(), which is
+  //! deliberately larger. The ellipse is inset by one pixel at the small size
+  //! and by three at the large one; see PortStyle in the .cpp.
+  QRectF drawnRect() const noexcept
+  {
+    return m_diam == 8. ? QRectF{3., 3., 6., 6.} : QRectF{1., 1., 10., 10.};
+  }
+
   using QGraphicsItem::dropEvent;
   static const constexpr int Type = QGraphicsItem::UserType + 700;
   int type() const final override { return Type; }
