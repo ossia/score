@@ -800,6 +800,16 @@ MCUDevice::MCUDevice(
   m_capas.canRenameNode = false;
   m_capas.canSetProperties = false;
   m_capas.canLearn = true;
+
+  /*
+   * The tree is values, but the port under it is a MIDI cable: a level of the
+   * tree can be given to a MIDI port and carry the raw stream of the channel
+   * it stands for, alongside the controls read out of the same messages.
+   * @see ossia::net::midi::midi_stream
+   */
+  if(set.mode == MCUSpecificSettings::MidiDeviceMap)
+    m_capas.nodeKinds = Device::NodeKind::Value | Device::NodeKind::MidiIn
+                        | Device::NodeKind::MidiOut;
 }
 
 MCUDevice::~MCUDevice() { }
