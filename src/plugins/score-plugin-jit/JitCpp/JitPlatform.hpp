@@ -469,10 +469,18 @@ populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
   // emulated TLS there even with the platform on -- matching TargetOptions in
   // Compiler.cpp. __emutls_get_address resolves from the compiler-rt builtins
   // archive in the add-on link order.
-  if(!useNativePlatform || llvm::Triple(processTriple).isOSBinFormatCOFF())
+  // Must agree with TargetOptions::EmulatedTLS in Compiler.cpp.
+  if(!useNativePlatform || !llvm::Triple(processTriple).isOSBinFormatMachO())
   {
     args.push_back("-ftls-model=local-exec");
     args.push_back("-femulated-tls");
+  }
+  else
+  {
+    // A hidden thread_local cannot be preempted, so clang picks local-exec for it
+    // even at PIC level 2, emitting an offset into the initial TLS block that
+    // JIT-loaded code is not in. One such variable fails the whole add-on.
+    args.push_back("-ftls-model=global-dynamic");
   }
 
   // if fsanitize:
