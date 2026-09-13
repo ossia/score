@@ -97,7 +97,9 @@ struct Node
     int64_t tickStartSample{};
     int postaction_bars{};
     double sampleRate{48000.};
-    bool isPostRecording{false};
+    //! Whether the post-action is what ended the recording, rather than the
+    //! mode being changed by hand.
+    bool endedByPostaction{false};
     bool faded{false};
 
     static constexpr int64_t default_buffer_size = 192000 * 32;
@@ -147,8 +149,13 @@ struct Node
         = sr * 4. * (double(tk.signature.upper) / tk.signature.lower) * (60. / tk.tempo);
     const double total_samples = std::floor(state.postaction_bars * bar_samples);
 
-    // If there are more samples than expected we crop
-    const bool quantify_length = (state.quantif > 0.f) && (state.postaction_bars > 0)
+    // The bar count says when the post-action takes over, so it is the length
+    // of a recording the post-action ended -- trimming the rounding off the
+    // last bar. A recording stopped by hand is as long as it was played for,
+    // and stretching it out to that count is how a loop ended early came back
+    // with bars of silence at the end of it.
+    const bool quantify_length = state.endedByPostaction && (state.quantif > 0.f)
+                                 && (state.postaction_bars > 0)
                                  && (state.channels() > 0);
     if(quantify_length)
     {
@@ -203,6 +210,7 @@ struct Node
       state.recordEndBar = tk.musical_start_position
                            + (4. * double(tk.signature.upper) / tk.signature.lower)
                                  * state.postaction_bars;
+      state.endedByPostaction = false;
       state.reset_elapsed();
     }
     else
@@ -250,8 +258,12 @@ struct Node
     if(quantif != 0 && tk.prev_date != 0_tv)
     {
       state.quantif = quantif;
+      // A point on the tick's very first sample counts. Bar lines land there
+      // whenever the bar divides evenly into the buffer -- which at 120bpm and
+      // 48kHz is every buffer of 256 frames or fewer -- and refusing them left
+      // the mode waiting for a point that would never come.
       if(auto pt = tk.get_quantification_point(1. / quantif);
-         pt && pt->date > tk.prev_date)
+         pt && pt->date >= tk.prev_date)
       {
         const double ratio = ossia_state.modelToSamples();
         state.this_buffer_quantif_time = pt->date;
@@ -369,6 +381,7 @@ struct Node
 
         state.recordStart = ossia::time_value{-1};
         state.recordStartBar = -1.;
+        state.endedByPostaction = true;
         state.reset_elapsed();
         state.playbackPos = 0;
       };
@@ -407,6 +420,15 @@ struct Node
 
             action(sub_tk, passthrough);
           }
+        }
+        else if(tk.musical_end_position - tk.musical_end_last_bar < 1e-9)
+        {
+          // The bar line is this tick's own end, so the whole of it still
+          // belongs to what came before -- and a point there is not reported,
+          // the tick's end being exclusive. The next tick starts on the line
+          // and takes the switch; ending here instead drops this tick's
+          // recording, which comes back as a buffer of silence in the loop.
+          action(tk, passthrough);
         }
         else
         {
