@@ -1443,12 +1443,12 @@ bool looksLikeTestSignal(const QImage& img)
 
 Result runScoreToGstreamer(
     score::gfx::GraphicsApi api, const char* apiName, int w, int h, double fps,
-    double seconds)
+    double seconds, bool dmabuf)
 {
   const std::string cell = std::string("s2gst-") + apiName;
   Result r;
   r.cell = cell;
-  r.transport = "shm";
+  r.transport = dmabuf ? "dmabuf" : "shm";
 
   if(!haveGstLaunch())
   {
@@ -1458,7 +1458,7 @@ Result runScoreToGstreamer(
 
   Gfx::SharedOutputSettings s;
   const QString nodeName = QString("score-rt-gst-%1").arg(apiName);
-  s.path = nodeName + "?format=rgba";
+  s.path = nodeName + "?format=rgba" + (dmabuf ? "&dmabuf=on" : "");
   s.width = w;
   s.height = h;
   s.rate = fps;
@@ -1564,12 +1564,12 @@ Result runScoreToGstreamer(
   return r;
 }
 
-Result runGstreamerToScore(int w, int h, double fps, double seconds)
+Result runGstreamerToScore(int w, int h, double fps, double seconds, bool dmabuf)
 {
   const std::string cell = "gst2s";
   Result r;
   r.cell = cell;
-  r.transport = "shm";
+  r.transport = dmabuf ? "dmabuf" : "shm";
 
   if(!haveGstLaunch())
   {
@@ -1586,7 +1586,8 @@ Result runGstreamerToScore(int w, int h, double fps, double seconds)
            .arg(w)
            .arg(h)
            .arg(int(fps)),
-       "!", "pipewiresink", QString("stream-properties=p,node.name=%1").arg(nodeName)});
+       "!", "pipewiresink", "mode=provide",
+       QString("stream-properties=p,node.name=%1").arg(nodeName)});
   if(!gst.waitForStarted(4000))
   {
     r.status = "SKIP(no-gst)";
@@ -1594,11 +1595,14 @@ Result runGstreamerToScore(int w, int h, double fps, double seconds)
   }
 
   Receiver rcv;
-  const QString url = QString("pipewire://%1?width=%2&height=%3&fps=%4&format=rgba")
+  // dmabuf=off is what the panel writes; it makes the consumer offer no
+  // modifiers, so the producer can only answer with shared memory.
+  const QString url = QString("pipewire://%1?width=%2&height=%3&fps=%4&format=rgba%5")
                           .arg(nodeName)
                           .arg(w)
                           .arg(h)
-                          .arg(fps);
+                          .arg(fps)
+                          .arg(dmabuf ? "" : "&dmabuf=off");
   if(!rcv.open(url))
   {
     gst.kill();
@@ -1873,20 +1877,25 @@ int main(int argc, char** argv)
         }
 
         // --- C: score <-> gstreamer, through the session manager ---
-        for(const auto& a : apis)
+        for(const bool dmabuf : {false, true})
         {
-          const std::string cell = std::string("s2gst-") + a.name;
-          if(!want(cell))
-            continue;
-          std::printf("[ %-26s shm ] running...\n", cell.c_str());
-          std::fflush(stdout);
-          rows.push_back(runScoreToGstreamer(a.api, a.name, W, H, FPS, seconds));
-        }
-        if(want("gst2s"))
-        {
-          std::printf("[ %-26s shm ] running...\n", "gst2s");
-          std::fflush(stdout);
-          rows.push_back(runGstreamerToScore(W, H, FPS, seconds));
+          for(const auto& a : apis)
+          {
+            const std::string cell = std::string("s2gst-") + a.name;
+            if(!want(cell))
+              continue;
+            std::printf(
+                "[ %-26s %s ] running...\n", cell.c_str(), dmabuf ? "dmabuf" : "shm");
+            std::fflush(stdout);
+            rows.push_back(
+                runScoreToGstreamer(a.api, a.name, W, H, FPS, seconds, dmabuf));
+          }
+          if(want("gst2s"))
+          {
+            std::printf("[ %-26s %s ] running...\n", "gst2s", dmabuf ? "dmabuf" : "shm");
+            std::fflush(stdout);
+            rows.push_back(runGstreamerToScore(W, H, FPS, seconds, dmabuf));
+          }
         }
 
         printMatrix(rows);
