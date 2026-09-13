@@ -647,6 +647,12 @@ std::string DeviceMap::label() const
   return manufacturer + ": " + model;
 }
 
+bool isNoteName(const Control& c) noexcept
+{
+  return c.message.type == MessageType::Note && c.kind == Kind::Pad
+         && c.direction == Direction::Out;
+}
+
 std::string deviceNodeName(const DeviceMap& map)
 {
   if(!map.model.empty())

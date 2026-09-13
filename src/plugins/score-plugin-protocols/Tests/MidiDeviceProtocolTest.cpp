@@ -1009,3 +1009,60 @@ TEST_CASE("two devices on one port keep their controls apart", "[mididevice][mid
       [&] { return ossia::convert<int>(second->get_parameter()->value()) == 60; }));
   CHECK(valueOf(root, first) == 100);
 }
+
+TEST_CASE("note names stay out of the tree, note controls do not",
+          "[mididevice][midi]")
+{
+  const auto found = anyOutput();
+  if(!found)
+  {
+    SUCCEED();
+    return;
+  }
+  const auto& [api, out] = *found;
+
+  auto map = parseDeviceMap(R"_({
+    "format": "score.midi-device/1", "model": "Kit",
+    "controls": [
+      {"name": "Cutoff", "kind": "parameter", "direction": "out",
+       "message": {"type": "cc", "channel": 1, "number": 74}, "value": {}},
+
+      {"name": "Bass Drum", "kind": "pad", "direction": "out",
+       "message": {"type": "note", "channel": 10, "number": 36}, "value": {}},
+      {"name": "Snare", "kind": "pad", "direction": "out",
+       "message": {"type": "note", "channel": 10, "number": 38}, "value": {}},
+
+      {"name": "PadLed", "kind": "button", "direction": "out",
+       "message": {"type": "note", "channel": 1, "number": 20}, "value": {}},
+      {"name": "PlayPad", "kind": "pad", "direction": "in",
+       "message": {"type": "note", "channel": 1, "number": 21}, "value": {}}
+    ]})_");
+  REQUIRE(map.has_value());
+  REQUIRE(map->controls.size() == 5);
+
+  ProtocolSettings conf;
+  conf.api = api;
+  conf.output = out;
+  conf.devices.push_back({*map, 1});
+
+  auto dev = std::make_unique<ossia::net::generic_device>(
+      makeProtocol(std::move(conf)), "kit");
+  auto& root = dev->get_root_node();
+
+  // A pad the host would play on an instrument is a note name: documentation
+  // of what note 36 means on this kit, not a control.
+  CHECK(at(root, "Kit/Bass Drum") == nullptr);
+  CHECK(at(root, "Kit/Snare") == nullptr);
+
+  // Everything else that happens to be a note stays: an LED is driven, and a
+  // pad the hardware sends from is read.
+  CHECK(at(root, "Kit/PadLed") != nullptr);
+  CHECK(at(root, "Kit/PlayPad") != nullptr);
+  CHECK(at(root, "Kit/Cutoff") != nullptr);
+
+  // The reader still carries them; only the tree leaves them out.
+  CHECK(std::count_if(
+            map->controls.begin(), map->controls.end(),
+            [](const Control& c) { return isNoteName(c); })
+        == 2);
+}

@@ -318,6 +318,19 @@ struct DeviceMap
 };
 
 /**
+ * Whether a control is a note *name* rather than something to drive.
+ *
+ * An instrument's description names every note of every drum kit it has -- a
+ * few thousand of them, one per kit per note, of which only the selected kit
+ * sounds. They document what a note means; they are not controls, and a tree
+ * made of them buries the parameters that are.
+ *
+ * A pad the host would play on an instrument is that; a pad the hardware sends
+ * from, and a note that lights an LED, are not.
+ */
+bool isNoteName(const Control& c) noexcept;
+
+/**
  * What a description's level of the tree is called: the model, or whatever else
  * the document can be identified by.
  *
