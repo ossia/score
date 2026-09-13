@@ -287,11 +287,16 @@ static void setup_x11(int argc, char** argv)
 
 #if QT_VERSION <= QT_VERSION_CHECK(7, 0, 0)
   // Wayland as of Qt 6 does not seem to support QRhi properly especially on nvidia
-  // so we still force xcb
+  // so we still force xcb -- but only where there is an X server to force it onto.
+  // DISPLAY says so: a Wayland session running XWayland sets it, one without does
+  // not, and there the wayland plugin is the only one that can open a display.
   if(!has_platform)
   {
-    qputenv("QT_QPA_PLATFORM", "xcb");
-    setup_x11_error_handling();
+    if(x11)
+    {
+      qputenv("QT_QPA_PLATFORM", "xcb");
+      setup_x11_error_handling();
+    }
   };
 #else
   // Only setup X11 stuff if we are going to use XCB for sure
