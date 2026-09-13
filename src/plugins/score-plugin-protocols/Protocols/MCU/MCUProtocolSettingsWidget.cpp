@@ -266,7 +266,7 @@ MCUSettingsWidget::MCUSettingsWidget(QWidget* parent)
     row->addWidget(remove);
     row->addStretch(1);
 
-    sub->addRow(tr("On this port"), m_chosen);
+    sub->addRow(m_chosen);
     sub->addRow(QString{}, row);
 
     connect(add, &QPushButton::clicked, this, [this] {
@@ -754,7 +754,7 @@ void MCUSettingsWidget::updateDeviceMapSummary()
              "the package manager to get the control maps of several hundred "
              "controllers and instruments."));
     else
-      m_summary->setText(tr("Select a device above."));
+      m_summary->clear();
     return;
   }
 
