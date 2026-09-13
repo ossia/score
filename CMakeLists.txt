@@ -159,6 +159,16 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_UNITY_BUILD_BATCH_SIZE 5000)
 
+# Relinking a shared library does not change how anything links against it, so
+# do not make dependents wait on the file: touching score_lib_base otherwise
+# relinks every plugin and every test behind it. The trade-off is that removing
+# an exported symbol is no longer caught at build time, only at load time.
+option(SCORE_RELINK_ON_SHARED_LIB
+  "Relink a target when a shared library it links moves" OFF)
+if(NOT SCORE_RELINK_ON_SHARED_LIB)
+  set(CMAKE_LINK_DEPENDS_NO_SHARED ON)
+endif()
+
 if(CMAKE_VERSION VERSION_GREATER 3.19)
   set(CMAKE_PCH_INSTANTIATE_TEMPLATES 1)
 endif()
