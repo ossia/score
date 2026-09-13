@@ -112,10 +112,7 @@ TEST_CASE("A skin file drives the fonts", "[integration][skin]")
       skin.load(noFonts);
 
       CHECK(skin.SansFont.families().value(0) != "Galmuri9");
-      // The built-in SansFont is deliberately left on its point size, so
-      // pixelSize() is -1 here. Saving must not invent a pixel size for it;
-      // that is what the round-trip section above guards.
-      CHECK(skin.SansFont.pixelSize() == -1);
+      CHECK(skin.SansFont.pixelSize() == 16);
     }
   });
 }

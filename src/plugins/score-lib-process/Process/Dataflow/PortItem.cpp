@@ -143,17 +143,17 @@ struct PortStyle
     const auto& texturepen = skin.TexturePortPen();
     auto texturecolor = texturepen.color();
     static auto texturepen_cosmetic_nodot = vector_gui
-                                                ? skin.skin.LightGray.main.pen1
-                                                : skin.skin.LightGray.main.pen_cosmetic;
+                                                ? skin.skin.Port4.main.pen1
+                                                : skin.skin.Port4.main.pen_cosmetic;
     static auto texturepen_cosmetic_dot = texturepen_cosmetic_nodot;
     texturecolor.setAlphaF(0.25);
-    texturepen_cosmetic_dot.setColor(audiocolor);
+    texturepen_cosmetic_dot.setColor(texturecolor);
 
     const auto& geometrypen = skin.GeometryPortPen();
     auto geometrycolor = geometrypen.color();
     static auto geometrypen_cosmetic_nodot = vector_gui
-                                                 ? skin.skin.Emphasis3.main.pen1
-                                                 : skin.skin.Emphasis3.main.pen_cosmetic;
+                                                 ? skin.skin.Port5.main.pen1
+                                                 : skin.skin.Port5.main.pen_cosmetic;
     static auto geometrypen_cosmetic_dot = geometrypen_cosmetic_nodot;
     geometrycolor.setAlphaF(0.25);
     geometrypen_cosmetic_dot.setColor(geometrycolor);
@@ -161,18 +161,18 @@ struct PortStyle
     const auto& audiopen_light = skin.skin.Port1.lighter180.pen1_5;
     const auto& datapen_light = skin.skin.Port2.lighter180.pen1_5;
     const auto& midipen_light = skin.skin.Port3.lighter180.pen1_5;
-    const auto& texturepen_light = skin.skin.LightGray.lighter180.pen1_5;
-    const auto& geometrypen_light = skin.skin.Emphasis3.lighter180.pen1_5;
+    const auto& texturepen_light = skin.skin.Port4.lighter180.pen1_5;
+    const auto& geometrypen_light = skin.skin.Port5.lighter180.pen1_5;
     const auto& audiobrush = skin.skin.Port1.main.brush;
     const auto& databrush = skin.skin.Port2.main.brush;
     const auto& midibrush = skin.skin.Port3.main.brush;
-    const auto& texturebrush = skin.skin.Light.main.brush;
-    const auto& geometrybrush = skin.skin.Emphasis3.main.brush;
+    const auto& texturebrush = skin.skin.Port4.main.brush;
+    const auto& geometrybrush = skin.skin.Port5.main.brush;
     const auto& audiobrush_light = skin.skin.Port1.lighter.brush;
     const auto& databrush_light = skin.skin.Port2.lighter.brush;
     const auto& midibrush_light = skin.skin.Port3.lighter.brush;
-    const auto& texturebrush_light = skin.skin.LightGray.lighter.brush;
-    const auto& geometrybrush_light = skin.skin.Emphasis3.lighter.brush;
+    const auto& texturebrush_light = skin.skin.Port4.lighter.brush;
+    const auto& geometrybrush_light = skin.skin.Port5.lighter.brush;
 
     return {
         PenSet{
@@ -1226,9 +1226,9 @@ const score::Brush& portBrush(Process::PortType type)
     case Process::PortType::Midi:
       return skin.Port3;
     case Process::PortType::Texture:
-      return skin.LightGray;
+      return skin.Port4;
     case Process::PortType::Geometry:
-      return skin.Emphasis3;
+      return skin.Port5;
     default:
       return skin.Warn1;
   }

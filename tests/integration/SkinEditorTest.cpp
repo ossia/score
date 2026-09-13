@@ -11,7 +11,11 @@
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
 
 #include <QComboBox>
+#include <QFile>
 #include <QFontDatabase>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QTabWidget>
 
 #include <catch2/catch_test_macros.hpp>
@@ -120,5 +124,36 @@ TEST_CASE("The skin editor reports the font's real style", "[integration][skin]"
 
     INFO("style combo shows: " << styleCombo->currentText().toStdString());
     CHECK(styleCombo->currentText() == "Regular");
+  });
+}
+
+TEST_CASE("Saving a skin keeps every colour it loaded", "[integration][skin]")
+{
+  // "Save as..." writes Skin::toJson(). A role it does not enumerate is
+  // dropped on save and left on the previous skin's value on reload; the
+  // translucent cables make the same point for the alpha component.
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    QFile f(QStringLiteral(":/skin/DefaultSkin.json"));
+    REQUIRE(f.open(QFile::ReadOnly));
+    const QJsonObject src = QJsonDocument::fromJson(f.readAll()).object();
+    REQUIRE(!src.isEmpty());
+
+    auto& skin = score::Skin::instance();
+    skin.load(src);
+    const QJsonObject out = skin.toJson();
+
+    int checked = 0;
+    for(auto it = src.begin(); it != src.end(); ++it)
+    {
+      // "fonts" and "palette" are objects and have their own round-trips.
+      if(!it.value().isArray())
+        continue;
+
+      INFO("role: " << it.key().toStdString());
+      REQUIRE(out.contains(it.key()));
+      CHECK(out[it.key()].toArray() == it.value().toArray());
+      checked++;
+    }
+    CHECK(checked == 50);
   });
 }

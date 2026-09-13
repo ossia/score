@@ -19,7 +19,10 @@ W_OBJECT_IMPL(Midi::View)
 namespace Midi
 {
 
-static const MidiStyle& style = MidiStyle::instance();
+static const MidiStyle& style() noexcept
+{
+  return MidiStyle::instance();
+}
 View::View(QGraphicsItem* parent)
     : Process::LayerView{parent}
 {
@@ -97,7 +100,7 @@ void View::updateBackground(double h)
               0, rect.height() + note_height * (m_min - i - 1) - 1, width, note_height};
         };
         for_white_notes(draw_bg_white);
-        p.setBrush(style.lightBrush);
+        p.setBrush(style().lightBrush);
         p.drawRects(white_rects, max_white);
       }
 
@@ -110,7 +113,7 @@ void View::updateBackground(double h)
           lines[max_lines++] = QLineF{0, y, width, y};
         }
 
-        p.setPen(style.darkPen);
+        p.setPen(style().darkPen);
         p.drawLines(lines, max_lines);
       }
 
@@ -130,7 +133,7 @@ void View::updateBackground(double h)
               texts[i % 12], QTextOption{Qt::AlignVCenter});
         };
 
-        text_painter.setPen(style.darkerBrush.color());
+        text_painter.setPen(style().darkerBrush.color());
         for_white_notes(draw_text);
         for_black_notes(draw_text);
         m_textCache = std::move(text);
@@ -222,8 +225,8 @@ void View::paint_impl(QPainter* p) const
   }
   if(!m_selectArea.isEmpty())
   {
-    p->setBrush(style.transparentBrush);
-    p->setPen(style.selectionPen);
+    p->setBrush(style().transparentBrush);
+    p->setPen(style().selectionPen);
     p->drawPath(m_selectArea);
   }
 }
