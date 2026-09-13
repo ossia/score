@@ -562,6 +562,41 @@ TEST_CASE("WindowSettingsWidget add and remove outputs", "[gfx][window][settings
 // ---------------------------------------------------------------------------
 // Precision, borders and where a new window lands.
 
+// The widget's destructor reconnects the live device, which destroys it and
+// builds a new one -- and a destructor runs on cancel exactly as on accept.
+// With the engine running, the execution graph still holds the old device, so
+// this used to take the application down. There is no device here to find, so
+// what is pinned is that closing the widget does not reach for one while
+// something is playing.
+TEST_CASE("closing the multi-window settings does not reconnect mid-playback",
+          "[gfx][window][settingswidget]")
+{
+  score::test::run_in_app([&](const score::GUIApplicationContext&) {
+    auto* w = new WindowSettingsWidget;
+
+    WindowSettings ws;
+    ws.mode = WindowMode::MultiWindow;
+    ws.outputs = {mapping({0, 0, 0.5, 1}, {0, 0}, {640, 480})};
+    w->setSettings(makeSettings(ws));
+    REQUIRE(outputButtonCount(*w) == 1);
+
+    QPushButton* add{};
+    for(auto* b : w->findChildren<QPushButton*>())
+      if(!b->isCheckable() && b->text().contains(QStringLiteral("Add")))
+        add = b;
+    REQUIRE(add != nullptr);
+
+    add->click();
+    CHECK(outputButtonCount(*w) == 2);
+    CHECK(visiblePreviewWindows() == 2);
+
+    // Cancelling is the destructor, and nothing it does may outlive it.
+    delete w;
+    QApplication::processEvents();
+    CHECK(visiblePreviewWindows() == 0);
+  });
+}
+
 TEST_CASE("the source mapping spin boxes carry five decimals", "[gfx][window][settingswidget]")
 {
   score::test::run_in_app([&](const score::GUIApplicationContext&) {
