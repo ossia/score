@@ -120,15 +120,17 @@ groupNode(ossia::net::node_base& root, const std::vector<std::string>& group)
 }
 
 /**
- * The labels of a control whose values are all named, as a choice.
+ * The values a control names, as a choice.
  *
- * Only when every label names one value: a label spanning a range has no single
- * value to send back, and a partially named set would offer the user a choice
- * that silently cannot reach half the control.
+ * Only where every label names one value: a label spanning a range has no
+ * single value to send back. The choice reaches the named values and the
+ * numeric node beside it reaches the rest, so one name is worth offering --
+ * a bank holding a single patch names it, and hiding that would lose the only
+ * thing the document says about it.
  */
 std::vector<std::pair<std::string, int>> uniqueLabels(const Value& v)
 {
-  if(v.labels.size() < 2)
+  if(v.labels.empty())
     return {};
 
   std::vector<std::pair<std::string, int>> out;
