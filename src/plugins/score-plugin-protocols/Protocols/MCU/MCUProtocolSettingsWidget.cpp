@@ -22,6 +22,8 @@
 #include <QDebug>
 #include <QFormLayout>
 #include <QHBoxLayout>
+#include <QTreeWidget>
+#include <QTreeWidgetItem>
 #include <QHeaderView>
 #include <QListWidget>
 #include <QPushButton>
@@ -178,17 +180,21 @@ MCUSettingsWidget::MCUSettingsWidget(QWidget* parent)
   /// The instrument picker ///
   m_instrumentBox = new QWidget{this};
   {
-    auto box = new score::MarginLess<QVBoxLayout>{m_instrumentBox};
+    auto panes = new score::MarginLess<QHBoxLayout>{m_instrumentBox};
+    auto* left = new QWidget{m_instrumentBox};
+    panes->addWidget(left, 3);
 
-    m_search = new QLineEdit{m_instrumentBox};
+    auto box = new score::MarginLess<QVBoxLayout>{left};
+
+    m_search = new QLineEdit{left};
     m_search->setPlaceholderText(tr("Search an instrument..."));
     m_search->setClearButtonEnabled(true);
     box->addWidget(m_search);
 
-    m_instrumentModel = new QStandardItemModel{m_instrumentBox};
+    m_instrumentModel = new QStandardItemModel{left};
     m_instrumentModel->setHorizontalHeaderLabels({tr("Device"), tr("Configuration")});
 
-    m_instrumentFilter = new QSortFilterProxyModel{m_instrumentBox};
+    m_instrumentFilter = new QSortFilterProxyModel{left};
     m_instrumentFilter->setSourceModel(m_instrumentModel);
     m_instrumentFilter->setFilterRole(SearchRole);
     m_instrumentFilter->setFilterCaseSensitivity(Qt::CaseInsensitive);
@@ -196,7 +202,7 @@ MCUSettingsWidget::MCUSettingsWidget(QWidget* parent)
     // matches: the search is on the leaves.
     m_instrumentFilter->setRecursiveFilteringEnabled(true);
 
-    m_instruments = new QTreeView{m_instrumentBox};
+    m_instruments = new QTreeView{left};
     m_instruments->setModel(m_instrumentFilter);
 
     // The header is what the user drags to widen the name column, so it has to
@@ -215,7 +221,7 @@ MCUSettingsWidget::MCUSettingsWidget(QWidget* parent)
     box->addWidget(m_instruments, 1);
 
     auto sub = new QFormLayout;
-    m_channel = new QSpinBox{m_instrumentBox};
+    m_channel = new QSpinBox{left};
     m_channel->setRange(1, 16);
     m_channel->setToolTip(
         tr("The MIDI channel the instrument is set to. The dataset documents "
@@ -229,12 +235,12 @@ MCUSettingsWidget::MCUSettingsWidget(QWidget* parent)
      * instruments at once. The picker chooses one; this is the list of those
      * actually on the port, each with the channel it is set to.
      */
-    m_chosen = new QListWidget{m_instrumentBox};
+    m_chosen = new QListWidget{left};
     m_chosen->setSelectionMode(QAbstractItemView::SingleSelection);
     m_chosen->setMaximumHeight(96);
 
-    auto* add = new QPushButton{tr("Add device"), m_instrumentBox};
-    auto* remove = new QPushButton{tr("Remove"), m_instrumentBox};
+    auto* add = new QPushButton{tr("Add device"), left};
+    auto* remove = new QPushButton{tr("Remove"), left};
 
     auto* row = new QHBoxLayout;
     row->addWidget(add);
@@ -246,12 +252,14 @@ MCUSettingsWidget::MCUSettingsWidget(QWidget* parent)
 
     connect(add, &QPushButton::clicked, this, [this] {
       addChosenDevice(chosenMap(), m_channel->value());
+      updatePreview();
       changed();
     });
     connect(remove, &QPushButton::clicked, this, [this] {
       if(auto* item = m_chosen->currentItem())
       {
         delete m_chosen->takeItem(m_chosen->row(item));
+        updatePreview();
         changed();
       }
     });
@@ -277,10 +285,28 @@ MCUSettingsWidget::MCUSettingsWidget(QWidget* parent)
     });
     box->addLayout(sub);
 
-    m_summary = new QLabel{m_instrumentBox};
+    m_summary = new QLabel{left};
     m_summary->setWordWrap(true);
     box->addWidget(m_summary);
   }
+  {
+    /*
+     * What the device will look like once connected. The names come from the
+     * same rules the protocol builds with, so the two cannot drift; nothing
+     * here is editable, and a description too large to show in full is cut
+     * short rather than making the dialog wait for it.
+     */
+    auto* panes = qobject_cast<QHBoxLayout*>(m_instrumentBox->layout());
+    m_preview = new QTreeWidget{m_instrumentBox};
+    m_preview->setHeaderLabels({tr("Preview")});
+    m_preview->setSelectionMode(QAbstractItemView::NoSelection);
+    m_preview->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    m_preview->setUniformRowHeights(true);
+    m_preview->setFocusPolicy(Qt::NoFocus);
+    m_preview->setMinimumWidth(180);
+    panes->addWidget(m_preview, 2);
+  }
+
   lay->addRow(m_instrumentBox);
 
   connect(m_search, &QLineEdit::textChanged, this, [this](const QString& text) {
@@ -614,6 +640,91 @@ void MCUSettingsWidget::selectMap(const QString& identity)
   }
 }
 
+/**
+ * Show the tree the chosen descriptions would build.
+ *
+ * The names are the protocol's -- sanitized, and uniquified where two levels
+ * would otherwise collide -- so that a preview is worth reading. A device with
+ * thousands of controls is cut short: a patch list of that size says nothing a
+ * reader cannot already see in the first hundred, and building it would make
+ * the dialog wait.
+ */
+void MCUSettingsWidget::updatePreview()
+{
+  m_preview->clear();
+
+  //! Enough to show the shape of a device without paying for all of it.
+  constexpr int maxControls = 200;
+
+  for(int i = 0; i < m_chosen->count(); i++)
+  {
+    const auto slot = slotAt(i);
+    const auto* entry = MIDIDevices::Database::instance().find(slot.map);
+    if(!entry)
+      continue;
+
+    const auto map = MIDIDevices::Database::load(*entry);
+    if(!map)
+      continue;
+
+    auto name = QString::fromStdString(MIDIDevices::deviceNodeName(*map));
+    ossia::net::sanitize_name(name);
+    auto* device = new QTreeWidgetItem{m_preview, {uniqueChild(m_preview->invisibleRootItem(), name)}};
+    device->setExpanded(true);
+
+    int shown = 0;
+    for(const auto& c : map->controls)
+    {
+      if(shown++ >= maxControls)
+      {
+        new QTreeWidgetItem{
+            device, {tr("... %1 more").arg(int(map->controls.size()) - maxControls)}};
+        break;
+      }
+
+      auto* parent = device;
+      for(const auto& level : c.group)
+      {
+        auto lvl = QString::fromStdString(level);
+        ossia::net::sanitize_name(lvl);
+        parent = childNamed(parent, lvl);
+      }
+
+      auto leaf = QString::fromStdString(c.name);
+      ossia::net::sanitize_name(leaf);
+      auto* node = new QTreeWidgetItem{parent, {uniqueChild(parent, leaf)}};
+
+      // The string node that names the values, where the description names
+      // them all.
+      if(c.value.labels.size() >= 2)
+        new QTreeWidgetItem{node, {QStringLiteral("choice")}};
+    }
+  }
+}
+
+//! An existing level of that name, or a new one: a group is shared by every
+//! control that names it.
+QTreeWidgetItem* MCUSettingsWidget::childNamed(QTreeWidgetItem* parent, const QString& name)
+{
+  for(int i = 0; i < parent->childCount(); i++)
+    if(parent->child(i)->text(0) == name)
+      return parent->child(i);
+
+  auto* item = new QTreeWidgetItem{parent, {name}};
+  item->setExpanded(true);
+  return item;
+}
+
+//! What the tree will call a second node of the same name under one parent.
+QString MCUSettingsWidget::uniqueChild(QTreeWidgetItem* parent, const QString& name)
+{
+  int n = 0;
+  for(int i = 0; i < parent->childCount(); i++)
+    if(parent->child(i)->text(0).section('.', 0, 0) == name)
+      n++;
+  return n == 0 ? name : name + "." + QString::number(n);
+}
+
 void MCUSettingsWidget::updateDeviceMapSummary()
 {
   auto& db = MIDIDevices::Database::instance();
@@ -765,5 +876,6 @@ void MCUSettingsWidget::setSettings(const Device::DeviceSettings& settings)
   }
 
   updateDeviceMapSummary();
+  updatePreview();
 }
 }
