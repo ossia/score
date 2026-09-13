@@ -154,9 +154,6 @@ modules:
       - -DOSSIA_USE_SYSTEM_LIBRARIES=1
       - -DSCORE_USE_SYSTEM_LIBRARIES=1
       - -DSCORE_NO_QTCONF=1
-      # SCORE_USE_SYSTEM_LIBRARIES otherwise picks FFTW over KFR, and a deployment
-      # build asserts on the analysis_kfr feature (cmake/ScoreFeatureCheck.cmake).
-      - -DOSSIA_ENABLE_KFR=1
       - -DCMAKE_CXX_FLAGS="-Wl,--strip-all"
       - -DBOOST_ROOT="${FLATPAK_DEST}/include"
 

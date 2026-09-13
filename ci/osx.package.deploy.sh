@@ -61,7 +61,10 @@ echo waiting...; while pgrep XProtect; do sleep 3; done;
 
 max_tries=10
 i=0
+# --skip-jenkins: the window-prettifying step drives Finder over AppleScript, which
+# has no session to talk to when this runs over ssh, and times out on every retry.
 until sudo create-dmg \
+  --skip-jenkins \
   --volname "ossia score $TAG" \
   --window-pos 200 120 \
   --window-size 800 400 \

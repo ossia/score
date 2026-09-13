@@ -31,6 +31,15 @@ function(setup_score_addon)
 
   setup_score_plugin("${SETUP_ADDON_TARGET}")
 
+  # A manifest pointing at a .a describes something score cannot dlopen;
+  # score-addon-academy shipped exactly that. Better to say so at configure time.
+  get_target_property(_addon_type "${SETUP_ADDON_TARGET}" TYPE)
+  if(NOT SCORE_STATIC_PLUGINS AND NOT _addon_type MATCHES "^(MODULE|SHARED)_LIBRARY$")
+    message(FATAL_ERROR
+      "setup_score_addon(${SETUP_ADDON_TARGET}): a run-time add-on must be a MODULE or SHARED "
+      "library, not ${_addon_type}.")
+  endif()
+
   # A statically linked plug-in is part of the application; there is nothing to
   # discover at run time and so nothing to describe.
   if(SCORE_STATIC_PLUGINS)

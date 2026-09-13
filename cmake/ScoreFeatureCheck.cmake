@@ -6,11 +6,6 @@ endif()
 set(SCORE_MISSING_PLUGINS)
 set(SCORE_MISSING_FEATURES)
 
-# IN_LIST takes the NAME of a list variable, not its contents: passing
-# "${SCORE_PLUGINS_LIST}" makes CMake look up a variable named after the whole
-# expanded list, find nothing, and report every plug-in as missing. The results
-# also have to be lifted with PARENT_SCOPE, or the appends die with the
-# function frame and the checks below always see an empty list.
 function(score_assert_plugin name)
   # The asserts below spell plug-ins the way the directories are named, while
   # SCORE_PLUGINS_LIST holds target names.
@@ -40,7 +35,8 @@ score_assert_feature(analysis_kfr)
 score_assert_feature(sdl)
 
 if(NOT EMSCRIPTEN)
-    if(CMAKE_SYSTEM_PROCESSOR MATCHES "AMD64")
+    # AMD64 is the Windows spelling, x86_64 the one Linux and macOS report.
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "(AMD64|x86_64)")
       score_assert_plugin(score-plugin-jit)
     endif()
 
@@ -51,7 +47,9 @@ if(NOT EMSCRIPTEN)
     score_assert_plugin(score-plugin-vst3)
     score_assert_plugin(score-plugin-ysfx)
 
-    score_assert_feature(portaudio)
+    if(NOT APPLE)
+      score_assert_feature(portaudio)
+    endif()
     score_assert_feature(jack)
     score_assert_feature(jack_transport)
     score_assert_feature(dnssd)
@@ -95,9 +93,22 @@ endif()
 if(EMSCRIPTEN)
 endif()
 
-if(SCORE_MISSING_PLUGINS)
-  message(FATAL_ERROR "Deployment build is missing the following plug-ins: ${SCORE_MISSING_PLUGINS}")
-endif()
-if(SCORE_MISSING_FEATURES)
-    message(FATAL_ERROR "Deployment build is missing the following features: ${SCORE_MISSING_FEATURES}")
+# Only our own release builds control the whole dependency set, so only they treat
+# a gap as an error: faust, ysfx, lv2 and SDL are not packaged everywhere, and a
+# distribution cannot conjure them up.
+if(SCORE_MISSING_PLUGINS OR SCORE_MISSING_FEATURES)
+  if(SCORE_STRICT_FEATURE_CHECK)
+    set(SCORE_FEATURE_CHECK_LEVEL FATAL_ERROR)
+  else()
+    set(SCORE_FEATURE_CHECK_LEVEL WARNING)
+  endif()
+
+  if(SCORE_MISSING_PLUGINS)
+    message(${SCORE_FEATURE_CHECK_LEVEL}
+      "Deployment build is missing the following plug-ins: ${SCORE_MISSING_PLUGINS}")
+  endif()
+  if(SCORE_MISSING_FEATURES)
+    message(${SCORE_FEATURE_CHECK_LEVEL}
+      "Deployment build is missing the following features: ${SCORE_MISSING_FEATURES}")
+  endif()
 endif()

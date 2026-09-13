@@ -190,6 +190,10 @@ include(CheckCXXCompilerFlag)
 
 check_cxx_compiler_flag(-std=c++23 has_std_23_flag)
 
+# Add-ons gate on this. In-tree it comes from libossia's OssiaConfiguration.cmake,
+# which an out-of-tree build never loads.
+check_cxx_compiler_flag(-std=c++2b has_std_2b_flag)
+
 if (has_std_23_flag)
   set(CXX_VERSION_FLAG cxx_std_23)
   set(CMAKE_CXX_STANDARD 23)

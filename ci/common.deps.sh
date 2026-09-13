@@ -44,7 +44,9 @@ clone_addon() {
   local url=${1}
   local ref=${2:-}
   local folder
+  # awk takes the last path component verbatim, .git suffix included.
   folder=$(echo "${url}" | awk -F'/' '{print $NF}')
+  folder=${folder%.git}
 
   REQUESTED+=("${folder}|${ref}|${url}")
 
@@ -88,6 +90,13 @@ clone_addon() {
   else
     # Try to update the addon if it's really super clean
     cd "$folder"
+    # NO_SUBMODULES applies to an existing checkout too, or a second run pulls in
+    # the SDKs the first deliberately skipped.
+    if [[ -n "${NO_SUBMODULES:-}" ]]; then
+      git update-index --really-refresh || true
+      git pull --ff-only || echo "note: could not update ${folder}, using the local checkout" >&2
+      exit 0
+    fi
     git update-index --really-refresh || true
     if [[ -n "$(git status --porcelain --untracked-files=no)" ]]; then
       if [[ -n "${ref}" ]]; then

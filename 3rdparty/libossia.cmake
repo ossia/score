@@ -26,11 +26,11 @@ endif()
 # FFT-relatd features
 set(OSSIA_ENABLE_FFT ON CACHE INTERNAL "" FORCE)
 
+# Not keyed on SCORE_USE_SYSTEM_LIBRARIES: there is no system KFR to prefer, it is
+# vendored and built from source either way. The one real constraint is that KFR
+# needs clang.
 if(NOT DEFINED OSSIA_ENABLE_FFTW AND NOT DEFINED OSSIA_ENABLE_KFR)
-  if(SCORE_USE_SYSTEM_LIBRARIES)
-    set(OSSIA_ENABLE_FFTW ON CACHE INTERNAL "" FORCE)
-    set(OSSIA_ENABLE_KFR OFF CACHE INTERNAL "" FORCE)
-  elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES ".*Clang" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Emscripten")
+  if("${CMAKE_CXX_COMPILER_ID}" MATCHES ".*Clang" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Emscripten")
     set(OSSIA_ENABLE_KFR ON CACHE INTERNAL "" FORCE)
     set(OSSIA_ENABLE_FFTW OFF CACHE INTERNAL "" FORCE)
   else()
