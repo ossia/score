@@ -710,3 +710,74 @@ TEST_CASE("Looper: record passthrough is heard only while taking something in",
       CHECK(h.out_buf[0][i] == Approx(0.));
   }
 }
+
+TEST_CASE("Looper: overdub can hand over to play without rewinding",
+          "[fx][audio][looper]")
+{
+  // Reading the loop from the top on every change of mode is heard as a jump
+  // when overdubbing gives way to playing. Which of the two happens is the
+  // Restart setting's business; a recording always starts its buffer again,
+  // there being nothing yet to carry on from.
+  using Restart = Looper::Restart;
+
+  const auto record_two_buffers = [](looper_harness& h) {
+    h.node.inputs.passthrough = Passthrough::None;
+    h.fill_input(0, [](int64_t i) { return double(i + 1); });
+    h.node.inputs.mode = LoopMode::Record;
+    h.run(64);
+    h.run(64);
+    REQUIRE(h.loop().size() == 128);
+  };
+
+  SECTION("carrying on, the loop is read from where overdubbing left it")
+  {
+    looper_harness h;
+    h.node.inputs.restart = Restart::Recording;
+    record_two_buffers(h);
+
+    h.node.inputs.mode = LoopMode::Overdub;
+    h.reset_input();
+    h.run(64); // overdubs the first half, position now 64
+
+    h.node.inputs.mode = LoopMode::Play;
+    h.reset_output();
+    h.run(64);
+
+    // the second half of the loop, not the first
+    for(int i = 0; i < 64; i++)
+      CHECK(h.out_buf[0][i] == Approx(h.loop()[64 + i]));
+  }
+
+  SECTION("restarting, the loop is read from its beginning")
+  {
+    looper_harness h;
+    h.node.inputs.restart = Restart::Always;
+    record_two_buffers(h);
+
+    h.node.inputs.mode = LoopMode::Overdub;
+    h.reset_input();
+    h.run(64);
+
+    h.node.inputs.mode = LoopMode::Play;
+    h.reset_output();
+    h.run(64);
+
+    for(int i = 0; i < 64; i++)
+      CHECK(h.out_buf[0][i] == Approx(h.loop()[i]));
+  }
+
+  SECTION("a recording always starts its buffer again, whatever the setting")
+  {
+    looper_harness h;
+    h.node.inputs.restart = Restart::Recording;
+    record_two_buffers(h);
+
+    h.node.inputs.mode = LoopMode::Play;
+    h.run(64);
+
+    h.fill_input(0, [](int64_t) { return 9.; });
+    h.node.inputs.mode = LoopMode::Record;
+    h.run(64);
+    CHECK(h.loop().size() == 64);
+  }
+}
