@@ -900,3 +900,59 @@ TEST_CASE("a relative control sends the step from where it really was",
   enc.push_value(7);
   CHECK(w.settledCount(2) == 2);
 }
+
+TEST_CASE("an NRPN arrives as the four messages that carry it", "[mididevice][midi]")
+{
+  const auto lb = findLoopback();
+  if(!lb)
+  {
+    SUCCEED();
+    return;
+  }
+
+  auto inj = makeReceiver(*lb, R"_({
+    "format": "score.midi-device/1", "model": "T",
+    "controls": [
+      {"name": "Wide", "kind": "parameter", "direction": "in",
+       "message": {"type": "nrpn", "channel": 1, "number": 1, "lsb": 2},
+       "value": {"mode": "absolute"}},
+      {"name": "Narrow", "kind": "parameter", "direction": "in",
+       "message": {"type": "nrpn", "channel": 1, "number": 1, "lsb": 3},
+       "value": {"mode": "absolute", "min": 0, "max": 127}},
+      {"name": "Reg", "kind": "parameter", "direction": "in",
+       "message": {"type": "rpn", "channel": 1, "number": 0, "lsb": 0},
+       "value": {"mode": "absolute"}}
+    ]})_");
+  auto& root = inj.dev->get_root_node();
+
+  // Select NRPN 1/2, then write it. A 14-bit parameter is only complete once
+  // the data LSB has arrived.
+  inj.send({0xB0, 99, 1});
+  inj.send({0xB0, 98, 2});
+  inj.send({0xB0, 6, 0x40});
+  inj.send({0xB0, 38, 0x01});
+  CHECK(waitFor([&] { return valueOf(root, "Wide") == ((0x40 << 7) | 1); }));
+
+  // The selection stays latched: a further data entry writes the same
+  // parameter without naming it again.
+  inj.send({0xB0, 6, 0x10});
+  inj.send({0xB0, 38, 0x02});
+  CHECK(waitFor([&] { return valueOf(root, "Wide") == ((0x10 << 7) | 2); }));
+
+  // A 7-bit parameter takes its value from the data MSB alone.
+  inj.send({0xB0, 99, 1});
+  inj.send({0xB0, 98, 3});
+  inj.send({0xB0, 6, 99});
+  CHECK(waitFor([&] { return valueOf(root, "Narrow") == 99; }));
+
+  // Selecting 1/3 must not have moved 1/2.
+  CHECK(valueOf(root, "Wide") == ((0x10 << 7) | 2));
+
+  // An RPN is a different address space from an NRPN with the same numbers.
+  inj.send({0xB0, 101, 0});
+  inj.send({0xB0, 100, 0});
+  inj.send({0xB0, 6, 0x02});
+  inj.send({0xB0, 38, 0x00});
+  CHECK(waitFor([&] { return valueOf(root, "Reg") == (0x02 << 7); }));
+  CHECK(valueOf(root, "Narrow") == 99);
+}

@@ -94,8 +94,21 @@ TEST_CASE("A channel is one, several, or the device's own", "[midimap]")
   // "Every channel but 10", the shape an instrument's name set routinely takes.
   CHECK(chans("[1,2,3,4,5,6,7,8,9,11,12,13,14,15,16]").size() == 15);
 
-  // A channel outside 1-16 addresses nothing.
-  CHECK(chans("17").empty());
+  // A channel outside 1-16 addresses nothing, and the control goes with it: an
+  // empty channel list means "whichever the device is set to", so reading a
+  // typo as one would quietly widen the control to every channel.
+  const auto dropped = [](const std::string& channel) {
+    auto m = parse(doc(
+        R"_({"name":"K","message":{"type":"cc","number":1,"channel":)_" + channel
+        + R"_(},"value":{}})_"));
+    return m.controls.empty() && m.warnings.size() == 1;
+  };
+  CHECK(dropped("17"));
+  CHECK(dropped("0"));
+  CHECK(dropped("[]"));
+  CHECK(dropped("[0,17,99]"));
+
+  // A list that names some real channels keeps them, and only them.
   CHECK(chans("[0,1,17]") == std::vector<int>{1});
 }
 
@@ -462,4 +475,68 @@ TEST_CASE("an encoder's step survives the round trip", "[midimap]")
     CHECK(decodeRelative(encodeRelative(1000, e), e) > 0);
     CHECK(decodeRelative(encodeRelative(-1000, e), e) < 0);
   }
+}
+
+TEST_CASE("the two readers agree about the same bytes", "[midimap]")
+{
+  // Key order is not part of the format. A document that states its controls
+  // before its own fields is unusual, not invalid, and must not become
+  // invisible in a library for it.
+  const std::string controlsFirst
+      = R"_({"controls":[)_" + minimal_control
+        + R"_(],"format":"score.midi-device/1","manufacturer":"Acme","model":"Zed"})_";
+
+  auto head = parseDeviceMapHeader(controlsFirst);
+  REQUIRE(head.has_value());
+  CHECK(head->model == "Zed");
+  CHECK(head->manufacturer == "Acme");
+
+  auto full = parseDeviceMap(controlsFirst);
+  REQUIRE(full.has_value());
+  CHECK(full->model == "Zed");
+  CHECK(full->controls.size() == 1);
+
+  // A repeated key: rapidjson keeps the first, so the header reader must too,
+  // or a document is listed under one identity and opens as another.
+  const auto both = [](const std::string& doc) {
+    auto h = parseDeviceMapHeader(doc);
+    auto f = parseDeviceMap(doc);
+    return std::pair{h.has_value(), f.has_value()};
+  };
+
+  CHECK(both(R"_({"format":"score.midi-device/1","format":"score.midi-device/2",)_"
+             R"_("model":"X","controls":[]})_")
+        == std::pair{true, true});
+
+  CHECK(both(R"_({"format":"score.midi-device/2","format":"score.midi-device/1",)_"
+             R"_("model":"X","controls":[]})_")
+        == std::pair{false, false});
+
+  auto dup = parseDeviceMapHeader(
+      R"_({"format":"score.midi-device/1","model":"First","model":"Second",)_"
+      R"_("controls":[]})_");
+  REQUIRE(dup.has_value());
+  CHECK(dup->model == "First");
+}
+
+TEST_CASE("a modifier layer is read, not discarded", "[midimap]")
+{
+  auto m = parse(doc(
+      R"_({"name":"ShiftPlay","message":{"type":"cc","channel":1,"number":74},)_"
+      R"_("value":{},"layer":{"name":"Shift","of":"Deck1/Play"}})_"));
+
+  REQUIRE(m.controls.size() == 1);
+  CHECK(m.controls[0].layer.name == "Shift");
+  CHECK(m.controls[0].layer.of == "Deck1/Play");
+  CHECK(!m.controls[0].layer.empty());
+
+  // A modifier that selects a whole-surface mode pairs with no single control.
+  auto whole = parse(doc(
+      R"_({"name":"ShiftTouch","message":{"type":"cc","channel":1,"number":75},)_"
+      R"_("value":{},"layer":{"name":"Shift"}})_"));
+  REQUIRE(whole.controls.size() == 1);
+  CHECK(whole.controls[0].layer.name == "Shift");
+  CHECK(whole.controls[0].layer.of.empty());
+
+  CHECK(parse(doc(minimal_control)).controls[0].layer.empty());
 }

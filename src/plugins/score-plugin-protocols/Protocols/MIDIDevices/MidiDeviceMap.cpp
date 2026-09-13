@@ -131,8 +131,16 @@ std::vector<std::string> parseGroup(const json_value& v)
   return out;
 }
 
-std::vector<int> parseChannels(const json_value& v)
+/**
+ * @p stated is false only for a document that says nothing about the channel,
+ * which means "whichever the device is set to". A document that names channels
+ * and names none that exist is a different thing entirely, and must not be read
+ * as the wildcard.
+ */
+std::vector<int> parseChannels(const json_value& v, bool& stated)
 {
+  stated = !v.IsNull();
+
   std::vector<int> out;
   if(v.IsInt())
     out.push_back(v.GetInt());
@@ -168,7 +176,12 @@ std::optional<Message> parseMessage(const json_value& v)
   m.type = *type;
 
   if(const auto* ch = member(v, "channel"))
-    m.channels = parseChannels(*ch);
+  {
+    bool stated = false;
+    m.channels = parseChannels(*ch, stated);
+    if(stated && m.channels.empty())
+      return std::nullopt;
+  }
   if(auto n = num(v, "number"))
     m.number = *n;
   if(auto l = num(v, "lsb"))
@@ -428,6 +441,11 @@ std::optional<Control> parseControl(const json_value& v, std::string& why)
     c.value = parseValue(*val);
   if(const auto* w = member(v, "when"))
     parseWhen(*w, c.when);
+  if(const auto* l = member(v, "layer"))
+  {
+    c.layer.name = str(*l, "name");
+    c.layer.of = str(*l, "of");
+  }
 
   c.description = str(v, "description");
 
@@ -460,19 +478,25 @@ std::optional<Control> parseControl(const json_value& v, std::string& why)
 namespace
 {
 /**
- * A SAX handler that reads the document's scalar fields and stops at
- * `controls`.
+ * A SAX handler that reads the document's own fields without its controls.
  *
- * Stopping is what makes a library listing cheap, and rapidjson has no other
- * way to say it: the handler returns false, which the reader reports as a
- * parse error, so @ref done rather than the reader's status says whether the
- * header was read.
+ * By default it stops at `controls`, which is what makes listing a library
+ * cheap; rapidjson has no other way to say "stop", so the handler returns
+ * false and @ref done rather than the reader's status says whether the header
+ * was read.
+ *
+ * @ref skipControls walks past them instead, for a document that states them
+ * before the fields this reads. Key order is not part of the format, so a
+ * document must not become unreadable by choosing an unusual one.
  */
 struct header_reader : rapidjson::BaseReaderHandler<rapidjson::UTF8<>, header_reader>
 {
+  explicit header_reader(bool skip) noexcept : skipControls{skip} { }
+
   DeviceHeader out;
   std::string format;
   bool done{};
+  bool skipControls{};
 
   //! 0 outside the document, 1 inside it, deeper inside `preset` or an array.
   int depth{};
@@ -480,16 +504,39 @@ struct header_reader : rapidjson::BaseReaderHandler<rapidjson::UTF8<>, header_re
   //! Which depth-1 member we are inside, empty between members.
   std::string section;
 
+  //! The depth `controls` opened at, or 0 when not inside it.
+  int skippingFrom{};
+
+  //! The depth-1 members already seen: rapidjson's own reader keeps the first
+  //! of a repeated key, and the two readers must not disagree about a
+  //! document.
+  std::vector<std::string> seen;
+
+  bool skipping() const noexcept { return skippingFrom != 0; }
+
   bool Key(const char* str, rapidjson::SizeType len, bool)
   {
+    if(skipping())
+      return true;
+
     if(depth == 1)
     {
       key.assign(str, len);
       if(key == "controls")
       {
-        done = true;
-        return false;
+        if(!skipControls)
+        {
+          done = true;
+          return false;
+        }
+        skippingFrom = depth;
+        return true;
       }
+
+      if(std::find(seen.begin(), seen.end(), key) != seen.end())
+        key.clear();
+      else
+        seen.push_back(key);
       section = key;
     }
     else if(depth == 2)
@@ -499,6 +546,9 @@ struct header_reader : rapidjson::BaseReaderHandler<rapidjson::UTF8<>, header_re
 
   bool String(const char* str, rapidjson::SizeType len, bool)
   {
+    if(skipping())
+      return true;
+
     std::string v(str, len);
     if(depth == 1)
     {
@@ -530,12 +580,24 @@ struct header_reader : rapidjson::BaseReaderHandler<rapidjson::UTF8<>, header_re
   bool StartObject() { ++depth; return true; }
   bool EndObject(rapidjson::SizeType)
   {
-    if(--depth == 0)
+    leave();
+    if(depth == 0)
       done = true;
     return true;
   }
   bool StartArray() { ++depth; return true; }
-  bool EndArray(rapidjson::SizeType) { --depth; return true; }
+  bool EndArray(rapidjson::SizeType)
+  {
+    leave();
+    return true;
+  }
+
+  void leave() noexcept
+  {
+    --depth;
+    if(skipping() && depth <= skippingFrom)
+      skippingFrom = 0;
+  }
 };
 }
 
@@ -548,9 +610,11 @@ std::string DeviceHeader::label() const
   return manufacturer + ": " + model;
 }
 
-std::optional<DeviceHeader> parseDeviceMapHeader(std::string_view text)
+namespace
 {
-  header_reader h;
+std::optional<DeviceHeader> readHeader(std::string_view text, bool skipControls)
+{
+  header_reader h{skipControls};
   rapidjson::Reader reader;
   rapidjson::MemoryStream ms{text.data(), text.size()};
   rapidjson::EncodedInputStream<rapidjson::UTF8<>, rapidjson::MemoryStream> is{ms};
@@ -560,6 +624,18 @@ std::optional<DeviceHeader> parseDeviceMapHeader(std::string_view text)
   if(!h.done || h.format != format_id)
     return std::nullopt;
   return h.out;
+}
+}
+
+std::optional<DeviceHeader> parseDeviceMapHeader(std::string_view text)
+{
+  // The cheap read stops at the first control, which is everything a document
+  // that states its own fields first needs. One that states them after its
+  // controls is read by walking past them: rarer, and the whole text, but a
+  // document is not allowed to be invisible for the order it chose.
+  if(auto fast = readHeader(text, /*skipControls=*/false))
+    return fast;
+  return readHeader(text, /*skipControls=*/true);
 }
 
 std::string DeviceMap::label() const
