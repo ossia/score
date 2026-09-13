@@ -172,6 +172,18 @@
   221,
   136
  ],
+ "Cable4": [
+  163,
+  163,
+  163,
+  136
+ ],
+ "Cable5": [
+  179,
+  90,
+  209,
+  136
+ ],
  "SelectedCable1": [
   153,
   102,
@@ -190,6 +202,18 @@
   221,
   204
  ],
+ "SelectedCable4": [
+  163,
+  163,
+  163,
+  204
+ ],
+ "SelectedCable5": [
+  179,
+  90,
+  209,
+  204
+ ],
  "Port1": [
   219,
   36,
@@ -205,6 +229,16 @@
   147,
   255
  ],
+ "Port4": [
+  163,
+  163,
+  163
+ ],
+ "Port5": [
+  179,
+  90,
+  209
+ ],
  "Pulse1": [
   34,
   224,
@@ -214,6 +248,16 @@
   3,
   150,
   250
+ ],
+ "Waveform1": [
+  250,
+  180,
+  15
+ ],
+ "Waveform2": [
+  20,
+  81,
+  120
  ],
  "palette": {
   "_comment": "The Qt widget palette. Only the roles named here are set; the rest keep what the style computed, which is how Qt derives the disabled group. Qt's own role names.",

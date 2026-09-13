@@ -91,7 +91,7 @@ public:
   {
     QPainter p{this};
     p.setPen(Qt::transparent);
-    p.setBrush(QColor("#1F1F20"));
+    p.setBrush(score::Skin::instance().Background1.main.brush);
     p.drawRect(rect());
   }
 };
@@ -114,8 +114,10 @@ class BottomToolbarWidget : public QWidget
 public:
   void paintEvent(QPaintEvent* ev) override
   {
+    // The transport strip. Painted rather than left transparent, so that it
+    // follows the skin instead of showing whatever is behind the splitter.
     QPainter p{this};
-    p.fillRect(rect(), Qt::transparent);
+    p.fillRect(rect(), score::Skin::instance().Background2.main.brush);
   }
 };
 
@@ -210,7 +212,12 @@ View::View(QObject* parent)
 
   {
     auto rs = new RectSplitter{Qt::Vertical};
-    rs->brush = QColor("#1D1D1D");
+    // Deferred: the window is built before the application context
+    // Skin::instance() needs.
+    score::onSkinChange(rs, [rs] {
+      rs->brush = score::Skin::instance().Background1.color();
+      rs->update();
+    });
     centralDocumentWidget = rs;
     totalWidg->addWidget(centralDocumentWidget);
     centralDocumentWidget->setContentsMargins(0, 0, 0, 0);

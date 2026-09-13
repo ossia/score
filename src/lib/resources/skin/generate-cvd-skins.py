@@ -171,6 +171,7 @@ ACCENTS = {
         # than as an error to everyone else.
         warn_low=OI["yellow"], warn_mid=OI["orange"], warn_high=OI["vermilion"],
         accent=OI["skyblue"], accent2=OI["purple"],
+        port_d=NEUTRAL["fg_dim"], port_e=OI["vermilion"],
         curve_a=OI["blue"], curve_b=OI["yellow"], curve_c=OI["orange"],
         # Playback: a dim blue body, a bright yellow fill as it plays, a
         # near-white dash on top, and a muted grey-blue while waiting.
@@ -183,6 +184,7 @@ ACCENTS = {
         port_a=OI["blue"], port_b=OI["yellow"], port_c=OI["skyblue"],
         warn_low=OI["yellow"], warn_mid=OI["orange"], warn_high=OI["vermilion"],
         accent=OI["skyblue"], accent2=OI["purple"],
+        port_d=NEUTRAL["fg_dim"], port_e=OI["vermilion"],
         curve_a=OI["blue"], curve_b=OI["yellow"], curve_c=OI["vermilion"],
         interval_base="#4982bf", play_fill=OI["yellow"],
         pulse_play="#fffbe0", pulse_wait="#8aa0b8",
@@ -193,6 +195,7 @@ ACCENTS = {
         port_a=OI["vermilion"], port_b=OI["green"], port_c="#ffffff",
         warn_low=OI["green"], warn_mid=OI["purple"], warn_high=OI["vermilion"],
         accent=OI["green"], accent2=OI["purple"],
+        port_d=NEUTRAL["fg_dim"], port_e=OI["purple"],
         curve_a=OI["vermilion"], curve_b=OI["green"], curve_c="#b0b8c4",
         # Blue/yellow is unusable, so playback runs on the red <-> green axis.
         # The fill takes the green end: vermilion is spoken for by warn_high
@@ -208,6 +211,9 @@ ACCENTS = {
 # distinguishable; everything else is decoration.
 MUST_DIFFER = [
     ("port_a", "port_b"), ("port_a", "port_c"), ("port_b", "port_c"),
+    ("port_a", "port_d"), ("port_b", "port_d"), ("port_c", "port_d"),
+    ("port_a", "port_e"), ("port_b", "port_e"), ("port_c", "port_e"),
+    ("port_d", "port_e"),
     ("warn_low", "warn_mid"), ("warn_mid", "warn_high"), ("warn_low", "warn_high"),
     ("curve_a", "curve_b"), ("curve_b", "curve_c"), ("curve_a", "curve_c"),
     ("accent", "accent2"),
@@ -278,6 +284,15 @@ def build(accents):
         "Tender2": hex_to_rgb(a["warn_low"]),
         "Tender3": hex_to_rgb(n["bg3"]),
 
+        "Cable4": hex_to_rgb(a["port_d"]) + [CABLE_ALPHA],
+        "Cable5": hex_to_rgb(a["port_e"]) + [CABLE_ALPHA],
+        "SelectedCable4": hex_to_rgb(a["port_d"]) + [SELECTED_CABLE_ALPHA],
+        "SelectedCable5": hex_to_rgb(a["port_e"]) + [SELECTED_CABLE_ALPHA],
+        "Port4": hex_to_rgb(a["port_d"]),
+        "Port5": hex_to_rgb(a["port_e"]),
+        # Waveform: the peaks on the warm side, the RMS body on the cool one.
+        "Waveform1": hex_to_rgb(a["warn_mid"]),
+        "Waveform2": hex_to_rgb(a["accent"]),
         "Cable1": hex_to_rgb(a["port_a"]) + [CABLE_ALPHA],
         "Cable2": hex_to_rgb(a["port_b"]) + [CABLE_ALPHA],
         "Cable3": hex_to_rgb(a["port_c"]) + [CABLE_ALPHA],

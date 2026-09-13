@@ -1,4 +1,5 @@
 #include <Process/ProcessContext.hpp>
+#include <score/model/Skin.hpp>
 
 #include <Automation/AutomationColors.hpp>
 #include <Media/Step/Model.hpp>
@@ -36,12 +37,13 @@ void View::paint_impl(QPainter* p) const
   {
     p->setRenderHint(QPainter::Antialiasing, true);
 
-    static QPen pen(QColor{"#ff9900"});
-    pen.setWidth(2.);
-    static QBrush br{QColor{"#ffad33"}};
-    static QPen pen2{QColor{"#ffb84d"}};
-    pen.setWidth(2.);
-    static QBrush br2{QColor{"#ffcc80"}};
+    // The amber ramp comes off the skin's "lit" role, whose Brush already
+    // carries the lighter variants this wants.
+    auto& skin = score::Skin::instance();
+    QPen pen{skin.Base4.main.brush, 2.};
+    const QBrush& br = skin.Base4.lighter.brush;
+    QPen pen2{skin.Base4.lighter.brush, 2.};
+    const QBrush& br2 = skin.Base4.lighter180.brush;
     p->setPen(pen);
 
     const auto h = boundingRect().height();
@@ -134,12 +136,11 @@ void Item::paint(QPainter* p, const QStyleOptionGraphicsItem* option, QWidget* w
 {
   p->setRenderHint(QPainter::Antialiasing, true);
 
-  static QPen pen(QColor{"#ff9900"});
-  pen.setWidth(2.);
-  static QBrush br{QColor{"#ffad33"}};
-  static QPen pen2{QColor{"#ffb84d"}};
-  pen.setWidth(2.);
-  static QBrush br2{QColor{"#ffcc80"}};
+  auto& skin = score::Skin::instance();
+  QPen pen{skin.Base4.main.brush, 2.};
+  const QBrush& br = skin.Base4.lighter.brush;
+  QPen pen2{skin.Base4.lighter.brush, 2.};
+  const QBrush& br2 = skin.Base4.lighter180.brush;
   p->setPen(pen);
 
   const auto h = boundingRect().height();

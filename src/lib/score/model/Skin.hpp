@@ -101,6 +101,11 @@ class SCORE_LIB_BASE_EXPORT Skin : public QObject
   W_OBJECT(Skin)
 public:
   static Skin& instance() noexcept;
+
+  //! Whether instance() has already been built, and so is safe to call.
+  //! It needs the application context, which does not exist while the main
+  //! window is being constructed.
+  static bool exists() noexcept;
   ~Skin() override;
 
   //! Which halves of a skin file to apply.
@@ -201,17 +206,29 @@ public:
   Brush Cable1;
   Brush Cable2;
   Brush Cable3;
+  Brush Cable4;
+  Brush Cable5;
 
   Brush SelectedCable1;
   Brush SelectedCable2;
   Brush SelectedCable3;
+  Brush SelectedCable4;
+  Brush SelectedCable5;
 
+  //! Port and cable types: audio, data, midi, texture, geometry. One set, so
+  //! a skin names them together and the distinctness check covers all five.
   Brush Port1;
   Brush Port2;
   Brush Port3;
+  Brush Port4;
+  Brush Port5;
 
   Brush Pulse1;
   Brush Pulse2;
+
+  //! The sound waveform: the peak envelope and the RMS body inside it.
+  Brush Waveform1;
+  Brush Waveform2;
 
   //! The widget palette. Separate from the Brush roles above, which only
   //! reach the graphics scene: this is what the Qt widgets are drawn from,
