@@ -40,19 +40,28 @@ static void jitAtExit(void (*f)())
   globalAtExit.functions[globalAtExit.currentCompiler].push_back(f);
 }
 
-void setTargetOptions(
-    llvm::TargetOptions& opts, bool useNativePlatform = false, bool isCOFF = false)
+void setTargetOptions(llvm::TargetOptions& opts, bool useNativePlatform, bool isMachO)
 {
-  // With an Orc Platform (orc_rt) in use we get native thread-locals on ELF/MachO;
-  // without it the JIT has no TLS runtime, so fall back to emulated TLS.
+  // MachO with an Orc Platform (orc_rt) in use is the only combination here that
+  // supports native thread-locals; every other one needs emulated TLS, which
+  // routes through __emutls_get_address in the compiler-rt builtins archive
+  // that is part of the add-on's link order (see the platform setup below).
   //
-  // COFF is the exception: native Windows TLS needs a per-module _tls_index and a
-  // registered .tls directory that only the CRT startup / loader provide -- the
-  // JIT has neither, so a thread_local add-on fails to link ("Symbols not found:
-  // _tls_index"). Force emulated TLS on COFF regardless of the platform;
-  // __emutls_get_address then comes from the compiler-rt builtins archive we add
-  // to the add-on's link order (see the platform setup below).
-  opts.EmulatedTLS = !useNativePlatform || isCOFF;
+  // Without a platform the JIT has no TLS runtime at all.
+  //
+  // On COFF, native Windows TLS needs a per-module _tls_index and a registered
+  // .tls directory that only the CRT startup / loader provide; the JIT has
+  // neither, so a thread_local add-on fails to link ("Symbols not found:
+  // _tls_index").
+  //
+  // On ELF the platform is supposed to give native thread-locals, but JITLink's
+  // x86-64 backend accepts none of the relocations the code generator emits for
+  // a non-preemptible thread_local: local-exec gives R_X86_64_TPOFF32, and
+  // forcing PIC only moves it to local-dynamic and R_X86_64_TLSLD. Both are
+  // rejected with "Unsupported x86-64 relocation type", and a single such
+  // variable anywhere in the add-on's transitive includes fails the whole
+  // compile -- the vendored concurrentqueue has one.
+  opts.EmulatedTLS = !useNativePlatform || !isMachO;
 
   //opts.ExplicitEmulatedTLS = false;
 
@@ -73,7 +82,15 @@ void setTargetOptions(
   opts.NoTrappingFPMath = true;
   opts.HonorSignDependentRoundingFPMathOption = false;
   opts.EnableIPRA = true;
-  opts.EnableFastISel = true;
+  // FastISel is a -O0 compile-speed path, and this target machine is built with
+  // CodeGenOptLevel::Aggressive, so forcing it on only cost code quality. It also
+  // crashes: LLVM 23 turned <N x ptr> zeroinitializer into a vector-typed
+  // ConstantPointerNull, and FastISel::materializeConstant still hands it to
+  // X86MaterializeInt, which answers a GR64 zero for a YMM vreg and leaves
+  // copyPhysReg with no instruction to emit. Any AVX2 host JIT-compiling an
+  // add-on that zeroes four consecutive pointers -- QObject::connect's functor
+  // storage, for one -- dies with "Cannot emit physreg copy instruction".
+  opts.EnableFastISel = false;
   opts.EnableGlobalISel = false;
 }
 }
@@ -162,6 +179,17 @@ static std::unique_ptr<llvm::orc::LLJIT> jitBuilder(JitCompiler& self)
 
   JTMB->setCodeGenOptLevel(llvm::CodeGenOptLevel::Aggressive);
 
+  // PIC, so that thread-locals keep the TLS model the front end asked for.
+  // detectHost() leaves the relocation model unset, which means static, and the
+  // backend then downgrades a non-preemptible thread_local to local-exec no
+  // matter what -ftls-model says. Local-exec emits R_X86_64_TPOFF32 -- an offset
+  // into the initial TLS block that JIT-loaded code is not part of -- and
+  // JITLink rejects it outright ("Unsupported x86-64 relocation type"). A single
+  // such variable anywhere in the add-on's transitive includes is enough; the
+  // vendored concurrentqueue has one.
+  if(!JTMB->getTargetTriple().isOSBinFormatCOFF())
+    JTMB->setRelocationModel(llvm::Reloc::PIC_);
+
   // On Windows/COFF the add-on is JIT-mapped at a high address (the reserved
   // slab) and must reference host symbols far away -- libc++abi RTTI vtables and
   // the EH personality among them. The small (default) code model emits 32-bit
@@ -207,7 +235,9 @@ static std::unique_ptr<llvm::orc::LLJIT> jitBuilder(JitCompiler& self)
 
   self.m_useNativePlatform = useNativePlatform;
 
-  setTargetOptions(JTMB->getOptions(), useNativePlatform, isCOFF);
+  setTargetOptions(
+      JTMB->getOptions(), useNativePlatform,
+      JTMB->getTargetTriple().isOSBinFormatMachO());
 
   builder.setJITTargetMachineBuilder(std::move(*JTMB));
   builder.setNumCompileThreads(4);
