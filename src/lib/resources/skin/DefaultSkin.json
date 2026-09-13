@@ -216,7 +216,7 @@
   250
  ],
  "fonts": {
-  "_comment": "The default fonts, and the values Skin::setupFonts() mirrors in C++. Sizes are in pixels throughout, on purpose: a point size goes through the screen DPI and lands wherever it lands, which is what makes small text render unevenly. The values are the pixel sizes Qt resolves the equivalent point sizes to at 96 DPI (10 pt -> 13 px for the application font, 12 pt -> 16 px, 9 pt -> 12 px, 13 pt -> 17 px). Weights are the Qt 6 scale: Normal 400, DemiBold 600, Black 900.",
+  "_comment": "The default fonts, and the values Skin::setupFonts() mirrors in C++. Sizes are in pixels throughout, on purpose: a point size goes through the screen DPI -- 72 on macOS, 96 elsewhere -- and lands somewhere different on each, which is what made the same score look shrunk on a Mac. Weights are the Qt 6 scale: Normal 400, DemiBold 600, Black 900.",
   "application": {
    "family": "Ubuntu",
    "pixelSize": 13
@@ -227,17 +227,17 @@
   },
   "sansSmall": {
    "family": "Ubuntu",
-   "pixelSize": 12
+   "pixelSize": 9
   },
   "mono": {
    "family": "Courier Prime",
-   "pixelSize": 17,
+   "pixelSize": 13,
    "weight": 900,
    "fixedPitch": true
   },
   "monoSmall": {
    "family": "Ubuntu",
-   "pixelSize": 12,
+   "pixelSize": 9,
    "weight": 400
   },
   "bold10": {

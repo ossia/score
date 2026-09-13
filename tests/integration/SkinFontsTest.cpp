@@ -190,21 +190,20 @@ TEST_CASE("Font sizes come from the skin, not from a setting", "[integration][sk
   });
 }
 
-TEST_CASE("The default skin keeps the sizes the point sizes resolved to",
-          "[integration][skin]")
+TEST_CASE("The default skin states every size in pixels", "[integration][skin]")
 {
-  // Sizes are in pixels so that the rasteriser is not left rounding through
-  // the screen DPI. The values are the ones Qt resolves the equivalent point
-  // sizes to at 96 DPI -- 12 pt -> 16 px, 9 pt -> 12 px, 13 pt -> 17 px -- so
-  // that the UI is proportioned as it is on a 96 DPI screen.
+  // A point size resolves against the screen's logical DPI, 72 on macOS and
+  // 96 elsewhere, so a UI sized in points is a quarter smaller on a Mac.
+  // Every role is therefore stated in pixels, and the skin file and
+  // Skin::setupFonts() have to agree on the numbers.
   score::test::run_in_app([](const score::GUIApplicationContext&) {
     score::Skin& skin = score::Skin::instance();
     skin.load(read_skin(QStringLiteral(":/skin/DefaultSkin.json")));
 
     CHECK(skin.SansFont.pixelSize() == 16);
-    CHECK(skin.SansFontSmall.pixelSize() == 12);
-    CHECK(skin.MonoFont.pixelSize() == 17);
-    CHECK(skin.MonoFontSmall.pixelSize() == 12);
+    CHECK(skin.SansFontSmall.pixelSize() == 9);
+    CHECK(skin.MonoFont.pixelSize() == 13);
+    CHECK(skin.MonoFontSmall.pixelSize() == 9);
 
     // And nothing is left on a point size, which is the point of the change.
     for(auto& [role, f] : skin.fonts())

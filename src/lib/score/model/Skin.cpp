@@ -438,14 +438,25 @@ void Skin::setupFonts()
 {
   registerApplicationFonts();
 
+  // Pixels throughout, the way a skin file states them. A point size resolves
+  // against the screen's logical DPI -- 72 on macOS, 96 elsewhere -- so the
+  // same number draws a quarter smaller there.
   SansFont = QFont{"Ubuntu"};
-  MonoFont = QFont{"Courier Prime", int(10 * 96. / 72.), QFont::Black};
-  MonoFontSmall = QFont{"Courier Prime", int(7 * 96. / 72.), QFont::Normal};
-  SansFontSmall = QFont{"Ubuntu", int(7 * 96. / 72.)};
+  SansFont.setPixelSize(16);
 
+  SansFontSmall = QFont{"Ubuntu"};
+  SansFontSmall.setPixelSize(9);
+
+  MonoFont = QFont{"Courier Prime"};
+  MonoFont.setPixelSize(13);
+  MonoFont.setWeight(QFont::Black);
   MonoFont.setFamilies({"Courier Prime"});
-  MonoFontSmall.setFamilies({"Ubuntu"});
   MonoFont.setFixedPitch(true);
+
+  MonoFontSmall = QFont{"Ubuntu"};
+  MonoFontSmall.setPixelSize(9);
+  MonoFontSmall.setWeight(QFont::Normal);
+  MonoFontSmall.setFamilies({"Ubuntu"});
 
   for(QFont* font : {&SansFont, &SansFontSmall, &MonoFont, &MonoFontSmall})
   {
@@ -455,23 +466,23 @@ void Skin::setupFonts()
   }
 
   Bold10Pt = SansFont;
-  Bold10Pt.setPixelSize(10 * 96. / 72.);
+  Bold10Pt.setPixelSize(13);
   Bold10Pt.setBold(true);
 
   Bold12Pt = Bold10Pt;
-  Bold12Pt.setPixelSize(12 * 96. / 72.);
+  Bold12Pt.setPixelSize(16);
 
   Medium7Pt = SansFont;
-  Medium7Pt.setPixelSize(7 * 96. / 72.);
+  Medium7Pt.setPixelSize(9);
 
   Medium8Pt = SansFont;
-  Medium8Pt.setPixelSize(8 * 96. / 72.);
+  Medium8Pt.setPixelSize(10);
 
   Medium10Pt = SansFont;
-  Medium10Pt.setPixelSize(10 * 96. / 72.);
+  Medium10Pt.setPixelSize(13);
 
   Medium12Pt = SansFont;
-  Medium12Pt.setPixelSize(12 * 96. / 72.);
+  Medium12Pt.setPixelSize(16);
 
   TitleFont = SansFont;
   TitleFont.setPixelSize(14);
@@ -483,7 +494,7 @@ void Skin::setupFonts()
   SectionTitleFont.setBold(true);
 
   SliderFont = SansFont;
-  SliderFont.setPixelSize(10 * 96. / 72.);
+  SliderFont.setPixelSize(13);
   SliderFont.setWeight(QFont::DemiBold);
 
   // The transport readout, proportioned as 18 pt, which is 24 px at 96 DPI.
