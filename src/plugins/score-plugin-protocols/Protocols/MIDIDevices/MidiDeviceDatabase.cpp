@@ -17,6 +17,34 @@ namespace
 {
 constexpr auto mapSuffix = QLatin1String{".midimap.json"};
 
+//! "Yamaha_PLG100_XG_Expansion.midimap.json" is "Yamaha PLG100 XG Expansion",
+//! for a document that does not name itself.
+QString nameFromFile(const QString& path)
+{
+  auto name = QFileInfo{path}.fileName();
+  name.chop(mapSuffix.size());
+  return name.replace('_', ' ').simplified();
+}
+
+//! "Korg M1" of the brand "Korg" is "M1"; "Korgasmatron" stays whole.
+QString withoutBrand(const QString& model, const QString& brand)
+{
+  if(brand.isEmpty() || !model.startsWith(brand, Qt::CaseInsensitive))
+    return model;
+
+  const auto separator
+      = [](QChar c) { return c.isSpace() || c == '-' || c == '_' || c == ':'; };
+
+  auto rest = model.mid(brand.size());
+  if(!rest.isEmpty() && !separator(rest.front()))
+    return model;
+
+  while(!rest.isEmpty() && separator(rest.front()))
+    rest.remove(0, 1);
+
+  return rest.isEmpty() ? model : rest;
+}
+
 /**
  * How much of a file the scan reads before giving up on finding its header.
  *
@@ -51,15 +79,23 @@ std::optional<std::string> readFile(const QString& path, qint64 max)
 }
 }
 
-QString DeviceEntry::label() const
+QString DeviceEntry::name() const
 {
-  auto name = QString::fromStdString(header.label());
-  if(name.isEmpty())
-    name = QFileInfo{file}.completeBaseName();
+  auto name = namesSomething(header.model) ? QString::fromStdString(header.model)
+                                           : nameFromFile(file);
+  name = withoutBrand(name, QString::fromStdString(header.manufacturer));
 
   if(!header.preset.name.empty())
     name += " (" + QString::fromStdString(header.preset.name) + ")";
   return name;
+}
+
+QString DeviceEntry::label() const
+{
+  const auto brand = QString::fromStdString(header.manufacturer);
+  if(!namesSomething(header.manufacturer))
+    return name();
+  return brand + ": " + name();
 }
 
 std::vector<QString> libraryPaths()

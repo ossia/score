@@ -152,25 +152,6 @@ QString brandKey(const QString& manufacturer)
   return key;
 }
 
-//! "Korg M1" under the group "Korg" is "M1"; "Korgasmatron" stays whole.
-QString withoutBrand(const QString& model, const QString& brand)
-{
-  if(brand.isEmpty() || !model.startsWith(brand, Qt::CaseInsensitive))
-    return model;
-
-  const auto separator
-      = [](QChar c) { return c.isSpace() || c == '-' || c == '_' || c == ':'; };
-
-  auto rest = model.mid(brand.size());
-  if(!rest.isEmpty() && !separator(rest.front()))
-    return model;
-
-  while(!rest.isEmpty() && separator(rest.front()))
-    rest.remove(0, 1);
-
-  return rest.isEmpty() ? model : rest;
-}
-
 //! A channel is 1-16 and nothing else, so it is edited by something that
 //! cannot say otherwise.
 struct ChannelDelegate final : QStyledItemDelegate
@@ -361,6 +342,15 @@ MCUSettingsWidget::MCUSettingsWidget(QWidget* parent)
       m_instruments->collapseAll();
     else
       m_instruments->expandAll();
+  });
+
+  // The picker is a list of things to put on the port, so opening a row puts
+  // it there.
+  connect(m_instruments, &QTreeView::doubleClicked, this,
+          [this](const QModelIndex& idx) {
+    addChosenDevice(idx.data(MapRole).toString(), 1);
+    updatePreview();
+    changed();
   });
 
   connect(
@@ -612,13 +602,7 @@ void MCUSettingsWidget::populateDeviceMaps()
     }
 
     // The brand names the group this row sits in; the row names the device.
-    auto name = withoutBrand(QString::fromStdString(entry.header.model), brand);
-    if(name.isEmpty())
-      name = entry.label();
-    if(const auto& preset = entry.header.preset.name; !preset.empty())
-      name += " (" + QString::fromStdString(preset) + ")";
-
-    auto* item = new QStandardItem{name};
+    auto* item = new QStandardItem{entry.name()};
     // Searchable by what it is called anywhere else, not only by what it shows.
     item->setData(QString{group + " " + entry.label() + " " + entry.source}, SearchRole);
     item->setData(entry.identity, MapRole);
@@ -676,7 +660,7 @@ void MCUSettingsWidget::addChosenDevice(const QString& identity, int channel)
 
   auto name = identity;
   if(const auto* e = MIDIDevices::Database::instance().find(identity))
-    name = e->label();
+    name = e->name();
 
   auto* item = new QTreeWidgetItem{
       m_chosen, {name, QString::number(std::clamp(channel, 1, 16))}};

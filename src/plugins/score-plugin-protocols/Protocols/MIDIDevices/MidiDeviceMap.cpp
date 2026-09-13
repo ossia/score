@@ -4,6 +4,7 @@
 #include <rapidjson/reader.h>
 
 #include <algorithm>
+#include <cctype>
 #include <array>
 #include <charconv>
 
@@ -608,11 +609,18 @@ struct header_reader : rapidjson::BaseReaderHandler<rapidjson::UTF8<>, header_re
 };
 }
 
+bool namesSomething(std::string_view s) noexcept
+{
+  return std::any_of(s.begin(), s.end(), [](unsigned char c) {
+    return std::isalnum(c) != 0;
+  });
+}
+
 std::string DeviceHeader::label() const
 {
-  if(manufacturer.empty())
-    return model;
-  if(model.empty())
+  if(!namesSomething(manufacturer))
+    return namesSomething(model) ? model : std::string{};
+  if(!namesSomething(model))
     return manufacturer;
   return manufacturer + ": " + model;
 }
@@ -647,9 +655,9 @@ std::optional<DeviceHeader> parseDeviceMapHeader(std::string_view text)
 
 std::string DeviceMap::label() const
 {
-  if(manufacturer.empty())
-    return model;
-  if(model.empty())
+  if(!namesSomething(manufacturer))
+    return namesSomething(model) ? model : std::string{};
+  if(!namesSomething(model))
     return manufacturer;
   return manufacturer + ": " + model;
 }
@@ -662,9 +670,9 @@ bool isNoteName(const Control& c) noexcept
 
 std::string deviceNodeName(const DeviceMap& map)
 {
-  if(!map.model.empty())
+  if(namesSomething(map.model))
     return map.model;
-  if(!map.manufacturer.empty())
+  if(namesSomething(map.manufacturer))
     return map.manufacturer;
   return "device";
 }

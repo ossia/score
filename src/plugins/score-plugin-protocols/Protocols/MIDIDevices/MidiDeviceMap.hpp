@@ -338,6 +338,15 @@ struct DeviceMap
 bool isNoteName(const Control& c) noexcept;
 
 /**
+ * Whether a field is a name at all.
+ *
+ * A MIDNAM that extends another document writes "?" where the model goes --
+ * the PLG100-XG expansion board fits many hosts, so its own document names
+ * none of them -- and punctuation names nothing anywhere else either.
+ */
+bool namesSomething(std::string_view s) noexcept;
+
+/**
  * What a description's level of the tree is called: the model, or whatever else
  * the document can be identified by.
  *

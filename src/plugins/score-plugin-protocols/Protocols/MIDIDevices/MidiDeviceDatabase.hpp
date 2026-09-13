@@ -50,10 +50,16 @@ struct DeviceEntry
   DeviceHeader header;
 
   /**
-   * "Akai: MPK 225 (Preset 6)". The preset belongs in the label because the
-   * same hardware appears several times over, once per configuration, and the
-   * model alone would not tell two of them apart.
+   * "MPK 225 (Preset 6)": the device, without the brand -- which the document
+   * states separately, and which several of them also repeat in the model.
+   *
+   * The preset belongs in the name because the same hardware appears several
+   * times over, once per configuration, and the model alone would not tell two
+   * of them apart. A document that names itself nothing is named by its file.
    */
+  QString name() const;
+
+  //! "Akai: MPK 225 (Preset 6)": @ref name with the brand in front.
   QString label() const;
 };
 
