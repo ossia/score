@@ -26,7 +26,11 @@ public:
     m_init = init;
     update();
   }
-  void setOrientation(Qt::Orientation ort) { m_orientation = ort; }
+  void setOrientation(Qt::Orientation ort)
+  {
+    m_orientation = ort;
+    updateSkinMetrics();
+  }
 
   int value() const { return m_value; }
   int minimum() const { return m_min; }
@@ -43,6 +47,11 @@ public:
   virtual void createPopup(QPoint pos);
 
 protected:
+  //! Height for one line of the slider font, plus its border. The control is
+  //! a box around a piece of text, so it has to be sized from that text: a
+  //! skin with 8 px type would otherwise keep a 20 px tall box around it.
+  void updateSkinMetrics();
+
   void paintEvent(QPaintEvent*) override;
   void paint(QPainter& p);
   void paintWithText(const QString& s);

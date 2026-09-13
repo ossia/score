@@ -1,6 +1,7 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Inspector/Interval/SpeedSlider.hpp>
 
+#include <score/model/Skin.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/widgets/ControlWidgets.hpp>
 #include <score/widgets/HelpInteraction.hpp>
@@ -46,8 +47,8 @@ SpeedWidget::SpeedWidget(bool withButtons, bool showText, QWidget* parent)
     {
       auto pb = new QPushButton{"× " + QString::number(factor), this};
 
-      pb->setMinimumWidth(35);
-      pb->setMaximumWidth(45);
+      pb->setMinimumWidth(score::scaledPixels(35));
+      pb->setMaximumWidth(score::scaledPixels(45));
       pb->setFlat(true);
       pb->setContentsMargins(0, 0, 0, 0);
 
@@ -111,7 +112,7 @@ void SpeedWidget::unsetInterval()
 QSize SpeedWidget::sizeHint() const
 {
   auto sz = QWidget::sizeHint();
-  sz.setWidth(200);
+  sz.setWidth(score::scaledPixels(200));
   return sz;
 }
 }

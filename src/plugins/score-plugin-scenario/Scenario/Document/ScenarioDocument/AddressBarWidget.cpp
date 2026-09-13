@@ -34,11 +34,24 @@ public:
     setCursor(Qt::PointingHandCursor);
     setAttribute(Qt::WA_Hover, true);
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    setFont(score::Skin::instance().Bold10Pt);
+    applySkinFont();
     setText(itv.metadata().getName());
     connect(
         &itv.metadata(), &score::ModelMetadata::NameChanged, this,
         &AddressBarButton::setText);
+    connect(
+        &score::Skin::instance(), &score::Skin::changed, this,
+        &AddressBarButton::applySkinFont);
+  }
+
+  //! The bar is only rebuilt when the user navigates, so it has to pick up a
+  //! skin change on its own; its width comes from the font metrics, hence the
+  //! updateGeometry rather than a plain repaint.
+  void applySkinFont()
+  {
+    setFont(score::Skin::instance().Bold10Pt);
+    updateGeometry();
+    update();
   }
 
   std::function<void()> onClick;
@@ -95,7 +108,17 @@ public:
       : QWidget{parent}
   {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    applySkinFont();
+    connect(
+        &score::Skin::instance(), &score::Skin::changed, this,
+        &AddressBarSeparator::applySkinFont);
+  }
+
+  void applySkinFont()
+  {
     setFont(score::Skin::instance().Bold10Pt);
+    updateGeometry();
+    update();
   }
 
   QSize sizeHint() const override

@@ -1,5 +1,6 @@
 #include "ArrowButton.hpp"
 
+#include <score/model/Skin.hpp>
 #include <score/widgets/SetIcons.hpp>
 
 #include <wobjectimpl.h>
@@ -20,7 +21,7 @@ ArrowButton::ArrowButton(Qt::ArrowType arrowType, QWidget* parent)
     , m_arrowType{Qt::NoArrow}
 {
   setArrowType(arrowType);
-  setIconSize(QSize(8, 8));
+  score::setSkinIconSize(this, 8);
   setAutoRaise(true);
 }
 

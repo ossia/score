@@ -24,8 +24,16 @@ public:
   ~DoubleSlider() override;
   bool moving = false;
   void setValue(double val);
-  void setOrientation(Qt::Orientation ort) { m_orientation = ort; }
-  void setBorderWidth(double border) { m_borderWidth = border; }
+  void setOrientation(Qt::Orientation ort)
+  {
+    m_orientation = ort;
+    updateSkinMetrics();
+  }
+  void setBorderWidth(double border)
+  {
+    m_borderWidth = border;
+    m_borderOverridden = true;
+  }
 
   double value() const { return m_value; }
   virtual double map(double v) const;
@@ -46,6 +54,11 @@ public:
   virtual void setRange(double min, double max, double init) noexcept;
 
 protected:
+  //! Height for one line of the slider font, plus its border. The control is
+  //! a box around a piece of text, so it has to be sized from that text: a
+  //! skin with 8 px type would otherwise keep a 20 px tall box around it.
+  void updateSkinMetrics();
+
   void paintEvent(QPaintEvent*) override;
   void paint(QPainter& p);
   void paintWithText(const QString& s);
@@ -56,5 +69,6 @@ private:
   double m_value{};
   Qt::Orientation m_orientation{};
   double m_borderWidth{};
+  bool m_borderOverridden{};
 };
 }

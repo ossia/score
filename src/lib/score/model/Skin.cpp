@@ -31,11 +31,15 @@
 #include <QColor>
 #include <QDirIterator>
 #include <QFontDatabase>
+#include <QFontInfo>
 #include <QFontMetrics>
 #include <QGuiApplication>
 #include <QWidget>
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QTimer>
+
+#include <algorithm>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::Skin)
@@ -68,6 +72,46 @@ int uiFontSize() noexcept
   if(qEnvironmentVariableIsSet("SCORE_SMOL_FONT"))
     return 11;
   return 13;
+}
+
+double fontScale() noexcept
+{
+  // The application's font rather than Skin::ApplicationFont, although the
+  // two are kept equal: the main window is built before the application
+  // context exists, and Skin::instance() needs that context. Widget sizes
+  // are wanted exactly there.
+  if(!qGuiApp)
+    return 1.;
+
+  // QFontInfo, not pixelSize(): a skin may name a point size, and then
+  // pixelSize() is -1. QFontInfo resolves whichever of the two was set
+  // against the screen the same way the painter will.
+  const double px = QFontInfo{qGuiApp->font()}.pixelSize();
+  if(px <= 0)
+    return 1.;
+  return px / double(referenceFontSize);
+}
+
+int scaledPixels(int px) noexcept
+{
+  return std::max(1, qRound(px * fontScale()));
+}
+
+QSize scaledIcon(int px) noexcept
+{
+  const int s = scaledPixels(px);
+  return {s, s};
+}
+
+void onSkinChange(QObject* owner, std::function<void()> f)
+{
+  f();
+  QTimer::singleShot(0, owner, [owner, f = std::move(f)] {
+    QObject::connect(&Skin::instance(), &Skin::changed, owner, f);
+    // A skin may well have loaded between the construction and this turn of
+    // the event loop, and its changed() went to nobody.
+    f();
+  });
 }
 
 QFont::HintingPreference uiFontHinting() noexcept

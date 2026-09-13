@@ -21,6 +21,7 @@
 
 #include <QApplication>
 #include <QCloseEvent>
+#include <QFontMetrics>
 #include <QPainter>
 #include <QPushButton>
 #include <QScreen>
@@ -121,7 +122,12 @@ public:
 class TitleBar : public QWidget
 {
 public:
-  TitleBar() { setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed); }
+  TitleBar()
+      : m_font{score::defaultApplicationFont()}
+  {
+    setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+    m_font.setBold(true);
+  }
 
   void setText(const QString& txt)
   {
@@ -129,27 +135,45 @@ public:
     update();
   }
 
-  QSize sizeHint() const override { return {100, 19}; }
+  QSize sizeHint() const override
+  {
+    return {100, QFontMetrics{m_font}.height() + 4};
+  }
 
   void paintEvent(QPaintEvent* ev) override
   {
-    // px, not pt: pt would shrink on macOS' 72 DPI.
-    static QFont font = [] {
-      QFont f("Ubuntu");
-      f.setPixelSize(15);
-      f.setBold(true);
-      f.setHintingPreference(score::uiFontHinting());
-      f.setStyleStrategy(score::uiFontStyleStrategy());
-      return f;
-    }();
+    if(!m_skinConnected)
+    {
+      // Deferred to the first paint: the window is built before the
+      // application context exists, and Skin::instance() needs it. Until
+      // then the header is drawn in a bold application font, which is what
+      // the skin's title role usually amounts to anyway.
+      m_skinConnected = true;
+      QObject::connect(
+          &score::Skin::instance(), &score::Skin::changed, this,
+          &TitleBar::applySkinFont);
+      applySkinFont();
+    }
 
     QPainter painter{this};
-    painter.setFont(font);
+    painter.setFont(m_font);
     painter.drawText(rect(), Qt::AlignCenter, m_text);
   }
 
 private:
+  void applySkinFont()
+  {
+    const auto& f = score::Skin::instance().TitleFont;
+    if(f == m_font)
+      return;
+    m_font = f;
+    updateGeometry();
+    update();
+  }
+
   QString m_text;
+  QFont m_font;
+  bool m_skinConnected{};
 };
 
 View::View(QObject* parent)
@@ -160,7 +184,7 @@ View::View(QObject* parent)
   setWindowIcon(QIcon("://ossia-score.png"));
   setTitle(*this, nullptr, false);
 
-  setIconSize(QSize{24, 24});
+  score::setSkinIconSize(this, 24);
 
   topleftToolbar = new QWidget;
   topleftToolbar->setLayout(new score::MarginLess<QHBoxLayout>);
@@ -211,7 +235,9 @@ View::View(QObject* parent)
     QPalette pal;
     pal.setColor(QPalette::Window, Qt::blue);
     transportBar->setPalette(pal);
-    transportBar->setFixedHeight(35);
+    score::onSkinChange(transportBar, [tb = transportBar] {
+      tb->setFixedHeight(score::scaledPixels(35));
+    });
     rs->addWidget(transportBar);
 
     bottomTabs = new FixedTabWidget;

@@ -8,6 +8,7 @@
 #include <score/tools/Clamp.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
+#include <QFontMetrics>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QStyleOptionSlider>
@@ -30,18 +31,34 @@ DoubleSlider::DoubleSlider(Qt::Orientation ort, QWidget* widg)
   setSizePolicy(sp);
   setAttribute(Qt::WA_WState_OwnSizePolicy, false);
 
-  auto& skin = score::Skin::instance();
-  m_borderWidth = skin.SliderPen.width();
+  updateSkinMetrics();
+  connect(
+      &score::Skin::instance(), &score::Skin::changed, this,
+      &DoubleSlider::updateSkinMetrics);
+}
 
-  switch(ort)
+void DoubleSlider::updateSkinMetrics()
+{
+  auto& skin = score::Skin::instance();
+  if(!m_borderOverridden)
+    m_borderWidth = skin.SliderPen.width();
+
+  // One line of text, its border on both sides, and a pixel of air.
+  const int line
+      = QFontMetrics{skin.SliderFont}.height() + 2 * qRound(m_borderWidth) + 2;
+  const int span = score::scaledPixels(30);
+
+  switch(m_orientation)
   {
     case Qt::Vertical:
-      setMinimumSize(20, 30);
+      setMinimumSize(line, span);
       break;
     case Qt::Horizontal:
-      setMinimumSize(30, 20);
+      setMinimumSize(span, line);
       break;
   }
+  updateGeometry();
+  update();
 }
 
 DoubleSlider::DoubleSlider(QWidget* widg)
@@ -215,8 +232,13 @@ void DoubleSlider::paintWithText(const QString& s)
   paint(p);
   p.setPen(skin.SliderTextPen);
   p.setFont(skin.SliderFont);
+
+  // Vertically centred: the box is only as tall as one line of the slider
+  // font, so a top-aligned line would sit against the border.
+  const double pad = score::scaledPixels(4);
   p.drawText(
-      QRectF{4., 2., (width() - 16.), height() - 4.}, s, QTextOption(Qt::AlignLeft));
+      QRectF{pad, 0., width() - 4. * pad, (double)height()}, s,
+      QTextOption(Qt::AlignLeft | Qt::AlignVCenter));
 }
 
 }
