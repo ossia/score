@@ -291,6 +291,11 @@
    "pixelSize": 8,
    "bold": false
   },
+  "ruler": {
+   "family": "Galmuri7",
+   "pixelSize": 8,
+   "bold": false
+  },
   "code": {
    "family": "Galmuri7",
    "pixelSize": 8,

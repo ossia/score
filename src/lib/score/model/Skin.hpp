@@ -154,6 +154,12 @@ public:
   //! and unantialiased, which a scaled-up body font cannot give.
   QFont TimecodeFont;
 
+  //! The timeline ruler's bar and time numbers. Its own role because it is
+  //! the smallest text score draws and it sits on a dense scale, so a skin
+  //! wants to choose the face and the size together -- and a pixel font has
+  //! to land on its grid to stay legible at that size.
+  QFont RulerFont;
+
   //! Script and shader editors. Monospaced and usually a size of its own,
   //! since code wants more lines on screen than a settings form does.
   QFont CodeFont;

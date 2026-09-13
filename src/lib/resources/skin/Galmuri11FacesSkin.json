@@ -296,6 +296,11 @@
    "pixelSize": 12,
    "bold": false
   },
+  "ruler": {
+   "family": "GalmuriMono11",
+   "pixelSize": 12,
+   "bold": false
+  },
   "code": {
    "family": "GalmuriMono11",
    "pixelSize": 12,

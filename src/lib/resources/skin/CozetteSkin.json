@@ -291,6 +291,11 @@
    "pixelSize": 13,
    "bold": false
   },
+  "ruler": {
+   "family": "Cozette",
+   "pixelSize": 13,
+   "bold": false
+  },
   "code": {
    "family": "Cozette",
    "pixelSize": 13,

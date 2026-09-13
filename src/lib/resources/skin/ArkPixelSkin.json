@@ -291,6 +291,11 @@
    "pixelSize": 10,
    "bold": false
   },
+  "ruler": {
+   "family": "Ark Pixel 10px Prop latin",
+   "pixelSize": 10,
+   "bold": false
+  },
   "code": {
    "family": "Ark Pixel 12px Prop latin",
    "pixelSize": 12,

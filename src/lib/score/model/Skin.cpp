@@ -430,6 +430,7 @@ std::vector<std::pair<const char*, QFont*>> Skin::fonts() noexcept
       {"title", &TitleFont},
       {"sectionTitle", &SectionTitleFont},
       {"slider", &SliderFont},
+      {"ruler", &RulerFont},
       {"code", &CodeFont},
       {"timecode", &TimecodeFont}};
 }
@@ -497,6 +498,11 @@ void Skin::setupFonts()
   SliderFont.setPixelSize(13);
   SliderFont.setWeight(QFont::DemiBold);
 
+  RulerFont = MonoFont;
+  RulerFont.setPixelSize(10);
+  RulerFont.setWeight(QFont::Normal);
+  RulerFont.setBold(false);
+
   // The transport readout, proportioned as 18 pt, which is 24 px at 96 DPI.
   TimecodeFont = QFont{"Ubuntu"};
   TimecodeFont.setPixelSize(24);
@@ -511,11 +517,11 @@ void Skin::setupFonts()
 
   ApplicationFont = defaultApplicationFont();
 
-  std::initializer_list<QFont*> mono_fonts = {&MonoFont, &MonoFontSmall};
+  std::initializer_list<QFont*> mono_fonts = {&MonoFont, &MonoFontSmall, &RulerFont};
   std::initializer_list<QFont*> fonts = {
       &SansFont,  &MonoFont,  &MonoFontSmall, &SansFontSmall, &Bold10Pt,   &Bold12Pt,
       &Medium7Pt, &Medium8Pt, &Medium10Pt,    &Medium12Pt,    &SliderFont, &TitleFont,
-      &SectionTitleFont};
+      &SectionTitleFont, &RulerFont};
   for(QFont* font : fonts)
   {
     font->setHintingPreference(uiFontHinting());
