@@ -21,6 +21,7 @@
 #include <QComboBox>
 #include <QDebug>
 #include <QFormLayout>
+#include <QHash>
 #include <QHBoxLayout>
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
@@ -132,6 +133,42 @@ QString hardwareName(QString raw, const QString& manufacturer)
   raw = raw.trimmed();
   ossia::net::sanitize_name(raw);
   return raw;
+}
+
+/**
+ * What two spellings of one brand have in common.
+ *
+ * Each source writes a brand however it feels like -- "Korg" and "KORG",
+ * "Allen & Heath" and "Allen&Heath" -- and a tree grouped on the text shows
+ * one brand as many times as its documents change their mind.
+ */
+QString brandKey(const QString& manufacturer)
+{
+  QString key;
+  key.reserve(manufacturer.size());
+  for(const QChar c : manufacturer)
+    if(!c.isSpace())
+      key += c.toCaseFolded();
+  return key;
+}
+
+//! "Korg M1" under the group "Korg" is "M1"; "Korgasmatron" stays whole.
+QString withoutBrand(const QString& model, const QString& brand)
+{
+  if(brand.isEmpty() || !model.startsWith(brand, Qt::CaseInsensitive))
+    return model;
+
+  const auto separator
+      = [](QChar c) { return c.isSpace() || c == '-' || c == '_' || c == ':'; };
+
+  auto rest = model.mid(brand.size());
+  if(!rest.isEmpty() && !separator(rest.front()))
+    return model;
+
+  while(!rest.isEmpty() && separator(rest.front()))
+    rest.remove(0, 1);
+
+  return rest.isEmpty() ? model : rest;
 }
 
 //! A channel is 1-16 and nothing else, so it is edited by something that
@@ -526,26 +563,63 @@ void MCUSettingsWidget::populateDeviceMaps()
   // clear() takes the columns and their widths with it.
   m_instruments->header()->resizeSection(0, 320);
 
-  QStandardItem* groupItem{};
-  QString currentGroup;
+  const auto& devices = MIDIDevices::Database::instance().devices();
+
+  // One spelling per brand: the one most of its documents use.
+  QHash<QString, QHash<QString, int>> spellings;
+  for(const auto& entry : devices)
+    if(const auto brand = QString::fromStdString(entry.header.manufacturer);
+       !brand.isEmpty())
+      spellings[brandKey(brand)][brand]++;
+
+  QHash<QString, QString> shown;
+  for(auto brand = spellings.cbegin(); brand != spellings.cend(); ++brand)
+  {
+    QString best;
+    int most = 0;
+    for(auto it = brand->cbegin(); it != brand->cend(); ++it)
+      if(it.value() > most || (it.value() == most && it.key() < best))
+      {
+        best = it.key();
+        most = it.value();
+      }
+    shown[brand.key()] = best;
+  }
+
+  // Keyed rather than run-length encoded: two spellings of one brand are not
+  // adjacent, the sort having no reason to keep them apart or together.
+  QHash<QString, QStandardItem*> groups;
 
   // Already sorted by manufacturer, then model, then preset.
-  for(const auto& entry : MIDIDevices::Database::instance().devices())
+  for(const auto& entry : devices)
   {
-    auto group = QString::fromStdString(entry.header.manufacturer);
+    const auto brand = QString::fromStdString(entry.header.manufacturer);
+    auto key = brandKey(brand);
+    auto group = shown.value(key, brand);
     if(group.isEmpty())
-      group = tr("Unnamed (%1)").arg(entry.source);
-
-    if(!groupItem || group != currentGroup)
     {
-      currentGroup = group;
+      group = tr("Unnamed (%1)").arg(entry.source);
+      key = brandKey(group);
+    }
+
+    auto*& groupItem = groups[key];
+    if(!groupItem)
+    {
       groupItem = new QStandardItem{group};
       groupItem->setData(group, SearchRole);
       groupItem->setSelectable(false);
       m_instrumentModel->appendRow(groupItem);
     }
 
-    auto* item = new QStandardItem{entry.label()};
+    // The brand names the group this row sits in; the row names the device.
+    auto name = withoutBrand(QString::fromStdString(entry.header.model), brand);
+    if(name.isEmpty())
+      name = entry.label();
+    if(const auto& preset = entry.header.preset.name; !preset.empty())
+      name += " (" + QString::fromStdString(preset) + ")";
+
+    auto* item = new QStandardItem{name};
+    // Searchable by what it is called anywhere else, not only by what it shows.
     item->setData(QString{group + " " + entry.label() + " " + entry.source}, SearchRole);
     item->setData(entry.identity, MapRole);
 
