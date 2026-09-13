@@ -40,6 +40,8 @@
 
 #include <QElapsedTimer>
 #include <QGraphicsRectItem>
+#include <QStandardPaths>
+#include <QFileInfo>
 #include <QGraphicsScene>
 
 #include <catch2/catch_approx.hpp>
@@ -416,6 +418,23 @@ TEST_CASE("An outlet is drawn inside the node it belongs to", "[integration][nod
   });
 }
 
+//! The vertex-shader-art object the reported case came from: its name is the
+//! file's, so a short file name gives a short title.
+Process::ProcessData vsaData(const QString& file)
+{
+  return Process::ProcessData{
+      UuidKey<Process::ProcessModel>{"ea13ed06-d21c-4c84-8d0f-83ce0027b81c"},
+      QStringLiteral("cubes"), file};
+}
+
+QString libraryShader()
+{
+  const QString p = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)
+                    + "/ossia/score/packages/default/Presets/Vertex Shader Art/basic/"
+                      "cubes.vs";
+  return QFileInfo{p}.isFile() ? p : QString{};
+}
+
 // A fully-custom item draws its own contents and places its own ports. The
 // node has to be at least as wide, or the border is drawn inside the item and
 // whatever the item put on its right edge -- a texture outlet, in the case
@@ -460,6 +479,60 @@ TEST_CASE("A node is at least as wide as the item it draws", "[integration][noda
       INFO("child right " << drawn.right() << " content right " << content.right());
       CHECK(drawn.right() <= content.right() + 1.);
     }
+
+    delete item;
+    spin(20);
+  });
+}
+
+// The reported case: a shader whose name is short enough that the title is not
+// what decides the node's width. Its texture outlet was drawn past the node.
+TEST_CASE("A short-named shader keeps its outlet inside the node",
+          "[integration][nodal][gui]")
+{
+  const QString shader = libraryShader();
+  if(shader.isEmpty())
+    SKIP("the shader library is not installed");
+
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
+    score::Document* doc = score::test::new_document(ctx);
+    REQUIRE(doc != nullptr);
+    auto& itv = baseInterval(*doc);
+
+    auto presenter
+        = score::IDocument::try_presenterDelegate<Scenario::ScenarioDocumentPresenter>(
+            *doc);
+    REQUIRE(presenter != nullptr);
+
+    auto proc = createProcess(*doc, itv, vsaData(shader), QPointF{400., 400.});
+    if(!proc)
+      SKIP("the vertex-shader-art process is not in this build");
+
+    // Dropping cubes.vs is what gives the object this name, and a short name
+    // is the whole point: it is when the title stops deciding the width.
+    proc->metadata().setName("cubes");
+
+    QGraphicsScene scene;
+    auto root = new QGraphicsRectItem;
+    scene.addItem(root);
+
+    auto item = new Process::NodeItem{
+        *proc, presenter->context(), itv.duration.defaultDuration(), root};
+    spin(200);
+
+    const QRectF content = item->contentRect();
+    int ports = 0;
+    for(auto* child : item->childItems())
+    {
+      auto* port = qgraphicsitem_cast<Dataflow::PortItem*>(child);
+      if(!port)
+        continue;
+      ++ports;
+      const QRectF drawn = port->mapRectToParent(port->drawnRect());
+      INFO("port right " << drawn.right() << " node right " << content.right());
+      CHECK(drawn.right() <= content.right());
+    }
+    INFO("ports laid out by the node: " << ports);
 
     delete item;
     spin(20);
