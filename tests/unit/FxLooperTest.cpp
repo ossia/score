@@ -5,6 +5,10 @@
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
+#include <cstdint>
+#include <cmath>
+#include <string>
+
 #include <array>
 #include <vector>
 
@@ -475,4 +479,184 @@ TEST_CASE("Looper: a quantized mode change covers both halves of the tick",
     CHECK(h.out_buf[0][i] != Approx(looper_harness::sentinel));
   for(int i = 32; i < 64; i++)
     CHECK(h.out_buf[0][i] == Approx(h.loop()[i - 32]));
+}
+
+namespace
+{
+// The harness above leaves the musical grid at zero, which is enough for the
+// sample machinery but says nothing about quantification or the post-action.
+// This one walks bars: 4/4 at 120bpm, so a bar is 2 seconds.
+struct musical_harness : looper_harness
+{
+  double tempo{120.};
+  int upper{4}, lower{4};
+
+  explicit musical_harness(int bs = 9600)
+      : looper_harness{1, bs, 48000}
+  {
+  }
+
+  double quarters_per_sample() const { return (tempo / 60.) / 48000.; }
+  int64_t bar_samples() const
+  {
+    return int64_t(48000. * 4. * (double(upper) / lower) * (60. / tempo));
+  }
+
+  ossia::token_request mtick(int64_t frames)
+  {
+    ossia::token_request tk;
+    tk.prev_date = ossia::time_value{now};
+    tk.date = ossia::time_value{now + frames};
+    tk.start_sample = 0;
+    tk.length_sample = frames;
+    tk.tempo = tempo;
+    tk.signature = {uint16_t(upper), uint16_t(lower)};
+
+    const double qps = quarters_per_sample();
+    const double bar_q = 4. * (double(upper) / lower);
+    tk.musical_start_position = now * qps;
+    tk.musical_end_position = (now + frames) * qps;
+    tk.musical_start_last_bar = std::floor(tk.musical_start_position / bar_q) * bar_q;
+    tk.musical_end_last_bar = std::floor(tk.musical_end_position / bar_q) * bar_q;
+    tk.musical_start_last_signature = 0.;
+    now += frames;
+    return tk;
+  }
+
+  //! Runs `bars` bars, returning the summed magnitude written per bar.
+  std::vector<double> run_bars(double bars)
+  {
+    std::vector<double> per_bar;
+    const int64_t total = int64_t(bars * bar_samples());
+    int64_t done = 0;
+    double acc = 0.;
+    int64_t in_bar = 0;
+    while(done < total)
+    {
+      const int64_t n = std::min<int64_t>(buffer_size, total - done);
+      reset_output();
+      run(mtick(n));
+      for(int64_t i = 0; i < n; i++)
+        acc += std::abs(out_buf[0][i]);
+      done += n;
+      in_bar += n;
+      if(in_bar >= bar_samples())
+      {
+        per_bar.push_back(acc);
+        acc = 0.;
+        in_bar = 0;
+      }
+    }
+    if(in_bar > 0)
+      per_bar.push_back(acc);
+    return per_bar;
+  }
+};
+}
+
+TEST_CASE("Looper: a recording ended by hand keeps the length it was played for",
+          "[fx][audio][looper][musical]")
+{
+  // The bar count says when the post-action takes over. It is not the length of
+  // every loop: a recording stopped by hand is as long as it was played for.
+  // Stretching it to the bar count is heard as silence at the end of the loop.
+  musical_harness h;
+  h.node.inputs.quantif.value = 0.25f; // 4th
+  h.node.inputs.postaction_bars.value = 4;
+  h.node.inputs.postaction = Postaction::Play;
+  h.node.inputs.passthrough = Passthrough::None;
+
+  h.node.inputs.mode = LoopMode::Stop;
+  h.run_bars(1);
+
+  h.fill_input(0, [](int64_t) { return 1.0; });
+  h.node.inputs.mode = LoopMode::Record;
+  h.run_bars(3);
+
+  h.reset_input();
+  h.node.inputs.mode = LoopMode::Play;
+  const auto out = h.run_bars(4);
+
+  CHECK(h.loop().size() == Approx(3. * h.bar_samples()).margin(h.buffer_size));
+
+  // Every bar of playback carries the loop: none of them is the padding.
+  REQUIRE(out.size() >= 4);
+  for(std::size_t i = 0; i < 4; i++)
+    CHECK(out[i] > 0.9 * h.bar_samples());
+}
+
+TEST_CASE("Looper: a quantification point on the tick's first sample switches the mode",
+          "[fx][audio][looper][musical]")
+{
+  // A bar line falls exactly on a buffer boundary whenever the bar divides
+  // evenly into the buffer, which at 120bpm and 48kHz is every buffer of 256
+  // frames or fewer. Refusing a point there leaves the mode waiting for one
+  // that never comes, and the looper never records or plays anything at all.
+  musical_harness h;
+  h.node.inputs.quantif.value = 1.0f; // Whole: one bar
+  h.node.inputs.postaction_bars.value = 0;
+  h.node.inputs.passthrough = Passthrough::None;
+  REQUIRE(h.bar_samples() % h.buffer_size == 0);
+
+  h.node.inputs.mode = LoopMode::Stop;
+  h.run_bars(1);
+
+  h.fill_input(0, [](int64_t) { return 1.0; });
+  h.node.inputs.mode = LoopMode::Record;
+  h.run_bars(2);
+
+  CHECK(h.node.state.actualMode == LoopMode::Record);
+  CHECK(h.loop().size() == Approx(2. * h.bar_samples()).margin(h.buffer_size));
+}
+
+TEST_CASE("Looper: the post-action takes over after the bars it was given",
+          "[fx][audio][looper][musical]")
+{
+  // What the bar count is for: recording hands over to play or overdub on its
+  // own, without the mode being touched.
+  musical_harness h;
+  h.node.inputs.quantif.value = 1.0f;
+  h.node.inputs.postaction_bars.value = 2;
+  h.node.inputs.postaction = Postaction::Play;
+  h.node.inputs.passthrough = Passthrough::None;
+
+  h.node.inputs.mode = LoopMode::Stop;
+  h.run_bars(1);
+
+  h.fill_input(0, [](int64_t) { return 1.0; });
+  h.node.inputs.mode = LoopMode::Record;
+  h.run_bars(1.5);
+  CHECK(h.node.state.actualMode == LoopMode::Record);
+  h.run_bars(0.5);
+
+  // The mode control is never touched again from here.
+  h.reset_input();
+  h.run_bars(1); // the bar the hand-over falls in is part recording, so silent
+  CHECK(h.node.state.actualMode == LoopMode::Play);
+  CHECK(h.loop().size() == Approx(2. * h.bar_samples()).margin(h.buffer_size));
+
+  const auto out = h.run_bars(2);
+  REQUIRE(out.size() >= 2);
+  for(std::size_t i = 0; i < 2; i++)
+    CHECK(out[i] > 0.9 * h.bar_samples());
+}
+
+TEST_CASE("Looper: a post-action recording is trimmed to the bars it was given",
+          "[fx][audio][looper][musical]")
+{
+  // The other side of the first case: when the post-action does end it, the
+  // bar count is the length, give or take the rounding of one bar.
+  musical_harness h;
+  h.node.inputs.quantif.value = 1.0f;
+  h.node.inputs.postaction_bars.value = 2;
+  h.node.inputs.postaction = Postaction::Play;
+  h.node.inputs.passthrough = Passthrough::None;
+
+  h.node.inputs.mode = LoopMode::Stop;
+  h.run_bars(1);
+  h.fill_input(0, [](int64_t) { return 1.0; });
+  h.node.inputs.mode = LoopMode::Record;
+  h.run_bars(4); // twice what it was given: the post-action stops it at two
+
+  CHECK(h.loop().size() == Approx(2. * h.bar_samples()).margin(h.buffer_size));
 }
