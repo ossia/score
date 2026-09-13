@@ -16,6 +16,16 @@
 
 #include "GfxProcessDoc.hpp"
 
+#include <Gfx/Filter/Library.hpp>
+#include <Process/ProcessList.hpp>
+#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Gfx/WindowDevice.hpp>
+#include <Explorer/Commands/Add/LoadDevice.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/command/Dispatchers/RuntimeDispatcher.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
 
 #include <Library/LibraryInterface.hpp>
@@ -311,5 +321,78 @@ TEST_CASE(
     // tests/gfx/GfxDropEmptyNodelistAbort.cpp runs those drops in a FORKED
     // CHILD and asserts on the wait status, covering both levels -- the payload
     // itself and the array's CONTENTS. Add new malformed-mime cases there.
+  });
+}
+
+TEST_CASE(
+    "A dropped texture address is wired to the end of the passthrough it belongs on",
+    "[gfx][library][gui]")
+{
+  // Dropping a camera builds a passthrough that reads from it; dropping a
+  // window has to build one that writes to it. Both are texture addresses and
+  // the handler took them for the same thing, so a screen was asked for a
+  // picture it does not have.
+  run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    score::Document* doc = new_document(ctx);
+    REQUIRE(doc != nullptr);
+
+    auto* base = dropper(ctx, UUID_D_FILTER_TEX);
+    REQUIRE(base != nullptr);
+    auto* h = dynamic_cast<const Gfx::Filter::VideoTextureDropHandler*>(base);
+    REQUIRE(h != nullptr);
+
+    auto& plug = doc->context().plugin<Explorer::DeviceDocumentPlugin>();
+
+    Device::DeviceSettings set;
+    set.name = "Win";
+    set.protocol = Gfx::WindowProtocolFactory::static_concreteKey();
+    Gfx::WindowSettings ws;
+    ws.mode = Gfx::WindowMode::Single;
+    set.deviceSpecificSettings = QVariant::fromValue(ws);
+    CommandDispatcher<>{doc->context().commandStack}.submit(
+        new Explorer::Command::LoadDevice{plug, set});
+
+    const auto& devices = plug.list();
+    State::Address win{"Win", {}};
+
+    // It is a texture either way; which way it goes is the new question.
+    CHECK(h->isTexture(win, devices));
+    CHECK(h->isTextureSink(win, devices));
+
+    // Nothing of that name is not a sink, and neither is an address on a
+    // device that is not a texture output at all.
+    State::Address nothing{"NoSuchDevice", {}};
+    CHECK_FALSE(h->isTextureSink(nothing, devices));
+
+    // And the drop it builds puts the window on the end that writes.
+    std::vector<Process::ProcessDropHandler::ProcessDrop> drops;
+    REQUIRE(h->create(drops, {win}, devices));
+    REQUIRE(drops.size() == 1);
+    REQUIRE(bool(drops[0].setup));
+
+    auto& interval
+        = score::IDocument::get<Scenario::ScenarioDocumentModel>(*doc).baseInterval();
+    auto& factories = ctx.interfaces<Process::ProcessFactoryList>();
+    auto* fact = factories.get(drops[0].creation.key);
+    REQUIRE(fact != nullptr);
+
+    CommandDispatcher<> disp{doc->context().commandStack};
+    disp.submit<Scenario::Command::AddOnlyProcessToInterval>(
+        interval, fact->concreteKey(), QString{}, QPointF{});
+
+    Process::ProcessModel* made = nullptr;
+    for(auto& pr : interval.processes)
+      if(pr.concreteKey() == drops[0].creation.key)
+        made = &pr;
+    REQUIRE(made != nullptr);
+    REQUIRE(!made->outlets().empty());
+    REQUIRE(!made->inlets().empty());
+
+    CommandDispatcher<> setupDisp{doc->context().commandStack};
+    score::Dispatcher_T<CommandDispatcher<>> d{setupDisp};
+    drops[0].setup(*made, d);
+
+    CHECK(made->outlets().front()->address().address == win);
+    CHECK(made->inlets().front()->address().address != win);
   });
 }
