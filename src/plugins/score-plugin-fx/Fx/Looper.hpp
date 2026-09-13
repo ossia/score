@@ -37,6 +37,15 @@ struct Node
     Overdub
   };
 
+  //! Where the loop is read from when the mode changes.
+  //!
+  //! Order matters: the first is what the object did before there was a choice.
+  enum class Restart
+  {
+    Always,   ///< Every change of mode reads the loop from its beginning again.
+    Recording ///< Only a recording does; playing and overdubbing carry straight on.
+  };
+
   // Order matters: this replaced a toggle, and a stored 0/1 has to keep
   // meaning what it did.
   enum class Passthrough
@@ -75,6 +84,7 @@ struct Node
     passthrough_selector passthrough;
     halp::enum_t<Postaction, "Post-action"> postaction;
     halp::spinbox_i32<"Bars", halp::irange{0, 64, 4}> postaction_bars;
+    halp::enum_t<Restart, "Restart"> restart;
   } inputs;
   struct
   {
@@ -135,6 +145,18 @@ struct Node
         vec.reserve(default_buffer_size);
     }
   } state;
+
+  //! Taking up a mode. A recording always starts its buffer again -- there is
+  //! nothing yet to carry on from. Whether playing and overdubbing do is what
+  //! the Restart setting is for: reading the loop from the top on every change
+  //! jumps, which is heard when overdubbing hands over to playing.
+  void enterMode(LoopMode m, Restart restart)
+  {
+    state.quantizedPlayMode = m;
+    state.actualMode = m;
+    if(m == LoopMode::Record || restart == Restart::Always)
+      state.playbackPos = 0;
+  }
 
   void fade(const ossia::token_request& tk)
   {
@@ -245,6 +267,7 @@ struct Node
     const Postaction postaction = this->inputs.postaction;
     const float quantif = this->inputs.quantif.value;
     const Passthrough passthrough = this->inputs.passthrough;
+    const Restart restart = this->inputs.restart;
 
     state.this_buffer_quantif_time = std::nullopt;
     state.this_buffer_quantif_sample = std::nullopt;
@@ -300,13 +323,11 @@ struct Node
               auto sub_tk = tk;
               sub_tk.set_end_time(*time);
 
-              preAction(sub_tk, postaction, postaction_bars, passthrough);
+              preAction(sub_tk, postaction, postaction_bars, passthrough, restart);
             }
 
             // We can switch to the new mode
-            state.quantizedPlayMode = m;
-            state.actualMode = m;
-            state.playbackPos = 0;
+            enterMode(m, restart);
 
             // Remaining of the tick
             {
@@ -314,47 +335,43 @@ struct Node
               sub_tk.set_start_time(*time);
 
               changeAction(sub_tk);
-              preAction(sub_tk, postaction, postaction_bars, passthrough);
+              preAction(sub_tk, postaction, postaction_bars, passthrough, restart);
             }
           }
           else
           {
             // We can switch to the new mode
-            state.quantizedPlayMode = m;
-            state.actualMode = m;
-            state.playbackPos = 0;
+            enterMode(m, restart);
 
             changeAction(tk);
-            preAction(tk, postaction, postaction_bars, passthrough);
+            preAction(tk, postaction, postaction_bars, passthrough, restart);
           }
         }
         else
         {
           // We cannot switch yet
-          preAction(tk, postaction, postaction_bars, passthrough);
+          preAction(tk, postaction, postaction_bars, passthrough, restart);
         }
       }
       else
       {
         // No quantization, we can switch to the new mode
-        state.quantizedPlayMode = m;
-        state.actualMode = m;
-        state.playbackPos = 0;
+        enterMode(m, restart);
 
         changeAction(tk);
-        preAction(tk, postaction, postaction_bars, passthrough);
+        preAction(tk, postaction, postaction_bars, passthrough, restart);
       }
     }
     else
     {
       // No change
-      preAction(tk, postaction, postaction_bars, passthrough);
+      preAction(tk, postaction, postaction_bars, passthrough, restart);
     }
   }
 
   void preAction(
       ossia::token_request tk, Postaction postaction, int postaction_bars,
-      Passthrough passthrough)
+      Passthrough passthrough, Restart restart)
   {
     using namespace ossia;
     if(state.recordStartBar == -1.)
@@ -383,7 +400,8 @@ struct Node
         state.recordStartBar = -1.;
         state.endedByPostaction = true;
         state.reset_elapsed();
-        state.playbackPos = 0;
+        if(restart == Restart::Always)
+          state.playbackPos = 0;
       };
 
       // Change of bar at the first sample
