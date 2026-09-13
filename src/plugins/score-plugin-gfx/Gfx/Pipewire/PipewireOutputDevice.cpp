@@ -666,8 +666,8 @@ public:
       spa_pod_builder_pop(&b, &f[1]);
 
       spa_pod_builder_add(
-          &b, SPA_FORMAT_VIDEO_size, SPA_POD_Rectangle(&fmt.size),
-          SPA_FORMAT_VIDEO_framerate, SPA_POD_Fraction(&fmt.framerate), 0);
+          &b, SPA_FORMAT_VIDEO_size, SPA_POD_Rectangle(&fmt.size), 0);
+      addFramerateRange(b, fmt.framerate);
       params[0] = (const spa_pod*)spa_pod_builder_pop(&b, &f[0]);
 
       // ... and the same format again WITHOUT a modifier, as a second
@@ -677,16 +677,13 @@ public:
       // picks host memory instead and gets a picture. Offering it costs the
       // consumers that CAN do dma-buf nothing -- score's own input still
       // negotiates the dma-buf alternative and still gets it zero-copy.
-      spa_video_info_raw plain = fmt;
-      plain.flags = 0;
-      plain.modifier = 0;
-      params[1] = spa_format_video_raw_build(&b, SPA_PARAM_EnumFormat, &plain);
+      params[1] = buildEnumFormat(b, fmt);
       nparams = 2;
     }
     else
 #endif
     {
-      params[0] = spa_format_video_raw_build(&b, SPA_PARAM_EnumFormat, &fmt);
+      params[0] = buildEnumFormat(b, fmt);
     }
 
     // Passive producer: pipewire pulls frames when the consumer is ready.
@@ -856,6 +853,44 @@ private:
     pw.stream_queue_buffer(self->m_stream, b);
     if(copied > 0)
       self->m_framesQueued.fetch_add(1, std::memory_order_relaxed);
+  }
+
+  //! The framerate a consumer may ask for.
+  //!
+  //! Pinning it to the configured value is what made every consumer that is
+  //! not score refuse the link: the negotiation intersects both sides, so a
+  //! sink asking for 30 against a producer offering only 60 ends in "no more
+  //! output formats" and a black source. Nothing here actually depends on it
+  //! -- frames are published as the graph renders them, and the consumer takes
+  //! them at its own pace -- so offer the whole range with the configured
+  //! value as the default. Format and size are not like this: the texture is
+  //! created once at the configured pair and cannot answer for another.
+  static void addFramerateRange(spa_pod_builder& b, spa_fraction configured)
+  {
+    const spa_fraction lo = SPA_FRACTION(0u, 1u);
+    const spa_fraction hi = SPA_FRACTION(1000u, 1u);
+    spa_pod_frame f{};
+    spa_pod_builder_prop(&b, SPA_FORMAT_VIDEO_framerate, 0);
+    spa_pod_builder_push_choice(&b, &f, SPA_CHOICE_Range, 0);
+    spa_pod_builder_fraction(&b, configured.num, configured.denom);
+    spa_pod_builder_fraction(&b, lo.num, lo.denom);
+    spa_pod_builder_fraction(&b, hi.num, hi.denom);
+    spa_pod_builder_pop(&b, &f);
+  }
+
+  //! Same shape as spa_format_video_raw_build, except that the framerate is a
+  //! range rather than one value.
+  static const spa_pod* buildEnumFormat(spa_pod_builder& b, const spa_video_info_raw& fmt)
+  {
+    spa_pod_frame f{};
+    spa_pod_builder_push_object(&b, &f, SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat);
+    spa_pod_builder_add(
+        &b, SPA_FORMAT_mediaType, SPA_POD_Id(SPA_MEDIA_TYPE_video),
+        SPA_FORMAT_mediaSubtype, SPA_POD_Id(SPA_MEDIA_SUBTYPE_raw),
+        SPA_FORMAT_VIDEO_format, SPA_POD_Id(fmt.format),
+        SPA_FORMAT_VIDEO_size, SPA_POD_Rectangle(&fmt.size), 0);
+    addFramerateRange(b, fmt.framerate);
+    return (const spa_pod*)spa_pod_builder_pop(&b, &f);
   }
 
   static void
