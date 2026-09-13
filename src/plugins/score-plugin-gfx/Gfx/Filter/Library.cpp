@@ -2,6 +2,7 @@
 #include <Gfx/Filter/PreviewWidget.hpp>
 #include <Gfx/Filter/Process.hpp>
 #include <Gfx/GeometryFilter/Process.hpp>
+#include <Gfx/GfxDevice.hpp>
 #include <Library/LibrarySettings.hpp>
 #include <Library/ProcessesItemModel.hpp>
 #include <State/MessageListSerialization.hpp>
@@ -235,7 +236,9 @@ QSet<QString> VideoTextureDropHandler::mimeTypes() const noexcept
   return {score::mime::nodelist(), score::mime::messagelist()};
 }
 
-bool VideoTextureDropHandler::create(std::vector<ProcessDrop> &drops, const std::vector<State::Address> &addresses) const
+bool VideoTextureDropHandler::create(
+    std::vector<ProcessDrop>& drops, const std::vector<State::Address>& addresses,
+    const Device::DeviceList& devicelist) const
 {
   if(addresses.empty())
     return false;
@@ -263,13 +266,21 @@ void main() { gl_FragColor = IMG_THIS_PIXEL(inputImage); })_");
     Process::ProcessDropHandler::ProcessDrop p;
     p.creation.key = Metadata<ConcreteKey_k, Gfx::Filter::Model>::get();
     p.creation.prettyName = addr.device;
-    p.setup = [addr](Process::ProcessModel& p, score::Dispatcher& d) {
+    // Which end of the passthrough the address belongs on: a camera is read
+    // from, so it feeds the inlet; a window is sent to, so it takes what the
+    // outlet produces. Putting a screen on the inlet asks it for a picture it
+    // does not have.
+    const bool sink = isTextureSink(addr, devicelist);
+    p.setup = [addr, sink](Process::ProcessModel& p, score::Dispatcher& d) {
       auto& filter = (Gfx::Filter::Model&)p;
       Gfx::ShaderSource source;
       source.fragment = passthroughISF;
       auto cmd = new Gfx::ChangeShader{filter, source, score::IDocument::documentContext(p)};
       d.submit(cmd);
-      auto cmd2 = new Process::ChangePortAddress{*filter.inlets().front(), State::AddressAccessor{addr}};
+
+      Process::Port* port = sink ? static_cast<Process::Port*>(filter.outlets().front())
+                                 : static_cast<Process::Port*>(filter.inlets().front());
+      auto cmd2 = new Process::ChangePortAddress{*port, State::AddressAccessor{addr}};
       d.submit(cmd2);
     };
     drops.push_back(std::move(p));
@@ -285,6 +296,13 @@ bool VideoTextureDropHandler::isTexture(const State::Address &addr, const Device
         if(auto texture_parameter = dynamic_cast<ossia::gfx::texture_parameter*>(p))
           return true;
   return false;
+}
+
+bool VideoTextureDropHandler::isTextureSink(
+    const State::Address& addr, const Device::DeviceList& devicelist) const noexcept
+{
+  return qobject_cast<const Gfx::GfxOutputDevice*>(devicelist.findDevice(addr.device))
+         != nullptr;
 }
 
 void VideoTextureDropHandler::dropCustom(std::vector<ProcessDrop> &drops, const QMimeData &mime, const score::DocumentContext &ctx) const noexcept
@@ -304,7 +322,7 @@ void VideoTextureDropHandler::dropCustom(std::vector<ProcessDrop> &drops, const 
       if(isTexture(np.first, devicelist))
         addresses.push_back( np.first);
     }
-    create(drops, addresses);
+    create(drops, addresses, devicelist);
   }
   else if(mime.hasFormat(score::mime::messagelist()))
   {
@@ -320,7 +338,7 @@ void VideoTextureDropHandler::dropCustom(std::vector<ProcessDrop> &drops, const 
       if(isTexture(mp.address.address, devicelist))
         addresses.push_back(mp.address.address);
     }
-    create(drops, addresses);
+    create(drops, addresses, devicelist);
   }
 }
 

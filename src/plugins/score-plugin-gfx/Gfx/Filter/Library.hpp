@@ -1,4 +1,5 @@
 #pragma once
+#include <score_plugin_gfx_export.h>
 #include <Process/Drop/ProcessDropHandler.hpp>
 
 #include <Library/LibraryInterface.hpp>
@@ -47,7 +48,8 @@ class DropHandler final : public Process::ProcessDropHandler
       const score::DocumentContext& ctx) const override;
 };
 
-struct VideoTextureDropHandler : public Process::ProcessDropHandler
+struct SCORE_PLUGIN_GFX_EXPORT VideoTextureDropHandler
+    : public Process::ProcessDropHandler
 {
   SCORE_CONCRETE("e9bf6cf8-c872-4638-b98a-ed76edc8e2dd")
 
@@ -55,10 +57,15 @@ public:
   QSet<QString> mimeTypes() const noexcept override;
 
   bool create(
-      std::vector<ProcessDrop>& drops,
-      const std::vector<State::Address>& addresses) const;
+      std::vector<ProcessDrop>& drops, const std::vector<State::Address>& addresses,
+      const Device::DeviceList& devicelist) const;
 
   bool isTexture(const State::Address& addr, const Device::DeviceList& devicelist) const noexcept;
+
+  //! Whether the address names something that a texture is sent *to* -- a
+  //! window, a pipewire video out -- rather than one it is read from.
+  bool isTextureSink(
+      const State::Address& addr, const Device::DeviceList& devicelist) const noexcept;
 
   void dropCustom(
       std::vector<ProcessDrop>& drops, const QMimeData& mime,
