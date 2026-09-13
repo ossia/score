@@ -576,6 +576,31 @@ void MCUSettingsWidget::populateDeviceMaps()
     shown[brand.key()] = best;
   }
 
+  /*
+   * Raw MIDI, for hardware nothing in the library describes: a channel of note
+   * on and off, control change, program change and pitch bend. First in the
+   * tree, being the one row that is not a brand.
+   */
+  {
+    auto* generic = new QStandardItem{tr("Generic")};
+    generic->setData(generic->text(), SearchRole);
+    generic->setSelectable(false);
+    m_instrumentModel->appendRow(generic);
+
+    const auto add = [&](const char* identity, const QString& detail) {
+      const auto id = QString::fromLatin1(identity);
+      auto* item = new QStandardItem{genericLabel(id)};
+      item->setData(
+          QString{generic->text() + " " + item->text() + " " + detail}, SearchRole);
+      item->setData(id, MapRole);
+      generic->appendRow({item, new QStandardItem{detail}});
+    };
+
+    add(MIDIDevices::genericChannelId, tr("on, off, control, program, pitchbend"));
+    add(MIDIDevices::genericExpandedChannelId,
+        tr("... and one node per note, control and program"));
+  }
+
   // Keyed rather than run-length encoded: two spellings of one brand are not
   // adjacent, the sort having no reason to keep them apart or together.
   QHash<QString, QStandardItem*> groups;
@@ -658,14 +683,26 @@ void MCUSettingsWidget::addChosenDevice(const QString& identity, int channel)
     if(slotAt(i).map == identity)
       return;
 
-  auto name = identity;
-  if(const auto* e = MIDIDevices::Database::instance().find(identity))
-    name = e->name();
+  auto name = genericLabel(identity);
+  if(name.isEmpty())
+  {
+    name = identity;
+    if(const auto* e = MIDIDevices::Database::instance().find(identity))
+      name = e->name();
+  }
 
   auto* item = new QTreeWidgetItem{
       m_chosen, {name, QString::number(std::clamp(channel, 1, 16))}};
   item->setData(0, MapRole, identity);
   item->setFlags(item->flags() | Qt::ItemIsEditable);
+}
+
+QString MCUSettingsWidget::genericLabel(const QString& identity) const
+{
+  const auto expanded = MIDIDevices::genericChannel(identity);
+  if(!expanded)
+    return {};
+  return *expanded ? tr("MIDI channel, every note and control") : tr("MIDI channel");
 }
 
 QString MCUSettingsWidget::chosenMap() const
@@ -722,7 +759,24 @@ void MCUSettingsWidget::updatePreview()
   // so it shows one description and starts at its groups. The level naming the
   // device is what the tree adds around it, and would be the same word on
   // every row here.
-  const auto* entry = MIDIDevices::Database::instance().find(chosenMap());
+  const auto identity = chosenMap();
+
+  if(const auto expanded = MIDIDevices::genericChannel(identity))
+  {
+    // The channel is a level of its own in the tree, as a description is, so
+    // the preview starts below it the same way.
+    for(const auto* name : {"on", "off", "control", "program"})
+    {
+      auto* node = new QTreeWidgetItem{m_preview, {QString::fromLatin1(name)}};
+      if(*expanded)
+        new QTreeWidgetItem{node, {tr("0 ... 127")}};
+    }
+    new QTreeWidgetItem{m_preview, {QStringLiteral("pitchbend")}};
+    m_preview->expandAll();
+    return;
+  }
+
+  const auto* entry = MIDIDevices::Database::instance().find(identity);
   if(!entry)
     return;
 
@@ -804,6 +858,21 @@ void MCUSettingsWidget::updateDeviceMapSummary()
   auto& db = MIDIDevices::Database::instance();
 
   const auto identity = chosenMap();
+
+  if(const auto expanded = MIDIDevices::genericChannel(identity))
+  {
+    auto text = tr("One MIDI channel, addressed as itself: note on and off, "
+                   "control change, program change and pitch bend.");
+    if(*expanded)
+      text += tr("\n\nWith a node of its own for each of the 128 notes, controls "
+                 "and programs, beside the nodes that carry the number as half "
+                 "of their value.");
+    text += tr("\n\nNothing here says what the device does with them: that is "
+               "what a device map is for.");
+    m_summary->setText(text);
+    return;
+  }
+
   if(identity.isEmpty())
   {
     if(db.devices().empty())

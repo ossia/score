@@ -98,6 +98,15 @@ QString DeviceEntry::label() const
   return brand + ": " + name();
 }
 
+std::optional<bool> genericChannel(const QString& identity) noexcept
+{
+  if(identity == QLatin1String{genericChannelId})
+    return false;
+  if(identity == QLatin1String{genericExpandedChannelId})
+    return true;
+  return std::nullopt;
+}
+
 std::vector<QString> libraryPaths()
 {
   const auto packages

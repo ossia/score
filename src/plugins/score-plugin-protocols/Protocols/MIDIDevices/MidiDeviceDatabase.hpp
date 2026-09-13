@@ -64,6 +64,27 @@ struct DeviceEntry
 };
 
 /**
+ * A channel addressed as raw MIDI rather than through a description: note
+ * on/off, control change, program change and pitch bend, for a device nothing
+ * in the library describes.
+ *
+ * Offered beside the descriptions, and named like one so that everything that
+ * handles a chosen device handles this too. Neither name ends in
+ * `.midimap.json`, so the library scan cannot produce either.
+ */
+inline constexpr auto genericChannelId = "generic:channel";
+
+//! @ref genericChannelId with a node per note, control and program as well.
+inline constexpr auto genericExpandedChannelId = "generic:channel+all";
+
+/**
+ * std::nullopt when @p identity names a description; otherwise whether every
+ * note, control and program is to get a node of its own.
+ */
+SCORE_PLUGIN_PROTOCOLS_EXPORT
+std::optional<bool> genericChannel(const QString& identity) noexcept;
+
+/**
  * The `midi-device-maps` directories of the packages folder: the installed
  * package, and anything the user added under a package of their own. Descends
  * only as far as `maps/<source>`, never the whole packages folder, which is a
