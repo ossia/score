@@ -166,7 +166,10 @@ ACCENTS = {
     # blue <-> orange/yellow axis, with lightness separating the rest.
     "Protanopia": dict(
         port_a=OI["blue"], port_b=OI["yellow"], port_c=OI["skyblue"],
-        warn_low=OI["yellow"], warn_mid=OI["orange"], warn_high="#ffffff",
+        # Vermilion, not white: a protanope separates it from orange by
+        # lightness (dE 27 under simulation), and white reads as text rather
+        # than as an error to everyone else.
+        warn_low=OI["yellow"], warn_mid=OI["orange"], warn_high=OI["vermilion"],
         accent=OI["skyblue"], accent2=OI["purple"],
         curve_a=OI["blue"], curve_b=OI["yellow"], curve_c=OI["orange"],
         # Playback: a dim blue body, a bright yellow fill as it plays, a
@@ -365,7 +368,7 @@ if __name__ == "__main__":
         if worst_sim < THRESHOLD:
             failures.append((name, f"{grp[1]} vs {grp[2]} under simulation",
                              f"dE {worst_sim:.1f}"))
-        bad = contrast.audit(doc, DEFAULT_SKIN)
+        bad = contrast.audit(doc, DEFAULT_SKIN, name=name)
         if bad:
             failures.append((name, "contrast", "; ".join(b[0] for b in bad)))
 

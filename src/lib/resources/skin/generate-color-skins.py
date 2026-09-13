@@ -282,7 +282,7 @@ if __name__ == "__main__":
         # One model for the whole question, contrast.py's: two of them
         # disagreeing is how a skin ends up passing one check and failing the
         # other for the same pair.
-        bad = contrast.audit(doc, DEFAULT_SKIN)
+        bad = contrast.audit(doc, DEFAULT_SKIN, name=name)
         if bad:
             problems[name] = [f"{b[0].lstrip('~')} {b[5]}" for b in bad]
         m = contrast.measure(doc)
