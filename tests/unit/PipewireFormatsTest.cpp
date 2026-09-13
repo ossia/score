@@ -85,6 +85,37 @@ TEST_CASE("tag names parse, case-insensitively", "[gfx][pipewire]")
 
 // YV12 publishes as yuv420p because the copy path exchanges the plane pointers,
 // so the AVPixelFormat cannot name it back; RGBA32F has no AVFrame form at all.
+// The panels used to keep their own hand-written lists next to this table, and
+// had already drifted from it. They now build from these, so a tag added above
+// cannot go unreachable from the interface.
+TEST_CASE("the name list covers every tag, and each name parses back",
+          "[gfx][pipewire]")
+{
+  const auto names = pwf::allTagNames();
+  REQUIRE(names.size() == int(Tag::Unknown));
+
+  for(int i = 0; i < int(Tag::Unknown); i++)
+  {
+    const auto tag = Tag(i);
+    const auto name = pwf::tagToString(tag);
+    INFO(name.toStdString());
+    CHECK(pwf::tagFromString(name) == tag);
+    CHECK(names.contains(name));
+  }
+}
+
+// The output path refuses anything it cannot render into rather than publish
+// RGBA bytes under a YUV fourcc, so its combo must offer that set and no more.
+TEST_CASE("the renderable names are the packed RGB tags", "[gfx][pipewire]")
+{
+  const auto names = pwf::renderableTagNames();
+  const QStringList expected{"rgba8",   "bgra8",   "rgb10a2",
+                             "bgr10a2", "rgba16f", "rgba32f"};
+  CHECK(names == expected);
+  for(const auto& n : names)
+    CHECK(pwf::tagFromString(n) != Tag::Unknown);
+}
+
 TEST_CASE("tag <-> AVPixelFormat", "[gfx][pipewire]")
 {
   for(Tag t : kTags)

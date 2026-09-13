@@ -1230,7 +1230,7 @@ InputSettingsWidget::InputSettingsWidget(QWidget* parent)
 {
   m_deviceNameEdit->setText("Spout In");
 
-  ((QLabel*)m_layout->labelForField(m_shmPath))->setText("Identifier");
+  setPathLabel(tr("Identifier"));
   setSettings(InputFactory{}.defaultSettings());
 }
 
