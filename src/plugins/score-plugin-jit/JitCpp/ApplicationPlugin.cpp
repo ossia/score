@@ -43,6 +43,13 @@ QString enclosingTypeName(const QString& src, int pos)
 
   for(int i = 0; i < pos && i < src.size(); ++i)
   {
+    // Matches are found over the whole text, comments and string literals
+    // included, and the scan below jumps over those. Drop any match the scan has
+    // already passed, or the first keyword inside a comment stalls the matcher
+    // and every declaration after it is missed.
+    while(next.hasMatch() && next.capturedStart() < i)
+      next = matches.hasNext() ? matches.next() : QRegularExpressionMatch{};
+
     if(next.hasMatch() && next.capturedStart() == i)
     {
       QString name = next.captured(2);
@@ -258,11 +265,14 @@ bool ApplicationPlugin::setupAddon(const QString& addon_arg)
   // The generated translation unit is written to a temporary directory and
   // #includes the add-on's sources by the path we are given, so a relative one
   // stops resolving as soon as it lands there.
-  QFileInfo addonInfo{addon_arg};
-  const QString addon = addonInfo.absoluteFilePath();
+  //
+  // QDir rather than QFileInfo: the argument is a directory, and QFileInfo keeps
+  // a trailing slash, which leaves fileName() empty -- so "--compile-addon
+  // ./addon/" would lose the folder name the generated headers fall back to.
+  const QString addon = QDir{addon_arg}.absolutePath();
 
   qDebug() << "Registering JIT addon" << addon;
-  auto addonFolderName = addonInfo.fileName();
+  auto addonFolderName = QFileInfo{addon}.fileName();
   if(addonFolderName == "Nodes")
     return false;
 

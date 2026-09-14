@@ -85,6 +85,7 @@ jobs:
           - score-process-template
           - score-device-template
           - score-avnd-simple-template
+          - score-avnd-template
           - score-offline-process-template
 
     steps:
