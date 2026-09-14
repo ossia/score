@@ -535,6 +535,16 @@ if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
     GUI
     PLUGINS score_plugin_gfx score_plugin_js score_plugin_scenario score_lib_process)
 
+  # The video-input enumeration contract: enumerate a Camera/NDI/Spout/Syphon
+  # device, hand its settings back to createDevice, switch backend at runtime.
+  # Adding a device while the transport runs is allowed and must work; the
+  # other tree edits are out of scope by policy.
+  score_add_test(test_integration_device_enumeration_lifecycle
+    SOURCES DeviceEnumerationLifecycleTest.cpp
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_js score_plugin_deviceexplorer
+            score_lib_device score_plugin_scenario score_lib_process)
+
   # score's PipeWire video OUTPUT through the real application: a device, a
   # process, playing, and a GStreamer consumer reading it. Pixels AND rate --
   # the producer harness drives the node from its own timer, so it can say
