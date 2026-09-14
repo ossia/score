@@ -1,11 +1,13 @@
-// The Mapper device driving Protocols.can() and Protocols.serial().
+// The Mapper device: its lifecycle, the scope of the addresses its scripts
+// write to, and the Protocols.can() / Protocols.serial() bindings.
 //
 // libossia's QML tests install `Protocols` on a bare QJSEngine. In score it is a
 // context property of the Mapper's engine, that engine runs on its own thread,
 // and what a script produces has to come back out through the mapper's tree.
 //
-// Each test creates a real Mapper from a script, moves bytes on a real
-// transport, and reads the result back through Score.iterateDevice().
+// Each test creates real Mappers from scripts, moves bytes on a real transport
+// where one is involved, and reads the result back through
+// Score.iterateDevice().
 
 #include <Device/Protocol/DeviceInterface.hpp>
 
@@ -23,6 +25,7 @@
 #include <catch2/catch_all.hpp>
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
+#include <score_test/Mapper.hpp>
 
 #if defined(__linux__)
 
@@ -42,7 +45,6 @@
 namespace
 {
 constexpr const char* can_iface = "vcan0";
-constexpr const char* mapper_uuid = "910e2d87-a087-430d-b725-c988fe2bea01";
 
 //! A raw SocketCAN peer, to put frames on the bus from the test side.
 struct raw_can
@@ -118,112 +120,128 @@ struct pty_pair
   bool valid() const { return master >= 0 && !slave.empty(); }
 };
 
-struct fixture
+//! Two mappers of the same document, both exposing a '/leaf' of their own.
+//! '/poke' writes through an unqualified address, '/poke_other' through one
+//! qualified with the sibling's name.
+QString sharedLeafScript(const QString& other)
 {
-  const score::GUIApplicationContext& ctx;
-  score::Document& doc;
-  QQmlEngine engine;
+  return QStringLiteral(R"qml(
+import Ossia 1.0 as Ossia
 
-  fixture(const score::GUIApplicationContext& c, score::Document& d)
-      : ctx{c}
-      , doc{d}
-  {
-    engine.globalObject().setProperty("Score", engine.newQObject(new JS::EditJsContext));
+Ossia.Mapper
+{
+  function createTree() {
+    return [
+      { name: "leaf", type: Ossia.Type.Int, value: 0 },
+      { name: "poke", type: Ossia.Type.Int,
+        write: function(v) { Device.write("/leaf", v.value); } },
+      { name: "poke_other", type: Ossia.Type.Int,
+        write: function(v) { Device.write("%1:/leaf", v.value); } }
+    ];
   }
-
-  /**
-   * Evaluate `js`, failing the test if it throws.
-   *
-   * FAIL rather than REQUIRE because this is reached from inside the polling
-   * predicates: an assertion there counts once per poll, which would make the
-   * test's assertion count depend on how fast the machine is. FAIL only counts
-   * when it fires.
-   */
-  QJSValue eval(const QString& js)
-  {
-    auto res = engine.evaluate(js);
-    if(res.isError())
-      FAIL(
-          "script failed: " << res.toString().toStdString()
-                            << "\nscript was: " << js.toStdString());
-    return res;
-  }
-
-  //! Create a Mapper device running `qml`.
-  void createMapper(const QString& name, const QString& qml)
-  {
-    const auto settings
-        = QJsonDocument{QJsonObject{{"Text", qml}}}.toJson(QJsonDocument::Compact);
-    eval(QStringLiteral("Score.createDevice(\"%1\", \"%2\", %3)")
-             .arg(name, mapper_uuid, QString::fromUtf8(settings)));
-  }
-
-  /**
-   * Every (address, value) pair of a device, as iterateDevice yields them.
-   *
-   * Compiled once and reported with FAIL rather than REQUIRE: this is called
-   * from inside spin()'s predicate, and an assertion there would count once per
-   * poll - which makes the test's assertion count depend on how fast the
-   * machine is. FAIL only counts when it fires.
-   */
-  QVariantMap contents(const QString& name)
-  {
-    if(!m_iterate.isCallable())
-    {
-      m_iterate = engine.evaluate(QStringLiteral(R"js(
-        (function(name) {
-          var res = {};
-          Score.iterateDevice(name, function(addr, v) { res[addr] = v.value; });
-          return res;
-        })
-      )js"));
-      if(!m_iterate.isCallable())
-        FAIL(
-            "could not compile the iterateDevice wrapper: "
-            << m_iterate.toString().toStdString());
-    }
-
-    auto res = m_iterate.call({name});
-    if(res.isError())
-      FAIL("iterateDevice failed: " << res.toString().toStdString());
-    return res.toVariant().toMap();
-  }
-
-  QJSValue m_iterate;
-
-  //! Run both loops until `pred` holds, or give up.
-  template <typename F>
-  bool spin(F pred, int ms = 5000)
-  {
-    for(int i = 0; i < ms / 5; i++)
-    {
-      QCoreApplication::processEvents();
-      if(pred())
-        return true;
-      ::usleep(5000);
-    }
-    return pred();
-  }
-};
+}
+)qml")
+      .arg(other);
 }
 
-TEST_CASE("control: a plain mapper builds its tree", "[mapper]")
+using score::test::mapper::fixture;
+}
+
+TEST_CASE("Mapper read and write callbacks survive repeated device removal", "[mapper]")
 {
   score::test::run_in_app([&](const score::GUIApplicationContext& ctx) {
     auto doc = score::test::new_document(ctx);
     REQUIRE(doc);
     fixture f{ctx, *doc};
-    f.createMapper("plain", QStringLiteral(R"qml(
+    for(int cycle = 0; cycle < 8; ++cycle)
+    {
+      INFO("Mapper lifecycle cycle: " << cycle);
+      f.createMapper("plain", QStringLiteral(R"qml(
 import Ossia 1.0 as Ossia
 Ossia.Mapper {
-  property int v: 7
+  property int v: 0
   function createTree() {
-    return [ { name: "v", type: Ossia.Type.Int, interval: 20,
-               read: function() { return v; } } ];
+    return [
+      { name: "set", type: Ossia.Type.Int,
+        write: function(value) { v = value.value * 3; } },
+      { name: "v", type: Ossia.Type.Int, interval: 5,
+        read: function() { return v; } }
+    ];
   }
 }
 )qml"));
-    REQUIRE(f.spin([&] { return f.contents("plain").contains("plain:/v"); }));
+      REQUIRE(f.spin([&] { return f.contents("plain").contains("plain:/v"); }));
+      f.push("plain", "/set", cycle + 11);
+      REQUIRE(f.spin([&] {
+        return f.contents("plain").value("plain:/v").toInt() == (cycle + 11) * 3;
+      }));
+      // Leave queued writes and an active polling timer at destruction.
+      for(int pending = 0; pending < 16; ++pending)
+        f.push("plain", "/set", pending);
+      f.removeMapper("plain");
+      REQUIRE(f.spin([&] { return f.contents("plain").isEmpty(); }));
+    }
+  });
+}
+
+// A script's `Device` is its own device: an unqualified address names a node of
+// that device and of no other, however many siblings of the document expose the
+// same leaf name. Both directions are exercised on purpose: a resolution that
+// scanned the whole document's device list would answer for both scripts out of
+// whichever device came first in it, so one of the two writes below would land
+// in the wrong tree whatever that order happens to be.
+TEST_CASE("an unqualified mapper address resolves in the script's own device", "[mapper]")
+{
+  score::test::run_in_app([&](const score::GUIApplicationContext& ctx) {
+    auto doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    fixture f{ctx, *doc};
+
+    f.createMapper("map_a", sharedLeafScript("map_b"));
+    f.createMapper("map_b", sharedLeafScript("map_a"));
+
+    REQUIRE(f.spin([&] {
+      return f.contents("map_a").contains("map_a:/leaf")
+             && f.contents("map_b").contains("map_b:/leaf");
+    }));
+
+    const auto leaf = [&](const char* dev) {
+      return f.contents(dev).value(QString{dev} + ":/leaf").toInt();
+    };
+    // Waits for the write to land *somewhere*, so that a misrouted one is
+    // observed as such instead of merely timing out.
+    const auto landed = [&](int v) {
+      return f.spin([&] { return leaf("map_a") == v || leaf("map_b") == v; });
+    };
+
+    REQUIRE(leaf("map_a") == 0);
+    REQUIRE(leaf("map_b") == 0);
+
+    f.push("map_a", "/poke", 11);
+    REQUIRE(landed(11));
+    CHECK(leaf("map_a") == 11);
+    CHECK(leaf("map_b") == 0);
+
+    f.push("map_b", "/poke", 22);
+    REQUIRE(landed(22));
+    CHECK(leaf("map_b") == 22);
+    CHECK(leaf("map_a") == 11);
+
+    SECTION("a qualified address still reaches the named device")
+    {
+      f.push("map_a", "/poke_other", 33);
+      REQUIRE(landed(33));
+      CHECK(leaf("map_b") == 33);
+      CHECK(leaf("map_a") == 11);
+
+      f.push("map_b", "/poke_other", 44);
+      REQUIRE(landed(44));
+      CHECK(leaf("map_a") == 44);
+      CHECK(leaf("map_b") == 33);
+    }
+
+    f.removeMapper("map_a");
+    f.removeMapper("map_b");
   });
 }
 
