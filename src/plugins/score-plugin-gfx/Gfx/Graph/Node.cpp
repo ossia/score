@@ -442,28 +442,43 @@ static constexpr QRhiTexture::Format ossia_format_to_rhi(ossia::texture_format f
   }
 }
 
+static RenderTargetSpecs ossia_specs_to_rhi(const ossia::render_target_spec& in) noexcept
+{
+  RenderTargetSpecs spec;
+  if(in.size)
+    spec.size = QSize{in.size->width, in.size->height};
+  spec.format = ossia_format_to_rhi(in.format);
+  spec.address_u = static_cast<decltype(spec.address_u)>(in.address_u);
+  spec.address_v = static_cast<decltype(spec.address_v)>(in.address_v);
+  spec.address_w = static_cast<decltype(spec.address_w)>(in.address_w);
+  spec.mag_filter = static_cast<decltype(spec.mag_filter)>(in.mag_filter);
+  spec.min_filter = static_cast<decltype(spec.min_filter)>(in.min_filter);
+  spec.mipmap_mode = static_cast<decltype(spec.mag_filter)>(in.mipmap_mode);
+  return spec;
+}
+
 RenderTargetSpecs
 Node::resolveRenderTargetSpecs(int32_t port, RenderList& renderer) const noexcept
 {
   RenderTargetSpecs spec;
   auto it = this->renderTargetSpecs.find(port);
   if(it != this->renderTargetSpecs.end())
-  {
-    if(it->second.size)
-      spec.size = QSize{it->second.size->width, it->second.size->height};
-    spec.format = ossia_format_to_rhi(it->second.format);
-    spec.address_u = static_cast<decltype(spec.address_u)>(it->second.address_u);
-    spec.address_v = static_cast<decltype(spec.address_v)>(it->second.address_v);
-    spec.address_w = static_cast<decltype(spec.address_w)>(it->second.address_w);
-    spec.mag_filter = static_cast<decltype(spec.mag_filter)>(it->second.mag_filter);
-    spec.min_filter = static_cast<decltype(spec.min_filter)>(it->second.min_filter);
-    spec.mipmap_mode = static_cast<decltype(spec.mag_filter)>(it->second.mipmap_mode);
-  }
+    spec = ossia_specs_to_rhi(it->second);
 
   if(spec.size == QSize{})
     spec.size = {renderer.state.renderSize.width(), renderer.state.renderSize.height()};
 
   return spec;
+}
+
+std::optional<RenderTargetSpecs> Node::firstInputRenderTargetSpecs() const noexcept
+{
+  // Only texture inputs ever get a spec, and the map is ordered by port index,
+  // so the first entry is the first texture input.
+  if(this->renderTargetSpecs.empty())
+    return std::nullopt;
+
+  return ossia_specs_to_rhi(this->renderTargetSpecs.begin()->second);
 }
 
 void ProcessNode::process(

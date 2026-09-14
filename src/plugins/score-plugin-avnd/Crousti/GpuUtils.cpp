@@ -42,8 +42,6 @@ CustomGpuOutputNodeBase::CustomGpuOutputNodeBase(
     : GpuControlOuts{std::move(q), std::move(ctls)}
     , m_ctx{ctx}
 {
-  m_renderState = score::gfx::createRenderState(
-      score::gfx::GraphicsApi::OpenGL, QSize(200, 200), nullptr);
 }
 
 CustomGpuOutputNodeBase::~CustomGpuOutputNodeBase()
@@ -59,14 +57,12 @@ CustomGpuOutputNodeBase::~CustomGpuOutputNodeBase()
   //   ASSERT "Some allocations were not freed before destruction of this
   //           memory block!"  (vk_mem_alloc.h)
   //
-  // That cannot fire today, because this node hardcodes GraphicsApi::OpenGL
-  // above and OpenGL has no VMA. It becomes reachable the moment this follows
-  // the graph's backend the way the other output nodes do -- which is exactly
-  // how it surfaced in score-addon-ndi. Calling it now costs nothing and
-  // removes the trap. Idempotent.
+  // This follows the graph's backend, so the QRhi here can be a Vulkan one --
+  // which is how it surfaced in score-addon-ndi. Idempotent.
   releaseRegistry();
 
-  m_renderState->destroy();
+  if(m_renderState)
+    m_renderState->destroy();
 }
 
 void CustomGpuOutputNodeBase::process(score::gfx::Message&& msg)
@@ -112,7 +108,32 @@ void CustomGpuOutputNodeBase::onRendererChange() { }
 
 void CustomGpuOutputNodeBase::createOutput(score::gfx::OutputConfiguration conf)
 {
-  conf.onReady();
+  // Nothing here fixes a resolution or a format the way a window or an encoder
+  // does: this node is a sink that reads back what reaches it. So the graph is
+  // rendered at whatever its first texture input asks for, and the backend is
+  // the one the settings picked -- building an OpenGL device of its own would
+  // leave the rest of the score on Vulkan or Metal.
+  QSize size{defaultRenderSize};
+  auto format = QRhiTexture::RGBA8;
+  if(auto spec = firstInputRenderTargetSpecs())
+  {
+    if(!spec->size.isEmpty())
+      size = spec->size;
+    format = spec->format;
+  }
+
+  m_renderState = score::gfx::createRenderState(conf.graphicsApi, size, nullptr);
+  if(!m_renderState || !m_renderState->rhi)
+  {
+    qWarning() << "CustomGpuOutputNode: could not create a render state";
+    m_renderState.reset();
+    return;
+  }
+  m_renderState->outputSize = m_renderState->renderSize;
+  m_renderState->renderFormat = format;
+
+  if(conf.onReady)
+    conf.onReady();
 }
 
 void CustomGpuOutputNodeBase::destroyOutput() { }
