@@ -416,7 +416,7 @@ public:
     }, *m_engine, m_engine};
     device_obj->setDevice(m_device);
     for(auto dev : m_devices.devices())
-      device_obj->devices.push_back(dev);
+      device_obj->addDevice(dev);
 
     auto protocols_obj = new ossia::qt::qml_protocols{this->m_context, this};
 
@@ -440,7 +440,7 @@ public:
       for(auto node : r)
         cache.push_back(&node->get_device());
       ossia::remove_duplicates(cache);
-      device_obj->devices = cache;
+      device_obj->setDevices(std::move(cache));
       m_roots = std::move(r);
       reset_tree();
     },

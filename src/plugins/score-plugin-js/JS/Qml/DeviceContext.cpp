@@ -67,18 +67,14 @@ bool DeviceContext::init()
         return;
 
       if(auto ossia = iface->getDevice())
-        m_impl->devices.push_back(ossia);
+        m_impl->addDevice(ossia);
       connect(iface, &Device::DeviceInterface::deviceChanged,
               this, [this, p] (ossia::net::device_base* old_dev, ossia::net::device_base* new_dev) {
-        if(auto it = ossia::find(m_impl->devices, old_dev); it != m_impl->devices.end()) {
-          m_impl->devices.erase(it);
-        }
+        m_impl->removeDevice(old_dev);
 
         if(new_dev) {
-          m_impl->devices.push_back(new_dev);
+          m_impl->addDevice(new_dev);
         }
-
-        m_impl->clearCache();
       });
     }, Qt::QueuedConnection);
 
@@ -88,10 +84,7 @@ bool DeviceContext::init()
         return;
 
       if(auto o = iface->getDevice()) {
-        if(auto it = ossia::find(m_impl->devices, o); it != m_impl->devices.end()) {
-          m_impl->devices.erase(it);
-          m_impl->clearCache();
-        }
+        m_impl->removeDevice(o);
       }
     });
   }
@@ -125,19 +118,7 @@ ossia::net::node_base* DeviceContext::find(const QString& addr)
     [[unlikely]];
     return nullptr;
   }
-  auto res = m_impl->find_address(addr);
-  if(auto p = res.target<ossia::net::parameter_base*>())
-  {
-    return &(*p)->get_node();
-  }
-  else if(auto n = res.target<ossia::net::node_base*>())
-  {
-    return *n;
-  }
-  else
-  {
-    return nullptr;
-  }
+  return m_impl->find(addr);
 }
 
 QVariant DeviceContext::asArray(QVariant v) const noexcept
