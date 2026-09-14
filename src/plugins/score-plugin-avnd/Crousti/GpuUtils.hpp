@@ -1016,6 +1016,10 @@ struct buffer_outputs_storage<T>
 
   QRhiResourceUpdateBatch* currentResourceUpdateBatch{};
 
+  //! The RenderList these buffers belong to: the object may be shared by
+  //! several renderers, the buffers never are.
+  score::gfx::RenderList* m_renderer{};
+
   template <typename Field, std::size_t N, std::size_t NField>
     requires avnd::cpu_buffer<std::decay_t<decltype(Field::buffer)>>
   void createOutput(
@@ -1036,21 +1040,36 @@ struct buffer_outputs_storage<T>
 
     buf.handle->create();
 
+    m_renderer = &renderer;
+    bindUpload(port, np);
+  }
+
+  //! Point the object's upload callback at the buffers of this renderer.
+  //!
+  //! The object may be shared by every renderer of the node
+  //! (oscr::CpuOnlyBufferNode): the callback then has to follow whichever
+  //! renderer is currently running the object, so it is re-bound before each
+  //! run (bindUploads). It captures two pointers, which std::function stores
+  //! inline: re-binding allocates nothing.
+  template <typename Field, std::size_t N>
+  void bindUpload(Field& port, avnd::predicate_index<N>)
+  {
     port.buffer.upload
-        = [this, &renderer, &port](const char* data, int64_t offset, int64_t bytesize) {
+        = [this, &port](const char* data, int64_t offset, int64_t bytesize) {
       // FIXME is offset and bytesize relative to the input or the output data ?
       SCORE_ASSERT(currentResourceUpdateBatch);
+      SCORE_ASSERT(m_renderer);
+      auto& rhi = *m_renderer->state.rhi;
       auto& [gfx_port, buf] = m_buffers[N];
 
       if(!buf.handle)
       {
         if(bytesize > 0)
         {
-          buf.handle = renderer.state.rhi->newBuffer(
+          buf.handle = rhi.newBuffer(
               QRhiBuffer::Static,
               score::gfx::compatibleBufferUsage(
-                  *renderer.state.rhi,
-                  QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer),
+                  rhi, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer),
               bytesize);
           buf.handle->setName(oscr::getUtf8Name<T>() + "::" + oscr::getUtf8Name(port));
           buf.byte_offset = 0;
@@ -1061,11 +1080,10 @@ struct buffer_outputs_storage<T>
         }
         else
         {
-          buf.handle = renderer.state.rhi->newBuffer(
+          buf.handle = rhi.newBuffer(
               QRhiBuffer::Static,
               score::gfx::compatibleBufferUsage(
-                  *renderer.state.rhi,
-                  QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer),
+                  rhi, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer),
               1);
           buf.handle->setName(oscr::getUtf8Name<T>() + "::" + oscr::getUtf8Name(port));
           buf.byte_offset = 0;
@@ -1087,6 +1105,22 @@ struct buffer_outputs_storage<T>
       score::gfx::uploadStaticBufferWithStoredData(
           currentResourceUpdateBatch, buf.handle, offset, bytesize, data);
     };
+  }
+
+  //! Re-bind the upload callbacks of a shared object to this renderer, before
+  //! it runs for this renderer.
+  void bindUploads(auto& state)
+  {
+    avnd::buffer_output_introspection<T>::for_all_n(
+        avnd::get_outputs<T>(state),
+        [this]<typename Field, std::size_t N>(Field& port, avnd::predicate_index<N> np) {
+      if constexpr(avnd::cpu_buffer<std::decay_t<decltype(Field::buffer)>> && requires {
+                     port.buffer.upload(nullptr, 0, 0);
+                   })
+      {
+        bindUpload(port, np);
+      }
+    });
   }
 
   template <typename Field, std::size_t N, std::size_t NField>
@@ -1168,6 +1202,10 @@ struct buffer_outputs_storage<T>
   }
 
   static void prepareUpload(auto&&...)
+  {
+  }
+
+  static void bindUploads(auto&&...)
   {
   }
 

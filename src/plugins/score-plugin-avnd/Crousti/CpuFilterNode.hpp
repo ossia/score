@@ -3,6 +3,8 @@
 #if SCORE_PLUGIN_GFX
 #include <Crousti/GfxNode.hpp>
 
+#include <ossia/detail/type_if.hpp>
+
 #include <halp/texture.hpp>
 
 namespace oscr
@@ -43,9 +45,8 @@ struct GfxRenderer<Node_T> final
 
   GfxRenderer(const GfxNode<Node_T>& p)
       : score::gfx::GenericNodeRenderer{p}
-      , state{std::make_shared<Node_T>()}
+      , state{p.rendererState()}
   {
-    prepareNewState<Node_T>(state, p);
   }
 
   score::gfx::TextureRenderTarget
@@ -421,6 +422,12 @@ struct GfxRenderer<Node_T> final
 
       buffer_outs.prepareUpload(*res);
 
+      // The object is shared by every renderer of this node: the upload
+      // callbacks it holds point at whichever renderer bound them last, so
+      // make them ours before it runs for us.
+      if constexpr(CpuOnlyBufferNode<Node_T>)
+        buffer_outs.bindUploads(*state);
+
       // Run the processor
       if_possible(state->runInitialPasses(renderer, commands, res, edge));
       if_possible((*state)());
@@ -504,6 +511,36 @@ struct GfxNode<Node_T> final
 
     initGfxPorts<Node_T>(this, this->input, this->output);
   }
+
+  //! The object instance a renderer of this node has to use.
+  //!
+  //! A node that touches the RHI keeps state that belongs to one RenderList,
+  //! so it gets one object per renderer. A CPU-only buffer producer
+  //! (oscr::CpuOnlyBufferNode) has no renderer-side state and a CPU identity
+  //! that must not be duplicated: it gets a single instance, owned by the
+  //! node and shared by every renderer of it.
+  std::shared_ptr<Node_T> rendererState() const noexcept
+  {
+    if constexpr(CpuOnlyBufferNode<Node_T>)
+    {
+      auto& shared = m_shared.value;
+      if(!shared)
+      {
+        shared = std::make_shared<Node_T>();
+        prepareNewState<Node_T>(shared, *this);
+      }
+      return shared;
+    }
+    else
+    {
+      auto state = std::make_shared<Node_T>();
+      prepareNewState<Node_T>(state, *this);
+      return state;
+    }
+  }
+
+  [[no_unique_address]] mutable ossia::
+      type_if<std::shared_ptr<Node_T>, CpuOnlyBufferNode<Node_T>> m_shared;
 
   score::gfx::NodeRenderer*
   createRenderer(score::gfx::RenderList& r) const noexcept override
