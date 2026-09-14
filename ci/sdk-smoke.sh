@@ -57,11 +57,22 @@ case "$(uname -s)" in
   FreeBSD) EXPECTED_ARCH_OS=freebsd ;;
   *) EXPECTED_ARCH_OS=linux ;;
 esac
-case "$(uname -m)" in
-  x86_64|amd64) EXPECTED_ARCH_CPU=x86_64 ;;
-  arm64|aarch64) EXPECTED_ARCH_CPU=aarch64 ;;
-  *) EXPECTED_ARCH_CPU="$(uname -m)" ;;
+### The SDK being tested names its own target, and that is what the manifest has
+### to match. uname is only a fallback: on a Windows-arm64 runner the msys2 shell
+### reports x86_64, which would assert the wrong key against a correct manifest.
+EXPECTED_ARCH_CPU=""
+case "$(basename "$SDK_INPUT")" in
+  sdk-*-x86_64.*|*-x86_64.zip) EXPECTED_ARCH_CPU=x86_64 ;;
+  sdk-*-aarch64.*|*-aarch64.zip) EXPECTED_ARCH_CPU=aarch64 ;;
+  sdk-*-arm64.*|*-arm64.zip) EXPECTED_ARCH_CPU=aarch64 ;;
 esac
+if [[ -z "$EXPECTED_ARCH_CPU" ]]; then
+  case "$(uname -m)" in
+    x86_64|amd64) EXPECTED_ARCH_CPU=x86_64 ;;
+    arm64|aarch64) EXPECTED_ARCH_CPU=aarch64 ;;
+    *) EXPECTED_ARCH_CPU="$(uname -m)" ;;
+  esac
+fi
 EXPECTED_ARCH="${EXPECTED_ARCH_OS}-${EXPECTED_ARCH_CPU}"
 
 if [[ -n "${SCORE_SMOKE_ADDON_DIR:-}" ]]; then

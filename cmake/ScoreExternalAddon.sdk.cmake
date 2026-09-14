@@ -84,11 +84,17 @@ foreach(_lib ${SCORE_PLUGINS})
   target_compile_definitions(score_${_lib_lc} INTERFACE SCORE_${_lib})
 endforeach()
 
-if(IS_DIRECTORY "${SCORE_SDK}/include/x86_64-unknown-linux-gnu/c++/v1")
+# libc++ keeps __config_site in a directory named after the target triple, and
+# <__config> includes it unconditionally. Find it instead of naming one triple:
+# on aarch64 the directory is aarch64-unknown-linux-gnu, and hardcoding x86_64
+# leaves every add-on failing on `'__config_site' file not found`.
+file(GLOB _score_sdk_config_sites "${SCORE_SDK}/include/*/c++/v1/__config_site")
+foreach(_score_sdk_config_site IN LISTS _score_sdk_config_sites)
+  get_filename_component(_score_sdk_triple_inc "${_score_sdk_config_site}" DIRECTORY)
   target_compile_options(score_lib_base INTERFACE
-    "SHELL:-Xclang -internal-isystem -Xclang ${SCORE_SDK}/include/x86_64-unknown-linux-gnu/c++/v1"
+    "SHELL:-Xclang -internal-isystem -Xclang ${_score_sdk_triple_inc}"
   )
-endif()
+endforeach()
 
 set(CXX_VERSION_FLAG cxx_std_23)
 set(CMAKE_CXX_STANDARD 23)

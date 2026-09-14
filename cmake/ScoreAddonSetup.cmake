@@ -59,17 +59,16 @@ function(setup_score_addon)
 
   setup_score_plugin("${SETUP_ADDON_TARGET}")
 
-  # A manifest pointing at a .a describes something score cannot dlopen.
-  get_target_property(_addon_type "${SETUP_ADDON_TARGET}" TYPE)
-  if(NOT SCORE_STATIC_PLUGINS AND NOT _addon_type MATCHES "^(MODULE|SHARED)_LIBRARY$")
-    message(FATAL_ERROR
-      "setup_score_addon(${SETUP_ADDON_TARGET}): a run-time add-on must be a MODULE or SHARED "
-      "library, not ${_addon_type}.")
-  endif()
-
   # A statically linked plug-in is part of the application; there is nothing to
-  # discover at run time and so nothing to describe.
-  if(SCORE_STATIC_PLUGINS)
+  # discover at run time and so nothing to describe. That covers both an explicit
+  # SCORE_STATIC_PLUGINS build and an add_library() with no type, which is STATIC
+  # unless BUILD_SHARED_LIBS says otherwise -- how the templates build in-tree.
+  # Emitting a manifest pointing at a .a would describe something score cannot
+  # dlopen, so say so and stop rather than writing one.
+  get_target_property(_addon_type "${SETUP_ADDON_TARGET}" TYPE)
+  if(SCORE_STATIC_PLUGINS OR NOT _addon_type MATCHES "^(MODULE|SHARED)_LIBRARY$")
+    message(STATUS
+      "score: ${SETUP_ADDON_TARGET} is a ${_addon_type}, so no localaddon.json is generated")
     return()
   endif()
 
