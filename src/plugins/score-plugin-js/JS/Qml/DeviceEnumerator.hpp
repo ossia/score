@@ -11,6 +11,7 @@
 
 #include <nano_observer.hpp>
 
+#include <memory>
 #include <unordered_map>
 #include <verdigris>
 
@@ -91,6 +92,11 @@ public:
 
 private:
   void reprocess();
+  void clearEnumerators();
+  DeviceIdentifier* identifierFor(
+      const QString& category, const QString& name,
+      const Device::DeviceSettings& settings, Device::ProtocolFactory* proto);
+
   const score::DocumentContext* doc{};
 
   ossia::hash_map<
@@ -100,6 +106,15 @@ private:
   ossia::hash_map<Device::ProtocolFactory*, Device::DeviceEnumerators>
       m_current_enums;
 
+  //! Every DeviceIdentifier this enumerator ever handed to QML, owned until
+  //! the enumerator itself dies: a script can keep one and read `.settings`
+  //! off it much later, and the QML wrapper does not keep the C++ object
+  //! alive. A re-enumeration hence refreshes these in place rather than
+  //! reallocating. Bounded by the distinct (protocol, category, name) triples.
+  std::vector<std::unique_ptr<DeviceIdentifier>> m_identifiers;
+
+  //! The sources currently enumerated, in enumeration order: a borrowed view
+  //! of m_identifiers, which outlives any entry leaving this list.
   std::vector<DeviceIdentifier*> m_raw_list;
   QString m_uuid;
   Device::ProtocolFactory::ConcreteKey m_deviceType{};
