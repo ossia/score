@@ -204,6 +204,15 @@ static std::unique_ptr<llvm::orc::LLJIT> jitBuilder(JitCompiler& self)
 #endif
   const bool useNativePlatform = !orcRuntime.empty();
 
+  // Whether the platform was found decides native vs emulated TLS, real
+  // static-init and atexit, and exception registration -- say which one is in
+  // use, because otherwise falling back is indistinguishable from working.
+  if(useNativePlatform)
+    qDebug() << "JIT: Orc platform from" << orcRuntime.c_str();
+  else
+    qDebug() << "JIT: no orc_rt found, using the legacy path "
+                "(emulated TLS, legacy atexit)";
+
   const bool isCOFF = JTMB->getTargetTriple().isOSBinFormatCOFF();
   if(isCOFF && !useNativePlatform)
   {
