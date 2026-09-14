@@ -53,8 +53,8 @@ void GlobalDeviceEnumerator::setDeviceType(const QString& uid)
 
 GlobalDeviceEnumerator::~GlobalDeviceEnumerator()
 {
-  m_enumerate = false;
-  reprocess();
+  // The identifiers die with us; nothing outside can reach them afterwards.
+  clearEnumerators();
 }
 
 void GlobalDeviceEnumerator::setContext(const score::DocumentContext* doc)
@@ -94,7 +94,7 @@ void GlobalDeviceEnumerator::setEnumerate(bool b)
   QMetaObject::invokeMethod(this, &GlobalDeviceEnumerator::reprocess);
 }
 
-void GlobalDeviceEnumerator::reprocess()
+void GlobalDeviceEnumerator::clearEnumerators()
 {
   for(auto& [k, v] : this->m_current_enums)
   {
@@ -103,8 +103,35 @@ void GlobalDeviceEnumerator::reprocess()
   }
   this->m_current_enums.clear();
   this->m_known_devices.clear();
-  for(auto d : m_raw_list)
-    delete d;
+}
+
+DeviceIdentifier* GlobalDeviceEnumerator::identifierFor(
+    const QString& category, const QString& name,
+    const Device::DeviceSettings& settings, Device::ProtocolFactory* proto)
+{
+  // A source keeps the same identifier across re-enumerations (m_identifiers).
+  for(auto& ident : m_identifiers)
+  {
+    if(ident->protocol == proto && ident->category == category && ident->name == name)
+    {
+      ident->settings = settings;
+      return ident.get();
+    }
+  }
+
+  auto& ident
+      = m_identifiers.emplace_back(new DeviceIdentifier{category, name, settings, proto});
+  // Ownership stays here: the QML GC must not collect an identifier a script
+  // is holding.
+  QQmlEngine::setObjectOwnership(ident.get(), QQmlEngine::CppOwnership);
+  return ident.get();
+}
+
+void GlobalDeviceEnumerator::reprocess()
+{
+  clearEnumerators();
+
+  // Only the visible list is rebuilt; the identifiers outlive it.
   m_raw_list.clear();
 
   if(!this->doc)
@@ -132,7 +159,9 @@ void GlobalDeviceEnumerator::reprocess()
                 const QString& name, const Device::DeviceSettings& devs) {
         this->deviceAdded(proto, category, name, devs);
         this->m_known_devices[proto].emplace_back(category, name, devs);
-        m_raw_list.push_back(new DeviceIdentifier{category, name, devs, proto});
+        auto* ident = identifierFor(category, name, devs, proto);
+        if(!ossia::contains(m_raw_list, ident))
+          m_raw_list.push_back(ident);
       };
       connect(
           enumerator, &Device::DeviceEnumerator::deviceAdded, this, on_deviceAdded,
@@ -148,14 +177,13 @@ void GlobalDeviceEnumerator::reprocess()
             vec.erase(it);
         }
         {
+          // The identifier stays alive for whoever kept it; it just leaves
+          // the enumerated list.
           auto it = ossia::find_if(this->m_raw_list, [&](auto& di) {
             return di->protocol == proto && di->name == name;
           });
           if(it != this->m_raw_list.end())
-          {
-            delete *it;
             this->m_raw_list.erase(it);
-          }
         }
       }, Qt::QueuedConnection);
 
