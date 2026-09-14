@@ -37,7 +37,6 @@
 #include <private/qsgdefaultrendercontext_p.h>
 
 #include <algorithm>
-#include <compare>
 #include <set>
 namespace JS
 {
@@ -63,19 +62,6 @@ private:
 };
 }
 
-struct engine_key
-{
-  std::thread::id id;
-  QRhi* rhi;
-  std::strong_ordering operator<=>(const engine_key& other) const noexcept = default;
-};
-struct engine_key_hash
-{
-  std::size_t operator()(const JS::engine_key& k) const noexcept
-  {
-    return std::hash<std::thread::id>{}(k.id) ^ intptr_t(k.rhi);
-  }
-};
 class GpuRenderer;
 struct GpuNode : score::gfx::NodeModel
 {
@@ -129,6 +115,17 @@ public:
     std::vector<std::pair<TextureInlet*, int>> m_texInlets;
     std::vector<std::pair<ValueOutlet*, std::size_t>> m_valueOutlets;
     std::shared_ptr<GpuValueQueue> m_valueMessages;
+
+    // The node this runtime belongs to, and the renderer it was acquired for.
+    // Set before the QML component is instantiated: setupComponent's
+    // script-to-UI connection needs them.
+    GpuNode* m_node{};
+    const GpuRenderer* m_owner{};
+
+    // Whether this runtime is the one publishing the process's outputs.
+    // Decided once per tick() by GpuNode::claimPublisher; read by the
+    // Script::uiSend handler, which fires from inside the script's tick.
+    bool m_publishing{};
 
     ossia::spsc_queue<js_message_type> ui_messages;
 
@@ -186,27 +183,59 @@ public:
     }
   };
 
-  std::pair<const engine_key, std::shared_ptr<Engine>> acquireEngine(QRhi* rhi)
+  // One Qt Quick runtime per renderer — that is, per RenderList this node
+  // takes part in: several sinks on a single node (two QML TextureSources
+  // previewing the same process, a preview panel in two views) are several
+  // render lists, possibly on the same thread and QRhi, and each of them
+  // needs its own QQuickWindow bound to its own render target.
+  //
+  // Keying on the renderer also means a renderer only ever inserts and erases
+  // its own entry, by its own identity: under SCORE_THREADED_GFX release can
+  // run on another thread than the acquire.
+  std::shared_ptr<Engine> acquireEngine(const GpuRenderer* renderer)
   {
-    const auto key = engine_key{std::this_thread::get_id(), rhi};
     std::shared_ptr<Engine> res;
     m_engines.try_emplace_and_visit(
-        key,
+        renderer,
         std::make_shared<Engine>(),
         [&](auto& slot) { res = slot.second; },   // newly-inserted visitor
         [&](auto& slot) { res = slot.second; });  // existing-key visitor
-    return {key, res};
+    return res;
   }
 
-  // Release by the key stored at acquire time, NOT by the current thread id.
-  // If releaseState() ever runs on a different thread than initState()'s
-  // insert (e.g. under SCORE_THREADED_GFX), erasing by the current-thread
-  // key would leave the stale Engine (with m_quickWindow set) mapped, and
-  // the next acquire would return it and trip the SCORE_ASSERT in initState().
-  void releaseEngine(const engine_key& key) { m_engines.erase(key); }
+  void releaseEngine(const GpuRenderer* renderer)
+  {
+    m_engines.erase(renderer);
+    // Hand the role back if this runtime held it: the next one to run claims
+    // it, so closing the panel that owned the process's outputs does not
+    // silence the ones still open.
+    auto expected = renderer;
+    m_publisher.compare_exchange_strong(expected, nullptr);
+  }
 
-  boost::concurrent_flat_map<engine_key, std::shared_ptr<Engine>, engine_key_hash>
-      m_engines;
+  // Several runtimes means several instances of the script, each running once
+  // per frame of its own render list — but still ONE process. Its value
+  // outlets and its script-to-UI messages are published by exactly one of
+  // them, or opening a second preview of a mapping would double every value
+  // it sends and every answer it gives.
+  //
+  // The first runtime to run claims the role and keeps it until its render
+  // list goes away (releaseEngine); a runtime that is alive but idle still
+  // holds it.
+  bool claimPublisher(const GpuRenderer* renderer) noexcept
+  {
+    auto cur = m_publisher.load(std::memory_order_acquire);
+    if(cur == renderer)
+      return true;
+    if(cur)
+      return false;
+    return m_publisher.compare_exchange_strong(
+               cur, renderer, std::memory_order_acq_rel, std::memory_order_acquire)
+           || m_publisher.load(std::memory_order_acquire) == renderer;
+  }
+
+  boost::concurrent_flat_map<const GpuRenderer*, std::shared_ptr<Engine>> m_engines;
+  std::atomic<const GpuRenderer*> m_publisher{};
 };
 
 void GpuNode::uiMessage(const QVariant& v)
@@ -343,9 +372,7 @@ void main ()
     // runtime lifetime strictly to (initState, release) lets us free
     // all QRhi-owned buffers before the RHI itself is destroyed in
     // Graph::~Graph.
-    auto [key, engine] = node.acquireEngine(&rhi);
-    m_engineKey = key;
-    m_engine = engine;
+    m_engine = node.acquireEngine(this);
     if(!m_engine)
     {
       m_initialized = true;
@@ -690,7 +717,7 @@ void main ()
     if(m_engine)
     {
       m_engine.reset();
-      node.releaseEngine(m_engineKey);
+      node.releaseEngine(this);
     }
 
     m_internalTex.release();
@@ -706,9 +733,6 @@ void main ()
   QQuickWindow* m_window{};
 
   ossia::spsc_queue<score::gfx::Message> m_messages;
-  // Key under which our Engine was inserted in node.m_engines at acquire
-  // time. We release by this stored key (see GpuNode::releaseEngine).
-  JS::engine_key m_engineKey{};
   std::shared_ptr<GpuNode::Engine> m_engine;
 
   // Texture inlet items for which a sample-count mismatch has already been
@@ -781,6 +805,10 @@ void GpuNode::Engine::tick()
   if(!m_object)
     return;
 
+  // Decided here, once per tick, and read back by the uiSend handler which
+  // fires from inside the script's own tick call below.
+  m_publishing = m_node && m_node->claimPublisher(m_owner);
+
   // Process messages that may come from UI
   {
     js_message_type m;
@@ -804,12 +832,20 @@ void GpuNode::Engine::tick()
   }
   // UI events arrive on the rendering thread; publish their values on the
   // next execution tick, without sharing QJSValue across engine threads.
+  //
+  // Only the publishing runtime writes them out, but every runtime clears its
+  // own outlets, or a non-publishing script's `values` would grow unbounded.
   for(auto [outlet, index] : m_valueOutlets)
   {
-    if(!outlet->value().isUndefined())
-      m_valueMessages->enqueue(GpuValueMessage{index, ossia::qt::value_from_js(outlet->value())});
-    for(const auto& message : outlet->values)
-      m_valueMessages->enqueue(GpuValueMessage{index, ossia::qt::value_from_js(message.value)});
+    if(m_publishing)
+    {
+      if(!outlet->value().isUndefined())
+        m_valueMessages->enqueue(
+            GpuValueMessage{index, ossia::qt::value_from_js(outlet->value())});
+      for(const auto& message : outlet->values)
+        m_valueMessages->enqueue(
+            GpuValueMessage{index, ossia::qt::value_from_js(message.value)});
+    }
     outlet->clear();
   }
 }
@@ -941,8 +977,13 @@ void GpuNode::Engine::setupComponent(
   // execution in GPUNode and rendering in GPURenderer
 
   QObject::connect(
-      m_object, &JS::Script::uiSend, node.m_uiContext, [&node](const QJSValue& v) {
+      m_object, &JS::Script::uiSend, node.m_uiContext,
+      [&node, self = this](const QJSValue& v) {
     if(!node.m_uiContext)
+      return;
+    // One process, one message: a second preview of it must not double the
+    // script's messages to the UI (see GpuNode::claimPublisher).
+    if(!self->m_publishing)
       return;
     QMetaObject::invokeMethod(qApp, [ctx=node.m_uiContext, &func = node.m_messageToUi, vv = v.toVariant()] {
       if(!ctx)
@@ -1081,6 +1122,11 @@ void GpuNode::Engine::init(
     GpuRenderer& renderer, GpuNode& node, QQuickWindow* window,
     score::gfx::RenderList& rl)
 {
+  m_node = &node;
+  m_owner = &renderer;
+  // Claim before the component is instantiated: a script that sends to the UI
+  // from loadState() does it during createItem(), before the first tick().
+  m_publishing = node.claimPublisher(&renderer);
   if(!m_item)
   {
     if(!m_engine)
