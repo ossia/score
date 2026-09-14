@@ -33,6 +33,7 @@
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/RenderState.hpp>
 #include <Gfx/Graph/TexgenNode.hpp>
+#include <Gfx/Graph/encoders/ColorSpaceOut.hpp>
 #include <Gfx/Graph/encoders/I420.hpp>
 #include <Gfx/Graph/encoders/NV12.hpp>
 #include <Gfx/Graph/encoders/P010.hpp>
@@ -215,7 +216,13 @@ public:
     if(auto enc = makeEncoder(m_path))
     {
       m_encoder = std::move(enc);
-      m_encoder->init(*rhi, *m_renderState, m_texture, kW, kH, QString{});
+      // The encoders build their fragment shader around a convert_from_rgb()
+      // that this string has to define; handing over an empty one leaves every
+      // one of them with an undefined function and nothing compiles. The test
+      // measures where the picture lands, not what colour it is, so the default
+      // BT.709 conversion is as good as any.
+      m_encoder->init(
+          *rhi, *m_renderState, m_texture, kW, kH, score::gfx::colorMatrixOut());
     }
 
     if(conf.onReady)
