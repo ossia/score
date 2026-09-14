@@ -73,7 +73,10 @@ public:
         d, &Device::DeviceInterface::deviceChanged, this,
         &observable_device_roots::on_deviceAddedCallback, Qt::UniqueConnection);
     if(auto dev = d->getDevice())
+    {
       m_devices.push_back(dev);
+      notify_added(dev);
+    }
 
     QTimer::singleShot(1, this, [this, n] {
       rootsChanged(roots(), n);
@@ -84,9 +87,13 @@ public:
   on_deviceAddedCallback(ossia::net::device_base* oldd, ossia::net::device_base* newd)
   {
     const int n = ++m_updating_index;
+    notify_removing(oldd);
     ossia::remove_erase(m_devices, oldd);
     if(newd)
+    {
       m_devices.push_back(newd);
+      notify_added(newd);
+    }
 
     QTimer::singleShot(1, this, [this, n] {
       rootsChanged(roots(), n);
@@ -99,9 +106,33 @@ public:
     disconnect(
         d, &Device::DeviceInterface::deviceChanged, this,
         &observable_device_roots::on_deviceAddedCallback);
+    notify_removing(d->getDevice());
     ossia::remove_erase(m_devices, d->getDevice());
 
     QTimer::singleShot(1, this, [this, n] { rootsChanged(roots(), n); });
+  }
+
+  //! Removal must reach the cache while the device is still alive, so that no
+  //! resolved parameter pointer outlives it: rootsChanged is queued to the
+  //! mapper thread and runs too late. Registration comes from the mapper
+  //! thread while the notify hooks run on the main one, hence the atomic.
+  void set_engine_functions(ossia::qt::qml_engine_functions* f) noexcept
+  {
+    m_functions = f;
+  }
+
+  void notify_added(ossia::net::device_base* d)
+  {
+    if(auto* f = m_functions.load())
+      f->addDevice(d);
+  }
+
+  void notify_removing(ossia::net::device_base* d)
+  {
+    if(!d)
+      return;
+    if(auto* f = m_functions.load())
+      f->removeDevice(d);
   }
 
   void rootsChanged(std::vector<ossia::net::node_base*> a, int64_t i)
@@ -121,6 +152,7 @@ public:
   std::atomic_int64_t m_updating_index = 0;
 
 private:
+  std::atomic<ossia::qt::qml_engine_functions*> m_functions{};
   std::vector<ossia::net::device_base*> m_devices;
 };
 
@@ -382,6 +414,14 @@ public:
     while(m_hasInit > 0)
       std::this_thread::yield();
 
+    // Both this and the removal hooks run on the main thread, so unregistering
+    // here guarantees no hook can reach the engine functions afterwards.
+    // disable() waits for any script currently inside Device.read/write and
+    // no-ops later calls: the device tree below us is about to be destroyed.
+    m_devices.set_engine_functions(nullptr);
+    if(auto* fun = m_deviceFunctions.exchange(nullptr))
+      fun->disable();
+
     auto engine = m_engine.load();
     auto comp = m_component.load();
     m_engine = nullptr;
@@ -417,6 +457,8 @@ public:
     device_obj->setDevice(m_device);
     for(auto dev : m_devices.devices())
       device_obj->addDevice(dev);
+    m_deviceFunctions = device_obj;
+    m_devices.set_engine_functions(device_obj);
 
     auto protocols_obj = new ossia::qt::qml_protocols{this->m_context, this};
 
@@ -429,18 +471,14 @@ public:
     QObject::connect(
         this, &mapper_protocol::sig_recv, this, &mapper_protocol::slot_recv);
     con(m_devices, &observable_device_roots::rootsChanged, this,
-        [this, device_obj = QPointer{device_obj}](
-            std::vector<ossia::net::node_base*> r, int64_t n) {
-      if(!device_obj)
-        return;
+        [this](std::vector<ossia::net::node_base*> r, int64_t n) {
       if(m_devices.m_updating_index != n)
         return;
 
-      ossia::qt::qml_device_cache cache;
-      for(auto node : r)
-        cache.push_back(&node->get_device());
-      ossia::remove_duplicates(cache);
-      device_obj->setDevices(std::move(cache));
+      // The device list is not rebuilt from `r`: those raw node pointers
+      // crossed a queued connection, so reaching their device from here would
+      // be a use-after-free. notify_added/notify_removing maintain it
+      // synchronously instead.
       m_roots = std::move(r);
       reset_tree();
     },
@@ -452,12 +490,19 @@ public:
       if(!m_device)
         return;
 
+      // Queued slots and lambdas can still run on the mapper thread after
+      // stop() released the engine and the component from the main thread.
+      auto engine = m_engine.load();
+      auto comp = m_component.load();
+      if(!engine || !comp)
+        return;
+
       switch(status)
       {
         case QQmlComponent::Status::Ready: {
-          if((m_object = m_component.load()->create()))
+          if((m_object = comp->create()))
           {
-            m_object->setParent(m_engine.load()->rootContext());
+            m_object->setParent(engine->rootContext());
 
             QVariant ret;
             QMetaObject::invokeMethod(
@@ -476,7 +521,7 @@ public:
           return;
         case QQmlComponent::Status::Null:
         case QQmlComponent::Status::Error:
-          qDebug() << m_component.load()->errorString();
+          qDebug() << comp->errorString();
           return;
       }
     });
@@ -512,6 +557,10 @@ public:
   }
   void slot_push(mapper_parameter* param, const ossia::value& v)
   {
+    auto engine = m_engine.load();
+    if(!engine)
+      return;
+
     auto& addr = *param;
     auto& dat = addr.data();
     auto cb = param->stop_callbacks();
@@ -531,7 +580,7 @@ public:
     }
     else if(write)
     {
-      auto res = dat.write.call({qt::value_to_js_value(v, *m_engine)});
+      auto res = dat.write.call({qt::value_to_js_value(v, *engine)});
       if(bound)
       {
         if(res.isArray())
@@ -583,6 +632,10 @@ public:
   void
   slot_recv(mapper_parameter* p, ossia::net::parameter_base* s, const ossia::value& v)
   {
+    auto engine = m_engine.load();
+    if(!engine)
+      return;
+
     if(!p->data().read.isCallable())
     {
       p->push_value(v);
@@ -591,7 +644,7 @@ public:
     {
       auto res = p->data().read.call(
           {QString::fromStdString(s->get_node().osc_address()),
-           qt::value_to_js_value(v, *m_engine)});
+           qt::value_to_js_value(v, *engine)});
 
       if(res.isArray())
       {
@@ -663,6 +716,10 @@ private:
 
   void timerEvent(QTimerEvent* ev) override
   {
+    // Same window: the polling timers keep firing until the event loop exits.
+    if(!m_engine.load())
+      return;
+
     if(auto it = m_timers.find(ev->timerId()); it != m_timers.end())
     {
       if(auto p = it->second; p && p->data().read.isCallable())
@@ -696,7 +753,13 @@ private:
   void set_device(device_base& dev) override
   {
     m_device = &dev;
-    ossia::qt::run_async(this, [this] {
+    ossia::qt::run_async(this, [this, &dev] {
+      // Runs after init_engine(), which the constructor posted first: the
+      // script-facing object knows its owning device before the script loads,
+      // so an unqualified address resolves here rather than in a sibling
+      // device exposing the same leaf name.
+      if(auto* fun = m_deviceFunctions.load())
+        fun->setDevice(&dev);
       if(m_component)
         m_component.load()->setData(m_code, QUrl{});
     });
@@ -707,6 +770,7 @@ private:
   std::atomic_int m_hasInit = 0;
   std::atomic<QQmlEngine*> m_engine{};
   std::atomic<QQmlComponent*> m_component{};
+  std::atomic<ossia::qt::qml_device_engine_functions*> m_deviceFunctions{};
 
   ossia::net::network_context_ptr m_context{};
   ossia::net::device_base* m_device{};
