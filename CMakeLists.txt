@@ -322,6 +322,16 @@ set(SCORE_ROOT_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 set(SCORE_AVND_SOURCE_DIR "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd")
 set(SCORE_SRC "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
+# BOOST_ASIO_ENABLE_BUFFER_DEBUGGING changes the layout of asio's internal
+# types, so every translation unit in a binary must agree on it. libossia sets
+# it on its own target in Debug; score is what links libossia together with the
+# other asio users (e.g. the vendored liblsl), so score is where it has to be
+# made uniform. Same condition as libossia's: on Windows boost defines it
+# itself and redefining it warns.
+if(NOT WIN32)
+  add_compile_definitions($<$<CONFIG:Debug>:BOOST_ASIO_ENABLE_BUFFER_DEBUGGING>)
+endif()
+
 include(3rdparty/3rdparty.cmake)
 
 include_directories("${SCORE_ROOT_BINARY_DIR}")
