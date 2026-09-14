@@ -143,6 +143,20 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
                   "They can be drag'n'dropped in the score, in intervals, "
                   "and sometimes in effect chains."));
 
+  {
+    m_notice.setWordWrap(true);
+    m_notice.setTextFormat(Qt::RichText);
+    m_notice.setTextInteractionFlags(Qt::TextBrowserInteraction);
+    m_notice.setOpenExternalLinks(false);
+    m_notice.setContentsMargins(4, 4, 4, 4);
+    m_notice.hide();
+    slay->addWidget(&m_notice);
+    connect(&m_notice, &QLabel::linkActivated, this, [this](const QString&) {
+      if(m_noticeAction)
+        m_noticeAction();
+    });
+  }
+
   QLineEdit* filter{};
 
   {
@@ -287,6 +301,13 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
     SCORE_ASSERT(proc);
     this->m_presetModel->savePreset(*proc);
   });
+}
+
+void ProcessWidget::setNotice(const QString& html, std::function<void()> onActivated)
+{
+  m_noticeAction = std::move(onActivated);
+  m_notice.setText(html);
+  m_notice.setVisible(!html.isEmpty());
 }
 
 ProcessWidget::~ProcessWidget() { }

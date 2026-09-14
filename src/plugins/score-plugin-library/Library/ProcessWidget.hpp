@@ -7,8 +7,11 @@
 
 #include <score/tools/std/Optional.hpp>
 
+#include <QLabel>
 #include <QSplitter>
 #include <QTreeView>
+
+#include <functional>
 
 #include <score_plugin_library_export.h>
 namespace score
@@ -61,11 +64,19 @@ public:
   const PresetListView& presetView() const noexcept { return m_lv; }
   PresetListView& presetView() noexcept { return m_lv; }
 
+  //! Put a line of rich text above the process list, or take it away when the
+  //! text is empty. Anything the user has to be told about the library itself
+  //! belongs here rather than in a dialog: it is what they are looking at.
+  //! A link in the text calls @p onActivated instead of opening a browser.
+  void setNotice(const QString& html, std::function<void()> onActivated = {});
+
 private:
   ProcessesItemModel* m_processModel{};
   PresetItemModel* m_presetModel{};
   ProcessTreeView m_tv;
   PresetListView m_lv;
+  QLabel m_notice;
+  std::function<void()> m_noticeAction;
 
   QWidget m_preview;
   QWidget* m_previewChild{};

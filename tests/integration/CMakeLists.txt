@@ -367,6 +367,12 @@ score_add_test(test_regression_panel_plugin_load
   SOURCES RegressionPanelPluginLoadTest.cpp
   GUI)
 
+# The out-of-date package notice lives on the process library panel.
+score_add_test(test_integration_library_update_notice
+  SOURCES LibraryUpdateNoticeTest.cpp
+  GUI
+  PLUGINS score_plugin_library)
+
 # Null-tolerant device-explorer panel lookup.
 score_add_test(test_regression_panel_null_slot_lookup
   SOURCES RegressionPanelNullSlotLookupTest.cpp
