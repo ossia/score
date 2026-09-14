@@ -545,6 +545,15 @@ if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
     PLUGINS score_plugin_gfx score_plugin_js score_plugin_deviceexplorer
             score_lib_device score_plugin_scenario score_lib_process)
 
+  # Protocols.* driven from the `--ui` console engine (JS::ApplicationPlugin)
+  # rather than from a Mapper device: a different engine, a different
+  # io_context, and UDP sockets reopened on every port change.
+  score_add_test(test_integration_console_protocols
+    SOURCES ConsoleProtocolsTest.cpp
+    APP
+    PLUGINS score_plugin_js score_plugin_protocols score_lib_device
+    LIBS ossia ${QT_PREFIX}::Qml)
+
   # score's PipeWire video OUTPUT through the real application: a device, a
   # process, playing, and a GStreamer consumer reading it. Pixels AND rate --
   # the producer harness drives the node from its own timer, so it can say
