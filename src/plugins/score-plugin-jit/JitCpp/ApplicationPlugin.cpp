@@ -253,10 +253,15 @@ void ApplicationPlugin::registerAddon(score::Plugin_QtInterface* p)
   qDebug() << "JIT addon registered" << p;
 }
 
-bool ApplicationPlugin::setupAddon(const QString& addon)
+bool ApplicationPlugin::setupAddon(const QString& addon_arg)
 {
+  // The generated translation unit is written to a temporary directory and
+  // #includes the add-on's sources by the path we are given, so a relative one
+  // stops resolving as soon as it lands there.
+  QFileInfo addonInfo{addon_arg};
+  const QString addon = addonInfo.absoluteFilePath();
+
   qDebug() << "Registering JIT addon" << addon;
-  QFileInfo addonInfo{addon};
   auto addonFolderName = addonInfo.fileName();
   if(addonFolderName == "Nodes")
     return false;
@@ -288,9 +293,10 @@ bool ApplicationPlugin::setupAddon(const QString& addon)
   return true;
 }
 
-bool ApplicationPlugin::setupNode(const QString& f)
+bool ApplicationPlugin::setupNode(const QString& f_arg)
 {
-  QFileInfo fi{f};
+  QFileInfo fi{f_arg};
+  const QString f = fi.absoluteFilePath();
   if(fi.suffix() == "hpp" || fi.suffix() == "cpp")
   {
     if(QFile file{f}; file.open(QIODevice::ReadOnly))
