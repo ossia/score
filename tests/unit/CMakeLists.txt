@@ -272,6 +272,8 @@ if(LINUX AND TARGET score_plugin_protocols AND TARGET score_plugin_js)
   target_include_directories(test_unit_mapper_protocols PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-js"
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-protocols")
+  target_compile_definitions(test_unit_mapper_protocols PRIVATE
+    "SCORE_TEST_QML_PROTOCOL_DIR=\"${SCORE_ROOT_SOURCE_DIR}/tests/testdata/protocols-qml\"")
 endif()
 
 # --- core data model (score-lib-state / score-lib-process, P3R2) -----------
