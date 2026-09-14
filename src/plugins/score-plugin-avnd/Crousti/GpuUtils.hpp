@@ -390,6 +390,11 @@ struct SCORE_PLUGIN_AVND_EXPORT CustomGpuOutputNodeBase
     , GpuControlIns
     , GpuControlOuts
 {
+  //! What the graph is rendered at when no texture input asks for a size.
+  //! Small on purpose: the node reads its result back on the CPU, and a sink
+  //! that nobody has given a size to is an analysis, not a picture.
+  static constexpr QSize defaultRenderSize{200, 200};
+
   CustomGpuOutputNodeBase(
       std::weak_ptr<Execution::ExecutionCommandQueue> q, Gfx::exec_controls&& ctls,
       const score::DocumentContext& ctx);

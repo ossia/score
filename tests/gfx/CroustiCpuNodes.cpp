@@ -947,3 +947,121 @@ TEST_CASE(
     CHECK(mm1 == mm0);
   }
 }
+
+// =============================================================================
+// A Crousti node with a texture input and no texture output is a sink: its
+// GfxNode specialisation is CustomGpuOutputNodeBase, which owns the QRhi the
+// whole graph upstream of it renders on. It has no surface of its own, so the
+// two things a window would settle -- which backend, and at what size and
+// format -- have to come from elsewhere: the backend from the settings, and
+// the render target from the texture input.
+// =============================================================================
+namespace
+{
+struct TexSink
+{
+  halp_meta(name, "Texture sink")
+  halp_meta(c_name, "test_texture_sink")
+  halp_meta(uuid, "2b1e0a6d-9d3f-4a0e-9a0e-6a1f0c7d55e2")
+
+  struct
+  {
+    halp::texture_input<"In"> image;
+  } inputs;
+
+  struct
+  {
+    halp::val_port<"Out", float> level;
+  } outputs;
+
+  void operator()() { }
+};
+
+//! The spec a texture inlet hands its node, as Crousti's executor does.
+ossia::render_target_spec
+tex_spec(std::optional<ossia::texture_size> sz, ossia::texture_format fmt)
+{
+  ossia::render_target_spec s;
+  s.size = sz;
+  s.format = fmt;
+  return s;
+}
+}
+
+TEST_CASE("a Crousti texture sink renders on the graph's backend", "[gfx][crousti]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  bool skipped = false;
+  run_in_gui_app([&](const score::GUIApplicationContext& app) {
+    std::string backendName;
+    if(!probe_api(api, backendName))
+    {
+      skipped = true;
+      return;
+    }
+
+    auto* document = score::test::new_document(app);
+    REQUIRE(document);
+    const score::DocumentContext& ctx = document->context();
+
+    HalpProcesses procs;
+
+    {
+      auto node = procs.make<TexSink>(ctx);
+      auto* out = dynamic_cast<score::gfx::OutputNode*>(node.get());
+      REQUIRE(out);
+
+      // A node that builds its device in its constructor is never asked:
+      // Graph::initializeOutput skips createOutput when a render state already
+      // exists, so the backend the settings picked never reaches it.
+      CHECK(out->renderState() == nullptr);
+
+      bool ready = false;
+      out->createOutput({.graphicsApi = api, .onReady = [&] { ready = true; }});
+
+      auto st = out->renderState();
+      REQUIRE(st);
+      REQUIRE(st->rhi);
+      CHECK(ready);
+      CHECK(st->api == api);
+    }
+
+    {
+      // The render target the texture input asks for is what the whole graph
+      // upstream renders into.
+      auto node = procs.make<TexSink>(ctx);
+      auto* out = dynamic_cast<score::gfx::OutputNode*>(node.get());
+      REQUIRE(out);
+
+      node->process(
+          0, tex_spec(ossia::texture_size{640, 360}, ossia::texture_format::RGBA32F));
+      out->createOutput({.graphicsApi = api, .onReady = [] {}});
+
+      auto st = out->renderState();
+      REQUIRE(st);
+      CHECK(st->renderSize == QSize(640, 360));
+      CHECK(st->outputSize == QSize(640, 360));
+      CHECK(st->renderFormat == QRhiTexture::RGBA32F);
+    }
+
+    {
+      // A format without a size leaves the size alone.
+      auto node = procs.make<TexSink>(ctx);
+      auto* out = dynamic_cast<score::gfx::OutputNode*>(node.get());
+      REQUIRE(out);
+
+      node->process(0, tex_spec(std::nullopt, ossia::texture_format::RGBA16F));
+      out->createOutput({.graphicsApi = api, .onReady = [] {}});
+
+      auto st = out->renderState();
+      REQUIRE(st);
+      CHECK(st->renderSize == oscr::CustomGpuOutputNodeBase::defaultRenderSize);
+      CHECK(st->renderFormat == QRhiTexture::RGBA16F);
+    }
+  });
+
+  if(skipped)
+    SKIP(std::string{"backend unavailable: "} + backend_name(api));
+}

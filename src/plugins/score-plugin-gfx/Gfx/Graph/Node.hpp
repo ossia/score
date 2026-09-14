@@ -178,6 +178,19 @@ public:
   RenderTargetSpecs
   resolveRenderTargetSpecs(int32_t port, RenderList& renderer) const noexcept;
 
+  /**
+   * @brief What the first texture input asks to be rendered into.
+   *
+   * For an output node with no surface of its own -- no window, no encoder,
+   * nothing that fixes a resolution -- this is the only thing in the graph
+   * that says what size and format to render at. Available before any
+   * RenderList exists, which is when such a node has to build its device.
+   *
+   * Empty when no texture input carries a spec; `size` is invalid when the
+   * input names a format but no size.
+   */
+  std::optional<RenderTargetSpecs> firstInputRenderTargetSpecs() const noexcept;
+
   void process(int32_t port, const ossia::render_target_spec& v);
 };
 
