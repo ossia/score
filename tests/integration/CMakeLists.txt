@@ -116,6 +116,8 @@ if(TARGET score_plugin_avnd)
     SOURCES AvndWorkerLifecycleTest.cpp
     GUI
     PLUGINS score_plugin_avnd score_plugin_scenario score_lib_process)
+  set_tests_properties(test_integration_avnd_worker_lifecycle PROPERTIES
+    TIMEOUT 180 LABELS "integration;usecase")
   # Observing a resized buffer outlet through the real Crousti path needs the
   # gfx render headers, the same way tests/gfx does for test_gfx_crousti_cpu_nodes.
   if(TARGET score_plugin_gfx)
@@ -534,6 +536,8 @@ if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
     SOURCES TextureSourceLifecycleTest.cpp
     GUI
     PLUGINS score_plugin_gfx score_plugin_js score_plugin_scenario score_lib_process)
+  set_tests_properties(test_integration_texture_source_lifecycle PROPERTIES
+    TIMEOUT 180 LABELS "integration;usecase")
 
   # The video-input enumeration contract: enumerate a Camera/NDI/Spout/Syphon
   # device, hand its settings back to createDevice, switch backend at runtime.
@@ -544,6 +548,11 @@ if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
     GUI
     PLUGINS score_plugin_gfx score_plugin_js score_plugin_deviceexplorer
             score_lib_device score_plugin_scenario score_lib_process)
+  # This one stands real capture devices up: a machine that has one reaches
+  # teardown paths that can block on the driver, and a hang must fail the suite
+  # rather than stall it.
+  set_tests_properties(test_integration_device_enumeration_lifecycle PROPERTIES
+    TIMEOUT 180 LABELS "integration;usecase;hardware")
 
   # Protocols.* driven from the `--ui` console engine (JS::ApplicationPlugin)
   # rather than from a Mapper device: a different engine, a different
@@ -553,6 +562,8 @@ if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
     APP
     PLUGINS score_plugin_js score_plugin_protocols score_lib_device
     LIBS ossia ${QT_PREFIX}::Qml)
+  set_tests_properties(test_integration_console_protocols PROPERTIES
+    TIMEOUT 180 LABELS "integration;usecase;network")
 
   # score's PipeWire video OUTPUT through the real application: a device, a
   # process, playing, and a GStreamer consumer reading it. Pixels AND rate --
