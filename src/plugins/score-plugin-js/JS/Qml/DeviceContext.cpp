@@ -66,15 +66,14 @@ bool DeviceContext::init()
       if(!p)
         return;
 
-      if(auto ossia = iface->getDevice())
-        m_impl->addDevice(ossia);
+      m_impl->addDevice(iface->getDevice());
       connect(iface, &Device::DeviceInterface::deviceChanged,
               this, [this, p] (ossia::net::device_base* old_dev, ossia::net::device_base* new_dev) {
-        m_impl->removeDevice(old_dev);
+        if(!p)
+          return;
 
-        if(new_dev) {
-          m_impl->addDevice(new_dev);
-        }
+        m_impl->removeDevice(old_dev);
+        m_impl->addDevice(new_dev);
       });
     }, Qt::QueuedConnection);
 
@@ -83,9 +82,7 @@ bool DeviceContext::init()
       if(!p)
         return;
 
-      if(auto o = iface->getDevice()) {
-        m_impl->removeDevice(o);
-      }
+      m_impl->removeDevice(iface->getDevice());
     });
   }
   return true;
