@@ -108,6 +108,27 @@ if(TARGET score_plugin_media AND TARGET score_plugin_avnd)
     PLUGINS score_plugin_scenario score_plugin_media score_plugin_avnd score_lib_process)
 endif()
 
+# The avendish object contract plug-in addons rely on: worker-thread jobs and
+# callback outlets, and a buffer outlet whose payload is resized every tick,
+# across destroy/recreate.
+if(TARGET score_plugin_avnd)
+  score_add_test(test_integration_avnd_worker_lifecycle
+    SOURCES AvndWorkerLifecycleTest.cpp
+    GUI
+    PLUGINS score_plugin_avnd score_plugin_scenario score_lib_process)
+  # Observing a resized buffer outlet through the real Crousti path needs the
+  # gfx render headers, the same way tests/gfx does for test_gfx_crousti_cpu_nodes.
+  if(TARGET score_plugin_gfx)
+    target_link_libraries(test_integration_avnd_worker_lifecycle PRIVATE
+      score_plugin_gfx ${QT_PREFIX}::Gui)
+    target_include_directories(test_integration_avnd_worker_lifecycle SYSTEM PRIVATE
+      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+      "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx")
+    target_compile_definitions(test_integration_avnd_worker_lifecycle PRIVATE
+      GFX_TEST_CORPUS_DIR="${SCORE_ROOT_SOURCE_DIR}/tests/gfx/corpus")
+  endif()
+endif()
+
 score_add_test(test_integration_scenario_undo
   SOURCES ScenarioUndoTest.cpp
   GUI
