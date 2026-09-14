@@ -50,6 +50,37 @@
 namespace JS
 {
 
+//! Whether a device of that name is already in the document -- in the device
+//! list, or as a node of the explorer tree (a device that failed to connect is
+//! still a node, and still owns the name).
+static bool deviceNameTaken(Explorer::DeviceDocumentPlugin& plug, const QString& name)
+{
+  if(plug.list().findDevice(name))
+    return true;
+
+  for(const auto& node : plug.rootNode().children())
+  {
+    if(node.is<Device::DeviceSettings>() && node.displayName() == name)
+      return true;
+  }
+  return false;
+}
+
+//! An enumerator handed to a script must be owned by C++, for the same reason
+//! device() opts out of JavaScriptOwnership just below: a QObject returned
+//! from an invokable with no QObject parent defaults to JavaScriptOwnership,
+//! and a signal connection does not root the sender, so the natural script
+//! shape (`let en = Score.enumerateDevices(uuid); en.deviceAdded.connect(…)`
+//! inside a function) lets the collector take it. ~GlobalDeviceEnumerator
+//! destroys the protocol-side enumerators, so an asynchronous backend (NDI,
+//! Spout) would silently never report. Enumerating is a subscription: it
+//! lives until the scripting context does.
+static void ownEnumerator(EditJsContext& self, GlobalDeviceEnumerator& e)
+{
+  e.setParent(&self);
+  QQmlEngine::setObjectOwnership(&e, QQmlEngine::CppOwnership);
+}
+
 QObject* EditJsContext::device(QString name)
 {
   auto doc = ctx();
@@ -80,6 +111,7 @@ GlobalDeviceEnumerator* EditJsContext::enumerateDevices()
     return nullptr;
 
   auto e = new GlobalDeviceEnumerator{};
+  ownEnumerator(*this, *e);
   e->setContext(doc);
   // e->setEnumerate(true);
   return e;
@@ -92,6 +124,7 @@ GlobalDeviceEnumerator* EditJsContext::enumerateDevices(const QString& uuid)
     return nullptr;
 
   auto e = new GlobalDeviceEnumerator{};
+  ownEnumerator(*this, *e);
   e->setDeviceType(uuid);
   e->setContext(doc);
   // e->setEnumerate(true);
@@ -306,6 +339,21 @@ void EditJsContext::createDevice(QString name, QString uuid, QVariant var)
   if(!prot_factory)
   {
     qDebug() << "Cannot create device: missing protocol" << name << uuid;
+    return;
+  }
+
+  // A device name is the only handle the rest of the document has on a device:
+  // "Camera:/" on a port, Score.device("Camera"), the explorer tree. A second
+  // device under an existing name does not replace the first one, it shadows
+  // it: lookups resolve to whichever comes first and the addresses of the
+  // shadowed device stay live and unreachable. Adding a device during
+  // execution stays permitted, so the refusal is on the name, not on the
+  // transport state.
+  if(deviceNameTaken(plug, name))
+  {
+    qWarning() << "Score.createDevice(" << name
+               << "): refused -- a device with this name already exists. "
+                  "Remove it first, or pick another name.";
     return;
   }
 
