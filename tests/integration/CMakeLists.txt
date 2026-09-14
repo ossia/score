@@ -522,6 +522,19 @@ if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
     SOURCES JsTextureSourceUiTest.cpp
     GUI)
 
+  # --- Use cases: what applications built on score do with it at runtime.
+  # Each target covers one such scenario end to end; see the file headers for
+  # the behaviour each case pins down.
+
+  # A QML TextureSource as the only sink of the render graph: a source that is
+  # laid out (so it resizes, at fractional sizes), a large fixed-size source
+  # rendered while hidden, device pixel ratio, several sources on one process,
+  # and destroy/recreate of the process underneath.
+  score_add_test(test_integration_texture_source_lifecycle
+    SOURCES TextureSourceLifecycleTest.cpp
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_js score_plugin_scenario score_lib_process)
+
   # score's PipeWire video OUTPUT through the real application: a device, a
   # process, playing, and a GStreamer consumer reading it. Pixels AND rate --
   # the producer harness drives the node from its own timer, so it can say
