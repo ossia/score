@@ -59,6 +59,52 @@
 
 namespace oscr
 {
+//! An execution node which applies its worker results at the beginning of its
+//! own tick.
+//!
+//! avendish's worker contract is that the function work() returns is invoked
+//! back in the processing thread against the object, which may write its
+//! outlets from there. Execution::Context::executionQueue cannot honour that:
+//! it is drained before the graph runs, and ossia::graph_util::init_node then
+//! clears every outlet of the node and sets the tick's frame indices. Queuing
+//! the results on the node and draining them here instead means the outlets
+//! are cleared, the frame indices are those of this tick, and operator() has
+//! not run yet - so whatever the result writes to a port is delivered for
+//! this tick, and whatever it writes to an output field is flushed by the
+//! usual finish_run() at the end of it.
+template <typename Node>
+struct node_with_worker : safe_node<Node>
+{
+  using safe_node<Node>::safe_node;
+
+  //! Filled on the Qt main thread by Executor::connect_worker, drained on the
+  //! execution thread: same producer / consumer pair as the execution queue.
+  Execution::ExecutionCommandQueue worker_results;
+
+  void
+  run(const ossia::token_request& tk, ossia::exec_state_facade st) noexcept override
+  {
+    Execution::ExecutionCommand cmd;
+    if(worker_results.try_dequeue(cmd))
+    {
+      const auto [start, frames] = st.timings(tk);
+      this->start_frame_for_this_tick = start;
+      this->frame_count_for_this_tick = frames;
+      do
+      {
+        cmd();
+      } while(worker_results.try_dequeue(cmd));
+    }
+
+    safe_node<Node>::run(tk, st);
+  }
+};
+
+//! The exec node score gives an avnd object: with worker-result delivery if
+//! the object has a worker, the plain avendish node otherwise.
+template <typename Node>
+using exec_node_t
+    = std::conditional_t<avnd::has_worker<Node>, node_with_worker<Node>, safe_node<Node>>;
 
 template <typename Node>
 class CustomNodeProcess : public ossia::node_process
@@ -166,7 +212,7 @@ public:
 
     auto st = ossia::exec_state_facade{ctx.execState.get()};
     std::shared_ptr<safe_node<Node>> ptr;
-    auto node = new safe_node<Node>{st.bufferSize(), (double)st.sampleRate(), id};
+    auto node = new exec_node_t<Node>{st.bufferSize(), (double)st.sampleRate(), id};
     node->root_inputs().reserve(element.inlets().size());
     node->root_outputs().reserve(element.outlets().size());
 
@@ -184,7 +230,7 @@ public:
         connect_message_bus(element, ctx, ptr->impl.effect);
         connect_dynamic_items(element, ptr->impl.effect);
       }
-    connect_worker(ctx, ptr->impl);
+    connect_worker(ptr);
 
     node->dynamic_ports = element.dynamic_ports;
     node->finish_init();
@@ -806,25 +852,32 @@ public:
     }
   }
 
-  void connect_worker(const ::Execution::Context& ctx, avnd::effect_container<Node>& eff)
+  void connect_worker(const std::shared_ptr<safe_node<Node>>& node_ptr)
   {
     if constexpr(avnd::has_worker<Node>)
     {
+      avnd::effect_container<Node>& eff = node_ptr->impl;
+
       // Initialize the thread pool beforehand
       auto& tq = score::TaskPool::instance();
       using worker_type = decltype(eff.effect.worker);
-      for(auto& eff : eff.effects())
-      {
-        std::weak_ptr eff_ptr = std::shared_ptr<Node>(this->node, &eff);
-        std::weak_ptr qex_ptr = std::shared_ptr<Execution::ExecutionCommandQueue>(
-            ctx.alias.lock(), &ctx.executionQueue);
 
-        eff.worker.request
-            = [&tq, qex_ptr = std::move(qex_ptr),
+      // An object with a worker is always given the node which delivers the
+      // results at the beginning of its tick (exec_node_t).
+      const std::shared_ptr<node_with_worker<Node>> self{
+          node_ptr, static_cast<node_with_worker<Node>*>(node_ptr.get())};
+
+      for(auto& e : eff.effects())
+      {
+        std::weak_ptr eff_ptr = std::shared_ptr<Node>(node_ptr, &e);
+        std::weak_ptr node_wp = self;
+
+        e.worker.request
+            = [&tq, node_wp = std::move(node_wp),
                eff_ptr = std::move(eff_ptr)]<typename... Args>(Args&&... f) mutable {
           // request() is invoked in the DSP / processor thread
           // and just posts the task to the thread pool
-          tq.post([eff_ptr, qex_ptr, ... ff = std::forward<Args>(f)]() mutable {
+          tq.post([eff_ptr, node_wp, ... ff = std::forward<Args>(f)]() mutable {
             // This happens in the worker thread
             // If for some reason the object has already been removed, not much
             // reason to perform the work
@@ -845,19 +898,22 @@ public:
               if(!res)
                 return;
 
-              // Execution queue is currently spsc from main thread to an exec thread,
-              // we cannot just yeet the result back from the thread-pool
+              // The node's result queue is spsc from the main thread to the
+              // exec thread, we cannot just yeet the result back from the
+              // thread-pool
               ossia::qt::run_async(
-                  qApp, [eff_ptr = std::move(eff_ptr), qex_ptr = std::move(qex_ptr),
+                  qApp, [eff_ptr = std::move(eff_ptr), node_wp = std::move(node_wp),
                          res = std::move(res)]() mutable {
                     // Main thread
-                    std::shared_ptr qex = qex_ptr.lock();
-                    if(!qex)
+                    std::shared_ptr n = node_wp.lock();
+                    if(!n)
                       return;
 
-                    qex->enqueue(
+                    n->worker_results.enqueue(
                         [eff_ptr = std::move(eff_ptr), res = std::move(res)]() mutable {
-                  // DSP / processor thread
+                  // DSP / processor thread, at the beginning of the node's own
+                  // tick: the outlets are cleared and the tick's frame indices
+                  // are set, so the result may write to them.
                   // We need res to be mutable so that the worker can use it to e.g. store
                   // old data which will be freed back in the main thread
                   if(auto p = eff_ptr.lock())
