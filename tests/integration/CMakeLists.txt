@@ -1,5 +1,27 @@
 # Integration tests: full headless application + document lifecycle.
 
+# The vendored manual Protocols QML corpus, executed by real Mapper devices
+# against independent local socket peers. No user package or network service.
+if(TARGET score_plugin_protocols AND TARGET score_plugin_js
+   AND TARGET ${QT_PREFIX}::Qml AND TARGET ${QT_PREFIX}::WebSockets)
+  foreach(_protocol_suite Tcp Http Datagram)
+    string(TOLOWER "${_protocol_suite}" _protocol_name)
+    score_add_test(test_integration_mapper_${_protocol_name}
+      SOURCES Mapper${_protocol_suite}ProtocolsTest.cpp
+      APP
+      PLUGINS score_plugin_js score_plugin_protocols score_plugin_deviceexplorer
+              score_lib_device
+      LIBS ossia ${QT_PREFIX}::Qml ${QT_PREFIX}::WebSockets)
+    target_include_directories(test_integration_mapper_${_protocol_name} PRIVATE
+      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-js"
+      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-protocols")
+    target_compile_definitions(test_integration_mapper_${_protocol_name} PRIVATE
+      "SCORE_TEST_QML_PROTOCOL_DIR=\"${SCORE_ROOT_SOURCE_DIR}/tests/testdata/protocols-qml\"")
+    set_tests_properties(test_integration_mapper_${_protocol_name} PROPERTIES
+      TIMEOUT 180 LABELS "integration;mapper;network")
+  endforeach()
+endif()
+
 # Every shell harness below spawns the real score binary and maps real windows.
 # Put them behind the same private X server score_add_test(GUI) uses, so they do
 # not land on the developer's session. Empty when SCORE_TESTS_XVFB is off.
