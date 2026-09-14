@@ -48,12 +48,14 @@ public:
       return;
     if(m_screenId < 0)
       return;
-    if(!item)
-      return;
-    if(!item->m_gfxPlugin)
+    // NOT item->m_gfxPlugin: Qt destroys the renderer after the item, on the
+    // render thread, so `item` is already null here and the preview node would
+    // never be unregistered. The QPointer only goes null when the document
+    // plugin itself is gone, in which case the graph took the node with it.
+    if(!m_gfxPlugin)
       return;
 
-    auto& graph = item->m_gfxPlugin->context;
+    auto& graph = m_gfxPlugin->context;
     // fixme clear m_extractionNode
     graph.disconnect_preview_node(Gfx::EdgeSpec{m_source, {m_screenId, 0}});
     graph.unregister_preview_node(m_screenId);
@@ -69,6 +71,7 @@ public:
 
 private:
   score::gfx::OutputNode* m_extractionNode{};
+  QPointer<Gfx::DocumentPlugin> m_gfxPlugin{};
 
   QRhi* m_rhi = nullptr;
   int m_sampleCount = 1;
@@ -124,7 +127,13 @@ void TextureSourceRenderer::rebuild()
   QRhiTexture* finalTex = m_sampleCount > 1 ? resolveTexture() : colorTexture();
 
   // Find the node in the graph
-  auto& graph = item->m_gfxPlugin->context;
+  auto* plugin = item->m_gfxPlugin.data();
+  if(!plugin)
+  {
+    clear();
+    return;
+  }
+  auto& graph = plugin->context;
 
   if(changed)
   {
@@ -143,6 +152,9 @@ void TextureSourceRenderer::rebuild()
     m_screenId = graph.register_preview_node(std::move(extractionNode));
     if(m_screenId != -1)
     {
+      // Remember who we registered with: clear() also runs from our
+      // destructor, which Qt calls after the item is already gone.
+      m_gfxPlugin = plugin;
       m_source = m_nextSource;
       graph.connect_preview_node(Gfx::EdgeSpec{m_source, {m_screenId, 0}});
       m_needsRebuild = false;
