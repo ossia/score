@@ -17,6 +17,11 @@ class SCORE_LIB_BASE_EXPORT CoreApplicationPlugin final
 public:
   CoreApplicationPlugin(const score::GUIApplicationContext& app, Presenter& pres);
 
+  //! Open the settings dialog on the page of that name, as it appears in the
+  //! list on the left of the dialog. Falls back to whichever page was last
+  //! shown when no page goes by it.
+  void openSettingsPage(const QString& settingsName);
+
 private:
   Presenter& m_presenter;
 

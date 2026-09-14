@@ -64,6 +64,10 @@ public:
       SettingsDelegateFactory& plugin);
   SettingsView<SettingsDelegateModel>& view() const { return *m_settingsView; }
 
+  //! Only the full application builds the dialog; a headless or minimal run
+  //! has the models without it.
+  bool hasView() const noexcept { return m_settingsView != nullptr; }
+
   auto& settings() const { return m_settings; }
 
 private:

@@ -81,7 +81,19 @@ void CoreApplicationPlugin::restoreLayout()
 
 void CoreApplicationPlugin::openSettings()
 {
+  if(!m_presenter.m_settings.hasView())
+    return;
   m_presenter.m_settings.view().exec();
+}
+
+void CoreApplicationPlugin::openSettingsPage(const QString& settingsName)
+{
+  if(!m_presenter.m_settings.hasView())
+    return;
+
+  auto& v = m_presenter.m_settings.view();
+  v.setCurrentSettings(settingsName);
+  v.exec();
 }
 void CoreApplicationPlugin::openProjectSettings()
 {

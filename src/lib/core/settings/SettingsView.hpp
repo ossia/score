@@ -58,6 +58,18 @@ public:
     m_pluginViews.insert(view);
   }
 
+  //! Show the page under that name, as it appears in the list on the left.
+  //! Returns false when no page goes by it.
+  bool setCurrentSettings(const QString& name)
+  {
+    const auto items = m_settingsList->findItems(name, Qt::MatchFixedString);
+    if(items.isEmpty())
+      return false;
+
+    m_settingsList->setCurrentItem(items.front());
+    return true;
+  }
+
 private:
   std::set<SettingsDelegateView<Model>*> m_pluginViews;
 

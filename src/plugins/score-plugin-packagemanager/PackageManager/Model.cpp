@@ -3,6 +3,10 @@
 #include "Model.hpp"
 
 #include <Library/LibrarySettings.hpp>
+#include <Library/Panel/LibraryPanelDelegate.hpp>
+#include <Library/ProcessWidget.hpp>
+
+#include <core/presenter/CoreApplicationPlugin.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/application/GUIApplicationContext.hpp>
@@ -249,16 +253,32 @@ void PluginSettingsModel::checkAll()
     to_update.push_back(&*it);
   }
 
-  if(!to_update.empty())
+  auto& ctx = score::GUIAppContext();
+  auto* library = ctx.findPanel<Library::ProcessPanel>();
+  if(!library)
+    return;
+
+  if(to_update.empty())
   {
-    QString s = tr("Some installed packages are out-of-date: \n");
-    for(auto pkg : to_update)
-    {
-      s += tr("- %1 (version %3)\n").arg(pkg->name).arg(pkg->version);
-    }
-    s += tr("Head to Settings > Packages to update them");
-    score::information(qApp->activeWindow(), tr("Packages can be updated"), s);
+    library->processWidget().setNotice({});
+    return;
   }
+
+  // The packages this is about are the ones the library lists, so the message
+  // belongs where the user is looking at them rather than in a box in front of
+  // whatever they were doing.
+  QStringList names;
+  names.reserve(to_update.size());
+  for(auto pkg : to_update)
+    names.push_back(pkg->name);
+
+  const auto text = tr("%1 can be updated. <a href=\"packages\">Update</a>")
+                        .arg(names.join(QStringLiteral(", ")));
+
+  library->processWidget().setNotice(text, [&ctx] {
+    if(auto* core = ctx.findGuiApplicationPlugin<score::CoreApplicationPlugin>())
+      core->openSettingsPage(tr("Packages"));
+  });
 }
 
 void PluginSettingsModel::requestInformation(QUrl url)
