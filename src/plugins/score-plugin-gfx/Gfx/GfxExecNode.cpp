@@ -1,8 +1,6 @@
 #include <Gfx/CameraDevice.hpp>
 #include <Gfx/GfxExecNode.hpp>
 
-#include <ossia/network/dataspace/color.hpp>
-#include <ossia/network/dataspace/dataspace_visitors.hpp>
 #include <Gfx/GfxParameter.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
@@ -87,30 +85,7 @@ void gfx_exec_node::run(
         auto& p = inlet->cast<ossia::value_port>();
         if(!p.get_data().empty())
         {
-          auto v = std::move(p.get_data().back().value);
-
-          // A shader reads a colour uniform as rgba, and nothing downstream
-          // from here knows any better. The port may be carrying one in another
-          // order -- argb keeps the alpha in front -- so it is put in the order
-          // it is about to be read in, rather than arriving with its channels
-          // one place along.
-          if(auto u = p.type.target<ossia::unit_t>())
-          {
-            static const ossia::unit_t rgb{ossia::rgb_u{}};
-            if(v.get_type() == ossia::val_type::VEC3F && *u != rgb
-               && ossia::check_units_convertible(rgb, *u))
-            {
-              // A colour one component short is one that came without its
-              // alpha, and a colour without an alpha is opaque. Filling the
-              // fourth slot with the zero that is there would make it
-              // invisible instead, which is the one thing it cannot have
-              // meant. Read as rgb and let the unit place the components.
-              if(auto converted = ossia::convert(v, rgb, *u); converted.valid())
-                v = std::move(converted);
-            }
-          }
-
-          msg.input[inlet_i] = std::move(v);
+          msg.input[inlet_i] = std::move(p.get_data().back().value);
 
           p.get_data().clear();
         }
