@@ -1,6 +1,8 @@
 #pragma once
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 
+#include <score_plugin_js_export.h>
+
 #include <core/application/ApplicationSettings.hpp>
 
 #include <QFileInfo>
@@ -20,7 +22,9 @@ using network_context_ptr = std::shared_ptr<network_context>;
 class QQuickWindow;
 namespace JS
 {
-class ApplicationPlugin final
+// Exported like the other plugins' ApplicationPlugin: guiApplicationPlugin<T>()
+// dynamic_casts across the plugin boundary and needs the typeinfo visible.
+class SCORE_PLUGIN_JS_EXPORT ApplicationPlugin final
     : public QObject
     , public score::GUIApplicationPlugin
 {
