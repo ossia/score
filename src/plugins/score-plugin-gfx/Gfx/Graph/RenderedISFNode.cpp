@@ -1047,6 +1047,19 @@ void RenderedISFNode::runInitialPasses(
   }
 }
 
+QRhiGraphicsPipeline::CompareOp RenderedISFNode::depthCompare() const noexcept
+{
+  // runRenderPass draws passes.back().
+  const auto& model = n.descriptor().passes;
+  const auto state = model.empty()
+                         ? n.descriptor().default_state
+                         : mergeState(
+                               n.descriptor().default_state,
+                               model.back().override_state);
+  return state.depth_compare ? toCompareOp(*state.depth_compare)
+                             : QRhiGraphicsPipeline::Greater;
+}
+
 void RenderedISFNode::runRenderPass(
     RenderList& renderer, QRhiCommandBuffer& cb, Edge& edge)
 {

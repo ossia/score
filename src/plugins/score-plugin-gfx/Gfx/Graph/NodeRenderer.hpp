@@ -52,6 +52,12 @@ public:
 
   virtual void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& edge);
 
+  //! The depth compare this renderer's pipeline was built with.
+  virtual QRhiGraphicsPipeline::CompareOp depthCompare() const noexcept
+  {
+    return QRhiGraphicsPipeline::Greater;
+  }
+
   virtual void release(RenderList&) = 0;
 
   /**

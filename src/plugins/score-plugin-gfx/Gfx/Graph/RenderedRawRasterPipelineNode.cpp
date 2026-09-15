@@ -3487,13 +3487,9 @@ void RenderedRawRasterPipelineNode::runInitialPasses(
       continue;
     }
 
-    const auto declaredCompare
-        = n.descriptor().default_state.depth_compare
-              ? toCompareOp(*n.descriptor().default_state.depth_compare)
-              : QRhiGraphicsPipeline::Greater;
     cb.beginPass(
         rtForPass, Qt::transparent,
-        {depthClearForCompare(declaredCompare), 0}, invBatch);
+        {depthClearForCompare(this->depthCompare()), 0}, invBatch);
 
     cb.setGraphicsPipeline(pass.p.pipeline);
     cb.setViewport(
@@ -3661,6 +3657,13 @@ void RenderedRawRasterPipelineNode::runRenderPass(
       drawWithPerMeshAuxRebind(*srb, cb, pass.fallback_bindings);
     }
   }
+}
+
+QRhiGraphicsPipeline::CompareOp
+RenderedRawRasterPipelineNode::depthCompare() const noexcept
+{
+  const auto& declared = n.descriptor().default_state.depth_compare;
+  return declared ? toCompareOp(*declared) : QRhiGraphicsPipeline::Greater;
 }
 
 void RenderedRawRasterPipelineNode::process(int32_t port, const ossia::transform3d& v)

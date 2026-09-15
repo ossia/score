@@ -34,6 +34,8 @@ struct RenderedISFNode : score::gfx::NodeRenderer
 
   void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& edge) override;
 
+  QRhiGraphicsPipeline::CompareOp depthCompare() const noexcept override;
+
 private:
   std::pair<Pass, Pass> createPass(
       RenderList& renderer, ossia::small_vector<PassOutput, 1>& m_passSamplers,

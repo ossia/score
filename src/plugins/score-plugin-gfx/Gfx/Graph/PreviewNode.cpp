@@ -198,7 +198,9 @@ public:
   {
     m_inputTarget = score::gfx::createRenderTarget(
         renderer.state, renderer.state.renderFormat, m_renderTarget.texture->pixelSize(),
-        renderer.samples(), renderer.requiresDepth(*this->node.input[0]));
+        renderer.samples(),
+        renderer.requiresDepth(*this->node.input[0])
+            || renderer.anyNodeRequiresDepth());
 
     const auto& mesh = renderer.defaultTriangle();
     m_mesh = renderer.initMeshBuffer(mesh, res);

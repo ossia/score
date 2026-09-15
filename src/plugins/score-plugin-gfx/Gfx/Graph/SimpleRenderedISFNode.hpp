@@ -39,6 +39,8 @@ struct SimpleRenderedISFNode : score::gfx::NodeRenderer
 
   void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& edge) override;
 
+  QRhiGraphicsPipeline::CompareOp depthCompare() const noexcept override;
+
 private:
   void initPass(
       const TextureRenderTarget& rt, RenderList& renderer, Edge& edge,

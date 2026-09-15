@@ -1022,6 +1022,13 @@ void SimpleRenderedISFNode::runInitialPasses(
     swapPersistentSSBOs(m_storage, *pass.p.srb);
 }
 
+QRhiGraphicsPipeline::CompareOp
+SimpleRenderedISFNode::depthCompare() const noexcept
+{
+  const auto& declared = n.descriptor().default_state.depth_compare;
+  return declared ? toCompareOp(*declared) : QRhiGraphicsPipeline::Greater;
+}
+
 void SimpleRenderedISFNode::runRenderPass(
     RenderList& renderer, QRhiCommandBuffer& cb, Edge& edge)
 {
