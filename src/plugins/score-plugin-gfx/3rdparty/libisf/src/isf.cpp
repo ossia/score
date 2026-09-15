@@ -4595,6 +4595,7 @@ void parser::parse_raw_raster_pipeline()
   // from a generated wrapper (below) that owns the real entry point.
   m_vertex += "#define main isf_rawraster_user_main\n";
   m_vertex += m_sourceVertex;
+  m_vertex += '\n';
   m_fragment += fragWithoutISF;
 
   // Multiview wrapper main: writes the injected view-index varying, then
