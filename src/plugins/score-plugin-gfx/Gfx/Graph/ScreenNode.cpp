@@ -320,6 +320,14 @@ std::shared_ptr<RenderState> createRenderState(
       params.window = window;
     }
 
+    // Pin the renderable type before anything is built from this format: an EGL config
+    // is chosen from the surface, so a fallback surface created from the unpinned
+    // QSurfaceFormat::defaultFormat() can yield a GLES context while the shaders are
+    // baked for desktop GLSL only. QRhi then finds no matching shader variant and
+    // creates no pipelines, and every draw is skipped.
+    score::GLCapabilities caps;
+    caps.setupFormat(params.format);
+
 #if defined(__EMSCRIPTEN__)
     // Qt for wasm binds a QOpenGLContext to the *first* surface it is ever made
     // current with (QWasmOpenGLContext::m_contextOwningSurface) and then refuses
@@ -351,16 +359,14 @@ std::shared_ptr<RenderState> createRenderState(
     }
     else
     {
-      state.surface = QRhiGles2InitParams::newFallbackSurface();
+      state.surface = QRhiGles2InitParams::newFallbackSurface(params.format);
       params.fallbackSurface = state.surface;
     }
 #else
-    state.surface = QRhiGles2InitParams::newFallbackSurface();
+    state.surface = QRhiGles2InitParams::newFallbackSurface(params.format);
     params.fallbackSurface = state.surface;
 #endif
 
-    score::GLCapabilities caps;
-    caps.setupFormat(params.format);
     // Only ask for an explicit sample count when MSAA is actually wanted.
     // Requesting samples=1 is NOT the same request as leaving it unset, and on
     // macOS it makes a later present crash inside Apple's GL-on-Metal shim
