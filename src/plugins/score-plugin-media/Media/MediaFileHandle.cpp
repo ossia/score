@@ -58,7 +58,9 @@ static DecodingMethod needsDecoding(const QString& path, int rate)
   }
   else if(
       path.endsWith("aiff", Qt::CaseInsensitive)
-      || path.endsWith("aif", Qt::CaseInsensitive))
+      || path.endsWith("aif", Qt::CaseInsensitive)
+      || path.endsWith("aifc", Qt::CaseInsensitive)
+      || path.endsWith("caf", Qt::CaseInsensitive))
   {
     const auto& info = probe(path);
     if(info && info->fileRate == rate)
@@ -392,7 +394,7 @@ std::optional<AudioInfo> probe(const QString& path)
         return ret;
       }
     }
-    else if(suffix == "aif" || suffix == "aiff")
+    else if(suffix == "aif" || suffix == "aiff" || suffix == "aifc" || suffix == "caf")
     {
       if(auto ret = SndfileDecoder::do_probe(path))
       {
