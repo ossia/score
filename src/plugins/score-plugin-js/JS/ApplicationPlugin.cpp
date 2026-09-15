@@ -216,34 +216,39 @@ void ApplicationPlugin::on_createdDocument(score::Document& doc)
     return;
   }
 
-  if(!m_start_scripts.empty())
-  {
-    QTimer::singleShot(100, this, [this] {
-      for(const StartScript& s : m_start_scripts)
-      {
-        if(!s.dir.isEmpty())
-          m_consoleEngine.addImportPath(s.dir);
+}
 
-        // Report a throwing --script: an unresolvable readFile returns an empty
-        // string and eval("") is a no-op, so the process would otherwise exit
-        // reporting success and a harness could not tell that from a pass.
-        const auto res = s.module ? importModule(m_consoleEngine, s.file)
-                                  : m_consoleEngine.evaluate(s.source, s.name);
-        if(res.isError())
-        {
-          qCritical().noquote()
-              << "--script:"
-              << (s.name.isEmpty() ? QStringLiteral("<inline>") : s.name) << "line"
-              << res.property("lineNumber").toInt() << ":" << res.toString();
-          qGuiApp->exit(3);
-          return;
-        }
-      }
-    });
+void ApplicationPlugin::runStartScripts()
+{
+  for(const StartScript& s : m_start_scripts)
+  {
+    if(!s.dir.isEmpty())
+      m_consoleEngine.addImportPath(s.dir);
+
+    // Report a throwing --script: an unresolvable readFile returns an empty
+    // string and eval("") is a no-op, so the process would otherwise exit
+    // reporting success and a harness could not tell that from a pass.
+    const auto res = s.module ? importModule(m_consoleEngine, s.file)
+                              : m_consoleEngine.evaluate(s.source, s.name);
+    if(res.isError())
+    {
+      qCritical().noquote()
+          << "--script:" << (s.name.isEmpty() ? QStringLiteral("<inline>") : s.name)
+          << "line" << res.property("lineNumber").toInt() << ":" << res.toString();
+      qGuiApp->exit(3);
+      return;
+    }
   }
 }
 void ApplicationPlugin::afterStartup()
 {
+  if(!m_start_scripts.empty())
+  {
+    QTimer::singleShot(
+        (1 + context.applicationSettings.waitAfterLoad) * 1000, this,
+        [this] { runStartScripts(); });
+  }
+
   // Dummy engine setup for JS processes
   // eng.importModule(
   //     "/home/jcelerier/Documents/ossia/score/packages/default/Scripts/include/"
