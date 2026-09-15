@@ -169,7 +169,12 @@ fi
 COMPILER=""
 if command -v 'clang++' &> /dev/null; then
     COMPILER="clang++"
-    CXXFLAGS="-O3 -std=c++20 -Xlinker -SUBSYSTEM:WINDOWS"
+    # -SUBSYSTEM:WINDOWS is an MSVC/lld-link spelling; a MinGW clang's lld rejects it.
+    if clang++ -dumpmachine 2>/dev/null | grep -q -- "-gnu"; then
+        CXXFLAGS="-O3 -std=c++20 -mwindows"
+    else
+        CXXFLAGS="-O3 -std=c++20 -Xlinker -SUBSYSTEM:WINDOWS"
+    fi
     echo "Using clang++ to compile launcher"
 elif [[ -n "${CXX:-}" ]] && command -v "$CXX" &> /dev/null; then
     COMPILER="$CXX"
