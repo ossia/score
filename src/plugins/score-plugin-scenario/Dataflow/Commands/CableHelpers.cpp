@@ -386,29 +386,27 @@ void reloadPortsInNewProcess(
   // values are the point and an old one restored over them would be wrong.
   constexpr auto flags = Process::PortLoadDataFlags::ReloadValue;
 
-  // Try an optimistic matching. Type and name must match.
-  const std::size_t min_inlets = std::min(oldInlets.size(), process.inlets().size());
-  const std::size_t min_outlets = std::min(oldOutlets.size(), process.outlets().size());
-  for(std::size_t i = 0; i < min_inlets; i++)
-  {
-    auto new_p = process.inlets()[i];
-    auto& old_p = oldInlets[i];
-
-    if(new_p->type() == old_p.type && new_p->name() == old_p.name)
+  // Match on (name, type), consuming each saved port once and in order, so
+  // that a port added or removed in the middle of the list does not desync
+  // everything after it. Duplicate names stay in their relative order.
+  const auto restore = [&](const std::vector<SavedPort>& saved, const auto& ports) {
+    std::vector<bool> used(saved.size(), false);
+    for(auto* new_p : ports)
     {
-      new_p->loadData(old_p.data, flags);
+      for(std::size_t j = 0; j < saved.size(); j++)
+      {
+        if(used[j])
+          continue;
+        if(new_p->type() != saved[j].type || new_p->name() != saved[j].name)
+          continue;
+        new_p->loadData(saved[j].data, flags);
+        used[j] = true;
+        break;
+      }
     }
-  }
+  };
 
-  for(std::size_t i = 0; i < min_outlets; i++)
-  {
-    auto new_p = process.outlets()[i];
-    auto& old_p = oldOutlets[i];
-
-    if(new_p->type() == old_p.type && new_p->name() == old_p.name)
-    {
-      new_p->loadData(old_p.data, flags);
-    }
-  }
+  restore(oldInlets, process.inlets());
+  restore(oldOutlets, process.outlets());
 }
 }
