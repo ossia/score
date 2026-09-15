@@ -51,7 +51,8 @@ QSet<QString> DropHandler::mimeTypes() const noexcept
 
 QSet<QString> DropHandler::fileExtensions() const noexcept
 {
-  return {"wav", "mp3", "m4a", "ogg", "flac", "aif", "aiff", "w64", "ape", "wv", "wma", "aac", "opus", "ac3", "dts", "dtshd"};
+  return {"wav", "mp3", "m4a", "ogg", "flac", "aif",  "aiff", "aifc", "caf",
+          "w64", "ape", "wv",  "wma", "aac",  "opus", "ac3",  "dts",  "dtshd"};
 }
 
 void DropHandler::dropCustom(
