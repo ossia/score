@@ -58,6 +58,12 @@ static void addSupportLibraries(const QDir& supportDir)
 #ifdef Q_OS_WIN
   // On Windows we can extend the DLL search path: register every directory that
   // contains a .dll, so a later LoadLibrary("foo.dll") from an addon resolves.
+  // AddDllDirectory only extends the search set used by loads that pass
+  // LOAD_LIBRARY_SEARCH_USER_DIRS; a bare LoadLibrary (what the addons do) uses the
+  // legacy order and ignores it. This makes those directories part of the process-wide
+  // default instead.
+  SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
+
   QSet<QString> added;
 
   QDirIterator it(

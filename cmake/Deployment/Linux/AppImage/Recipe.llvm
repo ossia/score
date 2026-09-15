@@ -134,7 +134,19 @@ cp "$APP_DIR/usr/share/pixmaps/ossia-score.png" "$APP_DIR/"
   rm -f usr/lib/libgpg-error.so.0 || true
   rm -f usr/lib/libjack* || true
   rm -f usr/lib/libasound* || true
-  #    rm -f usr/lib/libxcb* || true
+  # These come from the libxcb package: protocol bindings generated from xcb-proto,
+  # which must not be older than the X server. An older libxcb-xinput cannot parse an
+  # XIDeviceClass the server sends (e.g. XIGestureClass, XInput 2.4) and overruns the
+  # XIQueryDevice reply. libxcb.so.1 is already taken from the host.
+  # The xcb-util-* libraries below are kept: distros omit them, notably xcb-util-cursor
+  # which Qt 6.5+ requires.
+  rm -f usr/lib/libxcb-randr.so.* || true
+  rm -f usr/lib/libxcb-render.so.* || true
+  rm -f usr/lib/libxcb-shape.so.* || true
+  rm -f usr/lib/libxcb-shm.so.* || true
+  rm -f usr/lib/libxcb-sync.so.* || true
+  rm -f usr/lib/libxcb-xfixes.so.* || true
+  rm -f usr/lib/libxcb-xinput.so.* || true
   rm -f usr/lib/libgssapi_krb5.so.2 || true
   rm -f usr/lib/libgssapi.so.3 || true
   rm -f usr/lib/libhcrypto.so.4 || true
