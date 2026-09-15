@@ -35,6 +35,7 @@ public:
 
   ~ApplicationPlugin() override;
   void afterStartup() override;
+  void runStartScripts();
   void on_newDocument(score::Document& doc) override;
 
   /** Load an ES module and give it a chance to set itself up.
