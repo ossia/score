@@ -1,29 +1,23 @@
 #pragma once
 
-#include <ossia/detail/variant.hpp>
 #include <ossia/network/value/value.hpp>
 #include <ossia/network/value/value_conversion.hpp>
 
 #include <boost/container/static_vector.hpp>
-#include <boost/mp11.hpp>
-#include <boost/multi_array.hpp>
-#include <boost/predef.h>
 
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
 
 #include <algorithm>
-#include <array>
-#include <numeric>
+#include <limits>
+#include <optional>
+#include <utility>
+#include <vector>
 
 namespace avnd_tools
 {
 
-#if BOOST_COMP_GNUC
-inline constexpr std::size_t g_table_max_dimensions = 4;
-#else
 inline constexpr std::size_t g_table_max_dimensions = 16;
-#endif
 
 using index_vec_type = boost::container::static_vector<int64_t, g_table_max_dimensions>;
 using extent_vec_type
@@ -31,331 +25,198 @@ using extent_vec_type
 
 namespace detail
 {
-// Generate a variant type containing multi_array<T, 1> through multi_array<T, MaxDims>
-template <typename T, std::size_t MaxDims>
-struct make_multi_array_variant
+template <typename T>
+struct table_buffer
 {
-  template <std::size_t N>
-  using array_type = boost::multi_array<T, N + 1>;
-
-  using indices = boost::mp11::mp_iota_c<MaxDims>;
-
-  template <typename I>
-  using apply_array = array_type<I::value>;
-
-  using type
-      = boost::mp11::mp_rename<boost::mp11::mp_transform<apply_array, indices>,
-                               ossia::slow_variant>;
-};
-
-template <typename T, std::size_t MaxDims>
-using multi_array_variant_t = typename make_multi_array_variant<T, MaxDims>::type;
-
-// Recursive element accessor: applies indices[0], indices[1], ... to get the element
-template <std::size_t Dim, std::size_t CurrentIdx = 0>
-struct element_accessor
-{
-  template <typename ArrayView, typename IndexVec>
-  static auto& get(ArrayView& view, const IndexVec& indices)
-  {
-    if constexpr(CurrentIdx + 1 >= Dim)
-    {
-      return view[indices[CurrentIdx]];
-    }
-    else
-    {
-      auto sub = view[indices[CurrentIdx]];
-      return element_accessor<Dim, CurrentIdx + 1>::get(sub, indices);
-    }
-  }
-
-  template <typename ArrayView, typename IndexVec>
-  static const auto& get(const ArrayView& view, const IndexVec& indices)
-  {
-    if constexpr(CurrentIdx + 1 >= Dim)
-    {
-      return view[indices[CurrentIdx]];
-    }
-    else
-    {
-      const auto& sub = view[indices[CurrentIdx]];
-      return element_accessor<Dim, CurrentIdx + 1>::get(sub, indices);
-    }
-  }
-};
-
-// Bounds checker for N dimensions
-template <std::size_t Dim>
-struct bounds_checker
-{
-  template <typename Shape, typename IndexVec>
-  static bool check(const Shape& shape, const IndexVec& indices)
-  {
-    for(std::size_t i = 0; i < Dim; ++i)
-    {
-      if(indices[i] < 0 || static_cast<std::size_t>(indices[i]) >= shape[i])
-        return false;
-    }
-    return true;
-  }
-
-  template <typename IndexVec>
-  static bool check_positive(const IndexVec& indices)
-  {
-    for(std::size_t i = 0; i < Dim; ++i)
-    {
-      if(indices[i] < 0 || indices[i] >= INT_MAX)
-        return false;
-    }
-    return true;
-  }
-};
-
-// Extent generator for resize operations
-template <std::size_t Dim>
-struct extent_generator
-{
-  template <typename IndexVec>
-  static auto make_extents(const IndexVec& sizes)
-  {
-    boost::array<std::size_t, Dim> extents;
-    for(std::size_t i = 0; i < Dim; ++i)
-    {
-      extents[i] = static_cast<std::size_t>(sizes[i]);
-    }
-    return extents;
-  }
-};
-
-// Shape comparison for resize determination
-template <std::size_t Dim>
-struct needs_resize_check
-{
-  template <typename Shape, typename IndexVec>
-  static bool check(const Shape& shape, const IndexVec& indices)
-  {
-    for(std::size_t i = 0; i < Dim; ++i)
-    {
-      if(static_cast<std::size_t>(indices[i]) >= shape[i])
-        return true;
-    }
-    return false;
-  }
-
-  template <typename Shape, typename IndexVec>
-  static auto compute_new_extents(const Shape& current_shape, const IndexVec& indices)
-  {
-    boost::array<std::size_t, Dim> new_extents;
-    for(std::size_t i = 0; i < Dim; ++i)
-    {
-      new_extents[i]
-          = std::max(current_shape[i], static_cast<std::size_t>(indices[i]) + 1);
-    }
-    return new_extents;
-  }
+  std::size_t dimensions{1};
+  extent_vec_type extents{0};
+  std::vector<T> values;
 };
 
 template <typename T>
 struct table_operations
 {
-  using variant_type = multi_array_variant_t<T, g_table_max_dimensions>;
+  using buffer_type = table_buffer<T>;
+
+  static std::optional<std::size_t>
+  element_count(const extent_vec_type& extents)
+  {
+    std::size_t count = 1;
+    for(const std::size_t extent : extents)
+    {
+      if(extent == 0)
+        return 0;
+      if(count > std::numeric_limits<std::size_t>::max() / extent)
+        return std::nullopt;
+      count *= extent;
+    }
+    return count;
+  }
+
+  static std::optional<std::size_t>
+  flat_index(const buffer_type& buffer, const index_vec_type& cursor)
+  {
+    if(cursor.size() != buffer.dimensions)
+      return std::nullopt;
+
+    std::size_t result = 0;
+    for(std::size_t i = 0; i < buffer.dimensions; ++i)
+    {
+      if(cursor[i] < 0
+         || static_cast<std::size_t>(cursor[i]) >= buffer.extents[i])
+        return std::nullopt;
+      result = result * buffer.extents[i] + static_cast<std::size_t>(cursor[i]);
+    }
+    return result;
+  }
 
   template <typename OutputPort>
-  static bool read(variant_type& buffer, const index_vec_type& cursor, OutputPort& output)
+  static bool
+  read(const buffer_type& buffer, const index_vec_type& cursor, OutputPort& output)
   {
-    return ossia::visit(
-        [&](auto& arr) -> bool {
-          constexpr std::size_t Dim = std::remove_reference_t<decltype(arr)>::dimensionality;
-
-          if(cursor.size() != Dim)
-            return false;
-
-          if(arr.num_elements() == 0)
-            return false;
-
-          const auto* shape = arr.shape();
-          if(!bounds_checker<Dim>::check(shape, cursor))
-            return false;
-
-          output.value = element_accessor<Dim>::get(arr, cursor);
-          return true;
-        },
-        buffer);
+    const auto index = flat_index(buffer, cursor);
+    if(!index)
+      return false;
+    output.value = buffer.values[*index];
+    return true;
   }
 
-  static void set(variant_type& buffer, const index_vec_type& cursor, const T& value)
+  static void set(buffer_type& buffer, const index_vec_type& cursor, const T& value)
   {
-    ossia::visit(
-        [&](auto& arr) {
-          constexpr std::size_t Dim = std::remove_reference_t<decltype(arr)>::dimensionality;
+    if(cursor.size() != buffer.dimensions)
+      return;
 
-          if(cursor.size() != Dim)
-            return;
+    extent_vec_type new_extents = buffer.extents;
+    bool needs_resize = false;
+    for(std::size_t i = 0; i < buffer.dimensions; ++i)
+    {
+      if(cursor[i] < 0
+         || cursor[i] >= std::numeric_limits<int>::max())
+        return;
 
-          if(!bounds_checker<Dim>::check_positive(cursor))
-            return;
+      const std::size_t required = static_cast<std::size_t>(cursor[i]) + 1;
+      if(required > new_extents[i])
+      {
+        new_extents[i] = required;
+        needs_resize = true;
+      }
+    }
 
-          const auto* shape = arr.shape();
+    if(needs_resize)
+      resize(buffer, new_extents);
 
-          if(arr.num_elements() == 0 || needs_resize_check<Dim>::check(shape, cursor))
-          {
-            // Compute new extents
-            boost::array<std::size_t, Dim> new_extents;
-            if(arr.num_elements() == 0)
-            {
-              for(std::size_t i = 0; i < Dim; ++i)
-                new_extents[i] = static_cast<std::size_t>(cursor[i]) + 1;
-            }
-            else
-            {
-              new_extents = needs_resize_check<Dim>::compute_new_extents(shape, cursor);
-            }
-            arr.resize(new_extents);
-          }
-
-          element_accessor<Dim>::get(arr, cursor) = value;
-        },
-        buffer);
+    if(const auto index = flat_index(buffer, cursor))
+      buffer.values[*index] = value;
   }
 
-  static extent_vec_type get_shape(const variant_type& buffer)
+  static extent_vec_type get_shape(const buffer_type& buffer)
   {
-    return ossia::visit(
-        [](const auto& arr) -> extent_vec_type {
-          constexpr std::size_t Dim = std::remove_reference_t<decltype(arr)>::dimensionality;
-          extent_vec_type result;
-          const auto* shape = arr.shape();
-          for(std::size_t i = 0; i < Dim; ++i)
-            result.push_back(shape[i]);
-          return result;
-        },
-        buffer);
+    return buffer.extents;
   }
 
-  static std::size_t num_elements(const variant_type& buffer)
+  static std::size_t num_elements(const buffer_type& buffer)
   {
-    return ossia::visit([](const auto& arr) { return arr.num_elements(); }, buffer);
+    return buffer.values.size();
   }
 
-  static void clear(variant_type& buffer)
+  static void clear(buffer_type& buffer)
   {
-    ossia::visit(
-        [](auto& arr) {
-          constexpr std::size_t Dim = std::remove_reference_t<decltype(arr)>::dimensionality;
-          boost::array<std::size_t, Dim> zero_extents;
-          zero_extents.fill(0);
-          arr.resize(zero_extents);
-        },
-        buffer);
+    buffer.extents.assign(buffer.dimensions, 0);
+    buffer.values.clear();
   }
 
-  static void resize(variant_type& buffer, const extent_vec_type& extents)
+  static void resize(buffer_type& buffer, const extent_vec_type& extents)
   {
-    ossia::visit(
-        [&](auto& arr) {
-          constexpr std::size_t Dim = std::remove_reference_t<decltype(arr)>::dimensionality;
+    if(extents.size() != buffer.dimensions || extents == buffer.extents)
+      return;
 
-          if(extents.size() != Dim)
-            return;
+    const auto count = element_count(extents);
+    if(!count)
+      return;
 
-          boost::array<std::size_t, Dim> new_extents;
-          for(std::size_t i = 0; i < Dim; ++i)
-            new_extents[i] = extents[i];
-          arr.resize(new_extents);
-        },
-        buffer);
+    std::vector<T> new_values(*count);
+    index_vec_type coordinates(buffer.dimensions, 0);
+    for(std::size_t old_index = 0; old_index < buffer.values.size(); ++old_index)
+    {
+      std::size_t remainder = old_index;
+      bool preserved = true;
+      for(std::size_t i = buffer.dimensions; i-- > 0;)
+      {
+        coordinates[i] = static_cast<int64_t>(remainder % buffer.extents[i]);
+        remainder /= buffer.extents[i];
+        if(static_cast<std::size_t>(coordinates[i]) >= extents[i])
+          preserved = false;
+      }
+
+      if(preserved)
+      {
+        std::size_t new_index = 0;
+        for(std::size_t i = 0; i < buffer.dimensions; ++i)
+          new_index = new_index * extents[i]
+                      + static_cast<std::size_t>(coordinates[i]);
+        new_values[new_index] = std::move(buffer.values[old_index]);
+      }
+    }
+
+    buffer.extents = extents;
+    buffer.values = std::move(new_values);
   }
 
-  static void fill(variant_type& buffer, const T& value)
+  static void fill(buffer_type& buffer, const T& value)
   {
-    ossia::visit(
-        [&](auto& arr) { std::fill(arr.data(), arr.data() + arr.num_elements(), value); },
-        buffer);
+    std::fill(buffer.values.begin(), buffer.values.end(), value);
   }
 
-  static std::vector<T> to_vector(const variant_type& buffer)
+  static ossia::value dump(const buffer_type& buffer)
   {
-    return ossia::visit(
-        [](const auto& arr) -> std::vector<T> {
-          return std::vector<T>(arr.data(), arr.data() + arr.num_elements());
-        },
-        buffer);
-  }
-
-  // Dump the array as nested vectors: vector<vector<...vector<T>...>>
-  // Returns ossia::value containing the nested structure
-  static ossia::value dump(const variant_type& buffer)
-  {
-    return ossia::visit(
-        [](const auto& arr) -> ossia::value {
-          constexpr std::size_t Dim
-              = std::remove_reference_t<decltype(arr)>::dimensionality;
-          return dump_impl<Dim>(arr);
-        },
-        buffer);
+    return dump_impl(buffer, 0, 0);
   }
 
 private:
-  // Recursive dump implementation
-  template <std::size_t Dim, typename Array>
-  static ossia::value dump_impl(const Array& arr)
+  static ossia::value
+  dump_impl(const buffer_type& buffer, std::size_t dimension, std::size_t offset)
   {
-    const auto* shape = arr.shape();
+    std::vector<ossia::value> result;
+    result.reserve(buffer.extents[dimension]);
 
-    if constexpr(Dim == 1)
+    if(dimension + 1 == buffer.dimensions)
     {
-      // Base case: 1D array -> vector of values
-      std::vector<ossia::value> result;
-      result.reserve(shape[0]);
-      for(std::size_t i = 0; i < shape[0]; ++i)
-        result.push_back(arr[i]);
-      return result;
+      for(std::size_t i = 0; i < buffer.extents[dimension]; ++i)
+        result.push_back(buffer.values[offset + i]);
     }
     else
     {
-      // Recursive case: N-D array -> vector of (N-1)-D dumps
-      std::vector<ossia::value> result;
-      result.reserve(shape[0]);
-      for(std::size_t i = 0; i < shape[0]; ++i)
-      {
-        result.push_back(dump_impl<Dim - 1>(arr[i]));
-      }
-      return result;
+      std::size_t stride = 1;
+      for(std::size_t i = dimension + 1; i < buffer.dimensions; ++i)
+        stride *= buffer.extents[i];
+
+      for(std::size_t i = 0; i < buffer.extents[dimension]; ++i)
+        result.push_back(dump_impl(buffer, dimension + 1, offset + i * stride));
     }
+    return result;
   }
 };
 
 template <typename T>
 struct dimension_changer
 {
-  using variant_type = multi_array_variant_t<T, g_table_max_dimensions>;
+  using buffer_type = table_buffer<T>;
 
-  static void change_dimensions(variant_type& buffer, std::size_t new_dims)
+  static void change_dimensions(buffer_type& buffer, std::size_t new_dims)
   {
     if(new_dims < 1 || new_dims > g_table_max_dimensions)
       return;
 
-    // Use mp_with_index to dispatch to the correct dimension at compile time
-    boost::mp11::mp_with_index<g_table_max_dimensions>(new_dims - 1, [&](auto I) {
-      constexpr std::size_t Dim = I.value + 1;
-      using new_array_type = boost::multi_array<T, Dim>;
-
-      // Create empty array with the new dimensionality
-      new_array_type new_arr;
-      buffer = std::move(new_arr);
-    });
+    buffer.dimensions = new_dims;
+    buffer.extents.assign(new_dims, 0);
+    buffer.values.clear();
   }
 
-  static std::size_t current_dimensions(const variant_type& buffer)
+  static std::size_t current_dimensions(const buffer_type& buffer)
   {
-    return ossia::visit(
-        [](const auto& arr) -> std::size_t {
-          return std::remove_reference_t<decltype(arr)>::dimensionality;
-        },
-        buffer);
+    return buffer.dimensions;
   }
 };
-
 }
 
 struct Table
@@ -453,7 +314,7 @@ struct Table
     halp::val_port<"Size", int64_t> size;
   } outputs;
 
-  detail::multi_array_variant_t<value_type, g_table_max_dimensions> buffer;
+  detail::table_buffer<value_type> buffer;
 
   void clear_cell(const index_vec_type& indices)
   {
