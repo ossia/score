@@ -33,10 +33,10 @@ FileKind guessFileKind(const QString& path) noexcept
   if(ext.isEmpty())
     return FileKind::Unknown;
 
-  static const QSet<QString> audio{
-      "wav",  "aif", "aiff", "aifc", "flac", "ogg", "oga", "opus", "mp3", "m4a",
-      "aac",  "wv",  "ape",  "caf",  "w64",  "rf64", "au", "snd",  "mp2", "wma",
-      "voc",  "iff", "8svx", "sf2",  "sfz",  "mpc"};
+  static const QSet<QString> audio{"wav", "aif",  "aiff", "aifc", "caf", "flac", "ogg",
+                                   "oga", "opus", "mp3",  "m4a",  "aac", "wv",   "ape",
+                                   "caf", "w64",  "rf64", "au",   "snd", "mp2",  "wma",
+                                   "voc", "iff",  "8svx", "sf2",  "sfz", "mpc"};
   static const QSet<QString> video{
       "mp4", "mov", "avi", "mkv", "webm", "mpg", "mpeg", "m4v",
       "wmv", "flv", "ogv", "mxf", "dv",   "m2v", "mts",  "vob"};
