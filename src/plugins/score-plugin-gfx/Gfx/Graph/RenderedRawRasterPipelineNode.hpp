@@ -42,6 +42,8 @@ struct RenderedRawRasterPipelineNode : score::gfx::NodeRenderer
 
   void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& edge) override;
 
+  QRhiGraphicsPipeline::CompareOp depthCompare() const noexcept override;
+
   void process(int32_t port, const ossia::transform3d& v) override;
 
 private:

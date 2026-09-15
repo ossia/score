@@ -253,6 +253,7 @@ score_add_gfx_test(indirect_draw_bench GfxIndirectDrawBench.cpp)
 # Depth-clear polarity: the only coverage of it in the suite.
 score_add_gfx_test(review_render_targets_depth GfxReviewRenderTargetsDepth.cpp)
 
+
 # Render-target cases 01-07. Each case states a contract of its own, and the
 # red ones are declared in cmake/ScoreExpectedRedGuard.cmake with a mechanism
 # rather than a citation.
@@ -549,6 +550,32 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
   target_compile_definitions(test_gfx_crousti_cpu_nodes PRIVATE
     GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
   target_include_directories(test_gfx_crousti_cpu_nodes SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
+# The depth clear of the pass RenderList opens on a SINK's render target.
+# Needs the same threedim scaffolding as the Crousti target above.
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  set(_3d_sd "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
+  score_plugin_hidden_sources(_sinkdepth_hidden "${_3d_sd}/Primitive.cpp")
+  score_add_test(test_gfx_sink_depth_clear_polarity
+    SOURCES
+      GfxSinkDepthClearPolarity.cpp
+      ${_sinkdepth_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_sink_depth_clear_polarity PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_sink_depth_clear_polarity SYSTEM PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
     "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"

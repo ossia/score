@@ -49,7 +49,19 @@ QStringList shaderIncludePaths()
     const auto subdirs = packagesDir.entryList(
         QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
     for(const auto& sub : subdirs)
-      shaderIncludePath.append(packagesDir.filePath(sub));
+    {
+      const QString pkg = packagesDir.filePath(sub);
+      shaderIncludePath.append(pkg);
+
+      // Conventional header dirs only; a whole tree on the search path makes
+      // every basename collision a silent wrong-header include.
+      for(const char* inc : {"shaderlib/include", "include"})
+      {
+        const QString sub_inc = pkg + QDir::separator() + QString::fromUtf8(inc);
+        if(QDir{}.exists(sub_inc))
+          shaderIncludePath.append(sub_inc);
+      }
+    }
   }
 
   return shaderIncludePath;

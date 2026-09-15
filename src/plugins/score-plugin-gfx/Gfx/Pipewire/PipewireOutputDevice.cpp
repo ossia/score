@@ -1421,7 +1421,9 @@ struct PwWireRenderer final : score::gfx::OutputNodeRenderer
   {
     m_renderTarget = score::gfx::createRenderTarget(
         renderer.state, m_wireFormat, m_inputTarget.texture->pixelSize(),
-        renderer.samples(), renderer.requiresDepth(*this->node.input[0]));
+        renderer.samples(),
+        renderer.requiresDepth(*this->node.input[0])
+            || renderer.anyNodeRequiresDepth());
 
     const auto& mesh = renderer.defaultTriangle();
     m_mesh = renderer.initMeshBuffer(mesh, res);

@@ -963,6 +963,13 @@ void Graph::reconcileAllRenderLists()
     rl->nodes.push_back(outputNode);
     graphwalk(rl->nodes);
 
+    {
+      bool requiresDepth = false;
+      for(auto* node : rl->nodes)
+        requiresDepth |= node->requiresDepth;
+      rl->markRequiresDepth(requiresDepth);
+    }
+
     ossia::flat_set<Node*> reachable(rl->nodes.begin(), rl->nodes.end());
     // Collect all nodes that have renderers for this RL
     std::vector<Node*> nodesWithRenderers;

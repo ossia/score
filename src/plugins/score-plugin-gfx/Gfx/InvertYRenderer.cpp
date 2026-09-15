@@ -44,7 +44,9 @@ void InvertYRenderer::init(
 
   m_renderTarget = score::gfx::createRenderTarget(
       renderer.state, renderer.state.renderFormat, m_inputTarget.texture->pixelSize(),
-      renderer.samples(), renderer.requiresDepth(*this->node.input[0]));
+      renderer.samples(),
+      renderer.requiresDepth(*this->node.input[0])
+          || renderer.anyNodeRequiresDepth());
 
   // The backend can refuse the configuration -- createRenderTarget says so and
   // hands back an empty target. There is nothing to render into, so stop here
@@ -163,7 +165,9 @@ void ScaledRenderer::init(score::gfx::RenderList &renderer, QRhiResourceUpdateBa
 {
   m_inputTarget = score::gfx::createRenderTarget(
       renderer.state, renderer.state.renderFormat, renderer.state.renderSize,
-      renderer.samples(), renderer.requiresDepth(*this->node.input[0]));
+      renderer.samples(),
+      renderer.requiresDepth(*this->node.input[0])
+          || renderer.anyNodeRequiresDepth());
 
   const auto& mesh = renderer.defaultTriangle();
   m_mesh = renderer.initMeshBuffer(mesh, res);

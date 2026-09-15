@@ -1386,7 +1386,10 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
           if(rt)
           {
             QColor bg = (it + 1 == this->nodes.rend() ? Qt::black : Qt::transparent);
-            commands.beginPass(rt.renderTarget, bg, {1.0f, 0}, updateBatch);
+            commands.beginPass(
+                rt.renderTarget, bg,
+                {depthClearForCompare(QRhiGraphicsPipeline::Greater), 0},
+                updateBatch);
             updateBatch = nullptr;
             commands.endPass(updateBatch);
             updateBatch = nullptr;
@@ -1468,9 +1471,30 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
             if(rt)
             {
               QColor bg = (it + 1 == this->nodes.rend() ? Qt::black : Qt::transparent);
+              auto passCompare = QRhiGraphicsPipeline::Greater;
+              bool compareSeen = false, compareMixed = false;
+              for(auto [edge, prev_renderer] : prevRenderers)
+              {
+                const auto c = prev_renderer->depthCompare();
+                if(!compareSeen)
+                {
+                  passCompare = c;
+                  compareSeen = true;
+                }
+                else if(c != passCompare)
+                {
+                  compareMixed = true;
+                }
+              }
+              if(compareMixed)
+              {
+                qWarning() << "RenderList: nodes drawing into one pass declare "
+                              "different DEPTH_COMPARE; clearing depth for the "
+                              "reverse-Z default";
+                passCompare = QRhiGraphicsPipeline::Greater;
+              }
               commands.beginPass(
-                  rt.renderTarget, bg,
-                  {depthClearForCompare(QRhiGraphicsPipeline::Greater), 0},
+                  rt.renderTarget, bg, {depthClearForCompare(passCompare), 0},
                   updateBatch);
               updateBatch = nullptr;
 

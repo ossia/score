@@ -315,10 +315,13 @@ public:
   [[nodiscard]] bool isBuilt() const noexcept { return m_built; }
 
   /// Set the "any node requires depth" flag computed from the node graph.
-  /// Mirrors what maybeRebuild() recomputes; called from
-  /// Graph::createRenderList so the freshly-built RL doesn't need a
-  /// first-frame maybeRebuild to populate it.
-  void markRequiresDepth(bool value) noexcept { m_requiresDepth = value; }
+  /// Rising invalidates the build: targets allocated without depth are stale.
+  void markRequiresDepth(bool value) noexcept
+  {
+    if(value && !m_requiresDepth)
+      m_built = false;
+    m_requiresDepth = value;
+  }
 
   /// Notify that an edge was removed. Notifies renderers, releases RT if unused.
   ///
