@@ -328,6 +328,7 @@ export APP_COPYRIGHT
 export APP_DESCRIPTION
 export APP_ORGANIZATION
 export APP_DOMAIN
+APP_ENVIRONMENT_BASE="$APP_ENVIRONMENT"
 export APP_ENVIRONMENT
 export APP_IDENTIFIER
 export APP_ICON_ICO
@@ -352,6 +353,27 @@ for platform in "${PLATFORMS[@]}"; do
     echo
     echo "Building for platform: $platform"
     echo "--------------------------------------"
+
+    # An app can need a different environment per OS -- e.g. a graphics backend that
+    # only exists on some of them. If <env>.<os> sits next to the file given to
+    # --app-environment, append it so it can override the shared settings. The Windows
+    # launcher parses the result as plain KEY=VALUE, so shell conditionals inside one
+    # file are not an option.
+    APP_ENVIRONMENT="$APP_ENVIRONMENT_BASE"
+    if [[ -n "$APP_ENVIRONMENT_BASE" ]]; then
+        case "$platform" in
+            linux-*)  _env_os=linux   ;;
+            macos-*)  _env_os=macos   ;;
+            windows|windows-*) _env_os=windows ;;
+            *)        _env_os=""      ;;
+        esac
+        if [[ -n "$_env_os" && -f "$APP_ENVIRONMENT_BASE.$_env_os" ]]; then
+            APP_ENVIRONMENT="$(mktemp)"
+            cat "$APP_ENVIRONMENT_BASE" "$APP_ENVIRONMENT_BASE.$_env_os" > "$APP_ENVIRONMENT"
+            echo "  environment: base + $(basename "$APP_ENVIRONMENT_BASE.$_env_os")"
+        fi
+    fi
+    export APP_ENVIRONMENT
 
     case "$platform" in
         linux-x86_64|linux-aarch64)
