@@ -8,6 +8,8 @@
 
 #include <QByteArray>
 
+#include <deque>
+
 #include <vector>
 
 namespace Gris
@@ -196,7 +198,9 @@ public:
 
 private:
   int m_sourceCount{};
-  std::vector<ossia::value_inlet> m_sourcePorts;
+  // deque, not vector: ossia::value_inlet is neither copyable nor movable, and
+  // the node hands out pointers to these, so they must never relocate.
+  std::deque<ossia::value_inlet> m_sourcePorts;
   std::vector<std::pair<float, float>> m_spans{
       std::size_t(SpatModel::maxSourceCount), {0.f, 0.f}};
 

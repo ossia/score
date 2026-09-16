@@ -6,6 +6,8 @@
 #include <Gris/Model.hpp>
 #include <Gris/SpeakerSetupInlet.hpp>
 
+#include <Dataflow/WidgetInletFactory.hpp>
+
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
 #include <Process/GenericProcessFactory.hpp>

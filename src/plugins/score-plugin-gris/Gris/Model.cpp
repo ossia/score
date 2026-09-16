@@ -19,11 +19,11 @@ SpatModel::SpatModel(
     const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
     : Process::ProcessModel{duration, id, "GrisSpat", parent}
 {
-  m_inlets.push_back(new Process::AudioInlet{Id<Process::Port>(0), this});
+  m_inlets.push_back(new Process::AudioInlet{tr("Sources"), Id<Process::Port>(0), this});
   m_inlets.push_back(new SpeakerSetupInlet{tr("Speaker setup"), Id<Process::Port>(1), this});
   m_inlets.push_back(new Process::FloatSlider{
       0.f, 1.f, 0.f, tr("Interpolation"), Id<Process::Port>(2), this});
-  m_outlets.push_back(new Process::AudioOutlet{Id<Process::Port>(0), this});
+  m_outlets.push_back(new Process::AudioOutlet{tr("Speakers"), Id<Process::Port>(0), this});
   safe_cast<Process::AudioOutlet*>(m_outlets.back())->setPropagate(true);
 
   int nextId = FixedInletCount;
