@@ -618,6 +618,7 @@ bool remapPipelineVertexInputs(
   const auto& prevLayout = pip.vertexInputLayout();
   inputLayout.setBindings(prevLayout.cbeginBindings(), prevLayout.cendBindings());
   inputLayout.setAttributes(remappedAttrs.begin(), remappedAttrs.end());
+  warnOrphanVertexBindings(inputLayout, "remapPipelineVertexInputs(keep-bindings)");
   pip.setVertexInputLayout(inputLayout);
   return true;
 }
@@ -660,6 +661,7 @@ bool remapPipelineVertexInputs(
   const auto& prevLayout = pip.vertexInputLayout();
   inputLayout.setBindings(prevLayout.cbeginBindings(), prevLayout.cendBindings());
   inputLayout.setAttributes(remappedAttrs.begin(), remappedAttrs.end());
+  warnOrphanVertexBindings(inputLayout, "remapPipelineVertexInputs(keep-bindings)");
   pip.setVertexInputLayout(inputLayout);
   return true;
 }
@@ -903,8 +905,26 @@ bool remapPipelineVertexInputs(
   QRhiVertexInputLayout inputLayout;
   inputLayout.setBindings(bindings.begin(), bindings.end());
   inputLayout.setAttributes(remappedAttrs.begin(), remappedAttrs.end());
+  warnOrphanVertexBindings(inputLayout, "remapPipelineVertexInputs");
   pip.setVertexInputLayout(inputLayout);
   return true;
+}
+
+void warnOrphanVertexBindings(
+    const QRhiVertexInputLayout& layout, const char* where) noexcept
+{
+  const int n = int(std::distance(layout.cbeginBindings(), layout.cendBindings()));
+  QVarLengthArray<bool> used(n);
+  std::fill(used.begin(), used.end(), false);
+  for(auto it = layout.cbeginAttributes(); it != layout.cendAttributes(); ++it)
+    if(it->binding() >= 0 && it->binding() < n)
+      used[it->binding()] = true;
+
+  int i = 0;
+  for(auto it = layout.cbeginBindings(); it != layout.cendBindings(); ++it, ++i)
+    if(!used[i])
+      qWarning() << where << ": vertex binding" << i << "(stride" << it->stride()
+                 << ") has no attribute reading it; Metal rejects this pipeline";
 }
 
 Pipeline buildPipeline(
