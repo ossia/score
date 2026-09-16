@@ -32,6 +32,8 @@ namespace Media
 // expensive?
 static DecodingMethod needsDecoding(const QString& path, int rate)
 {
+  const auto sz = QFileInfo{path}.size();
+
 #if defined(__EMSCRIPTEN__)
   // wasm/MEMFS policy:
   //  - mmap (drwav) is unavailable/unsafe over MEMFS -> never choose it,
@@ -39,13 +41,13 @@ static DecodingMethod needsDecoding(const QString& path, int rate)
   //    heap: route >48MB and all video to LibavStream (lazy, on-demand decode),
   //  - small files decode fully to RAM (Libav) for fast random access / waveform.
   {
-    const auto sz = QFileInfo{path}.size();
     constexpr qint64 large_threshold = 48ll * 1024 * 1024;
     if(sz > large_threshold || AudioFile::isSupportedVideo(QFile{path}))
       return DecodingMethod::LibavStream;
     return DecodingMethod::Libav;
   }
 #else
+  constexpr qint64 large_threshold = 4096ll * 1024 * 1024;
   if(path.endsWith("wav", Qt::CaseInsensitive)
      || path.endsWith("w64", Qt::CaseInsensitive))
   {
@@ -53,6 +55,8 @@ static DecodingMethod needsDecoding(const QString& path, int rate)
 
     if(info && info->fileRate == rate)
       return DecodingMethod::Mmap;
+    else if(sz > large_threshold)
+        return DecodingMethod::LibavStream;
     else
       return DecodingMethod::Libav;
   }
@@ -63,15 +67,17 @@ static DecodingMethod needsDecoding(const QString& path, int rate)
     const auto& info = probe(path);
     if(info && info->fileRate == rate)
       return DecodingMethod::Sndfile;
+    else if(sz > large_threshold)
+      return DecodingMethod::LibavStream;
     else
       return DecodingMethod::Libav;
   }
   else
   {
     if(AudioFile::isSupportedVideo(QFile{path}))
-    {
       return DecodingMethod::LibavStream;
-    }
+    else if(sz > large_threshold)
+      return DecodingMethod::LibavStream;
     else
       return DecodingMethod::Libav;
   }
