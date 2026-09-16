@@ -29,8 +29,7 @@ std::vector<score::InterfaceBase*> score_plugin_gris::factories(
   return instantiate_factories<
       score::ApplicationContext,
       FW<Process::ProcessModelFactory, Process::ProcessFactory_T<Gris::SpatModel>>,
-      FW<Process::LayerFactory,
-         Process::EffectLayerFactory_T<Gris::SpatModel, Process::DefaultEffectItem>>,
+      FW<Process::LayerFactory, Process::EffectLayerFactory_T<Gris::SpatModel>>,
       FW<Process::PortFactory,
          Dataflow::WidgetInletFactory<
              Gris::SpeakerSetupInlet, WidgetFactory::SpeakerSetupWidget>>,

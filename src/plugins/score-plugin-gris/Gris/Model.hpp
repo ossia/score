@@ -78,7 +78,7 @@ public:
     return FixedInletCount + source * SourceInletCount;
   }
 
-  PROPERTY(
+  W_PROPERTY(
       int, sourceCount READ sourceCount WRITE setSourceCount NOTIFY sourceCountChanged)
 
 private:

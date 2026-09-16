@@ -31,13 +31,15 @@ SpatModel::SpatModel(
     addSourcePorts(source, nextId);
 
   init();
+  metadata().setInstanceName(*this);
 }
 
 SpatModel::~SpatModel() = default;
 
 void SpatModel::init()
 {
-  metadata().setInstanceName(*this);
+  // Shared by the constructor and the deserialising ones; the instance name is
+  // set only on creation, as elsewhere in score.
 }
 
 SpeakerSetupInlet& SpatModel::speakerSetupInlet() const noexcept

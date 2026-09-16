@@ -3,19 +3,22 @@
 #include <Gris/Commands.hpp>
 #include <Gris/Model.hpp>
 
-#include <Inspector/InspectorWidgetBase.hpp>
-#include <Inspector/InspectorWidgetFactoryInterface.hpp>
+#include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
+#include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/tools/Bind.hpp>
 #include <score/widgets/SignalUtils.hpp>
+
+#include <QSignalBlocker>
 
 #include <QFormLayout>
 #include <QSpinBox>
 
 namespace Gris
 {
-class InspectorWidget final : public Inspector::InspectorWidgetDelegate_T<SpatModel>
+class InspectorWidget final : public Process::InspectorWidgetDelegate_T<SpatModel>
 {
 public:
   explicit InspectorWidget(
@@ -52,7 +55,7 @@ private:
 };
 
 class InspectorFactory final
-    : public Inspector::InspectorWidgetFactory_T<SpatModel, InspectorWidget>
+    : public Process::InspectorWidgetDelegateFactory_T<SpatModel, InspectorWidget>
 {
   SCORE_CONCRETE("7f2a1d63-84c9-4b05-a1de-3e9c07b5d2fa")
 };
