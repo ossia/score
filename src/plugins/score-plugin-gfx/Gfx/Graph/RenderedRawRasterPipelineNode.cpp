@@ -24,6 +24,32 @@
 
 namespace score::gfx
 {
+namespace
+{
+//! Metal shares one 31-entry buffer table per stage between shader resources
+//! and vertex buffers, and Qt places vertex buffers at srb maxBinding + 1.
+bool checkMetalBufferBudget(
+    QRhi& rhi, int max_binding, const QRhiGraphicsPipeline& ps,
+    const isf::descriptor& desc) noexcept
+{
+  if(rhi.backend() != QRhi::Metal)
+    return true;
+
+  const auto& layout = ps.vertexInputLayout();
+  const int vtx = int(std::distance(layout.cbeginBindings(), layout.cendBindings()));
+  const int top = max_binding + vtx;
+  if(top <= 31)
+    return true;
+
+  qWarning() << "RawRaster: this shader needs Metal buffer slot" << top
+             << "but the table holds 31;" << max_binding
+             << "resource bindings +" << vtx
+             << "vertex bindings. Skipping the pipeline."
+             << QString::fromStdString(desc.description);
+  return false;
+}
+}
+
 
 static const constexpr auto rrp_blit_vs = R"_(#version 450
 layout(location = 0) in vec2 position;
@@ -570,6 +596,13 @@ void RenderedRawRasterPipelineNode::initPass(
           return;
         }
       }
+    }
+
+    if(!checkMetalBufferBudget(rhi, max_binding, *ps, n.descriptor()))
+    {
+      delete ps;
+      delete pubo;
+      return;
     }
 
     ps->setShaderStages({{QRhiShaderStage::Vertex, v}, {QRhiShaderStage::Fragment, s}});
@@ -1738,6 +1771,13 @@ void RenderedRawRasterPipelineNode::initMRTPass(
           return;
         }
       }
+    }
+
+    if(!checkMetalBufferBudget(rhi, max_binding, *ps, n.descriptor()))
+    {
+      delete ps;
+      delete pubo;
+      return;
     }
 
     ps->setShaderStages({{QRhiShaderStage::Vertex, v}, {QRhiShaderStage::Fragment, s}});
