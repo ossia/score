@@ -1,5 +1,6 @@
 #include <Gfx/Graph/Mesh.hpp>
 #include <Gfx/Graph/RhiIndirectCompat.hpp>
+#include <Gfx/Graph/Utils.hpp>
 #include <score/tools/Debug.hpp>
 
 #include <QDebug>
@@ -77,6 +78,7 @@ void BasicMesh::preparePipeline(QRhiGraphicsPipeline& pip) const noexcept
   inputLayout.setBindings(this->vertexBindings.begin(), this->vertexBindings.end());
   inputLayout.setAttributes(
       this->vertexAttributes.begin(), this->vertexAttributes.end());
+  warnOrphanVertexBindings(inputLayout, "Mesh::preparePipeline");
   pip.setVertexInputLayout(inputLayout);
 }
 

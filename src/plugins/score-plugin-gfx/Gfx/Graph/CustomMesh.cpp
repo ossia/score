@@ -594,6 +594,7 @@ void CustomMesh::preparePipeline(QRhiGraphicsPipeline &pip) const noexcept
   inputLayout.setBindings(this->vertexBindings.begin(), this->vertexBindings.end());
   inputLayout.setAttributes(
       this->vertexAttributes.begin(), this->vertexAttributes.end());
+  warnOrphanVertexBindings(inputLayout, "CustomMesh::preparePipeline");
   pip.setVertexInputLayout(inputLayout);
 }
 

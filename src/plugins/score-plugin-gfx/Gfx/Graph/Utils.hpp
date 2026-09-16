@@ -562,6 +562,11 @@ bool remapPipelineVertexInputs(
  * @brief Create a render pipeline following the score conventions for shaders and materials.
  */
 SCORE_PLUGIN_GFX_EXPORT
+//! Metal rejects a vertex buffer layout that no attribute reads; Vulkan and
+//! OpenGL accept it silently.
+SCORE_PLUGIN_GFX_EXPORT void warnOrphanVertexBindings(
+    const QRhiVertexInputLayout& layout, const char* where) noexcept;
+
 Pipeline buildPipeline(
     const RenderList& renderer, const Mesh& mesh, const QShader& vertexS,
     const QShader& fragmentS, const TextureRenderTarget& rt, QRhiBuffer* processUBO,
