@@ -41,6 +41,7 @@ struct RenderedCSFNode : score::gfx::NodeRenderer
   void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& edge) override;
 
 private:
+  void texreadProbe(RenderList& renderer, QRhiResourceUpdateBatch*& res);
   void initComputeSRBAndPasses(RenderList& renderer, QRhiResourceUpdateBatch& res);
   void createComputePipeline(RenderList& renderer);
   void createGraphicsPass(const TextureRenderTarget& rt, RenderList& renderer, Edge& edge, QRhiResourceUpdateBatch& res);

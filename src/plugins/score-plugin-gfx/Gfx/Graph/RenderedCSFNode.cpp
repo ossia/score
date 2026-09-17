@@ -1220,6 +1220,25 @@ void RenderedCSFNode::updateGeometryBindings(
         }
       }
 
+      if(Q_UNLIKELY(qEnvironmentVariableIsSet("SCORE_CSF_PPPROBE")))
+      {
+        QString ups;
+        if(upstream_mesh)
+          for(const auto& ua : upstream_mesh->attributes)
+          {
+            if(ua.binding < 0 || ua.binding >= (int)upstream_mesh->buffers.size())
+              continue;
+            if(auto* g = ossia::get_if<ossia::geometry::gpu_buffer>(
+                   &upstream_mesh->buffers[ua.binding].data))
+              ups += QString::asprintf("%p ", (void*)g->handle);
+          }
+        QString mine;
+        for(const auto& sb : binding.attribute_ssbos)
+          mine += QString::asprintf("%p/%d ", (void*)sb.buffer, (int)sb.owned);
+        qDebug("score.gfx: PPPROBE node=%p self_feedback=%d upstream=[ %s] mine=[ %s]",
+               (void*)this, (int)is_self_feedback, qPrintable(ups), qPrintable(mine));
+      }
+
       if(is_self_feedback)
       {
         binding.is_feedback_receiver = true;
@@ -1235,6 +1254,10 @@ void RenderedCSFNode::updateGeometryBindings(
             const int64_t elem_stride = std430ArrayStride(req.type, n.m_descriptor);
             const int count = ssbo.per_instance ? binding.instance_count : binding.vertex_count;
             const int64_t buf_size = elem_stride * count;
+            if(Q_UNLIKELY(qEnvironmentVariableIsSet("SCORE_CSF_PPPROBE")))
+              qDebug("score.gfx: PPALLOC attr=%s stride=%lld count=%d size=%lld %s",
+                     req.name.c_str(), (long long)elem_stride, count,
+                     (long long)buf_size, buf_size > 0 ? "ALLOC" : "SKIP");
             if(buf_size > 0)
             {
               auto* buf = renderer.state.rhi->newBuffer(
@@ -3736,6 +3759,11 @@ void RenderedCSFNode::buildComputeSrbBindings(
             // in the same frame.  After the frame we copy buffer->read_buffer.
             QRhiBuffer* read_buf = (ssbo.read_buffer && !binding.pending_initial_copy)
                 ? ssbo.read_buffer : ssbo.buffer;
+            if(Q_UNLIKELY(qEnvironmentVariableIsSet("SCORE_CSF_PPPROBE")))
+              qDebug("score.gfx: PPBIND node=%p attr=%s pending=%d rb=%p buf=%p -> in=%p %s",
+                     (void*)this, req.name.c_str(), (int)binding.pending_initial_copy,
+                     (void*)ssbo.read_buffer, (void*)ssbo.buffer, (void*)read_buf,
+                     read_buf == ssbo.buffer ? "ALIASED" : "distinct");
             if(read_buf == ssbo.buffer)
             {
               // Same physical buffer for both _in and _out (non-feedback in-place).
@@ -4822,6 +4850,77 @@ void RenderedCSFNode::runRenderPass(
   mesh.draw(graphicsPass.meshBuffers, commands);
 }
 
+
+static void csfTexreadDump(const QRhiReadbackResult& rb, const QString& label)
+{
+  const int w = rb.pixelSize.width(), h = rb.pixelSize.height();
+  const char* fmt = "?";
+  int bpp = 0;
+  switch(rb.format)
+  {
+    case QRhiTexture::RGBA8: fmt = "RGBA8"; bpp = 4; break;
+    case QRhiTexture::BGRA8: fmt = "BGRA8"; bpp = 4; break;
+    case QRhiTexture::RGBA16F: fmt = "RGBA16F"; bpp = 8; break;
+    case QRhiTexture::RGBA32F: fmt = "RGBA32F"; bpp = 16; break;
+    default: break;
+  }
+  qDebug("score.gfx: TEXREAD %s fmt=%s size=%dx%d bytes=%lld", qPrintable(label), fmt, w,
+         h, (long long)rb.data.size());
+  if(bpp == 0 || w <= 0 || h <= 0 || rb.data.size() < (qsizetype)bpp)
+    return;
+
+  const auto* base = reinterpret_cast<const uchar*>(rb.data.constData());
+  double sum = 0.0, peak = 0.0;
+  const qsizetype texels = rb.data.size() / bpp;
+  for(qsizetype i = 0; i < texels; i++)
+  {
+    const uchar* px = base + i * bpp;
+    double r = 0.0, g = 0.0, b = 0.0;
+    if(rb.format == QRhiTexture::RGBA8 || rb.format == QRhiTexture::BGRA8)
+    {
+      r = px[0] / 255.0; g = px[1] / 255.0; b = px[2] / 255.0;
+    }
+    else if(rb.format == QRhiTexture::RGBA32F)
+    {
+      const auto* f = reinterpret_cast<const float*>(px);
+      r = f[0]; g = f[1]; b = f[2];
+    }
+    else if(rb.format == QRhiTexture::RGBA16F)
+    {
+      const auto* hf = reinterpret_cast<const qfloat16*>(px);
+      r = float(hf[0]); g = float(hf[1]); b = float(hf[2]);
+    }
+    const double lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    sum += lum;
+    peak = std::max(peak, lum);
+  }
+  qDebug("score.gfx: TEXREAD %s texels=%lld mean=%.6f peak=%.6f", qPrintable(label),
+         (long long)texels, sum / double(texels ? texels : 1), peak);
+}
+
+
+void RenderedCSFNode::texreadProbe(RenderList& renderer, QRhiResourceUpdateBatch*& res)
+{
+  const int want = qEnvironmentVariableIntValue("SCORE_CSF_TEXREAD");
+  if(int(renderer.frame) != want || m_inputSamplers.empty())
+    return;
+
+  auto [smp, tex, fb_] = m_inputSamplers[0];
+  if(!tex)
+    return;
+  if(!res)
+    res = renderer.state.rhi->nextResourceUpdateBatch();
+
+  auto* rb = new QRhiReadbackResult;
+  const QString label = QString::fromUtf8(tex->name()) + "@frame"
+                        + QString::number(want);
+  rb->completed = [rb, label] {
+    csfTexreadDump(*rb, label);
+    delete rb;
+  };
+  res->readBackTexture(QRhiReadbackDescription(tex), rb);
+}
+
 void RenderedCSFNode::runInitialPasses(
     RenderList& renderer, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch*& res,
     Edge& edge)
@@ -4834,6 +4933,9 @@ void RenderedCSFNode::runInitialPasses(
   if(m_lastRunFrame == renderer.frame)
     return;
   m_lastRunFrame = renderer.frame;
+
+  if(Q_UNLIKELY(qEnvironmentVariableIsSet("SCORE_CSF_TEXREAD")))
+    texreadProbe(renderer, res);
 
   // Debug marker for capture-tool readability.
   commands.debugMarkBegin(QByteArrayLiteral("CSF"));
