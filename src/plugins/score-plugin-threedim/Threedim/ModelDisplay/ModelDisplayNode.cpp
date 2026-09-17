@@ -272,6 +272,14 @@ void main()
   %vtx_do_projection%
 
   gl_Position = renderer.clipSpaceCorrMatrix * v_projected;
+#if defined(QSHADER_HLSL) || defined(QSHADER_MSL)
+  // Y convention, as in ImageNode: GL is Y-up with no flip, Vulkan's flip is
+  // baked into QRhi's clipSpaceCorrMatrix, and D3D/Metal share Vulkan's
+  // framebuffer origin without its NDC sign convention. Flip here so the
+  // offscreen texture lands top-row-first on every backend, leaving the screen
+  // compositor's SPIRV-only UV flip alone.
+  gl_Position.y = -gl_Position.y;
+#endif
 
   %vtx_output_process%
 }
@@ -407,6 +415,14 @@ void main()
   %vtx_do_projection%
 
   gl_Position = renderer.clipSpaceCorrMatrix * v_projected;
+#if defined(QSHADER_HLSL) || defined(QSHADER_MSL)
+  // Y convention, as in ImageNode: GL is Y-up with no flip, Vulkan's flip is
+  // baked into QRhi's clipSpaceCorrMatrix, and D3D/Metal share Vulkan's
+  // framebuffer origin without its NDC sign convention. Flip here so the
+  // offscreen texture lands top-row-first on every backend, leaving the screen
+  // compositor's SPIRV-only UV flip alone.
+  gl_Position.y = -gl_Position.y;
+#endif
 
   %vtx_output_process%
 }
@@ -462,6 +478,14 @@ void main()
   %vtx_do_projection%
 
   gl_Position = renderer.clipSpaceCorrMatrix * v_projected;
+#if defined(QSHADER_HLSL) || defined(QSHADER_MSL)
+  // Y convention, as in ImageNode: GL is Y-up with no flip, Vulkan's flip is
+  // baked into QRhi's clipSpaceCorrMatrix, and D3D/Metal share Vulkan's
+  // framebuffer origin without its NDC sign convention. Flip here so the
+  // offscreen texture lands top-row-first on every backend, leaving the screen
+  // compositor's SPIRV-only UV flip alone.
+  gl_Position.y = -gl_Position.y;
+#endif
 
   %vtx_output_process%
 }
@@ -538,6 +562,14 @@ void main()
   %vtx_do_projection%
 
   gl_Position = renderer.clipSpaceCorrMatrix * v_projected;
+#if defined(QSHADER_HLSL) || defined(QSHADER_MSL)
+  // Y convention, as in ImageNode: GL is Y-up with no flip, Vulkan's flip is
+  // baked into QRhi's clipSpaceCorrMatrix, and D3D/Metal share Vulkan's
+  // framebuffer origin without its NDC sign convention. Flip here so the
+  // offscreen texture lands top-row-first on every backend, leaving the screen
+  // compositor's SPIRV-only UV flip alone.
+  gl_Position.y = -gl_Position.y;
+#endif
 
   %vtx_output_process%
 }
@@ -593,6 +625,16 @@ void main()
   %vtx_do_projection%
 
   gl_Position = renderer.clipSpaceCorrMatrix * v_projected;
+#if defined(QSHADER_HLSL) || defined(QSHADER_MSL)
+  // Match the codebase Y-handling convention used by ImageNode et al.:
+  // GL is Y-up framebuffer (no flip), Vulkan's Y flip is baked into
+  // QRhi's clipSpaceCorrMatrix, but D3D/Metal share Vulkan's framebuffer
+  // origin without sharing its NDC sign convention — so we flip here so
+  // the offscreen texture lands top-row-first like the other backends,
+  // and the screen compositor (ScaledRenderer) keeps its SPIRV-only UV
+  // flip.
+  gl_Position.y = -gl_Position.y;
+#endif
 
   %vtx_output_process%
 }
@@ -641,6 +683,16 @@ void main()
   %vtx_do_projection%
 
   gl_Position = renderer.clipSpaceCorrMatrix * v_projected;
+#if defined(QSHADER_HLSL) || defined(QSHADER_MSL)
+  // Match the codebase Y-handling convention used by ImageNode et al.:
+  // GL is Y-up framebuffer (no flip), Vulkan's Y flip is baked into
+  // QRhi's clipSpaceCorrMatrix, but D3D/Metal share Vulkan's framebuffer
+  // origin without sharing its NDC sign convention — so we flip here so
+  // the offscreen texture lands top-row-first like the other backends,
+  // and the screen compositor (ScaledRenderer) keeps its SPIRV-only UV
+  // flip.
+  gl_Position.y = -gl_Position.y;
+#endif
 
   %vtx_output_process%
 }
@@ -690,6 +742,16 @@ void main()
   %vtx_do_projection%
 
   gl_Position = renderer.clipSpaceCorrMatrix * v_projected;
+#if defined(QSHADER_HLSL) || defined(QSHADER_MSL)
+  // Match the codebase Y-handling convention used by ImageNode et al.:
+  // GL is Y-up framebuffer (no flip), Vulkan's Y flip is baked into
+  // QRhi's clipSpaceCorrMatrix, but D3D/Metal share Vulkan's framebuffer
+  // origin without sharing its NDC sign convention — so we flip here so
+  // the offscreen texture lands top-row-first like the other backends,
+  // and the screen compositor (ScaledRenderer) keeps its SPIRV-only UV
+  // flip.
+  gl_Position.y = -gl_Position.y;
+#endif
 
   %vtx_output_process%
 }
@@ -737,6 +799,16 @@ void main()
   %vtx_do_projection%
 
   gl_Position = renderer.clipSpaceCorrMatrix * v_projected;
+#if defined(QSHADER_HLSL) || defined(QSHADER_MSL)
+  // Match the codebase Y-handling convention used by ImageNode et al.:
+  // GL is Y-up framebuffer (no flip), Vulkan's Y flip is baked into
+  // QRhi's clipSpaceCorrMatrix, but D3D/Metal share Vulkan's framebuffer
+  // origin without sharing its NDC sign convention — so we flip here so
+  // the offscreen texture lands top-row-first like the other backends,
+  // and the screen compositor (ScaledRenderer) keeps its SPIRV-only UV
+  // flip.
+  gl_Position.y = -gl_Position.y;
+#endif
 
   %vtx_output_process%
 }
