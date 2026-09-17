@@ -5323,12 +5323,13 @@ void RenderedCSFNode::runInitialPasses(
           if(ai >= (int)gb.attribute_ssbos.size())
             break;
           auto& ssbo = gb.attribute_ssbos[ai];
-          if(geo_input->attributes[ai].access == "read_write" && ssbo.read_buffer)
+          if(geo_input->attributes[ai].access == "read_write" && ssbo.read_buffer
+             && ssbo.owned)
             std::swap(ssbo.buffer, ssbo.read_buffer);
         }
         for(auto& aux : gb.auxiliary_ssbos)
         {
-          if(aux.access == "read_write" && aux.read_buffer)
+          if(aux.access == "read_write" && aux.read_buffer && aux.owned)
             std::swap(aux.buffer, aux.read_buffer);
         }
       }
