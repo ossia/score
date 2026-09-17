@@ -55,7 +55,7 @@ void main()
 {
   isf_vertShaderInit();
   isf_vertShaderFinish();
-#if defined(QSHADER_SPIRV)
+#if defined(QSHADER_SPIRV) || defined(QSHADER_HLSL) || defined(QSHADER_MSL)
   gl_Position.y = -gl_Position.y;
 #endif
 }
@@ -65,7 +65,7 @@ void main()
 void main()
 {
   main__isf_ossia();
-#if defined(QSHADER_SPIRV)
+#if defined(QSHADER_SPIRV) || defined(QSHADER_HLSL) || defined(QSHADER_MSL)
   gl_Position.y = -gl_Position.y;
 #endif
 }
@@ -4625,15 +4625,26 @@ void parser::parse_raw_raster_pipeline()
   m_vertex += '\n';
   m_fragment += fragWithoutISF;
 
-  // Generated entry point for every raw-raster vertex shader: publishes
-  // gl_ViewIndex to the fragment stage for multiview. The clip-space
-  // convention is the shader's own business -- it applies
-  // clipSpaceCorrMatrix, which carries both the Y row and the depth range.
+  // Multiview wrapper main: writes the injected view-index varying, then
+  // runs the user's (renamed) main. See the VIEW_INDEX plumbing note above.
+  // Generated entry point for every raw-raster vertex shader. Two jobs:
+  //   1. multiview: publish gl_ViewIndex to the fragment stage;
+  //   2. the Y correction that ISF-mode shaders get from isf_vertShaderFinish().
+  //      That prelude is only injected for an EMPTY vertex source or one calling
+  //      isf_vertShaderInit(), so a RAW_RASTER shader -- which always writes its
+  //      own main() -- never received it. Every node class lands its picture in
+  //      the same memory order, so this one must too, on the APIs whose clip
+  //      space does not already do it: Vulkan is covered by clipSpaceCorrMatrix
+  //      (ccmY = -1), Metal and D3D are not (ccmY = +1), and those two share
+  //      Vulkan's framebuffer origin rather than cancelling against it.
   m_vertex += "#undef main\n";
   m_vertex += "void main()\n{\n";
   if(mv_fragment_plumbing)
     m_vertex += "  isf_ViewIndexVarying = gl_ViewIndex;\n";
   m_vertex += "  isf_rawraster_user_main();\n";
+  m_vertex += "#if defined(QSHADER_HLSL) || defined(QSHADER_MSL)\n";
+  m_vertex += "  gl_Position.y = -gl_Position.y;\n";
+  m_vertex += "#endif\n";
   m_vertex += "}\n";
 
   // Replace the special ISF stuff
@@ -6005,7 +6016,7 @@ layout(location = 0) out vec4 v_color;
 
 void main() {
   main__vsa_ossia();
-#if defined(QSHADER_SPIRV)
+#if defined(QSHADER_SPIRV) || defined(QSHADER_HLSL) || defined(QSHADER_MSL)
   gl_Position.y = - gl_Position.y;
 #endif
 }
