@@ -612,6 +612,25 @@ void RenderedRawRasterPipelineNode::initPass(
     SCORE_ASSERT(renderTarget.renderPass);
     ps->setRenderPassDescriptor(renderTarget.renderPass);
 
+    // The generated vertex epilogue mirrors Y on D3D and Metal, which reverses
+    // window-space winding and so inverts which faces a given FrontFace culls.
+    // ModelDisplayNode compensates the same mirror the same way; without it a
+    // culled model shows its far faces through its near ones, which reads as an
+    // inverted depth test rather than as a winding bug.
+    switch(renderer.state.api)
+    {
+      case score::gfx::D3D11:
+      case score::gfx::D3D12:
+      case score::gfx::Metal:
+        if(ps->cullMode() != QRhiGraphicsPipeline::None)
+          ps->setFrontFace(
+              ps->frontFace() == QRhiGraphicsPipeline::CCW ? QRhiGraphicsPipeline::CW
+                                                           : QRhiGraphicsPipeline::CCW);
+        break;
+      default:
+        break;
+    }
+
     // A mesh whose geometry was filtered away has an empty vertex-input layout,
     // which cannot satisfy a vertex shader that declares inputs
     // (VUID-VkGraphicsPipelineCreateInfo-Input-07904), and there is nothing to
