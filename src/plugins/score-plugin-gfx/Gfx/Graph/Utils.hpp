@@ -567,6 +567,8 @@ SCORE_PLUGIN_GFX_EXPORT
 SCORE_PLUGIN_GFX_EXPORT void dropTrailingOrphanVertexBindings(
     QRhiVertexInputLayout& layout) noexcept;
 
+SCORE_PLUGIN_GFX_EXPORT void logVertexBindings(
+    const QRhiVertexInputLayout& layout, const char* where, const char* stage) noexcept;
 SCORE_PLUGIN_GFX_EXPORT void warnOrphanVertexBindings(
     const QRhiVertexInputLayout& layout, const char* where) noexcept;
 
