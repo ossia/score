@@ -618,6 +618,7 @@ bool remapPipelineVertexInputs(
   const auto& prevLayout = pip.vertexInputLayout();
   inputLayout.setBindings(prevLayout.cbeginBindings(), prevLayout.cendBindings());
   inputLayout.setAttributes(remappedAttrs.begin(), remappedAttrs.end());
+  dropTrailingOrphanVertexBindings(inputLayout);
   warnOrphanVertexBindings(inputLayout, "remapPipelineVertexInputs(keep-bindings)");
   pip.setVertexInputLayout(inputLayout);
   return true;
@@ -661,6 +662,7 @@ bool remapPipelineVertexInputs(
   const auto& prevLayout = pip.vertexInputLayout();
   inputLayout.setBindings(prevLayout.cbeginBindings(), prevLayout.cendBindings());
   inputLayout.setAttributes(remappedAttrs.begin(), remappedAttrs.end());
+  dropTrailingOrphanVertexBindings(inputLayout);
   warnOrphanVertexBindings(inputLayout, "remapPipelineVertexInputs(keep-bindings)");
   pip.setVertexInputLayout(inputLayout);
   return true;
@@ -908,6 +910,25 @@ bool remapPipelineVertexInputs(
   warnOrphanVertexBindings(inputLayout, "remapPipelineVertexInputs");
   pip.setVertexInputLayout(inputLayout);
   return true;
+}
+
+void dropTrailingOrphanVertexBindings(QRhiVertexInputLayout& layout) noexcept
+{
+  const int n = int(std::distance(layout.cbeginBindings(), layout.cendBindings()));
+  if(n <= 0)
+    return;
+  int highestUsed = -1;
+  for(auto it = layout.cbeginAttributes(); it != layout.cendAttributes(); ++it)
+    if(it->binding() > highestUsed)
+      highestUsed = it->binding();
+  if(highestUsed < 0 || highestUsed >= n - 1)
+    return;
+
+  QVarLengthArray<QRhiVertexInputBinding, 8> kept;
+  int i = 0;
+  for(auto it = layout.cbeginBindings(); it != layout.cendBindings() && i <= highestUsed; ++it, ++i)
+    kept.append(*it);
+  layout.setBindings(kept.begin(), kept.end());
 }
 
 void warnOrphanVertexBindings(

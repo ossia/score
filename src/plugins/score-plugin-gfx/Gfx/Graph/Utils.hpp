@@ -564,6 +564,9 @@ bool remapPipelineVertexInputs(
 SCORE_PLUGIN_GFX_EXPORT
 //! Metal rejects a vertex buffer layout that no attribute reads; Vulkan and
 //! OpenGL accept it silently.
+SCORE_PLUGIN_GFX_EXPORT void dropTrailingOrphanVertexBindings(
+    QRhiVertexInputLayout& layout) noexcept;
+
 SCORE_PLUGIN_GFX_EXPORT void warnOrphanVertexBindings(
     const QRhiVertexInputLayout& layout, const char* where) noexcept;
 
