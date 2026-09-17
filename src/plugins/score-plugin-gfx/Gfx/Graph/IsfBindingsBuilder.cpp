@@ -9,6 +9,8 @@
 
 #include <score/tools/Debug.hpp>
 
+#include <set>
+
 namespace score::gfx
 {
 
@@ -926,7 +928,11 @@ void bindUpstreamBuffersFromGeometry(
     bool owned{false};
   };
   auto resolve_aux = [&](const std::string& name, bool is_uniform) -> ResolvedBuffer {
-    auto* geo_aux = mesh.find_auxiliary(name);
+    const ossia::geometry::auxiliary_buffer* geo_aux{};
+    if(is_uniform)
+      geo_aux = mesh.find_auxiliary(name + "$ubo");
+    if(!geo_aux)
+      geo_aux = mesh.find_auxiliary(name);
     if(!geo_aux || geo_aux->buffer < 0
        || geo_aux->buffer >= (int)mesh.buffers.size())
       return {};
@@ -935,7 +941,19 @@ void bindUpstreamBuffersFromGeometry(
     {
       if(!gpu->handle)
         return {};
-      return {static_cast<QRhiBuffer*>(gpu->handle),
+      auto* handle = static_cast<QRhiBuffer*>(gpu->handle);
+      if(is_uniform && !handle->usage().testFlag(QRhiBuffer::UniformBuffer))
+      {
+        static thread_local std::set<std::string> warned;
+        if(warned.insert(name).second)
+          qWarning() << "ISF aux" << name.c_str()
+                     << "is declared uniform but the producer publishes a buffer"
+                        " without UniformBuffer usage; it reads as zeroes on"
+                        " OpenGL. Declare it storage, or publish a"
+                        " uniform companion.";
+        return {};
+      }
+      return {handle,
               geo_aux->byte_size > 0 ? geo_aux->byte_size : gpu->byte_size,
               false};
     }
