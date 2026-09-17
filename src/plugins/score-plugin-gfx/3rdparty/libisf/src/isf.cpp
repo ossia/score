@@ -43,13 +43,13 @@ void isf_vertShaderInit()
 {
   gl_Position = clipSpaceCorrMatrix * vec4(position, 0.0, 1.0);
   isf_FragNormCoord = vec2((gl_Position.x+1.0)/2.0, (gl_Position.y+1.0)/2.0);
+#if defined(QSHADER_SPIRV)
+  gl_Position.y = -gl_Position.y;
+#endif
 }
 
 void isf_vertShaderFinish()
 {
-#if defined(QSHADER_SPIRV) || defined(QSHADER_HLSL) || defined(QSHADER_MSL)
-  gl_Position.y = -gl_Position.y;
-#endif
 }
 )_";
 
@@ -5978,7 +5978,7 @@ layout(location = 0) out vec4 v_color;
 
 void main() {
   main__vsa_ossia();
-#if defined(QSHADER_SPIRV) || defined(QSHADER_HLSL) || defined(QSHADER_MSL)
+#if defined(QSHADER_SPIRV)
   gl_Position.y = - gl_Position.y;
 #endif
 }
