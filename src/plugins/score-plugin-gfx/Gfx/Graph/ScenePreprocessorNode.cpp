@@ -331,6 +331,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   };
   static_assert(sizeof(SceneCountsUBO) == 16, "scene_counts UBO layout");
   QRhiBuffer* m_sceneCountsBuffer{};
+  QRhiBuffer* m_sceneCountsUniformBuffer{};
   SceneCountsUBO m_cachedSceneCounts{~0u, ~0u, ~0u, 0u};
 
   // `shadow_cascades` aux UBO: light_view_proj[8], split distances and
@@ -909,6 +910,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     // per-preprocessor cleanup needed. They get destroyed when the
     // RenderList tears down (registry.destroy()).
     dropBuf(m_sceneCountsBuffer);
+    dropBuf(m_sceneCountsUniformBuffer);
     dropBuf(m_shadowCascadesBuffer);
     dropBuf(m_camerasBuffer);
     dropBuf(m_camerasPrevBuffer);
@@ -1697,6 +1699,17 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
             .buffer = countsBufIdx,
             .byte_offset = 0,
             .byte_size = (int64_t)sizeof(SceneCountsUBO)});
+        if(m_sceneCountsUniformBuffer)
+        {
+          const int countsUboIdx = (int)g.buffers.size();
+          g.buffers.push_back(wrapGpu(
+              m_sceneCountsUniformBuffer, (int64_t)sizeof(SceneCountsUBO)));
+          g.auxiliary.push_back({
+              .name = "scene_counts$ubo",
+              .buffer = countsUboIdx,
+              .byte_offset = 0,
+              .byte_size = (int64_t)sizeof(SceneCountsUBO)});
+        }
       }
 
       // Indirect draw shape: vertex_count=N points, instance_count=1.
@@ -2854,6 +2867,17 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         .name = "scene_light_indices", .buffer = baseBuf + 11,
         .byte_offset = 0,
         .byte_size = m_lightIndicesCap});
+
+    if(m_sceneCountsUniformBuffer)
+    {
+      const int counts_ubo_idx = (int)g.buffers.size();
+      g.buffers.push_back(wrapGpu(
+          m_sceneCountsUniformBuffer, (int64_t)sizeof(SceneCountsUBO)));
+      g.auxiliary.push_back({
+          .name = "scene_counts$ubo", .buffer = counts_ubo_idx,
+          .byte_offset = 0,
+          .byte_size = (int64_t)sizeof(SceneCountsUBO)});
+    }
 
     // KHR_texture_transform: per-material per-channel UV transforms.
     // Parallel to scene_materials, indexed by material_index. Identity
@@ -4259,6 +4283,32 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
             rhi, res, m_sceneCountsBuffer, 0, sizeof(SceneCountsUBO));
       }
 
+      // Companion for shaders that declare scene_counts as TYPE:"uniform".
+      // Dynamic + UniformBuffer is the one combination every backend accepts:
+      // the SSBO above cannot also carry UniformBuffer usage because
+      // QRhiGles2 rejects UniformBuffer combined with any other usage, so a
+      // uniform-declaring consumer otherwise binds a storage buffer to a
+      // uniform slot and Qt's GL backend reports it as size 0.
+      if(!m_sceneCountsUniformBuffer)
+      {
+        m_sceneCountsUniformBuffer = rhi.newBuffer(
+            QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer,
+            sizeof(SceneCountsUBO));
+        m_sceneCountsUniformBuffer->setName(
+            "ScenePreprocessor::scene_counts$ubo");
+        if(!m_sceneCountsUniformBuffer->create())
+        {
+          delete m_sceneCountsUniformBuffer;
+          m_sceneCountsUniformBuffer = nullptr;
+        }
+        else
+        {
+          const SceneCountsUBO zero{};
+          res.updateDynamicBuffer(
+              m_sceneCountsUniformBuffer, 0, sizeof(zero), &zero);
+        }
+      }
+
       // Allocate the shadow_cascades UBO once (560 B, never grows). Lazy:
       // only materialise the buffer when a scene actually authors cascades
       // — the vast majority of scenes without shadow-receiving rasterizers
@@ -4694,6 +4744,9 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         // upload always goes through uploadStaticBuffer — at 16 bytes
         // the difference vs updateDynamicBuffer is negligible anyway.
         res.uploadStaticBuffer(m_sceneCountsBuffer, 0, sizeof(sc), &sc);
+        if(m_sceneCountsUniformBuffer)
+          res.updateDynamicBuffer(
+              m_sceneCountsUniformBuffer, 0, sizeof(sc), &sc);
         m_cachedSceneCounts = sc;
       }
 
