@@ -96,6 +96,9 @@ case "$(uname -s)" in
   MINGW*|MSYS*|CYGWIN*) EXE_SUFFIX=".exe" ;;
 esac
 
+### ${arr[@]+"${arr[@]}"}: bash 3.2 (/bin/bash on macOS) sees "${empty[@]}" as
+### unbound under -u, and the macOS SDK ships llvm-libs but no llvm/bin, so
+### this array is empty on exactly the runner that cannot expand it.
 CMAKE_COMPILERS=()
 if [[ -x "$OSSIA_SDK/llvm/bin/clang++$EXE_SUFFIX" ]]; then
   CMAKE_COMPILERS=(
@@ -109,7 +112,7 @@ cmake -S "$ADDON_SRC" -B "$WORKDIR/build" -GNinja \
   -DSCORE_SDK="$SDK_ROOT" \
   -DOSSIA_SDK="$OSSIA_SDK" \
   -DCMAKE_BUILD_TYPE=Release \
-  "${CMAKE_COMPILERS[@]}"
+  ${CMAKE_COMPILERS[@]+"${CMAKE_COMPILERS[@]}"}
 
 cmake --build "$WORKDIR/build"
 
