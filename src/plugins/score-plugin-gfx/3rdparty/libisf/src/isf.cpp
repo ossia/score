@@ -43,9 +43,6 @@ void isf_vertShaderInit()
 {
   gl_Position = clipSpaceCorrMatrix * vec4(position, 0.0, 1.0);
   isf_FragNormCoord = vec2((gl_Position.x+1.0)/2.0, (gl_Position.y+1.0)/2.0);
-#if defined(QSHADER_SPIRV)
-  gl_Position.y = -gl_Position.y;
-#endif
 }
 
 void isf_vertShaderFinish()
@@ -58,6 +55,19 @@ void main()
 {
   isf_vertShaderInit();
   isf_vertShaderFinish();
+#if defined(QSHADER_SPIRV)
+  gl_Position.y = -gl_Position.y;
+#endif
+}
+)_";
+
+  static constexpr auto vertexUserMainEpilogue = R"_(
+void main()
+{
+  main__isf_ossia();
+#if defined(QSHADER_SPIRV)
+  gl_Position.y = -gl_Position.y;
+#endif
 }
 )_";
 
@@ -3992,7 +4002,24 @@ void parser::parse_isf()
 
   // Add the actual vert / frag code
   if(!simpleVS)
-    m_vertex += m_sourceVertex;
+  {
+    static constexpr auto user_main_rexp
+        = ctll::fixed_string{R"_(main\s*\(\s*(void)?\s*\))_"};
+    static constexpr auto user_main_rex = ctre::search<user_main_rexp>;
+    std::string vs = m_sourceVertex;
+    if(auto match = user_main_rex(vs))
+    {
+      auto b = match.begin();
+      auto e = match.end();
+      vs.replace(b - vs.begin(), int(e - b), "main__isf_ossia()");
+      m_vertex += vs;
+      m_vertex += GLSL45.vertexUserMainEpilogue;
+    }
+    else
+    {
+      m_vertex += m_sourceVertex;
+    }
+  }
   m_fragment += fragWithoutISF;
 
   // Replace the special ISF stuff
