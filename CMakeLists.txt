@@ -328,8 +328,15 @@ set(SCORE_SRC "${CMAKE_CURRENT_SOURCE_DIR}/src")
 # other asio users (e.g. the vendored liblsl), so score is where it has to be
 # made uniform. Same condition as libossia's: on Windows boost defines it
 # itself and redefining it warns.
+#
+# Both branches name a macro on purpose. Qt before 6.6 copies the directory's
+# COMPILE_DEFINITIONS into moc's parameter file as one "-D<def>" line each, so
+# a definition that evaluates to nothing leaves a bare "-D" there; moc then
+# takes the line after it -- the "-o" -- as that option's value and reports the
+# output path as a second input file.
 if(NOT WIN32)
-  add_compile_definitions($<$<CONFIG:Debug>:BOOST_ASIO_ENABLE_BUFFER_DEBUGGING>)
+  add_compile_definitions(
+      $<IF:$<CONFIG:Debug>,BOOST_ASIO_ENABLE_BUFFER_DEBUGGING,OSSIA_ASIO_BUFFER_DEBUGGING_UNSET>)
 endif()
 
 include(3rdparty/3rdparty.cmake)
