@@ -928,11 +928,7 @@ void bindUpstreamBuffersFromGeometry(
     bool owned{false};
   };
   auto resolve_aux = [&](const std::string& name, bool is_uniform) -> ResolvedBuffer {
-    const ossia::geometry::auxiliary_buffer* geo_aux{};
-    if(is_uniform)
-      geo_aux = mesh.find_auxiliary(name + "$ubo");
-    if(!geo_aux)
-      geo_aux = mesh.find_auxiliary(name);
+    auto* geo_aux = mesh.find_auxiliary(name);
     if(!geo_aux || geo_aux->buffer < 0
        || geo_aux->buffer >= (int)mesh.buffers.size())
       return {};
@@ -948,10 +944,8 @@ void bindUpstreamBuffersFromGeometry(
         if(warned.insert(name).second)
           qWarning() << "ISF aux" << name.c_str()
                      << "is declared uniform but the producer publishes a buffer"
-                        " without UniformBuffer usage; it reads as zeroes on"
-                        " OpenGL. Declare it storage, or publish a"
-                        " uniform companion.";
-        return {};
+                        " without UniformBuffer usage; on OpenGL every member of"
+                        " it reads as zero.";
       }
       return {handle,
               geo_aux->byte_size > 0 ? geo_aux->byte_size : gpu->byte_size,
