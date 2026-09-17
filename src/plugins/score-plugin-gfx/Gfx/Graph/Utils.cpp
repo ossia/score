@@ -618,7 +618,9 @@ bool remapPipelineVertexInputs(
   const auto& prevLayout = pip.vertexInputLayout();
   inputLayout.setBindings(prevLayout.cbeginBindings(), prevLayout.cendBindings());
   inputLayout.setAttributes(remappedAttrs.begin(), remappedAttrs.end());
+  logVertexBindings(inputLayout, "keep-bindings", "before-drop");
   dropTrailingOrphanVertexBindings(inputLayout);
+  logVertexBindings(inputLayout, "keep-bindings", "after-drop");
   warnOrphanVertexBindings(inputLayout, "remapPipelineVertexInputs(keep-bindings)");
   pip.setVertexInputLayout(inputLayout);
   return true;
@@ -662,7 +664,9 @@ bool remapPipelineVertexInputs(
   const auto& prevLayout = pip.vertexInputLayout();
   inputLayout.setBindings(prevLayout.cbeginBindings(), prevLayout.cendBindings());
   inputLayout.setAttributes(remappedAttrs.begin(), remappedAttrs.end());
+  logVertexBindings(inputLayout, "keep-bindings", "before-drop");
   dropTrailingOrphanVertexBindings(inputLayout);
+  logVertexBindings(inputLayout, "keep-bindings", "after-drop");
   warnOrphanVertexBindings(inputLayout, "remapPipelineVertexInputs(keep-bindings)");
   pip.setVertexInputLayout(inputLayout);
   return true;
@@ -907,9 +911,42 @@ bool remapPipelineVertexInputs(
   QRhiVertexInputLayout inputLayout;
   inputLayout.setBindings(bindings.begin(), bindings.end());
   inputLayout.setAttributes(remappedAttrs.begin(), remappedAttrs.end());
+  logVertexBindings(inputLayout, "renumbering", "final");
   warnOrphanVertexBindings(inputLayout, "remapPipelineVertexInputs");
   pip.setVertexInputLayout(inputLayout);
   return true;
+}
+
+void logVertexBindings(
+    const QRhiVertexInputLayout& layout, const char* where, const char* stage) noexcept
+{
+  static const bool on = qEnvironmentVariableIsSet("SCORE_BINDPROBE");
+  if(!on)
+    return;
+
+  const int n = int(std::distance(layout.cbeginBindings(), layout.cendBindings()));
+  QString bs;
+  int i = 0;
+  for(auto it = layout.cbeginBindings(); it != layout.cendBindings(); ++it, ++i)
+    bs += QString("[%1 stride=%2%3] ")
+              .arg(i)
+              .arg(it->stride())
+              .arg(
+                  it->classification() == QRhiVertexInputBinding::PerInstance ? " perInstance"
+                                                                             : "");
+  QString as;
+  int highestUsed = -1;
+  for(auto it = layout.cbeginAttributes(); it != layout.cendAttributes(); ++it)
+  {
+    as += QString("(loc=%1 bind=%2 off=%3) ")
+              .arg(it->location())
+              .arg(it->binding())
+              .arg(it->offset());
+    if(it->binding() > highestUsed)
+      highestUsed = it->binding();
+  }
+  qDebug().noquote() << "score.gfx: BINDPROBE" << where << stage << "bindings=" << n
+                     << bs << "highestUsedBinding=" << highestUsed << "attrs=" << as;
 }
 
 void dropTrailingOrphanVertexBindings(QRhiVertexInputLayout& layout) noexcept
