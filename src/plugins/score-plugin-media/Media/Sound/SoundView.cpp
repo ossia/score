@@ -193,17 +193,21 @@ void LayerView::paint_impl(QPainter* painter) const
   if(!m_data)
     return;
 
-  int channels = std::ssize(m_images);
-  if(channels == 0.)
-  {
-    if(!m_recomputed)
-      recompute();
+  const int channels = std::ssize(m_images);
+  const double ratio = channels > 0 ? m_wf.zoom / m_zoom : 0.;
+  const double x0 = m_wf.x0 * ratio;
+  const double w = (m_wf.xf - m_wf.x0) * ratio;
+
+  // Before any of the reasons not to draw: having no image, or one that the
+  // zoom has since squeezed to nothing, is exactly when another is needed.
+  // Painting is the one place that sees every way the view can move -- the
+  // scrollbar signal catches only some of them -- and asking for a window that
+  // is already on its way costs nothing, since recompute() drops a request
+  // identical to the last.
+  requestIfUncovered(x0, x0 + w);
+
+  if(channels == 0)
     return;
-  }
-
-  auto ratio = m_wf.zoom / m_zoom;
-
-  const qreal w = (m_wf.xf - m_wf.x0) * ratio;
   if(w < 2.)
     return;
 
@@ -211,21 +215,20 @@ void LayerView::paint_impl(QPainter* painter) const
   if(h < 2.)
     return;
 
-  const double x0 = m_wf.x0 * ratio;
-
-  // The image only covers the window it was asked for, so the view moving off
-  // it has to be noticed. Painting is the one place that sees every way it can
-  // move -- the scrollbar signal catches only some of them -- and asking for a
-  // window that is already on its way costs nothing: recompute() drops a
-  // request identical to the last.
-  requestIfUncovered(x0, x0 + w);
-
   painter->setRenderHint(QPainter::SmoothPixmapTransform, 0);
   for(int i = 0; i < channels; i++)
   {
     painter->drawImage(QRectF{x0, h * i, w, h}, *m_images[i]);
   }
   painter->setRenderHint(QPainter::SmoothPixmapTransform, 1);
+}
+
+QRectF LayerView::renderedSpan() const noexcept
+{
+  if(m_images.empty() || m_zoom == 0.)
+    return {};
+  const double ratio = m_wf.zoom / m_zoom;
+  return QRectF{m_wf.x0 * ratio, 0., (m_wf.xf - m_wf.x0) * ratio, height()};
 }
 
 //! Asks for a new image when [coveredX0, coveredXf) no longer holds what is
