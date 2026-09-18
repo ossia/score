@@ -146,7 +146,9 @@ void AudioFile::load(DecodingSetup opt)
       if(m_track == -1)
       {
         const auto& info = probe(m_file);
-        if(info && info->audioStream)
+        // The drwav and sndfile probes do not look at container streams and
+        // leave -1; those formats hold a single one.
+        if(info && info->audioStream >= 0)
         {
           m_track = info->audioStream;
         }

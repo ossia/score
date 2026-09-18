@@ -16,6 +16,15 @@ void AudioFile::load_drwav()
   // Loading with drwav is done when the file can be
   // mmapped directly in to memory.
 
+  // Each of these has to return: what follows divides by the sample rate.
+  const auto fail = [this] {
+    qDebug() << "Cannot open file" << m_file;
+    m_impl = Handle{};
+    m_fullyDecoded = true;
+    on_mediaChanged();
+    on_finishedDecoding();
+  };
+
   MmapReader r;
   r.file = std::make_shared<QFile>();
   r.file->setFileName(m_file);
@@ -23,24 +32,21 @@ void AudioFile::load_drwav()
   bool ok = r.file->open(QIODevice::ReadOnly);
   if(!ok)
   {
-    qDebug() << "Cannot open file" << m_file;
-    m_impl = Handle{};
-    on_mediaChanged();
+    fail();
+    return;
   }
 
   r.data = r.file->map(0, r.file->size());
   if(!r.data)
   {
-    qDebug() << "Cannot open file" << m_file;
-    m_impl = Handle{};
-    on_mediaChanged();
+    fail();
+    return;
   }
   r.wav.open_memory(r.data, r.file->size());
   if(!r.wav || r.wav.channels() == 0 || r.wav.sampleRate() == 0)
   {
-    qDebug() << "Cannot open file" << m_file;
-    m_impl = Handle{};
-    on_mediaChanged();
+    fail();
+    return;
   }
 
   m_rms->load(
@@ -75,6 +81,13 @@ std::optional<AudioInfo> probe_drwav(const QFileInfo& fi)
       ossia::drwav_handle h;
       h.open_memory(data, f.size());
 
+      // open_memory() does not report a failed init: a zeroed handle is what
+      // dr_wav leaves behind for the wav containers it cannot read (mp3, wma,
+      // gsm...), and claiming DrwavCanDecode for those routes them to a
+      // backend that then yields silence.
+      if(h.sampleRate() == 0 || h.channels() == 0 || h.totalPCMFrameCount() == 0)
+        return std::nullopt;
+
       // Skip DTS in WAV, dr_wav does not decode them
       if (h.wav()) {
         auto tag = h.wav()->fmt.formatTag;
@@ -105,6 +118,9 @@ std::optional<AudioInfo> probe_drwav(const QFileInfo& fi)
       }
 
       AudioInfo info;
+      info.flags = AudioInfo::DrwavCanDecode | AudioInfo::SndfileCanDecode
+                   | AudioInfo::LibavCanDecode;
+      info.audioStream = 0;
       info.fileRate = h.sampleRate();
       info.channels = h.channels();
       info.fileLength = h.totalPCMFrameCount();

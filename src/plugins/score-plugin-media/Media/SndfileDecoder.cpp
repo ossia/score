@@ -99,6 +99,8 @@ std::optional<AudioInfo> SndfileDecoder::do_probe(const QString& path)
     return {};
 
   AudioInfo ret;
+  ret.flags = AudioInfo::SndfileCanDecode | AudioInfo::LibavCanDecode;
+  ret.audioStream = 0;
   ret.channels = info.channels;
   ret.fileLength = info.frames;
   ret.max_arr_length = info.frames;
