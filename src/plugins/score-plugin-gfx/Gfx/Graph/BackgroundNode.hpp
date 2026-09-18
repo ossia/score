@@ -53,6 +53,8 @@ struct BackgroundNode : OutputNode
         }
 
         renderer->render(*cb);
+        if(qEnvironmentVariableIsSet("SCORE_CBPROBE"))
+          qDebug() << "score.gfx: CBPROBE endOffscreenFrame (cb=" << (void*)cb << ")";
         rhi->endOffscreenFrame();
       }
       else
