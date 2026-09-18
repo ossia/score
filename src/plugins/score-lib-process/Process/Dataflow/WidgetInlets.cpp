@@ -14,6 +14,7 @@
 #include <QDir>
 #include <QFileSystemWatcher>
 
+#include <cmath>
 #include <optional>
 
 #include <wobjectimpl.h>
@@ -38,7 +39,17 @@ struct entry_index_visitor
   {
     return i >= 0 && i < n ? std::optional<int>(i) : std::nullopt;
   }
-  std::optional<int> operator()(float f) const noexcept { return (*this)(int32_t(f)); }
+  std::optional<int> operator()(float f) const noexcept
+  {
+    // Bounded before narrowing, like the string overload: int32_t(1e30f) and
+    // int32_t(NaN) are undefined. Whole numbers only, so that a float and the
+    // same number spelled as a string resolve alike, and so that a value just
+    // below zero does not truncate onto the first entry.
+    const double d = f;
+    if(!(d >= 0. && d < double(n)) || d != std::floor(d))
+      return std::nullopt;
+    return std::optional<int>(int(d));
+  }
   std::optional<int> operator()(const std::string& s) const noexcept
   {
     // Exactly the digits an integer turns into when a port coerces it to a
@@ -84,6 +95,11 @@ std::optional<int> readEntryIndex(const ossia::value& v, int n) noexcept
 
 int ComboBox::indexOfValue(const ossia::value& v) const noexcept
 {
+  // Two invalid values compare equal, so without this an invalid one selects
+  // the first entry that has no value of its own.
+  if(!v.valid())
+    return -1;
+
   const int n = std::ssize(alternatives);
   for(int i = 0; i < n; i++)
     if(alternatives[i].second == v)
@@ -104,6 +120,9 @@ ossia::value ComboBox::valueAtIndex(int i) const noexcept
 
 int Enum::indexOfValue(const ossia::value& v) const noexcept
 {
+  if(!v.valid())
+    return -1;
+
   const int n = std::ssize(values);
   const auto name = QString::fromStdString(ossia::convert<std::string>(v));
   for(int i = 0; i < n; i++)

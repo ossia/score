@@ -82,6 +82,8 @@ public:
 
   //! The strip holding the two stepper buttons, in item coordinates.
   QRectF stepperRect() const noexcept;
+  //! Whether there is more than one entry and room to draw the strip.
+  bool stepperVisible() const noexcept;
 
   //! Move the selection by n entries, wrapping around at both ends, and report
   //! it as an edit. Does nothing if there is nothing to move through.
