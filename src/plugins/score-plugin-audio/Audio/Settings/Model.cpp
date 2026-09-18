@@ -218,11 +218,11 @@ void Model::setDriver(Audio::AudioFactory::ConcreteKey val)
      == Audio::AudioFactory::ConcreteKey{score::uuids::string_generator::compute(
          "13dabcc3-9cda-422f-a8c7-5fef5c220677")})
   {
-    m_Rate = 44100;
-    s.setValue(Parameters::Rate.key, QVariant::fromValue(m_Rate));
-
-    m_BufferSize = 1024;
-    s.setValue(Parameters::BufferSize.key, QVariant::fromValue(m_BufferSize));
+    // Through the setters: RateChanged invalidates the audio file cache and
+    // reloads the sound processes. It does not restart the engine -- that
+    // hangs off Model::changed, which only the interfaces and the panel emit.
+    setRate(44100);
+    setBufferSize(1024);
   }
 #endif
   iface->initialize(*this, ctx);
