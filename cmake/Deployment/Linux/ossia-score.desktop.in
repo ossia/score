@@ -1,8 +1,17 @@
 [Desktop Entry]
+Version=1.5
 Type=Application
 Name=ossia score
+GenericName=Interactive Sequencer
+GenericName[fr]=Séquenceur interactif
 Comment=An interactive sequencer for the intermedia arts
-Exec=ossia-score
+Comment[fr]=Un séquenceur interactif pour les arts intermédias
+Exec=ossia-score %F
+TryExec=ossia-score
 Icon=ossia-score
 Terminal=false
-Categories=AudioVideo;
+StartupNotify=true
+StartupWMClass=ossia-score
+Categories=AudioVideo;Audio;Video;Midi;Sequencer;AudioVideoEditing;Music;
+Keywords=ossia;score;sequencer;timeline;intermedia;interactive;media;multimedia;show control;cue;OSC;MIDI;DMX;audio;video;live;performance;art;VJ;DAW;
+MimeType=application/x-ossia-score;application/x-ossia-score-binary;

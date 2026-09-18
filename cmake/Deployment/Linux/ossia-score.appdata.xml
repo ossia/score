@@ -25,7 +25,15 @@
       <li>Use VST3, LV2 audio plug-ins and more.</li>
     </ul>
   </description>
+  <!-- Flatpak renames the entry to the component id; distribution packages and
+       the AppImage keep the binary name. -->
   <launchable type="desktop-id">io.ossia.score.desktop</launchable>
+  <launchable type="desktop-id">ossia-score.desktop</launchable>
+  <provides>
+    <binary>ossia-score</binary>
+    <mediatype>application/x-ossia-score</mediatype>
+    <mediatype>application/x-ossia-score-binary</mediatype>
+  </provides>
   <content_rating type="oars-1.1" />
   <url type="bugtracker">https://github.com/ossia/score/issues</url>
   <url type="contact">https://discord.gg/8Hzm4UduaS</url>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="application/x-ossia-score">
+    <comment>ossia score document</comment>
+    <comment xml:lang="fr">Document ossia score</comment>
+    <acronym>score</acronym>
+    <expanded-acronym>ossia score sequencer document</expanded-acronym>
+    <sub-class-of type="application/json"/>
+    <icon name="ossia-score"/>
+    <generic-icon name="x-office-document"/>
+    <glob pattern="*.score"/>
+    <glob pattern="*.scorejson"/>
+    <magic priority="40">
+      <match type="string" value="{&quot;Document&quot;" offset="0"/>
+      <match type="string" value="&quot;Document&quot;" offset="1:64"/>
+    </magic>
+  </mime-type>
+
+  <mime-type type="application/x-ossia-score-binary">
+    <comment>ossia score document (legacy binary)</comment>
+    <comment xml:lang="fr">Document ossia score (ancien format binaire)</comment>
+    <icon name="ossia-score"/>
+    <generic-icon name="x-office-document"/>
+    <glob pattern="*.scorebin"/>
+  </mime-type>
+</mime-info>

@@ -209,14 +209,22 @@ done
 shopt -u nullglob
 
 # Write the desktop file
+# Custom apps ship their own score, so they deliberately declare no MimeType:
+# the .score association stays with ossia score itself.
 cat > "${APP_NAME_SAFE}.desktop" << DESKTOP_EOF
 [Desktop Entry]
+Version=1.5
 Type=Application
 Name=${APP_NAME}
 Comment=${APP_DESCRIPTION}
 Exec=app-bin
 Terminal=false
-Categories=AudioVideo;
+StartupNotify=true
+StartupWMClass=app-bin
+Categories=AudioVideo;Audio;Video;Midi;Sequencer;AudioVideoEditing;Music;
+X-AppImage-Name=${APP_NAME}
+X-AppImage-Version=${APP_VERSION:-1.0.0}
+X-AppImage-Arch=${ARCH}
 Icon=${APP_NAME_SAFE}
 DESKTOP_EOF
 
