@@ -1,6 +1,7 @@
 #include <score/gfx/OpenGL.hpp>
 
 #include <QDebug>
+#include <QGuiApplication>
 #include <QOffscreenSurface>
 #include <QOpenGLContext>
 #include <QOpenGLFunctions>
@@ -15,6 +16,10 @@ struct GLCapabilitiesResult
   int minor{};
   int shaderVersion{};
   QSurfaceFormat::RenderableType type{};
+
+  // Only pinDefaultOpenGLFormat() cares: a probe that could not make a context
+  // reports the format it asked for, which is nothing to pin on.
+  bool usableContext{};
 
   GLCapabilitiesResult()
   {
@@ -69,6 +74,7 @@ struct GLCapabilitiesResult
       minor = ctx.format().minorVersion();
       type = ctx.format().renderableType();
       shaderVersion = glShaderVersion();
+      usableContext = true;
       ctx.doneCurrent();
     }
 #endif
@@ -127,6 +133,14 @@ struct GLCapabilitiesResult
     }
   }
 };
+
+#ifndef QT_NO_OPENGL
+const GLCapabilitiesResult& glCapabilities()
+{
+  static const GLCapabilitiesResult res;
+  return res;
+}
+#endif
 }
 
 void setupDefaultOpenGLFormat() noexcept
@@ -156,7 +170,7 @@ void setupDefaultOpenGLFormat() noexcept
 GLCapabilities::GLCapabilities()
 {
 #ifndef QT_NO_OPENGL
-  static const GLCapabilitiesResult res;
+  const GLCapabilitiesResult& res = glCapabilities();
   major = res.major;
   minor = res.minor;
   shaderVersion = res.shaderVersion;
@@ -195,5 +209,24 @@ void GLCapabilities::setupFormat(QSurfaceFormat& fmt)
     fmt.setProfile(QSurfaceFormat::CoreProfile);
 #endif
   }
+}
+
+void pinDefaultOpenGLFormat() noexcept
+{
+#ifndef QT_NO_OPENGL
+  // Same list setup_opengl() skips: no GL, or a crash in QOffscreenSurface::create.
+  const auto plat = QGuiApplication::platformName();
+  if(plat == "minimal" || plat == "offscreen" || plat == "vnc" || plat == "wasm")
+    return;
+
+  // Pinning a format the probe could not verify would put its fallback -- a
+  // CoreProfile 2.0 -- on every window in the process.
+  if(!glCapabilities().usableContext)
+    return;
+
+  QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
+  GLCapabilities{}.setupFormat(fmt);
+  QSurfaceFormat::setDefaultFormat(fmt);
+#endif
 }
 }
