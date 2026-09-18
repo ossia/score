@@ -76,12 +76,40 @@ if(TARGET score_plugin_gfx)
     PLUGINS score_plugin_gfx score_lib_device)
 endif()
 
+# Sample-rate conversion in the sound nodes: a file whose rate differs from the
+# graph's must keep its pitch and its speed. The stretchers are header-only and
+# instantiated here, so the test links what they call into directly.
+set(_sound_rate_libs "")
+if(TARGET rubberband)
+  list(APPEND _sound_rate_libs rubberband)
+endif()
+if(TARGET SampleRate::samplerate)
+  list(APPEND _sound_rate_libs SampleRate::samplerate)
+endif()
+score_add_test(test_unit_sound_rate_conversion
+  SOURCES SoundRateConversionTest.cpp
+  LIBS ${_sound_rate_libs})
+
 # The waveform a soundfile control draws for a file that is already decoded.
 if(TARGET score_plugin_media)
   score_add_test(test_unit_waveform_button
     SOURCES WaveformButtonTest.cpp
     APP
     PLUGINS score_plugin_media score_lib_process)
+
+  # Which decoding backend a file lands on, and that each one either hands back
+  # a usable handle or fails without leaving a half-built one behind.
+  score_add_test(test_unit_audio_file_backend
+    SOURCES AudioFileBackendTest.cpp
+    APP
+    PLUGINS score_plugin_media score_lib_process)
+
+  # Positioning the libav streaming node: seeks have to land where they are
+  # asked to, and fetch_audio() has to honour its start argument.
+  score_add_test(test_unit_sound_libav_seek
+    SOURCES SoundLibavSeekTest.cpp
+    PLUGINS score_plugin_media
+    LIBS ${_sound_rate_libs})
 endif()
 
 # Where a node draws its outlets when it has no inlets to balance them.
