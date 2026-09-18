@@ -323,11 +323,12 @@ void KmsOutputNode::createOutput(OutputConfiguration conf)
   d->state->samples = 1;
 
   QRhiGles2InitParams params;
-  d->state->surface = QRhiGles2InitParams::newFallbackSurface();
-  params.fallbackSurface = d->state->surface;
+  // Pin before newFallbackSurface(): it picks the EGL config from this format.
   score::GLCapabilities caps;
   caps.setupFormat(params.format);
   params.format.setSamples(1);
+  d->state->surface = QRhiGles2InitParams::newFallbackSurface(params.format);
+  params.fallbackSurface = d->state->surface;
   d->state->version = caps.qShaderVersion;
   d->state->rhi = QRhi::create(QRhi::OpenGLES2, &params);
   if(!d->state->rhi)
