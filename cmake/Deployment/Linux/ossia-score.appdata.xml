@@ -49,6 +49,165 @@
     </screenshot>
   </screenshots>
   <releases>
+    <release version="3.9.0" date="2026-09-17">
+      <url type="details">https://github.com/ossia/score/releases/tag/v3.9.0</url>
+      <description>
+        <p>ossia score 3.9.0 is a very large release: a complete 3D pipeline, video capture and streaming devices, scriptable user interfaces, JIT-compiled add-ons on every desktop platform, and a reworked look.</p>
+        <p>New features</p>
+        <ul>
+          <li>3d: new 3D asset, scene-graph and object processes: load a model, filter and tag its scene, and render it.</li>
+          <li>3d: load glTF, GLB, FBX, STL, OFF, OBJ and MagicaVoxel .vox assets.</li>
+          <li>3d: tangent computation with MikkTSpace, cubemap loading and composition, and per-face normals for STL meshes.</li>
+          <li>3d: text-to-mesh, 2-bone inverse kinematics, and gaussian splat rendering.</li>
+          <li>3d: fulldome output with the four fisheye projections a dome actually uses.</li>
+          <li>3d: point cloud support throughout the geometry and scene types.</li>
+          <li>addons: new sysinfo add-on, exposing the local machine (CPU, memory, disks, network, open file handles) as an ossia device.</li>
+          <li>addons: new carto-tcp add-on.</li>
+          <li>addons: score-addon-cv rewritten, with many more objects ported from cv.jit.</li>
+          <li>addons: score-addon-deuterium gains GigSampler, a multi-format sampler reading GIG, DLS, SF2 and KORG KMP/KSF banks, with a tabbed control panel, trigger pads and keyboard, voice pooling and native AHDSR envelopes.</li>
+          <li>addons: score-addon-onnx gains a deeply reworked pose detector with multi-track detection, smoothing, box modes, RTMO support and an OpenPose-compatible palette, plus support for more LLMs and VLMs.</li>
+          <li>addons: score-addon-librediffusion brings StreamDiffusion and StreamV2V real-time diffusion to score.</li>
+          <li>addons: score-addon-synthimi gains Kabang, Minibang, Fomo and Kaboom, moved out of avendish.</li>
+          <li>addons: score-avnd-granola gains polyphonic MIDI grain spawning, velocity-driven grain amplitude and an active grain count output.</li>
+          <li>addons: NDI output converts to UYVY on the GPU, in BT.601 limited range, with no CPU path left.</li>
+          <li>app: new start screen with templates, examples, project info, archives and an about page.</li>
+          <li>audio: new WASAPI driver through miniaudio on Windows, and it is the default there.</li>
+          <li>audio: new ASIO SDK back-end.</li>
+          <li>audio: the audio engine stays alive across documents.</li>
+          <li>audio: files above 4GB are streamed instead of decoded into memory.</li>
+          <li>avnd: new objects: Point Tracker, Beat Tracker, Entity To MIDI, MIDI Humanize, MIDI Envelope.</li>
+          <li>avnd: new utility objects: spigot, repeat, mux, demux, bang, button.</li>
+          <li>avnd: folder ports, folder-backed comboboxes populated from a sibling folder port, and comboboxes with runtime-populated item lists.</li>
+          <li>avnd: geometry auxiliary buffers and textures, per-instance semantics and more texture port kinds.</li>
+          <li>can: new DBC-driven CAN device, browsing the .dbc databases of the library and enumerating the machine's real interfaces.</li>
+          <li>cables: the cable type is apparent in the rendering, and feedback cables set their mode automatically.</li>
+          <li>csf: compute shaders take general geometry inputs, process input vertices and instances, and support multipass with distinct local sizes.</li>
+          <li>dataflow: pick port addresses in an editable combo box that walks only the devices carrying the right kind.</li>
+          <li>devices: general import and export of devices, with a preset view.</li>
+          <li>devices: MIDI Controller devices build their tree from a device description, with a preview of the tree a description would build, one row per brand and support for rigs of several identical controllers.</li>
+          <li>devices: a raw MIDI channel beside the described devices.</li>
+          <li>devices: gphoto2 cameras can be used as inputs when the library is installed.</li>
+          <li>devices: GStreamer input and output as a device, following the engine quantum.</li>
+          <li>explorer: per-type value editors in the tree and in the address panel, and values editable directly from the tree.</li>
+          <li>explorer: the address panel is finished, with a form for every value type.</li>
+          <li>gfx: new PipeWire video input and output devices, with zero-copy DMA-BUF on both sides and negotiation against GStreamer.</li>
+          <li>gfx: new window capture device, including full-screen and screen-portion capture.</li>
+          <li>gfx: NVIDIA GPUDirect for Video bridge, and zero-copy Vulkan capture upload through VK_EXT_external_memory_host.</li>
+          <li>gfx: high-bit-depth, planar and packed GPU video encoders, a V210 decoder and encoders aimed at acquisition and SDI cards.</li>
+          <li>gfx: rendering can be driven from an external genlock clock, or a fixed number of frames rendered on demand.</li>
+          <li>gfx: cubemap render targets with six distinct faces, camera arrays giving six views their own camera, and multiview lowering.</li>
+          <li>gfx: indirect draws, taking the draw count from a GPU-written buffer.</li>
+          <li>gfx: colour pads open the colour dialog on right-click.</li>
+          <li>gfx: demosaic colour-filter-array frames on the GPU, correct sensors and fit viewports, and correlate frames across capture streams.</li>
+          <li>gfx: shared decoded-asset cache, scene preprocessor and scene filter nodes, and scene payload transport.</li>
+          <li>gfx: multi-window rendering reworked around one FBO feeding all windows, with finer mapping, border lock and off-origin outputs.</li>
+          <li>gfx: bt2020-10 colorimetry, and a video pixel format vocabulary shared across the libav, DirectShow, v4l2 and DRM paths.</li>
+          <li>gfx: D3D12 can use shader model 6 when its compiler is present.</li>
+          <li>isf: explicit DIMENSIONS, COPY_FROM, ISF_READ / ISF_WRITE, and IMG_* accessors for raw-raster shaders.</li>
+          <li>jit: add-ons can be JIT-compiled on Windows (MinGW COFF, LLVM 22 and 23), with C++ exceptions, native TLS and a proper per-platform Orc runtime.</li>
+          <li>js: persistent interactive QML graphics and native UI primitives, with Qt Canvas2D painting and undoable runtime state.</li>
+          <li>js: custom UIs can be docked, placed by script, or put in a window, the side panel or the central view.</li>
+          <li>js: a much larger scripting API: cables, path lookup, process controls, triggers and conditions, document metadata, presets, object colours, Score.select(), and the editor API under Score.Editor.</li>
+          <li>js: Util.listFiles, Util.listDirectories, Util.openFileDialog and Util.saveFileDialog for native dialogs.</li>
+          <li>js: a View object for main-view automation and screenshots.</li>
+          <li>js: scripts edited on disk are picked up, and a script taken from the library is no longer frozen into the document.</li>
+          <li>library: hierarchic preset categories, and a package manager that says what went wrong when a download fails.</li>
+          <li>midi: reverse playback, transport resume, and notes sounding in reverse when rewinding.</li>
+          <li>midi: MIDI Machine Control, MIDI Video Control and MIDI Show Control protocols.</li>
+          <li>midi: virtual port support on Windows through the new Windows MIDI Services API.</li>
+          <li>nodal: rubber-band box selection and Ctrl+click multi-selection, with the zoom level and canvas position kept across navigation and reload.</li>
+          <li>osc: COBS framing, alongside the other framings found in the wild.</li>
+          <li>project: collect a document's media into its own folder, find missing files, archive a project to a zip, trim media and remove the files a project no longer uses.</li>
+          <li>protocols: QML protocols gain Bluetooth, NFC and serial bindings, sender information on received UDP messages so replies are possible, and automatic deserialization of encodings such as base64.</li>
+          <li>protocols: UDP multicast support.</li>
+          <li>remote control: an HTTP server, with configurable port, address and path, serving a WebAssembly remote.</li>
+          <li>skin: skins carry their fonts and their widget palette; light, greyscale, high-contrast and tritanopia-safe palettes ship alongside the existing ones.</li>
+          <li>sound: tempo-aligned drop-in on running intervals, seeking to where a running copy actually is.</li>
+          <li>threedim: geometry nodes, scene-graph filters and material overrides driven from the device tree.</li>
+          <li>ui: a central view stack with a navigation bar per document, and an address bar in the navigation bar.</li>
+          <li>ui: new MIDI display process.</li>
+          <li>ui: the time chooser is a compact time bar and a knob with a full division table, longer sync durations and a mode chip readout.</li>
+          <li>ui: a Pretty toggle on the Value display, spreading nested values over lines.</li>
+          <li>ui: --vector-gui / --no-vector-gui to select higher-quality rendering, and a configurable base UI font size.</li>
+          <li>ui: the Phosphor icon fonts ship with score.</li>
+          <li>video: one hardware-device selection policy for every decode path, with a native VAAPI device picked on dual-GPU machines and an override available.</li>
+          <li>vst3: CC, pitch bend and aftertouch are delivered to the plug-in; the VST3 SDK is updated to 3.8.1.</li>
+          <li>wasm: camera input through getUserMedia and WebCodecs, audio input through a duplex miniaudio device, and media import by drag-and-drop or file picker.</li>
+          <li>wasm: asynchronous File / Load and Save As, documents opened from the page URL, and zip archives holding a document and its media.</li>
+          <li>wasm: the user library is baked into the deployed filesystem, and the binary is published gzipped.</li>
+        </ul>
+        <p>Improvements</p>
+        <ul>
+          <li>app: --script starts on a document with nothing modal in the way, reports its failures instead of exiting 0, and can opt out of the failsafe with SCORE_DISABLE_FAILSAFE.</li>
+          <li>app: the local device-tree ports are configurable at launch.</li>
+          <li>audio: capture defaults to following the system device on first run.</li>
+          <li>audio: the PipeWire back-end adapts to graph quantum and rate changes instead of skipping cycles, and detects a graph that schedules nothing.</li>
+          <li>clap: transport position, note dialect, sysex and non-note MIDI are handled properly, parameters are automatable, state is usable while deactivated, and the audio thread pool is shared with libossia.</li>
+          <li>dataflow: a port says what it is in, and its address says what the far end speaks; units on ports mean something now.</li>
+          <li>dataflow: the cable drag line follows its port, scrolling continues past the view's edge, and port hit zones are circular with centred anchors.</li>
+          <li>explorer: an unfolded node is always listened to, across reconnects, refreshes and tree swaps; a device tree is never replaced by an empty exploration.</li>
+          <li>gfx: colour is decoded exactly, at every bit depth, and the output's colour conversion is carried into the direct-video path.</li>
+          <li>gfx: the OpenGL backend gets validation, the one backend that had none.</li>
+          <li>graphics: knobs and sliders scroll infinitely on the platform's relative motion, and behave on multi-screen HiDPI setups.</li>
+          <li>library: greatly improved scan times, with much more of the scan moved off the main thread.</li>
+          <li>lv2: out-of-process puppet scanner and a rewritten multi-voice host; control port values are restored on document reload.</li>
+          <li>media: more advanced probing reads semi-broken media, such as files with no duration in the header.</li>
+          <li>plugin scanning: VST, VST3, CLAP and LV2 share one out-of-process PluginScanner with versioned caches and per-format settings.</li>
+          <li>protocols: a listing reads a bounded amount and parses once, and a port says when it is full.</li>
+          <li>quantification: one grid, walked once, for every consumer, restarting the sub-bar grid at every bar line and reporting the right dates when the timeline runs backwards.</li>
+          <li>scenario: processes added while an interval is already executing are started; process order survives a save and load round-trip.</li>
+          <li>scenario: a multi-selection of processes can be deleted, and Del removes a state message like Backspace.</li>
+          <li>skin: idle, running and failed intervals are no longer confusable, every skin's contrast is kept within reach of the default, and the last hardcoded colours are gone from the chrome.</li>
+          <li>state: values round-trip through their text, a string field can hold more than one line, and the byte panel keeps its undo and its place.</li>
+          <li>ui: hitboxes and interaction areas are larger for core elements.</li>
+          <li>ui: double-clicking a slider returns it to its default.</li>
+          <li>ui: fonts are sized in pixels rather than points, so macOS matches everywhere else, and the whole widget UI uses score's font rather than the platform theme's.</li>
+          <li>vst, vst3, lv2: the transport position is reported instead of the frame counter, and they process when the timeline runs backwards.</li>
+          <li>windows: UTF-8 is forced through a manifest on all builds, and a Windows arm64 build is produced.</li>
+          <li>ysfx: presets starting with tags are categorized, and copy-paste and undo/redo are fixed.</li>
+        </ul>
+        <p>Bugfixes</p>
+        <ul>
+          <li>clap: plug-ins without MIDI inputs receive parameter and transport events; event times are rebased and clamped to the tick's buffer span.</li>
+          <li>core: plug-ins are torn down in reverse creation order when a document closes, and devices are disconnected before documents are destroyed.</li>
+          <li>core: a second exit request no longer re-enters document teardown.</li>
+          <li>curve: an automation starting after zero keeps its first segment.</li>
+          <li>execution: a crash lurking in execution cleanup since 2018 is fixed.</li>
+          <li>fx: the Envelope RMS was sqrt(sum)/N instead of sqrt(sum/N).</li>
+          <li>fx: MathAudioFilter's x/px buffer swap corrupted odd samples.</li>
+          <li>fx: the Looper wrote the wrong span on every tick that did not start at zero, and its record passthrough was heard when nothing was being taken in.</li>
+          <li>gfx: many crashes on document close, device loss and graph mutation during rendering.</li>
+          <li>gfx: video outputs were upside down on Vulkan, and MRT blits turned the picture over on OpenGL and Direct3D.</li>
+          <li>gfx: a colour arriving without its alpha was drawn invisible.</li>
+          <li>gfx: a mirrored vertex Y flipped the winding, so Direct3D culled the wrong faces.</li>
+          <li>gfx: the DMA-BUF path was reading every frame back to the CPU.</li>
+          <li>gfx: QSG_RHI_BACKEND is no longer set, as it broke VST plug-ins that also use Qt.</li>
+          <li>graphics: an item deleted mid-event-delivery is deferred, and an editor is taken away when its drop-down is dismissed.</li>
+          <li>js: MIDI bytes were dropped, audio outlets were never cleared, and four calls aborted the application.</li>
+          <li>js: deleting a texture source from QML aborted the application.</li>
+          <li>js: QML processes with a UI would only load the second time.</li>
+          <li>library: the library scan found nothing on Windows.</li>
+          <li>media: a soundfile control opened the path the document stored rather than the file; drag-and-drop of audio files behind symlinks works.</li>
+          <li>media: sws_scale read a one-element destination plane array out of bounds.</li>
+          <li>midi: note-offs were dropped for short and adjacent notes; a document naming a MIDI back-end this build lacks no longer aborts.</li>
+          <li>midi: computer keyboard input was broken on X11.</li>
+          <li>patternist: held notes are released when stopping, note-offs reach the output, and every step a tick covers is played.</li>
+          <li>process: rebuilding a drifted process's ports dropped every control value.</li>
+          <li>process: an unknown uuid no longer loses the process and its cables.</li>
+          <li>scenario: pasting multiple processes into a scenario crashed or silently failed.</li>
+          <li>scenario: dragging a brace snapped a duration as if it were a date.</li>
+          <li>sound: full-scale samples wrapped to the opposite polarity at 24 and 32 bits.</li>
+          <li>sound: RubberBand's start delay is trimmed, so stretched sounds are not late.</li>
+          <li>startscreen: HiDPI rendering and cursor behaviour on Wayland.</li>
+          <li>video: playback of decoders without pkt_dts and of thread-sliced codecs in direct mode.</li>
+          <li>video: misprobed, truncated and duration-less files no longer take the process down.</li>
+          <li>vst: a document whose VST is not installed no longer segfaults when its UI is built.</li>
+          <li>wasm: gfx output windows recover from permanent black after hide and show, and no longer steal the keyboard.</li>
+          <li>windows: an absolute path became a UNC share path.</li>
+          <li>zip: a cancelled extraction left the folders it had made.</li>
+        </ul>
+      </description>
+    </release>
     <release version="3.8.2" date="2026-03-27">
       <url type="details">https://github.com/ossia/score/releases/tag/v3.8.2</url>
       <description>
