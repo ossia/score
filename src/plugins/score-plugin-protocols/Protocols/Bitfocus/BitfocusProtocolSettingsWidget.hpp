@@ -32,6 +32,7 @@ public:
   using Device::ProtocolSettingsWidget::checkForChanges;
 
 private:
+  void resetFields();
   void updateFields();
   void resizeEvent(QResizeEvent*) override;
   BitfocusSpecificSettings m_settings;
@@ -52,7 +53,9 @@ private:
   };
 
   std::map<QString, widget> m_widgets;
+  QMetaObject::Connection m_configurationParsed;
   QJSEngine m_uiEngine;
   bool m_hasInitLabel{};
+  bool m_fieldsLoaded{};
 };
 }

@@ -109,31 +109,17 @@ auto BitfocusEnumerator::loadSettings(const QString& path) -> ret_type
         }
       }
 
-      if(!brand.isEmpty() && !products.empty())
+      if(products.empty())
       {
-        for(auto& prod : products)
-        {
-          QString label = brand + ": " + prod;
-          set.product = prod;
-          devices.push_back({label, QVariant::fromValue(set)});
-        }
+        devices.push_back({set.enumeratorLabel(), QVariant::fromValue(set)});
       }
-      else if(brand.isEmpty() && !products.empty())
+      else
       {
         for(auto& prod : products)
         {
           set.product = prod;
-          devices.push_back({prod, QVariant::fromValue(set)});
+          devices.push_back({set.enumeratorLabel(), QVariant::fromValue(set)});
         }
-      }
-      else if(!brand.isEmpty() && products.empty())
-      {
-        QString label = brand + ": " + set.name;
-        devices.push_back({label, QVariant::fromValue(set)});
-      }
-      else if(brand.isEmpty() && products.empty())
-      {
-        devices.push_back({set.name, QVariant::fromValue(set)});
       }
     }
   }

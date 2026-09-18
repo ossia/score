@@ -315,6 +315,7 @@ bool BitfocusDevice::reconnect()
   {
     BitfocusSpecificSettings stgs
         = settings().deviceSpecificSettings.value<BitfocusSpecificSettings>();
+    stgs.deduplicateConfiguration();
 
     auto conf = bitfocus::module_configuration{};
     {

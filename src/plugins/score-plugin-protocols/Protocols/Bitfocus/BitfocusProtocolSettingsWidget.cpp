@@ -13,7 +13,10 @@
 #include <score/widgets/ValidationPalette.hpp>
 #include <score/widgets/MarginLess.hpp>
 
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/network/value/value_conversion.hpp>
+
+#include <ossia-qt/js_utilities.hpp>
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -65,12 +68,18 @@ Device::DeviceSettings BitfocusProtocolSettingsWidget::getSettings() const
   s.protocol = BitfocusProtocolFactory::static_concreteKey();
 
   BitfocusSpecificSettings osc = m_settings;
-  for(auto& widg : m_widgets)
+
+  for(auto& [id, widg] : m_widgets)
   {
-    if(widg.second.getValue)
-    {
-      osc.configuration.emplace_back(widg.first, widg.second.getValue());
-    }
+    if(!widg.getValue)
+      continue;
+    auto it = ossia::find_if(osc.configuration, [&id = id](const auto& kv) {
+      return kv.first == id;
+    });
+    if(it != osc.configuration.end())
+      it->second = widg.getValue();
+    else
+      osc.configuration.emplace_back(id, widg.getValue());
   }
   s.deviceSpecificSettings = QVariant::fromValue(osc);
 
@@ -105,10 +114,22 @@ static void makeValidator(QLineEdit* widg, QString rx)
   });
 }
 
+void BitfocusProtocolSettingsWidget::resetFields()
+{
+  m_widgets.clear();
+  m_fieldsLoaded = false;
+  delete m_subWidget;
+  m_subWidget = new QWidget{this};
+  m_subForm = new score::MarginLess<QVBoxLayout>{m_subWidget};
+  m_scroll->setWidget(m_subWidget);
+}
+
 void BitfocusProtocolSettingsWidget::updateFields()
 {
   if(!m_settings.handler)
     return;
+
+  resetFields();
 
   auto& m = m_settings.handler->model();
   for(auto& field : m.config_fields)
@@ -262,6 +283,14 @@ void BitfocusProtocolSettingsWidget::updateFields()
     }
   }
   m_subForm->addStretch(1);
+  m_fieldsLoaded = true;
+
+  for(auto& [k, v] : m_settings.configuration)
+  {
+    if(auto member = m_widgets.find(k); member != m_widgets.end())
+      if(member->second.setValue)
+        member->second.setValue(v);
+  }
 }
 
 void BitfocusProtocolSettingsWidget::resizeEvent(QResizeEvent* res)
@@ -285,62 +314,60 @@ void BitfocusProtocolSettingsWidget::setSettings(const Device::DeviceSettings& s
     }
   }
 
-  m_widgets.clear();
-  delete m_subWidget;
-  m_subWidget = new QWidget{this};
-  m_subForm = new score::MarginLess<QVBoxLayout>{m_subWidget};
-  m_scroll->setWidget(m_subWidget);
+  if(!settings.deviceSpecificSettings.canConvert<BitfocusSpecificSettings>())
+  {
+    resetFields();
+    m_settings = {};
+    m_deviceNameEdit->setText(settings.name);
+    return;
+  }
 
+  auto stgs = settings.deviceSpecificSettings.value<BitfocusSpecificSettings>();
+  stgs.deduplicateConfiguration();
+
+  // Re-picking the module we already show would restart its process.
+  if(m_settings.handler && !stgs.path.isEmpty() && stgs.path == m_settings.path
+     && stgs.id == m_settings.id && stgs.product == m_settings.product)
+    return;
+
+  resetFields();
   m_deviceNameEdit->setText(settings.name);
 
-  bool mustLoad = false;
-  if(settings.deviceSpecificSettings.canConvert<BitfocusSpecificSettings>())
+  if(stgs.path.isEmpty() || !QDir{stgs.path}.exists())
   {
-    auto stgs = settings.deviceSpecificSettings.value<BitfocusSpecificSettings>();
-    if(!stgs.path.isEmpty() && QDir{stgs.path}.exists())
-    {
-      m_deviceNameEdit->setText(stgs.name);
-      if(!stgs.handler)
-      {
-        // First load
-        auto conf = bitfocus::module_configuration{};
-        {
-          if(!stgs.product.isEmpty())
-          {
-            conf["product"] = stgs.product;
-          }
-        }
-        stgs.handler = std::make_shared<bitfocus::module_handler>(
-            stgs.path, stgs.entrypoint, stgs.nodeVersion, stgs.apiVersion,
-            std::move(conf));
-        connect(
-            stgs.handler.get(), &bitfocus::module_handler::configurationParsed, this,
-            [this] { updateFields(); });
-      }
-      else
-      {
-        // Device already loaded, we're editing
-        mustLoad = true;
-      }
-    }
-
     m_settings = stgs;
-
-    if(mustLoad)
-    {
-      // 1. Load the fields
-      updateFields();
-
-      // 2. Load our saved values
-      for(auto& [k, v] : stgs.configuration)
-      {
-        if(auto member = this->m_widgets.find(k); member != m_widgets.end())
-        {
-          if(member->second.setValue)
-            member->second.setValue(v);
-        }
-      }
-    }
+    return;
   }
+
+  // The enumerator lists modules by a label that is not a usable device name.
+  if(!stgs.name.isEmpty() && settings.name == stgs.enumeratorLabel())
+    m_deviceNameEdit->setText(stgs.name);
+
+  if(!stgs.handler)
+  {
+    // The handler is not serialized: start the module to get its config fields.
+    auto conf = bitfocus::module_configuration{};
+    if(!stgs.product.isEmpty())
+      conf["product"] = stgs.product;
+    for(auto& [k, v] : stgs.configuration)
+      conf[k] = v.apply(ossia::qt::ossia_to_qvariant{});
+
+    stgs.handler = std::make_shared<bitfocus::module_handler>(
+        stgs.path, stgs.entrypoint, stgs.nodeVersion, stgs.apiVersion, std::move(conf));
+  }
+
+  m_settings = stgs;
+
+  disconnect(m_configurationParsed);
+  m_configurationParsed = connect(
+      m_settings.handler.get(), &bitfocus::module_handler::configurationParsed, this,
+      [this, h = std::weak_ptr{m_settings.handler}] {
+    if(h.lock() == m_settings.handler)
+      updateFields();
+  });
+
+  // An already-running device answered long before we connected.
+  if(!m_settings.handler->model().config_fields.empty())
+    updateFields();
 }
 }
