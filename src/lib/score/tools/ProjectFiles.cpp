@@ -127,14 +127,19 @@ QString PathRoots::documentFolder() const noexcept
   return parent;
 }
 
-PathRoots pathRoots(const score::DocumentContext& ctx) noexcept
+PathRoots pathRoots() noexcept
 {
   PathRoots r;
-  r.documentFile = ctx.document.metadata().fileName();
-
   QSettings set;
   if(auto lib = set.value("Library/RootPath").toString(); QDir{lib}.exists())
     r.library = QFileInfo{lib}.canonicalFilePath();
+  return r;
+}
+
+PathRoots pathRoots(const score::DocumentContext& ctx) noexcept
+{
+  PathRoots r = pathRoots();
+  r.documentFile = ctx.document.metadata().fileName();
   return r;
 }
 

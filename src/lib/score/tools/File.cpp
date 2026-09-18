@@ -124,6 +124,11 @@ relativizeFilePath(const QString& filename, const score::DocumentContext& ctx) n
   return score::relativizeFilePath(filename, score::pathRoots(ctx));
 }
 
+QString relativizeFilePath(const QString& filename) noexcept
+{
+  return score::relativizeFilePath(filename, score::pathRoots());
+}
+
 PathInfo::PathInfo(std::string_view v) noexcept
     : absoluteFilePath{v}
 {
@@ -293,10 +298,7 @@ pickerStartFolder(const QString& current, const score::DocumentContext& ctx) noe
 
 QString pickerStartFolder(const QString& current) noexcept
 {
-  PathRoots roots;
-  QSettings set;
-  if(auto lib = set.value("Library/RootPath").toString(); QDir{lib}.exists())
-    roots.library = QFileInfo{lib}.canonicalFilePath();
-  return pickerStartFolder(current, roots, userDocumentsFolder(), QDir::currentPath());
+  return pickerStartFolder(
+      current, pathRoots(), userDocumentsFolder(), QDir::currentPath());
 }
 }

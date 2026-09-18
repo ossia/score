@@ -25,6 +25,10 @@ SCORE_LIB_BASE_EXPORT
 QString
 relativizeFilePath(const QString& filename, const score::DocumentContext& ctx) noexcept;
 
+//! Same, outside of any document: only <LIBRARY>: can come out of it.
+SCORE_LIB_BASE_EXPORT
+QString relativizeFilePath(const QString& filename) noexcept;
+
 SCORE_LIB_BASE_EXPORT
 QString addUniqueSuffix(const QString& fileName);
 
