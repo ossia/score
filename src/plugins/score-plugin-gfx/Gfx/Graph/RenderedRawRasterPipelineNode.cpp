@@ -2704,6 +2704,13 @@ void RenderedRawRasterPipelineNode::update(
   // QRhiTexture on resize or rebuild flows through. The helper is idempotent
   // and patches every SRB it is given, so one call per pass refreshes them all
   // while the upstream lookup happens on the first iteration only.
+  static const bool srbprobe = qEnvironmentVariableIsSet("SCORE_SRBPROBE");
+  if(srbprobe && !(geometry.meshes && !geometry.meshes->meshes.empty()))
+    qDebug() << "score.gfx: SRBPROBE refresh SKIPPED this frame: meshes="
+             << (void*)geometry.meshes.get()
+             << "count=" << (geometry.meshes ? (int)geometry.meshes->meshes.size() : -1)
+             << "passes=" << (int)m_passes.size()
+             << "invSRBs=" << (int)m_perInvocationSRBs.size();
   if(geometry.meshes && !geometry.meshes->meshes.empty())
   {
     // Per-pass refresh of the name-matched-from-geometry bindings (SSBO, UBO,
