@@ -18,6 +18,8 @@
 #include <QScreen>
 #include <QTimer>
 
+#include <cmath>
+
 #include <memory>
 #include <utility>
 
@@ -509,11 +511,8 @@ void QGraphicsCombo::paintStepper(QPainter& painter, const score::Skin& skin)
              QPointF{strip.left(), strip.top() + strip.height() / 2.},
              QSizeF{strip.width(), strip.height() / 2.}}};
 
-  painter.setPen(skin.Base1.main.pen1);
-  painter.drawLine(strip.topLeft(), strip.bottomLeft());
-
   // Half the glyph's arm length, so that + and - are the same width.
-  const double arm = 2.5;
+  const double arm = 2.;
   for(int i = 0; i < 2; i++)
   {
     const int step = i == 0 ? +1 : -1;
@@ -526,8 +525,11 @@ void QGraphicsCombo::paintStepper(QPainter& painter, const score::Skin& skin)
       painter.drawRect(half);
     }
 
-    const QPointF c = half.center();
-    painter.setPen(skin.Base4.main.pen2);
+    // Rounded: a one-pixel pen with antialiasing off lands on a whole pixel,
+    // and the two glyphs line up with each other rather than each falling to
+    // whichever side of its half the centre happened to sit on.
+    const QPointF c{std::round(half.center().x()), std::round(half.center().y())};
+    painter.setPen(skin.Base4.main.pen1);
     painter.drawLine(QPointF{c.x() - arm, c.y()}, QPointF{c.x() + arm, c.y()});
     if(step > 0)
       painter.drawLine(QPointF{c.x(), c.y() - arm}, QPointF{c.x(), c.y() + arm});
