@@ -729,12 +729,20 @@ void WaveformComputer::timerEvent(QTimerEvent* event)
     loopHandle.absmax_frame_impl = loopHandle.normal_absmax_frame;
     loopHandle.minmax_frame_impl = loopHandle.normal_minmax_frame;
   }
+  const auto render_start = std::chrono::steady_clock::now();
   WaveformComputerImpl impl{loopHandle, m_currentRequest, *this};
   impl.compute();
   m_processed_n = m_n;
 
   last_render = std::chrono::steady_clock::now();
-  m_lastRenderDuration = last_render - now;
+
+  // The render alone: the summary is built once, and charging its cost to the
+  // budget would hold off every redraw for as long as it took -- which is
+  // exactly when a drag most needs them. Capped so that one pathological render
+  // cannot stall the view either.
+  using namespace std::literals;
+  m_lastRenderDuration = std::min<std::chrono::steady_clock::duration>(
+      last_render - render_start, 100ms);
 }
 
 }
