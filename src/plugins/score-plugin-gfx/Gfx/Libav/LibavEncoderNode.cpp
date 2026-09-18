@@ -97,9 +97,10 @@ void LibavEncoderNode::render()
   if(renderer && m_renderState)
   {
     auto rhi = m_renderState->rhi;
-    QRhiCommandBuffer* cb{};
-    if(rhi->beginOffscreenFrame(&cb) != QRhi::FrameOpSuccess)
+    score::gfx::OffscreenFrame frame{*rhi};
+    if(!frame)
       return;
+    QRhiCommandBuffer* cb = &frame.commands();
 
     renderer->render(*cb);
 
@@ -110,7 +111,7 @@ void LibavEncoderNode::render()
       auto& prevEnc = *m_encoder[m_encoderIdx ^ 1];
 
       currentEnc.exec(*rhi, *cb);
-      rhi->endOffscreenFrame();
+      frame.end();
 
       // Push the PREVIOUS frame's readback to the encoder
       if(prevEnc.readback(0).data.size() > 0)
@@ -147,7 +148,7 @@ void LibavEncoderNode::render()
     else
     {
       // Standard RGBA path with double-buffered readback
-      rhi->endOffscreenFrame();
+      frame.end();
 
       auto& readback = *m_currentReadback;
       const int w = readback.pixelSize.width(), h = readback.pixelSize.height();

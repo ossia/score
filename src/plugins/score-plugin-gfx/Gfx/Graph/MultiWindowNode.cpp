@@ -738,14 +738,13 @@ void MultiWindowNode::render()
   // frame that is not attached to any swap chain. This is what decouples
   // upstream rendering from any specific window's lifetime.
   {
-    QRhiCommandBuffer* cb = nullptr;
-    QRhi::FrameOpResult r = rhi->beginOffscreenFrame(&cb);
-    if(r != QRhi::FrameOpSuccess || !cb)
+    score::gfx::OffscreenFrame frame{*rhi};
+    if(!frame)
       return;
 
-    rl->render(*cb);
+    rl->render(frame.commands());
 
-    rhi->endOffscreenFrame();
+    frame.end();
   }
 
   // Step 2: for each live window, blit its sub-region in its own frame.
@@ -786,7 +785,11 @@ void MultiWindowNode::render()
       continue;
 
     auto cb = wo.swapChain->currentFrameCommandBuffer();
-    outRenderer->renderToWindow(i, *rl, *cb);
+    {
+      SwapChainFrameGuard guard{*rhi, *wo.swapChain};
+      outRenderer->renderToWindow(i, *rl, *cb);
+      guard.release();
+    }
 
     rhi->endFrame(wo.swapChain);
   }

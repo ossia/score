@@ -83,8 +83,13 @@ public:
 
   /**
    * @brief Render every node in order.
+   *
+   * Never throws: a node that fails to build its pipeline, or any other
+   * exception raised while recording, is caught and reported here rather than
+   * escaping into the output node's frame bracket and, from there, into
+   * QCoreApplication::notify.
    */
-  void render(QRhiCommandBuffer& commands, bool force = false);
+  void render(QRhiCommandBuffer& commands, bool force = false) noexcept;
 
   /// The command buffer render() is currently recording into, or null outside a
   /// frame. Strategies that must record raw-API commands (the Vulkan host-import
@@ -349,6 +354,12 @@ public:
       const noexcept;
 
 private:
+  void renderImpl(QRhiCommandBuffer& commands, bool force);
+
+  // Rendering failures repeat every frame: report the first one per
+  // RenderList, then one in 600, instead of a line per frame.
+  int m_renderFailures{};
+
   OutputUBO m_outputUBOData;
 
 

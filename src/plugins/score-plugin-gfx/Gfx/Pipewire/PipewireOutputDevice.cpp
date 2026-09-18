@@ -1683,12 +1683,13 @@ void PipewireOutputNode::render()
     }
     QRhiTexture* bridge = wireTarget.texture;
 
-    QRhiCommandBuffer* cb{};
-    if(rhi->beginOffscreenFrame(&cb) != QRhi::FrameOpSuccess)
+    score::gfx::OffscreenFrame frame{*rhi};
+    if(!frame)
     {
       m_producer->dmabuf_queue(pwbuf);
       return;
     }
+    QRhiCommandBuffer* cb = &frame.commands();
 
     // Write into the shared image directly -- the Spout/Syphon shape, one
     // texture written once and read once -- but ONLY when that image has a
@@ -1726,7 +1727,7 @@ void PipewireOutputNode::render()
       cb->resourceUpdate(batch);
     }
 
-    rhi->endOffscreenFrame();
+    frame.end();
 
     // pipewire's `queue_buffer == ready` contract wants the GPU work
     // COMPLETE, not just submitted: consumers mmap-read the dma-buf
@@ -1762,16 +1763,16 @@ void PipewireOutputNode::render()
     m_dmabufBridgeEgl->createFrom(
         QRhiTexture::NativeTexture{quint64(targetTex), 0});
 
-    QRhiCommandBuffer* cb{};
-    if(rhi->beginOffscreenFrame(&cb) != QRhi::FrameOpSuccess)
+    score::gfx::OffscreenFrame frame{*rhi};
+    if(!frame)
     {
       m_producer->dmabuf_queue_egl(pwbuf);
       return;
     }
 
-    rl->render(*cb);
+    rl->render(frame.commands());
 
-    rhi->endOffscreenFrame();
+    frame.end();
 
     // Copy the flip-corrected wire texture into the EGLImage-bound target
     // with an explicit framebuffer blit. QRhi's copyTexture path
@@ -1823,12 +1824,12 @@ void PipewireOutputNode::render()
 #endif
 
   // -------- Sysmem readback path (default / non-Vulkan) -------------
-  QRhiCommandBuffer* cb{};
-  if(rhi->beginOffscreenFrame(&cb) != QRhi::FrameOpSuccess)
+  score::gfx::OffscreenFrame frame{*rhi};
+  if(!frame)
     return;
 
-  rl->render(*cb);
-  rhi->endOffscreenFrame();
+  rl->render(frame.commands());
+  frame.end();
 
   // m_readback was populated by PwWireRenderer during the frame.
   // QRhi reads back tightly-packed bytes at the texture's actual

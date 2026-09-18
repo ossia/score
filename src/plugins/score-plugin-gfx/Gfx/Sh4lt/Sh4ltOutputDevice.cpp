@@ -146,12 +146,12 @@ void Sh4ltOutputNode::render()
   if(renderer && m_renderState)
   {
     auto rhi = m_renderState->rhi;
-    QRhiCommandBuffer* cb{};
-    if(rhi->beginOffscreenFrame(&cb) != QRhi::FrameOpSuccess)
+    score::gfx::OffscreenFrame frame{*rhi};
+    if(!frame)
       return;
 
-    renderer->render(*cb);
-    rhi->endOffscreenFrame();
+    renderer->render(frame.commands());
+    frame.end();
 
     int sz = m_readback.pixelSize.width() * m_readback.pixelSize.height() * 4;
     int bytes = m_readback.data.size();

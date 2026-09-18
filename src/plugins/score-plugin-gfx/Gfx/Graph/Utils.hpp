@@ -12,6 +12,8 @@
 
 #include <score_plugin_gfx_export.h>
 
+#include <QtCore/QDebug>
+
 #include <span>
 
 namespace isf
@@ -28,6 +30,99 @@ class VertexFallbackPool;
 struct Edge;
 class RenderList;
 
+/**
+ * @brief RAII bracket for QRhi::beginOffscreenFrame / endOffscreenFrame.
+ *
+ * A frame that is begun is always ended, including when the scope is left by
+ * an exception: QRhi keeps `inFrame` set otherwise and every later
+ * beginFrame / beginOffscreenFrame on that QRhi silently does nothing for the
+ * rest of the session.
+ *
+ * `beginOffscreenFrame` returns FrameOpSuccess *without writing the command
+ * buffer* when a frame is already recording (qrhi.cpp only warns and returns
+ * early), so success alone does not mean a frame was opened here. In that case
+ * the scope owns nothing and must not end the frame that is already running.
+ */
+struct OffscreenFrame
+{
+  explicit OffscreenFrame(QRhi& rhi) noexcept
+  {
+    QRhiCommandBuffer* cb{};
+    if(rhi.beginOffscreenFrame(&cb) == QRhi::FrameOpSuccess)
+    {
+      if(cb)
+      {
+        m_rhi = &rhi;
+        m_commands = cb;
+      }
+      else
+      {
+        static int nested = 0;
+        if((nested++ % 600) == 0)
+          qWarning() << "score.gfx: beginOffscreenFrame entered while a frame is "
+                        "already recording; skipping this render (occurrence"
+                     << nested << ")";
+      }
+    }
+  }
+
+  ~OffscreenFrame() noexcept { end(); }
+
+  OffscreenFrame(const OffscreenFrame&) = delete;
+  OffscreenFrame(OffscreenFrame&&) = delete;
+  OffscreenFrame& operator=(const OffscreenFrame&) = delete;
+  OffscreenFrame& operator=(OffscreenFrame&&) = delete;
+
+  explicit operator bool() const noexcept { return m_commands; }
+  QRhiCommandBuffer& commands() const noexcept { return *m_commands; }
+
+  void end() noexcept
+  {
+    if(auto* rhi = m_rhi)
+    {
+      m_rhi = nullptr;
+      m_commands = nullptr;
+      rhi->endOffscreenFrame();
+    }
+  }
+
+private:
+  QRhi* m_rhi{};
+  QRhiCommandBuffer* m_commands{};
+};
+
+/**
+ * @brief Closes a swapchain frame if the scope is left without presenting it.
+ *
+ * Armed after a successful beginFrame and disarmed by release() once the
+ * normal endFrame has run; the destructor only fires on the paths that never
+ * reach it, where the alternative is a QRhi stuck in `inFrame` for good.
+ */
+struct SwapChainFrameGuard
+{
+  SwapChainFrameGuard(QRhi& rhi, QRhiSwapChain& swapChain) noexcept
+      : rhi{&rhi}
+      , swapChain{&swapChain}
+  {
+  }
+
+  ~SwapChainFrameGuard() noexcept
+  {
+    if(rhi)
+      rhi->endFrame(swapChain, QRhi::SkipPresent);
+  }
+
+  SwapChainFrameGuard(const SwapChainFrameGuard&) = delete;
+  SwapChainFrameGuard(SwapChainFrameGuard&&) = delete;
+  SwapChainFrameGuard& operator=(const SwapChainFrameGuard&) = delete;
+  SwapChainFrameGuard& operator=(SwapChainFrameGuard&&) = delete;
+
+  void release() noexcept { rhi = nullptr; }
+
+private:
+  QRhi* rhi{};
+  QRhiSwapChain* swapChain{};
+};
 
 
 /**

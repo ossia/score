@@ -250,11 +250,10 @@ void RenderList::flushInitialBatch()
     return;
   }
 
-  QRhiCommandBuffer* cb{};
-  if(rhi->beginOffscreenFrame(&cb) == QRhi::FrameOpSuccess)
+  if(OffscreenFrame frame{*rhi})
   {
-    cb->resourceUpdate(m_initialBatch);
-    rhi->endOffscreenFrame();
+    frame.commands().resourceUpdate(m_initialBatch);
+    frame.end();
   }
   else
   {
@@ -1012,7 +1011,27 @@ static void update_date_for_shaders(float (&date)[4]) noexcept {
   date[3] = (uint32_t)time_of_day.count();
 }
 
-void RenderList::render(QRhiCommandBuffer& commands, bool force)
+void RenderList::render(QRhiCommandBuffer& commands, bool force) noexcept
+{
+  try
+  {
+    renderImpl(commands, force);
+  }
+  catch(const std::exception& e)
+  {
+    if((m_renderFailures++ % 600) == 0)
+      qWarning() << "RenderList::render: aborted this frame:" << e.what()
+                 << "(occurrence" << m_renderFailures << ")";
+  }
+  catch(...)
+  {
+    if((m_renderFailures++ % 600) == 0)
+      qWarning() << "RenderList::render: aborted this frame: unknown exception"
+                 << "(occurrence" << m_renderFailures << ")";
+  }
+}
+
+void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
 {
   update_date_for_shaders(this->currentDate);
 

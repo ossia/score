@@ -74,12 +74,12 @@ void PreviewNode::render()
   if(renderer && m_renderState)
   {
     auto rhi = m_renderState->rhi;
-    QRhiCommandBuffer* cb{};
-    if(rhi->beginOffscreenFrame(&cb) != QRhi::FrameOpSuccess)
+    score::gfx::OffscreenFrame frame{*rhi};
+    if(!frame)
       return;
 
-    renderer->render(*cb);
-    rhi->endOffscreenFrame();
+    renderer->render(frame.commands());
+    frame.end();
   }
 }
 

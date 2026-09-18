@@ -32,30 +32,14 @@ struct BackgroundNode : OutputNode
     {
       if(renderer->renderers.size() > 1)
       {
-        auto rhi = m_renderState->rhi;
-        QRhiCommandBuffer* cb{};
-        if(rhi->beginOffscreenFrame(&cb) != QRhi::FrameOpSuccess)
+        score::gfx::OffscreenFrame frame{*m_renderState->rhi};
+        if(!frame)
           return;
 
-        // QRhi::beginOffscreenFrame returns FrameOpSuccess *without writing cb*
-        // when a frame is already in flight: it only warns ("Attempted to call
-        // beginOffscreenFrame() within a still active frame; ignored") and
-        // returns early (qrhi.cpp: `!d->inFrame ? d->beginOffscreenFrame(...)
-        // : FrameOpSuccess`). The result code alone therefore does not mean a
-        // command buffer exists, and `*cb` on the null would be UB before
-        // anything dereferenced it. Return without endOffscreenFrame(): no
-        // frame was opened here, and ending one would close the caller's.
-        if(!cb)
-        {
-          qWarning() << "BackgroundNode::render: re-entered while a frame is "
-                        "already active; skipping this render";
-          return;
-        }
-
-        renderer->render(*cb);
+        renderer->render(frame.commands());
         if(qEnvironmentVariableIsSet("SCORE_CBPROBE"))
-          qDebug() << "score.gfx: CBPROBE endOffscreenFrame (cb=" << (void*)cb << ")";
-        rhi->endOffscreenFrame();
+          qDebug() << "score.gfx: CBPROBE endOffscreenFrame (cb="
+                   << (void*)&frame.commands() << ")";
       }
       else
       {
