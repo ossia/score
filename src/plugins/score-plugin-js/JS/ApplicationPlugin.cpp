@@ -69,9 +69,7 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
 #if __has_include(<QQuickWindow>) && !defined(__APPLE__)
   // Crisp text in every QML UI: distance-field rendering looks blurry at the small
   // font sizes our panels use, native glyph rendering matches the rest of score.
-  // Not on macOS: main.cpp asks cocoa for fontengine=freetype, so our qrc fonts
-  // are served by QFontEngineFT, which rasterises them at the wrong scale under
-  // native rendering whenever devicePixelRatio is not 1.
+  // Not on macOS: https://qt-project.atlassian.net/browse/QTBUG-150490
   QQuickWindow::setTextRenderType(QQuickWindow::NativeTextRendering);
 #endif
 
