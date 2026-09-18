@@ -47,7 +47,8 @@ Makefile
 .vs
 /i-scoreRecast.app/
 *.db
-*kde*
+*.kdev4
+.kdev4/
 cppcheck-html
 
 src/addons/*
