@@ -11,6 +11,7 @@
 #include <QGraphicsProxyWidget>
 #include <QGraphicsScene>
 #include <QGraphicsSceneContextMenuEvent>
+#include <QGraphicsSceneHoverEvent>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 #include <QPointer>
@@ -67,11 +68,38 @@ struct DefaultComboImpl
     return delta.manhattanLength() >= QApplication::startDragDistance();
   }
 
+  //! +1 for the upper half of the stepper strip, -1 for the lower half, 0 if
+  //! the point is not on the strip at all.
+  static int stepAt(const QGraphicsCombo& self, QPointF pos) noexcept
+  {
+    // Nothing to step through: the strip is not drawn either, and the whole
+    // box stays a plain click-to-open-the-list.
+    if(!draggable(self))
+      return 0;
+
+    const QRectF r = self.stepperRect();
+    if(!r.contains(pos))
+      return 0;
+    return pos.y() < r.center().y() ? +1 : -1;
+  }
+
   static void mousePressEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
   {
     if(event->button() == Qt::LeftButton)
     {
       self.m_dragged = false;
+
+      // The stepper swallows the press: no scrubbing, and no drop-down on the
+      // release either.
+      if(const int step = stepAt(self, event->pos()); step != 0)
+      {
+        self.m_pressedStep = step;
+        self.m_stepArmed = true;
+        self.update();
+        event->accept();
+        return;
+      }
+
       if(draggable(self))
       {
         self.m_grab = true;
@@ -84,6 +112,20 @@ struct DefaultComboImpl
 
   static void mouseMoveEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
   {
+    if(self.m_pressedStep != 0)
+    {
+      // Leaving the button un-presses it, as everywhere else: the release is
+      // then a no-op and the user has cancelled the step.
+      const bool armed = stepAt(self, event->pos()) == self.m_pressedStep;
+      if(armed != self.m_stepArmed)
+      {
+        self.m_stepArmed = armed;
+        self.update();
+      }
+      event->accept();
+      return;
+    }
+
     if(event->buttons() & Qt::LeftButton)
     {
       if(!self.m_dragged && passedDragThreshold(event))
@@ -107,6 +149,15 @@ struct DefaultComboImpl
   {
     if(event->button() == Qt::LeftButton)
     {
+      if(const int step = std::exchange(self.m_pressedStep, 0); step != 0)
+      {
+        self.update();
+        if(std::exchange(self.m_stepArmed, false))
+          self.step(step);
+        event->accept();
+        return;
+      }
+
       const bool wasDrag = self.m_dragged;
       if(self.m_grab)
       {
@@ -142,8 +193,11 @@ struct DefaultComboImpl
   //! goes wrong if the edit is left open.
   static void ungrabMouseEvent(QGraphicsCombo& self, QEvent* event)
   {
-    // The release that would have cleared this is never coming.
+    // The release that would have cleared these is never coming.
     self.m_dragged = false;
+    self.m_stepArmed = false;
+    if(std::exchange(self.m_pressedStep, 0) != 0)
+      self.update();
 
     if(!self.m_grab)
       return;
@@ -160,6 +214,7 @@ QGraphicsCombo::QGraphicsCombo(QGraphicsItem* parent)
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorSpin);
   this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
+  this->setAcceptHoverEvents(true);
 }
 
 void QGraphicsCombo::init()
@@ -173,9 +228,34 @@ void QGraphicsCombo::init()
   for(auto& value : this->array)
   {
     auto r = metrics.boundingRect(value);
-    maxW = std::max(r.width() + 8., maxW);
+    maxW = std::max(r.width() + 8. + stepperWidth, maxW);
   }
   m_rect.setWidth(maxW);
+}
+
+QRectF QGraphicsCombo::stepperRect() const noexcept
+{
+  const QRectF brect = m_rect.adjusted(1, 1, -1, -1);
+  return QRectF{
+      brect.right() - stepperWidth, brect.top(), stepperWidth, brect.height()};
+}
+
+void QGraphicsCombo::step(int n)
+{
+  const int sz = int(array.size());
+  if(sz <= 1 || n == 0)
+    return;
+
+  // Wrap around: the stepper is there to walk through the whole list without
+  // having to open the drop-down, in either direction.
+  const int next = ((m_value + n) % sz + sz) % sz;
+  if(next == m_value)
+    return;
+
+  m_value = next;
+  update();
+  sliderMoved();
+  sliderReleased();
 }
 
 void QGraphicsCombo::setRect(const QRectF& r)
@@ -334,6 +414,14 @@ void QGraphicsCombo::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
   event->accept();
 }
 
+void QGraphicsCombo::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
+{
+  auto& skin = score::Skin::instance();
+  const bool onStepper = array.size() > 1 && stepperRect().contains(event->pos());
+  setCursor(onStepper ? skin.CursorPointingHand : skin.CursorSpin);
+  event->accept();
+}
+
 void QGraphicsCombo::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   DefaultComboImpl::mousePressEvent(*this, event);
@@ -383,15 +471,56 @@ void QGraphicsCombo::paint(
   const QRectF brect = boundingRect().adjusted(1, 1, -1, -1);
   painter->drawRoundedRect(brect, 1, 1);
 
+  const bool hasStepper = array.size() > 1;
+  const QRectF textRect
+      = hasStepper ? brect.adjusted(0, 0, -stepperWidth, 0) : brect;
+
   // Draw text
   painter->setPen(skin.Base4.main.pen2);
   painter->setRenderHint(QPainter::Antialiasing, false);
   painter->setFont(skin.Medium10Pt);
   if(int n = value(); n >= 0 && n < array.size())
   {
-    painter->drawText(brect, array[value()], QTextOption(Qt::AlignCenter));
+    painter->drawText(textRect, array[value()], QTextOption(Qt::AlignCenter));
   }
 
   painter->drawLine(2, 2, 2, boundingRect().height() - 2);
+
+  if(hasStepper)
+    paintStepper(*painter, skin);
+}
+
+void QGraphicsCombo::paintStepper(QPainter& painter, const score::Skin& skin)
+{
+  const QRectF strip = stepperRect();
+  const QRectF halves[2]
+      = {QRectF{strip.topLeft(), QSizeF{strip.width(), strip.height() / 2.}},
+         QRectF{
+             QPointF{strip.left(), strip.top() + strip.height() / 2.},
+             QSizeF{strip.width(), strip.height() / 2.}}};
+
+  painter.setPen(skin.Base1.main.pen1);
+  painter.drawLine(strip.topLeft(), strip.bottomLeft());
+
+  // Half the glyph's arm length, so that + and - are the same width.
+  const double arm = 2.5;
+  for(int i = 0; i < 2; i++)
+  {
+    const int step = i == 0 ? +1 : -1;
+    const QRectF& half = halves[i];
+
+    if(m_pressedStep == step && m_stepArmed)
+    {
+      painter.setPen(skin.NoPen);
+      painter.setBrush(skin.Emphasis1.main.brush);
+      painter.drawRect(half);
+    }
+
+    const QPointF c = half.center();
+    painter.setPen(skin.Base4.main.pen2);
+    painter.drawLine(QPointF{c.x() - arm, c.y()}, QPointF{c.x() + arm, c.y()});
+    if(step > 0)
+      painter.drawLine(QPointF{c.x(), c.y() - arm}, QPointF{c.x(), c.y() + arm});
+  }
 }
 }

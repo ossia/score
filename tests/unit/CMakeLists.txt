@@ -338,6 +338,12 @@ score_add_test(test_unit_combobox_alternatives
   APP
   PLUGINS score_lib_process score_lib_state score_lib_device)
 
+# Resolving an incoming value to one of a combobox's or an enum's entries:
+# by value, or by position when the entries are names.
+score_add_test(test_unit_control_entry_index
+  SOURCES ControlEntryIndexTest.cpp
+  PLUGINS score_lib_process score_lib_state score_lib_device)
+
 score_add_test(test_unit_curve_sample
   SOURCES CurveSampleTest.cpp
   PLUGINS score_plugin_curve)

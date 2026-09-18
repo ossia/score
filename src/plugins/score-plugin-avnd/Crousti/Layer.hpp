@@ -418,22 +418,15 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
         if(auto* port = dynamic_cast<Process::Enum*>(base))
         {
           auto select = [tabs, port](const ossia::value& value) {
-            if(auto* text = value.target<std::string>())
-            {
-              const auto label = QString::fromStdString(*text);
-              const auto it = std::find(port->values.begin(), port->values.end(), label);
-              if(it != port->values.end())
-                tabs->setCurrentIndex(it - port->values.begin());
-            }
+            if(const int i = port->indexOfValue(value); i >= 0)
+              tabs->setCurrentIndex(i);
           };
           select(port->value());
           QObject::connect(port, &Process::ControlInlet::valueChanged, tabs, select);
           if constexpr(!avnd::tag_hide_tabs<Item>)
             tabs->onCurrentIndexChanged = [port, &doc = this->doc](int i) {
-              if(i < 0 || i >= std::ssize(port->values))
-                return;
-              ossia::value value = port->values[i].toStdString();
-              if(port->value() != value)
+              const ossia::value value = port->valueAtIndex(i);
+              if(value.valid() && port->value() != value)
                 CommandDispatcher<>{doc.commandStack}.submit<Process::SetControlValue>(
                     *port, value);
             };
@@ -442,21 +435,15 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
         if(auto* port = dynamic_cast<Process::ComboBox*>(base))
         {
           auto select = [tabs, port](const ossia::value& value) {
-            for(int i = 0; i < std::ssize(port->alternatives); ++i)
-              if(port->alternatives[i].second == value)
-              {
-                tabs->setCurrentIndex(i);
-                break;
-              }
+            if(const int i = port->indexOfValue(value); i >= 0)
+              tabs->setCurrentIndex(i);
           };
           select(port->value());
           QObject::connect(port, &Process::ControlInlet::valueChanged, tabs, select);
           if constexpr(!avnd::tag_hide_tabs<Item>)
             tabs->onCurrentIndexChanged = [port, &doc = this->doc](int i) {
-              if(i < 0 || i >= std::ssize(port->alternatives))
-                return;
-              const auto& value = port->alternatives[i].second;
-              if(port->value() != value)
+              const ossia::value value = port->valueAtIndex(i);
+              if(value.valid() && port->value() != value)
                 CommandDispatcher<>{doc.commandStack}.submit<Process::SetControlValue>(
                     *port, value);
             };

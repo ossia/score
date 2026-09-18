@@ -1335,42 +1335,28 @@ struct Enum
     return Process::DefaultControlLayouts::list();
   }
 
-  static const auto& toStd(const char* const& s) { return s; }
-  static const auto& toStd(const std::string& s) { return s; }
-  static auto toStd(const QString& s) { return s.toStdString(); }
-
-  static const auto& convert(const std::string& str, const char*) { return str; }
-  static auto convert(const std::string& str, const QString&)
-  {
-    return QString::fromStdString(str);
-  }
   template <typename T>
   static auto make_widget(
       T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
   {
-    const auto& values = inlet.getValues();
-    using val_t = std::remove_reference_t<decltype(values[0])>;
     auto sl = new QComboBox{parent};
-    for(const auto& e : values)
+    for(const auto& e : inlet.getValues())
     {
       sl->addItem(e);
     }
 
-    auto set_index = [values, sl](const ossia::value& val) {
-      auto v = ossia::convert<std::string>(val);
-      auto it = ossia::find(values, convert(v, val_t{}));
-      if(it != values.end())
-      {
-        sl->setCurrentIndex(std::distance(values.begin(), it));
-      }
+    auto set_index = [&inlet, sl](const ossia::value& val) {
+      if(const int idx = inlet.indexOfValue(val); idx >= 0)
+        sl->setCurrentIndex(idx);
     };
     set_index(inlet.value());
 
     QObject::connect(
         sl, SignalUtils::QComboBox_currentIndexChanged_int(), context,
-        [values, &inlet, &ctx](int idx) {
-      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<T>>(
-          inlet, toStd(values[idx]));
+        [&inlet, &ctx](int idx) {
+      if(auto v = inlet.valueAtIndex(idx); v.valid())
+        CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<T>>(
+            inlet, std::move(v));
     });
 
     QObject::connect(
@@ -1385,7 +1371,6 @@ struct Enum
       QGraphicsItem* parent, QObject* context)
   {
     const auto& values = slider.getValues();
-    using val_t = std::remove_reference_t<decltype(values[0])>;
 
     auto sl = slider.pixmaps.empty() || slider.pixmaps[0] == nullptr
                   ? new score::QGraphicsEnum{values, nullptr}
@@ -1394,22 +1379,21 @@ struct Enum
 
     initWidgetProperties(inlet, *sl);
 
-    auto set_index = [values, sl](const ossia::value& val) {
-      auto v = ossia::convert<std::string>(val);
-      auto it = ossia::find(values, convert(v, val_t{}));
-      if(it != values.end())
-      {
-        sl->setValue(std::distance(values.begin(), it));
-      }
+    auto set_index = [&slider, sl](const ossia::value& val) {
+      if(const int idx = slider.indexOfValue(val); idx >= 0)
+        sl->setValue(idx);
     };
 
     set_index(inlet.value());
 
     QObject::connect(
         sl, &score::QGraphicsEnum::currentIndexChanged, context,
-        [sl, &inlet, &ctx](int idx) {
-      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, toStd(sl->array[idx]));
-      ctx.dispatcher.commit();
+        [&slider, &inlet, &ctx](int idx) {
+      if(auto v = slider.valueAtIndex(idx); v.valid())
+      {
+        ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, std::move(v));
+        ctx.dispatcher.commit();
+      }
         });
 
     QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
@@ -1439,23 +1423,17 @@ struct ComboBox
     sl->setContentsMargins(0, 0, 0, 0);
 
     auto set_index = [&inlet, sl](const ossia::value& val) {
-      const auto& values = inlet.getValues();
-      auto it
-          = ossia::find_if(values, [&](const auto& pair) { return pair.second == val; });
-      if(it != values.end())
-      {
-        sl->setCurrentIndex(std::distance(values.begin(), it));
-      }
+      if(const int idx = inlet.indexOfValue(val); idx >= 0)
+        sl->setCurrentIndex(idx);
     };
     set_index(inlet.value());
 
     QObject::connect(
         sl, SignalUtils::QComboBox_currentIndexChanged_int(), context,
         [&inlet, &ctx](int idx) {
-      const auto& values = inlet.getValues();
-      if(idx >= 0 && idx < std::ssize(values))
+      if(auto v = inlet.valueAtIndex(idx); v.valid())
         CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<T>>(
-            inlet, values[idx].second);
+            inlet, std::move(v));
     });
 
     QObject::connect(
@@ -1493,23 +1471,16 @@ struct ComboBox
     initWidgetProperties(inlet, *sl);
 
     auto set_index = [&slider, sl](const ossia::value& val) {
-      const auto& values = slider.getValues();
-      auto it
-          = ossia::find_if(values, [&](const auto& pair) { return pair.second == val; });
-      if(it != values.end())
-      {
-        sl->setValue(std::distance(values.begin(), it));
-      }
+      if(const int idx = slider.indexOfValue(val); idx >= 0)
+        sl->setValue(idx);
     };
     set_index(inlet.value());
 
     QObject::connect(
         sl, &score::QGraphicsCombo::sliderMoved, context, [&slider, sl, &inlet, &ctx] {
           sl->moving = true;
-          const auto& values = slider.getValues();
-          if(sl->value() >= 0 && sl->value() < std::ssize(values))
-            ctx.dispatcher.submit<SetControlValue<Control_T>>(
-                inlet, values[sl->value()].second);
+          if(auto v = slider.valueAtIndex(sl->value()); v.valid())
+            ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, std::move(v));
         });
     QObject::connect(sl, &score::QGraphicsCombo::sliderReleased, context, [sl, &ctx] {
       ctx.dispatcher.commit();

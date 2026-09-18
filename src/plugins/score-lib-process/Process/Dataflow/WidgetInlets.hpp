@@ -5,6 +5,8 @@
 
 #include <ossia/network/domain/domain.hpp>
 
+#include <optional>
+
 class QFileSystemWatcher;
 
 namespace Process
@@ -463,6 +465,16 @@ struct SCORE_LIB_PROCESS_EXPORT ProgramEdit : public Process::ControlInlet
   using Process::ControlInlet::ControlInlet;
 };
 
+//! Read a value as a 0-based position in a list of n entries, or nothing.
+//!
+//! Only for lists whose entries are names: a name is never a number, so the
+//! positional reading has nothing to compete with. Lists whose entries are
+//! themselves numbers must not come here -- several in score hold numbers that
+//! are not positions, and reading one as a position would select a different
+//! entry.
+SCORE_LIB_PROCESS_EXPORT
+std::optional<int> readEntryIndex(const ossia::value& v, int n) noexcept;
+
 struct SCORE_LIB_PROCESS_EXPORT ComboBox : public Process::ControlInlet
 {
   W_OBJECT(ComboBox)
@@ -500,6 +512,13 @@ public:
   const auto& getValues() const noexcept { return alternatives; }
   auto count() const noexcept { return alternatives.size(); }
 
+  //! Index of the entry an incoming value selects, or -1 if it selects none.
+  //! See the note on Process::readEntryIndex for how integers are read.
+  int indexOfValue(const ossia::value& v) const noexcept;
+
+  //! The value that selects entry i; invalid if there is no such entry.
+  ossia::value valueAtIndex(int i) const noexcept;
+
   ComboBox(DataStream::Deserializer& vis, QObject* parent);
   ComboBox(JSONObject::Deserializer& vis, QObject* parent);
   ComboBox(DataStream::Deserializer&& vis, QObject* parent);
@@ -523,6 +542,16 @@ struct SCORE_LIB_PROCESS_EXPORT Enum : public Process::ControlInlet
   ~Enum();
 
   const std::vector<QString>& getValues() const { return values; }
+
+  //! Index of the entry an incoming value selects, or -1 if it selects none.
+  //! Entries are names, so an integer always reads as a position. The exec port
+  //! is typed STRING (see setupExecution), which turns an integer coming down a
+  //! cable into its digits: a string of digits matching no name is read as one
+  //! too.
+  int indexOfValue(const ossia::value& v) const noexcept;
+
+  //! The value that selects entry i; invalid if there is no such entry.
+  ossia::value valueAtIndex(int i) const noexcept;
 
   Enum(DataStream::Deserializer& vis, QObject* parent);
   Enum(JSONObject::Deserializer& vis, QObject* parent);
