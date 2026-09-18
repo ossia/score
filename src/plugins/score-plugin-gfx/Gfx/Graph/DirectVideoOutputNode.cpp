@@ -338,9 +338,10 @@ void DirectVideoOutputNode::render()
   if(!renderer)
     return;
 
-  QRhiCommandBuffer* cb = nullptr;
-  if(m_rhi->beginOffscreenFrame(&cb) != QRhi::FrameOpSuccess)
+  score::gfx::OffscreenFrame frame{*m_rhi};
+  if(!frame)
     return;
+  QRhiCommandBuffer* cb = &frame.commands();
 
   // Input pipeline writes RGBA into m_texture (BasicRenderer's render target).
   renderer->render(*cb);
@@ -348,7 +349,7 @@ void DirectVideoOutputNode::render()
   if(m_rdma)
   {
     m_rdma->encodeFrame(*cb);
-    m_rhi->endOffscreenFrame();
+    frame.end();
     void* gpuPtr = m_rdma->prepareNextFrame();
     if(gpuPtr && m_pump)
       m_pump->push(gpuPtr);
@@ -358,7 +359,7 @@ void DirectVideoOutputNode::render()
   // CPU staging: endOffscreenFrame() is synchronous offscreen, so the readback
   // is complete on return; prepareNextFrame() stages and returns the host ptr.
   m_hostStaged->encodeFrame(*cb);
-  m_rhi->endOffscreenFrame();
+  frame.end();
   if(void* p = m_hostStaged->prepareNextFrame(); p && m_pump)
     m_pump->push(p);
 }

@@ -284,9 +284,10 @@ struct SpoutNode final : score::gfx::OutputNode
     if(renderer && m_renderState)
     {
       auto rhi = m_renderState->rhi;
-      QRhiCommandBuffer* cb{};
-      if(rhi->beginOffscreenFrame(&cb) != QRhi::FrameOpSuccess)
+      score::gfx::OffscreenFrame frame{*rhi};
+      if(!frame)
         return;
+      QRhiCommandBuffer* cb = &frame.commands();
 
       renderer->render(*cb);
 
@@ -298,7 +299,7 @@ struct SpoutNode final : score::gfx::OutputNode
       }
 #endif
 
-      rhi->endOffscreenFrame();
+      frame.end();
 
       if(!m_created)
         return;

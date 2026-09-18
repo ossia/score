@@ -382,7 +382,11 @@ void Window::render()
     }
 
     const auto commands = m_swapChain->currentFrameCommandBuffer();
-    onRender(*commands);
+    {
+      score::gfx::SwapChainFrameGuard guard{*state->rhi, *m_swapChain};
+      onRender(*commands);
+      guard.release();
+    }
 
     // A resolution / refresh-rate / monitor change surfaces as an
     // out-of-date swapchain at *present* time; dropping the result means the

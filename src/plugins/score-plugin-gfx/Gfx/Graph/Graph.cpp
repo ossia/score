@@ -332,9 +332,7 @@ void Graph::recreateOutputRenderList(OutputNode& output)
         // iterations cover QVK_FRAMES_IN_FLIGHT=2.
         for(int i = 0; i < 2; ++i)
         {
-          QRhiCommandBuffer* cb{};
-          if(rhi->beginOffscreenFrame(&cb) == QRhi::FrameOpSuccess)
-            rhi->endOffscreenFrame();
+          OffscreenFrame frame{*rhi};
         }
       }
       auto old_renderer = renderer;

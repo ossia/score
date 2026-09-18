@@ -514,11 +514,11 @@ void KmsOutputNode::render()
   d->currentTarget
       = TextureRenderTarget{slot.tex, nullptr, nullptr, d->rpDesc, slot.rt};
 
-  QRhiCommandBuffer* cb{};
-  if(d->rhi->beginOffscreenFrame(&cb) != QRhi::FrameOpSuccess)
+  score::gfx::OffscreenFrame frame{*d->rhi};
+  if(!frame)
     return;
-  r->render(*cb);
-  d->rhi->endOffscreenFrame();
+  r->render(frame.commands());
+  frame.end();
 
   if(d->kms.atomicFlip(slot.fbId, d->set.tearing))
   {

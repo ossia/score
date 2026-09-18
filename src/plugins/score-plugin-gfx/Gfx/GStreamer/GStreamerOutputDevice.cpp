@@ -575,9 +575,10 @@ struct GStreamerOutputNode : score::gfx::OutputNode
     poll_bus_errors();
 
     auto rhi = m_renderState->rhi;
-    QRhiCommandBuffer* cb{};
-    if(rhi->beginOffscreenFrame(&cb) != QRhi::FrameOpSuccess)
+    score::gfx::OffscreenFrame frame{*rhi};
+    if(!frame)
       return;
+    QRhiCommandBuffer* cb = &frame.commands();
 
     renderer->render(*cb);
 
@@ -590,7 +591,7 @@ struct GStreamerOutputNode : score::gfx::OutputNode
       auto& prevEnc = *m_encoder[m_encoderIdx ^ 1];
 
       currentEnc.exec(*rhi, *cb);
-      rhi->endOffscreenFrame();
+      frame.end();
 
       // Push the PREVIOUS frame's readback (stable — not being written to)
       if(prevEnc.readback(0).data.size() > 0)
@@ -628,7 +629,7 @@ struct GStreamerOutputNode : score::gfx::OutputNode
     {
       // Standard RGBA path with double-buffered readback (NDI pattern).
       // Push PREVIOUS frame's readback, then swap buffers.
-      rhi->endOffscreenFrame();
+      frame.end();
 
       auto& readback = *m_currentReadback;
       int sz = readback.pixelSize.width() * readback.pixelSize.height() * 4;
