@@ -3,6 +3,7 @@
 #include <Process/LayerView.hpp>
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
+#include <score_plugin_media_export.h>
 
 #include <Media/AudioArray.hpp>
 #include <Media/MediaFileHandle.hpp>
@@ -18,7 +19,7 @@ namespace Media
 namespace Sound
 {
 class ProcessModel;
-class LayerView final
+class SCORE_PLUGIN_MEDIA_EXPORT LayerView final
     : public Process::LayerView
     , public Nano::Observer
 {
@@ -27,6 +28,10 @@ public:
   ~LayerView();
 
   void setData(const std::shared_ptr<AudioFile>& data);
+
+  //! The span of the layer the current image covers, in item coordinates.
+  //! Empty when there is no image yet.
+  QRectF renderedSpan() const noexcept;
   void setFrontColors(bool);
   void setTempoRatio(double);
   void recompute(ZoomRatio ratio);

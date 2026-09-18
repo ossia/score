@@ -171,6 +171,14 @@ if(TARGET score_plugin_media)
     SANDBOXED
     PLUGINS score_plugin_scenario score_plugin_media score_lib_process)
 
+  # Scrolling a sound layer must keep a waveform under the viewport: the image
+  # covers only the span it was asked for, so every way the view can move has
+  # to end in a new request.
+  score_add_test(test_integration_waveform_scroll
+    SOURCES WaveformScrollTest.cpp
+    GUI
+    PLUGINS score_plugin_scenario score_plugin_media score_lib_process)
+
   # Clearing leftovers out of the project folder. Deletes files, so sandboxed.
   score_add_test(test_integration_unused_files
     SOURCES UnusedFilesTest.cpp
