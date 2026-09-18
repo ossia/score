@@ -298,7 +298,7 @@ void writeAudioArrayToFile(const QString& path, const ossia::audio_array& arr, i
 std::optional<double> estimateTempo(const AudioFile& file);
 std::optional<double> estimateTempo(const QString& filePath);
 
-std::optional<AudioInfo> probe(const QString& path);
+SCORE_PLUGIN_MEDIA_EXPORT std::optional<AudioInfo> probe(const QString& path);
 
 }
 
