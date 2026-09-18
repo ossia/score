@@ -14,6 +14,8 @@
 
 #include <JS/JSProcessModel.hpp>
 
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+
 #include <core/document/Document.hpp>
 
 #include <QDir>
