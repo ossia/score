@@ -100,6 +100,12 @@ install(FILES "${CMAKE_SOURCE_DIR}/src/lib/resources/ossia-score.png"
 install(FILES "${CMAKE_SOURCE_DIR}/cmake/Deployment/Linux/ossia-score.appdata.xml"
         DESTINATION share/metainfo
         COMPONENT OssiaScore)
+# The MimeType= entries of the .desktop file only resolve once the types
+# themselves are declared to shared-mime-info.
+install(FILES "${CMAKE_SOURCE_DIR}/cmake/Deployment/Linux/ossia-score.mime.xml"
+        DESTINATION share/mime/packages
+        RENAME ossia-score.xml
+        COMPONENT OssiaScore)
 
 execute_process(
     COMMAND
