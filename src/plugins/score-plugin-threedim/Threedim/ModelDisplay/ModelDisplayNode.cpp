@@ -117,8 +117,6 @@ vec4 v_projected = vec4(0.0, 0.0, 0.0, 1.0);
   vec3 d = viewspace.xyz;
   float r = length(d);
 
-  const float PI = 3.14159265358979323846264338327;
-
   if(r > 1e-6)
   {
     float theta = acos(clamp(-d.z / r, -1.0, 1.0));
