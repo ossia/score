@@ -1521,13 +1521,16 @@ void RenderedCSFNode::updateGeometryBindings(
             ssbo.size = needed;
             ssbo.owned = true;
 
-            // For feedback receivers, also resize read_buffer to keep both
-            // ping-pong buffers the same size. Otherwise after the swap,
-            // ssbo.buffer would be the old undersized read_buffer while
-            // ssbo.size reflects the new size, causing buffer overruns.
+            // Resize read_buffer to keep both halves the same size. Otherwise
+            // after the swap, ssbo.buffer would be the old undersized
+            // read_buffer while ssbo.size reflects the new size, causing buffer
+            // overruns. The grown region is zeroed: nothing else initialises it
+            // before a swap makes it the live buffer.
             if(ssbo.read_buffer)
             {
               ssbo.read_buffer = regrowBuffer(renderer, ssbo.read_buffer, needed);
+              QByteArray zero(needed, 0);
+              res.uploadStaticBuffer(ssbo.read_buffer, 0, needed, zero.constData());
             }
           }
 
@@ -1731,8 +1734,9 @@ void RenderedCSFNode::updateGeometryBindings(
             res.uploadStaticBuffer(ssbo.buffer, 0, needed, zero.constData());
             ssbo.size = needed;
 
-            // Keep read_buffer in sync for feedback receivers
-            if(binding.is_feedback_receiver && ssbo.read_buffer)
+            // A read_buffer is either half of a ping-pong pair or a snapshot;
+            // both are read at the same indices as buffer and must match its size.
+            if(ssbo.read_buffer)
             {
               ssbo.read_buffer = regrowBuffer(renderer, ssbo.read_buffer, needed);
               res.uploadStaticBuffer(ssbo.read_buffer, 0, needed, zero.constData());
@@ -1801,8 +1805,9 @@ void RenderedCSFNode::updateGeometryBindings(
             ssbo.size = needed;
             resized = true;
 
-            // Keep read_buffer in sync for feedback receivers
-            if(binding.is_feedback_receiver && ssbo.read_buffer)
+            // A read_buffer is either half of a ping-pong pair or a snapshot;
+            // both are read at the same indices as buffer and must match its size.
+            if(ssbo.read_buffer)
             {
               ssbo.read_buffer = regrowBuffer(renderer, ssbo.read_buffer, needed);
               res.uploadStaticBuffer(ssbo.read_buffer, 0, needed, zero.constData());
