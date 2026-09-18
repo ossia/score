@@ -13,6 +13,7 @@
 
 #include <core/document/Document.hpp>
 
+#include <ossia/dataflow/audio_stretch_mode.hpp>
 #include <ossia/detail/apply.hpp>
 #include <ossia/detail/libav.hpp>
 #include <ossia/detail/ssize.hpp>
@@ -48,12 +49,19 @@ static DecodingMethod needsDecoding(const QString& path, int rate)
   }
 #else
   constexpr qint64 large_threshold = 4096ll * 1024 * 1024;
+  // Rate mismatches are converted in the graph (ossia::resampler::reset), so
+  // only decodability and RAM cost decide here -- unless the graph has no
+  // converter, in which case the rate still has to match at load time.
+  const auto rate_ok = [rate](const AudioInfo& info) {
+    return ossia::graph_resampling || info.fileRate == rate;
+  };
+
   if(path.endsWith("wav", Qt::CaseInsensitive)
      || path.endsWith("w64", Qt::CaseInsensitive))
   {
     const auto& info = probe(path);
 
-    if(info && info->fileRate == rate)
+    if(info && (info->flags & AudioInfo::DrwavCanDecode) && rate_ok(*info))
       return DecodingMethod::Mmap;
     else if(sz > large_threshold)
         return DecodingMethod::LibavStream;
@@ -67,7 +75,9 @@ static DecodingMethod needsDecoding(const QString& path, int rate)
       || path.endsWith("caf", Qt::CaseInsensitive))
   {
     const auto& info = probe(path);
-    if(info && info->fileRate == rate)
+    // Sndfile reads the whole file into RAM, so it stays behind the size guard.
+    if(info && (info->flags & AudioInfo::SndfileCanDecode) && sz <= large_threshold
+       && rate_ok(*info))
       return DecodingMethod::Sndfile;
     else if(sz > large_threshold)
       return DecodingMethod::LibavStream;
