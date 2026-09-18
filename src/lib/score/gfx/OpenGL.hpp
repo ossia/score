@@ -35,10 +35,16 @@ public:
   int shaderVersion{};
   QSurfaceFormat::RenderableType type{};
 
+  // llvmpipe & co: main.cpp refuses to change the default format there, it crashes.
+  bool softwareRasterizer{};
+
 #if __has_include(<private/qshader_p.h>)
   QShaderVersion qShaderVersion;
 #endif
 
   void setupFormat(QSurfaceFormat& fmt);
 };
+
+// Unpinned, EGL hands back GLES and score's baked desktop GLSL matches nothing.
+SCORE_LIB_BASE_EXPORT void pinDefaultOpenGLFormat() noexcept;
 }

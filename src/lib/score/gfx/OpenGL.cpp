@@ -1,6 +1,7 @@
 #include <score/gfx/OpenGL.hpp>
 
 #include <QDebug>
+#include <QGuiApplication>
 #include <QOffscreenSurface>
 #include <QOpenGLContext>
 #include <QOpenGLFunctions>
@@ -15,6 +16,8 @@ struct GLCapabilitiesResult
   int minor{};
   int shaderVersion{};
   QSurfaceFormat::RenderableType type{};
+
+  bool softwareRasterizer{};
 
   GLCapabilitiesResult()
   {
@@ -45,15 +48,27 @@ struct GLCapabilitiesResult
     }
 
     ctx.setFormat(fmt);
-    ctx.create();
-    ctx.makeCurrent(&surf);
+    const bool current = ctx.create() && ctx.makeCurrent(&surf);
 
     major = ctx.format().majorVersion();
     minor = ctx.format().minorVersion();
     type = ctx.format().renderableType();
     shaderVersion = glShaderVersion();
+
+    if(current)
+    {
+      ctx.functions()->initializeOpenGLFunctions();
+      if(auto r = (const char*)ctx.functions()->glGetString(GL_RENDERER))
+      {
+        const auto renderer = QString::fromUtf8(r);
+        softwareRasterizer = renderer.contains("llvmpipe", Qt::CaseInsensitive)
+                             || renderer.contains("softpipe", Qt::CaseInsensitive)
+                             || renderer.contains("swrast", Qt::CaseInsensitive);
+      }
+    }
 #endif
-    qDebug() << "Available GL context: " << major << minor << shaderVersion << type;
+    qDebug() << "Available GL context: " << major << minor << shaderVersion << type
+             << (softwareRasterizer ? "(software)" : "");
   }
 
   int glShaderVersion() noexcept
@@ -142,6 +157,7 @@ GLCapabilities::GLCapabilities()
   minor = res.minor;
   shaderVersion = res.shaderVersion;
   type = res.type;
+  softwareRasterizer = res.softwareRasterizer;
 
 #if __has_include(<private/qshader_p.h>)
   qShaderVersion.setVersion(shaderVersion);
@@ -176,5 +192,23 @@ void GLCapabilities::setupFormat(QSurfaceFormat& fmt)
     fmt.setProfile(QSurfaceFormat::CoreProfile);
 #endif
   }
+}
+
+void pinDefaultOpenGLFormat() noexcept
+{
+#ifndef QT_NO_OPENGL
+  // Same list setup_opengl() skips: no GL, or a crash in QOffscreenSurface::create.
+  const auto plat = QGuiApplication::platformName();
+  if(plat == "minimal" || plat == "offscreen" || plat == "vnc" || plat == "wasm")
+    return;
+
+  GLCapabilities caps;
+  if(caps.softwareRasterizer)
+    return;
+
+  QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
+  caps.setupFormat(fmt);
+  QSurfaceFormat::setDefaultFormat(fmt);
+#endif
 }
 }
