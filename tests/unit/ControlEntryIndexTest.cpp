@@ -165,3 +165,36 @@ TEST_CASE("An enum named with digits matches by name first", "[enum][index]")
   CHECK(e.indexOfValue(std::string("2")) == 0);
   CHECK(e.indexOfValue(std::string("0")) == 2);
 }
+
+// A float reaching an enum over the network is read like the same number
+// spelled as a string: whole numbers in range, nothing else. Truncating
+// instead would fold everything in (-1, 1) onto the first entry, and
+// narrowing a huge or NaN float to int32_t is undefined.
+TEST_CASE("An enum reads a float position exactly, or not at all", "[enum][index]")
+{
+  QObject parent;
+  auto e = make_enum(parent, {"Sine", "Square", "Saw"});
+
+  CHECK(e.indexOfValue(2.f) == 2);
+  CHECK(e.indexOfValue(0.f) == 0);
+  CHECK(e.indexOfValue(2.9f) == -1);
+  CHECK(e.indexOfValue(-0.5f) == -1);
+  CHECK(e.indexOfValue(-1.f) == -1);
+  CHECK(e.indexOfValue(3.f) == -1);
+  CHECK(e.indexOfValue(1e30f) == -1);
+  CHECK(e.indexOfValue(std::numeric_limits<float>::quiet_NaN()) == -1);
+  CHECK(e.indexOfValue(std::numeric_limits<float>::infinity()) == -1);
+}
+
+// Two invalid values compare equal, and convert<std::string>() turns an
+// invalid one into the empty string, so without a guard an invalid value would
+// select an entry rather than none.
+TEST_CASE("An invalid value selects no entry", "[enum][index]")
+{
+  QObject parent;
+  auto e = make_enum(parent, {"", "One", "Two"});
+
+  CHECK(e.indexOfValue(ossia::value{}) == -1);
+  CHECK(e.indexOfValue(std::string("")) == 0);
+  CHECK(e.indexOfValue(std::string("Two")) == 2);
+}

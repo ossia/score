@@ -55,6 +55,8 @@ struct DefaultComboImpl
   static int positionToIndex(const QGraphicsCombo& self, double v) noexcept
   {
     const int last = int(self.array.size()) - 1;
+    if(last < 0)
+      return 0;
     return std::clamp(int(std::round(v * last)), 0, last);
   }
 
@@ -77,6 +79,8 @@ struct DefaultComboImpl
     if(!draggable(self))
       return 0;
 
+    if(!self.stepperVisible())
+      return 0;
     const QRectF r = self.stepperRect();
     if(!r.contains(pos))
       return 0;
@@ -236,8 +240,14 @@ void QGraphicsCombo::init()
 QRectF QGraphicsCombo::stepperRect() const noexcept
 {
   const QRectF brect = m_rect.adjusted(1, 1, -1, -1);
-  return QRectF{
-      brect.right() - stepperWidth, brect.top(), stepperWidth, brect.height()};
+  const double left = std::max(brect.left(), brect.right() - stepperWidth);
+  return QRectF{left, brect.top(), brect.right() - left, brect.height()};
+}
+
+bool QGraphicsCombo::stepperVisible() const noexcept
+{
+  // Below this the strip would take the whole box and leave the text nowhere.
+  return array.size() > 1 && m_rect.width() > 3. * stepperWidth;
 }
 
 void QGraphicsCombo::step(int n)
@@ -417,7 +427,7 @@ void QGraphicsCombo::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 void QGraphicsCombo::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
 {
   auto& skin = score::Skin::instance();
-  const bool onStepper = array.size() > 1 && stepperRect().contains(event->pos());
+  const bool onStepper = stepperVisible() && stepperRect().contains(event->pos());
   setCursor(onStepper ? skin.CursorPointingHand : skin.CursorSpin);
   event->accept();
 }
@@ -471,7 +481,7 @@ void QGraphicsCombo::paint(
   const QRectF brect = boundingRect().adjusted(1, 1, -1, -1);
   painter->drawRoundedRect(brect, 1, 1);
 
-  const bool hasStepper = array.size() > 1;
+  const bool hasStepper = stepperVisible();
   const QRectF textRect
       = hasStepper ? brect.adjusted(0, 0, -stepperWidth, 0) : brect;
 

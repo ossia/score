@@ -1347,7 +1347,12 @@ struct Enum
 
     auto set_index = [&inlet, sl](const ossia::value& val) {
       if(const int idx = inlet.indexOfValue(val); idx >= 0)
+      {
+        // Blocked: currentIndexChanged submits a command, so a value arriving
+        // from the network would rewrite the port and grow the undo stack.
+        const QSignalBlocker _{sl};
         sl->setCurrentIndex(idx);
+      }
     };
     set_index(inlet.value());
 
@@ -1424,7 +1429,12 @@ struct ComboBox
 
     auto set_index = [&inlet, sl](const ossia::value& val) {
       if(const int idx = inlet.indexOfValue(val); idx >= 0)
+      {
+        // Blocked: currentIndexChanged submits a command, so a value arriving
+        // from the network would rewrite the port and grow the undo stack.
+        const QSignalBlocker _{sl};
         sl->setCurrentIndex(idx);
+      }
     };
     set_index(inlet.value());
 

@@ -102,7 +102,7 @@ struct FrameComputer
         return;
 
       float* floats{};
-      int num_elems = buffer_size * channels;
+      const int64_t num_elems = buffer_size * channels;
       if(num_elems > 10000)
       {
         data_cache.resize(num_elems);
@@ -211,10 +211,11 @@ struct SummaryBuilder
     if(wav.channels() != channels)
       return;
 
-    // A quarter of a million frames per read, so the seek and the call overhead
-    // disappear against the conversion.
-    const int64_t chunk
-        = std::clamp<int64_t>((1 << 18) / s.bucket, 1, s.bucketCount);
+    // A megabyte per read, so the seek and the call overhead disappear against
+    // the conversion. Budgeted in samples rather than frames: a file with many
+    // channels would otherwise size this by its channel count.
+    const int64_t chunk = std::clamp<int64_t>(
+        (1 << 18) / (s.bucket * int64_t(channels)), 1, s.bucketCount);
     std::vector<float> buf(std::size_t(chunk * s.bucket * channels));
 
     if(!wav.seek_to_pcm_frame(0))
@@ -225,6 +226,10 @@ struct SummaryBuilder
       const int64_t nb = std::min(chunk, s.bucketCount - b0);
       const int64_t got = wav.read_pcm_frames_f32(nb * s.bucket, buf.data());
       if(got <= 0)
+        return;
+      // Only the last chunk may come up short; anywhere else the reads that
+      // follow would no longer line up with the buckets they fill.
+      if(got < nb * s.bucket && b0 + nb < s.bucketCount)
         return;
 
       for(int64_t b = 0; b < nb; b++)
