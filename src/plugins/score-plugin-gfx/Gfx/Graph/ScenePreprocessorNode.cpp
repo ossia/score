@@ -1911,8 +1911,15 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         int skinIndex, const ossia::aabb& local_bounds,
         uint32_t instanceCount) -> uint32_t
     {
+      static const bool mdiprobe = qEnvironmentVariableIsSet("SCORE_MDIPROBE");
       if(!mesh || mesh->vertices <= 0 || !m_registry || instanceCount == 0)
+      {
+        if(mdiprobe)
+          qDebug() << "score.gfx: MDIPROBE skip=no-mesh mesh=" << (void*)mesh
+                   << "verts=" << (mesh ? mesh->vertices : -1)
+                   << "registry=" << (void*)m_registry << "inst=" << instanceCount;
         return kCmdSkipped;
+      }
       if(stable_id == 0)
       {
         if(!warned_missing_stable_id)
@@ -1949,14 +1956,22 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         gpu_tan = extractGpuAttribute(*mesh, ossia::attribute_semantic::tangent);
 
       if(pos.empty() && !gpu_pos.buf)
+      {
+        if(mdiprobe)
+          qDebug() << "score.gfx: MDIPROBE skip=no-positions verts=" << mesh->vertices;
         return kCmdSkipped;
+      }
 
       std::vector<uint32_t> idx;
       if(mesh->indices > 0)
       {
         idx = extractCpuIndices(*mesh);
         if(idx.empty())
+        {
+          if(mdiprobe)
+            qDebug() << "score.gfx: MDIPROBE skip=gpu-indices indices=" << mesh->indices;
           return kCmdSkipped; // GPU-backed indices not yet supported.
+        }
       }
       else
       {
@@ -1971,7 +1986,11 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       auto* slab = m_registry->acquireMeshSlab(
           stable_id, (uint32_t)vc, drawIndexCount, current_frame);
       if(!slab)
+      {
+        if(mdiprobe)
+          qDebug() << "score.gfx: MDIPROBE skip=no-slab id=" << (qulonglong)stable_id;
         return kCmdSkipped;
+      }
 
       m_registry->markMeshSlabSeen(stable_id, current_frame);
 
@@ -2319,6 +2338,9 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
 
     m_mdi.totalVertices = totalVertices;
     m_mdi.totalIndices = totalIndices;
+    if(qEnvironmentVariableIsSet("SCORE_MDIPROBE"))
+      qDebug() << "score.gfx: MDIPROBE fs.draws=" << (int)fs.draws.size()
+               << "emitted=" << (int)acc.indirectCmds.size();
     m_mdi.drawCount = (uint32_t)acc.indirectCmds.size();
     m_lastDrawCount = std::max(m_lastDrawCount, acc.indirectCmds.size());
     m_instSlotsUsed = slot_cursor;
