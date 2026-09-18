@@ -79,9 +79,8 @@ void make_wav(const QString& path, int64_t frames, int channels, int rate)
   REQUIRE(f.write(out) == out.size());
 }
 
-//! A wav whose header is honest but whose samples are a hole in the filesystem.
-//! Large enough that load_libav_stream() streams it instead of falling back to
-//! decoding into RAM, without costing any actual disk.
+//! Honest header, sparse samples: over load_libav_stream()'s RAM threshold
+//! without costing the disk.
 void make_sparse_wav(const QString& path, int64_t frames, int channels, int rate)
 {
   const QByteArray hdr = wav_header(frames, channels, rate);

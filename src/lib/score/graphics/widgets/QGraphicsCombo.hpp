@@ -38,12 +38,10 @@ private:
   bool m_dragged{};
 
   //! +1 or -1 from a press on one half of the stepper until the release, 0
-  //! otherwise. The press is on the stepper rather than on the box, so it must
-  //! neither scrub nor open the drop-down on release.
+  //! otherwise. Such a press must neither scrub nor open the drop-down.
   int m_pressedStep{};
 
-  //! Whether the pointer is still on the half it pressed. Leaving it un-presses
-  //! the button and cancels the step, as a push button does everywhere else.
+  //! Whether the pointer is still on the half it pressed; leaving cancels.
   bool m_stepArmed{};
 
   //! The drop-down currently in the scene, if any. Both mouse buttons can open
@@ -85,8 +83,7 @@ public:
   //! Whether there is more than one entry and room to draw the strip.
   bool stepperVisible() const noexcept;
 
-  //! Move the selection by n entries, wrapping around at both ends, and report
-  //! it as an edit. Does nothing if there is nothing to move through.
+  //! Move the selection by n entries, wrapping, and report it as an edit.
   void step(int n);
 
   //! Whether a value that is not in the list may be entered.

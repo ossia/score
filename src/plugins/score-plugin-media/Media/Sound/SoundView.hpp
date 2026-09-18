@@ -29,8 +29,7 @@ public:
 
   void setData(const std::shared_ptr<AudioFile>& data);
 
-  //! The span of the layer the current image covers, in item coordinates.
-  //! Empty when there is no image yet.
+  //! The span the current image covers, in item coordinates; empty if none.
   QRectF renderedSpan() const noexcept;
   void setFrontColors(bool);
   void setTempoRatio(double);
@@ -72,9 +71,7 @@ private:
   bool m_frontColors{true};
   mutable bool m_recomputed{false};
 
-  //! What was last sent to the computer, to avoid asking twice for the same
-  //! image: once the whole layer is rendered, scrolling does not change the
-  //! request at all.
+  //! What was last sent to the computer, to avoid asking twice for one image.
   mutable std::optional<WaveformRequest> m_lastRequest;
 };
 }

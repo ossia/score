@@ -81,10 +81,8 @@ std::optional<AudioInfo> probe_drwav(const QFileInfo& fi)
       ossia::drwav_handle h;
       h.open_memory(data, f.size());
 
-      // open_memory() does not report a failed init: a zeroed handle is what
-      // dr_wav leaves behind for the wav containers it cannot read (mp3, wma,
-      // gsm...), and claiming DrwavCanDecode for those routes them to a
-      // backend that then yields silence.
+      // open_memory() does not report a failed init: dr_wav leaves a zeroed
+      // handle for the wav containers it cannot read (mp3, wma, gsm...).
       if(h.sampleRate() == 0 || h.channels() == 0 || h.totalPCMFrameCount() == 0)
         return std::nullopt;
 

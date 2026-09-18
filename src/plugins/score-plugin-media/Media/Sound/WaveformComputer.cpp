@@ -430,10 +430,8 @@ struct WaveformComputerImpl
   {
     // Check every 16 pixel columns to not put too much overload on the atomic load
     //
-    // Only a shutdown stops a render. It is rate-limited by what it costs, so
-    // one that has started is always worth finishing: abandoning it because a
-    // newer request arrived only leaves the view on an older image for longer,
-    // and the work is thrown away either way.
+    // Only a shutdown stops a render: it is rate-limited by what it costs, so
+    // one that has started is worth finishing.
     return ((x_samples & 0xF) == 0)
            && computer.m_abort.load(std::memory_order_acquire);
   }
@@ -686,16 +684,9 @@ void WaveformComputer::timerEvent(QTimerEvent* event)
   if(m_n == m_processed_n)
     return;
 
-  // Rate-limited by what a render actually costs, rather than by a fixed delay.
-  // A cheap one -- the normal case once the file has a summary -- runs on every
-  // tick, so zooming and dragging update as fast as the timer allows. An
-  // expensive one (a file still decoding, a source that cannot be summarised)
-  // leaves as long idle as it took, holding it to half a thread.
-  //
-  // This used to wait for 16ms of quiet before rendering, and otherwise render
-  // only every 32ms. That put two to three frames of latency on every gesture,
-  // which showed up on a dezoom: the newly exposed edges, which no earlier
-  // image covers, stayed blank until the render finally ran.
+  // Rate-limited by what a render costs rather than by a fixed delay: a cheap
+  // one runs every tick, an expensive one idles as long as it took, which holds
+  // this to half a thread.
   const auto now = std::chrono::steady_clock::now();
   if(now - last_render < m_lastRenderDuration)
     return;
@@ -706,9 +697,8 @@ void WaveformComputer::timerEvent(QTimerEvent* event)
     m_currentFile = file;
   }
 
-  // The summary only exists once the file has finished decoding, so ask again
-  // until it does. Building it happens here, on the waveform thread, and costs
-  // about as much as one of the un-summarised redraws it replaces.
+  // Only exists once the file has finished decoding, so ask until it does.
+  // Built here, on the waveform thread.
   if(!m_currentView.summary)
     m_currentView.summary = file->waveformSummary();
 
@@ -736,10 +726,9 @@ void WaveformComputer::timerEvent(QTimerEvent* event)
 
   last_render = std::chrono::steady_clock::now();
 
-  // The render alone: the summary is built once, and charging its cost to the
-  // budget would hold off every redraw for as long as it took -- which is
-  // exactly when a drag most needs them. Capped so that one pathological render
-  // cannot stall the view either.
+  // The render alone: the summary is built once, and charging it to the budget
+  // would hold off every redraw for as long as it took. Capped so one
+  // pathological render cannot stall the view either.
   using namespace std::literals;
   m_lastRenderDuration = std::min<std::chrono::steady_clock::duration>(
       last_render - render_start, 100ms);

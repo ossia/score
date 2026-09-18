@@ -1,6 +1,5 @@
 // A sound whose file rate differs from the graph's must keep its own pitch and
-// its own speed. Drives the real nodes over a tone and measures the result; a
-// missing rate term transposes by graphRate/fileRate.
+// speed; a missing rate term transposes it by graphRate/fileRate.
 
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/nodes/sound.hpp>
@@ -165,8 +164,7 @@ TEST_CASE("matched rates are left exactly alone", "[sound][rate]")
 
 TEST_CASE("a rate-converting sound is not reported as time-stretched", "[sound][rate]")
 {
-  // stretch() drives file_sample_for_model_time's tempo scaling: a mode-None
-  // rate conversion must not flip it, or every seek lands wrong.
+  // stretch() drives file_sample_for_model_time's tempo scaling.
   ossia::resampler r;
   r.reset(0, ossia::audio_stretch_mode::None, 1, 44100, 48000);
   CHECK(r.stretch() == false);

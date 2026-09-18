@@ -162,11 +162,8 @@ struct MinMax
   }
 };
 
-//! Reduces the whole source into a summary's buckets.
-//!
-//! Reads straight through rather than asking for one bucket at a time: the
-//! point is to touch every sample exactly once, and on the mmap path each read
-//! is a seek plus a conversion to float.
+//! Reads straight through rather than a bucket at a time: on the mmap path
+//! each read is a seek plus a conversion to float.
 struct SummaryBuilder
 {
   WaveformSummary& s;
@@ -174,8 +171,7 @@ struct SummaryBuilder
 
   void operator()(ossia::monostate) const noexcept { }
 
-  //! A streamed source is not summarised: filling the table means decoding the
-  //! entire stream, which is the thing streaming was chosen to avoid.
+  //! Summarising a streamed source means decoding it whole.
   void operator()(const AudioFile::StreamView&) const noexcept { }
 
   void operator()(const AudioFile::RAMView& r) const noexcept
@@ -211,9 +207,8 @@ struct SummaryBuilder
     if(wav.channels() != channels)
       return;
 
-    // A megabyte per read, so the seek and the call overhead disappear against
-    // the conversion. Budgeted in samples rather than frames: a file with many
-    // channels would otherwise size this by its channel count.
+    // In samples, not frames: budgeted in frames, a file with many channels
+    // sizes this by its channel count.
     const int64_t chunk = std::clamp<int64_t>(
         (1 << 18) / (s.bucket * int64_t(channels)), 1, s.bucketCount);
     std::vector<float> buf(std::size_t(chunk * s.bucket * channels));
@@ -227,8 +222,7 @@ struct SummaryBuilder
       const int64_t got = wav.read_pcm_frames_f32(nb * s.bucket, buf.data());
       if(got <= 0)
         return;
-      // Only the last chunk may come up short; anywhere else the reads that
-      // follow would no longer line up with the buckets they fill.
+      // Only the last chunk may be short, or the reads after it stop lining up.
       if(got < nb * s.bucket && b0 + nb < s.bucketCount)
         return;
 
@@ -343,8 +337,7 @@ void AudioFile::ViewHandle::merge_range(
   if(start_frame >= end_frame)
     return;
 
-  // Neutral, so that a read which fails leaves `out` as it was rather than
-  // dragging it towards zero.
+  // Neutral, so a failed read leaves `out` alone rather than pulling it to 0.
   ossia::small_vector<FloatPair, 8> part(
       out.size(),
       FloatPair{std::numeric_limits<float>::max(), std::numeric_limits<float>::lowest()});
@@ -359,13 +352,8 @@ void AudioFile::ViewHandle::merge_range(
   }
 }
 
-//! Whole buckets out of the summary, the partial frames at either end straight
-//! from the source.
-//!
-//! That is exactly the min/max over [start_frame, end_frame) -- the same answer
-//! the plain scan gives, bit for bit, because min and max do not care in which
-//! order the samples are folded. Being able to assert that is what makes the
-//! fast path safe to switch on.
+//! Whole buckets out of the summary, the partial ends straight from the
+//! source. Exact: min and max do not care in which order samples are folded.
 bool AudioFile::ViewHandle::summary_minmax(
     int64_t start_frame, int64_t end_frame,
     ossia::small_vector<FloatPair, 8>& out) noexcept
@@ -380,8 +368,7 @@ bool AudioFile::ViewHandle::summary_minmax(
 
   const int64_t B = s->bucket;
 
-  // Under a few buckets the direct scan is already short, and the partial ends
-  // would be most of the work anyway.
+  // Under a few buckets the partial ends are most of the work anyway.
   if(end_frame - start_frame < 4 * B)
     return false;
 
