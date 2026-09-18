@@ -66,6 +66,10 @@ QString pickerStartFolder(
 SCORE_LIB_BASE_EXPORT
 PathRoots pathRoots(const score::DocumentContext& ctx) noexcept;
 
+//! Roots available outside of any document: the user library only.
+SCORE_LIB_BASE_EXPORT
+PathRoots pathRoots() noexcept;
+
 //! Resolve a stored path (absolute, document-relative, <PROJECT>: or
 //! <LIBRARY>:-prefixed) into an absolute one.
 SCORE_LIB_BASE_EXPORT
