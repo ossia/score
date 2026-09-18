@@ -29,6 +29,11 @@ struct BitfocusSpecificSettings
 
   QString description;
   std::shared_ptr<bitfocus::module_handler> handler;
+
+  //! Keeps the first entry for each key.
+  void deduplicateConfiguration();
+
+  QString enumeratorLabel() const;
 };
 }
 Q_DECLARE_METATYPE(Protocols::BitfocusSpecificSettings)

@@ -10,12 +10,31 @@
 #include <score/serialization/BoostVariant2Serialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+#include <score/tools/FilePath.hpp>
+
+#include <set>
+#include <vector>
+
+QString Protocols::BitfocusSpecificSettings::enumeratorLabel() const
+{
+  const QString& prod = product.isEmpty() ? name : product;
+  return brand.isEmpty() ? prod : brand + ": " + prod;
+}
+
+void Protocols::BitfocusSpecificSettings::deduplicateConfiguration()
+{
+  std::set<QString> seen;
+  std::erase_if(configuration, [&seen](const auto& kv) {
+    return !seen.insert(kv.first).second;
+  });
+}
 
 template <>
 void DataStreamReader::read(const Protocols::BitfocusSpecificSettings& n)
 {
-  m_stream << n.path << n.entrypoint << n.id << n.name << n.brand << n.product
-           << n.nodeVersion << n.apiVersion << n.configuration << n.description;
+  m_stream << score::relativizeFilePath(n.path) << n.entrypoint << n.id << n.name
+           << n.brand << n.product << n.nodeVersion << n.apiVersion << n.configuration
+           << n.description;
   insertDelimiter();
 }
 
@@ -24,13 +43,15 @@ void DataStreamWriter::write(Protocols::BitfocusSpecificSettings& n)
 {
   m_stream >> n.path >> n.entrypoint >> n.id >> n.name >> n.brand >> n.product
       >> n.nodeVersion >> n.apiVersion >> n.configuration >> n.description;
+  n.path = score::locateFilePath(n.path);
+  n.deduplicateConfiguration();
   checkDelimiter();
 }
 
 template <>
 void JSONReader::read(const Protocols::BitfocusSpecificSettings& n)
 {
-  obj["Path"] = n.path;
+  obj["Path"] = score::relativizeFilePath(n.path);
   obj["Entrypoint"] = n.entrypoint;
   obj["Identifier"] = n.id;
   obj["Name"] = n.name;
@@ -46,6 +67,7 @@ template <>
 void JSONWriter::write(Protocols::BitfocusSpecificSettings& n)
 {
   n.path <<= obj["Path"];
+  n.path = score::locateFilePath(n.path);
   n.entrypoint <<= obj["Entrypoint"];
   n.id <<= obj["Identifier"];
   n.name <<= obj["Name"];
@@ -55,4 +77,5 @@ void JSONWriter::write(Protocols::BitfocusSpecificSettings& n)
   n.apiVersion <<= obj["APIVersion"];
   n.configuration <<= obj["Configuration"];
   n.description <<= obj["Description"];
+  n.deduplicateConfiguration();
 }
