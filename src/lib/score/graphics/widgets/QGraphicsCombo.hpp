@@ -15,6 +15,7 @@ class QGraphicsProxyWidget;
 
 namespace score
 {
+class Skin;
 class SCORE_LIB_BASE_EXPORT QGraphicsCombo final
     : public QObject
     , public QGraphicsItem
@@ -35,6 +36,15 @@ private:
   //! Set once the pointer travels far enough to count as a drag, so that a
   //! plain click can be told apart from scrubbing and open the drop-down.
   bool m_dragged{};
+
+  //! +1 or -1 from a press on one half of the stepper until the release, 0
+  //! otherwise. The press is on the stepper rather than on the box, so it must
+  //! neither scrub nor open the drop-down on release.
+  int m_pressedStep{};
+
+  //! Whether the pointer is still on the half it pressed. Leaving it un-presses
+  //! the button and cancels the step, as a push button does everywhere else.
+  bool m_stepArmed{};
 
   //! The drop-down currently in the scene, if any. Both mouse buttons can open
   //! one and it is built from the event loop, so without this a second click
@@ -62,10 +72,20 @@ public:
 
   explicit QGraphicsCombo(QGraphicsItem* parent);
 
+  //! Width of the +/- stepper strip kept free at the right of the box.
+  static const constexpr double stepperWidth = 12.;
+
   void init();
   void setRect(const QRectF& r);
   void setValue(int v);
   int value() const;
+
+  //! The strip holding the two stepper buttons, in item coordinates.
+  QRectF stepperRect() const noexcept;
+
+  //! Move the selection by n entries, wrapping around at both ends, and report
+  //! it as an edit. Does nothing if there is nothing to move through.
+  void step(int n);
 
   //! Whether a value that is not in the list may be entered.
   void setEditable(bool b);
@@ -83,6 +103,7 @@ public:
   void valueEdited(const QString& text) E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueEdited, text)
 
   void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
+  void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override;
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
@@ -90,5 +111,8 @@ public:
   QRectF boundingRect() const override;
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
       override;
+
+private:
+  void paintStepper(QPainter& painter, const score::Skin& skin);
 };
 }

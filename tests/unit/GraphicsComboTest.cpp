@@ -620,3 +620,120 @@ TEST_CASE("an editable combo box stays up when its list is dismissed")
     CHECK(editorIn(scene) != nullptr);
   });
 }
+
+// ---------------------------------------------------------------------------
+// The +/- stepper at the right edge walks through the entries one by one. It
+// must neither scrub nor open the drop-down: the press belongs to the button.
+
+namespace
+{
+//! Click one half of the stepper strip: +1 for the upper one, -1 for the lower.
+void clickStepper(Scene& scene, score::QGraphicsCombo& item, int dir)
+{
+  const QRectF strip = item.stepperRect();
+  const QPointF at{
+      strip.center().x(),
+      dir > 0 ? strip.top() + strip.height() / 4.
+              : strip.bottom() - strip.height() / 4.};
+
+  for(auto type : {QEvent::GraphicsSceneMousePress, QEvent::GraphicsSceneMouseRelease})
+  {
+    QGraphicsSceneMouseEvent ev{type};
+    ev.setButton(Qt::LeftButton);
+    ev.setButtons(type == QEvent::GraphicsSceneMousePress ? Qt::LeftButton
+                                                          : Qt::NoButton);
+    ev.setScreenPos({500, 500});
+    ev.setLastScreenPos({500, 500});
+    ev.setButtonDownScreenPos(Qt::LeftButton, {500, 500});
+    ev.setScenePos(at);
+    ev.setPos(at);
+    scene.sendEvent(&item, &ev);
+  }
+  qApp->processEvents();
+}
+}
+
+TEST_CASE("the stepper walks through the entries and wraps around")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    Scene scene;
+    score::QGraphicsCombo item{QStringList{"a", "b", "c"}, nullptr};
+    scene.addItem(&item);
+
+    int moved{}, released{};
+    QObject::connect(&item, &score::QGraphicsCombo::sliderMoved, &item, [&] { moved++; });
+    QObject::connect(
+        &item, &score::QGraphicsCombo::sliderReleased, &item, [&] { released++; });
+
+    clickStepper(scene, item, +1);
+    CHECK(item.value() == 1);
+    clickStepper(scene, item, +1);
+    CHECK(item.value() == 2);
+
+    // Past the last entry it comes back to the first, and the other way round.
+    clickStepper(scene, item, +1);
+    CHECK(item.value() == 0);
+    clickStepper(scene, item, -1);
+    CHECK(item.value() == 2);
+
+    // Each step is a full edit: a value to submit, then a commit.
+    CHECK(moved == 4);
+    CHECK(released == 4);
+
+    // And no drop-down was opened along the way.
+    CHECK(editorIn(scene) == nullptr);
+  });
+}
+
+TEST_CASE("a combo box with nothing to step through has no stepper")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    Scene scene;
+    score::QGraphicsCombo item{QStringList{"only"}, nullptr};
+    scene.addItem(&item);
+
+    // The strip is part of the box: clicking it opens the list as usual.
+    clickStepper(scene, item, +1);
+    CHECK(item.value() == 0);
+    CHECK(editorIn(scene) != nullptr);
+  });
+}
+
+TEST_CASE("leaving the stepper before releasing cancels the step")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    Scene scene;
+    score::QGraphicsCombo item{QStringList{"a", "b", "c"}, nullptr};
+    scene.addItem(&item);
+
+    int moved{};
+    QObject::connect(&item, &score::QGraphicsCombo::sliderMoved, &item, [&] { moved++; });
+
+    const QRectF strip = item.stepperRect();
+    const QPointF on{strip.center().x(), strip.top() + strip.height() / 4.};
+    const QPointF off{1., 1.};
+
+    for(auto [type, at] :
+        {std::pair{QEvent::GraphicsSceneMousePress, on},
+         std::pair{QEvent::GraphicsSceneMouseMove, off},
+         std::pair{QEvent::GraphicsSceneMouseRelease, off}})
+    {
+      QGraphicsSceneMouseEvent ev{type};
+      ev.setButton(Qt::LeftButton);
+      ev.setButtons(type == QEvent::GraphicsSceneMouseRelease ? Qt::NoButton
+                                                              : Qt::LeftButton);
+      ev.setScreenPos({500, 500});
+      ev.setLastScreenPos({500, 500});
+      ev.setButtonDownScreenPos(Qt::LeftButton, {500, 500});
+      ev.setScenePos(at);
+      ev.setPos(at);
+      scene.sendEvent(&item, &ev);
+    }
+    qApp->processEvents();
+
+    CHECK(item.value() == 0);
+    CHECK(moved == 0);
+    // The press still belonged to the button, so no drop-down either.
+    CHECK(editorIn(scene) == nullptr);
+  });
+}

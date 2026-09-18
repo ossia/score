@@ -4,12 +4,17 @@
 #include <score/tools/FileWatch.hpp>
 
 #include <ossia/dataflow/port.hpp>
+#include <ossia/detail/parse_strict.hpp>
+#include <ossia/detail/ssize.hpp>
+#include <ossia/network/value/value_conversion.hpp>
 
 #include <ossia-qt/invoke.hpp>
 
 #include <QCoreApplication>
 #include <QDir>
 #include <QFileSystemWatcher>
+
+#include <optional>
 
 #include <wobjectimpl.h>
 
@@ -22,6 +27,99 @@ W_OBJECT_IMPL(Process::VideoFileChooser)
 W_OBJECT_IMPL(Process::ImpulseButton)
 namespace Process
 {
+namespace
+{
+//! Reads whichever of an ossia::value's alternatives can denote a position.
+struct entry_index_visitor
+{
+  int n;
+
+  std::optional<int> operator()(int32_t i) const noexcept
+  {
+    return i >= 0 && i < n ? std::optional<int>(i) : std::nullopt;
+  }
+  std::optional<int> operator()(float f) const noexcept { return (*this)(int32_t(f)); }
+  std::optional<int> operator()(const std::string& s) const noexcept
+  {
+    // Exactly the digits an integer turns into when a port coerces it to a
+    // string -- nothing else, not even surrounding blanks: anything looser
+    // starts eating names that merely begin with a number.
+    const auto parsed = ossia::parse_strict<int64_t>(s);
+    if(!parsed)
+      return std::nullopt;
+    // Bounded here rather than through the integer overload: narrowing first
+    // could fold a huge number back into range.
+    return *parsed >= 0 && *parsed < n ? std::optional<int>(int(*parsed))
+                                       : std::nullopt;
+  }
+  std::optional<int> operator()(const auto&) const noexcept { return std::nullopt; }
+  std::optional<int> operator()() const noexcept { return std::nullopt; }
+};
+
+//! Whether entries are addressed by position as well as by value: only when
+//! they are names. See readEntryIndex.
+bool entriesAreNames(
+    const std::vector<std::pair<QString, ossia::value>>& alternatives) noexcept
+{
+  for(const auto& [name, value] : alternatives)
+    if(value.valid())
+      return value.get_type() == ossia::val_type::STRING;
+  return false;
+}
+}
+
+//! Read a value as a 0-based position in a list of n entries, or nothing.
+//!
+//! Only ever called for lists whose entries are names: a name is never a
+//! number, so the positional reading has nothing to compete with. Lists whose
+//! entries are themselves numbers must not come here -- several in score hold
+//! numbers that are not positions (shader enumerations declaring their own
+//! VALUES, LV2 scale points, the note-duration tables, a projection list whose
+//! values are shuffled against its order), and reading one as a position would
+//! quietly select a different entry.
+std::optional<int> readEntryIndex(const ossia::value& v, int n) noexcept
+{
+  return v.apply(entry_index_visitor{n});
+}
+
+int ComboBox::indexOfValue(const ossia::value& v) const noexcept
+{
+  const int n = std::ssize(alternatives);
+  for(int i = 0; i < n; i++)
+    if(alternatives[i].second == v)
+      return i;
+
+  if(!entriesAreNames(alternatives))
+    return -1;
+
+  return readEntryIndex(v, n).value_or(-1);
+}
+
+ossia::value ComboBox::valueAtIndex(int i) const noexcept
+{
+  if(i < 0 || i >= std::ssize(alternatives))
+    return {};
+  return alternatives[i].second;
+}
+
+int Enum::indexOfValue(const ossia::value& v) const noexcept
+{
+  const int n = std::ssize(values);
+  const auto name = QString::fromStdString(ossia::convert<std::string>(v));
+  for(int i = 0; i < n; i++)
+    if(values[i] == name)
+      return i;
+
+  return readEntryIndex(v, n).value_or(-1);
+}
+
+ossia::value Enum::valueAtIndex(int i) const noexcept
+{
+  if(i < 0 || i >= std::ssize(values))
+    return {};
+  return values[i].toStdString();
+}
+
 Enum::Enum(
     const std::vector<std::string>& dom, std::vector<QString> pixmaps, std::string init,
     const QString& name, Id<Port> id, QObject* parent)
