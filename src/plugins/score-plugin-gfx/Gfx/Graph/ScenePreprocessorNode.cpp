@@ -2186,17 +2186,33 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     for(std::size_t k = 0; k < fs.instances.size(); ++k)
     {
       const auto& inst_draw = fs.instances[k];
+      static const bool instprobe = qEnvironmentVariableIsSet("SCORE_MDIPROBE");
       if(!inst_draw.instance)
+      {
+        if(instprobe) qDebug() << "score.gfx: MDIPROBE inst skip=no-instance k=" << (int)k;
         continue;
+      }
       const auto& inst = *inst_draw.instance;
       if(!inst.prototype || inst.prototype->primitives.empty())
+      {
+        if(instprobe)
+          qDebug() << "score.gfx: MDIPROBE inst skip=no-prototype proto="
+                   << (void*)inst.prototype.get() << "prims="
+                   << (inst.prototype ? (int)inst.prototype->primitives.size() : -1);
         continue;
+      }
       if(inst.instance_count == 0)
+      {
+        if(instprobe) qDebug() << "score.gfx: MDIPROBE inst skip=zero-count";
         continue;
+      }
 
       const auto& prim = inst.prototype->primitives[0];
       if(prim.vertex_count == 0)
+      {
+        if(instprobe) qDebug() << "score.gfx: MDIPROBE inst skip=zero-verts";
         continue;
+      }
 
       // Defensive null-handle skip on prototype buffers — happens during
       // model swaps when the new prototype's data hasn't been uploaded
@@ -2232,7 +2248,16 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         }
       }
       if(!prototype_buffers_ready)
+      {
+        if(instprobe)
+          qDebug() << "score.gfx: MDIPROBE inst skip=buffers-not-ready vbufs="
+                   << (int)prim.vertex_buffers.size()
+                   << "hasIndex=" << (bool)prim.index_buffer;
         continue;
+      }
+      if(instprobe)
+        qDebug() << "score.gfx: MDIPROBE inst PASSED guards count="
+                 << (qulonglong)inst.instance_count << "verts=" << (qulonglong)prim.vertex_count;
 
       // Per-instance source buffers — translations may carry vec3 / trs /
       // mat4 layouts; we currently only support `translation` (the

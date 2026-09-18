@@ -1040,6 +1040,10 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
   // the end of render()), so it is attributed to THIS RenderList rather than
   // to a process- or thread-global counter.
   const int64_t frameNumber = this->frame;
+  static const bool cbprobe = qEnvironmentVariableIsSet("SCORE_CBPROBE");
+  if(cbprobe)
+    qDebug() << "score.gfx: CBPROBE render cb=" << (void*)&commands
+             << "rhi=" << (void*)state.rhi << "frame=" << (qlonglong)this->frame;
   static const bool no_ts = qEnvironmentVariableIsSet("SCORE_NO_GPU_TIMESTAMPS");
   if(state.caps.timestamps && !no_ts)
   {
