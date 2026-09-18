@@ -18,13 +18,44 @@
 
 namespace
 {
-static std::unique_ptr<ossia::resampler>
-make_resampler(ossia::audio_stretch_mode mode, const Media::AudioFile& f) noexcept
+// Rate of the samples the exec node hands to the stretcher. Both libav
+// backends resample on the way in, so theirs is the graph's rate.
+static int
+material_sample_rate(const Media::AudioFile& f, int graphSampleRate) noexcept
+{
+  struct
+  {
+    int graph;
+    int operator()(ossia::monostate) const noexcept { return graph; }
+    int operator()(const std::shared_ptr<Media::AudioFile::LibavReader>& r) const noexcept
+    {
+      return r->decoder.convertedSampleRate;
+    }
+    int operator()(const Media::AudioFile::LibavStreamReader&) const noexcept
+    {
+      return graph;
+    }
+    int operator()(const Media::AudioFile::SndfileReader& r) const noexcept
+    {
+      return r.decoder.convertedSampleRate;
+    }
+    int operator()(const Media::AudioFile::MmapReader& r) const noexcept
+    {
+      return r.wav.sampleRate();
+    }
+  } _{graphSampleRate};
+  const int rate = ossia::apply(_, f.unsafe_handle());
+  return rate > 0 ? rate : graphSampleRate;
+}
+
+static std::unique_ptr<ossia::resampler> make_resampler(
+    ossia::audio_stretch_mode mode, const Media::AudioFile& f,
+    int graphSampleRate) noexcept
 {
   auto res = std::make_unique<ossia::resampler>();
   const auto channels = f.channels();
-  const auto sampleRate = f.sampleRate();
-  res->reset(0, mode, channels, sampleRate);
+  res->reset(
+      0, mode, channels, material_sample_rate(f, graphSampleRate), graphSampleRate);
   return res;
 }
 
@@ -240,7 +271,9 @@ public:
     auto& p = component.process();
     commands.push_back([n, r = r, samplerate = component.system().execState->sampleRate,
                         tempo = component.process().nativeTempo(),
-                        res = make_resampler(component.process().stretchMode(), handle),
+                        res = make_resampler(
+                            component.process().stretchMode(), handle,
+                            component.system().execState->sampleRate),
                         upmix = p.upmixChannels(), start = p.startChannel()]() mutable {
       ossia::libav_handle h;
       h.open(r.path, r.stream, samplerate);
@@ -262,7 +295,9 @@ public:
     commands.push_back([n, data = r->handle, channels = r->decoder.channels,
                         sampleRate = r->decoder.convertedSampleRate,
                         tempo = component.process().nativeTempo(),
-                        res = make_resampler(component.process().stretchMode(), handle),
+                        res = make_resampler(
+                            component.process().stretchMode(), handle,
+                            component.system().execState->sampleRate),
                         upmix = p.upmixChannels(), start = p.startChannel()]() mutable {
       n->set_sound(std::move(data), channels, sampleRate);
       n->set_start(start);
@@ -281,7 +316,9 @@ public:
     commands.push_back([n, data = r.handle, channels = r.decoder.channels,
                         sampleRate = r.decoder.convertedSampleRate,
                         tempo = component.process().nativeTempo(),
-                        res = make_resampler(component.process().stretchMode(), handle),
+                        res = make_resampler(
+                            component.process().stretchMode(), handle,
+                            component.system().execState->sampleRate),
                         upmix = p.upmixChannels(), start = p.startChannel()]() mutable {
       n->set_sound(std::move(data), channels, sampleRate);
       n->set_start(start);
@@ -299,7 +336,9 @@ public:
     auto& p = component.process();
     commands.push_back([n, data = r.wav, channels = r.wav.channels(),
                         tempo = component.process().nativeTempo(),
-                        res = make_resampler(component.process().stretchMode(), handle),
+                        res = make_resampler(
+                            component.process().stretchMode(), handle,
+                            component.system().execState->sampleRate),
                         upmix = p.upmixChannels(), start = p.startChannel()]() mutable {
       n->set_sound(std::move(data));
       n->set_start(start);
@@ -348,8 +387,11 @@ SoundComponent::SoundComponent(
         [start = element.nativeTempo()](auto& node) { node.set_native_tempo(start); });
   });
   con(element, &Media::Sound::ProcessModel::stretchModeChanged, this, [=, &element] {
-    node_action([r = make_resampler(element.stretchMode(), *element.file())](
-                    auto& node) mutable { node.set_resampler(std::move(*r)); });
+    node_action([r = make_resampler(
+                     element.stretchMode(), *element.file(),
+                     this->system().execState->sampleRate)](auto& node) mutable {
+      node.set_resampler(std::move(*r));
+    });
   });
 
   if(auto& file = element.file())
