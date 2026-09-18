@@ -204,7 +204,6 @@ struct WaveformComputerImpl
   } handle;
 
   const WaveformRequest& request;
-  int64_t redraw_number;
   WaveformComputer& computer;
   QImagePool& pool = QImagePool::instance();
 
@@ -294,16 +293,9 @@ struct WaveformComputerImpl
     images.resize(infos.nchannels);
     for(int i = 0; i < infos.nchannels; i++)
     {
-      images[i] = pool.request(infos.physical_width, infos.physical_h);
-
       // No need to set device pixel ratio here, since we
       // change pixels directly
-      if(computer.m_redraw_count > redraw_number)
-      {
-        images.resize(i + 1);
-        pool.giveBack(images);
-        return false;
-      }
+      images[i] = pool.request(infos.physical_width, infos.physical_h);
     }
     return true;
   }
@@ -319,13 +311,6 @@ struct WaveformComputerImpl
 
       // When painting on the image, we paint at retina resolution
       images[i]->setDevicePixelRatio(1.);
-
-      if(computer.m_redraw_count > redraw_number)
-      {
-        images.resize(i + 1);
-        pool.giveBack(images);
-        return false;
-      }
 
       p[i].begin(images[i]);
       p[i].setPen(this->main_pen);
@@ -444,11 +429,13 @@ struct WaveformComputerImpl
   bool check_abort(int64_t x_samples) const noexcept
   {
     // Check every 16 pixel columns to not put too much overload on the atomic load
+    //
+    // Only a shutdown stops a render. It is rate-limited by what it costs, so
+    // one that has started is always worth finishing: abandoning it because a
+    // newer request arrived only leaves the view on an older image for longer,
+    // and the work is thrown away either way.
     return ((x_samples & 0xF) == 0)
-           // Check if we have to stop
-           && (computer.m_abort.load(std::memory_order_acquire)
-               // Check if we have to force a redraw and we're late
-               || (!computer.m_forceRedraw && computer.m_redraw_count > redraw_number));
+           && computer.m_abort.load(std::memory_order_acquire);
   }
 
   void compute_mean_minmax(const SizeInfos infos)
@@ -646,7 +633,7 @@ struct WaveformComputerImpl
     infos.physical_width = dpr * infos.logical_width;
     infos.physical_max_pixel = dpr * infos.logical_max_pixel;
 
-    if(infos.physical_width * infos.physical_h > 3840 * 2160 * 3)
+    if(infos.physical_width * infos.physical_h > maxWaveformPixels)
       return;
     if(infos.physical_width < 4 || infos.physical_h < 2)
       return;
@@ -686,8 +673,6 @@ void WaveformComputer::on_recompute(WaveformRequest&& req, int64_t n)
 
   m_currentRequest = std::move(req);
   m_n = n;
-
-  last_request = std::chrono::steady_clock::now();
 }
 
 void WaveformComputer::timerEvent(QTimerEvent* event)
@@ -701,20 +686,31 @@ void WaveformComputer::timerEvent(QTimerEvent* event)
   if(m_n == m_processed_n)
     return;
 
-  // TODO if we haven't rendered for 24 ms maybe render the last thing ?
-  using namespace std::literals;
+  // Rate-limited by what a render actually costs, rather than by a fixed delay.
+  // A cheap one -- the normal case once the file has a summary -- runs on every
+  // tick, so zooming and dragging update as fast as the timer allows. An
+  // expensive one (a file still decoding, a source that cannot be summarised)
+  // leaves as long idle as it took, holding it to half a thread.
+  //
+  // This used to wait for 16ms of quiet before rendering, and otherwise render
+  // only every 32ms. That put two to three frames of latency on every gesture,
+  // which showed up on a dezoom: the newly exposed edges, which no earlier
+  // image covers, stayed blank until the render finally ran.
   const auto now = std::chrono::steady_clock::now();
-  m_forceRedraw = (now - last_render > 32ms);
-  if(!m_forceRedraw && (now - last_request < 16ms))
-  {
+  if(now - last_render < m_lastRenderDuration)
     return;
-  }
 
   if(file != m_currentFile)
   {
     m_currentView = file->handle();
     m_currentFile = file;
   }
+
+  // The summary only exists once the file has finished decoding, so ask again
+  // until it does. Building it happens here, on the waveform thread, and costs
+  // about as much as one of the un-summarised redraws it replaces.
+  if(!m_currentView.summary)
+    m_currentView.summary = file->waveformSummary();
 
   const double rate = file->sampleRate();
   WaveformComputerImpl::LoopWrapper loopHandle{
@@ -733,10 +729,12 @@ void WaveformComputer::timerEvent(QTimerEvent* event)
     loopHandle.absmax_frame_impl = loopHandle.normal_absmax_frame;
     loopHandle.minmax_frame_impl = loopHandle.normal_minmax_frame;
   }
-  WaveformComputerImpl impl{loopHandle, m_currentRequest, m_n, *this};
+  WaveformComputerImpl impl{loopHandle, m_currentRequest, *this};
   impl.compute();
   m_processed_n = m_n;
-  last_render = now;
+
+  last_render = std::chrono::steady_clock::now();
+  m_lastRenderDuration = last_render - now;
 }
 
 }

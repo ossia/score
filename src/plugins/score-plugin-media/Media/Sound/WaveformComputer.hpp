@@ -35,6 +35,11 @@ struct WaveformRequest
   bool loops{};
 
   bool colors{};
+
+  //! Two requests that compare equal produce the same image, so the second one
+  //! is not worth rendering. Everything the computer reads is in here except
+  //! the skin, which the view invalidates by hand when it changes.
+  friend bool operator==(const WaveformRequest&, const WaveformRequest&) = default;
 };
 
 struct ComputedWaveform
@@ -50,6 +55,10 @@ struct ComputedWaveform
   int x0{};
   int xf{};
 };
+
+//! Largest image the computer will rasterise, in physical pixels. A request
+//! above it produces nothing at all, so callers must not make one.
+static constexpr int64_t maxWaveformPixels = 3840ll * 2160 * 3;
 
 struct SCORE_PLUGIN_MEDIA_EXPORT WaveformComputer : public QObject
 {
@@ -74,9 +83,10 @@ private:
   void timerEvent(QTimerEvent* event) override;
 
   std::atomic_int64_t m_redraw_count = std::numeric_limits<int64_t>::lowest();
-  std::chrono::steady_clock::time_point last_request = std::chrono::steady_clock::now();
   std::chrono::steady_clock::time_point last_render = {};
-  bool m_forceRedraw = false;
+
+  //! How long the previous render took; the rate limit is derived from it.
+  std::chrono::steady_clock::duration m_lastRenderDuration{};
 
   WaveformRequest m_currentRequest;
 

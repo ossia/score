@@ -42,7 +42,7 @@ void AudioFile::load_sndfile()
 
   m_impl = std::move(r);
 
-  m_fullyDecoded = true;
+  m_fullyDecoded.store(true, std::memory_order_release);
   on_mediaChanged();
   on_finishedDecoding();
   qDebug() << "AudioFileHandle::on_mediaChanged(): " << m_file;
