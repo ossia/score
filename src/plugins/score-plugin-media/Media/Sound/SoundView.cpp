@@ -10,6 +10,9 @@
 
 #include <ossia/detail/ssize.hpp>
 
+#include <algorithm>
+#include <cmath>
+
 #include <QGraphicsView>
 #include <QScrollBar>
 #include <QTimer>
@@ -35,6 +38,9 @@ LayerView::LayerView(const ProcessModel& m, QGraphicsItem* parent)
   // few things that invalidates it without the zoom or the data moving.
   score::onSkinChange(this, [this] {
     m_recomputed = false;
+    // The colours are not part of the request, so the image has to be asked for
+    // again even though nothing the computer reads has changed.
+    m_lastRequest.reset();
     recompute();
   });
 
@@ -108,16 +114,32 @@ void LayerView::recompute() const
 
   if(auto view = getView(*this))
   {
-    // By default we try to force a render of everything, but it's too slow with very large files
-    double minutes
-        = double(m_model.file()->decodedSamples()) / m_model.file()->sampleRate();
-    if(minutes > 10)
-      m_renderAll = false;
+    // Render a screen's worth on either side of what is visible, so that a
+    // scroll or a zoom step has something to show for the edges it exposes
+    // instead of leaving them blank until the next image lands. When the whole
+    // layer fits in that budget -- the case as soon as one is zoomed out -- this
+    // covers all of it, and scrolling then costs nothing at all.
+    //
+    // The budget is capped by what the computer will rasterise: a request above
+    // its ceiling is dropped and would leave the layer empty. (This used to be a
+    // duration test, through a variable named `minutes` that actually held
+    // seconds, so it gave up on anything longer than ten seconds.)
+    const double viewWidth = view->width();
+    const double dpr = view->devicePixelRatioF();
+    const double physicalHeight = dpr * height() / std::max(1, m_numChan);
+    const double affordable
+        = physicalHeight >= 1. ? double(maxWaveformPixels) / (physicalHeight * dpr) : 0.;
 
-    // On the first render we render the whole thing
-    double x0 = m_renderAll ? 0 : mapFromScene(view->mapToScene(0, 0)).x();
-    double xf
-        = m_renderAll ? 100000 : mapFromScene(view->mapToScene(view->width(), 0)).x();
+    const double visibleX0 = mapFromScene(view->mapToScene(0, 0)).x();
+    const double visibleXf = mapFromScene(view->mapToScene(viewWidth, 0)).x();
+    const double budget = std::min(affordable, 3. * viewWidth);
+    const double margin = std::max(0., (budget - (visibleXf - visibleX0)) / 2.);
+
+    // Whole pixels: the computer floors these anyway, and leaving the raw
+    // mapFromScene doubles in makes every request differ in the last bits, so
+    // the identical-request check below would never fire.
+    const double x0 = std::floor(std::max(0., visibleX0 - margin));
+    const double xf = std::ceil(std::min(width(), visibleXf + margin));
 
     WaveformRequest req{
         m_data,
@@ -131,9 +153,12 @@ void LayerView::recompute() const
         m_model.loopDuration(),
         m_model.loops(),
         m_frontColors};
-    m_cpt->recompute(std::move(req));
     m_recomputed = true;
-    m_renderAll = false;
+    if(m_lastRequest == req)
+      return;
+
+    m_lastRequest = req;
+    m_cpt->recompute(std::move(req));
   }
 }
 
@@ -172,10 +197,7 @@ void LayerView::paint_impl(QPainter* painter) const
   if(channels == 0.)
   {
     if(!m_recomputed)
-    {
-      m_renderAll = true;
       recompute();
-    }
     return;
   }
 
@@ -209,11 +231,15 @@ void LayerView::scrollValueChanged(int sbvalue)
 
 void LayerView::on_finishedDecoding()
 {
+  // Nothing in the request changes as the file decodes, but what can be drawn
+  // from it does: ask again rather than recognising it as one already sent.
+  m_lastRequest.reset();
   recompute();
 }
 
 void LayerView::on_newData()
 {
+  m_lastRequest.reset();
   recompute();
 }
 
@@ -249,14 +275,12 @@ void LayerView::dropEvent(QGraphicsSceneDragDropEvent* event)
 void LayerView::heightChanged(qreal r)
 {
   Process::LayerView::heightChanged(r);
-  m_renderAll = true;
   recompute();
 }
 
 void LayerView::widthChanged(qreal w)
 {
   Process::LayerView::widthChanged(w);
-  m_renderAll = true;
   recompute();
 }
 }

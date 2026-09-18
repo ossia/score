@@ -1,6 +1,7 @@
 #pragma once
 #include <Media/AudioDecoder.hpp>
 #include <Media/SndfileDecoder.hpp>
+#include <Media/WaveformSummary.hpp>
 
 #include <score/tools/std/StringHash.hpp>
 
@@ -15,6 +16,8 @@
 #include <score_plugin_media_export.h>
 
 #include <array>
+#include <atomic>
+#include <mutex>
 #include <verdigris>
 namespace ossia
 {
@@ -26,11 +29,6 @@ struct DocumentContext;
 }
 namespace Media
 {
-// Remove the compile time overhead of std::pair for this
-struct FloatPair
-{
-  float first, second;
-};
 struct RMSData;
 class SoundComponentSetup;
 static constexpr inline int64_t abs_max(int64_t f1, int64_t f2) noexcept
@@ -99,9 +97,22 @@ public:
   int64_t channels() const;
 
   bool empty() const { return channels() == 0 || samples() == 0; }
-  bool finishedDecoding() const noexcept { return m_fullyDecoded; }
+  //! Atomic: the waveform threads ask while the decoder is still running.
+  bool finishedDecoding() const noexcept
+  {
+    return m_fullyDecoded.load(std::memory_order_acquire);
+  }
 
   const RMSData& rms() const;
+
+  //! Min/max summary used to draw the waveform when zoomed out, built on the
+  //! first call and shared from then on. Null until the file has finished
+  //! decoding, and for sources that are streamed rather than held (summarising
+  //! one means decoding the whole stream, which is what streaming avoids).
+  //!
+  //! Building it costs about as much as one un-summarised redraw, so call it
+  //! from a worker thread -- never from the GUI or audio threads.
+  std::shared_ptr<const WaveformSummary> waveformSummary() const noexcept;
 
   //! Get a copy of the audio array, as 32 bit floats, whatever the input format is
   ossia::audio_array getAudioArray() const;
@@ -220,6 +231,26 @@ public:
     void minmax_frame(
         int64_t start_frame, int64_t end_frame,
         ossia::small_vector<FloatPair, 8>& out) noexcept;
+
+    //! Set to take the fast path in minmax_frame. Not filled in by
+    //! AudioFile::handle(): only the waveform drawing wants it, and attaching
+    //! it costs a shared_ptr copy on paths that are on the audio thread.
+    std::shared_ptr<const WaveformSummary> summary;
+
+    //! Whether this kind of source can be summarised at all. Asked before the
+    //! table is sized, so that an unsupported source costs nothing.
+    bool supports_summary() const noexcept;
+
+    //! Reduces the whole source into `s`. False if it could not be read.
+    bool build_summary(WaveformSummary& s) noexcept;
+
+  private:
+    bool summary_minmax(
+        int64_t start_frame, int64_t end_frame,
+        ossia::small_vector<FloatPair, 8>& out) noexcept;
+    void merge_range(
+        int64_t start_frame, int64_t end_frame,
+        ossia::small_vector<FloatPair, 8>& out) noexcept;
   };
 
   // Note : this is a copy, because it's not thread safe.
@@ -244,7 +275,11 @@ private:
 
   RMSData* m_rms{};
   int m_sampleRate{};
-  bool m_fullyDecoded{};
+  std::atomic_bool m_fullyDecoded{};
+
+  mutable std::mutex m_summaryMutex;
+  mutable std::shared_ptr<const WaveformSummary> m_summary;
+  mutable bool m_summaryUnavailable{};
 
   Handle m_impl;
 };

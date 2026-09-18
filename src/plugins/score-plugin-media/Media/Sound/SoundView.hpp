@@ -1,4 +1,5 @@
 #pragma once
+#include <optional>
 #include <Process/LayerView.hpp>
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
@@ -63,7 +64,11 @@ private:
 
   bool m_frontColors{true};
   mutable bool m_recomputed{false};
-  mutable bool m_renderAll{true};
+
+  //! What was last sent to the computer, to avoid asking twice for the same
+  //! image: once the whole layer is rendered, scrolling does not change the
+  //! request at all.
+  mutable std::optional<WaveformRequest> m_lastRequest;
 };
 }
 }

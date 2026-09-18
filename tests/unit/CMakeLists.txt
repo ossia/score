@@ -110,6 +110,13 @@ if(TARGET score_plugin_media)
     SOURCES SoundLibavSeekTest.cpp
     PLUGINS score_plugin_media
     LIBS ${_sound_rate_libs})
+
+  # The min/max summary behind zoomed-out waveform drawing: it must give exactly
+  # what a plain scan over every sample gives.
+  score_add_test(test_unit_waveform_summary
+    SOURCES WaveformSummaryTest.cpp
+    APP
+    PLUGINS score_plugin_media score_lib_process)
 endif()
 
 # Where a node draws its outlets when it has no inlets to balance them.

@@ -49,6 +49,7 @@ static DecodingMethod needsDecoding(const QString& path, int rate)
   }
 #else
   constexpr qint64 large_threshold = 4096ll * 1024 * 1024;
+
   // Rate mismatches are converted in the graph (ossia::resampler::reset), so
   // only decodability and RAM cost decide here -- unless the graph has no
   // converter, in which case the rate still has to match at load time.
@@ -253,6 +254,53 @@ const RMSData& AudioFile::rms() const
   return *m_rms;
 }
 
+std::shared_ptr<const WaveformSummary> AudioFile::waveformSummary() const noexcept
+{
+  // Only once the file is complete. While it is still decoding, a redraw only
+  // scans what has been decoded so far and is proportionally cheap anyway; and
+  // a table that grows behind the threads walking it is precisely what made the
+  // previous attempt at this unreliable. Built here it is written once, then
+  // never again.
+  if(!finishedDecoding())
+    return {};
+
+  std::lock_guard _{m_summaryMutex};
+  if(m_summary)
+    return m_summary;
+  if(m_summaryUnavailable)
+    return {};
+
+  ViewHandle h{m_impl};
+  if(!h.supports_summary())
+  {
+    // Nothing to retry: what a source can do does not change under us. Asked
+    // before sizing the table, so an unsupported source never allocates one.
+    m_summaryUnavailable = true;
+    return {};
+  }
+
+  const int64_t frames = decodedSamples();
+  const int32_t chan = channels();
+  if(frames <= 0 || chan <= 0)
+    return {};
+
+  auto s = std::make_shared<WaveformSummary>();
+  s->channels = chan;
+  s->frames = frames;
+  s->bucket = WaveformSummary::bucketFor(frames, chan);
+  s->bucketCount = (frames + s->bucket - 1) / s->bucket;
+  s->data = std::make_unique<FloatPair[]>(std::size_t(s->bucketCount) * chan);
+
+  if(!h.build_summary(*s))
+  {
+    m_summaryUnavailable = true;
+    return {};
+  }
+
+  m_summary = std::move(s);
+  return m_summary;
+}
+
 std::optional<double> AudioFile::knownTempo() const noexcept
 {
   auto& db = AudioDecoder::database();
@@ -412,6 +460,7 @@ std::optional<AudioInfo> probe(const QString& path)
         return ret;
       }
     }
+
     else if(suffix == "aif" || suffix == "aiff" || suffix == "aifc" || suffix == "caf")
     {
       if(auto ret = SndfileDecoder::do_probe(path))

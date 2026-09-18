@@ -20,7 +20,7 @@ void AudioFile::load_drwav()
   const auto fail = [this] {
     qDebug() << "Cannot open file" << m_file;
     m_impl = Handle{};
-    m_fullyDecoded = true;
+    m_fullyDecoded.store(true, std::memory_order_release);
     on_mediaChanged();
     on_finishedDecoding();
   };
@@ -64,7 +64,7 @@ void AudioFile::load_drwav()
 
   m_impl = std::move(r);
 
-  m_fullyDecoded = true;
+  m_fullyDecoded.store(true, std::memory_order_release);
   on_mediaChanged();
   on_finishedDecoding();
   qDebug() << "AudioFileHandle::on_mediaChanged(): " << m_file;
@@ -89,7 +89,8 @@ std::optional<AudioInfo> probe_drwav(const QFileInfo& fi)
         return std::nullopt;
 
       // Skip DTS in WAV, dr_wav does not decode them
-      if (h.wav()) {
+      if(h.wav())
+      {
         auto tag = h.wav()->fmt.formatTag;
         if (tag == 0x2001 || tag == 0x0008)
         {

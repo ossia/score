@@ -64,7 +64,7 @@ void AudioFile::load_libav(int rate)
         }
         m_rms->decodeLast(samples);
 
-        m_fullyDecoded = true;
+        m_fullyDecoded.store(true, std::memory_order_release);
         on_finishedDecoding();
           },
           Qt::QueuedConnection);
