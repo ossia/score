@@ -192,6 +192,10 @@ bool SafeQApplication::notify(QObject* receiver, QEvent* event)
     else
     {
       reentr = true;
+      // Log before the dialog: inform() blocks in QDialog::exec(), and in a
+      // headless or offscreen run nobody ever sees it, so the only record of
+      // what went wrong would otherwise be a window that cannot be shown.
+      qCritical() << "Internal error:" << e.what();
       inform(QObject::tr("Internal error: ") + e.what());
       reentr = false;
     }
@@ -206,6 +210,7 @@ bool SafeQApplication::notify(QObject* receiver, QEvent* event)
     else
     {
       reentr = true;
+      qCritical() << "Internal error: (non-std exception)";
       inform(QObject::tr("Internal error: "));
       reentr = false;
     }
