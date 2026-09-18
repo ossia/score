@@ -21,6 +21,14 @@ namespace Media
 {
 struct AudioInfo
 {
+  enum Flag : int32_t
+  {
+    DrwavCanDecode = (1 << 0),
+    SndfileCanDecode = (1 << 1),
+    LibavCanDecode = (1 << 2),
+  };
+
+  int32_t flags{};
   int32_t audioStream{-1};
   int32_t fileRate{};
   int32_t convertedRate{};

@@ -468,6 +468,7 @@ try
       info.fileLength = std::ceil(info.fileRate * read_length(path));
       info.max_arr_length = info.fileLength;
       info.tempo = estimateTempo(path);
+      info.flags = AudioInfo::LibavCanDecode;
 
       /*
         if (info.rate != m_targetSampleRate)
