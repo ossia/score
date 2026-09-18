@@ -18,8 +18,7 @@
 
 namespace
 {
-// Rate of the samples the exec node hands to the stretcher. Both libav
-// backends resample on the way in, so theirs is the graph's rate.
+// Both libav backends resample on the way in, so theirs is the graph's rate.
 static int
 material_sample_rate(const Media::AudioFile& f, int graphSampleRate) noexcept
 {

@@ -1,10 +1,6 @@
-// Panning a sound layer must keep a waveform under the viewport.
-//
 // The image covers only the span it was asked for, so every way the view can
 // move has to end in a new request. The timeline pans its content rather than
-// moving a scrollbar, and the scrollbar signal the layer hangs its recompute
-// on then never fires: what is on screen leaves the rendered window and the
-// layer goes blank until something unrelated happens to ask again.
+// moving a scrollbar, which leaves the layer's scrollbar signal silent.
 
 #include <Media/Sound/SoundModel.hpp>
 #include <Media/Sound/SoundView.hpp>

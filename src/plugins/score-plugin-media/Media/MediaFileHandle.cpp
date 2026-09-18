@@ -50,9 +50,8 @@ static DecodingMethod needsDecoding(const QString& path, int rate)
 #else
   constexpr qint64 large_threshold = 4096ll * 1024 * 1024;
 
-  // Rate mismatches are converted in the graph (ossia::resampler::reset), so
-  // only decodability and RAM cost decide here -- unless the graph has no
-  // converter, in which case the rate still has to match at load time.
+  // Rate mismatches are converted in the graph, so only decodability and RAM
+  // cost decide here -- unless the graph has no converter at all.
   const auto rate_ok = [rate](const AudioInfo& info) {
     return ossia::graph_resampling || info.fileRate == rate;
   };
@@ -157,8 +156,7 @@ void AudioFile::load(DecodingSetup opt)
       if(m_track == -1)
       {
         const auto& info = probe(m_file);
-        // The drwav and sndfile probes do not look at container streams and
-        // leave -1; those formats hold a single one.
+        // The drwav and sndfile probes leave -1; those formats hold one stream.
         if(info && info->audioStream >= 0)
         {
           m_track = info->audioStream;
@@ -256,11 +254,8 @@ const RMSData& AudioFile::rms() const
 
 std::shared_ptr<const WaveformSummary> AudioFile::waveformSummary() const noexcept
 {
-  // Only once the file is complete. While it is still decoding, a redraw only
-  // scans what has been decoded so far and is proportionally cheap anyway; and
-  // a table that grows behind the threads walking it is precisely what made the
-  // previous attempt at this unreliable. Built here it is written once, then
-  // never again.
+  // Only once the file is complete: a table that grew behind the threads
+  // walking it would need locking on every read.
   if(!finishedDecoding())
     return {};
 
@@ -273,8 +268,7 @@ std::shared_ptr<const WaveformSummary> AudioFile::waveformSummary() const noexce
   ViewHandle h{m_impl};
   if(!h.supports_summary())
   {
-    // Nothing to retry: what a source can do does not change under us. Asked
-    // before sizing the table, so an unsupported source never allocates one.
+    // What a source can do does not change under us, so this never retries.
     m_summaryUnavailable = true;
     return {};
   }

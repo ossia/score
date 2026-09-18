@@ -1,11 +1,6 @@
-// Unit test: the min/max summary that makes a zoomed-out waveform redraw cost
-// something other than a full pass over the file.
-//
-// The summary is only ever an accelerator: for any range, it must give exactly
-// what walking every sample gives. These check that, bit for bit, on both the
-// mmap and the in-RAM sources, across the zoom levels and the alignments the
-// renderer actually asks for -- because a waveform that is merely "close" is
-// how the previous attempt at this ended up being turned off.
+// The summary is an accelerator: for any range it must give exactly what
+// walking every sample gives, bit for bit, on both the mmap and in-RAM
+// sources and at every zoom and alignment the renderer asks for.
 
 #include <Media/MediaFileHandle.hpp>
 #include <Media/Sound/QImagePool.hpp>
@@ -36,9 +31,8 @@ bool spin_until(F f, int ms = 20000)
   return f();
 }
 
-//! 16-bit PCM, deliberately varied: a swept tone, a run of exact silence, a
-//! full-scale block and single-sample spikes, so that a bucket boundary landing
-//! in the wrong place shows up as a different min or max.
+//! Varied on purpose -- swept tone, exact silence, full scale, single-sample
+//! spikes -- so a misplaced bucket boundary shows up as a different min or max.
 void make_wav(const QString& path, int64_t frames, int channels, int rate)
 {
   const auto u32 = [](QByteArray& o, quint32 v) {
@@ -179,8 +173,7 @@ TEST_CASE("the waveform summary agrees with a plain scan, mmap source")
 
     SECTION("alignments around a bucket boundary")
     {
-      // Off-by-one at either end is what a summary gets wrong, so walk every
-      // offset across one bucket rather than sampling a few.
+      // Off-by-one at the ends is what a summary gets wrong.
       for(int64_t off = 0; off < B; off++)
         check_same(naive, accel, channels, 10 * B + off, 10 * B + off + 37 * B);
     }
@@ -242,8 +235,7 @@ TEST_CASE("the waveform summary agrees with a plain scan, in-RAM source")
 
 TEST_CASE("a source that cannot be summarised keeps drawing", "[waveform]")
 {
-  // A handle with no summary must behave exactly as before: the fast path is an
-  // accelerator, never a precondition for producing a waveform.
+  // The fast path is never a precondition for producing a waveform.
   score::test::run_in_app([](const score::GUIApplicationContext&) {
     QTemporaryDir dir;
     REQUIRE(dir.isValid());

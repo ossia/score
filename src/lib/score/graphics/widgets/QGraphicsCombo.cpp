@@ -76,8 +76,7 @@ struct DefaultComboImpl
   //! the point is not on the strip at all.
   static int stepAt(const QGraphicsCombo& self, QPointF pos) noexcept
   {
-    // Nothing to step through: the strip is not drawn either, and the whole
-    // box stays a plain click-to-open-the-list.
+    // Not drawn either: the box stays a plain click-to-open-the-list.
     if(!draggable(self))
       return 0;
 
@@ -95,8 +94,7 @@ struct DefaultComboImpl
     {
       self.m_dragged = false;
 
-      // The stepper swallows the press: no scrubbing, and no drop-down on the
-      // release either.
+      // The stepper swallows the press: no scrub, no drop-down on release.
       if(const int step = stepAt(self, event->pos()); step != 0)
       {
         self.m_pressedStep = step;
@@ -120,8 +118,7 @@ struct DefaultComboImpl
   {
     if(self.m_pressedStep != 0)
     {
-      // Leaving the button un-presses it, as everywhere else: the release is
-      // then a no-op and the user has cancelled the step.
+      // Leaving un-presses it, as everywhere else; the release is then a no-op.
       const bool armed = stepAt(self, event->pos()) == self.m_pressedStep;
       if(armed != self.m_stepArmed)
       {
@@ -248,7 +245,7 @@ QRectF QGraphicsCombo::stepperRect() const noexcept
 
 bool QGraphicsCombo::stepperVisible() const noexcept
 {
-  // Below this the strip would take the whole box and leave the text nowhere.
+  // Below this the strip takes the whole box and leaves the text nowhere.
   return array.size() > 1 && m_rect.width() > 3. * stepperWidth;
 }
 
@@ -258,8 +255,7 @@ void QGraphicsCombo::step(int n)
   if(sz <= 1 || n == 0)
     return;
 
-  // Wrap around: the stepper is there to walk through the whole list without
-  // having to open the drop-down, in either direction.
+  // Wraps: the point is to walk the list without opening the drop-down.
   const int next = ((m_value + n) % sz + sz) % sz;
   if(next == m_value)
     return;
@@ -525,9 +521,8 @@ void QGraphicsCombo::paintStepper(QPainter& painter, const score::Skin& skin)
       painter.drawRect(half);
     }
 
-    // Rounded: a one-pixel pen with antialiasing off lands on a whole pixel,
-    // and the two glyphs line up with each other rather than each falling to
-    // whichever side of its half the centre happened to sit on.
+    // Rounded: a one-pixel pen with antialiasing off needs a whole pixel, and
+    // the two glyphs have to line up with each other.
     const QPointF c{std::round(half.center().x()), std::round(half.center().y())};
     painter.setPen(skin.Base4.main.pen1);
     painter.drawLine(QPointF{c.x() - arm, c.y()}, QPointF{c.x() + arm, c.y()});

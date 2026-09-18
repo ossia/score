@@ -38,8 +38,7 @@ LayerView::LayerView(const ProcessModel& m, QGraphicsItem* parent)
   // few things that invalidates it without the zoom or the data moving.
   score::onSkinChange(this, [this] {
     m_recomputed = false;
-    // The colours are not part of the request, so the image has to be asked for
-    // again even though nothing the computer reads has changed.
+    // The colours are not part of the request.
     m_lastRequest.reset();
     recompute();
   });
@@ -114,16 +113,9 @@ void LayerView::recompute() const
 
   if(auto view = getView(*this))
   {
-    // Render a screen's worth on either side of what is visible, so that a
-    // scroll or a zoom step has something to show for the edges it exposes
-    // instead of leaving them blank until the next image lands. When the whole
-    // layer fits in that budget -- the case as soon as one is zoomed out -- this
-    // covers all of it, and scrolling then costs nothing at all.
-    //
-    // The budget is capped by what the computer will rasterise: a request above
-    // its ceiling is dropped and would leave the layer empty. (This used to be a
-    // duration test, through a variable named `minutes` that actually held
-    // seconds, so it gave up on anything longer than ten seconds.)
+    // A screen either side of what is visible, so a scroll or a zoom step has
+    // something to show for the edges it exposes. Capped by what the computer
+    // will rasterise: a request above its ceiling is dropped entirely.
     const double viewWidth = view->width();
     const double dpr = view->devicePixelRatioF();
     const double physicalHeight = dpr * height() / std::max(1, m_numChan);
@@ -135,9 +127,8 @@ void LayerView::recompute() const
     const double budget = std::min(affordable, 3. * viewWidth);
     const double margin = std::max(0., (budget - (visibleXf - visibleX0)) / 2.);
 
-    // Whole pixels: the computer floors these anyway, and leaving the raw
-    // mapFromScene doubles in makes every request differ in the last bits, so
-    // the identical-request check below would never fire.
+    // Whole pixels, or every request differs in the last bits and the
+    // identical-request check below never fires.
     const double x0 = std::floor(std::max(0., visibleX0 - margin));
     const double xf = std::ceil(std::min(width(), visibleXf + margin));
 
@@ -198,12 +189,9 @@ void LayerView::paint_impl(QPainter* painter) const
   const double x0 = m_wf.x0 * ratio;
   const double w = (m_wf.xf - m_wf.x0) * ratio;
 
-  // Before any of the reasons not to draw: having no image, or one that the
-  // zoom has since squeezed to nothing, is exactly when another is needed.
-  // Painting is the one place that sees every way the view can move -- the
-  // scrollbar signal catches only some of them -- and asking for a window that
-  // is already on its way costs nothing, since recompute() drops a request
-  // identical to the last.
+  // Before the reasons not to draw: having no image, or one the zoom has
+  // squeezed to nothing, is when another is most needed. Painting sees every
+  // way the view can move; the scrollbar signal sees only some.
   requestIfUncovered(x0, x0 + w);
 
   if(channels == 0)
@@ -231,8 +219,7 @@ QRectF LayerView::renderedSpan() const noexcept
   return QRectF{m_wf.x0 * ratio, 0., (m_wf.xf - m_wf.x0) * ratio, height()};
 }
 
-//! Asks for a new image when [coveredX0, coveredXf) no longer holds what is
-//! on screen.
+//! Asks for a new image when [coveredX0, coveredXf) no longer holds the view.
 void LayerView::requestIfUncovered(double coveredX0, double coveredXf) const
 {
   auto view = getView(*this);
@@ -246,7 +233,7 @@ void LayerView::requestIfUncovered(double coveredX0, double coveredXf) const
   if(visibleXf <= visibleX0)
     return;
 
-  // A pixel of slack: both edges have been through a floor and a ceil.
+  // Both edges have been through a floor and a ceil.
   constexpr double slack = 1.;
   if(coveredX0 > visibleX0 + slack || coveredXf < visibleXf - slack)
     recompute();
@@ -262,8 +249,7 @@ void LayerView::scrollValueChanged(int sbvalue)
 
 void LayerView::on_finishedDecoding()
 {
-  // Nothing in the request changes as the file decodes, but what can be drawn
-  // from it does: ask again rather than recognising it as one already sent.
+  // The request does not change as the file decodes, but what it draws does.
   m_lastRequest.reset();
   recompute();
 }

@@ -106,12 +106,11 @@ public:
   const RMSData& rms() const;
 
   //! Min/max summary used to draw the waveform when zoomed out, built on the
-  //! first call and shared from then on. Null until the file has finished
-  //! decoding, and for sources that are streamed rather than held (summarising
-  //! one means decoding the whole stream, which is what streaming avoids).
+  //! first call. Null until the file has finished decoding, and for streamed
+  //! sources, which would have to be decoded whole to summarise.
   //!
-  //! Building it costs about as much as one un-summarised redraw, so call it
-  //! from a worker thread -- never from the GUI or audio threads.
+  //! Costs about one un-summarised redraw: call it off the GUI and audio
+  //! threads.
   std::shared_ptr<const WaveformSummary> waveformSummary() const noexcept;
 
   //! Get a copy of the audio array, as 32 bit floats, whatever the input format is
@@ -232,13 +231,11 @@ public:
         int64_t start_frame, int64_t end_frame,
         ossia::small_vector<FloatPair, 8>& out) noexcept;
 
-    //! Set to take the fast path in minmax_frame. Not filled in by
-    //! AudioFile::handle(): only the waveform drawing wants it, and attaching
-    //! it costs a shared_ptr copy on paths that are on the audio thread.
+    //! Takes the fast path in minmax_frame. Not filled in by
+    //! AudioFile::handle(): the shared_ptr copy would be on the audio thread.
     std::shared_ptr<const WaveformSummary> summary;
 
-    //! Whether this kind of source can be summarised at all. Asked before the
-    //! table is sized, so that an unsupported source costs nothing.
+    //! Asked before the table is sized, so an unsupported source costs nothing.
     bool supports_summary() const noexcept;
 
     //! Reduces the whole source into `s`. False if it could not be read.

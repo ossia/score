@@ -30,7 +30,6 @@ namespace Process
 {
 namespace
 {
-//! Reads whichever of an ossia::value's alternatives can denote a position.
 struct entry_index_visitor
 {
   int n;
@@ -41,10 +40,9 @@ struct entry_index_visitor
   }
   std::optional<int> operator()(float f) const noexcept
   {
-    // Bounded before narrowing, like the string overload: int32_t(1e30f) and
-    // int32_t(NaN) are undefined. Whole numbers only, so that a float and the
-    // same number spelled as a string resolve alike, and so that a value just
-    // below zero does not truncate onto the first entry.
+    // Bounded before narrowing: int32_t(1e30f) and int32_t(NaN) are undefined.
+    // Whole numbers only, so a float and the same number spelled as a string
+    // agree, and nothing in (-1, 1) truncates onto the first entry.
     const double d = f;
     if(!(d >= 0. && d < double(n)) || d != std::floor(d))
       return std::nullopt;
@@ -52,14 +50,12 @@ struct entry_index_visitor
   }
   std::optional<int> operator()(const std::string& s) const noexcept
   {
-    // Exactly the digits an integer turns into when a port coerces it to a
-    // string -- nothing else, not even surrounding blanks: anything looser
-    // starts eating names that merely begin with a number.
+    // Exactly the digits a coerced integer becomes, not even surrounding
+    // blanks: anything looser eats names that merely begin with a number.
     const auto parsed = ossia::parse_strict<int64_t>(s);
     if(!parsed)
       return std::nullopt;
-    // Bounded here rather than through the integer overload: narrowing first
-    // could fold a huge number back into range.
+    // Bounded here: narrowing first could fold a huge number back into range.
     return *parsed >= 0 && *parsed < n ? std::optional<int>(int(*parsed))
                                        : std::nullopt;
   }
@@ -67,8 +63,6 @@ struct entry_index_visitor
   std::optional<int> operator()() const noexcept { return std::nullopt; }
 };
 
-//! Whether entries are addressed by position as well as by value: only when
-//! they are names. See readEntryIndex.
 bool entriesAreNames(
     const std::vector<std::pair<QString, ossia::value>>& alternatives) noexcept
 {
@@ -79,15 +73,6 @@ bool entriesAreNames(
 }
 }
 
-//! Read a value as a 0-based position in a list of n entries, or nothing.
-//!
-//! Only ever called for lists whose entries are names: a name is never a
-//! number, so the positional reading has nothing to compete with. Lists whose
-//! entries are themselves numbers must not come here -- several in score hold
-//! numbers that are not positions (shader enumerations declaring their own
-//! VALUES, LV2 scale points, the note-duration tables, a projection list whose
-//! values are shuffled against its order), and reading one as a position would
-//! quietly select a different entry.
 std::optional<int> readEntryIndex(const ossia::value& v, int n) noexcept
 {
   return v.apply(entry_index_visitor{n});
@@ -95,8 +80,7 @@ std::optional<int> readEntryIndex(const ossia::value& v, int n) noexcept
 
 int ComboBox::indexOfValue(const ossia::value& v) const noexcept
 {
-  // Two invalid values compare equal, so without this an invalid one selects
-  // the first entry that has no value of its own.
+  // Two invalid values compare equal, so one would select a valueless entry.
   if(!v.valid())
     return -1;
 
