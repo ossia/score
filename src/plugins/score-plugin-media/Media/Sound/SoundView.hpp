@@ -62,6 +62,8 @@ private:
   ComputedWaveform m_wf{};
   const ProcessModel& m_model;
 
+  void requestIfUncovered(double coveredX0, double coveredXf) const;
+
   bool m_frontColors{true};
   mutable bool m_recomputed{false};
 

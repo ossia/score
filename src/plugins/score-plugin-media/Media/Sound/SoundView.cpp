@@ -213,12 +213,40 @@ void LayerView::paint_impl(QPainter* painter) const
 
   const double x0 = m_wf.x0 * ratio;
 
+  // The image only covers the window it was asked for, so the view moving off
+  // it has to be noticed. Painting is the one place that sees every way it can
+  // move -- the scrollbar signal catches only some of them -- and asking for a
+  // window that is already on its way costs nothing: recompute() drops a
+  // request identical to the last.
+  requestIfUncovered(x0, x0 + w);
+
   painter->setRenderHint(QPainter::SmoothPixmapTransform, 0);
   for(int i = 0; i < channels; i++)
   {
     painter->drawImage(QRectF{x0, h * i, w, h}, *m_images[i]);
   }
   painter->setRenderHint(QPainter::SmoothPixmapTransform, 1);
+}
+
+//! Asks for a new image when [coveredX0, coveredXf) no longer holds what is
+//! on screen.
+void LayerView::requestIfUncovered(double coveredX0, double coveredXf) const
+{
+  auto view = getView(*this);
+  if(!view)
+    return;
+
+  const double visibleX0
+      = std::max(0., mapFromScene(view->mapToScene(0, 0)).x());
+  const double visibleXf
+      = std::min(width(), mapFromScene(view->mapToScene(view->width(), 0)).x());
+  if(visibleXf <= visibleX0)
+    return;
+
+  // A pixel of slack: both edges have been through a floor and a ceil.
+  constexpr double slack = 1.;
+  if(coveredX0 > visibleX0 + slack || coveredXf < visibleXf - slack)
+    recompute();
 }
 
 void LayerView::scrollValueChanged(int sbvalue)
