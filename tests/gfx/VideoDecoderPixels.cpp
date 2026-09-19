@@ -46,7 +46,7 @@
 //
 // NOT COVERED HERE, and why:
 //  - V210 / R210 / Bayer / PackedBitfield* are wire decoders: makeWireDecoder()
-//    keys on score::gfx::interop::VideoPixelFormat, reached only from a capture
+//    keys on Video::VideoPixelFormat, reached only from a capture
 //    backend in score-addon-aja, never from an AVPixelFormat. There is no
 //    AVFrame that selects them, so this fixture cannot reach them at all.
 //  - The HW families (VAAPI / CUDA / Vulkan / D3D11 / D3D12 / VideoToolbox /

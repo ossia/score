@@ -19,7 +19,7 @@
 //   - cross-validation of every mapped format against av_pix_fmt_desc_get():
 //     plane count, chroma subsampling, planarity, alpha and RGB-ness
 
-#include <Gfx/Graph/interop/VideoPixelFormat.hpp>
+#include <Video/VideoPixelFormat.hpp>
 #include <Gfx/Graph/interop/DirectShowPixelFormat.hpp>
 #include <Gfx/Graph/interop/DrmPixelFormat.hpp>
 #include <Gfx/Graph/interop/GStreamerPixelFormat.hpp>
@@ -45,7 +45,10 @@ extern "C" {
 #include <string_view>
 #include <vector>
 
-namespace vpf = score::gfx::interop;
+// The vocabulary lives in media now; the platform and libav bridges that map
+// onto it stay in gfx, so this file needs both.
+namespace vpf = Video;
+namespace iop = score::gfx::interop;
 using V = vpf::VideoPixelFormat;
 using vpf::ColorModel;
 
@@ -173,7 +176,7 @@ TEST_CASE("the vocabulary is non-trivial and self-consistent", "[gfx][pixfmt]")
   const auto all = described();
   REQUIRE(all.size() == vpf::formatCount());
   // Guards against the table being accidentally emptied or halved.
-  CHECK(all.size() == 94);
+  CHECK(all.size() == 96);
 
   for(const auto* i : all)
   {
@@ -484,12 +487,12 @@ TEST_CASE("AV bridge: score -> AV -> score round-trip", "[gfx][pixfmt][av]")
   int twins = 0;
   for(const auto* i : described())
   {
-    const auto av = vpf::toAVPixelFormat(i->format);
+    const auto av = iop::toAVPixelFormat(i->format);
     if(av == AV_PIX_FMT_NONE)
       continue;
     ++twins;
     INFO("format " << i->name << " -> " << av_get_pix_fmt_name(av));
-    CHECK(vpf::fromAVPixelFormat(av) == i->format);
+    CHECK(iop::fromAVPixelFormat(av) == i->format);
   }
   // Exact, not a floor: a floor lets a batch of mappings be deleted silently.
   CHECK(twins == 60);
@@ -501,35 +504,35 @@ TEST_CASE("AV bridge: AV -> score -> AV round-trip", "[gfx][pixfmt][av]")
       d = av_pix_fmt_desc_next(d))
   {
     const auto av = av_pix_fmt_desc_get_id(d);
-    const auto f = vpf::fromAVPixelFormat(av);
+    const auto f = iop::fromAVPixelFormat(av);
     if(f == V::Unknown)
       continue;
     INFO("AV " << av_get_pix_fmt_name(av) << " -> " << vpf::formatName(f));
-    CHECK(vpf::toAVPixelFormat(f) == av);
+    CHECK(iop::toAVPixelFormat(f) == av);
   }
 }
 
 TEST_CASE("AV bridge: unmapped inputs return the sentinel", "[gfx][pixfmt][av]")
 {
-  CHECK(vpf::fromAVPixelFormat(AV_PIX_FMT_NONE) == V::Unknown);
+  CHECK(iop::fromAVPixelFormat(AV_PIX_FMT_NONE) == V::Unknown);
   // Hardware-surface and paletted formats have no place in this vocabulary.
-  CHECK(vpf::fromAVPixelFormat(AV_PIX_FMT_VAAPI) == V::Unknown);
-  CHECK(vpf::fromAVPixelFormat(AV_PIX_FMT_CUDA) == V::Unknown);
-  CHECK(vpf::fromAVPixelFormat(AV_PIX_FMT_DRM_PRIME) == V::Unknown);
-  CHECK(vpf::fromAVPixelFormat(AV_PIX_FMT_PAL8) == V::Unknown);
-  CHECK(vpf::toAVPixelFormat(V::Unknown) == AV_PIX_FMT_NONE);
+  CHECK(iop::fromAVPixelFormat(AV_PIX_FMT_VAAPI) == V::Unknown);
+  CHECK(iop::fromAVPixelFormat(AV_PIX_FMT_CUDA) == V::Unknown);
+  CHECK(iop::fromAVPixelFormat(AV_PIX_FMT_DRM_PRIME) == V::Unknown);
+  CHECK(iop::fromAVPixelFormat(AV_PIX_FMT_PAL8) == V::Unknown);
+  CHECK(iop::toAVPixelFormat(V::Unknown) == AV_PIX_FMT_NONE);
   // The wire-only formats are the reason this vocabulary exists: FFmpeg models
   // them as codecs, so they must not claim a pixel-format twin.
   for(auto f : {V::V210, V::V216, V::R210, V::RGB10, V::R12B, V::R12L, V::ARGB10,
                 V::DPX10, V::DPX10LE, V::RGB12P})
   {
     INFO("wire-only format " << vpf::formatName(f));
-    CHECK(vpf::toAVPixelFormat(f) == AV_PIX_FMT_NONE);
+    CHECK(iop::toAVPixelFormat(f) == AV_PIX_FMT_NONE);
   }
   // YVU420P must not alias onto yuv420p: FFmpeg expresses YV12 by swapping the
   // U and V pointers, so claiming a twin here would silently swap chroma.
-  CHECK(vpf::toAVPixelFormat(V::YVU420P) == AV_PIX_FMT_NONE);
-  CHECK(vpf::fromAVPixelFormat(AV_PIX_FMT_YUV420P) == V::YUV420P);
+  CHECK(iop::toAVPixelFormat(V::YVU420P) == AV_PIX_FMT_NONE);
+  CHECK(iop::fromAVPixelFormat(AV_PIX_FMT_YUV420P) == V::YUV420P);
 }
 
 TEST_CASE("descriptors agree with FFmpeg for every mapped format",
@@ -537,7 +540,7 @@ TEST_CASE("descriptors agree with FFmpeg for every mapped format",
 {
   for(const auto* i : described())
   {
-    const auto av = vpf::toAVPixelFormat(i->format);
+    const auto av = iop::toAVPixelFormat(i->format);
     if(av == AV_PIX_FMT_NONE)
       continue;
     const AVPixFmtDescriptor* d = av_pix_fmt_desc_get(av);
@@ -587,8 +590,8 @@ TEST_CASE("chroma-swapped twins are declared consistently", "[gfx][pixfmt]")
     // but has none for the fully planar ones -- there it exchanges the U and V
     // pointers instead. Either way a fallback must exist, which is what lets
     // the camera enumeration keep offering these layouts.
-    if(vpf::toAVPixelFormat(i->format) == AV_PIX_FMT_NONE)
-      CHECK(vpf::toAVPixelFormat(twin) != AV_PIX_FMT_NONE);
+    if(iop::toAVPixelFormat(i->format) == AV_PIX_FMT_NONE)
+      CHECK(iop::toAVPixelFormat(twin) != AV_PIX_FMT_NONE);
   }
 }
 
@@ -598,20 +601,20 @@ TEST_CASE("V4L2 fourccs round-trip through the vocabulary", "[gfx][pixfmt][v4l2]
   std::size_t mapped = 0;
   for(const auto* i : described())
   {
-    const auto fourcc = vpf::toV4L2PixelFormat(i->format);
+    const auto fourcc = iop::toV4L2PixelFormat(i->format);
     if(fourcc == 0)
       continue;
     ++mapped;
     INFO("format " << i->name);
-    CHECK(vpf::fromV4L2PixelFormat(fourcc) == i->format);
+    CHECK(iop::fromV4L2PixelFormat(fourcc) == i->format);
   }
   // Exact, for the same reason as the AV count.
   CHECK(mapped == 58);
-  CHECK(vpf::fromV4L2PixelFormat(0) == V::Unknown);
-  CHECK(vpf::fromV4L2PixelFormat(0xDEADBEEF) == V::Unknown);
+  CHECK(iop::fromV4L2PixelFormat(0) == V::Unknown);
+  CHECK(iop::fromV4L2PixelFormat(0xDEADBEEF) == V::Unknown);
   // Compressed fourccs are on the codec axis and must not resolve to a layout.
-  CHECK(vpf::fromV4L2PixelFormat(V4L2_PIX_FMT_MJPEG) == V::Unknown);
-  CHECK(vpf::fromV4L2PixelFormat(V4L2_PIX_FMT_JPEG) == V::Unknown);
+  CHECK(iop::fromV4L2PixelFormat(V4L2_PIX_FMT_MJPEG) == V::Unknown);
+  CHECK(iop::fromV4L2PixelFormat(V4L2_PIX_FMT_JPEG) == V::Unknown);
 }
 #endif
 
@@ -734,15 +737,15 @@ TEST_CASE("every AV mapping is pinned to a named FFmpeg format", "[gfx][pixfmt][
     INFO(vpf::formatName(f) << " must map to " << name);
     const auto want = av_get_pix_fmt(name);
     REQUIRE(want != AV_PIX_FMT_NONE);
-    CHECK(vpf::toAVPixelFormat(f) == want);
-    CHECK(vpf::fromAVPixelFormat(want) == f);
+    CHECK(iop::toAVPixelFormat(f) == want);
+    CHECK(iop::fromAVPixelFormat(want) == f);
     pinned.insert(f);
   }
   // No mapping may exist that this list does not pin, so adding one without
   // pinning it fails here rather than going unverified.
   for(const auto* i : described())
   {
-    if(vpf::toAVPixelFormat(i->format) != AV_PIX_FMT_NONE)
+    if(iop::toAVPixelFormat(i->format) != AV_PIX_FMT_NONE)
     {
       INFO(i->name << " has an AV mapping but is not pinned");
       CHECK(pinned.count(i->format) == 1);
@@ -835,13 +838,13 @@ TEST_CASE("every V4L2 mapping is pinned to a kernel constant", "[gfx][pixfmt][v4
   for(auto [f, fourcc] : kFourcc)
   {
     INFO(vpf::formatName(f));
-    CHECK(vpf::toV4L2PixelFormat(f) == fourcc);
-    CHECK(vpf::fromV4L2PixelFormat(fourcc) == f);
+    CHECK(iop::toV4L2PixelFormat(f) == fourcc);
+    CHECK(iop::fromV4L2PixelFormat(fourcc) == f);
     pinned.insert(f);
   }
   for(const auto* i : described())
   {
-    if(vpf::toV4L2PixelFormat(i->format) != 0)
+    if(iop::toV4L2PixelFormat(i->format) != 0)
     {
       INFO(i->name << " has a fourcc but is not pinned");
       CHECK(pinned.count(i->format) == 1);
@@ -850,10 +853,10 @@ TEST_CASE("every V4L2 mapping is pinned to a kernel constant", "[gfx][pixfmt][v4
   // The one-way aliases can never be reached by a score->fourcc->score sweep, so
   // they need naming. The deprecated RGB32/BGR32 pair is where the two old
   // tables disagreed.
-  CHECK(vpf::fromV4L2PixelFormat(V4L2_PIX_FMT_RGB32) == V::XRGB8);
-  CHECK(vpf::fromV4L2PixelFormat(V4L2_PIX_FMT_BGR32) == V::BGRX8);
+  CHECK(iop::fromV4L2PixelFormat(V4L2_PIX_FMT_RGB32) == V::XRGB8);
+  CHECK(iop::fromV4L2PixelFormat(V4L2_PIX_FMT_BGR32) == V::BGRX8);
 #ifdef V4L2_PIX_FMT_Z16
-  CHECK(vpf::fromV4L2PixelFormat(V4L2_PIX_FMT_Z16) == V::Mono16);
+  CHECK(iop::fromV4L2PixelFormat(V4L2_PIX_FMT_Z16) == V::Mono16);
 #endif
 }
 #endif
@@ -896,7 +899,7 @@ TEST_CASE("rowBytes agrees with the FFmpeg linesize", "[gfx][pixfmt][av]")
 {
   for(const auto* i : described())
   {
-    const auto av = vpf::toAVPixelFormat(i->format);
+    const auto av = iop::toAVPixelFormat(i->format);
     if(av == AV_PIX_FMT_NONE)
       continue;
     for(uint32_t w : {16u, 48u, 64u, 720u, 1920u, 3840u})
@@ -955,6 +958,12 @@ TEST_CASE("wire-only descriptors are frozen", "[gfx][pixfmt]")
       {V::AYUV, ColorModel::YUV, 1, 1, 1, 1, 4, true, vpf::ByteOrder::NA, 256},
       {V::XYUV, ColorModel::YUV, 1, 1, 1, 1, 4, false, vpf::ByteOrder::NA, 256},
       {V::YUVA, ColorModel::YUV, 1, 1, 1, 1, 4, true, vpf::ByteOrder::NA, 256},
+      // NDI's two alpha layouts. Neither has an AVPixelFormat: UYVA422A is a
+      // UYVY plane plus a full-resolution alpha plane (ffmpeg's AV_PIX_FMT_UYVA
+      // is a different, packed 4:4:4:4 thing), and PA16 is P216 plus a 16-bit
+      // alpha plane. The block geometry below describes the FIRST plane.
+      {V::UYVA422A, ColorModel::YUV, 2, 2, 1, 2, 4, true, vpf::ByteOrder::NA, 256},
+      {V::PA16, ColorModel::YUV, 3, 2, 1, 1, 2, true, vpf::ByteOrder::Little, 256},
       {V::YUVX, ColorModel::YUV, 1, 1, 1, 1, 4, false, vpf::ByteOrder::NA, 256},
       {V::RGBA16F, ColorModel::RGB, 1, 1, 1, 1, 8, true, vpf::ByteOrder::Little, 256},
       {V::RGBA32F, ColorModel::RGB, 1, 1, 1, 1, 16, true, vpf::ByteOrder::Little, 256},
@@ -985,13 +994,13 @@ TEST_CASE("wire-only descriptors are frozen", "[gfx][pixfmt]")
   // format without a golden row fails rather than going unverified.
   for(const auto* i : described())
   {
-    if(vpf::toAVPixelFormat(i->format) == AV_PIX_FMT_NONE)
+    if(iop::toAVPixelFormat(i->format) == AV_PIX_FMT_NONE)
     {
       INFO(i->name << " has no AV twin and no golden row");
       CHECK(frozen.count(i->format) == 1);
     }
   }
-  CHECK(frozen.size() == 34);
+  CHECK(frozen.size() == 36);
   // and together the two sets are the whole vocabulary
   CHECK(frozen.size() + 60u == vpf::formatCount());
 }
@@ -1011,7 +1020,7 @@ TEST_CASE("byte order is declared exactly when FFmpeg spells one",
 {
   for(const auto* i : described())
   {
-    const auto av = vpf::toAVPixelFormat(i->format);
+    const auto av = iop::toAVPixelFormat(i->format);
     if(av == AV_PIX_FMT_NONE)
       continue;
     const std::string_view name{av_get_pix_fmt_name(av)};
@@ -1031,7 +1040,7 @@ TEST_CASE("byte order is declared exactly when FFmpeg spells one",
 // unexercised long enough to accumulate a chroma swap and a "not sure".
 TEST_CASE("DirectShow fourccs resolve to the right layout", "[gfx][pixfmt][dshow]")
 {
-  using vpf::directShowFourcc;
+  using iop::directShowFourcc;
   const auto f = [](const char* s) {
     return directShowFourcc(s[0], s[1], s[2], s[3]);
   };
@@ -1058,25 +1067,25 @@ TEST_CASE("DirectShow fourccs resolve to the right layout", "[gfx][pixfmt][dshow
   for(const auto& p : kPins)
   {
     INFO("fourcc " << p.fourcc);
-    CHECK(vpf::fromDirectShowFourcc(f(p.fourcc)) == p.expect);
+    CHECK(iop::fromDirectShowFourcc(f(p.fourcc)) == p.expect);
   }
   // YV12 and I420 are the same geometry and differ only in plane order, so the
   // swap must be visible in the vocabulary rather than lost.
-  CHECK(vpf::chromaSwappedTwin(vpf::fromDirectShowFourcc(f("YV12")))
-        == vpf::fromDirectShowFourcc(f("I420")));
-  CHECK(vpf::chromaSwappedTwin(vpf::fromDirectShowFourcc(f("YV16")))
+  CHECK(vpf::chromaSwappedTwin(iop::fromDirectShowFourcc(f("YV12")))
+        == iop::fromDirectShowFourcc(f("I420")));
+  CHECK(vpf::chromaSwappedTwin(iop::fromDirectShowFourcc(f("YV16")))
         == V::YUV422P);
-  CHECK(vpf::chromaSwappedTwin(vpf::fromDirectShowFourcc(f("YVU9")))
+  CHECK(vpf::chromaSwappedTwin(iop::fromDirectShowFourcc(f("YVU9")))
         == V::YUV410P);
   // Compressed subtypes are on the codec axis.
   for(const char* c : {"MJPG", "TVMJ", "WAKE", "Plum", "H264"})
   {
     INFO("compressed " << c);
-    CHECK(vpf::isDirectShowCompressedFourcc(f(c)));
-    CHECK(vpf::fromDirectShowFourcc(f(c)) == V::Unknown);
+    CHECK(iop::isDirectShowCompressedFourcc(f(c)));
+    CHECK(iop::fromDirectShowFourcc(f(c)) == V::Unknown);
   }
-  CHECK_FALSE(vpf::isDirectShowCompressedFourcc(f("NV12")));
-  CHECK(vpf::fromDirectShowFourcc(0) == V::Unknown);
+  CHECK_FALSE(iop::isDirectShowCompressedFourcc(f("NV12")));
+  CHECK(iop::fromDirectShowFourcc(0) == V::Unknown);
 }
 
 // DRM fourccs, pinned by literal characters. A DRM name reads in machine-word
@@ -1086,7 +1095,7 @@ TEST_CASE("DirectShow fourccs resolve to the right layout", "[gfx][pixfmt][dshow
 // round-trip that would accept either reading.
 TEST_CASE("DRM fourccs resolve with the word-order inversion", "[gfx][pixfmt][drm]")
 {
-  using vpf::drmPixelFourcc;
+  using iop::drmPixelFourcc;
   const auto f = [](const char* s) { return drmPixelFourcc(s[0], s[1], s[2], s[3]); };
   struct Pin { const char* fourcc; V expect; };
   static const Pin kPins[] = {
@@ -1115,8 +1124,8 @@ TEST_CASE("DRM fourccs resolve with the word-order inversion", "[gfx][pixfmt][dr
   for(const auto& p : kPins)
   {
     INFO("DRM fourcc " << p.fourcc);
-    CHECK(vpf::fromDrmFourcc(f(p.fourcc)) == p.expect);
-    CHECK(vpf::toDrmFourcc(p.expect) == f(p.fourcc));
+    CHECK(iop::fromDrmFourcc(f(p.fourcc)) == p.expect);
+    CHECK(iop::toDrmFourcc(p.expect) == f(p.fourcc));
     pinned.insert(p.expect);
   }
 
@@ -1137,23 +1146,23 @@ TEST_CASE("DRM fourccs resolve with the word-order inversion", "[gfx][pixfmt][dr
   for(const auto& p : kOneWayPins)
   {
     INFO("one-way DRM fourcc " << p.fourcc);
-    CHECK(vpf::toDrmFourcc(p.format) == f(p.fourcc));
+    CHECK(iop::toDrmFourcc(p.format) == f(p.fourcc));
     pinned.insert(p.format);
   }
 
   for(const auto* i : described())
   {
-    if(vpf::toDrmFourcc(i->format) != 0)
+    if(iop::toDrmFourcc(i->format) != 0)
     {
       INFO(i->name << " has a DRM fourcc but is not pinned");
       CHECK(pinned.count(i->format) == 1);
     }
   }
   // The V-first DRM layouts must keep their swap visible, exactly as elsewhere.
-  CHECK(vpf::chromaSwappedTwin(vpf::fromDrmFourcc(f("YV12"))) == V::YUV420P);
-  CHECK(vpf::chromaSwappedTwin(vpf::fromDrmFourcc(f("YV16"))) == V::YUV422P);
-  CHECK(vpf::fromDrmFourcc(0) == V::Unknown);
-  CHECK(vpf::toDrmFourcc(V::Unknown) == 0);
+  CHECK(vpf::chromaSwappedTwin(iop::fromDrmFourcc(f("YV12"))) == V::YUV420P);
+  CHECK(vpf::chromaSwappedTwin(iop::fromDrmFourcc(f("YV16"))) == V::YUV422P);
+  CHECK(iop::fromDrmFourcc(0) == V::Unknown);
+  CHECK(iop::toDrmFourcc(V::Unknown) == 0);
 }
 
 // The GPU-texture axis. Not a bijection with the buffer axis, and the test says
@@ -1163,61 +1172,61 @@ TEST_CASE("DRM fourccs resolve with the word-order inversion", "[gfx][pixfmt][dr
 TEST_CASE("plane texture formats and sizes", "[gfx][pixfmt][qrhi]")
 {
   // Packed RGB keeps its own format and full width.
-  CHECK(vpf::planeTextureFormat(V::BGRA8, 0) == QRhiTexture::BGRA8);
-  CHECK(vpf::planeTextureWidth(V::BGRA8, 0, 1920) == 1920);
-  CHECK(vpf::planeTextureHeight(V::BGRA8, 0, 1080) == 1080);
+  CHECK(iop::planeTextureFormat(V::BGRA8, 0) == QRhiTexture::BGRA8);
+  CHECK(iop::planeTextureWidth(V::BGRA8, 0, 1920) == 1920);
+  CHECK(iop::planeTextureHeight(V::BGRA8, 0, 1080) == 1080);
 
   // Packed 4:2:2 samples as RGBA8 at half the texel width: two pixels per texel.
-  CHECK(vpf::planeTextureFormat(V::UYVY422, 0) == QRhiTexture::RGBA8);
-  CHECK(vpf::planeTextureWidth(V::UYVY422, 0, 1920) == 960);
-  CHECK(vpf::planeTextureHeight(V::UYVY422, 0, 1080) == 1080);
+  CHECK(iop::planeTextureFormat(V::UYVY422, 0) == QRhiTexture::RGBA8);
+  CHECK(iop::planeTextureWidth(V::UYVY422, 0, 1920) == 960);
+  CHECK(iop::planeTextureHeight(V::UYVY422, 0, 1080) == 1080);
 
   // Semi-planar: R8 luma plus an RG8 chroma plane at half size.
-  CHECK(vpf::planeTextureFormat(V::NV12, 0) == QRhiTexture::R8);
-  CHECK(vpf::planeTextureFormat(V::NV12, 1) == QRhiTexture::RG8);
-  CHECK(vpf::planeTextureWidth(V::NV12, 1, 1920) == 960);
-  CHECK(vpf::planeTextureHeight(V::NV12, 1, 1080) == 540);
-  CHECK(vpf::planeTextureFormat(V::NV12, 2) == QRhiTexture::UnknownFormat);
+  CHECK(iop::planeTextureFormat(V::NV12, 0) == QRhiTexture::R8);
+  CHECK(iop::planeTextureFormat(V::NV12, 1) == QRhiTexture::RG8);
+  CHECK(iop::planeTextureWidth(V::NV12, 1, 1920) == 960);
+  CHECK(iop::planeTextureHeight(V::NV12, 1, 1080) == 540);
+  CHECK(iop::planeTextureFormat(V::NV12, 2) == QRhiTexture::UnknownFormat);
 
   // 10-bit semi-planar uses 16-bit lanes.
-  CHECK(vpf::planeTextureFormat(V::P010, 0) == QRhiTexture::R16);
-  CHECK(vpf::planeTextureFormat(V::P010, 1) == QRhiTexture::RG16);
+  CHECK(iop::planeTextureFormat(V::P010, 0) == QRhiTexture::R16);
+  CHECK(iop::planeTextureFormat(V::P010, 1) == QRhiTexture::RG16);
 
   // Fully planar: three single-component planes.
-  CHECK(vpf::planeTextureFormat(V::YUV420P, 0) == QRhiTexture::R8);
-  CHECK(vpf::planeTextureFormat(V::YUV420P, 1) == QRhiTexture::R8);
-  CHECK(vpf::planeTextureFormat(V::YUV420P, 2) == QRhiTexture::R8);
-  CHECK(vpf::planeTextureFormat(V::YUV422P10, 1) == QRhiTexture::R16);
+  CHECK(iop::planeTextureFormat(V::YUV420P, 0) == QRhiTexture::R8);
+  CHECK(iop::planeTextureFormat(V::YUV420P, 1) == QRhiTexture::R8);
+  CHECK(iop::planeTextureFormat(V::YUV420P, 2) == QRhiTexture::R8);
+  CHECK(iop::planeTextureFormat(V::YUV422P10, 1) == QRhiTexture::R16);
 
   // Odd sizes round the chroma plane up, as the buffer arithmetic does.
-  CHECK(vpf::planeTextureWidth(V::YUV420P, 1, 1921) == 961);
-  CHECK(vpf::planeTextureHeight(V::YUV420P, 1, 1081) == 541);
+  CHECK(iop::planeTextureWidth(V::YUV420P, 1, 1921) == 961);
+  CHECK(iop::planeTextureHeight(V::YUV420P, 1, 1081) == 541);
 
   // The wire-only layouts must be decoded before they are a texture.
   for(auto f : {V::V210, V::R210, V::R12B, V::RGB12P, V::DPX10})
   {
     INFO("wire-only " << vpf::formatName(f));
-    CHECK(vpf::planeTextureFormat(f, 0) == QRhiTexture::UnknownFormat);
+    CHECK(iop::planeTextureFormat(f, 0) == QRhiTexture::UnknownFormat);
   }
 
   // Degenerate inputs
-  CHECK(vpf::planeTextureFormat(V::Unknown, 0) == QRhiTexture::UnknownFormat);
-  CHECK(vpf::planeTextureWidth(V::BGRA8, 0, 0) == 0);
-  CHECK(vpf::planeTextureWidth(V::BGRA8, -1, 1920) == 0);
+  CHECK(iop::planeTextureFormat(V::Unknown, 0) == QRhiTexture::UnknownFormat);
+  CHECK(iop::planeTextureWidth(V::BGRA8, 0, 0) == 0);
+  CHECK(iop::planeTextureWidth(V::BGRA8, -1, 1920) == 0);
 
   // Every format either offers a plane-0 texture or is a decode-first layout;
   // none may answer a format for a plane it does not have.
   for(const auto* i : described())
   {
     INFO("format " << i->name);
-    CHECK(vpf::planeTextureFormat(i->format, i->planeCount)
+    CHECK(iop::planeTextureFormat(i->format, i->planeCount)
           == QRhiTexture::UnknownFormat);
     for(int p = 0; p < i->planeCount; ++p)
     {
-      if(vpf::planeTextureFormat(i->format, p) != QRhiTexture::UnknownFormat)
+      if(iop::planeTextureFormat(i->format, p) != QRhiTexture::UnknownFormat)
       {
-        CHECK(vpf::planeTextureWidth(i->format, p, 1920) > 0);
-        CHECK(vpf::planeTextureHeight(i->format, p, 1080) > 0);
+        CHECK(iop::planeTextureWidth(i->format, p, 1920) > 0);
+        CHECK(iop::planeTextureHeight(i->format, p, 1080) > 0);
       }
     }
   }
@@ -1227,23 +1236,23 @@ TEST_CASE("plane texture formats and sizes", "[gfx][pixfmt][qrhi]")
 // Spout a D3D11 texture, Syphon an IOSurface, dma-buf an EGLImage.
 TEST_CASE("texture formats map back only where unambiguous", "[gfx][pixfmt][qrhi]")
 {
-  CHECK(vpf::fromTextureFormat(QRhiTexture::BGRA8) == V::BGRA8);
-  CHECK(vpf::fromTextureFormat(QRhiTexture::RGBA8) == V::RGBA8);
-  CHECK(vpf::fromTextureFormat(QRhiTexture::RGBA16F) == V::RGBA16F);
-  CHECK(vpf::fromTextureFormat(QRhiTexture::RGBA32F) == V::RGBA32F);
-  CHECK(vpf::fromTextureFormat(QRhiTexture::R8) == V::Mono8);
-  CHECK(vpf::fromTextureFormat(QRhiTexture::R16) == V::Mono16);
+  CHECK(iop::fromTextureFormat(QRhiTexture::BGRA8) == V::BGRA8);
+  CHECK(iop::fromTextureFormat(QRhiTexture::RGBA8) == V::RGBA8);
+  CHECK(iop::fromTextureFormat(QRhiTexture::RGBA16F) == V::RGBA16F);
+  CHECK(iop::fromTextureFormat(QRhiTexture::RGBA32F) == V::RGBA32F);
+  CHECK(iop::fromTextureFormat(QRhiTexture::R8) == V::Mono8);
+  CHECK(iop::fromTextureFormat(QRhiTexture::R16) == V::Mono16);
   // Depth and compressed textures are not video buffers.
   for(auto t : {QRhiTexture::D16, QRhiTexture::D32F, QRhiTexture::BC1,
                 QRhiTexture::UnknownFormat})
   {
-    CHECK(vpf::fromTextureFormat(t) == V::Unknown);
+    CHECK(iop::fromTextureFormat(t) == V::Unknown);
   }
   // And the round-trip holds for the ones that do map back.
   for(auto f : {V::BGRA8, V::RGBA8, V::RGBA16F, V::RGBA32F, V::Mono8, V::Mono16})
   {
     INFO(vpf::formatName(f));
-    CHECK(vpf::fromTextureFormat(vpf::planeTextureFormat(f, 0)) == f);
+    CHECK(iop::fromTextureFormat(iop::planeTextureFormat(f, 0)) == f);
   }
 }
 
@@ -1271,30 +1280,30 @@ TEST_CASE("GStreamer names resolve to the right layout", "[gfx][pixfmt][gst]")
   for(const auto& p : kPins)
   {
     INFO("gst format " << p.name);
-    CHECK(vpf::fromGStreamerFormat(p.name) == p.expect);
-    CHECK(vpf::toGStreamerFormat(p.expect) == std::string_view{p.name});
+    CHECK(iop::fromGStreamerFormat(p.name) == p.expect);
+    CHECK(iop::toGStreamerFormat(p.expect) == std::string_view{p.name});
   }
   // The point of a direct table: these must NOT collapse onto their U-first
   // twins, which is what routing through AVPixelFormat would have done.
-  CHECK(vpf::fromGStreamerFormat("YV12") == V::YVU420P);
-  CHECK(vpf::fromGStreamerFormat("YVU9") == V::YVU410P);
-  CHECK(vpf::fromGStreamerFormat("YV12") != vpf::fromGStreamerFormat("I420"));
-  CHECK(vpf::chromaSwappedTwin(vpf::fromGStreamerFormat("YV12"))
-        == vpf::fromGStreamerFormat("I420"));
-  CHECK(vpf::chromaSwappedTwin(vpf::fromGStreamerFormat("NV21"))
-        == vpf::fromGStreamerFormat("NV12"));
+  CHECK(iop::fromGStreamerFormat("YV12") == V::YVU420P);
+  CHECK(iop::fromGStreamerFormat("YVU9") == V::YVU410P);
+  CHECK(iop::fromGStreamerFormat("YV12") != iop::fromGStreamerFormat("I420"));
+  CHECK(vpf::chromaSwappedTwin(iop::fromGStreamerFormat("YV12"))
+        == iop::fromGStreamerFormat("I420"));
+  CHECK(vpf::chromaSwappedTwin(iop::fromGStreamerFormat("NV21"))
+        == iop::fromGStreamerFormat("NV12"));
   // Case matters in caps, and unknown names must not guess.
-  CHECK(vpf::fromGStreamerFormat("nv12") == V::Unknown);
-  CHECK(vpf::fromGStreamerFormat("") == V::Unknown);
-  CHECK(vpf::fromGStreamerFormat("ENCODED") == V::Unknown);
-  CHECK(vpf::toGStreamerFormat(V::Unknown).empty());
+  CHECK(iop::fromGStreamerFormat("nv12") == V::Unknown);
+  CHECK(iop::fromGStreamerFormat("") == V::Unknown);
+  CHECK(iop::fromGStreamerFormat("ENCODED") == V::Unknown);
+  CHECK(iop::toGStreamerFormat(V::Unknown).empty());
   // A name maps to one layout and back, for every row.
   for(const auto* i : described())
   {
-    const auto name = vpf::toGStreamerFormat(i->format);
+    const auto name = iop::toGStreamerFormat(i->format);
     if(name.empty())
       continue;
     INFO(i->name << " <-> " << name);
-    CHECK(vpf::fromGStreamerFormat(name) == i->format);
+    CHECK(iop::fromGStreamerFormat(name) == i->format);
   }
 }

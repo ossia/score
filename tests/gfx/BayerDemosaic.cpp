@@ -38,7 +38,7 @@
 #include <Gfx/Graph/decoders/WireDecoderFactory.hpp>
 #include <Gfx/Graph/interop/CpuStagedCapture.hpp>
 #include <Gfx/Graph/interop/VideoCaptureStrategy.hpp>
-#include <Gfx/Graph/interop/VideoPixelFormat.hpp>
+#include <Video/VideoPixelFormat.hpp>
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
@@ -52,7 +52,7 @@
 
 using namespace score::test::gfx;
 namespace ic = score::gfx::interop;
-using V = ic::VideoPixelFormat;
+using V = Video::VideoPixelFormat;
 
 namespace
 {

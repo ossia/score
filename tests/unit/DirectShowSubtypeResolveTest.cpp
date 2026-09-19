@@ -18,7 +18,7 @@ extern "C" {
 }
 
 using namespace score::gfx::interop;
-using V = VideoPixelFormat;
+using V = Video::VideoPixelFormat;
 
 namespace
 {

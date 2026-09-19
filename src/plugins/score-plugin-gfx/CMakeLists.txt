@@ -365,6 +365,8 @@ set(HDRS
     Gfx/Graph/decoders/P010.hpp
     Gfx/Graph/decoders/P016.hpp
     Gfx/Graph/decoders/P210.hpp
+    Gfx/Graph/decoders/PA16.hpp
+    Gfx/Graph/decoders/UYVA.hpp
     Gfx/Graph/decoders/P410.hpp
     Gfx/Graph/decoders/RGBA.hpp
     Gfx/Graph/decoders/V210.hpp

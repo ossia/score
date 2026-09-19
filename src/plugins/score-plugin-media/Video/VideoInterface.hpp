@@ -1,6 +1,7 @@
 #pragma once
 #include <Media/Libav.hpp>
 #include <Video/VideoEnums.hpp>
+#include <Video/VideoPixelFormat.hpp>
 #if SCORE_HAS_LIBAV
 #include <score_plugin_media_export.h>
 extern "C" {
@@ -33,6 +34,13 @@ struct SCORE_PLUGIN_MEDIA_EXPORT ImageFormat
   // CUDA, etc.) where `pixel_format` is an opaque HW tag, this carries
   // the underlying SW pixel format that the descriptor / surface wraps
   AVPixelFormat hwaccel_sw_format = AVPixelFormat(-1);
+
+  /** For a wire layout no AVPixelFormat describes, the format that does.
+   *  NDI's UYVA and PA16 are the cases: both carry a separate alpha plane
+   *  after a packed or semi-planar picture, and ffmpeg has no format for
+   *  either shape. When this is set it decides the decoder; `pixel_format`
+   *  still carries the closest AVPixelFormat for everything that reads one. */
+  VideoPixelFormat native_format = VideoPixelFormat::Unknown;
 
   AVColorRange color_range = AVColorRange(-1);
   AVColorPrimaries color_primaries = AVColorPrimaries(-1);

@@ -305,7 +305,7 @@ constexpr int Y_RED_10 = 217, U_RED_10 = 394, V_RED_10 = 1023;
 // ===========================================================================
 TEST_CASE("WireEncoderFactory maps every wired format", "[gfx][encoders]")
 {
-  using F = score::gfx::interop::VideoPixelFormat;
+  using F = Video::VideoPixelFormat;
 
   const F wired[] = {F::UYVY422, F::YUYV422, F::V210,    F::BGRA8,
                      F::RGBA8,   F::ARGB8,   F::ABGR8,   F::RGB24,

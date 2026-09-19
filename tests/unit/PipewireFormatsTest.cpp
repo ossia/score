@@ -209,7 +209,7 @@ TEST_CASE("the SPA route and the fourcc route answer the same", "[gfx][pipewire]
 
 TEST_CASE("SPA formats resolve to the layout their fourcc names", "[gfx][pipewire]")
 {
-  using V = vpf::VideoPixelFormat;
+  using V = Video::VideoPixelFormat;
   CHECK(vpf::spaToVideoPixelFormat(SPA_VIDEO_FORMAT_RGBA) == V::RGBA8);
   CHECK(vpf::spaToVideoPixelFormat(SPA_VIDEO_FORMAT_BGRA) == V::BGRA8);
   CHECK(vpf::spaToVideoPixelFormat(SPA_VIDEO_FORMAT_RGBx) == V::RGBX8);
