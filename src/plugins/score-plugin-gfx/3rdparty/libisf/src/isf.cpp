@@ -27,6 +27,39 @@ namespace isf
 {
 namespace
 {
+//! True when the source defines main() outside comments and disabled blocks.
+bool hasEntryPoint(std::string_view src) noexcept
+{
+  std::string stripped;
+  stripped.reserve(src.size());
+  for(std::size_t i = 0; i < src.size();)
+  {
+    if(src[i] == '/' && i + 1 < src.size() && src[i + 1] == '/')
+    {
+      while(i < src.size() && src[i] != '\n')
+        i++;
+    }
+    else if(src[i] == '/' && i + 1 < src.size() && src[i + 1] == '*')
+    {
+      i += 2;
+      while(i + 1 < src.size() && !(src[i] == '*' && src[i + 1] == '/'))
+        i++;
+      i = std::min(i + 2, src.size());
+    }
+    else
+    {
+      stripped.push_back(src[i]);
+      i++;
+    }
+  }
+
+  static constexpr auto rexp
+      = ctll::fixed_string{R"_(\bmain\s*\(\s*(void)?\s*\)\s*\{)_"};
+  return bool(ctre::search<rexp>(stripped));
+}
+}
+namespace
+{
 static constexpr struct glsl45_t
 {
   static constexpr auto versionPrelude = R"_(#version 460
@@ -1255,11 +1288,11 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
             }
           }
 
-          // ACCESS is mandatory on a geometry attribute. It used to default to
-          // read_write, which handed the expensive semantic to every author who
-          // did not think about it: read_write allocates nothing extra now, but
-          // an attribute that is only written wants write_only, and one that
-          // gathers must say so or its cross-index reads race.
+          // A COPY_FROM attribute is filled from the geometry it names rather
+          // than by this shader, which is what access "none" means downstream.
+          if(ar.forward)
+            ar.access = "none";
+
           if(ar.access.empty())
           {
             throw invalid_file{
@@ -1272,7 +1305,7 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
           }
 
           // "gather" is read_write plus the promise that foreign indices are
-          // read, which is what forces _in and _out onto separate buffers.
+          // read, which forces _in and _out onto separate buffers.
           if(ar.access == "gather")
           {
             ar.access = "read_write";
@@ -1289,11 +1322,6 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
                 + ar.access
                 + "\". Expected read_only, write_only, read_write or gather."};
           }
-
-          // A COPY_FROM attribute is filled from the geometry it names rather
-          // than by this shader, which is what access "none" means downstream.
-          if(ar.forward)
-            ar.access = "none";
 
           // Default semantic to the attribute name if not specified
           if(ar.semantic.empty())
@@ -4034,16 +4062,14 @@ void parser::parse_isf()
   // Add the actual vert / frag code
   if(!simpleVS)
   {
-    static constexpr auto user_main_rexp
-        = ctll::fixed_string{R"_(main\s*\(\s*(void)?\s*\))_"};
-    static constexpr auto user_main_rex = ctre::search<user_main_rexp>;
-    std::string vs = m_sourceVertex;
-    if(auto match = user_main_rex(vs))
+    // Detect the entry point on a comment-stripped copy, but let the
+    // preprocessor do the rename: a textual replace also hits main() in a
+    // comment, a prototype or an #if 0 block, and renames the wrong one.
+    if(hasEntryPoint(m_sourceVertex))
     {
-      auto b = match.begin();
-      auto e = match.end();
-      vs.replace(b - vs.begin(), int(e - b), "main__isf_ossia()");
-      m_vertex += vs;
+      m_vertex += "#define main main__isf_ossia\n";
+      m_vertex += m_sourceVertex;
+      m_vertex += "\n#undef main\n";
       m_vertex += GLSL45.vertexUserMainEpilogue;
     }
     else

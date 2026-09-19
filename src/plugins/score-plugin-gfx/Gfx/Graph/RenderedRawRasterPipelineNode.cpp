@@ -38,11 +38,11 @@ bool checkMetalBufferBudget(
   const auto& layout = ps.vertexInputLayout();
   const int vtx = int(std::distance(layout.cbeginBindings(), layout.cendBindings()));
   const int top = max_binding + vtx;
-  if(top <= 31)
+  if(top <= 30)
     return true;
 
   qWarning() << "RawRaster: this shader needs Metal buffer slot" << top
-             << "but the table holds 31;" << max_binding
+             << "but the table holds 31 (slots 0-30);" << max_binding
              << "resource bindings +" << vtx
              << "vertex bindings. Skipping the pipeline."
              << QString::fromStdString(desc.description);
@@ -265,39 +265,6 @@ static bool auxPlaceholderZeroFillDisabled() noexcept
   return off;
 }
 
-// Companion to traceAuxPlaceholder: logged from init(), before initPass runs,
-// for EVERY declared AUXILIARY -- bound or not. An empty census means the node
-// declares none and the placeholder trace below can never print.
-static void traceAuxResolution(
-    const std::string& name, bool bound, int64_t size) noexcept
-{
-  static const bool on
-      = qEnvironmentVariableIntValue("SCORE_GFX_TRACE_AUX_PLACEHOLDER") > 0;
-  if(!on)
-    return;
-  qDebug(
-      "[AUX-RESOLVE] name=%s bound_from_geometry=%d bytes=%lld", name.c_str(),
-      int(bound), (long long)size);
-}
-
-// SCORE_GFX_TRACE_AUX_PLACEHOLDER=1 logs every producerless AUXILIARY the node
-// had to invent a buffer for. It is the positive control for the knob above: a
-// run that prints no lines never allocated a placeholder, so toggling the
-// zero-fill in that run proves nothing.
-static void traceAuxPlaceholder(
-    const std::string& name, int64_t size, bool uniform, bool zeroed) noexcept
-{
-  static const bool on
-      = qEnvironmentVariableIntValue("SCORE_GFX_TRACE_AUX_PLACEHOLDER") > 0;
-  if(!on)
-    return;
-  static std::atomic_int counter{0};
-  qDebug(
-      "[AUX-PLACEHOLDER #%d] name=%s kind=%s bytes=%lld zero_filled=%d",
-      counter.fetch_add(1) + 1, name.c_str(), uniform ? "ubo" : "ssbo",
-      (long long)size, int(zeroed));
-}
-
 void RenderedRawRasterPipelineNode::initPass(
     const TextureRenderTarget& renderTarget, RenderList& renderer,
     QRhiResourceUpdateBatch& res, Edge& edge)
@@ -382,8 +349,6 @@ void RenderedRawRasterPipelineNode::initPass(
           // the INPUTS-side placeholders in
           // IsfBindingsBuilder::ensureStorageResources.
           RhiClearBuffer::clearBuffer(rhi, res, dummy, 0, (quint32)dummySize);
-        traceAuxPlaceholder(
-            aux.name, dummySize, aux.is_uniform, !auxPlaceholderZeroFillDisabled());
         aux.buffer = dummy;
         aux.size = dummySize;
         aux.owned = true;
@@ -593,6 +558,7 @@ void RenderedRawRasterPipelineNode::initPass(
         {
           delete ps;
           delete pubo;
+          delete bindings;
           return;
         }
       }
@@ -602,6 +568,7 @@ void RenderedRawRasterPipelineNode::initPass(
     {
       delete ps;
       delete pubo;
+      delete bindings;
       return;
     }
 
@@ -642,6 +609,8 @@ void RenderedRawRasterPipelineNode::initPass(
         qDebug() << "Warning! Pipeline not created";
       delete ps;
       ps = nullptr;
+      delete bindings;
+      bindings = nullptr;
     }
 
     Pipeline pip = {ps, bindings};
@@ -1577,8 +1546,6 @@ void RenderedRawRasterPipelineNode::initMRTPass(
           // memory, and the shader reads it as a sentinel. Same reasoning as
           // the non-MRT path.
           RhiClearBuffer::clearBuffer(rhi, res, dummy, 0, (quint32)dummySize);
-        traceAuxPlaceholder(
-            aux.name, dummySize, aux.is_uniform, !auxPlaceholderZeroFillDisabled());
         aux.buffer = dummy;
         aux.size = dummySize;
         aux.owned = true;
@@ -1787,6 +1754,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
           qWarning() << "RawRaster::initMRTPass: remapPipelineVertexInputs FAILED";
           delete ps;
           delete pubo;
+          delete bindings;
           return;
         }
       }
@@ -1796,6 +1764,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     {
       delete ps;
       delete pubo;
+      delete bindings;
       return;
     }
 
@@ -1816,6 +1785,8 @@ void RenderedRawRasterPipelineNode::initMRTPass(
         qDebug() << "Warning! MRT Pipeline not created";
       delete ps;
       ps = nullptr;
+      delete bindings;
+      bindings = nullptr;
     }
 
     Pipeline pip = {ps, bindings};
@@ -2273,7 +2244,6 @@ void RenderedRawRasterPipelineNode::initState(
       // node will have to invent a buffer for. Whoever reads the
       // [AUX-PLACEHOLDER] lines below needs this list to know the trace was in
       // a position to observe anything at all.
-      traceAuxResolution(ssbo.name, ssbo.buffer != nullptr, ssbo.size);
 
       m_auxiliarySSBOs.push_back(std::move(ssbo));
     }
@@ -2704,13 +2674,6 @@ void RenderedRawRasterPipelineNode::update(
   // QRhiTexture on resize or rebuild flows through. The helper is idempotent
   // and patches every SRB it is given, so one call per pass refreshes them all
   // while the upstream lookup happens on the first iteration only.
-  static const bool srbprobe = qEnvironmentVariableIsSet("SCORE_SRBPROBE");
-  if(srbprobe && !(geometry.meshes && !geometry.meshes->meshes.empty()))
-    qDebug() << "score.gfx: SRBPROBE refresh SKIPPED this frame: meshes="
-             << (void*)geometry.meshes.get()
-             << "count=" << (geometry.meshes ? (int)geometry.meshes->meshes.size() : -1)
-             << "passes=" << (int)m_passes.size()
-             << "invSRBs=" << (int)m_perInvocationSRBs.size();
   if(geometry.meshes && !geometry.meshes->meshes.empty())
   {
     // Per-pass refresh of the name-matched-from-geometry bindings (SSBO, UBO,

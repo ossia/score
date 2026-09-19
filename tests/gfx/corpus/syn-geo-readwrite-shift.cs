@@ -41,10 +41,7 @@ void main()
     ISF_WRITE(geo, position)[idx] = vec4(p, 0.0, 1.0);
 
     // Whole triangles only: shifting by one triangle keeps the marker
-    // vertex-aligned, so a correct frame always paints exactly one triangle
-    // red. NOTE: this step is smaller than the SIMD width, so an aliased
-    // _in / _out still reads pre-write values in lockstep -- see the negative
-    // control note in the header: this fixture does NOT detect the race.
+    // vertex-aligned, so a correct frame always paints exactly one triangle red.
     uint N = (count / 3u) * 3u;
     uint step = 3u; // one triangle
     uint src = (N > 0u && idx < N) ? ((idx + N - (step % N)) % N) : idx;

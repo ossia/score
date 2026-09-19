@@ -36,6 +36,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <algorithm>
 #include <map>
 #include <set>
 
@@ -54,6 +55,12 @@ inline void initScoreResources() { }
 namespace
 {
 constexpr int frames_per_shader = 4;
+// A second pass starts the same shader here instead of at zero, which is what
+// happens when the transport is seeked into the middle of a timeline. A
+// generator that seeds its state on FRAMEINDEX == 0 and never again renders
+// nothing from then on, and nothing in a sweep that always starts cold can
+// see that.
+constexpr int mid_start_frame = 600;
 constexpr QSize render_size{320, 240};
 
 // What QRhi asks the baker for on WebGL2. The desktop profile comes from the
@@ -161,7 +168,8 @@ struct Sweeper
   }
 
   //! Failure kinds found for this shader, empty when it rendered.
-  std::map<std::string, std::string> run(const Gfx::ProcessedProgram& program)
+  std::map<std::string, std::string> run(
+      const Gfx::ProcessedProgram& program, int startFrame)
   {
     std::map<std::string, std::string> failures;
 
@@ -200,12 +208,16 @@ struct Sweeper
 
         graph.createAllRenderLists(api);
 
+        // In order, and the first rendered frame IS frame 0: the counter used to
+        // be incremented before the render, so FRAMEINDEX started at 1 and no
+        // shader that initialises itself on frame 0 ever did.
         for(int i = 0; i < frames_per_shader; i++)
         {
-          isf->standardUBO.frameIndex++;
-          isf->standardUBO.time += 1. / 60.;
+          const int f = startFrame + i;
+          isf->standardUBO.frameIndex = f;
+          isf->standardUBO.time = f / 60.;
           isf->standardUBO.timeDelta = 1. / 60.;
-          isf->standardUBO.progress += 1. / frames_per_shader;
+          isf->standardUBO.progress = std::min(1., f / double(mid_start_frame));
           output.render();
         }
       }
@@ -504,10 +516,20 @@ inline void sweepLibrary(
       continue;
     }
 
-    auto res = sweeper.run(*program);
+    auto res = sweeper.run(*program, 0);
     if(!blankIsFailure)
       res.erase("blank");
     dumpFrame(rel, sweeper.output.shared_readback);
+
+    // The same shader again on a fresh node, started mid-timeline. Its findings
+    // get their own keys so a shader that only works from a cold start is
+    // visible as exactly that rather than merged into the cold result.
+    for(auto& [kind, detail] : sweeper.run(*program, mid_start_frame))
+    {
+      if(!blankIsFailure && kind == "blank")
+        continue;
+      res.emplace(kind + "-mid", detail);
+    }
     if(!res.empty())
     {
       report(rel, res);

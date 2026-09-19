@@ -484,12 +484,11 @@ void GaussianSplatRenderer::createRenderPipeline(RenderList& renderer)
 
   m_pipeline->setTopology(QRhiGraphicsPipeline::Triangles);
   m_pipeline->setCullMode(QRhiGraphicsPipeline::None);
-  // Depth test + write: provides correct occlusion as a safety net.
-  // Framework clears depth to 1.0 (far), so all valid splats pass initially.
-  // With back-to-front sorting, depth test always passes (each splat is closer).
-  // Without sorting, depth write ensures near splats occlude far ones.
+  // Reverse-Z like the rest of the engine: the clear is 0.0 (far) and the
+  // compare is Greater. Leaving Qt's default Less here rejects every fragment.
   m_pipeline->setDepthTest(true);
   m_pipeline->setDepthWrite(true);
+  m_pipeline->setDepthOp(QRhiGraphicsPipeline::Greater);
 
   // Front-to-back "under" compositing (premultiplied alpha).
   // Mathematically equivalent to back-to-front "over", but much more stable:

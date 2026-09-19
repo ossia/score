@@ -35,10 +35,8 @@ void main()
     else if(corner == 2u) p.y += 2.0 / 11.0;
     ISF_WRITE(geo, position)[idx] = vec4(p, 0.0, 1.0);
 
-    // No seeding at all: the buffers start zeroed, so the loop accumulates from
-    // black and the test needs no frame counter and no liveness flag, either of
-    // which would make it depend on something other than the property under
-    // test. The pass-through IS the frame transition -- it only advances when
-    // the owner binds _in and _out to different halves of its pair.
+    // The buffers start zeroed, so the loop accumulates from black with no
+    // seeding logic. This pass-through is the frame transition: it only
+    // advances when _in and _out are different halves of the owner's pair.
     ISF_WRITE(geo, color)[idx] = ISF_READ(geo, color)[idx];
 }

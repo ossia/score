@@ -1220,24 +1220,6 @@ void RenderedCSFNode::updateGeometryBindings(
         }
       }
 
-      if(Q_UNLIKELY(qEnvironmentVariableIsSet("SCORE_CSF_PPPROBE")))
-      {
-        QString ups;
-        if(upstream_mesh)
-          for(const auto& ua : upstream_mesh->attributes)
-          {
-            if(ua.binding < 0 || ua.binding >= (int)upstream_mesh->buffers.size())
-              continue;
-            if(auto* g = ossia::get_if<ossia::geometry::gpu_buffer>(
-                   &upstream_mesh->buffers[ua.binding].data))
-              ups += QString::asprintf("%p ", (void*)g->handle);
-          }
-        QString mine;
-        for(const auto& sb : binding.attribute_ssbos)
-          mine += QString::asprintf("%p/%d ", (void*)sb.buffer, (int)sb.owned);
-        qDebug("score.gfx: PPPROBE node=%p self_feedback=%d upstream=[ %s] mine=[ %s]",
-               (void*)this, (int)is_self_feedback, qPrintable(ups), qPrintable(mine));
-      }
 
       if(is_self_feedback)
       {
@@ -1260,10 +1242,6 @@ void RenderedCSFNode::updateGeometryBindings(
             const int64_t elem_stride = std430ArrayStride(req.type, n.m_descriptor);
             const int count = ssbo.per_instance ? binding.instance_count : binding.vertex_count;
             const int64_t buf_size = elem_stride * count;
-            if(Q_UNLIKELY(qEnvironmentVariableIsSet("SCORE_CSF_PPPROBE")))
-              qDebug("score.gfx: PPALLOC attr=%s stride=%lld count=%d size=%lld %s",
-                     req.name.c_str(), (long long)elem_stride, count,
-                     (long long)buf_size, buf_size > 0 ? "ALLOC" : "SKIP");
             if(buf_size > 0)
             {
               auto* buf = renderer.state.rhi->newBuffer(
@@ -3307,7 +3285,8 @@ void RenderedCSFNode::buildComputeSrbBindings(
           continue;
         int f = (req.access == "read_only") ? 1 : (req.access == "write_only") ? 2 : 3;
         access_flags[ssbo.buffer] |= f;
-        if(req.gathers && ssbo.read_buffer && ssbo.read_buffer != ssbo.buffer)
+        if(req.access == "read_write" && ssbo.read_buffer
+           && ssbo.read_buffer != ssbo.buffer)
           access_flags[ssbo.read_buffer] |= 1;
       }
       for(const auto& aux : gb.auxiliary_ssbos)
@@ -3759,8 +3738,8 @@ void RenderedCSFNode::buildComputeSrbBindings(
             ssbo.owned = true;
           }
 
-          // Everything but a gather binds one buffer: read_only, write_only,
-          // and a read_write that only ever touches its own index.
+          // read_only and write_only bind one buffer; every read_write binds
+          // two, _in and _out, whether or not it gathers.
           if(req.access == "read_only" || req.access == "write_only")
           {
             appendBufBinding(ssbo.buffer, req.access);
@@ -3784,6 +3763,7 @@ void RenderedCSFNode::buildComputeSrbBindings(
               {
                 renderer.releaseBuffer(ssbo.read_buffer);
                 ssbo.read_buffer = nullptr;
+                ssbo.read_buffer_is_snapshot = false;
               }
               auto* snap = rhi.newBuffer(
                   QRhiBuffer::Static,
@@ -3801,54 +3781,36 @@ void RenderedCSFNode::buildComputeSrbBindings(
                 delete snap;
             }
 
-            // Invariant: `_in` is read at the same indices as `_out`, so it
-            // must be the same size. Breaking this is silent -- out-of-range
-            // reads return zero under robust access and the shader computes on
-            // zeros. Ledger 9.97: an 8-byte snapshot against a 131072-byte
-            // buffer froze a score for ten sweeps. No pixel test can see it,
-            // because the mis-sizing comes from score-load timing that the
-            // render fixtures do not reproduce, so it is checked here.
+            // _in is read at the same indices as _out, so it must be the same
+            // size: under robust access an out-of-range read returns zero and
+            // the shader silently computes on zeros.
             if(ssbo.read_buffer && ssbo.buffer
-               && ssbo.read_buffer->size() != ssbo.buffer->size())
+               && ssbo.read_buffer->size() != ssbo.buffer->size()
+               && !ssbo.warned_size_mismatch)
             {
-              static int warned = 0;
-              if((warned++ % 600) == 0)
-                qWarning("score.gfx: geometry attribute '%s': _in is %lld bytes "
-                         "against a %lld-byte _out, reads past the end return "
-                         "zero (occurrence %d)",
-                         req.name.c_str(), (long long)ssbo.read_buffer->size(),
-                         (long long)ssbo.buffer->size(), warned);
+              ssbo.warned_size_mismatch = true;
+              qWarning("score.gfx: geometry attribute '%s': _in is %lld bytes "
+                       "against a %lld-byte _out, reads past the end return zero",
+                       req.name.c_str(), (long long)ssbo.read_buffer->size(),
+                       (long long)ssbo.buffer->size());
             }
 
-            // Invariant: a feedback receiver owns the pair it swaps. If it is
-            // holding a borrowed buffer it has adopted the shared upstream
-            // handle, which clobbers ssbo.buffer and undoes its own swap -- its
-            // read half is then a buffer nothing ever writes, and its
-            // pass-through zeroes the loop one frame later (ledger 9.99). Like
-            // the size check above this is verified here rather than in a test:
-            // three fixture tests were written for it and all three passed with
-            // the defect present, because the fixture never reproduces the
-            // pointer-identity path that makes a node a feedback receiver.
-            if(binding.is_feedback_receiver && ssbo.read_buffer && !ssbo.owned)
+            // A feedback receiver owns the pair it swaps. A borrowed buffer
+            // means it adopted the shared upstream handle, which clobbers
+            // ssbo.buffer and undoes the swap: the read half is then a buffer
+            // nothing writes.
+            if(binding.is_feedback_receiver && ssbo.read_buffer && !ssbo.owned
+               && !ssbo.warned_borrowed_pair)
             {
-              static int warned = 0;
-              if((warned++ % 600) == 0)
-                qWarning("score.gfx: geometry attribute '%s': feedback receiver is "
-                         "ping-ponging a borrowed buffer, so its swap is undone by "
-                         "adoption every frame (occurrence %d)",
-                         req.name.c_str(), warned);
+              ssbo.warned_borrowed_pair = true;
+              qWarning("score.gfx: geometry attribute '%s': feedback receiver is "
+                       "ping-ponging a borrowed buffer, so its swap is undone by "
+                       "adoption every frame",
+                       req.name.c_str());
             }
 
             QRhiBuffer* read_buf = (ssbo.read_buffer && !binding.pending_initial_copy)
                 ? ssbo.read_buffer : ssbo.buffer;
-            if(Q_UNLIKELY(qEnvironmentVariableIsSet("SCORE_CSF_PPPROBE")))
-              qDebug("score.gfx: PPBIND node=%p attr=%s pending=%d rb=%p(%lld) buf=%p(%lld) -> in=%p %s",
-                     (void*)this, req.name.c_str(), (int)binding.pending_initial_copy,
-                     (void*)ssbo.read_buffer,
-                     (long long)(ssbo.read_buffer ? ssbo.read_buffer->size() : 0),
-                     (void*)ssbo.buffer,
-                     (long long)(ssbo.buffer ? ssbo.buffer->size() : 0), (void*)read_buf,
-                     read_buf == ssbo.buffer ? "ALIASED" : "distinct");
             if(read_buf == ssbo.buffer)
             {
               // Same physical buffer for both _in and _out (non-feedback in-place).
@@ -4613,6 +4575,7 @@ void RenderedCSFNode::releaseState(RenderList& r)
         r.releaseBuffer(ssbo.read_buffer);
         ssbo.read_buffer = nullptr;
       }
+      ssbo.read_buffer_is_snapshot = false;
       if(ssbo.owned && ssbo.buffer)
       {
         r.releaseBuffer(ssbo.buffer);
@@ -4984,28 +4947,6 @@ static void csfTexreadDump(const QRhiReadbackResult& rb, const QString& label)
 }
 
 
-void RenderedCSFNode::texreadProbe(RenderList& renderer, QRhiResourceUpdateBatch*& res)
-{
-  const int want = qEnvironmentVariableIntValue("SCORE_CSF_TEXREAD");
-  if(int(renderer.frame) != want || m_inputSamplers.empty())
-    return;
-
-  auto [smp, tex, fb_] = m_inputSamplers[0];
-  if(!tex)
-    return;
-  if(!res)
-    res = renderer.state.rhi->nextResourceUpdateBatch();
-
-  auto* rb = new QRhiReadbackResult;
-  const QString label = QString::fromUtf8(tex->name()) + "@frame"
-                        + QString::number(want);
-  rb->completed = [rb, label] {
-    csfTexreadDump(*rb, label);
-    delete rb;
-  };
-  res->readBackTexture(QRhiReadbackDescription(tex), rb);
-}
-
 void RenderedCSFNode::runInitialPasses(
     RenderList& renderer, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch*& res,
     Edge& edge)
@@ -5019,24 +4960,6 @@ void RenderedCSFNode::runInitialPasses(
     return;
   m_lastRunFrame = renderer.frame;
 
-  if(Q_UNLIKELY(qEnvironmentVariableIsSet("SCORE_CSF_TEXREAD")))
-    texreadProbe(renderer, res);
-  // SCORE_CSF_SEQPROBE: one line per node per frame, in render order, naming the
-  // node and both halves of every geometry attribute. This is what tells apart a
-  // wrong buffer from a right buffer read too early: an even-length feedback
-  // loop reverses the render order so the owner runs after its adopter.
-  if(Q_UNLIKELY(qEnvironmentVariableIsSet("SCORE_CSF_SEQPROBE")))
-  {
-    QString bufs;
-    for(auto& b : m_geometryBindings)
-      for(auto& ss : b.attribute_ssbos)
-        bufs += QString::asprintf(
-            " [%s fb=%d owned=%d out=%p in=%p]", ss.name.c_str(),
-            (int)b.is_feedback_receiver, (int)ss.owned, (void*)ss.buffer,
-            (void*)ss.read_buffer);
-    qDebug("score.gfx: SEQPROBE frame=%lld ENTER %.24s%s", (long long)renderer.frame,
-           n.m_descriptor.description.c_str(), qPrintable(bufs));
-  }
 
   // Debug marker for capture-tool readability.
   commands.debugMarkBegin(QByteArrayLiteral("CSF"));
@@ -5101,9 +5024,6 @@ void RenderedCSFNode::runInitialPasses(
           snaps.push_back({ssbo.buffer, ssbo.read_buffer});
     }
 
-    if(Q_UNLIKELY(qEnvironmentVariableIsSet("SCORE_CSF_SNAPPROBE")))
-      qDebug("score.gfx: SNAPPROBE node=%p bindings=%zu snaps=%zu", (void*)this,
-             m_geometryBindings.size(), snaps.size());
 
     if(!snaps.empty())
     {
@@ -5122,57 +5042,6 @@ void RenderedCSFNode::runInitialPasses(
     }
   }
 
-  // SCORE_CSF_STATEPROBE: at this node's ENTRY, before its passes, read back the head of
-  // every geometry attribute so the state can be followed from node to node
-  // across frames. The result lands a frame later, which is why the line says
-  // which frame it was issued on.
-  if(Q_UNLIKELY(qEnvironmentVariableIsSet("SCORE_CSF_STATEPROBE")))
-  {
-    if(!res)
-      res = renderer.state.rhi->nextResourceUpdateBatch();
-    const int64_t fr = renderer.frame;
-    for(auto& binding : m_geometryBindings)
-    {
-      for(auto& ssbo : binding.attribute_ssbos)
-      {
-        for(int half = 0; half < 2; ++half)
-        {
-          QRhiBuffer* b = half == 0 ? ssbo.buffer : ssbo.read_buffer;
-          if(!b || (half == 1 && ssbo.read_buffer == ssbo.buffer))
-            continue;
-          auto* rb = new QRhiBufferReadbackResult;
-          const QString tag = QString::asprintf(
-              "node=%p attr=%s %s buf=%p fb=%d", (void*)this, ssbo.name.c_str(),
-              half == 0 ? "OUT " : "IN  ", (void*)b, (int)binding.is_feedback_receiver);
-          rb->completed = [rb, tag, fr] {
-            const float* f = reinterpret_cast<const float*>(rb->data.constData());
-            const int n = rb->data.size() / sizeof(float);
-            int nz = 0;
-            float mx = 0.f;
-            for(int i = 0; i < n; ++i)
-            {
-              if(f[i] != 0.f)
-                ++nz;
-              mx = std::max(mx, std::abs(f[i]));
-            }
-            QString v;
-            for(int i = 0; i < std::min(4, n); ++i)
-              v += QString::asprintf("%.5f ", f[i]);
-            qDebug("score.gfx: STATEPROBE frame=%lld %s -> %s| nonzero %d/%d max %.5f",
-                   (long long)fr, qPrintable(tag), qPrintable(v), nz, n, mx);
-            delete rb;
-          };
-          res->readBackBuffer(b, 0, (int)std::min<qint64>(b->size(), 16384), rb);
-        }
-      }
-    }
-    // Commit the batch HERE, so the readback resolves at this node's point in
-    // the frame. Left in the shared batch it resolves wherever that batch is
-    // committed, which can be after later nodes have already run -- the values
-    // would then not be this node's at all.
-    commands.resourceUpdate(res);
-    res = nullptr;
-  }
 
   // Run all passes sequentially
   for(std::size_t passIndex = 0; passIndex < n.m_descriptor.csf_passes.size(); passIndex++)
@@ -5533,13 +5402,18 @@ void RenderedCSFNode::runInitialPasses(
           pass.processUBO, 0, sizeof(ProcessUBO), &n.standardUBO);
     }
 
-    // Each CSF pass issues exactly one dispatch in its own begin/endComputePass
-    // and closes it with an explicit compute-to-compute barrier, because QRhi
-    // does NOT insert one across pass boundaries on the OpenGL backend: a node
-    // whose SSBO write is read by a later node's dispatch in the same frame got
-    // the pre-dispatch contents there. The pass needs ExternalContent to record
-    // the barrier through beginExternal().
-    commands.beginComputePass(res, QRhiCommandBuffer::BeginPassFlag::ExternalContent);
+    // QRhi inserts no compute-to-compute barrier across pass boundaries on the
+    // OpenGL backend, so a node reading an SSBO a previous node wrote this
+    // frame gets the pre-dispatch contents. Every other backend orders it
+    // itself, and ExternalContent is not free there: on Vulkan it puts the pass
+    // in secondary command buffers.
+    const bool needsComputeBarrier
+        = renderer.state.rhi->backend() == QRhi::OpenGLES2;
+    if(needsComputeBarrier)
+      commands.beginComputePass(
+          res, QRhiCommandBuffer::BeginPassFlag::ExternalContent);
+    else
+      commands.beginComputePass(res);
     res = nullptr;
 
     commands.setComputePipeline(pass.pipeline);
@@ -5577,9 +5451,12 @@ void RenderedCSFNode::runInitialPasses(
       commands.dispatch(dispatchX, dispatchY, dispatchZ);
     }
 
-    commands.beginExternal();
-    insertComputeBarrier(*renderer.state.rhi, commands);
-    commands.endExternal();
+    if(needsComputeBarrier)
+    {
+      commands.beginExternal();
+      insertComputeBarrier(*renderer.state.rhi, commands);
+      commands.endExternal();
+    }
 
     commands.endComputePass();
   }
@@ -5590,17 +5467,6 @@ void RenderedCSFNode::runInitialPasses(
     if(!res)
       res = renderer.state.rhi->nextResourceUpdateBatch();
     pushOutputGeometry(renderer, *res, edge);
-    if(Q_UNLIKELY(qEnvironmentVariableIsSet("SCORE_CSF_SEQPROBE")))
-    {
-      QString bufs;
-      for(auto& b : m_geometryBindings)
-        for(auto& ss : b.attribute_ssbos)
-          bufs += QString::asprintf(" [%s out=%p in=%p]", ss.name.c_str(),
-                                    (void*)ss.buffer, (void*)ss.read_buffer);
-      qDebug("score.gfx: SEQPROBE frame=%lld PUBLISH %.24s%s",
-             (long long)renderer.frame, n.m_descriptor.description.c_str(),
-             qPrintable(bufs));
-    }
   }
 
   // Ping-pong swap for feedback receivers: after pushing output,
@@ -5630,10 +5496,6 @@ void RenderedCSFNode::runInitialPasses(
           if(geo_input->attributes[ai].access == "read_write" && ssbo.read_buffer
              && ssbo.owned)
             std::swap(ssbo.buffer, ssbo.read_buffer);
-          if(Q_UNLIKELY(qEnvironmentVariableIsSet("SCORE_CSF_SEQPROBE")))
-            qDebug("score.gfx: SEQPROBE frame=%lld SWAP %.24s [%s out=%p in=%p]",
-                   (long long)renderer.frame, n.m_descriptor.description.c_str(),
-                   ssbo.name.c_str(), (void*)ssbo.buffer, (void*)ssbo.read_buffer);
         }
         for(auto& aux : gb.auxiliary_ssbos)
         {

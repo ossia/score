@@ -655,22 +655,10 @@ struct FlattenVisitor
 
   void visitMesh(const ossia::mesh_component& mc)
   {
-    // Modern path: mesh_primitive[]. Build a transient ossia::geometry per
-    // primitive so the ScenePreprocessor can treat it uniformly with legacy geometry.
-    static const bool fsprobe = qEnvironmentVariableIsSet("SCORE_FLATPROBE");
-    if(fsprobe)
-      qDebug() << "score.gfx: FLATPROBE visitMesh primitives=" << (int)mc.primitives.size()
-               << "legacy=" << (mc.legacy_geometry.meshes
-                                    ? (int)mc.legacy_geometry.meshes->meshes.size()
-                                    : -1);
     for(const auto& prim : mc.primitives)
     {
       if(prim.vertex_buffers.empty() || prim.vertex_count == 0)
       {
-        if(fsprobe)
-          qDebug() << "score.gfx: FLATPROBE skip prim: vbufs="
-                   << (int)prim.vertex_buffers.size()
-                   << "vcount=" << (qulonglong)prim.vertex_count;
         continue;
       }
       DrawCall dc;
@@ -741,10 +729,6 @@ void flattenScene(const ossia::scene_spec& scene, FlatScene& out, float aspectRa
     FlatScene& o;
     ~FlatProbeSummary()
     {
-      if(qEnvironmentVariableIsSet("SCORE_FLATPROBE"))
-        qDebug() << "score.gfx: FLATPROBE flattenScene done: draws=" << (int)o.draws.size()
-                 << "instances=" << (int)o.instances.size()
-                 << "materials=" << (int)o.materials.size();
     }
   } _flatProbeSummary{out};
   out.clear();

@@ -57,7 +57,7 @@ struct OffscreenFrame
       }
       else
       {
-        static int nested = 0;
+        thread_local int nested = 0;
         if((nested++ % 600) == 0)
           qWarning() << "score.gfx: beginOffscreenFrame entered while a frame is "
                         "already recording; skipping this render (occurrence"
@@ -108,7 +108,7 @@ struct SwapChainFrameGuard
 
   ~SwapChainFrameGuard() noexcept
   {
-    if(rhi)
+    if(rhi && rhi->isRecordingFrame())
       rhi->endFrame(swapChain, QRhi::SkipPresent);
   }
 
@@ -653,20 +653,18 @@ bool remapPipelineVertexInputs(
     QRhi& rhi, VertexFallbackPool& pool, QRhiResourceUpdateBatch& batch,
     FallbackBindingPlan& outPlan);
 
-/**
- * @brief Create a render pipeline following the score conventions for shaders and materials.
- */
-SCORE_PLUGIN_GFX_EXPORT
 //! Metal rejects a vertex buffer layout that no attribute reads; Vulkan and
 //! OpenGL accept it silently.
 SCORE_PLUGIN_GFX_EXPORT void dropTrailingOrphanVertexBindings(
     QRhiVertexInputLayout& layout) noexcept;
 
-SCORE_PLUGIN_GFX_EXPORT void logVertexBindings(
-    const QRhiVertexInputLayout& layout, const char* where, const char* stage) noexcept;
 SCORE_PLUGIN_GFX_EXPORT void warnOrphanVertexBindings(
     const QRhiVertexInputLayout& layout, const char* where) noexcept;
 
+/**
+ * @brief Create a render pipeline following the score conventions for shaders and materials.
+ */
+SCORE_PLUGIN_GFX_EXPORT
 Pipeline buildPipeline(
     const RenderList& renderer, const Mesh& mesh, const QShader& vertexS,
     const QShader& fragmentS, const TextureRenderTarget& rt, QRhiBuffer* processUBO,

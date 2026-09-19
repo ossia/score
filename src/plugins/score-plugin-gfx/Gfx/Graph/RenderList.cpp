@@ -26,6 +26,7 @@
 #endif
 
 #include <iostream>
+#include <exception>
 
 namespace score::gfx
 {
@@ -1029,6 +1030,11 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force) noexcept
       qWarning() << "RenderList::render: aborted this frame: unknown exception"
                  << "(occurrence" << m_renderFailures << ")";
   }
+
+  // Outside the try: every once-per-frame gate in the graph keys on this
+  // counter, so a frame that aborts must still advance it or those nodes
+  // never run again.
+  frame++;
 }
 
 void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
@@ -1059,10 +1065,6 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
   // the end of render()), so it is attributed to THIS RenderList rather than
   // to a process- or thread-global counter.
   const int64_t frameNumber = this->frame;
-  static const bool cbprobe = qEnvironmentVariableIsSet("SCORE_CBPROBE");
-  if(cbprobe)
-    qDebug() << "score.gfx: CBPROBE render cb=" << (void*)&commands
-             << "rhi=" << (void*)state.rhi << "frame=" << (qlonglong)this->frame;
   static const bool no_ts = qEnvironmentVariableIsSet("SCORE_NO_GPU_TIMESTAMPS");
   if(state.caps.timestamps && !no_ts)
   {
@@ -1141,6 +1143,24 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
     qWarning("RenderList::render: resource update batch pool exhausted");
     return;
   }
+
+  // Only on unwinding: the success path hands the batch to endPass() or to
+  // finishFrame() and nulls it, so releasing unconditionally here would
+  // double-release. The pool holds 64 slots and render() swallows, so a
+  // throw that leaked one per frame would black the renderer out in a second.
+  struct ReleaseBatchOnThrow
+  {
+    QRhiResourceUpdateBatch*& batch;
+    int depth = std::uncaught_exceptions();
+    ~ReleaseBatchOnThrow()
+    {
+      if(batch && std::uncaught_exceptions() > depth)
+      {
+        batch->release();
+        batch = nullptr;
+      }
+    }
+  } releaseBatchOnThrow{updateBatch};
 
   if(rt_changed && !rebuilt)
   {
@@ -1512,9 +1532,13 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
               }
               if(compareMixed)
               {
-                qWarning() << "RenderList: nodes drawing into one pass declare "
-                              "different DEPTH_COMPARE; clearing depth for the "
-                              "reverse-Z default";
+                if(!m_warnedMixedDepthCompare)
+                {
+                  m_warnedMixedDepthCompare = true;
+                  qWarning() << "RenderList: nodes drawing into one pass declare "
+                                "different DEPTH_COMPARE; clearing depth for the "
+                                "reverse-Z default";
+                }
                 passCompare = QRhiGraphicsPipeline::Greater;
               }
               commands.beginPass(
@@ -1642,7 +1666,6 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
     renderdoc_api->EndFrameCapture(NULL, NULL);
 #endif
 
-  frame++;
 }
 
 void RenderList::update(QRhiResourceUpdateBatch& res)
