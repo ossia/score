@@ -31,14 +31,16 @@
 // DelayedGlutton edge, so the picture brightens frame by frame.
 //
 // LOOP LENGTH MATTERS, and finding that out is what this file bought. Closing
-// the loop from `step` — two nodes in the cycle — locks OpenGL into a 2-cycle:
-// the two halves alternate between 0.04 and 0.06 forever and the increment is
-// discarded every other frame, while Vulkan climbs normally. Closing it from
-// `tap`, three nodes, passes on both. csf-reaction-diffusion survives on GL for
-// exactly that reason: its loop is hub -> Diffuse -> React -> hub, an odd
-// number of nodes. An even-length feedback loop is a real defect, recorded in
-// ledger 9.106 and not yet fixed; this test uses the odd-length shape so it
-// pins the mechanism rather than the bug.
+// the loop from `step` puts two nodes in the cycle and reverses the render
+// order to step -> hub, so the hub reads, in the same frame, the buffer the
+// step has just written. On OpenGL that read returned the pre-dispatch
+// contents — QRhi inserts no compute-to-compute barrier across
+// beginComputePass boundaries there — and the loop settled into a 2-cycle,
+// the halves alternating 0.04 / 0.06 forever, while Vulkan and Metal climbed.
+// Closing it from `tap`, three nodes, renders hub first and so never reads a
+// same-frame write, which is why csf-reaction-diffusion (hub -> Diffuse ->
+// React -> hub) never showed it. Each CSF pass now ends with an explicit
+// insertComputeBarrier and all three backends return 15 / 56 / 97 here.
 //
 // NEGATIVE CONTROL, run, and it did NOT catch the adoption defect. Keying the "feedback
 // receivers never adopt" guard on `req.gathers` instead of
@@ -60,6 +62,7 @@
 //
 //   DISPLAY=:0 SCORE_TEST_API=opengl ctest -R gfx_csf_feedback_loop
 //   DISPLAY=:0 SCORE_TEST_API=vulkan ctest -R gfx_csf_feedback_loop
+//   SCORE_TEST_API=metal ctest -R gfx_csf_feedback_loop
 // =============================================================================
 #include "GfxIncrementalCommon.hpp"
 
@@ -240,26 +243,17 @@ TEST_CASE("a feedback loop is a pure function of the frame count", "[gfx][l3][cs
 // CASE 3 — an EVEN-length loop advances too.
 //
 // Identical to CASE 1 except the feedback cable leaves from `step` instead of
-// `tap`, so the cycle contains two nodes rather than three. That difference
-// alone used to lock OpenGL into a 2-cycle: the halves alternated between 0.04
-// and 0.06 forever while Vulkan climbed. The simplest feedback graph a user can
-// draw — one generator, one effect, a cable back — is the even case, so it has
-// to work.
+// `tap`, so the cycle contains two nodes rather than three and the hub reads a
+// buffer written earlier in the same frame. That difference alone used to lock
+// OpenGL into a 2-cycle while Vulkan and Metal climbed; the missing
+// compute-to-compute barrier is described in the header. The simplest feedback
+// graph a user can draw — one generator, one effect, a cable back — is the
+// even case, so it has to work.
 // -----------------------------------------------------------------------------
 TEST_CASE("an even-length feedback loop advances", "[gfx][l3][csf][feedback]")
 {
   const auto backend = GENERATE(from_range(platform_backends()));
   CAPTURE(backend_name(backend));
-
-  // OpenGL is skipped HERE ONLY, and the reason is a diagnosed engine defect
-  // rather than a mystery: an even-length loop locks into a 2-cycle there (the
-  // halves alternate 0.04 / 0.06 and every other increment is discarded) while
-  // Vulkan climbs. Ledger 9.106 carries the trace; 9.107 carries three fix
-  // attempts and what each one showed. The case runs on every other backend so
-  // it still guards them, and it turns green on GL the day the defect is fixed.
-  if(backend == score::gfx::OpenGL)
-    SKIP("OpenGL: an even-length feedback loop locks into a 2-cycle "
-         "(ledger 9.106, unfixed)");
 
   const LoopShot s = render_loop(backend, /* closeFromStep */ true);
   if(s.skipped)

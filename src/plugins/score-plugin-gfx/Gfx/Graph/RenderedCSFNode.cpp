@@ -5021,6 +5021,22 @@ void RenderedCSFNode::runInitialPasses(
 
   if(Q_UNLIKELY(qEnvironmentVariableIsSet("SCORE_CSF_TEXREAD")))
     texreadProbe(renderer, res);
+  // SCORE_CSF_SEQPROBE: one line per node per frame, in render order, naming the
+  // node and both halves of every geometry attribute. This is what tells apart a
+  // wrong buffer from a right buffer read too early: an even-length feedback
+  // loop reverses the render order so the owner runs after its adopter.
+  if(Q_UNLIKELY(qEnvironmentVariableIsSet("SCORE_CSF_SEQPROBE")))
+  {
+    QString bufs;
+    for(auto& b : m_geometryBindings)
+      for(auto& ss : b.attribute_ssbos)
+        bufs += QString::asprintf(
+            " [%s fb=%d owned=%d out=%p in=%p]", ss.name.c_str(),
+            (int)b.is_feedback_receiver, (int)ss.owned, (void*)ss.buffer,
+            (void*)ss.read_buffer);
+    qDebug("score.gfx: SEQPROBE frame=%lld ENTER %.24s%s", (long long)renderer.frame,
+           n.m_descriptor.description.c_str(), qPrintable(bufs));
+  }
 
   // Debug marker for capture-tool readability.
   commands.debugMarkBegin(QByteArrayLiteral("CSF"));
@@ -5517,11 +5533,13 @@ void RenderedCSFNode::runInitialPasses(
           pass.processUBO, 0, sizeof(ProcessUBO), &n.standardUBO);
     }
 
-    // Each CSF pass issues exactly one dispatch in its own begin/endComputePass, and
-    // QRhi inserts the compute-to-compute barrier between consecutive passes
-    // touching the same SSBO or image. The native-barrier path stays for the
-    // multi-dispatch scatter loop above, which issues several inside one pass.
-    commands.beginComputePass(res);
+    // Each CSF pass issues exactly one dispatch in its own begin/endComputePass
+    // and closes it with an explicit compute-to-compute barrier, because QRhi
+    // does NOT insert one across pass boundaries on the OpenGL backend: a node
+    // whose SSBO write is read by a later node's dispatch in the same frame got
+    // the pre-dispatch contents there. The pass needs ExternalContent to record
+    // the barrier through beginExternal().
+    commands.beginComputePass(res, QRhiCommandBuffer::BeginPassFlag::ExternalContent);
     res = nullptr;
 
     commands.setComputePipeline(pass.pipeline);
@@ -5559,6 +5577,10 @@ void RenderedCSFNode::runInitialPasses(
       commands.dispatch(dispatchX, dispatchY, dispatchZ);
     }
 
+    commands.beginExternal();
+    insertComputeBarrier(*renderer.state.rhi, commands);
+    commands.endExternal();
+
     commands.endComputePass();
   }
 
@@ -5568,6 +5590,17 @@ void RenderedCSFNode::runInitialPasses(
     if(!res)
       res = renderer.state.rhi->nextResourceUpdateBatch();
     pushOutputGeometry(renderer, *res, edge);
+    if(Q_UNLIKELY(qEnvironmentVariableIsSet("SCORE_CSF_SEQPROBE")))
+    {
+      QString bufs;
+      for(auto& b : m_geometryBindings)
+        for(auto& ss : b.attribute_ssbos)
+          bufs += QString::asprintf(" [%s out=%p in=%p]", ss.name.c_str(),
+                                    (void*)ss.buffer, (void*)ss.read_buffer);
+      qDebug("score.gfx: SEQPROBE frame=%lld PUBLISH %.24s%s",
+             (long long)renderer.frame, n.m_descriptor.description.c_str(),
+             qPrintable(bufs));
+    }
   }
 
   // Ping-pong swap for feedback receivers: after pushing output,
@@ -5597,6 +5630,10 @@ void RenderedCSFNode::runInitialPasses(
           if(geo_input->attributes[ai].access == "read_write" && ssbo.read_buffer
              && ssbo.owned)
             std::swap(ssbo.buffer, ssbo.read_buffer);
+          if(Q_UNLIKELY(qEnvironmentVariableIsSet("SCORE_CSF_SEQPROBE")))
+            qDebug("score.gfx: SEQPROBE frame=%lld SWAP %.24s [%s out=%p in=%p]",
+                   (long long)renderer.frame, n.m_descriptor.description.c_str(),
+                   ssbo.name.c_str(), (void*)ssbo.buffer, (void*)ssbo.read_buffer);
         }
         for(auto& aux : gb.auxiliary_ssbos)
         {
