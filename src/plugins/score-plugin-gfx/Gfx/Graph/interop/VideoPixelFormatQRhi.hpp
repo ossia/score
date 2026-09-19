@@ -6,7 +6,7 @@
  *
  * These are two different axes, and conflating them is a category error:
  *
- *   VideoPixelFormat   what a buffer physically holds (a card's DMA target, a
+ *   Video::VideoPixelFormat   what a buffer physically holds (a card's DMA target, a
  *                      dma-buf, a shared-memory frame)
  *   QRhiTexture::Format what a GPU texture holds
  *
@@ -21,11 +21,11 @@
  * texture, Syphon an IOSurface, dma-buf import an EGLImage -- so they belong
  * here rather than being forced through the buffer vocabulary.
  *
- * Kept separate from VideoPixelFormat.hpp so the vocabulary itself stays free of
+ * Kept separate from Video::VideoPixelFormat.hpp so the vocabulary itself stays free of
  * Qt and RHI dependencies, exactly as the libav bridge is kept separate.
  */
 
-#include <Gfx/Graph/interop/VideoPixelFormat.hpp>
+#include <Video/VideoPixelFormat.hpp>
 
 #include <score_plugin_gfx_export.h>
 
@@ -42,23 +42,23 @@ namespace score::gfx::interop
 /// texture, not a YUV format, because QRhi has none.
 SCORE_PLUGIN_GFX_EXPORT
 QRhiTexture::Format
-planeTextureFormat(VideoPixelFormat f, int plane) noexcept;
+planeTextureFormat(Video::VideoPixelFormat f, int plane) noexcept;
 
 /// Width in texels of plane `plane` for a frame `width` pixels wide. Packed YUV
 /// needs fewer texels than pixels because several components share one texel;
 /// chroma planes are narrowed by the subsampling.
 SCORE_PLUGIN_GFX_EXPORT
-uint32_t planeTextureWidth(VideoPixelFormat f, int plane, uint32_t width) noexcept;
+uint32_t planeTextureWidth(Video::VideoPixelFormat f, int plane, uint32_t width) noexcept;
 
 /// Height in texels of plane `plane` for a frame `height` pixels tall.
 SCORE_PLUGIN_GFX_EXPORT
-uint32_t planeTextureHeight(VideoPixelFormat f, int plane, uint32_t height) noexcept;
+uint32_t planeTextureHeight(Video::VideoPixelFormat f, int plane, uint32_t height) noexcept;
 
 /// The layout a texture of this format holds, for the transports that hand over
 /// a texture rather than a buffer (Spout, Syphon, dma-buf import). Only the
 /// unambiguous RGB formats round-trip: a shader-unpacked YUV texture is RGBA8
 /// like any other, so the direction cannot be inverted for those.
 SCORE_PLUGIN_GFX_EXPORT
-VideoPixelFormat fromTextureFormat(QRhiTexture::Format f) noexcept;
+Video::VideoPixelFormat fromTextureFormat(QRhiTexture::Format f) noexcept;
 
 } // namespace score::gfx::interop

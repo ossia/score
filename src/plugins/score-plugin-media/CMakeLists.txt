@@ -82,6 +82,8 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Mixer/MixerPanel.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/VideoInterface.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Video/VideoPixelFormat.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Video/VideoPixelFormat.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/VideoDecoder.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/CameraInput.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/WebCameraInput.hpp"

@@ -2,7 +2,7 @@
 
 /**
  * @file GStreamerPixelFormat.hpp
- * @brief GStreamer video-format name <-> VideoPixelFormat.
+ * @brief GStreamer video-format name <-> Video::VideoPixelFormat.
  *
  * GStreamer names formats with strings in caps ("NV12", "I420", "v210"), and
  * `Video::gstreamerToLibav()` already maps those to AVPixelFormat for the decode
@@ -20,7 +20,7 @@
  * arrive as YUV420P with red and blue exchanged.
  */
 
-#include <Gfx/Graph/interop/VideoPixelFormat.hpp>
+#include <Video/VideoPixelFormat.hpp>
 
 #include <score_plugin_gfx_export.h>
 
@@ -32,10 +32,10 @@ namespace score::gfx::interop
 /// The layout behind a GStreamer format name, or Unknown when score has no row
 /// for it -- which includes the formats that are streams rather than buffers.
 SCORE_PLUGIN_GFX_EXPORT
-VideoPixelFormat fromGStreamerFormat(std::string_view name) noexcept;
+Video::VideoPixelFormat fromGStreamerFormat(std::string_view name) noexcept;
 
 /// The GStreamer name for a layout, or an empty view when it has none.
 SCORE_PLUGIN_GFX_EXPORT
-std::string_view toGStreamerFormat(VideoPixelFormat f) noexcept;
+std::string_view toGStreamerFormat(Video::VideoPixelFormat f) noexcept;
 
 } // namespace score::gfx::interop

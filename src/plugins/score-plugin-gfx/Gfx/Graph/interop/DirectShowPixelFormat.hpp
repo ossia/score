@@ -2,7 +2,7 @@
 
 /**
  * @file DirectShowPixelFormat.hpp
- * @brief DirectShow / Video-for-Windows fourcc <-> VideoPixelFormat.
+ * @brief DirectShow / Video-for-Windows fourcc <-> Video::VideoPixelFormat.
  *
  * The YUV `MEDIASUBTYPE_*` GUIDs are all of the form
  * `{fourcc, 0x0000, 0x0010, {0x80,0x00,0x00,0xaa,0x00,0x38,0x9b,0x71}}`, so the
@@ -15,7 +15,7 @@
  * everywhere.
  */
 
-#include <Gfx/Graph/interop/VideoPixelFormat.hpp>
+#include <Video/VideoPixelFormat.hpp>
 
 #include <score_plugin_gfx_export.h>
 
@@ -34,7 +34,7 @@ constexpr uint32_t directShowFourcc(char a, char b, char c, char d) noexcept
 /// The layout behind a DirectShow YUV fourcc, or Unknown for compressed,
 /// RGB-GUID and unhandled subtypes.
 SCORE_PLUGIN_GFX_EXPORT
-VideoPixelFormat fromDirectShowFourcc(uint32_t fourcc) noexcept;
+Video::VideoPixelFormat fromDirectShowFourcc(uint32_t fourcc) noexcept;
 
 /// True when the fourcc names a compressed stream rather than a raw layout, so
 /// the caller reaches for a decoder instead of a pixel format.

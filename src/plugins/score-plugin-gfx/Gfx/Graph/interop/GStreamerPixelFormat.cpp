@@ -8,8 +8,8 @@ namespace score::gfx::interop
 {
 namespace
 {
-using Row = std::pair<std::string_view, VideoPixelFormat>;
-using V = VideoPixelFormat;
+using Row = std::pair<std::string_view, Video::VideoPixelFormat>;
+using V = Video::VideoPixelFormat;
 
 // GStreamer names the memory byte order directly, so these read literally: its
 // "RGBA" is R,G,B,A in memory. The V-before-U spellings are distinct layouts, not
@@ -53,14 +53,14 @@ constexpr std::array kRows{
 };
 } // namespace
 
-VideoPixelFormat fromGStreamerFormat(std::string_view name) noexcept
+Video::VideoPixelFormat fromGStreamerFormat(std::string_view name) noexcept
 {
   const auto it = std::find_if(
       kRows.begin(), kRows.end(), [name](const Row& r) { return r.first == name; });
   return it != kRows.end() ? it->second : V::Unknown;
 }
 
-std::string_view toGStreamerFormat(VideoPixelFormat f) noexcept
+std::string_view toGStreamerFormat(Video::VideoPixelFormat f) noexcept
 {
   const auto it = std::find_if(
       kRows.begin(), kRows.end(), [f](const Row& r) { return r.second == f; });

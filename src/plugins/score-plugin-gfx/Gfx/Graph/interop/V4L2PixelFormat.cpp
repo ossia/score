@@ -6,9 +6,9 @@
 namespace score::gfx::interop
 {
 
-VideoPixelFormat fromV4L2PixelFormat(uint32_t fourcc) noexcept
+Video::VideoPixelFormat fromV4L2PixelFormat(uint32_t fourcc) noexcept
 {
-  using V = VideoPixelFormat;
+  using V = Video::VideoPixelFormat;
   switch(fourcc)
   {
     // -- packed YUV 4:2:2 --
@@ -109,9 +109,9 @@ VideoPixelFormat fromV4L2PixelFormat(uint32_t fourcc) noexcept
   }
 }
 
-uint32_t toV4L2PixelFormat(VideoPixelFormat f) noexcept
+uint32_t toV4L2PixelFormat(Video::VideoPixelFormat f) noexcept
 {
-  using V = VideoPixelFormat;
+  using V = Video::VideoPixelFormat;
   switch(f)
   {
     case V::UYVY422:    return V4L2_PIX_FMT_UYVY;

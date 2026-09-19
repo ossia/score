@@ -35,12 +35,12 @@
  * headers into score-plugin-gfx.
  */
 
-#include <score_plugin_gfx_export.h>
+#include <score_plugin_media_export.h>
 
 #include <cstddef>
 #include <cstdint>
 
-namespace score::gfx::interop
+namespace Video
 {
 
 /** Which colour model the samples carry. A boolean "is YUV" cannot express
@@ -290,11 +290,11 @@ constexpr std::size_t alignUp(std::size_t v, std::size_t a) noexcept
 
 /** Descriptive info for `f`. Returns a reference to storage with static
  *  lifetime; the `Unknown` sentinel is returned for unrecognised values. */
-SCORE_PLUGIN_GFX_EXPORT
+SCORE_PLUGIN_MEDIA_EXPORT
 const VideoPixelFormatInfo& formatInfo(VideoPixelFormat f) noexcept;
 
 /** Human-readable short name, e.g. "UYVY422", "V210". */
-SCORE_PLUGIN_GFX_EXPORT
+SCORE_PLUGIN_MEDIA_EXPORT
 const char* formatName(VideoPixelFormat f) noexcept;
 
 /** For a layout that stores its chroma planes V-before-U (YV12, NV21, YV16,
@@ -305,33 +305,33 @@ const char* formatName(VideoPixelFormat f) noexcept;
  *  AVPixelFormat needs both this twin and the knowledge that it must swap. That
  *  is strictly more information than mapping the swapped layout onto its twin
  *  and forgetting, which silently exchanges red and blue. */
-SCORE_PLUGIN_GFX_EXPORT
+SCORE_PLUGIN_MEDIA_EXPORT
 VideoPixelFormat chromaSwappedTwin(VideoPixelFormat f) noexcept;
 
 /** Every described format, in table order. Lets callers -- and the unit test --
  *  enumerate the vocabulary without maintaining a second copy of the list. */
-SCORE_PLUGIN_GFX_EXPORT
+SCORE_PLUGIN_MEDIA_EXPORT
 const VideoPixelFormatInfo* allFormats(std::size_t& count) noexcept;
 
 /** Tight primary-plane row size in bytes, with no padding at all. */
-SCORE_PLUGIN_GFX_EXPORT
+SCORE_PLUGIN_MEDIA_EXPORT
 std::size_t rowBytes(VideoPixelFormat f, uint32_t width) noexcept;
 
 /** `rowBytes` rounded up to `alignment`. This is the form device paths should
  *  use, passing the alignment their allocator actually requires. */
-SCORE_PLUGIN_GFX_EXPORT
+SCORE_PLUGIN_MEDIA_EXPORT
 std::size_t
 alignedRowBytes(VideoPixelFormat f, uint32_t width, std::size_t alignment) noexcept;
 
 /** `alignedRowBytes` using the format's `preferredStrideAlignment`, for callers
  *  that have no constraint of their own. */
-SCORE_PLUGIN_GFX_EXPORT
+SCORE_PLUGIN_MEDIA_EXPORT
 std::size_t defaultStride(VideoPixelFormat f, uint32_t width) noexcept;
 
 /** Total byte size of one frame at `width × height`, summing every plane at the
  *  format's preferred stride. */
-SCORE_PLUGIN_GFX_EXPORT
+SCORE_PLUGIN_MEDIA_EXPORT
 std::size_t
 bytesPerFrame(VideoPixelFormat f, uint32_t width, uint32_t height) noexcept;
 
-} // namespace score::gfx::interop
+} // namespace Video

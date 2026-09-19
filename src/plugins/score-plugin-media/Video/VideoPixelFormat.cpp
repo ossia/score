@@ -1,7 +1,7 @@
 #include "VideoPixelFormat.hpp"
 #include <iterator>
 
-namespace score::gfx::interop
+namespace Video
 {
 
 namespace
@@ -137,4 +137,4 @@ bytesPerFrame(VideoPixelFormat f, uint32_t width, uint32_t height) noexcept
   }
 }
 
-} // namespace score::gfx::interop
+} // namespace Video

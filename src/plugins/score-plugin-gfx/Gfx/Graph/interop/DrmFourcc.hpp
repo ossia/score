@@ -94,7 +94,7 @@ inline uint32_t avToDrmFourcc(AVPixelFormat fmt) noexcept
 /** DRM fourcc -> the buffer layout, for callers that want the layout rather than
  *  an AVPixelFormat -- notably the ones that can import a dma-buf directly and
  *  need the plane geometry rather than a decode target. */
-inline score::gfx::interop::VideoPixelFormat
+inline Video::VideoPixelFormat
 drmFourccToVideoPixelFormat(uint32_t fourcc) noexcept
 {
   return score::gfx::interop::fromDrmFourcc(fourcc);
@@ -103,7 +103,7 @@ drmFourccToVideoPixelFormat(uint32_t fourcc) noexcept
 #if defined(SCORE_GFX_HAS_SPA_RAW)
 /** SPA video format -> the buffer layout. SPA formats are defined in DRM terms,
  *  so this goes through the fourcc rather than maintaining a third table. */
-inline score::gfx::interop::VideoPixelFormat
+inline Video::VideoPixelFormat
 spaToVideoPixelFormat(uint32_t spaFmt) noexcept;
 
 /** SPA video format -> DRM fourcc. 0 if unmapped. */
@@ -129,7 +129,7 @@ inline uint32_t spaToDrmFourcc(uint32_t spaFmt) noexcept
   }
 }
 
-inline score::gfx::interop::VideoPixelFormat
+inline Video::VideoPixelFormat
 spaToVideoPixelFormat(uint32_t spaFmt) noexcept
 {
   return score::gfx::interop::fromDrmFourcc(spaToDrmFourcc(spaFmt));

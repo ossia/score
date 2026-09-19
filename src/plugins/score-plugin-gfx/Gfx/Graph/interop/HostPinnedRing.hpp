@@ -36,7 +36,7 @@
  */
 
 #include <Gfx/Graph/interop/GpuCapabilities.hpp>
-#include <Gfx/Graph/interop/VideoPixelFormat.hpp>
+#include <Video/VideoPixelFormat.hpp>
 
 #include <score_plugin_gfx_export.h>
 
@@ -95,7 +95,7 @@ struct HostPinnedRingConfig
   HostPinnedDirection direction{HostPinnedDirection::CaptureToTexture};
   /** Wire format the ring carries (the shared neutral enum). Only the packed
    *  subset is meaningful here — stride comes from interop::defaultStride. */
-  VideoPixelFormat format{VideoPixelFormat::BGRA8};
+  Video::VideoPixelFormat format{Video::VideoPixelFormat::BGRA8};
   uint32_t width{};
   uint32_t height{};
   uint32_t stride{0}; /**< 0 = compute from format + width with default padding. */

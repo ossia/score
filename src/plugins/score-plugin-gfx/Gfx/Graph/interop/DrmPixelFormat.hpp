@@ -2,7 +2,7 @@
 
 /**
  * @file DrmPixelFormat.hpp
- * @brief DRM fourcc <-> VideoPixelFormat, and the PipeWire SPA formats.
+ * @brief DRM fourcc <-> Video::VideoPixelFormat, and the PipeWire SPA formats.
  *
  * A DRM fourcc names the component order of a little-endian machine word, so
  * DRM_ARGB8888 is B,G,R,A in memory -- the reverse of how the name reads. That
@@ -21,7 +21,7 @@
  * their characters, so this builds and is tested everywhere.
  */
 
-#include <Gfx/Graph/interop/VideoPixelFormat.hpp>
+#include <Video/VideoPixelFormat.hpp>
 
 #include <score_plugin_gfx_export.h>
 
@@ -39,12 +39,12 @@ constexpr uint32_t drmPixelFourcc(char a, char b, char c, char d) noexcept
 
 /// The layout behind a DRM fourcc, or Unknown when score has no row for it.
 SCORE_PLUGIN_GFX_EXPORT
-VideoPixelFormat fromDrmFourcc(uint32_t fourcc) noexcept;
+Video::VideoPixelFormat fromDrmFourcc(uint32_t fourcc) noexcept;
 
 /// The DRM fourcc a layout should be exported as, or 0 when DRM has none.
 /// Not a strict inverse: several fourccs can share a layout, and this returns
 /// the canonical one.
 SCORE_PLUGIN_GFX_EXPORT
-uint32_t toDrmFourcc(VideoPixelFormat f) noexcept;
+uint32_t toDrmFourcc(Video::VideoPixelFormat f) noexcept;
 
 } // namespace score::gfx::interop

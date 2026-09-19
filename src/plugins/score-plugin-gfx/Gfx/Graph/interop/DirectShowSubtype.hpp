@@ -71,7 +71,7 @@ directShowSubtypePixelFormat(const DirectShowGuid& subtype) noexcept
     return AV_PIX_FMT_NONE;
 
   const auto layout = fromDirectShowFourcc(fourcc);
-  if(layout == VideoPixelFormat::Unknown)
+  if(layout == Video::VideoPixelFormat::Unknown)
     return AV_PIX_FMT_NONE;
 
   if(const auto av = toAVPixelFormat(layout); av != AV_PIX_FMT_NONE)

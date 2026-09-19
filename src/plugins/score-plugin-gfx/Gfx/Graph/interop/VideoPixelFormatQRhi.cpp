@@ -3,7 +3,7 @@
 namespace score::gfx::interop
 {
 
-QRhiTexture::Format planeTextureFormat(VideoPixelFormat f, int plane) noexcept
+QRhiTexture::Format planeTextureFormat(Video::VideoPixelFormat f, int plane) noexcept
 {
   const auto& info = formatInfo(f);
   if(!info.valid() || plane < 0 || plane >= info.planeCount)
@@ -26,62 +26,62 @@ QRhiTexture::Format planeTextureFormat(VideoPixelFormat f, int plane) noexcept
   // colour model.
   switch(f)
   {
-    case VideoPixelFormat::BGRA8:
-    case VideoPixelFormat::BGRX8:
+    case Video::VideoPixelFormat::BGRA8:
+    case Video::VideoPixelFormat::BGRX8:
       return QRhiTexture::BGRA8;
 
-    case VideoPixelFormat::RGBA8:
-    case VideoPixelFormat::RGBX8:
-    case VideoPixelFormat::ARGB8:
-    case VideoPixelFormat::ABGR8:
-    case VideoPixelFormat::XRGB8:
-    case VideoPixelFormat::XBGR8:
+    case Video::VideoPixelFormat::RGBA8:
+    case Video::VideoPixelFormat::RGBX8:
+    case Video::VideoPixelFormat::ARGB8:
+    case Video::VideoPixelFormat::ABGR8:
+    case Video::VideoPixelFormat::XRGB8:
+    case Video::VideoPixelFormat::XBGR8:
     // Packed 4:2:2 and 4:4:4 YUV: four bytes per texel, unpacked in a shader.
-    case VideoPixelFormat::UYVY422:
-    case VideoPixelFormat::YUYV422:
-    case VideoPixelFormat::YVYU422:
-    case VideoPixelFormat::VYUY422:
-    case VideoPixelFormat::VUYA:
-    case VideoPixelFormat::VUYX:
-    case VideoPixelFormat::AYUV:
-    case VideoPixelFormat::XYUV:
-    case VideoPixelFormat::YUVA:
-    case VideoPixelFormat::YUVX:
+    case Video::VideoPixelFormat::UYVY422:
+    case Video::VideoPixelFormat::YUYV422:
+    case Video::VideoPixelFormat::YVYU422:
+    case Video::VideoPixelFormat::VYUY422:
+    case Video::VideoPixelFormat::VUYA:
+    case Video::VideoPixelFormat::VUYX:
+    case Video::VideoPixelFormat::AYUV:
+    case Video::VideoPixelFormat::XYUV:
+    case Video::VideoPixelFormat::YUVA:
+    case Video::VideoPixelFormat::YUVX:
       return QRhiTexture::RGBA8;
 
-    case VideoPixelFormat::X2RGB10:
-    case VideoPixelFormat::X2BGR10:
+    case Video::VideoPixelFormat::X2RGB10:
+    case Video::VideoPixelFormat::X2BGR10:
       return QRhiTexture::RGB10A2;
 
-    case VideoPixelFormat::RGBA16:
-    case VideoPixelFormat::Y210:
-    case VideoPixelFormat::Y216:
-    case VideoPixelFormat::V216:
-    case VideoPixelFormat::AYUV64:
+    case Video::VideoPixelFormat::RGBA16:
+    case Video::VideoPixelFormat::Y210:
+    case Video::VideoPixelFormat::Y216:
+    case Video::VideoPixelFormat::V216:
+    case Video::VideoPixelFormat::AYUV64:
       return QRhiTexture::RGBA16F;
-    case VideoPixelFormat::RGBA16F:
+    case Video::VideoPixelFormat::RGBA16F:
       return QRhiTexture::RGBA16F;
-    case VideoPixelFormat::RGBA32F:
+    case Video::VideoPixelFormat::RGBA32F:
       return QRhiTexture::RGBA32F;
 
-    case VideoPixelFormat::Mono8:
-    case VideoPixelFormat::BayerBGGR8:
-    case VideoPixelFormat::BayerGBRG8:
-    case VideoPixelFormat::BayerGRBG8:
-    case VideoPixelFormat::BayerRGGB8:
-    case VideoPixelFormat::BayerRG8:
+    case Video::VideoPixelFormat::Mono8:
+    case Video::VideoPixelFormat::BayerBGGR8:
+    case Video::VideoPixelFormat::BayerGBRG8:
+    case Video::VideoPixelFormat::BayerGRBG8:
+    case Video::VideoPixelFormat::BayerRGGB8:
+    case Video::VideoPixelFormat::BayerRG8:
       return QRhiTexture::R8;
-    case VideoPixelFormat::Mono10:
-    case VideoPixelFormat::Mono12:
-    case VideoPixelFormat::Mono16:
-    case VideoPixelFormat::Mono16BE:
-    case VideoPixelFormat::BayerBGGR16:
-    case VideoPixelFormat::BayerRGGB16:
-    case VideoPixelFormat::BayerRG12:
-    case VideoPixelFormat::BayerBGGR10:
-    case VideoPixelFormat::BayerGBRG10:
-    case VideoPixelFormat::BayerGRBG10:
-    case VideoPixelFormat::BayerRGGB10:
+    case Video::VideoPixelFormat::Mono10:
+    case Video::VideoPixelFormat::Mono12:
+    case Video::VideoPixelFormat::Mono16:
+    case Video::VideoPixelFormat::Mono16BE:
+    case Video::VideoPixelFormat::BayerBGGR16:
+    case Video::VideoPixelFormat::BayerRGGB16:
+    case Video::VideoPixelFormat::BayerRG12:
+    case Video::VideoPixelFormat::BayerBGGR10:
+    case Video::VideoPixelFormat::BayerGBRG10:
+    case Video::VideoPixelFormat::BayerGRBG10:
+    case Video::VideoPixelFormat::BayerRGGB10:
       return QRhiTexture::R16;
 
     default:
@@ -93,7 +93,7 @@ QRhiTexture::Format planeTextureFormat(VideoPixelFormat f, int plane) noexcept
 }
 
 uint32_t
-planeTextureWidth(VideoPixelFormat f, int plane, uint32_t width) noexcept
+planeTextureWidth(Video::VideoPixelFormat f, int plane, uint32_t width) noexcept
 {
   const auto& info = formatInfo(f);
   if(!info.valid() || plane < 0 || plane >= info.planeCount || width == 0)
@@ -112,7 +112,7 @@ planeTextureWidth(VideoPixelFormat f, int plane, uint32_t width) noexcept
 }
 
 uint32_t
-planeTextureHeight(VideoPixelFormat f, int plane, uint32_t height) noexcept
+planeTextureHeight(Video::VideoPixelFormat f, int plane, uint32_t height) noexcept
 {
   const auto& info = formatInfo(f);
   if(!info.valid() || plane < 0 || plane >= info.planeCount || height == 0)
@@ -122,28 +122,28 @@ planeTextureHeight(VideoPixelFormat f, int plane, uint32_t height) noexcept
   return height;
 }
 
-VideoPixelFormat fromTextureFormat(QRhiTexture::Format f) noexcept
+Video::VideoPixelFormat fromTextureFormat(QRhiTexture::Format f) noexcept
 {
   // Only the unambiguous RGB formats. A shader-unpacked YUV texture is RGBA8
   // like any other, so the direction genuinely cannot be inverted for those.
   switch(f)
   {
     case QRhiTexture::BGRA8:
-      return VideoPixelFormat::BGRA8;
+      return Video::VideoPixelFormat::BGRA8;
     case QRhiTexture::RGBA8:
-      return VideoPixelFormat::RGBA8;
+      return Video::VideoPixelFormat::RGBA8;
     case QRhiTexture::RGBA16F:
-      return VideoPixelFormat::RGBA16F;
+      return Video::VideoPixelFormat::RGBA16F;
     case QRhiTexture::RGBA32F:
-      return VideoPixelFormat::RGBA32F;
+      return Video::VideoPixelFormat::RGBA32F;
     case QRhiTexture::RGB10A2:
-      return VideoPixelFormat::X2RGB10;
+      return Video::VideoPixelFormat::X2RGB10;
     case QRhiTexture::R8:
-      return VideoPixelFormat::Mono8;
+      return Video::VideoPixelFormat::Mono8;
     case QRhiTexture::R16:
-      return VideoPixelFormat::Mono16;
+      return Video::VideoPixelFormat::Mono16;
     default:
-      return VideoPixelFormat::Unknown;
+      return Video::VideoPixelFormat::Unknown;
   }
 }
 

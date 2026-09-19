@@ -18,7 +18,7 @@
 #include <Gfx/Graph/interop/ImportedGpuBufferRing.hpp>
 #include <Gfx/Graph/interop/InteropFence.hpp>
 #include <Gfx/Graph/interop/RdmaRingDepth.hpp>
-#include <Gfx/Graph/interop/VideoPixelFormat.hpp>
+#include <Video/VideoPixelFormat.hpp>
 
 #include <QGuiApplication>
 
@@ -274,7 +274,7 @@ TEST_CASE("with no capability probe the host ring lands on CPU staging",
   HostPinnedRing ring;
   REQUIRE(ring.create({.rhi = rhi.get(),
                        .caps = nullptr,
-                       .format = VideoPixelFormat::BGRA8,
+                       .format = Video::VideoPixelFormat::BGRA8,
                        .width = w,
                        .height = h,
                        .slotCount = 3,
@@ -286,7 +286,7 @@ TEST_CASE("with no capability probe the host ring lands on CPU staging",
   REQUIRE(ring.valid());
   REQUIRE(ring.slotCount() == 3);
 
-  const auto stride = defaultStride(VideoPixelFormat::BGRA8, w);
+  const auto stride = defaultStride(Video::VideoPixelFormat::BGRA8, w);
   for(std::size_t i = 0; i < ring.slotCount(); ++i)
   {
     const auto& s = ring.slot(i);
@@ -324,11 +324,11 @@ TEST_CASE("an explicit stride overrides the format's own padding",
 
   constexpr uint32_t w = 64, h = 16;
   constexpr uint32_t oversized = 4096;
-  REQUIRE(oversized > defaultStride(VideoPixelFormat::BGRA8, w));
+  REQUIRE(oversized > defaultStride(Video::VideoPixelFormat::BGRA8, w));
 
   HostPinnedRing ring;
   REQUIRE(ring.create({.rhi = rhi.get(),
-                       .format = VideoPixelFormat::BGRA8,
+                       .format = Video::VideoPixelFormat::BGRA8,
                        .width = w,
                        .height = h,
                        .stride = oversized,
@@ -346,7 +346,7 @@ TEST_CASE("the CPU rung needs a batch to upload into", "[gfx][interop][hostring]
   constexpr uint32_t w = 32, h = 16;
   HostPinnedRing ring;
   REQUIRE(ring.create({.rhi = rhi.get(),
-                       .format = VideoPixelFormat::BGRA8,
+                       .format = Video::VideoPixelFormat::BGRA8,
                        .width = w,
                        .height = h,
                        .slotCount = 2}));
@@ -382,7 +382,7 @@ TEST_CASE("a readback in flight is not re-issued onto the same slot",
   HostPinnedRing ring;
   REQUIRE(ring.create({.rhi = rhi.get(),
                        .direction = HostPinnedDirection::TextureToBuffer,
-                       .format = VideoPixelFormat::BGRA8,
+                       .format = Video::VideoPixelFormat::BGRA8,
                        .width = w,
                        .height = h,
                        .slotCount = 2}));
@@ -451,7 +451,7 @@ TEST_CASE("move-assignment hands the ring over and keeps none of it",
     HostPinnedRing r;
     REQUIRE(r.create({.rhi = rhi.get(),
                       .caps = nullptr,
-                      .format = VideoPixelFormat::BGRA8,
+                      .format = Video::VideoPixelFormat::BGRA8,
                       .width = w,
                       .height = h,
                       .slotCount = 2,

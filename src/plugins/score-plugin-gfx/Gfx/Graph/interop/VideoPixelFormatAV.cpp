@@ -3,9 +3,9 @@
 namespace score::gfx::interop
 {
 
-AVPixelFormat toAVPixelFormat(VideoPixelFormat f) noexcept
+AVPixelFormat toAVPixelFormat(Video::VideoPixelFormat f) noexcept
 {
-  using V = VideoPixelFormat;
+  using V = Video::VideoPixelFormat;
   switch(f)
   {
     // -- packed 8-bit RGB --
@@ -148,9 +148,9 @@ AVPixelFormat toAVPixelFormat(VideoPixelFormat f) noexcept
   return AV_PIX_FMT_NONE;
 }
 
-VideoPixelFormat fromAVPixelFormat(AVPixelFormat f) noexcept
+Video::VideoPixelFormat fromAVPixelFormat(AVPixelFormat f) noexcept
 {
-  using V = VideoPixelFormat;
+  using V = Video::VideoPixelFormat;
   switch(f)
   {
     case AV_PIX_FMT_BGRA:        return V::BGRA8;
