@@ -330,6 +330,14 @@ struct geometry_input
     std::string rate;     // "vertex" (default) or "instance"
     bool required{true};  // false = optional, zero fallback if missing
 
+    // ACCESS "gather": read_write, and the shader reads indices other than its
+    // own invocation's. Those reads must not observe this dispatch's writes, so
+    // _in and _out become two buffers and the engine keeps them apart -- a
+    // ping-pong swap for a feedback receiver, a per-frame snapshot otherwise.
+    // Plain read_write reads only its own index, where aliasing _in onto _out
+    // is well defined and costs nothing.
+    bool gathers{false};
+
     // If set, this attribute is forwarded from another geometry's buffer
     // rather than being allocated/computed by this shader.
     std::optional<copy_from> forward;
