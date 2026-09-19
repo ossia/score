@@ -890,6 +890,27 @@ if(SCORE_TESTING)
     ENVIRONMENT "SCORE_AUDIO_BACKEND=dummy;ASAN_OPTIONS=detect_leaks=0:halt_on_error=0"
     LABELS "gui")
 
+  # score_tc, the coordinate seam every decoder samples through. Its identity
+  # case is what stands in for a golden render of all 85 sampling sites: a
+  # progressive frame must come out of the seam unmoved.
+  add_executable(DeinterlaceShaderTest tests/DeinterlaceShaderTest.cpp)
+  target_link_libraries(DeinterlaceShaderTest PRIVATE
+    score_plugin_gfx score_plugin_media ${QT_PREFIX}::Gui)
+
+  # Pure: when the GPU decoder has to be rebuilt. No GPU, no video.
+  add_executable(VideoRebuildTest tests/VideoRebuildTest.cpp)
+  target_link_libraries(VideoRebuildTest PRIVATE
+    score_plugin_gfx score_plugin_media ${QT_PREFIX}::Gui)
+  add_test(NAME VideoRebuildTest COMMAND VideoRebuildTest)
+  set_tests_properties(VideoRebuildTest PROPERTIES
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+
+  add_test(NAME DeinterlaceShaderTest COMMAND DeinterlaceShaderTest)
+  set_tests_properties(DeinterlaceShaderTest PROPERTIES
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}"
+    ENVIRONMENT "SCORE_AUDIO_BACKEND=dummy;ASAN_OPTIONS=detect_leaks=0:halt_on_error=0"
+    LABELS "gui")
+
   # The maths, the struct layout and the cross-thread slot: no GPU, no camera,
   # no display.
   score_add_test(CaptureAdjustTest
