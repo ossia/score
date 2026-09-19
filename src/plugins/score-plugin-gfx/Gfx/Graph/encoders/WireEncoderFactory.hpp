@@ -33,6 +33,9 @@
 #include <Gfx/Graph/encoders/GPUVideoEncoder.hpp>
 #include <Gfx/Graph/encoders/NV12.hpp>
 #include <Gfx/Graph/encoders/P010.hpp>
+#include <Gfx/Graph/encoders/P216.hpp>
+#include <Gfx/Graph/encoders/P216Packed.hpp>
+#include <Gfx/Graph/encoders/YUV420Packed.hpp>
 #include <Gfx/Graph/encoders/PackedRGB.hpp>
 #include <Gfx/Graph/encoders/UYVY.hpp>
 #include <Gfx/Graph/encoders/UYVYCompute.hpp>
@@ -48,12 +51,52 @@
 namespace score::gfx
 {
 
-/// Render (fragment-shader) encoder producing `fmt`'s exact on-wire bytes.
-/// Returns nullptr when no GPU encoder exists for `fmt`.
+/**
+ * @brief Render (fragment-shader) encoder producing `fmt`'s exact on-wire bytes.
+ *
+ * Returns nullptr when no GPU encoder exists for `fmt`.
+ *
+ * @param contiguousFramestore ask for the variant whose SINGLE readback is the
+ * whole framestore, planes adjacent and in order, rather than one readback per
+ * plane. A consumer that hands a device one pointer -- NDI's p_data, a card's
+ * frame buffer -- would otherwise have to concatenate the planes itself, which
+ * is 8.3 MB of memcpy per frame at 1080p P216. Only some formats have such a
+ * variant; the rest ignore the flag and return their usual encoder.
+ */
 inline std::unique_ptr<GPUVideoEncoder>
-makeWireEncoder(score::gfx::interop::VideoPixelFormat fmt)
+makeWireEncoder(
+    score::gfx::interop::VideoPixelFormat fmt, bool contiguousFramestore = false)
 {
   using F = score::gfx::interop::VideoPixelFormat;
+
+  if(contiguousFramestore)
+  {
+    switch(fmt)
+    {
+      case F::P216:
+        return std::make_unique<P216PackedEncoder>();
+
+      // 4:2:0, where the plane-based route costs two or three GPU->CPU round
+      // trips plus a concatenation. See YUV420Packed.hpp.
+      case F::NV12:
+        return Yuv420PackedEncoder::nv12();
+      case F::YUV420P:
+        return Yuv420PackedEncoder::i420();
+
+      // YVU420P (YV12) has no plane-based encoder, and does not need one: with
+      // planes, which of Cb/Cr comes first is the consumer's business -- it is
+      // handed both and indexes them in whatever order it wants, which is what
+      // the NDI output used to do. Plane ORDER only becomes the encoder's
+      // business once the planes are concatenated into one framestore, so the
+      // swapped layout exists here and nowhere else.
+      case F::YVU420P:
+        return Yuv420PackedEncoder::yv12();
+
+      default:
+        break;  // no packed variant; fall through to the plane-based one
+    }
+  }
+
   switch(fmt)
   {
     // -- packed 8-bit YUV 4:2:2 --
@@ -109,6 +152,8 @@ makeWireEncoder(score::gfx::interop::VideoPixelFormat fmt)
       return std::make_unique<NV12Encoder>();
     case F::P010:
       return std::make_unique<P010Encoder>();
+    case F::P216:
+      return std::make_unique<P216Encoder>();
 
     default:
       return nullptr;
