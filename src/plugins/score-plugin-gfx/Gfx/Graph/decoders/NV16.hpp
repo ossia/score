@@ -38,9 +38,9 @@ vec4 processTexture(vec4 tex) {
 
 void main()
 {
-  float y = texture(y_tex, v_texcoord).r;
-  float u = texture(uv_tex, v_texcoord).%3;
-  float v = texture(uv_tex, v_texcoord).%4;
+  float y = texture(y_tex, score_tc(v_texcoord)).r;
+  float u = texture(uv_tex, score_tc(v_texcoord)).%3;
+  float v = texture(uv_tex, score_tc(v_texcoord)).%4;
 
   fragColor = processTexture(vec4(y, u, v, 1.));
 })_";

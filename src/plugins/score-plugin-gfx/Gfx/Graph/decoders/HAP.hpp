@@ -71,7 +71,7 @@ vec4 processTexture(vec4 tex) {
 
 void main ()
 {
-  fragColor = processTexture(texture(y_tex, v_texcoord));
+  fragColor = processTexture(texture(y_tex, score_tc(v_texcoord)));
 })_");
 
   static inline const QString ycocg_filter
@@ -122,8 +122,8 @@ vec4 processTexture(vec4 tex) {
 
 void main ()
 {
-  vec4 ycocg = texture(y_tex, v_texcoord);
-  vec4 alpha = texture(alpha_tex, v_texcoord);
+  vec4 ycocg = texture(y_tex, score_tc(v_texcoord));
+  vec4 alpha = texture(alpha_tex, score_tc(v_texcoord));
   fragColor = processTexture(processYCoCg(ycocg, alpha));
 })_");
 

@@ -26,7 +26,7 @@ struct PackedDecoder : GPUVideoDecoder
 
     void main ()
     {
-      fragColor = processTexture(texture(y_tex, v_texcoord));
+      fragColor = processTexture(texture(y_tex, score_tc(v_texcoord)));
     })_";
 
   PackedDecoder(
@@ -213,7 +213,7 @@ struct PackedRectDecoder : GPUVideoDecoder
 
     void main ()
     {
-      fragColor = processTexture(texture(y_tex, v_texcoord));
+      fragColor = processTexture(texture(y_tex, score_tc(v_texcoord)));
     })_";
 
   static constexpr const char* vertex = R"_(#version 450

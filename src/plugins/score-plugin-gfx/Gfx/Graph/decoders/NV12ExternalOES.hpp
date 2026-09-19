@@ -77,7 +77,7 @@ struct NV12ExternalOESDecoder : GPUVideoDecoder
 
     void main ()
     {
-      fragColor = processTexture(texture(tex, v_texcoord));
+      fragColor = processTexture(texture(tex, score_tc(v_texcoord)));
     })_";
 
   explicit NV12ExternalOESDecoder(Video::ImageFormat& d, QString f = "")

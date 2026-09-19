@@ -42,9 +42,9 @@ vec4 processTexture(vec4 tex) {
 void main()
 {
   const float s = )_" SCORE_GFX_MSB_ALIGNED_SCALE R"_(;
-  float y = s * texture(y_tex, v_texcoord).r;
-  float u = s * texture(uv_tex, v_texcoord).r;
-  float v = s * texture(uv_tex, v_texcoord).g;
+  float y = s * texture(y_tex, score_tc(v_texcoord)).r;
+  float u = s * texture(uv_tex, score_tc(v_texcoord)).r;
+  float v = s * texture(uv_tex, score_tc(v_texcoord)).g;
 
   fragColor = processTexture(vec4(y, u, v, 1.));
 })_";

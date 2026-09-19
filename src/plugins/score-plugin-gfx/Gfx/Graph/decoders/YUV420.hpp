@@ -38,7 +38,7 @@ vec4 processTexture(vec4 tex) {
 
 void main ()
 {
-  float y = texture(y_tex, v_texcoord).r;
+  float y = texture(y_tex, score_tc(v_texcoord)).r;
   float u = texture(%3_tex, v_texcoord).r;
   float v = texture(%4_tex, v_texcoord).r;
 

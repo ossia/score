@@ -44,7 +44,7 @@ void main() {
   float evenY = texture(u_tex, v_texcoord + dxInput).x;
   float y = mix(evenY, oddY, oddCol);
 
-  vec2 uv = texture(u_tex, v_texcoord).%3;
+  vec2 uv = texture(u_tex, score_tc(v_texcoord)).%3;
 
   fragColor = processTexture(vec4(y, uv.x, uv.y, 1.));
 }
@@ -130,14 +130,20 @@ void main() {
    float colIndex = floor(v_texcoord.x * mat.texSz.x);
    float oddCol = mod(colIndex, 2.0);
 
+   // The sampling seam is applied ONCE, to the base coordinate, and the taps
+   // are offset from there. score_tc only ever moves y and these offsets are
+   // horizontal, so the order does not matter -- but applying it per tap would
+   // run the parity arithmetic three times for one answer.
+   vec2 tc = score_tc(v_texcoord);
+
    // Offset by half an input pixel to sample the correct texel center
    vec2 dxInput = 0.5 * vec2(1.0 / mat.texSz.x, 0.0);
 
-   float oddY = texture(u_tex, v_texcoord - dxInput).w;
-   float evenY = texture(u_tex, v_texcoord + dxInput).y;
+   float oddY = texture(u_tex, tc - dxInput).w;
+   float evenY = texture(u_tex, tc + dxInput).y;
    float y = mix(evenY, oddY, oddCol);
 
-   vec2 uv = texture(u_tex, v_texcoord).%3;
+   vec2 uv = texture(u_tex, tc).%3;
 
   fragColor = processTexture(vec4(y, uv.x, uv.y, 1.));
 }
@@ -180,11 +186,16 @@ void main() {
 
     auto pixels = frame.data[0];
     auto stride = frame.linesize[0];
-    // Texture is RGBA8 at {w/2, h}: 4 bytes per texel = one UYVY macropixel
-    QRhiTextureUploadEntry entry{
-        0, 0, createTextureUpload(pixels, frame.width / 2, frame.height, 4, stride)};
+    // Texture is RGBA8 at {w/2, h}: 4 bytes per texel = one UYVY macropixel.
+    // A fielded source (NDI's "fastest" hands over UYVY fields) fills half of
+    // it per frame, top half for field 0, bottom half for field 1.
+    const int texW = decoder.width / 2;
+    const auto [rows, offset] = planeRows(decoder, frame, decoder.height);
+    auto sub = createTextureUpload(pixels, texW, rows, 4, stride);
+    sub.setSourceSize({texW, rows});
+    sub.setDestinationTopLeft({0, offset});
 
-    QRhiTextureUploadDescription desc{entry};
+    QRhiTextureUploadDescription desc{QRhiTextureUploadEntry{0, 0, sub}};
     res.uploadTexture(y_tex, desc);
   }
 };

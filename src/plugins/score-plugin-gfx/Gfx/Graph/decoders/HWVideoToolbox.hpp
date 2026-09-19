@@ -58,7 +58,7 @@ vec4 processTexture(vec4 tex) {
 
 void main()
 {
-  vec4 tex = texture(ayuv_tex, v_texcoord);
+  vec4 tex = texture(ayuv_tex, score_tc(v_texcoord));
   float y = tex.g;   // Y is in green channel
   float u = tex.b;   // Cb is in blue channel
   float v = tex.a;   // Cr is in alpha channel

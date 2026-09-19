@@ -333,7 +333,7 @@ struct DRMPrimeDecoder : GPUVideoDecoder
     }
 
     void main () {
-      fragColor = processTexture(texture(y_tex, v_texcoord));
+      fragColor = processTexture(texture(y_tex, score_tc(v_texcoord)));
     })_";
 
   /** Number of planes for the current family. */

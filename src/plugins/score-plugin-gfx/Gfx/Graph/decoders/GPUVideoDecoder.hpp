@@ -18,7 +18,56 @@ extern "C" {
 "layout(std140, binding = 2) uniform material_t {\n" \
 "  vec2 scale;\n" \
 "  vec2 texSz;\n" \
-"} mat;\n"
+"  vec4 field;\n" \
+"} mat;\n" \
+SCORE_GFX_VIDEO_SAMPLE_TRANSFORM
+
+/**
+ * The seam every decoder samples through.
+ *
+ * Colour conversion is generic because every decoder calls convert_to_rgb() at
+ * one point and the matrix is injected beside it. Sampling gets the same
+ * treatment here: all 85 sampling calls across the decoders read
+ * texture(<plane>, score_tc(v_texcoord)), so a per-sample coordinate transform
+ * has one place to live and no decoder has to know about it.
+ *
+ * Today that transform is deinterlacing. A source that delivers FIELDS rather
+ * than frames -- NDI does when asked for 16-bit, and capture cards do for
+ * interlaced standards -- uploads each field into half of one full-height
+ * texture: field 0 (the even lines) into the top half, field 1 (the odd lines)
+ * into the bottom half. Each upload is one contiguous region, so nothing is
+ * copied to weave them; the weave happens here, per sample.
+ *
+ * mat.field = (parity of the newest field, mode, 0, 0), mode being
+ *   0 progressive -- identity, and the only branch a normal video ever takes
+ *   1 weave       -- each output line reads the field that owns its parity
+ *   2 bob         -- only the newest field, interpolated to full height
+ *
+ * The bob case subtracts the parity from the frame line before halving it,
+ * which is the half-line offset: field 1's lines sit half a line below field
+ * 0's, and without it the picture jitters vertically at the field rate. That
+ * is the classic bug in naive bob implementations and it is one term here.
+ */
+#define SCORE_GFX_VIDEO_SAMPLE_TRANSFORM \
+"vec2 score_tc(vec2 tc) {\n" \
+"  float mode = mat.field.y;\n" \
+"  if(mode < 0.5) return tc;\n" \
+"\n" \
+"  float lines = max(mat.texSz.y, 2.0);\n" \
+"  float halfLines = lines * 0.5;\n" \
+"  float parity = mat.field.x;\n" \
+"\n" \
+"  if(mode < 1.5) {\n" \
+"    float y = floor(tc.y * lines);\n" \
+"    float lineParity = mod(y, 2.0);\n" \
+"    float row = floor(y * 0.5) + 0.5;\n" \
+"    return vec2(tc.x, (row / halfLines) * 0.5 + lineParity * 0.5);\n" \
+"  }\n" \
+"\n" \
+"  float k = (tc.y * lines - parity) * 0.5;\n" \
+"  k = clamp(k, 0.0, halfLines);\n" \
+"  return vec2(tc.x, (k / halfLines) * 0.5 + parity * 0.5);\n" \
+"}\n"
 
 namespace score::gfx
 {
@@ -121,6 +170,48 @@ public:
    */
   static QRhiTextureSubresourceUploadDescription
   createTextureUpload(uint8_t* pixels, int w, int h, int bytesPerPixel, int stride);
+
+  /**
+   * @brief Whether this frame carries the EVEN lines of its picture.
+   *
+   * NDI calls that field 0 and marks it top-field-first; the odd lines are
+   * field 1. Only meaningful when the format says Interlacing::Fields.
+   */
+  static bool isTopField(const AVFrame& frame) noexcept
+  {
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(58, 0, 0)
+    return (frame.flags & AV_FRAME_FLAG_TOP_FIELD_FIRST) != 0;
+#else
+    return frame.top_field_first != 0;
+#endif
+  }
+
+  /**
+   * @brief The upload geometry for one plane of a possibly-fielded frame.
+   *
+   * A fielded source hands over half-height frames for a full-height picture.
+   * Each field is uploaded into its own half of the texture -- field 0 on top,
+   * field 1 below -- so the two halves together are one stacked texture that
+   * score_tc samples by parity. Each upload stays one contiguous region, which
+   * is what keeps the path free of any CPU weave.
+   *
+   * @param textureRows the plane's rows in the TEXTURE, i.e. for the picture.
+   * @return {rows this frame carries, row offset to upload them at}.
+   */
+  struct PlaneRows
+  {
+    int rows{};
+    int offset{};
+  };
+  static PlaneRows planeRows(
+      const Video::ImageFormat& fmt, const AVFrame& frame, int textureRows) noexcept
+  {
+    if(fmt.interlacing != Video::Interlacing::Fields)
+      return {textureRows, 0};
+
+    const int half = textureRows / 2;
+    return {half, isTopField(frame) ? 0 : half};
+  }
 
   static QString vertexShader(bool invertY = false) noexcept;
 

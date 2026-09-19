@@ -306,10 +306,10 @@ vec4 processTexture(vec4 tex) {
 void main()
 {
   float sc = float(%3);
-  float y = sc * texture(y_tex, v_texcoord).r;
-  float u = sc * texture(u_tex, v_texcoord).r;
-  float v = sc * texture(v_tex, v_texcoord).r;
-  float a = sc * texture(a_tex, v_texcoord).r;
+  float y = sc * texture(y_tex, score_tc(v_texcoord)).r;
+  float u = sc * texture(u_tex, score_tc(v_texcoord)).r;
+  float v = sc * texture(v_tex, score_tc(v_texcoord)).r;
+  float a = sc * texture(a_tex, score_tc(v_texcoord)).r;
 
   vec4 rgb = processTexture(vec4(y,u,v, 1.));
   fragColor = vec4(rgb.rgb, a);
@@ -373,9 +373,9 @@ vec4 processTexture(vec4 tex) {
 void main()
 {
   float sc = float(%3);
-  float y = sc * texture(y_tex, v_texcoord).r;
-  float u = sc * texture(u_tex, v_texcoord).r;
-  float v = sc * texture(v_tex, v_texcoord).r;
+  float y = sc * texture(y_tex, score_tc(v_texcoord)).r;
+  float u = sc * texture(u_tex, score_tc(v_texcoord)).r;
+  float v = sc * texture(v_tex, score_tc(v_texcoord)).r;
 
   fragColor = processTexture(vec4(y,u,v, 1.));
 }
