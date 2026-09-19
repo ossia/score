@@ -381,3 +381,87 @@ TEST_CASE(
   const int refDrawn = red_pixels(ref.late) + blue_pixels(ref.late);
   CHECK(std::abs(drawn - refDrawn) * 8 < refDrawn);
 }
+
+// -----------------------------------------------------------------------------
+// CASE 4 — a gather's `_in` spans the WHOLE attribute, not just its head.
+//
+// This is the case that ledger 9.97 needed and did not have. The snapshot a
+// gather reads through was allocated once, behind a `!read_buffer` guard, from
+// whatever the buffer measured at first bind — one element, before the vertex
+// count had resolved. Eight bytes against a 131072-byte buffer. Every index
+// past the first read off the end, returned zero under Vulkan's robust access,
+// and csf-reaction-diffusion's five-point stencil collapsed its field on the
+// first dispatch. The score sat frozen through ten corpus sweeps.
+//
+// The fixture makes that reach observable: `tint` is a gather and each
+// invocation reads the MIRRORED index, N-1-idx. The seed puts red in the first
+// triangle only, so after one step the red must appear in the LAST triangle.
+// It can only get there if `_in` spans the whole allocation.
+//
+// NEGATIVE CONTROL, run: restore the one-shot allocation in
+// RenderedCSFNode::buildComputeSrbBindings (drop the size comparison from the
+// guard, so a snapshot is created once and never resized). The red disappears
+// entirely and this case fails, while CASES 1-3 stay green — which is exactly
+// how the defect escaped for so long.
+// -----------------------------------------------------------------------------
+TEST_CASE(
+    "a gather reads the far end of its attribute, not a truncated head",
+    "[gfx][l3][csf][geometry][readwrite][gather]")
+{
+  const auto backend = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(backend));
+
+  StateShot s;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    GfxPipeline p;
+    const int prod = p.addCsf(corpus("syn-geo-gather-mirror.cs"));
+    const int raster
+        = p.addRaster(corpus("raw-raster-basic.vs"), corpus("raw-raster-basic.fs"));
+    const int sink = p.addSink({kSinkPx, kSinkPx});
+    if(prod < 0 || raster < 0)
+    {
+      s.error = p.error();
+      return;
+    }
+    p.wire(p.geometryOut(prod, 0), p.geometryIn(raster, 0));
+    p.wire(p.imageOut(raster, 0), p.sinkInput(sink));
+    if(!p.create(backend))
+    {
+      s.skipped = p.skipped();
+      s.skip_reason = p.skipReason();
+      s.backend = p.backend();
+      s.error = p.error();
+      return;
+    }
+    s.backend = p.backend();
+    p.render(6);
+    s.early = p.readback(sink);
+    p.render(6);
+    s.late = p.readback(sink);
+    if(s.error.empty())
+      s.error = p.error();
+  });
+
+  if(s.skipped)
+    SKIP(s.backend + ": " + s.skip_reason);
+  if(const char* why = compute_shader_skip_reason(backend))
+    SKIP(std::string{backend_name(backend)} + ": " + why);
+  CAPTURE(s.backend);
+  REQUIRE(s.error.empty());
+  REQUIRE(s.early.valid());
+  REQUIRE(s.late.valid());
+
+  const int drawn = red_pixels(s.late) + blue_pixels(s.late);
+  const int red = red_pixels(s.late);
+  CAPTURE(drawn, red, red_pixels(s.early));
+
+  // The grid is drawn, so "no red" cannot pass vacuously.
+  REQUIRE(drawn > 200);
+
+  // The mirrored read reached the far end and carried the marker. A truncated
+  // `_in` returns zero everywhere past its head and the marker never appears.
+  REQUIRE(red > 0);
+
+  // And it is still one marker, not a smear.
+  REQUIRE(red * 8 < drawn);
+}
