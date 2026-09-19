@@ -97,4 +97,12 @@ QShaderVersion shaderVersionForAPI(score::gfx::GraphicsApi) noexcept;
  */
 SCORE_PLUGIN_GFX_EXPORT
 int samplesForCurrentApplication(score::gfx::GraphicsApi) noexcept;
+
+//! The configured graphics API, or a platform default with no application.
+SCORE_PLUGIN_GFX_EXPORT
+score::gfx::GraphicsApi graphicsApiForCurrentApplication() noexcept;
+
+//! The configured render rate in Hz, or 60 with no application.
+SCORE_PLUGIN_GFX_EXPORT
+double renderRateForCurrentApplication() noexcept;
 }
