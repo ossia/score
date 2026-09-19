@@ -12,6 +12,7 @@
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 #include <score/selection/Selection.hpp>
+#include <score/tools/Debug.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/widgets/ApplicationStyle.hpp>
 #include <score/widgets/Pixmap.hpp>
@@ -74,23 +75,13 @@ int qInitResources_score();
 int qInitResources_qtconf();
 #endif
 
-#if !defined(SCORE_DEBUG) && !defined(__EMSCRIPTEN__)
+// Always built; only shown by itself at startup outside debug builds.
+#if !defined(SCORE_DEBUG)
 #define SCORE_SPLASH_SCREEN 1
 #endif
 #include <phantom/phantomstyle.h>
 
-#if defined(SCORE_SPLASH_SCREEN)
 #include "StartScreen.hpp"
-#else
-namespace score
-{
-class StartScreen : public QWidget
-{
-public:
-  void dismiss() { }
-};
-}
-#endif
 
 static void loadResources()
 {
@@ -296,8 +287,8 @@ Application::~Application()
   // out as garbage and faults there, while glibc leaves it intact and only ASan
   // flags it.
   delete m_presenter;
+  // The start screen is a child of the view, which destroys it.
   delete m_view;
-  delete m_startScreen;
 
   score::DocumentBackups::clear();
   QCoreApplication::processEvents();
@@ -466,57 +457,8 @@ void Application::init()
   if(appSettings.gui && !appSettings.forceRestore && appSettings.loadList.empty()
      && !appSettings.hasScript)
   {
-    m_startScreen = new score::StartScreen{this->context().docManager.recentFiles()};
+    createStartScreen();
     m_startScreen->show();
-
-    auto& ctx = m_presenter->applicationContext();
-    connect(m_startScreen, &score::StartScreen::openNewDocument, this, [&]() {
-      m_startScreen->close();
-      openNewDocument();
-    });
-    // The start screen steps aside while a document is being chosen or created;
-    // if nothing comes out of it (cancelled dialog, missing file...) it comes back
-    // instead of leaving an empty window behind.
-    auto settle = [this](score::Document* doc) {
-      if(doc)
-        m_startScreen->close();
-      else
-        m_startScreen->reopen();
-    };
-    connect(
-        m_startScreen, &score::StartScreen::openFile, this,
-        [this, &ctx, settle](const QString& file) {
-      m_startScreen->hide();
-      settle(m_presenter->documentManager().loadFile(ctx, file));
-    });
-    connect(
-        m_startScreen, &score::StartScreen::openFileDialog, this, [this, &ctx, settle] {
-      m_startScreen->hide();
-      settle(m_presenter->documentManager().loadFile(ctx));
-    });
-    connect(
-        m_startScreen, &score::StartScreen::openTemplate, this,
-        [this, &ctx, settle](const QString& file) {
-      m_startScreen->hide();
-      settle(m_presenter->documentManager().newDocumentFromTemplate(ctx, file));
-    });
-    connect(m_startScreen, &score::StartScreen::exitApp, this, [&]() { qApp->quit(); });
-
-    if(auto net = score::findNetworkSessionInterface(ctx))
-    {
-      m_startScreen->addJoinSession();
-      connect(m_startScreen, &score::StartScreen::joinSession, this, [this, net] {
-        m_startScreen->hide();
-        net->joinSession(m_view, [this](bool joined) {
-          if(joined)
-            m_startScreen->close();
-          else if(m_presenter->documentManager().documents().empty())
-            m_startScreen->reopen();
-          else
-            m_startScreen->close();
-        });
-      });
-    }
   }
 #endif
 
@@ -623,6 +565,74 @@ void Application::initDocuments()
   }
 }
 
+void Application::createStartScreen()
+{
+  SCORE_ASSERT(!m_startScreen);
+  // Parented for the transient-parent hint; Qt::Dialog keeps it a window.
+  m_startScreen
+      = new score::StartScreen{this->context().docManager.recentFiles(), m_view};
+
+  auto& ctx = m_presenter->applicationContext();
+  connect(m_startScreen, &score::StartScreen::openNewDocument, this, [this]() {
+    m_startScreen->close();
+    openNewDocument();
+  });
+  // Comes back if nothing was opened, rather than leaving an empty window.
+  auto settle = [this](score::Document* doc) {
+    if(doc)
+      m_startScreen->close();
+    else
+      m_startScreen->reopen();
+  };
+  connect(
+      m_startScreen, &score::StartScreen::openFile, this,
+      [this, settle](const QString& file) {
+    m_startScreen->hide();
+    settle(m_presenter->documentManager().loadFile(
+        m_presenter->applicationContext(), file));
+  });
+  connect(m_startScreen, &score::StartScreen::openFileDialog, this, [this, settle] {
+    m_startScreen->hide();
+    settle(m_presenter->documentManager().loadFile(m_presenter->applicationContext()));
+  });
+  connect(
+      m_startScreen, &score::StartScreen::openTemplate, this,
+      [this, settle](const QString& file) {
+    m_startScreen->hide();
+    settle(m_presenter->documentManager().newDocumentFromTemplate(
+        m_presenter->applicationContext(), file));
+  });
+  connect(m_startScreen, &score::StartScreen::exitApp, this, []() { qApp->quit(); });
+
+  if(auto net = score::findNetworkSessionInterface(ctx))
+  {
+    m_startScreen->addJoinSession();
+    connect(m_startScreen, &score::StartScreen::joinSession, this, [this, net] {
+      m_startScreen->hide();
+      net->joinSession(m_view, [this](bool joined) {
+        if(joined)
+          m_startScreen->close();
+        else if(m_presenter->documentManager().documents().empty())
+          m_startScreen->reopen();
+        else
+          m_startScreen->close();
+      });
+    });
+  }
+}
+
+void Application::showStartScreen()
+{
+  if(!appSettings.gui || !m_presenter)
+    return;
+
+  if(!m_startScreen)
+    createStartScreen();
+
+  // reopen(), not show(): it must forget that a choice was already made.
+  m_startScreen->reopen();
+}
+
 void Application::openNewDocument()
 {
   auto& ctx = m_presenter->applicationContext();
@@ -646,9 +656,5 @@ int Application::exec()
   return m_app->exec();
 }
 
-#if defined(SCORE_SPLASH_SCREEN)
-
 W_OBJECT_IMPL(score::StartScreen)
 W_OBJECT_IMPL(score::InteractiveLabel)
-
-#endif

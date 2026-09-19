@@ -59,6 +59,8 @@ GUIApplicationInterface& GUIApplicationInterface::instance()
 
 GUIApplicationInterface::~GUIApplicationInterface() { }
 
+void GUIApplicationInterface::showStartScreen() { }
+
 static void loadDefaultPlugins(
     const score::GUIApplicationContext& ctx, score::GUIApplicationRegistrar& r,
     score::Settings& settings, score::Presenter& presenter)

@@ -7,6 +7,7 @@
 #include <core/settings/Settings.hpp>
 
 #include <QApplication>
+#include <QPointer>
 
 #include <memory>
 #include <verdigris>
@@ -53,11 +54,14 @@ public:
   const score::ApplicationComponents& components() const override;
   void init(); // m_applicationSettings has to be set.
 
+  void showStartScreen() override;
+
   score::ApplicationSettings appSettings;
 
 private:
   void initDocuments();
   void openNewDocument();
+  void createStartScreen();
 
   // Base stuff.
   QCoreApplication* m_app;
@@ -67,5 +71,5 @@ private:
   // MVP
   score::View* m_view{};
   score::Presenter* m_presenter{};
-  score::StartScreen* m_startScreen{};
+  QPointer<score::StartScreen> m_startScreen;
 };
