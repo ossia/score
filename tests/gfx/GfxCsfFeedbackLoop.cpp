@@ -30,7 +30,17 @@
 // out to the raster. wireFeedback(step -> hub) closes the loop on a
 // DelayedGlutton edge, so the picture brightens frame by frame.
 //
-// NEGATIVE CONTROL, run, and it did NOT catch the defect. Keying the "feedback
+// LOOP LENGTH MATTERS, and finding that out is what this file bought. Closing
+// the loop from `step` — two nodes in the cycle — locks OpenGL into a 2-cycle:
+// the two halves alternate between 0.04 and 0.06 forever and the increment is
+// discarded every other frame, while Vulkan climbs normally. Closing it from
+// `tap`, three nodes, passes on both. csf-reaction-diffusion survives on GL for
+// exactly that reason: its loop is hub -> Diffuse -> React -> hub, an odd
+// number of nodes. An even-length feedback loop is a real defect, recorded in
+// ledger 9.106 and not yet fixed; this test uses the odd-length shape so it
+// pins the mechanism rather than the bug.
+//
+// NEGATIVE CONTROL, run, and it did NOT catch the adoption defect. Keying the "feedback
 // receivers never adopt" guard on `req.gathers` instead of
 // `req.access == "read_write"` -- the exact regression of ledger 9.99 -- leaves
 // both cases green here. With the defect present the hub is evidently not even
@@ -104,23 +114,6 @@ int drawn_pixels(const ReadbackImage& img)
   return n;
 }
 
-/// OpenGL is skipped, and not because the engine cannot do this: the real
-/// csf-reaction-diffusion score runs on both backends and measures the same to
-/// five digits (GL 0.104422 vs VK 0.104425). This synthetic loop is what stalls
-/// on GL -- it accumulates about two steps and pins at a drawn level of 9.996,
-/// with or without seeding, and with or without a read-only tap between the
-/// loop and the raster. Whatever the fixture is missing has not been isolated,
-/// so the backend is skipped with that stated rather than left permanently red
-/// or quietly dropped. See ledger 9.105.
-const char* feedback_loop_skip_reason(score::gfx::GraphicsApi be) noexcept
-{
-  if(be == score::gfx::OpenGL)
-    return "this synthetic feedback loop stalls after ~2 steps on OpenGL while "
-           "the real csf-reaction-diffusion score runs there correctly; the "
-           "fixture gap is unisolated (ledger 9.105)";
-  return nullptr;
-}
-
 LoopShot render_loop(score::gfx::GraphicsApi be)
 {
   LoopShot r;
@@ -147,7 +140,7 @@ LoopShot render_loop(score::gfx::GraphicsApi be)
     p.wire(p.imageOut(raster, 0), p.sinkInput(sink));
     // The cable that closes the loop, and the only reason the owner is a
     // feedback receiver at all.
-    p.wireFeedback(p.geometryOut(step, 0), p.geometryIn(hub, 0));
+    p.wireFeedback(p.geometryOut(tap, 0), p.geometryIn(hub, 0));
 
     if(!p.create(be))
     {
@@ -190,8 +183,6 @@ TEST_CASE("state travels around a delayed geometry edge and advances", "[gfx][l3
     SKIP(s.backend + ": " + s.skip_reason);
   if(const char* why = compute_shader_skip_reason(backend))
     SKIP(std::string{backend_name(backend)} + ": " + why);
-  if(const char* why = feedback_loop_skip_reason(backend))
-    SKIP(std::string{backend_name(backend)} + ": " + why);
   CAPTURE(s.backend);
   REQUIRE(s.error.empty());
   REQUIRE(s.early.valid());
@@ -233,8 +224,6 @@ TEST_CASE("a feedback loop is a pure function of the frame count", "[gfx][l3][cs
   if(y.skipped)
     SKIP(y.backend + ": " + y.skip_reason);
   if(const char* why = compute_shader_skip_reason(backend))
-    SKIP(std::string{backend_name(backend)} + ": " + why);
-  if(const char* why = feedback_loop_skip_reason(backend))
     SKIP(std::string{backend_name(backend)} + ": " + why);
 
   CAPTURE(x.backend, drawn_level(x.late), drawn_level(y.late));
