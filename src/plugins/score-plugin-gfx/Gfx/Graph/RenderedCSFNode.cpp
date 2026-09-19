@@ -3801,6 +3801,25 @@ void RenderedCSFNode::buildComputeSrbBindings(
                 delete snap;
             }
 
+            // Invariant: `_in` is read at the same indices as `_out`, so it
+            // must be the same size. Breaking this is silent -- out-of-range
+            // reads return zero under robust access and the shader computes on
+            // zeros. Ledger 9.97: an 8-byte snapshot against a 131072-byte
+            // buffer froze a score for ten sweeps. No pixel test can see it,
+            // because the mis-sizing comes from score-load timing that the
+            // render fixtures do not reproduce, so it is checked here.
+            if(ssbo.read_buffer && ssbo.buffer
+               && ssbo.read_buffer->size() != ssbo.buffer->size())
+            {
+              static int warned = 0;
+              if((warned++ % 600) == 0)
+                qWarning("score.gfx: geometry attribute '%s': _in is %lld bytes "
+                         "against a %lld-byte _out, reads past the end return "
+                         "zero (occurrence %d)",
+                         req.name.c_str(), (long long)ssbo.read_buffer->size(),
+                         (long long)ssbo.buffer->size(), warned);
+            }
+
             QRhiBuffer* read_buf = (ssbo.read_buffer && !binding.pending_initial_copy)
                 ? ssbo.read_buffer : ssbo.buffer;
             if(Q_UNLIKELY(qEnvironmentVariableIsSet("SCORE_CSF_PPPROBE")))
