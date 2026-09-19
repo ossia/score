@@ -98,21 +98,30 @@ void VideoNodeRenderer::checkFormat(RenderList& r, AVPixelFormat fmt, int w, int
 {
   // TODO won't work if VK is threaded and there are multiple windows
   const auto& n = this->node();
-  if(!m_gpu
-     || fmt != m_frameFormat.pixel_format
-     || w != m_frameFormat.width
-     || h != m_frameFormat.height
-     || n.m_outputFormat != m_frameFormat.output_format
-     || n.m_tonemap != m_frameFormat.tonemap)
+  auto src = decoder();
+  src.output_format = n.m_outputFormat;
+  src.tonemap = n.m_tonemap;
+
+  if(videoDecoderNeedsRebuild(bool(m_gpu), m_frameFormat, src, fmt, w, h))
   {
     m_frameFormat.pixel_format = fmt;
     m_frameFormat.width = w;
-    m_frameFormat.height = h;
+    m_frameFormat.height
+        = (src.interlacing == Video::Interlacing::Fields) ? h * 2 : h;
     m_frameFormat.output_format = n.m_outputFormat;
     m_frameFormat.tonemap = n.m_tonemap;
+    m_frameFormat.color_space = src.color_space;
+    m_frameFormat.color_range = src.color_range;
+    m_frameFormat.color_trc = src.color_trc;
+    m_frameFormat.color_primaries = src.color_primaries;
+    m_frameFormat.interlacing = src.interlacing;
 
     setupGpuDecoder(r);
   }
+
+  // Not part of the rebuild: the mode is a uniform in score_tc, so it is
+  // picked up on the next material update without touching the pipeline.
+  m_frameFormat.deinterlace = src.deinterlace;
 }
 
 void VideoNodeRenderer::initState(RenderList& renderer, QRhiResourceUpdateBatch& res)
@@ -269,6 +278,9 @@ void VideoNodeRenderer::update(
     mat.scale_h = sz.height();
     mat.tex_w = this->m_frameFormat.width;
     mat.tex_h = this->m_frameFormat.height;
+    mat.field_parity = m_fieldParity;
+    mat.field_mode = videoFieldMode(
+        m_frameFormat.interlacing, m_frameFormat.deinterlace, m_fieldPartnerValid);
 
     res.updateDynamicBuffer(m_materialUBO, 0, sizeof(Material), &mat);
     m_recomputeScale = false;
@@ -304,6 +316,30 @@ void VideoNodeRenderer::displayFrame(
     scenePeakNits = reinterpret_cast<AVContentLightMetadata*>(sd->data)->MaxCLL;
   }
   */
+
+  // Which field this is, for score_tc. NDI's field_0 is the EVEN lines, which
+  // the input marks as top-field-first; field_1 is the odd ones. A progressive
+  // or woven frame leaves this at 0, where it is ignored.
+  if(m_frameFormat.interlacing == Video::Interlacing::Fields)
+  {
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(58, 0, 0)
+    const bool topField = (frame.flags & AV_FRAME_FLAG_TOP_FIELD_FIRST) != 0;
+#else
+    const bool topField = frame.top_field_first != 0;
+#endif
+    const float parity = topField ? 0.f : 1.f;
+
+    // The other half holds this field's partner only if the field before it was
+    // the other parity. Two of the same parity in a row means one was dropped
+    // and the partner half is a frame too old to weave with.
+    const bool partner = m_sawField && parity != m_fieldParity;
+    if(parity != m_fieldParity || partner != m_fieldPartnerValid)
+      m_recomputeScale = true;  // the material carries both; refresh it
+
+    m_fieldParity = parity;
+    m_fieldPartnerValid = partner;
+    m_sawField = true;
+  }
 
   checkFormat(
       renderer, static_cast<AVPixelFormat>(frame.format), frame.width, frame.height);
