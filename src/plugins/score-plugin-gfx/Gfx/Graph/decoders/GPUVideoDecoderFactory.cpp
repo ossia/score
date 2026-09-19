@@ -215,6 +215,10 @@ std::unique_ptr<GPUVideoDecoder> createGPUVideoDecoder(
 #endif
     case AV_PIX_FMT_P210LE:
       return std::make_unique<P210Decoder>(format);
+    case AV_PIX_FMT_P216LE:
+      // Same layout as P210, all sixteen bits used, so no renormalization.
+      // This is what NDI hands over for a 16-bit source.
+      return std::make_unique<P210Decoder>(format, "1.0");
     case AV_PIX_FMT_P410LE:
       return std::make_unique<P410Decoder>(format);
 #endif

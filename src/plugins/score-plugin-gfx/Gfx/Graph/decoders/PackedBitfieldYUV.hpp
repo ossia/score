@@ -51,7 +51,7 @@ vec4 processTexture(vec4 tex) {
 
 void main()
 {
-  vec4 texel = texture(u_tex, v_texcoord);
+  vec4 texel = texture(u_tex, score_tc(v_texcoord));
   uint w = (uint(texel.g * 255.0 + 0.5) << 8) | uint(texel.r * 255.0 + 0.5);
   float y = %3;
   float u = %4;

@@ -35,9 +35,9 @@ vec4 processTexture(vec4 tex) {
 
 void main()
 {
-  float y = texture(y_tex, v_texcoord).r;
-  float u = texture(uv_tex, v_texcoord).r;
-  float v = texture(uv_tex, v_texcoord).g;
+  float y = texture(y_tex, score_tc(v_texcoord)).r;
+  float u = texture(uv_tex, score_tc(v_texcoord)).r;
+  float v = texture(uv_tex, score_tc(v_texcoord)).g;
 )_";
 
   static const constexpr auto nv12_filter_epilogue = R"_(

@@ -38,7 +38,7 @@ vec4 processTexture(vec4 tex) {
 
 void main()
 {
-  vec4 vuya = texture(u_tex, v_texcoord);
+  vec4 vuya = texture(u_tex, score_tc(v_texcoord));
   float y = vuya.%3;
   float u = vuya.%4;
   float v = vuya.%5;
@@ -138,7 +138,7 @@ vec4 processTexture(vec4 tex) {
 void main()
 {
   const float s = )_" SCORE_GFX_UNORM10_SCALE R"_(;
-  vec4 xvyu = texture(u_tex, v_texcoord) * s;
+  vec4 xvyu = texture(u_tex, score_tc(v_texcoord)) * s;
   float y = xvyu.g;
   float u = xvyu.r;
   float v = xvyu.b;
