@@ -12,7 +12,7 @@
       "VERTEX_COUNT": "$numPoints",
       "ATTRIBUTES": [
         { "NAME": "position", "SEMANTIC": "position", "TYPE": "vec4", "ACCESS": "write_only" },
-        { "NAME": "color",    "SEMANTIC": "color",    "TYPE": "vec4", "ACCESS": "read_write" }
+        { "NAME": "color",    "SEMANTIC": "color",    "TYPE": "vec4", "ACCESS": "gather" }
       ]
     }
   ],

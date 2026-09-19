@@ -1466,7 +1466,7 @@ void RenderedCSFNode::updateGeometryBindings(
             // For feedback receivers, never adopt upstream buffers for read_write
             // attributes. The node uses its own ping-pong pair; upstream data is
             // this node's own previous output routed through feedback.
-            if(binding.is_feedback_receiver && req.access == "read_write")
+            if(binding.is_feedback_receiver && req.gathers)
             {
               continue;
             }
@@ -3307,7 +3307,7 @@ void RenderedCSFNode::buildComputeSrbBindings(
           continue;
         int f = (req.access == "read_only") ? 1 : (req.access == "write_only") ? 2 : 3;
         access_flags[ssbo.buffer] |= f;
-        if(req.access == "read_write" && ssbo.read_buffer && ssbo.read_buffer != ssbo.buffer)
+        if(req.gathers && ssbo.read_buffer && ssbo.read_buffer != ssbo.buffer)
           access_flags[ssbo.read_buffer] |= 1;
       }
       for(const auto& aux : gb.auxiliary_ssbos)
@@ -3759,6 +3759,8 @@ void RenderedCSFNode::buildComputeSrbBindings(
             ssbo.owned = true;
           }
 
+          // Everything but a gather binds one buffer: read_only, write_only,
+          // and a read_write that only ever touches its own index.
           if(req.access == "read_only" || req.access == "write_only")
           {
             appendBufBinding(ssbo.buffer, req.access);
@@ -3774,7 +3776,8 @@ void RenderedCSFNode::buildComputeSrbBindings(
             // count resolved -- and every later index then read past its end:
             // zeros under Vulkan robustness, and a diffusion stencil reading
             // zero neighbours collapses the field on its first dispatch.
-            if(!binding.is_feedback_receiver && ssbo.buffer && ssbo.buffer->size() > 0
+            if(req.gathers && !binding.is_feedback_receiver && ssbo.buffer
+               && ssbo.buffer->size() > 0
                && (!ssbo.read_buffer || ssbo.read_buffer->size() != ssbo.buffer->size()))
             {
               if(ssbo.read_buffer)
@@ -3789,6 +3792,8 @@ void RenderedCSFNode::buildComputeSrbBindings(
               snap->setName(QByteArray("CSF_GeomSnap_") + req.name.c_str());
               if(snap->create())
               {
+                QByteArray zero((int)ssbo.buffer->size(), 0);
+                res.uploadStaticBuffer(snap, 0, (int)ssbo.buffer->size(), zero.constData());
                 ssbo.read_buffer = snap;
                 ssbo.read_buffer_is_snapshot = true;
               }
@@ -5042,6 +5047,10 @@ void RenderedCSFNode::runInitialPasses(
           snaps.push_back({ssbo.buffer, ssbo.read_buffer});
     }
 
+    if(Q_UNLIKELY(qEnvironmentVariableIsSet("SCORE_CSF_SNAPPROBE")))
+      qDebug("score.gfx: SNAPPROBE node=%p bindings=%zu snaps=%zu", (void*)this,
+             m_geometryBindings.size(), snaps.size());
+
     if(!snaps.empty())
     {
       commands.beginExternal();
@@ -5539,7 +5548,7 @@ void RenderedCSFNode::runInitialPasses(
           if(ai >= (int)gb.attribute_ssbos.size())
             break;
           auto& ssbo = gb.attribute_ssbos[ai];
-          if(geo_input->attributes[ai].access == "read_write" && ssbo.read_buffer
+          if(geo_input->attributes[ai].gathers && ssbo.read_buffer
              && ssbo.owned)
             std::swap(ssbo.buffer, ssbo.read_buffer);
         }

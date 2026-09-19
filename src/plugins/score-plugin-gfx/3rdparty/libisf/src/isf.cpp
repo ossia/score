@@ -1255,9 +1255,40 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
             }
           }
 
-          // Default access to read_write if not specified
+          // ACCESS is mandatory on a geometry attribute. It used to default to
+          // read_write, which handed the expensive semantic to every author who
+          // did not think about it: read_write allocates nothing extra now, but
+          // an attribute that is only written wants write_only, and one that
+          // gathers must say so or its cross-index reads race.
           if(ar.access.empty())
+          {
+            throw invalid_file{
+                "geometry attribute \"" + ar.name
+                + "\" has no ACCESS. Declare one of: write_only (the shader "
+                  "only writes it), read_only (only reads it), read_write (reads "
+                  "and writes its OWN index), gather (reads indices other than "
+                  "its own invocation's -- neighbour stencils, N-body force "
+                  "loops, indirections through a slot table)."};
+          }
+
+          // "gather" is read_write plus the promise that foreign indices are
+          // read, which is what forces _in and _out onto separate buffers.
+          if(ar.access == "gather")
+          {
             ar.access = "read_write";
+            ar.gathers = true;
+          }
+
+          // "none" is the COPY_FROM marker: the attribute is filled from the
+          // geometry it names, so this shader neither reads nor writes it.
+          if(ar.access != "read_only" && ar.access != "write_only"
+             && ar.access != "read_write" && ar.access != "none")
+          {
+            throw invalid_file{
+                "geometry attribute \"" + ar.name + "\" has unknown ACCESS \""
+                + ar.access
+                + "\". Expected read_only, write_only, read_write or gather."};
+          }
 
           // A COPY_FROM attribute is filled from the geometry it names rather
           // than by this shader, which is what access "none" means downstream.
@@ -6465,9 +6496,10 @@ void parser::parse_csf()
           m_fragment += attr.type + " " + prefix + "_out[]; };\n";
           binding++;
         }
-        else // read_write
+        else
         {
-          // Two SSBOs: _in (readonly) and _out (read-write), 2 bindings
+          // _in and _out always exist for read_write and gather; whether they
+          // resolve to the same buffer is a graph question the engine answers.
           m_fragment += "layout(binding = " + std::to_string(binding) + ", std430) ";
           m_fragment += "readonly buffer " + prefix + "_in_buf { ";
           m_fragment += attr.type + " " + prefix + "_in[]; };\n";

@@ -10,8 +10,8 @@
       "TYPE": "geometry",
       "VERTEX_COUNT": "128",
       "ATTRIBUTES": [
-        { "NAME": "position", "SEMANTIC": "position", "TYPE": "vec4", "ACCESS": "read_write" },
-        { "NAME": "color",    "SEMANTIC": "color",    "TYPE": "vec4", "ACCESS": "read_write" }
+        { "NAME": "position", "SEMANTIC": "position", "TYPE": "vec4", "ACCESS": "write_only" },
+        { "NAME": "color",    "SEMANTIC": "color",    "TYPE": "vec4", "ACCESS": "write_only" }
       ],
       "AUXILIARY": [
         {
