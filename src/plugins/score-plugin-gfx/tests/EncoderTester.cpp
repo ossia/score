@@ -268,26 +268,15 @@ void testPackedRGB(QRhi& rhi, const RenderState& state)
 
 
 // ---------------------------------------------------------------------------
-// The contiguous-framestore encoders, against the plane-based ones they stand
-// in for.
+// The contiguous-framestore encoders against the plane-based ones.
 //
-// makeWireEncoder(fmt, contiguousFramestore = true) returns an encoder whose
-// SINGLE readback is the whole framestore, planes adjacent and in order,
-// instead of one readback per plane. That exists so a consumer handing a
-// device one pointer -- NDI's p_data, a capture card's frame buffer -- does
-// not have to concatenate anything, and does not pay two or three separate
-// GPU->CPU round trips to get there.
+// The two routes must produce the SAME BYTES. A packed layout off by a row, or
+// one that assumes it may group bytes into RGBA texels, puts chroma where the
+// consumer will not look and still produces something structurally valid on
+// the wire.
 //
-// The two routes must produce the SAME BYTES. Not nearly: a packed layout that
-// is off by a row, or that assumes it may group bytes into RGBA texels, puts
-// chroma somewhere the consumer will not look for it and produces a picture
-// that is wrong while remaining structurally valid on the wire -- which is the
-// kind of defect that ships.
-//
-// Widths matter as much as formats here. 722 and 1922 are even, so 4:2:0 can
-// express them, but they are not multiples of four: that is where a packed
-// layout built on RGBA texels breaks, and where an R8 readback would show row
-// padding if it had any.
+// Widths matter as much as formats: 722 and 1922 are even, so 4:2:0 can
+// express them, but they are not multiples of four.
 struct PlaneSpec
 {
   int encoderPlane, widthDiv, heightDiv, bytesPerTexel;
@@ -300,12 +289,11 @@ struct FramestoreLayout
   score::gfx::interop::VideoPixelFormat planeFmt;   // the plane-based twin
   int rowsNum, rowsDen;    // framestore rows = height * num / den
   int primaryBytesPerPixel;
-  /// 1 for the 8-bit layouts, 2 for the 16-bit ones. A 16-bit format must be
-  /// compared as SAMPLES: the packed encoder builds its two bytes arithmetically
-  /// in the shader while the plane encoder lets an R16 UNORM target round, so
-  /// the two can land 1 LSB apart -- and 1 LSB apart across a carry (0x1200 vs
-  /// 0x11FF) is a 255 difference in the low BYTE. Byte-wise with zero tolerance
-  /// would call that a layout bug.
+  /// 1 for the 8-bit layouts, 2 for the 16-bit ones, which must be compared as
+  /// SAMPLES: the packed encoder builds its two bytes in the shader while the
+  /// plane encoder lets an R16 UNORM target round, so they can land 1 LSB
+  /// apart -- and across a carry (0x1200 vs 0x11FF) that is 255 in the low
+  /// byte.
   int bytesPerSample;
   int planeCount;
   PlaneSpec planes[3];
@@ -343,14 +331,10 @@ std::vector<uint8_t> assemble(
 }
 
 
-// Which side is wrong when packed and planes disagree?
-//
-// Decided without any colour arithmetic. The source is made to vary ONLY
-// vertically, so every chroma row is a single repeated value by construction.
-// A route whose rows are internally constant is reading its own bytes
-// correctly; one that shows a transition part-way along a row is reading rows
-// that are not where it thinks they are -- which is what a row-stride or
-// alignment mismatch looks like from the outside.
+// Which side is wrong when packed and planes disagree, decided without any
+// colour arithmetic: with a source that varies only vertically, every chroma
+// row is one repeated value by construction. A row that comes back with a
+// transition in it is being read from the wrong offset.
 void diagnosePackedRowStride(QRhi& rhi, const RenderState& state, int W, int H)
 {
   std::printf(

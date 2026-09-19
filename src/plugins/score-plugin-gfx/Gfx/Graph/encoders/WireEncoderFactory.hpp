@@ -83,12 +83,8 @@ makeWireEncoder(
       case F::YUV420P:
         return Yuv420PackedEncoder::i420();
 
-      // YVU420P (YV12) has no plane-based encoder, and does not need one: with
-      // planes, which of Cb/Cr comes first is the consumer's business -- it is
-      // handed both and indexes them in whatever order it wants, which is what
-      // the NDI output used to do. Plane ORDER only becomes the encoder's
-      // business once the planes are concatenated into one framestore, so the
-      // swapped layout exists here and nowhere else.
+      // YVU420P (YV12) exists only here: with planes, which of Cb/Cr comes
+      // first is the consumer's business, and only a framestore has to commit.
       case F::YVU420P:
         return Yuv420PackedEncoder::yv12();
 

@@ -14,31 +14,20 @@ namespace score::gfx
  * Two readbacks. The caller concatenates Y + UV data for GStreamer
  * `video/x-raw,format=NV12`.
  *
- * The UV plane renders into an R8 target of width × height/2, one byte per
- * texel: U in even columns, V in odd ones. That is the same byte layout an
- * RG8 target at width/2 × height/2 produces, and it used to be an RG8 target
- * on Qt >= 6.10, with R8 kept only as a pre-6.10 fallback.
+ * The UV plane renders into an R8 target of width x height/2, one byte per
+ * texel: U in even columns, V in odd ones -- the same byte layout an RG8
+ * target at width/2 x height/2 produces.
  *
- * It is R8 unconditionally now, because the RG8 readback is wrong whenever the
- * chroma row is not 4-byte aligned. An RG8 row is (w/2) * 2 = w bytes, so at
- * w = 722 or w = 1922 -- even, therefore legal 4:2:0 sizes, and both real NDI
- * sizes -- the readback comes back the right total SIZE but with its rows
- * progressively shifted: row 0 correct, everything after it drifting. Measured
- * with a source that varies only vertically, so every chroma row must be a
- * single repeated value, 287 of 288 rows came back non-constant on OpenGL AND
- * on Vulkan. ffmpeg agrees, and these are measured rather than estimated: at
- * 722x576 the old output differed from ffmpeg's own nv12 in 30.0% of its
- * bytes, mean 28.97, max 240. At 1920x1080 it differed in none of them. The
- * fixed output matches ffmpeg exactly at both sizes.
+ * It must not be RG8. An RG8 row here is (w/2) * 2 = w bytes, and where that
+ * is not 4-byte aligned the readback comes back the right total SIZE with its
+ * rows progressively shifted: row 0 correct, the rest drifting. 722 and 1922
+ * are even, so 4:2:0 can express them, and both are real NDI sizes. Measured
+ * against a source varying only vertically, where every chroma row must be one
+ * repeated value, 287 of 288 rows came back non-constant on OpenGL and on
+ * Vulkan; against ffmpeg's own nv12 at 722x576, 30% of bytes differed.
  *
- * R8 has no such problem at any width -- the Y plane is R8 and has always read
- * back correctly at 722 -- and it costs one extra fragment per chroma site,
- * since a byte is written per fragment rather than a pair. That is the price
- * of the format being right at every size it claims to support.
- *
- * The sampling is unchanged: one bilinear tap at the centre of the 2x2 source
- * block, which is what the RG8 half-size target was doing, so the VALUES are
- * the same as before wherever the old path was readable at all.
+ * Sampling is unchanged -- one bilinear tap at the centre of the 2x2 block --
+ * so the values match the RG8 path wherever it was readable at all.
  */
 struct NV12Encoder : GPUVideoEncoder
 {
@@ -67,10 +56,7 @@ struct NV12Encoder : GPUVideoEncoder
     }
   )_";
 
-  // The UV plane, as interleaved bytes in an R8 target of width x height/2.
-  // Byte b of chroma row cy is U (b even) or V (b odd) of site b/2, taken as
-  // one bilinear tap at the centre of that site's 2x2 source block -- exactly
-  // what rendering a half-size RG8 target through a Linear sampler did.
+  // Byte b of chroma row cy is U (b even) or V (b odd) of site b/2.
   static constexpr const char* uv_frag = R"_(#version 450
     layout(location = 0) in vec2 v_texcoord;
     layout(location = 0) out vec4 fragColor;
@@ -90,10 +76,9 @@ struct NV12Encoder : GPUVideoEncoder
     }
     void main() {
       ivec2 sz = textureSize(src_tex, 0);
-      // floor() the product rather than subtracting half a texel from it
-      // first: at output texel i the interpolated product is exactly i + 0.5,
-      // and flooring that leaves half a texel of slack in both directions,
-      // where flooring i itself has none. P216PackedEncoder had that bug.
+      // floor() the product, not the product minus half a texel: at output
+      // texel i the interpolated value is exactly i + 0.5, so flooring it has
+      // half a texel of slack either way where flooring i itself has none.
       int b  = int(floor(v_texcoord.x * float(sz.x)));
       int cy = int(floor(v_texcoord.y * float(sz.y >> 1)));
 
@@ -173,9 +158,7 @@ struct NV12Encoder : GPUVideoEncoder
 
     // UV plane setup
     {
-      // R8 at full width holding the interleaved U,V bytes. See the class
-      // comment: an RG8 target here reads its rows back shifted whenever the
-      // chroma row is not 4-byte aligned, which includes 722 and 1922.
+      // R8, not RG8 -- see the class comment.
       m_uvTexture = rhi.newTexture(
           QRhiTexture::R8, QSize{width, height / 2}, 1,
           QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource);

@@ -25,9 +25,7 @@ SCORE_GFX_VIDEO_SAMPLE_TRANSFORM
 /**
  * The seam every decoder samples through.
  *
- * Colour conversion is generic because every decoder calls convert_to_rgb() at
- * one point and the matrix is injected beside it. Sampling gets the same
- * treatment here: all 85 sampling calls across the decoders read
+ * All 85 sampling calls across the decoders read
  * texture(<plane>, score_tc(v_texcoord)), so a per-sample coordinate transform
  * has one place to live and no decoder has to know about it.
  *
@@ -39,14 +37,13 @@ SCORE_GFX_VIDEO_SAMPLE_TRANSFORM
  * copied to weave them; the weave happens here, per sample.
  *
  * mat.field = (parity of the newest field, mode, 0, 0), mode being
- *   0 progressive -- identity, and the only branch a normal video ever takes
+ *   0 progressive -- identity
  *   1 weave       -- each output line reads the field that owns its parity
  *   2 bob         -- only the newest field, interpolated to full height
  *
- * The bob case subtracts the parity from the frame line before halving it,
- * which is the half-line offset: field 1's lines sit half a line below field
- * 0's, and without it the picture jitters vertically at the field rate. That
- * is the classic bug in naive bob implementations and it is one term here.
+ * Bob subtracts the parity from the frame line before halving it: field 1's
+ * lines sit half a line below field 0's, and without that term the picture
+ * jitters vertically at the field rate.
  */
 #define SCORE_GFX_VIDEO_SAMPLE_TRANSFORM \
 "vec2 score_tc(vec2 tc) {\n" \
@@ -189,11 +186,8 @@ public:
   /**
    * @brief The upload geometry for one plane of a possibly-fielded frame.
    *
-   * A fielded source hands over half-height frames for a full-height picture.
-   * Each field is uploaded into its own half of the texture -- field 0 on top,
-   * field 1 below -- so the two halves together are one stacked texture that
-   * score_tc samples by parity. Each upload stays one contiguous region, which
-   * is what keeps the path free of any CPU weave.
+   * Each field goes into its own half of the texture, field 0 on top, so each
+   * upload stays one contiguous region and nothing weaves on the CPU.
    *
    * @param textureRows the plane's rows in the TEXTURE, i.e. for the picture.
    * @return {rows this frame carries, row offset to upload them at}.

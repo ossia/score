@@ -5,82 +5,49 @@ namespace score::gfx
 {
 
 /**
- * @brief GPU RGBA -> NV12 / I420 / YV12, as ONE texture holding the framestore.
+ * @brief GPU RGBA -> NV12 / I420 / YV12, one texture holding the framestore.
  *
- * The plane-based encoders (NV12Encoder, YUVPlanarEncoder::p420_8) produce the
- * same bytes in two or three plane textures, which is the right shape for a
- * consumer that wants planes. A consumer that wants the framestore -- NDI's
- * p_data, a capture card's frame buffer -- then has to concatenate them,
- * because a QRhi readback lands in its own allocation per plane. That costs a
- * copy, but it costs something bigger first: two or three separate GPU->CPU
- * round trips, each with its own synchronisation. Measured at 2160p, I420 took
- * 9.97 ms a frame against UYVY's 2.65, and only about 1.2 ms of that gap is the
- * 12.4 MB memcpy. The rest is the extra readbacks.
+ * The plane encoders give two or three plane textures; a consumer that hands a
+ * device one pointer then has to concatenate them, and pays a GPU->CPU round
+ * trip per plane to get there. This produces the framestore directly, so one
+ * readback is the whole thing. At 2160p that is 2.4 ms a frame against 10.3.
  *
- * P216PackedEncoder does this for 16-bit 4:2:2, where it is easy: both of its
- * planes have the same row length, so the framestore is just one stacked on the
- * other and every row is the same width. 4:2:0 is not so tidy --
+ * Plane geometry, which is what chroma_byte() has to navigate:
  *
- *   NV12:  Y is w bytes over h rows, interleaved CbCr is also w bytes
+ *   NV12:  Y is w bytes over h rows; interleaved CbCr is also w bytes
  *          (w/2 sites x 2 components) over h/2 rows.       Uniform rows.
- *   I420:  Y is w bytes over h rows, then Cb and Cr are w/2 bytes each over
- *          h/2 rows.                                       NOT uniform.
+ *   I420:  Y is w bytes over h rows; Cb then Cr are w/2 bytes over h/2 rows.
  *   YV12:  I420 with Cr before Cb.
  *
- * -- so instead of an RGBA8 target whose texels are groups of four bytes, this
- * renders an R8 target of w x (3h/2) whose every texel IS one framestore byte.
- * One readback of it is the framestore, in order, ready to send.
+ * The target is RGBA8 of (w/4) x (3h/2), four framestore bytes per texel, and
+ * R8 of w x (3h/2) when the width is not a multiple of four -- 722 and 1922
+ * are even, so 4:2:0 can express them, but an RGBA8 target cannot be w/4
+ * texels wide. One byte per texel runs a fragment, a fetch and a colour
+ * conversion per byte, which measured slower than the plane encoders it
+ * replaces, so it is the fallback rather than the rule.
  *
- * R8 rather than RGBA8 buys two things. It needs no width divisible by 4 (an
- * RGBA8 target would be w/4 texels wide, and 722x576 and 1922x1080 are real NDI
- * sizes that are even but not multiples of four), and each fragment writes a
- * single UNORM byte through exactly the same path the plane encoders' own R8
- * targets use -- which is why the output can be byte-identical to theirs rather
- * than merely close.
+ * Chroma is a 2x2 box, centre-sited. Both plausible improvements were tried
+ * and measured worse against a real NDI receiver; they remain in chroma_at()
+ * behind SCORE_GFX_CHROMA_SITING so the measurement can be repeated.
  *
- * For I420 and YV12 the chroma region's rows do not line up with the target's:
- * a target row is w bytes and a chroma plane row is w/2, so each target row
- * carries two chroma rows, and the second half of the region is the other
- * plane. chroma_byte() below is the whole of that arithmetic.
+ *   Siting. MPEG-2/H.264 put the sample on the even luma column. Sending
+ *   colour bars through the SDK and locating each chroma edge on the way back:
+ *   centre displaced it by -0.001 luma columns, left by +0.165. The receiver
+ *   assumes centre.
  *
- * Chroma is one bilinear tap at the centre of the 2x2 source block: a box
- * filter, centre-sited. That is not inertia -- the two plausible improvements
- * were implemented and measured against a real NDI receiver, and both are
- * worse. The alternatives are still in chroma_at(), selectable through
- * SCORE_GFX_CHROMA_SITING, so the experiment can be re-run rather than taken
- * on trust.
+ *   Pre-filtering. [1 3 3 1]/8 each way band-limits before decimating. On
+ *   red/blue stripes round-tripped through the SDK, mean |RGB error| by stripe
+ *   period in luma columns:
  *
- * SITING. MPEG-2, H.264 and HEVC put a 4:2:0 chroma sample ON the even luma
- * column, not between the pair. Encoding to that convention and decoding with
- * the other shifts every chroma edge half a luma pixel. Measured by sending
- * colour bars through the SDK and finding the sub-pixel position of each
- * chroma edge on the way back:
+ *       period       4      6      8     12     16     32
+ *       box       5.48  33.06   8.46   5.23   3.15   2.67
+ *       [1 3 3 1] 49.63  47.04  27.02  15.74  12.95   8.02
  *
- *     centre siting   mean displacement  -0.001 luma columns
- *     left siting     mean displacement  +0.165 luma columns
+ *   Worse everywhere, including at Nyquist: the receiver upsamples with
+ *   something box-like and does not reconstruct a band-limited signal, so the
+ *   blur costs more than the aliasing it removes.
  *
- * So NDI's receiver assumes CENTRE siting, and the broadcast convention would
- * be the wrong answer here. That is the same pattern as the colour matrix:
- * NDI follows what software encoders do, not what the standards say.
- *
- * PRE-FILTERING. A box keeps no guard band, so chroma finer than the chroma
- * grid aliases. Replacing it with [1 3 3 1]/8 in each direction band-limits
- * first. Measured on vertical red/blue stripes round-tripped through the SDK,
- * mean |RGB error| against the source, by stripe period in luma columns:
- *
- *     period       4      6      8     12     16     32
- *     box       5.48  33.06   8.46   5.23   3.15   2.67
- *     [1 3 3 1] 49.63  47.04  27.02  15.74  12.95   8.02
- *
- * The box is better everywhere, including at the Nyquist limit where the
- * filter should have won. The receiver upsamples chroma with something
- * box-like of its own and does not reconstruct a band-limited signal, so the
- * blur a pre-filter adds costs more than the aliasing it removes. (The box
- * does alias -- period 6 beats against the chroma grid and is its worst case
- * by far -- but pre-filtering makes even that worse.)
- *
- * Requires width % 2 == 0 and height % 2 == 0, which is what 4:2:0 requires
- * anyway.
+ * Requires even width and height.
  */
 struct Yuv420PackedEncoder : GPUVideoEncoder
 {
@@ -135,27 +102,18 @@ struct Yuv420PackedEncoder : GPUVideoEncoder
     layout(binding = 3) uniform sampler2D src_tex;
     )_" "%1" R"_(
 
-    // Declared up here because chroma_at() below uses SITING, and GLSL wants
-    // a declaration before its use.
-    //
-    // BPT: bytes carried by one texel of the target -- 4 for an RGBA8 target,
-    // 1 for the R8 fallback. Both are constants, so the branches fold away.
+    // Constants, so the branches on them fold away. Declared before
+    // chroma_at(), which uses SITING.
     const int BPT = %3;
     const int SITING = %4;
 
     vec2 flip_y(vec2 tc) {
-    // Only OpenGL. The rest of the engine puts its geometry through
-    // renderer.clipSpaceCorrMatrix, which negates Y on Vulkan; this pass draws
-    // a hardcoded triangle in raw NDC and does not, so the correction it needs
-    // is not the same one.
+    // Only OpenGL: this pass draws a hardcoded triangle in raw NDC rather than
+    // going through renderer.clipSpaceCorrMatrix.
     //
-    // Note this flips the SOURCE lookup, never the target row order. The row a
-    // fragment writes is taken from v_texcoord.y, which runs from 0 at the
-    // first row of the readback on both backends -- on GL because v_texcoord.y
-    // = 0 is the bottom of the target and GL reads back bottom-up, on Vulkan
-    // because it is the top and Vulkan reads back top-down. That is what lets
-    // the luma/chroma split sit anywhere in the target rather than only at the
-    // midpoint.
+    // It flips the SOURCE lookup, never the target row order -- v_texcoord.y
+    // runs from 0 at the first row of the readback on both backends, which is
+    // what lets the luma/chroma split sit anywhere rather than at the midpoint.
     #if defined(QSHADER_SPIRV) || defined(QSHADER_MSL) || defined(QSHADER_HLSL)
       return tc;
     #else
@@ -170,27 +128,8 @@ struct Yuv420PackedEncoder : GPUVideoEncoder
       return convert_from_rgb(texture(src_tex, flip_y(tc)).rgb).x;
     }
 
-    // (Cb, Cr) of chroma site (cx, cy) on the w/2 x h/2 grid.
-    //
-    // Vertically both sitings are the same: the sample sits on the boundary
-    // between source rows 2*cy and 2*cy+1, so one bilinear tap there averages
-    // the pair, which is what 4:2:0 asks for.
-    //
-    // Horizontally they differ, and SITING is the switch:
-    //
-    //   0 (centre) - one tap on the boundary between columns 2*cx and 2*cx+1.
-    //       A 2x2 box. This is what swscale does and therefore what almost
-    //       every software encoder emits.
-    //
-    //   1 (left)   - the sample belongs ON column 2*cx, which is what MPEG-2,
-    //       H.264 and HEVC specify for 4:2:0 (chroma_sample_loc_type 0), with
-    //       a [1 2 1]/4 filter across columns 2*cx-1, 2*cx, 2*cx+1. Two
-    //       bilinear taps land it exactly: one on each of the two boundaries
-    //       either side of column 2*cx, averaged. A box filter at the wrong
-    //       position shifts every chroma edge half a luma pixel on decode.
-    //
-    // Which is right is not a matter of taste -- it is whatever the receiver
-    // assumes when it upsamples, and that is measurable.
+    // (Cb, Cr) of chroma site (cx, cy). Vertically always the boundary
+    // between source rows 2*cy and 2*cy+1, so one tap averages the pair.
     vec2 chroma_at(int cx, int cy, ivec2 sz) {
       vec2 fs = vec2(sz);
       float y = float((cy << 1) + 1) / fs.y;          // boundary of the row pair
@@ -201,13 +140,9 @@ struct Yuv420PackedEncoder : GPUVideoEncoder
       }
       if(SITING == 2)
       {
-        // Centre siting, but a [1 3 3 1]/8 pre-filter in each direction
-        // instead of a box -- a 4x4 kernel, separable, in four bilinear taps.
-        // A weighted tap between two pixels is (1-t)*a + t*b, so a pair at
-        // t = 0.75 gives 1:3 and a pair at t = 0.25 gives 3:1; averaging the
-        // two pairs gives 1:3:3:1 over the four columns, centred on the same
-        // boundary the box is centred on. The sample does not move; only the
-        // amount of aliasing it folds in changes.
+        // [1 3 3 1]/8 each way as four bilinear taps: a tap at t=0.75 weights
+        // its pair 1:3 and one at t=0.25 weights it 3:1, so averaging the two
+        // gives 1:3:3:1 centred on the same boundary the box uses.
         float xa = (float(cx << 1) + 0.25) / fs.x;
         float xb = (float(cx << 1) + 1.75) / fs.x;
         float ya = (float(cy << 1) + 0.25) / fs.y;
@@ -219,7 +154,7 @@ struct Yuv420PackedEncoder : GPUVideoEncoder
         return (p0.yz + p1.yz + p2.yz + p3.yz) * 0.25;
       }
       float xa = float(cx << 1) / fs.x;               // left of column 2*cx
-      float xb = float((cx << 1) + 1) / fs.x;         // right of column 2*cx
+      float xb = float((cx << 1) + 1) / fs.x;         // right of it
       vec3 a = convert_from_rgb(texture(src_tex, flip_y(vec2(xa, y))).rgb);
       vec3 b = convert_from_rgb(texture(src_tex, flip_y(vec2(xb, y))).rgb);
       return (a.yz + b.yz) * 0.5;
@@ -302,19 +237,6 @@ struct Yuv420PackedEncoder : GPUVideoEncoder
                                  : Siting::Centre;
     }
 
-    // Four framestore bytes per texel where the width allows it, one where it
-    // does not.
-    //
-    // One byte per texel is the simple form and works at any even width, but
-    // it runs a fragment -- and therefore a texture fetch and a full colour
-    // conversion -- for every byte of the framestore. Measured at 2160p that
-    // made this encoder SLOWER than the plane-based one it replaces (12.1 ms
-    // against 7.2), which defeats the point of it. Four bytes per texel gives
-    // a quarter of the fragments for the same number of fetches.
-    //
-    // It needs width % 4 == 0, because the target is width/4 texels wide.
-    // 720, 1280, 1920 and 3840 all qualify; 722 and 1922 -- even, so 4:2:0 can
-    // express them -- do not, and fall back to R8 rather than lose the size.
     m_bytesPerTexel = (width % 4 == 0) ? 4 : 1;
     m_outTexture = rhi.newTexture(
         m_bytesPerTexel == 4 ? QRhiTexture::RGBA8 : QRhiTexture::R8,
@@ -327,10 +249,8 @@ struct Yuv420PackedEncoder : GPUVideoEncoder
     m_renderTarget->setRenderPassDescriptor(m_rpDesc);
     m_renderTarget->create();
 
-    // Linear, not Nearest: the chroma taps rely on bilinear filtering to
-    // average each 2x2 block, which is how the plane encoders downsample. The
-    // luma taps sit on exact texel centres, where Linear returns the texel
-    // unchanged, so the one sampler serves both.
+    // Linear: the chroma taps need bilinear filtering to average each block.
+    // Luma taps sit on exact texel centres, where Linear is a no-op.
     m_sampler = rhi.newSampler(
         QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
         QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);

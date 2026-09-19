@@ -71,19 +71,9 @@ struct P216PackedEncoder : GPUVideoEncoder
 
       // Two source pixels per output texel, as for UYVY.
       float halfW = srcSz.x * 0.5;
-      // floor() FIRST, then step to the source pixels.
-      //
-      // This was "v_texcoord.x * halfW - 0.5" followed by floor(). At output
-      // texel i the interpolated product is exactly i + 0.5, so subtracting
-      // 0.5 lands exactly on the integer i -- and floor() of an exact integer
-      // has no downward margin at all. Any float32 rounding that puts it a
-      // hair below i floors to i - 1 and the fragment encodes the WRONG pixel
-      // pair. It happened to under 1% of samples, which is why it survived a
-      // round trip through the real SDK, and ffmpeg is what caught it:
-      // p216le from ffmpeg agreed with the plane encoder to within 4 parts in
-      // 65535 and with this one to within 52286.
-      //
-      // Flooring the product itself leaves half a texel of slack either way.
+      // floor() the product, not the product minus half a texel: at output
+      // texel i the interpolated value is exactly i + 0.5, so flooring it has
+      // half a texel of slack either way where flooring i itself has none.
       float outPixel = floor(v_texcoord.x * halfW);
       float sx0 = (outPixel * 2.0 + 0.5) / srcSz.x;
       float sx1 = (outPixel * 2.0 + 1.5) / srcSz.x;
