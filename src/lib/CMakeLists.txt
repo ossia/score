@@ -254,6 +254,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Bind.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/SafeCast.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/ListNetworkAddresses.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Platforms.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Unused.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/RecursiveWatch.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/ThreadPool.hpp"
@@ -554,6 +555,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SpinBoxes.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/ListNetworkAddresses.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Platforms.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Timers.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/SafeQApplication.cpp"
