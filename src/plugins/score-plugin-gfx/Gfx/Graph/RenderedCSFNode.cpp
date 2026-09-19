@@ -5092,15 +5092,23 @@ void RenderedCSFNode::runInitialPasses(
               half == 0 ? "OUT " : "IN  ", (void*)b, (int)binding.is_feedback_receiver);
           rb->completed = [rb, tag, fr] {
             const float* f = reinterpret_cast<const float*>(rb->data.constData());
-            const int n = std::min<int>(4, rb->data.size() / sizeof(float));
-            QString v;
+            const int n = rb->data.size() / sizeof(float);
+            int nz = 0;
+            float mx = 0.f;
             for(int i = 0; i < n; ++i)
+            {
+              if(f[i] != 0.f)
+                ++nz;
+              mx = std::max(mx, std::abs(f[i]));
+            }
+            QString v;
+            for(int i = 0; i < std::min(4, n); ++i)
               v += QString::asprintf("%.5f ", f[i]);
-            qDebug("score.gfx: STATEPROBE frame=%lld %s -> %s", (long long)fr,
-                   qPrintable(tag), qPrintable(v));
+            qDebug("score.gfx: STATEPROBE frame=%lld %s -> %s| nonzero %d/%d max %.5f",
+                   (long long)fr, qPrintable(tag), qPrintable(v), nz, n, mx);
             delete rb;
           };
-          res->readBackBuffer(b, 0, (int)std::min<qint64>(b->size(), 32), rb);
+          res->readBackBuffer(b, 0, (int)std::min<qint64>(b->size(), 16384), rb);
         }
       }
     }
