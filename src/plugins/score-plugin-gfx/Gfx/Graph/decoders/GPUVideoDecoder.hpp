@@ -6,6 +6,7 @@
 #include <Video/VideoInterface.hpp>
 
 extern "C" {
+#include <libavutil/frame.h>
 #include <libavutil/pixdesc.h>
 }
 
