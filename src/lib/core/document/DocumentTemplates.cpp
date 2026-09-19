@@ -92,6 +92,10 @@ void collect(const SearchDir& dir, bool recursive, std::vector<DocumentTemplate>
        && !summarizeZipArchive(fi.absoluteFilePath()))
       continue;
 
+    if(const auto info = ProjectInfo::peek(fi.absoluteFilePath());
+       info && !runsOnThisPlatform(info->platforms))
+      continue;
+
     QString category = root.relativeFilePath(fi.absolutePath());
     if(category == ".")
       category.clear();

@@ -6,6 +6,7 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/tools/File.hpp>
+#include <score/tools/Platforms.hpp>
 #include <score/tools/Zip.hpp>
 #include <score/widgets/FormWidget.hpp>
 #include <score/widgets/SetIcons.hpp>
@@ -21,6 +22,7 @@
 #include <QLineEdit>
 #include <QPlainTextEdit>
 #include <QPushButton>
+#include <QSignalBlocker>
 
 #include <wobjectimpl.h>
 
@@ -70,6 +72,7 @@ SCORE_PROJECTSETTINGS_PARAMETER_CPP(QString, Model, Url)
 SCORE_PROJECTSETTINGS_PARAMETER_CPP(QDateTime, Model, Created)
 SCORE_PROJECTSETTINGS_PARAMETER_CPP(QDateTime, Model, LastSaved)
 SCORE_PROJECTSETTINGS_PARAMETER_CPP(QByteArray, Model, Thumbnail)
+SCORE_PROJECTSETTINGS_PARAMETER_CPP(QString, Model, Platforms)
 SCORE_PROJECTSETTINGS_PARAMETER_CPP(bool, Model, AutomaticThumbnail)
 
 static QString dateText(const QDateTime& dt)
@@ -114,6 +117,30 @@ View::View()
   lay->addRow(tr("Web page"), m_url);
   connect(
       m_url, &QLineEdit::editingFinished, this, [this] { UrlChanged(m_url->text()); });
+
+  {
+    auto platforms = new QWidget{m_widg};
+    auto platLay = new QHBoxLayout{platforms};
+    platLay->setContentsMargins(0, 0, 0, 0);
+    platLay->setSpacing(10);
+
+    for(const auto& token : score::knownPlatforms())
+    {
+      auto box = new QCheckBox{score::platformName(token), platforms};
+      box->setChecked(true);
+      box->setProperty("platform", token);
+      connect(box, &QCheckBox::toggled, this, [this] {
+        PlatformsChanged(currentPlatformSelection());
+      });
+      platLay->addWidget(box);
+      m_platforms.push_back(box);
+    }
+    platLay->addStretch();
+    platforms->setToolTip(
+        tr("Where this score can run. Leave everything ticked unless it needs "
+           "something a platform does not have."));
+    lay->addRow(tr("Runs on"), platforms);
+  }
 
   // Both dates on one row
   auto dates = new QWidget{m_widg};
@@ -185,6 +212,32 @@ void View::setUrl(QString v)
     m_url->setText(v);
 }
 
+QString View::currentPlatformSelection() const
+{
+  QStringList checked;
+  for(auto box : m_platforms)
+    if(box->isChecked())
+      checked.push_back(box->property("platform").toString());
+
+  return checked.size() == m_platforms.size() ? QString{} : checked.join(' ');
+}
+
+void View::setPlatforms(QString v)
+{
+  if(currentPlatformSelection() == v)
+    return;
+
+  const auto allowed = v.split(' ', Qt::SkipEmptyParts);
+  for(auto box : m_platforms)
+  {
+    const QSignalBlocker block{box};
+    box->setChecked(
+        allowed.isEmpty() || allowed.contains(
+                                 box->property("platform").toString(),
+                                 Qt::CaseInsensitive));
+  }
+}
+
 void View::setCreated(QDateTime dt)
 {
   m_created->setText(dateText(dt));
@@ -246,6 +299,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   SETTINGS_PRESENTER(Author);
   SETTINGS_PRESENTER(Description);
   SETTINGS_PRESENTER(Url);
+  SETTINGS_PRESENTER(Platforms);
   SETTINGS_PRESENTER(Thumbnail);
   SETTINGS_PRESENTER(AutomaticThumbnail);
 
@@ -330,6 +384,7 @@ static std::optional<Info> parseInfo(const QByteArray& data)
       info.author = str("Author");
       info.description = str("Description");
       info.url = str("Url");
+      info.platforms = str("Platforms");
       info.created = QDateTime::fromString(str("Created"), Qt::ISODateWithMs);
       info.lastSaved = QDateTime::fromString(str("LastSaved"), Qt::ISODateWithMs);
       if(const auto thumb = str("Thumbnail"); !thumb.isEmpty())
@@ -349,7 +404,7 @@ template <>
 void DataStreamReader::read(const score::ProjectInfo::Model& m)
 {
   // Dates as ISO strings: the DataStream visitor has no QDateTime overload
-  m_stream << m.m_Name << m.m_Author << m.m_Description << m.m_Url
+  m_stream << m.m_Name << m.m_Author << m.m_Description << m.m_Url << m.m_Platforms
            << m.m_Created.toUTC().toString(Qt::ISODateWithMs)
            << m.m_LastSaved.toUTC().toString(Qt::ISODateWithMs) << m.m_Thumbnail
            << m.m_AutomaticThumbnail;
@@ -360,8 +415,8 @@ template <>
 void DataStreamWriter::write(score::ProjectInfo::Model& m)
 {
   QString created, saved;
-  m_stream >> m.m_Name >> m.m_Author >> m.m_Description >> m.m_Url >> created >> saved
-      >> m.m_Thumbnail >> m.m_AutomaticThumbnail;
+  m_stream >> m.m_Name >> m.m_Author >> m.m_Description >> m.m_Url >> m.m_Platforms
+      >> created >> saved >> m.m_Thumbnail >> m.m_AutomaticThumbnail;
   m.m_Created = QDateTime::fromString(created, Qt::ISODateWithMs);
   m.m_LastSaved = QDateTime::fromString(saved, Qt::ISODateWithMs);
   checkDelimiter();
@@ -374,6 +429,7 @@ void JSONReader::read(const score::ProjectInfo::Model& m)
   obj["Author"] = m.m_Author;
   obj["Description"] = m.m_Description;
   obj["Url"] = m.m_Url;
+  obj["Platforms"] = m.m_Platforms;
   // UTC with an explicit offset: unambiguous wherever the file is opened
   obj["Created"] = m.m_Created.toUTC().toString(Qt::ISODateWithMs);
   obj["LastSaved"] = m.m_LastSaved.toUTC().toString(Qt::ISODateWithMs);
@@ -393,6 +449,7 @@ void JSONWriter::write(score::ProjectInfo::Model& m)
   str("Author", m.m_Author);
   str("Description", m.m_Description);
   str("Url", m.m_Url);
+  str("Platforms", m.m_Platforms);
   if(auto v = obj.tryGet("Created"); v && v->isString())
     m.m_Created = QDateTime::fromString(v->toString(), Qt::ISODateWithMs);
   if(auto v = obj.tryGet("LastSaved"); v && v->isString())

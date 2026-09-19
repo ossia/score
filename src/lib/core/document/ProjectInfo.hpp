@@ -16,6 +16,7 @@
 #include <score_lib_base_export.h>
 
 #include <optional>
+#include <vector>
 #include <verdigris>
 
 class QLabel;
@@ -65,6 +66,7 @@ class SCORE_LIB_BASE_EXPORT Model final : public score::ProjectSettingsModel
   QString m_Author;
   QString m_Description;
   QString m_Url; // web page of the project: documentation, tutorial...
+  QString m_Platforms;
   QDateTime m_Created;
   QDateTime m_LastSaved;
   QByteArray m_Thumbnail; // PNG data, empty if none
@@ -93,6 +95,7 @@ public:
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_LIB_BASE_EXPORT, QString, Author)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_LIB_BASE_EXPORT, QString, Description)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_LIB_BASE_EXPORT, QString, Url)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_LIB_BASE_EXPORT, QString, Platforms)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_LIB_BASE_EXPORT, QDateTime, Created)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_LIB_BASE_EXPORT, QDateTime, LastSaved)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_LIB_BASE_EXPORT, QByteArray, Thumbnail)
@@ -103,6 +106,7 @@ SCORE_SETTINGS_PARAMETER(Model, Name)
 SCORE_SETTINGS_PARAMETER(Model, Author)
 SCORE_SETTINGS_PARAMETER(Model, Description)
 SCORE_SETTINGS_PARAMETER(Model, Url)
+SCORE_SETTINGS_PARAMETER(Model, Platforms)
 SCORE_SETTINGS_PARAMETER(Model, Thumbnail)
 SCORE_SETTINGS_PARAMETER(Model, AutomaticThumbnail)
 
@@ -120,6 +124,9 @@ public:
   void DescriptionChanged(QString arg) W_SIGNAL(DescriptionChanged, arg)
   void setUrl(QString);
   void UrlChanged(QString arg) W_SIGNAL(UrlChanged, arg)
+  void setPlatforms(QString);
+  QString currentPlatformSelection() const;
+  void PlatformsChanged(QString arg) W_SIGNAL(PlatformsChanged, arg)
   void setThumbnail(QByteArray);
   void ThumbnailChanged(QByteArray arg) W_SIGNAL(ThumbnailChanged, arg)
 
@@ -137,6 +144,7 @@ private:
   QLineEdit* m_author{};
   QPlainTextEdit* m_description{};
   QLineEdit* m_url{};
+  std::vector<QCheckBox*> m_platforms;
   QLabel* m_created{};
   QLabel* m_lastSaved{};
   QLabel* m_thumbnailPreview{};
@@ -167,6 +175,7 @@ struct SCORE_LIB_BASE_EXPORT Info
   QString author;
   QString description;
   QString url;
+  QString platforms;
   QDateTime created;
   QDateTime lastSaved;
   QImage thumbnail;
