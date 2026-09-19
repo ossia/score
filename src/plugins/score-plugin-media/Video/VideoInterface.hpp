@@ -45,9 +45,15 @@ struct SCORE_PLUGIN_MEDIA_EXPORT ImageFormat
   std::optional<AVContentLightMetadata> content_light{};
 #endif
 
+  /** How the source delivers fields, if it does. Set by whoever produces the
+   *  frames; `Fields` means `height` is the PICTURE height while each AVFrame
+   *  is half of it, which VideoNodeRenderer::needsRebuild knows about. */
+  Interlacing interlacing = ::Video::Interlacing::None;
+
   // Set by the user
   OutputFormat output_format = ::Video::OutputFormat::SDR;
   Tonemap tonemap = ::Video::Tonemap::Auto;
+  Deinterlace deinterlace = ::Video::Deinterlace::Weave;
 };
 
 struct SCORE_PLUGIN_MEDIA_EXPORT VideoMetadata : ImageFormat
