@@ -1,9 +1,11 @@
 #pragma once
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/model/Skin.hpp>
 #include <score/tools/ThreadPool.hpp>
 #include <score/widgets/Pixmap.hpp>
 
 #include <core/document/DocumentTemplates.hpp>
+#include <core/document/OnlineExamples.hpp>
 #include <core/document/ProjectInfo.hpp>
 #include <core/presenter/AboutWidget.hpp>
 #include <core/view/QRecentFilesMenu.h>
@@ -27,11 +29,15 @@
 #include <QPainter>
 #include <QPainterPath>
 #include <QPixmap>
+#include <QLocale>
 #include <QPlainTextEdit>
 #include <QPointer>
+#include <QMainWindow>
+#include <QScreen>
 #include <QScrollArea>
 #include <QSettings>
 #include <QStackedWidget>
+#include <QTextLayout>
 #include <QVBoxLayout>
 #include <QVersionNumber>
 
@@ -40,6 +46,7 @@
 #include <algorithm>
 #include <functional>
 #include <map>
+#include <set>
 #include <memory>
 #include <optional>
 #include <vector>
@@ -98,6 +105,7 @@ static const QColor Panel{
     0x21, 0x1f, 0x1f, 205}; // translucent: the artwork shows through
 static const QColor Card{"#2b2929"};
 static const QColor CardDark{"#161514"};
+static const QColor Scrim{0x16, 0x15, 0x14, 232};
 static const QColor Outline{"#3d3a3a"};
 static const QColor Text{"#f0f0f0"};
 static const QColor Muted{"#8a8a8a"};
@@ -117,6 +125,38 @@ QPixmap coverPixmap(const QImage& img, QSize size)
       (scaled.width() - size.width()) / 2, (scaled.height() - size.height()) / 2,
       size.width(), size.height()};
   return QPixmap::fromImage(scaled.copy(crop));
+}
+
+// Word-wrapped text, eliding the last line that fits.
+void drawWrappedText(QPainter& p, const QRect& rect, const QString& text)
+{
+  const QFontMetrics fm{p.font()};
+  const int lineSpacing = fm.lineSpacing();
+  int y = rect.top();
+
+  QTextLayout layout{text, p.font()};
+  layout.beginLayout();
+  for(;;)
+  {
+    QTextLine line = layout.createLine();
+    if(!line.isValid())
+      break;
+    line.setLineWidth(rect.width());
+
+    if(y + 2 * lineSpacing <= rect.bottom() + 1)
+    {
+      line.draw(&p, QPointF{qreal(rect.left()), qreal(y)});
+      y += lineSpacing;
+    }
+    else
+    {
+      p.drawText(
+          QRect{rect.left(), y, rect.width(), lineSpacing}, Qt::AlignLeft | Qt::AlignTop,
+          fm.elidedText(text.mid(line.textStart()), Qt::ElideRight, rect.width()));
+      break;
+    }
+  }
+  layout.endLayout();
 }
 }
 
@@ -525,6 +565,121 @@ private:
 /**
  * @brief A score presented as a card: thumbnail, name, author.
  */
+//! A titled section that folds its content away.
+class CategoryDrawer final : public QWidget
+{
+public:
+  CategoryDrawer(
+      const QFont& font, const QString& title, int count, int depth, QWidget* parent)
+      : QWidget{parent}
+      , m_font{font}
+      , m_title{title}
+      , m_count{count}
+      , m_depth{depth}
+  {
+    m_font.setCapitalization(depth == 0 ? QFont::AllUppercase : QFont::MixedCase);
+
+    auto lay = new QVBoxLayout{this};
+    lay->setContentsMargins(depth * Indent, 0, 0, 0);
+    lay->setSpacing(0);
+
+    m_header = new QWidget{this};
+    m_header->setFixedHeight(HeaderHeight);
+    m_header->setCursor(score::Skin::instance().CursorPointingHand);
+    m_header->installEventFilter(this);
+    lay->addWidget(m_header);
+
+    m_body = new QWidget{this};
+    m_bodyLayout = new QVBoxLayout{m_body};
+    m_bodyLayout->setContentsMargins(Indent, 2, 0, 8);
+    m_bodyLayout->setSpacing(6);
+    lay->addWidget(m_body);
+  }
+
+  QVBoxLayout* body() const noexcept { return m_bodyLayout; }
+
+  void setExpanded(bool e)
+  {
+    m_expanded = e;
+    m_body->setVisible(e);
+    m_header->update();
+  }
+
+  static constexpr int HeaderHeight = 26;
+  static constexpr int Indent = 12;
+
+protected:
+  bool eventFilter(QObject* obj, QEvent* ev) override
+  {
+    if(obj != m_header)
+      return QWidget::eventFilter(obj, ev);
+
+    switch(ev->type())
+    {
+      case QEvent::Paint: {
+        QPainter p{m_header};
+        p.setRenderHint(QPainter::Antialiasing, true);
+
+        const qreal cy = m_header->height() / 2.;
+        QPainterPath tri;
+        if(m_expanded)
+        {
+          tri.moveTo(2, cy - 2);
+          tri.lineTo(12, cy - 2);
+          tri.lineTo(7, cy + 4);
+        }
+        else
+        {
+          tri.moveTo(4, cy - 5);
+          tri.lineTo(10, cy);
+          tri.lineTo(4, cy + 5);
+        }
+        tri.closeSubpath();
+        p.fillPath(
+            tri, m_hovered ? StartScreenColors::Hover : StartScreenColors::Muted);
+
+        p.setFont(m_font);
+        p.setPen(m_hovered ? StartScreenColors::Hover : StartScreenColors::Text);
+        const QFontMetrics fm{m_font};
+        p.drawText(
+            QRect{18, 0, m_header->width() - 60, m_header->height()},
+            Qt::AlignLeft | Qt::AlignVCenter, m_title);
+
+        p.setPen(StartScreenColors::Muted);
+        p.drawText(
+            QRect{18 + fm.horizontalAdvance(m_title) + 8, 0, 50, m_header->height()},
+            Qt::AlignLeft | Qt::AlignVCenter, QString::number(m_count));
+        return true;
+      }
+      case QEvent::Enter:
+        m_hovered = true;
+        m_header->update();
+        return false;
+      case QEvent::Leave:
+        m_hovered = false;
+        m_header->update();
+        return false;
+      // On press: a plain QWidget ignores it, and the release goes to the parent.
+      case QEvent::MouseButtonPress:
+        setExpanded(!m_expanded);
+        return true;
+      default:
+        return QWidget::eventFilter(obj, ev);
+    }
+  }
+
+private:
+  QFont m_font;
+  QString m_title;
+  int m_count{};
+  int m_depth{};
+  QWidget* m_header{};
+  QWidget* m_body{};
+  QVBoxLayout* m_bodyLayout{};
+  bool m_expanded{true};
+  bool m_hovered{};
+};
+
 class ExampleCard final : public QWidget
 {
 public:
@@ -549,12 +704,25 @@ public:
 
   const QString& path() const noexcept { return m_path; }
 
+  void setDownloadSize(qint64 bytes)
+  {
+    m_size = bytes > 0 ? QLocale{}.formattedDataSize(bytes) : QString{};
+    update();
+  }
+
+  void setThumbnailImage(const QImage& img)
+  {
+    m_thumbnail = coverPixmap(img, {Width, ThumbHeight});
+    update();
+  }
+
   void setInfo(const ProjectInfo::Info& info)
   {
     if(!info.name.isEmpty())
       m_title = info.name;
     if(!info.author.isEmpty())
       m_subtitle = info.author;
+    m_description = info.description.simplified();
     m_thumbnail = coverPixmap(info.thumbnail, {Width, ThumbHeight});
     QString tip = m_title;
     if(!info.author.isEmpty())
@@ -597,6 +765,25 @@ protected:
       p.setOpacity(0.35);
       p.drawPixmap(QPointF{(Width - w) / 2., (ThumbHeight - h) / 2.}, placeholder);
       p.setOpacity(1.);
+    }
+
+    if(!m_size.isEmpty() && !m_hovered)
+    {
+      p.setFont(m_subFont);
+      const QFontMetrics fm{m_subFont};
+      const int w = fm.horizontalAdvance(m_size) + 10;
+      const QRect box{Width - w - 6, 6, w, fm.height() + 4};
+      p.fillRect(box, StartScreenColors::Scrim);
+      p.setPen(StartScreenColors::Muted);
+      p.drawText(box, Qt::AlignCenter, m_size);
+    }
+
+    if(m_hovered && !m_description.isEmpty())
+    {
+      p.fillRect(thumbRect, StartScreenColors::Scrim);
+      p.setPen(StartScreenColors::Text);
+      p.setFont(m_subFont);
+      drawWrappedText(p, thumbRect.adjusted(8, 7, -8, -7), m_description);
     }
     p.restore();
 
@@ -662,6 +849,8 @@ private:
   QFont m_subFont;
   QString m_title;
   QString m_subtitle;
+  QString m_description;
+  QString m_size;
   QString m_path;
   QPixmap m_thumbnail;
   bool m_hovered{};
@@ -726,6 +915,7 @@ protected:
   void paintEvent(QPaintEvent* event) override;
   void keyPressEvent(QKeyEvent* event) override;
   void closeEvent(QCloseEvent* event) override;
+  void showEvent(QShowEvent* event) override;
 
 private:
   struct Link
@@ -751,6 +941,19 @@ private:
       const std::vector<DocumentTemplate>& docs,
       std::function<void(const QString&)> onActivated, const Link& more);
   QWidget* createLinksPage(const QString& title, const std::vector<Link>& links);
+  struct ExampleEntry
+  {
+    QString name;
+    QString category;    //!< Path of the drawers it goes under, "a / b"
+    QString path;        //!< Local file; empty until an online one is installed
+    const OnlineExample* online{};
+  };
+
+  QWidget* makeCardGrid(const std::vector<ExampleEntry>& docs, QWidget* parent);
+  std::vector<ExampleEntry> gatherExamples() const;
+  void openOnlineExample(const OnlineExample& ex);
+  void refreshExamplesPage();
+  void requestThumbnail(const OnlineExample& ex, ExampleCard* card);
 
   int addPage(const QString& name, const QString& icon, QWidget* page);
   void setCurrentPage(int index);
@@ -805,6 +1008,8 @@ private:
   InteractiveLabel* m_crashLabel{};
   InteractiveLabel* m_joinLabel{};
   int m_templatesPage{};
+  int m_examplesPage{};
+  OnlineExamples m_online;
   ThumbnailPopup* m_preview{};
 
   std::map<QString, std::optional<ProjectInfo::Info>> m_infos;
@@ -873,7 +1078,14 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
   addPage(tr("Home"), "home", createHomePage(recentFiles));
   m_templatesPage
       = addPage(tr("Templates"), "new_file", [this] { return createTemplatesPage(); });
-  addPage(tr("Examples"), "load_examples", [this] { return createExamplesPage(); });
+  m_examplesPage
+      = addPage(tr("Examples"), "load_examples", [this] { return createExamplesPage(); });
+
+  m_online.loadCache();
+  connect(&m_online, &OnlineExamples::updated, this, [this] {
+    refreshExamplesPage();
+  });
+  m_online.refresh();
   addPage(
       tr("Learn"), "learn",
       createLinksPage(
@@ -913,6 +1125,7 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
 
   m_navLayout->addStretch();
 
+#if !defined(__EMSCRIPTEN__)
   auto exitLabel = makeItem(tr("Exit"), "exit", "", this);
   exitLabel->setLeftPadding(20);
   exitLabel->setItemHeight(40);
@@ -920,6 +1133,7 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
     choose([this] { exitApp(); });
   });
   m_navLayout->addWidget(exitLabel);
+#endif
 
   // Created last so that it is above every page
   m_preview = new ThumbnailPopup{m_itemFont, m_smallFont, this};
@@ -1273,17 +1487,212 @@ QWidget* StartScreen::createAboutPage()
 
 QWidget* StartScreen::createExamplesPage()
 {
-  return createCardsPage(
-      tr("Example scores"),
-      tr("Each example opens as a new, untitled score."),
-      tr("No example scores are installed yet. Examples are .score files in the "
-         "Examples folder of your user library (%1) or of an installed package.")
-          .arg(QDir::toNativeSeparators(libraryRootPath())),
-      availableExampleDocuments(), [this](const QString& path) { openExample(path); },
-      {tr("More examples online"),
-       "https://ossia.io/score-docs/examples",
-       "load_examples",
-       {}});
+  const auto docs = gatherExamples();
+  if(docs.empty())
+  {
+    return createCardsPage(
+        tr("Example scores"), {},
+        tr("No example scores are installed yet. Examples are .score files in the "
+           "Examples folder of your user library (%1) or of an installed package.")
+            .arg(QDir::toNativeSeparators(libraryRootPath())),
+        {}, {},
+        {tr("More examples online"),
+         "https://ossia.io/score-docs/examples",
+         "load_examples",
+         {}});
+  }
+
+  auto page = new QWidget;
+  auto lay = new QVBoxLayout{page};
+  lay->setContentsMargins(28, 24, 28, 16);
+  lay->setSpacing(8);
+  lay->addWidget(makeSectionTitle(tr("Example scores"), page));
+  lay->addWidget(
+      makeHint(tr("Each example opens as a new, untitled score."), page));
+
+  auto scroll = new QScrollArea{page};
+  scroll->setFrameShape(QFrame::NoFrame);
+  scroll->setWidgetResizable(true);
+  scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  scroll->viewport()->setAutoFillBackground(false);
+
+  auto container = new QWidget;
+  container->setAutoFillBackground(false);
+  auto containerLay = new QVBoxLayout{container};
+  containerLay->setContentsMargins(0, 4, 8, 4);
+  containerLay->setSpacing(2);
+
+  // Two levels at most; anything deeper folds into its parent.
+  std::map<QString, std::map<QString, std::vector<ExampleEntry>>> tree;
+  for(const auto& doc : docs)
+  {
+    auto parts = doc.category.split('/', Qt::SkipEmptyParts);
+    for(auto& p : parts)
+      p = p.trimmed();
+    const QString top = parts.empty() ? tr("Uncategorized") : parts.front();
+    const QString sub = parts.size() > 1 ? parts[1] : QString{};
+    tree[top][sub].push_back(doc);
+  }
+
+  bool first = true;
+  for(const auto& [top, subs] : tree)
+  {
+    int total = 0;
+    for(const auto& [sub, list] : subs)
+      total += list.size();
+
+    auto drawer = new CategoryDrawer{m_sectionFont, top, total, 0, container};
+    containerLay->addWidget(drawer);
+
+    for(const auto& [sub, list] : subs)
+    {
+      if(sub.isEmpty())
+      {
+        drawer->body()->addWidget(makeCardGrid(list, drawer));
+      }
+      else
+      {
+        auto inner
+            = new CategoryDrawer{m_itemFont, sub, int(list.size()), 1, drawer};
+        inner->body()->addWidget(makeCardGrid(list, inner));
+        drawer->body()->addWidget(inner);
+      }
+    }
+
+    drawer->setExpanded(first);
+    first = false;
+  }
+
+  containerLay->addStretch();
+  scroll->setWidget(container);
+  lay->addWidget(scroll, 1);
+
+  lay->addWidget(makeExternalLink(
+      {tr("More examples online"), "https://ossia.io/score-docs/examples",
+       "load_examples", {}},
+      page));
+  return page;
+}
+
+std::vector<StartScreen::ExampleEntry> StartScreen::gatherExamples() const
+{
+  std::vector<ExampleEntry> out;
+
+  std::set<QString> installed;
+  for(const auto& doc : availableExampleDocuments())
+  {
+    installed.insert(QFileInfo{doc.path}.absoluteFilePath());
+    out.push_back({doc.name, doc.category, doc.path, nullptr});
+  }
+
+  for(const auto& ex : m_online.examples())
+  {
+    // Once downloaded it is in the library, where the scan above finds it.
+    const auto local = OnlineExamples::localPath(ex);
+    if(!local.isEmpty() && installed.count(QFileInfo{local}.absoluteFilePath()))
+      continue;
+
+    QString category = ex.section;
+    if(!ex.group.isEmpty())
+      category += " / " + ex.group;
+    out.push_back({ex.name, category, {}, &ex});
+  }
+
+  return out;
+}
+
+void StartScreen::openOnlineExample(const OnlineExample& ex)
+{
+  if(m_actionTaken)
+    return;
+
+  if(!ex.page.isEmpty())
+  {
+    if(const QUrl url{ex.page}; url.isValid() && !url.scheme().isEmpty())
+      QDesktopServices::openUrl(url);
+  }
+
+  m_online.install(ex, [this](QString path) {
+    if(path.isEmpty())
+    {
+      score::warning(
+          this, tr("Download failed"),
+          tr("This example could not be downloaded. Check your connection and "
+             "try again."));
+      return;
+    }
+    choose([&] { openTemplate(path); });
+  });
+}
+
+void StartScreen::requestThumbnail(const OnlineExample& ex, ExampleCard* card)
+{
+  new HTTPGet{
+      QUrl{ex.image},
+      [card = QPointer{card}](const QByteArray& data) {
+    if(!card)
+      return;
+    if(QImage img; img.loadFromData(data))
+      card->setThumbnailImage(img);
+  },
+      [] { }};
+}
+
+void StartScreen::refreshExamplesPage()
+{
+  // Not yet built: it will use the new list when it first opens.
+  if(m_examplesPage <= 0 || m_pageFactories[m_examplesPage])
+    return;
+
+  auto host = m_pages->widget(m_examplesPage);
+  m_cards.clear();
+  qDeleteAll(host->findChildren<QWidget*>(Qt::FindDirectChildrenOnly));
+  host->layout()->addWidget(createExamplesPage());
+}
+
+QWidget* StartScreen::makeCardGrid(
+    const std::vector<ExampleEntry>& docs, QWidget* parent)
+{
+  auto holder = new QWidget{parent};
+  holder->setAutoFillBackground(false);
+  auto grid = new QGridLayout{holder};
+  grid->setContentsMargins(0, 0, 0, 0);
+  grid->setHorizontalSpacing(14);
+  grid->setVerticalSpacing(14);
+
+  static constexpr int columns = 3;
+  int i = 0;
+  for(const auto& doc : docs)
+  {
+    auto card = new ExampleCard{m_itemFont, m_smallFont, doc.name, {},
+                                doc.path,   holder};
+
+    if(const auto* online = doc.online)
+    {
+      ProjectInfo::Info info;
+      info.name = online->name;
+      info.description = online->description;
+      info.url = online->page;
+      card->setInfo(info);
+      card->setDownloadSize(online->size);
+      if(!online->image.isEmpty())
+        requestThumbnail(*online, card);
+
+      card->onActivated
+          = [this, ex = *online](const QString&) { openOnlineExample(ex); };
+    }
+    else
+    {
+      card->onActivated = [this](const QString& path) { openExample(path); };
+      requestInfo(doc.path);
+    }
+
+    grid->addWidget(card, i / columns, i % columns, Qt::AlignLeft | Qt::AlignTop);
+    m_cards.push_back(card);
+    i++;
+  }
+  grid->setColumnStretch(columns, 1);
+  return holder;
 }
 
 QWidget* StartScreen::createCardsPage(
@@ -1460,6 +1869,9 @@ void StartScreen::reopen()
 
 void StartScreen::checkForNewVersion()
 {
+#if defined(__EMSCRIPTEN__)
+  return;
+#else
   // The request itself is asynchronous (QNetworkAccessManager); the reply is
   // handled on the GUI thread and only then touches the widgets.
   auto& tp = score::ThreadPool::instance();
@@ -1484,6 +1896,7 @@ void StartScreen::checkForNewVersion()
       });
     });
   });
+#endif
 }
 
 void StartScreen::showUpdateAvailable(const QString& version)
@@ -1537,6 +1950,21 @@ void StartScreen::paintEvent(QPaintEvent* event)
   painter.fillRect(
       QRect{NavWidth, HeaderHeight, Width - NavWidth, Height - HeaderHeight},
       StartScreenColors::Panel);
+}
+
+void StartScreen::showEvent(QShowEvent* event)
+{
+  QWidget::showEvent(event);
+
+  // No window manager in the browser, and none places a frameless dialog.
+  QRect ref;
+  if(auto* main = score::GUIAppContext().mainWindow; main && main->isVisible())
+    ref = main->frameGeometry();
+  else if(const auto* scr = screen() ? screen() : QGuiApplication::primaryScreen())
+    ref = scr->availableGeometry();
+
+  if(ref.isValid())
+    move(ref.center() - QPoint{width() / 2, height() / 2});
 }
 
 void StartScreen::keyPressEvent(QKeyEvent* event)
