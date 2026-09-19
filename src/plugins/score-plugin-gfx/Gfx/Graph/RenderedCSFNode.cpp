@@ -1249,6 +1249,12 @@ void RenderedCSFNode::updateGeometryBindings(
             break;
           const auto& req = geo_input->attributes[attr_idx];
           auto& ssbo = binding.attribute_ssbos[attr_idx];
+          if(ssbo.read_buffer && ssbo.read_buffer_is_snapshot)
+          {
+            renderer.releaseBuffer(ssbo.read_buffer);
+            ssbo.read_buffer = nullptr;
+            ssbo.read_buffer_is_snapshot = false;
+          }
           if(req.access == "read_write" && !ssbo.read_buffer)
           {
             const int64_t elem_stride = std430ArrayStride(req.type, n.m_descriptor);
@@ -3771,7 +3777,10 @@ void RenderedCSFNode::buildComputeSrbBindings(
                   ssbo.buffer->size());
               snap->setName(QByteArray("CSF_GeomSnap_") + req.name.c_str());
               if(snap->create())
+              {
                 ssbo.read_buffer = snap;
+                ssbo.read_buffer_is_snapshot = true;
+              }
               else
                 delete snap;
             }
