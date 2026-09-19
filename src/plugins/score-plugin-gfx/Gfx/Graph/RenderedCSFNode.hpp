@@ -172,6 +172,11 @@ private:
     {
       QRhiBuffer* buffer{};       // GPU SSBO for this attribute (write target / primary)
       QRhiBuffer* read_buffer{};  // Separate read buffer for ping-pong (nullptr = use buffer for both)
+      // read_buffer is a per-frame SNAPSHOT rather than a ping-pong half. The
+      // two are not interchangeable: a snapshot is refreshed by a copy and is
+      // skipped for feedback receivers, so a node promoted to owning a loop
+      // must trade it for a real pair or it reads frozen contents forever.
+      bool read_buffer_is_snapshot{false};
       int64_t size{};             // Current buffer size in bytes
       bool owned{true};           // true = we created it; false = referencing upstream gpu_buffer
       std::string name;           // e.g. "position", "velocity"
