@@ -511,6 +511,10 @@ score_add_gfx_test(geometry_buffer_rebind GfxGeometryBufferRebind.cpp)
 # previous state, by snapshot (non-feedback) or by ping-pong swap (feedback).
 # Case 3 is committed red: it states the stale-snapshot bug on VERTEX_COUNT growth.
 score_add_gfx_test(csf_readwrite_state GfxCsfReadWriteState.cpp)
+# State must travel around a Delayed* geometry edge and advance, which is the
+# shape csf-reaction-diffusion has and the property three separate defects broke
+# while still leaving a picture on screen.
+score_add_gfx_test(csf_feedback_loop GfxCsfFeedbackLoop.cpp)
 score_add_gfx_test(depth_sampler   GfxDepthSampler.cpp)
 score_add_gfx_test(storage_visibility GfxStorageVisibility.cpp)
 score_add_gfx_test(multiview       GfxMultiview.cpp)
