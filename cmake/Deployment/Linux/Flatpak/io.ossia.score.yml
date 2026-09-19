@@ -8,7 +8,7 @@ build-options:
   env:
     CC: /usr/lib/sdk/llvm21/bin/clang
     CXX: /usr/lib/sdk/llvm21/bin/clang++
-command: ossia-score
+command: score-launcher
 rename-desktop-file: ossia-score.desktop
 rename-icon: ossia-score
 rename-appdata-file: ossia-score.appdata.xml
@@ -131,6 +131,10 @@ modules:
       - type: dir
         path: ../../../../
 
+      # The launcher is a separate name rather than a wrapper around a renamed
+      # ossia-score: Qt builds the X11 WM_CLASS instance from argv[0] and the
+      # Wayland app_id from /proc/self/exe, and both have to stay "ossia-score"
+      # for StartupWMClass= in the desktop entry to match the window.
       - type: script
         dest-filename: run
         commands:
@@ -138,7 +142,7 @@ modules:
           - export VST_PATH="/app/extensions/Plugins/vst"
           - export VST3_PATH="/app/extensions/Plugins/vst3"
           - export CLAP_PATH="/app/extensions/Plugins/clap"
-          - exec ossia-score.bin "$@"
+          - exec ossia-score "$@"
 
     config-opts:
       # Note: don't use RelWithDebInfo as ossia release builds explicitly expect Release build type.
@@ -158,10 +162,9 @@ modules:
       - -DBOOST_ROOT="${FLATPAK_DEST}/include"
 
     post-install:
-      - install -Dm755 "${FLATPAK_DEST}/bin/ossia-score" "${FLATPAK_DEST}/bin/ossia-score.bin"
       - install -Dm755 /usr/lib/sdk/llvm21/lib/libLLVM.so.21.1 "${FLATPAK_DEST}/lib/"
       - install -Dm755 /usr/lib/sdk/llvm21/lib/libclang-cpp.so.21.1 "${FLATPAK_DEST}/lib/"
       - cp -rf /usr/lib/sdk/llvm21/include/* "${FLATPAK_DEST}/include/"
       - cp -rf /usr/include/* "${FLATPAK_DEST}/include/"
-      - install -Dm755 ../run "${FLATPAK_DEST}/bin/ossia-score"
+      - install -Dm755 ../run "${FLATPAK_DEST}/bin/score-launcher"
       - install -d /app/extensions/Plugins
