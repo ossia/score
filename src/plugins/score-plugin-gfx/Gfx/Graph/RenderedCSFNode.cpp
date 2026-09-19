@@ -3820,6 +3820,25 @@ void RenderedCSFNode::buildComputeSrbBindings(
                          (long long)ssbo.buffer->size(), warned);
             }
 
+            // Invariant: a feedback receiver owns the pair it swaps. If it is
+            // holding a borrowed buffer it has adopted the shared upstream
+            // handle, which clobbers ssbo.buffer and undoes its own swap -- its
+            // read half is then a buffer nothing ever writes, and its
+            // pass-through zeroes the loop one frame later (ledger 9.99). Like
+            // the size check above this is verified here rather than in a test:
+            // three fixture tests were written for it and all three passed with
+            // the defect present, because the fixture never reproduces the
+            // pointer-identity path that makes a node a feedback receiver.
+            if(binding.is_feedback_receiver && ssbo.read_buffer && !ssbo.owned)
+            {
+              static int warned = 0;
+              if((warned++ % 600) == 0)
+                qWarning("score.gfx: geometry attribute '%s': feedback receiver is "
+                         "ping-ponging a borrowed buffer, so its swap is undone by "
+                         "adoption every frame (occurrence %d)",
+                         req.name.c_str(), warned);
+            }
+
             QRhiBuffer* read_buf = (ssbo.read_buffer && !binding.pending_initial_copy)
                 ? ssbo.read_buffer : ssbo.buffer;
             if(Q_UNLIKELY(qEnvironmentVariableIsSet("SCORE_CSF_PPPROBE")))
