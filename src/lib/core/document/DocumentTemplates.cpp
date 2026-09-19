@@ -2,8 +2,12 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DocumentTemplates.hpp"
 
+#include <score/tools/Platforms.hpp>
 #include <score/tools/Zip.hpp>
 
+#include <core/document/ProjectInfo.hpp>
+
+#include <QCoreApplication>
 #include <QDir>
 #include <QDirIterator>
 #include <QFile>
@@ -11,6 +15,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QSettings>
+#include <QStandardPaths>
 
 #include <algorithm>
 
@@ -23,7 +28,17 @@ QString libraryRootPath()
 {
   // FIXME we can't access Library::Settings::Model from the base library
   QSettings set;
-  return set.value("Library/RootPath").toString();
+  if(const auto stored = set.value("Library/RootPath").toString(); !stored.isEmpty())
+    return stored;
+
+  // Same default as Library::Settings::Model, for when it never stored one.
+  const auto docs = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
+  if(docs.isEmpty())
+    return {};
+  return QStringLiteral("%1/%2/%3")
+      .arg(
+          docs[0], QCoreApplication::organizationName(),
+          QCoreApplication::applicationName());
 }
 
 namespace
