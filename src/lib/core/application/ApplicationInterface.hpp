@@ -73,5 +73,8 @@ public:
 
   void requestExit();
   void forceExit();
+
+  //! Implemented by the application that owns one; a no-op otherwise.
+  virtual void showStartScreen();
 };
 }

@@ -8,6 +8,7 @@
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <score/widgets/HelpInteraction.hpp>
 
+#include <core/application/ApplicationInterface.hpp>
 #include <core/presenter/CoreActions.hpp>
 #include <core/settings/Settings.hpp>
 #include <core/settings/SettingsView.hpp>
@@ -17,6 +18,7 @@
 #include <QDesktopServices>
 #include <QUrl>
 
+SCORE_DECLARE_ACTION(StartScreen, "&Start Screen", Common, QKeySequence::UnknownKey)
 SCORE_DECLARE_ACTION(Website, "&Website", Common, QKeySequence::UnknownKey)
 SCORE_DECLARE_ACTION(Documentation, "&Documentation", Common, QKeySequence::UnknownKey)
 SCORE_DECLARE_ACTION(Issues, "&Report Issues", Common, QKeySequence::UnknownKey)
@@ -301,6 +303,18 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     }
 
     ////// About /////
+    {
+      auto start_act = new QAction(m_presenter.view());
+      score::setHelp(
+          start_act, tr("Show the start screen: templates, examples and recent scores"));
+      connect(start_act, &QAction::triggered, this, [] {
+        score::GUIApplicationInterface::instance().showStartScreen();
+      });
+      e.actions.add<Actions::StartScreen>(start_act);
+      about->addAction(start_act);
+      about->addSeparator();
+    }
+
     {
       auto about_act = new QAction(m_presenter.view());
       score::setHelp(about_act, tr("About ossia score"));
