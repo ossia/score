@@ -3762,6 +3762,20 @@ void RenderedCSFNode::buildComputeSrbBindings(
             // On the first feedback frame (pending_initial_copy), use the same
             // buffer for both _in and _out so the shader can init + simulate
             // in the same frame.  After the frame we copy buffer->read_buffer.
+            if(!binding.is_feedback_receiver && !ssbo.read_buffer && ssbo.buffer
+               && ssbo.buffer->size() > 0)
+            {
+              auto* snap = rhi.newBuffer(
+                  QRhiBuffer::Static,
+                  QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer,
+                  ssbo.buffer->size());
+              snap->setName(QByteArray("CSF_GeomSnap_") + req.name.c_str());
+              if(snap->create())
+                ssbo.read_buffer = snap;
+              else
+                delete snap;
+            }
+
             QRhiBuffer* read_buf = (ssbo.read_buffer && !binding.pending_initial_copy)
                 ? ssbo.read_buffer : ssbo.buffer;
             if(Q_UNLIKELY(qEnvironmentVariableIsSet("SCORE_CSF_PPPROBE")))
@@ -4991,6 +5005,34 @@ void RenderedCSFNode::runInitialPasses(
 
       commands.endComputePass();
       res = renderer.state.rhi->nextResourceUpdateBatch();
+    }
+  }
+
+  {
+    std::vector<std::pair<QRhiBuffer*, QRhiBuffer*>> snaps;
+    for(auto& binding : m_geometryBindings)
+    {
+      if(binding.is_feedback_receiver)
+        continue;
+      for(auto& ssbo : binding.attribute_ssbos)
+        if(ssbo.read_buffer && ssbo.buffer && ssbo.read_buffer != ssbo.buffer)
+          snaps.push_back({ssbo.buffer, ssbo.read_buffer});
+    }
+
+    if(!snaps.empty())
+    {
+      commands.beginExternal();
+      beginBufferCopyBarrier(*renderer.state.rhi, commands);
+      for(auto& [src, dst] : snaps)
+      {
+        const int sz = (int)std::min(src->size(), dst->size());
+        if(sz > 0)
+          copyBuffer(
+              *renderer.state.rhi, commands, src, dst, sz, 0, 0,
+              BufferCopyBarrier::None);
+      }
+      endBufferCopyBarrier(*renderer.state.rhi, commands);
+      commands.endExternal();
     }
   }
 
