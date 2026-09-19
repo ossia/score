@@ -155,6 +155,7 @@ set(HDRS
     Gfx/Filter/Library.hpp
     Gfx/Filter/PreviewWidget.hpp
 
+    Gfx/Widgets/CameraPreviewWidget.hpp
     Gfx/Widgets/RhiPreviewWidget.hpp
 
     Gfx/GeometryFilter/Executor.hpp
@@ -448,6 +449,7 @@ set(SRCS
     Gfx/Filter/Process.cpp
     Gfx/Filter/PreviewWidget.cpp
 
+    Gfx/Widgets/CameraPreviewWidget.cpp
     Gfx/Widgets/RhiPreviewWidget.cpp
 
     Gfx/GeometryFilter/Executor.cpp

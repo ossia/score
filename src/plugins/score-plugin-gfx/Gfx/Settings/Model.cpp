@@ -254,9 +254,37 @@ int Model::resolveSamples(score::gfx::GraphicsApi api, int requested) noexcept
 
 int samplesForCurrentApplication(score::gfx::GraphicsApi api) noexcept
 {
-  if(!score::ApplicationInterface::hasInstance())
-    return Model::resolveSamples(api, 1);
-  return score::AppContext().settings<Model>().resolveSamples(api);
+  // findSettings, not settings: an application exists in test and tool
+  // harnesses without the gfx settings model being registered, and settings<>
+  // aborts on that.
+  if(score::ApplicationInterface::hasInstance())
+    if(auto* m = score::AppContext().findSettings<Model>())
+      return m->resolveSamples(api);
+  return Model::resolveSamples(api, 1);
+}
+
+score::gfx::GraphicsApi graphicsApiForCurrentApplication() noexcept
+{
+  if(score::ApplicationInterface::hasInstance())
+    if(auto* m = score::AppContext().findSettings<Model>())
+      return m->graphicsApiEnum();
+
+#if defined(Q_OS_MACOS) || defined(Q_OS_IOS)
+  return score::gfx::Metal;
+#elif defined(Q_OS_WIN)
+  return score::gfx::D3D11;
+#else
+  return score::gfx::Vulkan;
+#endif
+}
+
+double renderRateForCurrentApplication() noexcept
+{
+  double rate = 0.;
+  if(score::ApplicationInterface::hasInstance())
+    if(auto* m = score::AppContext().findSettings<Model>())
+      rate = m->getRate();
+  return rate > 0. ? rate : 60.;
 }
 
 score::gfx::GraphicsApi Model::graphicsApiEnum() const noexcept

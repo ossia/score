@@ -18,12 +18,8 @@ struct BackgroundNode : OutputNode
       : m_deviceMode{deviceMode}
   {
     input.push_back(new Port{this, {}, Types::Image, {}});
-    auto& ctx = score::GUIAppContext();
-    auto& settings = ctx.settings<Gfx::Settings::Model>();
-    double settings_rate = settings.getRate();
-    if(settings_rate <= 0.)
-      settings_rate = 60.;
-    m_conf = {.manualRenderingRate = 1000. / settings_rate};
+    m_conf = {
+        .manualRenderingRate = 1000. / Gfx::Settings::renderRateForCurrentApplication()};
   }
 
   virtual ~BackgroundNode() { destroyOutput(); }
