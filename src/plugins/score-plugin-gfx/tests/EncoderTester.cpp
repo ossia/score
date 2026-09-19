@@ -285,8 +285,8 @@ struct PlaneSpec
 struct FramestoreLayout
 {
   const char* name;
-  score::gfx::interop::VideoPixelFormat packedFmt;  // what to ask for, packed
-  score::gfx::interop::VideoPixelFormat planeFmt;   // the plane-based twin
+  Video::VideoPixelFormat packedFmt;  // what to ask for, packed
+  Video::VideoPixelFormat planeFmt;   // the plane-based twin
   int rowsNum, rowsDen;    // framestore rows = height * num / den
   int primaryBytesPerPixel;
   /// 1 for the 8-bit layouts, 2 for the 16-bit ones, which must be compared as
@@ -358,9 +358,9 @@ void diagnosePackedRowStride(QRhi& rhi, const RenderState& state, int W, int H)
       AVCOL_SPC_BT709, AVCOL_TRC_BT709, AVCOL_RANGE_MPEG, AVCOL_PRI_BT709);
 
   auto packed = score::gfx::makeWireEncoder(
-      score::gfx::interop::VideoPixelFormat::NV12, true);
+      Video::VideoPixelFormat::NV12, true);
   auto planar = score::gfx::makeWireEncoder(
-      score::gfx::interop::VideoPixelFormat::NV12, false);
+      Video::VideoPixelFormat::NV12, false);
   packed->init(rhi, state, input, W, H, matrix);
   planar->init(rhi, state, input, W, H, matrix);
   packed->setReadbackEnabled(true);
@@ -448,9 +448,9 @@ void diagnoseP216RowStride(QRhi& rhi, const RenderState& state, int W, int H)
   const QString matrix = colorMatrixOut(
       AVCOL_SPC_BT709, AVCOL_TRC_BT709, AVCOL_RANGE_MPEG, AVCOL_PRI_BT709);
   auto packed = score::gfx::makeWireEncoder(
-      score::gfx::interop::VideoPixelFormat::P216, true);
+      Video::VideoPixelFormat::P216, true);
   auto planar = score::gfx::makeWireEncoder(
-      score::gfx::interop::VideoPixelFormat::P216, false);
+      Video::VideoPixelFormat::P216, false);
   packed->init(rhi, state, input, W, H, matrix);
   planar->init(rhi, state, input, W, H, matrix);
   packed->setReadbackEnabled(true);
@@ -485,7 +485,7 @@ void diagnoseP216RowStride(QRhi& rhi, const RenderState& state, int W, int H)
 
 void testContiguousFramestore(QRhi& rhi, const RenderState& state)
 {
-  using F = score::gfx::interop::VideoPixelFormat;
+  using F = Video::VideoPixelFormat;
   std::printf("\ncontiguous framestore == planes, byte for byte:\n");
 
   const FramestoreLayout layouts[] = {

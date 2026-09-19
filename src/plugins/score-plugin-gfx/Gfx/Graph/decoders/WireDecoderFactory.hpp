@@ -2,13 +2,13 @@
 
 /**
  * @file WireDecoderFactory.hpp
- * @brief Vendor-neutral GPU-decoder selection keyed on VideoPixelFormat.
+ * @brief Vendor-neutral GPU-decoder selection keyed on Video::VideoPixelFormat.
  *
  * The capture-side symmetric counterpart to encoders/WireEncoderFactory.hpp:
  * turns "the on-wire pixel format a card delivers" into the GPUVideoDecoder that
  * unpacks those bytes into RGBA at sample time. The switch lives here so that a
  * capture-card addon (AJA, and future DeckLink/Bluefish/Magewell/Deltacast)
- * only has to map its vendor enum -> VideoPixelFormat.
+ * only has to map its vendor enum -> Video::VideoPixelFormat.
  *
  * Returns nullptr for formats with no capture decoder yet. The decoder
  * allocates an input texture sized to the wire byte layout (the strategy DMAs
@@ -36,7 +36,7 @@
 #include <Gfx/Graph/decoders/YUV420P10.hpp>
 #include <Gfx/Graph/decoders/P210.hpp>
 #include <Gfx/Graph/decoders/YUYV422.hpp>
-#include <Gfx/Graph/interop/VideoPixelFormat.hpp>
+#include <Video/VideoPixelFormat.hpp>
 
 #include <Video/VideoInterface.hpp>
 
@@ -46,9 +46,9 @@ namespace score::gfx
 {
 
 inline std::unique_ptr<GPUVideoDecoder>
-makeWireDecoder(score::gfx::interop::VideoPixelFormat fmt, Video::ImageFormat& d)
+makeWireDecoder(Video::VideoPixelFormat fmt, Video::ImageFormat& d)
 {
-  using F = score::gfx::interop::VideoPixelFormat;
+  using F = Video::VideoPixelFormat;
   switch(fmt)
   {
     // -- packed 8-bit YUV 4:2:2 --

@@ -25,7 +25,7 @@
 #include <Gfx/Graph/interop/CpuStagedVideoOutput.hpp> // HostStagedPlane
 #include <Gfx/Graph/interop/PacedFramePump.hpp>
 #include <Gfx/Graph/interop/VendorDmaRegistrar.hpp>
-#include <Gfx/Graph/interop/VideoPixelFormat.hpp>
+#include <Video/VideoPixelFormat.hpp>
 
 #include <score_plugin_gfx_export.h>
 
@@ -77,12 +77,12 @@ struct SCORE_PLUGIN_GFX_EXPORT DirectVideoOutputBackend
   virtual bool isOpen() const noexcept = 0;
 
   /// The on-wire pixel format the card framestore expects (-> makeWireEncoder).
-  virtual interop::VideoPixelFormat wireFormat() const noexcept = 0;
+  virtual Video::VideoPixelFormat wireFormat() const noexcept = 0;
 
   /// The pixel format the GPU encoder should *produce*. Equals wireFormat()
   /// unless a CPU repack bridges them (e.g. AJA v210 at non-mod-6 widths emits
   /// UYVY on the GPU and packs to v210 in customStage). Default: wireFormat().
-  virtual interop::VideoPixelFormat encoderFormat() const noexcept
+  virtual Video::VideoPixelFormat encoderFormat() const noexcept
   {
     return wireFormat();
   }

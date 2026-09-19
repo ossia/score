@@ -4,7 +4,7 @@
 #include <Gfx/Graph/encoders/GPUVideoEncoder.hpp>
 #include <Gfx/Graph/interop/GpuCapabilities.hpp>
 #include <Gfx/Graph/interop/HostPinnedRing.hpp>
-#include <Gfx/Graph/interop/VideoPixelFormat.hpp>
+#include <Video/VideoPixelFormat.hpp>
 
 #include <QDebug>
 #include <QtGui/private/qrhi_p.h>
@@ -216,7 +216,7 @@ bool CpuStagedVideoOutput::init(
       rc.rhi = s->cfg.rhi;
       rc.caps = s->cfg.caps;
       rc.direction = HostPinnedDirection::TextureToBuffer;
-      rc.format = VideoPixelFormat::RGBA8;
+      rc.format = Video::VideoPixelFormat::RGBA8;
       rc.width = std::uint32_t(ts.width());
       rc.height = std::uint32_t(ts.height());
       rc.stride = stride;

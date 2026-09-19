@@ -8,7 +8,7 @@ constexpr auto drmFcc = drmPixelFourcc;
 
 // A DRM fourcc reads in machine-word order, so the memory byte order is the
 // reverse of the name. The comments give the memory order, which is what a
-// VideoPixelFormat names.
+// Video::VideoPixelFormat names.
 constexpr uint32_t kArgb8888 = drmFcc('A', 'R', '2', '4');     // B,G,R,A
 constexpr uint32_t kAbgr8888 = drmFcc('A', 'B', '2', '4');     // R,G,B,A
 constexpr uint32_t kXrgb8888 = drmFcc('X', 'R', '2', '4');     // B,G,R,X
@@ -43,9 +43,9 @@ constexpr uint32_t kR8 = drmFcc('R', '8', ' ', ' ');
 constexpr uint32_t kR16 = drmFcc('R', '1', '6', ' ');
 } // namespace
 
-VideoPixelFormat fromDrmFourcc(uint32_t fourcc) noexcept
+Video::VideoPixelFormat fromDrmFourcc(uint32_t fourcc) noexcept
 {
-  using V = VideoPixelFormat;
+  using V = Video::VideoPixelFormat;
   switch(fourcc)
   {
     case kArgb8888:      return V::BGRA8;
@@ -84,9 +84,9 @@ VideoPixelFormat fromDrmFourcc(uint32_t fourcc) noexcept
   }
 }
 
-uint32_t toDrmFourcc(VideoPixelFormat f) noexcept
+uint32_t toDrmFourcc(Video::VideoPixelFormat f) noexcept
 {
-  using V = VideoPixelFormat;
+  using V = Video::VideoPixelFormat;
   switch(f)
   {
     case V::BGRA8:   return kArgb8888;

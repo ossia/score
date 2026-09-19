@@ -54,7 +54,7 @@ AVCodecID ff_fmt_v4l2codec(uint32_t v4l2_fmt)
     if(c.v4l2_fmt == v4l2_fmt)
       return c.codec_id;
   return score::gfx::interop::fromV4L2PixelFormat(v4l2_fmt)
-                 != score::gfx::interop::VideoPixelFormat::Unknown
+                 != Video::VideoPixelFormat::Unknown
              ? AV_CODEC_ID_RAWVIDEO
              : AV_CODEC_ID_NONE;
 }

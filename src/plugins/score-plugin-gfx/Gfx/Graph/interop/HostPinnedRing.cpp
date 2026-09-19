@@ -2,7 +2,7 @@
 
 #include <Gfx/Graph/interop/AmdPinnedBuffers.hpp>
 #include <Gfx/Graph/interop/CudaFunctions.hpp>
-#include <Gfx/Graph/interop/VideoPixelFormat.hpp>
+#include <Video/VideoPixelFormat.hpp>
 
 #include <private/qrhi_p.h>
 
@@ -36,16 +36,16 @@ namespace score::gfx::interop
 namespace
 {
 
-// Stride comes from the shared interop::defaultStride(VideoPixelFormat) — it
+// Stride comes from the shared interop::defaultStride(Video::VideoPixelFormat) — it
 // implements the V210 (width+47)/48*128 rule and the packed RGB/UYVY rules.
 
-NvDvpFormat toDvpFormat(VideoPixelFormat f) noexcept
+NvDvpFormat toDvpFormat(Video::VideoPixelFormat f) noexcept
 {
   // DVP knows RGBA8 / BGRA8 only. Packed-YUV slots are passed as RGBA8 with a
   // stride that already encodes the packing; the decode shader downstream
   // unpacks. The DVP DMA doesn't care about pixel meaning, only
   // stride × height × bytes-per-pixel.
-  return (f == VideoPixelFormat::BGRA8) ? NV_DVP_FORMAT_BGRA8
+  return (f == Video::VideoPixelFormat::BGRA8) ? NV_DVP_FORMAT_BGRA8
                                         : NV_DVP_FORMAT_RGBA8;
 }
 
@@ -520,7 +520,7 @@ struct HostPinnedRing::Impl
     constexpr unsigned int GL_BGRA_v = 0x80E1;
     constexpr unsigned int GL_UNSIGNED_BYTE_v = 0x1401;
     const unsigned int glFmt
-        = (cfg.format == VideoPixelFormat::BGRA8) ? GL_BGRA_v : GL_RGBA_v;
+        = (cfg.format == Video::VideoPixelFormat::BGRA8) ? GL_BGRA_v : GL_RGBA_v;
 
     funcs->glBindBuffer(GL_PIXEL_UNPACK_BUFFER_v, amdSlotGlBuffers[i]);
     funcs->glBindTexture(GL_TEXTURE_2D_v, texId);
@@ -554,7 +554,7 @@ struct HostPinnedRing::Impl
     constexpr unsigned int GL_BGRA_v = 0x80E1;
     constexpr unsigned int GL_UNSIGNED_BYTE_v = 0x1401;
     const unsigned int glFmt
-        = (cfg.format == VideoPixelFormat::BGRA8) ? GL_BGRA_v : GL_RGBA_v;
+        = (cfg.format == Video::VideoPixelFormat::BGRA8) ? GL_BGRA_v : GL_RGBA_v;
 
     funcs->glBindBuffer(GL_PIXEL_PACK_BUFFER_v, amdSlotGlBuffers[i]);
     funcs->glBindTexture(GL_TEXTURE_2D_v, texId);

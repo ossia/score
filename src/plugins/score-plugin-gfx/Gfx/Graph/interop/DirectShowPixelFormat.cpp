@@ -7,9 +7,9 @@ namespace
 constexpr auto fcc = directShowFourcc;
 }
 
-VideoPixelFormat fromDirectShowFourcc(uint32_t fourcc) noexcept
+Video::VideoPixelFormat fromDirectShowFourcc(uint32_t fourcc) noexcept
 {
-  using V = VideoPixelFormat;
+  using V = Video::VideoPixelFormat;
 
   // -- packed 4:2:2, 8-bit --
   if(fourcc == fcc('Y', 'U', 'Y', '2') || fourcc == fcc('Y', 'U', 'Y', 'V'))

@@ -2,7 +2,7 @@
 
 /**
  * @file WireEncoderFactory.hpp
- * @brief Vendor-neutral GPU-encoder selection keyed on VideoPixelFormat.
+ * @brief Vendor-neutral GPU-encoder selection keyed on Video::VideoPixelFormat.
  *
  * Every capture-card addon needs to turn "the on-wire pixel format the card
  * wants" into "the GPU encoder that produces those exact bytes". AJA, DeckLink,
@@ -11,20 +11,20 @@
  * vendor enum.
  *
  * The addon's job shrinks to a one-line translation table
- * (`vendorFmt -> VideoPixelFormat`); the actual encoder choice + the byte-layout
+ * (`vendorFmt -> Video::VideoPixelFormat`); the actual encoder choice + the byte-layout
  * knowledge lives here, once.
  *
- *   - `makeWireEncoder(VideoPixelFormat)` -> render (fragment) encoder. Default
+ *   - `makeWireEncoder(Video::VideoPixelFormat)` -> render (fragment) encoder. Default
  *     output path (works on every QRhi backend).
- *   - `makeWireComputeEncoder(VideoPixelFormat)` -> compute encoder for the
+ *   - `makeWireComputeEncoder(Video::VideoPixelFormat)` -> compute encoder for the
  *     GPU-direct path that writes straight into an imported buffer.
- *   - `wireComputeSupports(VideoPixelFormat, width)` -> whether the compute
+ *   - `wireComputeSupports(Video::VideoPixelFormat, width)` -> whether the compute
  *     encoder can handle that (format, width) (v210 needs width % 6 == 0, etc).
  *
  * Both return nullptr for formats with no GPU encoder yet (e.g. P210, Mono,
  * Bayer); callers fall back / report unsupported. The mapping reproduces exactly
  * the encoders the AJA path validated on hardware, so an addon that maps its
- * vendor enum to the matching VideoPixelFormat gets byte-identical output.
+ * vendor enum to the matching Video::VideoPixelFormat gets byte-identical output.
  */
 
 #include <Gfx/Graph/encoders/BGRA.hpp>
@@ -44,7 +44,7 @@
 #include <Gfx/Graph/encoders/YUV422P10.hpp>
 #include <Gfx/Graph/encoders/YUVPlanar.hpp>
 #include <Gfx/Graph/encoders/YUY2.hpp>
-#include <Gfx/Graph/interop/VideoPixelFormat.hpp>
+#include <Video/VideoPixelFormat.hpp>
 
 #include <memory>
 
@@ -65,9 +65,9 @@ namespace score::gfx
  */
 inline std::unique_ptr<GPUVideoEncoder>
 makeWireEncoder(
-    score::gfx::interop::VideoPixelFormat fmt, bool contiguousFramestore = false)
+    Video::VideoPixelFormat fmt, bool contiguousFramestore = false)
 {
-  using F = score::gfx::interop::VideoPixelFormat;
+  using F = Video::VideoPixelFormat;
 
   if(contiguousFramestore)
   {
@@ -105,7 +105,7 @@ makeWireEncoder(
     case F::V210:
       return std::make_unique<V210Encoder>();
 
-    // -- packed 8-bit RGB (VideoPixelFormat names are *memory* byte order) --
+    // -- packed 8-bit RGB (Video::VideoPixelFormat names are *memory* byte order) --
     case F::BGRA8: // memory [B,G,R,A]
       return std::make_unique<BGRAEncoder>(BGRAEncoder::Swizzle::BGRA);
     case F::RGBA8: // memory [R,G,B,A]
@@ -159,9 +159,9 @@ makeWireEncoder(
 /// Compute-shader encoder for the GPU-direct path (writes into an imported
 /// buffer). Only the formats with a compute variant are supported.
 inline std::unique_ptr<ComputeEncoder>
-makeWireComputeEncoder(score::gfx::interop::VideoPixelFormat fmt)
+makeWireComputeEncoder(Video::VideoPixelFormat fmt)
 {
-  using F = score::gfx::interop::VideoPixelFormat;
+  using F = Video::VideoPixelFormat;
   switch(fmt)
   {
     case F::V210:
@@ -178,9 +178,9 @@ makeWireComputeEncoder(score::gfx::interop::VideoPixelFormat fmt)
 /// Whether the compute encoder can handle (fmt, width): v210 needs width % 6,
 /// UYVY needs width % 2, BGRA is unconstrained.
 inline bool
-wireComputeSupports(score::gfx::interop::VideoPixelFormat fmt, int width)
+wireComputeSupports(Video::VideoPixelFormat fmt, int width)
 {
-  using F = score::gfx::interop::VideoPixelFormat;
+  using F = Video::VideoPixelFormat;
   switch(fmt)
   {
     case F::V210:

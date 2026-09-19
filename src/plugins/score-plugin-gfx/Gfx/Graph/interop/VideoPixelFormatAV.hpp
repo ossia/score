@@ -2,7 +2,7 @@
 
 /**
  * @file VideoPixelFormatAV.hpp
- * @brief Bridge between the wire-format enum `VideoPixelFormat` and libav's
+ * @brief Bridge between the wire-format enum `Video::VideoPixelFormat` and libav's
  *        `AVPixelFormat`.
  *
  * Why two enums exist (and why we can't just use AVPixelFormat everywhere):
@@ -20,18 +20,18 @@
  * enum is unavoidable. But the *buffer* formats (planar/semi-planar YUV, packed
  * 8-bit RGB, 16-bit RGB, grey) all have AVPixelFormat twins; this bridge maps
  * them so:
- *   - the capture path can derive a `VideoPixelFormat` from the
+ *   - the capture path can derive a `Video::VideoPixelFormat` from the
  *     `Video::ImageFormat::pixel_format` (an AVPixelFormat) it already carries;
  *   - vendor format tables can interop with the libav-based decoder/encoder
  *     paths for the representable subset, with a single source of truth for the
  *     overlap instead of each site re-deriving it.
  *
  * `toAVPixelFormat` returns `AV_PIX_FMT_NONE` for the wire-only formats (the
- * caller keeps using `VideoPixelFormat` for those). `fromAVPixelFormat` returns
- * `VideoPixelFormat::Unknown` for AVPixelFormats with no wire-format equivalent.
+ * caller keeps using `Video::VideoPixelFormat` for those). `fromAVPixelFormat` returns
+ * `Video::VideoPixelFormat::Unknown` for AVPixelFormats with no wire-format equivalent.
  */
 
-#include <Gfx/Graph/interop/VideoPixelFormat.hpp>
+#include <Video/VideoPixelFormat.hpp>
 
 #include <score_plugin_gfx_export.h>
 
@@ -46,11 +46,11 @@ namespace score::gfx::interop
 /// FFmpeg has no pixel-format for it (v210/v216/DPX/r210/12-bit-packed/A2-ARGB10
 /// — those are codecs in FFmpeg, not pixel formats).
 SCORE_PLUGIN_GFX_EXPORT
-AVPixelFormat toAVPixelFormat(VideoPixelFormat f) noexcept;
+AVPixelFormat toAVPixelFormat(Video::VideoPixelFormat f) noexcept;
 
-/// Map an AVPixelFormat back to a wire format, or VideoPixelFormat::Unknown if
+/// Map an AVPixelFormat back to a wire format, or Video::VideoPixelFormat::Unknown if
 /// it isn't one of the capture-card wire formats.
 SCORE_PLUGIN_GFX_EXPORT
-VideoPixelFormat fromAVPixelFormat(AVPixelFormat f) noexcept;
+Video::VideoPixelFormat fromAVPixelFormat(AVPixelFormat f) noexcept;
 
 } // namespace score::gfx::interop
