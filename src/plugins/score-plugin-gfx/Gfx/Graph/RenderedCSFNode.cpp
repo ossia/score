@@ -1466,7 +1466,7 @@ void RenderedCSFNode::updateGeometryBindings(
             // For feedback receivers, never adopt upstream buffers for read_write
             // attributes. The node uses its own ping-pong pair; upstream data is
             // this node's own previous output routed through feedback.
-            if(binding.is_feedback_receiver && req.gathers)
+            if(binding.is_feedback_receiver && req.access == "read_write")
             {
               continue;
             }
@@ -5548,7 +5548,7 @@ void RenderedCSFNode::runInitialPasses(
           if(ai >= (int)gb.attribute_ssbos.size())
             break;
           auto& ssbo = gb.attribute_ssbos[ai];
-          if(geo_input->attributes[ai].gathers && ssbo.read_buffer
+          if(geo_input->attributes[ai].access == "read_write" && ssbo.read_buffer
              && ssbo.owned)
             std::swap(ssbo.buffer, ssbo.read_buffer);
         }
