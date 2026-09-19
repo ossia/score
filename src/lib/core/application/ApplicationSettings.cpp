@@ -9,6 +9,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QObject>
+#include <QSettings>
 #include <QString>
 
 #include <score_git_info.hpp>
@@ -247,5 +248,10 @@ void setQApplicationMetadata()
     QCoreApplication::setApplicationVersion(env);
   else
     QCoreApplication::setApplicationVersion(score::displayedVersion());
+
+#if defined(__EMSCRIPTEN__)
+  // NativeFormat would write to the in-memory filesystem, lost on reload.
+  QSettings::setDefaultFormat(QSettings::WebLocalStorageFormat);
+#endif
 }
 }
