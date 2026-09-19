@@ -421,6 +421,7 @@ private:
   int m_maxTexSize{};
   int m_samples{1};
 
+  bool m_warnedMixedDepthCompare = false;
   bool m_requiresDepth{};
   bool m_ready{};
   bool m_built{};

@@ -1,5 +1,5 @@
 /*{
-  "DESCRIPTION": "A gather that reads the FAR end of its own attribute. position is the 16x11 half-cell grid of syn-geo-count-user.cs so every legal count rasterizes; tint is `gather` and each invocation reads the mirrored index N-1-idx. The seed puts red in the FIRST triangle only, so after one mirror step the red lands in the LAST triangle -- which can only happen if _in covers the whole buffer. A truncated _in (the 8-byte snapshot of ledger 9.97) returns zero for every index past the first and the red never appears anywhere.",
+  "DESCRIPTION": "A gather that reads the far end of its own attribute. position is a 16x11 half-cell grid so every legal count rasterizes; tint is `gather` and each invocation reads the mirrored index N-1-idx. The seed puts red in the first triangle only, so after one mirror step the red must land in the last triangle, which only happens if _in covers the whole buffer.",
   "CREDIT": "test",
   "ISFVSN": "2.0",
   "MODE": "COMPUTE_SHADER",

@@ -1911,13 +1911,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         int skinIndex, const ossia::aabb& local_bounds,
         uint32_t instanceCount) -> uint32_t
     {
-      static const bool mdiprobe = qEnvironmentVariableIsSet("SCORE_MDIPROBE");
       if(!mesh || mesh->vertices <= 0 || !m_registry || instanceCount == 0)
       {
-        if(mdiprobe)
-          qDebug() << "score.gfx: MDIPROBE skip=no-mesh mesh=" << (void*)mesh
-                   << "verts=" << (mesh ? mesh->vertices : -1)
-                   << "registry=" << (void*)m_registry << "inst=" << instanceCount;
         return kCmdSkipped;
       }
       if(stable_id == 0)
@@ -1957,8 +1952,6 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
 
       if(pos.empty() && !gpu_pos.buf)
       {
-        if(mdiprobe)
-          qDebug() << "score.gfx: MDIPROBE skip=no-positions verts=" << mesh->vertices;
         return kCmdSkipped;
       }
 
@@ -1968,8 +1961,6 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         idx = extractCpuIndices(*mesh);
         if(idx.empty())
         {
-          if(mdiprobe)
-            qDebug() << "score.gfx: MDIPROBE skip=gpu-indices indices=" << mesh->indices;
           return kCmdSkipped; // GPU-backed indices not yet supported.
         }
       }
@@ -1987,8 +1978,6 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           stable_id, (uint32_t)vc, drawIndexCount, current_frame);
       if(!slab)
       {
-        if(mdiprobe)
-          qDebug() << "score.gfx: MDIPROBE skip=no-slab id=" << (qulonglong)stable_id;
         return kCmdSkipped;
       }
 
@@ -2186,31 +2175,22 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     for(std::size_t k = 0; k < fs.instances.size(); ++k)
     {
       const auto& inst_draw = fs.instances[k];
-      static const bool instprobe = qEnvironmentVariableIsSet("SCORE_MDIPROBE");
       if(!inst_draw.instance)
       {
-        if(instprobe) qDebug() << "score.gfx: MDIPROBE inst skip=no-instance k=" << (int)k;
-        continue;
       }
       const auto& inst = *inst_draw.instance;
       if(!inst.prototype || inst.prototype->primitives.empty())
       {
-        if(instprobe)
-          qDebug() << "score.gfx: MDIPROBE inst skip=no-prototype proto="
-                   << (void*)inst.prototype.get() << "prims="
-                   << (inst.prototype ? (int)inst.prototype->primitives.size() : -1);
         continue;
       }
       if(inst.instance_count == 0)
       {
-        if(instprobe) qDebug() << "score.gfx: MDIPROBE inst skip=zero-count";
         continue;
       }
 
       const auto& prim = inst.prototype->primitives[0];
       if(prim.vertex_count == 0)
       {
-        if(instprobe) qDebug() << "score.gfx: MDIPROBE inst skip=zero-verts";
         continue;
       }
 
@@ -2249,15 +2229,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       }
       if(!prototype_buffers_ready)
       {
-        if(instprobe)
-          qDebug() << "score.gfx: MDIPROBE inst skip=buffers-not-ready vbufs="
-                   << (int)prim.vertex_buffers.size()
-                   << "hasIndex=" << (bool)prim.index_buffer;
         continue;
       }
-      if(instprobe)
-        qDebug() << "score.gfx: MDIPROBE inst PASSED guards count="
-                 << (qulonglong)inst.instance_count << "verts=" << (qulonglong)prim.vertex_count;
 
       // Per-instance source buffers — translations may carry vec3 / trs /
       // mat4 layouts; we currently only support `translation` (the
@@ -2363,9 +2336,6 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
 
     m_mdi.totalVertices = totalVertices;
     m_mdi.totalIndices = totalIndices;
-    if(qEnvironmentVariableIsSet("SCORE_MDIPROBE"))
-      qDebug() << "score.gfx: MDIPROBE fs.draws=" << (int)fs.draws.size()
-               << "emitted=" << (int)acc.indirectCmds.size();
     m_mdi.drawCount = (uint32_t)acc.indirectCmds.size();
     m_lastDrawCount = std::max(m_lastDrawCount, acc.indirectCmds.size());
     m_instSlotsUsed = slot_cursor;

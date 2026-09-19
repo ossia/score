@@ -300,21 +300,7 @@ void VideoTest()
     auto bestFrame = std::make_shared<QImage>();
     poll->setInterval(200);
     QObject::connect(poll, &QTimer::timeout, qApp, [=] {
-      if(qEnvironmentVariableIntValue("SCORE_VIDEO_TEST_DEBUG") == 1)
-      {
-        auto od = dynamic_cast<Gfx::offscreen_device*>(windowDevice->m_dev.get());
-        auto node = od ? od->node() : nullptr;
-        auto rl = node ? node->renderer() : nullptr;
-        fprintf(
-            stderr, "poll: node=%p renderlist=%p renderers=%zu readback=%dx%d (%d bytes)\n",
-            (void*)node, (void*)rl, rl ? rl->renderers.size() : size_t(0),
-            node && node->shared_readback ? node->shared_readback->pixelSize.width() : -1,
-            node && node->shared_readback ? node->shared_readback->pixelSize.height() : -1,
-            node && node->shared_readback ? int(node->shared_readback->data.size()) : -1);
-      }
       QImage frame = currentOffscreenFrame(*windowDevice);
-      if(qEnvironmentVariableIntValue("SCORE_VIDEO_TEST_DEBUG") == 1 && !frame.isNull())
-        fprintf(stderr, "poll: frame meanRGB=%.3f\n", meanRGB(frame));
       if(frame.isNull() || meanRGB(frame) < 2.)
         return; // still black / not rendering yet
       if(opts.expect.isEmpty())
@@ -352,24 +338,9 @@ void VideoTest()
     return;
   }
 
-  // Stop execution. Default: flush coverage and leave without tearing the
-  // app down. Known teardown crashes (both reproducible here, set
-  // SCORE_VIDEO_TEST_TEARDOWN=1 to exercise them):
-  // - forceCloseDocument: UAF, queued ScenarioDocumentPresenter::
-  //   on_windowSizeChanged fires after the interval model is deleted
-  //   (IntervalDurations::guiDuration()).
-  // - ~MinimalGUIApplication: UAF, ~ScenarioDocumentPresenter ->
-  //   DisplayedElementsPresenter::remove() -> interfaces<MagnetismAdjuster>()
-  //   reads the already-destroyed ApplicationComponentsData map.
-  QTimer::singleShot(videoTestDurationMs(), [&ctx, doc] {
-    if(qEnvironmentVariableIntValue("SCORE_VIDEO_TEST_TEARDOWN") == 1)
-    {
-      ctx.docManager.forceCloseDocument(ctx, *doc);
-      qApp->exit(0);
-      return;
-    }
-    flushCoverageAndExit(0);
-  });
+  // Flush coverage and leave without tearing the app down: both
+  // forceCloseDocument and ~MinimalGUIApplication use-after-free here.
+  QTimer::singleShot(videoTestDurationMs(), [] { flushCoverageAndExit(0); });
 }
 
 int main(int argc, char** argv)

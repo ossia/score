@@ -1,61 +1,21 @@
-// =============================================================================
-// L3 CSF read_write GEOMETRY STATE — a shader that reads an index other than
-// its own invocation's must see a consistent previous state, never a buffer
-// being concurrently written.
+// CSF read_write geometry state, asserted on the rasterized picture.
 //
-// The defect this locks down: a `read_write` geometry attribute on a node that
-// is not a self-feedback receiver used to have _in and _out bound to the SAME
-// buffer, so any cross-index read raced with other invocations' writes. The
-// engine accepted such a shader silently. Two mechanisms now prevent it, and
-// they are selected by DIFFERENT predicates, which is why both need covering:
+// A CSF producer cannot be read back directly without a geometry consumer (see
+// csf_geometry_readback_skip_reason()), so it feeds a raw raster that draws its
+// triangles.
 //
-//   * self-feedback receivers get a ping-pong pair and a pointer SWAP
-//     (RenderedCSFNode.cpp, CSF_GeomPP_* allocation + std::swap after
-//     pushOutputGeometry);
-//   * everything else gets a snapshot buffer re-seeded by an explicit
-//     copyBuffer before the pass loop (CSF_GeomSnap_*).
+// Fixture: corpus/syn-geo-readwrite-shift.cs. position is a 16x11 half-cell
+// grid, so floor(count/3) triangles always have real area; color is the state
+// under test, one red triangle among blue ones shifted forward by one triangle
+// per frame via color_out[i] = color_in[(i - 3) mod N].
 //
-// A future change that unifies the two paths, or reverts either, has to keep
-// these pictures. The fixture reads the state back as PIXELS rather than as a
-// buffer: a geometry-only CSF is never dispatched in this fixture without a
-// geometry consumer (see csf_geometry_readback_skip_reason()), so the producer
-// feeds a raw raster that rasterizes its triangles.
-//
-// FIXTURE: corpus/syn-geo-readwrite-shift.cs. position is the 16x11 half-cell
-// grid of syn-geo-count-user.cs, so floor(count/3) triangles always have real
-// area. color is `read_write` and carries the state: exactly one red triangle
-// among blue ones, shifted forward by one triangle per frame via
-// color_out[i] = color_in[(i - 3) mod N].
-//
-// WHAT THIS DOES AND DOES NOT CATCH — measured, not assumed.
-//
-// NEGATIVE CONTROL, actually run: forcing `read_buf = ssbo.buffer` in
-// RenderedCSFNode::buildComputeSrbBindings (SCORE_CSF_PPPROBE confirms the
-// binding then prints ALIASED) leaves all three cases GREEN on Vulkan on an
-// RTX 4090. So this fixture does NOT detect the aliasing race itself: the
-// marker step is one triangle, far inside the 32-wide SIMD, so reads and
-// writes stay in lockstep and the race never surfaces. Stepping across
-// workgroups instead (129 vertices, 6 workgroups) did not fix that and lost
-// the marker on BOTH backends for reasons this fixture does not explain, so it
-// was not kept. Detecting the race portably needs a different instrument.
-//
-// What these cases DO enforce is the contract a regression would break, and
-// every failure mode named in the ping-pong/snapshot unification analysis
-// (ledger 9.81) shows up in at least one of them:
-//   * the marker stays one triangle wide          — no runaway propagation;
-//   * the state ADVANCES frame to frame           — catches a frozen _in, the
-//     failure mode of a promoted node whose buffer is later adopted;
-//   * two independent runs agree pixel for pixel  — catches non-determinism;
-//   * a VERTEX_COUNT that grows keeps all of the above — catches a snapshot
-//     that stops being re-seeded or is read past its end.
-// Both backends pass all three today.
-//
-// Intended registration: score_add_gfx_test(csf_readwrite_state
-// GfxCsfReadWriteState.cpp)
+// Scope: this checks that the _in / _out split keeps the marker exactly three
+// vertices wide frame to frame. It does NOT detect the aliasing race itself -
+// the marker step is one triangle, well inside a 32-wide SIMD, so reads and
+// writes stay in lockstep. That needs a different instrument.
 //
 //   DISPLAY=:0 SCORE_TEST_API=opengl ctest -R gfx_csf_readwrite_state
 //   DISPLAY=:0 SCORE_TEST_API=vulkan ctest -R gfx_csf_readwrite_state
-// =============================================================================
 #include "GfxIncrementalCommon.hpp"
 
 using namespace score::test::gfx;
@@ -385,25 +345,6 @@ TEST_CASE(
 // -----------------------------------------------------------------------------
 // CASE 4 — a gather's `_in` spans the WHOLE attribute, not just its head.
 //
-// This is the case that ledger 9.97 needed and did not have. The snapshot a
-// gather reads through was allocated once, behind a `!read_buffer` guard, from
-// whatever the buffer measured at first bind — one element, before the vertex
-// count had resolved. Eight bytes against a 131072-byte buffer. Every index
-// past the first read off the end, returned zero under Vulkan's robust access,
-// and csf-reaction-diffusion's five-point stencil collapsed its field on the
-// first dispatch. The score sat frozen through ten corpus sweeps.
-//
-// The fixture makes that reach observable: `tint` is a gather and each
-// invocation reads the MIRRORED index, N-1-idx. The seed puts red in the first
-// triangle only, so after one step the red must appear in the LAST triangle.
-// It can only get there if `_in` spans the whole allocation.
-//
-// NEGATIVE CONTROL, run: restore the one-shot allocation in
-// RenderedCSFNode::buildComputeSrbBindings (drop the size comparison from the
-// guard, so a snapshot is created once and never resized). The red disappears
-// entirely and this case fails, while CASES 1-3 stay green — which is exactly
-// how the defect escaped for so long.
-// -----------------------------------------------------------------------------
 TEST_CASE(
     "a gather reads the far end of its attribute, not a truncated head",
     "[gfx][l3][csf][geometry][readwrite][gather]")

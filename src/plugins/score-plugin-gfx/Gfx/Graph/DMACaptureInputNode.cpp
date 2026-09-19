@@ -439,19 +439,7 @@ public:
       // Pass the active resource-update batch: the portable CPU strategy uses it
       // for QRhi uploadTexture; raw-API strategies (GL/DVP) ignore it and fall
       // through to the no-arg acquireForRender().
-      if(m_timeUpload) [[unlikely]]
-      {
-        const auto t0 = std::chrono::steady_clock::now();
-        m_strategy->acquireForRender(res, cb);
-        m_uploadTotalNs += std::chrono::duration_cast<std::chrono::nanoseconds>(
-                               std::chrono::steady_clock::now() - t0)
-                               .count();
-        ++m_uploadCount;
-      }
-      else
-      {
-        m_strategy->acquireForRender(res, cb);
-      }
+      m_strategy->acquireForRender(res, cb);
       m_lastIngestedFrameId = latest;
       m_renderHoldsTexture = true;
 
@@ -566,13 +554,6 @@ public:
 
   void release(score::gfx::RenderList& r) override
   {
-    if(m_timeUpload && m_uploadCount > 0) [[unlikely]]
-    {
-      qDebug().nospace()
-          << "DMA capture: upload(" << (m_strategy ? m_strategy->name() : "?")
-          << ") mean " << (double(m_uploadTotalNs) / m_uploadCount / 1000.0)
-          << " us over " << m_uploadCount << " frames";
-    }
     // If the strategy owns the decoder's sampler texture (the Vulkan zero-copy
     // swap, recorded at init), detach it before either release() runs so the decoder
     // doesn't free a texture the strategy also frees. For every other strategy
@@ -664,13 +645,6 @@ private:
   QSize m_lastRenderSize;
   Video::VideoMetadata m_metadata;
 
-  // Diagnostic: SCORE_DMACAPTURE_TIME_UPLOAD=1 times the per-frame
-  // acquireForRender (the sysmem -> texture upload) to compare raw-API vs
-  // portable-QRhi cost.
-  const bool m_timeUpload
-      = qEnvironmentVariableIsSet("SCORE_DMACAPTURE_TIME_UPLOAD");
-  uint64_t m_uploadTotalNs{0};
-  uint64_t m_uploadCount{0};
 };
 
 DMACaptureInputNode::DMACaptureInputNode()

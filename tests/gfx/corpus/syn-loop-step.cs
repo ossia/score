@@ -1,5 +1,5 @@
 /*{
-  "DESCRIPTION": "The other half of the feedback regression test: adopts the owner's geometry and brightens it a little each frame. Own-index only, so it aliases. If the loop carries, the picture gets brighter frame by frame; if the owner's pair is clobbered by adoption the state never advances and the picture stays where it was seeded.",
+  "DESCRIPTION": "Adopts the owner's geometry and brightens it by a fixed step each frame, own-index only. If the loop carries, the picture gets brighter frame by frame.",
   "CREDIT": "test",
   "ISFVSN": "2.0",
   "MODE": "COMPUTE_SHADER",

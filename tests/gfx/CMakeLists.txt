@@ -253,7 +253,6 @@ score_add_gfx_test(indirect_draw_bench GfxIndirectDrawBench.cpp)
 # Depth-clear polarity: the only coverage of it in the suite.
 score_add_gfx_test(review_render_targets_depth GfxReviewRenderTargetsDepth.cpp)
 
-
 # Render-target cases 01-07. Each case states a contract of its own, and the
 # red ones are declared in cmake/ScoreExpectedRedGuard.cmake with a mechanism
 # rather than a citation.
@@ -509,11 +508,8 @@ score_add_gfx_test(batch_lifetime  GfxBatchLifetime.cpp)
 score_add_gfx_test(geometry_buffer_rebind GfxGeometryBufferRebind.cpp)
 # A read_write geometry attribute read across indices must observe a consistent
 # previous state, by snapshot (non-feedback) or by ping-pong swap (feedback).
-# Case 3 is committed red: it states the stale-snapshot bug on VERTEX_COUNT growth.
 score_add_gfx_test(csf_readwrite_state GfxCsfReadWriteState.cpp)
-# State must travel around a Delayed* geometry edge and advance, which is the
-# shape csf-reaction-diffusion has and the property three separate defects broke
-# while still leaving a picture on screen.
+# State must travel around a Delayed* geometry edge and advance.
 score_add_gfx_test(csf_feedback_loop GfxCsfFeedbackLoop.cpp)
 score_add_gfx_test(depth_sampler   GfxDepthSampler.cpp)
 score_add_gfx_test(storage_visibility GfxStorageVisibility.cpp)

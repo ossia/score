@@ -1166,8 +1166,6 @@ void DirectVideoNodeRenderer::createGpuDecoder(QRhi& rhi)
 #if LIBAVUTIL_VERSION_MAJOR >= 57
   // If hardware acceleration is active, try zero-copy first,
   // then fall back to HWTransferDecoder (GPU decode + DMA transfer).
-  static const bool traceDecoder
-      = qEnvironmentVariableIsSet("SCORE_GFX_DEBUG_DECODER");
   if(m_hwPixelFormat != AV_PIX_FMT_NONE && m_hwDeviceCtx)
   {
     if(!m_zeroCopyFailed)
@@ -1176,9 +1174,6 @@ void DirectVideoNodeRenderer::createGpuDecoder(QRhi& rhi)
       if(zc)
       {
         m_gpu = std::move(zc);
-        if(traceDecoder)
-          fprintf(
-              stderr, "DECODER-PATH zero-copy %s\n", typeid(*m_gpu).name());
         m_recomputeScale = true;
         return;
       }
@@ -1190,10 +1185,6 @@ void DirectVideoNodeRenderer::createGpuDecoder(QRhi& rhi)
                               ? m_hwSwFormat
                               : AV_PIX_FMT_NV12;
     m_gpu = std::make_unique<HWTransferDecoder>(m_frameFormat, swFmt);
-    if(traceDecoder)
-      fprintf(
-          stderr, "DECODER-PATH hw-transfer sw_format=%s\n",
-          av_get_pix_fmt_name(swFmt));
     m_recomputeScale = true;
     return;
   }
@@ -1205,10 +1196,6 @@ void DirectVideoNodeRenderer::createGpuDecoder(QRhi& rhi)
   m_gpu = createGPUVideoDecoder(m_frameFormat, filter.toStdString());
   if(m_gpu)
   {
-    if(traceDecoder)
-      fprintf(
-          stderr, "DECODER-PATH software %s\n",
-          av_get_pix_fmt_name(m_frameFormat.pixel_format));
   }
   else
   {

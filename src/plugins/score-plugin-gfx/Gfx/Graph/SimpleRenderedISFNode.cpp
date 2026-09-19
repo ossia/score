@@ -1025,8 +1025,14 @@ void SimpleRenderedISFNode::runInitialPasses(
 QRhiGraphicsPipeline::CompareOp
 SimpleRenderedISFNode::depthCompare() const noexcept
 {
-  const auto& declared = n.descriptor().default_state.depth_compare;
-  return declared ? toCompareOp(*declared) : QRhiGraphicsPipeline::Greater;
+  // The pipeline is built from pass 0's merged state, so the sink must be
+  // cleared for that compare, not for the descriptor default.
+  const auto& passes = n.descriptor().passes;
+  const auto state = mergeState(
+      n.descriptor().default_state,
+      passes.empty() ? isf::pipeline_state{} : passes[0].override_state);
+  return state.depth_compare ? toCompareOp(*state.depth_compare)
+                             : QRhiGraphicsPipeline::Greater;
 }
 
 void SimpleRenderedISFNode::runRenderPass(

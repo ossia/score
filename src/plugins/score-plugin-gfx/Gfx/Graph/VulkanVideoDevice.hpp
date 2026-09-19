@@ -28,14 +28,6 @@
 namespace score::gfx
 {
 
-/// SCORE_GFX_VKDEVICE_TRACE=1 logs every VkDevice create / destroy /
-/// cache hit with a CLOCK_MONOTONIC timestamp, for stall measurements.
-inline bool sharedVulkanDeviceTraceEnabled()
-{
-  static const bool on = qEnvironmentVariableIsSet("SCORE_GFX_VKDEVICE_TRACE");
-  return on;
-}
-
 inline double sharedVulkanDeviceTraceClockMs()
 {
   return std::chrono::duration<double, std::milli>(
@@ -65,12 +57,6 @@ inline void destroySharedVulkanDevice(QVulkanInstance* inst, VkDevice dev)
 
   const double t0 = sharedVulkanDeviceTraceClockMs();
   fn(dev, nullptr);
-  if(sharedVulkanDeviceTraceEnabled())
-  {
-    const double t1 = sharedVulkanDeviceTraceClockMs();
-    qDebug(
-        "%.3f VKDEV vkDestroyDevice %.2f ms dev=%p", t1, t1 - t0, (void*)dev);
-  }
 }
 
 /**
@@ -429,12 +415,6 @@ inline SharedVulkanDevice createSharedVulkanDevice(
   const double t0 = sharedVulkanDeviceTraceClockMs();
   VkResult vkResult
       = vkCreateDeviceFn(result.physDev, &devInfo, nullptr, &result.dev);
-  if(sharedVulkanDeviceTraceEnabled())
-  {
-    const double t1 = sharedVulkanDeviceTraceClockMs();
-    qDebug("%.3f VKDEV vkCreateDevice %.2f ms physDev=%p dev=%p result=%d", t1,
-           t1 - t0, (void*)result.physDev, (void*)result.dev, int(vkResult));
-  }
   if(vkResult != VK_SUCCESS)
   {
     qDebug() << "createSharedVulkanDevice: vkCreateDevice failed:" << vkResult;
@@ -497,10 +477,6 @@ public:
       if(e.inst == inst && e.device.physDev == physDev)
       {
         e.refcount++;
-        if(sharedVulkanDeviceTraceEnabled())
-          qDebug(
-              "%.3f VKDEV cache HIT dev=%p refcount=%d",
-              sharedVulkanDeviceTraceClockMs(), (void*)e.device.dev, e.refcount);
         return e.device;
       }
     }
@@ -508,10 +484,6 @@ public:
     SharedVulkanDevice dev = createSharedVulkanDevice(inst, physDev);
     if(!dev)
     {
-      if(sharedVulkanDeviceTraceEnabled())
-        qDebug(
-            "%.3f VKDEV cache MISS — creation unavailable, caller falls back",
-            sharedVulkanDeviceTraceClockMs());
       return {};
     }
 
@@ -521,10 +493,6 @@ public:
     // most once, and a process that boots a second QCoreApplication (the tests
     // do) would otherwise leave its second device undestroyed.
     qAddPostRoutine([] { sharedVulkanDeviceCache().shutdown(); });
-    if(sharedVulkanDeviceTraceEnabled())
-      qDebug(
-          "%.3f VKDEV cache MISS dev=%p refcount=1", sharedVulkanDeviceTraceClockMs(),
-          (void*)dev.dev);
     return dev;
   }
 
@@ -540,10 +508,6 @@ public:
       {
         if(e.refcount > 0)
           e.refcount--;
-        if(sharedVulkanDeviceTraceEnabled())
-          qDebug(
-              "%.3f VKDEV cache RELEASE dev=%p refcount=%d",
-              sharedVulkanDeviceTraceClockMs(), (void*)dev, e.refcount);
         return;
       }
     }

@@ -41,7 +41,6 @@ struct RenderedCSFNode : score::gfx::NodeRenderer
   void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& edge) override;
 
 private:
-  void texreadProbe(RenderList& renderer, QRhiResourceUpdateBatch*& res);
   void initComputeSRBAndPasses(RenderList& renderer, QRhiResourceUpdateBatch& res);
   void createComputePipeline(RenderList& renderer);
   void createGraphicsPass(const TextureRenderTarget& rt, RenderList& renderer, Edge& edge, QRhiResourceUpdateBatch& res);
@@ -172,11 +171,11 @@ private:
     {
       QRhiBuffer* buffer{};       // GPU SSBO for this attribute (write target / primary)
       QRhiBuffer* read_buffer{};  // Separate read buffer for ping-pong (nullptr = use buffer for both)
-      // read_buffer is a per-frame SNAPSHOT rather than a ping-pong half. The
-      // two are not interchangeable: a snapshot is refreshed by a copy and is
-      // skipped for feedback receivers, so a node promoted to owning a loop
-      // must trade it for a real pair or it reads frozen contents forever.
+      //! read_buffer is a per-frame snapshot, not a ping-pong half: a node
+      //! promoted to owning a loop must trade it for a real pair.
       bool read_buffer_is_snapshot{false};
+      bool warned_size_mismatch{false};
+      bool warned_borrowed_pair{false};
       int64_t size{};             // Current buffer size in bytes
       bool owned{true};           // true = we created it; false = referencing upstream gpu_buffer
       std::string name;           // e.g. "position", "velocity"
