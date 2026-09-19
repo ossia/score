@@ -846,7 +846,7 @@ endif()
 # is the one whose CI proves it is described and sized correctly.
 score_add_test(test_unit_video_pixel_format
   SOURCES VideoPixelFormatTest.cpp
-  PLUGINS score_plugin_gfx
+  PLUGINS score_plugin_gfx score_plugin_media
   LIBS avutil)
 
 # The YCbCr->RGB matrices and the bit-depth normalisation constants in
@@ -866,7 +866,7 @@ endif()
 # be compiled at all.
 score_add_test(test_unit_dshow_subtype
   SOURCES DirectShowSubtypeResolveTest.cpp
-  PLUGINS score_plugin_gfx
+  PLUGINS score_plugin_gfx score_plugin_media
   LIBS avutil avcodec)
 
 # --- avendish dynamic ports --------------------------------------------------
@@ -979,7 +979,7 @@ endif()
 if(TARGET score_plugin_gfx)
   score_add_test(test_unit_drm_fourcc
     SOURCES DrmFourccTest.cpp
-    PLUGINS score_plugin_gfx
+    PLUGINS score_plugin_gfx score_plugin_media
     LIBS avutil)
 
   # The capture-side mirror of the WireEncoderFactory sweep in
@@ -994,7 +994,7 @@ if(TARGET score_plugin_gfx)
   if(TARGET pipewire::pipewire)
     score_add_test(test_unit_pipewire_formats
       SOURCES PipewireFormatsTest.cpp
-      PLUGINS score_plugin_gfx
+      PLUGINS score_plugin_gfx score_plugin_media
       LIBS avutil ${QT_PREFIX}::Gui)
     get_target_property(_pw_fmt_includes pipewire::pipewire INTERFACE_INCLUDE_DIRECTORIES)
     if(_pw_fmt_includes)

@@ -35,6 +35,8 @@
 #include <Gfx/Graph/decoders/YUV422P12.hpp>
 #include <Gfx/Graph/decoders/YUV420P10.hpp>
 #include <Gfx/Graph/decoders/P210.hpp>
+#include <Gfx/Graph/decoders/PA16.hpp>
+#include <Gfx/Graph/decoders/UYVA.hpp>
 #include <Gfx/Graph/decoders/YUYV422.hpp>
 #include <Video/VideoPixelFormat.hpp>
 
@@ -292,6 +294,16 @@ makeWireDecoder(Video::VideoPixelFormat fmt, Video::ImageFormat& d)
       return std::make_unique<YUV444P12Decoder>(d);
     case F::P210:
       return std::make_unique<P210Decoder>(d);
+    // P216 is P210's layout with every bit used rather than ten of them at the
+    // top, which is the scale argument and the only difference.
+    case F::P216:
+      return std::make_unique<P210Decoder>(d, "1.0");
+
+    // NDI's two alpha layouts: a picture followed by its own alpha plane.
+    case F::UYVA422A:
+      return std::make_unique<UYVADecoder>(d);
+    case F::PA16:
+      return std::make_unique<PA16Decoder>(d);
 
     default:
       return nullptr;

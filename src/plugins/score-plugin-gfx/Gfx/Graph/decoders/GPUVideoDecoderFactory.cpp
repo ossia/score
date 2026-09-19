@@ -9,6 +9,7 @@
 #include <Gfx/Graph/decoders/P010.hpp>
 #include <Gfx/Graph/decoders/P016.hpp>
 #include <Gfx/Graph/decoders/P210.hpp>
+#include <Gfx/Graph/decoders/PA16.hpp>
 #include <Gfx/Graph/decoders/P410.hpp>
 #include <Gfx/Graph/decoders/RGBA.hpp>
 #include <Gfx/Graph/decoders/VUYA.hpp>
@@ -25,6 +26,7 @@
 #include <Gfx/Graph/decoders/YUV444P12.hpp>
 #include <Gfx/Graph/decoders/YUVA420.hpp>
 #include <Gfx/Graph/decoders/YUVA444.hpp>
+#include <Gfx/Graph/decoders/UYVA.hpp>
 #include <Gfx/Graph/decoders/YUYV422.hpp>
 
 extern "C" {
@@ -42,6 +44,19 @@ std::unique_ptr<GPUVideoDecoder> createGPUVideoDecoder(
     Video::ImageFormat& format, const std::string& filter)
 {
   QString f = QString::fromStdString(filter);
+
+  // A layout no AVPixelFormat describes names itself here instead. Both cases
+  // are NDI's: a picture followed by a separate alpha plane, which ffmpeg has
+  // no format for at either bit depth.
+  switch(format.native_format)
+  {
+    case Video::VideoPixelFormat::UYVA422A:
+      return std::make_unique<UYVADecoder>(format);
+    case Video::VideoPixelFormat::PA16:
+      return std::make_unique<PA16Decoder>(format);
+    default:
+      break;
+  }
 
   switch(format.pixel_format)
   {

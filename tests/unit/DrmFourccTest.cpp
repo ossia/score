@@ -17,7 +17,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 namespace vpf = score::gfx::interop;
-using V = vpf::VideoPixelFormat;
+using V = Video::VideoPixelFormat;
 
 namespace
 {

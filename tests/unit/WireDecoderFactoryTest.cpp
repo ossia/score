@@ -17,25 +17,24 @@
 
 #include <Gfx/Graph/decoders/WireDecoderFactory.hpp>
 #include <Gfx/Graph/encoders/WireEncoderFactory.hpp>
-#include <Gfx/Graph/interop/VideoPixelFormat.hpp>
+#include <Video/VideoPixelFormat.hpp>
 
 #include <catch2/catch_test_macros.hpp>
 
 #include <set>
 #include <vector>
 
-namespace vpf = score::gfx::interop;
-using V = vpf::VideoPixelFormat;
+using V = Video::VideoPixelFormat;
 using score::gfx::makeWireDecoder;
 using score::gfx::makeWireEncoder;
 
 namespace
 {
-std::vector<const vpf::VideoPixelFormatInfo*> described()
+std::vector<const Video::VideoPixelFormatInfo*> described()
 {
   std::size_t n = 0;
-  const auto* p = vpf::allFormats(n);
-  std::vector<const vpf::VideoPixelFormatInfo*> v;
+  const auto* p = Video::allFormats(n);
+  std::vector<const Video::VideoPixelFormatInfo*> v;
   v.reserve(n);
   for(std::size_t i = 0; i < n; ++i)
     v.push_back(p + i);
@@ -69,7 +68,10 @@ const std::set<V>& decodable()
       V::NV12, V::NV21, V::NV16, V::NV61, V::NV24, V::NV42, V::VUYA, V::VUYX,
       V::AYUV, V::XYUV, V::YUVA, V::YUVX, V::YUV420P, V::YVU420P, V::YUV422P,
       V::P010, V::YUV422P10, V::YUV422P12, V::YUV420P10, V::YUV444P,
-      V::YUV444P10, V::YUV444P12, V::P210};
+      V::YUV444P10, V::YUV444P12, V::P210, V::P216,
+      // NDI's alpha layouts: a picture plus its own alpha plane, which is why
+      // neither has an AVPixelFormat and both are keyed on the wire format.
+      V::UYVA422A, V::PA16};
   return s;
 }
 } // namespace
@@ -97,7 +99,7 @@ TEST_CASE("the late planar and chroma-swapped decoders exist", "[gfx][decoders]"
                     V::YUV444P10, V::YUV444P12, V::YVYU422,  V::VYUY422};
   for(V f : late)
   {
-    INFO("format " << vpf::formatName(f));
+    INFO("format " << Video::formatName(f));
     CHECK(makeWireDecoder(f, meta) != nullptr);
   }
 }

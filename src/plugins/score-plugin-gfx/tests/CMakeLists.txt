@@ -71,7 +71,7 @@ score_add_test(test_gfx_external_essl
 # before it imports anything. Linux-only, like the header.
 score_add_test(test_gfx_dmabuf_layout
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/DmaBufLayoutTest.cpp"
-  PLUGINS score_plugin_gfx)
+  PLUGINS score_plugin_gfx score_plugin_media)
 
 # The KMS sink's own ports. Registered only where KmsOutputNode.cpp is actually
 # compiled: without libdrm the plugin builds an inert stub whose constructor
@@ -100,5 +100,5 @@ score_add_test(test_gfx_triple_buffer_index
 # anything about rendering.
 score_add_test(test_gfx_interop_ring_policy
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/InteropRingPolicyTest.cpp"
-  PLUGINS score_plugin_gfx
+  PLUGINS score_plugin_gfx score_plugin_media
   LIBS ${QT_PREFIX}::Gui)

@@ -165,6 +165,12 @@ enum class ByteOrder : uint8_t
   X(YUV422P16, 110, YUV, 3, 2, 1, 1, 2, false, Little, 256)                    \
   X(YVU422P, 104, YUV, 3, 2, 1, 1, 1, false, NA, 256)                          \
   X(P216, 108, YUV, 2, 2, 1, 1, 2, false, Little, 256)                         \
+  /* -- NDI's two alpha-carrying layouts ----------------------------------- */ \
+  /* Neither has an AVPixelFormat. ffmpeg's AV_PIX_FMT_UYVA shares the name    */ \
+  /* with UYVA422A and not the layout: it is packed 4:4:4:4 at 32bpp, where    */ \
+  /* this is a UYVY plane followed by a separate full-resolution alpha plane.  */ \
+  X(UYVA422A, 127, YUV, 2, 2, 1, 2, 4, true, NA, 256)                          \
+  X(PA16, 128, YUV, 3, 2, 1, 1, 2, true, Little, 256)                          \
   /* -- Planar 4:1:1 and 4:1:0 (webcams, legacy capture) ------------------- */ \
   X(YUV411P, 101, YUV, 3, 4, 1, 1, 1, false, NA, 256)                          \
   X(YUV410P, 102, YUV, 3, 4, 4, 1, 1, false, NA, 256)                          \
