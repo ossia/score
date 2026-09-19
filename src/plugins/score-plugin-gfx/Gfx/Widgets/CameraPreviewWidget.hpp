@@ -44,12 +44,11 @@ public:
 private:
   void timerEvent(QTimerEvent* ev) override;
   void attach();
-  void detach();
 
+  RhiPreviewWidget* m_rhi{};
   std::unique_ptr<score::gfx::Graph> m_graph;
   std::unique_ptr<score::gfx::CameraNode> m_node;
   std::shared_ptr<Video::ExternalInput> m_input;
-  RhiPreviewWidget* m_rhi{};
   int m_timerId{};
 };
 }
