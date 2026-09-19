@@ -131,7 +131,6 @@ public:                                                                         
   SCORE_SETTINGS_PROPERTY(Type, Name)                                            \
 private:
 
-#if !defined(__EMSCRIPTEN__)
 #define SCORE_SETTINGS_PARAMETER_CPP(Type, ModelType, Name)          \
   Type ModelType::get##Name() const                                  \
   {                                                                  \
@@ -155,26 +154,6 @@ private:
     s.setValue(Parameters::Name.key, QVariant::fromValue(m_##Name)); \
     Name##Changed(val);                                              \
   }
-#else
-#define SCORE_SETTINGS_PARAMETER_CPP(Type, ModelType, Name) \
-  Type ModelType::get##Name() const                         \
-  {                                                         \
-    return m_##Name;                                        \
-  }                                                         \
-                                                            \
-  void ModelType::init##Name(Type val)                      \
-  {                                                         \
-    m_##Name = val;                                         \
-    Name##Changed(val);                                     \
-  }                                                         \
-  void ModelType::set##Name(Type val)                       \
-  {                                                         \
-    if(val == m_##Name)                                     \
-      return;                                               \
-                                                            \
-    init##Name(std::move(val));                             \
-  }
-#endif
 
 #define SCORE_PROJECTSETTINGS_PARAMETER_CPP(Type, ModelType, Name) \
   Type ModelType::get##Name() const                                \
