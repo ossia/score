@@ -11,10 +11,9 @@ class GPUVideoDecoder;
  * @brief Whether the GPU decoder has to be rebuilt for this frame.
  *
  * Free and inline rather than a member: a static member of this class is not
- * exported from the plugin, and this has to be callable from a test. Pure
- * either way, which is the point -- a wrong answer is not a visible defect, it
- * is a decoder rebuilt on every single frame, and the only symptom is a frame
- * rate that is quietly worse than it should be.
+ * exported from the plugin, and this has to be callable from a test. A wrong
+ * answer here is not a visible defect -- it is a rebuild on every frame, whose
+ * only symptom is a frame rate that is quietly worse than it should be.
  *
  * @p built is what the current decoder was built for, @p src what the input
  * reports now, and @p w / @p h the incoming AVFrame's own size -- which for a
@@ -34,13 +33,10 @@ inline bool videoDecoderNeedsRebuild(
 
   return fmt != built.pixel_format || w != built.width || pictureH != built.height
          || src.output_format != built.output_format || src.tonemap != built.tonemap
-         // The colour description comes from the decoder rather than from the
-         // frame: Video::VideoDecoder infers it once, from the codec parameters
-         // plus its own rules for unspecified values, and that inference is
-         // better than anything a single AVFrame carries. A live input may
-         // revise it while running though -- an NDI source whose sender starts
-         // declaring HDR, or whose device setting changed -- and the matrix is
-         // baked into the GPU decoder's shader, so a change has to rebuild it.
+         // The colour description comes from the decoder, not the frame, and a
+         // live input may revise it while running -- a sender that starts
+         // declaring HDR. The matrix is baked into the shader, so that
+         // rebuilds.
          || src.color_space != built.color_space || src.color_range != built.color_range
          || src.color_trc != built.color_trc
          || src.color_primaries != built.color_primaries
