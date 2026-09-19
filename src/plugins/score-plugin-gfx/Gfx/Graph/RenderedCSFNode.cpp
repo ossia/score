@@ -5398,6 +5398,44 @@ void RenderedCSFNode::runInitialPasses(
     commands.endComputePass();
   }
 
+  // SCORE_CSF_STATEPROBE: after this node's dispatches, read back the head of
+  // every geometry attribute so the state can be followed from node to node
+  // across frames. The result lands a frame later, which is why the line says
+  // which frame it was issued on.
+  if(Q_UNLIKELY(qEnvironmentVariableIsSet("SCORE_CSF_STATEPROBE")))
+  {
+    if(!res)
+      res = renderer.state.rhi->nextResourceUpdateBatch();
+    const int64_t fr = renderer.frame;
+    for(auto& binding : m_geometryBindings)
+    {
+      for(auto& ssbo : binding.attribute_ssbos)
+      {
+        for(int half = 0; half < 2; ++half)
+        {
+          QRhiBuffer* b = half == 0 ? ssbo.buffer : ssbo.read_buffer;
+          if(!b || (half == 1 && ssbo.read_buffer == ssbo.buffer))
+            continue;
+          auto* rb = new QRhiBufferReadbackResult;
+          const QString tag = QString::asprintf(
+              "node=%p attr=%s %s buf=%p fb=%d", (void*)this, ssbo.name.c_str(),
+              half == 0 ? "OUT " : "IN  ", (void*)b, (int)binding.is_feedback_receiver);
+          rb->completed = [rb, tag, fr] {
+            const float* f = reinterpret_cast<const float*>(rb->data.constData());
+            const int n = std::min<int>(4, rb->data.size() / sizeof(float));
+            QString v;
+            for(int i = 0; i < n; ++i)
+              v += QString::asprintf("%.5f ", f[i]);
+            qDebug("score.gfx: STATEPROBE frame=%lld %s -> %s", (long long)fr,
+                   qPrintable(tag), qPrintable(v));
+            delete rb;
+          };
+          res->readBackBuffer(b, 0, (int)std::min<qint64>(b->size(), 32), rb);
+        }
+      }
+    }
+  }
+
   // After all compute passes: push output geometry to downstream nodes
   if(!m_geometryBindings.empty())
   {
