@@ -68,6 +68,12 @@ public:
   //! m_node below for why this is not simply the pointer.
   score::gfx::BackgroundNode* liveNode() const noexcept;
 
+  //! Stop rendering and hand the BackgroundNode back. Idempotent, and leaves
+  //! the widget reusable through useGraph()/useContext(). Callers that own the
+  //! graph must detach before destroying it: this widget is a child of
+  //! something that may outlive it.
+  void detach();
+
 protected:
   void paintEvent(QPaintEvent* ev) override;
   void resizeEvent(QResizeEvent* ev) override;
@@ -75,7 +81,6 @@ protected:
 
 private:
   void attach();
-  void detach();
 
   enum class Backend
   {

@@ -223,6 +223,15 @@ void RhiPreviewWidget::detach()
       break;
   }
 
+  // Forget the owners too, so a detached widget cannot outlive a graph it
+  // still points at.
+  m_backend = Backend::None;
+  m_graph = nullptr;
+  m_ctx = nullptr;
+  m_onAttached = {};
+  m_onAboutToDetach = {};
+  m_producer = {-1, -1};
+
   m_readback.reset();
 }
 

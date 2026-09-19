@@ -67,7 +67,11 @@ void CameraPreviewWidget::clear()
     m_timerId = 0;
   }
 
-  detach();
+  // Before the node goes, since the preview's render list holds it -- and
+  // before the graph goes, since ~QWidget deletes this child only after our
+  // members are destroyed. detach() drops its graph pointer, so that later
+  // destruction finds nothing to do.
+  m_rhi->detach();
 
   if(m_node)
   {
@@ -97,16 +101,6 @@ void CameraPreviewWidget::attach()
         if(m_node)
           m_graph->removeEdge(m_node->output[0], n.input[0]);
       });
-}
-
-void CameraPreviewWidget::detach()
-{
-  // RhiPreviewWidget detaches in its destructor, which is the only way to
-  // take its BackgroundNode back out of the graph: a live one would keep
-  // rendering the node we are about to delete.
-  delete m_rhi;
-  m_rhi = new RhiPreviewWidget{this};
-  layout()->addWidget(m_rhi);
 }
 
 void CameraPreviewWidget::timerEvent(QTimerEvent* ev)
