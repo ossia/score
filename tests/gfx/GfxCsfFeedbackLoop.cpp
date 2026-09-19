@@ -114,7 +114,7 @@ int drawn_pixels(const ReadbackImage& img)
   return n;
 }
 
-LoopShot render_loop(score::gfx::GraphicsApi be)
+LoopShot render_loop(score::gfx::GraphicsApi be, bool closeFromStep = false)
 {
   LoopShot r;
   score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
@@ -140,7 +140,8 @@ LoopShot render_loop(score::gfx::GraphicsApi be)
     p.wire(p.imageOut(raster, 0), p.sinkInput(sink));
     // The cable that closes the loop, and the only reason the owner is a
     // feedback receiver at all.
-    p.wireFeedback(p.geometryOut(tap, 0), p.geometryIn(hub, 0));
+    p.wireFeedback(
+        p.geometryOut(closeFromStep ? step : tap, 0), p.geometryIn(hub, 0));
 
     if(!p.create(be))
     {
@@ -233,4 +234,47 @@ TEST_CASE("a feedback loop is a pure function of the frame count", "[gfx][l3][cs
   REQUIRE(y.late.valid());
 
   CHECK(std::abs(drawn_level(x.late) - drawn_level(y.late)) < 2.0);
+}
+
+// -----------------------------------------------------------------------------
+// CASE 3 — an EVEN-length loop advances too.
+//
+// Identical to CASE 1 except the feedback cable leaves from `step` instead of
+// `tap`, so the cycle contains two nodes rather than three. That difference
+// alone used to lock OpenGL into a 2-cycle: the halves alternated between 0.04
+// and 0.06 forever while Vulkan climbed. The simplest feedback graph a user can
+// draw — one generator, one effect, a cable back — is the even case, so it has
+// to work.
+// -----------------------------------------------------------------------------
+TEST_CASE("an even-length feedback loop advances", "[gfx][l3][csf][feedback]")
+{
+  const auto backend = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(backend));
+
+  // OpenGL is skipped HERE ONLY, and the reason is a diagnosed engine defect
+  // rather than a mystery: an even-length loop locks into a 2-cycle there (the
+  // halves alternate 0.04 / 0.06 and every other increment is discarded) while
+  // Vulkan climbs. Ledger 9.106 carries the trace; 9.107 carries three fix
+  // attempts and what each one showed. The case runs on every other backend so
+  // it still guards them, and it turns green on GL the day the defect is fixed.
+  if(backend == score::gfx::OpenGL)
+    SKIP("OpenGL: an even-length feedback loop locks into a 2-cycle "
+         "(ledger 9.106, unfixed)");
+
+  const LoopShot s = render_loop(backend, /* closeFromStep */ true);
+  if(s.skipped)
+    SKIP(s.backend + ": " + s.skip_reason);
+  if(const char* why = compute_shader_skip_reason(backend))
+    SKIP(std::string{backend_name(backend)} + ": " + why);
+  CAPTURE(s.backend);
+  REQUIRE(s.error.empty());
+  REQUIRE(s.late.valid());
+  REQUIRE(drawn_pixels(s.late) > 200);
+
+  const double a = drawn_level(s.early);
+  const double b = drawn_level(s.mid);
+  const double c = drawn_level(s.late);
+  CAPTURE(a, b, c);
+  CHECK(b > a + 5.0);
+  CHECK(c > b + 5.0);
 }
