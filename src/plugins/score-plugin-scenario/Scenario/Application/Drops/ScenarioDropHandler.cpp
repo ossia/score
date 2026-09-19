@@ -17,28 +17,28 @@ MagneticStates magneticStates(
   const auto& scenario = pres.model();
 
   // Check if we keep the current magnetism
-  if(cur.horizontal)
-  {
-    const auto state_date = scenario.events.at(cur.horizontal->eventId()).date();
+  // if(cur.horizontal)
+  // {
+  //   const auto state_date = scenario.events.at(cur.horizontal->eventId()).date();
 
-    const double rel_y_distance = std::abs(cur.horizontal->heightPercentage() - pt.y);
-    const double abs_y_distance = rel_y_distance * pres.view().height();
+  //   const double rel_y_distance = std::abs(cur.horizontal->heightPercentage() - pt.y);
+  //   const double abs_y_distance = rel_y_distance * pres.view().height();
 
-    if(abs_y_distance < magnetic && state_date < pt.date)
-    {
-      return {cur.horizontal, cur.vertical, true};
-    }
-  }
-  else if(cur.vertical)
-  {
-    auto cur_date = Scenario::parentEvent(*cur.vertical, scenario).date();
-    const double abs_x_distance
-        = std::abs((cur_date.impl - pt.date.impl) / pres.zoomRatio());
-    if(abs_x_distance < magnetic)
-    {
-      return {cur.horizontal, cur.vertical, true};
-    }
-  }
+  //   if(abs_y_distance < magnetic && state_date < pt.date)
+  //   {
+  //     return {cur.horizontal, cur.vertical, true};
+  //   }
+  // }
+  // else if(cur.vertical)
+  // {
+  //   auto cur_date = Scenario::parentEvent(*cur.vertical, scenario).date();
+  //   const double abs_x_distance
+  //       = std::abs((cur_date.impl - pt.date.impl) / pres.zoomRatio());
+  //   if(abs_x_distance < magnetic)
+  //   {
+  //     return {cur.horizontal, cur.vertical, true};
+  //   }
+  // }
 
   EventModel& start_ev = scenario.startEvent();
   SCORE_ASSERT(!start_ev.states().empty());
@@ -57,6 +57,10 @@ MagneticStates magneticStates(
 
   StateModel* min_y_state = start_st;
   double min_y_distance = std::numeric_limits<double>::max();
+  StateModel* closest_x_y_state = start_st;
+  QPointF closest_x_y_distance
+      = {std::numeric_limits<double>::max(), std::numeric_limits<double>::max()};
+
   for(auto& state : scenario.states)
   {
     const auto state_date = eventDates[state.eventId()];
@@ -64,7 +68,7 @@ MagneticStates magneticStates(
     if(state_date >= pt_msec)
       continue;
 
-    const TimeVal rel_x_distance{std::abs(state_date.impl - pt.date.impl)};
+    const TimeVal rel_x_distance{pt.date.impl - state_date.impl};
     const double abs_x_distance = rel_x_distance.toPixels(pres.zoomRatio());
 
     const double rel_y_distance = std::abs(state.heightPercentage() - pt.y);
@@ -86,11 +90,11 @@ MagneticStates magneticStates(
   eventDates.clear();
   if(min_x_distance < min_y_distance)
   {
-    return {nullptr, min_x_state, min_x_distance < magnetic};
+    return {nullptr, min_x_state, true};
   }
   else
   {
-    return {min_y_state, nullptr, min_y_distance < magnetic};
+    return {min_y_state, nullptr, true};
   }
 }
 
