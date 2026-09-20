@@ -167,12 +167,12 @@ SKIP_SUBMODULE="3rdparty/airwin2rack libs/autoexport_airwin/airwindows" \
 clone_addon https://github.com/ossia/score-addon-cv
 clone_addon https://github.com/ossia/score-addon-onnx
 clone_addon https://github.com/ossia/score-addon-puara
+clone_addon https://github.com/ossia/score-addon-deuterium
 
 if [[ "$CI_PLATFORM" != "WASM" ]];
 then
   clone_addon          https://github.com/ossia/score-addon-ble
   clone_addon  https://github.com/ossia/score-addon-contextfree
-  clone_addon    https://github.com/ossia/score-addon-deuterium
   clone_addon         https://github.com/ossia/score-addon-hdf5
   clone_addon          https://github.com/ossia/score-addon-led
   clone_addon          https://github.com/ossia/score-addon-lavfi
