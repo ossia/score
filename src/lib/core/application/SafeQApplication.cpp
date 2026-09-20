@@ -185,17 +185,13 @@ bool SafeQApplication::notify(QObject* receiver, QEvent* event)
   catch(std::exception& e)
   {
     thread_local bool reentr = false;
-    if(this->thread() != QThread::currentThread() || reentr)
-    {
-      qDebug() << "Internal error: " << e.what();
-    }
-    else
+    // Log before the dialog, and whether or not there will be one: inform()
+    // blocks in QDialog::exec(), and off the GUI thread or under re-entry
+    // there is no dialog at all, so the log is the only record.
+    qCritical() << "Internal error:" << e.what();
+    if(this->thread() == QThread::currentThread() && !reentr)
     {
       reentr = true;
-      // Log before the dialog: inform() blocks in QDialog::exec(), and in a
-      // headless or offscreen run nobody ever sees it, so the only record of
-      // what went wrong would otherwise be a window that cannot be shown.
-      qCritical() << "Internal error:" << e.what();
       inform(QObject::tr("Internal error: ") + e.what());
       reentr = false;
     }
@@ -203,15 +199,11 @@ bool SafeQApplication::notify(QObject* receiver, QEvent* event)
   catch(...)
   {
     thread_local bool reentr = false;
-    if(this->thread() != QThread::currentThread() || reentr)
-    {
-      qDebug() << "Internal error: ";
-    }
-    else
+    qCritical() << "Internal error: (non-std exception)";
+    if(this->thread() == QThread::currentThread() && !reentr)
     {
       reentr = true;
-      qCritical() << "Internal error: (non-std exception)";
-      inform(QObject::tr("Internal error: "));
+      inform(QObject::tr("Internal error (non-std exception)"));
       reentr = false;
     }
   }

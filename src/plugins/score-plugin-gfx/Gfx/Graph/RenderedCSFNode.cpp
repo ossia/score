@@ -3795,17 +3795,19 @@ void RenderedCSFNode::buildComputeSrbBindings(
                        (long long)ssbo.buffer->size());
             }
 
-            // A feedback receiver owns the pair it swaps. A borrowed buffer
-            // means it adopted the shared upstream handle, which clobbers
-            // ssbo.buffer and undoes the swap: the read half is then a buffer
-            // nothing writes.
+            // A feedback receiver owns the pair it swaps. Borrowed here means
+            // the write half is still the shared upstream handle adopted before
+            // the loop closed, so the swap pairs an owned read half against a
+            // buffer this node does not own. Re-adoption is already prevented
+            // once is_feedback_receiver is set; what persists is the handle
+            // taken before that.
             if(binding.is_feedback_receiver && ssbo.read_buffer && !ssbo.owned
                && !ssbo.warned_borrowed_pair)
             {
               ssbo.warned_borrowed_pair = true;
               qWarning("score.gfx: geometry attribute '%s': feedback receiver is "
-                       "ping-ponging a borrowed buffer, so its swap is undone by "
-                       "adoption every frame",
+                       "ping-ponging a write half it does not own, so the pair is "
+                       "shared with upstream",
                        req.name.c_str());
             }
 
