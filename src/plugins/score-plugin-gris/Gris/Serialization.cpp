@@ -3,6 +3,7 @@
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/PortSerialization.hpp>
 
+#include <score/application/ApplicationComponents.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 
