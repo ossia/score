@@ -15,7 +15,9 @@
 #include <QNetworkRequest>
 #include <QPointer>
 #include <QSaveFile>
+#include <QSettings>
 #include <QStringList>
+#include <QTimer>
 #include <QStandardPaths>
 #include <QUrl>
 
@@ -45,7 +47,9 @@ QNetworkRequest makeRequest(const QUrl& url)
   req.setAttribute(
       QNetworkRequest::RedirectPolicyAttribute,
       QNetworkRequest::NoLessSafeRedirectPolicy);
+#if !defined(__EMSCRIPTEN__)
   req.setRawHeader("User-Agent", "ossia-score");
+#endif
   return req;
 }
 
@@ -161,6 +165,12 @@ void OnlineExamples::parse(const QByteArray& json)
 
 void OnlineExamples::loadCache()
 {
+#if defined(__EMSCRIPTEN__)
+  QSettings s;
+  if(const auto json = s.value("score-docs/manifest").toByteArray(); !json.isEmpty())
+    parse(json);
+  m_etag = s.value("score-docs/etag").toString();
+#else
   const auto folder = cacheFolder();
   if(folder.isEmpty())
     return;
@@ -172,19 +182,32 @@ void OnlineExamples::loadCache()
   QFile e{folder + "/index.etag"};
   if(e.open(QIODevice::ReadOnly))
     m_etag = QString::fromUtf8(e.readAll()).trimmed();
+#endif
 }
 
 void OnlineExamples::refresh()
 {
+  refresh(!m_etag.isEmpty());
+}
+
+void OnlineExamples::refresh(bool conditional)
+{
   auto req = makeRequest(QUrl{manifestUrl()});
-  if(!m_etag.isEmpty())
+  if(conditional)
     req.setRawHeader("If-None-Match", m_etag.toUtf8());
 
   auto reply = network().get(req);
-  connect(reply, &QNetworkReply::finished, this, [this, reply] {
+  connect(reply, &QNetworkReply::finished, this, [this, reply, conditional] {
     reply->deleteLater();
     if(reply->error() != QNetworkReply::NoError)
+    {
+      // If-None-Match is not CORS-safelisted, so a site that answers the
+      // preflight without allowing it refuses the conditional request but
+      // would serve the plain one.
+      if(conditional)
+        refresh(false);
       return;
+    }
 
     const int status
         = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
@@ -200,6 +223,18 @@ void OnlineExamples::refresh()
     if(m_examples.empty() && before == 0)
       return;
 
+    const auto etag = reply->rawHeader("ETag");
+    if(!etag.isEmpty())
+      m_etag = QString::fromUtf8(etag);
+
+#if defined(__EMSCRIPTEN__)
+    // Not the filesystem: CacheLocation is backed by IndexedDB, whose writes
+    // suspend, and this runs on a plain JS stack where suspending throws.
+    QSettings s;
+    s.setValue("score-docs/manifest", body);
+    if(!etag.isEmpty())
+      s.setValue("score-docs/etag", m_etag);
+#else
     if(const auto folder = cacheFolder(); !folder.isEmpty())
     {
       QDir{}.mkpath(folder);
@@ -208,10 +243,8 @@ void OnlineExamples::refresh()
         f.write(body);
         f.commit();
       }
-      const auto etag = reply->rawHeader("ETag");
       if(!etag.isEmpty())
       {
-        m_etag = QString::fromUtf8(etag);
         if(QSaveFile e{folder + "/index.etag"}; e.open(QIODevice::WriteOnly))
         {
           e.write(etag);
@@ -219,15 +252,52 @@ void OnlineExamples::refresh()
         }
       }
     }
+#endif
 
     updated();
   });
 }
 
-void OnlineExamples::install(const OnlineExample& ex, std::function<void(QString)> done)
+QString OnlineExamples::write(const OnlineExample& ex, const QByteArray& data)
 {
   const auto folder = installFolder(ex);
-  if(folder.isEmpty())
+  if(folder.isEmpty() || data.isEmpty())
+    return {};
+
+  const auto writeFile = [](const QString& path, const QByteArray& bytes) {
+    QDir{}.mkpath(QFileInfo{path}.absolutePath());
+    QSaveFile f{path};
+    return f.open(QIODevice::WriteOnly) && f.write(bytes) == bytes.size() && f.commit();
+  };
+
+  if(ex.format != QLatin1String{"zip"})
+  {
+    const auto path = folder + "." + ex.format;
+    return writeFile(path, data) ? path : QString{};
+  }
+
+  QString score;
+  for(const auto& [name, bytes] : zdl::unzip_all_files_to_memory(data))
+  {
+    // Entry names become paths under the library.
+    if(name.isEmpty() || name.contains("..") || QDir::isAbsolutePath(name))
+      continue;
+
+    const auto path = folder + "/" + name;
+    if(!writeFile(path, bytes))
+      continue;
+
+    if(score.isEmpty()
+       && (name.endsWith(".score", Qt::CaseInsensitive)
+           || name.endsWith(".scorejson", Qt::CaseInsensitive)))
+      score = path;
+  }
+  return score;
+}
+
+void OnlineExamples::install(const OnlineExample& ex, std::function<void(QString)> done)
+{
+  if(installFolder(ex).isEmpty())
   {
     done({});
     return;
@@ -240,54 +310,21 @@ void OnlineExamples::install(const OnlineExample& ex, std::function<void(QString
     return;
   }
 
-  if(ex.format == QLatin1String{"zip"})
-  {
-    // Not openArchive(): that asks the user where to extract.
-    zdl::download_and_extract(
-        QUrl{ex.file}, folder,
-        [done](const std::vector<QString>& files) {
-      auto it = std::find_if(files.begin(), files.end(), [](const QString& f) {
-        return f.endsWith(".score", Qt::CaseInsensitive)
-               || f.endsWith(".scorejson", Qt::CaseInsensitive);
-      });
-      done(it != files.end() ? *it : QString{});
-    },
-        [](qint64, qint64) {},
-        [done, id = ex.id](const QString& err) {
-      qWarning() << "online example" << id << ":" << err;
-      done({});
-    });
-    return;
-  }
-
-  const auto path = folder + "." + ex.format;
   auto reply = network().get(makeRequest(QUrl{ex.file}));
   connect(
       reply, &QNetworkReply::finished, this,
-      [reply, path, done = std::move(done)]() mutable {
+      [this, reply, ex, done = std::move(done)]() mutable {
     reply->deleteLater();
-    if(reply->error() != QNetworkReply::NoError)
-    {
-      done({});
-      return;
-    }
+    QByteArray data;
+    if(reply->error() == QNetworkReply::NoError)
+      data = reply->readAll();
 
-    const auto data = reply->readAll();
-    if(data.isEmpty())
-    {
-      done({});
-      return;
-    }
-
-    QDir{}.mkpath(QFileInfo{path}.absolutePath());
-    QSaveFile f{path};
-    if(!f.open(QIODevice::WriteOnly) || f.write(data) != data.size() || !f.commit())
-    {
-      done({});
-      return;
-    }
-
-    done(path);
+    // Writing suspends when the filesystem is backed by IndexedDB, which the
+    // stack of a network callback does not allow; a queued call gets one that does.
+    QTimer::singleShot(
+        0, this, [ex, data = std::move(data), done = std::move(done)]() mutable {
+      done(write(ex, data));
+    });
   });
 }
 }
