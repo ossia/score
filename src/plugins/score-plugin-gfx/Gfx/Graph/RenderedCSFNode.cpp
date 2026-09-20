@@ -1515,7 +1515,7 @@ void RenderedCSFNode::updateGeometryBindings(
             if(ssbo.read_buffer)
             {
               ssbo.read_buffer = regrowBuffer(renderer, ssbo.read_buffer, needed);
-              RhiClearBuffer::clearBuffer(rhi, res, ssbo.read_buffer, 0, (quint32)needed);
+              RhiClearBuffer::clearBuffer(*renderer.state.rhi, res, ssbo.read_buffer, 0, (quint32)needed);
             }
           }
 
