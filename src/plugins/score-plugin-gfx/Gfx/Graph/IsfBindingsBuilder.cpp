@@ -902,6 +902,17 @@ void bindUpstreamImagesFromGeometry(
   }
 }
 
+namespace
+{
+// bindUpstreamBuffersFromGeometry is SCORE_PLUGIN_GFX_EXPORT, and a dllexport
+// function may not hold a thread_local, so the one-shot dedup lives out here.
+bool warnOnceIsfAuxUniform(const std::string& name)
+{
+  static thread_local std::set<std::string> warned;
+  return warned.insert(name).second;
+}
+}
+
 void bindUpstreamBuffersFromGeometry(
     QRhi& rhi, QRhiResourceUpdateBatch& res,
     GraphicsStorageResources& store, const ossia::geometry& geometry,
@@ -940,8 +951,7 @@ void bindUpstreamBuffersFromGeometry(
       auto* handle = static_cast<QRhiBuffer*>(gpu->handle);
       if(is_uniform && !handle->usage().testFlag(QRhiBuffer::UniformBuffer))
       {
-        static thread_local std::set<std::string> warned;
-        if(warned.insert(name).second)
+        if(warnOnceIsfAuxUniform(name))
           qWarning() << "ISF aux" << name.c_str()
                      << "is declared uniform but the producer publishes a buffer"
                         " without UniformBuffer usage; on OpenGL every member of"
