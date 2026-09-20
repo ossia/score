@@ -135,7 +135,11 @@ backend_env() {
       # LIBGL_ALWAYS_SOFTWARE is silently ignored.
       echo "DISPLAY=${DISPLAY:-:0} QT_QPA_PLATFORM=xcb __GLX_VENDOR_LIBRARY_NAME=mesa LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe" ;;
     vulkan-lavapipe)
-      echo "DISPLAY=${DISPLAY:-:0} QT_QPA_PLATFORM=xcb VK_LOADER_DRIVERS_SELECT=lvp*" ;;
+      # Selecting the driver is not enough: a vendor's implicit layers still
+      # load and interpose on vkCreateDevice, and an NVIDIA layer wrapped
+      # around lavapipe faults inside it. lin-grab.sh disables them for the
+      # same reason.
+      echo "DISPLAY=${DISPLAY:-:0} QT_QPA_PLATFORM=xcb VK_LOADER_DRIVERS_SELECT=lvp* VK_LOADER_LAYERS_DISABLE=*" ;;
     llvmpipe-offscreen)
       echo "QT_QPA_PLATFORM=offscreen __GLX_VENDOR_LIBRARY_NAME=mesa LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe" ;;
     *)

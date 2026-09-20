@@ -157,6 +157,9 @@ TEST_CASE(
 
   INFO("reverse-Z covered " << cr.count << " px of " << cr.mask.size());
   REQUIRE(cr.count > 200);
+  // A silhouette that fills the frame makes the comparison below vacuous:
+  // two all-ones masks differ nowhere whatever the depth clear did.
+  REQUIRE(cr.count < cr.mask.size());
 
   INFO("forward-Z covered " << cf.count << " px of " << cf.mask.size());
   CHECK(cf.count > 200);

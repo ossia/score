@@ -1,5 +1,6 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <algorithm>
 #include "ApplicationSettings.hpp"
 
 #include <QApplication>
@@ -108,7 +109,9 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
   QCommandLineOption waitLoadOpt(
       "wait",
       QCoreApplication::translate(
-          "main", "Wait N seconds after loading, before playing."),
+          "main",
+          "Wait N seconds after loading, before playing and before running "
+          "any --script."),
       "N", "0");
   parser.addOption(waitLoadOpt);
 
@@ -215,7 +218,7 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
   autoplay = parser.isSet(autoplayOpt);
 
   if(parser.isSet(waitLoadOpt))
-    waitAfterLoad = parser.value(waitLoadOpt).toInt();
+    waitAfterLoad = std::max(0, parser.value(waitLoadOpt).toInt());
 
   if(!args.empty() && QFile::exists(args[0]))
   {

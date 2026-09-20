@@ -320,10 +320,12 @@ public:
   [[nodiscard]] bool isBuilt() const noexcept { return m_built; }
 
   /// Set the "any node requires depth" flag computed from the node graph.
-  /// Rising invalidates the build: targets allocated without depth are stale.
+  /// Either direction invalidates the build: a rise leaves targets allocated
+  /// without depth, a fall leaves every sink carrying a depth attachment
+  /// nothing reads -- 33 MB per sink at 4K, for the rest of the session.
   void markRequiresDepth(bool value) noexcept
   {
-    if(value && !m_requiresDepth)
+    if(value != m_requiresDepth)
       m_built = false;
     m_requiresDepth = value;
   }
