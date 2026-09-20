@@ -4901,54 +4901,6 @@ void RenderedCSFNode::runRenderPass(
 }
 
 
-static void csfTexreadDump(const QRhiReadbackResult& rb, const QString& label)
-{
-  const int w = rb.pixelSize.width(), h = rb.pixelSize.height();
-  const char* fmt = "?";
-  int bpp = 0;
-  switch(rb.format)
-  {
-    case QRhiTexture::RGBA8: fmt = "RGBA8"; bpp = 4; break;
-    case QRhiTexture::BGRA8: fmt = "BGRA8"; bpp = 4; break;
-    case QRhiTexture::RGBA16F: fmt = "RGBA16F"; bpp = 8; break;
-    case QRhiTexture::RGBA32F: fmt = "RGBA32F"; bpp = 16; break;
-    default: break;
-  }
-  qDebug("score.gfx: TEXREAD %s fmt=%s size=%dx%d bytes=%lld", qPrintable(label), fmt, w,
-         h, (long long)rb.data.size());
-  if(bpp == 0 || w <= 0 || h <= 0 || rb.data.size() < (qsizetype)bpp)
-    return;
-
-  const auto* base = reinterpret_cast<const uchar*>(rb.data.constData());
-  double sum = 0.0, peak = 0.0;
-  const qsizetype texels = rb.data.size() / bpp;
-  for(qsizetype i = 0; i < texels; i++)
-  {
-    const uchar* px = base + i * bpp;
-    double r = 0.0, g = 0.0, b = 0.0;
-    if(rb.format == QRhiTexture::RGBA8 || rb.format == QRhiTexture::BGRA8)
-    {
-      r = px[0] / 255.0; g = px[1] / 255.0; b = px[2] / 255.0;
-    }
-    else if(rb.format == QRhiTexture::RGBA32F)
-    {
-      const auto* f = reinterpret_cast<const float*>(px);
-      r = f[0]; g = f[1]; b = f[2];
-    }
-    else if(rb.format == QRhiTexture::RGBA16F)
-    {
-      const auto* hf = reinterpret_cast<const qfloat16*>(px);
-      r = float(hf[0]); g = float(hf[1]); b = float(hf[2]);
-    }
-    const double lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-    sum += lum;
-    peak = std::max(peak, lum);
-  }
-  qDebug("score.gfx: TEXREAD %s texels=%lld mean=%.6f peak=%.6f", qPrintable(label),
-         (long long)texels, sum / double(texels ? texels : 1), peak);
-}
-
-
 void RenderedCSFNode::runInitialPasses(
     RenderList& renderer, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch*& res,
     Edge& edge)
