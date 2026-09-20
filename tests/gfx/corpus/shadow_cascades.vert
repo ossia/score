@@ -16,6 +16,8 @@
 
 void main()
 {
+    isf_vertShaderInit();
+
     uint drawId = draw_id;
     PerDraw pd = per_draws.data[drawId];
     mat4 model = pd.model;
@@ -24,4 +26,6 @@ void main()
     mat4 lightVP = shadow_cascades.light_view_proj[PASSINDEX];
 
     gl_Position = clipSpaceCorrMatrix * lightVP * wp;
+
+    isf_vertShaderFinish();
 }

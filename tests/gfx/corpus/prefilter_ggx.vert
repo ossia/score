@@ -7,6 +7,8 @@
 // wide ossia convention (see isf.cpp's vertexInitFunc).
 void main()
 {
+    isf_vertShaderInit();
+
     int idx = gl_VertexIndex % 3;
     vec2 ndc = vec2(
         (idx & 1) != 0 ? 3.0 : -1.0,
@@ -14,7 +16,6 @@ void main()
     v_uv = (ndc + 1.0) * 0.5;
     v_face = VIEW_INDEX;
     gl_Position = clipSpaceCorrMatrix * vec4(ndc, 0.0, 1.0);
-#if defined(QSHADER_SPIRV) || defined(QSHADER_HLSL) || defined(QSHADER_MSL)
-    gl_Position.y = -gl_Position.y;
-#endif
+
+    isf_vertShaderFinish();
 }
