@@ -24,7 +24,23 @@ BIN="${SCORE_BIN:-${OSSIA_SCORE:-$SRCROOT/build-sanitizers/ossia-score}}"
 # The scene must come from the tests-scene builder: a live-edit-style scene
 # does not connect to the offscreen device (see the backend note below). The
 # corpus is out-of-repo, provisioned like the other sweep scripts here.
-SCRIPTS="${SCRIPTS:-$HOME/Documents/ossia/score/packages/csf-examples/csf-testers/tests-scene/scripts}"
+
+# Resolve the tests-scene corpus without assuming one machine's layout: an
+# explicit variable wins, then a sibling checkout of the csf-examples package
+# next to the repo, then the historical path under $HOME. Every caller SKIPs
+# when none of them exists, so a machine without the package is not a failure.
+_resolve_scene_scripts() {
+  local root="$1" tail="$2" c
+  for c in "$root/../csf-examples/$tail" \
+           "$root/packages/csf-examples/$tail" \
+           "${SCORE_PACKAGES_DIR:-}/csf-examples/$tail" \
+           "$HOME/Documents/ossia/score/packages/csf-examples/$tail"; do
+    [ -n "$c" ] && [ -d "$c" ] && { printf '%s' "$c"; return 0; }
+  done
+  printf '%s' "$HOME/Documents/ossia/score/packages/csf-examples/$tail"
+}
+
+SCRIPTS="${SCRIPTS:-$(_resolve_scene_scripts "$SRCROOT" "csf-testers/tests-scene/scripts")}"
 JS="${1:-$SCRIPTS/build-isf-solid-color.js}"
 BACKEND="${2:-llvmpipe}"
 
@@ -53,7 +69,7 @@ LOG="$OUT/run.log"
 rm -f "$PNG" "$LOG"
 
 # A previous crash leaves the failsafe bit set, which changes startup behavior.
-rm -f "$HOME/.config/ossia/failsafe.bit"
+rm -f "${XDG_CONFIG_HOME:-$HOME/.config}/ossia/failsafe.bit"
 
 COMMON=(SCORE_AUDIO_BACKEND=dummy SCORE_DISABLE_AUDIOPLUGINS=1
         SCORE_FORCE_OFFSCREEN_WINDOW=Window)

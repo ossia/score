@@ -23,7 +23,7 @@
 # the exit code is ignored and the PNG's pixel mean is the verdict.
 set -u
 
-SCRIPTS="${1:-$HOME/Documents/ossia/score/packages/csf-examples/csf-testers/tests-scene/scripts}"
+SCRIPTS="${1:-${SCENE_SCRIPTS_DIR:-$HOME/Documents/ossia/score/packages/csf-examples/csf-testers/tests-scene/scripts}}"
 BIN="${OSSIA_SCORE:-ossia-score}"
 command -v "$BIN" >/dev/null 2>&1 || BIN="./ossia-score"
 OUT_ROOT="${OUT_ROOT:-/tmp/scene-js-sweep}"

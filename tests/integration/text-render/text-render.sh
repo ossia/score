@@ -126,7 +126,7 @@ NULL_RHI='NULL RHI BACKEND'
 
 # Hermetic config home, GraphicsApi pinned to OpenGL (user conf may say Vulkan).
 CFG="$OUT/config-home"; mkdir -p "$CFG/ossia"
-python3 - "$HOME/.config/ossia/score.conf" "$CFG/ossia/score.conf" <<'EOF'
+python3 - "${XDG_CONFIG_HOME:-$HOME/.config}/ossia/score.conf" "$CFG/ossia/score.conf" <<'EOF'
 import re, sys, pathlib
 src, dst = sys.argv[1], sys.argv[2]
 try: text = pathlib.Path(src).read_text()
@@ -165,7 +165,7 @@ run_sequence() { # outdir -> writes <outdir>/<case>.png + run.log + run.rc
   local dir="$1"
   mkdir -p "$dir"
   rm -f "$dir"/*.png "$dir/run.log" "$dir/run.rc" "$OUT/text-init.score" \
-        "$HOME/.config/ossia/failsafe.bit"
+        "${XDG_CONFIG_HOME:-$HOME/.config}/ossia/failsafe.bit"
   (
     flock -w 900 9 || { echo 98 > "$dir/run.rc"; exit 0; }
     env -u DISPLAY XDG_CONFIG_HOME="$CFG" \

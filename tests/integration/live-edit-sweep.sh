@@ -180,7 +180,7 @@ run_scenario() { # name nticks
     printf 'var NDI_MACHINE = "%s";\n' "$NDI_MACHINE"
     cat "$DIR/$name.js"; } > "$js"
   rm -f "$OUT/$name-init.score" "$OUT/$name-final.score" "$OUT/$name.png" \
-        "$OUT/$name.profraw" "$log" "$HOME/.config/ossia/failsafe.bit"
+        "$OUT/$name.profraw" "$log" "${XDG_CONFIG_HOME:-$HOME/.config}/ossia/failsafe.bit"
   (
     flock -w 900 9 || { echo 98 > "$OUT/$name.rc"; exit 0; }
     pump "$name" "$nticks" >/dev/null 2>&1 &

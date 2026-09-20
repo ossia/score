@@ -66,12 +66,12 @@ fi
 
 mkdir -p "$OUT"
 rm -f "$OUT"/init.score "$OUT"/final.score "$OUT"/final.png "$OUT"/soak.log \
-      "$OUT"/samples.csv "$OUT"/soak.rc "$HOME/.config/ossia/failsafe.bit"
+      "$OUT"/samples.csv "$OUT"/soak.rc "${XDG_CONFIG_HOME:-$HOME/.config}/ossia/failsafe.bit"
 
 # Hermetic config home: pin GraphicsApi=OpenGL (the user's live score.conf may
 # say Vulkan; QSettings is the only way score picks the API).
 CFG="$OUT/config-home"; mkdir -p "$CFG/ossia"
-python3 - "$HOME/.config/ossia/score.conf" "$CFG/ossia/score.conf" <<'EOF'
+python3 - "${XDG_CONFIG_HOME:-$HOME/.config}/ossia/score.conf" "$CFG/ossia/score.conf" <<'EOF'
 import re, sys, pathlib
 src, dst = sys.argv[1], sys.argv[2]
 try: text = pathlib.Path(src).read_text()

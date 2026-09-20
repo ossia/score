@@ -45,13 +45,32 @@ struct GLCapabilitiesResult
     }
 
     ctx.setFormat(fmt);
-    ctx.create();
-    ctx.makeCurrent(&surf);
 
-    major = ctx.format().majorVersion();
-    minor = ctx.format().minorVersion();
-    type = ctx.format().renderableType();
-    shaderVersion = glShaderVersion();
+    // Every step here can fail -- a headless session, a software rasteriser
+    // that cannot make a drawable, a driver that refuses the requested
+    // profile. Reading the format back and calling GL entry points anyway
+    // means querying an unusable context. Keep the conservative default
+    // instead: a wrong-but-safe shader version degrades one feature, a
+    // context that was never created takes the process down.
+    const bool surfaceOk = surf.isValid();
+    const bool contextOk = surfaceOk && ctx.create() && ctx.makeCurrent(&surf);
+    if(!contextOk)
+    {
+      qWarning() << "score: no usable OpenGL context for capability probing"
+                 << "(surface" << surfaceOk << "); assuming GLSL 1.20";
+      major = 2;
+      minor = 0;
+      type = QSurfaceFormat::OpenGL;
+      shaderVersion = 120;
+    }
+    else
+    {
+      major = ctx.format().majorVersion();
+      minor = ctx.format().minorVersion();
+      type = ctx.format().renderableType();
+      shaderVersion = glShaderVersion();
+      ctx.doneCurrent();
+    }
 #endif
     qDebug() << "Available GL context: " << major << minor << shaderVersion << type;
   }

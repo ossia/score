@@ -74,8 +74,30 @@ set -u
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 SRCROOT="$(cd "$HERE/../../.." && pwd)"  # tests/integration/golden-render -> repo root
-BIN="${OSSIA_SCORE:-$SRCROOT/build-sanitizers/ossia-score}"
-SCRIPTS="${SCRIPTS:-$HOME/Documents/ossia/score/packages/csf-examples/csf-testers/tests-scene/scripts}"
+BIN="${OSSIA_SCORE:-}"
+if [ -z "$BIN" ]; then
+  for _b in "$SRCROOT"/build*/ossia-score "$SRCROOT"/../build*/ossia-score; do
+    [ -x "$_b" ] && { BIN="$_b"; break; }
+  done
+  : "${BIN:=$SRCROOT/build/ossia-score}"
+fi
+
+# Resolve the tests-scene corpus without assuming one machine's layout: an
+# explicit variable wins, then a sibling checkout of the csf-examples package
+# next to the repo, then the historical path under $HOME. Every caller SKIPs
+# when none of them exists, so a machine without the package is not a failure.
+_resolve_scene_scripts() {
+  local root="$1" tail="$2" c
+  for c in "$root/../csf-examples/$tail" \
+           "$root/packages/csf-examples/$tail" \
+           "${SCORE_PACKAGES_DIR:-}/csf-examples/$tail" \
+           "$HOME/Documents/ossia/score/packages/csf-examples/$tail"; do
+    [ -n "$c" ] && [ -d "$c" ] && { printf '%s' "$c"; return 0; }
+  done
+  printf '%s' "$HOME/Documents/ossia/score/packages/csf-examples/$tail"
+}
+
+SCRIPTS="${SCRIPTS:-$(_resolve_scene_scripts "$SRCROOT" "csf-testers/tests-scene/scripts")}"
 OSC=6666
 BLANK_MEAN="${BLANK_MEAN:-0.002}"
 TIMEOUT="${TIMEOUT:-90}"
@@ -101,16 +123,19 @@ backend_api() {
 backend_env() {
   case "$1" in
     nvidia)
-      echo "DISPLAY=:0 QT_QPA_PLATFORM=xcb __GLX_VENDOR_LIBRARY_NAME=nvidia" ;;
+      echo "DISPLAY=${DISPLAY:-:0} QT_QPA_PLATFORM=xcb __GLX_VENDOR_LIBRARY_NAME=nvidia" ;;
     nvidia-vulkan)
-      echo "DISPLAY=:0 QT_QPA_PLATFORM=xcb QT_VK_PHYSICAL_DEVICE_INDEX=${QT_VK_PHYSICAL_DEVICE_INDEX:-1}" ;;
+      # No QT_VK_PHYSICAL_DEVICE_INDEX: the right index differs per machine
+      # (it is 0 on a box whose only discrete GPU is first). Qt picks its
+      # preferred device and the renderer assertion verifies which one.
+      echo "DISPLAY=${DISPLAY:-:0} QT_QPA_PLATFORM=xcb${QT_VK_PHYSICAL_DEVICE_INDEX:+ QT_VK_PHYSICAL_DEVICE_INDEX=$QT_VK_PHYSICAL_DEVICE_INDEX}" ;;
     llvmpipe)
       # Real GLX against Mesa's software rasteriser. __GLX_VENDOR_LIBRARY_NAME
       # is mandatory: without it libglvnd hands us the NVIDIA GPU and
       # LIBGL_ALWAYS_SOFTWARE is silently ignored.
-      echo "DISPLAY=:0 QT_QPA_PLATFORM=xcb __GLX_VENDOR_LIBRARY_NAME=mesa LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe" ;;
+      echo "DISPLAY=${DISPLAY:-:0} QT_QPA_PLATFORM=xcb __GLX_VENDOR_LIBRARY_NAME=mesa LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe" ;;
     vulkan-lavapipe)
-      echo "DISPLAY=:0 QT_QPA_PLATFORM=xcb VK_LOADER_DRIVERS_SELECT=lvp*" ;;
+      echo "DISPLAY=${DISPLAY:-:0} QT_QPA_PLATFORM=xcb VK_LOADER_DRIVERS_SELECT=lvp*" ;;
     llvmpipe-offscreen)
       echo "QT_QPA_PLATFORM=offscreen __GLX_VENDOR_LIBRARY_NAME=mesa LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe" ;;
     *)
@@ -161,9 +186,31 @@ API="$(backend_api "$BACKEND")"
 
 # Classes that drive a real X server need one.
 case "$BENV" in
-  *DISPLAY=:0*)
-    [ -e /tmp/.X11-unix/X0 ] || { echo "SKIP: backend $BACKEND needs an X server on :0"; exit 77; } ;;
+  *QT_QPA_PLATFORM=xcb*)
+    _disp="${DISPLAY:-:0}"
+    [ -e "/tmp/.X11-unix/X${_disp#:}" ] || [ -n "${WAYLAND_DISPLAY:-}" ] \
+      || { echo "SKIP: backend $BACKEND needs an X server on $_disp"; exit 77; } ;;
 esac
+
+# A backend class names a device family. If this machine has none of that
+# family, the case is not applicable here and SKIPS -- a laptop with only
+# Mesa must not fail the NVIDIA classes. If the family IS present and we
+# still got something else, that stays a hard failure (see the header): a
+# silent fallback to the wrong GPU is what this harness exists to catch.
+device_family_present() {
+  case "$1" in
+    nvidia|nvidia-vulkan)
+      if command -v vulkaninfo >/dev/null 2>&1; then
+        vulkaninfo --summary 2>/dev/null | grep -qE 'deviceName.*(NVIDIA|Quadro|GeForce|RTX)' && return 0
+      fi
+      command -v nvidia-smi >/dev/null 2>&1 && nvidia-smi -L >/dev/null 2>&1 && return 0
+      [ -e /dev/nvidiactl ] && return 0
+      return 1 ;;
+    *) return 0 ;;   # software rasterisers are always available
+  esac
+}
+device_family_present "$BACKEND" \
+  || { echo "SKIP: no device of the $BACKEND family on this machine"; exit 77; }
 
 # One golden set for every backend; per-backend run state beside it.
 REFS="$HERE/refs"
