@@ -516,6 +516,9 @@ void View::restoreLayout() { }
 
 void View::closeEvent(QCloseEvent* ev)
 {
+#if defined(__EMSCRIPTEN__)
+  ev->ignore();
+#else
   if(m_presenter->exit())
   {
     ev->accept();
@@ -524,6 +527,7 @@ void View::closeEvent(QCloseEvent* ev)
   {
     ev->ignore();
   }
+#endif
 }
 
 void View::on_fileNameChanged(DocumentView* d, const QString& newName)

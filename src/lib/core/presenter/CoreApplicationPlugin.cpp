@@ -71,8 +71,10 @@ void CoreApplicationPlugin::close()
 
 void CoreApplicationPlugin::quit()
 {
+#if !defined(__EMSCRIPTEN__)
   if(m_presenter.m_view)
     m_presenter.m_view->close();
+#endif
 }
 
 void CoreApplicationPlugin::restoreLayout()
@@ -261,7 +263,10 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
       auto quit_act = new QAction(m_presenter.view());
       connect(quit_act, &QAction::triggered, this, &CoreApplicationPlugin::quit);
       e.actions.add<Actions::Quit>(quit_act);
+#if !defined(__EMSCRIPTEN__)
+      // A web page has no application to leave; quitting only leaves a blank tab.
       file->addAction(quit_act);
+#endif
     }
 
     ////// View //////
