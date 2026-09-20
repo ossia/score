@@ -8,6 +8,9 @@
 #include <score/graphics/RectItem.hpp>
 #include <score/tools/FilePath.hpp>
 
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/JSONVisitor.hpp>
+
 #include <ossia/network/value/value_conversion.hpp>
 
 #include <QCheckBox>
@@ -439,3 +442,25 @@ QGraphicsItem* WidgetFactory::SpeakerSetupWidget::make_item(
 }
 
 W_OBJECT_IMPL(SpeakerTable)
+
+template <>
+void DataStreamReader::read(const Gris::SpeakerSetupInlet& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+
+template <>
+void DataStreamWriter::write(Gris::SpeakerSetupInlet& p)
+{
+}
+
+template <>
+void JSONReader::read(const Gris::SpeakerSetupInlet& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+
+template <>
+void JSONWriter::write(Gris::SpeakerSetupInlet& p)
+{
+}
