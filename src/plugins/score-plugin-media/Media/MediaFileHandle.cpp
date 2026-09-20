@@ -189,7 +189,9 @@ int64_t AudioFile::decodedSamples() const
 
 bool AudioFile::isSupported(const QFile& file)
 {
-  constexpr auto rex = ".(wav|mp3|m4a|ogg|flac|aif|aiff|w64|ape|wv|wma|aac|opus|ac3|dts|dtshd)$";
+  constexpr auto rex
+      = ".(wav|mp3|m4a|ogg|flac|aif|aiff|aifc|w64|ape|wv|wma|aac|caf|opus|ac3|dts|dtshd)"
+        "$";
   return file.exists()
          && file.fileName().contains(
              QRegularExpression(rex, QRegularExpression::CaseInsensitiveOption));
@@ -455,7 +457,8 @@ std::optional<AudioInfo> probe(const QString& path)
       }
     }
 
-    else if(suffix == "aif" || suffix == "aiff" || suffix == "aifc" || suffix == "caf")
+    if(suffix == "wav" || suffix == "w64" || suffix == "aif" || suffix == "aiff"
+       || suffix == "aifc" || suffix == "caf")
     {
       if(auto ret = SndfileDecoder::do_probe(path))
       {
