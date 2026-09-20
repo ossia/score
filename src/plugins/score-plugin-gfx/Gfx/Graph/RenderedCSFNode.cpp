@@ -5,6 +5,8 @@
 #include <Gfx/Graph/ISFVisitors.hpp>
 #include <Gfx/Graph/IsfBindingsBuilder.hpp>
 #include <Gfx/Graph/RenderedCSFNode.hpp>
+
+#include <Gfx/Graph/RhiClearBuffer.hpp>
 #include <Gfx/Graph/RhiIndirectCompat.hpp>
 #include <Gfx/Graph/RenderedISFSamplerUtils.hpp>
 #include <Gfx/Graph/RhiComputeBarrier.hpp>
@@ -1513,8 +1515,7 @@ void RenderedCSFNode::updateGeometryBindings(
             if(ssbo.read_buffer)
             {
               ssbo.read_buffer = regrowBuffer(renderer, ssbo.read_buffer, needed);
-              QByteArray zero(needed, 0);
-              res.uploadStaticBuffer(ssbo.read_buffer, 0, needed, zero.constData());
+              RhiClearBuffer::clearBuffer(rhi, res, ssbo.read_buffer, 0, (quint32)needed);
             }
           }
 
@@ -3772,8 +3773,8 @@ void RenderedCSFNode::buildComputeSrbBindings(
               snap->setName(QByteArray("CSF_GeomSnap_") + req.name.c_str());
               if(snap->create())
               {
-                QByteArray zero((int)ssbo.buffer->size(), 0);
-                res.uploadStaticBuffer(snap, 0, (int)ssbo.buffer->size(), zero.constData());
+                RhiClearBuffer::clearBuffer(
+                    rhi, res, snap, 0, (quint32)ssbo.buffer->size());
                 ssbo.read_buffer = snap;
                 ssbo.read_buffer_is_snapshot = true;
               }

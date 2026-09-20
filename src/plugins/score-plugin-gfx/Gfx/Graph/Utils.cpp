@@ -1220,12 +1220,15 @@ Pipeline buildPipelineWithState(
   applyPipelineState(
       *ps, state, rt.colorAttachmentCount(), depthAvailable, wantsDepthByDefault);
 
-  // The ISF vertex epilogue mirrors Y wherever the shader is not GLSL, which
+  // The ISF vertex epilogue mirrors Y under QSHADER_SPIRV / QSHADER_HLSL /
+  // QSHADER_MSL, i.e. on Vulkan, D3D11/12 and Metal -- every backend except
+  // OpenGL and GLES, which are the two that consume GLSL directly. The mirror
   // reverses window-space winding and so inverts which faces a given FrontFace
-  // culls. Compensate over exactly the epilogue's own guard set
-  // (QSHADER_SPIRV / QSHADER_HLSL / QSHADER_MSL) so a CULL_MODE means the same
-  // thing on every backend. RenderedRawRasterPipelineNode compensates for
-  // itself and does not come through here.
+  // culls, measured as CCW on OpenGL against CW on Vulkan and Metal for the
+  // same geometry. Compensate over exactly the epilogue's guard set so a
+  // CULL_MODE means the same thing everywhere.
+  // RenderedRawRasterPipelineNode compensates for itself and does not come
+  // through here.
   switch(renderer.state.api)
   {
     case score::gfx::Vulkan:

@@ -27,39 +27,6 @@ namespace isf
 {
 namespace
 {
-//! True when the source defines main() outside comments and disabled blocks.
-bool hasEntryPoint(std::string_view src) noexcept
-{
-  std::string stripped;
-  stripped.reserve(src.size());
-  for(std::size_t i = 0; i < src.size();)
-  {
-    if(src[i] == '/' && i + 1 < src.size() && src[i + 1] == '/')
-    {
-      while(i < src.size() && src[i] != '\n')
-        i++;
-    }
-    else if(src[i] == '/' && i + 1 < src.size() && src[i + 1] == '*')
-    {
-      i += 2;
-      while(i + 1 < src.size() && !(src[i] == '*' && src[i + 1] == '/'))
-        i++;
-      i = std::min(i + 2, src.size());
-    }
-    else
-    {
-      stripped.push_back(src[i]);
-      i++;
-    }
-  }
-
-  static constexpr auto rexp
-      = ctll::fixed_string{R"_(\bmain\s*\(\s*(void)?\s*\)\s*\{)_"};
-  return bool(ctre::search<rexp>(stripped));
-}
-}
-namespace
-{
 static constexpr struct glsl45_t
 {
   static constexpr auto versionPrelude = R"_(#version 460
@@ -4062,20 +4029,14 @@ void parser::parse_isf()
   // Add the actual vert / frag code
   if(!simpleVS)
   {
-    // Detect the entry point on a comment-stripped copy, but let the
-    // preprocessor do the rename: a textual replace also hits main() in a
-    // comment, a prototype or an #if 0 block, and renames the wrong one.
-    if(hasEntryPoint(m_sourceVertex))
-    {
-      m_vertex += "#define main main__isf_ossia\n";
-      m_vertex += m_sourceVertex;
-      m_vertex += "\n#undef main\n";
-      m_vertex += GLSL45.vertexUserMainEpilogue;
-    }
-    else
-    {
-      m_vertex += m_sourceVertex;
-    }
+    // Rename through the preprocessor rather than a textual replace, which
+    // would also hit main() in a comment, a prototype or an #if 0 block. A
+    // vertex source that reaches here is non-empty and so defines main; an
+    // empty one took the simpleVS path above.
+    m_vertex += "#define main main__isf_ossia\n";
+    m_vertex += m_sourceVertex;
+    m_vertex += "\n#undef main\n";
+    m_vertex += GLSL45.vertexUserMainEpilogue;
   }
   m_fragment += fragWithoutISF;
 
