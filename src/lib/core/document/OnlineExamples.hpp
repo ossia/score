@@ -57,8 +57,10 @@ public:
   void updated() W_SIGNAL(updated)
 
 private:
+  void refresh(bool conditional);
   static QString cacheFolder();
   void parse(const QByteArray& json);
+  static QString write(const OnlineExample& ex, const QByteArray& data);
 
   std::vector<OnlineExample> m_examples;
   QString m_etag;
