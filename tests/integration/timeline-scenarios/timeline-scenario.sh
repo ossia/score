@@ -38,11 +38,11 @@ command -v convert >/dev/null || { echo "SKIP: ImageMagick not found"; exit 77; 
 
 mkdir -p "$OUT"
 rm -f "$OUT"/ramp-init.score "$OUT"/ramp-*.png "$OUT"/ramp.log "$OUT"/ramp.rc \
-      "$HOME/.config/ossia/failsafe.bit"
+      "${XDG_CONFIG_HOME:-$HOME/.config}/ossia/failsafe.bit"
 
 # Hermetic config home, GraphicsApi pinned to OpenGL (user conf may say Vulkan).
 CFG="$OUT/config-home"; mkdir -p "$CFG/ossia"
-python3 - "$HOME/.config/ossia/score.conf" "$CFG/ossia/score.conf" <<'EOF'
+python3 - "${XDG_CONFIG_HOME:-$HOME/.config}/ossia/score.conf" "$CFG/ossia/score.conf" <<'EOF'
 import re, sys, pathlib
 src, dst = sys.argv[1], sys.argv[2]
 try: text = pathlib.Path(src).read_text()

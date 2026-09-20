@@ -233,7 +233,7 @@ run_tester() { # clip ref thresh logfile -> tester rc
   # PLAY_MS_OVERRIDE shortens the in-app deadline (used by the fuzz runs,
   # which are expected to never render anything).
   local clip="$1" ref="$2" thresh="$3" log="$4"
-  rm -f "$HOME/.config/ossia/failsafe.bit"
+  rm -f "${XDG_CONFIG_HOME:-$HOME/.config}/ossia/failsafe.bit"
   local expect_args=()
   [ -n "$ref" ] && expect_args=(--expect "$ref" --psnr "$thresh")
   flock /tmp/score-harness.lock env \

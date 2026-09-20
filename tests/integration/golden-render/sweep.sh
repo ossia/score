@@ -21,7 +21,23 @@ OUT="${SWEEP_OUT:-/tmp/score-sweep}"
 FRAME=30
 FILTER='*'
 SCRIPTS="<LIBRARY>:/packages/csf-examples/csf-testers/tests-scene/scripts"
-SCRIPTS_DIR="${SWEEP_SCRIPTS_DIR:-$HOME/Documents/ossia/score/packages/csf-examples/csf-testers/tests-scene/scripts}"
+
+# Resolve the tests-scene corpus without assuming one machine's layout: an
+# explicit variable wins, then a sibling checkout of the csf-examples package
+# next to the repo, then the historical path under $HOME. Every caller SKIPs
+# when none of them exists, so a machine without the package is not a failure.
+_resolve_scene_scripts() {
+  local root="$1" tail="$2" c
+  for c in "$root/../csf-examples/$tail" \
+           "$root/packages/csf-examples/$tail" \
+           "${SCORE_PACKAGES_DIR:-}/csf-examples/$tail" \
+           "$HOME/Documents/ossia/score/packages/csf-examples/$tail"; do
+    [ -n "$c" ] && [ -d "$c" ] && { printf '%s' "$c"; return 0; }
+  done
+  printf '%s' "$HOME/Documents/ossia/score/packages/csf-examples/$tail"
+}
+
+SCRIPTS_DIR="${SWEEP_SCRIPTS_DIR:-$(_resolve_scene_scripts "$HERE" "csf-testers/tests-scene/scripts")}"
 
 while [ $# -gt 0 ]; do
   case "$1" in

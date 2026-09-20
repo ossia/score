@@ -521,12 +521,17 @@ inline void sweepLibrary(
       res.erase("blank");
     dumpFrame(rel, sweeper.output.shared_readback);
 
-    // The same shader again on a fresh node, started mid-timeline. Its findings
-    // get their own keys so a shader that only works from a cold start is
-    // visible as exactly that rather than merged into the cold result.
+    // The same shader again on a fresh node, started mid-timeline. Only what
+    // the cold pass did NOT already report is interesting: the bake and its
+    // diagnostics are properties of the program, not of the frame range, so
+    // repeating them here would double every line.
     for(auto& [kind, detail] : sweeper.run(*program, mid_start_frame))
     {
+      if(kind == "gles300" || kind == "warning")
+        continue;
       if(!blankIsFailure && kind == "blank")
+        continue;
+      if(res.count(kind))
         continue;
       res.emplace(kind + "-mid", detail);
     }

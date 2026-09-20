@@ -17,7 +17,7 @@
 # unavailable; exit 1 when any shader failed on either backend.
 set -u
 GALLERY="${OBJECT_GALLERY:-tests/integration/ObjectGallery}"
-CORPUS="${1:-${SCORE_SHADER_LIBRARY_DIR:-$HOME/Documents/ossia/score/packages/csf-examples/csf-testers}}"
+CORPUS="${1:-${SCORE_SHADER_LIBRARY_DIR:-${SCORE_PACKAGES_DIR:-$HOME/Documents/ossia/score/packages}/csf-examples/csf-testers}}"
 DISP="${DISPLAY:-:0}"
 SECS=1
 

@@ -734,6 +734,26 @@ score_add_test(test_integration_nodal_viewport
 # frame index in two separate applications must be byte-identical.
 # Skips (77) without the binary or the out-of-repo tests-scene corpus.
 if(SCORE_HAS_SHELL_HARNESS)
+
+# ossia-score loads libclang from the SDK at runtime and the dev build carries
+# no RPATH to it, so a test that launches the binary must say where it lives.
+# Derived from LLVM_DIR rather than written out: the SDK is not always in /opt.
+if(NOT DEFINED SCORE_TEST_RUNTIME_LIBDIR)
+  set(SCORE_TEST_RUNTIME_LIBDIR "")
+  if(LLVM_DIR)
+    get_filename_component(SCORE_TEST_RUNTIME_LIBDIR "${LLVM_DIR}/../.." ABSOLUTE)
+  endif()
+endif()
+if(SCORE_TEST_RUNTIME_LIBDIR AND NOT WIN32)
+  if(APPLE)
+    set(_score_libpath_env "DYLD_LIBRARY_PATH=${SCORE_TEST_RUNTIME_LIBDIR}:$ENV{DYLD_LIBRARY_PATH}")
+  else()
+    set(_score_libpath_env "LD_LIBRARY_PATH=${SCORE_TEST_RUNTIME_LIBDIR}:$ENV{LD_LIBRARY_PATH}")
+  endif()
+else()
+  set(_score_libpath_env "")
+endif()
+
   add_test(NAME test_frame_determinism
     COMMAND ${_display_wrapper} "${CMAKE_CURRENT_SOURCE_DIR}/golden-render/frame-determinism.sh"
     WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
@@ -742,7 +762,7 @@ if(SCORE_HAS_SHELL_HARNESS)
     TIMEOUT 600
     RUN_SERIAL TRUE
     LABELS "gui"
-    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score;${_score_libpath_env}")
 
   # Golden-image render regression, one ctest per backend class. Each renders the
   # pinned tests-scene corpus through the real binary and compares against the
@@ -782,7 +802,7 @@ if(SCORE_HAS_SHELL_HARNESS)
         # -- in the build tree instead of /tmp, so CI can collect them.
         ATTACHED_FILES_ON_FAIL
           "${CMAKE_CURRENT_BINARY_DIR}/golden-artifacts/${_gr_backend}/diff"
-        ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score;OUT=${CMAKE_CURRENT_BINARY_DIR}/golden-artifacts/${_gr_backend}")
+        ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score;OUT=${CMAKE_CURRENT_BINARY_DIR}/golden-artifacts/${_gr_backend};${_score_libpath_env}")
     endforeach()
   endforeach()
 endif()
@@ -1015,7 +1035,7 @@ if(SCORE_HAS_SHELL_HARNESS)
       TIMEOUT 240
       RUN_SERIAL TRUE
       LABELS "live-edit"
-      ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+      ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score;${_score_libpath_env}")
   endforeach()
 endif()
 
@@ -1050,7 +1070,7 @@ if(SCORE_HAS_SHELL_HARNESS)
     SKIP_RETURN_CODE 77
     TIMEOUT 1200
     RUN_SERIAL TRUE
-    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score;${_score_libpath_env}")
 endif()
 
 
@@ -1067,7 +1087,7 @@ if(SCORE_HAS_SHELL_HARNESS)
     SKIP_RETURN_CODE 77
     TIMEOUT 600
     RUN_SERIAL TRUE
-    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score;${_score_libpath_env}")
 endif()
 
 
@@ -1100,7 +1120,7 @@ if(SCORE_HAS_SHELL_HARNESS)
       "${CMAKE_CURRENT_SOURCE_DIR}/text-render/analyze.py;${CMAKE_CURRENT_SOURCE_DIR}/golden-render/compare.py"
     ATTACHED_FILES_ON_FAIL
       "${CMAKE_CURRENT_BINARY_DIR}/golden-artifacts/text-render/diff"
-    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score;OUT=${CMAKE_CURRENT_BINARY_DIR}/golden-artifacts/text-render")
+    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score;OUT=${CMAKE_CURRENT_BINARY_DIR}/golden-artifacts/text-render;${_score_libpath_env}")
 endif()
 
 
