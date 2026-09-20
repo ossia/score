@@ -100,7 +100,7 @@
 	url = https://github.com/vilya/miniply
 [submodule "3rdparty/suil"]
 	path = 3rdparty/suil
-	url = https://github.com/lv2/suil
+	url = https://github.com/jcelerier/suil
 [submodule "3rdparty/clap"]
 	path = 3rdparty/clap
 	url = https://github.com/free-audio/clap
