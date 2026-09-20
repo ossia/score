@@ -51,10 +51,15 @@ public:
   void updateBackupData();
 
 private:
+  void storeModelData(const QByteArray& data);
   QTemporaryFile& crashDataFile();
   CommandBackupFile& crashCommandFile();
 
   score::Document& m_doc;
+#if defined(__EMSCRIPTEN__)
+  //! Where the document as loaded lives in local storage.
+  QString m_key;
+#endif
   QTemporaryFile m_modelFile;
   CommandBackupFile* m_commandFile{};
 };
