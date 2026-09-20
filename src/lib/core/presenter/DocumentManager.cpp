@@ -18,6 +18,7 @@
 #include <score/widgets/MessageBox.hpp>
 #include <score/widgets/Pixmap.hpp>
 
+#include <core/application/ApplicationInterface.hpp>
 #include <core/application/ApplicationSettings.hpp>
 #include <core/application/OpenDocumentsFile.hpp>
 #include <core/command/CommandStackSerialization.hpp>
@@ -333,6 +334,13 @@ void DocumentManager::forceCloseDocument(
   {
     delete &doc;
   }
+
+#if defined(__EMSCRIPTEN__)
+  // The window cannot be closed and there is no way to leave the page, so an
+  // empty application is a dead end: offer the start screen instead.
+  if(m_documents.empty())
+    score::GUIApplicationInterface::instance().showStartScreen();
+#endif
 }
 
 static void writeJsonToFile(QSaveFile& f, const rapidjson::StringBuffer& buffer)
