@@ -1220,6 +1220,27 @@ Pipeline buildPipelineWithState(
   applyPipelineState(
       *ps, state, rt.colorAttachmentCount(), depthAvailable, wantsDepthByDefault);
 
+  // The ISF vertex epilogue mirrors Y wherever the shader is not GLSL, which
+  // reverses window-space winding and so inverts which faces a given FrontFace
+  // culls. Compensate over exactly the epilogue's own guard set
+  // (QSHADER_SPIRV / QSHADER_HLSL / QSHADER_MSL) so a CULL_MODE means the same
+  // thing on every backend. RenderedRawRasterPipelineNode compensates for
+  // itself and does not come through here.
+  switch(renderer.state.api)
+  {
+    case score::gfx::Vulkan:
+    case score::gfx::D3D11:
+    case score::gfx::D3D12:
+    case score::gfx::Metal:
+      if(ps->cullMode() != QRhiGraphicsPipeline::None)
+        ps->setFrontFace(
+            ps->frontFace() == QRhiGraphicsPipeline::CCW ? QRhiGraphicsPipeline::CW
+                                                         : QRhiGraphicsPipeline::CCW);
+      break;
+    default:
+      break;
+  }
+
   // Semantic vertex input remapping (same as buildPipeline()).
   if(auto* geom = mesh.semanticGeometry())
   {
