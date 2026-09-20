@@ -45,8 +45,16 @@ void isf_vertShaderInit()
   isf_FragNormCoord = vec2((gl_Position.x+1.0)/2.0, (gl_Position.y+1.0)/2.0);
 }
 
+// The one clip-space Y negation for the whole vertex stage. It has to run
+// last, after any transform the shader applies, and it must not sit in
+// isf_vertShaderInit: a shader that reads gl_Position back after calling init
+// would then see the opposite polarity on Vulkan. Every ISF vertex shader ends
+// its main with a call to this.
 void isf_vertShaderFinish()
 {
+#if defined(QSHADER_SPIRV) || defined(QSHADER_HLSL) || defined(QSHADER_MSL)
+  gl_Position.y = -gl_Position.y;
+#endif
 }
 )_";
 
@@ -55,19 +63,6 @@ void main()
 {
   isf_vertShaderInit();
   isf_vertShaderFinish();
-#if defined(QSHADER_SPIRV) || defined(QSHADER_HLSL) || defined(QSHADER_MSL)
-  gl_Position.y = -gl_Position.y;
-#endif
-}
-)_";
-
-  static constexpr auto vertexUserMainEpilogue = R"_(
-void main()
-{
-  main__isf_ossia();
-#if defined(QSHADER_SPIRV) || defined(QSHADER_HLSL) || defined(QSHADER_MSL)
-  gl_Position.y = -gl_Position.y;
-#endif
 }
 )_";
 
@@ -4029,14 +4024,7 @@ void parser::parse_isf()
   // Add the actual vert / frag code
   if(!simpleVS)
   {
-    // Rename through the preprocessor rather than a textual replace, which
-    // would also hit main() in a comment, a prototype or an #if 0 block. A
-    // vertex source that reaches here is non-empty and so defines main; an
-    // empty one took the simpleVS path above.
-    m_vertex += "#define main main__isf_ossia\n";
     m_vertex += m_sourceVertex;
-    m_vertex += "\n#undef main\n";
-    m_vertex += GLSL45.vertexUserMainEpilogue;
   }
   m_fragment += fragWithoutISF;
 
