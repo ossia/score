@@ -1,5 +1,7 @@
 void main()
 {
+    isf_vertShaderInit();
+
     mat4 M = per_draws.data[draw_id].model;
     v_mm = vec4(M[3].xyz, 1.0);
     // No camera in this rig (the chain has no Camera process), so the model
@@ -7,4 +9,6 @@ void main()
     // with MODEL_MATRIX.
     gl_Position = clipSpaceCorrMatrix * M * vec4(position, 1.0);
     gl_PointSize = 2.0;
+
+    isf_vertShaderFinish();
 }

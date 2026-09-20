@@ -23,6 +23,8 @@
 // (multiplied by 0.0) so the declared VERTEX_INPUTS binding is used.
 void main()
 {
+    isf_vertShaderInit();
+
     int idx = gl_VertexIndex % 3;
     vec2 ndc = vec2(
         (idx & 1) != 0 ? 3.0 : -1.0,
@@ -55,4 +57,6 @@ void main()
     v_color = fwd * 0.5 + 0.5;
 
     gl_Position = vec4(ndc + vec2(0.0) * position.x, 0.0, 1.0);
+
+    isf_vertShaderFinish();
 }
