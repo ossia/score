@@ -4623,6 +4623,21 @@ void parser::parse_raw_raster_pipeline()
   //   ERROR: :123: '#define' : Macro redefined; different substitutions: isf_FragCoord
   // while SPIR-V and --glsl 460 bake; with this block gone all four bake.
 
+  // Prologue / epilogue hooks. The shader calls these itself -- first and last
+  // statement of its main -- exactly as an ISF vertex shader does. The
+  // generated entry point must NOT call them too: isf_vertShaderFinish()
+  // negates gl_Position.y, so running it twice cancels it and mirrors the
+  // picture back on Metal and D3D.
+  m_vertex += "void isf_vertShaderInit()\n{\n";
+  if(mv_fragment_plumbing)
+    m_vertex += "  isf_ViewIndexVarying = gl_ViewIndex;\n";
+  m_vertex += "}\n";
+  m_vertex += "void isf_vertShaderFinish()\n{\n";
+  m_vertex += "#if defined(QSHADER_HLSL) || defined(QSHADER_MSL)\n";
+  m_vertex += "  gl_Position.y = -gl_Position.y;\n";
+  m_vertex += "#endif\n";
+  m_vertex += "}\n";
+
   // Add the actual vert / frag code
   // Every RAW_RASTER shader writes its own main(), so rename it and run it
   // from a generated wrapper (below) that owns the real entry point.
@@ -4645,12 +4660,7 @@ void parser::parse_raw_raster_pipeline()
   //      Vulkan's framebuffer origin rather than cancelling against it.
   m_vertex += "#undef main\n";
   m_vertex += "void main()\n{\n";
-  if(mv_fragment_plumbing)
-    m_vertex += "  isf_ViewIndexVarying = gl_ViewIndex;\n";
   m_vertex += "  isf_rawraster_user_main();\n";
-  m_vertex += "#if defined(QSHADER_HLSL) || defined(QSHADER_MSL)\n";
-  m_vertex += "  gl_Position.y = -gl_Position.y;\n";
-  m_vertex += "#endif\n";
   m_vertex += "}\n";
 
   // Replace the special ISF stuff

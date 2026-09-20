@@ -1,5 +1,7 @@
 void main()
 {
+    isf_vertShaderInit();
+
     // Procedural fullscreen triangle from gl_VertexIndex (no geometry input).
     // MULTIVIEW draws it into every view/layer in one pass. Transform by the
     // engine-provided pass-through multiview matrix isf_mv.viewProjection[VIEW_
@@ -10,4 +12,6 @@ void main()
     vec2 p = vec2(float((gl_VertexIndex << 1) & 2), float(gl_VertexIndex & 2));
     vec4 pos = vec4(p * 2.0 - 1.0, 0.0, 1.0);
     gl_Position = isf_mv.viewProjection[VIEW_INDEX] * pos;
+
+    isf_vertShaderFinish();
 }

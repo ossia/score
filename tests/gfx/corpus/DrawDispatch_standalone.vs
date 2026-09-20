@@ -1,5 +1,7 @@
 void main()
 {
+    isf_vertShaderInit();
+
     // Scene/instance transforms ride the instance-rate 'translation' vertex
     // attribute (RATE: instance in syn-instance-count-user.cs), NOT
     // MODEL_MATRIX -- MODEL_MATRIX stays identity here and is kept only for
@@ -19,4 +21,6 @@ void main()
     // cb.draw(..., instances) breaks the second.
     v_buf_id = translation.w;
     v_draw_id = gl_InstanceIndex;
+
+    isf_vertShaderFinish();
 }

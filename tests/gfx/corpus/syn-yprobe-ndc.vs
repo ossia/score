@@ -1,5 +1,7 @@
 void main()
 {
+    isf_vertShaderInit();
+
     // Standard procedural fullscreen triangle (same construct as
     // mv-uniform-collision.vs / rr-perlayer.vs), then squashed into the +Y
     // half: y_ndc in [0, +1], full width. Nothing is drawn below y_ndc = 0,
@@ -8,4 +10,6 @@ void main()
     vec2 ndc = uv * 2.0 - 1.0;
     ndc.y = ndc.y * 0.5 + 0.5;
     gl_Position = clipSpaceCorrMatrix * vec4(ndc, 0.0, 1.0);
+
+    isf_vertShaderFinish();
 }
