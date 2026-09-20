@@ -663,7 +663,7 @@ bool remapPipelineVertexInputs(
   inputLayout.setBindings(prevLayout.cbeginBindings(), prevLayout.cendBindings());
   inputLayout.setAttributes(remappedAttrs.begin(), remappedAttrs.end());
   dropTrailingOrphanVertexBindings(inputLayout);
-  warnOrphanVertexBindings(inputLayout, "remapPipelineVertexInputs(keep-bindings)");
+  warnOrphanVertexBindings(inputLayout, "remapPipelineVertexInputs(keep-bindings,semantic)");
   pip.setVertexInputLayout(inputLayout);
   return true;
 }

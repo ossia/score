@@ -45,7 +45,8 @@ struct BackgroundNode : OutputNode
         // as "nothing rendered ... no process is connected to this device's
         // input" -- a false blank when the graph is in fact connected, hence
         // the trace.
-        if(qEnvironmentVariableIsSet("SCORE_GFX_TRACE"))
+        static const bool trace = qEnvironmentVariableIsSet("SCORE_GFX_TRACE");
+        if(trace)
           fprintf(
               stderr, "GFX-BACKGROUND readback cleared: renderers=%zu\n",
               renderer->renderers.size());

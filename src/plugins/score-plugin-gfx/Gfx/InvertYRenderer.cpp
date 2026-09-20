@@ -60,8 +60,11 @@ void InvertYRenderer::init(
   const auto& mesh = renderer.defaultTriangle();
   m_mesh = renderer.initMeshBuffer(mesh, res);
 
-  // We need to have a pass to invert the Y coordinate to go
-  // from GL direction (Y up) to normal video (Y down)
+  // Invert Y to go from GL direction (Y up) to video direction (Y down).
+  // The guard differs from ScaledRenderer's below on purpose: this one targets
+  // a video buffer in top-down memory order, so it corrects every API whose
+  // framebuffer origin is bottom-up; ScaledRenderer targets a swapchain and
+  // only has to undo clipSpaceCorrMatrix, which is Vulkan alone.
   // FIXME spout likely needs the same
   static const constexpr auto gl_filter = R"_(#version 450
     layout(location = 0) in vec2 v_texcoord;
@@ -171,6 +174,9 @@ void ScaledRenderer::init(score::gfx::RenderList &renderer, QRhiResourceUpdateBa
 
   const auto& mesh = renderer.defaultTriangle();
   m_mesh = renderer.initMeshBuffer(mesh, res);
+  // Swapchain destination: only Vulkan needs the correction, because only
+  // there did clipSpaceCorrMatrix already flip clip space. Compare
+  // InvertYRenderer above, which targets video memory order instead.
   static const constexpr auto gl_filter = R"_(#version 450
       layout(location = 0) in vec2 v_texcoord;
       layout(location = 0) out vec4 fragColor;

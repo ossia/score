@@ -19,8 +19,10 @@
 // earlier in the same frame; closing from `tap` renders the hub first. Both
 // shapes are covered, because only the first exercises the compute barrier.
 //
-// This is a liveness test: it catches a loop that dies, not a mis-bound pair.
-// That is checked by an invariant in
+// The owner is classified a feedback receiver here, so the ping-pong pair and
+// the swap are on the path under test. What the assertion cannot see is the
+// pair's identity: a loop that advances while reading the wrong half still
+// climbs. That is checked by an invariant in
 // RenderedCSFNode::buildComputeSrbBindings.
 //
 //   DISPLAY=:0 SCORE_TEST_API=opengl ctest -R gfx_csf_feedback_loop
