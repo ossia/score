@@ -1072,6 +1072,9 @@ void DocumentManager::restoreDocuments(const score::GUIApplicationContext& ctx)
 
   // Remove the ancient files
   {
+#if defined(__EMSCRIPTEN__)
+    score::DocumentBackups::clear();
+#else
     for(auto& doc : prev_docs)
     {
       QFile{doc.docPath}.remove();
@@ -1080,6 +1083,7 @@ void DocumentManager::restoreDocuments(const score::GUIApplicationContext& ctx)
     QSettings s{score::OpenDocumentsFile::path(), QSettings::IniFormat};
     s.setValue("score/docs", QMap<QString, QVariant>{});
     s.sync();
+#endif
   }
 
   // For all currently open documents, add the to the backed up list

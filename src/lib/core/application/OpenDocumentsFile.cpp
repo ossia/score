@@ -4,6 +4,7 @@
 
 #include <QCoreApplication>
 #include <QFile>
+#include <QSettings>
 #include <QStandardPaths>
 
 namespace score
@@ -34,6 +35,11 @@ QString OpenDocumentsFile::path()
 
 bool OpenDocumentsFile::exists()
 {
+#if defined(__EMSCRIPTEN__)
+  // There is no file: the list of open documents lives in local storage.
+  return !QSettings{}.value("score-backup/docs").toMap().isEmpty();
+#else
   return QFile::exists(OpenDocumentsFile::path());
+#endif
 }
 }

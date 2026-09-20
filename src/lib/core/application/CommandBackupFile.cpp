@@ -8,8 +8,17 @@
 
 #include <core/command/CommandStack.hpp>
 
+#include <QSettings>
+
 namespace score
 {
+#if defined(__EMSCRIPTEN__)
+static QString makeCommandKey(const void* self)
+{
+  return QStringLiteral("score-backup/commands-%1").arg(quintptr(self), 0, 16);
+}
+#endif
+
 CommandStackBackup::CommandStackBackup(const CommandStack& stack)
 {
   // Load initial state
@@ -30,7 +39,11 @@ CommandBackupFile::CommandBackupFile(const score::CommandStack& stack, QObject* 
 {
   init_connections();
 
+#if defined(__EMSCRIPTEN__)
+  m_key = makeCommandKey(this);
+#else
   m_file.open();
+#endif
 
   // Initial backup so that the file is always in a loadable state.
   commit();
@@ -44,17 +57,26 @@ CommandBackupFile::CommandBackupFile(
 {
   init_connections();
 
+#if defined(__EMSCRIPTEN__)
+  m_key = makeCommandKey(this);
+  QSettings{}.setValue(m_key, restored);
+#else
   m_file.open();
 
   m_file.resize(0);
   m_file.reset();
   m_file.write(restored);
   m_file.flush();
+#endif
 }
 
 QString CommandBackupFile::fileName() const
 {
+#if defined(__EMSCRIPTEN__)
+  return m_key;
+#else
   return m_file.fileName();
+#endif
 }
 
 void CommandBackupFile::init_connections()
@@ -137,6 +159,12 @@ void CommandBackupFile::commit()
   // http://www.boost.org/doc/libs/1_59_0/doc/html/interprocess/sharedmemorybetweenprocesses.html#interprocess.sharedmemorybetweenprocesses.mapped_file
 
   // Another possibility would be to save the commands to a db ?
+#if defined(__EMSCRIPTEN__)
+  QByteArray buf;
+  DataStream::Serializer ser(&buf);
+  ser.readFrom(m_stack);
+  QSettings{}.setValue(m_key, buf);
+#else
   m_file.resize(0);
   m_file.reset();
 
@@ -144,5 +172,6 @@ void CommandBackupFile::commit()
   ser.readFrom(m_stack);
 
   m_file.flush();
+#endif
 }
 }

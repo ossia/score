@@ -52,6 +52,12 @@ private:
   const score::CommandStack& m_stack;
   CommandStackBackup m_backup;
 
+#if defined(__EMSCRIPTEN__)
+  //! Where the stack lives in local storage: the filesystem of a web page
+  //! does not outlive it, which is exactly when a backup has to be readable.
+  QString m_key;
+#else
   QTemporaryFile m_file;
+#endif
 };
 }

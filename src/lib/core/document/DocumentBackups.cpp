@@ -85,7 +85,23 @@ std::vector<score::RestorableDocument> score::DocumentBackups::restorableDocumen
 {
   std::vector<score::RestorableDocument> arr;
 
-#if !defined(__EMSCRIPTEN__)
+#if defined(__EMSCRIPTEN__)
+  QSettings s;
+  const auto existing = s.value("score-backup/docs").toMap();
+  for(auto it = existing.cbegin(); it != existing.cend(); ++it)
+  {
+    const auto entry = it.value().toStringList();
+    if(entry.size() != 2)
+      continue;
+
+    const auto doc = s.value(it.key()).toByteArray();
+    const auto commands = s.value(entry[1]).toByteArray();
+    if(doc.isEmpty())
+      continue;
+
+    arr.push_back({entry[0], it.key(), entry[1], doc, commands});
+  }
+#else
   QSettings s{score::OpenDocumentsFile::path(), QSettings::IniFormat};
 
   auto docs = s.value("score/docs");
@@ -105,7 +121,17 @@ std::vector<score::RestorableDocument> score::DocumentBackups::restorableDocumen
 
 SCORE_LIB_BASE_EXPORT void score::DocumentBackups::clear()
 {
-#if !defined(__EMSCRIPTEN__)
+#if defined(__EMSCRIPTEN__)
+  QSettings s;
+  const auto existing = s.value("score-backup/docs").toMap();
+  for(auto it = existing.cbegin(); it != existing.cend(); ++it)
+  {
+    s.remove(it.key());
+    if(const auto entry = it.value().toStringList(); entry.size() == 2)
+      s.remove(entry[1]);
+  }
+  s.remove("score-backup/docs");
+#else
   if(OpenDocumentsFile::exists())
   {
     // Remove all the tmp files
