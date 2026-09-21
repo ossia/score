@@ -107,6 +107,12 @@ void ProcessModel::init()
   m_inlets.push_back(patternSelect.get());
   m_inlets.push_back(switchQuantification.get());
 
+  // A document written before this port existed carries the pattern in the
+  // property alone: seed the port from it before listening, or the selector
+  // would show 0 while another pattern plays.
+  if(ossia::convert<int>(patternSelect->value()) != m_currentPattern)
+    patternSelect->setValue(m_currentPattern);
+
   // The port is the only selector: the property follows it, so the layer keeps
   // drawing the pattern the port picked. Execution reads the port itself, so an
   // automated value never comes back through here to grow the list.
@@ -160,6 +166,12 @@ void ProcessModel::setCurrentPattern(int n)
     m_currentPattern = n;
     currentPatternChanged(n);
   }
+
+  // Keep the port on the pattern that is actually current, so that what is
+  // saved, what the grid draws and what plays cannot drift apart. The port
+  // writes back here, which stops as soon as the two agree.
+  if(ossia::convert<int>(patternSelect->value()) != m_currentPattern)
+    patternSelect->setValue(m_currentPattern);
 }
 
 int ProcessModel::currentPattern() const noexcept
