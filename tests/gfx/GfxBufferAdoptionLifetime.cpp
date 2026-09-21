@@ -77,6 +77,7 @@ TEST_CASE(
       skip = std::string{backend_name(api)} + ": " + why;
       return;
     }
+    score::gfx::RenderList::resetStaleBindingCount();
     GfxPipeline p;
     const auto c = build(p);
     REQUIRE(c.ok());
@@ -95,6 +96,9 @@ TEST_CASE(
     // the promotion retired, checkBindingsLive fails inside the render.
     p.render(24);
     REQUIRE(p.error().empty());
+    // The render loop swallows the strict-mode exception and carries on, so a
+    // violation is invisible from the frame result: assert on the count.
+    CHECK(score::gfx::RenderList::staleBindingCount() == 0);
   });
   if(!skip.empty())
     SKIP(skip);
@@ -119,6 +123,7 @@ TEST_CASE(
       skip = std::string{backend_name(api)} + ": " + why;
       return;
     }
+    score::gfx::RenderList::resetStaleBindingCount();
     GfxPipeline p;
     const auto c = build(p);
     REQUIRE(c.ok());
@@ -128,6 +133,9 @@ TEST_CASE(
     p.removeEdgeIncremental(p.geometryOut(c.hub, 0), p.geometryIn(c.step, 0));
     p.render(24);
     REQUIRE(p.error().empty());
+    // The render loop swallows the strict-mode exception and carries on, so a
+    // violation is invisible from the frame result: assert on the count.
+    CHECK(score::gfx::RenderList::staleBindingCount() == 0);
   });
   if(!skip.empty())
     SKIP(skip);
@@ -151,6 +159,7 @@ TEST_CASE(
       skip = std::string{backend_name(api)} + ": " + why;
       return;
     }
+    score::gfx::RenderList::resetStaleBindingCount();
     GfxPipeline p;
     const auto c = build(p);
     REQUIRE(c.ok());
@@ -162,6 +171,117 @@ TEST_CASE(
     p.addEdgeIncremental(p.geometryOut(c.hub, 0), p.geometryIn(c.step, 0));
     p.render(24);
     REQUIRE(p.error().empty());
+    // The render loop swallows the strict-mode exception and carries on, so a
+    // violation is invisible from the frame result: assert on the count.
+    CHECK(score::gfx::RenderList::staleBindingCount() == 0);
+  });
+  if(!skip.empty())
+    SKIP(skip);
+}
+
+// The shape the corpus crashes on, reduced: three CSF nodes sharing one
+// auxiliary name. The middle node allocates its own "stats" buffer before its
+// upstream resolves; the last node adopts THAT buffer; then the middle node
+// adopts its own upstream's and releases the one the last node still binds.
+//
+// The releaser and the binder are different nodes, and the binder's
+// aux.buffer keeps the same address, so its binding hash never changes and its
+// shader resource bindings are never rebuilt. Under
+// SCORE_GFX_STRICT_BINDINGS the liveness check turns that into a failure here
+// instead of a segfault one run in three on the corpus.
+TEST_CASE(
+    "an auxiliary adopted from a node that later releases it is not left bound",
+    "[gfx][l3][csf][lifetime]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+  std::string skip;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    if(const char* why = compute_shader_skip_reason(api))
+    {
+      skip = std::string{backend_name(api)} + ": " + why;
+      return;
+    }
+    score::gfx::RenderList::resetStaleBindingCount();
+    GfxPipeline p;
+    const int src = p.addCsf(corpus("csf-auxiliary-buffer.cs"));
+    const int mid = p.addCsf(corpus("syn-aux-adopt-chain.cs"));
+    const int last = p.addCsf(corpus("syn-aux-adopt-chain.cs"));
+    const int raster
+        = p.addRaster(corpus("raw-raster-basic.vs"), corpus("raw-raster-basic.fs"));
+    const int sink = p.addSink({64, 64});
+    REQUIRE(src >= 0);
+    REQUIRE(mid >= 0);
+    REQUIRE(last >= 0);
+    REQUIRE(raster >= 0);
+    REQUIRE(sink >= 0);
+
+    p.wire(p.geometryOut(src, 0), p.geometryIn(mid, 0));
+    p.wire(p.geometryOut(mid, 0), p.geometryIn(last, 0));
+    p.wire(p.geometryOut(last, 0), p.geometryIn(raster, 0));
+    p.wire(p.imageOut(raster, 0), p.sinkInput(sink));
+    REQUIRE(p.create(api));
+
+    // Long enough for the middle node to allocate, the last node to adopt,
+    // and the middle node to then adopt upstream and release.
+    p.render(40);
+    REQUIRE(p.error().empty());
+    // The render loop swallows the strict-mode exception and carries on, so a
+    // violation is invisible from the frame result: assert on the count.
+    CHECK(score::gfx::RenderList::staleBindingCount() == 0);
+  });
+  if(!skip.empty())
+    SKIP(skip);
+}
+
+// Same three nodes, but the upstream arrives LATE -- which is what makes the
+// middle node allocate its own "stats" buffer first and only then adopt.
+// Wiring everything up front lets it adopt immediately and never allocate, so
+// the release that strands the last node never happens.
+TEST_CASE(
+    "an auxiliary released when its upstream arrives late is not left bound",
+    "[gfx][l3][csf][lifetime]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+  std::string skip;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    if(const char* why = compute_shader_skip_reason(api))
+    {
+      skip = std::string{backend_name(api)} + ": " + why;
+      return;
+    }
+    score::gfx::RenderList::resetStaleBindingCount();
+    GfxPipeline p;
+    const int src = p.addCsf(corpus("csf-auxiliary-buffer.cs"));
+    const int mid = p.addCsf(corpus("syn-aux-adopt-chain.cs"));
+    const int last = p.addCsf(corpus("syn-aux-adopt-chain.cs"));
+    const int raster
+        = p.addRaster(corpus("raw-raster-basic.vs"), corpus("raw-raster-basic.fs"));
+    const int sink = p.addSink({64, 64});
+    REQUIRE(src >= 0);
+    REQUIRE(mid >= 0);
+    REQUIRE(last >= 0);
+    REQUIRE(raster >= 0);
+    REQUIRE(sink >= 0);
+
+    // src is deliberately NOT wired yet.
+    p.wire(p.geometryOut(mid, 0), p.geometryIn(last, 0));
+    p.wire(p.geometryOut(last, 0), p.geometryIn(raster, 0));
+    p.wire(p.imageOut(raster, 0), p.sinkInput(sink));
+    REQUIRE(p.create(api));
+
+    // mid allocates its own "stats"; last adopts mid's.
+    p.render(12);
+
+    // Now the upstream shows up: mid adopts src's buffer and releases its own,
+    // which last is still binding.
+    p.addEdgeIncremental(p.geometryOut(src, 0), p.geometryIn(mid, 0));
+    p.render(40);
+    REQUIRE(p.error().empty());
+    // The render loop swallows the strict-mode exception and carries on, so a
+    // violation is invisible from the frame result: assert on the count.
+    CHECK(score::gfx::RenderList::staleBindingCount() == 0);
   });
   if(!skip.empty())
     SKIP(skip);

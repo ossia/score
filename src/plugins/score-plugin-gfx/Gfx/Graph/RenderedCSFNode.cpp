@@ -1627,6 +1627,7 @@ void RenderedCSFNode::updateGeometryBindings(
                 {
                   if(aux.owned && aux.buffer)
                   {
+                    qDebug("AUXPROBE release-adopt name=%s old=%p", aux.name.c_str(), (void*)aux.buffer);
                     renderer.releaseBuffer(aux.buffer);
                   }
                   aux.buffer = rhi_buf;
@@ -1654,6 +1655,7 @@ void RenderedCSFNode::updateGeometryBindings(
           {
             if(aux.owned && aux.buffer)
             {
+              qDebug("AUXPROBE release-size name=%s old=%p", aux.name.c_str(), (void*)aux.buffer);
               renderer.releaseBuffer(aux.buffer);
             }
             // Usage flag matches the aux kind so the created buffer can
@@ -3857,6 +3859,7 @@ void RenderedCSFNode::buildComputeSrbBindings(
                 score::gfx::bufferTypeFor(fallback_usage, QRhiBuffer::Static),
                 fallback_usage, fallback_size);
             aux.buffer->setName(QByteArray("CSF_AuxFB_") + aux.name.c_str());
+            qDebug("AUXPROBE fallback-create name=%s new=%p", aux.name.c_str(), (void*)aux.buffer);
             if(!aux.buffer->create())
               qWarning() << "CSF: could not create the fallback buffer for"
                          << aux.name.c_str();
@@ -3875,6 +3878,7 @@ void RenderedCSFNode::buildComputeSrbBindings(
           }
           else
           {
+            qDebug("AUXPROBE bind name=%s ptr=%p owned=%d", aux.name.c_str(), (void*)aux.buffer, (int)aux.owned);
             appendBufBinding(aux.buffer, aux.access);
           }
         }
