@@ -2,6 +2,7 @@
 #include <Gfx/Filter/PreviewWidget.hpp>
 #include <Gfx/Filter/Process.hpp>
 #include <Gfx/GeometryFilter/Process.hpp>
+#include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxDevice.hpp>
 #include <Library/LibrarySettings.hpp>
 #include <Library/ProcessesItemModel.hpp>
@@ -123,7 +124,7 @@ std::optional<Library::ProcessEntry> LibraryHandler::scanPath(std::string_view p
 QWidget*
 LibraryHandler::previewWidget(const QString& path, QWidget* parent) const noexcept
 {
-  if(!qEnvironmentVariableIsSet("SCORE_DISABLE_SHADER_PREVIEW"))
+  if(ApplicationPlugin::g_shader_preview_enabled)
     return new ShaderPreviewWidget{path, parent};
   else
     return nullptr;
@@ -138,7 +139,7 @@ QWidget* LibraryHandler::previewWidget(
   if(preset.key.key != Metadata<ConcreteKey_k, Filter::Model>::get())
     return nullptr;
 
-  if(!qEnvironmentVariableIsSet("SCORE_DISABLE_SHADER_PREVIEW"))
+  if(ApplicationPlugin::g_shader_preview_enabled)
     return new ShaderPreviewWidget{preset, parent};
   else
     return nullptr;

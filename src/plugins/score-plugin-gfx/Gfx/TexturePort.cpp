@@ -41,6 +41,7 @@ class GraphPreviewWidget : public QWidget
 public:
   GraphPreviewWidget(const TextureOutlet& outlet, Gfx::DocumentPlugin& plug)
       : outlet_p{&outlet}
+      , m_ctx{&plug.context}
   {
     setLayout(new Inspector::VBoxLayout{this});
 
@@ -49,8 +50,13 @@ public:
     m_rhiWidget->setMaximumWidth(300);
     m_rhiWidget->setMinimumHeight(200);
     m_rhiWidget->setMaximumHeight(200);
-    m_rhiWidget->useContext(&plug.context, outlet.graphicsPort());
     layout()->addWidget(m_rhiWidget);
+
+    m_enabled = ApplicationPlugin::g_shader_preview_enabled;
+    if(m_enabled)
+      m_rhiWidget->useContext(m_ctx, outlet.graphicsPort());
+    else
+      hide(); // setVisible(true) on a not-yet-parented widget would pop up a window
 
     // TextureOutlet::nodeId has no notifier — poll for changes so a
     // process re-instantiation rewires the preview to the new producer.
@@ -64,14 +70,29 @@ public:
   {
     if(!outlet_p || !m_rhiWidget)
       return;
-    m_rhiWidget->setProducer(outlet_p->graphicsPort());
+
+    if(const bool on = ApplicationPlugin::g_shader_preview_enabled && !m_ctx.isNull();
+       on != m_enabled)
+    {
+      m_enabled = on;
+      if(on)
+        m_rhiWidget->useContext(m_ctx, outlet_p->graphicsPort());
+      else
+        m_rhiWidget->detach();
+      setVisible(on);
+    }
+
+    if(m_enabled)
+      m_rhiWidget->setProducer(outlet_p->graphicsPort());
   }
 
   ~GraphPreviewWidget() override = default;
 
 private:
   QPointer<const TextureOutlet> outlet_p;
+  QPointer<GfxContext> m_ctx;
   RhiPreviewWidget* m_rhiWidget{};
+  bool m_enabled{};
 };
 
 TextureInlet::~TextureInlet() { }
@@ -426,8 +447,7 @@ void TextureOutletFactory::setupOutletInspector(
   lay.addRow(port.name(), Process::makePortAddressCombo(port, ctx, parent));
 
   auto& outlet = safe_cast<const TextureOutlet&>(port);
-  if(!qEnvironmentVariableIsSet("SCORE_DISABLE_SHADER_PREVIEW"))
-    lay.addRow(new GraphPreviewWidget{outlet, ctx.plugin<Gfx::DocumentPlugin>()});
+  lay.addRow(new GraphPreviewWidget{outlet, ctx.plugin<Gfx::DocumentPlugin>()});
 }
 }
 

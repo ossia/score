@@ -24,6 +24,13 @@ class ApplicationPlugin final : public score::GUIApplicationPlugin
 public:
   ApplicationPlugin(const score::GUIApplicationContext& app);
 
+  //! Runtime switch for every shader preview: the library thumbnails and the
+  //! live texture-outlet preview in the inspector. Seeded from
+  //! SCORE_DISABLE_SHADER_PREVIEW, then driven by the toolbar action.
+  static SCORE_PLUGIN_GFX_EXPORT bool g_shader_preview_enabled;
+
+  score::GUIElements makeGUIElements() override;
+
 protected:
   void on_createdDocument(score::Document& doc) override;
 };
