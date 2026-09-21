@@ -26,6 +26,31 @@ SCORE_COMMAND_DECL_T(Process::SetNodeFoldMode)
 
 namespace Process
 {
+//! p_duration is read-only and typed in flicks, so this cannot be a
+//! PROPERTY_COMMAND_T. The expand mode is a parameter rather than read from the
+//! edition settings, which live above this library: the caller supplies it, so
+//! the Scale / Lock toolbar toggle governs whether content is rescaled.
+class SCORE_LIB_PROCESS_EXPORT SetDuration final : public score::Command
+{
+  SCORE_COMMAND_DECL(Process::CommandFactoryName(), SetDuration, "Set process duration")
+public:
+  SetDuration(const ProcessModel& proc, TimeVal newDuration, ExpandMode mode);
+
+  void undo(const score::DocumentContext& ctx) const override;
+  void redo(const score::DocumentContext& ctx) const override;
+
+  void update(unused_t, TimeVal newDuration, ExpandMode mode);
+
+protected:
+  void serializeImpl(DataStreamInput& s) const override;
+  void deserializeImpl(DataStreamOutput& s) override;
+
+private:
+  Path<ProcessModel> m_model;
+  TimeVal m_old{}, m_new{};
+  ExpandMode m_mode{};
+};
+
 class MoveNodes final : public score::Command
 {
   SCORE_COMMAND_DECL(Process::CommandFactoryName(), MoveNodes, "Move nodes")
