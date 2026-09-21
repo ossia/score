@@ -5,6 +5,7 @@
 #include <QGradient>
 #include <QGraphicsItem>
 #include <QGraphicsSceneMouseEvent>
+#include <QGraphicsSceneWheelEvent>
 #include <QPainter>
 #include <QPolygon>
 
@@ -519,6 +520,22 @@ protected:
       event->ignore();
     }
     update();
+  }
+
+  //! Only widgets that define wheel() take the event: everything else keeps
+  //! letting the view scroll.
+  void wheelEvent(QGraphicsSceneWheelEvent* event) override
+  {
+    if constexpr(requires { impl.wheel(0., 0., 0.); })
+    {
+      impl.wheel(event->pos().x(), event->pos().y(), event->delta());
+      event->accept();
+      update();
+    }
+    else
+    {
+      event->ignore();
+    }
   }
 
 protected:
