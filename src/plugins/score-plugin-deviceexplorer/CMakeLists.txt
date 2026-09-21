@@ -147,6 +147,7 @@ if(OSSIA_DNSSD)
   score_declare_feature(dnssd)
 endif()
 target_link_libraries(${PROJECT_NAME} PRIVATE ${QT_PREFIX}::Core ${QT_PREFIX}::Network)
+target_link_libraries(${PROJECT_NAME} PRIVATE rapidfuzz::rapidfuzz)
 
 if(WIN32)
   target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32)

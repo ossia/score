@@ -17,6 +17,7 @@
 #include <score/tools/FilePath.hpp>
 #include <score/tools/RecursiveWatch.hpp>
 #include <score/widgets/MarginLess.hpp>
+#include <score/widgets/SearchLineEdit.hpp>
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/TextLabel.hpp>
 
@@ -32,6 +33,7 @@
 #include <QFormLayout>
 #include <QHeaderView>
 #include <QLabel>
+#include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
 #include <QSettings>
@@ -43,8 +45,14 @@
 #include <QWidget>
 #include <qnamespace.h>
 
+#include <rapidfuzz/fuzz.hpp>
+
 #include <wobjectimpl.h>
 
+#include <algorithm>
+#include <optional>
+#include <string>
+#include <string_view>
 #include <utility>
 W_OBJECT_IMPL(Explorer::DeviceEditDialog)
 namespace Explorer
@@ -54,6 +62,162 @@ static void setCategoryStyle(QTreeWidgetItem* catItem)
   catItem->setFont(0, score::Skin::instance().SectionTitleFont);
   catItem->setExpanded(true);
 }
+
+namespace
+{
+//! Lowercased UTF-8 of the item text, so that a keystroke does not re-case
+//! hundreds of strings.
+constexpr int SearchKeyRole = Qt::UserRole + 1;
+constexpr int SearchScoreRole = Qt::UserRole + 2;
+
+constexpr double FuzzyCutoff = 70.;
+//! Under that length partial_ratio matches nearly anything: substrings only.
+constexpr std::size_t FuzzyMinLength = 3;
+
+void initSearchKey(QTreeWidgetItem& item)
+{
+  item.setData(0, SearchKeyRole, item.text(0).toLower().toUtf8());
+}
+
+bool isLeaf(const QTreeWidgetItem& item) noexcept
+{
+  return item.flags() & Qt::ItemIsSelectable;
+}
+}
+
+//! Sorts on the search score first so that the best matches come up on top;
+//! every score is zero when nothing is typed, which leaves the usual
+//! alphabetical order.
+class SearchableItem final : public QTreeWidgetItem
+{
+public:
+  using QTreeWidgetItem::QTreeWidgetItem;
+
+  bool operator<(const QTreeWidgetItem& other) const override
+  {
+    const double self = data(0, SearchScoreRole).toDouble();
+    const double rhs = other.data(0, SearchScoreRole).toDouble();
+    if(self != rhs)
+      return self > rhs;
+    return text(0) < other.text(0);
+  }
+};
+
+class TreeSearchLineEdit final : public score::SearchLineEdit
+{
+public:
+  TreeSearchLineEdit(QTreeWidget& tree, QWidget* parent)
+      : score::SearchLineEdit{parent}
+      , m_tree{tree}
+  {
+    setPlaceholderText(tr("Filter"));
+    setClearButtonEnabled(true);
+    connect(this, &QLineEdit::textChanged, this, [this] { search(); });
+  }
+
+  void search() override
+  {
+    const auto utf8 = text().trimmed().toLower().toUtf8();
+    std::string needle(utf8.constData(), utf8.size());
+    if(needle == m_needle)
+      return;
+
+    m_needle = std::move(needle);
+    m_scorer.reset();
+    if(m_needle.size() >= FuzzyMinLength)
+      m_scorer.emplace(m_needle);
+
+    refilter();
+  }
+
+  //! Both the enumerators and the preset scan keep filling the tree long after
+  //! the user typed: new items are ranked as they land.
+  void itemAdded(QTreeWidgetItem& item)
+  {
+    if(!isLeaf(item))
+    {
+      item.setData(0, SearchScoreRole, 0.);
+      item.setHidden(!m_needle.empty());
+      return;
+    }
+
+    const bool matches = rank(item);
+    item.setHidden(!matches);
+    if(!matches)
+      return;
+
+    if(auto* cat = item.parent())
+    {
+      cat->setHidden(false);
+      const double s = item.data(0, SearchScoreRole).toDouble();
+      if(s > cat->data(0, SearchScoreRole).toDouble())
+        cat->setData(0, SearchScoreRole, s);
+    }
+  }
+
+  void refilter()
+  {
+    for(int i = 0; i < m_tree.topLevelItemCount(); i++)
+    {
+      auto& top = *m_tree.topLevelItem(i);
+      if(isLeaf(top))
+      {
+        top.setHidden(!rank(top));
+        continue;
+      }
+
+      double best = 0.;
+      bool any = false;
+      for(int j = 0; j < top.childCount(); j++)
+      {
+        auto& child = *top.child(j);
+        const bool matches = rank(child);
+        child.setHidden(!matches);
+        if(matches)
+        {
+          any = true;
+          best = std::max(best, child.data(0, SearchScoreRole).toDouble());
+        }
+      }
+      top.setData(0, SearchScoreRole, best);
+      top.setHidden(!any);
+    }
+
+    m_tree.sortItems(0, Qt::AscendingOrder);
+    if(!m_needle.empty())
+      m_tree.expandAll();
+  }
+
+private:
+  //! Stores the ranking score on the item and tells whether it is a match.
+  bool rank(QTreeWidgetItem& item) const
+  {
+    if(m_needle.empty())
+    {
+      item.setData(0, SearchScoreRole, 0.);
+      return true;
+    }
+
+    const auto key = item.data(0, SearchKeyRole).toByteArray();
+    const std::string_view text{key.constData(), std::size_t(key.size())};
+
+    // Substrings always win over any fuzzy near-miss, and the earlier the
+    // better: this is what keeps one- or two-letter queries usable.
+    if(const auto pos = text.find(m_needle); pos != std::string_view::npos)
+    {
+      item.setData(0, SearchScoreRole, 100. + 100. / (1. + pos));
+      return true;
+    }
+
+    const double fuzzy = m_scorer ? m_scorer->similarity(text, FuzzyCutoff) : 0.;
+    item.setData(0, SearchScoreRole, fuzzy);
+    return fuzzy >= FuzzyCutoff;
+  }
+
+  QTreeWidget& m_tree;
+  std::string m_needle;
+  std::optional<rapidfuzz::fuzz::CachedPartialRatio<char>> m_scorer;
+};
 
 DeviceEditDialog::DeviceEditDialog(
     const DeviceExplorerModel& model, const Device::ProtocolFactoryList& pl, Mode mode,
@@ -111,15 +275,19 @@ DeviceEditDialog::DeviceEditDialog(
   // Stacked widget: page 0 = protocols tree, page 1 = presets tree
   m_column1Stack = new QStackedWidget{this};
 
-  m_protocols = new QTreeWidget{this};
-  m_protocols->header()->hide();
-  m_protocols->setSelectionMode(QAbstractItemView::SingleSelection);
-  m_column1Stack->addWidget(m_protocols);
-
-  m_presets = new QTreeWidget{this};
-  m_presets->header()->hide();
-  m_presets->setSelectionMode(QAbstractItemView::SingleSelection);
-  m_column1Stack->addWidget(m_presets);
+  auto makeListPage = [this](QTreeWidget*& tree, TreeSearchLineEdit*& search) {
+    auto page = new QWidget{m_column1Stack};
+    auto layout = new score::MarginLess<QVBoxLayout>{page};
+    tree = new QTreeWidget{page};
+    tree->header()->hide();
+    tree->setSelectionMode(QAbstractItemView::SingleSelection);
+    search = new TreeSearchLineEdit{*tree, page};
+    layout->addWidget(tree);
+    layout->addWidget(search);
+    m_column1Stack->addWidget(page);
+  };
+  makeListPage(m_protocols, m_protocolsSearch);
+  makeListPage(m_presets, m_presetsSearch);
 
   m_column1Stack->setCurrentIndex(0);
   column1_layout->addWidget(m_column1Stack);
@@ -158,6 +326,8 @@ DeviceEditDialog::DeviceEditDialog(
   m_devices->header()->hide();
   m_devices->setSelectionMode(QAbstractItemView::SingleSelection);
   column2_layout->addWidget(m_devices);
+  m_devicesSearch = new TreeSearchLineEdit{*m_devices, column2};
+  column2_layout->addWidget(m_devicesSearch);
   column2->setLayout(column2_layout);
   m_splitter->addWidget(column2);
 
@@ -283,7 +453,7 @@ void DeviceEditDialog::initAvailableProtocols()
     QTreeWidgetItem* categoryItem{};
     if(cat_list.size() == 0)
     {
-      categoryItem = new QTreeWidgetItem;
+      categoryItem = new SearchableItem;
       categoryItem->setText(0, prot.category());
       categoryItem->setFlags(Qt::ItemIsEnabled);
       m_protocols->addTopLevelItem(categoryItem);
@@ -293,10 +463,11 @@ void DeviceEditDialog::initAvailableProtocols()
       categoryItem = cat_list.first();
     }
 
-    auto item = new QTreeWidgetItem{categoryItem};
+    auto item = new SearchableItem{categoryItem};
     item->setText(0, prot.prettyName());
     item->setData(0, Qt::UserRole, QVariant::fromValue(prot.concreteKey()));
     item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+    initSearchKey(*item);
     m_previousSettings.append(prot.defaultSettings());
   }
 
@@ -355,17 +526,33 @@ void DeviceEditDialog::initPresets()
 
     return
         [this, basename = std::move(basename), absolutePath = std::move(absolutePath)] {
-      auto item = new QTreeWidgetItem;
+      // The scan outlives setBrowserEnabled(false), which drops the tree.
+      if(!m_presets)
+        return;
+      auto item = new SearchableItem;
       item->setText(0, basename);
       item->setData(0, Qt::UserRole, absolutePath);
       item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+      initSearchKey(*item);
       m_presets->addTopLevelItem(item);
+      m_presetsSearch->itemAdded(*item);
+      queuePresetSort();
     };
   }});
   r.setWatchedFolder(rootPath.toStdString() + "/packages");
   r.scanAsync(this);
+}
 
-  m_presets->sortItems(0, Qt::AscendingOrder);
+void DeviceEditDialog::queuePresetSort()
+{
+  if(m_presetSortQueued)
+    return;
+  m_presetSortQueued = true;
+  QMetaObject::invokeMethod(this, [this] {
+    m_presetSortQueued = false;
+    if(m_presets)
+      m_presets->sortItems(0, Qt::AscendingOrder);
+  }, Qt::QueuedConnection);
 }
 
 void DeviceEditDialog::selectedPresetChanged()
@@ -410,6 +597,7 @@ void DeviceEditDialog::selectedPresetChanged()
 
   // Hide devices column — presets don't use enumerators
   m_devices->setVisible(false);
+  m_devicesSearch->setVisible(false);
   m_devicesLabel->setVisible(false);
   if(m_splitter->count() > 0)
     m_splitter->widget(0)->hide();
@@ -502,6 +690,7 @@ void DeviceEditDialog::selectedProtocolChanged()
 
   // Clear devices
   m_devices->clear();
+  m_devicesSearch->clear();
 
   // Clear protocol widget
   if(m_protocolWidget)
@@ -521,6 +710,7 @@ void DeviceEditDialog::selectedProtocolChanged()
   if(!m_enumerators.empty())
   {
     m_devices->setVisible(true);
+    m_devicesSearch->setVisible(true);
     m_devicesLabel->setVisible(true);
     m_devices->setRootIsDecorated(false);
     m_devices->setExpandsOnDoubleClick(false);
@@ -540,21 +730,25 @@ void DeviceEditDialog::selectedProtocolChanged()
 
     for(auto& [name, e] : m_enumerators)
     {
-      auto cat = new QTreeWidgetItem{};
+      auto cat = new SearchableItem{};
       setCategoryStyle(cat);
       cat->setText(0, name);
       cat->setFlags(Qt::ItemIsEnabled);
       m_devices->addTopLevelItem(cat);
+      m_devicesSearch->itemAdded(*cat);
 
-      auto addItem = [cat](const QString& name, const Device::DeviceSettings& settings) {
-        auto item = new QTreeWidgetItem;
+      auto addItem
+          = [this, cat](const QString& name, const Device::DeviceSettings& settings) {
+        auto item = new SearchableItem;
         item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
         item->setText(0, name);
         item->setData(0, Qt::UserRole, QVariant::fromValue(settings));
+        initSearchKey(*item);
         cat->addChild(item);
         cat->setExpanded(true);
+        m_devicesSearch->itemAdded(*item);
       };
-      auto rmItem = [cat](const QString& name) {
+      auto rmItem = [this, cat](const QString& name) {
         for(int i = 0; i < cat->childCount();)
         {
           auto cld = cat->child(i);
@@ -568,6 +762,7 @@ void DeviceEditDialog::selectedProtocolChanged()
             i++;
           }
         }
+        m_devicesSearch->refilter();
       };
 
       connect(e.get(), &Device::DeviceEnumerator::deviceAdded, ctx, addItem);
@@ -581,6 +776,7 @@ void DeviceEditDialog::selectedProtocolChanged()
   else
   {
     m_devices->setVisible(false);
+    m_devicesSearch->setVisible(false);
     m_devicesLabel->setVisible(false);
     m_splitter->widget(0)->hide();
   }
@@ -674,10 +870,14 @@ void DeviceEditDialog::setBrowserEnabled(bool st)
     m_column1Stack = nullptr;
     m_protocols = nullptr;
     m_presets = nullptr;
+    m_protocolsSearch = nullptr;
+    m_presetsSearch = nullptr;
     delete m_protocolsTabButton;
     m_protocolsTabButton = nullptr;
     delete m_presetsTabButton;
     m_presetsTabButton = nullptr;
+    delete m_devicesSearch;
+    m_devicesSearch = nullptr;
     delete m_devices;
     m_devices = nullptr;
     delete m_devicesLabel;

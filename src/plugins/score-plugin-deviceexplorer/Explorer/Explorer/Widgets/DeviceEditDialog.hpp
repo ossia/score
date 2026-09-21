@@ -31,6 +31,7 @@ class DeviceEnumerator;
 namespace Explorer
 {
 class DeviceExplorerModel;
+class TreeSearchLineEdit;
 class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceEditDialog final : public QDialog
 {
   W_OBJECT(DeviceEditDialog)
@@ -72,6 +73,7 @@ private:
   QString editedDeviceName() const;
   void initAvailableProtocols();
   void initPresets();
+  void queuePresetSort();
   void clearEnumerators();
 
   const DeviceExplorerModel& m_model;
@@ -95,8 +97,11 @@ private:
   QStackedWidget* m_column1Stack{};
   QTreeWidget* m_protocols{};
   QTreeWidget* m_presets{};
+  TreeSearchLineEdit* m_protocolsSearch{};
+  TreeSearchLineEdit* m_presetsSearch{};
 
   QTreeWidget* m_devices{};
+  TreeSearchLineEdit* m_devicesSearch{};
   // QWidget* m_main{};
   QLabel* m_devicesLabel{};
   Device::ProtocolSettingsWidget* m_protocolWidget{};
@@ -111,5 +116,7 @@ private:
 
   QString m_originalName{};
   int m_index{};
+  // The preset scan delivers in batches: sort once per batch, not per file.
+  bool m_presetSortQueued{};
 };
 }
