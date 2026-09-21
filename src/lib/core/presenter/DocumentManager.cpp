@@ -35,6 +35,7 @@
 #include <ossia/detail/algorithms.hpp>
 
 #include <QApplication>
+#include <QTimer>
 #include <QByteArray>
 #include <QDialogButtonBox>
 #include <QFile>
@@ -337,9 +338,16 @@ void DocumentManager::forceCloseDocument(
 
 #if defined(__EMSCRIPTEN__)
   // The window cannot be closed and there is no way to leave the page, so an
-  // empty application is a dead end: offer the start screen instead.
+  // empty application is a dead end: offer the start screen instead. Opening a
+  // document closes the virgin one first, so the list is briefly empty in the
+  // middle of a load: answer once the event loop has settled.
   if(m_documents.empty())
-    score::GUIApplicationInterface::instance().showStartScreen();
+  {
+    QTimer::singleShot(0, qApp, [this] {
+      if(m_documents.empty())
+        score::GUIApplicationInterface::instance().showStartScreen();
+    });
+  }
 #endif
 }
 
@@ -817,10 +825,15 @@ Document* DocumentManager::openArchive(
   return loadFile(ctx, scorePath);
 }
 
-Document* DocumentManager::loadFile(const score::GUIApplicationContext& ctx)
+Document* DocumentManager::loadFile(
+    const score::GUIApplicationContext& ctx, std::function<void(Document*)> onDone)
 {
   if(!m_view)
+  {
+    if(onDone)
+      onDone(nullptr);
     return nullptr;
+  }
 
   static const QString filter{"Scores (*.scorebin *.score *.scorejson *.zip)"};
 
@@ -828,14 +841,50 @@ Document* DocumentManager::loadFile(const score::GUIApplicationContext& ctx)
   // wasm has neither a synchronous file dialog nor a local filesystem: use the
   // async callback API, which delivers the picked file's bytes to the lambda.
   // ctx is the application context (app-lifetime) so capturing it is safe.
+  //
+  // Nothing can be returned here: the picking has not happened yet, which is
+  // what onDone is for.
   QFileDialog::getOpenFileContent(
-      filter, [this, &ctx](const QString& name, const QByteArray& data) {
+      filter, [this, &ctx, onDone](const QString& name, const QByteArray& data) {
     if(name.isEmpty() || data.isEmpty())
+    {
+      if(onDone)
+        onDone(nullptr);
       return;
+    }
+
+    // An archive is read from a path, not from bytes: it unpacks its media into
+    // a folder the document then reads from. Give it one.
+    if(name.endsWith(".zip", Qt::CaseInsensitive))
+    {
+      const QString dir = QStandardPaths::writableLocation(
+          QStandardPaths::DocumentsLocation);
+      QDir{}.mkpath(dir);
+      const QString path = dir + '/' + QFileInfo{name}.fileName();
+      QFile f{path};
+      if(!f.open(QIODevice::WriteOnly) || f.write(data) != data.size())
+      {
+        QMessageBox::warning(
+            m_view, tr("Opening failed"),
+            tr("Could not unpack %1.").arg(QFileInfo{name}.fileName()));
+        if(onDone)
+          onDone(nullptr);
+        return;
+      }
+      f.close();
+
+      auto doc = openArchive(ctx, path);
+      if(onDone)
+        onDone(doc);
+      return;
+    }
+
     const auto format
         = name.endsWith(".scorebin") ? DataStream::type() : JSONObject::type();
     auto& doctype = *ctx.interfaces<DocumentDelegateList>().begin();
-    loadDocument(ctx, name, data, format, doctype);
+    auto doc = loadDocument(ctx, name, data, format, doctype);
+    if(onDone)
+      onDone(doc);
   }, m_view);
   return nullptr;
 #else
@@ -843,12 +892,19 @@ Document* DocumentManager::loadFile(const score::GUIApplicationContext& ctx)
       m_view, tr("Open"), getDialogDirectory(nullptr).absolutePath(), filter);
 
   if(loadname.isEmpty())
+  {
+    if(onDone)
+      onDone(nullptr);
     return nullptr;
+  }
 
   QSettings s;
   s.setValue("score/last_open_doc", QFileInfo(loadname).absoluteDir().path());
 
-  return loadFile(ctx, loadname);
+  auto doc = loadFile(ctx, loadname);
+  if(onDone)
+    onDone(doc);
+  return doc;
 #endif
 }
 
