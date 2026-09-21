@@ -56,18 +56,23 @@ QPointF score::QGraphicsPathGeneratorXY::pathPoint(
     const std::vector<ossia::value>& nodes, double u) const noexcept
 {
   const ossia::vec2f a = node_at(nodes, 0);
-  const double rx = m_radiusX;
-  const double ry = m_radiusY;
-  const double phi = TWO_PI * m_phase;
+  // Mirrors PathGenerator::path_point: the second node sets the size and the
+  // starting angle, so what is drawn is what is played.
+  const ossia::vec2f b = nodes.size() > 1 ? node_at(nodes, 1) : a;
+  const double dx = b[0] - a[0];
+  const double dy = b[1] - a[1];
+  const double R = std::sqrt(dx * dx + dy * dy);
+  const double rx = R * m_radiusX;
+  const double ry = R * m_radiusY;
+  const double phi = std::atan2(dy, dx) + TWO_PI * m_phase;
 
   double x = a[0], y = a[1];
   switch(m_pathMode)
   {
     case Linear:
     {
-      const ossia::vec2f b = nodes.size() > 1 ? node_at(nodes, 1) : a;
-      x = a[0] + (b[0] - a[0]) * u;
-      y = a[1] + (b[1] - a[1]) * u;
+      x = a[0] + dx * u;
+      y = a[1] + dy * u;
       break;
     }
 
@@ -97,10 +102,10 @@ QPointF score::QGraphicsPathGeneratorXY::pathPoint(
 
     case Rose:
     {
-      const double th = TWO_PI * m_ratioY * u + phi;
+      const double th = TWO_PI * m_ratioY * u;
       const double r = std::cos(m_ratioX * th);
-      x = a[0] + rx * r * std::cos(th);
-      y = a[1] + ry * r * std::sin(th);
+      x = a[0] + rx * r * std::cos(th + phi);
+      y = a[1] + ry * r * std::sin(th + phi);
       break;
     }
 
