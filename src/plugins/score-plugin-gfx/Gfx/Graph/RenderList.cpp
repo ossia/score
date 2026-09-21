@@ -535,10 +535,20 @@ void RenderList::release()
 // render list from the consumer that still binds it. A per-list set makes the
 // check blind to exactly the cross-list case.
 //
-// Entries are stamped with a global frame sequence, advanced by every render
-// list that completes a frame: a buffer is only "retired" -- actually freed --
-// once that sequence has moved past its stamp, since deleteLater() holds the
-// object to the end of the frame that released it.
+// Two tables, one lock:
+//
+//  * g_adopted holds the buffers some consumer borrowed with owned=false, with
+//    a reference count. An owner's releaseBuffer() on a buffer that is still
+//    adopted does not free it: it marks the entry orphaned, and the free
+//    happens on the last dropAdoptedBuffer(). This is the invariant the
+//    liveness check below verifies -- a bound handle names a live object --
+//    made true by construction for every consumer that registers.
+//
+//  * g_retired holds the buffers actually handed to deleteLater(), stamped
+//    with a global frame sequence advanced by every render list that
+//    completes a frame. A buffer is "retired" -- actually freed -- only once
+//    that sequence has moved past its stamp, since deleteLater() holds the
+//    object to the end of the frame that released it.
 namespace
 {
 struct RetiredBuffer
@@ -546,9 +556,24 @@ struct RetiredBuffer
   QByteArray name;
   uint64_t seq{};
 };
+struct AdoptedBuffer
+{
+  int refs{};
+  // The owner released it while it was adopted: the last drop frees it.
+  bool orphaned{};
+};
 std::mutex g_retiredMutex;
 ossia::flat_map<const QRhiBuffer*, RetiredBuffer> g_retired;
+ossia::flat_map<const QRhiBuffer*, AdoptedBuffer> g_adopted;
 std::atomic<uint64_t> g_frameSeq{0};
+
+// Under g_retiredMutex. The name is read here, while the object is alive:
+// it is what the liveness warning prints after the object is gone.
+void recordRetirement(QRhiBuffer* buf)
+{
+  g_retired.insert_or_assign(
+      buf, RetiredBuffer{buf->name(), g_frameSeq.load(std::memory_order_relaxed)});
+}
 }
 
 void RenderList::noteFrameCompleted() noexcept
@@ -593,6 +618,66 @@ int RenderList::retiredBufferCount() noexcept
   return (int)g_retired.size();
 }
 
+void RenderList::noteBufferLive(const QRhiBuffer* buf) noexcept
+{
+  if(!buf)
+    return;
+  std::lock_guard lck{g_retiredMutex};
+  if(!g_retired.empty())
+    g_retired.erase(buf);
+}
+
+void RenderList::adoptBuffer(QRhiBuffer* buf)
+{
+  if(!buf)
+    return;
+  std::lock_guard lck{g_retiredMutex};
+  auto& entry = g_adopted[buf];
+  // A retirement at this address is either an earlier object the allocator
+  // recycled -- harmless -- or a handle read from geometry whose producer has
+  // already freed it, which no reference can save. Say so, but do not count
+  // it as a stale binding: the counter is for bindings, and this one may well
+  // be a valid handle at a reused address.
+  if(entry.refs == 0)
+  {
+    if(auto it = g_retired.find(buf); it != g_retired.end()
+       && it->second.seq < g_frameSeq.load(std::memory_order_relaxed))
+      qWarning(
+          "score.gfx: adopting buffer %p at an address retired as \"%s\": "
+          "either the allocator recycled it or the producer freed it before "
+          "this consumer read the handle",
+          (const void*)buf, it->second.name.constData());
+    entry.orphaned = false;
+  }
+  entry.refs++;
+}
+
+void RenderList::dropAdoptedBuffer(QRhiBuffer* buf)
+{
+  if(!buf)
+    return;
+  bool free = false;
+  {
+    std::lock_guard lck{g_retiredMutex};
+    auto it = g_adopted.find(buf);
+    if(it == g_adopted.end())
+      return;
+    if(--it->second.refs > 0)
+      return;
+    free = it->second.orphaned;
+    g_adopted.erase(it);
+    if(free)
+      recordRetirement(buf);
+  }
+  if(free)
+    buf->deleteLater();
+}
+
+int RenderList::adoptedBufferCount() noexcept
+{
+  std::lock_guard lck{g_retiredMutex};
+  return (int)g_adopted.size();
+}
 
 void RenderList::releaseBuffer(QRhiBuffer* buf)
 {
@@ -616,16 +701,22 @@ void RenderList::releaseBuffer(QRhiBuffer* buf)
     }
   }
 
+  {
+    std::lock_guard lck{g_retiredMutex};
+    // Still adopted somewhere: the owner is done with it, the consumer is
+    // not. The last drop frees it; until then it stays a live object holding
+    // the last contents its owner wrote.
+    if(auto it = g_adopted.find(buf); it != g_adopted.end() && it->second.refs > 0)
+    {
+      it->second.orphaned = true;
+      return;
+    }
+    recordRetirement(buf);
+  }
   // Don't call destroy() immediately — the buffer may still be referenced
   // by pending uploadStaticBuffer operations in the current frame's batch.
   // deleteLater() defers destruction to the next beginFrame(), ensuring
   // the GPU handle stays valid for all queued operations this frame.
-  {
-    std::lock_guard lck{g_retiredMutex};
-    g_retired.insert(
-        {buf,
-         RetiredBuffer{buf->name(), g_frameSeq.load(std::memory_order_relaxed)}});
-  }
   buf->deleteLater();
 }
 
