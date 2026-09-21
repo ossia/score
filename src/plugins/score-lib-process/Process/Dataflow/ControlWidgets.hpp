@@ -6,6 +6,7 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/TimeSignature.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
+#include <Process/Process.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
 #include <Process/Script/ScriptEditor.hpp>
 
@@ -1949,6 +1950,68 @@ struct PathGeneratorXY
     return nullptr; // TODO
   }
 
+  //! The item only ever gets handed its own port, but it draws a trajectory
+  //! that the sibling controls of the process describe: they are matched by
+  //! name, which is all the port factory has to go on.
+  static void bindSiblings(const Process::Port& port, score::QGraphicsPathGeneratorXY& sl)
+  {
+    auto* proc = Process::parentProcess(&port);
+    if(!proc)
+      return;
+
+    auto bindInlet = [&](QLatin1StringView name, auto&& apply) {
+      for(auto* p : proc->inlets())
+      {
+        if(p->name() != name)
+          continue;
+        if(auto* c = qobject_cast<Process::ControlInlet*>(p))
+        {
+          apply(c->value());
+          QObject::connect(c, &Process::ControlInlet::valueChanged, &sl, apply);
+          QObject::connect(c, &Process::ControlInlet::executionValueChanged, &sl, apply);
+        }
+        return;
+      }
+    };
+
+    bindInlet(QLatin1StringView("Path"), [&sl](const ossia::value& v) {
+      sl.setPathMode(ossia::convert<int>(v));
+    });
+    bindInlet(QLatin1StringView("Radius"), [&sl](const ossia::value& v) {
+      auto xy = ossia::convert<ossia::vec2f>(v);
+      sl.setRadii(xy[0], xy[1]);
+    });
+    bindInlet(QLatin1StringView("Ratio X"), [&sl](const ossia::value& v) {
+      sl.setRatioX(ossia::convert<int>(v));
+    });
+    bindInlet(QLatin1StringView("Ratio Y"), [&sl](const ossia::value& v) {
+      sl.setRatioY(ossia::convert<int>(v));
+    });
+    bindInlet(QLatin1StringView("Phase"), [&sl](const ossia::value& v) {
+      sl.setPhase(ossia::convert<float>(v));
+    });
+
+    // Position along the trajectory: a plain scalar control outlet, so the
+    // running engine only has to push a float through the existing queue.
+    for(auto* p : proc->outlets())
+    {
+      if(p->name() != QLatin1StringView("Progress"))
+        continue;
+      if(auto* c = qobject_cast<Process::ControlOutlet*>(p))
+      {
+        auto apply = [&sl](const ossia::value& v) {
+          sl.setExecutionProgress(ossia::convert<float>(v));
+        };
+        QObject::connect(c, &Process::ControlOutlet::valueChanged, &sl, apply);
+        QObject::connect(c, &Process::ControlOutlet::executionValueChanged, &sl, apply);
+        QObject::connect(c, &Process::ControlOutlet::executionReset, &sl, [&sl] {
+          sl.resetExecution();
+        });
+      }
+      return;
+    }
+  }
+
   template <typename T, typename Control_T>
   static QGraphicsItem* make_item(
       const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
@@ -1958,6 +2021,8 @@ struct PathGeneratorXY
     initWidgetProperties(inlet, *sl);
     sl->setValue(inlet.value());
     sl->setRange(inlet.domain());
+
+    bindSiblings(inlet, *sl);
 
     QObject::connect(
         sl, &score::QGraphicsPathGeneratorXY::sliderMoved, context, [=, &inlet, &ctx] {
@@ -1974,6 +2039,12 @@ struct PathGeneratorXY
       if(!sl->moving)
         sl->setValue(std::move(val));
     });
+
+    QObject::connect(
+        &inlet, &Control_T::executionValueChanged, sl,
+        [=](const ossia::value& val) { sl->setExecutionValue(val); });
+    QObject::connect(
+        &inlet, &Control_T::executionReset, sl, [=] { sl->resetExecution(); });
 
     return sl;
   }
