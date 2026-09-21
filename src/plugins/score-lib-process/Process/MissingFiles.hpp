@@ -7,7 +7,13 @@
 
 #include <score_lib_process_export.h>
 
+#include <atomic>
+#include <functional>
+#include <memory>
+#include <mutex>
 #include <vector>
+
+class QObject;
 
 namespace score
 {
@@ -36,31 +42,70 @@ FileReport scanMissingFiles(const score::DocumentContext& ctx);
  * the one whose size matches the reference wins, and the rest are still
  * offered rather than hidden.
  */
+class FileScan;
+
 class SCORE_LIB_PROCESS_EXPORT FileIndex
 {
 public:
-  /** Walk `folder` recursively.
-   *
-   * `maxFiles` is a guard against someone pointing this at their home folder
-   * or at "/": the scan stops there rather than freezing the application, and
-   * truncated() then says the answer may be incomplete.
-   */
-  void scan(const QString& folder, int maxFiles = 250000);
+  //! Walk `folder` recursively and exhaustively. A cancelled `progress` stops
+  //! the walk and leaves the index holding what it had reached so far.
+  void scan(const QString& folder, FileScan* progress = nullptr);
 
   //! Absolute paths whose file name matches, case-insensitively, best first.
-  //! `size` (when > 0) promotes exact size matches, which is the difference
-  //! between "a file called kick.wav" and "this kick.wav".
+  //! `size`, when > 0, promotes exact size matches.
   std::vector<QString> candidates(const QString& missingPath, qint64 size = -1) const;
 
   int fileCount() const noexcept { return int(m_byName.size()); }
-  bool truncated() const noexcept { return m_truncated; }
   const QString& root() const noexcept { return m_root; }
 
 private:
   QString m_root;
   //! lower-cased file name -> absolute path
   QMultiHash<QString, QString> m_byName;
-  bool m_truncated{};
+};
+
+/**
+ * @brief A folder walk running on the task pool, and the handle to it.
+ *
+ * The only state shared between the two threads: the GUI samples the progress,
+ * the walk reads the cancel flag. Held by shared_ptr on both sides so the state
+ * outlives a window closed mid-search.
+ */
+class SCORE_LIB_PROCESS_EXPORT FileScan
+{
+public:
+  //! Called on `context`'s thread when the walk ends, cancelled or not.
+  using OnFinished = std::function<void(FileIndex, bool cancelled)>;
+
+  explicit FileScan(QString folder);
+
+  //! Start walking `folder` on a task-pool thread. `onFinished` does not run
+  //! if `context` died first.
+  static std::shared_ptr<FileScan>
+  start(const QString& folder, QObject* context, OnFinished onFinished);
+
+  void cancel() noexcept { m_cancelled.store(true, std::memory_order_relaxed); }
+  bool cancelled() const noexcept
+  {
+    return m_cancelled.load(std::memory_order_relaxed);
+  }
+
+  int filesSeen() const noexcept { return m_filesSeen.load(std::memory_order_relaxed); }
+  //! The folder the walk is inside right now.
+  QString currentFolder() const;
+
+  const QString& root() const noexcept { return m_root; }
+
+private:
+  friend class FileIndex;
+  void fileSeen() noexcept { m_filesSeen.fetch_add(1, std::memory_order_relaxed); }
+  void setCurrentFolder(const QString& folder);
+
+  QString m_root;
+  mutable std::mutex m_mutex;
+  QString m_currentFolder;
+  std::atomic_int m_filesSeen{};
+  std::atomic_bool m_cancelled{};
 };
 
 /**

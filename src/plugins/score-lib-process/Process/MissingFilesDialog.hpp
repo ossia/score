@@ -7,8 +7,11 @@
 
 #include <score_lib_process_export.h>
 
+#include <memory>
+
 class QLabel;
 class QPushButton;
+class QTimer;
 class QTreeWidget;
 class QTreeWidgetItem;
 
@@ -45,6 +48,9 @@ public:
 private:
   void rescan();
   void searchFolder();
+  void cancelSearch();
+  void finishSearch(FileIndex index, bool cancelled);
+  void updateSearchProgress();
   void locateSelected();
   void applyRelink();
   void updateSummary();
@@ -73,6 +79,19 @@ private:
   QPushButton* m_search{};
   QPushButton* m_locate{};
   QPushButton* m_apply{};
+
+  QWidget* m_progressRow{};
+  QLabel* m_progress{};
+  QPushButton* m_cancel{};
+  QTimer* m_progressTimer{};
+
+  /** The search running right now, if any.
+   *
+   * Shared with the worker thread: dropping it does not stop the walk, so the
+   * destructor cancels it as well.
+   */
+  std::shared_ptr<FileScan> m_scan;
+  QString m_searchRoot;
 
   FileReport m_report;
   //! stored path -> what we would relink it to

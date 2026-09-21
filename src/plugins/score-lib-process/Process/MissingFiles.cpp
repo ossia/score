@@ -2,11 +2,16 @@
 #include <Process/ProjectConsolidation.hpp>
 
 #include <score/document/DocumentContext.hpp>
+#include <score/tools/RecursiveWatch.hpp>
+#include <score/tools/ThreadPool.hpp>
 
-#include <QDirIterator>
+#include <QCoreApplication>
 #include <QFileInfo>
+#include <QMetaObject>
+#include <QPointer>
 
 #include <algorithm>
+#include <string>
 
 namespace Process
 {
@@ -41,29 +46,87 @@ FileReport scanMissingFiles(const score::DocumentContext& ctx)
   return report;
 }
 
-void FileIndex::scan(const QString& folder, int maxFiles)
+void FileIndex::scan(const QString& folder, FileScan* progress)
 {
   m_root = folder;
   m_byName.clear();
-  m_truncated = false;
 
   if(folder.isEmpty())
     return;
 
-  QDirIterator it{
-      folder, QDir::Files | QDir::NoDotAndDotDot | QDir::Readable,
-      QDirIterator::Subdirectories};
+  // Kept alive for the whole walk: the traversal wants a zero-terminated root.
+  const std::string root = folder.toStdString();
 
-  while(it.hasNext())
-  {
-    const QString path = it.next();
-    if(m_byName.size() >= maxFiles)
+  QString lastFolder;
+  score::for_all_files(root, [&](std::string_view path) {
+    if(progress && progress->cancelled())
+      return;
+    if(path.empty())
+      return;
+
+    const QString p = QString::fromUtf8(path.data(), path.size());
+    qsizetype sep = p.lastIndexOf('/');
+#if defined(_WIN32)
+    sep = std::max(sep, p.lastIndexOf('\\'));
+#endif
+    if(sep < 0 || sep == p.size() - 1)
+      return;
+
+    m_byName.insert(p.sliced(sep + 1).toLower(), p);
+
+    if(progress)
     {
-      m_truncated = true;
-      break;
+      progress->fileSeen();
+
+      // Publish on folder change, not per file.
+      if(QStringView{p}.first(sep) != lastFolder)
+      {
+        lastFolder = p.first(sep);
+        progress->setCurrentFolder(lastFolder);
+      }
     }
-    m_byName.insert(it.fileName().toLower(), path);
-  }
+  });
+}
+
+FileScan::FileScan(QString folder)
+    : m_root{std::move(folder)}
+{
+}
+
+QString FileScan::currentFolder() const
+{
+  std::lock_guard l{m_mutex};
+  return m_currentFolder;
+}
+
+void FileScan::setCurrentFolder(const QString& folder)
+{
+  std::lock_guard l{m_mutex};
+  m_currentFolder = folder;
+}
+
+std::shared_ptr<FileScan>
+FileScan::start(const QString& folder, QObject* context, OnFinished onFinished)
+{
+  auto self = std::make_shared<FileScan>(folder);
+
+  score::TaskPool::instance().post(
+      [self, ctx = QPointer<QObject>{context}, cb = std::move(onFinished)]() mutable {
+    FileIndex index;
+    index.scan(self->root(), self.get());
+
+    QMetaObject::invokeMethod(
+        QCoreApplication::instance(),
+        [ctx, cb = std::move(cb), index = std::move(index),
+         cancelled = self->cancelled()]() mutable {
+      if(!ctx)
+        return;
+      cb(std::move(index), cancelled);
+    },
+        Qt::QueuedConnection);
+      });
+
+  return self;
 }
 
 std::vector<QString>
