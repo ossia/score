@@ -13,8 +13,13 @@
 #include <ossia/detail/small_vector.hpp>
 
 #include <score_lib_process_export.h>
+
+#include <span>
+
+#include <vector>
 namespace Process
 {
+class Cable;
 class ProcessModel;
 class Port;
 class Inlet;
@@ -130,6 +135,21 @@ public:
   static const QPixmap&
   portImage(Process::PortType t, bool inlet, bool smol, bool light, bool addr) noexcept;
 };
+
+//! Runs a port drag anchored on `anchor`, exactly as grabbing that port does:
+//! the drag line, the magnetic search for a compatible target and the drop
+//! handlers all behave the same. Blocks until the drag ends; `anchor` may have
+//! been destroyed by then.
+//! When `movedCables` is not empty, the drop moves the free end of those cables
+//! onto the target port instead of creating a new cable.
+SCORE_LIB_PROCESS_EXPORT
+void beginPortDrag(
+    PortItem& anchor, QPointF scenePos, std::vector<Process::Cable*> movedCables = {});
+
+//! The cables whose end the ongoing port drag is moving; empty when the drag
+//! creates a new cable.
+SCORE_LIB_PROCESS_EXPORT
+std::span<Process::Cable* const> portDragMovedCables() noexcept;
 
 SCORE_LIB_PROCESS_EXPORT
 score::SimpleTextItem* makePortLabel(const Process::Port& port, QGraphicsItem* parent);

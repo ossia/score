@@ -35,7 +35,10 @@ namespace Dataflow
 void onCreateCable(
     const score::DocumentContext& ctx, Dataflow::PortItem* p1, Dataflow::PortItem* p2)
 {
-  Dataflow::onCreateCable(ctx, p1->port(), p2->port());
+  if(auto moved = Dataflow::portDragMovedCables(); !moved.empty())
+    Dataflow::moveCableEndpoints(ctx, moved, p2->port());
+  else
+    Dataflow::onCreateCable(ctx, p1->port(), p2->port());
 }
 
 AutomatablePortItem::~AutomatablePortItem() { }

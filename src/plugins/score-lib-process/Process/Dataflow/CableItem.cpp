@@ -8,16 +8,19 @@
 #include <Process/Style/ScenarioStyle.hpp>
 
 #include <score/graphics/PainterPath.hpp>
+#include <score/selection/Selection.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/selection/SelectionStack.hpp>
 #include <score/tools/Bind.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 
+#include <QApplication>
 #include <QCursor>
 #include <QGraphicsSceneMouseEvent>
 #include <QKeyEvent>
 #include <QPainter>
+#include <QPointer>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Dataflow::CableItem)
@@ -417,8 +420,34 @@ QPainterPath CableItem::opaqueArea() const
   return m_stroke;
 }
 
+namespace
+{
+enum class CableEnd
+{
+  NoEnd,
+  Source,
+  Sink
+} grabbedCableEnd{};
+bool cableSelectOnRelease{};
+bool cableSelectCumulation{};
+
+//! A press within 10% of the end-to-end distance of one of the ends grabs that
+//! end, to re-plug it elsewhere. Both ends match on a very short cable: the
+//! sink then wins, as that is the end one usually wants to move.
+CableEnd endNear(QPointF scenePos, QPointF p1, QPointF p2) noexcept
+{
+  const double threshold = std::max(8., 0.1 * QLineF{p1, p2}.length());
+  if(QLineF{p2, scenePos}.length() <= threshold)
+    return CableEnd::Sink;
+  if(QLineF{p1, scenePos}.length() <= threshold)
+    return CableEnd::Source;
+  return CableEnd::NoEnd;
+}
+}
+
 void CableItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
+  grabbedCableEnd = CableEnd::NoEnd;
   if(!m_p1 || !m_p2)
   {
     event->ignore();
@@ -430,26 +459,98 @@ void CableItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
   {
     disp.select(m_p1->port());
     event->ignore();
+    return;
   }
-  else if(m_p2->contains(m_p2->mapFromScene(event->scenePos())))
+
+  if(m_p2->contains(m_p2->mapFromScene(event->scenePos())))
   {
     disp.select(m_p2->port());
     event->ignore();
+    return;
+  }
+
+  grabbedCableEnd
+      = endNear(event->scenePos(), m_p1->sceneCenter(), m_p2->sceneCenter());
+
+  // Dragging an end carries the whole selection along, so a press on a cable
+  // that is already selected must not reduce the selection to it before the
+  // drag had a chance to start; that is settled on release instead.
+  const bool cumulation = event->modifiers() & Qt::ControlModifier;
+  const Selection current = m_context.selectionStack.currentSelection();
+  if(current.contains(&m_cable))
+  {
+    cableSelectOnRelease = true;
+    cableSelectCumulation = cumulation;
   }
   else
   {
-    disp.select(m_cable);
-    event->accept();
+    cableSelectOnRelease = false;
+    Selection sel;
+    if(cumulation)
+      sel = current;
+    sel.append(&m_cable);
+    disp.select(sel);
   }
+  event->accept();
 }
 
 void CableItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   event->accept();
+  if(grabbedCableEnd == CableEnd::NoEnd)
+    return;
+
+  const auto dragged
+      = (event->screenPos() - event->buttonDownScreenPos(Qt::LeftButton))
+            .manhattanLength();
+  if(dragged <= QApplication::startDragDistance())
+    return;
+
+  // The end that stays put anchors the drag: the magnetic search then only
+  // considers ports the moving end can legally go to.
+  PortItem* anchor = grabbedCableEnd == CableEnd::Sink ? m_p1.data() : m_p2.data();
+  grabbedCableEnd = CableEnd::NoEnd;
+  cableSelectOnRelease = false;
+  if(!anchor)
+    return;
+
+  auto& plug = m_context.dataflow;
+  std::vector<Process::Cable*> cables;
+  std::vector<QPointer<CableItem>> items;
+  auto add = [&](Process::Cable* c) {
+    if(!c || ossia::contains(cables, c))
+      return;
+    cables.push_back(c);
+    if(auto it = plug.cables().find(c); it != plug.cables().end() && it->second)
+    {
+      it->second->m_dropping = true;
+      it->second->update();
+      items.push_back(it->second);
+    }
+  };
+
+  add(const_cast<Process::Cable*>(&m_cable));
+  for(auto& obj : m_context.selectionStack.currentSelection())
+    add(qobject_cast<Process::Cable*>(obj.data()));
+
+  Dataflow::beginPortDrag(*anchor, event->scenePos(), std::move(cables));
+
+  // Past this point the drop may have deleted this item and any of those.
+  for(auto& item : items)
+    if(item)
+      item->resetDrop();
 }
 
 void CableItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
+  grabbedCableEnd = CableEnd::NoEnd;
+  if(cableSelectOnRelease)
+  {
+    cableSelectOnRelease = false;
+    Selection sel = filterSelections(
+        &m_cable, m_context.selectionStack.currentSelection(), cableSelectCumulation);
+    score::SelectionDispatcher{m_context.selectionStack}.select(sel);
+  }
   event->accept();
 }
 
