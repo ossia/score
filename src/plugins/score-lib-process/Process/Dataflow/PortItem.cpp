@@ -54,6 +54,7 @@ enum PortDragDirection
 } portDragDirection{};
 static QLineF portDragLineCoords{};
 static PortItem* magneticDropPort{};
+static std::vector<Process::Cable*> portDragCables{};
 
 struct PortStyle
 {
@@ -885,6 +886,66 @@ public:
 };
 
 static DragMoveFilter* drag_move_filter{};
+
+std::span<Process::Cable* const> portDragMovedCables() noexcept
+{
+  return portDragCables;
+}
+
+void beginPortDrag(
+    PortItem& anchor, QPointF scenePos, std::vector<Process::Cable*> movedCables)
+{
+  QPointer<QDrag> d{new QDrag{&anchor}};
+  QMimeData* m = new QMimeData;
+  portDragType = anchor.port().type();
+  portDragDirection = anchor.m_inlet ? DragSourceIsInlet : DragSourceIsOutlet;
+  portDragCables = std::move(movedCables);
+  // From the center of the port circle to the cursor.
+  portDragLineCoords = QLineF{anchor.sceneCenter(), scenePos};
+  portDragLine = new DragLine{portDragLineCoords};
+
+  anchor.scene()->installEventFilter(drag_move_filter = new DragMoveFilter{});
+  anchor.scene()->addItem(portDragLine);
+  PortItem::clickedPort = &anchor;
+  m->setData(score::mime::port(), {});
+  d->setMimeData(m);
+
+  // NOTE ! from this point, one mustn't ever ever access any member from the PortItem.
+  // This is because some drag actions may remove the port, by
+  // e.g. moving the process somewhere else or something like that
+  // Thus we put stuff in a lambda to make sure that we only access what is necessary
+  [d, sc = anchor.scene(), self = &anchor] {
+    QObject::connect(d, &QDrag::destroyed, self, [sc] {
+      sc->removeEventFilter(drag_move_filter);
+      PortItem::clickedPort = nullptr;
+      portDragCables.clear();
+      delete portDragLine;
+      portDragLine = nullptr;
+      delete drag_move_filter;
+      drag_move_filter = nullptr;
+    });
+
+    d->exec();
+    if(d)
+    {
+      delete d;
+    }
+    else
+    {
+      if(drag_move_filter)
+      {
+        sc->removeEventFilter(drag_move_filter);
+        PortItem::clickedPort = nullptr;
+        portDragCables.clear();
+        delete portDragLine;
+        portDragLine = nullptr;
+        delete drag_move_filter;
+        drag_move_filter = nullptr;
+      }
+    }
+      }();
+}
+
 void PortItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   event->accept();
@@ -895,52 +956,7 @@ void PortItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
             .manhattanLength();
   if(dragged > QApplication::startDragDistance())
   {
-    QPointer<QDrag> d{new QDrag{this}};
-    QMimeData* m = new QMimeData;
-    portDragType = this->m_port.type();
-    portDragDirection = this->m_inlet ? DragSourceIsInlet : DragSourceIsOutlet;
-    // From the center of the port circle to the cursor.
-    portDragLineCoords = QLineF{sceneCenter(), event->scenePos()};
-    portDragLine = new DragLine{portDragLineCoords};
-
-    scene()->installEventFilter(drag_move_filter = new DragMoveFilter{});
-    scene()->addItem(portDragLine);
-    clickedPort = this;
-    m->setData(score::mime::port(), {});
-    d->setMimeData(m);
-
-    // NOTE ! from this point, one mustn't ever ever access any member from our PortItem.
-    // This is because some drag actions may remove the port, by
-    // e.g. moving the process somewhere else or something like that
-    // Thus we put stuff in a lambda to make sure that we only access what is necessary
-    [d, sc = this->scene(), self = this] {
-      connect(d, &QDrag::destroyed, self, [sc] {
-        sc->removeEventFilter(drag_move_filter);
-        clickedPort = nullptr;
-        delete portDragLine;
-        portDragLine = nullptr;
-        delete drag_move_filter;
-        drag_move_filter = nullptr;
-      });
-
-      d->exec();
-      if(d)
-      {
-        delete d;
-      }
-      else
-      {
-        if(drag_move_filter)
-        {
-          sc->removeEventFilter(drag_move_filter);
-          clickedPort = nullptr;
-          delete portDragLine;
-          portDragLine = nullptr;
-          delete drag_move_filter;
-          drag_move_filter = nullptr;
-        }
-      }
-        }();
+    beginPortDrag(*this, event->scenePos());
   }
 }
 

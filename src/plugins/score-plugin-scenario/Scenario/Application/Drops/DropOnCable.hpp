@@ -107,7 +107,11 @@ public:
     }
     else if(mime.hasFormat(score::mime::port()))
     {
-      auto base_port = Dataflow::PortItem::clickedPort;
+      // A drag that is moving cable ends has its own drop handling: it must not
+      // relink the cable it happens to pass over.
+      auto base_port = Dataflow::portDragMovedCables().empty()
+                           ? Dataflow::PortItem::clickedPort
+                           : nullptr;
       if(base_port)
       {
         auto& new_port = base_port->port();
