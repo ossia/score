@@ -553,7 +553,7 @@ void RenderList::releaseBuffer(QRhiBuffer* buf)
   // by pending uploadStaticBuffer operations in the current frame's batch.
   // deleteLater() defers destruction to the next beginFrame(), ensuring
   // the GPU handle stays valid for all queued operations this frame.
-  m_retiredBuffers.insert(buf);
+  m_retiredBuffers.insert({buf, buf->name()});
   buf->deleteLater();
 }
 
@@ -591,9 +591,11 @@ bool RenderList::checkBindingsLive(
     {
       ok = false;
       qWarning(
-          "score.gfx: %s binds buffer %p at binding %d, which was retired: the "
-          "producer released it and this consumer never re-read the handle",
-          where ? where : "(unknown)", (const void*)b, d.binding);
+          "score.gfx: %s binds buffer %p \"%s\" at binding %d, which was "
+          "retired: the producer released it and this consumer never re-read "
+          "the handle",
+          where ? where : "(unknown)", (const void*)b,
+          retiredBufferName(b).constData(), d.binding);
     }
   }
   return ok;

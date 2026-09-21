@@ -3,6 +3,7 @@
 #include <Gfx/Graph/GpuTiming.hpp>
 #include <Gfx/Graph/Node.hpp>
 
+#include <ossia/detail/flat_map.hpp>
 #include <ossia/detail/flat_set.hpp>
 #include <ossia/detail/hash_map.hpp>
 
@@ -124,6 +125,13 @@ public:
   bool isRetiredBuffer(const QRhiBuffer* buf) const noexcept
   {
     return buf && m_retiredBuffers.find(buf) != m_retiredBuffers.end();
+  }
+  /// Name the buffer carried at retirement, while it was still alive: reading
+  /// name() off a retired buffer is the dereference this check exists to avoid.
+  QByteArray retiredBufferName(const QRhiBuffer* buf) const
+  {
+    auto it = m_retiredBuffers.find(buf);
+    return it != m_retiredBuffers.end() ? it->second : QByteArray{};
   }
   int retiredBufferCount() const noexcept { return (int)m_retiredBuffers.size(); }
 
@@ -386,7 +394,7 @@ public:
       const noexcept;
 
 private:
-  ossia::flat_set<const QRhiBuffer*> m_retiredBuffers;
+  ossia::flat_map<const QRhiBuffer*, QByteArray> m_retiredBuffers;
 
   void renderImpl(QRhiCommandBuffer& commands, bool force);
 
