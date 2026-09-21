@@ -1,3 +1,4 @@
+#include <Gfx/Graph/CameraMath.hpp>
 #include <Gfx/Graph/CustomMesh.hpp>
 #include <cstring>
 #include <Gfx/Graph/ISFVisitors.hpp>
@@ -349,6 +350,32 @@ void RenderedRawRasterPipelineNode::initPass(
           // the INPUTS-side placeholders in
           // IsfBindingsBuilder::ensureStorageResources.
           RhiClearBuffer::clearBuffer(rhi, res, dummy, 0, (quint32)dummySize);
+
+        // The camera block is the one placeholder that must NOT be zeros: a
+        // shader reads it as a transform, and an all-zero viewProjection
+        // collapses every vertex to the origin. Seed identities so a shader in
+        // the plain geometry path -- no ScenePreprocessor, hence no `camera`
+        // auxiliary to resolve against -- draws exactly as it did before the
+        // block existed.
+        if(aux.name == "camera" && aux.is_uniform)
+        {
+          const int slots
+              = (int)(dummySize / (int64_t)sizeof(score::gfx::CameraUBOData));
+          if(slots > 0)
+          {
+            std::vector<score::gfx::CameraUBOData> seed(slots);
+            for(auto& c : seed)
+              for(int i = 0; i < 4; i++)
+              {
+                c.view[i * 5] = 1.f;
+                c.projection[i * 5] = 1.f;
+                c.viewProjection[i * 5] = 1.f;
+              }
+            res.updateDynamicBuffer(
+                dummy, 0, slots * (int)sizeof(score::gfx::CameraUBOData),
+                seed.data());
+          }
+        }
         aux.buffer = dummy;
         aux.size = dummySize;
         aux.owned = true;

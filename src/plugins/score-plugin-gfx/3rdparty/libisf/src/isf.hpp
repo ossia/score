@@ -954,6 +954,11 @@ class SCORE_PLUGIN_GFX_EXPORT parser
   std::string m_fragment;
   std::string m_geometry_filter;
 
+  // True when parse_raw_raster_pipeline synthesised the `camera` auxiliary
+  // rather than the shader declaring its own. Gates the typed accessors: a
+  // hand-written camera block has its own layout and must not be shadowed.
+  bool m_injected_camera_aux{false};
+
   descriptor m_desc;
 
 public:

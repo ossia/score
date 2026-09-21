@@ -4053,6 +4053,54 @@ void parser::parse_raw_raster_pipeline()
 
   m_desc.mode = isf::descriptor::RawRaster;
 
+  // Camera block. Raw raster had no view or projection built-in: the prelude
+  // supplies renderer_t, process_t and model_material_t, so a shader could
+  // only see a camera by declaring the ScenePreprocessor's `camera` auxiliary
+  // itself and indexing it as a flat vec4 array against the 240-byte std140
+  // CameraUBOData. Synthesise that declaration so every raw-raster shader gets
+  // it, and give it typed accessors below.
+  //
+  // It goes in `auxiliary`, NOT in `inputs`: a uniform_input creates a
+  // TextureInlet (ISFProcess.hpp), so injecting one there would add a port to
+  // every raw-raster process and shift the inlet indices every saved document
+  // resolves its cables against. An auxiliary creates no port -- the renderer
+  // name-matches it against the incoming geometry.
+  //
+  // Skipped when the shader already speaks for itself, under either spelling,
+  // so a hand-written camera block keeps its own layout.
+  const bool has_own_camera
+      = std::any_of(
+            m_desc.auxiliary.begin(), m_desc.auxiliary.end(),
+            [](const auto& aux) { return aux.name == "camera"; })
+        || std::any_of(
+            m_desc.inputs.begin(), m_desc.inputs.end(),
+            [](const auto& inp) { return inp.name == "camera"; });
+  m_injected_camera_aux = !has_own_camera;
+  if(m_injected_camera_aux)
+  {
+    // Mirrors score::gfx::CameraUBOData field for field; std140 puts each mat4
+    // and vec4 on its own 16-byte boundary, so the block is 240 B per entry
+    // exactly as the C++ struct is.
+    isf::descriptor::type_definition cam_t;
+    cam_t.name = "isf_camera_t";
+    cam_t.layout = {
+        {"view_", "mat4"},          {"projection_", "mat4"},
+        {"viewProjection_", "mat4"}, {"cameraPosition_", "vec4"},
+        {"cameraRenderSize_", "vec4"}, {"cameraParams_", "vec4"}};
+    m_desc.types.push_back(std::move(cam_t));
+
+    // Fixed count, not multiview_count: the binding is the scene's own camera
+    // buffer, and a block declaring more entries than the bound range is a
+    // descriptor-size error. ScenePreprocessorNode pre-allocates that buffer
+    // to at least this many entries.
+    isf::geometry_input::auxiliary_request cam;
+    cam.name = "camera";
+    cam.access = "read_only";
+    cam.is_uniform = true;
+    cam.layout = {{"data", "isf_camera_t[16]"}};
+    m_desc.auxiliary.push_back(std::move(cam));
+  }
+
   // If FRAGMENT_OUTPUTS declares multiple outputs but OUTPUTS was not
   // explicitly provided, auto-populate desc.outputs so the node graph
   // creates the right number of output ports (one per attachment).
@@ -4582,6 +4630,18 @@ void parser::parse_raw_raster_pipeline()
 )_",
         model_ubo_binding);
 
+    // Typed accessors over the synthesised camera block. Indexing through
+    // VIEW_INDEX is what keeps MULTIVIEW honest: face i must read camera i,
+    // and a scalar accessor resolving to camera 0 would paint all six cubemap
+    // faces identically. VIEW_INDEX is 0 outside multiview (defined below).
+    if(m_injected_camera_aux)
+      material_ubos += R"_(
+#define VIEW_MATRIX camera.data[VIEW_INDEX].view_
+#define PROJECTION_MATRIX camera.data[VIEW_INDEX].projection_
+#define VIEWPROJECTION_MATRIX camera.data[VIEW_INDEX].viewProjection_
+#define CAMERA_POSITION camera.data[VIEW_INDEX].cameraPosition_.xyz
+)_";
+
     m_vertex += material_ubos;
     m_fragment += material_ubos;
   }
@@ -4628,6 +4688,15 @@ void parser::parse_raw_raster_pipeline()
   // generated entry point must NOT call them too: isf_vertShaderFinish()
   // negates gl_Position.y, so running it twice cancels it and mirrors the
   // picture back on Metal and D3D.
+  // The camera accessors index through VIEW_INDEX, which the multiview
+  // plumbing only defines when MULTIVIEW >= 2. Give the single-view case the
+  // same spelling so one macro is correct in both.
+  if(m_desc.multiview_count < 2)
+  {
+    m_vertex += "#define VIEW_INDEX 0\n";
+    m_fragment += "#define VIEW_INDEX 0\n";
+  }
+
   m_vertex += "void isf_vertShaderInit()\n{\n";
   if(mv_fragment_plumbing)
     m_vertex += "  isf_ViewIndexVarying = gl_ViewIndex;\n";
