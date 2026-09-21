@@ -13,11 +13,15 @@
 #include <QGraphicsSceneContextMenuEvent>
 #include <QGraphicsSceneHoverEvent>
 #include <QGraphicsSceneMouseEvent>
+#include <QGraphicsView>
+#include <QListView>
 #include <QPainter>
 #include <QPointer>
+#include <QProxyStyle>
 #include <QScreen>
 #include <QTimer>
 
+#include <algorithm>
 #include <cmath>
 
 #include <memory>
@@ -46,6 +50,28 @@ struct PopupDismissWatcher final : QObject
   }
 };
 }
+
+#if defined(__EMSCRIPTEN__)
+//! Asks for the scrolling list drop-down rather than the style's menu one.
+//!
+//! The style answers SH_ComboBox_Popup for a non-editable box, whose list is
+//! then a QMenu: it wraps into columns once taller than the screen. A combo box
+//! in the scene is a QGraphicsProxyWidget and its menu is laid out in the scene,
+//! where there is no screen to measure against. The list drop-down bounds
+//! itself to maxVisibleItems and scrolls.
+struct ScrollingPopupStyle final : QProxyStyle
+{
+  using QProxyStyle::QProxyStyle;
+  int styleHint(
+      StyleHint hint, const QStyleOption* opt, const QWidget* w,
+      QStyleHintReturn* ret) const override
+  {
+    if(hint == SH_ComboBox_Popup)
+      return 0;
+    return QProxyStyle::styleHint(hint, opt, w, ret);
+  }
+};
+#endif
 
 struct DefaultComboImpl
 {
@@ -309,6 +335,38 @@ void QGraphicsCombo::openEditor(QPointF scenePos)
     if(item.m_editable)
       w->setInsertPolicy(QComboBox::NoInsert);
     w->setCurrentIndex(item.m_value);
+
+#if defined(__EMSCRIPTEN__)
+    {
+      auto* popupStyle = new ScrollingPopupStyle;
+      popupStyle->setParent(w);
+      w->setStyle(popupStyle);
+      // Bound the list to what the view can show.
+      auto* sc = item.scene();
+      const auto* view
+          = (!sc || sc->views().isEmpty()) ? nullptr : sc->views().front();
+      const int viewHeight = view ? view->viewport()->height() : 0;
+      const int rowHeight = std::max(1, w->fontMetrics().height() + 4);
+      const int maxVisible
+          = viewHeight > 0 ? std::clamp(viewHeight / rowHeight - 2, 4, 30) : 12;
+      w->setMaxVisibleItems(maxVisible);
+      // The entries past the bound still have to be reachable, and a drop-down
+      // in the scene has no window of its own to hang a bar off; ask for one,
+      // but only when there is something to scroll to.
+      if(auto* list = w->view())
+      {
+        const bool fits = w->count() <= maxVisible;
+        list->setVerticalScrollBarPolicy(
+            fits ? Qt::ScrollBarAlwaysOff : Qt::ScrollBarAlwaysOn);
+        list->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        list->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+        // Every entry is one line of text in one font, so spare the box from
+        // measuring a whole instrument bank to lay the list out.
+        if(auto* lv = qobject_cast<QListView*>(list))
+          lv->setUniformItemSizes(true);
+      }
+    }
+#endif
 
     auto* scene = item.scene();
     auto obj = scene->addWidget(w, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
