@@ -45,7 +45,9 @@ public:
   //! Drawn box grown by a small margin, so that the whole node can be grabbed
   QRectF cursorPickRect(const ossia::vec2f& cursor) const noexcept;
   //! Cursor under p, nearest centre first when several overlap, or -1
-  int cursorAt(QPointF p) const noexcept;
+  //! Index of the cursor at `p`, nearest centre first. `margin` adds the grab
+  //! tolerance; deletion passes false so it cannot reach outside what is drawn.
+  int cursorAt(QPointF p, bool margin = true) const noexcept;
 
   int selectedCursor;
   bool isSelected;

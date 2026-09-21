@@ -376,9 +376,12 @@ void score::QGraphicsPathGeneratorXY::mousePressEvent(QGraphicsSceneMouseEvent* 
   if (event->button() & Qt::LeftButton)
   {
     for (int sourceIndex = 0; sourceIndex < std::ssize(tab); sourceIndex++){
-      for (int cursorIndex = 0; cursorIndex < std::ssize(tab[sourceIndex].get<std::vector<ossia::value>>()); cursorIndex++)
+      const auto* src = tab[sourceIndex].target<std::vector<ossia::value>>();
+      if(!src)
+        continue;
+      for (int cursorIndex = 0; cursorIndex < std::ssize(*src); cursorIndex++)
     {
-      const auto& CursorXY = tab[sourceIndex].get<std::vector<ossia::value>>()[cursorIndex].get<ossia::vec2f>();
+      const ossia::vec2f CursorXY = node_at(*src, cursorIndex);
       if ((CursorXY[0] - 0.02f) * width() <= (float)x &&
          (float)x <= (CursorXY[0] + 0.02f) * width() &&
          (1-CursorXY[1] - 0.02f) * height() <= (float)y &&
@@ -406,9 +409,12 @@ void score::QGraphicsPathGeneratorXY::mousePressEvent(QGraphicsSceneMouseEvent* 
   {
     m_grab = false;
     for (int v = 0; v < std::ssize(tab); v++){
-      for (int c = 0; c < std::ssize(tab[v].get<std::vector<ossia::value>>()); c++)
+      const auto* src_v = tab[v].target<std::vector<ossia::value>>();
+      if(!src_v)
+        continue;
+      for (int c = 0; c < std::ssize(*src_v); c++)
     {
-      const auto& CursorXY = tab[v].get<std::vector<ossia::value>>()[c].get<ossia::vec2f>();
+      const ossia::vec2f CursorXY = node_at(*src_v, c);
       if ((CursorXY[0] - 0.02f) * width() <= (float)x &&
          (float)x <= (CursorXY[0] + 0.02f) * width() &&
          (1-CursorXY[1] - 0.02f) * height() <= (float)y &&

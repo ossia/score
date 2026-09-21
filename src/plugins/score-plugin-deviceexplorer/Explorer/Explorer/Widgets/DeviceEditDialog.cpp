@@ -99,7 +99,9 @@ public:
     const double rhs = other.data(0, SearchScoreRole).toDouble();
     if(self != rhs)
       return self > rhs;
-    return text(0) < other.text(0);
+    // localeAwareCompare, as QTreeWidgetItem does: a plain < is a UTF-16 code
+    // unit compare, which puts every capitalised name before every lowercase one.
+    return text(0).localeAwareCompare(other.text(0)) < 0;
   }
 };
 
