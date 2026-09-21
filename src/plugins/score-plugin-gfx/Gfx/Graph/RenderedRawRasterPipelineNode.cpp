@@ -2453,6 +2453,8 @@ void RenderedRawRasterPipelineNode::releaseState(RenderList& r)
   {
     if(aux.owned && aux.buffer)
       aux.buffer->deleteLater();
+    else if(aux.buffer)
+      RenderList::dropAdoptedBuffer(aux.buffer);
     if(aux.owned && aux.prev_buffer)
       aux.prev_buffer->deleteLater();
   }
@@ -2812,6 +2814,11 @@ void RenderedRawRasterPipelineNode::update(
                 {
                   if(aux.owned && aux.buffer)
                     aux.buffer->deleteLater();
+                  else if(aux.buffer)
+                    RenderList::dropAdoptedBuffer(aux.buffer);
+                  // Borrowed: a reference in RenderList's adoption registry,
+                  // so the producer's release defers to the drop above.
+                  RenderList::adoptBuffer(new_buf);
                   aux.buffer = new_buf;
                   aux.size = geo_aux->byte_size > 0 ? geo_aux->byte_size : gpu->byte_size;
                   aux.owned = false;
@@ -2829,6 +2836,8 @@ void RenderedRawRasterPipelineNode::update(
 
                 if(aux.owned && aux.buffer)
                   renderer.releaseBuffer(aux.buffer);
+                else if(aux.buffer)
+                  RenderList::dropAdoptedBuffer(aux.buffer);
 
                 auto* buf = rhi.newBuffer(
                     QRhiBuffer::Immutable, QRhiBuffer::StorageBuffer, sz);
@@ -2880,6 +2889,9 @@ void RenderedRawRasterPipelineNode::update(
 
     if(aux.owned && aux.buffer)
       aux.buffer->deleteLater();
+    else if(aux.buffer)
+      RenderList::dropAdoptedBuffer(aux.buffer);
+    RenderList::adoptBuffer(upstream);
     aux.buffer = upstream;
     aux.size = upstream->size();
     aux.owned = false;

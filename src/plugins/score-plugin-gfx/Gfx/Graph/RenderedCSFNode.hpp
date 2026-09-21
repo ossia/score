@@ -260,6 +260,7 @@ private:
     int prev_instance_count{-1};
     int prev_attribute_count{-1};
     int prev_upstream_attr_count{-1};
+    int prev_upstream_aux_count{-1};
 
     QRhiBuffer* indirectBuffer{};       // StorageBuffer (+ IndirectBuffer on Qt 6.12+)
     int64_t indirectBufferSize{};
@@ -277,6 +278,8 @@ private:
   // One-time "CSF indirect dispatch: gpu|cpu-fallback" log guard (per node
   // instance, so per test session); see the dispatch site.
   bool m_loggedIndirectDispatch{false};
+  /// Names this node in the bind-time liveness warning; built on first use.
+  QByteArray m_liveCheckLabel;
 
   QRhiBuffer* m_materialUBO{};
   int m_materialSize{};

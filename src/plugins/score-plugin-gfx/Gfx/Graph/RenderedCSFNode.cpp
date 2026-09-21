@@ -238,6 +238,40 @@ static QRhiBuffer* regrowBuffer(
   return fresh;
 }
 
+// A slot is {buffer, size, owned}. Owned means this node created the buffer
+// and retires it through RenderList::releaseBuffer; borrowed (owned == false)
+// means the pointer was read from upstream geometry and is a reference in
+// RenderList's adoption registry. These two are the only ways a slot changes
+// what it points at, so the reference count follows the slot exactly: the
+// producer's release of a borrowed buffer is deferred until the slot lets go,
+// and the binding built from the slot never names a freed object.
+template <typename Slot>
+static void releaseSlot(score::gfx::RenderList& renderer, Slot& slot) noexcept
+{
+  if(!slot.buffer)
+    return;
+  if(slot.owned)
+    renderer.releaseBuffer(slot.buffer);
+  else
+    score::gfx::RenderList::dropAdoptedBuffer(slot.buffer);
+  slot.buffer = nullptr;
+}
+
+template <typename Slot>
+static void adoptIntoSlot(
+    score::gfx::RenderList& renderer, Slot& slot, QRhiBuffer* buf,
+    int64_t size) noexcept
+{
+  if(slot.buffer != buf)
+  {
+    releaseSlot(renderer, slot);
+    score::gfx::RenderList::adoptBuffer(buf);
+    slot.buffer = buf;
+  }
+  slot.size = size;
+  slot.owned = false;
+}
+
 void RenderedCSFNode::updateInputTexture(const Port& input, QRhiTexture* tex, QRhiTexture* depthTex)
 {
   int sampler_idx = 0;
@@ -918,15 +952,10 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
               auto* rhi_buf = static_cast<QRhiBuffer*>(gpu->handle);
               if(storageBuffer.buffer != rhi_buf)
               {
-                // Release our owned buffer if we had one
-                if(storageBuffer.owned && storageBuffer.buffer)
-                {
-                  renderer.releaseBuffer(storageBuffer.buffer);
-                }
-                storageBuffer.buffer = rhi_buf;
-                storageBuffer.size = aux->byte_size > 0 ? aux->byte_size : gpu->byte_size;
+                adoptIntoSlot(
+                    renderer, storageBuffer, rhi_buf,
+                    aux->byte_size > 0 ? aux->byte_size : gpu->byte_size);
                 storageBuffer.lastKnownSize = storageBuffer.size;
-                storageBuffer.owned = false;
                 buffersChanged = true;
               }
               found_aux = true;
@@ -942,11 +971,11 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
       continue;
 
     // No auxiliary buffer match — manage our own buffer
-    if(!storageBuffer.owned && storageBuffer.buffer)
+    if(!storageBuffer.owned)
     {
       // Was using an auxiliary buffer that's no longer available;
       // need to create our own
-      storageBuffer.buffer = nullptr;
+      releaseSlot(renderer, storageBuffer);
       storageBuffer.owned = true;
     }
 
@@ -1161,6 +1190,7 @@ void RenderedCSFNode::updateGeometryBindings(
         }
         else
         {
+          releaseSlot(renderer, aux);
           auto* buf = renderer.state.rhi->newBuffer(
               QRhiBuffer::Static,
               QRhiBuffer::StorageBuffer, requiredSize);
@@ -1297,6 +1327,7 @@ void RenderedCSFNode::updateGeometryBindings(
       const auto orphan = [&](auto& ssbo, const char* kind) {
         if(ssbo.owned)
           return;
+        releaseSlot(renderer, ssbo);
         const int64_t sz = std::max<int64_t>(ssbo.size, 16);
         auto* buf = renderer.state.rhi->newBuffer(
             QRhiBuffer::Static,
@@ -1367,10 +1398,7 @@ void RenderedCSFNode::updateGeometryBindings(
             else
               qDebug() << "  attr" << req.name.c_str() << "not in upstream — creating fallback buffer";
 
-            if(ssbo.buffer && ssbo.owned)
-            {
-              renderer.releaseBuffer(ssbo.buffer);
-            }
+            releaseSlot(renderer, ssbo);
             auto* buf = renderer.state.rhi->newBuffer(
                 QRhiBuffer::Static,
                 QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, needed);
@@ -1453,13 +1481,7 @@ void RenderedCSFNode::updateGeometryBindings(
 
             if(ssbo.buffer != rhi_buf)
             {
-              if(ssbo.owned && ssbo.buffer)
-              {
-                renderer.releaseBuffer(ssbo.buffer);
-              }
-              ssbo.buffer = rhi_buf;
-              ssbo.size = gpu->byte_size;
-              ssbo.owned = false;
+              adoptIntoSlot(renderer, ssbo, rhi_buf, gpu->byte_size);
               ssbo.lastUploadSrc = nullptr;
             }
             continue;
@@ -1494,10 +1516,7 @@ void RenderedCSFNode::updateGeometryBindings(
           // Create or resize the SSBO
           if(!ssbo.buffer || ssbo.size < needed || !ssbo.owned)
           {
-            if(ssbo.owned && ssbo.buffer)
-            {
-              renderer.releaseBuffer(ssbo.buffer);
-            }
+            releaseSlot(renderer, ssbo);
             auto* buf = renderer.state.rhi->newBuffer(
                 QRhiBuffer::Static,
                 QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, needed);
@@ -1625,13 +1644,9 @@ void RenderedCSFNode::updateGeometryBindings(
                 auto* rhi_buf = static_cast<QRhiBuffer*>(gpu->handle);
                 if(aux.buffer != rhi_buf)
                 {
-                  if(aux.owned && aux.buffer)
-                  {
-                    renderer.releaseBuffer(aux.buffer);
-                  }
-                  aux.buffer = rhi_buf;
-                  aux.size = geo_aux->byte_size > 0 ? geo_aux->byte_size : gpu->byte_size;
-                  aux.owned = false;
+                  adoptIntoSlot(
+                      renderer, aux, rhi_buf,
+                      geo_aux->byte_size > 0 ? geo_aux->byte_size : gpu->byte_size);
                 }
                 continue;
               }
@@ -1642,9 +1657,9 @@ void RenderedCSFNode::updateGeometryBindings(
         // No match from upstream geometry — create/resize our own buffer if no size_expr
         if(aux.size_expr.empty())
         {
-          if(!aux.owned && aux.buffer)
+          if(!aux.owned)
           {
-            aux.buffer = nullptr;
+            releaseSlot(renderer, aux);
             aux.owned = true;
           }
 
@@ -1733,12 +1748,13 @@ void RenderedCSFNode::updateGeometryBindings(
     else if(binding.has_vertex_count_spec)
     {
       // No upstream geometry, but vertex_count expression provides the count.
-      // Clear stale unowned pointers first — upstream may have freed them.
+      // Let go of borrowed pointers first: the upstream that published them
+      // is gone, and this node allocates its own below.
       for(auto& ssbo : binding.attribute_ssbos)
       {
         if(!ssbo.owned)
         {
-          ssbo.buffer = nullptr;
+          releaseSlot(renderer, ssbo);
           ssbo.owned = true;
         }
       }
@@ -1746,7 +1762,7 @@ void RenderedCSFNode::updateGeometryBindings(
       {
         if(!aux.owned)
         {
-          aux.buffer = nullptr;
+          releaseSlot(renderer, aux);
           aux.owned = true;
         }
       }
@@ -1879,6 +1895,12 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
       }
     }
 
+    // Forwarded upstream auxiliaries are appended by name in the structural
+    // rebuild and refreshed by name on the fast path, so the fast path must
+    // not outlive a change in how many there are.
+    const int upstream_aux_count
+        = binding_upstream ? (int)binding_upstream->auxiliary.size() : 0;
+
     // Detect structural changes that require rebuilding the geometry from scratch
     const int cur_attr_count = (int)geo_input->attributes.size();
     bool structure_changed =
@@ -1886,7 +1908,8 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
         || binding.prev_vertex_count != binding.vertex_count
         || binding.prev_instance_count != binding.instance_count
         || binding.prev_attribute_count != cur_attr_count
-        || binding.prev_upstream_attr_count != upstream_attr_count;
+        || binding.prev_upstream_attr_count != upstream_attr_count
+        || binding.prev_upstream_aux_count != upstream_aux_count;
 
     if(structure_changed)
     {
@@ -2427,6 +2450,7 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
       binding.prev_instance_count = binding.instance_count;
       binding.prev_attribute_count = cur_attr_count;
       binding.prev_upstream_attr_count = upstream_attr_count;
+      binding.prev_upstream_aux_count = upstream_aux_count;
     }
     else
     {
@@ -2584,6 +2608,63 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
             any_handle_changed = true;
           }
           buf_idx++;
+        }
+      }
+
+      // Forwarded upstream auxiliaries. The structural rebuild appended them
+      // after this node's own auxiliaries and storage buffers, and this fast
+      // path used to leave them alone: an upstream that regrew or re-adopted
+      // the buffer behind a forwarded name then kept being published through
+      // this node under its OLD handle, and a consumer two hops down bound a
+      // buffer its owner had retired. Matched by name, not position, so an
+      // upstream whose auxiliary list changed shape cannot alias one name
+      // onto another's buffer; a count change rebuilds instead (above).
+      if(binding_upstream)
+      {
+        for(auto& oa : out_geo.auxiliary)
+        {
+          // Own auxiliaries and storage buffers were refreshed above and sit
+          // below buf_idx; everything from buf_idx on is a forward.
+          if(oa.buffer < buf_idx || oa.buffer >= (int)out_geo.buffers.size())
+            continue;
+          const auto* in_aux = binding_upstream->find_auxiliary(oa.name);
+          if(!in_aux || in_aux->buffer < 0
+             || in_aux->buffer >= (int)binding_upstream->buffers.size())
+            continue;
+          const auto& src = binding_upstream->buffers[in_aux->buffer];
+          auto& dst = out_geo.buffers[oa.buffer];
+          if(auto* src_gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&src.data))
+          {
+            auto* dst_gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&dst.data);
+            if(!dst_gpu)
+            {
+              dst = src;
+              dst.dirty = true;
+              any_handle_changed = true;
+            }
+            else if(
+                dst_gpu->handle != src_gpu->handle
+                || dst_gpu->byte_size != src_gpu->byte_size)
+            {
+              dst_gpu->handle = src_gpu->handle;
+              dst_gpu->byte_size = src_gpu->byte_size;
+              dst.dirty = true;
+              any_handle_changed = true;
+            }
+          }
+          else if(auto* src_cpu = ossia::get_if<ossia::geometry::cpu_buffer>(&src.data))
+          {
+            auto* dst_cpu = ossia::get_if<ossia::geometry::cpu_buffer>(&dst.data);
+            if(!dst_cpu || dst_cpu->raw_data != src_cpu->raw_data
+               || dst_cpu->byte_size != src_cpu->byte_size)
+            {
+              dst = src;
+              dst.dirty = true;
+              any_handle_changed = true;
+            }
+          }
+          oa.byte_offset = in_aux->byte_offset;
+          oa.byte_size = in_aux->byte_size;
         }
       }
 
@@ -4561,10 +4642,7 @@ void RenderedCSFNode::releaseState(RenderList& r)
   m_computePipeline = nullptr;
 
   for(auto& storageBuffer : m_storageBuffers)
-  {
-    if(storageBuffer.owned)
-      r.releaseBuffer(storageBuffer.buffer);
-  }
+    releaseSlot(r, storageBuffer);
   m_storageBuffers.clear();
 
   m_gpuScatter.release();
@@ -4580,11 +4658,7 @@ void RenderedCSFNode::releaseState(RenderList& r)
         ssbo.read_buffer = nullptr;
       }
       ssbo.read_buffer_is_snapshot = false;
-      if(ssbo.owned && ssbo.buffer)
-      {
-        r.releaseBuffer(ssbo.buffer);
-      }
-      ssbo.buffer = nullptr;
+      releaseSlot(r, ssbo);
       delete ssbo.scatterStaging;
       ssbo.scatterStaging = nullptr;
       delete ssbo.scatterOp.srb;
@@ -4593,13 +4667,7 @@ void RenderedCSFNode::releaseState(RenderList& r)
       ssbo.scatterOp.paramsUBO = nullptr;
     }
     for(auto& aux : binding.auxiliary_ssbos)
-    {
-      if(aux.owned && aux.buffer)
-      {
-        r.releaseBuffer(aux.buffer);
-      }
-      aux.buffer = nullptr;
-    }
+      releaseSlot(r, aux);
     for(auto& at : binding.auxiliary_textures)
     {
       if(at.sampler)
@@ -4822,6 +4890,39 @@ void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiR
   // updateGeometryBindings before calling this function.
   QList<QRhiShaderResourceBinding> bindings;
   buildComputeSrbBindings(renderer, res, bindings);
+
+  // Everything bound here that this node did not borrow is alive by
+  // construction: created here, not yet released. A retirement recorded at
+  // one of those addresses is an earlier object the allocator recycled, and
+  // left in place it makes the liveness check report the recycled address as
+  // a use-after-free. Only the borrowed slots can name a retired object, and
+  // those hold a reference that keeps theirs alive.
+  if(RenderList::retiredBufferCount() > 0)
+  {
+    for(auto& gb : m_geometryBindings)
+    {
+      for(auto& ssbo : gb.attribute_ssbos)
+      {
+        if(ssbo.owned)
+          RenderList::noteBufferLive(ssbo.buffer);
+        RenderList::noteBufferLive(ssbo.read_buffer);
+      }
+      for(auto& aux : gb.auxiliary_ssbos)
+      {
+        if(aux.owned)
+          RenderList::noteBufferLive(aux.buffer);
+        RenderList::noteBufferLive(aux.read_buffer);
+      }
+      RenderList::noteBufferLive(gb.indirectBuffer);
+      RenderList::noteBufferLive(gb.indirectCountBuffer);
+    }
+    for(auto& sb : m_storageBuffers)
+      if(sb.owned)
+        RenderList::noteBufferLive(sb.buffer);
+    RenderList::noteBufferLive(m_materialUBO);
+    for(auto& [edge, pass] : m_computePasses)
+      RenderList::noteBufferLive(pass.processUBO);
+  }
 
   // Recreate SRBs for each compute pass — but only when the per-pass
   // binding list actually changed. Hash the bindings (post per-pass
@@ -5385,7 +5486,12 @@ void RenderedCSFNode::runInitialPasses(
     // pass costs the frame outright, and volumetric-lights-june-2026 went from
     // 5 frames in 8 to 1 in 5. The repair has to happen before the bindings
     // are submitted, not at the point of submission.
-    if(!renderer.checkBindingsLive(*pass.srb, "CSF compute pass")
+    if(m_liveCheckLabel.isEmpty())
+      m_liveCheckLabel = "CSF compute pass ["
+                         + QByteArray::fromStdString(n.m_descriptor.description)
+                               .left(48)
+                         + "]";
+    if(!renderer.checkBindingsLive(*pass.srb, m_liveCheckLabel.constData())
        && RenderList::strictBindingsEnabled())
       throw std::runtime_error("CSF compute pass binds a retired buffer");
     commands.setShaderResources(pass.srb);

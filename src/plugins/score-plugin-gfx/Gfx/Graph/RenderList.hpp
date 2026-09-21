@@ -106,7 +106,35 @@ public:
    */
   void release();
 
+  /**
+   * @brief Retire a buffer this render list's node owns.
+   *
+   * The free is deferred while any consumer still holds the buffer through
+   * adoptBuffer(): the owner's release then only marks it orphaned, and the
+   * last dropAdoptedBuffer() frees it. A consumer that borrowed the handle
+   * therefore keeps binding a live object -- the last contents its producer
+   * wrote -- until it re-reads the producer's geometry and lets go, instead
+   * of binding a freed one.
+   */
   void releaseBuffer(QRhiBuffer* buf);
+
+  /**
+   * @brief Borrow a buffer another node owns (a slot with owned == false).
+   *
+   * Every adoption is a reference in a process-wide registry: the pointer is
+   * unique per QRhi and the owner is routinely on another render list, so the
+   * registry is shared the same way the retirement registry is. The consumer
+   * calls dropAdoptedBuffer() when its slot stops naming the buffer -- it
+   * re-adopts, falls back to its own allocation, or releases its state -- and
+   * an owner that has already released the buffer by then is what frees it.
+   *
+   * This is what makes the owned=false contract enforced rather than assumed:
+   * a buffer with a live adoption cannot be freed, whatever the owner does.
+   */
+  static void adoptBuffer(QRhiBuffer* buf);
+  static void dropAdoptedBuffer(QRhiBuffer* buf);
+  /// Adoptions currently held, process-wide. Tests assert on this.
+  static int adoptedBufferCount() noexcept;
 
   /**
    * @brief Buffers this render list has retired, for the bind-time liveness check.
@@ -135,6 +163,11 @@ public:
   /// name() off a retired buffer is the dereference this check exists to avoid.
   static QByteArray retiredBufferName(const QRhiBuffer* buf);
   static int retiredBufferCount() noexcept;
+  /// Forget a retirement recorded at this address: the caller holds a buffer
+  /// it created and has not released, so the allocator handed the freed
+  /// address back and the retirement no longer describes the object there.
+  /// Without this a recycled address reads as a use-after-free.
+  static void noteBufferLive(const QRhiBuffer* buf) noexcept;
   /// Advance the shared frame sequence and prune old retirements.
   static void noteFrameCompleted() noexcept;
 
