@@ -554,7 +554,7 @@ void RenderList::releaseBuffer(QRhiBuffer* buf)
   // by pending uploadStaticBuffer operations in the current frame's batch.
   // deleteLater() defers destruction to the next beginFrame(), ensuring
   // the GPU handle stays valid for all queued operations this frame.
-  m_retiredBuffers.insert({buf, buf->name()});
+  m_retiredBuffers.insert({buf, RetiredBuffer{buf->name(), frame}});
   buf->deleteLater();
 }
 

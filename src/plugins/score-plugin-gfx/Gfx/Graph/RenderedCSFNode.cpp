@@ -898,7 +898,7 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
   // decisions below, which treat a null buffer as absent.
   for(auto& storageBuffer : m_storageBuffers)
   {
-    if(storageBuffer.buffer && renderer.isRetiredBuffer(storageBuffer.buffer))
+    if(storageBuffer.buffer && renderer.isRetiringBuffer(storageBuffer.buffer))
     {
       storageBuffer.buffer = nullptr;
       storageBuffer.owned = true;
@@ -1127,13 +1127,13 @@ void RenderedCSFNode::updateGeometryBindings(
       // Not conditioned on `owned`: a retired buffer is dead whoever allocated
       // it. The flag only says who is responsible for freeing it, and that has
       // already happened -- clearing the slot must not release it again.
-      if(ssbo.buffer && renderer.isRetiredBuffer(ssbo.buffer))
+      if(ssbo.buffer && renderer.isRetiringBuffer(ssbo.buffer))
       {
         ssbo.buffer = nullptr;
         ssbo.owned = true;
         ssbo.size = 0;
       }
-      if(ssbo.read_buffer && renderer.isRetiredBuffer(ssbo.read_buffer))
+      if(ssbo.read_buffer && renderer.isRetiringBuffer(ssbo.read_buffer))
       {
         ssbo.read_buffer = nullptr;
         ssbo.read_buffer_is_snapshot = false;
@@ -1141,13 +1141,13 @@ void RenderedCSFNode::updateGeometryBindings(
     }
     for(auto& aux : binding.auxiliary_ssbos)
     {
-      if(aux.buffer && renderer.isRetiredBuffer(aux.buffer))
+      if(aux.buffer && renderer.isRetiringBuffer(aux.buffer))
       {
         aux.buffer = nullptr;
         aux.owned = true;
         aux.size = 0;
       }
-      if(aux.read_buffer && renderer.isRetiredBuffer(aux.read_buffer))
+      if(aux.read_buffer && renderer.isRetiringBuffer(aux.read_buffer))
         aux.read_buffer = nullptr;
     }
   }

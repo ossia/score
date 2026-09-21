@@ -122,7 +122,21 @@ public:
    * the pointer, which is what makes the failure deterministic instead of
    * dependent on whether the freed chunk has been reused yet.
    */
+  /// True once the buffer has actually been freed. deleteLater() keeps the
+  /// object alive until the end of the frame that retired it, so a binding
+  /// made in that same frame still dereferences a live object: only a use in a
+  /// LATER frame is a use-after-free. Counting the same-frame case made the
+  /// oracle over-report by roughly an order of magnitude.
   bool isRetiredBuffer(const QRhiBuffer* buf) const noexcept
+  {
+    if(!buf)
+      return false;
+    auto it = m_retiredBuffers.find(buf);
+    return it != m_retiredBuffers.end() && it->second.frame < frame;
+  }
+  /// True from the moment of retirement, same frame included: the slot should
+  /// stop pointing at it even while the object is still alive.
+  bool isRetiringBuffer(const QRhiBuffer* buf) const noexcept
   {
     return buf && m_retiredBuffers.find(buf) != m_retiredBuffers.end();
   }
@@ -131,7 +145,7 @@ public:
   QByteArray retiredBufferName(const QRhiBuffer* buf) const
   {
     auto it = m_retiredBuffers.find(buf);
-    return it != m_retiredBuffers.end() ? it->second : QByteArray{};
+    return it != m_retiredBuffers.end() ? it->second.name : QByteArray{};
   }
   int retiredBufferCount() const noexcept { return (int)m_retiredBuffers.size(); }
 
@@ -400,7 +414,12 @@ public:
       const noexcept;
 
 private:
-  ossia::flat_map<const QRhiBuffer*, QByteArray> m_retiredBuffers;
+  struct RetiredBuffer
+  {
+    QByteArray name;
+    int64_t frame{};
+  };
+  ossia::flat_map<const QRhiBuffer*, RetiredBuffer> m_retiredBuffers;
 
   void renderImpl(QRhiCommandBuffer& commands, bool force);
 
