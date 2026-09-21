@@ -38,6 +38,12 @@ firstOutletOfType(const Process::ProcessModel& proc, Process::PortType type) noe
 SCORE_PLUGIN_SCENARIO_EXPORT
 const Process::Outlet* firstSignalOutlet(const Process::ProcessModel& proc) noexcept;
 
+//! Whether insertProcessInCable would connect anything at all, for drop feedback.
+SCORE_PLUGIN_SCENARIO_EXPORT
+bool canInsertProcessInCable(
+    const Process::Context& ctx, const Process::ProcessModel& proc,
+    const Process::Cable& cbl);
+
 //! Insert `proc` in `cbl` when it has both an inlet and an outlet of the
 //! cable's type; when only one end matches, leave the cable alone and just
 //! connect that end.

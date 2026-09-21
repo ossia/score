@@ -505,6 +505,10 @@ void NodalIntervalView::setupNode(Process::NodeItem* item)
         m_context.document);
     Scenario::insertProcessInCable(disp, m_context, doc, proc, cbl);
       };
+  item->canDropOnCableHandler
+      = [this](const Process::ProcessModel& proc, const Process::Cable& cbl) {
+    return Scenario::canInsertProcessInCable(m_context, proc, cbl);
+      };
 }
 
 void NodalIntervalView::on_dropOnNode(const QPointF& pos, const QMimeData& mime)

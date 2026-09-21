@@ -8,6 +8,7 @@
 
 #include <QGraphicsItem>
 #include <QObject>
+#include <QPointer>
 
 #include <score_lib_process_export.h>
 
@@ -25,6 +26,7 @@ class QGraphicsPixmapToggle;
 namespace Dataflow
 {
 class PortItem;
+class CableItem;
 }
 namespace Process
 {
@@ -73,6 +75,11 @@ public:
   std::function<void(
       const Process::ProcessModel&, const Process::Cable&, score::Dispatcher&)>
       dropOnCableHandler;
+
+  //! Whether dropOnCableHandler would connect anything, to highlight the cable
+  //! under the node while it is being dragged.
+  std::function<bool(const Process::ProcessModel&, const Process::Cable&)>
+      canDropOnCableHandler;
 
   static const constexpr int Type = QGraphicsItem::UserType + 5000;
   int type() const override { return Type; }
@@ -136,6 +143,9 @@ public:
 private:
   void updateContentRect();
 
+  void updateDropCableHighlight();
+  void clearDropCableHighlight();
+
   double minimalContentWidth() const noexcept;
   double minimalContentHeight() const noexcept;
   static void paintNode(QPainter* painter, bool selected, bool hovered, QRectF rect);
@@ -158,6 +168,7 @@ private:
 
   std::vector<Dataflow::PortItem*> m_inlets, m_outlets;
   const Process::Context& m_context;
+  QPointer<Dataflow::CableItem> m_dropCable{};
   MultiOngoingCommandDispatcher m_dispatcher;
 
   TimeVal m_parentDuration{1};

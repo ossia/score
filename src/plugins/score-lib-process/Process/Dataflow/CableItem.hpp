@@ -62,6 +62,15 @@ public:
     update();
   }
 
+  //! Highlight this cable as the one a node being dragged would land in.
+  void setDropTarget(bool b)
+  {
+    if(m_dropping == b)
+      return;
+    m_dropping = b;
+    update();
+  }
+
   void dropReceived(const QPointF& pos, const QMimeData& arg_2)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, dropReceived, pos, arg_2)
 

@@ -75,6 +75,21 @@ static std::pair<const Process::Outlet*, const Process::Inlet*> matchOutletToNew
   return {&preferred, nullptr};
 }
 
+bool canInsertProcessInCable(
+    const Process::Context& ctx, const Process::ProcessModel& proc,
+    const Process::Cable& cbl)
+{
+  auto source = cbl.source().try_find(ctx);
+  auto sink = cbl.sink().try_find(ctx);
+  if(!source || !sink)
+    return false;
+  if(source->parent() == &proc || sink->parent() == &proc)
+    return false;
+
+  const auto type = source->type();
+  return firstInletOfType(proc, type) || firstOutletOfType(proc, type);
+}
+
 void insertProcessInCable(
     score::Dispatcher& disp, const Process::Context& ctx,
     const Scenario::ScenarioDocumentModel& model, const Process::ProcessModel& proc,

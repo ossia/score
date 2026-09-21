@@ -4,6 +4,7 @@
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/Dataflow/PortVisibility.hpp>
+#include <Process/DocumentPlugin.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessFactory.hpp>
@@ -1067,6 +1068,58 @@ selectedProcesses(const score::DocumentContext& ctx)
   return ps;
 }
 }
+//! The single cable the node was let go on top of, if any: ambiguous drops
+//! (more than one cable under the node) do nothing.
+static const Process::Cable* cableUnder(const NodeItem& node, QRectF contentRect)
+{
+  auto sc = node.scene();
+  if(!sc)
+    return nullptr;
+
+  const Process::Cable* res{};
+  for(auto item : sc->items(node.mapToScene(contentRect.center())))
+  {
+    if(item->type() != Dataflow::CableItem::Type)
+      continue;
+    if(res)
+      return nullptr;
+    res = &static_cast<Dataflow::CableItem*>(item)->model();
+  }
+  return res;
+}
+
+void NodeItem::updateDropCableHighlight()
+{
+  Dataflow::CableItem* next{};
+  if(canDropOnCableHandler)
+  {
+    if(auto* cbl = cableUnder(*this, m_contentRect))
+    {
+      if(canDropOnCableHandler(m_model, *cbl))
+      {
+        auto& cables = m_context.dataflow.cables();
+        if(auto it = cables.find(cbl); it != cables.end())
+          next = it->second;
+      }
+    }
+  }
+
+  if(next == m_dropCable)
+    return;
+  if(m_dropCable)
+    m_dropCable->setDropTarget(false);
+  m_dropCable = next;
+  if(m_dropCable)
+    m_dropCable->setDropTarget(true);
+}
+
+void NodeItem::clearDropCableHighlight()
+{
+  if(m_dropCable)
+    m_dropCable->setDropTarget(false);
+  m_dropCable = nullptr;
+}
+
 void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   if(nodeItemInteraction == Interaction::None)
@@ -1098,6 +1151,7 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
         if(!ossia::contains(procs, &m_model))
           procs.push_back(&m_model);
         m_dispatcher.submit<Process::MoveNodes>(std::move(procs), p - origp);
+        updateDropCableHighlight();
         break;
       }
       default:
@@ -1107,25 +1161,6 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
-//! The single cable the node was let go on top of, if any: ambiguous drops
-//! (more than one cable under the node) do nothing.
-static const Process::Cable* cableUnder(const NodeItem& node, QRectF contentRect)
-{
-  auto sc = node.scene();
-  if(!sc)
-    return nullptr;
-
-  const Process::Cable* res{};
-  for(auto item : sc->items(node.mapToScene(contentRect.center())))
-  {
-    if(item->type() != Dataflow::CableItem::Type)
-      continue;
-    if(res)
-      return nullptr;
-    res = &static_cast<Dataflow::CableItem*>(item)->model();
-  }
-  return res;
-}
 
 void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
@@ -1133,6 +1168,8 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     return QGraphicsItem::mouseReleaseEvent(event);
 
   mouseMoveEvent(event);
+
+  clearDropCableHighlight();
 
   if(nodeDidMove)
   {
@@ -1170,6 +1207,7 @@ bool NodeItem::sceneEvent(QEvent* event)
   {
     if(nodeItemInteraction != Interaction::None)
     {
+      clearDropCableHighlight();
       if(nodeDidMove)
         m_dispatcher.commit<Process::MoveNodesMacro>();
 
