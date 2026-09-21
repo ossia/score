@@ -8,6 +8,7 @@
 
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/MenuManager.hpp>
+#include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/Zip.hpp>
 #include <score/widgets/HelpInteraction.hpp>
 
@@ -23,6 +24,7 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QProgressDialog>
+#include <QTemporaryDir>
 #include <QTimer>
 
 SCORE_DECLARE_ACTION(
@@ -129,6 +131,82 @@ void ProjectFilesApplicationPlugin::removeUnused()
 
 void ProjectFilesApplicationPlugin::archive()
 {
+#if defined(__EMSCRIPTEN__)
+  // A web page has no folder to save next to and no path to write to: build the
+  // archive in the in-memory filesystem and hand it to the browser as a
+  // download. A document that was never saved still archives.
+  auto doc = context.docManager.currentDocument();
+  if(!doc)
+    return;
+
+  QString name = doc->metadata().documentName();
+  if(name.isEmpty() || name.startsWith(QObject::tr("Untitled")))
+    name = QStringLiteral("untitled");
+
+  QTemporaryDir tmp;
+  if(!tmp.isValid())
+  {
+    QMessageBox::warning(
+        context.mainWindow, QObject::tr("Archiving failed"),
+        QObject::tr("Could not create a working folder."));
+    return;
+  }
+
+  // The score always goes in: it may be all this document has.
+  const QString scorePath = tmp.filePath(name + QStringLiteral(".score"));
+  {
+    JSONReader w;
+    w.buffer.Reserve(1024 * 1024 * 16);
+    doc->saveAsJson(w);
+    QFile f{scorePath};
+    if(!f.open(QIODevice::WriteOnly))
+    {
+      QMessageBox::warning(
+          context.mainWindow, QObject::tr("Archiving failed"),
+          QObject::tr("Could not write the score."));
+      return;
+    }
+    const qint64 sz = qint64(w.buffer.GetSize());
+    if(f.write(w.buffer.GetString(), sz) != sz)
+    {
+      QMessageBox::warning(
+          context.mainWindow, QObject::tr("Archiving failed"),
+          QObject::tr("Could not write the score."));
+      return;
+    }
+  }
+
+  std::vector<score::ZipEntry> contents{
+      {scorePath, name + QStringLiteral("/") + name + QStringLiteral(".score")}};
+
+  // Media the document actually uses, when there is a folder to find them in.
+  if(!doc->metadata().projectFolder().isEmpty())
+  {
+    const auto report = consolidateProjectFiles(doc->context(), {});
+    for(auto& e : projectArchiveContents(doc->context(), report))
+      if(!e.nameInArchive.endsWith(QStringLiteral(".score")))
+        contents.push_back(e);
+  }
+
+  const QString zipPath = tmp.filePath(name + QStringLiteral(".zip"));
+  QString error;
+  if(!score::writeZipArchive(zipPath, contents, 1, error))
+  {
+    QMessageBox::warning(context.mainWindow, QObject::tr("Archiving failed"), error);
+    return;
+  }
+
+  QFile zf{zipPath};
+  if(!zf.open(QIODevice::ReadOnly))
+  {
+    QMessageBox::warning(
+        context.mainWindow, QObject::tr("Archiving failed"),
+        QObject::tr("Could not read the archive back."));
+    return;
+  }
+  QFileDialog::saveFileContent(
+      zf.readAll(), name + QStringLiteral(".zip"), context.mainWindow);
+#else
   auto doc = documentWithFolder(QObject::tr("Archiving"));
   if(!doc)
     return;
@@ -194,6 +272,7 @@ void ProjectFilesApplicationPlugin::archive()
                 .arg(external);
 
   QMessageBox::information(context.mainWindow, QObject::tr("Project archived"), note);
+#endif
 }
 
 void ProjectFilesApplicationPlugin::on_loadedDocument(score::Document& doc)
