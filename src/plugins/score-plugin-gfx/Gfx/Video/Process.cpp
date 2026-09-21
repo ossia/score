@@ -1,5 +1,7 @@
 #include "Process.hpp"
 
+#include <score/tools/ProjectFiles.hpp>
+
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
 #include <Process/ExternalFiles.hpp>
@@ -148,6 +150,10 @@ catch(...)
 
 QString Model::absolutePath() const noexcept
 {
+  // A stream url is already absolute; locateFilePath would anchor it to the
+  // document folder and hand the decoder "/home/me/proj/rtsp:/host/stream".
+  if(score::isRemoteUrl(m_path))
+    return m_path;
   return score::locateFilePath(m_path, score::IDocument::documentContext(*this));
 }
 

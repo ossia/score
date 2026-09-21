@@ -265,3 +265,29 @@ TEST_CASE("Relinking to something that is not there fails", "[integration][missi
     CHECK(sound->userFilePath() == media + "/kick.wav");
   });
 }
+
+TEST_CASE("A stream url is not a missing file", "[integration][missingfiles]")
+{
+  // rtsp:// and friends name something no filesystem can answer for. Before,
+  // locateFilePath anchored them to the document folder and every url came
+  // back as a file the user was told to go and find.
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir projectDir;
+    REQUIRE(projectDir.isValid());
+    const QString project = canonical(projectDir.path());
+
+    auto* doc = project_document(ctx, project);
+    REQUIRE(doc != nullptr);
+
+    auto* video = add_process(*doc, video_process_uuid, "rtsp://camera.local/stream");
+    if(!video)
+      SKIP("the Gfx video process is not in this build");
+
+    const auto report = Process::scanMissingFiles(doc->context());
+    CHECK(report.count(Process::FileAction::Missing) == 0);
+
+    // It is still seen -- it is a dependency the other machine needs -- just
+    // not one score can go and look for.
+    CHECK(report.count(Process::FileAction::Unsupported) >= 1);
+  });
+}
