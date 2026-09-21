@@ -26,7 +26,6 @@ public:
       : InspectorWidgetDelegate_T{obj, parent}
       , m_dispatcher{doc.dispatcher}
       , m_channel{this}
-      , m_currentPattern{this}
       , m_lanes{this}
       , m_duration{this}
       , m_rate{this}
@@ -44,7 +43,6 @@ public:
     m_lanes.setValue(pat.lanes.size());
     m_duration.setValue(pat.length);
     m_rate.setValue(pat.division);
-    m_currentPattern.setValue(obj.currentPattern());
 
     auto lay = new QFormLayout{this};
 
@@ -53,11 +51,6 @@ public:
         m_channel.setValue(c);
     });
     con(process(), &ProcessModel::currentPatternChanged, this, [&](int c) {
-      if(c == m_currentPattern.value())
-        return;
-
-      m_currentPattern.setValue(c);
-
       const Pattern& pat = obj.patterns()[c];
       m_lanes.blockSignals(true);
       m_duration.blockSignals(true);
@@ -125,13 +118,6 @@ public:
 
     con(m_lanes, &QSpinBox::editingFinished, this, [&]() { m_dispatcher.commit(); });
 
-    con(m_currentPattern, qOverload<int>(&QSpinBox::valueChanged), this, [&](int v) {
-      if(v != obj.currentPattern())
-        m_dispatcher.submit<SetCurrentPattern>(obj, v);
-    });
-    con(m_currentPattern, &QSpinBox::editingFinished, this,
-        [&]() { m_dispatcher.commit(); });
-
     con(m_duration, qOverload<int>(&QSpinBox::valueChanged), this, [&]() {
       int n = m_duration.value();
       if(n <= 0)
@@ -163,7 +149,6 @@ public:
     });
 
     lay->addRow(tr("Channel"), &m_channel);
-    lay->addRow(tr("Current pattern"), &m_currentPattern);
     lay->addRow(tr("Lanes"), &m_lanes);
     lay->addRow(tr("Steps"), &m_duration);
     lay->addRow(tr("Rate"), &m_rate);
@@ -173,7 +158,6 @@ private:
   OngoingCommandDispatcher& m_dispatcher;
 
   QSpinBox m_channel;
-  QSpinBox m_currentPattern;
   QSpinBox m_lanes;
   QSpinBox m_duration;
   QDoubleSpinBox m_rate;

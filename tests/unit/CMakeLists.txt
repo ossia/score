@@ -383,7 +383,17 @@ score_add_test(test_unit_midi_message
     SOURCES PatternistNodeTest.cpp
     PLUGINS score_plugin_midi score_lib_process
     LIBS ${QT_PREFIX}::Gui)
+
+  score_add_test(test_unit_patternist_port
+    SOURCES PatternistPortTest.cpp
+    APP
+    PLUGINS score_plugin_midi score_lib_process)
 endif()
+
+score_add_test(test_unit_path_generator_handle
+  SOURCES PathGeneratorHandleTest.cpp
+  APP
+  PLUGINS score_lib_process)
 
 if(TARGET score_plugin_dataflow)
   score_add_test(test_unit_dataflow_value

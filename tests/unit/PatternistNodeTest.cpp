@@ -625,3 +625,30 @@ TEST_CASE(
   CHECK(!f.node.in_flight.contains(36));
   CHECK(f.node.current_pattern == p1);
 }
+
+TEST_CASE(
+    "patternist: a switch still happens without a tempo map", "[midi][pattern]")
+{
+  // A score with no tempo never advances musical time, so there is no bar line
+  // to quantize against. The switch has to fall back to the start of the tick
+  // rather than wait for a grid that will never arrive.
+  fixture f;
+  f.set({lane(36, {Note::Note})}, 1);
+  const int p1 = f.add({lane(38, {Note::Note})}, 1);
+  f.node.switch_rate = 1.; // one bar, and no bar will ever come
+
+  auto before = f.step();
+  REQUIRE(before.size() == 1);
+  CHECK(before[0].note == 36);
+
+  f.node.request_pattern(p1);
+
+  auto after = f.step();
+  REQUIRE(!after.empty());
+  bool struck_new = false;
+  for(const auto& m : after)
+    if(m.status == note_on && m.note == 38)
+      struck_new = true;
+  CHECK(struck_new);
+  CHECK(f.node.current_pattern == p1);
+}
