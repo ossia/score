@@ -10,6 +10,7 @@
 
 #include <score_lib_base_export.h>
 
+#include <functional>
 #include <vector>
 #include <verdigris>
 class QRecentFilesMenu;
@@ -104,7 +105,14 @@ public:
   Document* loadStack(const score::GUIApplicationContext& ctx);
   Document* loadStack(const score::GUIApplicationContext& ctx, const QString&);
 
-  Document* loadFile(const score::GUIApplicationContext& ctx);
+  //! Asks the user for a file and opens it.
+  //!
+  //! \p onDone receives the document, or nullptr if the user cancelled or the
+  //! file could not be read. The web file dialog answers through a callback, so
+  //! there is nothing to return by the time this call ends.
+  Document* loadFile(
+      const score::GUIApplicationContext& ctx,
+      std::function<void(Document*)> onDone = {});
   Document* loadFile(const score::GUIApplicationContext& ctx, const QString& filename);
 
   /**
