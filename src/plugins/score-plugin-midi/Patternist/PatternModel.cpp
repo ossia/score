@@ -106,6 +106,13 @@ void ProcessModel::init()
 
   m_inlets.push_back(patternSelect.get());
   m_inlets.push_back(switchQuantification.get());
+
+  // The port is the only selector: the property follows it, so the layer keeps
+  // drawing the pattern the port picked. Execution reads the port itself, so an
+  // automated value never comes back through here to grow the list.
+  connect(
+      patternSelect.get(), &Process::ControlInlet::valueChanged, this,
+      [this](const ossia::value& v) { setCurrentPattern(ossia::convert<int>(v)); });
   m_outlets.push_back(outlet.get());
   m_outlets.push_back(accent.get());
   m_outlets.push_back(slide.get());
