@@ -1,4 +1,5 @@
 #include <Process/Commands/Properties.hpp>
+#include <Process/Dataflow/CableItem.hpp>
 #include <Process/Dataflow/NodeItem.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/PortItem.hpp>
@@ -17,6 +18,7 @@
 #include <Process/ApplicationPlugin.hpp>
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/command/Dispatchers/RuntimeDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/graphics/GraphicWidgets.hpp>
 #include <score/graphics/GraphicsLayout.hpp>
@@ -1105,6 +1107,26 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
+//! The single cable the node was let go on top of, if any: ambiguous drops
+//! (more than one cable under the node) do nothing.
+static const Process::Cable* cableUnder(const NodeItem& node, QRectF contentRect)
+{
+  auto sc = node.scene();
+  if(!sc)
+    return nullptr;
+
+  const Process::Cable* res{};
+  for(auto item : sc->items(node.mapToScene(contentRect.center())))
+  {
+    if(item->type() != Dataflow::CableItem::Type)
+      continue;
+    if(res)
+      return nullptr;
+    res = &static_cast<Dataflow::CableItem*>(item)->model();
+  }
+  return res;
+}
+
 void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   if(nodeItemInteraction == Interaction::None)
@@ -1114,6 +1136,16 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 
   if(nodeDidMove)
   {
+    // Part of the same macro as the move: dropping a node on a cable is a
+    // single gesture and must undo as one.
+    if(dropOnCableHandler && nodeItemInteraction == Interaction::Move)
+    {
+      if(auto cbl = cableUnder(*this, m_contentRect))
+      {
+        score::Dispatcher_T<MultiOngoingCommandDispatcher> disp{m_dispatcher};
+        dropOnCableHandler(m_model, *cbl, disp);
+      }
+    }
     m_dispatcher.commit<Process::MoveNodesMacro>();
   }
   else if(nodeSelectOnRelease)

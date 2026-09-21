@@ -5,6 +5,7 @@
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
+#include <Scenario/Document/ScenarioDocument/ProcessCreation.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
@@ -68,10 +69,7 @@ NodalIntervalView::NodalIntervalView(
     if(m_itemsToShow == ItemsToShow::OnlyEffects
        && !(proc.flags() & Process::ProcessFlags::TimeIndependent))
       continue;
-    auto item = new Process::NodeItem{proc, m_context, r, m_container};
-    m_nodeItems.push_back(item);
-    connect(
-        item, &Process::NodeItem::dropReceived, this, &NodalIntervalView::on_dropOnNode);
+    setupNode(new Process::NodeItem{proc, m_context, r, m_container});
   }
   m_model.processes.added.connect<&NodalIntervalView::on_processAdded>(*this);
   m_model.processes.removing.connect<&NodalIntervalView::on_processRemoving>(*this);
@@ -277,11 +275,8 @@ void NodalIntervalView::on_processAdded(const Process::ProcessModel& proc)
     }
   }
 
-  auto item = new Process::NodeItem{
-      proc, m_context, m_model.duration.defaultDuration(), m_container};
-  connect(
-      item, &Process::NodeItem::dropReceived, this, &NodalIntervalView::on_dropOnNode);
-  m_nodeItems.push_back(item);
+  setupNode(new Process::NodeItem{
+      proc, m_context, m_model.duration.defaultDuration(), m_container});
 }
 
 void NodalIntervalView::on_processRemoving(const Process::ProcessModel& model)
@@ -495,6 +490,21 @@ void NodalIntervalView::zoomTo(double newZoomLevel)
   m_container->setPos(m_container->pos() + (anchor - newAnchorPos));
   const_cast<IntervalModel&>(m_model).setNodalScale(newScale);
   storeCenterFromContainer();
+}
+
+void NodalIntervalView::setupNode(Process::NodeItem* item)
+{
+  m_nodeItems.push_back(item);
+  connect(
+      item, &Process::NodeItem::dropReceived, this, &NodalIntervalView::on_dropOnNode);
+  item->dropOnCableHandler
+      = [this](
+            const Process::ProcessModel& proc, const Process::Cable& cbl,
+            score::Dispatcher& disp) {
+    auto& doc = score::IDocument::modelDelegate<Scenario::ScenarioDocumentModel>(
+        m_context.document);
+    Scenario::insertProcessInCable(disp, m_context, doc, proc, cbl);
+      };
 }
 
 void NodalIntervalView::on_dropOnNode(const QPointF& pos, const QMimeData& mime)

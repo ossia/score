@@ -96,10 +96,9 @@ void CentralNodalDisplay::on_addProcessFromLibrary(const Library::ProcessData& d
     if(sel.size() == 1)
     {
       const Process::ProcessModel& parentProcess = *sel.front();
-      if(!parentProcess.outlets().empty())
+      if(auto out = firstSignalOutlet(parentProcess))
       {
-        createProcessAfterPort(
-            parent, dat, {}, {}, parentProcess, *parentProcess.outlets().front());
+        createProcessAfterPort(parent, dat, {}, {}, parentProcess, *out, true);
       }
       else
       {
@@ -162,10 +161,9 @@ void CentralNodalDisplay::on_addPresetFromLibrary(const Process::Preset& dat)
     if(sel.size() == 1)
     {
       const Process::ProcessModel& parentProcess = *sel.front();
-      if(!parentProcess.outlets().empty())
+      if(auto out = firstSignalOutlet(parentProcess))
       {
-        loadPresetAfterPort(
-            parent, dat, parentProcess, *parentProcess.outlets().front());
+        loadPresetAfterPort(parent, dat, parentProcess, *out, true);
       }
       else
       {

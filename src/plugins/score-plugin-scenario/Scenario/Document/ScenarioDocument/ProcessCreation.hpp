@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Process/Dataflow/PortType.hpp>
 #include <Process/TimeValue.hpp>
 
 #include <score_plugin_scenario_export.h>
@@ -25,6 +26,26 @@ namespace Scenario
 {
 class ScenarioDocumentModel;
 class ScenarioDocumentPresenter;
+
+//! First port of that type which carries signal flow: control ports are
+//! parameters, not part of the data path, and are never auto-connected.
+SCORE_PLUGIN_SCENARIO_EXPORT
+const Process::Inlet*
+firstInletOfType(const Process::ProcessModel& proc, Process::PortType type) noexcept;
+SCORE_PLUGIN_SCENARIO_EXPORT
+const Process::Outlet*
+firstOutletOfType(const Process::ProcessModel& proc, Process::PortType type) noexcept;
+SCORE_PLUGIN_SCENARIO_EXPORT
+const Process::Outlet* firstSignalOutlet(const Process::ProcessModel& proc) noexcept;
+
+//! Insert `proc` in `cbl` when it has both an inlet and an outlet of the
+//! cable's type; when only one end matches, leave the cable alone and just
+//! connect that end.
+SCORE_PLUGIN_SCENARIO_EXPORT
+void insertProcessInCable(
+    score::Dispatcher& disp, const Process::Context& ctx,
+    const Scenario::ScenarioDocumentModel& model, const Process::ProcessModel& proc,
+    const Process::Cable& cbl);
 
 SCORE_PLUGIN_SCENARIO_EXPORT
 void createProcessInCable(
@@ -54,10 +75,12 @@ void createProcessAfterPort(
     Scenario::ScenarioDocumentPresenter& parent, const Process::ProcessData& dat,
     std::optional<TimeVal>,
     std::function<void(Process::ProcessModel&, score::Dispatcher&)>,
-    const Process::ProcessModel& parentProcess, const Process::Outlet& p);
+    const Process::ProcessModel& parentProcess, const Process::Outlet& p,
+    bool tryOtherOutlets = false);
 SCORE_PLUGIN_SCENARIO_EXPORT
 void loadPresetAfterPort(
     Scenario::ScenarioDocumentPresenter& parent, const Process::Preset& dat,
-    const Process::ProcessModel& parentProcess, const Process::Outlet& p);
+    const Process::ProcessModel& parentProcess, const Process::Outlet& p,
+    bool tryOtherOutlets = false);
 
 }

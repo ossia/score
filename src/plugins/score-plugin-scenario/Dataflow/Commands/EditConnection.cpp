@@ -139,41 +139,71 @@ void onCreateCable(
   disp.submit<Dataflow::CreateCable>(plug, getStrongId(plug.cables), cd, *source, *sink);
 }
 
+//! Appends the "unplug this end, plug it in newPort" pair into `m`; false when
+//! the move is not legal, in which case nothing was appended.
+static bool moveCableEndpoint(
+    Scenario::Command::Macro& m, const Scenario::ScenarioDocumentModel& plug,
+    const score::DocumentContext& ctx, const Process::Cable& currentCable,
+    const Process::Port& newPort)
+{
+  auto old_source = currentCable.source().try_find(ctx);
+  auto old_sink = currentCable.sink().try_find(ctx);
+  if(!old_source || !old_sink)
+    return false;
+  if(newPort.type() != old_source->type())
+    return false;
+
+  const auto t = currentCable.type();
+  if(auto new_source = qobject_cast<const Process::Outlet*>(&newPort))
+  {
+    auto [source, sink] = getPortsForConnection(*new_source, *old_sink);
+    if(!source || !sink)
+      return false;
+
+    m.removeCable(plug, currentCable);
+    m.createCable(plug, *new_source, *old_sink, t);
+    return true;
+  }
+  else if(auto new_sink = qobject_cast<const Process::Inlet*>(&newPort))
+  {
+    auto [source, sink] = getPortsForConnection(*old_source, *new_sink);
+    if(!source || !sink)
+      return false;
+
+    m.removeCable(plug, currentCable);
+    m.createCable(plug, *old_source, *new_sink, t);
+    return true;
+  }
+  return false;
+}
+
 void replaceCable(
     const score::DocumentContext& ctx, const Process::Cable& currentCable,
     const Process::Port& newPort)
 {
   auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
-  auto& old_source = currentCable.source().find(ctx);
-  if(newPort.type() != old_source.type())
-    return;
 
-  auto& old_sink = currentCable.sink().find(ctx);
-
-  if(auto new_source = qobject_cast<const Process::Outlet*>(&newPort))
-  {
-    auto [source, sink] = getPortsForConnection(*new_source, old_sink);
-    if(!source || !sink)
-      return;
-
-    Scenario::Command::Macro m{new ReplaceCable, ctx};
-    const auto t = currentCable.type();
-    m.removeCable(plug, currentCable);
-    m.createCable(plug, *new_source, old_sink, t);
+  Scenario::Command::Macro m{new ReplaceCable, ctx};
+  if(moveCableEndpoint(m, plug, ctx, currentCable, newPort))
     m.commit();
-  }
-  else if(auto new_sink = qobject_cast<const Process::Inlet*>(&newPort))
-  {
-    auto [source, sink] = getPortsForConnection(old_source, *new_sink);
-    if(!source || !sink)
-      return;
+}
 
-    Scenario::Command::Macro m{new ReplaceCable, ctx};
-    const auto t = currentCable.type();
-    m.removeCable(plug, currentCable);
-    m.createCable(plug, old_source, *new_sink, t);
-    m.commit();
+void moveCableEndpoints(
+    const score::DocumentContext& ctx, std::span<Process::Cable* const> cables,
+    const Process::Port& newPort)
+{
+  auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
+
+  Scenario::Command::Macro m{new ReplaceCable, ctx};
+  bool any = false;
+  for(auto* cable : cables)
+  {
+    if(cable)
+      any |= moveCableEndpoint(m, plug, ctx, *cable, newPort);
   }
+
+  if(any)
+    m.commit();
 }
 
 

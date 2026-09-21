@@ -11,10 +11,13 @@
 
 #include <score_lib_process_export.h>
 
+#include <functional>
+
 #include <verdigris>
 namespace score
 {
 struct DocumentContext;
+struct Dispatcher;
 class SimpleTextItem;
 class ResizeableItem;
 class QGraphicsPixmapToggle;
@@ -25,6 +28,7 @@ class PortItem;
 }
 namespace Process
 {
+class Cable;
 class ProcessModel;
 class LayerPresenter;
 struct LayerContext;
@@ -63,6 +67,12 @@ public:
     m_dropping = false;
     update();
   }
+
+  //! Set by the nodal view: called when the node is released over a cable, to
+  //! append the insertion commands to the macro the move is already building.
+  std::function<void(
+      const Process::ProcessModel&, const Process::Cable&, score::Dispatcher&)>
+      dropOnCableHandler;
 
   static const constexpr int Type = QGraphicsItem::UserType + 5000;
   int type() const override { return Type; }

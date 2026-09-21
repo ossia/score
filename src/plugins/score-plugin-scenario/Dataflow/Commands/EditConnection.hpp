@@ -7,6 +7,10 @@
 
 #include <score/model/path/Path.hpp>
 
+#include <span>
+
+#include <utility>
+
 namespace Dataflow
 {
 class SCORE_PLUGIN_SCENARIO_EXPORT CreateCable final : public score::Command
@@ -82,6 +86,12 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ReplaceCable final : public score::AggregateC
 public:
 };
 
+//! Orients a pair of ports into {outlet, sink} if they can legally be cabled
+//! together; {nullptr, nullptr} otherwise.
+SCORE_PLUGIN_SCENARIO_EXPORT
+std::pair<const Process::Outlet*, const Process::Inlet*>
+getPortsForConnection(const Process::Port& port1, const Process::Port& port2);
+
 SCORE_PLUGIN_SCENARIO_EXPORT
 void onCreateCable(
     const score::DocumentContext& ctx, const Process::Port& port1,
@@ -90,5 +100,12 @@ void onCreateCable(
 SCORE_PLUGIN_SCENARIO_EXPORT
 void replaceCable(
     const score::DocumentContext& ctx, const Process::Cable& currentCable,
+    const Process::Port& newPort);
+
+//! Moves the end of every cable that can legally go there onto `newPort`, as a
+//! single undoable step. Cables that cannot are left untouched.
+SCORE_PLUGIN_SCENARIO_EXPORT
+void moveCableEndpoints(
+    const score::DocumentContext& ctx, std::span<Process::Cable* const> cables,
     const Process::Port& newPort);
 }
