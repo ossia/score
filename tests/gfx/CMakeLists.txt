@@ -1307,6 +1307,35 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
 
+# MODEL_MATRIX is declared one binding higher when MULTIVIEW >= 2, and the
+# raw-raster renderer numbers its bindings independently. Threedim::Cube is
+# hidden-visibility, so Primitive.cpp is compiled in as the other scene tests do.
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  set(_mmb_c "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
+  score_plugin_hidden_sources(_mmb_hidden
+      "${_mmb_c}/Primitive.cpp"
+      "${_mmb_c}/Camera.cpp")
+  score_add_test(test_gfx_rawraster_model_matrix_binding
+    SOURCES
+      GfxRawRasterModelMatrixBinding.cpp
+      ${_mmb_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_rawraster_model_matrix_binding PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_rawraster_model_matrix_binding SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
 # Per-layer depth renders through the scratch-D32F + copyTexture shim,
 # each layer carrying its own closed-form depth.
 score_add_gfx_test(per_layer_depth GfxPerLayerDepth.cpp)
