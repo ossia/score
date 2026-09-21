@@ -511,6 +511,7 @@ score_add_gfx_test(geometry_buffer_rebind GfxGeometryBufferRebind.cpp)
 score_add_gfx_test(csf_readwrite_state GfxCsfReadWriteState.cpp)
 # State must travel around a Delayed* geometry edge and advance.
 score_add_gfx_test(csf_feedback_loop GfxCsfFeedbackLoop.cpp)
+score_add_gfx_test(buffer_adoption_lifetime GfxBufferAdoptionLifetime.cpp)
 score_add_gfx_test(depth_sampler   GfxDepthSampler.cpp)
 score_add_gfx_test(storage_visibility GfxStorageVisibility.cpp)
 score_add_gfx_test(multiview       GfxMultiview.cpp)

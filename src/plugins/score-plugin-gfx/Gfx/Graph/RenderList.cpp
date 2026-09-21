@@ -557,6 +557,12 @@ void RenderList::releaseBuffer(QRhiBuffer* buf)
   buf->deleteLater();
 }
 
+bool RenderList::strictBindingsEnabled() noexcept
+{
+  static const bool on = qEnvironmentVariableIsSet("SCORE_GFX_STRICT_BINDINGS");
+  return on;
+}
+
 bool RenderList::checkBindingsLive(
     const QRhiShaderResourceBindings& srb, const char* where) const noexcept
 {

@@ -132,6 +132,10 @@ public:
   bool checkBindingsLive(
       const QRhiShaderResourceBindings& srb, const char* where) const noexcept;
 
+  /// True when SCORE_GFX_STRICT_BINDINGS is set: a failed liveness check then
+  /// throws instead of only warning.
+  static bool strictBindingsEnabled() noexcept;
+
   /**
    * @brief Check if the render size has changed in order to rebuild the pipelines.
    */
