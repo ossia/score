@@ -38,8 +38,7 @@ Model::Model(
   m_inlets.push_back(new GeometryInlet{"Geometry In", Id<Process::Port>(0), this});
   m_outlets.push_back(new GeometryOutlet{"Geometry Out", Id<Process::Port>(1), this});
 
-  QFile f{init};
-  if(f.open(QIODevice::ReadOnly))
+  if(QFile f{locateShaderPath(init, *this)}; f.open(QIODevice::ReadOnly))
     (void)setScript(f.readAll());
 }
 

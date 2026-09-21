@@ -2,7 +2,7 @@
 #include <Gfx/Filter/Library.hpp>
 #include <Gfx/Filter/PreviewWidget.hpp>
 #include <Gfx/Filter/Process.hpp>
-#include <Gfx/GeometryFilter/Process.hpp>
+#include <Gfx/ShaderProgram.hpp>
 #include <Gfx/GfxDevice.hpp>
 #include <Library/LibrarySettings.hpp>
 #include <Library/ProcessesItemModel.hpp>
@@ -154,13 +154,13 @@ void DropHandler::dropPath(
     std::vector<ProcessDrop>& vec, const score::FilePath& filename,
     const score::DocumentContext& ctx) const noexcept
 {
-  // See Gfx::GeometryFilter::DropHandler::dropPath: "glsl" resolves to one of
-  // the two handlers and either has to produce the right process.
-  QFile f{filename.absolute};
+  // ISF is the family without a MODE of its own: anything that declares one
+  // belongs to the handler of that family, which gets its own turn at the file.
+  if(Gfx::shaderFileFamily(filename.absolute) != Gfx::ShaderFamily::Unknown)
+    return;
+
   Process::ProcessDropHandler::ProcessDrop p;
-  p.creation.key = score::fileContains(f, "\"GEOMETRY_FILTER\"")
-                       ? Metadata<ConcreteKey_k, Gfx::GeometryFilter::Model>::get()
-                       : Metadata<ConcreteKey_k, Gfx::Filter::Model>::get();
+  p.creation.key = Metadata<ConcreteKey_k, Gfx::Filter::Model>::get();
   p.creation.prettyName = filename.basename;
   p.creation.customData = filename.relative;
 

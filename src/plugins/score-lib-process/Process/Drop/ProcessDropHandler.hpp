@@ -16,6 +16,7 @@
 #include <score_lib_process_export.h>
 
 #include <string>
+#include <vector>
 
 namespace Process
 {
@@ -85,7 +86,11 @@ public:
 private:
   void initCaches() const;
   mutable ossia::hash_map<std::string, ProcessDropHandler*> m_perMimeTypes{};
-  mutable ossia::hash_map<std::string, ProcessDropHandler*> m_perFileExtension{};
+  // Several handlers legitimately claim one extension -- four shader families
+  // share ".fs" and tell each other apart by reading the file header -- so each
+  // of them gets its turn and the ones the file does not belong to say nothing.
+  mutable ossia::hash_map<std::string, std::vector<ProcessDropHandler*>>
+      m_perFileExtension{};
   mutable std::size_t m_lastCacheSize{};
 };
 }

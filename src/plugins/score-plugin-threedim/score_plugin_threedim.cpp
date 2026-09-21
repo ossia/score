@@ -138,6 +138,28 @@ QWidget* RawRasterLibraryHandler::previewWidget(
 {
   return nullptr;
 }
+
+class RawRasterDropHandler final : public Process::ProcessDropHandler
+{
+  SCORE_CONCRETE("3b0a1a6a-6e6f-4a35-9c4f-3fa2d0d07a09")
+
+  QSet<QString> fileExtensions() const noexcept override { return {"fs", "frag"}; }
+
+  void dropPath(
+      std::vector<ProcessDrop>& vec, const score::FilePath& filename,
+      const score::DocumentContext& ctx) const noexcept override
+  {
+    if(Gfx::shaderFileFamily(filename.absolute) != Gfx::ShaderFamily::RawRaster)
+      return;
+
+    Process::ProcessDropHandler::ProcessDrop p;
+    p.creation.key = Metadata<ConcreteKey_k, Gfx::RenderPipeline::Model>::get();
+    p.creation.prettyName = filename.basename;
+    p.creation.customData = filename.relative;
+
+    vec.push_back(std::move(p));
+  }
+};
 }
 
 namespace Threedim
@@ -427,7 +449,8 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
          Threedim::AssetLibraryHandler, Gfx::RawRasterLibraryHandler,
          Threedim::VoxLibraryHandler>,
       FW<Process::ProcessDropHandler, Threedim::SSynthDropHandler,
-         Threedim::AssetDropHandler, Threedim::VoxDropHandler>,
+         Threedim::AssetDropHandler, Threedim::VoxDropHandler,
+         Gfx::RawRasterDropHandler>,
       FW<Execution::ProcessComponentFactory,
          Gfx::ModelDisplay::ProcessExecutorComponentFactory,
          Gfx::RenderPipeline::ProcessExecutorComponentFactory,

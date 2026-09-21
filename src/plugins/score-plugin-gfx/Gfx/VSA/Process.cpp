@@ -152,8 +152,8 @@ Model::Model(
   metadata().setInstanceName(*this);
   m_outlets.push_back(new TextureOutlet{"Texture Out", Id<Process::Port>(1), this});
 
-  m_scriptPath = init;
-  (void)setProgram(programFromVSAVertexShaderPath(init, {}));
+  m_scriptPath = locateShaderPath(init, *this);
+  (void)setProgram(programFromVSAVertexShaderPath(m_scriptPath, {}));
 }
 
 Model::~Model() { }

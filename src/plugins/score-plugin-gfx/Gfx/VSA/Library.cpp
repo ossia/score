@@ -2,6 +2,7 @@
 #include <Gfx/Filter/PreviewWidget.hpp>
 #include <Gfx/VSA/Library.hpp>
 #include <Gfx/VSA/Process.hpp>
+#include <Gfx/ShaderProgram.hpp>
 #include <Library/LibrarySettings.hpp>
 #include <Library/ProcessesItemModel.hpp>
 
@@ -73,6 +74,21 @@ void DropHandler::dropPath(
     std::vector<ProcessDrop>& vec, const score::FilePath& filename,
     const score::DocumentContext& ctx) const noexcept
 {
+  // ISF and raw-raster fragment shaders keep their vertex stage in a sibling
+  // file of exactly these extensions. One of those is not a process of its own:
+  // it is dropped along with, or next to, the fragment shader that owns it.
+  switch(Gfx::shaderFileFamily(filename.absolute))
+  {
+    case Gfx::ShaderFamily::VertexShaderArt:
+      break;
+    case Gfx::ShaderFamily::Unknown:
+      if(!Gfx::fragmentShaderSibling(filename.absolute).isEmpty())
+        return;
+      break;
+    default:
+      return;
+  }
+
   Process::ProcessDropHandler::ProcessDrop p;
   p.creation.key = Metadata<ConcreteKey_k, Gfx::VSA::Model>::get();
   p.creation.prettyName = filename.basename;

@@ -121,6 +121,36 @@ struct SCORE_PLUGIN_GFX_EXPORT ShaderSource
   }
 };
 
+//! Which of the shader families a file on disk belongs to, read from the
+//! "MODE" key of its ISF header. `Unknown` is a shader with no such key: an
+//! ISF without MODE, a bare GLSL snippet, a hand-written companion vertex
+//! shader. Deciding this is what lets several drop handlers share an
+//! extension: each one claims its own family and leaves the rest alone.
+enum class ShaderFamily
+{
+  Unknown,
+  RawRaster,
+  GeometryFilter,
+  Compute,
+  VertexShaderArt
+};
+
+SCORE_PLUGIN_GFX_EXPORT ShaderFamily shaderFileFamily(const QString& path) noexcept;
+
+//! Path of the vertex shader that goes with @p fsPath -- `foo.vert` or
+//! `foo.vs` next to `foo.fs` / `foo.frag` -- or an empty string.
+SCORE_PLUGIN_GFX_EXPORT QString vertexShaderSibling(const QString& fsPath) noexcept;
+
+//! Path of the fragment shader @p vsPath is the companion of, or an empty
+//! string. A vertex shader that has one is not a standalone process.
+SCORE_PLUGIN_GFX_EXPORT QString fragmentShaderSibling(const QString& vsPath) noexcept;
+
+//! Absolute path of the shader a process was created with. Construction data
+//! travels as a <PROJECT>: / <LIBRARY>: path so that it survives a project
+//! being moved; the model needs the resolved one, like the load path does.
+SCORE_PLUGIN_GFX_EXPORT
+QString locateShaderPath(const QString& path, const QObject& process) noexcept;
+
 SCORE_PLUGIN_GFX_EXPORT ShaderSource
 programFromISFFragmentShaderPath(
     const QString& fsFilename, QByteArray fsData,

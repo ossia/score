@@ -1182,7 +1182,7 @@ function(score_add_gfx_process_test name source)
     SOURCES ${source}
     GUI
     PLUGINS score_plugin_gfx score_plugin_scenario score_plugin_library
-            score_plugin_media score_lib_process score_lib_device
+            score_plugin_media score_lib_process score_lib_device ${ARGN}
     LIBS test_gfx_engine_glue)
   target_compile_definitions(test_gfx_process_${name} PRIVATE
     GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
@@ -1191,7 +1191,18 @@ endfunction()
 score_add_gfx_process_test(shader_commands GfxShaderCommands.cpp)
 score_add_gfx_process_test(images          GfxImagesProcess.cpp)
 score_add_gfx_process_test(video_text      GfxVideoTextProcess.cpp)
-score_add_gfx_process_test(library         GfxProcessLibrary.cpp)
+
+# The raw-raster family lives in score_plugin_threedim while the three other
+# shader families live in score_plugin_gfx, and the whole point of the drop
+# layer is that they share ".fs" without stepping on each other -- so the drop
+# test needs both plug-ins loaded. The cases that need it SKIP when it is not
+# built.
+set(_gfx_library_extra_plugins "")
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  set(_gfx_library_extra_plugins score_plugin_threedim score_plugin_avnd)
+endif()
+score_add_gfx_process_test(library         GfxProcessLibrary.cpp
+                           ${_gfx_library_extra_plugins})
 
 # Pin, its own single-test executable: an empty nodelist mime payload
 # SIGABRTs in rapidjson today. The case asserts the CORRECT behaviour (child
