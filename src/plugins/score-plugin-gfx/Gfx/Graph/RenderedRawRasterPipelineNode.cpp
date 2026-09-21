@@ -1,3 +1,4 @@
+#include <Gfx/Graph/CameraMath.hpp>
 #include <Gfx/Graph/CustomMesh.hpp>
 #include <cstring>
 #include <Gfx/Graph/ISFVisitors.hpp>
@@ -321,38 +322,7 @@ void RenderedRawRasterPipelineNode::initPass(
       // LAYOUT (declared_size) — `aux.size` is 0 here, it is only ever
       // assigned where a buffer already exists.
       if(!aux.buffer)
-      {
-        auto usage = aux.is_uniform ? QRhiBuffer::UniformBuffer
-                                    : QRhiBuffer::StorageBuffer;
-        // Rounded up to 4: RhiClearBuffer's contract (vkCmdFillBuffer) wants a
-        // 4-byte-aligned size.
-        const int64_t dummySize
-            = (std::max<int64_t>(aux.declared_size, aux.is_uniform ? 256 : 16) + 3)
-              & ~int64_t(3);
-        auto* dummy = rhi.newBuffer(bufferTypeFor(usage), usage, dummySize);
-        dummy->setName(aux.is_uniform ? "RRP_ubo_dummy" : "RRP_aux_dummy");
-        if(!dummy->create())
-          qWarning() << "RawRaster: could not create the placeholder buffer for"
-                     << aux.name.c_str();
-        else if(!auxPlaceholderZeroFillDisabled())
-          // Zero-fill. Vulkan does NOT initialise VkBuffer memory: a placeholder
-          // allocated on a RenderList rebuild lands on whatever the previous
-          // owner of that suballocation left behind.
-          // When the aux has no producer in the user's graph this placeholder
-          // IS the buffer the shader reads, and shaders read it as a SENTINEL:
-          // classic_pbr_openpbr gates its clustered-lighting and volumetric
-          // paths on `cluster_config.cluster_x == 0u`, then indexes
-          // cluster_light_counts / cluster_light_lists / vol_integrated with an
-          // id derived from that grid. Garbage there turns a 16-byte
-          // placeholder into a multi-gigabyte out-of-bounds read. Same
-          // Vulkan-doesn't-zero-VkBuffers reasoning, and the same helper, as
-          // the INPUTS-side placeholders in
-          // IsfBindingsBuilder::ensureStorageResources.
-          RhiClearBuffer::clearBuffer(rhi, res, dummy, 0, (quint32)dummySize);
-        aux.buffer = dummy;
-        aux.size = dummySize;
-        aux.owned = true;
-      }
+        createAuxPlaceholder(rhi, res, aux);
 
       // Persistent ping-pong pair: emit the read-only <name>_prev binding
       // FIRST (binding N), then the writable <name> binding (binding N+1).

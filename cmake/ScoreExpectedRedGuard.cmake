@@ -69,7 +69,6 @@ set(SCORE_EXPECTED_RED
   "shouldfail@tests/gfx/GfxGeometryFilterShift.cpp@a geometry filter shifts the drawn silhouette by exactly the delta@the silhouette is not displaced"
   "shouldfail@tests/threedim/SceneApproximationPins.cpp@DEFECT: the render-thread light encoder collapses area lights onto point, and dome onto directional@light-type information is lost in the render-thread encoder"
   "shouldfail@tests/threedim/SceneApproximationPins.cpp@DEFECT: SceneFilterNode mode 2 has no Name port, so it cannot be configured at all@mode 2 exposes no Name port"
-  "shouldfail@tests/gfx/GfxRawRasterModelMatrixBinding.cpp@moving a camera changes what a raw-raster shader draws@raw raster has no view/projection built-in: the ISF prelude gives only renderer_t and process_t plus model_material_t, so the MODEL_MATRIX idiom 33 corpus scores use has no camera term. View and projection reach a shader only through the ScenePreprocessor's `camera` auxiliary, declared by name and hand-indexed as a flat vec4 array over the 240-byte std140 CameraUBOData. Goes green when raw raster grows VIEW/PROJECTION built-ins"
 
 
   "shouldfail@tests/integration/PipewireVideoOutputTest.cpp@a PipeWire video output keeps up at 7680x4320@the readback path copies 132 MB per frame through host memory and delivers 3.5 distinct frames a second against the 60 the device asks for. Spout and Syphon carry 8K because they hand over a texture -- this goes green when the dma-buf path negotiates with an outside consumer"

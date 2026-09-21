@@ -153,6 +153,8 @@ private:
     int64_t declared_size{};
   };
   std::vector<AuxiliarySSBO> m_auxiliarySSBOs;
+  static void
+  createAuxPlaceholder(QRhi& rhi, QRhiResourceUpdateBatch& res, AuxiliarySSBO& aux);
 
   // Storage images and the rest of the INPUTS storage trio -- storage_input for
   // SSBOs, csf_image_input for image2D/3D, uniform_input for UBOs -- declared in

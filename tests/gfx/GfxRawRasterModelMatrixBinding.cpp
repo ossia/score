@@ -169,7 +169,7 @@ MmFacts run_with_camera(score::gfx::GraphicsApi api, float eyeZ)
     const int cam = p.addNode(procs.make<Threedim::Camera>(ctx));
     const int flat = p.addNode(std::make_unique<score::gfx::ScenePreprocessorNode>());
     const int prod
-        = p.addRaster(corpus("syn-scene-solid.vs"), corpus("syn-scene-solid.fs"));
+        = p.addRaster(corpus("syn-scene-camera.vs"), corpus("syn-scene-camera.fs"));
     if(cube < 0 || cam < 0 || flat < 0 || prod < 0)
     {
       f.error = "chain build failed: " + p.error();
@@ -191,11 +191,12 @@ MmFacts run_with_camera(score::gfx::GraphicsApi api, float eyeZ)
     const int sink = p.addSink({160, 160});
     p.wire(p.imageOut(prod, 0), p.sinkInput(sink));
 
-    // Camera::ins field order: eye, target, up, fov, near, far.
+    // Camera::ins field order: eye, target, fov, near, far -- there is no up.
     setInputs(
         *p.node(cam), {ossia::value{ossia::vec3f{0.f, 0.f, eyeZ}},
                        ossia::value{ossia::vec3f{0.f, 0.f, 0.f}},
-                       ossia::value{ossia::vec3f{0.f, 1.f, 0.f}}});
+                       ossia::value{60.f}, ossia::value{0.1f},
+                       ossia::value{1000.f}});
 
     if(!p.create(api))
     {
@@ -300,23 +301,16 @@ TEST_CASE(
 
 
 // =============================================================================
-// EXPECTED-RED. Moving a Camera must change what a raw-raster shader draws.
+// Moving a Camera changes what a raw-raster shader draws.
 //
-// There is no camera built-in for raw raster: the ISF prelude supplies only
-// renderer_t (clipSpaceCorrMatrix, RENDERSIZE, MSAA_SAMPLES), process_t (TIME,
-// ...) and raw-raster's own model_material_t. View and projection reach a
-// shader ONLY through the ScenePreprocessor's `camera` auxiliary UBO, which the
-// shader has to declare by name and index as a flat vec4 array against the
-// 240-byte std140 CameraUBOData layout (15 vec4 per camera).
-//
-// So `clipSpaceCorrMatrix * MODEL_MATRIX * position` -- the idiom 33 corpus
-// scores use -- contains no view or projection term at all, and the picture is
-// identical wherever the camera stands. This case asserts the behaviour a user
-// expects; it flips green when raw-raster grows VIEW/PROJECTION built-ins.
+// parse_raw_raster_pipeline synthesises the ScenePreprocessor's `camera`
+// auxiliary with typed accessors, so a shader asks for VIEWPROJECTION_MATRIX
+// without knowing the std140 CameraUBOData layout. A bare MODEL_MATRIX shader
+// sees no camera, which is why this case uses a shader that asks.
 // =============================================================================
 TEST_CASE(
     "moving a camera changes what a raw-raster shader draws",
-    "[gfx][l3][rawraster][camera][!shouldfail]")
+    "[gfx][l3][rawraster][camera]")
 {
   const auto be = GENERATE(from_range(platform_backends()));
   CAPTURE(backend_name(be));
