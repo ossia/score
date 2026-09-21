@@ -48,13 +48,13 @@ score::QGraphicsMultiSliderXY::cursorPickRect(const ossia::vec2f& cursor) const 
       -cursorPickMargin, -cursorPickMargin, cursorPickMargin, cursorPickMargin);
 }
 
-int score::QGraphicsMultiSliderXY::cursorAt(QPointF p) const noexcept
+int score::QGraphicsMultiSliderXY::cursorAt(QPointF p, bool margin) const noexcept
 {
   int found = -1;
   double closest = std::numeric_limits<double>::max();
   for (int v = 0; v < std::ssize(tab); v++)
   {
-    const auto rect = cursorPickRect(tab[v]);
+    const auto rect = margin ? cursorPickRect(tab[v]) : cursorRect(tab[v]);
     if (!rect.contains(p))
       continue;
 
@@ -166,7 +166,7 @@ void score::QGraphicsMultiSliderXY::mousePressEvent(QGraphicsSceneMouseEvent* ev
   else if (event->button() & Qt::RightButton) //If the right mouse button is pressed over a cursor, the cursor is deleted.
   {
     m_grab = false;
-    if (const int v = cursorAt(pos); v >= 0)
+    if (const int v = cursorAt(pos, false); v >= 0)
     {
       tab.erase(tab.begin() + v);
       selectedCursor = -1;

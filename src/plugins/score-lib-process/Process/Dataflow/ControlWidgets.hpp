@@ -1959,6 +1959,13 @@ struct PathGeneratorXY
     if(!proc)
       return;
 
+    auto findInlet = [&](QLatin1StringView name) -> Process::ControlInlet* {
+      for(auto* p : proc->inlets())
+        if(p->name() == name)
+          return qobject_cast<Process::ControlInlet*>(p);
+      return nullptr;
+    };
+
     auto bindInlet = [&](QLatin1StringView name, auto&& apply) {
       for(auto* p : proc->inlets())
       {
@@ -1974,10 +1981,22 @@ struct PathGeneratorXY
       }
     };
 
-    bindInlet(QLatin1StringView("Path"), [&sl](const ossia::value& v) {
-      sl.setPathMode(ossia::convert<int>(v));
-    });
-    bindInlet(QLatin1StringView("Aspect"), [&sl](const ossia::value& v) {
+    // The Path port is a Process::Enum, which carries the enumerator *name*:
+    // convert<int> on "Circle" is 0, i.e. Linear. indexOfValue resolves both the
+    // name the editor stores and the int execution pushes.
+    if(auto* path = findInlet(QLatin1StringView("Path")))
+    {
+      auto* e = dynamic_cast<Process::Enum*>(path);
+      auto apply = [&sl, e](const ossia::value& v) {
+        const int idx = e ? e->indexOfValue(v) : ossia::convert<int>(v);
+        if(idx >= 0)
+          sl.setPathMode(idx);
+      };
+      apply(path->value());
+      QObject::connect(path, &Process::ControlInlet::valueChanged, &sl, apply);
+      QObject::connect(path, &Process::ControlInlet::executionValueChanged, &sl, apply);
+    }
+    bindInlet(QLatin1StringView("Radius"), [&sl](const ossia::value& v) {
       auto xy = ossia::convert<ossia::vec2f>(v);
       sl.setRadii(xy[0], xy[1]);
     });
