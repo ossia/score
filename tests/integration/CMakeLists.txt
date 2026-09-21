@@ -715,6 +715,13 @@ score_add_test(test_integration_port_hit_zone
   GUI
   PLUGINS score_plugin_scenario score_lib_process)
 
+# The zone that grabs a cable's end to re-plug it has to clear the port, which
+# starts a new cable, by enough that it can be aimed at.
+score_add_test(test_integration_cable_endpoint_grab
+  SOURCES CableEndpointGrabTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process)
+
 # Dragging a cable against the edge of the central view reveals more of the
 # score, in the timeline (scene grows) and on the nodal canvas (pans).
 score_add_test(test_integration_cable_drag_view_scroll

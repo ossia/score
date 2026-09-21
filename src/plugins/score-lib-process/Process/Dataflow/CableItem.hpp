@@ -50,6 +50,23 @@ public:
   static const constexpr int Type = QGraphicsItem::UserType + 9999;
   int type() const final override { return Type; }
 
+  enum class GrabbedEnd : uint8_t
+  {
+    None,
+    Source,
+    Sink
+  };
+
+  //! Which end a press at `scenePos` would unplug and re-route. Both ends match
+  //! on a cable too short to tell them apart; the sink wins there, as that is
+  //! the end one usually means to move.
+  static GrabbedEnd endNear(QPointF scenePos, QPointF p1, QPointF p2) noexcept;
+
+  //! How far from an end a press still grabs it. The innermost pixels belong to
+  //! the port, which starts a new cable instead, so the zone has to clear
+  //! PortItem::hitRadius by enough to be aimed at without magnifying the view.
+  static double grabZoneRadius(QPointF p1, QPointF p2) noexcept;
+
   void resize();
   void check();
   PortItem* source() const noexcept;
@@ -84,6 +101,8 @@ private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override;
+  void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
   void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
   void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) override;
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
