@@ -1,5 +1,7 @@
 #include "GfxApplicationPlugin.hpp"
 
+#include <Process/PreviewSettings.hpp>
+
 #include <Execution/DocumentPlugin.hpp>
 
 #include <score/model/Skin.hpp>
@@ -28,6 +30,12 @@ DocumentPlugin::~DocumentPlugin() { }
 bool ApplicationPlugin::g_shader_preview_enabled
     = !qEnvironmentVariableIsSet("SCORE_DISABLE_SHADER_PREVIEW");
 
+static const bool seed_preview_setting = [] {
+  Process::PreviewSettings::instance().setEnabled(
+      ApplicationPlugin::g_shader_preview_enabled);
+  return true;
+}();
+
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& app)
     : GUIApplicationPlugin{app}
 {
@@ -42,7 +50,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
 
   auto preview_act = new QAction{QObject::tr("Show shader previews"), bar};
   preview_act->setCheckable(true);
-  preview_act->setChecked(g_shader_preview_enabled);
+  preview_act->setChecked(Process::PreviewSettings::instance().enabled());
   score::setHelp(
       preview_act,
       QObject::tr("Render the shader previews in the library and the inspector"));
@@ -54,6 +62,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
 
   QObject::connect(preview_act, &QAction::toggled, preview_act, [](bool checked) {
     g_shader_preview_enabled = checked;
+    Process::PreviewSettings::instance().setEnabled(checked);
   });
 
   bar->addAction(preview_act);

@@ -21,6 +21,10 @@ public:
   void doubleClicked(Library::ProcessData p)
       E_SIGNAL(SCORE_PLUGIN_LIBRARY_EXPORT, doubleClicked, p)
 
+public:
+  //! Re-announce the current selection, to rebuild what depends on it.
+  void reselect();
+
 private:
   QModelIndexList selectedDraggableIndexes() const;
   void selectionChanged(

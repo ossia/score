@@ -1,3 +1,4 @@
+#include <Process/PreviewSettings.hpp>
 #include <Gfx/Filter/PreviewWidget.hpp>
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/VSA/Library.hpp>
@@ -43,7 +44,7 @@ std::optional<Library::ProcessEntry> LibraryHandler::scanPath(std::string_view p
 QWidget*
 LibraryHandler::previewWidget(const QString& path, QWidget* parent) const noexcept
 {
-  if(ApplicationPlugin::g_shader_preview_enabled)
+  if(Process::PreviewSettings::instance().enabled())
     return new ShaderPreviewWidget{path, parent};
   else
     return nullptr;
@@ -58,7 +59,7 @@ QWidget* LibraryHandler::previewWidget(
   if(preset.key.key != Metadata<ConcreteKey_k, VSA::Model>::get())
     return nullptr;
 
-  if(ApplicationPlugin::g_shader_preview_enabled)
+  if(Process::PreviewSettings::instance().enabled())
     return new ShaderPreviewWidget{preset, parent};
   else
     return nullptr;

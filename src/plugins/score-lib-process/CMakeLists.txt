@@ -8,6 +8,7 @@ find_package(${QT_VERSION} REQUIRED COMPONENTS Core Widgets)
 set(PROCESS_HDRS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/ProcessCommandFactory.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/PreviewSettings.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/EditPort.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/SetControlValue.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/Properties.hpp"
@@ -131,6 +132,7 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/EditPort.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/MoveNodes.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/SetDuration.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/PreviewSettings.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/SetControlValue.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/LoadPresetCommandFactory.cpp"
 
