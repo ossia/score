@@ -57,9 +57,23 @@ struct fixture
 
   void set(std::vector<Lane> lanes, int length)
   {
-    node.pattern.lanes = std::move(lanes);
-    node.pattern.length = length;
-    node.pattern.division = 16;
+    Pattern p;
+    p.lanes = std::move(lanes);
+    p.length = length;
+    p.division = 16;
+    node.patterns = {std::move(p)};
+    node.current_pattern = 0;
+  }
+
+  //! Appends a pattern the node can be switched to.
+  int add(std::vector<Lane> lanes, int length, int division = 16)
+  {
+    Pattern p;
+    p.lanes = std::move(lanes);
+    p.length = length;
+    p.division = division;
+    node.patterns.push_back(std::move(p));
+    return int(node.patterns.size()) - 1;
   }
 
   //! Runs one tick, which plays exactly one step.
@@ -485,7 +499,7 @@ TEST_CASE(
        lane(37, {Note::Rest, Note::Note, Note::Rest}),
        lane(38, {Note::Rest, Note::Rest, Note::Note})},
       3);
-  f.node.pattern.division = 16;
+  f.node.patterns[0].division = 16;
 
   SECTION("turnaround exactly on a grid point")
   {
@@ -549,4 +563,65 @@ TEST_CASE(
   CHECK(off.status == note_off);
   CHECK(off.note == 36);
   CHECK(off.timestamp >= 0);
+}
+
+TEST_CASE(
+    "patternist: a pattern switch waits for the quantization point", "[midi][pattern]")
+{
+  fixture f;
+  f.set({lane(36, {Note::Note})}, 1);
+  const int p1 = f.add({lane(38, {Note::Note})}, 1);
+  f.node.switch_rate = 1.; // one bar
+
+  const auto struck = [&] {
+    std::vector<int> notes;
+    for(const auto& m : f.port.messages)
+      if(const auto d = decode(m); d.status == note_on)
+        notes.push_back(d.note);
+    return notes;
+  };
+
+  musical_tick(f, 0, 1000);
+  f.node.request_pattern(p1);
+
+  // The rest of the bar keeps running the pattern that was playing.
+  for(int q = 1; q < 4; q++)
+  {
+    musical_tick(f, q * 1000, (q + 1) * 1000);
+    const auto notes = struck();
+    REQUIRE(!notes.empty());
+    for(int n : notes)
+      CHECK(n == 36);
+  }
+
+  // The bar line at four quarters falls in this tick.
+  musical_tick(f, 4000, 5000);
+  const auto notes = struck();
+  REQUIRE(!notes.empty());
+  for(int n : notes)
+    CHECK(n == 38);
+}
+
+TEST_CASE(
+    "patternist: a switch releases what the previous pattern held", "[midi][pattern]")
+{
+  // The new pattern has no lane for 36, so nothing in it would ever release it.
+  fixture f;
+  f.set({lane(36, {Note::Note})}, 1);
+  const int p1 = f.add({lane(38, {Note::Note})}, 1);
+  f.node.switch_rate = 0.; // free: as soon as the tick starts
+
+  musical_tick(f, 0, 1000);
+  REQUIRE(f.node.in_flight.contains(36));
+
+  f.node.request_pattern(p1);
+  musical_tick(f, 1000, 2000);
+
+  bool released = false;
+  for(const auto& m : f.port.messages)
+    if(const auto d = decode(m); d.status == note_off && d.note == 36)
+      released = true;
+  CHECK(released);
+  CHECK(!f.node.in_flight.contains(36));
+  CHECK(f.node.current_pattern == p1);
 }

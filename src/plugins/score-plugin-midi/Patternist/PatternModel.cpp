@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortSerialization.hpp>
+#include <Process/Dataflow/WidgetInlets.hpp>
 
 #include <score/tools/File.hpp>
 
@@ -17,6 +18,33 @@ W_OBJECT_IMPL(Patternist::ProcessModel)
 
 namespace Patternist
 {
+//! Rates, in the convention ossia::token_request::get_quantification_dates
+//! consumes: above 1 subdivides the whole note, 1 and below counts bars, and
+//! 0 does not quantize at all.
+static std::vector<std::pair<QString, ossia::value>> quantificationChoices()
+{
+  return {{QObject::tr("Free"), 0.},     {QObject::tr("8 bars"), 0.125},
+          {QObject::tr("4 bars"), 0.25}, {QObject::tr("2 bars"), 0.5},
+          {QObject::tr("1 bar"), 1.},    {QObject::tr("1/2"), 2.},
+          {QObject::tr("1/4"), 4.},      {QObject::tr("1/8"), 8.},
+          {QObject::tr("1/16"), 16.},    {QObject::tr("1/32"), 32.}};
+}
+
+//! The pattern list grows on demand, so the port is a plain index rather than
+//! a list of the patterns that happen to exist right now.
+static std::unique_ptr<Process::ControlInlet> makePatternSelect(QObject* parent)
+{
+  return std::make_unique<Process::IntSpinBox>(
+      0, 127, 0, QObject::tr("Pattern"), Id<Process::Port>(0), parent);
+}
+
+static std::unique_ptr<Process::ControlInlet> makeSwitchQuantification(QObject* parent)
+{
+  return std::make_unique<Process::ComboBox>(
+      quantificationChoices(), 1., QObject::tr("Quantization"), Id<Process::Port>(1),
+      parent);
+}
+
 static std::vector<Patternist::Note> fromInts(std::initializer_list<int> e)
 {
   std::vector<Patternist::Note> l;
@@ -39,6 +67,8 @@ ProcessModel::ProcessModel(
     const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
     : Process::
           ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    , patternSelect{makePatternSelect(this)}
+    , switchQuantification{makeSwitchQuantification(this)}
     , outlet{std::make_unique<Process::MidiOutlet>(
           "MIDI Out", Id<Process::Port>(0), this)}
     , accent{std::make_unique<Process::ValueOutlet>(
@@ -69,6 +99,13 @@ ProcessModel::ProcessModel(
 
 void ProcessModel::init()
 {
+  // The pattern grid is what the layer draws; nothing there would draw the
+  // controls, so they stay visible as ordinary ports.
+  patternSelect->displayHandledExplicitly = false;
+  switchQuantification->displayHandledExplicitly = false;
+
+  m_inlets.push_back(patternSelect.get());
+  m_inlets.push_back(switchQuantification.get());
   m_outlets.push_back(outlet.get());
   m_outlets.push_back(accent.get());
   m_outlets.push_back(slide.get());
@@ -93,18 +130,24 @@ int ProcessModel::channel() const noexcept
 
 void ProcessModel::setCurrentPattern(int n)
 {
-  const int patterns = std::ssize(m_patterns);
-  if(n >= patterns)
+  n = std::max(n, 0);
+  if(m_patterns.empty())
+    return;
+
+  if(n >= std::ssize(m_patterns))
   {
-    auto pattern = m_patterns[m_currentPattern];
+    auto pattern
+        = m_patterns[std::clamp(m_currentPattern, 0, int(m_patterns.size()) - 1)];
     for(auto& lane : pattern.lanes)
       std::fill(lane.pattern.begin(), lane.pattern.end(), Note::Rest);
 
     while(n >= std::ssize(m_patterns))
       m_patterns.push_back(pattern);
+
+    patternsChanged();
   }
 
-  n = std::clamp(n, 0, patterns);
+  n = std::clamp(n, 0, int(std::ssize(m_patterns)) - 1);
   if(n != m_currentPattern)
   {
     m_currentPattern = n;
@@ -254,8 +297,9 @@ void JSONWriter::write(Patternist::Pattern& proc)
 template <>
 void DataStreamReader::read(const Patternist::ProcessModel& proc)
 {
-  m_stream << *proc.outlet << *proc.accent << *proc.slide << proc.m_channel
-           << proc.m_currentPattern << proc.m_patterns;
+  m_stream << *proc.patternSelect << *proc.switchQuantification << *proc.outlet
+           << *proc.accent << *proc.slide << proc.m_channel << proc.m_currentPattern
+           << proc.m_patterns;
 
   insertDelimiter();
 }
@@ -263,11 +307,12 @@ void DataStreamReader::read(const Patternist::ProcessModel& proc)
 template <>
 void DataStreamWriter::write(Patternist::ProcessModel& proc)
 {
+  proc.patternSelect = Process::load_control_inlet(*this, &proc);
+  proc.switchQuantification = Process::load_control_inlet(*this, &proc);
   proc.outlet = Process::load_midi_outlet(*this, &proc);
   proc.accent = Process::load_value_outlet(*this, &proc);
   proc.slide = Process::load_value_outlet(*this, &proc);
-  m_stream >> proc.m_channel >> *proc.accent >> *proc.slide >> proc.m_currentPattern
-      >> proc.m_patterns;
+  m_stream >> proc.m_channel >> proc.m_currentPattern >> proc.m_patterns;
 
   checkDelimiter();
 }
@@ -275,6 +320,8 @@ void DataStreamWriter::write(Patternist::ProcessModel& proc)
 template <>
 void JSONReader::read(const Patternist::ProcessModel& proc)
 {
+  obj["PatternSelect"] = *proc.patternSelect;
+  obj["SwitchQuantification"] = *proc.switchQuantification;
   obj["Outlet"] = *proc.outlet;
   obj["Accent"] = *proc.accent;
   obj["Slide"] = *proc.slide;
@@ -286,6 +333,26 @@ void JSONReader::read(const Patternist::ProcessModel& proc)
 template <>
 void JSONWriter::write(Patternist::ProcessModel& proc)
 {
+  if(auto port = obj.tryGet("PatternSelect"))
+  {
+    JSONWriter writer{*port};
+    proc.patternSelect = Process::load_control_inlet(writer, &proc);
+  }
+  else
+  {
+    proc.patternSelect = Patternist::makePatternSelect(&proc);
+  }
+
+  if(auto port = obj.tryGet("SwitchQuantification"))
+  {
+    JSONWriter writer{*port};
+    proc.switchQuantification = Process::load_control_inlet(writer, &proc);
+  }
+  else
+  {
+    proc.switchQuantification = Patternist::makeSwitchQuantification(&proc);
+  }
+
   {
     JSONWriter writer{obj["Outlet"]};
     proc.outlet = Process::load_midi_outlet(writer, &proc);

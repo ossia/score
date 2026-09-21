@@ -4,12 +4,14 @@
 #include <ossia/dataflow/port.hpp>
 #include <ossia/detail/flat_set.hpp>
 #include <ossia/detail/math.hpp>
+#include <ossia/network/value/value_conversion.hpp>
 
 #include <Patternist/PatternModel.hpp>
 #include <libremidi/ump_events.hpp>
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 
 namespace Patternist
 {
@@ -22,11 +24,22 @@ inline uint8_t to_midi_channel(int c) noexcept
 class pattern_node : public ossia::nonowning_graph_node
 {
 public:
+  ossia::value_inlet pattern_select;
+  ossia::value_inlet switch_quantification;
   ossia::midi_outlet out;
   ossia::value_outlet accent_out;
   ossia::value_outlet slide_out;
-  Pattern pattern;
+
+  // The whole list, so that switching pattern moves an index rather than
+  // copying lanes - which would allocate, on the audio thread.
+  std::vector<Pattern> patterns;
   ossia::flat_set<uint8_t> in_flight;
+
+  int current_pattern{};
+  //! Pattern the next quantification point switches to; -1 when nothing waits.
+  int pending_pattern{-1};
+  //! A token_request rate: 0 switches at the beginning of the tick.
+  double switch_rate{1.};
 
   int current = 0;
   int last = -1;
@@ -40,6 +53,8 @@ public:
   pattern_node()
   {
     in_flight.reserve(32);
+    m_inlets.push_back(&pattern_select);
+    m_inlets.push_back(&switch_quantification);
     m_outlets.push_back(&out);
     m_outlets.push_back(&accent_out);
     m_outlets.push_back(&slide_out);
@@ -47,9 +62,20 @@ public:
 
   std::string label() const noexcept override { return "pattern_node"; }
 
+  const Pattern& pattern() const noexcept { return patterns[current_pattern]; }
+
+  //! Ask for a pattern: it takes effect at the next quantification point.
+  void request_pattern(int idx) noexcept
+  {
+    if(patterns.empty())
+      return;
+    idx = std::clamp(idx, 0, int(patterns.size()) - 1);
+    pending_pattern = (idx == current_pattern) ? -1 : idx;
+  }
+
   bool legato(int note) const noexcept
   {
-    for(const Lane& lane : pattern.lanes)
+    for(const Lane& lane : pattern().lanes)
       if(lane.note == note && ossia::valid_index(current, lane.pattern))
         return lane.pattern[current] == Note::Legato;
     return false;
@@ -75,9 +101,21 @@ public:
     release_pending = true;
   }
 
+  void read_controls() noexcept
+  {
+    if(auto& d = pattern_select->get_data(); !d.empty())
+      request_pattern(ossia::convert<int>(d.back().value));
+    if(auto& d = switch_quantification->get_data(); !d.empty())
+      switch_rate = ossia::convert<float>(d.back().value);
+  }
+
   void run(const ossia::token_request& tk, ossia::exec_state_facade st) noexcept override
   {
     using namespace ossia;
+
+    // Before every early return below: the inlets are cleared once the node has
+    // run, so a request read later than this is a request lost.
+    read_controls();
 
     const double samplesratio = st.modelToSamples();
     // The magnitude of the speed: dividing by a negative speed while rewinding
@@ -122,10 +160,50 @@ public:
       release_pending = false;
     }
 
-    if(pattern.length <= 0)
+    // The list can be replaced while a switch is waiting on it.
+    if(patterns.empty())
       return;
+    current_pattern = std::clamp(current_pattern, 0, int(patterns.size()) - 1);
+    if(pending_pattern >= int(patterns.size()))
+      pending_pattern = -1;
 
-    // TODO on bar change, reset to start of pattern?
+    const bool rewinding = tk.backward();
+
+    constexpr auto never = std::numeric_limits<int64_t>::max();
+    int64_t switch_at = -1;
+    if(pending_pattern >= 0)
+    {
+      const auto points = tk.get_quantification_dates(switch_rate);
+      // Points come in tick order in both directions, so the first one is the
+      // earliest the switch can happen in this tick.
+      if(!points.empty())
+        switch_at = tk.physical_position(points.front().position, samplesratio);
+    }
+
+    // The two patterns can have different divisions, so the steps around the
+    // switch are walked on their own grids rather than on a single one.
+    play_steps(
+        tk, tick_start, samplesratio, rewinding, 0, switch_at < 0 ? never : switch_at);
+
+    if(switch_at >= 0)
+    {
+      apply_switch(tick_start + switch_at);
+      play_steps(tk, tick_start, samplesratio, rewinding, switch_at, never);
+    }
+  }
+
+  //! Plays the steps of the current pattern whose offset in the tick falls in
+  //! [from_offset; to_offset[.
+  void play_steps(
+      const ossia::token_request& tk, int64_t tick_start, double samplesratio,
+      bool rewinding, int64_t from_offset, int64_t to_offset) noexcept
+  {
+    const Pattern& pat = pattern();
+    if(pat.length <= 0)
+      return;
+    if(current < 0 || current >= pat.length)
+      current = 0;
+
     // All of them, not just the first: a tick covers more than one step as soon
     // as the division is small, the buffer large or the tempo high, and the
     // single-date version would silently drop every step but one.
@@ -133,25 +211,40 @@ public:
     // hands back the steps the tick crosses in decreasing musical order. Walk
     // the pattern the same way, or the sequence marches on while the timeline
     // runs the other way.
-    const bool rewinding = tk.backward();
-    for(const auto& q : tk.get_quantification_dates(pattern.division))
+    for(const auto& q : tk.get_quantification_dates(pat.division))
     {
       // Through the tick's one musical-position -> sample map, not through the
       // point's date: the date is truncated to a whole flick, so flooring it
       // into a sample rounds twice and puts the step a sample before the
       // metronome click on the same bar line.
-      const int64_t date = tick_start + tk.physical_position(q.position, samplesratio);
-      play_step(date, rewinding);
+      const int64_t offset = tk.physical_position(q.position, samplesratio);
+      if(offset < from_offset || offset >= to_offset)
+        continue;
+      play_step(tick_start + offset, rewinding);
     }
+  }
+
+  void apply_switch(int64_t date) noexcept
+  {
+    // Everything in flight belongs to the pattern going away: the new one only
+    // ever releases the notes its own lanes carry, so the rest would hang.
+    release_all(date);
+    in_flight_channel = channel;
+
+    current_pattern = pending_pattern;
+    pending_pattern = -1;
+    current = 0;
   }
 
   void play_step(int64_t date, bool rewinding = false) noexcept
   {
+    const Pattern& pat = pattern();
+
     // Forward, the step about to play is the current one and the next tick
     // plays the one after. Rewinding mirrors that: step back first, so going
     // out and back over the same ground crosses the same steps.
     if(rewinding)
-      current = (current + pattern.length - 1) % pattern.length;
+      current = (current + pat.length - 1) % pat.length;
     last = current;
     auto& mess = out.target<ossia::midi_port>()->messages;
 
@@ -172,7 +265,7 @@ public:
 
     in_flight_channel = channel;
 
-    for(Lane& lane : pattern.lanes)
+    for(const Lane& lane : pat.lanes)
     {
       if(lane.note <= 127 && ossia::valid_index(current, lane.pattern))
       {
@@ -204,7 +297,7 @@ public:
       }
     }
 
-    for(Lane& lane : pattern.lanes)
+    for(const Lane& lane : pat.lanes)
     {
       if(ossia::valid_index(current, lane.pattern))
       {
@@ -226,7 +319,7 @@ public:
     }
 
     if(!rewinding)
-      current = (current + 1) % pattern.length;
+      current = (current + 1) % pat.length;
   }
 
   // Writing to the outlet from here would be pointless: this runs outside of a
