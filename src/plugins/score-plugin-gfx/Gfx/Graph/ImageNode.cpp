@@ -905,6 +905,9 @@ private:
       auto sampler = m_samplers[0].sampler;
       replace_texture(m_p, sampler, m_texture);
       replace_texture(m_altPasses, sampler, m_texture);
+      // Same reason as in PreloadedRenderer: the sampler entry is what
+      // addOutputPass binds into passes created later.
+      m_samplers[0].texture = m_texture;
     }
 
     // If the current image being displayed by this renderer (in m_prev_ubo)

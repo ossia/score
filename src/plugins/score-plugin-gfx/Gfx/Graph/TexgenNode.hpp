@@ -124,6 +124,9 @@ struct TexgenNode : NodeModel
         for(auto& [edge, pass] : this->m_p)
           if(pass.p.srb)
             score::gfx::replaceTexture(*pass.p.srb, m_samplers[0].sampler, newtex);
+        // The sampler entry is what addOutputPass binds into passes created
+        // later, so it has to follow the texture.
+        m_samplers[0].texture = newtex;
         texture = newtex;
 
         if(oldtex && oldtex != &renderer.emptyTexture())
