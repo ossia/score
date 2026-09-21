@@ -59,6 +59,7 @@ public:
   int type() const override { return ItemType::Type::NodalIntervalView; }
 
 private:
+  void setupNode(Process::NodeItem* item);
   void on_processAdded(const Process::ProcessModel& proc);
   void on_processRemoving(const Process::ProcessModel& model);
   void on_zoomRatioChanged(ZoomRatio ratio);

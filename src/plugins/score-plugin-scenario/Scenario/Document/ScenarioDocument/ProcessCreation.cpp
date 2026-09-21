@@ -10,11 +10,114 @@
 
 #include <Library/ProcessesItemModel.hpp>
 
+#include <Dataflow/Commands/EditConnection.hpp>
+
 #include <score/command/Dispatchers/RuntimeDispatcher.hpp>
 #include <score/selection/SelectionStack.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
 
 namespace Scenario
 {
+// Signal ports first: a control port of the right type is still a valid target
+// (a value chain feeding a parameter), just never the preferred one.
+const Process::Inlet*
+firstInletOfType(const Process::ProcessModel& proc, Process::PortType type) noexcept
+{
+  for(auto* inlet : proc.inlets())
+    if(inlet->type() == type && !qobject_cast<Process::ControlInlet*>(inlet))
+      return inlet;
+  for(auto* inlet : proc.inlets())
+    if(inlet->type() == type)
+      return inlet;
+  return nullptr;
+}
+
+const Process::Outlet*
+firstOutletOfType(const Process::ProcessModel& proc, Process::PortType type) noexcept
+{
+  for(auto* outlet : proc.outlets())
+    if(outlet->type() == type && !qobject_cast<Process::ControlOutlet*>(outlet))
+      return outlet;
+  for(auto* outlet : proc.outlets())
+    if(outlet->type() == type)
+      return outlet;
+  return nullptr;
+}
+
+const Process::Outlet* firstSignalOutlet(const Process::ProcessModel& proc) noexcept
+{
+  for(auto* outlet : proc.outlets())
+    if(!qobject_cast<Process::ControlOutlet*>(outlet))
+      return outlet;
+  return nullptr;
+}
+
+//! Which outlet of `parentProcess` the newly created `proc` gets chained after:
+//! `preferred` when the new process accepts its type, else the first other
+//! signal outlet whose type it does accept.
+static std::pair<const Process::Outlet*, const Process::Inlet*> matchOutletToNewProcess(
+    const Process::ProcessModel& parentProcess, const Process::Outlet& preferred,
+    const Process::ProcessModel& proc, bool tryOtherOutlets) noexcept
+{
+  if(auto in = firstInletOfType(proc, preferred.type()))
+    return {&preferred, in};
+
+  if(tryOtherOutlets)
+  {
+    for(auto* out : parentProcess.outlets())
+    {
+      if(out == &preferred || qobject_cast<Process::ControlOutlet*>(out))
+        continue;
+      if(auto in = firstInletOfType(proc, out->type()))
+        return {out, in};
+    }
+  }
+  return {&preferred, nullptr};
+}
+
+void insertProcessInCable(
+    score::Dispatcher& disp, const Process::Context& ctx,
+    const Scenario::ScenarioDocumentModel& model, const Process::ProcessModel& proc,
+    const Process::Cable& cbl)
+{
+  auto source = cbl.source().try_find(ctx);
+  auto sink = cbl.sink().try_find(ctx);
+  if(!source || !sink)
+    return;
+  if(source->parent() == &proc || sink->parent() == &proc)
+    return;
+
+  const auto type = source->type();
+  const auto cable_type = cbl.type();
+  auto new_inlet = firstInletOfType(proc, type);
+  auto new_outlet = firstOutletOfType(proc, type);
+
+  auto connect = [&](const Process::Port& from, const Process::Port& to,
+                     Process::CableType t) {
+    auto [src, snk] = Dataflow::getPortsForConnection(from, to);
+    if(!src || !snk)
+      return;
+    disp.submit(
+        new Dataflow::CreateCable{model, getStrongId(model.cables), t, *src, *snk});
+  };
+
+  if(new_inlet && new_outlet)
+  {
+    // The cable and everything reachable from it are gone once this runs.
+    disp.submit(new Dataflow::RemoveCable{model, cbl});
+    connect(*source, *new_inlet, Process::CableType::ImmediateGlutton);
+    connect(*new_outlet, *sink, cable_type);
+  }
+  else if(new_inlet)
+  {
+    connect(*source, *new_inlet, Process::CableType::ImmediateGlutton);
+  }
+  else if(new_outlet)
+  {
+    connect(*new_outlet, *sink, Process::CableType::ImmediateGlutton);
+  }
+}
+
 // The port a cable starts from may belong to a process nested deeper than
 // `itv`: only its direct children share the interval's nodal coordinates.
 static QPointF
@@ -33,9 +136,7 @@ void createProcessInCable(
     const Process::Cable& cbl)
 {
   auto& orig_source = cbl.source().find(context);
-  auto& orig_sink = cbl.sink().find(context);
-  SCORE_ASSERT(orig_source.type() == orig_sink.type());
-  auto type = orig_source.type();
+  SCORE_ASSERT(orig_source.type() == cbl.sink().find(context).type());
 
   if(auto parent_itv = Scenario::closestParentInterval(&orig_source))
   {
@@ -46,32 +147,14 @@ void createProcessInCable(
     auto proc = m.createProcessInNewSlot(*parent_itv, dat, pos);
     if(proc)
     {
+      score::Dispatcher_T<Scenario::Command::Macro> disp{m};
       if(setup)
-      {
-        score::Dispatcher_T<Scenario::Command::Macro> disp{m};
         setup(*proc, disp);
-      }
 
       // TODO all of this should be made atomic...
-      if(!proc->inlets().empty() && !proc->outlets().empty())
-      {
-        auto new_inlet = proc->inlets()[0];
-        auto new_outlet = proc->outlets()[0];
-        // Create a cable from the output to the input
-        if(new_inlet->type() == type && new_outlet->type() == type)
-        {
-          // orig_source goes into new_inlet
-          // new_outlet goes into orig_sink
+      insertProcessInCable(disp, context, model, *proc, cbl);
 
-          const auto t = cbl.type();
-          m.removeCable(model, cbl);
-          m.createCable(
-              model, orig_source, *new_inlet, Process::CableType::ImmediateGlutton);
-          m.createCable(model, *new_outlet, orig_sink, t);
-        }
-
-        context.selectionStack.pushNewSelection({proc});
-      }
+      context.selectionStack.pushNewSelection({proc});
     }
 
     m.commit();
@@ -83,9 +166,7 @@ void loadPresetInCable(
     const Process::Preset& dat, const Process::Cable& cbl)
 {
   auto& orig_source = cbl.source().find(context);
-  auto& orig_sink = cbl.sink().find(context);
-  SCORE_ASSERT(orig_source.type() == orig_sink.type());
-  auto type = orig_source.type();
+  SCORE_ASSERT(orig_source.type() == cbl.sink().find(context).type());
 
   if(auto parent_itv = Scenario::closestParentInterval(&orig_source))
   {
@@ -96,25 +177,12 @@ void loadPresetInCable(
     auto proc = m.loadProcessFromPreset(*parent_itv, dat, pos);
     if(proc)
     {
-      // TODO all of this should be made atomic...
-      if(!proc->inlets().empty() && !proc->outlets().empty())
-      {
-        auto new_inlet = proc->inlets()[0];
-        auto new_outlet = proc->outlets()[0];
-        // Create a cable from the output to the input
-        if(new_inlet->type() == type && new_outlet->type() == type)
-        {
-          // orig_source goes into new_inlet
-          // new_outlet goes into orig_sink
-          const auto t = cbl.type();
-          m.removeCable(model, cbl);
-          m.createCable(
-              model, orig_source, *new_inlet, Process::CableType::ImmediateGlutton);
-          m.createCable(model, *new_outlet, orig_sink, t);
-        }
+      score::Dispatcher_T<Scenario::Command::Macro> disp{m};
 
-        context.selectionStack.pushNewSelection({proc});
-      }
+      // TODO all of this should be made atomic...
+      insertProcessInCable(disp, context, model, *proc, cbl);
+
+      context.selectionStack.pushNewSelection({proc});
     }
 
     m.commit();
@@ -144,31 +212,23 @@ void createProcessBeforePort(
       m.setProperty<Process::ProcessModel::p_position>(*proc, pos);
 
       // TODO all of this should be made atomic...
-      if(!proc->outlets().empty())
+      if(auto new_outlet = firstOutletOfType(*proc, p.type()))
       {
-        auto new_outlet = proc->outlets()[0];
-        // Create a cable from the output to the input
-        if(new_outlet->type() == p.type())
-        {
-          m.createCable(
-              parent.model(), *new_outlet, p, Process::CableType::ImmediateGlutton);
-        }
-
-        if(!proc->inlets().empty())
-        {
-          auto new_inlet = proc->inlets()[0];
-          // Move the address in the selected output to the first outlet of the new process
-          if(new_inlet->type() == p.type())
-          {
-            if(auto addr = p.address(); addr != State::AddressAccessor{})
-            {
-              m.setProperty<Process::Port::p_address>(*new_inlet, addr);
-              m.setProperty<Process::Port::p_address>(p, State::AddressAccessor{});
-            }
-          }
-        }
-        parent.context().selectionStack.pushNewSelection({proc});
+        m.createCable(
+            parent.model(), *new_outlet, p, Process::CableType::ImmediateGlutton);
       }
+
+      // Move the address in the selected input to the matching inlet of the new process
+      if(auto new_inlet = firstInletOfType(*proc, p.type()))
+      {
+        if(auto addr = p.address(); addr != State::AddressAccessor{})
+        {
+          m.setProperty<Process::Port::p_address>(*new_inlet, addr);
+          m.setProperty<Process::Port::p_address>(p, State::AddressAccessor{});
+        }
+      }
+
+      parent.context().selectionStack.pushNewSelection({proc});
     }
     m.commit();
   }
@@ -178,7 +238,8 @@ void createProcessAfterPort(
     Scenario::ScenarioDocumentPresenter& parent, const Process::ProcessData& dat,
     std::optional<TimeVal> tv,
     std::function<void(Process::ProcessModel&, score::Dispatcher&)> setup,
-    const Process::ProcessModel& parentProcess, const Process::Outlet& p)
+    const Process::ProcessModel& parentProcess, const Process::Outlet& p,
+    bool tryOtherOutlets)
 {
   if(auto parent_itv = Scenario::closestParentInterval(const_cast<Process::Outlet*>(&p)))
   {
@@ -195,31 +256,25 @@ void createProcessAfterPort(
       }
 
       // TODO all of this should be made atomic...
-      if(!proc->inlets().empty())
+      auto [src, new_inlet]
+          = matchOutletToNewProcess(parentProcess, p, *proc, tryOtherOutlets);
+      if(new_inlet)
       {
-        auto new_inlet = proc->inlets()[0];
-        // Create a cable from the output to the input
-        if(new_inlet->type() == p.type())
-        {
-          m.createCable(
-              parent.model(), p, *new_inlet, Process::CableType::ImmediateGlutton);
-        }
-
-        if(!proc->outlets().empty())
-        {
-          auto new_outlet = proc->outlets()[0];
-          // Move the address in the selected output to the first outlet of the new process
-          if(new_outlet->type() == p.type())
-          {
-            if(auto addr = p.address(); addr != State::AddressAccessor{})
-            {
-              m.setProperty<Process::Port::p_address>(*new_outlet, addr);
-              m.setProperty<Process::Port::p_address>(p, State::AddressAccessor{});
-            }
-          }
-        }
-        parent.context().selectionStack.pushNewSelection({proc});
+        m.createCable(
+            parent.model(), *src, *new_inlet, Process::CableType::ImmediateGlutton);
       }
+
+      // Move the address in the selected output to the matching outlet of the new process
+      if(auto new_outlet = firstOutletOfType(*proc, src->type()))
+      {
+        if(auto addr = src->address(); addr != State::AddressAccessor{})
+        {
+          m.setProperty<Process::Port::p_address>(*new_outlet, addr);
+          m.setProperty<Process::Port::p_address>(*src, State::AddressAccessor{});
+        }
+      }
+
+      parent.context().selectionStack.pushNewSelection({proc});
     }
     m.commit();
   }
@@ -240,31 +295,23 @@ void loadPresetBeforePort(
       m.setProperty<Process::ProcessModel::p_position>(*proc, pos);
 
       // TODO all of this should be made atomic...
-      if(!proc->outlets().empty())
+      if(auto new_outlet = firstOutletOfType(*proc, p.type()))
       {
-        auto new_outlet = proc->outlets()[0];
-        // Create a cable from the output to the input
-        if(new_outlet->type() == p.type())
-        {
-          m.createCable(
-              parent.model(), *new_outlet, p, Process::CableType::ImmediateGlutton);
-        }
-
-        if(!proc->inlets().empty())
-        {
-          auto new_inlet = proc->inlets()[0];
-          // Move the address in the selected output to the first outlet of the new process
-          if(new_inlet->type() == p.type())
-          {
-            if(auto addr = p.address(); addr != State::AddressAccessor{})
-            {
-              m.setProperty<Process::Port::p_address>(*new_inlet, addr);
-              m.setProperty<Process::Port::p_address>(p, State::AddressAccessor{});
-            }
-          }
-        }
-        parent.context().selectionStack.pushNewSelection({proc});
+        m.createCable(
+            parent.model(), *new_outlet, p, Process::CableType::ImmediateGlutton);
       }
+
+      // Move the address in the selected input to the matching inlet of the new process
+      if(auto new_inlet = firstInletOfType(*proc, p.type()))
+      {
+        if(auto addr = p.address(); addr != State::AddressAccessor{})
+        {
+          m.setProperty<Process::Port::p_address>(*new_inlet, addr);
+          m.setProperty<Process::Port::p_address>(p, State::AddressAccessor{});
+        }
+      }
+
+      parent.context().selectionStack.pushNewSelection({proc});
     }
     m.commit();
   }
@@ -272,7 +319,8 @@ void loadPresetBeforePort(
 
 void loadPresetAfterPort(
     Scenario::ScenarioDocumentPresenter& parent, const Process::Preset& dat,
-    const Process::ProcessModel& parentProcess, const Process::Outlet& p)
+    const Process::ProcessModel& parentProcess, const Process::Outlet& p,
+    bool tryOtherOutlets)
 {
   if(auto parent_itv = Scenario::closestParentInterval(const_cast<Process::Outlet*>(&p)))
   {
@@ -283,31 +331,25 @@ void loadPresetAfterPort(
     if(proc)
     {
       // TODO all of this should be made atomic...
-      if(!proc->inlets().empty())
+      auto [src, new_inlet]
+          = matchOutletToNewProcess(parentProcess, p, *proc, tryOtherOutlets);
+      if(new_inlet)
       {
-        auto new_inlet = proc->inlets()[0];
-        // Create a cable from the output to the input
-        if(new_inlet->type() == p.type())
-        {
-          m.createCable(
-              parent.model(), p, *new_inlet, Process::CableType::ImmediateGlutton);
-        }
-
-        if(!proc->outlets().empty())
-        {
-          auto new_outlet = proc->outlets()[0];
-          // Move the address in the selected output to the first outlet of the new process
-          if(new_outlet->type() == p.type())
-          {
-            if(auto addr = p.address(); addr != State::AddressAccessor{})
-            {
-              m.setProperty<Process::Port::p_address>(*new_outlet, addr);
-              m.setProperty<Process::Port::p_address>(p, State::AddressAccessor{});
-            }
-          }
-        }
-        parent.context().selectionStack.pushNewSelection({proc});
+        m.createCable(
+            parent.model(), *src, *new_inlet, Process::CableType::ImmediateGlutton);
       }
+
+      // Move the address in the selected output to the matching outlet of the new process
+      if(auto new_outlet = firstOutletOfType(*proc, src->type()))
+      {
+        if(auto addr = src->address(); addr != State::AddressAccessor{})
+        {
+          m.setProperty<Process::Port::p_address>(*new_outlet, addr);
+          m.setProperty<Process::Port::p_address>(*src, State::AddressAccessor{});
+        }
+      }
+
+      parent.context().selectionStack.pushNewSelection({proc});
     }
     m.commit();
   }
