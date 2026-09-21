@@ -32,7 +32,7 @@ enum class MissingColumn : int
 };
 
 constexpr auto last_folder_setting = "Project/LastRelinkFolder";
-constexpr auto header_setting = "Project/MissingFilesHeader";
+constexpr auto missing_files_header_setting = "Project/MissingFilesHeader";
 
 //! Size of the missing file, when the document knows it, for ranking.
 constexpr int SizeRole = Qt::UserRole + 1;
@@ -67,7 +67,7 @@ MissingFilesDialog::MissingFilesDialog(score::Document& doc, QWidget* parent)
   header->resizeSection((int)MissingColumn::Owner, 180);
   header->resizeSection((int)MissingColumn::File, 320);
   header->resizeSection((int)MissingColumn::Found, 320);
-  header->restoreState(QSettings{}.value(header_setting).toByteArray());
+  header->restoreState(QSettings{}.value(missing_files_header_setting).toByteArray());
 
   auto tools = new QHBoxLayout;
   lay->addLayout(tools);
@@ -132,7 +132,7 @@ MissingFilesDialog::~MissingFilesDialog()
   if(m_scan)
     m_scan->cancel();
 
-  QSettings{}.setValue(header_setting, m_files->header()->saveState());
+  QSettings{}.setValue(missing_files_header_setting, m_files->header()->saveState());
 }
 
 bool MissingFilesDialog::nothingMissing(const score::DocumentContext& ctx)

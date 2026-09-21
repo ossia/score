@@ -43,7 +43,7 @@ QString outcomeText(const FileEntry& e)
   return toString(e.action);
 }
 
-constexpr auto header_setting = "Project/FileReportHeader";
+constexpr auto file_report_header_setting = "Project/FileReportHeader";
 }
 
 FileReportView::FileReportView(QWidget* parent)
@@ -64,12 +64,12 @@ FileReportView::FileReportView(QWidget* parent)
   header()->resizeSection((int)ReportColumn::Type, 100);
   header()->resizeSection((int)ReportColumn::Size, 90);
   header()->resizeSection((int)ReportColumn::Becomes, 260);
-  header()->restoreState(QSettings{}.value(header_setting).toByteArray());
+  header()->restoreState(QSettings{}.value(file_report_header_setting).toByteArray());
 }
 
 FileReportView::~FileReportView()
 {
-  QSettings{}.setValue(header_setting, header()->saveState());
+  QSettings{}.setValue(file_report_header_setting, header()->saveState());
 }
 
 void FileReportView::setCheckable(bool b)
