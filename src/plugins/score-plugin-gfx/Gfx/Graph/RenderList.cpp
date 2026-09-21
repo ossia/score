@@ -553,7 +553,44 @@ void RenderList::releaseBuffer(QRhiBuffer* buf)
   // by pending uploadStaticBuffer operations in the current frame's batch.
   // deleteLater() defers destruction to the next beginFrame(), ensuring
   // the GPU handle stays valid for all queued operations this frame.
+  m_retiredBuffers.insert(buf);
   buf->deleteLater();
+}
+
+bool RenderList::checkBindingsLive(
+    const QRhiShaderResourceBindings& srb, const char* where) const noexcept
+{
+  bool ok = true;
+  for(auto it = srb.cbeginBindings(); it != srb.cendBindings(); ++it)
+  {
+    // Same access pattern as replaceBuffer() in Utils.cpp: QRhi exposes no
+    // public reader for a binding's payload.
+    const auto& d
+        = *reinterpret_cast<const QRhiShaderResourceBinding::Data*>(&(*it));
+    const QRhiBuffer* b = nullptr;
+    switch(d.type)
+    {
+      case QRhiShaderResourceBinding::UniformBuffer:
+        b = d.u.ubuf.buf;
+        break;
+      case QRhiShaderResourceBinding::BufferLoad:
+      case QRhiShaderResourceBinding::BufferStore:
+      case QRhiShaderResourceBinding::BufferLoadStore:
+        b = d.u.sbuf.buf;
+        break;
+      default:
+        continue;
+    }
+    if(isRetiredBuffer(b))
+    {
+      ok = false;
+      qWarning(
+          "score.gfx: %s binds buffer %p at binding %d, which was retired: the "
+          "producer released it and this consumer never re-read the handle",
+          where ? where : "(unknown)", (const void*)b, d.binding);
+    }
+  }
+  return ok;
 }
 
 bool RenderList::maybeRebuild(bool force)

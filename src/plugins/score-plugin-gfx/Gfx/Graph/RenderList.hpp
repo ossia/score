@@ -3,6 +3,7 @@
 #include <Gfx/Graph/GpuTiming.hpp>
 #include <Gfx/Graph/Node.hpp>
 
+#include <ossia/detail/flat_set.hpp>
 #include <ossia/detail/hash_map.hpp>
 
 #include <memory>
@@ -105,6 +106,31 @@ public:
   void release();
 
   void releaseBuffer(QRhiBuffer* buf);
+
+  /**
+   * @brief Buffers this render list has retired, for the bind-time liveness check.
+   *
+   * A consumer that adopted a producer's buffer with owned=false keeps a raw
+   * pointer. If the producer retires it and the consumer never re-reads, the
+   * pointer stays in the consumer's shader resource bindings: the rebuild is
+   * gated on a hash of the pointers, and a pointer that goes dead without
+   * changing hashes the same. Qt cannot catch it either -- its own generation
+   * check reads m_id off the resource, so a freed resource cannot report it.
+   *
+   * Recording the retirement gives a liveness oracle that does not dereference
+   * the pointer, which is what makes the failure deterministic instead of
+   * dependent on whether the freed chunk has been reused yet.
+   */
+  bool isRetiredBuffer(const QRhiBuffer* buf) const noexcept
+  {
+    return buf && m_retiredBuffers.find(buf) != m_retiredBuffers.end();
+  }
+  int retiredBufferCount() const noexcept { return (int)m_retiredBuffers.size(); }
+
+  /// True when no buffer bound by @p srb has been retired. Warns naming each
+  /// offender. Reads only the binding list, never the buffer objects.
+  bool checkBindingsLive(
+      const QRhiShaderResourceBindings& srb, const char* where) const noexcept;
 
   /**
    * @brief Check if the render size has changed in order to rebuild the pipelines.
@@ -356,6 +382,8 @@ public:
       const noexcept;
 
 private:
+  ossia::flat_set<const QRhiBuffer*> m_retiredBuffers;
+
   void renderImpl(QRhiCommandBuffer& commands, bool force);
 
   // Rendering failures repeat every frame: report the first one per

@@ -5372,6 +5372,11 @@ void RenderedCSFNode::runInitialPasses(
     res = nullptr;
 
     commands.setComputePipeline(pass.pipeline);
+    // A binding may name a buffer this node adopted with owned=false and the
+    // producer has since retired: the SRB rebuild is gated on a hash of the
+    // pointers, and a pointer that goes dead hashes the same. Qt cannot see it
+    // either, because its generation check reads m_id off the resource.
+    SCORE_ASSERT(renderer.checkBindingsLive(*pass.srb, "CSF compute pass"));
     commands.setShaderResources(pass.srb);
     // Qt's GL backend binds layered (3D / cube / array) storage images non-layered,
     // so an image3D / imageCube / image2DArray imageStore would only write slice 0.
