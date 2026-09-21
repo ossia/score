@@ -3,6 +3,7 @@
 
 #include <QCoreApplication>
 #include <QEventLoop>
+#include <QScopeGuard>
 
 #include <Gfx/Window/BackgroundDevice.hpp>
 #include <Gfx/Window/MultiWindowDevice.hpp>
@@ -115,6 +116,17 @@ void WindowDevice::disconnect()
 
 void WindowDevice::grabTo(const QString& path) const
 {
+  // Pumping re-enters: a queued OSC /script message calling grabTo again is
+  // dispatched from inside processEvents, and a harness that retries the grab
+  // sends several. Without this guard that recurses until the stack dies --
+  // observed at 200+ nested grabTo frames. Re-entrant calls return quietly;
+  // the outermost one is still driving frames for all of them.
+  static bool s_grabbing = false;
+  if(s_grabbing)
+    return;
+  s_grabbing = true;
+  const auto _grab_guard = qScopeGuard([] { s_grabbing = false; });
+
   if(auto dev = dynamic_cast<offscreen_device*>(m_dev.get()))
   {
     auto node = dev->node();
@@ -123,6 +135,22 @@ void WindowDevice::grabTo(const QString& path) const
       qWarning() << "grabTo: offscreen device has not rendered yet";
       return;
     }
+
+    // Score.play() only starts the execution graph; the gfx nodes it registers
+    // reach the render list a few frames later. Drive frames and pump the event
+    // loop until they do, as the screen path below already does -- a one-shot
+    // read reports a live graph as "nothing rendered" whenever the grab lands
+    // inside that startup window.
+    int spun = 0;
+    for(; spun < 60 && node->shared_readback->pixelSize.width() <= 0; ++spun)
+    {
+      QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents, 16);
+      renderFrames(1);
+    }
+    if(spun > 0 && qEnvironmentVariableIsSet("SCORE_GFX_TRACE"))
+      fprintf(
+          stderr, "GFX-GRAB offscreen waited %d frame(s) for the graph (%s)\n", spun,
+          node->shared_readback->pixelSize.width() > 0 ? "recovered" : "gave up");
 
     const auto& rb = *node->shared_readback;
     const int w = rb.pixelSize.width();
@@ -170,21 +198,11 @@ void WindowDevice::grabTo(const QString& path) const
     // it fills the result when the frame it was queued in completes, which with
     // a buffered swapchain is not the frame that queued it.
     //
-    // Pumping re-enters: a queued OSC /script message calling grabTo again is
-    // dispatched from inside processEvents, and a harness that retries the grab
-    // sends several. Without this guard that recurses until the stack dies --
-    // observed at 200+ nested grabTo frames. Re-entrant calls return quietly;
-    // the outermost one is still driving frames for all of them.
-    static bool s_grabbing = false;
-    if(s_grabbing)
-      return;
-    s_grabbing = true;
     for(int i = 0; i < 60 && rbp->data.isEmpty(); ++i)
     {
       QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents, 16);
       renderFrames(1);
     }
-    s_grabbing = false;
 
     const auto& rb = *rbp;
     const int w = rb.pixelSize.width();
