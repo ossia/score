@@ -1484,7 +1484,12 @@ public:
   /// must already be in the graph (addIsf registers the node even after
   /// create()). This is the counterpart of removeEdgeIncremental and exercises
   /// the incremental graph-edit path rather than a from-scratch rebuild.
-  void addEdgeIncremental(score::gfx::Port* source, score::gfx::Port* sink)
+  /// @p type defaults to an immediate cable; pass DelayedGlutton to close a
+  /// feedback loop on an already-rendering graph, which is how a node becomes a
+  /// feedback receiver AFTER its consumers have adopted its buffers.
+  void addEdgeIncremental(
+      score::gfx::Port* source, score::gfx::Port* sink,
+      Process::CableType type = Process::CableType::ImmediateGlutton)
   {
     if(!source || !sink)
     {
@@ -1492,7 +1497,7 @@ public:
         m_error = "GfxPipeline::addEdgeIncremental: null port";
       return;
     }
-    m_graph.addEdge(source, sink, Process::CableType::ImmediateGlutton);
+    m_graph.addEdge(source, sink, type);
     m_graph.reconcileAllRenderLists();
     m_graph.createAllMissingPasses();
     m_graph.updateAllSinkSamplers();

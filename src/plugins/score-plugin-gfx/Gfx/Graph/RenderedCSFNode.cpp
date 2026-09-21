@@ -5376,7 +5376,12 @@ void RenderedCSFNode::runInitialPasses(
     // producer has since retired: the SRB rebuild is gated on a hash of the
     // pointers, and a pointer that goes dead hashes the same. Qt cannot see it
     // either, because its generation check reads m_id off the resource.
-    SCORE_ASSERT(renderer.checkBindingsLive(*pass.srb, "CSF compute pass"));
+    // Warn always; throw only under SCORE_GFX_STRICT_BINDINGS, so the check
+    // diagnoses without changing control flow in a render loop. Tests set it
+    // to turn the intermittent segfault into a deterministic failure.
+    if(!renderer.checkBindingsLive(*pass.srb, "CSF compute pass")
+       && RenderList::strictBindingsEnabled())
+      throw std::runtime_error("CSF compute pass binds a retired buffer");
     commands.setShaderResources(pass.srb);
     // Qt's GL backend binds layered (3D / cube / array) storage images non-layered,
     // so an image3D / imageCube / image2DArray imageStore would only write slice 0.
