@@ -53,18 +53,57 @@ public:
     m_rhiWidget->setMaximumHeight(200);
     layout()->addWidget(m_rhiWidget);
 
-    m_enabled = Process::PreviewSettings::instance().enabled();
+    m_enabled = Process::PreviewSettings::instance().enabled() && !m_ctx.isNull();
     if(m_enabled)
       m_rhiWidget->useContext(m_ctx, outlet.graphicsPort());
     else
       hide(); // setVisible(true) on a not-yet-parented widget would pop up a window
+
+    // Only poll while something is being previewed; the toggle brings the timer
+    // back rather than leaving a 60Hz tick running for a disabled preview.
+    QObject::connect(
+        &Process::PreviewSettings::instance(),
+        &Process::PreviewSettings::enabledChanged, this, [this](bool on) {
+      if(on && m_timer == 0)
+        m_timer = startTimer(16);
+      else if(!on)
+        syncEnabled();
+    });
 
     // TextureOutlet::nodeId has no notifier — poll for changes so a
     // process re-instantiation rewires the preview to the new producer.
     // graphicsPort() is the registered endpoint: the outlet's own index,
     // not port zero, which is a different outlet whenever a value outlet is
     // declared before the texture.
-    startTimer(16);
+    if(m_enabled)
+      m_timer = startTimer(16);
+  }
+
+  //! Brings the widget in line with the setting, stopping the tick when off.
+  void syncEnabled()
+  {
+    if(!outlet_p || !m_rhiWidget)
+      return;
+
+    const bool on = Process::PreviewSettings::instance().enabled() && !m_ctx.isNull();
+    if(on == m_enabled)
+      return;
+
+    m_enabled = on;
+    if(on)
+    {
+      m_rhiWidget->useContext(m_ctx, outlet_p->graphicsPort());
+    }
+    else
+    {
+      m_rhiWidget->detach();
+      if(m_timer != 0)
+      {
+        killTimer(m_timer);
+        m_timer = 0;
+      }
+    }
+    setVisible(on);
   }
 
   void timerEvent(QTimerEvent*) override
@@ -72,16 +111,7 @@ public:
     if(!outlet_p || !m_rhiWidget)
       return;
 
-    if(const bool on = Process::PreviewSettings::instance().enabled() && !m_ctx.isNull();
-       on != m_enabled)
-    {
-      m_enabled = on;
-      if(on)
-        m_rhiWidget->useContext(m_ctx, outlet_p->graphicsPort());
-      else
-        m_rhiWidget->detach();
-      setVisible(on);
-    }
+    syncEnabled();
 
     if(m_enabled)
       m_rhiWidget->setProducer(outlet_p->graphicsPort());
@@ -94,6 +124,7 @@ private:
   QPointer<GfxContext> m_ctx;
   RhiPreviewWidget* m_rhiWidget{};
   bool m_enabled{};
+  int m_timer{};
 };
 
 TextureInlet::~TextureInlet() { }

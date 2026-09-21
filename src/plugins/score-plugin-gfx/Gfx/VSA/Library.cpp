@@ -1,6 +1,5 @@
 #include <Process/PreviewSettings.hpp>
 #include <Gfx/Filter/PreviewWidget.hpp>
-#include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/VSA/Library.hpp>
 #include <Gfx/VSA/Process.hpp>
 #include <Library/LibrarySettings.hpp>

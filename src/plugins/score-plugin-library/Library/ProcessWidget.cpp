@@ -189,10 +189,18 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
     m_preview.hide();
   }
 
-  // Turning previews off has to reach the thumbnail already on screen, not
-  // wait for the next selection.
+  // Turning previews off has to reach the thumbnail already on screen, not wait
+  // for the next selection. Both handlers share m_previewChild, so rebuild the
+  // one that is actually showing: re-announcing the tree selection would
+  // destroy a preset preview and clear state nothing asked to clear.
   con(Process::PreviewSettings::instance(), &Process::PreviewSettings::enabledChanged,
-      this, [this](bool) { m_tv.reselect(); });
+      this, [this](bool) {
+    if(auto* sm = m_lv.selectionModel();
+       sm && sm->currentIndex().isValid() && m_refreshPresetPreview)
+      m_refreshPresetPreview();
+    else if(auto* sm = m_tv.selectionModel(); sm && !sm->selectedIndexes().isEmpty())
+      m_tv.reselect();
+  });
 
   auto infoWidg = new InfoWidget{this};
   score::setHelp(infoWidg, statusTip());
@@ -278,15 +286,21 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
 
     const auto& preset = m_presetModel->presets[midx.row()];
 
-    for(auto& lib : score::GUIAppContext().interfaces<LibraryInterfaceList>())
-    {
-      if((m_previewChild = lib.previewWidget(preset, &m_preview)))
+    const auto buildPreview = [this](const Process::Preset& p) {
+      delete m_previewChild;
+      m_previewChild = nullptr;
+      for(auto& lib : score::GUIAppContext().interfaces<LibraryInterfaceList>())
       {
-        m_preview.layout()->addWidget(m_previewChild);
-        m_preview.show();
-        break;
+        if((m_previewChild = lib.previewWidget(p, &m_preview)))
+        {
+          m_preview.layout()->addWidget(m_previewChild);
+          m_preview.show();
+          break;
+        }
       }
-    }
+    };
+    buildPreview(preset);
+    m_refreshPresetPreview = [this, buildPreview, p = preset] { buildPreview(p); };
 #if defined(_WIN32)
     for(int i = 0; i < 100; i++)
     {

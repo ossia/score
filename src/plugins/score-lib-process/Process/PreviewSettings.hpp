@@ -27,6 +27,8 @@ public:
   void enabledChanged(bool b) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, enabledChanged, b)
 
 private:
+  PreviewSettings();
+
   bool m_enabled{true};
 };
 }

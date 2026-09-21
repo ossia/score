@@ -27,14 +27,6 @@ DocumentPlugin::DocumentPlugin(const score::DocumentContext& ctx, QObject* paren
 
 DocumentPlugin::~DocumentPlugin() { }
 
-bool ApplicationPlugin::g_shader_preview_enabled
-    = !qEnvironmentVariableIsSet("SCORE_DISABLE_SHADER_PREVIEW");
-
-static const bool seed_preview_setting = [] {
-  Process::PreviewSettings::instance().setEnabled(
-      ApplicationPlugin::g_shader_preview_enabled);
-  return true;
-}();
 
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& app)
     : GUIApplicationPlugin{app}
@@ -61,7 +53,6 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
       QStringLiteral(":/icons/shader_preview_disabled.png"));
 
   QObject::connect(preview_act, &QAction::toggled, preview_act, [](bool checked) {
-    g_shader_preview_enabled = checked;
     Process::PreviewSettings::instance().setEnabled(checked);
   });
 
