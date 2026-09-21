@@ -71,15 +71,16 @@ Model::Model(
   metadata().setInstanceName(*this);
   m_outlets.push_back(new TextureOutlet{"Texture Out", Id<Process::Port>(1), this});
 
-  if(init.endsWith("fs") || init.endsWith("frag"))
+  const QString path = locateShaderPath(init, *this);
+  if(path.endsWith("fs") || path.endsWith("frag"))
   {
-    m_scriptPath = init;
-    (void)setProgram(programFromISFFragmentShaderPath(init, {}));
+    m_scriptPath = path;
+    (void)setProgram(programFromISFFragmentShaderPath(path, {}));
   }
-  else if(init.endsWith("vs") || init.endsWith("vert"))
+  else if(path.endsWith("vs") || path.endsWith("vert"))
   {
-    m_scriptPath = init;
-    (void)setProgram(programFromVSAVertexShaderPath(init, {}));
+    m_scriptPath = path;
+    (void)setProgram(programFromVSAVertexShaderPath(path, {}));
   }
 }
 

@@ -5,6 +5,10 @@
 #include <Library/LibrarySettings.hpp>
 
 #include <score/application/ApplicationContext.hpp>
+#include <score/tools/File.hpp>
+#include <score/tools/FilePath.hpp>
+
+#include <core/document/Document.hpp>
 
 #include <ossia/detail/flat_map.hpp>
 #include <ossia/detail/hash_map.hpp>
@@ -609,36 +613,82 @@ ProgramCache::get(const ShaderSource& program, const QString& originPath) noexce
   return {std::nullopt, "Unknown error"};
 }
 
+static QString shaderSibling(const QString& path, std::initializer_list<QLatin1String> exts)
+{
+  const QFileInfo fi{path};
+  // completeBaseName, not baseName: `my.shader.fs` pairs with `my.shader.vs`,
+  // and path surgery on the string as a whole would also rewrite a folder
+  // called `fs-shaders`.
+  const QString base = fi.path() + '/' + fi.completeBaseName() + '.';
+  for(const QLatin1String& ext : exts)
+  {
+    if(fi.suffix() == ext)
+      continue;
+    if(const QString candidate = base + ext; QFileInfo::exists(candidate))
+      return candidate;
+  }
+  return {};
+}
+
+QString vertexShaderSibling(const QString& fsPath) noexcept
+{
+  return shaderSibling(fsPath, {QLatin1String{"vert"}, QLatin1String{"vs"}});
+}
+
+QString fragmentShaderSibling(const QString& vsPath) noexcept
+{
+  return shaderSibling(vsPath, {QLatin1String{"frag"}, QLatin1String{"fs"}});
+}
+
+ShaderFamily shaderFileFamily(const QString& path) noexcept
+{
+  struct
+  {
+    std::string_view marker;
+    ShaderFamily family;
+  } static constexpr markers[]{
+      {"\"RAW_RASTER_PIPELINE\"", ShaderFamily::RawRaster},
+      {"\"GEOMETRY_FILTER\"", ShaderFamily::GeometryFilter},
+      {"\"COMPUTE_SHADER\"", ShaderFamily::Compute},
+      {"\"VERTEX_SHADER_ART\"", ShaderFamily::VertexShaderArt},
+  };
+
+  for(const auto& [marker, family] : markers)
+  {
+    // A fresh QFile per marker: fileContains reads from wherever the device
+    // currently is.
+    QFile f{path};
+    if(score::fileContains(f, marker))
+      return family;
+  }
+  return ShaderFamily::Unknown;
+}
+
+QString locateShaderPath(const QString& path, const QObject& process) noexcept
+{
+  if(path.isEmpty())
+    return path;
+
+  // Walked here rather than through score::IDocument::documentFromObject,
+  // which THROWS for an object that is not in a document -- a process being
+  // built for a preview or a preset is not, and this is noexcept.
+  for(const QObject* obj = &process; obj; obj = obj->parent())
+    if(auto* doc = qobject_cast<const score::Document*>(obj))
+      return score::locateFilePath(path, doc->context());
+
+  return path;
+}
+
 ShaderSource
 programFromISFFragmentShaderPath(
     const QString& fsFilename, QByteArray fsData, ShaderSource::ProgramType type)
 {
-  // ISF works by storing a vertex shader next to the fragment shader.
-  // Score recognises both the long (.frag/.vert) and short (.fs/.vs)
-  // extension conventions; pairings are tried independently of the FS
-  // file's own naming so a `foo.frag` next to `foo.vs` (or `foo.fs` next
-  // to `foo.vert`) also resolves. Without this, the .vs sibling is
-  // silently ignored and the descriptor falls back to the ISF default
-  // vertex shader — which doesn't know about user-declared
-  // VERTEX_INPUTS, so the consumer renders nothing.
-  const QString candidates[] = {
-      QString(fsFilename).replace(".frag", ".vert").replace(".fs", ".vs"),
-      QString(fsFilename).replace(".frag", ".vs"),
-      QString(fsFilename).replace(".fs", ".vert"),
-  };
-
   // If empty: will be using the ISF's default
   QByteArray vertexData;
-  for(const QString& vertexName : candidates)
+  if(const QString vertexName = vertexShaderSibling(fsFilename); !vertexName.isEmpty())
   {
-    if(vertexName == fsFilename)
-      continue;
-    if(QFile vertexFile{vertexName};
-       vertexFile.exists() && vertexFile.open(QIODevice::ReadOnly))
-    {
+    if(QFile vertexFile{vertexName}; vertexFile.open(QIODevice::ReadOnly))
       vertexData = vertexFile.readAll();
-      break;
-    }
   }
 
   if(fsData.isEmpty())

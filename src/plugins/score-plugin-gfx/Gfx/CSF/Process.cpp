@@ -79,10 +79,10 @@ Model::Model(
 {
   metadata().setInstanceName(*this);
 
-  QFile f{init};
-  if(f.open(QIODevice::ReadOnly))
+  const QString path = locateShaderPath(init, *this);
+  if(QFile f{path}; f.open(QIODevice::ReadOnly))
   {
-    m_scriptPath = init;
+    m_scriptPath = path;
     (void)setCompute(f.readAll());
   }
 }

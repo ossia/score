@@ -25,19 +25,20 @@ Model::Model(
   metadata().setInstanceName(*this);
 
   {
-    if(QFileInfo fi{init}; fi.isFile())
+    const QString path = locateShaderPath(init, *this);
+    if(QFile fs{path}; !path.isEmpty() && fs.open(QIODevice::ReadOnly))
     {
-      if(QFile fs{init}; fs.open(QIODevice::ReadOnly))
+      // No sibling vertex shader: the ISF parser then builds the default one.
+      QByteArray vertex;
+      if(const QString vsPath = vertexShaderSibling(path); !vsPath.isEmpty())
       {
-        QFile vs{fi.absolutePath() + QDir::separator() + fi.baseName() + ".vs"};
-        if(vs.open(QIODevice::ReadOnly))
-        {
-          (void)setProgram(
-              {ShaderSource::ProgramType::RawRasterPipeline, vs.readAll(),
-               fs.readAll()});
-          return;
-        }
+        if(QFile vs{vsPath}; vs.open(QIODevice::ReadOnly))
+          vertex = vs.readAll();
       }
+
+      (void)setProgram(
+          {ShaderSource::ProgramType::RawRasterPipeline, vertex, fs.readAll()});
+      return;
     }
   }
   this->init();

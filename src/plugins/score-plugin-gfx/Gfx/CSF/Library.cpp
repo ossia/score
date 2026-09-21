@@ -1,6 +1,7 @@
 #include <Gfx/CSF/Library.hpp>
 #include <Gfx/CSF/Process.hpp>
 #include <Gfx/Filter/PreviewWidget.hpp>
+#include <Gfx/ShaderProgram.hpp>
 #include <Library/LibrarySettings.hpp>
 #include <Library/ProcessesItemModel.hpp>
 
@@ -60,6 +61,18 @@ void DropHandler::dropPath(
     std::vector<ProcessDrop>& vec, const score::FilePath& filename,
     const score::DocumentContext& ctx) const noexcept
 {
+  // A compute extension is not shared with any other family, so a file that
+  // declares no MODE at all is still taken -- but one that claims to be
+  // something else is left to its own handler.
+  switch(Gfx::shaderFileFamily(filename.absolute))
+  {
+    case Gfx::ShaderFamily::Compute:
+    case Gfx::ShaderFamily::Unknown:
+      break;
+    default:
+      return;
+  }
+
   Process::ProcessDropHandler::ProcessDrop p;
   p.creation.key = Metadata<ConcreteKey_k, Gfx::CSF::Model>::get();
   p.creation.prettyName = filename.basename;

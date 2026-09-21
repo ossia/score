@@ -199,22 +199,26 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandlerList::getDrop(
       if(auto it = m_perFileExtension.find(ext.toStdString());
          it != m_perFileExtension.end())
       {
-        auto& handler = *it->second;
-
-        // First check if a custom drop is in order, which handles everything.
-        if(handleCustomDrop(handler))
-        {
-          // qDebug() << "handled through getCustomDrops";
-          return res;
-        }
-
-        // Then fall back to the normal mime data drop
-        score::FilePath p{
+        const score::FilePath p{
             .absolute = path,
             .relative = score::relativizeFilePath(path, ctx),
             .filename = f.fileName(),
             .basename = f.baseName()};
-        handler.getFileDrops(res, mime, p, ctx);
+
+        for(auto* h : it->second)
+        {
+          auto& handler = *h;
+
+          // First check if a custom drop is in order, which handles everything.
+          if(handleCustomDrop(handler))
+          {
+            // qDebug() << "handled through getCustomDrops";
+            return res;
+          }
+
+          // Then fall back to the normal mime data drop
+          handler.getFileDrops(res, mime, p, ctx);
+        }
       }
     }
   }
@@ -262,7 +266,7 @@ void ProcessDropHandlerList::initCaches() const
     {
       for(const auto& ext : handler.fileExtensions())
       {
-        m_perFileExtension[ext.toLower().toStdString()] = &handler;
+        m_perFileExtension[ext.toLower().toStdString()].push_back(&handler);
       }
 
       for(const auto& ext : handler.mimeTypes())
