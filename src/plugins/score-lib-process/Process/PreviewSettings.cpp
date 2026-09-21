@@ -1,10 +1,17 @@
 #include <Process/PreviewSettings.hpp>
 
+#include <QtGlobal>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Process::PreviewSettings)
 
 namespace Process
 {
+PreviewSettings::PreviewSettings()
+    : m_enabled{!qEnvironmentVariableIsSet("SCORE_DISABLE_SHADER_PREVIEW")}
+{
+}
+
 PreviewSettings& PreviewSettings::instance() noexcept
 {
   static PreviewSettings self;

@@ -3,7 +3,6 @@
 #include <Gfx/Filter/PreviewWidget.hpp>
 #include <Gfx/Filter/Process.hpp>
 #include <Gfx/GeometryFilter/Process.hpp>
-#include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxDevice.hpp>
 #include <Library/LibrarySettings.hpp>
 #include <Library/ProcessesItemModel.hpp>

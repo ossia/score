@@ -80,5 +80,7 @@ private:
 
   QWidget m_preview;
   QWidget* m_previewChild{};
+  //! Rebuilds the preset preview for the row that is current, when one is.
+  std::function<void()> m_refreshPresetPreview;
 };
 }
