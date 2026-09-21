@@ -346,3 +346,42 @@ TEST_CASE("Materializing creates the file and never overwrites",
   CHECK(sameFileContents(src + "/kick.wav", link));
 #endif
 }
+
+TEST_CASE("A stream url is not a file score can locate", "[unit][projectfiles]")
+{
+  SECTION("remote schemes")
+  {
+    CHECK(score::isRemoteUrl("rtsp://cam.local/stream"));
+    CHECK(score::isRemoteUrl("udp://239.0.0.1:1234"));
+    CHECK(score::isRemoteUrl("srt://host:9000"));
+    CHECK(score::isRemoteUrl("http://example.com/a.mp4"));
+    CHECK(score::isRemoteUrl("https://example.com/a.mp4"));
+    CHECK(score::isRemoteUrl("rtmp://a/b"));
+    CHECK(score::isRemoteUrl("RTSP://caps.example/stream"));
+  }
+
+  SECTION("file:// still names something local")
+  {
+    CHECK_FALSE(score::isRemoteUrl("file:///home/me/a.mp4"));
+    CHECK_FALSE(score::isRemoteUrl("FILE:///home/me/a.mp4"));
+  }
+
+  SECTION("ordinary paths are never urls")
+  {
+    CHECK_FALSE(score::isRemoteUrl("/home/me/a.mp4"));
+    CHECK_FALSE(score::isRemoteUrl("a.mp4"));
+    CHECK_FALSE(score::isRemoteUrl("../b/a.mp4"));
+    CHECK_FALSE(score::isRemoteUrl(""));
+    CHECK_FALSE(score::isRemoteUrl("/dev/video0"));
+    CHECK_FALSE(score::isRemoteUrl("<PROJECT>:/media/a.mp4"));
+    CHECK_FALSE(score::isRemoteUrl("<LIBRARY>:/media/a.mp4"));
+  }
+
+  SECTION("a colon in a name is not a scheme")
+  {
+    CHECK_FALSE(score::isRemoteUrl("C:/media/a.mp4"));
+    CHECK_FALSE(score::isRemoteUrl("/home/me/odd:name/a.mp4"));
+    CHECK_FALSE(score::isRemoteUrl("://nothing"));
+    CHECK_FALSE(score::isRemoteUrl("my file://a.mp4"));
+  }
+}

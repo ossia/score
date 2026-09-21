@@ -1,5 +1,7 @@
 #include <Process/ProjectConsolidation.hpp>
 
+#include <score/tools/ProjectFiles.hpp>
+
 #include <score/document/DocumentContext.hpp>
 
 #include <core/document/Document.hpp>
@@ -29,7 +31,9 @@ struct Consolidator
 
     // A folder, or something score has no way to relocate (a plug-in binary).
     // Reported so the user knows what the other machine needs.
-    if(!ref.rewritable || ref.directory)
+    // A remote stream is none of score's business: it cannot be located,
+    // copied or relinked, and the other machine reaches it the same way.
+    if(!ref.rewritable || ref.directory || score::isRemoteUrl(ref.path))
       return done(FileAction::Unsupported);
 
     e.sourcePath = score::locateFilePath(ref.path, target.sourceRoots);

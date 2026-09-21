@@ -23,8 +23,11 @@ FileReport scanMissingFiles(const score::DocumentContext& ctx)
   auto report = runFileOperation(
       ctx,
       [&](const ExternalFileRef& ref, FileEntry& e) -> QString {
-    if(!ref.rewritable || ref.directory || ref.usage == FileUsage::Output)
+    if(!ref.rewritable || ref.directory || ref.usage == FileUsage::Output
+       || score::isRemoteUrl(ref.path))
     {
+      // A remote stream has no file to find: locateFilePath would anchor it to
+      // the document folder and every rtsp:// url would come back missing.
       e.action = FileAction::Unsupported;
       return {};
     }

@@ -17,6 +17,25 @@ namespace score
 static const QString project_prefix = QStringLiteral("<PROJECT>:");
 static const QString library_prefix = QStringLiteral("<LIBRARY>:");
 
+bool isRemoteUrl(const QString& path) noexcept
+{
+  // Same rule the video decoder applies in urlIsLiveSource(): a scheme, then
+  // "://", and anything but file. Kept deliberately narrow so a Windows drive
+  // letter or a stray colon in a name is not mistaken for one.
+  const int sep = path.indexOf(QStringLiteral("://"));
+  if(sep <= 0)
+    return false;
+
+  for(int i = 0; i < sep; i++)
+  {
+    const QChar c = path[i];
+    if(!c.isLetterOrNumber() && c != '+' && c != '-' && c != '.')
+      return false;
+  }
+
+  return path.left(sep).compare(QStringLiteral("file"), Qt::CaseInsensitive) != 0;
+}
+
 bool isProjectRelativePath(const QString& path) noexcept
 {
   return path.startsWith(project_prefix);

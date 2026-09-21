@@ -87,6 +87,13 @@ QString relativizeFilePath(const QString& filename, const PathRoots& roots) noex
 SCORE_LIB_BASE_EXPORT
 bool isUnderFolder(const QString& path, const QString& folder) noexcept;
 
+//! True if the reference is a remote stream rather than anything on disk:
+//! rtsp://, udp://, srt://, http://... Such a reference cannot be located,
+//! collected or relinked, and must not be reported as a missing file.
+//! file:// is deliberately not remote -- it still names a local path.
+SCORE_LIB_BASE_EXPORT
+bool isRemoteUrl(const QString& path) noexcept;
+
 //! True if the path is one of the tokens score understands as a root.
 SCORE_LIB_BASE_EXPORT
 bool isProjectRelativePath(const QString& path) noexcept;
