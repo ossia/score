@@ -819,6 +819,7 @@ const Id<Process::ProcessModel>& NodeItem::id() const noexcept
 
 NodeItem::~NodeItem()
 {
+  clearDropCableHighlight();
   delete m_presenter;
 }
 

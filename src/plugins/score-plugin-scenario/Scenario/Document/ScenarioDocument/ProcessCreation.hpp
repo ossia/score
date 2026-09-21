@@ -28,7 +28,7 @@ class ScenarioDocumentModel;
 class ScenarioDocumentPresenter;
 
 //! First port of that type which carries signal flow: control ports are
-//! parameters, not part of the data path, and are never auto-connected.
+//! First port of that type, preferring signal ports over control ones.
 SCORE_PLUGIN_SCENARIO_EXPORT
 const Process::Inlet*
 firstInletOfType(const Process::ProcessModel& proc, Process::PortType type) noexcept;

@@ -36,7 +36,13 @@ void onCreateCable(
     const score::DocumentContext& ctx, Dataflow::PortItem* p1, Dataflow::PortItem* p2)
 {
   if(auto moved = Dataflow::portDragMovedCables(); !moved.empty())
-    Dataflow::moveCableEndpoints(ctx, moved, p2->port());
+  {
+    // Which end moves was decided when the cable was grabbed; a drop on a port
+    // of the other direction would silently move the opposite end instead.
+    const bool is_outlet = qobject_cast<const Process::Outlet*>(&p2->port());
+    if(is_outlet == Dataflow::portDragWantsOutlet())
+      Dataflow::moveCableEndpoints(ctx, moved, p2->port());
+  }
   else
     Dataflow::onCreateCable(ctx, p1->port(), p2->port());
 }

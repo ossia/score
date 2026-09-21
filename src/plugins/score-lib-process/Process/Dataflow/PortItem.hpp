@@ -151,6 +151,11 @@ void beginPortDrag(
 SCORE_LIB_PROCESS_EXPORT
 std::span<Process::Cable* const> portDragMovedCables() noexcept;
 
+//! Whether the ongoing drag is looking for an outlet, i.e. it is moving a
+//! cable's source end. Only meaningful while portDragMovedCables() is non-empty.
+SCORE_LIB_PROCESS_EXPORT
+bool portDragWantsOutlet() noexcept;
+
 SCORE_LIB_PROCESS_EXPORT
 score::SimpleTextItem* makePortLabel(const Process::Port& port, QGraphicsItem* parent);
 

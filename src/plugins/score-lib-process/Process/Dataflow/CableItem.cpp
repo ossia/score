@@ -431,7 +431,12 @@ bool cableSelectCumulation{};
 
 double CableItem::grabZoneRadius(QPointF p1, QPointF p2) noexcept
 {
-  return std::max(28., 0.15 * QLineF{p1, p2}.length());
+  // Never more than a third of the cable from each end, or the two zones would
+  // meet and the cable could only ever be re-plugged, never selected -- which is
+  // what happens to a short one, and to every cable once the view is zoomed out,
+  // since these are scene units and the nodal canvas scales them.
+  const double len = QLineF{p1, p2}.length();
+  return std::min(std::max(28., 0.15 * len), 0.35 * len);
 }
 
 CableItem::GrabbedEnd
@@ -464,7 +469,17 @@ void CableItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 void CableItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   grabbedCableEnd = CableItem::GrabbedEnd::None;
+  cableSelectOnRelease = false;
   if(!m_p1 || !m_p2)
+  {
+    event->ignore();
+    return;
+  }
+
+  // Only the left button re-plugs: mouseMoveEvent measures against
+  // buttonDownScreenPos(LeftButton), which is a null point for any other
+  // button and would read as a drag that has already started.
+  if(event->button() != Qt::LeftButton)
   {
     event->ignore();
     return;

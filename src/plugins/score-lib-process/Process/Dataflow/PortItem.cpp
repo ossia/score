@@ -892,6 +892,13 @@ std::span<Process::Cable* const> portDragMovedCables() noexcept
   return portDragCables;
 }
 
+bool portDragWantsOutlet() noexcept
+{
+  // The anchor is the end that stays: anchored on an inlet means the source is
+  // the one moving, so the drop has to land on an outlet.
+  return portDragDirection == DragSourceIsInlet;
+}
+
 void beginPortDrag(
     PortItem& anchor, QPointF scenePos, std::vector<Process::Cable*> movedCables)
 {

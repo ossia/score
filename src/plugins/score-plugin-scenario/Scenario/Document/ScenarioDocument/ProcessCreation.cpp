@@ -49,7 +49,9 @@ const Process::Outlet* firstSignalOutlet(const Process::ProcessModel& proc) noex
   for(auto* outlet : proc.outlets())
     if(!qobject_cast<Process::ControlOutlet*>(outlet))
       return outlet;
-  return nullptr;
+  // A process whose outlets are all controls still chains, as it did before
+  // signal ports were preferred.
+  return proc.outlets().empty() ? nullptr : proc.outlets().front();
 }
 
 //! Which outlet of `parentProcess` the newly created `proc` gets chained after:
