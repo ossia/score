@@ -144,6 +144,12 @@ public:
   /// throws instead of only warning.
   static bool strictBindingsEnabled() noexcept;
 
+  /// How many stale bindings checkBindingsLive has seen, process-wide. Tests
+  /// assert on this: the render loop swallows the strict-mode exception and
+  /// carries on, so a violation is invisible from the frame result alone.
+  static int staleBindingCount() noexcept;
+  static void resetStaleBindingCount() noexcept;
+
   /**
    * @brief Check if the render size has changed in order to rebuild the pipelines.
    */

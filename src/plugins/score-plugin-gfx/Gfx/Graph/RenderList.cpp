@@ -1,4 +1,5 @@
 
+#include <atomic>
 #include <Gfx/Graph/CustomMesh.hpp>
 #include <Gfx/Graph/GpuResourceRegistry.hpp>
 #include <Gfx/Graph/Mesh.hpp>
@@ -557,6 +558,17 @@ void RenderList::releaseBuffer(QRhiBuffer* buf)
   buf->deleteLater();
 }
 
+static std::atomic_int g_staleBindings{0};
+
+int RenderList::staleBindingCount() noexcept
+{
+  return g_staleBindings.load(std::memory_order_relaxed);
+}
+void RenderList::resetStaleBindingCount() noexcept
+{
+  g_staleBindings.store(0, std::memory_order_relaxed);
+}
+
 bool RenderList::strictBindingsEnabled() noexcept
 {
   static const bool on = qEnvironmentVariableIsSet("SCORE_GFX_STRICT_BINDINGS");
@@ -590,6 +602,7 @@ bool RenderList::checkBindingsLive(
     if(isRetiredBuffer(b))
     {
       ok = false;
+      g_staleBindings.fetch_add(1, std::memory_order_relaxed);
       qWarning(
           "score.gfx: %s binds buffer %p \"%s\" at binding %d, which was "
           "retired: the producer released it and this consumer never re-read "
