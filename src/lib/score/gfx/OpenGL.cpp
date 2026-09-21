@@ -21,6 +21,10 @@ struct GLCapabilitiesResult
   // reports the format it asked for, which is nothing to pin on.
   bool usableContext{};
 
+  // GL_RENDERER, empty when no context could be made: says which GPU -- or which
+  // software rasteriser -- answered the probe the shader version comes from.
+  QString renderer;
+
   GLCapabilitiesResult()
   {
 #ifndef QT_NO_OPENGL
@@ -75,10 +79,14 @@ struct GLCapabilitiesResult
       type = ctx.format().renderableType();
       shaderVersion = glShaderVersion();
       usableContext = true;
+      ctx.functions()->initializeOpenGLFunctions();
+      if(auto r = (const char*)ctx.functions()->glGetString(GL_RENDERER))
+        renderer = QString::fromUtf8(r);
       ctx.doneCurrent();
     }
 #endif
-    qDebug() << "Available GL context: " << major << minor << shaderVersion << type;
+    qDebug() << "Available GL context: " << major << minor << shaderVersion << type
+             << renderer;
   }
 
   int glShaderVersion() noexcept
