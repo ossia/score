@@ -35,7 +35,8 @@ static std::vector<std::pair<QString, ossia::value>> quantificationChoices()
 static std::unique_ptr<Process::ControlInlet> makePatternSelect(QObject* parent)
 {
   return std::make_unique<Process::IntSpinBox>(
-      0, 127, 0, QObject::tr("Pattern"), Id<Process::Port>(0), parent);
+      0, ProcessModel::maxPatterns - 1, 0, QObject::tr("Pattern"), Id<Process::Port>(0),
+      parent);
 }
 
 static std::unique_ptr<Process::ControlInlet> makeSwitchQuantification(QObject* parent)
@@ -99,11 +100,6 @@ ProcessModel::ProcessModel(
 
 void ProcessModel::init()
 {
-  // The pattern grid is what the layer draws; nothing there would draw the
-  // controls, so they stay visible as ordinary ports.
-  patternSelect->displayHandledExplicitly = false;
-  switchQuantification->displayHandledExplicitly = false;
-
   m_inlets.push_back(patternSelect.get());
   m_inlets.push_back(switchQuantification.get());
 
@@ -143,7 +139,9 @@ int ProcessModel::channel() const noexcept
 
 void ProcessModel::setCurrentPattern(int n)
 {
-  n = std::max(n, 0);
+  // The port's own range: a remote-control write reaches setValue without any
+  // clamp, and growing the list to meet it would allocate without bound.
+  n = std::clamp(n, 0, maxPatterns - 1);
   if(m_patterns.empty())
     return;
 
