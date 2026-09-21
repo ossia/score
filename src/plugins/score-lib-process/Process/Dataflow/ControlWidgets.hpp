@@ -1977,7 +1977,7 @@ struct PathGeneratorXY
     bindInlet(QLatin1StringView("Path"), [&sl](const ossia::value& v) {
       sl.setPathMode(ossia::convert<int>(v));
     });
-    bindInlet(QLatin1StringView("Radius"), [&sl](const ossia::value& v) {
+    bindInlet(QLatin1StringView("Aspect"), [&sl](const ossia::value& v) {
       auto xy = ossia::convert<ossia::vec2f>(v);
       sl.setRadii(xy[0], xy[1]);
     });

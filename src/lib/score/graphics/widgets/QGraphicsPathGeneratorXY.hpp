@@ -99,7 +99,13 @@ private:
       override;
 
   const std::vector<ossia::value>& sources() const noexcept;
+
+public:
+  //! Position along the trajectory at u in [0;1], in item coordinates. Public so
+  //! that the drawn path can be checked against the one the DSP plays.
   QPointF pathPoint(const std::vector<ossia::value>& nodes, double u) const noexcept;
+
+private:
   QRectF progressRect() const noexcept;
   void recomputePaths();
   void commitTab();
@@ -109,7 +115,8 @@ private:
   bool m_hasProgress{};
 
   int m_pathMode{Linear};
-  float m_radiusX{0.2f}, m_radiusY{0.2f};
+  //! x/y aspect on the size the handle node sets; 1,1 is a circle.
+  float m_radiusX{1.f}, m_radiusY{1.f};
   int m_ratioX{3}, m_ratioY{2};
   float m_phase{};
 };
