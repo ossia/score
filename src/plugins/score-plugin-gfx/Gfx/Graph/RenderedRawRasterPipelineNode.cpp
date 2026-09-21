@@ -417,6 +417,13 @@ void RenderedRawRasterPipelineNode::initPass(
       max_binding++;
     }
 
+    if(m_multiViewUBO)
+    {
+      additionalBindings.push_back(QRhiShaderResourceBinding::uniformBuffer(
+          max_binding, bindingStages, m_multiViewUBO));
+      max_binding++;
+    }
+
     additionalBindings.push_back(QRhiShaderResourceBinding::uniformBuffer(
         max_binding, bindingStages, m_modelUBO));
 
@@ -1610,6 +1617,13 @@ void RenderedRawRasterPipelineNode::initMRTPass(
       max_binding++;
     }
 
+    if(m_multiViewUBO)
+    {
+      additionalBindings.push_back(QRhiShaderResourceBinding::uniformBuffer(
+          max_binding, bindingStages, m_multiViewUBO));
+      max_binding++;
+    }
+
     additionalBindings.push_back(QRhiShaderResourceBinding::uniformBuffer(
         max_binding, bindingStages, m_modelUBO));
 
@@ -1911,6 +1925,27 @@ void RenderedRawRasterPipelineNode::initState(
     SCORE_ASSERT(m_materialUBO->create());
     if(n.m_material_data)
       res.updateDynamicBuffer(m_materialUBO, 0, m_materialSize, n.m_material_data.get());
+  }
+
+  // Allocated before the model UBO because the generated shader declares it
+  // first: isf_emit_multiview_ubo takes sampler_binding and model_ubo_binding
+  // is whatever follows. Same shape as RenderedISFNode -- no producer fills the
+  // per-view matrices yet, so seed identities rather than leave zeros, which
+  // would collapse every vertex to the origin.
+  if(n.descriptor().multiview_count >= 2)
+  {
+    const int mvCount = n.descriptor().multiview_count;
+    m_multiViewUBO = rhi.newBuffer(
+        QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(float[16]) * mvCount);
+    m_multiViewUBO->setName("RenderedRawRasterPipelineNode::init::m_multiViewUBO");
+    SCORE_ASSERT(m_multiViewUBO->create());
+
+    std::vector<float> ident(16 * mvCount, 0.f);
+    for(int v = 0; v < mvCount; v++)
+      for(int i = 0; i < 4; i++)
+        ident[v * 16 + i * 5] = 1.f;
+    res.updateDynamicBuffer(
+        m_multiViewUBO, 0, sizeof(float[16]) * mvCount, ident.data());
   }
 
   m_modelUBO
@@ -2446,6 +2481,9 @@ void RenderedRawRasterPipelineNode::releaseState(RenderList& r)
 
   delete m_modelUBO;
   m_modelUBO = nullptr;
+
+  delete m_multiViewUBO;
+  m_multiViewUBO = nullptr;
 
   m_blitMeshbufs = {}; // Freed in RenderList
 

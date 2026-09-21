@@ -248,7 +248,7 @@ MmFacts run_with_camera(score::gfx::GraphicsApi api, float eyeZ)
 
 TEST_CASE(
     "MODEL_MATRIX reads identity with and without MULTIVIEW",
-    "[gfx][l3][rawraster][multiview][modelmatrix][!shouldfail]")
+    "[gfx][l3][rawraster][multiview][modelmatrix]")
 {
   const auto be = GENERATE(from_range(platform_backends()));
   CAPTURE(backend_name(be));
