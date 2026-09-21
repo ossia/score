@@ -22,6 +22,8 @@
 
 #include <score/tools/Bind.hpp>
 
+#include <stdexcept>
+
 namespace JS
 {
 namespace Executor
@@ -31,6 +33,13 @@ Component::Component(
     : ::Execution::ProcessComponent_T<JS::ProcessModel, ossia::node_process>{
         element, ctx, "JSComponent", parent}
 {
+#if defined(__EMSCRIPTEN__)
+  // The QML engine runs on the audio thread, which in a browser is an
+  // AudioWorklet: a Wasm Worker, not a pthread. pthread_self() is null there,
+  // so Qt cannot tell threads apart and QRecursiveMutex excludes nothing; the
+  // first contended lock spins forever and takes the page with it.
+  throw std::runtime_error{"Javascript processes are not supported in the web build"};
+#endif
   const bool isGpu = element.isGpu();
 
   if(!isGpu)
