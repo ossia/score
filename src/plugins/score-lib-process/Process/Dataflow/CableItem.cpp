@@ -17,6 +17,7 @@
 
 #include <QApplication>
 #include <QCursor>
+#include <QGraphicsSceneHoverEvent>
 #include <QGraphicsSceneMouseEvent>
 #include <QKeyEvent>
 #include <QPainter>
@@ -41,6 +42,7 @@ CableItem::CableItem(
 {
   auto& plug = ctx.dataflow;
   this->setCursor(Qt::CrossCursor);
+  setAcceptHoverEvents(true);
   this->setFlag(QGraphicsItem::ItemClipsToShape);
   this->setFlag(QGraphicsItem::ItemIsFocusable);
   this->setAcceptDrops(true);
@@ -422,32 +424,46 @@ QPainterPath CableItem::opaqueArea() const
 
 namespace
 {
-enum class CableEnd
-{
-  NoEnd,
-  Source,
-  Sink
-} grabbedCableEnd{};
+CableItem::GrabbedEnd grabbedCableEnd{};
 bool cableSelectOnRelease{};
 bool cableSelectCumulation{};
-
-//! A press within 10% of the end-to-end distance of one of the ends grabs that
-//! end, to re-plug it elsewhere. Both ends match on a very short cable: the
-//! sink then wins, as that is the end one usually wants to move.
-CableEnd endNear(QPointF scenePos, QPointF p1, QPointF p2) noexcept
-{
-  const double threshold = std::max(8., 0.1 * QLineF{p1, p2}.length());
-  if(QLineF{p2, scenePos}.length() <= threshold)
-    return CableEnd::Sink;
-  if(QLineF{p1, scenePos}.length() <= threshold)
-    return CableEnd::Source;
-  return CableEnd::NoEnd;
 }
+
+double CableItem::grabZoneRadius(QPointF p1, QPointF p2) noexcept
+{
+  return std::max(28., 0.15 * QLineF{p1, p2}.length());
+}
+
+CableItem::GrabbedEnd
+CableItem::endNear(QPointF scenePos, QPointF p1, QPointF p2) noexcept
+{
+  const double threshold = grabZoneRadius(p1, p2);
+  if(QLineF{p2, scenePos}.length() <= threshold)
+    return GrabbedEnd::Sink;
+  if(QLineF{p1, scenePos}.length() <= threshold)
+    return GrabbedEnd::Source;
+  return GrabbedEnd::None;
+}
+
+void CableItem::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
+{
+  const bool onEnd
+      = m_p1 && m_p2
+        && endNear(event->scenePos(), m_p1->sceneCenter(), m_p2->sceneCenter())
+               != GrabbedEnd::None;
+  setCursor(onEnd ? Qt::PointingHandCursor : Qt::CrossCursor);
+  event->accept();
+}
+
+void CableItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
+{
+  setCursor(Qt::CrossCursor);
+  event->accept();
 }
 
 void CableItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  grabbedCableEnd = CableEnd::NoEnd;
+  grabbedCableEnd = CableItem::GrabbedEnd::None;
   if(!m_p1 || !m_p2)
   {
     event->ignore();
@@ -497,7 +513,7 @@ void CableItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 void CableItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   event->accept();
-  if(grabbedCableEnd == CableEnd::NoEnd)
+  if(grabbedCableEnd == CableItem::GrabbedEnd::None)
     return;
 
   const auto dragged
@@ -508,8 +524,8 @@ void CableItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
   // The end that stays put anchors the drag: the magnetic search then only
   // considers ports the moving end can legally go to.
-  PortItem* anchor = grabbedCableEnd == CableEnd::Sink ? m_p1.data() : m_p2.data();
-  grabbedCableEnd = CableEnd::NoEnd;
+  PortItem* anchor = grabbedCableEnd == CableItem::GrabbedEnd::Sink ? m_p1.data() : m_p2.data();
+  grabbedCableEnd = CableItem::GrabbedEnd::None;
   cableSelectOnRelease = false;
   if(!anchor)
     return;
@@ -543,7 +559,7 @@ void CableItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
 void CableItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  grabbedCableEnd = CableEnd::NoEnd;
+  grabbedCableEnd = CableItem::GrabbedEnd::None;
   if(cableSelectOnRelease)
   {
     cableSelectOnRelease = false;
