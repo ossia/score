@@ -91,6 +91,8 @@ MissingFilesDialog::MissingFilesDialog(score::Document& doc, QWidget* parent)
     m_progress = new QLabel{m_progressRow};
     m_progress->setTextFormat(Qt::PlainText);
     m_progress->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+    m_progress->setFixedHeight(2 * m_progress->fontMetrics().lineSpacing());
+    m_progress->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     progressLayout->addWidget(m_progress, 1);
 
     m_cancel = new QPushButton{tr("Cancel"), m_progressRow};
@@ -251,14 +253,14 @@ void MissingFilesDialog::updateSearchProgress()
   if(!m_scan)
     return;
 
-  const QString text = tr("%1 file(s) seen -- %2")
-                           .arg(m_scan->filesSeen())
-                           .arg(m_scan->currentFolder());
+  // Elide the folder alone: elidedText works on a single line, and the count
+  // must stay readable however deep the folder is.
+  QString folder = m_scan->currentFolder();
+  if(const int room = m_progress->width(); room > 0)
+    folder = m_progress->fontMetrics().elidedText(folder, Qt::ElideMiddle, room);
 
-  const int room = m_progress->width();
   m_progress->setText(
-      room > 0 ? m_progress->fontMetrics().elidedText(text, Qt::ElideMiddle, room)
-               : text);
+      tr("%1 file(s) seen").arg(m_scan->filesSeen()) + QLatin1Char('\n') + folder);
 }
 
 void MissingFilesDialog::finishSearch(FileIndex index, bool cancelled)
