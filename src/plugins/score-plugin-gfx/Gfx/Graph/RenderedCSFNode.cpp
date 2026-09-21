@@ -893,6 +893,18 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
 {
   bool buffersChanged = false;
 
+  // Same rule as the geometry bindings: a retired buffer is dead whoever
+  // allocated it, and the slot must be cleared before the resize-or-adopt
+  // decisions below, which treat a null buffer as absent.
+  for(auto& storageBuffer : m_storageBuffers)
+  {
+    if(storageBuffer.buffer && renderer.isRetiredBuffer(storageBuffer.buffer))
+    {
+      storageBuffer.buffer = nullptr;
+      storageBuffer.owned = true;
+    }
+  }
+
   // Check each storage buffer to see if it needs resizing
   for(auto& storageBuffer : m_storageBuffers)
   {
@@ -1091,6 +1103,52 @@ void RenderedCSFNode::updateGeometryBindings(
         }
       }
       pre_idx++;
+    }
+  }
+
+  // Pre-pass: forget every borrowed pointer whose owner has retired it.
+  //
+  // A buffer adopted from another node stops being one the moment that node
+  // releases it, but nothing tells this node: the pointer keeps its value, so
+  // the shader-resource-binding hash is unchanged and the bindings are never
+  // rebuilt. It binds freed memory until the allocator hands the page out and
+  // Qt dereferences it looking for the owning QRhi -- which is the crash, and
+  // why it only shows up on some runs.
+  //
+  // Clearing the slot here, before the allocate-or-adopt decisions below, is
+  // enough: they treat a null buffer as absent and either re-adopt the current
+  // upstream handle or allocate a fresh one. Both halves of a ping-pong pair
+  // are checked; the read half is the one that outlives its owner when a
+  // producer swaps its pair.
+  for(auto& binding : m_geometryBindings)
+  {
+    for(auto& ssbo : binding.attribute_ssbos)
+    {
+      // Not conditioned on `owned`: a retired buffer is dead whoever allocated
+      // it. The flag only says who is responsible for freeing it, and that has
+      // already happened -- clearing the slot must not release it again.
+      if(ssbo.buffer && renderer.isRetiredBuffer(ssbo.buffer))
+      {
+        ssbo.buffer = nullptr;
+        ssbo.owned = true;
+        ssbo.size = 0;
+      }
+      if(ssbo.read_buffer && renderer.isRetiredBuffer(ssbo.read_buffer))
+      {
+        ssbo.read_buffer = nullptr;
+        ssbo.read_buffer_is_snapshot = false;
+      }
+    }
+    for(auto& aux : binding.auxiliary_ssbos)
+    {
+      if(aux.buffer && renderer.isRetiredBuffer(aux.buffer))
+      {
+        aux.buffer = nullptr;
+        aux.owned = true;
+        aux.size = 0;
+      }
+      if(aux.read_buffer && renderer.isRetiredBuffer(aux.read_buffer))
+        aux.read_buffer = nullptr;
     }
   }
 
@@ -1627,7 +1685,6 @@ void RenderedCSFNode::updateGeometryBindings(
                 {
                   if(aux.owned && aux.buffer)
                   {
-                    qDebug("AUXPROBE release-adopt name=%s old=%p", aux.name.c_str(), (void*)aux.buffer);
                     renderer.releaseBuffer(aux.buffer);
                   }
                   aux.buffer = rhi_buf;
@@ -1655,7 +1712,6 @@ void RenderedCSFNode::updateGeometryBindings(
           {
             if(aux.owned && aux.buffer)
             {
-              qDebug("AUXPROBE release-size name=%s old=%p", aux.name.c_str(), (void*)aux.buffer);
               renderer.releaseBuffer(aux.buffer);
             }
             // Usage flag matches the aux kind so the created buffer can
@@ -3837,6 +3893,7 @@ void RenderedCSFNode::buildComputeSrbBindings(
         // Auxiliary SSBOs for this geometry input
         for(auto& aux : binding.auxiliary_ssbos)
         {
+
           if(!aux.buffer)
           {
             // Create a fallback buffer so no binding index is skipped. The usage flag must
@@ -3859,7 +3916,6 @@ void RenderedCSFNode::buildComputeSrbBindings(
                 score::gfx::bufferTypeFor(fallback_usage, QRhiBuffer::Static),
                 fallback_usage, fallback_size);
             aux.buffer->setName(QByteArray("CSF_AuxFB_") + aux.name.c_str());
-            qDebug("AUXPROBE fallback-create name=%s new=%p", aux.name.c_str(), (void*)aux.buffer);
             if(!aux.buffer->create())
               qWarning() << "CSF: could not create the fallback buffer for"
                          << aux.name.c_str();
@@ -3878,7 +3934,6 @@ void RenderedCSFNode::buildComputeSrbBindings(
           }
           else
           {
-            qDebug("AUXPROBE bind name=%s ptr=%p owned=%d", aux.name.c_str(), (void*)aux.buffer, (int)aux.owned);
             appendBufBinding(aux.buffer, aux.access);
           }
         }
