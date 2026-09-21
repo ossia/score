@@ -127,32 +127,25 @@ public:
   /// made in that same frame still dereferences a live object: only a use in a
   /// LATER frame is a use-after-free. Counting the same-frame case made the
   /// oracle over-report by roughly an order of magnitude.
-  bool isRetiredBuffer(const QRhiBuffer* buf) const noexcept
-  {
-    if(!buf)
-      return false;
-    auto it = m_retiredBuffers.find(buf);
-    return it != m_retiredBuffers.end() && it->second.frame < frame;
-  }
+  static bool isRetiredBuffer(const QRhiBuffer* buf) noexcept;
   /// True from the moment of retirement, same frame included: the slot should
   /// stop pointing at it even while the object is still alive.
-  bool isRetiringBuffer(const QRhiBuffer* buf) const noexcept
-  {
-    return buf && m_retiredBuffers.find(buf) != m_retiredBuffers.end();
-  }
+  static bool isRetiringBuffer(const QRhiBuffer* buf) noexcept;
   /// Name the buffer carried at retirement, while it was still alive: reading
   /// name() off a retired buffer is the dereference this check exists to avoid.
-  QByteArray retiredBufferName(const QRhiBuffer* buf) const
-  {
-    auto it = m_retiredBuffers.find(buf);
-    return it != m_retiredBuffers.end() ? it->second.name : QByteArray{};
-  }
-  int retiredBufferCount() const noexcept { return (int)m_retiredBuffers.size(); }
+  static QByteArray retiredBufferName(const QRhiBuffer* buf);
+  static int retiredBufferCount() noexcept;
+  /// Advance the shared frame sequence and prune old retirements.
+  static void noteFrameCompleted() noexcept;
 
   /// True when no buffer bound by @p srb has been retired. Warns naming each
   /// offender. Reads only the binding list, never the buffer objects.
   bool checkBindingsLive(
       const QRhiShaderResourceBindings& srb, const char* where) const noexcept;
+
+  /// Same question without the warning or the counter: for callers that are
+  /// about to repair the binding rather than report it.
+  static bool hasRetiredBinding(const QRhiShaderResourceBindings& srb) noexcept;
 
   /// True when SCORE_GFX_STRICT_BINDINGS is set: a failed liveness check then
   /// throws instead of only warning.
@@ -414,12 +407,7 @@ public:
       const noexcept;
 
 private:
-  struct RetiredBuffer
-  {
-    QByteArray name;
-    int64_t frame{};
-  };
-  ossia::flat_map<const QRhiBuffer*, RetiredBuffer> m_retiredBuffers;
+
 
   void renderImpl(QRhiCommandBuffer& commands, bool force);
 

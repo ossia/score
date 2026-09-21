@@ -893,18 +893,6 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
 {
   bool buffersChanged = false;
 
-  // Same rule as the geometry bindings: a retired buffer is dead whoever
-  // allocated it, and the slot must be cleared before the resize-or-adopt
-  // decisions below, which treat a null buffer as absent.
-  for(auto& storageBuffer : m_storageBuffers)
-  {
-    if(storageBuffer.buffer && renderer.isRetiringBuffer(storageBuffer.buffer))
-    {
-      storageBuffer.buffer = nullptr;
-      storageBuffer.owned = true;
-    }
-  }
-
   // Check each storage buffer to see if it needs resizing
   for(auto& storageBuffer : m_storageBuffers)
   {
@@ -1103,52 +1091,6 @@ void RenderedCSFNode::updateGeometryBindings(
         }
       }
       pre_idx++;
-    }
-  }
-
-  // Pre-pass: forget every borrowed pointer whose owner has retired it.
-  //
-  // A buffer adopted from another node stops being one the moment that node
-  // releases it, but nothing tells this node: the pointer keeps its value, so
-  // the shader-resource-binding hash is unchanged and the bindings are never
-  // rebuilt. It binds freed memory until the allocator hands the page out and
-  // Qt dereferences it looking for the owning QRhi -- which is the crash, and
-  // why it only shows up on some runs.
-  //
-  // Clearing the slot here, before the allocate-or-adopt decisions below, is
-  // enough: they treat a null buffer as absent and either re-adopt the current
-  // upstream handle or allocate a fresh one. Both halves of a ping-pong pair
-  // are checked; the read half is the one that outlives its owner when a
-  // producer swaps its pair.
-  for(auto& binding : m_geometryBindings)
-  {
-    for(auto& ssbo : binding.attribute_ssbos)
-    {
-      // Not conditioned on `owned`: a retired buffer is dead whoever allocated
-      // it. The flag only says who is responsible for freeing it, and that has
-      // already happened -- clearing the slot must not release it again.
-      if(ssbo.buffer && renderer.isRetiringBuffer(ssbo.buffer))
-      {
-        ssbo.buffer = nullptr;
-        ssbo.owned = true;
-        ssbo.size = 0;
-      }
-      if(ssbo.read_buffer && renderer.isRetiringBuffer(ssbo.read_buffer))
-      {
-        ssbo.read_buffer = nullptr;
-        ssbo.read_buffer_is_snapshot = false;
-      }
-    }
-    for(auto& aux : binding.auxiliary_ssbos)
-    {
-      if(aux.buffer && renderer.isRetiringBuffer(aux.buffer))
-      {
-        aux.buffer = nullptr;
-        aux.owned = true;
-        aux.size = 0;
-      }
-      if(aux.read_buffer && renderer.isRetiringBuffer(aux.read_buffer))
-        aux.read_buffer = nullptr;
     }
   }
 
@@ -5438,6 +5380,11 @@ void RenderedCSFNode::runInitialPasses(
     // Warn always; throw only under SCORE_GFX_STRICT_BINDINGS, so the check
     // diagnoses without changing control flow in a render loop. Tests set it
     // to turn the intermittent segfault into a deterministic failure.
+    //
+    // Skipping the dispatch here instead was tried and is worse: dropping the
+    // pass costs the frame outright, and volumetric-lights-june-2026 went from
+    // 5 frames in 8 to 1 in 5. The repair has to happen before the bindings
+    // are submitted, not at the point of submission.
     if(!renderer.checkBindingsLive(*pass.srb, "CSF compute pass")
        && RenderList::strictBindingsEnabled())
       throw std::runtime_error("CSF compute pass binds a retired buffer");
