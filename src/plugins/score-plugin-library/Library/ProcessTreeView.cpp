@@ -30,6 +30,19 @@ Library::ProcessData* ProcessTreeView::dataFromViewIndex(QModelIndex idx)
   return data;
 }
 
+void ProcessTreeView::reselect()
+{
+  if(auto* sm = selectionModel(); sm && !sm->selectedIndexes().isEmpty())
+  {
+    if(auto* data = dataFromViewIndex(sm->selectedIndexes().front()))
+    {
+      selected(*data);
+      return;
+    }
+  }
+  selected({});
+}
+
 void ProcessTreeView::selectionChanged(
     const QItemSelection& sel, const QItemSelection& desel)
 {

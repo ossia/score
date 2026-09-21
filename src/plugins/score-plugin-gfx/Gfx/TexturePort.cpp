@@ -1,3 +1,4 @@
+#include <Process/PreviewSettings.hpp>
 #include "TexturePort.hpp"
 
 #include "GfxDevice.hpp"
@@ -52,7 +53,7 @@ public:
     m_rhiWidget->setMaximumHeight(200);
     layout()->addWidget(m_rhiWidget);
 
-    m_enabled = ApplicationPlugin::g_shader_preview_enabled;
+    m_enabled = Process::PreviewSettings::instance().enabled();
     if(m_enabled)
       m_rhiWidget->useContext(m_ctx, outlet.graphicsPort());
     else
@@ -71,7 +72,7 @@ public:
     if(!outlet_p || !m_rhiWidget)
       return;
 
-    if(const bool on = ApplicationPlugin::g_shader_preview_enabled && !m_ctx.isNull();
+    if(const bool on = Process::PreviewSettings::instance().enabled() && !m_ctx.isNull();
        on != m_enabled)
     {
       m_enabled = on;

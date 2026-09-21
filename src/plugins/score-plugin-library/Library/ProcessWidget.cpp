@@ -1,6 +1,7 @@
 #include "ProcessWidget.hpp"
 
 #include <Process/ApplicationPlugin.hpp>
+#include <Process/PreviewSettings.hpp>
 #include <Process/ProcessList.hpp>
 
 #include <Library/ItemModelFilterLineEdit.hpp>
@@ -187,6 +188,11 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
     m_preview.setLayout(previewLay);
     m_preview.hide();
   }
+
+  // Turning previews off has to reach the thumbnail already on screen, not
+  // wait for the next selection.
+  con(Process::PreviewSettings::instance(), &Process::PreviewSettings::enabledChanged,
+      this, [this](bool) { m_tv.reselect(); });
 
   auto infoWidg = new InfoWidget{this};
   score::setHelp(infoWidg, statusTip());
