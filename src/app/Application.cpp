@@ -593,7 +593,9 @@ void Application::createStartScreen()
   });
   connect(m_startScreen, &score::StartScreen::openFileDialog, this, [this, settle] {
     m_startScreen->hide();
-    settle(m_presenter->documentManager().loadFile(m_presenter->applicationContext()));
+    // Not settle(loadFile(...)): the web file dialog answers through onDone.
+    m_presenter->documentManager().loadFile(
+        m_presenter->applicationContext(), settle);
   });
   connect(
       m_startScreen, &score::StartScreen::openTemplate, this,
