@@ -11,6 +11,8 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 
+#include <limits>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::QGraphicsMultiSliderXY);
 
@@ -26,6 +28,45 @@ score::QGraphicsMultiSliderXY::QGraphicsMultiSliderXY(QGraphicsItem* parent)
 void score::QGraphicsMultiSliderXY::setPoint(const QPointF& r)
 {
   SCORE_TODO;
+}
+
+static constexpr double cursorPickMargin = 4.;
+
+QRectF
+score::QGraphicsMultiSliderXY::cursorRect(const ossia::vec2f& cursor) const noexcept
+{
+  return QRectF{
+      (cursor[0] - cursorSize.x / 2) * width(),
+      (1 - cursor[1] - cursorSize.y / 2) * height(), cursorSize.x * width(),
+      cursorSize.y * height()};
+}
+
+QRectF
+score::QGraphicsMultiSliderXY::cursorPickRect(const ossia::vec2f& cursor) const noexcept
+{
+  return cursorRect(cursor).adjusted(
+      -cursorPickMargin, -cursorPickMargin, cursorPickMargin, cursorPickMargin);
+}
+
+int score::QGraphicsMultiSliderXY::cursorAt(QPointF p) const noexcept
+{
+  int found = -1;
+  double closest = std::numeric_limits<double>::max();
+  for (int v = 0; v < std::ssize(tab); v++)
+  {
+    const auto rect = cursorPickRect(tab[v]);
+    if (!rect.contains(p))
+      continue;
+
+    const auto d = rect.center() - p;
+    const double dist = d.x() * d.x() + d.y() * d.y();
+    if (dist < closest)
+    {
+      closest = dist;
+      found = v;
+    }
+  }
+  return found;
 }
 
 void score::QGraphicsMultiSliderXY::paint(
@@ -44,10 +85,7 @@ void score::QGraphicsMultiSliderXY::paint(
   static const QTextOption p = QTextOption{Qt::AlignCenter};
   for (const ossia::vec2f& cursor : tab)
   {
-      const auto rect = QRectF((cursor[0] - cursorSize.x / 2) * width(),
-              (1-cursor[1] - cursorSize.y / 2) * height(),
-              cursorSize.x * width(),
-              cursorSize.y * height());
+      const auto rect = cursorRect(cursor);
       painter->setPen(skin.Base4.main.pen0);
       painter->drawRect(rect);
 
@@ -103,28 +141,22 @@ void score::QGraphicsMultiSliderXY::mouseMoveEvent(QGraphicsSceneMouseEvent* eve
 
 void score::QGraphicsMultiSliderXY::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  float x = event->pos().x();
-  float y = event->pos().y();
+  const auto pos = event->pos();
 
   // If the left mouse button is pressed on an existing cursor, that cursor can be moved.
   if (event->button() & Qt::LeftButton)
   {
-    for (int v = 0; v < std::ssize(tab) ; v++)
+    if (const int v = cursorAt(pos); v >= 0)
     {
-      auto& point = tab[v];
-      if ((point[0] - 0.02f) * width() <= (float)x &&
-         (float)x <= (point[0] + 0.02f) * width() &&
-         (1-point[1] - 0.02f) * height() <= (float)y &&
-         (float)y <= (1-point[1] + 0.02f) * height())
-      {
-        m_grab = true;
-        selectedCursor = v;
-        mouseMoveEvent(event);
-        return;
-      }
+      m_grab = true;
+      selectedCursor = v;
+      mouseMoveEvent(event);
+      return;
     }
+
     // Else if the press occurs at an empty area, a new cursor will be created at that position.
-    tab.push_back(ossia::vec2f{(float)(x / width()), 1-(float)(y / width())});
+    tab.push_back(
+        ossia::vec2f{(float)(pos.x() / width()), 1 - (float)(pos.y() / height())});
     m_value = std::vector<ossia::value>(tab.begin(), tab.end());
     m_grab = true;
     selectedCursor = std::ssize(tab) - 1;
@@ -134,20 +166,12 @@ void score::QGraphicsMultiSliderXY::mousePressEvent(QGraphicsSceneMouseEvent* ev
   else if (event->button() & Qt::RightButton) //If the right mouse button is pressed over a cursor, the cursor is deleted.
   {
     m_grab = false;
-    for (int v = 0; v < std::ssize(tab); v++)
+    if (const int v = cursorAt(pos); v >= 0)
     {
-      auto& point = tab[v];
-      if ((point[0] - 0.02f) * width() <= (float)x &&
-         (float)x <= (point[0] + 0.02f) * width() &&
-         (1-point[1] - 0.02f) * height() <= (float)y &&
-         (float)y <= (1-point[1] + 0.02f) * height())
-      {
-        tab.erase(tab.begin() + v);
-        selectedCursor=-1;
-        m_value = std::vector<ossia::value>(tab.begin(), tab.end());
-        sliderMoved();
-        return;
-      }
+      tab.erase(tab.begin() + v);
+      selectedCursor = -1;
+      m_value = std::vector<ossia::value>(tab.begin(), tab.end());
+      sliderMoved();
     }
     return;
   }

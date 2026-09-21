@@ -40,6 +40,13 @@ public:
 
   halp::xy_type<float> cursorSize{0.04, 0.04};
 
+  //! Drawn box of a cursor, in item coordinates - note that y is flipped
+  QRectF cursorRect(const ossia::vec2f& cursor) const noexcept;
+  //! Drawn box grown by a small margin, so that the whole node can be grabbed
+  QRectF cursorPickRect(const ossia::vec2f& cursor) const noexcept;
+  //! Cursor under p, nearest centre first when several overlap, or -1
+  int cursorAt(QPointF p) const noexcept;
+
   int selectedCursor;
   bool isSelected;
 
