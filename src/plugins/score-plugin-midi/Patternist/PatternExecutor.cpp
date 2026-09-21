@@ -55,7 +55,12 @@ Executor::Executor(
   // Built here so that the audio thread only has to move it in.
   con(element, &Patternist::ProcessModel::patternsChanged, this,
       [this, node, &element]() {
-    in_exec([node, p = element.patterns()]() mutable { node->patterns = std::move(p); });
+    in_exec([node, p = element.patterns()]() mutable {
+      // Swap, not move: the execution queue hands the command to the GC queue
+      // once it has run, so the old list is freed on the UI thread instead of
+      // this one. Same reason midi_node::replace_notes swaps.
+      std::swap(node->patterns, p);
+    });
   });
   con(ctx.doc.execTimer, &QTimer::timeout, this, [&element, node] {
     int c = node->last;

@@ -51,6 +51,9 @@ class SCORE_PLUGIN_MIDI_EXPORT ProcessModel final : public Process::ProcessModel
   W_OBJECT(ProcessModel)
 
 public:
+  //! Upper bound on the pattern list, and the pattern port's range.
+  static const constexpr int maxPatterns = 128;
+
   PROCESS_METADATA_IMPL(Patternist::ProcessModel)
   explicit ProcessModel(
       const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
