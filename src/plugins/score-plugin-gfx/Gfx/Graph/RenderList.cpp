@@ -1,5 +1,7 @@
 
 #include <atomic>
+#include <ossia/detail/flat_map.hpp>
+#include <mutex>
 #include <Gfx/Graph/CustomMesh.hpp>
 #include <Gfx/Graph/GpuResourceRegistry.hpp>
 #include <Gfx/Graph/Mesh.hpp>
@@ -528,6 +530,70 @@ void RenderList::release()
   m_built = false;
 }
 
+// Shared across every RenderList, because a QRhiBuffer pointer is unique
+// process-wide and the producer that retires one is routinely on a different
+// render list from the consumer that still binds it. A per-list set makes the
+// check blind to exactly the cross-list case.
+//
+// Entries are stamped with a global frame sequence, advanced by every render
+// list that completes a frame: a buffer is only "retired" -- actually freed --
+// once that sequence has moved past its stamp, since deleteLater() holds the
+// object to the end of the frame that released it.
+namespace
+{
+struct RetiredBuffer
+{
+  QByteArray name;
+  uint64_t seq{};
+};
+std::mutex g_retiredMutex;
+ossia::flat_map<const QRhiBuffer*, RetiredBuffer> g_retired;
+std::atomic<uint64_t> g_frameSeq{0};
+}
+
+void RenderList::noteFrameCompleted() noexcept
+{
+  const auto seq = g_frameSeq.fetch_add(1, std::memory_order_relaxed) + 1;
+  // Bound the registry. An address freed more than a few frames ago may be
+  // handed back by the allocator, and a stale hit on a reused address would
+  // only cost a needless reallocation, but there is no reason to keep it.
+  std::lock_guard lck{g_retiredMutex};
+  for(auto it = g_retired.begin(); it != g_retired.end();)
+    it = (it->second.seq + 4 < seq) ? g_retired.erase(it) : std::next(it);
+}
+
+bool RenderList::isRetiredBuffer(const QRhiBuffer* buf) noexcept
+{
+  if(!buf)
+    return false;
+  std::lock_guard lck{g_retiredMutex};
+  auto it = g_retired.find(buf);
+  return it != g_retired.end()
+         && it->second.seq < g_frameSeq.load(std::memory_order_relaxed);
+}
+
+bool RenderList::isRetiringBuffer(const QRhiBuffer* buf) noexcept
+{
+  if(!buf)
+    return false;
+  std::lock_guard lck{g_retiredMutex};
+  return g_retired.find(buf) != g_retired.end();
+}
+
+QByteArray RenderList::retiredBufferName(const QRhiBuffer* buf)
+{
+  std::lock_guard lck{g_retiredMutex};
+  auto it = g_retired.find(buf);
+  return it != g_retired.end() ? it->second.name : QByteArray{};
+}
+
+int RenderList::retiredBufferCount() noexcept
+{
+  std::lock_guard lck{g_retiredMutex};
+  return (int)g_retired.size();
+}
+
+
 void RenderList::releaseBuffer(QRhiBuffer* buf)
 {
   if(!buf)
@@ -554,7 +620,12 @@ void RenderList::releaseBuffer(QRhiBuffer* buf)
   // by pending uploadStaticBuffer operations in the current frame's batch.
   // deleteLater() defers destruction to the next beginFrame(), ensuring
   // the GPU handle stays valid for all queued operations this frame.
-  m_retiredBuffers.insert({buf, RetiredBuffer{buf->name(), frame}});
+  {
+    std::lock_guard lck{g_retiredMutex};
+    g_retired.insert(
+        {buf,
+         RetiredBuffer{buf->name(), g_frameSeq.load(std::memory_order_relaxed)}});
+  }
   buf->deleteLater();
 }
 
@@ -573,6 +644,32 @@ bool RenderList::strictBindingsEnabled() noexcept
 {
   static const bool on = qEnvironmentVariableIsSet("SCORE_GFX_STRICT_BINDINGS");
   return on;
+}
+
+bool RenderList::hasRetiredBinding(const QRhiShaderResourceBindings& srb) noexcept
+{
+  for(auto it = srb.cbeginBindings(); it != srb.cendBindings(); ++it)
+  {
+    const auto& d
+        = *reinterpret_cast<const QRhiShaderResourceBinding::Data*>(&(*it));
+    const QRhiBuffer* b = nullptr;
+    switch(d.type)
+    {
+      case QRhiShaderResourceBinding::UniformBuffer:
+        b = d.u.ubuf.buf;
+        break;
+      case QRhiShaderResourceBinding::BufferLoad:
+      case QRhiShaderResourceBinding::BufferStore:
+      case QRhiShaderResourceBinding::BufferLoadStore:
+        b = d.u.sbuf.buf;
+        break;
+      default:
+        continue;
+    }
+    if(isRetiringBuffer(b))
+      return true;
+  }
+  return false;
 }
 
 bool RenderList::checkBindingsLive(
@@ -1093,6 +1190,7 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force) noexcept
   // counter, so a frame that aborts must still advance it or those nodes
   // never run again.
   frame++;
+  noteFrameCompleted();
 }
 
 void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
