@@ -147,6 +147,13 @@ void WindowDevice::grabTo(const QString& path) const
       QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents, 16);
       renderFrames(1);
     }
+    // A graph that only just appeared has drawn one frame, and a multi-pass
+    // chain needs several before its feedback targets hold anything. Grabbing
+    // here returns a near-black image that is not what the caller's own
+    // renderFrames() asked to settle, so give it that many more.
+    if(spun > 0 && node->shared_readback->pixelSize.width() > 0)
+      renderFrames(30);
+
     if(spun > 0 && qEnvironmentVariableIsSet("SCORE_GFX_TRACE"))
       fprintf(
           stderr, "GFX-GRAB offscreen waited %d frame(s) for the graph (%s)\n", spun,
