@@ -13,10 +13,10 @@
    id="layer1"
    inkscape:groupmode="layer"><path
      id="eye_outline"
-     d="M 5,24 C 12,13.5 36,13.5 43,24 36,34.5 12,34.5 5,24 Z"
-     style="fill:none;stroke:#f0f0f0;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" /><circle
+     d="M 3,24 C 3,24 11,10 24,10 37,10 45,24 45,24 45,24 37,38 24,38 11,38 3,24 3,24 Z"
+     style="fill:none;stroke:#f0f0f0;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" /><circle
      id="eye_pupil"
      r="5.25"
      cy="24"
      cx="24"
-     style="fill:#f0f0f0;fill-opacity:1;stroke:none" /></g></svg>
+     style="fill:none;stroke:#f0f0f0;stroke-width:3.5;stroke-opacity:1" /></g></svg>
