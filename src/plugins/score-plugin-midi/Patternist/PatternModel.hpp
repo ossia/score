@@ -9,6 +9,7 @@
 
 namespace Process
 {
+class ControlInlet;
 class ValueOutlet;
 }
 namespace Patternist
@@ -79,6 +80,8 @@ public:
   void setPatterns(const std::vector<Pattern>& n);
   const std::vector<Pattern>& patterns() const noexcept;
 
+  std::unique_ptr<Process::ControlInlet> patternSelect;
+  std::unique_ptr<Process::ControlInlet> switchQuantification;
   std::unique_ptr<Process::MidiOutlet> outlet;
   std::unique_ptr<Process::Outlet> accent;
   std::unique_ptr<Process::Outlet> slide;
