@@ -3,7 +3,7 @@
 //
 // The complaints these guard against are the ones every application with this
 // feature collects: it only matches exact names, it picks the wrong one of
-// several, and it hangs when pointed at a large drive.
+// several, and it gives up on a large drive halfway through.
 
 #include <Process/MissingFiles.hpp>
 
@@ -12,6 +12,8 @@
 #include <QTemporaryDir>
 
 #include <catch2/catch_test_macros.hpp>
+
+#include <memory>
 
 namespace
 {
@@ -37,7 +39,6 @@ TEST_CASE("The index finds files by name, at any depth", "[unit][missingfiles]")
   index.scan(root);
 
   CHECK(index.fileCount() == 2);
-  CHECK_FALSE(index.truncated());
 
   const auto kick = index.candidates("/gone/kick.wav");
   REQUIRE(kick.size() == 1);
@@ -97,7 +98,24 @@ TEST_CASE("Among several candidates, size decides", "[unit][missingfiles]")
   CHECK(sized[1] == root + "/near/kick.wav");
 }
 
-TEST_CASE("A huge folder stops rather than hangs", "[unit][missingfiles]")
+TEST_CASE("A folder is indexed in full", "[unit][missingfiles]")
+{
+  QTemporaryDir tmp;
+  REQUIRE(tmp.isValid());
+  const QString root = QFileInfo{tmp.path()}.canonicalFilePath();
+
+  for(int i = 0; i < 200; i++)
+    write_file(root + QStringLiteral("/sub%1/f%1.wav").arg(i), "x");
+
+  Process::FileIndex index;
+  index.scan(root);
+
+  // No cap: a user who points this at a big drive wants the file that is on
+  // it, not the first few thousand names.
+  CHECK(index.fileCount() == 200);
+}
+
+TEST_CASE("A cancelled search indexes nothing more", "[unit][missingfiles]")
 {
   QTemporaryDir tmp;
   REQUIRE(tmp.isValid());
@@ -106,11 +124,14 @@ TEST_CASE("A huge folder stops rather than hangs", "[unit][missingfiles]")
   for(int i = 0; i < 20; i++)
     write_file(root + QStringLiteral("/f%1.wav").arg(i), "x");
 
-  Process::FileIndex index;
-  index.scan(root, /*maxFiles=*/5);
+  auto scan = std::make_shared<Process::FileScan>(root);
+  scan->cancel();
 
-  CHECK(index.fileCount() == 5);
-  CHECK(index.truncated());
+  Process::FileIndex index;
+  index.scan(root, scan.get());
+
+  CHECK(index.fileCount() == 0);
+  CHECK(index.candidates("/gone/f3.wav").empty());
 }
 
 TEST_CASE("An empty or missing folder is not an error", "[unit][missingfiles]")

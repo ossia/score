@@ -4,17 +4,17 @@
 
 #include <core/document/Document.hpp>
 
-#include <QApplication>
 #include <QDialogButtonBox>
 #include <QFileDialog>
 #include <QFileInfo>
-#include <QGuiApplication>
+#include <QFontMetrics>
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QLabel>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QSettings>
+#include <QTimer>
 #include <QTreeWidget>
 #include <QVBoxLayout>
 
@@ -32,6 +32,10 @@ enum class MissingColumn : int
 };
 
 constexpr auto last_folder_setting = "Project/LastRelinkFolder";
+constexpr auto header_setting = "Project/MissingFilesHeader";
+
+//! Size of the missing file, when the document knows it, for ranking.
+constexpr int SizeRole = Qt::UserRole + 1;
 }
 
 MissingFilesDialog::MissingFilesDialog(score::Document& doc, QWidget* parent)
@@ -53,9 +57,17 @@ MissingFilesDialog::MissingFilesDialog(score::Document& doc, QWidget* parent)
   m_files->setAlternatingRowColors(true);
   m_files->setColumnCount(3);
   m_files->setHeaderLabels({tr("Used by"), tr("Missing file"), tr("Found at")});
-  m_files->header()->setSectionResizeMode((int)MissingColumn::File, QHeaderView::Stretch);
-  m_files->header()->setSectionResizeMode((int)MissingColumn::Found, QHeaderView::Stretch);
   lay->addWidget(m_files, 1);
+
+  // Stretched sections cannot be dragged.
+  auto* header = m_files->header();
+  header->setSectionResizeMode(QHeaderView::Interactive);
+  header->setSectionsMovable(true);
+  header->setStretchLastSection(false);
+  header->resizeSection((int)MissingColumn::Owner, 180);
+  header->resizeSection((int)MissingColumn::File, 320);
+  header->resizeSection((int)MissingColumn::Found, 320);
+  header->restoreState(QSettings{}.value(header_setting).toByteArray());
 
   auto tools = new QHBoxLayout;
   lay->addLayout(tools);
@@ -71,6 +83,25 @@ MissingFilesDialog::MissingFilesDialog(score::Document& doc, QWidget* parent)
   tools->addWidget(m_locate);
   tools->addStretch(1);
 
+  m_progressRow = new QWidget{this};
+  {
+    auto progressLayout = new QHBoxLayout{m_progressRow};
+    progressLayout->setContentsMargins(0, 0, 0, 0);
+
+    m_progress = new QLabel{m_progressRow};
+    m_progress->setTextFormat(Qt::PlainText);
+    m_progress->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+    progressLayout->addWidget(m_progress, 1);
+
+    m_cancel = new QPushButton{tr("Cancel"), m_progressRow};
+    progressLayout->addWidget(m_cancel);
+  }
+  m_progressRow->hide();
+  lay->addWidget(m_progressRow);
+
+  m_progressTimer = new QTimer{this};
+  m_progressTimer->setInterval(100);
+
   auto buttons
       = new QDialogButtonBox{QDialogButtonBox::Apply | QDialogButtonBox::Close, this};
   m_apply = buttons->button(QDialogButtonBox::Apply);
@@ -78,6 +109,10 @@ MissingFilesDialog::MissingFilesDialog(score::Document& doc, QWidget* parent)
   lay->addWidget(buttons);
 
   connect(m_search, &QPushButton::clicked, this, &MissingFilesDialog::searchFolder);
+  connect(m_cancel, &QPushButton::clicked, this, &MissingFilesDialog::cancelSearch);
+  connect(
+      m_progressTimer, &QTimer::timeout, this,
+      &MissingFilesDialog::updateSearchProgress);
   connect(m_locate, &QPushButton::clicked, this, &MissingFilesDialog::locateSelected);
   connect(m_apply, &QPushButton::clicked, this, &MissingFilesDialog::applyRelink);
   connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::close);
@@ -90,7 +125,13 @@ MissingFilesDialog::MissingFilesDialog(score::Document& doc, QWidget* parent)
   rescan();
 }
 
-MissingFilesDialog::~MissingFilesDialog() = default;
+MissingFilesDialog::~MissingFilesDialog()
+{
+  if(m_scan)
+    m_scan->cancel();
+
+  QSettings{}.setValue(header_setting, m_files->header()->saveState());
+}
 
 bool MissingFilesDialog::nothingMissing(const score::DocumentContext& ctx)
 {
@@ -115,6 +156,7 @@ void MissingFilesDialog::rescan()
   {
     auto* item = new QTreeWidgetItem{{e->owner, e->storedPath, tr("not found")}};
     item->setData((int)MissingColumn::File, Qt::UserRole, e->storedPath);
+    item->setData((int)MissingColumn::File, SizeRole, e->size);
     items.push_back(item);
   }
   m_files->addTopLevelItems(items);
@@ -170,29 +212,70 @@ void MissingFilesDialog::updateSummary()
 
 void MissingFilesDialog::searchFolder()
 {
+  if(m_scan)
+    return;
+
   const QString folder = QFileDialog::getExistingDirectory(
       this, tr("Look for the missing files in"), m_lastSearchFolder);
   if(folder.isEmpty())
     return;
 
   m_lastSearchFolder = folder;
+  m_searchRoot = folder;
   QSettings{}.setValue(last_folder_setting, folder);
 
-  FileIndex index;
-  {
-    // Indexing a large drive takes a while and gives no feedback otherwise.
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    index.scan(folder);
-    QApplication::restoreOverrideCursor();
-  }
+  m_search->setEnabled(false);
+  m_cancel->setEnabled(true);
+  m_progress->setText(tr("Searching %1...").arg(folder));
+  m_progressRow->show();
+
+  m_scan = FileScan::start(folder, this, [this](FileIndex index, bool cancelled) {
+    finishSearch(std::move(index), cancelled);
+  });
+  m_progressTimer->start();
+}
+
+void MissingFilesDialog::cancelSearch()
+{
+  if(!m_scan)
+    return;
+
+  m_scan->cancel();
+  m_cancel->setEnabled(false);
+  m_progressTimer->stop();
+  m_progress->setText(tr("Stopping..."));
+}
+
+void MissingFilesDialog::updateSearchProgress()
+{
+  if(!m_scan)
+    return;
+
+  const QString text = tr("%1 file(s) seen -- %2")
+                           .arg(m_scan->filesSeen())
+                           .arg(m_scan->currentFolder());
+
+  const int room = m_progress->width();
+  m_progress->setText(
+      room > 0 ? m_progress->fontMetrics().elidedText(text, Qt::ElideMiddle, room)
+               : text);
+}
+
+void MissingFilesDialog::finishSearch(FileIndex index, bool cancelled)
+{
+  m_progressTimer->stop();
+  m_progressRow->hide();
+  m_search->setEnabled(true);
+  m_scan.reset();
 
   int found = 0;
   for(int i = 0; i < m_files->topLevelItemCount(); i++)
   {
     auto* item = m_files->topLevelItem(i);
     const QString stored = item->data((int)MissingColumn::File, Qt::UserRole).toString();
+    const qint64 size = item->data((int)MissingColumn::File, SizeRole).toLongLong();
 
-    auto candidates = index.candidates(stored);
+    auto candidates = index.candidates(stored, size);
     if(candidates.empty())
       continue;
 
@@ -209,16 +292,11 @@ void MissingFilesDialog::searchFolder()
     ++found;
   }
 
-  if(found == 0)
+  if(found == 0 && !cancelled)
   {
     QMessageBox::information(
         this, tr("Nothing found"),
-        index.truncated()
-            ? tr("No matching file name under %1 -- and the search stopped early "
-                 "because that folder holds too many files. Try pointing it at a "
-                 "narrower folder.")
-                  .arg(folder)
-            : tr("No file with a matching name was found under %1.").arg(folder));
+        tr("No file with a matching name was found under %1.").arg(m_searchRoot));
   }
 
   updateSummary();

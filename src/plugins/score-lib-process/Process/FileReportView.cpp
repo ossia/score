@@ -2,6 +2,7 @@
 
 #include <QHeaderView>
 #include <QLocale>
+#include <QSettings>
 
 #include <algorithm>
 
@@ -41,6 +42,8 @@ QString outcomeText(const FileEntry& e)
     return e.newStoredPath;
   return toString(e.action);
 }
+
+constexpr auto header_setting = "Project/FileReportHeader";
 }
 
 FileReportView::FileReportView(QWidget* parent)
@@ -52,11 +55,22 @@ FileReportView::FileReportView(QWidget* parent)
   setColumnCount(5);
   setHeaderLabels(
       {tr("Used by"), tr("File"), tr("Action"), tr("Size"), tr("Becomes")});
-  header()->setSectionResizeMode((int)ReportColumn::File, QHeaderView::Stretch);
-  header()->setSectionResizeMode((int)ReportColumn::Becomes, QHeaderView::Stretch);
+  // Stretched sections cannot be dragged.
+  header()->setSectionResizeMode(QHeaderView::Interactive);
+  header()->setSectionsMovable(true);
+  header()->setStretchLastSection(false);
+  header()->resizeSection((int)ReportColumn::Owner, 160);
+  header()->resizeSection((int)ReportColumn::File, 260);
+  header()->resizeSection((int)ReportColumn::Type, 100);
+  header()->resizeSection((int)ReportColumn::Size, 90);
+  header()->resizeSection((int)ReportColumn::Becomes, 260);
+  header()->restoreState(QSettings{}.value(header_setting).toByteArray());
 }
 
-FileReportView::~FileReportView() = default;
+FileReportView::~FileReportView()
+{
+  QSettings{}.setValue(header_setting, header()->saveState());
+}
 
 void FileReportView::setCheckable(bool b)
 {
