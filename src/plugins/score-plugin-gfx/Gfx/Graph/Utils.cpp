@@ -408,6 +408,43 @@ void replaceTexture(
   }
 }
 
+void replaceTextureElement(
+    std::vector<QRhiShaderResourceBinding>& tmp, int binding, int element,
+    QRhiTexture* newTexture)
+{
+  if(!newTexture || element < 0)
+    return;
+  for(QRhiShaderResourceBinding& b : tmp)
+  {
+    auto d = reinterpret_cast<QRhiShaderResourceBinding::Data*>(&b);
+    if(d->binding != binding)
+      continue;
+    switch(d->type)
+    {
+      case QRhiShaderResourceBinding::Type::SampledTexture:
+      case QRhiShaderResourceBinding::Type::Texture:
+        if(element < d->u.stex.count)
+          d->u.stex.texSamplers[element].tex = newTexture;
+        break;
+      default:
+        break;
+    }
+  }
+}
+
+void replaceTextureElement(
+    QRhiShaderResourceBindings& srb, int binding, int element,
+    QRhiTexture* newTexture)
+{
+  std::vector<QRhiShaderResourceBinding> tmp;
+  tmp.assign(srb.cbeginBindings(), srb.cendBindings());
+
+  replaceTextureElement(tmp, binding, element, newTexture);
+
+  srb.setBindings(tmp.begin(), tmp.end());
+  srb.updateResources();
+}
+
 // The replace*() overloads only rewrite the resources inside an existing layout
 // -- a buffer, texture or sampler pointer in the same binding slot -- which is
 // exactly QRhi's updateResources() fast path: reuse the native descriptor set

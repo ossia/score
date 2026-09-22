@@ -526,6 +526,24 @@ void replaceTexture(
     std::vector<QRhiShaderResourceBinding>&, int binding, QRhiTexture* newTexture);
 
 /**
+ * @brief Replace one element of a multi-element texture binding.
+ *
+ * The other replaceTexture overloads only ever touch texSamplers[0], which is
+ * all a combined `sampledTexture` binding has. A ladder collapsed by
+ * isf_group_auxiliary_texture_ladders binds N textures under one slot through
+ * QRhiShaderResourceBinding::textures(), so each rung has to be addressed by
+ * its element index. Out-of-range elements and null textures are ignored,
+ * matching the single-element overload's refusal to write a null.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+void replaceTextureElement(
+    std::vector<QRhiShaderResourceBinding>&, int binding, int element,
+    QRhiTexture* newTexture);
+SCORE_PLUGIN_GFX_EXPORT
+void replaceTextureElement(
+    QRhiShaderResourceBindings&, int binding, int element, QRhiTexture* newTexture);
+
+/**
  * @brief Replace a sampler.
  */
 SCORE_PLUGIN_GFX_EXPORT

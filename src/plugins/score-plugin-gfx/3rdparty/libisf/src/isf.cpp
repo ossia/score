@@ -1058,6 +1058,86 @@ static void parse_auxiliary_texture(
   }
 }
 
+// N combined bindings become one texture array plus one sampler, so bindings
+// break even at 2 and sampler slots -- the tighter budget on Metal, 16 per
+// stage -- start saving there too. The material channels ScenePreprocessor
+// emits are 16 wide; its dynamic slots come in pairs.
+static constexpr std::size_t isf_min_ladder = 2;
+
+static bool isf_is_comparison_sampler(const sampler_config& s);
+
+// Stamp ladder_base / ladder_index / ladder_size on runs of sampled auxiliary
+// textures whose names differ only by a trailing index starting at 0 and whose
+// shape and sampler config match. See auxiliary_texture_request::ladder_base.
+static void isf_group_auxiliary_texture_ladders(
+    std::vector<geometry_input::auxiliary_texture_request>& textures)
+{
+  const auto strip_index = [](const std::string& n) -> std::pair<std::string, int> {
+    std::size_t k = n.size();
+    while(k > 0 && n[k - 1] >= '0' && n[k - 1] <= '9')
+      k--;
+    if(k == 0 || k == n.size())
+      return {{}, -1};
+    // A leading zero makes "<base>01" and "<base>1" collide on the same rung.
+    if(n.size() - k > 1 && n[k] == '0')
+      return {{}, -1};
+    int idx{};
+    const auto [end, ec] = std::from_chars(n.data() + k, n.data() + n.size(), idx);
+    if(ec != std::errc{} || end != n.data() + n.size())
+      return {{}, -1};
+    return {n.substr(0, k), idx};
+  };
+
+  const auto same_shape = [](const geometry_input::auxiliary_texture_request& a,
+                             const geometry_input::auxiliary_texture_request& b) {
+    return a.dimensions == b.dimensions && a.is_array == b.is_array
+           && a.is_cubemap == b.is_cubemap && a.is_depth == b.is_depth
+           && a.sampler == b.sampler;
+  };
+
+  std::size_t i = 0;
+  while(i < textures.size())
+  {
+    // is_depth is excluded: those entries emit a paired <name>_depth sampler,
+    // which has no place in an array binding. A comparison sampler is excluded
+    // too: its combined type is sampler*Shadow, whose separated form needs
+    // samplerShadow, and every such entry in the tree is a singleton anyway.
+    auto [base, idx] = strip_index(textures[i].name);
+    if(textures[i].is_storage || textures[i].is_depth || base.empty() || idx != 0
+       || isf_is_comparison_sampler(textures[i].sampler))
+    {
+      i++;
+      continue;
+    }
+
+    std::size_t run = 1;
+    while(i + run < textures.size())
+    {
+      const auto& nxt = textures[i + run];
+      if(nxt.is_storage || !same_shape(textures[i], nxt))
+        break;
+      auto [nbase, nidx] = strip_index(nxt.name);
+      if(nbase != base || nidx != (int)run)
+        break;
+      run++;
+    }
+
+    if(run < isf_min_ladder)
+    {
+      i++;
+      continue;
+    }
+
+    for(std::size_t k = 0; k < run; k++)
+    {
+      textures[i + k].ladder_base = base;
+      textures[i + k].ladder_index = (int)k;
+      textures[i + k].ladder_size = (int)run;
+    }
+    i += run;
+  }
+}
+
 // Parse an AUXILIARY JSON array, dispatching each entry by TYPE into
 // either the buffer list or the texture list.
 // Shared by geometry_input parsing and top-level AUXILIARY key.
@@ -2448,6 +2528,7 @@ static const ossia::string_map<root_fun>& root_parse{[] {
   // "texture" / "cubemap" / "image_cube") land in d.auxiliary_textures.
   p.insert({"AUXILIARY", [](descriptor& d, const sajson::value& v) {
     parse_auxiliary_array(v, d.auxiliary, d.auxiliary_textures);
+    isf_group_auxiliary_texture_ladders(d.auxiliary_textures);
   }});
 
   // Add RESOURCES parsing for CSF (which can contain both inputs and resources)
@@ -4593,6 +4674,39 @@ void parser::parse_raw_raster_pipeline()
           sampler_type = cmp ? "sampler2DArrayShadow" : "sampler2DArray";
         else
           sampler_type = cmp ? "sampler2DShadow" : "sampler2D";
+
+        // A ladder collapses into a `texture<shape> <base>_tex[N]` array plus
+        // one shared `sampler <base>_smp`: two bindings for N rungs instead of
+        // N, and -- because Metal charges a sampler slot per ARRAY ELEMENT of a
+        // combined binding (qrhimetal.mm, samplerBinding + elem) -- one sampler
+        // slot instead of N.
+        //
+        // No per-rung alias is emitted. The combined value can only be rebuilt
+        // with sampler<shape>(tex, smp) AT THE POINT OF USE -- glslang rejects
+        // a sampler constructor passed as a call argument -- so a rung handed
+        // to a helper has to travel as the pair, and a macro hiding that would
+        // have to expand differently per call shape. Shaders name the two
+        // halves directly; a ladder shader that has not been updated fails to
+        // compile on the rung name, which is the intended loud failure.
+        if(atx.in_ladder())
+        {
+          if(atx.owns_ladder())
+          {
+            const char* texture_type = "texture2D";
+            if(atx.is_cubemap)           texture_type = "textureCube";
+            else if(atx.dimensions == 3) texture_type = "texture3D";
+            else if(atx.is_array)        texture_type = "texture2DArray";
+
+            aux_tex_decls += "layout(binding = " + std::to_string(sampler_binding)
+                             + ") uniform " + texture_type + " " + atx.ladder_base
+                             + "_tex[" + std::to_string(atx.ladder_size) + "];\n";
+            sampler_binding++;
+            aux_tex_decls += "layout(binding = " + std::to_string(sampler_binding)
+                             + ") uniform sampler " + atx.ladder_base + "_smp;\n";
+            sampler_binding++;
+          }
+          continue;
+        }
 
         aux_tex_decls += "layout(binding = " + std::to_string(sampler_binding)
                          + ") uniform " + sampler_type + " " + atx.name + ";\n";

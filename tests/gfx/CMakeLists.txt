@@ -341,6 +341,22 @@ score_add_test(test_gfx_shader_include_path
 target_include_directories(test_gfx_shader_include_path PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-library")
 
+# Collapsing a run of material-texture auxiliaries into one array binding plus
+# a shared sampler. Parser-level, so no device and no display: the assertions
+# are on the descriptor, on the emitted GLSL, and on whether the separated
+# texture/sampler form still bakes for all five backends.
+score_add_test(test_gfx_aux_texture_ladder
+  SOURCES GfxAuxTextureLadder.cpp
+  PLUGINS score_plugin_gfx score_lib_process
+  LIBS test_gfx_engine_glue)
+# Static builds interlink every plugin through the global registry, so linking
+# score_plugin_gfx alone leaves the other plugins' registration symbols
+# unresolved. score_add_test only links the whole list for GUI/APP tests, and
+# this one is neither. No-op on dynamic-plugin builds.
+score_link_plugins_for_static(test_gfx_aux_texture_ladder)
+target_compile_definitions(test_gfx_aux_texture_ladder PRIVATE
+  GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+
 # The same gate, read off the baked shader rather than off the picture. The one
 # above can only judge a backend this machine brings up, and the wrong gate was
 # invisible on both of the two that Linux brings up; this one resolves all five
