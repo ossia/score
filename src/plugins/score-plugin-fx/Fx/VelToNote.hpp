@@ -9,6 +9,7 @@
 #include <ossia/dataflow/value_port.hpp>
 
 #include <halp/controls.hpp>
+#include <halp/layout.hpp>
 #include <halp/meta.hpp>
 #include <libremidi/message.hpp>
 
@@ -165,7 +166,7 @@ struct Node
       "when limit duration is on, max duration caps the hold exactly. "
       "Tightness blends from immediate (0) to the next grid point (1).")
 
-  struct
+  struct ins
   {
     // Existing port order is retained. New controls are appended, not inserted.
     ossia_port<"in", ossia::value_port, true> port{};
@@ -191,6 +192,91 @@ struct Node
   {
     midi_out midi;
   } outputs;
+
+  // Layout only: the port list above is what gets serialized, and this struct
+  // does not take part in it. Grouped by the question being answered: when does
+  // a note start and end, what note is it, how long is it held.
+  struct ui
+  {
+    halp_meta(name, "Pulse to Midi")
+    halp_meta(layout, halp::layouts::tabs)
+    halp_meta(background, halp::colors::background_mid)
+
+    struct
+    {
+      halp_meta(name, "Timing")
+      halp_meta(layout, halp::layouts::hbox)
+
+      struct
+      {
+        halp_meta(name, "Grid")
+        halp_meta(layout, halp::layouts::vbox)
+        halp::item<&ins::start_quant> start_quant;
+        halp::item<&ins::end_quant> end_quant;
+      } grid;
+
+      halp::spacing sp{.width = 12, .height = 1};
+
+      struct
+      {
+        halp_meta(name, "Feel")
+        halp_meta(layout, halp::layouts::vbox)
+        halp::item<&ins::tightness> tightness;
+      } feel;
+    } timing;
+
+    struct
+    {
+      halp_meta(name, "Note")
+      halp_meta(layout, halp::layouts::hbox)
+
+      struct
+      {
+        halp_meta(name, "Defaults")
+        halp_meta(layout, halp::layouts::vbox)
+        halp::item<&ins::basenote> basenote;
+        halp::item<&ins::basevel> basevel;
+        halp::item<&ins::channel> channel;
+      } defaults;
+
+      halp::spacing sp{.width = 12, .height = 1};
+
+      struct
+      {
+        halp_meta(name, "Variation")
+        halp_meta(layout, halp::layouts::vbox)
+        halp::item<&ins::shift_note> shift_note;
+        halp::item<&ins::note_random> note_random;
+        halp::item<&ins::vel_random> vel_random;
+        halp::item<&ins::pitch_direction> pitch_direction;
+      } variation;
+    } note;
+
+    struct
+    {
+      halp_meta(name, "Duration")
+      halp_meta(layout, halp::layouts::hbox)
+
+      struct
+      {
+        halp_meta(name, "Mode")
+        halp_meta(layout, halp::layouts::vbox)
+        halp::item<&ins::fixed_duration> fixed_duration;
+        halp::item<&ins::duration> duration;
+      } mode;
+
+      halp::spacing sp{.width = 12, .height = 1};
+
+      struct
+      {
+        halp_meta(name, "Bounds")
+        halp_meta(layout, halp::layouts::vbox)
+        halp::item<&ins::min_duration> min_duration;
+        halp::item<&ins::limit_duration> limit_duration;
+        halp::item<&ins::max_duration> max_duration;
+      } bounds;
+    } duration;
+  };
 
   // score's Crousti::Executor injects this member. A native token plus the
   // facade gives the EXACT executed sample span, including partial callbacks.
