@@ -393,6 +393,12 @@ score_add_test(test_integration_device_address_edit
   GUI
   PLUGINS score_plugin_deviceexplorer score_lib_device score_plugin_scenario)
 
+# Learning an OSC namespace: the value type each learned address ends up with.
+score_add_test(test_integration_osc_learn_value_type
+  SOURCES OscLearnValueTypeTest.cpp
+  GUI
+  PLUGINS score_plugin_deviceexplorer score_lib_device score_plugin_protocols score_plugin_scenario)
+
 # How the value editors render inside a tree row: fitting the row, covering
 # the cell. Writes a PNG per editor to $SCORE_TEST_SHOT_DIR.
 score_add_test(test_integration_explorer_editor_look
