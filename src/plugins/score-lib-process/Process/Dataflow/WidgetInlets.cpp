@@ -858,6 +858,9 @@ void ImpulseButton::setupExecution(
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.type = ossia::val_type::IMPULSE;
   port.domain = domain().get();
+  // A bang happens, it is not a state: an address mapped here delivers what it
+  // received, instead of having its current value copied in on every tick.
+  port.is_event = true;
 }
 
 ImpulseButton::~ImpulseButton() { }

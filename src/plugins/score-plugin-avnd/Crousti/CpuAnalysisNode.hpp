@@ -15,7 +15,7 @@ struct GfxRenderer<Node_T> final
     , GpuRendererFiles<Node_T>
 {
   std::shared_ptr<Node_T> state;
-  score::gfx::Message m_last_message{};
+  GpuMessageState m_last_message{};
   ossia::time_value m_last_time{-1};
 
   AVND_NO_UNIQUE_ADDRESS texture_inputs_storage<Node_T> texture_ins;
@@ -193,9 +193,9 @@ struct GfxRenderer<Node_T> final
     rhi.finish();
 
     // If we are paused, we don't run the processor implementation.
-    if(parent.last_message.token.date == m_last_time)
+    if(parent.last_message.message.token.date == m_last_time)
       return;
-    m_last_time = parent.last_message.token.date;
+    m_last_time = parent.last_message.message.token.date;
 
     if constexpr(avnd::texture_input_introspection<Node_T>::size > 0)
       texture_ins.runInitialPasses(*this, rhi);

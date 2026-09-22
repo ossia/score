@@ -55,7 +55,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
   using texture_inputs = avnd::gpu_image_input_introspection<Node_T>;
   using texture_outputs = avnd::gpu_image_output_introspection<Node_T>;
   std::shared_ptr<Node_T> state;
-  score::gfx::Message m_last_message{};
+  GpuMessageState m_last_message{};
   ossia::small_flat_map<const score::gfx::Port*, score::gfx::TextureRenderTarget, 2>
       m_rts;
 
@@ -430,10 +430,10 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
   {
     auto& parent = node();
     // If we are paused, we don't run the processor implementation.
-    // if(parent.last_message.token.date == m_last_time) {
+    // if(parent.last_message.message.token.date == m_last_time) {
     //   return;
     // }
-    // m_last_time = parent.last_message.token.date;
+    // m_last_time = parent.last_message.message.token.date;
 
     // Apply the controls
     parent.processControlIn(

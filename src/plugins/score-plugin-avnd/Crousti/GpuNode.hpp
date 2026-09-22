@@ -22,7 +22,7 @@ struct CustomGpuRenderer final
   using texture_inputs = avnd::texture_input_introspection<Node_T>;
   using texture_outputs = avnd::texture_output_introspection<Node_T>;
   std::vector<std::shared_ptr<Node_T>> states;
-  score::gfx::Message m_last_message{};
+  GpuMessageState m_last_message{};
   ossia::small_flat_map<const score::gfx::Port*, score::gfx::TextureRenderTarget, 2>
       m_rts;
 
@@ -470,11 +470,11 @@ struct CustomGpuRenderer final
   {
     auto& parent = node();
     // If we are paused, we don't run the processor implementation.
-    if(parent.last_message.token.date == m_last_time)
+    if(parent.last_message.message.token.date == m_last_time)
     {
       return;
     }
-    m_last_time = parent.last_message.token.date;
+    m_last_time = parent.last_message.message.token.date;
 
     // Apply the controls
     for(auto& state : states)

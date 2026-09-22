@@ -1065,3 +1065,174 @@ TEST_CASE("a Crousti texture sink renders on the graph's backend", "[gfx][croust
   if(skipped)
     SKIP(std::string{"backend unavailable: "} + backend_name(api));
 }
+
+// =============================================================================
+// A one-shot control on a node of the graphics graph.
+//
+// The execution engine's messages are sticky: CustomGfxNodeBase::process keeps
+// the last value seen on every input, so a renderer that draws slower than the
+// engine ticks still reads a control that arrived between two frames. An
+// impulse is not a value that stays: it has to reach the object once per bang,
+// and a "Regenerate"-style button whose update() rebuilds a mesh is the case
+// where firing it again on the next frame is not a detail.
+// =============================================================================
+namespace
+{
+struct ImpulseProbe
+{
+  static inline std::atomic<int> bangs{0};
+  static inline std::atomic<int> sliderUpdates{0};
+  static inline std::atomic<int> runs{0};
+
+  halp_meta(name, "Test Impulse Probe")
+  halp_meta(c_name, "test_impulse_probe")
+  halp_meta(category, "Visuals")
+  halp_meta(author, "test")
+  halp_meta(uuid, "0d8a6a6e-2f1b-4f6e-8d25-6c91ba3ef104")
+
+  struct
+  {
+    halp::texture_input<"In"> image;
+
+    struct : halp::hslider_f32<"Slider">
+    {
+      void update(ImpulseProbe&) { sliderUpdates.fetch_add(1); }
+    } slider;
+
+    struct : halp::impulse_button<"Bang">
+    {
+      void update(ImpulseProbe&) { bangs.fetch_add(1); }
+    } bang;
+  } inputs;
+
+  struct
+  {
+    halp::val_port<"Out", float> out;
+  } outputs;
+
+  void operator()() { runs.fetch_add(1); }
+};
+
+//! One control message, as gfx_exec_node sends it: every input has a slot, only
+//! the ones that received something this tick carry a value.
+void sendControl(score::gfx::Node& n, std::size_t index, ossia::value v)
+{
+  score::gfx::Message m;
+  m.node_id = n.nodeId;
+  m.input.resize(3);
+  m.input[index] = std::move(v);
+  n.process(std::move(m));
+}
+}
+
+TEST_CASE(
+    "an impulse control of a graphics node fires once per bang",
+    "[gfx][crousti][control]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+
+  ImpulseProbe::bangs.store(0);
+  ImpulseProbe::sliderUpdates.store(0);
+  ImpulseProbe::runs.store(0);
+
+  bool skipped = false;
+  std::string err, backend;
+  int bangsBeforeBang = -1, bangsAfterBang = -1, bangsAfterIdle = -1;
+  int bangsAfterSecond = -1;
+  int slidersAfterSet = -1, slidersAfterIdle = -1;
+  int runsAfterIdle = -1;
+
+  run_in_gui_app([&](const score::GUIApplicationContext& app) {
+    auto* doc = score::test::new_document(app);
+    if(!doc)
+    {
+      err = "no document";
+      return;
+    }
+    HalpProcesses procs;
+    GfxPipeline p;
+
+    const int prod = p.addIsf(corpus("isf-solid-color.fs"));
+    if(prod < 0)
+    {
+      err = "producer build failed: " + p.error();
+      return;
+    }
+
+    auto probeOwned = procs.make<ImpulseProbe>(doc->context());
+    auto* probe = static_cast<score::gfx::OutputNode*>(probeOwned.get());
+    auto* probeNode = probeOwned.get();
+    const int pi = p.addNode(std::move(probeOwned));
+
+    score::gfx::Port* ain = nullptr;
+    for(auto* ip : p.node(pi)->input)
+      if(ip->type == score::gfx::Types::Image)
+      {
+        ain = ip;
+        break;
+      }
+    if(!ain)
+    {
+      err = "probe node exposes no image input";
+      return;
+    }
+    p.wire(p.imageOut(prod, 0), ain);
+
+    if(!p.create(api))
+    {
+      skipped = p.skipped();
+      err = p.error();
+      backend = p.backend();
+      return;
+    }
+    backend = p.backend();
+
+    auto frames = [&](int n) {
+      for(int f = 0; f < n; ++f)
+      {
+        p.render(1);
+        probe->render();
+      }
+    };
+
+    frames(3);
+    bangsBeforeBang = ImpulseProbe::bangs.load();
+
+    sendControl(*probeNode, 1, ossia::value{0.5f});
+    frames(1);
+    slidersAfterSet = ImpulseProbe::sliderUpdates.load();
+
+    sendControl(*probeNode, 2, ossia::value{ossia::impulse{}});
+    frames(1);
+    bangsAfterBang = ImpulseProbe::bangs.load();
+
+    frames(5);
+    bangsAfterIdle = ImpulseProbe::bangs.load();
+    slidersAfterIdle = ImpulseProbe::sliderUpdates.load();
+    runsAfterIdle = ImpulseProbe::runs.load();
+
+    sendControl(*probeNode, 2, ossia::value{ossia::impulse{}});
+    frames(3);
+    bangsAfterSecond = ImpulseProbe::bangs.load();
+  });
+
+  if(skipped)
+    SKIP(backend << ": backend unavailable");
+  INFO("backend=" << backend << " error: " << err);
+  REQUIRE(err.empty());
+
+  // The processor did run: without this the counters below are all trivially 0.
+  CHECK(runsAfterIdle > 1);
+
+  CHECK(bangsBeforeBang == 0);
+  CHECK(bangsAfterBang == 1);
+  // The message keeps the value between frames; a bang is still worth one
+  // application, however many frames read it.
+  CHECK(bangsAfterIdle == 1);
+  CHECK(bangsAfterSecond == 2);
+
+  // A slider is a state, not an event: it is applied when it changes and not
+  // once per frame.
+  CHECK(slidersAfterSet == 1);
+  CHECK(slidersAfterIdle == 1);
+}
