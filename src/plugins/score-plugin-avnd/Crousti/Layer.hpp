@@ -202,25 +202,21 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
 
   typename Info::ui* rootUi{};
 
-  template <typename Item>
+  //! Port_T is Process::ControlInlet or Process::ControlOutlet: a control a
+  //! layout names is set up the same way whichever side it is on, the widget
+  //! following the port's value.
+  template <typename Port_T, typename Item>
   void setupControl(
-      QGraphicsItem* parent, Process::ControlOutlet* inl,
-      const Process::ControlLayout& lay, Item& item)
-      = delete; // TODO
-
-  template <typename Item>
-  void setupControl(
-      QGraphicsItem* parent, Process::ControlInlet* inl,
-      const Process::ControlLayout& lay, Item& item)
+      QGraphicsItem* parent, Port_T* port, const Process::ControlLayout& lay, Item& item)
   {
     if constexpr(requires { sizeof(Item::value); })
     {
       using avnd_port_type = pmf_member_type_t<decltype(item.model)>;
-      SetGUIValue<avnd_port_type>{doc}(inl->value(), item.value);
+      SetGUIValue<avnd_port_type>{doc}(port->value(), item.value);
       if constexpr(requires { rootUi->on_control_update(); })
       {
         QObject::connect(
-            inl, &Process::ControlInlet::valueChanged, &context,
+            port, &Port_T::valueChanged, &context,
             [rui = rootUi, layout = this->layout, &item,
              &ctx = static_cast<const score::DocumentContext&>(this->doc)](
                 const ossia::value& v) {
@@ -233,7 +229,7 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
       else
       {
         QObject::connect(
-            inl, &Process::ControlInlet::valueChanged, &context,
+            port, &Port_T::valueChanged, &context,
             [layout = this->layout, &item,
              &ctx = static_cast<const score::DocumentContext&>(this->doc)](
                 const ossia::value& v) {
@@ -244,9 +240,9 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
 
       if constexpr(requires { item.set = {}; })
       {
-        item.set = [inl, &ctx = static_cast<const score::DocumentContext&>(this->doc)](
+        item.set = [port, &ctx = static_cast<const score::DocumentContext&>(this->doc)](
                        const auto& val) {
-          inl->setValue(GetGUIValue<avnd_port_type>{ctx}(oscr::to_ossia_value(val)));
+          port->setValue(GetGUIValue<avnd_port_type>{ctx}(oscr::to_ossia_value(val)));
         };
       }
     }
