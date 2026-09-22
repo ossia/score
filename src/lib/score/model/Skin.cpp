@@ -980,6 +980,20 @@ QJsonObject Skin::toJson() const
   return obj;
 }
 
+QJsonObject Skin::merged(const QJsonObject& base, const QJsonObject& over)
+{
+  QJsonObject res = base;
+  for(auto it = over.begin(); it != over.end(); ++it)
+  {
+    const QString key = it.key();
+    if(it->isObject() && res[key].isObject())
+      res[key] = merged(res[key].toObject(), it->toObject());
+    else
+      res[key] = *it;
+  }
+  return res;
+}
+
 QVector<QPair<QColor, QString>> Skin::getColors() const
 {
   QVector<QPair<QColor, QString>> vec;

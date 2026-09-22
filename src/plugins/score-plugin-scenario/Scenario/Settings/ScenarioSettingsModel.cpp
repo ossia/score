@@ -121,6 +121,28 @@ QString Model::getSkin() const
   return m_Skin;
 }
 
+static QJsonObject readSkinFile(const QString& skin)
+{
+  QFile f(skin);
+  if(skin.isEmpty() || skin == "Default" || !f.exists())
+    f.setFileName(":/skin/DefaultSkin.json");
+
+  if(!f.open(QFile::ReadOnly))
+  {
+    qDebug() << "could not open" << f.fileName();
+    return {};
+  }
+
+  QJsonParseError err;
+  const auto doc = QJsonDocument::fromJson(score::mapAsByteArray(f), &err);
+  if(err.error)
+  {
+    qDebug() << "could not load skin : " << err.errorString() << err.offset;
+    return {};
+  }
+  return doc.object();
+}
+
 void Model::initSkin(const QString& skin)
 {
   m_Skin = skin;
@@ -128,28 +150,19 @@ void Model::initSkin(const QString& skin)
   if(!score::AppContext().applicationSettings.gui)
     return;
 
-  QFile f(skin);
-  if(skin.isEmpty() || skin == "Default" || !f.exists())
-    f.setFileName(":/skin/DefaultSkin.json");
-
-  if(f.open(QFile::ReadOnly))
+  const auto state = SkinEditorWidget::savedState();
+  if(state.isEmpty())
   {
-    QJsonParseError err;
-    auto doc = QJsonDocument::fromJson(score::mapAsByteArray(f), &err);
-    if(err.error)
-    {
-      qDebug() << "could not load skin : " << err.errorString() << err.offset;
-    }
-    else
-    {
-      // Only the halves the user asked for: switching skin to try a palette
-      // should not have to bring its fonts along, or the other way round.
-      score::Skin::instance().load(doc.object(), SkinEditorWidget::selectedParts());
-    }
+    // Settings from before the resolved state was kept: apply the file the
+    // way they meant it, then record what that gives.
+    score::Skin::instance().load(readSkinFile(skin), SkinEditorWidget::selectedParts());
+    SkinEditorWidget::saveState();
   }
   else
   {
-    qDebug() << "could not open" << f.fileName();
+    // The settings hold what is in force; the file is where it came from and
+    // supplies anything they do not name.
+    score::Skin::instance().load(score::Skin::merged(readSkinFile(skin), state));
   }
 
   SkinChanged(skin);
@@ -160,7 +173,18 @@ void Model::setSkin(const QString& skin)
   if(m_Skin == skin)
     return;
 
-  initSkin(skin);
+  m_Skin = skin;
+
+  if(score::AppContext().applicationSettings.gui)
+  {
+    // Only the halves the user asked for: switching skin to try a palette
+    // should not have to bring its fonts along, or the other way round. What
+    // that leaves is the state, whichever skin each half came from.
+    score::Skin::instance().load(readSkinFile(skin), SkinEditorWidget::selectedParts());
+    SkinEditorWidget::saveState();
+
+    SkinChanged(skin);
+  }
 
   QSettings s;
   s.setValue(Parameters::Skin.key, m_Skin);

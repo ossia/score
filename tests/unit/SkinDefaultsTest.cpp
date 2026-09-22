@@ -140,3 +140,70 @@ TEST_CASE("a saved skin round-trips", "[skin]")
 
   CHECK(skin.getColors() == before);
 }
+
+TEST_CASE("an overlay only replaces what it names", "[skin]")
+{
+  QJsonObject base;
+  base["Base1"] = rgb(1, 1, 1);
+  base["Base2"] = rgb(2, 2, 2);
+  base["fonts"] = QJsonObject{
+      {"mono", QJsonObject{{"family", "A"}, {"pixelSize", 10}}},
+      {"sans", QJsonObject{{"family", "B"}}}};
+
+  QJsonObject over;
+  over["Base2"] = rgb(9, 9, 9);
+  over["fonts"] = QJsonObject{{"mono", QJsonObject{{"pixelSize", 20}}}};
+
+  const auto res = score::Skin::merged(base, over);
+  CHECK(res["Base1"].toArray() == rgb(1, 1, 1));
+  CHECK(res["Base2"].toArray() == rgb(9, 9, 9));
+
+  const auto fonts = res["fonts"].toObject();
+  CHECK(fonts["sans"].toObject()["family"].toString() == "B");
+  CHECK(fonts["mono"].toObject()["family"].toString() == "A");
+  CHECK(fonts["mono"].toObject()["pixelSize"].toInt() == 20);
+}
+
+TEST_CASE("a colour the settings do not name comes from the file", "[skin]")
+{
+  auto& skin = score::Skin::instance();
+
+  QJsonObject file;
+  file["Base1"] = rgb(10, 10, 10);
+  file["Base2"] = rgb(20, 20, 20);
+
+  QJsonObject state;
+  state["Base1"] = rgb(30, 30, 30);
+
+  skin.load(score::Skin::merged(file, state));
+
+  CHECK(skin.Base1.color() == QColor(30, 30, 30));
+  CHECK(skin.Base2.color() == QColor(20, 20, 20));
+  // Named by neither: still the built-in, never a default-constructed black.
+  CHECK(skin.Base3.color() == QColor(148, 255, 0));
+}
+
+TEST_CASE("a skin picked in two halves comes back whole", "[skin]")
+{
+  auto& skin = score::Skin::instance();
+
+  QJsonObject first;
+  first["Base1"] = rgb(1, 2, 3);
+  first["Base2"] = rgb(4, 5, 6);
+  skin.load(first, score::Skin::Colours);
+
+  // What the settings keep once the colours have been picked from one skin
+  // and the fonts from another.
+  const QJsonObject state = skin.toJson();
+
+  QJsonObject second;
+  second["Base1"] = rgb(9, 9, 9);
+  second["Warn1"] = rgb(8, 8, 8);
+
+  // The next run: the file the settings name is only where they came from.
+  skin.load(score::Skin::merged(second, state));
+
+  CHECK(skin.Base1.color() == QColor(1, 2, 3));
+  CHECK(skin.Base2.color() == QColor(4, 5, 6));
+  CHECK(skin.Warn1.color() == QColor(255, 255, 0));
+}
