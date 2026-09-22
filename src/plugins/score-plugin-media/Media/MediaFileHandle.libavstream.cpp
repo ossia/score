@@ -1,4 +1,5 @@
 #include <Audio/Settings/Model.hpp>
+#include <Media/Libav.hpp>
 #include <Media/MediaFileHandle.hpp>
 #include <Media/RMSData.hpp>
 
@@ -12,6 +13,7 @@ namespace Media
 {
 void AudioFile::load_libav_stream()
 {
+#if SCORE_HAS_LIBAV
   qDebug() << "AudioFileHandle::load_libav_stream(): " << m_file << this->m_track;
   LibavStreamReader r;
   r.path = this->m_file.toStdString();
@@ -53,5 +55,6 @@ void AudioFile::load_libav_stream()
   on_mediaChanged();
   on_finishedDecoding();
   qDebug() << "AudioFileHandle::on_mediaChanged(): " << m_file;
+#endif
 }
 }

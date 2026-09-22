@@ -2,6 +2,7 @@
 
 #include <Audio/Settings/Model.hpp>
 #include <Media/AudioDecoder.hpp>
+#include <Media/Libav.hpp>
 #include <Media/RMSData.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
@@ -363,12 +364,14 @@ AudioFile::ViewHandle::ViewHandle(const AudioFile::Handle& handle)
     void operator()(const libav_ptr& r) const noexcept { self = RAMView{r->data}; }
     void operator()(const libav_stream_ptr& r) const noexcept
     {
+#if SCORE_HAS_LIBAV
       auto ptr = std::make_shared<ossia::libav_handle>();
       ptr->open(r.path, r.stream, 0);
       if(ptr)
       {
         self = StreamView{std::move(ptr)};
       }
+#endif
     }
     void operator()(const sndfile_ptr& r) const noexcept { self = RAMView{r.data}; }
     void operator()(const mmap_ptr& r) const noexcept
