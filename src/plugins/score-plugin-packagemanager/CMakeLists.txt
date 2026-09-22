@@ -11,6 +11,7 @@ set(HDRS
   PackageManager/View.hpp
   PackageManager/PluginItemModel.hpp
   PackageManager/FileDownloader.hpp
+  PackageManager/Install.hpp
 
   score_plugin_packagemanager.hpp
 )
@@ -20,6 +21,7 @@ set(SRCS
   PackageManager/View.cpp
   PackageManager/PluginItemModel.cpp
   PackageManager/FileDownloader.cpp
+  PackageManager/Install.cpp
 
   score_plugin_packagemanager.cpp
 )

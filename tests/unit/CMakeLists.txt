@@ -131,6 +131,14 @@ score_add_test(test_unit_library_preset_preview
   APP
   PLUGINS score_plugin_library score_lib_process)
 
+# Where a downloaded package lands: unwrapping the folder archives are built
+# with, over a previous install and over entries a listing does not show.
+if(TARGET score_plugin_packagemanager)
+  score_add_test(test_unit_package_install
+    SOURCES PackageInstallTest.cpp
+    PLUGINS score_plugin_packagemanager)
+endif()
+
 # The Point2D View's axis mapping: an inverted range is a range.
 if(EXISTS "${SCORE_AVND_SOURCE_DIR}/../../../3rdparty/avendish/examples/Advanced/UI/2DView.hpp")
   score_add_test(test_unit_point2d_view

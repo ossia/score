@@ -9,6 +9,8 @@
 
 #include <score_plugin_packagemanager_export.h>
 
+#include <functional>
+
 namespace PM
 {
 class BlacklistCommand;
@@ -47,8 +49,10 @@ public:
       W_SIGNAL(information, title, description);
   void warning(QString title, QString description) W_SIGNAL(warning, title, description);
 
-  void on_packageInstallSuccess(
-      const Package& addon, const QDir& destination, const std::vector<QString>& res);
+  void downloadPackage(
+      const Package& addon, const QString& installPath,
+      std::function<void(const QString& destination)> installed);
+  void on_packageInstallSuccess(const Package& addon, const QString& destination);
   void on_packageInstallFailure(const Package& addon, const QString& error);
 
   LocalPackagesModel localPlugins;
