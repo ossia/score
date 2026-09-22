@@ -953,6 +953,19 @@ if(TARGET score_plugin_avnd AND TARGET score_plugin_engine)
   target_include_directories(test_unit_avnd_dynamic_ports_exec PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish")
 
+  # A modulation source cabled into a control whose range is much wider than
+  # its own: the value has to reach the control rescaled.
+  if(TARGET score_plugin_fx AND TARGET score_plugin_threedim)
+    score_add_test(test_unit_lfo_into_rotation
+      SOURCES LfoIntoRotationTest.cpp
+      APP
+      PLUGINS score_plugin_avnd score_plugin_dataflow score_plugin_engine
+              score_plugin_scenario score_lib_process score_plugin_fx
+              score_plugin_threedim score_plugin_gfx)
+    target_include_directories(test_unit_lfo_into_rotation PRIVATE
+      "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish")
+  endif()
+
   # The UI path of a control: the inspector widgets act on the model inlet,
   # never on the execution port. ao::ADSR is the case where that matters.
   score_add_test(test_unit_avnd_adsr_exec

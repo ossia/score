@@ -1325,6 +1325,8 @@ addAvndTest(entity_to_midi_Test
 target_include_directories(Avnd_entity_to_midi_Test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
 addAvndTest(port_unit_Test
              "${CMAKE_CURRENT_SOURCE_DIR}/Tests/port_unit_Test.cpp")
+addAvndTest(control_domain_Test
+             "${CMAKE_CURRENT_SOURCE_DIR}/Tests/control_domain_Test.cpp")
 addAvndTest(value_serialization_Test
              "${CMAKE_CURRENT_SOURCE_DIR}/Tests/ValueSerialization_Test.cpp")
 target_include_directories(Avnd_value_serialization_Test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
