@@ -1412,3 +1412,6 @@ endif()
 # the tree or stopping the protocol must leave none of those spans behind.
 score_add_test(test_unit_audio_protocol_tree
   SOURCES AudioProtocolTreeTest.cpp)
+
+score_add_test(test_unit_vector_domain_scalar
+  SOURCES VectorDomainScalarTest.cpp)
