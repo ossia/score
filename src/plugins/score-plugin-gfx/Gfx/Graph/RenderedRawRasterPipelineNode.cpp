@@ -94,6 +94,38 @@ int metalVertexBufferOrigin(
   return top + 1;
 }
 
+//! What actually sits in the vertex stage's buffer table, so a refusal names
+//! the occupants rather than only their count.
+void dumpMetalBufferTable(
+    const QRhiShaderResourceBindings& srb, const QShader& vs) noexcept
+{
+  const auto key = mslKey(vs);
+  if(!key)
+  {
+    qWarning() << "  metal-slot: no MSL variant in this shader";
+    return;
+  }
+
+  const auto map = vs.nativeResourceBindingMap(*key);
+  qWarning() << "  metal-map entries:" << map.size();
+  for(auto it = srb.cbeginBindings(), end = srb.cendBindings(); it != end; ++it)
+  {
+    const auto* d = reinterpret_cast<const QRhiShaderResourceBinding::Data*>(&*it);
+    if(!d->stage.testFlag(QRhiShaderResourceBinding::VertexStage))
+      continue;
+    const auto nat = map.constFind(d->binding);
+    if(nat == map.constEnd())
+      continue;
+    qWarning() << "  metal-slot" << nat->first << ": srb binding" << d->binding
+               << "type" << int(d->type);
+  }
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+  const auto extras = vs.nativeShaderInfo(*key).extraBufferBindings;
+  for(auto it = extras.cbegin(); it != extras.cend(); ++it)
+    qWarning() << "  metal-slot" << it.value() << ": extra kind" << it.key();
+#endif
+}
+
 //! Metal shares one 31-entry buffer table per stage between shader resources
 //! and vertex buffers, so the vertex buffers start past whatever the resources
 //! occupy. Placing one past slot 30 is a hard assertion inside Metal
@@ -101,7 +133,8 @@ int metalVertexBufferOrigin(
 //! pipeline instead.
 bool checkMetalBufferBudget(
     QRhi& rhi, const QRhiShaderResourceBindings& srb,
-    const QRhiGraphicsPipeline& ps, const isf::descriptor& desc) noexcept
+    const QRhiGraphicsPipeline& ps, const QShader& vs,
+    const isf::descriptor& desc) noexcept
 {
   if(rhi.backend() != QRhi::Metal)
     return true;
@@ -109,15 +142,7 @@ bool checkMetalBufferBudget(
   const auto& layout = ps.vertexInputLayout();
   const int vtx = int(std::distance(layout.cbeginBindings(), layout.cendBindings()));
 
-  int origin = -1;
-  for(auto it = ps.cbeginShaderStages(), end = ps.cendShaderStages(); it != end; ++it)
-  {
-    if(it->type() != QRhiShaderStage::Vertex)
-      continue;
-    origin = metalVertexBufferOrigin(srb, it->shader());
-    break;
-  }
-
+  int origin = metalVertexBufferOrigin(srb, vs);
   if(origin < 0)
   {
     int maxBinding = -1;
@@ -139,6 +164,7 @@ bool checkMetalBufferBudget(
              << "vertex buffers start at" << origin << "and there are" << vtx
              << "of them. Skipping the pipeline."
              << QString::fromStdString(desc.description);
+  dumpMetalBufferTable(srb, vs);
   return false;
 }
 }
@@ -671,7 +697,7 @@ void RenderedRawRasterPipelineNode::initPass(
       }
     }
 
-    if(!checkMetalBufferBudget(rhi, *bindings, *ps, n.descriptor()))
+    if(!checkMetalBufferBudget(rhi, *bindings, *ps, v, n.descriptor()))
     {
       delete ps;
       delete pubo;
@@ -1849,7 +1875,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
       }
     }
 
-    if(!checkMetalBufferBudget(rhi, *bindings, *ps, n.descriptor()))
+    if(!checkMetalBufferBudget(rhi, *bindings, *ps, v, n.descriptor()))
     {
       delete ps;
       delete pubo;
