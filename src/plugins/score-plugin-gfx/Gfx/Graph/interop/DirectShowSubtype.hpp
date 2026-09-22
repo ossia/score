@@ -79,24 +79,13 @@ directShowSubtypePixelFormat(const DirectShowGuid& subtype) noexcept
   return toAVPixelFormat(chromaSwappedTwin(layout));
 }
 
-/// The codec `enumerateCameraFormat` offers for a subtype.
-///
-/// A compressed fourcc dispatches to the codec it actually names — H.264 to
-/// AV_CODEC_ID_H264, the DV spelling to DV, the Motion-JPEG spellings to
-/// MJPEG — rather than collapsing everything to MJPEG, which would offer an
-/// H.264 camera with the wrong decoder. A non-compressed subtype is raw.
+/// The codec `enumerateCameraFormat` offers for a subtype: the one its fourcc
+/// names — H.264 to AV_CODEC_ID_H264, H.265 to HEVC, the DV spellings to DV,
+/// the Motion-JPEG ones to MJPEG. A non-compressed subtype is raw.
 inline AVCodecID directShowSubtypeCodec(const DirectShowGuid& subtype) noexcept
 {
-  const auto fourcc = directShowSubtypeFourcc(subtype);
-  if(fourcc == 0 || !isDirectShowCompressedFourcc(fourcc))
-    return AV_CODEC_ID_RAWVIDEO;
-
-  if(fourcc == directShowFourcc('H', '2', '6', '4'))
-    return AV_CODEC_ID_H264;
-  if(fourcc == directShowFourcc('d', 'v', 's', 'd'))
-    return AV_CODEC_ID_DVVIDEO;
-  // MJPG and the historical Motion-JPEG spellings.
-  return AV_CODEC_ID_MJPEG;
+  const auto id = directShowFourccCodec(directShowSubtypeFourcc(subtype));
+  return id == AV_CODEC_ID_NONE ? AV_CODEC_ID_RAWVIDEO : id;
 }
 
 } // namespace score::gfx::interop

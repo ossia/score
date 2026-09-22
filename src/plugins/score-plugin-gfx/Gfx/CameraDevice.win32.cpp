@@ -1,6 +1,7 @@
 #include "CameraDevice.hpp"
 
 #include <Gfx/CameraDeviceEnumerator.hpp>
+#include <Gfx/CameraFormatName.hpp>
 
 extern "C" {
 #include <libavcodec/codec_id.h>
@@ -392,11 +393,8 @@ struct DShowCameraEnumerator : public Device::DeviceEnumerator
     enumerateCameraFormats(moniker, settings, [&]() {
       s.deviceSpecificSettings = QVariant::fromValue(settings);
 
-      std::string str;
-      if(settings.codec == AV_CODEC_ID_MJPEG)
-        str = "mjpeg";
-      else
-        str = av_get_pix_fmt_name((AVPixelFormat)settings.pixelformat);
+      const std::string str
+          = cameraFormatName(settings.codec, settings.pixelformat);
 
       QString desc = QString("%1: %2x%3@%4")
                          .arg(str.c_str())
