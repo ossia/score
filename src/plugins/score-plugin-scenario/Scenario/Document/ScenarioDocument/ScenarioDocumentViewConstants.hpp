@@ -38,17 +38,19 @@ public:
 class ZPos
 {
 public:
+  // States are the handles one grabs: they stay above every interval, and
+  // above the event and time-sync lines that run through them.
   enum ItemZPos
   {
     Comment = 1,
     TimeSync,
     Event,
     Interval,
-    State,
     IntervalWithRack,
     SelectedInterval,
     SelectedTimeSync,
     SelectedEvent,
+    State,
     SelectedState
   };
   enum IntervalItemZPos
