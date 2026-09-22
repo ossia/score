@@ -122,6 +122,10 @@ public:
   //! counterpart.
   QJsonObject toJson() const;
 
+  //! \p over layered on \p base, objects merged recursively: a key the
+  //! overlay names wins, anything it leaves out comes from the base.
+  static QJsonObject merged(const QJsonObject& base, const QJsonObject& over);
+
   //! Every QPalette role a skin may name, keyed as in the file. Same shape as
   //! fonts(): one list for load, save and the editor.
   static const std::vector<std::pair<const char*, QPalette::ColorRole>>&

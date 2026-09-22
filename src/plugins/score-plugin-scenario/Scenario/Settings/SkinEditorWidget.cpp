@@ -32,6 +32,7 @@
 #include <QSettings>
 #include <QRegularExpression>
 #include <QSpinBox>
+#include <QTimer>
 #include <QVBoxLayout>
 #include <QtColorWidgets/ColorWheel>
 
@@ -46,6 +47,11 @@ namespace Settings
 SkinEditorWidget::SkinEditorWidget(QWidget* parent)
     : QWidget{parent}
 {
+  m_saveTimer = new QTimer{this};
+  m_saveTimer->setSingleShot(true);
+  m_saveTimer->setInterval(500);
+  connect(m_saveTimer, &QTimer::timeout, this, [] { saveState(); });
+
   auto lay = new QVBoxLayout{this};
   lay->setContentsMargins(0, 0, 0, 0);
   lay->addWidget(makeSkinRow());
@@ -61,6 +67,13 @@ SkinEditorWidget::SkinEditorWidget(QWidget* parent)
     if(!m_applying)
       reloadFromSkin();
   });
+}
+
+SkinEditorWidget::~SkinEditorWidget()
+{
+  // An edit made just before quitting still has to land.
+  if(m_saveTimer->isActive())
+    saveState();
 }
 
 void SkinEditorWidget::reloadFromSkin()
@@ -221,6 +234,28 @@ int SkinEditorWidget::selectedParts() noexcept
   return parts;
 }
 
+QJsonObject SkinEditorWidget::savedState() noexcept
+{
+  QSettings s;
+  return QJsonDocument::fromJson(
+             s.value(QStringLiteral("Skin/State")).toString().toUtf8())
+      .object();
+}
+
+void SkinEditorWidget::saveState() noexcept
+{
+  const QJsonDocument doc{score::Skin::instance().toJson()};
+  QSettings s;
+  s.setValue(
+      QStringLiteral("Skin/State"),
+      QString::fromUtf8(doc.toJson(QJsonDocument::Compact)));
+}
+
+void SkinEditorWidget::scheduleSave()
+{
+  m_saveTimer->start();
+}
+
 void SkinEditorWidget::setSkin(const QString& skin)
 {
   int idx = m_skin->findData(QVariant::fromValue(skin));
@@ -299,6 +334,7 @@ QWidget* SkinEditorWidget::makeColorEditor()
     m_applying = true;
     s.changed();
     m_applying = false;
+    scheduleSave();
       });
 
   connect(m_hex, &QLineEdit::editingFinished, this, [this, &s] {
@@ -320,6 +356,7 @@ QWidget* SkinEditorWidget::makeColorEditor()
       m_applying = true;
       s.changed();
       m_applying = false;
+      scheduleSave();
     }
   });
 
@@ -528,6 +565,7 @@ void SkinEditorWidget::applyFontRole()
   m_applying = true;
   score::Skin::instance().changed();
   m_applying = false;
+  scheduleSave();
 }
 
 void SkinEditorWidget::refreshFontPreview()
