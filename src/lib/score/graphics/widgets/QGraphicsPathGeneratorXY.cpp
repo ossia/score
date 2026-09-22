@@ -179,8 +179,12 @@ void score::QGraphicsPathGeneratorXY::paint(
   auto& skin = score::Skin::instance();
   const auto& src = sources();
 
-  // The centre and radii can put a trajectory outside of the item.
-  painter->setClipRect(QRectF(0, 0, width(), height()));
+  // The centre and radii can put a trajectory outside of the item. The scene
+  // gives every item of a node the same painter: the clip has to be undone,
+  // else it also cuts the items painted after this one - the node's outlets in
+  // particular.
+  painter->save();
+  painter->setClipRect(boundingRect());
   painter->fillRect(QRectF(0, 0, width(), height()), QColor(skin.Dark.color()));
 
   for(int64_t s = std::ssize(src); s-- > 0;)
@@ -225,6 +229,8 @@ void score::QGraphicsPathGeneratorXY::paint(
       painter->drawEllipse(p, markerSize / 2., markerSize / 2.);
     }
   }
+
+  painter->restore();
 }
 
 ossia::value score::QGraphicsPathGeneratorXY::value() const
@@ -396,7 +402,8 @@ void score::QGraphicsPathGeneratorXY::mousePressEvent(QGraphicsSceneMouseEvent* 
     }
     }
     // Else if the press occurs at an empty area, a new cursor will be created at that position.
-    tab.push_back(std::vector<ossia::value>{ossia::vec2f{(float)(x / width()), 1-(float)(y / width())}, ossia::vec2f{(float)(x / width()), 1-(float)(y / width())}});
+    const ossia::vec2f pressed{(float)(x / width()), 1.f - (float)(y / height())};
+    tab.push_back(std::vector<ossia::value>{pressed, pressed});
 
     commitTab();
     m_grab = true;
@@ -470,6 +477,18 @@ bool score::QGraphicsPathGeneratorXY::sceneEvent(QEvent* event)
 
 QRectF score::QGraphicsPathGeneratorXY::boundingRect() const
 {
-  return QRectF(0, 0, width(), height());
+  return QRectF{QPointF{0., 0.}, m_size};
+}
+
+void score::QGraphicsPathGeneratorXY::setSize(QSizeF sz)
+{
+  sz = sz.expandedTo(minimumSize);
+  if(sz == m_size)
+    return;
+
+  prepareGeometryChange();
+  m_size = sz;
+  recomputePaths();
+  update();
 }
 }

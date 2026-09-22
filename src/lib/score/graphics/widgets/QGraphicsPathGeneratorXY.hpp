@@ -47,8 +47,15 @@ public:
 
   std::vector<ossia::value> tab;
 
-  static constexpr double width() { return 400.; }
-  static constexpr double height() { return 400.; }
+  //! The size belongs to the item: a layout is free to give the editor the
+  //! room it has, down to the minimum below which the handles cannot be told
+  //! apart.
+  static constexpr QSizeF defaultSize{400., 400.};
+  static constexpr QSizeF minimumSize{60., 60.};
+
+  double width() const noexcept { return m_size.width(); }
+  double height() const noexcept { return m_size.height(); }
+  void setSize(QSizeF sz);
 
   halp::xy_type<float> cursorSize{0.04, 0.04};
 
@@ -110,6 +117,7 @@ private:
   void recomputePaths();
   void commitTab();
 
+  QSizeF m_size{defaultSize};
   std::vector<QPainterPath> m_paths;
   double m_progress{};
   bool m_hasProgress{};
