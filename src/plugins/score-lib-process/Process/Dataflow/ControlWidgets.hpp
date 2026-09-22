@@ -804,12 +804,11 @@ struct Button
     auto toggle = new score::QGraphicsButton{nullptr};
     initWidgetProperties(inlet, *toggle);
 
+    // Momentary: the press and its release are two edges of a single gesture,
+    // not two edits of the score.
     QObject::connect(
         toggle, &score::QGraphicsButton::pressed, context,
-        [=, &inlet, &ctx](bool pressed) {
-      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, pressed);
-      ctx.dispatcher.commit();
-        });
+        [&inlet](bool pressed) { inlet.setValue(pressed); });
 
     return toggle;
   }
