@@ -308,6 +308,43 @@ struct isf_input_port_vis
   }
 };
 
+namespace
+{
+//! Whether a fragment shader assigns gl_FragDepth.
+//!
+//! Metal refuses a pipeline whose fragment shader writes depth against a
+//! render pass with no depth attachment; GL and Vulkan accept it and drop the
+//! write. The depth-forwarding filters -- a post effect that reads a depth
+//! input, colours from it and re-emits `gl_FragDepth = rawD` so the next pass
+//! still has depth -- need the attachment on every backend anyway.
+bool writesFragDepth(QStringView frag) noexcept
+{
+  constexpr QLatin1StringView name("gl_FragDepth");
+  for(qsizetype i = frag.indexOf(name); i >= 0; i = frag.indexOf(name, i + 1))
+  {
+    qsizetype j = i + name.size();
+    while(j < frag.size() && frag[j].isSpace())
+      ++j;
+    if(j >= frag.size())
+      break;
+
+    // `gl_FragDepth =` writes, `gl_FragDepth ==` compares.
+    if(frag[j] == u'=')
+    {
+      if(j + 1 >= frag.size() || frag[j + 1] != u'=')
+        return true;
+      continue;
+    }
+
+    // The compound forms write too.
+    if(QStringView(u"+-*/").contains(frag[j]) && j + 1 < frag.size()
+       && frag[j + 1] == u'=')
+      return true;
+  }
+  return false;
+}
+}
+
 ISFNode::ISFNode(const isf::descriptor& desc, const QString& vert, const QString& frag)
     : m_descriptor{desc}
 {
@@ -328,6 +365,9 @@ ISFNode::ISFNode(const isf::descriptor& desc, const QString& vert, const QString
     input.push_back(new Port{this, {}, Types::Geometry, {}});
     this->requiresDepth = true;
   }
+
+  if(writesFragDepth(frag))
+    this->requiresDepth = true;
 
   // Size of the inputs
   for(const isf::input& input : desc.inputs)
