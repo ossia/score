@@ -1348,6 +1348,10 @@ addAvndTest(switch_Test
              "${CMAKE_CURRENT_SOURCE_DIR}/Tests/Switch_Test.cpp")
 target_include_directories(Avnd_switch_Test PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}" "${AVND_FOLDER}/examples")
+addAvndTest(adsr_Test
+             "${CMAKE_CURRENT_SOURCE_DIR}/Tests/ADSR_Test.cpp")
+target_include_directories(Avnd_adsr_Test PRIVATE
+  "${CMAKE_CURRENT_SOURCE_DIR}" "${AVND_FOLDER}/examples")
 endif()
 
 set(CMAKE_AUTOMOC OFF)

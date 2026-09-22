@@ -941,6 +941,15 @@ if(TARGET score_plugin_avnd AND TARGET score_plugin_engine)
     PLUGINS score_plugin_avnd score_plugin_dataflow score_plugin_engine score_plugin_scenario score_lib_process)
   target_include_directories(test_unit_avnd_dynamic_ports_exec PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish")
+
+  # The UI path of a control: the inspector widgets act on the model inlet,
+  # never on the execution port. ao::ADSR is the case where that matters.
+  score_add_test(test_unit_avnd_adsr_exec
+    SOURCES AvndAdsrExecTest.cpp
+    APP
+    PLUGINS score_plugin_avnd score_plugin_dataflow score_plugin_engine score_plugin_scenario score_lib_process)
+  target_include_directories(test_unit_avnd_adsr_exec PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish")
 endif()
 # AssetTable is pure CPU logic; TextureLoader upload paths run on QRhi's Null
 # backend (score_plugin_gfx links Qt::GuiPrivate PUBLIC, providing qrhi_p.h).
