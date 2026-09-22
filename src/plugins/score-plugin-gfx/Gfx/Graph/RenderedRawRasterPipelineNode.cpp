@@ -101,17 +101,8 @@ int metalVertexBufferOrigin(
 //! What actually sits in the vertex stage's buffer table, so a refusal names
 //! the occupants rather than only their count.
 void dumpMetalBufferTable(
-    const QRhiShaderResourceBindings& srb, const QRhiGraphicsPipeline& ps) noexcept
+    const QRhiShaderResourceBindings& srb, const QShader& vs) noexcept
 {
-  QShader vs;
-  for(auto it = ps.cbeginShaderStages(), end = ps.cendShaderStages(); it != end; ++it)
-  {
-    if(it->type() == QRhiShaderStage::Vertex)
-    {
-      vs = it->shader();
-      break;
-    }
-  }
   for(const auto& k : vs.availableShaders())
     qWarning() << "  metal-key: source" << int(k.source()) << "version"
                << k.sourceVersion().version() << "variant" << int(k.sourceVariant());
@@ -147,7 +138,8 @@ void dumpMetalBufferTable(
 //! pipeline instead.
 bool checkMetalBufferBudget(
     QRhi& rhi, const QRhiShaderResourceBindings& srb,
-    const QRhiGraphicsPipeline& ps, const isf::descriptor& desc) noexcept
+    const QRhiGraphicsPipeline& ps, const QShader& vs,
+    const isf::descriptor& desc) noexcept
 {
   if(rhi.backend() != QRhi::Metal)
     return true;
@@ -155,15 +147,7 @@ bool checkMetalBufferBudget(
   const auto& layout = ps.vertexInputLayout();
   const int vtx = int(std::distance(layout.cbeginBindings(), layout.cendBindings()));
 
-  int origin = -1;
-  for(auto it = ps.cbeginShaderStages(), end = ps.cendShaderStages(); it != end; ++it)
-  {
-    if(it->type() != QRhiShaderStage::Vertex)
-      continue;
-    origin = metalVertexBufferOrigin(srb, it->shader());
-    break;
-  }
-
+  int origin = metalVertexBufferOrigin(srb, vs);
   if(origin < 0)
   {
     int maxBinding = -1;
@@ -185,7 +169,7 @@ bool checkMetalBufferBudget(
              << "vertex buffers start at" << origin << "and there are" << vtx
              << "of them. Skipping the pipeline."
              << QString::fromStdString(desc.description);
-  dumpMetalBufferTable(srb, ps);
+  dumpMetalBufferTable(srb, vs);
   return false;
 }
 }
@@ -775,7 +759,7 @@ void RenderedRawRasterPipelineNode::initPass(
       }
     }
 
-    if(!checkMetalBufferBudget(rhi, *bindings, *ps, n.descriptor()))
+    if(!checkMetalBufferBudget(rhi, *bindings, *ps, v, n.descriptor()))
     {
       delete ps;
       delete pubo;
@@ -1953,7 +1937,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
       }
     }
 
-    if(!checkMetalBufferBudget(rhi, *bindings, *ps, n.descriptor()))
+    if(!checkMetalBufferBudget(rhi, *bindings, *ps, v, n.descriptor()))
     {
       delete ps;
       delete pubo;
