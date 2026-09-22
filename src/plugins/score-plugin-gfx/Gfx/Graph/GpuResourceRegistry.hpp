@@ -308,27 +308,31 @@ public:
   // samplers are interchangeable and consumer shaders can declare a
   // fixed sampler count.
   static constexpr int kTextureLayerSize = 1024;
-  // 4 slots: high enough for scenes that legitimately use 3-4 distinct dynamic
-  // textures per channel (multi-camera capture, layered video), while 4 channels
-  // x 4 slots plus the static arrays and skybox/IBL stays under the
-  // 16-samplers-per-stage RHI floor. LRU eviction covers the rest.
-  static constexpr int kMaxDynamicSlots  = 4;
+  // 8 slots in ONE pool shared by every channel, where there used to be 4 per
+  // channel. Sharing is what makes the count affordable: 20 declarable slots
+  // become 8, and a handle routed to two channels resolves to one slot.
+  static constexpr int kMaxDynamicSlots  = 8;
 
-  // Per-channel static buckets, each holding textures of one (format, pixelSize)
-  // tuple. Consumer shaders declare N sampler2DArrays per channel and switch on
-  // the bucket field decoded from MaterialGPU::textureRefs.
+  // Static buckets in ONE pool shared by every channel, each holding textures
+  // of one (format, pixelSize, colourspace, sampler config) tuple.
   //
-  // The cap of 16 keeps 5 channels x 16 buckets plus ~10 dynamic slots at about 90
-  // samplers per pipeline, well inside Vulkan's default combined-image-sampler
-  // pool budget. Real scenes need 1-3 buckets per channel, and buckets are
-  // allocated lazily as uploads discover new (format, size) combinations.
+  // Five per-channel pools of 16 declared 80 sampler2DArrays whatever the scene
+  // held. Sharing collapses that to one ladder: measured over the 117 glTF
+  // sample models with material textures, arrays needed fall from 392
+  // (mean 3.35/model) to 280 (2.39) keying on size and colourspace, because
+  // baseColor and emissive are both sRGB and metal-rough, normal and occlusion
+  // are all linear, so a model's channels land in a handful of shared buckets
+  // instead of one set each.
   //
-  // The tex_ref_static encoding reserves a 7-bit bucket field, so the cap can grow
-  // to 128 without changing the packed layout or the shader decode masks -- but
-  // the shader sampler arrays in classic_pbr_full.frag must be enlarged to match,
-  // and the descriptor pool budget re-checked. GLES 3.1 / WebGL 2 guarantee only
-  // 16 textures per stage and would need a reduced-bucket preset.
-  static constexpr int kMaxBuckets = 16;
+  // 8 covers the overwhelming majority; the worst single model in that set
+  // needs 14, and those degrade exactly as a scene past 16 did before -- the
+  // texture is skipped and the shader reads tex_ref_none.
+  //
+  // The tex_ref_static encoding reserves a 7-bit bucket field, so the cap can
+  // grow to 128 without changing the packed layout or the shader decode masks,
+  // but the shader's ladder must be enlarged to match and the sampler budget
+  // re-checked.
+  static constexpr int kMaxBuckets = 8;
 
   /**
    * @brief Channel texture state with multi-bucket support.
@@ -347,10 +351,18 @@ public:
   {
     struct Bucket
     {
-      QRhiTexture* array{};          // QRhiTexture::TextureArray + channel flags
+      QRhiTexture* array{};          // QRhiTexture::TextureArray + `flags`
       QRhiTexture::Format format{QRhiTexture::RGBA8};
       QSize pixelSize;               // all layers in a bucket share this size
       int layers{};                  // current layer count
+
+      // Colourspace, part of the bucket key now that one pool serves every
+      // channel. sRGB textures (base colour, emissive) get hardware
+      // sRGB->linear on sample and linear data textures (metal-rough, normal,
+      // occlusion) must not, so they cannot share an array -- but two channels
+      // that agree on it can, which is where the saving comes from. The shader
+      // never has to know: it samples whichever bucket the ref names.
+      QRhiTexture::Flags flags{};
 
       // Per-bucket sampler config. Bucket key extended to include this:
       // distinct (format, size, sampler_config) tuples land in distinct
@@ -402,49 +414,40 @@ public:
     // Kept for init-time fallback allocation only — production code
     // goes through findOrCreateBucket() which selects the right bucket
     // for the texture's actual (format, size).
-    Bucket& ensurePrimary(QRhiTexture::Format fmt, QSize sz)
+    Bucket& ensurePrimary(QRhiTexture::Format fmt, QSize sz,
+                          QRhiTexture::Flags flags = {})
     {
       if(buckets.empty())
         buckets.emplace_back();
       auto& b = buckets[0];
       b.format = fmt;
       b.pixelSize = sz;
+      b.flags = flags;
       return b;
     }
 
-    // Find a bucket matching (fmt, sz), creating one if none matches and kMaxBuckets
-    // is not reached. Returns {bucket_index, pointer}, or {-1, nullptr} on overflow,
-    // which the caller reports and turns into tex_ref_none. Bucket identity is the
-    // exact tuple, no rounding.
+    // Find a bucket matching (fmt, sz, flags), creating one if none matches and
+    // kMaxBuckets is not reached. Returns {bucket_index, pointer}, or
+    // {-1, nullptr} on overflow, which the caller reports and turns into
+    // tex_ref_none. Bucket identity is the exact tuple, no rounding.
     std::pair<int, Bucket*>
-    findOrCreateBucket(QRhiTexture::Format fmt, QSize sz)
+    findOrCreateBucket(QRhiTexture::Format fmt, QSize sz, QRhiTexture::Flags flags)
     {
-      for(std::size_t i = 0; i < buckets.size(); ++i)
-      {
-        if(buckets[i].format == fmt && buckets[i].pixelSize == sz)
-          return {(int)i, &buckets[i]};
-      }
-      if((int)buckets.size() >= kMaxBuckets)
-        return {-1, nullptr};
-      buckets.emplace_back();
-      auto& b = buckets.back();
-      b.format = fmt;
-      b.pixelSize = sz;
-      return {(int)buckets.size() - 1, &b};
+      return findOrCreateBucket(fmt, sz, flags, {});
     }
 
-    // Sampler-config-aware variant, keyed on (format, pixelSize, sampler_config).
-    // Used by the glTF path so a scene mixing wrap modes splits across buckets, each
-    // with its own QRhiSampler. Falls back to the 2-tuple variant when the sampler
-    // config is the default.
+    // Full key: (format, pixelSize, colourspace flags, sampler config). The
+    // sampler config splits buckets so a scene mixing wrap modes keeps each
+    // texture's own state; most glTFs use one sampler, so it collapses.
     std::pair<int, Bucket*>
     findOrCreateBucket(
-        QRhiTexture::Format fmt, QSize sz,
+        QRhiTexture::Format fmt, QSize sz, QRhiTexture::Flags flags,
         const ossia::texture_sampler_config& sampler_cfg)
     {
       for(std::size_t i = 0; i < buckets.size(); ++i)
       {
         if(buckets[i].format == fmt && buckets[i].pixelSize == sz
+           && buckets[i].flags == flags
            && buckets[i].sampler_config == sampler_cfg)
           return {(int)i, &buckets[i]};
       }
@@ -454,6 +457,7 @@ public:
       auto& b = buckets.back();
       b.format = fmt;
       b.pixelSize = sz;
+      b.flags = flags;
       b.sampler_config = sampler_cfg;
       return {(int)buckets.size() - 1, &b};
     }
@@ -465,19 +469,36 @@ public:
    * view-independent (asset identity drives layer assignment) so
    * sharing across preprocessors is correct.
    */
-  TextureChannelState& textureChannel(TextureChannel ch) noexcept
+  //! Every channel resolves to the SAME pool. The argument is kept so call
+  //! sites still read as "this channel's textures", and because which channel
+  //! a ref belongs to still decides its colourspace -- see
+  //! textureChannelFlags, which the caller feeds into findOrCreateBucket.
+  TextureChannelState& textureChannel(TextureChannel) noexcept
   {
-    return m_textureChannels[(std::size_t)ch];
+    return m_texturePool;
   }
-  const TextureChannelState& textureChannel(TextureChannel ch) const noexcept
+  const TextureChannelState& textureChannel(TextureChannel) const noexcept
   {
-    return m_textureChannels[(std::size_t)ch];
+    return m_texturePool;
   }
+
+  //! The shared pool, for call sites that are not per-channel.
+  TextureChannelState& texturePool() noexcept { return m_texturePool; }
+  const TextureChannelState& texturePool() const noexcept { return m_texturePool; }
+
+  //! Shader-visible aux-texture names for the shared pool. One ladder,
+  //! `materialArray0..kMaxBuckets-1`, and one dynamic run,
+  //! `materialDyn0..kMaxDynamicSlots-1`, replacing the five per-channel sets.
+  static constexpr const char* kSharedArrayName = "materialArray";
+  static constexpr const char* kSharedDynName = "materialDyn";
 
   /**
    * @brief Shader-visible aux-texture name for a channel's static array
    * (`baseColorArray`, `metalRoughArray`, `normalArray`, `emissiveArray`,
    * `occlusionArray`).
+   *
+   * Retained for the older per-channel presets; the shared pool publishes
+   * under kSharedArrayName instead.
    */
   static const char* textureChannelArrayName(TextureChannel ch) noexcept;
 
@@ -685,8 +706,8 @@ private:
 
   std::array<ArenaState, (std::size_t)Arena::Count_> m_arenas{};
 
-  std::array<TextureChannelState, (std::size_t)TextureChannel::Count_>
-      m_textureChannels{};
+  //! One pool for every channel. See TextureChannelState and kMaxBuckets.
+  TextureChannelState m_texturePool{};
 
   // Per-stream backing buffers, one QRhiBuffer per attribute. Allocation is not
   // per-stream: a single m_vertexAllocator hands out vertex-unit slots that every

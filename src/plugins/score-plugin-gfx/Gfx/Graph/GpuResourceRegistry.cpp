@@ -267,8 +267,8 @@ void GpuResourceRegistry::destroy(RenderList& renderer)
     a.free_slots.clear();
   }
   m_defaults_seeded = false;
-  for(auto& ch : m_textureChannels)
   {
+    auto& ch = m_texturePool;
     for(auto& b : ch.buckets)
     {
       if(b.array)
@@ -340,8 +340,8 @@ void GpuResourceRegistry::destroyOwned()
     a.free_slots.clear();
   }
   m_defaults_seeded = false;
-  for(auto& ch : m_textureChannels)
   {
+    auto& ch = m_texturePool;
     for(auto& b : ch.buckets)
     {
       delete b.array;
@@ -396,8 +396,8 @@ void GpuResourceRegistry::destroy()
     a.free_slots.clear();
   }
   m_defaults_seeded = false;
-  for(auto& ch : m_textureChannels)
   {
+    auto& ch = m_texturePool;
     // Do NOT deleteLater on textures here — if QRhi has already been
     // torn down their storage is gone. Leak the wrapper, same rule
     // as arena buffers above.
@@ -475,7 +475,7 @@ QRhiTexture::Flags GpuResourceRegistry::textureChannelFlags(TextureChannel ch) n
 
 
 int GpuResourceRegistry::resolveDynamicSlot(
-    TextureChannel channel, void* native_handle) noexcept
+    TextureChannel, void* native_handle) noexcept
 {
   if(!native_handle)
     return -1;
@@ -487,7 +487,7 @@ int GpuResourceRegistry::resolveDynamicSlot(
   // pairs the pointer with `m_id`). Using the id makes a stale entry
   // mismatch instead of aliasing onto a fresh resource.
   const quint64 key = tex->globalResourceId();
-  auto& ch = textureChannel(channel);
+  auto& ch = m_texturePool;
   const uint64_t now = ++ch.dynamicSlotCounter;
 
   // Hit: refresh access stamp and return existing slot.
@@ -571,8 +571,8 @@ void GpuResourceRegistry::sweepStaleDynamicTextureSlots() noexcept
   //
   // Ordering contract (see header): this runs once per frame after the resolve
   // pass and before the bind pass, so a live slot is always re-stamped first.
-  for(auto& ch : m_textureChannels)
   {
+    auto& ch = m_texturePool;
     const uint64_t checkpoint = ch.dynamicSweepCheckpoint;
     for(int s = 0; s < (int)ch.dynamicTextures.size(); ++s)
     {

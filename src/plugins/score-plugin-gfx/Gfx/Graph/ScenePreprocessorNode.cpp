@@ -826,12 +826,15 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     auto& bc = texChannel(ChannelBaseColor);
     if(!bc.primaryArray())
     {
+      // Seeded sRGB, and the flag is stamped on the bucket rather than passed
+      // separately: it is part of the bucket key now, so a mismatch here would
+      // stop the first real base-colour texture from landing in bucket 0 and
+      // spend a bucket on a placeholder nothing samples.
       auto& b = bc.ensurePrimary(
           QRhiTexture::RGBA8,
-          QSize(kChannelLayerSize, kChannelLayerSize));
-      b.array = rhi.newTextureArray(
-          b.format, 1, b.pixelSize, 1,
+          QSize(kChannelLayerSize, kChannelLayerSize),
           GpuResourceRegistry::textureChannelFlags(toTexChannel(ChannelBaseColor)));
+      b.array = rhi.newTextureArray(b.format, 1, b.pixelSize, 1, b.flags);
       if(b.array)
       {
         b.array->setName("GpuResourceRegistry::base_color_array (init fallback)");
@@ -3163,58 +3166,30 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     }
   }
 
-  bool rebuildChannel(
-      MaterialChannel ch, bool sameMaterialsContent, RenderList& renderer,
-      QRhiResourceUpdateBatch& res, FlatScene& fs)
+  //! One decoded image waiting for the pool array that will hold it.
+  struct PendingLayer
+  {
+    int bucket_idx;
+    int layer_idx;
+    QImage image;
+  };
+
+  //! Route one channel's material textures into the shared pool, deduping by
+  //! texture_source pointer across every channel that already ran.
+  //! Registration for ALL channels must finish before allocateAndUploadPool:
+  //! the pool is shared, so a later channel discovering a new layer in a bucket
+  //! an earlier one already sized would force that array to be reallocated and
+  //! every layer in it re-uploaded.
+  void registerChannelRefs(
+      MaterialChannel ch, RenderList& renderer, FlatScene& fs,
+      std::vector<PendingLayer>& pendingUploads)
   {
     if(!m_registry)
-      return false;
-    auto& rhi = *renderer.state.rhi;
+      return;
     auto& channel = texChannel(ch);
-
     const auto matsPtr
         = this->scene.state ? this->scene.state->materials : nullptr;
 
-    // Dynamic slots refresh every frame regardless of sameMaterialsContent:
-    // runtime handles can swap without the outer material pointer changing.
-    rebuildDynamicSlots(ch);
-
-    // Fast path: the per-element materials fingerprint matches what we
-    // last fingerprinted, and this channel's texture array + layer map
-    // are still valid. Only need to re-patch textureRefs on fs.materials
-    // so the SSBO upload below carries the cached layer indices (dynamic
-    // slots patched from the freshly rebuilt dynamicSlotMap).
-    if(sameMaterialsContent && channel.primaryArray())
-    {
-      patchMaterialRefsFromCache(ch, fs);
-      return false;
-    }
-
-    // Multi-bucket texture arrays: each distinct (format, size, sampler_config)
-    // tuple gets its own bucket, and materials reference
-    // tex_ref_static(bucket_id, layer_id).
-    //
-    // Per rebuild: clear the layerMaps, walk materials decoding each unique
-    // source once and routing it to findOrCreateBucket, reallocate the
-    // QRhiTextureArray of every bucket whose size or layer count changed,
-    // upload into the assigned (bucket, layer) slots, and keep at least one
-    // fallback layer in bucket 0 so the unsuffixed binding stays valid.
-    //
-    // Every bucket is RGBA8 today; HDR and compressed formats plug in by
-    // varying the format argument.
-
-    for(auto& b : channel.buckets)
-      b.layerMap.clear();
-
-    // Decoded pending uploads + their target (bucket, layer).
-    struct PendingLayer
-    {
-      int bucket_idx;
-      int layer_idx;
-      QImage image;
-    };
-    std::vector<PendingLayer> pendingUploads;
-    pendingUploads.reserve(16);
 
     if(matsPtr)
     {
@@ -3267,11 +3242,11 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         // materials share a channel array; most glTFs use a single sampler, so
         // it collapses to one bucket per (format, size).
         auto [b_idx, b_ptr] = channel.findOrCreateBucket(
-            QRhiTexture::RGBA8, img.size(), tref.sampler);
+            QRhiTexture::RGBA8, img.size(), channelFlags(ch), tref.sampler);
         if(b_idx < 0)
         {
           qWarning().noquote()
-              << "ScenePreprocessor: channel" << channelName(ch)
+              << "ScenePreprocessor: shared texture pool"
               << "hit bucket cap ("
               << GpuResourceRegistry::kMaxBuckets
               << "); texture_source skipped — shader will see tex_ref_none.";
@@ -3312,14 +3287,31 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       }
     }
 
+  }
+
+  //! Allocate or grow every bucket in the shared pool and issue the queued
+  //! uploads. Returns true when any QRhiTexture was recreated, which the caller
+  //! turns into a downstream SRB rebind.
+  bool allocateAndUploadPool(
+      RenderList& renderer, QRhiResourceUpdateBatch& res,
+      std::vector<PendingLayer>& pendingUploads)
+  {
+    if(!m_registry)
+      return false;
+    auto& rhi = *renderer.state.rhi;
+    auto& channel = m_registry->texturePool();
+
     // Ensure bucket 0 exists for init-time / shader-binding stability.
     // If no material landed in it, ensurePrimary() with default size
-    // gives a safe fallback target.
+    // gives a safe fallback target. sRGB to match the seed in init(), so the
+    // first real base-colour texture reuses this bucket instead of spending
+    // another one.
     if(channel.buckets.empty())
     {
       channel.ensurePrimary(
           QRhiTexture::RGBA8,
-          QSize(kChannelLayerSize, kChannelLayerSize));
+          QSize(kChannelLayerSize, kChannelLayerSize),
+          GpuResourceRegistry::textureChannelFlags(toTexChannel(ChannelBaseColor)));
     }
 
     // Per-bucket allocate / reallocate.
@@ -3334,12 +3326,13 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         if(b.array)
           b.array->deleteLater();
         b.array = rhi.newTextureArray(
-            b.format, wantLayers, b.pixelSize, 1, channelFlags(ch));
+            b.format, wantLayers, b.pixelSize, 1, b.flags);
         if(b.array)
         {
           b.array->setName(
-              QByteArray("ScenePreprocessor::") + channelName(ch)
-              + '[' + QByteArray::number((int)bi) + ']');
+              QByteArray("ScenePreprocessor::")
+              + GpuResourceRegistry::kSharedArrayName + '['
+              + QByteArray::number((int)bi) + ']');
           if(!b.array->create())
           {
             delete b.array;
@@ -3396,7 +3389,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
             wrap_to_qrhi(b.sampler_config.wrap_s),
             wrap_to_qrhi(b.sampler_config.wrap_t));
         b.sampler->setName(
-            QByteArray("ScenePreprocessor::") + channelName(ch) + "_sampler["
+            QByteArray("ScenePreprocessor::")
+            + GpuResourceRegistry::kSharedArrayName + "_sampler["
             + QByteArray::number((int)bi) + ']');
         if(!b.sampler->create())
         {
@@ -3435,20 +3429,11 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       auto& b = channel.buckets[bi];
       if(!b.array || !b.layerMap.empty())
         continue;
+      // Nothing references an empty bucket -- a material with no texture
+      // carries tex_ref_none -- and there is no channel left to pick a
+      // per-channel neutral from, so one white fill serves.
       QImage fallback(b.pixelSize, QImage::Format_RGBA8888);
-      switch(ch)
-      {
-        case ChannelBaseColor:  fallback.fill(Qt::white); break;
-        case ChannelEmissive:   fallback.fill(Qt::black); break;
-        // MR / packed-extension fallback: white (1,1,1,1) so per-material
-        // metallic_factor / roughness_factor / clearcoat_factor / sheen / etc.
-        // apply via multiplication. A non-white fallback would zero out the
-        // authored factors (e.g., metallic_factor=1 + no MR texture → black
-        // metal instead of mirror).
-        case ChannelMetalRough: fallback.fill(Qt::white); break;
-        case ChannelNormal:     fallback.fill(QColor(128, 128, 255, 255)); break;
-        default:                fallback.fill(Qt::white); break;
-      }
+      fallback.fill(Qt::white);
       QRhiTextureSubresourceUploadDescription sub(fallback);
       QRhiTextureUploadEntry entry(0, 0, sub);
       res.uploadTexture(
@@ -3470,20 +3455,20 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       for(std::size_t bi = 0; bi < channel.buckets.size(); ++bi)
       {
         const auto& b = channel.buckets[bi];
-        detail += QStringLiteral(" b%1=%2x%3×%4")
+        detail += QStringLiteral(" b%1=%2x%3x%4%5")
                       .arg(bi)
                       .arg(b.pixelSize.width())
                       .arg(b.pixelSize.height())
-                      .arg(b.layers);
+                      .arg(b.layers)
+                      .arg((b.flags & QRhiTexture::sRGB) ? "s" : "");
       }
-      BUFTRACE() << "[Channel " << channelName(ch)
+      BUFTRACE() << "[shared texture pool"
                  << "] buckets=" << channel.buckets.size()
                  << " pendingUploads=" << pendingUploads.size()
                  << detail
                  << " realloc=" << anyReallocated;
     }
 
-    patchMaterialRefsFromCache(ch, fs);
     return arrayReallocated;
   }
 
@@ -3609,61 +3594,87 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   {
     if(!m_registry)
       return;
-    for(int i = 0; i < ChannelCount; ++i)
+    // One pool for every channel, so one set of entries: `materialArray<k>`
+    // per live bucket and `materialDyn<k>` per live dynamic slot. Consumer
+    // shaders declare a single ladder and switch on the 7-bit bucket field of
+    // MaterialGPU::textureRefs, whatever channel the ref came from -- the
+    // bucket key carries the colourspace, so an sRGB ref and a linear one of
+    // the same size simply land in different buckets.
     {
-      auto ch = static_cast<MaterialChannel>(i);
-      const auto& channel = texChannel(ch);
-
-      // One `auxiliary_texture` per live bucket, named
-      // <channelName><bucket_id>, capped at kMaxBuckets. Consumer shaders
-      // declare matching sampler2DArray INPUTS and switch on the 6-bit bucket
-      // field of MaterialGPU::textureRefs.
-      //
-      // Bucket 0 is also emitted under the unsuffixed <channelName> for shaders
-      // that only decode bucket 0. Such a shader shown a multi-bucket scene
-      // renders bucket 0's layer in place of the intended one; those presets
-      // should migrate to a ladder-aware one. No overhead for the common
-      // single-bucket case.
-      for(std::size_t bi = 0; bi < channel.buckets.size(); ++bi)
+      const auto& pool = m_registry->texturePool();
+      for(std::size_t bi = 0; bi < pool.buckets.size(); ++bi)
       {
-        auto* tex = channel.buckets[bi].array;
+        auto* tex = pool.buckets[bi].array;
         if(!tex)
           continue;
-        // sampler_handle is null when the bucket is the init-time
-        // fallback (bucket 0 with no real sources). Renderer falls
-        // back to its own shader-config sampler when null. Real
-        // material buckets populate the per-bucket sampler in
-        // rebuildChannel above so per-glTF-texture wrap/filter
-        // modes propagate end-to-end.
-        void* sampler_h = static_cast<void*>(channel.buckets[bi].sampler);
-        // Suffixed, always.
+        // sampler_handle is null when the bucket is the init-time fallback
+        // (bucket 0 with no real sources); the renderer then falls back to its
+        // own shader-config sampler. Real buckets carry the per-bucket sampler
+        // allocateAndUploadPool created, so per-glTF wrap/filter modes
+        // propagate end to end.
+        void* sampler_h = static_cast<void*>(pool.buckets[bi].sampler);
         g.auxiliary_textures.push_back(
-            {.name = std::string(channelName(ch))
+            {.name = std::string(GpuResourceRegistry::kSharedArrayName)
                      + std::to_string((int)bi),
              .native_handle = tex,
              .sampler_handle = sampler_h});
-        // Unsuffixed alias only for bucket 0.
         if(bi == 0)
         {
           g.auxiliary_textures.push_back(
-              {.name = channelName(ch),
+              {.name = GpuResourceRegistry::kSharedArrayName,
                .native_handle = tex,
                .sampler_handle = sampler_h});
         }
       }
-      // Dynamic slot textures: one aux entry per used slot, named
-      // `<channelDynBase><slot>` (e.g., "baseColorDyn0"). Consumer
-      // shaders declare matching sampler2D uniforms and branch on the
-      // textureRefs source bits to pick static array vs dyn sampler.
-      const auto& dyn = texChannel(ch).dynamicTextures;
-      const char* dynBase = channelDynBaseName(ch);
+
+      const auto& dyn = pool.dynamicTextures;
       for(int s = 0; s < (int)dyn.size(); ++s)
       {
         if(auto* tex = dyn[s])
         {
           g.auxiliary_textures.push_back(
-              {.name = std::string(dynBase) + std::to_string(s),
+              {.name = std::string(GpuResourceRegistry::kSharedDynName)
+                       + std::to_string(s),
                .native_handle = tex});
+        }
+      }
+
+      // Legacy per-channel aliases onto the same buckets, for shaders that
+      // still name baseColorArray<k> / metalRoughDyn<s> and friends --
+      // lgm/model-depth.score and classic_pbr_skinned.frag declare theirs as
+      // INPUTS images, which are real ports, so they cannot be renamed without
+      // shifting the inlet indices a saved document resolves its cables
+      // against.
+      //
+      // The aliasing is exact, not approximate: a ref's bucket field now
+      // indexes the shared pool, and a legacy shader switches on that same
+      // field before sampling its <channel>Array<k>, so pointing that name at
+      // shared bucket k gives it precisely the texture the ref designates. A
+      // shader declaring fewer rungs than the pool holds falls through to its
+      // own fallback for the high buckets, which is the degradation it already
+      // had past its own cap. Unreferenced names cost a vector entry here and
+      // nothing in the SRB.
+      for(int i = 0; i < ChannelCount; ++i)
+      {
+        const auto ch = static_cast<MaterialChannel>(i);
+        for(std::size_t bi = 0; bi < pool.buckets.size(); ++bi)
+        {
+          auto* tex = pool.buckets[bi].array;
+          if(!tex)
+            continue;
+          g.auxiliary_textures.push_back(
+              {.name = std::string(channelName(ch)) + std::to_string((int)bi),
+               .native_handle = tex,
+               .sampler_handle = static_cast<void*>(pool.buckets[bi].sampler)});
+        }
+        for(int s = 0; s < (int)dyn.size(); ++s)
+        {
+          if(auto* tex = dyn[s])
+          {
+            g.auxiliary_textures.push_back(
+                {.name = std::string(channelDynBaseName(ch)) + std::to_string(s),
+                 .native_handle = tex});
+          }
         }
       }
     }
@@ -4016,12 +4027,34 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           = (fingerprint == m_cachedMaterialsFingerprint);
 
       bool channelReallocated = false;
-      for(int i = 0; i < ChannelCount; ++i)
+      if(m_registry)
       {
-        if(rebuildChannel(
-               static_cast<MaterialChannel>(i), sameMaterialsContent,
-               renderer, res, fs))
-          channelReallocated = true;
+        // Dynamic slots refresh every frame whatever sameMaterialsContent
+        // says: a runtime handle can swap without the outer material pointer
+        // changing.
+        for(int i = 0; i < ChannelCount; ++i)
+          rebuildDynamicSlots(static_cast<MaterialChannel>(i));
+
+        // One pool for every channel, so registration is a single pass over
+        // all five before anything is allocated -- see registerChannelRefs.
+        auto& pool = m_registry->texturePool();
+        if(!sameMaterialsContent || !pool.primaryArray())
+        {
+          for(auto& b : pool.buckets)
+            b.layerMap.clear();
+
+          std::vector<PendingLayer> pendingUploads;
+          pendingUploads.reserve(16);
+          for(int i = 0; i < ChannelCount; ++i)
+            registerChannelRefs(
+                static_cast<MaterialChannel>(i), renderer, fs, pendingUploads);
+
+          channelReallocated
+              = allocateAndUploadPool(renderer, res, pendingUploads);
+        }
+
+        for(int i = 0; i < ChannelCount; ++i)
+          patchMaterialRefsFromCache(static_cast<MaterialChannel>(i), fs);
       }
       if(!sameMaterialsContent)
         m_cachedMaterialsFingerprint = std::move(fingerprint);
