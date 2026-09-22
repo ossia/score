@@ -1268,6 +1268,16 @@ set_tests_properties(test_integration_js_enumerate_protocols PROPERTIES
 # The spatialization device's source offset, read off a loopback UDP socket:
 # what SpatGRIS / ADM-OSC / SPAT actually put in the packet. Only the protocol
 # headers are needed, so this links no plug-in.
+if(TARGET score_addon_spatgris)
+  score_add_test(test_integration_spatgris_source_offset
+    SOURCES SpatGrisSourceOffsetTest.cpp
+    LIBS ossia)
+  target_include_directories(test_integration_spatgris_source_offset PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/addons/score-addon-spatgris"
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/libossia/3rdparty/oscpack")
+  set_tests_properties(test_integration_spatgris_source_offset PROPERTIES
+    TIMEOUT 60 LABELS "integration;device")
+endif()
 
 # The shell harnesses register themselves with add_test() rather than through
 # score_add_test(), so they get none of its environment. Each starts a score
