@@ -9,6 +9,8 @@
 
 #include <ossia/network/value/value.hpp>
 
+#include <QImage>
+#include <QPainter>
 #include <QPointF>
 
 #include <catch2/catch_approx.hpp>
@@ -141,5 +143,55 @@ TEST_CASE("path generator: a source with no handle does not move", "[gfx][path]"
       checkSame(w.pathPoint(lone, 0.), handlePos(w, a));
       checkSame(w.pathPoint(lone, 0.5), handlePos(w, a));
     }
+  });
+}
+
+TEST_CASE("path generator: the editor is sized, not hard-coded", "[gfx][path]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    score::QGraphicsPathGeneratorXY w{nullptr};
+
+    CHECK(w.width() == score::QGraphicsPathGeneratorXY::defaultSize.width());
+    CHECK(w.height() == score::QGraphicsPathGeneratorXY::defaultSize.height());
+
+    const ossia::vec2f a{0.5f, 0.5f};
+    const auto src = source(a, ossia::vec2f{0.8f, 0.5f});
+    w.setPathMode(Circle);
+
+    w.setSize(QSizeF{120., 80.});
+    CHECK(w.width() == 120.);
+    CHECK(w.height() == 80.);
+    // Positions are normalised, so they follow the size in both axes
+    checkSame(w.pathPoint(src, 0.), QPointF{0.8 * 120., 0.5 * 80.});
+
+    // ... and it does not collapse to nothing
+    w.setSize(QSizeF{1., 1.});
+    CHECK(w.width() == score::QGraphicsPathGeneratorXY::minimumSize.width());
+    CHECK(w.height() == score::QGraphicsPathGeneratorXY::minimumSize.height());
+  });
+}
+
+TEST_CASE("path generator: painting leaves the painter as it found it", "[gfx][path]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    score::QGraphicsPathGeneratorXY w{nullptr};
+    w.setPathMode(Circle);
+    w.setValue(ossia::value{std::vector<ossia::value>{
+        ossia::value{source(ossia::vec2f{0.5f, 0.5f}, ossia::vec2f{0.8f, 0.5f})}}});
+
+    QImage img{64, 64, QImage::Format_ARGB32};
+    QPainter painter{&img};
+    QGraphicsItem& item = w;
+
+    // The whole node paints through this painter: a clip left behind cuts the
+    // items drawn after the editor, the outlets among them.
+    item.paint(&painter, nullptr, nullptr);
+    CHECK(!painter.hasClipping());
+
+    const QRectF clip{8., 8., 16., 16.};
+    painter.setClipRect(clip);
+    item.paint(&painter, nullptr, nullptr);
+    CHECK(painter.hasClipping());
+    CHECK(painter.clipBoundingRect() == clip);
   });
 }
