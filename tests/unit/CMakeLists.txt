@@ -556,6 +556,12 @@ score_add_test(test_unit_note_chooser
   SOURCES NoteChooserTest.cpp
   APP)
 
+# Execution feedback of the time chooser: the arc must use the same mapping as
+# the knob itself.
+score_add_test(test_unit_time_chooser_feedback
+  SOURCES TimeChooserFeedbackTest.cpp
+  APP)
+
 # The spinbox maps the drag itself instead of going through
 # InfiniteScroller::move(); APP because its header pulls in the skin.
 score_add_test(test_unit_spinbox_drag

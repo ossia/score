@@ -116,13 +116,19 @@ int QGraphicsTimeChooser::syncIndex() const noexcept
       int(std::lround(m_value * (division_count - 1))), 0, division_count - 1);
 }
 
+double QGraphicsTimeChooser::position(ossia::vec2f v) const noexcept
+{
+  // Only a value in the division domain can be put on a detent: anything else
+  // is already a 0..1 position.
+  if(m_sync && v[1] != 0.f)
+    return nearestDivision(v[0]) / double(division_count - 1);
+  return ossia::clamp(double(v[0]), 0., 1.);
+}
+
 void QGraphicsTimeChooser::setValue(ossia::vec2f v)
 {
   m_sync = v[1] != 0.f;
-  if(m_sync)
-    m_value = nearestDivision(v[0]) / double(division_count - 1);
-  else
-    m_value = ossia::clamp(double(v[0]), 0., 1.);
+  m_value = position(v);
   update();
 }
 
@@ -137,10 +143,7 @@ ossia::vec2f QGraphicsTimeChooser::value() const noexcept
 void QGraphicsTimeChooser::setExecutionValue(ossia::vec2f v)
 {
   m_hasExec = true;
-  if(v[1] != 0.f)
-    m_execValue = nearestDivision(v[0]) / double(division_count - 1);
-  else
-    m_execValue = ossia::clamp(double(v[0]), 0., 1.);
+  m_execValue = position(v);
   update();
 }
 

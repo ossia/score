@@ -662,7 +662,13 @@ struct TimeChooser
     QObject::connect(
         &inlet, &Control_T::executionValueChanged, sl,
         [norm, sl](const ossia::value& val) {
-      sl->setExecutionValue(mapTimeToUI(norm, ossia::convert<ossia::vec2f>(val)));
+      // A scalar feedback is in seconds: converting it to vec2f would fill the
+      // sync flag with it.
+      if(auto* vec = val.target<ossia::vec2f>())
+        sl->setExecutionValue(mapTimeToUI(norm, *vec));
+      else
+        sl->setExecutionValue(
+            ossia::vec2f{float(norm.to01(ossia::convert<float>(val))), 0.f});
     });
     QObject::connect(
         &inlet, &Control_T::executionReset, sl,
