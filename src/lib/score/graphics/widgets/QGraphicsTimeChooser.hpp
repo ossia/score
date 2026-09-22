@@ -42,6 +42,7 @@ public:
 
   [[nodiscard]] ossia::vec2f value() const noexcept;
   void setExecutionValue(ossia::vec2f v);
+  [[nodiscard]] double executionPosition() const noexcept { return m_execValue; }
   void resetExecution();
 
   void syncChanged(bool sync);
@@ -63,6 +64,8 @@ private:
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
 
   int syncIndex() const noexcept;
+  //! Knob position, 0..1, for a {x, sync} pair in the current mode
+  double position(ossia::vec2f v) const noexcept;
   QString freeText() const;
 
   QRectF m_rect{0., 0., 35., 35.};
