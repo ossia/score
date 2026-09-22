@@ -1058,11 +1058,11 @@ static void parse_auxiliary_texture(
   }
 }
 
-// Below this length a ladder costs more in generated #defines than it saves
-// in bindings: N combined bindings become one array binding plus one sampler,
-// so the break-even is 2 and the margin only becomes worth the indirection at
-// 4. The material channels ScenePreprocessor emits are 16 wide.
-static constexpr std::size_t isf_min_ladder = 4;
+// N combined bindings become one texture array plus one sampler, so bindings
+// break even at 2 and sampler slots -- the tighter budget on Metal, 16 per
+// stage -- start saving there too. The material channels ScenePreprocessor
+// emits are 16 wide; its dynamic slots come in pairs.
+static constexpr std::size_t isf_min_ladder = 2;
 
 static bool isf_is_comparison_sampler(const sampler_config& s);
 
@@ -4674,35 +4674,35 @@ void parser::parse_raw_raster_pipeline()
         else
           sampler_type = cmp ? "sampler2DShadow" : "sampler2D";
 
-        // A ladder collapses into ONE binding holding N combined samplers,
-        // with a #define per rung so the shader body keeps naming <base><k>.
+        // A ladder collapses into a `texture<shape> <base>_tex[N]` array plus
+        // one shared `sampler <base>_smp`: two bindings for N rungs instead of
+        // N, and -- because Metal charges a sampler slot per ARRAY ELEMENT of a
+        // combined binding (qrhimetal.mm, samplerBinding + elem) -- one sampler
+        // slot instead of N.
         //
-        // The combined type is kept deliberately. Separating it into
-        // `texture<shape>[N]` plus a shared `sampler` would additionally free
-        // Metal's sampler table, but the separated form can only be recombined
-        // at the point of use -- glslang rejects a sampler constructor passed
-        // as a call argument -- and the shaders this exists for pass the rung
-        // to a helper (anisoSample2DArray(baseColorArray3, ...)). Those bodies
-        // live inside saved documents, so they cannot be rewritten from here.
-        // An array of combined samplers indexed by a CONSTANT is an lvalue of
-        // sampler type, so it survives being passed along, and the constant
-        // index keeps GLES3 and D3D11 -- what they forbid is a dynamically
-        // uniform index, not a literal one.
+        // No per-rung alias is emitted. The combined value can only be rebuilt
+        // with sampler<shape>(tex, smp) AT THE POINT OF USE -- glslang rejects
+        // a sampler constructor passed as a call argument -- so a rung handed
+        // to a helper has to travel as the pair, and a macro hiding that would
+        // have to expand differently per call shape. Shaders name the two
+        // halves directly; a ladder shader that has not been updated fails to
+        // compile on the rung name, which is the intended loud failure.
         if(atx.in_ladder())
         {
           if(atx.owns_ladder())
           {
-            aux_tex_decls += "layout(binding = " + std::to_string(sampler_binding)
-                             + ") uniform " + sampler_type + " " + atx.ladder_base
-                             + "[" + std::to_string(atx.ladder_size) + "];\n";
-            sampler_binding++;
+            const char* texture_type = "texture2D";
+            if(atx.is_cubemap)           texture_type = "textureCube";
+            else if(atx.dimensions == 3) texture_type = "texture3D";
+            else if(atx.is_array)        texture_type = "texture2DArray";
 
-            for(int k = 0; k < atx.ladder_size; k++)
-            {
-              aux_tex_decls += "#define " + atx.ladder_base + std::to_string(k)
-                               + " " + atx.ladder_base + "[" + std::to_string(k)
-                               + "]\n";
-            }
+            aux_tex_decls += "layout(binding = " + std::to_string(sampler_binding)
+                             + ") uniform " + texture_type + " " + atx.ladder_base
+                             + "_tex[" + std::to_string(atx.ladder_size) + "];\n";
+            sampler_binding++;
+            aux_tex_decls += "layout(binding = " + std::to_string(sampler_binding)
+                             + ") uniform sampler " + atx.ladder_base + "_smp;\n";
+            sampler_binding++;
           }
           continue;
         }

@@ -9,12 +9,10 @@
 // qrhimetal.mm:2086 -- so those 80 push the vertex buffers past the 31-entry
 // buffer table. duck-basic measures 106 bindings and asks for slot 115.
 //
-// A run of rungs differing only by a trailing index now emits ONE binding,
-// `uniform sampler2DArray <base>[N]`, plus a #define per rung. One binding
-// instead of N, and the shader body keeps sampling by the old name -- which
-// matters because those names are passed as function arguments
-// (anisoSample2DArray(baseColorArray3, ...)) in shaders embedded in saved
-// documents that cannot be rewritten.
+// A run of rungs differing only by a trailing index now emits a
+// `texture2DArray <base>_tex[N]` plus one shared `sampler <base>_smp`: two
+// bindings for N rungs, and one sampler slot instead of N, since Metal charges
+// a slot per array element of a combined binding.
 //
 // What is pinned here:
 //   - the parser groups a qualifying run and leaves everything else alone;
@@ -22,9 +20,7 @@
 //     per-rung combined declaration;
 //   - the highest binding number actually drops;
 //   - the collapsed form still bakes for all five backends, including with a
-//     rung passed on to a helper function -- the shape that rules out the
-//     separated texture/sampler form, whose sampler constructor glslang only
-//     accepts at the point of use.
+//     rung handed to a helper as the (texture, sampler) pair it now is.
 // =============================================================================
 #include "IsfTestCommon.hpp"
 
@@ -113,15 +109,18 @@ std::string ladder_shader()
   ]
 }*/
 
-vec4 rung(sampler2DArray tex, vec2 uv)
+vec4 rung(texture2DArray tex, sampler smp, vec2 uv)
 {
-  return texture(tex, vec3(uv, 0.));
+  return texture(sampler2DArray(tex, smp), vec3(uv, 0.));
 }
 
 void main()
 {
-  vec4 c = rung(fooArray0, v_uv) + rung(fooArray3, v_uv) + rung(fooArray7, v_uv);
-  c += texture(barDyn0, v_uv) + texture(barDyn1, v_uv);
+  vec4 c = rung(fooArray_tex[0], fooArray_smp, v_uv)
+         + rung(fooArray_tex[3], fooArray_smp, v_uv)
+         + rung(fooArray_tex[7], fooArray_smp, v_uv);
+  c += texture(sampler2D(barDyn_tex[0], barDyn_smp), v_uv)
+     + texture(sampler2D(barDyn_tex[1], barDyn_smp), v_uv);
   c += texture(skybox, vec3(v_uv, 0.));
   isf_FragColor = c;
 }
@@ -171,10 +170,13 @@ TEST_CASE("aux texture ladders are grouped by the parser", "[gfx][isf]")
     CHECK(rung.owns_ladder() == (i == 0));
   }
 
-  // Below isf_min_ladder: two rungs would trade two combined bindings for a
-  // texture array plus a sampler, which is no saving at all.
-  CHECK_FALSE(d.auxiliary_textures[8].in_ladder());
-  CHECK_FALSE(d.auxiliary_textures[9].in_ladder());
+  // A two-rung run also groups: same binding count, half the sampler slots.
+  CHECK(d.auxiliary_textures[8].ladder_base == "barDyn");
+  CHECK(d.auxiliary_textures[8].ladder_size == 2);
+  CHECK(d.auxiliary_textures[8].owns_ladder());
+  CHECK(d.auxiliary_textures[9].ladder_index == 1);
+
+  // A singleton has no run to join.
   CHECK_FALSE(d.auxiliary_textures[10].in_ladder());
 }
 
@@ -185,28 +187,25 @@ TEST_CASE("a grouped ladder emits one array, one sampler, N defines", "[gfx][isf
       isf::parser::ShaderType::RawRasterPipeline};
   const std::string frag = p.fragment();
 
-  CHECK(frag.find("uniform sampler2DArray fooArray[8];") != std::string::npos);
+  CHECK(frag.find("uniform texture2DArray fooArray_tex[8];") != std::string::npos);
+  CHECK(frag.find("uniform sampler fooArray_smp;") != std::string::npos);
 
-  for(int i = 0; i < 8; i++)
-  {
-    const std::string def = "#define fooArray" + std::to_string(i) + " fooArray["
-                            + std::to_string(i) + "]";
-    INFO(def);
-    CHECK(frag.find(def) != std::string::npos);
-  }
+  // A two-rung run qualifies as well: bindings break even and the sampler
+  // slot -- Metal's tighter budget -- halves.
+  CHECK(frag.find("uniform texture2D barDyn_tex[2];") != std::string::npos);
+  CHECK(frag.find("uniform sampler barDyn_smp;") != std::string::npos);
 
-  // No rung keeps a combined declaration of its own.
+  // No rung keeps a combined declaration, and no alias is emitted for it.
   for(int i = 0; i < 8; i++)
   {
     const std::string decl
         = "uniform sampler2DArray fooArray" + std::to_string(i) + ";";
     INFO(decl);
     CHECK(frag.find(decl) == std::string::npos);
+    CHECK(frag.find("#define fooArray" + std::to_string(i)) == std::string::npos);
   }
 
-  // The entries that did not qualify are untouched.
-  CHECK(frag.find("uniform sampler2D barDyn0;") != std::string::npos);
-  CHECK(frag.find("uniform sampler2D barDyn1;") != std::string::npos);
+  // A singleton is untouched: nothing to collapse.
   CHECK(frag.find("uniform samplerCube skybox;") != std::string::npos);
 }
 
@@ -217,10 +216,9 @@ TEST_CASE("grouping lowers the highest binding number", "[gfx][isf]")
       isf::parser::ShaderType::RawRasterPipeline};
   const std::string frag = p.fragment();
 
-  // 8 rungs would have cost 8 slots; the array plus its sampler cost 2, so the
-  // model UBO -- always last -- lands 6 lower. Asserting the absolute number
-  // would pin every unrelated binding the prelude adds, so assert the saving:
-  // 11 aux textures occupy 2 + 2 + 1 = 5 slots rather than 11.
+  // 11 aux textures occupy 2 + 2 + 1 = 5 slots rather than 11. Asserting the
+  // absolute number would pin every unrelated binding the prelude adds, so
+  // assert that the total came down instead.
   const int emitted = occurrences(frag, "layout(binding = ");
   const int top = max_binding(frag);
   INFO("bindings emitted: " << emitted << ", max binding: " << top);

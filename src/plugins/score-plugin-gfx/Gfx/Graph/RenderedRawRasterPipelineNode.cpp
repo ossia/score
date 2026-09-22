@@ -276,9 +276,10 @@ void RenderedRawRasterPipelineNode::appendAuxTextureBindings(
   {
     auto& ats = m_auxTextureSamplers[i];
 
-    // Ladder: the owning rung binds the whole run as ONE sampledTextures()
-    // array, matching the single `uniform sampler<shape> <base>[N]` isf.cpp
-    // emits. The other rungs are elements of it and take no slot of their own.
+    // Ladder: the owning rung binds the whole run as one textures() array plus
+    // the shared sampler, matching the `<base>_tex[N]` / `<base>_smp` pair
+    // isf.cpp emits, in that slot order. The other rungs are elements of the
+    // array and take no slot of their own.
     if(ats.in_ladder())
     {
       if(!ats.owns_ladder())
@@ -289,18 +290,21 @@ void RenderedRawRasterPipelineNode::appendAuxTextureBindings(
 
       const int n = std::min<int>(
           ats.ladder_size, int(m_auxTextureSamplers.size() - i));
-      ossia::small_vector<QRhiShaderResourceBinding::TextureAndSampler, 16> rungs;
+      ossia::small_vector<QRhiTexture*, 16> rungs;
       rungs.reserve(n);
       for(int k = 0; k < n; ++k)
       {
         auto& rung = m_auxTextureSamplers[i + k];
-        rungs.push_back(
-            {rung.texture ? rung.texture : rung.placeholder, ats.sampler});
+        rungs.push_back(rung.texture ? rung.texture : rung.placeholder);
       }
 
-      out.push_back(QRhiShaderResourceBinding::sampledTextures(
-          binding, stages, n, rungs.data()));
+      out.push_back(
+          QRhiShaderResourceBinding::textures(binding, stages, n, rungs.data()));
       ats.binding = binding;
+      binding++;
+
+      out.push_back(
+          QRhiShaderResourceBinding::sampler(binding, stages, ats.sampler));
       binding++;
       continue;
     }
