@@ -1,5 +1,11 @@
 #include "BitfocusContext.hpp"
 
+#include <signal.h>
+
+#if defined(__linux__)
+#include <sys/prctl.h>
+#endif
+
 // #include <iostream>
 namespace bitfocus
 {
@@ -28,14 +34,32 @@ module_handler_base::module_handler_base(
   process.setWorkingDirectory(module_path);
   process.setProcessEnvironment(genv);
 
-  process.start();
+  // Own session: the module and everything it spawns can then be signaled as a single
+  // process group. PR_SET_PDEATHSIG makes the kernel terminate it if score goes away
+  // without running any cleanup; the getppid check closes the fork/prctl race.
+  process.setChildProcessModifier([parent = ::getpid()] {
+    ::setsid();
+#if defined(__linux__)
+    ::prctl(PR_SET_PDEATHSIG, SIGTERM);
+#endif
+    if(::getppid() != parent)
+      ::_exit(0);
+  });
 
-  // See https://forum.qt.io/topic/33964/solved-child-qprocess-that-dies-with-parent/10
+  process.start();
 }
 
 module_handler_base::~module_handler_base()
 {
-  process.terminate();
+  if(const auto pid = process.processId(); pid > 0)
+  {
+    ::kill(-pid, SIGTERM);
+    if(!process.waitForFinished(1000))
+    {
+      ::kill(-pid, SIGKILL);
+      process.waitForFinished(1000);
+    }
+  }
 }
 
 void module_handler_base::on_read(QSocketDescriptor, QSocketNotifier::Type)
