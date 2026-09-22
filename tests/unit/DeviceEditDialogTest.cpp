@@ -20,12 +20,14 @@
 #include <score/plugins/Interface.hpp>
 
 #include <QApplication>
+#include <QKeyEvent>
 #include <QTreeWidget>
 
 #include <catch2/catch_all.hpp>
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
 
+#include <chrono>
 #include <thread>
 
 namespace
@@ -341,8 +343,6 @@ struct ModeFixture
     }
     REQUIRE(found != nullptr);
     tree->setCurrentItem(found);
-    found->setSelected(true);
-    tree->activated(tree->currentIndex());
     QApplication::processEvents();
   }
 };
@@ -374,5 +374,172 @@ TEST_CASE("creating a device and picking an enumerated device takes its name", "
     f.pickEnumeratedDevice(QStringLiteral("Logitech C920"));
 
     CHECK(f.dialog->getSettings().name == "Logitech C920");
+  });
+}
+
+// Navigating the protocol list with the arrow keys picks a protocol, exactly
+// like clicking on it does: the settings widget below must follow the current
+// item, not only the clicked one.
+namespace
+{
+//! Rebuilding a protocol is debounced, as its enumerators probe hardware.
+template <typename F>
+bool waitFor(F&& f)
+{
+  for(int i = 0; i < 200 && !f(); i++)
+  {
+    QApplication::processEvents();
+    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+  }
+  return f();
+}
+
+//! Spin long enough that a debounced rebuild would have happened.
+void settle()
+{
+  for(int i = 0; i < 60; i++)
+  {
+    QApplication::processEvents();
+    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+  }
+}
+
+void pressKey(QWidget& w, Qt::Key key)
+{
+  QKeyEvent press{QEvent::KeyPress, key, Qt::NoModifier};
+  QApplication::sendEvent(&w, &press);
+  QKeyEvent release{QEvent::KeyRelease, key, Qt::NoModifier};
+  QApplication::sendEvent(&w, &release);
+}
+
+QTreeWidgetItem* findItem(QTreeWidget& tree, const QString& name)
+{
+  for(int i = 0; i < tree.topLevelItemCount(); i++)
+  {
+    auto cat = tree.topLevelItem(i);
+    for(int j = 0; j < cat->childCount(); j++)
+      if(cat->child(j)->text(0) == name)
+        return cat->child(j);
+  }
+  return nullptr;
+}
+
+struct KeyboardFixture
+{
+  Harness h;
+  Explorer::DeviceEditDialog* dialog{};
+
+  explicit KeyboardFixture(score::Document& doc)
+  {
+    auto& model = Explorer::deviceExplorerFromContext(doc.context());
+    dialog = new Explorer::DeviceEditDialog{
+        model, h.protocols, Explorer::DeviceEditDialog::Creating, nullptr};
+    dialog->show();
+    QApplication::processEvents();
+  }
+
+  ~KeyboardFixture() { delete dialog; }
+
+  QTreeWidget& protocols() const
+  {
+    auto tree = dialog->protocolsTree();
+    REQUIRE(tree != nullptr);
+    return *tree;
+  }
+
+  void selectProtocol(const QString& name)
+  {
+    auto item = findItem(protocols(), name);
+    REQUIRE(item != nullptr);
+    protocols().setCurrentItem(item);
+    REQUIRE(waitFor([&] { return dialog->getSettings().name == "dummy"; }));
+  }
+};
+}
+
+TEST_CASE("arrow keys change the selected protocol", "[deviceexplorer]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+
+    KeyboardFixture f{*doc};
+    f.selectProtocol(QStringLiteral("AAsync"));
+    REQUIRE(f.dialog->getSettings().protocol == AsyncFactory::static_concreteKey());
+
+    pressKey(f.protocols(), Qt::Key_Down);
+
+    CHECK(waitFor([&] {
+      return f.dialog->getSettings().protocol == PlainFactory::static_concreteKey();
+    }));
+
+    pressKey(f.protocols(), Qt::Key_Up);
+
+    CHECK(waitFor([&] {
+      return f.dialog->getSettings().protocol == AsyncFactory::static_concreteKey();
+    }));
+  });
+}
+
+// Category headers are enabled, so the arrow keys go through them: they carry
+// no protocol and must leave the settings widget alone.
+TEST_CASE("moving onto a category keeps the protocol settings", "[deviceexplorer]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+
+    KeyboardFixture f{*doc};
+    f.selectProtocol(QStringLiteral("AAsync"));
+
+    pressKey(f.protocols(), Qt::Key_Up);
+    REQUIRE(f.protocols().currentItem() == f.protocols().topLevelItem(0));
+
+    settle();
+    CHECK(f.dialog->getSettings().protocol == AsyncFactory::static_concreteKey());
+  });
+}
+
+// Same story in the enumerated devices column.
+TEST_CASE("arrow keys change the picked device", "[deviceexplorer]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+
+    ModeFixture f{*doc, Explorer::DeviceEditDialog::Creating};
+    f.pickEnumeratedDevice(QStringLiteral("Camera A"));
+
+    Device::DeviceSettings other;
+    other.name = QStringLiteral("Camera B");
+    other.protocol = AsyncFactory::static_concreteKey();
+    f.enumerator->deviceAdded(other.name, other);
+    QApplication::processEvents();
+
+    REQUIRE(f.dialog->getSettings().name == "Camera A");
+
+    pressKey(*f.dialog->devicesTree(), Qt::Key_Down);
+    QApplication::processEvents();
+
+    CHECK(f.dialog->getSettings().name == "Camera B");
+  });
+}
+
+// The reverse direction: setting the protocol from the outside (editing an
+// existing device) moves the list's current item onto it.
+TEST_CASE("setting the settings moves the protocol list", "[deviceexplorer]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+
+    KeyboardFixture f{*doc};
+    f.dialog->setSettings(f.h.plain->defaultSettings());
+    QApplication::processEvents();
+
+    auto current = f.protocols().currentItem();
+    REQUIRE(current != nullptr);
+    CHECK(current->text(0) == "BPlain");
+    CHECK(f.dialog->getSettings().protocol == PlainFactory::static_concreteKey());
   });
 }
