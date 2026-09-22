@@ -23,7 +23,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsXYZChooser final
 
 private:
   ossia::vec3f m_value{}, m_min{}, m_max{}, m_init{};
-  float prev_v[3]{};
+  ossia::vec3f prev_v{};
   bool m_grab{};
 
 public:
@@ -48,6 +48,9 @@ private:
   //! puts one box on a slider. See QGraphicsXYChooser.
   void showTypeIn(QPointF scenePos);
 
+  //! Drag position -> the normalized components it drives. `link`: a drag on
+  //! the z strip carries x and y with it.
+  void trackDrag(QPointF p, bool link) noexcept;
   void rescale() noexcept;
   ossia::vec3f scaledValue(float x, float y, float z) const noexcept;
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;

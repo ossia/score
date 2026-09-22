@@ -46,12 +46,8 @@ QGraphicsXYSpinboxChooser::QGraphicsXYSpinboxChooser(bool isRange, QGraphicsItem
   }
   else
   {
-    connect(
-        &m_x, &QGraphicsSpinbox::sliderMoved, this,
-        &QGraphicsXYSpinboxChooser::sliderMoved);
-    connect(
-        &m_y, &QGraphicsSpinbox::sliderMoved, this,
-        &QGraphicsXYSpinboxChooser::sliderMoved);
+    connect(&m_x, &QGraphicsSpinbox::sliderMoved, this, [this] { componentMoved(0); });
+    connect(&m_y, &QGraphicsSpinbox::sliderMoved, this, [this] { componentMoved(1); });
   }
   connect(
       &m_x, &QGraphicsSpinbox::sliderReleased, this,
@@ -73,6 +69,22 @@ std::array<double, 2> QGraphicsXYSpinboxChooser::value() const noexcept
   return {m_x.value(), m_y.value()};
 }
 
+std::array<double, 2> QGraphicsXYSpinboxChooser::normalizedValue() const noexcept
+{
+  return {m_x.value(), m_y.value()};
+}
+
+void QGraphicsXYSpinboxChooser::componentMoved(std::size_t source)
+{
+  QGraphicsSpinbox* boxes[2]{&m_x, &m_y};
+  if(boxes[source]->dragging() && linkComponentsRequested())
+    linkComponents(m_prev, source, boxes[source]->value(), [&](std::size_t i, double v) {
+      boxes[i]->setValue(v);
+    });
+  m_prev = normalizedValue();
+  sliderMoved();
+}
+
 std::array<double, 2> QGraphicsXYSpinboxChooser::getMin() const noexcept
 {
   return {m_x.min, m_y.min};
@@ -91,6 +103,7 @@ void QGraphicsXYSpinboxChooser::setValue(ossia::vec2f v)
 {
   m_x.setValue(v[0]);
   m_y.setValue(v[1]);
+  m_prev = normalizedValue();
   update();
 }
 
@@ -98,6 +111,7 @@ void QGraphicsXYSpinboxChooser::setValue(std::array<double, 2> v)
 {
   m_x.setValue(v[0]);
   m_y.setValue(v[1]);
+  m_prev = normalizedValue();
   update();
 }
 
@@ -146,11 +160,9 @@ QGraphicsIntXYSpinboxChooser::QGraphicsIntXYSpinboxChooser(
   else
   {
     connect(
-        &m_x, &QGraphicsIntSpinbox::sliderMoved, this,
-        &QGraphicsIntXYSpinboxChooser::sliderMoved);
+        &m_x, &QGraphicsIntSpinbox::sliderMoved, this, [this] { componentMoved(0); });
     connect(
-        &m_y, &QGraphicsIntSpinbox::sliderMoved, this,
-        &QGraphicsIntXYSpinboxChooser::sliderMoved);
+        &m_y, &QGraphicsIntSpinbox::sliderMoved, this, [this] { componentMoved(1); });
   }
   connect(
       &m_x, &QGraphicsIntSpinbox::sliderReleased, this,
@@ -170,6 +182,23 @@ void QGraphicsIntXYSpinboxChooser::paint(
 std::array<double, 2> QGraphicsIntXYSpinboxChooser::value() const noexcept
 {
   return {(double)m_x.value(), (double)m_y.value()};
+}
+
+std::array<double, 2> QGraphicsIntXYSpinboxChooser::normalizedValue() const noexcept
+{
+  return {m_x.unmap(m_x.value()), m_y.unmap(m_y.value())};
+}
+
+void QGraphicsIntXYSpinboxChooser::componentMoved(std::size_t source)
+{
+  QGraphicsIntSpinbox* boxes[2]{&m_x, &m_y};
+  const auto normalized = normalizedValue();
+  if(boxes[source]->dragging() && linkComponentsRequested())
+    linkComponents(m_prev, source, normalized[source], [&](std::size_t i, double v) {
+      boxes[i]->setValue(boxes[i]->map(v));
+    });
+  m_prev = normalizedValue();
+  sliderMoved();
 }
 
 std::array<double, 2> QGraphicsIntXYSpinboxChooser::getMin() const noexcept
@@ -192,12 +221,14 @@ void QGraphicsIntXYSpinboxChooser::setValue(ossia::vec2f v)
 {
   m_x.setValue(v[0]);
   m_y.setValue(v[1]);
+  m_prev = normalizedValue();
   update();
 }
 void QGraphicsIntXYSpinboxChooser::setValue(std::array<double, 2> v)
 {
   m_x.setValue(v[0]);
   m_y.setValue(v[1]);
+  m_prev = normalizedValue();
   update();
 }
 

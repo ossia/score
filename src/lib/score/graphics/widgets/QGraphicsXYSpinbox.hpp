@@ -24,6 +24,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsXYSpinboxChooser final
   QRectF m_rect;
   QGraphicsSpinbox m_x, m_y;
 
+  std::array<double, 2> m_prev{};
   bool m_isRange{};
 
 public:
@@ -48,6 +49,8 @@ public:
   void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
 
 private:
+  void componentMoved(std::size_t source);
+  std::array<double, 2> normalizedValue() const noexcept;
   std::array<double, 2> scaledValue(double x, double y) const noexcept;
   QRectF boundingRect() const override;
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
@@ -64,6 +67,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsIntXYSpinboxChooser final
   QRectF m_rect;
   QGraphicsIntSpinbox m_x, m_y;
 
+  std::array<double, 2> m_prev{};
   bool m_grab{};
   bool m_isRange{};
 
@@ -89,6 +93,8 @@ public:
   void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
 
 private:
+  void componentMoved(std::size_t source);
+  std::array<double, 2> normalizedValue() const noexcept;
   std::array<double, 2> scaledValue(double x, double y) const noexcept;
   QRectF boundingRect() const override;
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
