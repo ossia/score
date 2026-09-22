@@ -365,7 +365,13 @@ QShaderVersion shaderVersionForAPI(score::gfx::GraphicsApi api) noexcept
       return QShaderVersion(100);
 
     case score::gfx::Metal:
-      return QShaderVersion(12);
+      // 2.4, the version macOS 12 ships, which is our deployment floor. 1.2
+      // was below what a collapsed auxiliary ladder needs -- SPIRV-Cross
+      // rejects arrays of textures under MSL 2.0 outright. Qt pins no version:
+      // findKey takes whatever MslShader key the QShader carries and feeds it
+      // to toMetalLanguageVersion, which reads QShaderVersion(v) as
+      // major v/10, minor v%10 (qrhimetal.mm) -- so 24 is 2.4.
+      return QShaderVersion(24);
 
     case score::gfx::D3D11:
       // fxc caps at 5.1 and Qt's D3D11 backend looks up exactly {HlslShader,

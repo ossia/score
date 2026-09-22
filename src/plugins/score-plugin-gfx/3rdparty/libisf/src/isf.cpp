@@ -1058,6 +1058,82 @@ static void parse_auxiliary_texture(
   }
 }
 
+// Below this length a ladder costs more in generated #defines than it saves
+// in bindings: N combined bindings become one array binding plus one sampler,
+// so the break-even is 2 and the margin only becomes worth the indirection at
+// 4. The material channels ScenePreprocessor emits are 16 wide.
+static constexpr std::size_t isf_min_ladder = 4;
+
+static bool isf_is_comparison_sampler(const sampler_config& s);
+
+// Stamp ladder_base / ladder_index / ladder_size on runs of sampled auxiliary
+// textures whose names differ only by a trailing index starting at 0 and whose
+// shape and sampler config match. See auxiliary_texture_request::ladder_base.
+static void isf_group_auxiliary_texture_ladders(
+    std::vector<geometry_input::auxiliary_texture_request>& textures)
+{
+  const auto strip_index = [](const std::string& n) -> std::pair<std::string, int> {
+    std::size_t k = n.size();
+    while(k > 0 && n[k - 1] >= '0' && n[k - 1] <= '9')
+      k--;
+    if(k == 0 || k == n.size())
+      return {{}, -1};
+    // A leading zero makes "<base>01" and "<base>1" collide on the same rung.
+    if(n.size() - k > 1 && n[k] == '0')
+      return {{}, -1};
+    return {n.substr(0, k), std::stoi(n.substr(k))};
+  };
+
+  const auto same_shape = [](const geometry_input::auxiliary_texture_request& a,
+                             const geometry_input::auxiliary_texture_request& b) {
+    return a.dimensions == b.dimensions && a.is_array == b.is_array
+           && a.is_cubemap == b.is_cubemap && a.is_depth == b.is_depth
+           && a.sampler == b.sampler;
+  };
+
+  std::size_t i = 0;
+  while(i < textures.size())
+  {
+    // is_depth is excluded: those entries emit a paired <name>_depth sampler,
+    // which has no place in an array binding. A comparison sampler is excluded
+    // too: its combined type is sampler*Shadow, whose separated form needs
+    // samplerShadow, and every such entry in the tree is a singleton anyway.
+    auto [base, idx] = strip_index(textures[i].name);
+    if(textures[i].is_storage || textures[i].is_depth || base.empty() || idx != 0
+       || isf_is_comparison_sampler(textures[i].sampler))
+    {
+      i++;
+      continue;
+    }
+
+    std::size_t run = 1;
+    while(i + run < textures.size())
+    {
+      const auto& nxt = textures[i + run];
+      if(nxt.is_storage || !same_shape(textures[i], nxt))
+        break;
+      auto [nbase, nidx] = strip_index(nxt.name);
+      if(nbase != base || nidx != (int)run)
+        break;
+      run++;
+    }
+
+    if(run < isf_min_ladder)
+    {
+      i++;
+      continue;
+    }
+
+    for(std::size_t k = 0; k < run; k++)
+    {
+      textures[i + k].ladder_base = base;
+      textures[i + k].ladder_index = (int)k;
+      textures[i + k].ladder_size = (int)run;
+    }
+    i += run;
+  }
+}
+
 // Parse an AUXILIARY JSON array, dispatching each entry by TYPE into
 // either the buffer list or the texture list.
 // Shared by geometry_input parsing and top-level AUXILIARY key.
@@ -2448,6 +2524,7 @@ static const ossia::string_map<root_fun>& root_parse{[] {
   // "texture" / "cubemap" / "image_cube") land in d.auxiliary_textures.
   p.insert({"AUXILIARY", [](descriptor& d, const sajson::value& v) {
     parse_auxiliary_array(v, d.auxiliary, d.auxiliary_textures);
+    isf_group_auxiliary_texture_ladders(d.auxiliary_textures);
   }});
 
   // Add RESOURCES parsing for CSF (which can contain both inputs and resources)
@@ -4596,6 +4673,39 @@ void parser::parse_raw_raster_pipeline()
           sampler_type = cmp ? "sampler2DArrayShadow" : "sampler2DArray";
         else
           sampler_type = cmp ? "sampler2DShadow" : "sampler2D";
+
+        // A ladder collapses into ONE binding holding N combined samplers,
+        // with a #define per rung so the shader body keeps naming <base><k>.
+        //
+        // The combined type is kept deliberately. Separating it into
+        // `texture<shape>[N]` plus a shared `sampler` would additionally free
+        // Metal's sampler table, but the separated form can only be recombined
+        // at the point of use -- glslang rejects a sampler constructor passed
+        // as a call argument -- and the shaders this exists for pass the rung
+        // to a helper (anisoSample2DArray(baseColorArray3, ...)). Those bodies
+        // live inside saved documents, so they cannot be rewritten from here.
+        // An array of combined samplers indexed by a CONSTANT is an lvalue of
+        // sampler type, so it survives being passed along, and the constant
+        // index keeps GLES3 and D3D11 -- what they forbid is a dynamically
+        // uniform index, not a literal one.
+        if(atx.in_ladder())
+        {
+          if(atx.owns_ladder())
+          {
+            aux_tex_decls += "layout(binding = " + std::to_string(sampler_binding)
+                             + ") uniform " + sampler_type + " " + atx.ladder_base
+                             + "[" + std::to_string(atx.ladder_size) + "];\n";
+            sampler_binding++;
+
+            for(int k = 0; k < atx.ladder_size; k++)
+            {
+              aux_tex_decls += "#define " + atx.ladder_base + std::to_string(k)
+                               + " " + atx.ladder_base + "[" + std::to_string(k)
+                               + "]\n";
+            }
+          }
+          continue;
+        }
 
         aux_tex_decls += "layout(binding = " + std::to_string(sampler_binding)
                          + ") uniform " + sampler_type + " " + atx.name + ";\n";

@@ -266,6 +266,67 @@ static bool auxPlaceholderZeroFillDisabled() noexcept
   return off;
 }
 
+void RenderedRawRasterPipelineNode::appendAuxTextureBindings(
+    ossia::small_vector<QRhiShaderResourceBinding, 4>& out, int& binding)
+{
+  const auto stages = QRhiShaderResourceBinding::StageFlag::VertexStage
+                      | QRhiShaderResourceBinding::StageFlag::FragmentStage;
+
+  for(std::size_t i = 0; i < m_auxTextureSamplers.size(); ++i)
+  {
+    auto& ats = m_auxTextureSamplers[i];
+
+    // Ladder: the owning rung binds the whole run as ONE sampledTextures()
+    // array, matching the single `uniform sampler<shape> <base>[N]` isf.cpp
+    // emits. The other rungs are elements of it and take no slot of their own.
+    if(ats.in_ladder())
+    {
+      if(!ats.owns_ladder())
+      {
+        ats.binding = -1;
+        continue;
+      }
+
+      const int n = std::min<int>(
+          ats.ladder_size, int(m_auxTextureSamplers.size() - i));
+      ossia::small_vector<QRhiShaderResourceBinding::TextureAndSampler, 16> rungs;
+      rungs.reserve(n);
+      for(int k = 0; k < n; ++k)
+      {
+        auto& rung = m_auxTextureSamplers[i + k];
+        rungs.push_back(
+            {rung.texture ? rung.texture : rung.placeholder, ats.sampler});
+      }
+
+      out.push_back(QRhiShaderResourceBinding::sampledTextures(
+          binding, stages, n, rungs.data()));
+      ats.binding = binding;
+      binding++;
+      continue;
+    }
+
+    QRhiShaderResourceBinding b;
+    if(ats.is_storage)
+    {
+      if(ats.access == "read_only")
+        b = QRhiShaderResourceBinding::imageLoad(binding, stages, ats.texture, 0);
+      else if(ats.access == "write_only")
+        b = QRhiShaderResourceBinding::imageStore(binding, stages, ats.texture, 0);
+      else
+        b = QRhiShaderResourceBinding::imageLoadStore(
+            binding, stages, ats.texture, 0);
+    }
+    else
+    {
+      b = QRhiShaderResourceBinding::sampledTexture(
+          binding, stages, ats.texture, ats.sampler);
+    }
+    out.push_back(b);
+    ats.binding = binding;
+    binding++;
+  }
+}
+
 void RenderedRawRasterPipelineNode::initPass(
     const TextureRenderTarget& renderTarget, RenderList& renderer,
     QRhiResourceUpdateBatch& res, Edge& edge)
@@ -415,34 +476,7 @@ void RenderedRawRasterPipelineNode::initPass(
       max_binding++;
     }
 
-    // Auxiliary texture / storage-image bindings: placed right after
-    // aux SSBOs, matching GLSL emission order. Dispatch on is_storage
-    // so TYPE:"image" gets sampledTexture and TYPE:"storage_image"
-    // gets imageLoad / imageStore / imageLoadStore per `access`.
-    for(auto& ats : m_auxTextureSamplers)
-    {
-      QRhiShaderResourceBinding b;
-      if(ats.is_storage)
-      {
-        if(ats.access == "read_only")
-          b = QRhiShaderResourceBinding::imageLoad(
-              max_binding, bindingStages, ats.texture, 0);
-        else if(ats.access == "write_only")
-          b = QRhiShaderResourceBinding::imageStore(
-              max_binding, bindingStages, ats.texture, 0);
-        else
-          b = QRhiShaderResourceBinding::imageLoadStore(
-              max_binding, bindingStages, ats.texture, 0);
-      }
-      else
-      {
-        b = QRhiShaderResourceBinding::sampledTexture(
-            max_binding, bindingStages, ats.texture, ats.sampler);
-      }
-      additionalBindings.push_back(b);
-      ats.binding = max_binding;
-      max_binding++;
-    }
+    appendAuxTextureBindings(additionalBindings, max_binding);
 
     if(m_multiViewUBO)
     {
@@ -1617,32 +1651,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
       max_binding++;
     }
 
-    // Auxiliary texture / storage-image bindings (MRT path). Same
-    // is_storage dispatch as the non-MRT site.
-    for(auto& ats : m_auxTextureSamplers)
-    {
-      QRhiShaderResourceBinding b;
-      if(ats.is_storage)
-      {
-        if(ats.access == "read_only")
-          b = QRhiShaderResourceBinding::imageLoad(
-              max_binding, bindingStages, ats.texture, 0);
-        else if(ats.access == "write_only")
-          b = QRhiShaderResourceBinding::imageStore(
-              max_binding, bindingStages, ats.texture, 0);
-        else
-          b = QRhiShaderResourceBinding::imageLoadStore(
-              max_binding, bindingStages, ats.texture, 0);
-      }
-      else
-      {
-        b = QRhiShaderResourceBinding::sampledTexture(
-            max_binding, bindingStages, ats.texture, ats.sampler);
-      }
-      additionalBindings.push_back(b);
-      ats.binding = max_binding;
-      max_binding++;
-    }
+    appendAuxTextureBindings(additionalBindings, max_binding);
 
     if(m_multiViewUBO)
     {
@@ -2146,8 +2155,13 @@ void RenderedRawRasterPipelineNode::initState(
       ats.name = atx.name;
       ats.is_storage = atx.is_storage;
       ats.access = atx.access;
+      ats.ladder_index = atx.ladder_index;
+      ats.ladder_size = atx.ladder_size;
 
-      if(!atx.is_storage)
+      // One sampler per ladder, held by the owning rung: that is the single
+      // `sampler` binding isf.cpp emits alongside the texture array, and the
+      // rungs cannot differ in sampler config -- it is part of the grouping key.
+      if(!atx.is_storage && (!ats.in_ladder() || ats.owns_ladder()))
       {
         ats.sampler = score::gfx::makeSampler(rhi, atx.sampler);
         ats.sampler->setName(
@@ -3308,9 +3322,23 @@ bool RenderedRawRasterPipelineNode::rebindAuxTextures()
         return;
       std::vector<QRhiShaderResourceBinding> tmp;
       tmp.assign(srb->cbeginBindings(), srb->cendBindings());
-      for(const auto& ats : m_auxTextureSamplers)
+      for(std::size_t i = 0; i < m_auxTextureSamplers.size(); ++i)
       {
-        if(ats.binding < 0 || !ats.texture)
+        const auto& ats = m_auxTextureSamplers[i];
+        if(!ats.texture)
+          continue;
+        // A ladder rung lives at element ladder_index of the owning rung's
+        // array binding; only the owner knows the slot, so walk back to it.
+        if(ats.in_ladder())
+        {
+          const auto& owner = m_auxTextureSamplers[i - (std::size_t)ats.ladder_index];
+          if(owner.binding < 0)
+            continue;
+          score::gfx::replaceTextureElement(
+              tmp, owner.binding, ats.ladder_index, ats.texture);
+          continue;
+        }
+        if(ats.binding < 0)
           continue;
         score::gfx::replaceTexture(tmp, ats.binding, ats.texture);
       }

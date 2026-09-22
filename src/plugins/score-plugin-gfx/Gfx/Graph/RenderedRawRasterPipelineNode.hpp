@@ -205,8 +205,23 @@ private:
     // which of the three — "read_only" / "write_only" / "read_write".
     bool is_storage{false};
     std::string access;
+    // Ladder rung, mirroring isf::…::auxiliary_texture_request. The rung with
+    // ladder_index == 0 owns two SRB slots -- a `textures()` array at
+    // `binding` and a `sampler()` at `binding + 1` -- and the other rungs are
+    // elements of that array, so they take no slot of their own and keep
+    // binding == -1. `sampler` is only allocated on the owner.
+    int ladder_index{-1};
+    int ladder_size{0};
+    bool in_ladder() const noexcept { return ladder_size > 0; }
+    bool owns_ladder() const noexcept { return ladder_index == 0 && ladder_size > 0; }
   };
   std::vector<AuxTextureAuxSampler> m_auxTextureSamplers;
+
+  // Emit the SRB bindings for m_auxTextureSamplers, advancing `binding`.
+  // Shared by initPass and initMRTPass so the two can never disagree about
+  // how many slots a ladder consumes.
+  void appendAuxTextureBindings(
+      ossia::small_vector<QRhiShaderResourceBinding, 4>& out, int& binding);
 
   std::optional<AudioTextureUpload> m_audioTex;
 

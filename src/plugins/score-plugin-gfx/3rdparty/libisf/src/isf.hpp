@@ -128,6 +128,8 @@ struct sampler_config
   std::optional<float> min_lod;
   std::optional<float> max_lod;
   std::string compare; // empty / "never" = no comparison sampler
+
+  friend bool operator==(const sampler_config&, const sampler_config&) = default;
 };
 
 struct image_input
@@ -417,6 +419,24 @@ struct geometry_input
     std::string layers_expression;  // array slice count for 2D arrays
 
     sampler_config sampler;
+
+    //! Ladder grouping. A run of entries whose names differ only by a
+    //! trailing index -- baseColorArray0..15, the shape ScenePreprocessor
+    //! emits one bucket per -- collapses into a single
+    //! `texture<shape> <base>_tex[N]` binding plus one shared `sampler
+    //! <base>_smp`, with a `#define <base><k>` per rung so shader bodies
+    //! keep sampling by the old name. N separate combined bindings would
+    //! otherwise cost N SRB slots and N of Metal's 16 sampler slots.
+    //!
+    //! ladder_base is empty when the entry is not part of a ladder. Only
+    //! the rung with ladder_index == 0 owns SRB slots; the others are
+    //! elements of its array and carry binding == -1.
+    std::string ladder_base;
+    int ladder_index{-1};
+    int ladder_size{0};
+
+    bool in_ladder() const noexcept { return !ladder_base.empty(); }
+    bool owns_ladder() const noexcept { return ladder_index == 0 && in_ladder(); }
   };
 
   std::vector<attribute_request> attributes;
