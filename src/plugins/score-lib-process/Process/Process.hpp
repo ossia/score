@@ -34,6 +34,11 @@ namespace ossia
 {
 class value;
 }
+namespace score
+{
+class Command;
+struct DocumentContext;
+}
 namespace Process
 {
 //! Whether a node item shows its contents, and whether that was decided by the
@@ -171,6 +176,22 @@ public:
    * it; such an override must still call this base implementation.
    */
   virtual void mapExternalFiles(Process::ExternalFileMap& map);
+
+  /** For a process carrying the ExternalSourceRefreshable flag: whether the
+   * source it was copied from holds something else than what the document
+   * does. The answer must be cheap -- callers may ask on every repaint -- so
+   * implementations cache it rather than looking at the disk each time.
+   */
+  virtual bool externalSourceOutOfDate() const noexcept;
+
+  /** The command bringing the document's copy back in line with that source.
+   * Null when there is nothing to update to.
+   */
+  virtual score::Command*
+  refreshFromExternalSource(const score::DocumentContext& ctx) const;
+
+  void externalSourceOutOfDateChanged(bool v)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, externalSourceOutOfDateChanged, v)
 
   // Magnetism
   virtual std::optional<Process::MagneticInfo>

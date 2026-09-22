@@ -384,6 +384,17 @@ ProcessModel::magneticPosition(const QObject* o, const TimeVal t) const noexcept
   return {};
 }
 
+bool ProcessModel::externalSourceOutOfDate() const noexcept
+{
+  return false;
+}
+
+score::Command*
+ProcessModel::refreshFromExternalSource(const score::DocumentContext& ctx) const
+{
+  return nullptr;
+}
+
 ProcessModel* parentProcess(QObject* obj) noexcept
 {
   if(obj)

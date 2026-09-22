@@ -86,6 +86,12 @@ enum ProcessFlags : int64_t
   //! inside the main window (as opposed to plug-ins owning a native window).
   ExternalUIEmbeddable = SCORE_FLAG(21),
 
+  //! The process's contents are a copy of an external source -- a library
+  //! script, a shader file... -- which can move on independently of the
+  //! document, and which the process can be brought back in line with.
+  //! See ProcessModel::externalSourceOutOfDate().
+  ExternalSourceRefreshable = SCORE_FLAG(22),
+
   // clang-format off
   SupportsLasting = SupportsTemporal | TimeIndependent,
   ExternalEffect  = SupportsTemporal | TimeIndependent | RequiresCustomData | ControlSurface,
