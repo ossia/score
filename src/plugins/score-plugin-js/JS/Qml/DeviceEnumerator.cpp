@@ -5,7 +5,10 @@
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
+#include <score/application/ApplicationContext.hpp>
 #include <score/application/GUIApplicationContext.hpp>
+
+#include <ossia/detail/algorithms.hpp>
 
 #include <ossia-qt/js_utilities.hpp>
 
@@ -25,29 +28,69 @@ namespace JS
 
 GlobalDeviceEnumerator::GlobalDeviceEnumerator() { }
 
-void GlobalDeviceEnumerator::setDeviceType(const QString& uid)
+//! A protocol filter is either the name the device dialog shows -- "OSC",
+//! "Artnet", "Camera" -- matched case-insensitively, or the protocol
+//! factory's UUID.
+static bool matchesFilter(const QString& filter, const Device::ProtocolFactory& p)
 {
-  if(uid.length() != 36)
-  {
-    qDebug("Invalid UUID");
-    return;
-  }
+  if(p.prettyName().compare(filter, Qt::CaseInsensitive) == 0)
+    return true;
 
-  // Convert the textual UUID in a strongly typed UUID
+  if(filter.length() != 36)
+    return false;
+
   try
   {
-
-    auto uuid = uid.toUtf8();
-    auto score_uid = score::uuids::string_generator::compute(uuid.begin(), uuid.end());
-    if(score_uid.is_nil())
-      return;
-    this->m_deviceType = UuidKey<Device::ProtocolFactory>{score_uid};
+    const auto uuid = filter.toUtf8();
+    const auto uid = score::uuids::string_generator::compute(uuid.begin(), uuid.end());
+    return !uid.is_nil() && p.concreteKey() == UuidKey<Device::ProtocolFactory>{uid};
   }
   catch(...)
   {
-    qDebug("Error while parsing device type");
-    return;
+    return false;
   }
+}
+
+static bool matchesFilters(const QStringList& filters, const Device::ProtocolFactory& p)
+{
+  for(const auto& filter : filters)
+    if(matchesFilter(filter, p))
+      return true;
+  return false;
+}
+
+QString GlobalDeviceEnumerator::deviceType() const
+{
+  return m_deviceTypes.isEmpty() ? QString{} : m_deviceTypes.front();
+}
+
+void GlobalDeviceEnumerator::setDeviceType(const QString& uid)
+{
+  setDeviceTypes(uid.isEmpty() ? QStringList{} : QStringList{uid});
+}
+
+void GlobalDeviceEnumerator::setDeviceTypes(const QStringList& types)
+{
+  if(types == m_deviceTypes)
+    return;
+
+  m_deviceTypes = types;
+
+  // A filter no protocol answers to would enumerate nothing at all, which is
+  // indistinguishable from a machine with no devices: say so.
+  const auto& protocols = score::AppContext().interfaces<Device::ProtocolFactoryList>();
+  for(const auto& filter : m_deviceTypes)
+  {
+    const bool known = ossia::any_of(
+        protocols, [&](const Device::ProtocolFactory& p) {
+      return matchesFilter(filter, p);
+    });
+    if(!known)
+      qWarning() << "enumerateDevices: unknown protocol:" << filter;
+  }
+
+  deviceTypeChanged(deviceType());
+  deviceTypesChanged(m_deviceTypes);
   reprocess();
 }
 
@@ -146,9 +189,11 @@ void GlobalDeviceEnumerator::reprocess()
   auto& doc = *this->doc;
   for(auto& protocol : doc.app.interfaces<Device::ProtocolFactoryList>())
   {
-    if(m_deviceType != Device::ProtocolFactory::ConcreteKey{})
-      if(m_deviceType != protocol.concreteKey())
-        continue;
+    // Enumerating is expensive -- opening every /dev/video*, walking USB,
+    // starting a BLE scan -- so a filtered-out protocol must be skipped here,
+    // before getEnumerators(), not filtered out of the results.
+    if(!m_deviceTypes.isEmpty() && !matchesFilters(m_deviceTypes, protocol))
+      continue;
 
     auto enums = protocol.getEnumerators(doc);
     m_current_enums[&protocol] = enums;

@@ -9,6 +9,7 @@
 #include <QJSValue>
 #include <QList>
 #include <QObject>
+#include <QStringList>
 #include <QVariant>
 
 #include <score_plugin_js_export.h>
@@ -90,8 +91,11 @@ public:
   GlobalDeviceEnumerator* enumerateDevices();
   W_SLOT(enumerateDevices, ())
 
-  GlobalDeviceEnumerator* enumerateDevices(const QString& uuid);
+  GlobalDeviceEnumerator* enumerateDevices(const QString& protocol);
   W_SLOT(enumerateDevices, (const QString&))
+
+  GlobalDeviceEnumerator* enumerateDevices(const QStringList& protocols);
+  W_SLOT(enumerateDevices, (const QStringList&))
 
   DeviceListener* listenDevice(const QString& name);
   W_SLOT(listenDevice, (const QString&))

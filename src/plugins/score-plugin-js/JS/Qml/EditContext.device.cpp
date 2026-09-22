@@ -117,7 +117,14 @@ GlobalDeviceEnumerator* EditJsContext::enumerateDevices()
   return e;
 }
 
-GlobalDeviceEnumerator* EditJsContext::enumerateDevices(const QString& uuid)
+//! `protocol` is either a protocol's user-visible name ("OSC", "Artnet",
+//! "Camera") or its factory UUID; only that protocol's enumerators run.
+GlobalDeviceEnumerator* EditJsContext::enumerateDevices(const QString& protocol)
+{
+  return enumerateDevices(QStringList{protocol});
+}
+
+GlobalDeviceEnumerator* EditJsContext::enumerateDevices(const QStringList& protocols)
 {
   auto doc = ctx();
   if(!doc)
@@ -125,9 +132,8 @@ GlobalDeviceEnumerator* EditJsContext::enumerateDevices(const QString& uuid)
 
   auto e = new GlobalDeviceEnumerator{};
   ownEnumerator(*this, *e);
-  e->setDeviceType(uuid);
+  e->setDeviceTypes(protocols);
   e->setContext(doc);
-  // e->setEnumerate(true);
   return e;
 }
 

@@ -8,6 +8,7 @@
 #include <ossia-qt/value_metatypes.hpp>
 
 #include <QQmlListProperty>
+#include <QStringList>
 
 #include <nano_observer.hpp>
 
@@ -84,11 +85,18 @@ public:
   void enumerateChanged(bool b) W_SIGNAL(enumerateChanged, b)
   W_PROPERTY(bool, enumerate READ enumerate WRITE setEnumerate NOTIFY enumerateChanged)
 
-  QString deviceType() { return m_uuid; }
+  QString deviceType() const;
   void setDeviceType(const QString& b);
   void deviceTypeChanged(const QString& b) W_SIGNAL(deviceTypeChanged, b)
   W_PROPERTY(
       QString, deviceType READ deviceType WRITE setDeviceType NOTIFY deviceTypeChanged)
+
+  QStringList deviceTypes() const { return m_deviceTypes; }
+  void setDeviceTypes(const QStringList& b);
+  void deviceTypesChanged(const QStringList& b) W_SIGNAL(deviceTypesChanged, b)
+  W_PROPERTY(
+      QStringList, deviceTypes READ deviceTypes WRITE setDeviceTypes NOTIFY
+                       deviceTypesChanged)
 
 private:
   void reprocess();
@@ -116,8 +124,11 @@ private:
   //! The sources currently enumerated, in enumeration order: a borrowed view
   //! of m_identifiers, which outlives any entry leaving this list.
   std::vector<DeviceIdentifier*> m_raw_list;
-  QString m_uuid;
-  Device::ProtocolFactory::ConcreteKey m_deviceType{};
+
+  //! Empty means every protocol. Each entry is a protocol's user-visible name
+  //! or its factory UUID; a protocol that matches none of them is never asked
+  //! for its enumerators.
+  QStringList m_deviceTypes;
   bool m_enumerate{};
 };
 
