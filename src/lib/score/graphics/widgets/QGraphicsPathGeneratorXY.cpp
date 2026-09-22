@@ -185,7 +185,7 @@ void score::QGraphicsPathGeneratorXY::paint(
   // particular.
   painter->save();
   painter->setClipRect(boundingRect());
-  painter->fillRect(QRectF(0, 0, width(), height()), QColor(skin.Dark.color()));
+  painter->fillRect(boundingRect(), skin.Emphasis2.main.brush);
 
   for(int64_t s = std::ssize(src); s-- > 0;)
   {
@@ -195,16 +195,14 @@ void score::QGraphicsPathGeneratorXY::paint(
 
     const bool isSelectedSource = (s == selectedSource);
 
-    const QColor startColor = isSelectedSource ? skin.Base3.color()
-                                               : skin.Base3.color().darker(300);
-    const QColor nodeColor = isSelectedSource ? skin.Warn3.color()
-                                              : skin.Warn3.color().darker(250);
+    const QBrush& startBrush
+        = isSelectedSource ? skin.Base4.main.brush : skin.Base4.darker.brush;
+    const QBrush& nodeBrush
+        = isSelectedSource ? skin.Base4.darker.brush : skin.Base4.darker300.brush;
 
     if(s < std::ssize(m_paths))
     {
-      painter->setPen(QPen{isSelectedSource ? skin.Base3.color()
-                                            : skin.Base3.color().darker(250),
-                           1.});
+      painter->setPen(isSelectedSource ? skin.Base1.main.pen1 : skin.Base1.darker.pen1);
       painter->setBrush(Qt::NoBrush);
       painter->drawPath(m_paths[s]);
     }
@@ -218,14 +216,14 @@ void score::QGraphicsPathGeneratorXY::paint(
           (1 - cursorXY[1] - cursorSize.y / 2) * height(), cursorSize.x * width(),
           cursorSize.y * height());
 
-      painter->fillRect(cursorRect, c == 0 ? startColor : nodeColor);
+      painter->fillRect(cursorRect, c == 0 ? startBrush : nodeBrush);
     }
 
     if(m_hasProgress)
     {
       const QPointF p = pathPoint(*nodes, m_progress);
-      painter->setPen(QPen{skin.Base1.color(), 1.});
-      painter->setBrush(skin.Emphasis2.color());
+      painter->setPen(skin.Base4.lighter180.pen0);
+      painter->setBrush(skin.Base4.lighter180.brush);
       painter->drawEllipse(p, markerSize / 2., markerSize / 2.);
     }
   }
