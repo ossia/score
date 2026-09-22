@@ -27,24 +27,64 @@ namespace score::gfx
 {
 namespace
 {
+//! Bindings that occupy a slot in Metal's per-stage buffer table. Textures and
+//! samplers are filed into their own tables and cost nothing here.
+int countBufferBindings(const QRhiShaderResourceBindings& srb) noexcept
+{
+  int n = 0;
+  for(auto it = srb.cbeginBindings(), end = srb.cendBindings(); it != end; ++it)
+  {
+    // Same reinterpret_cast as Utils.cpp's replace*(): the payload lives in a
+    // private nested ::Data and the class is a thin wrapper around it.
+    const auto* d = reinterpret_cast<const QRhiShaderResourceBinding::Data*>(&*it);
+    switch(d->type)
+    {
+      case QRhiShaderResourceBinding::UniformBuffer:
+      case QRhiShaderResourceBinding::BufferLoad:
+      case QRhiShaderResourceBinding::BufferStore:
+      case QRhiShaderResourceBinding::BufferLoadStore:
+        ++n;
+        break;
+      default:
+        break;
+    }
+  }
+  return n;
+}
+
 //! Metal shares one 31-entry buffer table per stage between shader resources
-//! and vertex buffers, and Qt places vertex buffers at srb maxBinding + 1.
+//! and vertex buffers, so the vertex buffers start past whatever the resources
+//! occupy.
+//!
+//! Counted against the number of BUFFER bindings, not the highest binding
+//! number. An SRB numbers every resource in one space, but only buffers land in
+//! that table. Counting sampler bindings too refused pipelines that fit
+//! comfortably: the openpbr shaders bind ~18 textures against 14-19 buffers and
+//! were rejected at "slot 45 of 31" while needing about 28.
+//!
+//! This tracks Qt's placement, which the SDK patches to derive the vertex origin
+//! from the highest native BUFFER index
+//! (qt-patches/qtbase/0001-rhi-metal-vertex-buffer-origin-from-native-buffers).
+//! On a Qt without that patch the origin is still maxBinding + 1 and this guard
+//! lets through pipelines Qt then places past the table -- so the two move
+//! together.
 bool checkMetalBufferBudget(
-    QRhi& rhi, int max_binding, const QRhiGraphicsPipeline& ps,
-    const isf::descriptor& desc) noexcept
+    QRhi& rhi, const QRhiShaderResourceBindings& srb,
+    const QRhiGraphicsPipeline& ps, const isf::descriptor& desc) noexcept
 {
   if(rhi.backend() != QRhi::Metal)
     return true;
 
   const auto& layout = ps.vertexInputLayout();
   const int vtx = int(std::distance(layout.cbeginBindings(), layout.cendBindings()));
-  const int top = max_binding + vtx;
+  const int buffers = countBufferBindings(srb);
+  const int top = buffers + vtx;
   if(top <= 30)
     return true;
 
   qWarning() << "RawRaster: this shader needs Metal buffer slot" << top
-             << "but the table holds 31 (slots 0-30);" << max_binding
-             << "resource bindings +" << vtx
+             << "but the table holds 31 (slots 0-30);" << buffers
+             << "buffer bindings +" << vtx
              << "vertex bindings. Skipping the pipeline."
              << QString::fromStdString(desc.description);
   return false;
@@ -636,7 +676,7 @@ void RenderedRawRasterPipelineNode::initPass(
       }
     }
 
-    if(!checkMetalBufferBudget(rhi, max_binding, *ps, n.descriptor()))
+    if(!checkMetalBufferBudget(rhi, *bindings, *ps, n.descriptor()))
     {
       delete ps;
       delete pubo;
@@ -1814,7 +1854,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
       }
     }
 
-    if(!checkMetalBufferBudget(rhi, max_binding, *ps, n.descriptor()))
+    if(!checkMetalBufferBudget(rhi, *bindings, *ps, n.descriptor()))
     {
       delete ps;
       delete pubo;
