@@ -388,7 +388,13 @@ TEST_CASE(
   REQUIRE(tiny.apply(decoder)->velocity == 1);
   const ossia::value off{std::vector<ossia::value>{60, 0.f, 999}};
   REQUIRE(off.apply(decoder)->velocity == 0);
-  REQUIRE_FALSE(ossia::value{std::vector<ossia::value>{"bad", 100}}.apply(decoder));
+  // A list that starts with something unreadable is an event all the same.
+  const auto bad = ossia::value{std::vector<ossia::value>{"bad", 100}}.apply(decoder);
+  REQUIRE(bad);
+  REQUIRE(bad->pitch == 60);
+  REQUIRE(bad->velocity == 100);
+  // A readable pitch with an unreadable velocity is still dropped.
+  REQUIRE_FALSE(ossia::value{std::vector<ossia::value>{60, "bad"}}.apply(decoder));
 }
 
 TEST_CASE("VelToNote overload and refused releases fail closed", "[nodes][veltonote]")
@@ -592,4 +598,44 @@ TEST_CASE("VelToNote quantized bounds survive a meter change", "[nodes][veltonot
   REQUIRE(
       run({0.5, DurationUnit::quarters})
       == std::vector<MidiEvent>{{3, 0, 60, 0, false}});
+}
+
+// Ten frames to the quarter again: the grid deadline is frame 10, and the
+// block spans 0.04 s so a bound of 0.005 s is half a quarter, frame 5.
+TEST_CASE("VelToNote max duration is gated by its toggle", "[nodes][veltonote]")
+{
+  const auto run = [](bool limit, double seconds) {
+    auto p = std::make_unique<Processor>();
+    p->node.inputs.end_quant.value = 0.25;
+    p->node.inputs.limit_duration.value = limit;
+    p->node.inputs.max_duration.value = seconds;
+    p->input.write_value(60, 0);
+    p->node(p->token(block(0, 40, 0., 4., 0, 28224000)));
+    return p->output();
+  };
+
+  SECTION("a fresh instance limits to its one-second default")
+  {
+    const auto p = std::make_unique<Processor>();
+    REQUIRE(p->node.inputs.limit_duration.value);
+    REQUIRE(p->node.inputs.max_duration.value == 1.);
+  }
+  SECTION("the toggle on applies the maximum")
+  {
+    REQUIRE(
+        run(true, 0.005)
+        == std::vector<MidiEvent>{{0, 0, 60, 100, true}, {5, 0, 60, 0, false}});
+  }
+  SECTION("the toggle off leaves the grid deadline alone")
+  {
+    REQUIRE(
+        run(false, 0.005)
+        == std::vector<MidiEvent>{{0, 0, 60, 100, true}, {10, 0, 60, 0, false}});
+  }
+  SECTION("a document saved with no maximum stays unbounded under the toggle")
+  {
+    REQUIRE(
+        run(true, 0.)
+        == std::vector<MidiEvent>{{0, 0, 60, 100, true}, {10, 0, 60, 0, false}});
+  }
 }

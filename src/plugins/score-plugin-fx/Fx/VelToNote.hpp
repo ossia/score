@@ -57,10 +57,12 @@ struct ValueDecoder
   {
     return decode_pair(pitch, base_velocity, false);
   }
+  // Types this process has no reading for -- booleans, strings, maps -- still
+  // carry the fact that something arrived: they trigger the default note.
   template <typename T>
   std::optional<DecodedNote> operator()(const T&) const noexcept
   {
-    return std::nullopt;
+    return operator()(ossia::impulse{});
   }
   std::optional<DecodedNote>
   operator()(const std::vector<ossia::value>& list) const noexcept
@@ -69,7 +71,7 @@ struct ValueDecoder
       return operator()(ossia::impulse{});
     const auto pitch = list[0].apply(NumericValue{});
     if(!pitch)
-      return std::nullopt;
+      return operator()(ossia::impulse{});
     if(list.size() == 1)
       return decode_pair(*pitch, base_velocity, false);
     const auto velocity = list[1].apply(NumericValue{});
@@ -159,8 +161,8 @@ struct Node
       "[pitch, integer velocity]: MIDI velocity; float velocity: normalized 0..1. "
       "Zero velocity releases owned notes for that source pitch. "
       "Starts may be quantized; ends use a grid or a duration. "
-      "In quantized mode, min duration extends to the next grid point and "
-      "max duration caps the hold exactly. "
+      "In quantized mode, min duration extends to the next grid point and, "
+      "when limit duration is on, max duration caps the hold exactly. "
       "Tightness blends from immediate (0) to the next grid point (1).")
 
   struct
@@ -181,7 +183,9 @@ struct Node
     halp::enum_t<detail::PitchDirection, "Pitch direction"> pitch_direction;
     // Quantized mode only; zero disables. Appended, like the rest.
     halp::time_chooser<"Min duration", halp::range{0., 10., 0.}> min_duration;
-    halp::time_chooser<"Max duration", halp::range{0., 10., 0.}> max_duration;
+    halp::time_chooser<"Max duration", halp::range{0., 10., 1.}> max_duration;
+    // Gates max duration: off is exactly a zero maximum.
+    halp::toggle<"Limit duration", halp::toggle_setup{.init = true}> limit_duration;
   } inputs;
   struct
   {
@@ -334,8 +338,11 @@ struct Node
         .pitch_direction = inputs.pitch_direction.value};
     settings.min_duration = detail::bound_from_time_chooser(
         inputs.min_duration.value, inputs.min_duration.sync, tk.tempo);
-    settings.max_duration = detail::bound_from_time_chooser(
-        inputs.max_duration.value, inputs.max_duration.sync, tk.tempo);
+    settings.max_duration
+        = inputs.limit_duration.value
+              ? detail::bound_from_time_chooser(
+                    inputs.max_duration.value, inputs.max_duration.sync, tk.tempo)
+              : detail::Bound{};
     settings = detail::settings_from_time_chooser(
         settings, inputs.duration.value, inputs.duration.sync, tk.tempo);
     auto sink = [this](const detail::MidiEvent& e) noexcept { emit(e); };

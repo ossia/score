@@ -8,6 +8,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <memory>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -155,4 +156,46 @@ TEST_CASE(
   f.publish();
   REQUIRE(f.consumer->received == std::vector<Packet>{{0, 0x803c00}});
   REQUIRE_FALSE(f.source->impl.effect.needs_service());
+}
+
+TEST_CASE(
+    "VelToNote declares its value inlet as an event port", "[nodes][veltonote][sdk]")
+{
+  MidiGraph f;
+  REQUIRE(f.source->impl.effect.inputs.port.value);
+  REQUIRE(f.source->impl.effect.inputs.port.value->is_event);
+}
+
+TEST_CASE("VelToNote decodes unreadable values as impulses", "[nodes][veltonote][sdk]")
+{
+  const auto run = [](const ossia::value& v) {
+    MidiGraph f;
+    f.source->impl.effect.inputs.port.value->write_value(v, 0);
+    f.source->request(MidiGraph::token(0, 16));
+    f.publish();
+    return f.consumer->received;
+  };
+  const std::vector<Packet> default_note{{0, 0x903c64}, {1, 0x803c00}};
+
+  SECTION("a boolean")
+  {
+    REQUIRE(run(true) == default_note);
+  }
+  SECTION("a string")
+  {
+    REQUIRE(run(std::string{"bang"}) == default_note);
+  }
+  SECTION("a map")
+  {
+    REQUIRE(run(ossia::value_map_type{{"a", 1}, {"b", 2.f}}) == default_note);
+  }
+  SECTION("a list whose first element is not a number")
+  {
+    REQUIRE(run(std::vector<ossia::value>{std::string{"a"}, 64}) == default_note);
+  }
+  // An absent value is not an event: nothing arrived to trigger a note.
+  SECTION("an empty value stays a drop")
+  {
+    REQUIRE(run(ossia::value{}).empty());
+  }
 }
