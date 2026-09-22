@@ -900,6 +900,21 @@ score_add_test(test_unit_dshow_subtype
   PLUGINS score_plugin_gfx score_plugin_media
   LIBS avutil avcodec avformat)
 
+# The framerate reduction applied to every camera enumeration. The env-var
+# escape hatch is read once per process, so the bypass gets its own executable
+# rather than depending on the order Catch2 happens to run the cases in.
+score_add_test(test_unit_camera_framerates
+  SOURCES CameraFrameratesTest.cpp
+  PLUGINS score_plugin_gfx
+  LIBS avutil avcodec)
+
+score_add_test(test_unit_camera_framerates_all
+  SOURCES CameraFrameratesTest.cpp
+  PLUGINS score_plugin_gfx
+  LIBS avutil avcodec)
+target_compile_definitions(test_unit_camera_framerates_all
+  PRIVATE SCORE_TEST_CAMERA_ALL_FRAMERATES=1)
+
 # --- avendish dynamic ports --------------------------------------------------
 # A controller control resizes the ports of its process from inside its own
 # setValue(). Model side: port lists, save / load, SetControllerControlValue
