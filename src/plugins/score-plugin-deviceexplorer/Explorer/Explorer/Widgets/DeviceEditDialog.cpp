@@ -40,6 +40,7 @@
 #include <QSplitter>
 #include <QStackedWidget>
 #include <QStandardPaths>
+#include <QTimer>
 #include <QTreeWidget>
 #include <QVariant>
 #include <QWidget>
@@ -372,22 +373,24 @@ DeviceEditDialog::DeviceEditDialog(
   m_splitter->setStretchFactor(0, 1);
   m_splitter->setStretchFactor(1, 2);
 
-  connect(m_buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
+  connect(m_buttonBox, &QDialogButtonBox::accepted, this, [this] {
+    flushProtocolChange();
+    accept();
+  });
   connect(m_buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
   connect(m_buttonBox, &QDialogButtonBox::helpRequested, [this] {
     if(!this->m_protocols)
       return;
-    auto items = m_protocols->selectedItems();
-    if(items.empty())
+    auto selected_item = m_protocols->currentItem();
+    auto key = selected_item
+                   ? selected_item->data(0, Qt::UserRole)
+                         .value<UuidKey<Device::ProtocolFactory>>()
+                   : UuidKey<Device::ProtocolFactory>{};
+    if(key == UuidKey<Device::ProtocolFactory>{})
     {
       QDesktopServices::openUrl(QUrl("https://ossia.io/score-docs/devices.html"));
       return;
     }
-    auto selected_item = items.first();
-    auto key
-        = selected_item->data(0, Qt::UserRole).value<UuidKey<Device::ProtocolFactory>>();
-    if(key == UuidKey<Device::ProtocolFactory>{})
-      return;
 
     if(auto* proto = m_protocolList.get(key))
       if(auto manual = proto->manual(); !manual.isEmpty())
@@ -397,10 +400,24 @@ DeviceEditDialog::DeviceEditDialog(
   initAvailableProtocols();
   initPresets();
 
+  // Setting up a protocol probes hardware through its enumerators: coalesce the
+  // successive selections of a keyboard navigation into a single setup.
+  m_protocolChangeTimer = new QTimer{this};
+  m_protocolChangeTimer->setSingleShot(true);
+  m_protocolChangeTimer->setInterval(100);
   connect(
-      m_protocols, &QTreeView::activated, this, [this] { selectedProtocolChanged(); });
-  connect(m_devices, &QTreeView::activated, this, [this] { selectedDeviceChanged(); });
-  connect(m_presets, &QTreeView::activated, this, [this] { selectedPresetChanged(); });
+      m_protocolChangeTimer, &QTimer::timeout, this,
+      &DeviceEditDialog::selectedProtocolChanged);
+
+  connect(m_protocols, &QTreeWidget::currentItemChanged, this, [this] {
+    m_protocolChangeTimer->start();
+  });
+  connect(
+      m_devices, &QTreeWidget::currentItemChanged, this,
+      [this] { selectedDeviceChanged(); });
+  connect(
+      m_presets, &QTreeWidget::currentItemChanged, this,
+      [this] { selectedPresetChanged(); });
 
   if(m_protocols->topLevelItemCount() > 0)
   {
@@ -559,11 +576,8 @@ void DeviceEditDialog::queuePresetSort()
 
 void DeviceEditDialog::selectedPresetChanged()
 {
-  if(m_presets->selectedItems().isEmpty())
-    return;
-
   auto item = m_presets->currentItem();
-  if(!item)
+  if(!item || !(item->flags() & Qt::ItemIsSelectable))
     return;
 
   auto filePath = item->data(0, Qt::UserRole).toString();
@@ -635,11 +649,10 @@ void DeviceEditDialog::selectedDeviceChanged()
 {
   if(!m_devices->isVisible())
     return;
-  if(m_devices->selectedItems().isEmpty())
-    return;
 
+  // Keyboard navigation also goes through the enumerator headers
   auto item = m_devices->currentItem();
-  if(!item)
+  if(!item || !(item->flags() & Qt::ItemIsSelectable))
     return;
 
   auto data = item->data(0, Qt::UserRole).value<Device::DeviceSettings>();
@@ -667,18 +680,27 @@ QString DeviceEditDialog::editedDeviceName() const
   return m_originalName;
 }
 
+void DeviceEditDialog::flushProtocolChange()
+{
+  if(m_protocolChangeTimer && m_protocolChangeTimer->isActive())
+    selectedProtocolChanged();
+}
+
 void DeviceEditDialog::selectedProtocolChanged()
 {
+  if(m_protocolChangeTimer)
+    m_protocolChangeTimer->stop();
+  if(!m_protocols)
+    return;
+
   auto doc = score::GUIAppContext().currentDocument();
   if(!doc)
     return;
 
   // Recreate
-  if(m_protocols->selectedItems().isEmpty())
-  {
+  auto selected_item = m_protocols->currentItem();
+  if(!selected_item)
     return;
-  }
-  auto selected_item = m_protocols->selectedItems().first();
   auto key
       = selected_item->data(0, Qt::UserRole).value<UuidKey<Device::ProtocolFactory>>();
   if(key == UuidKey<Device::ProtocolFactory>{})

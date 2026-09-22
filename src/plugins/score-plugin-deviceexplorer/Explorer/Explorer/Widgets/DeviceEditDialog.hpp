@@ -21,6 +21,7 @@ class QVBoxLayout;
 class QLabel;
 class QDialogButtonBox;
 class QPushButton;
+class QTimer;
 
 namespace Device
 {
@@ -66,8 +67,12 @@ public:
   //! a joystick, etc.
   QTreeWidget* devicesTree() const noexcept { return m_devices; }
 
+  //! The tree listing the available protocols.
+  QTreeWidget* protocolsTree() const noexcept { return m_protocols; }
+
 private:
   void selectedProtocolChanged();
+  void flushProtocolChange();
   void selectedDeviceChanged();
   void selectedPresetChanged();
   QString editedDeviceName() const;
@@ -90,6 +95,7 @@ private:
   QDialogButtonBox* m_buttonBox{};
   QPushButton* m_okButton{};
   QPushButton* m_helpButton{};
+  QTimer* m_protocolChangeTimer{};
 
   // Column 1: tab buttons + stacked protocols/presets
   QPushButton* m_protocolsTabButton{};
