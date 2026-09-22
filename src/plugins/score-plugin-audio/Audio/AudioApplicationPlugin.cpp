@@ -255,6 +255,10 @@ void ApplicationPlugin::stop_engine()
 {
   if(audio)
   {
+    // The spans the protocols hold point into this engine's buffers, and the
+    // callback rebinds them every tick: it has to be parked before they go.
+    audio->stop();
+
     for(auto d : context.docManager.documents())
     {
       auto dev = (Dataflow::AudioDevice*)d->context()
@@ -270,7 +274,6 @@ void ApplicationPlugin::stop_engine()
       }
     }
 
-    audio->stop();
     previous_audio.push_back(std::move(audio));
     audio.reset();
     if(m_audioEngineAct)
