@@ -13,22 +13,24 @@
 
 namespace oscr
 {
-static void
-customMessageProcess(const score::gfx::Message& msg, score::gfx::Message& last_message)
+void GpuMessageState::process(score::gfx::Message&& msg) noexcept
 {
   //ProcessNode::process(msg.token);
-  last_message.token = msg.token;
-  if(last_message.input.empty())
+  message.node_id = msg.node_id;
+  message.token = msg.token;
+
+  if(message.input.size() < msg.input.size())
+    message.input.resize(msg.input.size());
+  if(generation.size() < message.input.size())
+    generation.resize(message.input.size(), 0);
+
+  for(std::size_t i = 0; i < msg.input.size(); i++)
   {
-    last_message = msg;
-  }
-  else
-  {
-    for(std::size_t i = 0; i < msg.input.size(); i++)
+    // If there's some data, overwrite it
+    if(msg.input[i].index() != 0)
     {
-      // If there's some data, overwrite it
-      if(msg.input[i].index() != 0)
-        last_message.input[i] = msg.input[i];
+      message.input[i] = std::move(msg.input[i]);
+      ++generation[i];
     }
   }
 }
@@ -67,7 +69,7 @@ CustomGpuOutputNodeBase::~CustomGpuOutputNodeBase()
 
 void CustomGpuOutputNodeBase::process(score::gfx::Message&& msg)
 {
-  customMessageProcess(msg, last_message);
+  last_message.process(std::move(msg));
 }
 
 void CustomGpuOutputNodeBase::setRenderer(std::shared_ptr<score::gfx::RenderList> r)
@@ -151,17 +153,17 @@ CustomGpuOutputNodeBase::configuration() const noexcept
 
 void CustomGfxNodeBase::process(score::gfx::Message&& msg)
 {
-  customMessageProcess(msg, last_message);
+  last_message.process(std::move(msg));
 }
 
 void CustomGfxOutputNodeBase::process(score::gfx::Message&& msg)
 {
-  customMessageProcess(msg, last_message);
+  last_message.process(std::move(msg));
 }
 
 void CustomGpuNodeBase::process(score::gfx::Message&& msg)
 {
-  customMessageProcess(msg, last_message);
+  last_message.process(std::move(msg));
 }
 
 }

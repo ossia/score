@@ -19,7 +19,7 @@ struct GfxRenderer<Node_T> final
     , GpuRendererFiles<Node_T>
 {
   std::shared_ptr<Node_T> state;
-  score::gfx::Message m_last_message{};
+  GpuMessageState m_last_message{};
   // RenderList::frame id of the last frame on which we ran the expensive
   // once-per-frame body of runInitialPasses (input readbacks, operator()(),
   // output uploads). runInitialPasses is invoked once PER OUTGOING EDGE, so

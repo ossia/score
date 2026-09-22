@@ -289,7 +289,10 @@ public:
       {
         auto& p = node->add_control();
         p->value = ctrl->value();
-        p->changed = true;
+        // An impulse is only ever sent when it is triggered: the object's
+        // one-shot inputs start empty, like setup_control_for_exec leaves them
+        // on the CPU path.
+        p->changed = p->value.get_type() != ossia::val_type::IMPULSE;
 
         // What the control holds and the range it takes, so that a cable into
         // it converts and rescales. The ISF executor sets its controls up the

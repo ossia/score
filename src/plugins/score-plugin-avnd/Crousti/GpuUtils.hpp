@@ -121,13 +121,43 @@ struct GpuRendererFiles
 };
 #endif
 
+//! What a node of the graphics graph keeps of the execution messages it got.
+//!
+//! The message is sticky: every input holds the last value that reached it, so
+//! a renderer that draws slower than the engine ticks - or one created after
+//! the fact - still reads the controls. One-shot values are not states though:
+//! an impulse has to be applied once per arrival, which is what the counters
+//! tell apart from a value that is merely still there.
+struct SCORE_PLUGIN_AVND_EXPORT GpuMessageState
+{
+  score::gfx::Message message;
+  std::vector<uint32_t> generation;
+
+  void process(score::gfx::Message&& msg) noexcept;
+};
+
 template <typename GpuNodeRenderer, typename Node>
 struct GpuProcessIns
 {
+  GpuProcessIns(
+      GpuNodeRenderer& gpu, Node& state, const GpuMessageState& prev,
+      const GpuMessageState& cur, const score::DocumentContext& ctx) noexcept
+      : gpu{gpu}
+      , state{state}
+      , prev_mess{prev.message}
+      , mess{cur.message}
+      , prev_gen{prev.generation}
+      , gen{cur.generation}
+      , ctx{ctx}
+  {
+  }
+
   GpuNodeRenderer& gpu;
   Node& state;
   const score::gfx::Message& prev_mess;
   const score::gfx::Message& mess;
+  const std::vector<uint32_t>& prev_gen;
+  const std::vector<uint32_t>& gen;
   const score::DocumentContext& ctx;
 
   bool can_process_message(std::size_t N)
@@ -150,12 +180,14 @@ struct GpuProcessIns
     return true;
   }
 
-  // The same message is handed to the renderer more than once (init, update, every frame between
-  // two execution ticks).
-  bool is_new_message() const noexcept
+  // The node's message keeps the last value of every input, so the one-shot values in it are
+  // applied once per arrival rather than once per value: a bang equal to the previous one is a
+  // new event, the same one still sitting in the message is not.
+  bool received_event(std::size_t N) const noexcept
   {
-    return prev_mess.node_id != mess.node_id || prev_mess.token.date != mess.token.date
-           || prev_mess.input.size() != mess.input.size();
+    if(mess.input.size() <= N || gen.size() <= N)
+      return false;
+    return prev_gen.size() <= N || prev_gen[N] != gen[N];
   }
 
   template <avnd::parameter_port Field, std::size_t NField>
@@ -163,10 +195,8 @@ struct GpuProcessIns
   {
     if constexpr(avnd::optional_ish<decltype(Field::value)>)
     {
-      // Impulses and other one-shot values are events, not states: a value equal to the previous
-      // one is a new event, but the same message must not fire it twice. Mirrors the CPU path
-      // (which sees each port's data stream once per tick).
-      if(mess.input.size() <= NField || !is_new_message())
+      // Mirrors the CPU path, which sees each port's data stream once per tick.
+      if(!received_event(NField))
         return;
     }
     else if(!can_process_message(field_index))
@@ -277,8 +307,8 @@ struct GpuControlIns
 {
   template <typename Self, typename Node_T>
   static void processControlIn(
-      Self& self, Node_T& state, score::gfx::Message& renderer_mess,
-      const score::gfx::Message& mess, const score::DocumentContext& ctx) noexcept
+      Self& self, Node_T& state, GpuMessageState& renderer_mess,
+      const GpuMessageState& mess, const score::DocumentContext& ctx) noexcept
   {
     // Apply the controls
     avnd::input_introspection<Node_T>::for_all_n(
@@ -351,7 +381,7 @@ struct SCORE_PLUGIN_AVND_EXPORT CustomGfxNodeBase : score::gfx::NodeModel
   }
   virtual ~CustomGfxNodeBase();
   const score::DocumentContext& m_ctx;
-  score::gfx::Message last_message;
+  GpuMessageState last_message;
   void process(score::gfx::Message&& msg) override;
   using score::gfx::NodeModel::process;
 };
@@ -359,7 +389,7 @@ struct SCORE_PLUGIN_AVND_EXPORT CustomGfxOutputNodeBase : score::gfx::OutputNode
 {
   virtual ~CustomGfxOutputNodeBase();
 
-  score::gfx::Message last_message;
+  GpuMessageState last_message;
   void process(score::gfx::Message&& msg) override;
 };
 struct SCORE_PLUGIN_AVND_EXPORT CustomGpuNodeBase
@@ -380,7 +410,7 @@ struct SCORE_PLUGIN_AVND_EXPORT CustomGpuNodeBase
 
   const score::DocumentContext& m_ctx;
   QString vertex, fragment, compute;
-  score::gfx::Message last_message;
+  GpuMessageState last_message;
   void process(score::gfx::Message&& msg) override;
 };
 
@@ -405,7 +435,7 @@ struct SCORE_PLUGIN_AVND_EXPORT CustomGpuOutputNodeBase
   std::shared_ptr<score::gfx::RenderState> m_renderState{};
 
   QString vertex, fragment, compute;
-  score::gfx::Message last_message;
+  GpuMessageState last_message;
   void process(score::gfx::Message&& msg) override;
   using score::gfx::Node::process;
 
