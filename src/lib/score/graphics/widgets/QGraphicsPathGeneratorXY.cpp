@@ -297,6 +297,16 @@ void score::QGraphicsPathGeneratorXY::setExecutionProgress(double v)
   update(before.united(progressRect()));
 }
 
+void score::QGraphicsPathGeneratorXY::setExecutionPosition(double pos)
+{
+  m_position = pos;
+
+  const double raw = pos * m_speed;
+  const double frac = raw - std::floor(raw);
+  const bool reverse = m_pingPong && (static_cast<int64_t>(raw) % 2 != 0);
+  setExecutionProgress(reverse ? 1. - frac : frac);
+}
+
 void score::QGraphicsPathGeneratorXY::resetExecution()
 {
   if(!m_hasExec && !m_hasProgress)
@@ -356,6 +366,24 @@ void score::QGraphicsPathGeneratorXY::setPhase(float p)
   m_phase = p;
   recomputePaths();
   update();
+}
+
+void score::QGraphicsPathGeneratorXY::setSpeed(float s)
+{
+  if(s == m_speed)
+    return;
+  m_speed = s;
+  if(m_hasProgress)
+    setExecutionPosition(m_position);
+}
+
+void score::QGraphicsPathGeneratorXY::setPingPong(bool b)
+{
+  if(b == m_pingPong)
+    return;
+  m_pingPong = b;
+  if(m_hasProgress)
+    setExecutionPosition(m_position);
 }
 
 void score::QGraphicsPathGeneratorXY::mouseMoveEvent(QGraphicsSceneMouseEvent* event)

@@ -2014,26 +2014,19 @@ struct PathGeneratorXY
     bindInlet(QLatin1StringView("Phase"), [&sl](const ossia::value& v) {
       sl.setPhase(ossia::convert<float>(v));
     });
+    bindInlet(QLatin1StringView("Speed"), [&sl](const ossia::value& v) {
+      sl.setSpeed(ossia::convert<float>(v));
+    });
+    bindInlet(QLatin1StringView("Ping Pong"), [&sl](const ossia::value& v) {
+      sl.setPingPong(ossia::convert<bool>(v));
+    });
 
-    // Position along the trajectory: a plain scalar control outlet, so the
-    // running engine only has to push a float through the existing queue.
-    for(auto* p : proc->outlets())
-    {
-      if(p->name() != QLatin1StringView("Progress"))
-        continue;
-      if(auto* c = qobject_cast<Process::ControlOutlet*>(p))
-      {
-        auto apply = [&sl](const ossia::value& v) {
-          sl.setExecutionProgress(ossia::convert<float>(v));
-        };
-        QObject::connect(c, &Process::ControlOutlet::valueChanged, &sl, apply);
-        QObject::connect(c, &Process::ControlOutlet::executionValueChanged, &sl, apply);
-        QObject::connect(c, &Process::ControlOutlet::executionReset, &sl, [&sl] {
-          sl.resetExecution();
-        });
-      }
-      return;
-    }
+    // The trajectory is walked with the parent interval: the playing position
+    // is the interval's playhead, which the execution already pushes to the
+    // process, rather than a value the process has to output.
+    QObject::connect(
+        proc, &Process::ProcessModel::executionPosition, &sl,
+        [&sl](double pos) { sl.setExecutionPosition(pos); });
   }
 
   template <typename T, typename Control_T>

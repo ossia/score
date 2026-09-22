@@ -79,6 +79,9 @@ public:
   ossia::value value() const;
   void setExecutionValue(const ossia::value& v);
   void setExecutionProgress(double v);
+  //! Playhead position in the parent interval, in [0;1]: the trajectory is
+  //! walked at Speed, then back down again when Ping Pong is on.
+  void setExecutionPosition(double pos);
   void resetExecution();
 
   //! Trajectory shape: mirrors the sibling controls of the process, which the
@@ -88,6 +91,8 @@ public:
   void setRatioX(int r);
   void setRatioY(int r);
   void setPhase(float p);
+  void setSpeed(float s);
+  void setPingPong(bool b);
 
   void setRange(const ossia::value& min, const ossia::value& max);
   void setRange(const ossia::domain& dom);
@@ -120,6 +125,7 @@ private:
   QSizeF m_size{defaultSize};
   std::vector<QPainterPath> m_paths;
   double m_progress{};
+  double m_position{};
   bool m_hasProgress{};
 
   int m_pathMode{Linear};
@@ -127,5 +133,7 @@ private:
   float m_radiusX{1.f}, m_radiusY{1.f};
   int m_ratioX{3}, m_ratioY{2};
   float m_phase{};
+  float m_speed{1.f};
+  bool m_pingPong{};
 };
 }
