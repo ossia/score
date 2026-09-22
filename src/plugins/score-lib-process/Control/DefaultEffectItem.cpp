@@ -2,6 +2,7 @@
 
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/PortItem.hpp>
+#include <Process/DocumentPlugin.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessContext.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
@@ -69,7 +70,7 @@ DefaultEffectItem::DefaultEffectItem(
       &DefaultEffectItem::relayout);
   connect(
       this, &score::ResizeableItem::minimumWidthChanged, this,
-      &DefaultEffectItem::reset);
+      &DefaultEffectItem::updateMinimumWidth);
 }
 
 DefaultEffectItem::~DefaultEffectItem() { }
@@ -79,16 +80,23 @@ DefaultEffectItem::~DefaultEffectItem() { }
 // after inletsChanged(): they cannot wait for the deferred deletion of the
 // layout below, or the next port at the same address would come up as a
 // zombie. deleteGraphicsItem() still defers the one that is delivering an
-// event (a cable being dragged from it), see GraphicsItem.hpp.
-static void deletePortItems(QGraphicsItem* it)
+// event (a cable being dragged from it), see GraphicsItem.hpp: the map entry
+// is therefore handed over here rather than in ~PortItem, so that the item the
+// rebuild creates for the same port owns it and is born visible.
+static void deletePortItems(Process::DataflowManager& plug, QGraphicsItem* it)
 {
   const auto items = it->childItems();
   for(auto ptr : items)
   {
     if(auto r = qgraphicsitem_cast<Dataflow::PortItem*>(ptr))
+    {
+      auto& ports = plug.ports();
+      if(auto p = ports.find(&r->port()); p != ports.end() && p->second == r)
+        ports.erase(p);
       deleteGraphicsItem(r);
+    }
     else
-      deletePortItems(ptr);
+      deletePortItems(plug, ptr);
   }
 }
 
@@ -100,7 +108,7 @@ void DefaultEffectItem::reset()
     // the edit of one of its own controls when that control resizes the
     // process's ports, and the control must survive the delivery of its event.
     // Hiding it also makes the scene release its mouse grab cleanly.
-    deletePortItems(m_layout);
+    deletePortItems(m_ctx.dataflow, m_layout);
     m_layout->setVisible(false);
     m_layout->deleteLater();
     m_layout = nullptr;
@@ -471,6 +479,18 @@ void DefaultEffectItem::updateRect()
     r.setWidth(std::max(r.width(), pager_r.width()));
   }
   this->setRect(r);
+}
+
+// How wide the node ended up is not a reason to rebuild the ports: only the
+// column that hangs off the right-hand edge has to be placed again.
+void DefaultEffectItem::updateMinimumWidth()
+{
+  if(auto* root = dynamic_cast<score::GraphicsIORootLayout*>(m_layout))
+    root->setMinimumWidth(m_minimumWidth);
+  else if(auto* outlets = dynamic_cast<score::GraphicsDefaultOutletLayout*>(m_layout))
+    outlets->setMinimumWidth(m_minimumWidth);
+
+  relayout();
 }
 
 void DefaultEffectItem::relayout()

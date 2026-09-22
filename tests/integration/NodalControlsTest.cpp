@@ -16,6 +16,7 @@
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/Dataflow/PortVisibility.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
+#include <Process/DocumentPlugin.hpp>
 #include <Process/Process.hpp>
 
 #include <Control/DefaultEffectItem.hpp>
@@ -371,5 +372,55 @@ TEST_CASE("A node with few controls shows all of them", "[integration][nodal][gu
     CHECK(pagerButtons(item).empty());
 
     delete item;
+  });
+}
+
+TEST_CASE("Widening a node does not rebuild its ports", "[integration][nodal][gui]")
+{
+  // The node pushes its minimum width down as the title or the slot grows.
+  // The port items have to survive that: a cable is drawn against the item it
+  // started from, and an item replaced mid-event never reaches the scene.
+  withControls(
+      5, [](ManyControls& proc, const Process::Context& pctx, QGraphicsItem* root) {
+    auto item = new Process::DefaultEffectItem{false, proc, pctx, root};
+    spin(80);
+
+    auto before = displayedPorts(*item);
+    REQUIRE(before.size() == proc.inlets().size() + proc.outlets().size());
+
+    std::vector<QPointer<Dataflow::PortItem>> alive;
+    for(auto p : before)
+      alive.emplace_back(p);
+
+    auto& ports = pctx.dataflow.ports();
+    for(auto p : before)
+    {
+      auto it = ports.find(&p->port());
+      REQUIRE(it != ports.end());
+      CHECK(it->second == p);
+      CHECK(p->isEnabled());
+    }
+
+    for(double w : {200., 400., 150.})
+    {
+      item->setMinimumWidth(w);
+      spin(40);
+    }
+
+    for(auto& p : alive)
+      CHECK(p);
+
+    auto after = displayedPorts(*item);
+    std::sort(after.begin(), after.end());
+    std::sort(before.begin(), before.end());
+    CHECK(after == before);
+
+    for(auto p : before)
+    {
+      auto it = ports.find(&p->port());
+      REQUIRE(it != ports.end());
+      CHECK(it->second == p);
+      CHECK(p->isEnabled());
+    }
   });
 }
