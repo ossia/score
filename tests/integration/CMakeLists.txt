@@ -208,6 +208,11 @@ score_add_test(test_integration_js_script_file_reload
   GUI
   PLUGINS score_plugin_scenario score_lib_process score_plugin_js)
 
+score_add_test(test_integration_js_script_out_of_date
+  SOURCES JsScriptOutOfDateTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process score_plugin_js)
+
 if(TARGET Qt6::Canvas2DPrivate)
   score_add_test(test_integration_canvas_painting
     SOURCES CanvasPaintingTest.cpp

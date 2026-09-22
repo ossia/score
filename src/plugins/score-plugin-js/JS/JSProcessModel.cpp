@@ -172,7 +172,30 @@ QmlSource ProcessModel::readProgramFromFile(const QString& qmlPath) noexcept
 
 void ProcessModel::updateFileLink() noexcept
 {
-  m_modified = m_root.isEmpty() || m_program != readProgramFromFile(m_root);
+  const auto file = m_root.isEmpty() ? QmlSource{} : readProgramFromFile(m_root);
+  m_modified = m_root.isEmpty() || m_program != file;
+
+  // An unreadable file has nothing to offer: leave the copy the document holds
+  // alone rather than proposing to replace it with nothing.
+  const bool outOfDate = m_modified && !file.execution.isEmpty();
+  if(outOfDate != m_outOfDate)
+  {
+    m_outOfDate = outOfDate;
+    externalSourceOutOfDateChanged(outOfDate);
+  }
+}
+
+score::Command*
+ProcessModel::refreshFromExternalSource(const score::DocumentContext& ctx) const
+{
+  if(!m_outOfDate)
+    return nullptr;
+
+  auto next = readProgramFromFile(m_root);
+  if(next.execution.isEmpty())
+    return nullptr;
+
+  return new JS::EditScript{*this, std::move(next), ctx};
 }
 
 QString ProcessModel::rootPath() const noexcept

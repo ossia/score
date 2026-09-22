@@ -153,6 +153,10 @@ public:
   //! -- a library update -- is what the user gets when reopening.
   bool followsRootFile() const noexcept { return !m_root.isEmpty() && !m_modified; }
 
+  bool externalSourceOutOfDate() const noexcept override { return m_outOfDate; }
+  score::Command*
+  refreshFromExternalSource(const score::DocumentContext& ctx) const override;
+
   //! The sources a .qml holds, together with those of its .ui.qml sibling.
   //! Members the disk has nothing for come back empty.
   static QmlSource readProgramFromFile(const QString& qmlPath) noexcept;
@@ -184,7 +188,8 @@ private:
 
   QString m_root;
   QmlSource m_program;
-  //! Recomputed whenever the program changes: see followsRootFile().
+  //! Recomputed whenever the program changes: see followsRootFile() and
+  //! externalSourceOutOfDate().
   void updateFileLink() noexcept;
 
   QByteArray m_qmlData;
@@ -196,6 +201,7 @@ private:
   JS::JSState m_state;
   bool m_isFile{};
   bool m_modified{true};
+  bool m_outOfDate{};
 };
 }
 

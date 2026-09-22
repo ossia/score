@@ -266,6 +266,36 @@ public:
       }
     }
 
+    if(process.flags() & ProcessFlags::ExternalSourceRefreshable)
+    {
+      if(!loop_lay)
+        initButtonsLayout();
+
+      auto update = new QToolButton{};
+      update->setIcon(makeIcons(
+          QStringLiteral(":/icons/refresh_on.png"),
+          QStringLiteral(":/icons/refresh_hover.png"),
+          QStringLiteral(":/icons/refresh_off.png"),
+          QStringLiteral(":/icons/refresh_disabled.png")));
+      update->setText(tr("Update"));
+      update->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+      score::setHelp(
+          update, tr("Replace this process with the current version of the file it "
+                     "was taken from"));
+      update->setToolTip(tr("Update to the new version"));
+      update->setAutoRaise(true);
+      score::setSkinIconSize(update, 28);
+      update->setVisible(process.externalSourceOutOfDate());
+      connect(update, &QToolButton::clicked, this, [&process, &doc] {
+        if(auto cmd = process.refreshFromExternalSource(doc))
+          CommandDispatcher<>{doc.commandStack}.submit(cmd);
+      });
+      con(process, &ProcessModel::externalSourceOutOfDateChanged, this,
+          [update](bool v) { update->setVisible(v); });
+
+      m_buttons->addWidget(update);
+    }
+
     if(process.flags() & ProcessFlags::CanCreateControls)
     {
       if(!loop_lay)
