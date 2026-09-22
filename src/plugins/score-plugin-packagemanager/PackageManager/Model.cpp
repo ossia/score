@@ -34,6 +34,7 @@
 #include <qmessagebox.h>
 
 #include <PackageManager/FileDownloader.hpp>
+#include <PackageManager/Install.hpp>
 
 #include <score_git_info.hpp>
 #include <wobjectimpl.h>
@@ -210,12 +211,21 @@ void PluginSettingsModel::firstTimeLibraryDownload()
 
     if(dl == QMessageBox::Yes)
     {
+      const QString incoming
+          = QDir{lib.getPackagesPath()}.absoluteFilePath(".incoming-default");
+      if(QDir dir{incoming}; dir.exists())
+        dir.removeRecursively();
+      QDir{}.mkpath(incoming);
+
       zdl::download_and_extract(
           QUrl{"https://github.com/ossia/score-user-library/archive/master.zip"},
-          lib.getPackagesPath(), [](const auto&) mutable {
+          incoming, [incoming, lib_folder](const std::vector<QString>& res) {
         auto& lib = score::GUIAppContext().settings<Library::Settings::Model>();
-        QDir packages_dir{lib.getPackagesPath()};
-        packages_dir.rename("score-user-library-master", "default");
+        if(QString err; !moveExtractedPackage(incoming, res, lib_folder, err))
+        {
+          qDebug() << "user library:" << err;
+          return;
+        }
 
         lib.rescanLibrary();
       }, [](qint64 bytesReceived, qint64 bytesTotal) {
@@ -289,59 +299,20 @@ void PluginSettingsModel::requestInformation(QUrl url)
 
 void PluginSettingsModel::installAddon(const Package& addon)
 {
-  if(addon.files.empty())
-  {
-    reset_progress();
-    return;
-  }
-
   const auto& lib = score::AppContext().settings<Library::Settings::Model>();
   const QString& installPath
       = addon.kind == "support" ? lib.getSupportPath() : lib.getPackagesPath();
-  auto sz_bytes = sizeToInt(addon.size);
 
-  for(auto f : addon.files)
-    zdl::download_and_extract(
-        f, QDir{installPath}.absolutePath(),
-        [this, installPath, addon](const std::vector<QString>& res) {
-      reset_progress();
-      if(res.empty())
-        return;
-      // We want the extracted folder to have the name of the addon
-      {
-        QDir addons_dir{installPath};
-        QFileInfo a_file(res[0]);
-        auto d = a_file.dir();
-        auto old_d = d;
-        while(d.cdUp() && !d.isRoot())
-        {
-          if(d == addons_dir)
-          {
-            addons_dir.rename(old_d.dirName(), addon.raw_name);
-            break;
-          }
-          old_d = d;
-        }
-      }
-
-      information(
-          tr("Addon downloaded"),
-          tr("The addon %1 has been successfully installed in :\n"
-             "%2\n\n"
-             "It will be built and enabled shortly.\nCheck the message "
-             "console for errors if nothing happens.")
-              .arg(addon.name)
-              .arg(QFileInfo(installPath).absoluteFilePath()));
-    }, [this, sz_bytes](qint64 received, qint64 total) {
-      if(total < received)
-        total = sz_bytes;
-      progress_from_bytes(received, total); },
-        [this, addon](const QString& err) {
-      reset_progress();
-      warning(
-          tr("Download failed"),
-          tr("The package %1 could not be downloaded.\n\n%2").arg(addon.name).arg(err));
-    });
+  downloadPackage(addon, installPath, [this, addon](const QString& destination) {
+    information(
+        tr("Addon downloaded"),
+        tr("The addon %1 has been successfully installed in :\n"
+           "%2\n\n"
+           "It will be built and enabled shortly.\nCheck the message "
+           "console for errors if nothing happens.")
+            .arg(addon.name)
+            .arg(destination));
+  });
 }
 
 void PluginSettingsModel::installSDK()
@@ -382,57 +353,66 @@ void PluginSettingsModel::installLibrary(const Package& addon)
   const auto& lib = score::AppContext().settings<Library::Settings::Model>();
   const QString& installPath
       = addon.kind == "support" ? lib.getSupportPath() : lib.getPackagesPath();
-  const QString destination{installPath + "/" + addon.raw_name};
 
-  if(QDir dest{destination}; dest.exists())
-    dest.removeRecursively();
+  downloadPackage(addon, installPath, [this, addon](const QString& destination) {
+    on_packageInstallSuccess(addon, destination);
+  });
+}
 
-  QDir{}.mkpath(destination);
+// Archives are extracted in a scratch folder of their own: what they contain
+// at their top level, hidden entries included, is only knowable afterwards.
+void PluginSettingsModel::downloadPackage(
+    const Package& addon, const QString& installPath,
+    std::function<void(const QString&)> installed)
+{
+  if(addon.files.empty())
+  {
+    reset_progress();
+    return;
+  }
 
-  auto sz_bytes = sizeToInt(addon.size);
+  const QDir installDir{installPath};
+  const QString destination = installDir.absoluteFilePath(addon.raw_name);
+  const QString incoming = installDir.absoluteFilePath(".incoming-" + addon.raw_name);
+
+  if(QDir dir{incoming}; dir.exists())
+    dir.removeRecursively();
+
+  if(!QDir{}.mkpath(incoming))
+  {
+    on_packageInstallFailure(addon, tr("Could not create %1").arg(incoming));
+    return;
+  }
+
+  const auto sz_bytes = sizeToInt(addon.size);
   for(auto f : addon.files)
     zdl::download_and_extract(
-        f, QFileInfo{destination}.absoluteFilePath(),
-        [this, addon, destination](const std::vector<QString>& res) {
-      on_packageInstallSuccess(addon, destination, res);
-    }, [this, sz_bytes](qint64 received, qint64 total) {
+        f, incoming,
+        [this, addon, incoming, destination,
+         installed](const std::vector<QString>& res) {
+      reset_progress();
+      if(res.empty())
+        return;
+
+      if(QString err; !moveExtractedPackage(incoming, res, destination, err))
+      {
+        on_packageInstallFailure(addon, err);
+        return;
+      }
+
+      installed(destination);
+    },
+        [this, sz_bytes](qint64 received, qint64 total) {
       if(total < received)
         total = sz_bytes;
       progress_from_bytes(received, total);
-    },
-        [this, addon](const QString& err) { on_packageInstallFailure(addon, err); });
+    }, [this, addon](const QString& err) { on_packageInstallFailure(addon, err); });
 }
 
 void PluginSettingsModel::on_packageInstallSuccess(
-    const Package& addon, const QDir& destination, const std::vector<QString>& res)
+    const Package& addon, const QString& destination)
 {
-  reset_progress();
-  if(res.empty())
-    return;
-
-  // Often zip files contain a single, empty directory.
-  // In that case, we move everything up a level to make the library cleaner.
   QDir dir{destination};
-  auto files = dir.entryList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot);
-  if(files.size() == 1)
-  {
-    auto child = files[0];
-    QFileInfo info{dir.absoluteFilePath(child)};
-    if(info.isDir())
-    {
-      dir.rename(child, "___score_tmp___");
-      QDir subdir{dir.absoluteFilePath("___score_tmp___")};
-
-      for(auto& entry :
-          subdir.entryList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot))
-      {
-        dir.rename(
-            QString{"___score_tmp___%1%2"}.arg(QDir::separator()).arg(entry), entry);
-      }
-
-      subdir.removeRecursively();
-    }
-  }
 
   {
     QFile f{dir.absoluteFilePath("package.json")};
