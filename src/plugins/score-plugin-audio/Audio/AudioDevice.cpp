@@ -103,26 +103,39 @@ void AudioDevice::disconnect()
 
 bool AudioDevice::reconnect()
 {
+  const auto old_dev = m_dev.get();
+
+  struct announce_on_exit
+  {
+    AudioDevice& self;
+    ossia::net::device_base* old_dev;
+    ~announce_on_exit()
+    {
+      // disconnect() already announced old_dev -> nullptr.
+      if(auto new_dev = self.m_dev.get(); new_dev && new_dev != old_dev)
+        self.deviceChanged(nullptr, new_dev);
+      self.changed();
+    }
+  } announce{*this, old_dev};
+
+  auto& engine
+      = score::GUIAppContext().guiApplicationPlugin<Audio::ApplicationPlugin>().audio;
+
+  // Park the audio thread on the default tick and wait for it to get there:
+  // it must not be walking the tree we are about to destroy.
+  if(engine)
+    engine->set_tick({});
+
   disconnect();
 
-  auto old_dev = m_dev.get();
   try
   {
     m_protocol = new ossia::audio_protocol;
     m_dev = std::make_shared<ossia::net::generic_device>(
         std::unique_ptr<ossia::net::protocol_base>(m_protocol), "audio");
-    auto& engine
-        = score::GUIAppContext().guiApplicationPlugin<Audio::ApplicationPlugin>().audio;
     if(!engine)
       return false;
 
-    // TODO we must make absolutely sure that the execution is not running here.
-    // Otherwise maybe we should just make a new proto...
-
-    // We have to sync the GUI tree with the audio thread so we stop it momentarily...
-    // qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
-    // engine->stop();
-    // qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
     m_protocol->setup_tree(engine->effective_inputs, engine->effective_outputs);
 
     // Recreate the custom addresses that were lost in disconnect()
@@ -143,10 +156,6 @@ bool AudioDevice::reconnect()
           setupNode(*node, v.extendedAttributes);
       }
     }
-    // qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
-    // engine->start();
-    // qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
-
     setLogging_impl(Device::get_cur_logging(isLogging()));
   }
   catch(std::exception& e)
@@ -158,10 +167,6 @@ bool AudioDevice::reconnect()
     // TODO save the reason of the non-connection.
   }
 
-  if(m_dev.get() != old_dev)
-    deviceChanged(old_dev, m_dev.get());
-
-  changed();
   return connected();
 }
 

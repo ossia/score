@@ -31,6 +31,7 @@
 #include <ossia/audio/audio_protocol.hpp>
 #include <ossia/dataflow/bench_map.hpp>
 #include <ossia/dataflow/execution_state.hpp>
+#include <ossia/dataflow/for_each_port.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/dataflow/graph_edge.hpp>
 #include <ossia/dataflow/port.hpp>
@@ -214,8 +215,39 @@ void DocumentPlugin::registerDevice(ossia::net::device_base* d)
 
 void DocumentPlugin::unregisterDevice(ossia::net::device_base* d)
 {
-  if(m_ctxData->execState)
-    m_ctxData->execState->unregister_device(d);
+  if(!m_ctxData->execState)
+    return;
+
+  m_ctxData->execState->unregister_device(d);
+
+  // Ports keep raw pointers into the device tree: they must be dropped from
+  // the execution thread before the device is destroyed.
+  m_ctxData->context.executionQueue.enqueue(
+      [wg = std::weak_ptr{m_ctxData->execGraph}, d]() noexcept {
+    auto g = wg.lock();
+    if(!g)
+      return;
+
+    auto belongs_to = [d](const ossia::destination_t& dest) {
+      if(auto p = dest.target<ossia::net::parameter_base*>())
+        return *p && &(*p)->get_node().get_device() == d;
+      if(auto n = dest.target<ossia::net::node_base*>())
+        return *n && &(*n)->get_device() == d;
+      return false;
+    };
+
+    for(auto node : g->get_nodes())
+    {
+      ossia::for_each_inlet(*node, [&](ossia::inlet& p) {
+        if(belongs_to(p.address))
+          p.address = {};
+      });
+      ossia::for_each_outlet(*node, [&](ossia::outlet& p) {
+        if(belongs_to(p.address))
+          p.address = {};
+      });
+    }
+      });
 }
 
 void DocumentPlugin::makeGraph()

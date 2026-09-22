@@ -76,6 +76,7 @@ private:
   void trigger_stop();
   void trigger_reinitialize();
 
+  void on_audioSettingsChanged();
   void on_play_global(bool b);
   void on_play_local(bool b);
 
