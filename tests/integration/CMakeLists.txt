@@ -1201,6 +1201,15 @@ score_add_test(test_integration_port_value_restore
   GUI
   PLUGINS score_plugin_scenario score_lib_process score_plugin_media)
 
+# A document saved before an avendish process gained a port: the port comes
+# back at its default, the saved ones keep their data, and nothing is printed.
+if(TARGET score_plugin_ui)
+  score_add_test(test_integration_avnd_port_drift
+    SOURCES AvndPortDriftTest.cpp
+    GUI
+    PLUGINS score_plugin_scenario score_lib_process score_plugin_ui)
+endif()
+
 # score's video output against gstreamer consumers of several shapes. Needs the
 # PipewirePublish tool, which only exists when the pipewire tester is built.
 if(SCORE_HAS_SHELL_HARNESS AND TARGET PipewirePublish)

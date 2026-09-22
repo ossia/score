@@ -8,6 +8,8 @@
 
 #include <ossia/detail/json.hpp>
 
+#include <QStringList>
+
 #include <score_plugin_scenario_export.h>
 
 #include <vector>
@@ -102,9 +104,11 @@ reloadPortsInNewProcess(
     Process::PortLoadDataFlags, const score::DocumentContext& ctx,
     std::span<const int> oldInletIds, std::span<const int> oldOutletIds);
 
-//! Same but without the cables
+//! Same but without the cables.
+//! \returns the names of the saved ports which found no port of the same
+//! name and type in the new process: those are the ones whose data is lost.
 SCORE_PLUGIN_SCENARIO_EXPORT
-void reloadPortsInNewProcess(
+QStringList reloadPortsInNewProcess(
     const std::vector<SavedPort>& m_oldInlets,
     const std::vector<SavedPort>& m_oldOutlets, Process::ProcessModel& cmt);
 }

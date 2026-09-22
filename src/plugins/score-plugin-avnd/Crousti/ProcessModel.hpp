@@ -243,30 +243,35 @@ private:
   }
   void check_all_ports()
   {
-    if(std::ssize(m_inlets) != expected_input_ports()
-       || std::ssize(m_outlets) != expected_output_ports())
+    if(std::ssize(m_inlets) == expected_input_ports()
+       && std::ssize(m_outlets) == expected_output_ports())
+      return;
+
+    std::vector<Dataflow::SavedPort> oldInlets, oldOutlets;
+    for(auto& port : m_inlets)
+      oldInlets.emplace_back(
+          Dataflow::SavedPort{port->name(), port->type(), port->saveData()});
+    for(auto& port : m_outlets)
+      oldOutlets.emplace_back(
+          Dataflow::SavedPort{port->name(), port->type(), port->saveData()});
+
+    qDeleteAll(m_inlets);
+    m_inlets.clear();
+    qDeleteAll(m_outlets);
+    m_outlets.clear();
+
+    init_all_ports();
+
+    // A port the spec gained since the save just comes back at its default:
+    // only a saved port that matched nothing actually lost its value.
+    const auto lost = Dataflow::reloadPortsInNewProcess(oldInlets, oldOutlets, *this);
+    if(!lost.empty())
     {
-      qDebug() << typeid(Info).name() << this->metadata().getName()
-               << ": WARNING : process does not match spec: I " << m_inlets.size()
-               << "but expected: " << expected_input_ports() << " ; O "
-               << m_outlets.size() << "but expected: " << expected_output_ports();
-
-      std::vector<Dataflow::SavedPort> m_oldInlets, m_oldOutlets;
-      for(auto& port : m_inlets)
-        m_oldInlets.emplace_back(
-            Dataflow::SavedPort{port->name(), port->type(), port->saveData()});
-      for(auto& port : m_outlets)
-        m_oldOutlets.emplace_back(
-            Dataflow::SavedPort{port->name(), port->type(), port->saveData()});
-
-      qDeleteAll(m_inlets);
-      m_inlets.clear();
-      qDeleteAll(m_outlets);
-      m_outlets.clear();
-
-      init_all_ports();
-
-      Dataflow::reloadPortsInNewProcess(m_oldInlets, m_oldOutlets, *this);
+      const std::string_view type_name = avnd::get_name<Info>();
+      qWarning() << QLatin1String(type_name.data(), type_name.size())
+                 << this->metadata().getName()
+                 << ": saved ports lost on load (renamed or removed since):"
+                 << lost.join(", ");
     }
   }
 
