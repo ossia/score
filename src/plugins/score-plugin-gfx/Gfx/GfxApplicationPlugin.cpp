@@ -56,7 +56,13 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
     Process::PreviewSettings::instance().setEnabled(checked);
   });
 
+  // The toggle is a view switch, not an edition tool: it takes the far end of
+  // the row instead of sitting in the tools' run.
+  auto spacer = new QWidget{bar};
+  spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+  bar->addWidget(spacer);
   bar->addAction(preview_act);
+  bar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   score::setSkinIconSize(bar, 24);
 
   e.toolbars.emplace_back(
