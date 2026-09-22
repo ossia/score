@@ -874,10 +874,12 @@ endif()
 # Deliberately NOT WIN32-guarded: the whole point of DirectShowSubtype.hpp is
 # that the decision is checkable on hosts where CameraDevice.win32.cpp cannot
 # be compiled at all.
+# avformat: the compressed half of the decision comes from FFmpeg's RIFF
+# video-tag table (avformat_get_riff_video_tags).
 score_add_test(test_unit_dshow_subtype
   SOURCES DirectShowSubtypeResolveTest.cpp
   PLUGINS score_plugin_gfx score_plugin_media
-  LIBS avutil avcodec)
+  LIBS avutil avcodec avformat)
 
 # --- avendish dynamic ports --------------------------------------------------
 # A controller control resizes the ports of its process from inside its own

@@ -21,6 +21,10 @@
 
 #include <cstdint>
 
+extern "C" {
+#include <libavcodec/codec_id.h>
+}
+
 namespace score::gfx::interop
 {
 
@@ -35,6 +39,16 @@ constexpr uint32_t directShowFourcc(char a, char b, char c, char d) noexcept
 /// RGB-GUID and unhandled subtypes.
 SCORE_PLUGIN_GFX_EXPORT
 Video::VideoPixelFormat fromDirectShowFourcc(uint32_t fourcc) noexcept;
+
+/// What decodes a DirectShow fourcc: AV_CODEC_ID_RAWVIDEO when
+/// fromDirectShowFourcc names its layout, a decoder when the stream is
+/// compressed, AV_CODEC_ID_NONE when neither — an unsupported subtype.
+///
+/// The compressed half comes from FFmpeg's RIFF video tags, so it covers every
+/// spelling FFmpeg knows; only what that table lacks and DirectShow emits
+/// (H.265, the odd Motion-JPEG fourccs, MDVF) is listed here.
+SCORE_PLUGIN_GFX_EXPORT
+AVCodecID directShowFourccCodec(uint32_t fourcc) noexcept;
 
 /// True when the fourcc names a compressed stream rather than a raw layout, so
 /// the caller reaches for a decoder instead of a pixel format.
