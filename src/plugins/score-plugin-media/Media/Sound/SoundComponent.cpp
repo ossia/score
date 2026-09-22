@@ -1,5 +1,7 @@
 #include "SoundComponent.hpp"
 
+#include <Media/Libav.hpp>
+
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionSetup.hpp>
 #include <Process/ExecutionTransaction.hpp>
@@ -11,7 +13,9 @@
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/nodes/dummy.hpp>
 #include <ossia/dataflow/nodes/sound.hpp>
+#if SCORE_HAS_LIBAV
 #include <ossia/dataflow/nodes/sound_libav.hpp>
+#endif
 #include <ossia/dataflow/nodes/sound_mmap.hpp>
 #include <ossia/dataflow/nodes/sound_ref.hpp>
 #include <ossia/detail/pod_vector.hpp>
@@ -98,6 +102,7 @@ public:
 
         commands.run_all();
       }
+#if SCORE_HAS_LIBAV
       void operator()(const Media::AudioFile::LibavStreamReader& r) const noexcept
       {
         Execution::Transaction commands{component.system()};
@@ -110,6 +115,9 @@ public:
 
         commands.run_all();
       }
+#else
+      void operator()(const Media::AudioFile::LibavStreamReader&) const noexcept { }
+#endif
       void operator()(const Media::AudioFile::SndfileReader& r) const noexcept
       {
         Execution::Transaction commands{component.system()};
@@ -194,6 +202,7 @@ public:
 
         commands.run_all();
       }
+#if SCORE_HAS_LIBAV
       void operator()(const Media::AudioFile::LibavStreamReader& r) const noexcept
       {
         Execution::Transaction commands{component.system()};
@@ -214,6 +223,9 @@ public:
 
         commands.run_all();
       }
+#else
+      void operator()(const Media::AudioFile::LibavStreamReader&) const noexcept { }
+#endif
       void operator()(const Media::AudioFile::SndfileReader& r) const noexcept
       {
         Execution::Transaction commands{component.system()};
@@ -262,6 +274,7 @@ public:
     ossia::apply(_, handle->m_impl);
   }
 
+#if SCORE_HAS_LIBAV
   static void update_libav(
       const std::shared_ptr<ossia::nodes::sound_libav>& n, const AudioFile& handle,
       const Media::AudioFile::LibavStreamReader& r, Execution::SoundComponent& component,
@@ -284,6 +297,7 @@ public:
       n->set_native_tempo(tempo);
     });
   }
+#endif
 
   static void update_ref(
       const std::shared_ptr<ossia::nodes::sound_ref>& n, const AudioFile& handle,
@@ -369,9 +383,11 @@ SoundComponent::SoundComponent(
     else if(
         auto n_mmap = std::dynamic_pointer_cast<ossia::nodes::sound_mmap>(this->node))
       in_exec([n_mmap, ff = std::move(f)]() mutable { ff(*n_mmap); });
+#if SCORE_HAS_LIBAV
     else if(
         auto n_lav = std::dynamic_pointer_cast<ossia::nodes::sound_libav>(this->node))
       in_exec([n_lav, ff = std::move(f)]() mutable { ff(*n_lav); });
+#endif
   };
 
   con(element, &Media::Sound::ProcessModel::startChannelChanged, this, [=, &element] {
