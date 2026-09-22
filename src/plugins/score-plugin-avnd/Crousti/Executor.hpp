@@ -291,6 +291,11 @@ public:
         p->value = ctrl->value();
         p->changed = true;
 
+        // What the control holds and the range it takes, so that a cable into
+        // it converts and rescales. The ISF executor sets its controls up the
+        // same way.
+        ctrl->setupExecution(*node->root_inputs().back(), this);
+
         QObject::connect(
             ctrl, &Process::ControlInlet::valueChanged, this,
             Gfx::con_unvalidated{ctx, i, 0, node});

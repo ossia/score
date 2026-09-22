@@ -1,5 +1,6 @@
-// The ossia binding deduces a port's unit from the shape of its value. Those
-// concepts nest, so each overload has to exclude the wider ones.
+// The ossia binding deduces a port's type, and sometimes its unit, from the
+// shape of its value. Those concepts nest, so each overload has to exclude the
+// wider ones. A unit is only claimed where the shape settles the meaning.
 
 #include <ossia/dataflow/port.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
@@ -37,7 +38,7 @@ ossia::val_type type_of(const ossia::value_port& p)
 }
 }
 
-TEST_CASE("A port's unit follows the arity of its value", "[avnd][port][unit]")
+TEST_CASE("A port's type follows the arity of its value", "[avnd][port][unit]")
 {
   SECTION("two components are a 2D position")
   {
@@ -45,10 +46,11 @@ TEST_CASE("A port's unit follows the arity of its value", "[avnd][port][unit]")
     CHECK(unit_of(p) == "position.cart2D");
   }
 
-  SECTION("three components are a 3D position")
+  SECTION("three components have no position unit, only their arity")
   {
     auto p = port_for<halp::xyz_spinboxes_f32<"P", halp::range{0., 1., 0.}>>();
-    CHECK(unit_of(p) == "position.cart3D");
+    CHECK(p.type.target<ossia::unit_t>() == nullptr);
+    CHECK(type_of(p) == ossia::val_type::VEC3F);
   }
 
   SECTION("four components have no position unit, only their arity")
@@ -160,5 +162,19 @@ TEST_CASE("A unit a process declares itself", "[avnd][port][unit]")
       } value;
     };
     CHECK(unit_of(port_for<declared>()) == "position.openGL");
+  }
+
+  SECTION("a three-component port that really is a position says so")
+  {
+    struct declared
+    {
+      static consteval auto name() { return "P"; }
+      static consteval auto unit() { return "position.cart3D"; }
+      struct
+      {
+        float x, y, z;
+      } value;
+    };
+    CHECK(unit_of(port_for<declared>()) == "position.cart3D");
   }
 }
