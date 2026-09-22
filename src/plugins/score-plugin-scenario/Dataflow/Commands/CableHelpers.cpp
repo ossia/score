@@ -371,7 +371,7 @@ ossia::small_vector<Process::Cable*, 4> reloadPortsInNewProcess(
   return ret;
 }
 
-void reloadPortsInNewProcess(
+QStringList reloadPortsInNewProcess(
     const std::vector<SavedPort>& oldInlets, const std::vector<SavedPort>& oldOutlets,
     Process::ProcessModel& process)
 {
@@ -389,6 +389,7 @@ void reloadPortsInNewProcess(
   // Match on (name, type), consuming each saved port once and in order, so
   // that a port added or removed in the middle of the list does not desync
   // everything after it. Duplicate names stay in their relative order.
+  QStringList unmatched;
   const auto restore = [&](const std::vector<SavedPort>& saved, const auto& ports) {
     std::vector<bool> used(saved.size(), false);
     for(auto* new_p : ports)
@@ -404,9 +405,15 @@ void reloadPortsInNewProcess(
         break;
       }
     }
+
+    for(std::size_t j = 0; j < saved.size(); j++)
+      if(!used[j])
+        unmatched.push_back(saved[j].name);
   };
 
   restore(oldInlets, process.inlets());
   restore(oldOutlets, process.outlets());
+
+  return unmatched;
 }
 }
