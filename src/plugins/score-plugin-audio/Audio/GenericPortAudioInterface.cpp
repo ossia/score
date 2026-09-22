@@ -190,7 +190,7 @@ QWidget* PortAudioFactory::make_settings(
   auto updateRates = [this, rate, card_in, card_out] {
     updateSampleRates(
         rate, devices[card_in->itemData(card_in->currentIndex()).toInt()],
-        devices[card_out->itemData(card_in->currentIndex()).toInt()]);
+        devices[card_out->itemData(card_out->currentIndex()).toInt()]);
   };
 
   // Disabled case
@@ -305,9 +305,8 @@ QWidget* PortAudioFactory::make_settings(
 
     updateRates();
   }
-  addBufferSizeWidget(*w, m, v);
 
-  con(m, &Model::changed, &v, [this, card_in, card_out, &m] {
+  con(m, &Model::changed, w, [this, card_in, card_out, &m] {
     setCardIn(card_in, m.getCardIn());
     setCardOut(card_out, m.getCardOut());
   });

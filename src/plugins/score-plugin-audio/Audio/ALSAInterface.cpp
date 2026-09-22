@@ -49,6 +49,10 @@ class ALSAWidget : public QWidget
     auto& m = m_model;
     if(dev.raw_name != m.getCardOut())
     {
+      // Clamp the rate / buffer size / channel counts to what the card supports
+      // before reading them back into the commands.
+      updateCombos(dev);
+
       using namespace Audio::Settings;
       m_disp.submitDeferredCommand<SetModelCardIn>(m, dev.raw_name);
       m_disp.submitDeferredCommand<SetModelCardOut>(m, dev.raw_name);
@@ -57,8 +61,6 @@ class ALSAWidget : public QWidget
       m_disp.submitDeferredCommand<SetModelRate>(m, this->rate->currentText().toInt());
       m_disp.submitDeferredCommand<SetModelBufferSize>(
           m, this->buffer_size->currentText().toInt());
-
-      setInfos(dev);
     }
   }
 
@@ -73,25 +75,17 @@ class ALSAWidget : public QWidget
 
     auto& devices = m_factory.devices;
 
-    card_list->addItem(devices.front().pretty_name, 0);
-
-    // Normal devices
-    for(std::size_t i = 1; i < devices.size(); i++)
+    for(std::size_t i = 0; i < devices.size(); i++)
     {
-      auto& card = devices[i];
-      card_list->addItem(card.pretty_name, (int)i);
+      card_list->addItem(devices[i].pretty_name, (int)i);
     }
 
-    if(m_model.getCardOut().isEmpty())
+    if(!devices.empty())
     {
-      if(!devices.empty())
-      {
+      if(m_model.getCardOut().isEmpty())
         setCard(card_list, devices.front().raw_name);
-      }
-    }
-    else
-    {
-      setCard(card_list, m_model.getCardOut());
+      else
+        setCard(card_list, m_model.getCardOut());
     }
 
     QObject::connect(
@@ -102,8 +96,9 @@ class ALSAWidget : public QWidget
   void on_deviceIndexChanged(int i)
   {
     auto& devices = m_factory.devices;
-    auto& device = devices[card_list->itemData(i).toInt()];
-    updateDevice(device);
+    const int idx = card_list->itemData(i).toInt();
+    if(ossia::valid_index(idx, devices))
+      updateDevice(devices[idx]);
   }
 
 public:
@@ -163,17 +158,6 @@ public:
       rescanUI();
     }
     connect(rescan, &QPushButton::clicked, this, &ALSAWidget::rescanUI);
-
-    connect(
-        card_list, qOverload<int>(&QComboBox::currentIndexChanged), this,
-        [this, &m](int idx) {
-      if(ossia::valid_index(idx, m_factory.devices))
-      {
-        auto& dev = m_factory.devices[idx];
-        m_disp.submitDeferredCommand<Audio::Settings::SetModelCardOut>(m, dev.raw_name);
-        updateCombos(dev);
-      }
-        });
 
     con(m, &Model::changed, this, [this, &m] { setCard(card_list, m.getCardOut()); });
   }

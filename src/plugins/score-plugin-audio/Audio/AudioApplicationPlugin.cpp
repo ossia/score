@@ -118,7 +118,9 @@ void ApplicationPlugin::timerEvent(QTimerEvent*)
   {
     auto& engine = **it;
     engine.gc();
-    if(engine.stop_received)
+    // stop_received is set from inside the audio callback, which still uses
+    // the engine afterwards: only the driver being down makes it reapable.
+    if(engine.stop_received && !engine.running())
     {
       it = previous_audio.erase(it);
     }
@@ -299,7 +301,17 @@ void ApplicationPlugin::start_engine()
         if(!audio)
           throw std::runtime_error{""};
 
-        m_updating_audio = true;
+        struct updating_guard
+        {
+          bool& flag;
+          updating_guard(bool& f)
+              : flag{f}
+          {
+            flag = true;
+          }
+          ~updating_guard() { flag = false; }
+        } guard{m_updating_audio};
+
         auto bs = audio->effective_buffer_size;
         if(bs <= 0)
           bs = set.getBufferSize();
@@ -312,7 +324,6 @@ void ApplicationPlugin::start_engine()
           rate = 44100;
         set.setBufferSize(bs);
         set.setRate(rate);
-        m_updating_audio = false;
       }
       catch(...)
       {

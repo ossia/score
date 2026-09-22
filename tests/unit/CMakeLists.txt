@@ -1334,3 +1334,8 @@ if(TARGET score_plugin_media)
     LIBS avutil avcodec avformat swscale ${QT_PREFIX}::Gui ${QT_PREFIX}::Network
     NO_CTEST)
 endif()
+
+# The audio protocol's parameters point into the driver's buffers: shrinking
+# the tree or stopping the protocol must leave none of those spans behind.
+score_add_test(test_unit_audio_protocol_tree
+  SOURCES AudioProtocolTreeTest.cpp)

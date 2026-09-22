@@ -16,6 +16,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <Audio/AudioApplicationPlugin.hpp>
+#include <Audio/Settings/Model.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -128,5 +129,24 @@ TEST_CASE("Closing the last document stops the engine, opening one starts it", "
     spin();
     REQUIRE(audio.audio);
     CHECK(audioDeviceConnected(*b));
+  });
+}
+
+TEST_CASE("Changing the audio settings restarts the engine", "[audio][documents]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto& audio = audioPlugin(ctx);
+    auto a = score::test::new_document(ctx);
+    REQUIRE(audio.audio);
+    const auto engine = audio.audio;
+
+    auto& set = ctx.settings<Audio::Settings::Model>();
+    set.setBufferSize(set.getBufferSize() == 256 ? 512 : 256);
+    set.changed();
+    spin();
+
+    REQUIRE(audio.audio);
+    CHECK(audio.audio != engine);
+    CHECK(audioDeviceConnected(*a));
   });
 }

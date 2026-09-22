@@ -826,6 +826,19 @@ void ExecutionController::init_transport()
   auto& audio_settings = this->context.settings<Audio::Settings::Model>();
   con(audio_settings, &Audio::Settings::Model::JackTransportChanged, this,
       &ExecutionController::init_transport, Qt::UniqueConnection);
+
+  con(audio_settings, &Audio::Settings::Model::changed, this,
+      &ExecutionController::on_audioSettingsChanged,
+      Qt::ConnectionType(Qt::DirectConnection | Qt::UniqueConnection));
+}
+
+void ExecutionController::on_audioSettingsChanged()
+{
+  // The engine is about to be restarted, which tears the audio device tree
+  // down under the graph. Stopping here is synchronous, hence done before the
+  // audio plug-in's queued restart.
+  if(m_playing)
+    trigger_stop();
 }
 
 Scenario::ScenarioDocumentModel* ExecutionController::currentScenarioModel()
