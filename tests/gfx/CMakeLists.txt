@@ -1336,6 +1336,10 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
 
+# Every example in the shader guide, pinned by the picture it renders. The bake
+# half is free: the files live in corpus/ so ShaderCorpusTargets sweeps them.
+score_add_gfx_test(shader_guide_examples GfxShaderGuideExamples.cpp)
+
 # Per-layer depth renders through the scratch-D32F + copyTexture shim,
 # each layer carrying its own closed-form depth.
 score_add_gfx_test(per_layer_depth GfxPerLayerDepth.cpp)
