@@ -57,8 +57,14 @@ void View::paint(
 {
   if(m_selectArea != QRectF{})
   {
-    painter->setPen(Qt::white);
+    const QColor sel = score::Skin::instance().Light.color();
+    QColor fill = sel;
+    fill.setAlpha(40);
+
+    painter->setPen(QPen{sel, 1, Qt::DashLine, Qt::SquareCap, Qt::BevelJoin});
+    painter->setBrush(fill);
     painter->drawRect(m_selectArea);
+    painter->setBrush(Qt::NoBrush);
   }
 
   if(m_directDraw)

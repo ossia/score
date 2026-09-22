@@ -136,7 +136,7 @@ NodalIntervalView::NodalIntervalView(
 
 void NodalIntervalView::updateSelectionRectStyle()
 {
-  const QColor selColor = score::Skin::instance().Base2.darker.brush.color();
+  const QColor selColor = score::Skin::instance().Light.color();
   QColor selFill = selColor;
   selFill.setAlpha(40);
 

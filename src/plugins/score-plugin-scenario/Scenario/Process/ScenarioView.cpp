@@ -47,13 +47,13 @@ void ScenarioView::paint_impl(QPainter* painter) const
 
   if(m_selectArea != QRectF{})
   {
-    painter->setCompositionMode(QPainter::CompositionMode_Xor);
-    painter->setPen(
-        QPen{skin.Transparent1.color(), 2, Qt::DashLine, Qt::SquareCap,
-             Qt::BevelJoin});
-    painter->setBrush(Qt::transparent);
+    const QColor sel = skin.Light.color();
+    QColor fill = sel;
+    fill.setAlpha(40);
+
+    painter->setPen(QPen{sel, 2, Qt::DashLine, Qt::SquareCap, Qt::BevelJoin});
+    painter->setBrush(fill);
     painter->drawRect(m_selectArea);
-    painter->setCompositionMode(QPainter::CompositionMode::CompositionMode_SourceOver);
   }
 
   if(m_snapLine)
