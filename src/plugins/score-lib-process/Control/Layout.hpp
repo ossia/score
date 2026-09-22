@@ -39,35 +39,41 @@ struct SCORE_LIB_PROCESS_EXPORT LayoutBuilderBase
 
   void finalizeLayout(QGraphicsItem* rootItem);
 
+  //! The skin brush a layout colour names. An object only ever asks for a role
+  //! - a background, the value it edits, the value the engine sends back - so
+  //! that a skin change applies to it like it does to the rest of the software.
   template <typename T>
   score::BrushSet& get_brush(T cur)
   {
     auto& skin = score::Skin::instance();
-    {
-      if constexpr(requires { T::background_darker; })
-        if(cur == T::background_darker)
-          return skin.Background2.darker300;
-    }
-    {
-      if constexpr(requires { T::background_dark; })
-        if(cur == T::background_dark)
-          return skin.Background2.darker;
-    }
-    {
-      if constexpr(requires { T::background_mid; })
-        if(cur == T::background_mid)
-          return skin.Background2.main;
-    }
-    {
-      if constexpr(requires { T::background_light; })
-        if(cur == T::background_light)
-          return skin.Background2.lighter;
-    }
-    {
-      if constexpr(requires { T::background_lighter; })
-        if(cur == T::background_lighter)
-          return skin.Background2.lighter180;
-    }
+#define SCORE_MAP_LAYOUT_COLOR(Name, Brush)  \
+  if constexpr(requires { T::Name; })        \
+    if(cur == T::Name)                       \
+      return Brush;
+
+    SCORE_MAP_LAYOUT_COLOR(darker, skin.Gray.darker300)
+    SCORE_MAP_LAYOUT_COLOR(dark, skin.Gray.darker)
+    SCORE_MAP_LAYOUT_COLOR(mid, skin.Gray.main)
+    SCORE_MAP_LAYOUT_COLOR(light, skin.Gray.lighter)
+    SCORE_MAP_LAYOUT_COLOR(lighter, skin.Gray.lighter180)
+
+    SCORE_MAP_LAYOUT_COLOR(background_darker, skin.Background2.darker300)
+    SCORE_MAP_LAYOUT_COLOR(background_dark, skin.Background2.darker)
+    SCORE_MAP_LAYOUT_COLOR(background_mid, skin.Background2.main)
+    SCORE_MAP_LAYOUT_COLOR(background_light, skin.Background2.lighter)
+    SCORE_MAP_LAYOUT_COLOR(background_lighter, skin.Background2.lighter180)
+
+    // Base4 is what a slider fills its handle with, Base1 what it draws the
+    // value the execution sends back with.
+    SCORE_MAP_LAYOUT_COLOR(editable_value_dark, skin.Base4.darker)
+    SCORE_MAP_LAYOUT_COLOR(editable_value_mid, skin.Base4.main)
+    SCORE_MAP_LAYOUT_COLOR(editable_value_light, skin.Base4.lighter180)
+
+    SCORE_MAP_LAYOUT_COLOR(runtime_value_dark, skin.Base1.darker)
+    SCORE_MAP_LAYOUT_COLOR(runtime_value_mid, skin.Base1.main)
+    SCORE_MAP_LAYOUT_COLOR(runtime_value_light, skin.Base1.lighter180)
+#undef SCORE_MAP_LAYOUT_COLOR
+
     return skin.Background2.main;
   }
 
