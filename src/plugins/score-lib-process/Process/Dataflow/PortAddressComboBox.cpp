@@ -163,7 +163,7 @@ listPortAddresses(Device::DeviceList& devices, PortType type, bool inlet)
 PortAddressComboBox::PortAddressComboBox(
     Device::DeviceList& devices, PortType type, bool inlet, QWidget* parent)
     : QComboBox{parent}
-    , m_devices{devices}
+    , m_devices{&devices}
     , m_type{type}
     , m_inlet{inlet}
 {
@@ -227,10 +227,13 @@ void PortAddressComboBox::scheduleReload()
 
 void PortAddressComboBox::reload()
 {
+  if(!m_devices)
+    return;
+
   const QSignalBlocker block{this};
   clear();
   addItem(QString{});
-  for(const auto& addr : listPortAddresses(m_devices, m_type, m_inlet))
+  for(const auto& addr : listPortAddresses(*m_devices, m_type, m_inlet))
     addItem(addr.toString());
   showAddress();
 }

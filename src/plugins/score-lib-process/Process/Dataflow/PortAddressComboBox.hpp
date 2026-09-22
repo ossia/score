@@ -8,6 +8,7 @@
 #include <score/document/DocumentContext.hpp>
 
 #include <QComboBox>
+#include <QPointer>
 
 #include <score_lib_process_export.h>
 
@@ -81,7 +82,7 @@ private:
   void commitText();
   void commit(State::AddressAccessor addr);
 
-  Device::DeviceList& m_devices;
+  QPointer<Device::DeviceList> m_devices;
   State::AddressAccessor m_address;
   PortType m_type{};
   bool m_inlet{};
