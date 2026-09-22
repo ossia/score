@@ -36,11 +36,11 @@ IsfResult run_isf(score::gfx::GraphicsApi be, const char* f, QSize sz)
 
 IsfResult raster(
     score::gfx::GraphicsApi be, const char* cs, const char* vs, const char* fs,
-    QSize sz)
+    QSize sz, int frames = 3)
 {
   IsfResult r;
   score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
-    r = render_raster(be, {corpus(cs)}, corpus(vs), corpus(fs), sz);
+    r = render_raster(be, {corpus(cs)}, corpus(vs), corpus(fs), sz, frames);
   });
   return r;
 }
@@ -238,4 +238,73 @@ TEST_CASE("guide: a CSF writes a storage image", "[gfx][l3][guide][csf]")
   CHECK(right[2] < left[2]);
   CHECK(left[1] > 40);
   CHECK(left[1] < 90);
+}
+
+// Example 6. Frame-to-frame feedback: the same chain rendered for longer must
+// come back brighter, which distinguishes a buffer that persists from one
+// cleared or reallocated every frame.
+TEST_CASE(
+    "guide: a read_write attribute accumulates across frames",
+    "[gfx][l3][guide][csf][feedback]")
+{
+  const auto be = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(be));
+
+  const auto few = raster(
+      be, "guide-csf-feedback.cs", "guide-rawraster-geo.vs",
+      "guide-rawraster-geo.fs", {96, 96}, 3);
+  const auto many = raster(
+      be, "guide-csf-feedback.cs", "guide-rawraster-geo.vs",
+      "guide-rawraster-geo.fs", {96, 96}, 20);
+  if(few.skipped || many.skipped)
+    SKIP(few.backend + ": " + few.skip_reason);
+
+  INFO("few error='" << few.error << "' many error='" << many.error << "'");
+  REQUIRE(few.error.empty());
+  REQUIRE(many.error.empty());
+  REQUIRE(!few.outputs.empty());
+  REQUIRE(!many.outputs.empty());
+  REQUIRE(few.outputs[0].valid());
+  REQUIRE(many.outputs[0].valid());
+
+  const auto a = few.outputs[0].at(48, 48);
+  const auto b = many.outputs[0].at(48, 48);
+  INFO("centre red after 3 frames = " << (int)a[0] << ", after 20 = " << (int)b[0]);
+  CHECK(a[0] > 0);       // it drew at all
+  CHECK(b[0] > a[0]);    // and the accumulator survived between frames
+}
+
+// Example 3. A raw raster on the scene path places each object with
+// per_draws.data[draw_id].model, where the scene's transform is baked: the same
+// square translated left and right must land left and right of the centre
+// (MODEL_MATRIX, identity here, would draw both at the centre).
+TEST_CASE(
+    "guide: a scene-path raw raster places objects with their model matrix",
+    "[gfx][l3][guide][rawraster][scene]")
+{
+  const auto be = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(be));
+
+  const auto left = sceneRaster(be, -0.8f);
+  const auto right = sceneRaster(be, 0.8f);
+  if(left.skipped || right.skipped)
+    SKIP("backend unavailable");
+  // per_draws is a vertex-stage storage buffer. The predicate needs the GL
+  // context the renders above created, so it cannot run before them.
+  if(const char* why = vertex_storage_buffer_skip_reason(be))
+    SKIP(why);
+  INFO("left error='" << left.error << "' right error='" << right.error << "'");
+  REQUIRE(left.error.empty());
+  REQUIRE(right.error.empty());
+
+  int litLeft = 0, litRight = 0;
+  const double xLeft = litCentroidX(left.img, litLeft);
+  const double xRight = litCentroidX(right.img, litRight);
+  INFO(
+      "lit " << litLeft << " / " << litRight << ", centroid x " << xLeft << " / "
+             << xRight);
+  CHECK(litLeft > 20);
+  CHECK(litRight > 20);
+  CHECK(xLeft < 28.);
+  CHECK(xRight > 36.);
 }
