@@ -3,6 +3,7 @@
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioPresenter.hpp>
 
 #include <QFile>
@@ -57,6 +58,9 @@ bool DropLayerInScenario::drop(
   const TimeVal t = TimeVal::fromMsecs(json["Duration"].GetDouble());
 
   auto& interval = m.createBox(scenar, pt.date, pt.date + t, pt.y);
+
+  if(dropStartsOnPlay())
+    addStartOnPlayTrigger(m, Scenario::startTimeSync(interval, scenar));
 
   DropLayerInInterval::perform(interval, pres.context().context, m, json);
 

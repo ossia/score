@@ -1,7 +1,9 @@
 #include "DropPortInScenario.hpp"
 
+#include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioPresenter.hpp>
 
 #include <Dataflow/PortItem.hpp>
@@ -49,6 +51,9 @@ bool DropPortInScenario::drop(
     TimeVal t = TimeVal::fromMsecs(5000);
 
     auto& interval = m.createBox(scenar, pt.date, pt.date + t, pt.y);
+
+    if(Scenario::dropStartsOnPlay())
+      Scenario::addStartOnPlayTrigger(m, Scenario::startTimeSync(interval, scenar));
 
     // Create process
     auto ok = port->on_createAutomation(

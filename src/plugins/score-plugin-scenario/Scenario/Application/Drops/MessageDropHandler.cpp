@@ -117,6 +117,8 @@ bool MessageDropHandler::drop(
     // We create in the emptiness
     const auto& [t, e, s] = m.createDot(scenar, pt);
     createdState = s.id();
+    if(dropStartsOnPlay())
+      addStartOnPlayTrigger(m, t);
   }
 
   m.addMessages(scenar.state(createdState), std::move(ml));

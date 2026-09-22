@@ -1215,6 +1215,13 @@ if(TARGET score_plugin_ui)
     PLUGINS score_plugin_scenario score_lib_process score_plugin_ui)
 endif()
 
+# Alt while dropping into a scenario gives the created interval a start-on-play
+# trigger, like a double-click, and a single undo removes the whole drop.
+score_add_test(test_integration_drop_start_on_play
+  SOURCES DropStartOnPlayTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process)
+
 # Appending a process after an audio outlet hands over its routing state, and
 # the cable commands restore the propagation they saved instead of forcing it on.
 score_add_test(test_integration_audio_outlet_chaining

@@ -3,6 +3,7 @@
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/ScenarioPresenter.hpp>
 
@@ -58,6 +59,9 @@ bool DropPresetInScenario::drop(
   const TimeVal t = TimeVal::fromMsecs(5000);
 
   auto& interval = m.createBox(scenar, pt.date, pt.date + t, pt.y);
+
+  if(dropStartsOnPlay())
+    addStartOnPlayTrigger(m, Scenario::startTimeSync(interval, scenar));
 
   auto& procs = pres.context().context.app.interfaces<Process::ProcessFactoryList>();
 
