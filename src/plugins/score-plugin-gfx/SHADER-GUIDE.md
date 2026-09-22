@@ -480,7 +480,87 @@ Each force stage takes `velocity` as `read_write` and `position` as `read_only`,
 so they compose in any order; `Integrate` goes last. That decomposition is why
 `shaderlib/forces/` has seven small files instead of one monolith.
 
-## 10. Verifying a shader you wrote
+## 10. Point clouds and splats
+
+Point clouds are not a parallel universe — they deliberately reuse the mesh
+contract. Two component types exist:
+
+- **`point_cloud_component`** — the simple case: parallel `positions` / `colors`
+  / `normals` / `intensities` buffers plus `point_count`.
+- **`primitive_cloud_component`** — the general design, built for 3D Gaussian
+  splats. It keeps the payload **opaque**: a `raw_data` buffer of verbatim
+  per-row bytes (a `.ply` with its header stripped, or post-decode bytes), a
+  `row_stride`, and a `format_id` such as `"3dgs.classic"`. `extra_buffers`
+  carries what one array cannot (a quantised SH codebook plus per-primitive
+  indices). `struct_type_name` — e.g. `"Splat3DGS"` — exposes those same bytes
+  as a typed per-vertex attribute instead of a raw block.
+
+### What the Scene Preprocessor emits
+
+Clouds are **bucketed by `format_id`**, so every cloud of one format batches
+into a single draw. Each bucket puts four things on the geometry stream:
+
+| Auxiliary | Contents |
+|---|---|
+| `raw_splats` | the bucket's `raw_data`, concatenated |
+| `cloud_meta` | `CloudMetaGPU[]`, one per cloud |
+| `cloud_id_lookup` | one `uint` per primitive → its `cloud_meta` index |
+| indirect cmd | `{total_primitives, 1, 0, 0, 0}` |
+
+`CloudMetaGPU` is 128 bytes and **mirrors `PerDrawGPU` on purpose**:
+
+```
+float    model[16]              // 64 — per-cloud TRS
+float    bounds_min[4]          // 80 — world AABB, xyz + pad
+float    bounds_max[4]          // 96
+uint32_t primitive_offset       // 100
+uint32_t primitive_count        // 104
+uint32_t transform_slot         // 108 — 0xFFFFFFFF = none
+uint32_t format_param_index     // 112
+uint32_t _pad[4]                // 128
+```
+
+So a splat CSF reads per-cloud TRS exactly the way a mesh shader reads
+`per_draws[gl_DrawID]`. `bounds_min/max` are the world AABB obtained by walking
+the eight corners of the local bounds through the world transform, for per-cloud
+frustum culling.
+
+Two things to know if you touch this path: the buffers are `growBuf`-managed so
+downstream SRBs see **pointer-stable handles**, and each bucket carries a
+`content_fingerprint` over raw-data identity, primitive count, world transform
+and slot — a match skips the CPU concat and the upload entirely.
+
+### The consuming pipeline
+
+From `2026/splats-room.score`, transcribed in `tests/gfx/GfxSplatRender.cpp`:
+
+```
+AssetLoader (room.ply) -> scene_group -> Scene Preprocessor
+  -> Flattened Scene Filter     Mode 12, Format ID "3dgs.classic"
+  -> CSF "01_Decode"            reads $VERTEX_COUNT_geoIn = N,
+                                emits the instanced 6xN quad topology
+  -> Render Pipeline "02_DrawSplat"
+```
+
+`FlattenedSceneFilterNode` mode `12` is *format_id equals match_str*, mode `13`
+is *differs* — that is how only the matching clouds are routed into a
+format-specific chain. `$VERTEX_COUNT_<name>` is a real CSF expression
+(`RenderedCSFNode.cpp`), so a decode stage sizes its dispatch from the incoming
+geometry rather than a constant.
+
+`2026/test-3dgs-full.score` is the same head with an eight-stage chain: Decode,
+TileEmit, RadixHistogram, RadixScan, RadixScatter, TileRanges, TileRender,
+Composite.
+
+### Do not use Threedim/Splat/
+
+The legacy `Threedim/Splat/` process (`GaussianSplatNode`, with its own depth
+sort, radix passes and `splatCount`) is used by **zero** of the 263 corpus
+documents; `GfxSplatRender.cpp` documents the greps that establish this. The
+live path is AssetLoader → primitive cloud → Preprocessor → format filter → CSF
+chain.
+
+## 11. Verifying a shader you wrote
 
 ```sh
 # 1. bake on all four dialects — catches D3D/Metal-only defects CI misses
