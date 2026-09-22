@@ -777,6 +777,12 @@ score_add_test(test_unit_midi_missing_api
   APP
   PLUGINS score_plugin_protocols score_plugin_deviceexplorer score_lib_device score_lib_state)
 
+# MIDI data bytes come from the wire: notes, controllers and program numbers
+# above 127, and messages shorter than their status byte implies, must be
+# dropped instead of indexing the protocol's 128-element channel tables.
+score_add_test(test_unit_midi_malformed_message
+  SOURCES MidiMalformedMessageTest.cpp)
+
 # The tracking protocols addon as devices: every protocol can be added to a
 # document and coexists with the others (what the "Add device" dialog checks).
 if(TARGET score_addon_trackingprotocols)
