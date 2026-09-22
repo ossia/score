@@ -252,6 +252,11 @@ public:
   void stopExecution() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, stopExecution)
   void resetExecution() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, resetExecution)
 
+  //! Where the playhead is in the process, in [0; 1]: pushed by the parent
+  //! interval while it runs, for the items that draw a running position.
+  void executionPosition(double arg_1)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, executionPosition, arg_1)
+
   void durationChanged(const TimeVal& arg_1)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, durationChanged, arg_1)
 

@@ -479,6 +479,9 @@ void IntervalComponent::slot_callback(bool running, ossia::time_value date)
         if(cstdur.defaultDuration() > TimeVal::zero())
           cstdur.setPlayPercentage(currentTime / cstdur.defaultDuration());
       }
+
+      for(Process::ProcessModel& proc : interval().processes)
+        proc.executionPosition(cstdur.playPercentage());
     }
     interval().setExecuting(running);
   }
