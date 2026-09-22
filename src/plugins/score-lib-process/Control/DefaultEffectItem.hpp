@@ -52,6 +52,7 @@ private:
   void recreate_onlyOutlets();
   void recreate_both();
   void updateRect();
+  void updateMinimumWidth();
   void relayout();
 
   struct PortsToDisplay
