@@ -240,19 +240,11 @@ void ApplicationPlugin::runStartScripts()
     }
   }
 }
-void ApplicationPlugin::afterStartup()
+void ApplicationPlugin::initialize()
 {
-  if(!m_start_scripts.empty())
-  {
-    QTimer::singleShot(
-        (1 + context.applicationSettings.waitAfterLoad) * 1000, this,
-        [this] { runStartScripts(); });
-  }
-
-  // Dummy engine setup for JS processes
-  // eng.importModule(
-  //     "/home/jcelerier/Documents/ossia/score/packages/default/Scripts/include/"
-  //     "tonal.mjs");
+  // Documents named on the command line are loaded before afterStartup(), and
+  // compiling one of their scripts is what makes the library's QML modules
+  // needed: the import paths have to be in place by then.
   for(auto& p : this->context.settings<Library::Settings::Model>().getIncludePaths())
   {
     m_scriptProcessUIEngine.addImportPath(p);
@@ -260,6 +252,16 @@ void ApplicationPlugin::afterStartup()
     // .mjs; without this they could not import what a JS process can, which
     // made the same `import` line work in a process and fail in a script.
     m_consoleEngine.addImportPath(p);
+  }
+}
+
+void ApplicationPlugin::afterStartup()
+{
+  if(!m_start_scripts.empty())
+  {
+    QTimer::singleShot(
+        (1 + context.applicationSettings.waitAfterLoad) * 1000, this,
+        [this] { runStartScripts(); });
   }
 
 #if __has_include(<QQuickWindow>)

@@ -34,6 +34,7 @@ public:
   void on_createdDocument(score::Document& doc) override;
 
   ~ApplicationPlugin() override;
+  void initialize() override;
   void afterStartup() override;
   void runStartScripts();
   void on_newDocument(score::Document& doc) override;
