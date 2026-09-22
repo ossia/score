@@ -2,6 +2,8 @@
 
 #include <Process/Style/ScenarioStyle.hpp>
 
+#include <score/tools/Bind.hpp>
+
 #include <QGraphicsRectItem>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
@@ -18,16 +20,26 @@ View::View(QGraphicsItem* parent)
   setFlag(ItemClipsChildrenToShape);
 
   {
-    auto selColor = score::Skin::instance().Base2.darker.brush.color();
-    auto selFill = selColor;
-    selFill.setAlpha(40);
     m_selectionRect = new QGraphicsRectItem(this);
     m_selectionRect->setZValue(1000.);
-    m_selectionRect->setPen(QPen{selColor, 1, Qt::DashLine, Qt::SquareCap, Qt::BevelJoin});
-    m_selectionRect->setBrush(selFill);
     m_selectionRect->setAcceptedMouseButtons(Qt::NoButton);
     m_selectionRect->setVisible(false);
+
+    auto& skin = score::Skin::instance();
+    con(skin, &score::Skin::changed, this, &View::updateSelectionRectStyle);
+    updateSelectionRectStyle();
   }
+}
+
+void View::updateSelectionRectStyle()
+{
+  const QColor selColor = score::Skin::instance().Base2.darker.brush.color();
+  QColor selFill = selColor;
+  selFill.setAlpha(40);
+
+  m_selectionRect->setPen(
+      QPen{selColor, 1, Qt::DashLine, Qt::SquareCap, Qt::BevelJoin});
+  m_selectionRect->setBrush(selFill);
 }
 
 View::~View() { }

@@ -339,15 +339,7 @@ Skin::Skin() noexcept
           SCORE_INSERT_COLOR_CUSTOM("#FFFFFF", "White"),
           SCORE_INSERT_COLOR_CUSTOM("#000000", "Black")}
 {
-  // Defaults for the roles DefaultSkin.json does not have to name.
-  Port4 = QColor{163, 163, 163};
-  Port5 = QColor{179, 90, 209};
-  Cable4 = QColor{163, 163, 163, 136};
-  Cable5 = QColor{179, 90, 209, 136};
-  SelectedCable4 = QColor{163, 163, 163, 204};
-  SelectedCable5 = QColor{179, 90, 209, 204};
-  Waveform1 = QColor{250, 180, 15};
-  Waveform2 = QColor{20, 81, 120};
+  setupColors();
 
   setupFonts();
   m_basePalette = qApp ? qApp->palette() : QPalette{};
@@ -479,6 +471,85 @@ void Skin::setupPalette()
 {
   WidgetPalette = m_basePalette;
   score::applyDefaultPalette(WidgetPalette);
+}
+
+// Mirrors DefaultSkin's colour block, for skins that name only part of it and
+// for the runs that never load one.
+void Skin::setupColors()
+{
+  Dark = QColor{0, 0, 0};
+  HalfDark = QColor{55, 55, 55};
+  DarkGray = QColor{61, 61, 61};
+  Gray = QColor{127, 127, 127};
+  LightGray = QColor{163, 163, 163};
+  HalfLight = QColor{200, 200, 200};
+  Light = QColor{255, 255, 255};
+
+  Emphasis1 = QColor{0, 255, 255};
+  Emphasis2 = QColor{54, 54, 54};
+  Emphasis3 = QColor{179, 90, 209};
+  Emphasis4 = QColor{255, 255, 255};
+  Emphasis5 = QColor{47, 47, 47};
+
+  Base1 = QColor{103, 171, 172};
+  Base2 = QColor{3, 150, 250};
+  Base3 = QColor{148, 255, 0};
+  Base4 = QColor{224, 176, 30};
+  Base5 = QColor{24, 24, 24};
+
+  Warn1 = QColor{255, 255, 0};
+  Warn2 = QColor{200, 150, 0};
+  Warn3 = QColor{255, 0, 0};
+
+  Background1 = QColor{31, 31, 32};
+  Background2 = QColor{36, 37, 38};
+
+  Transparent1 = QColor{19, 19, 19};
+  Transparent2 = QColor{170, 170, 170};
+  Transparent3 = QColor{37, 41, 48};
+
+  Smooth1 = QColor{222, 0, 0};
+  Smooth2 = QColor{109, 222, 0};
+  Smooth3 = QColor{240, 220, 0};
+
+  Tender1 = QColor{199, 31, 44};
+  Tender2 = QColor{216, 178, 24};
+  Tender3 = QColor{56, 51, 40};
+
+  Cable1 = QColor{153, 102, 102, 136};
+  Cable2 = QColor{102, 153, 102, 136};
+  Cable3 = QColor{153, 102, 221, 136};
+  Cable4 = QColor{163, 163, 163, 136};
+  Cable5 = QColor{179, 90, 209, 136};
+
+  SelectedCable1 = QColor{153, 102, 102, 204};
+  SelectedCable2 = QColor{102, 153, 102, 204};
+  SelectedCable3 = QColor{153, 102, 221, 204};
+  SelectedCable4 = QColor{163, 163, 163, 204};
+  SelectedCable5 = QColor{179, 90, 209, 204};
+
+  Port1 = QColor{219, 36, 31};
+  Port2 = QColor{167, 221, 13};
+  Port3 = QColor{0, 147, 255};
+  Port4 = QColor{163, 163, 163};
+  Port5 = QColor{179, 90, 209};
+
+  Pulse1 = QColor{34, 224, 0};
+  Pulse2 = QColor{3, 150, 250};
+
+  Waveform1 = QColor{250, 180, 15};
+  Waveform2 = QColor{20, 81, 120};
+
+  fixupColors();
+}
+
+void Skin::fixupColors()
+{
+  // make the "lighter" of black more light.
+  Transparent1.darker = Transparent1.lighter180;
+  Transparent1.darker300 = Transparent1.lighter;
+  Transparent1.lighter = Gray.main;
+  Transparent1.lighter180 = HalfLight.main;
 }
 
 void Skin::loadPalette(const QJsonObject& spec)
@@ -668,6 +739,9 @@ void Skin::setupFonts()
 Skin::Skin(Skin::NoGUI)
     : m_colorMap{initColorMap()}
 {
+  setupColors();
+
+  m_builtinColours = getColors();
 }
 
 Skin::color_map* Skin::initColorMap() noexcept
@@ -739,13 +813,7 @@ void Skin::load(const QJsonObject& obj, int parts)
   SCORE_FOR_EACH_SKIN_COLOR(X)
 #undef X
 
-  // make the "lighter" of black more light.
-  {
-    Transparent1.darker = Transparent1.lighter180;
-    Transparent1.darker300 = Transparent1.lighter;
-    Transparent1.lighter = Gray.main;
-    Transparent1.lighter180 = HalfLight.main;
-  }
+  fixupColors();
 
   LoadIndex++;
   changed();

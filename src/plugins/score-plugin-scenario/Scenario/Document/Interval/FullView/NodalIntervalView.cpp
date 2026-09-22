@@ -122,16 +122,27 @@ NodalIntervalView::NodalIntervalView(
   QTimer::singleShot(1, this, &NodalIntervalView::recenterRelativeToView);
 
   {
-    auto selColor = score::Skin::instance().Base2.darker.brush.color();
-    auto selFill = selColor;
-    selFill.setAlpha(40);
     m_selectionRect = new QGraphicsRectItem(this);
     m_selectionRect->setZValue(1000.);
-    m_selectionRect->setPen(QPen{selColor, 1, Qt::DashLine, Qt::SquareCap, Qt::BevelJoin});
-    m_selectionRect->setBrush(selFill);
     m_selectionRect->setAcceptedMouseButtons(Qt::NoButton);
     m_selectionRect->setVisible(false);
+
+    auto& skin = score::Skin::instance();
+    con(skin, &score::Skin::changed, this,
+        &NodalIntervalView::updateSelectionRectStyle);
+    updateSelectionRectStyle();
   }
+}
+
+void NodalIntervalView::updateSelectionRectStyle()
+{
+  const QColor selColor = score::Skin::instance().Base2.darker.brush.color();
+  QColor selFill = selColor;
+  selFill.setAlpha(40);
+
+  m_selectionRect->setPen(
+      QPen{selColor, 1, Qt::DashLine, Qt::SquareCap, Qt::BevelJoin});
+  m_selectionRect->setBrush(selFill);
 }
 
 void NodalIntervalView::zoomPlus()

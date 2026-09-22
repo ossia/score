@@ -34,6 +34,8 @@ private:
   void dragMoveEvent(QGraphicsSceneDragDropEvent* event) override;
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 
+  void updateSelectionRectStyle();
+
   QGraphicsRectItem* m_selectionRect{};
   QPointF m_rubberBandOrigin{};
   QRectF m_rubberBandRect{};

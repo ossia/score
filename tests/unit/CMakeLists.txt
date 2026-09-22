@@ -330,6 +330,11 @@ score_add_test(test_unit_state_serialization
 score_add_test(test_unit_application_settings
   SOURCES ApplicationSettingsTest.cpp)
 
+# The colours a skin file does not name, and the ones a run with the colours
+# switched off starts from.
+score_add_test(test_unit_skin_defaults
+  SOURCES SkinDefaultsTest.cpp)
+
 score_add_test(test_unit_process_model
   SOURCES ProcessModelTest.cpp
   PLUGINS score_lib_process score_lib_state score_lib_device)
