@@ -408,6 +408,17 @@ score_add_test(test_unit_path_generator_handle
   APP
   PLUGINS score_lib_process)
 
+# What the Output port of the path generator carries in each of its modes, and
+# that the tick never reallocates once the sources are known.
+if(TARGET score_addon_gbap)
+  score_add_test(test_unit_path_generator_output
+    SOURCES PathGeneratorOutputTest.cpp
+      "${SCORE_ROOT_SOURCE_DIR}/src/addons/GBAP/PathGenerator/PathGeneratorModel.cpp"
+    PLUGINS score_addon_gbap)
+  target_include_directories(test_unit_path_generator_output
+    PRIVATE "${SCORE_ROOT_SOURCE_DIR}/src/addons/GBAP")
+endif()
+
 if(TARGET score_plugin_dataflow)
   score_add_test(test_unit_dataflow_value
     SOURCES DataflowValueTest.cpp
