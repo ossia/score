@@ -103,6 +103,8 @@ struct v4l2_format_enumeration
   QString fourcc;
   QString desc_string;
 
+  std::vector<std::pair<CameraSettings, QString>> modes;
+
   v4l2_format_enumeration(const AVInputFormat& fmt, const AVDeviceInfo& dev)
   {
     // qDebug() << "dev.device_name: " << dev.device_name;
@@ -134,14 +136,18 @@ struct v4l2_format_enumeration
       memcpy(str.data(), &vfd.pixelformat, 4);
       fourcc = QString::fromStdString(str);
 
-      list_resolutions(func, vfd.pixelformat);
+      list_resolutions(vfd.pixelformat);
 
       vfd.index++;
     }
+
+    keepHighestFramerates(modes);
+    for(auto& [settings, desc] : modes)
+      func(std::move(settings), std::move(desc));
+    modes.clear();
   }
 
-  void list_resolutions(
-      const std::function<void(CameraSettings, QString)>& func, uint32_t pixelformat)
+  void list_resolutions(uint32_t pixelformat)
   {
     static const auto& v4l2 = libv4l2::instance();
 
@@ -155,18 +161,17 @@ struct v4l2_format_enumeration
         if(frame_size.type == V4L2_FRMSIZE_TYPE_DISCRETE)
         {
           list_rates(
-              func, pixelformat,
-              QSize(frame_size.discrete.width, frame_size.discrete.height));
+              pixelformat, QSize(frame_size.discrete.width, frame_size.discrete.height));
         }
         else if(
             frame_size.type == V4L2_FRMSIZE_TYPE_STEPWISE
             || frame_size.type == V4L2_FRMSIZE_TYPE_CONTINUOUS)
         {
           list_rates(
-              func, pixelformat,
+              pixelformat,
               QSize(frame_size.stepwise.min_width, frame_size.stepwise.min_height));
           list_rates(
-              func, pixelformat,
+              pixelformat,
               QSize(frame_size.stepwise.max_width, frame_size.stepwise.max_height));
           break;
         }
@@ -174,9 +179,7 @@ struct v4l2_format_enumeration
     }
   }
 
-  void list_rates(
-      const std::function<void(CameraSettings, QString)>& func, uint32_t pixelformat,
-      QSize res)
+  void list_rates(uint32_t pixelformat, QSize res)
   {
     v4l2_frmivalenum frame_ival;
     memset(&frame_ival, 0, sizeof(frame_ival));
@@ -193,37 +196,38 @@ struct v4l2_format_enumeration
         double rate = frame_ival.discrete.numerator;
         rate /= frame_ival.discrete.denominator;
 
-        add_format(func, res, rate);
+        add_format(res, rate);
       }
       else if(
           frame_ival.type == V4L2_FRMSIZE_TYPE_STEPWISE
           || frame_ival.type == V4L2_FRMSIZE_TYPE_CONTINUOUS)
       {
         double min_rate = frame_ival.stepwise.min.numerator;
-        min_rate /= frame_ival.stepwise.min.numerator;
+        min_rate /= frame_ival.stepwise.min.denominator;
         double max_rate = frame_ival.stepwise.max.numerator;
-        max_rate /= frame_ival.stepwise.max.numerator;
+        max_rate /= frame_ival.stepwise.max.denominator;
 
-        add_format(func, res, min_rate);
-        add_format(func, res, max_rate);
+        add_format(res, min_rate);
+        add_format(res, max_rate);
         break;
       }
     }
   }
 
-  void
-  add_format(std::function<void(CameraSettings, QString)> func, QSize res, double rate)
+  void add_format(QSize res, double rate)
   {
+    if(!(rate > 0.))
+      return;
+
     this->current.size = res;
     this->current.fps = 1. / rate;
 
-    // Finally call our callback when we know everything...
     QString desc = QString("%1: %2x%3@%4")
                        .arg(fourcc)
                        .arg(res.width())
                        .arg(res.height())
-                       .arg(std::round(1. / rate));
-    func(this->current, desc);
+                       .arg(std::round(this->current.fps));
+    modes.emplace_back(this->current, std::move(desc));
   }
 };
 }

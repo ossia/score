@@ -206,6 +206,7 @@ struct AVFCameraEnumerator : public Device::DeviceEnumerator
       const override
   {
     const char* name = [[device localizedName] UTF8String];
+    std::vector<std::pair<CameraSettings, QString>> modes;
     for(id format in [device valueForKey:@"formats"])
     {
       CMFormatDescriptionRef formatDescription{};
@@ -229,7 +230,6 @@ struct AVFCameraEnumerator : public Device::DeviceEnumerator
                               .arg(fps)
                               .arg(std::string(fcc).c_str());
 
-        Device::DeviceSettings s;
         CameraSettings set;
         set.input = "avfoundation";
         set.device = name;
@@ -238,11 +238,20 @@ struct AVFCameraEnumerator : public Device::DeviceEnumerator
         auto [pixfmt, colrange] = avf_pixelformat_to_ffmpeg(fourcc);
         set.pixelformat = pixfmt;
         set.colorRange = colrange;
-        s.name = name;
-        s.protocol = CameraProtocolFactory::static_concreteKey();
-        s.deviceSpecificSettings = QVariant::fromValue(set);
-        func(mode, s);
+
+        modes.emplace_back(set, mode);
       }
+    }
+
+    keepHighestFramerates(modes);
+
+    for(auto& [set, desc] : modes)
+    {
+      Device::DeviceSettings s;
+      s.name = name;
+      s.protocol = CameraProtocolFactory::static_concreteKey();
+      s.deviceSpecificSettings = QVariant::fromValue(set);
+      func(desc, s);
     }
   }
 };

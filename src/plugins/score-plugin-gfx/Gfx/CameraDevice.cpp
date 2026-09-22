@@ -14,12 +14,15 @@
 #include <score/serialization/JSONParse.hpp>
 #include <score/serialization/MimeVisitor.hpp>
 
+#include <ossia/detail/algorithms.hpp>
+
 #include <ossia-qt/name_utils.hpp>
 
 #include <QComboBox>
 #include <QFormLayout>
 #include <QMenu>
 #include <QMimeData>
+#include <QtGlobal>
 
 #include <wobjectimpl.h>
 
@@ -60,15 +63,44 @@ namespace Gfx
 {
 void enumerateCameraDevices(std::function<void(CameraSettings, QString)> func);
 
-CameraSettings findBestCameraMode()
+bool cameraShowAllFramerates() noexcept
 {
-  std::vector<CameraSettings> candidates;
-  candidates.reserve(200);
+  static const bool b = qEnvironmentVariableIsSet("SCORE_GFX_CAMERA_ALL_FRAMERATES");
+  return b;
+}
 
-  // 1. Collect all modes
-  enumerateCameraDevices(
-      [&](CameraSettings s, const auto&) { candidates.push_back(std::move(s)); });
+void keepHighestFramerates(std::vector<std::pair<CameraSettings, QString>>& modes)
+{
+  if(cameraShowAllFramerates())
+    return;
 
+  // The codec is part of the key: all the compressed formats share
+  // AV_PIX_FMT_NONE as pixel format.
+  auto same_mode = [](const CameraSettings& a, const CameraSettings& b) noexcept {
+    return a.codec == b.codec && a.pixelformat == b.pixelformat
+           && a.colorRange == b.colorRange && a.size == b.size && a.input == b.input
+           && a.device == b.device;
+  };
+
+  std::vector<std::pair<CameraSettings, QString>> filtered;
+  filtered.reserve(modes.size());
+
+  for(auto& mode : modes)
+  {
+    auto it = ossia::find_if(
+        filtered, [&](const auto& kept) { return same_mode(kept.first, mode.first); });
+
+    if(it == filtered.end())
+      filtered.push_back(std::move(mode));
+    else if(mode.first.fps > it->first.fps + 1e-4)
+      *it = std::move(mode);
+  }
+
+  modes = std::move(filtered);
+}
+
+CameraSettings findBestCameraMode(const std::vector<CameraSettings>& candidates)
+{
   if(candidates.empty())
     return {};
 
@@ -134,6 +166,18 @@ CameraSettings findBestCameraMode()
   });
 
   return *bestIt;
+}
+
+CameraSettings findBestCameraMode()
+{
+  std::vector<CameraSettings> candidates;
+  candidates.reserve(200);
+
+  // 1. Collect all modes
+  enumerateCameraDevices(
+      [&](CameraSettings s, const auto&) { candidates.push_back(std::move(s)); });
+
+  return findBestCameraMode(candidates);
 }
 
 CameraDevice::~CameraDevice() { }

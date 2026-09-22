@@ -7,11 +7,28 @@
 #include <Gfx/CameraSettings.hpp>
 #include <Gfx/GfxInputDevice.hpp>
 
+#include <score_plugin_gfx_export.h>
+
+#include <utility>
+#include <vector>
+
 class QComboBox;
 class QLineEdit;
 
 namespace Gfx
 {
+//! Whether all the framerates a camera announces must be listed, instead of
+//! only the highest one of each resolution.
+SCORE_PLUGIN_GFX_EXPORT bool cameraShowAllFramerates() noexcept;
+
+//! Keeps, for each (device, codec, pixel format, color range, resolution),
+//! only the mode with the highest framerate.
+SCORE_PLUGIN_GFX_EXPORT void
+keepHighestFramerates(std::vector<std::pair<CameraSettings, QString>>& modes);
+
+SCORE_PLUGIN_GFX_EXPORT CameraSettings
+findBestCameraMode(const std::vector<CameraSettings>& candidates);
+
 class CameraProtocolFactory final : public Device::ProtocolFactory
 {
   SCORE_CONCRETE("d615690b-f2e2-447b-b70e-a800552db69c")

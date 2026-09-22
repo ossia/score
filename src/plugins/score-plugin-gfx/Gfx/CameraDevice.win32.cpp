@@ -390,9 +390,8 @@ struct DShowCameraEnumerator : public Device::DeviceEnumerator
     s.protocol = CameraProtocolFactory::static_concreteKey();
     s.name = device;
 
+    std::vector<std::pair<CameraSettings, QString>> modes;
     enumerateCameraFormats(moniker, settings, [&]() {
-      s.deviceSpecificSettings = QVariant::fromValue(settings);
-
       const std::string str
           = cameraFormatName(settings.codec, settings.pixelformat);
 
@@ -402,8 +401,16 @@ struct DShowCameraEnumerator : public Device::DeviceEnumerator
                          .arg(settings.size.height())
                          .arg(std::round(settings.fps));
 
-      func(desc, s);
+      modes.emplace_back(settings, std::move(desc));
     });
+
+    keepHighestFramerates(modes);
+
+    for(auto& [mode, desc] : modes)
+    {
+      s.deviceSpecificSettings = QVariant::fromValue(mode);
+      func(desc, s);
+    }
   }
 };
 
