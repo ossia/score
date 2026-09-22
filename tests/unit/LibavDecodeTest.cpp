@@ -783,8 +783,7 @@ TEST_CASE("a thumbnailer that could not open its file knows it",
   Video::VideoThumbnailer thumb{missing};
   CHECK(thumb.width == 0);
   CHECK(thumb.height == 0);
-  CHECK(thumb.smallWidth == 0);
-  CHECK(thumb.smallHeight == 0);
+  CHECK(thumb.thumbnailSize() == QSize{0, 0});
   CHECK(thumb.fps == 0.);
 }
 

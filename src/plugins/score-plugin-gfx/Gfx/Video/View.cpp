@@ -99,6 +99,26 @@ void View::onPathChanged(const QString& str)
       },
       Qt::QueuedConnection);
 
+  updateFrameSize();
+}
+
+void View::heightChanged(qreal)
+{
+  updateFrameSize();
+}
+
+void View::updateFrameSize()
+{
+  if(!m_thumb)
+    return;
+
+  const double h = height();
+  if(h < 1.)
+    return;
+
+  m_frameWidth = h * m_thumb->aspectRatio();
+  m_images.clear();
+  m_thumb->requestHeight(h);
   widthChanged(width());
 }
 
@@ -108,7 +128,7 @@ void View::widthChanged(qreal w)
     return;
 
   // TODO we also have to fetch new frames if we scroll !
-  const double frame_width = m_thumb->smallWidth;
+  const double frame_width = m_frameWidth;
   if(frame_width < 1.)
     return;
 
@@ -162,7 +182,10 @@ void View::paint_impl(QPainter* painter) const
   double itemDrawableLeft = this->mapFromScene(sceneDrawableTopLeft).x();
   double itemDrawableRight = this->mapFromScene(sceneDrawableBottomRight).x();
 
-  const double frame_width = m_thumb->smallWidth;
+  const double frame_width = m_frameWidth;
+  if(frame_width < 1.)
+    return;
+
   const int count = (itemDrawableRight - itemDrawableLeft) / frame_width + 2;
   const int start = itemDrawableLeft / frame_width;
   const double flicks_advance = TimeVal::fromPixels(frame_width, m_zoom).impl;
@@ -177,7 +200,9 @@ void View::paint_impl(QPainter* painter) const
 
   auto it = images.cbegin();
 
-  painter->setRenderHint(QPainter::SmoothPixmapTransform, false);
+  const double frame_height = height();
+
+  painter->setRenderHint(QPainter::SmoothPixmapTransform, true);
   for(int i = 0; i < count; i++)
   {
     const int64_t rawFlicks = (start + i) * flicks_advance;
@@ -196,7 +221,7 @@ void View::paint_impl(QPainter* painter) const
     if(it != images.end())
     {
       const double px = TimeVal{rawFlicks}.toPixels(m_zoom);
-      painter->drawImage(QPointF{px, 0.f}, it->second);
+      painter->drawImage(QRectF{px, 0., frame_width, frame_height}, it->second);
     }
   }
 }

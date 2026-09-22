@@ -31,17 +31,31 @@ public:
   void requestThumbnails(int64_t req, QVector<int64_t> flicks)
       E_SIGNAL(SCORE_PLUGIN_MEDIA_EXPORT, requestThumbnails, req, flicks)
 
+  //! Decode the thumbnails at that height; the width follows the video's aspect.
+  void requestHeight(int height)
+      E_SIGNAL(SCORE_PLUGIN_MEDIA_EXPORT, requestHeight, height)
+
   void thumbnailReady(int64_t req, int64_t flicks, QImage thumb)
       E_SIGNAL(SCORE_PLUGIN_MEDIA_EXPORT, thumbnailReady, req, flicks, thumb)
 
   QImage process(int64_t flicks);
 
-  int smallWidth{};
-  int smallHeight{};
+  double aspectRatio() const noexcept { return m_aspect; }
+
+  //! Resolution the frames are currently decoded at, for the thumbnailer's own
+  //! thread: the layer asks for a height and scales what it gets to the slot.
+  QSize thumbnailSize() const noexcept { return {smallWidth, smallHeight}; }
+
+  static constexpr int defaultThumbnailHeight = 55;
 
 private:
   void onRequest(int64_t req, QVector<int64_t> flicks);
+  void onHeightRequest(int height);
+  void setupRescale(int height);
   void processNext();
+
+  int smallWidth{};
+  int smallHeight{};
 
   QVector<int64_t> m_requests;
   int64_t m_requestIndex{};

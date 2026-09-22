@@ -22,6 +22,10 @@ public:
 private:
   void onPathChanged(const QString& str);
   void widthChanged(qreal) override;
+  void heightChanged(qreal) override;
+
+  //! Sizes a thumbnail to the slot and asks for them at that resolution.
+  void updateFrameSize();
 
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
   void paint_impl(QPainter*) const override;
@@ -30,6 +34,7 @@ private:
   ::Video::VideoThumbnailer* m_thumb{};
   ossia::flat_map<int64_t, QImage> m_images;
   double m_zoom{1.};
+  double m_frameWidth{};
   int64_t m_lastRequestIndex{};
 };
 }

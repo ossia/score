@@ -21,6 +21,8 @@ extern "C" {
 
 #include <wobjectimpl.h>
 
+#include <algorithm>
+
 W_OBJECT_IMPL(Video::VideoThumbnailer)
 namespace Video
 {
@@ -29,6 +31,9 @@ VideoThumbnailer::VideoThumbnailer(QString path)
 {
   connect(
       this, &VideoThumbnailer::requestThumbnails, this, &VideoThumbnailer::onRequest,
+      Qt::QueuedConnection);
+  connect(
+      this, &VideoThumbnailer::requestHeight, this, &VideoThumbnailer::onHeightRequest,
       Qt::QueuedConnection);
 
   auto inputFile = path.toUtf8();
@@ -129,20 +134,7 @@ VideoThumbnailer::VideoThumbnailer(QString path)
         return;
       }
 
-      smallHeight = 55;
-      smallWidth = smallHeight * m_aspect;
-
-      // Allocate a rescale context
-      m_rescale = sws_getContext(
-          this->width, this->height, this->pixel_format, smallWidth, smallHeight,
-          AV_PIX_FMT_RGB24, SWS_FAST_BILINEAR, NULL, NULL, NULL);
-
-      // Allocate a frame to do the RGB conversion
-      m_rgb = av_frame_alloc();
-      m_rgb->width = smallWidth;
-      m_rgb->height = smallHeight;
-      m_rgb->format = AV_PIX_FMT_RGB24;
-      av_frame_get_buffer(m_rgb, 0);
+      setupRescale(defaultThumbnailHeight);
 
       fps = av_q2d(stream->avg_frame_rate);
     }
@@ -177,6 +169,46 @@ VideoThumbnailer::~VideoThumbnailer()
     avformat_close_input(&m_formatContext);
     m_formatContext = nullptr;
   }
+}
+
+void VideoThumbnailer::setupRescale(int height)
+{
+  if(this->width < 1 || this->height < 1)
+    return;
+
+  // Decoding above the source resolution only costs time: the layer scales the
+  // thumbnail up to the slot height on its own.
+  height = std::clamp(height, 1, this->height);
+  const int width = std::max(1, int(height * m_aspect));
+  if(height == smallHeight && width == smallWidth && m_rescale)
+    return;
+
+  if(m_rgb)
+    av_frame_free(&m_rgb);
+  if(m_rescale)
+    sws_freeContext(m_rescale);
+
+  smallHeight = height;
+  smallWidth = width;
+
+  m_rescale = sws_getContext(
+      this->width, this->height, this->pixel_format, smallWidth, smallHeight,
+      AV_PIX_FMT_RGB24, SWS_FAST_BILINEAR, NULL, NULL, NULL);
+
+  // Allocate a frame to do the RGB conversion
+  m_rgb = av_frame_alloc();
+  m_rgb->width = smallWidth;
+  m_rgb->height = smallHeight;
+  m_rgb->format = AV_PIX_FMT_RGB24;
+  av_frame_get_buffer(m_rgb, 0);
+}
+
+void VideoThumbnailer::onHeightRequest(int height)
+{
+  if(!m_codecContext)
+    return;
+
+  setupRescale(height);
 }
 
 void VideoThumbnailer::onRequest(int64_t req, QVector<int64_t> flicks)
