@@ -19,6 +19,18 @@ namespace Scenario
 class StateModel;
 class ProcessModel;
 class ScenarioPresenter;
+class TimeSyncModel;
+namespace Command
+{
+class Macro;
+}
+
+//! Whether the modifiers held during a drop ask for a start-on-play trigger
+SCORE_PLUGIN_SCENARIO_EXPORT bool dropStartsOnPlay() noexcept;
+
+//! Enable the trigger and start-on-play, like a double-click in a scenario does
+SCORE_PLUGIN_SCENARIO_EXPORT void
+addStartOnPlayTrigger(Command::Macro& m, const TimeSyncModel& ts);
 
 struct MagneticStates
 {

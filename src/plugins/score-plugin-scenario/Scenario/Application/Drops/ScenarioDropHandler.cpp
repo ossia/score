@@ -2,13 +2,28 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioDropHandler.hpp"
 
+#include <Scenario/Commands/CommandAPI.hpp>
+#include <Scenario/Commands/TimeSync/SetAutoTrigger.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/ScenarioPresenter.hpp>
 #include <Scenario/Process/ScenarioView.hpp>
 
+#include <QApplication>
 #include <QFileInfo>
 #include <QUrl>
 namespace Scenario
 {
+
+bool dropStartsOnPlay() noexcept
+{
+  return bool(qApp->keyboardModifiers() & Qt::AltModifier);
+}
+
+void addStartOnPlayTrigger(Command::Macro& m, const TimeSyncModel& ts)
+{
+  m.setProperty<TimeSyncModel::p_startPoint>(ts, true);
+  m.setProperty<TimeSyncModel::p_active>(ts, true);
+}
 
 MagneticStates magneticStates(
     MagneticStates cur, Scenario::Point pt, const Scenario::ScenarioPresenter& pres)

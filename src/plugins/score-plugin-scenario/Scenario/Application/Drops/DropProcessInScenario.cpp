@@ -66,6 +66,8 @@ public:
       const auto& [t, e, s] = m.createDot(scenar, pt);
       m_intervalY = pt.y;
       m_createdState = s.id();
+      if(dropStartsOnPlay())
+        addStartOnPlayTrigger(m, t);
     }
 
     if(!m_sequence)
