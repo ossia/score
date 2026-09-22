@@ -112,11 +112,18 @@ void dumpMetalBufferTable(
       break;
     }
   }
+  for(const auto& k : vs.availableShaders())
+    qWarning() << "  metal-key: source" << int(k.source()) << "version"
+               << k.sourceVersion().version() << "variant" << int(k.sourceVariant());
   const QShaderKey* key = mslKey(vs);
   if(!key)
+  {
+    qWarning() << "  metal-slot: no MSL variant in this shader";
     return;
+  }
 
   const auto map = vs.nativeResourceBindingMap(*key);
+  qWarning() << "  metal-map entries:" << map.size();
   for(auto it = srb.cbeginBindings(), end = srb.cendBindings(); it != end; ++it)
   {
     const auto* d = reinterpret_cast<const QRhiShaderResourceBinding::Data*>(&*it);
