@@ -1210,6 +1210,13 @@ if(TARGET score_plugin_ui)
     PLUGINS score_plugin_scenario score_lib_process score_plugin_ui)
 endif()
 
+# Appending a process after an audio outlet hands over its routing state, and
+# the cable commands restore the propagation they saved instead of forcing it on.
+score_add_test(test_integration_audio_outlet_chaining
+  SOURCES AudioOutletChainingTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process score_plugin_media)
+
 # score's video output against gstreamer consumers of several shapes. Needs the
 # PipewirePublish tool, which only exists when the pipewire tester is built.
 if(SCORE_HAS_SHELL_HARNESS AND TARGET PipewirePublish)

@@ -250,9 +250,9 @@ void CreateCable::undo(const score::DocumentContext& ctx) const
   if(cables.find(m_cable) != cables.end())
     cables.remove(m_cable);
 
-  if(source && m_previousPropagate && *m_previousPropagate)
+  if(source && m_previousPropagate)
   {
-    static_cast<Process::AudioOutlet&>(*source).setPropagate(true);
+    static_cast<Process::AudioOutlet&>(*source).setPropagate(*m_previousPropagate);
   }
 }
 
@@ -278,7 +278,7 @@ void CreateCable::redo(const score::DocumentContext& ctx) const
   else
     return;
 
-  if(m_previousPropagate)
+  if(m_previousPropagate && *m_previousPropagate)
   {
     static_cast<Process::AudioOutlet&>(*source).setPropagate(false);
   }
@@ -351,7 +351,7 @@ void RemoveCable::undo(const score::DocumentContext& ctx) const
 
   if(m_previousPropagate)
   {
-    static_cast<Process::AudioOutlet&>(*source).setPropagate(false);
+    static_cast<Process::AudioOutlet&>(*source).setPropagate(*m_previousPropagate);
   }
 }
 
@@ -370,11 +370,6 @@ void RemoveCable::redo(const score::DocumentContext& ctx) const
       sink->removeCable(cable);
 
     cables.remove(m_cable);
-
-    if(m_previousPropagate && source && source->cables().size() == 0)
-    {
-      static_cast<Process::AudioOutlet&>(*source).setPropagate(true);
-    }
   }
 }
 
