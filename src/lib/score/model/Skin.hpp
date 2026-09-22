@@ -305,6 +305,13 @@ private:
   //! "palette" block.
   void setupPalette();
 
+  //! The colour roles a skin starts from, mirrored in DefaultSkin's colour
+  //! block.
+  void setupColors();
+
+  //! The derived brushes a colour cannot generate on its own.
+  void fixupColors();
+
   //! Applies the "palette" object of a skin file over that.
   void loadPalette(const QJsonObject& spec);
 

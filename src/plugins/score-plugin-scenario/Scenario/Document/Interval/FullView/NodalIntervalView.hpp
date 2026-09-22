@@ -60,6 +60,8 @@ public:
 
 private:
   void setupNode(Process::NodeItem* item);
+  //! Rebuilds the rubber band's pen and brush from the current skin.
+  void updateSelectionRectStyle();
   void on_processAdded(const Process::ProcessModel& proc);
   void on_processRemoving(const Process::ProcessModel& model);
   void on_zoomRatioChanged(ZoomRatio ratio);
