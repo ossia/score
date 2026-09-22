@@ -23,6 +23,8 @@
 
 #include <score/actions/ActionManager.hpp>
 
+#include <ossia-qt/invoke.hpp>
+
 #include <QAction>
 #include <QDebug>
 #include <QMenu>
@@ -767,6 +769,14 @@ void ScenarioPresenter::doubleClick(QPointF pt)
   m.setProperty<TimeSyncModel::p_active>(ts, true);
 
   m.commit();
+
+  // The click that opened the double-click is still queued in the tool's state
+  // machine, and its release selects the scenario itself.
+  ossia::qt::run_async(this, [this, id = s.id()] {
+    auto it = model().states.find(id);
+    if(it != model().states.end())
+      score::SelectionDispatcher{m_context.context.selectionStack}.select(*it);
+  });
 }
 
 void ScenarioPresenter::on_focusChanged()
