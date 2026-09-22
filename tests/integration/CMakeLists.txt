@@ -1252,6 +1252,23 @@ if(SCORE_HAS_SHELL_HARNESS AND TARGET PipewirePublish)
     ENVIRONMENT "SCORE_BUILD=${SCORE_ROOT_BINARY_DIR}")
 endif()
 
+# Score.enumerateDevices(protocols): only the protocols asked for are asked for
+# their enumerators. Registers two probe protocols of its own and counts the
+# getEnumerators() calls, so the skip is checked directly rather than inferred
+# from the results. Deliberately built with only the device plug-ins, so that
+# the no-argument case cannot reach a camera or an NDI discovery.
+score_add_test(test_integration_js_enumerate_protocols
+  SOURCES JsEnumerateProtocolsTest.cpp
+  GUI
+  PLUGINS score_plugin_js score_plugin_deviceexplorer score_lib_device
+  LIBS ${QT_PREFIX}::Qml)
+set_tests_properties(test_integration_js_enumerate_protocols PROPERTIES
+  TIMEOUT 120 LABELS "integration;device")
+
+# The spatialization device's source offset, read off a loopback UDP socket:
+# what SpatGRIS / ADM-OSC / SPAT actually put in the packet. Only the protocol
+# headers are needed, so this links no plug-in.
+
 # The shell harnesses register themselves with add_test() rather than through
 # score_add_test(), so they get none of its environment. Each starts a score
 # process that can be killed mid-document, which leaves the document in the
