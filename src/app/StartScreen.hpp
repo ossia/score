@@ -1957,14 +1957,15 @@ void StartScreen::showEvent(QShowEvent* event)
   QWidget::showEvent(event);
 
   // No window manager in the browser, and none places a frameless dialog.
-  QRect ref;
-  if(auto* main = score::GUIAppContext().mainWindow; main && main->isVisible())
-    ref = main->frameGeometry();
-  else if(const auto* scr = screen() ? screen() : QGuiApplication::primaryScreen())
-    ref = scr->availableGeometry();
+  // At startup the main window is not mapped yet and its geometry is still the
+  // requested one: only the screen it belongs to can be trusted.
+  auto* main = score::GUIAppContext().mainWindow;
+  const QScreen* scr = main ? main->screen() : screen();
+  if(!scr)
+    scr = QGuiApplication::primaryScreen();
 
-  if(ref.isValid())
-    move(ref.center() - QPoint{width() / 2, height() / 2});
+  if(scr)
+    move(scr->availableGeometry().center() - QPoint{width() / 2, height() / 2});
 }
 
 void StartScreen::keyPressEvent(QKeyEvent* event)
