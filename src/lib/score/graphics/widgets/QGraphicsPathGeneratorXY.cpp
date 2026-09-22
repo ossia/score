@@ -22,8 +22,10 @@ namespace
 {
 constexpr double TWO_PI = ossia::two_pi;
 
-//! Number of segments used to approximate a curved trajectory.
-constexpr int trajectorySamples = 96;
+//! Number of segments used to approximate a curved trajectory. The paths are
+//! only rebuilt on a resize or a parameter change, so sampling far above what a
+//! screen-sized shape needs costs nothing to draw.
+constexpr int trajectorySamples = 512;
 
 constexpr double markerSize = 10.;
 
