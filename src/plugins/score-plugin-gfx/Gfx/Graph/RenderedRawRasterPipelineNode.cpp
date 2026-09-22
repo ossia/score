@@ -98,6 +98,41 @@ int metalVertexBufferOrigin(
   return top + 1;
 }
 
+//! What actually sits in the vertex stage's buffer table, so a refusal names
+//! the occupants rather than only their count.
+void dumpMetalBufferTable(
+    const QRhiShaderResourceBindings& srb, const QRhiGraphicsPipeline& ps) noexcept
+{
+  QShader vs;
+  for(auto it = ps.cbeginShaderStages(), end = ps.cendShaderStages(); it != end; ++it)
+  {
+    if(it->type() == QRhiShaderStage::Vertex)
+    {
+      vs = it->shader();
+      break;
+    }
+  }
+  const QShaderKey* key = mslKey(vs);
+  if(!key)
+    return;
+
+  const auto map = vs.nativeResourceBindingMap(*key);
+  for(auto it = srb.cbeginBindings(), end = srb.cendBindings(); it != end; ++it)
+  {
+    const auto* d = reinterpret_cast<const QRhiShaderResourceBinding::Data*>(&*it);
+    if(!d->stage.testFlag(QRhiShaderResourceBinding::VertexStage))
+      continue;
+    const auto nat = map.constFind(d->binding);
+    if(nat == map.constEnd())
+      continue;
+    qWarning() << "  metal-slot" << nat->first << ": srb binding" << d->binding
+               << "type" << int(d->type);
+  }
+  const auto extras = vs.nativeShaderInfo(*key).extraBufferBindings;
+  for(auto it = extras.cbegin(); it != extras.cend(); ++it)
+    qWarning() << "  metal-slot" << it.value() << ": extra kind" << it.key();
+}
+
 //! Metal shares one 31-entry buffer table per stage between shader resources
 //! and vertex buffers, so the vertex buffers start past whatever the resources
 //! occupy. Placing one past slot 30 is a hard assertion inside Metal
@@ -143,6 +178,7 @@ bool checkMetalBufferBudget(
              << "vertex buffers start at" << origin << "and there are" << vtx
              << "of them. Skipping the pipeline."
              << QString::fromStdString(desc.description);
+  dumpMetalBufferTable(srb, ps);
   return false;
 }
 }
