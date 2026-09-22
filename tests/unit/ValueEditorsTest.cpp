@@ -21,7 +21,12 @@
 #include <ossia/network/domain/domain.hpp>
 #include <ossia/network/value/value_traits.hpp>
 
+#include <QAbstractItemModel>
 #include <QAbstractSlider>
+#include <QAbstractSpinBox>
+#include <QAction>
+#include <QCoreApplication>
+#include <QElapsedTimer>
 #include <QLineEdit>
 #include <QCheckBox>
 #include <QComboBox>
@@ -29,6 +34,8 @@
 #include <QAbstractButton>
 #include <QPushButton>
 #include <QSpinBox>
+#include <QDialog>
+#include <QTableView>
 
 #include <catch2/catch_all.hpp>
 
@@ -234,19 +241,10 @@ TEST_CASE("unparseable text commits nothing", "[explorer][editors]")
     REQUIRE(e);
     e->set(lst);
 
-    auto* line = e.w->findChild<QLineEdit*>();
-    REQUIRE(line != nullptr);
-    line->setText("not a value at all");
-
-    CHECK_FALSE(e->get().valid());
-
-    // ... and it says so while it is still open, rather than only on commit.
-    CHECK(!line->toolTip().isEmpty());
-
-    // Back to something readable and the field is itself again.
-    line->setText("[4, 5]");
-    CHECK(e->get() == ossia::value{std::vector<ossia::value>{4, 5}});
-    CHECK(line->toolTip().isEmpty());
+    // The text form is the way out of the table, and the way a nested map
+    // gets typed at all; it refuses text naming no list of its own accord.
+    CHECK_FALSE(e->fromText("not a value at all").has_value());
+    CHECK(e->fromText("[4, 5]") == ossia::value{std::vector<ossia::value>{4, 5}});
   });
 }
 
@@ -496,21 +494,287 @@ TEST_CASE("a map can be typed in", "[explorer][editors]")
     REQUIRE(e);
     e->set(map);
 
-    auto* line = e.w->findChild<QLineEdit*>();
-    REQUIRE(line != nullptr);
-    line->setText(R"({"x": 4, "y": [1, 2]})");
-
-    const auto out = e->get();
-    REQUIRE(out.get_type() == ossia::val_type::MAP);
-    const auto& m = *out.target<ossia::value_map_type>();
+    const auto typed = e->fromText(R"({"x": 4, "y": [1, 2]})");
+    REQUIRE(typed.has_value());
+    REQUIRE(typed->get_type() == ossia::val_type::MAP);
+    const auto& m = *typed->target<ossia::value_map_type>();
     REQUIRE(m.size() == 2);
     auto it = m.begin();
     CHECK(it->first == "x");
     CHECK(it->second == ossia::value{4});
 
     // Nonsense commits nothing rather than emptying the address.
-    line->setText("not a map");
-    CHECK_FALSE(e->get().valid());
+    CHECK_FALSE(e->fromText("not a map").has_value());
+  });
+}
+
+// ---------------------------------------------------------------------------
+// The structured editor for a list or a map.
+// ---------------------------------------------------------------------------
+
+namespace
+{
+// Opens the element table and gives it back; it lives in a dialog parented to
+// the editor, so the editor's own children are where to look for it.
+QTableView* openCollection(AddressValueWidget& w)
+{
+  auto* act = w.findChild<QAction*>(QStringLiteral("editCollection"));
+  REQUIRE(act != nullptr);
+  act->trigger();
+  return w.findChild<QTableView*>();
+}
+
+//! The element itself is in the last column; its type is in the one before.
+int valueColumn(const QAbstractItemModel& m)
+{
+  return m.columnCount({}) - 1;
+}
+
+int typeColumn(const QAbstractItemModel& m)
+{
+  return m.columnCount({}) - 2;
+}
+
+// What the table reports for one cell, as the delegate reads it.
+ossia::value cellValue(const QAbstractItemModel& m, int row, int col)
+{
+  return m.data(m.index(row, col), Qt::EditRole).value<ossia::value>();
+}
+
+// The dialog commits what it holds when it is accepted, and nothing when it
+// is not: closing it is backing out.
+void acceptCollection(QTableView& view)
+{
+  auto* dialog = qobject_cast<QDialog*>(view.window());
+  REQUIRE(dialog != nullptr);
+  dialog->accept();
+}
+}
+
+TEST_CASE("a list is edited element by element", "[explorer][editors]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    const auto lst = ossia::value{std::vector<ossia::value>{1, 2, 3}};
+    Editor e{param(lst), ValueEditorSize::Compact};
+    REQUIRE(e);
+    e->set(lst);
+
+    // The row shows a summary; the elements are not widgets in it.
+    CHECK(e.countOf<QAbstractSpinBox*>() == 0);
+
+    auto* view = openCollection(*e.w);
+    REQUIRE(view != nullptr);
+    auto* model = view->model();
+    REQUIRE(model->rowCount({}) == 3);
+
+    // The element, and what it is: a heterogeneous list is read and retyped
+    // element by element.
+    REQUIRE(model->columnCount({}) == 2);
+    const int val = valueColumn(*model);
+    CHECK(cellValue(*model, 1, val) == ossia::value{2});
+
+    REQUIRE(model->setData(
+        model->index(1, val), QVariant::fromValue(ossia::value{20}), Qt::EditRole));
+    REQUIRE(model->insertRow(model->rowCount({})));
+    REQUIRE(model->removeRow(0));
+
+    acceptCollection(*view);
+
+    CHECK(e->edited());
+    const auto out = e->get();
+    REQUIRE(out.get_type() == ossia::val_type::LIST);
+    const auto& l = *out.target<std::vector<ossia::value>>();
+    REQUIRE(l.size() == 3);
+    CHECK(l[0] == ossia::value{20});
+    CHECK(l[1] == ossia::value{3});
+
+    // A new element is of the type the others are.
+    CHECK(l[2].get_type() == ossia::val_type::INT);
+  });
+}
+
+// The per-cell editor comes from the same factory the parameter went through,
+// so an element gets the editor its own type asks for.
+TEST_CASE("an element gets the editor its type asks for", "[explorer][editors]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    const auto lst = ossia::value{std::vector<ossia::value>{
+        1, ossia::value{std::vector<ossia::value>{4, 5}}}};
+    Editor e{param(lst), ValueEditorSize::Compact};
+    REQUIRE(e);
+    e->set(lst);
+
+    auto* view = openCollection(*e.w);
+    REQUIRE(view != nullptr);
+
+    // An integer element: the spin box, and only for the cell being edited.
+    const auto first = view->model()->index(0, valueColumn(*view->model()));
+    view->setCurrentIndex(first);
+    view->edit(first);
+    CHECK(view->findChildren<QSpinBox*>().size() == 1);
+
+    // A closed editor is deleted through the event loop; it would otherwise
+    // still be a child while the next one is looked for.
+    view->setCurrentIndex(QModelIndex{});
+    QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+
+    // A nested list: the same editor again, not a text field.
+    const auto second = view->model()->index(1, valueColumn(*view->model()));
+    view->setCurrentIndex(second);
+    view->edit(second);
+    auto* inner = view->findChild<AddressValueWidget*>();
+    REQUIRE(inner != nullptr);
+    CHECK(inner->get() == ossia::value{std::vector<ossia::value>{4, 5}});
+
+    acceptCollection(*view);
+  });
+}
+
+// An element's type is its own; without a way to change it a list can only
+// ever hold more of what it already holds.
+TEST_CASE("an element changes type", "[explorer][editors]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    const auto lst = ossia::value{std::vector<ossia::value>{1, 2}};
+    Editor e{param(lst), ValueEditorSize::Compact};
+    REQUIRE(e);
+    e->set(lst);
+
+    auto* view = openCollection(*e.w);
+    REQUIRE(view != nullptr);
+    auto* model = view->model();
+
+    const auto type = model->index(0, typeColumn(*model));
+    REQUIRE(type.data(Qt::EditRole).value<ossia::val_type>() == ossia::val_type::INT);
+
+    // What the old value can still say in the new type is kept.
+    REQUIRE(model->setData(
+        type, QVariant::fromValue(ossia::val_type::STRING), Qt::EditRole));
+    CHECK(cellValue(*model, 0, valueColumn(*model)).get_type()
+          == ossia::val_type::STRING);
+
+    // A nested list is reachable the same way: it is just another type.
+    const auto second = model->index(1, typeColumn(*model));
+    REQUIRE(model->setData(
+        second, QVariant::fromValue(ossia::val_type::LIST), Qt::EditRole));
+
+    acceptCollection(*view);
+
+    const auto out = e->get();
+    const auto& l = *out.target<std::vector<ossia::value>>();
+    REQUIRE(l.size() == 2);
+    CHECK(l[0].get_type() == ossia::val_type::STRING);
+    CHECK(l[1].get_type() == ossia::val_type::LIST);
+  });
+}
+
+// Backing out of the dialog leaves the address as it was.
+TEST_CASE("a cancelled collection commits nothing", "[explorer][editors]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    const auto lst = ossia::value{std::vector<ossia::value>{1, 2, 3}};
+    Editor e{param(lst), ValueEditorSize::Compact};
+    REQUIRE(e);
+    e->set(lst);
+
+    auto* view = openCollection(*e.w);
+    REQUIRE(view != nullptr);
+    REQUIRE(view->model()->removeRow(0));
+
+    auto* dialog = qobject_cast<QDialog*>(view->window());
+    REQUIRE(dialog != nullptr);
+    dialog->reject();
+
+    CHECK_FALSE(e->edited());
+    const auto out = e->get();
+    const auto& l = *out.target<std::vector<ossia::value>>();
+    CHECK(l.size() == 3);
+  });
+}
+
+TEST_CASE("a map is edited key by key", "[explorer][editors]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    const auto map = ossia::value{
+        ossia::value_map_type{{"a", ossia::value{1}}, {"b", ossia::value{2}}}};
+    Editor e{param(map), ValueEditorSize::Compact};
+    REQUIRE(e);
+    e->set(map);
+
+    auto* view = openCollection(*e.w);
+    REQUIRE(view != nullptr);
+    auto* model = view->model();
+    REQUIRE(model->rowCount({}) == 2);
+
+    // The key, what the entry holds, and the entry itself.
+    REQUIRE(model->columnCount({}) == 3);
+    const int val = valueColumn(*model);
+
+    CHECK(model->data(model->index(0, 0), Qt::EditRole).toString() == "a");
+    CHECK(cellValue(*model, 0, val) == ossia::value{1});
+
+    REQUIRE(model->setData(model->index(0, 0), QStringLiteral("z"), Qt::EditRole));
+    REQUIRE(model->setData(
+        model->index(1, val), QVariant::fromValue(ossia::value{22}), Qt::EditRole));
+
+    acceptCollection(*view);
+
+    const auto out = e->get();
+    REQUIRE(out.get_type() == ossia::val_type::MAP);
+    const auto& m = *out.target<ossia::value_map_type>();
+    REQUIRE(m.size() == 2);
+    CHECK(m.at(0).first == "z");
+    CHECK(m.at(0).second == ossia::value{1});
+    CHECK(m.at(1).second == ossia::value{22});
+  });
+}
+
+// Lists of thousands of values are ordinary in a device tree. A widget per
+// element would be ten thousand of them, which is why the table is a model a
+// view pulls from and the per-row editor comes from a delegate.
+TEST_CASE("a ten thousand element list stays usable", "[explorer][editors]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    std::vector<ossia::value> big;
+    big.reserve(10000);
+    for(int i = 0; i < 10000; i++)
+      big.push_back(float(i));
+    const auto lst = ossia::value{big};
+
+    Editor e{param(lst), ValueEditorSize::Compact};
+    REQUIRE(e);
+
+    QElapsedTimer clock;
+    clock.start();
+    e->set(lst);
+    auto* view = openCollection(*e.w);
+    const auto elapsed = clock.elapsed();
+
+    REQUIRE(view != nullptr);
+    REQUIRE(view->model()->rowCount({}) == 10000);
+
+    // A table, its headers, its scroll bars and a handful of buttons --
+    // nowhere near one widget per element.
+    CHECK(e.countOf<QWidget*>() < 64);
+    INFO("opened in " << elapsed << " ms");
+    CHECK(elapsed < 2000);
+
+    // Only the cell being edited has an editor of its own.
+    const auto idx = view->model()->index(5000, valueColumn(*view->model()));
+    view->setCurrentIndex(idx);
+    view->edit(idx);
+    CHECK(e.countOf<AddressValueWidget*>() == 1);
+
+    REQUIRE(view->model()->setData(
+        idx, QVariant::fromValue(ossia::value{-1.f}), Qt::EditRole));
+    acceptCollection(*view);
+
+    const auto out = e->get();
+    REQUIRE(out.get_type() == ossia::val_type::LIST);
+    const auto& l = *out.target<std::vector<ossia::value>>();
+    REQUIRE(l.size() == 10000);
+    CHECK(l[5000] == ossia::value{-1.f});
+    CHECK(l[9999] == ossia::value{9999.f});
   });
 }
 
@@ -908,3 +1172,4 @@ TEST_CASE("an extended type does not displace a typed editor", "[explorer][edito
     CHECK(e.countOf<QDoubleSpinBox*>() == 3);
   });
 }
+

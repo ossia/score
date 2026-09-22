@@ -3,6 +3,7 @@
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
 #include <State/Widgets/Values/ExpandableTextEdit.hpp>
+#include <State/Widgets/Values/TypeComboBox.hpp>
 
 #include <score/model/Skin.hpp>
 #include <score/widgets/DoubleSlider.hpp>
@@ -21,6 +22,7 @@
 #include <score/graphics/BangPainting.hpp>
 
 #include <QAbstractButton>
+#include <QAbstractTableModel>
 #include <QAction>
 #include <QCheckBox>
 #include <QClipboard>
@@ -28,6 +30,8 @@
 #include <QAbstractSpinBox>
 #include <QComboBox>
 #include <QContextMenuEvent>
+#include <QDialog>
+#include <QDialogButtonBox>
 #include <QFrame>
 #include <QDesktopServices>
 #include <QDoubleSpinBox>
@@ -41,6 +45,7 @@
 #include <QApplication>
 #include <QGuiApplication>
 #include <QHBoxLayout>
+#include <QHeaderView>
 #include <QIcon>
 #include <QLabel>
 #include <QLayout>
@@ -52,10 +57,14 @@
 #include <QPixmap>
 #include <QPointer>
 #include <QPushButton>
+#include <QScreen>
 #include <QSpinBox>
 #include <QStyle>
 #include <QStyleOptionViewItem>
+#include <QStyledItemDelegate>
+#include <QTableView>
 #include <QTimer>
+#include <QToolButton>
 #include <QUrl>
 #include <QVBoxLayout>
 
@@ -872,6 +881,706 @@ private:
   ossia::val_type m_type{};
 };
 
+// ---------------------------------------------------------------------------
+// Lists and maps.
+// ---------------------------------------------------------------------------
+
+//! How many elements a summary spells out before it says how many are left.
+constexpr std::size_t summary_elements = 8;
+
+//! How much of one element a summary or a table cell carries.
+constexpr qsizetype element_text_budget = 160;
+
+QString clipText(QString s)
+{
+  if(s.size() > element_text_budget)
+    s = s.left(element_text_budget - 1) + QChar{0x2026};
+  return s;
+}
+
+QString elementText(const ossia::value& v);
+
+//! The head of a collection and its size, never the whole of it: a ten
+//! thousand element list must not be formatted to be looked at.
+template <typename Seq, typename Fmt>
+QString sequenceText(const Seq& seq, QChar open, QChar close, Fmt&& fmt)
+{
+  QString out{open};
+  const std::size_t shown = std::min<std::size_t>(seq.size(), summary_elements);
+  for(std::size_t i = 0; i < shown; i++)
+  {
+    if(i > 0)
+      out += QStringLiteral(", ");
+    out += fmt(seq.at(i));
+  }
+  if(shown < seq.size())
+    out += QObject::tr(", … %1 more").arg(qulonglong(seq.size() - shown));
+  return out + close;
+}
+
+QString mapElementText(const ossia::value_map_element& e)
+{
+  return QString::fromStdString(e.first) + QStringLiteral(": ") + elementText(e.second);
+}
+
+QString elementText(const ossia::value& v)
+{
+  if(auto* l = v.target<std::vector<ossia::value>>())
+    return sequenceText(*l, '[', ']', elementText);
+  if(auto* m = v.target<ossia::value_map_type>())
+    return sequenceText(*m, '{', '}', mapElementText);
+  return clipText(State::convert::toSingleLine(State::convert::toPrettyString(v)));
+}
+
+/**
+ * @brief A table over a list or a map: one row per element.
+ *
+ * It holds the collection being edited, and is the only copy of it while the
+ * dialog is open. Nothing here is per element: what a row shows comes from
+ * data(), and what edits it comes from the delegate below, one cell at a time.
+ */
+template <typename Container>
+class CollectionTableModel final : public QAbstractTableModel
+{
+  static constexpr bool keyed = std::is_same_v<Container, ossia::value_map_type>;
+  using Row = typename Container::value_type;
+
+public:
+  CollectionTableModel(Container rows, ossia::value proto, QObject* parent)
+      : QAbstractTableModel{parent}
+      // Parentheses: braces would pick the initializer_list overload, and a
+      // list of values is itself a value.
+      , m_rows(std::move(rows))
+      , m_proto{std::move(proto)}
+  {
+  }
+
+  //! What the dialog reports back; the model is done with it.
+  Container take() { return std::move(m_rows); }
+
+  int rowCount(const QModelIndex& p) const override
+  {
+    return p.isValid() ? 0 : (int)m_rows.size();
+  }
+
+  int columnCount(const QModelIndex& p) const override
+  {
+    return p.isValid() ? 0 : columns;
+  }
+
+  QVariant data(const QModelIndex& idx, int role) const override
+  {
+    if(!idx.isValid() || idx.row() >= (int)m_rows.size())
+      return {};
+
+    const auto& row = m_rows.at(idx.row());
+    if constexpr(keyed)
+    {
+      if(idx.column() == key_column)
+      {
+        if(role == Qt::DisplayRole || role == Qt::EditRole)
+          return QString::fromStdString(row.first);
+        return {};
+      }
+    }
+
+    const ossia::value& v = valueOf(row);
+    if(idx.column() == type_column)
+    {
+      switch(role)
+      {
+        case Qt::DisplayRole:
+          return State::convert::prettyType(v);
+        case Qt::EditRole:
+          return QVariant::fromValue(v.get_type());
+        default:
+          return {};
+      }
+    }
+
+    switch(role)
+    {
+      case Qt::DisplayRole:
+        return elementText(v);
+      case Qt::EditRole:
+        return QVariant::fromValue(v);
+      case Qt::ToolTipRole:
+        return State::convert::prettyType(v);
+      default:
+        return {};
+    }
+  }
+
+  bool setData(const QModelIndex& idx, const QVariant& v, int role) override
+  {
+    if(role != Qt::EditRole || !idx.isValid() || idx.row() >= (int)m_rows.size())
+      return false;
+
+    auto& row = m_rows.at(idx.row());
+    if constexpr(keyed)
+    {
+      if(idx.column() == key_column)
+      {
+        row.first = v.toString().toStdString();
+        dataChanged(idx, idx);
+        return true;
+      }
+    }
+
+    if(idx.column() == type_column)
+    {
+      const auto type = v.value<ossia::val_type>();
+      auto& cur = valueOf(row);
+      if(type == ossia::val_type::NONE || type == cur.get_type())
+        return false;
+
+      // What the old value can still say in the new type is kept; the rest is
+      // the type's own zero.
+      auto next = ossia::convert(cur, type);
+      cur = next.valid() ? std::move(next) : ossia::init_value(type);
+      dataChanged(index(idx.row(), type_column), index(idx.row(), value_column));
+      return true;
+    }
+
+    auto val = v.value<ossia::value>();
+    if(!val.valid())
+      return false;
+
+    valueOf(row) = std::move(val);
+    dataChanged(idx, idx);
+    return true;
+  }
+
+  Qt::ItemFlags flags(const QModelIndex& idx) const override
+  {
+    if(!idx.isValid())
+      return Qt::NoItemFlags;
+    return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable;
+  }
+
+  QVariant headerData(int section, Qt::Orientation o, int role) const override
+  {
+    if(o == Qt::Horizontal && role == Qt::DisplayRole)
+    {
+      if(section == type_column)
+        return tr("Type");
+      if(section == value_column)
+        return tr("Value");
+      return tr("Key");
+    }
+    return QAbstractTableModel::headerData(section, o, role);
+  }
+
+  bool insertRows(int at, int count, const QModelIndex& p) override
+  {
+    if(p.isValid() || count <= 0 || at < 0 || at > (int)m_rows.size())
+      return false;
+
+    beginInsertRows({}, at, at + count - 1);
+    m_rows.insert(m_rows.begin() + at, count, newRow());
+    endInsertRows();
+    return true;
+  }
+
+  bool removeRows(int at, int count, const QModelIndex& p) override
+  {
+    if(p.isValid() || count <= 0 || at < 0 || at + count > (int)m_rows.size())
+      return false;
+
+    beginRemoveRows({}, at, at + count - 1);
+    m_rows.erase(m_rows.begin() + at, m_rows.begin() + at + count);
+    endRemoveRows();
+    return true;
+  }
+
+private:
+  static const ossia::value& valueOf(const Row& r) noexcept
+  {
+    if constexpr(keyed)
+      return r.second;
+    else
+      return r;
+  }
+
+  static ossia::value& valueOf(Row& r) noexcept
+  {
+    if constexpr(keyed)
+      return r.second;
+    else
+      return r;
+  }
+
+  //! A new element is of the type the others are, so that a list of floats
+  //! keeps getting spin boxes as it grows.
+  Row newRow() const
+  {
+    auto type = ossia::val_type::FLOAT;
+    if(!m_rows.empty())
+      type = valueOf(m_rows.back()).get_type();
+    else if(m_proto.valid())
+      type = m_proto.get_type();
+
+    auto v = type == ossia::val_type::NONE ? ossia::value{0.f} : ossia::init_value(type);
+    if constexpr(keyed)
+      return Row{std::string{}, std::move(v)};
+    else
+      return v;
+  }
+
+  static constexpr int key_column = 0;
+  static constexpr int type_column = keyed ? 1 : 0;
+  static constexpr int value_column = keyed ? 2 : 1;
+  static constexpr int columns = value_column + 1;
+
+  Container m_rows;
+  ossia::value m_proto;
+};
+
+/**
+ * @brief The editor for one element, built for the cell being edited and no
+ * other.
+ *
+ * It goes through the same factory the parameter itself went through, so a
+ * list of floats gets spin boxes, a list of booleans gets boxes to tick and a
+ * nested collection gets this table again -- and because it is a delegate,
+ * only the one cell under the cursor ever has a widget.
+ */
+class ElementDelegate final : public QStyledItemDelegate
+{
+public:
+  using QStyledItemDelegate::QStyledItemDelegate;
+
+private:
+  //! The value lives in the last column, what it is in the one before it; a
+  //! map's key is a plain string ahead of both.
+  static bool isValueColumn(const QModelIndex& index) noexcept
+  {
+    return index.model() && index.column() == index.model()->columnCount() - 1;
+  }
+
+  static bool isTypeColumn(const QModelIndex& index) noexcept
+  {
+    return index.model() && index.column() == index.model()->columnCount() - 2;
+  }
+
+  QWidget* createEditor(
+      QWidget* parent, const QStyleOptionViewItem& option,
+      const QModelIndex& index) const override
+  {
+    if(isTypeColumn(index))
+    {
+      auto* box = new State::TypeComboBox{parent};
+      box->set(index.data(Qt::EditRole).value<ossia::val_type>());
+      return box;
+    }
+
+    if(!isValueColumn(index))
+      return QStyledItemDelegate::createEditor(parent, option, index);
+
+    Device::AddressSettingsCommon as;
+    as.value = index.data(Qt::EditRole).value<ossia::value>();
+    as.ioType = ossia::access_mode::BI;
+
+    if(auto* w = make_value_widget(as, parent, ValueEditorSize::Compact))
+      return w;
+
+    // An element of a type nothing answers to is still editable as text.
+    return new ParsedValueWidget{as.value, parent};
+  }
+
+  void setEditorData(QWidget* editor, const QModelIndex& index) const override
+  {
+    if(auto* box = qobject_cast<State::TypeComboBox*>(editor))
+      box->set(index.data(Qt::EditRole).value<ossia::val_type>());
+    else if(auto* w = qobject_cast<AddressValueWidget*>(editor))
+      w->set(index.data(Qt::EditRole).value<ossia::value>());
+    else
+      QStyledItemDelegate::setEditorData(editor, index);
+  }
+
+  void setModelData(
+      QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const override
+  {
+    if(auto* box = qobject_cast<State::TypeComboBox*>(editor))
+    {
+      model->setData(index, QVariant::fromValue(box->get()), Qt::EditRole);
+      return;
+    }
+
+    auto* w = qobject_cast<AddressValueWidget*>(editor);
+    if(!w)
+    {
+      QStyledItemDelegate::setModelData(editor, model, index);
+      return;
+    }
+
+    // Untouched, or text naming no value of the element's type: the element
+    // stays as it was rather than being replaced by whatever the field held.
+    if(!w->edited())
+      return;
+    if(auto v = w->get(); v.valid())
+      model->setData(index, QVariant::fromValue(v), Qt::EditRole);
+  }
+
+  void updateEditorGeometry(
+      QWidget* editor, const QStyleOptionViewItem& option,
+      const QModelIndex&) const override
+  {
+    fitEditorToCell(*editor, option.rect);
+  }
+};
+
+//! The mark on the button that opens a collection: three dots, painted from
+//! the palette rather than taken from the icon theme, which has none.
+QIcon ellipsisIcon(const QPalette& pal)
+{
+  constexpr int side = 16;
+  constexpr qreal dot = 2.6;
+
+  QPixmap pm{side, side};
+  pm.fill(Qt::transparent);
+
+  QPainter p{&pm};
+  p.setRenderHint(QPainter::Antialiasing, true);
+  p.setPen(Qt::NoPen);
+  p.setBrush(pal.text());
+  for(int i = 0; i < 3; i++)
+    p.drawEllipse(QRectF{2.4 + i * 4.6, (side - dot) / 2., dot, dot});
+
+  return QIcon{pm};
+}
+
+//! What the dialog opens at when nothing has sized it yet, and what it keeps
+//! from then on: a collection is usually looked at more than once a session.
+QSize& collectionDialogSize()
+{
+  static QSize size{620, 460};
+  return size;
+}
+
+/**
+ * @brief What the "…" button opens: the elements in a table, in a dialog.
+ *
+ * A window and not a popup, because a collection is not a one-field edit: it
+ * holds thousands of elements, the user has to be able to make the window big
+ * enough to work in, and every cell editor here takes the focus -- which is
+ * what folds a popup up under the hand using it.
+ */
+class CollectionDialog final : public QDialog
+{
+public:
+  CollectionDialog(QAbstractItemModel* model, bool keyed, QWidget* anchor)
+      : QDialog{anchor}
+      , m_keyed{keyed}
+  {
+    model->setParent(this);
+    setWindowTitle(keyed ? tr("Edit map") : tr("Edit list"));
+    setSizeGripEnabled(true);
+
+    auto* lay = new QVBoxLayout{this};
+
+    m_view = new QTableView{this};
+    m_view->setModel(model);
+    m_view->setItemDelegate(new ElementDelegate{m_view});
+    m_view->setSelectionBehavior(QAbstractItemView::SelectRows);
+    m_view->setWordWrap(false);
+    // No SelectedClicked: a click on the selected row is how the row Remove
+    // and Duplicate act on is picked, and an editor opened by it would take
+    // the keys meant for the table.
+    m_view->setEditTriggers(
+        QAbstractItemView::DoubleClicked | QAbstractItemView::EditKeyPressed
+        | QAbstractItemView::AnyKeyPressed);
+
+    auto* cols = m_view->horizontalHeader();
+    cols->setStretchLastSection(true);
+    cols->setSectionResizeMode(QHeaderView::Interactive);
+    const int columns = model->columnCount({});
+    m_view->setColumnWidth(columns - 2, 110);
+    if(columns > 2)
+      m_view->setColumnWidth(0, 140);
+
+    // Fixed rows, and no resizeRowsToContents anywhere: a header that sizes
+    // itself to its contents walks every row, which is the one thing a ten
+    // thousand element list cannot afford.
+    auto* rows = m_view->verticalHeader();
+    rows->setSectionResizeMode(QHeaderView::Fixed);
+    rows->setDefaultSectionSize(m_view->fontMetrics().height() + 8);
+    lay->addWidget(m_view, 1);
+
+    auto* bar = new QHBoxLayout;
+    bar->setContentsMargins(0, 0, 0, 0);
+
+    auto* add = new QPushButton{tr("Add"), this};
+    auto* ins = new QPushButton{tr("Insert"), this};
+    auto* dup = new QPushButton{tr("Duplicate"), this};
+    auto* rem = new QPushButton{tr("Remove"), this};
+    add->setToolTip(keyed ? tr("Append an entry") : tr("Append an element"));
+    ins->setToolTip(tr("Insert before the selected row"));
+    rem->setToolTip(tr("Remove the selected rows"));
+    for(auto* b : {add, ins, dup, rem})
+    {
+      b->setAutoDefault(false);
+      bar->addWidget(b);
+    }
+
+    bar->addStretch(1);
+    m_count = new QLabel{this};
+    bar->addWidget(m_count);
+    lay->addLayout(bar);
+
+    auto* box = new QDialogButtonBox{
+        QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this};
+    lay->addWidget(box);
+    connect(box, &QDialogButtonBox::accepted, this, &QDialog::accept);
+    connect(box, &QDialogButtonBox::rejected, this, &QDialog::reject);
+
+    // No default button: Return belongs to the cell being typed into, and a
+    // dialog that closes on it takes the half-finished element with it.
+    for(auto* b : box->buttons())
+      qobject_cast<QPushButton*>(b)->setAutoDefault(false);
+
+    connect(add, &QAbstractButton::clicked, this, [this] { insertAt(rowCount()); });
+    connect(ins, &QAbstractButton::clicked, this, [this] {
+      insertAt(std::max(0, currentRow()));
+    });
+    connect(dup, &QAbstractButton::clicked, this, [this] { duplicate(); });
+    connect(rem, &QAbstractButton::clicked, this, [this] { removeSelection(); });
+
+    // On the view alone: Delete in a cell editor is the editor's own.
+    addViewShortcut(QKeySequence::Delete, [this] { removeSelection(); });
+    addViewShortcut(QKeySequence{Qt::Key_Insert}, [this] {
+      insertAt(std::max(0, currentRow()));
+    });
+
+    auto touch = [this] {
+      m_touched = true;
+      refreshCount();
+    };
+    connect(model, &QAbstractItemModel::dataChanged, this, touch);
+    connect(model, &QAbstractItemModel::rowsInserted, this, touch);
+    connect(model, &QAbstractItemModel::rowsRemoved, this, touch);
+
+    refreshCount();
+    resize(collectionDialogSize());
+  }
+
+  //! Whether anything was changed; a dialog the user backed out of says no.
+  bool touched() const noexcept { return m_touched; }
+
+private:
+  int rowCount() const { return m_view->model()->rowCount({}); }
+
+  int currentRow() const
+  {
+    const auto idx = m_view->currentIndex();
+    return idx.isValid() ? idx.row() : -1;
+  }
+
+  template <typename F>
+  void addViewShortcut(const QKeySequence& keys, F&& fun)
+  {
+    auto* act = new QAction{m_view};
+    act->setShortcut(keys);
+    act->setShortcutContext(Qt::WidgetShortcut);
+    connect(act, &QAction::triggered, this, std::forward<F>(fun));
+    m_view->addAction(act);
+  }
+
+  //! A new row, with the cursor in it and its value open for typing.
+  void insertAt(int at)
+  {
+    auto* model = m_view->model();
+    if(!model->insertRow(at))
+      return;
+    editRow(at);
+  }
+
+  void duplicate()
+  {
+    const int at = currentRow();
+    auto* model = m_view->model();
+    if(at < 0 || !model->insertRow(at + 1))
+      return;
+
+    // Left to right, so that the element's type is in place before the
+    // element that is read as one.
+    const int columns = model->columnCount({});
+    for(int c = 0; c < columns; c++)
+      model->setData(
+          model->index(at + 1, c), model->index(at, c).data(Qt::EditRole),
+          Qt::EditRole);
+
+    editRow(at + 1);
+  }
+
+  void editRow(int at)
+  {
+    auto* model = m_view->model();
+    const auto cell = model->index(at, model->columnCount({}) - 1);
+    m_view->setCurrentIndex(cell);
+    m_view->scrollTo(cell);
+    m_view->edit(cell);
+  }
+
+  void removeSelection()
+  {
+    auto* model = m_view->model();
+    auto rows = m_view->selectionModel()->selectedRows();
+    if(rows.isEmpty())
+    {
+      if(const int at = currentRow(); at >= 0)
+        model->removeRow(at);
+      return;
+    }
+
+    std::sort(rows.begin(), rows.end(), [](const auto& a, const auto& b) {
+      return a.row() > b.row();
+    });
+    for(const auto& r : rows)
+      model->removeRow(r.row());
+  }
+
+  void refreshCount()
+  {
+    const int n = rowCount();
+    m_count->setText(
+        m_keyed ? tr("%n entries", nullptr, n) : tr("%n elements", nullptr, n));
+  }
+
+  void done(int result) override
+  {
+    // A cell left open is part of the edit: leaving the row is what makes the
+    // view commit its editor.
+    if(result == QDialog::Accepted && m_view->currentIndex().isValid())
+      m_view->setCurrentIndex(QModelIndex{});
+
+    collectionDialogSize() = size();
+    QDialog::done(result);
+  }
+
+  QTableView* m_view{};
+  QLabel* m_count{};
+  bool m_keyed{};
+  bool m_touched{};
+};
+
+/**
+ * @brief A list or a map: a summary in the row, the elements in a table.
+ *
+ * These run to thousands of elements, so the row shows the head of the
+ * collection and its size rather than the whole of it, and the table is a
+ * model a view pulls from rather than a widget per element.
+ */
+template <typename Container>
+class CollectionValueWidget final : public AddressValueWidget
+{
+  static constexpr bool keyed = std::is_same_v<Container, ossia::value_map_type>;
+  using Model = CollectionTableModel<Container>;
+
+public:
+  //! `elementProto` says what type a first element takes when the collection
+  //! starts out empty; the elements already there say it otherwise.
+  CollectionValueWidget(ossia::value elementProto, QWidget* parent)
+      : AddressValueWidget{parent}
+      , m_proto{std::move(elementProto)}
+  {
+    m_summary.setContentsMargins(0, 0, 0, 0);
+    m_summary.setReadOnly(true);
+    m_summary.setPlaceholderText(keyed ? tr("Empty map") : tr("Empty list"));
+    this->setFocusProxy(&m_summary);
+    m_lay.addWidget(&m_summary, 1);
+
+    // A button of its own and not a QLineEdit action: an action is drawn and
+    // clicked by the field, which is a different widget in every table the
+    // editor is put in.
+    m_open.setObjectName(QStringLiteral("editCollection"));
+    m_open.setIcon(ellipsisIcon(palette()));
+    m_open.setToolTip(keyed ? tr("Edit the entries") : tr("Edit the elements"));
+    m_button.setDefaultAction(&m_open);
+    m_button.setIconSize(QSize{12, 12});
+    m_button.setFocusPolicy(Qt::NoFocus);
+    m_lay.addWidget(&m_button);
+
+    connect(&m_open, &QAction::triggered, this, [this] { openTable(); });
+
+    refresh();
+  }
+
+  ossia::value getImpl() const override { return m_rows; }
+
+  void setImpl(ossia::value t) override
+  {
+    if(auto* c = t.target<Container>())
+      m_rows = *c;
+    else if(t.valid())
+      m_rows = State::convert::value<Container>(t);
+    else
+      m_rows.clear();
+    refresh();
+  }
+
+private:
+  void refresh()
+  {
+    m_summary.setText(clipText(summary()));
+
+    // The head of the collection is what identifies it; a field left scrolled
+    // to the end shows the tail of the elision and nothing else.
+    m_summary.setCursorPosition(0);
+    m_summary.setToolTip(
+        keyed ? tr("%n entries", nullptr, (int)m_rows.size())
+              : tr("%n elements", nullptr, (int)m_rows.size()));
+  }
+
+  //! Empty, so that the placeholder says what the collection is.
+  QString summary() const
+  {
+    if(m_rows.empty())
+      return {};
+    if constexpr(keyed)
+      return sequenceText(m_rows, '{', '}', mapElementText);
+    else
+      return sequenceText(m_rows, '[', ']', elementText);
+  }
+
+  void openTable()
+  {
+    auto* model = new Model(m_rows, m_proto, nullptr);
+
+    // Parented to this: QStyledItemDelegate closes an editor that loses focus,
+    // unless the new focus widget has the editor above it.
+    auto* dialog = new CollectionDialog{model, keyed, this};
+    QPointer<Model> guard{model};
+    connect(dialog, &QDialog::accepted, this, [this, guard, dialog] {
+      if(!guard || !dialog->touched())
+        return;
+
+      m_rows = guard->take();
+      refresh();
+      markEdited();
+      changed(get());
+    });
+    connect(dialog, &QDialog::finished, this, [this] {
+      m_summary.setFocus(Qt::OtherFocusReason);
+    });
+    connect(dialog, &QDialog::finished, dialog, &QObject::deleteLater);
+
+    // open() and not exec(): a nested event loop inside a cell editor outlives
+    // the view that owns it too easily.
+    dialog->open();
+  }
+
+  score::MarginLess<QHBoxLayout> m_lay{this};
+  QLineEdit m_summary;
+  QAction m_open{this};
+  QToolButton m_button{this};
+  Container m_rows;
+  ossia::value m_proto;
+};
+
+using ListValueWidget = CollectionValueWidget<std::vector<ossia::value>>;
+using MapValueWidget = CollectionValueWidget<ossia::value_map_type>;
+
 template <std::size_t N>
 class VecValueWidget final : public AddressValueWidget
 {
@@ -1425,8 +2134,10 @@ AddressValueWidget* make_typed_widget(
       return new StringValueWidget{parent};
 
     case ossia::val_type::LIST:
+      return new ListValueWidget{{}, parent};
+
     case ossia::val_type::MAP:
-      return new ParsedValueWidget{addr.value, parent};
+      return new MapValueWidget{{}, parent};
 
     case ossia::val_type::NONE:
       return nullptr;
@@ -1822,8 +2533,9 @@ make_bound_widget(const Device::AddressSettingsCommon& addr, QWidget* parent)
 AddressValueWidget*
 make_values_widget(const Device::AddressSettingsCommon& addr, QWidget* parent)
 {
-  auto* widg = new ParsedValueWidget{
-      ossia::value{ossia::get_values(addr.domain.get())}, parent};
+  // A genuine list, and one whose elements are of the parameter's own type.
+  auto* widg = new ListValueWidget{addr.value, parent};
+  widg->set(ossia::value{ossia::get_values(addr.domain.get())});
   widg->installValueMenu();
   return widg;
 }
