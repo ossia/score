@@ -83,6 +83,24 @@ void QGraphicsXYZChooser::setRange(ossia::vec3f min, ossia::vec3f max, ossia::ve
   rescale();
 }
 
+void QGraphicsXYZChooser::trackDrag(QPointF p, bool link) noexcept
+{
+  const ossia::vec3f prev = prev_v;
+  if(p.x() < 100.)
+  {
+    prev_v[0] = qBound(0., p.x() / 100., 1.);
+    prev_v[1] = qBound(0., 1 - (p.y() / 100.), 1.);
+  }
+  else if(p.x() >= 110. && p.x() <= 130.)
+  {
+    prev_v[2] = qBound(0., 1 - (p.y() / 100.), 1.);
+    if(link)
+      linkComponents(prev, 2, prev_v[2], [this](std::size_t i, float v) {
+        prev_v[i] = v;
+      });
+  }
+}
+
 void QGraphicsXYZChooser::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   // Left button only: the right one raises the type-in boxes on release, and
@@ -93,16 +111,9 @@ void QGraphicsXYZChooser::mousePressEvent(QGraphicsSceneMouseEvent* event)
     return;
   }
 
-  const auto p = event->pos();
-  if(p.x() < 100.)
-  {
-    prev_v[0] = qBound(0., p.x() / 100., 1.);
-    prev_v[1] = qBound(0., 1 - (p.y() / 100.), 1.);
-  }
-  else if(p.x() >= 110 && p.x() < 130)
-  {
-    prev_v[2] = qBound(0., 1 - (p.y() / 100.), 1.);
-  }
+  // A press lands the drag wherever it was clicked: the jump is not a delta the
+  // other components should follow.
+  trackDrag(event->pos(), false);
   m_grab = true;
 
   const ossia::vec3f newValue = scaledValue(prev_v[0], prev_v[1], prev_v[2]);
@@ -124,16 +135,7 @@ void QGraphicsXYZChooser::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   if(m_grab)
   {
-    const auto p = event->pos();
-    if(p.x() < 100.)
-    {
-      prev_v[0] = qBound(0., p.x() / 100., 1.);
-      prev_v[1] = qBound(0., 1 - (p.y() / 100.), 1.);
-    }
-    else if(p.x() >= 110 && p.x() <= 130)
-    {
-      prev_v[2] = qBound(0., 1 - (p.y() / 100.), 1.);
-    }
+    trackDrag(event->pos(), event->modifiers() & LinkComponentsModifier);
     m_grab = true;
 
     const ossia::vec3f newValue = scaledValue(prev_v[0], prev_v[1], prev_v[2]);
@@ -151,16 +153,7 @@ void QGraphicsXYZChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   if(m_grab)
   {
-    const auto p = event->pos();
-    if(p.x() < 100.)
-    {
-      prev_v[0] = qBound(0., p.x() / 100., 1.);
-      prev_v[1] = qBound(0., 1 - (p.y() / 100.), 1.);
-    }
-    else if(p.x() >= 110 && p.x() < 130)
-    {
-      prev_v[2] = qBound(0., 1 - (p.y() / 100.), 1.);
-    }
+    trackDrag(event->pos(), event->modifiers() & LinkComponentsModifier);
 
     const ossia::vec3f newValue = scaledValue(prev_v[0], prev_v[1], prev_v[2]);
     if(m_value != newValue)

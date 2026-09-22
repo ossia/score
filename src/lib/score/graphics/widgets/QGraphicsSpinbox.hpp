@@ -41,6 +41,10 @@ public:
 
   bool moving = false;
 
+  //! True only while a drag is moving the value: a type-in or a reset changes
+  //! it without one.
+  bool dragging() const noexcept { return m_grab; }
+
   double unmap(double v) const noexcept { return (v - min) / (max - min); }
   double map(double v) const noexcept { return (v * (max - min)) + min; }
 
@@ -90,6 +94,10 @@ public:
   int value() const;
 
   bool moving = false;
+
+  //! True only while a drag is moving the value: a type-in or a reset changes
+  //! it without one.
+  bool dragging() const noexcept { return m_grab; }
 
   double unmap(double v) const noexcept
   {

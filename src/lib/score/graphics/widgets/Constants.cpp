@@ -1,5 +1,7 @@
+#include <score/graphics/widgets/Constants.hpp>
 #include <score/serialization/StringConstants.hpp>
 
+#include <QGuiApplication>
 #include <QString>
 
 #include <cmath>
@@ -8,6 +10,11 @@
 
 namespace score
 {
+
+bool linkComponentsRequested() noexcept
+{
+  return qGuiApp->keyboardModifiers() & LinkComponentsModifier;
+}
 
 static const struct NumStringTables
 {

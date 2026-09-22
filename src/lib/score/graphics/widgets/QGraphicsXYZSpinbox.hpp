@@ -21,6 +21,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsXYZSpinboxChooser final
   SCORE_GRAPHICS_ITEM_TYPE(290)
   QRectF m_rect{0., 0., 150., 24.};
   QGraphicsSpinbox m_x, m_y, m_z;
+  std::array<double, 3> m_prev{};
 
 public:
   explicit QGraphicsXYZSpinboxChooser(QGraphicsItem* parent);
@@ -43,6 +44,8 @@ public:
   void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
 
 private:
+  void componentMoved(std::size_t source);
+  std::array<double, 3> normalizedValue() const noexcept;
   std::array<double, 3> scaledValue(double x, double y, double z) const noexcept;
   QRectF boundingRect() const override;
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)

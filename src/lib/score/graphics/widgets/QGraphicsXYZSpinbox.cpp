@@ -30,15 +30,9 @@ QGraphicsXYZSpinboxChooser::QGraphicsXYZSpinboxChooser(QGraphicsItem* parent)
   m_y.setPos(45, 2);
   m_z.setPos(45 * 2, 2);
 
-  connect(
-      &m_x, &QGraphicsSpinbox::sliderMoved, this,
-      &QGraphicsXYZSpinboxChooser::sliderMoved);
-  connect(
-      &m_y, &QGraphicsSpinbox::sliderMoved, this,
-      &QGraphicsXYZSpinboxChooser::sliderMoved);
-  connect(
-      &m_z, &QGraphicsSpinbox::sliderMoved, this,
-      &QGraphicsXYZSpinboxChooser::sliderMoved);
+  connect(&m_x, &QGraphicsSpinbox::sliderMoved, this, [this] { componentMoved(0); });
+  connect(&m_y, &QGraphicsSpinbox::sliderMoved, this, [this] { componentMoved(1); });
+  connect(&m_z, &QGraphicsSpinbox::sliderMoved, this, [this] { componentMoved(2); });
   connect(
       &m_x, &QGraphicsSpinbox::sliderReleased, this,
       &QGraphicsXYZSpinboxChooser::sliderReleased);
@@ -60,6 +54,22 @@ void QGraphicsXYZSpinboxChooser::paint(
 std::array<double, 3> QGraphicsXYZSpinboxChooser::value() const noexcept
 {
   return {m_x.value(), m_y.value(), m_z.value()};
+}
+
+std::array<double, 3> QGraphicsXYZSpinboxChooser::normalizedValue() const noexcept
+{
+  return {m_x.value(), m_y.value(), m_z.value()};
+}
+
+void QGraphicsXYZSpinboxChooser::componentMoved(std::size_t source)
+{
+  QGraphicsSpinbox* boxes[3]{&m_x, &m_y, &m_z};
+  if(boxes[source]->dragging() && linkComponentsRequested())
+    linkComponents(m_prev, source, boxes[source]->value(), [&](std::size_t i, double v) {
+      boxes[i]->setValue(v);
+    });
+  m_prev = normalizedValue();
+  sliderMoved();
 }
 
 std::array<double, 3> QGraphicsXYZSpinboxChooser::getMin() const noexcept
@@ -84,6 +94,7 @@ void QGraphicsXYZSpinboxChooser::setValue(std::array<double, 3> v)
   m_x.setValue(v[0]);
   m_y.setValue(v[1]);
   m_z.setValue(v[2]);
+  m_prev = normalizedValue();
   update();
 }
 
@@ -92,6 +103,7 @@ void QGraphicsXYZSpinboxChooser::setValue(std::array<float, 3> v)
   m_x.setValue(v[0]);
   m_y.setValue(v[1]);
   m_z.setValue(v[2]);
+  m_prev = normalizedValue();
   update();
 }
 void QGraphicsXYZSpinboxChooser::setRange(
