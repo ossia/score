@@ -13,6 +13,7 @@
 #include <Scenario/Commands/Scenario/ScenarioPasteElements.hpp>
 #include <Scenario/Commands/State/RemoveStateProcess.hpp>
 #include <Scenario/Document/Interval/FullView/NodalIntervalView.hpp>
+#include <Scenario/Document/ScenarioDocument/ProcessCreation.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
@@ -412,28 +413,14 @@ bool ScenarioEditor::remove(const Selection& s, const score::DocumentContext& ct
             }
             else if(inbound_cables && !outbound_cables)
             {
-              if(os[0]->address().isSet())
+              // The tail of the chain goes away: its routing moves back onto
+              // whatever fed it.
+              const auto routing = outletRouting(*os[0]);
+              for(auto& in_cbl : is[0]->cables())
               {
-                // Copy out address to previous inputs
-                auto& addr = os[0]->address();
-                for(auto& in_cbl : is[0]->cables())
-                {
-                  auto& src = in_cbl.find(ctx).source().find(ctx);
-                  m.setProperty<Process::Port::p_address>(src, addr);
-                }
-              }
-              if(os[0]->type() == Process::PortType::Audio)
-              {
-                bool end_propagate
-                    = static_cast<Process::AudioOutlet*>(os[0])->propagate();
-                if(end_propagate)
-                  for(auto& in_cbl : is[0]->cables())
-                  {
-                    auto& src = in_cbl.find(ctx).source().find(ctx);
-                    auto& audio_src = *static_cast<Process::AudioOutlet*>(&src);
-                    m.setProperty<Process::AudioOutlet::p_propagate>(
-                        audio_src, end_propagate);
-                  }
+                auto& port = in_cbl.find(ctx).source().find(ctx);
+                if(auto* src = qobject_cast<Process::Outlet*>(&port))
+                  applyOutletRouting(m, *src, routing);
               }
             }
             else if(!inbound_cables && outbound_cables)

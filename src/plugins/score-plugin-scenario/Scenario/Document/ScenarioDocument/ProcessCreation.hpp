@@ -1,11 +1,14 @@
 #pragma once
 
+#include <State/Address.hpp>
+
 #include <Process/Dataflow/PortType.hpp>
 #include <Process/TimeValue.hpp>
 
 #include <score_plugin_scenario_export.h>
 
 #include <functional>
+#include <optional>
 
 namespace score
 {
@@ -26,6 +29,10 @@ namespace Scenario
 {
 class ScenarioDocumentModel;
 class ScenarioDocumentPresenter;
+namespace Command
+{
+class Macro;
+}
 
 //! First port of that type which carries signal flow: control ports are
 //! First port of that type, preferring signal ports over control ones.
@@ -37,6 +44,22 @@ const Process::Outlet*
 firstOutletOfType(const Process::ProcessModel& proc, Process::PortType type) noexcept;
 SCORE_PLUGIN_SCENARIO_EXPORT
 const Process::Outlet* firstSignalOutlet(const Process::ProcessModel& proc) noexcept;
+
+//! What an outlet says about where its signal goes once it leaves the chain.
+//! Gain and pan are not part of it: outlets chained in series both apply theirs,
+//! so moving them would change the level.
+struct OutletRouting
+{
+  State::AddressAccessor address;
+  std::optional<bool> propagate;
+};
+
+SCORE_PLUGIN_SCENARIO_EXPORT
+OutletRouting outletRouting(const Process::Outlet& p) noexcept;
+
+SCORE_PLUGIN_SCENARIO_EXPORT
+void applyOutletRouting(
+    Command::Macro& m, const Process::Outlet& to, const OutletRouting& routing);
 
 //! Whether insertProcessInCable would connect anything at all, for drop feedback.
 SCORE_PLUGIN_SCENARIO_EXPORT
