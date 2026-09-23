@@ -93,7 +93,8 @@ public:
   void setHighlighted(bool b);
 
 protected:
-  void setMeter(Execution::Telemetry::Meter m, int firstChannel = 0, int channelCount = -1);
+  //! Shows the meter's channels, or only the listed ones.
+  void setMeter(Execution::Telemetry::Meter m, std::vector<int> channels = {});
   void setGainReadout(double gain);
   void contextMenuEvent(QContextMenuEvent*) override;
   void paintEvent(QPaintEvent*) override;
@@ -111,8 +112,7 @@ protected:
 
 private:
   Execution::Telemetry::Meter m_meterHandle;
-  int m_firstChannel{};
-  int m_channelCount{-1};
+  std::vector<int> m_channels;
   std::vector<score::LevelMeter::Channel> m_levels;
   StripWidth m_width{StripWidth::Normal};
   bool m_highlighted{};
@@ -156,8 +156,10 @@ public:
     HardwareInputs,
     HardwareOutputs,
   };
+  //! `channels`: which channels of the hardware meter are this port's, all
+  //! of them when empty.
   PortStrip(
-      ossia::audio_parameter& param, Meter meter, int firstChannel, int channelCount,
+      ossia::audio_parameter& param, Meter meter, std::vector<int> channels,
       const score::DocumentContext& ctx, QWidget* parent);
   ~PortStrip() override;
 
