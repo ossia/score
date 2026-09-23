@@ -69,6 +69,7 @@ void AudioDevice::addAddress(const Device::FullAddressSettings& settings)
           p->set_value(settings.value);
     }
   }
+  portsChanged();
 }
 
 void AudioDevice::updateAddress(
@@ -89,12 +90,14 @@ void AudioDevice::updateAddress(
       }
     }
   }
+  portsChanged();
 }
 
 void AudioDevice::removeNode(const State::Address& currentAddr)
 {
   this->m_customAddresses.erase(currentAddr.path);
   DeviceInterface::removeNode(currentAddr);
+  portsChanged();
 }
 
 void AudioDevice::disconnect()
