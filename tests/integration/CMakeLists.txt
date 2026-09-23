@@ -253,6 +253,12 @@ score_add_test(test_integration_js_presets
   GUI
   PLUGINS score_plugin_scenario score_lib_process score_plugin_js score_plugin_library)
 
+# The preset of a Javascript process: controls and script state together.
+score_add_test(test_integration_js_process_preset
+  SOURCES JsProcessPresetTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process score_plugin_js)
+
 # The CPU executor of the Javascript process (JS::js_node), driven port by port
 # and tick by tick: audio in and out asserted by sample value, value messages
 # with their timestamps, MIDI, buffer-size and channel-count changes, a
