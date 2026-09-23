@@ -36,7 +36,7 @@ bool sameSegment(const SegmentModel& a, const SegmentData& b)
 }
 
 //! GUI thread only: reused across the updates of an edit.
-struct ChangeScratch
+struct UpdateScratch
 {
   ossia::hash_map<int32_t, uint32_t> previous;
   ossia::hash_set<int32_t> next;
@@ -47,9 +47,9 @@ struct ChangeScratch
   std::vector<const SegmentData*> upserted;
 };
 
-ChangeScratch& scratch() noexcept
+UpdateScratch& updateScratch() noexcept
 {
-  static ChangeScratch s;
+  static UpdateScratch s;
   return s;
 }
 }
@@ -85,7 +85,7 @@ bool sameLinks(const SegmentData& a, const SegmentData& b) noexcept
 
 bool UpdateCurve::setChanges(const Model& model, const std::vector<SegmentData>& next)
 {
-  auto& s = scratch();
+  auto& s = updateScratch();
 
   // What each segment was before this command: recorded in the previous
   // changes, or else as the model has it, since this command did not touch it.
@@ -213,7 +213,7 @@ bool UpdateCurve::setChanges(const Model& model, const std::vector<SegmentData>&
 void UpdateCurve::apply(const score::DocumentContext& ctx, bool forward) const
 {
   auto& curve = m_model.find(ctx);
-  auto& s = scratch();
+  auto& s = updateScratch();
   s.removed.clear();
   s.upserted.clear();
   auto add = [&](const CurveChange& c, bool fwd) {
