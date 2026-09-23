@@ -190,6 +190,9 @@ struct AudioTickHelper
 
     main_tick(t);
 
+    // Before the actions: the library preview is not part of the mix.
+    m_proto->apply_main_gain(t);
+
     for(auto act : m_actions)
       act->endTick(t);
   }
