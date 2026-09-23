@@ -1,7 +1,8 @@
 #pragma once
+#include <Process/Execution/TelemetryInterface.hpp>
+
 #include <ossia/dataflow/telemetry.hpp>
 
-#include <QObject>
 #include <QPointer>
 
 #include <score_plugin_engine_export.h>
@@ -40,7 +41,7 @@ class DocumentPlugin;
  * stops and starts. While the execution runs and updates are enabled, the
  * levels are read at the document's coarse update rate and updated() fires.
  */
-class SCORE_PLUGIN_ENGINE_EXPORT Telemetry final : public QObject
+class SCORE_PLUGIN_ENGINE_EXPORT Telemetry final : public TelemetryInterface
 {
   W_OBJECT(Telemetry)
 public:
@@ -75,11 +76,13 @@ public:
   //! measured while the benchmark setting is on.
   double cpuLoad(const Process::ProcessModel& proc) const noexcept;
 
+  Playhead registerPlayhead(std::shared_ptr<ossia::telemetry::playhead_tap> tap) override;
+  void release(Playhead p) override;
+  const ossia::telemetry::playhead_slot* playhead(Playhead p) const noexcept override;
+
   //! Called by the execution when a graph was built, and when it is torn down.
   void executionStarted();
   void executionStopped();
-
-  void updated() E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, updated)
 
 private:
   struct Subscription
@@ -94,6 +97,13 @@ private:
     std::weak_ptr<ossia::graph_node> node;
     ossia::audio_inlet* ossia_inlet{};
     ossia::audio_outlet* ossia_outlet{};
+    bool attached{};
+  };
+
+  struct PlayheadSub
+  {
+    std::shared_ptr<ossia::telemetry::playhead_tap> tap;
+    uint32_t generation{};
     bool attached{};
   };
 
@@ -125,6 +135,10 @@ private:
   std::vector<int> m_free;
   std::vector<Bench> m_benches;
   std::vector<int> m_freeBenches;
+  std::vector<PlayheadSub> m_playheads;
+  std::vector<int> m_freePlayheads;
+
+  void attachPlayhead(int index);
 
   std::shared_ptr<ossia::telemetry::arena> m_arena;
   bool m_running{};

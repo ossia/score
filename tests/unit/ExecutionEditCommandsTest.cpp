@@ -109,6 +109,7 @@ TEST_CASE(
 
     // The audio thread reports the interval's state: an edit command is queued
     ossia::set_thread_pinned(ossia::thread_type::Audio, 0);
+    itv->tick_current(ossia::time_value{}, ossia::token_request{});
     itv->stop();
     ossia::set_thread_pinned(ossia::thread_type::Ui, 0);
 
