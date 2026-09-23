@@ -16,6 +16,8 @@
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
+#include <ossia/detail/small_vector.hpp>
+
 #include <core/document/Document.hpp>
 
 #include <QDebug>
@@ -174,7 +176,11 @@ void ScenarioDocumentModel::finishLoading()
     connect(
         itv, &Scenario::IntervalModel::identified_object_destroying, this,
         &ScenarioDocumentModel::busDeleted, Qt::UniqueConnection);
+    connect(
+        itv, &Scenario::IntervalModel::soloedChanged, this,
+        &ScenarioDocumentModel::updateSoloMutes, Qt::UniqueConnection);
   }
+  updateSoloMutes();
 }
 
 ScenarioDocumentModel::~ScenarioDocumentModel() { }
@@ -193,6 +199,10 @@ void ScenarioDocumentModel::addBus(const Scenario::IntervalModel* itv)
     connect(
         itv, &Scenario::IntervalModel::identified_object_destroying, this,
         [this, itv] { removeBus(itv); });
+    connect(
+        itv, &Scenario::IntervalModel::soloedChanged, this,
+        &ScenarioDocumentModel::updateSoloMutes, Qt::UniqueConnection);
+    updateSoloMutes();
     busesChanged();
   }
 }
@@ -202,7 +212,12 @@ void ScenarioDocumentModel::removeBus(const Scenario::IntervalModel* itv)
   if(ossia::contains(busIntervals, itv))
   {
     ossia::remove_erase(busIntervals, itv);
+    disconnect(
+        itv, &Scenario::IntervalModel::soloedChanged, this,
+        &ScenarioDocumentModel::updateSoloMutes);
+    const_cast<IntervalModel*>(itv)->setSoloMuted(false);
     const_cast<IntervalModel*>(itv)->busChanged(false);
+    updateSoloMutes();
     busesChanged();
   }
 }
@@ -212,7 +227,40 @@ void ScenarioDocumentModel::busDeleted(const IdentifiedObjectAbstract* itv)
   if(ossia::contains(busIntervals, itv))
   {
     ossia::remove_erase(busIntervals, itv);
+    updateSoloMutes();
     busesChanged();
+  }
+}
+
+namespace
+{
+bool isInside(const IntervalModel& inner, const IntervalModel& outer) noexcept
+{
+  for(auto p = closestParentInterval(inner.parent()); p;
+      p = closestParentInterval(p->parent()))
+    if(p == &outer)
+      return true;
+  return false;
+}
+}
+
+void ScenarioDocumentModel::updateSoloMutes()
+{
+  ossia::small_vector<const IntervalModel*, 8> soloed;
+  for(auto bus : busIntervals)
+    if(bus->soloed())
+      soloed.push_back(bus);
+
+  for(auto bus : busIntervals)
+  {
+    bool heard = soloed.empty() || bus->soloed();
+    for(auto s : soloed)
+    {
+      if(heard)
+        break;
+      heard = isInside(*bus, *s) || isInside(*s, *bus);
+    }
+    const_cast<IntervalModel*>(bus)->setSoloMuted(!heard);
   }
 }
 
