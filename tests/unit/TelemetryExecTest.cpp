@@ -10,12 +10,14 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
+#include <Audio/AudioApplicationPlugin.hpp>
 #include <Execution/DocumentPlugin.hpp>
 #include <Execution/ExecutionTick.hpp>
 #include <Execution/Telemetry.hpp>
 
 #include <core/document/Document.hpp>
 
+#include <ossia/audio/audio_engine.hpp>
 #include <ossia/detail/thread.hpp>
 
 #include <QApplication>
@@ -69,6 +71,14 @@ struct Card
   }
 };
 
+// The running audio engine must not tick the actions while the test does.
+void park_audio_engine(const score::GUIApplicationContext& ctx)
+{
+  auto& audio = ctx.guiApplicationPlugin<Audio::ApplicationPlugin>();
+  if(audio.audio)
+    audio.audio->set_tick([](const ossia::audio_tick_state&) {});
+}
+
 // Enough callbacks to cover any publication interval.
 void play(Execution::tick_fun& tick, Card& card, int callbacks = 400)
 {
@@ -83,6 +93,7 @@ TEST_CASE("Requested meters come back from the execution", "[telemetry][executio
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
     auto* doc = score::test::new_document(ctx);
     REQUIRE(doc);
+    park_audio_engine(ctx);
     auto& plug = doc->context().plugin<Execution::DocumentPlugin>();
     auto& telemetry = plug.telemetry();
     auto& root = score::test::base_interval(*doc);

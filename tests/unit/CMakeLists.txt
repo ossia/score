@@ -1437,5 +1437,5 @@ if(TARGET score_plugin_engine)
   score_add_test(test_unit_telemetry_exec
     SOURCES TelemetryExecTest.cpp
     APP
-    PLUGINS score_plugin_engine score_plugin_scenario score_lib_process)
+    PLUGINS score_plugin_engine score_plugin_audio score_plugin_scenario score_lib_process)
 endif()
