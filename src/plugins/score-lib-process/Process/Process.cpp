@@ -253,6 +253,11 @@ std::vector<Preset> ProcessModel::builtinPresets() const noexcept
   return {};
 }
 
+bool ProcessModel::presetMatches(const Preset& preset) const noexcept
+{
+  return preset.key.key == concreteKey() && preset.key.effect == effect();
+}
+
 void ProcessModel::ancestorStartDateChanged() { }
 
 void ProcessModel::ancestorTempoChanged() { }

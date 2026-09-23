@@ -155,6 +155,8 @@ public:
   virtual void loadPreset(const Preset& preset);
   virtual Preset savePreset() const noexcept;
   virtual std::vector<Process::Preset> builtinPresets() const noexcept;
+  //! Whether the preset applies to this process: same process key and same effect
+  virtual bool presetMatches(const Preset& preset) const noexcept;
 
   // Called when an ancestor was moved in the timeline
   virtual void ancestorStartDateChanged();

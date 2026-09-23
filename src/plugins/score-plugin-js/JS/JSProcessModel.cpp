@@ -21,9 +21,12 @@
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 #include <score/tools/DeleteAll.hpp>
 #include <score/tools/File.hpp>
+
+#include <optional>
 
 #include <core/document/Document.hpp>
 
@@ -216,8 +219,12 @@ bool ProcessModel::validate(const std::vector<QString>& script) const noexcept
 }
 
 
+// A script loaded from a .qml file is identified by that file path;
+// otherwise by its text
 QString ProcessModel::effect() const noexcept
 {
+  if(!m_root.isEmpty())
+    return m_root;
   return m_qmlData;
 }
 
@@ -883,15 +890,91 @@ QQmlComponent* ComponentCache::getUi(
   }
 }
 
+// Preset data: {"Controls": [...], "State": [...]} where "State" is the
+// script state set through Script.replaceState, plus the program: "Root"
+// (source .qml file, also used for includes) and "Script" / "Ui" when they
+// differ from that file. A plain array of controls is also accepted; its
+// script is then the effect of the preset key.
 void ProcessModel::loadPreset(const Process::Preset& preset)
 {
-  Process::loadScriptProcessPreset<ProcessModel::p_program>(*this, preset);
+  const rapidjson::Document doc = readJson(preset.data);
+  const bool object = doc.IsObject();
+  if(!object && !doc.IsArray())
+    return;
+
+  std::optional<QmlSource> program;
+  if(object)
+  {
+    QString root;
+    if(auto it = doc.FindMember("Root"); it != doc.MemberEnd() && it->value.IsString())
+      root = score::locateFilePath(
+          QString::fromUtf8(it->value.GetString(), it->value.GetStringLength()),
+          score::IDocument::documentContext(*this));
+    m_root = root;
+
+    if(auto it = doc.FindMember("Script"); it != doc.MemberEnd() && it->value.IsString())
+    {
+      QmlSource p{
+          QString::fromUtf8(it->value.GetString(), it->value.GetStringLength()), {}};
+      if(auto ui = doc.FindMember("Ui"); ui != doc.MemberEnd() && ui->value.IsString())
+        p.ui = QString::fromUtf8(ui->value.GetString(), ui->value.GetStringLength());
+      program = std::move(p);
+    }
+    else if(!root.isEmpty())
+    {
+      program = readProgramFromFile(root);
+    }
+  }
+  if(!program && !preset.key.effect.isEmpty())
+    program = QmlSource{preset.key.effect, m_program.ui};
+
+  if(program && *program != m_program)
+    (void)setProgram(*program);
+  else
+    updateFileLink();
+
+  if(!object)
+  {
+    Process::loadFixedControls(doc.GetArray(), *this);
+    return;
+  }
+
+  if(auto it = doc.FindMember("Controls"); it != doc.MemberEnd() && it->value.IsArray())
+    Process::loadFixedControls(it->value.GetArray(), *this);
+
+  JSState st;
+  if(auto it = doc.FindMember("State"); it != doc.MemberEnd())
+    st <<= JsonValue{it->value};
+  setState(st);
 }
 
 Process::Preset ProcessModel::savePreset() const noexcept
 {
-  // FIXME this should save p_program
-  return Process::saveScriptProcessPreset(*this, this->m_qmlData);
+  auto p = Process::saveScriptProcessPreset(*this, effect());
+
+  JSONReader r;
+  r.stream.StartObject();
+  if(!m_root.isEmpty())
+    r.obj["Root"] = score::relativizeFilePath(m_root);
+  if(!followsRootFile())
+  {
+    r.obj["Script"] = m_program.execution;
+    if(!m_program.ui.isEmpty())
+      r.obj["Ui"] = m_program.ui;
+  }
+  r.stream.Key("Controls");
+  Process::saveFixedControls(r, *this);
+  r.obj["State"] = m_state;
+  r.stream.EndObject();
+  p.data = r.toByteArray();
+  return p;
+}
+
+// Also matches presets that identify a file-based script by its text
+bool ProcessModel::presetMatches(const Process::Preset& preset) const noexcept
+{
+  return preset.key.key == concreteKey()
+         && (preset.key.effect == effect() || preset.key.effect == QString{m_qmlData});
 }
 
 }

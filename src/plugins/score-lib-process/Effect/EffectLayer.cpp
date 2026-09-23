@@ -847,11 +847,9 @@ score::QGraphicsDraggablePixmap* makePresetButton(
         };
 
         std::vector<const Process::Preset*> goodPresets;
-        const auto& k = proc.concreteKey();
-        const auto& e = proc.effect();
         for(auto& preset : presets)
         {
-          if(preset.key.key == k && preset.key.effect == e)
+          if(proc.presetMatches(preset))
             goodPresets.push_back(&preset);
         }
         std::sort(goodPresets.begin(), goodPresets.end(), presetMenuOrder);
@@ -888,10 +886,8 @@ score::QGraphicsDraggablePixmap* makePresetButton(
       case Qt::ForwardButton:
       case Qt::BackButton: {
         std::vector<const Process::Preset*> goodPresets;
-        const auto& k = proc.concreteKey();
-        const auto& e = proc.effect();
         for(auto& preset : presets)
-          if(preset.key.key == k && preset.key.effect == e)
+          if(proc.presetMatches(preset))
             goodPresets.push_back(&preset);
         auto bps = proc.builtinPresets();
         for(auto& bp : bps)

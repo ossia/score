@@ -180,6 +180,7 @@ private:
   QString effect() const noexcept override;
   void loadPreset(const Process::Preset& preset) override;
   Process::Preset savePreset() const noexcept override;
+  bool presetMatches(const Process::Preset& preset) const noexcept override;
   Process::ScriptChangeResult setQmlData(const QByteArray&, bool isFile);
 
   QString m_root;
