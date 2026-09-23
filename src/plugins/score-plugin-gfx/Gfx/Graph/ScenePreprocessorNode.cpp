@@ -171,6 +171,17 @@ inline const char* channelDynBaseName(MaterialChannel ch) noexcept
 
 // sRGB channels (base color, emissive) get hardware sRGB→linear on sample.
 // Metallic-roughness and normal are data, not color — must stay linear.
+// Flags every shared-pool array is allocated with. Kept out of channelFlags()
+// -- that is the bucket key, and is shared with multisample texture paths
+// where QRhi rejects MipMapped -- but both allocation sites must agree, or a
+// bucket seeded by one and reused by the other has no chain while its sampler
+// still asks for one, and generateMips runs on a texture that never declared
+// UsedWithGenerateMips.
+inline QRhiTexture::Flags poolArrayFlags(QRhiTexture::Flags base) noexcept
+{
+  return base | QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips;
+}
+
 inline QRhiTexture::Flags channelFlags(MaterialChannel ch) noexcept
 {
   switch(ch)
@@ -834,7 +845,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           QRhiTexture::RGBA8,
           QSize(kChannelLayerSize, kChannelLayerSize),
           GpuResourceRegistry::textureChannelFlags(toTexChannel(ChannelBaseColor)));
-      b.array = rhi.newTextureArray(b.format, 1, b.pixelSize, 1, b.flags);
+      b.array = rhi.newTextureArray(
+          b.format, 1, b.pixelSize, /*sampleCount=*/1, poolArrayFlags(b.flags));
       if(b.array)
       {
         b.array->setName("GpuResourceRegistry::base_color_array (init fallback)");
@@ -3325,8 +3337,12 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       {
         if(b.array)
           b.array->deleteLater();
+        // The bucket sampler is promoted to trilinear below, so the array has
+        // to carry the levels that asks for: a mipmap filter over a one-level
+        // array samples level 0 everywhere and minified materials alias.
         b.array = rhi.newTextureArray(
-            b.format, wantLayers, b.pixelSize, 1, b.flags);
+            b.format, wantLayers, b.pixelSize, /*sampleCount=*/1,
+            poolArrayFlags(b.flags));
         if(b.array)
         {
           b.array->setName(
@@ -3444,6 +3460,18 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     // bucket's QRhiTexture* was recreated, downstream SRBs need a
     // rebind. Caller threads it through the "auxBuffersChanged"
     // flag in update().
+    // Only level 0 of each layer is ever uploaded, so the rest of the chain
+    // has to be derived before anything samples it minified.
+    for(auto& b : channel.buckets)
+    {
+      if(b.array)
+      {
+        BUFTRACE() << "[mipgen] bucket array " << b.pixelSize.width() << "x"
+                   << b.pixelSize.height() << " layers=" << b.layers;
+        res.generateMips(b.array);
+      }
+    }
+
     const bool arrayReallocated = anyReallocated;
 
     return arrayReallocated;
