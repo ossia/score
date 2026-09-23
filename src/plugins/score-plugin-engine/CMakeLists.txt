@@ -14,6 +14,7 @@ set(HDRS
   Execution/BaseScenarioComponent.hpp
   Execution/DeviceAddresses.hpp
   Execution/DocumentPlugin.hpp
+  Execution/Telemetry.hpp
   Execution/ExecutionTick.hpp
   Execution/ExecutionController.hpp
 
@@ -56,6 +57,7 @@ set(SRCS
   Execution/BaseScenarioComponent.cpp
   Execution/DeviceAddresses.cpp
   Execution/DocumentPlugin.cpp
+  Execution/Telemetry.cpp
   Execution/ExecutionTick.cpp
   Execution/ExecutionController.cpp
 
