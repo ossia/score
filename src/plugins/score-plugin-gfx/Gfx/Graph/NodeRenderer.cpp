@@ -10,6 +10,28 @@
 
 #include <ossia/detail/algorithms.hpp>
 
+namespace
+{
+// The pipeline may have compacted the geometry's vertex bindings down to the
+// streams the shader reads (see remapPipelineVertexInputs). When it did, the
+// draw has to bind the same subset in the same order, which only CustomMesh
+// knows how to do; everything else binds one-to-one as before.
+inline void drawWithPlan(
+    const score::gfx::Mesh& mesh, const score::gfx::MeshBuffers& bufs,
+    QRhiCommandBuffer& cb, const score::gfx::FallbackBindingPlan& plan) noexcept
+{
+  if(plan.compacted)
+  {
+    if(auto* cm = dynamic_cast<const score::gfx::CustomMesh*>(&mesh))
+    {
+      cm->drawWithFallbackBindings(bufs, cb, plan);
+      return;
+    }
+  }
+  mesh.draw(bufs, cb);
+}
+}
+
 namespace score::gfx
 {
 
@@ -113,7 +135,7 @@ void defaultRenderPass(
     cb.setShaderResources(it->second.p.srb);
     cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
 
-    mesh.draw(bufs, cb);
+    drawWithPlan(mesh, bufs, cb, it->second.p.plan);
   }
   else
   {
@@ -136,7 +158,7 @@ void quadRenderPass(
     cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
 
     const auto& mesh = renderer.defaultQuad();
-    mesh.draw(bufs, cb);
+    drawWithPlan(mesh, bufs, cb, it->second.p.plan);
   }
 }
 

@@ -228,6 +228,11 @@ struct Pipeline
   QRhiGraphicsPipeline* pipeline{};
   QRhiShaderResourceBindings* srb{};
 
+  //! Which of the geometry's vertex bindings this pipeline kept, and in what
+  //! order. Empty/uncompacted means "bind every geometry input one-to-one",
+  //! which is what the builders that do not compact expect.
+  FallbackBindingPlan plan{};
+
   void release()
   {
     if(pipeline)
@@ -628,7 +633,7 @@ inline QRhiBuffer::Type bufferTypeFor(
 SCORE_PLUGIN_GFX_EXPORT
 bool remapPipelineVertexInputs(
     QRhiGraphicsPipeline& pip, const QShader& vertexShader,
-    const ossia::geometry& geom);
+    const ossia::geometry& geom, FallbackBindingPlan* outPlan = nullptr);
 
 /**
  * @brief Same as above, but honours explicit SEMANTIC on each VERTEX_INPUTS
@@ -637,7 +642,8 @@ bool remapPipelineVertexInputs(
 SCORE_PLUGIN_GFX_EXPORT
 bool remapPipelineVertexInputs(
     QRhiGraphicsPipeline& pip, const QShader& vertexShader,
-    const ossia::geometry& geom, const isf::descriptor& desc);
+    const ossia::geometry& geom, const isf::descriptor& desc,
+    FallbackBindingPlan* outPlan = nullptr);
 
 // FallbackBindingPlan lives in its own header so both Utils.hpp and
 // CustomMesh.hpp can depend on it without creating an include cycle
