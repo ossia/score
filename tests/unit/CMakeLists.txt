@@ -1437,7 +1437,8 @@ if(TARGET score_plugin_engine)
   score_add_test(test_unit_telemetry_exec
     SOURCES TelemetryExecTest.cpp
     APP
-    PLUGINS score_plugin_engine score_plugin_audio score_plugin_scenario score_lib_process)
+    PLUGINS score_plugin_engine score_plugin_audio score_plugin_scenario score_lib_process
+            score_plugin_deviceexplorer score_lib_device)
 endif()
 
 # The control values of an avnd process go to its model ports through a
