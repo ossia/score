@@ -144,11 +144,13 @@ IntervalComponentBase::IntervalComponentBase(
       [&](ossia::pan_weight pan) {
     OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
     if(m_ossia_interval)
-      in_exec([pan = std::move(pan), itv = m_ossia_interval] {
+      in_exec([pan = std::move(pan), itv = m_ossia_interval]() mutable {
         OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
         auto& audio_out
             = static_cast<ossia::nodes::interval*>(itv->node.get())->audio_out;
-        audio_out.pan = pan;
+        // A swap: the previous weights are freed with this closure, off the
+        // audio thread.
+        std::swap(audio_out.pan, pan);
       });
   });
 
