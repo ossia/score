@@ -3353,8 +3353,16 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         }
         if(b.array)
           b.array->deleteLater();
+        // The bucket sampler is promoted to trilinear below, so the array has
+        // to carry the levels that asks for: a mipmap filter over a one-level
+        // array samples level 0 everywhere and minified materials alias. The
+        // flags are added here rather than in channelFlags() because that is
+        // also the bucket key and is shared with texture paths that are
+        // multisample, where QRhi rejects MipMapped outright.
+        const auto arrayFlags
+            = b.flags | QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips;
         b.array = rhi.newTextureArray(
-            b.format, wantLayers, b.pixelSize, 1, b.flags);
+            b.format, wantLayers, b.pixelSize, /*sampleCount=*/1, arrayFlags);
         if(b.array)
         {
           b.array->setName(
@@ -3447,6 +3455,18 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       QRhiTextureUploadEntry entry(pu.layer_idx, 0, sub);
       res.uploadTexture(
           b.array, QRhiTextureUploadDescription({entry}));
+    }
+
+    // Only level 0 of each layer is ever uploaded, so the rest of the chain
+    // has to be derived before anything samples it minified.
+    for(auto& b : channel.buckets)
+    {
+      if(b.array)
+      {
+        BUFTRACE() << "[mipgen] bucket array " << b.pixelSize.width() << "x"
+                   << b.pixelSize.height() << " layers=" << b.layers;
+        res.generateMips(b.array);
+      }
     }
 
     // Fallback for empty buckets (no real uploads): drop a neutral
