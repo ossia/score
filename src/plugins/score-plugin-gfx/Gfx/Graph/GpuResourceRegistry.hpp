@@ -339,11 +339,11 @@ public:
    *
    * The MaterialGPU::textureRefs[] encoding is
    * `source:2 | bucket:7 | layer:23` — the 7-bit bucket field
-   * addresses up to 128 distinct (format, pixelSize) tuples in the
-   * encoding; the runtime cap is kMaxBuckets (currently 16).
+   * addresses up to 128 distinct bucket keys in the
+   * encoding; the runtime cap is kMaxBuckets (currently 8).
    *
    * The Bucket struct holds the discriminating
-   * (format, pixelSize) tuple. Dynamic (runtime-GPU) slots stay at
+   * (format, pixelSize, colourspace, sampler config) tuple. Dynamic (runtime-GPU) slots stay at
    * channel scope — they carry opaque QRhiTexture*s with no
    * canonical format/size, so no sensible bucket to live in.
    */
