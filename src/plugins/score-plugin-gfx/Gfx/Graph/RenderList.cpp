@@ -69,6 +69,14 @@ RenderList::RenderList(OutputNode& output, const std::shared_ptr<RenderState>& s
     , state{*m_state}
     , m_samples{state->samples}
 {
+  if(state->rhi)
+    m_quirks.populate(*state->rhi);
+}
+
+void RenderList::isolateFollowingPasses() noexcept
+{
+  if(m_samples > 1 && m_quirks.emptyPassSampleDescentLosesDevice && state.rhi)
+    state.rhi->finish();
 }
 
 RenderList::~RenderList()
