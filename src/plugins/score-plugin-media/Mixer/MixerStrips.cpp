@@ -389,9 +389,15 @@ BusStrip::BusStrip(
     m_context.dispatcher.commit();
   });
   connect(m_pan, &PanSlider::valueChanged, this, [this](double p) {
+    // The balance only moves the first two weights: the others are the
+    // channel gains of a wider bus.
     auto [l, r] = PanSlider::weights(p);
-    m_context.dispatcher.submit<Process::SetPan>(
-        *m_model.outlet, Process::pan_weight{{l, r}});
+    auto w = m_model.outlet->pan();
+    while(w.size() < 2)
+      w.push_back(1.);
+    w[0] = l;
+    w[1] = r;
+    m_context.dispatcher.submit<Process::SetPan>(*m_model.outlet, w);
   });
   connect(m_pan, &PanSlider::sliderReleased, this, [this] {
     m_context.dispatcher.commit();
@@ -481,8 +487,75 @@ void BusStrip::updateMeter(const Execution::Telemetry& t)
   }
 }
 
+namespace
+{
+//! One fader per channel of a bus, on its pan weights.
+class ChannelGains final : public QWidget
+{
+public:
+  ChannelGains(
+      const Process::AudioOutlet& outlet, int channels,
+      const score::DocumentContext& ctx)
+      : QWidget{nullptr, Qt::Popup}
+      , m_outlet{outlet}
+      , m_context{ctx}
+  {
+    setAttribute(Qt::WA_DeleteOnClose);
+    setAutoFillBackground(true);
+    auto pal = palette();
+    pal.setColor(QPalette::Window, score::Skin::instance().Background2.color());
+    setPalette(pal);
+    auto lay = new QHBoxLayout{this};
+    lay->setContentsMargins(4, 4, 4, 4);
+    lay->setSpacing(2);
+
+    const auto& pan = outlet.pan();
+    for(int c = 0; c < channels; c++)
+    {
+      auto col = new QVBoxLayout;
+      auto fader = new GainFader{this};
+      fader->setFixedHeight(120);
+      {
+        QSignalBlocker b{fader};
+        fader->setValue(
+            GainFader::gainToPosition(c < int(pan.size()) ? pan[c] : 1.));
+      }
+      connect(fader, &GainFader::valueChanged, this, [this, c](double p) {
+        auto w = m_outlet.pan();
+        while(int(w.size()) <= c)
+          w.push_back(1.);
+        w[c] = GainFader::positionToGain(p);
+        m_context.dispatcher.submit<Process::SetPan>(m_outlet, w);
+      });
+      connect(fader, &GainFader::sliderReleased, this, [this] {
+        m_context.dispatcher.commit();
+      });
+      auto label = new QLabel{QString::number(c + 1), this};
+      label->setAlignment(Qt::AlignCenter);
+      label->setFont(score::Skin::instance().SansFontSmall);
+      col->addWidget(fader, 0, Qt::AlignHCenter);
+      col->addWidget(label);
+      lay->addLayout(col);
+    }
+  }
+
+private:
+  const Process::AudioOutlet& m_outlet;
+  const score::DocumentContext& m_context;
+};
+}
+
 void BusStrip::fillContextMenu(QMenu& menu)
 {
+  auto gains = menu.addAction(tr("Channel gains..."));
+  connect(gains, &QAction::triggered, this, [this] {
+    const int channels = std::max(
+        {m_meter->channelCount(), int(m_model.outlet->pan().size()), 2});
+    auto popup = new ChannelGains{*m_model.outlet, channels, m_context};
+    popup->move(mapToGlobal(rect().topRight()));
+    popup->show();
+  });
+
   // How a narrower signal is widened before the gain and pan.
   auto& outlet = *m_model.outlet;
   auto upmix = menu.addMenu(tr("Upmix"));
