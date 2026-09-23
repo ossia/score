@@ -69,6 +69,16 @@ private:
   void updateStorageBuffers(RenderList& renderer, QRhiResourceUpdateBatch& res);
   void recreateShaderResourceBindings(RenderList& renderer, QRhiResourceUpdateBatch& res);
 
+  /// Buffers borrowed from upstream and bound straight into the compute SRB.
+  std::vector<QRhiBuffer*> m_srbAdoptedBuffers;
+  /// The previous build's, while buildComputeSrbBindings runs.
+  std::vector<QRhiBuffer*> m_srbPreviousAdoptions;
+
+  /// Drop every adoption taken by buildComputeSrbBindings. Idempotent.
+  void dropSrbAdoptions();
+  /// Adopt `buf` for the SRB being built, reusing the previous build's.
+  void adoptForSrb(QRhiBuffer* buf);
+
   // Single source of truth for the CSF compute SRB binding list. Walks the
   // descriptor's INPUTS / RESOURCES / AUXILIARIES in order and emits one
   // QRhiShaderResourceBinding per shader binding slot. Both
