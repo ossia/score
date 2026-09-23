@@ -87,8 +87,7 @@ void keepPlace(QWidget* w)
   w->setSizePolicy(sp);
 }
 
-// Height of the controls under the meters of buses: the other strips leave
-// the same room empty.
+// Height of the controls under the meters of buses.
 constexpr int toggle_h = 20;
 constexpr int pan_h = 14;
 constexpr int route_h = 22;
@@ -698,7 +697,8 @@ PortStrip::PortStrip(
   const auto address = QString::fromStdString(param.get_node().osc_address());
   setTitle(address);
   m_title->setToolTip(tr("audio:%1").arg(address));
-  m_buttons->hide();
+  // No controls: the meter and the fader take their room.
+  m_controls->hide();
 
   if(m_telemetry)
   {
