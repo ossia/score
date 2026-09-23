@@ -136,6 +136,11 @@ score_add_test(test_integration_scenario_undo
   GUI
   PLUGINS score_plugin_scenario score_lib_process)
 
+score_add_test(test_integration_interval_mute_solo
+  SOURCES IntervalMuteSoloTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process)
+
 score_add_test(test_integration_scenario_roundtrip
   SOURCES ScenarioContentRoundtripTest.cpp
   GUI

@@ -121,14 +121,16 @@ IntervalComponentBase::IntervalComponentBase(
       });
   });
 
-  con(interval(), &Scenario::IntervalModel::mutedChanged, this, [&](bool b) {
+  auto update_mute = [this] {
     OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
     if(m_ossia_interval)
-      in_exec([b, itv = m_ossia_interval] {
+      in_exec([b = interval().effectivelyMuted(), itv = m_ossia_interval] {
         OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
         itv->mute(b);
       });
-  });
+  };
+  con(interval(), &Scenario::IntervalModel::mutedChanged, this, update_mute);
+  con(interval(), &Scenario::IntervalModel::soloMutedChanged, this, update_mute);
 
   con(*interval().outlet, &Process::AudioOutlet::gainChanged, this, [&](double g) {
     OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
@@ -205,7 +207,7 @@ void IntervalComponent::init()
   OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   if(m_interval)
   {
-    if(interval().muted())
+    if(interval().effectivelyMuted())
     {
       m_ossia_interval->mute(true);
     }

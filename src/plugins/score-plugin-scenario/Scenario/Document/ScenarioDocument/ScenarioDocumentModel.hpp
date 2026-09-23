@@ -58,6 +58,10 @@ public:
   void removeBus(const IntervalModel*);
   void busDeleted(const IdentifiedObjectAbstract* itv);
 
+  //! Silences every bus that neither is soloed nor contains or is contained in
+  //! a soloed bus, as soon as one bus is soloed.
+  void updateSoloMutes();
+
   std::vector<const IntervalModel*> busIntervals;
   std::vector<const StateModel*> statesWithControls;
 
