@@ -3,6 +3,7 @@
 #include <Process/Commands/EditPort.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortAddressComboBox.hpp>
+#include <Process/Process.hpp>
 
 #include <Scenario/Commands/Interval/MakeBus.hpp>
 #include <Scenario/Commands/Interval/SetMuteSolo.hpp>
@@ -452,6 +453,25 @@ void BusStrip::syncFromModel()
   m_title->setToolTip(
       m_model.soloMuted() ? tr("%1\nSilenced: another bus is soloed").arg(name)
                           : name);
+}
+
+void BusStrip::updateMeter(const Execution::Telemetry& t)
+{
+  Strip::updateMeter(t);
+
+  double load = -1.;
+  for(auto proc : m_model.findChildren<Process::ProcessModel*>())
+    if(const double l = t.cpuLoad(*proc); l >= 0.)
+      load = std::max(load, 0.) + l;
+
+  if(load >= 0.)
+  {
+    m_badge->setText(
+        m_badge->text() + QStringLiteral(" · ") + QString::number(100. * load, 'f', 1)
+        + QStringLiteral("%"));
+    m_badge->setToolTip(tr("Channels the bus carries, and the share of the real time "
+                           "its processes take to run."));
+  }
 }
 
 void BusStrip::fillContextMenu(QMenu& menu)

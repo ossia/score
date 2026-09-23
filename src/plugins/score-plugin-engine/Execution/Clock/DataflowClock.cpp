@@ -63,14 +63,7 @@ void Clock::play_impl(const TimeVal& t)
   else if(commit == Execution::Settings::CommitPolicies{}.DirectThreaded)
     opt.commit = ossia::tick_setup_options::DirectThreaded;
 
-  if(m_plug.settings.getBench() && m_plug.contextData()->bench)
-  {
-    m_play_tick = Execution::makeBenchmarkTick(opt, m_plug, this->scenario);
-  }
-  else
-  {
-    m_play_tick = Execution::makeExecutionTick(opt, m_plug, this->scenario);
-  }
+  m_play_tick = Execution::makeExecutionTick(opt, m_plug, this->scenario);
 
   auto& app = this->context.doc.app;
   std::vector<Execution::ExecutionAction*> actions;

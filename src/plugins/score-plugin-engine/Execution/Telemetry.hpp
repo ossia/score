@@ -18,6 +18,7 @@ struct DocumentContext;
 namespace Process
 {
 class AudioOutlet;
+class ProcessModel;
 }
 namespace ossia
 {
@@ -64,6 +65,11 @@ public:
   //! Sample rate of the latest update, for turning frames into time.
   int sampleRate() const noexcept;
 
+  //! Share of the real time a process took to run since the previous update,
+  //! 1 being all of it; negative when it is not measured. Processes are
+  //! measured while the benchmark setting is on.
+  double cpuLoad(const Process::ProcessModel& proc) const noexcept;
+
   //! Called by the execution when a graph was built, and when it is torn down.
   void executionStarted();
   void executionStopped();
@@ -84,7 +90,20 @@ private:
     bool attached{};
   };
 
+  // A timed process node.
+  struct Bench
+  {
+    const ossia::graph_node* node{};
+    QPointer<const Process::ProcessModel> process;
+    uint32_t generation{};
+  };
+
   Meter subscribe(ossia::telemetry::tap_kind kind, const Process::AudioOutlet* outlet);
+  bool benchEnabled() const noexcept;
+  //! Follows the process nodes of the running graph; false when the arena
+  //! has no room left for them.
+  bool syncBenches();
+  void reportBenches();
   bool enabled() const noexcept;
   void rebuild();
   void teardown();
@@ -97,6 +116,8 @@ private:
   DocumentPlugin& m_plugin;
   std::vector<Subscription> m_subs;
   std::vector<int> m_free;
+  std::vector<Bench> m_benches;
+  std::vector<int> m_freeBenches;
 
   std::shared_ptr<ossia::telemetry::arena> m_arena;
   bool m_running{};
