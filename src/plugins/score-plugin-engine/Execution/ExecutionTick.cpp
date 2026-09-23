@@ -6,11 +6,13 @@
 #include <Execution/BaseScenarioComponent.hpp>
 #include <Execution/DocumentPlugin.hpp>
 #include <Execution/ExecutionController.hpp>
+#include <Execution/ExecutionTick.hpp>
 
 #include <ossia/audio/audio_protocol.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/dataflow/graph/tick_setup.hpp>
+#include <ossia/dataflow/telemetry.hpp>
 #include <ossia/editor/scenario/execution_log.hpp>
 #include <ossia/editor/scenario/scenario.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
@@ -192,6 +194,12 @@ struct AudioTickHelper
 
     // Before the actions: the library preview is not part of the mix.
     m_proto->apply_main_gain(t);
+
+    if(auto* telemetry = m_context->telemetry.get())
+    {
+      telemetry->accumulate_hardware(t);
+      telemetry->tick(t.frames, m_context->execState->sampleRate);
+    }
 
     for(auto act : m_actions)
       act->endTick(t);
