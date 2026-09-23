@@ -2,6 +2,9 @@
 
 #include <score/tools/IdentifierGeneration.hpp>
 
+#include <ossia/dataflow/execution_state.hpp>
+#include <ossia/dataflow/graph/graph.hpp>
+#include <ossia/dataflow/nodes/faust/faust_node.hpp>
 #include <ossia/detail/disable_fpe.hpp>
 
 #include <QObject>
@@ -534,4 +537,38 @@ TEST_CASE("Faust: an impulse presses a button for one compute", "[faust][button]
   check_port->write_value(ossia::impulse{}, 0);
   ossia::nodes::faust_node_utils::copy_controls(node);
   CHECK(*check_zone == 0.f);
+}
+
+TEST_CASE(
+    "Faust: a mono generator makes a channel with nothing plugged in",
+    "[faust][node]")
+{
+  // score runs every program with at most one input and one output as a mono
+  // effect, one clone per incoming channel.
+  Jit gen{"process = 0.25;"};
+  REQUIRE(gen.ok());
+
+  constexpr int frames = 64;
+  ossia::execution_state e;
+  e.sampleRate = 48000;
+  e.bufferSize = frames;
+  e.modelToSamplesRatio = e.sampleRate / ossia::flicks_per_second<double>;
+  e.samplesToModelRatio = ossia::flicks_per_second<double> / e.sampleRate;
+
+  auto node = std::make_shared<ossia::nodes::faust_mono_fx>(
+      std::shared_ptr<dsp>(gen.dsp, [](dsp*) {}));
+  auto g = ossia::make_graph(ossia::graph_setup_options{});
+  g->add_node(node);
+
+  node->request(ossia::simple_token_request{
+      ossia::time_value{0},
+      ossia::time_value{int64_t(frames * e.samplesToModelRatio)}});
+  e.begin_tick();
+  g->state(e);
+  e.commit();
+
+  const auto& out = node->root_outputs()[0]->cast<ossia::audio_port>();
+  REQUIRE(out.channels() == 1);
+  CHECK(out.channel(0)[frames / 2] == Approx(0.25));
+  g->clear();
 }
