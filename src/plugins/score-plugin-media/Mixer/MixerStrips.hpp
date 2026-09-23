@@ -165,6 +165,8 @@ public:
     None,
     HardwareInputs,
     HardwareOutputs,
+    //! What the graph writes to a virtual port.
+    Virtual,
   };
   //! `channels`: which channels of the hardware meter are this port's, all
   //! of them when empty.

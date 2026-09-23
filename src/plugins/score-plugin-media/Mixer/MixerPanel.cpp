@@ -336,7 +336,7 @@ private:
     for(auto p : proto.out_mappings)
       add(Section::Mapped, p, PortStrip::Meter::HardwareOutputs, mapping(*p));
     for(auto p : proto.virtaudio)
-      add(Section::Virtual, p, PortStrip::Meter::None);
+      add(Section::Virtual, p, PortStrip::Meter::Virtual);
 
     // The master: every output, after the master gain.
     if(auto p = proto.main_audio_out)
