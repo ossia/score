@@ -29,6 +29,7 @@
 #include <QLabel>
 #include <QPointer>
 #include <QScrollArea>
+#include <QScrollBar>
 #include <QSettings>
 #include <QTimer>
 #include <QToolButton>
@@ -141,24 +142,33 @@ public:
     auto body_lay = new score::MarginLess<QHBoxLayout>{body};
     m_scroll = new QScrollArea{body};
     m_scroll->setWidgetResizable(true);
+    m_scroll->setFrameShape(QFrame::NoFrame);
     m_scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     m_scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     auto content = new QWidget{m_scroll};
     auto content_lay = new score::MarginLess<QHBoxLayout>{content};
-    content_lay->setSpacing(6);
+    content_lay->setSpacing(12);
+    // Every section header has the same height, with or without a button,
+    // so that the strips below them start at the same height.
+    const int header_h = fontMetrics().height() + 8;
     for(int i = 0; i < section_count; i++)
     {
       auto sec = new QFrame{content};
       auto sec_lay = new score::MarginLess<QVBoxLayout>{sec};
-      auto header = new score::MarginLess<QHBoxLayout>;
+      auto header_w = new QWidget{sec};
+      header_w->setFixedHeight(header_h);
+      auto header = new QHBoxLayout{header_w};
+      header->setContentsMargins(3, 0, 0, 0);
+      header->setSpacing(4);
       auto title = new QLabel{sectionName(Section(i)), sec};
-      title->setAlignment(Qt::AlignLeft);
+      title->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
       header->addWidget(title);
       if(Section(i) == Section::Mapped || Section(i) == Section::Virtual)
       {
         auto add = new QToolButton{sec};
         add->setText(QStringLiteral("+"));
         add->setAutoRaise(true);
+        add->setFixedSize(header_h - 4, header_h - 4);
         score::setHelp(
             add, tr("Add a port to the audio device: some channels of the sound "
                     "card, or a virtual port."));
@@ -170,10 +180,10 @@ public:
         header->addWidget(add);
       }
       header->addStretch(1);
-      sec_lay->addLayout(header);
+      sec_lay->addWidget(header_w);
       auto strips = new QWidget{sec};
       auto strips_lay = new score::MarginLess<QHBoxLayout>{strips};
-      strips_lay->setSpacing(1);
+      strips_lay->setSpacing(2);
       strips_lay->setAlignment(Qt::AlignLeft);
       sec_lay->addWidget(strips, 1);
       content_lay->addWidget(sec);
@@ -186,8 +196,25 @@ public:
     body_lay->addWidget(m_scroll, 1);
 
     m_master = new QWidget{body};
-    new score::MarginLess<QHBoxLayout>{m_master};
+    {
+      auto master_lay = new score::MarginLess<QVBoxLayout>{m_master};
+      auto spacer = new QWidget{m_master};
+      spacer->setFixedHeight(header_h);
+      master_lay->addWidget(spacer);
+    }
+    body_lay->addSpacing(12);
     body_lay->addWidget(m_master);
+
+    // The strips never get shorter than they can be; while the sections
+    // scroll, the master leaves the scroll bar's room too, so that both end
+    // at the same height.
+    auto bar_h = m_scroll->horizontalScrollBar()->sizeHint().height();
+    m_scroll->setMinimumHeight(content->minimumSizeHint().height() + bar_h);
+    connect(
+        m_scroll->horizontalScrollBar(), &QScrollBar::rangeChanged, this,
+        [this, bar_h](int, int max) {
+      m_master->layout()->setContentsMargins(0, 0, 0, max > 0 ? bar_h : 0);
+    });
     lay->addWidget(body, 1);
 
     // An empty Buses section says how to fill it.
@@ -198,7 +225,6 @@ public:
           tr("No bus yet.\nMark an interval as a bus in its inspector,\nor select "
              "intervals and add them:"),
           m_emptyBuses};
-      label->setWordWrap(true);
       l->addWidget(label);
       auto add = new QToolButton{m_emptyBuses};
       add->setText(tr("Add the selected intervals"));
@@ -345,7 +371,7 @@ private:
       auto s = new PortStrip{*p, PortStrip::Meter::HardwareOutputs, {}, m_context, m_master};
       s->setStripWidth(StripWidth::Wide);
       score::setHelp(s, tr("The master: its gain applies to every output."));
-      m_master->layout()->addWidget(s);
+      static_cast<QVBoxLayout*>(m_master->layout())->addWidget(s, 1);
       m_portStrips.push_back(s);
     }
   }

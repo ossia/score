@@ -79,6 +79,22 @@ QString dbText(double gain)
   return QString::number(20. * std::log10(gain), 'f', 1) + QStringLiteral(" dB");
 }
 
+// Every row keeps its place when empty, so that strips line up.
+void keepPlace(QWidget* w)
+{
+  auto sp = w->sizePolicy();
+  sp.setRetainSizeWhenHidden(true);
+  w->setSizePolicy(sp);
+}
+
+// Height of the controls under the meters of buses: the other strips leave
+// the same room empty.
+constexpr int toggle_h = 20;
+constexpr int pan_h = 14;
+constexpr int route_h = 22;
+constexpr int row_gap = 3;
+constexpr int controls_h = toggle_h + row_gap + pan_h + row_gap + route_h;
+
 // A toggle whose checked state stands out in its own colour.
 QToolButton* makeToggle(
     const QString& text, const QString& help, const QColor& on, QWidget* parent)
@@ -87,6 +103,7 @@ QToolButton* makeToggle(
   b->setText(text);
   b->setCheckable(true);
   b->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+  b->setFixedHeight(toggle_h);
   b->setStyleSheet(
       QStringLiteral(
           "QToolButton { border: 1px solid %2; border-radius: 2px; padding: 1px; }"
@@ -138,9 +155,8 @@ void GainFader::paintEvent(QPaintEvent*)
   QPainter p{this};
 
   // A thin track, lit below a cap that sits at the value.
-  constexpr double cap_h = 8.;
   const double w = width();
-  const double usable = std::max(1., height() - cap_h);
+  const double usable = std::max(1., double(height() - cap_h));
   const double y = (1. - value()) * usable;
   const double cx = w / 2.;
 
@@ -213,45 +229,93 @@ Strip::Strip(const score::DocumentContext& ctx, QWidget* parent)
     , m_context{ctx}
     , m_telemetry{&ctx.plugin<Execution::DocumentPlugin>().telemetry()}
 {
+  auto& skin = score::Skin::instance();
   m_layout = new QVBoxLayout{this};
   m_layout->setContentsMargins(3, 3, 3, 3);
-  m_layout->setSpacing(3);
+  m_layout->setSpacing(row_gap);
 
   m_title = new QPushButton{this};
   m_title->setFlat(true);
   m_title->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+  m_title->setFixedHeight(m_title->fontMetrics().height() + 6);
+  setTitleColor(Qt::transparent);
   m_layout->addWidget(m_title);
 
   m_badge = new QLabel{this};
   m_badge->setAlignment(Qt::AlignCenter);
-  m_badge->setFont(score::Skin::instance().SansFontSmall);
+  m_badge->setFont(skin.SansFontSmall);
+  m_badge->setFixedHeight(m_badge->fontMetrics().height());
+  keepPlace(m_badge);
   score::setHelp(m_badge, tr("Channels the signal carries."));
   m_layout->addWidget(m_badge);
 
+  // The meter spans the travel of the fader's cap, so that both have the
+  // same top and bottom.
   auto row = new QHBoxLayout;
   row->setContentsMargins(0, 0, 0, 0);
   row->setSpacing(2);
+  auto meter_col = new QVBoxLayout;
+  meter_col->setContentsMargins(0, GainFader::cap_h / 2, 0, GainFader::cap_h / 2);
   m_meter = new score::LevelMeter{this};
   m_meter->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  keepPlace(m_meter);
+  meter_col->addWidget(m_meter);
   m_fader = new GainFader{this};
-  row->addWidget(m_meter, 1);
+  row->addLayout(meter_col, 1);
   row->addWidget(m_fader);
   m_layout->addLayout(row, 1);
 
   m_readout = new QLabel{this};
   m_readout->setAlignment(Qt::AlignCenter);
-  m_readout->setFont(score::Skin::instance().SansFontSmall);
+  m_readout->setFont(skin.SansFontSmall);
+  m_readout->setFixedHeight(m_readout->fontMetrics().height());
+  keepPlace(m_readout);
   m_layout->addWidget(m_readout);
 
-  m_buttons = new QWidget{this};
+  m_controls = new QWidget{this};
+  m_controls->setFixedHeight(controls_h);
+  auto controls = new QVBoxLayout{m_controls};
+  controls->setContentsMargins(0, 0, 0, 0);
+  controls->setSpacing(row_gap);
+  m_buttons = new QWidget{m_controls};
   auto buttons = new QHBoxLayout{m_buttons};
   buttons->setContentsMargins(0, 0, 0, 0);
   buttons->setSpacing(1);
-  m_layout->addWidget(m_buttons);
+  controls->addWidget(m_buttons);
+  controls->addStretch(1);
+  m_layout->addWidget(m_controls);
 
   m_meter->hide();
   m_badge->hide();
   setStripWidth(StripWidth::Normal);
+}
+
+void Strip::setTitle(const QString& t)
+{
+  m_titleText = t;
+  elideTitle();
+}
+
+void Strip::elideTitle()
+{
+  // The left border and the padding take 8 pixels.
+  m_title->setText(m_title->fontMetrics().elidedText(
+      m_titleText, Qt::ElideRight, std::max(0, m_title->width() - 8)));
+}
+
+void Strip::resizeEvent(QResizeEvent* e)
+{
+  QWidget::resizeEvent(e);
+  elideTitle();
+}
+
+void Strip::setTitleColor(const QColor& c)
+{
+  // The same box for every strip; a bus shows its interval's colour on the left.
+  m_title->setStyleSheet(
+      QStringLiteral("QPushButton { border: none; border-left: 4px solid %1; "
+                     "padding: 0px 4px 0px 0px; text-align: center; }")
+          .arg(c.alpha() == 0 ? QStringLiteral("transparent") : c.name()));
 }
 
 Strip::~Strip()
@@ -402,12 +466,15 @@ BusStrip::BusStrip(
   buttons->addWidget(m_solo);
   buttons->addWidget(m_propagate);
 
-  m_pan = new PanSlider{this};
-  m_layout->addWidget(m_pan);
+  auto controls = static_cast<QVBoxLayout*>(m_controls->layout());
+  m_pan = new PanSlider{m_controls};
+  m_pan->setFixedHeight(pan_h);
+  controls->insertWidget(1, m_pan);
 
-  auto combo = Process::makePortAddressCombo(outlet, ctx, this);
+  auto combo = Process::makePortAddressCombo(outlet, ctx, m_controls);
   combo->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
-  m_layout->addWidget(combo);
+  combo->setFixedHeight(route_h);
+  controls->insertWidget(2, combo);
 
   connect(m_fader, &GainFader::valueChanged, this, [this](double p) {
     const double g = GainFader::positionToGain(p);
@@ -482,12 +549,9 @@ void BusStrip::syncFromModel()
   }
 
   const auto& name = m_model.metadata().getName();
-  m_title->setText(name);
+  setTitle(name);
   const QColor color = m_model.metadata().getColor().getBrush().color();
-  m_title->setStyleSheet(
-      QStringLiteral("QPushButton { border-left: 4px solid %1; text-align: left; "
-                     "padding-left: 3px; }")
-          .arg(color.name()));
+  setTitleColor(color);
 
   QFont f = m_title->font();
   f.setItalic(m_model.soloMuted());
@@ -632,7 +696,7 @@ PortStrip::PortStrip(
     , m_param{&param}
 {
   const auto address = QString::fromStdString(param.get_node().osc_address());
-  m_title->setText(address);
+  setTitle(address);
   m_title->setToolTip(tr("audio:%1").arg(address));
   m_buttons->hide();
 
