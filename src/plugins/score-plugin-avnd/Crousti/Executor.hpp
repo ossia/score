@@ -853,12 +853,10 @@ public:
       followExecutionUpdate(
           [this, weak_node, timer_action, &ctx,
            timer = std::make_shared<QMetaObject::Connection>()](bool enabled) {
-        // The node enqueues its control outputs for the UI every tick; with
-        // no reader, that queue grows without bound and allocates in the
-        // audio callback. Tell it not to bother.
-        if constexpr(control_outputs_type::size > 0)
-          if(auto n = weak_node.lock())
-            n->control.notify_ui.store(enabled, std::memory_order_relaxed);
+        // Without a reader installed below, the node need not copy its control
+        // values for the UI.
+        if(auto n = weak_node.lock())
+          n->control.notify_ui.store(enabled, std::memory_order_relaxed);
 
         QObject::disconnect(*timer);
         if(enabled)
