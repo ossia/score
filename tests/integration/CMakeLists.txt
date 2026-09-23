@@ -293,37 +293,13 @@ score_add_test(test_integration_js_process_ui
   GUI
   PLUGINS score_plugin_scenario score_lib_process score_plugin_js score_plugin_library)
 
-# JS::ProcessModel::rootPath() caches the Library settings model in a
-# function-local static reference, so the second score application built in a
-# process reads the first one's freed settings when a Javascript process is
-# created. Its own executable, because the failure takes the whole binary with
-# it.
-#
-# THE VERDICT IS ONLY RELIABLE UNDER ASan, hence the conditional property. Off
-# ASan the defect still fires, for the documented reason -- the freed QString's
-# data pointer is garbage, so Qt's own Q_ASSERT("p") in qarraydatapointer.h:111
-# goes off inside Library::Settings::Model::getDefaultLibraryPath() <-
-# JS::ProcessModel::rootPath() <- JS::ComponentCache::getExecution(), and
-# SafeQApplication::DebugOutput raises SIGTRAP -- but only when the freed block
-# happens to hold a value that trips the assert. Ten consecutive runs on a plain
-# Debug build: 133 0 0 133 133 133 133 133 133 133, eight red and two green,
-# same binary, same environment. Neither verdict can be trusted there, so the
-# entry is DISABLED: ctest lists it and reports it as disabled, which is
-# visible. Under ASan the read is caught on the FIRST access rather than only
-# when the garbage is unlucky, so the abort is deterministic and WILL_FAIL is
-# exact.
-#
-# Registered with the CORRECT expectation, so under ASan fixing rootPath() turns
-# this entry red: the signal to drop the WILL_FAIL entirely.
+# JS::ProcessModel::rootPath() must not cache the Library settings in a static:
+# a second application in the same process would read freed settings. Own
+# executable, since a regression aborts.
 score_add_test(test_integration_js_rootpath_static
   SOURCES JsRootPathStaticTest.cpp
   GUI
   PLUGINS score_plugin_scenario score_lib_process score_plugin_js score_plugin_library)
-if(CMAKE_CXX_FLAGS MATCHES "sanitize=[a-z,]*address")
-  set_tests_properties(test_integration_js_rootpath_static PROPERTIES WILL_FAIL TRUE)
-else()
-  set_tests_properties(test_integration_js_rootpath_static PROPERTIES DISABLED TRUE)
-endif()
 
 # Opening a Javascript process UI never emits externalUIVisible(true), so the
 # controls that opened it stay in the closed state. [!shouldfail] with the

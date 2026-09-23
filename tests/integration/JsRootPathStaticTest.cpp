@@ -1,4 +1,4 @@
-// JS::ProcessModel::rootPath() (JSProcessModel.cpp) caches the Library
+// JS::ProcessModel::rootPath() (JSProcessModel.cpp) must not cache the Library
 // settings model in a function-local static reference:
 //
 //   static const auto& lib = score::AppContext().settings<Library::Settings::Model>();
@@ -24,9 +24,8 @@
 // the first passes, the second reads freed memory. That is also why
 // JsProcessUiTest is a single TEST_CASE.
 //
-// Its own executable and WILL_FAIL because ASan aborts the process, so nothing
-// after it in a binary is reported. When rootPath() stops caching, this passes
-// and the ctest entry goes red -- the signal to drop WILL_FAIL.
+// In its own executable because an ASan abort would take the rest of a binary
+// with it.
 
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
