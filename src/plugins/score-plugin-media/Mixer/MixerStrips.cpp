@@ -688,13 +688,17 @@ void PortStrip::onNodeRemoved(const ossia::net::node_base&)
 }
 
 void addAudioPort(
-    const score::DocumentContext& ctx, Dataflow::AudioDevice& dev, QWidget* parent)
+    const score::DocumentContext& ctx, Dataflow::AudioDevice& dev, QWidget* parent,
+    const std::string& kind)
 {
   auto proto = protocolOf(ctx, dev);
   if(!proto)
     return;
+  Device::AddressSettings proposed;
+  proposed.extendedAttributes["audio-kind"] = kind;
+  proposed.extendedAttributes["audio-channels"] = 2;
   std::unique_ptr<Device::AddressDialog> dial{
-      proto->makeAddAddressDialog(dev, ctx, parent)};
+      proto->makeEditAddressDialog(proposed, dev, ctx, parent)};
   if(!dial || dial->exec() != QDialog::Accepted)
     return;
 

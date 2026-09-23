@@ -162,9 +162,10 @@ public:
         score::setHelp(
             add, tr("Add a port to the audio device: some channels of the sound "
                     "card, or a virtual port."));
-        connect(add, &QToolButton::clicked, this, [this] {
+        const std::string kind = Section(i) == Section::Virtual ? "virtual" : "in";
+        connect(add, &QToolButton::clicked, this, [this, kind] {
           if(m_device)
-            addAudioPort(m_context, *m_device, this);
+            addAudioPort(m_context, *m_device, this, kind);
         });
         header->addWidget(add);
       }
