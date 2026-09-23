@@ -17,12 +17,15 @@ struct DocumentContext;
 }
 namespace Process
 {
+class AudioInlet;
 class AudioOutlet;
+class Port;
 class ProcessModel;
 }
 namespace ossia
 {
 class graph_node;
+struct audio_inlet;
 struct audio_outlet;
 }
 namespace Execution
@@ -53,6 +56,8 @@ public:
 
   //! What an audio outlet carries, after its gain and pan.
   Meter meterOutlet(const Process::AudioOutlet& outlet);
+  //! What an audio inlet receives, once all its sources are mixed.
+  Meter meterInlet(const Process::AudioInlet& inlet);
   //! Every hardware input, or every hardware output after the master gain.
   Meter meterHardwareInputs();
   Meter meterHardwareOutputs();
@@ -80,12 +85,14 @@ private:
   struct Subscription
   {
     ossia::telemetry::tap_kind kind{};
-    QPointer<const Process::AudioOutlet> outlet;
+    QPointer<const Process::Port> port;
+    bool inlet{};
     uint32_t generation{};
     int users{};
 
     // Where the tap is attached in the running graph, if it is.
     std::weak_ptr<ossia::graph_node> node;
+    ossia::audio_inlet* ossia_inlet{};
     ossia::audio_outlet* ossia_outlet{};
     bool attached{};
   };
@@ -98,7 +105,7 @@ private:
     uint32_t generation{};
   };
 
-  Meter subscribe(ossia::telemetry::tap_kind kind, const Process::AudioOutlet* outlet);
+  Meter subscribe(ossia::telemetry::tap_kind kind, const Process::Port* port, bool inlet);
   bool benchEnabled() const noexcept;
   //! Follows the process nodes of the running graph; false when the arena
   //! has no room left for them.
