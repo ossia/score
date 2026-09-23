@@ -1,11 +1,13 @@
 #include "Telemetry.hpp"
 
 #include <Process/Dataflow/Port.hpp>
+#include <Process/Process.hpp>
 
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
 #include <Audio/Settings/Model.hpp>
 #include <Execution/DocumentPlugin.hpp>
+#include <Execution/Settings/ExecutorModel.hpp>
 
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/Bind.hpp>
@@ -14,6 +16,8 @@
 #include <ossia/dataflow/port.hpp>
 
 #include <QTimer>
+
+#include <algorithm>
 
 #include <wobjectimpl.h>
 
@@ -147,6 +151,109 @@ int Telemetry::sampleRate() const noexcept
   return m_arena ? m_arena->latest().sample_rate : 0;
 }
 
+double Telemetry::cpuLoad(const Process::ProcessModel& proc) const noexcept
+{
+  if(!m_arena)
+    return -1.;
+  const auto& f = m_arena->latest();
+  for(std::size_t i = 0; i < m_benches.size() && i < f.benches.size(); i++)
+  {
+    const auto& b = m_benches[i];
+    if(b.process == &proc && f.benches[i].generation == b.generation)
+      return f.load(f.benches[i]);
+  }
+  return -1.;
+}
+
+bool Telemetry::benchEnabled() const noexcept
+{
+  auto& ctx = m_plugin.contextData();
+  return ctx && ctx->bench && m_plugin.settings.getBench();
+}
+
+bool Telemetry::syncBenches()
+{
+  auto& ctx = m_plugin.contextData();
+  if(!m_arena || !benchEnabled())
+    return true;
+
+  const auto& procs = ctx->setupContext.proc_map;
+
+  // Nodes that left the graph give their slot back. The node itself is gone
+  // or going: only the arena lets go of the tap.
+  for(std::size_t i = 0; i < m_benches.size(); i++)
+  {
+    auto& b = m_benches[i];
+    if(!b.node)
+      continue;
+    auto it = procs.find(b.node);
+    if(it != procs.end() && it->second == b.process)
+      continue;
+
+    ctx->m_execQueue.enqueue(
+        [arena = m_arena, i, tap = std::shared_ptr<ossia::telemetry::bench_tap>{}]() mutable {
+      arena->attach_bench(i, 0, tap);
+    });
+    b = Bench{};
+    m_freeBenches.push_back(int(i));
+  }
+
+  // New nodes get a slot and a tap. A node still in proc_map has not been
+  // removed yet, and its removal will be queued after this.
+  static uint32_t generations = 0;
+  for(const auto& [node, proc] : procs)
+  {
+    if(!node || !proc)
+      continue;
+    if(std::any_of(m_benches.begin(), m_benches.end(), [n = node](const Bench& b) {
+         return b.node == n;
+       }))
+      continue;
+
+    int index{};
+    if(!m_freeBenches.empty())
+    {
+      index = m_freeBenches.back();
+      m_freeBenches.pop_back();
+    }
+    else
+    {
+      index = int(m_benches.size());
+      m_benches.emplace_back();
+    }
+    if(std::size_t(index) >= m_arena->bench_capacity())
+      return false;
+
+    auto& b = m_benches[index];
+    b.node = node;
+    b.process = proc;
+    b.generation = ++generations;
+
+    auto tap = std::make_shared<ossia::telemetry::bench_tap>();
+    ctx->m_execQueue.enqueue(
+        [arena = m_arena, index, gen = b.generation, in_arena = tap, in_node = tap,
+         n = const_cast<ossia::graph_node*>(node)]() mutable {
+      arena->attach_bench(index, gen, in_arena);
+      std::swap(n->bench_tap, in_node);
+    });
+  }
+  return true;
+}
+
+void Telemetry::reportBenches()
+{
+  if(!m_arena)
+    return;
+  const auto& f = m_arena->latest();
+  for(std::size_t i = 0; i < m_benches.size() && i < f.benches.size(); i++)
+  {
+    const auto& b = m_benches[i];
+    if(b.process && f.benches[i].generation == b.generation)
+      const_cast<Process::ProcessModel*>(b.process.data())
+          ->benchmark(100. * f.load(f.benches[i]));
+  }
+}
+
 void Telemetry::executionStarted()
 {
   m_running = true;
@@ -159,6 +266,8 @@ void Telemetry::executionStopped()
   // The graph goes away with its outlets and its context: nothing to detach.
   m_running = false;
   m_arena.reset();
+  m_benches.clear();
+  m_freeBenches.clear();
   for(auto& s : m_subs)
   {
     s.attached = false;
@@ -177,7 +286,12 @@ void Telemetry::rebuild()
   teardown();
 
   const std::size_t capacity = std::max<std::size_t>(64, 2 * m_subs.size());
-  m_arena = std::make_shared<ossia::telemetry::arena>(capacity);
+  const std::size_t benches
+      = benchEnabled()
+            ? std::max<std::size_t>(
+                  64, 2 * std::max(m_benches.size(), ctx->setupContext.proc_map.size()))
+            : 0;
+  m_arena = std::make_shared<ossia::telemetry::arena>(capacity, benches);
   m_arena->set_publish_interval(publishInterval());
 
   ctx->m_execQueue.enqueue(
@@ -190,6 +304,11 @@ void Telemetry::rebuild()
   for(std::size_t i = 0; i < m_subs.size(); i++)
     if(m_subs[i].users > 0)
       attach(i);
+
+  // Every slot of the new arena starts empty.
+  m_benches.clear();
+  m_freeBenches.clear();
+  syncBenches();
 }
 
 void Telemetry::teardown()
@@ -280,7 +399,17 @@ void Telemetry::read()
     if(m_subs[i].users > 0 && !m_subs[i].attached)
       attach(i);
 
+  if(!syncBenches())
+  {
+    // More process nodes than the arena has room for.
+    rebuild();
+    return;
+  }
+
   if(m_arena->consume())
+  {
+    reportBenches();
     updated();
+  }
 }
 }

@@ -19,8 +19,4 @@ tick_fun makeExecutionTick(
     ossia::tick_setup_options opt, Execution::DocumentPlugin& plug,
     const std::shared_ptr<Execution::BaseScenarioElement>& scenar);
 
-SCORE_PLUGIN_ENGINE_EXPORT
-tick_fun makeBenchmarkTick(
-    ossia::tick_setup_options opt, Execution::DocumentPlugin& plug,
-    const std::shared_ptr<Execution::BaseScenarioElement>& scenar);
 }

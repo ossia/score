@@ -36,7 +36,7 @@
 #include <core/document/DocumentModel.hpp>
 
 #include <ossia/audio/audio_protocol.hpp>
-#include <ossia/dataflow/bench_map.hpp>
+#include <ossia/dataflow/bench_state.hpp>
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/for_each_port.hpp>
@@ -56,7 +56,6 @@
 #include <thread>
 
 #include <wobjectimpl.h>
-W_REGISTER_ARGTYPE(ossia::bench_map)
 W_OBJECT_IMPL(Execution::DocumentPlugin)
 namespace Execution
 {
@@ -378,9 +377,9 @@ void DocumentPlugin::makeGraph()
     opt.log = ossia::logger_ptr();
   if(settings.getBench())
   {
-    bench = std::make_shared<bench_map>();
+    bench = std::make_shared<bench_state>();
+    bench->measure = true;
     opt.bench = bench;
-    opt.bench->clear();
   }
 
   if(sched == sched_t.StaticFixed)
@@ -568,25 +567,6 @@ void DocumentPlugin::runAllCommands() const
 void DocumentPlugin::registerAction(ExecutionAction& act)
 {
   m_actions.push_back(&act);
-}
-
-void DocumentPlugin::slot_bench(ossia::bench_map b, int64_t ns)
-{
-  for(const auto& p : b)
-  {
-    if(p.second)
-    {
-      auto proc = m_ctxData->setupContext.proc_map.find(p.first);
-      if(proc != m_ctxData->setupContext.proc_map.end())
-      {
-        if(proc->second)
-        {
-          const_cast<Process::ProcessModel*>(proc->second)
-              ->benchmark(100. * *p.second / (double)ns);
-        }
-      }
-    }
-  }
 }
 
 void DocumentPlugin::on_deviceAdded(Device::DeviceInterface* dev)
