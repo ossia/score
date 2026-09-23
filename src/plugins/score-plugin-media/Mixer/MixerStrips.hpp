@@ -129,6 +129,9 @@ public:
 
   const Scenario::IntervalModel& interval() const noexcept { return m_model; }
 
+  //! Also shows the CPU share of every process in the bus, when measured.
+  void updateMeter(const Execution::Telemetry& t) override;
+
 private:
   void fillContextMenu(QMenu&) override;
   void syncFromModel();
