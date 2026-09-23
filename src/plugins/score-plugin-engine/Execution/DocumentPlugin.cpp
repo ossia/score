@@ -43,6 +43,7 @@
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/dataflow/graph_edge.hpp>
 #include <ossia/dataflow/port.hpp>
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/flicks.hpp>
 #include <ossia/detail/logger.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
@@ -227,9 +228,17 @@ void DocumentPlugin::initExecState()
       = score::DocumentPlugin::context().plugin<Explorer::DeviceDocumentPlugin>().list();
   local_device = list.localDevice();
   if(audio_device)
-    m_ctxData->execState->register_device(audio_device->getDevice());
+    if(auto d = audio_device->getDevice())
+    {
+      m_ctxData->execState->register_device(d);
+      watchDevice(*d);
+    }
   if(local_device)
-    m_ctxData->execState->register_device(local_device->getDevice());
+    if(auto d = local_device->getDevice())
+    {
+      m_ctxData->execState->register_device(d);
+      watchDevice(*d);
+    }
   for(auto dev : list.devices())
   {
     registerDevice(dev->getDevice());
@@ -246,6 +255,7 @@ bool DocumentPlugin::registerDevice(ossia::net::device_base* d)
 {
   if(!d)
     return false;
+  watchDevice(*d);
   if(m_ctxData->execState)
   {
     if(ossia::contains(m_ctxData->execState->edit_devices(), d))
@@ -259,8 +269,83 @@ bool DocumentPlugin::registerDevice(ossia::net::device_base* d)
   return false;
 }
 
+void DocumentPlugin::watchDevice(ossia::net::device_base& d)
+{
+  if(ossia::contains(m_watchedDevices, &d))
+    return;
+  m_watchedDevices.push_back(&d);
+  d.on_parameter_removing.connect<&DocumentPlugin::on_parameterRemoving>(*this);
+}
+
+void DocumentPlugin::on_parameterRemoving(const ossia::net::parameter_base& param)
+{
+  // Ports keep raw pointers to the parameters they read and write, and this
+  // one is destroyed as soon as this returns: the ports that point to it let
+  // go of it while the audio callback skips its tick.
+  const auto& g = m_ctxData->execGraph;
+  const auto& st = m_ctxData->execState;
+  if(!g || !st)
+    return;
+
+  // Most removals concern a device no port points to: they need no pause.
+  const auto device
+      = QString::fromStdString(param.get_node().get_device().get_name());
+  auto points_to_device = [&](const auto& ports) {
+    for(const auto& [port, exec] : ports)
+      if(port && port->address().address.device == device)
+        return true;
+    return false;
+  };
+  if(!points_to_device(m_ctxData->setupContext.inlets)
+     && !points_to_device(m_ctxData->setupContext.outlets))
+    return;
+
+  auto* p = const_cast<ossia::net::parameter_base*>(&param);
+  auto* n = &param.get_node();
+  auto drop = [&] {
+    auto refers = [&](const ossia::destination_t& dest) {
+      if(auto x = dest.target<ossia::net::parameter_base*>())
+        return *x == p;
+      if(auto x = dest.target<ossia::net::node_base*>())
+        return *x == n;
+      return false;
+    };
+    bool dirty = false;
+    auto forget = [&](auto& port) {
+      if(refers(port.address))
+      {
+        st->unregister_port(port);
+        port.address = {};
+        dirty = true;
+      }
+    };
+    for(auto node : g->get_nodes())
+    {
+      ossia::for_each_inlet(*node, forget);
+      ossia::for_each_outlet(*node, forget);
+    }
+    if(dirty)
+      g->mark_dirty();
+    st->forget(param);
+  };
+
+  auto& engine = m_context.app.guiApplicationPlugin<Audio::ApplicationPlugin>().audio;
+  if(engine)
+    engine->run_parked(drop);
+  else
+    drop();
+}
+
 bool DocumentPlugin::unregisterDevice(ossia::net::device_base* d)
 {
+  if(d)
+  {
+    if(auto it = ossia::find(m_watchedDevices, d); it != m_watchedDevices.end())
+    {
+      d->on_parameter_removing.disconnect<&DocumentPlugin::on_parameterRemoving>(*this);
+      m_watchedDevices.erase(it);
+    }
+  }
   if(!m_ctxData->execState)
     return false;
   if(!ossia::contains(m_ctxData->execState->edit_devices(), d))
