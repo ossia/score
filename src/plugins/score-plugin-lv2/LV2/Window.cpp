@@ -183,7 +183,14 @@ Window::Window(const Model& fx, const score::DocumentContext& ctx, QWidget* pare
 
   if(!fx.effectContext.ui_instance)
     throw std::runtime_error("UI creation error");
-  fx.uiListening.store(true, std::memory_order_release);
+
+  // What the plug-in said to an interface that has since been closed.
+  {
+    Message stale;
+    while(fx.plugin_events->queue.try_dequeue(stale))
+      ;
+  }
+  fx.plugin_events->ui_open = true;
 
   // Setup the widget stuff
   auto widget = (QWidget*)suil.instance_get_widget(fx.effectContext.ui_instance);
@@ -208,7 +215,7 @@ Window::Window(const Model& fx, const score::DocumentContext& ctx, QWidget* pare
 
     {
       Message ev;
-      while(fx.plugin_events.try_dequeue(ev))
+      while(fx.plugin_events->queue.try_dequeue(ev))
       {
         suil.instance_port_event(
             fx.effectContext.ui_instance, ev.index, ev.body.size(), ev.protocol,
@@ -307,7 +314,7 @@ void Window::closeEvent(QCloseEvent* event)
 
   auto& p = score::GUIAppContext().applicationPlugin<LV2::ApplicationPlugin>();
 
-  m_model.uiListening.store(false, std::memory_order_release);
+  m_model.plugin_events->ui_open = false;
   p.suil.instance_free(m_model.effectContext.ui_instance);
   m_model.effectContext.ui_instance = nullptr;
 
@@ -317,7 +324,7 @@ void Window::closeEvent(QCloseEvent* event)
   drainUiEvents();
   {
     Message ev;
-    while(m_model.plugin_events.try_dequeue(ev))
+    while(m_model.plugin_events->queue.try_dequeue(ev))
     {
     }
   }

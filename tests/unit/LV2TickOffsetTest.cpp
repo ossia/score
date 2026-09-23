@@ -34,6 +34,7 @@ QString bundlePath()
 struct noop_hook
 {
   void operator()() const noexcept { }
+  void operator()(auto&) const noexcept { }
 };
 using test_node = LV2::lv2_node<noop_hook, noop_hook>;
 

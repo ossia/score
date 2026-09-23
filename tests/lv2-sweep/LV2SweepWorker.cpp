@@ -67,6 +67,7 @@ namespace
 struct noop_hook
 {
   void operator()() const noexcept { }
+  void operator()(auto&) const noexcept { }
 };
 using sweep_node = LV2::lv2_node<noop_hook, noop_hook>;
 
