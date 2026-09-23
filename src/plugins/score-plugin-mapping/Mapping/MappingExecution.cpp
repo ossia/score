@@ -85,10 +85,10 @@ void Component::recompute()
 
   if(curve)
   {
-    std::function<void()> v
-        = [proc = std::dynamic_pointer_cast<ossia::nodes::mapping>(OSSIAProcess().node),
-           curve] { proc->set_behavior(std::move(curve)); };
-    in_exec([fun = std::move(v)] { fun(); });
+    // The previous curve ends up in the lambda, which the engine destroys
+    // on this thread.
+    in_exec([proc = std::dynamic_pointer_cast<ossia::nodes::mapping>(OSSIAProcess().node),
+             b = ossia::behavior{std::move(curve)}]() mutable { proc->swap_behavior(b); });
     return;
   }
 }
@@ -108,7 +108,7 @@ std::shared_ptr<ossia::curve_abstract> Component::on_curveChanged_impl2()
   auto scale_x = [=](double val) -> X_T { return val * (xmax - xmin) + xmin; };
   auto scale_y = [=](double val) -> Y_T { return val * (ymax - ymin) + ymin; };
 
-  auto segt_data = process().curve().sortedSegments();
+  const auto& segt_data = process().curve().sortedSegments();
   if(segt_data.size() != 0)
   {
     return Engine::score_to_ossia::curve<X_T, Y_T>(scale_x, scale_y, segt_data, {});

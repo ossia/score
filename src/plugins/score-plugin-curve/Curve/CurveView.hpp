@@ -6,6 +6,8 @@
 
 #include <score_plugin_curve_export.h>
 
+#include <Curve/Envelope.hpp>
+
 #include <verdigris>
 
 class QGraphicsSceneContextMenuEvent;
@@ -32,6 +34,7 @@ public:
 
   void setModel(const Curve::Presenter* p, const Curve::Model* m) noexcept;
   void setDirectDraw(bool) noexcept;
+  bool directDraw() const noexcept { return m_directDraw; }
   void setDefaultWidth(double w) noexcept;
   void setRect(const QRectF& theRect) noexcept;
   QRectF boundingRect() const override;
@@ -70,11 +73,15 @@ private:
 
   void contextMenuEvent(QGraphicsSceneContextMenuEvent*) override;
 
-  void drawAllPoints(QPainter* painter);
-  void drawOptimized(QPainter* painter);
+  void drawEnvelope(QPainter& painter, QRectF exposed);
 
   const Curve::Presenter* m_presenter{};
   const Curve::Model* m_model{};
+  // Of the model's points, rebuilt on the next paint after a change.
+  MinMaxPyramid m_pyramid;
+  // Their abscissas, contiguous: searched on every paint.
+  ossia::pod_vector<double> m_xs;
+  bool m_pyramidDirty{true};
   QRectF m_rect; // The rect in which the whole curve must fit.
   QRectF m_selectArea;
   QPointF m_tooltipPos;

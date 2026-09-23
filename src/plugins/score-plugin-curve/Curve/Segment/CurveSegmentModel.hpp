@@ -24,6 +24,7 @@
 class QObject;
 namespace Curve
 {
+class PointModel;
 // Gives the data.
 class SCORE_PLUGIN_CURVE_EXPORT SegmentModel
     : public IdentifiedObject<SegmentModel>
@@ -66,6 +67,11 @@ public:
   void setFollowing(const OptionalId<SegmentModel>& following);
   const OptionalId<SegmentModel>& following() const { return m_following; }
 
+  //! Updates the type-specific data in place, emitting dataChanged if it
+  //! changes.
+  virtual void setSpecificData(const QVariant& data);
+  virtual bool specificDataEquals(const QVariant& data) const noexcept;
+
   // Between -1 and 1, to map to the real parameter.
   virtual void setVerticalParameter(double p);
   virtual void setHorizontalParameter(double p);
@@ -75,6 +81,15 @@ public:
   virtual ossia::curve_segment<double> makeDoubleFunction() const = 0;
   virtual ossia::curve_segment<float> makeFloatFunction() const = 0;
   virtual ossia::curve_segment<int> makeIntFunction() const = 0;
+
+  //! For segments whose values are not given by their two ends alone: the
+  //! executor maps the curve's [0, 1] to offset + factor * y.
+  virtual ossia::curve_segment<double>
+  makeScaledDoubleFunction(double offset, double factor) const;
+  virtual ossia::curve_segment<float>
+  makeScaledFloatFunction(double offset, double factor) const;
+  virtual ossia::curve_segment<int>
+  makeScaledIntFunction(double offset, double factor) const;
 
   SegmentData toSegmentData() const
   {
@@ -107,7 +122,11 @@ protected:
   Curve::Point m_start, m_end;
 
 private:
+  friend class Model;
   OptionalId<SegmentModel> m_previous, m_following;
+  // Kept by Model: the points that setStart / setEnd move along.
+  PointModel* m_startPoint{};
+  PointModel* m_endPoint{};
 };
 
 class PowerSegment;

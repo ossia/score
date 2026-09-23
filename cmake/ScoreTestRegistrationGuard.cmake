@@ -102,6 +102,9 @@ set(SCORE_TEST_GUARD_ALLOWED_TARGETS
   # numbers instead of asserting them, so a bare ctest entry can only ever
   # fail with Catch2's 'No tests ran'. Run by hand per its file header.
   test_gfx_video_direct_bench
+  # Hidden curve-edition benchmark, same reason: its one case is a [.tag]
+  # that prints timings. Run by hand per the header of CurveBenchmark.cpp.
+  test_unit_curve_bench
 )
 
 # Every directory the buildsystem created below `dir`, `dir` included.

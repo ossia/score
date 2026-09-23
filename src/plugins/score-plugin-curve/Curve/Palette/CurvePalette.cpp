@@ -4,7 +4,7 @@
 
 #include <score/tools/Debug.hpp>
 
-#include <cmath>
+#include <ossia/math/safe_math.hpp>
 namespace Curve
 {
 
@@ -46,7 +46,7 @@ void ToolPalette::on_pressed(QPointF point)
 
   scenePoint = point;
   auto curvePoint = ScenePointToCurvePoint(m_presenter.view().mapFromScene(point));
-  if(!std::isfinite(curvePoint.x()) || !std::isfinite(curvePoint.y()))
+  if(!ossia::safe_isfinite(curvePoint.x()) || !ossia::safe_isfinite(curvePoint.y()))
     return;
   switch(editionSettings().tool())
   {
@@ -71,7 +71,7 @@ void ToolPalette::on_moved(QPointF point)
 {
   scenePoint = point;
   auto curvePoint = ScenePointToCurvePoint(m_presenter.view().mapFromScene(point));
-  if(!std::isfinite(curvePoint.x()) || !std::isfinite(curvePoint.y()))
+  if(!ossia::safe_isfinite(curvePoint.x()) || !ossia::safe_isfinite(curvePoint.y()))
     return;
   switch(editionSettings().tool())
   {
@@ -97,7 +97,7 @@ void ToolPalette::on_released(QPointF point)
   m_pressed = false;
   scenePoint = point;
   auto curvePoint = ScenePointToCurvePoint(m_presenter.view().mapFromScene(point));
-  if(!std::isfinite(curvePoint.x()) || !std::isfinite(curvePoint.y()))
+  if(!ossia::safe_isfinite(curvePoint.x()) || !ossia::safe_isfinite(curvePoint.y()))
     return;
   switch(editionSettings().tool())
   {

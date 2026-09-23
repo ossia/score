@@ -15,6 +15,7 @@ namespace Curve
 {
 class Model;
 class PointModel;
+class SegmentModel;
 class SCORE_PLUGIN_CURVE_EXPORT MovePoint final : public score::Command
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), MovePoint, "Move a point")
@@ -33,7 +34,8 @@ protected:
 
 private:
   Path<Model> m_model;
-  Id<PointModel> m_pointId;
+  // Point ids are not kept across the rebuilds of the curve: its segments are.
+  OptionalId<SegmentModel> m_previous, m_following;
   Curve::Point m_newPoint;
   Curve::Point m_oldPoint;
 };

@@ -48,14 +48,20 @@ class Presenter;
 class StateBase;
 class SegmentModel;
 
-using SegmentMapImpl = ossia::hash_map<Id<SegmentModel>, SegmentData, CurveDataHash>;
-void checkValidity(std::span<SegmentData> segts);
-void checkValidity(SegmentMapImpl& segts);
+//! Debug builds: asserts that segts is a valid curve.
+void checkValidity(std::span<const SegmentData> segts);
 
 //! Adds a point at pt: splits the segment under it, moves the point already
 //! at its x, or links it to the nearest segments around it.
 SCORE_PLUGIN_CURVE_EXPORT
 void createPointAt(std::vector<SegmentData>& segments, Curve::Point pt);
+
+//! The curve without the given segments. With `fill` it is closed again: from
+//! the start of a removed first segment, to the end of a removed last one, and
+//! across each hole.
+SCORE_PLUGIN_CURVE_EXPORT
+std::vector<SegmentData> removeSegments(
+    const Model& model, const ossia::hash_set<int32_t>& removed, bool fill);
 
 class SCORE_PLUGIN_CURVE_EXPORT CommandObjectBase
 {
@@ -73,7 +79,7 @@ protected:
   // Creates and pushes an UpdateCurve command
   // from a vector of segments.
   // They are removed afterwards
-  void submit(std::vector<SegmentData>&&);
+  void submit(const std::vector<SegmentData>&);
 
   auto find(std::vector<SegmentData>& segments, const OptionalId<SegmentModel>& id)
   {
@@ -89,7 +95,6 @@ protected:
 
   virtual void on_press() = 0;
 
-  QVector<QByteArray> m_oldCurveData;
   QPointF m_originalPress; // Note : there should be only one per curve...
 
   const Model& m_model;
@@ -100,6 +105,8 @@ protected:
   SingleOngoingCommandDispatcher<UpdateCurve> m_dispatcher;
 
   std::vector<SegmentData> m_startSegments;
+  //! The curve being submitted: kept across moves for its storage.
+  std::vector<SegmentData> m_segments;
 
   // To prevent behind locked at 0.000001 or 0.9999
   double m_xmin{-1}, m_xmax{2}, m_xLastPoint{2};

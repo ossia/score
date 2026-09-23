@@ -6,6 +6,8 @@
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <score/tools/std/Optional.hpp>
 
+#include <ossia/detail/hash_map.hpp>
+
 #include <QPoint>
 
 namespace Curve
@@ -38,9 +40,14 @@ private:
     std::vector<SegmentData> segments;
   };
 
-  void release_n(FilteredSegments&&);
-  FilteredSegments filterSegments();
+  void release_n(FilteredSegments&);
+  FilteredSegments& filterSegments();
   PointArraySegment m_segment;
+  //! Reused on each move for its storage.
+  FilteredSegments m_filtered;
+  ossia::hash_set<int32_t> m_filteredIds;
+  //! The second half of a segment the stroke is drawn inside of.
+  Id<SegmentModel> m_splitId;
 
   Curve::StateBase* m_state{};
   QPointF m_originalPress;

@@ -105,36 +105,32 @@ void Component::recompute()
 {
   auto dest = Execution::makeDestination(*system().execState, process().address());
 
+  std::shared_ptr<ossia::curve_abstract> curve;
   if(dest)
   {
     auto& d = *dest;
     auto addressType = d.address().get_value_type();
-
-    auto curve = process().tween() ? on_curveChanged(addressType, d)
-                                   : on_curveChanged(addressType, {});
-
-    if(curve)
-    {
-      in_exec([proc = std::dynamic_pointer_cast<ossia::nodes::automation>(
-                   OSSIAProcess().node),
-               curve, d_ = d] { proc->set_behavior(curve); });
-      return;
-    }
+    curve = process().tween() ? on_curveChanged(addressType, d)
+                              : on_curveChanged(addressType, {});
   }
   else
   {
-    auto curve = on_curveChanged_impl<float>({});
+    curve = on_curveChanged_impl<float>({});
+  }
 
-    if(curve)
-    {
-      in_exec([proc = std::dynamic_pointer_cast<ossia::nodes::automation>(
-                   OSSIAProcess().node),
-               curve] { proc->set_behavior(curve); });
-      return;
-    }
+  if(curve)
+  {
+    // The previous curve ends up in the lambda, which the engine destroys
+    // on this thread.
+    in_exec([proc = std::dynamic_pointer_cast<ossia::nodes::automation>(
+                 OSSIAProcess().node),
+             b = ossia::behavior{std::move(curve)}]() mutable {
+      proc->swap_behavior(b);
+    });
+    return;
   }
   /*
-  auto segt_data = process().curve().sortedSegments();
+  const auto& segt_data = process().curve().sortedSegments();
   if (segt_data.size() != 0)
   {
     in_exec([proc = std::dynamic_pointer_cast<ossia::nodes::float_automation>(
@@ -157,7 +153,7 @@ Component::on_curveChanged_impl(const std::optional<ossia::destination>& d)
   auto scale_x = [](double val) -> double { return val; };
   auto scale_y = [=](double val) -> Y_T { return val * (max - min) + min; };
 
-  auto segt_data = process().curve().sortedSegments();
+  const auto& segt_data = process().curve().sortedSegments();
   if(segt_data.size() != 0)
   {
     return Engine::score_to_ossia::curve<double, Y_T>(scale_x, scale_y, segt_data, d);

@@ -3,6 +3,7 @@
 #include "CurveSegmentModel.hpp"
 
 #include <Curve/Palette/CurvePoint.hpp>
+#include <Curve/Point/CurvePointModel.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
 
 #include <score/model/IdentifiedObject.hpp>
@@ -76,6 +77,31 @@ void SegmentModel::setFollowing(const OptionalId<SegmentModel>& following)
 
 void SegmentModel::setHorizontalParameter(double p) { }
 
+ossia::curve_segment<double>
+SegmentModel::makeScaledDoubleFunction(double offset, double factor) const
+{
+  return makeDoubleFunction();
+}
+
+ossia::curve_segment<float>
+SegmentModel::makeScaledFloatFunction(double offset, double factor) const
+{
+  return makeFloatFunction();
+}
+
+ossia::curve_segment<int>
+SegmentModel::makeScaledIntFunction(double offset, double factor) const
+{
+  return makeIntFunction();
+}
+
+void SegmentModel::setSpecificData(const QVariant& data) { }
+
+bool SegmentModel::specificDataEquals(const QVariant& data) const noexcept
+{
+  return true;
+}
+
 std::optional<double> SegmentModel::verticalParameter() const
 {
   return {};
@@ -92,6 +118,8 @@ void SegmentModel::setStart(const Curve::Point& pt)
   {
     m_start = pt;
     m_valid = false;
+    if(m_startPoint)
+      m_startPoint->setPos(pt);
     on_startChanged();
 
     startChanged();
@@ -104,6 +132,8 @@ void SegmentModel::setEnd(const Curve::Point& pt)
   {
     m_end = pt;
     m_valid = false;
+    if(m_endPoint)
+      m_endPoint->setPos(pt);
     on_endChanged();
 
     endChanged();

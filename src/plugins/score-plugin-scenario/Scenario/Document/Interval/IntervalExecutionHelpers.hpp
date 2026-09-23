@@ -43,7 +43,7 @@ tempoCurve(const Scenario::IntervalModel& itv, const Execution::Context& ctx)
 
     ossia::tempo_curve t;
 
-    auto segt_data = curve.sortedSegments();
+    const auto& segt_data = curve.sortedSegments();
     if(segt_data.size() != 0)
     {
       t = std::move(*Engine::score_to_ossia::curve<int64_t, double>(

@@ -31,6 +31,7 @@ struct SCORE_PLUGIN_CURVE_EXPORT PowerSegmentData
   // Value of gamma for which the pow will be == 1.
   static const constexpr double linearGamma = 1;
   double gamma = linearGamma;
+  bool operator==(const PowerSegmentData&) const noexcept = default;
 };
 
 class SCORE_PLUGIN_CURVE_EXPORT PowerSegment final : public SegmentModel
@@ -63,6 +64,9 @@ private:
 
   void updateData(int numInterp) const override;
   double valueAt(double x) const override;
+
+  void setSpecificData(const QVariant& data) override;
+  bool specificDataEquals(const QVariant& data) const noexcept override;
 
   std::optional<double> verticalParameter() const override;
   void setVerticalParameter(double p) override;

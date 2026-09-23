@@ -34,7 +34,10 @@ public:
   void posChanged() E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, posChanged)
 
 private:
+  friend class Model;
   OptionalId<SegmentModel> m_previous, m_following;
+  // Model::relink marks the points it keeps with its current pass.
+  uint32_t m_relinkPass{};
 
   Curve::Point m_pos;
 };

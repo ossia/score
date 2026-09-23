@@ -18,6 +18,8 @@
 #include <score/tools/std/Optional.hpp>
 
 #include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/hash_map.hpp>
+#include <ossia/math/safe_math.hpp>
 
 #include <boost/operators.hpp>
 
@@ -59,6 +61,19 @@ auto findSegment(std::vector<SegmentData>& segments, const OptionalId<SegmentMod
   if(!id)
     return segments.end();
   return ossia::find_if(segments, [&](const SegmentData& s) { return s.id == *id; });
+}
+
+//! Removes the segments in `ids` and the links to them, in one pass.
+void eraseSegments(std::vector<SegmentData>& segments, const ossia::hash_set<int32_t>& ids)
+{
+  std::erase_if(segments, [&](const SegmentData& s) { return ids.contains(s.id.val()); });
+  for(auto& s : segments)
+  {
+    if(s.previous && ids.contains(s.previous->val()))
+      s.previous = std::nullopt;
+    if(s.following && ids.contains(s.following->val()))
+      s.following = std::nullopt;
+  }
 }
 
 // By value: callers pass the id of an element of `segments`, which erase_if moves.
@@ -115,13 +130,25 @@ void MovePointCommandObject::on_press()
   }
 
   // The neighbours bound the point even when they share its x.
-  for(const auto& seg : m_startSegments)
+  m_prevIndex = -1;
+  m_follIndex = -1;
+  m_touched.clear();
+  for(std::size_t i = 0; i < m_startSegments.size(); i++)
   {
+    const auto& seg = m_startSegments[i];
     if(seg.id == m_state->clickedPointId.previous)
+    {
       m_xmin = std::max(m_xmin, seg.start.x());
+      m_prevIndex = int64_t(i);
+    }
     if(seg.id == m_state->clickedPointId.following)
+    {
       m_xmax = std::min(m_xmax, seg.end.x());
+      m_follIndex = int64_t(i);
+    }
   }
+  m_innerMin = m_xmin;
+  m_innerMax = m_xmax;
 
   setTooltip(m_originalPress);
 }
@@ -134,23 +161,37 @@ void MovePointCommandObject::move()
   handleLocking();
 
   const auto cur = m_state->currentPoint;
-  if(!std::isfinite(cur.x()) || !std::isfinite(cur.y()))
+  if(!ossia::safe_isfinite(cur.x()) || !ossia::safe_isfinite(cur.y()))
     return;
 
-  auto segments = m_startSegments;
-  bool ok{};
+  bool ok = true;
   if(!crosses(cur.x()))
-    ok = setCurrentPoint(segments);
-  else if(m_presenter && m_presenter->editionSettings().suppressOnOverlap())
-    ok = suppressOverlapped(segments);
+  {
+    // Only the two segments around the point move: when the last move left
+    // m_segments aligned with the start, restoring those two is enough.
+    if(m_touched.empty() || m_segments.size() != m_startSegments.size())
+      m_segments = m_startSegments;
+    else
+      for(auto i : m_touched)
+        m_segments[i] = m_startSegments[i];
+    m_touched.clear();
+    setCurrentPoint(m_segments);
+  }
   else
-    ok = crossOverlapped(segments);
+  {
+    m_segments = m_startSegments;
+    m_touched.clear();
+    if(m_presenter && m_presenter->editionSettings().suppressOnOverlap())
+      ok = suppressOverlapped(m_segments);
+    else
+      ok = crossOverlapped(m_segments);
+  }
 
   if(!ok)
     return;
 
-  checkValidity(segments);
-  submit(std::move(segments));
+  checkValidity(m_segments);
+  submit(m_segments);
   setTooltip(cur);
 }
 
@@ -173,6 +214,9 @@ bool MovePointCommandObject::crosses(double x) const
 {
   const double orig = m_originalPress.x();
   if(x == orig)
+    return false;
+  // Strictly between the nearest points on each side: nothing to cross.
+  if(m_innerMin < x && x < m_innerMax)
     return false;
 
   const auto& clicked = m_state->clickedPointId;
@@ -198,18 +242,18 @@ bool MovePointCommandObject::crosses(double x) const
   return false;
 }
 
-bool MovePointCommandObject::setCurrentPoint(std::vector<SegmentData>& segments) const
+void MovePointCommandObject::setCurrentPoint(std::vector<SegmentData>& segments)
 {
-  auto prev = findSegment(segments, m_state->clickedPointId.previous);
-  auto foll = findSegment(segments, m_state->clickedPointId.following);
-  if(prev == segments.end() && foll == segments.end())
-    return false;
-
-  if(prev != segments.end())
-    prev->end = m_state->currentPoint;
-  if(foll != segments.end())
-    foll->start = m_state->currentPoint;
-  return true;
+  if(m_prevIndex >= 0)
+  {
+    segments[m_prevIndex].end = m_state->currentPoint;
+    m_touched.push_back(m_prevIndex);
+  }
+  if(m_follIndex >= 0)
+  {
+    segments[m_follIndex].start = m_state->currentPoint;
+    m_touched.push_back(m_follIndex);
+  }
 }
 
 // Every point passed over is removed along with its segments; the moved point
@@ -221,17 +265,17 @@ bool MovePointCommandObject::suppressOverlapped(std::vector<SegmentData>& segmen
   const bool right = cur.x() > orig;
   const auto& clicked = m_state->clickedPointId;
 
-  std::vector<Id<SegmentModel>> passed;
+  static ossia::hash_set<int32_t> passed;
+  passed.clear();
   for(const auto& s : segments)
   {
     if(s.id == (right ? clicked.previous : clicked.following))
       continue;
     if(right ? (s.start.x() >= orig && s.end.x() <= cur.x())
              : (s.end.x() <= orig && s.start.x() >= cur.x()))
-      passed.push_back(s.id);
+      passed.insert(s.id.val());
   }
-  for(const auto& id : passed)
-    eraseSegment(segments, id);
+  eraseSegments(segments, passed);
 
   auto landed = ossia::find_if(segments, [&](const SegmentData& s) {
     if(s.id == (right ? clicked.previous : clicked.following))

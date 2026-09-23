@@ -31,6 +31,8 @@ Curve::Point PointModel::pos() const
 
 void PointModel::setPos(const Curve::Point& pos)
 {
+  if(pos == m_pos)
+    return;
   m_pos = pos;
   posChanged();
 }

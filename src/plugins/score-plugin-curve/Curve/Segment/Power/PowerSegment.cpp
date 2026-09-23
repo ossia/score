@@ -136,6 +136,22 @@ void PowerSegment::setVerticalParameter(double p)
   dataChanged();
 }
 
+void PowerSegment::setSpecificData(const QVariant& data)
+{
+  const double g = data.value<PowerSegmentData>().gamma;
+  if(g != gamma)
+  {
+    gamma = g;
+    m_valid = false;
+    dataChanged();
+  }
+}
+
+bool PowerSegment::specificDataEquals(const QVariant& data) const noexcept
+{
+  return data.value<PowerSegmentData>().gamma == gamma;
+}
+
 QVariant PowerSegment::toSegmentSpecificData() const
 {
   return QVariant::fromValue(PowerSegmentData(gamma));

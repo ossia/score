@@ -3,6 +3,8 @@
 #include <Process/Process.hpp>
 
 #include <Curve/Commands/UpdateCurve.hpp>
+#include <Curve/Palette/CommandObjects/CurveCommandObjectBase.hpp>
+#include <Curve/Segment/PointArray/PointArraySegment.hpp>
 #include <Curve/CurveModel.hpp>
 #include <Curve/CurvePresenter.hpp>
 #include <Curve/CurveView.hpp>
@@ -115,6 +117,9 @@ bool CurveEditor::paste(
 
   std::vector<Curve::SegmentData> segments;
   const auto existing = orderedSegments(m);
+  Curve::SegmentIdAllocator ids{existing};
+  for(auto& seg : paste_segts)
+    seg.id = ids.next();
   segments.reserve(existing.size() + paste_segts.size() + 1);
   for(auto seg : existing)
   {
@@ -124,8 +129,10 @@ bool CurveEditor::paste(
     }
     else if(seg.start.x() < p0)
     {
-      seg.end = first_pasted.start;
-      segments.push_back(std::move(seg));
+      // Cut at the start of the paste: dropped if nothing is left of it.
+      Curve::setSegmentExtent(seg, seg.start, first_pasted.start);
+      if(seg.end.x() > seg.start.x())
+        segments.push_back(std::move(seg));
     }
   }
 
@@ -139,62 +146,30 @@ bool CurveEditor::paste(
     }
     else if(seg.end.x() > p1)
     {
-      seg.start = last_pasted.end;
-      segments.push_back(std::move(seg));
+      // Cut on both sides: its first half already has its id.
+      if(seg.start.x() < p0)
+        seg.id = ids.next();
+      Curve::setSegmentExtent(seg, last_pasted.end, seg.end);
+      if(seg.end.x() > seg.start.x())
+        segments.push_back(std::move(seg));
     }
   }
 
-  // Do some clean-up, remove empty segments
-
-  for(auto it = segments.begin(); it != segments.end();)
+  // Finally relink everything. The segments already there keep their ids,
+  // so that only what the paste changes is updated in the curve.
+  const int N = std::ssize(segments);
+  for(int i = 0; i < N; i++)
   {
-    auto& seg = *it;
-    if(std::abs(seg.end.x() - seg.start.x()) < 0.001)
-    {
-      it = segments.erase(it);
-      continue;
-    }
-    if(seg.end.x() <= seg.start.x())
-    {
-      it = segments.erase(it);
-      continue;
-    }
-
-    ++it;
+    auto& seg = segments[i];
+    seg.previous = i > 0 ? OptionalId<Curve::SegmentModel>{segments[i - 1].id}
+                         : std::nullopt;
+    seg.following = i + 1 < N ? OptionalId<Curve::SegmentModel>{segments[i + 1].id}
+                              : std::nullopt;
+    if(i + 1 < N)
+      seg.end = segments[i + 1].start;
   }
 
-  if(segments.empty())
-    return true;
-
-  // Finally relink everything
-  segments.front().id = Id<Curve::SegmentModel>{0};
-  segments.front().previous = std::nullopt;
-
-  segments.back().id = Id<Curve::SegmentModel>{int(std::ssize(segments) - 1)};
-  segments.back().following = std::nullopt;
-
-  int N = std::ssize(segments);
-  if(N >= 2)
-  {
-    int i = 1;
-    for(; i < N - 1; i++)
-    {
-      segments[i].id = Id<Curve::SegmentModel>{i};
-      segments[i].previous = segments[i - 1].id;
-      segments[i - 1].following = segments[i].id;
-      segments[i - 1].end = segments[i].start;
-    }
-
-    i = N - 2;
-
-    {
-      segments.back().previous = segments[i].id;
-      segments[i].following = segments.back().id;
-      segments[i].end = segments.back().start;
-    }
-  }
-
-  CommandDispatcher<>{ctx.commandStack}.submit(new UpdateCurve{m, std::move(segments)});
+  CommandDispatcher<>{ctx.commandStack}.submit(new UpdateCurve{m, segments});
   return true;
 }
 
@@ -211,203 +186,36 @@ bool CurveEditor::remove(const Selection& s, const score::DocumentContext& ctx)
   if(!cm)
     return false;
 
+  // A selected point takes its two segments with it; the first and last points
+  // of a chain are not removed.
+  ossia::hash_set<int32_t> segmentsToDelete;
+  for(const auto& elt : s)
   {
-    auto& m_model = *cm;
-    // We remove all that is selected,
-    // And set the bounds correctly
-    ossia::hash_set<Id<SegmentModel>> segmentsToDelete;
-
-    // First find the segments that will be deleted.
-    // If a point is selected, the segments linked to that point
-    // will be deleted, too.
-    for(const auto& elt : s)
+    if(auto point = qobject_cast<const PointModel*>(elt.data()))
     {
-      if(auto point = qobject_cast<const PointModel*>(elt.data()))
+      if(point->previous() && point->following())
       {
-        if(point->previous() && point->following())
-        {
-          segmentsToDelete.insert(*point->previous());
-          segmentsToDelete.insert(*point->following());
-        }
-      }
-      else if(qobject_cast<const SegmentModel*>(elt.data()))
-      {
-        continue;
-      }
-      else
-      {
-        // Not a point nor a segment: we likely
-        // selected a curve process in order to delete it
-        return false;
+        segmentsToDelete.insert(point->previous()->val());
+        segmentsToDelete.insert(point->following()->val());
       }
     }
-
-    if(segmentsToDelete.empty())
-      return true;
-
-    double x0 = 0;
-    double y0 = 0;
-    double x1 = 1;
-    double y1 = 1;
-    bool firstRemoved = false;
-    bool lastRemoved = false;
-    // Then remove
-    auto newSegments = m_model.toCurveData();
+    else if(qobject_cast<const SegmentModel*>(elt.data()))
     {
-      // First look for the start and end segments
-      {
-        for(auto& seg : newSegments)
-        {
-          if(ossia::contains(segmentsToDelete, seg.id))
-          {
-            if(!seg.previous)
-            {
-              firstRemoved = true;
-              x0 = seg.start.x();
-              y0 = seg.start.y();
-            }
-            if(!seg.following)
-            {
-              lastRemoved = true;
-              x1 = seg.end.x();
-              y1 = seg.end.y();
-            }
-          }
-        }
-      }
-
-      // Then set the others
-      auto it = newSegments.begin();
-      while(it != newSegments.end())
-      {
-        if(ossia::contains(segmentsToDelete, it->id))
-        {
-          if(it->previous)
-          {
-            auto prev_it = ossia::find_if(newSegments, [&](const SegmentData& d) {
-              return d.id == *it->previous;
-            });
-            if(prev_it != newSegments.end())
-              prev_it->following = OptionalId<SegmentModel>{};
-          }
-          if(it->following)
-          {
-            auto next_it = ossia::find_if(newSegments, [&](const SegmentData& d) {
-              return d.id == *it->following;
-            });
-            if(next_it != newSegments.end())
-              next_it->previous = OptionalId<SegmentModel>{};
-          }
-          it = newSegments.erase(it);
-          continue;
-        }
-
-        if(it->previous && ossia::contains(segmentsToDelete, it->previous))
-          it->previous = OptionalId<SegmentModel>{};
-        if(it->following && ossia::contains(segmentsToDelete, it->following))
-          it->following = OptionalId<SegmentModel>{};
-
-        it++;
-      }
+      continue;
     }
-
-    // Recreate if appropriate
+    else
     {
-      // Find the "holes" in the new segment list.
-      ossia::sort(newSegments, [](const SegmentData& s1, const SegmentData& s2) {
-        return s1.x() < s2.x();
-      });
-
-      // First if there is no segments, we recreate one.
-      if(newSegments.empty())
-      {
-        SegmentData d;
-        d.start = QPointF{0, y0};
-        d.end = QPointF{1, y1};
-        d.id = getSegmentId(newSegments);
-        d.type = Metadata<ConcreteKey_k, DefaultCurveSegmentModel>::get();
-        d.specificSegmentData = QVariant::fromValue(DefaultCurveSegmentData{});
-        newSegments.push_back(d);
-      }
-      else
-      {
-        if(firstRemoved)
-        {
-          // Recreate a segment from x = 0 to the beginning of the first segment.
-          auto it = newSegments.begin();
-
-          // Create a new segment
-          SegmentData d;
-          d.start = QPointF{x0, y0};
-          d.end = it->start;
-          d.following = it->id;
-          d.id = getSegmentId(newSegments);
-          d.type = Metadata<ConcreteKey_k, DefaultCurveSegmentModel>::get();
-          d.specificSegmentData = QVariant::fromValue(DefaultCurveSegmentData{});
-          it->previous = d.id;
-
-          newSegments.insert(it, d);
-        }
-
-        if(lastRemoved)
-        {
-          // Recreate a segment from x = 0 to the end of the last segment.
-          auto it = newSegments.rbegin();
-
-          // Create a new segment
-          SegmentData d;
-          d.end = QPointF{x1, y1};
-          d.start = it->end;
-          d.previous = it->id;
-          d.id = getSegmentId(newSegments);
-          d.type = Metadata<ConcreteKey_k, DefaultCurveSegmentModel>::get();
-          d.specificSegmentData = QVariant::fromValue(DefaultCurveSegmentData{});
-          it->following = d.id;
-
-          newSegments.insert(newSegments.end(), d);
-        }
-      }
-
-      // Then try to fill the holes
-      auto it = newSegments.begin();
-      for(; it != newSegments.end();)
-      {
-        // Check if it's the last segment
-        auto next = it + 1;
-        if(next == newSegments.end())
-          break;
-
-        if(it->following)
-        {
-          it = next;
-        }
-        else
-        {
-          // Create a new segment
-          SegmentData d;
-          d.start = it->end;
-          d.end = next->start;
-          d.previous = it->id;
-          d.following = next->id;
-          d.id = getSegmentId(newSegments);
-          d.type = Metadata<ConcreteKey_k, DefaultCurveSegmentModel>::get();
-          d.specificSegmentData = QVariant::fromValue(DefaultCurveSegmentData{});
-          it->following = d.id;
-          next->previous = d.id;
-
-          it = newSegments.insert(it, d);
-          // it is now at the position of the new segment.
-
-          ++it;
-          // it is now at the position of next
-        }
-      }
+      // Not a point nor a segment: we likely
+      // selected a curve process in order to delete it
+      return false;
     }
-
-    // Apply the changes.
-    CommandDispatcher<>{ctx.commandStack}.submit(
-        new UpdateCurve{m_model, std::move(newSegments)});
   }
+
+  if(segmentsToDelete.empty())
+    return true;
+
+  CommandDispatcher<>{ctx.commandStack}.submit(
+      new UpdateCurve{*cm, removeSegments(*cm, segmentsToDelete, true)});
   return true;
 }
 

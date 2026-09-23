@@ -41,7 +41,10 @@ RecordData RecordAutomationCreationVisitor::makeCurve(float start_y)
   seg.start = {0, start_y};
   seg.end = {1, -1};
   seg.specificSegmentData = QVariant::fromValue(
-      Curve::PointArraySegmentData{0, 1, min, max, {{0, start_y}}});
+      Curve::PointArraySegmentData{
+          0, 1, min, max,
+          std::make_shared<Curve::PointArraySamples>(
+              Curve::PointArraySamples{{0., double(start_y)}})});
   auto segt = new Curve::PointArraySegment{seg, &autom.curve()};
 
   segt->setStart({0, start_y});

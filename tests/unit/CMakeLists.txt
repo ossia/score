@@ -370,7 +370,16 @@ score_add_test(test_unit_curve_edition
   SOURCES CurveEditionTest.cpp
   APP
   PLUGINS score_plugin_curve score_plugin_automation score_plugin_scenario
-          score_lib_process)
+          score_plugin_engine score_lib_process)
+
+# Hidden benchmark of curve edition on large automations; see the file header.
+# NO_CTEST: its only case is a hidden [.tag] that prints timings.
+score_add_test(test_unit_curve_bench
+  SOURCES CurveBenchmark.cpp
+  APP
+  PLUGINS score_plugin_curve score_plugin_automation score_plugin_scenario
+          score_lib_process
+  NO_CTEST)
 
 score_add_test(test_unit_automation_values
   SOURCES AutomationValueTest.cpp

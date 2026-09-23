@@ -5,6 +5,8 @@
 #include <Process/State/MessageNode.hpp>
 #include <Process/State/ProcessStateDataInterface.hpp>
 
+#include <score_plugin_automation_export.h>
+
 #include <vector>
 
 class QObject;
@@ -16,7 +18,7 @@ struct Address;
 namespace Automation
 {
 class ProcessModel;
-class ProcessState final : public ProcessStateDataInterface
+class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessState final : public ProcessStateDataInterface
 {
 public:
   // watchedPoint : something between 0 and 1

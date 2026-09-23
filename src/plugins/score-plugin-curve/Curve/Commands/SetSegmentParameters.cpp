@@ -19,10 +19,13 @@ SetSegmentParameters::SetSegmentParameters(
     : m_model{curve}
     , m_new{std::move(parameters)}
 {
+  // m_new is sorted: each insertion goes at the end.
+  m_old.reserve(m_new.size());
   for(auto it = m_new.cbegin(); it != m_new.cend(); ++it)
   {
     const auto& seg = curve.segments().at(it->first);
-    m_old.insert({it->first, {seg.verticalParameter(), seg.horizontalParameter()}});
+    m_old.insert(
+        m_old.end(), {it->first, {seg.verticalParameter(), seg.horizontalParameter()}});
   }
 }
 

@@ -3,9 +3,10 @@
 #include <score/command/CommandData.hpp>
 
 #include <QObject>
-#include <QStack>
 #include <QString>
 #include <QTemporaryFile>
+
+#include <vector>
 
 namespace score
 {
@@ -17,8 +18,9 @@ struct CommandStackBackup
 {
   CommandStackBackup(const score::CommandStack& stack);
 
-  QStack<CommandData> savedUndo;
-  QStack<CommandData> savedRedo;
+  //! Laid out as the stack: the undo commands, then the redo ones, bottom first.
+  std::vector<CommandData> savedUndo;
+  std::vector<CommandData> savedRedo;
 };
 
 /**

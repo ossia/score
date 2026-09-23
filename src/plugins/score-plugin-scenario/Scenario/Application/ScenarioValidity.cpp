@@ -6,6 +6,8 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/TimeValueSerialization.hpp>
 
+#include <Curve/CurveModel.hpp>
+
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
@@ -18,9 +20,28 @@ namespace Scenario
 
 ScenarioValidityChecker::~ScenarioValidityChecker() { }
 
+namespace
+{
+// Runs twice per command: a curve's segments and points, which cannot hold a
+// scenario, are not walked.
+void findScenarios(const QObject& obj, std::vector<Scenario::ProcessModel*>& out)
+{
+  for(QObject* child : obj.children())
+  {
+    if(qobject_cast<Curve::Model*>(child))
+      continue;
+    if(auto scenar = qobject_cast<Scenario::ProcessModel*>(child))
+      out.push_back(scenar);
+    findScenarios(*child, out);
+  }
+}
+}
+
 bool ScenarioValidityChecker::validate(const score::DocumentContext& ctx)
 {
-  auto scenars = ctx.document.model().findChildren<Scenario::ProcessModel*>();
+  static std::vector<Scenario::ProcessModel*> scenars;
+  scenars.clear();
+  findScenarios(ctx.document.model(), scenars);
   for(auto scenar : scenars)
   {
     checkValidity(*scenar);

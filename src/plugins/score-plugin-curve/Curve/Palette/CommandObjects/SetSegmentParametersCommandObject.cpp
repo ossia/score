@@ -29,11 +29,13 @@ void SetSegmentParametersCommandObject::press()
 {
   auto segment = m_state->clickedSegmentId;
 
+  m_orig.clear();
   for(auto& sel : m_model.segments())
   {
     if(sel.selection.get())
     {
-      m_orig[sel.id()] = {sel.verticalParameter(), sel.horizontalParameter()};
+      m_orig.insert_or_assign(
+          sel.id(), std::pair{sel.verticalParameter(), sel.horizontalParameter()});
     }
   }
 
@@ -51,7 +53,9 @@ void SetSegmentParametersCommandObject::move()
   const constexpr double amplitude = 2.;
   const double vampl = amplitude * (m_state->currentPoint.y() - m_originalPress.y());
   const double hampl = amplitude * (m_state->currentPoint.x() - m_originalPress.x());
-  auto clicked_orig = m_orig[m_state->clickedSegmentId];
+  const auto orig_it = m_orig.find(m_state->clickedSegmentId);
+  const auto clicked_orig = orig_it != m_orig.end() ? orig_it->second
+                                                    : decltype(orig_it->second){};
   double newVertical
       = clicked_orig.first ? clamp(*clicked_orig.first + vampl, -1., 1.) : 0.;
   double newHorizontal
@@ -59,19 +63,32 @@ void SetSegmentParametersCommandObject::move()
 
   if(qApp->keyboardModifiers() & Qt::ALT)
   {
-    SegmentParameterMap map{{m_state->clickedSegmentId, {newVertical, newHorizontal}}};
-
+    // Every selected segment moves by the same amount: sorted, then turned
+    // into the flat map in one go.
+    m_params.clear();
+    m_params.emplace_back(
+        m_state->clickedSegmentId, std::pair{newVertical, newHorizontal});
     for(auto& sel : m_model.segments())
     {
-      if(sel.selection.get() && m_orig.find(sel.id()) != m_orig.end())
+      if(!sel.selection.get() || sel.id() == m_state->clickedSegmentId)
+        continue;
+      if(auto it = m_orig.find(sel.id()); it != m_orig.end())
       {
-        auto& orig = m_orig[sel.id()];
-        auto& newp = map[sel.id()];
-        newp.first = orig.first ? clamp(*orig.first + vampl, -1., 1.) : 0.;
-        newp.second = orig.second ? clamp(*orig.second + hampl, -1., 1.) : 0.;
+        const auto& orig = it->second;
+        m_params.emplace_back(
+            sel.id(),
+            std::pair{
+                orig.first ? clamp(*orig.first + vampl, -1., 1.) : 0.,
+                orig.second ? clamp(*orig.second + hampl, -1., 1.) : 0.});
       }
     }
-    m_dispatcher.submit(m_model, std::move(map));
+    std::sort(m_params.begin(), m_params.end(), [](const auto& a, const auto& b) {
+      return a.first < b.first;
+    });
+    m_dispatcher.submit(
+        m_model, SegmentParameterMap{
+                     boost::container::ordered_unique_range, m_params.begin(),
+                     m_params.end()});
   }
   else
   {

@@ -28,6 +28,7 @@ public:
   PointView(const PointModel* model, const Curve::Style& style, QGraphicsItem* parent);
 
   const PointModel& model() const;
+  const PointModel* modelPtr() const noexcept { return m_model; }
   const Id<PointModel>& id() const;
 
   static const constexpr int Type = QGraphicsItem::UserType + 100;

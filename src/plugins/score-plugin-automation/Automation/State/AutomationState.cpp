@@ -116,7 +116,6 @@ std::vector<State::AddressAccessor> ProcessState::matchingAddresses()
   if(m_point != 0. && m_point != 1.)
     return messages();
 
-  const auto& segs = process().curve().segments();
   for(const auto& mess : received)
   {
     if(mess.address == process().address())
@@ -133,31 +132,29 @@ std::vector<State::AddressAccessor> ProcessState::matchingAddresses()
 
       if(m_point == 0.)
       {
-        // Find first segment
-        // TODO ordering would help, here.
-        auto seg_it
-            = std::find_if(segs.begin(), segs.end(), [](Curve::SegmentModel& segt) {
-                return segt.start().x() == 0.;
-              });
-        if(seg_it != segs.end())
+        // The segments are in x order.
+        const auto& sorted = process().curve().sortedSegments();
+        if(!sorted.empty() && sorted.front()->start().x() == 0.)
         {
-          if(val != seg_it->start().y())
+          auto& seg = *sorted.front();
+          if(val != seg.start().y())
           {
-            seg_it->setStart({0, val});
+            seg.setStart({0, val});
+            process().curve().changed();
           }
         }
       }
       else if(m_point == 1)
       {
-        // Find last segment
-        auto seg_it
-            = std::find_if(segs.begin(), segs.end(), [](Curve::SegmentModel& segt) {
-                return segt.end().x() == 1;
-              });
-        if(seg_it != segs.end())
+        const auto& sorted = process().curve().sortedSegments();
+        if(!sorted.empty() && sorted.back()->end().x() == 1.)
         {
-          if(val != seg_it->end().y())
-            seg_it->setEnd({1, val});
+          auto& seg = *sorted.back();
+          if(val != seg.end().y())
+          {
+            seg.setEnd({1, val});
+            process().curve().changed();
+          }
         }
       }
       return messages();
