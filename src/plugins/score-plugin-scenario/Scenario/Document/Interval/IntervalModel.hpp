@@ -188,6 +188,17 @@ public:
   bool muted() const noexcept { return m_muted; }
   void setMuted(bool m);
 
+  bool soloed() const noexcept { return m_soloed; }
+  void setSoloed(bool m);
+
+  //! Silenced because another bus is soloed. Computed by the document from
+  //! the buses' solo states, never saved.
+  bool soloMuted() const noexcept { return m_soloMuted; }
+  void setSoloMuted(bool m);
+
+  //! What the execution hears: muted, or silenced by another bus's solo.
+  bool effectivelyMuted() const noexcept { return m_muted || m_soloMuted; }
+
   bool graphal() const noexcept { return m_graphal; }
   void setGraphal(bool m);
 
@@ -268,6 +279,10 @@ public:
 
   void mutedChanged(bool arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, mutedChanged, arg_1)
+  void soloedChanged(bool arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, soloedChanged, arg_1)
+  void soloMutedChanged(bool arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, soloMutedChanged, arg_1)
   void executingChanged(bool arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executingChanged, arg_1)
 
@@ -282,6 +297,7 @@ public:
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, nodalScaleChanged, arg_1)
 
   PROPERTY(bool, muted READ muted WRITE setMuted NOTIFY mutedChanged)
+  PROPERTY(bool, soloed READ soloed WRITE setSoloed NOTIFY soloedChanged)
   PROPERTY(bool, graphal READ graphal WRITE setGraphal NOTIFY graphalChanged)
   PROPERTY(
       double, heightPercentage READ heightPercentage WRITE setHeightPercentage NOTIFY
@@ -334,6 +350,8 @@ private:
   ViewMode m_viewMode : 1;
   bool m_smallViewShown : 1;
   bool m_muted : 1;
+  bool m_soloed : 1;
+  bool m_soloMuted : 1;
   bool m_executing : 1;
 
   bool m_hasSignature : 1;

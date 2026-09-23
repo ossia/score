@@ -55,6 +55,8 @@ IntervalModel::IntervalModel(
     , m_viewMode{ViewMode::Temporal}
     , m_smallViewShown{}
     , m_muted{}
+    , m_soloed{}
+    , m_soloMuted{}
     , m_executing{}
     , m_hasSignature{}
     , m_graphal{}
@@ -94,6 +96,8 @@ IntervalModel::IntervalModel(
     , m_viewMode{ViewMode::Temporal}
     , m_smallViewShown{}
     , m_muted{}
+    , m_soloed{}
+    , m_soloMuted{}
     , m_executing{}
     , m_hasSignature{}
     , m_graphal{}
@@ -110,6 +114,8 @@ IntervalModel::IntervalModel(
     , m_viewMode{ViewMode::Temporal}
     , m_smallViewShown{}
     , m_muted{}
+    , m_soloed{}
+    , m_soloMuted{}
     , m_executing{}
     , m_hasSignature{}
     , m_graphal{}
@@ -126,6 +132,8 @@ IntervalModel::IntervalModel(
     , m_viewMode{ViewMode::Temporal}
     , m_smallViewShown{}
     , m_muted{}
+    , m_soloed{}
+    , m_soloMuted{}
     , m_executing{}
     , m_hasSignature{}
     , m_graphal{}
@@ -142,6 +150,8 @@ IntervalModel::IntervalModel(
     , m_viewMode{ViewMode::Temporal}
     , m_smallViewShown{}
     , m_muted{}
+    , m_soloed{}
+    , m_soloMuted{}
     , m_executing{}
     , m_hasSignature{}
     , m_graphal{}
@@ -360,7 +370,8 @@ IntervalExecutionState IntervalModel::executionState() const
   switch(m_executionState)
   {
     case IntervalExecutionState::Enabled:
-      return m_muted ? IntervalExecutionState::Muted : IntervalExecutionState::Enabled;
+      return effectivelyMuted() ? IntervalExecutionState::Muted
+                                : IntervalExecutionState::Enabled;
     default:
       return m_executionState;
   }
@@ -580,6 +591,25 @@ void IntervalModel::setMuted(bool m)
   {
     m_muted = m;
     mutedChanged(m);
+    executionStateChanged(executionState());
+  }
+}
+
+void IntervalModel::setSoloed(bool m)
+{
+  if(m != m_soloed)
+  {
+    m_soloed = m;
+    soloedChanged(m);
+  }
+}
+
+void IntervalModel::setSoloMuted(bool m)
+{
+  if(m != m_soloMuted)
+  {
+    m_soloMuted = m;
+    soloMutedChanged(m);
     executionStateChanged(executionState());
   }
 }

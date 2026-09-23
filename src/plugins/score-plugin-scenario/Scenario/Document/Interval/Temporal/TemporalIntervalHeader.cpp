@@ -9,11 +9,13 @@
 #include <Process/Style/ScenarioStyle.hpp>
 
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Commands/Interval/SetMuteSolo.hpp>
 #include <Scenario/Document/Interval/IntervalHeader.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
 
 #include <score/application/ApplicationContext.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/graphics/GraphicsSliderBaseImpl.hpp>
 #include <score/graphics/ItemBounder.hpp>
@@ -249,7 +251,10 @@ void TemporalIntervalHeader::updateOverlay()
       m_mute->toggle();
     connect(
         m_mute, &score::QGraphicsPixmapToggle::toggled, &m_presenter,
-        [&itv](bool b) { ((IntervalModel&)itv).setMuted(b); });
+        [this, &itv](bool b) {
+      CommandDispatcher<>{m_presenter.context().commandStack}
+          .submit<Command::SetIntervalMuted>(itv, b);
+    });
     con(itv, &IntervalModel::mutedChanged, m_mute,
         [this](bool b) { m_mute->setState(b); });
   }
