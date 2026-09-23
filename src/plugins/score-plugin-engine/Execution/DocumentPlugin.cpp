@@ -52,7 +52,7 @@ DocumentPlugin::ContextData::ContextData(const score::DocumentContext& ctx)
     , context
 {
   {}, ctx, m_created, {}, {}, m_execQueue, m_editionQueue, m_gcQueue, setupContext,
-      execGraph, execState
+      execGraph, execState, nullptr
 #if(__cplusplus > 201703L) && !defined(_MSC_VER)
       ,
   {
@@ -69,6 +69,7 @@ DocumentPlugin::DocumentPlugin(const score::DocumentContext& ctx, QObject* paren
     , m_telemetry{std::make_unique<Telemetry>(ctx, *this)}
 {
   m_ctxData->context.alias = m_ctxData;
+  m_ctxData->context.telemetry = m_telemetry.get();
   makeGraph();
   auto& devs = ctx.plugin<Explorer::DeviceDocumentPlugin>();
   local_device = devs.list().localDevice();
@@ -422,6 +423,7 @@ void DocumentPlugin::clear()
   m_ctxData.reset();
   m_ctxData = std::make_shared<ContextData>(this->m_context);
   m_ctxData->context.alias = m_ctxData;
+  m_ctxData->context.telemetry = m_telemetry.get();
 
   auto& model = this->m_context.model<Scenario::ScenarioDocumentModel>();
   model.cables.mutable_added.connect<&SetupContext::on_cableCreated>(

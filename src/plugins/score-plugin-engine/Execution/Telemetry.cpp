@@ -157,6 +157,81 @@ int Telemetry::sampleRate() const noexcept
   return m_arena ? m_arena->latest().sample_rate : 0;
 }
 
+Telemetry::Playhead
+Telemetry::registerPlayhead(std::shared_ptr<ossia::telemetry::playhead_tap> tap)
+{
+  int index{};
+  if(!m_freePlayheads.empty())
+  {
+    index = m_freePlayheads.back();
+    m_freePlayheads.pop_back();
+  }
+  else
+  {
+    index = int(m_playheads.size());
+    m_playheads.emplace_back();
+  }
+
+  static uint32_t generations = 0;
+  auto& p = m_playheads[index];
+  p = PlayheadSub{std::move(tap), ++generations, false};
+
+  if(m_arena)
+  {
+    if(std::size_t(index) < m_arena->playhead_capacity())
+      attachPlayhead(index);
+    else
+      rebuild();
+  }
+  return {index, p.generation};
+}
+
+void Telemetry::attachPlayhead(int index)
+{
+  auto& ctx = m_plugin.contextData();
+  auto& p = m_playheads[index];
+  if(!ctx || !m_arena || p.attached || !p.tap)
+    return;
+  ctx->m_execQueue.enqueue(
+      [arena = m_arena, index, gen = p.generation, tap = p.tap]() mutable {
+    arena->attach_playhead(index, gen, tap);
+  });
+  p.attached = true;
+}
+
+void Telemetry::release(Playhead h)
+{
+  if(!h || std::size_t(h.index) >= m_playheads.size())
+    return;
+  auto& p = m_playheads[h.index];
+  if(p.generation != h.generation || !p.tap)
+    return;
+
+  auto& ctx = m_plugin.contextData();
+  if(ctx && m_arena && p.attached)
+  {
+    ctx->m_execQueue.enqueue(
+        [arena = m_arena, index = h.index,
+         tap = std::shared_ptr<ossia::telemetry::playhead_tap>{}]() mutable {
+      arena->attach_playhead(index, 0, tap);
+    });
+  }
+  p = PlayheadSub{};
+  m_freePlayheads.push_back(h.index);
+}
+
+const ossia::telemetry::playhead_slot* Telemetry::playhead(Playhead h) const noexcept
+{
+  if(!m_arena || !h || std::size_t(h.index) >= m_playheads.size())
+    return nullptr;
+  if(m_playheads[h.index].generation != h.generation)
+    return nullptr;
+  const auto& slots = m_arena->latest().playheads;
+  if(std::size_t(h.index) >= slots.size() || slots[h.index].generation != h.generation)
+    return nullptr;
+  return &slots[h.index];
+}
+
 double Telemetry::cpuLoad(const Process::ProcessModel& proc) const noexcept
 {
   if(!m_arena)
@@ -274,6 +349,8 @@ void Telemetry::executionStopped()
   m_arena.reset();
   m_benches.clear();
   m_freeBenches.clear();
+  for(auto& p : m_playheads)
+    p.attached = false;
   for(auto& s : m_subs)
   {
     s.attached = false;
@@ -298,7 +375,8 @@ void Telemetry::rebuild()
             ? std::max<std::size_t>(
                   64, 2 * std::max(m_benches.size(), ctx->setupContext.proc_map.size()))
             : 0;
-  m_arena = std::make_shared<ossia::telemetry::arena>(capacity, benches);
+  const std::size_t playheads = std::max<std::size_t>(256, 2 * m_playheads.size());
+  m_arena = std::make_shared<ossia::telemetry::arena>(capacity, benches, playheads);
   m_arena->set_publish_interval(publishInterval());
 
   ctx->m_execQueue.enqueue(
@@ -311,6 +389,12 @@ void Telemetry::rebuild()
   for(std::size_t i = 0; i < m_subs.size(); i++)
     if(m_subs[i].users > 0)
       attach(i);
+
+  for(std::size_t i = 0; i < m_playheads.size(); i++)
+  {
+    m_playheads[i].attached = false;
+    attachPlayhead(int(i));
+  }
 
   // Every slot of the new arena starts empty.
   m_benches.clear();
@@ -333,6 +417,8 @@ void Telemetry::teardown()
     });
   }
   m_arena.reset();
+  for(auto& p : m_playheads)
+    p.attached = false;
   updated();
 }
 
