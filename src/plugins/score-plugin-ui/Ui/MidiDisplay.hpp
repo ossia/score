@@ -49,7 +49,7 @@
  *
  * - The engine -> UI transport for control outputs is *lossy*: the UI polls
  *   `coarseUpdateTimer` (~2x the UI event rate, so roughly every 60-100ms) and
- *   only keeps the last value it finds in the queue. We therefore cannot push
+ *   only reads the latest values the node published. We therefore cannot push
  *   "the events of this tick" and expect the UI to see all of them. Instead the
  *   node keeps a small ring of the events of the last `retain_seconds` and
  *   pushes the *whole ring* every time; the layer deduplicates using the

@@ -7,6 +7,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <Scenario/Execution/score2OSSIA.hpp>
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
 #include <Execution/DocumentPlugin.hpp>
 #include <JS/JSProcessModel.hpp>
@@ -52,10 +53,12 @@ Component::Component(
     node->m_modelState = element.state();
     node->m_uiContext = this;
     node->m_modelContext = &element;
-    node->m_messageToUi = [this] (const QVariant& v){
-      OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
-      this->process().executionToUi(v);
-    };
+    // Nothing goes to the interface while the execution does not report back.
+    if(ctx.doc.app.settings<Scenario::Settings::Model>().getExecutionUpdate())
+      node->m_messageToUi = [this](const QVariant& v) {
+        OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
+        this->process().executionToUi(v);
+      };
     connect(
         &element, &JS::ProcessModel::uiToExecution, this,
         [this, node](const QVariant& v) {

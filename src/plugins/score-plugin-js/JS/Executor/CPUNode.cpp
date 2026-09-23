@@ -59,7 +59,7 @@ void js_node::setupComponent()
 
   QObject::connect(m_object, &JS::Script::uiSend,
                    m_uiContext, [this] (const QJSValue& v) {
-    if(!m_uiContext)
+    if(!m_uiContext || !m_messageToUi)
       return;
     QMetaObject::invokeMethod(qApp, [ctx=m_uiContext, func = m_messageToUi, vv = v.toVariant()] {
       if(!ctx)
