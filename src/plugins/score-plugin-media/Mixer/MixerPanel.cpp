@@ -4,7 +4,6 @@
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
-#include <Scenario/Commands/Interval/MakeBus.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
@@ -12,7 +11,6 @@
 #include <Execution/DocumentPlugin.hpp>
 #include <Execution/Telemetry.hpp>
 
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/selection/SelectionStack.hpp>
 #include <score/tools/Bind.hpp>
@@ -26,7 +24,6 @@
 #include <QFrame>
 #include <QAbstractButton>
 #include <QHBoxLayout>
-#include <QLabel>
 #include <QMenu>
 #include <QPainter>
 #include <QPointer>
@@ -127,15 +124,15 @@ protected:
       p.drawRect(rect().adjusted(0, 0, -1, -1));
     }
 
-    // Unfolded, the triangle points back to the tab, folded to the strips.
+    // Unfolded, the triangle points to the strips; folded, along the tab.
     constexpr double a = 6.;
     const double x = (width() - a) / 2.;
     constexpr double y = 8.;
     QPolygonF arrow;
     if(isChecked())
-      arrow << QPointF{x + a, y} << QPointF{x, y + a / 2.} << QPointF{x + a, y + a};
-    else
       arrow << QPointF{x, y} << QPointF{x + a, y + a / 2.} << QPointF{x, y + a};
+    else
+      arrow << QPointF{x, y} << QPointF{x + a, y} << QPointF{x + a / 2., y + a};
     p.setPen(Qt::NoPen);
     p.setBrush(pal.color(QPalette::WindowText));
     p.drawPolygon(arrow);
@@ -254,29 +251,13 @@ public:
     // scroll, the master leaves the scroll bar's room too, so that both end
     // at the same height.
     auto bar_h = m_scroll->horizontalScrollBar()->sizeHint().height();
-    m_scroll->setMinimumHeight(content->minimumSizeHint().height() + bar_h);
+    updateMinimumHeight();
     connect(
         m_scroll->horizontalScrollBar(), &QScrollBar::rangeChanged, this,
         [this, bar_h](int, int max) {
       m_master->layout()->setContentsMargins(0, 0, 0, max > 0 ? bar_h : 0);
     });
     lay->addWidget(body, 1);
-
-    // An empty Buses section says how to fill it.
-    m_emptyBuses = new QWidget{m_strips[int(Section::Buses)]};
-    {
-      auto l = new QVBoxLayout{m_emptyBuses};
-      auto label = new QLabel{
-          tr("No bus yet.\nMark an interval as a bus in its inspector,\nor select "
-             "intervals and add them:"),
-          m_emptyBuses};
-      l->addWidget(label);
-      auto add = new QToolButton{m_emptyBuses};
-      add->setText(tr("Add the selected intervals"));
-      l->addWidget(add);
-      l->addStretch(1);
-      connect(add, &QToolButton::clicked, this, &MixerPanel::addSelectedAsBuses);
-    }
 
     auto& devices = ctx.plugin<Explorer::DeviceDocumentPlugin>();
     if(auto audio = devices.list().audioDevice())
@@ -311,6 +292,19 @@ public:
 
 private:
   StripWidth width() const noexcept { return m_width; }
+
+  //! The strips never get shorter than they can be, with room for the scroll
+  //! bar; this changes with the strips shown.
+  void updateMinimumHeight()
+  {
+    // New strips are shown, and counted, once the event loop runs.
+    QTimer::singleShot(0, this, [this] {
+      const int bar_h = m_scroll->horizontalScrollBar()->sizeHint().height();
+      m_scroll->widget()->layout()->activate();
+      m_scroll->setMinimumHeight(
+          m_scroll->widget()->minimumSizeHint().height() + bar_h);
+    });
+  }
 
   //! The width of every strip.
   void widthMenu(QPoint at)
@@ -385,10 +379,8 @@ private:
       lay->addWidget(s);
       m_busStrips.push_back(s);
     }
-    lay->removeWidget(m_emptyBuses);
-    lay->addWidget(m_emptyBuses);
-    m_emptyBuses->setVisible(m_busStrips.empty());
     setSelection(m_context.selectionStack.currentSelection());
+    updateMinimumHeight();
   }
 
   void setupDevice()
@@ -441,16 +433,7 @@ private:
       static_cast<QVBoxLayout*>(m_master->layout())->addWidget(s, 1);
       m_portStrips.push_back(s);
     }
-  }
-
-  void addSelectedAsBuses()
-  {
-    auto& doc = m_context.model<Scenario::ScenarioDocumentModel>();
-    CommandDispatcher<> disp{m_context.commandStack};
-    for(auto& obj : m_context.selectionStack.currentSelection())
-      if(auto itv = qobject_cast<const Scenario::IntervalModel*>(obj.data());
-         itv && !itv->graphal() && !ossia::contains(doc.busIntervals, itv))
-        disp.submit<Scenario::Command::SetBus>(doc, *itv, true);
+    updateMinimumHeight();
   }
 
   const score::DocumentContext& m_context;
@@ -460,7 +443,6 @@ private:
   std::array<QWidget*, section_count> m_sections{};
   std::array<QWidget*, section_count> m_strips{};
   QWidget* m_master{};
-  QWidget* m_emptyBuses{};
   std::vector<BusStrip*> m_busStrips;
   std::vector<PortStrip*> m_portStrips;
   bool m_devicePending{};
