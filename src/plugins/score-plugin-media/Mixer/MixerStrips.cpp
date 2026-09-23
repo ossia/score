@@ -13,6 +13,7 @@
 #include <Execution/DocumentPlugin.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/Skin.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
@@ -130,8 +131,9 @@ PanSlider::PanSlider(QWidget* parent)
 {
   setRange(-100., 100., 0.);
   score::setHelp(
-      this, QObject::tr("Balance between the first two channels. "
-                        "Double-click to centre."));
+      this, QObject::tr("Balance between the first two channels. A mono bus is "
+                        "panned once upmixed to two channels (right-click the "
+                        "strip). Double-click to centre."));
 }
 
 std::pair<double, double> PanSlider::weights(double position) noexcept
@@ -481,6 +483,38 @@ void BusStrip::updateMeter(const Execution::Telemetry& t)
 
 void BusStrip::fillContextMenu(QMenu& menu)
 {
+  // How a narrower signal is widened before the gain and pan.
+  auto& outlet = *m_model.outlet;
+  auto upmix = menu.addMenu(tr("Upmix"));
+  auto set_upmix = [this](int mode, int channels) {
+    auto& out = *m_model.outlet;
+    MacroCommandDispatcher<Process::SetUpmix> disp{m_context.commandStack};
+    disp.submit(new Process::SetUpmixMode{out, mode});
+    disp.submit(new Process::SetUpmixChannels{out, channels});
+    disp.commit();
+  };
+  {
+    auto off = upmix->addAction(tr("Off"));
+    off->setCheckable(true);
+    off->setChecked(outlet.upmixMode() == 0);
+    connect(off, &QAction::triggered, this, [set_upmix] { set_upmix(0, 0); });
+  }
+  for(auto [mode, title] :
+      {std::pair{1, tr("Repeat the channels up to")},
+       std::pair{2, tr("Add silent channels up to")}})
+  {
+    auto sub = upmix->addMenu(title);
+    for(int n : {2, 4, 6, 8, 16, 32, 64})
+    {
+      auto act = sub->addAction(tr("%n channels", nullptr, n));
+      act->setCheckable(true);
+      act->setChecked(outlet.upmixMode() == mode && outlet.upmixChannels() == n);
+      connect(act, &QAction::triggered, this, [set_upmix, mode = mode, n] {
+        set_upmix(mode, n);
+      });
+    }
+  }
+
   auto remove = menu.addAction(tr("Remove from the buses"));
   connect(remove, &QAction::triggered, this, [this] {
     auto& doc = m_context.model<Scenario::ScenarioDocumentModel>();
