@@ -120,7 +120,8 @@ public:
   void release(uint64_t content_hash);
 
   /// Force eviction until the cold-pool byte total is below
-  /// @p max_bytes. Called explicitly by UI ("unload unused") or
+  /// @p max_bytes; a budget of 0 evicts every cold entry, zero-byte ones
+  /// included. Called explicitly by UI ("unload unused") or
   /// implicitly by maybeAutoTrim.
   /// @return bytes evicted.
   std::size_t trim(std::size_t max_bytes_budget);
