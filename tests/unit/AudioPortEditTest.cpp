@@ -4,11 +4,15 @@
 
 #include <Device/Address/AddressSettings.hpp>
 
+#include <Explorer/Commands/Add/AddAddress.hpp>
+#include <Explorer/Commands/Add/LoadDevice.hpp>
 #include <Explorer/DeviceList.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <Audio/AudioApplicationPlugin.hpp>
 #include <Audio/AudioDevice.hpp>
+
+#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 
 #include <core/document/Document.hpp>
 
@@ -100,5 +104,41 @@ TEST_CASE("A port of the audio device is edited in place", "[audio][ports]")
       CHECK(find(*dev, "/bus") == p);
       CHECK(p->audio.size() == 6);
     }
+  });
+}
+
+TEST_CASE("A port is added the way the mixer adds it", "[audio][ports]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& plug = doc->context().plugin<Explorer::DeviceDocumentPlugin>();
+    auto* dev = static_cast<Dataflow::AudioDevice*>(plug.list().audioDevice());
+    REQUIRE(dev);
+
+    auto explorer_node = [&]() -> Device::Node* {
+      for(auto& n : plug.rootNode())
+        if(n.is<Device::DeviceSettings>()
+           && n.get<Device::DeviceSettings>().name == dev->settings().name)
+          return &n;
+      return nullptr;
+    };
+    CHECK(!explorer_node());
+
+    auto stgs = Device::AddressSettings{};
+    stgs.name = "rev";
+    stgs.extendedAttributes["audio-kind"] = std::string{"out"};
+    stgs.extendedAttributes["audio-mapping"] = ossia::audio_mapping{1, 0};
+
+    RedoMacroCommandDispatcher<Explorer::Command::AddAddresses> disp{
+        doc->context().commandStack};
+    disp.submit(new Explorer::Command::LoadDevice{plug, dev->settings()});
+    auto node = explorer_node();
+    REQUIRE(node);
+    disp.submit(new Explorer::Command::AddAddress{
+        plug, Device::NodePath{*node}, InsertMode::AsChild, stgs});
+    disp.commit();
+
+    CHECK(find(*dev, "/rev"));
   });
 }

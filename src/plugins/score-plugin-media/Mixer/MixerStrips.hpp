@@ -37,8 +37,18 @@ namespace Scenario
 class IntervalModel;
 }
 
+namespace Dataflow
+{
+class AudioDevice;
+}
+
 namespace Mixer
 {
+//! Asks for a new mapped or virtual port of the audio device and adds it,
+//! showing the device in the device explorer first if it is not there yet.
+void addAudioPort(
+    const score::DocumentContext& ctx, Dataflow::AudioDevice& dev, QWidget* parent);
+
 enum class StripWidth
 {
   Narrow,
@@ -166,6 +176,7 @@ public:
   void poll() override;
 
 private:
+  void fillContextMenu(QMenu&) override;
   void onNodeRemoved(const ossia::net::node_base&);
 
   ossia::audio_parameter* m_param{};
