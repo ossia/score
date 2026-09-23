@@ -819,7 +819,7 @@ void RenderedRawRasterPipelineNode::initPass(
     if(pip.pipeline)
     {
       Pass pass{renderTarget, pip, pubo};
-      pass.fallback_bindings = std::move(fallbackPlan);
+      pass.p.plan = std::move(fallbackPlan);
       m_passes.emplace_back(&edge, std::move(pass));
     }
     else
@@ -1985,7 +1985,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     {
       // nullptr edge — MRT passes are shared across all output edges
       Pass pass{m_mrtRenderTarget, pip, pubo};
-      pass.fallback_bindings = std::move(fallbackPlan);
+      pass.p.plan = std::move(fallbackPlan);
       m_passes.emplace_back(nullptr, std::move(pass));
     }
     else
@@ -3336,7 +3336,7 @@ void RenderedRawRasterPipelineNode::update(
   {
     bool anyFallback = false;
     for(const auto& [e, pass] : m_passes)
-      if(!pass.fallback_bindings.slots.empty())
+      if(!pass.p.plan.slots.empty())
       {
         anyFallback = true;
         break;
@@ -3365,7 +3365,7 @@ void RenderedRawRasterPipelineNode::update(
 
       auto& pool = renderer.vertexFallbackPool();
       for(auto& [e, pass] : m_passes)
-        for(const auto& slot : pass.fallback_bindings.slots)
+        for(const auto& slot : pass.p.plan.slots)
           pool.ensureInstances(
               *renderer.state.rhi, res, slot.buffer, instances);
     }
@@ -3779,7 +3779,7 @@ void RenderedRawRasterPipelineNode::runInitialPasses(
     // Pass the per-invocation SRB so each draw reads its own UBO.
     // Forward the pass's fallback-binding plan so "REQUIRED: false"
     // VERTEX_INPUTS get their identity buffers bound.
-    drawWithPerMeshAuxRebind(*invSRB, cb, pass.fallback_bindings);
+    drawWithPerMeshAuxRebind(*invSRB, cb, pass.p.plan);
 
     cb.endPass();
   }
@@ -3933,7 +3933,7 @@ void RenderedRawRasterPipelineNode::runRenderPass(
       cb.setViewport(QRhiViewport(
           0, 0, texture->pixelSize().width(), texture->pixelSize().height()));
 
-      drawWithPerMeshAuxRebind(*srb, cb, pass.fallback_bindings);
+      drawWithPerMeshAuxRebind(*srb, cb, pass.p.plan);
     }
   }
 }

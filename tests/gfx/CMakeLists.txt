@@ -263,6 +263,9 @@ score_add_gfx_test(review_render_targets GfxReviewRenderTargets.cpp)
 # real QRhi readback, so it measures the binding the engine actually emits.
 score_add_gfx_test(review_scene_fallback GfxReviewSceneFallback.cpp)
 score_add_gfx_test(interior_orphan_binding GfxInteriorOrphanBinding.cpp)
+# One resolver behind both entry points: it clears the caller's plan on entry,
+# and the strict and fallback-aware calls agree on layout and plan.
+score_add_gfx_test(unified_binding_resolver GfxUnifiedBindingResolver.cpp)
 
 # Indirect-draw firstInstance ABI and layered
 # indirect dispatch, each driven through the GPU rung AND the CPU fallback rung

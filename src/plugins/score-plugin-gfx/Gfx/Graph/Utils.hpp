@@ -229,8 +229,10 @@ struct Pipeline
   QRhiShaderResourceBindings* srb{};
 
   //! Which of the geometry's vertex bindings this pipeline kept, and in what
-  //! order. Empty/uncompacted means "bind every geometry input one-to-one",
-  //! which is what the builders that do not compact expect.
+  //! order, plus the fallback bindings it appended. Empty/uncompacted means
+  //! "bind every geometry input one-to-one", which is what the builders that
+  //! do not compact expect. The fallback buffers are owned by
+  //! VertexFallbackPool; the plan holds non-owning pointers.
   FallbackBindingPlan plan{};
 
   void release()
@@ -242,6 +244,8 @@ struct Pipeline
     if(srb)
       srb->deleteLater();
     srb = nullptr;
+
+    plan.clear();
   }
 };
 
@@ -629,21 +633,15 @@ inline QRhiBuffer::Type bufferTypeFor(
  * each one runs findGeometryAttribute(name, name) — useful when no isf
  * descriptor is around (legacy callers). Returns true on success, false if
  * a required attribute can't be matched.
+ *
+ * Strict: with no descriptor every input is required, so a miss fails the
+ * build. Same resolver as the fallback-aware overload below, minus the
+ * fallback synthesis.
  */
 SCORE_PLUGIN_GFX_EXPORT
 bool remapPipelineVertexInputs(
     QRhiGraphicsPipeline& pip, const QShader& vertexShader,
     const ossia::geometry& geom, FallbackBindingPlan* outPlan = nullptr);
-
-/**
- * @brief Same as above, but honours explicit SEMANTIC on each VERTEX_INPUTS
- * entry from the isf descriptor when present.
- */
-SCORE_PLUGIN_GFX_EXPORT
-bool remapPipelineVertexInputs(
-    QRhiGraphicsPipeline& pip, const QShader& vertexShader,
-    const ossia::geometry& geom, const isf::descriptor& desc,
-    FallbackBindingPlan* outPlan = nullptr);
 
 // FallbackBindingPlan lives in its own header so both Utils.hpp and
 // CustomMesh.hpp can depend on it without creating an include cycle

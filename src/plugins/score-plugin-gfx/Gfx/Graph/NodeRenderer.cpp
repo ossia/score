@@ -297,12 +297,16 @@ void GenericNodeRenderer::addOutputPass(
     }
     pipeline = pip.pipeline;
     m_pipelineCache.emplace_back(rpFormat, pipeline);
+    // The plan is a property of the mesh and the vertex shader, not of the
+    // render target, so it is the same for every cache entry -- and a cache
+    // hit has no Pipeline to read it back off.
+    m_pipelinePlan = std::move(pip.plan);
   }
 
   // Pass::p.pipeline is non-owning here -- the cache owns it. removeOutputPass
   // and releaseState null-out pipeline before Pipeline::release() so the
   // Pass release path only destroys the SRB.
-  m_p.emplace_back(&edge, Pass{rt, Pipeline{pipeline, srb}, nullptr});
+  m_p.emplace_back(&edge, Pass{rt, Pipeline{pipeline, srb, m_pipelinePlan}, nullptr});
 }
 
 void GenericNodeRenderer::removeOutputPass(RenderList& renderer, Edge& edge)
@@ -385,6 +389,7 @@ void GenericNodeRenderer::releaseState(RenderList& renderer)
       pipeline->deleteLater();
   }
   m_pipelineCache.clear();
+  m_pipelinePlan.clear();
 
   for(auto sampler : m_samplers)
   {
@@ -482,6 +487,7 @@ void GenericNodeRenderer::defaultRelease(RenderList&)
       pipeline->deleteLater();
   }
   m_pipelineCache.clear();
+  m_pipelinePlan.clear();
 
   for(auto sampler : m_samplers)
   {
