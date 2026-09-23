@@ -3045,9 +3045,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         cache->stage(src.content_hash, decoded->image);
       return decoded->image;
     }
-    QImage fallback(1, 1, QImage::Format_RGBA8888);
-    fallback.fill(Qt::white);
-    return fallback;
+    // Null, not a 1x1 white stand-in: both callers already skip on isNull,
+    // and a sentinel that is a valid image cannot be told apart from a real
+    // 1x1 texture -- which glTF uses constantly for solid-colour channels.
+    return {};
   }
 
   // Fingerprint of the registry's dynamic texture-slot table: for every
@@ -3229,12 +3230,6 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         // AssetTable `peek` may return a cached QImage → zero-cost.
         QImage img = decodeTextureSource(*s, renderer.assetTable());
         if(img.isNull())
-          return;
-
-        // Heuristic: the decode-failure fallback is a 1×1 image; real
-        // textures are ≥ 8 px on both axes. Skip bucket assignment on
-        // clearly-degenerate results so we don't spawn a 1×1 bucket.
-        if(img.width() < 8 || img.height() < 8)
           return;
 
         // Route to a bucket keyed on (format, size, sampler_config). Splitting
