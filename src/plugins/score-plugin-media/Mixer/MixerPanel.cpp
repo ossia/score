@@ -150,9 +150,26 @@ public:
     {
       auto sec = new QFrame{content};
       auto sec_lay = new score::MarginLess<QVBoxLayout>{sec};
+      auto header = new score::MarginLess<QHBoxLayout>;
       auto title = new QLabel{sectionName(Section(i)), sec};
       title->setAlignment(Qt::AlignLeft);
-      sec_lay->addWidget(title);
+      header->addWidget(title);
+      if(Section(i) == Section::Mapped || Section(i) == Section::Virtual)
+      {
+        auto add = new QToolButton{sec};
+        add->setText(QStringLiteral("+"));
+        add->setAutoRaise(true);
+        score::setHelp(
+            add, tr("Add a port to the audio device: some channels of the sound "
+                    "card, or a virtual port."));
+        connect(add, &QToolButton::clicked, this, [this] {
+          if(m_device)
+            addAudioPort(m_context, *m_device, this);
+        });
+        header->addWidget(add);
+      }
+      header->addStretch(1);
+      sec_lay->addLayout(header);
       auto strips = new QWidget{sec};
       auto strips_lay = new score::MarginLess<QHBoxLayout>{strips};
       strips_lay->setSpacing(1);
