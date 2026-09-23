@@ -23,10 +23,12 @@
 #include <ossia/audio/audio_protocol.hpp>
 #include <ossia/network/base/node.hpp>
 
-#include <QComboBox>
 #include <QFrame>
+#include <QAbstractButton>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QMenu>
+#include <QPainter>
 #include <QPointer>
 #include <QScrollArea>
 #include <QScrollBar>
@@ -88,6 +90,75 @@ QString sectionHelp(Section s)
 
 const QString settings_sections = QStringLiteral("Mixer/HiddenSections");
 const QString settings_width = QStringLiteral("Mixer/StripWidth");
+
+//! The side of a folding section: its name, written downwards, under a
+//! triangle that points to where the strips go. Checked while unfolded.
+class SectionTab final : public QAbstractButton
+{
+public:
+  SectionTab(const QString& text, QWidget* parent)
+      : QAbstractButton{parent}
+  {
+    setText(text);
+    setCheckable(true);
+    setFocusPolicy(Qt::TabFocus);
+    setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+  }
+
+  static int thickness(const QFontMetrics& fm) { return fm.height() + 8; }
+
+  QSize sizeHint() const override
+  {
+    return {thickness(fontMetrics()), fontMetrics().horizontalAdvance(text()) + 28};
+  }
+  QSize minimumSizeHint() const override { return sizeHint(); }
+
+protected:
+  void paintEvent(QPaintEvent*) override
+  {
+    QPainter p{this};
+    p.setRenderHint(QPainter::Antialiasing);
+    const auto& pal = palette();
+
+    p.fillRect(rect(), underMouse() ? pal.color(QPalette::Midlight) : pal.color(QPalette::Button));
+    if(hasFocus())
+    {
+      p.setPen(pal.color(QPalette::Highlight));
+      p.drawRect(rect().adjusted(0, 0, -1, -1));
+    }
+
+    // Unfolded, the triangle points back to the tab, folded to the strips.
+    constexpr double a = 6.;
+    const double x = (width() - a) / 2.;
+    constexpr double y = 8.;
+    QPolygonF arrow;
+    if(isChecked())
+      arrow << QPointF{x + a, y} << QPointF{x, y + a / 2.} << QPointF{x + a, y + a};
+    else
+      arrow << QPointF{x, y} << QPointF{x + a, y + a / 2.} << QPointF{x, y + a};
+    p.setPen(Qt::NoPen);
+    p.setBrush(pal.color(QPalette::WindowText));
+    p.drawPolygon(arrow);
+
+    p.setPen(pal.color(QPalette::WindowText));
+    p.translate(width(), y + a + 6.);
+    p.rotate(90.);
+    p.drawText(
+        QRectF{0., 0., double(height()) - (y + a + 6.), double(width())},
+        Qt::AlignLeft | Qt::AlignVCenter, text());
+  }
+
+  void enterEvent(QEnterEvent* e) override
+  {
+    QAbstractButton::enterEvent(e);
+    update();
+  }
+  void leaveEvent(QEvent* e) override
+  {
+    QAbstractButton::leaveEvent(e);
+    update();
+  }
+};
 }
 
 class MixerPanel final : public QWidget
@@ -98,44 +169,10 @@ public:
       , m_context{ctx}
   {
     auto lay = new score::MarginLess<QVBoxLayout>{this};
-
-    // Which sections show, and how wide the strips are.
-    auto bar = new QWidget{this};
-    auto bar_lay = new score::MarginLess<QHBoxLayout>{bar};
-    bar_lay->setSpacing(2);
     QSettings s;
     const int hidden = s.value(settings_sections, 0).toInt();
-    for(int i = 0; i < section_count; i++)
-    {
-      auto sec = Section(i);
-      auto b = new QToolButton{bar};
-      b->setText(sectionName(sec));
-      b->setCheckable(true);
-      b->setChecked(!(hidden & (1 << i)));
-      b->setAutoRaise(true);
-      score::setHelp(b, sectionHelp(sec));
-      bar_lay->addWidget(b);
-      connect(b, &QToolButton::toggled, this, [this, i](bool shown) {
-        m_sections[i]->setVisible(shown);
-        QSettings s;
-        int hidden = s.value(settings_sections, 0).toInt();
-        hidden = shown ? (hidden & ~(1 << i)) : (hidden | (1 << i));
-        s.setValue(settings_sections, hidden);
-      });
-    }
-    bar_lay->addStretch(1);
-
-    m_widthCombo = new QComboBox{bar};
-    m_widthCombo->addItems({tr("Narrow"), tr("Normal"), tr("Wide")});
-    m_widthCombo->setCurrentIndex(
+    m_width = StripWidth(
         std::clamp(s.value(settings_width, int(StripWidth::Normal)).toInt(), 0, 2));
-    score::setHelp(m_widthCombo, tr("Width of every strip"));
-    bar_lay->addWidget(m_widthCombo);
-    connect(m_widthCombo, &QComboBox::currentIndexChanged, this, [this](int w) {
-      QSettings{}.setValue(settings_width, w);
-      forEachStrip([w](Strip& s) { s.setStripWidth(StripWidth(w)); });
-    });
-    lay->addWidget(bar);
 
     // The sections scroll; the master stays on the right.
     auto body = new QWidget{this};
@@ -147,28 +184,28 @@ public:
     m_scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     auto content = new QWidget{m_scroll};
     auto content_lay = new score::MarginLess<QHBoxLayout>{content};
-    content_lay->setSpacing(12);
-    // Every section header has the same height, with or without a button,
-    // so that the strips below them start at the same height.
-    const int header_h = fontMetrics().height() + 8;
+    content_lay->setSpacing(6);
+    const int tab_w = SectionTab::thickness(fontMetrics());
     for(int i = 0; i < section_count; i++)
     {
-      auto sec = new QFrame{content};
-      auto sec_lay = new score::MarginLess<QVBoxLayout>{sec};
-      auto header_w = new QWidget{sec};
-      header_w->setFixedHeight(header_h);
-      auto header = new QHBoxLayout{header_w};
-      header->setContentsMargins(3, 0, 0, 0);
-      header->setSpacing(4);
-      auto title = new QLabel{sectionName(Section(i)), sec};
-      title->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-      header->addWidget(title);
+      // A tab on the left folds the section's strips away.
+      auto sec = new QWidget{content};
+      auto sec_lay = new score::MarginLess<QHBoxLayout>{sec};
+      sec_lay->setSpacing(4);
+
+      auto side = new QWidget{sec};
+      auto side_lay = new score::MarginLess<QVBoxLayout>{side};
+      side_lay->setSpacing(1);
+      auto tab = new SectionTab{sectionName(Section(i)), side};
+      tab->setChecked(!(hidden & (1 << i)));
+      score::setHelp(tab, sectionHelp(Section(i)));
+      side_lay->addWidget(tab, 1);
       if(Section(i) == Section::Mapped || Section(i) == Section::Virtual)
       {
-        auto add = new QToolButton{sec};
+        auto add = new QToolButton{side};
         add->setText(QStringLiteral("+"));
         add->setAutoRaise(true);
-        add->setFixedSize(header_h - 4, header_h - 4);
+        add->setFixedSize(tab_w, tab_w);
         score::setHelp(
             add, tr("Add a port to the audio device: some channels of the sound "
                     "card, or a virtual port."));
@@ -177,17 +214,30 @@ public:
           if(m_device)
             addAudioPort(m_context, *m_device, this, kind);
         });
-        header->addWidget(add);
+        side_lay->addWidget(add);
       }
-      header->addStretch(1);
-      sec_lay->addWidget(header_w);
+      sec_lay->addWidget(side);
+
       auto strips = new QWidget{sec};
       auto strips_lay = new score::MarginLess<QHBoxLayout>{strips};
       strips_lay->setSpacing(2);
       strips_lay->setAlignment(Qt::AlignLeft);
+      strips->setVisible(tab->isChecked());
       sec_lay->addWidget(strips, 1);
       content_lay->addWidget(sec);
-      sec->setVisible(!(hidden & (1 << i)));
+
+      connect(tab, &SectionTab::toggled, this, [strips, i](bool shown) {
+        strips->setVisible(shown);
+        QSettings s;
+        int hidden = s.value(settings_sections, 0).toInt();
+        hidden = shown ? (hidden & ~(1 << i)) : (hidden | (1 << i));
+        s.setValue(settings_sections, hidden);
+      });
+      tab->setContextMenuPolicy(Qt::CustomContextMenu);
+      connect(tab, &QWidget::customContextMenuRequested, this, [this, tab](QPoint pos) {
+        widthMenu(tab->mapToGlobal(pos));
+      });
+
       m_sections[i] = sec;
       m_strips[i] = strips;
     }
@@ -196,12 +246,7 @@ public:
     body_lay->addWidget(m_scroll, 1);
 
     m_master = new QWidget{body};
-    {
-      auto master_lay = new score::MarginLess<QVBoxLayout>{m_master};
-      auto spacer = new QWidget{m_master};
-      spacer->setFixedHeight(header_h);
-      master_lay->addWidget(spacer);
-    }
+    new score::MarginLess<QVBoxLayout>{m_master};
     body_lay->addSpacing(12);
     body_lay->addWidget(m_master);
 
@@ -265,7 +310,29 @@ public:
   }
 
 private:
-  StripWidth width() const noexcept { return StripWidth(m_widthCombo->currentIndex()); }
+  StripWidth width() const noexcept { return m_width; }
+
+  //! The width of every strip.
+  void widthMenu(QPoint at)
+  {
+    QMenu menu;
+    auto widths = menu.addMenu(tr("Width of every strip"));
+    for(auto [w, name] :
+        {std::pair{StripWidth::Narrow, tr("Narrow")},
+         std::pair{StripWidth::Normal, tr("Normal")},
+         std::pair{StripWidth::Wide, tr("Wide")}})
+    {
+      auto act = widths->addAction(name);
+      act->setCheckable(true);
+      act->setChecked(m_width == w);
+      connect(act, &QAction::triggered, this, [this, w = w] {
+        m_width = w;
+        QSettings{}.setValue(settings_width, int(w));
+        forEachStrip([w](Strip& s) { s.setStripWidth(w); });
+      });
+    }
+    menu.exec(at);
+  }
 
   template <typename F>
   void forEachStrip(F&& f)
@@ -389,7 +456,7 @@ private:
   const score::DocumentContext& m_context;
   QPointer<Dataflow::AudioDevice> m_device;
   QScrollArea* m_scroll{};
-  QComboBox* m_widthCombo{};
+  StripWidth m_width{StripWidth::Normal};
   std::array<QWidget*, section_count> m_sections{};
   std::array<QWidget*, section_count> m_strips{};
   QWidget* m_master{};
@@ -407,7 +474,8 @@ PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
   score::setHelp(
       m_widget,
       QObject::tr("The audio mixer: the buses of the score, and the ports of the audio "
-                  "device.\nRight-click a strip to change its width."));
+                  "device.\nRight-click a strip, or a section's side, to change the "
+                  "width of the strips."));
 }
 
 QWidget* PanelDelegate::widget()
