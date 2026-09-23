@@ -42,6 +42,12 @@ void SetSegmentParametersCommandObject::press()
 
 void SetSegmentParametersCommandObject::move()
 {
+  // The clicked segment may be gone: the curve can change between the click
+  // and the moment the state machine gets to it.
+  const auto& segments = m_model.segments();
+  if(segments.find(m_state->clickedSegmentId) == segments.end())
+    return;
+
   const constexpr double amplitude = 2.;
   const double vampl = amplitude * (m_state->currentPoint.y() - m_originalPress.y());
   const double hampl = amplitude * (m_state->currentPoint.x() - m_originalPress.x());
@@ -57,7 +63,7 @@ void SetSegmentParametersCommandObject::move()
 
     for(auto& sel : m_model.segments())
     {
-      if(sel.selection.get())
+      if(sel.selection.get() && m_orig.find(sel.id()) != m_orig.end())
       {
         auto& orig = m_orig[sel.id()];
         auto& newp = map[sel.id()];

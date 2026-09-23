@@ -21,6 +21,11 @@
 #include <cstdio>
 #include <cstring>
 
+#if defined(__clang__) || defined(__GNUC__)
+// Defined only in builds with -fprofile-instr-generate.
+extern "C" int __llvm_profile_write_file(void) __attribute__((weak));
+#endif
+
 namespace threedim_test
 {
 // True iff the child ran `f` and exited 0: no signal, no assert, and no
@@ -65,6 +70,11 @@ bool survives(F&& f)
       std::fputc('\n', stderr);
     });
     f();
+#if defined(__clang__) || defined(__GNUC__)
+    // _exit skips the atexit hook that saves coverage.
+    if(&__llvm_profile_write_file)
+      __llvm_profile_write_file();
+#endif
     ::_exit(0);
   }
   REQUIRE(pid > 0);

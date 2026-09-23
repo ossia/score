@@ -51,8 +51,7 @@ SCORE_PLUGIN_CURVE_EXPORT void DataStreamWriter::write(Curve::Model& curve)
   curve.segments().m_map.reserve(size);
   curve.points().reserve(size + 2);
 
-  static std::vector<Curve::SegmentModel*> segts;
-  segts.clear();
+  std::vector<Curve::SegmentModel*> segts;
   segts.reserve(size);
 
   auto& csl = components.interfaces<Curve::SegmentList>();
@@ -70,7 +69,6 @@ SCORE_PLUGIN_CURVE_EXPORT void DataStreamWriter::write(Curve::Model& curve)
   });
 
   curve.loadSegments(segts);
-  segts.clear();
   curve.changed();
   checkDelimiter();
 }
@@ -89,8 +87,7 @@ SCORE_PLUGIN_CURVE_EXPORT void JSONWriter::write(Curve::Model& curve)
   curve.segments().m_map.reserve(segments.Size());
   curve.points().reserve(segments.Size() + 2);
 
-  static std::vector<Curve::SegmentModel*> segts;
-  segts.clear();
+  std::vector<Curve::SegmentModel*> segts;
   segts.reserve(segments.Size());
 
   for(const auto& segment : segments)
@@ -108,7 +105,6 @@ SCORE_PLUGIN_CURVE_EXPORT void JSONWriter::write(Curve::Model& curve)
     return a->m_start.x() < b->m_start.x();
   });
   curve.loadSegments(segts);
-  segts.clear();
 
   curve.changed();
 }

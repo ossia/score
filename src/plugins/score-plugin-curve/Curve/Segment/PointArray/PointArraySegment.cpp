@@ -31,16 +31,22 @@ namespace Curve
 PointArraySegment::PointArraySegment(const SegmentData& dat, QObject* parent)
     : SegmentModel{dat, parent}
 {
-  const auto& pa_data = dat.specificSegmentData.value<PointArraySegmentData>();
-  min_x = pa_data.min_x;
-  max_x = pa_data.max_x;
-  min_y = pa_data.min_y;
-  max_y = pa_data.max_y;
+  setData(dat.specificSegmentData.value<PointArraySegmentData>());
+}
 
-  for(auto pt : pa_data.m_points)
-  {
+void PointArraySegment::setData(const PointArraySegmentData& dat)
+{
+  min_x = dat.min_x;
+  max_x = dat.max_x;
+  min_y = dat.min_y;
+  max_y = dat.max_y;
+
+  m_points.clear();
+  for(auto pt : dat.m_points)
     m_points.insert(std::make_pair(pt.x(), pt.y()));
-  }
+
+  m_valid = false;
+  dataChanged();
 }
 
 PointArraySegment::PointArraySegment(
@@ -209,6 +215,8 @@ std::vector<SegmentData> PointArraySegment::toLinearSegments() const
   m_valid = false;
   updateData(0);
   const auto& pts = data();
+  if(pts.size() < 2)
+    return vec;
   vec.reserve(pts.size() - 1);
 
   int N0 = 10000;
@@ -238,6 +246,8 @@ std::vector<SegmentData> PointArraySegment::toPowerSegments() const
   m_valid = false;
   updateData(0);
   const auto& pts = data();
+  if(pts.size() < 2)
+    return vec;
   vec.reserve(pts.size() - 1);
 
   int N0 = 10000;
@@ -305,47 +315,75 @@ void PointArraySegment::reset()
 template <>
 void DataStreamReader::read(const Curve::PointArraySegment& segmt)
 {
-  SCORE_TODO;
+  readFrom(segmt.toSegmentSpecificData().value<Curve::PointArraySegmentData>());
 }
 
 template <>
 void DataStreamWriter::write(Curve::PointArraySegment& segmt)
 {
-  SCORE_TODO;
+  Curve::PointArraySegmentData dat;
+  writeTo(dat);
+  segmt.setData(dat);
 }
 
 template <>
 void JSONReader::read(const Curve::PointArraySegment& segmt)
 {
-  SCORE_TODO;
+  const auto dat = segmt.toSegmentSpecificData().value<Curve::PointArraySegmentData>();
+  obj["MinX"] = dat.min_x;
+  obj["MaxX"] = dat.max_x;
+  obj["MinY"] = dat.min_y;
+  obj["MaxY"] = dat.max_y;
+  obj["Points"] = std::vector<QPointF>(dat.m_points.begin(), dat.m_points.end());
 }
 
 template <>
 void JSONWriter::write(Curve::PointArraySegment& segmt)
 {
-  SCORE_TODO;
+  Curve::PointArraySegmentData dat;
+  dat.min_x = obj["MinX"].toDouble();
+  dat.max_x = obj["MaxX"].toDouble();
+  dat.min_y = obj["MinY"].toDouble();
+  dat.max_y = obj["MaxY"].toDouble();
+  std::vector<QPointF> points;
+  points <<= obj["Points"];
+  dat.m_points.assign(points.begin(), points.end());
+  segmt.setData(dat);
 }
 
 template <>
 void DataStreamReader::read(const Curve::PointArraySegmentData& segmt)
 {
-  SCORE_TODO;
+  m_stream << segmt.min_x << segmt.max_x << segmt.min_y << segmt.max_y
+           << std::vector<QPointF>(segmt.m_points.begin(), segmt.m_points.end());
 }
 
 template <>
 void DataStreamWriter::write(Curve::PointArraySegmentData& segmt)
 {
-  SCORE_TODO;
+  std::vector<QPointF> points;
+  m_stream >> segmt.min_x >> segmt.max_x >> segmt.min_y >> segmt.max_y >> points;
+  segmt.m_points.assign(points.begin(), points.end());
 }
 
 template <>
 void JSONReader::read(const Curve::PointArraySegmentData& segmt)
 {
-  SCORE_TODO;
+  obj["MinX"] = segmt.min_x;
+  obj["MaxX"] = segmt.max_x;
+  obj["MinY"] = segmt.min_y;
+  obj["MaxY"] = segmt.max_y;
+  obj["Points"] = std::vector<QPointF>(segmt.m_points.begin(), segmt.m_points.end());
 }
 
 template <>
 void JSONWriter::write(Curve::PointArraySegmentData& segmt)
 {
-  SCORE_TODO;
+  segmt.min_x = obj["MinX"].toDouble();
+  segmt.max_x = obj["MaxX"].toDouble();
+  segmt.min_y = obj["MinY"].toDouble();
+  segmt.max_y = obj["MaxY"].toDouble();
+  std::vector<QPointF> points;
+  points <<= obj["Points"];
+  segmt.m_points.assign(points.begin(), points.end());
 }

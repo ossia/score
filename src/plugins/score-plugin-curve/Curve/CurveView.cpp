@@ -93,7 +93,11 @@ void View::setSelectionArea(const QRectF& rect) noexcept
 void View::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   if(event->button() == Qt::LeftButton)
+  {
+    m_pressed = true;
+    m_lastScenePos = event->scenePos();
     pressed(event->scenePos());
+  }
   event->accept();
 }
 
@@ -106,14 +110,29 @@ void View::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 
 void View::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
+  m_lastScenePos = event->scenePos();
   moved(event->scenePos());
   event->accept();
 }
 
 void View::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
+  m_pressed = false;
   released(event->scenePos());
   event->accept();
+}
+
+bool View::sceneEvent(QEvent* event)
+{
+  // The scene drops an implicit grab on a move without buttons (the button
+  // was let go outside the window) and sends no release: end the drag here.
+  // Also sent after every normal release, hence the flag.
+  if(event->type() == QEvent::UngrabMouse && m_pressed)
+  {
+    m_pressed = false;
+    released(m_lastScenePos);
+  }
+  return QGraphicsItem::sceneEvent(event);
 }
 
 void View::keyPressEvent(QKeyEvent* ev)
@@ -238,7 +257,6 @@ void View::setValueTooltip(QPointF pos, const QString& s) noexcept
   m_tooltip = s;
   m_tooltipPos = pos;
 
-  static QGraphicsSimpleTextItem* tooltip{};
   if(!m_tooltip.isEmpty())
   {
     // Compute position
@@ -256,25 +274,22 @@ void View::setValueTooltip(QPointF pos, const QString& s) noexcept
       pos.ry() -= (textrect.height() + 10);
     }
 
-    if(!tooltip)
+    if(!m_tooltipItem)
     {
-      tooltip = new QGraphicsSimpleTextItem{this};
-      tooltip->setZValue(100);
+      m_tooltipItem = new QGraphicsSimpleTextItem{this};
+      m_tooltipItem->setZValue(100);
       const auto& style = Process::Style::instance();
-      tooltip->setFont(score::Skin::instance().Bold10Pt);
-      tooltip->setBrush(style.IntervalBase());
+      m_tooltipItem->setFont(score::Skin::instance().Bold10Pt);
+      m_tooltipItem->setBrush(style.IntervalBase());
     }
 
-    tooltip->setText(m_tooltip);
-    tooltip->setPos(pos);
+    m_tooltipItem->setText(m_tooltip);
+    m_tooltipItem->setPos(pos);
   }
   else
   {
-    if(tooltip)
-    {
-      delete tooltip;
-      tooltip = nullptr;
-    }
+    delete m_tooltipItem;
+    m_tooltipItem = nullptr;
   }
 }
 

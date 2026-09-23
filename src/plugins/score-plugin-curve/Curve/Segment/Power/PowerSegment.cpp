@@ -15,6 +15,8 @@
 
 #include <wobjectimpl.h>
 
+#include <algorithm>
+
 W_OBJECT_IMPL(Curve::PowerSegment)
 SCORE_SERALIZE_DATASTREAM_DEFINE(Curve::PowerSegmentData)
 namespace Curve
@@ -60,6 +62,8 @@ static const pow_tables_t pow_tables = [] {
 
 void PowerSegment::updateData(int numInterp) const
 {
+  // The pow tables have rows for 1 to 75 steps, and a curve needs both ends.
+  numInterp = std::clamp(numInterp, 2, 75);
   if(std::size_t(numInterp + 1) != m_data.size())
     m_valid = false;
   if(!m_valid)
@@ -79,8 +83,6 @@ void PowerSegment::updateData(int numInterp) const
       double start_y = start().y();
       double end_x = end().x();
       double end_y = end().y();
-      SCORE_ASSERT(numInterp <= 75);
-
       auto& pow_table = pow_tables[numInterp];
       if(gamma < 1.)
       {
@@ -108,6 +110,10 @@ void PowerSegment::updateData(int numInterp) const
 
 double PowerSegment::valueAt(double x) const
 {
+  // A vertical segment is worth the value it jumps to.
+  if(end().x() <= start().x())
+    return end().y();
+
   if(gamma == PowerSegmentData::linearGamma)
   {
     return start().y()

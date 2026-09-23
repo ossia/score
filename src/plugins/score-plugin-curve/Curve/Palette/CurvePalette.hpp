@@ -59,6 +59,7 @@ private:
   }
 
   Presenter& m_presenter;
+  bool m_pressed{};
 
   SmartTool m_selectTool;
   CreateTool m_createTool;

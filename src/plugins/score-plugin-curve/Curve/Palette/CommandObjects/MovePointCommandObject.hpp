@@ -5,8 +5,6 @@
 
 namespace Curve
 {
-struct CurveSegmentMap;
-
 class Presenter;
 class SCORE_PLUGIN_CURVE_EXPORT MovePointCommandObject final : public CommandObjectBase
 {
@@ -24,11 +22,13 @@ public:
   void cancel();
 
 private:
-  void handlePointOverlap(CurveSegmentMap& segments);
-  void handleSuppressOnOverlap(CurveSegmentMap& segments);
-  void handleCrossOnOverlap(CurveSegmentMap& segments);
-  void setCurrentPoint(CurveSegmentMap& segments);
+  bool crosses(double x) const;
+  bool setCurrentPoint(std::vector<SegmentData>& segments) const;
+  bool suppressOverlapped(std::vector<SegmentData>& segments) const;
+  bool crossOverlapped(std::vector<SegmentData>& segments) const;
   void setTooltip(const Curve::Point& p);
   void unsetTooltip();
+
+  bool m_pressed{};
 };
 }

@@ -90,7 +90,7 @@ template <>
 SCORE_PLUGIN_CURVE_EXPORT void JSONWriter::write(Curve::SegmentData& segmt)
 {
   using namespace Curve;
-  segmt.previous <<= obj[strings.id];
+  segmt.id <<= obj[strings.id];
   segmt.start <<= obj[strings.Start];
   segmt.end <<= obj[strings.End];
   segmt.previous <<= obj[strings.Previous];

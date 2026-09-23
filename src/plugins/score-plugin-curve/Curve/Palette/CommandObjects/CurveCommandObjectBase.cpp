@@ -9,7 +9,13 @@
 #include <Curve/Palette/CurvePaletteBaseStates.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
 
+#include <Curve/Segment/Power/PowerSegment.hpp>
+
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
+
+#include <ossia/detail/algorithms.hpp>
+
+#include <QVariant>
 
 namespace score
 {
@@ -60,17 +66,21 @@ void CommandObjectBase::handleLocking()
     m_state->currentPoint.setY(1.);
 
   // And more specifically...
+  // A bound at the original x (a vertical step) holds the point there
+  // instead of pushing it past.
   if(m_presenter && m_presenter->editionSettings().lockBetweenPoints())
   {
+    const double orig = m_originalPress.x();
     if(current_x <= m_xmin)
-      m_state->currentPoint.setX(m_xmin + 0.000001);
+      m_state->currentPoint.setX(std::min(m_xmin + 0.000001, std::max(m_xmin, orig)));
 
     if(current_x >= m_xmax)
     {
       // If xmax is the max of the whole curve and we are not bounded,
       // we ignore.
       if(!(!bounded && current_x >= m_xLastPoint))
-        m_state->currentPoint.setX(m_xmax - 0.000001);
+        m_state->currentPoint.setX(
+            std::max(m_xmax - 0.000001, std::min(m_xmax, orig)));
     }
   }
 }
@@ -123,7 +133,7 @@ void checkValidity(SegmentMapImpl& segts)
     {
       if(s1.id != s2.id)
       {
-        SCORE_ASSERT(!(s1.start.x() >= s2.start.x() && s1.start.x() < s2.end.x()));
+        SCORE_ASSERT(!(s1.start.x() < s2.end.x() && s2.start.x() < s1.end.x()));
       }
     }
   }
@@ -174,10 +184,137 @@ void checkValidity(std::span<SegmentData> segts)
         SCORE_ASSERT(s2.id == s1.following);
       if(s1.id != s2.id)
       {
-        SCORE_ASSERT(!(s1.start.x() >= s2.start.x() && s1.start.x() < s2.end.x()));
+        SCORE_ASSERT(!(s1.start.x() < s2.end.x() && s2.start.x() < s1.end.x()));
       }
     }
   }
 #endif
+}
+
+void createPointAt(std::vector<SegmentData>& segments, Curve::Point pt)
+{
+  // The segment under pt, and those ending or starting exactly at it.
+  SegmentData* middle = nullptr;
+  SegmentData* exactBefore = nullptr;
+  SegmentData* exactAfter = nullptr;
+  const auto current_x = pt.x();
+  for(auto& segment : segments)
+  {
+    if(segment.start.x() < current_x && current_x < segment.end.x())
+      middle = &segment;
+    if(segment.end.x() == current_x)
+      exactBefore = &segment;
+    if(segment.start.x() == current_x)
+      exactAfter = &segment;
+  }
+
+  // Handle creation on an exact other point
+  if(exactBefore || exactAfter)
+  {
+    if(exactBefore)
+    {
+      exactBefore->end = pt;
+    }
+    if(exactAfter)
+    {
+      exactAfter->start = pt;
+    }
+  }
+  else if(middle)
+  {
+    // The segment goes in the first half of "middle"
+    SegmentData newSegment{
+        getSegmentId(segments),     middle->start, pt,
+        middle->previous,           middle->id,    middle->type,
+        middle->specificSegmentData};
+
+    auto prev_it = ossia::find_if(segments, [&](const SegmentData& seg) {
+      return seg.id == middle->previous;
+    });
+    if(prev_it != segments.end())
+    {
+      (*prev_it).following = newSegment.id;
+    }
+
+    middle->start = pt;
+    middle->previous = newSegment.id;
+    segments.push_back(newSegment);
+  }
+  else
+  {
+    // The references to segments.back() below must survive both push_back.
+    segments.reserve(segments.size() + 2);
+
+    double seg_closest_from_left_x = 0;
+    SegmentData* seg_closest_from_left{};
+    double seg_closest_from_right_x = 1.;
+    SegmentData* seg_closest_from_right{};
+    for(SegmentData& segment : segments)
+    {
+      auto seg_start_x = segment.start.x();
+      if(seg_start_x > current_x && seg_start_x < seg_closest_from_right_x)
+      {
+        seg_closest_from_right_x = seg_start_x;
+        seg_closest_from_right = &segment;
+      }
+
+      auto seg_end_x = segment.end.x();
+      if(seg_end_x < current_x && seg_end_x > seg_closest_from_left_x)
+      {
+        seg_closest_from_left_x = seg_end_x;
+        seg_closest_from_left = &segment;
+      }
+    }
+
+    // Create a curve segment for the left
+    // Pushed right away: the next getSegmentId must see its id.
+    {
+      SegmentData newLeftSegment;
+      newLeftSegment.id = getSegmentId(segments);
+      segments.push_back(newLeftSegment);
+    }
+    SegmentData& newLeftSegment = segments.back();
+    newLeftSegment.type = Metadata<ConcreteKey_k, PowerSegment>::get();
+    newLeftSegment.specificSegmentData
+        = QVariant::fromValue(PowerSegmentData{PowerSegmentData::linearGamma});
+    newLeftSegment.start = {seg_closest_from_left_x, 0.};
+    newLeftSegment.end = pt;
+
+    if(seg_closest_from_left)
+    {
+      newLeftSegment.start = seg_closest_from_left->end;
+      newLeftSegment.previous = seg_closest_from_left->id;
+
+      seg_closest_from_left->following = newLeftSegment.id;
+    }
+
+    // Create a curve segment for the right
+    // If we are before 1.0 we wrap to 1.0.
+    if(current_x <= 1.0 || seg_closest_from_right)
+    {
+      {
+        SegmentData newRightSegment;
+        newRightSegment.id = getSegmentId(segments);
+        segments.push_back(newRightSegment);
+      }
+      SegmentData& newRightSegment = segments.back();
+      newRightSegment.type = Metadata<ConcreteKey_k, PowerSegment>::get();
+      newRightSegment.specificSegmentData
+          = QVariant::fromValue(PowerSegmentData{PowerSegmentData::linearGamma});
+      newRightSegment.start = pt;
+      newRightSegment.end = {seg_closest_from_right_x, 0.};
+
+      newLeftSegment.following = newRightSegment.id;
+      newRightSegment.previous = newLeftSegment.id;
+
+      if(seg_closest_from_right)
+      {
+        newRightSegment.end = seg_closest_from_right->start;
+        newRightSegment.following = seg_closest_from_right->id;
+
+        seg_closest_from_right->previous = newRightSegment.id;
+      }
+    }
+  }
 }
 }

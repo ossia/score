@@ -9,6 +9,7 @@
 #include <verdigris>
 
 class QGraphicsSceneContextMenuEvent;
+class QGraphicsSimpleTextItem;
 class QGraphicsSceneMouseEvent;
 class QKeyEvent;
 class QPainter;
@@ -62,6 +63,7 @@ private:
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  bool sceneEvent(QEvent* event) override;
 
   void keyPressEvent(QKeyEvent* ev) override;
   void keyReleaseEvent(QKeyEvent* ev) override;
@@ -77,7 +79,10 @@ private:
   QRectF m_selectArea;
   QPointF m_tooltipPos;
   QString m_tooltip;
+  QGraphicsSimpleTextItem* m_tooltipItem{};
   double m_defaultW{};
   bool m_directDraw{false};
+  bool m_pressed{false};
+  QPointF m_lastScenePos;
 };
 }

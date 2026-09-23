@@ -1,8 +1,15 @@
 #pragma once
+#include "CurvePaletteBaseStates.hpp"
 #include "CurvePoint.hpp"
+
+#include <Curve/Point/CurvePointModel.hpp>
+#include <Curve/Point/CurvePointView.hpp>
+#include <Curve/Segment/CurveSegmentModel.hpp>
+#include <Curve/Segment/CurveSegmentView.hpp>
 
 #include <score/statemachine/StateMachineUtils.hpp>
 #include <score/tools/Clamp.hpp>
+#include <score/tools/SafeCast.hpp>
 
 class QGraphicsItem;
 namespace Curve
@@ -28,13 +35,24 @@ template <typename Element_T, typename Modifier_T>
 struct CurveEvent : public score::PositionedEvent<Curve::Point>
 {
   static constexpr const int user_type = Element_T::value + Modifier_T::value;
-  CurveEvent(const Curve::Point& pt, const QGraphicsItem* theItem)
+  //! The event is processed later, when the item may be gone: what it points
+  //! at is read now.
+  CurveEvent(const Curve::Point& pt, const QGraphicsItem* item)
       : score::PositionedEvent<Curve::Point>{pt, QEvent::Type(QEvent::User + user_type)}
-      , item{theItem}
   {
+    if constexpr(std::is_same_v<Element_T, Element::Point_tag>)
+    {
+      auto& m = safe_cast<const PointView*>(item)->model();
+      pointId = {m.previous(), m.following()};
+    }
+    else if constexpr(std::is_same_v<Element_T, Element::Segment_tag>)
+    {
+      segmentId = safe_cast<const SegmentView*>(item)->model().id();
+    }
   }
 
-  const QGraphicsItem* const item{};
+  PointId pointId;
+  Id<SegmentModel> segmentId;
 };
 
 using ClickOnNothing_Event
