@@ -96,8 +96,9 @@ struct Node
     const double rate = setup_info.rate > 0 ? setup_info.rate : 48000.0;
     const double release = std::exp(-frames / (release_time * rate));
 
-    std::vector<float> level_data;
-    level_data.reserve(channels * 3);
+    // Written in place: the vector keeps its capacity from one tick to the next.
+    auto& level_data = outputs.levels.value;
+    level_data.clear();
 
     for(int c = 0; c < channels; c++)
     {
@@ -145,8 +146,6 @@ struct Node
       level_data.push_back(static_cast<float>(state.rms_env));
       level_data.push_back(static_cast<float>(state.peak_hold));
     }
-
-    outputs.levels.value = std::move(level_data);
   }
 
   //! Shows what the audio inlet receives, read from the execution's
