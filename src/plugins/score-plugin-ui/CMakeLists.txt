@@ -16,6 +16,6 @@ add_library(
   "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_ui.cpp"
 )
 
-target_link_libraries(score_plugin_ui PUBLIC score_plugin_avnd)
+target_link_libraries(score_plugin_ui PUBLIC score_plugin_avnd score_plugin_engine)
 
 setup_score_plugin(score_plugin_ui)

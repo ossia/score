@@ -58,12 +58,12 @@ uint64_t Telemetry::publishInterval() const noexcept
 }
 
 Telemetry::Meter
-Telemetry::subscribe(tap_kind kind, const Process::AudioOutlet* outlet)
+Telemetry::subscribe(tap_kind kind, const Process::Port* port, bool inlet)
 {
   for(std::size_t i = 0; i < m_subs.size(); i++)
   {
     auto& s = m_subs[i];
-    if(s.users > 0 && s.kind == kind && s.outlet == outlet)
+    if(s.users > 0 && s.kind == kind && s.port == port && s.inlet == inlet)
     {
       s.users++;
       return {int(i), s.generation};
@@ -86,7 +86,8 @@ Telemetry::subscribe(tap_kind kind, const Process::AudioOutlet* outlet)
   auto& s = m_subs[index];
   s = Subscription{};
   s.kind = kind;
-  s.outlet = outlet;
+  s.port = port;
+  s.inlet = inlet;
   s.generation = ++generations;
   s.users = 1;
 
@@ -102,17 +103,22 @@ Telemetry::subscribe(tap_kind kind, const Process::AudioOutlet* outlet)
 
 Telemetry::Meter Telemetry::meterOutlet(const Process::AudioOutlet& outlet)
 {
-  return subscribe(tap_kind::node, &outlet);
+  return subscribe(tap_kind::node, &outlet, false);
+}
+
+Telemetry::Meter Telemetry::meterInlet(const Process::AudioInlet& inlet)
+{
+  return subscribe(tap_kind::node, &inlet, true);
 }
 
 Telemetry::Meter Telemetry::meterHardwareInputs()
 {
-  return subscribe(tap_kind::hardware_inputs, nullptr);
+  return subscribe(tap_kind::hardware_inputs, nullptr, false);
 }
 
 Telemetry::Meter Telemetry::meterHardwareOutputs()
 {
-  return subscribe(tap_kind::hardware_outputs, nullptr);
+  return subscribe(tap_kind::hardware_outputs, nullptr, false);
 }
 
 void Telemetry::release(Meter m)
@@ -272,6 +278,7 @@ void Telemetry::executionStopped()
   {
     s.attached = false;
     s.node.reset();
+    s.ossia_inlet = nullptr;
     s.ossia_outlet = nullptr;
   }
   updated();
@@ -337,12 +344,35 @@ void Telemetry::attach(int index)
     return;
 
   auto tap = std::make_shared<ossia::telemetry::meter_tap>();
-  if(s.kind == tap_kind::node)
+  if(s.kind == tap_kind::node && s.inlet)
   {
-    if(!s.outlet)
+    if(!s.port)
+      return;
+    auto& inlets = ctx->setupContext.inlets;
+    auto it = inlets.find(
+        static_cast<Process::Inlet*>(const_cast<Process::Port*>(s.port.data())));
+    if(it == inlets.end() || !it->second.first || !it->second.second
+       || it->second.second->which() != ossia::audio_port::which)
+      return; // Not executing yet: read() retries.
+
+    auto node = it->second.first;
+    auto in = static_cast<ossia::audio_inlet*>(it->second.second);
+    s.node = node;
+    s.ossia_inlet = in;
+    ctx->m_execQueue.enqueue(
+        [arena = m_arena, index, gen = s.generation, in_arena = tap, in_port = tap,
+         node = std::move(node), in]() mutable {
+      arena->attach(index, gen, tap_kind::node, in_arena);
+      std::swap(in->meter, in_port);
+    });
+  }
+  else if(s.kind == tap_kind::node)
+  {
+    if(!s.port)
       return;
     auto& outlets = ctx->setupContext.outlets;
-    auto it = outlets.find(const_cast<Process::AudioOutlet*>(s.outlet.data()));
+    auto it = outlets.find(
+        static_cast<Process::Outlet*>(const_cast<Process::Port*>(s.port.data())));
     if(it == outlets.end() || !it->second.first || !it->second.second
        || it->second.second->which() != ossia::audio_port::which)
       return; // Not executing yet: read() retries.
@@ -352,10 +382,10 @@ void Telemetry::attach(int index)
     s.node = node;
     s.ossia_outlet = out;
     ctx->m_execQueue.enqueue(
-        [arena = m_arena, index, gen = s.generation, in_arena = tap, in_outlet = tap,
+        [arena = m_arena, index, gen = s.generation, in_arena = tap, in_port = tap,
          node = std::move(node), out]() mutable {
       arena->attach(index, gen, tap_kind::node, in_arena);
-      std::swap(out->meter, in_outlet);
+      std::swap(out->meter, in_port);
     });
   }
   else
@@ -378,15 +408,18 @@ void Telemetry::detach(int index)
 
   auto node = s.node.lock();
   ctx->m_execQueue.enqueue(
-      [arena = m_arena, index, node = std::move(node), out = s.ossia_outlet,
-       from_arena = std::shared_ptr<ossia::telemetry::meter_tap>{},
-       from_outlet = std::shared_ptr<ossia::telemetry::meter_tap>{}]() mutable {
+      [arena = m_arena, index, node = std::move(node), in = s.ossia_inlet,
+       out = s.ossia_outlet, from_arena = std::shared_ptr<ossia::telemetry::meter_tap>{},
+       from_port = std::shared_ptr<ossia::telemetry::meter_tap>{}]() mutable {
     arena->attach(index, 0, tap_kind::none, from_arena);
-    if(node)
-      std::swap(out->meter, from_outlet);
+    if(node && in)
+      std::swap(in->meter, from_port);
+    else if(node && out)
+      std::swap(out->meter, from_port);
   });
   s.attached = false;
   s.node.reset();
+  s.ossia_inlet = nullptr;
   s.ossia_outlet = nullptr;
 }
 
