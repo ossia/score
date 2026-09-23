@@ -24,6 +24,7 @@
 #include <Engine/ApplicationPlugin.hpp>
 #include <Execution/DeviceAddresses.hpp>
 #include <Execution/Settings/ExecutorModel.hpp>
+#include <Execution/Telemetry.hpp>
 
 #include <score/actions/ActionManager.hpp>
 #include <score/model/ComponentUtils.hpp>
@@ -78,6 +79,7 @@ DocumentPlugin::DocumentPlugin(const score::DocumentContext& ctx, QObject* paren
     : score::DocumentPlugin{ctx, "OSSIADocumentPlugin", parent}
     , settings{ctx.app.settings<Execution::Settings::Model>()}
     , m_ctxData{std::make_shared<ContextData>(ctx)}
+    , m_telemetry{std::make_unique<Telemetry>(ctx, *this)}
 {
   m_ctxData->context.alias = m_ctxData;
   makeGraph();
@@ -436,12 +438,17 @@ void DocumentPlugin::reload(bool forcePlay, Scenario::IntervalModel& cst)
   }
   t.run_all();
 
+  m_telemetry->executionStarted();
+
   m_tid = startTimer(32);
   started();
 }
 
 void DocumentPlugin::clear()
 {
+  if(m_telemetry)
+    m_telemetry->executionStopped();
+
   if(m_ctxData)
   {
     m_ctxData->setupContext.inlets.clear();

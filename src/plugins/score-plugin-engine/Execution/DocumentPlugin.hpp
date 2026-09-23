@@ -33,6 +33,10 @@ namespace ossia
 {
 class audio_protocol;
 struct bench_map;
+namespace telemetry
+{
+class arena;
+}
 }
 namespace Device
 {
@@ -57,6 +61,7 @@ struct Queues
 {
 };
 class ExecutionController;
+class Telemetry;
 class SCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin final : public score::DocumentPlugin
 {
   W_OBJECT(DocumentPlugin)
@@ -76,6 +81,8 @@ public:
     std::shared_ptr<ossia::graph_interface> execGraph;
     std::shared_ptr<ossia::execution_state> execState;
     std::shared_ptr<ossia::bench_map> bench;
+    //! Written from the execution thread only, through the execution queue.
+    std::shared_ptr<ossia::telemetry::arena> telemetry;
     SetupContext setupContext;
 
     Context context;
@@ -101,6 +108,8 @@ public:
   std::shared_ptr<ossia::audio_protocol> audioProto();
 
   void runAllCommands() const;
+
+  Telemetry& telemetry() const noexcept { return *m_telemetry; }
 
   void registerAction(ExecutionAction& act);
   const std::vector<ExecutionAction*>& actions() const noexcept { return m_actions; }
@@ -134,6 +143,7 @@ private:
   void processEditCommands();
 
   std::shared_ptr<ContextData> m_ctxData;
+  std::unique_ptr<Telemetry> m_telemetry;
   std::shared_ptr<BaseScenarioElement> m_base;
   std::vector<ExecutionAction*> m_actions;
 
