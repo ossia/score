@@ -2162,6 +2162,9 @@ void RenderedRawRasterPipelineNode::initState(
         if(!gpu->handle)
           return;
         ssbo.buffer = static_cast<QRhiBuffer*>(gpu->handle);
+        // Borrowed, so take the reference update() and the teardown both
+        // assume: releaseState() drops one for every non-owned slot.
+        RenderList::adoptBuffer(ssbo.buffer);
         ssbo.size = geo_aux->byte_size > 0 ? geo_aux->byte_size : gpu->byte_size;
         ssbo.owned = false;
       }
@@ -2223,6 +2226,7 @@ void RenderedRawRasterPipelineNode::initState(
         if(!view.handle)
           continue;
         ssbo.buffer = view.handle;
+        RenderList::adoptBuffer(ssbo.buffer);
         if(ssbo.size <= 0)
           ssbo.size = view.handle->size();
         ssbo.owned = false;

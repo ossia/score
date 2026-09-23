@@ -3346,11 +3346,22 @@ void RenderedCSFNode::createComputePipeline(RenderList& renderer)
   }
 }
 
+void RenderedCSFNode::dropSrbAdoptions()
+{
+  for(auto* b : m_srbAdoptedBuffers)
+    score::gfx::RenderList::dropAdoptedBuffer(b);
+  m_srbAdoptedBuffers.clear();
+}
+
 void RenderedCSFNode::buildComputeSrbBindings(
     RenderList& renderer, QRhiResourceUpdateBatch& res,
     QList<QRhiShaderResourceBinding>& bindings)
 {
   QRhi& rhi = *renderer.state.rhi;
+
+  // Both callers rebuild the whole list, so the previous set of borrowed
+  // buffers stops being referenced here and not before.
+  dropSrbAdoptions();
 
   // Pre-pass: collect physical buffers used with conflicting access modes
   // (read on one binding, write on another) so we can promote them to
@@ -3444,6 +3455,10 @@ void RenderedCSFNode::buildComputeSrbBindings(
             if(input_buf)
             {
               buf = input_buf.handle;
+              // owned=false with no slot to hold it: without an adoption the
+              // producer's release frees a buffer this SRB still binds.
+              score::gfx::RenderList::adoptBuffer(buf);
+              m_srbAdoptedBuffers.push_back(buf);
             }
           }
           bindings.append(
@@ -4624,6 +4639,8 @@ bool RenderedCSFNode::hasOutputPassForEdge(Edge& edge) const
 
 void RenderedCSFNode::releaseState(RenderList& r)
 {
+  dropSrbAdoptions();
+
   if(!m_initialized)
     return;
 
