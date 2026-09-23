@@ -81,6 +81,7 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/SndfileDecoder.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Mixer/MixerPanel.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Mixer/MixerStrips.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/VideoInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/VideoPixelFormat.hpp"
@@ -151,6 +152,7 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioTrimmer.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Mixer/MixerPanel.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Mixer/MixerStrips.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/VideoDecoder.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/CameraInput.cpp"
