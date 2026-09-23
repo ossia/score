@@ -89,6 +89,8 @@ public:
 private:
   void addPoint(PointModel* pt);
   void removePoint(PointModel* pt);
+  void loadSegments_impl(
+      const std::vector<SegmentModel*>& models, const std::vector<std::size_t>& order);
 
   PointModel* createStartPoint(SegmentModel* m);
   PointModel* createEndPoint(SegmentModel* m);
@@ -99,6 +101,11 @@ private:
 
 SCORE_PLUGIN_CURVE_EXPORT
 std::vector<SegmentData> orderedSegments(const Model& curve);
+
+//! Finite coordinates, segments that go forward in x, and previous / following
+//! links that form chains. Anything else is refused by Model::fromCurveData.
+SCORE_PLUGIN_CURVE_EXPORT
+bool isValidCurve(const std::vector<SegmentData>& curve) noexcept;
 
 struct SCORE_PLUGIN_CURVE_EXPORT CurveDomain
 {

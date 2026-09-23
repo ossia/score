@@ -4,6 +4,8 @@
 
 #include <ossia/editor/curve/curve_segment/easing.hpp>
 
+#include <algorithm>
+
 namespace Curve
 {
 struct EasingData
@@ -52,6 +54,7 @@ public:
 
   void updateData(int numInterp) const override
   {
+    numInterp = std::max(numInterp, 2);
     if(std::size_t(numInterp + 1) != m_data.size())
       m_valid = false;
     if(!m_valid)
@@ -74,6 +77,8 @@ public:
 
   double valueAt(double x) const override
   {
+    if(end().x() <= start().x())
+      return end().y();
     const double ratio = (x - start().x()) / (end().x() - start().x());
     return start().y() + (end().y() - start().y()) * Easing_T{}(ratio);
   }

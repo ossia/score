@@ -42,37 +42,31 @@ private:
   void impl(CurveEvent<Element::Nothing_tag, score::Modifier::Click_tag>* ev) { }
   void impl(CurveEvent<Element::Point_tag, score::Modifier::Click_tag>* ev)
   {
-    auto& model = safe_cast<const PointView*>(ev->item)->model();
-    this->state().clickedPointId = {model.previous(), model.following()};
+    this->state().clickedPointId = ev->pointId;
   }
   void impl(CurveEvent<Element::Segment_tag, score::Modifier::Click_tag>* ev)
   {
-    this->state().clickedSegmentId
-        = safe_cast<const SegmentView*>(ev->item)->model().id();
+    this->state().clickedSegmentId = ev->segmentId;
   }
 
   void impl(CurveEvent<Element::Nothing_tag, score::Modifier::Move_tag>* ev) { }
   void impl(CurveEvent<Element::Point_tag, score::Modifier::Move_tag>* ev)
   {
-    auto& model = safe_cast<const PointView*>(ev->item)->model();
-    this->state().hoveredPointId = {model.previous(), model.following()};
+    this->state().hoveredPointId = ev->pointId;
   }
   void impl(CurveEvent<Element::Segment_tag, score::Modifier::Move_tag>* ev)
   {
-    this->state().hoveredSegmentId
-        = safe_cast<const SegmentView*>(ev->item)->model().id();
+    this->state().hoveredSegmentId = ev->segmentId;
   }
 
   void impl(CurveEvent<Element::Nothing_tag, score::Modifier::Release_tag>* ev) { }
   void impl(CurveEvent<Element::Point_tag, score::Modifier::Release_tag>* ev)
   {
-    auto& model = safe_cast<const PointView*>(ev->item)->model();
-    this->state().hoveredPointId = {model.previous(), model.following()};
+    this->state().hoveredPointId = ev->pointId;
   }
   void impl(CurveEvent<Element::Segment_tag, score::Modifier::Release_tag>* ev)
   {
-    this->state().hoveredSegmentId
-        = safe_cast<const SegmentView*>(ev->item)->model().id();
+    this->state().hoveredSegmentId = ev->segmentId;
   }
 };
 

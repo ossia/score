@@ -3,6 +3,8 @@
 #include "CurvePalette.hpp"
 
 #include <score/tools/Debug.hpp>
+
+#include <cmath>
 namespace Curve
 {
 
@@ -36,8 +38,16 @@ const Model& ToolPalette::model() const
 
 void ToolPalette::on_pressed(QPointF point)
 {
+  // A gesture whose release never came is finished where it was left, or the
+  // tool's state machine would still be in it and ignore this press.
+  if(m_pressed)
+    on_released(scenePoint);
+  m_pressed = true;
+
   scenePoint = point;
   auto curvePoint = ScenePointToCurvePoint(m_presenter.view().mapFromScene(point));
+  if(!std::isfinite(curvePoint.x()) || !std::isfinite(curvePoint.y()))
+    return;
   switch(editionSettings().tool())
   {
     case Curve::Tool::Create:
@@ -61,6 +71,8 @@ void ToolPalette::on_moved(QPointF point)
 {
   scenePoint = point;
   auto curvePoint = ScenePointToCurvePoint(m_presenter.view().mapFromScene(point));
+  if(!std::isfinite(curvePoint.x()) || !std::isfinite(curvePoint.y()))
+    return;
   switch(editionSettings().tool())
   {
     case Curve::Tool::Create:
@@ -82,8 +94,11 @@ void ToolPalette::on_moved(QPointF point)
 
 void ToolPalette::on_released(QPointF point)
 {
+  m_pressed = false;
   scenePoint = point;
   auto curvePoint = ScenePointToCurvePoint(m_presenter.view().mapFromScene(point));
+  if(!std::isfinite(curvePoint.x()) || !std::isfinite(curvePoint.y()))
+    return;
   switch(editionSettings().tool())
   {
     case Curve::Tool::Create:
@@ -105,6 +120,7 @@ void ToolPalette::on_released(QPointF point)
 
 void ToolPalette::on_cancel()
 {
+  m_pressed = false;
   m_createTool.on_cancel();
   m_selectTool.on_cancel();
   m_setSegmentTool.on_cancel();

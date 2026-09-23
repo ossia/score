@@ -88,7 +88,10 @@ bool CurveEditor::paste(
   if(!pt)
     return true;
 
-  double x = pt->x() / v.boundingRect().width();
+  const double w = v.boundingRect().width();
+  if(w <= 0.)
+    return true;
+  const double x = pt->x() / w;
 
   // Those are ordered
   auto paste_segts = JsonValue{seg_it->value}.to<std::vector<Curve::SegmentData>>();
@@ -103,103 +106,42 @@ bool CurveEditor::paste(
     seg.end.rx() += seg_delta;
   }
 
-  auto& first_pasted = paste_segts.front();
-  auto& last_pasted = paste_segts.back();
+  // What we have in the pasted-to curve, cut around the pasted range. A
+  // segment that spans the whole range is kept on both sides of it.
+  const auto& first_pasted = paste_segts.front();
+  const auto& last_pasted = paste_segts.back();
+  const double p0 = first_pasted.start.x();
+  const double p1 = last_pasted.end.x();
 
-  // What we have in the pasted-to curve
-  auto segments = orderedSegments(m);
-
-  int first_cut = -1;
-  int last_cut = -1;
-  for(std::size_t i = 0; i < segments.size(); i++)
+  std::vector<Curve::SegmentData> segments;
+  const auto existing = orderedSegments(m);
+  segments.reserve(existing.size() + paste_segts.size() + 1);
+  for(auto seg : existing)
   {
-    auto cur_seg = segments[i];
-    if(cur_seg.start.x() < first_pasted.start.x()
-       && first_pasted.start.x() <= cur_seg.end.x())
+    if(seg.end.x() <= p0)
     {
-      first_cut = i;
-      if(last_cut > -1)
-        break;
+      segments.push_back(std::move(seg));
     }
-    if(cur_seg.start.x() <= last_pasted.end.x() && last_pasted.end.x() < cur_seg.end.x())
+    else if(seg.start.x() < p0)
     {
-      last_cut = i;
-      if(first_cut > -1)
-        break;
+      seg.end = first_pasted.start;
+      segments.push_back(std::move(seg));
     }
   }
 
-  if(first_cut == -1 && last_cut == -1)
+  segments.insert(segments.end(), paste_segts.begin(), paste_segts.end());
+
+  for(auto seg : existing)
   {
-    // We didn't find any segment to cut into
-    if(paste_segts[0].start.x() > segments.back().end.x())
-      segments.insert(segments.end(), paste_segts.begin(), paste_segts.end());
-    else if(paste_segts[0].end.x() < segments.front().start.x())
-      segments.insert(segments.begin(), paste_segts.begin(), paste_segts.end());
-    else
-      segments = paste_segts;
-  }
-  else if(first_cut == -1)
-  {
-    // Remove old segments
-    segments.erase(segments.begin(), segments.begin() + last_cut + 1);
-
-    // We insert at the beginning
-    segments.insert(segments.begin(), paste_segts.begin(), paste_segts.end());
-
-    // Link last segment to link with the end we cut into
-    segments[paste_segts.size() + 1].start = segments[paste_segts.size()].end;
-  }
-  else if(last_cut == -1)
-  {
-    // The end of the paste ends after the current end
-
-    // Remove old segments
-    segments.erase(segments.begin() + first_cut + 1, segments.end());
-
-    // Insert in the hole
-    segments.insert(
-        segments.begin() + first_cut + 1, paste_segts.begin(), paste_segts.end());
-
-    // Change the end of the original start segment to match the start of what's pasted
-    segments[first_cut].end = segments[first_cut + 1].start;
-  }
-  else if(first_cut == last_cut)
-  {
-    auto start_seg = segments[first_cut];
-
-    // We insert in the middle of the cut segment
-    segments.insert(
-        segments.begin() + first_cut + 1, paste_segts.begin(), paste_segts.end());
-
-    // Change the end of the original start segment to match the start of what's pasted
-    segments[first_cut].end = segments[first_cut + 1].start;
-
-    // Add a last segment to link with the end
-    start_seg.start = paste_segts.back().end;
-    segments.insert(
-        segments.begin() + first_cut + paste_segts.size() + 1, std::move(start_seg));
-  }
-  else if(first_cut < last_cut)
-  {
-    // Remove old segments
-    segments.erase(segments.begin() + first_cut + 1, segments.begin() + last_cut);
-
-    // Insert in the hole
-    segments.insert(
-        segments.begin() + first_cut + 1, paste_segts.begin(), paste_segts.end());
-
-    // Change the end of the original start segment to match the start of what's pasted
-    segments[first_cut].end = segments[first_cut + 1].start;
-
-    // Link last segment to link with the end
-    segments[first_cut + paste_segts.size() + 1].start
-        = segments[first_cut + paste_segts.size()].end;
-  }
-  else
-  {
-    // first_cut > last_cut, does not make sense
-    return true;
+    if(seg.start.x() >= p1)
+    {
+      segments.push_back(std::move(seg));
+    }
+    else if(seg.end.x() > p1)
+    {
+      seg.start = last_pasted.end;
+      segments.push_back(std::move(seg));
+    }
   }
 
   // Do some clean-up, remove empty segments
@@ -220,6 +162,9 @@ bool CurveEditor::paste(
 
     ++it;
   }
+
+  if(segments.empty())
+    return true;
 
   // Finally relink everything
   segments.front().id = Id<Curve::SegmentModel>{0};
@@ -463,25 +408,7 @@ bool CurveEditor::remove(const Selection& s, const score::DocumentContext& ctx)
     CommandDispatcher<>{ctx.commandStack}.submit(
         new UpdateCurve{m_model, std::move(newSegments)});
   }
-  /*
-  if (s.size() == 1)
-  {
-    auto first = s.begin()->data();
-    if (auto model = qobject_cast<const Process::ProcessModel*>(first))
-    {
-      if (auto parent = qobject_cast<Model*>(model->parent()))
-      {
-        auto f = [&ctx, parent, model] {
-          CommandDispatcher<>{ctx.commandStack}.submit<RemoveNode>(
-              *parent, *model);
-        };
-        ossia::qt::run_async(qApp, f);
-        return true;
-      }
-    }
-  }
-  */
-  return false;
+  return true;
 }
 
 }

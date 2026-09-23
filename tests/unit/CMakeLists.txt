@@ -366,6 +366,12 @@ score_add_test(test_unit_curve_roundtrip
   APP
   PLUGINS score_plugin_curve score_lib_process)
 
+score_add_test(test_unit_curve_edition
+  SOURCES CurveEditionTest.cpp
+  APP
+  PLUGINS score_plugin_curve score_plugin_automation score_plugin_scenario
+          score_lib_process)
+
 score_add_test(test_unit_automation_values
   SOURCES AutomationValueTest.cpp
   APP

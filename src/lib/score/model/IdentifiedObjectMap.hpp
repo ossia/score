@@ -161,13 +161,10 @@ public:
     }
   }
 
+  //! Always looks the id up: a pointer cached in the id can name an object
+  //! that was replaced under the same id and not deleted yet.
   Element& at(const Id<Model>& id) const INLINE_EXPORT
   {
-    if(id.m_ptr)
-    {
-      SCORE_ASSERT(id.m_ptr->parent() == this->m_map.find(id)->second.first->parent());
-      return safe_cast<Element&>(*id.m_ptr);
-    }
     auto item = this->m_map.find(id);
     SCORE_ASSERT(item != this->m_map.end());
 
@@ -309,13 +306,10 @@ public:
     }
   }
 
+  //! Always looks the id up: a pointer cached in the id can name an object
+  //! that was replaced under the same id and not deleted yet.
   Element& at(const Id<Model>& id) const INLINE_EXPORT
   {
-    if(id.m_ptr)
-    {
-      SCORE_ASSERT(id.m_ptr->parent() == this->m_map.find(id)->second->parent());
-      return safe_cast<Element&>(*id.m_ptr);
-    }
     auto item = this->m_map.find(id);
     SCORE_ASSERT(item != this->m_map.end());
 

@@ -52,6 +52,11 @@ using SegmentMapImpl = ossia::hash_map<Id<SegmentModel>, SegmentData, CurveDataH
 void checkValidity(std::span<SegmentData> segts);
 void checkValidity(SegmentMapImpl& segts);
 
+//! Adds a point at pt: splits the segment under it, moves the point already
+//! at its x, or links it to the nearest segments around it.
+SCORE_PLUGIN_CURVE_EXPORT
+void createPointAt(std::vector<SegmentData>& segments, Curve::Point pt);
+
 class SCORE_PLUGIN_CURVE_EXPORT CommandObjectBase
 {
 public:

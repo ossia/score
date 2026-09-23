@@ -45,6 +45,8 @@ void LinearSegment::updateData(int numInterp) const
 
 double LinearSegment::valueAt(double x) const
 {
+  if(end().x() <= start().x())
+    return end().y();
   return start().y()
          + (end().y() - start().y()) * (x - start().x()) / (end().x() - start().x());
 }

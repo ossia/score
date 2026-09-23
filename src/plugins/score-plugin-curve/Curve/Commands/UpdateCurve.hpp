@@ -21,10 +21,7 @@ public:
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 
-  void update(unused_t, std::vector<SegmentData>&& segments)
-  {
-    m_newCurveData = std::move(segments);
-  }
+  void update(unused_t, std::vector<SegmentData>&& segments);
 
 protected:
   void serializeImpl(DataStreamInput& s) const override;

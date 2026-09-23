@@ -24,15 +24,134 @@
 #include <score/tools/MapCopy.hpp>
 
 #include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/math.hpp>
 #include <ossia/network/domain/domain_base.hpp>
 
+#include <QDebug>
+#include <QSignalBlocker>
+
 #include <wobjectimpl.h>
+
+#include <cmath>
 
 W_OBJECT_IMPL(Curve::Model)
 
 namespace Curve
 {
+namespace
+{
+struct ChainLinks
+{
+  int32_t id{};
+  std::optional<int32_t> previous, following;
+  double x{};
+};
+
+template <typename T>
+  requires(!std::is_pointer_v<T>)
+ChainLinks linksOf(const T& seg)
+{
+  auto opt = [](const OptionalId<SegmentModel>& i) -> std::optional<int32_t> {
+    if(i)
+      return i->val();
+    return std::nullopt;
+  };
+  return {seg.id.val(), opt(seg.previous), opt(seg.following), seg.start.x()};
+}
+
+ChainLinks linksOf(const SegmentModel* seg)
+{
+  auto opt = [](const OptionalId<SegmentModel>& i) -> std::optional<int32_t> {
+    if(i)
+      return i->val();
+    return std::nullopt;
+  };
+  return {seg->id().val(), opt(seg->previous()), opt(seg->following()), seg->start().x()};
+}
+
+//! The order in which addSortedSegment() must see the segments: chain by
+//! chain, each segment right after its previous one. Empty when the links do
+//! not describe chains: duplicate ids, links to missing segments, links that
+//! are not mutual, or cycles.
+std::optional<std::vector<std::size_t>> chainOrder(const std::vector<ChainLinks>& l)
+{
+  ossia::hash_map<int32_t, std::size_t> index;
+  index.reserve(l.size());
+  for(std::size_t i = 0; i < l.size(); i++)
+    if(!index.emplace(l[i].id, i).second)
+      return std::nullopt;
+
+  std::vector<std::size_t> heads;
+  for(std::size_t i = 0; i < l.size(); i++)
+  {
+    const auto& s = l[i];
+    if(s.previous)
+    {
+      auto it = index.find(*s.previous);
+      if(it == index.end() || l[it->second].following != s.id)
+        return std::nullopt;
+    }
+    else
+    {
+      heads.push_back(i);
+    }
+    if(s.following)
+    {
+      auto it = index.find(*s.following);
+      if(it == index.end() || l[it->second].previous != s.id)
+        return std::nullopt;
+    }
+  }
+
+  std::stable_sort(heads.begin(), heads.end(), [&](std::size_t a, std::size_t b) {
+    return l[a].x < l[b].x;
+  });
+
+  std::vector<std::size_t> order;
+  order.reserve(l.size());
+  for(auto h : heads)
+  {
+    for(std::optional<std::size_t> cur = h; cur;)
+    {
+      order.push_back(*cur);
+      if(order.size() > l.size())
+        return std::nullopt;
+      const auto& f = l[*cur].following;
+      cur = f ? std::optional<std::size_t>{index.at(*f)} : std::nullopt;
+    }
+  }
+
+  // Segments in a cycle are reachable from no head.
+  if(order.size() != l.size())
+    return std::nullopt;
+  return order;
+}
+
+template <typename Container>
+std::optional<std::vector<std::size_t>> chainOrder(const Container& segs)
+{
+  std::vector<ChainLinks> l;
+  l.reserve(segs.size());
+  for(const auto& s : segs)
+    l.push_back(linksOf(s));
+  return chainOrder(l);
+}
+}
+
+bool isValidCurve(const std::vector<SegmentData>& curve) noexcept
+{
+  for(const auto& s : curve)
+  {
+    if(!std::isfinite(s.start.x()) || !std::isfinite(s.start.y())
+       || !std::isfinite(s.end.x()) || !std::isfinite(s.end.y()))
+      return false;
+    if(s.start.x() > s.end.x())
+      return false;
+  }
+  return bool(chainOrder(curve));
+}
+
 Model::Model(const Id<Model>& id, QObject* parent)
     : IdentifiedObject<Model>(id, QStringLiteral("CurveModel"), parent)
 {
@@ -194,15 +313,40 @@ void Model::loadSegments(const std::vector<SegmentModel*>& map)
   SCORE_ASSERT(m_segments.empty());
   SCORE_ASSERT(m_points.empty());
 
+  auto order = chainOrder(map);
+  if(!order)
+  {
+    // A saved curve whose links are broken: chain what is there by x.
+    qWarning() << "Curve::Model: relinking a curve with inconsistent links";
+    auto sorted = map;
+    std::stable_sort(sorted.begin(), sorted.end(), [](auto a, auto b) {
+      return a->start().x() < b->start().x();
+    });
+    for(std::size_t i = 0; i < sorted.size(); i++)
+    {
+      sorted[i]->setPrevious(
+          i > 0 ? OptionalId<SegmentModel>{sorted[i - 1]->id()} : std::nullopt);
+      sorted[i]->setFollowing(
+          i + 1 < sorted.size() ? OptionalId<SegmentModel>{sorted[i + 1]->id()}
+                                : std::nullopt);
+    }
+    order = chainOrder(sorted);
+    SCORE_ASSERT(order);
+    return loadSegments_impl(sorted, *order);
+  }
+  loadSegments_impl(map, *order);
+}
+
+void Model::loadSegments_impl(
+    const std::vector<SegmentModel*>& map, const std::vector<std::size_t>& order)
+{
   {
     QSignalBlocker _{this};
     clear();
 
-    SCORE_ASSERT(map.empty() || (!map.front()->previous() && !map.back()->following()));
-
-    for(auto* elt : map)
+    for(auto i : order)
     {
-      addSortedSegment(elt);
+      addSortedSegment(map[i]);
     }
   }
 
@@ -216,7 +360,8 @@ void Model::removeSegment(SegmentModel* m)
 
   segmentRemoved(m->id());
 
-  for(PointModel* pt : m_points)
+  const auto points = m_points;
+  for(PointModel* pt : points)
   {
     if(pt->previous() == m->id())
     {
@@ -265,39 +410,28 @@ std::vector<SegmentData> Model::toCurveData() const
 
 void Model::fromCurveData(const std::vector<SegmentData>& curve)
 {
+  auto& context = score::IDocument::documentContext(*this).app;
+  auto& csl = context.interfaces<SegmentList>();
+
+  // Checked before anything is cleared: a curve that cannot be represented
+  // leaves the current one untouched.
+  auto order = chainOrder(curve);
+  const bool known_types = ossia::all_of(
+      curve, [&](const SegmentData& s) { return csl.get(s.type) != nullptr; });
+  if(!order || !known_types || !isValidCurve(curve))
+  {
+    qWarning() << "Curve::Model: refusing an inconsistent curve";
+    return;
+  }
+
   {
     QSignalBlocker _{this};
     clear();
 
-    auto& context = score::IDocument::documentContext(*this).app;
-    auto& csl = context.interfaces<SegmentList>();
-
-    static std::vector<SegmentData> map;
-    map.assign(curve.begin(), curve.end());
-    std::sort(map.begin(), map.end());
-
-    /*
-    qDebug() << "Printing map: ";
-    for(auto elt : map)
+    for(auto i : *order)
     {
-      QString log = QStringLiteral("id: %1 [%2; %3] prev: %4 following: %5")
-                  .arg(elt.id.val())
-                  .arg(elt.start.x())
-                  .arg(elt.end.x())
-                  .arg(elt.previous.value_or(Id<Curve::SegmentModel>{-1}).val())
-                  .arg(elt.following.value_or(Id<Curve::SegmentModel>{-1}).val());
-      qDebug() << log;
+      addSortedSegment(createCurveSegment(csl, curve[i], this));
     }
-    std::cout << std::endl;
-    std::cerr << std::endl;
-    */
-    SCORE_ASSERT(map.empty() || (!map.front().previous && !map.back().following));
-
-    for(const auto& elt : map)
-    {
-      addSortedSegment(createCurveSegment(csl, elt, this));
-    }
-    map.clear();
   }
 
   curveReset();
@@ -392,9 +526,8 @@ void Model::removePoint(PointModel* pt)
 
 std::vector<SegmentData> orderedSegments(const Model& curve)
 {
-  auto vec = curve.toCurveData();
-  std::sort(vec.begin(), vec.end());
-  return vec;
+  // Chain order: sorting by x could put a vertical step after its follower.
+  return curve.toCurveData();
 }
 
 CurveDomain::CurveDomain(const ossia::domain& dom)
