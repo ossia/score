@@ -108,7 +108,7 @@ TEST_CASE("audio_outlet::post_process applies per-channel pan * gain on stereo",
   }
 }
 
-TEST_CASE("audio_outlet::post_process extends the pan vector for >2 channels", "[audio][pan]")
+TEST_CASE("audio_outlet::post_process gives unity pan to channels past the weights", "[audio][pan]")
 {
   ossia::audio_outlet out;
   out->set_channels(4);
@@ -119,10 +119,8 @@ TEST_CASE("audio_outlet::post_process extends the pan vector for >2 channels", "
   out.gain = 2.;
   out.post_process();
 
-  // pan is auto-extended with 1. for the extra channels
-  REQUIRE(out.pan.size() == 4);
-  CHECK(out.pan[2] == 1.);
-  CHECK(out.pan[3] == 1.);
+  // pan is left as it is: growing it would allocate on the audio thread
+  CHECK(out.pan.size() == 2);
   CHECK(out->channel(0)[0] == 1.0); // 1 * 0.5 * 2
   CHECK(out->channel(1)[0] == 0.5); // 1 * 0.25 * 2
   CHECK(out->channel(2)[0] == 2.0); // 1 * 1 * 2
