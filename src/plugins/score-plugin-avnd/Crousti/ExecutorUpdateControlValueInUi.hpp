@@ -13,7 +13,7 @@ struct update_control_in_value_in_ui
   using ExecNode = safe_node<Node>;
   using Model = ProcessModel<Node>;
 
-  typename ExecNode::control_input_values_type& arr;
+  const typename ExecNode::control_input_values_type& arr;
   QPointer<Model> element;
 
   template <avnd::dynamic_ports_port Field, std::size_t N, std::size_t NField>
@@ -51,7 +51,7 @@ struct update_control_out_value_in_ui
 {
   using ExecNode = safe_node<Node>;
   using Model = ProcessModel<Node>;
-  typename ExecNode::control_output_values_type& arr;
+  const typename ExecNode::control_output_values_type& arr;
   QPointer<Model> element;
 
   template <typename Field, std::size_t N, std::size_t NField>
@@ -93,14 +93,9 @@ struct update_control_value_in_ui
     // TODO disconnect the connection ? it will be disconnected shortly
     // after...
 
-    typename ExecNode::control_input_values_type arr;
-    bool ok = false;
-    while(node.control.ins_queue.try_dequeue(arr))
+    if(node.control.ins_buffer.consume())
     {
-      ok = true;
-    }
-    if(ok)
-    {
+      const auto& arr = node.control.ins_buffer.read_buffer();
       for(auto state : node.impl.full_state())
       {
         avnd::control_input_introspection<Node>::for_all_n2(
@@ -114,14 +109,9 @@ struct update_control_value_in_ui
     using namespace ossia::safe_nodes;
     // TODO disconnect the connection ? it will be disconnected shortly
     // after...
-    typename ExecNode::control_output_values_type arr;
-    bool ok = false;
-    while(node.control.outs_queue.try_dequeue(arr))
+    if(node.control.outs_buffer.consume())
     {
-      ok = true;
-    }
-    if(ok)
-    {
+      const auto& arr = node.control.outs_buffer.read_buffer();
       // FIXME not thread safe?
       avnd::control_output_introspection<Node>::for_all_n2(
           avnd::get_outputs<Node>(node.impl),
