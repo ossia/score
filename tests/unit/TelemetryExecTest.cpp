@@ -23,6 +23,7 @@
 
 #include <ossia/audio/audio_engine.hpp>
 #include <ossia/audio/audio_parameter.hpp>
+#include <ossia/dataflow/port.hpp>
 #include <ossia/network/base/node_functions.hpp>
 #include <ossia/detail/thread.hpp>
 
@@ -231,5 +232,96 @@ TEST_CASE("A virtual port is metered, until it is removed", "[telemetry][executi
     REQUIRE(wait_update(telemetry));
     CHECK(!telemetry.levels(meter));
     telemetry.release(meter);
+  });
+}
+
+namespace
+{
+ossia::outlet* execOutlet(Execution::DocumentPlugin& plug, Process::Outlet& outlet)
+{
+  auto& outlets = plug.contextData()->setupContext.outlets;
+  auto it = outlets.find(&outlet);
+  return it != outlets.end() ? it->second.second : nullptr;
+}
+
+ossia::net::parameter_base* destination(const ossia::outlet& out)
+{
+  auto p = out.address.target<ossia::net::parameter_base*>();
+  return p ? *p : nullptr;
+}
+}
+
+TEST_CASE(
+    "Removing ports while playing lets go of them once, without stopping the audio",
+    "[telemetry][execution]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    park_audio_engine(ctx);
+    auto& plug = doc->context().plugin<Execution::DocumentPlugin>();
+    auto& telemetry = plug.telemetry();
+    auto& root = score::test::base_interval(*doc);
+    auto* dev = static_cast<Dataflow::AudioDevice*>(
+        doc->context().plugin<Explorer::DeviceDocumentPlugin>().list().audioDevice());
+    REQUIRE(dev);
+
+    // Many ports under one node, a nested one metered, one written to.
+    auto add_ports = [&] {
+      for(int i = 0; i < 200; i++)
+      {
+        Device::FullAddressSettings s;
+        s.address = State::Address{"audio", {"grp", QString("v%1").arg(i)}};
+        s.extendedAttributes["audio-kind"] = std::string{"virtual"};
+        s.extendedAttributes["audio-channels"] = 2;
+        dev->addAddress(s);
+      }
+    };
+    auto find_param = [&](const std::string& path) {
+      auto node = ossia::net::find_node(dev->getDevice()->get_root_node(), path);
+      return node ? dynamic_cast<ossia::virtual_audio_parameter*>(node->get_parameter())
+                  : nullptr;
+    };
+    root.outlet->setAddress(State::AddressAccessor{State::Address{"audio", {"grp", "v0"}}});
+
+    auto remove_while_playing = [&] {
+      auto* written = find_param("/grp/v0");
+      auto* metered = find_param("/grp/v7");
+      REQUIRE(written);
+      REQUIRE(metered);
+      auto meter = telemetry.meterVirtualPort(*metered);
+
+      plug.reload(true, root);
+      run_exec(plug);
+      auto tick = Execution::makeExecutionTick({}, plug, plug.baseScenario());
+      Card card;
+      play(tick, card, 50);
+      auto* out = execOutlet(plug, *root.outlet);
+      REQUIRE(out);
+      CHECK(destination(*out) == written);
+
+      // One wait of about a buffer for the whole node, not one per port.
+      QElapsedTimer t;
+      t.start();
+      dev->removeNode(State::Address{"audio", {"grp"}});
+      CHECK(t.elapsed() < 1000);
+      CHECK(!find_param("/grp/v0"));
+
+      CHECK(destination(*out) == nullptr);
+      play(tick, card, 50);
+      CHECK(!telemetry.levels(meter));
+      telemetry.release(meter);
+      plug.clear();
+    };
+
+    add_ports();
+    remove_while_playing();
+
+    SECTION("after the audio device was rebuilt")
+    {
+      REQUIRE(dev->reconnect());
+      add_ports();
+      remove_while_playing();
+    }
   });
 }
