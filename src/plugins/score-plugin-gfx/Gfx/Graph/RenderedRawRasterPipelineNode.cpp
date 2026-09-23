@@ -1202,11 +1202,18 @@ void RenderedRawRasterPipelineNode::initMRTPass(
       else if(useCubeDirect)
       {
         flags |= QRhiTexture::CubeMap;
+        // Square, for the same reason the cube-copy path above is: a cube
+        // texture is only complete when all six faces share one square size,
+        // and GL reports every FBO an incomplete one is attached to as
+        // GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT. Vulkan happens to accept the
+        // non-square allocation, which is why this only ever showed up as a
+        // GL-only blank.
+        const int face_edge = std::min(sz.width(), sz.height());
         // QRhi: a cubemap is allocated via newTexture (not newTextureArray)
         // — its 6 faces are implicit when the CubeMap flag is set. A cube
         // array (multiple cubes) would need newTextureArray + CubeMap, but
         // we only cover single-cube here.
-        tex = rhi.newTexture(fmt, sz, 1, flags);
+        tex = rhi.newTexture(fmt, QSize(face_edge, face_edge), 1, flags);
       }
       else if(layers > 1)
       {
