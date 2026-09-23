@@ -1439,3 +1439,12 @@ if(TARGET score_plugin_engine)
     APP
     PLUGINS score_plugin_engine score_plugin_audio score_plugin_scenario score_lib_process)
 endif()
+
+# A port of the audio device is edited in place while the engine runs:
+# processes may hold a pointer to it.
+if(TARGET score_plugin_audio)
+  score_add_test(test_unit_audio_port_edit
+    SOURCES AudioPortEditTest.cpp
+    APP
+    PLUGINS score_plugin_audio score_plugin_deviceexplorer score_lib_device)
+endif()

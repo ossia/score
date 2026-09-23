@@ -19,6 +19,8 @@
 
 #include <ossia-qt/js_utilities.hpp>
 
+#include <functional>
+
 #include <QButtonGroup>
 #include <QComboBox>
 #include <QCoreApplication>
@@ -52,16 +54,33 @@ AudioDevice::AudioDevice(const Device::DeviceSettings& settings)
 
 AudioDevice::~AudioDevice() { }
 
+namespace
+{
+// The audio callback walks the protocol's lists of ports: they only change
+// while it skips its tick.
+void parked(const std::function<void()>& f)
+{
+  auto& engine
+      = score::GUIAppContext().guiApplicationPlugin<Audio::ApplicationPlugin>().audio;
+  if(engine)
+    engine->run_parked(f);
+  else
+    f();
+}
+}
+
 void AudioDevice::addAddress(const Device::FullAddressSettings& settings)
 {
   using namespace ossia;
   this->m_customAddresses[settings.address.path] = settings;
   if(auto dev = getDevice())
   {
-    // Create the node. It is added into the device.
-    auto node = Device::createNodeFromPath(settings.address.path, *dev);
-    if(node)
-      setupNode(*node, settings.extendedAttributes);
+    parked([&] {
+      // Create the node. It is added into the device.
+      auto node = Device::createNodeFromPath(settings.address.path, *dev);
+      if(node)
+        setupNode(*node, settings.extendedAttributes);
+    });
   }
   portsChanged();
 }
@@ -74,7 +93,7 @@ void AudioDevice::updateAddress(
   {
     if(auto node = Device::findNodeFromPath(currentAddr.path, *dev))
     {
-      setupNode(*node, settings.extendedAttributes);
+      parked([&] { setupNode(*node, settings.extendedAttributes); });
 
       auto newName = settings.address.path.last();
       if(!latin_compare(newName, node->get_name()))
@@ -90,7 +109,7 @@ void AudioDevice::updateAddress(
 void AudioDevice::removeNode(const State::Address& currentAddr)
 {
   this->m_customAddresses.erase(currentAddr.path);
-  DeviceInterface::removeNode(currentAddr);
+  parked([&] { DeviceInterface::removeNode(currentAddr); });
   portsChanged();
 }
 
@@ -185,34 +204,45 @@ void AudioDevice::setupNode(
     ossia::net::node_base& node, const ossia::extended_attributes& attr)
 try
 {
-  // TODO make sure that this function which modifies the tree
-  // is done in the execution thread ...
   auto kind_it = attr.find("audio-kind");
   if(kind_it == attr.end())
     return; // it will be added automatically
 
+  // An existing port is changed in place: running processes may hold a
+  // pointer to it. Changing it from mapped to virtual or back takes a
+  // reconnection.
   auto kind = ossia::any_cast<std::string>(kind_it->second);
-  if(kind == "in")
+  auto param = node.get_parameter();
+  if(kind == "in" || kind == "out")
   {
+    const bool output = kind == "out";
     auto chans = ossia::any_cast<ossia::audio_mapping>(attr.at("audio-mapping"));
-    if(!node.get_parameter())
+    if(!param)
+    {
       node.set_parameter(
-          std::make_unique<ossia::mapped_audio_parameter>(false, chans, node));
-
-    // TODO update
-  }
-  else if(kind == "out")
-  {
-    auto chans = ossia::any_cast<ossia::audio_mapping>(attr.at("audio-mapping"));
-    if(!node.get_parameter())
-      node.set_parameter(
-          std::make_unique<ossia::mapped_audio_parameter>(true, chans, node));
+          std::make_unique<ossia::mapped_audio_parameter>(output, chans, node));
+    }
+    else if(auto mapped = dynamic_cast<ossia::mapped_audio_parameter*>(param))
+    {
+      if(mapped->is_output != output && m_protocol)
+      {
+        m_protocol->unregister_parameter(*mapped);
+        mapped->is_output = output;
+        mapped->stage = output ? ossia::audio_parameter::gain_stage::push
+                               : ossia::audio_parameter::gain_stage::pull;
+        mapped->upstream = nullptr;
+        m_protocol->register_parameter(*mapped);
+      }
+      mapped->mapping = std::move(chans);
+    }
   }
   else if(kind == "virtual")
   {
     auto chans = ossia::any_cast<int>(attr.at("audio-channels"));
-    if(!node.get_parameter())
+    if(!param)
       node.set_parameter(std::make_unique<ossia::virtual_audio_parameter>(chans, node));
+    else if(auto virt = dynamic_cast<ossia::virtual_audio_parameter*>(param))
+      virt->set_channels(chans);
   }
 
   auto x = node.get_extended_attributes();
