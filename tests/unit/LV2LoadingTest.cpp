@@ -542,6 +542,13 @@ TEST_CASE("lv2_node processes audio single-voice", "[lv2]")
         CHECK(
             ossia::convert<float>(level.get_data().back().value)
             == Catch::Approx(double(N - 1) / N).margin(1e-6));
+
+        // The interface reads the same level from the node's triple buffer.
+        REQUIRE(node.ui_controls.consume());
+        const auto& ui = node.ui_controls.read_buffer();
+        REQUIRE(ui.size() == 1);
+        CHECK(ui[0] == Catch::Approx(double(N - 1) / N).margin(1e-6));
+        CHECK(!node.ui_controls.consume());
       }
 
       SECTION("control inlet scales the output")

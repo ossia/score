@@ -3,6 +3,7 @@
 #include "lv2_atom_helpers.hpp"
 
 #include <Process/Dataflow/WidgetInlets.hpp>
+#include <Process/Execution/TelemetryInterface.hpp>
 
 #include <Audio/Settings/Model.hpp>
 #include <Execution/DocumentPlugin.hpp>
@@ -1157,43 +1158,8 @@ struct on_start
 
 struct on_finish
 {
-  std::weak_ptr<LV2EffectComponent> self;
-  std::weak_ptr<Execution::EditionCommandQueue> q;
-  void operator()();
+  void operator()() const noexcept { }
 };
-void on_finish::operator()()
-{
-  auto p = self.lock();
-  if(!p)
-    return;
-  auto q = this->q.lock();
-  if(!q)
-    return;
-
-  q->enqueue([s = self] {
-    auto p = s.lock();
-
-    if(!p)
-      return;
-    auto nn = p->node;
-    if(!nn)
-      return;
-    auto& node = *static_cast<lv2_node_t*>(nn.get());
-    if(node.voices.empty())
-      return;
-    auto& v0 = *node.voices[0];
-
-    for(std::size_t k = 0; k < node.data.control_out_ports.size(); k++)
-    {
-      auto port = (uint32_t)node.data.control_out_ports[k];
-      float val = v0.fOutControls[k] / node.fOutScale[k];
-
-      auto cport = static_cast<Model&>(p->process()).control_out_map[port];
-      SCORE_ASSERT(cport);
-      cport->setValue(val);
-    }
-  });
-}
 
 void lv2_node_process::stop()
 {
@@ -1226,8 +1192,6 @@ void LV2EffectComponent::lazy_init()
 
   on_start os;
   on_finish of;
-  of.self = std::dynamic_pointer_cast<LV2EffectComponent>(shared_from_this());
-  of.q = ctx.weakEditionQueue();
 
   LV2::LV2Data lv2data{host.lv2_host_context, proc.effectContext};
   auto strategy = LV2::choose_voice_strategy(lv2data);
@@ -1263,6 +1227,26 @@ void LV2EffectComponent::lazy_init()
 
   this->node = node;
   m_ossia_process = std::make_shared<LV2::lv2_node_process>(node);
+
+  // The control outputs of the latest tick, at the rate and under the setting
+  // of every execution feedback.
+  if(auto* telemetry = ctx.telemetry)
+  {
+    connect(
+        telemetry, &Execution::TelemetryInterface::updated, this,
+        [weak_node = std::weak_ptr{node}, &proc] {
+      auto node = weak_node.lock();
+      if(!node || !node->ui_controls.consume())
+        return;
+      const auto& values = node->ui_controls.read_buffer();
+      for(std::size_t k = 0; k < node->data.control_out_ports.size() && k < values.size(); k++)
+      {
+        auto port = uint32_t(node->data.control_out_ports[k]);
+        if(auto it = proc.control_out_map.find(port); it != proc.control_out_map.end())
+          it->second->setValue(values[k]);
+      }
+    });
+  }
 
   // Grow voice pool on main thread (lilv_plugin_instantiate can dlopen / preload samples)
   if(strategy.routing == LV2::voice_routing::per_channel)
