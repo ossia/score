@@ -1978,3 +1978,12 @@ if(TARGET score_plugin_lv2)
     $<TARGET_PROPERTY:Suil,INTERFACE_INCLUDE_DIRECTORIES>
     "${OSSIA_3RDPARTY_FOLDER}/readerwriterqueue")
 endif()
+
+# The meters a view asks the execution for come back through the telemetry
+# arena, at the document's coarse rate, gated by the execution-update setting.
+if(TARGET score_plugin_engine)
+  score_add_test(test_unit_telemetry_exec
+    SOURCES TelemetryExecTest.cpp
+    APP
+    PLUGINS score_plugin_engine score_plugin_scenario score_lib_process)
+endif()
