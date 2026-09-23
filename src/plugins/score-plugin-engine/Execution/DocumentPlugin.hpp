@@ -51,9 +51,7 @@ struct Queues
 };
 class ExecutionController;
 class Telemetry;
-class SCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin final
-    : public score::DocumentPlugin
-    , public Nano::Observer
+class SCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin final : public score::DocumentPlugin
 {
   W_OBJECT(DocumentPlugin)
 public:
@@ -117,15 +115,13 @@ private:
   void timerEvent(QTimerEvent* event) override;
   void registerDevice(ossia::net::device_base*);
   void unregisterDevice(ossia::net::device_base*);
-  void watchDevice(ossia::net::device_base&);
-  void on_parameterRemoving(const ossia::net::parameter_base&);
+  void on_deviceChanged(ossia::net::device_base* old_dev, ossia::net::device_base* new_dev);
+  void on_nodeAboutToBeRemoved(ossia::net::node_base* root);
   void makeGraph();
   void initExecState();
   void recreateBase();
   void processEditCommands();
 
-  //! Devices whose parameters the execution drops before they go away.
-  std::vector<ossia::net::device_base*> m_watchedDevices;
   std::shared_ptr<ContextData> m_ctxData;
   std::unique_ptr<Telemetry> m_telemetry;
   std::shared_ptr<BaseScenarioElement> m_base;

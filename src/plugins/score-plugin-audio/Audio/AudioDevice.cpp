@@ -38,6 +38,7 @@ AudioDevice::AudioDevice(const Device::DeviceSettings& settings)
     : DeviceInterface{settings}
     , m_protocol{new ossia::audio_protocol}
 {
+  m_protocol->defer_port_changes(true);
   m_dev = std::make_shared<ossia::net::generic_device>(
       std::unique_ptr<ossia::net::protocol_base>(m_protocol), "audio");
   m_capas.canAddNode = true;
@@ -56,17 +57,39 @@ AudioDevice::~AudioDevice() { }
 
 namespace
 {
-// The audio callback walks the protocol's lists of ports: they only change
-// while it skips its tick.
-void parked(const std::function<void()>& f)
+// The audio callback walks the protocol's lists of ports: they change
+// between two of its ticks, while the audio goes on.
+void betweenTicks(const std::function<void()>& f)
 {
   auto& engine
       = score::GUIAppContext().guiApplicationPlugin<Audio::ApplicationPlugin>().audio;
   if(engine)
-    engine->run_parked(f);
+    engine->run_between_ticks(f);
   else
     f();
 }
+
+void collectParameters(
+    ossia::net::node_base& node, std::vector<ossia::net::parameter_base*>& params)
+{
+  if(auto p = node.get_parameter())
+    params.push_back(p);
+  for(auto child : node.children_copy())
+    collectParameters(*child, params);
+}
+}
+
+void AudioDevice::publishPorts(const std::function<void()>& change)
+{
+  if(!m_protocol)
+    return;
+  // Made here, swapped in there; the previous lists are freed here.
+  auto ports = m_protocol->current_ports();
+  betweenTicks([&] {
+    if(change)
+      change();
+    m_protocol->swap_ports(ports);
+  });
 }
 
 void AudioDevice::addAddress(const Device::FullAddressSettings& settings)
@@ -75,12 +98,9 @@ void AudioDevice::addAddress(const Device::FullAddressSettings& settings)
   this->m_customAddresses[settings.address.path] = settings;
   if(auto dev = getDevice())
   {
-    parked([&] {
-      // Create the node. It is added into the device.
-      auto node = Device::createNodeFromPath(settings.address.path, *dev);
-      if(node)
-        setupNode(*node, settings.extendedAttributes);
-    });
+    // Create the node. It is added into the device.
+    if(auto node = Device::createNodeFromPath(settings.address.path, *dev))
+      publishPorts(setupNode(*node, settings.extendedAttributes));
   }
   portsChanged();
 }
@@ -93,7 +113,7 @@ void AudioDevice::updateAddress(
   {
     if(auto node = Device::findNodeFromPath(currentAddr.path, *dev))
     {
-      parked([&] { setupNode(*node, settings.extendedAttributes); });
+      publishPorts(setupNode(*node, settings.extendedAttributes));
 
       auto newName = settings.address.path.last();
       if(!latin_compare(newName, node->get_name()))
@@ -109,7 +129,24 @@ void AudioDevice::updateAddress(
 void AudioDevice::removeNode(const State::Address& currentAddr)
 {
   this->m_customAddresses.erase(currentAddr.path);
-  parked([&] { DeviceInterface::removeNode(currentAddr); });
+  if(auto dev = getDevice(); dev && m_protocol)
+  {
+    if(auto node = Device::findNodeFromPath(currentAddr.path, *dev))
+    {
+      // The ports under it leave the callback's lists before they are destroyed.
+      std::vector<ossia::net::parameter_base*> params;
+      collectParameters(*node, params);
+      for(auto p : params)
+      {
+        if(auto m = dynamic_cast<ossia::mapped_audio_parameter*>(p))
+          m_protocol->unregister_parameter(*m);
+        else if(auto v = dynamic_cast<ossia::virtual_audio_parameter*>(p))
+          m_protocol->unregister_parameter(*v);
+      }
+      publishPorts();
+    }
+  }
+  DeviceInterface::removeNode(currentAddr);
   portsChanged();
 }
 
@@ -153,6 +190,7 @@ bool AudioDevice::reconnect()
   try
   {
     m_protocol = new ossia::audio_protocol;
+    m_protocol->defer_port_changes(true);
     m_dev = std::make_shared<ossia::net::generic_device>(
         std::unique_ptr<ossia::net::protocol_base>(m_protocol), "audio");
     if(!engine)
@@ -165,7 +203,8 @@ bool AudioDevice::reconnect()
     {
       if(auto node = Device::findNodeFromPath(k, *m_dev))
       {
-        setupNode(*node, v.extendedAttributes);
+        if(auto change = setupNode(*node, v.extendedAttributes))
+          change();
       }
       else
       {
@@ -175,9 +214,12 @@ bool AudioDevice::reconnect()
 
         node = Device::createNodeFromPath(k, *m_dev);
         if(node)
-          setupNode(*node, v.extendedAttributes);
+          (void)setupNode(*node, v.extendedAttributes);
       }
     }
+    // Nothing walks the new tree yet: the default tick is running.
+    auto ports = m_protocol->current_ports();
+    m_protocol->swap_ports(ports);
     setLogging_impl(Device::get_cur_logging(isLogging()));
   }
   catch(std::exception& e)
@@ -200,17 +242,19 @@ void AudioDevice::recreate(const Device::Node& n)
   }
 }
 
-void AudioDevice::setupNode(
+std::function<void()> AudioDevice::setupNode(
     ossia::net::node_base& node, const ossia::extended_attributes& attr)
 try
 {
   auto kind_it = attr.find("audio-kind");
   if(kind_it == attr.end())
-    return; // it will be added automatically
+    return {}; // it will be added automatically
 
   // An existing port is changed in place: running processes may hold a
   // pointer to it. Changing it from mapped to virtual or back takes a
-  // reconnection.
+  // reconnection. What the audio callback reads changes between two ticks,
+  // in the function returned here; everything else is prepared here.
+  std::function<void()> change;
   auto kind = ossia::any_cast<std::string>(kind_it->second);
   auto param = node.get_parameter();
   if(kind == "in" || kind == "out")
@@ -227,22 +271,30 @@ try
       if(mapped->is_output != output && m_protocol)
       {
         m_protocol->unregister_parameter(*mapped);
+        (output ? m_protocol->out_mappings : m_protocol->in_mappings).push_back(mapped);
+      }
+      change = [mapped, output, upstream = m_protocol ? m_protocol->main_audio_in : nullptr,
+                mapping = std::make_shared<ossia::audio_mapping>(std::move(chans))] {
         mapped->is_output = output;
         mapped->stage = output ? ossia::audio_parameter::gain_stage::push
                                : ossia::audio_parameter::gain_stage::pull;
-        mapped->upstream = nullptr;
-        m_protocol->register_parameter(*mapped);
-      }
-      mapped->mapping = std::move(chans);
+        mapped->upstream = output ? nullptr : upstream;
+        std::swap(mapped->mapping, *mapping);
+      };
     }
   }
   else if(kind == "virtual")
   {
     auto chans = ossia::any_cast<int>(attr.at("audio-channels"));
     if(!param)
+    {
       node.set_parameter(std::make_unique<ossia::virtual_audio_parameter>(chans, node));
+    }
     else if(auto virt = dynamic_cast<ossia::virtual_audio_parameter*>(param))
-      virt->set_channels(chans);
+    {
+      change = [virt, buffers = std::make_shared<ossia::virtual_audio_parameter::channels>(
+                          virt->make_channels(chans))] { virt->swap_channels(*buffers); };
+    }
   }
 
   auto x = node.get_extended_attributes();
@@ -251,9 +303,11 @@ try
     x[e.first] = e.second;
   }
   node.set_extended_attributes(x);
+  return change;
 }
 catch(...)
 {
+  return {};
 }
 
 Device::Node AudioDevice::refresh()

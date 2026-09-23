@@ -19,6 +19,7 @@
 #include <ossia/network/domain/domain.hpp>
 
 #include <ossia-qt/invoke.hpp>
+#include <ossia-qt/metatypes.hpp>
 #include <ossia-qt/name_utils.hpp>
 
 #include <boost/asio/io_context.hpp>
@@ -367,6 +368,7 @@ void DeviceInterface::disconnect()
   if(auto dev = getDevice())
   {
     auto& root = dev->get_root_node();
+    nodeAboutToBeRemoved(&root);
     root.clear_children();
   }
 }
@@ -705,6 +707,7 @@ void DeviceInterface::removeNode(const State::Address& address)
         // crashes.
         // The Device Explorer should be locked for edition during recording /
         // playing.
+        nodeAboutToBeRemoved(node);
         parent->remove_child(node->get_name());
       }
     }

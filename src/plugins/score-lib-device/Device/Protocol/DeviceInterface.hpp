@@ -201,6 +201,11 @@ public:
   void deviceChanged(ossia::net::device_base* old_dev, ossia::net::device_base* new_dev)
       E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, deviceChanged, old_dev, new_dev)
 
+  //! `node` and everything under it are about to be removed from the device.
+  //! Emitted once per removal, while the nodes and their parameters exist.
+  void nodeAboutToBeRemoved(ossia::net::node_base* node)
+      E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, nodeAboutToBeRemoved, node)
+
   /* If logging is enabled, these two signals may be sent
    * when something happens */
   void logInbound(const QString& arg_1) const
