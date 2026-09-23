@@ -130,16 +130,6 @@ IntervalComponentBase::IntervalComponentBase(
       });
   });
 
-  con(interval(), &Scenario::IntervalModel::busChanged, this, [&](bool b) {
-    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
-    if(m_ossia_interval)
-      in_exec([b, itv = m_ossia_interval] {
-        OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
-        auto& audio_out
-            = static_cast<ossia::nodes::interval*>(itv->node.get())->audio_out;
-        audio_out.has_gain = b;
-      });
-  });
   con(*interval().outlet, &Process::AudioOutlet::gainChanged, this, [&](double g) {
     OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
     if(m_ossia_interval)
@@ -368,7 +358,6 @@ void IntervalComponent::onSetup(
   {
     auto& audio_out
         = static_cast<ossia::nodes::interval*>(m_ossia_interval->node.get())->audio_out;
-    audio_out.has_gain = Scenario::isBus(*m_interval, context().doc);
     audio_out.gain = m_interval->outlet->gain();
     audio_out.pan = m_interval->outlet->pan();
 
