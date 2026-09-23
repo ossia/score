@@ -193,8 +193,8 @@ struct Node
     } values;
   } outputs;
 
-  // The engine -> UI queue for control outputs is drained keeping only the last
-  // entry, so a push has to carry everything the layer may still need. That is
+  // The interface only reads the latest control output values, so a push has
+  // to carry everything the layer may still need. That is
   // never more than the log length, which bounds the ring exactly.
   boost::container::devector<ossia::value> m_ring;
   int m_next_seq = 0;

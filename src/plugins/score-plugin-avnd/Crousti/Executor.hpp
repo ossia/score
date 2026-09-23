@@ -688,12 +688,10 @@ public:
     {
       auto& settings = score::AppContext().settings<Scenario::Settings::Model>();
 
-      // The node enqueues its control outputs for the UI every tick; with no
-      // reader installed below, that queue grows without bound and allocates in
-      // the audio callback. Tell it not to bother.
-      if constexpr(control_outputs_type::size > 0)
-        ptr->control.notify_ui.store(
-            settings.getExecutionUpdate(), std::memory_order_relaxed);
+      // Without a reader installed below, the node need not copy its control
+      // values for the UI.
+      ptr->control.notify_ui.store(
+          settings.getExecutionUpdate(), std::memory_order_relaxed);
 
       if(settings.getExecutionUpdate())
       {

@@ -1440,6 +1440,17 @@ if(TARGET score_plugin_engine)
     PLUGINS score_plugin_engine score_plugin_audio score_plugin_scenario score_lib_process)
 endif()
 
+# The control values of an avnd process go to its model ports through a
+# triple buffer that does not allocate once warm.
+if(TARGET score_plugin_ui AND TARGET score_plugin_avnd)
+  score_add_test(test_unit_avnd_control_outputs_ui
+    SOURCES AvndControlOutputsUiTest.cpp
+    APP
+    PLUGINS score_plugin_ui score_plugin_avnd score_plugin_engine score_plugin_scenario score_lib_process)
+  target_include_directories(test_unit_avnd_control_outputs_ui PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish")
+endif()
+
 # A port of the audio device is edited in place while the engine runs:
 # processes may hold a pointer to it.
 if(TARGET score_plugin_audio)
