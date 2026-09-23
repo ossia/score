@@ -10,6 +10,7 @@
 #include <libremidi/ump_events.hpp>
 
 #include <algorithm>
+#include <atomic>
 #include <cmath>
 #include <limits>
 
@@ -42,7 +43,8 @@ public:
   double switch_rate{1.};
 
   int current = 0;
-  int last = -1;
+  //! The step played last, read by the interface.
+  std::atomic_int last{-1};
   uint8_t channel{1};
   // Channel the notes currently in flight were started on: a channel change
   // must not leave them stranded on the previous one.
@@ -245,7 +247,7 @@ public:
     // out and back over the same ground crosses the same steps.
     if(rewinding)
       current = (current + pat.length - 1) % pat.length;
-    last = current;
+    last.store(current, std::memory_order_relaxed);
     auto& mess = out.target<ossia::midi_port>()->messages;
 
     for(auto it = in_flight.begin(); it != in_flight.end();)

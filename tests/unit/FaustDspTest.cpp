@@ -511,3 +511,49 @@ TEST_CASE(
   CHECK(out.channel(0)[frames / 2] == Approx(0.25));
   g->clear();
 }
+
+TEST_CASE(
+    "Faust: the interface reads the controls and displays of the latest tick",
+    "[faust][node]")
+{
+  Jit gen{R"(process = hslider("g", 0.5, 0, 1, 0.01) : hbargraph("m", 0, 1);)"};
+  REQUIRE(gen.ok());
+
+  constexpr int frames = 64;
+  ossia::execution_state e;
+  e.sampleRate = 48000;
+  e.bufferSize = frames;
+  e.modelToSamplesRatio = e.sampleRate / ossia::flicks_per_second<double>;
+  e.samplesToModelRatio = ossia::flicks_per_second<double> / e.sampleRate;
+
+  auto node = std::make_shared<ossia::nodes::faust_fx>(
+      std::shared_ptr<dsp>(gen.dsp, [](dsp*) {}));
+  REQUIRE(node->controls.size() == 1);
+  REQUIRE(node->displays.size() == 1);
+  auto g = ossia::make_graph(ossia::graph_setup_options{});
+  g->add_node(node);
+
+  // Nothing ran yet: the interface keeps what it has.
+  CHECK(!node->ui.consume());
+
+  const std::vector<float>* first{};
+  for(double gain : {0.25, 0.75})
+  {
+    node->root_inputs()[1]->cast<ossia::value_port>().write_value(gain, 0);
+    node->request(ossia::simple_token_request{
+        ossia::time_value{0},
+        ossia::time_value{int64_t(frames * e.samplesToModelRatio)}});
+    e.begin_tick();
+    g->state(e);
+    e.commit();
+  }
+
+  // Two ticks, one read: the latest one.
+  const auto* values = node->ui.consume();
+  REQUIRE(values);
+  REQUIRE(values->size() == 2);
+  CHECK((*values)[0] == Approx(0.75));
+  CHECK((*values)[1] == Approx(0.75));
+  CHECK(!node->ui.consume());
+  g->clear();
+}

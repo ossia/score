@@ -4,6 +4,7 @@
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
+#include <Process/Execution/TelemetryInterface.hpp>
 #include <Process/ExecutionSetup.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
 
@@ -170,8 +171,10 @@ void Component::reload(Execution::Transaction& transaction)
     m_controlConnections.push_back(c);
   }
 
-  auto c = con(
-      ctx.doc.coarseUpdateTimer, &QTimer::timeout, this,
+  if(!ctx.telemetry)
+    return;
+  auto c = connect(
+      ctx.telemetry, &Execution::TelemetryInterface::updated, this,
       [weak_node = std::weak_ptr{node}, p = QPointer{&proc}] {
     if(!p)
       return;

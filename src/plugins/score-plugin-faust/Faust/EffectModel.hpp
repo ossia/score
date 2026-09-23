@@ -148,6 +148,8 @@ private:
   void setupExecutionControls(const Node_T&, int firstControlIndex);
   template <typename Node_T>
   void setupExecutionControlOutlets(const Node_T&, int firstControlIndex);
+  template <typename Node_T>
+  void setupExecutionFeedback(const Node_T&, int firstControlIndex, int firstDisplayIndex);
 
   std::vector<QMetaObject::Connection> m_controlConnections;
 };
