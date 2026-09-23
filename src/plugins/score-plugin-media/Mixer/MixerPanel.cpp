@@ -292,11 +292,11 @@ private:
 
     auto add = [this](
                    Section sec, ossia::audio_parameter* p, PortStrip::Meter m,
-                   int first = 0, int count = -1) {
+                   std::vector<int> channels = {}) {
       if(!p)
         return;
       auto parent = m_strips[int(sec)];
-      auto s = new PortStrip{*p, m, first, count, m_context, parent};
+      auto s = new PortStrip{*p, m, std::move(channels), m_context, parent};
       s->setStripWidth(width());
       stripsLayout(sec)->addWidget(s);
       m_portStrips.push_back(s);
@@ -304,23 +304,27 @@ private:
 
     int i = 0;
     for(auto p : proto.audio_ins)
-      add(Section::Inputs, p, PortStrip::Meter::HardwareInputs, i++, 1);
+      add(Section::Inputs, p, PortStrip::Meter::HardwareInputs, {i++});
     i = 0;
     for(auto p : proto.audio_outs)
-      add(Section::Outputs, p, PortStrip::Meter::HardwareOutputs, i++, 1);
+      add(Section::Outputs, p, PortStrip::Meter::HardwareOutputs, {i++});
 
+    // A mapped port is a set of hardware channels: its meter is theirs.
+    auto mapping = [](const ossia::mapped_audio_parameter& p) {
+      return std::vector<int>(p.mapping.begin(), p.mapping.end());
+    };
     add(Section::Mapped, proto.main_audio_in, PortStrip::Meter::HardwareInputs);
     for(auto p : proto.in_mappings)
-      add(Section::Mapped, p, PortStrip::Meter::None);
+      add(Section::Mapped, p, PortStrip::Meter::HardwareInputs, mapping(*p));
     for(auto p : proto.out_mappings)
-      add(Section::Mapped, p, PortStrip::Meter::None);
+      add(Section::Mapped, p, PortStrip::Meter::HardwareOutputs, mapping(*p));
     for(auto p : proto.virtaudio)
       add(Section::Virtual, p, PortStrip::Meter::None);
 
     // The master: every output, after the master gain.
     if(auto p = proto.main_audio_out)
     {
-      auto s = new PortStrip{*p, PortStrip::Meter::HardwareOutputs, 0, -1, m_context, m_master};
+      auto s = new PortStrip{*p, PortStrip::Meter::HardwareOutputs, {}, m_context, m_master};
       s->setStripWidth(StripWidth::Wide);
       score::setHelp(s, tr("The master: its gain applies to every output."));
       m_master->layout()->addWidget(s);
