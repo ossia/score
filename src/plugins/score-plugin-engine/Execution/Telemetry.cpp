@@ -12,6 +12,7 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/Bind.hpp>
 
+#include <ossia/audio/audio_parameter.hpp>
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/port.hpp>
 
@@ -43,7 +44,18 @@ Telemetry::Telemetry(const score::DocumentContext& ctx, DocumentPlugin& plug)
   con(ctx.coarseUpdateTimer, &QTimer::timeout, this, &Telemetry::read);
 }
 
-Telemetry::~Telemetry() = default;
+Telemetry::~Telemetry()
+{
+  for(auto& s : m_subs)
+  {
+    if(s.param)
+    {
+      s.param->meter.store(nullptr, std::memory_order_release);
+      s.param->get_node().about_to_be_deleted.disconnect<&Telemetry::parameterRemoved>(
+          *this);
+    }
+  }
+}
 
 bool Telemetry::enabled() const noexcept
 {
@@ -57,13 +69,15 @@ uint64_t Telemetry::publishInterval() const noexcept
   return std::max<uint64_t>(1, uint64_t(rate) * ms / 1000);
 }
 
-Telemetry::Meter
-Telemetry::subscribe(tap_kind kind, const Process::Port* port, bool inlet)
+Telemetry::Meter Telemetry::subscribe(
+    tap_kind kind, const Process::Port* port, bool inlet,
+    ossia::virtual_audio_parameter* param)
 {
   for(std::size_t i = 0; i < m_subs.size(); i++)
   {
     auto& s = m_subs[i];
-    if(s.users > 0 && s.kind == kind && s.port == port && s.inlet == inlet)
+    if(s.users > 0 && s.kind == kind && s.port == port && s.inlet == inlet
+       && s.param == param)
     {
       s.users++;
       return {int(i), s.generation};
@@ -90,6 +104,11 @@ Telemetry::subscribe(tap_kind kind, const Process::Port* port, bool inlet)
   s.inlet = inlet;
   s.generation = ++generations;
   s.users = 1;
+  if(param)
+  {
+    s.param = param;
+    param->get_node().about_to_be_deleted.connect<&Telemetry::parameterRemoved>(*this);
+  }
 
   if(m_arena)
   {
@@ -121,6 +140,25 @@ Telemetry::Meter Telemetry::meterHardwareOutputs()
   return subscribe(tap_kind::hardware_outputs, nullptr, false);
 }
 
+Telemetry::Meter Telemetry::meterVirtualPort(ossia::virtual_audio_parameter& port)
+{
+  return subscribe(tap_kind::node, nullptr, false, &port);
+}
+
+void Telemetry::parameterRemoved(const ossia::net::node_base& node)
+{
+  // The node is being deleted, and the signal with it: nothing to disconnect.
+  for(std::size_t i = 0; i < m_subs.size(); i++)
+  {
+    auto& s = m_subs[i];
+    if(s.param && &s.param->get_node() == &node)
+    {
+      detach(int(i));
+      s.param = nullptr;
+    }
+  }
+}
+
 void Telemetry::release(Meter m)
 {
   if(!m || std::size_t(m.index) >= m_subs.size())
@@ -132,6 +170,9 @@ void Telemetry::release(Meter m)
     return;
 
   detach(m.index);
+  if(s.param)
+    s.param->get_node().about_to_be_deleted.disconnect<&Telemetry::parameterRemoved>(
+        *this);
   s = Subscription{};
   m_free.push_back(m.index);
 }
@@ -345,6 +386,10 @@ void Telemetry::executionStarted()
 void Telemetry::executionStopped()
 {
   // The graph goes away with its outlets and its context: nothing to detach.
+  // The virtual ports stay, and must forget the taps before the arena goes.
+  for(auto& s : m_subs)
+    if(s.param)
+      s.param->meter.store(nullptr, std::memory_order_release);
   m_running = false;
   m_arena.reset();
   m_benches.clear();
@@ -452,7 +497,7 @@ void Telemetry::attach(int index)
       std::swap(in->meter, in_port);
     });
   }
-  else if(s.kind == tap_kind::node)
+  else if(s.kind == tap_kind::node && !s.param)
   {
     if(!s.port)
       return;
@@ -474,6 +519,18 @@ void Telemetry::attach(int index)
       std::swap(out->meter, in_port);
     });
   }
+  else if(s.param)
+  {
+    // A virtual port: the parameter only gets the address of the tap, which
+    // the arena owns from the next tick on and the closure until then.
+    auto* raw = tap.get();
+    ctx->m_execQueue.enqueue(
+        [arena = m_arena, index, gen = s.generation,
+         in_arena = std::move(tap)]() mutable {
+      arena->attach(index, gen, tap_kind::node, in_arena);
+    });
+    s.param->meter.store(raw, std::memory_order_release);
+  }
   else
   {
     ctx->m_execQueue.enqueue(
@@ -489,6 +546,10 @@ void Telemetry::detach(int index)
 {
   auto& ctx = m_plugin.contextData();
   auto& s = m_subs[index];
+  // The tap stays alive until the closure below has run on the audio thread,
+  // which is after anything that read this address is done with it.
+  if(s.param)
+    s.param->meter.store(nullptr, std::memory_order_release);
   if(!ctx || !m_arena || !s.attached)
     return;
 
