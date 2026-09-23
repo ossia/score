@@ -248,15 +248,15 @@ void Strip::setStripWidth(StripWidth w)
   m_readout->setVisible(w != StripWidth::Narrow);
 }
 
-void Strip::setMeter(Execution::Telemetry::Meter m, int firstChannel, int channelCount)
+void Strip::setMeter(Execution::Telemetry::Meter m, std::vector<int> channels)
 {
   if(m_telemetry && m_meterHandle)
     m_telemetry->release(m_meterHandle);
   m_meterHandle = m;
-  m_firstChannel = firstChannel;
-  m_channelCount = channelCount;
+  m_channels = std::move(channels);
   m_meter->setVisible(bool(m));
-  m_badge->setVisible(bool(m) && channelCount < 0);
+  // A single channel needs no count.
+  m_badge->setVisible(bool(m) && m_channels.size() != 1);
   m_badge->setText(tr("off"));
 }
 
@@ -274,18 +274,23 @@ void Strip::updateMeter(const Execution::Telemetry& t)
   }
 
   const int total = int(levels->channels);
-  const int first = std::min(m_firstChannel, total);
-  const int count
-      = m_channelCount < 0 ? total - first : std::min(m_channelCount, total - first);
+  m_levels.clear();
+  auto add = [&](int src) {
+    if(src >= 0 && src < total)
+      m_levels.push_back({levels->peak[src], levels->rms(src), levels->is_clipped(src)});
+    else
+      m_levels.push_back({});
+  };
+  if(m_channels.empty())
+    for(int c = 0; c < total; c++)
+      add(c);
+  else
+    for(int c : m_channels)
+      add(c);
 
-  m_levels.resize(std::max(count, 0));
-  for(int c = 0; c < count; c++)
-  {
-    const int src = first + c;
-    m_levels[c] = {levels->peak[src], levels->rms(src), levels->is_clipped(src)};
-  }
   m_meter->setLevels(m_levels);
-  m_badge->setText(total == 0 ? tr("silent") : tr("%n ch", nullptr, total));
+  const int shown = int(m_levels.size());
+  m_badge->setText(shown == 0 ? tr("silent") : tr("%n ch", nullptr, shown));
 }
 
 void Strip::setGainReadout(double gain)
@@ -485,7 +490,7 @@ void BusStrip::fillContextMenu(QMenu& menu)
 }
 
 PortStrip::PortStrip(
-    ossia::audio_parameter& param, Meter meter, int firstChannel, int channelCount,
+    ossia::audio_parameter& param, Meter meter, std::vector<int> channels,
     const score::DocumentContext& ctx, QWidget* parent)
     : Strip{ctx, parent}
     , m_param{&param}
@@ -500,10 +505,10 @@ PortStrip::PortStrip(
     switch(meter)
     {
       case Meter::HardwareInputs:
-        setMeter(m_telemetry->meterHardwareInputs(), firstChannel, channelCount);
+        setMeter(m_telemetry->meterHardwareInputs(), std::move(channels));
         break;
       case Meter::HardwareOutputs:
-        setMeter(m_telemetry->meterHardwareOutputs(), firstChannel, channelCount);
+        setMeter(m_telemetry->meterHardwareOutputs(), std::move(channels));
         break;
       case Meter::None:
         break;
