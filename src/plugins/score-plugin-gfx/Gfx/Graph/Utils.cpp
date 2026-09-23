@@ -621,9 +621,57 @@ const ossia::geometry::attribute* findGeometryAttribute(
   return match;
 }
 
+
+// Rebuild `out` from `prev` keeping only the bindings some attribute reads,
+// renumbering the attributes to match. Dropping trailing orphans alone is not
+// enough: an interior orphan is what Metal rejects. When `outPlan` is given it
+// records the surviving order so the draw can bind the same streams.
+static void compactVertexBindings(
+    const QRhiVertexInputLayout& prev, int bindingCount,
+    QVarLengthArray<QRhiVertexInputAttribute>& attrs, QRhiVertexInputLayout& out,
+    FallbackBindingPlan* outPlan) noexcept
+{
+  QVarLengthArray<int> keep(bindingCount);
+  std::fill(keep.begin(), keep.end(), -1);
+  std::vector<int> order;
+  for(const auto& a : attrs)
+  {
+    const int old = a.binding();
+    if(old >= 0 && old < bindingCount && keep[old] < 0)
+    {
+      keep[old] = (int)order.size();
+      order.push_back(old);
+    }
+  }
+
+  QVarLengthArray<QRhiVertexInputBinding, 8> kept;
+  int i = 0;
+  QVarLengthArray<QRhiVertexInputBinding, 8> all;
+  for(auto it = prev.cbeginBindings(); it != prev.cendBindings(); ++it, ++i)
+    all.append(*it);
+  for(const int old : order)
+    kept.append(all[old]);
+
+  for(auto& a : attrs)
+  {
+    const int old = a.binding();
+    const int nb = (old >= 0 && old < bindingCount && keep[old] >= 0) ? keep[old] : 0;
+    a = QRhiVertexInputAttribute(nb, a.location(), a.format(), a.offset());
+  }
+
+  out.setBindings(kept.begin(), kept.end());
+  out.setAttributes(attrs.begin(), attrs.end());
+
+  if(outPlan)
+  {
+    outPlan->mesh_bindings = std::move(order);
+    outPlan->compacted = true;
+  }
+}
+
 bool remapPipelineVertexInputs(
     QRhiGraphicsPipeline& pip, const QShader& vertexShader,
-    const ossia::geometry& geom)
+    const ossia::geometry& geom, FallbackBindingPlan* outPlan)
 {
   const auto& shader_inputs = vertexShader.description().inputVariables();
   if(shader_inputs.empty())
@@ -650,12 +698,17 @@ bool remapPipelineVertexInputs(
         match->byte_offset));
   }
 
-  // Override vertex input layout, keeping the bindings (stride/classification)
+  // Override vertex input layout, compacting to the bindings the shader
+  // actually reads. Dropping only the trailing ones leaves an interior orphan
+  // -- a binding between two the shader does read -- and Metal refuses such a
+  // descriptor outright (newSerializedDescriptor asserts), so the draw never
+  // happens. Compaction renumbers, which is why the surviving order is
+  // published in outPlan for the draw to bind against.
   QRhiVertexInputLayout inputLayout;
   const auto& prevLayout = pip.vertexInputLayout();
-  inputLayout.setBindings(prevLayout.cbeginBindings(), prevLayout.cendBindings());
-  inputLayout.setAttributes(remappedAttrs.begin(), remappedAttrs.end());
-  dropTrailingOrphanVertexBindings(inputLayout);
+  const int meshBindingCount
+      = int(std::distance(prevLayout.cbeginBindings(), prevLayout.cendBindings()));
+  compactVertexBindings(prevLayout, meshBindingCount, remappedAttrs, inputLayout, outPlan);
   warnOrphanVertexBindings(inputLayout, "remapPipelineVertexInputs(keep-bindings)");
   pip.setVertexInputLayout(inputLayout);
   return true;
@@ -663,7 +716,8 @@ bool remapPipelineVertexInputs(
 
 bool remapPipelineVertexInputs(
     QRhiGraphicsPipeline& pip, const QShader& vertexShader,
-    const ossia::geometry& geom, const isf::descriptor& desc)
+    const ossia::geometry& geom, const isf::descriptor& desc,
+    FallbackBindingPlan* outPlan)
 {
   const auto& shader_inputs = vertexShader.description().inputVariables();
   if(shader_inputs.empty())
@@ -699,7 +753,14 @@ bool remapPipelineVertexInputs(
   const auto& prevLayout = pip.vertexInputLayout();
   inputLayout.setBindings(prevLayout.cbeginBindings(), prevLayout.cendBindings());
   inputLayout.setAttributes(remappedAttrs.begin(), remappedAttrs.end());
-  dropTrailingOrphanVertexBindings(inputLayout);
+  {
+    const int meshBindingCount
+        = int(std::distance(prevLayout.cbeginBindings(), prevLayout.cendBindings()));
+    QRhiVertexInputLayout compacted;
+    compactVertexBindings(
+        prevLayout, meshBindingCount, remappedAttrs, compacted, outPlan);
+    inputLayout = compacted;
+  }
   warnOrphanVertexBindings(inputLayout, "remapPipelineVertexInputs(keep-bindings,semantic)");
   pip.setVertexInputLayout(inputLayout);
   return true;
@@ -991,6 +1052,7 @@ Pipeline buildPipeline(
     QRhiShaderResourceBindings* srb)
 {
   auto& rhi = *renderer.state.rhi;
+  Pipeline ret;
   auto ps = rhi.newGraphicsPipeline();
   ps->setName("buildPipeline::ps");
   SCORE_ASSERT(ps);
@@ -1042,7 +1104,7 @@ Pipeline buildPipeline(
   // so that locations are determined by the shader, not by the geometry producer.
   if(auto* geom = mesh.semanticGeometry())
   {
-    if(!remapPipelineVertexInputs(*ps, vertexS, *geom))
+    if(!remapPipelineVertexInputs(*ps, vertexS, *geom, &ret.plan))
     {
       qDebug() << "Warning! Shader requires attributes not present in mesh";
       delete ps;
@@ -1091,7 +1153,9 @@ Pipeline buildPipeline(
     delete ps;
     ps = nullptr;
   }
-  return {ps, srb};
+  ret.pipeline = ps;
+  ret.srb = srb;
+  return ret;
 }
 
 QRhiShaderResourceBindings* createDefaultBindings(
@@ -1192,6 +1256,7 @@ Pipeline buildPipelineWithState(
     bool useShadingRate)
 {
   auto& rhi = *renderer.state.rhi;
+  Pipeline ret;
   auto srb = createDefaultBindings(
       renderer, rt, processUBO, materialUBO, samplers, extraBindings);
 
@@ -1284,7 +1349,7 @@ Pipeline buildPipelineWithState(
   // Semantic vertex input remapping (same as buildPipeline()).
   if(auto* geom = mesh.semanticGeometry())
   {
-    if(!remapPipelineVertexInputs(*ps, vertexS, *geom))
+    if(!remapPipelineVertexInputs(*ps, vertexS, *geom, &ret.plan))
     {
       qDebug() << "Warning! Shader requires attributes not present in mesh";
       delete ps;
@@ -1333,7 +1398,9 @@ Pipeline buildPipelineWithState(
     delete ps;
     ps = nullptr;
   }
-  return {ps, srb};
+  ret.pipeline = ps;
+  ret.srb = srb;
+  return ret;
 }
 
 std::pair<QShader, QShader>

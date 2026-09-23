@@ -262,6 +262,7 @@ score_add_gfx_test(review_render_targets GfxReviewRenderTargets.cpp)
 # stream, drawn with two instances. Uses the production VertexFallbackPool and a
 # real QRhi readback, so it measures the binding the engine actually emits.
 score_add_gfx_test(review_scene_fallback GfxReviewSceneFallback.cpp)
+score_add_gfx_test(interior_orphan_binding GfxInteriorOrphanBinding.cpp)
 
 # Indirect-draw firstInstance ABI and layered
 # indirect dispatch, each driven through the GPU rung AND the CPU fallback rung
