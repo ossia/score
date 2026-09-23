@@ -22,8 +22,10 @@
 #include <core/presenter/DocumentManager.hpp>
 
 #include <ossia/audio/audio_engine.hpp>
+#include <ossia/audio/audio_parameter.hpp>
 #include <ossia/audio/audio_protocol.hpp>
 
+#include <QSignalBlocker>
 #include <QTimer>
 #include <QToolBar>
 
@@ -84,8 +86,15 @@ void ApplicationPlugin::on_closeDocument(score::Document& old)
 void ApplicationPlugin::on_documentChanged(
     score::Document* olddoc, score::Document* newdoc)
 {
+  QObject::disconnect(m_volumeSync);
   if(!newdoc)
     return;
+
+  // The master volume can change from the mixer or from automation.
+  m_volumeSync = connect(
+      &newdoc->context().coarseUpdateTimer, &QTimer::timeout, this,
+      &ApplicationPlugin::syncVolume);
+  syncVolume();
 
   if(!audio)
   {
@@ -95,6 +104,31 @@ void ApplicationPlugin::on_documentChanged(
 
   // The engine runs on: bind the document's audio device to it
   rebind_engine(*newdoc);
+}
+
+ossia::audio_parameter*
+ApplicationPlugin::mainOutput(const score::DocumentContext* doc) const
+{
+  if(!doc)
+    return nullptr;
+  auto dev = (Dataflow::AudioDevice*)doc->plugin<Explorer::DeviceDocumentPlugin>()
+                 .list()
+                 .audioDevice();
+  if(!dev)
+    return nullptr;
+  auto proto = dev->getProtocol();
+  return proto ? proto->main_audio_out : nullptr;
+}
+
+void ApplicationPlugin::syncVolume()
+{
+  if(!m_volume || m_volumeDragging)
+    return;
+  if(auto p = mainOutput(context.currentDocument()))
+  {
+    QSignalBlocker b{m_volume.data()};
+    m_volume->setValue(p->gain());
+  }
 }
 
 void ApplicationPlugin::rebind_engine(score::Document& doc)
@@ -154,35 +188,23 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
     score::onSkinChange(sl, [sl] {
       sl->setFixedSize(score::scaledPixels(100), sl->skinExtent());
     });
-    sl->setValue(0.5);
+    {
+      QSignalBlocker b{sl};
+      sl->setValue(1.);
+    }
+    m_volume = sl;
     score::setHelp(sl, "Change the master volume");
     bar->addWidget(sl);
     bar->addAction(m_audioEngineAct);
     connect(sl, &score::VolumeSlider::valueChanged, this, [this](double v) {
-      if(!this->audio)
-        return;
-
-      auto doc = context.currentDocument();
-      if(!doc)
-        return;
-      auto dev = (Dataflow::AudioDevice*)doc->plugin<Explorer::DeviceDocumentPlugin>()
-                     .list()
-                     .audioDevice();
-      if(!dev)
-        return;
-      auto p = dev->getProtocol();
-      if(!p)
-        return;
-
-      auto root = ossia::net::find_node(dev->getDevice()->get_root_node(), "/out/main");
-      if(root)
-      {
-        if(auto p = root->get_parameter())
-        {
-          auto audio_p = static_cast<ossia::audio_parameter*>(p);
-          audio_p->push_value(v);
-        }
-      }
+      if(auto p = mainOutput(context.currentDocument()))
+        p->push_value(float(v));
+    });
+    connect(sl, &score::VolumeSlider::sliderMoved, this, [this] {
+      m_volumeDragging = true;
+    });
+    connect(sl, &score::VolumeSlider::sliderReleased, this, [this] {
+      m_volumeDragging = false;
     });
 
     toolbars.emplace_back(
