@@ -14,16 +14,42 @@
 
 namespace Curve
 {
+namespace
+{
+PointModel*
+findPoint(const Model& curve, const OptionalId<SegmentModel>& prev, const OptionalId<SegmentModel>& foll)
+{
+  for(auto p : curve.points())
+    if(p->previous() == prev && p->following() == foll)
+      return p;
+  return nullptr;
+}
+
+void setPoint(Model& curve, PointModel& p, Curve::Point pos)
+{
+  auto& segs = curve.segments();
+  if(p.previous())
+    if(auto it = segs.find(*p.previous()); it != segs.end())
+      it->setEnd(pos);
+  if(p.following())
+    if(auto it = segs.find(*p.following()); it != segs.end())
+      it->setStart(pos);
+  p.setPos(pos);
+  curve.changed();
+}
+}
+
 MovePoint::MovePoint(
     const Model& curve, const Id<PointModel>& pointId, Curve::Point newPoint)
     : m_model{curve}
-    , m_pointId{pointId}
     , m_newPoint{newPoint}
 {
   for(auto& p : curve.points())
   {
-    if(p->id() == m_pointId)
+    if(p->id() == pointId)
     {
+      m_previous = p->previous();
+      m_following = p->following();
       m_oldPoint = p->pos();
 
       // Otherwise sometimes we have the case where we loose precision in
@@ -43,38 +69,15 @@ MovePoint::MovePoint(
 void MovePoint::undo(const score::DocumentContext& ctx) const
 {
   auto& curve = m_model.find(ctx);
-  for(auto& p : curve.points())
-  {
-    if(p->id() == m_pointId)
-    {
-      p->setPos(m_oldPoint);
-      if(p->previous())
-        curve.segments().at(*p->previous()).setEnd(m_oldPoint);
-      if(p->following())
-        curve.segments().at(*p->following()).setStart(m_oldPoint);
-      break;
-    }
-  }
-  curve.changed();
+  if(auto p = findPoint(curve, m_previous, m_following))
+    setPoint(curve, *p, m_oldPoint);
 }
 
 void MovePoint::redo(const score::DocumentContext& ctx) const
 {
   auto& curve = m_model.find(ctx);
-  for(auto& p : curve.points())
-  {
-    if(p->id() == m_pointId)
-    {
-      if(p->previous())
-        curve.segments().at(*p->previous()).setEnd(m_newPoint);
-      if(p->following())
-        curve.segments().at(*p->following()).setStart(m_newPoint);
-
-      p->setPos(m_newPoint);
-      break;
-    }
-  }
-  curve.changed();
+  if(auto p = findPoint(curve, m_previous, m_following))
+    setPoint(curve, *p, m_newPoint);
 }
 
 void MovePoint::update(
@@ -85,11 +88,11 @@ void MovePoint::update(
 
 void MovePoint::serializeImpl(DataStreamInput& s) const
 {
-  s << m_model << m_pointId << m_newPoint << m_oldPoint;
+  s << m_model << m_previous << m_following << m_newPoint << m_oldPoint;
 }
 
 void MovePoint::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_model >> m_pointId >> m_newPoint >> m_oldPoint;
+  s >> m_model >> m_previous >> m_following >> m_newPoint >> m_oldPoint;
 }
 }

@@ -10,6 +10,7 @@ namespace Curve
 {
 struct EasingData
 {
+  bool operator==(const EasingData&) const noexcept = default;
 };
 
 template <typename Easing_T>
@@ -54,7 +55,7 @@ public:
 
   void updateData(int numInterp) const override
   {
-    numInterp = std::max(numInterp, 2);
+    numInterp = std::clamp(numInterp, 2, 75);
     if(std::size_t(numInterp + 1) != m_data.size())
       m_valid = false;
     if(!m_valid)

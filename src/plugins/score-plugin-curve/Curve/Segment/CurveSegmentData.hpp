@@ -7,8 +7,11 @@
 #include <score/tools/IdentifierGeneration.hpp>
 
 #include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/hash_map.hpp>
 
 #include <QVariant>
+
+#include <span>
 
 namespace Curve
 {
@@ -143,6 +146,31 @@ inline Id<SegmentModel> getSegmentId(const std::vector<Id<SegmentModel>>& ids)
 
   return id;
 }
+
+//! Fresh ids for new segments: O(N) to set up, then O(1) each.
+class SegmentIdAllocator
+{
+public:
+  explicit SegmentIdAllocator(std::span<const SegmentData> taken)
+  {
+    m_taken.reserve(taken.size());
+    for(const auto& s : taken)
+      m_taken.insert(s.id.val());
+  }
+
+  Id<SegmentModel> next()
+  {
+    for(;;)
+    {
+      const auto v = score::random_id_generator::getRandomId();
+      if(m_taken.insert(v).second)
+        return Id<SegmentModel>{v};
+    }
+  }
+
+private:
+  ossia::hash_set<int32_t> m_taken;
+};
 
 // We don't want crashes on invalid ids search
 class CurveDataHash

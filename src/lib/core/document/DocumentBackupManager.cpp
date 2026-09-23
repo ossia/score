@@ -86,6 +86,11 @@ CommandBackupFile& DocumentBackupManager::crashCommandFile()
   return *m_commandFile;
 }
 
+QString DocumentBackupManager::commandFileName()
+{
+  return crashCommandFile().fileName();
+}
+
 void DocumentBackupManager::updateBackupData()
 {
 #if defined(__EMSCRIPTEN__)

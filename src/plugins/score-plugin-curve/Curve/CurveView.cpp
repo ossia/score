@@ -15,6 +15,7 @@
 #include <QGraphicsView>
 #include <QKeyEvent>
 #include <QPainter>
+#include <QStyleOptionGraphicsItem>
 #include <qnamespace.h>
 
 #include <wobjectimpl.h>
@@ -35,7 +36,8 @@ static QRectF getTextRect(const QString& txt)
 View::View(QGraphicsItem* parent) noexcept
     : QGraphicsItem{parent}
 {
-  this->setFlags(ItemIsFocusable);
+  // Paint gets the exposed rect: only that is drawn.
+  this->setFlags(ItemIsFocusable | ItemUsesExtendedStyleOption);
   this->setZValue(1);
 }
 
@@ -45,6 +47,12 @@ void View::setModel(const Presenter* p, const Model* m) noexcept
 {
   m_presenter = p;
   m_model = m;
+  m_pyramidDirty = true;
+  if(m)
+  {
+    connect(m, &Model::changed, this, [this] { m_pyramidDirty = true; });
+    connect(m, &Model::curveReset, this, [this] { m_pyramidDirty = true; });
+  }
 }
 
 void View::setDirectDraw(bool d) noexcept
@@ -73,14 +81,10 @@ void View::paint(
     painter->setPen(
         m_presenter->m_enabled ? style.PenDataset : style.PenDatasetDisabled);
 
-    auto& pts = m_model->points();
-    if(pts.size() < 2)
+    if(m_model->points().size() < 2)
       return;
 
-    if(pts.size() < 1000)
-      drawAllPoints(painter);
-    else
-      drawOptimized(painter);
+    drawEnvelope(*painter, option ? option->exposedRect : boundingRect());
   }
 }
 
@@ -152,83 +156,57 @@ void View::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
   contextMenuRequested(ev->screenPos(), ev->scenePos());
 }
 
-static constexpr auto curve_view_scale(QPointF first, QSizeF second)
+// Whatever the number of points, O(pixels log N): their envelope per column.
+void View::drawEnvelope(QPainter& painter, QRectF exposed)
 {
-  return QPointF{first.x() * second.width(), (1. - first.y()) * second.height()};
-}
-
-void View::drawAllPoints(QPainter* painter)
-{
-  auto& pts = m_model->points();
-
-  auto sz = m_presenter->m_localRect.size();
-  auto orig = pts.begin();
-  auto next = std::next(orig);
-  auto p1 = curve_view_scale((*orig)->pos(), sz);
-  auto p2 = curve_view_scale((*next)->pos(), sz);
-
-  painter->drawLine(p1.x(), p1.y(), p2.x(), p2.y());
-
-  p1 = p2;
-  for(; next != pts.end(); ++next)
-  {
-    p2 = curve_view_scale((*next)->pos(), sz);
-    painter->drawLine(p1.x(), p1.y(), p2.x(), p2.y());
-    p1 = p2;
-  }
-}
-
-void View::drawOptimized(QPainter* painter)
-{
-  auto view = getView(*painter);
-  if(!view)
+  const auto& pts = m_model->points();
+  const auto sz = m_presenter->m_localRect.size();
+  if(sz.width() <= 0.)
     return;
 
-  double x0 = mapFromScene(view->mapToScene(0, 0)).x();
-  double xf = mapFromScene(view->mapToScene(view->width(), 0)).x();
-  auto& pts = m_model->points();
-
-  auto sz = m_presenter->m_localRect.size();
-  int prev_x = INT_MIN;
-  auto start_it = std::lower_bound(
-      pts.begin(), pts.end(), x0 / sz.width(),
-      [](Curve::PointModel* x, double y) { return (*x).pos().x() < y; });
-
-  auto orig = start_it != pts.end() ? start_it : pts.begin();
-  auto next = std::next(orig);
-  auto p1 = curve_view_scale((*orig)->pos(), sz);
-  auto p2 = curve_view_scale((*next)->pos(), sz);
-
-  painter->drawLine(p1.x(), p1.y(), p2.x(), p2.y());
-
-  p1 = p2;
-  double accum = 0.;
-  int accum_n = 0;
-  for(; next != pts.end(); ++next)
+  if(m_pyramidDirty)
   {
-    p2 = curve_view_scale((*next)->pos(), sz);
-    if(p2.x() < x0)
-    {
-      p1 = p2;
-      continue;
-    }
-    if(xf < p1.x())
-      break;
-
-    int new_x = view->mapFromScene(mapToScene(p1)).x();
-
-    accum += p2.y();
-    accum_n++;
-
-    if(new_x != prev_x)
-    {
-      painter->drawLine(p1.x(), p1.y(), p2.x(), accum / accum_n);
-      accum = 0.;
-      accum_n = 0;
-    }
-    prev_x = new_x;
-    p1 = p2;
+    m_pyramid.build(pts.size(), [&](std::size_t i) { return pts[i]->pos().y(); });
+    m_xs.resize(pts.size());
+    for(std::size_t i = 0; i < pts.size(); i++)
+      m_xs[i] = pts[i]->pos().x();
+    m_pyramidDirty = false;
   }
+
+  const double device = std::abs(painter.deviceTransform().m11());
+  const auto cols = pixelColumns(exposed.left(), exposed.right(), device);
+  if(cols.count <= 0)
+    return;
+  const double x0 = cols.first / sz.width();
+  const double x1 = (cols.first + cols.count * cols.width) / sz.width();
+  auto x = [this](std::size_t i) { return m_xs[i]; };
+  auto y = [this](std::size_t i) { return double(m_pyramid.value(i)); };
+
+  // More points than pixels: a waveform, one line per pixel column. Decided
+  // for the whole curve, so that a partial repaint draws as the full one.
+  if(double(m_xs.size()) > 2. * sz.width() * device)
+  {
+    static std::vector<QLineF> lines;
+    envelopeColumns(
+        m_xs.size(), x, y, m_pyramid, 0, x0, cols.width / sz.width(), cols.count,
+        lines);
+    for(auto& l : lines)
+      l = {l.x1() * sz.width(), (1. - l.y1()) * sz.height(), l.x2() * sz.width(),
+           (1. - l.y2()) * sz.height()};
+
+    QPen pen{painter.pen().color(), 0.};
+    pen.setCosmetic(true);
+    painter.setRenderHint(QPainter::Antialiasing, false);
+    painter.setPen(pen);
+    painter.drawLines(lines.data(), int(lines.size()));
+    return;
+  }
+
+  static std::vector<QPointF> line;
+  envelope(m_xs.size(), x, y, m_pyramid, 0, x0, x1, cols.count, line);
+  for(auto& p : line)
+    p = {p.x() * sz.width(), (1. - p.y()) * sz.height()};
+  painter.drawPolyline(line.data(), int(line.size()));
 }
 
 void View::setDefaultWidth(double w) noexcept

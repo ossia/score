@@ -150,8 +150,8 @@ Curve::SegmentModel* createCurveSegment(
     const Curve::SegmentList& csl, const Curve::SegmentData& dat, QObject* parent)
 {
   auto fact = csl.get(dat.type);
-  auto model = fact->load(dat, parent);
-
-  return model;
+  if(!fact)
+    return nullptr;
+  return fact->load(dat, parent);
 }
 }

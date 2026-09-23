@@ -7,6 +7,7 @@
 
 #include <Curve/ApplicationPlugin.hpp>
 #include <Curve/Commands/UpdateCurve.hpp>
+#include <Curve/Palette/CommandObjects/CurveCommandObjectBase.hpp>
 #include <Curve/Palette/CurveEditionSettings.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Point/CurvePointModel.hpp>
@@ -16,7 +17,9 @@
 #include <Curve/Segment/CurveSegmentList.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Segment/CurveSegmentView.hpp>
+#include <Curve/Segment/PointArray/PointArraySegment.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
+#include <Curve/Settings/CurveSettingsModel.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -122,18 +125,6 @@ void Presenter::setupSignals()
     addSegment(new SegmentView{segment, m_style, m_view});
   });
 
-  con(m_model, &Model::pointAdded, this, [&](const PointModel* point) {
-    if(m_model.points().size() > direct_draw_cutoff)
-    {
-      m_view->setDirectDraw(true);
-      return;
-    }
-    addPoint(new PointView{point, m_style, m_view});
-  });
-
-  con(m_model, &Model::pointRemoved, this,
-      [&](const Id<PointModel>& m) { m_points.erase(m); });
-
   con(m_model, &Model::segmentRemoved, this,
       [&](const Id<SegmentModel>& m) { m_segments.erase(m); });
 
@@ -144,6 +135,12 @@ void Presenter::setupSignals()
   });
 
   con(m_model, &Model::curveReset, this, &Presenter::modelReset);
+
+  // Without views, the curve is drawn from the model.
+  con(m_model, &Model::changed, this, [this] {
+    if(m_view->directDraw())
+      m_view->update();
+  });
 }
 
 void Presenter::setupView()
@@ -231,6 +228,19 @@ void Presenter::fillContextMenu(QMenu& menu, const QPoint& pos, const QPointF& s
   suppressAction->setCheckable(true);
   suppressAction->setChecked(m_editionSettings.suppressOnOverlap());
 
+  const auto sampled = Metadata<ConcreteKey_k, PointArraySegment>::get();
+  if(ossia::any_of(m_model.segments(), [&](const SegmentModel& s) {
+       return s.concreteKey() == sampled;
+     }))
+  {
+    auto convertAct = new QAction{tr("Convert samples to editable points"), this};
+    score::setHelp(
+        convertAct, tr("Replace sampled data, such as an imported file, by points "
+                       "that follow it and can be edited one by one."));
+    connect(convertAct, &QAction::triggered, this, [this] { convertSamplesToPoints(); });
+    menu.addAction(convertAct);
+  }
+
   menu.addAction(removeAct);
   menu.addAction(lockAction);
   menu.addAction(suppressAction);
@@ -268,7 +278,7 @@ void Presenter::setupPointConnections(PointView* pt_view)
 {
   connect(
       pt_view, &PointView::contextMenuRequested, m_view, &View::contextMenuRequested);
-  con(pt_view->model(), &PointModel::posChanged, this,
+  con(pt_view->model(), &PointModel::posChanged, pt_view,
       [this, pt_view]() { setPos(*pt_view); });
 }
 
@@ -276,6 +286,8 @@ void Presenter::setupSegmentConnections(SegmentView* seg_view)
 {
   connect(
       seg_view, &SegmentView::contextMenuRequested, m_view, &View::contextMenuRequested);
+  if(auto m = seg_view->modelPtr())
+    con(*m, &SegmentModel::dataChanged, seg_view, [this, seg_view] { setPos(*seg_view); });
 }
 
 void Presenter::modelReset()
@@ -286,6 +298,7 @@ void Presenter::modelReset()
     m_points.remove_all();
     m_segments.remove_all();
     m_view->setDirectDraw(true);
+    m_view->update();
     return;
   }
   else
@@ -380,7 +393,14 @@ void Presenter::modelReset()
     std::size_t i = 0;
     for(auto point : m_model.points())
     {
-      points[i]->setModel(point);
+      auto view = points[i];
+      if(auto old = view->modelPtr(); old != point)
+      {
+        if(old)
+          QObject::disconnect(old, &PointModel::posChanged, view, nullptr);
+        view->setModel(point);
+        con(*point, &PointModel::posChanged, view, [this, view] { setPos(*view); });
+      }
       i++;
     }
   }
@@ -388,15 +408,22 @@ void Presenter::modelReset()
     std::size_t i = 0;
     for(const auto& segment : m_model.segments())
     {
-      segments[i]->setModel(&segment);
+      auto view = segments[i];
+      if(auto old = view->modelPtr(); old != &segment)
+      {
+        if(old)
+          QObject::disconnect(old, &SegmentModel::dataChanged, view, nullptr);
+        view->setModel(&segment);
+        con(segment, &SegmentModel::dataChanged, view, [this, view] { setPos(*view); });
+      }
       i++;
     }
   }
 
   for(auto seg : newSegments)
-    setupSegmentConnections(seg);
+    connect(seg, &SegmentView::contextMenuRequested, m_view, &View::contextMenuRequested);
   for(auto pt : newPoints)
-    setupPointConnections(pt);
+    connect(pt, &PointView::contextMenuRequested, m_view, &View::contextMenuRequested);
 
   // Now the ones that have a new model
   // 4. We put them all back in our maps.
@@ -446,200 +473,74 @@ void Presenter::disable()
   m_enabled = false;
 }
 
-// TESTME
 void Presenter::removeSelection()
 {
-  // We remove all that is selected,
-  // And set the bounds correctly
-  ossia::hash_set<Id<SegmentModel>> segmentsToDelete;
-
-  // First find the segments that will be deleted.
-  // If a point is selected, the segments linked to that point
-  // will be deleted, too.
-  const auto& c = m_model.selectedChildren();
-  for(const auto& elt : c)
+  // A selected point takes its two segments with it; the first and last points
+  // of a chain are not removed.
+  ossia::hash_set<int32_t> segmentsToDelete;
+  for(const PointModel* point : m_model.points())
   {
-    if(auto point = qobject_cast<const PointModel*>(elt.data()))
+    if(point->selection.get() && point->previous() && point->following())
     {
-      if(point->previous() && point->following())
-      {
-        segmentsToDelete.insert(*point->previous());
-        segmentsToDelete.insert(*point->following());
-      }
+      segmentsToDelete.insert(point->previous()->val());
+      segmentsToDelete.insert(point->following()->val());
     }
-
-    /*
-    if(auto segmt = qobject_cast<const SegmentModel*>(elt.data()))
-    {
-        segmentsToDelete.insert(segmt->id());
-    }
-    */
   }
 
   if(segmentsToDelete.empty())
     return;
 
-  double x0 = 0;
-  double y0 = 0;
-  double x1 = 1;
-  double y1 = 1;
-  bool firstRemoved = false;
-  bool lastRemoved = false;
-  // Then remove
-  auto newSegments = model().toCurveData();
+  auto newSegments = removeSegments(
+      m_model, segmentsToDelete,
+      editionSettings().removePointBehaviour()
+          == RemovePointBehaviour::RemoveAndAddSegment);
+  m_commandDispatcher.submit(new UpdateCurve{m_model, newSegments});
+}
+
+void Presenter::convertSamplesToPoints()
+{
+  const auto sampled = Metadata<ConcreteKey_k, PointArraySegment>::get();
+  const bool selectedOnly = ossia::any_of(m_model.segments(), [&](const SegmentModel& s) {
+    return s.concreteKey() == sampled && s.selection.get();
+  });
+
+  auto segs = m_model.toCurveData();
+  SegmentIdAllocator ids{segs};
+  const auto& set = score::AppContext().settings<Settings::Model>();
+  const double tolerance = 1. / std::max(set.getSimplificationRatio(), 100);
+
+  // Converted segment -> the first and last of the segments replacing it.
+  ossia::hash_map<int32_t, std::pair<Id<SegmentModel>, Id<SegmentModel>>> replaced;
+  std::vector<SegmentData> out;
+  out.reserve(segs.size());
+  for(auto& s : segs)
   {
-    // First look for the start and end segments
+    const bool convert
+        = s.type == sampled
+          && (!selectedOnly || m_model.segments().at(s.id).selection.get());
+    auto chain = convert ? editableSegments(s, tolerance, ids) : std::vector<SegmentData>{};
+    if(chain.empty())
     {
-      for(auto& seg : newSegments)
-      {
-        if(ossia::contains(segmentsToDelete, seg.id))
-        {
-          if(!seg.previous)
-          {
-            firstRemoved = true;
-            x0 = seg.start.x();
-            y0 = seg.start.y();
-          }
-          if(!seg.following)
-          {
-            lastRemoved = true;
-            x1 = seg.end.x();
-            y1 = seg.end.y();
-          }
-        }
-      }
+      out.push_back(std::move(s));
+      continue;
     }
+    replaced.emplace(s.id.val(), std::pair{chain.front().id, chain.back().id});
+    std::move(chain.begin(), chain.end(), std::back_inserter(out));
+  }
+  if(replaced.empty())
+    return;
 
-    // Then set the others
-    auto it = newSegments.begin();
-    while(it != newSegments.end())
-    {
-      if(ossia::contains(segmentsToDelete, it->id))
-      {
-        if(it->previous)
-        {
-          auto prev_it = ossia::find_if(
-              newSegments, [&](const SegmentData& d) { return d.id == *it->previous; });
-          if(prev_it != newSegments.end())
-            prev_it->following = OptionalId<SegmentModel>{};
-        }
-        if(it->following)
-        {
-          auto next_it = ossia::find_if(
-              newSegments, [&](const SegmentData& d) { return d.id == *it->following; });
-          if(next_it != newSegments.end())
-            next_it->previous = OptionalId<SegmentModel>{};
-        }
-        it = newSegments.erase(it);
-        continue;
-      }
-
-      if(it->previous && ossia::contains(segmentsToDelete, it->previous))
-        it->previous = OptionalId<SegmentModel>{};
-      if(it->following && ossia::contains(segmentsToDelete, it->following))
-        it->following = OptionalId<SegmentModel>{};
-
-      it++;
-    }
+  for(auto& s : out)
+  {
+    if(s.previous)
+      if(auto it = replaced.find(s.previous->val()); it != replaced.end())
+        s.previous = it->second.second;
+    if(s.following)
+      if(auto it = replaced.find(s.following->val()); it != replaced.end())
+        s.following = it->second.first;
   }
 
-  // Recreate if appropriate
-  if(editionSettings().removePointBehaviour()
-     == RemovePointBehaviour::RemoveAndAddSegment)
-  {
-    // Find the "holes" in the new segment list.
-    ossia::sort(newSegments, [](const SegmentData& s1, const SegmentData& s2) {
-      return s1.x() < s2.x();
-    });
-
-    // First if there is no segments, we recreate one.
-    if(newSegments.empty())
-    {
-      SegmentData d;
-      d.start = QPointF{0, y0};
-      d.end = QPointF{1, y1};
-      d.id = getSegmentId(newSegments);
-      d.type = Metadata<ConcreteKey_k, DefaultCurveSegmentModel>::get();
-      d.specificSegmentData = QVariant::fromValue(DefaultCurveSegmentData{});
-      newSegments.push_back(d);
-    }
-    else
-    {
-      if(firstRemoved)
-      {
-        // Recreate a segment from x = 0 to the beginning of the first segment.
-        auto it = newSegments.begin();
-
-        // Create a new segment
-        SegmentData d;
-        d.start = QPointF{x0, y0};
-        d.end = it->start;
-        d.following = it->id;
-        d.id = getSegmentId(newSegments);
-        d.type = Metadata<ConcreteKey_k, DefaultCurveSegmentModel>::get();
-        d.specificSegmentData = QVariant::fromValue(DefaultCurveSegmentData{});
-        it->previous = d.id;
-
-        newSegments.insert(it, d);
-      }
-
-      if(lastRemoved)
-      {
-        // Recreate a segment from x = 0 to the end of the last segment.
-        auto it = newSegments.rbegin();
-
-        // Create a new segment
-        SegmentData d;
-        d.end = QPointF{x1, y1};
-        d.start = it->end;
-        d.previous = it->id;
-        d.id = getSegmentId(newSegments);
-        d.type = Metadata<ConcreteKey_k, DefaultCurveSegmentModel>::get();
-        d.specificSegmentData = QVariant::fromValue(DefaultCurveSegmentData{});
-        it->following = d.id;
-
-        newSegments.insert(newSegments.end(), d);
-      }
-    }
-
-    // Then try to fill the holes
-    auto it = newSegments.begin();
-    for(; it != newSegments.end();)
-    {
-      // Check if it's the last segment
-      auto next = it + 1;
-      if(next == newSegments.end())
-        break;
-
-      if(it->following)
-      {
-        it = next;
-      }
-      else
-      {
-        // Create a new segment
-        SegmentData d;
-        d.start = it->end;
-        d.end = next->start;
-        d.previous = it->id;
-        d.following = next->id;
-        d.id = getSegmentId(newSegments);
-        d.type = Metadata<ConcreteKey_k, DefaultCurveSegmentModel>::get();
-        d.specificSegmentData = QVariant::fromValue(DefaultCurveSegmentData{});
-        it->following = d.id;
-        next->previous = d.id;
-
-        it = newSegments.insert(it, d);
-        // it is now at the position of the new segment.
-
-        ++it;
-        // it is now at the position of next
-      }
-    }
-  }
-
-  // Apply the changes.
-  m_commandDispatcher.submit(new UpdateCurve{m_model, std::move(newSegments)});
+  m_commandDispatcher.submit(new UpdateCurve{m_model, out});
 }
 
 void Presenter::updateSegmentsType(const UuidKey<Curve::SegmentFactory>& segment)
@@ -658,7 +559,7 @@ void Presenter::updateSegmentsType(const UuidKey<Curve::SegmentFactory>& segment
     }
   }
 
-  m_commandDispatcher.submit(new UpdateCurve{m_model, std::move(newSegments)});
+  m_commandDispatcher.submit(new UpdateCurve{m_model, newSegments});
 }
 
 } // namespace Curve

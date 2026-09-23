@@ -66,6 +66,10 @@ public:
 
   void removeSelection();
 
+  //! Replaces the selected point arrays, or all of them if none is selected, by
+  //! linear segments that follow them within the simplification tolerance.
+  void convertSamplesToPoints();
+
   // Used to allow moving outside [0; 1] when in the panel view.
   bool boundedMove() const noexcept { return m_boundedMove; }
   void setBoundedMove(bool b) noexcept { m_boundedMove = b; }

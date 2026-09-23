@@ -20,20 +20,20 @@
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/selection/Selectable.hpp>
 #include <score/selection/Selection.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
-#include <score/tools/MapCopy.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/math.hpp>
+#include <ossia/detail/pod_vector.hpp>
+#include <ossia/math/safe_math.hpp>
 #include <ossia/network/domain/domain_base.hpp>
 
 #include <QDebug>
 #include <QSignalBlocker>
 
-#include <wobjectimpl.h>
+#include <algorithm>
 
-#include <cmath>
+#include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Curve::Model)
 
@@ -43,113 +43,161 @@ namespace
 {
 struct ChainLinks
 {
-  int32_t id{};
-  std::optional<int32_t> previous, following;
-  double x{};
+  int32_t id;
+  int32_t previous;
+  int32_t following;
+  bool has_previous;
+  bool has_following;
+  double x;
 };
 
-template <typename T>
-  requires(!std::is_pointer_v<T>)
-ChainLinks linksOf(const T& seg)
+ChainLinks linksOf(const SegmentData& s) noexcept
 {
-  auto opt = [](const OptionalId<SegmentModel>& i) -> std::optional<int32_t> {
-    if(i)
-      return i->val();
-    return std::nullopt;
-  };
-  return {seg.id.val(), opt(seg.previous), opt(seg.following), seg.start.x()};
+  return {
+      s.id.val(),
+      s.previous ? s.previous->val() : 0,
+      s.following ? s.following->val() : 0,
+      bool(s.previous),
+      bool(s.following),
+      s.start.x()};
 }
 
-ChainLinks linksOf(const SegmentModel* seg)
+ChainLinks linksOf(const SegmentModel& s) noexcept
 {
-  auto opt = [](const OptionalId<SegmentModel>& i) -> std::optional<int32_t> {
-    if(i)
-      return i->val();
-    return std::nullopt;
-  };
-  return {seg->id().val(), opt(seg->previous()), opt(seg->following()), seg->start().x()};
+  const auto& p = s.previous();
+  const auto& f = s.following();
+  return {
+      s.id().val(), p ? p->val() : 0, f ? f->val() : 0, bool(p), bool(f), s.start().x()};
 }
 
-//! The order in which addSortedSegment() must see the segments: chain by
-//! chain, each segment right after its previous one. Empty when the links do
-//! not describe chains: duplicate ids, links to missing segments, links that
-//! are not mutual, or cycles.
-std::optional<std::vector<std::size_t>> chainOrder(const std::vector<ChainLinks>& l)
+//! GUI thread only: reused across edits.
+struct ChainScratch
 {
-  ossia::hash_map<int32_t, std::size_t> index;
-  index.reserve(l.size());
-  for(std::size_t i = 0; i < l.size(); i++)
-    if(!index.emplace(l[i].id, i).second)
-      return std::nullopt;
+  ossia::pod_vector<ChainLinks> links;
+  ossia::hash_map<int32_t, uint32_t> index;
+  ossia::pod_vector<uint32_t> heads;
+  ossia::pod_vector<uint32_t> order;
+};
 
-  std::vector<std::size_t> heads;
-  for(std::size_t i = 0; i < l.size(); i++)
+ChainScratch& chainScratch() noexcept
+{
+  static ChainScratch s;
+  return s;
+}
+
+//! Fills s.order with the order in which the segments of s.links must be
+//! seen: chain by chain, each segment right after its previous one. False
+//! when the links do not describe chains: duplicate ids, links to missing
+//! segments, links that are not mutual, or cycles.
+bool chainOrder(ChainScratch& s)
+{
+  const auto& l = s.links;
+  const auto n = uint32_t(l.size());
+  s.index.clear();
+  s.index.reserve(n);
+  for(uint32_t i = 0; i < n; i++)
+    if(!s.index.emplace(l[i].id, i).second)
+      return false;
+
+  auto linked = [&](int32_t other, auto&& back_link) {
+    auto it = s.index.find(other);
+    return it != s.index.end() && back_link(l[it->second]);
+  };
+
+  s.heads.clear();
+  for(uint32_t i = 0; i < n; i++)
   {
-    const auto& s = l[i];
-    if(s.previous)
+    const auto& c = l[i];
+    if(c.has_previous)
     {
-      auto it = index.find(*s.previous);
-      if(it == index.end() || l[it->second].following != s.id)
-        return std::nullopt;
+      if(!linked(c.previous, [&](const ChainLinks& p) {
+        return p.has_following && p.following == c.id;
+      }))
+        return false;
     }
     else
     {
-      heads.push_back(i);
+      s.heads.push_back(i);
     }
-    if(s.following)
+    if(c.has_following)
     {
-      auto it = index.find(*s.following);
-      if(it == index.end() || l[it->second].previous != s.id)
-        return std::nullopt;
+      if(!linked(c.following, [&](const ChainLinks& f) {
+        return f.has_previous && f.previous == c.id;
+      }))
+        return false;
     }
   }
 
-  std::stable_sort(heads.begin(), heads.end(), [&](std::size_t a, std::size_t b) {
-    return l[a].x < l[b].x;
+  std::sort(s.heads.begin(), s.heads.end(), [&](uint32_t a, uint32_t b) {
+    return l[a].x < l[b].x || (l[a].x == l[b].x && a < b);
   });
 
-  std::vector<std::size_t> order;
-  order.reserve(l.size());
-  for(auto h : heads)
+  s.order.clear();
+  s.order.reserve(n);
+  for(auto cur : s.heads)
   {
-    for(std::optional<std::size_t> cur = h; cur;)
+    for(;;)
     {
-      order.push_back(*cur);
-      if(order.size() > l.size())
-        return std::nullopt;
-      const auto& f = l[*cur].following;
-      cur = f ? std::optional<std::size_t>{index.at(*f)} : std::nullopt;
+      s.order.push_back(cur);
+      if(s.order.size() > n || !l[cur].has_following)
+        break;
+      cur = s.index.find(l[cur].following)->second;
     }
   }
 
   // Segments in a cycle are reachable from no head.
-  if(order.size() != l.size())
-    return std::nullopt;
-  return order;
+  return s.order.size() == n;
 }
 
-template <typename Container>
-std::optional<std::vector<std::size_t>> chainOrder(const Container& segs)
+struct RelinkScratch
 {
-  std::vector<ChainLinks> l;
-  l.reserve(segs.size());
-  for(const auto& s : segs)
-    l.push_back(linksOf(s));
-  return chainOrder(l);
+  std::vector<PointModel*> points;
+  std::vector<SegmentModel*> segments;
+  std::vector<SegmentModel*> added;
+};
+
+RelinkScratch& relinkScratch() noexcept
+{
+  static RelinkScratch s;
+  return s;
+}
+
+//! Whether b directly follows a in its chain.
+bool joined(const SegmentModel& a, const SegmentModel& b) noexcept
+{
+  return a.following() == b.id() && b.previous() == a.id();
+}
+
+struct ChangeScratch
+{
+  ossia::hash_set<int32_t> ids;
+  std::vector<Id<SegmentModel>> removed;
+  std::vector<const SegmentData*> upserted;
+  std::vector<SegmentModel*> created;
+};
+
+ChangeScratch& changeScratch() noexcept
+{
+  static ChangeScratch s;
+  return s;
 }
 }
 
-bool isValidCurve(const std::vector<SegmentData>& curve) noexcept
+bool isValidCurve(std::span<const SegmentData> curve) noexcept
 {
-  for(const auto& s : curve)
+  auto& s = chainScratch();
+  s.links.clear();
+  s.links.reserve(curve.size());
+  for(const auto& d : curve)
   {
-    if(!std::isfinite(s.start.x()) || !std::isfinite(s.start.y())
-       || !std::isfinite(s.end.x()) || !std::isfinite(s.end.y()))
+    if(!ossia::safe_isfinite(d.start.x()) || !ossia::safe_isfinite(d.start.y())
+       || !ossia::safe_isfinite(d.end.x()) || !ossia::safe_isfinite(d.end.y()))
       return false;
-    if(s.start.x() > s.end.x())
+    if(d.start.x() > d.end.x())
       return false;
+    s.links.push_back(linksOf(d));
   }
-  return bool(chainOrder(curve));
+  return chainOrder(s);
 }
 
 Model::Model(const Id<Model>& id, QObject* parent)
@@ -157,285 +205,372 @@ Model::Model(const Id<Model>& id, QObject* parent)
 {
 }
 
-PointModel* Model::createStartPoint(SegmentModel* m)
+// Deleting a child makes Qt search it in the parent's list of children: one
+// at a time, that is quadratic. QObject deletes its own children without the
+// search, so the segments are left to it rather than to m_segments.
+Model::~Model()
 {
-  auto pt = new PointModel{getStrongId(m_points), this};
-  pt->setFollowing(m->id());
-  pt->setPos(m->start());
-  addPoint(pt);
-  return pt;
+  m_segments.m_map.clear();
 }
 
-PointModel* Model::createEndPoint(SegmentModel* m)
+void Model::unlinkPoints(SegmentModel& m) noexcept
 {
-  auto pt = new PointModel{getStrongId(m_points), this};
-  pt->setPrevious(m->id());
-  pt->setPos(m->end());
-  addPoint(pt);
-  return pt;
+  m.m_startPoint = nullptr;
+  m.m_endPoint = nullptr;
 }
 
-void Model::addSortedSegment(SegmentModel* m)
+void Model::relink()
 {
-  insertSegment(m);
+  rebuildOrder();
+  relinkPoints();
+}
 
-  // Add points if necessary
-  // If there is an existing previous segment, its end point also exists
-  if(!m->previous())
+void Model::relinkAfterChanges(std::span<SegmentModel* const> added)
+{
+  if(!spliceOrder(added))
+    rebuildOrder();
+  relinkPoints();
+}
+
+// m_sorted, without the segments removed since (their points were unlinked),
+// merged with the added ones by x; then checked to be in chain order.
+bool Model::spliceOrder(std::span<SegmentModel* const> added)
+{
+  auto& r = relinkScratch();
+  r.added.assign(added.begin(), added.end());
+  auto by_x = [](const SegmentModel* a, const SegmentModel* b) {
+    return a->start().x() < b->start().x();
+  };
+  std::stable_sort(r.added.begin(), r.added.end(), by_x);
+
+  auto& out = r.segments;
+  out.clear();
+  out.reserve(m_sorted.size() + r.added.size());
+  auto next_added = r.added.begin();
+  for(auto seg : m_sorted)
   {
-    createStartPoint(m);
+    if(!seg->m_endPoint)
+      continue;
+    while(next_added != r.added.end() && by_x(*next_added, seg))
+      out.push_back(*next_added++);
+    out.push_back(seg);
+  }
+  out.insert(out.end(), next_added, r.added.end());
+
+  if(out.size() != m_segments.size())
+    return false;
+  for(std::size_t i = 1; i < out.size(); i++)
+  {
+    const auto& a = *out[i - 1];
+    const auto& b = *out[i];
+    if(b.start().x() < a.start().x())
+      return false;
+    if(a.following() ? !joined(a, b) : bool(b.previous()))
+      return false;
+  }
+  if(!out.empty() && (out.front()->previous() || out.back()->following()))
+    return false;
+
+  std::swap(m_sorted, out);
+  out.clear();
+  return true;
+}
+
+bool Model::rebuildOrder()
+{
+  auto& r = relinkScratch();
+  auto& c = chainScratch();
+  r.segments.clear();
+  c.links.clear();
+  for(auto& seg : m_segments)
+  {
+    r.segments.push_back(&seg);
+    c.links.push_back(linksOf(seg));
+  }
+
+  m_sorted.clear();
+  const bool ok = chainOrder(c);
+  if(ok)
+  {
+    for(auto i : c.order)
+      m_sorted.push_back(r.segments[i]);
   }
   else
   {
-    // The previous segment has already been inserted,
-    // hence the previous point is present.
-    SCORE_ASSERT(!m_points.empty());
-    m_points.back()->setFollowing(m->id());
+    // Links that do not form chains: the points follow the links that do.
+    m_sorted.assign(r.segments.begin(), r.segments.end());
+    std::sort(m_sorted.begin(), m_sorted.end(), [](SegmentModel* a, SegmentModel* b) {
+      return a->start().x() < b->start().x()
+             || (a->start().x() == b->start().x() && a->id() < b->id());
+    });
   }
-
-  createEndPoint(m);
+  r.segments.clear();
+  return ok;
 }
 
-void Model::addSegment(SegmentModel* m)
+// Each segment keeps the point objects it had, when no other one took them
+// first: no lookup, and selections and views stay on the same objects.
+void Model::relinkPoints()
 {
-  insertSegment(m);
+  auto& r = relinkScratch();
+  const uint32_t pass = ++m_relinkPass;
 
-  // Add points if necessary
-  // If there is an existing previous segment, its end point also exists
-
-  if(m->previous())
-  {
-    auto previousSegment
-        = std::find_if(m_segments.begin(), m_segments.end(), [&](const auto& seg) {
-            return seg.following() == m->id();
-          });
-    if(previousSegment != m_segments.end())
+  auto claim = [pass](PointModel* pt) -> PointModel* {
+    if(pt && pt->m_relinkPass != pass)
     {
-      auto thePt = std::find_if(m_points.begin(), m_points.end(), [&](PointModel* pt) {
-        return pt->previous() == (*previousSegment).id();
-      });
-
-      if(thePt != m_points.end())
-      {
-        // The previous segments and points both exist
-        (*thePt)->setFollowing(m->id());
-      }
-      else
-      {
-        // The previous segment exists but not the end point.
-        auto pt = createStartPoint(m);
-        pt->setPrevious((*previousSegment).id());
-      }
+      pt->m_relinkPass = pass;
+      return pt;
     }
-    else // The previous segment has not yet been added.
+    return nullptr;
+  };
+  auto place = [&](PointModel* pt, const OptionalId<SegmentModel>& prev,
+                   const OptionalId<SegmentModel>& foll, Point pos) {
+    if(!pt)
     {
-      createStartPoint(m);
+      pt = new PointModel{Id<PointModel>{m_nextPointId++}, this};
+      pt->m_relinkPass = pass;
     }
-  }
-  else if(std::none_of(m_points.begin(), m_points.end(), [&](PointModel* pt) {
-            return pt->following() == m->id();
-          }))
+    pt->setPrevious(prev);
+    pt->setFollowing(foll);
+    pt->setPos(pos);
+    r.points.push_back(pt);
+    return pt;
+  };
+
+  r.points.clear();
+  r.points.reserve(m_sorted.size() + 1);
+  const std::size_t n = m_sorted.size();
+  for(std::size_t i = 0; i < n; i++)
   {
-    createStartPoint(m);
+    auto& seg = *m_sorted[i];
+    const bool joined_before = i > 0 && joined(*m_sorted[i - 1], seg);
+    const bool joined_after = i + 1 < n && joined(seg, *m_sorted[i + 1]);
+
+    PointModel* start = joined_before
+                            ? r.points.back()
+                            : place(claim(seg.m_startPoint), std::nullopt, seg.id(),
+                                    seg.start());
+    PointModel* end = place(
+        claim(seg.m_endPoint), seg.id(),
+        joined_after ? seg.following() : OptionalId<SegmentModel>{}, seg.end());
+    seg.m_startPoint = start;
+    seg.m_endPoint = end;
   }
 
-  if(m->following())
-  {
-    auto followingSegment
-        = std::find_if(m_segments.begin(), m_segments.end(), [&](const auto& seg) {
-            return seg.previous() == m->id();
-          });
-    if(followingSegment != m_segments.end())
-    {
-      auto thePt = std::find_if(m_points.begin(), m_points.end(), [&](PointModel* pt) {
-        return pt->following() == (*followingSegment).id();
-      });
+  // Views may still show the others until curveReset.
+  for(auto pt : m_points)
+    if(pt->m_relinkPass != pass)
+      pt->deleteLater();
 
-      if(thePt != m_points.end())
-      {
-        (*thePt)->setPrevious(m->id());
-      }
-      else
-      {
-        auto pt = createEndPoint(m);
-        pt->setFollowing((*followingSegment).id());
-      }
-    }
-    else
-    {
-      createEndPoint(m);
-    }
-  }
-  else if(std::none_of(m_points.begin(), m_points.end(), [&](PointModel* pt) {
-            return pt->previous() == m->id();
-          }))
-  {
-    // Note : if one day a buggy case happens here, check that set
-    // following/previous
-    // are correctly set after cloning the segment.
-    createEndPoint(m);
-  }
+  std::swap(m_points, r.points);
+  r.points.clear();
 }
 
 void Model::insertSegment(SegmentModel* m)
 {
   m->setParent(this);
   m_segments.insert(m);
-
-  // TODO have indexes on the points with the start and end
-  // curve segments
-  connect(m, &SegmentModel::startChanged, this, [this, m]() {
-    for(PointModel* pt : m_points)
-    {
-      if(pt->following() == m->id())
-      {
-        pt->setPos(m->start());
-        break;
-      }
-    }
-  });
-  connect(m, &SegmentModel::endChanged, this, [this, m]() {
-    for(PointModel* pt : m_points)
-    {
-      if(pt->previous() == m->id())
-      {
-        pt->setPos(m->end());
-        break;
-      }
-    }
-  });
+  relink();
 
   segmentAdded(m);
+  curveReset();
 }
 
-void Model::loadSegments(const std::vector<SegmentModel*>& map)
+void Model::addSegment(SegmentModel* m)
+{
+  insertSegment(m);
+}
+
+void Model::removeSegment(SegmentModel* m)
+{
+  const auto id = m->id();
+  unlinkPoints(*m);
+  m_segments.remove(id);
+  relink();
+
+  segmentRemoved(id);
+  delete m;
+  curveReset();
+}
+
+void Model::loadSegments(const std::vector<SegmentModel*>& models)
 {
   SCORE_ASSERT(m_segments.empty());
   SCORE_ASSERT(m_points.empty());
 
-  auto order = chainOrder(map);
-  if(!order)
-  {
-    // A saved curve whose links are broken: chain what is there by x.
-    qWarning() << "Curve::Model: relinking a curve with inconsistent links";
-    auto sorted = map;
-    std::stable_sort(sorted.begin(), sorted.end(), [](auto a, auto b) {
-      return a->start().x() < b->start().x();
-    });
-    for(std::size_t i = 0; i < sorted.size(); i++)
-    {
-      sorted[i]->setPrevious(
-          i > 0 ? OptionalId<SegmentModel>{sorted[i - 1]->id()} : std::nullopt);
-      sorted[i]->setFollowing(
-          i + 1 < sorted.size() ? OptionalId<SegmentModel>{sorted[i + 1]->id()}
-                                : std::nullopt);
-    }
-    order = chainOrder(sorted);
-    SCORE_ASSERT(order);
-    return loadSegments_impl(sorted, *order);
-  }
-  loadSegments_impl(map, *order);
-}
-
-void Model::loadSegments_impl(
-    const std::vector<SegmentModel*>& map, const std::vector<std::size_t>& order)
-{
   {
     QSignalBlocker _{this};
-    clear();
-
-    for(auto i : order)
+    for(auto seg : models)
     {
-      addSortedSegment(map[i]);
+      seg->setParent(this);
+      m_segments.insert(seg);
     }
+
+    auto& c = chainScratch();
+    c.links.clear();
+    for(auto seg : models)
+      c.links.push_back(linksOf(*seg));
+    if(!chainOrder(c))
+    {
+      // A saved curve whose links are broken: chain what is there by x.
+      qWarning() << "Curve::Model: relinking a curve with inconsistent links";
+      auto sorted = models;
+      std::sort(sorted.begin(), sorted.end(), [](auto a, auto b) {
+        return a->start().x() < b->start().x();
+      });
+      for(std::size_t i = 0; i < sorted.size(); i++)
+      {
+        sorted[i]->setPrevious(
+            i > 0 ? OptionalId<SegmentModel>{sorted[i - 1]->id()} : std::nullopt);
+        sorted[i]->setFollowing(
+            i + 1 < sorted.size() ? OptionalId<SegmentModel>{sorted[i + 1]->id()}
+                                  : std::nullopt);
+      }
+    }
+    relink();
   }
 
   curveReset();
   changed();
 }
 
-void Model::removeSegment(SegmentModel* m)
+const std::vector<SegmentModel*>& Model::sortedSegments() const noexcept
 {
-  m_segments.remove(m->id());
-
-  segmentRemoved(m->id());
-
-  const auto points = m_points;
-  for(PointModel* pt : points)
-  {
-    if(pt->previous() == m->id())
-    {
-      pt->setPrevious(OptionalId<SegmentModel>{});
-    }
-
-    if(pt->following() == m->id())
-    {
-      pt->setFollowing(OptionalId<SegmentModel>{});
-    }
-
-    if(!pt->previous() && !pt->following())
-    {
-      removePoint(pt);
-    }
-  }
-
-  delete m;
-}
-
-std::vector<SegmentModel*> Model::sortedSegments() const
-{
-  std::vector<SegmentModel*> dat;
-  dat.reserve(m_segments.size());
-  for(auto& seg : m_segments)
-  {
-    dat.push_back(&seg);
-  }
-
-  ossia::sort(dat, [](auto s1, auto s2) { return s1->start().x() < s2->start().x(); });
-
-  return dat;
+  return m_sorted;
 }
 
 std::vector<SegmentData> Model::toCurveData() const
 {
   std::vector<SegmentData> dat;
-  dat.reserve(m_segments.size());
-  for(const auto& seg : m_segments)
+  toCurveData(dat);
+  return dat;
+}
+
+void Model::toCurveData(std::vector<SegmentData>& out) const
+{
+  out.resize(m_sorted.size());
+  for(std::size_t i = 0; i < m_sorted.size(); i++)
+    out[i] = m_sorted[i]->toSegmentData();
+}
+
+void Model::applyChanges(
+    std::span<const Id<SegmentModel>> removed,
+    std::span<const SegmentData* const> upserted)
+{
+  bool structure = false;
+  const SegmentList* csl{};
+  auto& created = changeScratch().created;
+  created.clear();
+
   {
-    dat.push_back(seg.toSegmentData());
+    QSignalBlocker _{this};
+    auto remove = [&](SegmentModel& seg) {
+      unlinkPoints(seg);
+      m_segments.remove(seg.id());
+      // Views may still show it until curveReset.
+      seg.deleteLater();
+      structure = true;
+    };
+
+    for(const auto& id : removed)
+    {
+      if(auto it = m_segments.find(id); it != m_segments.end())
+        remove(*it);
+    }
+
+    for(const SegmentData* d : upserted)
+    {
+      auto it = m_segments.find(d->id);
+      if(it != m_segments.end())
+      {
+        SegmentModel& seg = *it;
+        if(seg.concreteKey() == d->type)
+        {
+          if(seg.previous() != d->previous || seg.following() != d->following)
+          {
+            seg.setPrevious(d->previous);
+            seg.setFollowing(d->following);
+            structure = true;
+          }
+          if(seg.start() != d->start || seg.end() != d->end
+             || !seg.specificDataEquals(d->specificSegmentData))
+          {
+            // Each setter would redraw the segment: once is enough.
+            {
+              QSignalBlocker block{seg};
+              seg.setStart(d->start);
+              seg.setEnd(d->end);
+              seg.setSpecificData(d->specificSegmentData);
+            }
+            seg.dataChanged();
+          }
+          continue;
+        }
+        remove(seg);
+      }
+
+      if(!csl)
+        csl = &score::IDocument::documentContext(*this).app.interfaces<SegmentList>();
+      if(auto seg = createCurveSegment(*csl, *d, this))
+      {
+        m_segments.insert(seg);
+        created.push_back(seg);
+        structure = true;
+      }
+      else
+      {
+        qWarning() << "Curve::Model: unknown segment type";
+      }
+    }
+
+    if(structure)
+      relinkAfterChanges(created);
   }
 
-  return dat;
+  if(structure)
+    curveReset();
+  changed();
 }
 
 void Model::fromCurveData(const std::vector<SegmentData>& curve)
 {
-  auto& context = score::IDocument::documentContext(*this).app;
-  auto& csl = context.interfaces<SegmentList>();
-
-  // Checked before anything is cleared: a curve that cannot be represented
+  // Checked before anything changes: a curve that cannot be represented
   // leaves the current one untouched.
-  auto order = chainOrder(curve);
-  const bool known_types = ossia::all_of(
-      curve, [&](const SegmentData& s) { return csl.get(s.type) != nullptr; });
-  if(!order || !known_types || !isValidCurve(curve))
+  if(!isValidCurve(curve))
   {
     qWarning() << "Curve::Model: refusing an inconsistent curve";
     return;
   }
 
+  const SegmentList* csl{};
+  auto& c = changeScratch();
+  c.ids.clear();
+  c.ids.reserve(curve.size());
+  c.upserted.clear();
+  c.upserted.reserve(curve.size());
+  for(const auto& d : curve)
   {
-    QSignalBlocker _{this};
-    clear();
-
-    for(auto i : *order)
+    auto it = m_segments.find(d.id);
+    if(it == m_segments.end() || it->concreteKey() != d.type)
     {
-      addSortedSegment(createCurveSegment(csl, curve[i], this));
+      if(!csl)
+        csl = &score::IDocument::documentContext(*this).app.interfaces<SegmentList>();
+      if(!csl->get(d.type))
+      {
+        qWarning() << "Curve::Model: refusing a curve with an unknown segment type";
+        return;
+      }
     }
+    c.ids.insert(d.id.val());
+    c.upserted.push_back(&d);
   }
 
-  curveReset();
-  changed();
+  c.removed.clear();
+  for(const auto& seg : m_segments)
+    if(!c.ids.contains(seg.id().val()))
+      c.removed.push_back(seg.id());
+
+  applyChanges(c.removed, c.upserted);
 }
 
 Selection Model::selectedChildren() const
@@ -457,26 +592,32 @@ Selection Model::selectedChildren() const
 
 void Model::setSelection(const Selection& s)
 {
-  // OPTIMIZEME
+  ossia::hash_set<const IdentifiedObjectAbstract*> selected;
+  selected.reserve(s.size());
+  for(const auto& elt : s)
+    selected.insert(elt.data());
+
   for(auto& elt : m_segments)
-    elt.selection.set(s.contains(&elt));
+    elt.selection.set(selected.contains(&elt));
   for(auto& elt : m_points)
-    elt->selection.set(s.contains(elt));
+    elt->selection.set(selected.contains(elt));
 }
 
 void Model::clear()
 {
   cleared();
 
-  auto segs = shallow_copy(m_segments);
+  for(auto& seg : m_segments)
+    unlinkPoints(seg);
   m_segments.clear();
-  for(auto seg : segs)
-    seg->deleteLater();
-
-  auto pts = m_points;
   m_points.clear();
-  for(auto pt : pts)
-    pt->deleteLater();
+  m_sorted.clear();
+
+  // In the order of the list of children: each one is then first in it when
+  // it goes, which Qt removes in constant time.
+  for(QObject* child : children())
+    if(qobject_cast<SegmentModel*>(child) || qobject_cast<PointModel*>(child))
+      child->deleteLater();
 }
 
 const std::vector<PointModel*>& Model::points() const
@@ -486,42 +627,22 @@ const std::vector<PointModel*>& Model::points() const
 
 double Model::lastPointPos() const
 {
-  double pos = 0;
-  for(auto pt : m_points)
-    if(pt->pos().x() > pos)
-      pos = pt->pos().x();
-  return pos;
+  // Chains do not overlap: the last one in x order ends furthest.
+  return m_sorted.empty() ? 0. : std::max(0., m_sorted.back()->end().x());
 }
 
 std::optional<double> Model::valueAt(double x) const noexcept
 {
-  for(const Curve::SegmentModel& segment : m_segments)
-  {
-    if(segment.start().x() <= x && x <= segment.end().x())
-    {
-      return segment.valueAt(x);
-    }
-  }
+  // The last segment starting at or before x.
+  auto it = std::upper_bound(
+      m_sorted.begin(), m_sorted.end(), x,
+      [](double x, const SegmentModel* seg) { return x < seg->start().x(); });
+  if(it == m_sorted.begin())
+    return {};
+  const SegmentModel& seg = **std::prev(it);
+  if(x <= seg.end().x())
+    return seg.valueAt(x);
   return {};
-}
-
-void Model::addPoint(PointModel* pt)
-{
-  m_points.push_back(pt);
-
-  pointAdded(pt);
-}
-
-void Model::removePoint(PointModel* pt)
-{
-  auto it = ossia::find(m_points, pt);
-  if(it != m_points.end())
-  {
-    m_points.erase(it);
-  }
-
-  pointRemoved(pt->id());
-  delete pt;
 }
 
 std::vector<SegmentData> orderedSegments(const Model& curve)

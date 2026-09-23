@@ -42,10 +42,16 @@ PointView::PointView(
 
 void PointView::setModel(const PointModel* model)
 {
+  if(model == m_model)
+    return;
+  if(m_model)
+    QObject::disconnect(&m_model->selection, nullptr, this, nullptr);
+
   m_model = model;
   if(m_model)
   {
     con(m_model->selection, &Selectable::changed, this, &PointView::setSelected);
+    setSelected(m_model->selection.get());
   }
 }
 

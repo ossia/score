@@ -16,6 +16,7 @@ namespace Curve
 {
 struct SCORE_PLUGIN_CURVE_EXPORT LinearSegmentData
 {
+  bool operator==(const LinearSegmentData&) const noexcept = default;
 };
 
 class SCORE_PLUGIN_CURVE_EXPORT LinearSegment final : public SegmentModel

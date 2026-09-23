@@ -334,14 +334,20 @@ std::optional<Process::MagneticInfo>
 ProcessModel::magneticPosition(const QObject* o, const TimeVal t) const noexcept
 {
   double pos = t.impl / double(this->duration().impl);
-  if(this->m_curve->points().empty())
+  const auto& pts = this->m_curve->points();
+  if(pts.empty())
     return {};
-  double closest = this->m_curve->points().front()->pos().x();
 
-  for(auto pt : this->m_curve->points())
+  // The points are in x order: the closest is on either side of pos.
+  auto it = std::lower_bound(
+      pts.begin(), pts.end(), pos,
+      [](const Curve::PointModel* pt, double x) { return pt->pos().x() < x; });
+  double closest = it != pts.end() ? (*it)->pos().x() : pts.back()->pos().x();
+  if(it != pts.begin())
   {
-    if(std::abs(pos - pt->pos().x()) < std::abs(pos - closest))
-      closest = pt->pos().x();
+    const double before = (*std::prev(it))->pos().x();
+    if(std::abs(pos - before) < std::abs(pos - closest))
+      closest = before;
   }
 
   return Process::MagneticInfo{TimeVal(closest * duration().impl), true};

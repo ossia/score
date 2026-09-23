@@ -18,6 +18,7 @@ class QWidget;
 namespace Curve
 {
 class SegmentModel;
+class PointArraySegment;
 
 struct Style;
 class SCORE_PLUGIN_CURVE_EXPORT SegmentView final
@@ -45,6 +46,7 @@ public:
 
   void setModel(const SegmentModel*);
   const SegmentModel& model() const { return *m_model; }
+  const SegmentModel* modelPtr() const noexcept { return m_model; }
 
   void setRect(const QRectF& theRect);
 
@@ -64,6 +66,7 @@ protected:
 
 private:
   void recomputeStroke() const;
+  void paintSampled(QPainter& painter, QRectF exposed);
   void updatePoints();
   void updatePen();
   // Takes a table of points and draws them in a square given by the
@@ -72,6 +75,8 @@ private:
   QRectF m_rect;
 
   const SegmentModel* m_model{};
+  // When the model is sampled: drawn from its envelope at paint time.
+  const PointArraySegment* m_sampled{};
   const QPen* m_pen{};
   const Curve::Style& m_style;
 

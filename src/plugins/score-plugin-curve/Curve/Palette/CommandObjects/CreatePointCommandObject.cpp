@@ -14,6 +14,8 @@
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <score/model/Identifier.hpp>
 
+#include <ossia/math/safe_math.hpp>
+
 #include <QVariant>
 
 namespace score
@@ -61,16 +63,15 @@ void CreatePointCommandObject::on_press()
 
 void CreatePointCommandObject::move()
 {
-  auto segments = m_startSegments;
-
   // Locking between bounds
   handleLocking();
+  if(!ossia::safe_isfinite(m_state->currentPoint.x())
+     || !ossia::safe_isfinite(m_state->currentPoint.y()))
+    return;
 
-  // Creation
-  createPoint(segments);
-
-  // Submit
-  submit(std::move(segments));
+  m_segments = m_startSegments;
+  createPoint(m_segments);
+  submit(m_segments);
 }
 
 void CreatePointCommandObject::release()

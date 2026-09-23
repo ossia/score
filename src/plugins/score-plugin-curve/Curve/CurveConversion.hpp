@@ -16,19 +16,21 @@ template <>
 struct CurveTraits<int>
 {
   static const constexpr auto fun = &Curve::SegmentModel::makeIntFunction;
+  static const constexpr auto scaled = &Curve::SegmentModel::makeScaledIntFunction;
 };
 
 template <>
 struct CurveTraits<float>
 {
   static const constexpr auto fun = &Curve::SegmentModel::makeFloatFunction;
+  static const constexpr auto scaled = &Curve::SegmentModel::makeScaledFloatFunction;
 };
 
-// TODO
 template <>
 struct CurveTraits<double>
 {
   static const constexpr auto fun = &Curve::SegmentModel::makeDoubleFunction;
+  static const constexpr auto scaled = &Curve::SegmentModel::makeScaledDoubleFunction;
 };
 
 template <
@@ -49,11 +51,15 @@ std::shared_ptr<ossia::curve<X_T, Y_T>> curve(
   curve->set_x0(scale_x(start.x()));
   curve->set_y0(scale_y(start.y()));
 
+  // scale_y is affine: sampled segments are given it as offset and factor.
+  const double offset = scale_y(0.);
+  const double factor = double(scale_y(1.)) - offset;
   for(const auto& score_segment : segments)
   {
     auto end = score_segment->end();
     curve->add_point(
-        (score_segment->*CurveTraits<Y_T>::fun)(), scale_x(end.x()), scale_y(end.y()));
+        (score_segment->*CurveTraits<Y_T>::scaled)(offset, factor), scale_x(end.x()),
+        scale_y(end.y()));
   }
 
   if(tween)
@@ -79,7 +85,8 @@ floatCurve(const Segments& segments, const std::optional<ossia::destination>& tw
   for(const auto& score_segment : segments)
   {
     auto end = score_segment->end();
-    curve.add_point((score_segment->*CurveTraits<float>::fun)(), end.x(), end.y());
+    curve.add_point(
+        (score_segment->*CurveTraits<float>::scaled)(0., 1.), end.x(), end.y());
   }
 
   if(tween)

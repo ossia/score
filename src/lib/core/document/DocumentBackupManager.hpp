@@ -3,6 +3,8 @@
 #include <QObject>
 #include <QTemporaryFile>
 
+#include <score_lib_base_export.h>
+
 namespace score
 {
 class CommandBackupFile;
@@ -49,6 +51,9 @@ public:
   void saveModelData(const QByteArray&);
 
   void updateBackupData();
+
+  //! Where the commands are saved as they are made.
+  SCORE_LIB_BASE_EXPORT QString commandFileName();
 
 private:
   void storeModelData(const QByteArray& data);

@@ -22,14 +22,12 @@ static QString makeCommandKey(const void* self)
 CommandStackBackup::CommandStackBackup(const CommandStack& stack)
 {
   // Load initial state
+  savedUndo.reserve(stack.m_undoable.size());
   for(const auto& cmd : stack.m_undoable)
-  {
-    savedUndo.push(CommandData{*cmd});
-  }
+    savedUndo.emplace_back(*cmd);
+  savedRedo.reserve(stack.m_redoable.size());
   for(const auto& cmd : stack.m_redoable)
-  {
-    savedRedo.push(CommandData{*cmd});
-  }
+    savedRedo.emplace_back(*cmd);
 }
 
 CommandBackupFile::CommandBackupFile(const score::CommandStack& stack, QObject* parent)
@@ -89,87 +87,66 @@ void CommandBackupFile::init_connections()
       &CommandBackupFile::on_indexChanged);
 }
 
+// Each command is serialized once, when pushed: undo and redo only move its
+// bytes between the two stacks.
 void CommandBackupFile::on_push()
 {
-  /*
-  // A new command is added to m_undoable
-  // m_redoable should be cleared
-  auto cmd = m_stack.m_undoable.last();
-  m_backup.savedUndo.push(CommandData{*cmd});
-
+  m_backup.savedUndo.emplace_back(*m_stack.m_undoable.top());
   m_backup.savedRedo.clear();
-
-  m_previousIndex = m_stack.currentIndex();
-  */
   commit();
 }
 
 void CommandBackupFile::on_undo()
 {
-  /*
-  // Pop from undoable to redoable
-  m_backup.savedRedo.push(m_savedUndo.pop());
-
-  m_previousIndex = m_stack.currentIndex();
-  */
+  if(!m_backup.savedUndo.empty())
+  {
+    m_backup.savedRedo.push_back(std::move(m_backup.savedUndo.back()));
+    m_backup.savedUndo.pop_back();
+  }
   commit();
 }
 
 void CommandBackupFile::on_redo()
 {
-  /*
-  // Pop from redoable to undoable
-  m_backup.savedUndo.push(m_savedRedo.pop());
-
-  m_previousIndex = m_stack.currentIndex();
-  */
+  if(!m_backup.savedRedo.empty())
+  {
+    m_backup.savedUndo.push_back(std::move(m_backup.savedRedo.back()));
+    m_backup.savedRedo.pop_back();
+  }
   commit();
 }
 
 void CommandBackupFile::on_indexChanged()
 {
-  /*
-  // Pop a lot
-  auto index = m_stack.currentIndex();
-  if(index > m_previousIndex)
-  {
-      for(int i = 0; i < index - m_previousIndex; i++)
-      {
-          m_backup.savedUndo.push(m_savedRedo.pop());
-      }
-  }
-  else if(index < m_previousIndex)
-  {
-      for(int i = 0; i < m_previousIndex - index ; i++)
-      {
-          m_backup.savedRedo.push(m_savedUndo.pop());
-      }
-  }
-
-  m_previousIndex = m_stack.currentIndex();
-  */
+  // setIndex moves through undo and redo, which already updated the stacks.
   commit();
 }
 
 void CommandBackupFile::commit()
 {
-  // OPTIMIZEME: right now all the data is flushed each time.
-  // It should be better to only incrementally modify the file.
-  // See :
-  // http://www.boost.org/doc/libs/1_59_0/doc/html/interprocess/sharedmemorybetweenprocesses.html#interprocess.sharedmemorybetweenprocesses.mapped_file
+  // Changed without its signals: start over from the stack.
+  if(m_backup.savedUndo.size() != std::size_t(m_stack.m_undoable.size())
+     || m_backup.savedRedo.size() != std::size_t(m_stack.m_redoable.size()))
+    m_backup = CommandStackBackup{m_stack};
 
-  // Another possibility would be to save the commands to a db ?
+  // The layout of DataStreamReader::read(const CommandStack&).
+  auto write = [this](DataStream::Serializer& ser) {
+    ser.readFrom(m_backup.savedUndo);
+    ser.readFrom(m_backup.savedRedo);
+    ser.insertDelimiter();
+  };
+
 #if defined(__EMSCRIPTEN__)
   QByteArray buf;
   DataStream::Serializer ser(&buf);
-  ser.readFrom(m_stack);
+  write(ser);
   QSettings{}.setValue(m_key, buf);
 #else
   m_file.resize(0);
   m_file.reset();
 
   DataStream::Serializer ser(&m_file);
-  ser.readFrom(m_stack);
+  write(ser);
 
   m_file.flush();
 #endif

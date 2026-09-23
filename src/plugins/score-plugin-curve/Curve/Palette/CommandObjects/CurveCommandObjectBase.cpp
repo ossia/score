@@ -9,13 +9,19 @@
 #include <Curve/Palette/CurvePaletteBaseStates.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
 
+#include <Curve/Point/CurvePointModel.hpp>
+#include <Curve/Segment/PointArray/PointArraySegment.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
 
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 
 #include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/hash_map.hpp>
+#include <ossia/math/safe_math.hpp>
 
 #include <QVariant>
+
+#include <algorithm>
 
 namespace score
 {
@@ -37,7 +43,7 @@ CommandObjectBase::~CommandObjectBase() { }
 void CommandObjectBase::press()
 {
   // Serialize the current state of the curve
-  m_startSegments = m_model.toCurveData();
+  m_model.toCurveData(m_startSegments);
   checkValidity(m_startSegments);
 
   // To prevent behind locked at 0.000001 or 0.9999
@@ -85,108 +91,60 @@ void CommandObjectBase::handleLocking()
   }
 }
 
-void CommandObjectBase::submit(std::vector<SegmentData>&& segments)
+void CommandObjectBase::submit(const std::vector<SegmentData>& segments)
 {
-  m_dispatcher.submit(m_model, std::move(segments));
+  m_dispatcher.submit(m_model, segments);
 }
 
-void checkValidity(SegmentMapImpl& segts)
+void checkValidity(std::span<const SegmentData> segts)
 {
 #if defined(SCORE_DEBUG)
-  for(auto& seg : segts)
+  ossia::hash_map<int32_t, const SegmentData*> by_id;
+  by_id.reserve(segts.size());
+  for(const auto& s : segts)
   {
-    auto& id = seg.first;
-    auto& s = seg.second;
-    SCORE_ASSERT(std::isfinite(s.start.x()));
-    SCORE_ASSERT(std::isfinite(s.start.y()));
-    SCORE_ASSERT(std::isfinite(s.end.x()));
-    SCORE_ASSERT(std::isfinite(s.end.y()));
-    SCORE_ASSERT(id == s.id);
+    SCORE_ASSERT(ossia::safe_isfinite(s.start.x()));
+    SCORE_ASSERT(ossia::safe_isfinite(s.start.y()));
+    SCORE_ASSERT(ossia::safe_isfinite(s.end.x()));
+    SCORE_ASSERT(ossia::safe_isfinite(s.end.y()));
+    SCORE_ASSERT(by_id.emplace(s.id.val(), &s).second);
+  }
+
+  // Mutual links between distinct segments: each has at most one previous and
+  // one following.
+  for(const auto& s : segts)
+  {
     if(s.previous)
     {
       SCORE_ASSERT(s.previous != s.id);
-      bool ok = ossia::any_of(
-          segts, [&s](auto& rhs) { return *s.previous == rhs.second.id; });
-      SCORE_ASSERT(ok);
+      auto it = by_id.find(s.previous->val());
+      SCORE_ASSERT(it != by_id.end());
+      SCORE_ASSERT(it->second->following == s.id);
     }
     if(s.following)
     {
       SCORE_ASSERT(s.following != s.id);
-      bool ok = ossia::any_of(
-          segts, [&s](auto& rhs) { return *s.following == rhs.second.id; });
-      SCORE_ASSERT(ok);
-    }
-
-    auto num_prev = std::count_if(segts.begin(), segts.end(), [&](auto& rhs) {
-      return s.id == rhs.second.following;
-    });
-    SCORE_ASSERT(num_prev == 0 || num_prev == 1);
-    auto num_foll = std::count_if(segts.begin(), segts.end(), [&](auto& rhs) {
-      return s.id == rhs.second.previous;
-    });
-    SCORE_ASSERT(num_foll == 0 || num_foll == 1);
-  }
-
-  for(auto& [i1, s1] : segts)
-  {
-    for(auto& [i2, s2] : segts)
-    {
-      if(s1.id != s2.id)
-      {
-        SCORE_ASSERT(!(s1.start.x() < s2.end.x() && s2.start.x() < s1.end.x()));
-      }
+      auto it = by_id.find(s.following->val());
+      SCORE_ASSERT(it != by_id.end());
+      SCORE_ASSERT(it->second->previous == s.id);
     }
   }
-#endif
-}
 
-void checkValidity(std::span<SegmentData> segts)
-{
-#if defined(SCORE_DEBUG)
-  for(auto& s : segts)
+  // No two segments overlap, zero-width ones included.
+  std::vector<const SegmentData*> sorted;
+  sorted.reserve(segts.size());
+  for(const auto& s : segts)
+    sorted.push_back(&s);
+  std::sort(sorted.begin(), sorted.end(), [](auto a, auto b) {
+    return a->start.x() < b->start.x();
+  });
+  const SegmentData* furthest{};
+  for(auto s : sorted)
   {
-    SCORE_ASSERT(std::isfinite(s.start.x()));
-    SCORE_ASSERT(std::isfinite(s.start.y()));
-    SCORE_ASSERT(std::isfinite(s.end.x()));
-    SCORE_ASSERT(std::isfinite(s.end.y()));
-    if(s.previous)
-    {
-      SCORE_ASSERT(s.previous != s.id);
-      bool ok = ossia::any_of(
-          segts, [&s](SegmentData& rhs) { return *s.previous == rhs.id; });
-      SCORE_ASSERT(ok);
-    }
-    if(s.following)
-    {
-      SCORE_ASSERT(s.following != s.id);
-      bool ok = ossia::any_of(
-          segts, [&s](SegmentData& rhs) { return *s.following == rhs.id; });
-      SCORE_ASSERT(ok);
-    }
-
-    auto num_prev = std::count_if(segts.begin(), segts.end(), [&](SegmentData& rhs) {
-      return s.id == rhs.following;
-    });
-    SCORE_ASSERT(num_prev == 0 || num_prev == 1);
-    auto num_foll = std::count_if(segts.begin(), segts.end(), [&](SegmentData& rhs) {
-      return s.id == rhs.previous;
-    });
-    SCORE_ASSERT(num_foll == 0 || num_foll == 1);
-  }
-
-  for(auto& s1 : segts)
-  {
-    for(auto& s2 : segts)
-    {
-      if(s1.following == s2.id)
-        SCORE_ASSERT(s2.previous == s1.id);
-      if(s1.id == s2.previous)
-        SCORE_ASSERT(s2.id == s1.following);
-      if(s1.id != s2.id)
-      {
-        SCORE_ASSERT(!(s1.start.x() < s2.end.x() && s2.start.x() < s1.end.x()));
-      }
-    }
+    if(furthest)
+      SCORE_ASSERT(!(s->start.x() < furthest->end.x() && furthest->start.x() < s->end.x()));
+    if(!furthest || s->end.x() > furthest->end.x())
+      furthest = s;
   }
 #endif
 }
@@ -224,7 +182,7 @@ void createPointAt(std::vector<SegmentData>& segments, Curve::Point pt)
   {
     // The segment goes in the first half of "middle"
     SegmentData newSegment{
-        getSegmentId(segments),     middle->start, pt,
+        getSegmentId(segments),     middle->start, middle->end,
         middle->previous,           middle->id,    middle->type,
         middle->specificSegmentData};
 
@@ -236,7 +194,9 @@ void createPointAt(std::vector<SegmentData>& segments, Curve::Point pt)
       (*prev_it).following = newSegment.id;
     }
 
-    middle->start = pt;
+    // Both halves keep their shape where it was: a point array is cropped.
+    setSegmentExtent(newSegment, middle->start, pt);
+    setSegmentExtent(*middle, pt, middle->end);
     middle->previous = newSegment.id;
     segments.push_back(newSegment);
   }
@@ -316,5 +276,97 @@ void createPointAt(std::vector<SegmentData>& segments, Curve::Point pt)
       }
     }
   }
+}
+
+std::vector<SegmentData> removeSegments(
+    const Model& model, const ossia::hash_set<int32_t>& removed, bool fill)
+{
+  auto segs = model.toCurveData();
+
+  // The ends of the whole curve: those of other chains are holes, filled below.
+  double x0 = 0, y0 = 0, x1 = 1, y1 = 1;
+  bool firstRemoved = false, lastRemoved = false;
+  if(!segs.empty())
+  {
+    if(removed.contains(segs.front().id.val()))
+    {
+      firstRemoved = true;
+      x0 = segs.front().start.x();
+      y0 = segs.front().start.y();
+    }
+    if(removed.contains(segs.back().id.val()))
+    {
+      lastRemoved = true;
+      x1 = segs.back().end.x();
+      y1 = segs.back().end.y();
+    }
+  }
+
+  std::erase_if(segs, [&](const SegmentData& s) { return removed.contains(s.id.val()); });
+  for(auto& s : segs)
+  {
+    if(s.previous && removed.contains(s.previous->val()))
+      s.previous = std::nullopt;
+    if(s.following && removed.contains(s.following->val()))
+      s.following = std::nullopt;
+  }
+
+  if(!fill)
+    return segs;
+
+  // In chain order, which is x order: a sort by x could put a vertical step
+  // after its follower.
+  SegmentIdAllocator ids{segs};
+  auto make = [&](Curve::Point a, Curve::Point b) {
+    SegmentData d;
+    d.id = ids.next();
+    d.start = a;
+    d.end = b;
+    d.type = Metadata<ConcreteKey_k, DefaultCurveSegmentModel>::get();
+    d.specificSegmentData = QVariant::fromValue(DefaultCurveSegmentData{});
+    return d;
+  };
+
+  if(segs.empty())
+  {
+    segs.push_back(make({0., y0}, {1., y1}));
+    return segs;
+  }
+
+  std::vector<SegmentData> out;
+  out.reserve(2 * segs.size() + 1);
+  if(firstRemoved)
+  {
+    auto d = make({x0, y0}, segs.front().start);
+    d.following = segs.front().id;
+    segs.front().previous = d.id;
+    out.push_back(std::move(d));
+  }
+
+  const std::size_t n = segs.size();
+  for(std::size_t i = 0; i < n; i++)
+  {
+    out.push_back(std::move(segs[i]));
+    if(i + 1 < n && !out.back().following)
+    {
+      auto& prev = out.back();
+      auto d = make(prev.end, segs[i + 1].start);
+      d.previous = prev.id;
+      d.following = segs[i + 1].id;
+      prev.following = d.id;
+      segs[i + 1].previous = d.id;
+      out.push_back(std::move(d));
+    }
+  }
+
+  if(lastRemoved)
+  {
+    auto& last = out.back();
+    auto d = make(last.end, {x1, y1});
+    d.previous = last.id;
+    last.following = d.id;
+    out.push_back(std::move(d));
+  }
+  return out;
 }
 }
