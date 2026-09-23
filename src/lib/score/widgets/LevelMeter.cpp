@@ -3,6 +3,7 @@
 #include <score/model/Skin.hpp>
 
 #include <QMouseEvent>
+#include <QFontMetricsF>
 #include <QPainter>
 
 #include <algorithm>
@@ -118,12 +119,11 @@ void LevelMeterState::paint(QPainter& p, const QRectF& r, bool show_scale) const
   auto& skin = score::Skin::instance();
   p.save();
 
-  p.fillRect(r, skin.Background1.color().darker(160));
-
   const bool scale = show_scale && r.width() >= 30;
   const double scale_w = scale ? 16. : 0.;
   const QRectF meter = r.adjusted(scale_w, 0, 0, 0);
   const QRectF bars = meter.adjusted(0, clip_row + 1, 0, 0);
+  p.fillRect(meter, skin.Background1.color().darker(160));
   const double h = bars.height();
 
   auto y_of = [&](float db) {
@@ -135,12 +135,19 @@ void LevelMeterState::paint(QPainter& p, const QRectF& r, bool show_scale) const
   {
     p.setFont(skin.SansFontSmall);
     p.setPen(skin.Gray.color());
+    const double text_h = QFontMetricsF{skin.SansFontSmall}.height();
+    // Labels that would touch the previous one are left out; their tick stays.
+    double last_label = -1e9;
     for(int db : {0, -6, -12, -24, -36, -48})
     {
       const double y = y_of(float(db));
       p.drawLine(QPointF{r.left() + scale_w - 3, y}, QPointF{r.left() + scale_w - 1, y});
+      if(y - last_label < text_h)
+        continue;
+      last_label = y;
+      const double top = std::clamp(y - text_h / 2., r.top(), r.bottom() - text_h);
       p.drawText(
-          QRectF{r.left(), y - 6, scale_w - 4, 12}, Qt::AlignRight | Qt::AlignVCenter,
+          QRectF{r.left(), top, scale_w - 4, text_h}, Qt::AlignRight | Qt::AlignVCenter,
           QString::number(-db));
     }
   }
