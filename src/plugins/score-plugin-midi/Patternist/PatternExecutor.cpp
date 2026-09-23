@@ -3,6 +3,7 @@
 #include "PatternExecutor.hpp"
 
 #include <Process/Dataflow/Port.hpp>
+#include <Process/Execution/TelemetryInterface.hpp>
 
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/Bind.hpp>
@@ -62,10 +63,12 @@ Executor::Executor(
       std::swap(node->patterns, p);
     });
   });
-  con(ctx.doc.execTimer, &QTimer::timeout, this, [&element, node] {
-    int c = node->last;
-    element.execPosition(c);
-  });
+  if(auto* telemetry = ctx.telemetry)
+    connect(
+        telemetry, &Execution::TelemetryInterface::updated, this,
+        [&element, node] {
+      element.execPosition(node->last.load(std::memory_order_relaxed));
+    });
 }
 
 void Executor::stop()
