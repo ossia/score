@@ -42,17 +42,12 @@ const QColor& clip_color() noexcept
 }
 }
 
-LevelMeter::LevelMeter(QWidget* parent)
-    : QWidget{parent}
+LevelMeterState::LevelMeterState()
 {
   m_clock.start();
-  setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
-  setToolTip(tr("Peak level in dBFS.\nClick to clear the clip marks."));
 }
 
-LevelMeter::~LevelMeter() = default;
-
-void LevelMeter::setLevels(std::span<const Channel> channels)
+void LevelMeterState::setLevels(std::span<const Channel> channels)
 {
   const double now = m_clock.elapsed() / 1000.;
   const double dt = m_active ? std::max(0., now - m_last) : 0.;
@@ -93,13 +88,10 @@ void LevelMeter::setLevels(std::span<const Channel> channels)
       s.hold_db = std::max(s.peak_db, s.hold_db - fall);
     }
   }
-  update();
 }
 
-void LevelMeter::setInactive()
+void LevelMeterState::setInactive()
 {
-  if(!m_active)
-    return;
   m_active = false;
   for(auto& s : m_state)
   {
@@ -107,55 +99,31 @@ void LevelMeter::setInactive()
     s.rms_db = floor_db;
     s.hold_db = floor_db;
   }
-  update();
 }
 
-bool LevelMeter::anyClipped() const noexcept
+bool LevelMeterState::anyClipped() const noexcept
 {
   return std::any_of(
       m_state.begin(), m_state.end(), [](const State& s) { return s.clipped; });
 }
 
-void LevelMeter::resetClips()
+void LevelMeterState::resetClips()
 {
   for(auto& s : m_state)
     s.clipped = false;
-  update();
 }
 
-void LevelMeter::setScaleVisible(bool b)
-{
-  m_scale = b;
-  update();
-}
-
-QSize LevelMeter::sizeHint() const
-{
-  return {24, 120};
-}
-
-QSize LevelMeter::minimumSizeHint() const
-{
-  return {6, 60};
-}
-
-void LevelMeter::mousePressEvent(QMouseEvent* e)
-{
-  resetClips();
-  e->accept();
-}
-
-void LevelMeter::paintEvent(QPaintEvent*)
+void LevelMeterState::paint(QPainter& p, const QRectF& r, bool show_scale) const
 {
   auto& skin = score::Skin::instance();
-  QPainter p{this};
+  p.save();
 
-  p.fillRect(rect(), skin.Background1.color().darker(160));
+  p.fillRect(r, skin.Background1.color().darker(160));
 
-  const bool scale = m_scale && width() >= 30;
-  const int scale_w = scale ? 16 : 0;
-  const QRect meter = rect().adjusted(scale_w, 0, 0, 0);
-  const QRect bars = meter.adjusted(0, clip_row + 1, 0, 0);
+  const bool scale = show_scale && r.width() >= 30;
+  const double scale_w = scale ? 16. : 0.;
+  const QRectF meter = r.adjusted(scale_w, 0, 0, 0);
+  const QRectF bars = meter.adjusted(0, clip_row + 1, 0, 0);
   const double h = bars.height();
 
   auto y_of = [&](float db) {
@@ -169,17 +137,20 @@ void LevelMeter::paintEvent(QPaintEvent*)
     p.setPen(skin.Gray.color());
     for(int db : {0, -6, -12, -24, -36, -48})
     {
-      const int y = int(y_of(float(db)));
-      p.drawLine(scale_w - 3, y, scale_w - 1, y);
+      const double y = y_of(float(db));
+      p.drawLine(QPointF{r.left() + scale_w - 3, y}, QPointF{r.left() + scale_w - 1, y});
       p.drawText(
-          QRect{0, y - 6, scale_w - 4, 12}, Qt::AlignRight | Qt::AlignVCenter,
+          QRectF{r.left(), y - 6, scale_w - 4, 12}, Qt::AlignRight | Qt::AlignVCenter,
           QString::number(-db));
     }
   }
 
   const int n = int(m_state.size());
   if(n == 0)
+  {
+    p.restore();
     return;
+  }
 
   if(!m_active)
     p.setOpacity(0.35);
@@ -216,9 +187,9 @@ void LevelMeter::paintEvent(QPaintEvent*)
     {
       const auto& s = m_state[c];
       const double x = bars.left() + c * col_w;
-      draw_bar(QRectF{x, double(bars.top()), col_w - gap, h}, s);
+      draw_bar(QRectF{x, bars.top(), col_w - gap, h}, s);
       p.fillRect(
-          QRectF{x, double(meter.top()), col_w - gap, double(clip_row)},
+          QRectF{x, meter.top(), col_w - gap, double(clip_row)},
           s.clipped ? clip_color() : track);
     }
   }
@@ -226,8 +197,8 @@ void LevelMeter::paintEvent(QPaintEvent*)
   {
     // Too many channels for bars: a heat strip, one column per channel, and
     // one bar for the loudest of them.
-    const int loud_w = std::min(6, bars.width() / 3);
-    const QRect heat = bars.adjusted(0, 0, -(loud_w + 1), 0);
+    const double loud_w = std::min(6., bars.width() / 3.);
+    const QRectF heat = bars.adjusted(0, 0, -(loud_w + 1), 0);
     const double heat_w = double(heat.width()) / n;
     State loudest;
     bool clipped = false;
@@ -238,17 +209,74 @@ void LevelMeter::paintEvent(QPaintEvent*)
       const float t = std::clamp((s.peak_db - min_db) / (max_db - min_db), 0.f, 1.f);
       col.setAlphaF(0.12f + 0.88f * t);
       p.fillRect(
-          QRectF{heat.left() + c * heat_w, double(heat.top()), std::max(heat_w, 1.), h},
-          col);
+          QRectF{heat.left() + c * heat_w, heat.top(), std::max(heat_w, 1.), h}, col);
       loudest.peak_db = std::max(loudest.peak_db, s.peak_db);
       loudest.rms_db = std::max(loudest.rms_db, s.rms_db);
       loudest.hold_db = std::max(loudest.hold_db, s.hold_db);
       clipped |= s.clipped;
     }
-    draw_bar(QRectF{double(heat.right() + 2), double(bars.top()), double(loud_w), h}, loudest);
+    draw_bar(QRectF{heat.right() + 1., bars.top(), loud_w, h}, loudest);
     p.fillRect(
-        QRect{meter.left(), meter.top(), meter.width(), clip_row},
+        QRectF{meter.left(), meter.top(), meter.width(), double(clip_row)},
         clipped ? clip_color() : track);
   }
+  p.restore();
+}
+
+LevelMeter::LevelMeter(QWidget* parent)
+    : QWidget{parent}
+{
+  setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+  setToolTip(tr("Peak level in dBFS.\nClick to clear the clip marks."));
+}
+
+LevelMeter::~LevelMeter() = default;
+
+void LevelMeter::setLevels(std::span<const Channel> channels)
+{
+  m_meter.setLevels(channels);
+  update();
+}
+
+void LevelMeter::setInactive()
+{
+  if(!m_meter.active())
+    return;
+  m_meter.setInactive();
+  update();
+}
+
+void LevelMeter::resetClips()
+{
+  m_meter.resetClips();
+  update();
+}
+
+void LevelMeter::setScaleVisible(bool b)
+{
+  m_scale = b;
+  update();
+}
+
+QSize LevelMeter::sizeHint() const
+{
+  return {24, 120};
+}
+
+QSize LevelMeter::minimumSizeHint() const
+{
+  return {6, 60};
+}
+
+void LevelMeter::mousePressEvent(QMouseEvent* e)
+{
+  resetClips();
+  e->accept();
+}
+
+void LevelMeter::paintEvent(QPaintEvent*)
+{
+  QPainter p{this};
+  m_meter.paint(p, rect(), m_scale);
 }
 }
