@@ -389,6 +389,18 @@ public:
   void setPan(pan_weight g);
   void panChanged(pan_weight g) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, panChanged, g)
 
+  //! How a signal narrower than upmixChannels() is widened: the values of
+  //! ossia::audio_outlet::upmix_mode (0: not at all, 1: repeating the
+  //! channels, 2: adding silent ones).
+  int upmixMode() const noexcept { return m_upmixMode; }
+  void setUpmixMode(int m);
+  void upmixModeChanged(int m) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, upmixModeChanged, m)
+
+  int upmixChannels() const noexcept { return m_upmixChannels; }
+  void setUpmixChannels(int c);
+  void upmixChannelsChanged(int c)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, upmixChannelsChanged, c)
+
   std::unique_ptr<Process::ControlInlet> gainInlet;
   std::unique_ptr<Process::ControlInlet> panInlet;
 
@@ -396,10 +408,17 @@ public:
       bool, propagate W_READ propagate W_WRITE setPropagate W_NOTIFY propagateChanged)
   PROPERTY(double, gain W_READ gain W_WRITE setGain W_NOTIFY gainChanged)
   PROPERTY(pan_weight, pan W_READ pan W_WRITE setPan W_NOTIFY panChanged)
+  PROPERTY(
+      int, upmixMode W_READ upmixMode W_WRITE setUpmixMode W_NOTIFY upmixModeChanged)
+  PROPERTY(
+      int, upmixChannels W_READ upmixChannels W_WRITE setUpmixChannels W_NOTIFY
+               upmixChannelsChanged)
 private:
   double m_gain{};
   pan_weight m_pan;
   bool m_propagate{false};
+  int m_upmixMode{};
+  int m_upmixChannels{};
 };
 
 class SCORE_LIB_PROCESS_EXPORT MidiInlet : public Inlet

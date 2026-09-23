@@ -506,7 +506,8 @@ QByteArray AudioOutlet::saveData() const noexcept
   {
     QDataStream p{&arr, QIODevice::WriteOnly};
     DataStreamInput ip{p};
-    ip << Port::saveData() << m_gain << m_pan << m_propagate;
+    ip << Port::saveData() << m_gain << m_pan << m_propagate << m_upmixMode
+       << m_upmixChannels;
   }
   return arr;
 }
@@ -517,6 +518,9 @@ void AudioOutlet::loadData(const QByteArray& arr, PortLoadDataFlags flags) noexc
   QDataStream p{arr};
   DataStreamOutput op{p};
   op >> pdata >> m_gain >> m_pan >> m_propagate;
+  // Data saved before the upmix existed ends here.
+  if(!p.atEnd())
+    op >> m_upmixMode >> m_upmixChannels;
   Port::loadData(pdata, flags);
   propagateChanged(m_propagate);
 }
@@ -561,6 +565,24 @@ void AudioOutlet::setPan(Process::pan_weight pan)
 
   m_pan = pan;
   panChanged(m_pan);
+}
+
+void AudioOutlet::setUpmixMode(int m)
+{
+  if(m_upmixMode == m)
+    return;
+
+  m_upmixMode = m;
+  upmixModeChanged(m);
+}
+
+void AudioOutlet::setUpmixChannels(int c)
+{
+  if(m_upmixChannels == c)
+    return;
+
+  m_upmixChannels = c;
+  upmixChannelsChanged(c);
 }
 
 MidiInlet::~MidiInlet() { }
@@ -1399,7 +1421,7 @@ SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(const Process::AudioOutlet&
   // read((Process::Outlet&)p);
   m_stream << *p.gainInlet << *p.panInlet << p.m_gain
            << static_cast<const ossia::small_vector<double, 2>&>(p.m_pan)
-           << p.m_propagate;
+           << p.m_propagate << p.m_upmixMode << p.m_upmixChannels;
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::AudioOutlet& p)
@@ -1407,7 +1429,7 @@ SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::AudioOutlet& p)
   p.gainInlet = Process::load_control_inlet(*this, &p);
   p.panInlet = Process::load_control_inlet(*this, &p);
   m_stream >> p.m_gain >> static_cast<ossia::small_vector<double, 2>&>(p.m_pan)
-      >> p.m_propagate;
+      >> p.m_propagate >> p.m_upmixMode >> p.m_upmixChannels;
 }
 
 template <>
@@ -1420,6 +1442,11 @@ SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::AudioOutlet& p)
   obj["Gain"] = p.m_gain;
   obj["Pan"] = static_cast<const ossia::small_vector<double, 2>&>(p.m_pan);
   obj["Propagate"] = p.m_propagate;
+  if(p.m_upmixMode != 0)
+  {
+    obj["Upmix"] = p.m_upmixMode;
+    obj["UpmixChannels"] = p.m_upmixChannels;
+  }
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::AudioOutlet& p)
@@ -1449,6 +1476,10 @@ SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::AudioOutlet& p)
   p.m_gain = obj["Gain"].toDouble();
   static_cast<ossia::small_vector<double, 2>&>(p.m_pan) <<= obj["Pan"];
   p.m_propagate = obj["Propagate"].toBool();
+  if(auto it = obj.tryGet("Upmix"))
+    p.m_upmixMode = it->toInt();
+  if(auto it = obj.tryGet("UpmixChannels"))
+    p.m_upmixChannels = it->toInt();
 }
 
 template <>
