@@ -70,6 +70,9 @@ public:
   //! What the graph writes to a virtual port of the audio device. The meter
   //! goes silent if the port is removed.
   Meter meterVirtualPort(ossia::virtual_audio_parameter& port);
+  //! The nodes under `root` are about to be removed: the meters of their
+  //! ports let go of them.
+  void forgetUnder(const ossia::net::node_base& root);
   void release(Meter m);
 
   //! The levels since the previous update, or nullptr when there are none:
@@ -128,7 +131,7 @@ private:
   Meter subscribe(
       ossia::telemetry::tap_kind kind, const Process::Port* port, bool inlet,
       ossia::virtual_audio_parameter* param = nullptr);
-  void parameterRemoved(const ossia::net::node_base& node);
+
   bool benchEnabled() const noexcept;
   //! Follows the process nodes of the running graph; false when the arena
   //! has no room left for them.

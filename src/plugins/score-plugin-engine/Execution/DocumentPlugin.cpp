@@ -97,6 +97,9 @@ DocumentPlugin::DocumentPlugin(const score::DocumentContext& ctx, QObject* paren
     ctx.plugin<Explorer::DeviceDocumentPlugin>().list().setAudioDevice(audio_device);
   }
 
+  // Its tree may be replaced, e.g. when the audio settings change.
+  followDevice(audio_device);
+
   devs.list().apply([this](auto& d) { on_deviceAdded(&d); });
   con(devs.list(), &Device::DeviceList::deviceAdded, this,
       &DocumentPlugin::on_deviceAdded);
@@ -229,16 +232,10 @@ void DocumentPlugin::initExecState()
   local_device = list.localDevice();
   if(audio_device)
     if(auto d = audio_device->getDevice())
-    {
       m_ctxData->execState->register_device(d);
-      watchDevice(*d);
-    }
   if(local_device)
     if(auto d = local_device->getDevice())
-    {
       m_ctxData->execState->register_device(d);
-      watchDevice(*d);
-    }
   for(auto dev : list.devices())
   {
     registerDevice(dev->getDevice());
@@ -255,7 +252,6 @@ bool DocumentPlugin::registerDevice(ossia::net::device_base* d)
 {
   if(!d)
     return false;
-  watchDevice(*d);
   if(m_ctxData->execState)
   {
     if(ossia::contains(m_ctxData->execState->edit_devices(), d))
@@ -269,45 +265,78 @@ bool DocumentPlugin::registerDevice(ossia::net::device_base* d)
   return false;
 }
 
-void DocumentPlugin::watchDevice(ossia::net::device_base& d)
+namespace
 {
-  if(ossia::contains(m_watchedDevices, &d))
-    return;
-  m_watchedDevices.push_back(&d);
-  d.on_parameter_removing.connect<&DocumentPlugin::on_parameterRemoving>(*this);
+// Whether a port's address may resolve to something under `root`: the same
+// device, and a path under root's, or a pattern.
+bool mayPointUnder(
+    const State::Address& addr, const QString& device, const QStringList& root_path)
+{
+  if(addr.device != device)
+    return false;
+  for(const auto& part : addr.path)
+    for(QChar c : part)
+      if(c == '*' || c == '?' || c == '[' || c == '{')
+        return true;
+  if(addr.path.size() < root_path.size())
+    return false;
+  for(int i = 0; i < root_path.size(); i++)
+    if(addr.path[i] != root_path[i])
+      return false;
+  return true;
 }
 
-void DocumentPlugin::on_parameterRemoving(const ossia::net::parameter_base& param)
+void collectTree(
+    ossia::net::node_base& node, std::vector<const void*>& nodes,
+    std::vector<const void*>& params)
 {
-  // Ports keep raw pointers to the parameters they read and write, and this
-  // one is destroyed as soon as this returns: the ports that point to it let
-  // go of it while the audio callback skips its tick.
+  nodes.push_back(&node);
+  if(auto p = node.get_parameter())
+    params.push_back(p);
+  for(auto child : node.children_copy())
+    collectTree(*child, nodes, params);
+}
+}
+
+void DocumentPlugin::on_nodeAboutToBeRemoved(ossia::net::node_base* root)
+{
+  if(!root)
+    return;
+  m_telemetry->forgetUnder(*root);
+
+  // Ports keep raw pointers to the nodes and parameters they read and write,
+  // which are destroyed as soon as this returns: the ports that point there
+  // let go of them between two audio ticks, once for the whole removal.
   const auto& g = m_ctxData->execGraph;
   const auto& st = m_ctxData->execState;
-  if(!g || !st)
+  if(!g || !st || !m_base)
     return;
 
-  // Most removals concern a device no port points to: they need no pause.
-  const auto device
-      = QString::fromStdString(param.get_node().get_device().get_name());
-  auto points_to_device = [&](const auto& ports) {
+  // Most removals concern nodes no port points to: they need nothing.
+  const auto device = QString::fromStdString(root->get_device().get_name());
+  const auto root_path
+      = QString::fromStdString(root->osc_address()).split('/', Qt::SkipEmptyParts);
+  auto points_under = [&](const auto& ports) {
     for(const auto& [port, exec] : ports)
-      if(port && port->address().address.device == device)
+      if(port && mayPointUnder(port->address().address, device, root_path))
         return true;
     return false;
   };
-  if(!points_to_device(m_ctxData->setupContext.inlets)
-     && !points_to_device(m_ctxData->setupContext.outlets))
+  if(!points_under(m_ctxData->setupContext.inlets)
+     && !points_under(m_ctxData->setupContext.outlets))
     return;
 
-  auto* p = const_cast<ossia::net::parameter_base*>(&param);
-  auto* n = &param.get_node();
+  std::vector<const void*> nodes, params;
+  collectTree(*root, nodes, params);
+  std::sort(nodes.begin(), nodes.end());
+  std::sort(params.begin(), params.end());
+
   auto drop = [&] {
     auto refers = [&](const ossia::destination_t& dest) {
       if(auto x = dest.target<ossia::net::parameter_base*>())
-        return *x == p;
+        return std::binary_search(params.begin(), params.end(), (const void*)*x);
       if(auto x = dest.target<ossia::net::node_base*>())
-        return *x == n;
+        return std::binary_search(nodes.begin(), nodes.end(), (const void*)*x);
       return false;
     };
     bool dirty = false;
@@ -326,26 +355,17 @@ void DocumentPlugin::on_parameterRemoving(const ossia::net::parameter_base& para
     }
     if(dirty)
       g->mark_dirty();
-    st->forget(param);
   };
 
   auto& engine = m_context.app.guiApplicationPlugin<Audio::ApplicationPlugin>().audio;
   if(engine)
-    engine->run_parked(drop);
+    engine->run_between_ticks(drop);
   else
     drop();
 }
 
 bool DocumentPlugin::unregisterDevice(ossia::net::device_base* d)
 {
-  if(d)
-  {
-    if(auto it = ossia::find(m_watchedDevices, d); it != m_watchedDevices.end())
-    {
-      d->on_parameter_removing.disconnect<&DocumentPlugin::on_parameterRemoving>(*this);
-      m_watchedDevices.erase(it);
-    }
-  }
   if(!m_ctxData->execState)
     return false;
   if(!ossia::contains(m_ctxData->execState->edit_devices(), d))
@@ -658,6 +678,14 @@ void DocumentPlugin::registerAction(ExecutionAction& act)
 
 void DocumentPlugin::on_deviceAdded(Device::DeviceInterface* dev)
 {
+  // The audio device is followed from the start, in or out of the list.
+  if(dev == audio_device)
+    return;
+  followDevice(dev);
+}
+
+void DocumentPlugin::followDevice(Device::DeviceInterface* dev)
+{
   // Also for an unconnected device: its ossia device arrives later through
   // deviceChanged.
   connect(
@@ -667,6 +695,9 @@ void DocumentPlugin::on_deviceAdded(Device::DeviceInterface* dev)
   connect(
       dev, &Device::DeviceInterface::deviceClearing, this,
       [this](ossia::net::device_base* d) { onDeviceChanged(d, nullptr); });
+  connect(
+      dev, &Device::DeviceInterface::nodeAboutToBeRemoved, this,
+      &DocumentPlugin::on_nodeAboutToBeRemoved, Qt::DirectConnection);
   // A device that comes back gets its nodes after it says it changed, and some
   // only learn their namespace later on.
   connect(
@@ -693,6 +724,8 @@ void DocumentPlugin::requestExpressionUpdate()
 void DocumentPlugin::onDeviceChanged(
     ossia::net::device_base* old_dev, ossia::net::device_base* new_dev)
 {
+  if(old_dev)
+    m_telemetry->forgetUnder(old_dev->get_root_node());
   const bool removed = old_dev && unregisterDevice(old_dev);
   const bool added = new_dev && registerDevice(new_dev);
 
