@@ -119,7 +119,39 @@ void PCLToMesh2::operator()()
   // so only byte_size - byte_offset bytes are addressable.
   const auto usable_bytes
       = tex.byte_size > tex.byte_offset ? tex.byte_size - tex.byte_offset : 0;
-  outputs.geometry.mesh.vertices = (usable_bytes / (sizeof(float) * vertice_stride));
+  const auto vertex_bytes = sizeof(float) * vertice_stride;
+  outputs.geometry.mesh.vertices = (usable_bytes / vertex_bytes);
+
+  // A remainder means the declared Buffer type does not describe this buffer:
+  // the tail is dropped and every vertex past the first reads across element
+  // boundaries. Silent truncation here is indistinguishable from a short cloud.
+  if(usable_bytes % vertex_bytes != 0
+     && ((int64_t)usable_bytes != m_warnedBytes || vertice_stride != m_warnedStride))
+  {
+    m_warnedBytes = (int64_t)usable_bytes;
+    m_warnedStride = vertice_stride;
+    QString fits;
+    for(int cand : {3, 4, 6, 8})
+    {
+      if(cand != vertice_stride && usable_bytes % (sizeof(float) * cand) == 0)
+        fits += (fits.isEmpty() ? QString() : QStringLiteral(", ")) + QString::number(cand);
+    }
+
+    QString msg
+        = QStringLiteral(
+              "Pointcloud to mesh: Buffer type declares %1 floats per vertex (%2 bytes) "
+              "but the buffer holds %3 usable bytes, which is not a multiple of it. "
+              "Reading %4 vertices and dropping %5 bytes; the points are misaligned.")
+              .arg(vertice_stride)
+              .arg(vertex_bytes)
+              .arg(usable_bytes)
+              .arg(outputs.geometry.mesh.vertices)
+              .arg(usable_bytes % vertex_bytes);
+    if(!fits.isEmpty())
+      msg += QStringLiteral(" A stride of %1 would divide evenly.").arg(fits);
+
+    qWarning().noquote() << msg;
+  }
 
   outputs.geometry.dirty_mesh = true;
 }

@@ -49,5 +49,9 @@ public:
 
   PCLToMesh2();
   void operator()();
+
+private:
+  int64_t m_warnedBytes{-1};
+  int m_warnedStride{-1};
 };
 }
