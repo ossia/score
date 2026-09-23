@@ -10,7 +10,11 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
+#include <Explorer/DeviceList.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
 #include <Audio/AudioApplicationPlugin.hpp>
+#include <Audio/AudioDevice.hpp>
 #include <Execution/DocumentPlugin.hpp>
 #include <Execution/ExecutionTick.hpp>
 #include <Execution/Telemetry.hpp>
@@ -18,6 +22,8 @@
 #include <core/document/Document.hpp>
 
 #include <ossia/audio/audio_engine.hpp>
+#include <ossia/audio/audio_parameter.hpp>
+#include <ossia/network/base/node_functions.hpp>
 #include <ossia/detail/thread.hpp>
 
 #include <QApplication>
@@ -162,5 +168,68 @@ TEST_CASE("Requested meters come back from the execution", "[telemetry][executio
       CHECK(telemetry.levels(hw));
       CHECK(telemetry.levels(out));
     }
+  });
+}
+
+TEST_CASE("A virtual port is metered, until it is removed", "[telemetry][execution]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    park_audio_engine(ctx);
+    auto& plug = doc->context().plugin<Execution::DocumentPlugin>();
+    auto& telemetry = plug.telemetry();
+    auto& root = score::test::base_interval(*doc);
+
+    auto* dev = static_cast<Dataflow::AudioDevice*>(
+        doc->context().plugin<Explorer::DeviceDocumentPlugin>().list().audioDevice());
+    REQUIRE(dev);
+    Device::FullAddressSettings bus;
+    bus.address = State::Address{"audio", {"bus"}};
+    bus.extendedAttributes["audio-kind"] = std::string{"virtual"};
+    bus.extendedAttributes["audio-channels"] = 2;
+    dev->addAddress(bus);
+    auto* node = ossia::net::find_node(dev->getDevice()->get_root_node(), "/bus");
+    REQUIRE(node);
+    auto* param = dynamic_cast<ossia::virtual_audio_parameter*>(node->get_parameter());
+    REQUIRE(param);
+
+    auto meter = telemetry.meterVirtualPort(*param);
+    REQUIRE(meter);
+
+    plug.reload(true, root);
+    run_exec(plug);
+    auto tick = Execution::makeExecutionTick({}, plug, plug.baseScenario());
+
+    // What a process writing to audio:/bus does in each tick.
+    ossia::audio_port written;
+    written.set_channels(2);
+    written.channel(0).assign(frames, 0.5);
+    written.channel(1).assign(frames, 0.25);
+
+    Card card;
+    {
+      AsAudioThread audio;
+      for(int i = 0; i < 400; i++)
+      {
+        param->push_value(written);
+        tick(card.state());
+      }
+    }
+    REQUIRE(wait_update(telemetry));
+    const auto* levels = telemetry.levels(meter);
+    REQUIRE(levels);
+    CHECK(levels->channels == 2);
+    CHECK(levels->peak[0] == 0.5f);
+    CHECK(levels->peak[1] == 0.25f);
+
+    // The port goes away while metered: the tap is let go first.
+    dev->removeNode(bus.address);
+    CHECK(!ossia::net::find_node(dev->getDevice()->get_root_node(), "/bus"));
+    run_exec(plug);
+    play(tick, card);
+    REQUIRE(wait_update(telemetry));
+    CHECK(!telemetry.levels(meter));
+    telemetry.release(meter);
   });
 }
