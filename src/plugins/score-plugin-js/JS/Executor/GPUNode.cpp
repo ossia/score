@@ -597,6 +597,11 @@ void main ()
   {
     if(!m_window || !m_renderControl || !m_engine)
       return;
+
+    // Qt Quick's layers have their own sample count and stay empty until the
+    // scene has content.
+    renderer.isolateFollowingPasses();
+
     // Here we run the Qt Quick render loop which handles its own pass
     if(auto sz = m_window->size(); sz != m_window->contentItem()->size())
     {

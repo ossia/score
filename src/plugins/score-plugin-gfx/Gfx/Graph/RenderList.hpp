@@ -2,6 +2,7 @@
 #include <Gfx/Graph/CommonUBOs.hpp>
 #include <Gfx/Graph/GpuTiming.hpp>
 #include <Gfx/Graph/Node.hpp>
+#include <Gfx/Graph/Quirks.hpp>
 
 #include <ossia/detail/flat_map.hpp>
 #include <ossia/detail/flat_set.hpp>
@@ -373,6 +374,16 @@ public:
 
   int samples() const noexcept { return m_samples; }
 
+  const Quirks& quirks() const noexcept { return m_quirks; }
+
+  /**
+   * @brief Put the render passes that follow in a command buffer of their own.
+   *
+   * For passes whose sample count is not ours to choose and which may be
+   * empty. Must be called outside a pass.
+   */
+  void isolateFollowingPasses() noexcept;
+
   bool canRender() const noexcept { return m_ready; }
 
   QSize renderSize(const Edge* e) const noexcept;
@@ -508,6 +519,7 @@ private:
   int m_minTexSize{};
   int m_maxTexSize{};
   int m_samples{1};
+  Quirks m_quirks;
 
   bool m_warnedMixedDepthCompare = false;
   bool m_requiresDepth{};
