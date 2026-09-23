@@ -646,6 +646,10 @@ PortStrip::PortStrip(
       case Meter::HardwareOutputs:
         setMeter(m_telemetry->meterHardwareOutputs(), std::move(channels));
         break;
+      case Meter::Virtual:
+        if(auto v = dynamic_cast<ossia::virtual_audio_parameter*>(&param))
+          setMeter(m_telemetry->meterVirtualPort(*v));
+        break;
       case Meter::None:
         break;
     }
