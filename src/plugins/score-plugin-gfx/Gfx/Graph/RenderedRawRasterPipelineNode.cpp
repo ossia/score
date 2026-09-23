@@ -536,6 +536,7 @@ void RenderedRawRasterPipelineNode::initPass(
         binding = QRhiShaderResourceBinding::bufferLoadStore(
             max_binding, bindingStages, aux.buffer);
 
+
       additionalBindings.push_back(binding);
       aux.binding = max_binding;  // remember slot for per-sub-mesh patching
       max_binding++;
