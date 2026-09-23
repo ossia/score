@@ -1,5 +1,17 @@
 #include "MixerStrips.hpp"
 
+#include <Device/Node/DeviceNode.hpp>
+#include <Device/Protocol/ProtocolFactoryInterface.hpp>
+#include <Device/Protocol/ProtocolList.hpp>
+#include <Device/Protocol/ProtocolSettingsWidget.hpp>
+
+#include <Explorer/Commands/Add/AddAddress.hpp>
+#include <Explorer/Commands/Add/LoadDevice.hpp>
+#include <Explorer/Commands/Remove.hpp>
+#include <Explorer/Commands/Update/UpdateAddressSettings.hpp>
+#include <Explorer/DeviceList.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
 #include <Process/Commands/EditPort.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortAddressComboBox.hpp>
@@ -10,6 +22,7 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
+#include <Audio/AudioDevice.hpp>
 #include <Execution/DocumentPlugin.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -42,6 +55,22 @@ namespace Mixer
 namespace
 {
 constexpr double floor_db = -96.;
+
+Device::Node*
+explorerNode(Explorer::DeviceDocumentPlugin& plug, const Device::DeviceInterface& dev)
+{
+  for(auto& n : plug.rootNode())
+    if(n.is<Device::DeviceSettings>()
+       && n.get<Device::DeviceSettings>().name == dev.settings().name)
+      return &n;
+  return nullptr;
+}
+
+Device::ProtocolFactory*
+protocolOf(const score::DocumentContext& ctx, const Device::DeviceInterface& dev)
+{
+  return ctx.app.interfaces<Device::ProtocolFactoryList>().get(dev.settings().protocol);
+}
 
 QString dbText(double gain)
 {
@@ -652,5 +681,78 @@ void PortStrip::onNodeRemoved(const ossia::net::node_base&)
 {
   m_param = nullptr;
   setEnabled(false);
+}
+
+void addAudioPort(
+    const score::DocumentContext& ctx, Dataflow::AudioDevice& dev, QWidget* parent)
+{
+  auto proto = protocolOf(ctx, dev);
+  if(!proto)
+    return;
+  std::unique_ptr<Device::AddressDialog> dial{
+      proto->makeAddAddressDialog(dev, ctx, parent)};
+  if(!dial || dial->exec() != QDialog::Accepted)
+    return;
+
+  auto stgs = dial->getSettings();
+  stgs.name = stgs.name.trimmed();
+  while(stgs.name.startsWith('/'))
+    stgs.name.remove(0, 1);
+  if(stgs.name.isEmpty())
+    return;
+
+  auto& plug = ctx.plugin<Explorer::DeviceDocumentPlugin>();
+  RedoMacroCommandDispatcher<Explorer::Command::AddAddresses> disp{ctx.commandStack};
+  if(!explorerNode(plug, dev))
+    disp.submit(new Explorer::Command::LoadDevice{plug, dev.settings()});
+  if(auto node = explorerNode(plug, dev))
+    disp.submit(new Explorer::Command::AddAddress{
+        plug, Device::NodePath{*node}, InsertMode::AsChild, stgs});
+  disp.commit();
+}
+
+void PortStrip::fillContextMenu(QMenu& menu)
+{
+  // Only the ports the user made can be edited.
+  if(!m_param || !(dynamic_cast<ossia::mapped_audio_parameter*>(m_param)
+                   || dynamic_cast<ossia::virtual_audio_parameter*>(m_param)))
+    return;
+
+  auto& plug = m_context.plugin<Explorer::DeviceDocumentPlugin>();
+  auto dev = plug.list().audioDevice();
+  if(!dev)
+    return;
+  auto address = State::Address::fromString(
+      "audio:" + QString::fromStdString(m_param->get_node().osc_address()));
+  if(!address)
+    return;
+
+  auto edit = menu.addAction(tr("Edit the port..."));
+  connect(edit, &QAction::triggered, this, [this, dev, addr = *address] {
+    auto& plug = m_context.plugin<Explorer::DeviceDocumentPlugin>();
+    auto node = Device::try_getNodeFromAddress(plug.rootNode(), addr);
+    auto proto = protocolOf(m_context, *dev);
+    if(!node || !node->is<Device::AddressSettings>() || !proto)
+      return;
+    std::unique_ptr<Device::AddressDialog> dial{proto->makeEditAddressDialog(
+        node->get<Device::AddressSettings>(), *dev, m_context, this)};
+    if(!dial || dial->exec() != QDialog::Accepted)
+      return;
+    // The node may be gone with the dialog open.
+    node = Device::try_getNodeFromAddress(plug.rootNode(), addr);
+    if(!node)
+      return;
+    CommandDispatcher<>{m_context.commandStack}
+        .submit<Explorer::Command::UpdateAddressSettings>(
+            plug, Device::NodePath{*node}, dial->getSettings());
+  });
+
+  auto remove = menu.addAction(tr("Remove the port"));
+  connect(remove, &QAction::triggered, this, [this, addr = *address] {
+    auto& plug = m_context.plugin<Explorer::DeviceDocumentPlugin>();
+    if(auto node = Device::try_getNodeFromAddress(plug.rootNode(), addr))
+      CommandDispatcher<>{m_context.commandStack}.submit(
+          new Explorer::Command::Remove{plug, Device::NodePath{*node}});
+  });
 }
 }
