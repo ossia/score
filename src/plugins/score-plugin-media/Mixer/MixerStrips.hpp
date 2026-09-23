@@ -65,6 +65,9 @@ class GainFader final : public score::DoubleSlider
 public:
   explicit GainFader(QWidget* parent);
 
+  //! Height of the cap: its centre travels from cap_h / 2 to height - cap_h / 2.
+  static constexpr int cap_h = 8;
+
   static double positionToGain(double p) noexcept;
   static double gainToPosition(double g) noexcept;
 
@@ -109,6 +112,9 @@ protected:
   //! Shows the meter's channels, or only the listed ones.
   void setMeter(Execution::Telemetry::Meter m, std::vector<int> channels = {});
   void setGainReadout(double gain);
+  void setTitle(const QString& t);
+  void setTitleColor(const QColor& c);
+  void resizeEvent(QResizeEvent*) override;
   void contextMenuEvent(QContextMenuEvent*) override;
   void paintEvent(QPaintEvent*) override;
   virtual void fillContextMenu(class QMenu&) { }
@@ -120,10 +126,14 @@ protected:
   score::LevelMeter* m_meter{};
   GainFader* m_fader{};
   QLabel* m_readout{};
+  QWidget* m_controls{};
   QWidget* m_buttons{};
   QPointer<Execution::Telemetry> m_telemetry;
 
 private:
+  void elideTitle();
+
+  QString m_titleText;
   Execution::Telemetry::Meter m_meterHandle;
   std::vector<int> m_channels;
   std::vector<score::LevelMeter::Channel> m_levels;
