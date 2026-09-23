@@ -598,6 +598,13 @@ void RenderedRawRasterPipelineNode::initPass(
         binding = QRhiShaderResourceBinding::bufferLoadStore(
             max_binding, bindingStages, aux.buffer);
 
+      BUFTRACE() << "[auxssbo] " << aux.name.c_str()
+                 << " slot.size=" << (qint64)aux.size
+                 << " buffer->size()=" << (qint64)(aux.buffer ? aux.buffer->size() : -1)
+                 << " binding=" << max_binding
+                 << " shaderSeesElems(uint)="
+                 << (qint64)((aux.buffer ? aux.buffer->size() : 0) / 4);
+
       additionalBindings.push_back(binding);
       aux.binding = max_binding;  // remember slot for per-sub-mesh patching
       max_binding++;
