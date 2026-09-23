@@ -1,32 +1,12 @@
-// JS::ProcessModel::rootPath() (JSProcessModel.cpp) caches the Library
-// settings model in a function-local static reference:
+// JS::ProcessModel::rootPath() must not cache the Library settings model in a
+// function-local static: the static would bind to the first application of the
+// process, and a Javascript process created in a second application (which
+// MinimalApplication supports) would read its freed settings. Two test cases,
+// each creating a Javascript process in its own application; only reliable
+// under ASan, where the use-after-free aborts instead of reading garbage.
 //
-//   static const auto& lib = score::AppContext().settings<Library::Settings::Model>();
-//
-// The static binds to whichever application first reached that line and is
-// never rebound. Build a second score application in the same process -- which
-// MinimalApplication supports and which test_regression_minimal_app_twice
-// exists to guarantee -- and creating a Javascript process reads the first
-// application's freed settings:
-//
-//   ERROR: AddressSanitizer: heap-use-after-free
-//     #6 Library::Settings::Model::getDefaultLibraryPath() LibrarySettings.cpp:156
-//     #7 JS::ProcessModel::rootPath()                      JSProcessModel.cpp:172
-//     #8 JS::ComponentCache::getExecution()                JSProcessModel.cpp:726
-//     ...
-//     #11 JS::ProcessModel::ProcessModel(...)              JSProcessModel.cpp:77
-//   freed by:
-//     #1 Library::Settings::Model::~Model()                LibrarySettings.hpp:45
-//     #2 score::Settings::teardownModels()                 Settings.cpp:31
-//     #3 score::MinimalGUIApplication::~MinimalGUIApplication()
-//
-// Two test cases, each creating a Javascript process in its own application:
-// the first passes, the second reads freed memory. That is also why
-// JsProcessUiTest is a single TEST_CASE.
-//
-// Its own executable and WILL_FAIL because ASan aborts the process, so nothing
-// after it in a binary is reported. When rootPath() stops caching, this passes
-// and the ctest entry goes red -- the signal to drop WILL_FAIL.
+// In its own executable because an ASan abort would take the rest of a binary
+// with it.
 
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>

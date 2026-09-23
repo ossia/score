@@ -73,7 +73,7 @@ set(SCORE_EXPECTED_RED
 
   # -- CMake WILL_FAIL ------------------------------------------------------
   # Cannot be a Catch2 tag: the defect aborts, so Catch2 never reports.
-  "will_fail@tests/integration/CMakeLists.txt@test_integration_js_rootpath_static@rootPath()'s function-local static caches a dangling reference. ASAN-ONLY -- off ASan the freed read trips Qt's own Q_ASSERT only when the garbage is unlucky (measured 8 red / 2 green in 10 runs), so the entry is WILL_FAIL under -fsanitize=address and DISABLED otherwise"
+  # (none today)
 
   # -- [finding] tag, VERIFIED GREEN ----------------------------------------
   # A [finding] tag enforces nothing, so a red one presents to ctest as an
