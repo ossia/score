@@ -14,7 +14,10 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
+#include <Process/Commands/EditPort.hpp>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
 
 #include <core/command/CommandStack.hpp>
@@ -183,5 +186,41 @@ TEST_CASE("A solo silences the buses it does not involve", "[integration][interv
       CHECK(!a.soloMuted());
       CHECK(c.soloMuted());
     }
+  });
+}
+
+TEST_CASE("An interval's upmix is one undoable step and is saved", "[integration][interval][upmix]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& root = scenarioDoc(*doc).baseInterval();
+    auto& scenario = static_cast<Scenario::ProcessModel&>(*root.processes.begin());
+    auto& itv = addInterval(*doc, scenario, 1000, 0.3);
+    const auto id = itv.id();
+    auto& out = *itv.outlet;
+
+    {
+      MacroCommandDispatcher<Process::SetUpmix> disp{doc->context().commandStack};
+      disp.submit(new Process::SetUpmixMode{out, 1});
+      disp.submit(new Process::SetUpmixChannels{out, 2});
+      disp.commit();
+    }
+    CHECK(out.upmixMode() == 1);
+    CHECK(out.upmixChannels() == 2);
+
+    doc->commandStack().undo();
+    CHECK(out.upmixMode() == 0);
+    CHECK(out.upmixChannels() == 0);
+    doc->commandStack().redo();
+    CHECK(out.upmixChannels() == 2);
+
+    auto* loaded = loadJson(ctx, saveAsJson(*doc));
+    REQUIRE(loaded);
+    auto& lroot = scenarioDoc(*loaded).baseInterval();
+    auto& lscenario = static_cast<Scenario::ProcessModel&>(*lroot.processes.begin());
+    auto& lout = *lscenario.intervals.at(id).outlet;
+    CHECK(lout.upmixMode() == 1);
+    CHECK(lout.upmixChannels() == 2);
   });
 }
