@@ -1479,7 +1479,12 @@ void RenderedCSFNode::updateGeometryBindings(
               continue;
             }
 
-            if(ssbo.buffer != rhi_buf)
+            // Size too, not just the handle: a producer can publish the
+            // buffer one frame before it fills it, keeping the same
+            // QRhiBuffer while byte_size goes 0 -> n. Comparing handles alone
+            // leaves the slot advertising size 0 for the rest of the run, and
+            // every consumer downstream sees an empty attribute.
+            if(ssbo.buffer != rhi_buf || ssbo.size != (int64_t)gpu->byte_size)
             {
               adoptIntoSlot(renderer, ssbo, rhi_buf, gpu->byte_size);
               ssbo.lastUploadSrc = nullptr;
@@ -2505,7 +2510,12 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
           break;
         auto& ssbo = binding.attribute_ssbos[attr_idx];
         if(!ssbo.buffer)
+        {
+          // The attribute still owns its output slot: skipping without
+          // advancing writes every later attribute into the wrong buffer.
+          buf_idx++;
           continue;
+        }
 
         if(buf_idx < (int)out_geo.buffers.size())
         {
