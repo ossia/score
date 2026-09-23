@@ -47,14 +47,8 @@ Telemetry::Telemetry(const score::DocumentContext& ctx, DocumentPlugin& plug)
 Telemetry::~Telemetry()
 {
   for(auto& s : m_subs)
-  {
     if(s.param)
-    {
       s.param->meter.store(nullptr, std::memory_order_release);
-      s.param->get_node().about_to_be_deleted.disconnect<&Telemetry::parameterRemoved>(
-          *this);
-    }
-  }
 }
 
 bool Telemetry::enabled() const noexcept
@@ -104,11 +98,7 @@ Telemetry::Meter Telemetry::subscribe(
   s.inlet = inlet;
   s.generation = ++generations;
   s.users = 1;
-  if(param)
-  {
-    s.param = param;
-    param->get_node().about_to_be_deleted.connect<&Telemetry::parameterRemoved>(*this);
-  }
+  s.param = param;
 
   if(m_arena)
   {
@@ -145,16 +135,22 @@ Telemetry::Meter Telemetry::meterVirtualPort(ossia::virtual_audio_parameter& por
   return subscribe(tap_kind::node, nullptr, false, &port);
 }
 
-void Telemetry::parameterRemoved(const ossia::net::node_base& node)
+void Telemetry::forgetUnder(const ossia::net::node_base& root)
 {
-  // The node is being deleted, and the signal with it: nothing to disconnect.
+  // Called while the nodes and their parameters still exist.
   for(std::size_t i = 0; i < m_subs.size(); i++)
   {
     auto& s = m_subs[i];
-    if(s.param && &s.param->get_node() == &node)
+    if(!s.param)
+      continue;
+    for(auto n = &s.param->get_node(); n; n = n->get_parent())
     {
-      detach(int(i));
-      s.param = nullptr;
+      if(n == &root)
+      {
+        detach(int(i));
+        s.param = nullptr;
+        break;
+      }
     }
   }
 }
@@ -170,9 +166,6 @@ void Telemetry::release(Meter m)
     return;
 
   detach(m.index);
-  if(s.param)
-    s.param->get_node().about_to_be_deleted.disconnect<&Telemetry::parameterRemoved>(
-        *this);
   s = Subscription{};
   m_free.push_back(m.index);
 }

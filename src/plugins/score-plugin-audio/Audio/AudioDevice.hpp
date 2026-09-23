@@ -10,6 +10,8 @@
 
 #include <score_plugin_audio_export.h>
 
+#include <functional>
+
 #include <verdigris>
 
 namespace ossia
@@ -83,7 +85,11 @@ public:
 
 private:
   using Device::DeviceInterface::refresh;
-  void setupNode(ossia::net::node_base&, const ossia::extended_attributes& attr);
+  //! Prepares a port; returns what must change between two audio ticks.
+  [[nodiscard]] std::function<void()>
+  setupNode(ossia::net::node_base&, const ossia::extended_attributes& attr);
+  //! Hands the ports to the audio callback, with `change`, between two ticks.
+  void publishPorts(const std::function<void()>& change = {});
   Device::Node refresh() override;
   void disconnect() override;
   ossia::audio_protocol* m_protocol{};
