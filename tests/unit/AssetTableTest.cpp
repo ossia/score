@@ -403,14 +403,11 @@ TEST_CASE("AssetTable: re-stage after eviction works", "[gfx][assettable]")
   CHECK(table.size() == 1);
 }
 
-TEST_CASE("AssetTable: zero-byte entries are not reclaimed by trim (current behavior)",
-          "[gfx][assettable][!shouldfail]")
+TEST_CASE("AssetTable: trim(0) reclaims zero-byte cold entries", "[gfx][assettable]")
 {
-  // Documents a quirk: an entry whose payload is empty (null image, no
-  // bytes) has byte_size == 0, so it never makes m_cold_bytes exceed any
-  // budget and trim() cannot evict it. Harmless for memory (there are no
-  // bytes) but the map/LRU slot stays behind. Marked !shouldfail so it
-  // flips visibly if the behavior is ever changed to evict them.
+  // An entry whose payload is empty (null image, no bytes) has
+  // byte_size == 0, so it never makes m_cold_bytes exceed a budget. trim(0)
+  // means "drain the cold pool" and must still reclaim its map/LRU slot.
   Gfx::AssetTable table;
   table.stage(1, QImage{});
   CHECK(table.size() == 1);
@@ -418,7 +415,7 @@ TEST_CASE("AssetTable: zero-byte entries are not reclaimed by trim (current beha
   CHECK(table.coldCount() == 1);
 
   table.trim(0);
-  CHECK(table.size() == 0); // fails today: the slot survives trim(0)
+  CHECK(table.size() == 0);
 }
 
 // ============================================================================
