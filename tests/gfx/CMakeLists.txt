@@ -347,8 +347,13 @@ target_include_directories(test_gfx_shader_include_path PRIVATE
 # texture/sampler form still bakes for all five backends.
 score_add_test(test_gfx_aux_texture_ladder
   SOURCES GfxAuxTextureLadder.cpp
-  PLUGINS score_plugin_gfx score_lib_process score_addon_academy
+  PLUGINS score_plugin_gfx score_lib_process
   LIBS test_gfx_engine_glue)
+# Static builds interlink every plugin through the global registry, so linking
+# score_plugin_gfx alone leaves the other plugins' registration symbols
+# unresolved. score_add_test only links the whole list for GUI/APP tests, and
+# this one is neither. No-op on dynamic-plugin builds.
+score_link_plugins_for_static(test_gfx_aux_texture_ladder)
 target_compile_definitions(test_gfx_aux_texture_ladder PRIVATE
   GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
 
