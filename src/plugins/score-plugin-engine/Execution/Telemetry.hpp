@@ -28,6 +28,11 @@ namespace ossia
 class graph_node;
 struct audio_inlet;
 struct audio_outlet;
+class virtual_audio_parameter;
+namespace net
+{
+class node_base;
+}
 }
 namespace Execution
 {
@@ -62,6 +67,9 @@ public:
   //! Every hardware input, or every hardware output after the master gain.
   Meter meterHardwareInputs();
   Meter meterHardwareOutputs();
+  //! What the graph writes to a virtual port of the audio device. The meter
+  //! goes silent if the port is removed.
+  Meter meterVirtualPort(ossia::virtual_audio_parameter& port);
   void release(Meter m);
 
   //! The levels since the previous update, or nullptr when there are none:
@@ -97,6 +105,8 @@ private:
     std::weak_ptr<ossia::graph_node> node;
     ossia::audio_inlet* ossia_inlet{};
     ossia::audio_outlet* ossia_outlet{};
+    //! A virtual port, until it is removed.
+    ossia::virtual_audio_parameter* param{};
     bool attached{};
   };
 
@@ -115,7 +125,10 @@ private:
     uint32_t generation{};
   };
 
-  Meter subscribe(ossia::telemetry::tap_kind kind, const Process::Port* port, bool inlet);
+  Meter subscribe(
+      ossia::telemetry::tap_kind kind, const Process::Port* port, bool inlet,
+      ossia::virtual_audio_parameter* param = nullptr);
+  void parameterRemoved(const ossia::net::node_base& node);
   bool benchEnabled() const noexcept;
   //! Follows the process nodes of the running graph; false when the arena
   //! has no room left for them.
