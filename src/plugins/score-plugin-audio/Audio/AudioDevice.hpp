@@ -76,7 +76,10 @@ public:
   ossia::net::device_base* getDevice() const override { return m_dev.get(); }
   ossia::audio_protocol* getProtocol() const { return m_protocol; }
 
+  //! The whole device was rebuilt: every audio_parameter pointer is new.
   void changed() E_SIGNAL(SCORE_PLUGIN_AUDIO_EXPORT, changed)
+  //! A mapped or virtual port was added, edited or removed.
+  void portsChanged() E_SIGNAL(SCORE_PLUGIN_AUDIO_EXPORT, portsChanged)
 
 private:
   using Device::DeviceInterface::refresh;
