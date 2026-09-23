@@ -3,11 +3,14 @@
 
 #include <score_plugin_audio_export.h>
 
+#include <QPointer>
+
 #include <memory>
 
 namespace ossia
 {
 class audio_engine;
+class audio_parameter;
 }
 namespace score
 {
@@ -34,12 +37,14 @@ private:
   void stop_engine();
   void start_engine();
   void rebind_engine(score::Document& doc);
-
-  //! Shows the master volume of the document's audio device (/out/main).
-  void showVolume(score::Document& doc);
+  //! The master volume of a document: the gain of its /out/main.
+  ossia::audio_parameter* mainOutput(const score::DocumentContext* doc) const;
+  void syncVolume();
 
   QAction* m_audioEngineAct{};
-  score::VolumeSlider* m_volume{};
+  QPointer<score::VolumeSlider> m_volume;
+  QMetaObject::Connection m_volumeSync;
+  bool m_volumeDragging{};
 
   bool m_updating_audio = false;
   void initialize() override;
