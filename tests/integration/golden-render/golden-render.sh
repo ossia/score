@@ -305,7 +305,7 @@ render_one() { # case_name out_png -> 0 ok, 2 no png, 3 wrong backend
     env -u DISPLAY XDG_CONFIG_HOME="$CFG" \
         SCORE_AUDIO_BACKEND=dummy SCORE_DISABLE_AUDIOPLUGINS=1 \
         SCORE_FORCE_OFFSCREEN_WINDOW=Window \
-        QT_LOGGING_RULES='qt.rhi.general=true' \
+        QT_LOGGING_RULES='qt.rhi.general=true' QT_FORCE_STDERR_LOGGING=1 \
         ASAN_OPTIONS="$ASAN" LLVM_PROFILE_FILE="$OUT/%p.profraw" \
         $BENV \
       timeout --foreground "$TIMEOUT" "$BIN" --no-gui --no-restore \
