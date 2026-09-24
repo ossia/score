@@ -59,3 +59,8 @@ called_from_lib:libLLVM.so
 called_from_lib:libavutil.so
 called_from_lib:libavcodec.so
 called_from_lib:libavformat.so
+# GStreamer's element and video libraries, next to libgstreamer itself
+# (gst_video_frame_copy_plane and friends in the GStreamer device reports).
+called_from_lib:libgstvideo-1.0.so
+called_from_lib:libgstapp-1.0.so
+called_from_lib:libgstbase-1.0.so
