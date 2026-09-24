@@ -1715,3 +1715,28 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
     $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
+
+# Academy TextureResource::upload refuses pixel data shorter than its slices,
+# and the EquirectToCubemap vertex stage mirrors Y on HLSL/MSL only, keeping
+# the panorama's top on +Y (agent E2).
+if(TARGET score_addon_academy)
+  set(_academy_src_e2 "${SCORE_ROOT_SOURCE_DIR}/src/addons/score-addon-academy")
+  score_plugin_hidden_sources(_academy_hidden_e2
+      "${_academy_src_e2}/Academy/Resources/EquirectToCubemap.cpp"
+      "${_academy_src_e2}/Academy/Resources/TextureResource.cpp")
+  score_add_test(test_gfx_academy_upload_bounds_e2
+    SOURCES
+      GfxAcademyUploadBoundsE2.cpp
+      ${_academy_hidden_e2}
+    GUI
+    PLUGINS score_plugin_gfx score_addon_academy
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_academy_upload_bounds_e2 PRIVATE
+    ACADEMY_EQUIRECT_CPP="${_academy_src_e2}/Academy/Resources/EquirectToCubemap.cpp")
+  target_include_directories(test_gfx_academy_upload_bounds_e2 SYSTEM PRIVATE
+    "${_academy_src_e2}"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    $<TARGET_PROPERTY:score_addon_academy,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
