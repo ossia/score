@@ -16,6 +16,7 @@
 
 #include <ossia/detail/variant.hpp>
 
+#include <QPointer>
 #include <QPoint>
 #include <QRect>
 
@@ -179,8 +180,10 @@ private:
   QMetaObject::Connection m_intervalConnection, m_durationConnection;
   Process::MiniLayer* m_miniLayer{};
 
-  QAction* m_timelineAction{};
-  QAction* m_musicalAction{};
+  // Children of the UISetup toolbar, which the ToolbarManager owns and may
+  // delete before this presenter.
+  QPointer<QAction> m_timelineAction{};
+  QPointer<QAction> m_musicalAction{};
 
   std::vector<QMetaObject::Connection> m_processSelectionConnections;
 
