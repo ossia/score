@@ -850,8 +850,10 @@ bool remapVertexInputs(
   // bindings"): past that it warns and DROPS the tail, so the attributes
   // on those bindings read zero and the draw is quietly wrong. D3D11
   // itself allows 32; the cap is Qt's. Nothing here can raise it, so say
-  // which shader wanted what, once per pipeline build.
-  if(rhi && rhi->backend() == QRhi::D3D11 && bindings.size() > 8)
+  // which shader wanted what, once per pipeline build. The strict path has no
+  // `rhi` of its own; the pipeline knows which one it belongs to.
+  const QRhi* backendRhi = rhi ? rhi : pip.rhi();
+  if(backendRhi && backendRhi->backend() == QRhi::D3D11 && bindings.size() > 8)
   {
     // Name the attributes that land past binding 7, not merely the shader's
     // whole input list: those are the ones whose buffer is never recorded,
