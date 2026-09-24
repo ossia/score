@@ -22,6 +22,13 @@ namespace Video
 class SCORE_PLUGIN_MEDIA_EXPORT Rescale
 {
 public:
+  Rescale() = default;
+  ~Rescale();
+  Rescale(const Rescale&) = delete;
+  Rescale(Rescale&&) = delete;
+  Rescale& operator=(const Rescale&) = delete;
+  Rescale& operator=(Rescale&&) = delete;
+
   operator bool() const noexcept { return m_rescale; }
 
   void open(const VideoMetadata& src);
