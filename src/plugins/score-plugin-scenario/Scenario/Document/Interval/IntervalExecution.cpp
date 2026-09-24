@@ -101,25 +101,34 @@ IntervalComponentBase::IntervalComponentBase(
       });
   });
 
-  con(interval().duration, &Scenario::IntervalDurations::minDurationChanged, this,
-      [&](TimeVal sp) {
+  // The min / max signals carry the raw stored value, which is stale while the
+  // bound is null / infinite (e.g. a resize keeps the new-document max under an
+  // infinite flag, and playback then ended there). Send the effective bounds,
+  // and also when only the null / infinite flags change.
+  auto push_min = [&] {
     OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
     if(m_ossia_interval)
-      in_exec([t = ctx.time(sp), cst = m_ossia_interval] {
+      in_exec([t = ctx.time(interval().duration.minDuration()), cst = m_ossia_interval] {
         OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
         cst->set_min_duration(t);
       });
-  });
-
-  con(interval().duration, &Scenario::IntervalDurations::maxDurationChanged, this,
-      [&](TimeVal sp) {
+  };
+  auto push_max = [&] {
     OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
     if(m_ossia_interval)
-      in_exec([t = ctx.time(sp), cst = m_ossia_interval] {
+      in_exec([t = ctx.time(interval().duration.maxDuration()), cst = m_ossia_interval] {
         OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
         cst->set_max_duration(t);
       });
-  });
+  };
+  con(interval().duration, &Scenario::IntervalDurations::minDurationChanged, this,
+      [push_min](TimeVal) { push_min(); });
+  con(interval().duration, &Scenario::IntervalDurations::minNullChanged, this,
+      [push_min](bool) { push_min(); });
+  con(interval().duration, &Scenario::IntervalDurations::maxDurationChanged, this,
+      [push_max](TimeVal) { push_max(); });
+  con(interval().duration, &Scenario::IntervalDurations::maxInfiniteChanged, this,
+      [push_max](bool) { push_max(); });
 
   con(interval(), &Scenario::IntervalModel::mutedChanged, this, [&](bool b) {
     OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
