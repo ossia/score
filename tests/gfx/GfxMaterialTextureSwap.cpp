@@ -593,7 +593,7 @@ struct MatSwapRenderer final : score::gfx::NodeRenderer
       // rebuildChannel path runs once, rebuildMDI publishes the meshes with
       // aux "baseColorDyn0" -> texA, and quarter 0 turns red.
       self.texA = makeFilledTexture(
-          rhi, res, QColor(255, 0, 0, 255), "P120::texA_red");
+          rhi, res, QColor(255, 0, 0, 255), "texA_red");
       m_scene.state = makeState(
           self.roots, {makeDynMaterial(self.texA, 0xA1)}, /*version=*/1);
     }
@@ -607,7 +607,7 @@ struct MatSwapRenderer final : score::gfx::NodeRenderer
       // texA bound downstream (see the header) -- destroying it here would
       // convert a routing bug into a UAF and muddy the verdict.
       self.texB = makeFilledTexture(
-          rhi, res, QColor(0, 255, 0, 255), "P120::texB_green");
+          rhi, res, QColor(0, 255, 0, 255), "texB_green");
       m_scene.state = makeState(
           self.roots, {makeDynMaterial(self.texB, 0xA1)}, /*version=*/2);
     }
@@ -1178,27 +1178,24 @@ TEST_CASE(
 }
 
 // =============================================================================
-// Case 6 -- an empty bucket's fallback reaches every mip level. Phase 2
-// removes every textured material, so bucket 0 shrinks 2 -> 1 into a freshly
-// created array whose only content is the white fallback upload. The chain is
-// generated from level 0, so the fallback has to be uploaded before the mips
-// are generated; the other way round, every level below 0 is derived from an
-// unwritten level 0.
+// Case 6 -- a growth reallocation re-uploads the layers it keeps, and derives
+// their mip chains after the upload. Phase 2 keeps phase 1's half-red,
+// half-blue texture and adds a second one to the same bucket, so the array is
+// reallocated 1 -> 2 and starts empty; the kept texture is uploaded into it
+// again. Its last mip is the red/blue average only if the chain is generated
+// from that upload, not before it.
 TEST_CASE(
-    "an emptied bucket's fallback is white at its smallest mip level",
+    "a growth reallocation regenerates the kept layers' mips after uploading them",
     "[gfx][scene][material][texture-array][mips]")
 {
   const auto api = GENERATE(from_range(platform_backends()));
   CAPTURE(backend_name(api));
 
-  auto untextured = std::make_shared<ossia::material_component>();
-  untextured->stable_id = 0xE3;
+  const auto kept = makeStaticMaterial(
+      QColor(255, 0, 0, 255), 0xE1, QColor(0, 0, 255, 255));
   const auto r = run_static_phases(
-      api, kFsArrLastMip,
-      {makeStaticMaterial(
-           QColor(255, 0, 0, 255), 0xE1, QColor(0, 0, 255, 255)),
-       makeStaticMaterial(QColor(255, 0, 255, 255), 0xE2)},
-      {untextured});
+      api, kFsArrLastMip, {kept},
+      {kept, makeStaticMaterial(QColor(255, 0, 255, 255), 0xE2)});
   if(r.skipped)
     SKIP(r.backend + ": " + r.skip_reason);
 
@@ -1209,16 +1206,13 @@ TEST_CASE(
   REQUIRE(!r.snap2.bucketArrays.empty());
   INFO("phase1 mid=" << rgba(r.mid1) << " phase2 mid=" << rgba(r.mid2));
 
-  // Phase 1: the smallest level of a half-red, half-blue layer is their
-  // average, which neither half is -- so the probe reads a derived level.
-  CHECK(r.mid1[0] > 80);
-  CHECK(r.mid1[0] < 220);
-  CHECK(r.mid1[1] < 40);
-  CHECK(r.mid1[2] > 80);
-  CHECK(r.mid1[2] < 220);
-  CHECK(r.snap2.bucketLayers[0] == 1);
+  const auto purple = [](std::array<uint8_t, 4> c) {
+    return c[0] > 80 && c[0] < 220 && c[1] < 40 && c[2] > 80 && c[2] < 220;
+  };
+  CHECK(purple(r.mid1));
+  CHECK(r.snap2.bucketLayers[0] == 2);
   CHECK(r.snap2.bucketArrays[0] != r.snap1.bucketArrays[0]);
-  CHECK(near(r.mid2, kWhite, kTol));
+  CHECK(purple(r.mid2));
 }
 
 // =============================================================================
@@ -1366,4 +1360,65 @@ TEST_CASE(
   CHECK(score::gfx::declaresCompare(c));
   c.compare = "greater";
   CHECK(score::gfx::declaresCompare(c));
+}
+
+// =============================================================================
+// Case 12 -- a materials change that brings no new texture keeps the array.
+// Phase 2 adds an untextured material with a new identity -- what a text or
+// procedural producer does -- so the materials fingerprint changes and the
+// pool is rebuilt; both textures are still there, so the rebuild keeps their
+// layers and leaves the array alone.
+TEST_CASE(
+    "a materials change with no new texture keeps the pool array and its layers",
+    "[gfx][scene][material][texture-array]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  const auto a = makeStaticMaterial(QColor(0, 0, 255, 255), 0xC01);
+  const auto b = makeStaticMaterial(QColor(255, 0, 255, 255), 0xC02);
+  auto plain = std::make_shared<ossia::material_component>();
+  plain->stable_id = 0xC03;
+
+  const auto r = run_static_phases(api, kFsArr, {a, b}, {a, b, plain});
+  if(r.skipped)
+    SKIP(r.backend + ": " + r.skip_reason);
+
+  INFO("backend=" << r.backend << " error=" << r.error);
+  REQUIRE(r.error.empty());
+  REQUIRE(r.valid2);
+  REQUIRE(!r.snap1.bucketArrays.empty());
+  REQUIRE(!r.snap2.bucketArrays.empty());
+  CHECK(r.snap2.bucketLayers[0] == 2);
+  CHECK(r.snap2.bucketArrays[0] == r.snap1.bucketArrays[0]);
+  CHECK(near(r.mid2, kBlue, kTol));
+}
+
+// =============================================================================
+// Case 13 -- a removed texture's layer is reused. Phase 2 drops the
+// first texture and adds a new one: the new one takes the freed layer 0
+// without reallocating the array, and is what layer 0 shows.
+TEST_CASE(
+    "a new texture reuses a removed texture's layer",
+    "[gfx][scene][material][texture-array]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  const auto a = makeStaticMaterial(QColor(0, 0, 255, 255), 0xC11);
+  const auto b = makeStaticMaterial(QColor(255, 0, 255, 255), 0xC12);
+  const auto e = makeStaticMaterial(QColor(255, 255, 0, 255), 0xC13);
+
+  const auto r = run_static_phases(api, kFsArr, {a, b}, {b, e});
+  if(r.skipped)
+    SKIP(r.backend + ": " + r.skip_reason);
+
+  INFO("backend=" << r.backend << " error=" << r.error << " mid2=" << rgba(r.mid2));
+  REQUIRE(r.error.empty());
+  REQUIRE(r.valid2);
+  REQUIRE(!r.snap1.bucketArrays.empty());
+  REQUIRE(!r.snap2.bucketArrays.empty());
+  CHECK(r.snap2.bucketLayers[0] == 2);
+  CHECK(r.snap2.bucketArrays[0] == r.snap1.bucketArrays[0]);
+  CHECK(near(r.mid2, kYellow, kTol));
 }
