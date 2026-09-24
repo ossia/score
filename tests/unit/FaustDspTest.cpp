@@ -4,6 +4,7 @@
 
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/graph/graph.hpp>
+#include <ossia/dataflow/graph_edge_helpers.hpp>
 #include <ossia/dataflow/nodes/faust/faust_node.hpp>
 #include <ossia/detail/disable_fpe.hpp>
 
@@ -555,5 +556,46 @@ TEST_CASE(
   CHECK((*values)[0] == Approx(0.75));
   CHECK((*values)[1] == Approx(0.75));
   CHECK(!node->ui.consume());
+  g->clear();
+}
+
+TEST_CASE(
+    "Faust: a mono generator follows the channels plugged into it", "[faust][node]")
+{
+  Jit gen{"process = 0.25;"};
+  REQUIRE(gen.ok());
+
+  constexpr int frames = 64;
+  ossia::execution_state e;
+  e.sampleRate = 48000;
+  e.bufferSize = frames;
+  e.modelToSamplesRatio = e.sampleRate / ossia::flicks_per_second<double>;
+  e.samplesToModelRatio = ossia::flicks_per_second<double> / e.sampleRate;
+
+  auto node = std::make_shared<ossia::nodes::faust_mono_fx>(
+      std::shared_ptr<dsp>(gen.dsp, [](dsp*) {}));
+  auto g = ossia::make_graph(ossia::graph_setup_options{});
+  g->add_node(node);
+
+  // A stereo cable into the unused inlet: one clone per channel, as before.
+  auto src = std::make_shared<ossia::nodes::faust_mono_fx>(
+      std::shared_ptr<dsp>(gen.dsp, [](dsp*) {}));
+  g->add_node(src);
+  g->connect(ossia::make_glutton_edge(*g, 0, 0, src, node));
+  auto& in = node->root_inputs()[0]->cast<ossia::audio_port>();
+  in.set_channels(2);
+  for(auto& c : in.get())
+    c.assign(frames, 0.);
+
+  ossia::token_request tk;
+  tk.prev_date = ossia::time_value{0};
+  tk.date = ossia::time_value{int64_t(frames * e.samplesToModelRatio)};
+  tk.start_sample = 0;
+  tk.length_sample = frames;
+  e.begin_tick();
+  node->run(tk, ossia::exec_state_facade{&e});
+
+  const auto& out = node->root_outputs()[0]->cast<ossia::audio_port>();
+  CHECK(out.channels() == 2);
   g->clear();
 }
