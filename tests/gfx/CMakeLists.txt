@@ -1725,6 +1725,13 @@ endif()
 # Merge Geometries bakes transforms into GPU-resident geometry.
 score_add_gfx_test(merge_geometries_gpu_transform MergeGeometriesGpuTransform.cpp)
 
+# flattenScene drops transform / light slot refs freed before a re-init.
+score_add_gfx_test(stale_slot_flatten GfxStaleSlotFlatten.cpp)
+target_sources(test_gfx_stale_slot_flatten PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator/offsetAllocator.cpp")
+target_include_directories(test_gfx_stale_slot_flatten PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator")
+
 # Texture inlet settings on Texture to buffer and Texture Info (agent I6).
 if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
   score_add_test(test_gfx_avnd_texture_inlet_settings
