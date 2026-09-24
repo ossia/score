@@ -174,14 +174,16 @@ struct GfxRenderer<Node_T> final
     return nullptr;
   }
 
-  // Each CPU texture outlet owns one sampler in m_samplers, in field order. The
-  // pass drawing an edge must bind the sampler of the outlet that edge leaves
-  // from: generic_texgen_fs only samples binding 3, so binding every sampler
-  // made all the outlets show the first one.
+  // Each texture outlet owns one sampler in m_samplers: the CPU outlets in field
+  // order, then the GPU outlets from texture_outs.gpu_first. The pass drawing an
+  // edge must bind the sampler of the outlet that edge leaves from:
+  // generic_texgen_fs only samples binding 3.
   std::span<const score::gfx::Sampler>
   samplersForOutputEdge(const score::gfx::Edge& edge) const noexcept override
   {
-    if constexpr(avnd::cpu_texture_output_introspection<Node_T>::size > 1)
+    constexpr auto n_cpu = avnd::cpu_texture_output_introspection<Node_T>::size;
+    constexpr auto n_gpu = avnd::gpu_texture_output_introspection<Node_T>::size;
+    if constexpr(n_cpu + n_gpu > 1)
     {
       const auto& outputs = this->node().output;
       int port_idx = -1;
@@ -204,6 +206,17 @@ struct GfxRenderer<Node_T> final
         if(static_cast<int>(FieldIdx) == port_idx)
           sampler_idx = static_cast<int>(PredIdx);
       });
+      if constexpr(n_gpu > 0)
+      {
+        if(sampler_idx < 0)
+          avnd::gpu_texture_output_introspection<Node_T>::for_all_n2(
+              avnd::get_outputs<Node_T>(*state),
+              [&]<std::size_t PredIdx, std::size_t FieldIdx>(
+                  auto&, avnd::predicate_index<PredIdx>, avnd::field_index<FieldIdx>) {
+            if(static_cast<int>(FieldIdx) == port_idx)
+              sampler_idx = static_cast<int>(texture_outs.gpu_first + PredIdx);
+          });
+      }
 
       if(sampler_idx >= 0 && sampler_idx < std::ssize(this->m_samplers))
         return std::span<const score::gfx::Sampler>{&this->m_samplers[sampler_idx], 1};
