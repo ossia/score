@@ -710,10 +710,8 @@ bool remapVertexInputs(
     if(const auto* match = findGeometryAttribute(geom, var_name, sem_key))
     {
       // An attribute pointing past the layout the mesh actually prepared
-      // would renumber onto nothing. With a fallback context that is a
-      // miss the pipeline is refused for; without one it is kept, and the
-      // renumber below lands it on slot 0.
-      if(pool && !(match->binding >= 0 && match->binding < meshBindingCount))
+      // has no stream to read: the pipeline is refused.
+      if(!(match->binding >= 0 && match->binding < meshBindingCount))
       {
         qDebug() << "remapPipelineVertexInputs: VERTEX_INPUT '"
                  << QString::fromUtf8(var_name.data(), (int)var_name.size())

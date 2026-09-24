@@ -179,8 +179,7 @@ void main() { frag = vec4(1.0); }
       batch->release();
 
       // 4. An attribute whose binding is outside the mesh's layout: the
-      //    strict path keeps it and lands it on slot 0, which is what shipped
-      //    before the unification and is deliberately preserved.
+      //    strict path refuses the pipeline, as the fallback-aware one does.
       auto pip4 = newPipeline();
       FallbackBindingPlan plan4;
       const bool remapped4 = remapPipelineVertexInputs(
@@ -207,11 +206,7 @@ void main() { frag = vec4(1.0); }
       CHECK(plan3.mesh_bindings == plan1.mesh_bindings);
       CHECK(plan3.slots.empty());
 
-      CHECK(remapped4);
-      REQUIRE(plan4.mesh_bindings.size() == 1);
-      CHECK(plan4.mesh_bindings[0] == 0);
-      REQUIRE(attrBindings(pip4->vertexInputLayout()).size() == 2);
-      CHECK(attrBindings(pip4->vertexInputLayout())[1] == std::pair<int, int>{1, 0});
+      CHECK(!remapped4);
 
       ran = true;
     }

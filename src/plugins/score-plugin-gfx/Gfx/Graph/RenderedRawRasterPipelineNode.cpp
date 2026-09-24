@@ -173,6 +173,35 @@ bool checkMetalBufferBudget(
   dumpMetalBufferTable(srb, vs);
   return false;
 }
+
+void warnUnresolvedVertexInputs(
+    const QShader& vs, const ossia::geometry& geom, const isf::descriptor& desc)
+{
+  for(const auto& var : vs.description().inputVariables())
+  {
+    const std::string_view name(var.name.constData(), var.name.size());
+    const isf::vertex_input* entry = nullptr;
+    for(const auto& vi : desc.vertex_inputs)
+    {
+      if(vi.name == name)
+      {
+        entry = &vi;
+        break;
+      }
+    }
+    if(entry && !entry->required)
+      continue;
+    const std::string_view sem
+        = (entry && !entry->semantic.empty()) ? std::string_view(entry->semantic)
+                                              : name;
+    if(findGeometryAttribute(geom, name, sem))
+      continue;
+    qWarning().noquote()
+        << "RawRaster: required VERTEX_INPUT" << QString::fromUtf8(var.name)
+        << "has no matching attribute on the upstream geometry; the draw is skipped."
+        << QString::fromStdString(desc.description);
+  }
+}
 }
 
 
@@ -781,6 +810,7 @@ void RenderedRawRasterPipelineNode::initPass(
                *ps, v, *geom, n.descriptor(),
                rhi, renderer.vertexFallbackPool(), res, fallbackPlan))
         {
+          warnUnresolvedVertexInputs(v, *geom, n.descriptor());
           delete ps;
           delete pubo;
           delete bindings;
@@ -1118,12 +1148,15 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     maxLayers = mvCount;
 
   // MSAA uniform across colour attachments — pick the max SAMPLES declared
-  // by any OUTPUT and apply it to the render pass. Allocated textures stay
+  // by any OUTPUT and apply it to the render pass; with none declared, the
+  // renderer's own count. Allocated textures stay
   // single-sample and serve as MSAA resolve targets (see SimpleRenderedISF
   // initMRTPass for the full rationale).
-  int mrtSamples = std::max(renderer.samples(), 1);
+  int mrtSamples = 0;
   for(const auto& out : outputs)
     mrtSamples = std::max(mrtSamples, out.samples);
+  if(mrtSamples <= 0)
+    mrtSamples = std::max(renderer.samples(), 1);
 
   // Allocate colour + depth textures per declared OUTPUT. Unknown / empty
   // FORMAT falls back to RGBA8 (colour) or D32F (depth). `type: "depth"`
@@ -1985,6 +2018,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
                rhi, renderer.vertexFallbackPool(), res, fallbackPlan))
         {
           qWarning() << "RawRaster::initMRTPass: remapPipelineVertexInputs FAILED";
+          warnUnresolvedVertexInputs(v, *geom, n.descriptor());
           delete ps;
           delete pubo;
           delete bindings;
@@ -2483,21 +2517,28 @@ void RenderedRawRasterPipelineNode::initState(
   }
 
   // MRT is needed for anything the single-target path cannot express: several
-  // colour attachments, an explicit depth output, layered or cubemap output, or
-  // multiview -- the last because its render target has a different shape from
-  // a swapchain RT.
+  // colour attachments, an explicit depth output, layered or cubemap output, a
+  // colour FORMAT other than the consumer's RGBA8 or a declared SAMPLES count,
+  // or multiview -- the last because its render target has a different shape
+  // from a swapchain RT.
   {
     const auto& outputs = n.descriptor().outputs;
     int colorCount = 0;
     bool hasDepth = false;
     bool hasLayered = false;
     bool hasCubemap = false;
+    bool hasColorOverride = false;
     for(const auto& out : outputs)
     {
       if(out.type == "depth")
         hasDepth = true;
       else
+      {
         ++colorCount;
+        if(parseOutputFormat(out.format, QRhiTexture::RGBA8) != QRhiTexture::RGBA8
+           || out.samples > 0)
+          hasColorOverride = true;
+      }
       if(out.layers > 1)
         hasLayered = true;
       if(out.is_cubemap)
@@ -2524,8 +2565,9 @@ void RenderedRawRasterPipelineNode::initState(
       perMip = (et == "PER_MIP");
       manual = (et == "MANUAL");
     }
-    m_hasMRT = colorCount > 1 || hasDepth || hasLayered || hasCubemap || perMip
-               || manual || n.descriptor().multiview_count >= 2;
+    m_hasMRT = colorCount > 1 || hasDepth || hasLayered || hasCubemap
+               || hasColorOverride || perMip || manual
+               || n.descriptor().multiview_count >= 2;
   }
 
   if(m_hasMRT)

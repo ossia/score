@@ -771,12 +771,13 @@ struct output_declaration
   // Empty = use the default (RGBA8 for color, D32F for depth).
   std::string format;
 
-  // SAMPLES: MSAA sample count (1, 2, 4, 8, 16, 32, 64). 1 = no MSAA (default).
+  // SAMPLES: MSAA sample count (1, 2, 4, 8, 16, 32, 64). 1 = no MSAA.
+  // 0 = not declared: the renderer's own sample count applies.
   // The renderer allocates an MSAA texture and inserts an automatic resolve
   // pass when downstream consumers expect a non-MSAA input. Each declared
   // OUTPUT can have its own sample count; the depth attachment for a colour
   // OUTPUT inherits the same sample count.
-  int samples{1};
+  int samples{0};
 
   // CUBEMAP: when true the output is allocated with the QRhi cubemap flag
   // so downstream consumers can bind it as a samplerCube. Implies
