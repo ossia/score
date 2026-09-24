@@ -504,6 +504,7 @@ public:
   W_SLOT(serializeAsJson)
 private:
   void submit(Macro& m, score::Command* c);
+  void setControlValue(QObject* obj, ossia::value value);
 };
 }
 

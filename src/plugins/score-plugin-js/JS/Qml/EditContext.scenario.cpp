@@ -30,13 +30,34 @@
 #include <ossia-qt/js_utilities.hpp>
 
 #include <QDebug>
+#include <QMetaType>
+#include <QSize>
 #include <QTime>
 
 #include <iterator>
+#include <optional>
 namespace JS
 {
 
-EditJsContext::EditJsContext() { }
+template <typename From>
+static void registerRenderSizeConverter()
+{
+  using To = std::optional<QSize>;
+  if(QMetaType::hasRegisteredConverterFunction<From, To>())
+    return;
+  QMetaType::registerConverter<From, To>([](const From& sz) -> To {
+    const QSize s = QSizeF(sz).toSize();
+    if(s.isEmpty())
+      return std::nullopt;
+    return s;
+  });
+}
+
+EditJsContext::EditJsContext()
+{
+  registerRenderSizeConverter<QSize>();
+  registerRenderSizeConverter<QSizeF>();
+}
 
 EditJsContext::~EditJsContext() { }
 

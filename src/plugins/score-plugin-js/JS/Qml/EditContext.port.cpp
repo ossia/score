@@ -12,7 +12,11 @@
 
 #include <core/document/Document.hpp>
 
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/network/domain/domain.hpp>
+#include <ossia/network/value/value_conversion.hpp>
+
+#include <QDebug>
 
 #include <vector>
 
@@ -268,137 +272,127 @@ void EditJsContext::setAddress(QObject* obj, QString addr)
   m->setProperty<Process::Port::p_address>(*proc, std::move(*a));
 }
 
-void EditJsContext::setValue(QObject* obj, double value)
+static bool isNumeric(ossia::val_type t) noexcept
+{
+  return t == ossia::val_type::INT || t == ossia::val_type::FLOAT
+         || t == ossia::val_type::BOOL;
+}
+
+static std::size_t vectorSize(ossia::val_type t) noexcept
+{
+  switch(t)
+  {
+    case ossia::val_type::VEC2F:
+      return 2;
+    case ossia::val_type::VEC3F:
+      return 3;
+    case ossia::val_type::VEC4F:
+      return 4;
+    default:
+      return 0;
+  }
+}
+
+static ossia::value matchControlType(const ossia::value& current, ossia::value v)
+{
+  if(!current.valid() || !v.valid())
+    return v;
+
+  const auto target = current.get_type();
+  const auto source = v.get_type();
+  if(target == source)
+    return v;
+
+  if(isNumeric(target) && isNumeric(source))
+    return ossia::convert(v, target);
+
+  if(const auto n = vectorSize(target))
+  {
+    if(auto list = v.target<std::vector<ossia::value>>())
+    {
+      if(list->size() == n
+         && ossia::all_of(*list, [](const ossia::value& e) {
+              return isNumeric(e.get_type());
+            }))
+        return ossia::convert(v, target);
+    }
+  }
+  return v;
+}
+
+void EditJsContext::setControlValue(QObject* obj, ossia::value value)
 {
   auto doc = ctx();
   if(!doc)
     return;
   auto port = qobject_cast<Process::ControlInlet*>(obj);
   if(!port)
+  {
+    if(auto p = qobject_cast<Process::Port*>(obj))
+      qWarning() << "Score.setValue: port" << p->name()
+                 << "is not a control and holds no value; connect a cable to it";
     return;
+  }
   auto [m, _] = macro(*doc);
-  m->setProperty<Process::ControlInlet::p_value>(*port, float(value));
+  m->setProperty<Process::ControlInlet::p_value>(
+      *port, matchControlType(port->value(), std::move(value)));
+}
+
+void EditJsContext::setValue(QObject* obj, double value)
+{
+  setControlValue(obj, float(value));
 }
 
 void EditJsContext::setValue(QObject* obj, QVector2D value)
 {
-  auto doc = ctx();
-  if(!doc)
-    return;
-  auto port = qobject_cast<Process::ControlInlet*>(obj);
-  if(!port)
-    return;
-  auto [m, _] = macro(*doc);
-  m->setProperty<Process::ControlInlet::p_value>(
-      *port, ossia::vec2f{value.x(), value.y()});
+  setControlValue(obj, ossia::vec2f{value.x(), value.y()});
 }
 
 void EditJsContext::setValue(QObject* obj, QVector3D value)
 {
-  auto doc = ctx();
-  if(!doc)
-    return;
-  auto port = qobject_cast<Process::ControlInlet*>(obj);
-  if(!port)
-    return;
-  auto [m, _] = macro(*doc);
-  m->setProperty<Process::ControlInlet::p_value>(
-      *port, ossia::vec3f{value.x(), value.y(), value.z()});
+  setControlValue(obj, ossia::vec3f{value.x(), value.y(), value.z()});
 }
 
 void EditJsContext::setValue(QObject* obj, QVector4D value)
 {
-  auto doc = ctx();
-  if(!doc)
-    return;
-  auto port = qobject_cast<Process::ControlInlet*>(obj);
-  if(!port)
-    return;
-  auto [m, _] = macro(*doc);
-  m->setProperty<Process::ControlInlet::p_value>(
-      *port, ossia::vec4f{value.x(), value.y(), value.z(), value.w()});
+  setControlValue(obj, ossia::vec4f{value.x(), value.y(), value.z(), value.w()});
 }
 
 void EditJsContext::setValue(QObject* obj, QString value)
 {
-  auto doc = ctx();
-  if(!doc)
-    return;
-  auto port = qobject_cast<Process::ControlInlet*>(obj);
-  if(!port)
-    return;
-  auto [m, _] = macro(*doc);
-  m->setProperty<Process::ControlInlet::p_value>(*port, value.toStdString());
+  setControlValue(obj, value.toStdString());
 }
 
 void EditJsContext::setValue(QObject* obj, bool value)
 {
-  auto doc = ctx();
-  if(!doc)
-    return;
-  auto port = qobject_cast<Process::ControlInlet*>(obj);
-  if(!port)
-    return;
-  auto [m, _] = macro(*doc);
-  m->setProperty<Process::ControlInlet::p_value>(*port, value);
+  setControlValue(obj, value);
 }
 
 void EditJsContext::setValue(QObject* obj, int value)
 {
-  auto doc = ctx();
-  if(!doc)
-    return;
-  auto port = qobject_cast<Process::ControlInlet*>(obj);
-  if(!port)
-    return;
-  auto [m, _] = macro(*doc);
-  m->setProperty<Process::ControlInlet::p_value>(*port, value);
+  setControlValue(obj, value);
 }
 
 void EditJsContext::setValue(QObject* obj, QList<QString> value)
 {
-  auto doc = ctx();
-  if(!doc)
-    return;
-  auto port = qobject_cast<Process::ControlInlet*>(obj);
-  if(!port)
-    return;
-
   std::vector<ossia::value> vals;
   for(auto& v : value)
   {
     vals.push_back(v.toStdString());
   }
-  auto [m, _] = macro(*doc);
-  m->setProperty<Process::ControlInlet::p_value>(*port, std::move(vals));
+  setControlValue(obj, std::move(vals));
 }
 
 // Score.setValue(Score.inlet(Score.find("Javascript"), 0), [ 0, 0.1, 2.0 ])
 void EditJsContext::setValue(QObject* obj, QList<qreal> value)
 {
-  auto doc = ctx();
-  if(!doc)
-    return;
-  auto port = qobject_cast<Process::ControlInlet*>(obj);
-  if(!port)
-    return;
-
   std::vector<ossia::value> vals(value.begin(), value.end());
-  auto [m, _] = macro(*doc);
-  m->setProperty<Process::ControlInlet::p_value>(*port, std::move(vals));
+  setControlValue(obj, std::move(vals));
 }
 
 void EditJsContext::setValue(QObject* obj, QList<QVariant> value)
 {
-  auto doc = ctx();
-  if(!doc)
-    return;
-  auto port = qobject_cast<Process::ControlInlet*>(obj);
-  if(!port)
-    return;
-
-  auto [m, _] = macro(*doc);
-  m->setProperty<Process::ControlInlet::p_value>(*port, ossia::qt::qt_to_ossia{}(value));
+  setControlValue(obj, ossia::qt::qt_to_ossia{}(value));
 }
 
 double EditJsContext::min(QObject* obj)

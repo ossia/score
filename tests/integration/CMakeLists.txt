@@ -1337,6 +1337,17 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_media AND TARGET score_p
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/eigen")
 endif()
 
+# Score.setValue against the kind of port it lands on (Bool/Int/VecN coercion,
+# plain value inlets), and a texture inlet's renderSize written from a script.
+if(TARGET score AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_js_setvalue_port_kinds
+    SOURCES JsSetValuePortKindsTest.cpp)
+  target_compile_definitions(test_integration_js_setvalue_port_kinds PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\"")
+  set_tests_properties(test_integration_js_setvalue_port_kinds PROPERTIES
+    TIMEOUT 900 RUN_SERIAL TRUE)
+endif()
+
 # A text-mode avnd file port hands the object exactly the bytes that were read
 # (QIODevice::Text drops '\r'), both through oscr::executePortPreprocess and
 # through oscr::raw_file_storage::load.
