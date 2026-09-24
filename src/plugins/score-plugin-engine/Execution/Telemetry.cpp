@@ -411,7 +411,8 @@ void Telemetry::rebuild()
   if(!ctx)
     return;
 
-  teardown();
+  // The views keep what they show until the new arena's first frame.
+  teardown(false);
 
   const std::size_t capacity = std::max<std::size_t>(64, 2 * m_subs.size());
   const std::size_t benches
@@ -448,7 +449,7 @@ void Telemetry::rebuild()
   syncBenches();
 }
 
-void Telemetry::teardown()
+void Telemetry::teardown(bool notify)
 {
   auto& ctx = m_plugin.contextData();
   if(ctx && m_arena)
@@ -465,7 +466,8 @@ void Telemetry::teardown()
   m_arena.reset();
   for(auto& p : m_playheads)
     p.attached = false;
-  updated();
+  if(notify)
+    updated();
 }
 
 void Telemetry::attach(int index)
@@ -475,7 +477,8 @@ void Telemetry::attach(int index)
   if(!ctx || !m_arena || s.attached || s.users == 0)
     return;
 
-  auto tap = std::make_shared<ossia::telemetry::meter_tap>();
+  // Made once it is known where it goes: read() retries until then.
+  std::shared_ptr<ossia::telemetry::meter_tap> tap;
   if(s.kind == tap_kind::node && s.inlet)
   {
     if(!s.port)
@@ -487,6 +490,7 @@ void Telemetry::attach(int index)
        || it->second.second->which() != ossia::audio_port::which)
       return; // Not executing yet: read() retries.
 
+    tap = std::make_shared<ossia::telemetry::meter_tap>();
     auto node = it->second.first;
     auto in = static_cast<ossia::audio_inlet*>(it->second.second);
     s.node = node;
@@ -509,6 +513,7 @@ void Telemetry::attach(int index)
        || it->second.second->which() != ossia::audio_port::which)
       return; // Not executing yet: read() retries.
 
+    tap = std::make_shared<ossia::telemetry::meter_tap>();
     auto node = it->second.first;
     auto out = static_cast<ossia::audio_outlet*>(it->second.second);
     s.node = node;
@@ -524,6 +529,7 @@ void Telemetry::attach(int index)
   {
     // A virtual port: the parameter only gets the address of the tap, which
     // the arena owns from the next tick on and the closure until then.
+    tap = std::make_shared<ossia::telemetry::meter_tap>();
     auto* raw = tap.get();
     ctx->m_execQueue.enqueue(
         [arena = m_arena, index, gen = s.generation,
@@ -534,6 +540,7 @@ void Telemetry::attach(int index)
   }
   else
   {
+    tap = std::make_shared<ossia::telemetry::meter_tap>();
     ctx->m_execQueue.enqueue(
         [arena = m_arena, index, gen = s.generation, kind = s.kind,
          in_arena = std::move(tap)]() mutable {

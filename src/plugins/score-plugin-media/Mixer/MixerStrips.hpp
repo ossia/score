@@ -113,6 +113,9 @@ protected:
   //! Shows the meter's channels, or only the listed ones.
   void setMeter(Execution::Telemetry::Meter m, std::vector<int> channels = {});
   void setGainReadout(double gain);
+  //! What the metered signal goes through before it is used: the meter shows
+  //! it scaled by this.
+  virtual double meterGain() const noexcept { return 1.; }
   void setTitle(const QString& t);
   void setTitleColor(const QColor& c);
   void resizeEvent(QResizeEvent*) override;
@@ -161,6 +164,10 @@ private:
   QElapsedTimer m_processesAge;
   void fillContextMenu(QMenu&) override;
   void syncFromModel();
+  void syncGain();
+  void syncPan();
+  void syncButtons();
+  void syncTitle();
 
   const Scenario::IntervalModel& m_model;
   QToolButton* m_mute{};
@@ -197,7 +204,11 @@ private:
   void fillContextMenu(QMenu&) override;
   void onNodeRemoved(const ossia::net::node_base&);
 
+  double meterGain() const noexcept override;
+
   ossia::audio_parameter* m_param{};
+  Meter m_meterKind{Meter::None};
+  double m_shownGain{-1.};
   bool m_dragging{};
 };
 }
