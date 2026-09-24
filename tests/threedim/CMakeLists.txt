@@ -433,3 +433,25 @@ threedim_test_includes(test_threedim_scene_approximation_pins)
 target_compile_definitions(test_threedim_scene_approximation_pins
   PRIVATE THREEDIM_SRC_DIR="${THREEDIM_DIR}")
 
+# Primitive subdivision inputs are clamped to their declared ranges.
+score_add_test(test_threedim_primitive_range_clamp
+  SOURCES PrimitiveRangeClamp.cpp
+    "${THREEDIM_DIR}/Primitive.cpp"
+  LIBS ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_primitive_range_clamp)
+
+# Repack attributes rebinds once its source buffers arrive, never aliasing its
+# output as a load binding.
+score_add_test(test_threedim_geometry_packer_rebind
+  SOURCES GeometryPackerRebind.cpp
+  GUI
+  PLUGINS score_plugin_gfx score_plugin_scenario score_lib_process)
+threedim_test_includes(test_threedim_geometry_packer_rebind)
+
+# Text to Mesh: glyph coverage under the non-zero rule and newline handling.
+score_add_test(test_threedim_text_to_mesh_triangulation
+  SOURCES TextToMeshTriangulation.cpp "${THREEDIM_DIR}/TextToMesh.cpp"
+  PLUGINS score_plugin_gfx
+  LIBS ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_text_to_mesh_triangulation)
+

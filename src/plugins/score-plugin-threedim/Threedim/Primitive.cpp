@@ -5,6 +5,7 @@
 
 #include <QDebug>
 
+#include <algorithm>
 #include <cmath>
 #include <QString>
 
@@ -172,8 +173,8 @@ void Plane::update()
   */
   g_tmpMesh.Clear();
 
-  const int hdivs = std::max(2, (int)inputs.hdivs);
-  const int vdivs = std::max(2, (int)inputs.vdivs);
+  const int hdivs = std::clamp((int)inputs.hdivs, 2, 200);
+  const int vdivs = std::clamp((int)inputs.vdivs, 2, 200);
   vcg::tri::Grid(g_tmpMesh, hdivs, vdivs, 1., 1.);
   auto [vertices, pos_start, norm_start, uv_start] = createMesh(g_tmpMesh, complete);
   outputs.geometry.mesh.buffers.main_buffer.elements = complete.data();
@@ -200,7 +201,7 @@ void Cube::update()
 void Sphere::update()
 {
   g_tmpMesh.Clear();
-  vcg::tri::Sphere(g_tmpMesh, inputs.subdiv);
+  vcg::tri::Sphere(g_tmpMesh, std::clamp((int)inputs.subdiv, 1, 5));
   loadTriMesh(g_tmpMesh, complete, outputs);
 }
 
@@ -214,21 +215,26 @@ void Icosahedron::update()
 void Cone::update()
 {
   g_tmpMesh.Clear();
-  vcg::tri::Cone(g_tmpMesh, inputs.r1, inputs.r2, inputs.h, inputs.subdiv);
+  vcg::tri::Cone(
+      g_tmpMesh, inputs.r1, inputs.r2, inputs.h, std::clamp((int)inputs.subdiv, 1, 500));
   loadTriMesh(g_tmpMesh, complete, outputs);
 }
 
 void Cylinder::update()
 {
   g_tmpMesh.Clear();
-  vcg::tri::Cylinder(inputs.slices, inputs.stacks, g_tmpMesh, true);
+  vcg::tri::Cylinder(
+      std::clamp((int)inputs.slices, 1, 64), std::clamp((int)inputs.stacks, 1, 64),
+      g_tmpMesh, true);
   loadTriMesh(g_tmpMesh, complete, outputs);
 }
 
 void Torus::update()
 {
   g_tmpMesh.Clear();
-  vcg::tri::Torus(g_tmpMesh, inputs.r1, inputs.r2, inputs.hdiv, inputs.vdiv);
+  vcg::tri::Torus(
+      g_tmpMesh, inputs.r1, inputs.r2, std::clamp((int)inputs.hdiv, 1, 50),
+      std::clamp((int)inputs.vdiv, 1, 50));
   loadTriMesh(g_tmpMesh, complete, outputs);
 }
 

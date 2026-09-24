@@ -1483,8 +1483,11 @@ score_add_csf_test(sampled_inputs GfxCsfSampledInputs.cpp)
 # reported at warning level.
 score_add_gfx_test(raw_raster_output_and_vertex_input GfxRawRasterOutputAndVertexInput.cpp)
 
-# Academy Texture Loader cubemaps (N43 equirect faces + orientation, N44
-# cross/strip slicing and the over-read guard), driven directly on a QRhi.
+# Merge Geometries bakes each input's transform into its meshes.
+score_add_gfx_test(merge_geometries_transform MergeGeometriesTransform.cpp)
+
+# Academy Texture Loader cubemaps (equirect faces + orientation, cross/strip
+# slicing and the over-read guard), driven directly on a QRhi.
 if(TARGET score_addon_academy AND TARGET score_plugin_avnd)
   set(_academy_src_cube "${SCORE_ROOT_SOURCE_DIR}/src/addons/score-addon-academy")
   score_plugin_hidden_sources(_academy_hidden_cube

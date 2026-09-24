@@ -22,6 +22,16 @@ namespace score::gfx
  * Outputs:
  *   - Port 0: Geometry (Types::Geometry)
  */
+/**
+ * @brief Copies of the meshes with a model transform applied to their CPU
+ * position, normal, tangent and bitangent attributes and to their bounds.
+ *
+ * GPU-resident buffers are left as they are.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+std::vector<ossia::geometry> bakeGeometryTransform(
+    const std::vector<ossia::geometry>& meshes, const ossia::transform3d& transform);
+
 class SCORE_PLUGIN_GFX_EXPORT MergeGeometriesNode : public ProcessNode
 {
 public:
