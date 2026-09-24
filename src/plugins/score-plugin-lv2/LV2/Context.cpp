@@ -356,22 +356,6 @@ LV2Data::LV2Data(HostContext& h, EffectContext& ctx)
     : host{h}
     , effect{ctx}
 {
-  for(auto res :
-      {effect.plugin.get_required_features(), effect.plugin.get_optional_features()})
-  {
-    std::cerr << get_lv2_plugin_name(effect.plugin).toStdString() << " requires "
-              << std::endl;
-    auto it = res.begin();
-    while(it)
-    {
-      auto node = res.get(it);
-      if(node.is_uri())
-        std::cerr << "Required uri: " << node.as_uri() << std::endl;
-      it = res.next(it);
-    }
-    std::cerr << std::endl;
-  }
-
   const auto numports = effect.plugin.get_num_ports();
   for(std::size_t i = 0; i < numports; i++)
   {
