@@ -135,7 +135,11 @@ void js_node::setScript(const QString& rootPath, const QString& val)
         newEngine.addImportPath(path);
       }
 
-      newEngine.rootContext()->setContextProperty("Util", new JsUtils);      
+      // setContextProperty does not take ownership: parent it to the engine,
+      // which is recreated whenever the last node on this thread lets it go.
+      auto utils = new JsUtils;
+      utils->setParent(&newEngine);
+      newEngine.rootContext()->setContextProperty("Util", utils);
     });
   }
   if(!m_context)
