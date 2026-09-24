@@ -68,7 +68,25 @@ Presenter::Presenter(
     m_view->setPresenter(this);
 }
 
-Presenter::~Presenter() { }
+Presenter::~Presenter()
+{
+  // An exit that skipped exit() -- a script's Qt.exit(), a test that deletes
+  // its presenter -- reaches here with documents still open. They are QObject
+  // children of this presenter, so left alone they would be deleted by
+  // ~QObject, after every member: after m_components, i.e. after the
+  // application plug-ins and the audio engine they own.
+  //
+  // The engine's tick holds the running document's execution graph, and its
+  // release goes through the audio thread: destroyed first, the engine takes
+  // that thread with it, the release command is left in the document's
+  // execution queue, and the graph is only freed with the execution plug-in --
+  // after the document plug-ins created later, which ~DocumentModel deletes
+  // first. The gfx nodes of that graph then unregister themselves from the
+  // Gfx::DocumentPlugin that was just freed.
+  //
+  // Close them here instead, while every member still exists.
+  m_docManager.closeRemainingDocuments();
+}
 
 bool Presenter::exit()
 {
