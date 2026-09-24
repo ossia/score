@@ -133,11 +133,6 @@ private:
     bool persistent{false}; //!< Ping-pong pair swapped each frame (raw raster AUXILIARY only)
     std::string name;
     std::string access;
-    // Index into n.input[] for the score port that may carry an upstream-
-    // supplied QRhiBuffer*. -1 when the buffer can only come from the
-    // input geometry's auxiliary list (e.g. desc.auxiliary entries without
-    // a matching INPUTS port).
-    int input_port_index{-1};
     // SRB binding slot assigned at pipeline build time. Needed so the per-
     // sub-mesh draw loop can patch `per_draw` (and any other per-mesh aux)
     // to point at mesh[i]'s buffer before drawing sub-mesh i. -1 when the

@@ -2207,40 +2207,6 @@ void RenderedRawRasterPipelineNode::initState(
       }
     };
 
-    // Resolve a buffer for `ssbo` by scanning the connected input port's edges
-    // for an upstream producer. Upstream renderers publish through the virtual
-    // NodeRenderer::bufferForOutput() -- Port::value is never written for
-    // buffer-typed outputs -- so retrieval goes through
-    // RenderList::bufferForInput(edge).
-    //
-    // Complements try_bind_from_geometry: an INPUTS-declared storage_input or
-    // uniform_input may be wired through a dedicated Buffer edge instead of
-    // riding along with the geometry.
-    auto try_bind_from_input_port = [&](AuxiliarySSBO& ssbo) {
-      if(ssbo.input_port_index < 0
-         || ssbo.input_port_index >= (int)n.input.size())
-        return;
-      Port* port = n.input[ssbo.input_port_index];
-      if(!port || port->type != Types::Buffer)
-        return;
-      for(Edge* edge : port->edges)
-      {
-        if(!edge || !edge->source)
-          continue;
-        if(edge->source->type != Types::Buffer)
-          continue;
-        auto view = renderer.bufferForInput(*edge);
-        if(!view.handle)
-          continue;
-        ssbo.buffer = view.handle;
-        RenderList::adoptBuffer(ssbo.buffer);
-        if(ssbo.size <= 0)
-          ssbo.size = view.handle->size();
-        ssbo.owned = false;
-        break;
-      }
-    };
-
     // Compute the byte size required by a LAYOUT. Used when we need to
     // own the buffer (persistent aux). Flexible array members use `size`
     // as the element count (falls back to 1 if unspecified).
@@ -2375,7 +2341,8 @@ void RenderedRawRasterPipelineNode::initState(
       const int firstStorageBinding
           = 3 + (int)m_inputSamplers.size() + (int)m_audioSamplers.size();
       m_firstStorageBinding = firstStorageBinding;
-      collectGraphicsStorageResources(desc, firstStorageBinding, m_storage);
+      collectGraphicsStorageResources(
+          desc, firstStorageBinding, m_storage, startPC.inlets);
     }
     ensureStorageResources(
         *renderer.state.rhi, res, renderer, desc, m_storage,
@@ -2890,11 +2857,39 @@ void RenderedRawRasterPipelineNode::update(
   bool recreateDueToMaterial = mustRecreatePasses;
 
   // Refresh upstream-bound storage_input / uniform_input buffers from input
-  // ports. The first pass will pick them up via the SRB; subsequent passes
-  // need bindUpstreamBuffers to patch their SRBs in-place — handled per-pass
-  // when m_passes is iterated for SRB updates further down. (Safe to call
-  // even with no SRB; the helper just refreshes the m_storage entries.)
-  bindUpstreamBuffers(renderer, n.input, m_storage);
+  // ports, then patch every SRB that already exists. bindUpstreamBuffers skips
+  // an entry whose pointer is unchanged, so one call per SRB would only reach
+  // the first: diff against the previous pointers instead.
+  {
+    ossia::small_vector<QRhiBuffer*, 8> prevSsbos, prevUbos;
+    for(const auto& e : m_storage.ssbos)
+      prevSsbos.push_back(e.buffer);
+    for(const auto& e : m_storage.ubos)
+      prevUbos.push_back(e.buffer);
+
+    bindUpstreamBuffers(renderer, n.input, m_storage);
+
+    const auto patch = [&](QRhiShaderResourceBindings* srb) {
+      if(!srb)
+        return;
+      for(std::size_t i = 0; i < m_storage.ssbos.size(); ++i)
+      {
+        const auto& e = m_storage.ssbos[i];
+        if(e.buffer != prevSsbos[i] && e.buffer && e.binding >= 0)
+          replaceBuffer(*srb, e.binding, e.buffer);
+      }
+      for(std::size_t i = 0; i < m_storage.ubos.size(); ++i)
+      {
+        const auto& e = m_storage.ubos[i];
+        if(e.buffer != prevUbos[i] && e.buffer && e.binding >= 0)
+          replaceBuffer(*srb, e.binding, e.buffer);
+      }
+    };
+    for(auto& [e, pass] : m_passes)
+      patch(pass.p.srb);
+    for(auto* invSrb : m_perInvocationSRBs)
+      patch(invSrb);
+  }
   // Same for read-only csf_image_input: adopt the matching upstream
   // auxiliary_texture. Called per frame so a producer that swaps its
   // QRhiTexture on resize or rebuild flows through. The helper is idempotent
@@ -3079,47 +3074,6 @@ void RenderedRawRasterPipelineNode::update(
         }
       }
     }
-  }
-
-  // Per-frame: re-pull upstream buffers wired through Buffer input ports
-  // (camera UBO, ExtractBuffer2 SSBOs, ...). Cheap: one virtual call per
-  // aux that has an input port index. Runs every frame because we cannot
-  // guarantee the upstream publisher's init() ran before ours — its
-  // bufferForOutput() may only return a non-null handle a frame later.
-  for(auto& aux : m_auxiliarySSBOs)
-  {
-    if(aux.input_port_index < 0
-       || aux.input_port_index >= (int)n.input.size())
-      continue;
-    Port* port = n.input[aux.input_port_index];
-    if(!port || port->type != Types::Buffer)
-      continue;
-
-    QRhiBuffer* upstream = nullptr;
-    for(Edge* edge : port->edges)
-    {
-      if(!edge || !edge->source)
-        continue;
-      if(edge->source->type != Types::Buffer)
-        continue;
-      if(auto view = renderer.bufferForInput(*edge); view.handle)
-      {
-        upstream = view.handle;
-        break;
-      }
-    }
-    if(!upstream || upstream == aux.buffer)
-      continue;
-
-    if(aux.owned && aux.buffer)
-      aux.buffer->deleteLater();
-    else if(aux.buffer)
-      RenderList::dropAdoptedBuffer(aux.buffer);
-    RenderList::adoptBuffer(upstream);
-    aux.buffer = upstream;
-    aux.size = upstream->size();
-    aux.owned = false;
-    mustRecreatePasses = true;
   }
 
   bool recreateDueToGeometry = mustRecreatePasses && !recreateDueToMaterial;

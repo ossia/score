@@ -183,7 +183,8 @@ static bool isGraphicsVisibility(std::string_view v) noexcept
 }
 
 void collectGraphicsStorageResources(
-    const isf::descriptor& desc, int firstBinding, GraphicsStorageResources& out)
+    const isf::descriptor& desc, int firstBinding, GraphicsStorageResources& out,
+    int firstInlet)
 {
   out.ssbos.clear();
   out.images.clear();
@@ -201,7 +202,8 @@ void collectGraphicsStorageResources(
   // (no input port unless flex-array sizing) and for write-only
   // csf_image_input (no input port at all).
   walk_descriptor_inputs(
-      desc, [&](const isf::input& inp, const port_counts& cur, const port_counts&) {
+      desc, port_counts{firstInlet, 0, 0},
+      [&](const isf::input& inp, const port_counts& cur, const port_counts&) {
         const int port_idx = cur.inlets;
         if(auto* s = ossia::get_if<isf::storage_input>(&inp.data))
         {
