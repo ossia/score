@@ -28,6 +28,7 @@
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/Skin.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
