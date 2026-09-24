@@ -890,9 +890,9 @@ void MultiWindowNode::initWindowSwapChain(int index)
     // QVkSwapChain returns null when the surface cannot present (e.g. RADV
     // on Xvfb, without DRI3), and createOrResize() dereferences it. This
     // window gets no swap chain; the others keep running.
-    qWarning(
-        "MultiWindowNode: window %d cannot present on this display, no swap "
-        "chain",
+    qCritical(
+        "MultiWindowNode: window %d cannot present on this display (no "
+        "swap chain): nothing will be rendered to it",
         index);
     releaseWindowSwapChain(index);
     return;
