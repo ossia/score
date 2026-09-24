@@ -3,6 +3,7 @@
 // it has to stay the same object.
 
 #include <Device/Address/AddressSettings.hpp>
+#include <Device/Node/DeviceNode.hpp>
 
 #include <Explorer/Commands/Add/AddAddress.hpp>
 #include <Explorer/Commands/Add/LoadDevice.hpp>
@@ -11,6 +12,7 @@
 
 #include <Audio/AudioApplicationPlugin.hpp>
 #include <Audio/AudioDevice.hpp>
+#include <Audio/PortGain.hpp>
 
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 
@@ -22,6 +24,7 @@
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/network/base/node_functions.hpp>
 
+#include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
@@ -140,5 +143,47 @@ TEST_CASE("A port is added the way the mixer adds it", "[audio][ports]")
     disp.commit();
 
     CHECK(find(*dev, "/rev"));
+  });
+}
+
+TEST_CASE("A port's gain is undoable and saved with the document", "[audio][ports][gain]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& plug = doc->context().plugin<Explorer::DeviceDocumentPlugin>();
+    auto* dev = static_cast<Dataflow::AudioDevice*>(plug.list().audioDevice());
+    REQUIRE(dev);
+    auto* master = find(*dev, "/out/main");
+    REQUIRE(master);
+
+    // What a fader does: the gain changes live, then the release records it.
+    master->push_value(0.5f);
+    Audio::commitPortGain(
+        doc->context(), State::Address{"audio", {"out", "main"}}, 1., 0.5);
+    // Showing the device in the explorer does not rebuild it.
+    CHECK(find(*dev, "/out/main") == master);
+    auto gain = [&] { return master->gain(); };
+    CHECK(gain() == Catch::Approx(0.5));
+    auto node = Device::try_getNodeFromAddress(
+        plug.rootNode(), State::Address{"audio", {"out", "main"}});
+    REQUIRE(node);
+    REQUIRE(node->is<Device::AddressSettings>());
+    auto& attrs = node->get<Device::AddressSettings>().extendedAttributes;
+    REQUIRE(attrs.contains("audio-gain"));
+
+    doc->commandStack().undo();
+    CHECK(gain() == Catch::Approx(1.));
+    doc->commandStack().redo();
+    CHECK(gain() == Catch::Approx(0.5));
+
+    auto* reloaded = score::test::reload_via_json(ctx, *doc);
+    REQUIRE(reloaded);
+    auto& rplug = reloaded->context().plugin<Explorer::DeviceDocumentPlugin>();
+    auto* rdev = static_cast<Dataflow::AudioDevice*>(rplug.list().audioDevice());
+    REQUIRE(rdev);
+    auto* rmaster = find(*rdev, "/out/main");
+    REQUIRE(rmaster);
+    CHECK(rmaster->gain() == Catch::Approx(0.5));
   });
 }
