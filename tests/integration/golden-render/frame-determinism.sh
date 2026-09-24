@@ -14,6 +14,8 @@
 # Exit 0 iff the two renders agree.
 set -uo pipefail
 
+HERE="$(cd "$(dirname "$0")" && pwd)"
+SRCROOT="$(cd "$HERE/../../.." && pwd)"  # tests/integration/golden-render -> repo root
 SCORE="${OSSIA_SCORE:-}"
 # Animated on purpose: this tester draws TIME, TIMEDELTA, PROGRESS and
 # FRAMEINDEX as bars, so it fails if any of them still follows a wall clock. A
@@ -37,7 +39,7 @@ _resolve_scene_scripts() {
   printf '%s' "$HOME/Documents/ossia/score/packages/csf-examples/$tail"
 }
 
-SCRIPTS="${SCRIPTS:-$(_resolve_scene_scripts "$HERE" "csf-testers/tests-scene/scripts")}"
+SCRIPTS="${SCRIPTS:-$(_resolve_scene_scripts "$SRCROOT" "csf-testers/tests-scene/scripts")}"
 
 while [ $# -gt 0 ]; do
   case "$1" in
