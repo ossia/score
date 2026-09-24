@@ -471,6 +471,15 @@ public:
     // No setDevice(m_device): set_device() writes it concurrently on the main
     // thread, and the lambda it posts always runs after us.
     m_deviceFunctions = device_obj;
+    // Device.addNode/removeNode: the tree only changes on the main thread.
+    // m_deviceFunctions is only cleared there, by disable_device_access(),
+    // before stop() deletes device_obj on this thread.
+    device_obj->setTreeEditor([this](std::function<void()> edit) {
+      ossia::qt::run_async(&m_mainContext, [this, edit = std::move(edit)] {
+        if(m_deviceFunctions.load())
+          edit();
+      });
+    });
     m_devices.set_engine_functions(device_obj);
 
     auto protocols_obj = new ossia::qt::qml_protocols{this->m_context, this};
