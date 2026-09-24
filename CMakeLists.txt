@@ -395,32 +395,39 @@ if(SCORE_TESTING)
   include(ScoreExpectedRedGuard)
   score_check_expected_red()
 
-  # score_add_test() above already carries UBSAN_OPTIONS. tests/integration
-  # registers nine more with a raw add_test() (the live-edit, gfx-soak and
-  # golden-render harnesses), and vendored trees register their own. Walk every
-  # directory and give them all the same environment.
+  # score_add_test() above already carries the sanitizer options; tests
+  # registered with a raw add_test() (hardware wrappers, tests/integration
+  # harnesses, vendored trees) do not. Walk every directory and give them all
+  # the same environment.
   # set_property(TEST ... DIRECTORY ...)
   # needs CMake 3.28; below that the score_add_test tests are still covered.
-  if(SCORE_UBSAN_OPTIONS AND CMAKE_VERSION VERSION_GREATER_EQUAL 3.28)
-    function(score_apply_ubsan_test_env dir)
+  set(_score_sanitizer_test_env "")
+  foreach(_san UBSAN LSAN TSAN)
+    if(SCORE_${_san}_OPTIONS)
+      list(APPEND _score_sanitizer_test_env "${_san}_OPTIONS")
+    endif()
+  endforeach()
+  if(_score_sanitizer_test_env AND CMAKE_VERSION VERSION_GREATER_EQUAL 3.28)
+    function(score_apply_sanitizer_test_env dir)
       get_property(_tests DIRECTORY "${dir}" PROPERTY TESTS)
       foreach(_test IN LISTS _tests)
-        # score_add_test() already set this on the tests it registered; appending
-        # a second identical entry is harmless today but would double any future
-        # non-idempotent edit here, so only add it where it is missing.
+        # score_add_test() already set these; only add what is missing.
         get_property(_env TEST "${_test}" DIRECTORY "${dir}"
           PROPERTY ENVIRONMENT_MODIFICATION)
-        if(NOT "${_env}" MATCHES "UBSAN_OPTIONS=")
-          set_property(TEST "${_test}" DIRECTORY "${dir}" APPEND PROPERTY
-            ENVIRONMENT_MODIFICATION "UBSAN_OPTIONS=set:${SCORE_UBSAN_OPTIONS}")
-        endif()
+        foreach(_var IN LISTS _score_sanitizer_test_env)
+          if(NOT "${_env}" MATCHES "(^|;)${_var}=")
+            string(REPLACE "_OPTIONS" "" _san "${_var}")
+            set_property(TEST "${_test}" DIRECTORY "${dir}" APPEND PROPERTY
+              ENVIRONMENT_MODIFICATION "${_var}=set:${SCORE_${_san}_OPTIONS}")
+          endif()
+        endforeach()
       endforeach()
       get_property(_subdirs DIRECTORY "${dir}" PROPERTY SUBDIRECTORIES)
       foreach(_subdir IN LISTS _subdirs)
-        score_apply_ubsan_test_env("${_subdir}")
+        score_apply_sanitizer_test_env("${_subdir}")
       endforeach()
     endfunction()
-    score_apply_ubsan_test_env("${CMAKE_CURRENT_SOURCE_DIR}")
+    score_apply_sanitizer_test_env("${CMAKE_CURRENT_SOURCE_DIR}")
   endif()
 endif()
 
