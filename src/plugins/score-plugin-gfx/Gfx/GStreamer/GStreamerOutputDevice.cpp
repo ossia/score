@@ -878,26 +878,32 @@ public:
 
   void push_value(const ossia::audio_port& mixed) noexcept override
   {
-    auto min_chan = std::min(mixed.channels(), (std::size_t)audio.size());
-    if(min_chan == 0)
+    const auto out_chan = (std::size_t)audio.size();
+    const auto in_chan = std::min(mixed.channels(), out_chan);
+    if(in_chan == 0)
       return;
 
-    int num_samples = mixed.channel(0).size();
+    // Channels are not all the same length: take the longest as the frame
+    // count and read each only up to its own size.
+    std::size_t num_samples = 0;
+    for(std::size_t ch = 0; ch < in_chan; ch++)
+      num_samples = std::max(num_samples, mixed.channel(ch).size());
     if(num_samples == 0)
       return;
 
-    // Interleave channels for GStreamer
-    m_interleaved.resize(num_samples * min_chan);
-    for(int s = 0; s < num_samples; s++)
+    // The appsrc caps are fixed when the pipeline is parsed, so the frame must
+    // always carry out_chan channels whatever the port provides: interleave
+    // into a zeroed buffer and leave the missing channels silent.
+    m_interleaved.assign(num_samples * out_chan, 0.f);
+    for(std::size_t ch = 0; ch < in_chan; ch++)
     {
-      for(std::size_t ch = 0; ch < min_chan; ch++)
-      {
-        m_interleaved[s * min_chan + ch]
-            = float(mixed.channel(ch)[s] * m_gain);
-      }
+      const auto& src = mixed.channel(ch);
+      const auto n = std::min(num_samples, src.size());
+      for(std::size_t s = 0; s < n; s++)
+        m_interleaved[s * out_chan + ch] = float(src[s] * m_gain);
     }
 
-    m_node.push_audio_frame(m_interleaved.data(), num_samples, min_chan);
+    m_node.push_audio_frame(m_interleaved.data(), (int)num_samples, (int)out_chan);
   }
 
 private:
