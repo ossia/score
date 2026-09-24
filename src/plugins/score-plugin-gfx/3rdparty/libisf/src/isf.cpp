@@ -30,6 +30,8 @@ namespace
 static constexpr struct glsl45_t
 {
   static constexpr auto versionPrelude = R"_(#version 460
+#define quad isf_msl_quad
+#define operator isf_msl_operator
 )_";
 
   static constexpr auto vertexPrelude = R"_(
@@ -6250,7 +6252,8 @@ void parser::parse_csf()
   m_fragment.clear();
 
   // Add version
-  m_fragment += "#version 460\n\n";
+  m_fragment += GLSL45.versionPrelude;
+  m_fragment += "\n";
 
   // User-declared GLSL EXTENSIONS must come right after #version.
   m_fragment += isf_emit_user_extensions(m_desc.extensions);
