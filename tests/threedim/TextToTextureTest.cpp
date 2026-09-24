@@ -18,6 +18,7 @@
 #include <QGuiApplication>
 
 #include <catch2/catch_test_macros.hpp>
+#include <score_test/LazyGuiApp.hpp>
 
 #include <array>
 #include <cstring>
@@ -25,31 +26,13 @@
 namespace
 {
 
-// QPainter's text path (QFontDatabase, glyph caches) needs a
-// QGuiApplication. Catch2 owns main(), so make one on first use.
-void ensureApp()
-{
-  if(!qApp)
-  {
-    if(!qEnvironmentVariableIsSet("QT_QPA_PLATFORM"))
-      qputenv("QT_QPA_PLATFORM", "offscreen");
-    static int argc = 1;
-    static char arg0[] = "TextToTextureTest";
-    static char* argv[] = {arg0, nullptr};
-    // Deliberately leaked: a static Q*Application is destroyed from the atexit
-    // chain, after main returns and Qt's own static state is gone, which faults
-    // in ~QGuiApplication/~QCoreApplication on Windows. Same pattern as
-    // tests/unit/InfiniteScrollerTest.cpp.
-    static auto* app = new QGuiApplication(argc, argv);
-    (void)app;
-  }
-}
+using score::test::ensure_gui_app;
 
 // A platform with zero fonts cannot rasterize any glyph; the node is not at
 // fault there, so the text-painting tests skip instead of failing.
 bool hasFonts()
 {
-  ensureApp();
+  ensure_gui_app();
   return !QFontDatabase::families().isEmpty();
 }
 
@@ -101,7 +84,7 @@ TEST_CASE(
     "TextToTexture declared size matches the byte buffer",
     "[threedim][text_to_texture]")
 {
-  ensureApp();
+  ensure_gui_app();
   Threedim::TextToTexture node;
 
   // Defaults: 1024x256 canvas.
@@ -130,7 +113,7 @@ TEST_CASE(
     "TextToTexture empty text yields a fully-background texture",
     "[threedim][text_to_texture]")
 {
-  ensureApp();
+  ensure_gui_app();
   Threedim::TextToTexture node;
   node.inputs.text.value = "";
   node.inputs.canvas_w.value = 64;

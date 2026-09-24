@@ -30,6 +30,7 @@
 
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <score_test/LazyGuiApp.hpp>
 
 #include <cmath>
 #include <cstdint>
@@ -41,26 +42,7 @@ using Catch::Approx;
 namespace
 {
 
-// The font database requires a QGuiApplication. Catch2 owns main(), so make
-// one on first use (InteropRingPolicyTest pattern). Forcing "offscreen" when
-// nothing is requested keeps the run deterministic on headless CI.
-void ensureApp()
-{
-  if(!qApp)
-  {
-    if(!qEnvironmentVariableIsSet("QT_QPA_PLATFORM"))
-      qputenv("QT_QPA_PLATFORM", "offscreen");
-    static int argc = 1;
-    static char arg0[] = "TextToMeshTest";
-    static char* argv[] = {arg0, nullptr};
-    // Deliberately leaked: a static Q*Application is destroyed from the atexit
-    // chain, after main returns and Qt's own static state is gone, which faults
-    // in ~QGuiApplication/~QCoreApplication on Windows. Same pattern as
-    // tests/unit/InfiniteScrollerTest.cpp.
-    static auto* app = new QGuiApplication(argc, argv);
-    (void)app;
-  }
-}
+using score::test::ensure_gui_app;
 
 // Mirror the node's own font resolution: if this host cannot produce a
 // non-empty outline for 'H' through QRawFont, TextToMesh legitimately outputs
@@ -68,7 +50,7 @@ void ensureApp()
 // fail.
 bool hostFontUsable()
 {
-  ensureApp();
+  ensure_gui_app();
   QFont qf(QStringLiteral("Sans"));
   qf.setPixelSize(72);
   QRawFont rf = QRawFont::fromFont(qf);
@@ -112,7 +94,7 @@ struct Built
 
 Built build(const std::string& text, float height = 1.f, bool center = false)
 {
-  ensureApp();
+  ensure_gui_app();
   auto n = std::make_unique<Threedim::TextToMesh>();
   n->inputs.text.value = text;
   n->inputs.height.value = height;
@@ -413,7 +395,7 @@ TEST_CASE(
     "and a later text edit recovers",
     "[threedim][text_to_mesh]")
 {
-  ensureApp();
+  ensure_gui_app();
   // Needs a real font for the same reason the others do: with no font database
   // every glyph is .notdef, so even " " comes back with a hollow-box outline
   // and this case's "renders nothing" expectation cannot hold.
@@ -453,7 +435,7 @@ TEST_CASE(
   if(!hostFontUsable())
     SKIP("no usable scalable font on this host");
 
-  ensureApp();
+  ensure_gui_app();
   Threedim::TextToMesh n; // default text is "Hello"
   n();
   REQUIRE(n.outputs.scene_out.scene.state);
