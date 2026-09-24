@@ -38,3 +38,21 @@ leak:Scenario::SpeedWidget::SpeedWidget
 leak:score::DoubleSlider::DoubleSlider
 leak:score::MarginLess
 leak:score::Action::updateTexts
+
+# ---------------------------------------------------------------------------
+# libossia's websocket_server keeps its websocketpp server alive on purpose.
+#
+# websocket_server::stop() (libossia src/ossia/network/sockets/
+# websocket_server.hpp), when it does not own the io_context, posts
+# `new decltype(s){s}` -- a shared_ptr copy that is never freed -- so the
+# websocketpp endpoint outlives every pending handler: "temporary server fix
+# until we migrate off buggy websocketpp" (libossia 2ea3b2a25f). Every score
+# process that exposes its OSCQuery server therefore leaks the endpoint, its
+# acceptor and its connections at exit.
+#
+# LSan matches the ALLOCATION stack, where stop() never appears, so the entries
+# name the websocket_server members that allocate what the kept copy owns.
+# Remove them with the workaround, i.e. once libossia is off websocketpp.
+leak:ossia::net::websocket_server::websocket_server
+leak:ossia::net::websocket_server::listen
+leak:ossia::net::websocket_server::start_accept
