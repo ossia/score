@@ -2731,8 +2731,10 @@ void RenderedRawRasterPipelineNode::update(
 
       this->meshChangedIndex = this->m_mesh->dirtyGeometryIndex;
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
-      // Check for standalone indirect draw buffer from Buffer input ports
+      // Check for standalone indirect draw buffer from Buffer input ports.
+      // Not Qt-gated: without GPU indirect draw (Qt < 6.12, or a backend
+      // lacking it) runInitialPasses reads the buffer back and the CPU rung
+      // issues its commands; skipping this would draw g.instances instead.
       if(!m_meshbufs.useIndirectDraw)
       {
         for(auto* port : n.input)
@@ -2770,7 +2772,6 @@ void RenderedRawRasterPipelineNode::update(
           }
         }
       }
-#endif
 
       // Only recreate passes when the mesh object itself changed (different
       // vertex layout / topology). When the same mesh is reused with updated

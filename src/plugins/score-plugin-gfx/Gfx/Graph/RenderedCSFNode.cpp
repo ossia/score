@@ -911,12 +911,10 @@ BufferView RenderedCSFNode::bufferForOutput(const Port& output)
     if(&output == port) {
       auto& sb = this->m_storageBuffers[index];
       BufferView bv{sb.buffer, 0, sb.buffer ? sb.buffer->size() : 0};
-#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
       if(sb.buffer_usage == "indirect_draw")
         bv.usage = BufferView::Usage::IndirectDraw;
       else if(sb.buffer_usage == "indirect_draw_indexed")
         bv.usage = BufferView::Usage::IndirectDrawIndexed;
-#endif
       return bv;
     }
   }
