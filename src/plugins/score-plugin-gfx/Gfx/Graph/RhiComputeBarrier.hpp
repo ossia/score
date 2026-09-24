@@ -64,7 +64,9 @@ void insertComputeBarrier(QRhi& rhi, QRhiCommandBuffer& cb);
  * Performs a GPU-side buffer-to-buffer copy of @p size bytes from
  * @p src + @p srcOffset to @p dst + @p dstOffset. Both buffers must
  * already be created and large enough to satisfy the requested region.
- * Must be called between beginExternal() and endExternal().
+ * Must be called between beginExternal() and endExternal(), outside any
+ * render or compute pass (Metal opens its own MTLBlitCommandEncoder, and
+ * only one encoder may be open on a command buffer).
  *
  * The source and destination buffers must NOT overlap (the copy is
  * unordered when src == dst).
@@ -101,8 +103,9 @@ enum class BufferCopyBarrier
 SCORE_PLUGIN_GFX_EXPORT
 void beginBufferCopyBarrier(QRhi& rhi, QRhiCommandBuffer& cb);
 
-/// Emit the transfer→compute barrier after a batch of buffer copies so
-/// downstream compute/graphics reads observe the writes.
+/// Emit the transfer→{indirect, vertex input, vertex, fragment, compute,
+/// transfer} barrier after a batch of buffer copies so every downstream
+/// consumer of the copied range observes the writes.
 SCORE_PLUGIN_GFX_EXPORT
 void endBufferCopyBarrier(QRhi& rhi, QRhiCommandBuffer& cb);
 
