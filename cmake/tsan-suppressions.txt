@@ -1,0 +1,39 @@
+# ThreadSanitizer suppressions for the score test suite.
+#
+# The runners use their distribution's Qt, GLib, GStreamer, PipeWire and Mesa,
+# none of which is built with -fsanitize=thread. TSan cannot see the atomics
+# and fences inside them, so every hand-off those libraries synchronise
+# internally looks like a race: an object allocated in the main thread from
+# inside libQt6DBus and freed by a Qt worker thread inside libQt6Core is the
+# dominant report of the unsuppressed run (score::View::View and
+# ~MinimalGUIApplication at the top of hundreds of reports).
+#
+# called_from_lib: makes TSan ignore the intercepted calls (malloc/free, and so
+# new/delete, memcpy, ...) made from inside a library. That removes exactly
+# those hand-offs and nothing that happens in instrumented score code. It is
+# deliberately NOT race:libQt6Core -- nearly every score stack runs under Qt's
+# event loop, and a module-wide race: entry would hide real score races.
+#
+# Remove an entry when that library is built with TSan (e.g. a TSan Qt from
+# the SDK).
+called_from_lib:libQt6Core.so
+called_from_lib:libQt6Gui.so
+called_from_lib:libQt6Widgets.so
+called_from_lib:libQt6DBus.so
+called_from_lib:libQt6Network.so
+called_from_lib:libQt6Qml.so
+called_from_lib:libQt6Quick.so
+called_from_lib:libQt6OpenGL.so
+called_from_lib:libglib-2.0.so
+called_from_lib:libgobject-2.0.so
+called_from_lib:libgio-2.0.so
+called_from_lib:libgstreamer-1.0.so
+called_from_lib:libpipewire-0.3.so
+called_from_lib:libvulkan.so
+called_from_lib:libGLX_mesa.so
+called_from_lib:libEGL_mesa.so
+called_from_lib:libgallium
+called_from_lib:libvulkan_lvp.so
+called_from_lib:libvulkan_radeon.so
+called_from_lib:libnvidia-glcore.so
+called_from_lib:libfontconfig.so
