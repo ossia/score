@@ -379,7 +379,9 @@ LV2Data::LV2Data(HostContext& h, EffectContext& ctx)
 
     auto cl = port.get_classes();
     auto debug_port = [&] {
-      qDebug() << "Port " << i << " : " << lilv_node_as_string(port.get_name());
+      LilvNode* name = port.get_name(); // owned by the caller
+      qDebug() << "Port " << i << " : " << lilv_node_as_string(name);
+      lilv_node_free(name);
       auto beg = lilv_nodes_begin(cl);
       while(!lilv_nodes_is_end(cl, beg))
       {

@@ -577,10 +577,17 @@ void Model::readPlugin()
   int in_id = 0;
   int out_id = 0;
 
+  // lilv_port_get_name returns an owned node, and Lilv::Node duplicates rather
+  // than adopts it, so wrapping it in Lilv::Node leaks.
   auto portName = [&](int port_id) {
     Lilv::Port p = data.effect.plugin.get_port_by_index(port_id);
-    Lilv::Node n = p.get_name();
-    return QString::fromUtf8(n.as_string());
+    QString ret;
+    if(LilvNode* n = p.get_name())
+    {
+      ret = QString::fromUtf8(lilv_node_as_string(n));
+      lilv_node_free(n);
+    }
+    return ret;
   };
 
   // AUDIO
@@ -644,8 +651,7 @@ void Model::readPlugin()
   {
     SCORE_ASSERT(port_id >= 0);
     Lilv::Port p = data.effect.plugin.get_port_by_index(port_id);
-    Lilv::Node n = p.get_name();
-    QString port_name = QString::fromUtf8(n.as_string());
+    QString port_name = portName(port_id);
     Id<Process::Port> id{in_id++};
     const float pmin = fParamMin[port_id];
     const float pmax = fParamMax[port_id];
@@ -818,7 +824,7 @@ void Model::reload()
     plugin = plug->me;
     effectContext.plugin.me = *plug;
     readPlugin();
-    QString name = plug->get_name().as_string();
+    QString name = get_lv2_plugin_name(*plug);
     if(name.isEmpty())
       name = path.split("/").back();
     metadata().setName(name);
