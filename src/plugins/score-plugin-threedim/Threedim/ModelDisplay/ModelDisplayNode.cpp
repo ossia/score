@@ -495,6 +495,11 @@ const constexpr auto model_display_fragment_shader_triplanar = R"_(#version 450
 )_" model_display_default_uniforms R"_(
 
 layout(binding = 3) uniform sampler2D y_tex;
+#if defined(QSHADER_SPIRV)
+vec2 md_uv(vec2 uv) { return vec2(uv.x, 1. - uv.y); }
+#else
+vec2 md_uv(vec2 uv) { return uv; }
+#endif
 
 layout(location = 0) in vec3 v_normal;
 layout(location = 1) in vec3 v_coords;
@@ -509,9 +514,9 @@ void main ()
 
   float scale = 0.1;
 
-  vec4 xaxis = texture(y_tex, v_coords.yz * scale);
-  vec4 yaxis = texture(y_tex, v_coords.xz * scale);
-  vec4 zaxis = texture(y_tex, v_coords.xy * scale);
+  vec4 xaxis = texture(y_tex, md_uv(v_coords.yz * scale));
+  vec4 yaxis = texture(y_tex, md_uv(v_coords.xz * scale));
+  vec4 zaxis = texture(y_tex, md_uv(v_coords.xy * scale));
   vec4 tex = xaxis * blending.x + yaxis * blending.y + zaxis * blending.z;
 
   // Lighting floor: without this the pass emits ONLY the projected texture,
@@ -578,6 +583,11 @@ const constexpr auto model_display_fragment_shader_spherical = R"_(#version 450
 )_" model_display_default_uniforms R"_(
 
 layout(binding = 3) uniform sampler2D y_tex;
+#if defined(QSHADER_SPIRV)
+vec2 md_uv(vec2 uv) { return vec2(uv.x, 1. - uv.y); }
+#else
+vec2 md_uv(vec2 uv) { return uv; }
+#endif
 
 layout(location = 0) in vec3 v_e;
 layout(location = 1) in vec3 v_n;
@@ -587,7 +597,7 @@ void main ()
 {
   vec2 uv = vec2(atan(v_n.z, v_n.x), asin(v_n.y));
   uv = uv * vec2(1. / (2. * 3.14159265358979323846264338327), 1. / 3.14159265358979323846264338327) + 0.5;
-  fragColor = texture(y_tex, uv);
+  fragColor = texture(y_tex, md_uv(uv));
 }
 )_";
 
@@ -643,6 +653,11 @@ const constexpr auto model_display_fragment_shader_spherical2 = R"_(#version 450
 )_" model_display_default_uniforms R"_(
 
 layout(binding = 3) uniform sampler2D y_tex;
+#if defined(QSHADER_SPIRV)
+vec2 md_uv(vec2 uv) { return vec2(uv.x, 1. - uv.y); }
+#else
+vec2 md_uv(vec2 uv) { return uv; }
+#endif
 
 layout(location = 0) in vec3 v_e;
 layout(location = 1) in vec3 v_n;
@@ -654,7 +669,7 @@ void main ()
   float m = 2. * sqrt( pow( r.x, 2. ) + pow( r.y, 2. ) + pow( r.z + 1., 2. ) );
   vec2 vN = r.xy / m + .5;
 
-  fragColor = texture(y_tex, vN.xy);
+  fragColor = texture(y_tex, md_uv(vN.xy));
 }
 )_";
 
@@ -761,13 +776,18 @@ const constexpr auto model_display_fragment_shader_barycentric = R"_(#version 45
 )_" model_display_default_uniforms R"_(
 
 layout(binding = 3) uniform sampler2D y_tex;
+#if defined(QSHADER_SPIRV)
+vec2 md_uv(vec2 uv) { return vec2(uv.x, 1. - uv.y); }
+#else
+vec2 md_uv(vec2 uv) { return uv; }
+#endif
 
 layout(location = 1) in vec2 v_bary;
 layout(location = 0) out vec4 fragColor;
 
 void main ()
 {
-  fragColor = texture(y_tex, v_bary);
+  fragColor = texture(y_tex, md_uv(v_bary));
 }
 )_";
 

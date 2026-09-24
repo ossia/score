@@ -1471,6 +1471,34 @@ score_add_test(test_gfx_blend_preview_fringe
   SOURCES BlendPreviewFringe.cpp
   GUI)
 
+# Images node output orientation vs ISF (N94): into a sink, through an ISF
+# image input and into ModelDisplay.
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  set(_3d_md_fixl "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
+  score_plugin_hidden_sources(_md_hidden_fixl
+      "${_3d_md_fixl}/Primitive.cpp"
+      "${_3d_md_fixl}/ModelDisplay/ModelDisplayNode.cpp")
+  score_add_test(test_gfx_images_orientation_fixl
+    SOURCES
+      GfxImagesOrientationFixL.cpp
+      ${_md_hidden_fixl}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_images_orientation_fixl PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_images_orientation_fixl SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
 # CSF sampled inputs (N67 audio, N68 TYPE image without ACCESS): declared as
 # samplers by parse_csf, baked, and the sampled image rendered on every backend.
 score_add_csf_test(sampled_inputs_fixd GfxCsfSampledInputsFixD.cpp)

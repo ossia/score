@@ -1374,3 +1374,15 @@ if(TARGET score_plugin_media AND TARGET score_plugin_avnd)
     PLUGINS score_plugin_scenario score_plugin_media score_plugin_avnd score_lib_process)
 endif()
 
+# A Javascript View3D rendered after an earlier draw in the same Vulkan frame
+# must not lose the device (N40).
+get_target_property(_js_definitions_fixl score_plugin_js COMPILE_DEFINITIONS)
+if("SCORE_HAS_GPU_JS" IN_LIST _js_definitions_fixl)
+  score_add_test(test_integration_js_quick3d_vulkan_fixl
+    SOURCES JsQuick3DVulkanFixL.cpp
+    GUI
+    PLUGINS score_plugin_scenario score_lib_process score_plugin_js
+            score_plugin_gfx score_plugin_engine)
+  target_compile_definitions(test_integration_js_quick3d_vulkan_fixl PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../gfx/corpus")
+endif()
