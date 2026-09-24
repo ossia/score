@@ -1047,7 +1047,16 @@ void GfxContext::renderFrames(int frames)
       for(auto& [id, node] : nodes)
       {
         if(auto proc = dynamic_cast<score::gfx::ProcessNode*>(node.get()))
+        {
           proc->process(tk);
+          // updateGraph() may just have fed the node the transport's
+          // wall-clock date, so the delta process(tk) derived is relative to
+          // that: pin TIMEDELTA to the step as well.
+          proc->standardUBO.timeDelta
+              = m_stepFrame > 0
+                    ? float(double(frame_flicks) / ossia::flicks_per_second<double>)
+                    : 0.f;
+        }
       }
 
       // DATE too: the render lists would otherwise read the wall clock every
