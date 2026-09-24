@@ -1538,6 +1538,20 @@ endif()
 # and warned about (N63); a Delayed self-cable carries state (N64).
 score_add_gfx_test(feedback_cycle_fixm GfxFeedbackCycleFixM.cpp)
 
+# Library preset fixes (blinn_phong lights, classic_pbr_textured fallback,
+# classic_pbr_shadowed, openpbr light scale, cubemap_orbit orientation, compute
+# preset workgroup sizes and Game of Life).
+score_add_gfx_test(library_preset_fixes_o GfxLibraryPresetFixesO.cpp)
+target_sources(test_gfx_library_preset_fixes_o PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator/offsetAllocator.cpp")
+target_include_directories(test_gfx_library_preset_fixes_o PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator")
+if(EXISTS "${SCORE_ROOT_SOURCE_DIR}/src/addons/score-addon-academy/3rdparty/OpenPBR-BSDF/openpbr_data_constants.h")
+  target_include_directories(test_gfx_library_preset_fixes_o PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/addons/score-addon-academy/3rdparty/OpenPBR-BSDF")
+  target_compile_definitions(test_gfx_library_preset_fixes_o PRIVATE FIXO_OPENPBR_BSDF=1)
+endif()
+
 # The avendish "Average color" example averages its input (agent G, N89).
 if(TARGET score_plugin_avnd)
   score_add_test(test_gfx_average_color_fixg
