@@ -1155,6 +1155,20 @@ if(SCORE_HAS_SHELL_HARNESS)
     ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score;OUT=${CMAKE_CURRENT_BINARY_DIR}/golden-artifacts/text-render;${_score_libpath_env}")
 endif()
 
+# Headless end of playback: a 3 s document played with --no-gui --autoplay must
+# survive reaching its end (the GUI-only Actions::Stop lookup aborted it).
+if(SCORE_HAS_SHELL_HARNESS)
+  add_test(NAME test_headless_end
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/headless-end/headless-end.sh"
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+  set_tests_properties(test_headless_end PROPERTIES
+    SKIP_RETURN_CODE 77
+    TIMEOUT 300
+    RUN_SERIAL TRUE
+    REQUIRED_FILES "${CMAKE_CURRENT_SOURCE_DIR}/headless-end/headless-end.js"
+    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score;OUT=${CMAKE_CURRENT_BINARY_DIR}/headless-end;${_score_libpath_env}")
+endif()
+
 # Multi-outlet texture validation: an Image Processor (Depth Anything 3 metric:
 # depth + sky) and the "Grid 2x2" ISF preset tile the processor's Image / Mask /
 # Depth outlets onto Window:/; analyze.py asserts each outlet draws its own
