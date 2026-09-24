@@ -2467,16 +2467,20 @@ void RenderedRawRasterPipelineNode::initState(
     // per level, m_mipCount invocations) in initMRTPass is never reached.
     // Behaviour is selected by pass semantics, not by colour-attachment count
     // alone. m_executionMode is resolved inside initMRTPass, i.e. after this,
-    // so read the descriptor directly.
+    // so read the descriptor directly. MANUAL is in the same position: its
+    // invocation loop lives in the MRT path, so a single-output MANUAL shader
+    // on the single-target path would silently run once.
     bool perMip = false;
+    bool manual = false;
     {
       std::string et = n.descriptor().execution_model.type;
       for(auto& c : et)
         c = (char)std::toupper((unsigned char)c);
       perMip = (et == "PER_MIP");
+      manual = (et == "MANUAL");
     }
     m_hasMRT = colorCount > 1 || hasDepth || hasLayered || hasCubemap || perMip
-               || n.descriptor().multiview_count >= 2;
+               || manual || n.descriptor().multiview_count >= 2;
   }
 
   if(m_hasMRT)

@@ -4180,8 +4180,15 @@ void parser::parse_raw_raster_pipeline()
 
   // If FRAGMENT_OUTPUTS declares multiple outputs but OUTPUTS was not
   // explicitly provided, auto-populate desc.outputs so the node graph
-  // creates the right number of output ports (one per attachment).
-  if(m_desc.outputs.empty() && m_desc.fragment_outputs.size() > 1)
+  // creates the right number of output ports (one per attachment). A MANUAL
+  // shader needs this even with one output: its invocation loop runs on the
+  // multi-target path, which renders only declared outputs.
+  std::string em_type = m_desc.execution_model.type;
+  for(auto& c : em_type)
+    c = (char)std::toupper((unsigned char)c);
+  if(m_desc.outputs.empty()
+     && (m_desc.fragment_outputs.size() > 1
+         || (m_desc.fragment_outputs.size() == 1 && em_type == "MANUAL")))
   {
     for(const auto& fo : m_desc.fragment_outputs)
     {

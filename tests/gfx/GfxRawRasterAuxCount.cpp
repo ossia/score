@@ -7,9 +7,9 @@
 // with red = (PASSINDEX + 1) / 255, so the red left on screen is the count.
 // A size that stays at the placeholder's, or at 0, evaluates to 1.
 //
-// The consumer declares two fragment outputs so it runs on the MRT path. A
-// single-output shader takes the single-target path, which never runs the
-// MANUAL invocation loop: its count would read 1 whatever $COUNT_ says.
+// Run twice: with two fragment outputs and with one. A single-output shader
+// used to take the single-target path, which has no MANUAL invocation loop,
+// so its count read 1 whatever $COUNT_ said.
 //
 // Registration:
 //   score_add_gfx_test(raw_raster_aux_count GfxRawRasterAuxCount.cpp)
@@ -39,7 +39,9 @@ TEST_CASE(
     "[gfx][l3][auxiliary][expression]")
 {
   const auto be = GENERATE(from_range(platform_backends()));
+  const char* fs = GENERATE("rr-aux-count.fs", "rr-aux-count-single.fs");
   CAPTURE(backend_name(be));
+  CAPTURE(fs);
 
   bool built = false;
   bool skipped = false;
@@ -50,7 +52,7 @@ TEST_CASE(
     GfxPipeline p;
     const int producer = p.addCsf(corpus("syn-aux-count.cs"));
     const int consumer
-        = p.addRaster(corpus("rr-aux-count.vs"), corpus("rr-aux-count.fs"));
+        = p.addRaster(corpus("rr-aux-count.vs"), corpus(fs));
     if(producer < 0 || consumer < 0)
     {
       err = "node build failed: " + p.error();
