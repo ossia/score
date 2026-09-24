@@ -74,6 +74,7 @@ public:
         &observable_device_roots::on_deviceAddedCallback, Qt::UniqueConnection);
     if(auto dev = d->getDevice())
     {
+      std::lock_guard l{m_devicesLock};
       m_devices.push_back(dev);
       notify_added(dev);
     }
@@ -87,12 +88,15 @@ public:
   on_deviceAddedCallback(ossia::net::device_base* oldd, ossia::net::device_base* newd)
   {
     const int n = ++m_updating_index;
-    notify_removing(oldd);
-    ossia::remove_erase(m_devices, oldd);
-    if(newd)
     {
-      m_devices.push_back(newd);
-      notify_added(newd);
+      std::lock_guard l{m_devicesLock};
+      notify_removing(oldd);
+      ossia::remove_erase(m_devices, oldd);
+      if(newd)
+      {
+        m_devices.push_back(newd);
+        notify_added(newd);
+      }
     }
 
     QTimer::singleShot(1, this, [this, n] {
@@ -106,8 +110,11 @@ public:
     disconnect(
         d, &Device::DeviceInterface::deviceChanged, this,
         &observable_device_roots::on_deviceAddedCallback);
-    notify_removing(d->getDevice());
-    ossia::remove_erase(m_devices, d->getDevice());
+    {
+      std::lock_guard l{m_devicesLock};
+      notify_removing(d->getDevice());
+      ossia::remove_erase(m_devices, d->getDevice());
+    }
 
     QTimer::singleShot(1, this, [this, n] { rootsChanged(roots(), n); });
   }
@@ -115,24 +122,32 @@ public:
   //! Removal must reach the cache while the device is still alive, so that no
   //! resolved parameter pointer outlives it: rootsChanged is queued to the
   //! mapper thread and runs too late. Registration comes from the mapper
-  //! thread while the notify hooks run on the main one, hence the atomic.
-  void set_engine_functions(ossia::qt::qml_engine_functions* f) noexcept
+  //! thread while the device list changes on the main one: the current list
+  //! is handed over under the same lock as the hooks, so no device is read
+  //! mid-update nor added between the hand-over and the registration.
+  void set_engine_functions(ossia::qt::qml_engine_functions* f)
   {
+    std::lock_guard l{m_devicesLock};
     m_functions = f;
+    if(f)
+      for(auto dev : m_devices)
+        f->addDevice(dev);
   }
 
+  //! Requires m_devicesLock.
   void notify_added(ossia::net::device_base* d)
   {
-    if(auto* f = m_functions.load())
-      f->addDevice(d);
+    if(m_functions)
+      m_functions->addDevice(d);
   }
 
+  //! Requires m_devicesLock.
   void notify_removing(ossia::net::device_base* d)
   {
     if(!d)
       return;
-    if(auto* f = m_functions.load())
-      f->removeDevice(d);
+    if(m_functions)
+      m_functions->removeDevice(d);
   }
 
   void rootsChanged(std::vector<ossia::net::node_base*> a, int64_t i)
@@ -147,12 +162,14 @@ public:
     }
     return r;
   }
-  const auto& devices() const noexcept { return m_devices; }
 
   std::atomic_int64_t m_updating_index = 0;
 
 private:
-  std::atomic<ossia::qt::qml_engine_functions*> m_functions{};
+  //! m_devices is only written on the main thread, which reads it unlocked;
+  //! the mapper thread reaches it only through set_engine_functions().
+  std::mutex m_devicesLock;
+  ossia::qt::qml_engine_functions* m_functions{};
   std::vector<ossia::net::device_base*> m_devices;
 };
 
@@ -469,8 +486,6 @@ public:
     }, *m_engine, m_engine};
     // No setDevice(m_device): set_device() writes it concurrently on the main
     // thread, and the lambda it posts always runs after us.
-    for(auto dev : m_devices.devices())
-      device_obj->addDevice(dev);
     m_deviceFunctions = device_obj;
     m_devices.set_engine_functions(device_obj);
 
