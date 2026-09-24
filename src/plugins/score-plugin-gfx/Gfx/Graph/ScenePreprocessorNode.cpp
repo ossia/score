@@ -1,4 +1,5 @@
 #include "Gfx/Graph/GpuResourceRegistry.hpp"
+#include <Gfx/Graph/MipGeneration.hpp>
 
 #include <Gfx/AssetTable.hpp>
 #include <Gfx/Graph/CameraMath.hpp>
@@ -3616,7 +3617,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       {
         BUFTRACE() << "[mipgen] bucket array " << b.pixelSize.width() << "x"
                    << b.pixelSize.height() << " layers=" << b.layers;
-        res.generateMips(b.array);
+        generateMipsIfAny(res, b.array);
         b.mipsDirty = false;
       }
     }

@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <Gfx/Graph/MipGeneration.hpp>
 #include "CubemapLoader.hpp"
 
 #include <Gfx/Graph/ShaderCache.hpp>
@@ -475,7 +476,7 @@ void CubemapLoader::uploadCrossOrStrip(QRhiResourceUpdateBatch* res)
     QRhiTextureUploadDescription desc;
     desc.setEntries(entries.begin(), entries.end());
     res->uploadTexture(m_cubemapTex, desc);
-    res->generateMips(m_cubemapTex);
+    score::gfx::generateMipsIfAny(*res, m_cubemapTex);
   }
 }
 
@@ -584,7 +585,7 @@ void CubemapLoader::renderEquirectangular(
   }
 
   // Generate mipmaps
-  res->generateMips(m_cubemapTex);
+  score::gfx::generateMipsIfAny(*res, m_cubemapTex);
 }
 
 void CubemapLoader::runInitialPasses(

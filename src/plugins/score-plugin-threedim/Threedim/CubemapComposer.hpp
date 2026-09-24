@@ -1,6 +1,7 @@
 #pragma once
 
 #include <halp/controls.hpp>
+#include <Gfx/Graph/MipGeneration.hpp>
 #include <halp/meta.hpp>
 #include <halp/texture.hpp>
 
@@ -234,7 +235,7 @@ public:
 
     if(anyUploaded)
     {
-      res->generateMips(m_cubemapTex);
+      score::gfx::generateMipsIfAny(*res, m_cubemapTex);
     }
 
     m_dirty = false;

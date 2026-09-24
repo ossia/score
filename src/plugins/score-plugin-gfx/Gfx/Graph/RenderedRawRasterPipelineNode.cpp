@@ -1,4 +1,5 @@
 #include <Gfx/Graph/CameraMath.hpp>
+#include <Gfx/Graph/MipGeneration.hpp>
 #include <Gfx/Graph/CustomMesh.hpp>
 #include <cstring>
 #include <Gfx/Graph/ISFVisitors.hpp>
@@ -3842,7 +3843,7 @@ void RenderedRawRasterPipelineNode::runInitialPasses(
                                   : nullptr));
           if(tgt)
           {
-            mipBatch->generateMips(tgt);
+            generateMipsIfAny(*mipBatch, tgt);
             any = true;
           }
         }
