@@ -375,6 +375,8 @@ void RenderList::createAllInputRenderTargets()
         wantsDepth || wantsSamplableDepth, wantsSamplableDepth, texFlags);
     m_inputRenderTargets[port] = std::move(rt);
   }
+
+  ensureSelfFeedbackTargets();
 }
 
 void RenderList::onEdgeRemoved(
@@ -432,8 +434,107 @@ void RenderList::onEdgeRemoved(
   }
 }
 
+static bool isSelfFed(const Port& p) noexcept
+{
+  for(auto* edge : p.edges)
+    if(edge->sink == &p && edge->source && edge->source->node == p.node)
+      return true;
+  return false;
+}
+
+void RenderList::removeSelfFeedbackTarget(const Port* port)
+{
+  auto it = m_selfFeedbackTargets.find(port);
+  if(it != m_selfFeedbackTargets.end())
+  {
+    it->second.back.release();
+    m_selfFeedbackTargets.erase(it);
+  }
+}
+
+bool RenderList::ensureSelfFeedbackTarget(const Port& in)
+{
+  if(in.type != Types::Image
+     || (in.flags & Flag::GrabsFromSource) == Flag::GrabsFromSource)
+    return false;
+  if(!in.node || in.node == &output || !isSelfFed(in))
+    return false;
+  if(m_selfFeedbackTargets.find(&in) != m_selfFeedbackTargets.end())
+    return false;
+  if(auto rn = in.node->renderedNodes.find(this); rn != in.node->renderedNodes.end())
+    if(rn->second->renderTargetForInput(in))
+      return false;
+  auto front = m_inputRenderTargets.find(&in);
+  if(front == m_inputRenderTargets.end() || !front->second.texture)
+    return false;
+
+  auto* tex = front->second.texture;
+  const bool wantsSamplableDepth
+      = (in.flags & Flag::SamplableDepth) == Flag::SamplableDepth;
+  auto back = score::gfx::createRenderTarget(
+      state, tex->format(), tex->pixelSize(), samples(),
+      requiresDepth(in) || wantsSamplableDepth, wantsSamplableDepth, tex->flags());
+  if(!back.renderTarget)
+  {
+    back.release();
+    return false;
+  }
+  m_selfFeedbackTargets[&in] = {std::move(back), false};
+  return true;
+}
+
+void RenderList::ensureSelfFeedbackTargets()
+{
+  for(auto* node : nodes)
+    for(auto* in : node->input)
+      ensureSelfFeedbackTarget(*in);
+}
+
+void RenderList::updateSelfFeedbackTargets(QRhiResourceUpdateBatch& res)
+{
+  for(auto it = m_selfFeedbackTargets.begin(); it != m_selfFeedbackTargets.end();)
+  {
+    auto front = m_inputRenderTargets.find(it->first);
+    const auto* back = it->second.back.texture;
+    const bool keep = front != m_inputRenderTargets.end() && front->second.texture
+                      && back && isSelfFed(*it->first)
+                      && front->second.texture->format() == back->format()
+                      && front->second.texture->pixelSize() == back->pixelSize()
+                      && front->second.texture->sampleCount() == back->sampleCount();
+    if(!keep)
+    {
+      it->second.back.release();
+      it = m_selfFeedbackTargets.erase(it);
+      continue;
+    }
+    if(std::exchange(it->second.written, false))
+      res.copyTexture(front->second.texture, it->second.back.texture);
+    ++it;
+  }
+
+  for(auto* node : nodes)
+  {
+    for(auto* in : node->input)
+    {
+      if(!ensureSelfFeedbackTarget(*in))
+        continue;
+      auto rn = node->renderedNodes.find(this);
+      if(rn == node->renderedNodes.end())
+        continue;
+      for(auto* edge : in->edges)
+      {
+        if(edge->source->node != node)
+          continue;
+        rn->second->removeOutputPass(*this, *edge);
+        rn->second->addOutputPass(*this, *edge, res);
+      }
+    }
+  }
+}
+
 void RenderList::removeInputRenderTarget(const Port* port)
 {
+  removeSelfFeedbackTarget(port);
   auto it = m_inputRenderTargets.find(port);
   if(it != m_inputRenderTargets.end())
   {
@@ -462,6 +563,12 @@ void RenderList::release()
     rt.release();
   }
   m_inputRenderTargets.clear();
+
+  for(auto& [port, fb] : m_selfFeedbackTargets)
+  {
+    fb.back.release();
+  }
+  m_selfFeedbackTargets.clear();
 
   for(auto& bufs : m_vertexBuffers)
   {
@@ -881,6 +988,11 @@ TextureRenderTarget RenderList::renderTargetForOutput(const Edge& edge) const no
       if(tex.renderTarget && tex.renderPass)
         return tex;
     }
+
+  if(edge.source && edge.source->node == edge.sink->node)
+    if(auto it = m_selfFeedbackTargets.find(edge.sink); it != m_selfFeedbackTargets.end())
+      if(it->second.back.renderTarget && it->second.back.renderPass)
+        return it->second.back;
 
   // Fall through to centralized render target map.
   // This covers nodes whose renderers don't manage their own RTs
@@ -1496,6 +1608,7 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
             }
 
             // Recreate the render target
+            removeSelfFeedbackTarget(in);
             oldIt->second.release();
             bool wantsDepth = requiresDepth(*in);
             bool wantsSamplableDepth
@@ -1506,6 +1619,7 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
             oldIt->second = score::gfx::createRenderTarget(
                 state, newSpec.format, newSpec.size, samples(),
                 wantsDepth || wantsSamplableDepth, wantsSamplableDepth, texFlags);
+            ensureSelfFeedbackTarget(*in);
           }
         }
         cur_port++;
@@ -1566,6 +1680,8 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
   // Check if the viewport has changed
 
   update(*updateBatch);
+
+  updateSelfFeedbackTargets(*updateBatch);
 
   // For each texture input port
   //  For all previous node
@@ -1758,7 +1874,18 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
 
             auto rt = renderer->renderTargetForInput(*input);
             if(!rt)
-              rt = renderTargetForInputPort(*input);
+            {
+              if(auto fb = m_selfFeedbackTargets.find(input);
+                 fb != m_selfFeedbackTargets.end())
+              {
+                rt = fb->second.back;
+                fb->second.written = true;
+              }
+              else
+              {
+                rt = renderTargetForInputPort(*input);
+              }
+            }
             if(rt)
             {
               QColor bg = (it + 1 == this->nodes.rend() ? Qt::black : Qt::transparent);

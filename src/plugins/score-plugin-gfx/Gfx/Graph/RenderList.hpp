@@ -427,6 +427,10 @@ public:
   /// Remove the render target for a specific input port.
   void removeInputRenderTarget(const Port* port);
 
+  /// Give every image input port fed by its own node a second render target,
+  /// so the node never draws into the texture it samples.
+  void ensureSelfFeedbackTargets();
+
   /**
    * @brief Resolve the downstream render target size for a node.
    *
@@ -499,6 +503,24 @@ private:
    * regardless of initialization order (fixes delayed-edge feedback).
    */
   ossia::small_flat_map<const Port*, TextureRenderTarget, 8> m_inputRenderTargets;
+
+  /**
+   * @brief Second target for image input ports fed by their own node.
+   *
+   * The pass into such a port draws into `back` while the node samples the
+   * port's input target; `back` is copied into the input target at the start
+   * of the next frame.
+   */
+  struct SelfFeedbackTarget
+  {
+    TextureRenderTarget back;
+    bool written{};
+  };
+  ossia::small_flat_map<const Port*, SelfFeedbackTarget, 2> m_selfFeedbackTargets;
+
+  void updateSelfFeedbackTargets(QRhiResourceUpdateBatch& res);
+  void removeSelfFeedbackTarget(const Port* port);
+  bool ensureSelfFeedbackTarget(const Port& in);
 
   /**
    * @brief Last size used by this renderer.

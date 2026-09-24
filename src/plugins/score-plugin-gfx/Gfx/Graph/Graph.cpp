@@ -15,6 +15,7 @@
 #include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/ssize.hpp>
 
+#include <boost/core/demangle.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/filtered_graph.hpp>
 #include <boost/graph/topological_sort.hpp>
@@ -53,6 +54,19 @@ using Vertex = score::gfx::Node*;
 using GraphImpl = boost::adjacency_list<
     boost::vecS, boost::vecS, boost::directedS, Vertex, Process::CableType>;
 using VertexMap = ossia::hash_map<score::gfx::Node*, GraphImpl::vertex_descriptor>;
+using EdgeSet = ossia::hash_set<const score::gfx::Edge*>;
+
+static bool isImmediate(Process::CableType t) noexcept
+{
+  switch(t)
+  {
+    case Process::CableType::ImmediateGlutton:
+    case Process::CableType::ImmediateStrict:
+      return true;
+    default:
+      return false;
+  }
+}
 
 struct no_delay_edges
 {
@@ -60,20 +74,94 @@ struct no_delay_edges
 
   bool operator()(const boost::graph_traits<GraphImpl>::edge_descriptor& e) const
   {
-    switch((*g)[e])
-    {
-      case Process::CableType::ImmediateGlutton:
-      case Process::CableType::ImmediateStrict:
-        return true;
-      default:
-        return false;
-    }
+    return isImmediate((*g)[e]);
   }
 };
 
+static std::string nodeLabel(const score::gfx::Node* n)
+{
+  return "#" + std::to_string(n->nodeId) + " " + boost::core::demangle(typeid(*n).name());
+}
+
+static std::vector<const score::gfx::Edge*>
+immediateInputEdges(const score::gfx::Node* node)
+{
+  std::vector<const score::gfx::Edge*> res;
+  for(auto* in : node->input)
+    for(auto* edge : in->edges)
+      if(edge->sink == in && isImmediate(edge->type))
+        res.push_back(edge);
+  return res;
+}
+
+static EdgeSet findImmediateCycleEdges(
+    const std::vector<score::gfx::Node*>& nodes, ossia::hash_set<std::string>* warned)
+{
+  EdgeSet res;
+  enum Color : uint8_t
+  {
+    White,
+    Grey,
+    Black
+  };
+  ossia::hash_map<const score::gfx::Node*, Color> color;
+  struct Frame
+  {
+    const score::gfx::Node* node{};
+    std::vector<const score::gfx::Edge*> edges;
+    std::size_t next{};
+  };
+  std::vector<Frame> stack;
+
+  for(auto* root : nodes)
+  {
+    if(color[root] != White)
+      continue;
+    color[root] = Grey;
+    stack.push_back({root, immediateInputEdges(root), 0});
+    while(!stack.empty())
+    {
+      if(stack.back().next == stack.back().edges.size())
+      {
+        color[stack.back().node] = Black;
+        stack.pop_back();
+        continue;
+      }
+
+      auto* edge = stack.back().edges[stack.back().next++];
+      auto* src = edge->source->node;
+      auto& c = color[src];
+      if(c == White)
+      {
+        c = Grey;
+        stack.push_back({src, immediateInputEdges(src), 0});
+      }
+      else if(c == Grey)
+      {
+        res.insert(edge);
+
+        std::string cycle;
+        auto it = ossia::find_if(stack, [src](const Frame& f) { return f.node == src; });
+        for(; it != stack.end(); ++it)
+          cycle += nodeLabel(it->node) + " <- ";
+        cycle += nodeLabel(src);
+
+        std::string msg = "immediate cables form a cycle: " + cycle
+                          + "; the cable " + nodeLabel(src) + " -> "
+                          + nodeLabel(edge->sink->node)
+                          + " is rendered as delayed (one frame late). Make it a "
+                            "delayed cable to silence this warning.";
+        if(!warned || warned->insert(msg).second)
+          qWarning("gfx: %s", msg.c_str());
+      }
+    }
+  }
+  return res;
+}
+
 static void graphwalk(
     score::gfx::Node* node, std::vector<score::gfx::Node*>& list, GraphImpl& g,
-    VertexMap& m, ossia::flat_set<score::gfx::Node*>& visited)
+    VertexMap& m, ossia::flat_set<score::gfx::Node*>& visited, const EdgeSet& delayed)
 {
   auto sink_desc = m[node];
   for(auto inputs : node->input)
@@ -81,25 +169,40 @@ static void graphwalk(
     for(auto edge : inputs->edges)
     {
       auto* src_node = edge->source->node;
+      const auto type
+          = delayed.contains(edge) ? Process::CableType::DelayedGlutton : edge->type;
       if(visited.insert(src_node).second)
       {
         list.push_back(src_node);
 
         auto src_desc = boost::add_vertex(src_node, g);
         m[src_node] = src_desc;
-        boost::add_edge(src_desc, sink_desc, edge->type, g);
+        boost::add_edge(src_desc, sink_desc, type, g);
       }
       else
       {
         auto src_desc = m[src_node];
-        boost::add_edge(src_desc, sink_desc, edge->type, g);
+        boost::add_edge(src_desc, sink_desc, type, g);
       }
     }
   }
 }
 
-static void graphwalk(std::vector<score::gfx::Node*>& model_nodes)
+static void graphwalk(
+    std::vector<score::gfx::Node*>& model_nodes,
+    ossia::hash_set<std::string>* warned = nullptr)
 {
+  {
+    ossia::flat_set<score::gfx::Node*> seen{model_nodes.front()};
+    for(std::size_t i = 0; i < model_nodes.size(); i++)
+      for(auto* in : model_nodes[i]->input)
+        for(auto* edge : in->edges)
+          if(seen.insert(edge->source->node).second)
+            model_nodes.push_back(edge->source->node);
+  }
+  const EdgeSet delayed = findImmediateCycleEdges(model_nodes, warned);
+  model_nodes.resize(1);
+
   GraphImpl g;
   VertexMap m;
   ossia::flat_set<score::gfx::Node*> visited;
@@ -111,7 +214,7 @@ static void graphwalk(std::vector<score::gfx::Node*>& model_nodes)
   std::size_t processed = 0;
   while(processed != model_nodes.size())
   {
-    graphwalk(model_nodes[processed], model_nodes, g, m, visited);
+    graphwalk(model_nodes[processed], model_nodes, g, m, visited, delayed);
     processed++;
   }
 
@@ -120,19 +223,21 @@ static void graphwalk(std::vector<score::gfx::Node*>& model_nodes)
 
   try
   {
-    model_nodes.clear();
     auto view = boost::filtered_graph(g, no_delay_edges{&g});
     boost::topological_sort(view, std::back_inserter(topo_order));
+    std::vector<score::gfx::Node*> sorted;
+    sorted.reserve(topo_order.size());
     for(auto it = topo_order.begin(); it != topo_order.end(); ++it)
     {
       auto e = *it;
       SCORE_ASSERT(g[e]);
-      model_nodes.push_back(g[e]);
+      sorted.push_back(g[e]);
     }
+    model_nodes = std::move(sorted);
   }
   catch(const std::exception& e)
   {
-    qDebug() << "Invalid gfx graph: " << e.what();
+    qWarning() << "Invalid gfx graph: " << e.what();
   }
 }
 
@@ -445,7 +550,7 @@ void Graph::relinkGraph()
     auto& model_nodes = r.nodes;
     {
       // In which order do we want to render stuff
-      graphwalk(model_nodes);
+      graphwalk(model_nodes, &m_warnedCycles);
 
       if(model_nodes.size() > 1)
       {
@@ -610,7 +715,7 @@ Graph::createRenderList(OutputNode* output, std::shared_ptr<RenderState> state)
     model_nodes.push_back(output);
 
     // In which order do we want to render stuff
-    graphwalk(model_nodes);
+    graphwalk(model_nodes, &m_warnedCycles);
 
     // Now we have the nodes in the order in which they are going to
     // be init'd (e.g. output node first to create the render targets)
@@ -736,6 +841,7 @@ void Graph::removeNodeAndEdges(Node* node)
     {
       delete edge;
       it = m_edges.erase(it);
+      m_warnedCycles.clear();
     }
     else
     {
@@ -853,6 +959,7 @@ void Graph::createPassForEdgeIfMissing(Edge& edge)
             wantsDepth || wantsSamplableDepth, wantsSamplableDepth, texFlags);
         rl->m_inputRenderTargets[sink] = std::move(rt);
       }
+      rl->ensureSelfFeedbackTarget(*sink);
     }
 
     // Create the output pass on the source renderer.
@@ -959,7 +1066,7 @@ void Graph::reconcileAllRenderLists()
     auto* outputNode = rl->nodes.front();
     rl->nodes.clear();
     rl->nodes.push_back(outputNode);
-    graphwalk(rl->nodes);
+    graphwalk(rl->nodes, &m_warnedCycles);
 
     {
       bool requiresDepth = false;
@@ -1042,6 +1149,7 @@ void Graph::reconcileAllRenderLists()
         cur_port++;
       }
     }
+    rl->ensureSelfFeedbackTargets();
 
     // On pool exhaustion, STILL fall through to the step that rebuilds
     // rl->renderers from renderedNodes: unreachable renderers were already
@@ -1156,7 +1264,7 @@ void Graph::retopologicalSort(RenderList& rl)
 
   rl.nodes.clear();
   rl.nodes.push_back(outputNode);
-  graphwalk(rl.nodes);
+  graphwalk(rl.nodes, &m_warnedCycles);
 
   // Rebuild renderers vector from the new node order.
   // Only include nodes that actually have a renderer for this RenderList.
@@ -1230,6 +1338,7 @@ void Graph::clearEdges()
     delete edge;
   }
   m_edges.clear();
+  m_warnedCycles.clear();
 }
 
 void Graph::addEdge(Port* source, Port* sink, Process::CableType t)
@@ -1243,6 +1352,8 @@ void Graph::addEdge(Port* source, Port* sink, Process::CableType t)
   }
   else
   {
+    if((*it)->type != t)
+      m_warnedCycles.clear();
     (*it)->type = t;
 #if defined(SCORE_DEBUG)
     qDebug() << "Tried to add edge between " << source << sink << "\n   ==> "
@@ -1259,6 +1370,7 @@ void Graph::removeEdge(Port* source, Port* sink)
   {
     delete *it;
     m_edges.erase(it);
+    m_warnedCycles.clear();
   }
 }
 

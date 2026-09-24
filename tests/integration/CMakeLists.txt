@@ -1374,6 +1374,12 @@ if(TARGET score_plugin_media AND TARGET score_plugin_avnd)
     PLUGINS score_plugin_scenario score_plugin_media score_plugin_avnd score_lib_process)
 endif()
 
+# Execution graph with an all-immediate cycle: reported, naming the nodes
+# (agent M, N63 execution side).
+score_add_test(test_integration_dataflow_immediate_cycle_fixm
+  SOURCES DataflowImmediateCycleFixM.cpp
+  PLUGINS score_lib_process)
+
 # A Javascript View3D rendered after an earlier draw in the same Vulkan frame
 # must not lose the device (N40).
 get_target_property(_js_definitions_fixl score_plugin_js COMPILE_DEFINITIONS)

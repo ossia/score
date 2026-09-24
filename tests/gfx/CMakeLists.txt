@@ -1534,6 +1534,10 @@ if(TARGET score_addon_academy AND TARGET score_plugin_avnd)
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
 
+# Image feedback loops, agent M: an all-Immediate cycle is broken at one edge
+# and warned about (N63); a Delayed self-cable carries state (N64).
+score_add_gfx_test(feedback_cycle_fixm GfxFeedbackCycleFixM.cpp)
+
 # The avendish "Average color" example averages its input (agent G, N89).
 if(TARGET score_plugin_avnd)
   score_add_test(test_gfx_average_color_fixg
