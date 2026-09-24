@@ -122,6 +122,16 @@ inline constexpr VkPipelineStageFlags kCopySrcStages
     = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT;
 inline constexpr VkAccessFlags kCopySrcAccess
     = VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
+
+inline constexpr VkPipelineStageFlags kCopyDstStages
+    = VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT | VK_PIPELINE_STAGE_VERTEX_INPUT_BIT
+      | VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT
+      | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT;
+inline constexpr VkAccessFlags kCopyDstAccess
+    = VK_ACCESS_INDIRECT_COMMAND_READ_BIT | VK_ACCESS_INDEX_READ_BIT
+      | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT | VK_ACCESS_UNIFORM_READ_BIT
+      | VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT
+      | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
 #endif
 
 void insertComputeBarrier(QRhi& rhi, QRhiCommandBuffer& cb)
@@ -353,15 +363,8 @@ void endBufferCopyBarrier(QRhi& rhi, QRhiCommandBuffer& cb)
       VkMemoryBarrier post{};
       post.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
       post.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-      post.dstAccessMask
-          = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT
-            | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT
-            | VK_ACCESS_INDEX_READ_BIT
-            | VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
-      barrierFn(native->commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT
-                    | VK_PIPELINE_STAGE_VERTEX_INPUT_BIT
-                    | VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT,
+      post.dstAccessMask = kCopyDstAccess;
+      barrierFn(native->commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, kCopyDstStages,
                 0, 1, &post, 0, nullptr, 0, nullptr);
       break;
     }
@@ -452,15 +455,8 @@ void copyBuffer(
         VkMemoryBarrier post{};
         post.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
         post.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        post.dstAccessMask
-            = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT
-              | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT
-              | VK_ACCESS_INDEX_READ_BIT
-              | VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
-        barrierFn(native->commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
-            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT
-                | VK_PIPELINE_STAGE_VERTEX_INPUT_BIT
-                | VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT,
+        post.dstAccessMask = kCopyDstAccess;
+        barrierFn(native->commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, kCopyDstStages,
             0, 1, &post, 0, nullptr, 0, nullptr);
       }
       break;
@@ -721,15 +717,8 @@ void copyBufferRegions(
         VkMemoryBarrier post{};
         post.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
         post.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        post.dstAccessMask
-            = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT
-              | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT
-              | VK_ACCESS_INDEX_READ_BIT
-              | VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
-        barrierFn(native->commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                  VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT
-                      | VK_PIPELINE_STAGE_VERTEX_INPUT_BIT
-                      | VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT,
+        post.dstAccessMask = kCopyDstAccess;
+        barrierFn(native->commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, kCopyDstStages,
                   0, 1, &post, 0, nullptr, 0, nullptr);
       }
       break;
