@@ -734,3 +734,135 @@ TEST_CASE(
   CHECK(g_xform.transform[14] == 3.f);
   CHECK(g_xform.transform[15] == 1.f);
 }
+
+namespace
+{
+TransformSeen g_tagged[2];
+
+template <int Tag>
+struct TaggedInletProbe
+{
+  halp_meta(name, "Tagged geometry inlet probe")
+  halp_meta(c_name, "fixe_tagged_geometry_inlet_probe")
+  halp_meta(category, "Test")
+  halp_meta(
+      uuid, Tag == 0 ? "0e9a4c55-51d3-4b0b-9c2e-3f7d8a1b6c29"
+                     : "0e9a4c55-51d3-4b0b-9c2e-3f7d8a1b6c2a")
+
+  struct
+  {
+    struct : Threedim::GeometryPort
+    {
+      halp_meta(name, "Geometry");
+    } geometry;
+  } inputs;
+
+  struct
+  {
+    halp::gpu_texture_output<"Out"> out;
+  } outputs;
+
+  void operator()()
+  {
+    g_tagged[Tag].ran = true;
+    if(inputs.geometry.dirty_transform)
+    {
+      g_tagged[Tag].dirty = true;
+      std::copy_n(inputs.geometry.transform, 16, g_tagged[Tag].transform);
+    }
+  }
+};
+
+struct FanOut
+{
+  bool skipped{};
+  std::string error;
+};
+
+FanOut run_fan_out(score::gfx::GraphicsApi api, bool lateCable, bool twoOutputs)
+{
+  FanOut out;
+  run_in_gui_app([&](const score::GUIApplicationContext& app) {
+    auto* doc = new_document(app);
+    if(!doc)
+    {
+      out.error = "no document";
+      return;
+    }
+    const auto& ctx = doc->context();
+    HalpProcesses procs;
+    GfxPipeline p;
+    const int cube = p.addNode(procs.make<MovedCube>(ctx));
+    const int probes[2]
+        = {p.addNode(procs.make<TaggedInletProbe<0>>(ctx)),
+           p.addNode(procs.make<TaggedInletProbe<1>>(ctx))};
+    if(twoOutputs)
+    {
+      for(int probe : probes)
+      {
+        const int sink = p.addSink({32, 32});
+        const int pass = p.addIsf(corpus("isf-passthrough-plain.fs"));
+        p.wire(p.nodeImageOut(probe, 0), p.imageIn(pass, 0));
+        p.wire(p.imageOut(pass, 0), p.sinkInput(sink));
+      }
+    }
+    else
+    {
+      const int sink = p.addSink({32, 32});
+      const int mix = p.addIsf(corpus("isf-mix-two.fs"));
+      p.wire(p.nodeImageOut(probes[0], 0), p.imageIn(mix, 0));
+      p.wire(p.nodeImageOut(probes[1], 0), p.imageIn(mix, 1));
+      p.wire(p.imageOut(mix, 0), p.sinkInput(sink));
+    }
+    p.wire(p.nodeGeometryOut(cube, 0), p.nodeGeometryIn(probes[0], 0));
+    if(!lateCable)
+      p.wire(p.nodeGeometryOut(cube, 0), p.nodeGeometryIn(probes[1], 0));
+    if(!p.error().empty())
+    {
+      out.error = "build failed: " + p.error();
+      return;
+    }
+    if(!p.create(api))
+    {
+      out.skipped = p.skipped();
+      out.error = out.skipped ? std::string{} : p.error();
+      return;
+    }
+    p.render(4);
+    if(lateCable)
+    {
+      p.addEdgeIncremental(
+          p.nodeGeometryOut(cube, 0), p.nodeGeometryIn(probes[1], 0));
+      p.render(4);
+    }
+    out.error = p.error();
+  });
+  return out;
+}
+}
+
+TEST_CASE(
+    "Every geometry consumer receives the producer transform",
+    "[gfx][avnd][geometry][fixE]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  const bool lateCable = GENERATE(false, true);
+  const bool twoOutputs = GENERATE(false, true);
+  CAPTURE(backend_name(api), lateCable, twoOutputs);
+  g_tagged[0] = {};
+  g_tagged[1] = {};
+
+  const FanOut r = run_fan_out(api, lateCable, twoOutputs);
+  if(r.skipped)
+    SKIP("backend unavailable");
+  INFO("error=" << r.error);
+  REQUIRE(r.error.empty());
+  for(const auto& seen : g_tagged)
+  {
+    REQUIRE(seen.ran);
+    REQUIRE(seen.dirty);
+    CHECK(seen.transform[12] == 1.f);
+    CHECK(seen.transform[13] == 2.f);
+    CHECK(seen.transform[14] == 3.f);
+  }
+}

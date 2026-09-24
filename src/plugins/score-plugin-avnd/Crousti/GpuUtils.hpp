@@ -1939,6 +1939,14 @@ struct geometry_outputs_storage<T>
 {
   ossia::geometry_spec specs[avnd::geometry_output_introspection<T>::size];
 
+  struct sent_transform
+  {
+    std::optional<ossia::transform3d> value;
+    std::vector<std::pair<const score::gfx::Edge*, const score::gfx::NodeRenderer*>>
+        receivers;
+  };
+  sent_transform transforms[avnd::geometry_output_introspection<T>::size];
+
   template <avnd::geometry_port Field>
   void reload_mesh(Field& ctrl, ossia::geometry_spec& spc)
   {
@@ -2037,15 +2045,23 @@ struct geometry_outputs_storage<T>
 
       if constexpr(requires { ctrl.transform; })
       {
+        auto& sent = transforms[N];
         if(ctrl.dirty_transform)
         {
-          ossia::transform3d transform;
-          std::copy_n(ctrl.transform, std::ssize(ctrl.transform), transform.matrix);
+          sent.value.emplace();
+          std::copy_n(ctrl.transform, std::ssize(ctrl.transform), sent.value->matrix);
+          sent.receivers.clear();
           ctrl.dirty_transform = false;
+        }
 
-          rendered_node->second->process(n, transform);
+        const std::pair<const score::gfx::Edge*, const score::gfx::NodeRenderer*>
+            receiver{&edge, rendered_node->second};
+        if(sent.value && !ossia::contains(sent.receivers, receiver))
+        {
+          sent.receivers.push_back(receiver);
+          rendered_node->second->process(n, *sent.value);
           if(auto pnode = dynamic_cast<score::gfx::ProcessNode*>(edge_sink->node))
-            pnode->process(n, transform);
+            pnode->process(n, *sent.value);
         }
       }
     }

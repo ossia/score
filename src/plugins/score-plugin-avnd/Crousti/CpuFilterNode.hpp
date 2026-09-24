@@ -277,12 +277,15 @@ struct GfxRenderer<Node_T> final
         auto* port = outs[i];
         if(!port || port->edges.empty())
           continue;
-        if constexpr(scene_output_introspection<Node_T>::size > 0)
-          for(auto* edge : port->edges)
+        for(auto* edge : port->edges)
+        {
+          if(!edge->sink->node->renderedNodes.contains(&renderer))
+            continue;
+          if constexpr(scene_output_introspection<Node_T>::size > 0)
             scene_outs.upload(renderer, *this->state, *edge);
-        if constexpr(avnd::geometry_output_introspection<Node_T>::size > 0)
-          for(auto* edge : port->edges)
+          if constexpr(avnd::geometry_output_introspection<Node_T>::size > 0)
             geometry_outs.upload(renderer, *this->state, *edge);
+        }
       }
     }
   }
