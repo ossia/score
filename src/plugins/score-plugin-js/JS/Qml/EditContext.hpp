@@ -148,6 +148,10 @@ public:
   void setName(QObject* sel, QString new_name);
   W_SLOT(setName)
 
+  //! Set an object's comment, as an undoable command.
+  void setComment(QObject* sel, QString comment);
+  W_SLOT(setComment)
+
   QObject* createBox(QObject* obj, QString startTime, QString duration, double y);
   W_SLOT(createBox, (QObject*, QString, QString, double))
 
