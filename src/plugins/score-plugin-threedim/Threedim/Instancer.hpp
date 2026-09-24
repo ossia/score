@@ -14,7 +14,12 @@
 #include <cstdint>
 #include <memory>
 
+class QRhi;
+class QRhiBuffer;
+class QRhiCommandBuffer;
+class QRhiComputePipeline;
 class QRhiResourceUpdateBatch;
+class QRhiShaderResourceBindings;
 
 namespace score::gfx
 {
@@ -130,7 +135,20 @@ public:
   void update(
       score::gfx::RenderList& r, QRhiResourceUpdateBatch& res,
       score::gfx::Edge* e);
+  void runInitialPasses(
+      score::gfx::RenderList& r, QRhiCommandBuffer& cb,
+      QRhiResourceUpdateBatch*& res, score::gfx::Edge& e);
   void release(score::gfx::RenderList& r);
+
+  struct Placement
+  {
+    QRhiBuffer* source{};
+    uint32_t source_offset{};
+    uint32_t source_stride{};
+    uint32_t count{};
+    uint32_t has_w{};
+    float inverse_linear[16]{};
+  };
 
   // Cache so we republish a stable shared_ptr when inputs haven't
   // changed — ScenePreprocessor's identity caches stay warm.
@@ -175,6 +193,21 @@ public:
 
   score::gfx::GpuResourceRegistry::Slot raw_transform_slot;
   ossia::gpu_slot_ref m_xform_ref{};
+
+  bool refresh();
+  bool preparePlacement(
+      const ossia::buffer_resource_ptr& routed, const halp::gpu_buffer& raw,
+      uint32_t stride, uint32_t column_offset, bool has_w, uint32_t count,
+      const float* inverse_linear);
+
+  QRhi* m_rhi{};
+  Placement m_placement{};
+  bool m_placing{};
+  QRhiBuffer* m_placed{};
+  QRhiBuffer* m_placeParams{};
+  QRhiShaderResourceBindings* m_placeSrb{};
+  QRhiComputePipeline* m_placePipeline{};
+  bool m_placeSrbDirty{true};
 };
 
 }

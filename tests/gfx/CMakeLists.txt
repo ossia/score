@@ -1666,6 +1666,27 @@ if(TARGET score_plugin_threedim)
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
 
+# Instancer places instances at their translations under a scaled prototype and
+# a scaled Instancer (agent G, N61).
+if(TARGET score_plugin_threedim)
+  score_plugin_hidden_sources(_instancer_placement_fixg_hidden
+      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim/Instancer.cpp")
+  score_add_test(test_gfx_instancer_placement_fixg
+    SOURCES GfxInstancerPlacementFixG.cpp ${_instancer_placement_fixg_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_instancer_placement_fixg PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_instancer_placement_fixg SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
 # An edge to a node that never registers is retried a bounded number of ticks
 # and then dropped with one warning, instead of re-entering the edge diff on
 # every tick. Drives the real document GfxContext (fixJ, N6).

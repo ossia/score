@@ -2,6 +2,7 @@
 
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/SceneGPUState.hpp>
+#include <Gfx/Graph/Utils.hpp>
 
 #include <QMatrix3x3>
 #include <QMatrix4x4>
@@ -211,10 +212,117 @@ uintptr_t pointsBufferFingerprint(
   return fp;
 }
 
+const QString placementShader = QStringLiteral(R"_(#version 450
+layout(local_size_x = 64) in;
+
+layout(std140, binding = 0) uniform Params
+{
+  mat4 inverse_linear;
+  uvec4 source_layout;
+};
+
+layout(std430, binding = 1) readonly buffer Source
+{
+  float source_data[];
+};
+
+layout(std430, binding = 2) writeonly buffer Target
+{
+  vec4 target_data[];
+};
+
+void main()
+{
+  uint i = gl_GlobalInvocationID.x;
+  if(i >= source_layout.x)
+    return;
+  uint b = source_layout.z + i * source_layout.y;
+  vec3 t = vec3(source_data[b], source_data[b + 1u], source_data[b + 2u]);
+  float w = source_layout.w != 0u ? source_data[b + 3u] : 1.0;
+  target_data[i] = vec4((inverse_linear * vec4(t, 0.0)).xyz, w);
+}
+)_");
+
+struct PlacementParams
+{
+  float inverse_linear[16];
+  uint32_t count;
+  uint32_t stride;
+  uint32_t offset;
+  uint32_t has_w;
+};
+
 } // namespace
+
+bool Instancer::preparePlacement(
+    const ossia::buffer_resource_ptr& routed, const halp::gpu_buffer& raw,
+    uint32_t stride, uint32_t column_offset, bool has_w, uint32_t count,
+    const float* inverse_linear)
+{
+  m_placing = false;
+  if(!m_rhi || !m_placePipeline || count == 0 || stride % 4 != 0)
+    return false;
+
+  QRhiBuffer* source{};
+  int64_t offset{};
+  if(routed)
+  {
+    if(auto* gpu = ossia::get_if<ossia::gpu_buffer_handle>(&routed->resource))
+    {
+      source = static_cast<QRhiBuffer*>(gpu->native_handle);
+      offset = (int64_t)gpu->byte_offset;
+    }
+  }
+  else
+  {
+    source = static_cast<QRhiBuffer*>(raw.handle);
+    offset = raw.byte_offset;
+  }
+  offset += column_offset;
+  if(!source || offset % 4 != 0 || !(source->usage() & QRhiBuffer::StorageBuffer))
+    return false;
+
+  const quint32 bytes = count * 16;
+  if(!m_placed)
+  {
+    m_placed = m_rhi->newBuffer(
+        QRhiBuffer::Static,
+        QRhiBuffer::UsageFlags(score::gfx::compatibleBufferUsage(
+            *m_rhi, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer)),
+        bytes);
+    m_placed->setName("Instancer::placed_translations");
+    if(!m_placed->create())
+    {
+      delete m_placed;
+      m_placed = nullptr;
+      return false;
+    }
+    m_placeSrbDirty = true;
+  }
+  else if(m_placed->size() < bytes)
+  {
+    m_placed->destroy();
+    m_placed->setSize(bytes);
+    if(!m_placed->create())
+      return false;
+    m_placeSrbDirty = true;
+  }
+
+  if(m_placement.source != source)
+    m_placeSrbDirty = true;
+  m_placement.source = source;
+  m_placement.source_offset = (uint32_t)offset;
+  m_placement.source_stride = stride;
+  m_placement.count = count;
+  m_placement.has_w = has_w ? 1u : 0u;
+  std::copy_n(inverse_linear, 16, m_placement.inverse_linear);
+  m_placing = true;
+  return true;
+}
 
 void Instancer::rebuild()
 {
+  m_placing = false;
   const auto& in = inputs.scene_in.scene;
   const ossia::scene_state* in_state = in.state.get();
 
@@ -415,6 +523,50 @@ void Instancer::rebuild()
         break;
     }
   }
+  {
+    using TF = ossia::instance_component::transform_format;
+    uint32_t stride = 16, column = 0;
+    bool has_w = false;
+    switch(inst->transform_type)
+    {
+      case TF::mat4:
+        stride = 64;
+        column = 48;
+        break;
+      case TF::trs:
+        stride = 40;
+        break;
+      case TF::translation:
+        stride = routing.transforms && routing.transform_stride > 0
+                     ? routing.transform_stride
+                     : 16u;
+        has_w = stride >= 16;
+        break;
+    }
+
+    QMatrix4x4 linear;
+    linear.scale(inputs.scale.value.x, inputs.scale.value.y, inputs.scale.value.z);
+    linear *= protoWorld;
+    linear.setColumn(3, QVector4D{0.f, 0.f, 0.f, 1.f});
+    bool invertible = false;
+    const QMatrix4x4 inverse = linear.inverted(&invertible);
+
+    if(invertible
+       && preparePlacement(
+           routing.transforms, inputs.transforms.buffer, stride, column, has_w,
+           inst->instance_count, inverse.constData()))
+    {
+      ossia::gpu_buffer_handle gh;
+      gh.native_handle = m_placed;
+      gh.byte_size = int64_t(inst->instance_count) * 16;
+      gh.byte_offset = 0;
+      auto placed = std::make_shared<ossia::buffer_resource>();
+      placed->resource = gh;
+      placed->dirty_index = 1;
+      inst->instance_transforms = std::move(placed);
+      inst->transform_type = TF::translation;
+    }
+  }
   inst->dirty_index = ++m_version_counter;
 
   // Wrap into a scene_node:
@@ -535,7 +687,7 @@ void Instancer::rebuild()
   m_pending_dirty = 0xFF;
 }
 
-void Instancer::operator()()
+bool Instancer::refresh()
 {
   // Upstream scene_state, buffer-handle and point-cloud dirty flags can change
   // without a port-update event, so detect them here and call rebuild(); controls
@@ -559,8 +711,15 @@ void Instancer::operator()()
         || m_cached_points_fingerprint
                != pointsBufferFingerprint(inputs.points.mesh)
         || inputs.points.dirty_mesh;
-  if(!m_wrapped_state || upstream_changed)
-    rebuild();
+  if(m_wrapped_state && !upstream_changed)
+    return false;
+  rebuild();
+  return true;
+}
+
+void Instancer::operator()()
+{
+  refresh();
   outputs.scene_out.scene.state = m_wrapped_state;
   outputs.scene_out.dirty = m_pending_dirty;
   m_pending_dirty = 0;
@@ -569,6 +728,32 @@ void Instancer::operator()()
 void Instancer::init(
     score::gfx::RenderList& r, QRhiResourceUpdateBatch& res)
 {
+  m_rhi = r.state.rhi;
+  if(m_rhi && m_rhi->isFeatureSupported(QRhi::Compute) && !m_placePipeline)
+  {
+    QShader shader = score::gfx::makeCompute(r.state, placementShader);
+    if(shader.isValid())
+    {
+      m_placeParams = m_rhi->newBuffer(
+          QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(PlacementParams));
+      m_placeParams->setName("Instancer::placement_params");
+      m_placeSrb = m_rhi->newShaderResourceBindings();
+      m_placePipeline = m_rhi->newComputePipeline();
+      m_placePipeline->setShaderStage({QRhiShaderStage::Compute, shader});
+      if(!m_placeParams->create())
+      {
+        delete m_placeParams;
+        delete m_placeSrb;
+        delete m_placePipeline;
+        m_placeParams = nullptr;
+        m_placeSrb = nullptr;
+        m_placePipeline = nullptr;
+      }
+    }
+    m_placeSrbDirty = true;
+  }
+  m_wrapped_state.reset();
+
   if(!raw_transform_slot.valid())
   {
     raw_transform_slot = r.registry().allocate(
@@ -606,12 +791,74 @@ void Instancer::update(
   r.registry().updateSlot(res, raw_transform_slot, &xform, sizeof(xform));
 }
 
+void Instancer::runInitialPasses(
+    score::gfx::RenderList& r, QRhiCommandBuffer& cb,
+    QRhiResourceUpdateBatch*& res, score::gfx::Edge&)
+{
+  refresh();
+  if(!m_placing || !m_placePipeline || !m_placed || !res)
+    return;
+
+  if(m_placeSrbDirty)
+  {
+    m_placeSrb->destroy();
+    m_placeSrb->setBindings({
+        QRhiShaderResourceBinding::uniformBuffer(
+            0, QRhiShaderResourceBinding::ComputeStage, m_placeParams),
+        QRhiShaderResourceBinding::bufferLoad(
+            1, QRhiShaderResourceBinding::ComputeStage, m_placement.source),
+        QRhiShaderResourceBinding::bufferStore(
+            2, QRhiShaderResourceBinding::ComputeStage, m_placed),
+    });
+    if(!m_placeSrb->create())
+      return;
+    if(!m_placePipeline->shaderResourceBindings())
+    {
+      m_placePipeline->setShaderResourceBindings(m_placeSrb);
+      if(!m_placePipeline->create())
+      {
+        m_placePipeline->setShaderResourceBindings(nullptr);
+        return;
+      }
+    }
+    m_placeSrbDirty = false;
+  }
+
+  PlacementParams params{};
+  std::copy_n(m_placement.inverse_linear, 16, params.inverse_linear);
+  params.count = m_placement.count;
+  params.stride = m_placement.source_stride / 4;
+  params.offset = m_placement.source_offset / 4;
+  params.has_w = m_placement.has_w;
+  res->updateDynamicBuffer(m_placeParams, 0, sizeof(params), &params);
+
+  cb.beginComputePass(res);
+  cb.setComputePipeline(m_placePipeline);
+  cb.setShaderResources(m_placeSrb);
+  cb.dispatch((m_placement.count + 63) / 64, 1, 1);
+  cb.endComputePass();
+  res = r.state.rhi->nextResourceUpdateBatch();
+}
+
 void Instancer::release(score::gfx::RenderList& r)
 {
   if(raw_transform_slot.valid())
     r.registry().free(raw_transform_slot);
   m_xform_ref = {};
   m_wrapped_state.reset();
+
+  delete m_placePipeline;
+  delete m_placeSrb;
+  delete m_placeParams;
+  delete m_placed;
+  m_placePipeline = nullptr;
+  m_placeSrb = nullptr;
+  m_placeParams = nullptr;
+  m_placed = nullptr;
+  m_placement = {};
+  m_placing = false;
+  m_placeSrbDirty = true;
+  m_rhi = nullptr;
 }
 
 } // namespace Threedim
