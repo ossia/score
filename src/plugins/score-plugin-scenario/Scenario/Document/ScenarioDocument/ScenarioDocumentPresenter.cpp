@@ -223,7 +223,7 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
     SCORE_ASSERT(m_timelineAction);
 
     connect(
-        m_timelineAction, &QAction::toggled, this,
+        m_timelineAction.get(), &QAction::toggled, this,
         &ScenarioDocumentPresenter::on_timelineModeSwitch);
 
     m_musicalAction = actions[1];
@@ -589,7 +589,7 @@ void ScenarioDocumentPresenter::stopTimeBar()
 
 bool ScenarioDocumentPresenter::isNodal() const noexcept
 {
-  return !m_timelineAction->isChecked();
+  return m_timelineAction && !m_timelineAction->isChecked();
 }
 
 void ScenarioDocumentPresenter::setAutoScroll(bool c)
