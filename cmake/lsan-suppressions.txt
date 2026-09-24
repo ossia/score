@@ -56,3 +56,14 @@ leak:score::Action::updateTexts
 leak:ossia::net::websocket_server::websocket_server
 leak:ossia::net::websocket_server::listen
 leak:ossia::net::websocket_server::start_accept
+
+# ---------------------------------------------------------------------------
+# Third-party libraries that keep allocations for the life of the process.
+#
+# Khronos Vulkan validation layer internal state; alsa-lib's global config
+# cache and pcm plug-in modules. Not score's allocations, do not grow per test.
+# The alsa config cache is matched by its filler function, not libasound.so, so
+# score leaks passing through alsa callbacks stay visible.
+leak:libVkLayer_khronos_validation.so
+leak:snd_config_update_r
+leak:libasound_module_
