@@ -228,6 +228,13 @@ struct Pipeline
   QRhiGraphicsPipeline* pipeline{};
   QRhiShaderResourceBindings* srb{};
 
+  //! Which of the geometry's vertex bindings this pipeline kept, and in what
+  //! order, plus the fallback bindings it appended. Empty/uncompacted means
+  //! "bind every geometry input one-to-one", which is what the builders that
+  //! do not compact expect. The fallback buffers are owned by
+  //! VertexFallbackPool; the plan holds non-owning pointers.
+  FallbackBindingPlan plan{};
+
   void release()
   {
     if(pipeline)
@@ -237,6 +244,8 @@ struct Pipeline
     if(srb)
       srb->deleteLater();
     srb = nullptr;
+
+    plan.clear();
   }
 };
 
@@ -526,6 +535,24 @@ void replaceTexture(
     std::vector<QRhiShaderResourceBinding>&, int binding, QRhiTexture* newTexture);
 
 /**
+ * @brief Replace one element of a multi-element texture binding.
+ *
+ * The other replaceTexture overloads only ever touch texSamplers[0], which is
+ * all a combined `sampledTexture` binding has. A ladder collapsed by
+ * isf_group_auxiliary_texture_ladders binds N textures under one slot through
+ * QRhiShaderResourceBinding::textures(), so each rung has to be addressed by
+ * its element index. Out-of-range elements and null textures are ignored,
+ * matching the single-element overload's refusal to write a null.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+void replaceTextureElement(
+    std::vector<QRhiShaderResourceBinding>&, int binding, int element,
+    QRhiTexture* newTexture);
+SCORE_PLUGIN_GFX_EXPORT
+void replaceTextureElement(
+    QRhiShaderResourceBindings&, int binding, int element, QRhiTexture* newTexture);
+
+/**
  * @brief Replace a sampler.
  */
 SCORE_PLUGIN_GFX_EXPORT
@@ -606,20 +633,15 @@ inline QRhiBuffer::Type bufferTypeFor(
  * each one runs findGeometryAttribute(name, name) — useful when no isf
  * descriptor is around (legacy callers). Returns true on success, false if
  * a required attribute can't be matched.
+ *
+ * Strict: with no descriptor every input is required, so a miss fails the
+ * build. Same resolver as the fallback-aware overload below, minus the
+ * fallback synthesis.
  */
 SCORE_PLUGIN_GFX_EXPORT
 bool remapPipelineVertexInputs(
     QRhiGraphicsPipeline& pip, const QShader& vertexShader,
-    const ossia::geometry& geom);
-
-/**
- * @brief Same as above, but honours explicit SEMANTIC on each VERTEX_INPUTS
- * entry from the isf descriptor when present.
- */
-SCORE_PLUGIN_GFX_EXPORT
-bool remapPipelineVertexInputs(
-    QRhiGraphicsPipeline& pip, const QShader& vertexShader,
-    const ossia::geometry& geom, const isf::descriptor& desc);
+    const ossia::geometry& geom, FallbackBindingPlan* outPlan = nullptr);
 
 // FallbackBindingPlan lives in its own header so both Utils.hpp and
 // CustomMesh.hpp can depend on it without creating an include cycle
@@ -711,6 +733,12 @@ namespace score::gfx
  */
 SCORE_PLUGIN_GFX_EXPORT
 QRhiSampler* makeSampler(QRhi& rhi, const isf::sampler_config& cfg);
+
+//! Whether a declared sampler asks for a depth comparison. Such a sampler is
+//! the shader's own intent, not a property of the texture, so it is kept even
+//! when the texture's publisher offers a sampler of its own.
+SCORE_PLUGIN_GFX_EXPORT
+bool declaresCompare(const isf::sampler_config& cfg) noexcept;
 } // namespace score::gfx
 
 namespace isf

@@ -1639,6 +1639,16 @@ struct texture_outputs_storage<T>
           createOutputTexture(renderer, t.texture, QSize{t.texture.width, t.texture.height}));
     });
 
+    gpu_first = self.m_samplers.size();
+    avnd::gpu_texture_output_introspection<T>::for_all(
+        avnd::get_outputs<T>(*self.state), [&](auto&) {
+      auto sampler = renderer.state.rhi->newSampler(
+          QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
+          QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
+      sampler->create();
+      self.m_samplers.push_back(score::gfx::Sampler{sampler, nullptr});
+    });
+
     self.defaultPassesInit(renderer, mesh);
   }
 
@@ -1650,18 +1660,41 @@ struct texture_outputs_storage<T>
         avnd::get_outputs<T>(*self.state), [&]<std::size_t N>(auto& t, avnd::predicate_index<N>) {
       uploadOutputTexture(self, renderer, N, t.texture, res);
     });
+
+    std::size_t k = gpu_first;
+    avnd::gpu_texture_output_introspection<T>::for_all(
+        avnd::get_outputs<T>(*self.state), [&](auto& t) {
+      auto* tex = static_cast<QRhiTexture*>(t.texture.handle);
+      if(tex
+         && (tex->flags()
+             & (QRhiTexture::CubeMap | QRhiTexture::ThreeDimensional
+                | QRhiTexture::TextureArray)))
+        tex = nullptr;
+      auto& sampler = self.m_samplers[k];
+      if(tex != sampler.texture)
+      {
+        sampler.texture = tex;
+        for(auto& [edge, pass] : self.m_p)
+          if(pass.p.srb)
+            score::gfx::replaceTexture(
+                *pass.p.srb, int(3 + k), tex ? tex : &renderer.emptyTexture());
+      }
+      k++;
+    });
   }
 
   void release(auto& self, score::gfx::RenderList& r)
   {
-    // Free outputs
-    for(auto& [sampl, texture, fb_] : self.m_samplers)
+    for(std::size_t i = 0; i < self.m_samplers.size(); i++)
     {
-      if(texture != &r.emptyTexture())
+      auto& texture = self.m_samplers[i].texture;
+      if(i < gpu_first && texture != &r.emptyTexture())
         texture->deleteLater();
       texture = nullptr;
     }
   }
+
+  std::size_t gpu_first{};
 
 };
 

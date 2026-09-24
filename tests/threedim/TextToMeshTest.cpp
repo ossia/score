@@ -611,3 +611,32 @@ TEST_CASE(
   CHECK(b.state->version > version2);
   CHECK(b.node->outputs.scene_out.dirty != 0);
 }
+
+TEST_CASE(
+    "A text edit keeps the material's identity",
+    "[threedim][text_to_mesh]")
+{
+  // Downstream materials fingerprints key on stable_id, or on the pointer when
+  // it is 0. A fresh identity per edit makes the scene preprocessor rebuild
+  // and re-upload every material texture of the whole scene, not only the
+  // text's.
+  auto b = build("A");
+  REQUIRE(b.state);
+  REQUIRE(b.state->materials);
+  REQUIRE(b.state->materials->size() == 1);
+  const auto first = (*b.state->materials)[0]->stable_id;
+  CHECK(first != 0);
+
+  b.node->inputs.text.value = "AB";
+  b.node->rebuild();
+  (*b.node)();
+  const auto st = b.node->outputs.scene_out.scene.state;
+  REQUIRE(st);
+  REQUIRE(st->materials);
+  REQUIRE(st->materials->size() == 1);
+  CHECK((*st->materials)[0]->stable_id == first);
+
+  auto other = build("A");
+  REQUIRE(other.state);
+  CHECK((*other.state->materials)[0]->stable_id != first);
+}

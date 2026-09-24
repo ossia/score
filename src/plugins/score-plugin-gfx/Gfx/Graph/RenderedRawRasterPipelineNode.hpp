@@ -118,6 +118,10 @@ private:
   int m_materialSize{};
 
   QRhiBuffer* m_modelUBO{};
+  // Occupies the descriptor slot parse_raw_raster_pipeline() reserves ahead of
+  // model_material_t when MULTIVIEW >= 2. Without it every binding from the
+  // model UBO on is one lower than the shader declares.
+  QRhiBuffer* m_multiViewUBO{};
 
   struct AuxiliarySSBO
   {
@@ -129,11 +133,6 @@ private:
     bool persistent{false}; //!< Ping-pong pair swapped each frame (raw raster AUXILIARY only)
     std::string name;
     std::string access;
-    // Index into n.input[] for the score port that may carry an upstream-
-    // supplied QRhiBuffer*. -1 when the buffer can only come from the
-    // input geometry's auxiliary list (e.g. desc.auxiliary entries without
-    // a matching INPUTS port).
-    int input_port_index{-1};
     // SRB binding slot assigned at pipeline build time. Needed so the per-
     // sub-mesh draw loop can patch `per_draw` (and any other per-mesh aux)
     // to point at mesh[i]'s buffer before drawing sub-mesh i. -1 when the
@@ -201,8 +200,37 @@ private:
     // which of the three — "read_only" / "write_only" / "read_write".
     bool is_storage{false};
     std::string access;
+    // Ladder rung, mirroring isf::…::auxiliary_texture_request. The rung with
+    // ladder_index == 0 owns two SRB slots -- a `textures()` array at
+    // `binding` and a `sampler()` at `binding + 1` -- and the other rungs are
+    // elements of that array, so they take no slot of their own and keep
+    // binding == -1. `sampler` is only allocated on the owner.
+    int ladder_index{-1};
+    int ladder_size{0};
+    bool in_ladder() const noexcept { return ladder_size > 0; }
+    bool owns_ladder() const noexcept { return ladder_index == 0 && ladder_size > 0; }
+    // The publisher's sampler for this texture (auxiliary_texture::
+    // sampler_handle), bound in place of `sampler` when set. Non-owning: the
+    // publisher owns it. Never taken for a declaration that asks for COMPARE,
+    // which is the shader's own intent rather than the texture's.
+    QRhiSampler* sampler_override{};
+    bool declares_compare{false};
+    QRhiSampler* boundSampler() const noexcept
+    {
+      return sampler_override ? sampler_override : sampler;
+    }
   };
   std::vector<AuxTextureAuxSampler> m_auxTextureSamplers;
+  // Set by rebindAuxTextures when an AUXILIARY texture's bound sampler
+  // changed; the passes are rebuilt, since a hot texture swap keeps the
+  // sampler.
+  bool m_auxSamplerChanged{false};
+
+  // Emit the SRB bindings for m_auxTextureSamplers, advancing `binding`.
+  // Shared by initPass and initMRTPass so the two can never disagree about
+  // how many slots a ladder consumes.
+  void appendAuxTextureBindings(
+      ossia::small_vector<QRhiShaderResourceBinding, 4>& out, int& binding);
 
   std::optional<AudioTextureUpload> m_audioTex;
 

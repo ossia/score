@@ -183,7 +183,8 @@ static bool isGraphicsVisibility(std::string_view v) noexcept
 }
 
 void collectGraphicsStorageResources(
-    const isf::descriptor& desc, int firstBinding, GraphicsStorageResources& out)
+    const isf::descriptor& desc, int firstBinding, GraphicsStorageResources& out,
+    int firstInlet)
 {
   out.ssbos.clear();
   out.images.clear();
@@ -201,7 +202,8 @@ void collectGraphicsStorageResources(
   // (no input port unless flex-array sizing) and for write-only
   // csf_image_input (no input port at all).
   walk_descriptor_inputs(
-      desc, [&](const isf::input& inp, const port_counts& cur, const port_counts&) {
+      desc, port_counts{firstInlet, 0, 0},
+      [&](const isf::input& inp, const port_counts& cur, const port_counts&) {
         const int port_idx = cur.inlets;
         if(auto* s = ossia::get_if<isf::storage_input>(&inp.data))
         {
@@ -681,6 +683,98 @@ QVarLengthArray<QRhiShaderResourceBinding, 8> buildExtraBindings(
   return out;
 }
 
+
+namespace
+{
+// Every handle a storage entry borrows is adopted, and every handle it lets go
+// of is dropped only if it was adopted: a drop the entry never took would
+// release another consumer's reference.
+template <typename Entry>
+void letGoOf(Entry& e)
+{
+  if(e.owned && e.buffer)
+    e.buffer->deleteLater();
+  else if(e.adopted)
+    RenderList::dropAdoptedBuffer(e.buffer);
+  e.adopted = false;
+  e.owned = false;
+  e.from_port = false;
+}
+
+template <typename Entry>
+void borrow(Entry& e, QRhiBuffer* buf)
+{
+  letGoOf(e);
+  RenderList::adoptBuffer(buf);
+  e.buffer = buf;
+  e.adopted = true;
+}
+
+template <typename Entry>
+void bindSentinel(Entry& e, QRhiBuffer* sentinel)
+{
+  letGoOf(e);
+  e.buffer = sentinel;
+}
+}
+
+void GraphicsStorageResources::release()
+{
+  for(auto& s : ssbos)
+  {
+    if(s.owned)
+    {
+      if(s.buffer) s.buffer->deleteLater();
+      if(s.prev)   s.prev->deleteLater();
+    }
+    else if(s.adopted)
+      RenderList::dropAdoptedBuffer(s.buffer);
+    s.adopted = false;
+    s.buffer = nullptr;
+    s.prev = nullptr;
+  }
+  ssbos.clear();
+
+  for(auto& i : images)
+  {
+    if(i.owned)
+    {
+      if(i.texture) i.texture->deleteLater();
+      if(i.prev) i.prev->deleteLater();
+    }
+    i.texture = nullptr;
+    i.prev = nullptr;
+  }
+  images.clear();
+
+  for(auto& u : ubos)
+  {
+    if(u.owned && u.buffer)
+      u.buffer->deleteLater();
+    else if(u.adopted)
+      RenderList::dropAdoptedBuffer(u.buffer);
+    u.adopted = false;
+    u.buffer = nullptr;
+  }
+  ubos.clear();
+
+  if(sentinelBuffer)
+  {
+    sentinelBuffer->deleteLater();
+    sentinelBuffer = nullptr;
+  }
+  if(sentinelUniformBuffer)
+  {
+    sentinelUniformBuffer->deleteLater();
+    sentinelUniformBuffer = nullptr;
+  }
+  sentinelSize = 0;
+
+  indirectDrawBuffer = nullptr;
+  indirectDrawSsboIndex = -1;
+  nextBinding = -1;
+}
+
 void bindUpstreamBuffers(
     RenderList& renderer, const std::vector<Port*>& inputPorts,
     GraphicsStorageResources& store,
@@ -725,23 +819,16 @@ void bindUpstreamBuffers(
       if(buf == e.buffer)
         continue; // unchanged — nothing to do
 
-      if(!e.owned)
+      if(!e.owned || e.access == "read_only")
       {
-        e.buffer = buf;
-        if(srb && e.binding >= 0)
-          replaceBuffer(*srb, e.binding, buf);
-      }
-      else if(e.access == "read_only")
-      {
-        if(e.owned && e.buffer)
-          e.buffer->deleteLater();
-        e.owned = false;
-        e.buffer = buf;
+        borrow(e, buf);
+        e.from_port = true;
         if(srb && e.binding >= 0)
           replaceBuffer(*srb, e.binding, buf);
       }
     }
-    else if(!e.owned && store.sentinelBuffer && !port->edges.empty())
+    else if(
+        !e.owned && store.sentinelBuffer && (!port->edges.empty() || e.from_port))
     {
       // Disconnect: we were borrowing an upstream buffer (!e.owned), the
       // user had wired the port (port->edges non-empty), and the upstream
@@ -764,7 +851,7 @@ void bindUpstreamBuffers(
       // state wrong for the frames that follow.
       if(e.buffer != store.sentinelBuffer)
       {
-        e.buffer = store.sentinelBuffer;
+        bindSentinel(e, store.sentinelBuffer);
         if(srb && e.binding >= 0)
           replaceBuffer(*srb, e.binding, store.sentinelBuffer);
       }
@@ -810,10 +897,8 @@ void bindUpstreamBuffers(
     {
       // An upstream is now providing a different buffer than what's currently
       // bound. Drop any placeholder we owned and retarget the binding.
-      if(e.owned && e.buffer)
-        e.buffer->deleteLater();
-      e.owned = false;
-      e.buffer = found;
+      borrow(e, found);
+      e.from_port = true;
 
       if(srb && e.binding >= 0)
       {
@@ -821,7 +906,9 @@ void bindUpstreamBuffers(
         ubo_srb_changed = true;
       }
     }
-    else if(!e.owned && store.sentinelUniformBuffer && !port->edges.empty())
+    else if(
+        !e.owned && store.sentinelUniformBuffer
+        && (!port->edges.empty() || e.from_port))
     {
       // Disconnect path mirroring the SSBO loop above: the upstream UBO
       // went away (e.g. its producer node was deleted), and we were
@@ -835,7 +922,7 @@ void bindUpstreamBuffers(
       // Geometry restores them immediately after this function returns.
       if(e.buffer != store.sentinelUniformBuffer)
       {
-        e.buffer = store.sentinelUniformBuffer;
+        bindSentinel(e, store.sentinelUniformBuffer);
         if(srb && e.binding >= 0)
         {
           replaceBuffer(*srb, e.binding, store.sentinelUniformBuffer);
@@ -996,13 +1083,15 @@ void bindUpstreamBuffersFromGeometry(
     auto resolved = resolve_aux(e.name, /*is_uniform=*/false);
     if(!resolved.handle || resolved.handle == e.buffer)
       continue;
-    // Drop the prior owned placeholder (or prior owned CPU upload) before
-    // adopting the new handle.
-    if(e.owned && e.buffer)
-      e.buffer->deleteLater();
-    e.buffer = resolved.handle;
+    if(resolved.owned)
+    {
+      letGoOf(e);
+      e.buffer = resolved.handle;
+      e.owned = true;
+    }
+    else
+      borrow(e, resolved.handle);
     e.size = resolved.byte_size;
-    e.owned = resolved.owned;
     if(srb)
       replaceBuffer(*srb, e.binding, e.buffer);
   }
@@ -1014,10 +1103,14 @@ void bindUpstreamBuffersFromGeometry(
     auto resolved = resolve_aux(e.name, /*is_uniform=*/true);
     if(!resolved.handle || resolved.handle == e.buffer)
       continue;
-    if(e.owned && e.buffer)
-      e.buffer->deleteLater();
-    e.buffer = resolved.handle;
-    e.owned = resolved.owned;
+    if(resolved.owned)
+    {
+      letGoOf(e);
+      e.buffer = resolved.handle;
+      e.owned = true;
+    }
+    else
+      borrow(e, resolved.handle);
     if(srb)
       replaceBuffer(*srb, e.binding, e.buffer);
   }

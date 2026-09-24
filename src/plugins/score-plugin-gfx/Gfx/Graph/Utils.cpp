@@ -408,6 +408,43 @@ void replaceTexture(
   }
 }
 
+void replaceTextureElement(
+    std::vector<QRhiShaderResourceBinding>& tmp, int binding, int element,
+    QRhiTexture* newTexture)
+{
+  if(!newTexture || element < 0)
+    return;
+  for(QRhiShaderResourceBinding& b : tmp)
+  {
+    auto d = reinterpret_cast<QRhiShaderResourceBinding::Data*>(&b);
+    if(d->binding != binding)
+      continue;
+    switch(d->type)
+    {
+      case QRhiShaderResourceBinding::Type::SampledTexture:
+      case QRhiShaderResourceBinding::Type::Texture:
+        if(element < d->u.stex.count)
+          d->u.stex.texSamplers[element].tex = newTexture;
+        break;
+      default:
+        break;
+    }
+  }
+}
+
+void replaceTextureElement(
+    QRhiShaderResourceBindings& srb, int binding, int element,
+    QRhiTexture* newTexture)
+{
+  std::vector<QRhiShaderResourceBinding> tmp;
+  tmp.assign(srb.cbeginBindings(), srb.cendBindings());
+
+  replaceTextureElement(tmp, binding, element, newTexture);
+
+  srb.setBindings(tmp.begin(), tmp.end());
+  srb.updateResources();
+}
+
 // The replace*() overloads only rewrite the resources inside an existing layout
 // -- a buffer, texture or sampler pointer in the same binding slot -- which is
 // exactly QRhi's updateResources() fast path: reuse the native descriptor set
@@ -584,89 +621,6 @@ const ossia::geometry::attribute* findGeometryAttribute(
   return match;
 }
 
-bool remapPipelineVertexInputs(
-    QRhiGraphicsPipeline& pip, const QShader& vertexShader,
-    const ossia::geometry& geom)
-{
-  const auto& shader_inputs = vertexShader.description().inputVariables();
-  if(shader_inputs.empty())
-    return true;
-
-  QVarLengthArray<QRhiVertexInputAttribute> remappedAttrs;
-
-  for(const auto& shader_var : shader_inputs)
-  {
-    const std::string_view var_name(shader_var.name.constData(), shader_var.name.size());
-    // Same lookup CSF uses — the explicit-SEMANTIC override is plumbed
-    // separately by callers that have access to the descriptor (see the
-    // overload below). Here, only the GLSL var name is available, so the
-    // semantic key defaults to it.
-    const auto* match = findGeometryAttribute(geom, var_name, var_name);
-
-    if(!match)
-      return false;
-
-    // binding/format/offset from GEOMETRY, location from SHADER
-    remappedAttrs.append(QRhiVertexInputAttribute(
-        match->binding, shader_var.location,
-        static_cast<QRhiVertexInputAttribute::Format>(match->format),
-        match->byte_offset));
-  }
-
-  // Override vertex input layout, keeping the bindings (stride/classification)
-  QRhiVertexInputLayout inputLayout;
-  const auto& prevLayout = pip.vertexInputLayout();
-  inputLayout.setBindings(prevLayout.cbeginBindings(), prevLayout.cendBindings());
-  inputLayout.setAttributes(remappedAttrs.begin(), remappedAttrs.end());
-  dropTrailingOrphanVertexBindings(inputLayout);
-  warnOrphanVertexBindings(inputLayout, "remapPipelineVertexInputs(keep-bindings)");
-  pip.setVertexInputLayout(inputLayout);
-  return true;
-}
-
-bool remapPipelineVertexInputs(
-    QRhiGraphicsPipeline& pip, const QShader& vertexShader,
-    const ossia::geometry& geom, const isf::descriptor& desc)
-{
-  const auto& shader_inputs = vertexShader.description().inputVariables();
-  if(shader_inputs.empty())
-    return true;
-
-  // Build a fast NAME → SEMANTIC override map from the descriptor's
-  // VERTEX_INPUTS so we honour explicit user intent. Anything not in the
-  // map falls through to name-as-semantic-key behaviour.
-  ossia::small_flat_map<std::string_view, std::string_view, 16> overrides;
-  for(const auto& vi : desc.vertex_inputs)
-    if(!vi.semantic.empty())
-      overrides[vi.name] = vi.semantic;
-
-  QVarLengthArray<QRhiVertexInputAttribute> remappedAttrs;
-  for(const auto& shader_var : shader_inputs)
-  {
-    const std::string_view var_name(shader_var.name.constData(), shader_var.name.size());
-    std::string_view sem_key = var_name;
-    if(auto it = overrides.find(var_name); it != overrides.end())
-      sem_key = it->second;
-
-    const auto* match = findGeometryAttribute(geom, var_name, sem_key);
-    if(!match)
-      return false;
-
-    remappedAttrs.append(QRhiVertexInputAttribute(
-        match->binding, shader_var.location,
-        static_cast<QRhiVertexInputAttribute::Format>(match->format),
-        match->byte_offset));
-  }
-
-  QRhiVertexInputLayout inputLayout;
-  const auto& prevLayout = pip.vertexInputLayout();
-  inputLayout.setBindings(prevLayout.cbeginBindings(), prevLayout.cendBindings());
-  inputLayout.setAttributes(remappedAttrs.begin(), remappedAttrs.end());
-  dropTrailingOrphanVertexBindings(inputLayout);
-  warnOrphanVertexBindings(inputLayout, "remapPipelineVertexInputs(keep-bindings,semantic)");
-  pip.setVertexInputLayout(inputLayout);
-  return true;
-}
 
 namespace
 {
@@ -689,12 +643,15 @@ std::string_view declTypeFromAttributeType(isf::attribute_type t) noexcept
   }
 }
 
-} // namespace
-
-bool remapPipelineVertexInputs(
+// The one vertex-input resolver behind both public overloads. `desc` carries
+// the explicit SEMANTIC overrides and the "REQUIRED": false opt-ins;
+// `rhi`/`pool`/`batch` carry the context a fallback buffer needs. The strict
+// callers pass none of them, which leaves every input required, so the pool
+// is never reached.
+bool remapVertexInputs(
     QRhiGraphicsPipeline& pip, const QShader& vertexShader,
-    const ossia::geometry& geom, const isf::descriptor& desc,
-    QRhi& rhi, VertexFallbackPool& pool, QRhiResourceUpdateBatch& batch,
+    const ossia::geometry& geom, const isf::descriptor* desc, QRhi* rhi,
+    VertexFallbackPool* pool, QRhiResourceUpdateBatch* batch,
     FallbackBindingPlan& outPlan)
 {
   outPlan.clear();
@@ -706,8 +663,9 @@ bool remapPipelineVertexInputs(
   // Shader reflection order is driver-dependent; we don't rely on it
   // matching descriptor declaration order.
   ossia::small_flat_map<std::string_view, const isf::vertex_input*, 16> descByName;
-  for(const auto& vi : desc.vertex_inputs)
-    descByName[vi.name] = &vi;
+  if(desc)
+    for(const auto& vi : desc->vertex_inputs)
+      descByName[vi.name] = &vi;
 
   // The bindings the pipeline already has are the mesh's: one per stream
   // the upstream geometry publishes, whether or not this shader reads it.
@@ -724,7 +682,7 @@ bool remapPipelineVertexInputs(
 
   // Attributes are collected against the ORIGINAL mesh binding indices
   // and renumbered once the consumed set is known; a fallback attribute
-  // carries -1 here and is resolved from `fallbackOfAttr`.
+  // is the one whose `fallbackOfAttr` entry is not -1.
   QVarLengthArray<QRhiVertexInputAttribute> remappedAttrs;
   QVarLengthArray<int> attrMeshBinding;
   QVarLengthArray<int> fallbackOfAttr;
@@ -741,8 +699,7 @@ bool remapPipelineVertexInputs(
     const std::string_view var_name(
         shader_var.name.constData(), shader_var.name.size());
 
-    // Resolve the semantic key the same way the 3-arg overload does —
-    // SEMANTIC field wins when set, else NAME is used.
+    // SEMANTIC field wins when the descriptor sets one, else NAME is the key.
     std::string_view sem_key = var_name;
     auto descIt = descByName.find(var_name);
     const isf::vertex_input* descEntry
@@ -753,24 +710,26 @@ bool remapPipelineVertexInputs(
     if(const auto* match = findGeometryAttribute(geom, var_name, sem_key))
     {
       // An attribute pointing past the layout the mesh actually prepared
-      // would renumber onto nothing; treat it as a miss so the fallback
-      // path below can answer for it (or reject the pipeline outright).
-      if(match->binding >= 0 && match->binding < meshBindingCount)
+      // would renumber onto nothing. With a fallback context that is a
+      // miss the pipeline is refused for; without one it is kept, and the
+      // renumber below lands it on slot 0.
+      if(pool && !(match->binding >= 0 && match->binding < meshBindingCount))
       {
-        appendAttr(
-            match->binding, -1,
-            QRhiVertexInputAttribute(
-                match->binding, shader_var.location,
-                static_cast<QRhiVertexInputAttribute::Format>(match->format),
-                match->byte_offset));
-        continue;
+        qDebug() << "remapPipelineVertexInputs: VERTEX_INPUT '"
+                 << QString::fromUtf8(var_name.data(), (int)var_name.size())
+                 << "' matched geometry binding" << match->binding
+                 << "which is outside the pipeline's" << meshBindingCount
+                 << "mesh bindings";
+        return false;
       }
-      qDebug() << "remapPipelineVertexInputs: VERTEX_INPUT '"
-               << QString::fromUtf8(var_name.data(), (int)var_name.size())
-               << "' matched geometry binding" << match->binding
-               << "which is outside the pipeline's" << meshBindingCount
-               << "mesh bindings";
-      return false;
+
+      appendAttr(
+          match->binding, -1,
+          QRhiVertexInputAttribute(
+              match->binding, shader_var.location,
+              static_cast<QRhiVertexInputAttribute::Format>(match->format),
+              match->byte_offset));
+      continue;
     }
 
     // Miss. Strict mode (no descriptor entry or REQUIRED=true) fails.
@@ -781,6 +740,10 @@ bool remapPipelineVertexInputs(
                << "' has no matching attribute on upstream geometry";
       return false;
     }
+
+    // Only the fallback-aware overload declares opt-ins, so it is the only
+    // one that can get here, and it always brings the pool along.
+    SCORE_ASSERT(rhi && pool && batch);
 
     // Optional path — synthesise a fallback buffer. Two failure modes
     // still reject the pipeline build:
@@ -811,7 +774,7 @@ bool remapPipelineVertexInputs(
       return false;
     }
 
-    const auto fallbackEntry = pool.acquire(rhi, batch, *spec);
+    const auto fallbackEntry = pool->acquire(*rhi, *batch, *spec);
     if(!fallbackEntry.buffer)
     {
       qDebug() << "remapPipelineVertexInputs: failed to allocate fallback"
@@ -851,7 +814,7 @@ bool remapPipelineVertexInputs(
   std::fill(keep.begin(), keep.end(), -1);
   for(const auto old : attrMeshBinding)
   {
-    if(old >= 0 && keep[old] < 0)
+    if(old >= 0 && old < meshBindingCount && keep[old] < 0)
     {
       keep[old] = (int)outPlan.mesh_bindings.size();
       outPlan.mesh_bindings.push_back(old);
@@ -868,9 +831,12 @@ bool remapPipelineVertexInputs(
 
   for(int i = 0; i < remappedAttrs.size(); ++i)
   {
-    const int binding = attrMeshBinding[i] >= 0
-                            ? keep[attrMeshBinding[i]]
-                            : firstFallbackBinding + fallbackOfAttr[i];
+    const int old = attrMeshBinding[i];
+    const int binding
+        = fallbackOfAttr[i] >= 0
+              ? firstFallbackBinding + fallbackOfAttr[i]
+              : ((old >= 0 && old < meshBindingCount && keep[old] >= 0) ? keep[old]
+                                                                        : 0);
     remappedAttrs[i] = QRhiVertexInputAttribute(
         binding, remappedAttrs[i].location(), remappedAttrs[i].format(),
         remappedAttrs[i].offset());
@@ -884,8 +850,10 @@ bool remapPipelineVertexInputs(
   // bindings"): past that it warns and DROPS the tail, so the attributes
   // on those bindings read zero and the draw is quietly wrong. D3D11
   // itself allows 32; the cap is Qt's. Nothing here can raise it, so say
-  // which shader wanted what, once per pipeline build.
-  if(rhi.backend() == QRhi::D3D11 && bindings.size() > 8)
+  // which shader wanted what, once per pipeline build. The strict path has no
+  // `rhi` of its own; the pipeline knows which one it belongs to.
+  const QRhi* backendRhi = rhi ? rhi : pip.rhi();
+  if(backendRhi && backendRhi->backend() == QRhi::D3D11 && bindings.size() > 8)
   {
     // Name the attributes that land past binding 7, not merely the shader's
     // whole input list: those are the ones whose buffer is never recorded,
@@ -910,6 +878,28 @@ bool remapPipelineVertexInputs(
   warnOrphanVertexBindings(inputLayout, "remapPipelineVertexInputs");
   pip.setVertexInputLayout(inputLayout);
   return true;
+}
+
+} // namespace
+
+bool remapPipelineVertexInputs(
+    QRhiGraphicsPipeline& pip, const QShader& vertexShader,
+    const ossia::geometry& geom, FallbackBindingPlan* outPlan)
+{
+  FallbackBindingPlan scratch;
+  return remapVertexInputs(
+      pip, vertexShader, geom, nullptr, nullptr, nullptr, nullptr,
+      outPlan ? *outPlan : scratch);
+}
+
+bool remapPipelineVertexInputs(
+    QRhiGraphicsPipeline& pip, const QShader& vertexShader,
+    const ossia::geometry& geom, const isf::descriptor& desc,
+    QRhi& rhi, VertexFallbackPool& pool, QRhiResourceUpdateBatch& batch,
+    FallbackBindingPlan& outPlan)
+{
+  return remapVertexInputs(
+      pip, vertexShader, geom, &desc, &rhi, &pool, &batch, outPlan);
 }
 
 void dropTrailingOrphanVertexBindings(QRhiVertexInputLayout& layout) noexcept
@@ -954,6 +944,7 @@ Pipeline buildPipeline(
     QRhiShaderResourceBindings* srb)
 {
   auto& rhi = *renderer.state.rhi;
+  Pipeline ret;
   auto ps = rhi.newGraphicsPipeline();
   ps->setName("buildPipeline::ps");
   SCORE_ASSERT(ps);
@@ -1005,7 +996,7 @@ Pipeline buildPipeline(
   // so that locations are determined by the shader, not by the geometry producer.
   if(auto* geom = mesh.semanticGeometry())
   {
-    if(!remapPipelineVertexInputs(*ps, vertexS, *geom))
+    if(!remapPipelineVertexInputs(*ps, vertexS, *geom, &ret.plan))
     {
       qDebug() << "Warning! Shader requires attributes not present in mesh";
       delete ps;
@@ -1054,7 +1045,9 @@ Pipeline buildPipeline(
     delete ps;
     ps = nullptr;
   }
-  return {ps, srb};
+  ret.pipeline = ps;
+  ret.srb = srb;
+  return ret;
 }
 
 QRhiShaderResourceBindings* createDefaultBindings(
@@ -1155,6 +1148,7 @@ Pipeline buildPipelineWithState(
     bool useShadingRate)
 {
   auto& rhi = *renderer.state.rhi;
+  Pipeline ret;
   auto srb = createDefaultBindings(
       renderer, rt, processUBO, materialUBO, samplers, extraBindings);
 
@@ -1247,7 +1241,7 @@ Pipeline buildPipelineWithState(
   // Semantic vertex input remapping (same as buildPipeline()).
   if(auto* geom = mesh.semanticGeometry())
   {
-    if(!remapPipelineVertexInputs(*ps, vertexS, *geom))
+    if(!remapPipelineVertexInputs(*ps, vertexS, *geom, &ret.plan))
     {
       qDebug() << "Warning! Shader requires attributes not present in mesh";
       delete ps;
@@ -1296,7 +1290,9 @@ Pipeline buildPipelineWithState(
     delete ps;
     ps = nullptr;
   }
-  return {ps, srb};
+  ret.pipeline = ps;
+  ret.srb = srb;
+  return ret;
 }
 
 std::pair<QShader, QShader>
@@ -2268,6 +2264,11 @@ static QRhiSampler::CompareOp parseCompare(const std::string& s)
   if(v == "always")                                   return QRhiSampler::Always;
   return QRhiSampler::Never;
 }
+}
+
+bool declaresCompare(const isf::sampler_config& cfg) noexcept
+{
+  return parseCompare(cfg.compare) != QRhiSampler::Never;
 }
 
 QRhiSampler* makeSampler(QRhi& rhi, const isf::sampler_config& cfg)

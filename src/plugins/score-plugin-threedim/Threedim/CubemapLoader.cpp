@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <Gfx/Graph/MipGeneration.hpp>
 #include "CubemapLoader.hpp"
 
 #include <Gfx/Graph/ShaderCache.hpp>
@@ -58,11 +59,10 @@ layout(binding = 3) uniform sampler2D equirectMap;
 
 const float PI = 3.14159265358979323846;
 
-// Face direction — v_texcoord.y=1 is the TOP of the rendered face
-// (after the vertex stage's clipSpaceCorrMatrix + non-GL flip). This
-// maps to sampled UV.y=0 in QRhi's top-left-origin UV, which per cube
-// spec corresponds to cube-spec t=-1 → direction biased toward +Y.
-// Hence the signs on `v` (flipped vs. the legacy raw-NDC form).
+// The vertex stage's clipSpaceCorrMatrix and the non-GL y-negate below
+// cancel, so v_texcoord maps straight onto the face's (s, t) sampling
+// coordinates on every backend. These are then the GL cube-map spec's
+// face bases for t growing downwards.
 vec3 faceDirection(int faceIdx, vec2 uv)
 {
   // Map UV from [0,1] to [-1,1]
@@ -72,12 +72,12 @@ vec3 faceDirection(int faceIdx, vec2 uv)
   // QRhi cubemap face order: +X, -X, +Y, -Y, +Z, -Z
   switch(faceIdx)
   {
-    case 0: return vec3( 1.0,    v,   -u); // +X
-    case 1: return vec3(-1.0,    v,    u); // -X
-    case 2: return vec3(   u,  1.0,   -v); // +Y
-    case 3: return vec3(   u, -1.0,    v); // -Y
-    case 4: return vec3(   u,    v,  1.0); // +Z
-    case 5: return vec3(  -u,    v, -1.0); // -Z
+    case 0: return vec3( 1.0,   -v,   -u); // +X
+    case 1: return vec3(-1.0,   -v,    u); // -X
+    case 2: return vec3(   u,  1.0,    v); // +Y
+    case 3: return vec3(   u, -1.0,   -v); // -Y
+    case 4: return vec3(   u,   -v,  1.0); // +Z
+    case 5: return vec3(  -u,   -v, -1.0); // -Z
     default: return vec3(0.0);
   }
 }
@@ -476,7 +476,7 @@ void CubemapLoader::uploadCrossOrStrip(QRhiResourceUpdateBatch* res)
     QRhiTextureUploadDescription desc;
     desc.setEntries(entries.begin(), entries.end());
     res->uploadTexture(m_cubemapTex, desc);
-    res->generateMips(m_cubemapTex);
+    score::gfx::generateMipsIfAny(*res, m_cubemapTex);
   }
 }
 
@@ -585,7 +585,7 @@ void CubemapLoader::renderEquirectangular(
   }
 
   // Generate mipmaps
-  res->generateMips(m_cubemapTex);
+  score::gfx::generateMipsIfAny(*res, m_cubemapTex);
 }
 
 void CubemapLoader::runInitialPasses(

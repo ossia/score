@@ -1,3 +1,5 @@
+#include <Gfx/Graph/CameraMath.hpp>
+#include <Gfx/Graph/MipGeneration.hpp>
 #include <Gfx/Graph/CustomMesh.hpp>
 #include <cstring>
 #include <Gfx/Graph/ISFVisitors.hpp>
@@ -26,10 +28,118 @@ namespace score::gfx
 {
 namespace
 {
+//! The MSL form of a shader, whose native binding map says which Metal buffer
+//! index each SRB binding actually landed on.
+const QShaderKey* mslKey(const QShader& s) noexcept
+{
+  static thread_local QShaderKey found;
+  for(const auto& k : s.availableShaders())
+  {
+    if(k.source() == QShader::MslShader)
+    {
+      found = k;
+      return &found;
+    }
+  }
+  return nullptr;
+}
+
+//! Where Qt starts placing vertex buffers in Metal's per-stage buffer table.
+//!
+//! Mirrors QMetalGraphicsPipelineData::vertexBufferOrigin from the SDK patch
+//! qt-patches/qtbase/0001-rhi-metal-vertex-buffer-origin-from-native-buffers:
+//! the highest native buffer index the vertex stage occupies, plus the two
+//! occupants that are not SRB entries -- the argument buffer holding
+//! textures/samplers, and the buffer-size buffer SPIRV-Cross emits for storage
+//! buffers -- both of which arrive as native indices in extraBufferBindings.
+//!
+//! An SRB numbers every resource in one space; only buffers land in that table,
+//! and SPIRV-Cross compacts them per stage, so neither the highest SRB binding
+//! number nor the count of buffer bindings predicts the origin.
+//!
+//! Returns -1 when the shader carries no native map, i.e. the mapping is 1:1
+//! and Qt's own fallback (maxBinding + 1) applies.
+int metalVertexBufferOrigin(
+    const QRhiShaderResourceBindings& srb, const QShader& vs) noexcept
+{
+  const QShaderKey* key = mslKey(vs);
+  if(!key)
+    return -1;
+
+  const auto map = vs.nativeResourceBindingMap(*key);
+  if(map.isEmpty())
+    return -1;
+
+  int top = -1;
+  for(auto it = srb.cbeginBindings(), end = srb.cendBindings(); it != end; ++it)
+  {
+    // Same reinterpret_cast as Utils.cpp's replace*(): the payload lives in a
+    // private nested ::Data and the class is a thin wrapper around it.
+    const auto* d = reinterpret_cast<const QRhiShaderResourceBinding::Data*>(&*it);
+    switch(d->type)
+    {
+      case QRhiShaderResourceBinding::UniformBuffer:
+      case QRhiShaderResourceBinding::BufferLoad:
+      case QRhiShaderResourceBinding::BufferStore:
+      case QRhiShaderResourceBinding::BufferLoadStore:
+        break;
+      default:
+        continue;
+    }
+    if(!d->stage.testFlag(QRhiShaderResourceBinding::VertexStage))
+      continue;
+    const auto nat = map.constFind(d->binding);
+    if(nat != map.constEnd())
+      top = std::max(top, nat->first);
+  }
+
+  for(int native : vs.nativeShaderInfo(*key).extraBufferBindings)
+    top = std::max(top, native);
+
+  return top + 1;
+}
+
+//! What actually sits in the vertex stage's buffer table, so a refusal names
+//! the occupants rather than only their count.
+void dumpMetalBufferTable(
+    const QRhiShaderResourceBindings& srb, const QShader& vs) noexcept
+{
+  for(const auto& k : vs.availableShaders())
+    qWarning() << "  metal-key: source" << int(k.source()) << "version"
+               << k.sourceVersion().version() << "variant" << int(k.sourceVariant());
+  const QShaderKey* key = mslKey(vs);
+  if(!key)
+  {
+    qWarning() << "  metal-slot: no MSL variant in this shader";
+    return;
+  }
+
+  const auto map = vs.nativeResourceBindingMap(*key);
+  qWarning() << "  metal-map entries:" << map.size();
+  for(auto it = srb.cbeginBindings(), end = srb.cendBindings(); it != end; ++it)
+  {
+    const auto* d = reinterpret_cast<const QRhiShaderResourceBinding::Data*>(&*it);
+    if(!d->stage.testFlag(QRhiShaderResourceBinding::VertexStage))
+      continue;
+    const auto nat = map.constFind(d->binding);
+    if(nat == map.constEnd())
+      continue;
+    qWarning() << "  metal-slot" << nat->first << ": srb binding" << d->binding
+               << "type" << int(d->type);
+  }
+  const auto extras = vs.nativeShaderInfo(*key).extraBufferBindings;
+  for(auto it = extras.cbegin(); it != extras.cend(); ++it)
+    qWarning() << "  metal-slot" << it.value() << ": extra kind" << it.key();
+}
+
 //! Metal shares one 31-entry buffer table per stage between shader resources
-//! and vertex buffers, and Qt places vertex buffers at srb maxBinding + 1.
+//! and vertex buffers, so the vertex buffers start past whatever the resources
+//! occupy. Placing one past slot 30 is a hard assertion inside Metal
+//! (`buffer index (33) must be < 31`), not a Qt warning, so this refuses the
+//! pipeline instead.
 bool checkMetalBufferBudget(
-    QRhi& rhi, int max_binding, const QRhiGraphicsPipeline& ps,
+    QRhi& rhi, const QRhiShaderResourceBindings& srb,
+    const QRhiGraphicsPipeline& ps, const QShader& vs,
     const isf::descriptor& desc) noexcept
 {
   if(rhi.backend() != QRhi::Metal)
@@ -37,15 +147,30 @@ bool checkMetalBufferBudget(
 
   const auto& layout = ps.vertexInputLayout();
   const int vtx = int(std::distance(layout.cbeginBindings(), layout.cendBindings()));
-  const int top = max_binding + vtx;
-  if(top <= 30)
+
+  int origin = metalVertexBufferOrigin(srb, vs);
+  if(origin < 0)
+  {
+    int maxBinding = -1;
+    for(auto it = srb.cbeginBindings(), end = srb.cendBindings(); it != end; ++it)
+    {
+      const auto* d
+          = reinterpret_cast<const QRhiShaderResourceBinding::Data*>(&*it);
+      maxBinding = std::max(maxBinding, d->binding);
+    }
+    origin = maxBinding + 1;
+  }
+
+  const int top = origin + vtx;
+  if(top <= 31)
     return true;
 
-  qWarning() << "RawRaster: this shader needs Metal buffer slot" << top
-             << "but the table holds 31 (slots 0-30);" << max_binding
-             << "resource bindings +" << vtx
-             << "vertex bindings. Skipping the pipeline."
+  qWarning() << "RawRaster: this shader places its last vertex buffer at Metal"
+             << "slot" << (top - 1) << "but the table holds 31 (slots 0-30);"
+             << "vertex buffers start at" << origin << "and there are" << vtx
+             << "of them. Skipping the pipeline."
              << QString::fromStdString(desc.description);
+  dumpMetalBufferTable(srb, vs);
   return false;
 }
 }
@@ -115,6 +240,28 @@ layout(location = 0) in vec2 v_texcoord;
 layout(location = 0) out vec4 fragColor;
 
 void main() { fragColor = texture(blitTexture, vec3(v_texcoord, 0.0)); }
+)_";
+
+// The +Z face of a cube source. A sampler2D bound to a cube view is rejected
+// by Metal's draw validation ("incorrect type of texture (MTLTextureTypeCube)")
+// and by VUID-vkCmdDraw-viewType-07752. The direction is the inverse of the
+// +Z row of the GL cube-map face table (4.6, Table 8.19): s = (x + 1) / 2,
+// t = (1 - y) / 2.
+static const constexpr auto rrp_blit_cube_fs = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform samplerCube blitTexture;
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main()
+{
+  vec3 dir = vec3(2.0 * v_texcoord.x - 1.0, 1.0 - 2.0 * v_texcoord.y, 1.0);
+  fragColor = texture(blitTexture, dir);
+}
 )_";
 
 RenderedRawRasterPipelineNode::RenderedRawRasterPipelineNode(
@@ -265,6 +412,71 @@ static bool auxPlaceholderZeroFillDisabled() noexcept
   return off;
 }
 
+void RenderedRawRasterPipelineNode::appendAuxTextureBindings(
+    ossia::small_vector<QRhiShaderResourceBinding, 4>& out, int& binding)
+{
+  const auto stages = QRhiShaderResourceBinding::StageFlag::VertexStage
+                      | QRhiShaderResourceBinding::StageFlag::FragmentStage;
+
+  for(std::size_t i = 0; i < m_auxTextureSamplers.size(); ++i)
+  {
+    auto& ats = m_auxTextureSamplers[i];
+
+    // Ladder: the owning rung binds the whole run as one textures() array plus
+    // the shared sampler, matching the `<base>_tex[N]` / `<base>_smp` pair
+    // isf.cpp emits, in that slot order. The other rungs are elements of the
+    // array and take no slot of their own.
+    if(ats.in_ladder())
+    {
+      if(!ats.owns_ladder())
+      {
+        ats.binding = -1;
+        continue;
+      }
+
+      const int n = std::min<int>(
+          ats.ladder_size, int(m_auxTextureSamplers.size() - i));
+      ossia::small_vector<QRhiTexture*, 16> rungs;
+      rungs.reserve(n);
+      for(int k = 0; k < n; ++k)
+      {
+        auto& rung = m_auxTextureSamplers[i + k];
+        rungs.push_back(rung.texture ? rung.texture : rung.placeholder);
+      }
+
+      out.push_back(
+          QRhiShaderResourceBinding::textures(binding, stages, n, rungs.data()));
+      ats.binding = binding;
+      binding++;
+
+      out.push_back(
+          QRhiShaderResourceBinding::sampler(binding, stages, ats.boundSampler()));
+      binding++;
+      continue;
+    }
+
+    QRhiShaderResourceBinding b;
+    if(ats.is_storage)
+    {
+      if(ats.access == "read_only")
+        b = QRhiShaderResourceBinding::imageLoad(binding, stages, ats.texture, 0);
+      else if(ats.access == "write_only")
+        b = QRhiShaderResourceBinding::imageStore(binding, stages, ats.texture, 0);
+      else
+        b = QRhiShaderResourceBinding::imageLoadStore(
+            binding, stages, ats.texture, 0);
+    }
+    else
+    {
+      b = QRhiShaderResourceBinding::sampledTexture(
+          binding, stages, ats.texture, ats.boundSampler());
+    }
+    out.push_back(b);
+    ats.binding = binding;
+    binding++;
+  }
+}
+
 void RenderedRawRasterPipelineNode::initPass(
     const TextureRenderTarget& renderTarget, RenderList& renderer,
     QRhiResourceUpdateBatch& res, Edge& edge)
@@ -349,6 +561,32 @@ void RenderedRawRasterPipelineNode::initPass(
           // the INPUTS-side placeholders in
           // IsfBindingsBuilder::ensureStorageResources.
           RhiClearBuffer::clearBuffer(rhi, res, dummy, 0, (quint32)dummySize);
+
+        // The camera block is the one placeholder that must NOT be zeros: a
+        // shader reads it as a transform, and an all-zero viewProjection
+        // collapses every vertex to the origin. Seed identities so a shader in
+        // the plain geometry path -- no ScenePreprocessor, hence no `camera`
+        // auxiliary to resolve against -- draws exactly as it did before the
+        // block existed.
+        if(aux.name == "camera" && aux.is_uniform)
+        {
+          const int slots
+              = (int)(dummySize / (int64_t)sizeof(score::gfx::CameraUBOData));
+          if(slots > 0)
+          {
+            std::vector<score::gfx::CameraUBOData> seed(slots);
+            for(auto& c : seed)
+              for(int i = 0; i < 4; i++)
+              {
+                c.view[i * 5] = 1.f;
+                c.projection[i * 5] = 1.f;
+                c.viewProjection[i * 5] = 1.f;
+              }
+            res.updateDynamicBuffer(
+                dummy, 0, slots * (int)sizeof(score::gfx::CameraUBOData),
+                seed.data());
+          }
+        }
         aux.buffer = dummy;
         aux.size = dummySize;
         aux.owned = true;
@@ -383,37 +621,24 @@ void RenderedRawRasterPipelineNode::initPass(
         binding = QRhiShaderResourceBinding::bufferLoadStore(
             max_binding, bindingStages, aux.buffer);
 
+      BUFTRACE() << "[auxssbo] " << aux.name.c_str()
+                 << " slot.size=" << (qint64)aux.size
+                 << " buffer->size()=" << (qint64)(aux.buffer ? aux.buffer->size() : -1)
+                 << " binding=" << max_binding
+                 << " shaderSeesElems(uint)="
+                 << (qint64)((aux.buffer ? aux.buffer->size() : 0) / 4);
+
       additionalBindings.push_back(binding);
       aux.binding = max_binding;  // remember slot for per-sub-mesh patching
       max_binding++;
     }
 
-    // Auxiliary texture / storage-image bindings: placed right after
-    // aux SSBOs, matching GLSL emission order. Dispatch on is_storage
-    // so TYPE:"image" gets sampledTexture and TYPE:"storage_image"
-    // gets imageLoad / imageStore / imageLoadStore per `access`.
-    for(auto& ats : m_auxTextureSamplers)
+    appendAuxTextureBindings(additionalBindings, max_binding);
+
+    if(m_multiViewUBO)
     {
-      QRhiShaderResourceBinding b;
-      if(ats.is_storage)
-      {
-        if(ats.access == "read_only")
-          b = QRhiShaderResourceBinding::imageLoad(
-              max_binding, bindingStages, ats.texture, 0);
-        else if(ats.access == "write_only")
-          b = QRhiShaderResourceBinding::imageStore(
-              max_binding, bindingStages, ats.texture, 0);
-        else
-          b = QRhiShaderResourceBinding::imageLoadStore(
-              max_binding, bindingStages, ats.texture, 0);
-      }
-      else
-      {
-        b = QRhiShaderResourceBinding::sampledTexture(
-            max_binding, bindingStages, ats.texture, ats.sampler);
-      }
-      additionalBindings.push_back(b);
-      ats.binding = max_binding;
+      additionalBindings.push_back(QRhiShaderResourceBinding::uniformBuffer(
+          max_binding, bindingStages, m_multiViewUBO));
       max_binding++;
     }
 
@@ -564,7 +789,7 @@ void RenderedRawRasterPipelineNode::initPass(
       }
     }
 
-    if(!checkMetalBufferBudget(rhi, max_binding, *ps, n.descriptor()))
+    if(!checkMetalBufferBudget(rhi, *bindings, *ps, v, n.descriptor()))
     {
       delete ps;
       delete pubo;
@@ -617,7 +842,7 @@ void RenderedRawRasterPipelineNode::initPass(
     if(pip.pipeline)
     {
       Pass pass{renderTarget, pip, pubo};
-      pass.fallback_bindings = std::move(fallbackPlan);
+      pass.p.plan = std::move(fallbackPlan);
       m_passes.emplace_back(&edge, std::move(pass));
     }
     else
@@ -710,6 +935,25 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     {
       sz = QSize(w, h);
       break;
+    }
+  }
+
+  // A cube face is square, and every attachment of the pass follows it: the
+  // depth attachment, and any other colour output, at the non-square render
+  // size would leave the pass with attachments of different sizes.
+  {
+    std::string et = n.descriptor().execution_model.type;
+    for(auto& c : et)
+      c = (char)std::toupper((unsigned char)c);
+    const bool hasCube
+        = et == "PER_CUBE_FACE"
+          || std::any_of(outputs.begin(), outputs.end(), [](const auto& o) {
+               return o.is_cubemap;
+             });
+    if(hasCube)
+    {
+      const int edge = std::min(sz.width(), sz.height());
+      sz = QSize(edge, edge);
     }
   }
 
@@ -1007,11 +1251,18 @@ void RenderedRawRasterPipelineNode::initMRTPass(
       else if(useCubeDirect)
       {
         flags |= QRhiTexture::CubeMap;
+        // Square, for the same reason the cube-copy path above is: a cube
+        // texture is only complete when all six faces share one square size,
+        // and GL reports every FBO an incomplete one is attached to as
+        // GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT. Vulkan happens to accept the
+        // non-square allocation, which is why this only ever showed up as a
+        // GL-only blank.
+        const int face_edge = std::min(sz.width(), sz.height());
         // QRhi: a cubemap is allocated via newTexture (not newTextureArray)
         // — its 6 faces are implicit when the CubeMap flag is set. A cube
         // array (multiple cubes) would need newTextureArray + CubeMap, but
         // we only cover single-cube here.
-        tex = rhi.newTexture(fmt, sz, 1, flags);
+        tex = rhi.newTexture(fmt, QSize(face_edge, face_edge), 1, flags);
       }
       else if(layers > 1)
       {
@@ -1583,30 +1834,12 @@ void RenderedRawRasterPipelineNode::initMRTPass(
       max_binding++;
     }
 
-    // Auxiliary texture / storage-image bindings (MRT path). Same
-    // is_storage dispatch as the non-MRT site.
-    for(auto& ats : m_auxTextureSamplers)
+    appendAuxTextureBindings(additionalBindings, max_binding);
+
+    if(m_multiViewUBO)
     {
-      QRhiShaderResourceBinding b;
-      if(ats.is_storage)
-      {
-        if(ats.access == "read_only")
-          b = QRhiShaderResourceBinding::imageLoad(
-              max_binding, bindingStages, ats.texture, 0);
-        else if(ats.access == "write_only")
-          b = QRhiShaderResourceBinding::imageStore(
-              max_binding, bindingStages, ats.texture, 0);
-        else
-          b = QRhiShaderResourceBinding::imageLoadStore(
-              max_binding, bindingStages, ats.texture, 0);
-      }
-      else
-      {
-        b = QRhiShaderResourceBinding::sampledTexture(
-            max_binding, bindingStages, ats.texture, ats.sampler);
-      }
-      additionalBindings.push_back(b);
-      ats.binding = max_binding;
+      additionalBindings.push_back(QRhiShaderResourceBinding::uniformBuffer(
+          max_binding, bindingStages, m_multiViewUBO));
       max_binding++;
     }
 
@@ -1760,7 +1993,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
       }
     }
 
-    if(!checkMetalBufferBudget(rhi, max_binding, *ps, n.descriptor()))
+    if(!checkMetalBufferBudget(rhi, *bindings, *ps, v, n.descriptor()))
     {
       delete ps;
       delete pubo;
@@ -1794,7 +2027,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     {
       // nullptr edge — MRT passes are shared across all output edges
       Pass pass{m_mrtRenderTarget, pip, pubo};
-      pass.fallback_bindings = std::move(fallbackPlan);
+      pass.p.plan = std::move(fallbackPlan);
       m_passes.emplace_back(nullptr, std::move(pass));
     }
     else
@@ -1822,8 +2055,10 @@ void RenderedRawRasterPipelineNode::initMRTBlitPass(
     return;
 
   const bool srcIsArray = srcTex && (srcTex->flags() & QRhiTexture::TextureArray);
+  const bool srcIsCube = srcTex && (srcTex->flags() & QRhiTexture::CubeMap);
   auto [vertexS, fragmentS] = score::gfx::makeShaders(
-      renderer.state, rrp_blit_vs, srcIsArray ? rrp_blit_array_fs : rrp_blit_fs);
+      renderer.state, rrp_blit_vs,
+      srcIsCube ? rrp_blit_cube_fs : srcIsArray ? rrp_blit_array_fs : rrp_blit_fs);
 
   QRhiSampler* sampler = renderer.state.rhi->newSampler(
       QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
@@ -1913,6 +2148,27 @@ void RenderedRawRasterPipelineNode::initState(
       res.updateDynamicBuffer(m_materialUBO, 0, m_materialSize, n.m_material_data.get());
   }
 
+  // Allocated before the model UBO because the generated shader declares it
+  // first: isf_emit_multiview_ubo takes sampler_binding and model_ubo_binding
+  // is whatever follows. Same shape as RenderedISFNode -- no producer fills the
+  // per-view matrices yet, so seed identities rather than leave zeros, which
+  // would collapse every vertex to the origin.
+  if(n.descriptor().multiview_count >= 2)
+  {
+    const int mvCount = n.descriptor().multiview_count;
+    m_multiViewUBO = rhi.newBuffer(
+        QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(float[16]) * mvCount);
+    m_multiViewUBO->setName("RenderedRawRasterPipelineNode::init::m_multiViewUBO");
+    SCORE_ASSERT(m_multiViewUBO->create());
+
+    std::vector<float> ident(16 * mvCount, 0.f);
+    for(int v = 0; v < mvCount; v++)
+      for(int i = 0; i < 4; i++)
+        ident[v * 16 + i * 5] = 1.f;
+    res.updateDynamicBuffer(
+        m_multiViewUBO, 0, sizeof(float[16]) * mvCount, ident.data());
+  }
+
   m_modelUBO
       = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(float[16]));
   m_modelUBO->setName("RenderedRawRasterPipelineNode::init::m_modelUBO");
@@ -1957,6 +2213,9 @@ void RenderedRawRasterPipelineNode::initState(
         if(!gpu->handle)
           return;
         ssbo.buffer = static_cast<QRhiBuffer*>(gpu->handle);
+        // Borrowed, so take the reference update() and the teardown both
+        // assume: releaseState() drops one for every non-owned slot.
+        RenderList::adoptBuffer(ssbo.buffer);
         ssbo.size = geo_aux->byte_size > 0 ? geo_aux->byte_size : gpu->byte_size;
         ssbo.owned = false;
       }
@@ -1989,39 +2248,6 @@ void RenderedRawRasterPipelineNode::initState(
         ssbo.buffer = buf;
         ssbo.size = sz;
         ssbo.owned = true;
-      }
-    };
-
-    // Resolve a buffer for `ssbo` by scanning the connected input port's edges
-    // for an upstream producer. Upstream renderers publish through the virtual
-    // NodeRenderer::bufferForOutput() -- Port::value is never written for
-    // buffer-typed outputs -- so retrieval goes through
-    // RenderList::bufferForInput(edge).
-    //
-    // Complements try_bind_from_geometry: an INPUTS-declared storage_input or
-    // uniform_input may be wired through a dedicated Buffer edge instead of
-    // riding along with the geometry.
-    auto try_bind_from_input_port = [&](AuxiliarySSBO& ssbo) {
-      if(ssbo.input_port_index < 0
-         || ssbo.input_port_index >= (int)n.input.size())
-        return;
-      Port* port = n.input[ssbo.input_port_index];
-      if(!port || port->type != Types::Buffer)
-        return;
-      for(Edge* edge : port->edges)
-      {
-        if(!edge || !edge->source)
-          continue;
-        if(edge->source->type != Types::Buffer)
-          continue;
-        auto view = renderer.bufferForInput(*edge);
-        if(!view.handle)
-          continue;
-        ssbo.buffer = view.handle;
-        if(ssbo.size <= 0)
-          ssbo.size = view.handle->size();
-        ssbo.owned = false;
-        break;
       }
     };
 
@@ -2084,10 +2310,16 @@ void RenderedRawRasterPipelineNode::initState(
       ats.name = atx.name;
       ats.is_storage = atx.is_storage;
       ats.access = atx.access;
+      ats.ladder_index = atx.ladder_index;
+      ats.ladder_size = atx.ladder_size;
 
-      if(!atx.is_storage)
+      // One sampler per ladder, held by the owning rung: that is the single
+      // `sampler` binding isf.cpp emits alongside the texture array, and the
+      // rungs cannot differ in sampler config -- it is part of the grouping key.
+      if(!atx.is_storage && (!ats.in_ladder() || ats.owns_ladder()))
       {
         ats.sampler = score::gfx::makeSampler(rhi, atx.sampler);
+        ats.declares_compare = score::gfx::declaresCompare(atx.sampler);
         ats.sampler->setName(
             ("RRP_aux_tex_sampler::" + atx.name).c_str());
       }
@@ -2154,7 +2386,8 @@ void RenderedRawRasterPipelineNode::initState(
       const int firstStorageBinding
           = 3 + (int)m_inputSamplers.size() + (int)m_audioSamplers.size();
       m_firstStorageBinding = firstStorageBinding;
-      collectGraphicsStorageResources(desc, firstStorageBinding, m_storage);
+      collectGraphicsStorageResources(
+          desc, firstStorageBinding, m_storage, startPC.inlets);
     }
     ensureStorageResources(
         *renderer.state.rhi, res, renderer, desc, m_storage,
@@ -2279,16 +2512,20 @@ void RenderedRawRasterPipelineNode::initState(
     // per level, m_mipCount invocations) in initMRTPass is never reached.
     // Behaviour is selected by pass semantics, not by colour-attachment count
     // alone. m_executionMode is resolved inside initMRTPass, i.e. after this,
-    // so read the descriptor directly.
+    // so read the descriptor directly. MANUAL is in the same position: its
+    // invocation loop lives in the MRT path, so a single-output MANUAL shader
+    // on the single-target path would silently run once.
     bool perMip = false;
+    bool manual = false;
     {
       std::string et = n.descriptor().execution_model.type;
       for(auto& c : et)
         c = (char)std::toupper((unsigned char)c);
       perMip = (et == "PER_MIP");
+      manual = (et == "MANUAL");
     }
     m_hasMRT = colorCount > 1 || hasDepth || hasLayered || hasCubemap || perMip
-               || n.descriptor().multiview_count >= 2;
+               || manual || n.descriptor().multiview_count >= 2;
   }
 
   if(m_hasMRT)
@@ -2446,6 +2683,9 @@ void RenderedRawRasterPipelineNode::releaseState(RenderList& r)
 
   delete m_modelUBO;
   m_modelUBO = nullptr;
+
+  delete m_multiViewUBO;
+  m_multiViewUBO = nullptr;
 
   m_blitMeshbufs = {}; // Freed in RenderList
 
@@ -2666,11 +2906,39 @@ void RenderedRawRasterPipelineNode::update(
   bool recreateDueToMaterial = mustRecreatePasses;
 
   // Refresh upstream-bound storage_input / uniform_input buffers from input
-  // ports. The first pass will pick them up via the SRB; subsequent passes
-  // need bindUpstreamBuffers to patch their SRBs in-place — handled per-pass
-  // when m_passes is iterated for SRB updates further down. (Safe to call
-  // even with no SRB; the helper just refreshes the m_storage entries.)
-  bindUpstreamBuffers(renderer, n.input, m_storage);
+  // ports, then patch every SRB that already exists. bindUpstreamBuffers skips
+  // an entry whose pointer is unchanged, so one call per SRB would only reach
+  // the first: diff against the previous pointers instead.
+  {
+    ossia::small_vector<QRhiBuffer*, 8> prevSsbos, prevUbos;
+    for(const auto& e : m_storage.ssbos)
+      prevSsbos.push_back(e.buffer);
+    for(const auto& e : m_storage.ubos)
+      prevUbos.push_back(e.buffer);
+
+    bindUpstreamBuffers(renderer, n.input, m_storage);
+
+    const auto patch = [&](QRhiShaderResourceBindings* srb) {
+      if(!srb)
+        return;
+      for(std::size_t i = 0; i < m_storage.ssbos.size(); ++i)
+      {
+        const auto& e = m_storage.ssbos[i];
+        if(e.buffer != prevSsbos[i] && e.buffer && e.binding >= 0)
+          replaceBuffer(*srb, e.binding, e.buffer);
+      }
+      for(std::size_t i = 0; i < m_storage.ubos.size(); ++i)
+      {
+        const auto& e = m_storage.ubos[i];
+        if(e.buffer != prevUbos[i] && e.buffer && e.binding >= 0)
+          replaceBuffer(*srb, e.binding, e.buffer);
+      }
+    };
+    for(auto& [e, pass] : m_passes)
+      patch(pass.p.srb);
+    for(auto* invSrb : m_perInvocationSRBs)
+      patch(invSrb);
+  }
   // Same for read-only csf_image_input: adopt the matching upstream
   // auxiliary_texture. Called per frame so a producer that swaps its
   // QRhiTexture on resize or rebuild flows through. The helper is idempotent
@@ -2857,47 +3125,6 @@ void RenderedRawRasterPipelineNode::update(
     }
   }
 
-  // Per-frame: re-pull upstream buffers wired through Buffer input ports
-  // (camera UBO, ExtractBuffer2 SSBOs, ...). Cheap: one virtual call per
-  // aux that has an input port index. Runs every frame because we cannot
-  // guarantee the upstream publisher's init() ran before ours — its
-  // bufferForOutput() may only return a non-null handle a frame later.
-  for(auto& aux : m_auxiliarySSBOs)
-  {
-    if(aux.input_port_index < 0
-       || aux.input_port_index >= (int)n.input.size())
-      continue;
-    Port* port = n.input[aux.input_port_index];
-    if(!port || port->type != Types::Buffer)
-      continue;
-
-    QRhiBuffer* upstream = nullptr;
-    for(Edge* edge : port->edges)
-    {
-      if(!edge || !edge->source)
-        continue;
-      if(edge->source->type != Types::Buffer)
-        continue;
-      if(auto view = renderer.bufferForInput(*edge); view.handle)
-      {
-        upstream = view.handle;
-        break;
-      }
-    }
-    if(!upstream || upstream == aux.buffer)
-      continue;
-
-    if(aux.owned && aux.buffer)
-      aux.buffer->deleteLater();
-    else if(aux.buffer)
-      RenderList::dropAdoptedBuffer(aux.buffer);
-    RenderList::adoptBuffer(upstream);
-    aux.buffer = upstream;
-    aux.size = upstream->size();
-    aux.owned = false;
-    mustRecreatePasses = true;
-  }
-
   bool recreateDueToGeometry = mustRecreatePasses && !recreateDueToMaterial;
 
   const bool procedural = isProceduralDraw();
@@ -2914,6 +3141,8 @@ void RenderedRawRasterPipelineNode::update(
   {
     mustRecreatePasses = true;
   }
+  if(std::exchange(m_auxSamplerChanged, false))
+    mustRecreatePasses = true;
 
   if(mustRecreatePasses)
   {
@@ -3112,7 +3341,7 @@ void RenderedRawRasterPipelineNode::update(
   {
     bool anyFallback = false;
     for(const auto& [e, pass] : m_passes)
-      if(!pass.fallback_bindings.slots.empty())
+      if(!pass.p.plan.slots.empty())
       {
         anyFallback = true;
         break;
@@ -3141,7 +3370,7 @@ void RenderedRawRasterPipelineNode::update(
 
       auto& pool = renderer.vertexFallbackPool();
       for(auto& [e, pass] : m_passes)
-        for(const auto& slot : pass.fallback_bindings.slots)
+        for(const auto& slot : pass.p.plan.slots)
           pool.ensureInstances(
               *renderer.state.rhi, res, slot.buffer, instances);
     }
@@ -3225,6 +3454,16 @@ bool RenderedRawRasterPipelineNode::rebindAuxTextures()
   for(auto& ats : m_auxTextureSamplers)
   {
     const auto* aux = mesh.find_auxiliary_texture(ats.name);
+    if(!ats.is_storage && ats.sampler && !ats.declares_compare)
+    {
+      auto* smp = aux ? static_cast<QRhiSampler*>(aux->sampler_handle) : nullptr;
+      if(smp != ats.sampler_override)
+      {
+        ats.sampler_override = smp;
+        m_auxSamplerChanged = true;
+        changed = true;
+      }
+    }
     auto* tex = aux ? static_cast<QRhiTexture*>(aux->native_handle) : nullptr;
     if(!tex)
       tex = ats.placeholder; // revert to empty of the right kind
@@ -3243,9 +3482,23 @@ bool RenderedRawRasterPipelineNode::rebindAuxTextures()
         return;
       std::vector<QRhiShaderResourceBinding> tmp;
       tmp.assign(srb->cbeginBindings(), srb->cendBindings());
-      for(const auto& ats : m_auxTextureSamplers)
+      for(std::size_t i = 0; i < m_auxTextureSamplers.size(); ++i)
       {
-        if(ats.binding < 0 || !ats.texture)
+        const auto& ats = m_auxTextureSamplers[i];
+        if(!ats.texture)
+          continue;
+        // A ladder rung lives at element ladder_index of the owning rung's
+        // array binding; only the owner knows the slot, so walk back to it.
+        if(ats.in_ladder())
+        {
+          const auto& owner = m_auxTextureSamplers[i - (std::size_t)ats.ladder_index];
+          if(owner.binding < 0)
+            continue;
+          score::gfx::replaceTextureElement(
+              tmp, owner.binding, ats.ladder_index, ats.texture);
+          continue;
+        }
+        if(ats.binding < 0)
           continue;
         score::gfx::replaceTexture(tmp, ats.binding, ats.texture);
       }
@@ -3541,7 +3794,7 @@ void RenderedRawRasterPipelineNode::runInitialPasses(
     // Pass the per-invocation SRB so each draw reads its own UBO.
     // Forward the pass's fallback-binding plan so "REQUIRED: false"
     // VERTEX_INPUTS get their identity buffers bound.
-    drawWithPerMeshAuxRebind(*invSRB, cb, pass.fallback_bindings);
+    drawWithPerMeshAuxRebind(*invSRB, cb, pass.p.plan);
 
     cb.endPass();
   }
@@ -3614,7 +3867,7 @@ void RenderedRawRasterPipelineNode::runInitialPasses(
                                   : nullptr));
           if(tgt)
           {
-            mipBatch->generateMips(tgt);
+            generateMipsIfAny(*mipBatch, tgt);
             any = true;
           }
         }
@@ -3695,7 +3948,7 @@ void RenderedRawRasterPipelineNode::runRenderPass(
       cb.setViewport(QRhiViewport(
           0, 0, texture->pixelSize().width(), texture->pixelSize().height()));
 
-      drawWithPerMeshAuxRebind(*srb, cb, pass.fallback_bindings);
+      drawWithPerMeshAuxRebind(*srb, cb, pass.p.plan);
     }
   }
 }

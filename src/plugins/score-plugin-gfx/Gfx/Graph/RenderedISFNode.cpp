@@ -376,8 +376,12 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
     else if(auto psampler = ossia::get_if<PersistSampler>(&target))
     {
       // Intermediary pass
+      // Depth attachment on the same terms as the node's final target: a
+      // shader that writes gl_FragDepth needs one in every pass it runs in,
+      // or Metal refuses the pipeline.
       renderTarget = score::gfx::createRenderTarget(
-          renderer.state, psampler->textures[0], renderer.samples(), false);
+          renderer.state, psampler->textures[0], renderer.samples(),
+          n.requiresDepth);
       m_innerPassTargets.push_back(renderTarget);
       // createRenderTarget returns a default-constructed (null) target when the
       // backend refuses one -- renderTargetFailed() releases what it made and
@@ -444,7 +448,8 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
         ret.second.processUBO = ret.first.processUBO;
         ret.second.p = ret.first.p;
         ret.second.renderTarget = score::gfx::createRenderTarget(
-            renderer.state, psampler->textures[1], renderer.samples(), false);
+            renderer.state, psampler->textures[1], renderer.samples(),
+            n.requiresDepth);
         m_innerPassTargets.push_back(ret.second.renderTarget);
         // Same null-on-refusal contract as the intermediary pass above.
         if(ret.second.renderTarget.texture)

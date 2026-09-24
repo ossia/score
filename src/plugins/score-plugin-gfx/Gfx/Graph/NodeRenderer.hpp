@@ -251,10 +251,7 @@ struct Pass
 {
   // User-declared ctors (including the implicit ones spelled out here)
   // suppress -Wmissing-field-initializers on the many call sites that
-  // brace-init this struct with three arguments: the fallback plan is
-  // then default-constructed into an empty list, which is what
-  // non-fallback pipelines need. This costs aggregate initialization --
-  // call sites that want fallback_bindings assign it afterwards.
+  // brace-init this struct with three arguments.
   Pass() = default;
   Pass(TextureRenderTarget rt, Pipeline pi, QRhiBuffer* ubo)
       : renderTarget{std::move(rt)}, p{pi}, processUBO{ubo} {}
@@ -267,14 +264,6 @@ struct Pass
   TextureRenderTarget renderTarget;
   Pipeline p;
   QRhiBuffer* processUBO{};
-  // Bindings for "REQUIRED: false" VERTEX_INPUTS that had no matching
-  // upstream attribute when this pass's pipeline was built. Empty for
-  // pipelines where the shader is strict-matched (the common case).
-  // Consumed by the draw path: each slot's buffer is bound at its
-  // `binding_index` in the vertex-input array before the draw call.
-  // The buffers themselves are owned by VertexFallbackPool — the plan
-  // holds non-owning pointers.
-  FallbackBindingPlan fallback_bindings;
 
   void release()
   {
@@ -284,7 +273,6 @@ struct Pass
       processUBO->deleteLater();
       processUBO = nullptr;
     }
-    fallback_bindings.clear();
     // renderTarget NOT released here — owned by RenderList
   }
 };
@@ -350,6 +338,12 @@ public:
   ossia::small_vector<
       std::pair<QVector<quint32>, QRhiGraphicsPipeline*>, 2>
       m_pipelineCache;
+
+  // The vertex-binding plan every cached pipeline was built with. The cache
+  // stores bare pipelines, so without this a hit would hand the Pass an empty
+  // plan and the draw would bind the geometry's streams one-to-one against a
+  // layout that was compacted.
+  FallbackBindingPlan m_pipelinePlan;
 
   MeshBuffers m_meshbufs;
 

@@ -10,6 +10,28 @@
 
 #include <ossia/detail/algorithms.hpp>
 
+namespace
+{
+// The pipeline may have compacted the geometry's vertex bindings down to the
+// streams the shader reads (see remapPipelineVertexInputs). When it did, the
+// draw has to bind the same subset in the same order, which only CustomMesh
+// knows how to do; everything else binds one-to-one as before.
+inline void drawWithPlan(
+    const score::gfx::Mesh& mesh, const score::gfx::MeshBuffers& bufs,
+    QRhiCommandBuffer& cb, const score::gfx::FallbackBindingPlan& plan) noexcept
+{
+  if(plan.compacted)
+  {
+    if(auto* cm = dynamic_cast<const score::gfx::CustomMesh*>(&mesh))
+    {
+      cm->drawWithFallbackBindings(bufs, cb, plan);
+      return;
+    }
+  }
+  mesh.draw(bufs, cb);
+}
+}
+
 namespace score::gfx
 {
 
@@ -113,7 +135,7 @@ void defaultRenderPass(
     cb.setShaderResources(it->second.p.srb);
     cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
 
-    mesh.draw(bufs, cb);
+    drawWithPlan(mesh, bufs, cb, it->second.p.plan);
   }
   else
   {
@@ -136,7 +158,7 @@ void quadRenderPass(
     cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
 
     const auto& mesh = renderer.defaultQuad();
-    mesh.draw(bufs, cb);
+    drawWithPlan(mesh, bufs, cb, it->second.p.plan);
   }
 }
 
@@ -275,12 +297,16 @@ void GenericNodeRenderer::addOutputPass(
     }
     pipeline = pip.pipeline;
     m_pipelineCache.emplace_back(rpFormat, pipeline);
+    // The plan is a property of the mesh and the vertex shader, not of the
+    // render target, so it is the same for every cache entry -- and a cache
+    // hit has no Pipeline to read it back off.
+    m_pipelinePlan = std::move(pip.plan);
   }
 
   // Pass::p.pipeline is non-owning here -- the cache owns it. removeOutputPass
   // and releaseState null-out pipeline before Pipeline::release() so the
   // Pass release path only destroys the SRB.
-  m_p.emplace_back(&edge, Pass{rt, Pipeline{pipeline, srb}, nullptr});
+  m_p.emplace_back(&edge, Pass{rt, Pipeline{pipeline, srb, m_pipelinePlan}, nullptr});
 }
 
 void GenericNodeRenderer::removeOutputPass(RenderList& renderer, Edge& edge)
@@ -363,6 +389,7 @@ void GenericNodeRenderer::releaseState(RenderList& renderer)
       pipeline->deleteLater();
   }
   m_pipelineCache.clear();
+  m_pipelinePlan.clear();
 
   for(auto sampler : m_samplers)
   {
@@ -460,6 +487,7 @@ void GenericNodeRenderer::defaultRelease(RenderList&)
       pipeline->deleteLater();
   }
   m_pipelineCache.clear();
+  m_pipelinePlan.clear();
 
   for(auto sampler : m_samplers)
   {

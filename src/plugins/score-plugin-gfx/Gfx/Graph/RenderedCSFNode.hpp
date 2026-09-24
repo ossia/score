@@ -77,6 +77,12 @@ private:
   // emission order, indices, or fallback-on-missing-resource policy.
   // Binding 1 (ProcessUBO) is left as a nullptr placeholder; each caller
   // patches it per-pass. Output: appended to `bindings`.
+  /// Buffers borrowed from upstream and bound straight into the compute SRB.
+  std::vector<QRhiBuffer*> m_srbAdoptedBuffers;
+
+  /// Drop every adoption taken by buildComputeSrbBindings. Idempotent.
+  void dropSrbAdoptions();
+
   void buildComputeSrbBindings(
       RenderList& renderer, QRhiResourceUpdateBatch& res,
       QList<QRhiShaderResourceBinding>& bindings);

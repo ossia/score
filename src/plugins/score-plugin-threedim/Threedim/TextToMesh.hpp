@@ -117,6 +117,9 @@ public:
   std::shared_ptr<ossia::mesh_component> m_cached_mesh;
   int64_t m_version_counter{0};
   uint8_t m_pending_dirty{0xFF};
+  // One identity for the text's material across rebuilds: a fresh one per
+  // edit changes every downstream materials fingerprint.
+  uint64_t m_material_stable_id{ossia::mint_stable_id()};
 
   score::gfx::GpuResourceRegistry::Slot raw_transform_slot;
   ossia::gpu_slot_ref m_xform_ref{};

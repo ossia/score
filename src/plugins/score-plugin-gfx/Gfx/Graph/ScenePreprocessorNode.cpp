@@ -1,4 +1,5 @@
 #include "Gfx/Graph/GpuResourceRegistry.hpp"
+#include <Gfx/Graph/MipGeneration.hpp>
 
 #include <Gfx/AssetTable.hpp>
 #include <Gfx/Graph/CameraMath.hpp>
@@ -103,6 +104,26 @@ struct MaterialUVTransformGPU
 static_assert(sizeof(MaterialUVTransformGPU) == 112,
               "MaterialUVTransformGPU layout must match shader (7 × vec4)");
 
+// Per-material texture wrap modes, one uvec4 per material arena slot, parallel
+// to scene_material_uv_xforms. Four bits per texture ref: wrap_s in the low
+// two, wrap_t in the high two, 0 = repeat, 1 = clamp to edge, 2 = mirror.
+//   x : main refs, base colour, metal-rough, normal, emissive, occlusion
+//   y : MaterialExtensionsGPU::textureRefs[0..7]
+//   z : MaterialExtensionsGPU::textureRefs[8..15]
+// Every pool array is sampled through one repeat sampler, so a shader that
+// wants a texture's own wrap mode applies it to the UV from this table.
+struct MaterialWrapGPU
+{
+  uint32_t words[4]{0u, 0u, 0u, 0u};
+};
+static_assert(sizeof(MaterialWrapGPU) == 16, "MaterialWrapGPU is one uvec4");
+
+inline uint32_t wrapBits(const ossia::texture_ref& tr) noexcept
+{
+  return (uint32_t(tr.sampler.wrap_s) & 3u)
+         | ((uint32_t(tr.sampler.wrap_t) & 3u) << 2);
+}
+
 // Material texture channels. Each channel has its own QRhiTextureArray with
 // the appropriate pixel format (sRGB vs linear) and dedup map. Index into
 // MaterialGPU::textureRefs[].
@@ -171,6 +192,17 @@ inline const char* channelDynBaseName(MaterialChannel ch) noexcept
 
 // sRGB channels (base color, emissive) get hardware sRGB→linear on sample.
 // Metallic-roughness and normal are data, not color — must stay linear.
+// Flags every shared-pool array is allocated with. Kept out of channelFlags()
+// -- that is the bucket key, and is shared with multisample texture paths
+// where QRhi rejects MipMapped -- but both allocation sites must agree, or a
+// bucket seeded by one and reused by the other has no chain while its sampler
+// still asks for one, and generateMips runs on a texture that never declared
+// UsedWithGenerateMips.
+inline QRhiTexture::Flags poolArrayFlags(QRhiTexture::Flags base) noexcept
+{
+  return base | QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips;
+}
+
 inline QRhiTexture::Flags channelFlags(MaterialChannel ch) noexcept
 {
   switch(ch)
@@ -296,6 +328,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   QRhiBuffer* m_materialUVTransformsBuffer{};
   int64_t m_materialUVTransformsCap{};
   std::vector<MaterialUVTransformGPU> m_cachedMaterialUVTransforms;
+
+  QRhiBuffer* m_materialWrapBuffer{};
+  int64_t m_materialWrapCap{};
+  std::vector<MaterialWrapGPU> m_cachedMaterialWraps;
 
   // One QRhiBuffer per forwarded scene_data entry — allocated when the
   // scene_data carries CPU-side `buffer_data`, borrowed from the upstream
@@ -764,6 +800,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     m_shadowCascadesSeeded = false;
     m_cachedSceneCounts = {~0u, ~0u, ~0u, 0u};
     m_cachedMaterialUVTransforms.clear();
+    m_cachedMaterialWraps.clear();
     m_cachedCameras.clear();
     m_lastCameraUploadFrame = -1;
     m_cachedInstDrawIds.clear();
@@ -826,12 +863,16 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     auto& bc = texChannel(ChannelBaseColor);
     if(!bc.primaryArray())
     {
+      // Seeded sRGB, and the flag is stamped on the bucket rather than passed
+      // separately: it is part of the bucket key now, so a mismatch here would
+      // stop the first real base-colour texture from landing in bucket 0 and
+      // spend a bucket on a placeholder nothing samples.
       auto& b = bc.ensurePrimary(
           QRhiTexture::RGBA8,
-          QSize(kChannelLayerSize, kChannelLayerSize));
-      b.array = rhi.newTextureArray(
-          b.format, 1, b.pixelSize, 1,
+          QSize(kChannelLayerSize, kChannelLayerSize),
           GpuResourceRegistry::textureChannelFlags(toTexChannel(ChannelBaseColor)));
+      b.array = rhi.newTextureArray(
+          b.format, 1, b.pixelSize, /*sampleCount=*/1, poolArrayFlags(b.flags));
       if(b.array)
       {
         b.array->setName("GpuResourceRegistry::base_color_array (init fallback)");
@@ -853,6 +894,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         QRhiTextureUploadEntry entry(0, 0, sub);
         res.uploadTexture(
             b.array, QRhiTextureUploadDescription({entry}));
+        b.mipsDirty = true;
       }
       else
       {
@@ -876,6 +918,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     dropBuf(m_materialsExtBuffer);
     dropBuf(m_materialUVTransformsBuffer);
     m_materialUVTransformsCap = 0;
+    dropBuf(m_materialWrapBuffer);
+    m_materialWrapCap = 0;
     for(auto& sd : m_sceneDataBuffers)
       if(sd.owned && sd.buffer) renderer.releaseBuffer(sd.buffer);
     m_sceneDataBuffers.clear();
@@ -2109,6 +2153,24 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
             res, *slab, Stream::Indices,
             idx.data(), (uint32_t)(idx.size() * 4));
       }
+      else
+      {
+        // A reused slab keeps its CPU-sourced streams, which stable_id pins.
+        // A GPU-sourced stream is copied every frame instead, and a rebuild
+        // has just emptied the queue, so it has to be queued again from the
+        // buffer the mesh names now.
+        const auto requeue = [&](MdiAttr attr, Stream stream,
+                                 const GpuAttrView& view, int elem_size) {
+          if(view.buf)
+            queueSlabCopy(
+                attr, view, elem_size, vc,
+                m_registry->meshSlabOffsetBytes(*slab, stream));
+        };
+        requeue(MdiAttr::Positions, Stream::Positions, gpu_pos, 16);
+        requeue(MdiAttr::Normals, Stream::Normals, gpu_nrm, 16);
+        requeue(MdiAttr::Texcoords, Stream::Texcoords, gpu_uv, 8);
+        requeue(MdiAttr::Tangents, Stream::Tangents, gpu_tan, 16);
+      }
 
       // Per-draw GPU record.
       PerDrawGPU pd{};
@@ -2884,6 +2946,14 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           .byte_offset = 0,
           .byte_size = m_materialUVTransformsCap});
     }
+    {
+      const int buf_idx = (int)g.buffers.size();
+      g.buffers.push_back(wrapGpu(m_materialWrapBuffer, m_materialWrapCap));
+      g.auxiliary.push_back({
+          .name = "scene_material_wrap", .buffer = buf_idx,
+          .byte_offset = 0,
+          .byte_size = m_materialWrapCap});
+    }
 
     // per_draw_bounds — sidecar to per_draws, one local-space AABB per
     // draw (std430 2×vec4 = 32 B). GPU culling shaders read it together with
@@ -3042,9 +3112,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         cache->stage(src.content_hash, decoded->image);
       return decoded->image;
     }
-    QImage fallback(1, 1, QImage::Format_RGBA8888);
-    fallback.fill(Qt::white);
-    return fallback;
+    // Null, not a 1x1 white stand-in: both callers already skip on isNull,
+    // and a sentinel that is a valid image cannot be told apart from a real
+    // 1x1 texture -- which glTF uses constantly for solid-colour channels.
+    return {};
   }
 
   // Fingerprint of the registry's dynamic texture-slot table: for every
@@ -3163,58 +3234,39 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     }
   }
 
-  bool rebuildChannel(
-      MaterialChannel ch, bool sameMaterialsContent, RenderList& renderer,
-      QRhiResourceUpdateBatch& res, FlatScene& fs)
+  //! One decoded image waiting for the pool array that will hold it. A new
+  //! source has no layer until assignNewLayers gives it one (-1).
+  struct PendingLayer
+  {
+    int bucket_idx;
+    int layer_idx;
+    QImage image;
+    const ossia::texture_source* source{};
+    std::shared_ptr<const ossia::texture_source> keep;
+  };
+  using LayerMap = ossia::flat_map<const ossia::texture_source*, int>;
+
+  //! Route one channel's material textures into the shared pool, deduping by
+  //! texture_source pointer across every channel that already ran.
+  //! Registration for ALL channels must finish before allocateAndUploadPool:
+  //! the pool is shared, so a later channel discovering a new layer in a bucket
+  //! an earlier one already sized would force that array to be reallocated and
+  //! every layer in it re-uploaded.
+  //!
+  //! `previous` is each bucket's map from before this rebuild. A source found
+  //! there keeps its bucket and layer and is neither decoded nor uploaded
+  //! again; only sources new to the pool are queued.
+  void registerChannelRefs(
+      MaterialChannel ch, RenderList& renderer, FlatScene& fs,
+      const std::vector<LayerMap>& previous,
+      std::vector<PendingLayer>& pendingUploads)
   {
     if(!m_registry)
-      return false;
-    auto& rhi = *renderer.state.rhi;
+      return;
     auto& channel = texChannel(ch);
-
     const auto matsPtr
         = this->scene.state ? this->scene.state->materials : nullptr;
 
-    // Dynamic slots refresh every frame regardless of sameMaterialsContent:
-    // runtime handles can swap without the outer material pointer changing.
-    rebuildDynamicSlots(ch);
-
-    // Fast path: the per-element materials fingerprint matches what we
-    // last fingerprinted, and this channel's texture array + layer map
-    // are still valid. Only need to re-patch textureRefs on fs.materials
-    // so the SSBO upload below carries the cached layer indices (dynamic
-    // slots patched from the freshly rebuilt dynamicSlotMap).
-    if(sameMaterialsContent && channel.primaryArray())
-    {
-      patchMaterialRefsFromCache(ch, fs);
-      return false;
-    }
-
-    // Multi-bucket texture arrays: each distinct (format, size, sampler_config)
-    // tuple gets its own bucket, and materials reference
-    // tex_ref_static(bucket_id, layer_id).
-    //
-    // Per rebuild: clear the layerMaps, walk materials decoding each unique
-    // source once and routing it to findOrCreateBucket, reallocate the
-    // QRhiTextureArray of every bucket whose size or layer count changed,
-    // upload into the assigned (bucket, layer) slots, and keep at least one
-    // fallback layer in bucket 0 so the unsuffixed binding stays valid.
-    //
-    // Every bucket is RGBA8 today; HDR and compressed formats plug in by
-    // varying the format argument.
-
-    for(auto& b : channel.buckets)
-      b.layerMap.clear();
-
-    // Decoded pending uploads + their target (bucket, layer).
-    struct PendingLayer
-    {
-      int bucket_idx;
-      int layer_idx;
-      QImage image;
-    };
-    std::vector<PendingLayer> pendingUploads;
-    pendingUploads.reserve(16);
 
     if(matsPtr)
     {
@@ -3250,37 +3302,89 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           if(b.layerMap.find(s) != b.layerMap.end())
             return;
 
+        // Still in the pool from before this rebuild, in a bucket of this
+        // channel's colourspace: keep its layer, no decode, no upload.
+        for(std::size_t bi = 0; bi < previous.size() && bi < channel.buckets.size();
+            ++bi)
+        {
+          const auto it = previous[bi].find(s);
+          if(it == previous[bi].end())
+            continue;
+          auto& b = channel.buckets[bi];
+          if(b.flags == channelFlags(ch) && it->second >= 0)
+          {
+            b.layerMap[s] = it->second;
+            return;
+          }
+          break;
+        }
+
         // Decode now so we know the native size to pick a bucket.
         // AssetTable `peek` may return a cached QImage → zero-cost.
         QImage img = decodeTextureSource(*s, renderer.assetTable());
         if(img.isNull())
           return;
 
-        // Heuristic: the decode-failure fallback is a 1×1 image; real
-        // textures are ≥ 8 px on both axes. Skip bucket assignment on
-        // clearly-degenerate results so we don't spawn a 1×1 bucket.
-        if(img.width() < 8 || img.height() < 8)
-          return;
-
-        // Route to a bucket keyed on (format, size, sampler_config). Splitting
-        // on sampler_config honours per-texture wrap/filter modes when several
-        // materials share a channel array; most glTFs use a single sampler, so
-        // it collapses to one bucket per (format, size).
+        // Route to a bucket keyed on (format, size, colourspace). The sampler
+        // is not part of the key: every bucket is sampled through the same
+        // repeat, trilinear sampler, and a texture's own wrap mode travels in
+        // scene_material_wrap for the shader to apply.
         auto [b_idx, b_ptr] = channel.findOrCreateBucket(
-            QRhiTexture::RGBA8, img.size(), tref.sampler);
+            QRhiTexture::RGBA8, img.size(), channelFlags(ch));
         if(b_idx < 0)
         {
+          // Out of buckets: resample into the closest bucket that agrees on
+          // format and colourspace -- the smallest one at least as large, else
+          // the largest -- rather than drop the texture. A small constant
+          // texture survives this exactly.
+          const auto flags = channelFlags(ch);
+          const auto area = [](QSize sz) { return qint64(sz.width()) * sz.height(); };
+          for(std::size_t i = 0; i < channel.buckets.size(); ++i)
+          {
+            auto& cand = channel.buckets[i];
+            if(cand.format != QRhiTexture::RGBA8 || cand.flags != flags)
+              continue;
+            const bool fits = cand.pixelSize.width() >= img.width()
+                              && cand.pixelSize.height() >= img.height();
+            if(!b_ptr)
+            {
+              b_idx = (int)i;
+              b_ptr = &cand;
+              continue;
+            }
+            const bool bestFits = b_ptr->pixelSize.width() >= img.width()
+                                  && b_ptr->pixelSize.height() >= img.height();
+            if(fits != bestFits ? fits
+                                : (fits ? area(cand.pixelSize) < area(b_ptr->pixelSize)
+                                        : area(cand.pixelSize) > area(b_ptr->pixelSize)))
+            {
+              b_idx = (int)i;
+              b_ptr = &cand;
+            }
+          }
+          if(!b_ptr)
+          {
+            qWarning().noquote()
+                << "ScenePreprocessor: shared texture pool"
+                << "hit bucket cap ("
+                << GpuResourceRegistry::kMaxBuckets
+                << ") and no bucket shares this texture's format and"
+                   " colourspace; texture_source skipped -- shader will see"
+                   " tex_ref_none.";
+            return;
+          }
           qWarning().noquote()
-              << "ScenePreprocessor: channel" << channelName(ch)
-              << "hit bucket cap ("
-              << GpuResourceRegistry::kMaxBuckets
-              << "); texture_source skipped — shader will see tex_ref_none.";
-          return;
+              << "ScenePreprocessor: shared texture pool hit bucket cap ("
+              << GpuResourceRegistry::kMaxBuckets << "); resampling a"
+              << img.width() << "x" << img.height() << "texture into bucket"
+              << b_idx << "(" << b_ptr->pixelSize.width() << "x"
+              << b_ptr->pixelSize.height() << ").";
+          img = img.scaled(
+              b_ptr->pixelSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
         }
 
-        const int layer = (int)b_ptr->layerMap.size();
-        b_ptr->layerMap[s] = layer;
-        pendingUploads.push_back({b_idx, layer, std::move(img)});
+        b_ptr->layerMap[s] = -1;
+        pendingUploads.push_back({b_idx, -1, std::move(img), s, tref.source});
       };
 
       const auto register_material_refs
@@ -3312,34 +3416,95 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       }
     }
 
+  }
+
+  //! Give each new source a layer: the lowest one no retained source holds,
+  //! else a new one at the end. A layer whose source left the scene is freed
+  //! here, and its source released.
+  static void assignNewLayers(
+      GpuResourceRegistry::TextureChannelState& pool,
+      std::vector<PendingLayer>& pendingUploads)
+  {
+    for(std::size_t bi = 0; bi < pool.buckets.size(); ++bi)
+    {
+      auto& b = pool.buckets[bi];
+      std::vector<char> taken(b.layerSources.size(), 0);
+      for(const auto& [src, layer] : b.layerMap)
+        if(layer >= 0 && layer < (int)taken.size())
+          taken[layer] = 1;
+      for(std::size_t i = 0; i < b.layerSources.size(); ++i)
+        if(!taken[i])
+          b.layerSources[i].reset();
+
+      std::size_t next = 0;
+      for(auto& pu : pendingUploads)
+      {
+        if(pu.bucket_idx != (int)bi || pu.layer_idx >= 0)
+          continue;
+        while(next < b.layerSources.size() && b.layerSources[next])
+          ++next;
+        if(next == b.layerSources.size())
+          b.layerSources.emplace_back();
+        pu.layer_idx = (int)next;
+        b.layerSources[next] = pu.keep;
+        b.layerMap[pu.source] = (int)next;
+        ++next;
+      }
+      while(!b.layerSources.empty() && !b.layerSources.back())
+        b.layerSources.pop_back();
+    }
+  }
+
+  //! Allocate or grow every bucket in the shared pool and issue the queued
+  //! uploads. Returns true when any QRhiTexture was recreated, which the caller
+  //! turns into a downstream SRB rebind.
+  bool allocateAndUploadPool(
+      RenderList& renderer, QRhiResourceUpdateBatch& res,
+      std::vector<PendingLayer>& pendingUploads)
+  {
+    if(!m_registry)
+      return false;
+    auto& rhi = *renderer.state.rhi;
+    auto& channel = m_registry->texturePool();
+
     // Ensure bucket 0 exists for init-time / shader-binding stability.
     // If no material landed in it, ensurePrimary() with default size
-    // gives a safe fallback target.
+    // gives a safe fallback target. sRGB to match the seed in init(), so the
+    // first real base-colour texture reuses this bucket instead of spending
+    // another one.
     if(channel.buckets.empty())
     {
       channel.ensurePrimary(
           QRhiTexture::RGBA8,
-          QSize(kChannelLayerSize, kChannelLayerSize));
+          QSize(kChannelLayerSize, kChannelLayerSize),
+          GpuResourceRegistry::textureChannelFlags(toTexChannel(ChannelBaseColor)));
     }
 
-    // Per-bucket allocate / reallocate.
+    // Per-bucket allocate / grow. Arrays only grow: a layer freed by a
+    // removed texture is reused by the next new one, not reclaimed.
     bool anyReallocated = false;
+    std::vector<char> reallocated(channel.buckets.size(), 0);
     for(std::size_t bi = 0; bi < channel.buckets.size(); ++bi)
     {
       auto& b = channel.buckets[bi];
       // At least 1 layer — empty bucket gets a fallback at layer 0.
-      const int wantLayers = std::max(1, (int)b.layerMap.size());
-      if(!b.array || b.layers != wantLayers)
+      const int wantLayers = std::max(1, (int)b.layerSources.size());
+      if(!b.array || b.layers < wantLayers)
       {
         if(b.array)
           b.array->deleteLater();
+        // The bucket sampler is promoted to trilinear below, so the array has
+        // to carry the levels that asks for: a mipmap filter over a one-level
+        // array samples level 0 everywhere and minified materials alias.
         b.array = rhi.newTextureArray(
-            b.format, wantLayers, b.pixelSize, 1, channelFlags(ch));
+            b.format, wantLayers, b.pixelSize, /*sampleCount=*/1,
+            poolArrayFlags(b.flags));
         if(b.array)
         {
           b.array->setName(
-              QByteArray("ScenePreprocessor::") + channelName(ch)
-              + '[' + QByteArray::number((int)bi) + ']');
+              QByteArray("ScenePreprocessor::")
+              + GpuResourceRegistry::kSharedArrayName + '['
+              + QByteArray::number((int)bi) + ']');
           if(!b.array->create())
           {
             delete b.array;
@@ -3349,54 +3514,46 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           {
             b.layers = wantLayers;
             anyReallocated = true;
+            reallocated[bi] = 1;
+
+            // The new array starts empty: every retained layer is uploaded
+            // again, from the source the bucket still holds.
+            std::vector<char> queued(b.layerSources.size(), 0);
+            for(const auto& pu : pendingUploads)
+              if(pu.bucket_idx == (int)bi && pu.layer_idx >= 0
+                 && pu.layer_idx < (int)queued.size())
+                queued[pu.layer_idx] = 1;
+            for(std::size_t li = 0; li < b.layerSources.size(); ++li)
+            {
+              if(queued[li] || !b.layerSources[li])
+                continue;
+              QImage img = decodeTextureSource(
+                  *b.layerSources[li], renderer.assetTable());
+              if(img.isNull())
+                continue;
+              if(img.size() != b.pixelSize)
+                img = img.scaled(
+                    b.pixelSize, Qt::IgnoreAspectRatio,
+                    Qt::SmoothTransformation);
+              pendingUploads.push_back({(int)bi, (int)li, std::move(img)});
+            }
           }
         }
       }
 
-      // Per-bucket QRhiSampler. Created on first allocation, kept
-      // alive across rebuilds (the sampler_config is immutable for a
-      // bucket — bucket identity includes it). Never recreated unless
-      // the bucket is destroyed.
+      // Per-bucket QRhiSampler, identical for every bucket: repeat and
+      // trilinear. Wrap modes are per texture and applied by the shader from
+      // scene_material_wrap, since a collapsed ladder binds a single sampler
+      // for all of its buckets. Created on first allocation and kept alive
+      // across rebuilds.
       if(b.array && !b.sampler)
       {
-        auto wrap_to_qrhi = [](ossia::texture_address_mode m) {
-          switch(m)
-          {
-            case ossia::REPEAT:        return QRhiSampler::Repeat;
-            case ossia::CLAMP_TO_EDGE: return QRhiSampler::ClampToEdge;
-            case ossia::MIRROR:        return QRhiSampler::Mirror;
-          }
-          return QRhiSampler::Repeat;
-        };
-        auto filter_to_qrhi = [](ossia::texture_filter f,
-                                 QRhiSampler::Filter dflt) {
-          switch(f)
-          {
-            case ossia::NONE:    return QRhiSampler::None;
-            case ossia::NEAREST: return QRhiSampler::Nearest;
-            case ossia::LINEAR:  return QRhiSampler::Linear;
-          }
-          return dflt;
-        };
-        // Material textures are uploaded with a full mip chain
-        // (TextureLoader.cpp uploadImageToTexture), so promote the bucket
-        // sampler to trilinear: mag/min filter NONE becomes LINEAR, mipmap_mode
-        // NONE becomes LINEAR. NEAREST is preserved -- that is an explicit
-        // author choice for pixel-art assets. glTFs commonly declare
-        // minFilter=LINEAR rather than LINEAR_MIPMAP_LINEAR, which would
-        // otherwise sample mip 0 only.
-        auto promote_to_linear
-            = [](ossia::texture_filter f) -> ossia::texture_filter {
-          return f == ossia::NONE ? ossia::LINEAR : f;
-        };
         b.sampler = rhi.newSampler(
-            filter_to_qrhi(promote_to_linear(b.sampler_config.mag_filter), QRhiSampler::Linear),
-            filter_to_qrhi(promote_to_linear(b.sampler_config.min_filter), QRhiSampler::Linear),
-            filter_to_qrhi(promote_to_linear(b.sampler_config.mipmap_mode), QRhiSampler::Linear),
-            wrap_to_qrhi(b.sampler_config.wrap_s),
-            wrap_to_qrhi(b.sampler_config.wrap_t));
+            QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::Linear,
+            QRhiSampler::Repeat, QRhiSampler::Repeat);
         b.sampler->setName(
-            QByteArray("ScenePreprocessor::") + channelName(ch) + "_sampler["
+            QByteArray("ScenePreprocessor::")
+            + GpuResourceRegistry::kSharedArrayName + "_sampler["
             + QByteArray::number((int)bi) + ']');
         if(!b.sampler->create())
         {
@@ -3415,8 +3572,9 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     for(auto& pu : pendingUploads)
     {
       auto& b = channel.buckets[pu.bucket_idx];
-      if(!b.array)
+      if(!b.array || pu.layer_idx < 0)
         continue;
+      b.mipsDirty = true;
       QImage img = std::move(pu.image);
       if(img.format() != QImage::Format_RGBA8888)
         img.convertTo(QImage::Format_RGBA8888);
@@ -3433,22 +3591,14 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     for(std::size_t bi = 0; bi < channel.buckets.size(); ++bi)
     {
       auto& b = channel.buckets[bi];
-      if(!b.array || !b.layerMap.empty())
+      if(!b.array || !reallocated[bi] || !b.layerMap.empty())
         continue;
+      b.mipsDirty = true;
+      // Nothing references an empty bucket -- a material with no texture
+      // carries tex_ref_none -- and there is no channel left to pick a
+      // per-channel neutral from, so one white fill serves.
       QImage fallback(b.pixelSize, QImage::Format_RGBA8888);
-      switch(ch)
-      {
-        case ChannelBaseColor:  fallback.fill(Qt::white); break;
-        case ChannelEmissive:   fallback.fill(Qt::black); break;
-        // MR / packed-extension fallback: white (1,1,1,1) so per-material
-        // metallic_factor / roughness_factor / clearcoat_factor / sheen / etc.
-        // apply via multiplication. A non-white fallback would zero out the
-        // authored factors (e.g., metallic_factor=1 + no MR texture → black
-        // metal instead of mirror).
-        case ChannelMetalRough: fallback.fill(Qt::white); break;
-        case ChannelNormal:     fallback.fill(QColor(128, 128, 255, 255)); break;
-        default:                fallback.fill(Qt::white); break;
-      }
+      fallback.fill(Qt::white);
       QRhiTextureSubresourceUploadDescription sub(fallback);
       QRhiTextureUploadEntry entry(0, 0, sub);
       res.uploadTexture(
@@ -3459,6 +3609,19 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     // bucket's QRhiTexture* was recreated, downstream SRBs need a
     // rebind. Caller threads it through the "auxBuffersChanged"
     // flag in update().
+    // Only level 0 of each layer is ever uploaded, so the rest of the chain
+    // has to be derived before anything samples it minified.
+    for(auto& b : channel.buckets)
+    {
+      if(b.array && b.mipsDirty)
+      {
+        BUFTRACE() << "[mipgen] bucket array " << b.pixelSize.width() << "x"
+                   << b.pixelSize.height() << " layers=" << b.layers;
+        generateMipsIfAny(res, b.array);
+        b.mipsDirty = false;
+      }
+    }
+
     const bool arrayReallocated = anyReallocated;
 
     // Per-channel diagnostic: bucket count, pending uploads, per-bucket size
@@ -3470,20 +3633,20 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       for(std::size_t bi = 0; bi < channel.buckets.size(); ++bi)
       {
         const auto& b = channel.buckets[bi];
-        detail += QStringLiteral(" b%1=%2x%3×%4")
+        detail += QStringLiteral(" b%1=%2x%3x%4%5")
                       .arg(bi)
                       .arg(b.pixelSize.width())
                       .arg(b.pixelSize.height())
-                      .arg(b.layers);
+                      .arg(b.layers)
+                      .arg((b.flags & QRhiTexture::sRGB) ? "s" : "");
       }
-      BUFTRACE() << "[Channel " << channelName(ch)
+      BUFTRACE() << "[shared texture pool"
                  << "] buckets=" << channel.buckets.size()
                  << " pendingUploads=" << pendingUploads.size()
                  << detail
                  << " realloc=" << anyReallocated;
     }
 
-    patchMaterialRefsFromCache(ch, fs);
     return arrayReallocated;
   }
 
@@ -3609,61 +3772,87 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   {
     if(!m_registry)
       return;
-    for(int i = 0; i < ChannelCount; ++i)
+    // One pool for every channel, so one set of entries: `materialArray<k>`
+    // per live bucket and `materialDyn<k>` per live dynamic slot. Consumer
+    // shaders declare a single ladder and switch on the 7-bit bucket field of
+    // MaterialGPU::textureRefs, whatever channel the ref came from -- the
+    // bucket key carries the colourspace, so an sRGB ref and a linear one of
+    // the same size simply land in different buckets.
     {
-      auto ch = static_cast<MaterialChannel>(i);
-      const auto& channel = texChannel(ch);
-
-      // One `auxiliary_texture` per live bucket, named
-      // <channelName><bucket_id>, capped at kMaxBuckets. Consumer shaders
-      // declare matching sampler2DArray INPUTS and switch on the 6-bit bucket
-      // field of MaterialGPU::textureRefs.
-      //
-      // Bucket 0 is also emitted under the unsuffixed <channelName> for shaders
-      // that only decode bucket 0. Such a shader shown a multi-bucket scene
-      // renders bucket 0's layer in place of the intended one; those presets
-      // should migrate to a ladder-aware one. No overhead for the common
-      // single-bucket case.
-      for(std::size_t bi = 0; bi < channel.buckets.size(); ++bi)
+      const auto& pool = m_registry->texturePool();
+      for(std::size_t bi = 0; bi < pool.buckets.size(); ++bi)
       {
-        auto* tex = channel.buckets[bi].array;
+        auto* tex = pool.buckets[bi].array;
         if(!tex)
           continue;
-        // sampler_handle is null when the bucket is the init-time
-        // fallback (bucket 0 with no real sources). Renderer falls
-        // back to its own shader-config sampler when null. Real
-        // material buckets populate the per-bucket sampler in
-        // rebuildChannel above so per-glTF-texture wrap/filter
-        // modes propagate end-to-end.
-        void* sampler_h = static_cast<void*>(channel.buckets[bi].sampler);
-        // Suffixed, always.
+        // sampler_handle is null when the bucket is the init-time fallback
+        // (bucket 0 with no real sources); the renderer then falls back to its
+        // own shader-config sampler. Real buckets carry the per-bucket sampler
+        // allocateAndUploadPool created, so per-glTF wrap/filter modes
+        // propagate end to end.
+        void* sampler_h = static_cast<void*>(pool.buckets[bi].sampler);
         g.auxiliary_textures.push_back(
-            {.name = std::string(channelName(ch))
+            {.name = std::string(GpuResourceRegistry::kSharedArrayName)
                      + std::to_string((int)bi),
              .native_handle = tex,
              .sampler_handle = sampler_h});
-        // Unsuffixed alias only for bucket 0.
         if(bi == 0)
         {
           g.auxiliary_textures.push_back(
-              {.name = channelName(ch),
+              {.name = GpuResourceRegistry::kSharedArrayName,
                .native_handle = tex,
                .sampler_handle = sampler_h});
         }
       }
-      // Dynamic slot textures: one aux entry per used slot, named
-      // `<channelDynBase><slot>` (e.g., "baseColorDyn0"). Consumer
-      // shaders declare matching sampler2D uniforms and branch on the
-      // textureRefs source bits to pick static array vs dyn sampler.
-      const auto& dyn = texChannel(ch).dynamicTextures;
-      const char* dynBase = channelDynBaseName(ch);
+
+      const auto& dyn = pool.dynamicTextures;
       for(int s = 0; s < (int)dyn.size(); ++s)
       {
         if(auto* tex = dyn[s])
         {
           g.auxiliary_textures.push_back(
-              {.name = std::string(dynBase) + std::to_string(s),
+              {.name = std::string(GpuResourceRegistry::kSharedDynName)
+                       + std::to_string(s),
                .native_handle = tex});
+        }
+      }
+
+      // Legacy per-channel aliases onto the same buckets, for shaders that
+      // still name baseColorArray<k> / metalRoughDyn<s> and friends --
+      // lgm/model-depth.score and classic_pbr_skinned.frag declare theirs as
+      // INPUTS images, which are real ports, so they cannot be renamed without
+      // shifting the inlet indices a saved document resolves its cables
+      // against.
+      //
+      // The aliasing is exact, not approximate: a ref's bucket field now
+      // indexes the shared pool, and a legacy shader switches on that same
+      // field before sampling its <channel>Array<k>, so pointing that name at
+      // shared bucket k gives it precisely the texture the ref designates. A
+      // shader declaring fewer rungs than the pool holds falls through to its
+      // own fallback for the high buckets, which is the degradation it already
+      // had past its own cap. Unreferenced names cost a vector entry here and
+      // nothing in the SRB.
+      for(int i = 0; i < ChannelCount; ++i)
+      {
+        const auto ch = static_cast<MaterialChannel>(i);
+        for(std::size_t bi = 0; bi < pool.buckets.size(); ++bi)
+        {
+          auto* tex = pool.buckets[bi].array;
+          if(!tex)
+            continue;
+          g.auxiliary_textures.push_back(
+              {.name = std::string(channelName(ch)) + std::to_string((int)bi),
+               .native_handle = tex,
+               .sampler_handle = static_cast<void*>(pool.buckets[bi].sampler)});
+        }
+        for(int s = 0; s < (int)dyn.size(); ++s)
+        {
+          if(auto* tex = dyn[s])
+          {
+            g.auxiliary_textures.push_back(
+                {.name = std::string(channelDynBaseName(ch)) + std::to_string(s),
+                 .native_handle = tex});
+          }
         }
       }
     }
@@ -4016,12 +4205,41 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           = (fingerprint == m_cachedMaterialsFingerprint);
 
       bool channelReallocated = false;
-      for(int i = 0; i < ChannelCount; ++i)
+      if(m_registry)
       {
-        if(rebuildChannel(
-               static_cast<MaterialChannel>(i), sameMaterialsContent,
-               renderer, res, fs))
-          channelReallocated = true;
+        // Dynamic slots refresh every frame whatever sameMaterialsContent
+        // says: a runtime handle can swap without the outer material pointer
+        // changing.
+        for(int i = 0; i < ChannelCount; ++i)
+          rebuildDynamicSlots(static_cast<MaterialChannel>(i));
+
+        // One pool for every channel, so registration is a single pass over
+        // all five before anything is allocated -- see registerChannelRefs.
+        auto& pool = m_registry->texturePool();
+        if(!sameMaterialsContent || !pool.primaryArray())
+        {
+          std::vector<LayerMap> previous;
+          previous.reserve(pool.buckets.size());
+          for(auto& b : pool.buckets)
+          {
+            previous.push_back(std::move(b.layerMap));
+            b.layerMap.clear();
+          }
+
+          std::vector<PendingLayer> pendingUploads;
+          pendingUploads.reserve(16);
+          for(int i = 0; i < ChannelCount; ++i)
+            registerChannelRefs(
+                static_cast<MaterialChannel>(i), renderer, fs, previous,
+                pendingUploads);
+          assignNewLayers(pool, pendingUploads);
+
+          channelReallocated
+              = allocateAndUploadPool(renderer, res, pendingUploads);
+        }
+
+        for(int i = 0; i < ChannelCount; ++i)
+          patchMaterialRefsFromCache(static_cast<MaterialChannel>(i), fs);
       }
       if(!sameMaterialsContent)
         m_cachedMaterialsFingerprint = std::move(fingerprint);
@@ -4226,6 +4444,11 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       if(grow(m_materialUVTransformsBuffer, m_materialUVTransformsCap, uvXformBytes,
               "ScenePreprocessor::material_uv_xforms"))
         m_cachedMaterialUVTransforms.clear();
+      const int64_t wrapBytes = std::max<int64_t>(
+          16, (int64_t)arenaSlotEntries * sizeof(MaterialWrapGPU));
+      if(grow(m_materialWrapBuffer, m_materialWrapCap, wrapBytes,
+              "ScenePreprocessor::material_wrap"))
+        m_cachedMaterialWraps.clear();
       // scene_light_indices: compact uint array of arena slot indices.
       // Count the lights with valid arena slots (filter out 0xFFFFFFFF
       // sentinels from producer-less lights).
@@ -4558,6 +4781,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           arenaSlotEntries);
       std::vector<MaterialExtensionsGPU> freshMaterialExtensions(
           arenaSlotEntries);
+      std::vector<MaterialWrapGPU> freshMaterialWraps(arenaSlotEntries);
       if(this->scene.state && this->scene.state->materials)
       {
         const auto& mats = *this->scene.state->materials;
@@ -4582,6 +4806,17 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           pack_xform(g.normal_offset_scale, &g.rotations0[2], mats[i]->normal_texture);
           pack_xform(g.em_offset_scale,     &g.rotations0[3], mats[i]->emissive_texture);
           pack_xform(g.occ_offset_scale,    &g.rotations1[0], mats[i]->occlusion_texture);
+
+          auto& w = freshMaterialWraps[slot];
+          const auto& m = *mats[i];
+          w.words[0] = wrapBits(m.base_color_texture)
+                       | (wrapBits(m.metallic_roughness_texture) << 4)
+                       | (wrapBits(m.normal_texture) << 8)
+                       | (wrapBits(m.emissive_texture) << 12)
+                       | (wrapBits(m.occlusion_texture) << 16);
+          for(const auto& ext : kExtTextureSlots)
+            w.words[1 + ext.slot / 8]
+                |= wrapBits(ext.accessor(m)) << (4 * (ext.slot % 8));
 
           // Material extensions are already packed by flattenScene at
           // fs.material_extensions[i]; copy into the arena-slot index.
@@ -4632,6 +4867,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
                    freshMaterialExtensions);
         diffUpload(res, m_materialUVTransformsBuffer,
                    m_cachedMaterialUVTransforms, freshMaterialUVTransforms);
+        diffUpload(res, m_materialWrapBuffer, m_cachedMaterialWraps,
+                   freshMaterialWraps);
         diffUpload(res, m_mdi.per_draws,   m_cachedPerDraws,  freshPerDraws);
         // per_draw_bounds is static across a frame (local-space AABB,
         // never changes per-frame for the same topology) — on the fast
@@ -4665,6 +4902,11 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
               m_materialUVTransformsBuffer, 0,
               freshMaterialUVTransforms.size() * sizeof(MaterialUVTransformGPU),
               freshMaterialUVTransforms.data());
+        if(!freshMaterialWraps.empty())
+          res.uploadStaticBuffer(
+              m_materialWrapBuffer, 0,
+              freshMaterialWraps.size() * sizeof(MaterialWrapGPU),
+              freshMaterialWraps.data());
 
         rebuildMDI(renderer, res, fs, materialTagHashes);
         rebuildPrimitiveClouds(renderer, res, fs);
@@ -4683,6 +4925,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         m_cachedLightIndices = std::move(freshLightIndices);
         m_cachedMaterialExt = std::move(freshMaterialExtensions);
         m_cachedMaterialUVTransforms = std::move(freshMaterialUVTransforms);
+        m_cachedMaterialWraps = std::move(freshMaterialWraps);
         // m_cachedPerDraws / m_cachedPerDrawBounds are NOT seeded here:
         // rebuildMDI() already assigned them from acc.perDraws (the
         // actually-emitted set, after emitDraw's skip predicate), so the

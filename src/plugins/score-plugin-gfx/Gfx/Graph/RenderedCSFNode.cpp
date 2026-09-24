@@ -1,4 +1,5 @@
 #include "ossia/detail/fmt.hpp"
+#include <Gfx/Graph/MipGeneration.hpp>
 
 #include <Gfx/Graph/CommonUBOs.hpp>
 #include <Gfx/Graph/ISFNode.hpp>
@@ -1479,7 +1480,12 @@ void RenderedCSFNode::updateGeometryBindings(
               continue;
             }
 
-            if(ssbo.buffer != rhi_buf)
+            // Size too, not just the handle: a producer can publish the
+            // buffer one frame before it fills it, keeping the same
+            // QRhiBuffer while byte_size goes 0 -> n. Comparing handles alone
+            // leaves the slot advertising size 0 for the rest of the run, and
+            // every consumer downstream sees an empty attribute.
+            if(ssbo.buffer != rhi_buf || ssbo.size != (int64_t)gpu->byte_size)
             {
               adoptIntoSlot(renderer, ssbo, rhi_buf, gpu->byte_size);
               ssbo.lastUploadSrc = nullptr;
@@ -2505,7 +2511,12 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
           break;
         auto& ssbo = binding.attribute_ssbos[attr_idx];
         if(!ssbo.buffer)
+        {
+          // The attribute still owns its output slot: skipping without
+          // advancing writes every later attribute into the wrong buffer.
+          buf_idx++;
           continue;
+        }
 
         if(buf_idx < (int)out_geo.buffers.size())
         {
@@ -3336,11 +3347,22 @@ void RenderedCSFNode::createComputePipeline(RenderList& renderer)
   }
 }
 
+void RenderedCSFNode::dropSrbAdoptions()
+{
+  for(auto* b : m_srbAdoptedBuffers)
+    score::gfx::RenderList::dropAdoptedBuffer(b);
+  m_srbAdoptedBuffers.clear();
+}
+
 void RenderedCSFNode::buildComputeSrbBindings(
     RenderList& renderer, QRhiResourceUpdateBatch& res,
     QList<QRhiShaderResourceBinding>& bindings)
 {
   QRhi& rhi = *renderer.state.rhi;
+
+  // Both callers rebuild the whole list, so the previous set of borrowed
+  // buffers stops being referenced here and not before.
+  dropSrbAdoptions();
 
   // Pre-pass: collect physical buffers used with conflicting access modes
   // (read on one binding, write on another) so we can promote them to
@@ -3434,6 +3456,10 @@ void RenderedCSFNode::buildComputeSrbBindings(
             if(input_buf)
             {
               buf = input_buf.handle;
+              // owned=false with no slot to hold it: without an adoption the
+              // producer's release frees a buffer this SRB still binds.
+              score::gfx::RenderList::adoptBuffer(buf);
+              m_srbAdoptedBuffers.push_back(buf);
             }
           }
           bindings.append(
@@ -4614,6 +4640,8 @@ bool RenderedCSFNode::hasOutputPassForEdge(Edge& edge) const
 
 void RenderedCSFNode::releaseState(RenderList& r)
 {
+  dropSrbAdoptions();
+
   if(!m_initialized)
     return;
 
@@ -4848,7 +4876,7 @@ void RenderedCSFNode::update(
       continue;
     if(!m_inputsHaveBeenWritten)
       continue;
-    res.generateMips(texture);
+    generateMipsIfAny(res, texture);
   }
   // After this update completes, the upstream nodes will run their render
   // passes for the current frame and the input textures will be transitioned
@@ -5695,7 +5723,7 @@ void RenderedCSFNode::runInitialPasses(
       if(!res)
         res = renderer.state.rhi->nextResourceUpdateBatch();
       if(res)
-        res->generateMips(si.texture);
+        generateMipsIfAny(*res, si.texture);
     }
   }
 }

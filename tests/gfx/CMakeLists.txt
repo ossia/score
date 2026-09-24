@@ -262,6 +262,11 @@ score_add_gfx_test(review_render_targets GfxReviewRenderTargets.cpp)
 # stream, drawn with two instances. Uses the production VertexFallbackPool and a
 # real QRhi readback, so it measures the binding the engine actually emits.
 score_add_gfx_test(review_scene_fallback GfxReviewSceneFallback.cpp)
+score_add_gfx_test(interior_orphan_binding GfxInteriorOrphanBinding.cpp)
+score_add_gfx_test(d3d11_vertex_binding_cap GfxD3D11VertexBindingCap.cpp)
+# One resolver behind both entry points: it clears the caller's plan on entry,
+# and the strict and fallback-aware calls agree on layout and plan.
+score_add_gfx_test(unified_binding_resolver GfxUnifiedBindingResolver.cpp)
 
 # Indirect-draw firstInstance ABI and layered
 # indirect dispatch, each driven through the GPU rung AND the CPU fallback rung
@@ -283,6 +288,10 @@ score_add_gfx_test(review_graph_lifecycle GfxReviewGraphLifecycle.cpp)
 # GL follows GfxMultiview's headless-layered-raster precedent (structural
 # half + SUCCEED with the reason); Null asserts the shim selection only.
 score_add_gfx_test(cubemap_six_faces GfxCubemapSixFaces.cpp)
+score_add_gfx_test(cube_depth_attachment_size GfxCubeDepthAttachmentSize.cpp)
+score_add_gfx_test(provoking_vertex GfxProvokingVertex.cpp)
+score_add_gfx_test(msl_reserved_names GfxMslReservedNames.cpp)
+score_add_gfx_test(points_default_size GfxPointsDefaultSize.cpp)
 # Pin, [!shouldfail]: packCameraUBO ignores camera_projection and
 # always builds reverse-Z perspective, so an orthographic or fulldome camera
 # renders as a perspective one. Unit-math level: byte-identical UBOs provably
@@ -340,6 +349,22 @@ score_add_test(test_gfx_shader_include_path
   LIBS test_gfx_engine_glue)
 target_include_directories(test_gfx_shader_include_path PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-library")
+
+# Collapsing a run of material-texture auxiliaries into one array binding plus
+# a shared sampler. Parser-level, so no device and no display: the assertions
+# are on the descriptor, on the emitted GLSL, and on whether the separated
+# texture/sampler form still bakes for all five backends.
+score_add_test(test_gfx_aux_texture_ladder
+  SOURCES GfxAuxTextureLadder.cpp
+  PLUGINS score_plugin_gfx score_lib_process
+  LIBS test_gfx_engine_glue)
+# Static builds interlink every plugin through the global registry, so linking
+# score_plugin_gfx alone leaves the other plugins' registration symbols
+# unresolved. score_add_test only links the whole list for GUI/APP tests, and
+# this one is neither. No-op on dynamic-plugin builds.
+score_link_plugins_for_static(test_gfx_aux_texture_ladder)
+target_compile_definitions(test_gfx_aux_texture_ladder PRIVATE
+  GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
 
 # The same gate, read off the baked shader rather than off the picture. The one
 # above can only judge a backend this machine brings up, and the wrong gate was
@@ -512,6 +537,8 @@ score_add_gfx_test(csf_readwrite_state GfxCsfReadWriteState.cpp)
 # State must travel around a Delayed* geometry edge and advance.
 score_add_gfx_test(csf_feedback_loop GfxCsfFeedbackLoop.cpp)
 score_add_gfx_test(buffer_adoption_lifetime GfxBufferAdoptionLifetime.cpp)
+score_add_gfx_test(raw_raster_buffer_input GfxRawRasterBufferInput.cpp)
+score_add_gfx_test(raw_raster_aux_count GfxRawRasterAuxCount.cpp)
 score_add_gfx_test(depth_sampler   GfxDepthSampler.cpp)
 score_add_gfx_test(storage_visibility GfxStorageVisibility.cpp)
 score_add_gfx_test(multiview       GfxMultiview.cpp)
@@ -562,6 +589,49 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
     "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
     $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  set(_3d_md "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
+  score_plugin_hidden_sources(_md_hidden
+      "${_3d_md}/Primitive.cpp"
+      "${_3d_md}/ModelDisplay/ModelDisplayNode.cpp")
+  score_add_test(test_gfx_model_display_texture
+    SOURCES
+      GfxModelDisplayTexture.cpp
+      ${_md_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_model_display_texture PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_model_display_texture SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
+if(TARGET score_plugin_avnd)
+  score_add_test(test_gfx_gpu_texture_output_blit
+    SOURCES GfxGpuTextureOutputBlit.cpp
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_gpu_texture_output_blit PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_gpu_texture_output_blit SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
     $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
@@ -784,6 +854,17 @@ score_add_gfx_test(mesh_slabs GfxMeshSlabs.cpp)
 # that a plain handle swap may never reach the consumer (no dynamic-slot
 # term in meshesUnchanged).
 score_add_gfx_test(material_texture_swap GfxMaterialTextureSwap.cpp)
+score_add_gfx_test(material_presets_compile GfxMaterialPresetsCompile.cpp)
+score_add_gfx_test(material_preset_wrap GfxMaterialPresetWrap.cpp)
+target_sources(test_gfx_material_preset_wrap PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator/offsetAllocator.cpp")
+target_include_directories(test_gfx_material_preset_wrap PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator")
+score_add_gfx_test(scene_gpu_attribute_swap GfxScenePreprocessorGpuAttributeSwap.cpp)
+target_sources(test_gfx_scene_gpu_attribute_swap PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator/offsetAllocator.cpp")
+target_include_directories(test_gfx_scene_gpu_attribute_swap PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator")
 target_sources(test_gfx_material_texture_swap PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator/offsetAllocator.cpp")
 target_include_directories(test_gfx_material_texture_swap PRIVATE
@@ -1306,6 +1387,39 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
     $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
+
+# MODEL_MATRIX is declared one binding higher when MULTIVIEW >= 2, and the
+# raw-raster renderer numbers its bindings independently. Threedim::Cube is
+# hidden-visibility, so Primitive.cpp is compiled in as the other scene tests do.
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  set(_mmb_c "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
+  score_plugin_hidden_sources(_mmb_hidden
+      "${_mmb_c}/Primitive.cpp"
+      "${_mmb_c}/Camera.cpp")
+  score_add_test(test_gfx_rawraster_model_matrix_binding
+    SOURCES
+      GfxRawRasterModelMatrixBinding.cpp
+      ${_mmb_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_rawraster_model_matrix_binding PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_rawraster_model_matrix_binding SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
+# Every example in the shader guide, pinned by the picture it renders. The bake
+# half is free: the files live in corpus/ so ShaderCorpusTargets sweeps them.
+score_add_gfx_test(shader_guide_examples GfxShaderGuideExamples.cpp)
 
 # Per-layer depth renders through the scratch-D32F + copyTexture shim,
 # each layer carrying its own closed-form depth.

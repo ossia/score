@@ -1043,6 +1043,14 @@ score_add_test(test_unit_scene_camera_aux
     PLUGINS score_plugin_gfx score_lib_process
     LIBS ${QT_PREFIX}::Gui)
 
+  # AUXILIARY blocks must be generated from the shader's declared kind, not the
+  # producer's buffer type -- the prerequisite 7548838841 named. Pure CPU: the
+  # libisf parser and its GLSL emission, no QRhi.
+  score_add_test(test_unit_isf_auxiliary_block_kind
+    SOURCES IsfAuxiliaryBlockKindTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+
   # The output renderers' null-pipeline guard. ScaledRenderer is not exported
   # from the dynamic plugin, so InvertYRenderer.cpp -- which defines both it and
   # InvertYRenderer -- is compiled into the test. ISOLATED: the defect aborts

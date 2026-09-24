@@ -37,6 +37,8 @@ struct GraphicsSSBO
   std::string buffer_usage;//!< "", "indirect_draw", "indirect_draw_indexed"
   bool persistent{false};  //!< Ping-pong swapped every frame
   bool owned{true};        //!< This SSBO owns `buffer` and `prev` (releases them)
+  bool adopted{false};     //!< Holds a RenderList::adoptBuffer reference on `buffer`
+  bool from_port{false};   //!< `buffer` was borrowed through the Buffer input port
   int64_t size{0};         //!< Buffer size in bytes (0 = auto from layout)
 
   // Layout fields (for size computation + validation). May be empty for auxiliaries.
@@ -98,6 +100,8 @@ struct GraphicsUBO
   std::string name;
   QRhiBuffer* buffer{};
   bool owned{false};      //!< Always false for now: borrowed from upstream.
+  bool adopted{false};    //!< Holds a RenderList::adoptBuffer reference on `buffer`
+  bool from_port{false};  //!< `buffer` was borrowed through the Buffer input port
   int binding{-1};
   QRhiShaderResourceBinding::StageFlags stages{};
   int input_port_index{-1};
@@ -149,56 +153,7 @@ struct GraphicsStorageResources
   QRhiBuffer* sentinelUniformBuffer{}; ///< UniformBuffer usage only (GL rejects combined usages)
   uint32_t sentinelSize{0};
 
-  void release()
-  {
-    for(auto& s : ssbos)
-    {
-      if(s.owned)
-      {
-        if(s.buffer) s.buffer->deleteLater();
-        if(s.prev)   s.prev->deleteLater();
-      }
-      s.buffer = nullptr;
-      s.prev = nullptr;
-    }
-    ssbos.clear();
-
-    for(auto& i : images)
-    {
-      if(i.owned)
-      {
-        if(i.texture) i.texture->deleteLater();
-        if(i.prev) i.prev->deleteLater();
-      }
-      i.texture = nullptr;
-      i.prev = nullptr;
-    }
-    images.clear();
-
-    for(auto& u : ubos)
-    {
-      if(u.owned && u.buffer)
-        u.buffer->deleteLater();
-      u.buffer = nullptr;
-    }
-    ubos.clear();
-
-    if(sentinelBuffer)
-    {
-      sentinelBuffer->deleteLater();
-      sentinelBuffer = nullptr;
-    }
-    if(sentinelUniformBuffer)
-    {
-      sentinelUniformBuffer->deleteLater();
-      sentinelUniformBuffer = nullptr;
-    }
-    sentinelSize = 0;
-
-    indirectDrawBuffer = nullptr;
-    indirectDrawSsboIndex = -1;
-    nextBinding = -1;
-  }
+  SCORE_PLUGIN_GFX_EXPORT void release();
 };
 
 // --- API ------------------------------------------------------------------
@@ -208,13 +163,16 @@ struct GraphicsStorageResources
  *        and images declared by the shader.
  *
  * Bindings are assigned sequentially starting from `firstBinding`. Persistent
- * SSBOs consume TWO consecutive bindings.
+ * SSBOs consume TWO consecutive bindings. `firstInlet` is the node's input
+ * port index of the first desc.inputs port: 1 for a raw raster, whose port 0
+ * is its geometry input.
  *
  * No GPU resources are allocated here — call ensureStorageResources() later.
  */
 SCORE_PLUGIN_GFX_EXPORT
 void collectGraphicsStorageResources(
-    const isf::descriptor& desc, int firstBinding, GraphicsStorageResources& out);
+    const isf::descriptor& desc, int firstBinding, GraphicsStorageResources& out,
+    int firstInlet = 0);
 
 /**
  * @brief Create missing buffers and textures.

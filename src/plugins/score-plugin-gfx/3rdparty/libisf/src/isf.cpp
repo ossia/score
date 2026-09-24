@@ -30,6 +30,8 @@ namespace
 static constexpr struct glsl45_t
 {
   static constexpr auto versionPrelude = R"_(#version 460
+#define quad isf_msl_quad
+#define operator isf_msl_operator
 )_";
 
   static constexpr auto vertexPrelude = R"_(
@@ -1055,6 +1057,82 @@ static void parse_auxiliary_texture(
         "meaningless (cube faces are 2D). Ignoring DIMENSIONS.\n",
         out.name);
     out.dimensions = 2;
+  }
+}
+
+// N combined bindings become one texture array plus one sampler, so bindings
+// break even at 2 and sampler slots -- the tighter budget on Metal, 16 per
+// stage -- start saving there too. The material channels ScenePreprocessor
+// emits are 16 wide; its dynamic slots come in pairs.
+static constexpr std::size_t isf_min_ladder = 2;
+
+static bool isf_is_comparison_sampler(const sampler_config& s);
+
+// Stamp ladder_base / ladder_index / ladder_size on runs of sampled auxiliary
+// textures whose names differ only by a trailing index starting at 0 and whose
+// shape and sampler config match. See auxiliary_texture_request::ladder_base.
+static void isf_group_auxiliary_texture_ladders(
+    std::vector<geometry_input::auxiliary_texture_request>& textures)
+{
+  const auto strip_index = [](const std::string& n) -> std::pair<std::string, int> {
+    std::size_t k = n.size();
+    while(k > 0 && n[k - 1] >= '0' && n[k - 1] <= '9')
+      k--;
+    if(k == 0 || k == n.size())
+      return {{}, -1};
+    // A leading zero makes "<base>01" and "<base>1" collide on the same rung.
+    if(n.size() - k > 1 && n[k] == '0')
+      return {{}, -1};
+    return {n.substr(0, k), std::stoi(n.substr(k))};
+  };
+
+  const auto same_shape = [](const geometry_input::auxiliary_texture_request& a,
+                             const geometry_input::auxiliary_texture_request& b) {
+    return a.dimensions == b.dimensions && a.is_array == b.is_array
+           && a.is_cubemap == b.is_cubemap && a.is_depth == b.is_depth
+           && a.sampler == b.sampler;
+  };
+
+  std::size_t i = 0;
+  while(i < textures.size())
+  {
+    // is_depth is excluded: those entries emit a paired <name>_depth sampler,
+    // which has no place in an array binding. A comparison sampler is excluded
+    // too: its combined type is sampler*Shadow, whose separated form needs
+    // samplerShadow, and every such entry in the tree is a singleton anyway.
+    auto [base, idx] = strip_index(textures[i].name);
+    if(textures[i].is_storage || textures[i].is_depth || base.empty() || idx != 0
+       || isf_is_comparison_sampler(textures[i].sampler))
+    {
+      i++;
+      continue;
+    }
+
+    std::size_t run = 1;
+    while(i + run < textures.size())
+    {
+      const auto& nxt = textures[i + run];
+      if(nxt.is_storage || !same_shape(textures[i], nxt))
+        break;
+      auto [nbase, nidx] = strip_index(nxt.name);
+      if(nbase != base || nidx != (int)run)
+        break;
+      run++;
+    }
+
+    if(run < isf_min_ladder)
+    {
+      i++;
+      continue;
+    }
+
+    for(std::size_t k = 0; k < run; k++)
+    {
+      textures[i + k].ladder_base = base;
+      textures[i + k].ladder_index = (int)k;
+      textures[i + k].ladder_size = (int)run;
+    }
+    i += run;
   }
 }
 
@@ -2448,6 +2526,7 @@ static const ossia::string_map<root_fun>& root_parse{[] {
   // "texture" / "cubemap" / "image_cube") land in d.auxiliary_textures.
   p.insert({"AUXILIARY", [](descriptor& d, const sajson::value& v) {
     parse_auxiliary_array(v, d.auxiliary, d.auxiliary_textures);
+    isf_group_auxiliary_texture_ladders(d.auxiliary_textures);
   }});
 
   // Add RESOURCES parsing for CSF (which can contain both inputs and resources)
@@ -4053,10 +4132,65 @@ void parser::parse_raw_raster_pipeline()
 
   m_desc.mode = isf::descriptor::RawRaster;
 
+  // Camera block. Raw raster had no view or projection built-in: the prelude
+  // supplies renderer_t, process_t and model_material_t, so a shader could
+  // only see a camera by declaring the ScenePreprocessor's `camera` auxiliary
+  // itself and indexing it as a flat vec4 array against the 240-byte std140
+  // CameraUBOData. Synthesise that declaration so every raw-raster shader gets
+  // it, and give it typed accessors below.
+  //
+  // It goes in `auxiliary`, NOT in `inputs`: a uniform_input creates a
+  // TextureInlet (ISFProcess.hpp), so injecting one there would add a port to
+  // every raw-raster process and shift the inlet indices every saved document
+  // resolves its cables against. An auxiliary creates no port -- the renderer
+  // name-matches it against the incoming geometry.
+  //
+  // Skipped when the shader already speaks for itself, under either spelling,
+  // so a hand-written camera block keeps its own layout.
+  const bool has_own_camera
+      = std::any_of(
+            m_desc.auxiliary.begin(), m_desc.auxiliary.end(),
+            [](const auto& aux) { return aux.name == "camera"; })
+        || std::any_of(
+            m_desc.inputs.begin(), m_desc.inputs.end(),
+            [](const auto& inp) { return inp.name == "camera"; });
+  m_injected_camera_aux = !has_own_camera;
+  if(m_injected_camera_aux)
+  {
+    // Mirrors score::gfx::CameraUBOData field for field; std140 puts each mat4
+    // and vec4 on its own 16-byte boundary, so the block is 240 B per entry
+    // exactly as the C++ struct is.
+    isf::descriptor::type_definition cam_t;
+    cam_t.name = "isf_camera_t";
+    cam_t.layout = {
+        {"view_", "mat4"},          {"projection_", "mat4"},
+        {"viewProjection_", "mat4"}, {"cameraPosition_", "vec4"},
+        {"cameraRenderSize_", "vec4"}, {"cameraParams_", "vec4"}};
+    m_desc.types.push_back(std::move(cam_t));
+
+    // Fixed count, not multiview_count: the binding is the scene's own camera
+    // buffer, and a block declaring more entries than the bound range is a
+    // descriptor-size error. ScenePreprocessorNode pre-allocates that buffer
+    // to at least this many entries.
+    isf::geometry_input::auxiliary_request cam;
+    cam.name = "camera";
+    cam.access = "read_only";
+    cam.is_uniform = true;
+    cam.layout = {{"data", "isf_camera_t[16]"}};
+    m_desc.auxiliary.push_back(std::move(cam));
+  }
+
   // If FRAGMENT_OUTPUTS declares multiple outputs but OUTPUTS was not
   // explicitly provided, auto-populate desc.outputs so the node graph
-  // creates the right number of output ports (one per attachment).
-  if(m_desc.outputs.empty() && m_desc.fragment_outputs.size() > 1)
+  // creates the right number of output ports (one per attachment). A MANUAL
+  // shader needs this even with one output: its invocation loop runs on the
+  // multi-target path, which renders only declared outputs.
+  std::string em_type = m_desc.execution_model.type;
+  for(auto& c : em_type)
+    c = (char)std::toupper((unsigned char)c);
+  if(m_desc.outputs.empty()
+     && (m_desc.fragment_outputs.size() > 1
+         || (m_desc.fragment_outputs.size() == 1 && em_type == "MANUAL")))
   {
     for(const auto& fo : m_desc.fragment_outputs)
     {
@@ -4549,6 +4683,39 @@ void parser::parse_raw_raster_pipeline()
         else
           sampler_type = cmp ? "sampler2DShadow" : "sampler2D";
 
+        // A ladder collapses into a `texture<shape> <base>_tex[N]` array plus
+        // one shared `sampler <base>_smp`: two bindings for N rungs instead of
+        // N, and -- because Metal charges a sampler slot per ARRAY ELEMENT of a
+        // combined binding (qrhimetal.mm, samplerBinding + elem) -- one sampler
+        // slot instead of N.
+        //
+        // No per-rung alias is emitted. The combined value can only be rebuilt
+        // with sampler<shape>(tex, smp) AT THE POINT OF USE -- glslang rejects
+        // a sampler constructor passed as a call argument -- so a rung handed
+        // to a helper has to travel as the pair, and a macro hiding that would
+        // have to expand differently per call shape. Shaders name the two
+        // halves directly; a ladder shader that has not been updated fails to
+        // compile on the rung name, which is the intended loud failure.
+        if(atx.in_ladder())
+        {
+          if(atx.owns_ladder())
+          {
+            const char* texture_type = "texture2D";
+            if(atx.is_cubemap)           texture_type = "textureCube";
+            else if(atx.dimensions == 3) texture_type = "texture3D";
+            else if(atx.is_array)        texture_type = "texture2DArray";
+
+            aux_tex_decls += "layout(binding = " + std::to_string(sampler_binding)
+                             + ") uniform " + texture_type + " " + atx.ladder_base
+                             + "_tex[" + std::to_string(atx.ladder_size) + "];\n";
+            sampler_binding++;
+            aux_tex_decls += "layout(binding = " + std::to_string(sampler_binding)
+                             + ") uniform sampler " + atx.ladder_base + "_smp;\n";
+            sampler_binding++;
+          }
+          continue;
+        }
+
         aux_tex_decls += "layout(binding = " + std::to_string(sampler_binding)
                          + ") uniform " + sampler_type + " " + atx.name + ";\n";
         sampler_binding++;
@@ -4581,6 +4748,18 @@ void parser::parse_raw_raster_pipeline()
 #define MODEL_MATRIX isf_model_uniforms.MODEL_
 )_",
         model_ubo_binding);
+
+    // Typed accessors over the synthesised camera block. Indexing through
+    // VIEW_INDEX is what keeps MULTIVIEW honest: face i must read camera i,
+    // and a scalar accessor resolving to camera 0 would paint all six cubemap
+    // faces identically. VIEW_INDEX is 0 outside multiview (defined below).
+    if(m_injected_camera_aux)
+      material_ubos += R"_(
+#define VIEW_MATRIX camera.data[VIEW_INDEX].view_
+#define PROJECTION_MATRIX camera.data[VIEW_INDEX].projection_
+#define VIEWPROJECTION_MATRIX camera.data[VIEW_INDEX].viewProjection_
+#define CAMERA_POSITION camera.data[VIEW_INDEX].cameraPosition_.xyz
+)_";
 
     m_vertex += material_ubos;
     m_fragment += material_ubos;
@@ -4628,6 +4807,15 @@ void parser::parse_raw_raster_pipeline()
   // generated entry point must NOT call them too: isf_vertShaderFinish()
   // negates gl_Position.y, so running it twice cancels it and mirrors the
   // picture back on Metal and D3D.
+  // The camera accessors index through VIEW_INDEX, which the multiview
+  // plumbing only defines when MULTIVIEW >= 2. Give the single-view case the
+  // same spelling so one macro is correct in both.
+  if(m_desc.multiview_count < 2)
+  {
+    m_vertex += "#define VIEW_INDEX 0\n";
+    m_fragment += "#define VIEW_INDEX 0\n";
+  }
+
   m_vertex += "void isf_vertShaderInit()\n{\n";
   if(mv_fragment_plumbing)
     m_vertex += "  isf_ViewIndexVarying = gl_ViewIndex;\n";
@@ -4660,6 +4848,9 @@ void parser::parse_raw_raster_pipeline()
   //      Vulkan's framebuffer origin rather than cancelling against it.
   m_vertex += "#undef main\n";
   m_vertex += "void main()\n{\n";
+  m_vertex += "#if !defined(QSHADER_HLSL)\n";
+  m_vertex += "  gl_PointSize = 1.0;\n";
+  m_vertex += "#endif\n";
   m_vertex += "  isf_rawraster_user_main();\n";
   m_vertex += "}\n";
 
@@ -6064,7 +6255,8 @@ void parser::parse_csf()
   m_fragment.clear();
 
   // Add version
-  m_fragment += "#version 460\n\n";
+  m_fragment += GLSL45.versionPrelude;
+  m_fragment += "\n";
 
   // User-declared GLSL EXTENSIONS must come right after #version.
   m_fragment += isf_emit_user_extensions(m_desc.extensions);
