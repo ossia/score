@@ -1750,3 +1750,6 @@ target_sources(test_gfx_stale_slot_flatten_f2 PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator/offsetAllocator.cpp")
 target_include_directories(test_gfx_stale_slot_flatten_f2 PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator")
+
+# Self-feedback target limits (depth, mips, GrabsFromSource ports).
+score_add_gfx_test(selffb_limits_d2 GfxSelfFeedbackLimitsD2.cpp)

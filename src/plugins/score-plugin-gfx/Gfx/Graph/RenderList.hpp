@@ -508,8 +508,9 @@ private:
    * @brief Second target for image input ports fed by their own node.
    *
    * The pass into such a port draws into `back` while the node samples the
-   * port's input target; `back` is copied into the input target at the start
-   * of the next frame.
+   * port's input target; at the start of the next frame `back` is copied into
+   * the input target with all its mip levels, or swapped with it when the
+   * port samples depth, which QRhi cannot copy.
    */
   struct SelfFeedbackTarget
   {
@@ -518,9 +519,18 @@ private:
   };
   ossia::small_flat_map<const Port*, SelfFeedbackTarget, 2> m_selfFeedbackTargets;
 
+  /**
+   * @brief Copy of the node's own output for GrabsFromSource ports fed by
+   * their own node, taken at the start of the frame and sampled instead of
+   * the texture the node renders into.
+   */
+  ossia::small_flat_map<const Port*, QRhiTexture*, 2> m_selfFeedbackGrabs;
+
   void updateSelfFeedbackTargets(QRhiResourceUpdateBatch& res);
+  void updateSelfFeedbackGrabs(QRhiResourceUpdateBatch& res);
   void removeSelfFeedbackTarget(const Port* port);
   bool ensureSelfFeedbackTarget(const Port& in);
+  QRhiTexture* selfFeedbackGrab(const Port& in) const noexcept;
 
   /**
    * @brief Last size used by this renderer.

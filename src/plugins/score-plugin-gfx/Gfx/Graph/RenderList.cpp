@@ -5,6 +5,7 @@
 #include <Gfx/Graph/CustomMesh.hpp>
 #include <Gfx/Graph/GpuResourceRegistry.hpp>
 #include <Gfx/Graph/Mesh.hpp>
+#include <Gfx/Graph/MipGeneration.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
 #include <Gfx/Graph/PipelineStateHelpers.hpp>
@@ -483,6 +484,162 @@ bool RenderList::ensureSelfFeedbackTarget(const Port& in)
   return true;
 }
 
+static int copyLayerCount(const QRhiTexture& tex, int level) noexcept
+{
+  const auto flags = tex.flags();
+  if(flags.testFlag(QRhiTexture::CubeMap))
+    return 6;
+  if(flags.testFlag(QRhiTexture::TextureArray))
+    return std::max(1, tex.arraySize());
+  if(flags.testFlag(QRhiTexture::ThreeDimensional))
+    return std::max(1, tex.depth() >> level);
+  return 1;
+}
+
+static void copyTextureLevels(
+    QRhi& rhi, QRhiResourceUpdateBatch& res, QRhiTexture* dst, QRhiTexture* src)
+{
+  const int levels = src->flags().testFlag(QRhiTexture::MipMapped)
+                         ? rhi.mipLevelsForSize(src->pixelSize())
+                         : 1;
+  for(int level = 0; level < levels; ++level)
+  {
+    const QSize size = rhi.sizeForMipLevel(level, src->pixelSize());
+    const int layers = copyLayerCount(*src, level);
+    for(int layer = 0; layer < layers; ++layer)
+    {
+      QRhiTextureCopyDescription desc;
+      desc.setPixelSize(size);
+      desc.setSourceLevel(level);
+      desc.setDestinationLevel(level);
+      desc.setSourceLayer(layer);
+      desc.setDestinationLayer(layer);
+      res.copyTexture(dst, src, desc);
+    }
+  }
+}
+
+static bool isDepthFormat(QRhiTexture::Format fmt) noexcept
+{
+  switch(fmt)
+  {
+    case QRhiTexture::D16:
+    case QRhiTexture::D24:
+    case QRhiTexture::D24S8:
+    case QRhiTexture::D32F:
+    case QRhiTexture::D32FS8:
+      return true;
+    default:
+      return false;
+  }
+}
+
+static bool sameTextureShape(const QRhiTexture& a, const QRhiTexture& b) noexcept
+{
+  return a.format() == b.format() && a.pixelSize() == b.pixelSize()
+         && a.flags() == b.flags() && a.arraySize() == b.arraySize()
+         && a.depth() == b.depth() && a.sampleCount() == b.sampleCount();
+}
+
+static QRhiTexture* newTextureLike(QRhi& rhi, const QRhiTexture& tex)
+{
+  QRhiTexture* ret{};
+  if(tex.flags().testFlag(QRhiTexture::ThreeDimensional))
+    ret = rhi.newTexture(
+        tex.format(), tex.pixelSize().width(), tex.pixelSize().height(), tex.depth(),
+        1, tex.flags());
+  else if(tex.flags().testFlag(QRhiTexture::TextureArray))
+    ret = rhi.newTextureArray(
+        tex.format(), tex.arraySize(), tex.pixelSize(), 1, tex.flags());
+  else
+    ret = rhi.newTexture(tex.format(), tex.pixelSize(), 1, tex.flags());
+  if(!ret)
+    return nullptr;
+  ret->setName("RenderList::selfFeedbackGrab");
+  if(!ret->create())
+  {
+    delete ret;
+    return nullptr;
+  }
+  return ret;
+}
+
+static void generateInputMips(
+    QRhi& rhi, const TextureRenderTarget& rt, QRhiResourceUpdateBatch*& res)
+{
+  if(!rt.texture || !rt.texture->flags().testFlag(QRhiTexture::UsedWithGenerateMips))
+    return;
+  if(!res)
+    res = rhi.nextResourceUpdateBatch();
+  if(res)
+    generateMipsIfAny(*res, rt.texture);
+}
+
+QRhiTexture* RenderList::selfFeedbackGrab(const Port& in) const noexcept
+{
+  auto it = m_selfFeedbackGrabs.find(&in);
+  return it != m_selfFeedbackGrabs.end() ? it->second : nullptr;
+}
+
+void RenderList::updateSelfFeedbackGrabs(QRhiResourceUpdateBatch& res)
+{
+  for(auto it = m_selfFeedbackGrabs.begin(); it != m_selfFeedbackGrabs.end();)
+  {
+    if(isSelfFed(*it->first))
+    {
+      ++it;
+      continue;
+    }
+    it->second->deleteLater();
+    it = m_selfFeedbackGrabs.erase(it);
+  }
+
+  for(auto* node : nodes)
+  {
+    if(node == &output)
+      continue;
+    auto rn = node->renderedNodes.find(this);
+    if(rn == node->renderedNodes.end())
+      continue;
+    for(auto* in : node->input)
+    {
+      if(in->type != Types::Image
+         || (in->flags & Flag::GrabsFromSource) != Flag::GrabsFromSource)
+        continue;
+      const Port* source{};
+      for(auto* edge : in->edges)
+      {
+        if(edge->sink == in && edge->source && edge->source->node == node)
+        {
+          source = edge->source;
+          break;
+        }
+      }
+      if(!source)
+        continue;
+      auto* tex = rn->second->textureForOutput(*source);
+      if(!tex || !tex->flags().testFlag(QRhiTexture::RenderTarget)
+         || tex->sampleCount() > 1 || isDepthFormat(tex->format()))
+        continue;
+
+      auto* snapshot = selfFeedbackGrab(*in);
+      if(!snapshot || !sameTextureShape(*snapshot, *tex))
+      {
+        auto* fresh = newTextureLike(*state.rhi, *tex);
+        if(!fresh)
+          continue;
+        rn->second->updateInputTexture(
+            *in, fresh, renderTargetForInputPort(*in).depthTexture);
+        if(snapshot)
+          snapshot->deleteLater();
+        m_selfFeedbackGrabs[in] = fresh;
+        snapshot = fresh;
+      }
+      copyTextureLevels(*state.rhi, res, snapshot, tex);
+    }
+  }
+}
+
 void RenderList::ensureSelfFeedbackTargets()
 {
   for(auto* node : nodes)
@@ -508,7 +665,23 @@ void RenderList::updateSelfFeedbackTargets(QRhiResourceUpdateBatch& res)
       continue;
     }
     if(std::exchange(it->second.written, false))
-      res.copyTexture(front->second.texture, it->second.back.texture);
+    {
+      auto& back = it->second.back;
+      const Port& port = *it->first;
+      if((port.flags & Flag::SamplableDepth) == Flag::SamplableDepth
+         && front->second.depthTexture && back.depthTexture)
+      {
+        std::swap(front->second, back);
+        if(auto rn = port.node->renderedNodes.find(this);
+           rn != port.node->renderedNodes.end())
+          rn->second->updateInputTexture(
+              port, front->second.texture, front->second.depthTexture);
+      }
+      else
+      {
+        copyTextureLevels(*state.rhi, res, front->second.texture, back.texture);
+      }
+    }
     ++it;
   }
 
@@ -530,6 +703,8 @@ void RenderList::updateSelfFeedbackTargets(QRhiResourceUpdateBatch& res)
       }
     }
   }
+
+  updateSelfFeedbackGrabs(res);
 }
 
 void RenderList::removeInputRenderTarget(const Port* port)
@@ -569,6 +744,12 @@ void RenderList::release()
     fb.back.release();
   }
   m_selfFeedbackTargets.clear();
+
+  for(auto& [port, tex] : m_selfFeedbackGrabs)
+  {
+    tex->deleteLater();
+  }
+  m_selfFeedbackGrabs.clear();
 
   for(auto& bufs : m_vertexBuffers)
   {
@@ -1798,6 +1979,7 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
                 {depthClearForCompare(QRhiGraphicsPipeline::Greater), 0},
                 updateBatch);
             updateBatch = nullptr;
+            generateInputMips(*state.rhi, rt, updateBatch);
             commands.endPass(updateBatch);
             updateBatch = nullptr;
 
@@ -1834,7 +2016,11 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
 
           for(auto [edge, prev_renderer] : prevRenderers)
           {
-            if(auto* srcTex = prev_renderer->textureForOutput(*edge->source))
+            auto* srcTex = edge->source->node == node ? selfFeedbackGrab(*input)
+                                                      : nullptr;
+            if(!srcTex)
+              srcTex = prev_renderer->textureForOutput(*edge->source);
+            if(srcTex)
             {
               auto rt = renderTargetForInputPort(*input);
               sink_renderer->updateInputTexture(*input, srcTex, rt.depthTexture);
@@ -1931,6 +2117,7 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
               {
                 renderer->inputAboutToFinish(*this, *input, updateBatch);
               }
+              generateInputMips(*state.rhi, rt, updateBatch);
               commands.endPass(updateBatch);
               updateBatch = nullptr;
             }
