@@ -38,6 +38,7 @@ class SCORE_PLUGIN_LIBRARY_EXPORT ProcessesItemModel
 {
 public:
   ProcessesItemModel(const score::GUIApplicationContext& ctx, QObject* parent);
+  ~ProcessesItemModel() override;
 
   void rescan();
   QModelIndex find(const Process::ProcessModelFactory::ConcreteKey& k);
