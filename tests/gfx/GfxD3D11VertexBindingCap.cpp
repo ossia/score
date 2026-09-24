@@ -153,6 +153,14 @@ void main() { frag = v_sum; }
            {QRhiShaderStage::Fragment, shaders.second}});
 
       const auto geom = makeNineStreamGeometry();
+      {
+        QRhiVertexInputLayout layout;
+        QList<QRhiVertexInputBinding> bindings;
+        for(const auto& b : geom.bindings)
+          bindings.append(QRhiVertexInputBinding{quint32(b.byte_stride)});
+        layout.setBindings(bindings.cbegin(), bindings.cend());
+        pipeline->setVertexInputLayout(layout);
+      }
       FallbackBindingPlan plan;
       {
         QMutexLocker lock{&g_logMutex};
