@@ -198,7 +198,15 @@ private:
       bool warned_size_mismatch{false};
       bool warned_borrowed_pair{false};
       int64_t size{};             // Current buffer size in bytes
+      int64_t offset{};           // Start of the attribute data in a borrowed buffer
       bool owned{true};           // true = we created it; false = referencing upstream gpu_buffer
+
+      //! A read_write attribute on a GPU upstream works on an owned copy of
+      //! restore_source, refreshed before the passes run every frame.
+      QRhiBuffer* restore_source{};
+      int64_t restore_offset{};
+      int64_t restore_size{};
+      bool restore_seen{false};
       std::string name;           // e.g. "position", "velocity"
       std::string access;         // "read_only", "write_only", "read_write"
       bool per_instance{false};   // true = sized by instance_count, false = sized by vertex_count
@@ -223,6 +231,7 @@ private:
       QRhiBuffer* buffer{};       // GPU SSBO/UBO (write target / primary)
       QRhiBuffer* read_buffer{};  // Separate read buffer for ping-pong (nullptr = use buffer for both)
       int64_t size{};
+      int64_t offset{};
       bool owned{true};
       bool is_uniform{false};     // true = std140 UBO, false = std430 SSBO
       std::string name;
@@ -314,6 +323,10 @@ private:
 
   QRhiBuffer* m_materialUBO{};
   int m_materialSize{};
+
+  //! Offsets and sizes of the ranged storage bindings, which qHash of a
+  //! QRhiShaderResourceBinding does not cover.
+  std::size_t m_srbRangeHash{};
 
   // Output texture for compute shader results
   QRhiTexture* m_outputTexture{};

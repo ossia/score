@@ -1757,3 +1757,6 @@ score_add_gfx_test(selffb_limits_d2 GfxSelfFeedbackLimitsD2.cpp)
 # A VSA shader's gl_Position is WebGL clip space: z in [-w, w] is visible on
 # every backend (agent G2, N39).
 score_add_gfx_test(vsa_clip_depth_g2 GfxVsaClipDepthG2.cpp)
+
+# CSF storage bindings at the published range; read_write on a static GPU upstream (agent A2).
+score_add_gfx_test(csf_buffer_range_fixa2 GfxCsfBufferRangeFixA2.cpp)

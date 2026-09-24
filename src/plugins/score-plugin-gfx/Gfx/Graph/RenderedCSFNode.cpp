@@ -74,6 +74,70 @@ void publishIndirectCountAux(ossia::geometry& out_geo, QRhiBuffer* cbuf)
       .byte_offset = 0,
       .byte_size = count_size});
 }
+
+// Geometry attribute buffers a CSF dispatch writes, with the frame of the
+// write. A read_write consumer works in place on a buffer written this frame or
+// the previous one (a producer or a loop member that rewrites it every frame),
+// and on a copy of any other.
+thread_local ossia::hash_map<const QRhiBuffer*, int64_t> g_csfWrittenBuffers;
+
+void noteCsfWrite(const QRhiBuffer* buf, int64_t frame)
+{
+  if(!buf)
+    return;
+  if(g_csfWrittenBuffers.size() > 4096)
+    g_csfWrittenBuffers.clear();
+  g_csfWrittenBuffers[buf] = frame;
+}
+
+bool csfWroteRecently(const QRhiBuffer* buf, int64_t frame) noexcept
+{
+  auto it = g_csfWrittenBuffers.find(buf);
+  return it != g_csfWrittenBuffers.end() && it->second >= frame - 1
+         && it->second <= frame;
+}
+
+// Largest minStorageBufferOffsetAlignment Vulkan allows, and the largest
+// GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT OpenGL allows.
+constexpr int64_t kStorageOffsetAlignment = 256;
+
+QRhiShaderResourceBinding storageBufferBinding(
+    QRhiShaderResourceBinding::Type type, int binding, QRhiBuffer* buf,
+    int64_t offset, int64_t size, std::size_t& rangeHash) noexcept
+{
+  constexpr auto stage = QRhiShaderResourceBinding::ComputeStage;
+  const int64_t capacity = buf ? (int64_t)buf->size() : 0;
+  const bool ranged = size > 0 && offset >= 0 && offset < capacity
+                      && offset % kStorageOffsetAlignment == 0
+                      && (offset > 0 || size < capacity);
+  if(!ranged)
+  {
+    switch(type)
+    {
+      case QRhiShaderResourceBinding::BufferLoad:
+        return QRhiShaderResourceBinding::bufferLoad(binding, stage, buf);
+      case QRhiShaderResourceBinding::BufferStore:
+        return QRhiShaderResourceBinding::bufferStore(binding, stage, buf);
+      default:
+        return QRhiShaderResourceBinding::bufferLoadStore(binding, stage, buf);
+    }
+  }
+
+  const auto off = (quint32)offset;
+  const auto len = (quint32)std::min(size, capacity - offset);
+  ossia::hash_combine(rangeHash, binding);
+  ossia::hash_combine(rangeHash, off);
+  ossia::hash_combine(rangeHash, len);
+  switch(type)
+  {
+    case QRhiShaderResourceBinding::BufferLoad:
+      return QRhiShaderResourceBinding::bufferLoad(binding, stage, buf, off, len);
+    case QRhiShaderResourceBinding::BufferStore:
+      return QRhiShaderResourceBinding::bufferStore(binding, stage, buf, off, len);
+    default:
+      return QRhiShaderResourceBinding::bufferLoadStore(binding, stage, buf, off, len);
+  }
+}
 }
 
 static QRhiTexture::Format
@@ -264,6 +328,33 @@ static void releaseSlot(score::gfx::RenderList& renderer, Slot& slot) noexcept
   else
     score::gfx::RenderList::dropAdoptedBuffer(slot.buffer);
   slot.buffer = nullptr;
+  if constexpr(requires { slot.offset; })
+    slot.offset = 0;
+}
+
+template <typename Slot>
+static void dropRestoreSource(Slot& slot) noexcept
+{
+  if(slot.restore_source)
+    score::gfx::RenderList::dropAdoptedBuffer(slot.restore_source);
+  slot.restore_source = nullptr;
+  slot.restore_offset = 0;
+  slot.restore_size = 0;
+}
+
+template <typename Slot>
+static void setRestoreSource(
+    Slot& slot, QRhiBuffer* src, int64_t offset, int64_t size) noexcept
+{
+  if(slot.restore_source != src)
+  {
+    dropRestoreSource(slot);
+    score::gfx::RenderList::adoptBuffer(src);
+    slot.restore_source = src;
+  }
+  slot.restore_offset = offset;
+  slot.restore_size = size;
+  slot.restore_seen = true;
 }
 
 template <typename Slot>
@@ -1249,6 +1340,10 @@ static int geometryFormatSizeBytes(const ossia::geometry::attribute& a) noexcept
 void RenderedCSFNode::updateGeometryBindings(
     RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
+  for(auto& binding : m_geometryBindings)
+    for(auto& ssbo : binding.attribute_ssbos)
+      ssbo.restore_seen = false;
+
   // Pre-pass: populate vertex/instance counts from upstream for ALL bindings first,
   // so that expression resolution (e.g. $VERTEX_COUNT_geoIn) can reference any binding.
   {
@@ -1631,6 +1726,51 @@ void RenderedCSFNode::updateGeometryBindings(
               continue;
             }
 
+            const int64_t region_offset = input_byte_offset + geo_attr->byte_offset;
+            if(req.access == "read_write"
+               && !csfWroteRecently(rhi_buf, renderer.frame))
+            {
+              const int64_t region_size = std::min<int64_t>(
+                  gpu->byte_size, rhi_buf->size()) - region_offset;
+              if(region_offset < 0 || region_size <= 0)
+                continue;
+              int64_t owned_size = region_size;
+              if(binding.has_vertex_count_spec)
+              {
+                const int attr_count = ssbo.per_instance ? binding.instance_count
+                                                         : binding.vertex_count;
+                if(attr_count > 0)
+                  owned_size = csf_elem_stride * attr_count;
+              }
+              if(!ssbo.owned || !ssbo.buffer || ssbo.size != owned_size)
+              {
+                releaseSlot(renderer, ssbo);
+                auto* buf = renderer.state.rhi->newBuffer(
+                    QRhiBuffer::Static,
+                    QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, owned_size);
+                buf->setName(QByteArray("CSF_GeomRestore_") + req.name.c_str());
+                if(!buf->create())
+                {
+                  delete buf;
+                  ssbo.owned = true;
+                  continue;
+                }
+                ssbo.buffer = buf;
+                ssbo.size = owned_size;
+                ssbo.owned = true;
+                if(ssbo.read_buffer)
+                {
+                  ssbo.read_buffer = regrowBuffer(renderer, ssbo.read_buffer, owned_size);
+                  RhiClearBuffer::clearBuffer(
+                      *renderer.state.rhi, res, ssbo.read_buffer, 0, (quint32)owned_size);
+                }
+              }
+              setRestoreSource(
+                  ssbo, rhi_buf, region_offset, std::min(region_size, owned_size));
+              ssbo.lastUploadSrc = nullptr;
+              continue;
+            }
+
             // Size too, not just the handle: a producer can publish the
             // buffer one frame before it fills it, keeping the same
             // QRhiBuffer while byte_size goes 0 -> n. Comparing handles alone
@@ -1641,6 +1781,7 @@ void RenderedCSFNode::updateGeometryBindings(
               adoptIntoSlot(renderer, ssbo, rhi_buf, gpu->byte_size);
               ssbo.lastUploadSrc = nullptr;
             }
+            ssbo.offset = region_offset;
             continue;
           }
           // AoS GPU buffer or format mismatch (e.g. float3→vec4): would need
@@ -1808,12 +1949,11 @@ void RenderedCSFNode::updateGeometryBindings(
               if(gpu->handle)
               {
                 auto* rhi_buf = static_cast<QRhiBuffer*>(gpu->handle);
-                if(aux.buffer != rhi_buf)
-                {
-                  adoptIntoSlot(
-                      renderer, aux, rhi_buf,
-                      geo_aux->byte_size > 0 ? geo_aux->byte_size : gpu->byte_size);
-                }
+                adoptIntoSlot(
+                    renderer, aux, rhi_buf,
+                    geo_aux->byte_size > 0 ? geo_aux->byte_size
+                                           : gpu->byte_size - geo_aux->byte_offset);
+                aux.offset = geo_aux->byte_offset;
                 continue;
               }
             }
@@ -2004,6 +2144,11 @@ void RenderedCSFNode::updateGeometryBindings(
 
     geo_binding_idx++;
   }
+
+  for(auto& binding : m_geometryBindings)
+    for(auto& ssbo : binding.attribute_ssbos)
+      if(!ssbo.restore_seen)
+        dropRestoreSource(ssbo);
 }
 
 void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge& edge)
@@ -2170,7 +2315,7 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
 
         struct ossia::geometry::input geo_inp;
         geo_inp.buffer = buf_index;
-        geo_inp.byte_offset = 0;
+        geo_inp.byte_offset = ssbo.owned ? 0 : ssbo.offset;
         out_geo.input.push_back(geo_inp);
       }
 
@@ -2234,13 +2379,14 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
         if(aux.buffer)
         {
           const int aux_buf_idx = (int)out_geo.buffers.size();
+          const int64_t aux_offset = aux.owned ? 0 : aux.offset;
           out_geo.buffers.push_back({
-              .data = ossia::geometry::gpu_buffer{aux.buffer, aux.size},
+              .data = ossia::geometry::gpu_buffer{aux.buffer, aux_offset + aux.size},
               .dirty = false});
 
           out_geo.auxiliary.push_back({
               .name = aux.name, .buffer = aux_buf_idx,
-              .byte_offset = 0, .byte_size = aux.size});
+              .byte_offset = aux_offset, .byte_size = aux.size});
         }
       }
 
@@ -2701,7 +2847,15 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
           attr_idx++)
       {
         const auto& ssbo = binding.attribute_ssbos[attr_idx];
-        refreshGpuSlot(slots.declared[attr_idx], ssbo.buffer, ssbo.size);
+        const int slot = slots.declared[attr_idx];
+        refreshGpuSlot(slot, ssbo.buffer, ssbo.size);
+        const int64_t offset = ssbo.owned ? 0 : ssbo.offset;
+        if(slot >= 0 && slot < (int)out_geo.input.size()
+           && out_geo.input[slot].byte_offset != offset)
+        {
+          out_geo.input[slot].byte_offset = offset;
+          any_handle_changed = true;
+        }
       }
 
       if(binding_upstream)
@@ -2745,7 +2899,20 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
           i < slots.auxiliary.size() && i < binding.auxiliary_ssbos.size(); i++)
       {
         const auto& aux = binding.auxiliary_ssbos[i];
-        refreshGpuSlot(slots.auxiliary[i], aux.buffer, aux.size);
+        const int64_t aux_offset = aux.owned ? 0 : aux.offset;
+        refreshGpuSlot(slots.auxiliary[i], aux.buffer, aux_offset + aux.size);
+        for(auto& oa : out_geo.auxiliary)
+        {
+          if(oa.buffer != slots.auxiliary[i])
+            continue;
+          if(oa.byte_offset != aux_offset || oa.byte_size != aux.size)
+          {
+            oa.byte_offset = aux_offset;
+            oa.byte_size = aux.size;
+            any_handle_changed = true;
+          }
+          break;
+        }
       }
 
       for(std::size_t i = 0; i < slots.storage.size() && i < m_storageBuffers.size(); i++)
@@ -3503,6 +3670,7 @@ void RenderedCSFNode::buildComputeSrbBindings(
   // Both callers rebuild the whole list, so the previous set of borrowed
   // buffers stops being referenced here and not before.
   dropSrbAdoptions();
+  m_srbRangeHash = 0;
 
   // Pre-pass: collect physical buffers used with conflicting access modes
   // (read on one binding, write on another) so we can promote them to
@@ -3590,6 +3758,8 @@ void RenderedCSFNode::buildComputeSrbBindings(
         if(it->access == "read_only")
         {
           QRhiBuffer* buf = it->buffer; // Default dummy buffer
+          int64_t buf_offset = 0;
+          int64_t buf_size = 0;
           auto port = this->node.input[input_port_index];
           if(!port->edges.empty())
           {
@@ -3597,15 +3767,17 @@ void RenderedCSFNode::buildComputeSrbBindings(
             if(input_buf)
             {
               buf = input_buf.handle;
+              buf_offset = input_buf.byte_offset;
+              buf_size = input_buf.byte_size;
               // owned=false with no slot to hold it: without an adoption the
               // producer's release frees a buffer this SRB still binds.
               score::gfx::RenderList::adoptBuffer(buf);
               m_srbAdoptedBuffers.push_back(buf);
             }
           }
-          bindings.append(
-              QRhiShaderResourceBinding::bufferLoad(
-                  bindingIndex++, QRhiShaderResourceBinding::ComputeStage, buf));
+          bindings.append(storageBufferBinding(
+              QRhiShaderResourceBinding::BufferLoad, bindingIndex++, buf, buf_offset,
+              buf_size, m_srbRangeHash));
           input_port_index++;
         }
         else if(it->access == "write_only")
@@ -3946,24 +4118,17 @@ void RenderedCSFNode::buildComputeSrbBindings(
         // Helper: emit a binding for buf with the given access mode, promoting
         // to bufferLoadStore when the buffer is aliased across multiple bindings
         // with conflicting accesses (avoids Vulkan validation warnings).
-        auto appendBufBinding = [&](QRhiBuffer* buf, const std::string& access)
+        auto appendBufBinding = [&](QRhiBuffer* buf, const std::string& access,
+                                    int64_t offset = 0, int64_t size = 0)
         {
           const bool aliased = aliased_buffers.count(buf) > 0;
-          if(access == "read_write" || aliased)
-          {
-            bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
-                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, buf));
-          }
-          else if(access == "read_only")
-          {
-            bindings.append(QRhiShaderResourceBinding::bufferLoad(
-                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, buf));
-          }
-          else // write_only
-          {
-            bindings.append(QRhiShaderResourceBinding::bufferStore(
-                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, buf));
-          }
+          const auto type = (access == "read_write" || aliased)
+                                ? QRhiShaderResourceBinding::BufferLoadStore
+                                : (access == "read_only")
+                                      ? QRhiShaderResourceBinding::BufferLoad
+                                      : QRhiShaderResourceBinding::BufferStore;
+          bindings.append(storageBufferBinding(
+              type, bindingIndex++, buf, offset, size, m_srbRangeHash));
         };
 
         for(int attr_idx = 0; attr_idx < (int)geo_input->attributes.size(); attr_idx++)
@@ -3994,7 +4159,11 @@ void RenderedCSFNode::buildComputeSrbBindings(
           // two, _in and _out, whether or not it gathers.
           if(req.access == "read_only" || req.access == "write_only")
           {
-            appendBufBinding(ssbo.buffer, req.access);
+            if(ssbo.owned)
+              appendBufBinding(ssbo.buffer, req.access);
+            else
+              appendBufBinding(
+                  ssbo.buffer, req.access, ssbo.offset, ssbo.size - ssbo.offset);
           }
           else // read_write -> 2 bindings: _in (readonly) + _out (read-write)
           {
@@ -4125,9 +4294,13 @@ void RenderedCSFNode::buildComputeSrbBindings(
                     bindingIndex++, QRhiShaderResourceBinding::ComputeStage,
                     aux.buffer));
           }
-          else
+          else if(aux.owned)
           {
             appendBufBinding(aux.buffer, aux.access);
+          }
+          else
+          {
+            appendBufBinding(aux.buffer, aux.access, aux.offset, aux.size);
           }
         }
 
@@ -4853,6 +5026,7 @@ void RenderedCSFNode::releaseState(RenderList& r)
       }
       ssbo.read_buffer_is_snapshot = false;
       releaseSlot(r, ssbo);
+      dropRestoreSource(ssbo);
       delete ssbo.scatterStaging;
       ssbo.scatterStaging = nullptr;
       delete ssbo.scatterOp.srb;
@@ -5181,7 +5355,8 @@ void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiR
           1, QRhiShaderResourceBinding::ComputeStage, pass.processUBO);
     }
 
-    const uint64_t newHash = hashBindings(bindings);
+    std::size_t newHash = hashBindings(bindings);
+    ossia::hash_combine(newHash, m_srbRangeHash);
     if(pass.srb && pass.srbBindingsHash == newHash && newHash != 0)
       continue; // bindings unchanged from last frame
 
@@ -5260,6 +5435,28 @@ void RenderedCSFNode::runInitialPasses(
     return;
   m_lastRunFrame = renderer.frame;
 
+  {
+    int geo_idx = 0;
+    for(const auto& input : n.m_descriptor.inputs)
+    {
+      auto* g = ossia::get_if<isf::geometry_input>(&input.data);
+      if(!g)
+        continue;
+      if(geo_idx >= (int)m_geometryBindings.size())
+        break;
+      const auto& gb = m_geometryBindings[geo_idx++];
+      for(int ai = 0; ai < (int)g->attributes.size() && ai < (int)gb.attribute_ssbos.size();
+          ai++)
+      {
+        const auto& access = g->attributes[ai].access;
+        if(access != "write_only" && access != "read_write")
+          continue;
+        noteCsfWrite(gb.attribute_ssbos[ai].buffer, renderer.frame);
+        noteCsfWrite(gb.attribute_ssbos[ai].read_buffer, renderer.frame);
+      }
+    }
+  }
+
 
   // Debug marker for capture-tool readability.
   commands.debugMarkBegin(QByteArrayLiteral("CSF"));
@@ -5310,6 +5507,40 @@ void RenderedCSFNode::runInitialPasses(
 
       commands.endComputePass();
       res = renderer.state.rhi->nextResourceUpdateBatch();
+    }
+  }
+
+  {
+    bool anyRestore = false;
+    for(auto& binding : m_geometryBindings)
+      for(auto& ssbo : binding.attribute_ssbos)
+        if(ssbo.restore_source && ssbo.owned && ssbo.buffer && ssbo.restore_size > 0)
+          anyRestore = true;
+
+    if(anyRestore)
+    {
+      if(res)
+      {
+        commands.resourceUpdate(res);
+        res = renderer.state.rhi->nextResourceUpdateBatch();
+      }
+      commands.beginExternal();
+      beginBufferCopyBarrier(*renderer.state.rhi, commands);
+      for(auto& binding : m_geometryBindings)
+      {
+        for(auto& ssbo : binding.attribute_ssbos)
+        {
+          if(!ssbo.restore_source || !ssbo.owned || !ssbo.buffer)
+            continue;
+          const int64_t sz = std::min<int64_t>(ssbo.restore_size, ssbo.buffer->size());
+          if(sz > 0)
+            copyBuffer(
+                *renderer.state.rhi, commands, ssbo.restore_source, ssbo.buffer,
+                (int)sz, (int)ssbo.restore_offset, 0, BufferCopyBarrier::None);
+        }
+      }
+      endBufferCopyBarrier(*renderer.state.rhi, commands);
+      commands.endExternal();
     }
   }
 
