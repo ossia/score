@@ -259,6 +259,9 @@ if [[ -f "$BUNDLE_CONTENTS/Info.plist" ]]; then
     /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${APP_VERSION}" "$BUNDLE_CONTENTS/Info.plist" 2>/dev/null || true
     /usr/libexec/PlistBuddy -c "Set :NSHumanReadableCopyright ${APP_COPYRIGHT}" "$BUNDLE_CONTENTS/Info.plist" 2>/dev/null || true
     /usr/libexec/PlistBuddy -c "Delete :CFBundleDocumentTypes" "$BUNDLE_CONTENTS/Info.plist" 2>/dev/null || true
+    # A custom app is not the handler for .score documents, and must not
+    # export ossia score's uniform type identifiers either.
+    /usr/libexec/PlistBuddy -c "Delete :UTExportedTypeDeclarations" "$BUNDLE_CONTENTS/Info.plist" 2>/dev/null || true
 
     if [[ -f "${APP_ICON_ICNS}" ]]; then
       ICNS_FILE_NAME="$(basename "${APP_ICON_ICNS}")"
