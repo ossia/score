@@ -4,8 +4,10 @@
 
 #include <Execution/Telemetry.hpp>
 
+#include <QAbstractButton>
 #include <QElapsedTimer>
 #include <QPointer>
+#include <QToolButton>
 #include <QWidget>
 
 #include <nano_signal_slot.hpp>
@@ -58,6 +60,34 @@ enum class StripWidth
   Narrow,
   Normal,
   Wide
+};
+
+//! A strip's name, over a bar of the colour of what it stands for. Painted:
+//! the deployment builds of Qt have no style sheets.
+class StripTitle final : public QAbstractButton
+{
+public:
+  using QAbstractButton::QAbstractButton;
+  void setColor(const QColor& c);
+
+protected:
+  void paintEvent(QPaintEvent*) override;
+
+private:
+  QColor m_color{Qt::transparent};
+};
+
+//! A toggle whose checked state stands out in its own colour.
+class ColorToggle final : public QToolButton
+{
+public:
+  ColorToggle(const QColor& on, QWidget* parent);
+
+protected:
+  void paintEvent(QPaintEvent*) override;
+
+private:
+  QColor m_on;
 };
 
 //! A vertical fader in dB: position p gives a gain of p³, 0 dB at the top.
@@ -125,7 +155,7 @@ protected:
 
   const score::DocumentContext& m_context;
   QVBoxLayout* m_layout{};
-  QPushButton* m_title{};
+  StripTitle* m_title{};
   QLabel* m_badge{};
   score::LevelMeter* m_meter{};
   GainFader* m_fader{};
