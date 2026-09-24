@@ -119,12 +119,9 @@ public:
     QTimer::singleShot(1, this, [this, n] { rootsChanged(roots(), n); });
   }
 
-  //! Removal must reach the cache while the device is still alive, so that no
-  //! resolved parameter pointer outlives it: rootsChanged is queued to the
-  //! mapper thread and runs too late. Registration comes from the mapper
-  //! thread while the device list changes on the main one: the current list
-  //! is handed over under the same lock as the hooks, so no device is read
-  //! mid-update nor added between the hand-over and the registration.
+  //! Removal must reach the cache while the device is still alive
+  //! (rootsChanged is deferred, too late). Called from the mapper thread: the
+  //! list is handed over under the same lock as the hooks.
   void set_engine_functions(ossia::qt::qml_engine_functions* f)
   {
     std::lock_guard l{m_devicesLock};
@@ -212,29 +209,16 @@ ossia::net::parameter_base* find_parameter(
 }
 
 static ossia::small_vector<ossia::net::parameter_base*, 4> setup_sources(
-    const QJSValue& jsval, ossia::net::node_base& self,
+    const std::vector<QString>& bind, ossia::net::node_base& self,
     const std::vector<ossia::net::node_base*>& roots)
 {
   ossia::small_vector<ossia::net::parameter_base*, 4> res;
-  if(jsval.isString())
+  for(const auto& address : bind)
   {
-    res.push_back(find_parameter(self, roots, jsval.toString()));
-  }
-  else if(jsval.isArray())
-  {
-    QJSValueIterator it(jsval);
-    while(it.hasNext())
-    {
-      it.next();
-      if(const auto& val = it.value(); val.isString())
-      {
-        res.push_back(find_parameter(self, roots, val.toString()));
-      }
-      else
-      {
-        res.push_back(nullptr);
-      }
-    }
+    if(!address.isNull())
+      res.push_back(find_parameter(self, roots, address));
+    else
+      res.push_back(nullptr);
   }
   return res;
 }
@@ -275,15 +259,19 @@ static ossia::small_vector<ossia::value, 4> apply_reply(const QJSValue& arr)
   return res;
 }
 
+//! What a parameter of the script's tree needs on the main thread. It holds no
+//! QJSValue: the script's read / write functions stay in the protocol's
+//! engine-side table, under `id`, and are only ever touched on the engine thread.
 struct mapper_parameter_data_base
 {
   mapper_parameter_data_base() = default;
   mapper_parameter_data_base(const mapper_parameter_data_base&) = delete;
   mapper_parameter_data_base(mapper_parameter_data_base&& other)
       : bind{std::move(other.bind)}
-      , read{std::move(other.read)}
-      , write{std::move(other.write)}
       , interval{std::move(other.interval)}
+      , id{other.id}
+      , has_bind{other.has_bind}
+      , has_read{other.has_read}
       , source{std::move(other.source)}
   {
   }
@@ -291,30 +279,21 @@ struct mapper_parameter_data_base
   mapper_parameter_data_base& operator=(const mapper_parameter_data_base&) = delete;
   mapper_parameter_data_base& operator=(mapper_parameter_data_base&&) = delete;
 
-  mapper_parameter_data_base(const QJSValue& val)
-      : bind{val.property("bind")}
-      , read{val.property("read")}
-      , write{val.property("write")}
-  {
-    if(auto v = val.property("interval"); v.isNumber())
-    {
-      interval = v.toNumber();
-    }
-  }
-
-  bool valid(const QJSValue& val) const noexcept
-  {
-    return !val.isUndefined() && !val.isNull();
-  }
   bool valid() const noexcept
   {
     return true;
   }
 
-  QJSValue bind;
-  QJSValue read;
-  QJSValue write;
+  //! The addresses of "bind", a null string standing for an entry that was not
+  //! one.
+  std::vector<QString> bind;
   std::optional<double> interval;
+  //! Key of the script callbacks in mapper_protocol::m_scripts; -1 for the
+  //! parameters the script did not describe (root, Device.addNode()).
+  int id{-1};
+  bool has_bind{};
+  bool has_read{};
+
   ossia::small_vector<ossia::net::parameter_base*, 4> source{};
   std::mutex source_lock;
 };
@@ -335,9 +314,8 @@ struct mapper_parameter_data final
   {
   }
 
-  mapper_parameter_data(const QJSValue& val)
-      : parameter_data{ossia::qt::make_parameter_data(val)}
-      , mapper_parameter_data_base{val}
+  mapper_parameter_data(parameter_data&& data)
+      : parameter_data{std::move(data)}
   {
   }
 };
@@ -348,19 +326,8 @@ struct mapper_parameter final
     , Nano::Observer
 {
 public:
-  using wrapped_parameter<mapper_parameter_data>::wrapped_parameter;
-  ~mapper_parameter() override
-  {
-    for(auto& n : callbacks)
-    {
-      n.first->about_to_be_deleted.disconnect<&mapper_parameter::on_sourceRemoved>(
-          *this);
-      if(auto p = n.first->get_parameter())
-        p->remove_callback(n.second);
-    }
-
-    callback_container<value_callback>::callbacks_clear();
-  }
+  mapper_parameter(mapper_parameter_data&& data, ossia::net::node_base& node);
+  ~mapper_parameter() override;
 
   void connect(ossia::net::parameter_base& s, mapper_protocol& proto);
 
@@ -373,21 +340,11 @@ public:
     callbacks.erase(&s);
   }
 
-  struct callback_stopper
-  {
-    mapper_parameter& self;
-    callback_stopper(mapper_parameter& self)
-        : self{self}
-    {
-      self.m_stop_callbacks = true;
-    }
-    ~callback_stopper() { self.m_stop_callbacks = false; }
-  };
-
-  callback_stopper stop_callbacks() { return *this; }
-  std::atomic_bool m_stop_callbacks = false;
   ossia::hash_map<const ossia::net::node_base*, ossia::net::parameter_base::iterator>
       callbacks;
+
+private:
+  mapper_protocol* m_protocol{};
 };
 using mapper_node = ossia::net::wrapped_node<mapper_parameter_data, mapper_parameter>;
 
@@ -407,6 +364,24 @@ public:
       , m_devices{roots}
       , m_roots{m_devices.roots()}
   {
+    // Both live on the main thread: the bindings to the other devices' trees
+    // are made there, along with the tree itself.
+    con(m_devices, &observable_device_roots::rootsChanged, &m_mainContext,
+        [this](std::vector<ossia::net::node_base*> r, int64_t n) {
+      if(m_devices.m_updating_index != n)
+        return;
+
+      // `r` was computed right before this direct call, on this thread: the
+      // nodes are still alive.
+      {
+        std::lock_guard l{m_rootLock};
+        if(!m_treeAccess)
+          return;
+        m_roots = std::move(r);
+      }
+      reset_tree();
+    });
+
     this->moveToThread(m_thread.get());
     m_thread->start();
     m_hasInit++;
@@ -439,6 +414,8 @@ public:
     SCORE_ASSERT(m_thread->isRunning());
 
     QMetaObject::invokeMethod(this, [this, comp, engine, t = QThread::currentThread()] {
+      // The script's functions belong to the engine's thread.
+      m_scripts.clear();
       delete comp;
       delete engine;
       if(t)
@@ -468,9 +445,12 @@ public:
     m_devices.set_engine_functions(nullptr);
     if(auto* fun = m_deviceFunctions.exchange(nullptr))
       fun->disable();
-  }
 
-  void teardown_engine(QThread* t) { }
+    // Waits for a reply being applied; later trees are not built.
+    std::lock_guard l{m_rootLock};
+    m_treeAccess = false;
+    m_roots.clear();
+  }
 
   void init_engine()
   {
@@ -499,19 +479,6 @@ public:
         this, &mapper_protocol::sig_push, this, &mapper_protocol::slot_push);
     QObject::connect(
         this, &mapper_protocol::sig_recv, this, &mapper_protocol::slot_recv);
-    con(m_devices, &observable_device_roots::rootsChanged, this,
-        [this](std::vector<ossia::net::node_base*> r, int64_t n) {
-      if(m_devices.m_updating_index != n)
-        return;
-
-      // The device list is not rebuilt from `r`: those raw node pointers
-      // crossed a queued connection, so reaching their device from here would
-      // be a use-after-free. notify_added/notify_removing maintain it
-      // synchronously instead.
-      m_roots = std::move(r);
-      reset_tree();
-    },
-        Qt::QueuedConnection);
 
     QObject::connect(
         m_component, &QQmlComponent::statusChanged, this,
@@ -536,9 +503,12 @@ public:
             QVariant ret;
             QMetaObject::invokeMethod(
                 m_object, "createTree", Q_RETURN_ARG(QVariant, ret));
-            qt::create_device<ossia::net::device_base, mapper_node, mapper_protocol>(
-                *m_device, ret.value<QJSValue>());
-            reset_tree();
+
+            // Only the script runs here; the tree is built on the main thread.
+            auto tree = read_tree(ret.value<QJSValue>());
+            ossia::qt::run_async(
+                &m_mainContext,
+                [this, tree = std::move(tree)]() mutable { create_tree(tree); });
           }
           else
           {
@@ -558,10 +528,9 @@ public:
     m_hasInit--;
   }
 
-  void sig_push(mapper_parameter* p, const ossia::value& v) W_SIGNAL(sig_push, p, v);
-  void
-  sig_recv(mapper_parameter* p, ossia::net::parameter_base* s, const ossia::value& v)
-      W_SIGNAL(sig_recv, p, s, v);
+  void sig_push(int id, const ossia::value& v) W_SIGNAL(sig_push, id, v);
+  void sig_recv(int id, const QString& source, const ossia::value& v)
+      W_SIGNAL(sig_recv, id, source, v);
 
   static bool isAddressValueArray(const QJSValue& v)
   {
@@ -584,163 +553,333 @@ public:
     }
     return true;
   }
-  void slot_push(mapper_parameter* param, const ossia::value& v)
+
+  void slot_push(int id, const ossia::value& v)
   {
     auto engine = m_engine.load();
     if(!engine)
       return;
 
-    auto& addr = *param;
-    auto& dat = addr.data();
-    auto cb = param->stop_callbacks();
+    auto it = m_scripts.find(id);
+    if(it == m_scripts.end())
+      return;
+    auto& script = it->second;
+    auto cb = script_stopper{script};
 
-    bool write = dat.write.isCallable();
-    bool bound = dat.bind.isString() || dat.bind.isArray();
+    bool write = script.write.isCallable();
+    bool bound = script.bound;
     if(!write && bound)
     {
-      std::lock_guard g{dat.source_lock};
-      for(auto p : dat.source)
-      {
-        if(p)
-        {
-          p->push_value(v);
-        }
-      }
+      push_to_sources(id, v);
     }
     else if(write)
     {
-      auto res = dat.write.call({qt::value_to_js_value(v, *engine)});
+      auto res = script.write.call({qt::value_to_js_value(v, *engine)});
       if(bound)
       {
         if(res.isArray())
         {
           if(isAddressValueArray(res))
           {
-            std::lock_guard l{m_rootLock};
-            apply_reply(m_device->get_root_node(), m_roots, res);
+            apply_reply_to_roots(res);
           }
           else
           {
-            const auto r = apply_reply(res);
-            auto cb = param->stop_callbacks();
-            std::lock_guard g{dat.source_lock};
-            auto N = std::min(r.size(), dat.source.size());
-            for(std::size_t i = 0; i < N; i++)
-            {
-              if(r[i].valid() && dat.source[i])
-              {
-                dat.source[i]->push_value(r[i]);
-              }
-            }
+            push_to_sources(id, apply_reply(res));
           }
         }
         else
         {
-          const auto val = ossia::qt::value_from_js(res);
-          std::lock_guard g{dat.source_lock};
-          for(auto p : dat.source)
-          {
-            if(p)
-            {
-              p->push_value(val);
-            }
-          }
+          push_to_sources(id, ossia::qt::value_from_js(res));
         }
       }
       else
       {
         if(res.isArray())
         {
-          std::lock_guard l{m_rootLock};
-          apply_reply(m_device->get_root_node(), m_roots, res);
+          apply_reply_to_roots(res);
         }
       }
     }
   }
 
-  void
-  slot_recv(mapper_parameter* p, ossia::net::parameter_base* s, const ossia::value& v)
+  void slot_recv(int id, const QString& source, const ossia::value& v)
   {
     auto engine = m_engine.load();
     if(!engine)
       return;
 
-    if(!p->data().read.isCallable())
+    // A source pushed by this very parameter's own script, from slot_push:
+    // the callback ran on this thread and called us directly.
+    auto it = m_scripts.find(id);
+    if(it == m_scripts.end() || it->second.stopped > 0)
+      return;
+    auto& script = it->second;
+
+    if(!script.read.isCallable())
     {
-      p->push_value(v);
+      with_parameter(id, [&](mapper_parameter& p) { p.push_value(v); });
     }
     else
     {
-      auto res = p->data().read.call(
-          {QString::fromStdString(s->get_node().osc_address()),
-           qt::value_to_js_value(v, *engine)});
+      auto res = script.read.call({source, qt::value_to_js_value(v, *engine)});
 
-      if(res.isArray())
+      if(res.isArray() && res.property(0).isObject())
       {
-        if(res.property(0).isObject())
-        {
-          std::lock_guard l{m_rootLock};
-          apply_reply(m_device->get_root_node(), m_roots, res);
-        }
-        else
-        {
-          p->push_value(qt::value_from_js(std::move(res)));
-        }
+        apply_reply_to_roots(res);
       }
       else
       {
-        p->push_value(qt::value_from_js(std::move(res)));
+        auto val = qt::value_from_js(std::move(res));
+        with_parameter(id, [&](mapper_parameter& p) { p.push_value(val); });
       }
     }
   }
 
-  static mapper_parameter_data read_data(const QJSValue& js) { return js; }
+  void register_parameter(mapper_parameter& p, int id)
+  {
+    std::lock_guard l{m_parametersLock};
+    m_parameters[id] = &p;
+  }
+
+  void unregister_parameter(int id)
+  {
+    std::lock_guard l{m_parametersLock};
+    m_parameters.erase(id);
+  }
 
 private:
+  //! Engine thread: what the script gave for one parameter.
+  struct mapper_script
+  {
+    QJSValue read;
+    QJSValue write;
+    bool bound{};
+    //! Set while slot_push runs the parameter's script: what the script
+    //! pushes to the parameter's own sources must not come back to it.
+    int stopped{};
+  };
+
+  struct script_stopper
+  {
+    mapper_script& self;
+    explicit script_stopper(mapper_script& self)
+        : self{self}
+    {
+      ++self.stopped;
+    }
+    ~script_stopper() { --self.stopped; }
+  };
+
+  using tree_description = ossia::qt::deferred_js_node<mapper_parameter_data>;
+
+  //! Engine thread: turns what createTree() returned into plain data, the
+  //! script functions going to m_scripts.
+  tree_description read_tree(const QJSValue& root)
+  {
+    m_scripts.clear();
+
+    tree_description res;
+    if(!root.isArray())
+      return res;
+
+    QJSValueIterator it(root);
+    while(it.hasNext())
+    {
+      it.next();
+      read_node(it.value(), res);
+    }
+    return res;
+  }
+
+  void read_node(const QJSValue& js, tree_description& parent)
+  {
+    mapper_parameter_data data{ossia::qt::make_parameter_data(js)};
+    if(data.name.empty())
+      return;
+
+    const int id = m_lastScriptId++;
+    data.id = id;
+
+    auto& script = m_scripts[id];
+    script.read = js.property("read");
+    script.write = js.property("write");
+    data.has_read = script.read.isCallable();
+
+    if(auto v = js.property("interval"); v.isNumber())
+      data.interval = v.toNumber();
+
+    const auto bind = js.property("bind");
+    data.has_bind = !bind.isUndefined() && !bind.isNull();
+    if(bind.isString())
+    {
+      data.bind.push_back(bind.toString());
+      script.bound = true;
+    }
+    else if(bind.isArray())
+    {
+      QJSValueIterator it(bind);
+      while(it.hasNext())
+      {
+        it.next();
+        if(const auto& val = it.value(); val.isString())
+          data.bind.push_back(val.toString());
+        else
+          data.bind.push_back(QString{});
+      }
+      script.bound = true;
+    }
+
+    parent.children.push_back(tree_description{std::move(data), {}});
+
+    const QJSValue children = js.property("children");
+    if(!children.isArray())
+      return;
+
+    auto& node = parent.children.back();
+    QJSValueIterator it(children);
+    while(it.hasNext())
+    {
+      it.next();
+      read_node(it.value(), node);
+    }
+  }
+
+  //! Main thread: the whole tree is in place before anyone is told about it.
+  void create_tree(tree_description& tree)
+  {
+    if(!m_device || !m_treeAccess)
+      return;
+
+    std::vector<ossia::net::node_base*> created;
+    auto& root = static_cast<mapper_node&>(m_device->get_root_node());
+    for(auto& child : tree.children)
+      create_node(child, root, created);
+
+    for(auto node : created)
+      m_device->on_node_created(*node);
+
+    reset_tree();
+  }
+
+  void create_node(
+      tree_description& desc, mapper_node& parent,
+      std::vector<ossia::net::node_base*>& created)
+  {
+    auto node = new mapper_node{std::move(desc.data), *m_device, parent};
+    parent.add_child(std::unique_ptr<ossia::net::node_base>(node));
+    created.push_back(node);
+
+    for(auto& child : desc.children)
+      create_node(child, *node, created);
+  }
+
+  //! Engine thread. The tree is destroyed on the main thread, which waits for
+  //! `f` to be done with the parameter before destroying it.
+  template <typename F>
+  void with_parameter(int id, F&& f)
+  {
+    std::lock_guard l{m_parametersLock};
+    if(auto it = m_parameters.find(id); it != m_parameters.end())
+      f(*it->second);
+  }
+
+  void push_to_sources(int id, const ossia::value& v)
+  {
+    with_parameter(id, [&](mapper_parameter& p) {
+      auto& dat = p.data();
+      std::lock_guard g{dat.source_lock};
+      for(auto s : dat.source)
+      {
+        if(s)
+        {
+          s->push_value(v);
+        }
+      }
+    });
+  }
+
+  void push_to_sources(int id, const ossia::small_vector<ossia::value, 4>& r)
+  {
+    with_parameter(id, [&](mapper_parameter& p) {
+      auto& dat = p.data();
+      std::lock_guard g{dat.source_lock};
+      auto N = std::min(r.size(), dat.source.size());
+      for(std::size_t i = 0; i < N; i++)
+      {
+        if(r[i].valid() && dat.source[i])
+        {
+          dat.source[i]->push_value(r[i]);
+        }
+      }
+    });
+  }
+
+  void apply_reply_to_roots(const QJSValue& res)
+  {
+    std::lock_guard l{m_rootLock};
+    if(!m_treeAccess || !m_device)
+      return;
+    apply_reply(m_device->get_root_node(), m_roots, res);
+  }
+
+  //! Main thread. Takes neither m_rootLock, whose fields only change on this
+  //! thread, nor a source_lock while it connects: the engine thread takes them
+  //! in the other order, from within a source's callbacks.
   void reset_tree()
   {
     // Initialize the roots
-    if(!m_device)
+    if(!m_device || !m_treeAccess)
       return;
 
-    {
-      std::lock_guard g{m_timersLock};
-      for(auto [timer, ptr] : m_timers)
-      {
-        killTimer(timer);
-      }
-      m_timers.clear();
-    }
-
-    std::lock_guard l{m_rootLock};
-
+    std::vector<std::pair<int, double>> polled;
     ossia::net::visit_parameters(
         m_device->get_root_node(), [&](auto& root, auto& param) {
-          mapper_parameter& p = (mapper_parameter&)param;
-          mapper_parameter_data_base& data = p.data();
+      mapper_parameter& p = (mapper_parameter&)param;
+      mapper_parameter_data_base& data = p.data();
 
-          if(data.valid(data.bind))
+      if(data.has_bind)
+      {
+        auto sources = setup_sources(data.bind, m_device->get_root_node(), m_roots);
+        for(auto s : sources)
+        {
+          if(s)
           {
-            std::lock_guard g{data.source_lock};
-            data.source = setup_sources(data.bind, m_device->get_root_node(), m_roots);
-
-            for(auto s : data.source)
-            {
-              if(s)
-              {
-                p.connect(*s, *this);
-              }
-            }
+            p.connect(*s, *this);
           }
-          else if(data.valid(data.read) && data.interval)
-          {
-            double msecs = *data.interval;
-            int timer_id = startTimer(msecs, Qt::PreciseTimer);
+        }
 
-            std::lock_guard g{m_timersLock};
-            m_timers[timer_id] = &p;
-          }
-        });
+        std::lock_guard g{data.source_lock};
+        data.source = std::move(sources);
+      }
+      else if(data.has_read && data.interval)
+      {
+        polled.emplace_back(data.id, *data.interval);
+      }
+    });
+
+    // Timers belong to the engine's thread.
+    ossia::qt::run_async(
+        this, [this, polled = std::move(polled)] { restart_timers(polled); });
+  }
+
+  //! Engine thread.
+  void restart_timers(const std::vector<std::pair<int, double>>& polled)
+  {
+    if(!m_engine.load())
+      return;
+
+    for(auto [timer, id] : m_timers)
+    {
+      killTimer(timer);
+    }
+    m_timers.clear();
+
+    for(auto [id, msecs] : polled)
+    {
+      int timer_id = startTimer(msecs, Qt::PreciseTimer);
+      m_timers[timer_id] = id;
+    }
   }
 
   void timerEvent(QTimerEvent* ev) override
@@ -751,11 +890,15 @@ private:
 
     if(auto it = m_timers.find(ev->timerId()); it != m_timers.end())
     {
-      if(auto p = it->second; p && p->data().read.isCallable())
+      const int id = it->second;
+      if(auto s = m_scripts.find(id);
+         s != m_scripts.end() && s->second.read.isCallable())
       {
-        auto v = qt::value_from_js(p->data().read.call({}));
-        if(v != p->value())
-          p->set_value(v);
+        auto v = qt::value_from_js(s->second.read.call({}));
+        with_parameter(id, [&](mapper_parameter& p) {
+          if(v != p.value())
+            p.set_value(v);
+        });
       }
     }
   }
@@ -769,7 +912,9 @@ private:
   bool
   push(const ossia::net::parameter_base& parameter_base, const ossia::value& v) override
   {
-    sig_push((mapper_parameter*)&parameter_base, v);
+    if(const int id = static_cast<const mapper_parameter&>(parameter_base).data().id;
+       id >= 0)
+      sig_push(id, v);
     return true;
   }
 
@@ -807,15 +952,59 @@ private:
   QByteArray m_code;
 
   observable_device_roots m_devices;
+  //! Stays on the main thread, unlike `this`: what has to happen there is
+  //! posted to it, and dropped along with it.
+  QObject m_mainContext;
 
-  std::mutex m_rootLock;
+  //! Recursive: a reply pushing into this device re-enters slot_push, and so
+  //! a new reply, on the same thread.
+  std::recursive_mutex m_rootLock;
   std::vector<ossia::net::node_base*> m_roots;
+  //! Cleared by disable_device_access(): the tree is being torn down.
+  //! m_roots and this are only written on the main thread, under m_rootLock
+  //! for the engine thread to read them.
+  bool m_treeAccess{true};
 
-  std::mutex m_timersLock;
-  ossia::hash_map<int, mapper_parameter*> m_timers;
+  //! Parameters of the script's tree, by script id. Written on the main thread
+  //! as the tree is built and destroyed, read on the engine thread which may
+  //! only reach a parameter under the lock. Recursive for the same re-entrance.
+  std::recursive_mutex m_parametersLock;
+  ossia::hash_map<int, mapper_parameter*> m_parameters;
+
+  //! Engine thread only: the script functions, destroyed with the engine.
+  ossia::hash_map<int, mapper_script> m_scripts;
+  int m_lastScriptId{};
+  ossia::hash_map<int, int> m_timers;
 };
 
 using mapper_device = ossia::net::wrapped_device<mapper_node, mapper_protocol>;
+
+mapper_parameter::mapper_parameter(
+    mapper_parameter_data&& data, ossia::net::node_base& node)
+    : wrapped_parameter<mapper_parameter_data>{std::move(data), node}
+{
+  if(const int id = this->data().id; id >= 0)
+  {
+    m_protocol = &static_cast<mapper_protocol&>(node.get_device().get_protocol());
+    m_protocol->register_parameter(*this, id);
+  }
+}
+
+mapper_parameter::~mapper_parameter()
+{
+  // First, so that the engine thread is done with us.
+  if(m_protocol)
+    m_protocol->unregister_parameter(data().id);
+
+  for(auto& n : callbacks)
+  {
+    n.first->about_to_be_deleted.disconnect<&mapper_parameter::on_sourceRemoved>(*this);
+    if(auto p = n.first->get_parameter())
+      p->remove_callback(n.second);
+  }
+
+  callback_container<value_callback>::callbacks_clear();
+}
 
 void mapper_parameter::connect(parameter_base& s, mapper_protocol& proto)
 {
@@ -827,13 +1016,13 @@ void mapper_parameter::connect(parameter_base& s, mapper_protocol& proto)
   {
     QPointer<mapper_protocol> proto_ptr = &proto;
     callbacks[&s.get_node()]
-        = s.add_callback([this, param = &s, proto_ptr](const ossia::value& v) {
-            if(!this->m_stop_callbacks)
-            {
-              SCORE_ASSERT(proto_ptr);
-              proto_ptr->sig_recv(this, param, v);
-            }
-          });
+        = s.add_callback([id = data().id, param = &s, proto_ptr](const ossia::value& v) {
+      SCORE_ASSERT(proto_ptr);
+      // The source is alive while it calls us, not once this reaches the
+      // engine thread: its address travels instead.
+      proto_ptr->sig_recv(
+          id, QString::fromStdString(param->get_node().osc_address()), v);
+    });
   }
   else
   {
@@ -1137,8 +1326,6 @@ void JSONWriter::write(Protocols::MapperSpecificSettings& n)
   n.text = obj["Text"].toString();
 }
 
-Q_DECLARE_METATYPE(ossia::net::mapper_parameter*)
-W_REGISTER_ARGTYPE(ossia::net::mapper_parameter*)
 W_OBJECT_IMPL(Protocols::MapperDevice)
 W_OBJECT_IMPL(ossia::net::observable_device_roots)
 W_OBJECT_IMPL(ossia::net::mapper_protocol)
