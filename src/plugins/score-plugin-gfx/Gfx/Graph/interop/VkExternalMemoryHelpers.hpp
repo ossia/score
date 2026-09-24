@@ -193,6 +193,16 @@ SCORE_PLUGIN_GFX_EXPORT void destroyRdma(const VulkanCtx&, RdmaBuffer&);
 // =============================================================================
 
 /**
+ * @brief Whether createExportableImage() would get past its capability probe
+ *        for this description: format, usage, tiling and handle type.
+ *
+ * Lets a caller pick another path up front instead of failing on every image.
+ * Like createExportableImage's own check, the probe uses `desc.tiling` whether
+ * or not `drmModifiers` is set.
+ */
+SCORE_PLUGIN_GFX_EXPORT bool canExportImage(const VulkanCtx&, const ExternalImageDesc&);
+
+/**
  * @brief Create a VkImage + exportable VkDeviceMemory, bound. No handle yet.
  *
  * Use exportMemoryHandle() to extract an fd / HANDLE afterwards.
