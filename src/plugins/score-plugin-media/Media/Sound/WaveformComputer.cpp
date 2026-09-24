@@ -42,11 +42,33 @@ WaveformComputer::WaveformComputer(bool threaded)
   }
 }
 
-WaveformComputer::~WaveformComputer() { }
+WaveformComputer::~WaveformComputer()
+{
+  // Images whose ready() event never reached a receiver: the receiver was
+  // destroyed with the event still queued.
+  if(!m_inflight.isEmpty())
+    QImagePool::instance().giveBack(m_inflight);
+}
 
 void WaveformComputer::stop()
 {
   m_abort.store(true, std::memory_order_release);
+}
+
+void WaveformComputer::claim(const QVector<QImage*>& img)
+{
+  std::lock_guard _{m_inflightMutex};
+  for(QImage* i : img)
+    m_inflight.removeOne(i);
+}
+
+void WaveformComputer::deliver(QVector<QImage*> img, ComputedWaveform wf)
+{
+  {
+    std::lock_guard _{m_inflightMutex};
+    m_inflight.append(img);
+  }
+  ready(std::move(img), wf);
 }
 
 struct WaveformComputerImpl
@@ -370,7 +392,7 @@ struct WaveformComputerImpl
       result.x0 = infos.logical_x0;
       result.xf = infos.logical_x0 + infos.logical_max_pixel;
 
-      computer.ready(images, result);
+      computer.deliver(images, result);
     }
   */
 
@@ -423,7 +445,7 @@ struct WaveformComputerImpl
     result.x0 = infos.logical_x0;
     result.xf = infos.logical_x0 + infos.logical_max_pixel;
 
-    computer.ready(std::move(images), result);
+    computer.deliver(std::move(images), result);
   }
 
   bool check_abort(int64_t x_samples) const noexcept
@@ -493,7 +515,7 @@ struct WaveformComputerImpl
     result.x0 = infos.logical_x0;
     result.xf = infos.logical_x0 + infos.logical_max_pixel;
 
-    computer.ready(std::move(images), result);
+    computer.deliver(std::move(images), result);
   }
 
   void compute_sample(const SizeInfos infos)
@@ -552,7 +574,7 @@ struct WaveformComputerImpl
     result.x0 = infos.logical_x0;
     result.xf = infos.logical_x0 + infos.logical_max_pixel;
 
-    computer.ready(std::move(images), result);
+    computer.deliver(std::move(images), result);
   }
 
   void compute()
