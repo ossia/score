@@ -177,7 +177,10 @@ int64_t AudioFile::decodedSamples() const
   struct
   {
     int64_t operator()(ossia::monostate) const noexcept { return 0; }
-    int64_t operator()(const libav_ptr& r) const noexcept { return r->decoder.decoded; }
+    int64_t operator()(const libav_ptr& r) const noexcept
+    {
+      return r->decoder.decoded.load(std::memory_order_acquire);
+    }
     int64_t operator()(const libav_stream_ptr& r) const noexcept { return r.samples; }
     int64_t operator()(const sndfile_ptr& r) const noexcept { return r.decoder.decoded; }
     int64_t operator()(const mmap_ptr& r) const noexcept

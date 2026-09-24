@@ -61,7 +61,13 @@ public:
   int32_t convertedSampleRate{};
   int32_t channels{};
   int32_t track{-1};
-  std::size_t decoded{};
+  //! Written by the decode thread once the samples below it are in place,
+  //! read by the owner (newData / finishedDecoding handlers, playback) while
+  //! decoding goes on.
+  std::atomic<std::size_t> decoded{};
+  //! Frames the file produced: `decoded` without the padding decodeRemaining()
+  //! adds up to the buffer size
+  std::size_t produced{};
 
 public:
   void newData() W_SIGNAL(newData);
