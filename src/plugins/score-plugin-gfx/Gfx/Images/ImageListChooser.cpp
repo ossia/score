@@ -75,7 +75,7 @@ public:
   {
     setContentsMargins(0, 0, 0, 0);
     auto lay = new QVBoxLayout{this};
-    model = new QStandardItemModel{};
+    model = new QStandardItemModel{this};
     model->insertColumns(0, 1);
     model->setHorizontalHeaderLabels({tr("Path")});
 
