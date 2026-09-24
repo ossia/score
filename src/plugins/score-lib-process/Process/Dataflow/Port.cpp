@@ -449,14 +449,25 @@ AudioInlet::AudioInlet(JSONObject::Deserializer&& vis, QObject* parent)
   vis.writeTo(*this);
 }
 
+namespace
+{
+// (1 + outlet id) * 10000 + k, the id scheme saved documents already carry.
+// avnd dynamic outlets have ids above 1000000, where this overflows int: the
+// product is computed modulo 2^32, as the signed version wrapped in practice,
+// so existing documents keep the ids they were saved with, without the UB.
+Id<Process::Port> subPortId(const Id<Process::Port>& outlet, int k) noexcept
+{
+  return Id<Process::Port>{
+      int32_t(uint32_t(1 + outlet.val()) * 10000u + uint32_t(k))};
+}
+}
+
 AudioOutlet::~AudioOutlet() { }
 
 AudioOutlet::AudioOutlet(const QString& name, Id<Process::Port> c, QObject* parent)
     : Outlet{name, std::move(c), parent}
-    , gainInlet{std::make_unique<ControlInlet>(
-          "Gain", Id<Process::Port>{(1 + c.val()) * 10000 + 0}, this)}
-    , panInlet{std::make_unique<ControlInlet>(
-          "Pan", Id<Process::Port>{(1 + c.val()) * 10000 + 1}, this)}
+    , gainInlet{std::make_unique<ControlInlet>("Gain", subPortId(c, 0), this)}
+    , panInlet{std::make_unique<ControlInlet>("Pan", subPortId(c, 1), this)}
     , m_gain{1.}
     , m_pan{1., 1.}
 {
