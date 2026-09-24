@@ -1753,3 +1753,7 @@ target_include_directories(test_gfx_stale_slot_flatten_f2 PRIVATE
 
 # Self-feedback target limits (depth, mips, GrabsFromSource ports).
 score_add_gfx_test(selffb_limits_d2 GfxSelfFeedbackLimitsD2.cpp)
+
+# A VSA shader's gl_Position is WebGL clip space: z in [-w, w] is visible on
+# every backend (agent G2, N39).
+score_add_gfx_test(vsa_clip_depth_g2 GfxVsaClipDepthG2.cpp)

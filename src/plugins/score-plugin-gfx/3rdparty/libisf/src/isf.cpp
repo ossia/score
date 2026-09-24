@@ -6228,6 +6228,7 @@ void main() {
   main__vsa_ossia();
 #if defined(QSHADER_SPIRV) || defined(QSHADER_HLSL) || defined(QSHADER_MSL)
   gl_Position.y = - gl_Position.y;
+  gl_Position.z = (gl_Position.z + gl_Position.w) * 0.5;
 #endif
 }
 )_";
