@@ -9,6 +9,7 @@
 #include <Execution/DocumentPlugin.hpp>
 #include <Execution/Settings/ExecutorModel.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/Bind.hpp>
 
