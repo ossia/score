@@ -270,14 +270,14 @@ double Telemetry::cpuLoad(const Process::ProcessModel& proc) const noexcept
 {
   if(!m_arena)
     return -1.;
+  auto it = m_benchOfProcess.find(&proc);
+  if(it == m_benchOfProcess.end())
+    return -1.;
   const auto& f = m_arena->latest();
-  for(std::size_t i = 0; i < m_benches.size() && i < f.benches.size(); i++)
-  {
-    const auto& b = m_benches[i];
-    if(b.process == &proc && f.benches[i].generation == b.generation)
-      return f.load(f.benches[i]);
-  }
-  return -1.;
+  const auto i = std::size_t(it->second);
+  if(i >= f.benches.size() || f.benches[i].generation != m_benches[i].generation)
+    return -1.;
+  return f.load(f.benches[i]);
 }
 
 bool Telemetry::benchEnabled() const noexcept
@@ -309,6 +309,10 @@ bool Telemetry::syncBenches()
         [arena = m_arena, i, tap = std::shared_ptr<ossia::telemetry::bench_tap>{}]() mutable {
       arena->attach_bench(i, 0, tap);
     });
+    m_benchOfNode.erase(b.node);
+    if(auto p = m_benchOfProcess.find(b.process.data());
+       p != m_benchOfProcess.end() && p->second == int(i))
+      m_benchOfProcess.erase(p);
     b = Bench{};
     m_freeBenches.push_back(int(i));
   }
@@ -320,9 +324,7 @@ bool Telemetry::syncBenches()
   {
     if(!node || !proc)
       continue;
-    if(std::any_of(m_benches.begin(), m_benches.end(), [n = node](const Bench& b) {
-         return b.node == n;
-       }))
+    if(m_benchOfNode.contains(node))
       continue;
 
     int index{};
@@ -343,6 +345,8 @@ bool Telemetry::syncBenches()
     b.node = node;
     b.process = proc;
     b.generation = ++generations;
+    m_benchOfNode[node] = index;
+    m_benchOfProcess[proc] = index;
 
     auto tap = std::make_shared<ossia::telemetry::bench_tap>();
     ctx->m_execQueue.enqueue(
@@ -387,6 +391,8 @@ void Telemetry::executionStopped()
   m_arena.reset();
   m_benches.clear();
   m_freeBenches.clear();
+  m_benchOfNode.clear();
+  m_benchOfProcess.clear();
   for(auto& p : m_playheads)
     p.attached = false;
   for(auto& s : m_subs)
@@ -437,6 +443,8 @@ void Telemetry::rebuild()
   // Every slot of the new arena starts empty.
   m_benches.clear();
   m_freeBenches.clear();
+  m_benchOfNode.clear();
+  m_benchOfProcess.clear();
   syncBenches();
 }
 
