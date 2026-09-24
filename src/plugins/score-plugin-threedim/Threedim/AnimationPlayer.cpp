@@ -60,52 +60,78 @@ findSegment(const std::vector<float>& times, float t) noexcept
   return {lower, alpha};
 }
 
-// Lerp for scalars / vec3 / vec4 depending on `stride`. Step and linear
-// covered; cubic_spline is treated as linear (cubic_spline keyframes pack
-// `in-tangent, value, out-tangent` per slot at 3× stride).
-void sampleLinear(
-    const std::vector<float>& values, std::size_t stride, SegmentLookup s,
-    float* out) noexcept
+// glTF 2.0 Appendix C: a cubic_spline keyframe stores an in-tangent, a value
+// and an out-tangent.
+void sampleChannel(
+    const ossia::animation_channel& channel, std::size_t stride, bool rotation,
+    SegmentLookup s, float* out) noexcept
 {
-  const std::size_t n = values.size() / stride;
+  const auto& times = *channel.times;
+  const auto& values = *channel.values;
+  const bool cubic
+      = channel.interpolation == ossia::animation_interpolation::cubic_spline;
+  const std::size_t key_stride = cubic ? 3 * stride : stride;
+  const std::size_t value_offset = cubic ? stride : 0;
+  const std::size_t n = std::min(times.size(), values.size() / key_stride);
   if(n == 0)
     return;
-  if(s.lower >= n - 1 || s.alpha <= 0.f)
-  {
-    const std::size_t idx = std::min(s.lower, n - 1);
-    std::memcpy(out, values.data() + idx * stride, stride * sizeof(float));
-    return;
-  }
-  const float* a = values.data() + s.lower * stride;
-  const float* b = values.data() + (s.lower + 1) * stride;
-  const float alpha = s.alpha;
-  for(std::size_t i = 0; i < stride; ++i)
-    out[i] = a[i] + (b[i] - a[i]) * alpha;
-}
 
-// Quaternion slerp via QQuaternion — handles shortest-arc vs. double-cover.
-void sampleSlerp(
-    const std::vector<float>& values, SegmentLookup s, float out[4]) noexcept
-{
-  const std::size_t n = values.size() / 4;
-  if(n == 0)
-    return;
-  if(s.lower >= n - 1 || s.alpha <= 0.f)
+  auto value = [&](std::size_t k) {
+    return values.data() + k * key_stride + value_offset;
+  };
+
+  if(s.lower >= n - 1 || s.alpha <= 0.f
+     || channel.interpolation == ossia::animation_interpolation::step)
   {
-    const std::size_t idx = std::min(s.lower, n - 1);
-    std::memcpy(out, values.data() + idx * 4, 4 * sizeof(float));
+    std::memcpy(out, value(std::min(s.lower, n - 1)), stride * sizeof(float));
     return;
   }
-  const float* a = values.data() + s.lower * 4;
-  const float* b = values.data() + (s.lower + 1) * 4;
-  // glTF convention: (x, y, z, w). QQuaternion uses (scalar, x, y, z).
-  QQuaternion qa(a[3], a[0], a[1], a[2]);
-  QQuaternion qb(b[3], b[0], b[1], b[2]);
-  QQuaternion r = QQuaternion::slerp(qa, qb, s.alpha).normalized();
-  out[0] = r.x();
-  out[1] = r.y();
-  out[2] = r.z();
-  out[3] = r.scalar();
+
+  const std::size_t k = s.lower;
+  const float t = s.alpha;
+  if(cubic)
+  {
+    const float td = times[k + 1] - times[k];
+    const float t2 = t * t;
+    const float t3 = t2 * t;
+    const float h00 = 2.f * t3 - 3.f * t2 + 1.f;
+    const float h10 = t3 - 2.f * t2 + t;
+    const float h01 = -2.f * t3 + 3.f * t2;
+    const float h11 = t3 - t2;
+    const float* v0 = value(k);
+    const float* b0 = v0 + stride;
+    const float* v1 = value(k + 1);
+    const float* a1 = v1 - stride;
+    for(std::size_t i = 0; i < stride; ++i)
+      out[i] = h00 * v0[i] + td * h10 * b0[i] + h01 * v1[i] + td * h11 * a1[i];
+    if(rotation)
+    {
+      const QQuaternion q
+          = QQuaternion(out[3], out[0], out[1], out[2]).normalized();
+      out[0] = q.x();
+      out[1] = q.y();
+      out[2] = q.z();
+      out[3] = q.scalar();
+    }
+    return;
+  }
+
+  const float* a = value(k);
+  const float* b = value(k + 1);
+  if(rotation)
+  {
+    // glTF convention: (x, y, z, w). QQuaternion uses (scalar, x, y, z).
+    const QQuaternion qa(a[3], a[0], a[1], a[2]);
+    const QQuaternion qb(b[3], b[0], b[1], b[2]);
+    const QQuaternion r = QQuaternion::slerp(qa, qb, t).normalized();
+    out[0] = r.x();
+    out[1] = r.y();
+    out[2] = r.z();
+    out[3] = r.scalar();
+    return;
+  }
+  for(std::size_t i = 0; i < stride; ++i)
+    out[i] = a[i] + (b[i] - a[i]) * t;
 }
 
 // Walk the raw scene tree and emit a cloned subtree with overrides
@@ -287,25 +313,23 @@ void AnimationPlayer::operator()()
     {
       if(!channel.times || !channel.values)
         continue;
-      const auto& times = *channel.times;
-      const auto& values = *channel.values;
-      auto seg = findSegment(times, clip_t);
+      auto seg = findSegment(*channel.times, clip_t);
 
       auto& ov = overrides[channel.target_node_id];
       switch(channel.target_path)
       {
         case ossia::animation_target::translation: {
-          sampleLinear(values, 3, seg, ov.translation);
+          sampleChannel(channel, 3, false, seg, ov.translation);
           ov.has_translation = true;
           break;
         }
         case ossia::animation_target::rotation: {
-          sampleSlerp(values, seg, ov.rotation);
+          sampleChannel(channel, 4, true, seg, ov.rotation);
           ov.has_rotation = true;
           break;
         }
         case ossia::animation_target::scale: {
-          sampleLinear(values, 3, seg, ov.scale);
+          sampleChannel(channel, 3, false, seg, ov.scale);
           ov.has_scale = true;
           break;
         }

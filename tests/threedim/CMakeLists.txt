@@ -456,3 +456,21 @@ score_add_test(test_threedim_text_to_mesh_triangulation_fixF
   LIBS ${QT_PREFIX}::Gui)
 threedim_test_includes(test_threedim_text_to_mesh_triangulation_fixF)
 
+# AnimationPlayer samples TRS channels per glTF 2.0: the anim_box.gltf scenario,
+# STEP and CUBICSPLINE interpolation (agent G, N83). Pure state, no GPU.
+score_add_test(test_threedim_animation_interpolation_fixg
+  SOURCES AnimationInterpolationFixG.cpp "${THREEDIM_DIR}/AnimationPlayer.cpp"
+  LIBS ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_animation_interpolation_fixg)
+
+# A glTF animation is imported and drives AnimationPlayer (agent G, N83).
+score_plugin_hidden_sources(_gltf_anim_fixg_hidden
+    "${THREEDIM_DIR}/GltfParser.cpp"
+    "${THREEDIM_DIR}/AnimationPlayer.cpp")
+score_add_test(test_threedim_gltf_animation_fixg
+  SOURCES GltfAnimationFixG.cpp ${_gltf_anim_fixg_hidden}
+  PLUGINS score_plugin_threedim score_plugin_gfx score_plugin_avnd
+  LIBS fastgltf ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_gltf_animation_fixg)
+target_compile_definitions(test_threedim_gltf_animation_fixg PRIVATE
+  THREEDIM_TEST_DIR="${CMAKE_CURRENT_SOURCE_DIR}")

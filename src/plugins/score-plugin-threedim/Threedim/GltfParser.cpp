@@ -1043,6 +1043,10 @@ void GltfParser::rebuild_scene()
       skel_list->push_back(ossia::skeleton_component_ptr(s));
     state->skeletons = std::move(skel_list);
   }
+  if(!m_animations.empty())
+    state->animations
+        = std::make_shared<const std::vector<ossia::animation_component_ptr>>(
+            m_animations);
   state->version = 1;
   state->dirty_index = 1;
 
@@ -1217,6 +1221,109 @@ std::function<void(GltfParser&)> GltfParser::ins::gltf_t::process(file_type tv)
     skeletons.push_back(std::move(skel));
   }
 
+  // Animations: one animation_component per glTF animation. A channel targets
+  // the scene_node emitted for its glTF node (stable id = node index + 1).
+  // Keyframe values are kept as the file stores them, including the
+  // in-tangent / value / out-tangent triplets of a CUBICSPLINE sampler.
+  std::vector<ossia::animation_component_ptr> animations;
+  animations.reserve(asset.animations.size());
+  for(const auto& anim : asset.animations)
+  {
+    auto comp = std::make_shared<ossia::animation_component>();
+    for(const auto& ch : anim.channels)
+    {
+      if(!ch.nodeIndex.has_value() || *ch.nodeIndex >= asset.nodes.size()
+         || ch.samplerIndex >= anim.samplers.size())
+        continue;
+      const auto& smp = anim.samplers[ch.samplerIndex];
+      if(smp.inputAccessor >= asset.accessors.size()
+         || smp.outputAccessor >= asset.accessors.size())
+        continue;
+
+      ossia::animation_channel c;
+      c.target_node_id = std::uint64_t(*ch.nodeIndex) + 1;
+      std::size_t components = 0;
+      switch(ch.path)
+      {
+        case fastgltf::AnimationPath::Translation:
+          c.target_path = ossia::animation_target::translation;
+          components = 3;
+          break;
+        case fastgltf::AnimationPath::Rotation:
+          c.target_path = ossia::animation_target::rotation;
+          components = 4;
+          break;
+        case fastgltf::AnimationPath::Scale:
+          c.target_path = ossia::animation_target::scale;
+          components = 3;
+          break;
+        case fastgltf::AnimationPath::Weights:
+          c.target_path = ossia::animation_target::weights;
+          components = 1;
+          break;
+        default:
+          continue;
+      }
+      switch(smp.interpolation)
+      {
+        case fastgltf::AnimationInterpolation::Step:
+          c.interpolation = ossia::animation_interpolation::step;
+          break;
+        case fastgltf::AnimationInterpolation::CubicSpline:
+          c.interpolation = ossia::animation_interpolation::cubic_spline;
+          break;
+        default:
+          c.interpolation = ossia::animation_interpolation::linear;
+          break;
+      }
+
+      const auto& inAcc = asset.accessors[smp.inputAccessor];
+      const auto& outAcc = asset.accessors[smp.outputAccessor];
+      if(!accessor_within_bounds(asset, inAcc, 1)
+         || !accessor_within_bounds(asset, outAcc, components))
+        continue;
+
+      auto times = std::make_shared<std::vector<float>>();
+      times->reserve(inAcc.count);
+      fastgltf::iterateAccessor<float>(
+          asset, inAcc, [&](float t) { times->push_back(t); });
+
+      auto values = std::make_shared<std::vector<float>>();
+      values->reserve(outAcc.count * components);
+      switch(components)
+      {
+        case 1:
+          fastgltf::iterateAccessor<float>(
+              asset, outAcc, [&](float v) { values->push_back(v); });
+          break;
+        case 3:
+          fastgltf::iterateAccessor<fastgltf::math::fvec3>(
+              asset, outAcc, [&](fastgltf::math::fvec3 v) {
+            values->insert(values->end(), {v[0], v[1], v[2]});
+          });
+          break;
+        case 4:
+          fastgltf::iterateAccessor<fastgltf::math::fvec4>(
+              asset, outAcc, [&](fastgltf::math::fvec4 v) {
+            values->insert(values->end(), {v[0], v[1], v[2], v[3]});
+          });
+          break;
+      }
+      if(times->empty() || values->empty())
+        continue;
+
+      comp->duration = std::max(comp->duration, times->back());
+      c.times = std::move(times);
+      c.values = std::move(values);
+      comp->channels.push_back(std::move(c));
+    }
+    if(!comp->channels.empty())
+    {
+      comp->dirty_index = 1;
+      animations.push_back(std::move(comp));
+    }
+  }
+
   // KHR_materials_variants: asset-scope variant name list. Carried
   // alongside m_materials/skeletons into the parser so rebuild_scene
   // can copy it into scene_state. Capture the asset's materialVariants
@@ -1227,10 +1334,12 @@ std::function<void(GltfParser&)> GltfParser::ins::gltf_t::process(file_type tv)
   return [scene_nodes = std::move(scene_nodes),
           materials = std::move(materials),
           skeletons = std::move(skeletons),
+          animations = std::move(animations),
           variant_names = std::move(variant_names)](GltfParser& o) mutable {
     std::swap(o.m_scene_nodes, scene_nodes);
     std::swap(o.m_materials, materials);
     std::swap(o.m_skeletons, skeletons);
+    std::swap(o.m_animations, animations);
     std::swap(o.m_variant_names, variant_names);
     o.rebuild_scene();
   };
