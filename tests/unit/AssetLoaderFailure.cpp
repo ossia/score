@@ -668,3 +668,25 @@ TEST_CASE(
   }
 }
 #endif
+
+TEST_CASE(
+    "a loaded asset still publishes its scene after a release",
+    "[threedim][asset-loader][release]")
+{
+  Threedim::AssetLoader loader;
+  loader.m_parsed_state = std::make_shared<ossia::scene_state>();
+  loader.rebuild_format_state();
+
+  loader();
+  REQUIRE(loader.outputs.scene_out.scene.state != nullptr);
+
+  REQUIRE_FALSE(loader.raw_transform_slot.valid());
+  alignas(std::max_align_t) static unsigned char storage[64]{};
+  loader.release(*reinterpret_cast<score::gfx::RenderList*>(&storage[0]));
+
+  loader.inputs.position.value.x = 2.f;
+  loader();
+  CHECK(loader.outputs.scene_out.scene.state != nullptr);
+  loader();
+  CHECK(loader.outputs.scene_out.scene.state != nullptr);
+}

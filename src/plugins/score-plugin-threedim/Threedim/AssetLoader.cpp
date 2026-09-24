@@ -330,7 +330,9 @@ void AssetLoader::operator()()
     return;
   }
 
-  if(Threedim::transformChanged(inputs, m_cached_xform))
+  if(!m_overridden_state)
+    rebuild_format_state();
+  else if(Threedim::transformChanged(inputs, m_cached_xform))
     rebuild_wrapped_state();
 
   outputs.scene_out.scene.state = m_wrapped_state;
