@@ -900,7 +900,12 @@ void SimpleRenderedISFNode::update(
     RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge)
 {
   n.standardUBO.passIndex = 0;
-  n.standardUBO.frameIndex++;
+  if(m_frameIndexFrame != renderer.frame)
+  {
+    if(m_frameIndexFrame >= 0 || n.standardUBO.frameIndex > 0)
+      n.standardUBO.frameIndex++;
+    m_frameIndexFrame = renderer.frame;
+  }
   auto sz = renderer.renderSize(edge);
   n.standardUBO.renderSize[0] = sz.width();
   n.standardUBO.renderSize[1] = sz.height();

@@ -67,7 +67,7 @@ PassOutput RenderedISFNode::initPassSampler(
 
   const QSize texSize = (pass.width_expression.empty() && pass.height_expression.empty())
                             ? mainTexSize
-                            : n.computeTextureSize(pass, mainTexSize);
+                            : n.computeTextureSize(pass, mainTexSize, m_inputSamplers);
 
   // Upload a zero clear matching the texture format. Qt can convert, so we
   // pick a plausible source: float32 for floating-point formats, uint8 otherwise.
@@ -771,7 +771,12 @@ void RenderedISFNode::update(
 
   // passIndex is set per-pass in the processUBO update loop below, so it
   // needs no value here.
-  n.standardUBO.frameIndex++;
+  if(m_frameIndexFrame != renderer.frame)
+  {
+    if(m_frameIndexFrame >= 0 || n.standardUBO.frameIndex > 0)
+      n.standardUBO.frameIndex++;
+    m_frameIndexFrame = renderer.frame;
+  }
   std::copy_n(renderer.currentDate, 4, n.standardUBO.date);
 
   // Update audio textures

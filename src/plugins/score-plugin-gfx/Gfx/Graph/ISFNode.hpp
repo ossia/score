@@ -8,6 +8,7 @@
 #include <score_plugin_gfx_export.h>
 
 #include <list>
+#include <span>
 namespace score::gfx
 {
 struct SinglePassISFNode;
@@ -25,7 +26,9 @@ public:
   ISFNode(const isf::descriptor& desc, const QString& comp);
 
   virtual ~ISFNode();
-  QSize computeTextureSize(const isf::pass& pass, QSize origSize);
+  QSize computeTextureSize(
+      const isf::pass& pass, QSize origSize,
+      std::span<const Sampler> inputSamplers = {});
 
   score::gfx::NodeRenderer* createRenderer(RenderList& r) const noexcept override;
 

@@ -367,7 +367,12 @@ void SimpleRenderedVSANode::update(
   static_cast<DummyMesh*>(m_mesh)->vertexCount = count;
 
   n.standardUBO.passIndex = 0;
-  n.standardUBO.frameIndex++;
+  if(m_frameIndexFrame != renderer.frame)
+  {
+    if(m_frameIndexFrame >= 0 || n.standardUBO.frameIndex > 0)
+      n.standardUBO.frameIndex++;
+    m_frameIndexFrame = renderer.frame;
+  }
   std::copy_n(renderer.currentDate, 4, n.standardUBO.date);
 
   auto sz = renderer.renderSize(edge);

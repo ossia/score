@@ -63,5 +63,6 @@ private:
   std::optional<AudioTextureUpload> m_audioTex;
 
   int m_prevFormat{};
+  int64_t m_frameIndexFrame{-1};
 };
 }

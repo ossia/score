@@ -1479,3 +1479,8 @@ score_add_csf_test(sampled_inputs_fixd GfxCsfSampledInputsFixD.cpp)
 # vertex input reported at warning level (N58).
 score_add_gfx_test(raw_raster_fixk GfxRawRasterFixK.cpp)
 
+# CSF attribute naming, COPY_FROM next to AUXILIARY, unblended storage-image
+# outlet, read_write on a static CPU mesh, FRAMEINDEX origin (agent C: N55,
+# N56, N57, N59, N60, N62).
+score_add_gfx_test(csf_isf_fixc GfxCsfIsfFixC.cpp)
+

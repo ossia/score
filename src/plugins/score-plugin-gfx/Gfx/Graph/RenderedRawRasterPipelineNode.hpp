@@ -238,6 +238,7 @@ private:
   TextureRenderTarget m_mrtRenderTarget;
   bool m_hasMRT{false};
   bool m_mrtRenderedThisFrame{false};
+  int64_t m_frameIndexFrame{-1};
 
   // EXECUTION_MODEL (top-level, RAW_RASTER only).
   //   Single   default, one invocation, no extra loop.

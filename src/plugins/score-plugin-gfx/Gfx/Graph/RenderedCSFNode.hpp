@@ -2,6 +2,7 @@
 #include <Gfx/Graph/GPUBufferScatter.hpp>
 #include <Gfx/Graph/ISFNode.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
+#include <Gfx/Graph/RenderedISFUtils.hpp>
 
 #include <ossia/detail/small_flat_map.hpp>
 #include <ossia/detail/small_vector.hpp>
@@ -40,12 +41,15 @@ struct RenderedCSFNode : score::gfx::NodeRenderer
 
   void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& edge) override;
 
+  std::vector<Sampler> allSamplers() const noexcept;
+
 private:
   void initComputeSRBAndPasses(RenderList& renderer, QRhiResourceUpdateBatch& res);
   void createComputePipeline(RenderList& renderer);
   void createGraphicsPass(const TextureRenderTarget& rt, RenderList& renderer, Edge& edge, QRhiResourceUpdateBatch& res);
   void updateDescriptorSet(RenderList& renderer, Edge& edge);
-  std::vector<Sampler> allSamplers() const noexcept;
+  void bindInputSampler(std::size_t samplerIndex, QRhiTexture* tex);
+  void prepareSelfFeedbackInputs(RenderList& renderer, QRhiResourceUpdateBatch& res);
 
   // Expression evaluation helper
   void registerCommonExpressionVariables(
@@ -126,6 +130,17 @@ private:
   ISFNode& n;
 
   std::vector<Sampler> m_inputSamplers;
+  std::vector<Sampler> m_audioSamplers;
+
+  struct SelfFeedbackInput
+  {
+    std::size_t sampler{};
+    std::size_t storage{};
+    QRhiTexture* snapshot{};
+    bool filled{false};
+  };
+  std::vector<SelfFeedbackInput> m_selfFeedbackInputs;
+  AudioTextureUpload m_audioTex;
 
   // Storage buffers for compute shaders
   struct StorageBuffer
@@ -268,6 +283,16 @@ private:
     int prev_upstream_attr_count{-1};
     int prev_upstream_aux_count{-1};
 
+    struct OutputSlots
+    {
+      std::vector<int> declared;
+      std::vector<std::pair<int, int>> forwarded;
+      std::vector<int> auxiliary;
+      std::vector<int> storage;
+      int forwarded_aux_begin{0};
+      int forwarded_aux_end{0};
+    } outputSlots;
+
     QRhiBuffer* indirectBuffer{};       // StorageBuffer (+ IndirectBuffer on Qt 6.12+)
     int64_t indirectBufferSize{};
     int indirectCountResult{0};         // Resolved command count
@@ -322,6 +347,8 @@ private:
   // before each runInitialPasses and would reset such a bool between edges.
   // Mirrors SimpleRenderedISFNode::m_lastMRTRenderFrame. Reset in release().
   int64_t m_lastRunFrame{-1};
+
+  int64_t m_frameIndexFrame{-1};
 };
 
 }

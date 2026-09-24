@@ -591,7 +591,8 @@ void replaceTexture(
 // ossia::geometry::attribute in three stages:
 //
 //   1. resolve `semantic_key`, defaulting to `name`, through name_to_semantic
-//      and look that semantic up on the geometry
+//      and look that semantic up on the geometry; a key that is no known
+//      semantic (other than "custom") names the custom attribute to find
 //   2. fall back to a custom-attribute lookup by `name`
 //   3. match on display_name, so { NAME: "position", SEMANTIC: "custom" }
 //      still binds to the real position attribute when only that exists
@@ -605,6 +606,8 @@ const ossia::geometry::attribute* findGeometryAttribute(
   const ossia::geometry::attribute* match = nullptr;
   if(sem != ossia::attribute_semantic::custom)
     match = geom.find(sem);
+  else if(semantic_key != name && semantic_key != "custom")
+    match = geom.find(semantic_key);
   if(!match)
     match = geom.find(name);
   if(!match)

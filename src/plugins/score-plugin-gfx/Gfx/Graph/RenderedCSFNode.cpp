@@ -32,6 +32,14 @@ namespace score::gfx
 
 namespace
 {
+std::string_view customAttributeName(
+    const isf::geometry_input::attribute_request& req) noexcept
+{
+  if(req.semantic.empty() || req.semantic == "custom")
+    return req.name;
+  return req.semantic;
+}
+
 // Publish (or refresh) the GPU-written draw-count buffer on an output
 // geometry as the "_indirect_draw_count" auxiliary — a buffers[] entry
 // holding the gpu_buffer plus an auxiliary_buffer pointing at it. Idempotent:
@@ -273,9 +281,25 @@ static void adoptIntoSlot(
   slot.owned = false;
 }
 
+void RenderedCSFNode::bindInputSampler(std::size_t samplerIndex, QRhiTexture* t)
+{
+  if(samplerIndex >= m_inputSamplers.size())
+    return;
+  auto& sampl = m_inputSamplers[samplerIndex];
+  if(sampl.texture == t)
+    return;
+  sampl.texture = t;
+  for(auto& [e, cp] : m_computePasses)
+    if(cp.srb)
+      score::gfx::replaceTexture(*cp.srb, sampl.sampler, t);
+  for(auto& [e, gp] : m_graphicsPasses)
+    if(gp.pipeline.srb)
+      score::gfx::replaceTexture(*gp.pipeline.srb, sampl.sampler, t);
+}
+
 void RenderedCSFNode::updateInputTexture(const Port& input, QRhiTexture* tex, QRhiTexture* depthTex)
 {
-  int sampler_idx = 0;
+  std::size_t sampler_idx = 0;
   for(auto* p : node.input)
   {
     if(p == &input)
@@ -288,29 +312,156 @@ void RenderedCSFNode::updateInputTexture(const Port& input, QRhiTexture* tex, QR
     }
   }
 
-  auto replaceSampler = [&](Sampler& sampl, QRhiTexture* t)
+  if(sampler_idx >= m_inputSamplers.size())
+    return;
+
+  auto own = m_storageImages.end();
+  if(tex)
   {
-    if(sampl.texture != t)
+    own = std::find_if(
+        m_storageImages.begin(), m_storageImages.end(), [tex](const StorageImage& si) {
+      return si.access.contains("write") && (si.texture == tex || si.read_texture == tex);
+    });
+  }
+
+  auto fb = std::find_if(
+      m_selfFeedbackInputs.begin(), m_selfFeedbackInputs.end(),
+      [sampler_idx](const SelfFeedbackInput& f) { return f.sampler == sampler_idx; });
+  if(own != m_storageImages.end())
+  {
+    const std::size_t storage_idx = std::distance(m_storageImages.begin(), own);
+    if(fb == m_selfFeedbackInputs.end())
     {
-      sampl.texture = t;
-      for(auto& [e, cp] : m_computePasses)
-        if(cp.srb)
-          score::gfx::replaceTexture(*cp.srb, sampl.sampler, t);
-      for(auto& [e, gp] : m_graphicsPasses)
-        if(gp.pipeline.srb)
-          score::gfx::replaceTexture(*gp.pipeline.srb, sampl.sampler, t);
+      m_selfFeedbackInputs.push_back({.sampler = sampler_idx, .storage = storage_idx});
+      return;
     }
-  };
-
-  if(sampler_idx < (int)m_inputSamplers.size())
+    fb->storage = storage_idx;
+    if(fb->snapshot && fb->filled)
+      bindInputSampler(sampler_idx, fb->snapshot);
+    return;
+  }
+  else if(fb != m_selfFeedbackInputs.end())
   {
-    replaceSampler(m_inputSamplers[sampler_idx], tex);
+    if(fb->snapshot)
+      fb->snapshot->deleteLater();
+    m_selfFeedbackInputs.erase(fb);
+  }
 
-    if(depthTex
-       && (input.flags & Flag::SamplableDepth) == Flag::SamplableDepth
-       && sampler_idx + 1 < (int)m_inputSamplers.size())
+  bindInputSampler(sampler_idx, tex);
+
+  if(depthTex
+     && (input.flags & Flag::SamplableDepth) == Flag::SamplableDepth
+     && sampler_idx + 1 < m_inputSamplers.size())
+  {
+    bindInputSampler(sampler_idx + 1, depthTex);
+  }
+}
+
+void RenderedCSFNode::prepareSelfFeedbackInputs(
+    RenderList& renderer, QRhiResourceUpdateBatch& res)
+{
+  std::size_t sampler_idx = 0;
+  for(auto* p : node.input)
+  {
+    if(p->type != Types::Image)
+      continue;
+    if((p->flags & Flag::GrabsFromSource) == Flag::GrabsFromSource)
     {
-      replaceSampler(m_inputSamplers[sampler_idx + 1], depthTex);
+      for(auto* e : p->edges)
+      {
+        if(!e->source || e->source->node != &node)
+          continue;
+        QRhiTexture* t = textureForOutput(*e->source);
+        auto own = std::find_if(
+            m_storageImages.begin(), m_storageImages.end(), [t](const StorageImage& si) {
+          return t && si.access.contains("write")
+                 && (si.texture == t || si.read_texture == t);
+        });
+        if(own == m_storageImages.end())
+          continue;
+        const std::size_t storage_idx = std::distance(m_storageImages.begin(), own);
+        auto fb = std::find_if(
+            m_selfFeedbackInputs.begin(), m_selfFeedbackInputs.end(),
+            [sampler_idx](const SelfFeedbackInput& f) { return f.sampler == sampler_idx; });
+        if(fb == m_selfFeedbackInputs.end())
+          m_selfFeedbackInputs.push_back({.sampler = sampler_idx, .storage = storage_idx});
+        else
+          fb->storage = storage_idx;
+      }
+    }
+    sampler_idx++;
+    if((p->flags & Flag::SamplableDepth) == Flag::SamplableDepth)
+      sampler_idx++;
+  }
+
+  QRhi& rhi = *renderer.state.rhi;
+  for(auto& fb : m_selfFeedbackInputs)
+  {
+    if(fb.storage >= m_storageImages.size())
+      continue;
+    const auto& si = m_storageImages[fb.storage];
+    QRhiTexture* src = (si.persistent && si.read_texture) ? si.read_texture : si.texture;
+    if(!src)
+      continue;
+
+    constexpr auto kindMask = QRhiTexture::ThreeDimensional | QRhiTexture::CubeMap
+                              | QRhiTexture::TextureArray;
+    const auto kind = src->flags() & kindMask;
+    if(!fb.snapshot || fb.snapshot->format() != src->format()
+       || fb.snapshot->pixelSize() != src->pixelSize()
+       || fb.snapshot->depth() != src->depth()
+       || fb.snapshot->arraySize() != src->arraySize()
+       || (fb.snapshot->flags() & kindMask) != kind)
+    {
+      if(fb.snapshot)
+        fb.snapshot->deleteLater();
+      fb.snapshot = nullptr;
+      fb.filled = false;
+      QRhiTexture* t{};
+      if(kind.testFlag(QRhiTexture::ThreeDimensional))
+        t = rhi.newTexture(
+            src->format(), src->pixelSize().width(), src->pixelSize().height(),
+            src->depth(), 1,
+            QRhiTexture::ThreeDimensional | QRhiTexture::UsedWithLoadStore);
+      else if(kind.testFlag(QRhiTexture::TextureArray))
+        t = rhi.newTextureArray(
+            src->format(), src->arraySize(), src->pixelSize(), 1,
+            QRhiTexture::UsedWithLoadStore);
+      else
+        t = rhi.newTexture(
+            src->format(), src->pixelSize(), 1, kind | QRhiTexture::UsedWithLoadStore);
+      t->setName("RenderedCSFNode::selfFeedbackSnapshot");
+      if(t->create())
+        fb.snapshot = t;
+      else
+        delete t;
+    }
+
+    if(fb.snapshot && fb.filled)
+    {
+      const int layers = kind.testFlag(QRhiTexture::ThreeDimensional) ? src->depth()
+                         : kind.testFlag(QRhiTexture::CubeMap)       ? 6
+                         : kind.testFlag(QRhiTexture::TextureArray)  ? src->arraySize()
+                                                                     : 1;
+      for(int layer = 0; layer < std::max(1, layers); layer++)
+      {
+        QRhiTextureCopyDescription desc;
+        desc.setSourceLayer(layer);
+        desc.setDestinationLayer(layer);
+        res.copyTexture(fb.snapshot, src, desc);
+      }
+      bindInputSampler(fb.sampler, fb.snapshot);
+    }
+    else
+    {
+      QRhiTexture* placeholder = &renderer.emptyTexture();
+      if(kind.testFlag(QRhiTexture::ThreeDimensional))
+        placeholder = &renderer.emptyTexture3D();
+      else if(kind.testFlag(QRhiTexture::CubeMap))
+        placeholder = &renderer.emptyTextureCube();
+      else if(kind.testFlag(QRhiTexture::TextureArray))
+        placeholder = &renderer.emptyTextureArray();
+      bindInputSampler(fb.sampler, placeholder);
     }
   }
 }
@@ -1517,7 +1668,16 @@ void RenderedCSFNode::updateGeometryBindings(
           // and the upstream data hasn't changed (same CPU pointer as last upload).
           // This avoids expensive per-frame scatter+upload for static geometry.
           if(ssbo.buffer && ssbo.owned && ssbo.size >= needed && ssbo.lastUploadSrc == src)
-            continue;
+          {
+            if(req.access != "read_write" || binding.is_feedback_receiver)
+              continue;
+            if(ssbo.scatterStaging && ssbo.scatterOp.srb
+               && ssbo.scatterParams.output == ssbo.buffer)
+            {
+              ssbo.scatterPending = true;
+              continue;
+            }
+          }
 
           // Create or resize the SSBO
           if(!ssbo.buffer || ssbo.size < needed || !ssbo.owned)
@@ -1669,8 +1829,12 @@ void RenderedCSFNode::updateGeometryBindings(
             aux.owned = true;
           }
 
-          const int64_t requiredSize = score::gfx::calculateStorageBufferSize(
-              aux.layout, 0, this->n.descriptor());
+          const int64_t requiredSize = std::max<int64_t>(
+              aux.is_uniform ? score::gfx::calculateUniformBlockSize(
+                                   aux.layout, 0, this->n.descriptor())
+                             : score::gfx::calculateStorageBufferSize(
+                                   aux.layout, 1, this->n.descriptor()),
+              aux.is_uniform ? 256 : 16);
           if(!aux.buffer || aux.size < requiredSize)
           {
             if(aux.owned && aux.buffer)
@@ -1893,7 +2057,7 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
           }
           else
           {
-            if(req.name == in_attr.name) { already_declared = true; break; }
+            if(customAttributeName(req) == in_attr.name) { already_declared = true; break; }
           }
         }
         if(!already_declared)
@@ -1933,6 +2097,10 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
       out_geo.cull_mode = ossia::geometry::none;
       out_geo.front_face = ossia::geometry::counter_clockwise;
 
+      auto& slots = binding.outputSlots;
+      slots = {};
+      slots.declared.assign(geo_input->attributes.size(), -1);
+
       if(binding_upstream)
       {
         out_geo.bounds = binding_upstream->bounds;
@@ -1959,6 +2127,7 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
           continue;
 
         const int buf_index = (int)out_geo.buffers.size();
+        slots.declared[attr_idx] = buf_index;
         // The buffer underneath is sized at std430 stride (16 bytes per
         // vec3 element); the binding stride must match, otherwise a
         // downstream raw-raster vertex shader reads these attributes with a
@@ -1984,7 +2153,7 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
         const auto sem = ossia::name_to_semantic(req.semantic);
         attr.semantic = sem;
         if(sem == ossia::attribute_semantic::custom)
-          attr.name = req.semantic; // Use SEMANTIC as matching name, not GLSL NAME
+          attr.name = customAttributeName(req);
 
         if(req.type == "vec4") attr.format = ossia::geometry::attribute::float4;
         else if(req.type == "vec3") attr.format = ossia::geometry::attribute::float3;
@@ -2009,8 +2178,9 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
       if(binding_upstream)
       {
         const auto& in_mesh = *binding_upstream;
-        for(const auto& in_attr : in_mesh.attributes)
+        for(int in_attr_idx = 0; in_attr_idx < (int)in_mesh.attributes.size(); in_attr_idx++)
         {
+          const auto& in_attr = in_mesh.attributes[in_attr_idx];
           bool already_present = false;
           for(const auto& out_attr : out_geo.attributes)
           {
@@ -2035,6 +2205,7 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
             continue;
 
           const int buf_index = (int)out_geo.buffers.size();
+          slots.forwarded.emplace_back(buf_index, in_attr_idx);
           out_geo.buffers.push_back(in_mesh.buffers[in_inp.buffer]);
 
           ossia::geometry::binding bind;
@@ -2059,6 +2230,7 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
       // Attach geometry-level auxiliary SSBOs
       for(const auto& aux : binding.auxiliary_ssbos)
       {
+        slots.auxiliary.push_back(aux.buffer ? (int)out_geo.buffers.size() : -1);
         if(aux.buffer)
         {
           const int aux_buf_idx = (int)out_geo.buffers.size();
@@ -2075,6 +2247,7 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
       // Attach standalone storage buffers as auxiliary
       for(const auto& sb : m_storageBuffers)
       {
+        slots.storage.push_back(sb.buffer ? (int)out_geo.buffers.size() : -1);
         if(sb.buffer)
         {
           const int aux_buf_idx = (int)out_geo.buffers.size();
@@ -2090,6 +2263,8 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
 
       // Forward upstream auxiliary buffers from this binding's own upstream only.
       // (Single-geometry case: implicit forwarding for pass-through nodes.)
+      slots.forwarded_aux_begin = (int)out_geo.buffers.size();
+      slots.forwarded_aux_end = slots.forwarded_aux_begin;
       if(binding_upstream)
       {
         for(const auto& in_aux : binding_upstream->auxiliary)
@@ -2109,6 +2284,7 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
                 .byte_offset = in_aux.byte_offset, .byte_size = in_aux.byte_size});
           }
         }
+        slots.forwarded_aux_end = (int)out_geo.buffers.size();
 
         // First: publish THIS CSF's own writable storage images so they
         // ride the geometry cable downstream and ExtractTexture / flat
@@ -2236,7 +2412,8 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
           const auto sem = ossia::name_to_semantic(attr_req.semantic);
           if(sem != ossia::attribute_semantic::custom && out_attr.semantic == sem)
           { already_present = true; break; }
-          if(sem == ossia::attribute_semantic::custom && out_attr.name == attr_req.name)
+          if(sem == ossia::attribute_semantic::custom
+             && out_attr.name == customAttributeName(attr_req))
           { already_present = true; break; }
         }
         if(already_present)
@@ -2376,8 +2553,9 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
             // Override semantic from the request
             auto sem = ossia::name_to_semantic(attr_req.semantic);
             attr.semantic = sem;
-            // Always set the name so it can be matched by the shader variable name
-            attr.name = attr_req.name;
+            attr.name = sem == ossia::attribute_semantic::custom
+                            ? std::string(customAttributeName(attr_req))
+                            : attr_req.name;
 
             // Override format from the request type
             if(attr_req.type == "float") attr.format = ossia::geometry::attribute::float1;
@@ -2503,66 +2681,45 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
         }
       }
 
-      // Update declared attribute buffer handles
-      int buf_idx = 0;
-      for(int attr_idx = 0; attr_idx < (int)geo_input->attributes.size(); attr_idx++)
-      {
-        if(attr_idx >= (int)binding.attribute_ssbos.size())
-          break;
-        auto& ssbo = binding.attribute_ssbos[attr_idx];
-        if(!ssbo.buffer)
+      const auto& slots = binding.outputSlots;
+      const auto refreshGpuSlot = [&](int slot, QRhiBuffer* handle, int64_t size) {
+        if(!handle || slot < 0 || slot >= (int)out_geo.buffers.size())
+          return;
+        auto& buf = out_geo.buffers[slot];
+        auto* gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&buf.data);
+        if(gpu && (gpu->handle != handle || gpu->byte_size != size))
         {
-          // The attribute still owns its output slot: skipping without
-          // advancing writes every later attribute into the wrong buffer.
-          buf_idx++;
-          continue;
+          gpu->handle = handle;
+          gpu->byte_size = size;
+          buf.dirty = true;
+          any_handle_changed = true;
         }
+      };
 
-        if(buf_idx < (int)out_geo.buffers.size())
-        {
-          auto& buf = out_geo.buffers[buf_idx];
-          auto* gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&buf.data);
-          if(gpu && (gpu->handle != ssbo.buffer || gpu->byte_size != ssbo.size))
-          {
-            gpu->handle = ssbo.buffer;
-            gpu->byte_size = ssbo.size;
-            buf.dirty = true;
-            any_handle_changed = true;
-          }
-        }
-        buf_idx++;
+      for(int attr_idx = 0; attr_idx < (int)slots.declared.size()
+                            && attr_idx < (int)binding.attribute_ssbos.size();
+          attr_idx++)
+      {
+        const auto& ssbo = binding.attribute_ssbos[attr_idx];
+        refreshGpuSlot(slots.declared[attr_idx], ssbo.buffer, ssbo.size);
       }
 
-      // Update pass-through attribute buffer handles
       if(binding_upstream)
       {
         const auto& in_mesh = *binding_upstream;
-        for(const auto& in_attr : in_mesh.attributes)
+        for(const auto& [slot, in_attr_idx] : slots.forwarded)
         {
-          bool already_declared = false;
-          for(const auto& req : geo_input->attributes)
-          {
-            const auto sem = ossia::name_to_semantic(req.semantic);
-            if(in_attr.semantic != ossia::attribute_semantic::custom)
-            {
-              if(sem == in_attr.semantic) { already_declared = true; break; }
-            }
-            else
-            {
-              if(req.name == in_attr.name) { already_declared = true; break; }
-            }
-          }
-          if(already_declared)
+          if(in_attr_idx >= (int)in_mesh.attributes.size()
+             || slot >= (int)out_geo.buffers.size())
             continue;
-
+          const auto& in_attr = in_mesh.attributes[in_attr_idx];
           const int in_binding_idx = in_attr.binding;
           if(in_binding_idx >= 0 && in_binding_idx < (int)in_mesh.input.size()
              && in_mesh.input[in_binding_idx].buffer >= 0
-             && in_mesh.input[in_binding_idx].buffer < (int)in_mesh.buffers.size()
-             && buf_idx < (int)out_geo.buffers.size())
+             && in_mesh.input[in_binding_idx].buffer < (int)in_mesh.buffers.size())
           {
             auto& src = in_mesh.buffers[in_mesh.input[in_binding_idx].buffer];
-            auto& dst = out_geo.buffers[buf_idx];
+            auto& dst = out_geo.buffers[slot];
             if(auto* src_gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&src.data))
             {
               auto* dst_gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&dst.data);
@@ -2576,50 +2733,25 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
             }
             else
             {
-              // CPU buffer — just copy
               dst = src;
               dst.dirty = true;
               any_handle_changed = true;
             }
           }
-          buf_idx++;
         }
       }
 
-      // Update auxiliary buffer handles
-      int aux_buf_start = buf_idx;
-      for(const auto& aux : binding.auxiliary_ssbos)
+      for(std::size_t i = 0;
+          i < slots.auxiliary.size() && i < binding.auxiliary_ssbos.size(); i++)
       {
-        if(aux.buffer && buf_idx < (int)out_geo.buffers.size())
-        {
-          auto& buf = out_geo.buffers[buf_idx];
-          auto* gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&buf.data);
-          if(gpu && (gpu->handle != aux.buffer || gpu->byte_size != aux.size))
-          {
-            gpu->handle = aux.buffer;
-            gpu->byte_size = aux.size;
-            buf.dirty = true;
-            any_handle_changed = true;
-          }
-          buf_idx++;
-        }
+        const auto& aux = binding.auxiliary_ssbos[i];
+        refreshGpuSlot(slots.auxiliary[i], aux.buffer, aux.size);
       }
 
-      for(const auto& sb : m_storageBuffers)
+      for(std::size_t i = 0; i < slots.storage.size() && i < m_storageBuffers.size(); i++)
       {
-        if(sb.buffer && buf_idx < (int)out_geo.buffers.size())
-        {
-          auto& buf = out_geo.buffers[buf_idx];
-          auto* gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&buf.data);
-          if(gpu && (gpu->handle != sb.buffer || gpu->byte_size != sb.size))
-          {
-            gpu->handle = sb.buffer;
-            gpu->byte_size = sb.size;
-            buf.dirty = true;
-            any_handle_changed = true;
-          }
-          buf_idx++;
-        }
+        const auto& sb = m_storageBuffers[i];
+        refreshGpuSlot(slots.storage[i], sb.buffer, sb.size);
       }
 
       // Forwarded upstream auxiliaries. The structural rebuild appended them
@@ -2634,9 +2766,8 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
       {
         for(auto& oa : out_geo.auxiliary)
         {
-          // Own auxiliaries and storage buffers were refreshed above and sit
-          // below buf_idx; everything from buf_idx on is a forward.
-          if(oa.buffer < buf_idx || oa.buffer >= (int)out_geo.buffers.size())
+          if(oa.buffer < slots.forwarded_aux_begin || oa.buffer >= slots.forwarded_aux_end
+             || oa.buffer >= (int)out_geo.buffers.size())
             continue;
           const auto* in_aux = binding_upstream->find_auxiliary(oa.name);
           if(!in_aux || in_aux->buffer < 0
@@ -3243,6 +3374,15 @@ void main() { fragColor = vec4(vec3(clamp(float(texture(outputTexture, vec3(v_te
       
   if(pip.pipeline)
   {
+    const QList<QRhiGraphicsPipeline::TargetBlend> copyBlends(
+        std::max(1, rt.colorAttachmentCount()), QRhiGraphicsPipeline::TargetBlend{});
+    pip.pipeline->setTargetBlends(copyBlends.begin(), copyBlends.end());
+    if(!pip.pipeline->create())
+    {
+      pip.release();
+      delete outputSampler;
+      return;
+    }
     m_graphicsPasses.emplace_back(&edge, GraphicsPass{pip, outputSampler, meshBuffers});
   }
   else
@@ -3431,6 +3571,7 @@ void RenderedCSFNode::buildComputeSrbBindings(
   int output_port_index = 0;
   int output_image_index = 0;
   int geo_binding_index = 0;
+  std::size_t audio_index = 0;
   // Process all resources in the order they appear in the descriptor
   // This ensures the binding indices match what the shader expects
   for(const auto& input : n.m_descriptor.inputs)
@@ -3592,8 +3733,9 @@ void RenderedCSFNode::buildComputeSrbBindings(
             {
               const int edge
                   = std::max(imageSize.width(), imageSize.height());
-              QRhiTexture::Flags flags
-                  = QRhiTexture::CubeMap | QRhiTexture::UsedWithLoadStore;
+              QRhiTexture::Flags flags = QRhiTexture::CubeMap
+                                         | QRhiTexture::UsedWithLoadStore
+                                         | QRhiTexture::UsedAsTransferSource;
               t = rhi.newTexture(format, QSize(edge, edge), 1, flags);
             }
             else if(image->is3D())
@@ -3601,8 +3743,9 @@ void RenderedCSFNode::buildComputeSrbBindings(
               int depth = !image->depth_expression.empty()
                   ? resolveDispatchExpression(image->depth_expression)
                   : imageSize.height();
-              QRhiTexture::Flags flags
-                  = QRhiTexture::ThreeDimensional | QRhiTexture::UsedWithLoadStore;
+              QRhiTexture::Flags flags = QRhiTexture::ThreeDimensional
+                                         | QRhiTexture::UsedWithLoadStore
+                                         | QRhiTexture::UsedAsTransferSource;
               t = rhi.newTexture(
                   format, imageSize.width(), imageSize.height(), depth, 1, flags);
             }
@@ -3612,7 +3755,8 @@ void RenderedCSFNode::buildComputeSrbBindings(
                   ? resolveDispatchExpression(image->layers_expression)
                   : 1;
               if(layers < 1) layers = 1;
-              QRhiTexture::Flags flags = QRhiTexture::UsedWithLoadStore;
+              QRhiTexture::Flags flags
+                  = QRhiTexture::UsedWithLoadStore | QRhiTexture::UsedAsTransferSource;
               t = rhi.newTextureArray(format, layers, imageSize, 1, flags);
             }
             else
@@ -3958,7 +4102,7 @@ void RenderedCSFNode::buildComputeSrbBindings(
                 ? score::gfx::calculateUniformBlockSize(
                       aux.layout, 0, n.m_descriptor)
                 : score::gfx::calculateStorageBufferSize(
-                      aux.layout, 0, n.m_descriptor);
+                      aux.layout, 1, n.m_descriptor);
             const quint32 fallback_size = (quint32)std::max<int64_t>(
                 declared_size, aux.is_uniform ? 256 : 16);
             aux.buffer = rhi.newBuffer(
@@ -4068,6 +4212,27 @@ void RenderedCSFNode::buildComputeSrbBindings(
       if(geo_input->instance_count.find("$USER") != std::string::npos) input_port_index++;
       for(const auto& aux : geo_input->auxiliary)
         if(aux.size.find("$USER") != std::string::npos) input_port_index++;
+    }
+    else if(
+        ossia::get_if<isf::audio_input>(&input.data)
+        || ossia::get_if<isf::audioFFT_input>(&input.data)
+        || ossia::get_if<isf::audioHist_input>(&input.data))
+    {
+      if(audio_index < m_audioSamplers.size())
+      {
+        auto [sampler, tex, fb_] = m_audioSamplers[audio_index];
+        bindings.append(QRhiShaderResourceBinding::sampledTexture(
+            bindingIndex, QRhiShaderResourceBinding::ComputeStage,
+            tex ? tex : &renderer.emptyTexture(), sampler));
+      }
+      else
+      {
+        qWarning() << "CSF: audio samplers under-allocated for"
+                   << QString::fromStdString(input.name);
+      }
+      bindingIndex++;
+      input_port_index++;
+      audio_index++;
     }
     else
     {
@@ -4206,6 +4371,7 @@ void RenderedCSFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& r
   SCORE_ASSERT(m_inputSamplers.empty());
 
   m_inputSamplers = initInputSamplers(this->n, renderer, n.input, &n.descriptor());
+  m_audioSamplers = initAudioTextures(renderer, n.m_audio_textures);
 
   int sb_index = 0;
   int outlet_index = 0;
@@ -4751,6 +4917,28 @@ void RenderedCSFNode::releaseState(RenderList& r)
   }
   m_inputSamplers.clear();
 
+  for(auto& texture : n.m_audio_textures)
+  {
+    auto it = texture.samplers.find(&r);
+    if(it != texture.samplers.end())
+    {
+      if(auto tex = it->second.texture)
+      {
+        if(tex != &r.emptyTexture())
+          tex->deleteLater();
+      }
+      it->second.texture = nullptr;
+    }
+  }
+  for(auto sampler : m_audioSamplers)
+    delete sampler.sampler;
+  m_audioSamplers.clear();
+
+  for(auto& fb : m_selfFeedbackInputs)
+    if(fb.snapshot)
+      fb.snapshot->deleteLater();
+  m_selfFeedbackInputs.clear();
+
   // Reset the once-per-frame guard so a RenderList rebuild starts a fresh cycle.
   m_lastRunFrame = -1;
 
@@ -4815,8 +5003,35 @@ void RenderedCSFNode::update(
 {
   // Update standard ProcessUBO (time, renderSize, etc.)
   // passIndex will be set per-pass in runInitialPasses
-  n.standardUBO.frameIndex++;
+  const bool firstUpdateOfFrame = m_frameIndexFrame != renderer.frame;
+  if(firstUpdateOfFrame)
+  {
+    if(m_frameIndexFrame >= 0 || n.standardUBO.frameIndex > 0)
+      n.standardUBO.frameIndex++;
+    m_frameIndexFrame = renderer.frame;
+  }
   std::copy_n(renderer.currentDate, 4, n.standardUBO.date);
+
+  if(firstUpdateOfFrame)
+  {
+    std::size_t audio_idx = 0;
+    for(auto& audio : n.m_audio_textures)
+    {
+      if(std::optional<Sampler> sampl
+         = m_audioTex.updateAudioTexture(audio, renderer, n.m_material_data.get(), res))
+      {
+        auto& [rhiSampler, tex, fb_] = *sampl;
+        if(audio_idx < m_audioSamplers.size())
+          m_audioSamplers[audio_idx].texture = tex;
+        for(auto& [e, cp] : m_computePasses)
+          if(cp.srb)
+            score::gfx::replaceTexture(
+                *cp.srb, rhiSampler, tex ? tex : &renderer.emptyTexture());
+      }
+      ++audio_idx;
+    }
+  }
+
   if(edge)
   {
     auto sz = renderer.renderSize(edge);
@@ -5127,6 +5342,14 @@ void RenderedCSFNode::runInitialPasses(
     }
   }
 
+
+  if(!m_selfFeedbackInputs.empty() || !m_storageImages.empty())
+  {
+    if(!res)
+      res = renderer.state.rhi->nextResourceUpdateBatch();
+    if(res)
+      prepareSelfFeedbackInputs(renderer, *res);
+  }
 
   // Run all passes sequentially
   for(std::size_t passIndex = 0; passIndex < n.m_descriptor.csf_passes.size(); passIndex++)
@@ -5565,6 +5788,10 @@ void RenderedCSFNode::runInitialPasses(
 
     commands.endComputePass();
   }
+
+  for(auto& fb : m_selfFeedbackInputs)
+    if(fb.snapshot)
+      fb.filled = true;
 
   // After all compute passes: push output geometry to downstream nodes
   if(!m_geometryBindings.empty())
