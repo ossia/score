@@ -80,7 +80,7 @@ void IntervalDurations::setMaxDuration(const TimeVal& arg)
   if(m_maxDuration != arg)
   {
     m_maxDuration = arg;
-    maxDurationChanged(arg);
+    maxDurationChanged(maxDuration());
 
     if(m_guiDuration < m_maxDuration && !m_isMaxInfinite)
       setGuiDuration(m_maxDuration * 1.1);
@@ -236,8 +236,10 @@ SCORE_PLUGIN_SCENARIO_EXPORT void IntervalDurations::Algorithms::changeAllDurati
 
     d.defaultDurationChanged(time);
     d.guiDurationChanged(d.m_guiDuration);
-    d.minDurationChanged(d.m_minDuration);
-    d.maxDurationChanged(d.m_maxDuration);
+    // The getters honour MinNull / MaxInfinite: the executor applies what is
+    // emitted here, and raw values would clamp an infinite interval.
+    d.minDurationChanged(d.minDuration());
+    d.maxDurationChanged(d.maxDuration());
 
     d.checkConsistency();
   }
