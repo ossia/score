@@ -315,10 +315,18 @@ bool Window::is_resizable(LilvWorld* world, const LilvUI& ui)
   auto& h = plug.lv2_host_context;
   auto s = lilv_ui_get_uri(&ui);
 
-  Lilv::Nodes fs_matches = plug.lilv.find_nodes(s, h.optional_feature, h.fixed_size);
-  Lilv::Nodes nrs_matches
-      = plug.lilv.find_nodes(s, h.optional_feature, h.no_user_resize);
+  // lilv_world_find_nodes hands back a collection the caller owns (or null
+  // when nothing matches); Lilv::Nodes never frees it.
+  LilvNodes* fs_matches
+      = lilv_world_find_nodes(plug.lilv.me, s, h.optional_feature, h.fixed_size);
+  LilvNodes* nrs_matches
+      = lilv_world_find_nodes(plug.lilv.me, s, h.optional_feature, h.no_user_resize);
 
-  return fs_matches.me == nullptr && nrs_matches.me == nullptr;
+  const bool resizable = fs_matches == nullptr && nrs_matches == nullptr;
+  if(fs_matches)
+    lilv_nodes_free(fs_matches);
+  if(nrs_matches)
+    lilv_nodes_free(nrs_matches);
+  return resizable;
 }
 }

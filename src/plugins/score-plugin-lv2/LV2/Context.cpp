@@ -356,20 +356,23 @@ LV2Data::LV2Data(HostContext& h, EffectContext& ctx)
     : host{h}
     , effect{ctx}
 {
-  for(auto res :
-      {effect.plugin.get_required_features(), effect.plugin.get_optional_features()})
+  // Both collections are the caller's to free; Lilv::Nodes never frees them.
+  for(LilvNodes* res :
+      {lilv_plugin_get_required_features(effect.plugin.me),
+       lilv_plugin_get_optional_features(effect.plugin.me)})
   {
+    if(!res)
+      continue;
     std::cerr << get_lv2_plugin_name(effect.plugin).toStdString() << " requires "
               << std::endl;
-    auto it = res.begin();
-    while(it)
+    LILV_FOREACH(nodes, it, res)
     {
-      auto node = res.get(it);
-      if(node.is_uri())
-        std::cerr << "Required uri: " << node.as_uri() << std::endl;
-      it = res.next(it);
+      const LilvNode* node = lilv_nodes_get(res, it);
+      if(lilv_node_is_uri(node))
+        std::cerr << "Required uri: " << lilv_node_as_uri(node) << std::endl;
     }
     std::cerr << std::endl;
+    lilv_nodes_free(res);
   }
 
   const auto numports = effect.plugin.get_num_ports();
