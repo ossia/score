@@ -1735,6 +1735,10 @@ target_include_directories(test_gfx_stale_slot_flatten PRIVATE
 # Self-feedback target limits (depth, mips, GrabsFromSource ports).
 score_add_gfx_test(selffb_limits GfxSelfFeedbackLimits.cpp)
 
+# A VSA shader's gl_Position is WebGL clip space: z in [-w, w] is visible on
+# every backend.
+score_add_gfx_test(vsa_clip_depth GfxVsaClipDepth.cpp)
+
 # Texture inlet settings on Texture to buffer and Texture Info (agent I6).
 if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
   score_add_test(test_gfx_avnd_texture_inlet_settings

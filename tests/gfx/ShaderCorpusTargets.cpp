@@ -961,7 +961,7 @@ TEST_CASE(
     //     is a regression to explain.
     CHECK(isf.files >= 48);
     CHECK(raw.files >= 24);
-    CHECK(vsa.files == 2);
+    CHECK(vsa.files == 4);
     CHECK(csf.files >= 30);
     CHECK(geo.files == 1);
     CHECK(comp.files >= 24);
