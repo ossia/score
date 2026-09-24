@@ -2124,6 +2124,24 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
             res, *slab, Stream::Indices,
             idx.data(), (uint32_t)(idx.size() * 4));
       }
+      else
+      {
+        // A reused slab keeps its CPU-sourced streams, which stable_id pins.
+        // A GPU-sourced stream is copied every frame instead, and a rebuild
+        // has just emptied the queue, so it has to be queued again from the
+        // buffer the mesh names now.
+        const auto requeue = [&](MdiAttr attr, Stream stream,
+                                 const GpuAttrView& view, int elem_size) {
+          if(view.buf)
+            queueSlabCopy(
+                attr, view, elem_size, vc,
+                m_registry->meshSlabOffsetBytes(*slab, stream));
+        };
+        requeue(MdiAttr::Positions, Stream::Positions, gpu_pos, 16);
+        requeue(MdiAttr::Normals, Stream::Normals, gpu_nrm, 16);
+        requeue(MdiAttr::Texcoords, Stream::Texcoords, gpu_uv, 8);
+        requeue(MdiAttr::Tangents, Stream::Tangents, gpu_tan, 16);
+      }
 
       // Per-draw GPU record.
       PerDrawGPU pd{};
