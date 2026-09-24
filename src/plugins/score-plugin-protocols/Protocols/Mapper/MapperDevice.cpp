@@ -467,7 +467,8 @@ public:
       auto& last = v.get_data().back().value;
       param.push_value(last);
     }, *m_engine, m_engine};
-    device_obj->setDevice(m_device);
+    // No setDevice(m_device): set_device() writes it concurrently on the main
+    // thread, and the lambda it posts always runs after us.
     for(auto dev : m_devices.devices())
       device_obj->addDevice(dev);
     m_deviceFunctions = device_obj;
