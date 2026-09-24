@@ -1722,6 +1722,9 @@ if(TARGET score_addon_academy)
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
 
+# Merge Geometries bakes transforms into GPU-resident geometry.
+score_add_gfx_test(merge_geometries_gpu_transform MergeGeometriesGpuTransform.cpp)
+
 # Texture inlet settings on Texture to buffer and Texture Info (agent I6).
 if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
   score_add_test(test_gfx_avnd_texture_inlet_settings
