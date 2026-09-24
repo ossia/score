@@ -239,6 +239,8 @@ TextureInlet::TextureInlet(QObject* parent)
     , m_item{new QQuickItem{}}
 #endif
 {
+  // Scripts only borrow the item (setting at most its visual parent): own it.
+  m_item->setParent(this);
 }
 
 TextureInlet::~TextureInlet() { }
