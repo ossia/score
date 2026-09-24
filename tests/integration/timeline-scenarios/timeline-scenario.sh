@@ -75,7 +75,9 @@ if [ -z "${DISPLAY:-}" ]; then
   exit 77
 fi
 
-mean_of() { convert "$1" -format '%[fx:mean]' info: 2>/dev/null || echo -1; }
+# -alpha off: the grabs are RGBA, and fx:mean would otherwise average the
+# opaque alpha channel in (0.75 * level + 0.25).
+mean_of() { convert "$1" -alpha off -format '%[fx:mean]' info: 2>/dev/null || echo -1; }
 
 (
   flock -w 900 9 || { echo 98 > "$OUT/ramp.rc"; exit 0; }
