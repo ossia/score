@@ -53,8 +53,16 @@ struct AudioTickHelper
     OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
     m_scenar->cleanup();
     auto& q = m_context->m_execQueue;
-    q.enqueue([ctx = m_context, graph = m_context->execGraph]() mutable {
+    // Weak: this command sits in the ContextData's own execution queue. If the
+    // audio thread never runs it (the engine stopped first, and the wait below
+    // gives up), a strong reference here would keep that ContextData alive
+    // through its own queue, forever. Whoever runs it holds the context.
+    q.enqueue([weak_ctx = std::weak_ptr{m_context},
+               graph = m_context->execGraph]() mutable {
       OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
+      auto ctx = weak_ctx.lock();
+      if(!ctx)
+        return;
       // FIXME this frees the graph nodes in the audio thread,
       // should do it in exec thread.
       // FIXME why not just move all the structures back to the main thread the moment we hit stop?
@@ -67,26 +75,36 @@ struct AudioTickHelper
     q.enqueue([ptr] { *ptr = true; });
     m_scenar.reset();
 
+    auto drain = [this] {
+      ExecutionCommand cmd;
+      GCCommand gc;
+      bool ok = false;
+      bool gc_ok = false;
+      do
+      {
+        if((ok = m_context->m_editionQueue.try_dequeue(cmd)))
+          cmd();
+
+        if((gc_ok = m_context->m_gcQueue.try_dequeue(gc)))
+          gc();
+      } while(ok || gc_ok);
+    };
+
     int count = 0;
     {
       while(!*ptr && count < 1000000)
       {
         ++count;
         std::this_thread::yield();
-        ExecutionCommand cmd;
-        GCCommand gc;
-        bool ok = false;
-        bool gc_ok = false;
-        do
-        {
-          if((ok = m_context->m_editionQueue.try_dequeue(cmd)))
-            cmd();
-
-          if((gc_ok = m_context->m_gcQueue.try_dequeue(gc)))
-            gc();
-        } while(ok || gc_ok);
+        drain();
       }
     }
+    // Once more after seeing *ptr: the audio thread can run both commands
+    // above between our last drain and the check, and the first one leaves
+    // gc(graph, ctx) in the GC queue. That entry holds a strong reference to
+    // the very ContextData whose queue it sits in, so left there it keeps the
+    // ContextData -- queues, execution state and all -- alive for good.
+    drain();
     m_context.reset();
   }
 
