@@ -25,10 +25,12 @@ var UUID_WINDOW = "5a181207-7d40-4ad8-814e-879fcdf8cc31"; // Window device
 var FLICKS_PER_MS = 705600;
 
 // Depth gain for the Grid. The metric depth is in meters (about 0.7 .. 6.5
-// here), but it reaches the ISF input through an 8-bit render target that
-// clamps it to [0, 1] first (BUG-LEDGER X10), so a gain < 1 would only
-// compress what is left: keep the full [0, 1].
-var DEPTH_GAIN = 1.0;
+// here). An image inlet renders its input into an 8-bit target by default,
+// which clamps it to [0, 1] before the shader sees it (BUG-LEDGER X10), so
+// the Grid's Depth inlet is set to RGBA32F and the gain brings the whole
+// range into [0, 1]. analyze.py uses the same gain.
+var DEPTH_GAIN = 0.15;
+var FORMAT_RGBA32F = 8; // ossia::texture_format
 
 function llog(m) { console.log("[multi-outlet] " + m); }
 function fail(m) { llog("SCENARIO-ERROR: " + m); }
@@ -73,8 +75,17 @@ var g_grid = Score.createProcess(g_root, UUID_ISF, "");
 if (!g_grid) fail("createProcess(ISF) returned null");
 Score.setAddress(Score.outlet(g_grid, 0), "Window:/");
 function loadGrid() {
-  Score.loadPreset(g_grid, JSON.stringify(GRID_PRESET));
-  Score.setValue(Score.inlet(g_grid, 8), DEPTH_GAIN); // gainBottomRight
+  // gainBottomRight (control 8) goes in the preset itself: a value set right
+  // after loadPreset could be overwritten by the preset's own controls.
+  var preset = JSON.parse(JSON.stringify(GRID_PRESET));
+  var controls = preset.Preset.Controls;
+  for (var k = 0; k < controls.length; k++)
+    if (controls[k][0] === 8) controls[k][1] = {"Float": DEPTH_GAIN};
+  Score.loadPreset(g_grid, JSON.stringify(preset));
+  // The preset recreates the inlets: set the format afterwards.
+  var depthIn = Score.inlet(g_grid, 3);
+  if (!depthIn) fail("missing grid.bottomRight");
+  else depthIn.textureFormat = FORMAT_RGBA32F;
 }
 if (WIRING === "init")
   loadGrid();

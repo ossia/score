@@ -68,10 +68,13 @@ def references(image, model):
     x = (np.asarray(img, np.float32) / 255.0 - [0.485, 0.456, 0.406]) / [0.229, 0.224, 0.225]
     x = x.transpose(2, 0, 1)[None].astype(np.float32)
     depth, sky = s.run(None, {i.name: x})
-    # The Depth outlet is raw R32F meters, but it reaches the Grid through the
-    # ISF input's 8-bit render target, which clamps it to [0, 1] before the
-    # Grid's gain. Compare against what can actually arrive.
-    return small(np.clip(depth[0, 0], 0.0, 1.0)), small(sky[0, 0])
+    # The Depth outlet is raw R32F meters. The Grid's Depth inlet is RGBA32F
+    # (multi-outlet.js), so it arrives unclamped and the Grid scales it by
+    # DEPTH_GAIN; only the window's 8-bit output clamps.
+    return small(np.clip(depth[0, 0] * DEPTH_GAIN, 0.0, 1.0)), small(sky[0, 0])
+
+
+DEPTH_GAIN = 0.15  # multi-outlet.js
 
 
 def main():
@@ -97,10 +100,15 @@ def main():
         r, g, b = a[..., 0], a[..., 1], a[..., 2]
         check(max(g.mean(), b.mean()) < 0.02, f"IP {name} outlet is single-channel (g {g.mean():.3f}, b {b.mean():.3f})")
     check(bl[..., 0].std() > 0.05, f"IP Mask outlet has content (red std {bl[..., 0].std():.3f})")
-    # Depth arrives clamped to [0, 1] (see references()): in this scene nearly
-    # everything is farther than 1 m, so the tile is mostly saturated and only
-    # the near structure survives. Assert it is written, not its spread.
     check(br[..., 0].mean() > 0.1, f"IP Depth outlet is written (red mean {br[..., 0].mean():.3f})")
+    # The gain applies: without it everything past 1 m saturates the window.
+    d = br[..., 0]
+    saturated = float((d > 0.99).mean())
+    check(saturated < 0.2, f"IP Depth is scaled by the gain ({saturated:.0%} of the tile saturated)")
+    # Unclamped (BUG-LEDGER X10): clamped to [0, 1] m and then scaled by the
+    # gain, no pixel could exceed DEPTH_GAIN. Past ~2 m it does.
+    check(d.max() > 2 * DEPTH_GAIN,
+          f"IP Depth arrives unclamped (red range {d.min():.3f}..{d.max():.3f}, gain {DEPTH_GAIN})")
 
     blr, brr = small(bl[..., 0]), small(br[..., 0])
     diff = float(np.abs(blr / max(blr.max(), 1e-6) - brr / max(brr.max(), 1e-6)).mean())
@@ -110,7 +118,7 @@ def main():
     d_sky, d_depth = best_corr(brr, ref_sky), best_corr(brr, ref_depth)
     print(f"correlations: Mask~sky {m_sky:.3f} Mask~depth {m_depth:.3f} | Depth~depth {d_depth:.3f} Depth~sky {d_sky:.3f}")
     check(m_sky > 0.6, f"Mask outlet follows the sky output (r={m_sky:.3f})")
-    check(d_depth > 0.5, f"Depth outlet follows the [0,1]-clamped depth output (r={d_depth:.3f})")
+    check(d_depth > 0.8, f"Depth outlet follows the depth output (r={d_depth:.3f})")
     check(m_sky > m_depth and d_depth > d_sky,
           "each outlet matches its own model output better than the other one")
 
