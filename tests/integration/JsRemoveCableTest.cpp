@@ -80,26 +80,49 @@ QString write(const QTemporaryDir& dir, const QString& name, const QByteArray& b
   return path;
 }
 
-// Two processes carrying a texture outlet and a texture inlet, so that a cable
-// between them is type-compatible. Any transition shader will do; Fade is the
-// smallest of the ones the default package ships.
-const char* prelude = R"JS(
-var SHADER = "<LIBRARY>:/packages/default/Presets/GLSL_shaders/basic/blend/Fade.fs";
+#if !defined(GFX_TEST_CORPUS_DIR)
+#define GFX_TEST_CORPUS_DIR ""
+#endif
+
+// Processes carrying a texture outlet and a texture inlet, so that a cable
+// between them is type-compatible. The shader comes from the repository, as the
+// user library may be absent; a failed load is reported as NO-SHADER / NO-PORTS
+// so checkPrelude() fails for that reason rather than the checks below.
+const char* prelude_body = R"JS(
 var root = Score.rootInterval();
 var a = Score.createProcess(root, "ISF Shader", SHADER);
 var b = Score.createProcess(root, "ISF Shader", SHADER);
 var c = Score.createProcess(root, "ISF Shader", SHADER);
 if(!a || !b || !c) { console.log("NO-SHADER"); Qt.exit(0); }
 var out = Score.outlet(a, 0);
-var inB = Score.inlet(b, "startImage");
-var inC = Score.inlet(c, "startImage");
+var inB = Score.inlet(b, "inputImage");
+var inC = Score.inlet(c, "inputImage");
+if(!out || !inB || !inC) { console.log("NO-PORTS"); Qt.exit(0); }
 )JS";
+
+//! The shader path goes into a JS string literal: escaped, so that a path
+//! with a backslash (Windows) or a quote still names the file.
+QByteArray prelude()
+{
+  QByteArray path = GFX_TEST_CORPUS_DIR "/isf-image-passthrough.fs";
+  path.replace('\\', "\\\\").replace('"', "\\\"");
+  return "var SHADER = \"" + path + "\";\n" + prelude_body;
+}
+
+void checkPrelude(const Run& r)
+{
+  INFO(r.output.toStdString());
+  CHECK_FALSE(r.output.contains("NO-SHADER"));
+  CHECK_FALSE(r.output.contains("NO-PORTS"));
+}
 }
 
 TEST_CASE("Score.remove() on a cable", "[integration][js][scripting]")
 {
   if(appBinary().isEmpty() || !QFile::exists(appBinary()))
     SKIP("the score application binary was not built");
+
+  REQUIRE(QFile::exists(QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-image-passthrough.fs")));
 
   QTemporaryDir dir;
   REQUIRE(dir.isValid());
@@ -108,7 +131,7 @@ TEST_CASE("Score.remove() on a cable", "[integration][js][scripting]")
   {
     auto r = runScript(write(
         dir, "remove.js",
-        QByteArray(prelude)
+        prelude()
             + R"JS(
 Score.createCable(out, inB);
 console.log("BEFORE " + Score.cables(out) + " " + Score.cables(inB));
@@ -118,8 +141,7 @@ Qt.exit(0);
 )JS"));
     CHECK_FALSE(r.crashed);
     CHECK(r.exitCode == 0);
-    if(r.output.contains("NO-SHADER"))
-      SKIP("the default package's shaders are not installed");
+    checkPrelude(r);
     CHECK(r.output.contains("BEFORE 1 1"));
     // Was "AFTER 1 1": the call did nothing at all.
     CHECK(r.output.contains("AFTER 0 0"));
@@ -129,7 +151,7 @@ Qt.exit(0);
   {
     auto r = runScript(write(
         dir, "macro.js",
-        QByteArray(prelude)
+        prelude()
             + R"JS(
 Score.createCable(out, inB);
 Score.startMacro();
@@ -145,8 +167,7 @@ Qt.exit(0);
 )JS"));
     CHECK_FALSE(r.crashed);
     CHECK(r.exitCode == 0);
-    if(r.output.contains("NO-SHADER"))
-      SKIP("the default package's shaders are not installed");
+    checkPrelude(r);
     CHECK(r.output.contains("INSIDE 0"));
     CHECK(r.output.contains("AFTER 1"));
     CHECK(r.output.contains("REROUTED true"));
@@ -160,7 +181,7 @@ Qt.exit(0);
     // parent, so it reaches the generic branch -- and must also be left alone.
     auto r = runScript(write(
         dir, "notacable.js",
-        QByteArray(prelude)
+        prelude()
             + R"JS(
 Score.createCable(out, inB);
 function tryRemove(what, v) {
@@ -175,8 +196,7 @@ Qt.exit(0);
 )JS"));
     CHECK_FALSE(r.crashed);
     CHECK(r.exitCode == 0);
-    if(r.output.contains("NO-SHADER"))
-      SKIP("the default package's shaders are not installed");
+    checkPrelude(r);
     CHECK(r.output.contains("RETURNED null"));
     CHECK(r.output.contains("RETURNED outlet"));
     CHECK(r.output.contains("THREW number"));
