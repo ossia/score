@@ -189,6 +189,9 @@ private:
   bool m_zooming{false};
   bool m_updatingMinimap{false};
   bool m_reloadingMinimap{false};
+  //! The interval's saved zoom / center are being restored: view changes until
+  //! then come from the layout and are not written back into the interval.
+  bool m_restoringView{false};
   //! The zoom was asked for while the view had no width yet
   bool m_zoomPending{false};
   bool m_updatingView{false};

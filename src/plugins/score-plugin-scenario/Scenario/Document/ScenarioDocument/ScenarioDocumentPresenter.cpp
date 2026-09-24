@@ -260,7 +260,13 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
   }
 
   setDisplayedInterval(&model().baseInterval());
-  QTimer::singleShot(0, [this] { view().minimap().zoom(0.0); });
+  QTimer::singleShot(0, this, [this] {
+    // Only re-applies the handles to the laid-out view: nothing the user did,
+    // so it must not overwrite the zoom the interval was loaded with.
+    m_reloadingMinimap = true;
+    view().minimap().zoom(0.0);
+    m_reloadingMinimap = false;
+  });
 
   // Drop on cables
   connect(
@@ -349,6 +355,9 @@ void ScenarioDocumentPresenter::switchMode(bool nodal)
   }
   else
   {
+    // Until restoreZoom() has put the interval's zoom / center back, the view
+    // only moves because it is being laid out.
+    m_restoringView = true;
     m_centralDisplay.emplace<CentralIntervalDisplay>(*this);
 
     // It may happen that the score is closed and this event is called
@@ -639,7 +648,11 @@ void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
   auto& c = displayedInterval();
   auto& gv = view().view();
 
-  if(dx < 0 && !m_zooming)
+  // Scrolls from restoring the saved view, or from layout before there is a
+  // zoom, are not the user's: storing them would round the loaded values.
+  const bool userScroll = !m_reloadingMinimap && !m_restoringView && m_zoomRatio > 0;
+
+  if(dx < 0 && !m_zooming && userScroll)
   {
     auto cur_rect = gv.mapToScene(gv.rect()).boundingRect();
     auto scene_rect = gv.sceneRect();
@@ -651,7 +664,7 @@ void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
       gv.setSceneRect(scene_rect);
     }
   }
-  else if(dx > 0 && !m_zooming)
+  else if(dx > 0 && !m_zooming && userScroll)
   {
     auto min_time = c.contentDuration();
     if(min_time < c.duration.guiDuration())
@@ -672,10 +685,15 @@ void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
 
   view().timeRuler().setStartPoint(
       TimeVal::fromPixels(visible_scene_rect.x(), m_zoomRatio));
-  const auto dur = c.duration.guiDuration();
-  double center_pixel_percentage
-      = (visible_scene_rect.center().x() / dur.toPixels(m_zoomRatio));
-  c.setMidTime(dur * center_pixel_percentage);
+  // dx == 0 (e.g. a time ruler change) did not move the view: the center is
+  // the one already saved, recomputing it would only round it.
+  if(userScroll && dx != 0)
+  {
+    const auto dur = c.duration.guiDuration();
+    double center_pixel_percentage
+        = (visible_scene_rect.center().x() / dur.toPixels(m_zoomRatio));
+    c.setMidTime(dur * center_pixel_percentage);
+  }
 
   if(!m_updatingMinimap)
   {
@@ -766,36 +784,48 @@ void ScenarioDocumentPresenter::on_dropOnCable(const QPointF& pos, const QMimeDa
 
 void ScenarioDocumentPresenter::restoreZoom()
 {
+  // Same width as updateMinimap() and computeZoom(): the viewport's, which
+  // leaves out the vertical scroll bar.
+  const auto viewWidth = view().viewportRect().width();
+  m_restoringView = true;
+  if(viewWidth <= 0)
+  {
+    // Nothing to fit to yet: done again from the first resize.
+    m_zoomPending = true;
+    return;
+  }
+
   if(auto z = displayedInterval().zoom(); z > 0)
   {
     auto& c = displayedInterval();
+    const auto cstDur = c.duration.guiDuration();
 
     auto& minimap = view().minimap();
-    const auto viewWidth = view().viewWidth();
     minimap.setWidth(viewWidth);
 
-    auto minimap_handle_width = computeReverseZoom(z);
+    // Exact inverse of computeZoom(): any offset taken off here is not added
+    // back there, and would shrink the saved zoom on every open.
+    const double handle_width = computeReverseZoom(z);
+    const double handle_center = (c.midTime() / cstDur) * viewWidth;
 
-    // Take into account the 10px offset of the interval
-    // No matter the zoom level, there's always 10px
-    double minimap_offset_ratio = TimeVal::fromPixels(10., z) / c.duration.guiDuration();
-    double minimap_offset_pixels = minimap_offset_ratio * viewWidth / 2. + 1.;
-
-    minimap_handle_width -= minimap_offset_pixels;
-    const auto cstDur = displayedInterval().duration.guiDuration();
-    double handles_duration_ratio = (c.midTime() / c.duration.guiDuration());
-    double handle_center = handles_duration_ratio * viewWidth;
-    auto lx = handle_center - minimap_handle_width / 2. /* - minimap_offset_pixels*/;
+    // Moved rather than clipped at the edges of the minimap: clipping would
+    // change the width, hence the zoom.
+    const double lx = ossia::clamp(
+        handle_center - handle_width / 2., 0., std::max(0., viewWidth - handle_width));
 
     minimap.setMinDistance(2. * viewWidth / cstDur.impl);
     m_reloadingMinimap = true;
-    minimap.restoreHandles(lx, lx + minimap_handle_width);
+    minimap.restoreHandles(lx, lx + handle_width);
     m_reloadingMinimap = false;
   }
   else
   {
     setLargeView();
   }
+
+  // What the layout still does in answer to this (the queued minimap nudge,
+  // the scroll bars settling) is not a user change either.
+  QTimer::singleShot(0, this, [this] { m_restoringView = false; });
 }
 
 void ScenarioDocumentPresenter::on_viewReady()
@@ -1094,10 +1124,11 @@ void ScenarioDocumentPresenter::updateMinimap()
 
   // Compute handle positions.
   const auto vp_x1 = visibleSceneRect.left();
-  const auto vp_x2 = visibleSceneRect.right();
 
+  // Not visibleSceneRect().right(), which is one pixel short: computeZoom()
+  // reads the handles as spanning the whole viewport width.
   const auto lh_x = viewWidth * (vp_x1 / cstWidth);
-  const auto rh_x = viewWidth * (vp_x2 / cstWidth);
+  const auto rh_x = viewWidth * ((vp_x1 + viewWidth) / cstWidth);
 
   minimap.setHandles(lh_x, rh_x);
 }
