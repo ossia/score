@@ -241,7 +241,7 @@ public:
 void GpuNode::uiMessage(const QVariant& v)
 {
   m_engines.visit_all([&] (auto& elt) {
-    elt.second->ui_messages.emplace(v);
+    elt.second->ui_messages.enqueue(v);
   });
 }
 
@@ -254,7 +254,7 @@ void GpuNode::stateElementChanged(const QString& k, const ossia::value& v)
     m_modelState.erase(k);
 
   m_engines.visit_all([&, p = std::make_pair(k, v)] (auto& elt) {
-    elt.second->ui_messages.emplace(p);
+    elt.second->ui_messages.enqueue(p);
   });
 }
 
