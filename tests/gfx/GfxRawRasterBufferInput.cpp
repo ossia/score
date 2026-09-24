@@ -1,5 +1,6 @@
 // A raw raster's INPUTS storage_input wired through a Buffer edge binds the
-// producer's buffer, and no adoption reference outlives the graph.
+// producer's buffer, holds an adoption reference on it while bound, and
+// gives that reference back at teardown.
 //
 // INPUTS storage flows through m_storage and bindUpstreamBuffers, which finds
 // the upstream by the entry's input port index. That index was computed from
@@ -44,7 +45,7 @@ TEST_CASE(
   bool built = false;
   bool skipped = false;
   std::string err;
-  int before = -1, after = -1;
+  int before = -1, during = -1, after = -1;
   std::array<uint8_t, 4> centre{};
 
   score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
@@ -78,6 +79,7 @@ TEST_CASE(
       }
       built = true;
       p.render(4);
+      during = score::gfx::RenderList::adoptedBufferCount();
       const auto img = p.readback(sink);
       if(!img.valid())
       {
@@ -96,13 +98,14 @@ TEST_CASE(
   INFO(
       "centre=(" << int(centre[0]) << "," << int(centre[1]) << ","
                  << int(centre[2]) << ")");
-  INFO("adopted before=" << before << " after=" << after);
+  INFO("adopted before=" << before << " during=" << during << " after=" << after);
   REQUIRE(err.empty());
   REQUIRE(built);
 
   CHECK(centre[0] < 40);
   CHECK(centre[1] > 215);
   CHECK(centre[2] < 40);
+  CHECK(during > before);
   CHECK(after == before);
 }
 
@@ -178,4 +181,77 @@ TEST_CASE(
   CHECK(wired[0] < 40);
   CHECK(wired[1] > 215);
   CHECK(wired[2] < 40);
+}
+
+// The producer is deleted while the consumer keeps rendering. The consumer's
+// adoption reference is what keeps the buffer alive until the consumer lets
+// go of it; the next refresh finds no upstream and binds the sentinel.
+TEST_CASE(
+    "a raw raster outlives the removal of the producer its storage_input "
+    "borrows from",
+    "[gfx][l3][binding][lifetime][incremental]")
+{
+  const auto be = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(be));
+
+  bool built = false;
+  bool skipped = false;
+  std::string err;
+  int before = -1, after = -1;
+  std::array<uint8_t, 4> wired{}, removed{};
+
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    before = score::gfx::RenderList::adoptedBufferCount();
+    {
+      GfxPipeline p;
+      const int producer = p.addCsf(corpus("syn-storage-colour.cs"));
+      const int consumer = p.addRaster(
+          corpus("rr-storage-input.vs"), corpus("rr-storage-input.fs"));
+      if(producer < 0 || consumer < 0)
+      {
+        err = "node build failed: " + p.error();
+        return;
+      }
+      p.wire(p.bufferOut(producer, 0), p.bufferIn(consumer, 0));
+      const int sink = p.addSink({32, 32});
+      p.wire(p.imageOut(consumer, 0), p.sinkInput(sink));
+      if(!p.create(be))
+      {
+        skipped = p.skipped();
+        err = skipped ? std::string{} : p.error();
+        return;
+      }
+      built = true;
+      p.render(3);
+      const auto img1 = p.readback(sink);
+      if(img1.valid())
+        wired = img1.at(img1.width / 2, img1.height / 2);
+
+      p.removeNodeIncremental(producer);
+      p.render(4);
+      const auto img2 = p.readback(sink);
+      if(!img2.valid())
+      {
+        err = "readback failed after removal";
+        return;
+      }
+      removed = img2.at(img2.width / 2, img2.height / 2);
+    }
+    after = score::gfx::RenderList::adoptedBufferCount();
+  });
+
+  if(skipped)
+    SKIP("backend unavailable");
+
+  INFO("backend=" << backend_name(be) << " error=" << err);
+  INFO(
+      "wired g=" << int(wired[1]) << " removed=(" << int(removed[0]) << ","
+                 << int(removed[1]) << "," << int(removed[2]) << ")");
+  INFO("adopted before=" << before << " after=" << after);
+  REQUIRE(err.empty());
+  REQUIRE(built);
+
+  CHECK(wired[1] > 215);
+  CHECK(removed[1] < 40);
+  CHECK(after == before);
 }
