@@ -564,10 +564,21 @@ void BusStrip::updateMeter(const Execution::Telemetry& t)
 {
   Strip::updateMeter(t);
 
+  // Every process under the bus, looked up again now and then rather than at
+  // each update: a whole score may be under it.
+  if(!m_processesAge.isValid() || m_processesAge.elapsed() > 1000)
+  {
+    m_processes.clear();
+    for(auto proc : m_model.findChildren<Process::ProcessModel*>())
+      m_processes.emplace_back(proc);
+    m_processesAge.start();
+  }
+
   double load = -1.;
-  for(auto proc : m_model.findChildren<Process::ProcessModel*>())
-    if(const double l = t.cpuLoad(*proc); l >= 0.)
-      load = std::max(load, 0.) + l;
+  for(const auto& proc : m_processes)
+    if(proc)
+      if(const double l = t.cpuLoad(*proc); l >= 0.)
+        load = std::max(load, 0.) + l;
 
   if(load >= 0.)
   {
