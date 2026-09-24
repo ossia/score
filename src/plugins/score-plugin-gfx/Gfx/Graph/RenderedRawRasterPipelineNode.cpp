@@ -915,6 +915,25 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     }
   }
 
+  // A cube face is square, and every attachment of the pass follows it: the
+  // depth attachment, and any other colour output, at the non-square render
+  // size would leave the pass with attachments of different sizes.
+  {
+    std::string et = n.descriptor().execution_model.type;
+    for(auto& c : et)
+      c = (char)std::toupper((unsigned char)c);
+    const bool hasCube
+        = et == "PER_CUBE_FACE"
+          || std::any_of(outputs.begin(), outputs.end(), [](const auto& o) {
+               return o.is_cubemap;
+             });
+    if(hasCube)
+    {
+      const int edge = std::min(sz.width(), sz.height());
+      sz = QSize(edge, edge);
+    }
+  }
+
   // EXECUTION_MODEL resolution. Matters before allocation because
   // PER_MIP forces a MipMapped flag on the target output's texture,
   // PER_CUBE_FACE forces a CubeMap flag. Manual / Single have no

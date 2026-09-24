@@ -288,6 +288,7 @@ score_add_gfx_test(review_graph_lifecycle GfxReviewGraphLifecycle.cpp)
 # GL follows GfxMultiview's headless-layered-raster precedent (structural
 # half + SUCCEED with the reason); Null asserts the shim selection only.
 score_add_gfx_test(cubemap_six_faces GfxCubemapSixFaces.cpp)
+score_add_gfx_test(cube_depth_attachment_size GfxCubeDepthAttachmentSize.cpp)
 # Pin, [!shouldfail]: packCameraUBO ignores camera_projection and
 # always builds reverse-Z perspective, so an orthographic or fulldome camera
 # renders as a perspective one. Unit-math level: byte-identical UBOs provably
