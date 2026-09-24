@@ -584,6 +584,12 @@ public:
     if(!engine)
       return;
 
+    if(m_lockDepth > 0)
+    {
+      ossia::qt::run_async(this, [this, id, v] { slot_push(id, v); });
+      return;
+    }
+
     auto it = m_scripts.find(id);
     if(it == m_scripts.end())
       return;
@@ -638,6 +644,13 @@ public:
     auto it = m_scripts.find(id);
     if(it == m_scripts.end() || it->second.stopped > 0)
       return;
+
+    if(m_lockDepth > 0)
+    {
+      ossia::qt::run_async(
+          this, [this, id, source, v] { slot_recv(id, source, v); });
+      return;
+    }
     auto& script = it->second;
 
     if(!script.read.isCallable())
@@ -682,6 +695,18 @@ private:
     //! Set while slot_push runs the parameter's script: what the script
     //! pushes to the parameter's own sources must not come back to it.
     int stopped{};
+  };
+
+  //! Counts, on the engine thread, the mapper locks it holds.
+  struct lock_depth
+  {
+    int& depth;
+    explicit lock_depth(int& depth)
+        : depth{depth}
+    {
+      ++depth;
+    }
+    ~lock_depth() { --depth; }
   };
 
   struct script_stopper
@@ -823,6 +848,7 @@ private:
   void with_parameter(int id, F&& f)
   {
     std::lock_guard l{m_parametersLock};
+    lock_depth d{m_lockDepth};
     if(auto it = m_parameters.find(id); it != m_parameters.end())
       f(*it->second);
   }
@@ -861,6 +887,7 @@ private:
   void apply_reply_to_roots(const QJSValue& res)
   {
     std::lock_guard l{m_rootLock};
+    lock_depth d{m_lockDepth};
     if(!m_treeAccess || !m_device)
       return;
     apply_reply(m_device->get_root_node(), m_roots, res);
@@ -999,8 +1026,8 @@ private:
   //! posted to it, and dropped along with it.
   QObject m_mainContext;
 
-  //! Recursive: a reply pushing into this device re-enters slot_push, and so
-  //! a new reply, on the same thread.
+  //! Recursive: a reply pushing into this device calls slot_push directly on
+  //! the same thread (which then defers its script, see m_lockDepth).
   std::recursive_mutex m_rootLock;
   std::vector<ossia::net::node_base*> m_roots;
   //! Cleared by disable_device_access(): the tree is being torn down.
@@ -1019,6 +1046,12 @@ private:
   //! as the tree is built and destroyed, read on the engine thread which may
   //! only reach a parameter under the lock. Recursive for the same re-entrance.
   std::recursive_mutex m_parametersLock;
+
+  //! Engine thread: > 0 while it holds m_parametersLock (so possibly a
+  //! source_lock) or m_rootLock. slot_push / slot_recv then defer their script:
+  //! Device.write takes the script engine's lock, which the main thread holds
+  //! while it takes these locks for Device.addNode/removeNode.
+  int m_lockDepth{};
   ossia::hash_map<int, mapper_parameter*> m_parameters;
 
   //! Engine thread only: the script functions, destroyed with the engine.
