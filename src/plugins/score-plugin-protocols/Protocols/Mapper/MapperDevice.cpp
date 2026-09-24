@@ -44,6 +44,9 @@
 #include <QTimerEvent>
 #include <QUrl>
 
+#include <condition_variable>
+#include <mutex>
+
 #include <wobjectimpl.h>
 
 #include <verdigris>
@@ -438,10 +441,11 @@ public:
     while(m_hasInit > 0)
       std::this_thread::yield();
 
-    // Both this and the removal hooks run on the main thread, so unregistering
-    // here guarantees no hook can reach the engine functions afterwards.
-    // disable() waits for any script currently inside Device.read/write and
-    // no-ops later calls: the device tree below us is about to be destroyed.
+    // The engine thread may be waiting for a tree that will not be built.
+    finish_tree_build(true);
+
+    // Main thread, like the removal hooks. disable() waits for any script
+    // inside Device.read/write and no-ops later calls.
     m_devices.set_engine_functions(nullptr);
     if(auto* fun = m_deviceFunctions.exchange(nullptr))
       fun->disable();
@@ -506,9 +510,20 @@ public:
 
             // Only the script runs here; the tree is built on the main thread.
             auto tree = read_tree(ret.value<QJSValue>());
+            {
+              std::lock_guard l{m_treeBuildLock};
+              if(m_treeBuildCancelled)
+                return;
+              m_treeBuildPending = true;
+            }
             ossia::qt::run_async(
                 &m_mainContext,
                 [this, tree = std::move(tree)]() mutable { create_tree(tree); });
+
+            // The script's next Device.write (onOpen...) needs the tree: wait
+            // until it is built, or until teardown cancels.
+            std::unique_lock l{m_treeBuildLock};
+            m_treeBuildDone.wait(l, [this] { return !m_treeBuildPending; });
           }
           else
           {
@@ -748,6 +763,25 @@ private:
   //! Main thread: the whole tree is in place before anyone is told about it.
   void create_tree(tree_description& tree)
   {
+    create_tree_impl(tree);
+    finish_tree_build(false);
+  }
+
+  //! Releases the engine thread waiting in the Ready handler; `cancel` for
+  //! good.
+  void finish_tree_build(bool cancel)
+  {
+    {
+      std::lock_guard l{m_treeBuildLock};
+      m_treeBuildPending = false;
+      if(cancel)
+        m_treeBuildCancelled = true;
+    }
+    m_treeBuildDone.notify_all();
+  }
+
+  void create_tree_impl(tree_description& tree)
+  {
     if(!m_device || !m_treeAccess)
       return;
 
@@ -964,6 +998,13 @@ private:
   //! m_roots and this are only written on the main thread, under m_rootLock
   //! for the engine thread to read them.
   bool m_treeAccess{true};
+
+  //! The engine thread waits under this, once the script described its tree,
+  //! for the main thread to have built it or to be tearing the device down.
+  std::mutex m_treeBuildLock;
+  std::condition_variable m_treeBuildDone;
+  bool m_treeBuildPending{};
+  bool m_treeBuildCancelled{};
 
   //! Parameters of the script's tree, by script id. Written on the main thread
   //! as the tree is built and destroyed, read on the engine thread which may
