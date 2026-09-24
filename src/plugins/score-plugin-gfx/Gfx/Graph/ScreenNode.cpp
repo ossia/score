@@ -998,6 +998,10 @@ void ScreenNode::createOutput(score::gfx::OutputConfiguration conf)
     releaseOwnedRenderList();
     releaseRegistry();
 
+    // Then the old device itself: the state, swap chain, depth-stencil and
+    // render pass descriptor below are overwritten. No-op on first expose.
+    releaseDevice();
+
     m_window->state = createRenderState(*m_window, graphicsApi);
     m_window->state->window = m_window;
     m_window->state->renderSize = QSize(1280, 720);
@@ -1147,6 +1151,16 @@ void ScreenNode::destroyOutput()
   if(!m_window)
     return;
 
+  releaseDevice();
+
+  if(m_ownsWindow)
+  {
+    m_window.reset();
+  }
+}
+
+void ScreenNode::releaseDevice()
+{
   // Drain the GPU before tearing anything down: queued frames can still reference
   // the swapchain, RPD or depth-stencil, and when setSwapchainFormat calls
   // destroyOutput synchronously the host window's last beginFrame may still hold
@@ -1206,11 +1220,6 @@ void ScreenNode::destroyOutput()
     {
       s->destroy();
     }
-  }
-
-  if(m_ownsWindow)
-  {
-    m_window.reset();
   }
 }
 
