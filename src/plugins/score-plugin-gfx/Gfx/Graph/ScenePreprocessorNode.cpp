@@ -3270,12 +3270,55 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
             QRhiTexture::RGBA8, img.size(), channelFlags(ch), tref.sampler);
         if(b_idx < 0)
         {
+          // Out of buckets: resample into the closest bucket that agrees on
+          // everything but size -- the smallest one at least as large, else
+          // the largest -- rather than drop the texture. A small constant
+          // texture survives this exactly.
+          const auto flags = channelFlags(ch);
+          const auto area = [](QSize sz) { return qint64(sz.width()) * sz.height(); };
+          for(std::size_t i = 0; i < channel.buckets.size(); ++i)
+          {
+            auto& cand = channel.buckets[i];
+            if(cand.format != QRhiTexture::RGBA8 || cand.flags != flags
+               || !(cand.sampler_config == tref.sampler))
+              continue;
+            const bool fits = cand.pixelSize.width() >= img.width()
+                              && cand.pixelSize.height() >= img.height();
+            if(!b_ptr)
+            {
+              b_idx = (int)i;
+              b_ptr = &cand;
+              continue;
+            }
+            const bool bestFits = b_ptr->pixelSize.width() >= img.width()
+                                  && b_ptr->pixelSize.height() >= img.height();
+            if(fits != bestFits ? fits
+                                : (fits ? area(cand.pixelSize) < area(b_ptr->pixelSize)
+                                        : area(cand.pixelSize) > area(b_ptr->pixelSize)))
+            {
+              b_idx = (int)i;
+              b_ptr = &cand;
+            }
+          }
+          if(!b_ptr)
+          {
+            qWarning().noquote()
+                << "ScenePreprocessor: shared texture pool"
+                << "hit bucket cap ("
+                << GpuResourceRegistry::kMaxBuckets
+                << ") and no bucket shares this texture's format, colourspace"
+                   " and sampler; texture_source skipped -- shader will see"
+                   " tex_ref_none.";
+            return;
+          }
           qWarning().noquote()
-              << "ScenePreprocessor: shared texture pool"
-              << "hit bucket cap ("
-              << GpuResourceRegistry::kMaxBuckets
-              << "); texture_source skipped — shader will see tex_ref_none.";
-          return;
+              << "ScenePreprocessor: shared texture pool hit bucket cap ("
+              << GpuResourceRegistry::kMaxBuckets << "); resampling a"
+              << img.width() << "x" << img.height() << "texture into bucket"
+              << b_idx << "(" << b_ptr->pixelSize.width() << "x"
+              << b_ptr->pixelSize.height() << ").";
+          img = img.scaled(
+              b_ptr->pixelSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
         }
 
         const int layer = (int)b_ptr->layerMap.size();
