@@ -147,6 +147,22 @@ void installGlDebugLogger(QRhi* rhi)
   logger->enableMessages();
   qDebug() << "GL validation active (KHR_debug, synchronous)";
 }
+
+void useFirstProvokingVertex(QRhi* rhi)
+{
+  if(!rhi || !rhi->makeThreadLocalNativeContextCurrent())
+    return;
+  auto* ctx = QOpenGLContext::currentContext();
+  if(!ctx || ctx->isOpenGLES())
+    return;
+  using ProvokingVertexFn = void(QOPENGLF_APIENTRYP)(GLenum);
+  auto fn = reinterpret_cast<ProvokingVertexFn>(
+      ctx->getProcAddress(QByteArrayLiteral("glProvokingVertex")));
+  if(!fn)
+    return;
+  constexpr GLenum first_vertex_convention = 0x8E4D;
+  fn(first_vertex_convention);
+}
 #endif
 
 // Persistent pipeline cache. Saved on QRhi destruction, loaded right after
@@ -393,6 +409,7 @@ std::shared_ptr<RenderState> createRenderState(
     else
     {
       installGlDebugLogger(state.rhi);
+      useFirstProvokingVertex(state.rhi);
       state.renderSize = sz;
       populateCaps(state);
       return st;
