@@ -76,9 +76,13 @@ public:
   /// before destroying them. A scan started later is unaffected.
   void cancel();
 
+  /// cancel() on every RecursiveWatch alive. Called before the plug-ins and
+  /// interfaces the filters reach are destroyed, as not every watch owner is.
+  static void cancelAll();
+
   void reset();
 
-  RecursiveWatch() = default;
+  RecursiveWatch();
   RecursiveWatch(const RecursiveWatch&) = delete;
   RecursiveWatch& operator=(const RecursiveWatch&) = delete;
   ~RecursiveWatch();

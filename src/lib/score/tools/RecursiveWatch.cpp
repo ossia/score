@@ -457,9 +457,47 @@ void RecursiveWatch::cancel()
     scan->cancelAndWait();
 }
 
+namespace
+{
+struct WatchRegistry
+{
+  std::mutex mutex;
+  std::vector<RecursiveWatch*> watches;
+};
+WatchRegistry& watchRegistry()
+{
+  static WatchRegistry r;
+  return r;
+}
+}
+
+RecursiveWatch::RecursiveWatch()
+{
+  auto& r = watchRegistry();
+  std::lock_guard _{r.mutex};
+  r.watches.push_back(this);
+}
+
 RecursiveWatch::~RecursiveWatch()
 {
   cancel();
+  auto& r = watchRegistry();
+  std::lock_guard _{r.mutex};
+  std::erase(r.watches, this);
+}
+
+void RecursiveWatch::cancelAll()
+{
+  // Watches are created and destroyed on the GUI thread, as is this call:
+  // copy the list so that cancel() waits without holding the registry lock.
+  std::vector<RecursiveWatch*> watches;
+  {
+    auto& r = watchRegistry();
+    std::lock_guard _{r.mutex};
+    watches = r.watches;
+  }
+  for(auto* w : watches)
+    w->cancel();
 }
 
 void RecursiveWatch::reset()
