@@ -807,6 +807,11 @@ score_add_gfx_test(mesh_slabs GfxMeshSlabs.cpp)
 # that a plain handle swap may never reach the consumer (no dynamic-slot
 # term in meshesUnchanged).
 score_add_gfx_test(material_texture_swap GfxMaterialTextureSwap.cpp)
+score_add_gfx_test(scene_gpu_attribute_swap GfxScenePreprocessorGpuAttributeSwap.cpp)
+target_sources(test_gfx_scene_gpu_attribute_swap PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator/offsetAllocator.cpp")
+target_include_directories(test_gfx_scene_gpu_attribute_swap PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator")
 target_sources(test_gfx_material_texture_swap PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator/offsetAllocator.cpp")
 target_include_directories(test_gfx_material_texture_swap PRIVATE
