@@ -1052,6 +1052,18 @@ void ScreenNode::createOutput(score::gfx::OutputConfiguration conf)
 
       m_window->state->renderPassDescriptor
           = m_swapChain->newCompatibleRenderPassDescriptor();
+      if(!m_window->state->renderPassDescriptor)
+      {
+        // QVkSwapChain returns null when the surface cannot present (e.g.
+        // RADV on Xvfb, without DRI3), and createOrResize() dereferences it.
+        // Keep the objects for destroyOutput() but do not hand the swap chain
+        // to the Window; onReady() is deliberately not called.
+        qCritical() << "ScreenNode: the window cannot present on this display "
+                       "(no swap chain): nothing will be rendered to it";
+        m_window->m_hasSwapChain = false;
+        m_window->m_swapChain = nullptr;
+        return;
+      }
       m_swapChain->setRenderPassDescriptor(m_window->state->renderPassDescriptor);
 
       onReady();
