@@ -389,7 +389,12 @@ public:
   QSize renderSize(const Edge* e) const noexcept;
 
   int64_t frame = 0;
+  // Year, month, day, seconds since midnight: the ISF DATE uniform.
   float currentDate[4]{};
+  // Set by GfxContext::renderFrames under its synthetic step clock, which
+  // writes currentDate itself. Otherwise each frame would stamp the wall
+  // clock into DATE and two renders of the same step would differ.
+  bool dateFromStepClock{false};
 
   void createAllInputRenderTargets();
 

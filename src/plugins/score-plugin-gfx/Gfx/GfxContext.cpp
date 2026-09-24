@@ -1049,6 +1049,21 @@ void GfxContext::renderFrames(int frames)
         if(auto proc = dynamic_cast<score::gfx::ProcessNode*>(node.get()))
           proc->process(tk);
       }
+
+      // DATE too: the render lists would otherwise read the wall clock every
+      // frame, and the same step rendered twice would not be the same image.
+      // A fixed day, with the step time as the seconds since midnight.
+      const float stepSeconds = float(double(m_stepFrame) / m_stepRate);
+      for(auto& rl : m_graph->renderLists())
+      {
+        if(!rl)
+          continue;
+        rl->dateFromStepClock = true;
+        rl->currentDate[0] = 2000.f;
+        rl->currentDate[1] = 1.f;
+        rl->currentDate[2] = 1.f;
+        rl->currentDate[3] = stepSeconds;
+      }
       m_stepFrame++;
     }
 
@@ -1056,6 +1071,15 @@ void GfxContext::renderFrames(int frames)
     {
       if(output && output->canRender())
         output->render();
+    }
+
+    // Hand DATE back to the wall clock for whatever renders next outside
+    // this stepper.
+    if(step)
+    {
+      for(auto& rl : m_graph->renderLists())
+        if(rl)
+          rl->dateFromStepClock = false;
     }
   }
 }
