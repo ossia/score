@@ -218,10 +218,8 @@ struct RenderedSceneFilterNode final : NodeRenderer
 SceneFilterNode::SceneFilterNode()
 {
   input.push_back(new Port{this, {}, Types::Scene, {}});
-  {
-    auto* data = new int{0};
-    input.push_back(new Port{this, data, Types::Int, {}});
-  }
+  // Port::value is non-owning: point it at the member process() writes.
+  input.push_back(new Port{this, &m_mode, Types::Int, {}});
   output.push_back(new Port{this, {}, Types::Scene, {}});
 }
 

@@ -131,25 +131,18 @@ struct RenderedFlattenedSceneFilterNode final : NodeRenderer
 
 FlattenedSceneFilterNode::FlattenedSceneFilterNode()
 {
+  // Port::value is a non-owning pointer: point it at the members process()
+  // writes, rather than at heap storage nothing would ever free.
   // Port 0: geometry input
   input.push_back(new Port{this, {}, Types::Geometry, {}});
   // Port 1: filter mode
-  {
-    auto* data = new int{0};
-    input.push_back(new Port{this, data, Types::Int, {}});
-  }
+  input.push_back(new Port{this, &m_mode, Types::Int, {}});
   // Port 2: match value (int, modes 0..11)
-  {
-    auto* data = new int{0};
-    input.push_back(new Port{this, data, Types::Int, {}});
-  }
+  input.push_back(new Port{this, &m_match, Types::Int, {}});
   // Port 3: match string (modes 12/13). Carried as a control-only port
   // (no GPU edge type — strings flow through ossia::value via process()
   // rather than as a GPU resource handle).
-  {
-    auto* data = new std::string{};
-    input.push_back(new Port{this, data, Types::Empty, {}});
-  }
+  input.push_back(new Port{this, &m_match_str, Types::Empty, {}});
   output.push_back(new Port{this, {}, Types::Geometry, {}});
 }
 
