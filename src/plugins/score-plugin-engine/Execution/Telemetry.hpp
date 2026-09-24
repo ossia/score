@@ -2,6 +2,7 @@
 #include <Process/Execution/TelemetryInterface.hpp>
 
 #include <ossia/dataflow/telemetry.hpp>
+#include <ossia/detail/hash_map.hpp>
 
 #include <QPointer>
 
@@ -151,6 +152,8 @@ private:
   std::vector<int> m_free;
   std::vector<Bench> m_benches;
   std::vector<int> m_freeBenches;
+  ossia::hash_map<const ossia::graph_node*, int> m_benchOfNode;
+  ossia::hash_map<const Process::ProcessModel*, int> m_benchOfProcess;
   std::vector<PlayheadSub> m_playheads;
   std::vector<int> m_freePlayheads;
 
