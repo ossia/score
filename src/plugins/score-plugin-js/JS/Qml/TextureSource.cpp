@@ -44,24 +44,24 @@ public:
   void rebuild();
   void clear()
   {
-    if(m_source.node < 0)
-      return;
-    if(m_screenId < 0)
-      return;
     // NOT item->m_gfxPlugin: Qt destroys the renderer after the item, on the
     // render thread, so `item` is already null here and the preview node would
     // never be unregistered. The QPointer only goes null when the document
     // plugin itself is gone, in which case the graph took the node with it.
-    if(!m_gfxPlugin)
-      return;
+    //
+    // Unregister only while that graph is alive, but drop the pointers either
+    // way: render() must never see a node the graph has already destroyed.
+    if(m_gfxPlugin && m_source.node >= 0 && m_screenId >= 0)
+    {
+      auto& graph = m_gfxPlugin->context;
+      graph.disconnect_preview_node(Gfx::EdgeSpec{m_source, {m_screenId, 0}});
+      graph.unregister_preview_node(m_screenId);
+    }
 
-    auto& graph = m_gfxPlugin->context;
-    // fixme clear m_extractionNode
-    graph.disconnect_preview_node(Gfx::EdgeSpec{m_source, {m_screenId, 0}});
-    graph.unregister_preview_node(m_screenId);
     m_source = {-1, -1};
     m_screenId = -1;
     m_extractionNode = nullptr;
+    m_gfxPlugin = nullptr;
   }
 
   ~TextureSourceRenderer()
