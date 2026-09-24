@@ -941,6 +941,15 @@ void GfxContext::run_commands()
 
 void GfxContext::updateGraph()
 {
+  // DATE goes back to the wall clock with the next update after a step, not
+  // right after the step: an output whose render() only schedules a frame (a
+  // vsync'd window) draws it later, and has to see the step's date too.
+  // renderFrames() pins it again after its own updateGraph().
+  if(m_graph)
+    for(auto& rl : m_graph->renderLists())
+      if(rl)
+        rl->dateFromStepClock = false;
+
   run_commands();
 
   update_inputs();
@@ -1048,6 +1057,21 @@ void GfxContext::renderFrames(int frames)
       {
         if(auto proc = dynamic_cast<score::gfx::ProcessNode*>(node.get()))
           proc->process(tk);
+      }
+
+      // DATE too: the render lists would otherwise read the wall clock every
+      // frame, and the same step rendered twice would not be the same image.
+      // A fixed day, with the step time as the seconds since midnight.
+      const float stepSeconds = float(double(m_stepFrame) / m_stepRate);
+      for(auto& rl : m_graph->renderLists())
+      {
+        if(!rl)
+          continue;
+        rl->dateFromStepClock = true;
+        rl->currentDate[0] = 2000.f;
+        rl->currentDate[1] = 1.f;
+        rl->currentDate[2] = 1.f;
+        rl->currentDate[3] = stepSeconds;
       }
       m_stepFrame++;
     }
