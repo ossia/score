@@ -29,8 +29,16 @@ public:
   };
 
   MinimalApplication()
-      : MinimalApplication{*new DefaultArgs{}}
+      : MinimalApplication{defaultArgs()}
   {
+  }
+
+  // QApplication keeps references to argc and argv for its whole lifetime;
+  // static so that repeated applications (one per test case) do not leak.
+  static DefaultArgs& defaultArgs() noexcept
+  {
+    static DefaultArgs args;
+    return args;
   }
 
   explicit MinimalApplication(DefaultArgs& args)
