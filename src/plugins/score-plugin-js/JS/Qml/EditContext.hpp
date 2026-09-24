@@ -61,6 +61,12 @@ public:
   QObject* device(QString name);
   W_SLOT(device)
 
+  //! An existing device's settings as a JS object - {Name, Protocol} plus the
+  //! protocol's own keys, as the document saves them. createDevice() accepts
+  //! the same object, taking the name and protocol from its own arguments.
+  QVariant deviceSettings(QString name);
+  W_SLOT(deviceSettings)
+
   QString deviceToJson(QString addr);
   W_SLOT(deviceToJson)
 
