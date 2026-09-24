@@ -47,6 +47,7 @@ public:
     uint32_t vertex_count{0};
     uint32_t index_count{0};
     int material_index{-1};
+    std::uint64_t stable_id{0};
     // Local-space AABB over the POSITION stream. Populated by
     // extract_primitive from the glTF POSITION accessor's min/max when
     // present (spec-required but optionally trusted); otherwise derived

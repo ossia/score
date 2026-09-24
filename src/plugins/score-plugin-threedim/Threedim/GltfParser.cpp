@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <optional>
 #include <variant>
 
 namespace Threedim
@@ -835,7 +836,7 @@ static ossia::mesh_primitive part_to_primitive(
   ossia::mesh_primitive mp;
   // Per-primitive id is not deterministic across reloads; the material /
   // transform fingerprints ARE, via the file-path hash.
-  mp.stable_id = ossia::mint_stable_id();
+  mp.stable_id = p.stable_id ? p.stable_id : ossia::mint_stable_id();
   mp.topology    = ossia::primitive_topology::triangles;
   mp.index_type  = p.indices ? ossia::index_format::uint32 : ossia::index_format::none;
   mp.vertex_count = p.vertex_count;
@@ -920,7 +921,9 @@ static int emit_node(
     const fastgltf::Asset& asset, std::size_t nodeIdx, int parent_index,
     std::vector<GltfParser::SceneNode>& out,
     const std::vector<int>& material_index_remap,
-    std::vector<char>& visited, int depth = 0)
+    std::vector<char>& visited,
+    std::vector<std::optional<std::vector<GltfParser::ScenePart>>>& mesh_parts,
+    int depth = 0)
 {
   // Node indices come straight from the file; validate() checks neither
   // their range nor for cycles. Bound the index, cap depth, and mark
@@ -945,16 +948,25 @@ static int emit_node(
   if(n.skinIndex.has_value())
     sn.skin_index = int32_t(*n.skinIndex);
 
-  if(n.meshIndex.has_value())
+  if(n.meshIndex.has_value() && *n.meshIndex < mesh_parts.size())
   {
-    const auto& mesh = asset.meshes[*n.meshIndex];
-    sn.parts.reserve(mesh.primitives.size());
-    for(const auto& prim : mesh.primitives)
+    auto& parts = mesh_parts[*n.meshIndex];
+    if(!parts)
     {
-      auto sp = extract_primitive(asset, prim, material_index_remap);
-      if(sp.vertex_count > 0)
-        sn.parts.push_back(std::move(sp));
+      const auto& mesh = asset.meshes[*n.meshIndex];
+      parts.emplace();
+      parts->reserve(mesh.primitives.size());
+      for(const auto& prim : mesh.primitives)
+      {
+        auto sp = extract_primitive(asset, prim, material_index_remap);
+        if(sp.vertex_count > 0)
+        {
+          sp.stable_id = ossia::mint_stable_id();
+          parts->push_back(std::move(sp));
+        }
+      }
     }
+    sn.parts = *parts;
   }
   if(n.lightIndex.has_value() && *n.lightIndex < asset.lights.size())
     sn.light = to_light(asset.lights[*n.lightIndex]);
@@ -964,7 +976,8 @@ static int emit_node(
   const int self = (int)out.size();
   out.push_back(std::move(sn));
   for(std::size_t ci : asset.nodes[nodeIdx].children)
-    emit_node(asset, ci, self, out, material_index_remap, visited, depth + 1);
+    emit_node(
+        asset, ci, self, out, material_index_remap, visited, mesh_parts, depth + 1);
   return self;
 }
 
@@ -1157,8 +1170,11 @@ std::function<void(GltfParser&)> GltfParser::ins::gltf_t::process(file_type tv)
   if(sceneIdx < asset.scenes.size())
   {
     std::vector<char> visited(asset.nodes.size(), 0);
+    std::vector<std::optional<std::vector<GltfParser::ScenePart>>> mesh_parts(
+        asset.meshes.size());
     for(std::size_t rootIdx : asset.scenes[sceneIdx].nodeIndices)
-      emit_node(asset, rootIdx, -1, scene_nodes, material_index_remap, visited);
+      emit_node(
+          asset, rootIdx, -1, scene_nodes, material_index_remap, visited, mesh_parts);
   }
 
   if(scene_nodes.empty())
