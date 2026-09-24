@@ -8,6 +8,10 @@
 //   score_add_gfx_test(points_default_size GfxPointsDefaultSize.cpp)
 #include <score_test/Gfx.hpp>
 
+#include <isf.hpp>
+
+#include <QFile>
+
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/generators/catch_generators_range.hpp>
@@ -19,6 +23,20 @@ namespace
 QString corpus(const char* file)
 {
   return QStringLiteral(GFX_TEST_CORPUS_DIR) + QStringLiteral("/") + file;
+}
+
+std::string readCorpus(const char* file)
+{
+  QFile f{corpus(file)};
+  if(!f.open(QIODevice::ReadOnly))
+    return {};
+  return f.readAll().toStdString();
+}
+
+bool writesPointSize(const std::string& vs, const std::string& fs)
+{
+  isf::parser parser{vs, fs, 450, isf::parser::ShaderType::RawRasterPipeline};
+  return parser.vertex().find("gl_PointSize") != std::string::npos;
 }
 }
 
@@ -65,4 +83,28 @@ TEST_CASE("an unsized point covers one pixel", "[gfx][raster][points]")
   INFO("lit pixels " << lit);
   CHECK(lit >= 1);
   CHECK(lit <= 16);
+}
+
+// Metal refuses a pipeline whose vertex shader writes the point size when its
+// input primitive topology class is not points, and QRhi sets that class for
+// every multiview pipeline: the cubemap MULTIVIEW:6 writer failed to build.
+TEST_CASE(
+    "the default point size is only written where points can be drawn",
+    "[gfx][raster][points]")
+{
+  const std::string pointsVs = readCorpus("rr-points-default-size.vs");
+  const std::string pointsFs = readCorpus("rr-points-default-size.fs");
+  const std::string cubeVs = readCorpus("syn-cube-six-colors.vs");
+  const std::string cubeFs = readCorpus("syn-cube-six-colors.fs");
+  REQUIRE(!pointsFs.empty());
+  REQUIRE(!cubeFs.empty());
+
+  std::string multiviewPointsFs = pointsFs;
+  const auto pos = multiviewPointsFs.find("\"PIPELINE_STATE\"");
+  REQUIRE(pos != std::string::npos);
+  multiviewPointsFs.insert(pos, "\"MULTIVIEW\": 2,\n  ");
+
+  CHECK(writesPointSize(pointsVs, pointsFs));
+  CHECK(writesPointSize(pointsVs, multiviewPointsFs));
+  CHECK_FALSE(writesPointSize(cubeVs, cubeFs));
 }
