@@ -16,7 +16,9 @@ extern "C" {
 #include <QDebug>
 #include <QElapsedTimer>
 
+#include <chrono>
 #include <functional>
+#include <thread>
 namespace Video
 {
 
@@ -264,10 +266,19 @@ AVFrame* CameraInput::read_frame_impl() noexcept
     AVPacket packet;
     memset(&packet, 0, sizeof(AVPacket));
 
-    do
+    // AVFMT_FLAG_NONBLOCK: a device with no signal (v4l2 DQBUF on a capture
+    // card with nothing plugged in) answers EAGAIN forever, and libav never
+    // polls the interrupt callback on that path. Without checking m_running
+    // here, close_file() joins this thread forever.
+    for(;;)
     {
       res = read_one_frame_avcodec(packet);
-    } while(res.error == AVERROR(EAGAIN));
+      if(res.error != AVERROR(EAGAIN))
+        break;
+      if(!m_running.load(std::memory_order_acquire) || m_interrupt.expired())
+        break;
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
   }
   return res.frame;
 }
