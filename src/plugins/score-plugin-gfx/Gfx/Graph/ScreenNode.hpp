@@ -68,6 +68,10 @@ struct SCORE_PLUGIN_GFX_EXPORT ScreenNode : OutputNode
   std::function<void(float)> onFps;
 
 private:
+  // Frees this output's QRhi device and everything built on it (swap chain,
+  // depth-stencil, render pass descriptor, registry), keeping the window.
+  void releaseDevice();
+
   Configuration m_conf;
   mutable std::atomic_bool m_readbackRequested{false};
   std::shared_ptr<QRhiReadbackResult> m_readback
