@@ -501,7 +501,10 @@ QWidget* ProcessModel::createWindowForUI(const score::DocumentContext& ctx,
   win->setHeight(640);
   win->setColor(qApp->palette().color(QPalette::Window));
 
+  // The visual parent does not own; the QObject parent makes the window delete
+  // the UI. cleanup_ui cannot: on destroyed() m_ui_object->window() is null.
   m_ui_object->setParentItem(win->contentItem());
+  m_ui_object->setParent(win->contentItem());
   connect(win, &QQuickWindow::widthChanged, this, [this, win, fitToWindow] {
     fitToWindow(win, m_ui_object);
   });
