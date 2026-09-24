@@ -219,6 +219,32 @@ void main()
 }
 )__";
 
+// Same bucket, read from the last mip level only. Level 0 is the only level
+// ever uploaded, so this colour exists only if generateMips derived it from
+// a level 0 that was already written. An AUXILIARY texture is sampled through
+// the sampler its own declaration describes, not the bucket's, and that one
+// has no mip filter unless MIPMAP_MODE asks for it.
+constexpr const char* kFsArrLastMip = R"__(/*{
+  "DESCRIPTION": "bucket-array probe at the smallest mip level of layer 0 of BaseColor bucket 0.",
+  "CREDIT": "test",
+  "ISFVSN": "2.0",
+  "MODE": "RAW_RASTER_PIPELINE",
+  "CATEGORIES": ["TEST-SYNTHETIC", "TEST-SCENE"],
+  "VERTEX_INPUTS": [ { "TYPE": "vec4", "NAME": "position" } ],
+  "VERTEX_OUTPUTS": [ { "TYPE": "vec2", "NAME": "v_uv" } ],
+  "FRAGMENT_INPUTS": [ { "TYPE": "vec2", "NAME": "v_uv" } ],
+  "FRAGMENT_OUTPUTS": [ { "TYPE": "vec4", "NAME": "isf_FragColor" } ],
+  "INPUTS": [],
+  "AUXILIARY": [
+    { "NAME": "baseColorArray0", "TYPE": "image", "ARRAY": true, "MIPMAP_MODE": "linear" }
+  ]
+}*/
+void main()
+{
+    isf_FragColor = vec4(textureLod(baseColorArray0, vec3(v_uv, 0.0), 16.0).rgb, 1.0);
+}
+)__";
+
 bool writeTextFile(const QString& path, const char* text)
 {
   QFile f{path};
@@ -350,13 +376,18 @@ ossia::material_component_ptr makeDynMaterial(QRhiTexture* t, uint64_t id)
 // pre-allocates at init (:806-846) -- making the phase-2 realloc a pure
 // layer-count growth of bucket 0 rather than a new-bucket creation, which
 // keeps the consumer's "baseColorArray0" name stable across both phases.
-ossia::material_component_ptr makeStaticMaterial(QColor fill, uint64_t id)
+ossia::material_component_ptr
+makeStaticMaterial(QColor fill, uint64_t id, QColor rightHalf = {})
 {
   QImage img(
       score::gfx::GpuResourceRegistry::kTextureLayerSize,
       score::gfx::GpuResourceRegistry::kTextureLayerSize,
       QImage::Format_RGBA8888);
   img.fill(fill);
+  if(rightHalf.isValid())
+    for(int y = 0; y < img.height(); ++y)
+      for(int x = img.width() / 2; x < img.width(); ++x)
+        img.setPixelColor(x, y, rightHalf);
   QByteArray png;
   {
     QBuffer buf(&png);
@@ -389,6 +420,7 @@ struct ChannelSnap
   bool taken = false;
   std::vector<QRhiTexture*> bucketArrays; // per bucket: array pointer
   std::vector<int> bucketLayers;          // per bucket: layer count
+  std::vector<QRhiTexture::Flags> bucketFlags; // per bucket: array flags
   std::vector<QRhiTexture*> dyn;          // dynamic slot -> texture
 };
 
@@ -405,6 +437,7 @@ void takeSnap(score::gfx::RenderList& r, ChannelSnap& out)
   {
     s.bucketArrays.push_back(b.array);
     s.bucketLayers.push_back(b.layers);
+    s.bucketFlags.push_back(b.array ? b.array->flags() : QRhiTexture::Flags{});
   }
   s.dyn = ch.dynamicTextures;
   out = std::move(s);
@@ -607,6 +640,7 @@ constexpr std::array<uint8_t, 4> kRed{255, 0, 0, 255};
 constexpr std::array<uint8_t, 4> kGreen{0, 255, 0, 255};
 constexpr std::array<uint8_t, 4> kBlue{0, 0, 255, 255};
 constexpr std::array<uint8_t, 4> kYellow{255, 255, 0, 255};
+constexpr std::array<uint8_t, 4> kWhite{255, 255, 255, 255};
 constexpr int kTol = 40;
 
 // -----------------------------------------------------------------------------
@@ -733,7 +767,10 @@ struct ArrOutcome
   bool framesDiffer = false;
 };
 
-ArrOutcome run_array_grow(score::gfx::GraphicsApi api)
+ArrOutcome run_static_phases(
+    score::gfx::GraphicsApi api, const char* fs,
+    std::vector<ossia::material_component_ptr> mats1,
+    std::vector<ossia::material_component_ptr> mats2)
 {
   ArrOutcome out;
   score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
@@ -745,7 +782,7 @@ ArrOutcome run_array_grow(score::gfx::GraphicsApi api)
     }
     const QString vsPath = tmp.filePath("p120-arr.vs");
     const QString fsPath = tmp.filePath("p120-arr.fs");
-    if(!writeTextFile(vsPath, kVs) || !writeTextFile(fsPath, kFsArr))
+    if(!writeTextFile(vsPath, kVs) || !writeTextFile(fsPath, fs))
     {
       out.error = "cannot write shader fixtures";
       return;
@@ -757,29 +794,8 @@ ArrOutcome run_array_grow(score::gfx::GraphicsApi api)
     auto* harness = harness_uptr.get();
     const auto roots = harness->roots;
 
-    // Phase 1: ONE static source (BLUE) -> layer 0 of bucket 0 (which the
-    // preprocessor pre-allocated at init with 1 white layer,
-    // ScenePreprocessorNode.cpp:806-846); wantLayers stays 1, so the phase-1
-    // arrival uploads INTO the existing array without reallocating it.
-    //
-    // Phase 2: TWO materials with two DISTINCT same-size sources; the
-    // materials fingerprint changes and wantLayers becomes 2 != 1 -> the
-    // :3241-3260 loop deleteLater()s the old array and newTextureArray()s a
-    // 2-layer replacement -- the legitimate rebuild path. The DRAWN colour
-    // is layer 0 = the FIRST material's source (YELLOW, walk order =
-    // materials order); the magenta spare exists only to force the growth.
-    //
-    // Colour choice: BaseColor arrays carry QRhiTexture::sRGB
-    // (GpuResourceRegistry.cpp textureChannelFlags), so only pure-0/1
-    // channels are used -- invariant under sRGB decode.
-    auto st1 = makeState(
-        roots, {makeStaticMaterial(QColor(0, 0, 255, 255), 0xB1)},
-        /*version=*/1);
-    auto st2 = makeState(
-        roots,
-        {makeStaticMaterial(QColor(255, 255, 0, 255), 0xB2),
-         makeStaticMaterial(QColor(255, 0, 255, 255), 0xB3)},
-        /*version=*/2);
+    auto st1 = makeState(roots, std::move(mats1), /*version=*/1);
+    auto st2 = makeState(roots, std::move(mats2), /*version=*/2);
 
     const int hn = p.addNode(std::move(harness_uptr));
     const int flat
@@ -837,6 +853,29 @@ ArrOutcome run_array_grow(score::gfx::GraphicsApi api)
     out.framesDiffer = img1.bytes != img2.bytes;
   });
   return out;
+}
+
+ArrOutcome run_array_grow(score::gfx::GraphicsApi api)
+{
+  // Phase 1: ONE static source (BLUE) -> layer 0 of bucket 0 (which the
+  // preprocessor pre-allocated at init with 1 white layer,
+  // ScenePreprocessorNode.cpp:806-846); wantLayers stays 1, so the phase-1
+  // arrival uploads INTO the existing array without reallocating it.
+  //
+  // Phase 2: TWO materials with two DISTINCT same-size sources; the
+  // materials fingerprint changes and wantLayers becomes 2 != 1 -> the
+  // :3241-3260 loop deleteLater()s the old array and newTextureArray()s a
+  // 2-layer replacement -- the legitimate rebuild path. The DRAWN colour
+  // is layer 0 = the FIRST material's source (YELLOW, walk order =
+  // materials order); the magenta spare exists only to force the growth.
+  //
+  // Colour choice: BaseColor arrays carry QRhiTexture::sRGB
+  // (GpuResourceRegistry.cpp textureChannelFlags), so only pure-0/1
+  // channels are used -- invariant under sRGB decode.
+  return run_static_phases(
+      api, kFsArr, {makeStaticMaterial(QColor(0, 0, 255, 255), 0xB1)},
+      {makeStaticMaterial(QColor(255, 255, 0, 255), 0xB2),
+       makeStaticMaterial(QColor(255, 0, 255, 255), 0xB3)});
 }
 
 std::string rgba(std::array<uint8_t, 4> c)
@@ -1006,4 +1045,117 @@ TEST_CASE(
   // blue (or garbage / a validation abort) here.
   CHECK(near(r.mid2, kYellow, kTol));
   CHECK(r.framesDiffer);
+}
+
+// =============================================================================
+// Case 4 -- a layer that survives a growth keeps its content. Phase 2 keeps
+// phase 1's material (same source pointer) first and adds a second one, so
+// bucket 0 grows 1 -> 2 and is reallocated with the blue source still at
+// layer 0. The new array starts empty: the blue has to be uploaded into it
+// again. It is, because every rebuild clears the layer maps and registers
+// every source afresh, so pendingUploads carries all retained layers.
+TEST_CASE(
+    "a layer retained across an array growth is re-uploaded into the new array",
+    "[gfx][scene][material][texture-array]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  const auto kept = makeStaticMaterial(QColor(0, 0, 255, 255), 0xC1);
+  const auto r = run_static_phases(
+      api, kFsArr, {kept},
+      {kept, makeStaticMaterial(QColor(255, 0, 255, 255), 0xC2)});
+  if(r.skipped)
+    SKIP(r.backend + ": " + r.skip_reason);
+
+  INFO("backend=" << r.backend << " error=" << r.error);
+  REQUIRE(r.error.empty());
+  REQUIRE(r.valid1);
+  REQUIRE(r.valid2);
+  REQUIRE(!r.snap1.bucketArrays.empty());
+  REQUIRE(!r.snap2.bucketArrays.empty());
+  INFO("phase1 mid=" << rgba(r.mid1) << " phase2 mid=" << rgba(r.mid2));
+
+  CHECK(near(r.mid1, kBlue, kTol));
+  CHECK(r.snap2.bucketLayers[0] == 2);
+  CHECK(r.snap2.bucketArrays[0] != r.snap1.bucketArrays[0]);
+  CHECK(near(r.mid2, kBlue, kTol));
+}
+
+// =============================================================================
+// Case 5 -- every pool array is allocated able to hold and generate a mip
+// chain, including bucket 0, which init() seeds before any scene arrives and
+// which a one-layer scene then reuses without reallocating.
+TEST_CASE(
+    "every shared-pool array carries the mip flags, the init seed included",
+    "[gfx][scene][material][texture-array][mips]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  const auto r = run_static_phases(
+      api, kFsArr, {makeStaticMaterial(QColor(0, 0, 255, 255), 0xD1)},
+      {makeStaticMaterial(QColor(255, 255, 0, 255), 0xD2),
+       makeStaticMaterial(QColor(255, 0, 255, 255), 0xD3)});
+  if(r.skipped)
+    SKIP(r.backend + ": " + r.skip_reason);
+
+  INFO("backend=" << r.backend << " error=" << r.error);
+  REQUIRE(r.error.empty());
+  REQUIRE(!r.snap1.bucketFlags.empty());
+  REQUIRE(!r.snap2.bucketFlags.empty());
+
+  constexpr auto want
+      = QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips;
+  // Phase 1 is one layer in bucket 0: the init seed, never reallocated.
+  CHECK(r.snap1.bucketLayers[0] == 1);
+  CHECK((r.snap1.bucketFlags[0] & want) == want);
+  // Phase 2 reallocated it.
+  CHECK(r.snap2.bucketLayers[0] == 2);
+  for(auto f : r.snap2.bucketFlags)
+    CHECK((f & want) == want);
+}
+
+// =============================================================================
+// Case 6 -- an empty bucket's fallback reaches every mip level. Phase 2
+// removes every textured material, so bucket 0 shrinks 2 -> 1 into a freshly
+// created array whose only content is the white fallback upload. The chain is
+// generated from level 0, so the fallback has to be uploaded before the mips
+// are generated; the other way round, every level below 0 is derived from an
+// unwritten level 0.
+TEST_CASE(
+    "an emptied bucket's fallback is white at its smallest mip level",
+    "[gfx][scene][material][texture-array][mips]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  auto untextured = std::make_shared<ossia::material_component>();
+  untextured->stable_id = 0xE3;
+  const auto r = run_static_phases(
+      api, kFsArrLastMip,
+      {makeStaticMaterial(
+           QColor(255, 0, 0, 255), 0xE1, QColor(0, 0, 255, 255)),
+       makeStaticMaterial(QColor(255, 0, 255, 255), 0xE2)},
+      {untextured});
+  if(r.skipped)
+    SKIP(r.backend + ": " + r.skip_reason);
+
+  INFO("backend=" << r.backend << " error=" << r.error);
+  REQUIRE(r.error.empty());
+  REQUIRE(r.valid1);
+  REQUIRE(r.valid2);
+  REQUIRE(!r.snap2.bucketArrays.empty());
+  INFO("phase1 mid=" << rgba(r.mid1) << " phase2 mid=" << rgba(r.mid2));
+
+  // Phase 1: the smallest level of a half-red, half-blue layer is their
+  // average, which neither half is -- so the probe reads a derived level.
+  CHECK(r.mid1[0] > 80);
+  CHECK(r.mid1[0] < 220);
+  CHECK(r.mid1[1] < 40);
+  CHECK(r.mid1[2] > 80);
+  CHECK(r.mid1[2] < 220);
+  CHECK(r.snap2.bucketLayers[0] == 1);
+  CHECK(r.snap2.bucketArrays[0] != r.snap1.bucketArrays[0]);
+  CHECK(near(r.mid2, kWhite, kTol));
 }
