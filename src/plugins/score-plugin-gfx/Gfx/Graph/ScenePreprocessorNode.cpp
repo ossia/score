@@ -893,6 +893,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         QRhiTextureUploadEntry entry(0, 0, sub);
         res.uploadTexture(
             b.array, QRhiTextureUploadDescription({entry}));
+        b.mipsDirty = true;
       }
       else
       {
@@ -3232,13 +3233,17 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     }
   }
 
-  //! One decoded image waiting for the pool array that will hold it.
+  //! One decoded image waiting for the pool array that will hold it. A new
+  //! source has no layer until assignNewLayers gives it one (-1).
   struct PendingLayer
   {
     int bucket_idx;
     int layer_idx;
     QImage image;
+    const ossia::texture_source* source{};
+    std::shared_ptr<const ossia::texture_source> keep;
   };
+  using LayerMap = ossia::flat_map<const ossia::texture_source*, int>;
 
   //! Route one channel's material textures into the shared pool, deduping by
   //! texture_source pointer across every channel that already ran.
@@ -3246,8 +3251,13 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   //! the pool is shared, so a later channel discovering a new layer in a bucket
   //! an earlier one already sized would force that array to be reallocated and
   //! every layer in it re-uploaded.
+  //!
+  //! `previous` is each bucket's map from before this rebuild. A source found
+  //! there keeps its bucket and layer and is neither decoded nor uploaded
+  //! again; only sources new to the pool are queued.
   void registerChannelRefs(
       MaterialChannel ch, RenderList& renderer, FlatScene& fs,
+      const std::vector<LayerMap>& previous,
       std::vector<PendingLayer>& pendingUploads)
   {
     if(!m_registry)
@@ -3290,6 +3300,23 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         for(const auto& b : channel.buckets)
           if(b.layerMap.find(s) != b.layerMap.end())
             return;
+
+        // Still in the pool from before this rebuild, in a bucket of this
+        // channel's colourspace: keep its layer, no decode, no upload.
+        for(std::size_t bi = 0; bi < previous.size() && bi < channel.buckets.size();
+            ++bi)
+        {
+          const auto it = previous[bi].find(s);
+          if(it == previous[bi].end())
+            continue;
+          auto& b = channel.buckets[bi];
+          if(b.flags == channelFlags(ch) && it->second >= 0)
+          {
+            b.layerMap[s] = it->second;
+            return;
+          }
+          break;
+        }
 
         // Decode now so we know the native size to pick a bucket.
         // AssetTable `peek` may return a cached QImage → zero-cost.
@@ -3355,9 +3382,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
               b_ptr->pixelSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
         }
 
-        const int layer = (int)b_ptr->layerMap.size();
-        b_ptr->layerMap[s] = layer;
-        pendingUploads.push_back({b_idx, layer, std::move(img)});
+        b_ptr->layerMap[s] = -1;
+        pendingUploads.push_back({b_idx, -1, std::move(img), s, tref.source});
       };
 
       const auto register_material_refs
@@ -3391,6 +3417,43 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
 
   }
 
+  //! Give each new source a layer: the lowest one no retained source holds,
+  //! else a new one at the end. A layer whose source left the scene is freed
+  //! here, and its source released.
+  static void assignNewLayers(
+      GpuResourceRegistry::TextureChannelState& pool,
+      std::vector<PendingLayer>& pendingUploads)
+  {
+    for(std::size_t bi = 0; bi < pool.buckets.size(); ++bi)
+    {
+      auto& b = pool.buckets[bi];
+      std::vector<char> taken(b.layerSources.size(), 0);
+      for(const auto& [src, layer] : b.layerMap)
+        if(layer >= 0 && layer < (int)taken.size())
+          taken[layer] = 1;
+      for(std::size_t i = 0; i < b.layerSources.size(); ++i)
+        if(!taken[i])
+          b.layerSources[i].reset();
+
+      std::size_t next = 0;
+      for(auto& pu : pendingUploads)
+      {
+        if(pu.bucket_idx != (int)bi || pu.layer_idx >= 0)
+          continue;
+        while(next < b.layerSources.size() && b.layerSources[next])
+          ++next;
+        if(next == b.layerSources.size())
+          b.layerSources.emplace_back();
+        pu.layer_idx = (int)next;
+        b.layerSources[next] = pu.keep;
+        b.layerMap[pu.source] = (int)next;
+        ++next;
+      }
+      while(!b.layerSources.empty() && !b.layerSources.back())
+        b.layerSources.pop_back();
+    }
+  }
+
   //! Allocate or grow every bucket in the shared pool and issue the queued
   //! uploads. Returns true when any QRhiTexture was recreated, which the caller
   //! turns into a downstream SRB rebind.
@@ -3416,14 +3479,16 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           GpuResourceRegistry::textureChannelFlags(toTexChannel(ChannelBaseColor)));
     }
 
-    // Per-bucket allocate / reallocate.
+    // Per-bucket allocate / grow. Arrays only grow: a layer freed by a
+    // removed texture is reused by the next new one, not reclaimed.
     bool anyReallocated = false;
+    std::vector<char> reallocated(channel.buckets.size(), 0);
     for(std::size_t bi = 0; bi < channel.buckets.size(); ++bi)
     {
       auto& b = channel.buckets[bi];
       // At least 1 layer — empty bucket gets a fallback at layer 0.
-      const int wantLayers = std::max(1, (int)b.layerMap.size());
-      if(!b.array || b.layers != wantLayers)
+      const int wantLayers = std::max(1, (int)b.layerSources.size());
+      if(!b.array || b.layers < wantLayers)
       {
         if(b.array)
           b.array->deleteLater();
@@ -3448,6 +3513,29 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           {
             b.layers = wantLayers;
             anyReallocated = true;
+            reallocated[bi] = 1;
+
+            // The new array starts empty: every retained layer is uploaded
+            // again, from the source the bucket still holds.
+            std::vector<char> queued(b.layerSources.size(), 0);
+            for(const auto& pu : pendingUploads)
+              if(pu.bucket_idx == (int)bi && pu.layer_idx >= 0
+                 && pu.layer_idx < (int)queued.size())
+                queued[pu.layer_idx] = 1;
+            for(std::size_t li = 0; li < b.layerSources.size(); ++li)
+            {
+              if(queued[li] || !b.layerSources[li])
+                continue;
+              QImage img = decodeTextureSource(
+                  *b.layerSources[li], renderer.assetTable());
+              if(img.isNull())
+                continue;
+              if(img.size() != b.pixelSize)
+                img = img.scaled(
+                    b.pixelSize, Qt::IgnoreAspectRatio,
+                    Qt::SmoothTransformation);
+              pendingUploads.push_back({(int)bi, (int)li, std::move(img)});
+            }
           }
         }
       }
@@ -3483,8 +3571,9 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     for(auto& pu : pendingUploads)
     {
       auto& b = channel.buckets[pu.bucket_idx];
-      if(!b.array)
+      if(!b.array || pu.layer_idx < 0)
         continue;
+      b.mipsDirty = true;
       QImage img = std::move(pu.image);
       if(img.format() != QImage::Format_RGBA8888)
         img.convertTo(QImage::Format_RGBA8888);
@@ -3501,8 +3590,9 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     for(std::size_t bi = 0; bi < channel.buckets.size(); ++bi)
     {
       auto& b = channel.buckets[bi];
-      if(!b.array || !b.layerMap.empty())
+      if(!b.array || !reallocated[bi] || !b.layerMap.empty())
         continue;
+      b.mipsDirty = true;
       // Nothing references an empty bucket -- a material with no texture
       // carries tex_ref_none -- and there is no channel left to pick a
       // per-channel neutral from, so one white fill serves.
@@ -3522,11 +3612,12 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     // has to be derived before anything samples it minified.
     for(auto& b : channel.buckets)
     {
-      if(b.array)
+      if(b.array && b.mipsDirty)
       {
         BUFTRACE() << "[mipgen] bucket array " << b.pixelSize.width() << "x"
                    << b.pixelSize.height() << " layers=" << b.layers;
         res.generateMips(b.array);
+        b.mipsDirty = false;
       }
     }
 
@@ -4126,14 +4217,21 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         auto& pool = m_registry->texturePool();
         if(!sameMaterialsContent || !pool.primaryArray())
         {
+          std::vector<LayerMap> previous;
+          previous.reserve(pool.buckets.size());
           for(auto& b : pool.buckets)
+          {
+            previous.push_back(std::move(b.layerMap));
             b.layerMap.clear();
+          }
 
           std::vector<PendingLayer> pendingUploads;
           pendingUploads.reserve(16);
           for(int i = 0; i < ChannelCount; ++i)
             registerChannelRefs(
-                static_cast<MaterialChannel>(i), renderer, fs, pendingUploads);
+                static_cast<MaterialChannel>(i), renderer, fs, previous,
+                pendingUploads);
+          assignNewLayers(pool, pendingUploads);
 
           channelReallocated
               = allocateAndUploadPool(renderer, res, pendingUploads);

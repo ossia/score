@@ -471,6 +471,38 @@ ossia::material_component_ptr withWrap(
   return copy;
 }
 
+// The shared pool traces one line per rebuild ("[shared texture pool]
+// buckets=N pendingUploads=M ... realloc=true|false"). Uploads are not
+// otherwise observable -- a re-upload into the same array changes no
+// pointer -- so the upload-count cases read that line.
+struct PoolTrace
+{
+  int rebuilds = 0;
+  int lastUploads = -1;
+  bool lastRealloc = false;
+};
+PoolTrace* g_poolTrace = nullptr;
+QtMessageHandler g_prevHandler = nullptr;
+void capturePoolTrace(QtMsgType t, const QMessageLogContext& c, const QString& m)
+{
+  if(g_poolTrace && m.contains(QStringLiteral("[shared texture pool")))
+  {
+    ++g_poolTrace->rebuilds;
+    const auto up = m.indexOf(QStringLiteral("pendingUploads="));
+    if(up >= 0)
+    {
+      int n = 0, i = up + 15;
+      bool any = false;
+      for(; i < m.size() && m[i].isDigit(); ++i, any = true)
+        n = n * 10 + m[i].digitValue();
+      g_poolTrace->lastUploads = any ? n : -1;
+    }
+    g_poolTrace->lastRealloc = m.contains(QStringLiteral("realloc=true"));
+  }
+  if(g_prevHandler)
+    g_prevHandler(t, c, m);
+}
+
 // -----------------------------------------------------------------------------
 // Registry snapshot of the BaseColor channel, taken on the render thread by
 // the harness renderer each frame and read from the (same-thread,
@@ -835,6 +867,20 @@ ArrOutcome run_static_phases(
 {
   ArrOutcome out;
   score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    struct TraceGuard
+    {
+      bool on = g_poolTrace != nullptr;
+      TraceGuard()
+      {
+        if(on)
+          g_prevHandler = qInstallMessageHandler(capturePoolTrace);
+      }
+      ~TraceGuard()
+      {
+        if(on)
+          qInstallMessageHandler(g_prevHandler);
+      }
+    } traceGuard;
     QTemporaryDir tmp;
     if(!tmp.isValid())
     {
@@ -1178,27 +1224,24 @@ TEST_CASE(
 }
 
 // =============================================================================
-// Case 6 -- an empty bucket's fallback reaches every mip level. Phase 2
-// removes every textured material, so bucket 0 shrinks 2 -> 1 into a freshly
-// created array whose only content is the white fallback upload. The chain is
-// generated from level 0, so the fallback has to be uploaded before the mips
-// are generated; the other way round, every level below 0 is derived from an
-// unwritten level 0.
+// Case 6 -- a growth reallocation re-uploads the layers it keeps, and derives
+// their mip chains after the upload. Phase 2 keeps phase 1's half-red,
+// half-blue texture and adds a second one to the same bucket, so the array is
+// reallocated 1 -> 2 and starts empty; the kept texture is uploaded into it
+// again. Its last mip is the red/blue average only if the chain is generated
+// from that upload, not before it.
 TEST_CASE(
-    "an emptied bucket's fallback is white at its smallest mip level",
+    "a growth reallocation regenerates the kept layers' mips after uploading them",
     "[gfx][scene][material][texture-array][mips]")
 {
   const auto api = GENERATE(from_range(platform_backends()));
   CAPTURE(backend_name(api));
 
-  auto untextured = std::make_shared<ossia::material_component>();
-  untextured->stable_id = 0xE3;
+  const auto kept = makeStaticMaterial(
+      QColor(255, 0, 0, 255), 0xE1, QColor(0, 0, 255, 255));
   const auto r = run_static_phases(
-      api, kFsArrLastMip,
-      {makeStaticMaterial(
-           QColor(255, 0, 0, 255), 0xE1, QColor(0, 0, 255, 255)),
-       makeStaticMaterial(QColor(255, 0, 255, 255), 0xE2)},
-      {untextured});
+      api, kFsArrLastMip, {kept},
+      {kept, makeStaticMaterial(QColor(255, 0, 255, 255), 0xE2)});
   if(r.skipped)
     SKIP(r.backend + ": " + r.skip_reason);
 
@@ -1209,16 +1252,13 @@ TEST_CASE(
   REQUIRE(!r.snap2.bucketArrays.empty());
   INFO("phase1 mid=" << rgba(r.mid1) << " phase2 mid=" << rgba(r.mid2));
 
-  // Phase 1: the smallest level of a half-red, half-blue layer is their
-  // average, which neither half is -- so the probe reads a derived level.
-  CHECK(r.mid1[0] > 80);
-  CHECK(r.mid1[0] < 220);
-  CHECK(r.mid1[1] < 40);
-  CHECK(r.mid1[2] > 80);
-  CHECK(r.mid1[2] < 220);
-  CHECK(r.snap2.bucketLayers[0] == 1);
+  const auto purple = [](std::array<uint8_t, 4> c) {
+    return c[0] > 80 && c[0] < 220 && c[1] < 40 && c[2] > 80 && c[2] < 220;
+  };
+  CHECK(purple(r.mid1));
+  CHECK(r.snap2.bucketLayers[0] == 2);
   CHECK(r.snap2.bucketArrays[0] != r.snap1.bucketArrays[0]);
-  CHECK(near(r.mid2, kWhite, kTol));
+  CHECK(purple(r.mid2));
 }
 
 // =============================================================================
@@ -1366,4 +1406,76 @@ TEST_CASE(
   CHECK(score::gfx::declaresCompare(c));
   c.compare = "greater";
   CHECK(score::gfx::declaresCompare(c));
+}
+
+// =============================================================================
+// Case 12 -- R11: a materials change that brings no new texture uploads
+// nothing. Phase 2 adds an untextured material with a new identity -- what a
+// text or procedural producer does -- so the materials fingerprint changes and
+// the pool is rebuilt; both textures are still there, so the rebuild keeps
+// their layers, uploads none, and leaves the array alone.
+TEST_CASE(
+    "a materials change with no new texture re-uploads nothing",
+    "[gfx][scene][material][texture-array][r11]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  const auto a = makeStaticMaterial(QColor(0, 0, 255, 255), 0xC01);
+  const auto b = makeStaticMaterial(QColor(255, 0, 255, 255), 0xC02);
+  auto plain = std::make_shared<ossia::material_component>();
+  plain->stable_id = 0xC03;
+
+  PoolTrace trace;
+  g_poolTrace = &trace;
+  const auto r = run_static_phases(api, kFsArr, {a, b}, {a, b, plain});
+  g_poolTrace = nullptr;
+  if(r.skipped)
+    SKIP(r.backend + ": " + r.skip_reason);
+
+  INFO("backend=" << r.backend << " error=" << r.error);
+  INFO("rebuilds=" << trace.rebuilds << " last uploads=" << trace.lastUploads
+                   << " realloc=" << trace.lastRealloc);
+  REQUIRE(r.error.empty());
+  REQUIRE(r.valid2);
+  REQUIRE(trace.rebuilds >= 2);
+  CHECK(trace.lastUploads == 0);
+  CHECK_FALSE(trace.lastRealloc);
+  CHECK(r.snap2.bucketArrays[0] == r.snap1.bucketArrays[0]);
+  CHECK(near(r.mid2, kBlue, kTol));
+}
+
+// =============================================================================
+// Case 13 -- R11: a removed texture's layer is reused. Phase 2 drops the
+// first texture and adds a new one: the new one takes the freed layer 0,
+// uploading one image and reallocating nothing, and is what layer 0 shows.
+TEST_CASE(
+    "a new texture reuses a removed texture's layer",
+    "[gfx][scene][material][texture-array][r11]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  const auto a = makeStaticMaterial(QColor(0, 0, 255, 255), 0xC11);
+  const auto b = makeStaticMaterial(QColor(255, 0, 255, 255), 0xC12);
+  const auto e = makeStaticMaterial(QColor(255, 255, 0, 255), 0xC13);
+
+  PoolTrace trace;
+  g_poolTrace = &trace;
+  const auto r = run_static_phases(api, kFsArr, {a, b}, {b, e});
+  g_poolTrace = nullptr;
+  if(r.skipped)
+    SKIP(r.backend + ": " + r.skip_reason);
+
+  INFO("backend=" << r.backend << " error=" << r.error);
+  INFO("rebuilds=" << trace.rebuilds << " last uploads=" << trace.lastUploads
+                   << " realloc=" << trace.lastRealloc << " mid2=" << rgba(r.mid2));
+  REQUIRE(r.error.empty());
+  REQUIRE(r.valid2);
+  REQUIRE(trace.rebuilds >= 2);
+  CHECK(trace.lastUploads == 1);
+  CHECK_FALSE(trace.lastRealloc);
+  CHECK(r.snap2.bucketLayers[0] == 2);
+  CHECK(r.snap2.bucketArrays[0] == r.snap1.bucketArrays[0]);
+  CHECK(near(r.mid2, kYellow, kTol));
 }

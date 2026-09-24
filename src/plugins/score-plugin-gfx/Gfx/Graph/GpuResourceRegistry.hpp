@@ -368,10 +368,16 @@ public:
       // modes are applied by the shader from scene_material_wrap.
       QRhiSampler* sampler{};        // created on first allocation; owned
 
-      // Dedup: texture_source shared_ptr pointer → layer index in
-      // this bucket's `array`. Append-only within a materials list;
-      // cleared when the list changes.
+      // Dedup: texture_source pointer → layer index in this bucket's
+      // `array`. Rebuilt on every materials change, but a source that is
+      // still present keeps its layer, so only new sources are uploaded.
       ossia::flat_map<const ossia::texture_source*, int> layerMap;
+      // The source occupying each layer, null for a free one. Holding it
+      // keeps its address from being reused by another source while the map
+      // still names it.
+      std::vector<std::shared_ptr<const ossia::texture_source>> layerSources;
+      // Some layer's level 0 changed since the chain was last generated.
+      bool mipsDirty{false};
     };
 
     // One bucket per distinct (format, pixelSize, colourspace), up to
