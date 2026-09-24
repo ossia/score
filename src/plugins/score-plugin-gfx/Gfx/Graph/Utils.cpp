@@ -2266,6 +2266,11 @@ static QRhiSampler::CompareOp parseCompare(const std::string& s)
 }
 }
 
+bool declaresCompare(const isf::sampler_config& cfg) noexcept
+{
+  return parseCompare(cfg.compare) != QRhiSampler::Never;
+}
+
 QRhiSampler* makeSampler(QRhi& rhi, const isf::sampler_config& cfg)
 {
   const auto defaultLinear = QRhiSampler::Linear;

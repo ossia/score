@@ -209,8 +209,22 @@ private:
     int ladder_size{0};
     bool in_ladder() const noexcept { return ladder_size > 0; }
     bool owns_ladder() const noexcept { return ladder_index == 0 && ladder_size > 0; }
+    // The publisher's sampler for this texture (auxiliary_texture::
+    // sampler_handle), bound in place of `sampler` when set. Non-owning: the
+    // publisher owns it. Never taken for a declaration that asks for COMPARE,
+    // which is the shader's own intent rather than the texture's.
+    QRhiSampler* sampler_override{};
+    bool declares_compare{false};
+    QRhiSampler* boundSampler() const noexcept
+    {
+      return sampler_override ? sampler_override : sampler;
+    }
   };
   std::vector<AuxTextureAuxSampler> m_auxTextureSamplers;
+  // Set by rebindAuxTextures when an AUXILIARY texture's bound sampler
+  // changed; the passes are rebuilt, since a hot texture swap keeps the
+  // sampler.
+  bool m_auxSamplerChanged{false};
 
   // Emit the SRB bindings for m_auxTextureSamplers, advancing `binding`.
   // Shared by initPass and initMRTPass so the two can never disagree about

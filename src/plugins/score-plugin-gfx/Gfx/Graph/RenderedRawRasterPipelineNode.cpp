@@ -427,7 +427,7 @@ void RenderedRawRasterPipelineNode::appendAuxTextureBindings(
       binding++;
 
       out.push_back(
-          QRhiShaderResourceBinding::sampler(binding, stages, ats.sampler));
+          QRhiShaderResourceBinding::sampler(binding, stages, ats.boundSampler()));
       binding++;
       continue;
     }
@@ -446,7 +446,7 @@ void RenderedRawRasterPipelineNode::appendAuxTextureBindings(
     else
     {
       b = QRhiShaderResourceBinding::sampledTexture(
-          binding, stages, ats.texture, ats.sampler);
+          binding, stages, ats.texture, ats.boundSampler());
     }
     out.push_back(b);
     ats.binding = binding;
@@ -2275,6 +2275,7 @@ void RenderedRawRasterPipelineNode::initState(
       if(!atx.is_storage && (!ats.in_ladder() || ats.owns_ladder()))
       {
         ats.sampler = score::gfx::makeSampler(rhi, atx.sampler);
+        ats.declares_compare = score::gfx::declaresCompare(atx.sampler);
         ats.sampler->setName(
             ("RRP_aux_tex_sampler::" + atx.name).c_str());
       }
@@ -3096,6 +3097,8 @@ void RenderedRawRasterPipelineNode::update(
   {
     mustRecreatePasses = true;
   }
+  if(std::exchange(m_auxSamplerChanged, false))
+    mustRecreatePasses = true;
 
   if(mustRecreatePasses)
   {
@@ -3407,6 +3410,16 @@ bool RenderedRawRasterPipelineNode::rebindAuxTextures()
   for(auto& ats : m_auxTextureSamplers)
   {
     const auto* aux = mesh.find_auxiliary_texture(ats.name);
+    if(!ats.is_storage && ats.sampler && !ats.declares_compare)
+    {
+      auto* smp = aux ? static_cast<QRhiSampler*>(aux->sampler_handle) : nullptr;
+      if(smp != ats.sampler_override)
+      {
+        ats.sampler_override = smp;
+        m_auxSamplerChanged = true;
+        changed = true;
+      }
+    }
     auto* tex = aux ? static_cast<QRhiTexture*>(aux->native_handle) : nullptr;
     if(!tex)
       tex = ats.placeholder; // revert to empty of the right kind

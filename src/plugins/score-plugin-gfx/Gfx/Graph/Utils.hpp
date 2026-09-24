@@ -733,6 +733,12 @@ namespace score::gfx
  */
 SCORE_PLUGIN_GFX_EXPORT
 QRhiSampler* makeSampler(QRhi& rhi, const isf::sampler_config& cfg);
+
+//! Whether a declared sampler asks for a depth comparison. Such a sampler is
+//! the shader's own intent, not a property of the texture, so it is kept even
+//! when the texture's publisher offers a sampler of its own.
+SCORE_PLUGIN_GFX_EXPORT
+bool declaresCompare(const isf::sampler_config& cfg) noexcept;
 } // namespace score::gfx
 
 namespace isf

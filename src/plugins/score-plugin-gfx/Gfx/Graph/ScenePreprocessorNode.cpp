@@ -103,6 +103,26 @@ struct MaterialUVTransformGPU
 static_assert(sizeof(MaterialUVTransformGPU) == 112,
               "MaterialUVTransformGPU layout must match shader (7 × vec4)");
 
+// Per-material texture wrap modes, one uvec4 per material arena slot, parallel
+// to scene_material_uv_xforms. Four bits per texture ref: wrap_s in the low
+// two, wrap_t in the high two, 0 = repeat, 1 = clamp to edge, 2 = mirror.
+//   x : main refs, base colour, metal-rough, normal, emissive, occlusion
+//   y : MaterialExtensionsGPU::textureRefs[0..7]
+//   z : MaterialExtensionsGPU::textureRefs[8..15]
+// Every pool array is sampled through one repeat sampler, so a shader that
+// wants a texture's own wrap mode applies it to the UV from this table.
+struct MaterialWrapGPU
+{
+  uint32_t words[4]{0u, 0u, 0u, 0u};
+};
+static_assert(sizeof(MaterialWrapGPU) == 16, "MaterialWrapGPU is one uvec4");
+
+inline uint32_t wrapBits(const ossia::texture_ref& tr) noexcept
+{
+  return (uint32_t(tr.sampler.wrap_s) & 3u)
+         | ((uint32_t(tr.sampler.wrap_t) & 3u) << 2);
+}
+
 // Material texture channels. Each channel has its own QRhiTextureArray with
 // the appropriate pixel format (sRGB vs linear) and dedup map. Index into
 // MaterialGPU::textureRefs[].
@@ -307,6 +327,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   QRhiBuffer* m_materialUVTransformsBuffer{};
   int64_t m_materialUVTransformsCap{};
   std::vector<MaterialUVTransformGPU> m_cachedMaterialUVTransforms;
+
+  QRhiBuffer* m_materialWrapBuffer{};
+  int64_t m_materialWrapCap{};
+  std::vector<MaterialWrapGPU> m_cachedMaterialWraps;
 
   // One QRhiBuffer per forwarded scene_data entry — allocated when the
   // scene_data carries CPU-side `buffer_data`, borrowed from the upstream
@@ -775,6 +799,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     m_shadowCascadesSeeded = false;
     m_cachedSceneCounts = {~0u, ~0u, ~0u, 0u};
     m_cachedMaterialUVTransforms.clear();
+    m_cachedMaterialWraps.clear();
     m_cachedCameras.clear();
     m_lastCameraUploadFrame = -1;
     m_cachedInstDrawIds.clear();
@@ -891,6 +916,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     dropBuf(m_materialsExtBuffer);
     dropBuf(m_materialUVTransformsBuffer);
     m_materialUVTransformsCap = 0;
+    dropBuf(m_materialWrapBuffer);
+    m_materialWrapCap = 0;
     for(auto& sd : m_sceneDataBuffers)
       if(sd.owned && sd.buffer) renderer.releaseBuffer(sd.buffer);
     m_sceneDataBuffers.clear();
@@ -2917,6 +2944,14 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           .byte_offset = 0,
           .byte_size = m_materialUVTransformsCap});
     }
+    {
+      const int buf_idx = (int)g.buffers.size();
+      g.buffers.push_back(wrapGpu(m_materialWrapBuffer, m_materialWrapCap));
+      g.auxiliary.push_back({
+          .name = "scene_material_wrap", .buffer = buf_idx,
+          .byte_offset = 0,
+          .byte_size = m_materialWrapCap});
+    }
 
     // per_draw_bounds — sidecar to per_draws, one local-space AABB per
     // draw (std430 2×vec4 = 32 B). GPU culling shaders read it together with
@@ -3262,16 +3297,16 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         if(img.isNull())
           return;
 
-        // Route to a bucket keyed on (format, size, sampler_config). Splitting
-        // on sampler_config honours per-texture wrap/filter modes when several
-        // materials share a channel array; most glTFs use a single sampler, so
-        // it collapses to one bucket per (format, size).
+        // Route to a bucket keyed on (format, size, colourspace). The sampler
+        // is not part of the key: every bucket is sampled through the same
+        // repeat, trilinear sampler, and a texture's own wrap mode travels in
+        // scene_material_wrap for the shader to apply.
         auto [b_idx, b_ptr] = channel.findOrCreateBucket(
-            QRhiTexture::RGBA8, img.size(), channelFlags(ch), tref.sampler);
+            QRhiTexture::RGBA8, img.size(), channelFlags(ch));
         if(b_idx < 0)
         {
           // Out of buckets: resample into the closest bucket that agrees on
-          // everything but size -- the smallest one at least as large, else
+          // format and colourspace -- the smallest one at least as large, else
           // the largest -- rather than drop the texture. A small constant
           // texture survives this exactly.
           const auto flags = channelFlags(ch);
@@ -3279,8 +3314,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           for(std::size_t i = 0; i < channel.buckets.size(); ++i)
           {
             auto& cand = channel.buckets[i];
-            if(cand.format != QRhiTexture::RGBA8 || cand.flags != flags
-               || !(cand.sampler_config == tref.sampler))
+            if(cand.format != QRhiTexture::RGBA8 || cand.flags != flags)
               continue;
             const bool fits = cand.pixelSize.width() >= img.width()
                               && cand.pixelSize.height() >= img.height();
@@ -3306,8 +3340,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
                 << "ScenePreprocessor: shared texture pool"
                 << "hit bucket cap ("
                 << GpuResourceRegistry::kMaxBuckets
-                << ") and no bucket shares this texture's format, colourspace"
-                   " and sampler; texture_source skipped -- shader will see"
+                << ") and no bucket shares this texture's format and"
+                   " colourspace; texture_source skipped -- shader will see"
                    " tex_ref_none.";
             return;
           }
@@ -3418,48 +3452,16 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         }
       }
 
-      // Per-bucket QRhiSampler. Created on first allocation, kept
-      // alive across rebuilds (the sampler_config is immutable for a
-      // bucket — bucket identity includes it). Never recreated unless
-      // the bucket is destroyed.
+      // Per-bucket QRhiSampler, identical for every bucket: repeat and
+      // trilinear. Wrap modes are per texture and applied by the shader from
+      // scene_material_wrap, since a collapsed ladder binds a single sampler
+      // for all of its buckets. Created on first allocation and kept alive
+      // across rebuilds.
       if(b.array && !b.sampler)
       {
-        auto wrap_to_qrhi = [](ossia::texture_address_mode m) {
-          switch(m)
-          {
-            case ossia::REPEAT:        return QRhiSampler::Repeat;
-            case ossia::CLAMP_TO_EDGE: return QRhiSampler::ClampToEdge;
-            case ossia::MIRROR:        return QRhiSampler::Mirror;
-          }
-          return QRhiSampler::Repeat;
-        };
-        auto filter_to_qrhi = [](ossia::texture_filter f,
-                                 QRhiSampler::Filter dflt) {
-          switch(f)
-          {
-            case ossia::NONE:    return QRhiSampler::None;
-            case ossia::NEAREST: return QRhiSampler::Nearest;
-            case ossia::LINEAR:  return QRhiSampler::Linear;
-          }
-          return dflt;
-        };
-        // Material textures are uploaded with a full mip chain
-        // (TextureLoader.cpp uploadImageToTexture), so promote the bucket
-        // sampler to trilinear: mag/min filter NONE becomes LINEAR, mipmap_mode
-        // NONE becomes LINEAR. NEAREST is preserved -- that is an explicit
-        // author choice for pixel-art assets. glTFs commonly declare
-        // minFilter=LINEAR rather than LINEAR_MIPMAP_LINEAR, which would
-        // otherwise sample mip 0 only.
-        auto promote_to_linear
-            = [](ossia::texture_filter f) -> ossia::texture_filter {
-          return f == ossia::NONE ? ossia::LINEAR : f;
-        };
         b.sampler = rhi.newSampler(
-            filter_to_qrhi(promote_to_linear(b.sampler_config.mag_filter), QRhiSampler::Linear),
-            filter_to_qrhi(promote_to_linear(b.sampler_config.min_filter), QRhiSampler::Linear),
-            filter_to_qrhi(promote_to_linear(b.sampler_config.mipmap_mode), QRhiSampler::Linear),
-            wrap_to_qrhi(b.sampler_config.wrap_s),
-            wrap_to_qrhi(b.sampler_config.wrap_t));
+            QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::Linear,
+            QRhiSampler::Repeat, QRhiSampler::Repeat);
         b.sampler->setName(
             QByteArray("ScenePreprocessor::")
             + GpuResourceRegistry::kSharedArrayName + "_sampler["
@@ -4343,6 +4345,11 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       if(grow(m_materialUVTransformsBuffer, m_materialUVTransformsCap, uvXformBytes,
               "ScenePreprocessor::material_uv_xforms"))
         m_cachedMaterialUVTransforms.clear();
+      const int64_t wrapBytes = std::max<int64_t>(
+          16, (int64_t)arenaSlotEntries * sizeof(MaterialWrapGPU));
+      if(grow(m_materialWrapBuffer, m_materialWrapCap, wrapBytes,
+              "ScenePreprocessor::material_wrap"))
+        m_cachedMaterialWraps.clear();
       // scene_light_indices: compact uint array of arena slot indices.
       // Count the lights with valid arena slots (filter out 0xFFFFFFFF
       // sentinels from producer-less lights).
@@ -4675,6 +4682,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           arenaSlotEntries);
       std::vector<MaterialExtensionsGPU> freshMaterialExtensions(
           arenaSlotEntries);
+      std::vector<MaterialWrapGPU> freshMaterialWraps(arenaSlotEntries);
       if(this->scene.state && this->scene.state->materials)
       {
         const auto& mats = *this->scene.state->materials;
@@ -4699,6 +4707,17 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           pack_xform(g.normal_offset_scale, &g.rotations0[2], mats[i]->normal_texture);
           pack_xform(g.em_offset_scale,     &g.rotations0[3], mats[i]->emissive_texture);
           pack_xform(g.occ_offset_scale,    &g.rotations1[0], mats[i]->occlusion_texture);
+
+          auto& w = freshMaterialWraps[slot];
+          const auto& m = *mats[i];
+          w.words[0] = wrapBits(m.base_color_texture)
+                       | (wrapBits(m.metallic_roughness_texture) << 4)
+                       | (wrapBits(m.normal_texture) << 8)
+                       | (wrapBits(m.emissive_texture) << 12)
+                       | (wrapBits(m.occlusion_texture) << 16);
+          for(const auto& ext : kExtTextureSlots)
+            w.words[1 + ext.slot / 8]
+                |= wrapBits(ext.accessor(m)) << (4 * (ext.slot % 8));
 
           // Material extensions are already packed by flattenScene at
           // fs.material_extensions[i]; copy into the arena-slot index.
@@ -4749,6 +4768,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
                    freshMaterialExtensions);
         diffUpload(res, m_materialUVTransformsBuffer,
                    m_cachedMaterialUVTransforms, freshMaterialUVTransforms);
+        diffUpload(res, m_materialWrapBuffer, m_cachedMaterialWraps,
+                   freshMaterialWraps);
         diffUpload(res, m_mdi.per_draws,   m_cachedPerDraws,  freshPerDraws);
         // per_draw_bounds is static across a frame (local-space AABB,
         // never changes per-frame for the same topology) — on the fast
@@ -4782,6 +4803,11 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
               m_materialUVTransformsBuffer, 0,
               freshMaterialUVTransforms.size() * sizeof(MaterialUVTransformGPU),
               freshMaterialUVTransforms.data());
+        if(!freshMaterialWraps.empty())
+          res.uploadStaticBuffer(
+              m_materialWrapBuffer, 0,
+              freshMaterialWraps.size() * sizeof(MaterialWrapGPU),
+              freshMaterialWraps.data());
 
         rebuildMDI(renderer, res, fs, materialTagHashes);
         rebuildPrimitiveClouds(renderer, res, fs);
@@ -4800,6 +4826,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         m_cachedLightIndices = std::move(freshLightIndices);
         m_cachedMaterialExt = std::move(freshMaterialExtensions);
         m_cachedMaterialUVTransforms = std::move(freshMaterialUVTransforms);
+        m_cachedMaterialWraps = std::move(freshMaterialWraps);
         // m_cachedPerDraws / m_cachedPerDrawBounds are NOT seeded here:
         // rebuildMDI() already assigned them from acc.perDraws (the
         // actually-emitted set, after emitDraw's skip predicate), so the
