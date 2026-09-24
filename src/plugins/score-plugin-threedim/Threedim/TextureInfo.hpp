@@ -15,17 +15,11 @@ namespace Threedim
 // (width, height, format, native handle) on regular value-output ports
 // plus a single human-readable summary string.
 //
-// Wiring: when an Image-typed edge is connected to our Texture port,
-// score's CpuAnalysisNode (the GfxRenderer specialization for nodes
-// with no texture/buffer/geometry outputs) allocates a render target
-// at init time via texture_inputs_storage::init(), points the upstream
-// at it through renderTargetForInput(), and -- thanks to the
-// gpu_texture_port branch in that storage -- writes the resulting
-// QRhiTexture pointer plus its pixel size into our gpu_texture struct
-// (handle / width / height). The format enum is mapped from the
-// negotiated QRhiTexture::Format via gpp::qrhi::toTextureFormat. None of
-// the per-frame readback machinery used for halp::texture_input fires
-// for us.
+// Wiring: the avnd bridge (texture_inputs_storage) resolves the inlet every
+// frame. Unwired, the handle is null and the size 0x0. When the upstream
+// publishes its own texture (textureForOutput), that texture is reported;
+// otherwise the upstream draws into the inlet's render target and that one
+// is reported.
 class TextureInfo
 {
 public:

@@ -51,10 +51,9 @@ public:
 
   struct ins
   {
-    // Accepts any GPU texture kind — 2D, cubemap, array. Downstream
-    // consumer shaders (classic_pbr_ibl, classic_pbr_shadowed) declare
-    // their own sampler shape (samplerCube / sampler2DArray / sampler2D)
-    // and it's the authoring's responsibility to match the two.
+    // Accepts any GPU texture kind. A texture is routed only when its kind
+    // matches the target's sampler: cubemap for Skybox / IrradianceMap /
+    // PrefilteredMap, 2D for BRDFLut, array for ShadowMapArray.
     halp::gpu_texture_input<"Texture"> texture;
 
     // Port-driven rebuild: target changes fire rebuild(); upstream

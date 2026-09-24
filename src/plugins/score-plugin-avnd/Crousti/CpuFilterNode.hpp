@@ -49,6 +49,14 @@ struct GfxRenderer<Node_T> final
   {
   }
 
+  using score::gfx::NodeRenderer::process;
+  void process(int32_t port, const ossia::transform3d& v) override
+  {
+    if constexpr(avnd::geometry_input_introspection<Node_T>::size > 0)
+      geometry_ins.setTransform(port, v, *state);
+    score::gfx::GenericNodeRenderer::process(port, v);
+  }
+
   score::gfx::TextureRenderTarget
   renderTargetForInput(const score::gfx::Port& p) override
   {
@@ -81,7 +89,7 @@ struct GfxRenderer<Node_T> final
   // For non-2D gpu_texture_input fields (cubemap / array / 3D) the port is
   // flagged GrabsFromSource, so Graph::updateSinkSampler calls here with the
   // upstream's QRhiTexture; write it into the matching halp field. Classic 2D
-  // inputs ignore this path -- texture_inputs_storage::init sets their handle.
+  // inputs ignore this path -- texture_inputs_storage resolves their handle.
   //
   // depthTex is passed when the port opts in via halp_meta(samplable_depth,
   // true), and is stored on texture.depth_handle.
@@ -369,7 +377,7 @@ struct GfxRenderer<Node_T> final
       res = renderer.state.rhi->nextResourceUpdateBatch();
 
       if constexpr(avnd::texture_input_introspection<Node_T>::size > 0)
-        texture_ins.inputAboutToFinish(this->node(), p, res);
+        texture_ins.inputAboutToFinish(*this, renderer, p, res);
       if constexpr(avnd::buffer_input_introspection<Node_T>::size > 0)
         buffer_ins.inputAboutToFinish(renderer, res, *state, this->node());
       if constexpr(avnd::geometry_input_introspection<Node_T>::size > 0)
@@ -412,13 +420,13 @@ struct GfxRenderer<Node_T> final
       }
 
       if constexpr(avnd::texture_input_introspection<Node_T>::size > 0)
-        texture_ins.runInitialPasses(*this, rhi);
+        texture_ins.runInitialPasses(*this, renderer);
       if constexpr(avnd::buffer_input_introspection<Node_T>::size > 0)
         buffer_ins.readInputBuffers(renderer, parent, *state);
       if constexpr(avnd::geometry_input_introspection<Node_T>::size > 0)
         geometry_ins.readInputGeometries(renderer, this->geometry, parent, *state);
       if constexpr(scene_input_introspection<Node_T>::size > 0)
-        scene_ins.readInputScenes(this->scene, *state);
+        scene_ins.readInputScenes(*this, *state);
 
       buffer_outs.prepareUpload(*res);
 

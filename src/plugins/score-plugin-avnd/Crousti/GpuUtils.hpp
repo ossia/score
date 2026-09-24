@@ -813,6 +813,24 @@ struct geometry_inputs_storage<T>
   geometry_input_storage inputs[avnd::geometry_input_introspection<T>::size];
   ossia::small_vector<QRhiBuffer*, 4> allocated;
 
+  struct pending_transform
+  {
+    ossia::transform3d value;
+    bool dirty{};
+  };
+  pending_transform transforms[avnd::geometry_input_introspection<T>::size];
+
+  void setTransform(int32_t port, const ossia::transform3d& v, auto& state)
+  {
+    avnd::geometry_input_introspection<T>::for_all_n2(
+        avnd::get_inputs<T>(state),
+        [&]<typename Field, std::size_t N, std::size_t NField>(
+            Field&, avnd::predicate_index<N>, avnd::field_index<NField>) {
+      if(int32_t(NField) == port)
+        transforms[N] = {v, true};
+    });
+  }
+
   void readInputGeometries(
       score::gfx::RenderList& renderer, const ossia::geometry_spec& spec, auto& parent,
       auto& state)
@@ -851,6 +869,45 @@ struct geometry_inputs_storage<T>
           write_buf.byte_size = readback.size();
         }
       });
+
+      if constexpr(requires {
+                     t.transform[0];
+                     t.dirty_transform;
+                   })
+      {
+        auto& pending = transforms[N];
+        if(pending.dirty)
+        {
+          static_assert(std::extent_v<std::remove_cvref_t<decltype(t.transform)>> == 16);
+          std::copy_n(pending.value.matrix, 16, t.transform);
+          pending.dirty = false;
+          t.dirty_transform = true;
+        }
+        else
+        {
+          t.dirty_transform = false;
+        }
+      }
+
+      if constexpr(requires { t.mesh.buffers[0].handle; })
+      {
+        if(spec.meshes && !spec.meshes->meshes.empty())
+        {
+          const auto& src = spec.meshes->meshes[0].buffers;
+          const std::size_t n
+              = std::min({src.size(), t.mesh.buffers.size(), meshes.buffers.size()});
+          for(std::size_t i = 0; i < n; i++)
+          {
+            if(!ossia::get_if<ossia::geometry::cpu_buffer>(&src[i].data))
+              continue;
+            if(QRhiBuffer* handle = meshes.buffers[i])
+            {
+              t.mesh.buffers[i].handle = handle;
+              t.mesh.buffers[i].byte_size = handle->size();
+            }
+          }
+        }
+      }
     });
   }
 
@@ -867,16 +924,16 @@ struct geometry_inputs_storage<T>
       // Here we request readbacks if necessary
 
       auto& meshes = this->inputs[N].meshes[0];
-      oscr::meshes_from_ossia(
-          spec.meshes, t.mesh,
-          [&](auto& write_buf, int buffer_index, void* data, int64_t bytesize) {
-        // cpu -> gpu
-        if(meshes.buffers.size() <= buffer_index)
+      auto upload = [&](int buffer_index, const void* data, int64_t bytesize) {
+        if(meshes.buffers.size() <= std::size_t(buffer_index))
         {
           meshes.buffers.resize(buffer_index + 1);
           meshes.readbacks.resize(buffer_index + 1);
-
-          auto buf = renderer.state.rhi->newBuffer(
+        }
+        QRhiBuffer*& buf = meshes.buffers[buffer_index];
+        if(!buf || !ossia::contains(allocated, buf))
+        {
+          buf = renderer.state.rhi->newBuffer(
               QRhiBuffer::Static,
               score::gfx::compatibleBufferUsage(
                   *renderer.state.rhi,
@@ -885,17 +942,21 @@ struct geometry_inputs_storage<T>
           buf->setName(oscr::getUtf8Name<T>() + "::" + oscr::getUtf8Name(t));
           buf->create();
           allocated.push_back(buf);
-          meshes.buffers[buffer_index] = buf;
         }
-        else if(auto* existing = meshes.buffers[buffer_index];
-                existing && existing->size() < bytesize)
+        else if(buf->size() < bytesize)
         {
           // Buffer exists but is too small — resize it.
-          existing->setSize(bytesize);
-          existing->create();
+          buf->setSize(bytesize);
+          buf->create();
         }
 
-        res->uploadStaticBuffer(meshes.buffers[buffer_index], 0, bytesize, data);
+        res->uploadStaticBuffer(buf, 0, bytesize, data);
+      };
+      oscr::meshes_from_ossia(
+          spec.meshes, t.mesh,
+          [&](auto& write_buf, int buffer_index, void* data, int64_t bytesize) {
+        // cpu -> gpu
+        upload(buffer_index, data, bytesize);
       }, [&](auto& write_buf, int buffer_index, void* handle) {
         // gpu -> cpu
         if(meshes.readbacks.size() <= buffer_index)
@@ -916,6 +977,27 @@ struct geometry_inputs_storage<T>
           meshes.readbacks[buffer_index] = {};
         }
       });
+
+      // A CPU buffer is flagged dirty only on the frame it changed: a consumer
+      // that first sees it later (inserted into a running graph, or rebuilt)
+      // still has to upload it once.
+      if constexpr(requires { t.mesh.buffers[0].handle; })
+      {
+        if(spec.meshes && !spec.meshes->meshes.empty())
+        {
+          const auto& src = spec.meshes->meshes[0].buffers;
+          for(std::size_t i = 0; i < src.size(); i++)
+          {
+            auto* cpu = ossia::get_if<ossia::geometry::cpu_buffer>(&src[i].data);
+            if(!cpu || !cpu->raw_data || cpu->byte_size <= 0)
+              continue;
+            if(i < meshes.buffers.size() && meshes.buffers[i]
+               && ossia::contains(allocated, meshes.buffers[i]))
+              continue;
+            upload(int(i), cpu->raw_data.get(), cpu->byte_size);
+          }
+        }
+      }
     });
   }
 
@@ -924,6 +1006,8 @@ struct geometry_inputs_storage<T>
     for(auto& buf : allocated)
       renderer.releaseBuffer(buf);
     allocated.clear();
+    for(auto& in : inputs)
+      in.meshes.clear();
   }
 };
 
@@ -1352,27 +1436,110 @@ struct texture_inputs_storage<T>
 
       constexpr bool wantsSamplableDepth
           = avnd::gpu_texture_port<F> && halp::samplable_depth_of<F>();
-      auto tex = createInput(
-          renderer, parent.input[N], t.texture, spec, wantsSamplableDepth);
+      createInput(renderer, parent.input[N], t.texture, spec, wantsSamplableDepth);
       if constexpr(avnd::cpu_texture_port<F>)
       {
         t.texture.width = spec.size.width();
         t.texture.height = spec.size.height();
       }
-      else if constexpr(avnd::gpu_texture_port<F>)
+    });
+
+    refreshGpuInputs(self, renderer);
+  }
+
+  static std::pair<bool, QRhiTexture*>
+  upstreamTexture(score::gfx::RenderList& renderer, const score::gfx::Port& port)
+  {
+    bool wired = false;
+    for(auto* edge : port.edges)
+    {
+      if(!edge || !edge->source || !edge->source->node)
+        continue;
+      auto& rendered = edge->source->node->renderedNodes;
+      auto it = rendered.find(&renderer);
+      if(it == rendered.end() || !it->second)
+        continue;
+      wired = true;
+      if(auto* tex = it->second->textureForOutput(*edge->source))
+        return {true, tex};
+    }
+    return {wired, nullptr};
+  }
+
+  static void describeTexture(halp::gpu_texture& dst, QRhiTexture& tex)
+  {
+    const auto sz = tex.pixelSize();
+    dst.handle = &tex;
+    dst.width = sz.width();
+    dst.height = sz.height();
+    gpp::qrhi::toTextureFormat(tex.format(), dst);
+    const auto flags = tex.flags();
+    if(flags & QRhiTexture::CubeMap)
+    {
+      dst.kind = halp::texture_kind::cubemap;
+      dst.layers_or_depth = 6;
+    }
+    else if(flags & QRhiTexture::ThreeDimensional)
+    {
+      dst.kind = halp::texture_kind::texture_3d;
+      dst.layers_or_depth = tex.depth();
+    }
+    else if(flags & QRhiTexture::TextureArray)
+    {
+      dst.kind = halp::texture_kind::texture_array;
+      dst.layers_or_depth = tex.arraySize();
+    }
+    else
+    {
+      dst.kind = halp::texture_kind::texture_2d;
+      dst.layers_or_depth = 1;
+    }
+  }
+
+  void refreshGpuInputs(auto& self, score::gfx::RenderList& renderer)
+  {
+    avnd::texture_input_introspection<T>::for_all_n2(
+        avnd::get_inputs<T>(*self.state),
+        [&]<typename F, std::size_t K, std::size_t N>(
+            F& t, avnd::predicate_index<K>, avnd::field_index<N>) {
+      if constexpr(
+          avnd::gpu_texture_port<F>
+          && halp::texture_kind_of<F>() == halp::texture_kind::texture_2d)
       {
-        t.texture.handle = tex;
-        t.texture.width = spec.size.width();
-        t.texture.height = spec.size.height();
+        constexpr bool wantsSamplableDepth = halp::samplable_depth_of<F>();
+        auto* port = self.node().input[N];
+        auto& tex = t.texture;
+        auto [wired, direct] = upstreamTexture(renderer, *port);
+
+        const auto rt_it = m_rts.find(port);
+        QRhiTexture* src = nullptr;
+        if(wired)
+        {
+          if constexpr(!wantsSamplableDepth)
+            src = direct;
+          if(!src && rt_it != m_rts.end())
+            src = rt_it->second.texture;
+        }
+
+        if(!src)
+        {
+          tex.handle = nullptr;
+          tex.width = 0;
+          tex.height = 0;
+          tex.kind = halp::texture_kind::texture_2d;
+          tex.layers_or_depth = 1;
+          if constexpr(wantsSamplableDepth)
+            tex.depth_handle = nullptr;
+          return;
+        }
+
+        describeTexture(tex, *src);
         if constexpr(wantsSamplableDepth)
         {
-          // The local RT just allocated owns a sampleable depth texture
-          // that the upstream renders into when the edge runs — same
-          // pointer, stable for the RT's lifetime, no per-frame refresh.
-          const auto& rt = m_rts[parent.input[N]];
-          t.texture.depth_handle = rt.depthTexture;
-          if(rt.depthTexture)
-            t.texture.depth_format = qrhiToHalpDepthFormat(rt.depthTexture->format());
+          auto* depth = rt_it->second.depthTexture;
+          tex.depth_handle = depth;
+          if(depth)
+            tex.depth_format = qrhiToHalpDepthFormat(depth->format());
         }
       }
     });
@@ -1425,8 +1592,21 @@ struct texture_inputs_storage<T>
     return false;
   }
 
-  void runInitialPasses(auto& self, QRhi& rhi)
+  template <typename F>
+  static constexpr bool reads_upstream_directly() noexcept
   {
+    using Tex = std::decay_t<decltype(F::texture)>;
+    return avnd::cpu_texture_port<F>
+           && requires(Tex tex) { tex.format = {}; }
+           && !requires(Tex tex) { tex.request_format; }
+           && !requires(F f) { f.request_width; };
+  }
+
+  void runInitialPasses(auto& self, score::gfx::RenderList& renderer)
+  {
+    auto& rhi = *renderer.state.rhi;
+    refreshGpuInputs(self, renderer);
+
     // Fetch input textures (if any)
     // Copy the readback output inside the structure
     // TODO it would be much better to do this inside the readback's
@@ -1437,6 +1617,16 @@ struct texture_inputs_storage<T>
           avnd::get_inputs<T>(*self.state), [&]<typename F, std::size_t K>(F& t, avnd::predicate_index<K>) {
         if constexpr(avnd::cpu_texture_port<F>)
           {
+            if constexpr(reads_upstream_directly<F>())
+            {
+              const auto& rb = m_readbacks[K];
+              if(!rb.pixelSize.isEmpty())
+              {
+                t.texture.width = rb.pixelSize.width();
+                t.texture.height = rb.pixelSize.height();
+                gpp::qrhi::toTextureFormat(rb.format, t.texture);
+              }
+            }
             oscr::loadInputTexture(rhi, m_readbacks, t.texture, K);
           }
       });
@@ -1452,18 +1642,42 @@ struct texture_inputs_storage<T>
     m_rts.clear();
   }
 
-  void inputAboutToFinish(auto& parent, const score::gfx::Port& p,  QRhiResourceUpdateBatch*& res)
+  void inputAboutToFinish(
+      auto& self, score::gfx::RenderList& renderer, const score::gfx::Port& p,
+      QRhiResourceUpdateBatch*& res)
   {
     if constexpr(avnd::cpu_texture_input_introspection<T>::size > 0)
     {
-      const auto& inputs = parent.input;
-      auto index_of_port = ossia::find(inputs, &p) - inputs.begin();
-      {
-        auto tex = m_rts[&p].texture;
-        auto& readback = m_readbacks[index_of_port];
-        readback = {};
-        res->readBackTexture(QRhiReadbackDescription{tex}, &readback);
-      }
+      const auto& inputs = self.node().input;
+      avnd::texture_input_introspection<T>::for_all_n2(
+          avnd::get_inputs<T>(*self.state),
+          [&]<typename F, std::size_t K, std::size_t N>(
+              F&, avnd::predicate_index<K>, avnd::field_index<N>) {
+        if constexpr(avnd::cpu_texture_port<F>)
+        {
+          if(N >= inputs.size() || inputs[N] != &p)
+            return;
+          auto rt_it = m_rts.find(&p);
+          if(rt_it == m_rts.end())
+            return;
+          QRhiTexture* tex = rt_it->second.texture;
+          if constexpr(reads_upstream_directly<F>())
+          {
+            auto [wired, direct] = upstreamTexture(renderer, p);
+            if(direct && direct->sampleCount() <= 1
+               && (direct->flags() & QRhiTexture::UsedAsTransferSource)
+               && !(direct->flags()
+                    & (QRhiTexture::CubeMap | QRhiTexture::ThreeDimensional
+                       | QRhiTexture::TextureArray)))
+              tex = direct;
+          }
+          if(!tex)
+            return;
+          auto& readback = m_readbacks[K];
+          readback = {};
+          res->readBackTexture(QRhiReadbackDescription{tex}, &readback);
+        }
+      });
     }
   }
 
@@ -1879,9 +2093,11 @@ using scene_input_introspection =
     avnd::predicate_introspection<typename avnd::inputs_type<T>::type, is_scene_port_t>;
 
 // Scene input transport: NodeRenderer::process(port, scene_spec, source)
-// already merges multi-producer scenes into `this->scene`, so scene_inputs_storage
-// only needs to copy that merged scene_spec into each halp scene input field
-// before operator()() runs. Cheap (shared_ptr assignment), no decode.
+// keeps one scene per (port, source) and merges them all into `this->scene`.
+// A node with a single scene input gets that merged scene. With several, each
+// field receives only the scenes that arrived on its own port, merged across
+// sources; the merge is memoized per port on the (state, version) set so an
+// unchanged input keeps its scene_state identity.
 template <typename T>
 struct scene_inputs_storage;
 
@@ -1889,13 +2105,63 @@ template <typename T>
   requires(scene_input_introspection<T>::size > 0)
 struct scene_inputs_storage<T>
 {
-  void readInputScenes(const ossia::scene_spec& scene, auto& state)
+  struct port_cache
   {
-    scene_input_introspection<T>::for_all(
-        avnd::get_inputs<T>(state), [&](auto& field) { field.scene = scene; });
+    ossia::small_vector<std::pair<const ossia::scene_state*, int64_t>, 4> inputs;
+    ossia::scene_spec merged;
+  };
+  port_cache m_cache[scene_input_introspection<T>::size];
+
+  static ossia::scene_spec
+  sceneOnPort(const score::gfx::NodeRenderer& renderer, int port, port_cache& cache)
+  {
+    ossia::small_vector<std::pair<const ossia::scene_state*, int64_t>, 4> sig;
+    ossia::small_vector<ossia::scene_spec, 4> scenes;
+    renderer.forEachSceneOnPort(port, [&](const ossia::scene_spec& s) {
+      sig.push_back({s.state.get(), s.state->version});
+      scenes.push_back(s);
+    });
+
+    if(scenes.empty())
+    {
+      cache = {};
+      return {};
+    }
+    if(scenes.size() == 1)
+    {
+      cache = {};
+      return scenes[0];
+    }
+    if(sig == cache.inputs && cache.merged.state)
+      return cache.merged;
+
+    cache.inputs.assign(sig.begin(), sig.end());
+    cache.merged = ossia::merge_scenes(
+        std::span<const ossia::scene_spec>{scenes.data(), scenes.size()});
+    return cache.merged;
   }
 
-  static void release(score::gfx::RenderList&) { }
+  void readInputScenes(const score::gfx::NodeRenderer& renderer, auto& state)
+  {
+    if constexpr(scene_input_introspection<T>::size == 1)
+    {
+      scene_input_introspection<T>::for_all(
+          avnd::get_inputs<T>(state), [&](auto& field) { field.scene = renderer.scene; });
+      return;
+    }
+    scene_input_introspection<T>::for_all_n2(
+        avnd::get_inputs<T>(state),
+        [&]<typename F, std::size_t K, std::size_t N>(
+            F& field, avnd::predicate_index<K>, avnd::field_index<N>) {
+      field.scene = sceneOnPort(renderer, int(N), m_cache[K]);
+    });
+  }
+
+  void release(score::gfx::RenderList&)
+  {
+    for(auto& c : m_cache)
+      c = {};
+  }
 };
 
 template <typename T>

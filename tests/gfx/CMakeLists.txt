@@ -1508,3 +1508,31 @@ endif()
 # N56, N57, N59, N60, N62).
 score_add_gfx_test(csf_isf_fixc GfxCsfIsfFixC.cpp)
 
+# avnd bridge inlet resolution (fixE): unwired / upstream-owned texture inlets,
+# per-port scene inlets, CPU geometry into a GPU geometry inlet.
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  set(_3d_fixe "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
+  score_plugin_hidden_sources(_avnd_inlet_fixe_hidden
+      "${_3d_fixe}/Primitive.cpp"
+      "${_3d_fixe}/PBRMesh.cpp"
+      "${_3d_fixe}/SceneResourceRoute.cpp"
+      "${_3d_fixe}/Noise.cpp")
+  score_add_test(test_gfx_avnd_inlet_resolve_fixe
+    SOURCES GfxAvndInletResolveFixE.cpp ${_avnd_inlet_fixe_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_avnd_inlet_resolve_fixe PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_avnd_inlet_resolve_fixe SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+

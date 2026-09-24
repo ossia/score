@@ -35,6 +35,14 @@ struct GfxRenderer<Node_T> final
     prepareNewState<Node_T>(state, p);
   }
 
+  using score::gfx::NodeRenderer::process;
+  void process(int32_t port, const ossia::transform3d& v) override
+  {
+    if constexpr(avnd::geometry_input_introspection<Node_T>::size > 0)
+      geometry_ins.setTransform(port, v, *state);
+    score::gfx::OutputNodeRenderer::process(port, v);
+  }
+
   score::gfx::TextureRenderTarget
   renderTargetForInput(const score::gfx::Port& p) override
   {
@@ -169,7 +177,7 @@ struct GfxRenderer<Node_T> final
       res = renderer.state.rhi->nextResourceUpdateBatch();
 
       if constexpr(avnd::texture_input_introspection<Node_T>::size > 0)
-        texture_ins.inputAboutToFinish(this->node(), p, res);
+        texture_ins.inputAboutToFinish(*this, renderer, p, res);
       if constexpr(avnd::buffer_input_introspection<Node_T>::size > 0)
         buffer_ins.inputAboutToFinish(renderer, res, *state, this->node());
       if constexpr(avnd::geometry_input_introspection<Node_T>::size > 0)
@@ -198,13 +206,13 @@ struct GfxRenderer<Node_T> final
     m_last_time = parent.last_message.message.token.date;
 
     if constexpr(avnd::texture_input_introspection<Node_T>::size > 0)
-      texture_ins.runInitialPasses(*this, rhi);
+      texture_ins.runInitialPasses(*this, renderer);
     if constexpr(avnd::buffer_input_introspection<Node_T>::size > 0)
       buffer_ins.readInputBuffers(renderer, parent, *state);
     if constexpr(avnd::geometry_input_introspection<Node_T>::size > 0)
       geometry_ins.readInputGeometries(renderer, this->geometry, parent, *state);
     if constexpr(scene_input_introspection<Node_T>::size > 0)
-      scene_ins.readInputScenes(this->scene, *state);
+      scene_ins.readInputScenes(*this, *state);
 
     parent.processControlIn(
         *this, *state, m_last_message, parent.last_message, parent.m_ctx);

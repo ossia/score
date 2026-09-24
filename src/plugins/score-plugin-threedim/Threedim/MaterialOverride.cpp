@@ -21,6 +21,11 @@ void applyTextureOverride(
   dst.texture.bindless_index = 0;
 }
 
+void* texture2D(const halp::gpu_texture& t) noexcept
+{
+  return t.kind == halp::texture_kind::texture_2d ? t.handle : nullptr;
+}
+
 // Decide whether a given material-index should receive overrides, given
 // the mode and index inputs.
 bool shouldOverride(int idx, int mode, int override_index) noexcept
@@ -42,10 +47,10 @@ void MaterialOverride::rebuild()
   const int64_t in_version = in_state ? in_state->version : -1;
 
   void* cur_tex[4]{
-      inputs.base_color_tex.texture.handle,
-      inputs.metal_rough_tex.texture.handle,
-      inputs.normal_tex.texture.handle,
-      inputs.emissive_tex.texture.handle};
+      texture2D(inputs.base_color_tex.texture),
+      texture2D(inputs.metal_rough_tex.texture),
+      texture2D(inputs.normal_tex.texture),
+      texture2D(inputs.emissive_tex.texture)};
 
   // No texture overrides and no factor overrides → passthrough. Keeps
   // downstream identity caches warm for the common "unconfigured" case.
@@ -204,10 +209,10 @@ void MaterialOverride::operator()()
   const ossia::scene_state* in_state = in.state.get();
   const int64_t in_version = in_state ? in_state->version : -1;
   void* cur_tex[4]{
-      inputs.base_color_tex.texture.handle,
-      inputs.metal_rough_tex.texture.handle,
-      inputs.normal_tex.texture.handle,
-      inputs.emissive_tex.texture.handle};
+      texture2D(inputs.base_color_tex.texture),
+      texture2D(inputs.metal_rough_tex.texture),
+      texture2D(inputs.normal_tex.texture),
+      texture2D(inputs.emissive_tex.texture)};
   const bool upstream_changed
       = m_cached_in_state != in_state || m_cached_in_version != in_version
         || m_cached_tex[0] != cur_tex[0] || m_cached_tex[1] != cur_tex[1]
