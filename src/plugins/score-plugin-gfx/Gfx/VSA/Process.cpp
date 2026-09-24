@@ -224,6 +224,9 @@ void Model::loadPreset(const Process::Preset& preset)
 
   auto controls = obj["Controls"].GetArray();
   Process::loadFixedControls(controls, *this);
+
+  // See Filter::Model::loadPreset: the executor rebuilds on programChanged.
+  programChanged();
 }
 
 Process::Preset Model::savePreset() const noexcept
