@@ -42,11 +42,14 @@ struct SCORE_PLUGIN_MEDIA_EXPORT ImageFormat
    *  still carries the closest AVPixelFormat for everything that reads one. */
   VideoPixelFormat native_format = VideoPixelFormat::Unknown;
 
-  AVColorRange color_range = AVColorRange(-1);
-  AVColorPrimaries color_primaries = AVColorPrimaries(-1);
-  AVColorTransferCharacteristic color_trc = AVColorTransferCharacteristic(-1);
-  AVColorSpace color_space = AVColorSpace(-1);
-  AVChromaLocation chroma_location = AVChromaLocation(-1);
+  // Unset means FFmpeg's own UNSPECIFIED, not -1: none of these enums has a
+  // negative enumerator, so -1 is outside their range and reading it is UB.
+  // Every consumer already treats UNSPECIFIED like an unknown value.
+  AVColorRange color_range = AVCOL_RANGE_UNSPECIFIED;
+  AVColorPrimaries color_primaries = AVCOL_PRI_UNSPECIFIED;
+  AVColorTransferCharacteristic color_trc = AVCOL_TRC_UNSPECIFIED;
+  AVColorSpace color_space = AVCOL_SPC_UNSPECIFIED;
+  AVChromaLocation chroma_location = AVCHROMA_LOC_UNSPECIFIED;
 
 #if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(61, 3, 100)
   AVMasteringDisplayMetadata mastering_display{};
