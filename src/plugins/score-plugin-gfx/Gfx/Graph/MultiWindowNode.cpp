@@ -885,6 +885,18 @@ void MultiWindowNode::initWindowSwapChain(int index)
   wo.swapChain->setFlags(flags);
 
   wo.renderPassDescriptor = wo.swapChain->newCompatibleRenderPassDescriptor();
+  if(!wo.renderPassDescriptor)
+  {
+    // QVkSwapChain returns null when the surface cannot present (e.g. RADV
+    // on Xvfb, without DRI3), and createOrResize() dereferences it. This
+    // window gets no swap chain; the others keep running.
+    qWarning(
+        "MultiWindowNode: window %d cannot present on this display, no swap "
+        "chain",
+        index);
+    releaseWindowSwapChain(index);
+    return;
+  }
   wo.swapChain->setRenderPassDescriptor(wo.renderPassDescriptor);
 
   // Note: mapping-derived fields (sourceRect, blend*, cornerWarp,
@@ -1040,7 +1052,8 @@ void MultiWindowNode::createOutput(score::gfx::OutputConfiguration conf)
       if(i >= (int)m_windowOutputs.size())
         return;
       auto& w = m_windowOutputs[i];
-      if(w.swapChain)
+      // No render pass descriptor: see initWindowSwapChain.
+      if(w.swapChain && w.renderPassDescriptor)
         w.hasSwapChain = w.swapChain->createOrResize();
     };
 
