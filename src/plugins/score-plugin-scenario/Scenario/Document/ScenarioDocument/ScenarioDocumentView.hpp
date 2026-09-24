@@ -201,7 +201,10 @@ public:
 
 private:
   void timerEvent(QTimerEvent* event) override;
-  QWidget* m_widget{};
+  // Orphaned by CentralViewStack::releaseMainView on document close, after
+  // which we are its only owner; deleted by Qt first if the window goes down
+  // with the document still in it. QPointer covers both.
+  QPointer<QWidget> m_widget;
   const score::DocumentContext& m_context;
   ScenarioScene m_scene;
 
