@@ -454,8 +454,70 @@ static bool auxPlaceholderZeroFillDisabled() noexcept
   return off;
 }
 
+// A placeholder for an AUXILIARY buffer nothing publishes, so the SRB stays
+// valid. Sized from the LAYOUT (declared_size), rounded up to the 4 bytes
+// RhiClearBuffer (vkCmdFillBuffer) needs.
+//
+// Zero-filled because Vulkan does not initialise VkBuffer memory, and shaders
+// read these as sentinels: classic_pbr_openpbr gates its clustered-lighting and
+// volumetric paths on `cluster_config.cluster_x == 0u`, then indexes
+// cluster_light_counts / cluster_light_lists / vol_integrated with an id
+// derived from that grid, so recycled memory there turns a 16-byte placeholder
+// into a multi-gigabyte out-of-bounds read (same as the INPUTS-side
+// placeholders in IsfBindingsBuilder::ensureStorageResources).
+//
+// The `camera` block is the exception: a shader reads it as a transform, and an
+// all-zero viewProjection collapses every vertex to the origin, so it is seeded
+// with identities.
+void RenderedRawRasterPipelineNode::createAuxPlaceholder(
+    QRhi& rhi, QRhiResourceUpdateBatch& res, AuxiliarySSBO& aux)
+{
+  const auto usage = aux.is_uniform ? QRhiBuffer::UniformBuffer : QRhiBuffer::StorageBuffer;
+  const int64_t size
+      = (std::max<int64_t>(aux.declared_size, aux.is_uniform ? 256 : 16) + 3) & ~int64_t(3);
+  auto* dummy = rhi.newBuffer(bufferTypeFor(usage), usage, size);
+  dummy->setName(aux.is_uniform ? "RRP_ubo_dummy" : "RRP_aux_dummy");
+  aux.buffer = dummy;
+  aux.size = size;
+  aux.owned = true;
+  if(!dummy->create())
+  {
+    qWarning() << "RawRaster: could not create the placeholder buffer for"
+               << aux.name.c_str();
+    return;
+  }
+
+  if(!auxPlaceholderZeroFillDisabled())
+    RhiClearBuffer::clearBuffer(rhi, res, dummy, 0, (quint32)size);
+
+  if(aux.name == "camera" && aux.is_uniform)
+  {
+    const int slots = (int)(size / (int64_t)sizeof(CameraUBOData));
+    if(slots <= 0)
+      return;
+    std::vector<CameraUBOData> seed(slots);
+    for(auto& c : seed)
+      for(int i = 0; i < 4; i++)
+      {
+        c.view[i * 5] = 1.f;
+        c.projection[i * 5] = 1.f;
+        c.viewProjection[i * 5] = 1.f;
+      }
+    res.updateDynamicBuffer(dummy, 0, slots * (int)sizeof(CameraUBOData), seed.data());
+  }
+}
+
+static bool isStorageImageBinding(const QRhiShaderResourceBinding& b) noexcept
+{
+  const auto t = reinterpret_cast<const QRhiShaderResourceBinding::Data*>(&b)->type;
+  return t == QRhiShaderResourceBinding::ImageLoad
+         || t == QRhiShaderResourceBinding::ImageStore
+         || t == QRhiShaderResourceBinding::ImageLoadStore;
+}
+
 void RenderedRawRasterPipelineNode::appendAuxTextureBindings(
-    ossia::small_vector<QRhiShaderResourceBinding, 4>& out, int& binding)
+    ossia::small_vector<QRhiShaderResourceBinding, 4>& out, int& binding,
+    int imageBinding)
 {
   const auto stages = QRhiShaderResourceBinding::StageFlag::VertexStage
                       | QRhiShaderResourceBinding::StageFlag::FragmentStage;
@@ -501,18 +563,20 @@ void RenderedRawRasterPipelineNode::appendAuxTextureBindings(
     if(ats.is_storage)
     {
       if(ats.access == "read_only")
-        b = QRhiShaderResourceBinding::imageLoad(binding, stages, ats.texture, 0);
+        b = QRhiShaderResourceBinding::imageLoad(imageBinding, stages, ats.texture, 0);
       else if(ats.access == "write_only")
-        b = QRhiShaderResourceBinding::imageStore(binding, stages, ats.texture, 0);
+        b = QRhiShaderResourceBinding::imageStore(imageBinding, stages, ats.texture, 0);
       else
         b = QRhiShaderResourceBinding::imageLoadStore(
-            binding, stages, ats.texture, 0);
+            imageBinding, stages, ats.texture, 0);
+      out.push_back(b);
+      ats.binding = imageBinding;
+      imageBinding++;
+      continue;
     }
-    else
-    {
-      b = QRhiShaderResourceBinding::sampledTexture(
-          binding, stages, ats.texture, ats.boundSampler());
-    }
+
+    b = QRhiShaderResourceBinding::sampledTexture(
+        binding, stages, ats.texture, ats.boundSampler());
     out.push_back(b);
     ats.binding = binding;
     binding++;
@@ -543,7 +607,7 @@ void RenderedRawRasterPipelineNode::initPass(
     auto& mat
         = *reinterpret_cast<PipelineChangingMaterial*>(m_prevPipelineChangingMaterial);
 
-    int max_binding = 3;
+    int max_binding = m_firstSamplerBinding;
     auto samplers = allSamplers();
     if(!samplers.empty())
       max_binding += samplers.size();
@@ -557,13 +621,15 @@ void RenderedRawRasterPipelineNode::initPass(
     // INPUTS storage trio (storage_input SSBO / csf_image_input image2D /
     // uniform_input UBO) — order MUST match isf_emit_graphics_storage's
     // GLSL emission (declaration order, sequential bindings starting at
-    // max_binding == 3 + samplers count).
+    // max_binding == m_firstSamplerBinding + samplers count; the images
+    // carry their own bindings from 3).
     {
       auto extras = buildExtraBindings(m_storage);
       for(const auto& b : extras)
       {
         additionalBindings.push_back(b);
-        max_binding++;
+        if(!isStorageImageBinding(b))
+          max_binding++;
       }
     }
 
@@ -612,7 +678,8 @@ void RenderedRawRasterPipelineNode::initPass(
       max_binding++;
     }
 
-    appendAuxTextureBindings(additionalBindings, max_binding);
+    appendAuxTextureBindings(
+        additionalBindings, max_binding, m_firstAuxImageBinding);
 
     if(m_multiViewUBO)
     {
@@ -627,7 +694,8 @@ void RenderedRawRasterPipelineNode::initPass(
     auto bindings = createDefaultBindings(
         renderer, renderTarget, pubo, m_materialUBO, allSamplers(),
         std::span<QRhiShaderResourceBinding>(
-            additionalBindings.data(), additionalBindings.size()));
+            additionalBindings.data(), additionalBindings.size()),
+        m_firstSamplerBinding);
 
     auto& rhi = *renderer.state.rhi;
     auto ps = rhi.newGraphicsPipeline();
@@ -1728,7 +1796,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     auto& mat
         = *reinterpret_cast<PipelineChangingMaterial*>(m_prevPipelineChangingMaterial);
 
-    int max_binding = 3;
+    int max_binding = m_firstSamplerBinding;
     auto samplers = allSamplers();
     if(!samplers.empty())
       max_binding += samplers.size();
@@ -1742,13 +1810,15 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     // INPUTS storage trio (storage_input SSBO / csf_image_input image2D /
     // uniform_input UBO) — order MUST match isf_emit_graphics_storage's
     // GLSL emission (declaration order, sequential bindings starting at
-    // max_binding == 3 + samplers count).
+    // max_binding == m_firstSamplerBinding + samplers count; the images
+    // carry their own bindings from 3).
     {
       auto extras = buildExtraBindings(m_storage);
       for(const auto& b : extras)
       {
         additionalBindings.push_back(b);
-        max_binding++;
+        if(!isStorageImageBinding(b))
+          max_binding++;
       }
     }
 
@@ -1814,7 +1884,8 @@ void RenderedRawRasterPipelineNode::initMRTPass(
       max_binding++;
     }
 
-    appendAuxTextureBindings(additionalBindings, max_binding);
+    appendAuxTextureBindings(
+        additionalBindings, max_binding, m_firstAuxImageBinding);
 
     if(m_multiViewUBO)
     {
@@ -1829,7 +1900,8 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     auto bindings = createDefaultBindings(
         renderer, m_mrtRenderTarget, pubo, m_materialUBO, samplers,
         std::span<QRhiShaderResourceBinding>(
-            additionalBindings.data(), additionalBindings.size()));
+            additionalBindings.data(), additionalBindings.size()),
+        m_firstSamplerBinding);
 
     auto ps = rhi.newGraphicsPipeline();
     ps->setName("RenderedRawRasterPipelineNode::initMRTPass::ps");
@@ -2358,17 +2430,23 @@ void RenderedRawRasterPipelineNode::initState(
         });
 
     // Init m_storage from desc.inputs (storage_input + csf_image_input
-    // + uniform_input). Bindings start at 3 + samplers count to align with
-    // the GLSL emission order (samplers first in the binding range, then
-    // INPUTS storage in declaration order via isf_emit_graphics_storage,
-    // then AUXILIARY storage, then AUXILIARY textures, then model UBO).
+    // + uniform_input), in the GLSL emission order of isf.cpp: storage
+    // images first from binding 3 (INPUTS, then AUXILIARY), then samplers,
+    // then INPUTS storage in declaration order via isf_emit_graphics_storage,
+    // then AUXILIARY storage, then AUXILIARY textures, then model UBO.
     if(m_firstStorageBinding < 0)
     {
-      const int firstStorageBinding
-          = 3 + (int)m_inputSamplers.size() + (int)m_audioSamplers.size();
+      const int inputImageBindings = graphicsStorageImageBindingCount(desc);
+      const int auxImageBindings = (int)ossia::count_if(
+          desc.auxiliary_textures, [](const auto& atx) { return atx.is_storage; });
+      m_firstAuxImageBinding = 3 + inputImageBindings;
+      m_firstSamplerBinding = m_firstAuxImageBinding + auxImageBindings;
+      const int firstStorageBinding = m_firstSamplerBinding
+                                      + (int)m_inputSamplers.size()
+                                      + (int)m_audioSamplers.size();
       m_firstStorageBinding = firstStorageBinding;
       collectGraphicsStorageResources(
-          desc, firstStorageBinding, m_storage, startPC.inlets);
+          desc, firstStorageBinding, m_storage, startPC.inlets, 3);
     }
     ensureStorageResources(
         *renderer.state.rhi, res, renderer, desc, m_storage,
