@@ -235,7 +235,6 @@ public:
         widthMenu(tab->mapToGlobal(pos));
       });
 
-      m_sections[i] = sec;
       m_strips[i] = strips;
     }
     content_lay->addStretch(1);
@@ -440,7 +439,6 @@ private:
   QPointer<Dataflow::AudioDevice> m_device;
   QScrollArea* m_scroll{};
   StripWidth m_width{StripWidth::Normal};
-  std::array<QWidget*, section_count> m_sections{};
   std::array<QWidget*, section_count> m_strips{};
   QWidget* m_master{};
   std::vector<BusStrip*> m_busStrips;

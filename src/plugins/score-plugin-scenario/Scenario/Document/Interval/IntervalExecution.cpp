@@ -133,46 +133,6 @@ IntervalComponentBase::IntervalComponentBase(
   con(interval(), &Scenario::IntervalModel::mutedChanged, this, update_mute);
   con(interval(), &Scenario::IntervalModel::soloMutedChanged, this, update_mute);
 
-  con(*interval().outlet, &Process::AudioOutlet::gainChanged, this, [&](double g) {
-    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
-    if(m_ossia_interval)
-      in_exec([g, itv = m_ossia_interval] {
-        OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
-        auto& audio_out
-            = static_cast<ossia::nodes::interval*>(itv->node.get())->audio_out;
-        audio_out.gain = g;
-      });
-  });
-  con(*interval().outlet, &Process::AudioOutlet::panChanged, this,
-      [&](ossia::pan_weight pan) {
-    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
-    if(m_ossia_interval)
-      in_exec([pan = std::move(pan), itv = m_ossia_interval]() mutable {
-        OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
-        auto& audio_out
-            = static_cast<ossia::nodes::interval*>(itv->node.get())->audio_out;
-        // A swap: the previous weights are freed with this closure, off the
-        // audio thread.
-        std::swap(audio_out.pan, pan);
-      });
-  });
-
-  auto update_upmix = [this] {
-    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
-    if(m_ossia_interval)
-      in_exec([mode = interval().outlet->upmixMode(),
-               chans = interval().outlet->upmixChannels(), itv = m_ossia_interval] {
-        OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
-        auto& audio_out
-            = static_cast<ossia::nodes::interval*>(itv->node.get())->audio_out;
-        audio_out.upmix = ossia::audio_outlet::upmix_mode(mode);
-        audio_out.upmix_channels = chans;
-      });
-  };
-  con(*interval().outlet, &Process::AudioOutlet::upmixModeChanged, this, update_upmix);
-  con(*interval().outlet, &Process::AudioOutlet::upmixChannelsChanged, this,
-      update_upmix);
-
   if(scenar)
   {
     con(*interval().outlet, &Process::AudioOutlet::propagateChanged, this,
@@ -397,13 +357,6 @@ void IntervalComponent::onSetup(
 
   if(!interval().graphal())
   {
-    auto& audio_out
-        = static_cast<ossia::nodes::interval*>(m_ossia_interval->node.get())->audio_out;
-    audio_out.gain = m_interval->outlet->gain();
-    audio_out.pan = m_interval->outlet->pan();
-    audio_out.upmix = ossia::audio_outlet::upmix_mode(m_interval->outlet->upmixMode());
-    audio_out.upmix_channels = m_interval->outlet->upmixChannels();
-
     m_ossia_interval->set_min_duration(dur.minDuration);
     m_ossia_interval->set_max_duration(dur.maxDuration);
     m_ossia_interval->set_speed(dur.speed);

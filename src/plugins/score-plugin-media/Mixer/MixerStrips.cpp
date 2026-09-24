@@ -368,10 +368,13 @@ void Strip::updateMeter(const Execution::Telemetry& t)
   }
 
   const int total = int(levels->channels);
+  const float scale = float(meterGain());
   m_levels.clear();
   auto add = [&](int src) {
     if(src >= 0 && src < total)
-      m_levels.push_back({levels->peak[src], levels->rms(src), levels->is_clipped(src)});
+      m_levels.push_back(
+          {levels->peak[src] * scale, levels->rms(src) * scale,
+           levels->is_clipped(src)});
     else
       m_levels.push_back({});
   };
@@ -510,15 +513,18 @@ BusStrip::BusStrip(
         *m_model.outlet, b);
   });
 
-  auto sync = [this] { syncFromModel(); };
-  con(outlet, &Process::AudioOutlet::gainChanged, this, sync);
-  con(outlet, &Process::AudioOutlet::panChanged, this, sync);
-  con(outlet, &Process::AudioOutlet::propagateChanged, this, sync);
-  con(itv, &Scenario::IntervalModel::mutedChanged, this, sync);
-  con(itv, &Scenario::IntervalModel::soloedChanged, this, sync);
-  con(itv, &Scenario::IntervalModel::soloMutedChanged, this, sync);
-  con(itv.metadata(), &score::ModelMetadata::NameChanged, this, sync);
-  con(itv.metadata(), &score::ModelMetadata::ColorChanged, this, sync);
+  // Each change updates only what shows it: a fader drag changes the gain at
+  // every move.
+  con(outlet, &Process::AudioOutlet::gainChanged, this, [this] { syncGain(); });
+  con(outlet, &Process::AudioOutlet::panChanged, this, [this] { syncPan(); });
+  auto sync_buttons = [this] { syncButtons(); };
+  con(outlet, &Process::AudioOutlet::propagateChanged, this, sync_buttons);
+  con(itv, &Scenario::IntervalModel::mutedChanged, this, sync_buttons);
+  con(itv, &Scenario::IntervalModel::soloedChanged, this, sync_buttons);
+  auto title = [this] { syncTitle(); };
+  con(itv, &Scenario::IntervalModel::soloMutedChanged, this, title);
+  con(itv.metadata(), &score::ModelMetadata::NameChanged, this, title);
+  con(itv.metadata(), &score::ModelMetadata::ColorChanged, this, title);
 
   syncFromModel();
 }
@@ -527,30 +533,45 @@ BusStrip::~BusStrip() = default;
 
 void BusStrip::syncFromModel()
 {
-  auto& outlet = *m_model.outlet;
+  syncGain();
+  syncPan();
+  syncButtons();
+  syncTitle();
+}
+
+void BusStrip::syncGain()
+{
+  const double g = m_model.outlet->gain();
   {
     QSignalBlocker b{m_fader};
-    m_fader->setValue(GainFader::gainToPosition(outlet.gain()));
+    m_fader->setValue(GainFader::gainToPosition(g));
   }
-  setGainReadout(outlet.gain());
-  {
-    QSignalBlocker b{m_pan};
-    const auto& pan = outlet.pan();
-    m_pan->setValue(
-        pan.size() >= 2 ? PanSlider::position(pan[0], pan[1]) : 0.5);
-  }
+  setGainReadout(g);
+}
+
+void BusStrip::syncPan()
+{
+  QSignalBlocker b{m_pan};
+  const auto& pan = m_model.outlet->pan();
+  m_pan->setValue(pan.size() >= 2 ? PanSlider::position(pan[0], pan[1]) : 0.5);
+}
+
+void BusStrip::syncButtons()
+{
   for(auto [button, state] :
       {std::pair{m_mute, m_model.muted()}, std::pair{m_solo, m_model.soloed()},
-       std::pair{m_propagate, outlet.propagate()}})
+       std::pair{m_propagate, m_model.outlet->propagate()}})
   {
     QSignalBlocker b{button};
     button->setChecked(state);
   }
+}
 
+void BusStrip::syncTitle()
+{
   const auto& name = m_model.metadata().getName();
   setTitle(name);
-  const QColor color = m_model.metadata().getColor().getBrush().color();
-  setTitleColor(color);
+  setTitleColor(m_model.metadata().getColor().getBrush().color());
 
   QFont f = m_title->font();
   f.setItalic(m_model.soloMuted());
@@ -711,6 +732,7 @@ PortStrip::PortStrip(
   // No controls: the meter and the fader take their room.
   m_controls->hide();
 
+  m_meterKind = meter;
   if(m_telemetry)
   {
     switch(meter)
@@ -746,11 +768,27 @@ PortStrip::PortStrip(
 
 PortStrip::~PortStrip() = default;
 
+double PortStrip::meterGain() const noexcept
+{
+  // The inputs are metered as the driver gives them: what the graph reads is
+  // scaled by the port's gain, and by /in/main's.
+  if(m_meterKind != Meter::HardwareInputs || !m_param)
+    return 1.;
+  double g = m_param->gain();
+  if(m_param->upstream)
+    g *= m_param->upstream->gain();
+  return g;
+}
+
 void PortStrip::poll()
 {
   if(!m_param || m_dragging)
     return;
+  // Called often: the widgets only change, and repaint, when the value does.
   const double g = m_param->gain();
+  if(g == m_shownGain)
+    return;
+  m_shownGain = g;
   QSignalBlocker b{m_fader};
   m_fader->setValue(GainFader::gainToPosition(g));
   setGainReadout(g);
@@ -812,22 +850,25 @@ void PortStrip::fillContextMenu(QMenu& menu)
 
   auto edit = menu.addAction(tr("Edit the port..."));
   connect(edit, &QAction::triggered, this, [this, dev, addr = *address] {
-    auto& plug = m_context.plugin<Explorer::DeviceDocumentPlugin>();
+    // The strips are rebuilt when the ports change, which may happen while the
+    // dialog is open: past this point, nothing of this strip is used.
+    auto& ctx = m_context;
+    QWidget* window = this->window();
+    auto& plug = ctx.plugin<Explorer::DeviceDocumentPlugin>();
     auto node = Device::try_getNodeFromAddress(plug.rootNode(), addr);
-    auto proto = protocolOf(m_context, *dev);
+    auto proto = protocolOf(ctx, *dev);
     if(!node || !node->is<Device::AddressSettings>() || !proto)
       return;
     std::unique_ptr<Device::AddressDialog> dial{proto->makeEditAddressDialog(
-        node->get<Device::AddressSettings>(), *dev, m_context, this)};
+        node->get<Device::AddressSettings>(), *dev, ctx, window)};
     if(!dial || dial->exec() != QDialog::Accepted)
       return;
     // The node may be gone with the dialog open.
     node = Device::try_getNodeFromAddress(plug.rootNode(), addr);
     if(!node)
       return;
-    CommandDispatcher<>{m_context.commandStack}
-        .submit<Explorer::Command::UpdateAddressSettings>(
-            plug, Device::NodePath{*node}, dial->getSettings());
+    CommandDispatcher<>{ctx.commandStack}.submit<Explorer::Command::UpdateAddressSettings>(
+        plug, Device::NodePath{*node}, dial->getSettings());
   });
 
   auto remove = menu.addAction(tr("Remove the port"));

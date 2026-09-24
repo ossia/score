@@ -515,6 +515,52 @@ void SetupContext::removeCable(const Process::Cable& c, Transaction& vec)
   disconnect_cable_impl(c, enqueue_in_vector(vec));
 }
 
+// What a process sends goes through its outlet's gain, pan and upmix, which
+// follow the model.
+template <typename Impl>
+void SetupContext::register_mixing_impl(
+    Process::AudioOutlet& proc_port, ossia::audio_outlet& out,
+    const std::shared_ptr<ossia::graph_node>& node, Impl&& impl)
+{
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
+  auto* o = &out;
+  const auto weights = proc_port.pan();
+  impl([node, o, g = proc_port.gain(),
+        pan = ossia::pan_weight(weights.begin(), weights.end()),
+        mode = proc_port.upmixMode(), chans = proc_port.upmixChannels()]() mutable {
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
+    o->gain = g;
+    // A swap: the previous weights are freed with this closure, off the audio
+    // thread.
+    std::swap(o->pan, pan);
+    o->upmix = ossia::audio_outlet::upmix_mode(mode);
+    o->upmix_channels = chans;
+  });
+
+  auto& ports = runtime_connections[node];
+  ports.disconnectMixing(proc_port.id());
+  auto& cons = ports.mixing[proc_port.id()];
+  auto& q = context.executionQueue;
+  cons[0] = connect(&proc_port, &Process::AudioOutlet::gainChanged, this, [&q, node, o](double g) {
+    q.enqueue([node, o, g] { o->gain = g; });
+  });
+  cons[1] = connect(
+      &proc_port, &Process::AudioOutlet::panChanged, this,
+      [&q, node, o](const auto& w) {
+    q.enqueue([node, o, pan = ossia::pan_weight(w.begin(), w.end())]() mutable {
+      std::swap(o->pan, pan);
+    });
+  });
+  auto upmix = [&q, node, o, port = &proc_port] {
+    q.enqueue([node, o, mode = port->upmixMode(), chans = port->upmixChannels()] {
+      o->upmix = ossia::audio_outlet::upmix_mode(mode);
+      o->upmix_channels = chans;
+    });
+  };
+  cons[2] = connect(&proc_port, &Process::AudioOutlet::upmixModeChanged, this, upmix);
+  cons[3] = connect(&proc_port, &Process::AudioOutlet::upmixChannelsChanged, this, upmix);
+}
+
 template <typename Impl>
 void SetupContext::register_outlet_impl(
     Process::Outlet& proc_port, const ossia::outlet_ptr& ossia_port,
@@ -535,6 +581,11 @@ void SetupContext::register_outlet_impl(
   set_declared_unit_impl(proc_port, ossia_port, impl);
 
   set_destination_impl(context, proc_port.address(), ossia_port, impl);
+
+  if(auto audio = qobject_cast<Process::AudioOutlet*>(&proc_port);
+     audio && ossia_port->which() == ossia::audio_port::which)
+    register_mixing_impl(
+        *audio, *static_cast<ossia::audio_outlet*>(ossia_port), node, impl);
 
   outlets.insert({&proc_port, std::make_pair(node, ossia_port)});
 
@@ -599,6 +650,7 @@ void SetupContext::unregister_outlet(
       QObject::disconnect(it->second);
       runtime_connection.erase(it);
     }
+    runtime_connections[node].disconnectMixing(proc_port.id());
 
     proc_port.forChildInlets([&](Process::Inlet& model_inl) {
       OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
@@ -657,6 +709,7 @@ void SetupContext::unregister_outlet(
       QObject::disconnect(it->second);
       runtime_connection.erase(it);
     }
+    runtime_connections[node].disconnectMixing(proc_port.id());
 
     proc_port.forChildInlets([&](Process::Inlet& model_inl) {
       OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
