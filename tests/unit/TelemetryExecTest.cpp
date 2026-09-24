@@ -319,7 +319,16 @@ TEST_CASE(
 
     SECTION("after the audio device was rebuilt")
     {
-      REQUIRE(dev->reconnect());
+      // As when its settings change: a new tree, with new parameters, which
+      // may well be where the previous ones were.
+      int rebuilt = 0;
+      auto c = QObject::connect(
+          dev, &Device::DeviceInterface::deviceChanged,
+          [&](auto*, ossia::net::device_base* n) { rebuilt += bool(n); });
+      dev->updateSettings(dev->settings());
+      QObject::disconnect(c);
+      REQUIRE(dev->getDevice());
+      CHECK(rebuilt == 1);
       add_ports();
       remove_while_playing();
     }

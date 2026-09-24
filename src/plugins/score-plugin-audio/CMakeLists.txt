@@ -58,7 +58,13 @@ if(OSSIA_PROTOCOL_AUDIO)
     target_sources(${PROJECT_NAME} PRIVATE
       "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioDevice.hpp"
       "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioDevice.cpp"
+      "${CMAKE_CURRENT_SOURCE_DIR}/Audio/PortGain.hpp"
+      "${CMAKE_CURRENT_SOURCE_DIR}/Audio/PortGain.cpp"
     )
+    score_generate_command_list_file(${PROJECT_NAME}
+      "${CMAKE_CURRENT_SOURCE_DIR}/Audio/PortGain.hpp")
+else()
+    score_generate_command_list_file(${PROJECT_NAME} "")
 endif()
 
 target_link_libraries(${PROJECT_NAME}

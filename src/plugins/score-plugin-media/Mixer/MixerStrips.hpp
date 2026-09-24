@@ -209,6 +209,8 @@ private:
   ossia::audio_parameter* m_param{};
   Meter m_meterKind{Meter::None};
   double m_shownGain{-1.};
+  //! The gain the document holds, which a release records a change from.
+  double m_committedGain{1.};
   bool m_dragging{};
 };
 }

@@ -2,6 +2,7 @@
 #include <score/application/ApplicationContext.hpp>
 #include <score/plugins/Interface.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
+#include <score/plugins/qt_interfaces/CommandFactory_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
@@ -13,6 +14,7 @@ class score_plugin_audio final
     , public score::FactoryList_QtInterface
     , public score::FactoryInterface_QtInterface
     , public score::Plugin_QtInterface
+    , public score::CommandFactory_QtInterface
 {
   SCORE_PLUGIN_METADATA(1, "b29771b7-3f12-4255-af5d-4153b08e55cf")
 public:
@@ -31,4 +33,6 @@ private:
       const score::InterfaceKey& factoryName) const override;
 
   std::vector<score::PluginKey> required() const override;
+
+  std::pair<const CommandGroupKey, CommandGeneratorMap> make_commands() override;
 };

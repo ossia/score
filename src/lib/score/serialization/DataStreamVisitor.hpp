@@ -260,6 +260,14 @@ public:
    */
   void checkDelimiter();
 
+  /**
+   * @brief atDelimiterOrEnd
+   *
+   * Whether what comes next is a delimiter or nothing, without reading it:
+   * fields added to a format after others are only read when they are there.
+   */
+  [[nodiscard]] bool atDelimiterOrEnd();
+
   auto& stream() { return m_stream; }
 
   const score::ApplicationComponents& components;
