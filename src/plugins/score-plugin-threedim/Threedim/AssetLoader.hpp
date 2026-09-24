@@ -83,9 +83,22 @@ public:
       "https://ossia.io/score-docs/processes/asset-loader.html")
   halp_meta(uuid, "2f6a8c41-7d93-4e5b-b1c8-4e3f9a7d2c5b")
 
+  struct asset_file_view
+  {
+    std::string_view bytes;
+    std::string_view filename;
+
+    asset_file_view() = default;
+    asset_file_view(const halp::text_file_view& v) noexcept
+        : bytes{v.bytes}
+        , filename{v.filename}
+    {
+    }
+  };
+
   struct ins
   {
-    struct asset_t : halp::file_port<"Asset file">
+    struct asset_t : halp::file_port<"Asset file", asset_file_view>
     {
       halp_meta(
           extensions,

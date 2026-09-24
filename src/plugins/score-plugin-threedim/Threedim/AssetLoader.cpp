@@ -141,8 +141,9 @@ runInnerParser(const halp::text_file_view& data,
 } // namespace
 
 std::function<void(AssetLoader&)>
-AssetLoader::ins::asset_t::process(file_type tv)
+AssetLoader::ins::asset_t::process(file_type file)
 {
+  const halp::text_file_view tv{.bytes = file.bytes, .filename = file.filename};
   if(tv.filename.empty())
     return {};
 

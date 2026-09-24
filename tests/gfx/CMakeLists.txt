@@ -1587,6 +1587,31 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
 
+# N84: the Splat renderer (GaussianSplatNode) joining a render list through the
+# incremental reconcile path (initState + addOutputPass, no init) must not
+# crash and must draw its splat.
+if(TARGET score_plugin_threedim)
+  set(_3d_gsi "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
+  score_plugin_hidden_sources(_gsi_hidden
+      "${_3d_gsi}/Splat/GaussianSplatNode.cpp")
+  score_add_test(test_gfx_gaussian_splat_incremental
+    SOURCES
+      GfxGaussianSplatIncremental.cpp
+      ${_gsi_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_gaussian_splat_incremental PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_gaussian_splat_incremental SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
 # Extract buffer picks up a CSF geometry's buffers created after its init
 # (agent G, N80).
 if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)

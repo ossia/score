@@ -163,7 +163,7 @@ static auto executePortPreprocess(auto& file)
 {
   using field_file_type = decltype(Field::file);
   field_file_type ffile;
-  ffile.bytes = decltype(ffile.bytes)(file.data.constData(), file.file.size());
+  ffile.bytes = decltype(ffile.bytes)(file.data.constData(), file.data.size());
   ffile.filename = file.filename;
   return Field::process(ffile);
 }

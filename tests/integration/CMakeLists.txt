@@ -1305,3 +1305,45 @@ foreach(_t ${_integration_tests})
   endif()
 endforeach()
 
+# N71: the Asset Loader's file port reads binary assets byte for byte (.splat
+# rows containing 0x0D) through oscr::loadRawfile, and a CRLF .obj still parses.
+if(TARGET score_plugin_threedim AND TARGET score_plugin_media AND TARGET score_plugin_avnd)
+  set(_albb_src "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
+  set(_albb_libs fastgltf spz)
+  if(TARGET test_unit_threedim_3rdparty)
+    list(PREPEND _albb_libs test_unit_threedim_3rdparty)
+  endif()
+  score_plugin_hidden_sources(_albb_hidden
+      "${_albb_src}/AssetLoader.cpp"
+      "${_albb_src}/GltfParser.cpp"
+      "${_albb_src}/FbxParser.cpp"
+      "${_albb_src}/TinyObj.cpp"
+      "${_albb_src}/Ply.cpp"
+      "${_albb_src}/VcgImporters.cpp"
+      "${_albb_src}/SceneFromMeshes.cpp"
+      "${_albb_src}/PrimitiveCloud/PlyParser.cpp"
+      "${_albb_src}/PrimitiveCloud/SplatBinary.cpp"
+      "${_albb_src}/PrimitiveCloud/SpzCodec.cpp"
+      "${_albb_src}/PrimitiveCloud/SceneFromCloud.cpp"
+      "${_albb_src}/PrimitiveCloud/FormatOverride.cpp")
+  score_add_test(test_integration_asset_loader_binary_bytes
+    SOURCES AssetLoaderBinaryBytes.cpp ${_albb_hidden}
+    GUI
+    PLUGINS score_plugin_scenario score_plugin_media score_plugin_avnd
+            score_plugin_threedim score_plugin_gfx score_lib_process
+    LIBS ${_albb_libs} "${QT_PREFIX}::Gui")
+  target_include_directories(test_integration_asset_loader_binary_bytes SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/vcglib"
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/eigen")
+endif()
+
+# A text-mode avnd file port hands the object exactly the bytes that were read
+# (QIODevice::Text drops '\r'), both through oscr::executePortPreprocess and
+# through oscr::raw_file_storage::load.
+if(TARGET score_plugin_media AND TARGET score_plugin_avnd)
+  score_add_test(test_integration_avnd_text_file_port_size
+    SOURCES AvndTextFilePortSize.cpp
+    GUI
+    PLUGINS score_plugin_scenario score_plugin_media score_plugin_avnd score_lib_process)
+endif()
+
