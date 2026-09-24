@@ -29,6 +29,24 @@ Shot firstInstance(score::gfx::GraphicsApi api, bool cpu, bool abiControl)
   if(cpu) qputenv("SCORE_GFX_NO_GPU_INDIRECT", "1");
   else qunsetenv("SCORE_GFX_NO_GPU_INDIRECT");
   score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    // firstInstance is ignored without QRhi::BaseInstance (e.g. OpenGL), which
+    // would test the backend rather than the command ABI. A failed probe is
+    // left to p.create(api) below, which skips.
+    {
+      auto st = score::gfx::createRenderState(api, QSize{16, 16}, nullptr);
+      if(st && st->rhi)
+      {
+        const bool baseInstance = st->rhi->isFeatureSupported(QRhi::BaseInstance);
+        st->destroy();
+        if(!baseInstance)
+        {
+          result.skipped = true;
+          result.why = "QRhi::BaseInstance unsupported: draw() ignores firstInstance";
+          return;
+        }
+      }
+    }
+
     GfxPipeline p;
     int csf = p.addIsf(artifact(abiControl ? "DrawDispatch_first_instance_abi_control.cs"
                                          : "DrawDispatch_first_instance.cs"));
