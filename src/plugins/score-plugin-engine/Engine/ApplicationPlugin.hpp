@@ -73,7 +73,9 @@ private:
   Execution::PlayContextMenu m_playActions;
   Execution::ExecutionController m_execution;
 
-  Scenario::SpeedWidget* m_speedSlider{};
+  // A child of the Transport toolbar, which score::ToolbarManager owns and
+  // deletes before this plug-in.
+  QPointer<Scenario::SpeedWidget> m_speedSlider{};
   QAction* m_musicalAct{};
   QPointer<LocalTree::ReferencesDialog> m_references;
 };

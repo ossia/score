@@ -1,11 +1,19 @@
 #pragma once
 #include <score/plugins/StringFactoryKey.hpp>
 
+#include <QPointer>
+
 #include <score_lib_base_export.h>
 
 class QToolBar;
 namespace score
 {
+/**
+ * @brief A toolbar provided by an application plug-in.
+ *
+ * Owned by \ref ToolbarManager once registered. The main window may reparent
+ * and destroy it, so toolbar() returns nullptr once the QToolBar is gone.
+ */
 class SCORE_LIB_BASE_EXPORT Toolbar
 {
 public:
@@ -19,7 +27,7 @@ public:
   int column() const;
 
 private:
-  QToolBar* m_impl{};
+  QPointer<QToolBar> m_impl{};
   StringKey<Toolbar> m_key;
 
   // If a row is used, it goes next
