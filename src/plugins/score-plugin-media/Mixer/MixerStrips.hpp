@@ -4,6 +4,7 @@
 
 #include <Execution/Telemetry.hpp>
 
+#include <QElapsedTimer>
 #include <QPointer>
 #include <QWidget>
 
@@ -156,6 +157,8 @@ public:
   void updateMeter(const Execution::Telemetry& t) override;
 
 private:
+  std::vector<QPointer<const Process::ProcessModel>> m_processes;
+  QElapsedTimer m_processesAge;
   void fillContextMenu(QMenu&) override;
   void syncFromModel();
 

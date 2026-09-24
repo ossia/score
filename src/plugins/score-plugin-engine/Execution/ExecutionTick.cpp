@@ -48,6 +48,9 @@ struct AudioTickHelper
     {
       m_actions.push_back(&act);
     }
+    // The master gain may have changed while nothing played.
+    if(m_proto)
+      m_proto->reset_main_gain_ramp();
   }
 
   ~AudioTickHelper()
