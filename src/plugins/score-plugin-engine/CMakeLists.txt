@@ -12,6 +12,7 @@ set(HDRS
   Execution/ContextMenu/PlayFromIntervalInScenario.hpp
 
   Execution/BaseScenarioComponent.hpp
+  Execution/DeviceAddresses.hpp
   Execution/DocumentPlugin.hpp
   Execution/ExecutionTick.hpp
   Execution/ExecutionController.hpp
@@ -51,6 +52,7 @@ set(SRCS
   Execution/ContextMenu/PlayFromIntervalInScenario.cpp
 
   Execution/BaseScenarioComponent.cpp
+  Execution/DeviceAddresses.cpp
   Execution/DocumentPlugin.cpp
   Execution/ExecutionTick.cpp
   Execution/ExecutionController.cpp

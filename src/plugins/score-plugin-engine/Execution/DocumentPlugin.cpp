@@ -18,6 +18,7 @@
 #include <Audio/AudioTick.hpp>
 #include <Audio/Settings/Model.hpp>
 #include <Engine/ApplicationPlugin.hpp>
+#include <Execution/DeviceAddresses.hpp>
 #include <Execution/Settings/ExecutorModel.hpp>
 
 #include <score/actions/ActionManager.hpp>
@@ -220,34 +221,18 @@ void DocumentPlugin::unregisterDevice(ossia::net::device_base* d)
 
   m_ctxData->execState->unregister_device(d);
 
-  // Ports keep raw pointers into the device tree: they must be dropped from
-  // the execution thread before the device is destroyed.
+  // Ports keep raw pointers into the device tree and must be dropped from the
+  // execution thread. The cleanup is queued, so by the time it runs this
+  // device - and any other removed since - may be destroyed: snapshot the
+  // addresses here and match on pointer identity below. One set for both kinds
+  // also keeps the capture within the 128-byte ExecutionCommand budget.
+  auto owned = deviceAddresses(*d);
+
   m_ctxData->context.executionQueue.enqueue(
-      [wg = std::weak_ptr{m_ctxData->execGraph}, d]() noexcept {
-    auto g = wg.lock();
-    if(!g)
-      return;
-
-    auto belongs_to = [d](const ossia::destination_t& dest) {
-      if(auto p = dest.target<ossia::net::parameter_base*>())
-        return *p && &(*p)->get_node().get_device() == d;
-      if(auto n = dest.target<ossia::net::node_base*>())
-        return *n && &(*n)->get_device() == d;
-      return false;
-    };
-
-    for(auto node : g->get_nodes())
-    {
-      ossia::for_each_inlet(*node, [&](ossia::inlet& p) {
-        if(belongs_to(p.address))
-          p.address = {};
-      });
-      ossia::for_each_outlet(*node, [&](ossia::outlet& p) {
-        if(belongs_to(p.address))
-          p.address = {};
-      });
-    }
-      });
+      [wg = std::weak_ptr{m_ctxData->execGraph}, owned = std::move(owned)]() noexcept {
+    if(auto g = wg.lock())
+      clearAddresses(g->get_nodes(), owned);
+  });
 }
 
 void DocumentPlugin::makeGraph()
