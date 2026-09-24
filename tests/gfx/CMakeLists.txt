@@ -1532,6 +1532,25 @@ endif()
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
 
+# The avendish "Average color" example averages its input (agent G, N89).
+if(TARGET score_plugin_avnd)
+  score_add_test(test_gfx_average_color
+    SOURCES GfxAverageColor.cpp
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_average_color PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_average_color SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
 # CSF attribute naming, COPY_FROM next to AUXILIARY, unblended storage-image
 # outlet, read_write on a static CPU mesh, FRAMEINDEX origin.
 score_add_gfx_test(csf_isf_behaviours GfxCsfIsfBehaviours.cpp)
@@ -1553,6 +1572,59 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
   target_compile_definitions(test_gfx_avnd_inlet_resolve PRIVATE
     GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
   target_include_directories(test_gfx_avnd_inlet_resolve SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
+# A loaded Structure Synth program is drawn.
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  set(_3d_ssfixg "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
+  score_plugin_hidden_sources(_ssfixg_hidden
+      "${_3d_ssfixg}/StructureSynth.cpp"
+      "${_3d_ssfixg}/TinyObj.cpp"
+      "${_3d_ssfixg}/ModelDisplay/ModelDisplayNode.cpp")
+  score_add_test(test_gfx_structure_synth_draw
+    SOURCES
+      GfxStructureSynthDraw.cpp
+      ${_ssfixg_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  if(_ssfixg_hidden)
+    target_link_libraries(test_gfx_structure_synth_draw PRIVATE ssynth mikktspace)
+  endif()
+  target_include_directories(test_gfx_structure_synth_draw SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
+# Extract buffer picks up a CSF geometry's buffers created after its init
+# (agent G, N80).
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  score_plugin_hidden_sources(_extract_late_geometry_hidden
+      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim/GeometryToBuffer.cpp")
+  score_add_test(test_gfx_extract_buffer_late_geometry
+    SOURCES GfxExtractBufferLateGeometry.cpp ${_extract_late_geometry_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_extract_buffer_late_geometry PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_extract_buffer_late_geometry SYSTEM PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
     "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"

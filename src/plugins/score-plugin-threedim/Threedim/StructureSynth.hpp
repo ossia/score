@@ -33,7 +33,14 @@ public:
         if(this->value.empty())
           return;
 
-        using namespace std::literals;
+        if(!g.m_generated)
+        {
+          g.m_generated = true;
+          if(auto apply = decltype(g.worker)::work(this->value))
+            apply(g);
+          return;
+        }
+
         g.worker.request(this->value);
       }
     } program;
@@ -69,6 +76,7 @@ public:
 
   using float_vec = boost::container::vector<float, ossia::pod_allocator<float>>;
   float_vec m_vertexData;
+  bool m_generated{};
 };
 
 }

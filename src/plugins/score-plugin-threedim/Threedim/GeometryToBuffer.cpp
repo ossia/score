@@ -62,10 +62,7 @@ void ExtractBuffer::init(
     }
 
     if(!lookup->buffer || !lookup->buffer->handle)
-    {
-      qDebug() << this << "GeometryToBuffer::init - Input buffer is null";
       return;
-    }
 
     const bool hasIndexBuffer = mesh.index.buffer >= 0;
     const bool canDirectRef = lookup->canDirectReference() && !hasIndexBuffer;
@@ -102,8 +99,6 @@ void ExtractBuffer::init(
         m_strategy = std::monostate{};
       }
     }
-
-    updateOutput();
   }
   else if(inputs.attribute.value == Attribute::Index)
   {
@@ -155,6 +150,8 @@ void ExtractBuffer::init(
   {
     m_strategy = std::monostate{};
   }
+
+  updateOutput();
 }
 
 void ExtractBuffer::update(
@@ -172,6 +169,12 @@ void ExtractBuffer::update(
   if(attributeChanged || padChanged)
   {
     release(renderer);
+    init(renderer, res);
+    return;
+  }
+
+  if(std::holds_alternative<std::monostate>(m_strategy))
+  {
     init(renderer, res);
     return;
   }
@@ -195,13 +198,13 @@ void ExtractBuffer::update(
   if(inputs.attribute.value < Attribute::Index)
   {
     const auto location = toAttributeLocation(inputs.attribute.value);
-    const auto lookup = findAttribute(mesh, location);
+    const auto lookup
+        = inputs.attribute.value < Attribute::Attribute_0
+              ? findAttribute(mesh, location)
+              : findAttribute(mesh, inputs.attribute.value - Attribute::Attribute_0);
 
     if(!lookup)
-    {
-      qDebug() << this << "FAIL" << (int)location << bool(lookup);
       return;
-    }
 
     // Check if strategy type needs to change
     const bool hasIndexBuffer = mesh.index.buffer >= 0;

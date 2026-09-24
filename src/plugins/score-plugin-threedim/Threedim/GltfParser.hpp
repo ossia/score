@@ -86,6 +86,7 @@ public:
   // Parallel to mesh_primitive::material_variants and
   // scene_state::active_variant_index.
   std::vector<std::string> m_variant_names;
+  std::vector<ossia::animation_component_ptr> m_animations;
 
   // Rich scene state emitted by rebuild_scene — full hierarchy with
   // materials, lights, cameras, skeletons. AssetLoader consumes this
