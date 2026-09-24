@@ -3330,34 +3330,6 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       const int wantLayers = std::max(1, (int)b.layerMap.size());
       if(!b.array || b.layers != wantLayers)
       {
-        // The new array starts empty, and pendingUploads only carries the
-        // layers discovered on this pass. Every layer the old array already
-        // held has to be queued again or it is silently lost — the bucket
-        // keeps its layerMap entry, so nothing downstream notices and the
-        // material samples undefined memory.
-        if(b.array && b.layers > 0)
-        {
-          for(const auto& [src, layer] : b.layerMap)
-          {
-            if(layer >= b.layers)
-              continue;
-            bool already_queued = false;
-            for(const auto& pu : pendingUploads)
-            {
-              if(pu.bucket_idx == (int)bi && pu.layer_idx == layer)
-              {
-                already_queued = true;
-                break;
-              }
-            }
-            if(already_queued || !src)
-              continue;
-            QImage img = decodeTextureSource(*src, renderer.assetTable());
-            if(img.isNull())
-              continue;
-            pendingUploads.push_back({(int)bi, layer, std::move(img)});
-          }
-        }
         if(b.array)
           b.array->deleteLater();
         // The bucket sampler is promoted to trilinear below, so the array has
