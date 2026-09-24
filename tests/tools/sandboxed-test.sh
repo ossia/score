@@ -30,6 +30,9 @@ if ! command -v bwrap >/dev/null 2>&1; then
   exec "$@"
 fi
 
+# bwrap cannot create missing mount points under the read-only root.
+mkdir -p "${HOME}/.config" "${HOME}/.cache" "${HOME}/.local/share"
+
 exec bwrap \
   --ro-bind / / \
   --dev /dev \
