@@ -114,6 +114,7 @@
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/ScenePreprocessorNode.hpp>
+#include <Gfx/Graph/Utils.hpp>
 
 #include <ossia/dataflow/geometry_port.hpp>
 
@@ -242,6 +243,58 @@ constexpr const char* kFsArrLastMip = R"__(/*{
 void main()
 {
     isf_FragColor = vec4(textureLod(baseColorArray0, vec3(v_uv, 0.0), 16.0).rgb, 1.0);
+}
+)__";
+
+// The last-mip probe again, declaring nothing about its sampler. The pool
+// publishes its own sampler for the array, and that is the one bound.
+constexpr const char* kFsArrLastMipUndeclared = R"__(/*{
+  "DESCRIPTION": "bucket-array probe at the smallest mip of layer 0 of bucket 0, with no sampler keys in its declaration.",
+  "CREDIT": "test",
+  "ISFVSN": "2.0",
+  "MODE": "RAW_RASTER_PIPELINE",
+  "CATEGORIES": ["TEST-SYNTHETIC", "TEST-SCENE"],
+  "VERTEX_INPUTS": [ { "TYPE": "vec4", "NAME": "position" } ],
+  "VERTEX_OUTPUTS": [ { "TYPE": "vec2", "NAME": "v_uv" } ],
+  "FRAGMENT_INPUTS": [ { "TYPE": "vec2", "NAME": "v_uv" } ],
+  "FRAGMENT_OUTPUTS": [ { "TYPE": "vec4", "NAME": "isf_FragColor" } ],
+  "INPUTS": [],
+  "AUXILIARY": [
+    { "NAME": "baseColorArray0", "TYPE": "image", "ARRAY": true }
+  ]
+}*/
+void main()
+{
+    isf_FragColor = vec4(textureLod(baseColorArray0, vec3(v_uv, 0.0), 16.0).rgb, 1.0);
+}
+)__";
+
+// Reads the published wrap table: ORs the base-colour field (bits 0..3 of .x)
+// of every entry and writes it to red, so one clamp-S / mirror-T material
+// reads 1 | 2 << 2 = 9.
+constexpr const char* kFsWrapTable = R"__(/*{
+  "DESCRIPTION": "scene_material_wrap probe: red = OR of every entry's base-colour wrap field.",
+  "CREDIT": "test",
+  "ISFVSN": "2.0",
+  "MODE": "RAW_RASTER_PIPELINE",
+  "CATEGORIES": ["TEST-SYNTHETIC", "TEST-SCENE"],
+  "VERTEX_INPUTS": [ { "TYPE": "vec4", "NAME": "position" } ],
+  "VERTEX_OUTPUTS": [ { "TYPE": "vec2", "NAME": "v_uv" } ],
+  "FRAGMENT_INPUTS": [ { "TYPE": "vec2", "NAME": "v_uv" } ],
+  "FRAGMENT_OUTPUTS": [ { "TYPE": "vec4", "NAME": "isf_FragColor" } ],
+  "INPUTS": [],
+  "AUXILIARY": [
+    { "NAME": "scene_material_wrap", "ACCESS": "read_only",
+      "LAYOUT": [ { "NAME": "entries", "TYPE": "uvec4[]" } ] }
+  ]
+}*/
+void main()
+{
+    uint bits = 0u;
+    int n = min(scene_material_wrap.entries.length(), 64);
+    for(int i = 0; i < n; ++i)
+        bits |= scene_material_wrap.entries[i].x & 0xFu;
+    isf_FragColor = vec4(float(bits) / 255.0, 0.0, 0.0, 1.0);
 }
 )__";
 
@@ -406,6 +459,16 @@ ossia::material_component_ptr makeStaticMaterial(
   m->tag = "p120-static";
   m->base_color_texture.source = std::move(src);
   return m;
+}
+
+ossia::material_component_ptr withWrap(
+    const ossia::material_component_ptr& m, ossia::texture_address_mode s,
+    ossia::texture_address_mode t)
+{
+  auto copy = std::make_shared<ossia::material_component>(*m);
+  copy->base_color_texture.sampler.wrap_s = s;
+  copy->base_color_texture.sampler.wrap_t = t;
+  return copy;
 }
 
 // -----------------------------------------------------------------------------
@@ -1198,4 +1261,109 @@ TEST_CASE(
   CHECK(r.snap2.bucketLayers[0] == 2);
   CHECK(total == 9);
   CHECK(near(r.mid2, kBlue, kTol));
+}
+
+// =============================================================================
+// Case 8 -- an AUXILIARY pool texture is sampled through the pool's sampler.
+// The declaration names no sampler keys, so its own sampler has no mip
+// filter; the pool publishes a trilinear one with the array, and that is the
+// one bound. A half-red, half-blue layer then reads its average at the last
+// mip, where the declaration's own sampler would read level 0's blue half.
+TEST_CASE(
+    "an AUXILIARY pool texture is sampled through the pool's sampler",
+    "[gfx][scene][material][texture-array][sampler]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  const auto r = run_static_phases(
+      api, kFsArrLastMipUndeclared,
+      {makeStaticMaterial(QColor(255, 0, 0, 255), 0xA01, QColor(0, 0, 255, 255))},
+      {makeStaticMaterial(QColor(255, 0, 0, 255), 0xA01, QColor(0, 0, 255, 255))});
+  if(r.skipped)
+    SKIP(r.backend + ": " + r.skip_reason);
+
+  INFO("backend=" << r.backend << " error=" << r.error);
+  REQUIRE(r.error.empty());
+  REQUIRE(r.valid2);
+  INFO("phase2 mid=" << rgba(r.mid2));
+  CHECK(r.mid2[0] > 80);
+  CHECK(r.mid2[0] < 220);
+  CHECK(r.mid2[2] > 80);
+  CHECK(r.mid2[2] < 220);
+}
+
+// =============================================================================
+// Case 9 -- the wrap mode is not part of the bucket key. Two same-size
+// textures, one repeat and one clamp-to-edge, share bucket 0 as two layers.
+TEST_CASE(
+    "textures differing only in wrap mode share a bucket",
+    "[gfx][scene][material][texture-array][sampler]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  const auto clamp = withWrap(
+      makeStaticMaterial(QColor(255, 0, 255, 255), 0xA11),
+      ossia::texture_address_mode::CLAMP_TO_EDGE,
+      ossia::texture_address_mode::CLAMP_TO_EDGE);
+  const auto r = run_static_phases(
+      api, kFsArr, {makeStaticMaterial(QColor(0, 0, 255, 255), 0xA10)},
+      {makeStaticMaterial(QColor(0, 0, 255, 255), 0xA10), clamp});
+  if(r.skipped)
+    SKIP(r.backend + ": " + r.skip_reason);
+
+  INFO("backend=" << r.backend << " error=" << r.error);
+  REQUIRE(r.error.empty());
+  REQUIRE(!r.snap2.bucketLayers.empty());
+  CHECK(r.snap2.bucketLayers.size() == 1);
+  CHECK(r.snap2.bucketLayers[0] == 2);
+}
+
+// =============================================================================
+// Case 10 -- the texture's wrap mode reaches the shader in
+// scene_material_wrap: clamp-to-edge on S and mirror on T is 1 | 2 << 2 = 9 in
+// the base-colour field.
+TEST_CASE(
+    "a texture's wrap mode is published in scene_material_wrap",
+    "[gfx][scene][material][sampler]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  const auto m = withWrap(
+      makeStaticMaterial(QColor(0, 0, 255, 255), 0xA21),
+      ossia::texture_address_mode::CLAMP_TO_EDGE,
+      ossia::texture_address_mode::MIRROR);
+  const auto r = run_static_phases(api, kFsWrapTable, {m}, {m});
+  if(r.skipped)
+    SKIP(r.backend + ": " + r.skip_reason);
+
+  INFO("backend=" << r.backend << " error=" << r.error);
+  REQUIRE(r.error.empty());
+  REQUIRE(r.valid2);
+  INFO("phase2 mid=" << rgba(r.mid2));
+  CHECK(int(r.mid2[0]) == 9);
+}
+
+// =============================================================================
+// Case 11 -- the one declaration that keeps its own sampler over the pool's:
+// a depth comparison, which is the shader's intent rather than the texture's.
+// Anything else -- wrap, filter, none at all -- defers to the publisher.
+TEST_CASE(
+    "only a comparison sampler declaration overrides the publisher's",
+    "[gfx][sampler]")
+{
+  isf::sampler_config c;
+  CHECK_FALSE(score::gfx::declaresCompare(c));
+  c.wrap = "clamp";
+  c.filter = "nearest";
+  c.mipmap_mode = "linear";
+  CHECK_FALSE(score::gfx::declaresCompare(c));
+  c.compare = "never";
+  CHECK_FALSE(score::gfx::declaresCompare(c));
+  c.compare = "LESS_EQUAL";
+  CHECK(score::gfx::declaresCompare(c));
+  c.compare = "greater";
+  CHECK(score::gfx::declaresCompare(c));
 }

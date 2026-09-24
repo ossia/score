@@ -313,19 +313,10 @@ public:
   static constexpr int kMaxDynamicSlots  = 8;
 
   // Static buckets in ONE pool shared by every channel, each holding textures
-  // of one (format, pixelSize, colourspace, sampler config) tuple.
-  //
-  // Five per-channel pools of 16 declared 80 sampler2DArrays whatever the scene
-  // held. Sharing collapses that to one ladder: measured over the 117 glTF
-  // sample models with material textures, arrays needed fall from 392
-  // (mean 3.35/model) to 280 (2.39) keying on size and colourspace, because
-  // baseColor and emissive are both sRGB and metal-rough, normal and occlusion
-  // are all linear, so a model's channels land in a handful of shared buckets
-  // instead of one set each.
-  //
-  // 8 covers the overwhelming majority; the worst single model in that set
-  // needs 14, and those degrade exactly as a scene past 16 did before -- the
-  // texture is skipped and the shader reads tex_ref_none.
+  // of one (format, pixelSize, colourspace) tuple. baseColor and emissive are
+  // sRGB, metal-rough, normal and occlusion linear, so a model's channels land
+  // in a handful of shared buckets. Past the cap a texture is skipped and the
+  // shader reads tex_ref_none.
   //
   // The tex_ref_static encoding reserves a 7-bit bucket field, so the cap can
   // grow to 128 without changing the packed layout or the shader decode masks,
@@ -342,7 +333,7 @@ public:
    * encoding; the runtime cap is kMaxBuckets (currently 8).
    *
    * The Bucket struct holds the discriminating
-   * (format, pixelSize, colourspace, sampler config) tuple. Dynamic (runtime-GPU) slots stay at
+   * (format, pixelSize, colourspace) tuple. Dynamic (runtime-GPU) slots stay at
    * channel scope — they carry opaque QRhiTexture*s with no
    * canonical format/size, so no sensible bucket to live in.
    */
@@ -363,11 +354,8 @@ public:
       // never has to know: it samples whichever bucket the ref names.
       QRhiTexture::Flags flags{};
 
-      // Per-bucket sampler config. Bucket key extended to include this:
-      // distinct (format, size, sampler_config) tuples land in distinct
-      // buckets so per-glTF-texture wrap/filter modes are honoured even
-      // when multiple materials share a channel array.
-      ossia::texture_sampler_config sampler_config{};
+      // The same repeat, trilinear sampler for every bucket; per-texture wrap
+      // modes are applied by the shader from scene_material_wrap.
       QRhiSampler* sampler{};        // created on first allocation; owned
 
       // Dedup: texture_source shared_ptr pointer → layer index in
@@ -376,7 +364,7 @@ public:
       ossia::flat_map<const ossia::texture_source*, int> layerMap;
     };
 
-    // One bucket per distinct (format, pixelSize, sampler config), up to
+    // One bucket per distinct (format, pixelSize, colourspace), up to
     // kMaxBuckets.
     std::vector<Bucket> buckets;
 
@@ -427,27 +415,15 @@ public:
 
     // Find a bucket matching (fmt, sz, flags), creating one if none matches and
     // kMaxBuckets is not reached. Returns {bucket_index, pointer}, or
-    // {-1, nullptr} on overflow, which the caller reports and turns into
-    // tex_ref_none. Bucket identity is the exact tuple, no rounding.
+    // {-1, nullptr} on overflow. Bucket identity is the exact tuple, no
+    // rounding.
     std::pair<int, Bucket*>
     findOrCreateBucket(QRhiTexture::Format fmt, QSize sz, QRhiTexture::Flags flags)
-    {
-      return findOrCreateBucket(fmt, sz, flags, {});
-    }
-
-    // Full key: (format, pixelSize, colourspace flags, sampler config). The
-    // sampler config splits buckets so a scene mixing wrap modes keeps each
-    // texture's own state; most glTFs use one sampler, so it collapses.
-    std::pair<int, Bucket*>
-    findOrCreateBucket(
-        QRhiTexture::Format fmt, QSize sz, QRhiTexture::Flags flags,
-        const ossia::texture_sampler_config& sampler_cfg)
     {
       for(std::size_t i = 0; i < buckets.size(); ++i)
       {
         if(buckets[i].format == fmt && buckets[i].pixelSize == sz
-           && buckets[i].flags == flags
-           && buckets[i].sampler_config == sampler_cfg)
+           && buckets[i].flags == flags)
           return {(int)i, &buckets[i]};
       }
       if((int)buckets.size() >= kMaxBuckets)
@@ -457,7 +433,6 @@ public:
       b.format = fmt;
       b.pixelSize = sz;
       b.flags = flags;
-      b.sampler_config = sampler_cfg;
       return {(int)buckets.size() - 1, &b};
     }
   };
