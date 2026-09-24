@@ -36,6 +36,10 @@ public:
   // Creates a directory (and missing parents). Returns true if it exists afterwards.
   bool makeDir(QString path);
   W_SLOT(makeDir)
+  // Deletes a file. True if it is gone afterwards, including when it was not
+  // there to begin with. A directory is not removed: that returns false.
+  bool removeFile(QString path);
+  W_SLOT(removeFile)
 
   // Absolute paths of the files in a directory matching the given glob filters
   // (e.g. "*.scp" or "*.scp;*.json"; empty = all files). Empty if the directory

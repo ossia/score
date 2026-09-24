@@ -113,6 +113,23 @@ bool JsUtils::makeDir(QString path)
   return QDir{}.mkpath(path);
 }
 
+bool JsUtils::removeFile(QString path)
+{
+  if(auto doc = score::AppContext().currentDocument())
+    path = score::locateFilePath(path, *doc);
+
+  // exists() and isFile() follow links: a broken symlink does not "exist" but
+  // is still there to unlink, and a link to a folder is not a folder to refuse.
+  const QFileInfo fi{path};
+  if(fi.isSymLink())
+    return QFile::remove(path);
+  if(!fi.exists())
+    return true;
+  if(fi.isDir())
+    return false;
+  return QFile::remove(path);
+}
+
 QStringList JsUtils::listFiles(QString path, QString filters)
 {
   if(auto doc = score::AppContext().currentDocument())
