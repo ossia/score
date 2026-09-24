@@ -36,6 +36,13 @@ TICK="${TICK:-0.5}"
 BLANK_MEAN="${BLANK_MEAN:-0.002}"
 ASAN="detect_leaks=0:halt_on_error=0:handle_segv=1:detect_odr_violation=0:protect_shadow_gap=0"
 
+# Missing prerequisites -> ctest SKIP (77), not a timeout per scenario.
+command -v oscsend >/dev/null || { echo "SKIP: oscsend not found";      exit 77; }
+command -v convert >/dev/null || { echo "SKIP: ImageMagick not found";  exit 77; }
+command -v flock   >/dev/null || { echo "SKIP: flock not found";        exit 77; }
+command -v timeout >/dev/null || { echo "SKIP: timeout not found";      exit 77; }
+[ -x "$BIN" ]                 || { echo "SKIP: $BIN not built";         exit 77; }
+
 # An X server is required; see the env block in run_scenario for why offscreen
 # is not a substitute (no GL -> Null RHI backend -> every verdict meaningless).
 # Prefer an inherited DISPLAY, else bring up a headless one and take it down.
@@ -306,6 +313,7 @@ coverage() { # name — list of gfx functions with >0 region coverage
 
 FAILED=0
 SKIPPED=0
+RAN=0
 for name in "${ORDER[@]}"; do
   [ $# -gt 0 ] && { printf '%s\n' "$@" | grep -qx "$name" || continue; }
   read -r nticks require cover <<< "${CFG[$name]}"
@@ -320,6 +328,7 @@ for name in "${ORDER[@]}"; do
     printf '  %-24s SKIP   %s\n' "$name" "$why"; SKIPPED=$((SKIPPED+1)); continue
   fi
   echo "=== $name (${nticks} ticks @ ${TICK}s) ==="
+  RAN=$((RAN+1))
   run_scenario "$name" "$nticks"
   verdict "$name" "$require" "${cover:-}" "${EXPECT[$name]:-}" || FAILED=$((FAILED+1))
   coverage "$name"
@@ -343,3 +352,8 @@ fi
 echo
 echo "artifacts under $OUT/ (png, log, rc, .score, functions.txt, hit.txt)"
 [ "$FAILED" = 0 ] || { echo "$FAILED scenario(s) FAILED — real findings, see logs"; exit 1; }
+# Every selected scenario skipped: SKIP, not a pass.
+if [ "$RAN" = 0 ] && [ "$SKIPPED" -gt 0 ]; then
+  echo "every selected scenario was skipped -- SKIP"
+  exit 77
+fi
