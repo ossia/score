@@ -74,6 +74,49 @@ void EditJsContext::undo()
     stack.undo();
 }
 
+bool EditJsContext::canUndo()
+{
+  auto doc = ctx();
+  return doc ? doc->document.commandStack().canUndo() : false;
+}
+
+bool EditJsContext::canRedo()
+{
+  auto doc = ctx();
+  return doc ? doc->document.commandStack().canRedo() : false;
+}
+
+int EditJsContext::undoIndex()
+{
+  auto doc = ctx();
+  return doc ? doc->document.commandStack().currentIndex() : 0;
+}
+
+int EditJsContext::undoCount()
+{
+  auto doc = ctx();
+  return doc ? doc->document.commandStack().size() : 0;
+}
+
+QString EditJsContext::undoText()
+{
+  auto doc = ctx();
+  if(!doc)
+    return {};
+  // CommandStack returns a localised placeholder on an empty stack.
+  auto& stack = doc->document.commandStack();
+  return stack.canUndo() ? stack.undoText() : QString{};
+}
+
+QString EditJsContext::redoText()
+{
+  auto doc = ctx();
+  if(!doc)
+    return {};
+  auto& stack = doc->document.commandStack();
+  return stack.canRedo() ? stack.redoText() : QString{};
+}
+
 void EditJsContext::redo()
 {
   auto doc = ctx();
