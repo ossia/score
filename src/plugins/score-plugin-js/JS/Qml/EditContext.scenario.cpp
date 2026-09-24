@@ -48,6 +48,31 @@ void EditJsContext::startMacro()
   this->m_macro = std::make_unique<Macro>(new ScriptMacro, *doc);
 }
 
+void EditJsContext::withMacro(QJSValue fn)
+{
+  if(!fn.isCallable())
+  {
+    qWarning() << "Score.withMacro: argument is not a function";
+    return;
+  }
+
+  // A nested call joins the enclosing macro: startMacro() would replace
+  // m_macro, and ~Macro rolls back everything submitted to it so far.
+  const bool nested = bool(this->m_macro);
+  if(!nested)
+    startMacro();
+
+  // QJSValue::call() returns an error value instead of throwing, so endMacro()
+  // always runs.
+  auto res = fn.call();
+  if(!nested)
+    endMacro();
+
+  if(res.isError())
+    qWarning() << "Score.withMacro: the script failed, the macro was committed as far"
+               << "as it got:" << res.toString();
+}
+
 void EditJsContext::endMacro()
 {
   if(this->m_macro)

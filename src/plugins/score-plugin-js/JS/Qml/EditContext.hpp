@@ -367,6 +367,13 @@ public:
   void startMacro();
   W_SLOT(startMacro)
 
+  //! Run `fn` in a macro, committed even if the script errors. A nested call
+  //! joins the enclosing macro. startMacro()/endMacro() by hand is not
+  //! exception-safe, and startMacro() overwrites an open macro, rolling back
+  //! what it had already applied.
+  void withMacro(QJSValue fn);
+  W_SLOT(withMacro)
+
   void endMacro();
   W_SLOT(endMacro)
 
@@ -375,6 +382,29 @@ public:
 
   void redo();
   W_SLOT(redo)
+
+  //! Undo-stack introspection. Mirroring the stack script-side desynchronises
+  //! as soon as a macro commits nothing, or a document is loaded behind it.
+  bool canUndo();
+  W_SLOT(canUndo)
+
+  bool canRedo();
+  W_SLOT(canRedo)
+
+  //! Number of commands that can still be undone (the stack's current index).
+  int undoIndex();
+  W_SLOT(undoIndex)
+
+  //! Total number of commands on the stack.
+  int undoCount();
+  W_SLOT(undoCount)
+
+  //! Description of the command the next undo()/redo() would apply, or "".
+  QString undoText();
+  W_SLOT(undoText)
+
+  QString redoText();
+  W_SLOT(redoText)
 
   void load(QString path);
   W_SLOT(load)
