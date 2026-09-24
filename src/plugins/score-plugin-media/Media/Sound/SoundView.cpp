@@ -71,7 +71,9 @@ LayerView::~LayerView()
 {
   m_cpt->stop();
 
-  ossia::qt::run_async(m_cpt, &QObject::deleteLater);
+  // Not through run_async: releaseThread() below may quit the thread and drop
+  // the queued call, whereas a posted DeferredDelete is still honoured.
+  m_cpt->deleteLater();
   m_cpt = nullptr;
 
   score::ThreadPool::instance().releaseThread();
