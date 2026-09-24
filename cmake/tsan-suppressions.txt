@@ -1,66 +1,12 @@
 # ThreadSanitizer suppressions for the score test suite.
 #
-# The runners use their distribution's Qt, GLib, GStreamer, PipeWire and Mesa,
-# none of which is built with -fsanitize=thread. TSan cannot see the atomics
-# and fences inside them, so every hand-off those libraries synchronise
-# internally looks like a race: an object allocated in the main thread from
-# inside libQt6DBus and freed by a Qt worker thread inside libQt6Core is the
-# dominant report of the unsuppressed run (score::View::View and
-# ~MinimalGUIApplication at the top of hundreds of reports).
+# System Qt/GLib/GStreamer/PipeWire/Mesa are not instrumented; that noise is
+# handled by TSAN_OPTIONS=ignore_noninstrumented_modules=1 (ScoreConfiguration).
 #
-# called_from_lib: makes TSan ignore the intercepted calls (malloc/free, and so
-# new/delete, memcpy, ...) made from inside a library. That removes exactly
-# those hand-offs and nothing that happens in instrumented score code. It is
-# deliberately NOT race:libQt6Core -- nearly every score stack runs under Qt's
-# event loop, and a module-wide race: entry would hide real score races.
+# Do NOT use called_from_lib: it hides locks taken in ignored code but released
+# in instrumented code, causing false mutex errors, false UAF and deadlocks.
 #
-# Remove an entry when that library is built with TSan (e.g. a TSan Qt from
-# the SDK).
-called_from_lib:libQt6Core.so
-called_from_lib:libQt6Gui.so
-called_from_lib:libQt6Widgets.so
-called_from_lib:libQt6DBus.so
-called_from_lib:libQt6Network.so
-called_from_lib:libQt6Qml.so
-called_from_lib:libQt6Quick.so
-called_from_lib:libQt6OpenGL.so
-called_from_lib:libglib-2.0.so
-called_from_lib:libgobject-2.0.so
-called_from_lib:libgio-2.0.so
-called_from_lib:libgstreamer-1.0.so
-called_from_lib:libpipewire-0.3.so
-called_from_lib:libvulkan.so
-called_from_lib:libGLX_mesa.so
-called_from_lib:libEGL_mesa.so
-called_from_lib:libgallium
-called_from_lib:libvulkan_lvp.so
-called_from_lib:libvulkan_radeon.so
-called_from_lib:libnvidia-glcore.so
-called_from_lib:libfontconfig.so
-# Second pass, from the libraries that remained in reports of the first run
-# with the entries above active (counts are reports naming the library):
-# D-Bus (885, Qt's platform services), libstdc++'s own out-of-line code (locale,
-# exceptions, std::thread state), PulseAudio and ALSA (the audio factories),
-# PipeWire's SPA plug-ins, xcb/GLX and Qt's xcb platform plug-in, OpenSSL,
-# Avahi, Mesa's LLVM JIT and FFmpeg.
-called_from_lib:libdbus-1.so
-called_from_lib:libstdc++.so
-called_from_lib:libpulse.so
-called_from_lib:libpulsecommon
-called_from_lib:libasound.so
-called_from_lib:libspa-
-called_from_lib:libxcb.so
-called_from_lib:libGLX.so
-called_from_lib:libQt6XcbQpa.so
-called_from_lib:libqxcb-glx-integration.so
-called_from_lib:libcrypto.so
-called_from_lib:libavahi-client.so
-called_from_lib:libLLVM.so
-called_from_lib:libavutil.so
-called_from_lib:libavcodec.so
-called_from_lib:libavformat.so
-# GStreamer's element and video libraries, next to libgstreamer itself
-# (gst_video_frame_copy_plane and friends in the GStreamer device reports).
-called_from_lib:libgstvideo-1.0.so
-called_from_lib:libgstapp-1.0.so
-called_from_lib:libgstbase-1.0.so
+# Entries below must name a function or a source file, one justified case each.
+#
+# GPU drivers start threads TSan never sees (raw clone, thrd_create), which
+# crashes the TSan runtime: TSan runs exclude the GPU tests.

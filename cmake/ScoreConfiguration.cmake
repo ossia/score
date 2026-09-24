@@ -160,13 +160,12 @@ if(CMAKE_CXX_FLAGS MATCHES "sanitize=[a-z,]*address")
   message(STATUS "score: LSAN_OPTIONS for ctest = ${SCORE_LSAN_OPTIONS}")
 endif()
 
-# ThreadSanitizer: the distribution's Qt, GLib, GStreamer, PipeWire and Mesa are
-# not instrumented, so their internally synchronised hand-offs read as races.
-# See cmake/tsan-suppressions.txt for what is ignored and why it stays narrow.
+# ThreadSanitizer: system Qt/GLib/GStreamer/Mesa are not instrumented, hence
+# ignore_noninstrumented_modules. See tsan-suppressions.txt re called_from_lib.
 if(CMAKE_CXX_FLAGS MATCHES "sanitize=[a-z,]*thread")
   set(SCORE_TSAN_SUPPRESSIONS "${CMAKE_CURRENT_LIST_DIR}/tsan-suppressions.txt")
   set(SCORE_TSAN_OPTIONS
-      "suppressions=${SCORE_TSAN_SUPPRESSIONS}:second_deadlock_stack=1:history_size=4")
+      "ignore_noninstrumented_modules=1:suppressions=${SCORE_TSAN_SUPPRESSIONS}:second_deadlock_stack=1:history_size=4")
   message(STATUS "score: TSAN_OPTIONS for ctest = ${SCORE_TSAN_OPTIONS}")
 endif()
 
