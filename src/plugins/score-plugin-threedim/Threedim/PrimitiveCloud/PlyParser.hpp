@@ -27,7 +27,11 @@ bool ply_is_splat_shaped(std::string_view path);
 // Sets format_id to a recognized signature when columns match a known
 // fingerprint:
 //   - has f_dc_0/1/2 + f_rest_* + scale_0/1/2 + rot_0/1/2/3 + opacity
-//     -> "3dgs.classic"
+//     -> "3dgs.classic" / "Splat3DGS"
+//   - the same with a filter_3D column (Mip-Splatting, GOF)
+//     -> "3dgs.mip" / "SplatMip"
+//   - the same with scale_0/1 but no scale_2 (2DGS)
+//     -> "2dgs.surfel" / "Splat2DGS"
 //   - else empty (the user wires the chain by hand or saves a preset)
 ossia::primitive_cloud_component_ptr parse_ply(std::string_view path);
 

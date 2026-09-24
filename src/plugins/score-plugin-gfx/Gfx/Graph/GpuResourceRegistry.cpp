@@ -230,6 +230,13 @@ void GpuResourceRegistry::seedDefaults(QRhiResourceUpdateBatch& batch)
   // are exactly the right defaults (white baseColor, metallic=0,
   // roughness=0.5, occlusion=1, no emissive, all texture refs null), so
   // a default-constructed instance is the byte payload we want.
+  uploadDefaultMaterial(batch);
+
+  m_defaults_seeded = true;
+}
+
+void GpuResourceRegistry::uploadDefaultMaterial(QRhiResourceUpdateBatch& batch)
+{
   auto& mat = m_arenas[(std::size_t)Arena::Material];
   if(mat.buffer && mat.slot_stride >= sizeof(MaterialGPU))
   {
@@ -238,8 +245,6 @@ void GpuResourceRegistry::seedDefaults(QRhiResourceUpdateBatch& batch)
         mat.buffer, /*offset=*/0,
         (quint32)sizeof(MaterialGPU), &defaultMat);
   }
-
-  m_defaults_seeded = true;
 }
 
 void GpuResourceRegistry::destroy(RenderList& renderer)
@@ -287,6 +292,8 @@ void GpuResourceRegistry::destroy(RenderList& renderer)
       b.mipsDirty = false;
     }
     ch.buckets.clear();
+    ch.claims.clear();
+    ++ch.generation;
     ch.dynamicSlotMap.clear();
     ch.dynamicTextures.clear();
     ch.dynamicSlotLastUse.clear();
@@ -356,6 +363,8 @@ void GpuResourceRegistry::destroyOwned()
       b.mipsDirty = false;
     }
     ch.buckets.clear();
+    ch.claims.clear();
+    ++ch.generation;
     ch.dynamicSlotMap.clear();
     ch.dynamicTextures.clear();
     ch.dynamicSlotLastUse.clear();
@@ -415,6 +424,8 @@ void GpuResourceRegistry::destroy()
       b.mipsDirty = false;
     }
     ch.buckets.clear();
+    ch.claims.clear();
+    ++ch.generation;
     ch.dynamicSlotMap.clear();
     ch.dynamicTextures.clear();
     ch.dynamicSlotLastUse.clear();

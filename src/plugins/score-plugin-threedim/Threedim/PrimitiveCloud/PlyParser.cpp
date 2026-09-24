@@ -96,9 +96,11 @@ std::string detect_format_id(const miniply::PLYElement& vtx)
 {
   bool has_f_dc = false;
   bool has_f_rest = false;
-  bool has_scale = false;
+  bool has_scale_01[2] = {false, false};
+  bool has_scale_2 = false;
   bool has_rot = false;
   bool has_opacity = false;
+  bool has_filter_3d = false;
   for(auto& p : vtx.properties)
   {
     if(p.countType != miniply::PLYPropertyType::None)
@@ -106,12 +108,32 @@ std::string detect_format_id(const miniply::PLYElement& vtx)
     const auto& n = p.name;
     if(n == "f_dc_0" || n == "f_dc_1" || n == "f_dc_2") has_f_dc = true;
     else if(n.rfind("f_rest_", 0) == 0) has_f_rest = true;
-    else if(n == "scale_0" || n == "scale_1" || n == "scale_2") has_scale = true;
+    else if(n == "scale_0") has_scale_01[0] = true;
+    else if(n == "scale_1") has_scale_01[1] = true;
+    else if(n == "scale_2") has_scale_2 = true;
     else if(n == "rot_0" || n == "rot_1" || n == "rot_2" || n == "rot_3") has_rot = true;
     else if(n == "opacity") has_opacity = true;
+    else if(n == "filter_3D") has_filter_3d = true;
   }
-  if(has_f_dc && has_f_rest && has_scale && has_rot && has_opacity)
-    return "3dgs.classic";
+  if(!(has_f_dc && has_f_rest && has_rot && has_opacity))
+    return {};
+  if(!has_scale_01[0] || !has_scale_01[1])
+    return {};
+  if(!has_scale_2)
+    return has_filter_3d ? std::string{} : std::string{"2dgs.surfel"};
+  if(has_filter_3d)
+    return "3dgs.mip";
+  return "3dgs.classic";
+}
+
+std::string struct_type_for(std::string_view format_id)
+{
+  if(format_id == "3dgs.classic")
+    return "Splat3DGS";
+  if(format_id == "3dgs.mip")
+    return "SplatMip";
+  if(format_id == "2dgs.surfel")
+    return "Splat2DGS";
   return {};
 }
 
@@ -255,8 +277,7 @@ ossia::primitive_cloud_component_ptr parse_ply(std::string_view path)
   // exposes raw_data as a per-vertex `splat: <Type>` ATTRIBUTE and the
   // CSF can declare a matching TYPES entry. Empty falls back to the
   // legacy AUXILIARY raw_splats path.
-  if(out->format_id == "3dgs.classic")
-    out->struct_type_name = "Splat3DGS";
+  out->struct_type_name = struct_type_for(out->format_id);
   out->bounds = bounds;
   out->stable_id = ossia::mint_stable_id();
 

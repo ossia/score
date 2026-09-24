@@ -440,6 +440,17 @@ score_add_test(test_threedim_primitive_range_clamp_fixF
   LIBS ${QT_PREFIX}::Gui)
 threedim_test_includes(test_threedim_primitive_range_clamp_fixF)
 
+# PLY column fingerprint: 3DGS / Mip-GOF (filter_3D) / 2DGS (no scale_2) get
+# distinct format_id + struct_type_name. Pure parsing, no GPU.
+score_add_test(test_threedim_ply_fingerprint_fixn
+  SOURCES PlyFingerprintFixN.cpp
+    "${THREEDIM_DIR}/PrimitiveCloud/PlyParser.cpp"
+    "${3RDPARTY_FOLDER}/miniply/miniply.cpp"
+  LIBS ${QT_PREFIX}::Core)
+threedim_test_includes(test_threedim_ply_fingerprint_fixn)
+target_include_directories(test_threedim_ply_fingerprint_fixn SYSTEM PRIVATE
+  "${3RDPARTY_FOLDER}/miniply")
+
 # Repack attributes rebinds once its source buffers arrive, never aliasing its
 # output as a load binding (fixF, N81).
 score_add_test(test_threedim_geometry_packer_rebind_fixF

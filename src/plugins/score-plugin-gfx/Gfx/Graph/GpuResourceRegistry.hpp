@@ -144,6 +144,15 @@ public:
   void seedDefaults(QRhiResourceUpdateBatch& batch);
 
   /**
+   * @brief Write the default MaterialGPU into Material arena slot 0.
+   *
+   * Unconditional, unlike seedDefaults(): a consumer whose own batch is
+   * known to be submitted re-issues the write, since the RenderList's
+   * initial batch can be dropped before it reaches the GPU.
+   */
+  void uploadDefaultMaterial(QRhiResourceUpdateBatch& batch);
+
+  /**
    * @brief Destroy the arena buffers via the owning RenderList.
    *
    * Every arena QRhiBuffer is routed through @c RenderList::releaseBuffer
@@ -383,6 +392,17 @@ public:
     // One bucket per distinct (format, pixelSize, colourspace), up to
     // kMaxBuckets.
     std::vector<Bucket> buckets;
+
+    // Bumped whenever a bucket's array or sampler is replaced. Every
+    // preprocessor sharing the pool republishes its texture auxiliaries on a
+    // change, not only the one whose rebuild caused it: the others' consumers
+    // still hold the replaced QRhiTexture*.
+    uint64_t generation{0};
+
+    // The static sources each preprocessor's scene references, keyed by that
+    // preprocessor. A rebuild keeps the layers the other preprocessors claim
+    // instead of freeing every source its own scene lacks.
+    ossia::flat_map<const void*, std::vector<const ossia::texture_source*>> claims;
 
     // Dynamic (runtime-GPU) slot map, keyed by QRhiResource::globalResourceId()
     // rather than the raw QRhiTexture* -- the allocator recycles freed pointer

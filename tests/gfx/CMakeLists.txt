@@ -1619,6 +1619,14 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
 
+# ScenePreprocessorNode: default material after a pre-frame RenderList rebuild,
+# per-preprocessor environment, hidden scene nodes, exact cloud bucket sizes.
+score_add_gfx_test(scene_preprocessor_fixn GfxScenePreprocessorFixN.cpp)
+target_sources(test_gfx_scene_preprocessor_fixn PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator/offsetAllocator.cpp")
+target_include_directories(test_gfx_scene_preprocessor_fixn PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator")
+
 # N84: the Splat renderer (GaussianSplatNode) joining a render list through the
 # incremental reconcile path (initState + addOutputPass, no init) must not
 # crash and must draw its splat.

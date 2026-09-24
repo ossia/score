@@ -298,6 +298,87 @@ QMatrix4x4 transformToMatrix(const ossia::scene_transform& t)
   return mat;
 }
 
+bool isDrawablePayload(const ossia::scene_payload& p) noexcept
+{
+  return ossia::get_if<ossia::mesh_component_ptr>(&p)
+         || ossia::get_if<ossia::instance_component_ptr>(&p)
+         || ossia::get_if<ossia::primitive_cloud_component_ptr>(&p)
+         || ossia::get_if<ossia::gaussian_splat_component_ptr>(&p)
+         || ossia::get_if<ossia::point_cloud_component_ptr>(&p)
+         || ossia::get_if<ossia::voxel_field_component_ptr>(&p)
+         || ossia::get_if<ossia::volume_component_ptr>(&p);
+}
+
+// A node with visible == false keeps its transforms, lights and cameras but
+// draws nothing, and neither does its subtree. Returns `n` itself when nothing
+// under it is hidden, so an all-visible scene is not copied.
+ossia::scene_node_ptr withoutHiddenDrawables(
+    const ossia::scene_node_ptr& n, bool hidden)
+{
+  if(!n || !n->has_children())
+    return n;
+  hidden = hidden || !n->visible;
+
+  std::shared_ptr<std::vector<ossia::scene_payload>> rewritten;
+  const auto& children = *n->children;
+  for(std::size_t i = 0; i < children.size(); ++i)
+  {
+    const auto& child = children[i];
+    ossia::scene_payload kept;
+    bool drop = false;
+    bool changed = false;
+    if(auto* sub = ossia::get_if<ossia::scene_node_ptr>(&child))
+    {
+      auto r = withoutHiddenDrawables(*sub, hidden);
+      changed = (r != *sub);
+      kept = std::move(r);
+    }
+    else if(hidden && isDrawablePayload(child))
+    {
+      drop = true;
+    }
+
+    if((drop || changed) && !rewritten)
+    {
+      rewritten = std::make_shared<std::vector<ossia::scene_payload>>();
+      rewritten->reserve(children.size());
+      rewritten->insert(rewritten->end(), children.begin(), children.begin() + i);
+    }
+    if(!rewritten || drop)
+      continue;
+    rewritten->push_back(changed ? std::move(kept) : child);
+  }
+  if(!rewritten)
+    return n;
+  auto copy = std::make_shared<ossia::scene_node>(*n);
+  copy->children = std::move(rewritten);
+  return copy;
+}
+
+ossia::scene_spec withoutHiddenDrawables(const ossia::scene_spec& in)
+{
+  if(!in.state || !in.state->roots)
+    return in;
+  std::shared_ptr<std::vector<ossia::scene_node_ptr>> roots;
+  const auto& src = *in.state->roots;
+  for(std::size_t i = 0; i < src.size(); ++i)
+  {
+    auto r = withoutHiddenDrawables(src[i], false);
+    if(r != src[i] && !roots)
+      roots = std::make_shared<std::vector<ossia::scene_node_ptr>>(
+          src.begin(), src.begin() + i);
+    if(roots)
+      roots->push_back(std::move(r));
+  }
+  if(!roots)
+    return in;
+  auto state = std::make_shared<ossia::scene_state>(*in.state);
+  state->roots = std::move(roots);
+  ossia::scene_spec out = in;
+  out.state = std::move(state);
+  return out;
+}
+
 // writeMat4 comes from Gfx/Graph/CameraMath.hpp (included above) — same
 // signature, column-major memcpy. Keeping a local copy would create an
 // ambiguous overload at every call site.
@@ -426,9 +507,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
 
   // Environment params UBO holding the MERGED env: merge_scenes composes the
   // per-producer scene_environment contributions field by field, and consumers
-  // binding `env` must see that result, not any one producer's slot.
-  GpuResourceRegistry::Slot m_envSlot{};
-  uint32_t m_env_aux_offset{0};
+  // binding `env` must see that result, not any one producer's slot. Owned by
+  // this preprocessor: consumers bind an aux buffer from offset 0, so a slot in
+  // the shared Env arena would hand every preprocessor the same bytes.
+  QRhiBuffer* m_envBuffer{};
   // Cache the last uploaded EnvParamsUBO bytes so we can skip re-upload
   // when the merged environment content doesn't change frame-to-frame.
   EnvParamsUBO m_lastEnvUpload{};
@@ -588,6 +670,16 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   // "same registry" (relink, viewport resize: keep the caches) from a new one
   // (first init, OutputNode-replaced QRhi: wipe). Only read from init().
   GpuResourceRegistry* m_lastRegistry{};
+
+  // Material arena slot 0 re-written through this renderer's first update
+  // batch: the RenderList's seed rides its initial batch, which a rebuild can
+  // drop before it is ever submitted.
+  bool m_defaultMaterialUploaded{false};
+
+  // Texture pool generation this preprocessor last published against. The
+  // pool is shared, so another preprocessor growing a bucket replaces arrays
+  // this one's consumers still bind.
+  uint64_t m_seenPoolGeneration{~0ull};
 
   using TexChannel = GpuResourceRegistry::TextureChannel;
   static TexChannel toTexChannel(MaterialChannel ch) noexcept
@@ -768,11 +860,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   {
     if(freeRegistryResources && m_registry)
     {
+      m_registry->texturePool().claims.erase(this);
       for(auto& [mat, slot] : m_loaderMaterialSlots)
         if(slot.valid())
           m_registry->free(slot);
-      if(m_envSlot.valid())
-        m_registry->free(m_envSlot);
       // Release the slabs keyed by the ids minted in resolvePrototypeStableId
       // before dropping m_protoStableIds: mints are globally unique, so the
       // next renderer misses the cache and allocates fresh slabs while these
@@ -783,8 +874,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           m_registry->releaseMeshSlab(id, current_frame);
     }
     m_loaderMaterialSlots.clear();
-    m_envSlot = {};
     m_envSlotSeeded = false;
+    m_seenPoolGeneration = ~0ull;
     m_protoStableIds.clear();
 
     m_cachedSceneState = nullptr;
@@ -838,21 +929,11 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       clearAllCaches(/*freeRegistryResources=*/false);
     }
     // else: registry survived (resize fast path / relinkGraph reuse).
-    // Keep m_loaderMaterialSlots / m_envSlot / fingerprints / per-draw
+    // Keep m_loaderMaterialSlots / fingerprints / per-draw
     // caches — they all reference live state in the persistent registry.
     m_registry = new_registry;
     m_lastRegistry = new_registry;
-
-    // Claim our own Env arena slot for the merged environment upload.
-    // Each preprocessor owns a slot — needed because two
-    // preprocessors can receive different filtered views of the same
-    // source scene and must not stomp each other's merged env.
-    if(!m_envSlot.valid())
-    {
-      m_envSlot = m_registry->allocate(
-          GpuResourceRegistry::Arena::Env, sizeof(EnvParamsUBO));
-      m_envSlotSeeded = false;
-    }
+    m_defaultMaterialUploaded = false;
 
     // Pre-allocate a 1-layer BaseColor array with a white fallback so
     // consumers building samplers in their own init() get a real texture
@@ -885,6 +966,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       if(b.array)
       {
         b.layers = 1;
+        ++bc.generation;
         QImage w(1, 1, QImage::Format_RGBA8888);
         w.fill(Qt::white);
         w = w.scaled(
@@ -953,6 +1035,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     // per-preprocessor cleanup needed. They get destroyed when the
     // RenderList tears down (registry.destroy()).
     dropBuf(m_sceneCountsBuffer);
+    dropBuf(m_envBuffer);
+    m_envSlotSeeded = false;
     dropBuf(m_shadowCascadesBuffer);
     dropBuf(m_camerasBuffer);
     dropBuf(m_camerasPrevBuffer);
@@ -968,14 +1052,11 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     m_pendingGpuCopies.clear();
     m_pendingGpuCopies.shrink_to_fit();
     m_lastGpuCopiesFrame = -1;
-    // Env arena buffer is owned by GpuResourceRegistry — nothing to drop here.
-
     // Free per-registry resources on every release(), whether the renderer is
     // about to be destroyed (recreateOutputRenderList) or reused
     // (relinkGraph). Skipping the free on a registry-pointer match would only
-    // help relinkGraph, and would leak m_envSlot -- the Env arena has 8 slots,
-    // so a handful of resizes exhausts it and the env binding falls back to
-    // stale data. relinkGraph pays a re-allocation instead; it is rare, while
+    // help relinkGraph, and would leak the loader-material slots across
+    // resizes. relinkGraph pays a re-allocation instead; it is rare, while
     // drag-resize fires continuously.
     clearAllCaches(/*freeRegistryResources=*/true, (uint32_t)renderer.frame);
 
@@ -1195,9 +1276,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   static bool growBuf(
       score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res,
       QRhiBuffer*& buf, int64_t& cap,
-      int64_t need, QRhiBuffer::UsageFlags flags, const char* name)
+      int64_t need, QRhiBuffer::UsageFlags flags, const char* name,
+      bool exact = false)
   {
-    if(buf && cap >= need)
+    if(buf && (exact ? cap == need : cap >= need))
       return false;
     // Power-of-two doubling overshoots for large buffers: a 1.08 GB request
     // lands on 2 GB, which QRhi backends commonly reject (maxStorageBufferRange
@@ -1205,7 +1287,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     // knee, double; above it, grow 25 % over need. Aligned to 16 B so std430
     // structures land on natural strides.
     constexpr int64_t kKnee = 256ll * 1024 * 1024; // 256 MB
-    int64_t newCap = cap > 0 ? cap : 16;
+    int64_t newCap = exact ? need : (cap > 0 ? cap : 16);
     while(newCap < need)
     {
       if(newCap < kKnee)
@@ -1458,15 +1540,17 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           = (int64_t)b.total_primitives * (int64_t)sizeof(uint32_t);
       const int64_t icBytes = (int64_t)sizeof(IndirectCmd);
 
+      // Exact sizes: a consumer binds these whole, so the buffer size is
+      // what a shader's .length() reports.
       growBuf(renderer, res,bb.raw_splats, bb.rawSplatsCap, rawBytes,
               UF(QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer),
-              "ScenePreprocessor::cloud.raw_splats");
+              "ScenePreprocessor::cloud.raw_splats", /*exact=*/true);
       growBuf(renderer, res,bb.cloud_meta, bb.cloudMetaCap, cmBytes,
               UF(QRhiBuffer::StorageBuffer),
-              "ScenePreprocessor::cloud.cloud_meta");
+              "ScenePreprocessor::cloud.cloud_meta", /*exact=*/true);
       growBuf(renderer, res,bb.cloud_id_lookup, bb.cloudIdLookupCap, lookupBytes,
               UF(QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer),
-              "ScenePreprocessor::cloud.cloud_id_lookup");
+              "ScenePreprocessor::cloud.cloud_id_lookup", /*exact=*/true);
 #if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
       growBuf(renderer, res,bb.indirect, bb.indirectCap, icBytes,
               UF(QRhiBuffer::StorageBuffer | QRhiBuffer::IndirectBuffer),
@@ -2838,13 +2922,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     // guaranteed to be the active camera by packAndUploadCameras.
     g.buffers.push_back(wrapGpu(m_camerasBuffer, sizeof(CameraUBOData)));
     g.buffers.push_back(wrapGpu(m_camerasPrevBuffer, sizeof(CameraUBOData)));
-    // Env UBO: bind the preprocessor-owned slot. merge_scenes composes the
+    // Env UBO: the preprocessor-owned buffer. merge_scenes composes the
     // merged scene_environment field by field from every contributing loader,
     // so no single producer's slot holds the result.
-    m_env_aux_offset = renderer.registry().slotOffset(m_envSlot);
-    g.buffers.push_back(wrapGpu(
-        renderer.registry().buffer(GpuResourceRegistry::Arena::Env),
-        sizeof(EnvParamsUBO)));
+    g.buffers.push_back(wrapGpu(m_envBuffer, sizeof(EnvParamsUBO)));
     // World transforms — arena-slot-indexed. Consumer
     // shaders read world_transforms.data[slot_index] for any light /
     // particle / compute pass that needs slot-addressable world-space
@@ -2914,7 +2995,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         .byte_size = cameraAuxByteSize(m_cachedCameras.size())});
     g.auxiliary.push_back({
         .name = "env", .buffer = baseBuf + 8,
-        .byte_offset = (int64_t)m_env_aux_offset,
+        .byte_offset = 0,
         .byte_size = (int64_t)sizeof(EnvParamsUBO)});
     g.auxiliary.push_back({
         .name = "world_transforms", .buffer = baseBuf + 9,
@@ -3418,6 +3499,44 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
 
   }
 
+  //! Record the sources this preprocessor's scene maps (the layerMaps hold
+  //! nothing else after registerChannelRefs), then map back the layers of the
+  //! sources other preprocessors sharing the pool still claim, so
+  //! assignNewLayers does not free them.
+  void keepClaimedLayers(
+      GpuResourceRegistry::TextureChannelState& pool,
+      const std::vector<LayerMap>& previous)
+  {
+    std::vector<const ossia::texture_source*> own;
+    for(const auto& b : pool.buckets)
+      for(const auto& [src, layer] : b.layerMap)
+        own.push_back(src);
+
+    for(const auto& [owner, sources] : pool.claims)
+    {
+      if(owner == this)
+        continue;
+      for(const auto* src : sources)
+      {
+        const bool mapped = std::any_of(
+            pool.buckets.begin(), pool.buckets.end(),
+            [src](const auto& b) { return b.layerMap.find(src) != b.layerMap.end(); });
+        if(mapped)
+          continue;
+        for(std::size_t bi = 0; bi < previous.size() && bi < pool.buckets.size(); ++bi)
+        {
+          const auto it = previous[bi].find(src);
+          if(it == previous[bi].end())
+            continue;
+          if(it->second >= 0)
+            pool.buckets[bi].layerMap[src] = it->second;
+          break;
+        }
+      }
+    }
+    pool.claims[this] = std::move(own);
+  }
+
   //! Give each new source a layer: the lowest one no retained source holds,
   //! else a new one at the end. A layer whose source left the scene is freed
   //! here, and its source released.
@@ -3623,6 +3742,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     }
 
     const bool arrayReallocated = anyReallocated;
+    if(anyReallocated)
+      ++channel.generation;
 
     // Per-channel diagnostic: bucket count, pending uploads, per-bucket size
     // and layer count.
@@ -4031,7 +4152,15 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     // producers re-push every frame so multi-source scenes stay consistent, and
     // NodeRenderer's merge cache keeps the scene_state shared_ptr stable when
     // no input changed, which makes pointer + version a reliable content test.
+    if(m_registry && !m_defaultMaterialUploaded)
+    {
+      m_registry->uploadDefaultMaterial(res);
+      m_defaultMaterialUploaded = true;
+    }
+
     bool needsRebuild = !m_outputSpec.meshes;
+    if(m_registry && m_registry->texturePool().generation != m_seenPoolGeneration)
+      needsRebuild = true;
     if(this->scene.state.get() != m_cachedSceneState)
       needsRebuild = true;
     if(this->scene.state && this->scene.state->version != m_cachedVersion)
@@ -4078,7 +4207,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     // concat + upload) is then gated by the mesh fingerprint below.
     {
       FlatScene fs;
-      flattenScene(this->scene, fs, /*aspectRatio=*/1.f);
+      flattenScene(withoutHiddenDrawables(this->scene), fs, /*aspectRatio=*/1.f);
 
       std::vector<uint32_t> materialTagHashes;
       if(this->scene.state && this->scene.state->materials)
@@ -4232,10 +4361,16 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
             registerChannelRefs(
                 static_cast<MaterialChannel>(i), renderer, fs, previous,
                 pendingUploads);
+          keepClaimedLayers(pool, previous);
           assignNewLayers(pool, pendingUploads);
 
           channelReallocated
               = allocateAndUploadPool(renderer, res, pendingUploads);
+        }
+        if(pool.generation != m_seenPoolGeneration)
+        {
+          channelReallocated = true;
+          m_seenPoolGeneration = pool.generation;
         }
 
         for(int i = 0; i < ChannelCount; ++i)
@@ -4529,7 +4664,16 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       // the params_set bitmask, so this->scene.state->environment is the final
       // state. Producers still write their own slots for any consumer wanting
       // per-producer data, but the scene_environment binding points here.
-      if(m_registry && m_envSlot.valid() && this->scene.state)
+      if(!m_envBuffer)
+      {
+        m_envBuffer = rhi.newBuffer(
+            QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(EnvParamsUBO));
+        m_envBuffer->setName("ScenePreprocessor::env");
+        m_envBuffer->create();
+        RhiClearBuffer::clearBuffer(rhi, res, m_envBuffer, 0, sizeof(EnvParamsUBO));
+        m_envSlotSeeded = false;
+      }
+      if(m_envBuffer && this->scene.state)
       {
         const auto& env = this->scene.state->environment;
         EnvParamsUBO gpu{};
@@ -4552,7 +4696,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         if(!m_envSlotSeeded
            || std::memcmp(&gpu, &m_lastEnvUpload, sizeof(EnvParamsUBO)) != 0)
         {
-          m_registry->updateSlot(res, m_envSlot, &gpu, sizeof(gpu));
+          res.updateDynamicBuffer(m_envBuffer, 0, sizeof(gpu), &gpu);
           m_lastEnvUpload = gpu;
           m_envSlotSeeded = true;
         }
