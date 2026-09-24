@@ -1560,6 +1560,10 @@ endif()
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
 
+# Image feedback loops: an all-Immediate cycle is broken at one edge and
+# warned about; a Delayed self-cable carries state.
+score_add_gfx_test(feedback_cycle GfxFeedbackCycle.cpp)
+
 # The avendish "Average color" example averages its input (agent G, N89).
 if(TARGET score_plugin_avnd)
   score_add_test(test_gfx_average_color

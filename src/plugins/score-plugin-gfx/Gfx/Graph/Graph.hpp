@@ -5,6 +5,9 @@
 #include <Gfx/Graph/RenderList.hpp>
 
 #include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/hash_map.hpp>
+
+#include <string>
 
 #include <score_plugin_gfx_export.h>
 namespace Gfx
@@ -183,5 +186,7 @@ private:
   // Session-wide decode cache. Non-owning; GfxContext owns the
   // actual AssetTable. May be null in tests or during teardown.
   Gfx::AssetTable* m_assetTable{};
+
+  ossia::hash_set<std::string> m_warnedCycles;
 };
 }
