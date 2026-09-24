@@ -391,9 +391,9 @@ public:
   int64_t frame = 0;
   // Year, month, day, seconds since midnight: the ISF DATE uniform.
   float currentDate[4]{};
-  // Set by GfxContext::renderFrames under its synthetic step clock, which
-  // writes currentDate itself. Otherwise each frame would stamp the wall
-  // clock into DATE and two renders of the same step would differ.
+  // Set by GfxContext::renderFrames, which then writes currentDate from its
+  // step clock, until the next GfxContext::updateGraph(): keeps DATE off the
+  // wall clock so a step renders deterministically.
   bool dateFromStepClock{false};
 
   void createAllInputRenderTargets();

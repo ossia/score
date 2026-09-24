@@ -941,6 +941,15 @@ void GfxContext::run_commands()
 
 void GfxContext::updateGraph()
 {
+  // DATE goes back to the wall clock with the next update after a step, not
+  // right after the step: an output whose render() only schedules a frame (a
+  // vsync'd window) draws it later, and has to see the step's date too.
+  // renderFrames() pins it again after its own updateGraph().
+  if(m_graph)
+    for(auto& rl : m_graph->renderLists())
+      if(rl)
+        rl->dateFromStepClock = false;
+
   run_commands();
 
   update_inputs();
@@ -1080,15 +1089,6 @@ void GfxContext::renderFrames(int frames)
     {
       if(output && output->canRender())
         output->render();
-    }
-
-    // Hand DATE back to the wall clock for whatever renders next outside
-    // this stepper.
-    if(step)
-    {
-      for(auto& rl : m_graph->renderLists())
-        if(rl)
-          rl->dateFromStepClock = false;
     }
   }
 }
