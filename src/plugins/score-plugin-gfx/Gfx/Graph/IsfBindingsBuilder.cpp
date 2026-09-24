@@ -182,9 +182,19 @@ static bool isGraphicsVisibility(std::string_view v) noexcept
          || v == "both" || v == "graphics";
 }
 
+int graphicsStorageImageBindingCount(const isf::descriptor& desc) noexcept
+{
+  int count = 0;
+  for(const auto& inp : desc.inputs)
+    if(auto* img = ossia::get_if<isf::csf_image_input>(&inp.data))
+      if(isGraphicsVisibility(img->visibility))
+        count += img->persistent ? 2 : 1;
+  return count;
+}
+
 void collectGraphicsStorageResources(
     const isf::descriptor& desc, int firstBinding, GraphicsStorageResources& out,
-    int firstInlet)
+    int firstInlet, int firstImageBinding)
 {
   out.ssbos.clear();
   out.images.clear();
@@ -194,6 +204,10 @@ void collectGraphicsStorageResources(
   out.indirectDrawSsboIndex = -1;
 
   int binding = firstBinding;
+  int imageBinding = firstImageBinding;
+  auto nextImageBinding = [&] {
+    return firstImageBinding >= 0 ? imageBinding++ : binding++;
+  };
 
   // walk_descriptor_inputs() advances port_idx in lockstep with
   // isf_input_port_vis (ISFNode.cpp / ISFVisitors.hpp), so port_idx ==
@@ -298,11 +312,11 @@ void collectGraphicsStorageResources(
           }
           e.owned = true;
           e.stages = stages;
-          e.binding = binding++;
+          e.binding = nextImageBinding();
           // Only read-only csf_image_inputs have a matching input port.
           e.input_port_index = (img->access == "read_only") ? port_idx : -1;
           if(img->persistent)
-            e.prev_binding = binding++;
+            e.prev_binding = nextImageBinding();
           out.images.push_back(std::move(e));
         }
         else if(auto* uni = ossia::get_if<isf::uniform_input>(&inp.data))

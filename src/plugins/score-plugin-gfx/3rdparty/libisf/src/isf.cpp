@@ -3699,11 +3699,34 @@ static std::string isf_emit_image_decl(
   return out;
 }
 
+static int isf_emit_graphics_images(
+    std::string& out, int binding, const std::vector<input>& inputs)
+{
+  for(const auto& inp : inputs)
+  {
+    if(auto* img = ossia::get_if<csf_image_input>(&inp.data))
+    {
+      if(!is_graphics_visibility(img->visibility))
+        continue;
+      out += isf_emit_image_decl(binding, inp.name, *img, /*alias_prev=*/false);
+      binding++;
+      if(img->persistent)
+      {
+        out += isf_emit_image_decl(
+            binding, inp.name + "_prev", *img, /*alias_prev=*/true);
+        binding++;
+      }
+    }
+  }
+  return binding;
+}
+
 // Emit declarations for storage_input / csf_image_input inputs for a graphics
 // shader (ISF or RawRaster). Starts at `binding`, returns the next free binding.
 // Also emits `name_prev` readonly declarations for persistent SSBOs.
 static int isf_emit_graphics_storage(
-    std::string& out, int binding, const std::vector<input>& inputs)
+    std::string& out, int binding, const std::vector<input>& inputs,
+    bool with_images = true)
 {
   for(const auto& inp : inputs)
   {
@@ -3725,7 +3748,7 @@ static int isf_emit_graphics_storage(
     }
     else if(auto* img = ossia::get_if<csf_image_input>(&inp.data))
     {
-      if(!is_graphics_visibility(img->visibility))
+      if(!with_images || !is_graphics_visibility(img->visibility))
         continue;
       out += isf_emit_image_decl(binding, inp.name, *img, /*alias_prev=*/false);
       binding++;
@@ -4430,7 +4453,47 @@ void parser::parse_raw_raster_pipeline()
     // leak into VS via material_ubos).
     material_ubos += isf_emit_types_struct(d.types);
 
-    int sampler_binding = 3;
+    // Storage image: imageLoad/Store target. FORMAT layout qualifier
+    // is mandatory on writable images; defaults to rgba8.
+    // Cube-arrays are parser-rejected so no imageCubeArray branch.
+    auto emit_aux_image = [](const auto& atx, int binding) {
+      const char* image_type = "image2D";
+      if(atx.is_cubemap)                 image_type = "imageCube";
+      else if(atx.dimensions == 3)       image_type = "image3D";
+      else if(atx.is_array)              image_type = "image2DArray";
+
+      const char* access_q =
+          (atx.access == "read_only") ? "readonly " :
+          (atx.access == "write_only") ? "writeonly " : "";
+
+      // Integer formats (r32ui, r32i, rgba32ui, …) require the
+      // `uimage*` / `iimage*` GLSL variants — the bare `image*` type
+      // paired with an integer layout qualifier is a compile error.
+      // Reuses the same prefix helper csf_image_input declarations
+      // already use, so float / int / uint emission stays consistent
+      // across the rasterizer-aux and csf-input code paths.
+      std::string scalar_prefix = isf_glsl_type_prefix(atx.format);
+
+      const std::string aux_head = "layout(binding = "
+                                   + std::to_string(binding) + ", "
+                                   + atx.format + ") uniform " + access_q
+                                   + scalar_prefix;
+      // Cube storage images become a 2D-array view on HLSL: Direct3D has no
+      // writable cube type at all (isf_emit_cube_image_decl).
+      if(atx.is_cubemap)
+        return isf_emit_cube_image_decl(aux_head, atx.name);
+      return aux_head + image_type + " " + atx.name + ";\n";
+    };
+
+    int sampler_binding = isf_emit_graphics_images(material_ubos, 3, d.inputs);
+    for(const auto& atx : d.auxiliary_textures)
+    {
+      if(atx.is_storage)
+      {
+        material_ubos += emit_aux_image(atx, sampler_binding);
+        sampler_binding++;
+      }
+    }
 
     if(!d.inputs.empty())
     {
@@ -4555,7 +4618,7 @@ void parser::parse_raw_raster_pipeline()
     // Storage buffers (SSBOs) and storage images declared via INPUTS with
     // TYPE=storage or TYPE=image (visible to graphics stages).
     sampler_binding = isf_emit_graphics_storage(
-        material_ubos, sampler_binding, d.inputs);
+        material_ubos, sampler_binding, d.inputs, false);
 
     // Auxiliary SSBOs (from top-level AUXILIARY key)
     std::string ssbo_decls;
@@ -4632,41 +4695,7 @@ void parser::parse_raw_raster_pipeline()
     std::string aux_tex_decls;
     for(const auto& atx : d.auxiliary_textures)
     {
-      if(atx.is_storage)
-      {
-        // Storage image: imageLoad/Store target. FORMAT layout qualifier
-        // is mandatory on writable images; defaults to rgba8.
-        // Cube-arrays are parser-rejected so no imageCubeArray branch.
-        const char* image_type = "image2D";
-        if(atx.is_cubemap)                 image_type = "imageCube";
-        else if(atx.dimensions == 3)       image_type = "image3D";
-        else if(atx.is_array)              image_type = "image2DArray";
-
-        const char* access_q =
-            (atx.access == "read_only") ? "readonly " :
-            (atx.access == "write_only") ? "writeonly " : "";
-
-        // Integer formats (r32ui, r32i, rgba32ui, …) require the
-        // `uimage*` / `iimage*` GLSL variants — the bare `image*` type
-        // paired with an integer layout qualifier is a compile error.
-        // Reuses the same prefix helper csf_image_input declarations
-        // already use, so float / int / uint emission stays consistent
-        // across the rasterizer-aux and csf-input code paths.
-        std::string scalar_prefix = isf_glsl_type_prefix(atx.format);
-
-        const std::string aux_head = "layout(binding = "
-                                     + std::to_string(sampler_binding) + ", "
-                                     + atx.format + ") uniform " + access_q
-                                     + scalar_prefix;
-        // Cube storage images become a 2D-array view on HLSL: Direct3D has no
-        // writable cube type at all (isf_emit_cube_image_decl).
-        if(atx.is_cubemap)
-          aux_tex_decls += isf_emit_cube_image_decl(aux_head, atx.name);
-        else
-          aux_tex_decls += aux_head + image_type + " " + atx.name + ";\n";
-        sampler_binding++;
-      }
-      else
+      if(!atx.is_storage)
       {
         const bool cmp = isf_is_comparison_sampler(atx.sampler);
         const char* sampler_type = "sampler2D";

@@ -1054,7 +1054,7 @@ Pipeline buildPipeline(
 QRhiShaderResourceBindings* createDefaultBindings(
     const RenderList& renderer, const TextureRenderTarget& rt, QRhiBuffer* processUBO,
     QRhiBuffer* materialUBO, std::span<const Sampler> samplers,
-    std::span<QRhiShaderResourceBinding> additionalBindings)
+    std::span<QRhiShaderResourceBinding> additionalBindings, int firstSamplerBinding)
 {
   auto& rhi = *renderer.state.rhi;
   // Shader resource bindings
@@ -1096,7 +1096,7 @@ QRhiShaderResourceBindings* createDefaultBindings(
   // RenderList::emptyTexture(). Call sites creating Samplers for sampler3D,
   // samplerCube or sampler2DArray slots MUST populate `fallback`, or Vulkan
   // rejects the binding on a view-type mismatch.
-  int binding = 3;
+  int binding = firstSamplerBinding;
   for(auto sampler : samplers)
   {
     auto actual_texture = sampler.texture;

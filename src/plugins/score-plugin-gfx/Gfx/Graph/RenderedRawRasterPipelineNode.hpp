@@ -157,6 +157,8 @@ private:
   // population is deliberate while the AUXILIARY path still has its own dispatch.
   GraphicsStorageResources m_storage;
   int m_firstStorageBinding{-1};
+  int m_firstSamplerBinding{3};
+  int m_firstAuxImageBinding{3};
 
   // Texture auxes carried on the input geometry (see
   // ossia::geometry::auxiliary_textures). Each entry records a sampler
@@ -230,7 +232,8 @@ private:
   // Shared by initPass and initMRTPass so the two can never disagree about
   // how many slots a ladder consumes.
   void appendAuxTextureBindings(
-      ossia::small_vector<QRhiShaderResourceBinding, 4>& out, int& binding);
+      ossia::small_vector<QRhiShaderResourceBinding, 4>& out, int& binding,
+      int imageBinding);
 
   std::optional<AudioTextureUpload> m_audioTex;
 

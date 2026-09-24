@@ -587,7 +587,8 @@ SCORE_PLUGIN_GFX_EXPORT
 QRhiShaderResourceBindings* createDefaultBindings(
     const RenderList& renderer, const TextureRenderTarget& rt, QRhiBuffer* processUBO,
     QRhiBuffer* materialUBO, std::span<const Sampler> samplers,
-    std::span<QRhiShaderResourceBinding> additionalBindings = {});
+    std::span<QRhiShaderResourceBinding> additionalBindings = {},
+    int firstSamplerBinding = 3);
 
 /**
  * @brief Match a (name, semantic) request to an upstream geometry attribute.

@@ -1760,3 +1760,7 @@ score_add_gfx_test(vsa_clip_depth_g2 GfxVsaClipDepthG2.cpp)
 
 # CSF storage bindings at the published range; read_write on a static GPU upstream (agent A2).
 score_add_gfx_test(csf_buffer_range_fixa2 GfxCsfBufferRangeFixA2.cpp)
+
+# Raw raster storage images take the lowest bindings, under the 8 OpenGL image
+# units NVIDIA exposes (N93).
+score_add_gfx_test(storage_image_low_binding_n93 GfxStorageImageLowBindingN93.cpp)
