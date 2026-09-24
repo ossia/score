@@ -436,6 +436,29 @@ void EditJsContext::createQMLSerialDevice(QString name, QString port, QString te
 #endif
 }
 
+QVariant EditJsContext::deviceSettings(QString name)
+{
+  auto doc = ctx();
+  if(!doc)
+    return {};
+
+  auto& plug = doc->plugin<Explorer::DeviceDocumentPlugin>();
+  for(const auto& node : plug.rootNode().children())
+  {
+    if(!node.is<Device::DeviceSettings>())
+      continue;
+
+    const auto& set = node.get<Device::DeviceSettings>();
+    if(set.name != name)
+      continue;
+
+    // The protocol factory serialises its own settings; they are an opaque
+    // QVariant to JS otherwise.
+    return QJsonDocument::fromJson(JSONReader::marshall(set).toByteArray()).toVariant();
+  }
+  return {};
+}
+
 QString EditJsContext::deviceToJson(QString name)
 {
   auto doc = ctx();
