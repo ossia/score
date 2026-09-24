@@ -1,4 +1,5 @@
 #include "ModelDisplayNode.hpp"
+#include <Gfx/Graph/MipGeneration.hpp>
 
 #include <Gfx/Graph/GeometryFilterNodeRenderer.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
@@ -1571,7 +1572,7 @@ private:
         // tolerates it), which aborts the whole model pipeline in a debug
         // Qt Vulkan build. Sampling mip 0 is correct when no mip chain
         // exists, so skip the request rather than abort.
-        res.generateMips(inputRT.texture);
+        score::gfx::generateMipsIfAny(res, inputRT.texture);
   }
 
   void runRenderPass(RenderList& renderer, QRhiCommandBuffer& cb, Edge& edge) override

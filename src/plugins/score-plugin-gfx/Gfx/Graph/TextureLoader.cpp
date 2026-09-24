@@ -1,4 +1,5 @@
 #include <Gfx/Graph/TextureLoader.hpp>
+#include <Gfx/Graph/MipGeneration.hpp>
 #include <Gfx/Hashes.hpp>
 
 #include <ossia/detail/hash.hpp>
@@ -138,7 +139,7 @@ QRhiTexture* uploadImageToTexture(
   // Filter the base level into the mip chain. Cheap (one-shot, on first
   // upload) and unblocks min-filter-linear-mipmap-linear sampling on the
   // material samplers — kills the floor-noise aliasing.
-  batch.generateMips(tex);
+  score::gfx::generateMipsIfAny(batch, tex);
   return tex;
 }
 

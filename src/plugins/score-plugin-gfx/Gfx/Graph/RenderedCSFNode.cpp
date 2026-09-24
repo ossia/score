@@ -1,4 +1,5 @@
 #include "ossia/detail/fmt.hpp"
+#include <Gfx/Graph/MipGeneration.hpp>
 
 #include <Gfx/Graph/CommonUBOs.hpp>
 #include <Gfx/Graph/ISFNode.hpp>
@@ -4891,7 +4892,7 @@ void RenderedCSFNode::update(
       continue;
     if(!m_inputsHaveBeenWritten)
       continue;
-    res.generateMips(texture);
+    generateMipsIfAny(res, texture);
   }
   // After this update completes, the upstream nodes will run their render
   // passes for the current frame and the input textures will be transitioned
@@ -5738,7 +5739,7 @@ void RenderedCSFNode::runInitialPasses(
       if(!res)
         res = renderer.state.rhi->nextResourceUpdateBatch();
       if(res)
-        res->generateMips(si.texture);
+        generateMipsIfAny(*res, si.texture);
     }
   }
 }
