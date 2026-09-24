@@ -376,13 +376,11 @@ ossia::material_component_ptr makeDynMaterial(QRhiTexture* t, uint64_t id)
 // pre-allocates at init (:806-846) -- making the phase-2 realloc a pure
 // layer-count growth of bucket 0 rather than a new-bucket creation, which
 // keeps the consumer's "baseColorArray0" name stable across both phases.
-ossia::material_component_ptr
-makeStaticMaterial(QColor fill, uint64_t id, QColor rightHalf = {})
+ossia::material_component_ptr makeStaticMaterial(
+    QColor fill, uint64_t id, QColor rightHalf = {},
+    int size = score::gfx::GpuResourceRegistry::kTextureLayerSize)
 {
-  QImage img(
-      score::gfx::GpuResourceRegistry::kTextureLayerSize,
-      score::gfx::GpuResourceRegistry::kTextureLayerSize,
-      QImage::Format_RGBA8888);
+  QImage img(size, size, QImage::Format_RGBA8888);
   img.fill(fill);
   if(rightHalf.isValid())
     for(int y = 0; y < img.height(); ++y)
@@ -1158,4 +1156,46 @@ TEST_CASE(
   CHECK(r.snap2.bucketLayers[0] == 1);
   CHECK(r.snap2.bucketArrays[0] != r.snap1.bucketArrays[0]);
   CHECK(near(r.mid2, kWhite, kTol));
+}
+
+// =============================================================================
+// Case 7 -- a texture past the bucket cap is resampled into a compatible
+// bucket rather than dropped. Nine base-colour textures of nine distinct sizes
+// (1 to 256 px) against kMaxBuckets == 8, with bucket 0 already seeded at
+// 1024: seven new buckets fit, and the last two sizes (128 and 256) have none
+// of their own. The only bucket agreeing on format, colourspace and sampler
+// that is at least as large is bucket 0, so both land there, and the first of
+// them -- blue -- is its layer 0, which the probe samples.
+TEST_CASE(
+    "a texture past the bucket cap is resampled into a compatible bucket",
+    "[gfx][scene][material][texture-array][bucket-cap]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  std::vector<ossia::material_component_ptr> many;
+  const int sizes[] = {1, 2, 4, 8, 16, 32, 64, 128, 256};
+  for(int i = 0; i < 9; ++i)
+  {
+    const QColor c = sizes[i] == 128 ? QColor(0, 0, 255, 255)
+                                     : QColor(255, 0, 255, 255);
+    many.push_back(makeStaticMaterial(c, 0xF00 + i, {}, sizes[i]));
+  }
+  const auto r = run_static_phases(
+      api, kFsArr, {makeStaticMaterial(QColor(255, 0, 0, 255), 0xF10)}, many);
+  if(r.skipped)
+    SKIP(r.backend + ": " + r.skip_reason);
+
+  INFO("backend=" << r.backend << " error=" << r.error);
+  REQUIRE(r.error.empty());
+  REQUIRE(r.valid2);
+  INFO("phase2 mid=" << rgba(r.mid2));
+
+  REQUIRE(r.snap2.bucketLayers.size() == 8);
+  int total = 0;
+  for(int l : r.snap2.bucketLayers)
+    total += l;
+  CHECK(r.snap2.bucketLayers[0] == 2);
+  CHECK(total == 9);
+  CHECK(near(r.mid2, kBlue, kTol));
 }
