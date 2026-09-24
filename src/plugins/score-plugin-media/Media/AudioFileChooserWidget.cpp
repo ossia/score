@@ -27,6 +27,7 @@ QGraphicsWaveformButton::QGraphicsWaveformButton(QGraphicsItem* parent)
   connect(
       m_computer, &Media::Sound::WaveformComputer::ready, this,
       [this](QVector<QImage*> img, Media::Sound::ComputedWaveform wf) {
+    m_computer->claim(img);
     Media::Sound::QImagePool::instance().giveBack(m_images);
     m_images = std::move(img);
 

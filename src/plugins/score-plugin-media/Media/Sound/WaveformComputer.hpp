@@ -11,6 +11,7 @@
 #include <score_plugin_media_export.h>
 
 #include <memory>
+#include <mutex>
 #include <verdigris>
 
 class QGraphicsView;
@@ -69,6 +70,12 @@ public:
 
   void stop();
 
+  //! Takes ownership of images received from ready(). Every receiver of
+  //! ready() must call this before keeping them: until then the computer owns
+  //! them, and returns unclaimed ones (event dropped with its receiver) to
+  //! the pool when it dies.
+  void claim(const QVector<QImage*>& img);
+
 public:
   void recompute(WaveformRequest req)
       E_SIGNAL(SCORE_PLUGIN_MEDIA_EXPORT, recompute, req);
@@ -81,6 +88,11 @@ private:
 
   void on_recompute(WaveformRequest&& req, int64_t n);
   void timerEvent(QTimerEvent* event) override;
+  //! Emits ready(), keeping the images in flight until claim()ed.
+  void deliver(QVector<QImage*> img, ComputedWaveform wf);
+
+  std::mutex m_inflightMutex;
+  QVector<QImage*> m_inflight;
 
   std::atomic_int64_t m_redraw_count = std::numeric_limits<int64_t>::lowest();
   std::chrono::steady_clock::time_point last_render = {};
