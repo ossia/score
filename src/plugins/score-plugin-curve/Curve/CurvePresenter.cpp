@@ -122,7 +122,17 @@ void Presenter::setupSignals()
       m_view->setDirectDraw(true);
       return;
     }
-    addSegment(new SegmentView{segment, m_style, m_view});
+
+    if(auto pa = qobject_cast<const PointArraySegment*>(segment))
+    {
+      // FIXME
+      addSegment(new SegmentView{segment, m_style, m_view});
+    }
+    else
+    {
+
+      addSegment(new SegmentView{segment, m_style, m_view});
+    }
   });
 
   con(m_model, &Model::segmentRemoved, this,
