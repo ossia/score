@@ -1,6 +1,8 @@
 #include <Gfx/Graph/MergeGeometriesNode.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
+#include <Gfx/Graph/RhiComputeBarrier.hpp>
+#include <Gfx/Graph/Utils.hpp>
 
 #include <algorithm>
 #include <cmath>
@@ -115,6 +117,94 @@ void transformBounds(ossia::geometry& g, const float* m) noexcept
   std::copy_n(lo, 3, g.bounds.min);
   std::copy_n(hi, 3, g.bounds.max);
 }
+
+int bakeKind(ossia::attribute_semantic s) noexcept
+{
+  switch(s)
+  {
+    case ossia::attribute_semantic::position:
+      return 0;
+    case ossia::attribute_semantic::normal:
+      return 1;
+    case ossia::attribute_semantic::tangent:
+    case ossia::attribute_semantic::bitangent:
+      return 2;
+    default:
+      return -1;
+  }
+}
+
+constexpr int kMaxGpuBakeAttributes = 8;
+constexpr uint32_t kGpuBakeLocalSize = 256;
+constexpr uint32_t kGpuBakeMaxGroupsX = 65535;
+
+struct GpuBakeParams
+{
+  float model[16];
+  float normal[12];
+  float linear[12];
+  uint32_t counts[4];
+  uint32_t attributes[kMaxGpuBakeAttributes][4];
+};
+static_assert(sizeof(GpuBakeParams) == 64 + 48 + 48 + 16 + 16 * kMaxGpuBakeAttributes);
+
+const QString& gpuBakeShader()
+{
+  static const QString code = QStringLiteral(R"(#version 450
+layout(local_size_x = 256) in;
+
+layout(std140, binding = 0) uniform Params {
+  mat4 model;
+  mat3 normalMatrix;
+  mat3 linearMatrix;
+  uvec4 counts;
+  uvec4 attributes[8];
+};
+
+layout(std430, binding = 1) readonly buffer Source { uint src[]; };
+layout(std430, binding = 2) writeonly buffer Destination { uint dst[]; };
+
+void main()
+{
+  uint w = gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * counts.z;
+  if(w >= counts.x)
+    return;
+
+  uint value = src[w];
+  for(uint a = 0u; a < counts.y; a++)
+  {
+    uvec4 attr = attributes[a];
+    if(w < attr.x)
+      continue;
+    uint rel = w - attr.x;
+    uint v = rel / attr.y;
+    uint c = rel % attr.y;
+    if(v >= attr.z || c >= 3u)
+      continue;
+
+    uint base = attr.x + v * attr.y;
+    vec3 p = vec3(
+        uintBitsToFloat(src[base]), uintBitsToFloat(src[base + 1u]),
+        uintBitsToFloat(src[base + 2u]));
+    vec3 r;
+    if(attr.w == 0u)
+    {
+      r = (model * vec4(p, 1.0)).xyz;
+    }
+    else
+    {
+      r = (attr.w == 1u ? normalMatrix : linearMatrix) * p;
+      float len = length(r);
+      r = len > 0.0 ? r / len : p;
+    }
+    value = floatBitsToUint(r[c]);
+    break;
+  }
+  dst[w] = value;
+}
+)");
+  return code;
+}
 }
 
 std::vector<ossia::geometry> bakeGeometryTransform(
@@ -217,6 +307,23 @@ struct RenderedMergeGeometriesNode final : NodeRenderer
   std::array<int64_t, MergeGeometriesNode::kMaxInputs> m_cachedDirtyIndex{};
   bool m_transformsChanged{};
 
+  struct GpuBake
+  {
+    QRhiBuffer* output{};
+    QRhiBuffer* ubo{};
+    QRhiShaderResourceBindings* srb{};
+    QRhiBuffer* boundSource{};
+    QRhiBuffer* boundOutput{};
+    int64_t words{};
+    GpuBakeParams params{};
+    int attributeCount{};
+    bool used{};
+  };
+  std::map<std::pair<int, QRhiBuffer*>, GpuBake> m_gpuBakes;
+  QRhiComputePipeline* m_gpuBakePipeline{};
+  bool m_gpuBakeUnavailable{};
+  int64_t m_gpuBakeFrame{-1};
+
   RenderedMergeGeometriesNode(const MergeGeometriesNode& n)
       : NodeRenderer{n}
       , m_node{n}
@@ -224,8 +331,27 @@ struct RenderedMergeGeometriesNode final : NodeRenderer
   }
 
   void init(RenderList&, QRhiResourceUpdateBatch&) override { m_initialized = true; }
-  void release(RenderList&) override
+
+  void releaseGpuBake(RenderList& renderer, GpuBake& bake)
   {
+    renderer.releaseBuffer(bake.output);
+    if(bake.ubo)
+      bake.ubo->deleteLater();
+    if(bake.srb)
+      bake.srb->deleteLater();
+    bake = {};
+  }
+
+  void release(RenderList& renderer) override
+  {
+    for(auto& [key, bake] : m_gpuBakes)
+      releaseGpuBake(renderer, bake);
+    m_gpuBakes.clear();
+    if(m_gpuBakePipeline)
+      m_gpuBakePipeline->deleteLater();
+    m_gpuBakePipeline = nullptr;
+    m_gpuBakeUnavailable = false;
+    m_gpuBakeFrame = -1;
     m_outputSpec = {};
     for(auto& c : m_cachedInputs)
       c = {};
@@ -280,8 +406,249 @@ struct RenderedMergeGeometriesNode final : NodeRenderer
     return false;
   }
 
-  void rebuild()
+  bool ensureGpuBake(RenderList& renderer, QRhiBuffer* source, GpuBake& bake)
   {
+    auto& rhi = *renderer.state.rhi;
+    const int64_t bytes = bake.words * 4;
+    if(!bake.output || bake.output->size() != bytes)
+    {
+      renderer.releaseBuffer(bake.output);
+      bake.output = nullptr;
+      QRhiBuffer::UsageFlags usage = source->usage();
+      usage.setFlag(QRhiBuffer::UniformBuffer, false);
+      usage |= QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer;
+      auto* out = rhi.newBuffer(QRhiBuffer::Static, usage, bytes);
+      out->setName("MergeGeometriesNode::gpuBake");
+      if(!out->create())
+      {
+        delete out;
+        return false;
+      }
+      RenderList::noteBufferLive(out);
+      bake.output = out;
+    }
+
+    if(!bake.ubo)
+    {
+      bake.ubo = rhi.newBuffer(
+          QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(GpuBakeParams));
+      bake.ubo->setName("MergeGeometriesNode::gpuBakeUBO");
+      if(!bake.ubo->create())
+        return false;
+    }
+
+    if(!bake.srb || bake.boundSource != source || bake.boundOutput != bake.output)
+    {
+      if(!bake.srb)
+        bake.srb = rhi.newShaderResourceBindings();
+      bake.srb->setBindings({
+          QRhiShaderResourceBinding::uniformBuffer(
+              0, QRhiShaderResourceBinding::ComputeStage, bake.ubo),
+          QRhiShaderResourceBinding::bufferLoad(
+              1, QRhiShaderResourceBinding::ComputeStage, source),
+          QRhiShaderResourceBinding::bufferStore(
+              2, QRhiShaderResourceBinding::ComputeStage, bake.output),
+      });
+      bake.boundSource = nullptr;
+      if(!bake.srb->create())
+        return false;
+      bake.boundSource = source;
+      bake.boundOutput = bake.output;
+    }
+
+    if(!m_gpuBakePipeline)
+    {
+      QShader shader;
+      try
+      {
+        shader = score::gfx::makeCompute(renderer.state, gpuBakeShader());
+      }
+      catch(...)
+      {
+        m_gpuBakeUnavailable = true;
+        return false;
+      }
+      m_gpuBakePipeline = rhi.newComputePipeline();
+      m_gpuBakePipeline->setShaderStage({QRhiShaderStage::Compute, shader});
+      m_gpuBakePipeline->setShaderResourceBindings(bake.srb);
+      if(!m_gpuBakePipeline->create())
+      {
+        delete m_gpuBakePipeline;
+        m_gpuBakePipeline = nullptr;
+        m_gpuBakeUnavailable = true;
+        return false;
+      }
+    }
+    return true;
+  }
+
+  void bakeGpuBuffers(
+      RenderList& renderer, int port, std::vector<ossia::geometry>& meshes,
+      const ossia::transform3d& transform)
+  {
+    if(m_gpuBakeUnavailable)
+      return;
+
+    const BakeMatrices mats{transform};
+    std::set<std::tuple<QRhiBuffer*, int64_t, int>> done;
+    std::vector<QRhiBuffer*> sources;
+
+    for(auto& g : meshes)
+    {
+      for(const auto& attr : g.attributes)
+      {
+        const int kind = bakeKind(attr.semantic);
+        if(kind < 0)
+          continue;
+        const int comps = floatComponents(attr.format);
+        if(comps == 0)
+          continue;
+        if(attr.binding < 0 || attr.binding >= std::ssize(g.input)
+           || attr.binding >= std::ssize(g.bindings))
+          continue;
+        if(g.bindings[attr.binding].classification
+           != ossia::geometry::binding::per_vertex)
+          continue;
+        const auto& in = g.input[attr.binding];
+        if(in.buffer < 0 || in.buffer >= std::ssize(g.buffers))
+          continue;
+        auto* gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&g.buffers[in.buffer].data);
+        if(!gpu || !gpu->handle || gpu->byte_size <= 0)
+          continue;
+        if(!renderer.state.rhi || !renderer.state.rhi->isFeatureSupported(QRhi::Compute))
+        {
+          m_gpuBakeUnavailable = true;
+          return;
+        }
+        auto* source = static_cast<QRhiBuffer*>(gpu->handle);
+        if(!source->usage().testFlag(QRhiBuffer::StorageBuffer))
+          continue;
+
+        const int64_t size = std::min<int64_t>(gpu->byte_size, source->size());
+        const int64_t start = in.byte_offset + attr.byte_offset;
+        const int64_t stride = g.bindings[attr.binding].byte_stride > 0
+                                   ? g.bindings[attr.binding].byte_stride
+                                   : int64_t(comps * sizeof(float));
+        if(size % 4 != 0 || start < 0 || start % 4 != 0 || stride % 4 != 0
+           || stride < 12 || start + 12 > size)
+          continue;
+        int64_t count = (size - start - 12) / stride + 1;
+        if(g.vertices > 0)
+          count = std::min<int64_t>(count, g.vertices);
+        if(!done.emplace(source, start, kind).second)
+          continue;
+
+        auto& bake = m_gpuBakes[{port, source}];
+        if(!bake.used)
+        {
+          bake.used = true;
+          bake.attributeCount = 0;
+          bake.words = size / 4;
+          std::copy_n(mats.model, 16, bake.params.model);
+          for(int c = 0; c < 3; c++)
+          {
+            std::copy_n(mats.normal + c * 3, 3, bake.params.normal + c * 4);
+            std::copy_n(mats.linear + c * 3, 3, bake.params.linear + c * 4);
+            bake.params.normal[c * 4 + 3] = 0.f;
+            bake.params.linear[c * 4 + 3] = 0.f;
+          }
+          sources.push_back(source);
+        }
+        if(bake.attributeCount >= kMaxGpuBakeAttributes)
+          continue;
+        auto* a = bake.params.attributes[bake.attributeCount++];
+        a[0] = uint32_t(start / 4);
+        a[1] = uint32_t(stride / 4);
+        a[2] = uint32_t(count);
+        a[3] = uint32_t(kind);
+      }
+    }
+
+    for(auto* source : sources)
+    {
+      auto& bake = m_gpuBakes[{port, source}];
+      const uint32_t groups
+          = uint32_t((bake.words + kGpuBakeLocalSize - 1) / kGpuBakeLocalSize);
+      const uint32_t groupsX = std::min(groups, kGpuBakeMaxGroupsX);
+      bake.params.counts[0] = uint32_t(bake.words);
+      bake.params.counts[1] = uint32_t(bake.attributeCount);
+      bake.params.counts[2] = groupsX * kGpuBakeLocalSize;
+      bake.params.counts[3] = (groups + groupsX - 1) / groupsX;
+      if(!ensureGpuBake(renderer, source, bake))
+      {
+        bake.attributeCount = 0;
+        continue;
+      }
+
+      for(auto& g : meshes)
+      {
+        for(auto& buf : g.buffers)
+        {
+          auto* gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&buf.data);
+          if(gpu && gpu->handle == source)
+          {
+            gpu->handle = bake.output;
+            gpu->byte_size = bake.words * 4;
+          }
+        }
+      }
+    }
+  }
+
+  void runGpuBakes(
+      RenderList& renderer, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch*& res)
+  {
+    if(!m_gpuBakePipeline || m_gpuBakeFrame == renderer.frame)
+      return;
+    m_gpuBakeFrame = renderer.frame;
+
+    auto& rhi = *renderer.state.rhi;
+    bool any = false;
+    for(auto& [key, bake] : m_gpuBakes)
+    {
+      if(!bake.used || bake.attributeCount == 0 || !bake.srb
+         || RenderList::hasRetiredBinding(*bake.srb))
+        continue;
+      if(!res)
+        res = rhi.nextResourceUpdateBatch();
+      res->updateDynamicBuffer(bake.ubo, 0, sizeof(GpuBakeParams), &bake.params);
+      any = true;
+    }
+    if(!any)
+      return;
+
+    const bool needsComputeBarrier = rhi.backend() == QRhi::OpenGLES2;
+    if(needsComputeBarrier)
+      commands.beginComputePass(res, QRhiCommandBuffer::BeginPassFlag::ExternalContent);
+    else
+      commands.beginComputePass(res);
+    res = nullptr;
+
+    commands.setComputePipeline(m_gpuBakePipeline);
+    for(auto& [key, bake] : m_gpuBakes)
+    {
+      if(!bake.used || bake.attributeCount == 0 || !bake.srb
+         || RenderList::hasRetiredBinding(*bake.srb))
+        continue;
+      commands.setShaderResources(bake.srb);
+      commands.dispatch(bake.params.counts[2] / kGpuBakeLocalSize, bake.params.counts[3], 1);
+    }
+
+    if(needsComputeBarrier)
+    {
+      commands.beginExternal();
+      insertComputeBarrier(rhi, commands);
+      commands.endExternal();
+    }
+    commands.endComputePass();
+    res = rhi.nextResourceUpdateBatch();
+  }
+
+  void rebuild(RenderList& renderer)
+  {
+    for(auto& [key, bake] : m_gpuBakes)
+      bake.used = false;
+
     auto list = std::make_shared<ossia::mesh_list>();
     auto filters = std::make_shared<ossia::geometry_filter_list>();
     int64_t maxDirty = 0;
@@ -303,6 +670,7 @@ struct RenderedMergeGeometriesNode final : NodeRenderer
       else
       {
         auto baked = bakeGeometryTransform(in.meshes->meshes, m_transforms[i]);
+        bakeGpuBuffers(renderer, i, baked, m_transforms[i]);
         list->meshes.insert(
             list->meshes.end(), std::make_move_iterator(baked.begin()),
             std::make_move_iterator(baked.end()));
@@ -324,25 +692,37 @@ struct RenderedMergeGeometriesNode final : NodeRenderer
 
     m_outputSpec.meshes = std::move(list);
     m_outputSpec.filters = std::move(filters);
+
+    for(auto it = m_gpuBakes.begin(); it != m_gpuBakes.end();)
+    {
+      if(it->second.used)
+      {
+        ++it;
+        continue;
+      }
+      releaseGpuBake(renderer, it->second);
+      it = m_gpuBakes.erase(it);
+    }
   }
 
-  void update(RenderList&, QRhiResourceUpdateBatch&, Edge*) override
+  void update(RenderList& renderer, QRhiResourceUpdateBatch&, Edge*) override
   {
     if(!m_outputSpec.meshes || this->geometryChanged || m_transformsChanged
        || anyInputChanged())
     {
-      rebuild();
+      rebuild(renderer);
       this->geometryChanged = false;
       m_transformsChanged = false;
     }
   }
 
   void runInitialPasses(
-      RenderList& renderer, QRhiCommandBuffer&, QRhiResourceUpdateBatch*&,
+      RenderList& renderer, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch*& res,
       Edge& edge) override
   {
     if(!m_outputSpec.meshes)
       return;
+    runGpuBakes(renderer, commands, res);
     auto* sink = edge.sink;
     if(!sink || !sink->node)
       return;

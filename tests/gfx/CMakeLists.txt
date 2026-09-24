@@ -1740,3 +1740,6 @@ if(TARGET score_addon_academy)
     $<TARGET_PROPERTY:score_addon_academy,INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
+
+# Merge Geometries bakes transforms into GPU-resident geometry (agent B2).
+score_add_gfx_test(merge_geometries_gpu_transform_b2 MergeGeometriesGpuTransformB2.cpp)

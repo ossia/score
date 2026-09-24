@@ -10,8 +10,10 @@ namespace score::gfx
  * Intended use: combine independently-flattened scene partitions (static
  * environment + animated characters + CSF-produced particles) into a
  * single geometry_spec that a single downstream renderer can draw in one
- * pass. All underlying GPU buffers are shared via `shared_ptr`; only the
- * top-level mesh_list is rebuilt.
+ * pass. Inputs without a transform share their buffers; only the top-level
+ * mesh_list is rebuilt. An input with a transform gets baked copies: on the
+ * CPU for CPU-resident attributes, and through a compute pass into buffers
+ * owned by the renderer for GPU-resident ones.
  *
  * For v1, up to 8 input geometry ports are exposed. Unconnected ports
  * contribute nothing.
