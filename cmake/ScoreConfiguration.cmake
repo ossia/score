@@ -141,17 +141,8 @@ if(CMAKE_CXX_FLAGS MATCHES "sanitize=[a-z,]*undefined")
   message(STATUS "score: UBSAN_OPTIONS for ctest = ${SCORE_UBSAN_OPTIONS}")
 endif()
 
-# LeakSanitizer, same shape as the UBSan block above and for the same reason:
-# one family of known leaks was drowning every other report.
-#
-# The makeGUIElements family dominates the leaked bytes in the test suite
-# because every Catch2 case builds its own MinimalGUIApplication and each
-# construction leaks the same parent-less toolbars and actions. A shipped
-# ossia-score builds ONE application, so there it is a single leak set at
-# exit; in the suite it repeats per test and hides everything underneath.
-#
-# Suppressing it is what makes the other leaks legible. See the file itself:
-# these are real ownership bugs, and the entries go away when they are fixed.
+# LeakSanitizer, same shape as the UBSan block above: suppresses known leaks
+# outside score's control (see the file for each entry's reason).
 #
 # LSan is part of ASan here, so this is keyed on the address sanitizer being on.
 if(CMAKE_CXX_FLAGS MATCHES "sanitize=[a-z,]*address")

@@ -9,50 +9,10 @@
 # remove it.
 #
 # ---------------------------------------------------------------------------
-# The makeGUIElements family (sanitizer ledger T6).
-#
-# Parent-less QToolBar / QAction / widget instances are created per
-# application-plugin instance, handed to score::GUIElements, and never freed.
-# In a shipped ossia-score that is one leak set at exit: the process builds a
-# single application and then terminates, so nothing accumulates. In the test
-# suite every Catch2 case constructs its own MinimalGUIApplication, so the
-# same leak multiplies once per case.
-#
-# That makes it the dominant noise source, and what makes every GUI test's
-# LSan report unreadable, since a real leak elsewhere is invisible underneath
-# it.
-#
-# It is suppressed to make the other leaks legible, not because it is
-# acceptable. It is a genuine ownership bug: these widgets want a parent, or
-# GUIElements wants to own them. Fixing it removes these lines.
-leak:Scenario::ToolMenuActions::makeGUIElements
-leak:Scenario::TransportActions::makeGUIElements
-leak:Engine::ApplicationPlugin::makeGUIElements
-leak:Audio::ApplicationPlugin::makeGUIElements
-leak:Gfx::ApplicationPlugin::makeGUIElements
-leak:Scenario::ToolMenuActions::ToolMenuActions
-leak:Scenario::TransportActions::TransportActions
-leak:Engine::ApplicationPlugin::setupTimingWidget
-leak:Scenario::makeToolbarAction
-leak:Scenario::SpeedWidget::SpeedWidget
-leak:score::DoubleSlider::DoubleSlider
-leak:score::MarginLess
-leak:score::Action::updateTexts
-
-# ---------------------------------------------------------------------------
-# libossia's websocket_server keeps its websocketpp server alive on purpose.
-#
-# websocket_server::stop() (libossia src/ossia/network/sockets/
-# websocket_server.hpp), when it does not own the io_context, posts
-# `new decltype(s){s}` -- a shared_ptr copy that is never freed -- so the
-# websocketpp endpoint outlives every pending handler: "temporary server fix
-# until we migrate off buggy websocketpp" (libossia 2ea3b2a25f). Every score
-# process that exposes its OSCQuery server therefore leaks the endpoint, its
-# acceptor and its connections at exit.
-#
-# LSan matches the ALLOCATION stack, where stop() never appears, so the entries
-# name the websocket_server members that allocate what the kept copy owns.
-# Remove them with the workaround, i.e. once libossia is off websocketpp.
+# libossia's websocket_server::stop() deliberately leaks a shared_ptr copy of
+# the websocketpp endpoint (workaround for websocketpp handler lifetime bugs).
+# LSan matches the allocation stack, so these name the allocating members.
+# Remove once libossia is off websocketpp.
 leak:ossia::net::websocket_server::websocket_server
 leak:ossia::net::websocket_server::listen
 leak:ossia::net::websocket_server::start_accept
