@@ -325,3 +325,33 @@ TEST_CASE(
     }
   });
 }
+
+TEST_CASE("An outlet's gain, pan and upmix reach the running outlet", "[execution][mixing]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    park_audio_engine(ctx);
+    auto& plug = doc->context().plugin<Execution::DocumentPlugin>();
+    auto& root = score::test::base_interval(*doc);
+    root.outlet->setGain(0.5);
+
+    plug.reload(true, root);
+    run_exec(plug);
+    auto* out = static_cast<ossia::audio_outlet*>(execOutlet(plug, *root.outlet));
+    REQUIRE(out);
+    CHECK(out->gain == 0.5);
+
+    root.outlet->setGain(0.25);
+    root.outlet->setPan({0.2, 0.8});
+    root.outlet->setUpmixMode(1);
+    root.outlet->setUpmixChannels(4);
+    run_exec(plug);
+    CHECK(out->gain == 0.25);
+    REQUIRE(out->pan.size() == 2);
+    CHECK(out->pan[0] == 0.2);
+    CHECK(out->upmix == ossia::audio_outlet::upmix_mode(1));
+    CHECK(out->upmix_channels == 4);
+    plug.clear();
+  });
+}

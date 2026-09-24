@@ -140,7 +140,7 @@ private:
   void reportBenches();
   bool enabled() const noexcept;
   void rebuild();
-  void teardown();
+  void teardown(bool notify = true);
   void attach(int index);
   void detach(int index);
   void read();
