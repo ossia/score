@@ -162,6 +162,29 @@ inline bool can_present()
   return ok;
 }
 
+/// Skip reason when the requested backend cannot present (ScreenNode falls back
+/// to the Null RHI, MultiWindowNode gets no swap chain): pixels there would
+/// test the fallback, not the output.
+inline const char* cannot_present_skip_reason() noexcept
+{
+  return "requested backend cannot present on this display (e.g. hardware "
+         "Vulkan on Xvfb without DRI3)";
+}
+
+/// Records the backend an output brought up. False, with `skipReason` set, when
+/// it fell back to the Null RHI.
+inline bool record_presenting_backend(
+    const score::gfx::RenderState* rs, std::string& backend, std::string& skipReason)
+{
+  if(!rs || !rs->rhi)
+    return true;
+  backend = rs->rhi->backendName();
+  if(rs->rhi->backend() != QRhi::Null)
+    return true;
+  skipReason = cannot_present_skip_reason();
+  return false;
+}
+
 /// A single-window rig: ISF producer -> ScreenNode.
 ///
 /// Member order matters exactly as in GfxPipeline: `graph` is declared last so
@@ -247,8 +270,11 @@ struct ScreenRig
       return false;
     }
 
-    if(auto rs = screen->renderState(); rs && rs->rhi)
-      m_backend = rs->rhi->backendName();
+    if(!record_presenting_backend(screen->renderState().get(), m_backend, m_skipReason))
+    {
+      m_skipped = true;
+      return false;
+    }
     return true;
   }
 
@@ -354,8 +380,11 @@ struct BareScreenRig
       m_skipReason = "the ScreenNode's swap chain never became ready";
       return false;
     }
-    if(auto rs = screen->renderState(); rs && rs->rhi)
-      m_backend = rs->rhi->backendName();
+    if(!record_presenting_backend(screen->renderState().get(), m_backend, m_skipReason))
+    {
+      m_skipped = true;
+      return false;
+    }
     return true;
   }
 
@@ -467,8 +496,23 @@ struct MultiWindowRig
         },
         5000);
 
-    if(auto rs = node->renderState(); rs && rs->rhi)
-      m_backend = rs->rhi->backendName();
+    if(!record_presenting_backend(node->renderState().get(), m_backend, m_skipReason))
+    {
+      m_skipped = true;
+      return false;
+    }
+
+    // A window whose surface cannot present gets no swap chain
+    // (MultiWindowNode::initWindowSwapChain).
+    bool anySwapChain = false;
+    for(auto& wo : node->windowOutputs())
+      anySwapChain = anySwapChain || wo.hasSwapChain;
+    if(!anySwapChain)
+    {
+      m_skipped = true;
+      m_skipReason = cannot_present_skip_reason();
+      return false;
+    }
     return true;
   }
 
