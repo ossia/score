@@ -177,7 +177,9 @@ TEST_CASE(
     // always returns false.
     REQUIRE(reg.isLive(stale));
 
-    reg.destroy();
+    // destroyOwned(), not destroy(): destroy() is the destructor fallback that
+    // nulls the arena buffers without deleting them, leaking them here.
+    reg.destroyOwned();
     CHECK_FALSE(reg.isLive(stale)); // table retired, nothing to match
 
     // Re-init and take the SAME slot index again: this is the ABA. Its
@@ -195,7 +197,9 @@ TEST_CASE(
     CHECK_FALSE(reg.isLive(stale));
     CHECK(reg.isLive(reg.toOssiaRef(fresh)));
 
-    reg.destroy();
+    reg.destroyOwned();
+    // RenderState has no destructor: destroy() is what frees the QRhi.
+    st->destroy();
   });
 
   if(skipped)
