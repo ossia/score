@@ -796,6 +796,18 @@ endif()
     LABELS "gui"
     ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score;${_score_libpath_env}")
 
+  # The immediate-cycle error names the Gfx processes of the cycle, not
+  # "Gfx::filter_node".
+  add_test(NAME test_integration_gfx_cycle_label
+    COMMAND ${_display_wrapper} "${CMAKE_CURRENT_SOURCE_DIR}/gfx-cycle-label/gfx-cycle-label.sh"
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+  set_tests_properties(test_integration_gfx_cycle_label PROPERTIES
+    SKIP_RETURN_CODE 77
+    TIMEOUT 180
+    RUN_SERIAL TRUE
+    LABELS "gui"
+    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score;${_score_libpath_env}")
+
   # Golden-image render regression, one ctest per backend class. Each renders the
   # pinned tests-scene corpus through the real binary and compares against the
   # SHARED golden set in golden-render/refs/ -- one golden per case, not one per

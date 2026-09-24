@@ -28,6 +28,7 @@ ProcessExecutorComponent::ProcessExecutorComponent(
     auto n = ossia::make_node<filter_node>(
         *ctx.execState, desc, shader.vertex, shader.fragment,
         ctx.doc.plugin<DocumentPlugin>().exec);
+    n->m_label = element.metadata().getName().toStdString();
 
     for(auto* outlet : element.outlets())
     {

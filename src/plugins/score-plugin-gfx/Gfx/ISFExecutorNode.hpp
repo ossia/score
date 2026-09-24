@@ -114,7 +114,9 @@ public:
 
   ~filter_node() { exec_context->ui->unregister_node(id); }
 
-  std::string label() const noexcept override { return "Gfx::filter_node"; }
+  std::string label() const noexcept override { return m_label; }
+
+  std::string m_label{"Gfx::filter_node"};
 };
 
 }

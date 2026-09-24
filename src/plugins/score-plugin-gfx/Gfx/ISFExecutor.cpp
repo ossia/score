@@ -25,6 +25,7 @@ try
   auto n = ossia::make_node<filter_node>(
       *ctx.execState, desc, shader.vertex, shader.fragment,
       ctx.doc.plugin<DocumentPlugin>().exec);
+  n->m_label = process().metadata().getName().toStdString();
 
   for(auto* outlet : process().outlets())
   {
@@ -55,6 +56,7 @@ try
 {
   auto n = ossia::make_node<filter_node>(
       *ctx.execState, desc, shader, ctx.doc.plugin<DocumentPlugin>().exec);
+  n->m_label = process().metadata().getName().toStdString();
 
   for(auto* outlet : process().outlets())
   {
