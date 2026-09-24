@@ -1534,49 +1534,6 @@ if(TARGET score_addon_academy AND TARGET score_plugin_avnd)
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
     "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
     $<TARGET_PROPERTY:score_addon_academy,INCLUDE_DIRECTORIES>
-
-# Texture inlet settings on Texture to buffer and Texture Info (agent I6).
-if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
-  score_add_test(test_gfx_avnd_texture_inlet_settings
-    SOURCES GfxAvndTextureInletSettings.cpp
-    GUI
-    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
-    LIBS test_gfx_engine_glue)
-  target_compile_definitions(test_gfx_avnd_texture_inlet_settings PRIVATE
-    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
-  target_include_directories(test_gfx_avnd_texture_inlet_settings SYSTEM PRIVATE
-    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
-    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
-    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
-    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
-    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
-    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
-    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
-endif()
-
-# Instancer TRS scales the instance spread, the prototype's root scale does not
-# (agent I2, N61 option B).
-if(TARGET score_plugin_threedim)
-  score_plugin_hidden_sources(_instancer_placement_hidden
-      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim/Instancer.cpp")
-  score_add_test(test_gfx_instancer_placement
-    SOURCES GfxInstancerPlacement.cpp ${_instancer_placement_hidden}
-    GUI
-    PLUGINS score_plugin_gfx score_plugin_scenario score_lib_process
-    LIBS test_gfx_engine_glue)
-  target_compile_definitions(test_gfx_instancer_placement PRIVATE
-    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
-  target_include_directories(test_gfx_instancer_placement SYSTEM PRIVATE
-    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
-    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
-    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
-    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
-    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
-endif()
-
     $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
@@ -1737,5 +1694,71 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
     "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
     $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
+# Academy TextureResource::upload refuses pixel data shorter than its slices,
+# and the EquirectToCubemap vertex stage mirrors Y on HLSL/MSL only, keeping
+# the panorama's top on +Y.
+if(TARGET score_addon_academy)
+  set(_academy_upload_src "${SCORE_ROOT_SOURCE_DIR}/src/addons/score-addon-academy")
+  score_plugin_hidden_sources(_academy_upload_hidden
+      "${_academy_upload_src}/Academy/Resources/EquirectToCubemap.cpp"
+      "${_academy_upload_src}/Academy/Resources/TextureResource.cpp")
+  score_add_test(test_gfx_academy_upload_bounds
+    SOURCES
+      GfxAcademyUploadBounds.cpp
+      ${_academy_upload_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_addon_academy
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_academy_upload_bounds PRIVATE
+    ACADEMY_EQUIRECT_CPP="${_academy_upload_src}/Academy/Resources/EquirectToCubemap.cpp")
+  target_include_directories(test_gfx_academy_upload_bounds SYSTEM PRIVATE
+    "${_academy_upload_src}"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    $<TARGET_PROPERTY:score_addon_academy,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
+# Texture inlet settings on Texture to buffer and Texture Info (agent I6).
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  score_add_test(test_gfx_avnd_texture_inlet_settings
+    SOURCES GfxAvndTextureInletSettings.cpp
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_avnd_texture_inlet_settings PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_avnd_texture_inlet_settings SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
+# Instancer TRS scales the instance spread, the prototype's root scale does not.
+if(TARGET score_plugin_threedim)
+  score_plugin_hidden_sources(_instancer_placement_hidden
+      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim/Instancer.cpp")
+  score_add_test(test_gfx_instancer_placement
+    SOURCES GfxInstancerPlacement.cpp ${_instancer_placement_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_instancer_placement PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_instancer_placement SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
