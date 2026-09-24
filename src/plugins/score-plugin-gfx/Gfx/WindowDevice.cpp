@@ -2,8 +2,10 @@
 #include <Gfx/Graph/ScreenNode.hpp>
 
 #include <QCoreApplication>
+#include <QElapsedTimer>
 #include <QEventLoop>
 #include <QScopeGuard>
+#include <QThread>
 
 #include <Gfx/Window/BackgroundDevice.hpp>
 #include <Gfx/Window/MultiWindowDevice.hpp>
@@ -143,13 +145,20 @@ void WindowDevice::grabTo(const QString& path) const
     }
 
     // Score.play() only starts the execution graph; the gfx nodes it registers
-    // reach the render list a few frames later. Drive frames and pump the event
+    // reach the render list once the first execution tick has run, which is
+    // wall-clock time, not a frame count. Drive frames and pump the event
     // loop until they do, as the screen path below already does -- a one-shot
     // read reports a live graph as "nothing rendered" whenever the grab lands
     // inside that startup window.
     int spun = 0;
-    for(; spun < 60 && node->shared_readback->pixelSize.width() <= 0; ++spun)
+    QElapsedTimer waited;
+    waited.start();
+    for(; (spun < 60 || waited.elapsed() < 2000)
+          && node->shared_readback->pixelSize.width() <= 0;
+        ++spun)
     {
+      if(spun >= 60)
+        QThread::msleep(2);
       QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents, 16);
       renderFrames(1);
     }
