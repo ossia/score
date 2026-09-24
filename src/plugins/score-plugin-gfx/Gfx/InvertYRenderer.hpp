@@ -64,7 +64,7 @@ private:
   QRhiReadbackResult* m_readback{};
 };
 
-class ScaledRenderer : public score::gfx::OutputNodeRenderer
+class SCORE_PLUGIN_GFX_EXPORT ScaledRenderer : public score::gfx::OutputNodeRenderer
 {
 public:
   score::gfx::TextureRenderTarget m_inputTarget;
