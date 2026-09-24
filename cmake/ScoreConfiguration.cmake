@@ -160,6 +160,15 @@ if(CMAKE_CXX_FLAGS MATCHES "sanitize=[a-z,]*address")
   message(STATUS "score: LSAN_OPTIONS for ctest = ${SCORE_LSAN_OPTIONS}")
 endif()
 
+# ThreadSanitizer: system Qt/GLib/GStreamer/Mesa are not instrumented, hence
+# ignore_noninstrumented_modules. See tsan-suppressions.txt re called_from_lib.
+if(CMAKE_CXX_FLAGS MATCHES "sanitize=[a-z,]*thread")
+  set(SCORE_TSAN_SUPPRESSIONS "${CMAKE_CURRENT_LIST_DIR}/tsan-suppressions.txt")
+  set(SCORE_TSAN_OPTIONS
+      "ignore_noninstrumented_modules=1:suppressions=${SCORE_TSAN_SUPPRESSIONS}:second_deadlock_stack=1:history_size=4")
+  message(STATUS "score: TSAN_OPTIONS for ctest = ${SCORE_TSAN_OPTIONS}")
+endif()
+
 # Note : if building with a Qt installed in e.g. /home/myuser/Qt/ or /Users/Qt or c:\Qt\
 # keep in mind that you have to call CMake with :
 # $ cmake -DCMAKE_MODULE_PATH={path/to/qt/5.3}/{gcc64,clang,msvc2013...}/lib/cmake/Qt5

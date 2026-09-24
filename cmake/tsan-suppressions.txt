@@ -1,0 +1,12 @@
+# ThreadSanitizer suppressions for the score test suite.
+#
+# System Qt/GLib/GStreamer/PipeWire/Mesa are not instrumented; that noise is
+# handled by TSAN_OPTIONS=ignore_noninstrumented_modules=1 (ScoreConfiguration).
+#
+# Do NOT use called_from_lib: it hides locks taken in ignored code but released
+# in instrumented code, causing false mutex errors, false UAF and deadlocks.
+#
+# Entries below must name a function or a source file, one justified case each.
+#
+# GPU drivers start threads TSan never sees (raw clone, thrd_create), which
+# crashes the TSan runtime: TSan runs exclude the GPU tests.
