@@ -95,20 +95,14 @@ constexpr int route_h = 22;
 constexpr int row_gap = 3;
 constexpr int controls_h = toggle_h + row_gap + pan_h + row_gap + route_h;
 
-// A toggle whose checked state stands out in its own colour.
 QToolButton* makeToggle(
     const QString& text, const QString& help, const QColor& on, QWidget* parent)
 {
-  auto b = new QToolButton{parent};
+  auto b = new ColorToggle{on, parent};
   b->setText(text);
   b->setCheckable(true);
   b->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
   b->setFixedHeight(toggle_h);
-  b->setStyleSheet(
-      QStringLiteral(
-          "QToolButton { border: 1px solid %2; border-radius: 2px; padding: 1px; }"
-          "QToolButton:checked { background-color: %1; border-color: %1; color: black; }")
-          .arg(on.name(), score::Skin::instance().Gray.color().name()));
   score::setHelp(b, help);
   return b;
 }
@@ -234,8 +228,8 @@ Strip::Strip(const score::DocumentContext& ctx, QWidget* parent)
   m_layout->setContentsMargins(3, 3, 3, 3);
   m_layout->setSpacing(row_gap);
 
-  m_title = new QPushButton{this};
-  m_title->setFlat(true);
+  m_title = new StripTitle{this};
+  m_title->setAttribute(Qt::WA_Hover);
   m_title->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
   m_title->setFixedHeight(m_title->fontMetrics().height() + 6);
   setTitleColor(Qt::transparent);
@@ -298,7 +292,7 @@ void Strip::setTitle(const QString& t)
 
 void Strip::elideTitle()
 {
-  // The left border and the padding take 8 pixels.
+  // The colour bar and the margins take 8 pixels.
   m_title->setText(m_title->fontMetrics().elidedText(
       m_titleText, Qt::ElideRight, std::max(0, m_title->width() - 8)));
 }
@@ -311,11 +305,50 @@ void Strip::resizeEvent(QResizeEvent* e)
 
 void Strip::setTitleColor(const QColor& c)
 {
+  m_title->setColor(c);
+}
+
+void StripTitle::setColor(const QColor& c)
+{
+  if(c != m_color)
+  {
+    m_color = c;
+    update();
+  }
+}
+
+void StripTitle::paintEvent(QPaintEvent*)
+{
+  QPainter p{this};
+  const auto& pal = palette();
+  if(underMouse() || isDown())
+    p.fillRect(rect(), pal.color(QPalette::Midlight));
   // The same box for every strip; a bus shows its interval's colour on the left.
-  m_title->setStyleSheet(
-      QStringLiteral("QPushButton { border: none; border-left: 4px solid %1; "
-                     "padding: 0px 4px 0px 0px; text-align: center; }")
-          .arg(c.alpha() == 0 ? QStringLiteral("transparent") : c.name()));
+  if(m_color.alpha() > 0)
+    p.fillRect(QRect{0, 0, 4, height()}, m_color);
+  p.setPen(pal.color(QPalette::WindowText));
+  p.drawText(rect().adjusted(4, 0, -4, 0), Qt::AlignCenter, text());
+}
+
+ColorToggle::ColorToggle(const QColor& on, QWidget* parent)
+    : QToolButton{parent}
+    , m_on{on}
+{
+}
+
+void ColorToggle::paintEvent(QPaintEvent*)
+{
+  QPainter p{this};
+  p.setRenderHint(QPainter::Antialiasing);
+  const auto& pal = palette();
+  const QRectF r = QRectF(rect()).adjusted(0.5, 0.5, -0.5, -0.5);
+  const bool on = isChecked();
+  p.setPen(on ? m_on : score::Skin::instance().Gray.color());
+  p.setBrush(on ? QBrush{m_on}
+                : (underMouse() ? pal.brush(QPalette::Midlight) : QBrush{Qt::NoBrush}));
+  p.drawRoundedRect(r, 2, 2);
+  p.setPen(on ? QColor{Qt::black} : pal.color(QPalette::ButtonText));
+  p.drawText(rect(), Qt::AlignCenter, text());
 }
 
 Strip::~Strip()
@@ -448,7 +481,7 @@ BusStrip::BusStrip(
 {
   auto& outlet = *itv.outlet;
 
-  connect(m_title, &QPushButton::clicked, this, [this] {
+  connect(m_title, &QAbstractButton::clicked, this, [this] {
     score::SelectionDispatcher{m_context.selectionStack}.select(m_model);
   });
 
