@@ -474,7 +474,8 @@ if(TARGET score AND NOT EMSCRIPTEN)
   score_add_test(test_integration_js_remove_cable
     SOURCES JsRemoveCableTest.cpp)
   target_compile_definitions(test_integration_js_remove_cable PRIVATE
-    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\"")
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\""
+    "GFX_TEST_CORPUS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/../gfx/corpus\"")
   set_tests_properties(test_integration_js_remove_cable PROPERTIES
     TIMEOUT 900 RUN_SERIAL TRUE)
 endif()
