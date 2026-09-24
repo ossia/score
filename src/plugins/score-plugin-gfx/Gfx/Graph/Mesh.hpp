@@ -20,7 +20,9 @@ struct BufferView
   int64_t byte_offset{};
   int64_t byte_size{};
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+  // Not Qt-gated: below Qt 6.12 there is no GPU indirect draw, but an indirect
+  // buffer tagged here still reaches the CPU-readback rung of the draw ladder
+  // (RenderedRawRasterPipelineNode::runInitialPasses).
   enum class Usage : uint8_t
   {
     Direct,
@@ -28,7 +30,6 @@ struct BufferView
     IndirectDrawIndexed
   };
   Usage usage{Usage::Direct};
-#endif
 
   // False for borrowed buffers — e.g., gpu_buffer handles the caller
   // owns (scene preprocessor's MDI arena buffers, registry arena
