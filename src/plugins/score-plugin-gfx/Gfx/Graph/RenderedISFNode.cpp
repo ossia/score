@@ -952,7 +952,7 @@ void RenderedISFNode::releaseState(RenderList& r)
   m_meshBuffer = {};
 
   // Release storage resources (owned SSBOs + storage images).
-  m_storage.release();
+  m_storage.release(r);
   m_firstStorageBinding = -1;
   m_lastStorageSwapFrame = -1;
 

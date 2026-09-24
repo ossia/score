@@ -2584,7 +2584,7 @@ void RenderedRawRasterPipelineNode::releaseState(RenderList& r)
 
   // INPUTS storage trio (storage_input/csf_image_input/uniform_input)
   // — owned by m_storage; release frees the underlying QRhiBuffer/Texture.
-  m_storage.release();
+  m_storage.release(r);
   m_firstStorageBinding = -1;
 
   for(auto& ats : m_auxTextureSamplers)

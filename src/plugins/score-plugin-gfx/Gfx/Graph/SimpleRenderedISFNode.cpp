@@ -835,7 +835,7 @@ void SimpleRenderedISFNode::releaseState(RenderList& r)
   }
 
   // Release storage resources (owned SSBOs + storage images).
-  m_storage.release();
+  m_storage.release(r);
   m_lastMRTRenderFrame = -1;
   m_lastStorageSwapFrame = -1;
 
