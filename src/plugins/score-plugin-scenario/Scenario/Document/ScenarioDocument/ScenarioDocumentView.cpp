@@ -793,8 +793,10 @@ ScenarioDocumentView::~ScenarioDocumentView()
   //  - App quit with a document open: QTabWidget owns m_widget and deletes it
   //    first, so ~QWidget has already deleted these three as its children.
   //    Every QPointer is null here and each delete is a no-op.
-  //  - Document close: Window::closeDocument uses removeTab, which orphans
-  //    m_widget rather than deleting it, so nothing Qt-side ever frees them.
+  //  - Document close: ~DocumentView calls CentralViewStack::releaseMainView,
+  //    which orphans m_widget (setParent(nullptr)) rather than deleting it,
+  //    and hands its lifetime back to us. Nothing Qt-side ever frees it or
+  //    anything under it -- the three views, the actions, the layout.
   //    Here the QPointers are live and this is what frees them.
   //
   // Doing it in the destructor body, before the members are destroyed, keeps
@@ -805,6 +807,7 @@ ScenarioDocumentView::~ScenarioDocumentView()
   delete m_view.data();
   delete m_timeRulerView.data();
   delete m_minimapView.data();
+  delete m_widget.data();
 }
 
 void ScenarioDocumentView::zoom(double zx, double zy)
