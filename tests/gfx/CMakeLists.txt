@@ -1739,6 +1739,9 @@ score_add_gfx_test(selffb_limits GfxSelfFeedbackLimits.cpp)
 # every backend.
 score_add_gfx_test(vsa_clip_depth GfxVsaClipDepth.cpp)
 
+# CSF storage bindings at the published range; read_write on a static GPU upstream.
+score_add_gfx_test(csf_buffer_range GfxCsfBufferRange.cpp)
+
 # Texture inlet settings on Texture to buffer and Texture Info (agent I6).
 if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
   score_add_test(test_gfx_avnd_texture_inlet_settings
