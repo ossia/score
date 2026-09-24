@@ -78,11 +78,17 @@ public:
   ~GaussianSplatRenderer();
 
   void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
+  void initState(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
+  void addOutputPass(
+      RenderList& renderer, Edge& edge, QRhiResourceUpdateBatch& res) override;
+  void removeOutputPass(RenderList& renderer, Edge& edge) override;
+  bool hasOutputPassForEdge(Edge& edge) const override;
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge) override;
   void runInitialPasses(
       RenderList&, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch*& res,
       Edge& edge) override;
   void runRenderPass(RenderList&, QRhiCommandBuffer& cb, Edge& edge) override;
+  void releaseState(RenderList&) override;
   void release(RenderList&) override;
 
 private:

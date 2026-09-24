@@ -544,6 +544,15 @@ void GaussianSplatRenderer::createRenderPipeline(RenderList& renderer)
 
 void GaussianSplatRenderer::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
+  initState(renderer, res);
+}
+
+void GaussianSplatRenderer::initState(
+    RenderList& renderer, QRhiResourceUpdateBatch& res)
+{
+  if(m_initialized)
+    return;
+
   qDebug() << "[GaussianSplat] init: splatCount=" << m_node.splatCount
            << "enableSorting=" << m_node.enableSorting
            << "shDegree=" << m_node.shDegree;
@@ -581,13 +590,35 @@ void GaussianSplatRenderer::init(RenderList& renderer, QRhiResourceUpdateBatch& 
   const auto& mesh = renderer.defaultQuad();
   defaultMeshInit(renderer, mesh, res);
 
+  m_initialized = true;
   qDebug() << "[GaussianSplat] init complete";
+}
+
+void GaussianSplatRenderer::addOutputPass(
+    RenderList& renderer, Edge& edge, QRhiResourceUpdateBatch& res)
+{
+  if(m_renderSplatBuffer && m_uniformBuffer)
+    createRenderPipeline(renderer);
+}
+
+void GaussianSplatRenderer::removeOutputPass(RenderList& renderer, Edge& edge)
+{
+  delete m_pipeline;
+  delete m_bindings;
+  m_pipeline = nullptr;
+  m_bindings = nullptr;
+}
+
+bool GaussianSplatRenderer::hasOutputPassForEdge(Edge& edge) const
+{
+  return m_pipeline != nullptr;
 }
 
 void GaussianSplatRenderer::update(
     RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge)
 {
-  const int64_t splatCount = m_node.splatCount;
+  if(!m_initialized)
+    return;
 
   // Check for raw splat buffer input
   bool bufferChanged = false;
@@ -612,7 +643,7 @@ void GaussianSplatRenderer::update(
           qDebug() << "[GaussianSplat] update: raw buffer changed,"
                    << "old=" << (void*)m_rawSplatBuffer
                    << "new=" << (void*)newBuffer
-                   << "size=" << newBuffer->size();
+                   << "size=" << (newBuffer ? newBuffer->size() : 0);
           m_rawSplatBuffer = newBuffer;
           ((GaussianSplatNode&)this->node).splatCount
               = newBuffer ? newBuffer->size() / 256 : 0;
@@ -653,6 +684,8 @@ void GaussianSplatRenderer::update(
     }
   }
 
+  const int64_t splatCount = m_node.splatCount;
+
   // Recreate compute/render pipelines when buffer or count changes
   if(bufferChanged || splatCount != m_lastSplatCount)
   {
@@ -674,6 +707,12 @@ void GaussianSplatRenderer::update(
       qDebug() << "[GaussianSplat] update: cannot build pipelines (no buffer or count=0)";
     }
     m_lastSplatCount = splatCount;
+  }
+  else if(
+      !m_pipeline && m_renderSplatBuffer && splatCount > 0
+      && !node.output[0]->edges.empty())
+  {
+    createRenderPipeline(renderer);
   }
 
   // Compute view and projection matrices from camera parameters
@@ -993,6 +1032,14 @@ void GaussianSplatRenderer::runRenderPass(
 
 void GaussianSplatRenderer::release(RenderList& r)
 {
+  releaseState(r);
+}
+
+void GaussianSplatRenderer::releaseState(RenderList& r)
+{
+  if(!m_initialized)
+    return;
+
   qDebug() << "[GaussianSplat] release";
 
   for(auto& sampler : m_samplers)
@@ -1060,6 +1107,9 @@ void GaussianSplatRenderer::release(RenderList& r)
   m_sortResourcesCreated = false;
 
   m_rawSplatBuffer = nullptr;
+  m_lastSplatCount = 0;
+  m_meshbufs = {};
+  m_initialized = false;
 }
 
 } // namespace score::gfx

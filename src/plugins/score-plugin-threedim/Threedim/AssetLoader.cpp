@@ -138,21 +138,12 @@ runInnerParser(const halp::text_file_view& data,
   return inner.m_raw_state;
 }
 
-} // namespace
-
-std::function<void(AssetLoader&)>
-AssetLoader::ins::asset_t::process(file_type tv)
+// Dispatches on the extension. `dispatched` is set when a parser was found.
+std::shared_ptr<const ossia::scene_state>
+parseAsset(const halp::text_file_view& tv, bool& dispatched)
 {
-  if(tv.filename.empty())
-    return {};
-
   const std::string_view fname{tv.filename};
   std::shared_ptr<const ossia::scene_state> loaded;
-  // Set by the dispatch below when an extension was recognised, so a rejection
-  // can say WHICH of the two failures happened: a format we do not handle, or
-  // a file whose parser refused it.
-  bool dispatched = false;
-
   if(hasSuffixCI(fname, "fbx"))
   {
     dispatched = true;
@@ -273,6 +264,37 @@ AssetLoader::ins::asset_t::process(file_type tv)
       dispatched = true;
       loaded = fn(tv);
     }
+  }
+  return loaded;
+}
+
+} // namespace
+
+std::function<void(AssetLoader&)>
+AssetLoader::ins::asset_t::process(file_type file)
+{
+  const halp::text_file_view tv{.bytes = file.bytes, .filename = file.filename};
+  if(tv.filename.empty())
+    return {};
+
+  const std::string_view fname{tv.filename};
+  std::shared_ptr<const ossia::scene_state> loaded;
+  // Set by the dispatch when an extension was recognised, so a rejection can
+  // say WHICH of the two failures happened: a format we do not handle, or a
+  // file whose parser refused it.
+  bool dispatched = false;
+  try
+  {
+    loaded = parseAsset(tv, dispatched);
+  }
+  catch(const std::exception& e)
+  {
+    // A file can declare counts that exhaust memory before any of its data is
+    // read; the parsers run on the GUI thread, so this must not escape.
+    qWarning() << "Asset Loader: could not parse"
+               << QString::fromUtf8(fname.data(), int(fname.size())) << ":"
+               << e.what();
+    return {};
   }
 
   if(!loaded)
