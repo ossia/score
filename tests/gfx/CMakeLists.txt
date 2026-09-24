@@ -291,6 +291,7 @@ score_add_gfx_test(cubemap_six_faces GfxCubemapSixFaces.cpp)
 score_add_gfx_test(cube_depth_attachment_size GfxCubeDepthAttachmentSize.cpp)
 score_add_gfx_test(provoking_vertex GfxProvokingVertex.cpp)
 score_add_gfx_test(msl_reserved_names GfxMslReservedNames.cpp)
+score_add_gfx_test(points_default_size GfxPointsDefaultSize.cpp)
 # Pin, [!shouldfail]: packCameraUBO ignores camera_projection and
 # always builds reverse-Z perspective, so an orthographic or fulldome camera
 # renders as a perspective one. Unit-math level: byte-identical UBOs provably

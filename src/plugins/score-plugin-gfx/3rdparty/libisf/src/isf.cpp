@@ -4848,6 +4848,9 @@ void parser::parse_raw_raster_pipeline()
   //      Vulkan's framebuffer origin rather than cancelling against it.
   m_vertex += "#undef main\n";
   m_vertex += "void main()\n{\n";
+  m_vertex += "#if !defined(QSHADER_HLSL)\n";
+  m_vertex += "  gl_PointSize = 1.0;\n";
+  m_vertex += "#endif\n";
   m_vertex += "  isf_rawraster_user_main();\n";
   m_vertex += "}\n";
 
