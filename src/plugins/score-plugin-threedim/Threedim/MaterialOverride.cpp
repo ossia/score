@@ -42,10 +42,10 @@ void MaterialOverride::rebuild()
   const int64_t in_version = in_state ? in_state->version : -1;
 
   void* cur_tex[4]{
-      inputs.base_color_tex.texture.handle,
-      inputs.metal_rough_tex.texture.handle,
-      inputs.normal_tex.texture.handle,
-      inputs.emissive_tex.texture.handle};
+      texture2DHandle(inputs.base_color_tex.texture),
+      texture2DHandle(inputs.metal_rough_tex.texture),
+      texture2DHandle(inputs.normal_tex.texture),
+      texture2DHandle(inputs.emissive_tex.texture)};
 
   // No texture overrides and no factor overrides → passthrough. Keeps
   // downstream identity caches warm for the common "unconfigured" case.
@@ -204,10 +204,10 @@ void MaterialOverride::operator()()
   const ossia::scene_state* in_state = in.state.get();
   const int64_t in_version = in_state ? in_state->version : -1;
   void* cur_tex[4]{
-      inputs.base_color_tex.texture.handle,
-      inputs.metal_rough_tex.texture.handle,
-      inputs.normal_tex.texture.handle,
-      inputs.emissive_tex.texture.handle};
+      texture2DHandle(inputs.base_color_tex.texture),
+      texture2DHandle(inputs.metal_rough_tex.texture),
+      texture2DHandle(inputs.normal_tex.texture),
+      texture2DHandle(inputs.emissive_tex.texture)};
   const bool upstream_changed
       = m_cached_in_state != in_state || m_cached_in_version != in_version
         || m_cached_tex[0] != cur_tex[0] || m_cached_tex[1] != cur_tex[1]

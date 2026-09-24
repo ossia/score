@@ -13,6 +13,12 @@
 namespace Threedim
 {
 
+//! The texture a PBR material slot can sample: a 2D one, else none.
+inline void* texture2DHandle(const halp::gpu_texture& t) noexcept
+{
+  return t.kind == halp::texture_kind::texture_2d ? t.handle : nullptr;
+}
+
 // Injects runtime GPU textures and/or factor overrides into a scene's
 // material table. The primary live-VJ use case: drop a video texture
 // (or HDR shader output) onto an existing material without reloading

@@ -288,7 +288,9 @@ struct TextureSizeWidget : public QWidget
             "When enabled, the render target will use the given size: every input "
             "process will render to a texture of said size upon execution. "
             "Otherwise, it will "
-            "use the default render size, usually the window viewport size."));
+            "use the default render size, usually the window viewport size. "
+            "An inlet with a single cable, no size and the RGBA8 format may read "
+            "the texture its input process publishes directly instead."));
     auto rs = port.renderSize();
     m_enabled->setChecked(bool(rs));
 

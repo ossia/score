@@ -1,5 +1,7 @@
 #include "PBRMesh.hpp"
 
+#include <Threedim/MaterialOverride.hpp>
+
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/SceneGPUState.hpp>
 
@@ -113,10 +115,10 @@ void PBRMesh::operator()()
       inputs.em_r.value, inputs.em_g.value, inputs.em_b.value,
       inputs.em_strength.value};
   void* cur_tex[4]{
-      inputs.base_color_tex.texture.handle,
-      inputs.metal_rough_tex.texture.handle,
-      inputs.normal_tex.texture.handle,
-      inputs.emissive_tex.texture.handle};
+      texture2DHandle(inputs.base_color_tex.texture),
+      texture2DHandle(inputs.metal_rough_tex.texture),
+      texture2DHandle(inputs.normal_tex.texture),
+      texture2DHandle(inputs.emissive_tex.texture)};
 
   float scratch[16];
   CachedTRS xformCache = m_cachedTRS;
@@ -380,10 +382,10 @@ void PBRMesh::update(
     gpu.textureRefs[idx] = score::gfx::tex_ref_dynamic((uint32_t)slot);
     fm |= feature_bit;
   };
-  stamp_dyn(Ch::BaseColor,  inputs.base_color_tex.texture.handle,   0, has_base_color_texture);
-  stamp_dyn(Ch::MetalRough, inputs.metal_rough_tex.texture.handle,  1, has_metal_rough_texture);
-  stamp_dyn(Ch::Normal,     inputs.normal_tex.texture.handle,       2, has_normal_texture);
-  stamp_dyn(Ch::Emissive,   inputs.emissive_tex.texture.handle,     3, has_emissive_texture);
+  stamp_dyn(Ch::BaseColor,  texture2DHandle(inputs.base_color_tex.texture),   0, has_base_color_texture);
+  stamp_dyn(Ch::MetalRough, texture2DHandle(inputs.metal_rough_tex.texture),  1, has_metal_rough_texture);
+  stamp_dyn(Ch::Normal,     texture2DHandle(inputs.normal_tex.texture),       2, has_normal_texture);
+  stamp_dyn(Ch::Emissive,   texture2DHandle(inputs.emissive_tex.texture),     3, has_emissive_texture);
 
   // PBRMesh is lit PBR (unlit flag not exposed), fully opaque by default.
   // No extension lobes wired through the current control surface. As

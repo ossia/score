@@ -3,6 +3,25 @@
 namespace Threedim
 {
 
+namespace
+{
+halp::texture_kind expectedKind(SceneResourceTarget target) noexcept
+{
+  switch(target)
+  {
+    case SceneResourceTarget::Skybox:
+    case SceneResourceTarget::IrradianceMap:
+    case SceneResourceTarget::PrefilteredMap:
+      return halp::texture_kind::cubemap;
+    case SceneResourceTarget::BRDFLut:
+      return halp::texture_kind::texture_2d;
+    case SceneResourceTarget::ShadowMapArray:
+      return halp::texture_kind::texture_array;
+  }
+  return halp::texture_kind::texture_2d;
+}
+}
+
 void SceneResourceRoute::rebuild()
 {
   if(!m_state)
@@ -17,7 +36,7 @@ void SceneResourceRoute::rebuild()
   m_state->shadow_cascades = {};
 
   void* handle = inputs.texture.texture.handle;
-  if(handle)
+  if(handle && inputs.texture.texture.kind == expectedKind(inputs.target.value))
   {
     switch(inputs.target.value)
     {
