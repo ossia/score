@@ -7,6 +7,7 @@
 
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Event/SetCondition.hpp>
+#include <Scenario/Commands/Metadata/ChangeElementComments.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
 #include <Scenario/Commands/TimeSync/AddTrigger.hpp>
@@ -300,6 +301,33 @@ QString EditJsContext::savePreset(QObject* process)
   if(!proc)
     return {};
   return QString::fromUtf8(proc->savePreset().toJson());
+}
+
+void EditJsContext::setComment(QObject* sel, QString comment)
+{
+  using namespace Scenario;
+  using namespace Scenario::Command;
+  auto doc = ctx();
+  if(!doc || !sel)
+    return;
+
+  auto [m, _] = macro(*doc);
+
+  auto apply = [&]<typename T>(T* ptr) {
+    if(comment != ptr->metadata().getComment())
+      m->submit(new ChangeElementComments<T>{*ptr, comment});
+  };
+
+  if(auto cst = qobject_cast<Scenario::IntervalModel*>(sel))
+    apply(cst);
+  else if(auto ev = qobject_cast<Scenario::EventModel*>(sel))
+    apply(ev);
+  else if(auto st = qobject_cast<Scenario::StateModel*>(sel))
+    apply(st);
+  else if(auto ts = qobject_cast<Scenario::TimeSyncModel*>(sel))
+    apply(ts);
+  else if(auto p = qobject_cast<Process::ProcessModel*>(sel))
+    apply(p);
 }
 
 void EditJsContext::setName(QObject* sel, QString new_name)
