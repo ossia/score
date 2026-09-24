@@ -1,3 +1,4 @@
+#include <Process/Commands/LoadPresetCommandFactory.hpp>
 #include <Process/Commands/Properties.hpp>
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Preset.hpp>
@@ -265,8 +266,26 @@ void EditJsContext::loadPreset(QObject* process, QString json)
     return;
 
   auto& factories = doc->app.interfaces<Process::ProcessFactoryList>();
-  if(auto preset = Process::Preset::fromJson(factories, json.toUtf8()))
+  auto preset = Process::Preset::fromJson(factories, json.toUtf8());
+  if(!preset)
+    return;
+
+  // Same command as a preset dropped from the library: for a process with
+  // dynamic ports (ISF, JS...) it re-attaches the cables and emits
+  // inletsChanged / outletsChanged. Calling ProcessModel::loadPreset directly
+  // skipped that, so the rebuilt ports never reached the execution and an ISF
+  // loaded this way rendered nothing.
+  auto& load_preset_ifaces = doc->app.interfaces<Process::LoadPresetCommandFactoryList>();
+  if(auto cmd = load_preset_ifaces.make(
+         &Process::LoadPresetCommandFactory::make, *proc, *preset, *doc))
+  {
+    auto [m, _] = macro(*doc);
+    m->submit(cmd);
+  }
+  else
+  {
     proc->loadPreset(*preset);
+  }
 }
 
 QString EditJsContext::savePreset(QObject* process)
