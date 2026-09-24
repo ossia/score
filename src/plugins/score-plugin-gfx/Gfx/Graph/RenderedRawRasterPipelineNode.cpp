@@ -242,6 +242,28 @@ layout(location = 0) out vec4 fragColor;
 void main() { fragColor = texture(blitTexture, vec3(v_texcoord, 0.0)); }
 )_";
 
+// The +Z face of a cube source. A sampler2D bound to a cube view is rejected
+// by Metal's draw validation ("incorrect type of texture (MTLTextureTypeCube)")
+// and by VUID-vkCmdDraw-viewType-07752. The direction is the inverse of the
+// +Z row of the GL cube-map face table (4.6, Table 8.19): s = (x + 1) / 2,
+// t = (1 - y) / 2.
+static const constexpr auto rrp_blit_cube_fs = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform samplerCube blitTexture;
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main()
+{
+  vec3 dir = vec3(2.0 * v_texcoord.x - 1.0, 1.0 - 2.0 * v_texcoord.y, 1.0);
+  fragColor = texture(blitTexture, dir);
+}
+)_";
+
 RenderedRawRasterPipelineNode::RenderedRawRasterPipelineNode(
     const ISFNode& node) noexcept
     : score::gfx::NodeRenderer{node}
@@ -2033,8 +2055,10 @@ void RenderedRawRasterPipelineNode::initMRTBlitPass(
     return;
 
   const bool srcIsArray = srcTex && (srcTex->flags() & QRhiTexture::TextureArray);
+  const bool srcIsCube = srcTex && (srcTex->flags() & QRhiTexture::CubeMap);
   auto [vertexS, fragmentS] = score::gfx::makeShaders(
-      renderer.state, rrp_blit_vs, srcIsArray ? rrp_blit_array_fs : rrp_blit_fs);
+      renderer.state, rrp_blit_vs,
+      srcIsCube ? rrp_blit_cube_fs : srcIsArray ? rrp_blit_array_fs : rrp_blit_fs);
 
   QRhiSampler* sampler = renderer.state.rhi->newSampler(
       QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
