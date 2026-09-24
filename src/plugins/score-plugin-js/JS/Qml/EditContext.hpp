@@ -263,6 +263,11 @@ public:
   void setAddress(QObject* obj, QString addr);
   W_SLOT(setAddress)
 
+  //! Whether an audio outlet is cabled to its parent interval. An outlet
+  //! writes to its address only when nothing is cabled to it.
+  void setPropagate(QObject* obj, bool propagate);
+  W_SLOT(setPropagate)
+
   void setValue(QObject* obj, double value);
   W_SLOT(setValue, (QObject*, double))
 
