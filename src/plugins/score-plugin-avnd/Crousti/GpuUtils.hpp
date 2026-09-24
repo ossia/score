@@ -1668,7 +1668,7 @@ struct texture_outputs_storage<T>
       if(tex
          && (tex->flags()
              & (QRhiTexture::CubeMap | QRhiTexture::ThreeDimensional
-                | QRhiTexture::TextureArray | QRhiTexture::OneDimensional)))
+                | QRhiTexture::TextureArray)))
         tex = nullptr;
       auto& sampler = self.m_samplers[k];
       if(tex != sampler.texture)
