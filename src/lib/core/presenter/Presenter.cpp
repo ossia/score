@@ -68,7 +68,13 @@ Presenter::Presenter(
     m_view->setPresenter(this);
 }
 
-Presenter::~Presenter() { }
+Presenter::~Presenter()
+{
+  // An exit that skipped exit() (Qt.exit(), a test deleting the presenter)
+  // gets here with documents open. As QObject children they would otherwise
+  // be deleted after m_components (plug-ins, audio engine) and use them freed.
+  m_docManager.closeRemainingDocuments(&m_context);
+}
 
 bool Presenter::exit()
 {

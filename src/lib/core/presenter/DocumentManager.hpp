@@ -125,6 +125,11 @@ public:
 
   bool closeAllDocuments(const score::GUIApplicationContext& ctx);
 
+  //! Tears down the documents still open without prompting; given `ctx`, GUI
+  //! application plug-ins get on_closeDocument() as in forceCloseDocument().
+  //! Must run while the application plug-ins still exist (see ~Presenter).
+  void closeRemainingDocuments(const score::GUIApplicationContext* ctx = nullptr);
+
   bool preparingNewDocument() const;
 
   /**
