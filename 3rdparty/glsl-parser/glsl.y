@@ -378,6 +378,8 @@ static struct glsl_node *new_glsl_string(struct glsl_parse_context *context, int
 %token VOID
 %token WHILE
 %token <char *> IDENTIFIER
+/* The lexer strdup()s every IDENTIFIER: also free the ones error recovery drops. */
+%destructor { free($$); } <char *>
 %token <float> FLOATCONSTANT
 %token <double> DOUBLECONSTANT
 %token <int> INTCONSTANT
@@ -512,34 +514,34 @@ translation_unit	: external_declaration
 				{ $$ = new_glsl_node(context, TRANSLATION_UNIT, $1, $2, NULL); }
 			;
 
-block_identifier	: IDENTIFIER { $$ = new_glsl_identifier(context, $1); }
+block_identifier	: IDENTIFIER { $$ = new_glsl_identifier(context, $1); free($1); }
 			;
 
-decl_identifier		: IDENTIFIER { $$ = new_glsl_identifier(context, $1); }
+decl_identifier		: IDENTIFIER { $$ = new_glsl_identifier(context, $1); free($1); }
 			;
 
-struct_name		: IDENTIFIER { $$ = new_glsl_identifier(context, $1); }
+struct_name		: IDENTIFIER { $$ = new_glsl_identifier(context, $1); free($1); }
 			;
 
-type_name		: IDENTIFIER { $$ = new_glsl_identifier(context, $1); }
+type_name		: IDENTIFIER { $$ = new_glsl_identifier(context, $1); free($1); }
 			;
 
-param_name		: IDENTIFIER { $$ = new_glsl_identifier(context, $1); }
+param_name		: IDENTIFIER { $$ = new_glsl_identifier(context, $1); free($1); }
 			;
 
-function_name		: IDENTIFIER { $$ = new_glsl_identifier(context, $1); }
+function_name		: IDENTIFIER { $$ = new_glsl_identifier(context, $1); free($1); }
 			;
 
-field_identifier	: IDENTIFIER { $$ = new_glsl_string(context, FIELD_IDENTIFIER, $1); }
+field_identifier	: IDENTIFIER { $$ = new_glsl_string(context, FIELD_IDENTIFIER, $1); free($1); }
 			;
 
-variable_identifier	: IDENTIFIER { $$ = new_glsl_identifier(context, $1); }
+variable_identifier	: IDENTIFIER { $$ = new_glsl_identifier(context, $1); free($1); }
 			;
 
-layout_identifier	: IDENTIFIER { $$ = new_glsl_identifier(context, $1); }
+layout_identifier	: IDENTIFIER { $$ = new_glsl_identifier(context, $1); free($1); }
 			;
 
-type_specifier_identifier : IDENTIFIER { $$ = new_glsl_identifier(context, $1); }
+type_specifier_identifier : IDENTIFIER { $$ = new_glsl_identifier(context, $1); free($1); }
 			;
 
 external_declaration	: function_definition { $$ = $1; }

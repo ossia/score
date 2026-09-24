@@ -1093,6 +1093,11 @@ score_add_test(test_unit_scene_camera_aux
     PLUGINS score_plugin_gfx
     LIBS ${QT_PREFIX}::Gui)
 
+  score_add_test(test_unit_glsl_parser_malformed
+    SOURCES GlslParserMalformedTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+
   # The output renderers' null-pipeline guard. Do not compile
   # InvertYRenderer.cpp in: it is exported, and a second copy is an ODR
   # violation. ISOLATED: the defect aborts the process rather than failing an
