@@ -1479,3 +1479,7 @@ score_add_test(test_gfx_blend_preview_fringe
 # samplers by parse_csf, baked, and the sampled image rendered on every backend.
 score_add_csf_test(sampled_inputs GfxCsfSampledInputs.cpp)
 
+# Raw raster: single colour OUTPUT FORMAT, missing required vertex input
+# reported at warning level.
+score_add_gfx_test(raw_raster_output_and_vertex_input GfxRawRasterOutputAndVertexInput.cpp)
+

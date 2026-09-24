@@ -334,7 +334,8 @@ void SimpleRenderedISFNode::initMRTPass(RenderList& renderer, QRhiResourceUpdate
     maxLayers = mvCount;
 
   // Per-OUTPUT sample count: MSAA must be uniform across every colour attachment
-  // of a render pass, so take the highest SAMPLES any OUTPUT requests. Clamped
+  // of a render pass, so take the highest SAMPLES any OUTPUT requests, or the
+  // renderer's count when no OUTPUT declares one. Clamped
   // later against QRhi::supportedSampleCounts() in createRenderTarget.
   //
   // The textures allocated below stay SINGLE-SAMPLE: they are the resolve
@@ -342,9 +343,11 @@ void SimpleRenderedISFNode::initMRTPass(RenderList& renderer, QRhiResourceUpdate
   // renderbuffers internally and wires each texture as its resolve destination,
   // which Vulkan requires to be single-sample. Downstream shaders sample the
   // already-resolved textures.
-  int mrtSamples = std::max(renderer.samples(), 1);
+  int mrtSamples = 0;
   for(const auto& out : outputs)
     mrtSamples = std::max(mrtSamples, out.samples);
+  if(mrtSamples <= 0)
+    mrtSamples = std::max(renderer.samples(), 1);
 
   // Create color and depth textures based on OUTPUTS declarations
   std::vector<QRhiTexture*> colorTextures;
