@@ -103,6 +103,7 @@ void ApplicationPlugin::on_documentChanged(
   m_volumeSync = connect(
       &newdoc->context().coarseUpdateTimer, &QTimer::timeout, this,
       &ApplicationPlugin::syncVolume);
+  m_shownVolume = -1.;
   syncVolume();
 
   if(!audio)
@@ -135,8 +136,13 @@ void ApplicationPlugin::syncVolume()
     return;
   if(auto p = mainOutput(context.currentDocument()))
   {
+    // Called often: the slider only changes, and repaints, when the gain does.
+    const double g = p->gain();
+    if(g == m_shownVolume)
+      return;
+    m_shownVolume = g;
     QSignalBlocker b{m_volume.data()};
-    m_volume->setValue(p->gain());
+    m_volume->setValue(g);
   }
 }
 

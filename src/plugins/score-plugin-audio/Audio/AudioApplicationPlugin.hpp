@@ -51,6 +51,7 @@ private:
   QPointer<score::VolumeSlider> m_volume;
   QMetaObject::Connection m_volumeSync;
   bool m_volumeDragging{};
+  double m_shownVolume{-1.};
 
   bool m_updating_audio = false;
   void initialize() override;
