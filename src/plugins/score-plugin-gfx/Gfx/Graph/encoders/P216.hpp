@@ -66,9 +66,8 @@ struct P216Encoder : GPUVideoEncoder
   )_";
 
   // Rendered at half width, FULL height: 4:2:2 keeps every line's chroma.
-  // Bilinear sampling averages the horizontal pair, and only that pair -- a
-  // vertical average here would be 4:2:0 and would quietly halve the chroma
-  // resolution of a format whose whole point is that it does not.
+  // 4:2:2: average the horizontal pair only. Two texelFetch rather than one
+  // bilinear tap: filtering an RGBA8 source quantises to 8 bits on many GPUs.
   static constexpr const char* uv_frag = R"_(#version 450
     layout(location = 0) in vec2 v_texcoord;
     layout(location = 0) out vec4 fragColor;
@@ -82,9 +81,18 @@ struct P216Encoder : GPUVideoEncoder
     #endif
     }
     void main() {
-      vec3 rgb = texture(src_tex, flip_y(v_texcoord)).rgb;
-      vec3 yuv = convert_from_rgb(rgb);
-      fragColor = vec4(clamp(yuv.y, 0.0, 1.0), clamp(yuv.z, 0.0, 1.0), 0.0, 1.0);
+      ivec2 sz = textureSize(src_tex, 0);
+      // The source row through flip_y, as in the luma pass: this target has
+      // the source's height, so each of its rows is one source row.
+      int sy = min(int(floor(flip_y(v_texcoord).y * float(sz.y))), sz.y - 1);
+      // Two source pixels per chroma site.
+      int x0 = int(floor(v_texcoord.x * float(sz.x / 2))) * 2;
+      vec3 yuv0 = convert_from_rgb(
+          texelFetch(src_tex, ivec2(min(x0, sz.x - 1), sy), 0).rgb);
+      vec3 yuv1 = convert_from_rgb(
+          texelFetch(src_tex, ivec2(min(x0 + 1, sz.x - 1), sy), 0).rgb);
+      vec2 uv = clamp((yuv0.yz + yuv1.yz) * 0.5, 0.0, 1.0);
+      fragColor = vec4(uv, 0.0, 1.0);
     }
   )_";
 
