@@ -17,6 +17,20 @@ struct PersistSampler
 };
 using PassOutput = ossia::variant<PersistSampler, TextureRenderTarget>;
 
+//! Advances a shader's FRAMEINDEX once per RenderList frame, however many
+//! output edges update the node in it; a fresh node starts at 0. Returns
+//! whether this is the node's first update of `frame`.
+inline bool
+advanceFrameIndex(int32_t& frameIndex, int64_t& lastFrame, int64_t frame) noexcept
+{
+  if(lastFrame == frame)
+    return false;
+  if(lastFrame >= 0 || frameIndex > 0)
+    frameIndex++;
+  lastFrame = frame;
+  return true;
+}
+
 struct AudioTextureUpload
 {
   explicit AudioTextureUpload();

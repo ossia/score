@@ -477,7 +477,6 @@ public:
     if(!m_isf)
       return;
 
-    m_isf->standardUBO.frameIndex++;
     m_isf->standardUBO.time += 16. / 1000.;
     m_isf->standardUBO.timeDelta = 16. / 1000.;
     m_isf->standardUBO.progress += 0.002;

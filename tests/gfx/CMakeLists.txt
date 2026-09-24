@@ -1483,3 +1483,7 @@ score_add_csf_test(sampled_inputs GfxCsfSampledInputs.cpp)
 # reported at warning level.
 score_add_gfx_test(raw_raster_output_and_vertex_input GfxRawRasterOutputAndVertexInput.cpp)
 
+# CSF attribute naming, COPY_FROM next to AUXILIARY, unblended storage-image
+# outlet, read_write on a static CPU mesh, FRAMEINDEX origin.
+score_add_gfx_test(csf_isf_behaviours GfxCsfIsfBehaviours.cpp)
+

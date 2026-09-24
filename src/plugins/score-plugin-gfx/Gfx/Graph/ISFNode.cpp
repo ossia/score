@@ -471,7 +471,8 @@ void ISFNode::process(Message&& msg)
   ProcessNode::process(std::move(msg));
 }
 
-QSize ISFNode::computeTextureSize(const isf::pass& pass, QSize origSize)
+QSize ISFNode::computeTextureSize(
+    const isf::pass& pass, QSize origSize, std::span<const Sampler> inputSamplers)
 {
   QSize res = origSize;
 
@@ -481,15 +482,34 @@ QSize ISFNode::computeTextureSize(const isf::pass& pass, QSize origSize)
   // Note : reserve is super important here,
   // as the expression parser takes *references* to the
   // variables.
-  data.reserve(2 + m_descriptor.inputs.size());
+  data.reserve(2 + 3 * m_descriptor.inputs.size());
 
   e.add_constant("var_WIDTH", data.emplace_back(res.width()));
   e.add_constant("var_HEIGHT", data.emplace_back(res.height()));
   int port_k = 0;
+  std::size_t sampler_k = 0;
   for(const isf::input& input : m_descriptor.inputs)
   {
+    if(port_k >= (int)this->input.size())
+      break;
     auto port = this->input[port_k];
-    if(ossia::get_if<isf::float_input>(&input.data))
+    if(port->type == Types::Image)
+    {
+      QSize sz = origSize;
+      if(sampler_k < inputSamplers.size() && inputSamplers[sampler_k].texture)
+        sz = inputSamplers[sampler_k].texture->pixelSize();
+      if(ossia::get_if<isf::image_input>(&input.data)
+         || ossia::get_if<isf::cubemap_input>(&input.data))
+      {
+        e.add_constant("var_WIDTH_" + input.name, data.emplace_back(sz.width()));
+        e.add_constant("var_HEIGHT_" + input.name, data.emplace_back(sz.height()));
+      }
+      sampler_k++;
+      if((port->flags & Flag::SamplableDepth) == Flag::SamplableDepth
+         && (port->flags & Flag::GrabsFromSource) != Flag::GrabsFromSource)
+        sampler_k++;
+    }
+    else if(ossia::get_if<isf::float_input>(&input.data))
     {
       e.add_constant("var_" + input.name, data.emplace_back(*(float*)port->value));
     }

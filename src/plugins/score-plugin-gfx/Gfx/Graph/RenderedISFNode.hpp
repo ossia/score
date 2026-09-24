@@ -97,6 +97,8 @@ private:
   // update() runs once per downstream sink, so once-per-frame work must be
   // keyed on the RenderList's frame counter, not a bool reset in update().
   int64_t m_lastStorageSwapFrame{-1};
+
+  int64_t m_frameIndexFrame{-1};
 };
 
 }

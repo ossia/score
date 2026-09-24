@@ -3217,7 +3217,8 @@ void RenderedRawRasterPipelineNode::update(
   m_mrtRenderedThisFrame = false;
 
   n.standardUBO.passIndex = 0;
-  n.standardUBO.frameIndex++;
+  const bool firstUpdateOfFrame
+      = advanceFrameIndex(n.standardUBO.frameIndex, m_frameIndexFrame, renderer.frame);
   std::copy_n(renderer.currentDate, 4, n.standardUBO.date);
 
   auto sz = renderer.renderSize(edge);
@@ -3249,7 +3250,8 @@ void RenderedRawRasterPipelineNode::update(
   bool anyPersistentSwap = false;
   for(auto& aux : m_auxiliarySSBOs)
   {
-    if(!aux.persistent || !aux.prev_buffer || n.standardUBO.frameIndex < 2u)
+    if(!firstUpdateOfFrame || !aux.persistent || !aux.prev_buffer
+       || n.standardUBO.frameIndex < 1u)
       continue;
     std::swap(aux.buffer, aux.prev_buffer);
     anyPersistentSwap = true;
