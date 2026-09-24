@@ -432,3 +432,4 @@ score_add_test(test_threedim_scene_approximation_pins
 threedim_test_includes(test_threedim_scene_approximation_pins)
 target_compile_definitions(test_threedim_scene_approximation_pins
   PRIVATE THREEDIM_SRC_DIR="${THREEDIM_DIR}")
+

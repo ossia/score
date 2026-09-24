@@ -1470,3 +1470,8 @@ endif()
 score_add_test(test_gfx_blend_preview_fringe
   SOURCES BlendPreviewFringe.cpp
   GUI)
+
+# CSF sampled inputs (N67 audio, N68 TYPE image without ACCESS): declared as
+# samplers by parse_csf, baked, and the sampled image rendered on every backend.
+score_add_csf_test(sampled_inputs_fixd GfxCsfSampledInputsFixD.cpp)
+

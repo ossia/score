@@ -6248,6 +6248,23 @@ void parser::parse_csf()
   m_desc = std::move(desc);
   m_desc.mode = descriptor::CSF;
 
+  for(auto& inp : m_desc.inputs)
+  {
+    if(auto* img = ossia::get_if<image_input>(&inp.data))
+    {
+      if(img->is_array || img->depth || img->is_static)
+        throw invalid_file{
+            "CSF input \"" + inp.name
+            + "\": TYPE image without ACCESS/FORMAT is a sampled texture; "
+              "IS_ARRAY, DEPTH and STATIC are not supported on it in a compute "
+              "shader. Use TYPE texture, or give it an ACCESS for a storage image."};
+      texture_input tex;
+      tex.dimensions = img->dimensions;
+      tex.sampler = img->sampler;
+      inp.data = std::move(tex);
+    }
+  }
+
   std::string& compWithoutCSF = m_sourceFragment;
   compWithoutCSF.erase(0, end + 2);
 
@@ -6615,6 +6632,14 @@ void parser::parse_csf()
       m_fragment += tex_ptr->dimensions == 3
           ? "uniform sampler3D " : "uniform sampler2D ";
       m_fragment += inp.name + ";\n";
+      binding++;
+    }
+    else if(ossia::get_if<audio_input>(&inp.data)
+            || ossia::get_if<audioFFT_input>(&inp.data)
+            || ossia::get_if<audioHist_input>(&inp.data))
+    {
+      m_fragment += "layout(binding = " + std::to_string(binding) + ") ";
+      m_fragment += "uniform sampler2D " + inp.name + ";\n";
       binding++;
     }
     else if(auto* uni_ptr = ossia::get_if<uniform_input>(&inp.data))

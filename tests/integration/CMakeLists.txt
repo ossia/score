@@ -1304,3 +1304,4 @@ foreach(_t ${_integration_tests})
       ENVIRONMENT_MODIFICATION ${SCORE_TEST_HARNESS_ENVIRONMENT})
   endif()
 endforeach()
+
