@@ -230,6 +230,10 @@ score_add_test(test_integration_process_ui_placement
   SOURCES ProcessUIPlacementTest.cpp
   GUI
   PLUGINS score_plugin_scenario score_lib_process score_plugin_js)
+# Process UIs are QQuickWindows: with GraphicsApi=Vulkan they pick Vulkan,
+# which cannot present on Xvfb (no DRI3) and qFatal()s. Force GL.
+set_property(TEST test_integration_process_ui_placement APPEND PROPERTY
+  ENVIRONMENT_MODIFICATION "QSG_RHI_BACKEND=set:opengl")
 
 get_target_property(_js_definitions score_plugin_js COMPILE_DEFINITIONS)
 if("SCORE_HAS_GPU_JS" IN_LIST _js_definitions)
