@@ -606,6 +606,8 @@ public:
 private:
   void submit(Macro& m, score::Command* c);
   QJSValue m_namespaces;
+
+  void setControlValue(QObject* obj, ossia::value value);
 };
 }
 
