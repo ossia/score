@@ -186,10 +186,10 @@ constexpr const char* kFsDyn = R"__(/*{
 void main()
 {
     vec3 c;
-    if(v_uv.x < 0.25)      c = texture(baseColorDyn0, v_uv).rgb;
-    else if(v_uv.x < 0.5)  c = texture(baseColorDyn1, v_uv).rgb;
-    else if(v_uv.x < 0.75) c = texture(baseColorDyn2, v_uv).rgb;
-    else                   c = texture(baseColorDyn3, v_uv).rgb;
+    if(v_uv.x < 0.25)      c = texture(sampler2D(baseColorDyn_tex[0], baseColorDyn_smp), v_uv).rgb;
+    else if(v_uv.x < 0.5)  c = texture(sampler2D(baseColorDyn_tex[1], baseColorDyn_smp), v_uv).rgb;
+    else if(v_uv.x < 0.75) c = texture(sampler2D(baseColorDyn_tex[2], baseColorDyn_smp), v_uv).rgb;
+    else                   c = texture(sampler2D(baseColorDyn_tex[3], baseColorDyn_smp), v_uv).rgb;
     isf_FragColor = vec4(c, 1.0);
 }
 )__";
