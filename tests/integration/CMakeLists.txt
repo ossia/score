@@ -1348,6 +1348,22 @@ if(TARGET score AND NOT EMSCRIPTEN)
     TIMEOUT 900 RUN_SERIAL TRUE)
 endif()
 
+# Stepped rendering owns TIME/TIMEDELTA even when execution ticks land between
+# steps (N66), and the offscreen grab is InputWidth x InputHeight whatever size
+# the saved device tree carries (N50). Drives the application binary; SKIPs
+# without a display.
+if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_gfx_step_clock_fixj
+    SOURCES GfxStepClockFixJTest.cpp
+    GUI
+    LIBS ${QT_PREFIX}::Gui)
+  target_compile_definitions(test_integration_gfx_step_clock_fixj PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\""
+    "GFX_TEST_CORPUS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/../gfx/corpus\"")
+  set_tests_properties(test_integration_gfx_step_clock_fixj PROPERTIES
+    TIMEOUT 900 RUN_SERIAL TRUE LABELS "gui")
+endif()
+
 # A text-mode avnd file port hands the object exactly the bytes that were read
 # (QIODevice::Text drops '\r'), both through oscr::executePortPreprocess and
 # through oscr::raw_file_storage::load.

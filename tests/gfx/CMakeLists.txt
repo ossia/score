@@ -1612,6 +1612,11 @@ if(TARGET score_plugin_threedim)
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
 
+# An edge to a node that never registers is retried a bounded number of ticks
+# and then dropped with one warning, instead of re-entering the edge diff on
+# every tick. Drives the real document GfxContext (fixJ, N6).
+score_add_gfx_process_test(edge_retry_bound_fixj GfxEdgeRetryBoundFixJ.cpp)
+
 # Extract buffer picks up a CSF geometry's buffers created after its init
 # (agent G, N80).
 if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)

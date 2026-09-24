@@ -16,6 +16,8 @@
 #include <core/document/Document.hpp>
 #include <core/document/DocumentView.hpp>
 
+#include <ossia/network/base/node_functions.hpp>
+
 #include <ossia-qt/invoke.hpp>
 
 #include <QMenu>
@@ -82,6 +84,10 @@ WindowDevice::~WindowDevice() { }
 void WindowDevice::addAddress(const Device::FullAddressSettings& settings)
 {
   if(!m_dev)
+    return;
+
+  if(dynamic_cast<offscreen_device*>(m_dev.get()) && settings.address.path.size() == 1
+     && settings.address.path.front() == QStringLiteral("size"))
     return;
 
   updateAddress(settings.address, settings);
@@ -280,9 +286,16 @@ bool WindowDevice::reconnect()
 
       if(shouldForceOffscreen(m_settings.name))
       {
-        m_dev = std::make_unique<offscreen_device>(
+        auto dev = std::make_unique<offscreen_device>(
             std::unique_ptr<gfx_protocol_base>(m_protocol),
             m_settings.name.toStdString());
+
+        const QSize sz{std::max(1, set.inputWidth), std::max(1, set.inputHeight)};
+        dev->node()->setSize(sz);
+        if(auto n = ossia::net::find_node(dev->get_root_node(), "/size"))
+          if(auto p = n->get_parameter())
+            p->set_value_quiet(ossia::vec2f{float(sz.width()), float(sz.height())});
+        m_dev = std::move(dev);
 
         enableCallbacks();
         deviceChanged(nullptr, m_dev.get());

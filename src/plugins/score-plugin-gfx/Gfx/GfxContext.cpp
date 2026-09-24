@@ -500,6 +500,17 @@ void GfxContext::recompute_connections()
   recompute_graph();
 }
 
+void GfxContext::forgetDeferredEdge(const EdgeSpec& spec) noexcept
+{
+  if(m_deferredEdges.empty())
+    return;
+  auto it = std::find_if(
+      m_deferredEdges.begin(), m_deferredEdges.end(),
+      [&](const auto& e) { return e.first == spec; });
+  if(it != m_deferredEdges.end())
+    m_deferredEdges.erase(it);
+}
+
 void GfxContext::incrementalEdgeUpdate(
     const ossia::flat_set<EdgeSpec>& old_edges,
     const ossia::flat_set<EdgeSpec>& cur_edges)
@@ -549,6 +560,7 @@ void GfxContext::incrementalEdgeUpdate(
   // Process removals first (while edge objects still exist).
   for(auto& spec : removed)
   {
+    forgetDeferredEdge(spec);
     auto source_it = nodes.find(spec.first.node);
     auto sink_it = nodes.find(spec.second.node);
     if(source_it == nodes.end() || sink_it == nodes.end())
@@ -632,21 +644,63 @@ void GfxContext::incrementalEdgeUpdate(
     auto* sink_port = sink_ports[spec.second.port];
 
     m_graph->addEdge(source_port, sink_port, spec.type);
+    forgetDeferredEdge(spec);
   }
 
   if(qEnvironmentVariableIsSet("SCORE_GFX_TRACE"))
     fprintf(
         stderr, "GFX-EDGES applied added=%zu deferred=%zu\n", added.size(),
         deferred.size());
+  std::erase_if(m_deferredEdges, [&](const auto& e) {
+    return !cur_edges.contains(e.first);
+  });
+
+  std::vector<EdgeSpec> abandoned;
   if(!deferred.empty())
   {
     std::lock_guard l{edges_lock};
     for(const auto& spec : deferred)
-      edges.erase(spec);
+    {
+      auto it = std::find_if(
+          m_deferredEdges.begin(), m_deferredEdges.end(),
+          [&](const auto& e) { return e.first == spec; });
+      if(it == m_deferredEdges.end())
+        it = m_deferredEdges.emplace(m_deferredEdges.end(), spec, 0);
+
+      if(++it->second < 8)
+      {
+        edges.erase(spec);
+      }
+      else
+      {
+        m_deferredEdges.erase(it);
+        abandoned.push_back(spec);
+      }
+    }
     // Force updateGraph to re-enter the edge-diff path next tick even if the
     // producer does not republish new_edges; old_edges will then lack the
     // deferred edges so set_difference re-emits them once their node exists.
-    edges_changed.store(true);
+    // An abandoned edge stays in the baseline, so it is not re-emitted.
+    if(abandoned.size() < deferred.size())
+      edges_changed.store(true);
+  }
+  if(!abandoned.empty())
+  {
+    QString list;
+    for(const auto& spec : abandoned)
+    {
+      if(!list.isEmpty())
+        list += ", ";
+      list += QStringLiteral("%1:%2 -> %3:%4")
+                  .arg(spec.first.node)
+                  .arg(spec.first.port)
+                  .arg(spec.second.node)
+                  .arg(spec.second.port);
+    }
+    qWarning().noquote() << "gfx: dropping" << abandoned.size()
+                         << "edge(s) whose node is still not registered after 8 "
+                            "ticks:"
+                         << list;
   }
 
   // Reconcile: ensure all reachable nodes have renderers and passes.
@@ -1017,6 +1071,7 @@ void GfxContext::renderFrames(int frames)
   const bool step = m_stepRate > 0.;
   const int64_t frame_flicks
       = step ? int64_t(std::llround(ossia::flicks_per_second<double> / m_stepRate)) : 0;
+  const double frame_seconds = frame_flicks / ossia::flicks_per_second<double>;
   // The span must not depend on how the caller batched its frames.
   // WindowDevice documents the contract: "the clock keeps counting across
   // calls, so renderFrames(1) sixty times is the timeline renderFrames(60)
@@ -1047,7 +1102,10 @@ void GfxContext::renderFrames(int frames)
       for(auto& [id, node] : nodes)
       {
         if(auto proc = dynamic_cast<score::gfx::ProcessNode*>(node.get()))
+        {
           proc->process(tk);
+          proc->standardUBO.timeDelta = frame_seconds;
+        }
       }
       m_stepFrame++;
     }

@@ -157,6 +157,7 @@ private:
   void remove_preview_output();
   void add_edge(EdgeSpec e);
   void remove_edge(EdgeSpec e);
+  void forgetDeferredEdge(const EdgeSpec& spec) noexcept;
   void remove_node(std::vector<std::unique_ptr<score::gfx::Node>>& nursery, int32_t id);
 
   void on_no_vsync_timer(score::HighResolutionTimer* self);
@@ -199,6 +200,7 @@ private:
   moodycamel::ConcurrentQueue<Command> tick_commands;
   moodycamel::ConcurrentQueue<score::gfx::Message> tick_messages;
   std::vector<std::pair<score::gfx::Message, int>> m_deferredMessages;
+  std::vector<std::pair<EdgeSpec, int>> m_deferredEdges;
 
   std::mutex edges_lock;
   ossia::flat_set<EdgeSpec> new_edges TS_GUARDED_BY(edges_lock);
