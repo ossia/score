@@ -268,6 +268,21 @@ void EditJsContext::setAddress(QObject* obj, QString addr)
   m->setProperty<Process::Port::p_address>(*proc, std::move(*a));
 }
 
+void EditJsContext::setPropagate(QObject* obj, bool propagate)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+  auto port = qobject_cast<Process::AudioOutlet*>(obj);
+  if(!port)
+    return;
+  if(port->propagate() == propagate)
+    return;
+
+  auto [m, _] = macro(*doc);
+  m->submit(new Process::SetPropagate{*port, propagate});
+}
+
 void EditJsContext::setValue(QObject* obj, double value)
 {
   auto doc = ctx();
