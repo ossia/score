@@ -23,23 +23,21 @@ struct Edge;
 namespace Threedim
 {
 
-// Rasterize text into 3D geometry. Each glyph is converted to a
-// QPainterPath, flattened into polygons, and tessellated via simple
-// ear-clipping. Output is a scene_spec containing one scene_node with
-// one mesh_component whose vertices describe the text in the XY plane
-// (normal = +Z) around the origin.
+// Rasterize text into 3D geometry. Each glyph outline is triangulated with
+// Qt's path triangulator (qTriangulate) under the non-zero fill rule, so
+// counters and overlapping contours are filled as the font defines them.
+// Output is a scene_spec containing one scene_node with one mesh_component
+// whose vertices describe the text in the XY plane (normal = +Z) around the
+// origin. '\n' starts a new line, one line spacing lower.
 //
 // Limitations (v1):
-//   - Holes are NOT handled. Glyphs with interior holes ("O", "D", "o",
-//     "P" counter, etc.) render as solid shapes. Fix planned by adding
-//     earcut.hpp or hole-bridging to the tessellator.
 //   - Extrusion = 0 (flat). A later revision will extrude along -Z
 //     with properly-oriented side walls.
 //   - Tangents are synthesized as (1, 0, 0, 1) by ScenePreprocessor's
 //     fallback — no per-vertex tangent computed here.
 //
-// Designed for VJ / title-card use rather than typography; single-line
-// inputs only. For paragraph text, use TextToTexture on a quad.
+// Designed for VJ / title-card use rather than typography. For paragraph
+// text, use TextToTexture on a quad.
 class TextToMesh
 {
 public:

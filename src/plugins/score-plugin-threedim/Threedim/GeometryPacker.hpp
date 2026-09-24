@@ -3,6 +3,7 @@
 #include <halp/buffer.hpp>
 #include <halp/meta.hpp>
 
+#include <algorithm>
 #include <array>
 
 namespace score::gfx
@@ -47,8 +48,8 @@ public:
       return false;
     }
 
-    m_vertexCount = mesh.vertices;
     m_hasIndexBuffer = mesh.index.buffer >= 0;
+    m_vertexCount = m_hasIndexBuffer ? mesh.indices : mesh.vertices;
     m_attributeCount = 0;
     m_outputStride = 0;
 
@@ -149,11 +150,12 @@ public:
       std::span<const packed_attribute_spec> specs)
   {
     // Check if vertex count changed
-    const int64_t newSize = static_cast<int64_t>(mesh.vertices) * m_outputStride;
+    const int32_t count = m_hasIndexBuffer ? mesh.indices : mesh.vertices;
+    const int64_t newSize = static_cast<int64_t>(count) * m_outputStride;
 
-    if(newSize != m_outputSize || mesh.vertices != m_vertexCount)
+    if(newSize != m_outputSize || count != m_vertexCount)
     {
-      m_vertexCount = mesh.vertices;
+      m_vertexCount = count;
       m_outputSize = newSize;
 
       if(m_outputSize > 0)
@@ -218,6 +220,11 @@ public:
     delete m_uniformBuffer;
     m_uniformBuffer = nullptr;
 
+    delete m_placeholderBuffer;
+    m_placeholderBuffer = nullptr;
+    std::fill(std::begin(m_boundBuffers), std::end(m_boundBuffers), nullptr);
+    m_sourcesValid = false;
+
     // Freed by the engine:
     // delete m_outputBuffer;
     // m_outputBuffer = nullptr;
@@ -228,7 +235,7 @@ public:
 
   void runCompute(QRhi& rhi, QRhiCommandBuffer& cb, QRhiResourceUpdateBatch*& res)
   {
-    if(!m_dirty || m_vertexCount == 0 || !m_pipeline)
+    if(!m_dirty || m_vertexCount == 0 || !m_pipeline || !m_sourcesValid)
       return;
 
     // Prepare UBO data
@@ -458,6 +465,14 @@ void main()
       return false;
     }
 
+    m_placeholderBuffer = rhi.newBuffer(QRhiBuffer::Static, QRhiBuffer::StorageBuffer, 16);
+    m_placeholderBuffer->setName("GeometryPacker::m_placeholderBuffer");
+    if(!m_placeholderBuffer->create())
+    {
+      qDebug() << "PackedExtractionStrategy: Placeholder buffer creation failed";
+      return false;
+    }
+
     m_srb = rhi.newShaderResourceBindings();
     updateBindings();
 
@@ -486,50 +501,67 @@ void main()
     if(!m_srb)
       return;
 
+    m_sourcesValid = m_outputBuffer != nullptr;
+    QRhiBuffer* placeholderBuffer = m_placeholderBuffer;
+    for(int i = 0; i < m_srcBufferCount; ++i)
+    {
+      if(m_srcBuffers[i] && m_srcBuffers[i] != m_outputBuffer)
+      {
+        if(placeholderBuffer == m_placeholderBuffer)
+          placeholderBuffer = m_srcBuffers[i];
+      }
+      else
+      {
+        m_sourcesValid = false;
+      }
+    }
+
+    QRhiBuffer* buffers[MAX_PACKED_ATTRIBUTES + 2]{};
+    for(int i = 0; i < MAX_PACKED_ATTRIBUTES; ++i)
+    {
+      QRhiBuffer* buf = i < m_srcBufferCount ? m_srcBuffers[i] : nullptr;
+      buffers[i] = buf && buf != m_outputBuffer ? buf : placeholderBuffer;
+    }
+
+    QRhiBuffer* idxBuf = placeholderBuffer;
+    if(m_hasIndexBuffer)
+    {
+      if(m_indexBuffer && m_indexBuffer != m_outputBuffer)
+        idxBuf = m_indexBuffer;
+      else
+        m_sourcesValid = false;
+    }
+    buffers[MAX_PACKED_ATTRIBUTES] = idxBuf;
+    buffers[MAX_PACKED_ATTRIBUTES + 1] = m_outputBuffer;
+
+    if(std::equal(std::begin(buffers), std::end(buffers), std::begin(m_boundBuffers)))
+      return;
+    std::copy(std::begin(buffers), std::end(buffers), std::begin(m_boundBuffers));
+
     QVarLengthArray<QRhiShaderResourceBinding, 12> bindings;
 
-    // Binding 0: UBO
     bindings.append(
         QRhiShaderResourceBinding::uniformBuffer(
             0, QRhiShaderResourceBinding::ComputeStage, m_uniformBuffer));
 
-    // Bindings 1-8: Source buffers (use first valid buffer as placeholder for unused slots)
-    QRhiBuffer* placeholderBuffer = nullptr;
-    for(int i = 0; i < m_srcBufferCount; ++i)
-    {
-      if(m_srcBuffers[i])
-      {
-        placeholderBuffer = m_srcBuffers[i];
-        break;
-      }
-    }
-    if(!placeholderBuffer && m_outputBuffer)
-    {
-      placeholderBuffer = m_outputBuffer; // Fallback
-    }
-
     for(int i = 0; i < MAX_PACKED_ATTRIBUTES; ++i)
     {
-      QRhiBuffer* buf = (i < m_srcBufferCount && m_srcBuffers[i]) ? m_srcBuffers[i]
-                                                                  : placeholderBuffer;
       bindings.append(
           QRhiShaderResourceBinding::bufferLoad(
-              1 + i, QRhiShaderResourceBinding::ComputeStage, buf));
+              1 + i, QRhiShaderResourceBinding::ComputeStage, buffers[i]));
     }
 
-    // Binding 9: Index buffer (use placeholder if not indexed)
-    QRhiBuffer* idxBuf
-        = m_hasIndexBuffer && m_indexBuffer ? m_indexBuffer : placeholderBuffer;
     bindings.append(
         QRhiShaderResourceBinding::bufferLoad(
             9, QRhiShaderResourceBinding::ComputeStage, idxBuf));
 
-    // Binding 10: Output buffer
     bindings.append(
         QRhiShaderResourceBinding::bufferStore(
             10, QRhiShaderResourceBinding::ComputeStage, m_outputBuffer));
 
     m_srb->setBindings(bindings.cbegin(), bindings.cend());
+    if(m_pipeline)
+      m_srb->create();
   }
 
   // Source buffers (up to MAX_PACKED_ATTRIBUTES unique buffers)
@@ -542,6 +574,9 @@ void main()
   QRhiShaderResourceBindings* m_srb{};
   QRhiComputePipeline* m_pipeline{};
   QRhiBuffer* m_uniformBuffer{};
+  QRhiBuffer* m_placeholderBuffer{};
+  QRhiBuffer* m_boundBuffers[MAX_PACKED_ATTRIBUTES + 2]{};
+  bool m_sourcesValid{false};
 
   packed_attribute_info m_attributes[MAX_PACKED_ATTRIBUTES]{};
   int32_t m_attributeCount{};

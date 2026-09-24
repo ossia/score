@@ -16,6 +16,7 @@
 #include <QString>
 #include <QTransform>
 #include <QVector>
+#include <QtGui/private/qtriangulator_p.h>
 
 #include <cmath>
 #include <cstring>
@@ -26,189 +27,54 @@ namespace Threedim
 
 namespace
 {
+// Glyph outlines are triangulated in a scaled-up space: qTriangulate snaps
+// vertices to a 1/32 grid and flattens curves in the coordinates it is given.
+constexpr qreal kTriangulationUnitsPerPixelSize = 1024.;
 
-// ─── Ear-clipping triangulator ────────────────────────────────────────
-//
-// Handles simple (non-self-intersecting, no holes) polygons in CCW
-// winding order. For each emitted triangle, the resulting indices
-// reference positions in the input polygon's order.
-//
-// Complexity: O(n²). Glyphs flatten to dozens of verts at most, so
-// acceptable. For large pts-per-glyph or paragraph text later, swap
-// for earcut.hpp.
-
-struct Vec2 { float x, y; };
-
-inline float triSign(Vec2 a, Vec2 b, Vec2 c) noexcept
-{
-  return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
-}
-
-inline bool pointInTri(Vec2 p, Vec2 a, Vec2 b, Vec2 c) noexcept
-{
-  const float d1 = triSign(p, a, b);
-  const float d2 = triSign(p, b, c);
-  const float d3 = triSign(p, c, a);
-  const bool neg = (d1 < 0.f) || (d2 < 0.f) || (d3 < 0.f);
-  const bool pos = (d1 > 0.f) || (d2 > 0.f) || (d3 > 0.f);
-  return !(neg && pos);
-}
-
-// Signed area × 2. Positive = CCW in a Y-up frame.
-float polyArea(const std::vector<Vec2>& p) noexcept
-{
-  float s = 0.f;
-  const std::size_t n = p.size();
-  for(std::size_t i = 0; i < n; ++i)
-  {
-    const auto& a = p[i];
-    const auto& b = p[(i + 1) % n];
-    s += a.x * b.y - b.x * a.y;
-  }
-  return s;
-}
-
-// One ear-clipping attempt at a fixed orientation. Returns the number of
-// triangles emitted, appending to out_indices.
-std::size_t earClipPass(
-    const std::vector<Vec2>& poly, uint32_t base_offset, bool reversed,
+// Triangulates one glyph outline with its non-zero fill rule (TrueType and CFF
+// outlines are both defined with it), appending (x, -y, 0) positions and
+// counter-clockwise triangles.
+void tessellateGlyph(
+    const QPainterPath& glyph, float px_size, float scale, float x_origin,
+    float y_origin, std::vector<float>& out_positions,
     std::vector<uint32_t>& out_indices)
 {
-  const std::size_t n0 = poly.size();
-  const std::size_t before = out_indices.size();
-  std::vector<int> idx(n0);
-  for(std::size_t i = 0; i < n0; ++i)
-    idx[i] = reversed ? int(n0 - 1 - i) : int(i);
+  QPainterPath path = glyph;
+  path.setFillRule(Qt::WindingFill);
 
-  int n = (int)idx.size();
-  int guard = n * 3; // bail to avoid infinite loop on degenerate input
-  while(n > 3 && guard-- > 0)
-  {
-    bool ear_found = false;
-    for(int i = 0; i < n; ++i)
-    {
-      const int ip = (i + n - 1) % n;
-      const int in_ = (i + 1) % n;
-      const Vec2 a = poly[idx[ip]];
-      const Vec2 b = poly[idx[i]];
-      const Vec2 c = poly[idx[in_]];
-      if(triSign(a, b, c) <= 0.f)
-        continue; // reflex or collinear — not an ear
-      bool blocked = false;
-      for(int j = 0; j < n; ++j)
-      {
-        if(j == ip || j == i || j == in_)
-          continue;
-        if(pointInTri(poly[idx[j]], a, b, c))
-        {
-          blocked = true;
-          break;
-        }
-      }
-      if(blocked)
-        continue;
-      out_indices.push_back(base_offset + uint32_t(idx[ip]));
-      out_indices.push_back(base_offset + uint32_t(idx[i]));
-      out_indices.push_back(base_offset + uint32_t(idx[in_]));
-      idx.erase(idx.begin() + i);
-      --n;
-      ear_found = true;
-      break;
-    }
-    if(!ear_found)
-      break; // give up on degenerate polygons
-  }
-  if(n == 3)
-  {
-    out_indices.push_back(base_offset + uint32_t(idx[0]));
-    out_indices.push_back(base_offset + uint32_t(idx[1]));
-    out_indices.push_back(base_offset + uint32_t(idx[2]));
-  }
-  return (out_indices.size() - before) / 3;
-}
-
-// Ear-clip `poly` into triangles; append indices (into `base_offset +
-// original polygon index`) to `out_indices`.
-//
-// The orientation is TRIED, not trusted. Deciding it from polyArea() alone
-// assumes polyArea and triSign agree about handedness for the polygons Qt
-// hands back, and they do not everywhere: on Windows the glyphs come out with
-// the orientation that makes triSign() call every vertex reflex, so a single
-// pass finds no ear, breaks immediately, and emits NOTHING -- not a partial
-// mesh, zero indices.
-//
-// Trying the other orientation when the first yields nothing costs one extra
-// pass on a polygon that was going to produce no geometry anyway, and removes
-// the dependency on the two sign conventions matching.
-void earClip(
-    const std::vector<Vec2>& poly, uint32_t base_offset,
-    std::vector<uint32_t>& out_indices)
-{
-  if(poly.size() < 3)
+  const qreal k = kTriangulationUnitsPerPixelSize / qreal(px_size);
+  const QTriangleSet set = qTriangulate(path, QTransform::fromScale(k, k), 1, true);
+  if(set.indices.type() != QVertexIndexVector::UnsignedInt)
     return;
 
-  // A contour with no area is not geometry, whichever way round it is wound.
-  // This matters because of the retry below: a space glyph comes back from Qt
-  // on Windows as a polygon with three or more points and zero area, which the
-  // retry would otherwise triangulate into a mesh for " ". Scale the threshold
-  // to the contour's own bounding box so it holds at any font size or world
-  // scale.
-  const float area = polyArea(poly);
-  float minx = poly[0].x, maxx = poly[0].x, miny = poly[0].y, maxy = poly[0].y;
-  for(const auto& v : poly)
+  const uint32_t base = uint32_t(out_positions.size() / 3);
+  const int vertex_count = int(set.vertices.size() / 2);
+  for(int i = 0; i < vertex_count; ++i)
   {
-    minx = std::min(minx, v.x);
-    maxx = std::max(maxx, v.x);
-    miny = std::min(miny, v.y);
-    maxy = std::max(maxy, v.y);
+    out_positions.push_back(float(set.vertices[2 * i] / k) * scale + x_origin);
+    out_positions.push_back(-float(set.vertices[2 * i + 1] / k) * scale + y_origin);
+    out_positions.push_back(0.f);
   }
-  const float bbox = (maxx - minx) * (maxy - miny);
-  if(std::abs(area) <= 1e-6f * std::abs(bbox))
-    return;
 
-  const bool preferReversed = area < 0.f;
-  if(earClipPass(poly, base_offset, preferReversed, out_indices) > 0)
-    return;
-  earClipPass(poly, base_offset, !preferReversed, out_indices);
-}
-
-// Convert a QPainterPath's filled polygons into (positions, indices),
-// appending to out_positions / out_indices. Positions are emitted as
-// (x, y_flipped, 0). `scale` maps Qt pixel coords to world units.
-void tessellatePath(
-    const QPainterPath& path, float scale, float x_origin,
-    std::vector<float>& out_positions, std::vector<uint32_t>& out_indices)
-{
-  // toFillPolygons flattens curves and returns one or more polygons
-  // representing the filled region. Holes would appear as separate
-  // polygons with opposite winding — in this v1 we treat every polygon
-  // as a solid fill.
-  const QList<QPolygonF> polys = path.toFillPolygons();
-  for(const auto& qpoly : polys)
+  const auto* idx = static_cast<const quint32*>(set.indices.data());
+  const int index_count = set.indices.size() - set.indices.size() % 3;
+  for(int t = 0; t < index_count; t += 3)
   {
-    if(qpoly.size() < 3)
+    uint32_t a = idx[t], b = idx[t + 1], c = idx[t + 2];
+    if(a == b || b == c || a == c)
       continue;
-    std::vector<Vec2> poly;
-    poly.reserve(qpoly.size());
-    // Skip the closing duplicate vertex that Qt tends to append.
-    int count = qpoly.size();
-    if(count > 1 && qpoly[0] == qpoly[count - 1])
-      count--;
-    for(int i = 0; i < count; ++i)
-    {
-      const auto& p = qpoly[i];
-      // Y flip so the mesh uses a right-handed Y-up frame (Qt is Y-down).
-      poly.push_back({float(p.x() * scale + x_origin),
-                      float(-p.y() * scale)});
-    }
-    const uint32_t base = uint32_t(out_positions.size() / 3);
-    for(const auto& v : poly)
-    {
-      out_positions.push_back(v.x);
-      out_positions.push_back(v.y);
-      out_positions.push_back(0.f);
-    }
-    earClip(poly, base, out_indices);
+    const float* pa = &out_positions[(base + a) * 3];
+    const float* pb = &out_positions[(base + b) * 3];
+    const float* pc = &out_positions[(base + c) * 3];
+    const float area
+        = (pb[0] - pa[0]) * (pc[1] - pa[1]) - (pb[1] - pa[1]) * (pc[0] - pa[0]);
+    if(area == 0.f)
+      continue;
+    if(area < 0.f)
+      std::swap(b, c);
+    out_indices.push_back(base + a);
+    out_indices.push_back(base + b);
+    out_indices.push_back(base + c);
   }
 }
 
@@ -271,8 +137,6 @@ void TextToMesh::rebuild()
     }
 
     const QString str = QString::fromStdString(inputs.text.value);
-    const QVector<quint32> glyphs = rf.glyphIndexesForString(str);
-    const QVector<QPointF> advances = rf.advancesForGlyphIndexes(glyphs);
 
     // Pixel → world scale: QRawFont::pixelSize() is the nominal pixel
     // size. Height control sets the target cap height; we approximate
@@ -290,28 +154,44 @@ void TextToMesh::rebuild()
 
     std::vector<float> positions;
     std::vector<uint32_t> indices;
-    positions.reserve(glyphs.size() * 32 * 3);
-    indices.reserve(glyphs.size() * 32);
+    positions.reserve(str.size() * 32 * 3);
+    indices.reserve(str.size() * 32);
 
-    float cursor_x_px = 0.f;
-    for(int gi = 0; gi < glyphs.size(); ++gi)
+    const float line_spacing_px = float(rf.ascent() + rf.descent() + rf.leading());
+    int glyph_count = 0;
+    const QStringList lines = str.split(QLatin1Char('\n'));
+    for(int li = 0; li < lines.size(); ++li)
     {
-      QPainterPath gp = rf.pathForGlyph(glyphs[gi]);
-      if(!gp.isEmpty())
-        tessellatePath(
-            gp, pixel_to_world, cursor_x_px * pixel_to_world,
-            positions, indices);
-      if(gi < advances.size())
-        cursor_x_px += float(advances[gi].x());
-    }
+      QString line;
+      line.reserve(lines[li].size());
+      for(const QChar c : lines[li])
+        if(c.category() != QChar::Other_Control)
+          line.append(c);
 
-    // Optionally center the text on X — total advance is where we
-    // ended up at cursor_x_px; shift all vertices by -half.
-    if(inputs.center_x.value && !positions.empty())
-    {
-      const float half = cursor_x_px * pixel_to_world * 0.5f;
-      for(std::size_t v = 0; v < positions.size(); v += 3)
-        positions[v] -= half;
+      const QVector<quint32> glyphs = rf.glyphIndexesForString(line);
+      const QVector<QPointF> advances = rf.advancesForGlyphIndexes(glyphs);
+      glyph_count += glyphs.size();
+
+      const float y_origin = -float(li) * line_spacing_px * pixel_to_world;
+      const std::size_t line_start = positions.size();
+      float cursor_x_px = 0.f;
+      for(int gi = 0; gi < glyphs.size(); ++gi)
+      {
+        QPainterPath gp = rf.pathForGlyph(glyphs[gi]);
+        if(!gp.isEmpty())
+          tessellateGlyph(
+              gp, px_size, pixel_to_world, cursor_x_px * pixel_to_world, y_origin,
+              positions, indices);
+        if(gi < advances.size())
+          cursor_x_px += float(advances[gi].x());
+      }
+
+      if(inputs.center_x.value)
+      {
+        const float half = cursor_x_px * pixel_to_world * 0.5f;
+        for(std::size_t v = line_start; v < positions.size(); v += 3)
+          positions[v] -= half;
+      }
     }
 
     if(positions.empty() || indices.empty())
@@ -322,7 +202,7 @@ void TextToMesh::rebuild()
       qWarning(
           "TextToMesh: produced no geometry -- text=%d glyphs=%d pixelSize=%d "
           "px_size=%f scale=%f positions=%d indices=%d",
-          int(str.size()), int(glyphs.size()), int(rf.pixelSize()),
+          int(str.size()), glyph_count, int(rf.pixelSize()),
           double(px_size), double(pixel_to_world), int(positions.size()),
           int(indices.size()));
       // Empty string or unrenderable font — keep m_wrapped_state valid

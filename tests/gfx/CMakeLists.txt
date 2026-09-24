@@ -1479,6 +1479,9 @@ score_add_csf_test(sampled_inputs_fixd GfxCsfSampledInputsFixD.cpp)
 # vertex input reported at warning level (N58).
 score_add_gfx_test(raw_raster_fixk GfxRawRasterFixK.cpp)
 
+# Merge Geometries bakes each input's transform into its meshes (fixF, N79a).
+score_add_gfx_test(merge_geometries_transform_fixF MergeGeometriesTransformFixF.cpp)
+
 # Academy Texture Loader cubemaps (N43 equirect faces + orientation, N44
 # cross/strip slicing and the over-read guard), driven directly on a QRhi.
 if(TARGET score_addon_academy AND TARGET score_plugin_avnd)
