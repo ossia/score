@@ -16,6 +16,7 @@
 
 namespace ossia
 {
+class audio_engine;
 class audio_protocol;
 }
 class QLineEdit;
@@ -79,6 +80,10 @@ public:
   ossia::audio_protocol* getProtocol() const { return m_protocol; }
 
   //! The whole device was rebuilt: every audio_parameter pointer is new.
+  //! Sets the gain of a port, which the document keeps: it is restored when
+  //! the document is loaded and when the device reconnects.
+  void setGain(const State::Address& addr, double gain);
+
   void changed() E_SIGNAL(SCORE_PLUGIN_AUDIO_EXPORT, changed)
   //! A mapped or virtual port was added, edited or removed.
   void portsChanged() E_SIGNAL(SCORE_PLUGIN_AUDIO_EXPORT, portsChanged)
@@ -93,6 +98,11 @@ private:
   Device::Node refresh() override;
   void disconnect() override;
   ossia::audio_protocol* m_protocol{};
+  // What the tree was built for: a restarted engine is another one, even at
+  // the same address.
+  std::weak_ptr<ossia::audio_engine> m_builtFor;
+  int m_builtInputs{-1};
+  int m_builtOutputs{-1};
   std::shared_ptr<ossia::net::generic_device> m_dev;
 
   struct hash

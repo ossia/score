@@ -79,6 +79,19 @@ void collectParameters(
 }
 }
 
+// The gain the user gave a port, saved with the document.
+static void applyGain(ossia::net::node_base& node, const ossia::extended_attributes& attr)
+{
+  auto it = attr.find("audio-gain");
+  if(it == attr.end())
+    return;
+  auto p = dynamic_cast<ossia::audio_parameter*>(node.get_parameter());
+  if(!p)
+    return;
+  if(auto g = ossia::any_cast<double>(&it->second))
+    p->push_value(float(*g));
+}
+
 void AudioDevice::publishPorts(const std::function<void()>& change)
 {
   if(!m_protocol)
@@ -100,7 +113,10 @@ void AudioDevice::addAddress(const Device::FullAddressSettings& settings)
   {
     // Create the node. It is added into the device.
     if(auto node = Device::createNodeFromPath(settings.address.path, *dev))
+    {
       publishPorts(setupNode(*node, settings.extendedAttributes));
+      applyGain(*node, settings.extendedAttributes);
+    }
   }
   portsChanged();
 }
@@ -114,6 +130,7 @@ void AudioDevice::updateAddress(
     if(auto node = Device::findNodeFromPath(currentAddr.path, *dev))
     {
       publishPorts(setupNode(*node, settings.extendedAttributes));
+      applyGain(*node, settings.extendedAttributes);
 
       auto newName = settings.address.path.last();
       if(!latin_compare(newName, node->get_name()))
@@ -124,6 +141,23 @@ void AudioDevice::updateAddress(
     }
   }
   portsChanged();
+}
+
+void AudioDevice::setGain(const State::Address& addr, double gain)
+{
+  auto& saved = m_customAddresses[addr.path];
+  saved.address = addr;
+  saved.extendedAttributes["audio-gain"] = gain;
+  if(auto dev = getDevice())
+  {
+    if(auto node = Device::findNodeFromPath(addr.path, *dev))
+    {
+      auto x = node->get_extended_attributes();
+      x["audio-gain"] = gain;
+      node->set_extended_attributes(x);
+      applyGain(*node, x);
+    }
+  }
 }
 
 void AudioDevice::removeNode(const State::Address& currentAddr)
@@ -158,10 +192,22 @@ void AudioDevice::disconnect()
   deviceChanged(d.get(), nullptr);
   m_dev.reset();
   m_protocol = nullptr;
+  m_builtFor.reset();
 }
 
 bool AudioDevice::reconnect()
 {
+  auto& engine
+      = score::GUIAppContext().guiApplicationPlugin<Audio::ApplicationPlugin>().audio;
+
+  // The tree depends on the engine and its channels only: when those did not
+  // change, e.g. when the device is shown in the explorer while it plays,
+  // there is nothing to rebuild, and rebuilding would stop the audio.
+  if(m_dev && m_protocol && engine && engine == m_builtFor.lock()
+     && engine->effective_inputs == m_builtInputs
+     && engine->effective_outputs == m_builtOutputs)
+    return true;
+
   const auto old_dev = m_dev.get();
 
   struct announce_on_exit
@@ -176,9 +222,6 @@ bool AudioDevice::reconnect()
       self.changed();
     }
   } announce{*this, old_dev};
-
-  auto& engine
-      = score::GUIAppContext().guiApplicationPlugin<Audio::ApplicationPlugin>().audio;
 
   // Park the audio thread on the default tick and wait for it to get there:
   // it must not be walking the tree we are about to destroy.
@@ -197,6 +240,9 @@ bool AudioDevice::reconnect()
       return false;
 
     m_protocol->setup_tree(engine->effective_inputs, engine->effective_outputs);
+    m_builtFor = engine;
+    m_builtInputs = engine->effective_inputs;
+    m_builtOutputs = engine->effective_outputs;
 
     // Recreate the custom addresses that were lost in disconnect()
     for(auto& [k, v] : this->m_customAddresses)
@@ -205,6 +251,7 @@ bool AudioDevice::reconnect()
       {
         if(auto change = setupNode(*node, v.extendedAttributes))
           change();
+        applyGain(*node, v.extendedAttributes);
       }
       else
       {
@@ -214,7 +261,10 @@ bool AudioDevice::reconnect()
 
         node = Device::createNodeFromPath(k, *m_dev);
         if(node)
+        {
           (void)setupNode(*node, v.extendedAttributes);
+          applyGain(*node, v.extendedAttributes);
+        }
       }
     }
     // Nothing walks the new tree yet: the default tick is running.
@@ -346,7 +396,10 @@ Device::DeviceInterface* AudioProtocolFactory::makeDevice(
     auto cur = doc->list().audioDevice();
     if(cur)
     {
-      cur->updateSettings(settings);
+      // Showing the device in the explorer hands its own settings back: that
+      // must not reconnect it, which would stop the audio while it plays.
+      if(!(cur->settings() == settings))
+        cur->updateSettings(settings);
       return cur;
     }
     else

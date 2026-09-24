@@ -23,6 +23,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
 #include <Audio/AudioDevice.hpp>
+#include <Audio/PortGain.hpp>
 #include <Execution/DocumentPlugin.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -753,6 +754,9 @@ PortStrip::PortStrip(
   }
 
   connect(m_fader, &GainFader::valueChanged, this, [this](double p) {
+    // Only the user moves the fader: poll() sets it with signals blocked. The
+    // gesture lasts until released, even before the first move.
+    m_dragging = true;
     const double g = GainFader::positionToGain(p);
     if(m_param)
       m_param->push_value(float(g));
@@ -760,7 +764,21 @@ PortStrip::PortStrip(
   });
 
   connect(m_fader, &GainFader::sliderMoved, this, [this] { m_dragging = true; });
-  connect(m_fader, &GainFader::sliderReleased, this, [this] { m_dragging = false; });
+  // The gain changes live while dragging; the change is recorded, undoable and
+  // saved, once released.
+  connect(m_fader, &GainFader::sliderReleased, this, [this] {
+    m_dragging = false;
+    if(!m_param)
+      return;
+    const double after = m_param->gain();
+    const double before = m_committedGain;
+    m_committedGain = after;
+    auto address = State::Address::fromString(
+        "audio:" + QString::fromStdString(m_param->get_node().osc_address()));
+    if(address)
+      Audio::commitPortGain(m_context, *address, before, after);
+  });
+  m_committedGain = param.gain();
 
   param.get_node().about_to_be_deleted.connect<&PortStrip::onNodeRemoved>(*this);
   poll();
@@ -789,6 +807,7 @@ void PortStrip::poll()
   if(g == m_shownGain)
     return;
   m_shownGain = g;
+  m_committedGain = g;
   QSignalBlocker b{m_fader};
   m_fader->setValue(GainFader::gainToPosition(g));
   setGainReadout(g);

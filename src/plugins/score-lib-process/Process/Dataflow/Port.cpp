@@ -1429,7 +1429,10 @@ SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::AudioOutlet& p)
   p.gainInlet = Process::load_control_inlet(*this, &p);
   p.panInlet = Process::load_control_inlet(*this, &p);
   m_stream >> p.m_gain >> static_cast<ossia::small_vector<double, 2>&>(p.m_pan)
-      >> p.m_propagate >> p.m_upmixMode >> p.m_upmixChannels;
+      >> p.m_propagate;
+  // Data saved before the upmix existed ends here.
+  if(!atDelimiterOrEnd())
+    m_stream >> p.m_upmixMode >> p.m_upmixChannels;
 }
 
 template <>

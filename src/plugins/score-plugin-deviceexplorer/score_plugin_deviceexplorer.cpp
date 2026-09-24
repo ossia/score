@@ -38,6 +38,11 @@ struct audio_channels_attr
   using type = int;
   static constexpr auto text() { return "audio-channels"; }
 };
+struct audio_gain_attr
+{
+  using type = double;
+  static constexpr auto text() { return "audio-gain"; }
+};
 score_plugin_deviceexplorer::score_plugin_deviceexplorer()
 {
   qRegisterMetaType<Device::DeviceSettings>();
@@ -54,7 +59,7 @@ score_plugin_deviceexplorer::score_plugin_deviceexplorer()
           ossia::net::extended_type_attribute, ossia::net::app_name_attribute,
           ossia::net::app_creator_attribute, ossia::net::app_version_attribute,
           ossia::net::hidden_attribute, ossia::net::default_value_attribute,
-          audio_mapping_attr, audio_kind_attr, audio_channels_attr>(),
+          audio_mapping_attr, audio_kind_attr, audio_channels_attr, audio_gain_attr>(),
       [&](auto arg) {
     using type = decltype(arg);
     anySer.emplace(

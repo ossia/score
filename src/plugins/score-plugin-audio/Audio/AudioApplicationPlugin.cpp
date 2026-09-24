@@ -5,6 +5,7 @@
 #include <Scenario/Application/ScenarioActions.hpp>
 
 #include <Audio/AudioDevice.hpp>
+#include <Audio/PortGain.hpp>
 #include <Audio/AudioInterface.hpp>
 #include <Audio/AudioTick.hpp>
 #include <Audio/Settings/Model.hpp>
@@ -203,6 +204,8 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
     bar->addWidget(sl);
     bar->addAction(m_audioEngineAct);
     connect(sl, &score::VolumeSlider::valueChanged, this, [this](double v) {
+      // Only the user moves it: syncVolume() sets it with signals blocked.
+      m_volumeDragging = true;
       if(auto p = mainOutput(context.currentDocument()))
         p->push_value(float(v));
     });
@@ -211,6 +214,15 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
     });
     connect(sl, &score::VolumeSlider::sliderReleased, this, [this] {
       m_volumeDragging = false;
+      // Recorded once released: undoable, and saved with the document.
+      auto doc = context.currentDocument();
+      auto p = mainOutput(doc);
+      if(!doc || !p)
+        return;
+      const double before = m_shownVolume < 0. ? 1. : m_shownVolume;
+      const double after = p->gain();
+      m_shownVolume = after;
+      Audio::commitPortGain(*doc, State::Address{"audio", {"out", "main"}}, before, after);
     });
 
     toolbars.emplace_back(

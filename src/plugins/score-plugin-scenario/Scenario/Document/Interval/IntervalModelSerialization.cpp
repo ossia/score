@@ -216,7 +216,10 @@ DataStreamWriter::write(Scenario::IntervalModel& interval)
       >> interval.m_date >> interval.m_heightPercentage
       >> interval.m_nodalFullViewSlotHeight >> interval.m_quantRate >> interval.m_zoom
       >> interval.m_center >> interval.m_nodalOffset >> interval.m_nodalScale
-      >> interval.m_nodalCenter >> vm >> sv >> hs >> muted >> soloed;
+      >> interval.m_nodalCenter >> vm >> sv >> hs;
+  // Data saved before mute and solo existed ends here.
+  if(!atDelimiterOrEnd())
+    m_stream >> muted >> soloed;
   interval.m_viewMode = vm;
   interval.m_smallViewShown = sv;
   interval.m_hasSignature = hs;

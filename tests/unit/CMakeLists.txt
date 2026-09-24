@@ -4,6 +4,12 @@ score_add_test(test_unit_address
   SOURCES AddressParseTest.cpp
   PLUGINS score_lib_state)
 
+# Fields added to the binary format are read only when the data has them.
+score_add_test(test_unit_datastream_compat
+  SOURCES DataStreamCompatTest.cpp
+  APP
+  PLUGINS score_lib_base)
+
 # --- project archives (zip) -------------------------------------------------
 score_add_test(test_unit_zip_tools
   SOURCES ZipToolsTest.cpp
