@@ -161,23 +161,29 @@ void GenericNodeRenderer::processUBOInit(RenderList& renderer)
 
 void GenericNodeRenderer::defaultPassesInit(RenderList& renderer, const Mesh& mesh)
 {
-  if(this->node.output[0]->type == score::gfx::Types::Image)
-  {
-    score::gfx::defaultPassesInit(
-        m_p, this->node.output[0]->edges, renderer, mesh, m_vertexS, m_fragmentS,
-        m_processUBO, m_material.buffer, m_samplers);
-  }
+  defaultPassesInit(renderer, mesh, m_vertexS, m_fragmentS);
 }
 
 void GenericNodeRenderer::defaultPassesInit(
     RenderList& renderer, const Mesh& mesh, const QShader& v, const QShader& f,
     std::span<QRhiShaderResourceBinding> additionalBindings)
 {
-  if(this->node.output[0]->type == score::gfx::Types::Image)
+  if(this->node.output[0]->type != score::gfx::Types::Image)
+    return;
+
+  // Same as the free defaultPassesInit, except that the samplers are chosen
+  // per edge (see samplersForOutputEdge).
+  SCORE_ASSERT(m_p.empty());
+  for(Edge* edge : this->node.output[0]->edges)
   {
-    score::gfx::defaultPassesInit(
-        m_p, this->node.output[0]->edges, renderer, mesh, v, f, m_processUBO,
-        m_material.buffer, m_samplers, additionalBindings);
+    auto rt = renderer.renderTargetForOutput(*edge);
+    if(!rt.renderTarget)
+      continue;
+    auto pip = score::gfx::buildPipeline(
+        renderer, mesh, v, f, rt, m_processUBO, m_material.buffer,
+        samplersForOutputEdge(*edge), additionalBindings);
+    if(pip.pipeline)
+      m_p.emplace_back(edge, Pass{rt, pip, nullptr});
   }
 }
 
@@ -239,7 +245,7 @@ void GenericNodeRenderer::addOutputPass(
   // layout-compatible -- a requirement for sharing a pipeline built
   // against any one of them.
   auto* srb = score::gfx::createDefaultBindings(
-      renderer, rt, m_processUBO, m_material.buffer, m_samplers);
+      renderer, rt, m_processUBO, m_material.buffer, samplersForOutputEdge(edge));
   if(!srb)
     return;
 

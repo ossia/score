@@ -326,6 +326,16 @@ public:
   //! The node's first Image outlet, or nullptr. Not always output[0].
   score::gfx::Port* imageOutlet() const noexcept;
 
+  //! Samplers bound by the pass that draws @p edge. Every sampler of the node
+  //! by default. A renderer whose outlets each carry their own texture (avnd
+  //! CPU texture outputs: one sampler per outlet) returns only the sampler of
+  //! the outlet the edge leaves from; otherwise every outlet would draw
+  //! whatever sits at binding 3, i.e. the first one.
+  virtual std::span<const Sampler> samplersForOutputEdge(const Edge& edge) const noexcept
+  {
+    return m_samplers;
+  }
+
   ossia::small_vector<Sampler, 8> m_samplers;
 
   QShader m_vertexS;

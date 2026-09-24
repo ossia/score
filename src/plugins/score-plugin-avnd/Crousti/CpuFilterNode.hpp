@@ -174,6 +174,43 @@ struct GfxRenderer<Node_T> final
     return nullptr;
   }
 
+  // Each CPU texture outlet owns one sampler in m_samplers, in field order. The
+  // pass drawing an edge must bind the sampler of the outlet that edge leaves
+  // from: generic_texgen_fs only samples binding 3, so binding every sampler
+  // made all the outlets show the first one.
+  std::span<const score::gfx::Sampler>
+  samplersForOutputEdge(const score::gfx::Edge& edge) const noexcept override
+  {
+    if constexpr(avnd::cpu_texture_output_introspection<Node_T>::size > 1)
+    {
+      const auto& outputs = this->node().output;
+      int port_idx = -1;
+      for(int i = 0, n = outputs.size(); i < n; i++)
+      {
+        if(outputs[i] == edge.source)
+        {
+          port_idx = i;
+          break;
+        }
+      }
+
+      // Output ports are created one per output field (initGfxPorts), so the
+      // port index is the field index.
+      int sampler_idx = -1;
+      avnd::cpu_texture_output_introspection<Node_T>::for_all_n2(
+          avnd::get_outputs<Node_T>(*state),
+          [&]<std::size_t PredIdx, std::size_t FieldIdx>(
+              auto&, avnd::predicate_index<PredIdx>, avnd::field_index<FieldIdx>) {
+        if(static_cast<int>(FieldIdx) == port_idx)
+          sampler_idx = static_cast<int>(PredIdx);
+      });
+
+      if(sampler_idx >= 0 && sampler_idx < std::ssize(this->m_samplers))
+        return std::span<const score::gfx::Sampler>{&this->m_samplers[sampler_idx], 1};
+    }
+    return this->m_samplers;
+  }
+
   // All of the setup lives in initState(), not init(). The incremental
   // edge-rewire path (Graph::createPassForEdgeIfMissing) only calls
   // initState() on newly-created renderers.
