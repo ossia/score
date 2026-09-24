@@ -411,16 +411,9 @@ public:
     // - otherwise there's a race between this and init_engine - we have to wait
     // for init_engine to complete so that we can delete everything safely, as we cannot
     // delete m_engine on another thread than our m_thread.
-    while(m_hasInit > 0)
-      std::this_thread::yield();
-
-    // Both this and the removal hooks run on the main thread, so unregistering
-    // here guarantees no hook can reach the engine functions afterwards.
-    // disable() waits for any script currently inside Device.read/write and
-    // no-ops later calls: the device tree below us is about to be destroyed.
-    m_devices.set_engine_functions(nullptr);
-    if(auto* fun = m_deviceFunctions.exchange(nullptr))
-      fun->disable();
+    // Also a no-op when the owning device already cut the access in
+    // disconnect(), before clearing our tree.
+    disable_device_access();
 
     auto engine = m_engine.load();
     auto comp = m_component.load();
@@ -438,6 +431,26 @@ public:
     }, Qt::QueuedConnection);
 
     m_thread->wait();
+  }
+
+  //! Definitive: from now on Device.read/write in the script are no-ops.
+  //! Must run before any tree the script may have resolved addresses in is
+  //! cleared: the engine functions cache raw parameter pointers, and the
+  //! removal hooks only drop them once the tree is already gone.
+  void disable_device_access()
+  {
+    // init_engine registers the engine functions: it must have run for the
+    // unregistration below to stick.
+    while(m_hasInit > 0)
+      std::this_thread::yield();
+
+    // Both this and the removal hooks run on the main thread, so unregistering
+    // here guarantees no hook can reach the engine functions afterwards.
+    // disable() waits for any script currently inside Device.read/write and
+    // no-ops later calls: the device tree below us is about to be destroyed.
+    m_devices.set_engine_functions(nullptr);
+    if(auto* fun = m_deviceFunctions.exchange(nullptr))
+      fun->disable();
   }
 
   void teardown_engine(QThread* t) { }
@@ -875,6 +888,19 @@ public:
     }
 
     return connected();
+  }
+
+  void disconnect() override
+  {
+    // Cut the script off before OwningDeviceInterface::disconnect() clears the
+    // tree, or a Device.write() on the mapper thread hits freed parameters.
+    if(m_owned && m_dev)
+    {
+      if(auto proto
+         = dynamic_cast<ossia::net::mapper_protocol*>(&m_dev->get_protocol()))
+        proto->disable_device_access();
+    }
+    OwningDeviceInterface::disconnect();
   }
 
   ~MapperDevice() override { }
