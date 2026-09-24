@@ -113,13 +113,24 @@ inline void prepare_test_environment(bool headless)
       qEnvironmentVariable("SCORE_CUSTOM_APP_APPLICATION_NAME"));
 }
 
+/// Run the deleteLater()s nothing else will: posted outside any event loop,
+/// DeferredDelete is not dispatched by processEvents(), only when asked for
+/// explicitly.
+inline void flush_deferred_deletes()
+{
+  QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+}
+
 /// Close every open document while the application is still alive.
 inline void close_all_documents(const score::GUIApplicationContext& ctx)
 {
+  // First while the documents are still there, as the application would have.
+  flush_deferred_deletes();
   auto& dm = ctx.docManager;
   while(!dm.documents().empty())
     dm.forceCloseDocument(ctx, *dm.documents().front());
   QApplication::processEvents();
+  flush_deferred_deletes();
 }
 
 /// Closes the documents on the way out however fn left the stack: a failed
@@ -132,6 +143,7 @@ struct document_closer
   {
     close_all_documents(ctx);
     QApplication::processEvents();
+    flush_deferred_deletes();
   }
 };
 
