@@ -36,7 +36,7 @@ void AudioFile::load_libav(int rate)
         const auto& r = **m_impl.target<std::shared_ptr<LibavReader>>();
         std::vector<std::span<const audio_sample>> samples;
         auto& handle = r.handle->data;
-        const auto decoded = r.decoder.decoded;
+        const auto decoded = r.decoder.decoded.load(std::memory_order_acquire);
 
         for(auto& channel : handle)
         {
@@ -55,7 +55,7 @@ void AudioFile::load_libav(int rate)
         const auto& r = **m_impl.target<std::shared_ptr<LibavReader>>();
         std::vector<std::span<const audio_sample>> samples;
         auto& handle = r.handle->data;
-        auto decoded = r.decoder.decoded;
+        auto decoded = r.decoder.decoded.load(std::memory_order_acquire);
 
         for(auto& channel : handle)
         {
