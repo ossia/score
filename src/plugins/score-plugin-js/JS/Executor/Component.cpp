@@ -12,6 +12,7 @@
 #include <Execution/DocumentPlugin.hpp>
 #include <JS/JSProcessModel.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/tools/FilePath.hpp>
 
 #if defined(SCORE_HAS_GPU_JS)
