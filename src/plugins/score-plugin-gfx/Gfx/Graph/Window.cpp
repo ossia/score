@@ -157,6 +157,24 @@ void Window::resizeSwapChain()
       return;
     }
 
+    // QVkSwapChain::createOrResize() only warns when rebuilding its
+    // UsedWithSwapChainOnly depth-stencil fails (e.g. VRAM exhausted) and
+    // still returns true; presenting then crashes in the driver. Rebuild it
+    // here first: Qt skips its own rebuild when the size already matches.
+    if(auto ds = m_swapChain->depthStencil(); ds && ds->pixelSize() != surface)
+    {
+      ds->setPixelSize(surface);
+      if(!ds->create())
+      {
+        // Mismatched size again, so the next attempt retries the create
+        ds->setPixelSize({});
+        m_hasSwapChain = false;
+        m_newlyExposed = true;
+        scheduleRetry();
+        return;
+      }
+    }
+
     m_hasSwapChain = m_swapChain->createOrResize();
     if(state)
       state->outputSize = m_swapChain->currentPixelSize();
