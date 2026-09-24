@@ -1404,3 +1404,18 @@ if("SCORE_HAS_GPU_JS" IN_LIST _js_definitions_fixl)
   target_compile_definitions(test_integration_js_quick3d_vulkan_fixl PRIVATE
     GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../gfx/corpus")
 endif()
+
+# An offscreen grab waits in wall-clock time for the execution to deliver the
+# graph: a Javascript process with a slow first tick next to a shader cabled
+# to the Window (agent G2, N90).
+if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_gfx_grab_slow_start_g2
+    SOURCES GfxGrabSlowStartG2Test.cpp
+    GUI
+    LIBS ${QT_PREFIX}::Gui)
+  target_compile_definitions(test_integration_gfx_grab_slow_start_g2 PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\""
+    "GFX_TEST_CORPUS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/../gfx/corpus\"")
+  set_tests_properties(test_integration_gfx_grab_slow_start_g2 PROPERTIES
+    TIMEOUT 300 RUN_SERIAL TRUE LABELS "gui")
+endif()
