@@ -432,6 +432,8 @@ DeviceEditDialog::DeviceEditDialog(
 
 DeviceEditDialog::~DeviceEditDialog()
 {
+  // The preset scan's commits capture this dialog.
+  m_presetWatch.cancelAsync();
   clearEnumerators();
 }
 
@@ -532,7 +534,7 @@ void DeviceEditDialog::initPresets()
   if(rootPath.isEmpty())
     return;
 
-  static score::RecursiveWatch r;
+  auto& r = m_presetWatch;
   r.reset();
   r.registerWatch(
       "device", score::RecursiveWatch::AsyncCallbacks{

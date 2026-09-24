@@ -7,7 +7,9 @@
 #include <QPointer>
 #include <Qt>
 
+#include <atomic>
 #include <cstddef>
+#include <mutex>
 #include <iostream>
 
 #if __has_include(<version>)
@@ -266,6 +268,12 @@ void for_all_files(std::string_view root, std::function<void(std::string_view)> 
 
 namespace score
 {
+struct RecursiveWatch::AsyncScan
+{
+  std::atomic_bool cancelled{false};
+  std::mutex handler_mutex;
+};
+
 namespace
 {
 // Mitigation for same bug as https://github.com/microsoft/STL/issues/165
@@ -276,11 +284,14 @@ struct AsyncScanState
   Map watched;
   std::string root;
   QPointer<QObject> ctx;
+  std::shared_ptr<RecursiveWatch::AsyncScan> scan;
 
-  AsyncScanState(Map&& w, std::string r, QObject* c)
+  AsyncScanState(
+      Map&& w, std::string r, QObject* c, std::shared_ptr<RecursiveWatch::AsyncScan> s)
       : watched{std::move(w)}
       , root{std::move(r)}
       , ctx{c}
+      , scan{std::move(s)}
   {
   }
 
@@ -288,6 +299,7 @@ struct AsyncScanState
       : watched{std::move(other.watched)}
       , root{std::move(other.root)}
       , ctx{std::move(other.ctx)}
+      , scan{std::move(other.scan)}
   {
   }
 
@@ -332,15 +344,18 @@ void RecursiveWatch::scanAsync(QObject* context)
 
   // Note that callers should always set a new set of watched things
   // before calling scanAsync.
+  cancelAsync();
+  m_scan = std::make_shared<AsyncScan>();
   score::TaskPool::instance().post(
-      [state = AsyncScanState{std::move(m_asyncWatched), m_root, context}] {
+      [state = AsyncScanState{std::move(m_asyncWatched), m_root, context, m_scan}] {
     std::vector<std::function<void()>> actions;
 
-    auto send_to_main_thread = [pctx = state.ctx, &actions] {
+    auto send_to_main_thread = [pctx = state.ctx, scan = state.scan, &actions] {
       // Batch-deliver all commit actions to the GUI thread
       QMetaObject::invokeMethod(
-          QCoreApplication::instance(), [pctx = pctx, actions = std::move(actions)] {
-        if(!pctx)
+          QCoreApplication::instance(),
+          [pctx = pctx, scan = scan, actions = std::move(actions)] {
+        if(!pctx || scan->cancelled)
           return;
         for(auto& action : actions)
           action();
@@ -353,7 +368,8 @@ void RecursiveWatch::scanAsync(QObject* context)
       // The handlers were handed over by the object that asked for the scan and
       // are free to reach back into it. Once it is gone there is nothing left
       // for them to reach, and the walk has nobody to report to either.
-      if(!state.ctx)
+      std::lock_guard handler_lock{state.scan->handler_mutex};
+      if(!state.ctx || state.scan->cancelled)
         return;
       if(path.empty())
         return;
@@ -376,12 +392,60 @@ void RecursiveWatch::scanAsync(QObject* context)
       }
     });
 
-    send_to_main_thread();
+    if(!state.scan->cancelled)
+      send_to_main_thread();
   });
+}
+
+void RecursiveWatch::cancelAsync() noexcept
+{
+  if(!m_scan)
+    return;
+  m_scan->cancelled = true;
+  std::lock_guard handler_lock{m_scan->handler_mutex};
+  m_scan.reset();
+}
+
+namespace
+{
+struct LiveWatches
+{
+  std::mutex mutex;
+  std::vector<RecursiveWatch*> watches;
+};
+LiveWatches& liveWatches()
+{
+  static LiveWatches w;
+  return w;
+}
+}
+
+RecursiveWatch::RecursiveWatch()
+{
+  auto& live = liveWatches();
+  std::lock_guard lock{live.mutex};
+  live.watches.push_back(this);
+}
+
+RecursiveWatch::~RecursiveWatch()
+{
+  cancelAsync();
+  auto& live = liveWatches();
+  std::lock_guard lock{live.mutex};
+  std::erase(live.watches, this);
+}
+
+void RecursiveWatch::cancelAll() noexcept
+{
+  auto& live = liveWatches();
+  std::lock_guard lock{live.mutex};
+  for(auto* w : live.watches)
+    w->cancelAsync();
 }
 
 void RecursiveWatch::reset()
 {
+  cancelAsync();
   m_root.clear();
   m_watched.clear();
   m_asyncWatched.clear();

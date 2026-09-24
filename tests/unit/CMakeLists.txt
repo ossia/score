@@ -9,6 +9,11 @@ score_add_test(test_unit_zip_tools
   SOURCES ZipToolsTest.cpp
   PLUGINS score_lib_base)
 
+# An async RecursiveWatch scan stops before its owner is destroyed.
+score_add_test(test_unit_recursive_watch_cancel
+  SOURCES RecursiveWatchCancelTest.cpp
+  PLUGINS score_lib_base)
+
 # --- project consolidation primitives (score_lib_base) ---------------------
 # Path math against explicit roots, file-name sanitizing, destination
 # placement. No document, no app: this is the layer everything else builds on.

@@ -157,7 +157,7 @@ void ProcessesItemModel::rescan()
 
   auto libpath = libsettings.getPackagesPath();
 
-  static score::RecursiveWatch w;
+  auto& w = m_watch;
   w.reset();
   w.setWatchedFolder(libpath.toStdString());
 

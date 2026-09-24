@@ -1,5 +1,7 @@
 #pragma once
 
+#include <score/tools/RecursiveWatch.hpp>
+
 #include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 
@@ -90,6 +92,7 @@ private:
   // deleted before the QTreeWidgetItems those connections capture, which makes
   // Qt discard the queued metacalls still posted to it.
   QObject* m_enumeratorContext{};
+  score::RecursiveWatch m_presetWatch;
 
   QSplitter* m_splitter{};
   QDialogButtonBox* m_buttonBox{};

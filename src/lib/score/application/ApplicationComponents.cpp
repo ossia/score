@@ -7,6 +7,7 @@
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <score/plugins/panel/PanelDelegate.hpp>
+#include <score/tools/RecursiveWatch.hpp>
 #include <score/tools/exceptions/MissingCommand.hpp>
 #include <score/tools/std/String.hpp>
 
@@ -17,6 +18,10 @@ namespace score
 ApplicationComponentsData::ApplicationComponentsData() = default;
 ApplicationComponentsData::~ApplicationComponentsData()
 {
+  // Asynchronous library scans call the interfaces destroyed below from a
+  // worker thread: stop them first.
+  score::RecursiveWatch::cancelAll();
+
   commands.clear();
   /*
    for(auto& elt : settings)
