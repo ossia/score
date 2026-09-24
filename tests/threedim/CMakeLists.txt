@@ -497,3 +497,26 @@ score_add_test(test_threedim_gltf_shared_mesh
 threedim_test_includes(test_threedim_gltf_shared_mesh)
 target_compile_definitions(test_threedim_gltf_shared_mesh PRIVATE
   THREEDIM_TEST_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+
+# FBX: nodes instancing one geometry share its mesh_primitive stable_id (N85),
+# and FBX node TRS animation is imported and drives AnimationPlayer (agent C2).
+get_target_property(_fbx_c2_threedim_type score_plugin_threedim TYPE)
+set(_fbx_c2_libs ${QT_PREFIX}::Gui)
+if(NOT _fbx_c2_threedim_type STREQUAL "STATIC_LIBRARY")
+  add_library(threedim_test_ufbx_c2 STATIC "${SCORE_ROOT_SOURCE_DIR}/3rdparty/ufbx/ufbx.c")
+  set_target_properties(threedim_test_ufbx_c2 PROPERTIES
+    DISABLE_PRECOMPILE_HEADERS ON
+    POSITION_INDEPENDENT_CODE ON
+    FOLDER "Tests")
+  list(APPEND _fbx_c2_libs threedim_test_ufbx_c2 threedim_test_mikktspace)
+endif()
+score_plugin_hidden_sources(_fbx_c2_hidden
+    "${THREEDIM_DIR}/FbxParser.cpp"
+    "${THREEDIM_DIR}/AnimationPlayer.cpp")
+score_add_test(test_threedim_fbx_instancing_animation_c2
+  SOURCES FbxInstancingAnimationC2.cpp ${_fbx_c2_hidden}
+  PLUGINS score_plugin_threedim score_plugin_gfx score_plugin_avnd
+  LIBS ${_fbx_c2_libs})
+threedim_test_includes(test_threedim_fbx_instancing_animation_c2)
+target_compile_definitions(test_threedim_fbx_instancing_animation_c2 PRIVATE
+  THREEDIM_TEST_DIR="${CMAKE_CURRENT_SOURCE_DIR}")

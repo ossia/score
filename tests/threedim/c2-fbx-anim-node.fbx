@@ -1,0 +1,106 @@
+; FBX 7.4.0 project file
+FBXHeaderExtension:  {
+	FBXHeaderVersion: 1003
+	FBXVersion: 7400
+}
+GlobalSettings:  {
+	Version: 1000
+	Properties70:  {
+		P: "UpAxis", "int", "Integer", "",1
+		P: "UpAxisSign", "int", "Integer", "",1
+		P: "FrontAxis", "int", "Integer", "",2
+		P: "FrontAxisSign", "int", "Integer", "",1
+		P: "CoordAxis", "int", "Integer", "",0
+		P: "CoordAxisSign", "int", "Integer", "",1
+		P: "UnitScaleFactor", "double", "Number", "",100
+		P: "TimeMode", "enum", "", "",6
+	}
+}
+Objects:  {
+	Geometry: 1000, "Geometry::Tri", "Mesh" {
+		Vertices: *9 {
+			a: 0,0,0,1,0,0,0,1,0
+		}
+		PolygonVertexIndex: *3 {
+			a: 0,1,-3
+		}
+	}
+	Model: 2000, "Model::Mover", "Mesh" {
+		Version: 232
+		Properties70:  {
+			P: "Lcl Translation", "Lcl Translation", "", "A",0,0,0
+			P: "Lcl Rotation", "Lcl Rotation", "", "A",0,0,0
+		}
+	}
+	AnimationStack: 4000, "AnimStack::Take 001", "" {
+		Properties70:  {
+			P: "LocalStop", "KTime", "Time", "",92372316000
+			P: "ReferenceStop", "KTime", "Time", "",92372316000
+		}
+	}
+	AnimationLayer: 5000, "AnimLayer::BaseLayer", "" {
+	}
+	AnimationCurveNode: 6000, "AnimCurveNode::T", "" {
+		Properties70:  {
+			P: "d|X", "Number", "", "A",0
+			P: "d|Y", "Number", "", "A",0
+			P: "d|Z", "Number", "", "A",0
+		}
+	}
+	AnimationCurve: 7000, "AnimCurve::", "" {
+		Default: 0
+		KeyVer: 4009
+		KeyTime: *2 {
+			a: 0,92372316000
+		}
+		KeyValueFloat: *2 {
+			a: 0,4
+		}
+		KeyAttrFlags: *1 {
+			a: 4
+		}
+		KeyAttrDataFloat: *4 {
+			a: 0,0,0,0
+		}
+		KeyAttrRefCount: *1 {
+			a: 2
+		}
+	}
+	AnimationCurveNode: 6100, "AnimCurveNode::R", "" {
+		Properties70:  {
+			P: "d|X", "Number", "", "A",0
+			P: "d|Y", "Number", "", "A",0
+			P: "d|Z", "Number", "", "A",0
+		}
+	}
+	AnimationCurve: 7100, "AnimCurve::", "" {
+		Default: 0
+		KeyVer: 4009
+		KeyTime: *2 {
+			a: 0,92372316000
+		}
+		KeyValueFloat: *2 {
+			a: 0,90
+		}
+		KeyAttrFlags: *1 {
+			a: 4
+		}
+		KeyAttrDataFloat: *4 {
+			a: 0,0,0,0
+		}
+		KeyAttrRefCount: *1 {
+			a: 2
+		}
+	}
+}
+Connections:  {
+	C: "OO",2000,0
+	C: "OO",1000,2000
+	C: "OO",5000,4000
+	C: "OO",6000,5000
+	C: "OO",6100,5000
+	C: "OP",6000,2000, "Lcl Translation"
+	C: "OP",7000,6000, "d|X"
+	C: "OP",6100,2000, "Lcl Rotation"
+	C: "OP",7100,6100, "d|Y"
+}

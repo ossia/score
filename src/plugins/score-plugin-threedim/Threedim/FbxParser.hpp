@@ -58,6 +58,8 @@ public:
     // 0 = no skin.
     int skin_joint_count{0};
 
+    std::uint64_t stable_id{0};
+
     // Local-space AABB over `positions`. Computed once by extract_part
     // (or whoever fills ScenePart) and carried into mesh_primitive by
     // part_to_primitive. Empty aabb = "not yet computed"; downstream
@@ -70,6 +72,7 @@ public:
     std::string name;
     ossia::scene_transform local_transform;  // node's local TRS
     int parent_index{-1};                    // index into m_scene_nodes (-1 = root)
+    std::uint64_t stable_id{0};
     std::vector<ScenePart> parts;            // 0..N mesh parts (one per material)
 
     // Optional attached components — populated during extraction when the
@@ -85,6 +88,8 @@ public:
   // to scene_state.skeletons[0]; mesh_component::skin_index is 0 for any
   // mesh that uses skinning. Empty if the FBX has no skinning.
   std::shared_ptr<ossia::skeleton_component> m_skeleton;
+
+  std::vector<ossia::animation_component_ptr> m_animations;
 
   // Rich scene state emitted by rebuild_scene — full hierarchy with
   // materials, lights, cameras, skeletons. AssetLoader consumes this

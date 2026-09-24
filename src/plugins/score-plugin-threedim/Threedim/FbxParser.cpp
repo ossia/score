@@ -8,6 +8,7 @@
 
 #include <QQuaternion>
 
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <unordered_map>
@@ -58,6 +59,13 @@ struct FbxSceneExtractor
   std::unordered_map<const ufbx_node*, int> joint_index_of;
   std::vector<uint32_t> tri_indices;
 
+  struct MeshParts
+  {
+    std::vector<FbxParser::ScenePart> parts;
+    std::vector<uint32_t> material_slots;
+  };
+  std::unordered_map<const ufbx_mesh*, MeshParts> mesh_parts;
+
   // Return the joint index for a ufbx bone node, registering a new entry in
   // the global skeleton on first sight. Parent chain is resolved later in a
   // second pass (link_joint_parents).
@@ -95,6 +103,9 @@ struct FbxSceneExtractor
 
     const int idx = (int)skeleton->joints.size();
     skeleton->joints.push_back(j);
+    ossia::scene_node_id nid;
+    nid.value = std::uint64_t(bone->typed_id) + 1;
+    skeleton->joint_node_ids.push_back(nid);
     joint_index_of.emplace(bone, idx);
     return idx;
   }
@@ -431,8 +442,7 @@ struct FbxSceneExtractor
   // Build a ScenePart for one (mesh, material_part) pair. Vertex data is in
   // mesh-local space — node hierarchy carries the transform.
   FbxParser::ScenePart extract_part(
-      const ufbx_node* node, const ufbx_mesh* umesh,
-      const ufbx_mesh_part& part)
+      const ufbx_mesh* umesh, const ufbx_mesh_part& part)
   {
     FbxParser::ScenePart sp;
     sp.vertex_count = uint32_t(part.num_triangles) * 3;
@@ -638,17 +648,56 @@ struct FbxSceneExtractor
       sp.skin_joint_count = int(skeleton ? skeleton->joints.size() : 0);
     }
 
-    // Material assignment — prefer the per-instance node->materials list
-    // (FBX allows different node instances to override mesh materials), fall
-    // back to the mesh's own materials list, then to part.material.
-    const ufbx_material* mat = nullptr;
-    if(part.index < node->materials.count)
-      mat = node->materials.data[part.index];
-    if(!mat && part.index < umesh->materials.count)
-      mat = umesh->materials.data[part.index];
-    sp.material_index = register_material(mat);
-
     return sp;
+  }
+
+  // Material assignment — prefer the per-instance node->materials list
+  // (FBX allows different node instances to override mesh materials), fall
+  // back to the mesh's own materials list.
+  int resolve_material(
+      const ufbx_node* node, const ufbx_mesh* umesh, uint32_t slot)
+  {
+    const ufbx_material* mat = nullptr;
+    if(slot < node->materials.count)
+      mat = node->materials.data[slot];
+    if(!mat && slot < umesh->materials.count)
+      mat = umesh->materials.data[slot];
+    return register_material(mat);
+  }
+
+  const MeshParts& extract_mesh(const ufbx_mesh* umesh)
+  {
+    auto [it, inserted] = mesh_parts.try_emplace(umesh);
+    if(!inserted)
+      return it->second;
+
+    auto& mp = it->second;
+    auto add = [&](const ufbx_mesh_part& part) {
+      auto sp = extract_part(umesh, part);
+      if(sp.vertex_count == 0)
+        return;
+      sp.stable_id = ossia::mint_stable_id();
+      mp.parts.push_back(std::move(sp));
+      mp.material_slots.push_back(part.index);
+    };
+    if(umesh->material_parts.count > 0)
+    {
+      for(size_t pi = 0; pi < umesh->material_parts.count; pi++)
+        add(umesh->material_parts.data[pi]);
+    }
+    else
+    {
+      ufbx_mesh_part whole{};
+      whole.num_faces = umesh->num_faces;
+      whole.num_triangles = umesh->num_triangles;
+      std::vector<uint32_t> all_faces(umesh->num_faces);
+      for(size_t i = 0; i < umesh->num_faces; i++)
+        all_faces[i] = uint32_t(i);
+      whole.face_indices.data = all_faces.data();
+      whole.face_indices.count = all_faces.size();
+      add(whole);
+    }
+    return mp;
   }
 
   // Convert a ufbx_light to a populated light_component. Caller takes
@@ -746,6 +795,7 @@ struct FbxSceneExtractor
     FbxParser::SceneNode sn;
     sn.name = std::string(node->name.data, node->name.length);
     sn.parent_index = parent_index;
+    sn.stable_id = std::uint64_t(node->typed_id) + 1;
     sn.light = to_light(node->light);
     sn.camera = to_camera(node->camera);
 
@@ -765,29 +815,11 @@ struct FbxSceneExtractor
     if(node->mesh)
     {
       const ufbx_mesh* umesh = node->mesh;
-      if(umesh->material_parts.count > 0)
-      {
-        for(size_t pi = 0; pi < umesh->material_parts.count; pi++)
-        {
-          auto sp = extract_part(node, umesh, umesh->material_parts.data[pi]);
-          if(sp.vertex_count > 0)
-            sn.parts.push_back(std::move(sp));
-        }
-      }
-      else
-      {
-        ufbx_mesh_part whole{};
-        whole.num_faces = umesh->num_faces;
-        whole.num_triangles = umesh->num_triangles;
-        std::vector<uint32_t> all_faces(umesh->num_faces);
-        for(size_t i = 0; i < umesh->num_faces; i++)
-          all_faces[i] = uint32_t(i);
-        whole.face_indices.data = all_faces.data();
-        whole.face_indices.count = all_faces.size();
-        auto sp = extract_part(node, umesh, whole);
-        if(sp.vertex_count > 0)
-          sn.parts.push_back(std::move(sp));
-      }
+      const auto& mp = extract_mesh(umesh);
+      sn.parts = mp.parts;
+      for(std::size_t pi = 0; pi < sn.parts.size(); pi++)
+        sn.parts[pi].material_index
+            = resolve_material(node, umesh, mp.material_slots[pi]);
     }
 
     const int self_index = (int)nodes.size();
@@ -840,7 +872,7 @@ static ossia::mesh_primitive part_to_primitive(
     const std::vector<std::shared_ptr<ossia::material_component>>& mats)
 {
   ossia::mesh_primitive mp;
-  mp.stable_id = ossia::mint_stable_id();
+  mp.stable_id = part.stable_id ? part.stable_id : ossia::mint_stable_id();
   mp.topology = ossia::primitive_topology::triangles;
   mp.index_type = ossia::index_format::none;
   mp.vertex_count = part.vertex_count;
@@ -919,6 +951,97 @@ static ossia::mesh_primitive part_to_primitive(
   return mp;
 }
 
+static std::vector<ossia::animation_component_ptr>
+extract_animations(const ufbx_scene* scene)
+{
+  std::vector<ossia::animation_component_ptr> animations;
+  const uint32_t root_id = scene->root_node ? scene->root_node->typed_id : UINT32_MAX;
+  for(size_t si = 0; si < scene->anim_stacks.count; si++)
+  {
+    const ufbx_anim_stack* stack = scene->anim_stacks.data[si];
+    if(!stack || !stack->anim)
+      continue;
+
+    ufbx_bake_opts bopts{};
+    bopts.trim_start_time = true;
+    bopts.temp_allocator.memory_limit = 2ull * 1024 * 1024 * 1024;
+    bopts.result_allocator.memory_limit = 2ull * 1024 * 1024 * 1024;
+    ufbx_error error{};
+    ufbx_baked_anim* bake = ufbx_bake_anim(scene, stack->anim, &bopts, &error);
+    if(!bake)
+      continue;
+    struct BakeGuard
+    {
+      ufbx_baked_anim* b;
+      ~BakeGuard() { ufbx_free_baked_anim(b); }
+    } bake_guard{bake};
+
+    auto comp = std::make_shared<ossia::animation_component>();
+    comp->duration = float(std::max(bake->playback_duration, 0.0));
+
+    auto add_vec3 = [&](uint32_t typed_id, const ufbx_baked_vec3_list& keys,
+                        ossia::animation_target target) {
+      if(keys.count == 0)
+        return;
+      auto times = std::make_shared<std::vector<float>>();
+      auto values = std::make_shared<std::vector<float>>();
+      times->reserve(keys.count);
+      values->reserve(keys.count * 3);
+      for(const auto& k : keys)
+      {
+        times->push_back(float(k.time));
+        values->insert(
+            values->end(), {float(k.value.x), float(k.value.y), float(k.value.z)});
+      }
+      ossia::animation_channel c;
+      c.target_node_id = std::uint64_t(typed_id) + 1;
+      c.target_path = target;
+      c.interpolation = ossia::animation_interpolation::linear;
+      comp->duration = std::max(comp->duration, times->back());
+      c.times = std::move(times);
+      c.values = std::move(values);
+      comp->channels.push_back(std::move(c));
+    };
+
+    for(const auto& bn : bake->nodes)
+    {
+      if(bn.typed_id == root_id || bn.typed_id >= scene->nodes.count)
+        continue;
+      add_vec3(bn.typed_id, bn.translation_keys, ossia::animation_target::translation);
+      if(bn.rotation_keys.count > 0)
+      {
+        auto times = std::make_shared<std::vector<float>>();
+        auto values = std::make_shared<std::vector<float>>();
+        times->reserve(bn.rotation_keys.count);
+        values->reserve(bn.rotation_keys.count * 4);
+        for(const auto& k : bn.rotation_keys)
+        {
+          times->push_back(float(k.time));
+          values->insert(
+              values->end(), {float(k.value.x), float(k.value.y), float(k.value.z),
+                              float(k.value.w)});
+        }
+        ossia::animation_channel c;
+        c.target_node_id = std::uint64_t(bn.typed_id) + 1;
+        c.target_path = ossia::animation_target::rotation;
+        c.interpolation = ossia::animation_interpolation::linear;
+        comp->duration = std::max(comp->duration, times->back());
+        c.times = std::move(times);
+        c.values = std::move(values);
+        comp->channels.push_back(std::move(c));
+      }
+      add_vec3(bn.typed_id, bn.scale_keys, ossia::animation_target::scale);
+    }
+
+    if(!comp->channels.empty())
+    {
+      comp->dirty_index = 1;
+      animations.push_back(std::move(comp));
+    }
+  }
+  return animations;
+}
+
 void FbxParser::rebuild_scene()
 {
   if(m_scene_nodes.empty())
@@ -935,6 +1058,7 @@ void FbxParser::rebuild_scene()
   for(std::size_t i = 0; i < N; ++i)
   {
     auto n = std::make_shared<ossia::scene_node>();
+    n->id.value = m_scene_nodes[i].stable_id;
     n->name = m_scene_nodes[i].name;
     n->visible = true;
     nodes.push_back(std::move(n));
@@ -1006,6 +1130,10 @@ void FbxParser::rebuild_scene()
     skins->push_back(ossia::skeleton_component_ptr(m_skeleton));
     state->skeletons = std::move(skins);
   }
+  if(!m_animations.empty())
+    state->animations
+        = std::make_shared<const std::vector<ossia::animation_component_ptr>>(
+            m_animations);
   state->version = 1;
   state->dirty_index = 1;
 
@@ -1066,12 +1194,16 @@ std::function<void(FbxParser&)> FbxParser::ins::fbx_t::process(file_type tv)
   if(scene_nodes.empty())
     return {};
 
+  auto animations = extract_animations(scene);
+
   return [scene_nodes = std::move(scene_nodes),
           materials = std::move(materials),
-          skeleton = std::move(skeleton)](FbxParser& o) mutable {
+          skeleton = std::move(skeleton),
+          animations = std::move(animations)](FbxParser& o) mutable {
     std::swap(o.m_scene_nodes, scene_nodes);
     std::swap(o.m_materials, materials);
     o.m_skeleton = std::move(skeleton);
+    std::swap(o.m_animations, animations);
     o.rebuild_scene();
   };
 }
