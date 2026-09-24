@@ -1479,6 +1479,30 @@ score_add_csf_test(sampled_inputs_fixd GfxCsfSampledInputsFixD.cpp)
 # vertex input reported at warning level (N58).
 score_add_gfx_test(raw_raster_fixk GfxRawRasterFixK.cpp)
 
+# Academy Texture Loader cubemaps (N43 equirect faces + orientation, N44
+# cross/strip slicing and the over-read guard), driven directly on a QRhi.
+if(TARGET score_addon_academy AND TARGET score_plugin_avnd)
+  set(_academy_src_fixa "${SCORE_ROOT_SOURCE_DIR}/src/addons/score-addon-academy")
+  score_plugin_hidden_sources(_academy_hidden_fixa
+      "${_academy_src_fixa}/Academy/Asset/TextureLoader.cpp"
+      "${_academy_src_fixa}/Academy/Resources/EquirectToCubemap.cpp"
+      "${_academy_src_fixa}/Academy/Resources/TextureResource.cpp")
+  score_add_test(test_gfx_academy_texture_loader_cube_fixa
+    SOURCES
+      GfxAcademyTextureLoaderCubeFixA.cpp
+      ${_academy_hidden_fixa}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_addon_academy
+    LIBS test_gfx_engine_glue)
+  target_include_directories(test_gfx_academy_texture_loader_cube_fixa SYSTEM PRIVATE
+    "${_academy_src_fixa}"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    $<TARGET_PROPERTY:score_addon_academy,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
 # CSF attribute naming, COPY_FROM next to AUXILIARY, unblended storage-image
 # outlet, read_write on a static CPU mesh, FRAMEINDEX origin (agent C: N55,
 # N56, N57, N59, N60, N62).
