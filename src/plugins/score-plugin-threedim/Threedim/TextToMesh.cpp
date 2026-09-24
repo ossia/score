@@ -444,6 +444,7 @@ void TextToMesh::rebuild()
 
   // One default material so downstream PBR has something to bind.
   auto mat = std::make_shared<ossia::material_component>();
+  mat->stable_id = m_material_stable_id;
   mat->base_color_factor[0] = 1.f;
   mat->base_color_factor[1] = 1.f;
   mat->base_color_factor[2] = 1.f;
