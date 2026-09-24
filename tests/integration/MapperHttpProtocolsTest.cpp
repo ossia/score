@@ -543,7 +543,9 @@ TEST_CASE("Mapper Pharos logs in controls every endpoint and refreshes bearer to
     http_peer peer;
     fixture f{ctx, *doc};
     f.createMapper("pharos", fixture::script("test_pharos_http.qml"));
-    ready(f, "pharos", "/connect");
+    // createTree() is materialised node by node on the mapper thread: wait for
+    // its LAST leaf, not the first, before pushing to any other node.
+    ready(f, "pharos", "/refresh_groups");
     push(f, "pharos", "/login_user", QString::fromUtf8("op é&="));
     push(f, "pharos", "/login_password", "p +/?#");
     f.push("pharos", "/start_timeline", ossia::value{99});
