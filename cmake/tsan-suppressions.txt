@@ -37,3 +37,25 @@ called_from_lib:libvulkan_lvp.so
 called_from_lib:libvulkan_radeon.so
 called_from_lib:libnvidia-glcore.so
 called_from_lib:libfontconfig.so
+# Second pass, from the libraries that remained in reports of the first run
+# with the entries above active (counts are reports naming the library):
+# D-Bus (885, Qt's platform services), libstdc++'s own out-of-line code (locale,
+# exceptions, std::thread state), PulseAudio and ALSA (the audio factories),
+# PipeWire's SPA plug-ins, xcb/GLX and Qt's xcb platform plug-in, OpenSSL,
+# Avahi, Mesa's LLVM JIT and FFmpeg.
+called_from_lib:libdbus-1.so
+called_from_lib:libstdc++.so
+called_from_lib:libpulse.so
+called_from_lib:libpulsecommon
+called_from_lib:libasound.so
+called_from_lib:libspa-
+called_from_lib:libxcb.so
+called_from_lib:libGLX.so
+called_from_lib:libQt6XcbQpa.so
+called_from_lib:libqxcb-glx-integration.so
+called_from_lib:libcrypto.so
+called_from_lib:libavahi-client.so
+called_from_lib:libLLVM.so
+called_from_lib:libavutil.so
+called_from_lib:libavcodec.so
+called_from_lib:libavformat.so
