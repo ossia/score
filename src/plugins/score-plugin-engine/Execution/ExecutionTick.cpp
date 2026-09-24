@@ -53,21 +53,34 @@ struct AudioTickHelper
     OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
     m_scenar->cleanup();
     auto& q = m_context->m_execQueue;
-    // Weak: this command sits in the ContextData's own execution queue. If the
-    // audio thread never runs it (the engine stopped first, and the wait below
-    // gives up), a strong reference here would keep that ContextData alive
-    // through its own queue, forever. Whoever runs it holds the context.
-    q.enqueue([weak_ctx = std::weak_ptr{m_context},
-               graph = m_context->execGraph]() mutable {
+    // Who gets to release the graph: the audio thread, by running the command
+    // below, or this destructor, if the wait below gives up first.
+    enum release_state : int
+    {
+      Pending,
+      Running,
+      Done,
+      Abandoned
+    };
+    auto release = std::make_shared<std::atomic_int>(Pending);
+    // Weak: this command sits in the ContextData's own queue; if never run, a
+    // strong reference would keep the ContextData alive through that queue.
+    q.enqueue([weak_ctx = std::weak_ptr{m_context}, graph = m_context->execGraph,
+               release]() mutable {
       OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
-      auto ctx = weak_ctx.lock();
-      if(!ctx)
+      int expected = Pending;
+      if(!release->compare_exchange_strong(expected, Running))
         return;
-      // FIXME this frees the graph nodes in the audio thread,
-      // should do it in exec thread.
-      // FIXME why not just move all the structures back to the main thread the moment we hit stop?
-      graph->clear();
-      ctx->m_gcQueue.enqueue(gc(std::move(graph), std::move(ctx)));
+      auto ctx = weak_ctx.lock();
+      if(ctx)
+      {
+        // FIXME this frees the graph nodes in the audio thread,
+        // should do it in exec thread.
+        // FIXME why not just move all the structures back to the main thread the moment we hit stop?
+        graph->clear();
+        ctx->m_gcQueue.enqueue(gc(std::move(graph), std::move(ctx)));
+      }
+      *release = Done;
     });
     m_context->execGraph.reset();
 
@@ -99,11 +112,18 @@ struct AudioTickHelper
         drain();
       }
     }
-    // Once more after seeing *ptr: the audio thread can run both commands
-    // above between our last drain and the check, and the first one leaves
-    // gc(graph, ctx) in the GC queue. That entry holds a strong reference to
-    // the very ContextData whose queue it sits in, so left there it keeps the
-    // ContextData -- queues, execution state and all -- alive for good.
+    // The wait gave up: take the release command back from the audio thread,
+    // or, if it is running now, let it finish so the drain below sees its gc.
+    if(!*ptr)
+    {
+      int expected = Pending;
+      if(!release->compare_exchange_strong(expected, Abandoned))
+        while(release->load() != Done)
+          std::this_thread::yield();
+    }
+
+    // Once more after seeing *ptr: the release may have left gc(graph, ctx) in
+    // the GC queue, a strong reference that would keep the ContextData alive.
     drain();
     m_context.reset();
   }
