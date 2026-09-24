@@ -688,12 +688,10 @@ public:
     {
       auto& settings = score::AppContext().settings<Scenario::Settings::Model>();
 
-      // The node enqueues its control outputs for the UI every tick; with no
-      // reader installed below, that queue grows without bound and allocates in
-      // the audio callback. Tell it not to bother.
-      if constexpr(control_outputs_type::size > 0)
-        ptr->control.notify_ui.store(
-            settings.getExecutionUpdate(), std::memory_order_relaxed);
+      // Without a reader installed below, the node need not copy its control
+      // values for the UI.
+      ptr->control.notify_ui.store(
+          settings.getExecutionUpdate(), std::memory_order_relaxed);
 
       if(settings.getExecutionUpdate())
       {
@@ -823,47 +821,57 @@ public:
 
     if constexpr(avnd::has_processor_to_gui_bus<Node>)
     {
+      // Nothing goes to the interface while the execution does not report back.
+      const bool report = score::AppContext()
+                              .settings<Scenario::Settings::Model>()
+                              .getExecutionUpdate();
       if constexpr(requires { eff.send_message = [](auto&&) { }; })
       {
-        eff.send_message = [proc = QPointer{&this->process()},
-                            qed_ptr = weak_edit]<typename T>(T&& b) mutable {
-          auto qed = qed_ptr.lock();
-          if(!qed)
-            return;
-          if constexpr(
-              sizeof(QPointer<QObject>) + sizeof(b)
-              < Execution::ExecutionCommand::max_storage)
-          {
-            qed->enqueue([proc, bb = std::move(b)]() mutable {
-              if(proc && proc->to_ui)
-                MessageBusSender{proc->to_ui}(std::move(bb));
-            });
-          }
-          else
-          {
-            qed->enqueue(
-                [proc, bb = std::make_unique<std::decay_t<T>>(std::move(b))]() mutable {
-              if(proc && proc->to_ui)
-                MessageBusSender{proc->to_ui}(*std::move(bb));
-            });
-          }
-        };
+        if(!report)
+          eff.send_message = [](auto&&) { };
+        else
+          eff.send_message = [proc = QPointer{&this->process()},
+                              qed_ptr = weak_edit]<typename T>(T&& b) mutable {
+            auto qed = qed_ptr.lock();
+            if(!qed)
+              return;
+            if constexpr(
+                sizeof(QPointer<QObject>) + sizeof(b)
+                < Execution::ExecutionCommand::max_storage)
+            {
+              qed->enqueue([proc, bb = std::move(b)]() mutable {
+                if(proc && proc->to_ui)
+                  MessageBusSender{proc->to_ui}(std::move(bb));
+              });
+            }
+            else
+            {
+              qed->enqueue([proc, bb = std::make_unique<std::decay_t<T>>(
+                                      std::move(b))]() mutable {
+                if(proc && proc->to_ui)
+                  MessageBusSender{proc->to_ui}(*std::move(bb));
+              });
+            }
+          };
       }
       else if constexpr(requires { eff.send_message = []() { }; })
       {
-        eff.send_message
-            = [proc = QPointer{&this->process()}, qed_ptr = weak_edit]() mutable {
-          if(!proc)
-            return;
-          auto qed = qed_ptr.lock();
-          if(!qed)
-            return;
+        if(!report)
+          eff.send_message = [] { };
+        else
+          eff.send_message
+              = [proc = QPointer{&this->process()}, qed_ptr = weak_edit]() mutable {
+            if(!proc)
+              return;
+            auto qed = qed_ptr.lock();
+            if(!qed)
+              return;
 
-          qed->enqueue([proc]() mutable {
-            if(proc && proc->to_ui)
-              MessageBusSender{proc->to_ui}();
-          });
-        };
+            qed->enqueue([proc]() mutable {
+              if(proc && proc->to_ui)
+                MessageBusSender{proc->to_ui}();
+            });
+          };
       }
     }
   }

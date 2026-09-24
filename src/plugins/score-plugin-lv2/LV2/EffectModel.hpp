@@ -16,6 +16,8 @@
 
 #include <score_plugin_lv2_export.h>
 
+#include <atomic>
+#include <memory>
 #include <optional>
 
 #include <verdigris>
@@ -40,6 +42,14 @@ PROCESS_METADATA(
 DESCRIPTION_METADATA(, LV2::Model, "LV2")
 namespace LV2
 {
+//! The plug-in's messages to its interface. Only filled while the interface
+//! is open, and bounded: the audio thread never allocates for it.
+struct PluginEvents
+{
+  std::atomic_bool ui_open{};
+  moodycamel::ReaderWriterQueue<Message> queue{1024};
+};
+
 class SCORE_PLUGIN_LV2_EXPORT Model : public Process::ProcessModel
 {
   W_OBJECT(Model)
@@ -76,7 +86,8 @@ public:
   std::size_t m_controlInStart{};
   std::size_t m_controlOutStart{};
   mutable moodycamel::ReaderWriterQueue<Message> ui_events;     // from ui to score
-  mutable moodycamel::ReaderWriterQueue<Message> plugin_events; // from plug-in
+  //! What the plug-in outputs for its own interface, from the audio thread.
+  std::shared_ptr<PluginEvents> plugin_events = std::make_shared<PluginEvents>();
   mutable moodycamel::ReaderWriterQueue<Message>
       to_process_events; // from score to process
 
@@ -103,10 +114,6 @@ public:
   LV2EffectComponent(LV2::Model& proc, const Execution::Context& ctx, QObject* parent);
 
   void lazy_init() override;
-
-  void
-  writeAtomToUi(uint32_t port_index, uint32_t type, uint32_t size, const void* body);
-  void writeAtomToUi(uint32_t port_index, LV2_Atom& atom);
 
 private:
   // per_channel voice-pool grower (main thread). Audio thread pushes high-water mark.

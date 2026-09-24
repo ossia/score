@@ -1,517 +1,461 @@
 #include "MixerPanel.hpp"
 
-#include <Process/Commands/EditPort.hpp>
-#include <Process/Dataflow/PortAddressComboBox.hpp>
+#include "MixerStrips.hpp"
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
-#include <Scenario/Document/Interval/IntervalExecution.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
 #include <Audio/AudioDevice.hpp>
+#include <Execution/DocumentPlugin.hpp>
+#include <Execution/Telemetry.hpp>
 
-#include <score/model/ComponentUtils.hpp>
-#include <score/model/Skin.hpp>
-#include <score/selection/SelectionDispatcher.hpp>
+#include <score/selection/Selection.hpp>
+#include <score/selection/SelectionStack.hpp>
 #include <score/tools/Bind.hpp>
-#include <score/widgets/ClearLayout.hpp>
-#include <score/widgets/DoubleSlider.hpp>
 #include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/MarginLess.hpp>
 
 #include <ossia/audio/audio_parameter.hpp>
 #include <ossia/audio/audio_protocol.hpp>
 #include <ossia/network/base/node.hpp>
-#include <ossia/network/base/parameter.hpp>
 
-#include <QComboBox>
+#include <QFrame>
+#include <QAbstractButton>
 #include <QHBoxLayout>
+#include <QMenu>
 #include <QPainter>
-#include <QPushButton>
+#include <QPointer>
 #include <QScrollArea>
-#include <QTabWidget>
+#include <QScrollBar>
+#include <QSettings>
+#include <QTimer>
 #include <QToolButton>
-#include <qlabel.h>
+#include <QVBoxLayout>
 
 namespace Mixer
 {
-
-class AudioSliderWidget : public score::DoubleSlider
+namespace
 {
-public:
-  AudioSliderWidget(QWidget* widg)
-      : score::DoubleSlider{widg}
-  {
-    setOrientation(Qt::Vertical);
-    setMinimumSize(20, 50);
-    setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
-    setBorderWidth(0);
-  }
-  ~AudioSliderWidget() override { }
+enum class Section
+{
+  Buses,
+  Inputs,
+  Outputs,
+  Mapped,
+  Virtual,
 };
+constexpr int section_count = 5;
 
-class PanSliderWidget : public score::DoubleSlider
+QString sectionName(Section s)
+{
+  switch(s)
+  {
+    case Section::Buses:
+      return QObject::tr("Buses");
+    case Section::Inputs:
+      return QObject::tr("Inputs");
+    case Section::Outputs:
+      return QObject::tr("Outputs");
+    case Section::Mapped:
+      return QObject::tr("Mapped");
+    case Section::Virtual:
+      return QObject::tr("Virtual");
+  }
+  return {};
+}
+
+QString sectionHelp(Section s)
+{
+  switch(s)
+  {
+    case Section::Buses:
+      return QObject::tr("Intervals marked as buses in their inspector.");
+    case Section::Inputs:
+      return QObject::tr("The sound card's inputs, one per channel.");
+    case Section::Outputs:
+      return QObject::tr("The sound card's outputs, one per channel.");
+    case Section::Mapped:
+      return QObject::tr(
+          "The main input, and the ports mapped onto some channels of the card.");
+    case Section::Virtual:
+      return QObject::tr("Virtual ports, which carry sound between processes.");
+  }
+  return {};
+}
+
+const QString settings_sections = QStringLiteral("Mixer/HiddenSections");
+const QString settings_width = QStringLiteral("Mixer/StripWidth");
+
+//! The side of a folding section: its name, written downwards, under a
+//! triangle that points to where the strips go. Checked while unfolded.
+class SectionTab final : public QAbstractButton
 {
 public:
-  PanSliderWidget(QWidget* widg)
-      : score::DoubleSlider{widg}
+  SectionTab(const QString& text, QWidget* parent)
+      : QAbstractButton{parent}
   {
-    setOrientation(Qt::Horizontal);
-    setMinimumSize(20, 18);
+    setText(text);
+    setCheckable(true);
+    setFocusPolicy(Qt::TabFocus);
+    setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
   }
-  ~PanSliderWidget() override { }
 
-  void setPan(const ossia::pan_weight& p)
+  static int thickness(const QFontMetrics& fm) { return fm.height() + 8; }
+
+  QSize sizeHint() const override
   {
-    if(p.size() != 2)
-    {
-      setValue(0.5);
-      return;
-    }
-
-    // setValue(asin(p[1]) / ossia::half_pi);
-    setValue((1. + -p[0] + p[1]) / 2.);
+    return {thickness(fontMetrics()), fontMetrics().horizontalAdvance(text()) + 28};
   }
+  QSize minimumSizeHint() const override { return sizeHint(); }
 
 protected:
   void paintEvent(QPaintEvent*) override
   {
-    auto& skin = score::Skin::instance();
     QPainter p{this};
+    p.setRenderHint(QPainter::Antialiasing);
+    const auto& pal = palette();
 
-    double ratio = 2. * value() - 1.;
-
-    p.setPen(skin.TransparentPen);
-    p.setBrush(skin.SliderBrush);
-    p.drawRect(rect());
-
-    p.setPen(skin.TransparentPen);
-    p.setBrush(skin.SliderInteriorBrush);
-
-    const double y = 0;
-    const double h = height();
-    const double hw = width() / 2.;
-    const double w = hw * std::abs(ratio);
-
-    if(ratio < 0)
+    p.fillRect(rect(), underMouse() ? pal.color(QPalette::Midlight) : pal.color(QPalette::Button));
+    if(hasFocus())
     {
-      p.drawRect(QRectF{hw - w, y, w, h});
-      p.setPen(skin.SliderLine);
-      p.drawLine(QPointF{hw - w, h - 1}, QPointF{hw - 1, h - 1});
-
-      p.setFont(skin.SansFontSmall);
-      p.drawText(rect(), "  L", Qt::AlignLeft | Qt::AlignVCenter);
-      p.setPen(skin.LightGray.main.pen0);
-      p.drawText(rect(), "R  ", Qt::AlignRight | Qt::AlignVCenter);
+      p.setPen(pal.color(QPalette::Highlight));
+      p.drawRect(rect().adjusted(0, 0, -1, -1));
     }
-    else if(ratio > 0)
-    {
-      p.drawRect(QRectF{hw, y, w, h});
-      p.setPen(skin.SliderLine);
-      p.drawLine(QPointF{hw, h - 1}, QPointF{hw + w - 1, h - 1});
 
-      p.setFont(skin.SansFontSmall);
-      p.setPen(skin.LightGray.main.pen0);
-      p.drawText(rect(), "  L", Qt::AlignLeft | Qt::AlignVCenter);
-      p.setPen(skin.SliderLine);
-      p.drawText(rect(), "R  ", Qt::AlignRight | Qt::AlignVCenter);
-    }
-    else if(ratio == 0)
-    {
-      p.drawRect(QRectF{hw, y, w, h});
+    // Unfolded, the triangle points to the strips; folded, along the tab.
+    constexpr double a = 6.;
+    const double x = (width() - a) / 2.;
+    constexpr double y = 8.;
+    QPolygonF arrow;
+    if(isChecked())
+      arrow << QPointF{x, y} << QPointF{x + a, y + a / 2.} << QPointF{x, y + a};
+    else
+      arrow << QPointF{x, y} << QPointF{x + a, y} << QPointF{x + a / 2., y + a};
+    p.setPen(Qt::NoPen);
+    p.setBrush(pal.color(QPalette::WindowText));
+    p.drawPolygon(arrow);
 
-      p.setFont(skin.SansFontSmall);
-      p.setPen(skin.LightGray.main.pen0);
-      p.drawText(rect(), "  L", Qt::AlignLeft | Qt::AlignVCenter);
-      p.drawText(rect(), "R  ", Qt::AlignRight | Qt::AlignVCenter);
-    }
+    p.setPen(pal.color(QPalette::WindowText));
+    p.translate(width(), y + a + 6.);
+    p.rotate(90.);
+    p.drawText(
+        QRectF{0., 0., double(height()) - (y + a + 6.), double(width())},
+        Qt::AlignLeft | Qt::AlignVCenter, text());
+  }
+
+  void enterEvent(QEnterEvent* e) override
+  {
+    QAbstractButton::enterEvent(e);
+    update();
+  }
+  void leaveEvent(QEvent* e) override
+  {
+    QAbstractButton::leaveEvent(e);
+    update();
   }
 };
+}
 
-// TODO MOVEME
-class AudioDeviceSlider
-    : public QWidget
-    , public Nano::Observer
+class MixerPanel final : public QWidget
 {
 public:
-  score::MarginLess<QVBoxLayout> lay;
-  QLabel label;
-  AudioSliderWidget slider;
-  ossia::audio_parameter* p{};
-  ossia::audio_parameter::callback_index idx;
-  AudioDeviceSlider(ossia::audio_parameter& param, QWidget* parent)
-      : QWidget{parent}
-      , lay{this}
-      , label{this}
-      , slider{this}
-      , p{&param}
-  {
-    slider.setOrientation(Qt::Vertical);
-    setMinimumSize(80, 130);
-
-    lay.addWidget(&label);
-    lay.addWidget(&slider);
-    lay.setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    auto addr = QString::fromStdString(param.get_node().osc_address());
-    label.setText(addr);
-
-    const auto val = param.value();
-    slider.setValue(*val.target<float>());
-    con(slider, &AudioSliderWidget::valueChanged, this,
-        [&](double d) { param.push_value(d); });
-    idx = param.add_callback(
-        [this](const ossia::value& v) { slider.setValue(ossia::convert<float>(v)); });
-    param.get_node().about_to_be_deleted.connect<&AudioDeviceSlider::onParamRemoved>(
-        *this);
-  }
-
-  void onParamRemoved(const ossia::net::node_base& n) { p = nullptr; }
-
-  ~AudioDeviceSlider() override
-  {
-    if(p)
-      p->remove_callback(idx);
-  }
-};
-
-class AudioBusWidget : public QWidget
-{
-public:
-  AudioBusWidget(
-      const Scenario::IntervalModel* param, const Dataflow::AudioDevice* dev,
-      const score::DocumentContext& ctx, QWidget* parent)
+  MixerPanel(const score::DocumentContext& ctx, QWidget* parent)
       : QWidget{parent}
       , m_context{ctx}
-      , m_lay{this}
-      , m_title{this}
-      , m_gainSlider{this}
-      , m_panSlider{this}
-      , m_model{param}
   {
-    SCORE_ASSERT(!param->graphal());
-    setMinimumSize(60, 140);
-    setMaximumSize(100, 400);
+    auto lay = new score::MarginLess<QVBoxLayout>{this};
+    QSettings s;
+    const int hidden = s.value(settings_sections, 0).toInt();
+    m_width = StripWidth(
+        std::clamp(s.value(settings_width, int(StripWidth::Normal)).toInt(), 0, 2));
 
-    m_title.setFlat(true);
-
-    m_title.setText(m_model->metadata().getName());
-    score::setHelp(&m_gainSlider, "Gain control");
-    m_gainSlider.setAttribute(Qt::WA_WState_OwnSizePolicy, true);
-
-    score::setHelp(&m_mute, "Mute");
-    m_mute.setCheckable(true);
-    score::setHelp(&m_upmix, "Upmix mono -> stereo");
-    m_upmix.setCheckable(true);
-    score::setHelp(&m_propagate, "Propagate automatically sound to parent");
-    m_propagate.setCheckable(true);
-    score::setHelp(&m_panSlider, "Pan control");
-
-    if(dev)
+    // The sections scroll; the master stays on the right.
+    auto body = new QWidget{this};
+    auto body_lay = new score::MarginLess<QHBoxLayout>{body};
+    m_scroll = new QScrollArea{body};
+    m_scroll->setWidgetResizable(true);
+    m_scroll->setFrameShape(QFrame::NoFrame);
+    m_scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    m_scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    auto content = new QWidget{m_scroll};
+    auto content_lay = new score::MarginLess<QHBoxLayout>{content};
+    content_lay->setSpacing(6);
+    const int tab_w = SectionTab::thickness(fontMetrics());
+    for(int i = 0; i < section_count; i++)
     {
-      m_audioSelector = Process::makePortAddressCombo(*param->outlet, ctx, parent);
-    }
+      // A tab on the left folds the section's strips away.
+      auto sec = new QWidget{content};
+      auto sec_lay = new score::MarginLess<QHBoxLayout>{sec};
+      sec_lay->setSpacing(4);
 
-    m_lay.addWidget(&m_title, 0, 0, 1, 2, Qt::AlignLeft);
-    m_lay.addWidget(&m_gainSlider, 1, 0, 3, 1);
-    m_lay.addWidget(&m_mute, 1, 1, 1, 1);
-    m_lay.addWidget(&m_upmix, 2, 1, 1, 1);
-    m_lay.addWidget(&m_propagate, 3, 1, 1, 1);
-    m_lay.addWidget(&m_panSlider, 7, 0, 1, 2);
-    if(dev)
-    {
-      m_lay.addWidget(m_audioSelector, 8, 0, 1, 3);
-    }
-    m_lay.setContentsMargins(3, 3, 3, 3);
-    m_lay.setSpacing(4);
-    m_lay.setRowStretch(m_lay.rowCount(), 1);
+      auto side = new QWidget{sec};
+      auto side_lay = new score::MarginLess<QVBoxLayout>{side};
+      side_lay->setSpacing(1);
+      auto tab = new SectionTab{sectionName(Section(i)), side};
+      tab->setChecked(!(hidden & (1 << i)));
+      score::setHelp(tab, sectionHelp(Section(i)));
+      side_lay->addWidget(tab, 1);
+      if(Section(i) == Section::Mapped || Section(i) == Section::Virtual)
+      {
+        auto add = new QToolButton{side};
+        add->setText(QStringLiteral("+"));
+        add->setAutoRaise(true);
+        add->setFixedSize(tab_w, tab_w);
+        score::setHelp(
+            add, tr("Add a port to the audio device: some channels of the sound "
+                    "card, or a virtual port."));
+        const std::string kind = Section(i) == Section::Virtual ? "virtual" : "in";
+        connect(add, &QToolButton::clicked, this, [this, kind] {
+          if(m_device)
+            addAudioPort(m_context, *m_device, this, kind);
+        });
+        side_lay->addWidget(add);
+      }
+      sec_lay->addWidget(side);
 
-    con(m_title, &QPushButton::clicked, this, [this] {
-      score::SelectionDispatcher{m_context.selectionStack}.select(*m_model);
-    });
+      auto strips = new QWidget{sec};
+      auto strips_lay = new score::MarginLess<QHBoxLayout>{strips};
+      strips_lay->setSpacing(2);
+      strips_lay->setAlignment(Qt::AlignLeft);
+      strips->setVisible(tab->isChecked());
+      sec_lay->addWidget(strips, 1);
+      content_lay->addWidget(sec);
 
-    m_gainSlider.setValue(param->outlet->gain());
-    con(m_gainSlider, &AudioSliderWidget::valueChanged, this, [this](double d) {
-      m_context.dispatcher.submit<Process::SetGain>(*m_model->outlet, d);
-    });
-    con(m_gainSlider, &AudioSliderWidget::sliderReleased, this,
-        [this] { m_context.dispatcher.commit(); });
-
-    m_mute.setChecked(param->muted());
-    con(m_mute, &QPushButton::toggled, this, [this] {
-      const_cast<Scenario::IntervalModel*>(m_model)->setMuted(m_mute.isChecked());
-    });
-
-    m_upmix.setChecked(false);
-    con(m_upmix, &QPushButton::toggled, this, [] {
-      // TODO
-    });
-
-    m_propagate.setChecked(m_model->outlet->propagate());
-    con(m_propagate, &QPushButton::toggled, this, [this] {
-      m_context.dispatcher.submit<Process::SetPropagate>(
-          *m_model->outlet, !m_model->outlet->propagate());
-      m_context.dispatcher.commit();
-    });
-
-    m_panSlider.setPan(param->outlet->pan());
-    con(m_panSlider, &PanSliderWidget::valueChanged, this, [this](double d) {
-      double l = sin((1. - d) * ossia::half_pi);
-      double r = sin(d * ossia::half_pi);
-      m_context.dispatcher.submit<Process::SetPan>(
-          *m_model->outlet, Process::pan_weight{{l, r}});
-    });
-    con(m_panSlider, &PanSliderWidget::sliderReleased, this,
-        [this] { m_context.dispatcher.commit(); });
-  }
-
-  ~AudioBusWidget() override { }
-
-private:
-  const score::DocumentContext& m_context;
-
-  score::MarginLess<QGridLayout> m_lay;
-  QPushButton m_title;
-  AudioSliderWidget m_gainSlider;
-  PanSliderWidget m_panSlider;
-  QPushButton m_mute{"M"};
-  QPushButton m_upmix{"U"};
-  QPushButton m_propagate{"P"};
-  QWidget* m_audioSelector{};
-  const Scenario::IntervalModel* m_model{};
-};
-
-class MixerPanel final : public QTabWidget
-{
-public:
-  const score::DocumentContext& ctx;
-  QTabWidget m_tabs;
-
-  QScrollArea m_physicalInArea;
-  QWidget m_physicalInWidget;
-  score::MarginLess<QHBoxLayout> m_physicalInLayout;
-  std::vector<QWidget*> m_physicalInWidgets;
-
-  QScrollArea m_physicalOutArea;
-  QWidget m_physicalOutWidget;
-  score::MarginLess<QHBoxLayout> m_physicalOutLayout;
-  std::vector<QWidget*> m_physicalOutWidgets;
-
-  QScrollArea m_mappingInArea;
-  QWidget m_mappingInWidget;
-  score::MarginLess<QHBoxLayout> m_mappingInLayout;
-  std::vector<QWidget*> m_mappingInWidgets;
-
-  QScrollArea m_mappingOutArea;
-  QWidget m_mappingOutWidget;
-  score::MarginLess<QHBoxLayout> m_mappingOutLayout;
-  std::vector<QWidget*> m_mappingOutWidgets;
-
-  QScrollArea m_virtualArea;
-  QWidget m_virtualWidget;
-  score::MarginLess<QHBoxLayout> m_virtualLayout;
-  std::vector<QWidget*> m_virtualWidgets;
-
-  QScrollArea m_busArea;
-  QWidget m_busWidget;
-  score::MarginLess<QHBoxLayout> m_busLayout;
-  std::vector<QWidget*> m_busWidgets;
-
-  Dataflow::AudioDevice* m_currentDevice{};
-
-  MixerPanel(const score::DocumentContext& ctx, QWidget* parent)
-      : QTabWidget{parent}
-      , ctx{ctx}
-      , m_physicalInArea{this}
-      , m_physicalInWidget{&m_physicalInArea}
-      , m_physicalInLayout{&m_physicalInWidget}
-
-      , m_physicalOutArea{this}
-      , m_physicalOutWidget{&m_physicalOutArea}
-      , m_physicalOutLayout{&m_physicalOutWidget}
-
-      , m_mappingInArea{this}
-      , m_mappingInWidget{&m_mappingInArea}
-      , m_mappingInLayout{&m_mappingInWidget}
-
-      , m_mappingOutArea{this}
-      , m_mappingOutWidget{&m_mappingOutArea}
-      , m_mappingOutLayout{&m_mappingOutWidget}
-
-      , m_virtualArea{this}
-      , m_virtualWidget{&m_virtualArea}
-      , m_virtualLayout{&m_virtualWidget}
-
-      , m_busArea{this}
-      , m_busWidget{&m_busArea}
-      , m_busLayout{&m_busWidget}
-  {
-    auto setup_tab = [](auto& tab) {
-      tab.setMinimumHeight(150);
-      tab.setMinimumWidth(150);
-      tab.setWidgetResizable(true);
-    };
-    this->addTab(&m_busArea, "Buses");
-    m_busArea.setWidget(&m_busWidget);
-    setup_tab(m_busArea);
-
-    this->addTab(&m_physicalInArea, "Ins");
-    m_physicalInArea.setWidget(&m_physicalInWidget);
-    setup_tab(m_physicalInArea);
-    this->addTab(&m_physicalOutArea, "Outs");
-    m_physicalOutArea.setWidget(&m_physicalOutWidget);
-    setup_tab(m_physicalOutArea);
-
-    this->addTab(&m_mappingInArea, "Map ins");
-    m_mappingInArea.setWidget(&m_mappingInWidget);
-    setup_tab(m_mappingInArea);
-    this->addTab(&m_mappingOutArea, "Map outs");
-    m_mappingOutArea.setWidget(&m_mappingOutWidget);
-    setup_tab(m_mappingOutArea);
-
-    this->addTab(&m_virtualArea, "Virtual ports");
-    m_virtualArea.setWidget(&m_virtualWidget);
-    setup_tab(m_virtualArea);
-
-    auto& aplug = ctx.plugin<Explorer::DeviceDocumentPlugin>();
-    if(auto audio = aplug.list().audioDevice())
-    {
-      auto dev = static_cast<Dataflow::AudioDevice*>(audio);
-      connect(dev, &Dataflow::AudioDevice::changed, this, [this, dev] {
-        setupDevice(dev);
-        setupBuses();
+      connect(tab, &SectionTab::toggled, this, [strips, i](bool shown) {
+        strips->setVisible(shown);
+        QSettings s;
+        int hidden = s.value(settings_sections, 0).toInt();
+        hidden = shown ? (hidden & ~(1 << i)) : (hidden | (1 << i));
+        s.setValue(settings_sections, hidden);
       });
-      setupDevice(dev);
-    }
+      tab->setContextMenuPolicy(Qt::CustomContextMenu);
+      connect(tab, &QWidget::customContextMenuRequested, this, [this, tab](QPoint pos) {
+        widthMenu(tab->mapToGlobal(pos));
+      });
 
-    auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
-    con(plug, &Scenario::ScenarioDocumentModel::busesChanged, this,
+      m_strips[i] = strips;
+    }
+    content_lay->addStretch(1);
+    m_scroll->setWidget(content);
+    body_lay->addWidget(m_scroll, 1);
+
+    m_master = new QWidget{body};
+    new score::MarginLess<QVBoxLayout>{m_master};
+    body_lay->addSpacing(12);
+    body_lay->addWidget(m_master);
+
+    // The strips never get shorter than they can be; while the sections
+    // scroll, the master leaves the scroll bar's room too, so that both end
+    // at the same height.
+    auto bar_h = m_scroll->horizontalScrollBar()->sizeHint().height();
+    updateMinimumHeight();
+    connect(
+        m_scroll->horizontalScrollBar(), &QScrollBar::rangeChanged, this,
+        [this, bar_h](int, int max) {
+      m_master->layout()->setContentsMargins(0, 0, 0, max > 0 ? bar_h : 0);
+    });
+    lay->addWidget(body, 1);
+
+    auto& devices = ctx.plugin<Explorer::DeviceDocumentPlugin>();
+    if(auto audio = devices.list().audioDevice())
+      watchDevice(static_cast<Dataflow::AudioDevice*>(audio));
+    else
+      con(devices.list(), &Device::DeviceList::deviceAdded, this,
+          [this](Device::DeviceInterface* d) {
+        if(auto audio = qobject_cast<Dataflow::AudioDevice*>(d); audio && !m_device)
+          watchDevice(audio);
+      });
+
+    auto& doc = ctx.model<Scenario::ScenarioDocumentModel>();
+    con(doc, &Scenario::ScenarioDocumentModel::busesChanged, this,
         &MixerPanel::setupBuses);
     setupBuses();
+
+    auto& telemetry = ctx.plugin<Execution::DocumentPlugin>().telemetry();
+    con(telemetry, &Execution::Telemetry::updated, this, [this, &telemetry] {
+      forEachStrip([&](Strip& s) { s.updateMeter(telemetry); });
+    });
+    con(ctx.coarseUpdateTimer, &QTimer::timeout, this,
+        [this] { forEachStrip([](Strip& s) { s.poll(); }); });
+
+    setSelection(ctx.selectionStack.currentSelection());
   }
 
-  void setupDevice(Dataflow::AudioDevice* dev)
+  void setSelection(const Selection& sel)
   {
-    qDeleteAll(m_physicalInWidgets);
-    m_physicalInWidgets.clear();
-    qDeleteAll(m_physicalOutWidgets);
-    m_physicalOutWidgets.clear();
-    qDeleteAll(m_mappingInWidgets);
-    m_mappingInWidgets.clear();
-    qDeleteAll(m_mappingOutWidgets);
-    m_mappingOutWidgets.clear();
-    qDeleteAll(m_virtualWidgets);
-    m_virtualWidgets.clear();
+    for(auto s : m_busStrips)
+      s->setHighlighted(sel.contains(&s->interval()));
+  }
 
-    // Remove the addStretch thing
-    delete m_physicalInLayout.takeAt(0);
-    delete m_physicalOutLayout.takeAt(0);
-    delete m_mappingInLayout.takeAt(0);
-    delete m_mappingOutLayout.takeAt(0);
-    delete m_virtualLayout.takeAt(0);
+private:
+  StripWidth width() const noexcept { return m_width; }
 
-    m_currentDevice = nullptr;
-    if(!dev->getDevice())
-      return;
+  //! The strips never get shorter than they can be, with room for the scroll
+  //! bar; this changes with the strips shown.
+  void updateMinimumHeight()
+  {
+    // New strips are shown, and counted, once the event loop runs.
+    QTimer::singleShot(0, this, [this] {
+      const int bar_h = m_scroll->horizontalScrollBar()->sizeHint().height();
+      m_scroll->widget()->layout()->activate();
+      m_scroll->setMinimumHeight(
+          m_scroll->widget()->minimumSizeHint().height() + bar_h);
+    });
+  }
 
-    auto& proto = static_cast<ossia::audio_protocol&>(dev->getDevice()->get_protocol());
+  //! The width of every strip.
+  void widthMenu(QPoint at)
+  {
+    QMenu menu;
+    auto widths = menu.addMenu(tr("Width of every strip"));
+    for(auto [w, name] :
+        {std::pair{StripWidth::Narrow, tr("Narrow")},
+         std::pair{StripWidth::Normal, tr("Normal")},
+         std::pair{StripWidth::Wide, tr("Wide")}})
     {
-      if(proto.main_audio_in)
-      {
-        // Main in
-        auto w = new AudioDeviceSlider{*proto.main_audio_in, &m_physicalInWidget};
-        m_mappingInLayout.addWidget(w);
-        m_mappingInWidgets.push_back(w);
-      }
-      for(auto& in : proto.audio_ins)
-      {
-        auto w = new AudioDeviceSlider{*in, &m_physicalInWidget};
-        m_physicalInLayout.addWidget(w);
-        m_physicalInWidgets.push_back(w);
-      }
-      for(auto& in : proto.in_mappings)
-      {
-        auto w = new AudioDeviceSlider{*in, &m_mappingInArea};
-        m_mappingInLayout.addWidget(w);
-        m_mappingInWidgets.push_back(w);
-      }
-
-      if(proto.main_audio_out)
-      {
-        // Main out
-        auto w = new AudioDeviceSlider{*proto.main_audio_out, &m_physicalOutWidget};
-        m_mappingOutLayout.addWidget(w);
-        m_mappingOutWidgets.push_back(w);
-      }
-      for(auto& out : proto.audio_outs)
-      {
-        auto w = new AudioDeviceSlider{*out, &m_physicalOutWidget};
-        m_physicalOutLayout.addWidget(w);
-        m_physicalOutWidgets.push_back(w);
-      }
-      for(auto& out : proto.out_mappings)
-      {
-        auto w = new AudioDeviceSlider{*out, &m_mappingOutArea};
-        m_mappingOutLayout.addWidget(w);
-        m_mappingOutWidgets.push_back(w);
-      }
-
-      for(auto& out : proto.virtaudio)
-      {
-        auto w = new AudioDeviceSlider{*out, &m_virtualWidget};
-        m_virtualLayout.addWidget(w);
-        m_virtualWidgets.push_back(w);
-      }
+      auto act = widths->addAction(name);
+      act->setCheckable(true);
+      act->setChecked(m_width == w);
+      connect(act, &QAction::triggered, this, [this, w = w] {
+        m_width = w;
+        QSettings{}.setValue(settings_width, int(w));
+        forEachStrip([w](Strip& s) { s.setStripWidth(w); });
+      });
     }
+    menu.exec(at);
+  }
 
-    constexpr double width = 75;
+  template <typename F>
+  void forEachStrip(F&& f)
+  {
+    for(auto s : m_busStrips)
+      f(*s);
+    for(auto s : m_portStrips)
+      f(*s);
+  }
 
-    m_physicalInWidget.setMinimumSize((proto.audio_ins.size() + 1) * width, 150);
-    m_physicalInLayout.addStretch(1);
+  QHBoxLayout* stripsLayout(Section s) const
+  {
+    return static_cast<QHBoxLayout*>(m_strips[int(s)]->layout());
+  }
 
-    m_physicalOutWidget.setMinimumSize((proto.audio_outs.size() + 1) * width, 150);
-    m_physicalOutLayout.addStretch(1);
+  void watchDevice(Dataflow::AudioDevice* dev)
+  {
+    m_device = dev;
+    // A reconnection replaces every parameter; a port edit, some of them.
+    connect(dev, &Dataflow::AudioDevice::changed, this, &MixerPanel::requestDevice);
+    connect(dev, &Dataflow::AudioDevice::portsChanged, this, &MixerPanel::requestDevice);
+    setupDevice();
+  }
 
-    m_mappingInWidget.setMinimumSize((proto.in_mappings.size()) * width, 150);
-    m_mappingInLayout.addStretch(1);
-
-    m_mappingOutWidget.setMinimumSize((proto.out_mappings.size()) * width, 150);
-    m_mappingOutLayout.addStretch(1);
-
-    m_virtualWidget.setMinimumSize((proto.virtaudio.size()) * width, 150);
-    m_virtualLayout.addStretch(1);
-
-    m_currentDevice = dev;
+  // A reconnection announces itself more than once: rebuild once.
+  void requestDevice()
+  {
+    if(m_devicePending)
+      return;
+    m_devicePending = true;
+    QTimer::singleShot(0, this, [this] {
+      m_devicePending = false;
+      setupDevice();
+    });
   }
 
   void setupBuses()
   {
-    auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
-    qDeleteAll(m_busWidgets);
-    m_busWidgets.clear();
-    // Remove the addStretch thing
-    delete m_busLayout.takeAt(0);
+    qDeleteAll(m_busStrips);
+    m_busStrips.clear();
+
+    auto& doc = m_context.model<Scenario::ScenarioDocumentModel>();
+    auto lay = stripsLayout(Section::Buses);
+    for(auto itv : doc.busIntervals)
+    {
+      if(itv->graphal())
+        continue;
+      auto s = new BusStrip{*itv, m_context, m_strips[int(Section::Buses)]};
+      s->setStripWidth(width());
+      lay->addWidget(s);
+      m_busStrips.push_back(s);
+    }
+    setSelection(m_context.selectionStack.currentSelection());
+    updateMinimumHeight();
+  }
+
+  void setupDevice()
+  {
+    qDeleteAll(m_portStrips);
+    m_portStrips.clear();
+
+    auto dev = m_device.data();
+    if(!dev || !dev->getProtocol())
+      return;
+    auto& proto = *dev->getProtocol();
+
+    auto add = [this](
+                   Section sec, ossia::audio_parameter* p, PortStrip::Meter m,
+                   std::vector<int> channels = {}) {
+      if(!p)
+        return;
+      auto parent = m_strips[int(sec)];
+      auto s = new PortStrip{*p, m, std::move(channels), m_context, parent};
+      s->setStripWidth(width());
+      stripsLayout(sec)->addWidget(s);
+      m_portStrips.push_back(s);
+    };
 
     int i = 0;
-    for(auto bus : plug.busIntervals)
-    {
-      auto w = new AudioBusWidget{bus, m_currentDevice, ctx, &m_busWidget};
-      m_busLayout.addWidget(w);
-      m_busWidgets.push_back(w);
-    }
+    for(auto p : proto.audio_ins)
+      add(Section::Inputs, p, PortStrip::Meter::HardwareInputs, {i++});
+    i = 0;
+    for(auto p : proto.audio_outs)
+      add(Section::Outputs, p, PortStrip::Meter::HardwareOutputs, {i++});
 
-    m_busWidget.setMinimumSize(i * 100, 150);
-    m_busLayout.addStretch(1);
+    // A mapped port is a set of hardware channels: its meter is theirs.
+    auto mapping = [](const ossia::mapped_audio_parameter& p) {
+      return std::vector<int>(p.mapping.begin(), p.mapping.end());
+    };
+    add(Section::Mapped, proto.main_audio_in, PortStrip::Meter::HardwareInputs);
+    for(auto p : proto.in_mappings)
+      add(Section::Mapped, p, PortStrip::Meter::HardwareInputs, mapping(*p));
+    for(auto p : proto.out_mappings)
+      add(Section::Mapped, p, PortStrip::Meter::HardwareOutputs, mapping(*p));
+    for(auto p : proto.virtaudio)
+      add(Section::Virtual, p, PortStrip::Meter::Virtual);
+
+    // The master: every output, after the master gain.
+    if(auto p = proto.main_audio_out)
+    {
+      auto s = new PortStrip{*p, PortStrip::Meter::HardwareOutputs, {}, m_context, m_master};
+      s->setStripWidth(StripWidth::Wide);
+      score::setHelp(s, tr("The master: its gain applies to every output."));
+      static_cast<QVBoxLayout*>(m_master->layout())->addWidget(s, 1);
+      m_portStrips.push_back(s);
+    }
+    updateMinimumHeight();
   }
+
+  const score::DocumentContext& m_context;
+  QPointer<Dataflow::AudioDevice> m_device;
+  QScrollArea* m_scroll{};
+  StripWidth m_width{StripWidth::Normal};
+  std::array<QWidget*, section_count> m_strips{};
+  QWidget* m_master{};
+  std::vector<BusStrip*> m_busStrips;
+  std::vector<PortStrip*> m_portStrips;
+  bool m_devicePending{};
 };
+
 PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
     : score::PanelDelegate{ctx}
     , m_widget{new QWidget}
 {
   m_widget->setLayout(new score::MarginLess<QHBoxLayout>);
-  score::setHelp(m_widget, 
-      QObject::tr("This panel shows the audio mixer\n"
-                  "Parameters of audio busses and of the audio device \n "
-                  "can be accessed here \n"));
+  score::setHelp(
+      m_widget,
+      QObject::tr("The audio mixer: the buses of the score, and the ports of the audio "
+                  "device.\nRight-click a strip, or a section's side, to change the "
+                  "width of the strips."));
 }
 
 QWidget* PanelDelegate::widget()
@@ -543,6 +487,12 @@ void PanelDelegate::on_modelChanged(score::MaybeDocument oldm, score::MaybeDocum
     m_cur = new MixerPanel{*newm, m_widget};
     m_widget->layout()->addWidget(m_cur);
   }
+}
+
+void PanelDelegate::setNewSelection(const Selection& s)
+{
+  if(m_cur)
+    m_cur->setSelection(s);
 }
 
 std::unique_ptr<score::PanelDelegate>

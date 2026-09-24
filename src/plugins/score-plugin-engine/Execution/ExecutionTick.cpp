@@ -6,11 +6,13 @@
 #include <Execution/BaseScenarioComponent.hpp>
 #include <Execution/DocumentPlugin.hpp>
 #include <Execution/ExecutionController.hpp>
+#include <Execution/ExecutionTick.hpp>
 
 #include <ossia/audio/audio_protocol.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/dataflow/graph/tick_setup.hpp>
+#include <ossia/dataflow/telemetry.hpp>
 #include <ossia/editor/scenario/execution_log.hpp>
 #include <ossia/editor/scenario/scenario.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
@@ -46,6 +48,9 @@ struct AudioTickHelper
     {
       m_actions.push_back(&act);
     }
+    // The master gain may have changed while nothing played.
+    if(m_proto)
+      m_proto->reset_main_gain_ramp();
   }
 
   ~AudioTickHelper()
@@ -190,6 +195,15 @@ struct AudioTickHelper
 
     main_tick(t);
 
+    // Before the actions: the library preview is not part of the mix.
+    m_proto->apply_main_gain(t);
+
+    if(auto* telemetry = m_context->telemetry.get())
+    {
+      telemetry->accumulate_hardware(t);
+      telemetry->tick(t.frames, m_context->execState->sampleRate);
+    }
+
     for(auto act : m_actions)
       act->endTick(t);
   }
@@ -224,51 +238,4 @@ Audio::tick_fun makeExecutionTick(
   };
 }
 
-Audio::tick_fun makeBenchmarkTick(
-    ossia::tick_setup_options opt, Execution::DocumentPlugin& plug,
-    const std::shared_ptr<Execution::BaseScenarioElement>& scenar)
-{
-  int i = 0;
-  QPointer<Execution::DocumentPlugin> plugPtr = &plug;
-  return [helper = std::make_shared<AudioTickHelper>(opt, plug, scenar), plugPtr,
-          i](const ossia::audio_tick_state& t) mutable {
-    Audio::execution_status.store(ossia::transport_status::playing);
-    Audio::execution_samples.fetch_add(t.frames, std::memory_order_release);
-
-    helper->clearBuffers(t);
-    helper->dequeueCommands();
-
-    auto& bench = *helper->m_context->bench;
-    if(i % 50 == 0)
-    {
-      bench.measure = true;
-      auto t0 = std::chrono::steady_clock::now();
-
-      helper->main(t);
-
-      auto t1 = std::chrono::steady_clock::now();
-      auto total = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count();
-#if !defined(_MSC_VER)
-      //FIXME: MSVC unordered_map isn't move noexcept so it does not work here in Debug
-      helper->m_context->m_editionQueue.enqueue([plugPtr, bench, total]() mutable {
-        if(plugPtr)
-          plugPtr->slot_bench(std::move(bench), total);
-      });
-#endif
-
-      for(auto& p : bench)
-      {
-        p.second = {};
-      }
-    }
-    else
-    {
-      bench.measure = false;
-
-      helper->main(t);
-    }
-
-    i++;
-  };
-}
 }

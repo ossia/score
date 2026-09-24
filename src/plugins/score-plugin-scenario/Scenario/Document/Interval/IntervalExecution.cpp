@@ -27,6 +27,7 @@
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/dataflow/graph_edge.hpp>
 #include <ossia/dataflow/nodes/forward_node.hpp>
+#include <ossia/dataflow/telemetry.hpp>
 #include <ossia/editor/scenario/scenario.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
@@ -121,46 +122,16 @@ IntervalComponentBase::IntervalComponentBase(
       });
   });
 
-  con(interval(), &Scenario::IntervalModel::mutedChanged, this, [&](bool b) {
+  auto update_mute = [this] {
     OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
     if(m_ossia_interval)
-      in_exec([b, itv = m_ossia_interval] {
+      in_exec([b = interval().effectivelyMuted(), itv = m_ossia_interval] {
         OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
         itv->mute(b);
       });
-  });
-
-  con(interval(), &Scenario::IntervalModel::busChanged, this, [&](bool b) {
-    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
-    if(m_ossia_interval)
-      in_exec([b, itv = m_ossia_interval] {
-        OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
-        auto& audio_out
-            = static_cast<ossia::nodes::interval*>(itv->node.get())->audio_out;
-        audio_out.has_gain = b;
-      });
-  });
-  con(*interval().outlet, &Process::AudioOutlet::gainChanged, this, [&](double g) {
-    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
-    if(m_ossia_interval)
-      in_exec([g, itv = m_ossia_interval] {
-        OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
-        auto& audio_out
-            = static_cast<ossia::nodes::interval*>(itv->node.get())->audio_out;
-        audio_out.gain = g;
-      });
-  });
-  con(*interval().outlet, &Process::AudioOutlet::panChanged, this,
-      [&](ossia::pan_weight pan) {
-    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
-    if(m_ossia_interval)
-      in_exec([pan = std::move(pan), itv = m_ossia_interval] {
-        OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
-        auto& audio_out
-            = static_cast<ossia::nodes::interval*>(itv->node.get())->audio_out;
-        audio_out.pan = pan;
-      });
-  });
+  };
+  con(interval(), &Scenario::IntervalModel::mutedChanged, this, update_mute);
+  con(interval(), &Scenario::IntervalModel::soloMutedChanged, this, update_mute);
 
   if(scenar)
   {
@@ -203,9 +174,28 @@ IntervalComponentBase::IntervalComponentBase(
   // TODO tempo, etc
 }
 
+//! What the execution thread's callback needs: the component to notify when
+//! the interval starts or stops, and where to write its position.
+struct IntervalComponent::CallbackState
+{
+  std::weak_ptr<IntervalComponent> self;
+  std::weak_ptr<Execution::EditionCommandQueue> edit;
+  std::shared_ptr<ossia::telemetry::playhead_tap> playhead;
+  bool running{};
+  bool graphal{};
+};
+
 IntervalComponent::~IntervalComponent()
 {
   OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
+  releasePlayhead();
+}
+
+void IntervalComponent::releasePlayhead()
+{
+  if(m_telemetry)
+    m_telemetry->release(m_playhead);
+  m_playhead = {};
 }
 
 void IntervalComponent::init()
@@ -213,7 +203,7 @@ void IntervalComponent::init()
   OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   if(m_interval)
   {
-    if(interval().muted())
+    if(interval().effectivelyMuted())
     {
       m_ossia_interval->mute(true);
     }
@@ -332,6 +322,7 @@ void IntervalComponent::cleanup(const std::shared_ptr<IntervalComponent>& self)
     c->cleanup();
   }
 
+  releasePlayhead();
   executionStopped();
   clear();
   m_processes.clear();
@@ -366,12 +357,6 @@ void IntervalComponent::onSetup(
 
   if(!interval().graphal())
   {
-    auto& audio_out
-        = static_cast<ossia::nodes::interval*>(m_ossia_interval->node.get())->audio_out;
-    audio_out.has_gain = Scenario::isBus(*m_interval, context().doc);
-    audio_out.gain = m_interval->outlet->gain();
-    audio_out.pan = m_interval->outlet->pan();
-
     m_ossia_interval->set_min_duration(dur.minDuration);
     m_ossia_interval->set_max_duration(dur.maxDuration);
     m_ossia_interval->set_speed(dur.speed);
@@ -401,38 +386,57 @@ void IntervalComponent::onSetup(
   {
     std::weak_ptr<IntervalComponent> weak_self = self;
 
-    if(Q_UNLIKELY(interval().graphal()))
+    // Starting and stopping reach the interface as commands: they change what
+    // the model does, e.g. whether a process added now starts. The position is
+    // informative: it comes back through the telemetry, when enabled.
+    auto state = std::make_shared<CallbackState>();
+    state->self = weak_self;
+    state->edit = weak_edit;
+    state->graphal = interval().graphal();
+    if(!state->graphal)
     {
-      t.push_back([weak_self, ossia_cst, qed_ptr = weak_edit] {
-        ossia_cst->set_callback(
-            smallfun::function<void(bool, ossia::time_value), 32>{
-                [weak_self, qed_ptr](bool running, ossia::time_value date) {
-          OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
-          if(auto qed = qed_ptr.lock())
-            qed->enqueue([weak_self, running, date] {
-              OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
-              if(auto self = weak_self.lock())
-                self->graph_slot_callback(running, date);
-            });
-        }});
-      });
+      state->playhead = std::make_shared<ossia::telemetry::playhead_tap>();
+      if(auto tel = system().telemetry)
+      {
+        m_telemetry = tel;
+        m_playhead = tel->registerPlayhead(state->playhead);
+        connect(tel, &Execution::TelemetryInterface::updated, this, [this] {
+          if(!m_telemetry || !m_interval)
+            return;
+          if(auto p = m_telemetry->playhead(m_playhead); p && p->running)
+            updatePosition(ossia::time_value{p->date});
+        });
+      }
     }
-    else
-    {
-      t.push_back([weak_self, ossia_cst, qed_ptr = weak_edit] {
-        ossia_cst->set_callback(
-            smallfun::function<void(bool, ossia::time_value), 32>{
-                [weak_self, qed_ptr](bool running, ossia::time_value date) {
-          OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
-          if(auto qed = qed_ptr.lock())
-            qed->enqueue([weak_self, running, date] {
-              OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
-              if(auto self = weak_self.lock())
-                self->slot_callback(running, date);
-            });
-        }});
-      });
-    }
+    // The component keeps a reference too, so that the last one is never
+    // dropped on the execution thread.
+    m_callbackState = state;
+
+    t.push_back([state, ossia_cst] {
+      ossia_cst->set_callback(smallfun::function<void(bool, ossia::time_value), 32>{
+          [state](bool running, ossia::time_value date) {
+        OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
+        if(auto p = state->playhead.get())
+        {
+          p->running = running;
+          p->date = date.impl;
+        }
+        if(running == state->running)
+          return;
+        state->running = running;
+        if(auto qed = state->edit.lock())
+          qed->enqueue([self = state->self, running, date, graphal = state->graphal] {
+            OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
+            if(auto s = self.lock())
+            {
+              if(graphal)
+                s->graph_slot_callback(running, date);
+              else
+                s->slot_callback(running, date);
+            }
+          });
+      }});
+    });
   }
 
   // set-up the interval ports
@@ -461,34 +465,37 @@ void IntervalComponent::slot_callback(bool running, ossia::time_value date)
   if(!m_interval)
     return;
 
-  auto& cstdur = interval().duration;
   if(m_ossia_interval)
   {
     if(running)
-    {
-      const auto& maxdur = cstdur.maxDuration();
-
-      auto currentTime = this->context().reverseTime(date);
-      if(!maxdur.infinite())
-      {
-        if(maxdur > TimeVal::zero())
-          cstdur.setPlayPercentage(currentTime / cstdur.maxDuration());
-      }
-      else
-      {
-        if(cstdur.defaultDuration() > TimeVal::zero())
-          cstdur.setPlayPercentage(currentTime / cstdur.defaultDuration());
-      }
-
-      for(Process::ProcessModel& proc : interval().processes)
-        proc.executionPosition(cstdur.playPercentage());
-    }
+      updatePosition(date);
     interval().setExecuting(running);
   }
   else
   {
     interval().setExecuting(false);
   }
+}
+
+void IntervalComponent::updatePosition(ossia::time_value date)
+{
+  auto& cstdur = interval().duration;
+  const auto& maxdur = cstdur.maxDuration();
+
+  auto currentTime = this->context().reverseTime(date);
+  if(!maxdur.infinite())
+  {
+    if(maxdur > TimeVal::zero())
+      cstdur.setPlayPercentage(currentTime / cstdur.maxDuration());
+  }
+  else
+  {
+    if(cstdur.defaultDuration() > TimeVal::zero())
+      cstdur.setPlayPercentage(currentTime / cstdur.defaultDuration());
+  }
+
+  for(Process::ProcessModel& proc : interval().processes)
+    proc.executionPosition(cstdur.playPercentage());
 }
 
 const std::shared_ptr<ossia::time_interval>& IntervalComponentBase::OSSIAInterval() const

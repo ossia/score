@@ -166,8 +166,11 @@ void DoubleSlider::createPopup(QPoint pos)
   w->show();
   w->move(pos.x(), pos.y());
   QTimer::singleShot(5, w, [w] { w->setFocus(); });
-  QObject::connect(
-      w, &DoubleSpinboxWithEnter::editingFinished, w, &QObject::deleteLater);
+  // Typing a value is a gesture of its own: it ends like a drag does.
+  QObject::connect(w, &DoubleSpinboxWithEnter::editingFinished, this, [this, w] {
+    sliderReleased();
+    w->deleteLater();
+  });
 }
 void DoubleSlider::setRange(double min, double max, double init) noexcept
 {

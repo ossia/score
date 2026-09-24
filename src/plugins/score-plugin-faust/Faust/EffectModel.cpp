@@ -1,6 +1,7 @@
 #include "EffectModel.hpp"
 
 #include <Process/Dataflow/PortFactory.hpp>
+#include <Process/Execution/TelemetryInterface.hpp>
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionSetup.hpp>
 #include <Process/ExternalFiles.hpp>
@@ -663,24 +664,6 @@ void FaustEffectComponent::setupExecutionControls(
     m_controlConnections.push_back(c);
   }
 
-  auto c = con(
-      ctx.doc.coarseUpdateTimer, &QTimer::timeout, this,
-      [weak_node, firstControlIndex, &proc] {
-    if(auto node = weak_node.lock())
-    {
-      for(int i = firstControlIndex; i < std::ssize(proc.inlets()); i++)
-      {
-        auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
-        int idx = i - firstControlIndex;
-        if(idx >= 0 && idx < node->controls.size())
-          inlet->setExecutionValue(*node->controls[i - firstControlIndex].second);
-        else
-          qDebug() << idx << node->controls.size();
-      }
-    }
-      });
-
-  m_controlConnections.push_back(c);
 }
 
 template <typename Node_T>
@@ -713,20 +696,46 @@ void FaustEffectComponent::setupExecutionControlOutlets(
     });
     m_controlConnections.push_back(c);
   }
+}
 
-  auto c = con(
-      ctx.doc.coarseUpdateTimer, &QTimer::timeout, this,
-      [weak_node, firstControlIndex, &proc] {
-    if(auto node = weak_node.lock())
+template <typename Node_T>
+void FaustEffectComponent::setupExecutionFeedback(
+    const Node_T& node, int firstControlIndex, int firstDisplayIndex)
+{
+  auto* telemetry = system().telemetry;
+  if(!telemetry)
+    return;
+
+  // What the DSP runs with, as of its latest tick, at the rate and under the
+  // setting of every execution feedback.
+  auto c = connect(
+      telemetry, &Execution::TelemetryInterface::updated, this,
+      [weak_node = typename Node_T::weak_type{node}, firstControlIndex,
+       firstDisplayIndex, &proc = process()] {
+    auto node = weak_node.lock();
+    if(!node)
+      return;
+    const auto* values = node->ui.consume();
+    if(!values)
+      return;
+
+    const std::size_t controls = node->controls.size();
+    const std::size_t displays = node->displays.size();
+    for(std::size_t i = 0; i < controls; i++)
     {
-      for(std::size_t i = firstControlIndex; i < proc.outlets().size(); i++)
-      {
-        auto outlet = static_cast<Process::ControlOutlet*>(proc.outlets()[i]);
-        outlet->setExecutionValue(*node->displays[i - firstControlIndex].second);
-      }
+      const std::size_t port = firstControlIndex + i;
+      if(port < proc.inlets().size())
+        if(auto inlet = qobject_cast<Process::ControlInlet*>(proc.inlets()[port]))
+          inlet->setExecutionValue((*values)[i]);
     }
-      });
-
+    for(std::size_t i = 0; i < displays; i++)
+    {
+      const std::size_t port = firstDisplayIndex + i;
+      if(port < proc.outlets().size())
+        if(auto outlet = qobject_cast<Process::ControlOutlet*>(proc.outlets()[port]))
+          outlet->setExecutionValue((*values)[controls + i]);
+    }
+  });
   m_controlConnections.push_back(c);
 }
 
@@ -748,6 +757,7 @@ void FaustEffectComponent::reloadSynth(Execution::Transaction& transaction)
 
   setupExecutionControls(node, 2);
   setupExecutionControlOutlets(node, 1);
+  setupExecutionFeedback(node, 2, 1);
 }
 
 void FaustEffectComponent::reloadFx(Execution::Transaction& transaction)
@@ -764,6 +774,7 @@ void FaustEffectComponent::reloadFx(Execution::Transaction& transaction)
       ctx.setup.replace_node(m_ossia_process, node, transaction);
     setupExecutionControls(node, 1);
     setupExecutionControlOutlets(node, 1);
+    setupExecutionFeedback(node, 1, 1);
   };
 
   if(proc.faust_object->getNumInputs() <= 1 && proc.faust_object->getNumOutputs() == 1)

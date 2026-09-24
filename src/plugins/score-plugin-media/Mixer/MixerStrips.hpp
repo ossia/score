@@ -1,0 +1,246 @@
+#pragma once
+#include <score/widgets/DoubleSlider.hpp>
+#include <score/widgets/LevelMeter.hpp>
+
+#include <Execution/Telemetry.hpp>
+
+#include <QAbstractButton>
+#include <QElapsedTimer>
+#include <QPointer>
+#include <QToolButton>
+#include <QWidget>
+
+#include <nano_signal_slot.hpp>
+
+#include <utility>
+#include <string>
+#include <vector>
+
+class QLabel;
+class QPushButton;
+class QToolButton;
+class QVBoxLayout;
+namespace ossia
+{
+class audio_parameter;
+namespace net
+{
+class node_base;
+}
+namespace telemetry
+{
+struct meter_levels;
+}
+}
+namespace score
+{
+struct DocumentContext;
+}
+namespace Scenario
+{
+class IntervalModel;
+}
+
+namespace Dataflow
+{
+class AudioDevice;
+}
+
+namespace Mixer
+{
+//! Asks for a new mapped or virtual port of the audio device and adds it,
+//! showing the device in the device explorer first if it is not there yet.
+//! `kind` ("in", "out" or "virtual") is the one the dialog proposes.
+void addAudioPort(
+    const score::DocumentContext& ctx, Dataflow::AudioDevice& dev, QWidget* parent,
+    const std::string& kind = "in");
+
+enum class StripWidth
+{
+  Narrow,
+  Normal,
+  Wide
+};
+
+//! A strip's name, over a bar of the colour of what it stands for. Painted:
+//! the deployment builds of Qt have no style sheets.
+class StripTitle final : public QAbstractButton
+{
+public:
+  using QAbstractButton::QAbstractButton;
+  void setColor(const QColor& c);
+
+protected:
+  void paintEvent(QPaintEvent*) override;
+
+private:
+  QColor m_color{Qt::transparent};
+};
+
+//! A toggle whose checked state stands out in its own colour.
+class ColorToggle final : public QToolButton
+{
+public:
+  ColorToggle(const QColor& on, QWidget* parent);
+
+protected:
+  void paintEvent(QPaintEvent*) override;
+
+private:
+  QColor m_on;
+};
+
+//! A vertical fader in dB: position p gives a gain of p³, 0 dB at the top.
+class GainFader final : public score::DoubleSlider
+{
+public:
+  explicit GainFader(QWidget* parent);
+
+  //! Height of the cap: its centre travels from cap_h / 2 to height - cap_h / 2.
+  static constexpr int cap_h = 8;
+
+  static double positionToGain(double p) noexcept;
+  static double gainToPosition(double g) noexcept;
+
+  double map(double position) const override;
+  double unmap(double db) const override;
+
+protected:
+  void paintEvent(QPaintEvent*) override;
+};
+
+//! Balance between the first two channels: centre is unity on both.
+class PanSlider final : public score::DoubleSlider
+{
+public:
+  explicit PanSlider(QWidget* parent);
+
+  static std::pair<double, double> weights(double position) noexcept;
+  static double position(double left, double right) noexcept;
+
+protected:
+  void paintEvent(QPaintEvent*) override;
+};
+
+//! What every strip has: a name, a meter next to a fader, and a value readout.
+class Strip : public QWidget
+{
+public:
+  Strip(const score::DocumentContext& ctx, QWidget* parent);
+  ~Strip() override;
+
+  void setStripWidth(StripWidth w);
+  StripWidth stripWidth() const noexcept { return m_width; }
+
+  //! Reads the strip's meter from the latest telemetry update.
+  virtual void updateMeter(const Execution::Telemetry& t);
+  //! Picks up values that do not notify, e.g. a device gain set by automation.
+  virtual void poll() { }
+
+  void setHighlighted(bool b);
+
+protected:
+  //! Shows the meter's channels, or only the listed ones.
+  void setMeter(Execution::Telemetry::Meter m, std::vector<int> channels = {});
+  void setGainReadout(double gain);
+  //! What the metered signal goes through before it is used: the meter shows
+  //! it scaled by this.
+  virtual double meterGain() const noexcept { return 1.; }
+  void setTitle(const QString& t);
+  void setTitleColor(const QColor& c);
+  void resizeEvent(QResizeEvent*) override;
+  void contextMenuEvent(QContextMenuEvent*) override;
+  void paintEvent(QPaintEvent*) override;
+  virtual void fillContextMenu(class QMenu&) { }
+
+  const score::DocumentContext& m_context;
+  QVBoxLayout* m_layout{};
+  StripTitle* m_title{};
+  QLabel* m_badge{};
+  score::LevelMeter* m_meter{};
+  GainFader* m_fader{};
+  QLabel* m_readout{};
+  QWidget* m_controls{};
+  QWidget* m_buttons{};
+  QPointer<Execution::Telemetry> m_telemetry;
+
+private:
+  void elideTitle();
+
+  QString m_titleText;
+  Execution::Telemetry::Meter m_meterHandle;
+  std::vector<int> m_channels;
+  std::vector<score::LevelMeter::Channel> m_levels;
+  StripWidth m_width{StripWidth::Normal};
+  bool m_highlighted{};
+};
+
+//! An interval marked as a bus.
+class BusStrip final : public Strip
+{
+public:
+  BusStrip(
+      const Scenario::IntervalModel& itv, const score::DocumentContext& ctx,
+      QWidget* parent);
+  ~BusStrip() override;
+
+  const Scenario::IntervalModel& interval() const noexcept { return m_model; }
+
+  //! Also shows the CPU share of every process in the bus, when measured.
+  void updateMeter(const Execution::Telemetry& t) override;
+
+private:
+  std::vector<QPointer<const Process::ProcessModel>> m_processes;
+  QElapsedTimer m_processesAge;
+  void fillContextMenu(QMenu&) override;
+  void syncFromModel();
+  void syncGain();
+  void syncPan();
+  void syncButtons();
+  void syncTitle();
+
+  const Scenario::IntervalModel& m_model;
+  QToolButton* m_mute{};
+  QToolButton* m_solo{};
+  QToolButton* m_propagate{};
+  PanSlider* m_pan{};
+};
+
+//! A parameter of the audio device: a hardware channel, the main input or
+//! output, a mapped or a virtual port.
+class PortStrip final
+    : public Strip
+    , public Nano::Observer
+{
+public:
+  enum class Meter
+  {
+    None,
+    HardwareInputs,
+    HardwareOutputs,
+    //! What the graph writes to a virtual port.
+    Virtual,
+  };
+  //! `channels`: which channels of the hardware meter are this port's, all
+  //! of them when empty.
+  PortStrip(
+      ossia::audio_parameter& param, Meter meter, std::vector<int> channels,
+      const score::DocumentContext& ctx, QWidget* parent);
+  ~PortStrip() override;
+
+  void poll() override;
+
+private:
+  void fillContextMenu(QMenu&) override;
+  void onNodeRemoved(const ossia::net::node_base&);
+
+  double meterGain() const noexcept override;
+
+  ossia::audio_parameter* m_param{};
+  Meter m_meterKind{Meter::None};
+  double m_shownGain{-1.};
+  //! The gain the document holds, which a release records a change from.
+  double m_committedGain{1.};
+  bool m_dragging{};
+};
+}

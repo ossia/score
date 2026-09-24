@@ -2,6 +2,10 @@
 
 #include <score/tools/IdentifierGeneration.hpp>
 
+#include <ossia/dataflow/execution_state.hpp>
+#include <ossia/dataflow/graph/graph.hpp>
+#include <ossia/dataflow/graph_edge_helpers.hpp>
+#include <ossia/dataflow/nodes/faust/faust_node.hpp>
 #include <ossia/detail/disable_fpe.hpp>
 
 #include <QObject>
@@ -473,4 +477,125 @@ TEST_CASE(
     const auto out = fx.run1({1.0, 2.0, 3.0});
     CHECK(out[2] == Approx(3.0 * (i + 1)).margin(1e-15));
   }
+}
+
+TEST_CASE(
+    "Faust: a mono generator makes a channel with nothing plugged in",
+    "[faust][node]")
+{
+  // score runs every program with at most one input and one output as a mono
+  // effect, one clone per incoming channel.
+  Jit gen{"process = 0.25;"};
+  REQUIRE(gen.ok());
+
+  constexpr int frames = 64;
+  ossia::execution_state e;
+  e.sampleRate = 48000;
+  e.bufferSize = frames;
+  e.modelToSamplesRatio = e.sampleRate / ossia::flicks_per_second<double>;
+  e.samplesToModelRatio = ossia::flicks_per_second<double> / e.sampleRate;
+
+  auto node = std::make_shared<ossia::nodes::faust_mono_fx>(
+      std::shared_ptr<dsp>(gen.dsp, [](dsp*) {}));
+  auto g = ossia::make_graph(ossia::graph_setup_options{});
+  g->add_node(node);
+
+  node->request(ossia::simple_token_request{
+      ossia::time_value{0},
+      ossia::time_value{int64_t(frames * e.samplesToModelRatio)}});
+  e.begin_tick();
+  g->state(e);
+  e.commit();
+
+  const auto& out = node->root_outputs()[0]->cast<ossia::audio_port>();
+  REQUIRE(out.channels() == 1);
+  CHECK(out.channel(0)[frames / 2] == Approx(0.25));
+  g->clear();
+}
+
+TEST_CASE(
+    "Faust: the interface reads the controls and displays of the latest tick",
+    "[faust][node]")
+{
+  Jit gen{R"(process = hslider("g", 0.5, 0, 1, 0.01) : hbargraph("m", 0, 1);)"};
+  REQUIRE(gen.ok());
+
+  constexpr int frames = 64;
+  ossia::execution_state e;
+  e.sampleRate = 48000;
+  e.bufferSize = frames;
+  e.modelToSamplesRatio = e.sampleRate / ossia::flicks_per_second<double>;
+  e.samplesToModelRatio = ossia::flicks_per_second<double> / e.sampleRate;
+
+  auto node = std::make_shared<ossia::nodes::faust_fx>(
+      std::shared_ptr<dsp>(gen.dsp, [](dsp*) {}));
+  REQUIRE(node->controls.size() == 1);
+  REQUIRE(node->displays.size() == 1);
+  auto g = ossia::make_graph(ossia::graph_setup_options{});
+  g->add_node(node);
+
+  // Nothing ran yet: the interface keeps what it has.
+  CHECK(!node->ui.consume());
+
+  const std::vector<float>* first{};
+  for(double gain : {0.25, 0.75})
+  {
+    node->root_inputs()[1]->cast<ossia::value_port>().write_value(gain, 0);
+    node->request(ossia::simple_token_request{
+        ossia::time_value{0},
+        ossia::time_value{int64_t(frames * e.samplesToModelRatio)}});
+    e.begin_tick();
+    g->state(e);
+    e.commit();
+  }
+
+  // Two ticks, one read: the latest one.
+  const auto* values = node->ui.consume();
+  REQUIRE(values);
+  REQUIRE(values->size() == 2);
+  CHECK((*values)[0] == Approx(0.75));
+  CHECK((*values)[1] == Approx(0.75));
+  CHECK(!node->ui.consume());
+  g->clear();
+}
+
+TEST_CASE(
+    "Faust: a mono generator follows the channels plugged into it", "[faust][node]")
+{
+  Jit gen{"process = 0.25;"};
+  REQUIRE(gen.ok());
+
+  constexpr int frames = 64;
+  ossia::execution_state e;
+  e.sampleRate = 48000;
+  e.bufferSize = frames;
+  e.modelToSamplesRatio = e.sampleRate / ossia::flicks_per_second<double>;
+  e.samplesToModelRatio = ossia::flicks_per_second<double> / e.sampleRate;
+
+  auto node = std::make_shared<ossia::nodes::faust_mono_fx>(
+      std::shared_ptr<dsp>(gen.dsp, [](dsp*) {}));
+  auto g = ossia::make_graph(ossia::graph_setup_options{});
+  g->add_node(node);
+
+  // A stereo cable into the unused inlet: one clone per channel, as before.
+  auto src = std::make_shared<ossia::nodes::faust_mono_fx>(
+      std::shared_ptr<dsp>(gen.dsp, [](dsp*) {}));
+  g->add_node(src);
+  g->connect(ossia::make_glutton_edge(*g, 0, 0, src, node));
+  auto& in = node->root_inputs()[0]->cast<ossia::audio_port>();
+  in.set_channels(2);
+  for(auto& c : in.get())
+    c.assign(frames, 0.);
+
+  ossia::token_request tk;
+  tk.prev_date = ossia::time_value{0};
+  tk.date = ossia::time_value{int64_t(frames * e.samplesToModelRatio)};
+  tk.start_sample = 0;
+  tk.length_sample = frames;
+  e.begin_tick();
+  node->run(tk, ossia::exec_state_facade{&e});
+
+  const auto& out = node->root_outputs()[0]->cast<ossia::audio_port>();
+  CHECK(out.channels() == 2);
+  g->clear();
 }

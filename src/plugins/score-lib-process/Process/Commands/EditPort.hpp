@@ -7,6 +7,7 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
 
+#include <score/command/AggregateCommand.hpp>
 #include <score/command/Command.hpp>
 #include <score/command/PropertyCommand.hpp>
 #include <score/model/path/Path.hpp>
@@ -51,3 +52,20 @@ SCORE_COMMAND_DECL_T(Process::SetGain)
 
 PROPERTY_COMMAND_T(Process, SetPan, AudioOutlet::p_pan, "Set port pan")
 SCORE_COMMAND_DECL_T(Process::SetPan)
+
+PROPERTY_COMMAND_T(
+    Process, SetUpmixMode, AudioOutlet::p_upmixMode, "Set port upmix")
+SCORE_COMMAND_DECL_T(Process::SetUpmixMode)
+
+PROPERTY_COMMAND_T(
+    Process, SetUpmixChannels, AudioOutlet::p_upmixChannels, "Set port upmix channels")
+SCORE_COMMAND_DECL_T(Process::SetUpmixChannels)
+
+namespace Process
+{
+//! The kind of upmix and its channel count, as one step.
+class SetUpmix final : public score::AggregateCommand
+{
+  SCORE_COMMAND_DECL(CommandFactoryName(), SetUpmix, "Set port upmix")
+};
+}

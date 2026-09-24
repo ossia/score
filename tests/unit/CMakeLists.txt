@@ -4,6 +4,12 @@ score_add_test(test_unit_address
   SOURCES AddressParseTest.cpp
   PLUGINS score_lib_state)
 
+# Fields added to the binary format are read only when the data has them.
+score_add_test(test_unit_datastream_compat
+  SOURCES DataStreamCompatTest.cpp
+  APP
+  PLUGINS score_lib_base)
+
 # --- project archives (zip) -------------------------------------------------
 score_add_test(test_unit_zip_tools
   SOURCES ZipToolsTest.cpp
@@ -1430,3 +1436,33 @@ score_add_test(test_unit_audio_protocol_tree
 
 score_add_test(test_unit_vector_domain_scalar
   SOURCES VectorDomainScalarTest.cpp)
+
+# The meters a view asks the execution for come back through the telemetry
+# arena, at the document's coarse rate, gated by the execution-update setting.
+if(TARGET score_plugin_engine)
+  score_add_test(test_unit_telemetry_exec
+    SOURCES TelemetryExecTest.cpp
+    APP
+    PLUGINS score_plugin_engine score_plugin_audio score_plugin_scenario score_lib_process
+            score_plugin_deviceexplorer score_lib_device)
+endif()
+
+# The control values of an avnd process go to its model ports through a
+# triple buffer that does not allocate once warm.
+if(TARGET score_plugin_ui AND TARGET score_plugin_avnd)
+  score_add_test(test_unit_avnd_control_outputs_ui
+    SOURCES AvndControlOutputsUiTest.cpp
+    APP
+    PLUGINS score_plugin_ui score_plugin_avnd score_plugin_engine score_plugin_scenario score_lib_process)
+  target_include_directories(test_unit_avnd_control_outputs_ui PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish")
+endif()
+
+# A port of the audio device is edited in place while the engine runs:
+# processes may hold a pointer to it.
+if(TARGET score_plugin_audio)
+  score_add_test(test_unit_audio_port_edit
+    SOURCES AudioPortEditTest.cpp
+    APP
+    PLUGINS score_plugin_audio score_plugin_deviceexplorer score_lib_device)
+endif()

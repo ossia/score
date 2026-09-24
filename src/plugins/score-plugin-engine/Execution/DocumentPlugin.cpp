@@ -19,6 +19,7 @@
 #include <Audio/Settings/Model.hpp>
 #include <Engine/ApplicationPlugin.hpp>
 #include <Execution/Settings/ExecutorModel.hpp>
+#include <Execution/Telemetry.hpp>
 
 #include <score/actions/ActionManager.hpp>
 #include <score/model/ComponentUtils.hpp>
@@ -29,12 +30,13 @@
 #include <core/document/DocumentModel.hpp>
 
 #include <ossia/audio/audio_protocol.hpp>
-#include <ossia/dataflow/bench_map.hpp>
+#include <ossia/dataflow/bench_state.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/for_each_port.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/dataflow/graph_edge.hpp>
 #include <ossia/dataflow/port.hpp>
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/flicks.hpp>
 #include <ossia/detail/logger.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
@@ -43,7 +45,6 @@
 #include <QCoreApplication>
 
 #include <wobjectimpl.h>
-W_REGISTER_ARGTYPE(ossia::bench_map)
 W_OBJECT_IMPL(Execution::DocumentPlugin)
 namespace Execution
 {
@@ -52,7 +53,7 @@ DocumentPlugin::ContextData::ContextData(const score::DocumentContext& ctx)
     , context
 {
   {}, ctx, m_created, {}, {}, m_execQueue, m_editionQueue, m_gcQueue, setupContext,
-      execGraph, execState
+      execGraph, execState, nullptr
 #if(__cplusplus > 201703L) && !defined(_MSC_VER)
       ,
   {
@@ -66,8 +67,10 @@ DocumentPlugin::DocumentPlugin(const score::DocumentContext& ctx, QObject* paren
     : score::DocumentPlugin{ctx, "OSSIADocumentPlugin", parent}
     , settings{ctx.app.settings<Execution::Settings::Model>()}
     , m_ctxData{std::make_shared<ContextData>(ctx)}
+    , m_telemetry{std::make_unique<Telemetry>(ctx, *this)}
 {
   m_ctxData->context.alias = m_ctxData;
+  m_ctxData->context.telemetry = m_telemetry.get();
   makeGraph();
   auto& devs = ctx.plugin<Explorer::DeviceDocumentPlugin>();
   local_device = devs.list().localDevice();
@@ -81,6 +84,14 @@ DocumentPlugin::DocumentPlugin(const score::DocumentContext& ctx, QObject* paren
         {Dataflow::AudioProtocolFactory::static_concreteKey(), "audio", {}});
     ctx.plugin<Explorer::DeviceDocumentPlugin>().list().setAudioDevice(audio_device);
   }
+
+  // Its tree may be replaced, e.g. when the audio settings change.
+  connect(
+      audio_device, &Device::DeviceInterface::deviceChanged, this,
+      &DocumentPlugin::on_deviceChanged);
+  connect(
+      audio_device, &Device::DeviceInterface::nodeAboutToBeRemoved, this,
+      &DocumentPlugin::on_nodeAboutToBeRemoved, Qt::DirectConnection);
 
   devs.list().apply([this](auto& d) { on_deviceAdded(&d); });
   con(devs.list(), &Device::DeviceList::deviceAdded, this,
@@ -185,9 +196,11 @@ void DocumentPlugin::initExecState()
                       .list()
                       .devices();
   if(audio_device)
-    m_ctxData->execState->register_device(audio_device->getDevice());
+    if(auto d = audio_device->getDevice())
+      m_ctxData->execState->register_device(d);
   if(local_device)
-    m_ctxData->execState->register_device(local_device->getDevice());
+    if(auto d = local_device->getDevice())
+      m_ctxData->execState->register_device(d);
   for(auto dev : devlist)
   {
     registerDevice(dev->getDevice());
@@ -211,6 +224,117 @@ void DocumentPlugin::registerDevice(ossia::net::device_base* d)
     if(m_base && m_base->active())
       d->get_protocol().start_execution();
   }
+}
+
+namespace
+{
+// Whether a port's address may resolve to something under `root`: the same
+// device, and a path under root's, or a pattern.
+bool mayPointUnder(
+    const State::Address& addr, const QString& device, const QStringList& root_path)
+{
+  if(addr.device != device)
+    return false;
+  for(const auto& part : addr.path)
+    for(QChar c : part)
+      if(c == '*' || c == '?' || c == '[' || c == '{')
+        return true;
+  if(addr.path.size() < root_path.size())
+    return false;
+  for(int i = 0; i < root_path.size(); i++)
+    if(addr.path[i] != root_path[i])
+      return false;
+  return true;
+}
+
+void collectTree(
+    ossia::net::node_base& node, std::vector<const void*>& nodes,
+    std::vector<const void*>& params)
+{
+  nodes.push_back(&node);
+  if(auto p = node.get_parameter())
+    params.push_back(p);
+  for(auto child : node.children_copy())
+    collectTree(*child, nodes, params);
+}
+}
+
+void DocumentPlugin::on_nodeAboutToBeRemoved(ossia::net::node_base* root)
+{
+  if(!root)
+    return;
+  m_telemetry->forgetUnder(*root);
+
+  // Ports keep raw pointers to the nodes and parameters they read and write,
+  // which are destroyed as soon as this returns: the ports that point there
+  // let go of them between two audio ticks, once for the whole removal.
+  const auto& g = m_ctxData->execGraph;
+  const auto& st = m_ctxData->execState;
+  if(!g || !st || !m_base)
+    return;
+
+  // Most removals concern nodes no port points to: they need nothing.
+  const auto device = QString::fromStdString(root->get_device().get_name());
+  const auto root_path
+      = QString::fromStdString(root->osc_address()).split('/', Qt::SkipEmptyParts);
+  auto points_under = [&](const auto& ports) {
+    for(const auto& [port, exec] : ports)
+      if(port && mayPointUnder(port->address().address, device, root_path))
+        return true;
+    return false;
+  };
+  if(!points_under(m_ctxData->setupContext.inlets)
+     && !points_under(m_ctxData->setupContext.outlets))
+    return;
+
+  std::vector<const void*> nodes, params;
+  collectTree(*root, nodes, params);
+  std::sort(nodes.begin(), nodes.end());
+  std::sort(params.begin(), params.end());
+
+  auto drop = [&] {
+    auto refers = [&](const ossia::destination_t& dest) {
+      if(auto x = dest.target<ossia::net::parameter_base*>())
+        return std::binary_search(params.begin(), params.end(), (const void*)*x);
+      if(auto x = dest.target<ossia::net::node_base*>())
+        return std::binary_search(nodes.begin(), nodes.end(), (const void*)*x);
+      return false;
+    };
+    bool dirty = false;
+    auto forget = [&](auto& port) {
+      if(refers(port.address))
+      {
+        st->unregister_port(port);
+        port.address = {};
+        dirty = true;
+      }
+    };
+    for(auto node : g->get_nodes())
+    {
+      ossia::for_each_inlet(*node, forget);
+      ossia::for_each_outlet(*node, forget);
+    }
+    if(dirty)
+      g->mark_dirty();
+  };
+
+  auto& engine = m_context.app.guiApplicationPlugin<Audio::ApplicationPlugin>().audio;
+  if(engine)
+    engine->run_between_ticks(drop);
+  else
+    drop();
+}
+
+void DocumentPlugin::on_deviceChanged(
+    ossia::net::device_base* old_dev, ossia::net::device_base* new_dev)
+{
+  if(old_dev)
+  {
+    m_telemetry->forgetUnder(old_dev->get_root_node());
+    unregisterDevice(old_dev);
+  }
+  if(new_dev)
+    registerDevice(new_dev);
 }
 
 void DocumentPlugin::unregisterDevice(ossia::net::device_base* d)
@@ -309,9 +433,9 @@ void DocumentPlugin::makeGraph()
     opt.log = ossia::logger_ptr();
   if(settings.getBench())
   {
-    bench = std::make_shared<bench_map>();
+    bench = std::make_shared<bench_state>();
+    bench->measure = true;
     opt.bench = bench;
-    opt.bench->clear();
   }
 
   if(sched == sched_t.StaticFixed)
@@ -379,11 +503,16 @@ void DocumentPlugin::reload(bool forcePlay, Scenario::IntervalModel& cst)
   }
   t.run_all();
 
+  m_telemetry->executionStarted();
+
   m_tid = startTimer(32);
 }
 
 void DocumentPlugin::clear()
 {
+  if(m_telemetry)
+    m_telemetry->executionStopped();
+
   if(m_ctxData)
   {
     m_ctxData->setupContext.inlets.clear();
@@ -416,6 +545,7 @@ void DocumentPlugin::clear()
   m_ctxData.reset();
   m_ctxData = std::make_shared<ContextData>(this->m_context);
   m_ctxData->context.alias = m_ctxData;
+  m_ctxData->context.telemetry = m_telemetry.get();
 
   auto& model = this->m_context.model<Scenario::ScenarioDocumentModel>();
   model.cables.mutable_added.connect<&SetupContext::on_cableCreated>(
@@ -503,37 +633,19 @@ void DocumentPlugin::registerAction(ExecutionAction& act)
   m_actions.push_back(&act);
 }
 
-void DocumentPlugin::slot_bench(ossia::bench_map b, int64_t ns)
-{
-  for(const auto& p : b)
-  {
-    if(p.second)
-    {
-      auto proc = m_ctxData->setupContext.proc_map.find(p.first);
-      if(proc != m_ctxData->setupContext.proc_map.end())
-      {
-        if(proc->second)
-        {
-          const_cast<Process::ProcessModel*>(proc->second)
-              ->benchmark(100. * *p.second / (double)ns);
-        }
-      }
-    }
-  }
-}
-
 void DocumentPlugin::on_deviceAdded(Device::DeviceInterface* dev)
 {
+  // The audio device is followed from the start, in or out of the list.
+  if(dev == audio_device)
+    return;
   if(auto d = dev->getDevice())
   {
     connect(
         dev, &Device::DeviceInterface::deviceChanged, this,
-        [this](ossia::net::device_base* old_dev, ossia::net::device_base* new_dev) {
-      if(old_dev)
-        unregisterDevice(old_dev);
-      if(new_dev)
-        registerDevice(new_dev);
-        });
+        &DocumentPlugin::on_deviceChanged);
+    connect(
+        dev, &Device::DeviceInterface::nodeAboutToBeRemoved, this,
+        &DocumentPlugin::on_nodeAboutToBeRemoved, Qt::DirectConnection);
     registerDevice(d);
   }
 }

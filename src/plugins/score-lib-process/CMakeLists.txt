@@ -117,6 +117,7 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Effect/EffectLayout.hpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Execution/ProcessComponent.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Execution/TelemetryInterface.hpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Control/Layout.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Control/DefaultEffectItem.hpp"
@@ -207,6 +208,7 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Script/ScriptWidget.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Execution/ProcessComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Execution/TelemetryInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Effect/EffectFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Effect/EffectLayer.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Magnetism/MagnetismAdjuster.cpp"

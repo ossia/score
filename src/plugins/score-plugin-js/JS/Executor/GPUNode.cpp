@@ -13,6 +13,9 @@
 #include <JS/Qml/QmlRhiObjects.hpp>
 #include <JS/Qml/Utils.hpp>
 #include <JS/ThreadLocalQmlEngine.hpp>
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
+
+#include <score/application/ApplicationContext.hpp>
 
 #include <score/gfx/Vulkan.hpp>
 
@@ -984,7 +987,7 @@ void GpuNode::Engine::setupComponent(
   QObject::connect(
       m_object, &JS::Script::uiSend, node.m_uiContext,
       [&node, self = this](const QJSValue& v) {
-    if(!node.m_uiContext)
+    if(!node.m_uiContext || !node.m_messageToUi)
       return;
     // One process, one message: a second preview of it must not double the
     // script's messages to the UI (see GpuNode::claimPublisher).
@@ -1268,12 +1271,14 @@ void gpu_exec_node::setScript(
 
     n->moveToThread(m_context->thread());
     n->m_uiContext = m_context;
-    n->m_messageToUi = [ctx=m_context] (const QVariant& v){
-      OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
-      if(!ctx)
-        return;
-      ctx->executionToUi(v);
-    };
+    // Nothing goes to the interface while the execution does not report back.
+    if(score::AppContext().settings<Scenario::Settings::Model>().getExecutionUpdate())
+      n->m_messageToUi = [ctx = m_context](const QVariant& v) {
+        OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
+        if(!ctx)
+          return;
+        ctx->executionToUi(v);
+      };
 
     QObject::connect(
         &element, &JS::ProcessModel::uiToExecution, n.get(), &JS::GpuNode::uiMessage);

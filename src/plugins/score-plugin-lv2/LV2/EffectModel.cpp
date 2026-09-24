@@ -3,6 +3,7 @@
 #include "lv2_atom_helpers.hpp"
 
 #include <Process/Dataflow/WidgetInlets.hpp>
+#include <Process/Execution/TelemetryInterface.hpp>
 
 #include <Audio/Settings/Model.hpp>
 #include <Execution/DocumentPlugin.hpp>
@@ -1002,9 +1003,8 @@ struct on_start
 
 struct on_finish
 {
-  std::weak_ptr<LV2EffectComponent> self;
-  std::weak_ptr<Execution::EditionCommandQueue> q;
-  void operator()();
+  std::shared_ptr<PluginEvents> to_ui;
+  void operator()(lv2_node_t& node) noexcept;
 };
 void on_start::operator()()
 {
@@ -1032,55 +1032,31 @@ void on_start::operator()()
     }
   }
 }
-void on_finish::operator()()
+void on_finish::operator()(lv2_node_t& node) noexcept
 {
-  auto p = self.lock();
-  if(!p)
+  // The plug-in's own interface shows the MIDI it outputs, while it is open.
+  // Read here, before the buffers are reset for the next tick.
+  if(!to_ui || !to_ui->ui_open.load(std::memory_order_relaxed))
     return;
-  auto q = this->q.lock();
-  if(!q)
-    return;
-
-  q->enqueue([s = self] {
-    auto p = s.lock();
-
-    if(!p)
-      return;
-    auto nn = p->node;
-    if(!nn)
-      return;
-    auto& node = *static_cast<lv2_node_t*>(nn.get());
-    if(node.voices.empty())
-      return;
-    auto& v0 = *node.voices[0];
-
-    for(std::size_t k = 0; k < node.data.control_out_ports.size(); k++)
-    {
-      auto port = (uint32_t)node.data.control_out_ports[k];
-      float val = v0.fOutControls[k];
-
-      auto cport = static_cast<Model&>(p->process()).control_out_map[port];
-      SCORE_ASSERT(cport);
-      cport->setValue(val);
-    }
-  });
-
-  auto nn = p->node;
-  if(!nn)
-    return;
-  auto& node = *static_cast<lv2_node_t*>(nn.get());
   if(node.voices.empty())
     return;
   auto& v0 = *node.voices[0];
 
   for(std::size_t k = 0; k < node.data.midi_out_ports.size(); ++k)
   {
-    int port_index = node.data.midi_out_ports[k];
+    const auto port_index = uint32_t(node.data.midi_out_ports[k]);
     auto& buf = v0.midi_atom_outs[k];
 
     LV2_ATOM_SEQUENCE_FOREACH(&buf.buf->atoms, ev)
     {
-      p->writeAtomToUi(port_index, ev->body);
+      LV2::Message msg;
+      msg.index = port_index;
+      msg.protocol = node.data.host.atom_eventTransfer;
+      const auto bytes = sizeof(LV2_Atom) + ev->body.size;
+      msg.body.resize(bytes);
+      std::memcpy(msg.body.data(), &ev->body, bytes);
+      // Dropped when the interface lags a thousand messages behind.
+      to_ui->queue.try_enqueue(std::move(msg));
     }
   }
 }
@@ -1103,8 +1079,7 @@ void LV2EffectComponent::lazy_init()
   on_start os;
   on_finish of;
   os.self = std::dynamic_pointer_cast<LV2EffectComponent>(shared_from_this());
-  of.self = os.self;
-  of.q = ctx.weakEditionQueue();
+  of.to_ui = proc.plugin_events;
 
   LV2::LV2Data lv2data{host.lv2_host_context, proc.effectContext};
   auto strategy = LV2::choose_voice_strategy(lv2data);
@@ -1138,6 +1113,26 @@ void LV2EffectComponent::lazy_init()
 
   this->node = node;
   m_ossia_process = std::make_shared<ossia::node_process>(node);
+
+  // The control outputs of the latest tick, at the rate and under the setting
+  // of every execution feedback.
+  if(auto* telemetry = ctx.telemetry)
+  {
+    connect(
+        telemetry, &Execution::TelemetryInterface::updated, this,
+        [weak_node = std::weak_ptr{node}, &proc] {
+      auto node = weak_node.lock();
+      if(!node || !node->ui_controls.consume())
+        return;
+      const auto& values = node->ui_controls.read_buffer();
+      for(std::size_t k = 0; k < node->data.control_out_ports.size() && k < values.size(); k++)
+      {
+        auto port = uint32_t(node->data.control_out_ports[k]);
+        if(auto it = proc.control_out_map.find(port); it != proc.control_out_map.end())
+          it->second->setValue(values[k]);
+      }
+    });
+  }
 
   // Grow voice pool on main thread (lilv_plugin_instantiate can dlopen / preload samples)
   if(strategy.routing == LV2::voice_routing::per_channel)
@@ -1206,44 +1201,5 @@ void LV2EffectComponent::growVoicePoolTick()
     lilv_state_free(state);
 }
 
-void LV2EffectComponent::writeAtomToUi(
-    uint32_t port_index, uint32_t type, uint32_t size, const void* body)
-{
-  auto& p = score::GUIAppContext().applicationPlugin<LV2::ApplicationPlugin>();
-  LV2::Message ev;
-  ev.index = port_index;
-  ev.protocol = p.lv2_host_context.atom_eventTransfer;
-  ev.body.resize(sizeof(LV2_Atom) + size);
-
-  {
-    LV2_Atom* atom = reinterpret_cast<LV2_Atom*>(ev.body.data());
-    atom->type = type;
-    atom->size = size;
-  }
-
-  {
-    uint8_t* data = reinterpret_cast<uint8_t*>(ev.body.data() + sizeof(LV2_Atom));
-
-    auto b = (const uint8_t*)body;
-    for(uint32_t i = 0; i < size; i++)
-      data[i] = b[i];
-  }
-
-  process().plugin_events.enqueue(std::move(ev));
-}
-
-void LV2EffectComponent::writeAtomToUi(uint32_t port_index, LV2_Atom& atom)
-{
-  auto& p = score::GUIAppContext().applicationPlugin<LV2::ApplicationPlugin>();
-
-  LV2::Message ev;
-  ev.index = port_index;
-  ev.protocol = p.lv2_host_context.atom_eventTransfer;
-  int message_bytes = sizeof(LV2_Atom) + atom.size;
-  ev.body.resize(message_bytes);
-  memcpy(ev.body.data(), &atom, message_bytes);
-
-  process().plugin_events.enqueue(std::move(ev));
-}
 }
 W_OBJECT_IMPL(LV2::LV2EffectComponent)

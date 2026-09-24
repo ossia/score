@@ -53,6 +53,10 @@ class ProcessModel;
 }
 namespace Execution
 {
+class TelemetryInterface;
+}
+namespace Execution
+{
 struct Transaction;
 class ProcessComponent;
 class ProcessComponentFactory;
@@ -246,6 +250,9 @@ struct SCORE_LIB_PROCESS_EXPORT Context
 
   const std::shared_ptr<ossia::graph_interface>& execGraph;
   const std::shared_ptr<ossia::execution_state>& execState;
+
+  //! What the execution reports back to the interface.
+  TelemetryInterface* telemetry{};
 
   auto& context() const { return *this; }
 

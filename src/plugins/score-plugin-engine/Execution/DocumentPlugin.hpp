@@ -9,7 +9,6 @@
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score/tools/Metadata.hpp>
 
-#include <ossia/dataflow/bench_map.hpp>
 #include <ossia/dataflow/dataflow_fwd.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/local/local.hpp>
@@ -18,21 +17,15 @@
 
 #include <memory>
 #include <verdigris>
-inline QDataStream& operator<<(QDataStream& i, const ossia::bench_map& sel)
-{
-  SCORE_ABORT;
-  return i;
-}
-inline QDataStream& operator>>(QDataStream& i, ossia::bench_map& sel)
-{
-  SCORE_ABORT;
-  return i;
-}
 
 namespace ossia
 {
 class audio_protocol;
-struct bench_map;
+struct bench_state;
+namespace telemetry
+{
+class arena;
+}
 }
 namespace Device
 {
@@ -57,6 +50,7 @@ struct Queues
 {
 };
 class ExecutionController;
+class Telemetry;
 class SCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin final : public score::DocumentPlugin
 {
   W_OBJECT(DocumentPlugin)
@@ -72,7 +66,9 @@ public:
 
     std::shared_ptr<ossia::graph_interface> execGraph;
     std::shared_ptr<ossia::execution_state> execState;
-    std::shared_ptr<ossia::bench_map> bench;
+    std::shared_ptr<ossia::bench_state> bench;
+    //! Written from the execution thread only, through the execution queue.
+    std::shared_ptr<ossia::telemetry::arena> telemetry;
     SetupContext setupContext;
 
     Context context;
@@ -99,6 +95,8 @@ public:
 
   void runAllCommands() const;
 
+  Telemetry& telemetry() const noexcept { return *m_telemetry; }
+
   void registerAction(ExecutionAction& act);
   const std::vector<ExecutionAction*>& actions() const noexcept { return m_actions; }
 
@@ -110,7 +108,6 @@ public:
 public:
   void finished() E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, finished)
 
-  void slot_bench(ossia::bench_map, int64_t ns);
 
 private:
   void on_deviceAdded(Device::DeviceInterface* device);
@@ -118,12 +115,15 @@ private:
   void timerEvent(QTimerEvent* event) override;
   void registerDevice(ossia::net::device_base*);
   void unregisterDevice(ossia::net::device_base*);
+  void on_deviceChanged(ossia::net::device_base* old_dev, ossia::net::device_base* new_dev);
+  void on_nodeAboutToBeRemoved(ossia::net::node_base* root);
   void makeGraph();
   void initExecState();
   void recreateBase();
   void processEditCommands();
 
   std::shared_ptr<ContextData> m_ctxData;
+  std::unique_ptr<Telemetry> m_telemetry;
   std::shared_ptr<BaseScenarioElement> m_base;
   std::vector<ExecutionAction*> m_actions;
 

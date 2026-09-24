@@ -15,12 +15,13 @@
 namespace ossia
 {
 class time_process;
+struct audio_outlet;
 }
 
 namespace Process
 {
 class ProcessModel;
-class ProcessModel;
+class AudioOutlet;
 class Cable;
 }
 
@@ -116,12 +117,26 @@ struct SCORE_LIB_PROCESS_EXPORT SetupContext final
   {
     ossia::flat_map<Id<Process::Port>, QMetaObject::Connection> inlets;
     ossia::flat_map<Id<Process::Port>, QMetaObject::Connection> outlets;
+    //! Gain, pan and upmix of the audio outlets.
+    ossia::flat_map<Id<Process::Port>, std::array<QMetaObject::Connection, 4>> mixing;
     void clear() const noexcept
     {
       for(auto& con : inlets)
         QObject::disconnect(con.second);
       for(auto& con : outlets)
         QObject::disconnect(con.second);
+      for(auto& cons : mixing)
+        for(auto& con : cons.second)
+          QObject::disconnect(con);
+    }
+    void disconnectMixing(Id<Process::Port> id)
+    {
+      if(auto it = mixing.find(id); it != mixing.end())
+      {
+        for(auto& con : it->second)
+          QObject::disconnect(con);
+        mixing.erase(it);
+      }
     }
   };
 
@@ -139,6 +154,11 @@ private:
   void register_inlet_impl(
       Process::Inlet& inlet, const ossia::inlet_ptr& exec,
       const std::shared_ptr<ossia::graph_node>& node, Impl&&);
+
+  template <typename Impl>
+  void register_mixing_impl(
+      Process::AudioOutlet& proc_port, ossia::audio_outlet& ossia_port,
+      const std::shared_ptr<ossia::graph_node>& node, Impl&& impl);
 
   template <typename Impl>
   void register_outlet_impl(
