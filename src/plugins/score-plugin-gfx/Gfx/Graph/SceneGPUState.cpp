@@ -1,5 +1,7 @@
 #include <Gfx/Graph/SceneGPUState.hpp>
 
+#include <Gfx/Graph/GpuResourceRegistry.hpp>
+
 #include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/ptr_set.hpp>
 
@@ -486,6 +488,16 @@ struct FlattenVisitor
   // world_transforms / world_transforms_prev entry for motion vectors.
   std::uint32_t currentTransformSlot{0xFFFFFFFFu};
 
+  const GpuResourceRegistry* registry{};
+
+  bool stamped(
+      const ossia::gpu_slot_ref& ref, GpuResourceRegistry::Arena arena) const noexcept
+  {
+    if(ref.size == 0)
+      return false;
+    return !registry || registry->isLiveIn(ref, arena);
+  }
+
   // Identity-based dedup for shared payload pointers reachable through several
   // tree paths: the visitor's contract is one entry per unique payload object.
   // merge_scenes and SceneGroup already dedup roots, so this only fires on
@@ -535,7 +547,7 @@ struct FlattenVisitor
         // yet); those are filtered out when building
         // scene_light_indices.
         out.lightArenaSlots.push_back(
-            (*light)->raw_slot.size != 0
+            stamped((*light)->raw_slot, GpuResourceRegistry::Arena::RawLight)
                 ? (*light)->raw_slot.internal_index
                 : 0xFFFFFFFFu);
       }
@@ -560,7 +572,7 @@ struct FlattenVisitor
       // producer-authored transforms (stamped raw_slot) get an entry —
       // loader-interior transforms participate in hierarchy accumulation
       // but aren't individually addressable on GPU.
-      if(xform->raw_slot.size != 0)
+      if(stamped(xform->raw_slot, GpuResourceRegistry::Arena::RawTransform))
       {
         out.worldTransforms.push_back(
             WorldTransformEmit{parentWorld, xform->raw_slot.internal_index});
@@ -722,7 +734,9 @@ struct FlattenVisitor
 
 };
 
-void flattenScene(const ossia::scene_spec& scene, FlatScene& out, float aspectRatio)
+void flattenScene(
+    const ossia::scene_spec& scene, FlatScene& out, float aspectRatio,
+    const GpuResourceRegistry* registry)
 {
   struct FlatProbeSummary
   {
@@ -869,6 +883,7 @@ void flattenScene(const ossia::scene_spec& scene, FlatScene& out, float aspectRa
   // per-root index-bias bookkeeping is required.
   QMatrix4x4 identity;
   FlattenVisitor vis{out, identity};
+  vis.registry = registry;
   // KHR_materials_variants: seed the visitor from scene_state. When
   // no variants are declared (typical) this stays at -1 and the
   // per-draw override branch compiles to a cheap null-check.

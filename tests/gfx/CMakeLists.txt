@@ -1743,3 +1743,10 @@ endif()
 
 # Merge Geometries bakes transforms into GPU-resident geometry (agent B2).
 score_add_gfx_test(merge_geometries_gpu_transform_b2 MergeGeometriesGpuTransformB2.cpp)
+
+# N95: flattenScene drops transform / light slot refs freed before a re-init (agent F2).
+score_add_gfx_test(stale_slot_flatten_f2 GfxStaleSlotFlattenF2.cpp)
+target_sources(test_gfx_stale_slot_flatten_f2 PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator/offsetAllocator.cpp")
+target_include_directories(test_gfx_stale_slot_flatten_f2 PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator")

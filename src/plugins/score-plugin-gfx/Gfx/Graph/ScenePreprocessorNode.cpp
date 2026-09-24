@@ -4180,7 +4180,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     if(m_lastCameraUploadFrame != renderer.frame)
     {
       FlatScene cameraFs;
-      flattenScene(this->scene, cameraFs, /*aspectRatio=*/1.f);
+      flattenScene(this->scene, cameraFs, /*aspectRatio=*/1.f, m_registry);
       packAndUploadCameras(renderer, res, cameraFs);
     }
 
@@ -4207,7 +4207,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     // concat + upload) is then gated by the mesh fingerprint below.
     {
       FlatScene fs;
-      flattenScene(withoutHiddenDrawables(this->scene), fs, /*aspectRatio=*/1.f);
+      flattenScene(
+          withoutHiddenDrawables(this->scene), fs, /*aspectRatio=*/1.f, m_registry);
 
       std::vector<uint32_t> materialTagHashes;
       if(this->scene.state && this->scene.state->materials)

@@ -9,6 +9,7 @@
 
 namespace score::gfx
 {
+class GpuResourceRegistry;
 
 // GPU-friendly structures for packing scene data into UBOs/SSBOs. All matrices
 // are column-major.
@@ -594,11 +595,14 @@ struct FlatScene
 };
 
 // Flatten a scene_spec into a FlatScene for GPU consumption.
+// With a registry, a transform or light raw_slot that is not live in its arena
+// is treated as unstamped.
 SCORE_PLUGIN_GFX_EXPORT
 void flattenScene(
     const ossia::scene_spec& scene,
     FlatScene& out,
-    float aspectRatio);
+    float aspectRatio,
+    const GpuResourceRegistry* registry = nullptr);
 
 // Build a transient ossia::geometry that wraps a mesh_primitive's buffers
 // and attributes. The result is heap-allocated and owned by shared_ptr so
