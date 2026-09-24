@@ -198,6 +198,15 @@ public:
     enumerate_modifiers();
   }
 
+  /** Whether the device can export the images on_add_buffer creates: a
+   *  driver may advertise VK_EXT_external_memory_dma_buf yet refuse our
+   *  format (RADV on GFX7). Also valid for the modifier path, which
+   *  createExportableImage probes with the same LINEAR description. */
+  bool can_export_dmabuf(const score::gfx::vkinterop::VulkanCtx& vk) const
+  {
+    return score::gfx::vkinterop::canExportImage(vk, dmabuf_image_desc());
+  }
+
   /** Every DRM format modifier the driver can render our wire format with.
    *
    *  These are the layouts we can offer a consumer, and the reason to offer
@@ -1099,18 +1108,11 @@ private:
        || !b || !b->buffer || b->buffer->n_datas < 1)
       return;
 
-    score::gfx::vkinterop::ExternalImageDesc desc{};
-    desc.format = self->vkFormatFromTag(self->m_fmt);
-    desc.extent = {uint32_t(self->m_width), uint32_t(self->m_height), 1};
-    desc.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
-                 | VK_IMAGE_USAGE_TRANSFER_DST_BIT
-                 | VK_IMAGE_USAGE_TRANSFER_SRC_BIT
-                 | VK_IMAGE_USAGE_SAMPLED_BIT;
+    auto desc = self->dmabuf_image_desc();
     // The layout the consumer agreed to, when it agreed to a real one. A
     // modifier-tiled export is written far faster than LINEAR in host memory;
-    // LINEAR is what is left when the consumer could only take the implicit
-    // modifier, which is the cross-GPU case.
-    desc.tiling = VK_IMAGE_TILING_LINEAR;
+    // LINEAR (the description's tiling) is what is left when the consumer
+    // could only take the implicit modifier, which is the cross-GPU case.
     // A local, not the member: the member is atomic and has no stable address
     // to hand to Vulkan, and the list must outlive the create call, which this
     // does.
@@ -1127,25 +1129,6 @@ private:
     // tiled buffer as if it were linear
     // and the gradient turned into three flat values. Implicit means the
     // importer will not ask, so it has to be a layout it can assume.
-    desc.handleType
-        = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
-    desc.dedicated = true;
-    // Device-local, which is what finally reaches the target rate at 8K.
-    //
-    // This was measured both ways twice and the answer flipped once the
-    // per-frame readback was removed: with that readback in the path,
-    // host-visible memory looked better because the CPU was reading the frame
-    // every time. With it gone, device-local wins for an external consumer at
-    // both 4K and 8K.
-    //
-    // The cost is score's OWN PipeWire input reading score's output, which
-    // gets much slower. The producer is not what slows down -- it queues far
-    // fewer frames than before -- the consumer drains them slowly, and a
-    // deeper pool and a device-local-AND-host-visible heap were both tried and
-    // changed nothing. So it is the import on score's input side. That path
-    // has a fast shared-memory fallback meanwhile; an outside consumer has
-    // none.
-    desc.preferDeviceLocal = true;
 
     auto extImg = score::gfx::vkinterop::createExportableImage(
         self->m_vk, desc);
@@ -1275,6 +1258,41 @@ private:
 #endif
 
 #if defined(SCORE_PIPEWIRE_OUT_DMABUF)
+  //! What on_add_buffer creates the exported images with, before it applies
+  //! the modifier the consumer chose. Also what can_export_dmabuf probes.
+  score::gfx::vkinterop::ExternalImageDesc dmabuf_image_desc() const noexcept
+  {
+    score::gfx::vkinterop::ExternalImageDesc desc{};
+    desc.format = vkFormatFromTag(m_fmt);
+    desc.extent = {uint32_t(m_width), uint32_t(m_height), 1};
+    desc.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
+                 | VK_IMAGE_USAGE_TRANSFER_DST_BIT
+                 | VK_IMAGE_USAGE_TRANSFER_SRC_BIT
+                 | VK_IMAGE_USAGE_SAMPLED_BIT;
+    // Overridden by a modifier list when the consumer named a layout.
+    desc.tiling = VK_IMAGE_TILING_LINEAR;
+    desc.handleType
+        = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
+    desc.dedicated = true;
+    // Device-local, which is what finally reaches the target rate at 8K.
+    //
+    // This was measured both ways twice and the answer flipped once the
+    // per-frame readback was removed: with that readback in the path,
+    // host-visible memory looked better because the CPU was reading the frame
+    // every time. With it gone, device-local wins for an external consumer at
+    // both 4K and 8K.
+    //
+    // The cost is score's OWN PipeWire input reading score's output, which
+    // gets much slower. The producer is not what slows down -- it queues far
+    // fewer frames than before -- the consumer drains them slowly, and a
+    // deeper pool and a device-local-AND-host-visible heap were both tried and
+    // changed nothing. So it is the import on score's input side. That path
+    // has a fast shared-memory fallback meanwhile; an outside consumer has
+    // none.
+    desc.preferDeviceLocal = true;
+    return desc;
+  }
+
   static VkFormat vkFormatFromTag(formats::Tag tag) noexcept
   {
     switch(tag)
@@ -2001,13 +2019,31 @@ void PipewireOutputNode::createOutput(score::gfx::OutputConfiguration conf)
   {
     auto* nh
         = static_cast<const QRhiVulkanNativeHandles*>(rhi->nativeHandles());
-    if(nh && nh->dev && nh->physDev && nh->inst)
+    const bool haveHandles = nh && nh->dev && nh->physDev && nh->inst;
+    if(haveHandles)
     {
       m_vk.instance = nh->inst->vkInstance();
       m_vk.physDev = nh->physDev;
       m_vk.dev = nh->dev;
       m_vk.qInst = nh->inst;
+    }
 
+    if(!haveHandles)
+    {
+      qWarning() << "PipewireOutputNode: dmabuf=on requested but "
+                    "QRhi Vulkan native handles unavailable — "
+                    "falling back to readback path";
+    }
+    else if(!m_producer->can_export_dmabuf(m_vk))
+    {
+      // Checked here rather than left to on_add_buffer, which would fail
+      // every buffer and deliver nothing.
+      qWarning() << "PipewireOutputNode: dmabuf=on requested but this Vulkan "
+                    "device cannot export a DMA-BUF image of the wire format — "
+                    "falling back to readback path";
+    }
+    else
+    {
       // Bridge texture: a QRhi-owned wrapper around (eventually) the
       // pipewire buffer's exported VkImage. We create it now with a
       // placeholder VkImage; render() calls createFrom each frame
@@ -2019,12 +2055,6 @@ void PipewireOutputNode::createOutput(score::gfx::OutputConfiguration conf)
 
       m_producer->enable_dmabuf_mode(m_vk);
       m_dmabufMode = true;
-    }
-    else
-    {
-      qWarning() << "PipewireOutputNode: dmabuf=on requested but "
-                    "QRhi Vulkan native handles unavailable — "
-                    "falling back to readback path";
     }
   }
 #endif
