@@ -29,6 +29,7 @@ leak:Scenario::ToolMenuActions::makeGUIElements
 leak:Scenario::TransportActions::makeGUIElements
 leak:Engine::ApplicationPlugin::makeGUIElements
 leak:Audio::ApplicationPlugin::makeGUIElements
+leak:Gfx::ApplicationPlugin::makeGUIElements
 leak:Scenario::ToolMenuActions::ToolMenuActions
 leak:Scenario::TransportActions::TransportActions
 leak:Engine::ApplicationPlugin::setupTimingWidget
