@@ -93,8 +93,6 @@ QString computePresetDir()
              "/Documents/ossia/score/packages/default/Presets/Compute Shader");
 }
 
-const bool g_noLibraryScan = qputenv("SCORE_DISABLE_LIBRARY", "1");
-
 QString libraryRoot()
 {
   QDir root(presetDir());

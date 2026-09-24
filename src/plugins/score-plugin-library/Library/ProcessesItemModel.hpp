@@ -111,6 +111,7 @@ private:
 
   std::vector<PendingEntry> m_pending;
   uint64_t m_generation{};
+  score::RecursiveWatch m_watch;
   bool m_flushQueued{};
   bool m_inReset{};
 };
