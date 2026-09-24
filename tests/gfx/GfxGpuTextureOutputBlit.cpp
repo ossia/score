@@ -7,6 +7,10 @@
 // missing-sampler abort under Metal validation. The producer here publishes a
 // solid red texture and the consumer is a plain passthrough.
 //
+// A cube, 3D or array texture has no 2D blit: the default pass keeps sampling
+// its empty 2D placeholder rather than binding a texture of the wrong type,
+// which Metal validation rejects.
+//
 // Registration: see the test_gfx_gpu_texture_output_blit target.
 #include <score_test/Gfx.hpp>
 #include <score_test/Document.hpp>
@@ -67,6 +71,56 @@ struct RedTexture
         m_tex, QRhiTextureUploadEntry{
                    0, 0, QRhiTextureSubresourceUploadDescription{
                              px.data(), quint32(px.size())}});
+    outputs.texture.texture.handle = m_tex;
+    outputs.texture.texture.width = 4;
+    outputs.texture.texture.height = 4;
+    outputs.texture.texture.format = halp::gpu_texture::RGBA8;
+  }
+
+  void release(score::gfx::RenderList&)
+  {
+    delete m_tex;
+    m_tex = nullptr;
+    outputs.texture.texture.handle = nullptr;
+  }
+
+  void runInitialPasses(
+      score::gfx::RenderList&, QRhiCommandBuffer&, QRhiResourceUpdateBatch*&,
+      score::gfx::Edge&)
+  {
+  }
+
+  void operator()() { }
+
+  QRhiTexture* m_tex{};
+};
+
+struct CubeTexture
+{
+  halp_meta(name, "Cube texture")
+  halp_meta(c_name, "test_cube_texture")
+  halp_meta(category, "Test")
+  halp_meta(uuid, "9d2e61a4-7b3c-4e58-a0f1-6c8b2d4e9f37")
+
+  struct
+  {
+  } inputs;
+
+  struct
+  {
+    halp::gpu_texture_output<"Texture"> texture;
+  } outputs;
+
+  void init(score::gfx::RenderList&, QRhiResourceUpdateBatch&) { }
+
+  void update(
+      score::gfx::RenderList& renderer, QRhiResourceUpdateBatch&, score::gfx::Edge*)
+  {
+    if(m_tex)
+      return;
+    m_tex = renderer.state.rhi->newTexture(
+        QRhiTexture::RGBA8, QSize{4, 4}, 1, QRhiTexture::CubeMap);
+    m_tex->create();
     outputs.texture.texture.handle = m_tex;
     outputs.texture.texture.width = 4;
     outputs.texture.texture.height = 4;
@@ -153,4 +207,57 @@ TEST_CASE(
   CHECK(px[0] > 200);
   CHECK(px[1] < 40);
   CHECK(px[2] < 40);
+}
+
+TEST_CASE(
+    "a published cube texture is not blitted through a 2D sampler",
+    "[gfx][avnd][texture]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  bool skipped = false;
+  std::string err;
+  ReadbackImage img;
+  std::vector<std::unique_ptr<Process::ProcessModel>> models;
+  run_in_gui_app([&](const score::GUIApplicationContext& app) {
+    auto* doc = new_document(app);
+    if(!doc)
+    {
+      err = "no document";
+      return;
+    }
+    const auto& ctx = doc->context();
+    auto model = std::make_unique<oscr::ProcessModel<CubeTexture>>(
+        TimeVal::fromMsecs(1000), Id<Process::ProcessModel>{1}, ctx, nullptr);
+    auto* raw = model.get();
+    models.push_back(std::move(model));
+
+    GfxPipeline p;
+    const int producer = p.addNode(std::unique_ptr<score::gfx::Node>{
+        new oscr::GfxNode<CubeTexture>{*raw, {}, Gfx::exec_controls{}, 1, ctx}});
+    const int pass = p.addIsf(corpus("isf-passthrough-plain.fs"));
+    if(producer < 0 || pass < 0)
+    {
+      err = "node build failed: " + p.error();
+      return;
+    }
+    p.wire(p.nodeImageOut(producer, 0), p.imageIn(pass, 0));
+    const int sink = p.addSink({16, 16});
+    p.wire(p.imageOut(pass, 0), p.sinkInput(sink));
+    if(!p.create(api))
+    {
+      skipped = p.skipped();
+      err = skipped ? std::string{} : p.error();
+      return;
+    }
+    p.render(4);
+    img = p.readback(sink);
+    if(!img.valid())
+      err = "empty readback";
+  });
+  if(skipped)
+    SKIP("backend unavailable");
+  INFO("error=" << err);
+  REQUIRE(err.empty());
 }

@@ -1665,6 +1665,11 @@ struct texture_outputs_storage<T>
     avnd::gpu_texture_output_introspection<T>::for_all(
         avnd::get_outputs<T>(*self.state), [&](auto& t) {
       auto* tex = static_cast<QRhiTexture*>(t.texture.handle);
+      if(tex
+         && (tex->flags()
+             & (QRhiTexture::CubeMap | QRhiTexture::ThreeDimensional
+                | QRhiTexture::TextureArray | QRhiTexture::OneDimensional)))
+        tex = nullptr;
       auto& sampler = self.m_samplers[k];
       if(tex != sampler.texture)
       {
