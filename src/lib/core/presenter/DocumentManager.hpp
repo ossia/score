@@ -125,12 +125,10 @@ public:
 
   bool closeAllDocuments(const score::GUIApplicationContext& ctx);
 
-  //! Tears down the documents still open, without asking anything: every
-  //! document plug-in gets on_documentClosing(), then the documents are
-  //! deleted. For an exit that did not go through closeAllDocuments() (e.g. a
-  //! script's Qt.exit()): ~Presenter calls it while the application plug-ins
-  //! still exist.
-  void closeRemainingDocuments();
+  //! Tears down the documents still open without prompting; given `ctx`, GUI
+  //! application plug-ins get on_closeDocument() as in forceCloseDocument().
+  //! Must run while the application plug-ins still exist (see ~Presenter).
+  void closeRemainingDocuments(const score::GUIApplicationContext* ctx = nullptr);
 
   bool preparingNewDocument() const;
 

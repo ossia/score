@@ -958,7 +958,7 @@ bool DocumentManager::closeAllDocuments(const score::GUIApplicationContext& ctx)
   return true;
 }
 
-void DocumentManager::closeRemainingDocuments()
+void DocumentManager::closeRemainingDocuments(const score::GUIApplicationContext* ctx)
 {
   // The documents have to be deleted before the application context plug-ins.
   // This is because the Local device has to be deleted last in
@@ -971,6 +971,14 @@ void DocumentManager::closeRemainingDocuments()
     for(auto it = plugs.rbegin(); it != plugs.rend(); ++it)
     {
       (*it)->on_documentClosing();
+    }
+
+    if(ctx)
+    {
+      for(auto plug : ctx->guiApplicationPlugins())
+      {
+        plug->on_closeDocument(*document);
+      }
     }
   }
 
