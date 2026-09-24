@@ -1155,6 +1155,27 @@ if(SCORE_HAS_SHELL_HARNESS)
     ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score;OUT=${CMAKE_CURRENT_BINARY_DIR}/golden-artifacts/text-render;${_score_libpath_env}")
 endif()
 
+# Multi-outlet texture validation: an Image Processor (Depth Anything 3 metric:
+# depth + sky) and the "Grid 2x2" ISF preset tile the processor's Image / Mask /
+# Depth outlets onto Window:/; analyze.py asserts each outlet draws its own
+# texture (avnd CPU texture outlets all drew the first one) and that the
+# secondary model output reaches its outlet. SKIPs (77) without the model or
+# the test photo (MULTI_OUTLET_MODEL / MULTI_OUTLET_IMAGE).
+if(SCORE_HAS_SHELL_HARNESS)
+  add_test(NAME test_multi_outlet
+    COMMAND ${_display_wrapper} "${CMAKE_CURRENT_SOURCE_DIR}/multi-outlet/multi-outlet.sh"
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+  set_tests_properties(test_multi_outlet PROPERTIES
+    SKIP_RETURN_CODE 77
+    TIMEOUT 900
+    RUN_SERIAL TRUE
+    REQUIRED_FILES
+      "${CMAKE_CURRENT_SOURCE_DIR}/multi-outlet/analyze.py;${CMAKE_CURRENT_SOURCE_DIR}/multi-outlet/multi-outlet.js"
+    ATTACHED_FILES_ON_FAIL
+      "${CMAKE_CURRENT_BINARY_DIR}/multi-outlet/init/grid.png;${CMAKE_CURRENT_BINARY_DIR}/multi-outlet/live/grid.png"
+    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score;OUT=${CMAKE_CURRENT_BINARY_DIR}/multi-outlet;${_score_libpath_env}")
+endif()
+
 
 # Offscreen-teardown regression: a full-app offscreen
 # render followed by /stop + /exit must exit 0, not segfault on a freed node.
