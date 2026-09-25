@@ -20,6 +20,7 @@
 #include <QCommandLineParser>
 #include <QFile>
 #include <QFileInfo>
+#include <QJsonDocument>
 #include <QString>
 
 #if __has_include(<QQuickWindow>)
@@ -154,6 +155,53 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
 
     this->m_start_scripts.push_back(std::move(s));
   }
+}
+
+void ApplicationPlugin::registerCommandHandler(const QString& name, const QJSValue& fn)
+{
+  if(!fn.isCallable())
+  {
+    qWarning() << "Score.registerCommandHandler:" << name << "is not a function";
+    return;
+  }
+  m_commandHandlers.insert(name, fn);
+  m_reportedMissingHandlers.remove(name);
+}
+
+void ApplicationPlugin::callCommandHandler(
+    const QString& name, const QByteArray& payload)
+{
+  auto it = m_commandHandlers.find(name);
+  if(it == m_commandHandlers.end())
+  {
+    // A backup restored before the script that owns the handler has loaded,
+    // or a handler that was renamed: the edit cannot be replayed. Say so once
+    // per name rather than on every undo.
+    if(!m_reportedMissingHandlers.contains(name))
+    {
+      m_reportedMissingHandlers.insert(name);
+      qWarning() << "ScriptCommand: no handler registered for" << name
+                 << "- the edit was not replayed";
+    }
+    return;
+  }
+
+  QJSValue arg;
+  if(!payload.isEmpty())
+  {
+    QJsonParseError err{};
+    const auto doc = QJsonDocument::fromJson(payload, &err);
+    if(err.error != QJsonParseError::NoError)
+    {
+      qWarning() << "ScriptCommand: payload for" << name
+                 << "is not JSON:" << err.errorString();
+      return;
+    }
+    arg = m_consoleEngine.toScriptValue(doc.toVariant());
+  }
+  auto res = it->call({arg});
+  if(res.isError())
+    qWarning() << "ScriptCommand: handler" << name << "failed:" << res.toString();
 }
 
 QJSValue ApplicationPlugin::importModule(QQmlEngine& engine, const QString& path)

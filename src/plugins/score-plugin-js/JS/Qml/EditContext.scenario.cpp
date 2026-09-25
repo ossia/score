@@ -3,7 +3,6 @@
 #include <Process/Preset.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
-#include <Scenario/Commands/TimeSync/SetAutoTrigger.hpp>
 
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Event/SetCondition.hpp>
@@ -12,6 +11,7 @@
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
 #include <Scenario/Commands/TimeSync/AddTrigger.hpp>
 #include <Scenario/Commands/TimeSync/RemoveTrigger.hpp>
+#include <Scenario/Commands/TimeSync/SetAutoTrigger.hpp>
 #include <Scenario/Commands/TimeSync/SetTrigger.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
@@ -22,6 +22,8 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
+#include <JS/ApplicationPlugin.hpp>
+#include <JS/Commands/ScriptCommand.hpp>
 #include <JS/Commands/ScriptMacro.hpp>
 #include <JS/Qml/EditContext.hpp>
 
@@ -31,6 +33,7 @@
 #include <ossia-qt/js_utilities.hpp>
 
 #include <QDebug>
+#include <QJsonDocument>
 #include <QTime>
 
 #include <iterator>
@@ -79,6 +82,46 @@ void EditJsContext::endMacro()
   if(this->m_macro)
     this->m_macro->commit();
   this->m_macro.reset();
+}
+
+namespace
+{
+//! A QJSValue as the JSON a ScriptCommand can carry. An undefined payload is
+//! empty rather than the string "undefined", which JSON.parse would refuse.
+QByteArray payloadToJson(const QJSValue& v)
+{
+  if(v.isUndefined() || v.isNull())
+    return {};
+  return QJsonDocument::fromVariant(v.toVariant()).toJson(QJsonDocument::Compact);
+}
+}
+
+void EditJsContext::registerCommandHandler(QString name, QJSValue fn)
+{
+  if(name.isEmpty())
+  {
+    qWarning() << "Score.registerCommandHandler: the name cannot be empty";
+    return;
+  }
+  score::GUIAppContext()
+      .guiApplicationPlugin<JS::ApplicationPlugin>()
+      .registerCommandHandler(name, fn);
+}
+
+void EditJsContext::pushCommand(QString name, QJSValue undoPayload, QJSValue redoPayload)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+  if(name.isEmpty())
+  {
+    qWarning() << "Score.pushCommand: the name cannot be empty";
+    return;
+  }
+
+  auto [m, _] = macro(*doc);
+  m->submit(new JS::ScriptCommand{
+      name, payloadToJson(undoPayload), payloadToJson(redoPayload)});
 }
 
 void EditJsContext::submit(Macro& m, score::Command* c)
