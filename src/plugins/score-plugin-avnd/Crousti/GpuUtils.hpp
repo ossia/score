@@ -264,7 +264,7 @@ struct GpuProcessIns
     auto val = ossia::get_if<ossia::render_target_spec>(&mess.input[field_index]);
     if(!val)
       return;
-    node.process(NField, *val);
+    static_cast<score::gfx::Node&>(node).process(int32_t(NField), *val);
   }
 
   template <avnd::texture_port Field, std::size_t NField>
@@ -280,7 +280,7 @@ struct GpuProcessIns
     auto val = ossia::get_if<ossia::render_target_spec>(&mess.input[field_index]);
     if(!val)
       return;
-    node.process(NField, *val);
+    static_cast<score::gfx::Node&>(node).process(int32_t(NField), *val);
   }
 
   template <avnd::geometry_port Field, std::size_t NField>
@@ -1365,16 +1365,20 @@ struct texture_inputs_storage<T>
 {
   ossia::small_flat_map<const score::gfx::Port*, score::gfx::TextureRenderTarget, 2>
       m_rts;
+  ossia::small_flat_map<const score::gfx::Port*, QRhiSampler*, 2> m_samplers;
 
   QRhiReadbackResult m_readbacks[avnd::texture_input_introspection<T>::size];
 
   template <typename Tex>
   QRhiTexture* createInput(
       score::gfx::RenderList& renderer, score::gfx::Port* port, Tex& texture_spec,
-      const score::gfx::RenderTargetSpecs& spec, bool wantsSamplableDepth = false)
+      const score::gfx::RenderTargetSpecs& spec, bool wantsSamplableDepth = false,
+      bool mipmapped = false)
   {
-    static constexpr auto flags
+    QRhiTexture::Flags flags
         = QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource;
+    if(mipmapped)
+      flags |= QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips;
     QRhiTexture::Format fmt{};
     if constexpr(requires (Tex tex) { tex.format = {}; } && !requires (Tex tex) { tex.request_format; })
     {
@@ -1436,7 +1440,22 @@ struct texture_inputs_storage<T>
 
       constexpr bool wantsSamplableDepth
           = avnd::gpu_texture_port<F> && halp::samplable_depth_of<F>();
-      createInput(renderer, parent.input[N], t.texture, spec, wantsSamplableDepth);
+      if constexpr(avnd::gpu_texture_port<F>)
+      {
+        createInput(
+            renderer, parent.input[N], t.texture, spec, wantsSamplableDepth,
+            spec.mipmap_mode != QRhiSampler::None);
+        auto* sampler = renderer.state.rhi->newSampler(
+            spec.mag_filter, spec.min_filter, spec.mipmap_mode, spec.address_u,
+            spec.address_v, spec.address_w);
+        sampler->setName("texture_inputs_storage::sampler");
+        sampler->create();
+        m_samplers[parent.input[N]] = sampler;
+      }
+      else
+      {
+        createInput(renderer, parent.input[N], t.texture, spec, wantsSamplableDepth);
+      }
       if constexpr(avnd::cpu_texture_port<F>)
       {
         t.texture.width = spec.size.width();
@@ -1449,7 +1468,7 @@ struct texture_inputs_storage<T>
 
   static std::pair<bool, QRhiTexture*> upstreamTexture(
       score::gfx::RenderList& renderer, const score::gfx::Node& node, int32_t index,
-      const score::gfx::Port& port)
+      const score::gfx::Port& port, bool needsOwnTarget = false)
   {
     int wired = 0;
     QRhiTexture* direct = nullptr;
@@ -1464,9 +1483,35 @@ struct texture_inputs_storage<T>
       if(wired++ == 0)
         direct = it->second->textureForOutput(*edge->source);
     }
-    if(wired != 1 || node.hasExplicitRenderTargetSpecs(index))
+    if(wired != 1 || needsOwnTarget || node.hasExplicitRenderTargetSpecs(index))
       direct = nullptr;
     return {wired > 0, direct};
+  }
+
+  QRhiSampler* refreshSampler(
+      const score::gfx::Node& node, int32_t index, score::gfx::RenderList& renderer,
+      const score::gfx::Port* port)
+  {
+    auto it = m_samplers.find(port);
+    if(it == m_samplers.end() || !it->second)
+      return nullptr;
+    auto* sampler = it->second;
+    const auto spec = node.resolveRenderTargetSpecs(index, renderer);
+    if(sampler->magFilter() != spec.mag_filter || sampler->minFilter() != spec.min_filter
+       || sampler->mipmapMode() != spec.mipmap_mode
+       || sampler->addressU() != spec.address_u || sampler->addressV() != spec.address_v
+       || sampler->addressW() != spec.address_w)
+    {
+      sampler->destroy();
+      sampler->setMagFilter(spec.mag_filter);
+      sampler->setMinFilter(spec.min_filter);
+      sampler->setMipmapMode(spec.mipmap_mode);
+      sampler->setAddressU(spec.address_u);
+      sampler->setAddressV(spec.address_v);
+      sampler->setAddressW(spec.address_w);
+      sampler->create();
+    }
+    return sampler;
   }
 
   static void describeTexture(halp::gpu_texture& dst, QRhiTexture& tex)
@@ -1512,9 +1557,14 @@ struct texture_inputs_storage<T>
         constexpr bool wantsSamplableDepth = halp::samplable_depth_of<F>();
         auto* port = self.node().input[N];
         auto& tex = t.texture;
-        auto [wired, direct] = upstreamTexture(renderer, self.node(), N, *port);
-
         const auto rt_it = m_rts.find(port);
+        const bool mipmapped
+            = rt_it != m_rts.end() && rt_it->second.texture
+              && rt_it->second.texture->flags().testFlag(QRhiTexture::MipMapped);
+        auto [wired, direct]
+            = upstreamTexture(renderer, self.node(), N, *port, mipmapped);
+        tex.sampler_handle = refreshSampler(self.node(), N, renderer, port);
+
         QRhiTexture* src = nullptr;
         if(wired)
         {
@@ -1643,6 +1693,9 @@ struct texture_inputs_storage<T>
     for(auto [port, rt] : m_rts)
       rt.release();
     m_rts.clear();
+    for(auto [port, sampler] : m_samplers)
+      sampler->deleteLater();
+    m_samplers.clear();
   }
 
   void inputAboutToFinish(
