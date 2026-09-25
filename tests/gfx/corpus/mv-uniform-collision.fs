@@ -1,5 +1,5 @@
 /*{
-  "DESCRIPTION": "Procedural MULTIVIEW:2 raw-raster with a graphics uniform_input `cam`. The whole point is the SRB binding layout: with a MULTIVIEW>=2 shader AND a graphics uniform_input UBO, libisf's codegen places the multiview UBO at the binding AFTER all storage INCLUDING uniform_input UBOs, while the pre-fix runtime computed the multiview binding from ssbos/images only — ignoring `cam` — so the multiview UBO collided with `cam`'s slot and the shader's real multiview binding was left without an SRB descriptor (Vulkan/D3D12 missing-descriptor crash; GL aliasing collapses geometry). `cam` need not be referenced in GLSL — its INPUTS declaration alone makes the codegen emit the binding the runtime must account for. A fullscreen triangle writes a per-view colour so layer 0 (VIEW_INDEX 0) reads back reddish when the SRB is correct.",
+  "DESCRIPTION": "Procedural MULTIVIEW:2 raw-raster with a graphics uniform_input `cam`: the SRB must give `cam` its declared binding next to the multiview plumbing (it once collided with an engine multiview UBO, since removed). `cam` need not be referenced in GLSL: its INPUTS declaration alone makes the codegen emit the binding. A fullscreen triangle writes a per-view colour so layer 0 (VIEW_INDEX 0) reads back reddish.",
   "CREDIT": "test",
   "ISFVSN": "2.0",
   "MODE": "RAW_RASTER_PIPELINE",

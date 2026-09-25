@@ -292,12 +292,41 @@ void main ()
 }
 )_";
 
+  static const constexpr auto fragment_shader_premultiply = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform sampler2D y_tex;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main ()
+{
+  fragColor = texture(y_tex, v_texcoord);
+  fragColor.rgb *= fragColor.a;
+}
+)_";
+
+  const auto& desc = n.descriptor();
+  bool declaresBlend = isf::declares_blend(desc.default_state);
+  for(const auto& pass : desc.passes)
+    declaresBlend |= isf::declares_blend(pass.override_state);
+  const auto alpha = isf::resolve_alpha(desc);
+  const auto composite
+      = declaresBlend ? isf::composite_mode::over : isf::resolve_composite(desc);
+
   auto [vertexS, vertexError] = score::gfx::ShaderCache::get(
       renderer.state, vertex_shader, QShader::VertexStage);
   SCORE_ASSERT(vertexError.isEmpty());
 
   auto [fragmentS, fragmentError] = score::gfx::ShaderCache::get(
-      renderer.state, fragment_shader, QShader::FragmentStage);
+      renderer.state,
+      isf::premultiplied_by_engine(alpha, composite) ? fragment_shader_premultiply
+                                                     : fragment_shader,
+      QShader::FragmentStage);
   SCORE_ASSERT(fragmentError.isEmpty());
 
   SCORE_ASSERT(vertexS.isValid() && fragmentS.isValid());
@@ -312,7 +341,7 @@ void main ()
     Sampler samplers1[1] = {Sampler{last_sampler->sampler, last_sampler->textures[1]}};
     auto pip = score::gfx::buildPipeline(
         renderer, renderer.defaultTriangle(), vertexS, fragmentS, renderTarget, nullptr,
-        m_materialUBO, samplers1, overBlendFor(isf::resolve_alpha(n.descriptor())));
+        m_materialUBO, samplers1, blendFor(alpha, composite));
     ret.first = Pass{renderTarget, pip, nullptr};
     ret.second = ret.first;
 
@@ -343,26 +372,7 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
   const auto eff_state
       = mergeState(n.descriptor().default_state, modelPass.override_state);
 
-  // Build the extra-binding list (storage + optional multiview UBO).
   auto extraRhiBindings = buildExtraBindings(m_storage);
-  if(m_multiViewUBO)
-  {
-    // Multiview UBO binds right after ALL storage resources — SSBOs, images
-    // AND uniform_input UBOs. collectGraphicsStorageResources records exactly
-    // that slot in m_storage.nextBinding (== isf_emit_graphics_storage's
-    // return value, which is where the codegen places the multiview UBO).
-    // Taking the max over ssbos/images alone would omit the UBOs, so a
-    // graphics uniform_input holding the top binding would collide the
-    // multiview UBO with the camera UBO and leave the shader's real multiview
-    // binding without an SRB descriptor → Vulkan/D3D12 crash / GL aliasing.
-    const int mvBinding
-        = m_storage.nextBinding >= 0 ? m_storage.nextBinding : m_firstStorageBinding;
-
-    extraRhiBindings.append(QRhiShaderResourceBinding::uniformBuffer(
-        mvBinding,
-        QRhiShaderResourceBinding::VertexStage | QRhiShaderResourceBinding::FragmentStage,
-        m_multiViewUBO));
-  }
   const std::span<QRhiShaderResourceBinding> extras{
       extraRhiBindings.data(), (std::size_t)extraRhiBindings.size()};
 
@@ -535,30 +545,6 @@ void RenderedISFNode::initPasses(
     m_firstStorageBinding = firstStorageBinding;
     collectGraphicsStorageResources(
         n.descriptor(), firstStorageBinding, m_storage, 0, 3);
-
-    // Allocate the multiview UBO when MULTIVIEW >= 2 is declared.
-    if(n.descriptor().multiview_count >= 2)
-    {
-      QRhi& rhi = *renderer.state.rhi;
-      const int mvCount = n.descriptor().multiview_count;
-      m_multiViewUBO = rhi.newBuffer(
-          QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer,
-          sizeof(float[16]) * mvCount);
-      m_multiViewUBO->setName("RenderedISFNode::multiview_ubo");
-      SCORE_ASSERT(m_multiViewUBO->create());
-
-      // No producer fills the per-view matrices yet; seed identities so
-      // MULTIVIEW shaders get a pass-through viewProjection[] instead of
-      // all-zero matrices collapsing every vertex to the origin.
-      {
-        std::vector<float> ident(16 * mvCount, 0.f);
-        for(int v = 0; v < mvCount; v++)
-          for(int i = 0; i < 4; i++)
-            ident[v * 16 + i * 5] = 1.f;
-        res.updateDynamicBuffer(
-            m_multiViewUBO, 0, sizeof(float[16]) * mvCount, ident.data());
-      }
-    }
   }
 
   // Ensure storage buffers/images exist. Safe to call per edge: it's idempotent
@@ -973,12 +959,6 @@ void RenderedISFNode::releaseState(RenderList& r)
   m_storage.release();
   m_firstStorageBinding = -1;
   m_lastStorageSwapFrame = -1;
-
-  if(m_multiViewUBO)
-  {
-    m_multiViewUBO->deleteLater();
-    m_multiViewUBO = nullptr;
-  }
 
   m_initialized = false;
 }

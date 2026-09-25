@@ -1801,3 +1801,20 @@ score_add_gfx_test(input_sampler_filter_i1 GfxInputSamplerFilterI1.cpp)
 # Premultiplied render targets, the ALPHA key, over-compositing of several
 # cables into one input, and the MRT / CSF / multi-pass copies (N57, agent A3).
 score_add_gfx_test(premultiplied_alpha_a3 GfxPremultipliedAlphaA3.cpp)
+
+# What sampling macros return from premultiplied targets (straight for
+# render-target inputs, raw otherwise, *_PREMULTIPLIED variants), COMPOSITE,
+# and the premultiplied draws of outputs (agent A4).
+score_add_gfx_test(alpha_a4 GfxAlphaA4.cpp)
+
+# A video frame (opaque and translucent) read by a straight ISF (agent A4).
+if(TARGET score_plugin_media)
+  score_add_test(test_gfx_alpha_video_a4
+    SOURCES GfxAlphaVideoA4.cpp
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_media score_plugin_scenario
+            score_lib_process
+    LIBS test_gfx_engine_glue avutil)
+  target_compile_definitions(test_gfx_alpha_video_a4 PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+endif()

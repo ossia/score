@@ -3525,7 +3525,24 @@ void main() { fragColor = vec4(vec3(clamp(float(texture(outputTexture, vec3(v_te
       break;
   }
 
-  auto [vertexS, fragmentS] = score::gfx::makeShaders(renderer.state, vertex_shader, fragment_shader);
+  const isf::csf_image_input* outImage{};
+  for(const auto& [port, index] : m_outStorageImages)
+  {
+    if(port != edge.source || index >= (int)m_storageImages.size())
+      continue;
+    const auto name = m_storageImages[index].name.toStdString();
+    for(const auto& in : n.m_descriptor.inputs)
+      if(in.name == name)
+        outImage = ossia::get_if<isf::csf_image_input>(&in.data);
+  }
+  const auto alpha = isf::resolve_alpha(n.m_descriptor);
+  const auto composite = outImage ? isf::resolve_composite(n.m_descriptor, *outImage)
+                                  : isf::resolve_composite(n.m_descriptor);
+  QString copyShader = QString::fromLatin1(fragment_shader);
+  if(isf::premultiplied_by_engine(alpha, composite))
+    copyShader.insert(copyShader.lastIndexOf('}'), QStringLiteral("fragColor.rgb *= fragColor.a; "));
+
+  auto [vertexS, fragmentS] = score::gfx::makeShaders(renderer.state, vertex_shader, copyShader);
 
   // Create a sampler for our output texture
   // Integer formats do not support linear filtering -- VUID-vkCmdDraw-magFilter-
@@ -3548,8 +3565,7 @@ void main() { fragColor = vec4(vec3(clamp(float(texture(outputTexture, vec3(v_te
       
   if(pip.pipeline)
   {
-    QRhiGraphicsPipeline::TargetBlend copyBlend
-        = overBlendFor(isf::resolve_alpha(n.m_descriptor));
+    QRhiGraphicsPipeline::TargetBlend copyBlend = blendFor(alpha, composite);
     if(rt.texture && !formatSupportsBlending(rt.texture->format()))
       copyBlend = {};
     const QList<QRhiGraphicsPipeline::TargetBlend> copyBlends(

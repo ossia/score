@@ -1,22 +1,11 @@
 // =============================================================================
-// MODEL_MATRIX SURVIVES THE MULTIVIEW BINDING SHIFT.
+// MODEL_MATRIX SURVIVES MULTIVIEW.
 //
-// isf.cpp's parse_raw_raster_pipeline() reserves a descriptor slot for the
-// multiview UBO when MULTIVIEW >= 2 and then bumps model_ubo_binding past it:
-//
-//     if(m_desc.multiview_count >= 2) {
-//       material_ubos += isf_emit_multiview_ubo(sampler_binding, ...);
-//       sampler_binding++;
-//     }
-//     int model_ubo_binding = sampler_binding;
-//
-// so a MULTIVIEW shader declares model_material_t one slot higher than the
-// same shader without MULTIVIEW. RenderedRawRasterPipelineNode counts its own
-// bindings independently -- `int max_binding = 3` plus samplers plus auxiliary
-// textures -- and then pushes m_modelUBO at max_binding. Nothing in that file
-// reserves the multiview slot (RenderedISFNode and SimpleRenderedISFNode both
-// create an m_multiViewUBO; the raw-raster renderer has none), so the two
-// numbers disagree by exactly one as soon as MULTIVIEW >= 2.
+// parse_raw_raster_pipeline() used to reserve a descriptor slot for a
+// multiview UBO when MULTIVIEW >= 2 and declare model_material_t one slot
+// higher; the renderer counted its bindings independently, so the two
+// disagreed by one. The multiview UBO is gone from both sides (nothing read
+// it); this pins that the model UBO binding still agrees under MULTIVIEW.
 //
 // Nothing caught this because no existing multiview raw-raster shader READS
 // MODEL_MATRIX: syn-camera-array-faces reads the `camera` auxiliary and

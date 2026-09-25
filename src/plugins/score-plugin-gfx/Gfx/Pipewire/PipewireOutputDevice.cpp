@@ -50,6 +50,7 @@
 #include <Gfx/GfxParameter.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
+#include <Gfx/Graph/PipelineStateHelpers.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/RenderState.hpp>
 #include <Gfx/InvertYRenderer.hpp>
@@ -1461,7 +1462,7 @@ struct PwWireRenderer final : score::gfx::OutputNodeRenderer
 
     m_p = score::gfx::buildPipeline(
         renderer, mesh, m_vertexS, m_fragmentS, m_renderTarget, nullptr,
-        nullptr, m_samplers);
+        nullptr, m_samplers, score::gfx::premultipliedOverBlend());
   }
 
   void update(

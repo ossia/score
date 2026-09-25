@@ -10,7 +10,9 @@
 
 #include <ctre.hpp>
 #include <fmt/format.h>
+#include <algorithm>
 #include <array>
+#include <cctype>
 #include <iostream>
 #include <map>
 #include <set>
@@ -178,8 +180,13 @@ layout(std140, binding = 1) uniform process_t {
 // identical on Direct3D and everywhere else.
 #define IMG_SIZE_CUBE(img) (imageSize(img).xy)
 
-#define IMG_NORM_PIXEL(tex, coord) texture(tex, ISF_FIXUP_COMPUTE_TEXCOORD(coord))
-#define IMG_PIXEL(tex, coord) texture(tex, ISF_FIXUP_COMPUTE_TEXCOORD((coord) / vec2(textureSize(tex, 0))))
+vec4 isf_unpremultiply(vec4 c) { return c.a > 0.0 ? vec4(c.rgb / c.a, c.a) : vec4(0.0); }
+#define IMG_NORM_PIXEL_PREMULTIPLIED(tex, coord) texture(tex, ISF_FIXUP_COMPUTE_TEXCOORD(coord))
+#define IMG_PIXEL_PREMULTIPLIED(tex, coord) texture(tex, ISF_FIXUP_COMPUTE_TEXCOORD((coord) / vec2(textureSize(tex, 0))))
+#define IMG_NORM_PIXEL(tex, coord) IMG_NORM_PIXEL_PREMULTIPLIED(tex, coord)
+#define IMG_PIXEL(tex, coord) IMG_PIXEL_PREMULTIPLIED(tex, coord)
+#define ISF_STRAIGHT_NORM_PIXEL(tex, coord) isf_unpremultiply(IMG_NORM_PIXEL_PREMULTIPLIED(tex, coord))
+#define ISF_STRAIGHT_PIXEL(tex, coord) isf_unpremultiply(IMG_PIXEL_PREMULTIPLIED(tex, coord))
 #define IMG_CUBE(tex, dir) texture(tex, dir)
 )_";
 
@@ -202,26 +209,37 @@ layout(std140, binding = 1) uniform process_t {
 #define IMG_CUBE(tex, dir) texture(tex, dir)
 #define IMG_CUBE_DEPTH(tex, dir) texture(tex##_depth, dir).r
 
+vec4 isf_unpremultiply(vec4 c) { return c.a > 0.0 ? vec4(c.rgb / c.a, c.a) : vec4(0.0); }
+
 #if defined(QSHADER_SPIRV)
 #define isf_FragCoord vec4(gl_FragCoord.x, RENDERSIZE.y - gl_FragCoord.y, gl_FragCoord.z, gl_FragCoord.w)
 #define ISF_FIXUP_TEXCOORD(coord) vec2((coord).x, 1. - (coord).y)
-#define IMG_THIS_PIXEL(tex) texture(tex, ISF_FIXUP_TEXCOORD(isf_FragNormCoord))
-#define IMG_THIS_NORM_PIXEL(tex) texture(tex, ISF_FIXUP_TEXCOORD(isf_FragNormCoord))
-#define IMG_PIXEL(tex, coord) texture(tex, ISF_FIXUP_TEXCOORD(coord / RENDERSIZE))
-#define IMG_NORM_PIXEL(tex, coord) texture(tex, ISF_FIXUP_TEXCOORD(coord))
+#define IMG_THIS_PIXEL_PREMULTIPLIED(tex) texture(tex, ISF_FIXUP_TEXCOORD(isf_FragNormCoord))
+#define IMG_THIS_NORM_PIXEL_PREMULTIPLIED(tex) texture(tex, ISF_FIXUP_TEXCOORD(isf_FragNormCoord))
+#define IMG_PIXEL_PREMULTIPLIED(tex, coord) texture(tex, ISF_FIXUP_TEXCOORD(coord / RENDERSIZE))
+#define IMG_NORM_PIXEL_PREMULTIPLIED(tex, coord) texture(tex, ISF_FIXUP_TEXCOORD(coord))
 #define IMG_THIS_DEPTH(tex) texture(tex##_depth, ISF_FIXUP_TEXCOORD(isf_FragNormCoord)).r
 #define IMG_DEPTH_PIXEL(tex, coord) texture(tex##_depth, ISF_FIXUP_TEXCOORD(coord / RENDERSIZE)).r
 #define IMG_DEPTH_NORM_PIXEL(tex, coord) texture(tex##_depth, ISF_FIXUP_TEXCOORD(coord)).r
 #else
 #define isf_FragCoord gl_FragCoord
-#define IMG_THIS_PIXEL(tex) texture(tex, isf_FragNormCoord)
-#define IMG_THIS_NORM_PIXEL(tex) texture(tex, isf_FragNormCoord)
-#define IMG_PIXEL(tex, coord) texture(tex, (coord) / RENDERSIZE)
-#define IMG_NORM_PIXEL(tex, coord) texture(tex, coord)
+#define IMG_THIS_PIXEL_PREMULTIPLIED(tex) texture(tex, isf_FragNormCoord)
+#define IMG_THIS_NORM_PIXEL_PREMULTIPLIED(tex) texture(tex, isf_FragNormCoord)
+#define IMG_PIXEL_PREMULTIPLIED(tex, coord) texture(tex, (coord) / RENDERSIZE)
+#define IMG_NORM_PIXEL_PREMULTIPLIED(tex, coord) texture(tex, coord)
 #define IMG_THIS_DEPTH(tex) texture(tex##_depth, isf_FragNormCoord).r
 #define IMG_DEPTH_PIXEL(tex, coord) texture(tex##_depth, (coord) / RENDERSIZE).r
 #define IMG_DEPTH_NORM_PIXEL(tex, coord) texture(tex##_depth, coord).r
 #endif
+
+#define IMG_THIS_PIXEL(tex) IMG_THIS_PIXEL_PREMULTIPLIED(tex)
+#define IMG_THIS_NORM_PIXEL(tex) IMG_THIS_NORM_PIXEL_PREMULTIPLIED(tex)
+#define IMG_PIXEL(tex, coord) IMG_PIXEL_PREMULTIPLIED(tex, coord)
+#define IMG_NORM_PIXEL(tex, coord) IMG_NORM_PIXEL_PREMULTIPLIED(tex, coord)
+#define ISF_STRAIGHT_THIS_PIXEL(tex) isf_unpremultiply(IMG_THIS_PIXEL_PREMULTIPLIED(tex))
+#define ISF_STRAIGHT_THIS_NORM_PIXEL(tex) isf_unpremultiply(IMG_THIS_NORM_PIXEL_PREMULTIPLIED(tex))
+#define ISF_STRAIGHT_PIXEL(tex, coord) isf_unpremultiply(IMG_PIXEL_PREMULTIPLIED(tex, coord))
+#define ISF_STRAIGHT_NORM_PIXEL(tex, coord) isf_unpremultiply(IMG_NORM_PIXEL_PREMULTIPLIED(tex, coord))
 )_";
 
 } GLSL45;
@@ -1478,6 +1496,29 @@ static bool isf_is_known_image_format(std::string fmt)
   return known.count(fmt) > 0;
 }
 
+static composite_mode parse_composite_mode(const sajson::value& v)
+{
+  if(v.get_type() == sajson::TYPE_STRING)
+  {
+    std::string s = v.as_string();
+    for(char& c : s)
+      c = tolower(c);
+    if(s == "over")
+      return composite_mode::over;
+    if(s == "add")
+      return composite_mode::add;
+    if(s == "multiply")
+      return composite_mode::multiply;
+    if(s == "screen")
+      return composite_mode::screen;
+    if(s == "replace")
+      return composite_mode::replace;
+  }
+  throw invalid_file{
+      "COMPOSITE must be \"over\", \"add\", \"multiply\", \"screen\" or "
+      "\"replace\""};
+}
+
 static void parse_input(csf_image_input& inp, const sajson::value& v)
 {
   std::size_t N = v.get_length();
@@ -1613,6 +1654,10 @@ static void parse_input(csf_image_input& inp, const sajson::value& v)
     else if(k == "CUBEMAP" || k == "IS_CUBE")
     {
       inp.cubemap = v.get_object_value(i).get_type() == sajson::TYPE_TRUE;
+    }
+    else if(k == "COMPOSITE")
+    {
+      inp.composite = parse_composite_mode(v.get_object_value(i));
     }
   }
 
@@ -2229,6 +2274,67 @@ alpha_mode resolve_alpha(const descriptor& d, const output_declaration* out) noe
   if(d.alpha != alpha_mode::unspecified)
     return d.alpha;
   return d.mode == descriptor::ISF ? alpha_mode::straight : alpha_mode::premultiplied;
+}
+
+composite_mode resolve_composite(const descriptor& d, const output_declaration* out) noexcept
+{
+  if(out && out->composite != composite_mode::unspecified)
+    return out->composite;
+  if(d.composite != composite_mode::unspecified)
+    return d.composite;
+  return composite_mode::over;
+}
+
+composite_mode resolve_composite(const descriptor& d, const csf_image_input& img) noexcept
+{
+  if(img.composite != composite_mode::unspecified)
+    return img.composite;
+  if(d.composite != composite_mode::unspecified)
+    return d.composite;
+  return composite_mode::over;
+}
+
+bool declares_blend(const pipeline_state& s) noexcept
+{
+  return s.blend_all.has_value() || !s.blend_per_attachment.empty();
+}
+
+bool premultiplied_by_engine(alpha_mode alpha, composite_mode composite) noexcept
+{
+  return alpha == alpha_mode::straight
+         && (composite == composite_mode::multiply || composite == composite_mode::screen);
+}
+
+static std::vector<std::string> isf_engine_premultiplied_outputs(
+    const descriptor& d, std::string_view single_output)
+{
+  std::vector<std::string> names;
+  if(d.outputs.empty())
+  {
+    if(!single_output.empty()
+       && premultiplied_by_engine(resolve_alpha(d), resolve_composite(d)))
+      names.emplace_back(single_output);
+    return names;
+  }
+  for(const auto& out : d.outputs)
+    if(out.type != "depth"
+       && premultiplied_by_engine(resolve_alpha(d, &out), resolve_composite(d, &out)))
+      names.push_back(out.name);
+  return names;
+}
+
+static std::string isf_premultiply_statements(const std::vector<std::string>& names)
+{
+  std::string out;
+  for(const auto& name : names)
+  {
+    out += "  ";
+    out += name;
+    out += ".rgb *= ";
+    out += name;
+    out += ".a;\n";
+  }
+  return out;
 }
 
 static const ossia::string_map<root_fun>& root_parse{[] {
@@ -3095,6 +3201,12 @@ static const ossia::string_map<root_fun>& root_parse{[] {
             out.alpha = parse_alpha_mode(obj.get_object_value(a_k));
           }
 
+          if(auto c_k = obj.find_object_key_insensitive(sajson::literal("COMPOSITE"));
+             c_k != obj.get_length())
+          {
+            out.composite = parse_composite_mode(obj.get_object_value(c_k));
+          }
+
           d.outputs.push_back(std::move(out));
         }
       }
@@ -3103,6 +3215,10 @@ static const ossia::string_map<root_fun>& root_parse{[] {
 
   p.insert({"ALPHA", [](descriptor& d, const sajson::value& v) {
     d.alpha = parse_alpha_mode(v);
+  }});
+
+  p.insert({"COMPOSITE", [](descriptor& d, const sajson::value& v) {
+    d.composite = parse_composite_mode(v);
   }});
 
   p.insert({"PIPELINE_STATE", [](descriptor& d, const sajson::value& v) {
@@ -3393,6 +3509,20 @@ std::pair<int, descriptor> parser::parse_isf_header(std::string_view source)
       (it->second)(d, root.get_object_value(i));
     }
   }
+
+  bool composite = d.composite != composite_mode::unspecified;
+  for(const auto& out : d.outputs)
+    composite |= out.composite != composite_mode::unspecified;
+  for(const auto& in : d.inputs)
+    if(auto* img = ossia::get_if<csf_image_input>(&in.data))
+      composite |= img->composite != composite_mode::unspecified;
+  bool blend = declares_blend(d.default_state);
+  for(const auto& pass : d.passes)
+    blend |= declares_blend(pass.override_state);
+  if(composite && blend)
+    fprintf(
+        stderr, "[isf] COMPOSITE is ignored: PIPELINE_STATE.BLEND / "
+                "BLEND_PER_ATTACHMENT is declared and wins\n");
   return {end, std::move(d)};
 }
 
@@ -3834,16 +3964,71 @@ static std::string isf_emit_user_extensions(const std::vector<std::string>& exts
   return out;
 }
 
-// Emit the multiview view-projection UBO.
-static std::string isf_emit_multiview_ubo(int binding, int view_count)
+bool is_premultiplied_render_target(const input& in) noexcept
 {
+  if(auto* img = ossia::get_if<image_input>(&in.data))
+    return img->dimensions == 2 && !img->is_array && !img->is_static;
+  if(auto* tex = ossia::get_if<texture_input>(&in.data))
+    return tex->dimensions == 2;
+  return false;
+}
+
+static bool isf_is_ident_char(char c) noexcept
+{
+  return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')
+         || c == '_';
+}
+
+static void isf_rewrite_straight_sampling(std::string& src, const descriptor& d)
+{
+  std::vector<std::string_view> names;
+  for(const auto& in : d.inputs)
+    if(is_premultiplied_render_target(in))
+      names.push_back(in.name);
+  if(names.empty())
+    return;
+
+  static constexpr std::string_view macros[]
+      = {"THIS_NORM_PIXEL", "THIS_PIXEL", "NORM_PIXEL", "PIXEL"};
+  static constexpr std::string_view prefix = "IMG_";
+  static constexpr std::string_view straight = "ISF_STRAIGHT_";
+
   std::string out;
-  out += "layout(std140, binding = ";
-  out += std::to_string(binding);
-  out += ") uniform multiview_t { mat4 viewProjection[";
-  out += std::to_string(view_count);
-  out += "]; } isf_mv;\n";
-  return out;
+  out.reserve(src.size() + 256);
+  const std::size_t n = src.size();
+  std::size_t copied = 0;
+  for(std::size_t p = src.find(prefix); p != std::string::npos; p = src.find(prefix, p + 1))
+  {
+    if(p > 0 && isf_is_ident_char(src[p - 1]))
+      continue;
+    std::size_t e = p + prefix.size();
+    while(e < n && isf_is_ident_char(src[e]))
+      e++;
+    const std::string_view macro(src.data() + p + prefix.size(), e - p - prefix.size());
+    if(std::find(std::begin(macros), std::end(macros), macro) == std::end(macros))
+      continue;
+    std::size_t a = e;
+    while(a < n && std::isspace((unsigned char)src[a]))
+      a++;
+    if(a >= n || src[a] != '(')
+      continue;
+    a++;
+    while(a < n && std::isspace((unsigned char)src[a]))
+      a++;
+    std::size_t b = a;
+    while(b < n && isf_is_ident_char(src[b]))
+      b++;
+    const std::string_view arg(src.data() + a, b - a);
+    if(std::find(names.begin(), names.end(), arg) == names.end())
+      continue;
+    out.append(src, copied, p - copied);
+    out += straight;
+    copied = p + prefix.size();
+  }
+  if(copied == 0)
+    return;
+  out.append(src, copied, std::string::npos);
+  src = std::move(out);
 }
 
 void parser::parse_isf()
@@ -4130,16 +4315,6 @@ void parser::parse_isf()
         // images took the lowest bindings, from 3.
         sampler_binding = isf_emit_graphics_storage(
             material_ubos, sampler_binding, d.inputs, false);
-
-        // Multiview UBO: injected when MULTIVIEW >= 2 in the descriptor.
-        // Only the UBO here — the #extension pragma must come right after
-        // #version, so it's emitted separately below.
-        if(d.multiview_count >= 2)
-        {
-          material_ubos += isf_emit_multiview_ubo(
-              sampler_binding, d.multiview_count);
-          sampler_binding++;
-        }
       }
 
       m_vertex += material_ubos;
@@ -4164,7 +4339,26 @@ void parser::parse_isf()
   {
     m_vertex += m_sourceVertex;
   }
-  m_fragment += fragWithoutISF;
+  isf_rewrite_straight_sampling(fragWithoutISF, m_desc);
+
+  std::vector<std::string> premultiplied;
+  if(!declares_blend(d.default_state) && !declares_blend(d.passes.back().override_state)
+     && !d.passes.back().persistent)
+    premultiplied = isf_engine_premultiplied_outputs(d, "isf_FragColor");
+  if(premultiplied.empty())
+  {
+    m_fragment += fragWithoutISF;
+  }
+  else
+  {
+    m_fragment += "#define main isf_user_main\n";
+    m_fragment += fragWithoutISF;
+    m_fragment += "\n#undef main\nvoid main()\n{\n  isf_user_main();\n  if(PASSINDEX == ";
+    m_fragment += std::to_string(d.passes.size() - 1);
+    m_fragment += ")\n  {\n";
+    m_fragment += isf_premultiply_statements(premultiplied);
+    m_fragment += "  }\n}\n";
+  }
 
   // Replace the special ISF stuff
   boost::replace_all(m_fragment, "gl_FragColor", "isf_FragColor");
@@ -4796,14 +4990,6 @@ void parser::parse_raw_raster_pipeline()
     }
     material_ubos += aux_tex_decls;
 
-    // Multiview UBO: injected when MULTIVIEW >= 2.
-    if(m_desc.multiview_count >= 2)
-    {
-      material_ubos += isf_emit_multiview_ubo(
-          sampler_binding, m_desc.multiview_count);
-      sampler_binding++;
-    }
-
     int model_ubo_binding = sampler_binding;
     material_ubos += fmt::format(
         R"_(layout(std140, binding = {}) uniform model_material_t {{
@@ -4897,7 +5083,30 @@ void parser::parse_raw_raster_pipeline()
   m_vertex += "#define main isf_rawraster_user_main\n";
   m_vertex += m_sourceVertex;
   m_vertex += '\n';
-  m_fragment += fragWithoutISF;
+  isf_rewrite_straight_sampling(fragWithoutISF, m_desc);
+  std::vector<std::string> premultiplied;
+  if(!declares_blend(m_desc.default_state))
+  {
+    std::string single;
+    for(const auto& fo : m_desc.fragment_outputs)
+    {
+      single = fo.name;
+      break;
+    }
+    premultiplied = isf_engine_premultiplied_outputs(m_desc, single);
+  }
+  if(premultiplied.empty())
+  {
+    m_fragment += fragWithoutISF;
+  }
+  else
+  {
+    m_fragment += "#define main isf_rawraster_user_fragment_main\n";
+    m_fragment += fragWithoutISF;
+    m_fragment += "\n#undef main\nvoid main()\n{\n  isf_rawraster_user_fragment_main();\n";
+    m_fragment += isf_premultiply_statements(premultiplied);
+    m_fragment += "}\n";
+  }
 
   // Multiview wrapper main: writes the injected view-index varying, then
   // runs the user's (renamed) main. See the VIEW_INDEX plumbing note above.
@@ -6285,6 +6494,7 @@ float vertexId = float(gl_VertexIndex);
 layout(location = 0) out vec4 v_color;
 )_";
   // Add the processed VSA code
+  isf_rewrite_straight_sampling(vsaSource, m_desc);
   m_vertex += vsaSource;
 
   m_vertex += R"_(
@@ -6305,8 +6515,10 @@ layout(location = 0) out vec4 isf_FragColor;
 
 void main() {
   isf_FragColor = v_color;
-}
 )_";
+  if(premultiplied_by_engine(resolve_alpha(m_desc), resolve_composite(m_desc)))
+    m_fragment += "  isf_FragColor.rgb *= isf_FragColor.a;\n";
+  m_fragment += "}\n";
 }
 
 void parser::parse_csf()
@@ -7048,6 +7260,7 @@ void parser::parse_csf()
 
   // Add the user's compute shader code (without the JSON header)
   boost::algorithm::trim(compWithoutCSF);
+  isf_rewrite_straight_sampling(compWithoutCSF, m_desc);
   m_fragment += compWithoutCSF;
 
   // Sanity-check: every ATTRIBUTES.TYPE references a real GLSL built-in

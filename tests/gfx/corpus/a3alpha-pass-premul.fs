@@ -7,5 +7,5 @@
 }*/
 void main()
 {
-    gl_FragColor = IMG_NORM_PIXEL(inputImage, isf_FragNormCoord);
+    gl_FragColor = IMG_NORM_PIXEL_PREMULTIPLIED(inputImage, isf_FragNormCoord);
 }

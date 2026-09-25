@@ -442,10 +442,10 @@ std::vector<Sampler> RenderedRawRasterPipelineNode::allSamplers() const noexcept
 // it.
 static QVarLengthArray<QRhiGraphicsPipeline::TargetBlend, 4> rasterSeedBlends(
     const isf::descriptor& desc, const QRhiGraphicsPipeline::TargetBlend& custom,
-    int colorAttachmentCount)
+    int colorAttachmentCount, bool ownTargets)
 {
   if(!custom.enable)
-    return outputBlends(desc, colorAttachmentCount);
+    return outputBlends(desc, colorAttachmentCount, ownTargets);
   QVarLengthArray<QRhiGraphicsPipeline::TargetBlend, 4> blends;
   for(int i = 0; i < std::max(1, colorAttachmentCount); i++)
     blends.push_back(custom);
@@ -696,13 +696,6 @@ void RenderedRawRasterPipelineNode::initPass(
     appendAuxTextureBindings(
         additionalBindings, max_binding, m_firstAuxImageBinding);
 
-    if(m_multiViewUBO)
-    {
-      additionalBindings.push_back(QRhiShaderResourceBinding::uniformBuffer(
-          max_binding, bindingStages, m_multiViewUBO));
-      max_binding++;
-    }
-
     additionalBindings.push_back(QRhiShaderResourceBinding::uniformBuffer(
         max_binding, bindingStages, m_modelUBO));
 
@@ -762,7 +755,7 @@ void RenderedRawRasterPipelineNode::initPass(
       // declaration (e.g. just CULL_MODE) keeps it; applyPipelineState only
       // overrides blend when BLEND was explicitly declared.
       const auto seedBlends = rasterSeedBlends(
-          desc, customBlend, renderTarget.colorAttachmentCount());
+          desc, customBlend, renderTarget.colorAttachmentCount(), false);
       ps->setTargetBlends(seedBlends.begin(), seedBlends.end());
       ps->setDepthTest(true);
       ps->setDepthWrite(true);
@@ -782,7 +775,7 @@ void RenderedRawRasterPipelineNode::initPass(
     {
       // Legacy path: blend from the runtime UI or ALPHA, depth hardcoded on.
       const auto seedBlends = rasterSeedBlends(
-          desc, customBlend, renderTarget.colorAttachmentCount());
+          desc, customBlend, renderTarget.colorAttachmentCount(), false);
       ps->setTargetBlends(seedBlends.begin(), seedBlends.end());
 
       // Depth only when this target actually has a depth attachment: Metal's
@@ -1899,13 +1892,6 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     appendAuxTextureBindings(
         additionalBindings, max_binding, m_firstAuxImageBinding);
 
-    if(m_multiViewUBO)
-    {
-      additionalBindings.push_back(QRhiShaderResourceBinding::uniformBuffer(
-          max_binding, bindingStages, m_multiViewUBO));
-      max_binding++;
-    }
-
     additionalBindings.push_back(QRhiShaderResourceBinding::uniformBuffer(
         max_binding, bindingStages, m_modelUBO));
 
@@ -1970,7 +1956,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
       // Seed the UI or ALPHA-derived blend on every attachment first;
       // applyPipelineState only overrides BLEND when the shader declares it.
       const auto seedBlends
-          = rasterSeedBlends(desc, customBlend, pipelineColorCount);
+          = rasterSeedBlends(desc, customBlend, pipelineColorCount, true);
       ps->setTargetBlends(seedBlends.begin(), seedBlends.end());
       ps->setDepthTest(true);
       ps->setDepthWrite(true);
@@ -1990,7 +1976,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     {
       // Legacy: UI or ALPHA-derived blend, hardcoded depth.
       const auto seedBlends
-          = rasterSeedBlends(desc, customBlend, pipelineColorCount);
+          = rasterSeedBlends(desc, customBlend, pipelineColorCount, true);
       ps->setTargetBlends(seedBlends.begin(), seedBlends.end());
 
       // Depth only when this target actually has a depth attachment: Metal's
@@ -2122,7 +2108,8 @@ void RenderedRawRasterPipelineNode::initMRTBlitPass(
   sampler->create();
   m_blitSamplersByEdge[&edge] = sampler;
 
-  QRhiGraphicsPipeline::TargetBlend blend = premultipliedOverBlend();
+  QRhiGraphicsPipeline::TargetBlend blend = copyBlendFor(
+      n.descriptor(), colorOutputDeclaration(n.descriptor(), n, *edge.source));
   if(rt.texture && !formatSupportsBlending(rt.texture->format()))
     blend = {};
   auto pip = score::gfx::buildPipeline(
@@ -2204,27 +2191,6 @@ void RenderedRawRasterPipelineNode::initState(
     SCORE_ASSERT(m_materialUBO->create());
     if(n.m_material_data)
       res.updateDynamicBuffer(m_materialUBO, 0, m_materialSize, n.m_material_data.get());
-  }
-
-  // Allocated before the model UBO because the generated shader declares it
-  // first: isf_emit_multiview_ubo takes sampler_binding and model_ubo_binding
-  // is whatever follows. Same shape as RenderedISFNode -- no producer fills the
-  // per-view matrices yet, so seed identities rather than leave zeros, which
-  // would collapse every vertex to the origin.
-  if(n.descriptor().multiview_count >= 2)
-  {
-    const int mvCount = n.descriptor().multiview_count;
-    m_multiViewUBO = rhi.newBuffer(
-        QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(float[16]) * mvCount);
-    m_multiViewUBO->setName("RenderedRawRasterPipelineNode::init::m_multiViewUBO");
-    SCORE_ASSERT(m_multiViewUBO->create());
-
-    std::vector<float> ident(16 * mvCount, 0.f);
-    for(int v = 0; v < mvCount; v++)
-      for(int i = 0; i < 4; i++)
-        ident[v * 16 + i * 5] = 1.f;
-    res.updateDynamicBuffer(
-        m_multiViewUBO, 0, sizeof(float[16]) * mvCount, ident.data());
   }
 
   m_modelUBO
@@ -2755,9 +2721,6 @@ void RenderedRawRasterPipelineNode::releaseState(RenderList& r)
 
   delete m_modelUBO;
   m_modelUBO = nullptr;
-
-  delete m_multiViewUBO;
-  m_multiViewUBO = nullptr;
 
   m_blitMeshbufs = {}; // Freed in RenderList
 

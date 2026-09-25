@@ -1,5 +1,6 @@
 #include "PipelineStateHelpers.hpp"
 
+#include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/Utils.hpp>
 
 #include <algorithm>
@@ -214,15 +215,60 @@ QRhiGraphicsPipeline::TargetBlend straightOverBlend() noexcept
   return b;
 }
 
-QRhiGraphicsPipeline::TargetBlend overBlendFor(isf::alpha_mode alpha) noexcept
+QRhiGraphicsPipeline::TargetBlend
+blendFor(isf::alpha_mode alpha, isf::composite_mode composite) noexcept
 {
-  return alpha == isf::alpha_mode::straight ? straightOverBlend()
-                                            : premultipliedOverBlend();
+  if(isf::premultiplied_by_engine(alpha, composite))
+    alpha = isf::alpha_mode::premultiplied;
+  const auto src = alpha == isf::alpha_mode::straight ? QRhiGraphicsPipeline::SrcAlpha
+                                                      : QRhiGraphicsPipeline::One;
+  QRhiGraphicsPipeline::TargetBlend b;
+  b.enable = true;
+  b.srcAlpha = QRhiGraphicsPipeline::One;
+  b.dstAlpha = QRhiGraphicsPipeline::OneMinusSrcAlpha;
+  switch(composite)
+  {
+    case isf::composite_mode::add:
+      b.srcColor = src;
+      b.dstColor = QRhiGraphicsPipeline::One;
+      b.dstAlpha = QRhiGraphicsPipeline::One;
+      break;
+    case isf::composite_mode::multiply:
+      b.srcColor = QRhiGraphicsPipeline::DstColor;
+      b.dstColor = QRhiGraphicsPipeline::OneMinusSrcAlpha;
+      break;
+    case isf::composite_mode::screen:
+      b.srcColor = QRhiGraphicsPipeline::OneMinusDstColor;
+      b.dstColor = QRhiGraphicsPipeline::One;
+      break;
+    case isf::composite_mode::replace:
+      b.srcColor = src;
+      b.dstColor = QRhiGraphicsPipeline::Zero;
+      b.dstAlpha = QRhiGraphicsPipeline::Zero;
+      break;
+    case isf::composite_mode::unspecified:
+    case isf::composite_mode::over:
+      b.srcColor = src;
+      b.dstColor = QRhiGraphicsPipeline::OneMinusSrcAlpha;
+      break;
+  }
+  return b;
 }
 
-QVarLengthArray<QRhiGraphicsPipeline::TargetBlend, 4>
-outputBlends(const isf::descriptor& desc, int colorAttachmentCount)
+QRhiGraphicsPipeline::TargetBlend
+layerBlendFor(isf::alpha_mode alpha, isf::composite_mode composite) noexcept
 {
+  if(isf::premultiplied_by_engine(alpha, composite))
+    alpha = isf::alpha_mode::premultiplied;
+  if(composite == isf::composite_mode::multiply)
+    composite = isf::composite_mode::over;
+  return blendFor(alpha, composite);
+}
+
+QVarLengthArray<QRhiGraphicsPipeline::TargetBlend, 4> outputBlends(
+    const isf::descriptor& desc, int colorAttachmentCount, bool ownTargets)
+{
+  const auto blend = ownTargets ? layerBlendFor : blendFor;
   QVarLengthArray<QRhiGraphicsPipeline::TargetBlend, 4> blends;
   const int n = std::max(1, colorAttachmentCount);
   blends.reserve(n);
@@ -234,13 +280,43 @@ outputBlends(const isf::descriptor& desc, int colorAttachmentCount)
     if(colorIndex++ >= n)
       break;
     if(formatSupportsBlending(parseOutputFormat(out.format, QRhiTexture::RGBA8)))
-      blends.push_back(overBlendFor(isf::resolve_alpha(desc, &out)));
+      blends.push_back(
+          blend(isf::resolve_alpha(desc, &out), isf::resolve_composite(desc, &out)));
     else
       blends.push_back(QRhiGraphicsPipeline::TargetBlend{});
   }
   while(blends.size() < n)
-    blends.push_back(overBlendFor(isf::resolve_alpha(desc)));
+    blends.push_back(blend(isf::resolve_alpha(desc), isf::resolve_composite(desc)));
   return blends;
+}
+
+QRhiGraphicsPipeline::TargetBlend
+copyBlendFor(const isf::descriptor& desc, const isf::output_declaration* out) noexcept
+{
+  bool blend = isf::declares_blend(desc.default_state);
+  for(const auto& pass : desc.passes)
+    blend |= isf::declares_blend(pass.override_state);
+  return blendFor(
+      isf::alpha_mode::premultiplied,
+      blend ? isf::composite_mode::over : isf::resolve_composite(desc, out));
+}
+
+const isf::output_declaration*
+colorOutputDeclaration(const isf::descriptor& desc, const Node& node, const Port& output)
+{
+  const auto& outputs = desc.outputs;
+  std::size_t descIdx = 0;
+  for(auto* port : node.output)
+  {
+    if(port->type != Types::Image)
+      continue;
+    if(descIdx >= outputs.size())
+      break;
+    if(port == &output)
+      return outputs[descIdx].type == "depth" ? nullptr : &outputs[descIdx];
+    descIdx++;
+  }
+  return nullptr;
 }
 
 bool formatSupportsBlending(QRhiTexture::Format f) noexcept

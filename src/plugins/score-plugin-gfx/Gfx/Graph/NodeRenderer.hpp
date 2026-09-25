@@ -286,6 +286,14 @@ void defaultPassesInit(
     std::span<QRhiShaderResourceBinding> additionalBindings = {});
 
 SCORE_PLUGIN_GFX_EXPORT
+void defaultPassesInit(
+    PassMap& passes, const std::vector<Edge*>& edges, RenderList& renderer,
+    const Mesh& mesh, const QShader& v, const QShader& f, QRhiBuffer* processUBO,
+    QRhiBuffer* matUBO, std::span<const Sampler> samplers,
+    const QRhiGraphicsPipeline::TargetBlend& blend,
+    std::span<QRhiShaderResourceBinding> additionalBindings = {});
+
+SCORE_PLUGIN_GFX_EXPORT
 void defaultRenderPass(
     RenderList& renderer, const Mesh& mesh, const MeshBuffers& bufs,
     QRhiCommandBuffer& cb, Edge& edge, PassMap& passes);
@@ -318,6 +326,12 @@ public:
 
   QShader m_vertexS;
   QShader m_fragmentS;
+
+  //! What the fragment shader writes into the consumers' targets: straight
+  //! colour (decoded images, video, CPU textures) is composited with the
+  //! straight "over", premultiplied colour (a copy of a render target) with
+  //! the premultiplied one.
+  bool m_outputPremultiplied{false};
 
   // Pipeline
   PassMap m_p;

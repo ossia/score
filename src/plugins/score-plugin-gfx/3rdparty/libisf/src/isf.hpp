@@ -132,6 +132,18 @@ struct sampler_config
   friend bool operator==(const sampler_config&, const sampler_config&) = default;
 };
 
+// COMPOSITE header key: how a colour output is composited onto what its
+// target already holds. `unspecified` resolves to `over`.
+enum class composite_mode : uint8_t
+{
+  unspecified,
+  over,
+  add,
+  multiply,
+  screen,
+  replace
+};
+
 struct image_input
 {
   int dimensions{2};    // 2 or 3
@@ -305,6 +317,9 @@ struct csf_image_input
   // cubemaps, and 2D arrays where generateMips semantics differ across
   // QRhi backends (per-face / per-layer / per-slice).
   bool generate_mips{false};
+
+  // COMPOSITE: how the copy of this image into a consumer is composited.
+  composite_mode composite{composite_mode::unspecified};
 
   bool is3D() const noexcept { return dimensions == 3 || !depth_expression.empty(); }
   bool isCube() const noexcept { return cubemap; }
@@ -827,6 +842,9 @@ struct output_declaration
 
   // ALPHA: overrides the descriptor-level ALPHA for this output.
   alpha_mode alpha{alpha_mode::unspecified};
+
+  // COMPOSITE: overrides the descriptor-level COMPOSITE for this output.
+  composite_mode composite{composite_mode::unspecified};
 };
 
 struct descriptor
@@ -846,6 +864,10 @@ struct descriptor
   // otherwise. Unspecified: straight for ISF, premultiplied for CSF, raw
   // raster and VSA.
   alpha_mode alpha{alpha_mode::unspecified};
+
+  // COMPOSITE: how every colour output is composited onto its target, unless
+  // an OUTPUTS entry or a storage image says otherwise. Unspecified: over.
+  composite_mode composite{composite_mode::unspecified};
   std::vector<input> inputs;
   std::vector<output_declaration> outputs; // Parsed from OUTPUTS array; empty = single color output
   std::vector<pass> passes;
@@ -986,6 +1008,31 @@ struct descriptor
 SCORE_PLUGIN_GFX_EXPORT
 alpha_mode resolve_alpha(
     const descriptor& d, const output_declaration* out = nullptr) noexcept;
+
+// The COMPOSITE of a colour output: the OUTPUTS entry's (or the storage
+// image's), else the descriptor's, else over.
+SCORE_PLUGIN_GFX_EXPORT
+composite_mode resolve_composite(
+    const descriptor& d, const output_declaration* out = nullptr) noexcept;
+SCORE_PLUGIN_GFX_EXPORT
+composite_mode resolve_composite(const descriptor& d, const csf_image_input& img) noexcept;
+
+// A straight output composited with multiply or screen has no exact blend
+// factors: the generated code (or the engine's copy) premultiplies it, and it
+// is blended as premultiplied.
+SCORE_PLUGIN_GFX_EXPORT
+bool premultiplied_by_engine(alpha_mode alpha, composite_mode composite) noexcept;
+
+// Whether a pipeline state declares BLEND or BLEND_PER_ATTACHMENT.
+SCORE_PLUGIN_GFX_EXPORT
+bool declares_blend(const pipeline_state& s) noexcept;
+
+// Whether an input samples the engine's premultiplied render target (a 2D
+// image or texture input fed by cables), rather than a producer's texture
+// bound as is (3D, array, STATIC, cubemap, audio). IMG_PIXEL, IMG_NORM_PIXEL,
+// IMG_THIS_PIXEL and IMG_THIS_NORM_PIXEL unpremultiply such inputs.
+SCORE_PLUGIN_GFX_EXPORT
+bool is_premultiplied_render_target(const input& in) noexcept;
 
 class SCORE_PLUGIN_GFX_EXPORT parser
 {

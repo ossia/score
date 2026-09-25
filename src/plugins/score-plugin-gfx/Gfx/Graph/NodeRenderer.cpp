@@ -1,5 +1,6 @@
 #include <Gfx/Graph/CustomMesh.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
+#include <Gfx/Graph/PipelineStateHelpers.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 
 #include <score/tools/Debug.hpp>
@@ -108,6 +109,18 @@ void defaultPassesInit(
     QRhiBuffer* matUBO, std::span<const Sampler> samplers,
     std::span<QRhiShaderResourceBinding> additionalBindings)
 {
+  defaultPassesInit(
+      passes, edges, renderer, mesh, v, f, processUBO, matUBO, samplers,
+      straightOverBlend(), additionalBindings);
+}
+
+void defaultPassesInit(
+    PassMap& passes, const std::vector<Edge*>& edges, RenderList& renderer,
+    const Mesh& mesh, const QShader& v, const QShader& f, QRhiBuffer* processUBO,
+    QRhiBuffer* matUBO, std::span<const Sampler> samplers,
+    const QRhiGraphicsPipeline::TargetBlend& blend,
+    std::span<QRhiShaderResourceBinding> additionalBindings)
+{
   SCORE_ASSERT(passes.empty());
   for(Edge* edge : edges)
   {
@@ -115,7 +128,8 @@ void defaultPassesInit(
     if(rt.renderTarget)
     {
       auto pip = score::gfx::buildPipeline(
-          renderer, mesh, v, f, rt, processUBO, matUBO, samplers, additionalBindings);
+          renderer, mesh, v, f, rt, processUBO, matUBO, samplers, blend,
+          additionalBindings);
       if(pip.pipeline)
         passes.emplace_back(edge, Pass{rt, pip, nullptr});
     }
@@ -187,7 +201,8 @@ void GenericNodeRenderer::defaultPassesInit(RenderList& renderer, const Mesh& me
   {
     score::gfx::defaultPassesInit(
         m_p, this->node.output[0]->edges, renderer, mesh, m_vertexS, m_fragmentS,
-        m_processUBO, m_material.buffer, m_samplers);
+        m_processUBO, m_material.buffer, m_samplers,
+        m_outputPremultiplied ? premultipliedOverBlend() : straightOverBlend());
   }
 }
 
@@ -199,7 +214,9 @@ void GenericNodeRenderer::defaultPassesInit(
   {
     score::gfx::defaultPassesInit(
         m_p, this->node.output[0]->edges, renderer, mesh, v, f, m_processUBO,
-        m_material.buffer, m_samplers, additionalBindings);
+        m_material.buffer, m_samplers,
+        m_outputPremultiplied ? premultipliedOverBlend() : straightOverBlend(),
+        additionalBindings);
   }
 }
 
@@ -289,7 +306,8 @@ void GenericNodeRenderer::addOutputPass(
   if(!pipeline)
   {
     auto pip = score::gfx::buildPipeline(
-        renderer, *m_mesh, m_vertexS, m_fragmentS, rt, srb);
+        renderer, *m_mesh, m_vertexS, m_fragmentS, rt, srb,
+        m_outputPremultiplied ? premultipliedOverBlend() : straightOverBlend());
     if(!pip.pipeline)
     {
       srb->deleteLater();

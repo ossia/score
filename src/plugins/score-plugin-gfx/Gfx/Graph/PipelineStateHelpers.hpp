@@ -9,6 +9,8 @@
 
 namespace score::gfx
 {
+class Node;
+struct Port;
 
 // --- String → Qt RHI enum mappers ----------------------------------------
 //
@@ -81,15 +83,49 @@ QRhiGraphicsPipeline::TargetBlend premultipliedOverBlend() noexcept;
 SCORE_PLUGIN_GFX_EXPORT
 QRhiGraphicsPipeline::TargetBlend straightOverBlend() noexcept;
 
+// The blend compositing an output onto its target, from its ALPHA and
+// COMPOSITE. The destination holds premultiplied colour. A straight output
+// with multiply or screen gets the premultiplied factors (it is premultiplied
+// before blending, see isf::premultiplied_by_engine).
+//   over     : colour src / OneMinusSrcAlpha, alpha One / OneMinusSrcAlpha
+//   add      : colour src / One,              alpha One / One
+//   multiply : colour DstColor / OneMinusSrcAlpha (exact over an opaque
+//              destination), alpha One / OneMinusSrcAlpha
+//   screen   : colour OneMinusDstColor / One, alpha One / OneMinusSrcAlpha
+//   replace  : colour src / Zero,             alpha One / Zero
+// where src is SrcAlpha for straight and One for premultiplied.
 SCORE_PLUGIN_GFX_EXPORT
-QRhiGraphicsPipeline::TargetBlend overBlendFor(isf::alpha_mode alpha) noexcept;
+QRhiGraphicsPipeline::TargetBlend
+blendFor(isf::alpha_mode alpha, isf::composite_mode composite) noexcept;
 
-// One blend per colour attachment: attachment i takes the ALPHA of the i-th
-// colour OUTPUT (depth OUTPUTS skipped), else the descriptor's. Integer
-// FORMATs get no blend.
+// The blend of an output into the node's own cleared texture, which is then
+// copied into its consumers with blendFor(premultiplied, composite): as
+// blendFor, except multiply, which composites over (a layer multiplied onto
+// transparent black would vanish).
 SCORE_PLUGIN_GFX_EXPORT
-QVarLengthArray<QRhiGraphicsPipeline::TargetBlend, 4>
-outputBlends(const isf::descriptor& desc, int colorAttachmentCount);
+QRhiGraphicsPipeline::TargetBlend
+layerBlendFor(isf::alpha_mode alpha, isf::composite_mode composite) noexcept;
+
+// One blend per colour attachment: attachment i takes the ALPHA and COMPOSITE
+// of the i-th colour OUTPUT (depth OUTPUTS skipped), else the descriptor's.
+// Integer FORMATs get no blend. ownTargets: the node renders into its own
+// textures (layerBlendFor) rather than into its consumers.
+SCORE_PLUGIN_GFX_EXPORT
+QVarLengthArray<QRhiGraphicsPipeline::TargetBlend, 4> outputBlends(
+    const isf::descriptor& desc, int colorAttachmentCount, bool ownTargets = false);
+
+// The blend copying an output that the node stored premultiplied in its own
+// texture into a consumer: its COMPOSITE, or over when the shader declares
+// BLEND.
+SCORE_PLUGIN_GFX_EXPORT
+QRhiGraphicsPipeline::TargetBlend
+copyBlendFor(const isf::descriptor& desc, const isf::output_declaration* out) noexcept;
+
+// The OUTPUTS entry of a colour image outlet of an ISF / raw raster node
+// (image outlets only, in OUTPUTS order), or nullptr.
+SCORE_PLUGIN_GFX_EXPORT
+const isf::output_declaration*
+colorOutputDeclaration(const isf::descriptor& desc, const Node& node, const Port& output);
 
 // Integer colour formats cannot be blended.
 SCORE_PLUGIN_GFX_EXPORT
@@ -118,7 +154,7 @@ bool stateAffectsPipeline(const isf::pipeline_state&) noexcept;
 // Only fields explicitly set in `state` are overridden. Cull, front-face,
 // polygon mode, blend, and stencil all preserve whatever the caller (or
 // `mesh.preparePipeline()`) configured before this call. The caller is
-// responsible for seeding sensible defaults (e.g. overBlendFor(ALPHA)) before
+// responsible for seeding sensible defaults (e.g. blendFor(ALPHA, COMPOSITE)) before
 // invoking this, so that shaders declaring partial pipeline_state don't
 // silently lose unrelated defaults.
 SCORE_PLUGIN_GFX_EXPORT

@@ -1152,6 +1152,14 @@ Pipeline buildPipeline(
 
 Pipeline buildPipeline(
     const RenderList& renderer, const Mesh& mesh, const QShader& vertexS,
+    const QShader& fragmentS, const TextureRenderTarget& rt,
+    QRhiShaderResourceBindings* srb, const QRhiGraphicsPipeline::TargetBlend& blend)
+{
+  return buildPipelineImpl(renderer, mesh, vertexS, fragmentS, rt, srb, blend);
+}
+
+Pipeline buildPipeline(
+    const RenderList& renderer, const Mesh& mesh, const QShader& vertexS,
     const QShader& fragmentS, const TextureRenderTarget& rt, QRhiBuffer* processUBO,
     QRhiBuffer* materialUBO, std::span<const Sampler> samplers,
     std::span<QRhiShaderResourceBinding> additionalBindings)

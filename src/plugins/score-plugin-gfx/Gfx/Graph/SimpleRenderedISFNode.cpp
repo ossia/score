@@ -254,23 +254,7 @@ void SimpleRenderedISFNode::initPass(
       rhi, res, renderer, n.descriptor(), m_storage, renderer.state.renderSize);
   bindUpstreamBuffers(renderer, n.input, m_storage);
 
-  // Build the extra-binding list (storage + multiview UBO).
   auto extraRhiBindings = buildExtraBindings(m_storage);
-  if(m_multiViewUBO)
-  {
-    // Multiview UBO binds right after ALL storage resources (SSBOs + images +
-    // uniform_input UBOs). Reuse the next-free binding recorded by
-    // collectGraphicsStorageResources — the exact slot isf_emit_multiview_ubo
-    // uses. A max over ssbos/images alone would ignore uniform_input UBOs and
-    // collide the multiview binding with the last UBO.
-    const int mvBinding
-        = m_storage.nextBinding >= 0 ? m_storage.nextBinding : m_firstStorageBinding;
-
-    extraRhiBindings.append(QRhiShaderResourceBinding::uniformBuffer(
-        mvBinding,
-        QRhiShaderResourceBinding::VertexStage | QRhiShaderResourceBinding::FragmentStage,
-        m_multiViewUBO));
-  }
 
   // Compute effective pipeline state: global default + per-pass override.
   auto eff_state = mergeState(
@@ -457,21 +441,7 @@ void SimpleRenderedISFNode::initMRTPass(RenderList& renderer, QRhiResourceUpdate
       rhi, res, renderer, n.descriptor(), m_storage, renderer.state.renderSize);
   bindUpstreamBuffers(renderer, n.input, m_storage);
 
-  // Extra bindings: storage + multiview UBO (same as initPass).
   auto extraRhiBindings = buildExtraBindings(m_storage);
-  if(m_multiViewUBO)
-  {
-    // Same slot as the codegen's multiview UBO (isf_emit_multiview_ubo): the
-    // next free binding after ALL storage including uniform_input UBOs,
-    // recorded by collectGraphicsStorageResources — see initPass above.
-    const int mvBinding
-        = m_storage.nextBinding >= 0 ? m_storage.nextBinding : m_firstStorageBinding;
-
-    extraRhiBindings.append(QRhiShaderResourceBinding::uniformBuffer(
-        mvBinding,
-        QRhiShaderResourceBinding::VertexStage | QRhiShaderResourceBinding::FragmentStage,
-        m_multiViewUBO));
-  }
 
   const auto& passes = n.descriptor().passes;
   auto eff_state = mergeState(
@@ -483,7 +453,7 @@ void SimpleRenderedISFNode::initMRTPass(RenderList& renderer, QRhiResourceUpdate
     auto [v, s] = score::gfx::makeShaders(
         renderer.state, n.m_vertexS, n.m_fragmentS, n.descriptor().multiview_count);
     const auto blends
-        = outputBlends(n.descriptor(), m_mrtRenderTarget.colorAttachmentCount());
+        = outputBlends(n.descriptor(), m_mrtRenderTarget.colorAttachmentCount(), true);
     auto pip = score::gfx::buildPipelineWithState(
         renderer, *m_mesh, v, s, m_mrtRenderTarget, pubo, m_materialUBO, allSamplers(),
         std::span<QRhiShaderResourceBinding>(
@@ -530,7 +500,8 @@ void SimpleRenderedISFNode::initMRTBlitPass(RenderList& renderer, QRhiResourceUp
   sampler->create();
   m_blitSamplersByEdge[&edge] = sampler;
 
-  QRhiGraphicsPipeline::TargetBlend blend = premultipliedOverBlend();
+  QRhiGraphicsPipeline::TargetBlend blend = copyBlendFor(
+      n.descriptor(), colorOutputDeclaration(n.descriptor(), n, *edge.source));
   if(rt.texture && !formatSupportsBlending(rt.texture->format()))
     blend = {};
   auto pip = score::gfx::buildPipeline(
@@ -652,29 +623,6 @@ void SimpleRenderedISFNode::initState(RenderList& renderer, QRhiResourceUpdateBa
     m_firstStorageBinding = firstStorageBinding;
     collectGraphicsStorageResources(
         n.descriptor(), firstStorageBinding, m_storage, 0, 3);
-  }
-
-  // Allocate the multiview UBO when MULTIVIEW >= 2 is declared.
-  if(n.descriptor().multiview_count >= 2)
-  {
-    const int mvCount = n.descriptor().multiview_count;
-    m_multiViewUBO = rhi.newBuffer(
-        QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer,
-        sizeof(float[16]) * mvCount);
-    m_multiViewUBO->setName("SimpleRenderedISFNode::multiview_ubo");
-    SCORE_ASSERT(m_multiViewUBO->create());
-
-    // No producer fills the per-view matrices yet; seed identities so
-    // MULTIVIEW shaders get a pass-through viewProjection[] instead of
-    // all-zero matrices collapsing every vertex to the origin.
-    {
-      std::vector<float> ident(16 * mvCount, 0.f);
-      for(int v = 0; v < mvCount; v++)
-        for(int i = 0; i < 4; i++)
-          ident[v * 16 + i * 5] = 1.f;
-      res.updateDynamicBuffer(
-          m_multiViewUBO, 0, sizeof(float[16]) * mvCount, ident.data());
-    }
   }
 
   // Count outputs to determine if we need MRT
@@ -857,12 +805,6 @@ void SimpleRenderedISFNode::releaseState(RenderList& r)
   m_storage.release();
   m_lastMRTRenderFrame = -1;
   m_lastStorageSwapFrame = -1;
-
-  if(m_multiViewUBO)
-  {
-    m_multiViewUBO->deleteLater();
-    m_multiViewUBO = nullptr;
-  }
 
   m_initialized = false;
 }

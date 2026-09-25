@@ -727,6 +727,12 @@ Pipeline buildPipeline(
     const QShader& fragmentS, const TextureRenderTarget& rt,
     QRhiShaderResourceBindings* srb);
 
+SCORE_PLUGIN_GFX_EXPORT
+Pipeline buildPipeline(
+    const RenderList& renderer, const Mesh& mesh, const QShader& vertexS,
+    const QShader& fragmentS, const TextureRenderTarget& rt,
+    QRhiShaderResourceBindings* srb, const QRhiGraphicsPipeline::TargetBlend& blend);
+
 /**
  * @brief buildPipeline with an explicit blend on every colour attachment.
  *
