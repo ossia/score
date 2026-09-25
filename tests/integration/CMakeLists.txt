@@ -1579,3 +1579,17 @@ score_test_app_libpath(
   test_integration_gfx_grab_slow_start
   test_integration_js_list_controls
   test_integration_gfx_stepped_execution)
+
+# The app exports symbols for the JIT and Faust but not its static LLVM: a
+# system libLLVM loaded by Mesa would bind to it and crash at exit.
+if(TARGET score AND UNIX AND NOT APPLE AND NOT EMSCRIPTEN
+   AND (TARGET score_plugin_jit OR TARGET score_plugin_faust))
+  add_test(NAME test_app_hides_llvm_symbols
+    COMMAND sh -c "n=$(nm -D --defined-only \"$1\" | grep -c ' _ZN4llvm'); echo \"exported llvm symbols: $n\"; test \"$n\" -eq 0" _ $<TARGET_FILE:score>)
+
+  # A versioned malloc / operator new (named version script) is not what the
+  # shared libraries' versioned references bind to: under ASan every
+  # allocation made in a library is then freed by the sanitizer.
+  add_test(NAME test_app_allocator_symbols_unversioned
+    COMMAND sh -c "n=$(nm -D --defined-only --with-symbol-versions \"$1\" | grep -cE ' (malloc|calloc|realloc|free|_Znwm|_Znam|_ZdlPv|_ZdlPvm|_ZdaPv)@'); echo \"versioned allocator symbols: $n\"; test \"$n\" -eq 0" _ $<TARGET_FILE:score>)
+endif()

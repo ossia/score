@@ -1,3 +1,9 @@
-SCORE_1.0 { 
+SCORE_1.0 {
     global: *;
+    /* The static LLVM: every mangled name that involves the llvm namespace
+       (members, vtables, thunks, local statics, std:: instantiations over
+       llvm types) and its C API. See hide-llvm.version. */
+    local:
+      *N4llvm*;
+      LLVM*;
 };

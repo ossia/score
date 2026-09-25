@@ -1,0 +1,12 @@
+/* Anonymous: exported symbols stay unversioned, so an interposed allocator
+   (sanitizers, preloaded malloc) still binds for every shared library.
+   Local: the static LLVM, i.e. every mangled name that involves the llvm
+   namespace (members, vtables, thunks, local statics, std:: instantiations
+   over llvm types) and its C API; a system libLLVM loaded by Mesa would
+   otherwise bind to our copies. */
+{
+    global: *;
+    local:
+      *N4llvm*;
+      LLVM*;
+};
