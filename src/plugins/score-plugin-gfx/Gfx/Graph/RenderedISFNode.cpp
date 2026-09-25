@@ -1349,8 +1349,6 @@ std::optional<Sampler> AudioTextureUpload::updateAudioTexture(
   if(has_data)
   {
     samples = int(audio.data.size()) / audio.channels;
-    if(samples % 2 != 0)
-      samples++;
     switch(audio.mode)
     {
       case AudioTexture::Mode::Waveform:
@@ -1415,8 +1413,12 @@ std::optional<Sampler> AudioTextureUpload::updateAudioTexture(
   if(rhiTexture)
   {
     auto sz = rhiTexture->pixelSize();
-    if(sz.width() * sz.height() > 1)
+    auto& uploaded = m_uploadedFrame.try_emplace(&audio, -1).first->second;
+    if(sz.width() * sz.height() > 1 && uploaded != renderer.frame)
+    {
+      uploaded = renderer.frame;
       this->process(audio, res, rhiTexture);
+    }
   }
 
   if(textureChanged)

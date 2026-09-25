@@ -37,6 +37,8 @@ struct port_counts
 // isf_input_port_vis (ISFNode.cpp) one-to-one.
 struct isf_input_port_count_vis
 {
+  bool raw_raster{};
+
   port_counts operator()(const isf::float_input&) const noexcept   { return {1, 0, 0}; }
   port_counts operator()(const isf::long_input&) const noexcept    { return {1, 0, 0}; }
   port_counts operator()(const isf::event_input&) const noexcept   { return {1, 0, 0}; }
@@ -90,20 +92,23 @@ struct isf_input_port_count_vis
   port_counts operator()(const isf::geometry_input& in) const noexcept
   {
     port_counts c{};
-    if(in.attributes.empty())
+    if(!raw_raster)
     {
-      // Pass-through: 1 inlet + 1 outlet
-      c.inlets = 1;
-      c.outlets = 1;
-    }
-    else
-    {
-      for(const auto& attr : in.attributes)
-        if(attr.access == "read_only" || attr.access == "read_write")
-        { c.inlets = 1; break; }
-      for(const auto& attr : in.attributes)
-        if(attr.access == "write_only" || attr.access == "read_write")
-        { c.outlets = 1; break; }
+      if(in.attributes.empty())
+      {
+        // Pass-through: 1 inlet + 1 outlet
+        c.inlets = 1;
+        c.outlets = 1;
+      }
+      else
+      {
+        for(const auto& attr : in.attributes)
+          if(attr.access == "read_only" || attr.access == "read_write")
+          { c.inlets = 1; break; }
+        for(const auto& attr : in.attributes)
+          if(attr.access == "write_only" || attr.access == "read_write")
+          { c.outlets = 1; break; }
+      }
     }
     // $USER ports → synthesized long_input each (1 inlet)
     if(in.vertex_count.find("$USER") != std::string::npos)   c.inlets++;
@@ -132,7 +137,8 @@ inline void walk_descriptor_inputs(
   port_counts cur = start;
   for(const auto& inp : desc.inputs)
   {
-    port_counts delta = ossia::visit(isf_input_port_count_vis{}, inp.data);
+    port_counts delta = ossia::visit(
+        isf_input_port_count_vis{desc.mode == isf::descriptor::RawRaster}, inp.data);
     fn(inp, cur, delta);
     cur += delta;
   }

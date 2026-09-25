@@ -2132,3 +2132,51 @@ endif()
 # finite texels, DC..nyquist span, sine peak bin, stable histogram rows
 # next to a waveform input.
 score_add_gfx_test(audio_spectrum GfxAudioSpectrum.cpp)
+
+# ossia::fft zero-pads a non-power-of-two input up to its plan size.
+score_add_test(test_gfx_ossia_fft_tail
+  SOURCES OssiaFftTail.cpp)
+
+# ISF audio upload: an odd-length waveform fills its whole texture, and the
+# upload runs once per frame with several output edges.
+score_add_gfx_test(audio_upload GfxAudioUpload.cpp)
+
+# A raw raster's geometry INPUT adds no node port (volumetric_composite shape:
+# DEPTH:true image, uniform block, controls, AUXILIARY).
+score_add_gfx_test(raw_raster_depth_input GfxRawRasterDepthInput.cpp)
+
+# textureLod on an ISF cubemap input reads the requested mip of a mipmapped
+# cube published by a halp object.
+if(TARGET score_plugin_avnd)
+  score_add_test(test_gfx_cubemap_mip
+    SOURCES GfxCubemapMip.cpp
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_cubemap_mip PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_cubemap_mip SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
+# A CSF SIZE reading $COUNT_ of a read_only upstream auxiliary logs no ERR232
+# before the upstream binds it; undeclared names still log.
+score_add_gfx_test(csf_pending_aux_count GfxCsfPendingAuxCount.cpp)
+
+# isf::descriptor's VSA background colour defaults to transparent.
+score_add_test(test_gfx_isf_descriptor_defaults
+  SOURCES IsfDescriptorDefaults.cpp
+  PLUGINS score_plugin_gfx)
+
+# Skinning through the Scene Preprocessor (joints_0 / weights_0 attributes,
+# joint_matrices, skeleton_offset) and the integer vertex-input fallback.
+score_add_gfx_test(scene_skinning GfxSceneSkinning.cpp)
+target_sources(test_gfx_scene_skinning PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator/offsetAllocator.cpp")
+target_include_directories(test_gfx_scene_skinning PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator")

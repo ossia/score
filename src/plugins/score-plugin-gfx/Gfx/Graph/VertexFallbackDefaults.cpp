@@ -9,11 +9,8 @@ namespace score::gfx
 namespace
 {
 
-// Small helper: how many float components does a GLSL TYPE declare?
-// Returns 0 for unsupported types (mat4, integer types) — v1 accepts
-// only scalar float / vec2 / vec3 / vec4 inputs for the fallback path.
-// This is strict on purpose: the PerInstance step_rate=1 broadcast
-// semantics we ship don't generalise cleanly to integer IDs or mat4
+// How many float components does a GLSL TYPE declare? 0 for anything else;
+// integer types go through int_components_of, and mat4 has no fallback
 // (location-bump issue).
 int float_components_of(std::string_view decl_type) noexcept
 {
@@ -91,10 +88,6 @@ bool fill_whitelist(VertexFallbackSpec& spec,
     case S::instance_custom2: case S::instance_custom3:
       pack_floats(spec, n, {0.f, 0.f, 0.f, 0.f}); return true;
 
-    // instance_draw_id intentionally omitted — uint-typed VERTEX_INPUTs
-    // aren't supported by the float-only v1 fallback path. Unified-MDI
-    // shaders that read it must set REQUIRED: true (and the
-    // ScenePreprocessor publishes the per-instance draw_id buffer).
 
     // Transform / instancing. The enum at rotation..translation
     // (values 600..607) does not collide with the morph deltas
@@ -172,6 +165,51 @@ bool fill_whitelist(VertexFallbackSpec& spec,
   }
 }
 
+int int_components_of(std::string_view decl_type, bool& is_unsigned) noexcept
+{
+  is_unsigned = decl_type.starts_with('u');
+  if(decl_type == "int" || decl_type == "uint") return 1;
+  if(decl_type == "ivec2" || decl_type == "uvec2") return 2;
+  if(decl_type == "ivec3" || decl_type == "uvec3") return 3;
+  if(decl_type == "ivec4" || decl_type == "uvec4") return 4;
+  return 0;
+}
+
+int int_format_for_components(int n, bool is_unsigned) noexcept
+{
+  using F = ossia::geometry::attribute;
+  switch(n)
+  {
+    case 1: return is_unsigned ? F::uint1 : F::sint1;
+    case 2: return is_unsigned ? F::uint2 : F::sint2;
+    case 3: return is_unsigned ? F::uint3 : F::sint3;
+    default: return is_unsigned ? F::uint4 : F::sint4;
+  }
+}
+
+std::optional<VertexFallbackSpec> resolveIntegerFallback(
+    ossia::attribute_semantic semantic, int n, bool is_unsigned,
+    const std::vector<double>& user_default) noexcept
+{
+  VertexFallbackSpec spec{};
+  int32_t tmp[4] = {0, 0, 0, 0};
+  if(!user_default.empty())
+  {
+    const int k = (int)std::min<std::size_t>(user_default.size(), (std::size_t)n);
+    for(int i = 0; i < k; ++i)
+      tmp[i] = is_unsigned ? (int32_t)(uint32_t)user_default[(std::size_t)i]
+                           : (int32_t)user_default[(std::size_t)i];
+  }
+  else if(semantic != ossia::attribute_semantic::instance_draw_id)
+  {
+    return std::nullopt;
+  }
+  std::memcpy(spec.bytes.data(), tmp, (size_t)n * sizeof(int32_t));
+  spec.stride_bytes = (uint32_t)(n * sizeof(int32_t));
+  spec.format = int_format_for_components(n, is_unsigned);
+  return spec;
+}
+
 } // namespace
 
 std::optional<VertexFallbackSpec> resolveVertexFallback(
@@ -181,7 +219,12 @@ std::optional<VertexFallbackSpec> resolveVertexFallback(
 {
   const int n = float_components_of(decl_type);
   if(n <= 0)
-    return std::nullopt;   // unsupported type (mat4, integer, sampler, ...)
+  {
+    bool is_unsigned = false;
+    if(const int ni = int_components_of(decl_type, is_unsigned); ni > 0)
+      return resolveIntegerFallback(semantic, ni, is_unsigned, user_default);
+    return std::nullopt;   // unsupported type (mat4, sampler, ...)
+  }
 
   VertexFallbackSpec spec{};
 

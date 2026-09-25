@@ -8,6 +8,7 @@
 #include <QDebug>
 #include <QQuaternion>
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstdint>
@@ -734,6 +735,82 @@ struct FlattenVisitor
 
 };
 
+// Forward kinematics through the joint hierarchy, then
+// joint_matrix[i] = world_joint[i] × inverse_bind_matrix[i]. Matches the glTF
+// skinning convention; consumer shaders multiply vertex position by
+// Σ(w_j × joint_matrix[j]).
+static SkeletonGPU packSkeleton(const ossia::skeleton_component& sk)
+{
+  auto jointLocal = [](const ossia::skeleton_joint& j) {
+    QMatrix4x4 m;
+    m.translate(j.translation[0], j.translation[1], j.translation[2]);
+    m.rotate(QQuaternion(j.rotation[3], j.rotation[0], j.rotation[1], j.rotation[2]));
+    m.scale(j.scale[0], j.scale[1], j.scale[2]);
+    return m;
+  };
+
+  SkeletonGPU sg;
+  // Multi-pass forward kinematics: resolve any joint whose parent has
+  // already been resolved, looping until all are done. The glTF 2.0
+  // spec does NOT guarantee topological ordering of skin.joints, so
+  // we cannot assume parent_index < i. For DFS-ordered skins (the
+  // common case) this converges in a single pass.
+  const std::size_t N = sk.joints.size();
+  std::vector<QMatrix4x4> world(N);
+  std::vector<bool> resolved(N, false);
+  sg.joint_matrices.resize(N);
+  std::size_t resolvedCount = 0;
+  int passes = 0;
+  constexpr int maxPasses = 64; // covers any real skeleton depth
+  while(resolvedCount < N && passes < maxPasses)
+  {
+    bool changed = false;
+    for(std::size_t i = 0; i < N; ++i)
+    {
+      if(resolved[i])
+        continue;
+      const auto& j = sk.joints[i];
+      // Root joint or invalid parent index: resolve immediately.
+      if(j.parent_index < 0 || j.parent_index >= (int32_t)N)
+      {
+        world[i] = jointLocal(j);
+        resolved[i] = true;
+        ++resolvedCount;
+        changed = true;
+        continue;
+      }
+      if(!resolved[(std::size_t)j.parent_index])
+        continue;
+      world[i] = world[j.parent_index] * jointLocal(j);
+      resolved[i] = true;
+      ++resolvedCount;
+      changed = true;
+    }
+    ++passes;
+    if(!changed)
+      break; // cycle or orphan: bail out instead of spinning
+  }
+  if(resolvedCount < N)
+  {
+    qWarning() << "SceneGPUState: skeleton FK did not converge —"
+               << (N - resolvedCount) << "joint(s) unresolved (cycle or"
+               << "orphan parent). Falling back to local matrices.";
+    for(std::size_t i = 0; i < N; ++i)
+    {
+      if(!resolved[i])
+        world[i] = jointLocal(sk.joints[i]);
+    }
+  }
+  // Stamp joint_matrices = world × inverse_bind_matrix once FK is done.
+  for(std::size_t i = 0; i < N; ++i)
+  {
+    const QMatrix4x4 ibm
+        = QMatrix4x4(sk.joints[i].inverse_bind_matrix, 4, 4);
+    sg.joint_matrices[i] = world[i] * ibm;
+  }
+  return sg;
+}
+
 void flattenScene(
     const ossia::scene_spec& scene, FlatScene& out, float aspectRatio,
     const GpuResourceRegistry* registry)
@@ -792,90 +869,11 @@ void flattenScene(
     }
   }
 
-  // Pack skeletons: forward kinematics through joint hierarchy, then
-  // joint_matrix[i] = world_joint[i] × inverse_bind_matrix[i]. Matches the
-  // glTF skinning convention; consumer shaders multiply vertex position by
-  // Σ(w_j × joint_matrix[j]).
   if(scene.state->skeletons)
   {
-    auto jointLocal = [](const ossia::skeleton_joint& j) {
-      QMatrix4x4 m;
-      m.translate(j.translation[0], j.translation[1], j.translation[2]);
-      m.rotate(QQuaternion(j.rotation[3], j.rotation[0], j.rotation[1], j.rotation[2]));
-      m.scale(j.scale[0], j.scale[1], j.scale[2]);
-      return m;
-    };
-
     out.skins.reserve(scene.state->skeletons->size());
     for(const auto& sk : *scene.state->skeletons)
-    {
-      SkeletonGPU sg;
-      if(!sk)
-      {
-        out.skins.push_back(std::move(sg));
-        continue;
-      }
-
-      // Multi-pass forward kinematics: resolve any joint whose parent has
-      // already been resolved, looping until all are done. The glTF 2.0
-      // spec does NOT guarantee topological ordering of skin.joints, so
-      // we cannot assume parent_index < i. For DFS-ordered skins (the
-      // common case) this converges in a single pass.
-      const std::size_t N = sk->joints.size();
-      std::vector<QMatrix4x4> world(N);
-      std::vector<bool> resolved(N, false);
-      sg.joint_matrices.resize(N);
-      std::size_t resolvedCount = 0;
-      int passes = 0;
-      constexpr int maxPasses = 64; // covers any real skeleton depth
-      while(resolvedCount < N && passes < maxPasses)
-      {
-        bool changed = false;
-        for(std::size_t i = 0; i < N; ++i)
-        {
-          if(resolved[i])
-            continue;
-          const auto& j = sk->joints[i];
-          // Root joint or invalid parent index: resolve immediately.
-          if(j.parent_index < 0 || j.parent_index >= (int32_t)N)
-          {
-            world[i] = jointLocal(j);
-            resolved[i] = true;
-            ++resolvedCount;
-            changed = true;
-            continue;
-          }
-          if(!resolved[(std::size_t)j.parent_index])
-            continue;
-          world[i] = world[j.parent_index] * jointLocal(j);
-          resolved[i] = true;
-          ++resolvedCount;
-          changed = true;
-        }
-        ++passes;
-        if(!changed)
-          break; // cycle or orphan: bail out instead of spinning
-      }
-      if(resolvedCount < N)
-      {
-        qWarning() << "SceneGPUState: skeleton FK did not converge —"
-                   << (N - resolvedCount) << "joint(s) unresolved (cycle or"
-                   << "orphan parent). Falling back to local matrices.";
-        for(std::size_t i = 0; i < N; ++i)
-        {
-          if(!resolved[i])
-            world[i] = jointLocal(sk->joints[i]);
-        }
-      }
-      // Stamp joint_matrices = world × inverse_bind_matrix once FK is done.
-      for(std::size_t i = 0; i < N; ++i)
-      {
-        const QMatrix4x4 ibm
-            = QMatrix4x4(sk->joints[i].inverse_bind_matrix, 4, 4);
-        sg.joint_matrices[i] = world[i] * ibm;
-      }
-      out.skins.push_back(std::move(sg));
-    }
+      out.skins.push_back(sk ? packSkeleton(*sk) : SkeletonGPU{});
   }
 
   // Walk the node tree. mesh_primitive / mesh_component now carry
@@ -940,12 +938,36 @@ void flattenScene(
       if(s)
         skin_index[s.get()] = (int)i;
     }
+    const auto& skels = *scene.state->skeletons;
     for(auto& dc : out.draws)
     {
       if(!dc.skin)
         continue;
       auto it = skin_index.find(dc.skin.get());
       dc.skinIndex = (it != skin_index.end()) ? it->second : -1;
+      if(dc.skinIndex >= 0 || dc.skin->joint_node_ids.empty())
+        continue;
+      for(std::size_t i = 0; i < skels.size(); ++i)
+      {
+        if(skels[i] && skels[i]->joints.size() == dc.skin->joints.size()
+           && std::ranges::equal(skels[i]->joint_node_ids, dc.skin->joint_node_ids))
+        {
+          dc.skinIndex = (int)i;
+          break;
+        }
+      }
+    }
+  }
+  {
+    ossia::hash_map<const ossia::skeleton_component*, int> unlisted;
+    for(auto& dc : out.draws)
+    {
+      if(!dc.skin || dc.skinIndex >= 0)
+        continue;
+      auto [it, inserted] = unlisted.try_emplace(dc.skin.get(), (int)out.skins.size());
+      if(inserted)
+        out.skins.push_back(packSkeleton(*dc.skin));
+      dc.skinIndex = it->second;
     }
   }
 

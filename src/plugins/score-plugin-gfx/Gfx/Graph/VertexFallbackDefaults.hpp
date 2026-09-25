@@ -38,8 +38,10 @@ struct VertexFallbackSpec
 //                    set, else from NAME via ossia::name_to_semantic).
 //                    Pass attribute_semantic::custom for unknown names.
 //   `decl_type`      the GLSL TYPE the shader declared, lowercased
-//                    ("float", "vec2", "vec3", "vec4"). mat4 / integer
-//                    types are unsupported in v1 — returns nullopt.
+//                    ("float", "vec2", "vec3", "vec4", "int", "ivec2..4",
+//                    "uint", "uvec2..4"). mat4 is unsupported — returns
+//                    nullopt. An integer type needs a user DEFAULT, except
+//                    instance_draw_id, which defaults to 0.
 //   `user_default`   the DEFAULT[] array from the JSON header (may be
 //                    empty). When non-empty, overrides the semantic
 //                    whitelist: numbers are packed into the payload in
