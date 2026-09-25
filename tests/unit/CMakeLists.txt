@@ -212,6 +212,11 @@ if(TARGET Qt6::Quick AND TARGET score_plugin_js)
     SOURCES JsImageTest.cpp
     APP
     PLUGINS score_plugin_js)
+
+  score_add_test(test_unit_js_variant_to_js
+    SOURCES JsVariantToJsTest.cpp
+    PLUGINS score_plugin_js
+    LIBS ${QT_PREFIX}::Qml)
 endif()
 
 if(TARGET score_plugin_controlsurface)
