@@ -4,6 +4,7 @@
 #include <Gfx/Graph/SceneGPUState.hpp>
 #include <Gfx/Graph/Utils.hpp>
 
+#include <QDebug>
 #include <QMatrix3x3>
 #include <QMatrix4x4>
 #include <QQuaternion>
@@ -544,17 +545,24 @@ void Instancer::rebuild()
         break;
     }
 
-    QMatrix4x4 linear;
-    linear.scale(inputs.scale.value.x, inputs.scale.value.y, inputs.scale.value.z);
-    linear *= protoWorld;
+    QMatrix4x4 linear = protoWorld;
     linear.setColumn(3, QVector4D{0.f, 0.f, 0.f, 1.f});
     bool invertible = false;
     const QMatrix4x4 inverse = linear.inverted(&invertible);
 
-    if(invertible
-       && preparePlacement(
-           routing.transforms, inputs.transforms.buffer, stride, column, has_w,
-           inst->instance_count, inverse.constData()))
+    const bool placed
+        = invertible
+          && preparePlacement(
+              routing.transforms, inputs.transforms.buffer, stride, column, has_w,
+              inst->instance_count, inverse.constData());
+    if(!placed && m_rhi && !m_placePipeline && inst->instance_count > 0
+       && !linear.isIdentity() && !m_warnedPlacementFallback)
+    {
+      m_warnedPlacementFallback = true;
+      qWarning() << "Instancer: no compute support on this backend, instance "
+                    "translations are scaled by the prototype transform";
+    }
+    if(placed)
     {
       ossia::gpu_buffer_handle gh;
       gh.native_handle = m_placed;

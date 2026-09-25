@@ -1,19 +1,14 @@
-// Instancer places its instances at their translations, whatever the
-// prototype's own transform and the Instancer's Scale.
+// The Instancer's own TRS is the parent of the whole instance cloud, and the
+// prototype's own transform does not scale the instance translations.
 //
-// The scene path draws an instance at MODEL_MATRIX * (position + translation),
-// and the Instancer's draw carries its own Scale and the transform above the
-// prototype mesh in that model matrix. The translations were published as they
-// came, so they were scaled along with the prototype: a glTF whose root is
-// scaled by 0.01 collapsed its whole cloud onto the origin. The translations
-// are now rewritten on the GPU into the prototype's space.
+// The prototype quad sits under a 0.25 root scale and the Instancer's Scale is
+// 0.5. Instances at x = -1.5, -0.5, 0.5, 1.5 must land at 0.5 * x, as four
+// 4 px strips starting at columns 8, 24, 40 and 56 of a 64 px frame. With the
+// translations also scaled by the prototype they collapse onto the centre;
+// with the Instancer's Scale left out of the spread only the middle two
+// (columns 16 and 48) remain in frame.
 //
-// Here the prototype quad sits under a 0.25 scale and the Instancer's Scale is
-// 2. Four instances at x = -0.75, -0.25, 0.25, 0.75 must be drawn there, as
-// four 4 px strips starting at columns 8, 24, 40 and 56 of a 64 px frame; with
-// the translations scaled by 0.5 they started at 20, 28, 36 and 44.
-//
-// Registration: see the test_gfx_instancer_placement_fixg target.
+// Registration: see the test_gfx_instancer_placement_i2 target.
 #include <score_test/Gfx.hpp>
 
 #include <Threedim/Instancer.hpp>
@@ -44,10 +39,10 @@ QString corpus(const char* f)
 
 constexpr int kSize = 64;
 constexpr int kCount = 4;
-constexpr float kQuadW = 0.25f;
+constexpr float kQuadW = 1.f;
 constexpr float kProtoScale = 0.25f;
-constexpr float kInstancerScale = 2.f;
-constexpr float kTranslations[kCount]{-0.75f, -0.25f, 0.25f, 0.75f};
+constexpr float kInstancerScale = 0.5f;
+constexpr float kTranslations[kCount]{-1.5f, -0.5f, 0.5f, 1.5f};
 
 std::shared_ptr<ossia::scene_state> makePrototypeScene()
 {
@@ -99,7 +94,7 @@ std::shared_ptr<ossia::scene_state> makePrototypeScene()
   prim.vertex_count = 6;
   prim.index_count = 6;
   prim.bounds = ossia::compute_aabb_from_positions(positions->data(), 6);
-  prim.stable_id = 0xF1C6'0001u;
+  prim.stable_id = 0x1A12'0001u;
 
   auto mesh = std::make_shared<ossia::mesh_component>();
   mesh->primitives.push_back(std::move(prim));
@@ -128,12 +123,12 @@ std::shared_ptr<ossia::scene_state> makePrototypeScene()
 // Drives the real Threedim::Instancer the way Crousti's CPU filter renderer
 // does: init, then per frame update, runInitialPasses and operator(), then the
 // scene is published to the downstream node.
-struct InstancerNode final : score::gfx::ProcessNode
+struct InstancerNodeI2 final : score::gfx::ProcessNode
 {
   mutable Threedim::Instancer instancer;
   std::shared_ptr<ossia::scene_state> protoScene = makePrototypeScene();
 
-  InstancerNode()
+  InstancerNodeI2()
   {
     output.push_back(new score::gfx::Port{this, {}, score::gfx::Types::Scene, {}});
   }
@@ -142,14 +137,14 @@ struct InstancerNode final : score::gfx::ProcessNode
       noexcept override;
 };
 
-struct InstancerRenderer final : score::gfx::NodeRenderer
+struct InstancerRendererI2 final : score::gfx::NodeRenderer
 {
-  InstancerNode& self;
+  InstancerNodeI2& self;
   QRhiBuffer* m_transforms{};
 
-  explicit InstancerRenderer(const InstancerNode& n)
+  explicit InstancerRendererI2(const InstancerNodeI2& n)
       : NodeRenderer{n}
-      , self{const_cast<InstancerNode&>(n)}
+      , self{const_cast<InstancerNodeI2&>(n)}
   {
   }
 
@@ -161,7 +156,7 @@ struct InstancerRenderer final : score::gfx::NodeRenderer
         QRhiBuffer::UsageFlags(score::gfx::compatibleBufferUsage(
             *rhi, QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer)),
         kCount * 16);
-    m_transforms->setName("InstancerPlacementTest::transforms");
+    m_transforms->setName("InstancerPlacementI2Test::transforms");
     m_transforms->create();
     std::vector<float> data(kCount * 4, 0.f);
     for(int i = 0; i < kCount; ++i)
@@ -233,9 +228,9 @@ struct InstancerRenderer final : score::gfx::NodeRenderer
 };
 
 score::gfx::NodeRenderer*
-InstancerNode::createRenderer(score::gfx::RenderList&) const noexcept
+InstancerNodeI2::createRenderer(score::gfx::RenderList&) const noexcept
 {
-  return new InstancerRenderer{*this};
+  return new InstancerRendererI2{*this};
 }
 
 struct Strips
@@ -277,7 +272,7 @@ Outcome run(score::gfx::GraphicsApi api)
   Outcome out;
   score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
     GfxPipeline p;
-    const int hn = p.addNode(std::make_unique<InstancerNode>());
+    const int hn = p.addNode(std::make_unique<InstancerNodeI2>());
     const int flat = p.addNode(std::make_unique<score::gfx::ScenePreprocessorNode>());
     const int raster
         = p.addRaster(corpus("fixg-instance-model.vs"), corpus("fixg-instance-model.fs"));
@@ -321,8 +316,8 @@ Outcome run(score::gfx::GraphicsApi api)
 }
 
 TEST_CASE(
-    "Instancer draws its instances at their translations under a scaled "
-    "prototype and a scaled Instancer",
+    "Instancer Scale scales the instance spread, the prototype's root scale "
+    "does not",
     "[gfx][threedim][instancer][scene]")
 {
   const auto api = GENERATE(from_range(platform_backends()));
@@ -341,7 +336,8 @@ TEST_CASE(
   REQUIRE(r.px.starts.size() == std::size_t(kCount));
   for(int i = 0; i < kCount; ++i)
   {
-    const int expected = int((kTranslations[i] + 1.f) * kSize / 2.f);
+    const int expected
+        = int((kInstancerScale * kTranslations[i] + 1.f) * kSize / 2.f);
     CHECK(std::abs(r.px.starts[i] - expected) <= 1);
   }
   CHECK(r.px.litColumns <= kCount * 5);

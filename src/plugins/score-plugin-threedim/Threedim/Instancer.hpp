@@ -208,6 +208,7 @@ public:
   QRhiShaderResourceBindings* m_placeSrb{};
   QRhiComputePipeline* m_placePipeline{};
   bool m_placeSrbDirty{true};
+  bool m_warnedPlacementFallback{};
 };
 
 }
