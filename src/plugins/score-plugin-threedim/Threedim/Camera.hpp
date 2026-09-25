@@ -26,6 +26,30 @@ struct Edge;
 namespace Threedim
 {
 
+// Local -Z points from eye to target; reference up is +Y, or -Z / +Z when
+// looking straight down / up; roll_degrees turns around the view axis.
+inline QQuaternion
+cameraOrientation(QVector3D eye, QVector3D target, float roll_degrees) noexcept
+{
+  const QQuaternion roll
+      = QQuaternion::fromAxisAndAngle(0.f, 0.f, 1.f, roll_degrees);
+  QVector3D back = eye - target;
+  if(back.lengthSquared() <= 1e-8f)
+    return roll;
+  back.normalize();
+
+  QVector3D up(0.f, 1.f, 0.f);
+  QVector3D right = QVector3D::crossProduct(up, back);
+  if(right.lengthSquared() < 1e-12f)
+  {
+    up = QVector3D(0.f, 0.f, back.y() > 0.f ? -1.f : 1.f);
+    right = QVector3D::crossProduct(up, back);
+  }
+  right.normalize();
+  const QVector3D trueUp = QVector3D::crossProduct(back, right);
+  return QQuaternion::fromAxes(right, trueUp, back) * roll;
+}
+
 // Scene-producing camera node. Emits a scene_spec containing:
 //   - a scene_node with an id derived from this node's uuid (so the flatten
 //     visitor can attribute the camera back to it),
@@ -68,6 +92,8 @@ public:
     { void update(Camera& n) { n.rebuild(); } } near_plane;
     struct : halp::hslider_f32<"Far", halp::range{1., 100000., 1000.}>
     { void update(Camera& n) { n.rebuild(); } } far_plane;
+    struct : halp::hslider_f32<"Roll", halp::range{-180., 180., 0.}>
+    { void update(Camera& n) { n.rebuild(); } } roll;
   } inputs;
 
   struct outs
@@ -128,35 +154,11 @@ public:
     xform.translation[0] = inputs.eye.value.x;
     xform.translation[1] = inputs.eye.value.y;
     xform.translation[2] = inputs.eye.value.z;
-    // Build a quaternion for the camera's world orientation. Qt's
-    // QQuaternion::fromDirection(direction, up) maps local +Z (NOT -Z) to
-    // `direction` — see QMatrix4x4::fromAxes in Qt source, which takes
-    // zAxis = direction. We want the camera's local +Z axis (the "back"
-    // axis of a GL camera) to point along (eye − target) so that local -Z
-    // (the GL viewing direction) points from eye toward target. Hence the
-    // -forward. Equivalently: the inverse of the TRS matches
-    // QMatrix4x4::lookAt(eye, target, up).
-    QVector3D forward(
-        inputs.target.value.x - inputs.eye.value.x,
-        inputs.target.value.y - inputs.eye.value.y,
-        inputs.target.value.z - inputs.eye.value.z);
-    if(forward.lengthSquared() > 1e-8f)
-    {
-      forward.normalize();
-      QQuaternion q = QQuaternion::fromDirection(
-          -forward, QVector3D(0.f, 1.f, 0.f));
-      xform.rotation[0] = q.x();
-      xform.rotation[1] = q.y();
-      xform.rotation[2] = q.z();
-      xform.rotation[3] = q.scalar();
-    }
-    else
-    {
-      xform.rotation[0] = 0.f;
-      xform.rotation[1] = 0.f;
-      xform.rotation[2] = 0.f;
-      xform.rotation[3] = 1.f;
-    }
+    const QQuaternion q = orientation();
+    xform.rotation[0] = q.x();
+    xform.rotation[1] = q.y();
+    xform.rotation[2] = q.z();
+    xform.rotation[3] = q.scalar();
     xform.scale[0] = 1.f;
     xform.scale[1] = 1.f;
     xform.scale[2] = 1.f;
@@ -180,6 +182,15 @@ public:
     m_version++;
     m_state->version = m_version;
     m_pending_dirty = ossia::scene_port::dirty_transform;
+  }
+
+  QQuaternion orientation() const noexcept
+  {
+    return cameraOrientation(
+        QVector3D(inputs.eye.value.x, inputs.eye.value.y, inputs.eye.value.z),
+        QVector3D(
+            inputs.target.value.x, inputs.target.value.y, inputs.target.value.z),
+        inputs.roll.value);
   }
 
   void operator()()

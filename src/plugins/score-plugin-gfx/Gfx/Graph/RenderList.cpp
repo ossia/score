@@ -587,8 +587,23 @@ static void generateInputMips(
 
 QRhiTexture* RenderList::selfFeedbackGrab(const Port& in) const noexcept
 {
-  auto it = m_selfFeedbackGrabs.find(&in);
-  return it != m_selfFeedbackGrabs.end() ? it->second : nullptr;
+  if(auto it = m_selfFeedbackGrabs.find(&in); it != m_selfFeedbackGrabs.end())
+    return it->second;
+  if(auto it = m_selfFeedbackPlaceholders.find(&in);
+     it != m_selfFeedbackPlaceholders.end())
+    return it->second;
+  return nullptr;
+}
+
+static QRhiTexture& emptyTextureForPort(const RenderList& rl, const Port& in) noexcept
+{
+  if((in.flags & Flag::Cubemap) == Flag::Cubemap)
+    return rl.emptyTextureCube();
+  if((in.flags & Flag::ThreeDimensional) == Flag::ThreeDimensional)
+    return rl.emptyTexture3D();
+  if((in.flags & Flag::TextureArray) == Flag::TextureArray)
+    return rl.emptyTextureArray();
+  return rl.emptyTexture();
 }
 
 void RenderList::updateSelfFeedbackGrabs(QRhiResourceUpdateBatch& res)
@@ -602,6 +617,14 @@ void RenderList::updateSelfFeedbackGrabs(QRhiResourceUpdateBatch& res)
     }
     it->second->deleteLater();
     it = m_selfFeedbackGrabs.erase(it);
+  }
+  for(auto it = m_selfFeedbackPlaceholders.begin();
+      it != m_selfFeedbackPlaceholders.end();)
+  {
+    if(isSelfFed(*it->first))
+      ++it;
+    else
+      it = m_selfFeedbackPlaceholders.erase(it);
   }
 
   for(auto* node : nodes)
@@ -628,8 +651,33 @@ void RenderList::updateSelfFeedbackGrabs(QRhiResourceUpdateBatch& res)
       if(rn == node->renderedNodes.end())
         continue;
       auto* tex = rn->second->textureForOutput(*source);
-      if(!tex || !tex->flags().testFlag(QRhiTexture::RenderTarget)
-         || tex->sampleCount() > 1 || isDepthFormat(tex->format()))
+      if(!tex)
+        continue;
+      if(tex->sampleCount() > 1 || isDepthFormat(tex->format()))
+      {
+        if(auto g = m_selfFeedbackGrabs.find(in); g != m_selfFeedbackGrabs.end())
+        {
+          g->second->deleteLater();
+          m_selfFeedbackGrabs.erase(g);
+        }
+        if(m_selfFeedbackWarned.insert(in).second)
+          qWarning() << "RenderList: a node samples its own"
+                     << (isDepthFormat(tex->format()) ? "depth" : "multisampled")
+                     << "output (format" << int(tex->format()) << ","
+                     << tex->sampleCount()
+                     << "samples) through a grabbing input; it reads an empty texture";
+        auto* empty = &emptyTextureForPort(*this, *in);
+        auto ph = m_selfFeedbackPlaceholders.find(in);
+        if(ph == m_selfFeedbackPlaceholders.end() || ph->second != empty)
+        {
+          m_selfFeedbackPlaceholders[in] = empty;
+          rn->second->updateInputTexture(
+              *in, empty, renderTargetForInputPort(*in).depthTexture);
+        }
+        continue;
+      }
+      m_selfFeedbackPlaceholders.erase(in);
+      if(!tex->flags().testFlag(QRhiTexture::RenderTarget))
         continue;
 
       auto* snapshot = selfFeedbackGrab(*in);
@@ -760,6 +808,8 @@ void RenderList::release()
     tex->deleteLater();
   }
   m_selfFeedbackGrabs.clear();
+  m_selfFeedbackPlaceholders.clear();
+  m_selfFeedbackWarned.clear();
 
   for(auto& bufs : m_vertexBuffers)
   {

@@ -1819,3 +1819,35 @@ if(TARGET score_plugin_media)
   target_compile_definitions(test_gfx_alpha_video_frame PRIVATE
     GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
 endif()
+
+# Merge Geometries names each attribute a transform leaves untransformed,
+# once per renderer (CPU formats, per-instance, GPU vec2 positions).
+score_add_gfx_test(merge_geometries_untransformed_warning MergeGeometriesUntransformedWarning.cpp)
+
+# A node grabbing its own depth output (GrabsFromSource self-feedback) reads an
+# empty texture instead of the live attachment, with one warning.
+score_add_gfx_test(selffb_depth_grab GfxSelfFeedbackDepthGrab.cpp)
+
+# Academy Texture Loader queues no generateMips for a 1x1 texture (Metal
+# validation abort), through TextureResource and EquirectToCubemap.
+if(TARGET score_addon_academy AND TARGET score_plugin_avnd)
+  set(_academy_src_mips "${SCORE_ROOT_SOURCE_DIR}/src/addons/score-addon-academy")
+  score_plugin_hidden_sources(_academy_hidden_mips
+      "${_academy_src_mips}/Academy/Asset/TextureLoader.cpp"
+      "${_academy_src_mips}/Academy/Resources/EquirectToCubemap.cpp"
+      "${_academy_src_mips}/Academy/Resources/TextureResource.cpp")
+  score_add_test(test_gfx_academy_texture_loader_mips
+    SOURCES
+      GfxAcademyTextureLoaderMips.cpp
+      ${_academy_hidden_mips}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_addon_academy
+    LIBS test_gfx_engine_glue)
+  target_include_directories(test_gfx_academy_texture_loader_mips SYSTEM PRIVATE
+    "${_academy_src_mips}"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    $<TARGET_PROPERTY:score_addon_academy,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
