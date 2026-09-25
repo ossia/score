@@ -600,9 +600,21 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   // gl_BaseInstance, which stops equalling drawID once instanceCount > 1. It
   // is a 4-byte uint diff-uploaded from a CPU mirror as one contiguous range,
   // which interleaving would turn into a per-slot scatter.
-  static constexpr int kInstSlotStride = 32;
-  static constexpr int kInstTranslationOffset = 0;
-  static constexpr int kInstColorOffset = 16;
+  // Compact slot: translation, colour. Full slot, used as soon as one
+  // instance group carries matrices: the three linear columns, translation,
+  // colour, custom. Per-draw flags in per_draws.normal[3] tell the shader
+  // which of them a draw's group provides.
+  struct InstSlotLayout
+  {
+    int stride{32};
+    int matrix{0};
+    int translation{0};
+    int color{16};
+    int custom{16};
+  };
+  static constexpr InstSlotLayout kCompactInstSlot{32, 0, 0, 16, 16};
+  static constexpr InstSlotLayout kFullInstSlot{96, 0, 48, 64, 80};
+  InstSlotLayout m_instSlot{kCompactInstSlot};
   QRhiBuffer* m_instAttribs{};
   QRhiBuffer* m_instDrawIds{};
   int64_t m_instAttribsCap{};
@@ -2022,6 +2034,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       uint32_t src_translation_stride;
       QRhiBuffer* src_colors;
       uint32_t src_color_offset;
+      QRhiBuffer* src_matrices;
+      uint32_t src_matrix_offset;
+      QRhiBuffer* src_custom;
+      uint32_t src_custom_offset;
     };
     std::vector<InstanceSlotRecord> instanceRecords;
 
@@ -2410,6 +2426,28 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           }
         }
       }
+      QRhiBuffer* srcMatrices = nullptr;
+      uint32_t srcMatrixOffset = 0;
+      if(srcTranslations
+         && inst.transform_type == ossia::instance_component::transform_format::mat4)
+      {
+        srcMatrices = srcTranslations;
+        srcMatrixOffset = srcTranslationOffset;
+      }
+      QRhiBuffer* srcCustom = nullptr;
+      uint32_t srcCustomOffset = 0;
+      if(inst.instance_custom)
+      {
+        if(auto* gpu = ossia::get_if<ossia::gpu_buffer_handle>(
+               &inst.instance_custom->resource))
+        {
+          if(gpu->native_handle)
+          {
+            srcCustom = static_cast<QRhiBuffer*>(gpu->native_handle);
+            srcCustomOffset = (uint32_t)gpu->byte_offset;
+          }
+        }
+      }
       QRhiBuffer* srcColors = nullptr;
       uint32_t srcColorOffset = 0;
       if(inst.instance_colors)
@@ -2439,9 +2477,16 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           prim.material.get(), /*materialIndex=*/-1,
           inst.raw_slot.size != 0 ? inst.raw_slot.internal_index
                                   : 0xFFFFFFFFu,
-          /*skinIndex=*/-1, prim.bounds, inst.instance_count);
+          /*skinIndex=*/-1, ossia::aabb{{1.f, 1.f, 1.f}, {-1.f, -1.f, -1.f}},
+          inst.instance_count);
       if(cmd_index == kCmdSkipped)
         continue;
+      {
+        auto& flags = acc.perDraws[cmd_index].normal;
+        flags[12] = srcMatrices ? 1.f : 0.f;
+        flags[13] = srcColors ? 1.f : 0.f;
+        flags[14] = srcCustom ? 1.f : 0.f;
+      }
 
       InstanceSlotRecord rec{};
       rec.slot_base = slot_base;
@@ -2452,6 +2497,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       rec.src_translation_stride = srcTranslationStride;
       rec.src_colors = srcColors;
       rec.src_color_offset = srcColorOffset;
+      rec.src_matrices = srcMatrices;
+      rec.src_matrix_offset = srcMatrixOffset;
+      rec.src_custom = srcCustom;
+      rec.src_custom_offset = srcCustomOffset;
       instanceRecords.push_back(rec);
     }
 
@@ -2570,6 +2619,12 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     // per-instance VERTEX_INPUT and indexes per_draws[draw_id], which works on
     // both the indirect and the CPU-fallback path because firstInstance is the
     // only state involved.
+    m_instSlot = kCompactInstSlot;
+    for(const auto& rec : instanceRecords)
+      if(rec.src_matrices || rec.src_custom)
+        m_instSlot = kFullInstSlot;
+    const int kInstSlotStride = m_instSlot.stride;
+
     if(slot_cursor > 0)
     {
       const int64_t drawIdsBytes = (int64_t)slot_cursor * 4;
@@ -2624,10 +2679,12 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       // issuePendingGpuCopies' batch barrier, not by dropping a write.
       if(n_regular_cmds > 0)
       {
-        std::vector<float> regular_slots(n_regular_cmds * 8, 0.f);
+        const std::size_t slotFloats = (std::size_t)kInstSlotStride / 4;
+        const std::size_t colorFloat = (std::size_t)m_instSlot.color / 4;
+        std::vector<float> regular_slots(n_regular_cmds * slotFloats, 0.f);
         for(std::size_t i = 0; i < n_regular_cmds; ++i)
-          for(int c = 4; c < 8; ++c)
-            regular_slots[i * 8 + c] = 1.f;
+          for(std::size_t c = 0; c < 4; ++c)
+            regular_slots[i * slotFloats + colorFloat + c] = 1.f;
         res.uploadStaticBuffer(
             m_instAttribs, 0,
             (quint32)(n_regular_cmds * kInstSlotStride),
@@ -2683,7 +2740,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
               rec.src_translations, rec.src_translation_offset,
               rec.src_translation_stride,
               m_instAttribs,
-              rec.slot_base * kInstSlotStride + kInstTranslationOffset,
+              rec.slot_base * kInstSlotStride + m_instSlot.translation,
               kInstSlotStride, rec.count,
               /*elemSize=*/16);
         }
@@ -2692,7 +2749,26 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           queueInstanceCopy(
               rec.src_colors, rec.src_color_offset, /*srcStride=*/16,
               m_instAttribs,
-              rec.slot_base * kInstSlotStride + kInstColorOffset,
+              rec.slot_base * kInstSlotStride + m_instSlot.color,
+              kInstSlotStride, rec.count,
+              /*elemSize=*/16);
+        }
+        if(rec.src_matrices && kInstSlotStride == kFullInstSlot.stride)
+        {
+          for(int col = 0; col < 3; ++col)
+            queueInstanceCopy(
+                rec.src_matrices, rec.src_matrix_offset + col * 16, /*srcStride=*/64,
+                m_instAttribs,
+                rec.slot_base * kInstSlotStride + m_instSlot.matrix + col * 16,
+                kInstSlotStride, rec.count,
+                /*elemSize=*/16);
+        }
+        if(rec.src_custom && kInstSlotStride == kFullInstSlot.stride)
+        {
+          queueInstanceCopy(
+              rec.src_custom, rec.src_custom_offset, /*srcStride=*/16,
+              m_instAttribs,
+              rec.slot_base * kInstSlotStride + m_instSlot.custom,
               kInstSlotStride, rec.count,
               /*elemSize=*/16);
         }
@@ -2846,10 +2922,23 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       // uint-typed `instance_draw_id`.
       pushAttr(ossia::attribute_semantic::translation,
                instBindIdx, ossia::geometry::attribute::float3,
-               kInstTranslationOffset);
+               m_instSlot.translation);
       pushAttr(ossia::attribute_semantic::instance_color0,
                instBindIdx, ossia::geometry::attribute::float4,
-               kInstColorOffset);
+               m_instSlot.color);
+      pushAttr(ossia::attribute_semantic::instance_custom0,
+               instBindIdx, ossia::geometry::attribute::float4,
+               m_instSlot.custom);
+      for(int col = 0; col < 3; ++col)
+      {
+        ossia::geometry::attribute a{};
+        a.binding = instBindIdx;
+        a.byte_offset = m_instSlot.matrix + (m_instSlot.stride == kFullInstSlot.stride ? col * 16 : 0);
+        a.format = ossia::geometry::attribute::float4;
+        a.semantic = ossia::attribute_semantic::custom;
+        a.name = "inst_matrix" + std::to_string(col);
+        g.attributes.push_back(a);
+      }
       pushAttr(ossia::attribute_semantic::instance_draw_id,
                instDBindIdx, ossia::geometry::attribute::uint1);
     }

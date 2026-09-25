@@ -1,12 +1,16 @@
-// The Instancer's own TRS is the parent of the whole instance cloud, and the
-// prototype's own transform does not scale the instance translations.
+// Instancer placement through the scene preprocessor (N61 options B and D).
 //
 // The prototype quad sits under a 0.25 root scale and the Instancer's Scale is
 // 0.5. Instances at x = -1.5, -0.5, 0.5, 1.5 must land at 0.5 * x, as four
-// 4 px strips starting at columns 8, 24, 40 and 56 of a 64 px frame. With the
-// translations also scaled by the prototype they collapse onto the centre;
-// with the Instancer's Scale left out of the spread only the middle two
-// (columns 16 and 48) remain in frame.
+// strips starting at columns 8, 24, 40 and 56 of a 64 px frame, in both the
+// full-matrix and the translation-only layout (option B: the Instancer's TRS
+// is the parent of the cloud, the prototype's transform does not scale the
+// spread).
+//
+// Full matrix (option D) also carries per-instance rotation/scale and custom
+// data: with TRS input scaling instance i by (i + 1) on x, the strips are
+// 4, 8, 12 and 16 px wide, and each strip takes its instance's custom colour.
+// Translation only keeps the compact layout: every strip is 4 px and white.
 //
 // Registration: see the test_gfx_instancer_placement_i2 target.
 #include <score_test/Gfx.hpp>
@@ -24,6 +28,7 @@
 #include <catch2/generators/catch_generators_range.hpp>
 
 #include <algorithm>
+#include <array>
 #include <memory>
 #include <string>
 #include <vector>
@@ -43,6 +48,15 @@ constexpr float kQuadW = 1.f;
 constexpr float kProtoScale = 0.25f;
 constexpr float kInstancerScale = 0.5f;
 constexpr float kTranslations[kCount]{-1.5f, -0.5f, 0.5f, 1.5f};
+constexpr float kCustom[kCount][4]{
+    {1.f, 0.f, 0.f, 1.f}, {0.f, 1.f, 0.f, 1.f}, {0.f, 0.f, 1.f, 1.f}, {1.f, 1.f, 0.f, 1.f}};
+
+struct Params
+{
+  Threedim::Instancer::InstanceTransformMode mode{Threedim::Instancer::FullMatrix};
+  bool trs{};
+  bool custom{};
+};
 
 std::shared_ptr<ossia::scene_state> makePrototypeScene()
 {
@@ -127,8 +141,10 @@ struct InstancerNodeI2 final : score::gfx::ProcessNode
 {
   mutable Threedim::Instancer instancer;
   std::shared_ptr<ossia::scene_state> protoScene = makePrototypeScene();
+  Params params;
 
-  InstancerNodeI2()
+  explicit InstancerNodeI2(Params p)
+      : params{p}
   {
     output.push_back(new score::gfx::Port{this, {}, score::gfx::Types::Scene, {}});
   }
@@ -141,6 +157,7 @@ struct InstancerRendererI2 final : score::gfx::NodeRenderer
 {
   InstancerNodeI2& self;
   QRhiBuffer* m_transforms{};
+  QRhiBuffer* m_custom{};
 
   explicit InstancerRendererI2(const InstancerNodeI2& n)
       : NodeRenderer{n}
@@ -151,18 +168,27 @@ struct InstancerRendererI2 final : score::gfx::NodeRenderer
   void init(score::gfx::RenderList& r, QRhiResourceUpdateBatch& res) override
   {
     auto* rhi = r.state.rhi;
-    m_transforms = rhi->newBuffer(
-        QRhiBuffer::Static,
-        QRhiBuffer::UsageFlags(score::gfx::compatibleBufferUsage(
-            *rhi, QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer)),
-        kCount * 16);
+    const Params& prm = self.params;
+    const int stride = prm.trs ? 10 : 4;
+    const auto usage = QRhiBuffer::UsageFlags(score::gfx::compatibleBufferUsage(
+        *rhi, QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer));
+    m_transforms = rhi->newBuffer(QRhiBuffer::Static, usage, kCount * stride * 4);
     m_transforms->setName("InstancerPlacementI2Test::transforms");
     m_transforms->create();
-    std::vector<float> data(kCount * 4, 0.f);
+    std::vector<float> data(kCount * stride, 0.f);
     for(int i = 0; i < kCount; ++i)
     {
-      data[i * 4 + 0] = kTranslations[i];
-      data[i * 4 + 3] = 1.f;
+      float* e = &data[i * stride];
+      e[0] = kTranslations[i];
+      if(prm.trs)
+      {
+        e[6] = 1.f;
+        e[7] = float(i + 1);
+        e[8] = 1.f;
+        e[9] = 1.f;
+      }
+      else
+        e[3] = 1.f;
     }
     res.uploadStaticBuffer(
         m_transforms, 0, quint32(data.size() * sizeof(float)), data.data());
@@ -170,13 +196,25 @@ struct InstancerRendererI2 final : score::gfx::NodeRenderer
     auto& in = self.instancer.inputs;
     in.scene_in.scene.state = self.protoScene;
     in.transforms.buffer.handle = m_transforms;
-    in.transforms.buffer.byte_size = kCount * 16;
+    in.transforms.buffer.byte_size = kCount * stride * 4;
     in.transforms.buffer.byte_offset = 0;
-    in.format.value = Threedim::Instancer::Translation;
+    in.format.value = prm.trs ? Threedim::Instancer::TRS : Threedim::Instancer::Translation;
+    in.transform_mode.value = prm.mode;
     in.count.value = kCount;
     in.position.value = {0.f, 0.f, 0.f};
     in.rotation.value = {0.f, 0.f, 0.f};
     in.scale.value = {kInstancerScale, kInstancerScale, kInstancerScale};
+
+    if(prm.custom)
+    {
+      m_custom = rhi->newBuffer(QRhiBuffer::Static, usage, kCount * 16);
+      m_custom->setName("InstancerPlacementI2Test::custom");
+      m_custom->create();
+      res.uploadStaticBuffer(m_custom, 0, kCount * 16, &kCustom[0][0]);
+      in.custom.buffer.handle = m_custom;
+      in.custom.buffer.byte_size = kCount * 16;
+      in.custom.buffer.byte_offset = 0;
+    }
 
     self.instancer.init(r, res);
     m_initialized = true;
@@ -223,6 +261,8 @@ struct InstancerRendererI2 final : score::gfx::NodeRenderer
     self.instancer.release(r);
     delete m_transforms;
     m_transforms = nullptr;
+    delete m_custom;
+    m_custom = nullptr;
     m_initialized = false;
   }
 };
@@ -233,30 +273,29 @@ InstancerNodeI2::createRenderer(score::gfx::RenderList&) const noexcept
   return new InstancerRendererI2{*this};
 }
 
-struct Strips
+struct Strip
 {
-  std::vector<int> starts;
-  int litColumns{};
+  int start{};
+  int width{};
+  std::array<uint8_t, 3> color{};
 };
 
-Strips strips(const ReadbackImage& img)
+std::vector<Strip> strips(const ReadbackImage& img)
 {
-  Strips s;
+  std::vector<Strip> out;
+  const int y = img.height / 2;
   bool prev = false;
   for(int x = 0; x < img.width; ++x)
   {
-    bool lit = false;
-    for(int y = 0; y < img.height && !lit; ++y)
-      lit = img.at(x, y)[0] >= 200;
+    const auto px = img.at(x, y);
+    const bool lit = px[0] >= 200 || px[1] >= 200 || px[2] >= 200;
+    if(lit && !prev)
+      out.push_back(Strip{x, 0, {px[0], px[1], px[2]}});
     if(lit)
-    {
-      ++s.litColumns;
-      if(!prev)
-        s.starts.push_back(x);
-    }
+      out.back().width++;
     prev = lit;
   }
-  return s;
+  return out;
 }
 
 struct Outcome
@@ -264,18 +303,18 @@ struct Outcome
   bool skipped{};
   std::string skip_reason;
   std::string error;
-  Strips px;
+  std::vector<Strip> px;
 };
 
-Outcome run(score::gfx::GraphicsApi api)
+Outcome run(score::gfx::GraphicsApi api, Params prm)
 {
   Outcome out;
   score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
     GfxPipeline p;
-    const int hn = p.addNode(std::make_unique<InstancerNodeI2>());
+    const int hn = p.addNode(std::make_unique<InstancerNodeI2>(prm));
     const int flat = p.addNode(std::make_unique<score::gfx::ScenePreprocessorNode>());
     const int raster
-        = p.addRaster(corpus("fixg-instance-model.vs"), corpus("fixg-instance-model.fs"));
+        = p.addRaster(corpus("instancer-d-model.vs"), corpus("instancer-d-model.fs"));
     if(hn < 0 || flat < 0 || raster < 0)
     {
       out.error = "chain build failed: " + p.error();
@@ -315,30 +354,75 @@ Outcome run(score::gfx::GraphicsApi api)
 }
 }
 
+namespace
+{
+std::string describe(const std::vector<Strip>& px)
+{
+  std::string d;
+  for(const auto& st : px)
+    d += std::to_string(st.start) + "+" + std::to_string(st.width) + "("
+         + std::to_string(st.color[0]) + "," + std::to_string(st.color[1]) + ","
+         + std::to_string(st.color[2]) + ") ";
+  return d;
+}
+
+int expectedStart(int i)
+{
+  return int((kInstancerScale * kTranslations[i] + 1.f) * kSize / 2.f);
+}
+}
+
 TEST_CASE(
     "Instancer Scale scales the instance spread, the prototype's root scale "
     "does not",
     "[gfx][threedim][instancer][scene]")
 {
   const auto api = GENERATE(from_range(platform_backends()));
-  CAPTURE(backend_name(api));
+  const auto mode = GENERATE(
+      Threedim::Instancer::FullMatrix, Threedim::Instancer::TranslationOnly);
+  CAPTURE(backend_name(api), int(mode));
 
-  const auto r = run(api);
+  const auto r = run(api, Params{mode, false, false});
   if(r.skipped)
     SKIP(r.skip_reason);
   INFO("error=" << r.error);
   REQUIRE(r.error.empty());
-
-  std::string starts;
-  for(int x : r.px.starts)
-    starts += std::to_string(x) + " ";
-  INFO("strip starts: " << starts << " lit columns: " << r.px.litColumns);
-  REQUIRE(r.px.starts.size() == std::size_t(kCount));
+  INFO("strips: " << describe(r.px));
+  REQUIRE(r.px.size() == std::size_t(kCount));
   for(int i = 0; i < kCount; ++i)
   {
-    const int expected
-        = int((kInstancerScale * kTranslations[i] + 1.f) * kSize / 2.f);
-    CHECK(std::abs(r.px.starts[i] - expected) <= 1);
+    CHECK(std::abs(r.px[i].start - expectedStart(i)) <= 1);
+    CHECK(std::abs(r.px[i].width - 4) <= 1);
   }
-  CHECK(r.px.litColumns <= kCount * 5);
+}
+
+TEST_CASE(
+    "Full-matrix instances carry their own scale and custom data, the compact "
+    "layout does not",
+    "[gfx][threedim][instancer][scene]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  const auto mode = GENERATE(
+      Threedim::Instancer::FullMatrix, Threedim::Instancer::TranslationOnly);
+  CAPTURE(backend_name(api), int(mode));
+  const bool full = mode == Threedim::Instancer::FullMatrix;
+
+  const auto r = run(api, Params{mode, true, true});
+  if(r.skipped)
+    SKIP(r.skip_reason);
+  INFO("error=" << r.error);
+  REQUIRE(r.error.empty());
+  INFO("strips: " << describe(r.px));
+  REQUIRE(r.px.size() == std::size_t(kCount));
+  for(int i = 0; i < kCount; ++i)
+  {
+    CHECK(std::abs(r.px[i].start - expectedStart(i)) <= 1);
+    const int width = std::min(full ? 4 * (i + 1) : 4, kSize - expectedStart(i));
+    CHECK(std::abs(r.px[i].width - width) <= 1);
+    for(int c = 0; c < 3; ++c)
+    {
+      const int want = full ? int(kCustom[i][c] * 255.f) : 255;
+      CHECK(std::abs(int(r.px[i].color[c]) - want) <= 2);
+    }
+  }
 }

@@ -117,7 +117,11 @@ struct PointCloudRouting
 {
   ossia::buffer_resource_ptr transforms; // translation or transform_matrix
   ossia::buffer_resource_ptr colors;     // color0
+  ossia::buffer_resource_ptr rotations;  // rotation quaternion
+  ossia::buffer_resource_ptr scales;     // scale
+  ossia::buffer_resource_ptr custom;     // emissive or instance_custom0
   bool has_matrix{false};                // true if transform_matrix found
+  bool custom_is_emissive{false};
   int instance_count{-1};                // geometry.vertices, or -1
   // The transforms attribute's ACTUAL per-instance stride, taken from the
   // binding it resolves through. Assuming 16 (a vec4 translation) misreads a
@@ -125,6 +129,12 @@ struct PointCloudRouting
   // looks like ONE instance instead of two, and the cloud silently loses
   // points. 0 = unknown, fall back to the per-format default.
   uint32_t transform_stride{0};
+  uint32_t color_stride{16};
+  uint32_t color_components{4};
+  uint32_t rotation_stride{16};
+  uint32_t scale_stride{16};
+  uint32_t custom_stride{16};
+  uint32_t custom_components{4};
 };
 
 // Resolve a geometry attribute to its source {handle, byte_offset}
@@ -151,6 +161,31 @@ wrapAttributeAsBuffer(const halp::dynamic_gpu_geometry& mesh,
   res->resource = gh;
   res->dirty_index = 1;
   return res;
+}
+
+uint32_t bindingStride(
+    const halp::dynamic_gpu_geometry& mesh, const halp::geometry_attribute& attr,
+    uint32_t fallback) noexcept
+{
+  if(attr.binding >= 0 && attr.binding < (int)mesh.bindings.size()
+     && mesh.bindings[attr.binding].stride > 0)
+    return (uint32_t)mesh.bindings[attr.binding].stride;
+  return fallback;
+}
+
+uint32_t componentCount(halp::attribute_format f) noexcept
+{
+  switch(f)
+  {
+    case halp::attribute_format::float3:
+      return 3;
+    case halp::attribute_format::float2:
+      return 2;
+    case halp::attribute_format::float1:
+      return 1;
+    default:
+      return 4;
+  }
 }
 
 PointCloudRouting extractPointCloud(
@@ -181,7 +216,35 @@ PointCloudRouting extractPointCloud(
         break;
       case S::color0:
         if(!out.colors)
+        {
           out.colors = wrapAttributeAsBuffer(mesh, attr);
+          out.color_stride = bindingStride(mesh, attr, 16);
+          out.color_components = componentCount(attr.format);
+        }
+        break;
+      case S::rotation:
+        if(!out.rotations)
+        {
+          out.rotations = wrapAttributeAsBuffer(mesh, attr);
+          out.rotation_stride = bindingStride(mesh, attr, 16);
+        }
+        break;
+      case S::scale:
+        if(!out.scales)
+        {
+          out.scales = wrapAttributeAsBuffer(mesh, attr);
+          out.scale_stride = bindingStride(mesh, attr, 16);
+        }
+        break;
+      case S::emissive:
+      case S::instance_custom0:
+        if(!out.custom || (attr.semantic == S::emissive && !out.custom_is_emissive))
+        {
+          out.custom = wrapAttributeAsBuffer(mesh, attr);
+          out.custom_stride = bindingStride(mesh, attr, 16);
+          out.custom_components = componentCount(attr.format);
+          out.custom_is_emissive = attr.semantic == S::emissive;
+        }
         break;
       default:
         break;
@@ -213,117 +276,248 @@ uintptr_t pointsBufferFingerprint(
   return fp;
 }
 
-const QString placementShader = QStringLiteral(R"_(#version 450
+const QString bakeShader = QStringLiteral(R"_(#version 450
 layout(local_size_x = 64) in;
 
 layout(std140, binding = 0) uniform Params
 {
-  mat4 inverse_linear;
-  uvec4 source_layout;
+  mat4 proto;
+  mat4 proto_inverse_linear;
+  uvec4 config;
+  uvec4 t_layout;
+  uvec4 r_layout;
+  uvec4 s_layout;
+  uvec4 c_layout;
+  uvec4 e_layout;
 };
 
-layout(std430, binding = 1) readonly buffer Source
-{
-  float source_data[];
-};
+layout(std430, binding = 1) readonly buffer TSource { float t_data[]; };
+layout(std430, binding = 2) readonly buffer RSource { float r_data[]; };
+layout(std430, binding = 3) readonly buffer SSource { float s_data[]; };
+layout(std430, binding = 4) readonly buffer CSource { float c_data[]; };
+layout(std430, binding = 5) readonly buffer ESource { float e_data[]; };
+layout(std430, binding = 6) writeonly buffer TargetT { vec4 target_t[]; };
+layout(std430, binding = 7) writeonly buffer TargetC { vec4 target_c[]; };
+layout(std430, binding = 8) writeonly buffer TargetE { vec4 target_e[]; };
 
-layout(std430, binding = 2) writeonly buffer Target
+mat3 rotationMatrix(vec4 q)
 {
-  vec4 target_data[];
-};
+  float len = length(q);
+  if(len < 1e-8)
+    return mat3(1.0);
+  q /= len;
+  float x = q.x, y = q.y, z = q.z, w = q.w;
+  return mat3(
+      1.0 - 2.0 * (y * y + z * z), 2.0 * (x * y + z * w), 2.0 * (x * z - y * w),
+      2.0 * (x * y - z * w), 1.0 - 2.0 * (x * x + z * z), 2.0 * (y * z + x * w),
+      2.0 * (x * z + y * w), 2.0 * (y * z - x * w), 1.0 - 2.0 * (x * x + y * y));
+}
 
 void main()
 {
   uint i = gl_GlobalInvocationID.x;
-  if(i >= source_layout.x)
+  if(i >= config.x)
     return;
-  uint b = source_layout.z + i * source_layout.y;
-  vec3 t = vec3(source_data[b], source_data[b + 1u], source_data[b + 2u]);
-  float w = source_layout.w != 0u ? source_data[b + 3u] : 1.0;
-  target_data[i] = vec4((inverse_linear * vec4(t, 0.0)).xyz, w);
+
+  vec3 t = vec3(0.0);
+  mat3 linear = mat3(1.0);
+  if(t_layout.z != 0u)
+  {
+    uint b = t_layout.x + i * t_layout.y;
+    if(config.z == 2u)
+    {
+      mat4 m = mat4(
+          t_data[b + 0u], t_data[b + 1u], t_data[b + 2u], t_data[b + 3u],
+          t_data[b + 4u], t_data[b + 5u], t_data[b + 6u], t_data[b + 7u],
+          t_data[b + 8u], t_data[b + 9u], t_data[b + 10u], t_data[b + 11u],
+          t_data[b + 12u], t_data[b + 13u], t_data[b + 14u], t_data[b + 15u]);
+      linear = mat3(m);
+      t = m[3].xyz;
+    }
+    else
+    {
+      t = vec3(t_data[b], t_data[b + 1u], t_data[b + 2u]);
+      if(config.z == 1u)
+      {
+        vec4 q = vec4(t_data[b + 3u], t_data[b + 4u], t_data[b + 5u], t_data[b + 6u]);
+        vec3 s = vec3(t_data[b + 7u], t_data[b + 8u], t_data[b + 9u]);
+        linear = rotationMatrix(q) * mat3(s.x, 0.0, 0.0, 0.0, s.y, 0.0, 0.0, 0.0, s.z);
+      }
+    }
+  }
+  if(config.z == 0u)
+  {
+    if(r_layout.z != 0u)
+    {
+      uint b = r_layout.x + i * r_layout.y;
+      linear = rotationMatrix(vec4(r_data[b], r_data[b + 1u], r_data[b + 2u], r_data[b + 3u]));
+    }
+    if(s_layout.z != 0u)
+    {
+      uint b = s_layout.x + i * s_layout.y;
+      vec3 s = vec3(s_data[b], s_data[b + 1u], s_data[b + 2u]);
+      linear = linear * mat3(s.x, 0.0, 0.0, 0.0, s.y, 0.0, 0.0, 0.0, s.z);
+    }
+  }
+
+  vec4 color = vec4(1.0);
+  if(c_layout.z != 0u)
+  {
+    uint b = c_layout.x + i * c_layout.y;
+    color = vec4(c_data[b], c_data[b + 1u], c_data[b + 2u],
+                 c_layout.w >= 4u ? c_data[b + 3u] : 1.0);
+  }
+
+  target_c[i] = color;
+  if(config.y == 0u)
+  {
+    target_t[i] = vec4(mat3(proto_inverse_linear) * t, 0.0);
+    return;
+  }
+
+  vec4 custom = vec4(0.0);
+  if(e_layout.z != 0u)
+  {
+    uint b = e_layout.x + i * e_layout.y;
+    custom = vec4(e_data[b], e_data[b + 1u], e_data[b + 2u],
+                  e_layout.w >= 4u ? e_data[b + 3u] : 0.0);
+  }
+
+  mat4 m = mat4(vec4(linear[0], 0.0), vec4(linear[1], 0.0), vec4(linear[2], 0.0), vec4(t, 1.0))
+           * proto;
+  uint o = i * 4u;
+  target_t[o + 0u] = m[0];
+  target_t[o + 1u] = m[1];
+  target_t[o + 2u] = m[2];
+  target_t[o + 3u] = m[3];
+  target_e[i] = custom;
 }
 )_");
 
-struct PlacementParams
+struct BakeLayout
 {
-  float inverse_linear[16];
-  uint32_t count;
-  uint32_t stride;
   uint32_t offset;
-  uint32_t has_w;
+  uint32_t stride;
+  uint32_t present;
+  uint32_t components;
 };
 
-} // namespace
-
-bool Instancer::preparePlacement(
-    const ossia::buffer_resource_ptr& routed, const halp::gpu_buffer& raw,
-    uint32_t stride, uint32_t column_offset, bool has_w, uint32_t count,
-    const float* inverse_linear)
+struct BakeParams
 {
-  m_placing = false;
-  if(!m_rhi || !m_placePipeline || count == 0 || stride % 4 != 0)
-    return false;
+  float proto[16];
+  float proto_inverse_linear[16];
+  uint32_t count;
+  uint32_t full;
+  uint32_t transform_kind;
+  uint32_t pad;
+  BakeLayout layouts[Instancer::BakeSourceCount];
+};
 
-  QRhiBuffer* source{};
+Instancer::BakeSource resolveBakeSource(
+    const ossia::buffer_resource_ptr& routed, const halp::gpu_buffer& raw,
+    uint32_t stride, uint32_t components) noexcept
+{
+  Instancer::BakeSource s;
   int64_t offset{};
   if(routed)
   {
     if(auto* gpu = ossia::get_if<ossia::gpu_buffer_handle>(&routed->resource))
     {
-      source = static_cast<QRhiBuffer*>(gpu->native_handle);
-      offset = (int64_t)gpu->byte_offset;
+      s.buffer = static_cast<QRhiBuffer*>(gpu->native_handle);
+      offset = gpu->byte_offset;
     }
   }
-  else
+  else if(raw.handle)
   {
-    source = static_cast<QRhiBuffer*>(raw.handle);
+    s.buffer = static_cast<QRhiBuffer*>(raw.handle);
     offset = raw.byte_offset;
   }
-  offset += column_offset;
-  if(!source || offset % 4 != 0 || !(source->usage() & QRhiBuffer::StorageBuffer))
-    return false;
+  s.offset = (uint32_t)offset;
+  s.stride = stride;
+  s.components = components;
+  return s;
+}
 
-  const quint32 bytes = count * 16;
-  if(!m_placed)
+} // namespace
+
+bool Instancer::ensureBakeTarget(QRhiBuffer*& buf, quint32 bytes, const char* name)
+{
+  if(!buf)
   {
-    m_placed = m_rhi->newBuffer(
+    buf = m_rhi->newBuffer(
         QRhiBuffer::Static,
         QRhiBuffer::UsageFlags(score::gfx::compatibleBufferUsage(
             *m_rhi, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer)),
         bytes);
-    m_placed->setName("Instancer::placed_translations");
-    if(!m_placed->create())
+    buf->setName(name);
+    if(!buf->create())
     {
-      delete m_placed;
-      m_placed = nullptr;
+      delete buf;
+      buf = nullptr;
       return false;
     }
-    m_placeSrbDirty = true;
+    m_bakeSrbDirty = true;
   }
-  else if(m_placed->size() < bytes)
+  else if(buf->size() < bytes)
   {
-    m_placed->destroy();
-    m_placed->setSize(bytes);
-    if(!m_placed->create())
+    buf->destroy();
+    buf->setSize(bytes);
+    if(!buf->create())
       return false;
-    m_placeSrbDirty = true;
+    m_bakeSrbDirty = true;
+  }
+  return true;
+}
+
+bool Instancer::prepareBake(
+    const BakeSource (&sources)[BakeSourceCount], uint32_t transform_kind,
+    uint32_t count, bool full, const QMatrix4x4& proto)
+{
+  m_baking = false;
+  if(!m_rhi || !m_bakePipeline || !m_bakeDummy || count == 0)
+    return false;
+
+  for(const auto& s : sources)
+  {
+    if(!s.buffer)
+      continue;
+    if(s.offset % 4 != 0 || s.stride % 4 != 0 || s.stride == 0
+       || !(s.buffer->usage() & QRhiBuffer::StorageBuffer))
+      return false;
   }
 
-  if(m_placement.source != source)
-    m_placeSrbDirty = true;
-  m_placement.source = source;
-  m_placement.source_offset = (uint32_t)offset;
-  m_placement.source_stride = stride;
-  m_placement.count = count;
-  m_placement.has_w = has_w ? 1u : 0u;
-  std::copy_n(inverse_linear, 16, m_placement.inverse_linear);
-  m_placing = true;
+  const quint32 transformBytes = count * (full ? 64u : 16u);
+  const quint32 streamBytes = count * 16u;
+  if(!ensureBakeTarget(m_bakedTransforms, transformBytes, "Instancer::baked_transforms")
+     || !ensureBakeTarget(m_bakedColors, streamBytes, "Instancer::baked_colors")
+     || !ensureBakeTarget(m_bakedCustom, streamBytes, "Instancer::baked_custom"))
+    return false;
+
+  for(int k = 0; k < BakeSourceCount; ++k)
+  {
+    if(m_bake.sources[k].buffer != sources[k].buffer)
+      m_bakeSrbDirty = true;
+    m_bake.sources[k] = sources[k];
+  }
+  m_bake.transform_kind = transform_kind;
+  m_bake.count = count;
+  m_bake.full = full;
+
+  QMatrix4x4 linear = proto;
+  linear.setColumn(3, QVector4D{0.f, 0.f, 0.f, 1.f});
+  bool invertible = false;
+  const QMatrix4x4 inverse = linear.inverted(&invertible);
+  std::copy_n(proto.constData(), 16, m_bake.proto);
+  std::copy_n(
+      invertible ? inverse.constData() : QMatrix4x4{}.constData(), 16,
+      m_bake.proto_inverse_linear);
+  m_baking = true;
   return true;
 }
 
 void Instancer::rebuild()
 {
-  m_placing = false;
+  m_baking = false;
   const auto& in = inputs.scene_in.scene;
   const ossia::scene_state* in_state = in.state.get();
 
@@ -524,55 +718,71 @@ void Instancer::rebuild()
         break;
     }
   }
+  bool baked_full = false;
   {
     using TF = ossia::instance_component::transform_format;
-    uint32_t stride = 16, column = 0;
-    bool has_w = false;
+    uint32_t transform_kind = 0;
+    uint32_t transform_stride = 16;
     switch(inst->transform_type)
     {
       case TF::mat4:
-        stride = 64;
-        column = 48;
+        transform_kind = 2;
+        transform_stride = routing.has_matrix && routing.transform_stride > 0
+                               ? routing.transform_stride
+                               : 64u;
         break;
       case TF::trs:
-        stride = 40;
+        transform_kind = 1;
+        transform_stride = 40;
         break;
       case TF::translation:
-        stride = routing.transforms && routing.transform_stride > 0
-                     ? routing.transform_stride
-                     : 16u;
-        has_w = stride >= 16;
+        transform_stride = routing.transforms && routing.transform_stride > 0
+                               ? routing.transform_stride
+                               : 16u;
         break;
     }
 
-    QMatrix4x4 linear = protoWorld;
-    linear.setColumn(3, QVector4D{0.f, 0.f, 0.f, 1.f});
-    bool invertible = false;
-    const QMatrix4x4 inverse = linear.inverted(&invertible);
+    const BakeSource sources[BakeSourceCount]{
+        resolveBakeSource(
+            routing.transforms, inputs.transforms.buffer, transform_stride, 4),
+        resolveBakeSource(routing.rotations, {}, routing.rotation_stride, 4),
+        resolveBakeSource(routing.scales, {}, routing.scale_stride, 3),
+        resolveBakeSource(
+            routing.colors, inputs.colors.buffer,
+            routing.colors ? routing.color_stride : 16u,
+            routing.colors ? routing.color_components : 4u),
+        resolveBakeSource(
+            routing.custom, inputs.custom.buffer,
+            routing.custom ? routing.custom_stride : 16u,
+            routing.custom ? routing.custom_components : 4u)};
 
-    const bool placed
-        = invertible
-          && preparePlacement(
-              routing.transforms, inputs.transforms.buffer, stride, column, has_w,
-              inst->instance_count, inverse.constData());
-    if(!placed && m_rhi && !m_placePipeline && inst->instance_count > 0
-       && !linear.isIdentity() && !m_warnedPlacementFallback)
+    const bool full = inputs.transform_mode.value == FullMatrix;
+    if(prepareBake(sources, transform_kind, inst->instance_count, full, protoWorld))
     {
-      m_warnedPlacementFallback = true;
-      qWarning() << "Instancer: no compute support on this backend, instance "
-                    "translations are scaled by the prototype transform";
+      auto view = [&](QRhiBuffer* buf, uint32_t elem) {
+        ossia::gpu_buffer_handle gh;
+        gh.native_handle = buf;
+        gh.byte_size = int64_t(inst->instance_count) * elem;
+        gh.byte_offset = 0;
+        auto r = std::make_shared<ossia::buffer_resource>();
+        r->resource = gh;
+        r->dirty_index = 1;
+        return r;
+      };
+      inst->instance_transforms = view(m_bakedTransforms, full ? 64u : 16u);
+      inst->instance_colors = view(m_bakedColors, 16u);
+      inst->instance_custom
+          = full && sources[BakeCustom].buffer ? view(m_bakedCustom, 16u) : nullptr;
+      inst->transform_type = full ? TF::mat4 : TF::translation;
+      baked_full = full;
     }
-    if(placed)
+    else if(m_rhi && !m_bakePipeline && inst->instance_count > 0
+            && !m_warnedBakeFallback)
     {
-      ossia::gpu_buffer_handle gh;
-      gh.native_handle = m_placed;
-      gh.byte_size = int64_t(inst->instance_count) * 16;
-      gh.byte_offset = 0;
-      auto placed = std::make_shared<ossia::buffer_resource>();
-      placed->resource = gh;
-      placed->dirty_index = 1;
-      inst->instance_transforms = std::move(placed);
-      inst->transform_type = TF::translation;
+      m_warnedBakeFallback = true;
+      qWarning() << "Instancer: no compute support on this backend, instance "
+                    "transforms are not baked and translations are scaled by "
+                    "the prototype transform";
     }
   }
   inst->dirty_index = ++m_version_counter;
@@ -620,7 +830,7 @@ void Instancer::rebuild()
   protoXform.scale[0] = 1.f;
   protoXform.scale[1] = 1.f;
   protoXform.scale[2] = 1.f;
-  if(!protoWorld.isIdentity())
+  if(!protoWorld.isIdentity() && !baked_full)
   {
     const float* d = protoWorld.constData();
     protoXform.translation[0] = d[12];
@@ -737,28 +947,36 @@ void Instancer::init(
     score::gfx::RenderList& r, QRhiResourceUpdateBatch& res)
 {
   m_rhi = r.state.rhi;
-  if(m_rhi && m_rhi->isFeatureSupported(QRhi::Compute) && !m_placePipeline)
+  if(m_rhi && m_rhi->isFeatureSupported(QRhi::Compute) && !m_bakePipeline)
   {
-    QShader shader = score::gfx::makeCompute(r.state, placementShader);
+    QShader shader = score::gfx::makeCompute(r.state, bakeShader);
     if(shader.isValid())
     {
-      m_placeParams = m_rhi->newBuffer(
-          QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(PlacementParams));
-      m_placeParams->setName("Instancer::placement_params");
-      m_placeSrb = m_rhi->newShaderResourceBindings();
-      m_placePipeline = m_rhi->newComputePipeline();
-      m_placePipeline->setShaderStage({QRhiShaderStage::Compute, shader});
-      if(!m_placeParams->create())
+      m_bakeParams = m_rhi->newBuffer(
+          QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(BakeParams));
+      m_bakeParams->setName("Instancer::bake_params");
+      m_bakeDummy = m_rhi->newBuffer(
+          QRhiBuffer::Static,
+          QRhiBuffer::UsageFlags(score::gfx::compatibleBufferUsage(
+              *m_rhi, QRhiBuffer::StorageBuffer)),
+          64);
+      m_bakeDummy->setName("Instancer::bake_absent_source");
+      m_bakeSrb = m_rhi->newShaderResourceBindings();
+      m_bakePipeline = m_rhi->newComputePipeline();
+      m_bakePipeline->setShaderStage({QRhiShaderStage::Compute, shader});
+      if(!m_bakeParams->create() || !m_bakeDummy->create())
       {
-        delete m_placeParams;
-        delete m_placeSrb;
-        delete m_placePipeline;
-        m_placeParams = nullptr;
-        m_placeSrb = nullptr;
-        m_placePipeline = nullptr;
+        delete m_bakeParams;
+        delete m_bakeDummy;
+        delete m_bakeSrb;
+        delete m_bakePipeline;
+        m_bakeParams = nullptr;
+        m_bakeDummy = nullptr;
+        m_bakeSrb = nullptr;
+        m_bakePipeline = nullptr;
       }
     }
-    m_placeSrbDirty = true;
+    m_bakeSrbDirty = true;
   }
   m_wrapped_state.reset();
 
@@ -804,46 +1022,68 @@ void Instancer::runInitialPasses(
     QRhiResourceUpdateBatch*& res, score::gfx::Edge&)
 {
   refresh();
-  if(!m_placing || !m_placePipeline || !m_placed || !res)
+  if(!m_baking || !m_bakePipeline || !m_bakedTransforms || !m_bakedColors
+     || !m_bakedCustom || !res)
     return;
 
-  if(m_placeSrbDirty)
+  if(m_bakeSrbDirty)
   {
-    m_placeSrb->destroy();
-    m_placeSrb->setBindings({
+    auto source = [&](int k) {
+      return m_bake.sources[k].buffer ? m_bake.sources[k].buffer : m_bakeDummy;
+    };
+    m_bakeSrb->destroy();
+    m_bakeSrb->setBindings({
         QRhiShaderResourceBinding::uniformBuffer(
-            0, QRhiShaderResourceBinding::ComputeStage, m_placeParams),
+            0, QRhiShaderResourceBinding::ComputeStage, m_bakeParams),
         QRhiShaderResourceBinding::bufferLoad(
-            1, QRhiShaderResourceBinding::ComputeStage, m_placement.source),
+            1, QRhiShaderResourceBinding::ComputeStage, source(0)),
+        QRhiShaderResourceBinding::bufferLoad(
+            2, QRhiShaderResourceBinding::ComputeStage, source(1)),
+        QRhiShaderResourceBinding::bufferLoad(
+            3, QRhiShaderResourceBinding::ComputeStage, source(2)),
+        QRhiShaderResourceBinding::bufferLoad(
+            4, QRhiShaderResourceBinding::ComputeStage, source(3)),
+        QRhiShaderResourceBinding::bufferLoad(
+            5, QRhiShaderResourceBinding::ComputeStage, source(4)),
         QRhiShaderResourceBinding::bufferStore(
-            2, QRhiShaderResourceBinding::ComputeStage, m_placed),
+            6, QRhiShaderResourceBinding::ComputeStage, m_bakedTransforms),
+        QRhiShaderResourceBinding::bufferStore(
+            7, QRhiShaderResourceBinding::ComputeStage, m_bakedColors),
+        QRhiShaderResourceBinding::bufferStore(
+            8, QRhiShaderResourceBinding::ComputeStage, m_bakedCustom),
     });
-    if(!m_placeSrb->create())
+    if(!m_bakeSrb->create())
       return;
-    if(!m_placePipeline->shaderResourceBindings())
+    if(!m_bakePipeline->shaderResourceBindings())
     {
-      m_placePipeline->setShaderResourceBindings(m_placeSrb);
-      if(!m_placePipeline->create())
+      m_bakePipeline->setShaderResourceBindings(m_bakeSrb);
+      if(!m_bakePipeline->create())
       {
-        m_placePipeline->setShaderResourceBindings(nullptr);
+        m_bakePipeline->setShaderResourceBindings(nullptr);
         return;
       }
     }
-    m_placeSrbDirty = false;
+    m_bakeSrbDirty = false;
   }
 
-  PlacementParams params{};
-  std::copy_n(m_placement.inverse_linear, 16, params.inverse_linear);
-  params.count = m_placement.count;
-  params.stride = m_placement.source_stride / 4;
-  params.offset = m_placement.source_offset / 4;
-  params.has_w = m_placement.has_w;
-  res->updateDynamicBuffer(m_placeParams, 0, sizeof(params), &params);
+  BakeParams params{};
+  std::copy_n(m_bake.proto, 16, params.proto);
+  std::copy_n(m_bake.proto_inverse_linear, 16, params.proto_inverse_linear);
+  params.count = m_bake.count;
+  params.full = m_bake.full ? 1u : 0u;
+  params.transform_kind = m_bake.transform_kind;
+  for(int k = 0; k < BakeSourceCount; ++k)
+  {
+    const auto& src = m_bake.sources[k];
+    params.layouts[k] = BakeLayout{
+        src.offset / 4, src.stride / 4, src.buffer ? 1u : 0u, src.components};
+  }
+  res->updateDynamicBuffer(m_bakeParams, 0, sizeof(params), &params);
 
   cb.beginComputePass(res);
-  cb.setComputePipeline(m_placePipeline);
-  cb.setShaderResources(m_placeSrb);
-  cb.dispatch((m_placement.count + 63) / 64, 1, 1);
+  cb.setComputePipeline(m_bakePipeline);
+  cb.setShaderResources(m_bakeSrb);
+  cb.dispatch((m_bake.count + 63) / 64, 1, 1);
   cb.endComputePass();
   res = r.state.rhi->nextResourceUpdateBatch();
 }
@@ -855,17 +1095,23 @@ void Instancer::release(score::gfx::RenderList& r)
   m_xform_ref = {};
   m_wrapped_state.reset();
 
-  delete m_placePipeline;
-  delete m_placeSrb;
-  delete m_placeParams;
-  delete m_placed;
-  m_placePipeline = nullptr;
-  m_placeSrb = nullptr;
-  m_placeParams = nullptr;
-  m_placed = nullptr;
-  m_placement = {};
-  m_placing = false;
-  m_placeSrbDirty = true;
+  delete m_bakePipeline;
+  delete m_bakeSrb;
+  delete m_bakeParams;
+  delete m_bakeDummy;
+  delete m_bakedTransforms;
+  delete m_bakedColors;
+  delete m_bakedCustom;
+  m_bakePipeline = nullptr;
+  m_bakeSrb = nullptr;
+  m_bakeParams = nullptr;
+  m_bakeDummy = nullptr;
+  m_bakedTransforms = nullptr;
+  m_bakedColors = nullptr;
+  m_bakedCustom = nullptr;
+  m_bake = {};
+  m_baking = false;
+  m_bakeSrbDirty = true;
   m_rhi = nullptr;
 }
 

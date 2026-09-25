@@ -14,6 +14,7 @@
 #include <cstdint>
 #include <memory>
 
+class QMatrix4x4;
 class QRhi;
 class QRhiBuffer;
 class QRhiCommandBuffer;
@@ -61,6 +62,12 @@ public:
     Mat4,
     TRS,
     Translation
+  };
+
+  enum InstanceTransformMode
+  {
+    FullMatrix,
+    TranslationOnly
   };
 
   struct ins
@@ -116,6 +123,16 @@ public:
     { void update(Instancer& n) { n.rebuild(); } } rotation;
     struct : ScaleControl
     { void update(Instancer& n) { n.rebuild(); } } scale;
+
+    struct : halp::combobox_t<"Per-instance transform", InstanceTransformMode>
+    {
+      struct range
+      {
+        std::string_view values[2]{"Full matrix", "Translation only"};
+        int init{0};
+      };
+      void update(Instancer& n) { n.rebuild(); }
+    } transform_mode;
   } inputs;
 
   struct outs
@@ -140,14 +157,30 @@ public:
       QRhiResourceUpdateBatch*& res, score::gfx::Edge& e);
   void release(score::gfx::RenderList& r);
 
-  struct Placement
+  enum BakeSourceIndex
   {
-    QRhiBuffer* source{};
-    uint32_t source_offset{};
-    uint32_t source_stride{};
+    BakeTransforms,
+    BakeRotations,
+    BakeScales,
+    BakeColors,
+    BakeCustom,
+    BakeSourceCount
+  };
+  struct BakeSource
+  {
+    QRhiBuffer* buffer{};
+    uint32_t offset{};
+    uint32_t stride{};
+    uint32_t components{};
+  };
+  struct Bake
+  {
+    BakeSource sources[BakeSourceCount]{};
+    uint32_t transform_kind{};
     uint32_t count{};
-    uint32_t has_w{};
-    float inverse_linear[16]{};
+    bool full{};
+    float proto[16]{};
+    float proto_inverse_linear[16]{};
   };
 
   // Cache so we republish a stable shared_ptr when inputs haven't
@@ -195,20 +228,23 @@ public:
   ossia::gpu_slot_ref m_xform_ref{};
 
   bool refresh();
-  bool preparePlacement(
-      const ossia::buffer_resource_ptr& routed, const halp::gpu_buffer& raw,
-      uint32_t stride, uint32_t column_offset, bool has_w, uint32_t count,
-      const float* inverse_linear);
+  bool ensureBakeTarget(QRhiBuffer*& buf, quint32 bytes, const char* name);
+  bool prepareBake(
+      const BakeSource (&sources)[BakeSourceCount], uint32_t transform_kind,
+      uint32_t count, bool full, const QMatrix4x4& proto);
 
   QRhi* m_rhi{};
-  Placement m_placement{};
-  bool m_placing{};
-  QRhiBuffer* m_placed{};
-  QRhiBuffer* m_placeParams{};
-  QRhiShaderResourceBindings* m_placeSrb{};
-  QRhiComputePipeline* m_placePipeline{};
-  bool m_placeSrbDirty{true};
-  bool m_warnedPlacementFallback{};
+  Bake m_bake{};
+  bool m_baking{};
+  QRhiBuffer* m_bakedTransforms{};
+  QRhiBuffer* m_bakedColors{};
+  QRhiBuffer* m_bakedCustom{};
+  QRhiBuffer* m_bakeParams{};
+  QRhiBuffer* m_bakeDummy{};
+  QRhiShaderResourceBindings* m_bakeSrb{};
+  QRhiComputePipeline* m_bakePipeline{};
+  bool m_bakeSrbDirty{true};
+  bool m_warnedBakeFallback{};
 };
 
 }
