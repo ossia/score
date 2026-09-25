@@ -2220,6 +2220,39 @@ endif()
 # with the sampler its INPUTS entry declares.
 score_add_gfx_test(raw_raster_depth_array_input GfxRawRasterDepthArrayInput.cpp)
 
+# Raw-raster cube captures (camera-driven and NDC-derived, multiview and
+# PER_CUBE_FACE) land in GL cube-map face order on every backend.
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  set(_cube_face_orient_c "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
+  score_plugin_hidden_sources(_cube_face_orient_hidden
+      "${_cube_face_orient_c}/Primitive.cpp"
+      "${_cube_face_orient_c}/Camera.cpp"
+      "${_cube_face_orient_c}/CameraArray.cpp")
+  score_add_test(test_gfx_cube_face_orientation
+    SOURCES
+      GfxCubeFaceOrientation.cpp
+      ${_cube_face_orient_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_cube_face_orientation PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_cube_face_orientation SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
+# An image input after an INPUTS entry that creates no input port (write-only
+# storage) gets the sampler it declares.
+score_add_gfx_test(input_sampler_port_map GfxInputSamplerPortMap.cpp)
+
 # A scene filter CSF rewriting indirect_draw_cmds on one branch drives that
 # branch's rasterizer only.
 if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
