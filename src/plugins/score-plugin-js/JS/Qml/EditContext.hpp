@@ -392,6 +392,20 @@ public:
   void endMacro();
   W_SLOT(endMacro)
 
+  //! Register the handler `fn` that pushCommand("name", ...) replays against.
+  //! Registering a name twice replaces it.
+  void registerCommandHandler(QString name, QJSValue fn);
+  W_SLOT(registerCommandHandler)
+
+  //! Push an undoable edit the engine knows nothing about - state that lives
+  //! in the script or outside the process. The payloads are JSON-serialisable
+  //! values handed back to the handler on redo and on undo; the command stores
+  //! them rather than closures, so it survives the crash-recovery backup.
+  //! Pushing applies the edit: the redo payload is replayed immediately, and
+  //! inside an open macro it undoes together with the engine edits around it.
+  void pushCommand(QString name, QJSValue undoPayload, QJSValue redoPayload);
+  W_SLOT(pushCommand)
+
   void undo();
   W_SLOT(undo)
 

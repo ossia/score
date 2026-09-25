@@ -6,10 +6,13 @@
 #include <core/application/ApplicationSettings.hpp>
 
 #include <QFileInfo>
+#include <QHash>
 #include <QJSValue>
+#include <QPointer>
 #include <QQmlComponent>
 #include <QQmlContext>
 #include <QQmlEngine>
+#include <QSet>
 
 #include <thread>
 #include <vector>
@@ -54,6 +57,18 @@ public:
    */
   static QJSValue importModule(QQmlEngine& engine, const QString& path);
 
+  /** Handlers for JS::ScriptCommand, by name.
+   *
+   * A script registers one with Score.registerCommandHandler() and then pushes
+   * edits against it with Score.pushCommand(); the command stores only the
+   * name and the payloads, so it stays serializable. Registering a name twice
+   * replaces the handler - reloading a script must not leave the old one
+   * behind.
+   */
+  //! @p engine is the one @p fn belongs to; the payload is built there.
+  void registerCommandHandler(const QString& name, const QJSValue& fn, QJSEngine* engine);
+  void callCommandHandler(const QString& name, const QByteArray& payload);
+
   // Used for processing whatever comes from the console
   QQmlEngine m_consoleEngine;
 
@@ -81,5 +96,13 @@ public:
   //! load a module and then drive it: `--script mod.mjs --script "mod.go()"`.
   std::vector<StartScript> m_start_scripts;
   bool m_start_script_failed{};
+
+  struct CommandHandler
+  {
+    QJSValue fn;
+    QPointer<QJSEngine> engine;
+  };
+  QHash<QString, CommandHandler> m_commandHandlers;
+  QSet<QString> m_reportedMissingHandlers;
 };
 }

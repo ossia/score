@@ -20,6 +20,7 @@ endif()
 set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_js.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Commands/EditScript.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Commands/ScriptCommand.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Commands/ScriptMacro.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Commands/JSCommandFactory.hpp"
 
@@ -63,6 +64,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/GPUNode.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Commands/JSCommandFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Commands/ScriptCommand.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/AddressItem.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/DeviceContext.cpp"
