@@ -2163,3 +2163,61 @@ target_sources(test_gfx_scene_merge_skeletons_ms PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator/offsetAllocator.cpp")
 target_include_directories(test_gfx_scene_merge_skeletons_ms PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator")
+
+# Cubemap Loader layouts (equirectangular, horizontal and vertical cross) read
+# back through a cubemap_view-convention unwrap. CubemapLoader is
+# hidden-visibility inside the plug-in, so it is compiled in directly.
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  score_plugin_hidden_sources(_cml_e3_hidden
+      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim/CubemapLoader.cpp")
+  score_add_test(test_gfx_cubemap_loader_orientation_e3
+    SOURCES
+      GfxCubemapLoaderOrientationE3.cpp
+      ${_cml_e3_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_cubemap_loader_orientation_e3 PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_cubemap_loader_orientation_e3 SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
+# A raw raster with two outgoing edges patches the geometry-matched uniform and
+# storage buffers into the SRB of every pass. Threedim::Cube is
+# hidden-visibility, so Primitive.cpp is compiled in directly.
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  score_plugin_hidden_sources(_rr2e_e3_hidden
+      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim/Primitive.cpp")
+  score_add_test(test_gfx_rawraster_two_edge_geometry_buffers_e3
+    SOURCES
+      GfxRawRasterTwoEdgeGeometryBuffersE3.cpp
+      ${_rr2e_e3_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_rawraster_two_edge_geometry_buffers_e3 PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_rawraster_two_edge_geometry_buffers_e3 SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
+# A raw raster reads a PER_LAYER depth array through an IS_ARRAY image input
+# with the sampler its INPUTS entry declares.
+score_add_gfx_test(rawraster_depth_array_input_e3 GfxRawRasterDepthArrayInputE3.cpp)

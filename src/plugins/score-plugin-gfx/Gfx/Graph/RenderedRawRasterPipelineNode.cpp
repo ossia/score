@@ -859,6 +859,44 @@ static QVarLengthArray<QRhiGraphicsPipeline::TargetBlend, 4> rasterSeedBlends(
   return blends;
 }
 
+static void applyDeclaredGrabSamplers(
+    QRhi& rhi, const ISFNode& node, std::vector<Sampler>& samplers)
+{
+  std::vector<const isf::sampler_config*> cfgs(node.input.size(), nullptr);
+  walk_descriptor_inputs(
+      node.descriptor(), port_counts{1, 0, 0},
+      [&](const isf::input& inp, const port_counts& before, const port_counts& delta) {
+    if(delta.inlets < 1 || before.inlets >= (int)cfgs.size())
+      return;
+    if(auto* im = ossia::get_if<isf::image_input>(&inp.data))
+      cfgs[before.inlets] = &im->sampler;
+    else if(auto* cm = ossia::get_if<isf::cubemap_input>(&inp.data))
+      cfgs[before.inlets] = &cm->sampler;
+  });
+
+  std::size_t slot = 0;
+  for(std::size_t port = 0; port < node.input.size() && slot < samplers.size(); ++port)
+  {
+    const Port& in = *node.input[port];
+    if(in.type != Types::Image)
+      continue;
+    const bool grabs = (in.flags & Flag::GrabsFromSource) == Flag::GrabsFromSource;
+    if(grabs && cfgs[port])
+    {
+      isf::sampler_config cfg = *cfgs[port];
+      if(cfg.mipmap_mode.empty() && (in.flags & Flag::Cubemap) == Flag::Cubemap)
+        cfg.mipmap_mode = "linear";
+      QRhiSampler* sampler = makeSampler(rhi, cfg);
+      sampler->setName("initInputSamplers::grabs_sampler");
+      delete samplers[slot].sampler;
+      samplers[slot].sampler = sampler;
+    }
+    ++slot;
+    if(!grabs && (in.flags & Flag::SamplableDepth) == Flag::SamplableDepth)
+      ++slot;
+  }
+}
+
 static bool auxPlaceholderZeroFillDisabled() noexcept
 {
   static const bool off
@@ -2647,6 +2685,7 @@ void RenderedRawRasterPipelineNode::initState(
   SCORE_ASSERT(m_audioSamplers.empty());
 
   m_inputSamplers = initInputSamplers(this->n, renderer, n.input, &n.descriptor());
+  applyDeclaredGrabSamplers(rhi, n, m_inputSamplers);
   m_storageImageSamplers = storageImageInputSamplers(
       n.descriptor(), n.input, n.descriptor().mode == isf::descriptor::RawRaster ? 1 : 0);
   warnStorageImageUnits(rhi, "raw raster", {&n.m_vertexS, &n.m_fragmentS});
@@ -3388,6 +3427,40 @@ bool RenderedRawRasterPipelineNode::updateMaterials(
   return mustRecreatePasses;
 }
 
+void RenderedRawRasterPipelineNode::bindGeometryBuffersToAllSrbs(
+    RenderList& renderer, QRhiResourceUpdateBatch& res)
+{
+  ossia::small_vector<QRhiBuffer*, 8> prevSsbos, prevUbos;
+  for(const auto& e : m_storage.ssbos)
+    prevSsbos.push_back(e.buffer);
+  for(const auto& e : m_storage.ubos)
+    prevUbos.push_back(e.buffer);
+
+  bindUpstreamBuffersFromGeometry(
+      *renderer.state.rhi, res, m_storage, geometry.meshes->meshes[0], nullptr);
+
+  const auto patch = [&](QRhiShaderResourceBindings* srb) {
+    if(!srb)
+      return;
+    for(std::size_t i = 0; i < m_storage.ssbos.size(); ++i)
+    {
+      const auto& e = m_storage.ssbos[i];
+      if(e.buffer != prevSsbos[i] && e.buffer && e.binding >= 0)
+        replaceBuffer(*srb, e.binding, e.buffer);
+    }
+    for(std::size_t i = 0; i < m_storage.ubos.size(); ++i)
+    {
+      const auto& e = m_storage.ubos[i];
+      if(e.buffer != prevUbos[i] && e.buffer && e.binding >= 0)
+        replaceBuffer(*srb, e.binding, e.buffer);
+    }
+  };
+  for(auto& [e, pass] : m_passes)
+    patch(pass.p.srb);
+  for(auto* invSrb : m_perInvocationSRBs)
+    patch(invSrb);
+}
+
 void RenderedRawRasterPipelineNode::update(
     RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge)
 {
@@ -3440,31 +3513,19 @@ void RenderedRawRasterPipelineNode::update(
     // storage image). bindUpstream*FromGeometry are idempotent and patch each
     // SRB unconditionally.
     for(auto& [edge, pass] : m_passes)
-    {
       if(pass.p.srb)
-      {
         bindUpstreamImagesFromGeometry(
             m_storage, geometry.meshes->meshes[0], pass.p.srb);
-        bindUpstreamBuffersFromGeometry(
-            *renderer.state.rhi, res, m_storage,
-            geometry.meshes->meshes[0], pass.p.srb);
-      }
-    }
     // Mirror onto the per-invocation SRB pool (PER_LAYER / PER_MIP /
     // MANUAL COUNT>1 clone the main SRB): invocations 1..N-1 own separate
     // SRBs and must pick up the same geometry-published buffer/image swaps,
     // otherwise they keep the stale (possibly deleteLater'd) upstream handle
     // -> UAF/garbage on all layers/mips but the first when upstream reallocs.
     for(auto* invSrb : m_perInvocationSRBs)
-    {
-      if(!invSrb)
-        continue;
-      bindUpstreamImagesFromGeometry(
-          m_storage, geometry.meshes->meshes[0], invSrb);
-      bindUpstreamBuffersFromGeometry(
-          *renderer.state.rhi, res, m_storage,
-          geometry.meshes->meshes[0], invSrb);
-    }
+      if(invSrb)
+        bindUpstreamImagesFromGeometry(
+            m_storage, geometry.meshes->meshes[0], invSrb);
+    bindGeometryBuffersToAllSrbs(renderer, res);
   }
 
   // Update the geometry (sync with ModelDisplayNode)
@@ -3685,29 +3746,17 @@ void RenderedRawRasterPipelineNode::update(
     if(geometry.meshes && !geometry.meshes->meshes.empty())
     {
       for(auto& [edge, pass] : m_passes)
-      {
         if(pass.p.srb)
-        {
           bindUpstreamImagesFromGeometry(
               m_storage, geometry.meshes->meshes[0], pass.p.srb);
-          bindUpstreamBuffersFromGeometry(
-              *renderer.state.rhi, res, m_storage,
-              geometry.meshes->meshes[0], pass.p.srb);
-        }
-      }
       // Mirror onto the per-invocation SRB pool (see the symmetric loop in
       // the per-frame refresh above): invocations 1..N-1 own separate SRBs
       // and must pick up the same freshly-bound geometry buffers/images.
       for(auto* invSrb : m_perInvocationSRBs)
-      {
-        if(!invSrb)
-          continue;
-        bindUpstreamImagesFromGeometry(
-            m_storage, geometry.meshes->meshes[0], invSrb);
-        bindUpstreamBuffersFromGeometry(
-            *renderer.state.rhi, res, m_storage,
-            geometry.meshes->meshes[0], invSrb);
-      }
+        if(invSrb)
+          bindUpstreamImagesFromGeometry(
+              m_storage, geometry.meshes->meshes[0], invSrb);
+      bindGeometryBuffersToAllSrbs(renderer, res);
 
       // Re-run rebindAuxTextures here. It is idempotent, short-circuiting when
       // the slot's cached texture matches the upstream's current one. On true,

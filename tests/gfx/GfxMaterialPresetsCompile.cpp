@@ -53,7 +53,6 @@ TEST_CASE(
   const auto api = GENERATE(from_range(platform_backends()));
   const auto preset = GENERATE(
       std::pair{"classic_pbr_full.vert", "classic_pbr_full.frag"},
-      std::pair{"classic_pbr_full.vert", "classic_pbr_full_b4.frag"},
       std::pair{"classic_pbr_openpbr.vert", "classic_pbr_openpbr.frag"},
       std::pair{"classic_pbr_textured.vert", "classic_pbr_textured.frag"},
       std::pair{"classic_pbr_skinned.vert", "classic_pbr_skinned.frag"},

@@ -89,6 +89,9 @@ private:
   // Returns `fallback` when the expression is empty, >=1 otherwise.
   int resolveIntExpression(const std::string& expr, int fallback) const;
 
+  void bindGeometryBuffersToAllSrbs(
+      RenderList& renderer, QRhiResourceUpdateBatch& res);
+
   // Issue the draw for the currently bound pipeline and SRB. When the input
   // geometry carries several sub-meshes with per-mesh aux buffers, this iterates
   // them and re-points the SRB bindings before each draw; single-sub-mesh and MDI
