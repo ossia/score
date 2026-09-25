@@ -1,5 +1,7 @@
 #include "DataflowClock.hpp"
 
+#include <Execution/Clock/ManualClock.hpp>
+
 #include <Device/Protocol/DeviceInterface.hpp>
 
 #include <Process/ExecutionAction.hpp>
@@ -17,17 +19,19 @@
 
 #include <ossia/audio/audio_parameter.hpp>
 #include <ossia/audio/audio_protocol.hpp>
+#include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/detail/flicks.hpp>
 
 #include <flicks.h>
 namespace Dataflow
 {
-Clock::Clock(const Execution::Context& ctx)
+Clock::Clock(const Execution::Context& ctx, bool stepping)
     : Execution::Clock{ctx}
     , m_default{ctx}
     , m_audio{context.doc.app.guiApplicationPlugin<Audio::ApplicationPlugin>()}
     , m_plug{context.doc.plugin<Execution::DocumentPlugin>()}
+    , m_stepping{stepping}
 {
 }
 
@@ -122,7 +126,70 @@ void Clock::play_impl(const TimeVal& t)
     }
   };
 
+  {
+    auto& st = *m_plug.contextData()->execState;
+    int ins{}, outs{};
+    if(auto e = m_audio.audio.get())
+    {
+      ins = e->effective_inputs;
+      outs = e->effective_outputs;
+    }
+    m_gate = std::make_shared<Execution::ManualClock::StepGate>(
+        ossia::audio_engine::fun_type{m_play_tick}, st.bufferSize, st.sampleRate, ins,
+        outs);
+  }
+
+  if(Execution::Clock::steppingRequested(context.doc.document))
+    m_stepping = true;
+
   resume_impl();
+}
+
+ossia::audio_engine::fun_type Clock::runningTick() const
+{
+  if(m_stepping && m_gate)
+    return [gate = m_gate](const ossia::audio_tick_state& t) { gate->run(t); };
+  return ossia::audio_engine::fun_type{m_play_tick};
+}
+
+bool Clock::setStepping(bool stepping)
+{
+  if(!m_gate)
+    return false;
+  if(stepping == m_stepping)
+    return true;
+
+  m_stepping = stepping;
+  if(!m_paused)
+  {
+    if(auto e = m_audio.audio.get())
+      e->set_tick(runningTick());
+  }
+  return true;
+}
+
+bool Clock::stepping() const noexcept
+{
+  return m_stepping;
+}
+
+bool Clock::stepTo(double seconds)
+{
+  if(!m_gate || m_paused)
+    return false;
+  if(!m_stepping && !setStepping(true))
+    return false;
+  auto e = m_audio.audio.get();
+  if(!e)
+    return false;
+  return m_gate->waitFor(m_gate->samplesAt(seconds), *e);
+}
+
+double Clock::steppedSeconds() const noexcept
+{
+  if(!m_gate)
+    return 0.;
+  return m_gate->done.load(std::memory_order_acquire) / m_gate->sampleRate;
 }
 
 void Clock::pause_impl()
@@ -142,7 +209,7 @@ void Clock::resume_impl()
   m_paused = false;
   m_default.resume(*this->scenario);
 
-  e->set_tick(ossia::audio_engine::fun_type{m_play_tick});
+  e->set_tick(runningTick());
 }
 
 void Clock::stop_impl()

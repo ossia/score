@@ -100,5 +100,6 @@ void GfxExecutionAction::endTick(const ossia::audio_tick_state& st)
       ui->edges_changed = true;
     }
   }
+  ticks.fetch_add(1, std::memory_order_release);
 }
 }

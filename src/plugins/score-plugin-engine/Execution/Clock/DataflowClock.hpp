@@ -11,33 +11,47 @@ namespace Process
 {
 class Cable;
 }
+namespace Execution::ManualClock
+{
+struct StepGate;
+}
 namespace Dataflow
 {
 class DocumentPlugin;
-class Clock final
+class SCORE_PLUGIN_ENGINE_EXPORT Clock
     : public Execution::Clock
     , public Nano::Observer
 {
 public:
-  Clock(const Execution::Context& ctx);
+  Clock(const Execution::Context& ctx, bool stepping = false);
 
   ~Clock() override;
 
-private:
+  bool paused() const override;
+  bool setStepping(bool stepping) override;
+  bool stepping() const noexcept override;
+  bool stepTo(double seconds) override;
+  double steppedSeconds() const noexcept;
+
+protected:
   // Clock interface
   void play_impl(const TimeVal& t) override;
   void pause_impl() override;
   void resume_impl() override;
   void stop_impl() override;
-  bool paused() const override;
+
+private:
+  ossia::audio_engine::fun_type runningTick() const;
 
   Execution::DefaultClock m_default;
   Audio::ApplicationPlugin& m_audio;
   Execution::DocumentPlugin& m_plug;
   bool m_paused{};
+  bool m_stepping{};
 
   ossia::audio_engine::fun_type m_play_tick{};
   ossia::audio_engine::fun_type m_pause_tick{};
+  std::shared_ptr<Execution::ManualClock::StepGate> m_gate;
 };
 
 class ClockFactory final : public Execution::ClockFactory

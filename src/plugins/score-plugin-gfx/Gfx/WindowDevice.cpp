@@ -150,11 +150,21 @@ void WindowDevice::grabTo(const QString& path) const
     // loop until they do, as the screen path below already does -- a one-shot
     // read reports a live graph as "nothing rendered" whenever the grab lands
     // inside that startup window.
+    // The wall-clock wait is for a slow first tick: once the execution has
+    // completed two ticks since the grab began, what is cabled is what the
+    // score has at this time, and waiting longer would reach later edits.
+    auto plug = m_ctx.findPlugin<Gfx::DocumentPlugin>();
+    const bool stepped = plug && plug->context.executionStepped();
+    const auto ticks = [plug] {
+      return plug ? plug->exec.ticks.load(std::memory_order_acquire) : uint64_t{};
+    };
+    const uint64_t ticksAtStart = ticks();
     int spun = 0;
     QElapsedTimer waited;
     waited.start();
-    for(; (spun < 60 || waited.elapsed() < 2000)
-          && node->shared_readback->pixelSize.width() <= 0;
+    for(; (spun < 60
+           || (!stepped && waited.elapsed() < 2000 && ticks() - ticksAtStart < 2))
+          && node->shared_readback->pixelSize.width() <= 0 && !node->deviceLost();
         ++spun)
     {
       if(spun >= 60)
@@ -166,8 +176,15 @@ void WindowDevice::grabTo(const QString& path) const
     // chain needs several before its feedback targets hold anything. Grabbing
     // here returns a near-black image that is not what the caller's own
     // renderFrames() asked to settle, so give it that many more.
-    if(spun > 0 && node->shared_readback->pixelSize.width() > 0)
+    if(!stepped && spun > 0 && node->shared_readback->pixelSize.width() > 0)
       renderFrames(30);
+
+    if(node->deviceLost())
+    {
+      qWarning() << "grabTo: the graphics device of" << m_settings.name
+                 << "was lost; nothing written to" << path;
+      return;
+    }
 
     if(spun > 0 && qEnvironmentVariableIsSet("SCORE_GFX_TRACE"))
       fprintf(
@@ -220,10 +237,17 @@ void WindowDevice::grabTo(const QString& path) const
     // it fills the result when the frame it was queued in completes, which with
     // a buffered swapchain is not the frame that queued it.
     //
-    for(int i = 0; i < 60 && rbp->data.isEmpty(); ++i)
+    for(int i = 0; i < 60 && rbp->data.isEmpty() && !screen->deviceLost(); ++i)
     {
       QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents, 16);
       renderFrames(1);
+    }
+
+    if(screen->deviceLost())
+    {
+      qWarning() << "grabTo: the graphics device of" << m_settings.name
+                 << "was lost; nothing written to" << path;
+      return;
     }
 
     const auto& rb = *rbp;

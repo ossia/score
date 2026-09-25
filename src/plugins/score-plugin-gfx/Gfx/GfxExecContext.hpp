@@ -1,4 +1,5 @@
 #pragma once
+#include <atomic>
 #include <Process/ExecutionAction.hpp>
 
 #include <Gfx/GfxContext.hpp>
@@ -33,6 +34,9 @@ public:
   std::shared_ptr<bool> alive{std::make_shared<bool>(true)};
 
   GfxContext* ui{};
+  //! Completed ticks, playing or paused. Read by the GUI thread.
+  std::atomic<uint64_t> ticks{0};
+
   std::vector<EdgeSpec> prev_edges;
   std::vector<EdgeSpec> edges_cache;
   using edge_queue = moodycamel::ConcurrentQueue<EdgeSpec>;
