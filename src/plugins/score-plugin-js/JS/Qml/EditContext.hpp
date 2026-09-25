@@ -298,6 +298,20 @@ public:
   void setValue(QObject* obj, QList<QVariant> value);
   W_SLOT(setValue, (QObject*, QList<QVariant>))
 
+  /**
+   * An edit still in progress, such as a slider being dragged: every call of
+   * one gesture updates the same command, and commitEdit() puts it on the
+   * undo stack as one step - what score's own control widgets do between
+   * press and release. Editing another control first commits the previous
+   * edit, so a gesture whose end was lost does not leak into the next one.
+   */
+  void editValue(QObject* obj, QVariant value);
+  W_SLOT(editValue)
+
+  //! Put the edit in progress on the undo stack; nothing if there is none.
+  void commitEdit();
+  W_SLOT(commitEdit)
+
   QString portName(QObject* port);
   W_SLOT(portName)
   QString valueType(QObject* obj);
