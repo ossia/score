@@ -1752,6 +1752,16 @@ static void update_date_for_shaders(float (&date)[4]) noexcept {
 
 void RenderList::render(QRhiCommandBuffer& commands, bool force) noexcept
 {
+  if(m_rendering)
+  {
+    if((m_nestedRenders++ % 600) == 0)
+      qWarning() << "RenderList::render: entered while this list is already rendering; "
+                    "skipped (occurrence"
+                 << m_nestedRenders << ")";
+    return;
+  }
+  m_rendering = true;
+
   try
   {
     renderImpl(commands, force);
@@ -1774,6 +1784,7 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force) noexcept
   // never run again.
   frame++;
   noteFrameCompleted();
+  m_rendering = false;
 }
 
 void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)

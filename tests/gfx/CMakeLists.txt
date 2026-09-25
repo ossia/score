@@ -2101,3 +2101,7 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
     $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
+
+# A render entry point reached inside a frame (renderFrames, a pumped render
+# clock, a second RenderList::render) does nothing.
+score_add_gfx_test(render_reentry GfxRenderReentry.cpp)
