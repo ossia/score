@@ -40,6 +40,16 @@ inline constexpr int64_t cameraAuxByteSize(std::size_t cameraCount) noexcept
   return (int64_t)((cameraCount < 1 ? 1 : cameraCount) * sizeof(CameraUBOData));
 }
 
+// Index into the scene's camera list of the camera packed at `slot`: the active
+// camera first, then the others cyclically in insertion order, so a camera
+// array's faces keep their order after whichever of them is active.
+inline constexpr std::size_t
+cameraPackIndex(std::size_t slot, std::size_t count, int active) noexcept
+{
+  const std::size_t a = active < 0 ? 0u : std::size_t(active);
+  return count == 0 ? 0u : (a + slot) % count;
+}
+
 inline void writeMat4(float dst[16], const QMatrix4x4& src)
 {
   std::memcpy(dst, src.constData(), 16 * sizeof(float));
