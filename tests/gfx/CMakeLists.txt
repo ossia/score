@@ -1764,3 +1764,7 @@ score_add_gfx_test(csf_buffer_range_fixa2 GfxCsfBufferRangeFixA2.cpp)
 # Raw raster storage images take the lowest bindings, under the 8 OpenGL image
 # units NVIDIA exposes (N93).
 score_add_gfx_test(storage_image_low_binding_n93 GfxStorageImageLowBindingN93.cpp)
+
+# An offscreen output logs a lost GPU device once and reports it through
+# OutputNode::deviceLost() (agent I4, N73 option A).
+score_add_gfx_test(offscreen_device_lost_i4 GfxOffscreenDeviceLostI4.cpp)

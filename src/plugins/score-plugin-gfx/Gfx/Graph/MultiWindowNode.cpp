@@ -698,20 +698,25 @@ void MultiWindowNode::renderBlack()
       r = rhi->beginFrame(wo.swapChain);
     }
     if(r != QRhi::FrameOpSuccess)
+    {
+      if(checkDeviceLost(r, *rhi, "MultiWindowNode"))
+        return;
       continue;
+    }
 
     auto cb = wo.swapChain->currentFrameCommandBuffer();
     auto batch = rhi->nextResourceUpdateBatch();
     cb->beginPass(wo.swapChain->currentFrameRenderTarget(), Qt::black, {0.0f, 0}, batch);
     cb->endPass();
 
-    rhi->endFrame(wo.swapChain);
+    if(checkDeviceLost(rhi->endFrame(wo.swapChain), *rhi, "MultiWindowNode"))
+      return;
   }
 }
 
 void MultiWindowNode::render()
 {
-  if(!m_renderState || !m_renderState->rhi)
+  if(!m_renderState || !m_renderState->rhi || m_deviceLost)
     return;
 
   auto rhi = m_renderState->rhi;
@@ -740,11 +745,16 @@ void MultiWindowNode::render()
   {
     score::gfx::OffscreenFrame frame{*rhi};
     if(!frame)
+    {
+      checkDeviceLost(frame, *rhi, "MultiWindowNode");
       return;
+    }
 
     rl->render(frame.commands());
 
     frame.end();
+    if(checkDeviceLost(frame, *rhi, "MultiWindowNode"))
+      return;
   }
 
   // Step 2: for each live window, blit its sub-region in its own frame.
@@ -782,7 +792,11 @@ void MultiWindowNode::render()
       r = rhi->beginFrame(wo.swapChain);
     }
     if(r != QRhi::FrameOpSuccess)
+    {
+      if(checkDeviceLost(r, *rhi, "MultiWindowNode"))
+        return;
       continue;
+    }
 
     auto cb = wo.swapChain->currentFrameCommandBuffer();
     {
@@ -791,7 +805,8 @@ void MultiWindowNode::render()
       guard.release();
     }
 
-    rhi->endFrame(wo.swapChain);
+    if(checkDeviceLost(rhi->endFrame(wo.swapChain), *rhi, "MultiWindowNode"))
+      return;
   }
 }
 
@@ -968,6 +983,7 @@ void MultiWindowNode::releaseWindowSwapChain(int index)
 
 void MultiWindowNode::createOutput(score::gfx::OutputConfiguration conf)
 {
+  resetDeviceLost();
   m_onReleaseRenderList = conf.onReleaseRenderList;
 
   if(m_mappings.empty())

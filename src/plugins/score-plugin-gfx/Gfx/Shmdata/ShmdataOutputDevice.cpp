@@ -134,16 +134,23 @@ void ShmdataOutputNode::startRendering() { }
 
 void ShmdataOutputNode::render()
 {
+  if(m_deviceLost)
+    return;
   auto renderer = m_renderer.lock();
   if(renderer && m_renderState)
   {
     auto rhi = m_renderState->rhi;
     score::gfx::OffscreenFrame frame{*rhi};
     if(!frame)
+    {
+      checkDeviceLost(frame, *rhi, "ShmdataOutputNode");
       return;
+    }
 
     renderer->render(frame.commands());
     frame.end();
+    if(checkDeviceLost(frame, *rhi, "ShmdataOutputNode"))
+      return;
 
     int sz = m_readback.pixelSize.width() * m_readback.pixelSize.height() * 4;
     int bytes = m_readback.data.size();
@@ -173,6 +180,7 @@ score::gfx::RenderList* ShmdataOutputNode::renderer() const
 
 void ShmdataOutputNode::createOutput(score::gfx::OutputConfiguration conf)
 {
+  resetDeviceLost();
   // clang-format off
   m_writer = std::make_unique<shmdata::Writer>(
       m_settings.path.toStdString(), m_settings.width * m_settings.height * 4,

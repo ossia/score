@@ -14,6 +14,7 @@
 
 #include <QtCore/QDebug>
 
+#include <atomic>
 #include <span>
 
 namespace isf
@@ -48,7 +49,10 @@ struct OffscreenFrame
   explicit OffscreenFrame(QRhi& rhi) noexcept
   {
     QRhiCommandBuffer* cb{};
-    if(rhi.beginOffscreenFrame(&cb) == QRhi::FrameOpSuccess)
+    m_beginResult = simulateDeviceLost.load(std::memory_order_relaxed)
+                        ? QRhi::FrameOpDeviceLost
+                        : rhi.beginOffscreenFrame(&cb);
+    if(m_beginResult == QRhi::FrameOpSuccess)
     {
       if(cb)
       {
@@ -76,19 +80,36 @@ struct OffscreenFrame
   explicit operator bool() const noexcept { return m_commands; }
   QRhiCommandBuffer& commands() const noexcept { return *m_commands; }
 
-  void end() noexcept
+  QRhi::FrameOpResult beginResult() const noexcept { return m_beginResult; }
+  QRhi::FrameOpResult endResult() const noexcept { return m_endResult; }
+  bool deviceLost() const noexcept
+  {
+    return m_beginResult == QRhi::FrameOpDeviceLost
+           || m_endResult == QRhi::FrameOpDeviceLost;
+  }
+
+  QRhi::FrameOpResult end() noexcept
   {
     if(auto* rhi = m_rhi)
     {
       m_rhi = nullptr;
       m_commands = nullptr;
-      rhi->endOffscreenFrame();
+      m_endResult = rhi->endOffscreenFrame();
     }
+    return m_endResult;
   }
+
+  /**
+   * @brief Test seam: while set, every new frame fails to begin with
+   *        FrameOpDeviceLost without touching the QRhi.
+   */
+  static inline std::atomic_bool simulateDeviceLost{false};
 
 private:
   QRhi* m_rhi{};
   QRhiCommandBuffer* m_commands{};
+  QRhi::FrameOpResult m_beginResult{QRhi::FrameOpSuccess};
+  QRhi::FrameOpResult m_endResult{QRhi::FrameOpSuccess};
 };
 
 /**

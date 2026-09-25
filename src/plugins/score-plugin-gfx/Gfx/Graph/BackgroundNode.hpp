@@ -27,16 +27,24 @@ struct BackgroundNode : OutputNode
   void startRendering() override { }
   void render() override
   {
+    if(m_deviceLost)
+      return;
     auto renderer = m_renderer.lock();
     if(renderer && m_renderState)
     {
       if(renderer->renderers.size() > 1)
       {
-        score::gfx::OffscreenFrame frame{*m_renderState->rhi};
+        auto& rhi = *m_renderState->rhi;
+        score::gfx::OffscreenFrame frame{rhi};
         if(!frame)
+        {
+          checkDeviceLost(frame, rhi, "BackgroundNode");
           return;
+        }
 
         renderer->render(frame.commands());
+        frame.end();
+        checkDeviceLost(frame, rhi, "BackgroundNode");
       }
       else
       {
@@ -71,6 +79,7 @@ struct BackgroundNode : OutputNode
     // setting m_swapchainFormat alone leaves the QRhiTexture in its original
     // format.
     m_lastGraphicsApi = conf.graphicsApi;
+    resetDeviceLost();
 
     QSize newSz = m_renderSize;
     if(newSz.width() <= 0 || newSz.height() <= 0)

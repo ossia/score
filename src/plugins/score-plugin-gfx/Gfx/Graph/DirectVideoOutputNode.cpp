@@ -130,6 +130,7 @@ std::uint64_t DirectVideoOutputNode::pacingUnderruns() const noexcept
 
 void DirectVideoOutputNode::createOutput(OutputConfiguration conf)
 {
+  resetDeviceLost();
   m_graphicsApi = conf.graphicsApi;
 
   if(!m_backend->open(conf.graphicsApi))
@@ -331,7 +332,7 @@ void DirectVideoOutputNode::destroyOutput()
 
 void DirectVideoOutputNode::render()
 {
-  if(!m_running || !canRender())
+  if(!m_running || !canRender() || m_deviceLost)
     return;
 
   auto renderer = m_renderer.lock();
@@ -340,7 +341,10 @@ void DirectVideoOutputNode::render()
 
   score::gfx::OffscreenFrame frame{*m_rhi};
   if(!frame)
+  {
+    checkDeviceLost(frame, *m_rhi, "DirectVideoOutputNode");
     return;
+  }
   QRhiCommandBuffer* cb = &frame.commands();
 
   // Input pipeline writes RGBA into m_texture (BasicRenderer's render target).
@@ -350,6 +354,8 @@ void DirectVideoOutputNode::render()
   {
     m_rdma->encodeFrame(*cb);
     frame.end();
+    if(checkDeviceLost(frame, *m_rhi, "DirectVideoOutputNode"))
+      return;
     void* gpuPtr = m_rdma->prepareNextFrame();
     if(gpuPtr && m_pump)
       m_pump->push(gpuPtr);
@@ -360,6 +366,8 @@ void DirectVideoOutputNode::render()
   // is complete on return; prepareNextFrame() stages and returns the host ptr.
   m_hostStaged->encodeFrame(*cb);
   frame.end();
+  if(checkDeviceLost(frame, *m_rhi, "DirectVideoOutputNode"))
+    return;
   if(void* p = m_hostStaged->prepareNextFrame(); p && m_pump)
     m_pump->push(p);
 }

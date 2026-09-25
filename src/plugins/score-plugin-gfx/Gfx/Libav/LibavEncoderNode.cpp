@@ -90,7 +90,7 @@ void LibavEncoderNode::startRendering() { }
 
 void LibavEncoderNode::render()
 {
-  if(!encoder.available())
+  if(!encoder.available() || m_deviceLost)
     return;
 
   auto renderer = m_renderer.lock();
@@ -99,7 +99,10 @@ void LibavEncoderNode::render()
     auto rhi = m_renderState->rhi;
     score::gfx::OffscreenFrame frame{*rhi};
     if(!frame)
+    {
+      checkDeviceLost(frame, *rhi, "LibavEncoderNode");
       return;
+    }
     QRhiCommandBuffer* cb = &frame.commands();
 
     renderer->render(*cb);
@@ -112,6 +115,8 @@ void LibavEncoderNode::render()
 
       currentEnc.exec(*rhi, *cb);
       frame.end();
+      if(checkDeviceLost(frame, *rhi, "LibavEncoderNode"))
+        return;
 
       // Push the PREVIOUS frame's readback to the encoder
       if(prevEnc.readback(0).data.size() > 0)
@@ -149,6 +154,8 @@ void LibavEncoderNode::render()
     {
       // Standard RGBA path with double-buffered readback
       frame.end();
+      if(checkDeviceLost(frame, *rhi, "LibavEncoderNode"))
+        return;
 
       auto& readback = *m_currentReadback;
       const int w = readback.pixelSize.width(), h = readback.pixelSize.height();
@@ -207,6 +214,7 @@ score::gfx::RenderList* LibavEncoderNode::renderer() const
 
 void LibavEncoderNode::createOutput(score::gfx::OutputConfiguration conf)
 {
+  resetDeviceLost();
   m_renderState = score::gfx::createRenderState(
       conf.graphicsApi, QSize(m_settings.width, m_settings.height), nullptr);
   if(!m_renderState || !m_renderState->rhi)

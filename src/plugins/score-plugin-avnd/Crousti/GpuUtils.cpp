@@ -86,16 +86,22 @@ void CustomGpuOutputNodeBase::startRendering() { }
 
 void CustomGpuOutputNodeBase::render()
 {
+  if(m_deviceLost)
+    return;
   auto renderer = m_renderer.lock();
   if(renderer && m_renderState)
   {
     auto rhi = m_renderState->rhi;
     score::gfx::OffscreenFrame frame{*rhi};
     if(!frame)
+    {
+      checkDeviceLost(frame, *rhi, "CustomGpuOutputNode");
       return;
+    }
 
     renderer->render(frame.commands(), true);
     frame.end();
+    checkDeviceLost(frame, *rhi, "CustomGpuOutputNode");
   }
 }
 
@@ -110,6 +116,7 @@ void CustomGpuOutputNodeBase::onRendererChange() { }
 
 void CustomGpuOutputNodeBase::createOutput(score::gfx::OutputConfiguration conf)
 {
+  resetDeviceLost();
   // Nothing here fixes a resolution or a format the way a window or an encoder
   // does: this node is a sink that reads back what reaches it. So the graph is
   // rendered at whatever its first texture input asks for, and the backend is

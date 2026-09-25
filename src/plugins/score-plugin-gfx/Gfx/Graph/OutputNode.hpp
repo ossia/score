@@ -11,6 +11,7 @@
 namespace score::gfx
 {
 class GpuResourceRegistry;
+struct OffscreenFrame;
 struct OutputConfiguration
 {
   GraphicsApi graphicsApi{};
@@ -152,7 +153,29 @@ public:
    */
   void releaseRegistry();
 
+  /**
+   * @brief True once the output's graphics device was reported lost.
+   *
+   * A lost device is not recreated: the output stops rendering and stays
+   * lost until its output is destroyed and created again.
+   */
+  virtual bool deviceLost() const noexcept { return m_deviceLost; }
+
+  /**
+   * @brief Mark the device as lost; logs once per device.
+   */
+  void handleDeviceLost(const char* output) noexcept;
+
 protected:
+  /**
+   * @brief Calls handleDeviceLost when the frame or the QRhi report a lost
+   *        device. Returns deviceLost().
+   */
+  bool checkDeviceLost(const OffscreenFrame& frame, QRhi& rhi, const char* output) noexcept;
+  bool checkDeviceLost(int frameOpResult, QRhi& rhi, const char* output) noexcept;
+
+  void resetDeviceLost() noexcept { m_deviceLost = false; }
+
   explicit OutputNode();
 
   /**
@@ -174,5 +197,7 @@ protected:
   // its destructor needs the full type, hence the out-of-line ~OutputNode
   // implementation in OutputNode.cpp.
   std::unique_ptr<GpuResourceRegistry> m_registry;
+
+  bool m_deviceLost{};
 };
 }
