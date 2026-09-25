@@ -1,4 +1,5 @@
 #pragma once
+#include <score_plugin_nodal_export.h>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Process.hpp>
@@ -10,7 +11,7 @@
 namespace Nodal
 {
 
-class Model final : public Process::ProcessModel
+class SCORE_PLUGIN_NODAL_EXPORT Model final : public Process::ProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Nodal::Model)
