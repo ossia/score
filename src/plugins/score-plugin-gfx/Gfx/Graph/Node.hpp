@@ -174,6 +174,17 @@ public:
     return it != renderTargetSpecs.end() && it->second.size.has_value();
   }
 
+  /**
+   * @brief Whether the user set a size or a non-default format on a texture inlet.
+   */
+  bool hasExplicitRenderTargetSpecs(int32_t port) const noexcept
+  {
+    auto it = renderTargetSpecs.find(port);
+    return it != renderTargetSpecs.end()
+           && (it->second.size.has_value()
+               || it->second.format != ossia::texture_format::RGBA8);
+  }
+
   QSize resolveRenderTargetSize(int32_t port, RenderList& renderer) const noexcept;
   RenderTargetSpecs
   resolveRenderTargetSpecs(int32_t port, RenderList& renderer) const noexcept;

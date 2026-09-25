@@ -16,10 +16,9 @@ namespace Threedim
 // plus a single human-readable summary string.
 //
 // Wiring: the avnd bridge (texture_inputs_storage) resolves the inlet every
-// frame. Unwired, the handle is null and the size 0x0. When the upstream
-// publishes its own texture (textureForOutput), that texture is reported;
-// otherwise the upstream draws into the inlet's render target and that one
-// is reported.
+// frame. Unwired, the handle is null and the size 0x0. With one cable and no
+// size or format set on the inlet, a texture the upstream publishes
+// (textureForOutput) is reported; otherwise the inlet's render target is.
 class TextureInfo
 {
 public:

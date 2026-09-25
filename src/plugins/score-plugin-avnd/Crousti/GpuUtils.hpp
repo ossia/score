@@ -1447,10 +1447,12 @@ struct texture_inputs_storage<T>
     refreshGpuInputs(self, renderer);
   }
 
-  static std::pair<bool, QRhiTexture*>
-  upstreamTexture(score::gfx::RenderList& renderer, const score::gfx::Port& port)
+  static std::pair<bool, QRhiTexture*> upstreamTexture(
+      score::gfx::RenderList& renderer, const score::gfx::Node& node, int32_t index,
+      const score::gfx::Port& port)
   {
-    bool wired = false;
+    int wired = 0;
+    QRhiTexture* direct = nullptr;
     for(auto* edge : port.edges)
     {
       if(!edge || !edge->source || !edge->source->node)
@@ -1459,11 +1461,12 @@ struct texture_inputs_storage<T>
       auto it = rendered.find(&renderer);
       if(it == rendered.end() || !it->second)
         continue;
-      wired = true;
-      if(auto* tex = it->second->textureForOutput(*edge->source))
-        return {true, tex};
+      if(wired++ == 0)
+        direct = it->second->textureForOutput(*edge->source);
     }
-    return {wired, nullptr};
+    if(wired != 1 || node.hasExplicitRenderTargetSpecs(index))
+      direct = nullptr;
+    return {wired > 0, direct};
   }
 
   static void describeTexture(halp::gpu_texture& dst, QRhiTexture& tex)
@@ -1509,7 +1512,7 @@ struct texture_inputs_storage<T>
         constexpr bool wantsSamplableDepth = halp::samplable_depth_of<F>();
         auto* port = self.node().input[N];
         auto& tex = t.texture;
-        auto [wired, direct] = upstreamTexture(renderer, *port);
+        auto [wired, direct] = upstreamTexture(renderer, self.node(), N, *port);
 
         const auto rt_it = m_rts.find(port);
         QRhiTexture* src = nullptr;
@@ -1663,7 +1666,7 @@ struct texture_inputs_storage<T>
           QRhiTexture* tex = rt_it->second.texture;
           if constexpr(reads_upstream_directly<F>())
           {
-            auto [wired, direct] = upstreamTexture(renderer, p);
+            auto [wired, direct] = upstreamTexture(renderer, self.node(), N, p);
             if(direct && direct->sampleCount() <= 1
                && (direct->flags() & QRhiTexture::UsedAsTransferSource)
                && !(direct->flags()
