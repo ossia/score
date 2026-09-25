@@ -958,7 +958,7 @@ Edge::Edge(Port* source, Port* sink, Process::CableType t)
     if(!node)
       return std::tuple<bool, int32_t, int>{false, invalid_node_index, 0};
     const auto* isf = dynamic_cast<const ISFNode*>(node);
-    const bool transparent = isf && isf->descriptor().transparency.enabled();
+    const bool transparent = isf && isf::draws_transparent(isf->descriptor());
     const auto it = std::find(node->output.begin(), node->output.end(), e->source);
     return std::tuple<bool, int32_t, int>{
         transparent, node->nodeId, int(std::distance(node->output.begin(), it))};

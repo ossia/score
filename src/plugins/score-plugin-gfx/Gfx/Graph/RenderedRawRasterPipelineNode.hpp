@@ -368,32 +368,37 @@ private:
 
   ossia::transform3d m_modelTransform;
 
-  // TRANSPARENCY TARGET internal, per output edge: the draw goes into `color`
-  // (and `depthAccum` for DEPTH_OUTPUT) with the consumer's depth attached
-  // read-only, then `resumeTarget` reopens the consumer's pass to composite it
-  // and resolve the depth.
-  struct TransparencyTarget
+  // LAYER, per output edge: the draw goes into `targets` with the consumer's
+  // depth attached read-only, then `resumeTarget` reopens the consumer's pass
+  // for the resolve. `readDepthTarget` is the consumer's colour alone, for a
+  // resolve sampling the consumer's depth.
+  struct LayerTargets
   {
-    QRhiTexture* color{};
-    QRhiTexture* depthAccum{};
+    std::vector<QRhiTexture*> targets;
     QRhiTextureRenderTarget* renderTarget{};
     QRhiRenderPassDescriptor* renderPass{};
     QRhiTextureRenderTarget* resumeTarget{};
     QRhiRenderPassDescriptor* resumePass{};
+    QRhiTextureRenderTarget* readDepthTarget{};
+    QRhiRenderPassDescriptor* readDepthPass{};
+    QRhiTexture* depthInput{};
+    QRhiTexture* depthPlaceholder{};
     QRhiSampler* sampler{};
-    Pipeline composite;
-    Pipeline depthResolve;
+    QColor clear;
+    Pipeline clearTargets;
+    Pipeline resolve;
+    Pipeline resolveDepth;
     void release();
   };
-  ossia::small_flat_map<Edge*, TransparencyTarget, 2> m_transparency;
-  bool m_warnedTransparencyFallback{false};
+  ossia::small_flat_map<Edge*, LayerTargets, 2> m_layers;
+  bool m_warnedLayerFallback{false};
 
-  TextureRenderTarget initTransparencyTarget(
-      RenderList& renderer, const TextureRenderTarget& inlet, Edge& edge);
-  void initTransparencyResolve(RenderList& renderer, TransparencyTarget& t);
-  void releaseTransparencyTarget(Edge* edge);
-  void releaseTransparencyTargets();
-  void applyTransparencyState(QRhiGraphicsPipeline& ps, bool depthAvailable, bool internal)
-      const;
+  TextureRenderTarget initLayerTargets(
+      RenderList& renderer, const TextureRenderTarget& inlet, Edge& edge,
+      QRhiResourceUpdateBatch& res);
+  void initLayerResolve(RenderList& renderer, LayerTargets& t, QRhiBuffer* processUBO);
+  void releaseLayerTargets(Edge* edge);
+  void releaseLayerTargets();
+  void applyLayerState(QRhiGraphicsPipeline& ps, bool depthAvailable, bool internal) const;
 };
 }

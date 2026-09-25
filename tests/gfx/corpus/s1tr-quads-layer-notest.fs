@@ -1,5 +1,5 @@
 /*{
-  "DESCRIPTION": "S1 TRANSPARENCY fixture: two full-screen quads drawn back to front, premultiplied: red alpha 0.5 at window depth 0.3, then green alpha 0.6 at 0.6. TRANSPARENCY internal, DEPTH_OUTPUT expected.",
+  "DESCRIPTION": "S1 LAYER fixture: two full-screen quads drawn back to front, premultiplied: red alpha 0.5 at window depth 0.3, then green alpha 0.6 at 0.6. LAYER, DEPTH_TEST false.",
   "ISFVSN": "2.0",
   "MODE": "RAW_RASTER_PIPELINE",
   "VERTEX_INPUTS": [],
@@ -7,7 +7,7 @@
   "FRAGMENT_INPUTS": [ { "TYPE": "vec4", "NAME": "v_color" } ],
   "FRAGMENT_OUTPUTS": [ { "TYPE": "vec4", "NAME": "isf_FragColor" } ],
   "INPUTS": [],
-  "TRANSPARENCY": { "TARGET": "internal", "DEPTH_OUTPUT": "expected" },
+  "LAYER": { "DEPTH_TEST": false },
   "PIPELINE_STATE": { "CULL_MODE": "none", "VERTEX_COUNT": 12, "TOPOLOGY": "triangles" }
 }*/
 void main()

@@ -14,7 +14,8 @@ void main()
       vec2(-1.0, -1.0), vec2(1.0, -1.0), vec2(1.0, 1.0),
       vec2(-1.0, -1.0), vec2(1.0, 1.0), vec2(-1.0, 1.0));
   int quad = gl_VertexIndex / 6;
-  v_color = quad == 0 ? vec4(0.5, 0.0, 0.0, 0.5) : vec4(0.0, 0.6, 0.0, 0.6);
-  gl_Position = vec4(corners[gl_VertexIndex % 6], s1trWindowDepth(quad == 0 ? 0.3 : 0.6), 1.0);
+  bool red = quad == 0;
+  v_color = red ? vec4(0.5, 0.0, 0.0, 0.5) : vec4(0.0, 0.6, 0.0, 0.6);
+  gl_Position = vec4(corners[gl_VertexIndex % 6], s1trWindowDepth(red ? 0.3 : 0.6), 1.0);
   isf_vertShaderFinish();
 }

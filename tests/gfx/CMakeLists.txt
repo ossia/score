@@ -1961,8 +1961,9 @@ if(TARGET score_plugin_avnd)
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
 
-# TRANSPARENCY header block of raw raster shaders: parser, direct vs internal,
-# depth test against the consumer, DEPTH_OUTPUT threshold / expected (agent S1).
+# LAYER / RESOLVE / QUEUE of raw raster shaders: parser, private layer targets,
+# shader-authored resolve with depth write or depth input, weighted blended OIT
+# built in shader code, transparent-after-opaque ordering (agents S1, LR).
 score_add_gfx_test(transparency_s1 GfxTransparencyS1.cpp)
 
 # Booting the GUI application and rendering on it, repeated, keeps the number

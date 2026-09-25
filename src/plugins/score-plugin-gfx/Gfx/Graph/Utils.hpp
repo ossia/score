@@ -219,7 +219,7 @@ struct Port
 struct SCORE_PLUGIN_GFX_EXPORT Edge
 {
   //! The sink port keeps its edges ordered by source (node id, output index),
-  //! sources declaring TRANSPARENCY last: several cables into one input are
+  //! sources in the transparent QUEUE last: several cables into one input are
   //! drawn, and composited, in that order.
   Edge(Port* source, Port* sink, Process::CableType t);
 

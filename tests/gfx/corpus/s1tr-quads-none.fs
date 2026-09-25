@@ -1,5 +1,5 @@
 /*{
-  "DESCRIPTION": "S1 TRANSPARENCY fixture: two full-screen quads drawn back to front, premultiplied: red alpha 0.5 at window depth 0.3, then green alpha 0.6 at 0.6. No TRANSPARENCY block.",
+  "DESCRIPTION": "S1 LAYER fixture: two full-screen quads drawn back to front, premultiplied: red alpha 0.5 at window depth 0.3, then green alpha 0.6 at 0.6. No LAYER, no QUEUE.",
   "ISFVSN": "2.0",
   "MODE": "RAW_RASTER_PIPELINE",
   "VERTEX_INPUTS": [],

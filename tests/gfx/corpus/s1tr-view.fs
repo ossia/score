@@ -1,5 +1,5 @@
 /*{
-  "DESCRIPTION": "S1 TRANSPARENCY fixture: left half the stored premultiplied rgb (opaque), right half the input's depth as grey.",
+  "DESCRIPTION": "S1 LAYER fixture: left half the stored premultiplied rgb (opaque), right half the input's depth as grey.",
   "ISFVSN": "2.0",
   "INPUTS": [ { "NAME": "inputImage", "TYPE": "image", "DEPTH": true } ]
 }*/

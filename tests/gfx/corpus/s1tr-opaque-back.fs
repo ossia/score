@@ -1,5 +1,5 @@
 /*{
-  "DESCRIPTION": "S1 TRANSPARENCY fixture: an opaque blue full-screen triangle, depth test and write on.",
+  "DESCRIPTION": "S1 LAYER fixture: an opaque blue full-screen triangle, depth test and write on.",
   "ISFVSN": "2.0",
   "MODE": "RAW_RASTER_PIPELINE",
   "VERTEX_INPUTS": [],
