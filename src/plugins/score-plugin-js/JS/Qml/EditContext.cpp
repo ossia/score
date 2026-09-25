@@ -21,6 +21,26 @@
 namespace JS
 {
 
+QJSValue EditJsContext::controls() const noexcept
+{
+  return m_namespaces.property(QStringLiteral("Controls"));
+}
+
+QJSValue EditJsContext::triggers() const noexcept
+{
+  return m_namespaces.property(QStringLiteral("Triggers"));
+}
+
+QJSValue EditJsContext::conditions() const noexcept
+{
+  return m_namespaces.property(QStringLiteral("Conditions"));
+}
+
+void EditJsContext::setNamespaces(QJSValue ns)
+{
+  m_namespaces = std::move(ns);
+}
+
 const score::DocumentContext* EditJsContext::ctx()
 {
   return score::GUIAppContext().currentDocument();

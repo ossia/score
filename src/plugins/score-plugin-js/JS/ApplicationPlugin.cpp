@@ -2,6 +2,7 @@
 
 #include <JS/DocumentPlugin.hpp>
 #include <JS/Qml/DeviceContext.hpp>
+#include <JS/Qml/ScriptableNames.hpp>
 #include <JS/Qml/EditContext.hpp>
 #include <JS/Qml/Utils.hpp>
 #include <JS/Qml/ViewContext.hpp>
@@ -74,13 +75,19 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
 #endif
 
   // For the console
-  m_consoleEngine.globalObject().setProperty("Score", m_consoleEngine.newQObject(new EditJsContext));
+  auto edit = new EditJsContext;
+  m_consoleEngine.globalObject().setProperty("Score", m_consoleEngine.newQObject(edit));
   m_consoleEngine.globalObject().setProperty("Util", m_consoleEngine.newQObject(new JsUtils));
   m_consoleEngine.globalObject().setProperty(
       "System", m_consoleEngine.newQObject(new JsSystem));
   m_consoleEngine.globalObject().setProperty(
       "Library", m_consoleEngine.newQObject(new JsLibrary));
-  m_consoleEngine.globalObject().setProperty("Device", m_consoleEngine.newQObject(new DeviceContext{m_consoleEngine}));
+  {
+    auto device = m_consoleEngine.newQObject(new DeviceContext{m_consoleEngine});
+    m_consoleEngine.globalObject().setProperty("Device", device);
+    auto names = m_consoleEngine.newQObject(new ScriptableNames{nullptr});
+    edit->setNamespaces(ScriptableNames::makeNamespaces(m_consoleEngine, device, names));
+  }
   m_consoleEngine.globalObject().setProperty("View", m_consoleEngine.newQObject(new JsViewContext));
   connect(&m_consoleEngine, &QQmlEngine::exit, this, [&](int retCode) {
     for(auto& doc : score::GUIAppContext().docManager.documents())

@@ -60,7 +60,7 @@ TEST_CASE("A Javascript audio outlet handed a non-array survives",
     st.sampleRate = 48000;
     st.bufferSize = 64;
 
-    auto node = std::make_shared<JS::js_node>(st);
+    auto node = std::make_shared<JS::js_node>(st, nullptr);
     node->root_outputs().push_back(new ossia::audio_outlet);
     node->setScript({}, QStringLiteral(R"_(import Score
 Script {

@@ -1,6 +1,7 @@
 #include <State/Domain.hpp>
 
 #include <Process/Commands/EditPort.hpp>
+#include <Process/Commands/LoadPresetCommandFactory.hpp>
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/Port.hpp>
 
@@ -18,6 +19,20 @@
 
 namespace JS
 {
+namespace
+{
+// A control that changes the ports of its process keeps the removed ports for undo
+void setControlValue(
+    Scenario::Command::Macro& m, Process::ControlInlet& port, ossia::value v,
+    const score::DocumentContext& ctx)
+{
+  if(auto cmd = Process::makeChangePortsCommand(port, v, ctx))
+    m.submit(cmd);
+  else
+    m.setProperty<Process::ControlInlet::p_value>(port, std::move(v));
+}
+}
+
 QObject* EditJsContext::automate(QObject* interval, QObject* port)
 {
   auto doc = ctx();
@@ -277,7 +292,7 @@ void EditJsContext::setValue(QObject* obj, double value)
   if(!port)
     return;
   auto [m, _] = macro(*doc);
-  m->setProperty<Process::ControlInlet::p_value>(*port, float(value));
+  setControlValue(*m, *port, float(value), *doc);
 }
 
 void EditJsContext::setValue(QObject* obj, QVector2D value)
@@ -289,8 +304,8 @@ void EditJsContext::setValue(QObject* obj, QVector2D value)
   if(!port)
     return;
   auto [m, _] = macro(*doc);
-  m->setProperty<Process::ControlInlet::p_value>(
-      *port, ossia::vec2f{value.x(), value.y()});
+  setControlValue(*m, 
+      *port, ossia::vec2f{value.x(), value.y()}, *doc);
 }
 
 void EditJsContext::setValue(QObject* obj, QVector3D value)
@@ -302,8 +317,8 @@ void EditJsContext::setValue(QObject* obj, QVector3D value)
   if(!port)
     return;
   auto [m, _] = macro(*doc);
-  m->setProperty<Process::ControlInlet::p_value>(
-      *port, ossia::vec3f{value.x(), value.y(), value.z()});
+  setControlValue(*m, 
+      *port, ossia::vec3f{value.x(), value.y(), value.z()}, *doc);
 }
 
 void EditJsContext::setValue(QObject* obj, QVector4D value)
@@ -315,8 +330,8 @@ void EditJsContext::setValue(QObject* obj, QVector4D value)
   if(!port)
     return;
   auto [m, _] = macro(*doc);
-  m->setProperty<Process::ControlInlet::p_value>(
-      *port, ossia::vec4f{value.x(), value.y(), value.z(), value.w()});
+  setControlValue(*m, 
+      *port, ossia::vec4f{value.x(), value.y(), value.z(), value.w()}, *doc);
 }
 
 void EditJsContext::setValue(QObject* obj, QString value)
@@ -328,7 +343,7 @@ void EditJsContext::setValue(QObject* obj, QString value)
   if(!port)
     return;
   auto [m, _] = macro(*doc);
-  m->setProperty<Process::ControlInlet::p_value>(*port, value.toStdString());
+  setControlValue(*m, *port, value.toStdString(), *doc);
 }
 
 void EditJsContext::setValue(QObject* obj, bool value)
@@ -340,7 +355,7 @@ void EditJsContext::setValue(QObject* obj, bool value)
   if(!port)
     return;
   auto [m, _] = macro(*doc);
-  m->setProperty<Process::ControlInlet::p_value>(*port, value);
+  setControlValue(*m, *port, value, *doc);
 }
 
 void EditJsContext::setValue(QObject* obj, int value)
@@ -352,7 +367,7 @@ void EditJsContext::setValue(QObject* obj, int value)
   if(!port)
     return;
   auto [m, _] = macro(*doc);
-  m->setProperty<Process::ControlInlet::p_value>(*port, value);
+  setControlValue(*m, *port, value, *doc);
 }
 
 void EditJsContext::setValue(QObject* obj, QList<QString> value)
@@ -370,7 +385,7 @@ void EditJsContext::setValue(QObject* obj, QList<QString> value)
     vals.push_back(v.toStdString());
   }
   auto [m, _] = macro(*doc);
-  m->setProperty<Process::ControlInlet::p_value>(*port, std::move(vals));
+  setControlValue(*m, *port, std::move(vals), *doc);
 }
 
 // Score.setValue(Score.inlet(Score.find("Javascript"), 0), [ 0, 0.1, 2.0 ])
@@ -385,7 +400,7 @@ void EditJsContext::setValue(QObject* obj, QList<qreal> value)
 
   std::vector<ossia::value> vals(value.begin(), value.end());
   auto [m, _] = macro(*doc);
-  m->setProperty<Process::ControlInlet::p_value>(*port, std::move(vals));
+  setControlValue(*m, *port, std::move(vals), *doc);
 }
 
 void EditJsContext::setValue(QObject* obj, QList<QVariant> value)
@@ -398,7 +413,7 @@ void EditJsContext::setValue(QObject* obj, QList<QVariant> value)
     return;
 
   auto [m, _] = macro(*doc);
-  m->setProperty<Process::ControlInlet::p_value>(*port, ossia::qt::qt_to_ossia{}(value));
+  setControlValue(*m, *port, ossia::qt::qt_to_ossia{}(value), *doc);
 }
 
 double EditJsContext::min(QObject* obj)

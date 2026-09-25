@@ -30,6 +30,7 @@ set(HDRS
 
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/AddressItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/DeviceContext.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/ScriptableNames.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/DeviceEnumerator.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/QmlObjects.hpp"
@@ -66,6 +67,7 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/AddressItem.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/DeviceContext.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/ScriptableNames.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/DeviceEnumerator.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.curve.cpp"

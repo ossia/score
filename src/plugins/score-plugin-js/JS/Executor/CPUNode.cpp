@@ -1,5 +1,7 @@
 #include "CPUNode.hpp"
 
+#include <JS/Qml/ScriptableNames.hpp>
+
 #include <JS/ConsolePanel.hpp>
 #include <JS/ThreadLocalQmlEngine.hpp>
 #include <JS/Executor/ExecutionHelpers.hpp>
@@ -24,8 +26,11 @@
 namespace JS
 {
 
-js_node::js_node(ossia::execution_state& st)
+js_node::js_node(
+    ossia::execution_state& st,
+    std::shared_ptr<const LocalTree::ScriptableSnapshot> names)
     : m_st{st}
+    , m_names{std::move(names)}
 {
   OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   m_not_threadable = true;
@@ -124,6 +129,12 @@ void js_node::setupComponent()
   }
 }
 
+static const QString& currentNamespacesKey()
+{
+  static const QString key = QString::fromLatin1(ScriptableNames::current);
+  return key;
+}
+
 void js_node::setScript(const QString& rootPath, const QString& val)
 {
   OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
@@ -148,7 +159,14 @@ void js_node::setScript(const QString& rootPath, const QString& val)
 
     m_context->setContextProperty("Device", m_execFuncs);
     setupExecFuncs(this, m_uiContext, m_execFuncs);
+
+    auto device = m_engine->newQObject(m_execFuncs);
+    auto names = m_engine->newQObject(new ScriptableNames{&m_names, m_context});
+    m_namespaces = ScriptableNames::makeNamespaces(*m_engine, device, names);
+    m_context->setContextProperty("Score", QVariant::fromValue(m_namespaces));
   }
+  // The engine is shared by the processes of this thread
+  m_engine->globalObject().setProperty(currentNamespacesKey(), m_namespaces);
 
   m_jsInlets.clear();
   m_ctrlInlets.clear();
@@ -177,6 +195,10 @@ void js_node::run(
   auto& tick = m_object->tick();
   if(!tick.isCallable())
     return;
+  m_engine->globalObject().setProperty(currentNamespacesKey(), m_namespaces);
+
+  if(std::exchange(m_namesChanged, false) && m_execFuncs)
+    m_execFuncs->setDevices(m_st.exec_devices());
   // if (t.date == ossia::Zero)
   //   return;
 

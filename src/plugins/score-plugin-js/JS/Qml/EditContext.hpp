@@ -55,6 +55,16 @@ public:
   const score::DocumentContext* ctx();
   W_INVOKABLE(ctx);
 
+  //! The published objects of the current document, by name
+  QJSValue controls() const noexcept;
+  W_PROPERTY(QJSValue, Controls READ controls)
+  QJSValue triggers() const noexcept;
+  W_PROPERTY(QJSValue, Triggers READ triggers)
+  QJSValue conditions() const noexcept;
+  W_PROPERTY(QJSValue, Conditions READ conditions)
+  //! Set from ScriptableNames::makeNamespaces, on this object's engine
+  void setNamespaces(QJSValue ns);
+
   ///////////////
   /// Devices ///
   ///////////////
@@ -182,6 +192,14 @@ public:
   W_SLOT(setExpression)
   QString expression(QObject* obj);
   W_SLOT(expression)
+
+  //! Publishes `obj` under score:/controls, score:/triggers or score:/conditions
+  void setScriptable(QObject* obj, bool scriptable);
+  W_SLOT(setScriptable)
+  QString scriptableAddress(QObject* obj);
+  W_SLOT(scriptableAddress)
+  void trigger(QObject* obj);
+  W_SLOT(trigger)
 
   void setIntervalDuration(QObject* object, TimeVal flicks);
   W_SLOT(setIntervalDuration)
@@ -393,6 +411,16 @@ public:
 
   QObject* findByLabel(QString p);
   W_SLOT(findByLabel)
+
+  //! The states, ports, events and syncs holding an address anchored to obj
+  QObjectList references(QObject* obj);
+  W_SLOT(references)
+  //! The objects the addresses of a state, port, event or sync are anchored to
+  QObjectList targets(QObject* obj);
+  W_SLOT(targets)
+  //! Points the addresses `from` held by the object at `to`
+  void rebind(QObject* obj, QString from, QString to);
+  W_SLOT(rebind)
   QString path(QObject* obj);
   W_SLOT(path)
   QObject* findByPath(QString path);
@@ -504,6 +532,7 @@ public:
   W_SLOT(serializeAsJson)
 private:
   void submit(Macro& m, score::Command* c);
+  QJSValue m_namespaces;
 };
 }
 
