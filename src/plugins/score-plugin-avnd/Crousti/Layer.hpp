@@ -245,9 +245,7 @@ struct GetGUIValue<T>
   }
 };
 
-//! Where an enumerator sits among its enum's entries, which is the order an
-//! enumeration port lists them in: its index there, whatever its value (an
-//! enum's values need not be 0, 1, 2...). Other values are used as they are.
+//! Index of an enumerator in its enum (the port's order), whatever its value
 template <typename V>
 static constexpr int entryIndex(V v) noexcept
 {
@@ -301,12 +299,10 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
 
   typename Info::ui* rootUi{};
 
-  //! How many tables with column titles the walk is inside: the titles name
-  //! the controls, which then do not show their own.
+  //! Depth in titled tables: controls there hide their labels
   int tableDepth{};
 
-  //! Selections shared by the layouts naming them (halp_meta(selection, ...)),
-  //! and the one each selecting table drives
+  //! Named selections, and the one each selecting table drives
   std::map<std::string, std::shared_ptr<score::LayoutSelection>, std::less<>> selections;
   std::map<score::GraphicsTableLayout*, std::shared_ptr<score::LayoutSelection>>
       tableSelections;
@@ -317,8 +313,7 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     if(it == selections.end())
     {
       auto sel = std::make_shared<score::LayoutSelection>();
-      // The ui is rebuilt when the inlets change: keep what was selected on
-      // the layer's root item, which outlives the rebuilds
+      // Stored on the root item, which survives UI rebuilds
       const QByteArray key = "layoutSelection:" + QByteArray{name.data(), qsizetype(name.size())};
       sel->current = context.property(key.constData()).toInt();
       sel->listeners.push_back(
@@ -390,9 +385,7 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     }
   }
 
-  //! halp::enabled_when / visible_when: follow the value of the control the
-  //! layout depends on. Enums and combo boxes match on the entry selected
-  //! (see entryIndex); other controls on their numeric value.
+  //! halp::enabled_when / visible_when. Enums match on entryIndex.
   template <typename Item>
   void setupCondition(score::GraphicsLayout& lay, auto... recursive_members)
   {
@@ -434,7 +427,7 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
         }
       };
       apply(port->value());
-      // Scoped to the layout item, which is rebuilt when the inlets change
+      // Scoped to the item, rebuilt on inlet change
       QObject::connect(port, &Process::ControlInlet::valueChanged, &lay, apply);
       break;
     }
@@ -520,9 +513,7 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     createControl(item, recursive_members...);
   }
 
-  //! A file shown in a strip cell: files dropped on the cell load there, as
-  //! if chosen with the port's own file chooser
-  //! The strip cell being built, when in the layout of a summary
+  //! The strip cell being built, if any
   score::GraphicsStripCell* enclosingCell() const
   {
     score::GraphicsStripCell* cell{};
@@ -531,6 +522,7 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     return cell;
   }
 
+  //! Files dropped on the enclosing strip cell set the port
   void acceptFileDrops(Process::FileChooserBase& port)
   {
     auto* cell = enclosingCell();
@@ -586,12 +578,11 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     if(auto str = v.target<std::string>())
     {
       QString text = QString::fromStdString(*str);
-      // A file shows as its name, without its folders or extension
+      // Files: base name only
       if(text.contains(QLatin1Char('/')) || text.contains(QLatin1Char('\\')))
         text = QFileInfo{text}.completeBaseName();
       else if(text.isEmpty())
         text = QStringLiteral("\u2014");
-      // Short enough for a cell of a strip
       return metrics.elidedText(text, Qt::ElideRight, max_width);
     }
     return QString::number(ossia::convert<double>(v), 'g', 4);
@@ -625,7 +616,7 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
         else if constexpr(
             requires { Item::style; } && Item::style == halp::display_style::title)
         {
-          // No item: the cell elides the text to its own width
+          // No item: shown as the cell's title
           if(auto* cell = enclosingCell())
           {
             auto show = [cell, port, metrics = QFontMetricsF{score::Skin::instance().Medium8Pt}](
@@ -642,7 +633,6 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
         {
           auto* text
               = new score::SimpleTextItem{score::Skin::instance().Base4.main, nullptr};
-          // Measured once, not on each change of the value
           auto show = [text, port, metrics = QFontMetricsF{score::Skin::instance().Medium8Pt}](
                           const ossia::value& v) {
             text->setText(displayText(*port, v, metrics));
@@ -769,7 +759,7 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
         auto it = tableSelections.find(table);
         if(it != tableSelections.end())
         {
-          // The row was just added: its index is the number of rows before it
+          // Index: number of rows before it
           int index = -1;
           for(auto* child : table->childItems())
             if(dynamic_cast<score::GraphicsSelectableRow*>(child))
@@ -810,9 +800,8 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
       const int index
           = avnd::index_in_struct(temp_inputs, recursive_members..., Item::model);
 
-      // Pages may say which values of the model show them, so that several
-      // values share a page: static constexpr auto when() { return std::array{...}; }
-      // Without it, value i shows page i.
+      // Optional: static constexpr auto when() { return std::array{values...}; }
+      // Default: value i shows page i.
       std::vector<int> page_of;
       {
         int page = 0;
@@ -888,7 +877,7 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     {
       auto& strip = *static_cast<score::GraphicsStripDetailLayout*>(new_l);
       createdLayouts.push_back(&strip.strip());
-      // Each page: a cell in the strip with its summary, then the page itself
+      // Each page: a strip cell with its summary, then the page
       auto page = [&](auto& p) {
         auto* cell = new score::GraphicsStripCell{nullptr};
         using page_type = std::remove_cvref_t<decltype(p)>;
@@ -899,8 +888,7 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
         }
         strip.addCell(cell);
         createdLayouts.push_back(cell);
-        // The page's summary is one of its members, so that what the cell
-        // shows (buttons included) lives as long as the ui does
+        // A member, so that it lives as long as the UI
         if constexpr(requires { p.summary; })
         {
           layout = cell;
@@ -911,7 +899,7 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
       };
       forEachMember(item, page);
 
-      // Another layout (e.g. a table's rows) may choose the page instead
+      // e.g. table rows choose the page
       if constexpr(requires { Item::selection(); })
       {
         auto sel = selectionNamed(Item::selection());
@@ -1176,8 +1164,7 @@ private:
       };
       b.rootUi = &rootItem->ui;
       b.layout = parent;
-      // Spacing inside an avendish ui is declared by the plugin (spacing
-      // items, padding), so nested layouts fit their content exactly.
+      // avnd UIs declare their own spacing
       b.marginOnNestedLayouts = false;
 
       b.subLayout(rootItem->ui, rootItem);

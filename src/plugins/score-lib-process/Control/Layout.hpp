@@ -25,10 +25,8 @@ struct SCORE_LIB_PROCESS_EXPORT LayoutBuilderBase
   QGraphicsItem* layout{}; // The current container
   std::vector<score::GraphicsLayout*> createdLayouts{};
 
-  //! Whether finalizeLayout() pads every layout it sizes, or only the
-  //! outermost one. Per-level margins only ever go to the right and bottom,
-  //! so they pile up under deeply nested sections; builders that space their
-  //! content themselves turn them off.
+  //! Pad every sized layout, or only the outermost one.
+  //! Nested margins accumulate at the right and bottom.
   bool marginOnNestedLayouts{true};
 
   Process::ControlLayout

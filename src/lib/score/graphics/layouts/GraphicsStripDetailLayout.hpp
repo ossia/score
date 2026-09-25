@@ -9,7 +9,7 @@ class QMimeData;
 
 namespace score
 {
-//! One cell of a strip: a small summary of a page, which selects it on click.
+//! Summary of a page, selects it on click
 class SCORE_LIB_BASE_EXPORT GraphicsStripCell : public GraphicsVBoxLayout
 {
 public:
@@ -17,14 +17,11 @@ public:
   ~GraphicsStripCell();
 
   void setTitle(const QString& title);
-  //! Shown instead of the title while not empty, e.g. the name of the sample
-  //! of a drum. The cell keeps the size of its title: longer text is elided.
+  //! Replaces the title while not empty. Elided, does not resize the cell.
   void setShownTitle(const QString& title);
   void setSelected(bool selected);
   std::function<void()> onClicked;
 
-  //! Lets files be dropped on the cell, e.g. a sample for the drum it
-  //! stands for. accepts() says whether a drag's data would do.
   void setDropHandler(
       std::function<bool(const QMimeData&)> accepts,
       std::function<void(const QMimeData&)> drop);
@@ -48,26 +45,22 @@ private:
   bool m_dropHighlight{};
 };
 
-//! Several pages of controls, only one shown at a time: a strip of summary
-//! cells along the top selects the page below it, as the channel buttons of a
-//! drum machine select the channel being edited. Every page keeps its place,
-//! so the item does not change size when switching.
+//! Pages shown one at a time, selected from a strip of summary cells.
+//! Sized for the largest page.
 class SCORE_LIB_BASE_EXPORT GraphicsStripDetailLayout : public GraphicsLayout
 {
 public:
   explicit GraphicsStripDetailLayout(QGraphicsItem* parent);
   ~GraphicsStripDetailLayout();
 
-  //! The layout the cells go in
   GraphicsLayout& strip() const noexcept { return *m_strip; }
   void addCell(GraphicsStripCell* cell);
 
   int currentIndex() const noexcept { return m_currentIndex; }
   void setCurrentIndex(int index);
-  //! Called when a cell of the strip is clicked
+  //! On cell click
   std::function<void(int)> onCurrentIndexChanged;
-  //! Without its strip, the page shown is chosen from elsewhere (e.g. the
-  //! rows of a table)
+  //! Hide when the page is selected elsewhere, e.g. by table rows
   void setStripVisible(bool visible);
 
   void layout() override;

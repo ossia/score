@@ -16,13 +16,9 @@
 #include <algorithm>
 #include <vector>
 
-// Items the avendish layout builder creates for halp::display and
-// halp::custom_multi_control: views of controls that are not the controls'
-// own widgets.
 namespace oscr
 {
-//! A read-only bar showing where a control's value sits in its range
-//! (halp::display with display_style::bar).
+//! halp::display_style::bar
 class ValueBarItem final
     : public QObject
     , public QGraphicsItem
@@ -65,11 +61,7 @@ inline double normalizedValue(const Process::ControlInlet& port, const ossia::va
   return h == l ? 0. : std::clamp((ossia::convert<double>(v) - l) / (h - l), 0., 1.);
 }
 
-//! A custom widget bound to several controls (halp::custom_multi_control),
-//! e.g. an envelope drawn from its attack, decay, sustain and release. The
-//! widget sees each value normalized over its control's range; a gesture may
-//! change any of them and is recorded as one undo step. It adds no port of
-//! its own: the controls keep theirs.
+//! halp::custom_multi_control. Values are normalized; a gesture is one undo step.
 template <typename Item>
 class CustomMultiControl
     : public QObject
@@ -131,8 +123,7 @@ public:
 
   ~CustomMultiControl()
   {
-    // Destroyed mid-gesture (the ui is rebuilt when the inlets change): undo
-    // what the gesture did, as it will never be committed
+    // Destroyed mid-gesture (UI rebuilt on inlet change): roll back
     if(m_active)
       rollback();
   }

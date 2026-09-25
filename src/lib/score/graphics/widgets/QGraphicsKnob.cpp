@@ -101,7 +101,7 @@ void QGraphicsKnob::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 
 QRectF QGraphicsKnob::boundingRect() const
 {
-  // The knob, and room for its value below (35x42 at the default size)
+  // Knob and value text below
   return QRectF{0., 0., m_rect.width(), m_rect.height() + 7.};
 }
 

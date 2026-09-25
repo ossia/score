@@ -64,9 +64,7 @@ void GraphicsGridColumnsLayout::layout()
     }
   }
 
-  // Make them fit. An item was centred in its cell from its own height:
-  // stretch it over exactly the cell's span, or it would hang half the
-  // difference below the cell and pad the layouts that contain the grid.
+  // Make them fit: exactly the cell span, else it overhangs the cell
   for(auto item : items)
   {
     if(auto it = dynamic_cast<score::GraphicsLayout*>(item))
@@ -131,9 +129,7 @@ void GraphicsGridRowsLayout::layout()
     }
   }
 
-  // Make them fit. An item was centred in its cell from its own height:
-  // stretch it over exactly the cell's span, or it would hang half the
-  // difference below the cell and pad the layouts that contain the grid.
+  // Make them fit: exactly the cell span, else it overhangs the cell
   for(auto item : items)
   {
     if(auto it = dynamic_cast<score::GraphicsLayout*>(item))
@@ -171,8 +167,7 @@ void GraphicsTableLayout::setRowsSelectable(bool selectable)
 
 bool GraphicsTableLayout::sceneEventFilter(QGraphicsItem* watched, QEvent* event)
 {
-  // A press on a row's own background: the row lets it through, so it is
-  // seen here, on its way up
+  // Background press, propagated by the row
   if(event->type() == QEvent::GraphicsSceneMousePress)
     if(auto row = dynamic_cast<GraphicsSelectableRow*>(watched))
       row->activate();
@@ -207,7 +202,7 @@ void GraphicsTableLayout::layout()
     row_h.push_back(h);
   }
 
-  // Titles are part of their column's width too
+  // Titles count in column width
   const QFontMetricsF fm{titleFont()};
   const int first_titled = m_rowTitles ? 1 : 0;
   for(int t = 0; t < m_titles.size(); t++)
@@ -237,8 +232,7 @@ void GraphicsTableLayout::layout()
   }
   const double total_w = col_w.empty() ? 0. : x - spacing();
 
-  // Selectable rows get a margin inside them, so that their highlight can be
-  // drawn within their bounds without covering their cells
+  // Inset in selectable rows for the highlight
   const double inset_x = m_rowsSelectable ? 6. : 0.;
   const double inset_y = m_rowsSelectable ? 2. : 0.;
 
@@ -278,7 +272,7 @@ void GraphicsTableLayout::paint(
   painter->setPen(skin.LightGray.main.pen1);
   if(m_rowTitles && !m_title.isEmpty())
   {
-    // The table's own name heads the row titles, like a section title
+    // Table title, above the row titles
     QFont tf = f;
     tf.setCapitalization(QFont::AllUppercase);
     painter->setFont(tf);

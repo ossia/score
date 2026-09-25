@@ -12,8 +12,7 @@ namespace score
 {
 namespace
 {
-// Layouts let clicks through to the canvas, so the cell takes them with an
-// invisible item under its content.
+// Layouts let clicks through: catch them under the content
 class StripCellHitArea final : public QGraphicsItem
 {
 public:
@@ -26,7 +25,6 @@ public:
   }
 
   QRectF boundingRect() const override { return m_cell.rect(); }
-  //! The cell was resized
   void resized() { prepareGeometryChange(); }
   void paint(QPainter*, const QStyleOptionGraphicsItem*, QWidget*) override { }
 
@@ -138,7 +136,7 @@ void GraphicsStripCell::layout()
   updateChildrenRects(items);
 
   double y = m_padding + titleHeight();
-  // Wide enough for the start of a longer shown title, e.g. a file name
+  // Room for the start of a longer shown title
   double max_w = m_title.isEmpty()
                      ? 0.
                      : std::max(

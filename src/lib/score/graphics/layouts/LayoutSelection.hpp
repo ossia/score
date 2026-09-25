@@ -4,16 +4,14 @@
 
 namespace score
 {
-//! Which of several units (e.g. the operators of a synth) layouts show or
-//! highlight. A table whose rows can be clicked sets it; a strip_detail
-//! layout, or anything else listening, follows it. Shared by the layouts
-//! that name the same selection.
+//! Selected index shared by the layouts naming the same selection,
+//! e.g. table rows driving a strip_detail.
 struct LayoutSelection
 {
   int current{0};
   std::vector<std::function<void(int)>> listeners;
 
-  //! Called now with the current index, then on each change
+  //! Called immediately, then on change
   void listen(std::function<void(int)> f)
   {
     f(current);

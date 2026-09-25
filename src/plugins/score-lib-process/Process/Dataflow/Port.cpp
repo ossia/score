@@ -859,8 +859,8 @@ static QGraphicsItem* makeEnumCombo(
   return sl;
 }
 
-//! The widget a presentation asks for instead of the port's own, or null
-//! when the port does not support it. Sets the matching item layout.
+//! Widget override requested by the presentation, or null if unsupported.
+//! Sets the matching item layout.
 static QGraphicsItem* makePresentationWidget(
     Process::ControlInlet& port, const Process::Context& ctx, QObject* context,
     const Process::ControlPresentation& presentation, Process::PortItemLayout& layout)
@@ -907,7 +907,7 @@ static auto makeFullItemImpl(
     score::setValueOnHover(control, presentation.valueOnHover);
     if(!presentation.labelVisible)
     {
-      // The widget moves up into the row its label would have used
+      // Takes the label's row
       const qreal lift = std::max(0., layout.control.y() - layout.label.y());
       layout.control.ry() -= lift;
       layout.labelVisible = false;
@@ -965,15 +965,14 @@ static auto makeFullItemImpl(
                      || presentation.size != score::ControlSize::Normal;
   if(!presentation.labelVisible && !(layout.controlAlignment & Qt::AlignRight))
   {
-    // Moved up into the label's row, the widget must stay clear of the port
+    // In the label's row: stay clear of the port
     const qreal port_right = port.x() + port.boundingRect().right() + 1.;
     if(control.x() < port_right)
       control.setX(port_right);
   }
   if(moved && !(layout.controlAlignment & Qt::AlignRight))
   {
-    // Resized widgets and ones without a label: keep the port level with the
-    // widget it controls
+    // Resized or unlabelled: port level with the widget
     const qreal ph = port.boundingRect().height();
     port.setY(control.y() + (control.boundingRect().height() - ph) / 2.);
   }

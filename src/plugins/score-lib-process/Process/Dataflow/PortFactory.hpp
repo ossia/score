@@ -20,20 +20,18 @@ class PortItem;
 namespace Process
 {
 struct Context;
-//! How a control shows itself in a layout, beyond its widget's defaults.
-//! The default value changes nothing.
+//! Overrides of a control's default presentation in a layout
 struct ControlPresentation
 {
-  //! A widget other than the port's own, where the port supports it
+  //! Widget override, where the port supports it
   enum class Widget
   {
     Default,
     Knob, //!< float sliders
-    Combo //!< enumerations: one dropdown instead of a row of buttons
+    Combo //!< enumerations
   };
 
-  //! Replaces the port name on screen. The port keeps its name, which is what
-  //! automation and addresses refer to.
+  //! Display only: the port name is unchanged
   std::optional<QString> label;
   bool labelVisible{true};
   score::ControlSize size{score::ControlSize::Normal};

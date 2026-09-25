@@ -31,8 +31,7 @@ private:
   ossia::value m_old, m_new;
 };
 
-//! Several controls edited by one gesture, e.g. the points of an envelope
-//! widget bound to its attack, decay, sustain and release: one undo step.
+//! Several controls changed by one gesture: one undo step
 class SCORE_LIB_PROCESS_EXPORT SetControlValues final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(Process::CommandFactoryName(), SetControlValues, "Set controls")

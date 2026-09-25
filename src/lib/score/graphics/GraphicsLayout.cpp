@@ -57,8 +57,7 @@ void GraphicsLayout::updateChildrenRects(const QList<QGraphicsItem*>& items)
 {
   for(int i = 0; i < items.size(); i++)
   {
-    // An empty one has nothing to fit: it is a spacing item, whose size was
-    // set on purpose and must not collapse to 0x0.
+    // Empty: a spacer, keep its size
     if(auto rect = dynamic_cast<score::EmptyRectItem*>(items[i]);
        rect && !rect->childItems().isEmpty())
     {

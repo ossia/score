@@ -37,13 +37,11 @@ struct DefaultGraphicsKnobImpl
     constexpr const double start = (270. - space) * 16.;
     constexpr const double totalSpan = (360. - 2. * space) * 16.;
 
-    // Knobs can be resized (see WidgetPresentation); other users of this
-    // painter, like the time chooser, draw at the default size.
+    // Only knobs have m_rect (WidgetPresentation); e.g. the time chooser does not.
     QRectF srect = defaultKnobSize;
     if constexpr(requires { self.m_rect; })
       srect = self.m_rect;
-    // A knob taller than wide draws its circle in the top square, and its
-    // value below it rather than across it
+    // Taller than wide: circle in the top square, value below
     const double side = std::min(srect.width(), srect.height());
     const QRectF r = QRectF{0., 0., side, side}.adjusted(adj, adj, -adj, -adj);
     const double rw = r.width();
@@ -96,8 +94,7 @@ struct DefaultGraphicsKnobImpl
     }
 
     // Draw text
-    // Wrappers that only borrow this painter, like the multi-slider's
-    // rows, are not graphics items and always show their value.
+    // Non-item wrappers (multi-slider rows) always show their value
     bool showValue = true;
     if constexpr(std::is_base_of_v<QGraphicsItem, std::remove_cvref_t<T>>)
     {

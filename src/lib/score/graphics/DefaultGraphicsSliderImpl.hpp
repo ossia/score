@@ -59,8 +59,7 @@ struct DefaultGraphicsSliderImpl
 #else
     static const constexpr auto dpi_adjust = -2;
 #endif
-    // Wrappers that only borrow this painter, like the multi-slider's
-    // rows, are not graphics items and always show their value.
+    // Non-item wrappers (multi-slider rows) always show their value
     bool showValue = true;
     if constexpr(std::is_base_of_v<QGraphicsItem, std::remove_cvref_t<T>>)
     {

@@ -25,9 +25,7 @@ public:
   void centerContent() override;
 };
 
-//! A row of a table whose rows can be selected: pressing anywhere on it, on
-//! its background or on one of its controls, activates it, and it is drawn
-//! highlighted while selected.
+//! Table row selected by a press on its background or controls
 class SCORE_LIB_BASE_EXPORT GraphicsSelectableRow : public GraphicsHBoxLayout
 {
 public:
@@ -51,9 +49,7 @@ private:
   bool m_hovered{};
 };
 
-//! A titled group of controls. Its title is drawn above the content, which is
-//! stacked vertically and padded on all four sides; it sizes itself, so the
-//! padding holds whatever the enclosing layouts do with their margins.
+//! Titled vbox padded on all sides. Sizes itself, independent of parent margins.
 class SCORE_LIB_BASE_EXPORT GraphicsSectionLayout : public GraphicsVBoxLayout
 {
 public:

@@ -20,8 +20,7 @@ public:
   void setMargin(qreal m);
   void setPadding(qreal p);
 
-  //! Gap between two consecutive children of a box layout. Unless set, it is
-  //! the padding on both sides of each child: twice the padding.
+  //! Gap between box layout children. Default: 2 * padding
   void setSpacing(qreal s);
   qreal spacing() const noexcept;
 

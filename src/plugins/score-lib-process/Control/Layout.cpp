@@ -118,9 +118,7 @@ void LayoutBuilderBase::finalizeLayout(QGraphicsItem* rootItem)
       const bool outermost = (&lay == createdLayouts.front());
       const bool margins = outermost || marginOnNestedLayouts;
       const qreal margin = margins ? default_margin : 0.;
-      // A nested box drawn with its own background keeps as much room on its
-      // right as on its left, so that what fills its width does not reach the
-      // next box
+      // Boxes with a background keep a right margin, symmetric with the left
       const qreal right_margin
           = (margins || lay.hasBackground()) ? default_margin : 0.;
       const auto& cld = lay.childrenBoundingRect();

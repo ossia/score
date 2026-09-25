@@ -250,8 +250,7 @@ struct QPainterAdapter
     painter.setFont(font);
   }
 
-  //! In pixels, like the skin fonts: a point size would go through the DPI
-  //! and off the grid of a pixel font.
+  //! In pixels, like the skin fonts
   void set_font_size(double f)
   {
     auto font = painter.font();
@@ -395,8 +394,7 @@ public:
     auto& skin = score::Skin::instance();
     painter->setRenderHint(QPainter::Antialiasing, true);
     painter->setPen(skin.Dark.main.pen1);
-    // The views set DontSavePainterState: without this the item would draw
-    // with whichever font the previously painted item left behind.
+    // Views set DontSavePainterState: else the previous item's font leaks
     painter->setFont(skin.Medium8Pt);
     impl.paint(QPainterAdapter{*painter, *this, {}});
     painter->setRenderHint(QPainter::Antialiasing, false);

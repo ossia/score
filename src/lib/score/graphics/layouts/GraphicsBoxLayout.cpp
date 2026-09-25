@@ -177,11 +177,10 @@ void GraphicsSectionLayout::paint(
 GraphicsSelectableRow::GraphicsSelectableRow(QGraphicsItem* parent)
     : GraphicsHBoxLayout{parent}
 {
-  // Presses on the controls of the row select it too
+  // Presses on the row's controls select it too
   setFiltersChildEvents(true);
   setAcceptHoverEvents(true);
-  // Layouts take no presses; this one must, for the table to see those on its
-  // background. It still lets them through, so the node can be dragged.
+  // For the table to see background presses; ignored, so the node still drags
   setAcceptedMouseButtons(Qt::LeftButton);
 }
 
@@ -228,8 +227,7 @@ void GraphicsSelectableRow::paint(
   if(!m_selected && !m_hovered)
     return;
 
-  // An outline, not a fill: the controls of the row keep their contrast. All
-  // of it stays inside the row's bounds, which are all Qt repaints on change.
+  // Outline, not fill, for contrast. Stays within bounds: no repaint artifacts
   auto& skin = score::Skin::instance();
   const QRectF r = rect().adjusted(0.5, 0.5, -0.5, -0.5);
   painter->setRenderHint(QPainter::Antialiasing, true);
