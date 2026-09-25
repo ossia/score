@@ -358,6 +358,7 @@ private:
           SCORE_ASSERT(controller_inlets.size() == 1);
           auto inlet = qobject_cast<Process::ControlInlet*>(controller_inlets[0]);
           inlet->noValueChangeOnMove = true;
+          inlet->changesPorts = true;
 
           if constexpr(!requires { F::on_controller_setup(); })
           {

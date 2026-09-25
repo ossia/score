@@ -14,4 +14,5 @@ PROCESS_METADATA(
     "JSFX code, thanks to jpcima's ysfx library.", "ossia score, Jean Pierre Cimalando",
     (QStringList{"Script", "YSFX"}), {}, {}, QUrl("https://ossia.io/score-docs/processes/audio-plugins.html#adding-jsfx-plug-ins"),
     Process::ProcessFlags::SupportsAll | Process::ProcessFlags::PutInNewSlot
-        | Process::ProcessFlags::ControlSurface | Process::ProcessFlags::ScriptEditingSupported)
+        | Process::ProcessFlags::ControlSurface | Process::ProcessFlags::DynamicPorts
+        | Process::ProcessFlags::ScriptEditingSupported)
