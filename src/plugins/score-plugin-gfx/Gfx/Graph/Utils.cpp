@@ -1,3 +1,4 @@
+#include <Gfx/Graph/ISFNode.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/PipelineStateHelpers.hpp>
@@ -16,6 +17,7 @@
 #include <QRegularExpression>
 
 #include <algorithm>
+#include <tuple>
 #include <unordered_set>
 
 #if defined(__EMSCRIPTEN__)
@@ -954,10 +956,12 @@ Edge::Edge(Port* source, Port* sink, Process::CableType t)
   const auto order = [](const Edge* e) {
     const Node* node = e->source->node;
     if(!node)
-      return std::pair<int32_t, int>{invalid_node_index, 0};
+      return std::tuple<bool, int32_t, int>{false, invalid_node_index, 0};
+    const auto* isf = dynamic_cast<const ISFNode*>(node);
+    const bool transparent = isf && isf->descriptor().transparency.enabled();
     const auto it = std::find(node->output.begin(), node->output.end(), e->source);
-    return std::pair<int32_t, int>{
-        node->nodeId, int(std::distance(node->output.begin(), it))};
+    return std::tuple<bool, int32_t, int>{
+        transparent, node->nodeId, int(std::distance(node->output.begin(), it))};
   };
   auto pos = std::upper_bound(
       sink->edges.begin(), sink->edges.end(), this,

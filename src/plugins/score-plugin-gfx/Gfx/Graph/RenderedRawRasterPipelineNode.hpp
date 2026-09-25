@@ -367,5 +367,33 @@ private:
   static_assert(sizeof(PipelineChangingMaterial) == size_of_pipeline_material);
 
   ossia::transform3d m_modelTransform;
+
+  // TRANSPARENCY TARGET internal, per output edge: the draw goes into `color`
+  // (and `depthAccum` for DEPTH_OUTPUT) with the consumer's depth attached
+  // read-only, then `resumeTarget` reopens the consumer's pass to composite it
+  // and resolve the depth.
+  struct TransparencyTarget
+  {
+    QRhiTexture* color{};
+    QRhiTexture* depthAccum{};
+    QRhiTextureRenderTarget* renderTarget{};
+    QRhiRenderPassDescriptor* renderPass{};
+    QRhiTextureRenderTarget* resumeTarget{};
+    QRhiRenderPassDescriptor* resumePass{};
+    QRhiSampler* sampler{};
+    Pipeline composite;
+    Pipeline depthResolve;
+    void release();
+  };
+  ossia::small_flat_map<Edge*, TransparencyTarget, 2> m_transparency;
+  bool m_warnedTransparencyFallback{false};
+
+  TextureRenderTarget initTransparencyTarget(
+      RenderList& renderer, const TextureRenderTarget& inlet, Edge& edge);
+  void initTransparencyResolve(RenderList& renderer, TransparencyTarget& t);
+  void releaseTransparencyTarget(Edge* edge);
+  void releaseTransparencyTargets();
+  void applyTransparencyState(QRhiGraphicsPipeline& ps, bool depthAvailable, bool internal)
+      const;
 };
 }

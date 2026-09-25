@@ -1823,6 +1823,33 @@ endif()
 # once per renderer (CPU formats, per-instance, GPU vec2 positions) (L1).
 score_add_gfx_test(merge_geometries_warn_l1 MergeGeometriesWarnL1.cpp)
 
+# Texture inlet settings reach avnd GPU texture inputs and gpp shader nodes;
+# an RGBA8 format set on an inlet is a setting (agent L2).
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  score_add_test(test_gfx_texture_inlet_spec_l2
+    SOURCES GfxTextureInletSpecL2.cpp
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_texture_inlet_spec_l2 PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_texture_inlet_spec_l2 SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
+# Raw raster read_only storage image INPUTS take no sampler binding; storage
+# image bindings past the OpenGL image units warn once per shader (agent A5).
+score_add_gfx_test(n93_remainders_a5 GfxN93RemaindersA5.cpp)
+
 # A node grabbing its own depth output (GrabsFromSource self-feedback) reads an
 # empty texture instead of the live attachment, with one warning (N64, L1).
 score_add_gfx_test(selffb_depth_grab_l1 GfxSelfFeedbackDepthGrabL1.cpp)
@@ -1851,28 +1878,9 @@ if(TARGET score_addon_academy AND TARGET score_plugin_avnd)
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
 
-# Texture inlet settings reach avnd GPU texture inputs and gpp shader nodes;
-# an RGBA8 format set on an inlet is a setting (agent L2).
-if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
-  score_add_test(test_gfx_texture_inlet_spec_l2
-    SOURCES GfxTextureInletSpecL2.cpp
-    GUI
-    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
-    LIBS test_gfx_engine_glue)
-  target_compile_definitions(test_gfx_texture_inlet_spec_l2 PRIVATE
-    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
-  target_include_directories(test_gfx_texture_inlet_spec_l2 SYSTEM PRIVATE
-    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples"
-    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
-    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
-    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
-    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
-    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
-    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
-    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
-endif()
+# Raw raster and CSF consumers follow an upstream auxiliary resized at run
+# time (agent A5).
+score_add_gfx_test(aux_size_a5 GfxAuxSizeA5.cpp)
 
 # A texture inlet's mip mode switched while running reallocates the inlet's
 # render target, for ISF, avnd GPU and gpp inputs (agent L4).
@@ -1897,6 +1905,14 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
 
+# A read_write / write_only CSF on an upstream it does not declare PERSISTENT
+# works on a copy: init-once upstreams do not accumulate (agent A5, N59).
+score_add_gfx_test(csf_read_write_copy_a5 GfxCsfReadWriteCopyA5.cpp)
+
+# Raw raster "PRIMITIVE_DATA": PRIMITIVE_ID and BARYCENTRIC in the fragment
+# stage, procedural and on an expanded indexed mesh (agent A5).
+score_add_gfx_test(raw_raster_primitive_data_a5 GfxRawRasterPrimitiveDataA5.cpp)
+
 # A gpp shader node fed by an ISF node with an unsized image inlet: the
 # render list asks for its input target before initState (agent L4).
 if(TARGET score_plugin_avnd)
@@ -1916,22 +1932,6 @@ if(TARGET score_plugin_avnd)
     $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
-
-# Raw raster read_only storage image INPUTS take no sampler binding; storage
-# image bindings past the OpenGL image units warn once per shader (agent A5).
-score_add_gfx_test(n93_remainders_a5 GfxN93RemaindersA5.cpp)
-
-# Raw raster and CSF consumers follow an upstream auxiliary resized at run
-# time (agent A5).
-score_add_gfx_test(aux_size_a5 GfxAuxSizeA5.cpp)
-
-# A read_write / write_only CSF on an upstream it does not declare PERSISTENT
-# works on a copy: init-once upstreams do not accumulate (agent A5, N59).
-score_add_gfx_test(csf_read_write_copy_a5 GfxCsfReadWriteCopyA5.cpp)
-
-# Raw raster "PRIMITIVE_DATA": PRIMITIVE_ID and BARYCENTRIC in the fragment
-# stage, procedural and on an expanded indexed mesh (agent A5).
-score_add_gfx_test(raw_raster_primitive_data_a5 GfxRawRasterPrimitiveDataA5.cpp)
 
 # An unbound raw raster image or texture gets a placeholder of the declared
 # scalar class (float / uint / sint) and shape (agent A5).
@@ -1960,3 +1960,7 @@ if(TARGET score_plugin_avnd)
     $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
+
+# TRANSPARENCY header block of raw raster shaders: parser, direct vs internal,
+# depth test against the consumer, DEPTH_OUTPUT threshold / expected (agent S1).
+score_add_gfx_test(transparency_s1 GfxTransparencyS1.cpp)

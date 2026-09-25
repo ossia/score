@@ -144,6 +144,34 @@ enum class composite_mode : uint8_t
   replace
 };
 
+// TRANSPARENCY header block (RAW_RASTER_PIPELINE): sorted back-to-front
+// premultiplied blending with a read-only depth test.
+enum class transparency_target : uint8_t
+{
+  none,
+  direct,
+  internal
+};
+
+enum class transparency_depth_output : uint8_t
+{
+  none,
+  threshold,
+  expected
+};
+
+struct transparency_state
+{
+  transparency_target target{transparency_target::none};
+  std::string format{"rgba16f"};
+  bool depth_test{true};
+  transparency_depth_output depth_output{transparency_depth_output::none};
+  float threshold{0.5f};
+  composite_mode composite{composite_mode::unspecified};
+
+  bool enabled() const noexcept { return target != transparency_target::none; }
+};
+
 struct image_input
 {
   int dimensions{2};    // 2 or 3
@@ -1002,6 +1030,25 @@ struct descriptor
   // rasterisation. Useful for cheap frustum-/occlusion-style culling.
   int cull_distances{0};
 
+  // TRANSPARENCY (RAW_RASTER_PIPELINE):
+  //   TARGET        "direct": draw into the consumer's target, depth test on,
+  //                 depth write off. "internal" (default): draw into an own
+  //                 colour target of FORMAT cleared to transparent, testing
+  //                 against the consumer's depth read-only, then composite it
+  //                 onto the consumer.
+  //   FORMAT        "rgba8" | "rgba16f" (default) | "rgba32f"; internal only.
+  //   DEPTH_TEST    test against the consumer's depth (default true).
+  //   DEPTH_OUTPUT  "none" (default) | "threshold": nearest fragment whose own
+  //                 alpha reaches THRESHOLD | "expected": alpha-weighted mean
+  //                 depth where the accumulated alpha reaches THRESHOLD.
+  //                 Written once per pixel into the consumer's depth; internal
+  //                 only.
+  //   THRESHOLD     in (0, 1], default 0.5.
+  //   COMPOSITE     composite of the result onto the consumer; wins over the
+  //                 top-level COMPOSITE.
+  // Needs a single colour output, no OUTPUTS, SINGLE execution, no MULTIVIEW.
+  transparency_state transparency;
+
   // DEPTH_LAYOUT: conservative-depth qualifier on gl_FragDepth. Allowed:
   //   "any"        — driver default (no guarantee, disables early-Z when
   //                  gl_FragDepth is written).
@@ -1023,7 +1070,7 @@ alpha_mode resolve_alpha(
     const descriptor& d, const output_declaration* out = nullptr) noexcept;
 
 // The COMPOSITE of a colour output: the OUTPUTS entry's (or the storage
-// image's), else the descriptor's, else over.
+// image's), else TRANSPARENCY's, else the descriptor's, else over.
 SCORE_PLUGIN_GFX_EXPORT
 composite_mode resolve_composite(
     const descriptor& d, const output_declaration* out = nullptr) noexcept;
@@ -1035,6 +1082,11 @@ composite_mode resolve_composite(const descriptor& d, const csf_image_input& img
 // is blended as premultiplied.
 SCORE_PLUGIN_GFX_EXPORT
 bool premultiplied_by_engine(alpha_mode alpha, composite_mode composite) noexcept;
+
+// Whether TRANSPARENCY's depth compare keeps the greater depth (reverse-Z,
+// the default) rather than the smaller one.
+SCORE_PLUGIN_GFX_EXPORT
+bool transparency_nearer_is_greater(const descriptor& d) noexcept;
 
 // Whether a pipeline state declares BLEND or BLEND_PER_ATTACHMENT.
 SCORE_PLUGIN_GFX_EXPORT

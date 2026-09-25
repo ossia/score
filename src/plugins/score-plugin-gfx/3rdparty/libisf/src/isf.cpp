@@ -2254,6 +2254,142 @@ static void parse_pipeline_state(const sajson::value& v, pipeline_state& out)
   }
 }
 
+static std::string lowercase_string(const sajson::value& v, const char* what)
+{
+  if(v.get_type() != sajson::TYPE_STRING)
+    throw invalid_file{std::string{"TRANSPARENCY."} + what + " must be a string"};
+  std::string s = v.as_string();
+  for(char& c : s)
+    c = (char)tolower((unsigned char)c);
+  return s;
+}
+
+static void parse_transparency(const sajson::value& v, transparency_state& t)
+{
+  if(v.get_type() != sajson::TYPE_OBJECT)
+    throw invalid_file{"TRANSPARENCY must be an object"};
+
+  t = transparency_state{};
+  t.target = transparency_target::internal;
+  for(std::size_t i = 0, n = v.get_length(); i < n; i++)
+  {
+    std::string key = v.get_object_key(i).as_string();
+    for(char& c : key)
+      c = (char)toupper((unsigned char)c);
+    const auto val = v.get_object_value(i);
+    if(key == "TARGET")
+    {
+      const auto s = lowercase_string(val, "TARGET");
+      if(s == "direct")
+        t.target = transparency_target::direct;
+      else if(s == "internal")
+        t.target = transparency_target::internal;
+      else
+        throw invalid_file{"TRANSPARENCY.TARGET must be \"direct\" or \"internal\""};
+    }
+    else if(key == "FORMAT")
+    {
+      const auto s = lowercase_string(val, "FORMAT");
+      if(s != "rgba8" && s != "rgba16f" && s != "rgba32f")
+        throw invalid_file{
+            "TRANSPARENCY.FORMAT must be \"rgba8\", \"rgba16f\" or \"rgba32f\""};
+      t.format = s;
+    }
+    else if(key == "DEPTH_TEST")
+    {
+      if(!get_bool(val, t.depth_test))
+        throw invalid_file{"TRANSPARENCY.DEPTH_TEST must be a boolean"};
+    }
+    else if(key == "DEPTH_OUTPUT")
+    {
+      const auto s = lowercase_string(val, "DEPTH_OUTPUT");
+      if(s == "none")
+        t.depth_output = transparency_depth_output::none;
+      else if(s == "threshold")
+        t.depth_output = transparency_depth_output::threshold;
+      else if(s == "expected")
+        t.depth_output = transparency_depth_output::expected;
+      else
+        throw invalid_file{
+            "TRANSPARENCY.DEPTH_OUTPUT must be \"none\", \"threshold\" or \"expected\""};
+    }
+    else if(key == "THRESHOLD")
+    {
+      if(!get_float(val, t.threshold) || !(t.threshold > 0.f && t.threshold <= 1.f))
+        throw invalid_file{"TRANSPARENCY.THRESHOLD must be a number in (0, 1]"};
+    }
+    else if(key == "COMPOSITE")
+    {
+      t.composite = parse_composite_mode(val);
+    }
+    else
+    {
+      throw invalid_file{"TRANSPARENCY: unknown key " + key};
+    }
+  }
+}
+
+static void validate_transparency(const descriptor& d)
+{
+  const auto& t = d.transparency;
+  if(!t.enabled())
+    return;
+  if(d.mode != descriptor::RawRaster)
+    throw invalid_file{"TRANSPARENCY is only supported by RAW_RASTER_PIPELINE shaders"};
+  if(!d.outputs.empty() || d.fragment_outputs.size() > 1)
+    throw invalid_file{"TRANSPARENCY needs a single colour output and no OUTPUTS"};
+  if(d.multiview_count >= 2)
+    throw invalid_file{"TRANSPARENCY does not support MULTIVIEW"};
+  std::string em = d.execution_model.type;
+  for(char& c : em)
+    c = (char)toupper((unsigned char)c);
+  if(!em.empty() && em != "SINGLE")
+    throw invalid_file{"TRANSPARENCY needs EXECUTION_MODEL SINGLE"};
+  if(t.target == transparency_target::direct
+     && t.depth_output != transparency_depth_output::none)
+    throw invalid_file{"TRANSPARENCY.DEPTH_OUTPUT needs TARGET \"internal\""};
+  if(t.depth_output != transparency_depth_output::none && d.fragment_outputs.size() != 1)
+    throw invalid_file{"TRANSPARENCY.DEPTH_OUTPUT needs one FRAGMENT_OUTPUTS entry"};
+}
+
+bool transparency_nearer_is_greater(const descriptor& d) noexcept
+{
+  const auto& cmp = d.default_state.depth_compare;
+  if(!cmp)
+    return true;
+  std::string s;
+  for(char c : *cmp)
+    if(c != '_' && c != '-' && c != ' ')
+      s += (char)tolower((unsigned char)c);
+  return s == "greater" || s == "g" || s == "gt" || s == "greaterorequal"
+         || s == "greaterequal" || s == "gequal";
+}
+
+static int isf_transparency_depth_location(const descriptor& d)
+{
+  int loc = 0;
+  for(const auto& fo : d.fragment_outputs)
+    loc = std::max(loc, fo.location + 1);
+  return loc;
+}
+
+static std::string isf_transparency_depth_statements(const descriptor& d)
+{
+  const auto& t = d.transparency;
+  if(t.target != transparency_target::internal
+     || t.depth_output == transparency_depth_output::none || d.fragment_outputs.empty())
+    return {};
+  const std::string& name = d.fragment_outputs.front().name;
+  if(t.depth_output == transparency_depth_output::expected)
+    return fmt::format(
+        "  isf_TransparencyDepth = vec4(gl_FragCoord.z * {0}.a, 0.0, 0.0, {0}.a);\n",
+        name);
+  return fmt::format(
+      "  isf_TransparencyDepth = vec4({0}.a >= {1:.6f} ? {2} : 0.0, 0.0, 0.0, 1.0);\n",
+      name, t.threshold,
+      transparency_nearer_is_greater(d) ? "gl_FragCoord.z" : "1.0 - gl_FragCoord.z");
+}
+
 using root_fun = void (*)(descriptor&, const sajson::value&);
 using input_fun = input (*)(const sajson::value&);
 static alpha_mode parse_alpha_mode(const sajson::value& v)
@@ -2284,6 +2420,8 @@ composite_mode resolve_composite(const descriptor& d, const output_declaration* 
 {
   if(out && out->composite != composite_mode::unspecified)
     return out->composite;
+  if(d.transparency.enabled() && d.transparency.composite != composite_mode::unspecified)
+    return d.transparency.composite;
   if(d.composite != composite_mode::unspecified)
     return d.composite;
   return composite_mode::over;
@@ -3225,6 +3363,10 @@ static const ossia::string_map<root_fun>& root_parse{[] {
     d.composite = parse_composite_mode(v);
   }});
 
+  p.insert({"TRANSPARENCY", [](descriptor& d, const sajson::value& v) {
+    parse_transparency(v, d.transparency);
+  }});
+
   p.insert({"PIPELINE_STATE", [](descriptor& d, const sajson::value& v) {
     parse_pipeline_state(v, d.default_state);
   }});
@@ -3517,6 +3659,10 @@ std::pair<int, descriptor> parser::parse_isf_header(std::string_view source)
       (it->second)(d, root.get_object_value(i));
     }
   }
+
+  if(d.transparency.enabled()
+     && source.find("\"RAW_RASTER_PIPELINE\"") == std::string_view::npos)
+    throw invalid_file{"TRANSPARENCY is only supported by RAW_RASTER_PIPELINE shaders"};
 
   bool composite = d.composite != composite_mode::unspecified;
   for(const auto& out : d.outputs)
@@ -4458,6 +4604,7 @@ void parser::parse_raw_raster_pipeline()
       m_desc.outputs.push_back(output_declaration{.name = fo.name, .type = "color"});
     }
   }
+  validate_transparency(m_desc);
 
   // Add the raw raster uniforms
   {
@@ -5123,7 +5270,12 @@ void parser::parse_raw_raster_pipeline()
     }
     premultiplied = isf_engine_premultiplied_outputs(m_desc, single);
   }
-  if(premultiplied.empty())
+  const std::string transparency_depth = isf_transparency_depth_statements(m_desc);
+  if(!transparency_depth.empty())
+    m_fragment += fmt::format(
+        "layout(location = {}) out vec4 isf_TransparencyDepth;\n",
+        isf_transparency_depth_location(m_desc));
+  if(premultiplied.empty() && transparency_depth.empty())
   {
     m_fragment += fragWithoutISF;
   }
@@ -5133,6 +5285,7 @@ void parser::parse_raw_raster_pipeline()
     m_fragment += fragWithoutISF;
     m_fragment += "\n#undef main\nvoid main()\n{\n  isf_rawraster_user_fragment_main();\n";
     m_fragment += isf_premultiply_statements(premultiplied);
+    m_fragment += transparency_depth;
     m_fragment += "}\n";
   }
 
