@@ -67,6 +67,34 @@ QRhiGraphicsPipeline::TargetBlend toTargetBlend(const isf::blend_attachment& b) 
 SCORE_PLUGIN_GFX_EXPORT
 QRhiGraphicsPipeline::StencilOpState toStencilOpState(const isf::stencil_op_state& s) noexcept;
 
+// --- Output compositing ---------------------------------------------------
+//
+// Render targets between nodes hold premultiplied colour. A shader output is
+// composited "over" what its target already holds, with the factors that
+// match what it writes (its ALPHA key); both store premultiplied colour.
+
+// Colour One / OneMinusSrcAlpha, alpha One / OneMinusSrcAlpha.
+SCORE_PLUGIN_GFX_EXPORT
+QRhiGraphicsPipeline::TargetBlend premultipliedOverBlend() noexcept;
+
+// Colour SrcAlpha / OneMinusSrcAlpha, alpha One / OneMinusSrcAlpha.
+SCORE_PLUGIN_GFX_EXPORT
+QRhiGraphicsPipeline::TargetBlend straightOverBlend() noexcept;
+
+SCORE_PLUGIN_GFX_EXPORT
+QRhiGraphicsPipeline::TargetBlend overBlendFor(isf::alpha_mode alpha) noexcept;
+
+// One blend per colour attachment: attachment i takes the ALPHA of the i-th
+// colour OUTPUT (depth OUTPUTS skipped), else the descriptor's. Integer
+// FORMATs get no blend.
+SCORE_PLUGIN_GFX_EXPORT
+QVarLengthArray<QRhiGraphicsPipeline::TargetBlend, 4>
+outputBlends(const isf::descriptor& desc, int colorAttachmentCount);
+
+// Integer colour formats cannot be blended.
+SCORE_PLUGIN_GFX_EXPORT
+bool formatSupportsBlending(QRhiTexture::Format f) noexcept;
+
 // --- pipeline_state manipulation ------------------------------------------
 
 // Merge two pipeline_states: every field that is set in `over` wins, otherwise
@@ -90,7 +118,7 @@ bool stateAffectsPipeline(const isf::pipeline_state&) noexcept;
 // Only fields explicitly set in `state` are overridden. Cull, front-face,
 // polygon mode, blend, and stencil all preserve whatever the caller (or
 // `mesh.preparePipeline()`) configured before this call. The caller is
-// responsible for seeding sensible defaults (e.g. premul-alpha blend) before
+// responsible for seeding sensible defaults (e.g. overBlendFor(ALPHA)) before
 // invoking this, so that shaders declaring partial pipeline_state don't
 // silently lose unrelated defaults.
 SCORE_PLUGIN_GFX_EXPORT

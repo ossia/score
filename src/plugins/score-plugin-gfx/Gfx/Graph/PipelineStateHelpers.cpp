@@ -1,5 +1,7 @@
 #include "PipelineStateHelpers.hpp"
 
+#include <Gfx/Graph/Utils.hpp>
+
 #include <algorithm>
 #include <cctype>
 
@@ -194,6 +196,85 @@ QRhiGraphicsPipeline::TargetBlend toTargetBlend(const isf::blend_attachment& b) 
   return out;
 }
 
+QRhiGraphicsPipeline::TargetBlend premultipliedOverBlend() noexcept
+{
+  QRhiGraphicsPipeline::TargetBlend b;
+  b.enable = true;
+  b.srcColor = QRhiGraphicsPipeline::One;
+  b.dstColor = QRhiGraphicsPipeline::OneMinusSrcAlpha;
+  b.srcAlpha = QRhiGraphicsPipeline::One;
+  b.dstAlpha = QRhiGraphicsPipeline::OneMinusSrcAlpha;
+  return b;
+}
+
+QRhiGraphicsPipeline::TargetBlend straightOverBlend() noexcept
+{
+  auto b = premultipliedOverBlend();
+  b.srcColor = QRhiGraphicsPipeline::SrcAlpha;
+  return b;
+}
+
+QRhiGraphicsPipeline::TargetBlend overBlendFor(isf::alpha_mode alpha) noexcept
+{
+  return alpha == isf::alpha_mode::straight ? straightOverBlend()
+                                            : premultipliedOverBlend();
+}
+
+QVarLengthArray<QRhiGraphicsPipeline::TargetBlend, 4>
+outputBlends(const isf::descriptor& desc, int colorAttachmentCount)
+{
+  QVarLengthArray<QRhiGraphicsPipeline::TargetBlend, 4> blends;
+  const int n = std::max(1, colorAttachmentCount);
+  blends.reserve(n);
+  int colorIndex = 0;
+  for(const auto& out : desc.outputs)
+  {
+    if(out.type == "depth")
+      continue;
+    if(colorIndex++ >= n)
+      break;
+    if(formatSupportsBlending(parseOutputFormat(out.format, QRhiTexture::RGBA8)))
+      blends.push_back(overBlendFor(isf::resolve_alpha(desc, &out)));
+    else
+      blends.push_back(QRhiGraphicsPipeline::TargetBlend{});
+  }
+  while(blends.size() < n)
+    blends.push_back(overBlendFor(isf::resolve_alpha(desc)));
+  return blends;
+}
+
+bool formatSupportsBlending(QRhiTexture::Format f) noexcept
+{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
+  switch(f)
+  {
+    case QRhiTexture::R8UI:
+    case QRhiTexture::R32UI:
+    case QRhiTexture::RG32UI:
+    case QRhiTexture::RGBA32UI:
+    case QRhiTexture::R8SI:
+    case QRhiTexture::R32SI:
+    case QRhiTexture::RG32SI:
+    case QRhiTexture::RGBA32SI:
+      return false;
+    default:
+      break;
+  }
+#elif QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
+  switch(f)
+  {
+    case QRhiTexture::R8UI:
+    case QRhiTexture::R32UI:
+      return false;
+    default:
+      break;
+  }
+#else
+  Q_UNUSED(f);
+#endif
+  return true;
+}
+
 QRhiGraphicsPipeline::StencilOpState toStencilOpState(const isf::stencil_op_state& s) noexcept
 {
   QRhiGraphicsPipeline::StencilOpState out;
@@ -332,7 +413,7 @@ void applyPipelineState(
 
   // ── Blending ────────────────────────────────────────────────────────
   // Only override target blends when the shader explicitly declares blend
-  // state. Otherwise the caller's seeded blend (e.g. legacy premul-alpha)
+  // state. Otherwise the caller's seeded blend (the ALPHA-derived "over")
   // is preserved bit-exact.
   const int nAttachments = std::max(1, colorAttachmentCount);
   if(!state.blend_per_attachment.empty())
