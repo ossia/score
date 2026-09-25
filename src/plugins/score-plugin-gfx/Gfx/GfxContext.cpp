@@ -12,6 +12,7 @@
 #include <score/tools/Bind.hpp>
 #include <score/tools/Timers.hpp>
 
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/flicks.hpp>
 
 #include <algorithm>
@@ -754,6 +755,14 @@ void GfxContext::remove_node(
       else
         ++it;
     }
+
+    // An output holds resources outside the graph (a port, a sender name, a
+    // pipeline) until destroyOutput(); the node itself only goes with the
+    // nursery, later. A replacement created in the same tick needs them free.
+    // REMOVE_PREVIEW_NODE has already done this and dropped it from outputs().
+    if(auto out = dynamic_cast<score::gfx::OutputNode*>(node);
+       out && ossia::contains(m_graph->outputs(), out))
+      m_graph->destroyOutputRenderList(*out);
 
     m_graph->removeNode(node);
 
