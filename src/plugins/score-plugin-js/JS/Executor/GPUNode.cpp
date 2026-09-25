@@ -38,6 +38,7 @@
 
 #include <algorithm>
 #include <set>
+#include <JS/Qml/VariantToJs.hpp>
 namespace JS
 {
 namespace
@@ -159,7 +160,7 @@ public:
       if(!on_ui.isCallable())
         return;
 
-      on_ui.call({m_engine->toScriptValue(v)});
+      on_ui.call({JS::variantToJs(*m_engine, v)});
     }
 
     void stateElementChanged(const QString& k, const ossia::value& v)
@@ -174,7 +175,7 @@ public:
       if(v.valid())
       {
         if(auto res = v.apply(ossia::qt::ossia_to_qvariant{}); res.isValid())
-          on_stateUpdated.call({k, m_engine->toScriptValue(res)});
+          on_stateUpdated.call({k, JS::variantToJs(*m_engine, res)});
         else
           on_stateUpdated.call({k, QJSValue{}});
       }
@@ -1076,7 +1077,7 @@ void GpuNode::Engine::setupComponent(
       if(auto res = v.apply(ossia::qt::ossia_to_qvariant{}); res.isValid())
         vm[k] = std::move(res);
     }
-    on_load.call({m_engine->toScriptValue(vm)});
+    on_load.call({JS::variantToJs(*m_engine, vm)});
   }
 }
 
