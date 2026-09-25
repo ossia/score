@@ -199,7 +199,7 @@ struct CustomGpuRenderer final
   requires avnd::sampler_port<F>
   void init_input(score::gfx::RenderList& renderer, avnd::field_reflection<Idx, F> field)
   {
-    const auto spec = node().resolveRenderTargetSpecs(Idx, renderer);
+    const auto spec = renderer.resolveInputRenderTargetSpecs(node(), Idx);
     auto tex = createInput(renderer, Idx, spec);
 
     using sampler_type = typename avnd::member_reflection<F::sampler()>::member_type;
