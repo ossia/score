@@ -4,7 +4,7 @@
 //   setValue(toggle, 1) used to store a Float the toggle never reads, and a JS
 //   array written to a vec3 control stored a list.
 // - setValue on a port that is not a control (a plain value inlet, e.g. the
-//   list inputs of Scene Graph Filter) cannot store anything; it used to
+//   array input of Array to texture) cannot store anything; it used to
 //   return without a word and now warns.
 // - `port.renderSize = Qt.size(w, h)` on a texture inlet threw
 //   "Cannot assign QSizeF to std::optional<QSize>".
@@ -175,15 +175,15 @@ Qt.exit(0);
         dir, "valueinlet.js",
         QByteArray(prelude)
             + R"JS(
-var names = control("Scene Graph Filter", "Names");
-Score.setValue(names, ["a", "b"]);
+var input = control("Array to texture", "Input");
+Score.setValue(input, [0.5, 0.25]);
 console.log("DONE");
 Qt.exit(0);
 )JS"));
     CHECK_FALSE(r.crashed);
     skipIfMissing(r);
     CHECK(r.output.contains("DONE"));
-    CHECK(r.output.contains("Score.setValue: port \"Names\" is not a control"));
+    CHECK(r.output.contains("Score.setValue: port \"Input\" is not a control"));
   }
 }
 

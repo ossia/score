@@ -162,6 +162,7 @@ public:
     init_before_port_creation();
     vis.writeTo(*this);
     check_all_ports();
+    upgrade_value_inlets_to_controls();
     init_after_port_creation();
   }
 
@@ -317,6 +318,50 @@ private:
     *it = new_inlet;
     delete old_inlet;
     return new_inlet;
+  }
+
+  void upgrade_value_inlets_to_controls()
+  {
+    avnd::input_introspection<Info>::for_all(
+        [this]<std::size_t Idx, typename P>(avnd::field_reflection<Idx, P>) {
+      if constexpr(
+          avnd::parameter_port<P> && !oscr::ossia_port<P>
+          && !avnd::dynamic_ports_port<P> && avnd::has_widget<P>
+          && std::is_default_constructible_v<P>)
+        upgrade_value_inlet(P{}, avnd::field_index<Idx>{});
+    });
+  }
+
+  template <typename F, std::size_t Idx>
+  void upgrade_value_inlet(const F& field, avnd::field_index<Idx> idx)
+  {
+    auto ports = avnd_input_idx_to_model_ports(Idx);
+    if(ports.size() != 1)
+      return;
+    auto old_inlet = ports[0];
+    if(qobject_cast<Process::ControlInlet*>(old_inlet)
+       || !qobject_cast<Process::ValueInlet*>(old_inlet))
+      return;
+
+    Process::Inlets fresh;
+    InletInitFunc<Info> make{*this, fresh};
+    make.inlet = old_inlet->id().val();
+    make(field, idx);
+    auto new_inlet
+        = fresh.size() == 1 ? qobject_cast<Process::ControlInlet*>(fresh[0]) : nullptr;
+    if(!new_inlet)
+    {
+      qDeleteAll(fresh);
+      return;
+    }
+
+    new_inlet->loadData(old_inlet->saveData());
+    new_inlet->setExposed(old_inlet->exposed());
+
+    auto it = ossia::find(m_inlets, old_inlet);
+    SCORE_ASSERT(it != m_inlets.end());
+    *it = new_inlet;
+    delete old_inlet;
   }
 
   void init_controller_ports()

@@ -2,6 +2,8 @@
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
 
+#include <Threedim/StringListControl.hpp>
+
 #include <ossia/dataflow/geometry_port.hpp>
 
 #include <cstdint>
@@ -137,15 +139,22 @@ public:
     struct : halp::toggle<"Invert">
     { void update(SceneGraphFilter& n) { n.rebuild(); } } invert;
 
-    // List inlets — user edits inline in the inspector. A halp
-    // `val_port<vector<string>>` renders an editable N-row widget.
     // Each mode uses the relevant list; others are ignored.
-    struct : halp::val_port<"Paths", std::vector<std::string>>
-    { void update(SceneGraphFilter& n) { n.rebuild(); } } paths;
-    struct : halp::val_port<"Names", std::vector<std::string>>
-    { void update(SceneGraphFilter& n) { n.rebuild(); } } names;
-    struct : halp::val_port<"Material tags", std::vector<std::string>>
-    { void update(SceneGraphFilter& n) { n.rebuild(); } } material_tags;
+    struct : string_list_control<"Paths">
+    {
+      halp_meta(description, "Scene paths, one per row. Glob syntax: * within a segment, ** across segments, ? one character.")
+      void update(SceneGraphFilter& n) { n.rebuild(); }
+    } paths;
+    struct : string_list_control<"Names">
+    {
+      halp_meta(description, "Node names, one per row. Glob syntax.")
+      void update(SceneGraphFilter& n) { n.rebuild(); }
+    } names;
+    struct : string_list_control<"Material tags">
+    {
+      halp_meta(description, "Material tags, one per row. Glob syntax.")
+      void update(SceneGraphFilter& n) { n.rebuild(); }
+    } material_tags;
 
     struct : halp::combobox_t<"Component", Component>
     {
@@ -183,7 +192,7 @@ public:
     // Property-match inputs (ByNodeProperty / ByMaterialProperty).
     // Key + operator + literal; value parsed as float when numeric,
     // string otherwise. Missing keys never match (predicate false).
-    struct : halp::val_port<"Property key", std::string>
+    struct : halp::lineedit<"Property key", "">
     { void update(SceneGraphFilter& n) { n.rebuild(); } } prop_key;
 
     struct : halp::combobox_t<"Property op", PropertyOp>
@@ -198,7 +207,7 @@ public:
       void update(SceneGraphFilter& n) { n.rebuild(); }
     } prop_op;
 
-    struct : halp::val_port<"Property value", std::string>
+    struct : halp::lineedit<"Property value", "">
     { void update(SceneGraphFilter& n) { n.rebuild(); } } prop_value;
   } inputs;
 

@@ -1419,3 +1419,18 @@ if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
   set_tests_properties(test_integration_gfx_grab_slow_start_g2 PROPERTIES
     TIMEOUT 300 RUN_SERIAL TRUE LABELS "gui")
 endif()
+
+# N91 / N52 from a script: the scene nodes' list inputs are controls (and load
+# as controls from older documents), Score.pushExecutionValue feeds an
+# executing inlet for one tick, Score.setCurvePoints edits 2D / 3D automations.
+if(TARGET score AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_js_list_controls_i5
+    SOURCES JsListControlsI5Test.cpp
+    GUI
+    LIBS ${QT_PREFIX}::Gui)
+  target_compile_definitions(test_integration_js_list_controls_i5 PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\""
+    "LEGACY_LIST_SCORE=\"${CMAKE_CURRENT_SOURCE_DIR}/../threedim/legacy-list-valueinlets-i5.score\"")
+  set_tests_properties(test_integration_js_list_controls_i5 PROPERTIES
+    TIMEOUT 900 RUN_SERIAL TRUE)
+endif()

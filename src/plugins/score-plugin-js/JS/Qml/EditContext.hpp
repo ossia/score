@@ -283,6 +283,9 @@ public:
   void setValue(QObject* obj, QList<QVariant> value);
   W_SLOT(setValue, (QObject*, QList<QVariant>))
 
+  bool pushExecutionValue(QObject* port, QVariant value);
+  W_SLOT(pushExecutionValue)
+
   QString portName(QObject* port);
   W_SLOT(portName)
   QString valueType(QObject* obj);

@@ -111,6 +111,11 @@ endif()
 if(TARGET score_plugin_packagemanager)
   target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_packagemanager)
 endif()
+# The spline add-ons are configured after this plug-in: test for them at
+# generation time.
+target_link_libraries(${PROJECT_NAME} PUBLIC
+  $<TARGET_NAME_IF_EXISTS:score_plugin_spline>
+  $<TARGET_NAME_IF_EXISTS:score_plugin_spline3d>)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES AUTOMOC 1)
 if(TARGET "${QT_PREFIX}::Quick")
