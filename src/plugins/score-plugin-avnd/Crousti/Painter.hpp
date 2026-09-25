@@ -12,6 +12,7 @@
 #include <avnd/concepts/painter.hpp>
 #include <avnd/wrappers/colors.hpp>
 
+#include <algorithm>
 #include <cmath>
 
 namespace oscr
@@ -249,10 +250,11 @@ struct QPainterAdapter
     painter.setFont(font);
   }
 
+  //! In pixels, like the skin fonts
   void set_font_size(double f)
   {
     auto font = painter.font();
-    font.setPointSize(f);
+    font.setPixelSize(std::max(1, (int)std::lround(f)));
     painter.setFont(font);
   }
 
@@ -392,6 +394,8 @@ public:
     auto& skin = score::Skin::instance();
     painter->setRenderHint(QPainter::Antialiasing, true);
     painter->setPen(skin.Dark.main.pen1);
+    // Views set DontSavePainterState: else the previous item's font leaks
+    painter->setFont(skin.Medium8Pt);
     impl.paint(QPainterAdapter{*painter, *this, {}});
     painter->setRenderHint(QPainter::Antialiasing, false);
   }

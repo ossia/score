@@ -43,11 +43,23 @@ void GraphicsLayout::setPadding(qreal p)
   m_padding = p;
 }
 
+void GraphicsLayout::setSpacing(qreal s)
+{
+  m_spacing = s;
+}
+
+qreal GraphicsLayout::spacing() const noexcept
+{
+  return m_spacing >= 0. ? m_spacing : 2. * m_padding;
+}
+
 void GraphicsLayout::updateChildrenRects(const QList<QGraphicsItem*>& items)
 {
   for(int i = 0; i < items.size(); i++)
   {
-    if(auto rect = dynamic_cast<score::EmptyRectItem*>(items[i]))
+    // Empty: a spacer, keep its size
+    if(auto rect = dynamic_cast<score::EmptyRectItem*>(items[i]);
+       rect && !rect->childItems().isEmpty())
     {
       rect->fitChildrenRect();
     }

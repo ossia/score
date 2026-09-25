@@ -101,7 +101,8 @@ void QGraphicsKnob::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 
 QRectF QGraphicsKnob::boundingRect() const
 {
-  return QRectF{0., 0., 35., 42.};
+  // Knob and value text below
+  return QRectF{0., 0., m_rect.width(), m_rect.height() + 7.};
 }
 
 void QGraphicsKnob::paint(
@@ -109,6 +110,6 @@ void QGraphicsKnob::paint(
 {
   const double val = map(m_value);
   DefaultGraphicsKnobImpl::paint(
-      *this, score::Skin::instance(), score::toNumber(val), painter, widget);
+      *this, score::Skin::instance(), score::toNumber(val), painter, widget, option);
 }
 }
