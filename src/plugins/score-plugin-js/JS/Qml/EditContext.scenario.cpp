@@ -274,17 +274,15 @@ void EditJsContext::loadPreset(QObject* process, QString json)
   // dynamic ports (ISF, JS...) it re-attaches the cables and emits
   // inletsChanged / outletsChanged. Calling ProcessModel::loadPreset directly
   // skipped that, so the rebuilt ports never reached the execution and an ISF
-  // loaded this way rendered nothing.
+  // loaded this way rendered nothing. Like any command of the script, it is
+  // undoable and marks the document modified. The scenario plugin's factory
+  // matches every process, as for the library drops and the layer menus.
   auto& load_preset_ifaces = doc->app.interfaces<Process::LoadPresetCommandFactoryList>();
   if(auto cmd = load_preset_ifaces.make(
          &Process::LoadPresetCommandFactory::make, *proc, *preset, *doc))
   {
     auto [m, _] = macro(*doc);
     m->submit(cmd);
-  }
-  else
-  {
-    proc->loadPreset(*preset);
   }
 }
 
