@@ -276,8 +276,7 @@ Application::~Application()
   //
   // ~Document states the same order and explains it -- presenter, then view,
   // then model -- and deleting the presenter first lets that run with the
-  // window still standing. It is also the configuration every GUI test uses:
-  // MinimalGUIApplication deletes its presenter and never its view.
+  // window still standing. It is also the order MinimalGUIApplication uses.
   //
   // The fault is not nodal-specific -- ~CentralIntervalDisplay has it too --
   // and shows up only on an exit that reaches ~Application with a document

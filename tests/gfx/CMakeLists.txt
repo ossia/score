@@ -1992,3 +1992,15 @@ endif()
 # shader-authored resolve with depth write or depth input, weighted blended OIT
 # built in shader code, transparent-after-opaque ordering.
 score_add_gfx_test(raster_layer_queue GfxRasterLayerQueue.cpp)
+
+# Booting the GUI application and rendering on it, repeated, keeps the number
+# of open file descriptors stable.
+score_add_gfx_test(fd_stable GfxFdStable.cpp)
+
+# A buffer retired outside a frame (a CSF regrowing during init) outlives the
+# initial batch that still names it.
+score_add_gfx_test(outside_frame_release_buffer GfxOutsideFrameReleaseBuffer.cpp)
+
+# Every texture a live pipeline samples has the view type its shader declares,
+# including after a cable into an array input is cut.
+score_add_gfx_test(bound_view_type GfxBoundViewType.cpp)
