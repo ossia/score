@@ -209,6 +209,10 @@ private:
   std::vector<std::pair<score::gfx::Message, int>> m_deferredMessages;
   std::vector<std::pair<EdgeSpec, int>> m_deferredEdges;
 
+  std::mutex m_disownedLock;
+  ossia::flat_set<int32_t> m_disownedPending;
+  bool isDisownedPending(int32_t index);
+
   std::mutex edges_lock;
   ossia::flat_set<EdgeSpec> new_edges TS_GUARDED_BY(edges_lock);
   ossia::flat_set<EdgeSpec> edges TS_GUARDED_BY(edges_lock);

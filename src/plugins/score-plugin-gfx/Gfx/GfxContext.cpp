@@ -101,7 +101,24 @@ GfxContext::~GfxContext()
   std::destroy_at(&m_timers);
   std::construct_at(&m_timers);
 
+  Command c = NodeCommand{};
+  while(tick_commands.try_dequeue(c))
+    if(auto cmd = ossia::get_if<NodeCommand>(&c); cmd && cmd->node)
+      if(isDisownedPending(cmd->index))
+        (void)cmd->node.release();
+
   delete m_graph;
+}
+
+bool GfxContext::isDisownedPending(int32_t index)
+{
+  std::lock_guard l{m_disownedLock};
+  if(auto it = m_disownedPending.find(index); it != m_disownedPending.end())
+  {
+    m_disownedPending.erase(it);
+    return true;
+  }
+  return false;
 }
 
 int32_t GfxContext::register_node(std::unique_ptr<score::gfx::Node> node)
@@ -189,6 +206,11 @@ void GfxContext::destroyOutput(score::gfx::OutputNode* node)
     {
       (void)it->second.release();
       nodes.erase(it);
+    }
+    else if(node->nodeId != score::gfx::invalid_node_index)
+    {
+      std::lock_guard l{m_disownedLock};
+      m_disownedPending.insert(node->nodeId);
     }
   }
 }
@@ -840,12 +862,22 @@ void GfxContext::run_commands()
       switch(cmd.cmd)
       {
         case NodeCommand::ADD_PREVIEW_NODE: {
+          if(isDisownedPending(cmd.index))
+          {
+            (void)cmd.node.release();
+            break;
+          }
           m_graph->addNode(cmd.node.get());
           add_output.push_back(cmd.node.get());
           nodes[cmd.index] = {std::move(cmd.node)};
           break;
         }
         case NodeCommand::ADD_NODE: {
+          if(isDisownedPending(cmd.index))
+          {
+            (void)cmd.node.release();
+            break;
+          }
           m_graph->addNode(cmd.node.get());
           nodes[cmd.index] = {std::move(cmd.node)};
           // Only output nodes require a full rebuild (new window/timer).
