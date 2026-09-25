@@ -11,6 +11,8 @@
 #include <Nodal/Layer.hpp>
 #include <Nodal/Process.hpp>
 
+#include <LocalTree/ScriptableProcessComponent.hpp>
+
 #include <score/graphics/RectItem.hpp>
 #include <score/model/EntitySerialization.hpp>
 #include <score/model/Skin.hpp>
@@ -185,6 +187,26 @@ class PanelDelegateFactory final : public score::PanelDelegateFactory
 }
 
 */
+namespace Nodal
+{
+class ScriptableFactory final : public LocalTree::ScriptableProcessFactory
+{
+  SCORE_CONCRETE("d7ed33ac-340c-4e74-971c-f565979e539c")
+public:
+  bool matches(const Process::ProcessModel& proc) const noexcept override
+  {
+    return qobject_cast<const Nodal::Model*>(&proc);
+  }
+  LocalTree::ScriptableProcessBase* make(
+      LocalTree::ScriptableRoots roots, Process::ProcessModel& proc,
+      const score::DocumentContext& ctx, QObject* parent) const override
+  {
+    auto& nodal = static_cast<Nodal::Model&>(proc);
+    return new LocalTree::ScriptableProcessGroup{roots, nodal, nodal.nodes, ctx, parent};
+  }
+};
+}
+
 score_plugin_nodal::score_plugin_nodal() { }
 
 score_plugin_nodal::~score_plugin_nodal() { }
@@ -196,7 +218,8 @@ std::vector<score::InterfaceBase*> score_plugin_nodal::factories(
       score::ApplicationContext, FW<Process::ProcessModelFactory, Nodal::ProcessFactory>,
       FW<Process::LayerFactory, Nodal::LayerFactory>,
       FW<Execution::ProcessComponentFactory, Nodal::ProcessExecutorComponentFactory>,
-      FW<score::ObjectEditor, Nodal::NodeEditor>
+      FW<score::ObjectEditor, Nodal::NodeEditor>,
+      FW<LocalTree::ScriptableProcessFactory, Nodal::ScriptableFactory>
       //, FW<score::PanelDelegateFactory, Nodal::PanelDelegateFactory>
       //, FW<LocalTree::ProcessComponentFactory,
       //   Nodal::LocalTreeProcessComponentFactory>
