@@ -1077,7 +1077,7 @@ endif()
 # Deterministic-headless -> CI-able. Self-serializes on /tmp/score-harness.lock.
 if(SCORE_HAS_SHELL_HARNESS)
   add_test(NAME test_gfx_soak
-    COMMAND ${_display_wrapper} "${CMAKE_CURRENT_SOURCE_DIR}/gfx-soak/soak-leak.sh" 150
+    COMMAND ${_display_wrapper} "${CMAKE_CURRENT_SOURCE_DIR}/gfx-soak/soak-leak.sh" 300
     WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
   set_tests_properties(test_gfx_soak PROPERTIES
     SKIP_RETURN_CODE 77
