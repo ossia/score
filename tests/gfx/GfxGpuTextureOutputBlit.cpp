@@ -145,10 +145,78 @@ struct CubeTexture
   QRhiTexture* m_tex{};
 };
 
-QString corpus(const char* f)
+
+// A CPU texture outlet (green) and a GPU texture outlet (red) on one node: a
+// cable from each outlet must sample that outlet, whichever kind it is.
+struct MixedOutlets
 {
-  return QStringLiteral(GFX_TEST_CORPUS_DIR "/") + QString::fromUtf8(f);
-}
+  halp_meta(name, "Mixed texture outlets")
+  halp_meta(c_name, "test_mixed_texture_outlets")
+  halp_meta(category, "Test")
+  halp_meta(uuid, "e3b61c0a-58f4-4d27-9a0c-7c2d91f4b6e5")
+
+  struct
+  {
+  } inputs;
+
+  struct
+  {
+    halp::texture_output<"Cpu"> cpu;
+    halp::gpu_texture_output<"Gpu"> gpu;
+  } outputs;
+
+  void init(score::gfx::RenderList&, QRhiResourceUpdateBatch&) { }
+
+  void update(
+      score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res,
+      score::gfx::Edge*)
+  {
+    if(m_tex)
+      return;
+    m_tex = renderer.state.rhi->newTexture(QRhiTexture::RGBA8, QSize{4, 4});
+    m_tex->create();
+    std::vector<uint8_t> px(4 * 4 * 4);
+    for(std::size_t i = 0; i < px.size(); i += 4)
+    {
+      px[i] = 255;
+      px[i + 3] = 255;
+    }
+    res.uploadTexture(
+        m_tex, QRhiTextureUploadEntry{
+                   0, 0, QRhiTextureSubresourceUploadDescription{
+                             px.data(), quint32(px.size())}});
+    outputs.gpu.texture.handle = m_tex;
+    outputs.gpu.texture.width = 4;
+    outputs.gpu.texture.height = 4;
+    outputs.gpu.texture.format = halp::gpu_texture::RGBA8;
+  }
+
+  void release(score::gfx::RenderList&)
+  {
+    delete m_tex;
+    m_tex = nullptr;
+    outputs.gpu.texture.handle = nullptr;
+  }
+
+  void runInitialPasses(
+      score::gfx::RenderList&, QRhiCommandBuffer&, QRhiResourceUpdateBatch*&,
+      score::gfx::Edge&)
+  {
+  }
+
+  void operator()()
+  {
+    if(!outputs.cpu.texture.bytes)
+      outputs.cpu.create(4, 4);
+    for(int y = 0; y < 4; y++)
+      for(int x = 0; x < 4; x++)
+        outputs.cpu.set(x, y, 0, 255, 0, 255);
+    outputs.cpu.upload();
+  }
+
+  QRhiTexture* m_tex{};
+};
+
 }
 
 TEST_CASE(
@@ -260,4 +328,68 @@ TEST_CASE(
     SKIP("backend unavailable");
   INFO("error=" << err);
   REQUIRE(err.empty());
+}
+
+TEST_CASE(
+    "each outlet of a node with CPU and GPU texture outlets reaches its own cable",
+    "[gfx][avnd][texture]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  bool skipped = false;
+  std::string err;
+  ReadbackImage fromCpu, fromGpu;
+  std::vector<std::unique_ptr<Process::ProcessModel>> models;
+  run_in_gui_app([&](const score::GUIApplicationContext& app) {
+    auto* doc = new_document(app);
+    if(!doc)
+    {
+      err = "no document";
+      return;
+    }
+    const auto& ctx = doc->context();
+    auto model = std::make_unique<oscr::ProcessModel<MixedOutlets>>(
+        TimeVal::fromMsecs(1000), Id<Process::ProcessModel>{1}, ctx, nullptr);
+    auto* raw = model.get();
+    models.push_back(std::move(model));
+
+    GfxPipeline p;
+    const int producer = p.addNode(std::unique_ptr<score::gfx::Node>{
+        new oscr::GfxNode<MixedOutlets>{*raw, {}, Gfx::exec_controls{}, 1, ctx}});
+    const int passCpu = p.addIsf(corpus("isf-passthrough-plain.fs"));
+    const int passGpu = p.addIsf(corpus("isf-passthrough-plain.fs"));
+    if(producer < 0 || passCpu < 0 || passGpu < 0)
+    {
+      err = "node build failed: " + p.error();
+      return;
+    }
+    p.wire(p.nodeImageOut(producer, 0), p.imageIn(passCpu, 0));
+    p.wire(p.nodeImageOut(producer, 1), p.imageIn(passGpu, 0));
+    const int sinkCpu = p.addSink({16, 16});
+    const int sinkGpu = p.addSink({16, 16});
+    p.wire(p.imageOut(passCpu, 0), p.sinkInput(sinkCpu));
+    p.wire(p.imageOut(passGpu, 0), p.sinkInput(sinkGpu));
+    if(!p.create(api))
+    {
+      skipped = p.skipped();
+      err = skipped ? std::string{} : p.error();
+      return;
+    }
+    p.render(6);
+    fromCpu = p.readback(sinkCpu);
+    fromGpu = p.readback(sinkGpu);
+    if(!fromCpu.valid() || !fromGpu.valid())
+      err = "empty readback";
+  });
+  if(skipped)
+    SKIP("backend unavailable");
+  INFO("error=" << err);
+  REQUIRE(err.empty());
+  const auto c = fromCpu.center();
+  const auto g = fromGpu.center();
+  INFO("cpu outlet " << int(c[0]) << " " << int(c[1]) << " " << int(c[2]));
+  INFO("gpu outlet " << int(g[0]) << " " << int(g[1]) << " " << int(g[2]));
+  CHECK((c[1] > 200 && c[0] < 40));
+  CHECK((g[0] > 200 && g[1] < 40));
 }
