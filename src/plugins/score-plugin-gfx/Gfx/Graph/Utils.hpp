@@ -952,6 +952,44 @@ inline void uploadStaticBufferWithStoredData(
 #endif
 }
 
+/**
+ * @brief QRhi format for a GLSL image format qualifier ("rgba8", "r32ui", ...);
+ *        RGBA8 when unknown.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+QRhiTexture::Format imageFormatFromQualifier(std::string_view qualifier) noexcept;
+
+/**
+ * @brief A zero-filled 1x1 texture a storage image binding declared with
+ *        `qualifier` can take when nothing is bound: same format, the shape of
+ *        the declaration, usable with image load/store. Owned by the caller.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+QRhiTexture* createStorageImagePlaceholder(
+    QRhi& rhi, QRhiResourceUpdateBatch& res, std::string_view qualifier, int dimensions,
+    bool array, bool cube);
+
+/**
+ * @brief Number of storage image units the backend binds by binding number:
+ *        GL_MAX_IMAGE_UNITS on OpenGL (8 when it cannot be queried), unlimited
+ *        elsewhere.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+int storageImageUnitLimit(QRhi& rhi);
+
+//! Highest binding of a storage image declared in `glsl`, -1 if none.
+SCORE_PLUGIN_GFX_EXPORT
+int maxStorageImageBinding(QStringView glsl);
+
+/**
+ * @brief Warn once per shader when a storage image in `sources` has a binding
+ *        the OpenGL backend cannot bind (at or above storageImageUnitLimit()).
+ * @return whether a warning was emitted by this call.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+bool warnStorageImageUnits(
+    QRhi& rhi, const char* kind, std::initializer_list<const QString*> sources);
+
 SCORE_PLUGIN_GFX_EXPORT
 std::vector<Sampler> initInputSamplers(
     const score::gfx::Node& node, RenderList& renderer, const std::vector<Port*>& ports,

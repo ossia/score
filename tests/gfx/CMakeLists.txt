@@ -1916,3 +1916,23 @@ if(TARGET score_plugin_avnd)
     $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
+
+# Raw raster read_only storage image INPUTS take no sampler binding; storage
+# image bindings past the OpenGL image units warn once per shader (agent A5).
+score_add_gfx_test(n93_remainders_a5 GfxN93RemaindersA5.cpp)
+
+# Raw raster and CSF consumers follow an upstream auxiliary resized at run
+# time (agent A5).
+score_add_gfx_test(aux_size_a5 GfxAuxSizeA5.cpp)
+
+# A read_write / write_only CSF on an upstream it does not declare PERSISTENT
+# works on a copy: init-once upstreams do not accumulate (agent A5, N59).
+score_add_gfx_test(csf_read_write_copy_a5 GfxCsfReadWriteCopyA5.cpp)
+
+# Raw raster "PRIMITIVE_DATA": PRIMITIVE_ID and BARYCENTRIC in the fragment
+# stage, procedural and on an expanded indexed mesh (agent A5).
+score_add_gfx_test(raw_raster_primitive_data_a5 GfxRawRasterPrimitiveDataA5.cpp)
+
+# An unbound raw raster image or texture gets a placeholder of the declared
+# scalar class (float / uint / sint) and shape (agent A5).
+score_add_gfx_test(raw_raster_placeholder_format_a5 GfxRawRasterPlaceholderFormatA5.cpp)

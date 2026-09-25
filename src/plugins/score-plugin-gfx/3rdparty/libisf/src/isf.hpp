@@ -461,6 +461,12 @@ struct geometry_input
   std::string vertex_count;   // expression string, may contain $USER
   std::string instance_count; // expression string, may contain $USER
 
+  // PERSISTENT: read_write attributes and auxiliaries work in place on the
+  // upstream's buffers, so their changes accumulate frame to frame and every
+  // other consumer of the upstream sees them. Without it they work on a copy
+  // of the upstream data refreshed every frame.
+  bool persistent{false};
+
   // Optional format identity stamped onto the consumer geometry's
   // filter_tag (rapidhash truncated to 32 bits). Only meaningful on
   // RESOURCES of TYPE: geometry used as outputs (geoOut). Empty leaves
@@ -983,6 +989,13 @@ struct descriptor
   // one user-defined clipping plane: fragments where gl_ClipDistance[i] < 0
   // are discarded.
   int clip_distances{0};
+
+  // PRIMITIVE_DATA (RAW_RASTER_PIPELINE): the fragment stage gets PRIMITIVE_ID,
+  // the index of its primitive in the draw, and BARYCENTRIC, its position in
+  // the primitive, both derived from gl_VertexIndex in the vertex stage. The
+  // renderer expands indexed and strip meshes into lists so every primitive
+  // has vertices of its own.
+  bool primitive_data{false};
 
   // CULL_DISTANCES: like clip distances but per-primitive: a primitive whose
   // every vertex has all gl_CullDistance[i] < 0 is fully culled before

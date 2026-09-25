@@ -75,6 +75,7 @@ private:
   // 'var_' rewrite — same convention as CSF STRIDE / image-size
   // expressions. Returns >= 1; unparseable expressions degrade to 1.
   int resolveManualInvocationCount() const;
+  bool outputSizeReadsBufferSizes() const noexcept;
 
   // True when the shader renders procedurally: no VERTEX_INPUTS, driven by
   // gl_VertexIndex, with PIPELINE_STATE.VERTEX_COUNT set. m_mesh stays null and
@@ -104,6 +105,7 @@ private:
   ISFNode& n;
 
   std::vector<Sampler> m_inputSamplers;
+  std::vector<int> m_storageImageSamplers;
   std::vector<Sampler> m_audioSamplers;
   ossia::small_flat_map<Edge*, QRhiSampler*, 4> m_blitSamplersByEdge;
 
@@ -184,14 +186,15 @@ private:
   {
     QRhiSampler* sampler{};  // Null for storage-image entries.
     QRhiTexture* texture{};
-    // Shape-matched empty fallback (one of the RenderList-owned empty
-    // textures). Set at init from is_cubemap / dimensions / is_array and
-    // never changes. When rebindAuxTextures stops finding a matching
-    // aux_texture upstream (producer stopped publishing the name, got
+    // Shape-matched empty fallback. Set at init from is_cubemap / dimensions /
+    // is_array and never changes. When rebindAuxTextures stops finding a
+    // matching aux_texture upstream (producer stopped publishing the name, got
     // disconnected, etc.) `texture` reverts to this placeholder rather
     // than keeping the previous, possibly-freed, upstream handle.
-    // Never owned here.
+    // One of the RenderList-owned empty textures for a sampled entry; owned
+    // here, in the declared FORMAT, for a storage image.
     QRhiTexture* placeholder{};
+    bool owns_placeholder{false};
     std::string name;
     int binding{-1};
     // Storage-image variant: bound with imageLoad / imageStore /
@@ -224,6 +227,12 @@ private:
   // changed; the passes are rebuilt, since a hot texture swap keeps the
   // sampler.
   bool m_auxSamplerChanged{false};
+
+  //! With PRIMITIVE_DATA, `geometry` expanded into a non-indexed list, so the
+  //! vertex index names the primitive; `geometry` otherwise.
+  const ossia::geometry_spec& drawGeometry();
+  ossia::geometry_spec m_primitiveGeometry;
+  bool m_warnedPrimitiveData{false};
 
   // Emit the SRB bindings for m_auxTextureSamplers, advancing `binding`.
   // Shared by initPass and initMRTPass so the two can never disagree about

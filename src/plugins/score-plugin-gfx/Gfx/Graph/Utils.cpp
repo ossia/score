@@ -10,6 +10,11 @@
 
 #include <score/tools/Debug.hpp>
 
+#include <QMutex>
+#include <QOpenGLContext>
+#include <QOpenGLFunctions>
+#include <QRegularExpression>
+
 #include <algorithm>
 #include <unordered_set>
 
@@ -2368,5 +2373,143 @@ QRhiSampler* makeSampler(QRhi& rhi, const isf::sampler_config& cfg)
   s->setTextureCompareOp(parseCompare(cfg.compare));
   s->create();
   return s;
+}
+
+int storageImageUnitLimit(QRhi& rhi)
+{
+  if(rhi.backend() != QRhi::OpenGLES2)
+    return std::numeric_limits<int>::max();
+  int units = 0;
+#if QT_CONFIG(opengl)
+  if(rhi.makeThreadLocalNativeContextCurrent())
+  {
+    if(auto* ctx = QOpenGLContext::currentContext())
+    {
+      auto* f = ctx->functions();
+      constexpr GLenum max_image_units = 0x8F38;
+      GLint v = 0;
+      f->glGetIntegerv(max_image_units, &v);
+      while(f->glGetError() != GL_NO_ERROR)
+        ;
+      units = v;
+    }
+  }
+#endif
+  return units > 0 ? units : 8;
+}
+
+int maxStorageImageBinding(QStringView glsl)
+{
+  static const QRegularExpression decl{
+      QStringLiteral(R"(layout\s*\(([^)]*)\)[^;{}()]*\buniform\b[^;{}()]*\b[iu]?image\w*\s+\w+\s*;)")};
+  static const QRegularExpression binding{QStringLiteral(R"(\bbinding\s*=\s*(\d+))")};
+  int maxBinding = -1;
+  for(auto it = decl.globalMatchView(glsl); it.hasNext();)
+  {
+    const auto m = it.next();
+    const auto b = binding.matchView(m.capturedView(1));
+    if(b.hasMatch())
+      maxBinding = std::max(maxBinding, b.capturedView(1).toInt());
+  }
+  return maxBinding;
+}
+
+bool warnStorageImageUnits(
+    QRhi& rhi, const char* kind, std::initializer_list<const QString*> sources)
+{
+  if(rhi.backend() != QRhi::OpenGLES2)
+    return false;
+  int maxBinding = -1;
+  size_t key = 0;
+  for(const QString* src : sources)
+  {
+    if(!src)
+      continue;
+    maxBinding = std::max(maxBinding, maxStorageImageBinding(*src));
+    key = key * 31 + qHash(*src);
+  }
+  if(maxBinding < 0)
+    return false;
+  const int units = storageImageUnitLimit(rhi);
+  if(maxBinding < units)
+    return false;
+
+  static QMutex mutex;
+  static std::unordered_set<size_t> warned;
+  {
+    QMutexLocker lock{&mutex};
+    if(!warned.insert(key).second)
+      return false;
+  }
+  qWarning().nospace() << "score.gfx: " << kind
+                       << " shader declares a storage image at binding " << maxBinding
+                       << ", but this OpenGL context exposes " << units
+                       << " image units (GL binds a storage image to the unit of its "
+                          "binding): images at binding "
+                       << units << " or above cannot be bound";
+  return true;
+}
+
+QRhiTexture::Format imageFormatFromQualifier(std::string_view qualifier) noexcept
+{
+  std::string f{qualifier};
+  for(auto& c : f)
+    c = (char)std::tolower((unsigned char)c);
+  if(f == "bgra8")    return QRhiTexture::BGRA8;
+  if(f == "r8")       return QRhiTexture::R8;
+  if(f == "rg8")      return QRhiTexture::RG8;
+  if(f == "r16")      return QRhiTexture::R16;
+  if(f == "r16f")     return QRhiTexture::R16F;
+  if(f == "r32f")     return QRhiTexture::R32F;
+  if(f == "rgba16f")  return QRhiTexture::RGBA16F;
+  if(f == "rgba32f")  return QRhiTexture::RGBA32F;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
+  if(f == "r8ui")                 return QRhiTexture::R8UI;
+  if(f == "r32ui")                return QRhiTexture::R32UI;
+  if(f == "rg32ui")               return QRhiTexture::RG32UI;
+  if(f == "rgba32ui")             return QRhiTexture::RGBA32UI;
+  if(f == "r8si" || f == "r8i")   return QRhiTexture::R8SI;
+  if(f == "r32si" || f == "r32i") return QRhiTexture::R32SI;
+  if(f == "rg32si")               return QRhiTexture::RG32SI;
+  if(f == "rgba32si")             return QRhiTexture::RGBA32SI;
+#endif
+  return QRhiTexture::RGBA8;
+}
+
+QRhiTexture* createStorageImagePlaceholder(
+    QRhi& rhi, QRhiResourceUpdateBatch& res, std::string_view qualifier, int dimensions,
+    bool array, bool cube)
+{
+  const auto format = imageFormatFromQualifier(qualifier);
+  QRhiTexture::Flags flags = QRhiTexture::UsedWithLoadStore;
+  QRhiTexture* tex{};
+  if(cube)
+    tex = rhi.newTexture(format, QSize{1, 1}, 1, flags | QRhiTexture::CubeMap);
+  else if(dimensions == 3)
+    tex = rhi.newTexture(format, 1, 1, 1, 1, flags | QRhiTexture::ThreeDimensional);
+  else if(array)
+    tex = rhi.newTextureArray(format, 1, QSize{1, 1}, 1, flags | QRhiTexture::TextureArray);
+  else
+    tex = rhi.newTexture(format, QSize{1, 1}, 1, flags);
+  tex->setName(QByteArray("storage_image_placeholder_") + QByteArray(qualifier.data(), qualifier.size()));
+  if(!tex->create())
+  {
+    delete tex;
+    return nullptr;
+  }
+
+  static const char zero[16]{};
+  QRhiTextureUploadDescription desc;
+  const int layers = cube ? 6 : 1;
+  QList<QRhiTextureUploadEntry> entries;
+  for(int layer = 0; layer < layers; layer++)
+  {
+    QRhiTextureSubresourceUploadDescription sub{zero, 16};
+    sub.setSourceSize(QSize{1, 1});
+    entries.push_back(QRhiTextureUploadEntry{layer, 0, sub});
+  }
+  desc.setEntries(entries.begin(), entries.end());
+  res.uploadTexture(tex, desc);
+  return tex;
 }
 }

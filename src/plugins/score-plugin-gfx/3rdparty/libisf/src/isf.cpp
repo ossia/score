@@ -1409,6 +1409,10 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
       else if(val.get_type() == sajson::TYPE_DOUBLE)
         inp.instance_count = std::to_string((int)val.get_double_value());
     }
+    else if(k == "PERSISTENT")
+    {
+      inp.persistent = v.get_object_value(i).get_type() == sajson::TYPE_TRUE;
+    }
     else if(k == "FORMAT_ID")
     {
       // String tag stamped on the consumer geometry's filter_tag
@@ -3280,6 +3284,10 @@ static const ossia::string_map<root_fun>& root_parse{[] {
       d.clip_distances = n;
   }});
 
+  p.insert({"PRIMITIVE_DATA", [](descriptor& d, const sajson::value& v) {
+    d.primitive_data = v.get_type() == sajson::TYPE_TRUE;
+  }});
+
   p.insert({"CULL_DISTANCES", [](descriptor& d, const sajson::value& v) {
     int n{};
     if(get_int(v, n) && n > 0 && n <= 8)
@@ -4584,6 +4592,26 @@ void parser::parse_raw_raster_pipeline()
     m_fragment += "#define VIEW_INDEX isf_ViewIndexVarying\n";
   }
 
+  if(m_desc.primitive_data)
+  {
+    int location = mv_fragment_plumbing ? mv_varying_location + 1 : 0;
+    for(const auto& attr : m_desc.vertex_outputs)
+      location = std::max(location, attr.location + 1);
+    for(const auto& attr : m_desc.fragment_inputs)
+      location = std::max(location, attr.location + 1);
+
+    m_vertex += fmt::format(
+        "layout(location = {}) flat out int isf_PrimitiveIDVarying;\n"
+        "layout(location = {}) out vec3 isf_BarycentricVarying;\n",
+        location, location + 1);
+    m_fragment += fmt::format(
+        "layout(location = {}) flat in int isf_PrimitiveIDVarying;\n"
+        "layout(location = {}) in vec3 isf_BarycentricVarying;\n"
+        "#define PRIMITIVE_ID isf_PrimitiveIDVarying\n"
+        "#define BARYCENTRIC isf_BarycentricVarying\n",
+        location, location + 1);
+  }
+
   // LAYER_INDEX for layered outputs.
   {
     bool has_layered_output = (m_desc.multiview_count >= 2);
@@ -5129,6 +5157,43 @@ void parser::parse_raw_raster_pipeline()
     m_vertex += "#endif\n";
   }
   m_vertex += "  isf_rawraster_user_main();\n";
+  if(m_desc.primitive_data)
+  {
+    std::string topology = m_desc.default_state.topology.value_or("triangles");
+    for(auto& c : topology)
+      c = (char)std::tolower((unsigned char)c);
+    const char* id = "gl_VertexIndex / 3";
+    const char* corner = "gl_VertexIndex % 3";
+    if(topology == "triangle_strip")
+    {
+      id = "gl_VertexIndex";
+    }
+    else if(topology == "triangle_fan")
+    {
+      id = "max(gl_VertexIndex - 1, 0)";
+      corner = "(gl_VertexIndex == 0 ? 0 : 1 + (gl_VertexIndex - 1) % 2)";
+    }
+    else if(topology == "lines" || topology == "line_list")
+    {
+      id = "gl_VertexIndex / 2";
+      corner = "gl_VertexIndex % 2";
+    }
+    else if(topology == "line_strip")
+    {
+      id = "gl_VertexIndex";
+      corner = "gl_VertexIndex % 2";
+    }
+    else if(topology == "points")
+    {
+      id = "gl_VertexIndex";
+      corner = "0";
+    }
+    m_vertex += fmt::format(
+        "  isf_PrimitiveIDVarying = {};\n"
+        "  int isf_corner = {};\n"
+        "  isf_BarycentricVarying = vec3(isf_corner == 0, isf_corner == 1, isf_corner == 2);\n",
+        id, corner);
+  }
   m_vertex += "}\n";
 
   // Replace the special ISF stuff
@@ -6075,6 +6140,8 @@ std::string parser::write_isf() const
           }
           if(!geo.format_id.empty())
             oss << ",\n      \"FORMAT_ID\": \"" << escape_json(geo.format_id) << "\"";
+          if(geo.persistent)
+            oss << ",\n      \"PERSISTENT\": true";
           if(!geo.attributes.empty())
           {
             oss << ",\n      \"ATTRIBUTES\": [\n";

@@ -415,18 +415,21 @@ QRhiTexture* RenderedRawRasterPipelineNode::textureForOutput(const Port& output)
 std::vector<Sampler> RenderedRawRasterPipelineNode::allSamplers() const noexcept
 {
   // Input ports
-  std::vector<Sampler> samplers = m_inputSamplers;
+  std::vector<Sampler> samplers;
+  samplers.reserve(m_inputSamplers.size() + m_audioSamplers.size());
 
   // Apply non-owning per-port sampler overrides published by the upstream
   // geometry's auxiliary_texture::sampler_handle. Applied only on the SRB-build
   // copy: m_inputSamplers keeps its own owning sampler so release() can delete
   // it without touching a registry-owned one.
-  const std::size_t n_overrides
-      = std::min(samplers.size(), m_inputSamplerOverrides.size());
-  for(std::size_t i = 0; i < n_overrides; ++i)
+  for(std::size_t i = 0; i < m_inputSamplers.size(); ++i)
   {
-    if(m_inputSamplerOverrides[i])
-      samplers[i].sampler = m_inputSamplerOverrides[i];
+    if(ossia::contains(m_storageImageSamplers, (int)i))
+      continue;
+    auto s = m_inputSamplers[i];
+    if(i < m_inputSamplerOverrides.size() && m_inputSamplerOverrides[i])
+      s.sampler = m_inputSamplerOverrides[i];
+    samplers.push_back(s);
   }
 
   // Audio textures
@@ -2148,7 +2151,7 @@ void RenderedRawRasterPipelineNode::initState(
     if(geometry.meshes)
     {
       std::tie(m_mesh, m_meshbufs)
-          = renderer.acquireMesh(geometry, res, m_mesh, m_meshbufs);
+          = renderer.acquireMesh(drawGeometry(), res, m_mesh, m_meshbufs);
       m_meshbufs.gpuIndirectSupported
           = renderer.state.caps.drawIndirect
             && !indirectDrawBreaksMultiView(
@@ -2203,6 +2206,9 @@ void RenderedRawRasterPipelineNode::initState(
   SCORE_ASSERT(m_audioSamplers.empty());
 
   m_inputSamplers = initInputSamplers(this->n, renderer, n.input, &n.descriptor());
+  m_storageImageSamplers = storageImageInputSamplers(
+      n.descriptor(), n.input, n.descriptor().mode == isf::descriptor::RawRaster ? 1 : 0);
+  warnStorageImageUnits(rhi, "raw raster", {&n.m_vertexS, &n.m_fragmentS});
 
   // Build the auxiliary-texture binding table and seed the initial texture
   // pointers from the incoming geometry, recording a (sampler_idx, name) pair
@@ -2353,14 +2359,21 @@ void RenderedRawRasterPipelineNode::initState(
       // publishing the aux name (otherwise we'd keep the stale upstream
       // handle around — UAF waiting to happen when the producer releases
       // the texture).
-      if(atx.is_cubemap)
-        ats.placeholder = &renderer.emptyTextureCube();
-      else if(atx.dimensions == 3)
-        ats.placeholder = &renderer.emptyTexture3D();
-      else if(atx.is_array)
-        ats.placeholder = &renderer.emptyTextureArray();
-      else
-        ats.placeholder = &renderer.emptyTexture();
+      if(atx.is_storage)
+        ats.placeholder = createStorageImagePlaceholder(
+            rhi, res, atx.format, atx.dimensions, atx.is_array, atx.is_cubemap);
+      ats.owns_placeholder = ats.placeholder != nullptr;
+      if(!ats.placeholder)
+      {
+        if(atx.is_cubemap)
+          ats.placeholder = &renderer.emptyTextureCube();
+        else if(atx.dimensions == 3)
+          ats.placeholder = &renderer.emptyTexture3D();
+        else if(atx.is_array)
+          ats.placeholder = &renderer.emptyTextureArray();
+        else
+          ats.placeholder = &renderer.emptyTexture();
+      }
       ats.texture = ats.placeholder;
 
       m_auxTextureSamplers.push_back(std::move(ats));
@@ -2413,8 +2426,7 @@ void RenderedRawRasterPipelineNode::initState(
       m_firstAuxImageBinding = 3 + inputImageBindings;
       m_firstSamplerBinding = m_firstAuxImageBinding + auxImageBindings;
       const int firstStorageBinding = m_firstSamplerBinding
-                                      + (int)m_inputSamplers.size()
-                                      + (int)m_audioSamplers.size();
+                                      + (int)allSamplers().size();
       m_firstStorageBinding = firstStorageBinding;
       collectGraphicsStorageResources(
           desc, firstStorageBinding, m_storage, startPC.inlets, 3);
@@ -2744,8 +2756,8 @@ void RenderedRawRasterPipelineNode::releaseState(RenderList& r)
   {
     if(ats.sampler)
       ats.sampler->deleteLater();
-    // `texture` is either a renderer-owned placeholder or an upstream-
-    // geometry-owned handle — we don't own it here.
+    if(ats.owns_placeholder && ats.placeholder)
+      ats.placeholder->deleteLater();
   }
   m_auxTextureSamplers.clear();
 
@@ -3020,7 +3032,7 @@ void RenderedRawRasterPipelineNode::update(
     {
       const Mesh* prevMesh = m_mesh;
       std::tie(m_mesh, m_meshbufs)
-          = renderer.acquireMesh(geometry, res, m_mesh, m_meshbufs);
+          = renderer.acquireMesh(drawGeometry(), res, m_mesh, m_meshbufs);
       m_meshbufs.gpuIndirectSupported
           = renderer.state.caps.drawIndirect
             && !indirectDrawBreaksMultiView(
@@ -3126,6 +3138,14 @@ void RenderedRawRasterPipelineNode::update(
                   aux.size = geo_aux->byte_size > 0 ? geo_aux->byte_size : gpu->byte_size;
                   aux.owned = false;
                   mustRecreatePasses = true;
+                }
+                else if(const int64_t sz = geo_aux->byte_size > 0 ? geo_aux->byte_size
+                                                                  : gpu->byte_size;
+                        aux.size != sz)
+                {
+                  aux.size = sz;
+                  if(outputSizeReadsBufferSizes())
+                    mustRecreatePasses = true;
                 }
               }
             }
@@ -4035,12 +4055,12 @@ void RenderedRawRasterPipelineNode::drawWithPerMeshAuxRebind(
       uint32_t vcount = *ds.vertex_count;
       const uint32_t icount = ds.instance_count.value_or(1u);
 
+      const auto& drawn
+          = m_primitiveGeometry.meshes ? m_primitiveGeometry : this->geometry;
       const bool hasVertexInputs = !n.descriptor().vertex_inputs.empty();
-      if(hasVertexInputs && this->geometry.meshes
-         && !this->geometry.meshes->meshes.empty())
+      if(hasVertexInputs && drawn.meshes && !drawn.meshes->meshes.empty())
       {
-        const uint32_t incoming
-            = (uint32_t)this->geometry.meshes->meshes[0].vertices;
+        const uint32_t incoming = (uint32_t)drawn.meshes->meshes[0].vertices;
         if(incoming > 0 && vcount > incoming)
           vcount = incoming;
       }
@@ -4058,9 +4078,9 @@ void RenderedRawRasterPipelineNode::drawWithPerMeshAuxRebind(
       // wrong stream, so an incomplete set binds nothing at all.
       QVarLengthArray<QRhiCommandBuffer::VertexInput, 8> inputs;
       bool inputsOk = true;
-      if(this->geometry.meshes && !this->geometry.meshes->meshes.empty())
+      if(drawn.meshes && !drawn.meshes->meshes.empty())
       {
-        const auto& g0 = this->geometry.meshes->meshes[0];
+        const auto& g0 = drawn.meshes->meshes[0];
         const auto slotCount
             = plan.compacted ? plan.mesh_bindings.size() : g0.input.size();
         for(std::size_t k = 0; k < slotCount && inputsOk; ++k)
@@ -4335,6 +4355,157 @@ int RenderedRawRasterPipelineNode::resolveIntExpression(
   qWarning() << "RawRaster: integer expression failed:"
              << e.error().c_str() << eval_expr.c_str();
   return fallback;
+}
+
+static std::optional<ossia::geometry> expandPrimitives(const ossia::geometry& g)
+{
+  if(!g.cpu_draw_commands.empty() || g.indirect_count.handle || g.find_auxiliary("_indirect_draw")
+     || g.find_auxiliary("_indirect_draw_indexed"))
+    return std::nullopt;
+
+  auto cpuData = [&](int idx) -> const ossia::geometry::cpu_buffer* {
+    if(idx < 0 || idx >= (int)g.buffers.size())
+      return nullptr;
+    return ossia::get_if<ossia::geometry::cpu_buffer>(&g.buffers[idx].data);
+  };
+
+  std::vector<uint32_t> order;
+  if(g.index.buffer >= 0)
+  {
+    const auto* ib = cpuData(g.index.buffer);
+    if(!ib || !ib->raw_data)
+      return std::nullopt;
+    const int size = g.index.format == decltype(g.index)::uint16 ? 2 : 4;
+    if(g.index.byte_offset + (int64_t)g.indices * size > ib->byte_size)
+      return std::nullopt;
+    const auto* base = static_cast<const char*>(ib->raw_data.get()) + g.index.byte_offset;
+    order.resize(g.indices);
+    for(int i = 0; i < g.indices; i++)
+    {
+      if(size == 2)
+      {
+        uint16_t v;
+        std::memcpy(&v, base + i * 2, 2);
+        order[i] = v;
+      }
+      else
+      {
+        std::memcpy(&order[i], base + i * 4, 4);
+      }
+    }
+  }
+  else
+  {
+    order.resize(std::max(0, g.vertices));
+    for(int i = 0; i < g.vertices; i++)
+      order[i] = i;
+  }
+
+  std::vector<uint32_t> list;
+  auto topology = g.topology;
+  switch(g.topology)
+  {
+    case ossia::geometry::triangle_strip:
+      for(std::size_t i = 2; i < order.size(); i++)
+      {
+        const bool odd = (i - 2) % 2;
+        list.insert(
+            list.end(), {order[i - (odd ? 1 : 2)], order[i - (odd ? 2 : 1)], order[i]});
+      }
+      topology = ossia::geometry::triangles;
+      break;
+    case ossia::geometry::triangle_fan:
+      for(std::size_t i = 2; i < order.size(); i++)
+        list.insert(list.end(), {order[0], order[i - 1], order[i]});
+      topology = ossia::geometry::triangles;
+      break;
+    case ossia::geometry::line_strip:
+      for(std::size_t i = 1; i < order.size(); i++)
+        list.insert(list.end(), {order[i - 1], order[i]});
+      topology = ossia::geometry::lines;
+      break;
+    default:
+      list = std::move(order);
+      break;
+  }
+
+  ossia::geometry out = g;
+  out.topology = topology;
+  out.index.buffer = -1;
+  out.index.byte_offset = 0;
+  out.indices = 0;
+  out.vertices = (int)list.size();
+  for(std::size_t i = 0; i < g.input.size(); i++)
+  {
+    const auto& in = g.input[i];
+    if(i >= g.bindings.size())
+      return std::nullopt;
+    if(g.bindings[i].classification == ossia::geometry::binding::per_instance)
+      continue;
+    const int64_t stride = g.bindings[i].byte_stride;
+    const auto* src = cpuData(in.buffer);
+    if(!src || !src->raw_data || stride <= 0)
+      return std::nullopt;
+    auto data = std::shared_ptr<char[]>(new char[std::max<std::size_t>(1, list.size() * stride)]);
+    const auto* from = static_cast<const char*>(src->raw_data.get());
+    for(std::size_t k = 0; k < list.size(); k++)
+    {
+      const int64_t at = in.byte_offset + (int64_t)list[k] * stride;
+      if(at + stride > src->byte_size)
+        return std::nullopt;
+      std::memcpy(data.get() + k * stride, from + at, stride);
+    }
+    out.buffers.push_back(
+        {.data = ossia::geometry::cpu_buffer{
+             std::shared_ptr<void>(data, data.get()), (int64_t)(list.size() * stride)},
+         .dirty = true});
+    out.input[i] = {.buffer = (int)out.buffers.size() - 1, .byte_offset = 0};
+  }
+  return out;
+}
+
+const ossia::geometry_spec& RenderedRawRasterPipelineNode::drawGeometry()
+{
+  if(!n.descriptor().primitive_data || !geometry.meshes || geometry.meshes->meshes.empty())
+    return geometry;
+
+  const auto& g = geometry.meshes->meshes[0];
+  const bool listed = g.index.buffer < 0
+                      && (g.topology == ossia::geometry::triangles
+                          || g.topology == ossia::geometry::lines
+                          || g.topology == ossia::geometry::points);
+  if(listed)
+  {
+    m_primitiveGeometry = {};
+    return geometry;
+  }
+
+  auto expanded = expandPrimitives(g);
+  if(!expanded)
+  {
+    m_primitiveGeometry = {};
+    if(!std::exchange(m_warnedPrimitiveData, true))
+      qWarning() << "RawRaster: PRIMITIVE_DATA needs a non-indexed list or CPU-side "
+                    "vertex and index data without indirect draws; PRIMITIVE_ID and "
+                    "BARYCENTRIC are not meaningful on this geometry";
+    return geometry;
+  }
+  auto list = std::make_shared<ossia::mesh_list>();
+  list->meshes.push_back(std::move(*expanded));
+  list->dirty_index = geometry.meshes->dirty_index;
+  m_primitiveGeometry = {std::move(list), geometry.filters};
+  return m_primitiveGeometry;
+}
+
+bool RenderedRawRasterPipelineNode::outputSizeReadsBufferSizes() const noexcept
+{
+  auto reads = [](const std::string& e) {
+    return e.find("$COUNT_") != std::string::npos
+           || e.find("$BYTESIZE_") != std::string::npos;
+  };
+  return std::any_of(
+      n.descriptor().outputs.begin(), n.descriptor().outputs.end(),
+      [&](const auto& o) { return reads(o.width_expression) || reads(o.height_expression); });
 }
 
 int RenderedRawRasterPipelineNode::resolveManualInvocationCount() const

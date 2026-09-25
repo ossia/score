@@ -148,6 +148,7 @@ private:
   {
     QRhiBuffer* buffer{};
     int64_t size{};
+    int64_t offset{};
     int64_t lastKnownSize{}; // For dynamic resizing
     QString name;
     QString access; // "read_only", "write_only", "read_write"
@@ -155,7 +156,11 @@ private:
     bool owned{true}; // false when buffer comes from geometry auxiliary
     std::string buffer_usage; // "", "indirect_draw", "indirect_draw_indexed", "dispatch_args"
   };
+  //! A writable geometry auxiliary's SIZE did not resolve this frame: the
+  //! passes are skipped rather than dispatched over an undersized buffer.
+  bool m_auxSizeUnresolved{false};
   std::vector<StorageBuffer> m_storageBuffers; // Contains both ins and outs
+
 
   // Only outs, matched with index in m_storageBuffers
   std::vector<std::pair<const score::gfx::Port*, int>> m_outStorageBuffers;
@@ -234,6 +239,12 @@ private:
       int64_t size{};
       int64_t offset{};
       bool owned{true};
+      //! A read_write auxiliary on a GPU upstream works on an owned copy of
+      //! restore_source, refreshed before the passes run every frame.
+      QRhiBuffer* restore_source{};
+      int64_t restore_offset{};
+      int64_t restore_size{};
+      bool restore_seen{false};
       bool is_uniform{false};     // true = std140 UBO, false = std430 SSBO
       std::string name;
       std::string access;
