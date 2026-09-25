@@ -296,6 +296,14 @@ public:
   QRhiTexture& emptyTextureArray() const noexcept { return *m_emptyTextureArray; }
 
   /**
+   * @brief Texture a GrabsFromSource port fed by its own node samples: the
+   * previous-frame copy, or an empty texture of the port's kind when the
+   * output is a depth or multisampled texture, which cannot be copied.
+   * nullptr when the port is not self-fed.
+   */
+  QRhiTexture* selfFeedbackGrab(const Port& in) const noexcept;
+
+  /**
    * @brief UBO corresponding to the output parameters:
    *
    *  - Render size
@@ -525,12 +533,13 @@ private:
    * the texture the node renders into.
    */
   ossia::small_flat_map<const Port*, QRhiTexture*, 2> m_selfFeedbackGrabs;
+  ossia::small_flat_map<const Port*, QRhiTexture*, 2> m_selfFeedbackPlaceholders;
+  ossia::flat_set<const Port*> m_selfFeedbackWarned;
 
   void updateSelfFeedbackTargets(QRhiResourceUpdateBatch& res);
   void updateSelfFeedbackGrabs(QRhiResourceUpdateBatch& res);
   void removeSelfFeedbackTarget(const Port* port);
   bool ensureSelfFeedbackTarget(const Port& in);
-  QRhiTexture* selfFeedbackGrab(const Port& in) const noexcept;
 
   /**
    * @brief Last size used by this renderer.

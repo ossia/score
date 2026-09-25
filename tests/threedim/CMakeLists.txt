@@ -527,3 +527,20 @@ target_compile_definitions(test_threedim_fbx_instancing_animation_c2 PRIVATE
 score_add_test(test_threedim_string_list_control_i5
   SOURCES StringListControlI5Test.cpp)
 threedim_test_includes(test_threedim_string_list_control_i5)
+
+# Camera Roll control and the straight-down / straight-up orientation (L1).
+score_add_test(test_threedim_camera_roll_pole_l1
+  SOURCES CameraRollPoleL1.cpp "${THREEDIM_DIR}/Camera.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_camera_roll_pole_l1)
+
+# FBX: a non-bone node between two bones is part of the joint chain, so the
+# bind pose skins vertices in place (L1).
+score_plugin_hidden_sources(_fbx_l1_hidden "${THREEDIM_DIR}/FbxParser.cpp")
+score_add_test(test_threedim_fbx_joint_rest_l1
+  SOURCES FbxJointRestL1.cpp ${_fbx_l1_hidden}
+  PLUGINS score_plugin_threedim score_plugin_gfx score_plugin_avnd
+  LIBS ${_fbx_c2_libs})
+threedim_test_includes(test_threedim_fbx_joint_rest_l1)
+target_compile_definitions(test_threedim_fbx_joint_rest_l1 PRIVATE
+  THREEDIM_TEST_DIR="${CMAKE_CURRENT_SOURCE_DIR}")

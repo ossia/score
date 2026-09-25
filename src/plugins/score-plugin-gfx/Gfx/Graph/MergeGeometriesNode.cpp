@@ -4,11 +4,15 @@
 #include <Gfx/Graph/RhiComputeBarrier.hpp>
 #include <Gfx/Graph/Utils.hpp>
 
+#include <QDebug>
+
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <functional>
 #include <map>
 #include <set>
+#include <string>
 #include <tuple>
 
 namespace score::gfx
@@ -93,6 +97,46 @@ int floatComponents(decltype(ossia::geometry::attribute::format) f) noexcept
       return 0;
   }
 }
+
+const char* formatName(decltype(ossia::geometry::attribute::format) f) noexcept
+{
+  using A = ossia::geometry::attribute;
+  switch(f)
+  {
+    case A::float4: return "float4";
+    case A::float3: return "float3";
+    case A::float2: return "float2";
+    case A::float1: return "float1";
+    case A::unormbyte4: return "unormbyte4";
+    case A::unormbyte2: return "unormbyte2";
+    case A::unormbyte1: return "unormbyte1";
+    case A::uint4: return "uint4";
+    case A::uint3: return "uint3";
+    case A::uint2: return "uint2";
+    case A::uint1: return "uint1";
+    case A::sint4: return "sint4";
+    case A::sint3: return "sint3";
+    case A::sint2: return "sint2";
+    case A::sint1: return "sint1";
+    case A::half4: return "half4";
+    case A::half3: return "half3";
+    case A::half2: return "half2";
+    case A::half1: return "half1";
+    case A::ushort4: return "ushort4";
+    case A::ushort3: return "ushort3";
+    case A::ushort2: return "ushort2";
+    case A::ushort1: return "ushort1";
+    case A::sshort4: return "sshort4";
+    case A::sshort3: return "sshort3";
+    case A::sshort2: return "sshort2";
+    case A::sshort1: return "sshort1";
+    case A::user_struct: return "user_struct";
+  }
+  return "unknown";
+}
+
+using UntransformedReport
+    = std::function<void(const ossia::geometry::attribute&, const char* reason)>;
 
 void transformBounds(ossia::geometry& g, const float* m) noexcept
 {
@@ -207,8 +251,11 @@ void main()
 }
 }
 
-std::vector<ossia::geometry> bakeGeometryTransform(
-    const std::vector<ossia::geometry>& meshes, const ossia::transform3d& transform)
+namespace
+{
+std::vector<ossia::geometry> bakeCpuAttributes(
+    const std::vector<ossia::geometry>& meshes, const ossia::transform3d& transform,
+    const UntransformedReport& report)
 {
   std::vector<ossia::geometry> out = meshes;
   if(isIdentity(transform))
@@ -222,22 +269,11 @@ std::vector<ossia::geometry> bakeGeometryTransform(
   {
     for(const auto& attr : g.attributes)
     {
-      const int kind = attr.semantic == ossia::attribute_semantic::position  ? 0
-                       : attr.semantic == ossia::attribute_semantic::normal  ? 1
-                       : attr.semantic == ossia::attribute_semantic::tangent ? 2
-                       : attr.semantic == ossia::attribute_semantic::bitangent
-                           ? 2
-                           : -1;
+      const int kind = bakeKind(attr.semantic);
       if(kind < 0)
-        continue;
-      const int comps = floatComponents(attr.format);
-      if(comps == 0)
         continue;
       if(attr.binding < 0 || attr.binding >= std::ssize(g.input)
          || attr.binding >= std::ssize(g.bindings))
-        continue;
-      if(g.bindings[attr.binding].classification
-         != ossia::geometry::binding::per_vertex)
         continue;
       const auto& in = g.input[attr.binding];
       if(in.buffer < 0 || in.buffer >= std::ssize(g.buffers))
@@ -246,6 +282,20 @@ std::vector<ossia::geometry> bakeGeometryTransform(
       auto* cpu = ossia::get_if<ossia::geometry::cpu_buffer>(&buf.data);
       if(!cpu || !cpu->raw_data || cpu->byte_size <= 0)
         continue;
+      const int comps = floatComponents(attr.format);
+      if(comps == 0)
+      {
+        if(report)
+          report(attr, "only float3 and float4 are transformed");
+        continue;
+      }
+      if(g.bindings[attr.binding].classification
+         != ossia::geometry::binding::per_vertex)
+      {
+        if(report)
+          report(attr, "per-instance attributes are not transformed");
+        continue;
+      }
 
       const void* original = cpu->raw_data.get();
       const int64_t start = in.byte_offset + attr.byte_offset;
@@ -296,6 +346,13 @@ std::vector<ossia::geometry> bakeGeometryTransform(
   }
   return out;
 }
+}
+
+std::vector<ossia::geometry> bakeGeometryTransform(
+    const std::vector<ossia::geometry>& meshes, const ossia::transform3d& transform)
+{
+  return bakeCpuAttributes(meshes, transform, {});
+}
 
 
 struct RenderedMergeGeometriesNode final : NodeRenderer
@@ -323,6 +380,7 @@ struct RenderedMergeGeometriesNode final : NodeRenderer
   QRhiComputePipeline* m_gpuBakePipeline{};
   bool m_gpuBakeUnavailable{};
   int64_t m_gpuBakeFrame{-1};
+  std::set<std::tuple<int, int, std::string>> m_warnedUntransformed;
 
   RenderedMergeGeometriesNode(const MergeGeometriesNode& n)
       : NodeRenderer{n}
@@ -482,13 +540,22 @@ struct RenderedMergeGeometriesNode final : NodeRenderer
     return true;
   }
 
+  void warnUntransformed(const ossia::geometry::attribute& attr, const char* reason)
+  {
+    if(!m_warnedUntransformed.emplace(int(attr.semantic), int(attr.format), reason)
+            .second)
+      return;
+    const auto name = ossia::semantic_to_name(attr.semantic);
+    qWarning().noquote() << "Merge Geometries:"
+                         << QString::fromUtf8(name.data(), qsizetype(name.size()))
+                         << "attribute in" << formatName(attr.format)
+                         << "passes untransformed:" << reason;
+  }
+
   void bakeGpuBuffers(
       RenderList& renderer, int port, std::vector<ossia::geometry>& meshes,
       const ossia::transform3d& transform)
   {
-    if(m_gpuBakeUnavailable)
-      return;
-
     const BakeMatrices mats{transform};
     std::set<std::tuple<QRhiBuffer*, int64_t, int>> done;
     std::vector<QRhiBuffer*> sources;
@@ -500,14 +567,8 @@ struct RenderedMergeGeometriesNode final : NodeRenderer
         const int kind = bakeKind(attr.semantic);
         if(kind < 0)
           continue;
-        const int comps = floatComponents(attr.format);
-        if(comps == 0)
-          continue;
         if(attr.binding < 0 || attr.binding >= std::ssize(g.input)
            || attr.binding >= std::ssize(g.bindings))
-          continue;
-        if(g.bindings[attr.binding].classification
-           != ossia::geometry::binding::per_vertex)
           continue;
         const auto& in = g.input[attr.binding];
         if(in.buffer < 0 || in.buffer >= std::ssize(g.buffers))
@@ -515,14 +576,33 @@ struct RenderedMergeGeometriesNode final : NodeRenderer
         auto* gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&g.buffers[in.buffer].data);
         if(!gpu || !gpu->handle || gpu->byte_size <= 0)
           continue;
-        if(!renderer.state.rhi || !renderer.state.rhi->isFeatureSupported(QRhi::Compute))
+        const int comps = floatComponents(attr.format);
+        if(comps == 0)
         {
+          warnUntransformed(attr, "only float3 and float4 are transformed");
+          continue;
+        }
+        if(g.bindings[attr.binding].classification
+           != ossia::geometry::binding::per_vertex)
+        {
+          warnUntransformed(attr, "per-instance attributes are not transformed");
+          continue;
+        }
+        if(!m_gpuBakeUnavailable
+           && (!renderer.state.rhi
+               || !renderer.state.rhi->isFeatureSupported(QRhi::Compute)))
           m_gpuBakeUnavailable = true;
-          return;
+        if(m_gpuBakeUnavailable)
+        {
+          warnUntransformed(attr, "GPU buffers need compute shaders");
+          continue;
         }
         auto* source = static_cast<QRhiBuffer*>(gpu->handle);
         if(!source->usage().testFlag(QRhiBuffer::StorageBuffer))
+        {
+          warnUntransformed(attr, "the GPU buffer is not a storage buffer");
           continue;
+        }
 
         const int64_t size = std::min<int64_t>(gpu->byte_size, source->size());
         const int64_t start = in.byte_offset + attr.byte_offset;
@@ -531,7 +611,11 @@ struct RenderedMergeGeometriesNode final : NodeRenderer
                                    : int64_t(comps * sizeof(float));
         if(size % 4 != 0 || start < 0 || start % 4 != 0 || stride % 4 != 0
            || stride < 12 || start + 12 > size)
+        {
+          warnUntransformed(
+              attr, "GPU offsets and strides must be multiples of 4 bytes");
           continue;
+        }
         int64_t count = (size - start - 12) / stride + 1;
         if(g.vertices > 0)
           count = std::min<int64_t>(count, g.vertices);
@@ -555,7 +639,10 @@ struct RenderedMergeGeometriesNode final : NodeRenderer
           sources.push_back(source);
         }
         if(bake.attributeCount >= kMaxGpuBakeAttributes)
+        {
+          warnUntransformed(attr, "more than 8 attributes share one GPU buffer");
           continue;
+        }
         auto* a = bake.params.attributes[bake.attributeCount++];
         a[0] = uint32_t(start / 4);
         a[1] = uint32_t(stride / 4);
@@ -669,7 +756,11 @@ struct RenderedMergeGeometriesNode final : NodeRenderer
       }
       else
       {
-        auto baked = bakeGeometryTransform(in.meshes->meshes, m_transforms[i]);
+        auto baked = bakeCpuAttributes(
+            in.meshes->meshes, m_transforms[i],
+            [this](const ossia::geometry::attribute& attr, const char* reason) {
+              warnUntransformed(attr, reason);
+            });
         bakeGpuBuffers(renderer, i, baked, m_transforms[i]);
         list->meshes.insert(
             list->meshes.end(), std::make_move_iterator(baked.begin()),

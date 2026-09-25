@@ -110,25 +110,39 @@ struct FbxSceneExtractor
     return idx;
   }
 
-  // After all bones are registered, fill in parent_index for each joint by
-  // walking the ufbx parent chain until we find another registered bone.
+  // After all bones are registered, fill in parent_index for each joint from
+  // the ufbx parent chain. Nodes between a joint and its nearest joint
+  // ancestor become joints too, so their transforms (rest and animated) are
+  // part of the forward kinematics.
   void link_joint_parents()
   {
     if(!skeleton)
       return;
+    std::vector<const ufbx_node*> bones(joint_index_of.size());
     for(auto& [node, idx] : joint_index_of)
+      bones[idx] = node;
+
+    std::vector<const ufbx_node*> chain;
+    for(const ufbx_node* node : bones)
     {
+      chain.clear();
       const ufbx_node* p = node->parent;
-      while(p)
+      while(p && !joint_index_of.contains(p))
       {
-        auto it = joint_index_of.find(p);
-        if(it != joint_index_of.end())
-        {
-          skeleton->joints[idx].parent_index = it->second;
-          break;
-        }
+        chain.push_back(p);
         p = p->parent;
       }
+      if(!p)
+        continue;
+
+      int parent = joint_index_of[p];
+      for(auto it = chain.rbegin(); it != chain.rend(); ++it)
+      {
+        const int j = register_joint(*it);
+        skeleton->joints[j].parent_index = parent;
+        parent = j;
+      }
+      skeleton->joints[joint_index_of[node]].parent_index = parent;
     }
   }
 
