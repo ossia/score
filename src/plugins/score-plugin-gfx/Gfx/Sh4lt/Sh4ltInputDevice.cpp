@@ -155,87 +155,27 @@ public:
 private:
   void setup(const std::string& str)
   {
-    // "video/x-raw, format=(string)AYUV64, width=(int)320, height=(int)240, framerate=(fraction)30/1, multiview-mode=(string)mono, pixel-aspect-ratio=(fraction)1/1, interlace-mode=(string)progressive";
-
-    static const QRegularExpression parens{"\\(.*\\)"};
-    auto split = QString::fromStdString(str).split(",");
-    qDebug() << "Sh4lt Input format:" << split;
-    bool is_video = !split.empty() && split.front() == "video/x-raw";
-    if(!is_video)
+    qDebug() << "Sh4lt Input format:" << str.c_str();
+    const auto caps = ::Video::parseRawVideoCaps(str);
+    if(!caps)
       return;
-
-    QString format;
-    int w = 0;
-    int h = 0;
-    double rate = 0.;
-    for(auto& elt : split)
-    {
-      elt = elt.trimmed();
-      if(elt.startsWith("format="))
-      {
-        elt.remove("format=");
-        elt.remove(parens);
-        format = elt;
-      }
-      else if(elt.startsWith("width"))
-      {
-        elt.remove("width=");
-        elt.remove(parens);
-        w = elt.toInt();
-      }
-      else if(elt.startsWith("height="))
-      {
-        elt.remove("height=");
-        elt.remove(parens);
-        h = elt.toInt();
-      }
-      else if(elt.startsWith("framerate="))
-      {
-        elt.remove("framerate=");
-        if(elt.startsWith("(fraction)"))
-        {
-          elt.remove("(fraction)");
-          auto parts = elt.split("/");
-          if(parts.size() == 2)
-          {
-            double num = parts[0].toDouble();
-            double denom = parts[1].toDouble();
-            if(denom > 0)
-            {
-              rate = num / denom;
-            }
-          }
-        }
-        else
-        {
-          elt.remove(parens);
-          rate = elt.toDouble();
-        }
-      }
-    }
-
-    if(format.isEmpty() || w < 1 || h < 1 || rate < 1)
-    {
-      return;
-    }
-
     const auto& fmts = ::Video::gstreamerToLibav();
     AVPixelFormat parsedPixFmt = AV_PIX_FMT_NONE;
     // The GStreamer format names are case-SENSITIVE: "RGBx", "BGRx", "xRGB"
     // and "xBGR" are spelled with a lowercase x, and upper-casing them makes
     // four formats we do support look unsupported.
-    if(auto it = fmts.find(format.toStdString()); it != fmts.end())
+    if(auto it = fmts.find(caps->format); it != fmts.end())
     {
-      qDebug() << "Sh4ltInput: supported format" << format;
+      qDebug() << "Sh4ltInput: supported format" << caps->format.c_str();
       parsedPixFmt = it->second;
     }
     else
     {
-      qDebug() << "Sh4ltInput: unhandled format" << format;
+      qDebug() << "Sh4ltInput: unhandled format" << caps->format.c_str();
       return;
     }
 
-    notifyFormatChange(w, h, parsedPixFmt);
+    notifyFormatChange(caps->width, caps->height, parsedPixFmt);
   }
 
   void on_data(void* p, std::size_t sz)

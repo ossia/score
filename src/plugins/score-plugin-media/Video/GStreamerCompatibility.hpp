@@ -8,8 +8,11 @@
 #include <score_plugin_media_export.h>
 
 #include <array>
+#include <charconv>
+#include <optional>
 #include <string>
 #include <string_view>
+#include <utility>
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -19,6 +22,82 @@ extern "C" {
 
 namespace Video
 {
+
+struct RawVideoCaps
+{
+  std::string format;
+  int width{};
+  int height{};
+  double rate{};
+};
+
+/**
+ * @brief The fields of a raw video caps string, such as shmdata and sh4lt
+ * carry: "video/x-raw, format=(string)RGBA, width=(int)1280, height=(int)720,
+ * framerate=(fraction)30/1".
+ *
+ * Type annotations are optional: score's own writers omit them, so
+ * "framerate=30/1" must parse as well as "framerate=(fraction)30/1".
+ * Nullopt when the caps are not raw video or lack one of the four fields.
+ */
+inline std::optional<RawVideoCaps> parseRawVideoCaps(std::string_view caps)
+{
+  auto trim = [](std::string_view v) {
+    while(!v.empty() && v.front() == ' ')
+      v.remove_prefix(1);
+    while(!v.empty() && v.back() == ' ')
+      v.remove_suffix(1);
+    return v;
+  };
+  auto value = [&](std::string_view v) {
+    v = trim(v);
+    if(!v.empty() && v.front() == '(')
+      if(auto end = v.find(')'); end != v.npos)
+        v.remove_prefix(end + 1);
+    return trim(v);
+  };
+  auto to_int = [](std::string_view v) {
+    int i = 0;
+    std::from_chars(v.data(), v.data() + v.size(), i);
+    return i;
+  };
+
+  RawVideoCaps res;
+  bool first = true;
+  while(!caps.empty())
+  {
+    const auto comma = caps.find(',');
+    const auto field = trim(caps.substr(0, comma));
+    caps = comma == caps.npos ? std::string_view{} : caps.substr(comma + 1);
+    if(std::exchange(first, false))
+    {
+      if(field != "video/x-raw")
+        return std::nullopt;
+      continue;
+    }
+    const auto eq = field.find('=');
+    if(eq == field.npos)
+      continue;
+    const auto key = trim(field.substr(0, eq));
+    const auto val = value(field.substr(eq + 1));
+    if(key == "format")
+      res.format = val;
+    else if(key == "width")
+      res.width = to_int(val);
+    else if(key == "height")
+      res.height = to_int(val);
+    else if(key == "framerate")
+    {
+      const auto slash = val.find('/');
+      const int num = to_int(val.substr(0, slash));
+      const int den = slash == val.npos ? 1 : to_int(val.substr(slash + 1));
+      res.rate = den > 0 ? double(num) / den : 0.;
+    }
+  }
+  if(res.format.empty() || res.width < 1 || res.height < 1 || res.rate <= 0.)
+    return std::nullopt;
+  return res;
+}
 
 inline const ossia::hash_map<std::string, AVPixelFormat>& gstreamerToLibav()
 {
