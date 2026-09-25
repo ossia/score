@@ -68,6 +68,23 @@ score_add_test(test_unit_state_message_edit
   APP
   PLUGINS score_plugin_scenario)
 
+# Addresses naming a document object carry an anchor to that object.
+if(TARGET score_plugin_fx)
+  score_add_test(test_unit_address_anchor
+    SOURCES AddressAnchorTest.cpp
+    APP
+    PLUGINS score_plugin_fx score_plugin_scenario)
+endif()
+
+# Scriptable namespace of the local device.
+if(TARGET score_plugin_fx)
+  score_add_test(test_unit_scriptable_controls
+    SOURCES ScriptableControlsTest.cpp
+    APP
+    PLUGINS score_plugin_fx score_plugin_automation score_plugin_js score_plugin_engine
+            score_plugin_deviceexplorer score_plugin_scenario)
+endif()
+
 # The PipeWire video input panel: a picker over the live nodes.
 if(TARGET score_plugin_gfx)
   score_add_test(test_unit_pipewire_settings_widget
