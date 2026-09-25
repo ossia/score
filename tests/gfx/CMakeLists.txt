@@ -2105,3 +2105,25 @@ endif()
 # A render entry point reached inside a frame (renderFrames, a pumped render
 # clock, a second RenderList::render) does nothing.
 score_add_gfx_test(render_reentry GfxRenderReentry.cpp)
+
+# Single-cable texture inlets: Texture Info reads the upstream texture, no
+# inlet render target; multi-cable inlets still mix.
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  score_add_test(test_gfx_single_cable_inlet
+    SOURCES GfxSingleCableInlet.cpp
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_single_cable_inlet PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_single_cable_inlet SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()

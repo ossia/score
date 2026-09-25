@@ -34,7 +34,6 @@
 #include <ossia/dataflow/port.hpp>
 
 #include <Threedim/BufferInfo.hpp>
-#include <Threedim/TextureInfo.hpp>
 #include <Threedim/TextureToBuffer.hpp>
 
 #include <gpp/commands.hpp>
@@ -167,21 +166,23 @@ void main() { }
   gpp::co_dispatch dispatch() { co_return; }
 };
 
-struct HalpProcesses
+struct TextureProbe
 {
-  std::vector<std::unique_ptr<Process::ProcessModel>> models;
-  int next = 1;
+  halp_meta(name, "Inlet spec texture probe")
+  halp_meta(c_name, "inlet_spec_texture_probe")
+  halp_meta(uuid, "3e6a0b27-9c4d-4f18-b2a5-7d1c8e9f0a36")
 
-  template <typename T>
-  std::unique_ptr<score::gfx::Node> make(const score::DocumentContext& ctx)
+  struct
   {
-    auto model = std::make_unique<oscr::ProcessModel<T>>(
-        TimeVal::fromMsecs(1000), Id<Process::ProcessModel>{next}, ctx, nullptr);
-    auto* raw = model.get();
-    models.push_back(std::move(model));
-    return std::unique_ptr<score::gfx::Node>{
-        new oscr::GfxNode<T>{*raw, {}, Gfx::exec_controls{}, next++, ctx}};
-  }
+    halp::gpu_texture_input<"Texture"> texture;
+  } inputs;
+
+  struct
+  {
+    halp::val_port<"Width", int> width;
+  } outputs;
+
+  void operator()() { outputs.width.value = inputs.texture.texture.width; }
 };
 
 score::gfx::Port* firstInput(score::gfx::Node& n, score::gfx::Types type)
@@ -294,7 +295,7 @@ struct GpuInput
   QRhiSampler::AddressMode uAfter{};
 };
 
-// A CSF publishing its image -> Texture Info, whose input is a
+// A CSF publishing its image -> a probe whose input is a plain
 // halp::gpu_texture_input.
 GpuInput runGpuTextureInput(
     score::gfx::GraphicsApi api, const ossia::render_target_spec& spec,
@@ -318,7 +319,7 @@ GpuInput runGpuTextureInput(
       out.error = "producer build failed: " + p.error();
       return;
     }
-    auto infoOwned = procs.make<Threedim::TextureInfo>(ctx);
+    auto infoOwned = procs.make<TextureProbe>(ctx);
     auto* infoNode = infoOwned.get();
     auto* info = static_cast<score::gfx::OutputNode*>(infoOwned.get());
     const int ti = p.addNode(std::move(infoOwned));
@@ -338,7 +339,7 @@ GpuInput runGpuTextureInput(
     }
 
     REQUIRE(!infoNode->renderedNodes.empty());
-    auto* rn = dynamic_cast<oscr::GfxRenderer<Threedim::TextureInfo>*>(
+    auto* rn = dynamic_cast<oscr::GfxRenderer<TextureProbe>*>(
         infoNode->renderedNodes.begin()->second);
     REQUIRE(rn);
     const auto& t = rn->state->inputs.texture.texture;
@@ -365,7 +366,7 @@ GpuInput runGpuTextureInput(
         p.render(1);
         info->render();
       }
-      rn = dynamic_cast<oscr::GfxRenderer<Threedim::TextureInfo>*>(
+      rn = dynamic_cast<oscr::GfxRenderer<TextureProbe>*>(
           infoNode->renderedNodes.begin()->second);
       REQUIRE(rn);
       if(auto* s = static_cast<QRhiSampler*>(rn->state->inputs.texture.texture.sampler_handle))

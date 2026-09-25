@@ -639,7 +639,12 @@ constexpr score::gfx::Flag port_flags_for_field() noexcept
     constexpr auto kind = halp::texture_kind_of<Field>();
     constexpr bool nonD2 = (kind != halp::texture_kind::texture_2d);
     constexpr bool depth = halp::samplable_depth_of<Field>();
-    if constexpr(nonD2 && depth)
+    static_assert(
+        !(single_cable_port<Field> && (depth || nonD2)),
+        "single_cable is only supported on 2D texture inputs without depth");
+    if constexpr(single_cable_port<Field>)
+      return score::gfx::Flag::SingleCable;
+    else if constexpr(nonD2 && depth)
       return score::gfx::Flag::GrabsFromSource | score::gfx::Flag::SamplableDepth;
     else if constexpr(nonD2)
       return score::gfx::Flag::GrabsFromSource;
@@ -1489,6 +1494,22 @@ struct texture_inputs_storage<T>
     return {wired > 0, direct};
   }
 
+  static QRhiTexture*
+  singleCableTexture(score::gfx::RenderList& renderer, const score::gfx::Port& port)
+  {
+    for(auto* edge : port.edges)
+    {
+      if(!edge || !edge->source || !edge->source->node)
+        continue;
+      auto& rendered = edge->source->node->renderedNodes;
+      auto it = rendered.find(&renderer);
+      if(it == rendered.end() || !it->second)
+        continue;
+      return it->second->textureForOutput(*edge->source);
+    }
+    return nullptr;
+  }
+
   QRhiSampler* refreshSampler(
       const score::gfx::Node& node, int32_t index, score::gfx::RenderList& renderer,
       const score::gfx::Port* port)
@@ -1562,12 +1583,18 @@ struct texture_inputs_storage<T>
         const bool mipmapped
             = rt_it != m_rts.end() && rt_it->second.texture
               && rt_it->second.texture->flags().testFlag(QRhiTexture::MipMapped);
-        auto [wired, direct]
-            = upstreamTexture(renderer, self.node(), N, *port, mipmapped);
         tex.sampler_handle = refreshSampler(self.node(), N, renderer, port);
 
         QRhiTexture* src = nullptr;
-        if(wired)
+        if constexpr(single_cable_port<F>)
+        {
+          src = singleCableTexture(renderer, *port);
+          if(!src && !port->edges.empty() && rt_it != m_rts.end())
+            src = rt_it->second.texture;
+        }
+        else if(auto [wired, direct]
+                = upstreamTexture(renderer, self.node(), N, *port, mipmapped);
+                wired)
         {
           if constexpr(!wantsSamplableDepth)
             src = direct;

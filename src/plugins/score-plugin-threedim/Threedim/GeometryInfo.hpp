@@ -24,6 +24,7 @@ public:
     struct
     {
       halp_meta(name, "Geometry");
+      halp_flag(single_cable);
       halp::dynamic_gpu_geometry mesh;
       float transform[16]{};
       bool dirty_mesh = false;

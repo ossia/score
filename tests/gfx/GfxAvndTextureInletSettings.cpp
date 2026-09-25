@@ -6,10 +6,12 @@
 // upstream's own texture is read directly only when the inlet has a single
 // cable and no settings of its own (no size, default RGBA8 format), so a
 // size or format the user set is what the node sees, and several cables are
-// always mixed in the render target.
-//
-// Registration: see the test_gfx_avnd_texture_inlet_settings target.
-#include <score_test/Gfx.hpp>
+// always mixed in the render target. Texture Info's inlet is single-cable:
+// it reads the upstream's own texture whenever the upstream publishes one,
+// and its render target (with the inlet's settings) otherwise.
+#include "GfxHalpNodes.hpp"
+#include "IsfTestCommon.hpp"
+
 #include <score_test/Document.hpp>
 
 #include <Crousti/CpuAnalysisNode.hpp>
@@ -386,7 +388,7 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "Texture Info reports the inlet's size and format",
+    "Texture Info reports the upstream's texture, else the inlet's size and format",
     "[gfx][avnd][texture][inlet-settings]")
 {
   const auto api = GENERATE(from_range(platform_backends()));
@@ -413,12 +415,12 @@ TEST_CASE(
   if(const char* why = compute_shader_skip_reason(api))
     SKIP(why);
   const Info csf = runTextureInfo(
-      api, {"csf-image-rgba16f.cs", true},
-      inletSpec(ossia::texture_size{24, 16}, ossia::texture_format::RGBA32F));
+      api, {"csf-image-37x23-rgba32f.cs", true},
+      inletSpec(ossia::texture_size{24, 16}, ossia::texture_format::RGBA16F));
   INFO("error=" << csf.error);
   REQUIRE(csf.error.empty());
-  CHECK(csf.width == 24);
-  CHECK(csf.height == 16);
+  CHECK(csf.width == 37);
+  CHECK(csf.height == 23);
   CHECK(csf.format == "RGBA32F");
 
   const Info unset = runTextureInfo(api, {"csf-image-rgba16f.cs", true}, std::nullopt);

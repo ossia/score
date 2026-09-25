@@ -26,6 +26,9 @@ concept scene_port = requires(T t) {
   { t.scene } -> std::convertible_to<const ossia::scene_spec&>;
 };
 
+template <typename T>
+concept single_cable_port = requires { T::single_cable; };
+
 // Dirty-flag lexicon mirrors ossia::scene_port::dirt_flags so shader authors
 // can signal fine-grained changes without republishing the whole scene.
 // Users set bits on the halp field's `dirty` member; the upload path clears
