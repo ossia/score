@@ -33,6 +33,10 @@ function llog(m) { console.log("[gfx-soak] " + m); }
 
 function cycle() {
   try {
+    // One undo step per cycle, undone at its end: the processes go through the
+    // same removal path, and the next cycle's commit frees the undone step, so
+    // the undo history stays bounded and the RSS slope measures leaks only.
+    Score.startMacro();
     var procs = [];
     for (var i = 0; i < K; i++) {
       var p = Score.createProcess(g_root, UUID_ISF, PASSTHRU);
@@ -44,10 +48,12 @@ function cycle() {
         throw "createCable returned null (j=" + j + ")";
     }
     Score.setAddress(Score.outlet(procs[K - 1], 0), "Window:/");
-    for (var k = K - 1; k >= 0; k--) Score.remove(procs[k]);
+    Score.endMacro();
+    Score.undo();
     g_cycles++;
     llog("cycle " + g_cycles + " done");
   } catch (e) {
+    Score.endMacro();
     g_errors++;
     llog("CYCLE-ERROR " + g_cycles + ": " + e);
   }
