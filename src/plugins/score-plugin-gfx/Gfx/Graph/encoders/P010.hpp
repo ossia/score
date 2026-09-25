@@ -16,7 +16,7 @@ namespace score::gfx
  * full rationale and the qtbase commit reference):
  *
  *   - Qt >= 6.10: native R16 (Y) / RG16 (UV) targets; QRhi reads them back
- *     tightly. Bilinear sampling averages the 2x2 chroma block.
+ *     tightly. The 2x2 chroma block is fetched texel by texel and averaged.
  *
  *   - Qt < 6.10: the GL backend reads 16-bit single/dual-channel textures back
  *     as 8-bit RGBA, so we pack the bytes into RGBA8 ourselves.
@@ -61,7 +61,9 @@ struct P010Encoder : GPUVideoEncoder
     }
   )_";
 
-  // Rendered at half resolution. Bilinear sampling averages the 2x2 block.
+  // Rendered at half resolution, averaging the 2x2 block texel by texel: one
+  // bilinear tap at the block's centre is quantised to 8 bits on an RGBA8
+  // source (llvmpipe, many GPUs), losing the fractional code.
   static constexpr const char* uv_frag = R"_(#version 450
     layout(location = 0) in vec2 v_texcoord;
     layout(location = 0) out vec4 fragColor;
@@ -80,9 +82,19 @@ struct P010Encoder : GPUVideoEncoder
       return vec2(tc.x, 1.0 - tc.y);
     #endif
     }
+    vec3 yuv_at(int x, int y, ivec2 sz) {
+      return convert_from_rgb(
+          texelFetch(src_tex, ivec2(min(x, sz.x - 1), min(y, sz.y - 1)), 0).rgb);
+    }
     void main() {
-      vec3 rgb = texture(src_tex, flip_y(v_texcoord)).rgb;
-      vec3 yuv = convert_from_rgb(rgb);
+      ivec2 sz = textureSize(src_tex, 0);
+      // The chroma row through flip_y, as in the luma pass; each covers two
+      // source rows, as each chroma column covers two source columns.
+      int cy = int(floor(flip_y(v_texcoord).y * float(sz.y / 2)));
+      int cx = int(floor(v_texcoord.x * float(sz.x / 2)));
+      int x0 = cx * 2, y0 = cy * 2;
+      vec3 yuv = (yuv_at(x0, y0, sz) + yuv_at(x0 + 1, y0, sz)
+                + yuv_at(x0, y0 + 1, sz) + yuv_at(x0 + 1, y0 + 1, sz)) * 0.25;
       fragColor = vec4(pack10hi(yuv.y), pack10hi(yuv.z), 0.0, 1.0);
     }
   )_";

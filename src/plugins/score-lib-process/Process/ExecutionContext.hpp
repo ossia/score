@@ -66,40 +66,45 @@ class Model;
 using time_function = smallfun::function<ossia::time_value(const TimeVal&)>;
 using reverse_time_function = smallfun::function<TimeVal(const ossia::time_value&)>;
 
-struct ExecutionCommandQueue : private moodycamel::ReaderWriterQueue<ExecutionCommand>
+// ossia::spsc_queue is moodycamel::ReaderWriterQueue, except under TSan where
+// ossia swaps in ConcurrentQueue (TSan does not model its standalone fences)
+// and does not include readerwriterqueue.h at all.
+struct ExecutionCommandQueue : private ossia::spsc_queue<ExecutionCommand>
 {
+  using base_type = ossia::spsc_queue<ExecutionCommand>;
+
 public:
-  using ReaderWriterQueue<ExecutionCommand>::ReaderWriterQueue;
+  using base_type::base_type;
   template <typename... Args>
   inline auto enqueue(Args&&... args) -> decltype(auto)
   {
     OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
-    return ReaderWriterQueue<ExecutionCommand>::enqueue(std::forward<Args>(args)...);
+    return base_type::enqueue(std::forward<Args>(args)...);
   }
   template <typename... Args>
   inline auto enqueue_bulk(Args&&... args) -> decltype(auto)
   {
     OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
-    return ReaderWriterQueue<ExecutionCommand>::enqueue(std::forward<Args>(args)...);
+    return base_type::enqueue(std::forward<Args>(args)...);
   }
   template <typename... Args>
   inline auto try_enqueue(Args&&... args) -> decltype(auto)
   {
     OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
-    return ReaderWriterQueue<ExecutionCommand>::enqueue(std::forward<Args>(args)...);
+    return base_type::enqueue(std::forward<Args>(args)...);
   }
   template <typename... Args>
   inline auto try_enqueue_bulk(Args&&... args) -> decltype(auto)
   {
     OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
-    return ReaderWriterQueue<ExecutionCommand>::enqueue(std::forward<Args>(args)...);
+    return base_type::enqueue(std::forward<Args>(args)...);
   }
 
   template <typename... Args>
   inline auto try_dequeue(Args&&... args) -> decltype(auto)
   {
     OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
-    return ReaderWriterQueue<ExecutionCommand>::try_dequeue(std::forward<Args>(args)...);
+    return base_type::try_dequeue(std::forward<Args>(args)...);
   }
 };
 

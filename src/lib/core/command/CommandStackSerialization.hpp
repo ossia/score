@@ -18,7 +18,10 @@ void loadCommandStack(
 
   writer.checkDelimiter();
 
+  // The stack owns its commands (see ~CommandStack).
+  qDeleteAll(stack.undoable());
   stack.undoable().clear();
+  qDeleteAll(stack.redoable());
   stack.redoable().clear();
 
   stack.updateStack([&]() {

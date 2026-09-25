@@ -60,11 +60,7 @@ include_guard(GLOBAL)
 # ---------------------------------------------------------------------------
 set(SCORE_EXPECTED_RED
   # -- Catch2 [!shouldfail] -------------------------------------------------
-  "shouldfail@tests/integration/ScenarioContentRoundtripTest.cpp@A scenario with an added process stays a byte fixed point@two non-determinism sources remain — view-geometry doubles recomputed on layout, and a random 62-byte tail"
-  "shouldfail@tests/integration/ScenarioContentRoundtripTest.cpp@a scenario with added processes is a JSON byte fixed point@the process-order half is FIXED and its sibling order case is green and enforced. What is left is ONE named source — IntervalModel Zoom/Center, recomputed from the live viewport width by ScenarioDocumentPresenter::on_minimapChanged and written back into the model. A view-behavior change, not a serialization one"
   "shouldfail@tests/integration/MissingProcessRoundtripTest.cpp@a process whose factory is missing keeps its identity, its ports and its cables across a load@ProcessFactory::loadMissing() is SCORE_TODO/return nullptr. Owned by PR #2179, not by this stack — goes green when #2179 lands"
-  "shouldfail@tests/integration/RegressionSplatReloadTest.cpp@Splat's prettyName says Splat, not Model Display@two processes share one display name"
-  "shouldfail@tests/unit/AssetTableTest.cpp@AssetTable: zero-byte entries are not reclaimed by trim (current behavior)@trim() skips zero-byte entries, so a table of them never shrinks"
   "shouldfail@tests/gfx/CroustiCpuNodes.cpp@a geometry filter displaces the mesh it is given@the CPU geometry-filter path does not displace"
   "shouldfail@tests/gfx/GfxGeometryFilterShift.cpp@a geometry filter shifts the drawn silhouette by exactly the delta@the silhouette is not displaced"
   "shouldfail@tests/threedim/SceneApproximationPins.cpp@DEFECT: the render-thread light encoder collapses area lights onto point, and dome onto directional@light-type information is lost in the render-thread encoder"
@@ -75,7 +71,7 @@ set(SCORE_EXPECTED_RED
 
   # -- CMake WILL_FAIL ------------------------------------------------------
   # Cannot be a Catch2 tag: the defect aborts, so Catch2 never reports.
-  "will_fail@tests/integration/CMakeLists.txt@test_integration_js_rootpath_static@rootPath()'s function-local static caches a dangling reference. ASAN-ONLY -- off ASan the freed read trips Qt's own Q_ASSERT only when the garbage is unlucky (measured 8 red / 2 green in 10 runs), so the entry is WILL_FAIL under -fsanitize=address and DISABLED otherwise"
+  # (none today)
 
   # -- [finding] tag, VERIFIED GREEN ----------------------------------------
   # A [finding] tag enforces nothing, so a red one presents to ctest as an

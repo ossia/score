@@ -16,6 +16,7 @@
 
 #include <ossia/detail/variant.hpp>
 
+#include <QPointer>
 #include <QPoint>
 #include <QRect>
 
@@ -179,8 +180,10 @@ private:
   QMetaObject::Connection m_intervalConnection, m_durationConnection;
   Process::MiniLayer* m_miniLayer{};
 
-  QAction* m_timelineAction{};
-  QAction* m_musicalAction{};
+  // Children of the UISetup toolbar, which the ToolbarManager owns and may
+  // delete before this presenter.
+  QPointer<QAction> m_timelineAction{};
+  QPointer<QAction> m_musicalAction{};
 
   std::vector<QMetaObject::Connection> m_processSelectionConnections;
 
@@ -189,6 +192,9 @@ private:
   bool m_zooming{false};
   bool m_updatingMinimap{false};
   bool m_reloadingMinimap{false};
+  //! The interval's saved zoom / center are being restored: view changes until
+  //! then come from the layout and are not written back into the interval.
+  bool m_restoringView{false};
   //! The zoom was asked for while the view had no width yet
   bool m_zoomPending{false};
   bool m_updatingView{false};

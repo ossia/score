@@ -31,8 +31,10 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
+# -noreset: otherwise Xvfb regenerates on every QApplication teardown, and a
+# test running several apps in sequence races it.
 : > "$tmpdir/display"
-Xvfb -displayfd 3 -screen 0 1920x1080x24 -nolisten tcp \
+Xvfb -displayfd 3 -screen 0 1920x1080x24 -nolisten tcp -noreset \
   3>"$tmpdir/display" >"$tmpdir/xvfb.log" 2>&1 &
 xpid=$!
 
@@ -71,4 +73,17 @@ export SCORE_TESTS_SOFTWARE_GL
 
 "$@"
 rc=$?
+
+# Dump the Xvfb log before $tmpdir is deleted: it is the only record of why
+# the server went away.
+xdead=0
+kill -0 "$xpid" 2>/dev/null || xdead=1
+if [ "$rc" -ne 0 ] || [ "$xdead" -ne 0 ]; then
+  if [ "$xdead" -ne 0 ]; then
+    echo "run-with-display.sh: Xvfb exited while the command ran (rc=$rc); its log:" >&2
+  else
+    echo "run-with-display.sh: command failed (rc=$rc); Xvfb log:" >&2
+  fi
+  sed 's/^/  /' "$tmpdir/xvfb.log" >&2
+fi
 exit "$rc"

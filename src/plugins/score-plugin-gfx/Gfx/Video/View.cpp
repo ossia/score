@@ -47,7 +47,10 @@ View::~View()
 {
   if(m_thumb)
   {
-    ossia::qt::run_async(m_thumb, &QObject::deleteLater);
+    // Not through run_async: releaseThread() may quit the thumbnailer's
+    // thread before the queued call runs, and it would leak. A posted
+    // DeferredDelete is still honoured when the thread finishes.
+    m_thumb->deleteLater();
 
     score::ThreadPool::instance().releaseThread();
   }

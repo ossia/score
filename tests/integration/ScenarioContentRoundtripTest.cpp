@@ -84,12 +84,12 @@ TEST_CASE("A scenario with a process round-trips", "[integration][serialization]
 // Defect: DocumentRoundtripTest proves save -> load -> save is a byte fixed
 // point for a fresh document — which already holds the base Scenario process,
 // so "has content" is not what breaks stability. Adding one more process is:
-// the re-save of the reloaded document differs from the original save. When
-// serialization becomes stable for added processes this passes and the
-// [!shouldfail] tag comes off.
+// the re-save of the reloaded document differs from the original save.
+// It also covers the interval's saved zoom / center, which reopening must
+// restore exactly and not write back.
 TEST_CASE(
     "A scenario with an added process stays a byte fixed point",
-    "[integration][serialization][!shouldfail]")
+    "[integration][serialization]")
 {
   score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
     score::Document* doc = score::test::new_document(ctx);
@@ -157,21 +157,16 @@ TEST_CASE(
 // it holds one process, and a one-element array is its own reverse -- so the
 // added processes are what this asserts.
 //
-// Still red for one reason, and it is view geometry rather than process order.
-// The divergence sits at byte ~6684:
+// Besides process order, this guards the interval's view state, e.g.:
 //
 //   pass1: ..."Zoom":7475113.772947206,"Center":2336705202,...
 //   pass2: ..."Zoom":7386348.887164459,"Center":2330696192,...
 //
-// IntervalModel::m_zoom / m_center are written back from the minimap by
-// ScenarioDocumentPresenter::on_minimapChanged, which derives them from the
-// live viewport width. The reloaded document lays out in a viewport of a
-// different width, so it stores a different -- equally correct -- zoom. Making
-// this green means keeping a viewport-driven recomputation from overwriting
-// loaded view state, which is a view-behavior change, not a serialization one.
+// restoreZoom() must be the exact inverse of computeZoom() (same viewport
+// width, no offset), and the restore itself must not write zoom / center back.
 TEST_CASE(
     "a scenario with added processes is a JSON byte fixed point",
-    "[integration][serialization][!shouldfail]")
+    "[integration][serialization]")
 {
   score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
     score::Document* doc = score::test::new_document(ctx);

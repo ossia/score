@@ -9,6 +9,7 @@
 #include <smallfun.hpp>
 
 #include <functional>
+#include <memory>
 #include <vector>
 
 class QObject;
@@ -69,9 +70,27 @@ public:
   /// on the GUI thread via \a context's event loop.
   void scanAsync(QObject* context);
 
+  /// Stops the asynchronous scan in flight, if any, and waits until its worker
+  /// no longer calls any AsyncCallbacks::filter. The filters are free to reach
+  /// into objects their owner is about to destroy, so an owner calls this
+  /// before destroying them. A scan started later is unaffected.
+  void cancel();
+
+  /// cancel() on every RecursiveWatch alive. Called before the plug-ins and
+  /// interfaces the filters reach are destroyed, as not every watch owner is.
+  static void cancelAll();
+
   void reset();
 
+  RecursiveWatch();
+  RecursiveWatch(const RecursiveWatch&) = delete;
+  RecursiveWatch& operator=(const RecursiveWatch&) = delete;
+  ~RecursiveWatch();
+
+  struct ScanControl;
+
 private:
+  std::shared_ptr<ScanControl> m_scan;
   std::string m_root;
   ossia::string_map<std::vector<Callbacks>> m_watched;
   ossia::string_map<std::vector<AsyncCallbacks>> m_asyncWatched;

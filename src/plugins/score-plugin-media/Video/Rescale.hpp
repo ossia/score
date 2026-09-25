@@ -15,11 +15,20 @@ struct SwsContext;
 #include <QDebug>
 
 #include <score_plugin_media_export.h>
+
+#include <atomic>
 namespace Video
 {
 class SCORE_PLUGIN_MEDIA_EXPORT Rescale
 {
 public:
+  Rescale() = default;
+  ~Rescale();
+  Rescale(const Rescale&) = delete;
+  Rescale(Rescale&&) = delete;
+  Rescale& operator=(const Rescale&) = delete;
+  Rescale& operator=(Rescale&&) = delete;
+
   operator bool() const noexcept { return m_rescale; }
 
   void open(const VideoMetadata& src);
@@ -72,7 +81,8 @@ struct SCORE_PLUGIN_MEDIA_EXPORT LibAVDecoder
 
   FrameQueue m_frames;
   Rescale m_rescale;
-  bool m_finished{};
+  //! Set by the decoding thread, polled by the owner waiting for the end.
+  std::atomic_bool m_finished{};
 };
 
 }

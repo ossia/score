@@ -11,11 +11,19 @@ struct SwsContext;
 namespace Video
 {
 
+// The SwsContext is owned by the Rescale, even when the owner skips close().
+Rescale::~Rescale()
+{
+  close();
+}
+
 void Rescale::open(const VideoMetadata& src)
 {
+  // open() may be called again without close(): free the previous context.
+  close();
+
   m_src = &src;
   m_rescaleFormat = (AVPixelFormat)src.pixel_format;
-  m_rescale = nullptr;
 
   // ffmpeg 9's sws_getContext av_assert0()s — aborting the process — on
   // source descriptions it does not support, instead of returning null as it

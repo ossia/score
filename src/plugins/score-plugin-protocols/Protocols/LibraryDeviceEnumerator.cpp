@@ -73,6 +73,11 @@ LibraryDeviceEnumerator::LibraryDeviceEnumerator(
   QTimer::singleShot(1, this, [this] { m_watch.scanAsync(this); });
 }
 
+LibraryDeviceEnumerator::~LibraryDeviceEnumerator()
+{
+  m_watch.cancel();
+}
+
 void LibraryDeviceEnumerator::next(std::string_view path)
 {
   QString filepath = QString::fromUtf8(path.data(), path.length());

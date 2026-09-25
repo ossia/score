@@ -36,6 +36,7 @@
 #include <QTimer>
 
 #include <algorithm>
+#include <atomic>
 #include <optional>
 
 #include <wobjectimpl.h>
@@ -752,9 +753,11 @@ Skin::color_map* Skin::initColorMap() noexcept
 }
 
 
-static bool& skinBuilt() noexcept
+//! instance() is also reached from worker threads (waveform computers), and
+//! every call sets this.
+static std::atomic_bool& skinBuilt() noexcept
 {
-  static bool built = false;
+  static std::atomic_bool built = false;
   return built;
 }
 

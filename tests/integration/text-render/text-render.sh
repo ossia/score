@@ -173,7 +173,7 @@ run_sequence() { # outdir -> writes <outdir>/<case>.png + run.log + run.rc
         SCORE_FORCE_OFFSCREEN_WINDOW=Window \
         DISPLAY="$DISP" QT_QPA_PLATFORM=xcb \
         __GLX_VENDOR_LIBRARY_NAME=mesa LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe \
-        QT_LOGGING_RULES='qt.rhi.general=true' \
+        QT_LOGGING_RULES='qt.rhi.general=true' QT_FORCE_STDERR_LOGGING=1 \
         ASAN_OPTIONS="$ASAN" LLVM_PROFILE_FILE="$dir/run.profraw" \
       timeout --foreground "$TIMEOUT" "$BIN" --no-gui --no-restore \
         --script "$SCRIPT_JS" --wait 1 --autoplay >"$dir/run.log" 2>&1 &

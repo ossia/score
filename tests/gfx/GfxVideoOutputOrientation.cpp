@@ -238,6 +238,10 @@ public:
     }
     if(m_renderState)
     {
+      // Registry resources must go while the QRhi is still alive
+      // (persist-across-rebuild contract, see OutputNode::releaseRegistry).
+      releaseRegistry();
+
       delete m_renderTarget;
       m_renderTarget = nullptr;
       delete m_renderState->renderPassDescriptor;

@@ -12,6 +12,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <mutex>
 
 namespace Threedim
 {
@@ -33,6 +34,11 @@ rule R1 w 10 {
 }
 )_";
 */
+  // libssynth draws from global random streams (RandomStreams): one build at a
+  // time, since workers run on the task pool.
+  static std::mutex build_mutex;
+  std::lock_guard lock{build_mutex};
+
   ssynth::Parser::Preprocessor p;
   auto preprocessed = p.Process(input);
 

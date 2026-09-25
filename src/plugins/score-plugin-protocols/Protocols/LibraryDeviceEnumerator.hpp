@@ -34,6 +34,9 @@ public:
       std::function<QVariant(QByteArray, const QString&)> createDev,
       const score::DocumentContext& ctx);
 
+  //! The scan's filters reach back into this enumerator: stop it first.
+  ~LibraryDeviceEnumerator() override;
+
   void next(std::string_view path);
 
   void enumerate(std::function<void(const QString&, const Device::DeviceSettings&)>

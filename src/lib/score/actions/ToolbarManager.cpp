@@ -34,6 +34,22 @@ int Toolbar::column() const
   return m_col;
 }
 
+ToolbarManager::~ToolbarManager()
+{
+  // Sole owner without a main window (MinimalApplication); with one, the
+  // toolbars may already be gone with it, and the QPointer reads null.
+  // Runs from ~Presenter, before the plug-ins that built the toolbars are
+  // deleted: pointers they keep into a toolbar must be guarded.
+  for(auto& tb : m_container)
+  {
+    if(QToolBar* t = tb.second.toolbar())
+    {
+      delete t;
+    }
+  }
+  m_container.clear();
+}
+
 void ToolbarManager::insert(Toolbar val)
 {
   m_container.insert(std::make_pair(val.key(), std::move(val)));

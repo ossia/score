@@ -430,8 +430,20 @@ DeviceEditDialog::DeviceEditDialog(
   setAcceptEnabled(false);
 }
 
+namespace
+{
+// Shared by every device dialog: a new one restarts the scan.
+score::RecursiveWatch& presetWatch()
+{
+  static score::RecursiveWatch r;
+  return r;
+}
+}
+
 DeviceEditDialog::~DeviceEditDialog()
 {
+  // The preset scan's commits capture this dialog.
+  presetWatch().cancel();
   clearEnumerators();
 }
 
@@ -532,7 +544,7 @@ void DeviceEditDialog::initPresets()
   if(rootPath.isEmpty())
     return;
 
-  static score::RecursiveWatch r;
+  auto& r = presetWatch();
   r.reset();
   r.registerWatch(
       "device", score::RecursiveWatch::AsyncCallbacks{

@@ -20,6 +20,7 @@
 #include <QQmlEngine>
 
 #include <libremidi/detail/conversion.hpp>
+#include <JS/Qml/VariantToJs.hpp>
 
 namespace JS
 {
@@ -76,7 +77,7 @@ void js_node::setupComponent()
       if(auto res = v.apply(ossia::qt::ossia_to_qvariant{}); res.isValid())
         vm[k] = std::move(res);
     }
-    on_load.call({m_engine->toScriptValue(vm)});
+    on_load.call({JS::variantToJs(*m_engine, vm)});
   }
 
   int input_i = 0;
@@ -135,7 +136,11 @@ void js_node::setScript(const QString& rootPath, const QString& val)
         newEngine.addImportPath(path);
       }
 
-      newEngine.rootContext()->setContextProperty("Util", new JsUtils);      
+      // setContextProperty does not take ownership: parent it to the engine,
+      // which is recreated whenever the last node on this thread lets it go.
+      auto utils = new JsUtils;
+      utils->setParent(&newEngine);
+      newEngine.rootContext()->setContextProperty("Util", utils);
     });
   }
   if(!m_context)

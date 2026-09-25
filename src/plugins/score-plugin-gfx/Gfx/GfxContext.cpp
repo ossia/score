@@ -12,6 +12,7 @@
 #include <score/tools/Bind.hpp>
 #include <score/tools/Timers.hpp>
 
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/flicks.hpp>
 
 #include <algorithm>
@@ -755,6 +756,14 @@ void GfxContext::remove_node(
         ++it;
     }
 
+    // An output holds resources outside the graph (a port, a sender name, a
+    // pipeline) until destroyOutput(); the node itself only goes with the
+    // nursery, later. A replacement created in the same tick needs them free.
+    // REMOVE_PREVIEW_NODE has already done this and dropped it from outputs().
+    if(auto out = dynamic_cast<score::gfx::OutputNode*>(node);
+       out && ossia::contains(m_graph->outputs(), out))
+      m_graph->destroyOutputRenderList(*out);
+
     m_graph->removeNode(node);
 
     // Needed because when removing edges in recompute_graph,
@@ -941,6 +950,15 @@ void GfxContext::run_commands()
 
 void GfxContext::updateGraph()
 {
+  // DATE goes back to the wall clock with the next update after a step, not
+  // right after the step: an output whose render() only schedules a frame (a
+  // vsync'd window) draws it later, and has to see the step's date too.
+  // renderFrames() pins it again after its own updateGraph().
+  if(m_graph)
+    for(auto& rl : m_graph->renderLists())
+      if(rl)
+        rl->dateFromStepClock = false;
+
   run_commands();
 
   update_inputs();
@@ -1047,7 +1065,31 @@ void GfxContext::renderFrames(int frames)
       for(auto& [id, node] : nodes)
       {
         if(auto proc = dynamic_cast<score::gfx::ProcessNode*>(node.get()))
+        {
           proc->process(tk);
+          // updateGraph() may just have fed the node the transport's
+          // wall-clock date, so the delta process(tk) derived is relative to
+          // that: pin TIMEDELTA to the step as well.
+          proc->standardUBO.timeDelta
+              = m_stepFrame > 0
+                    ? float(double(frame_flicks) / ossia::flicks_per_second<double>)
+                    : 0.f;
+        }
+      }
+
+      // DATE too: the render lists would otherwise read the wall clock every
+      // frame, and the same step rendered twice would not be the same image.
+      // A fixed day, with the step time as the seconds since midnight.
+      const float stepSeconds = float(double(m_stepFrame) / m_stepRate);
+      for(auto& rl : m_graph->renderLists())
+      {
+        if(!rl)
+          continue;
+        rl->dateFromStepClock = true;
+        rl->currentDate[0] = 2000.f;
+        rl->currentDate[1] = 1.f;
+        rl->currentDate[2] = 1.f;
+        rl->currentDate[3] = stepSeconds;
       }
       m_stepFrame++;
     }

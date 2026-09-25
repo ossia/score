@@ -152,7 +152,10 @@ std::size_t AssetTable::trim(std::size_t max_bytes_budget)
   std::lock_guard lock{m_mutex};
   std::size_t evicted = 0;
   // Only evict from cold pool — hot entries stay regardless of budget.
-  while(m_cold_bytes > max_bytes_budget && !m_lru.empty())
+  // A zero budget drains the whole cold pool: zero-byte entries (null image,
+  // empty payload) never push m_cold_bytes over any budget and could
+  // otherwise never be reclaimed.
+  while(!m_lru.empty() && (m_cold_bytes > max_bytes_budget || max_bytes_budget == 0))
   {
     const std::size_t before_total = m_total_bytes;
     evictOne();

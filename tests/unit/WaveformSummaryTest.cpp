@@ -357,6 +357,7 @@ TEST_CASE("waveform render rate under a continuous gesture", "[.bench]")
         &cpt, &Media::Sound::WaveformComputer::ready, &cpt,
         [&](QVector<QImage*> imgs, Media::Sound::ComputedWaveform) {
       images++;
+      cpt.claim(imgs);
       Media::Sound::QImagePool::instance().giveBack(imgs);
     });
 

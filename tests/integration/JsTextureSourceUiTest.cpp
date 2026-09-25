@@ -145,6 +145,9 @@ Run runUi(const QString& qml, const QString& js)
   // The window output must not map a real window: this is about the graph, and
   // a mapped window on a shared desktop is a nuisance either way.
   env.insert("SCORE_FORCE_OFFSCREEN_WINDOW", "Window");
+  // The gfx settings default to Vulkan, which cannot present to an Xvfb window
+  // (no DRI3) and makes the --ui window qFatal; the settings honour this.
+  env.insert("QSG_RHI_BACKEND", "opengl");
   env.insert("SCORE_AUDIO_BACKEND", "dummy");
   env.insert("SCORE_DISABLE_AUDIOPLUGINS", "1");
   env.insert("SCORE_GFX_TRACE", "1");

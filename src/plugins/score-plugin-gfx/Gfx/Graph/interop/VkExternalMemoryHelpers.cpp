@@ -194,6 +194,13 @@ bool probeImageFormatSupported(
 // EXPORT
 // =============================================================================
 
+bool canExportImage(const VulkanCtx& v, const ExternalImageDesc& desc)
+{
+  if(!devFuncs(v) || !v.physDev)
+    return false;
+  return probeImageFormatSupported(v, desc, /*forImport=*/false);
+}
+
 std::optional<ExternalImage>
 createExportableImage(const VulkanCtx& v, const ExternalImageDesc& desc)
 {

@@ -2967,61 +2967,61 @@ yyreduce:
 
   case 6: /* block_identifier: IDENTIFIER  */
 #line 515 "glsl.y"
-                                     { (yyval.block_identifier) = new_glsl_identifier(context, (yyvsp[0].IDENTIFIER)); }
+                                     { (yyval.block_identifier) = new_glsl_identifier(context, (yyvsp[0].IDENTIFIER)); free((yyvsp[0].IDENTIFIER)); }
 #line 2972 "glsl.parser.c"
     break;
 
   case 7: /* decl_identifier: IDENTIFIER  */
 #line 518 "glsl.y"
-                                     { (yyval.decl_identifier) = new_glsl_identifier(context, (yyvsp[0].IDENTIFIER)); }
+                                     { (yyval.decl_identifier) = new_glsl_identifier(context, (yyvsp[0].IDENTIFIER)); free((yyvsp[0].IDENTIFIER)); }
 #line 2978 "glsl.parser.c"
     break;
 
   case 8: /* struct_name: IDENTIFIER  */
 #line 521 "glsl.y"
-                                     { (yyval.struct_name) = new_glsl_identifier(context, (yyvsp[0].IDENTIFIER)); }
+                                     { (yyval.struct_name) = new_glsl_identifier(context, (yyvsp[0].IDENTIFIER)); free((yyvsp[0].IDENTIFIER)); }
 #line 2984 "glsl.parser.c"
     break;
 
   case 9: /* type_name: IDENTIFIER  */
 #line 524 "glsl.y"
-                                     { (yyval.type_name) = new_glsl_identifier(context, (yyvsp[0].IDENTIFIER)); }
+                                     { (yyval.type_name) = new_glsl_identifier(context, (yyvsp[0].IDENTIFIER)); free((yyvsp[0].IDENTIFIER)); }
 #line 2990 "glsl.parser.c"
     break;
 
   case 10: /* param_name: IDENTIFIER  */
 #line 527 "glsl.y"
-                                     { (yyval.param_name) = new_glsl_identifier(context, (yyvsp[0].IDENTIFIER)); }
+                                     { (yyval.param_name) = new_glsl_identifier(context, (yyvsp[0].IDENTIFIER)); free((yyvsp[0].IDENTIFIER)); }
 #line 2996 "glsl.parser.c"
     break;
 
   case 11: /* function_name: IDENTIFIER  */
 #line 530 "glsl.y"
-                                     { (yyval.function_name) = new_glsl_identifier(context, (yyvsp[0].IDENTIFIER)); }
+                                     { (yyval.function_name) = new_glsl_identifier(context, (yyvsp[0].IDENTIFIER)); free((yyvsp[0].IDENTIFIER)); }
 #line 3002 "glsl.parser.c"
     break;
 
   case 12: /* field_identifier: IDENTIFIER  */
 #line 533 "glsl.y"
-                                     { (yyval.field_identifier) = new_glsl_string(context, FIELD_IDENTIFIER, (yyvsp[0].IDENTIFIER)); }
+                                     { (yyval.field_identifier) = new_glsl_string(context, FIELD_IDENTIFIER, (yyvsp[0].IDENTIFIER)); free((yyvsp[0].IDENTIFIER)); }
 #line 3008 "glsl.parser.c"
     break;
 
   case 13: /* variable_identifier: IDENTIFIER  */
 #line 536 "glsl.y"
-                                     { (yyval.variable_identifier) = new_glsl_identifier(context, (yyvsp[0].IDENTIFIER)); }
+                                     { (yyval.variable_identifier) = new_glsl_identifier(context, (yyvsp[0].IDENTIFIER)); free((yyvsp[0].IDENTIFIER)); }
 #line 3014 "glsl.parser.c"
     break;
 
   case 14: /* layout_identifier: IDENTIFIER  */
 #line 539 "glsl.y"
-                                     { (yyval.layout_identifier) = new_glsl_identifier(context, (yyvsp[0].IDENTIFIER)); }
+                                     { (yyval.layout_identifier) = new_glsl_identifier(context, (yyvsp[0].IDENTIFIER)); free((yyvsp[0].IDENTIFIER)); }
 #line 3020 "glsl.parser.c"
     break;
 
   case 15: /* type_specifier_identifier: IDENTIFIER  */
 #line 542 "glsl.y"
-                                       { (yyval.type_specifier_identifier) = new_glsl_identifier(context, (yyvsp[0].IDENTIFIER)); }
+                                       { (yyval.type_specifier_identifier) = new_glsl_identifier(context, (yyvsp[0].IDENTIFIER)); free((yyvsp[0].IDENTIFIER)); }
 #line 3026 "glsl.parser.c"
     break;
 

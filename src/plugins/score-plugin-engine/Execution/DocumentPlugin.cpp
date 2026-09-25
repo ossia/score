@@ -25,6 +25,7 @@
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score/tools/Bind.hpp>
 
+#include <core/application/ApplicationSettings.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 
@@ -101,8 +102,15 @@ void DocumentPlugin::recreateBase()
   connect(
       m_base.get(), &Execution::BaseScenarioElement::finished, this,
       [this] {
-    auto& stop_action = context().doc.app.actions.action<Actions::Stop>();
-    stop_action.action()->trigger();
+    auto& app = context().doc.app;
+    // Without a GUI the transport actions are never registered: stop through
+    // the same path as the OSC /stop message.
+    if(app.applicationSettings.gui)
+      app.actions.action<Actions::Stop>().action()->trigger();
+    else
+      app.guiApplicationPlugin<Engine::ApplicationPlugin>()
+          .execution()
+          .request_stop_from_localtree();
       },
       Qt::QueuedConnection);
 }

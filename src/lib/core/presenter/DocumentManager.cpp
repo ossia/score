@@ -165,27 +165,10 @@ DocumentManager::~DocumentManager()
 {
   saveRecentFilesState();
 
-  // The documents have to be deleted before the application context plug-ins.
-  // This is because the Local device has to be deleted last in
-  // ApplicationPlugin.
-  for(auto document : m_documents)
-  {
-    // Reverse creation order, to match ~DocumentModel (e.g. the execution
-    // plugin must be torn down before the device explorer plugin).
-    auto& plugs = document->model().pluginModels();
-    for(auto it = plugs.rbegin(); it != plugs.rend(); ++it)
-    {
-      (*it)->on_documentClosing();
-    }
-  }
-
-  for(auto document : m_documents)
-  {
-    document->deleteLater();
-  }
-
-  m_documents.clear();
-  m_currentDocument = nullptr;
+  // Normally a no-op: ~Presenter already did it, while the application
+  // plug-ins were still alive. By now they are gone (Presenter declares
+  // m_components after m_docManager).
+  closeRemainingDocuments();
   if(m_recentFiles)
     delete m_recentFiles;
 }
@@ -973,6 +956,39 @@ bool DocumentManager::closeAllDocuments(const score::GUIApplicationContext& ctx)
   }
 
   return true;
+}
+
+void DocumentManager::closeRemainingDocuments(const score::GUIApplicationContext* ctx)
+{
+  // The documents have to be deleted before the application context plug-ins.
+  // This is because the Local device has to be deleted last in
+  // ApplicationPlugin.
+  for(auto document : m_documents)
+  {
+    // Reverse creation order, to match ~DocumentModel (e.g. the execution
+    // plugin must be torn down before the device explorer plugin).
+    auto& plugs = document->model().pluginModels();
+    for(auto it = plugs.rbegin(); it != plugs.rend(); ++it)
+    {
+      (*it)->on_documentClosing();
+    }
+
+    if(ctx)
+    {
+      for(auto plug : ctx->guiApplicationPlugins())
+      {
+        plug->on_closeDocument(*document);
+      }
+    }
+  }
+
+  auto docs = std::move(m_documents);
+  m_documents.clear();
+  m_currentDocument = nullptr;
+  for(auto document : docs)
+  {
+    delete document;
+  }
 }
 
 bool DocumentManager::preparingNewDocument() const

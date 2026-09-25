@@ -18,6 +18,8 @@
 #include <QGuiApplication>
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/reporters/catch_reporter_event_listener.hpp>
+#include <catch2/reporters/catch_reporter_registrars.hpp>
 
 #include <array>
 #include <cstring>
@@ -36,14 +38,20 @@ void ensureApp()
     static int argc = 1;
     static char arg0[] = "TextToTextureTest";
     static char* argv[] = {arg0, nullptr};
-    // Deliberately leaked: a static Q*Application is destroyed from the atexit
-    // chain, after main returns and Qt's own static state is gone, which faults
-    // in ~QGuiApplication/~QCoreApplication on Windows. Same pattern as
-    // tests/unit/InfiniteScrollerTest.cpp.
-    static auto* app = new QGuiApplication(argc, argv);
-    (void)app;
+    // Not a static object: destroyed from atexit, after Qt's own static state,
+    // it faults. AppTeardown deletes it at the end of the run instead.
+    new QGuiApplication(argc, argv);
   }
 }
+
+// Destroys the application while Qt is still whole; otherwise the font engines
+// and glyph caches ~QGuiApplication releases are reported as leaks.
+struct AppTeardown final : Catch::EventListenerBase
+{
+  using Catch::EventListenerBase::EventListenerBase;
+  void testRunEnded(Catch::TestRunStats const&) override { delete qApp; }
+};
+CATCH_REGISTER_LISTENER(AppTeardown)
 
 // A platform with zero fonts cannot rasterize any glyph; the node is not at
 // fault there, so the text-painting tests skip instead of failing.

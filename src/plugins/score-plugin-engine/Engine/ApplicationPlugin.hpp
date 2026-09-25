@@ -8,6 +8,7 @@
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 
+#include <QPointer>
 #include <QTimer>
 
 #include <score_plugin_engine_export.h>
@@ -71,7 +72,9 @@ private:
   Execution::PlayContextMenu m_playActions;
   Execution::ExecutionController m_execution;
 
-  Scenario::SpeedWidget* m_speedSlider{};
+  // A child of the Transport toolbar, which score::ToolbarManager owns and
+  // deletes before this plug-in.
+  QPointer<Scenario::SpeedWidget> m_speedSlider{};
   QAction* m_musicalAct{};
 };
 }

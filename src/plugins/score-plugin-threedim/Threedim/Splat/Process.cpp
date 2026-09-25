@@ -69,7 +69,7 @@ void Model::init()
 
 QString Model::prettyName() const noexcept
 {
-  return tr("Model Display");
+  return tr("Splat");
 }
 
 }

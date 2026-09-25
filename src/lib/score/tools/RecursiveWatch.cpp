@@ -7,7 +7,12 @@
 #include <QPointer>
 #include <Qt>
 
+#include <atomic>
+#include <chrono>
+#include <condition_variable>
 #include <cstddef>
+#include <mutex>
+#include <utility>
 #include <iostream>
 
 #if __has_include(<version>)
@@ -266,6 +271,35 @@ void for_all_files(std::string_view root, std::function<void(std::string_view)> 
 
 namespace score
 {
+// Shared between a RecursiveWatch and the one scan it started: the watch asks
+// it to stop, the scan says when it has.
+struct RecursiveWatch::ScanControl
+{
+  std::atomic_bool cancelled{false};
+  std::mutex mutex;
+  std::condition_variable cv;
+  bool done{false};
+
+  void finish()
+  {
+    {
+      std::lock_guard _{mutex};
+      done = true;
+    }
+    cv.notify_all();
+  }
+
+  void cancelAndWait()
+  {
+    cancelled.store(true, std::memory_order_release);
+    std::unique_lock l{mutex};
+    // Bounded: a pool that never runs the task (shutting down) must not hang
+    // the caller; the state below still reports done when the task is dropped.
+    if(!cv.wait_for(l, std::chrono::seconds(30), [this] { return done; }))
+      qWarning() << "RecursiveWatch: an asynchronous scan did not stop within 30 s";
+  }
+};
+
 namespace
 {
 // Mitigation for same bug as https://github.com/microsoft/STL/issues/165
@@ -276,11 +310,15 @@ struct AsyncScanState
   Map watched;
   std::string root;
   QPointer<QObject> ctx;
+  std::shared_ptr<RecursiveWatch::ScanControl> control;
 
-  AsyncScanState(Map&& w, std::string r, QObject* c)
+  AsyncScanState(
+      Map&& w, std::string r, QObject* c,
+      std::shared_ptr<RecursiveWatch::ScanControl> ctl)
       : watched{std::move(w)}
       , root{std::move(r)}
       , ctx{c}
+      , control{std::move(ctl)}
   {
   }
 
@@ -288,7 +326,20 @@ struct AsyncScanState
       : watched{std::move(other.watched)}
       , root{std::move(other.root)}
       , ctx{std::move(other.ctx)}
+      , control{std::move(other.control)}
   {
+  }
+
+  // Done once the scan has run, or once the pool drops it without running it.
+  ~AsyncScanState()
+  {
+    if(control)
+      control->finish();
+  }
+
+  bool cancelled() const noexcept
+  {
+    return control && control->cancelled.load(std::memory_order_acquire);
   }
 
   AsyncScanState(const AsyncScanState&) = delete;
@@ -330,10 +381,30 @@ void RecursiveWatch::scanAsync(QObject* context)
     return;
 #endif
 
+  // A scan still running for the previous set of callbacks has nothing left to
+  // report: tell it to stop, without waiting for it.
+  if(m_scan)
+    m_scan->cancelled.store(true, std::memory_order_release);
+  m_scan = std::make_shared<ScanControl>();
+
   // Note that callers should always set a new set of watched things
   // before calling scanAsync.
   score::TaskPool::instance().post(
-      [state = AsyncScanState{std::move(m_asyncWatched), m_root, context}] {
+      [state
+       = AsyncScanState{std::move(m_asyncWatched), m_root, context, m_scan}] {
+    // Report completion when the body ends, even by an exception: the pool
+    // keeps this task object alive until it dequeues the next one, so the
+    // state's destructor alone would tell cancel() far too late.
+    struct Finished
+    {
+      const AsyncScanState& state;
+      ~Finished()
+      {
+        if(state.control)
+          state.control->finish();
+      }
+    } finished{state};
+
     std::vector<std::function<void()>> actions;
 
     auto send_to_main_thread = [pctx = state.ctx, &actions] {
@@ -353,7 +424,7 @@ void RecursiveWatch::scanAsync(QObject* context)
       // The handlers were handed over by the object that asked for the scan and
       // are free to reach back into it. Once it is gone there is nothing left
       // for them to reach, and the walk has nobody to report to either.
-      if(!state.ctx)
+      if(state.cancelled() || !state.ctx)
         return;
       if(path.empty())
         return;
@@ -378,6 +449,55 @@ void RecursiveWatch::scanAsync(QObject* context)
 
     send_to_main_thread();
   });
+}
+
+void RecursiveWatch::cancel()
+{
+  if(auto scan = std::exchange(m_scan, {}))
+    scan->cancelAndWait();
+}
+
+namespace
+{
+struct WatchRegistry
+{
+  std::mutex mutex;
+  std::vector<RecursiveWatch*> watches;
+};
+WatchRegistry& watchRegistry()
+{
+  static WatchRegistry r;
+  return r;
+}
+}
+
+RecursiveWatch::RecursiveWatch()
+{
+  auto& r = watchRegistry();
+  std::lock_guard _{r.mutex};
+  r.watches.push_back(this);
+}
+
+RecursiveWatch::~RecursiveWatch()
+{
+  cancel();
+  auto& r = watchRegistry();
+  std::lock_guard _{r.mutex};
+  std::erase(r.watches, this);
+}
+
+void RecursiveWatch::cancelAll()
+{
+  // Watches are created and destroyed on the GUI thread, as is this call:
+  // copy the list so that cancel() waits without holding the registry lock.
+  std::vector<RecursiveWatch*> watches;
+  {
+    auto& r = watchRegistry();
+    std::lock_guard _{r.mutex};
+    watches = r.watches;
+  }
+  for(auto* w : watches)
+    w->cancel();
 }
 
 void RecursiveWatch::reset()

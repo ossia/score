@@ -133,6 +133,16 @@ struct Publisher
         appBinary(), {"--no-gui", "--no-restore", "--wait", "0", "--script", js});
   }
 
+  //! What the application has printed so far, without waiting for more
+  //! (no event loop runs, so output stays in the pipe until polled).
+  const QString& drain()
+  {
+    for(int i = 0; i < 1024 && proc.waitForReadyRead(0); i++)
+      ;
+    log += QString::fromUtf8(proc.readAll());
+    return log;
+  }
+
   ~Publisher()
   {
     if(proc.state() != QProcess::NotRunning)
@@ -576,6 +586,13 @@ TEST_CASE(
   pub.start(write(dir, "scene.js", sceneScript(node, true)));
 
   const auto serial = waitForNode(node, 45000);
+
+  // A Vulkan device may advertise dma-buf export and still refuse it for our
+  // format (RADV on GFX7), falling back to host memory. The warning precedes
+  // the node, so it is already in the pipe.
+  if(pub.drain().contains("this Vulkan device cannot export a DMA-BUF image"))
+    SKIP("this Vulkan device cannot export a DMA-BUF image");
+
   REQUIRE(serial >= 0);
 
   constexpr int kFrames = 5;

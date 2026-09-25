@@ -22,6 +22,7 @@
 #include <ossia-qt/js_utilities.hpp>
 #include <ossia-qt/time.hpp>
 #include <ossia-qt/token_request.hpp>
+#include <JS/Qml/VariantToJs.hpp>
 namespace ossia::qt
 {
 class qml_engine_functions;
@@ -96,7 +97,7 @@ public:
     if(!on_ui.isCallable())
       return;
 
-    on_ui.call({m_engine->toScriptValue(v)});
+    on_ui.call({JS::variantToJs(*m_engine, v)});
   }
 
   void stateElementChanged(const QString& k, const ossia::value& v)
@@ -111,7 +112,7 @@ public:
     if(v.valid())
     {
       if(auto res = v.apply(ossia::qt::ossia_to_qvariant{}); res.isValid())
-        on_stateUpdated.call({k, m_engine->toScriptValue(res)});
+        on_stateUpdated.call({k, JS::variantToJs(*m_engine, res)});
       else
         on_stateUpdated.call({k, QJSValue{}});
     }

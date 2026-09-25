@@ -47,6 +47,7 @@ LayerView::LayerView(const ProcessModel& m, QGraphicsItem* parent)
       m_cpt, &WaveformComputer::ready, this,
       [this](QVector<QImage*> img, ComputedWaveform wf) {
     {
+      m_cpt->claim(img);
       QImagePool::instance().giveBack(m_images);
       m_images = std::move(img);
 
@@ -70,7 +71,9 @@ LayerView::~LayerView()
 {
   m_cpt->stop();
 
-  ossia::qt::run_async(m_cpt, &QObject::deleteLater);
+  // Not through run_async: releaseThread() below may quit the thread and drop
+  // the queued call, whereas a posted DeferredDelete is still honoured.
+  m_cpt->deleteLater();
   m_cpt = nullptr;
 
   score::ThreadPool::instance().releaseThread();

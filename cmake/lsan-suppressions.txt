@@ -9,31 +9,21 @@
 # remove it.
 #
 # ---------------------------------------------------------------------------
-# The makeGUIElements family (sanitizer ledger T6).
+# libossia's websocket_server::stop() deliberately leaks a shared_ptr copy of
+# the websocketpp endpoint (workaround for websocketpp handler lifetime bugs).
+# LSan matches the allocation stack, so these name the allocating members.
+# Remove once libossia is off websocketpp.
+leak:ossia::net::websocket_server::websocket_server
+leak:ossia::net::websocket_server::listen
+leak:ossia::net::websocket_server::start_accept
+
+# ---------------------------------------------------------------------------
+# Third-party libraries that keep allocations for the life of the process.
 #
-# Parent-less QToolBar / QAction / widget instances are created per
-# application-plugin instance, handed to score::GUIElements, and never freed.
-# In a shipped ossia-score that is one leak set at exit: the process builds a
-# single application and then terminates, so nothing accumulates. In the test
-# suite every Catch2 case constructs its own MinimalGUIApplication, so the
-# same leak multiplies once per case.
-#
-# That makes it the dominant noise source, and what makes every GUI test's
-# LSan report unreadable, since a real leak elsewhere is invisible underneath
-# it.
-#
-# It is suppressed to make the other leaks legible, not because it is
-# acceptable. It is a genuine ownership bug: these widgets want a parent, or
-# GUIElements wants to own them. Fixing it removes these lines.
-leak:Scenario::ToolMenuActions::makeGUIElements
-leak:Scenario::TransportActions::makeGUIElements
-leak:Engine::ApplicationPlugin::makeGUIElements
-leak:Audio::ApplicationPlugin::makeGUIElements
-leak:Scenario::ToolMenuActions::ToolMenuActions
-leak:Scenario::TransportActions::TransportActions
-leak:Engine::ApplicationPlugin::setupTimingWidget
-leak:Scenario::makeToolbarAction
-leak:Scenario::SpeedWidget::SpeedWidget
-leak:score::DoubleSlider::DoubleSlider
-leak:score::MarginLess
-leak:score::Action::updateTexts
+# Khronos Vulkan validation layer internal state; alsa-lib's global config
+# cache and pcm plug-in modules. Not score's allocations, do not grow per test.
+# The alsa config cache is matched by its filler function, not libasound.so, so
+# score leaks passing through alsa callbacks stay visible.
+leak:libVkLayer_khronos_validation.so
+leak:snd_config_update_r
+leak:libasound_module_

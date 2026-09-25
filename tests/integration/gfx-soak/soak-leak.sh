@@ -16,7 +16,7 @@
 #   5. final grab is the solid-color base's full-frame magenta (the
 #      pipeline still renders the right thing after the churn)
 #   6. gfx-process population in final.score == baseline init.score
-#   7. post-warmup RSS growth < SLOPE_KB_PER_CYCLE (linear fit; catches
+#   7. RSS growth over the second half < SLOPE_KB_PER_CYCLE (median per-interval rate; catches
 #      unbounded growth without exact counts under ASAN's noisy allocator)
 #   8. open-fd count stable (last - first <= FD_SLACK)
 #
@@ -196,11 +196,12 @@ rows = [l.split(",") for l in open(f"{out}/samples.csv").read().splitlines()[1:]
 num = [(int(c), int(r), int(f)) for c, r, f in rows if c.isdigit()]
 slope = None
 if len(num) >= 4:
-    post = num[max(1, len(num)//4):]          # discard warmup quarter
-    xs = [c for c, _, _ in post]; ys = [r for _, r, _ in post]
-    mx, my = sum(xs)/len(xs), sum(ys)/len(ys)
-    den = sum((x-mx)**2 for x in xs)
-    slope = sum((x-mx)*(y-my) for x, y in zip(xs, ys))/den if den else 0.0
+    post = num[max(1, len(num)//2):]          # discard warmup half: driver caches fill for ~100 cycles
+    # Median of the per-interval growth: a leak grows in every interval, while
+    # the allocator grows the heap in a few large steps, which a linear fit
+    # over a short window mistakes for a slope.
+    rates = sorted((b[1]-a[1])/(b[0]-a[0]) for a, b in zip(post, post[1:]) if b[0] > a[0])
+    slope = rates[len(rates)//2] if rates else 0.0
     if slope > slope_max: bad.append(f"rss-slope={slope:.1f}KB/cycle>{slope_max}")
     fds = [f for _, _, f in num]
     if fds[-1] - fds[0] > fd_slack: bad.append(f"fd-growth={fds[0]}->{fds[-1]}")

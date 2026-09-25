@@ -141,23 +141,23 @@ if(CMAKE_CXX_FLAGS MATCHES "sanitize=[a-z,]*undefined")
   message(STATUS "score: UBSAN_OPTIONS for ctest = ${SCORE_UBSAN_OPTIONS}")
 endif()
 
-# LeakSanitizer, same shape as the UBSan block above and for the same reason:
-# one family of known leaks was drowning every other report.
-#
-# The makeGUIElements family dominates the leaked bytes in the test suite
-# because every Catch2 case builds its own MinimalGUIApplication and each
-# construction leaks the same parent-less toolbars and actions. A shipped
-# ossia-score builds ONE application, so there it is a single leak set at
-# exit; in the suite it repeats per test and hides everything underneath.
-#
-# Suppressing it is what makes the other leaks legible. See the file itself:
-# these are real ownership bugs, and the entries go away when they are fixed.
+# LeakSanitizer, same shape as the UBSan block above: suppresses known leaks
+# outside score's control (see the file for each entry's reason).
 #
 # LSan is part of ASan here, so this is keyed on the address sanitizer being on.
 if(CMAKE_CXX_FLAGS MATCHES "sanitize=[a-z,]*address")
   set(SCORE_LSAN_SUPPRESSIONS "${CMAKE_CURRENT_LIST_DIR}/lsan-suppressions.txt")
   set(SCORE_LSAN_OPTIONS "suppressions=${SCORE_LSAN_SUPPRESSIONS}")
   message(STATUS "score: LSAN_OPTIONS for ctest = ${SCORE_LSAN_OPTIONS}")
+endif()
+
+# ThreadSanitizer: system Qt/GLib/GStreamer/Mesa are not instrumented, hence
+# ignore_noninstrumented_modules. See tsan-suppressions.txt re called_from_lib.
+if(CMAKE_CXX_FLAGS MATCHES "sanitize=[a-z,]*thread")
+  set(SCORE_TSAN_SUPPRESSIONS "${CMAKE_CURRENT_LIST_DIR}/tsan-suppressions.txt")
+  set(SCORE_TSAN_OPTIONS
+      "ignore_noninstrumented_modules=1:suppressions=${SCORE_TSAN_SUPPRESSIONS}:second_deadlock_stack=1:history_size=4")
+  message(STATUS "score: TSAN_OPTIONS for ctest = ${SCORE_TSAN_OPTIONS}")
 endif()
 
 # Note : if building with a Qt installed in e.g. /home/myuser/Qt/ or /Users/Qt or c:\Qt\

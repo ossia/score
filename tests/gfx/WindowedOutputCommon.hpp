@@ -162,6 +162,15 @@ inline bool can_present()
   return ok;
 }
 
+/// Skip reason when the requested backend cannot present (ScreenNode falls back
+/// to the Null RHI, MultiWindowNode gets no swap chain): pixels there would
+/// test the fallback, not the output.
+inline const char* cannot_present_skip_reason() noexcept
+{
+  return "requested backend cannot present on this display (e.g. hardware "
+         "Vulkan on Xvfb without DRI3)";
+}
+
 /// A single-window rig: ISF producer -> ScreenNode.
 ///
 /// Member order matters exactly as in GfxPipeline: `graph` is declared last so
@@ -248,7 +257,15 @@ struct ScreenRig
     }
 
     if(auto rs = screen->renderState(); rs && rs->rhi)
+    {
       m_backend = rs->rhi->backendName();
+      if(rs->rhi->backend() == QRhi::Null)
+      {
+        m_skipped = true;
+        m_skipReason = cannot_present_skip_reason();
+        return false;
+      }
+    }
     return true;
   }
 
@@ -355,7 +372,15 @@ struct BareScreenRig
       return false;
     }
     if(auto rs = screen->renderState(); rs && rs->rhi)
+    {
       m_backend = rs->rhi->backendName();
+      if(rs->rhi->backend() == QRhi::Null)
+      {
+        m_skipped = true;
+        m_skipReason = cannot_present_skip_reason();
+        return false;
+      }
+    }
     return true;
   }
 
@@ -468,7 +493,27 @@ struct MultiWindowRig
         5000);
 
     if(auto rs = node->renderState(); rs && rs->rhi)
+    {
       m_backend = rs->rhi->backendName();
+      if(rs->rhi->backend() == QRhi::Null)
+      {
+        m_skipped = true;
+        m_skipReason = cannot_present_skip_reason();
+        return false;
+      }
+    }
+
+    // A window whose surface cannot present gets no swap chain
+    // (MultiWindowNode::initWindowSwapChain).
+    bool anySwapChain = false;
+    for(auto& wo : node->windowOutputs())
+      anySwapChain = anySwapChain || wo.hasSwapChain;
+    if(!anySwapChain)
+    {
+      m_skipped = true;
+      m_skipReason = cannot_present_skip_reason();
+      return false;
+    }
     return true;
   }
 

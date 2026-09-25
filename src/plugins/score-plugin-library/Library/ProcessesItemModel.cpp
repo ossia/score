@@ -58,6 +58,23 @@ ProcessNode toNode(StagedNode&& staged) noexcept
 }
 }
 
+namespace
+{
+// Shared by every process library model: the latest rescan() owns the scan.
+score::RecursiveWatch& libraryWatch()
+{
+  static score::RecursiveWatch w;
+  return w;
+}
+}
+
+ProcessesItemModel::~ProcessesItemModel()
+{
+  // The scan calls the application's LibraryInterfaces on a worker thread;
+  // they are destroyed with the application, after this model.
+  libraryWatch().cancel();
+}
+
 ProcessesItemModel::ProcessesItemModel(
     const score::GUIApplicationContext& ctx, QObject* parent)
     : TreeNodeBasedItemModel<ProcessNode>{parent}
@@ -157,7 +174,7 @@ void ProcessesItemModel::rescan()
 
   auto libpath = libsettings.getPackagesPath();
 
-  static score::RecursiveWatch w;
+  auto& w = libraryWatch();
   w.reset();
   w.setWatchedFolder(libpath.toStdString());
 

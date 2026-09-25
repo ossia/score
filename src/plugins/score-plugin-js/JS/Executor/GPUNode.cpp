@@ -38,6 +38,7 @@
 
 #include <algorithm>
 #include <set>
+#include <JS/Qml/VariantToJs.hpp>
 namespace JS
 {
 namespace
@@ -159,7 +160,7 @@ public:
       if(!on_ui.isCallable())
         return;
 
-      on_ui.call({m_engine->toScriptValue(v)});
+      on_ui.call({JS::variantToJs(*m_engine, v)});
     }
 
     void stateElementChanged(const QString& k, const ossia::value& v)
@@ -174,7 +175,7 @@ public:
       if(v.valid())
       {
         if(auto res = v.apply(ossia::qt::ossia_to_qvariant{}); res.isValid())
-          on_stateUpdated.call({k, m_engine->toScriptValue(res)});
+          on_stateUpdated.call({k, JS::variantToJs(*m_engine, res)});
         else
           on_stateUpdated.call({k, QJSValue{}});
       }
@@ -241,7 +242,7 @@ public:
 void GpuNode::uiMessage(const QVariant& v)
 {
   m_engines.visit_all([&] (auto& elt) {
-    elt.second->ui_messages.emplace(v);
+    elt.second->ui_messages.enqueue(v);
   });
 }
 
@@ -254,7 +255,7 @@ void GpuNode::stateElementChanged(const QString& k, const ossia::value& v)
     m_modelState.erase(k);
 
   m_engines.visit_all([&, p = std::make_pair(k, v)] (auto& elt) {
-    elt.second->ui_messages.emplace(p);
+    elt.second->ui_messages.enqueue(p);
   });
 }
 
@@ -1076,7 +1077,7 @@ void GpuNode::Engine::setupComponent(
       if(auto res = v.apply(ossia::qt::ossia_to_qvariant{}); res.isValid())
         vm[k] = std::move(res);
     }
-    on_load.call({m_engine->toScriptValue(vm)});
+    on_load.call({JS::variantToJs(*m_engine, vm)});
   }
 }
 
@@ -1142,7 +1143,11 @@ void GpuNode::Engine::init(
           newEngine.addImportPath(path);
         }
 
-        newEngine.rootContext()->setContextProperty("Util", new JsUtils);
+        // setContextProperty does not take ownership: parent it to the engine,
+        // which is recreated whenever the last node on this thread lets it go.
+        auto utils = new JsUtils;
+        utils->setParent(&newEngine);
+        newEngine.rootContext()->setContextProperty("Util", utils);
       });
     }
     if(!m_context)

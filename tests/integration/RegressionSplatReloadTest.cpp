@@ -36,15 +36,11 @@ Process::ProcessModel* find_splat(score::Document& doc)
 }
 }
 
-// Threedim/Splat/Process.cpp's Model::prettyName() returns tr("Model Display")
-// — a copy-paste slip from the process it was cloned from; the process's own
-// Metadata.hpp declares both the internal and the pretty name as "Splat".
-// Users see two processes named "Model Display" in the UI. Asserts the CORRECT
-// name per the house rule, so fixing the string flips this tag rather than
-// editing the test.
+// Splat's Model::prettyName() must match its Metadata.hpp ("Splat"), not the
+// "Model Display" of the process it was cloned from.
 TEST_CASE(
     "Splat's prettyName says Splat, not Model Display",
-    "[integration][regression][threedim][gui][!shouldfail]")
+    "[integration][regression][threedim][gui]")
 {
   score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
     score::Document* doc = score::test::new_document(ctx);
@@ -62,7 +58,6 @@ TEST_CASE(
     REQUIRE(splat != nullptr);
 
     // Metadata.hpp (cdc15a16-…): internal name "Splat", pretty name "Splat".
-    // Model::prettyName() returns "Model Display" instead.
     CHECK(splat->prettyName() == QStringLiteral("Splat"));
   });
 }

@@ -212,6 +212,11 @@ if(TARGET Qt6::Quick AND TARGET score_plugin_js)
     SOURCES JsImageTest.cpp
     APP
     PLUGINS score_plugin_js)
+
+  score_add_test(test_unit_js_variant_to_js
+    SOURCES JsVariantToJsTest.cpp
+    PLUGINS score_plugin_js
+    LIBS ${QT_PREFIX}::Qml)
 endif()
 
 if(TARGET score_plugin_controlsurface)
@@ -966,6 +971,13 @@ endif()
 # every model port to its exec port, cables are re-made, and values set on
 # ports that appeared reach the object. Pulls in the avendish binding headers
 # and two example objects.
+# The base scenario is released after the audio thread's cleanup of its time
+# syncs, never concurrently with it.
+score_add_test(test_unit_base_scenario_cleanup
+  SOURCES BaseScenarioCleanupTest.cpp
+  GUI
+  PLUGINS score_plugin_engine score_plugin_scenario score_lib_process)
+
 if(TARGET score_plugin_avnd AND TARGET score_plugin_engine)
   score_add_test(test_unit_avnd_dynamic_ports_exec
     SOURCES AvndDynamicPortsExecTest.cpp
@@ -1058,17 +1070,13 @@ score_add_test(test_unit_scene_camera_aux
     PLUGINS score_plugin_gfx score_lib_process
     LIBS ${QT_PREFIX}::Gui)
 
-  # The output renderers' null-pipeline guard. ScaledRenderer is not exported
-  # from the dynamic plugin, so InvertYRenderer.cpp -- which defines both it and
-  # InvertYRenderer -- is compiled into the test. ISOLATED: the defect aborts
-  # the process rather than failing an assertion, which would take any
-  # co-located test case down with it.
-  score_plugin_hidden_sources(_null_pipeline_hidden
-      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx/Gfx/InvertYRenderer.cpp")
+  # The output renderers' null-pipeline guard. Do not compile
+  # InvertYRenderer.cpp in: it is exported, and a second copy is an ODR
+  # violation. ISOLATED: the defect aborts the process rather than failing an
+  # assertion, which would take any co-located test case down with it.
   score_add_test(test_unit_output_null_pipeline
     SOURCES
       OutputNullPipelineTest.cpp
-      ${_null_pipeline_hidden}
     PLUGINS score_plugin_gfx
     LIBS ${QT_PREFIX}::Gui)
 endif()

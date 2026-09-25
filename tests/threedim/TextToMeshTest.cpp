@@ -30,6 +30,8 @@
 
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/reporters/catch_reporter_event_listener.hpp>
+#include <catch2/reporters/catch_reporter_registrars.hpp>
 
 #include <cmath>
 #include <cstdint>
@@ -53,14 +55,20 @@ void ensureApp()
     static int argc = 1;
     static char arg0[] = "TextToMeshTest";
     static char* argv[] = {arg0, nullptr};
-    // Deliberately leaked: a static Q*Application is destroyed from the atexit
-    // chain, after main returns and Qt's own static state is gone, which faults
-    // in ~QGuiApplication/~QCoreApplication on Windows. Same pattern as
-    // tests/unit/InfiniteScrollerTest.cpp.
-    static auto* app = new QGuiApplication(argc, argv);
-    (void)app;
+    // Not a static object: destroyed from atexit, after Qt's own static state,
+    // it faults. AppTeardown deletes it at the end of the run instead.
+    new QGuiApplication(argc, argv);
   }
 }
+
+// Destroys the application while Qt is still whole; otherwise the font engines
+// and glyph caches ~QGuiApplication releases are reported as leaks.
+struct AppTeardown final : Catch::EventListenerBase
+{
+  using Catch::EventListenerBase::EventListenerBase;
+  void testRunEnded(Catch::TestRunStats const&) override { delete qApp; }
+};
+CATCH_REGISTER_LISTENER(AppTeardown)
 
 // Mirror the node's own font resolution: if this host cannot produce a
 // non-empty outline for 'H' through QRawFont, TextToMesh legitimately outputs

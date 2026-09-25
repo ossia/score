@@ -1294,7 +1294,8 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force) noexcept
 
 void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
 {
-  update_date_for_shaders(this->currentDate);
+  if(!dateFromStepClock)
+    update_date_for_shaders(this->currentDate);
 
   if(renderers.size() <= 1 && !force)
     return;

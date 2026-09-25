@@ -68,7 +68,12 @@ uint8_t* initFrameBuffer(AVFrame& frame, std::size_t bytes)
 
 FrameQueue::FrameQueue() { }
 
-FrameQueue::~FrameQueue() { }
+// Frames still in the queues are owned by the queue, even if the owner never
+// called drain(). drain() is idempotent.
+FrameQueue::~FrameQueue()
+{
+  drain();
+}
 
 void FreeAVFrame::operator()(AVFrame* f) const noexcept
 {

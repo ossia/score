@@ -20,6 +20,14 @@ namespace score
 {
 class DocumentPlugin;
 
+/**
+ * @brief What an application plug-in adds to the menus, toolbars and actions.
+ *
+ * Ownership is transferred: once registered, QAction%s are deleted by
+ * \ref ActionManager, QMenu%s by \ref MenuManager and QToolBar%s (with their
+ * children) by \ref ToolbarManager, with the score::Presenter, before the
+ * application plug-ins.
+ */
 struct GUIElements
 {
   ActionContainer actions;

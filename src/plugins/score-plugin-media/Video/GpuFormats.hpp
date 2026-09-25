@@ -179,6 +179,7 @@ inline constexpr bool formatNeedsDecoding(AVPixelFormat fmt) noexcept
 #if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 17, 100)
     case AV_PIX_FMT_X2BGR10LE:
     case AV_PIX_FMT_P210LE:
+    case AV_PIX_FMT_P216LE:
     case AV_PIX_FMT_P410LE:
 #endif
 
