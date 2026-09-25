@@ -2482,8 +2482,13 @@ void RenderedRawRasterPipelineNode::initMRTBlitPass(
   sampler->create();
   m_blitSamplersByEdge[&edge] = sampler;
 
-  QRhiGraphicsPipeline::TargetBlend blend = copyBlendFor(
-      n.descriptor(), colorOutputDeclaration(n.descriptor(), n, *edge.source));
+  const auto& mat
+      = *reinterpret_cast<const PipelineChangingMaterial*>(m_prevPipelineChangingMaterial);
+  QRhiGraphicsPipeline::TargetBlend blend
+      = mat.enable_blend
+            ? blendFor(isf::alpha_mode::premultiplied, isf::composite_mode::over)
+            : copyBlendFor(
+                  n.descriptor(), colorOutputDeclaration(n.descriptor(), n, *edge.source));
   if(rt.texture && !formatSupportsBlending(rt.texture->format()))
     blend = {};
   auto pip = score::gfx::buildPipeline(

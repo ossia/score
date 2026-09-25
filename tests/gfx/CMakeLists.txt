@@ -1977,6 +1977,10 @@ score_add_gfx_test(outside_frame_release_m1 GfxOutsideFrameReleaseM1.cpp)
 # including after a cable into an array input is cut (agent M1).
 score_add_gfx_test(bound_view_type_m1 GfxBoundViewTypeM1.cpp)
 
+# Placeholders swapped for an upstream buffer and orphaned adopted buffers
+# dropped during init outlive the initial batch that names them (agent F1).
+score_add_gfx_test(outside_frame_release_f1 GfxOutsideFrameReleaseF1.cpp)
+
 # Extract buffer (by name) in Buffer mode reads an auxiliary of a 0-vertex
 # geometry, like Scene Preprocessor's splat-only carrier (agent F2).
 if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
@@ -2028,10 +2032,6 @@ score_add_gfx_test(merge_geometries_tangent_mirror_f2 MergeGeometriesTangentMirr
 # WindowDevice::grabTo stops cleanly when its device is disconnected or deleted
 # from inside the grab's event pump (agent F2).
 score_add_gfx_process_test(grab_teardown_f2 GfxGrabTeardownF2.cpp)
-
-# Placeholders swapped for an upstream buffer and orphaned adopted buffers
-# dropped during init outlive the initial batch that names them (agent F1).
-score_add_gfx_test(outside_frame_release_f1 GfxOutsideFrameReleaseF1.cpp)
 
 # $COUNT_ / $BYTESIZE_ of a raw raster's INPUTS storage_input / uniform_input
 # resolve from the buffer bound through its Buffer edge (agent F1).

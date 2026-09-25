@@ -12,6 +12,12 @@
 //
 // Each shader writes (0.8, 0.4, 0.2, 0.5); the COMPOSITE over variant, which
 // the wrapper leaves alone, is the reference.
+//
+// With two colour outputs the draw goes into the node's own layers, which a
+// blit then composites onto the consumer. That blit used the shader's
+// COMPOSITE whether or not the user's blend was on, so a multiply layer was
+// multiplied onto the consumer's cleared black and read (0, 0, 0). A declared
+// BLEND already makes the blit composite "over"; the runtime blend does too.
 #include <score_test/Gfx.hpp>
 
 #include <catch2/catch_test_macros.hpp>
@@ -78,10 +84,11 @@ TEST_CASE(
     "[gfx][raw_raster][alpha][blend][f1]")
 {
   const auto be = GENERATE(from_range(platform_backends()));
-  const std::string composite = GENERATE("multiply", "screen");
+  const std::string composite = GENERATE("multiply", "screen", "mrt-multiply");
   CAPTURE(backend_name(be), composite);
 
-  const Shot ref = draw(be, "f1-rr-blend-over");
+  const bool mrt = composite.starts_with("mrt-");
+  const Shot ref = draw(be, mrt ? "f1-rr-blend-mrt-over" : "f1-rr-blend-over");
   if(ref.skipped)
     SKIP("backend unavailable");
   const Shot got = draw(be, "f1-rr-blend-" + composite);
