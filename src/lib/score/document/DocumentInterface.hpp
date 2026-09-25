@@ -24,6 +24,8 @@ namespace IDocument
  */
 SCORE_LIB_BASE_EXPORT Document* documentFromObject(const QObject* obj);
 SCORE_LIB_BASE_EXPORT Document* documentFromObject(const QObject& obj);
+//! The Document parent of the object, or nullptr when it has none yet
+SCORE_LIB_BASE_EXPORT Document* try_documentFromObject(const QObject& obj) noexcept;
 SCORE_LIB_BASE_EXPORT const DocumentContext& documentContext(const QObject& obj);
 
 /**
@@ -37,6 +39,10 @@ SCORE_LIB_BASE_EXPORT const DocumentContext& documentContext(const QObject& obj)
  */
 SCORE_LIB_BASE_EXPORT ObjectPath unsafe_path(QObject const* const& obj);
 SCORE_LIB_BASE_EXPORT ObjectPath unsafe_path(const QObject& obj);
+
+//! Identifies an open document in copied or dragged data; unlike the model
+//! id, it is unique among open documents
+SCORE_LIB_BASE_EXPORT QString copyOrigin(const Document& doc);
 
 //// Various getters ////
 

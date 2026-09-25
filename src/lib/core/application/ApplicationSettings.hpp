@@ -47,7 +47,8 @@ struct SCORE_LIB_BASE_EXPORT ApplicationSettings
   bool vector_gui = true;
 
   //! The version of the base score framework's JSON save file.
-  score::Version saveFormatVersion{4};
+  //! 5: an address can carry an anchor to a document object
+  score::Version saveFormatVersion{5};
 
   //! List of scenarios that should be loaded
   QStringList loadList;

@@ -11,8 +11,17 @@
 
 #include <QObject>
 #include <QString>
+#include <QUuid>
 
 #include <stdexcept>
+
+score::Document* score::IDocument::try_documentFromObject(const QObject& obj) noexcept
+{
+  const QObject* o = &obj;
+  while(o && !qobject_cast<const Document*>(o))
+    o = o->parent();
+  return const_cast<Document*>(static_cast<const Document*>(o));
+}
 
 score::Document* score::IDocument::documentFromObject(const QObject* obj)
 {
@@ -56,6 +65,17 @@ ObjectPath score::IDocument::unsafe_path(QObject const* const& obj)
 ObjectPath score::IDocument::unsafe_path(const QObject& obj)
 {
   return unsafe_path(&obj);
+}
+
+QString score::IDocument::copyOrigin(const score::Document& doc)
+{
+  auto token = doc.property("scoreCopyOrigin").toString();
+  if(token.isEmpty())
+  {
+    token = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    const_cast<score::Document&>(doc).setProperty("scoreCopyOrigin", token);
+  }
+  return token;
 }
 
 score::DocumentDelegatePresenter*

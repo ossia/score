@@ -24,17 +24,29 @@ void loadCommandStack(
   stack.updateStack([&]() {
     stack.setSavedIndex(-1);
 
+    // The replay stops at the first command unknown to this build
+    auto make = [&](const score::CommandData& elt) -> score::Command* {
+      try
+      {
+        return components.instantiateUndoCommand(elt);
+      }
+      catch(...)
+      {
+        return nullptr;
+      }
+    };
+
     bool ok = true;
     for(const auto& elt : undoStack)
     {
-      auto cmd = components.instantiateUndoCommand(elt);
-
-      if(redo_fun(cmd))
+      auto cmd = make(elt);
+      if(cmd && redo_fun(cmd))
       {
         stack.undoable().push(cmd);
       }
       else
       {
+        delete cmd;
         ok = false;
         break;
       }
@@ -44,8 +56,9 @@ void loadCommandStack(
     {
       for(const auto& elt : redoStack)
       {
-        auto cmd = components.instantiateUndoCommand(elt);
-
+        auto cmd = make(elt);
+        if(!cmd)
+          break;
         stack.redoable().push(cmd);
       }
     }

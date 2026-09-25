@@ -1081,6 +1081,10 @@ bool DocumentManager::checkAndUpdateJson(
 bool DocumentManager::updateJson(
     rapidjson::Value& object, Version json_ver, Version score_ver)
 {
+  // Format 5 only adds anchored addresses: format 4 is read as is
+  if(json_ver >= Version{4})
+    return true;
+
   score::hash_map<Version, std::pair<Version, std::function<void(QJsonObject&)>>>
       conversions;
   /*

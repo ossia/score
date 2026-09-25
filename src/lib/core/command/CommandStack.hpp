@@ -68,6 +68,14 @@ public:
 
   bool isAtSavedIndex() const;
 
+  //! Whether a command is being undone or redone
+  bool isReplaying() const noexcept { return m_replaying; }
+
+  //! An edit applied before its command is pushed: the document counts as
+  //! modified until endPendingEdit().
+  void beginPendingEdit();
+  void endPendingEdit();
+
   QStack<score::Command*>& undoable() { return m_undoable; }
   QStack<score::Command*>& redoable() { return m_redoable; }
   const QStack<score::Command*>& undoable() const { return m_undoable; }
@@ -213,6 +221,8 @@ private:
   QStack<score::Command*> m_redoable;
 
   int m_savedIndex{};
+  int m_pendingEdits{};
+  bool m_replaying{};
 
   DocumentValidator m_checker;
   const score::DocumentContext& m_ctx;

@@ -86,12 +86,27 @@ int CommandStack::currentIndex() const
 
 void CommandStack::markCurrentIndexAsSaved()
 {
+  // What pending edits changed is in the saved document
+  m_pendingEdits = 0;
   setSavedIndex(currentIndex());
+  saveIndexChanged(isAtSavedIndex());
 }
 
 bool CommandStack::isAtSavedIndex() const
 {
-  return currentIndex() == m_savedIndex;
+  return m_pendingEdits == 0 && currentIndex() == m_savedIndex;
+}
+
+void CommandStack::beginPendingEdit()
+{
+  if(m_pendingEdits++ == 0)
+    saveIndexChanged(isAtSavedIndex());
+}
+
+void CommandStack::endPendingEdit()
+{
+  if(m_pendingEdits > 0 && --m_pendingEdits == 0)
+    saveIndexChanged(isAtSavedIndex());
 }
 
 void CommandStack::setIndexQuiet(int index)
@@ -104,7 +119,7 @@ void CommandStack::setIndexQuiet(int index)
       redoQuiet();
   }
 
-  saveIndexChanged(m_savedIndex == this->currentIndex());
+  saveIndexChanged(isAtSavedIndex());
   sig_indexChanged();
 }
 
@@ -117,14 +132,31 @@ void CommandStack::setIndex(int index)
   }
 }
 
+namespace
+{
+struct Replaying
+{
+  bool& flag;
+  explicit Replaying(bool& f)
+      : flag{f}
+  {
+    flag = true;
+  }
+  ~Replaying() { flag = false; }
+};
+}
+
 void CommandStack::undoQuiet()
 {
   updateStack([&]() {
     auto cmd = m_undoable.pop();
-    cmd->undo(m_ctx);
+    {
+      Replaying r{m_replaying};
+      cmd->undo(m_ctx);
+    }
     m_redoable.push(cmd);
 
-    saveIndexChanged(m_savedIndex == this->currentIndex());
+    saveIndexChanged(isAtSavedIndex());
     sig_undo();
   });
 }
@@ -133,11 +165,14 @@ void CommandStack::redoQuiet()
 {
   updateStack([&]() {
     auto cmd = m_redoable.pop();
-    cmd->redo(m_ctx);
+    {
+      Replaying r{m_replaying};
+      cmd->redo(m_ctx);
+    }
 
     m_undoable.push(cmd);
 
-    saveIndexChanged(m_savedIndex == this->currentIndex());
+    saveIndexChanged(isAtSavedIndex());
     sig_redo();
   });
 }
@@ -159,7 +194,7 @@ void CommandStack::push(Command* cmd)
 
     // Push operation
     m_undoable.push(cmd);
-    saveIndexChanged(m_savedIndex == this->currentIndex());
+    saveIndexChanged(isAtSavedIndex());
 
     if(!m_redoable.empty())
     {
@@ -186,7 +221,7 @@ void CommandStack::pushQuiet(Command* cmd)
 
     // Push operation
     m_undoable.push(cmd);
-    saveIndexChanged(m_savedIndex == this->currentIndex());
+    saveIndexChanged(isAtSavedIndex());
 
     if(!m_redoable.empty())
     {
@@ -203,7 +238,7 @@ void CommandStack::setSavedIndex(int index)
   if(index != m_savedIndex)
   {
     m_savedIndex = index;
-    saveIndexChanged(m_savedIndex == this->currentIndex());
+    saveIndexChanged(isAtSavedIndex());
   }
 }
 

@@ -271,6 +271,13 @@ void Document::loadModel(
     }
     case JSONObject::type(): {
       auto doc = readJson(data);
+      if(doc.IsObject())
+        if(auto v = doc.FindMember("Version"); v != doc.MemberEnd() && v->value.IsInt()
+           && score::Version{v->value.GetInt()}
+                  > m_context.app.applicationSettings.saveFormatVersion)
+          throw std::runtime_error(
+              "The document was saved by a newer version of score, whose save "
+              "format this version cannot read.");
       bool ok = DocumentManager::checkAndUpdateJson(doc, m_context.app);
       if(!ok)
       {
