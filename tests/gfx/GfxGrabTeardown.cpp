@@ -7,7 +7,12 @@
 // from a zero timer that fires inside the pump. The grab must stop, say so and
 // write nothing.
 //
-// Registration: see test_gfx_process_grab_teardown.
+// The device's output node is registered through the GfxContext command queue
+// and the device owns it too: a device destroyed before a tick drains that
+// queue must not leave the queued ADD_NODE owning the freed node. The grabs here tear the device down
+// before any tick, and a third device is created and deleted outright.
+
+#include "GfxLogCapture.hpp"
 
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
@@ -40,7 +45,6 @@ Gfx::WindowDevice* makeDevice(const score::DocumentContext& ctx)
     delete dev;
     return nullptr;
   }
-  dev->renderFrames(1);
   return dev;
 }
 
@@ -93,7 +97,7 @@ TEST_CASE(
       deleteWarnings = closedWarnings(log);
     }
 
-    qInstallMessageHandler(prev);
+    delete makeDevice(doc->context());
     written = QFile::exists(png);
   });
   qunsetenv("SCORE_FORCE_OFFSCREEN_WINDOW");
