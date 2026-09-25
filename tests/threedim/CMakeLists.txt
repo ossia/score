@@ -543,3 +543,10 @@ score_add_test(test_threedim_fbx_joint_rest
 threedim_test_includes(test_threedim_fbx_joint_rest)
 target_compile_definitions(test_threedim_fbx_joint_rest PRIVATE
   THREEDIM_TEST_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+
+# Camera Array faces span the cube map face sc / tc axes, the +Y / -Y faces
+# included.
+score_add_test(test_threedim_camera_array_cube_basis
+  SOURCES CameraArrayCubeBasis.cpp
+  LIBS ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_camera_array_cube_basis)
