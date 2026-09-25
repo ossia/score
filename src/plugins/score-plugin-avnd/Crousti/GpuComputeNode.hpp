@@ -95,7 +95,8 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
   renderTargetForInput(const score::gfx::Port& p) override
   {
     auto it = m_rts.find(&p);
-    SCORE_ASSERT(it != m_rts.end());
+    if(it == m_rts.end())
+      return {};
     return it->second;
   }
 

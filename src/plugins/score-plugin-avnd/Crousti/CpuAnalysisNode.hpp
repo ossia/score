@@ -49,7 +49,8 @@ struct GfxRenderer<Node_T> final
     if constexpr(avnd::texture_input_introspection<Node_T>::size > 0)
     {
       auto it = texture_ins.m_rts.find(&p);
-      SCORE_ASSERT(it != texture_ins.m_rts.end());
+      if(it == texture_ins.m_rts.end())
+        return {};
       return it->second;
     }
     return {};
