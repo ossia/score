@@ -1789,3 +1789,11 @@ if(TARGET score_plugin_threedim)
     $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
+
+# ISF graphics and CSF compute storage images take the lowest bindings, under
+# the 8 OpenGL image units NVIDIA exposes (N93, agent I1).
+score_add_gfx_test(isf_csf_image_binding_i1 GfxIsfCsfImageBindingI1.cpp)
+
+# A texture inlet's filter change reaches CSF, raw raster and VSA samplers at
+# runtime (agent I1).
+score_add_gfx_test(input_sampler_filter_i1 GfxInputSamplerFilterI1.cpp)

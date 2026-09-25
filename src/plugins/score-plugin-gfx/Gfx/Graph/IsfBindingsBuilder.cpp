@@ -192,6 +192,35 @@ int graphicsStorageImageBindingCount(const isf::descriptor& desc) noexcept
   return count;
 }
 
+std::vector<int> storageImageInputSamplers(
+    const isf::descriptor& desc, const std::vector<Port*>& ports, int firstInlet)
+{
+  std::set<int> imagePorts;
+  walk_descriptor_inputs(
+      desc, port_counts{firstInlet, 0, 0},
+      [&](const isf::input& inp, const port_counts& cur, const port_counts&) {
+        if(auto* img = ossia::get_if<isf::csf_image_input>(&inp.data))
+          if(img->access == "read_only")
+            imagePorts.insert(cur.inlets);
+      });
+
+  std::vector<int> out;
+  int sampler = 0;
+  for(int i = 0; i < (int)ports.size(); i++)
+  {
+    const Port& p = *ports[i];
+    if(p.type != Types::Image)
+      continue;
+    if(imagePorts.contains(i))
+      out.push_back(sampler);
+    sampler++;
+    if((p.flags & Flag::GrabsFromSource) != Flag::GrabsFromSource
+       && (p.flags & Flag::SamplableDepth) == Flag::SamplableDepth)
+      sampler++;
+  }
+  return out;
+}
+
 void collectGraphicsStorageResources(
     const isf::descriptor& desc, int firstBinding, GraphicsStorageResources& out,
     int firstInlet, int firstImageBinding)
@@ -340,8 +369,8 @@ void collectGraphicsStorageResources(
 
   // Record the next free binding after all graphics-visible storage. Because
   // the walk above assigns bindings from a single counter across SSBOs,
-  // images AND uniform_input UBOs in declaration order — exactly as
-  // isf_emit_graphics_storage() does — `binding` equals that function's
+  // uniform_input UBOs and, without firstImageBinding, images in declaration
+  // order — exactly as isf_emit_graphics_storage() does — `binding` equals that function's
   // return value. Callers append the multiview UBO at this slot, where isf.cpp
   // emits it, so they reuse this rather than re-deriving a max that would
   // forget the UBOs.

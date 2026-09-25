@@ -96,8 +96,8 @@ TEST_CASE("CSF audio inputs are declared as samplers", "[gfx][csf][isf]")
       isf::parser::ShaderType::CSF};
   const auto code = p.compute_shader();
   INFO(code);
-  CHECK(code.find("layout(binding = 2) uniform sampler2D src;") != std::string::npos);
-  CHECK(code.find("layout(binding = 3, rgba8) writeonly uniform image2D outImage;")
+  CHECK(code.find("layout(binding = 3) uniform sampler2D src;") != std::string::npos);
+  CHECK(code.find("layout(binding = 2, rgba8) writeonly uniform image2D outImage;")
         != std::string::npos);
   check_bakes(p);
 }

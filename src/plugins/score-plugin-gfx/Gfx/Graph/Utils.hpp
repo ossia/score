@@ -27,6 +27,7 @@ namespace score::gfx
 class Node;
 class NodeModel;
 struct Port;
+struct RenderTargetSpecs;
 class VertexFallbackPool;
 struct Edge;
 class RenderList;
@@ -798,7 +799,8 @@ Pipeline buildPipelineWithState(
     std::span<QRhiShaderResourceBinding> extraBindings,
     const isf::pipeline_state& state,
     int multiViewCount = 0,
-    bool useShadingRate = false);
+    bool useShadingRate = false,
+    int firstSamplerBinding = 3);
 
 /**
  * @brief Get a pair of compiled vertex / fragment shaders from GLSL 4.5 sources.
@@ -934,4 +936,13 @@ SCORE_PLUGIN_GFX_EXPORT
 std::vector<Sampler> initInputSamplers(
     const score::gfx::Node& node, RenderList& renderer, const std::vector<Port*>& ports,
     const isf::descriptor* desc = nullptr);
+
+/**
+ * @brief Give the sampler initInputSamplers() created for `input`, one of
+ *        `node`'s input ports, the filter and address modes of `spec`.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+void updateInputSamplerFilter(
+    std::span<const Sampler> samplers, const score::gfx::Node& node, const Port& input,
+    const RenderTargetSpecs& spec);
 }

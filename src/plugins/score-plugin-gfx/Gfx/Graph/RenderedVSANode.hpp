@@ -13,6 +13,7 @@ struct SimpleRenderedVSANode : score::gfx::NodeRenderer
   virtual ~SimpleRenderedVSANode();
 
   void updateInputTexture(const Port& input, QRhiTexture* tex, QRhiTexture* depthTex = nullptr) override;
+  void updateInputSamplerFilter(const Port& input, const RenderTargetSpecs& spec) override;
 
   void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge) override;

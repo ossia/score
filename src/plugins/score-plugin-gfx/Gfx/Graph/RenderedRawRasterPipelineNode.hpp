@@ -21,6 +21,7 @@ struct RenderedRawRasterPipelineNode : score::gfx::NodeRenderer
   virtual ~RenderedRawRasterPipelineNode();
 
   void updateInputTexture(const Port& input, QRhiTexture* tex, QRhiTexture* depthTex = nullptr) override;
+  void updateInputSamplerFilter(const Port& input, const RenderTargetSpecs& spec) override;
   QRhiTexture* textureForOutput(const Port& output) override;
 
   void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override;

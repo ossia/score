@@ -164,8 +164,8 @@ struct GraphicsStorageResources
  *
  * Bindings are assigned sequentially starting from `firstBinding`. Persistent
  * SSBOs consume TWO consecutive bindings. With `firstImageBinding >= 0` the
- * storage images are numbered from there instead, as isf.cpp does for a raw
- * raster. `firstInlet` is the node's input port index of the first
+ * storage images are numbered from there instead, as isf.cpp does for ISF and
+ * raw raster shaders. `firstInlet` is the node's input port index of the first
  * desc.inputs port: 1 for a raw raster, whose port 0 is its geometry input.
  *
  * No GPU resources are allocated here — call ensureStorageResources() later.
@@ -181,6 +181,17 @@ void collectGraphicsStorageResources(
  */
 SCORE_PLUGIN_GFX_EXPORT
 int graphicsStorageImageBindingCount(const isf::descriptor& desc) noexcept;
+
+/**
+ * @brief Indices, in the list initInputSamplers() returns for `ports`, of the
+ *        samplers it creates for the input ports of read_only csf_image_input's.
+ *
+ * A graphics shader declares those inputs as storage images, not samplers, so
+ * the sampler bindings must skip these entries.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+std::vector<int> storageImageInputSamplers(
+    const isf::descriptor& desc, const std::vector<Port*>& ports, int firstInlet = 0);
 
 /**
  * @brief Create missing buffers and textures.

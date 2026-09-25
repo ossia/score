@@ -3982,11 +3982,12 @@ void parser::parse_isf()
         std::string samplers;
         std::string globalvars;
         int num_uniform = 0;
+        sampler_binding = isf_emit_graphics_images(samplers, 3, d.inputs);
         uniforms += "layout(std140, binding = 2) uniform material_t {\n";
         for(const isf::input& val : d.inputs)
         {
-          // Storage buffers / storage images are declared separately after
-          // samplers — skip them here to avoid emitting invalid GLSL.
+          // Storage images are declared before the samplers, storage buffers
+          // after them — skip them here to avoid emitting invalid GLSL.
           if(ossia::get_if<isf::storage_input>(&val.data)
              || ossia::get_if<isf::csf_image_input>(&val.data)
              || ossia::get_if<isf::geometry_input>(&val.data)
@@ -4090,10 +4091,11 @@ void parser::parse_isf()
 
         material_ubos += samplers;
 
-        // Storage buffers (SSBOs) and storage images visible to the graphics
-        // pipeline. Bindings continue after samplers.
+        // Storage buffers (SSBOs) and uniform_input UBOs visible to the
+        // graphics pipeline. Bindings continue after samplers; the storage
+        // images took the lowest bindings, from 3.
         sampler_binding = isf_emit_graphics_storage(
-            material_ubos, sampler_binding, d.inputs);
+            material_ubos, sampler_binding, d.inputs, false);
 
         // Multiview UBO: injected when MULTIVIEW >= 2 in the descriptor.
         // Only the UBO here — the #extension pragma must come right after
@@ -6561,6 +6563,17 @@ void parser::parse_csf()
     }
   }
 
+  int image_binding = binding;
+  for(const auto& inp : m_desc.inputs)
+  {
+    if(auto* img = ossia::get_if<csf_image_input>(&inp.data))
+      binding += img->persistent ? 2 : 1;
+    else if(auto* geo = ossia::get_if<geometry_input>(&inp.data))
+      for(const auto& atx : geo->auxiliary_textures)
+        if(atx.is_storage)
+          binding++;
+  }
+
   // Generate resource bindings
   m_fragment += "// From RESOURCES - bindings assigned automatically\n";
   bool emitted_indirect_struct = false;
@@ -6651,12 +6664,12 @@ void parser::parse_csf()
         m_fragment += decl_name + ";\n";
       };
 
-      emit_image(binding, inp.name, /*alias_prev=*/false);
-      binding++;
+      emit_image(image_binding, inp.name, /*alias_prev=*/false);
+      image_binding++;
       if(img.persistent)
       {
-        emit_image(binding, inp.name + "_prev", /*alias_prev=*/true);
-        binding++;
+        emit_image(image_binding, inp.name + "_prev", /*alias_prev=*/true);
+        image_binding++;
       }
     }
     else if(auto* tex_ptr = ossia::get_if<texture_input>(&inp.data))
@@ -6859,7 +6872,7 @@ void parser::parse_csf()
           std::string scalar_prefix = isf_glsl_type_prefix(atx.format);
 
           const std::string aux_head = "layout(binding = "
-                                       + std::to_string(binding) + ", "
+                                       + std::to_string(image_binding) + ", "
                                        + atx.format + ") uniform " + access_q
                                        + scalar_prefix;
           // Cube storage images become a 2D-array view on HLSL: Direct3D has
@@ -6870,7 +6883,7 @@ void parser::parse_csf()
             m_fragment += aux_head + image_type + " " + atx.name + ";\n";
           if(aliased)
             m_fragment += "#define " + aux_prefix + " " + atx.name + "\n";
-          binding++;
+          image_binding++;
         }
         else
         {

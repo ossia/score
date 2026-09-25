@@ -300,6 +300,12 @@ RenderedRawRasterPipelineNode::RenderedRawRasterPipelineNode(
 {
 }
 
+void RenderedRawRasterPipelineNode::updateInputSamplerFilter(
+    const Port& input, const RenderTargetSpecs& spec)
+{
+  score::gfx::updateInputSamplerFilter(m_inputSamplers, node, input, spec);
+}
+
 void RenderedRawRasterPipelineNode::updateInputTexture(const Port& input, QRhiTexture* tex, QRhiTexture* depthTex)
 {
   // Find which image-type sampler index this port corresponds to
