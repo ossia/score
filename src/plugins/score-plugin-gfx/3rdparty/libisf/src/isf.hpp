@@ -647,6 +647,15 @@ struct fragment_output : vertex_attribute
 // default. Two instances live in `descriptor`: a global `default_state`
 // (from PIPELINE_STATE), and a per-pass `override_state` that merges on top.
 
+// ALPHA header key: how a shader output's colour relates to its alpha.
+// `unspecified` resolves per mode through resolve_alpha().
+enum class alpha_mode : uint8_t
+{
+  unspecified,
+  straight,
+  premultiplied
+};
+
 struct blend_attachment
 {
   bool enable{false};
@@ -815,6 +824,9 @@ struct output_declaration
   int height{0};
   std::string width_expression;
   std::string height_expression;
+
+  // ALPHA: overrides the descriptor-level ALPHA for this output.
+  alpha_mode alpha{alpha_mode::unspecified};
 };
 
 struct descriptor
@@ -829,6 +841,11 @@ struct descriptor
   std::string description;
   std::string credits;
   std::vector<std::string> categories;
+
+  // ALPHA: what every colour output writes, unless an OUTPUTS entry says
+  // otherwise. Unspecified: straight for ISF, premultiplied for CSF, raw
+  // raster and VSA.
+  alpha_mode alpha{alpha_mode::unspecified};
   std::vector<input> inputs;
   std::vector<output_declaration> outputs; // Parsed from OUTPUTS array; empty = single color output
   std::vector<pass> passes;
@@ -963,6 +980,12 @@ struct descriptor
   // Empty = no qualifier emitted.
   std::string depth_layout;
 };
+
+// The ALPHA convention of a colour output: the OUTPUTS entry's, else the
+// descriptor's, else the mode's default.
+SCORE_PLUGIN_GFX_EXPORT
+alpha_mode resolve_alpha(
+    const descriptor& d, const output_declaration* out = nullptr) noexcept;
 
 class SCORE_PLUGIN_GFX_EXPORT parser
 {

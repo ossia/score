@@ -9,6 +9,7 @@
 
 #include <Gfx/Graph/RhiClearBuffer.hpp>
 #include <Gfx/Graph/RhiIndirectCompat.hpp>
+#include <Gfx/Graph/PipelineStateHelpers.hpp>
 #include <Gfx/Graph/RenderedISFSamplerUtils.hpp>
 #include <Gfx/Graph/RhiComputeBarrier.hpp>
 #include <Gfx/Graph/SSBO.hpp>
@@ -3547,8 +3548,12 @@ void main() { fragColor = vec4(vec3(clamp(float(texture(outputTexture, vec3(v_te
       
   if(pip.pipeline)
   {
+    QRhiGraphicsPipeline::TargetBlend copyBlend
+        = overBlendFor(isf::resolve_alpha(n.m_descriptor));
+    if(rt.texture && !formatSupportsBlending(rt.texture->format()))
+      copyBlend = {};
     const QList<QRhiGraphicsPipeline::TargetBlend> copyBlends(
-        std::max(1, rt.colorAttachmentCount()), QRhiGraphicsPipeline::TargetBlend{});
+        std::max(1, rt.colorAttachmentCount()), copyBlend);
     pip.pipeline->setTargetBlends(copyBlends.begin(), copyBlends.end());
     if(!pip.pipeline->create())
     {

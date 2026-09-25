@@ -201,7 +201,8 @@ when you need a layout the built-in does not provide.
 `CULL_MODE`, `FRONT_FACE`, `DEPTH_TEST`, `DEPTH_WRITE`, `DEPTH_COMPARE`,
 `DEPTH_BIAS`, `BLEND`, `BLEND_PER_ATTACHMENT`, `COLOR_WRITE`, `TOPOLOGY`,
 `POLYGON_MODE`, `LINE_WIDTH`, `STENCIL_*`, `CLIP_DISTANCES`, `CULL_DISTANCES`,
-`SHADING_RATE`.
+`SHADING_RATE`. Without `BLEND` the output is composited according to the
+shader's `ALPHA` key (section 11).
 
 `VERTEX_COUNT` / `INSTANCE_COUNT` are procedural overrides: they issue a bare
 `draw(N, M)` and ignore the incoming index and indirect buffers. That is how
@@ -560,7 +561,48 @@ documents; `GfxSplatRender.cpp` documents the greps that establish this. The
 live path is AssetLoader → primitive cloud → Preprocessor → format filter → CSF
 chain.
 
-## 11. Verifying a shader you wrote
+## 11. Alpha: premultiplied targets and the `ALPHA` key
+
+**Every texture that travels between nodes holds premultiplied colour**:
+`rgb` is already multiplied by `a`. A cable into an image input is drawn into
+that input's render target, cleared to `(0, 0, 0, 0)` (the final output clears to
+opaque black), and composited **over** what the target already holds. The
+engine picks the blend from what the shader says it writes:
+
+| `ALPHA` | the shader writes | colour factors | alpha factors |
+|---|---|---|---|
+| `"straight"` | `vec4(rgb, a)` | `SrcAlpha`, `OneMinusSrcAlpha` | `One`, `OneMinusSrcAlpha` |
+| `"premultiplied"` | `vec4(rgb * a, a)` | `One`, `OneMinusSrcAlpha` | `One`, `OneMinusSrcAlpha` |
+
+Both store premultiplied colour, so writing `(1, 0, 0, 0.5)` straight and
+`(0.5, 0, 0, 0.5)` premultiplied leave the same texel `(0.5, 0, 0, 0.5)`.
+
+- Defaults: **ISF straight**; **CSF, raw raster and VSA premultiplied**.
+- `"ALPHA"` is a top-level header key; an `OUTPUTS` entry may carry its own
+  `"ALPHA"` to override it for that attachment. Any other value is a parse error.
+- **An explicit `PIPELINE_STATE.BLEND` / `BLEND_PER_ATTACHMENT` wins** over the
+  `ALPHA` default (so does the raw raster's "Enable blend" control). Use
+  `"BLEND": false` to replace instead of composite, e.g. for data textures whose
+  alpha is not coverage.
+- A CSF storage image is copied into the consumer with the same rule, using the
+  CSF's `ALPHA`. MRT outputs (ISF `OUTPUTS`, raw raster `FRAGMENT_OUTPUTS`) are
+  stored premultiplied in the node's own textures and copied with
+  premultiplied over.
+- **Several cables into one input** are composited in order of their source
+  node (the order the nodes were created, then the output index), each over the
+  ones before it.
+- **Sampling returns what is stored**: `IMG_PIXEL` / `IMG_NORM_PIXEL` of an image
+  input give premultiplied colour. A shader that forwards texels unchanged must
+  declare `"ALPHA": "premultiplied"`; declared straight, it would multiply the
+  colour by alpha a second time. A straight shader that needs straight colour
+  divides by alpha itself (`c.a > 0.0 ? c.rgb / c.a : vec3(0.0)`).
+- Inside a multi-pass ISF, pass targets follow the ISF reference renderer: they
+  clear to `(0, 0, 0, 0)` and each pass **replaces** its target (no blend), so a
+  pass reads exactly what the previous one wrote. Only the pass that reaches the
+  node's output (or the copy of a persistent last pass) is composited with the
+  `ALPHA` rule.
+
+## 12. Verifying a shader you wrote
 
 ```sh
 # 1. bake on all four dialects — catches D3D/Metal-only defects CI misses

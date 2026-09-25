@@ -216,16 +216,11 @@ struct Port
 /**
  * @brief Connection between two score::gfx::Port
  */
-struct Edge
+struct SCORE_PLUGIN_GFX_EXPORT Edge
 {
-  Edge(Port* source, Port* sink, Process::CableType t)
-      : source{source}
-      , sink{sink}
-      , type{t}
-  {
-    source->edges.push_back(this);
-    sink->edges.push_back(this);
-  }
+  //! The sink port keeps its edges ordered by source (node id, output index):
+  //! several cables into one input are drawn, and composited, in that order.
+  Edge(Port* source, Port* sink, Process::CableType t);
 
   ~Edge()
   {
@@ -732,6 +727,21 @@ Pipeline buildPipeline(
     const QShader& fragmentS, const TextureRenderTarget& rt,
     QRhiShaderResourceBindings* srb);
 
+/**
+ * @brief buildPipeline with an explicit blend on every colour attachment.
+ *
+ * The variants above composite a straight-alpha output "over" the target
+ * (straightOverBlend()); copies of textures that already hold premultiplied
+ * colour pass premultipliedOverBlend().
+ */
+SCORE_PLUGIN_GFX_EXPORT
+Pipeline buildPipeline(
+    const RenderList& renderer, const Mesh& mesh, const QShader& vertexS,
+    const QShader& fragmentS, const TextureRenderTarget& rt, QRhiBuffer* processUBO,
+    QRhiBuffer* materialUBO, std::span<const Sampler> samplers,
+    const QRhiGraphicsPipeline::TargetBlend& blend,
+    std::span<QRhiShaderResourceBinding> additionalBindings = {});
+
 // Forward declarations — definitions in PipelineStateHelpers.hpp, IsfBindingsBuilder.hpp
 } // namespace score::gfx
 
@@ -780,6 +790,9 @@ struct GraphicsStorageResources;
  * driven by `state` here. When `state` is empty (all fields nullopt),
  * behaviour matches the variant above exactly.
  *
+ * `seedBlends` is the blend of each colour attachment unless `state` declares
+ * BLEND (the last entry repeats); empty means straightOverBlend().
+ *
  * `extraBindings` is typically the result of IsfBindingsBuilder::buildExtraBindings().
  * `multiViewCount` >= 2 activates multiview rendering (requires state.caps.multiview).
  *
@@ -800,7 +813,8 @@ Pipeline buildPipelineWithState(
     const isf::pipeline_state& state,
     int multiViewCount = 0,
     bool useShadingRate = false,
-    int firstSamplerBinding = 3);
+    int firstSamplerBinding = 3,
+    std::span<const QRhiGraphicsPipeline::TargetBlend> seedBlends = {});
 
 /**
  * @brief Get a pair of compiled vertex / fragment shaders from GLSL 4.5 sources.

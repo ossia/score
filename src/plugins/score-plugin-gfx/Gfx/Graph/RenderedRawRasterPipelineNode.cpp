@@ -440,6 +440,18 @@ std::vector<Sampler> RenderedRawRasterPipelineNode::allSamplers() const noexcept
 // created and never written. It exists so the resulting crash can be A/B'd on
 // the machine that reproduces it without a second build; nothing in score sets
 // it.
+static QVarLengthArray<QRhiGraphicsPipeline::TargetBlend, 4> rasterSeedBlends(
+    const isf::descriptor& desc, const QRhiGraphicsPipeline::TargetBlend& custom,
+    int colorAttachmentCount)
+{
+  if(!custom.enable)
+    return outputBlends(desc, colorAttachmentCount);
+  QVarLengthArray<QRhiGraphicsPipeline::TargetBlend, 4> blends;
+  for(int i = 0; i < std::max(1, colorAttachmentCount); i++)
+    blends.push_back(custom);
+  return blends;
+}
+
 static bool auxPlaceholderZeroFillDisabled() noexcept
 {
   static const bool off
@@ -733,24 +745,24 @@ void RenderedRawRasterPipelineNode::initPass(
     const auto& desc = n.m_descriptor;
     const bool hasDescriptorState = stateAffectsPipeline(desc.default_state);
 
+    QRhiGraphicsPipeline::TargetBlend customBlend;
+    customBlend.enable = mat.enable_blend;
+    customBlend.srcColor = mat.src_color;
+    customBlend.dstColor = mat.dst_color;
+    customBlend.opColor = mat.op_color;
+    customBlend.srcAlpha = mat.src_alpha;
+    customBlend.dstAlpha = mat.dst_alpha;
+    customBlend.opAlpha = mat.op_alpha;
+
     if(hasDescriptorState)
     {
       // New path: pipeline_state drives blend/depth/cull/stencil. Seed the
-      // legacy material-UBO-driven blend on every attachment first so that
-      // a partial PIPELINE_STATE declaration (e.g. just CULL_MODE) doesn't
-      // silently lose the runtime blend UI's effect; applyPipelineState only
+      // blend (the runtime blend UI when enabled, else the ALPHA-derived
+      // "over") on every attachment first so that a partial PIPELINE_STATE
+      // declaration (e.g. just CULL_MODE) keeps it; applyPipelineState only
       // overrides blend when BLEND was explicitly declared.
-      QRhiGraphicsPipeline::TargetBlend seededBlend;
-      seededBlend.enable = mat.enable_blend;
-      seededBlend.srcColor = mat.src_color;
-      seededBlend.dstColor = mat.dst_color;
-      seededBlend.opColor = mat.op_color;
-      seededBlend.srcAlpha = mat.src_alpha;
-      seededBlend.dstAlpha = mat.dst_alpha;
-      seededBlend.opAlpha = mat.op_alpha;
-      QList<QRhiGraphicsPipeline::TargetBlend> seedBlends;
-      for(int i = 0; i < std::max(1, renderTarget.colorAttachmentCount()); i++)
-        seedBlends.append(seededBlend);
+      const auto seedBlends = rasterSeedBlends(
+          desc, customBlend, renderTarget.colorAttachmentCount());
       ps->setTargetBlends(seedBlends.begin(), seedBlends.end());
       ps->setDepthTest(true);
       ps->setDepthWrite(true);
@@ -768,16 +780,10 @@ void RenderedRawRasterPipelineNode::initPass(
     }
     else
     {
-      // Legacy path: blend from material UBO, depth hardcoded on.
-      QRhiGraphicsPipeline::TargetBlend premulAlphaBlend;
-      premulAlphaBlend.enable = mat.enable_blend;
-      premulAlphaBlend.srcColor = mat.src_color;
-      premulAlphaBlend.dstColor = mat.dst_color;
-      premulAlphaBlend.opColor = mat.op_color;
-      premulAlphaBlend.srcAlpha = mat.src_alpha;
-      premulAlphaBlend.dstAlpha = mat.dst_alpha;
-      premulAlphaBlend.opAlpha = mat.op_alpha;
-      ps->setTargetBlends({premulAlphaBlend});
+      // Legacy path: blend from the runtime UI or ALPHA, depth hardcoded on.
+      const auto seedBlends = rasterSeedBlends(
+          desc, customBlend, renderTarget.colorAttachmentCount());
+      ps->setTargetBlends(seedBlends.begin(), seedBlends.end());
 
       // Depth only when this target actually has a depth attachment: Metal's
       // API validation aborts on a depth-enabled draw with a nil
@@ -1950,21 +1956,21 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     const auto& desc = n.m_descriptor;
     const bool hasDescriptorState = stateAffectsPipeline(desc.default_state);
 
+    QRhiGraphicsPipeline::TargetBlend customBlend;
+    customBlend.enable = mat.enable_blend;
+    customBlend.srcColor = mat.src_color;
+    customBlend.dstColor = mat.dst_color;
+    customBlend.opColor = mat.op_color;
+    customBlend.srcAlpha = mat.src_alpha;
+    customBlend.dstAlpha = mat.dst_alpha;
+    customBlend.opAlpha = mat.op_alpha;
+
     if(hasDescriptorState)
     {
-      // Seed legacy material-UBO blend on every attachment first; applyPipelineState
-      // only overrides BLEND when the shader explicitly declares it.
-      QRhiGraphicsPipeline::TargetBlend seededBlend;
-      seededBlend.enable = mat.enable_blend;
-      seededBlend.srcColor = mat.src_color;
-      seededBlend.dstColor = mat.dst_color;
-      seededBlend.opColor = mat.op_color;
-      seededBlend.srcAlpha = mat.src_alpha;
-      seededBlend.dstAlpha = mat.dst_alpha;
-      seededBlend.opAlpha = mat.op_alpha;
-      QList<QRhiGraphicsPipeline::TargetBlend> seedBlends;
-      for(int i = 0; i < std::max(1, pipelineColorCount); i++)
-        seedBlends.append(seededBlend);
+      // Seed the UI or ALPHA-derived blend on every attachment first;
+      // applyPipelineState only overrides BLEND when the shader declares it.
+      const auto seedBlends
+          = rasterSeedBlends(desc, customBlend, pipelineColorCount);
       ps->setTargetBlends(seedBlends.begin(), seedBlends.end());
       ps->setDepthTest(true);
       ps->setDepthWrite(true);
@@ -1982,20 +1988,10 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     }
     else
     {
-      // Legacy: material-UBO-driven blend, hardcoded depth.
-      QRhiGraphicsPipeline::TargetBlend premulAlphaBlend;
-      premulAlphaBlend.enable = mat.enable_blend;
-      premulAlphaBlend.srcColor = mat.src_color;
-      premulAlphaBlend.dstColor = mat.dst_color;
-      premulAlphaBlend.opColor = mat.op_color;
-      premulAlphaBlend.srcAlpha = mat.src_alpha;
-      premulAlphaBlend.dstAlpha = mat.dst_alpha;
-      premulAlphaBlend.opAlpha = mat.op_alpha;
-
-      QList<QRhiGraphicsPipeline::TargetBlend> blends;
-      for(int i = 0; i < std::max(1, pipelineColorCount); i++)
-        blends.append(premulAlphaBlend);
-      ps->setTargetBlends(blends.begin(), blends.end());
+      // Legacy: UI or ALPHA-derived blend, hardcoded depth.
+      const auto seedBlends
+          = rasterSeedBlends(desc, customBlend, pipelineColorCount);
+      ps->setTargetBlends(seedBlends.begin(), seedBlends.end());
 
       // Depth only when this target actually has a depth attachment: Metal's
       // API validation aborts on a depth-enabled draw with a nil
@@ -2126,9 +2122,12 @@ void RenderedRawRasterPipelineNode::initMRTBlitPass(
   sampler->create();
   m_blitSamplersByEdge[&edge] = sampler;
 
+  QRhiGraphicsPipeline::TargetBlend blend = premultipliedOverBlend();
+  if(rt.texture && !formatSupportsBlending(rt.texture->format()))
+    blend = {};
   auto pip = score::gfx::buildPipeline(
       renderer, *m_blitMesh, vertexS, fragmentS, rt, nullptr, nullptr,
-      std::array<Sampler, 1>{Sampler{sampler, srcTex}});
+      std::array<Sampler, 1>{Sampler{sampler, srcTex}}, blend);
 
   if(pip.pipeline)
   {

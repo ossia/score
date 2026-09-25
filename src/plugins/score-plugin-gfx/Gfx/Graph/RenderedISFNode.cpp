@@ -312,7 +312,7 @@ void main ()
     Sampler samplers1[1] = {Sampler{last_sampler->sampler, last_sampler->textures[1]}};
     auto pip = score::gfx::buildPipeline(
         renderer, renderer.defaultTriangle(), vertexS, fragmentS, renderTarget, nullptr,
-        m_materialUBO, samplers1);
+        m_materialUBO, samplers1, overBlendFor(isf::resolve_alpha(n.descriptor())));
     ret.first = Pass{renderTarget, pip, nullptr};
     ret.second = ret.first;
 
@@ -404,12 +404,18 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
       auto [v, s] = score::gfx::makeShaders(
           renderer.state, n.m_vertexS, n.m_fragmentS, n.descriptor().multiview_count);
       const auto mainSamplers = allSamplers(passSamplers, 1);
+      QVarLengthArray<QRhiGraphicsPipeline::TargetBlend, 4> blends;
+      if(createdRt)
+        blends.push_back(QRhiGraphicsPipeline::TargetBlend{});
+      else
+        blends = outputBlends(n.descriptor(), renderTarget.colorAttachmentCount());
       auto pip = score::gfx::buildPipelineWithState(
           renderer, renderer.defaultTriangle(), v, s, renderTarget, pubo, m_materialUBO,
           mainSamplers,
           extras,
           eff_state,
-          n.descriptor().multiview_count, false, m_firstSamplerBinding);
+          n.descriptor().multiview_count, false, m_firstSamplerBinding,
+          {blends.data(), (std::size_t)blends.size()});
 
       ret.first = Pass{renderTarget, pip, pubo};
     }
@@ -1035,7 +1041,7 @@ void RenderedISFNode::runInitialPasses(
                     n.descriptor().default_state,
                     modelPasses[passIdx].override_state)
               : n.descriptor().default_state;
-    cb.beginPass(rt, Qt::black, {depthClearForState(passState), 0}, updateBatch);
+    cb.beginPass(rt, Qt::transparent, {depthClearForState(passState), 0}, updateBatch);
     updateBatch = nullptr;
     {
       cb.setGraphicsPipeline(pipeline);

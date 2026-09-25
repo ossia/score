@@ -1,3 +1,4 @@
+#include <Gfx/Graph/PipelineStateHelpers.hpp>
 #include <Gfx/Graph/RenderedISFSamplerUtils.hpp>
 #include <Gfx/Graph/RenderedVSANode.hpp>
 
@@ -171,10 +172,7 @@ void SimpleRenderedVSANode::initPass(
     SCORE_ASSERT(ps);
     ps->setName("SimpleRenderedVSANode::initPass::ps");
 
-    // VSA blend: simple alpha blend (no premul factors needed here).
-    QRhiGraphicsPipeline::TargetBlend t{};
-    t.enable = true;
-    ps->setTargetBlends({t});
+    ps->setTargetBlends({overBlendFor(isf::resolve_alpha(n.descriptor()))});
 
     const int rtS = renderTarget.sampleCount();
     ps->setSampleCount(rtS > 0 ? rtS : renderer.samples());

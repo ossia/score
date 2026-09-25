@@ -2207,6 +2207,30 @@ static void parse_pipeline_state(const sajson::value& v, pipeline_state& out)
 
 using root_fun = void (*)(descriptor&, const sajson::value&);
 using input_fun = input (*)(const sajson::value&);
+static alpha_mode parse_alpha_mode(const sajson::value& v)
+{
+  if(v.get_type() == sajson::TYPE_STRING)
+  {
+    std::string s = v.as_string();
+    for(char& c : s)
+      c = tolower(c);
+    if(s == "straight")
+      return alpha_mode::straight;
+    if(s == "premultiplied")
+      return alpha_mode::premultiplied;
+  }
+  throw invalid_file{"ALPHA must be \"straight\" or \"premultiplied\""};
+}
+
+alpha_mode resolve_alpha(const descriptor& d, const output_declaration* out) noexcept
+{
+  if(out && out->alpha != alpha_mode::unspecified)
+    return out->alpha;
+  if(d.alpha != alpha_mode::unspecified)
+    return d.alpha;
+  return d.mode == descriptor::ISF ? alpha_mode::straight : alpha_mode::premultiplied;
+}
+
 static const ossia::string_map<root_fun>& root_parse{[] {
   static ossia::string_map<root_fun> p;
   p.insert({"DESCRIPTION", [](descriptor& d, const sajson::value& v) {
@@ -3065,10 +3089,20 @@ static const ossia::string_map<root_fun>& root_parse{[] {
               out.height_expression = v2.as_string();
           }
 
+          if(auto a_k = obj.find_object_key_insensitive(sajson::literal("ALPHA"));
+             a_k != obj.get_length())
+          {
+            out.alpha = parse_alpha_mode(obj.get_object_value(a_k));
+          }
+
           d.outputs.push_back(std::move(out));
         }
       }
     }
+  }});
+
+  p.insert({"ALPHA", [](descriptor& d, const sajson::value& v) {
+    d.alpha = parse_alpha_mode(v);
   }});
 
   p.insert({"PIPELINE_STATE", [](descriptor& d, const sajson::value& v) {

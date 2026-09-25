@@ -1797,3 +1797,7 @@ score_add_gfx_test(isf_csf_image_binding_i1 GfxIsfCsfImageBindingI1.cpp)
 # A texture inlet's filter change reaches CSF, raw raster and VSA samplers at
 # runtime (agent I1).
 score_add_gfx_test(input_sampler_filter_i1 GfxInputSamplerFilterI1.cpp)
+
+# Premultiplied render targets, the ALPHA key, over-compositing of several
+# cables into one input, and the MRT / CSF / multi-pass copies (N57, agent A3).
+score_add_gfx_test(premultiplied_alpha_a3 GfxPremultipliedAlphaA3.cpp)

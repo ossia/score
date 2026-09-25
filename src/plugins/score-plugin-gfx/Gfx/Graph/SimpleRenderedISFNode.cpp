@@ -281,12 +281,15 @@ void SimpleRenderedISFNode::initPass(
   {
     auto [v, s] = score::gfx::makeShaders(
         renderer.state, n.m_vertexS, n.m_fragmentS, n.descriptor().multiview_count);
+    const auto blends
+        = outputBlends(n.descriptor(), renderTarget.colorAttachmentCount());
     auto pip = score::gfx::buildPipelineWithState(
         renderer, *m_mesh, v, s, renderTarget, pubo, m_materialUBO, allSamplers(),
         std::span<QRhiShaderResourceBinding>(
             extraRhiBindings.data(), (std::size_t)extraRhiBindings.size()),
         eff_state,
-        n.descriptor().multiview_count, false, m_firstSamplerBinding);
+        n.descriptor().multiview_count, false, m_firstSamplerBinding,
+        {blends.data(), (std::size_t)blends.size()});
     if(pip.pipeline)
     {
       m_passes.emplace_back(&edge, Pass{renderTarget, pip, pubo});
@@ -479,12 +482,15 @@ void SimpleRenderedISFNode::initMRTPass(RenderList& renderer, QRhiResourceUpdate
   {
     auto [v, s] = score::gfx::makeShaders(
         renderer.state, n.m_vertexS, n.m_fragmentS, n.descriptor().multiview_count);
+    const auto blends
+        = outputBlends(n.descriptor(), m_mrtRenderTarget.colorAttachmentCount());
     auto pip = score::gfx::buildPipelineWithState(
         renderer, *m_mesh, v, s, m_mrtRenderTarget, pubo, m_materialUBO, allSamplers(),
         std::span<QRhiShaderResourceBinding>(
             extraRhiBindings.data(), (std::size_t)extraRhiBindings.size()),
         eff_state,
-        wantMultiview ? mvCount : 0, false, m_firstSamplerBinding);
+        wantMultiview ? mvCount : 0, false, m_firstSamplerBinding,
+        {blends.data(), (std::size_t)blends.size()});
     if(pip.pipeline)
     {
       // Use nullptr edge — MRT passes are shared across all output edges
@@ -524,9 +530,12 @@ void SimpleRenderedISFNode::initMRTBlitPass(RenderList& renderer, QRhiResourceUp
   sampler->create();
   m_blitSamplersByEdge[&edge] = sampler;
 
+  QRhiGraphicsPipeline::TargetBlend blend = premultipliedOverBlend();
+  if(rt.texture && !formatSupportsBlending(rt.texture->format()))
+    blend = {};
   auto pip = score::gfx::buildPipeline(
       renderer, *m_mesh, vertexS, fragmentS, rt, nullptr, nullptr,
-      std::array<Sampler, 1>{Sampler{sampler, srcTex}});
+      std::array<Sampler, 1>{Sampler{sampler, srcTex}}, blend);
 
   if(pip.pipeline)
   {

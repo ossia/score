@@ -939,10 +939,31 @@ void warnOrphanVertexBindings(
                  << ") has no attribute reading it; Metal rejects such a layout";
 }
 
-Pipeline buildPipeline(
+Edge::Edge(Port* source, Port* sink, Process::CableType t)
+    : source{source}
+    , sink{sink}
+    , type{t}
+{
+  source->edges.push_back(this);
+
+  const auto order = [](const Edge* e) {
+    const Node* node = e->source->node;
+    if(!node)
+      return std::pair<int32_t, int>{invalid_node_index, 0};
+    const auto it = std::find(node->output.begin(), node->output.end(), e->source);
+    return std::pair<int32_t, int>{
+        node->nodeId, int(std::distance(node->output.begin(), it))};
+  };
+  auto pos = std::upper_bound(
+      sink->edges.begin(), sink->edges.end(), this,
+      [&](const Edge* a, const Edge* b) { return order(a) < order(b); });
+  sink->edges.insert(pos, this);
+}
+
+static Pipeline buildPipelineImpl(
     const RenderList& renderer, const Mesh& mesh, const QShader& vertexS,
     const QShader& fragmentS, const TextureRenderTarget& rt,
-    QRhiShaderResourceBindings* srb)
+    QRhiShaderResourceBindings* srb, const QRhiGraphicsPipeline::TargetBlend& blend)
 {
   auto& rhi = *renderer.state.rhi;
   Pipeline ret;
@@ -950,18 +971,10 @@ Pipeline buildPipeline(
   ps->setName("buildPipeline::ps");
   SCORE_ASSERT(ps);
 
-  QRhiGraphicsPipeline::TargetBlend premulAlphaBlend;
-  premulAlphaBlend.enable = true;
-  premulAlphaBlend.srcColor = QRhiGraphicsPipeline::BlendFactor::SrcAlpha;
-  premulAlphaBlend.dstColor = QRhiGraphicsPipeline::BlendFactor::OneMinusSrcAlpha;
-  premulAlphaBlend.srcAlpha = QRhiGraphicsPipeline::BlendFactor::SrcAlpha;
-  premulAlphaBlend.dstAlpha = QRhiGraphicsPipeline::BlendFactor::OneMinusSrcAlpha;
-
-  // MRT: one blend state per color attachment
   int numColorAttachments = rt.colorAttachmentCount();
   QList<QRhiGraphicsPipeline::TargetBlend> blends;
   for(int i = 0; i < std::max(1, numColorAttachments); i++)
-    blends.append(premulAlphaBlend);
+    blends.append(blend);
   ps->setTargetBlends(blends.begin(), blends.end());
 
   // Use the render target's actual sample count whenever it can be queried,
@@ -1130,13 +1143,35 @@ QRhiShaderResourceBindings* createDefaultBindings(
 
 Pipeline buildPipeline(
     const RenderList& renderer, const Mesh& mesh, const QShader& vertexS,
+    const QShader& fragmentS, const TextureRenderTarget& rt,
+    QRhiShaderResourceBindings* srb)
+{
+  return buildPipelineImpl(
+      renderer, mesh, vertexS, fragmentS, rt, srb, straightOverBlend());
+}
+
+Pipeline buildPipeline(
+    const RenderList& renderer, const Mesh& mesh, const QShader& vertexS,
     const QShader& fragmentS, const TextureRenderTarget& rt, QRhiBuffer* processUBO,
     QRhiBuffer* materialUBO, std::span<const Sampler> samplers,
     std::span<QRhiShaderResourceBinding> additionalBindings)
 {
   auto bindings = createDefaultBindings(
       renderer, rt, processUBO, materialUBO, samplers, additionalBindings);
-  return buildPipeline(renderer, mesh, vertexS, fragmentS, rt, bindings);
+  return buildPipelineImpl(
+      renderer, mesh, vertexS, fragmentS, rt, bindings, straightOverBlend());
+}
+
+Pipeline buildPipeline(
+    const RenderList& renderer, const Mesh& mesh, const QShader& vertexS,
+    const QShader& fragmentS, const TextureRenderTarget& rt, QRhiBuffer* processUBO,
+    QRhiBuffer* materialUBO, std::span<const Sampler> samplers,
+    const QRhiGraphicsPipeline::TargetBlend& blend,
+    std::span<QRhiShaderResourceBinding> additionalBindings)
+{
+  auto bindings = createDefaultBindings(
+      renderer, rt, processUBO, materialUBO, samplers, additionalBindings);
+  return buildPipelineImpl(renderer, mesh, vertexS, fragmentS, rt, bindings, blend);
 }
 
 Pipeline buildPipelineWithState(
@@ -1147,7 +1182,8 @@ Pipeline buildPipelineWithState(
     const isf::pipeline_state& state,
     int multiViewCount,
     bool useShadingRate,
-    int firstSamplerBinding)
+    int firstSamplerBinding,
+    std::span<const QRhiGraphicsPipeline::TargetBlend> seedBlends)
 {
   auto& rhi = *renderer.state.rhi;
   Pipeline ret;
@@ -1192,22 +1228,17 @@ Pipeline buildPipelineWithState(
 
   mesh.preparePipeline(*ps);
 
-  // Seed legacy premul-alpha blend on every color attachment so that shaders
-  // which declare a partial PIPELINE_STATE (e.g. only DEPTH_TEST) don't
-  // silently lose the historical default blend mode. applyPipelineState
-  // overrides per-attachment blends only when the shader sets BLEND.
+  // Seed the output blend on every colour attachment; applyPipelineState
+  // overrides it only when the shader declares BLEND.
   {
-    QRhiGraphicsPipeline::TargetBlend premulAlphaBlend;
-    premulAlphaBlend.enable = true;
-    premulAlphaBlend.srcColor = QRhiGraphicsPipeline::BlendFactor::SrcAlpha;
-    premulAlphaBlend.dstColor = QRhiGraphicsPipeline::BlendFactor::OneMinusSrcAlpha;
-    premulAlphaBlend.srcAlpha = QRhiGraphicsPipeline::BlendFactor::SrcAlpha;
-    premulAlphaBlend.dstAlpha = QRhiGraphicsPipeline::BlendFactor::OneMinusSrcAlpha;
     const int n = std::max(1, rt.colorAttachmentCount());
     QVarLengthArray<QRhiGraphicsPipeline::TargetBlend, 4> blends;
     blends.reserve(n);
     for(int i = 0; i < n; ++i)
-      blends.push_back(premulAlphaBlend);
+      blends.push_back(
+          seedBlends.empty()
+              ? straightOverBlend()
+              : seedBlends[std::min<std::size_t>(i, seedBlends.size() - 1)]);
     ps->setTargetBlends(blends.begin(), blends.end());
   }
 
