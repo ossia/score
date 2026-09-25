@@ -1746,7 +1746,11 @@ score_add_gfx_test(csf_buffer_range GfxCsfBufferRange.cpp)
 # units NVIDIA exposes.
 score_add_gfx_test(storage_image_low_binding GfxStorageImageLowBinding.cpp)
 
-# Texture inlet settings on Texture to buffer and Texture Info (agent I6).
+# An offscreen output logs a lost GPU device once and reports it through
+# OutputNode::deviceLost().
+score_add_gfx_test(offscreen_device_lost GfxOffscreenDeviceLost.cpp)
+
+# Texture inlet settings on Texture to buffer and Texture Info.
 if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
   score_add_test(test_gfx_avnd_texture_inlet_settings
     SOURCES GfxAvndTextureInletSettings.cpp

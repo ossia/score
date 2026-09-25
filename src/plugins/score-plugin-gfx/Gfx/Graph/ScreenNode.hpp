@@ -43,6 +43,7 @@ struct SCORE_PLUGIN_GFX_EXPORT ScreenNode : OutputNode
   std::shared_ptr<RenderState> renderState() const override;
   score::gfx::OutputNodeRenderer* createRenderer(RenderList& r) const noexcept override;
   Configuration configuration() const noexcept override;
+  bool deviceLost() const noexcept override;
 
   const std::shared_ptr<Window>& window() const noexcept { return m_window; }
 

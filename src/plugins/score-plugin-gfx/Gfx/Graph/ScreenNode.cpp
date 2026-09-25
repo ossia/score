@@ -770,6 +770,11 @@ void ScreenNode::render()
   }
 }
 
+bool ScreenNode::deviceLost() const noexcept
+{
+  return m_window && m_window->deviceLost();
+}
+
 void ScreenNode::onRendererChange()
 {
   if(m_window)

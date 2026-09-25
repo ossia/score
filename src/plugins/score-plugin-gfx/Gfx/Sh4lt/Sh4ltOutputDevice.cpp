@@ -142,16 +142,23 @@ void Sh4ltOutputNode::startRendering() { }
 
 void Sh4ltOutputNode::render()
 {
+  if(m_deviceLost)
+    return;
   auto renderer = m_renderer.lock();
   if(renderer && m_renderState)
   {
     auto rhi = m_renderState->rhi;
     score::gfx::OffscreenFrame frame{*rhi};
     if(!frame)
+    {
+      checkDeviceLost(frame, *rhi, "Sh4ltOutputNode");
       return;
+    }
 
     renderer->render(frame.commands());
     frame.end();
+    if(checkDeviceLost(frame, *rhi, "Sh4ltOutputNode"))
+      return;
 
     int sz = m_readback.pixelSize.width() * m_readback.pixelSize.height() * 4;
     int bytes = m_readback.data.size();
@@ -190,6 +197,7 @@ score::gfx::RenderList* Sh4ltOutputNode::renderer() const
 
 void Sh4ltOutputNode::createOutput(score::gfx::OutputConfiguration conf)
 {
+  resetDeviceLost();
   m_writer.reset();
   m_writer = std::make_unique<sh4lt::Writer>(
       sh4lt::shtype::shtype_from_gst_caps(

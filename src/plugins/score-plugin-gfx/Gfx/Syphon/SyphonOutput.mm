@@ -110,7 +110,7 @@ struct SyphonNode final : score::gfx::OutputNode
 
   void render() override
   {
-    if(!m_created)
+    if(!m_created || m_deviceLost)
       return;
 
     auto renderer = m_renderer.lock();
@@ -119,8 +119,11 @@ struct SyphonNode final : score::gfx::OutputNode
       auto rhi = m_renderState->rhi;
 
       QRhiCommandBuffer* cb{};
-      if (rhi->beginOffscreenFrame(&cb) != QRhi::FrameOpSuccess)
+      if (auto r = rhi->beginOffscreenFrame(&cb); r != QRhi::FrameOpSuccess)
+      {
+        checkDeviceLost(r, *rhi, "SyphonNode");
         return;
+      }
 
       renderer->render(*cb);
 
@@ -142,7 +145,8 @@ struct SyphonNode final : score::gfx::OutputNode
         }
       }
 
-      rhi->endOffscreenFrame();
+      if (checkDeviceLost(rhi->endOffscreenFrame(), *rhi, "SyphonNode"))
+        return;
 
       // OpenGL: publish AFTER endOffscreenFrame (uses context directly, not command buffers)
       if (!m_usingMetal && m_syphon)
@@ -178,6 +182,7 @@ struct SyphonNode final : score::gfx::OutputNode
 
   void createOutput(score::gfx::OutputConfiguration conf) override
   {
+    resetDeviceLost();
     // Syphon supports GL or Metal; the upstream graphics API picks which one.
     const auto api = (conf.graphicsApi == score::gfx::GraphicsApi::Metal)
                          ? score::gfx::GraphicsApi::Metal

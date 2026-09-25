@@ -70,16 +70,22 @@ void PreviewNode::startRendering() { }
 
 void PreviewNode::render()
 {
+  if(m_deviceLost)
+    return;
   auto renderer = m_renderer.lock();
   if(renderer && m_renderState)
   {
     auto rhi = m_renderState->rhi;
     score::gfx::OffscreenFrame frame{*rhi};
     if(!frame)
+    {
+      checkDeviceLost(frame, *rhi, "PreviewNode");
       return;
+    }
 
     renderer->render(frame.commands());
     frame.end();
+    checkDeviceLost(frame, *rhi, "PreviewNode");
   }
 }
 
@@ -104,6 +110,7 @@ score::gfx::RenderList* PreviewNode::renderer() const
 
 void PreviewNode::createOutput(score::gfx::OutputConfiguration conf)
 {
+  resetDeviceLost();
   m_renderState = std::make_shared<score::gfx::RenderState>();
 
   m_renderState = importRenderState(QSize(m_settings.width, m_settings.height), m_rhi);

@@ -588,7 +588,7 @@ struct GStreamerOutputNode : score::gfx::OutputNode
   void render() override
   {
     auto renderer = m_renderer.lock();
-    if(!renderer || !m_renderState)
+    if(!renderer || !m_renderState || m_deviceLost)
       return;
 
     // Surface any silent pipeline errors (encoder/filesink/muxer failures).
@@ -597,7 +597,10 @@ struct GStreamerOutputNode : score::gfx::OutputNode
     auto rhi = m_renderState->rhi;
     score::gfx::OffscreenFrame frame{*rhi};
     if(!frame)
+    {
+      checkDeviceLost(frame, *rhi, "GStreamerOutputNode");
       return;
+    }
     QRhiCommandBuffer* cb = &frame.commands();
 
     renderer->render(*cb);
@@ -612,6 +615,8 @@ struct GStreamerOutputNode : score::gfx::OutputNode
 
       currentEnc.exec(*rhi, *cb);
       frame.end();
+      if(checkDeviceLost(frame, *rhi, "GStreamerOutputNode"))
+        return;
 
       // Push the PREVIOUS frame's readback (stable — not being written to)
       if(prevEnc.readback(0).data.size() > 0)
@@ -650,6 +655,8 @@ struct GStreamerOutputNode : score::gfx::OutputNode
       // Standard RGBA path with double-buffered readback (NDI pattern).
       // Push PREVIOUS frame's readback, then swap buffers.
       frame.end();
+      if(checkDeviceLost(frame, *rhi, "GStreamerOutputNode"))
+        return;
 
       auto& readback = *m_currentReadback;
       int sz = readback.pixelSize.width() * readback.pixelSize.height() * 4;
@@ -682,6 +689,7 @@ struct GStreamerOutputNode : score::gfx::OutputNode
 
   void createOutput(score::gfx::OutputConfiguration conf) override
   {
+    resetDeviceLost();
     m_renderState = score::gfx::createRenderState(
         conf.graphicsApi, QSize(m_settings.width, m_settings.height), nullptr);
     if(!m_renderState || !m_renderState->rhi)

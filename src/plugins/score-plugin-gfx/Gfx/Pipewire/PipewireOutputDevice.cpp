@@ -1621,7 +1621,7 @@ void PipewireOutputNode::stopRendering() { }
 void PipewireOutputNode::render()
 {
   auto rl = m_renderer.lock();
-  if(!rl || !m_renderState || !m_producer)
+  if(!rl || !m_renderState || !m_producer || m_deviceLost)
     return;
 
   auto* rhi = m_renderState->rhi;
@@ -1692,6 +1692,7 @@ void PipewireOutputNode::render()
     score::gfx::OffscreenFrame frame{*rhi};
     if(!frame)
     {
+      checkDeviceLost(frame, *rhi, "PipewireOutputNode");
       m_producer->dmabuf_queue(pwbuf);
       return;
     }
@@ -1734,6 +1735,11 @@ void PipewireOutputNode::render()
     }
 
     frame.end();
+    if(checkDeviceLost(frame, *rhi, "PipewireOutputNode"))
+    {
+      m_producer->dmabuf_queue(pwbuf);
+      return;
+    }
 
     // pipewire's `queue_buffer == ready` contract wants the GPU work
     // COMPLETE, not just submitted: consumers mmap-read the dma-buf
@@ -1772,6 +1778,7 @@ void PipewireOutputNode::render()
     score::gfx::OffscreenFrame frame{*rhi};
     if(!frame)
     {
+      checkDeviceLost(frame, *rhi, "PipewireOutputNode");
       m_producer->dmabuf_queue_egl(pwbuf);
       return;
     }
@@ -1779,6 +1786,11 @@ void PipewireOutputNode::render()
     rl->render(frame.commands());
 
     frame.end();
+    if(checkDeviceLost(frame, *rhi, "PipewireOutputNode"))
+    {
+      m_producer->dmabuf_queue_egl(pwbuf);
+      return;
+    }
 
     // Copy the flip-corrected wire texture into the EGLImage-bound target
     // with an explicit framebuffer blit. QRhi's copyTexture path
@@ -1832,10 +1844,15 @@ void PipewireOutputNode::render()
   // -------- Sysmem readback path (default / non-Vulkan) -------------
   score::gfx::OffscreenFrame frame{*rhi};
   if(!frame)
+  {
+    checkDeviceLost(frame, *rhi, "PipewireOutputNode");
     return;
+  }
 
   rl->render(frame.commands());
   frame.end();
+  if(checkDeviceLost(frame, *rhi, "PipewireOutputNode"))
+    return;
 
   // m_readback was populated by PwWireRenderer during the frame.
   // QRhi reads back tightly-packed bytes at the texture's actual
@@ -1904,6 +1921,7 @@ score::gfx::RenderList* PipewireOutputNode::renderer() const
 
 void PipewireOutputNode::createOutput(score::gfx::OutputConfiguration conf)
 {
+  resetDeviceLost();
   // Parse URL query: "node-name?format=rgba16f&dmabuf=on".
   QString nodeName = m_settings.path;
   formats::Tag tag = formats::Tag::RGBA8;

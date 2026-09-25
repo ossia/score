@@ -280,13 +280,18 @@ struct SpoutNode final : score::gfx::OutputNode
 
   void render() override
   {
+    if(m_deviceLost)
+      return;
     auto renderer = m_renderer.lock();
     if(renderer && m_renderState)
     {
       auto rhi = m_renderState->rhi;
       score::gfx::OffscreenFrame frame{*rhi};
       if(!frame)
+      {
+        checkDeviceLost(frame, *rhi, "SpoutNode");
         return;
+      }
       QRhiCommandBuffer* cb = &frame.commands();
 
       renderer->render(*cb);
@@ -300,6 +305,8 @@ struct SpoutNode final : score::gfx::OutputNode
 #endif
 
       frame.end();
+      if(checkDeviceLost(frame, *rhi, "SpoutNode"))
+        return;
 
       if(!m_created)
         return;
@@ -538,6 +545,7 @@ struct SpoutNode final : score::gfx::OutputNode
 
   void createOutput(score::gfx::OutputConfiguration conf) override
   {
+    resetDeviceLost();
     // Choose backend based on requested API
     switch(conf.graphicsApi)
     {

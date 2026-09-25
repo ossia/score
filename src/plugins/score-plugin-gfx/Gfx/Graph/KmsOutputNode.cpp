@@ -212,6 +212,7 @@ OutputNodeRenderer* KmsOutputNode::createRenderer(RenderList& r) const noexcept
 
 void KmsOutputNode::createOutput(OutputConfiguration conf)
 {
+  resetDeviceLost();
   // GL only for now: the scanout buffers reach QRhi as GL textures wrapped with
   // createFrom, and the Vulkan equivalent (importing the dma-buf as a VkImage and
   // rendering into it) is a separate path rather than a variation of this one.
@@ -484,7 +485,7 @@ void KmsOutputNode::destroyOutput()
 
 void KmsOutputNode::render()
 {
-  if(!canRender())
+  if(!canRender() || m_deviceLost)
     return;
   auto r = d->renderer.lock();
   if(!r)
@@ -516,9 +517,14 @@ void KmsOutputNode::render()
 
   score::gfx::OffscreenFrame frame{*d->rhi};
   if(!frame)
+  {
+    checkDeviceLost(frame, *d->rhi, "KmsOutputNode");
     return;
+  }
   r->render(frame.commands());
   frame.end();
+  if(checkDeviceLost(frame, *d->rhi, "KmsOutputNode"))
+    return;
 
   if(d->kms.atomicFlip(slot.fbId, d->set.tearing))
   {
