@@ -4,10 +4,9 @@
 //   setValue(toggle, 1) stores a bool, and a JS array written to a vec3
 //   control stores a vec3.
 // - setValue on a port that is not a control (a plain value inlet, e.g. the
-//   list inputs of Scene Graph Filter) cannot store anything; it used to
-//   return without a word and now warns.
-// - `port.renderSize = Qt.size(w, h)` on a texture inlet threw
-//   "Cannot assign QSizeF to std::optional<QSize>".
+//   array input of Array to texture) cannot store anything, and warns.
+// - `port.renderSize = Qt.size(w, h)` on a texture inlet converts the QSizeF
+//   to the port's std::optional<QSize>.
 //
 // A subprocess test: what is under test is the effect on a live document of a
 // real --script run.
@@ -125,15 +124,15 @@ Qt.exit(0);
         dir, "valueinlet.js",
         QByteArray(prelude)
             + R"JS(
-var names = control("Scene Graph Filter", "Names");
-Score.setValue(names, ["a", "b"]);
+var input = control("Array to texture", "Input");
+Score.setValue(input, [0.5, 0.25]);
 console.log("DONE");
 Qt.exit(0);
 )JS"));
     CHECK_FALSE(r.crashed);
     skipIfMissing(r);
     CHECK(r.output.contains("DONE"));
-    CHECK(r.output.contains("Score.setValue: port \"Names\" is not a control"));
+    CHECK(r.output.contains("Score.setValue: port \"Input\" is not a control"));
   }
 }
 

@@ -1,4 +1,5 @@
 #pragma once
+#include <score_plugin_spline_export.h>
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
 
@@ -9,7 +10,7 @@ namespace Spline
 class ProcessModel;
 const CommandGroupKey& CommandFactoryName();
 
-class ChangeSpline final : public score::Command
+class SCORE_PLUGIN_SPLINE_EXPORT ChangeSpline final : public score::Command
 {
   SCORE_COMMAND_DECL(Spline::CommandFactoryName(), ChangeSpline, "Change Spline")
 public:

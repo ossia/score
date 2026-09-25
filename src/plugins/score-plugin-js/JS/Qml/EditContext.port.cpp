@@ -5,6 +5,7 @@
 #include <Process/Commands/SetControlValue.hpp>
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/Port.hpp>
+#include <Process/ExecutionSetup.hpp>
 
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -12,7 +13,12 @@
 
 #include <JS/Qml/EditContext.hpp>
 
+#include <Execution/DocumentPlugin.hpp>
+
 #include <core/document/Document.hpp>
+
+#include <ossia/dataflow/graph_node.hpp>
+#include <ossia/dataflow/port.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/network/domain/domain.hpp>
@@ -361,7 +367,8 @@ void EditJsContext::setControlValue(QObject* obj, ossia::value value)
   {
     if(auto p = qobject_cast<Process::Port*>(obj))
       qWarning() << "Score.setValue: port" << p->name()
-                 << "is not a control and holds no value; connect a cable to it";
+                 << "is not a control and holds no value; connect a cable to it, "
+                    "or send it one value with Score.pushExecutionValue";
     return;
   }
   auto [m, _] = macro(*doc);
@@ -443,6 +450,46 @@ void EditJsContext::commitEdit()
 {
   if(auto doc = ctx())
     doc->dispatcher.commit();
+}
+
+bool EditJsContext::pushExecutionValue(QObject* obj, QVariant value)
+{
+  auto doc = ctx();
+  if(!doc)
+    return false;
+  auto inlet = qobject_cast<Process::Inlet*>(obj);
+  if(!inlet || inlet->type() != Process::PortType::Message)
+  {
+    qWarning() << "Score.pushExecutionValue: not a value inlet";
+    return false;
+  }
+
+  auto plug = doc->findPlugin<Execution::DocumentPlugin>();
+  if(!plug || !plug->isPlaying())
+  {
+    qWarning() << "Score.pushExecutionValue: port" << inlet->name()
+               << ": the score is not executing";
+    return false;
+  }
+
+  auto& exec_ctx = plug->context();
+  auto it = exec_ctx.setup.inlets.find(inlet);
+  if(it == exec_ctx.setup.inlets.end() || !it->second.first || !it->second.second
+     || !it->second.second->target<ossia::value_port>())
+  {
+    qWarning() << "Score.pushExecutionValue: port" << inlet->name()
+               << "is not part of the executing graph";
+    return false;
+  }
+
+  std::weak_ptr<ossia::graph_node> node = it->second.first;
+  exec_ctx.executionQueue.enqueue(
+      [node = std::move(node), port = it->second.second,
+       v = ossia::qt::qt_to_ossia{}(value)]() mutable {
+    if(auto n = node.lock())
+      port->target<ossia::value_port>()->write_value(std::move(v), 0);
+  });
+  return true;
 }
 
 double EditJsContext::min(QObject* obj)

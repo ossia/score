@@ -330,6 +330,9 @@ public:
   void commitEdit();
   W_SLOT(commitEdit)
 
+  bool pushExecutionValue(QObject* port, QVariant value);
+  W_SLOT(pushExecutionValue)
+
   QString portName(QObject* port);
   W_SLOT(portName)
   QString valueType(QObject* obj);

@@ -2,6 +2,8 @@
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
 
+#include <Threedim/StringListControl.hpp>
+
 #include <ossia/dataflow/geometry_port.hpp>
 
 #include <cstdint>
@@ -76,8 +78,11 @@ public:
     // Path-glob list. Same syntax as SceneGraphFilter: `*` wildcards
     // within a segment, `**` crosses slashes, `?` single char, literal
     // names otherwise.
-    struct : halp::val_port<"Paths", std::vector<std::string>>
-    { void update(ConfigurePrimitive& n) { n.rebuild(); } } paths;
+    struct : string_list_control<"Paths">
+    {
+      halp_meta(description, "Scene paths, one per row. Glob syntax: * within a segment, ** across segments, ? one character.")
+      void update(ConfigurePrimitive& n) { n.rebuild(); }
+    } paths;
   } inputs;
 
   struct outs

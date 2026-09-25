@@ -2,6 +2,8 @@
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
 
+#include <Threedim/StringListControl.hpp>
+
 #include <ossia/dataflow/geometry_port.hpp>
 
 #include <cstdint>
@@ -49,10 +51,16 @@ public:
     // scene_in changes detected in operator()().
     struct : halp::lineedit<"Name", "">
     { void update(CreateCollection& n) { n.rebuild(); } } name;
-    struct : halp::val_port<"Paths", std::vector<std::string>>
-    { void update(CreateCollection& n) { n.rebuild(); } } paths;
-    struct : halp::val_port<"Tags", std::vector<std::string>>
-    { void update(CreateCollection& n) { n.rebuild(); } } tags;
+    struct : string_list_control<"Paths">
+    {
+      halp_meta(description, "Scene paths in the collection, one per row.")
+      void update(CreateCollection& n) { n.rebuild(); }
+    } paths;
+    struct : string_list_control<"Tags">
+    {
+      halp_meta(description, "Tags attached to the collection, one per row.")
+      void update(CreateCollection& n) { n.rebuild(); }
+    } tags;
   } inputs;
 
   struct outs

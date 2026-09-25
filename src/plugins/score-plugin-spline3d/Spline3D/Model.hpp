@@ -1,4 +1,5 @@
 #pragma once
+#include <score_plugin_spline3d_export.h>
 #include <State/Address.hpp>
 #include <State/Unit.hpp>
 
@@ -15,7 +16,7 @@
 namespace Spline3D
 {
 
-class ProcessModel final : public Process::ProcessModel
+class SCORE_PLUGIN_SPLINE3D_EXPORT ProcessModel final : public Process::ProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Spline3D::ProcessModel)

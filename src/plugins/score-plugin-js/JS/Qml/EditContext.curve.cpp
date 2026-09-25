@@ -8,10 +8,36 @@
 #include <Media/Step/Commands.hpp>
 #include <Media/Step/Model.hpp>
 #endif
+#if SCORE_PLUGIN_SPLINE
+#include <Spline/Commands.hpp>
+#include <Spline/Model.hpp>
+#endif
+#if SCORE_PLUGIN_SPLINE3D
+#include <Spline3D/Commands.hpp>
+#include <Spline3D/Model.hpp>
+#endif
 #include <cmath>
 
 namespace JS
 {
+
+template <std::size_t N>
+static bool finitePoints(const QVector<QVariantList>& points)
+{
+  for(auto& pt : points)
+  {
+    if(pt.size() < qsizetype(N))
+      return false;
+    for(std::size_t i = 0; i < N; i++)
+    {
+      bool ok{};
+      const double v = pt[i].toDouble(&ok);
+      if(!ok || !std::isfinite(v))
+        return false;
+    }
+  }
+  return true;
+}
 
 void EditJsContext::setCurvePoints(QObject* process, QVector<QVariantList> points)
 {
@@ -25,6 +51,35 @@ void EditJsContext::setCurvePoints(QObject* process, QVector<QVariantList> point
   auto proc = qobject_cast<Process::ProcessModel*>(process);
   if(!proc)
     return;
+
+#if SCORE_PLUGIN_SPLINE3D
+  if(auto spline = qobject_cast<Spline3D::ProcessModel*>(proc))
+  {
+    if(!finitePoints<3>(points))
+      return;
+    ossia::spline3d_data data;
+    data.points.reserve(points.size());
+    for(auto& pt : points)
+      data.points.push_back({pt[0].toDouble(), pt[1].toDouble(), pt[2].toDouble()});
+    auto [m, _] = macro(*doc);
+    submit(*m, new Spline3D::ChangeSpline{*spline, data});
+    return;
+  }
+#endif
+#if SCORE_PLUGIN_SPLINE
+  if(auto spline = qobject_cast<Spline::ProcessModel*>(proc))
+  {
+    if(!finitePoints<2>(points))
+      return;
+    ossia::spline_data data;
+    data.points.reserve(points.size());
+    for(auto& pt : points)
+      data.points.push_back({pt[0].toDouble(), pt[1].toDouble()});
+    auto [m, _] = macro(*doc);
+    submit(*m, new Spline::ChangeSpline{*spline, data});
+    return;
+  }
+#endif
 
   auto curve = proc->findChild<Curve::Model*>();
   if(!curve)

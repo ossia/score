@@ -519,3 +519,10 @@ score_add_test(test_threedim_fbx_instancing_animation
 threedim_test_includes(test_threedim_fbx_instancing_animation)
 target_compile_definitions(test_threedim_fbx_instancing_animation PRIVATE
   THREEDIM_TEST_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+
+# The scene nodes' list inputs are string-list controls; the nodes read
+# the texts of keyed rows, plain lists and single strings through the
+# executors' oscr::from_ossia_value call.
+score_add_test(test_threedim_string_list_control
+  SOURCES StringListControlTest.cpp)
+threedim_test_includes(test_threedim_string_list_control)
