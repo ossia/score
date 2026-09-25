@@ -11,7 +11,7 @@
 //     consumer's depth once per pixel; below THRESHOLD nothing is written;
 //   * without the block, a raster keeps its depth write and its draw order.
 //
-// Fixture: s1tr-quads.vs draws red alpha 0.5 at window depth 0.3, then green
+// Fixture: s1tr-quads-*.vs draw red alpha 0.5 at window depth 0.3, then green
 // alpha 0.6 at 0.6; s1tr-opaque-{mid,back}.vs an opaque blue triangle at 0.45
 // or 0.1. s1tr-view.fs shows the stored rgb on the left half and the depth as
 // grey on the right half.
@@ -38,9 +38,12 @@ Shot render_quads(score::gfx::GraphicsApi be, const char* quadsFs, const char* o
   Shot r;
   score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
     GfxPipeline p;
-    const int quads = p.addRaster(corpus("s1tr-quads.vs"), corpus(quadsFs));
+    const QString quadsVs = QString(quadsFs).replace(".fs", ".vs");
+    const int quads = p.addRaster(corpus(quadsVs.toUtf8().constData()), corpus(quadsFs));
+    const QString opaqueFs = QString(opaqueVs ? opaqueVs : "").replace(".vs", ".fs");
     const int opaque
-        = opaqueVs ? p.addRaster(corpus(opaqueVs), corpus("s1tr-opaque.fs")) : -2;
+        = opaqueVs ? p.addRaster(corpus(opaqueVs), corpus(opaqueFs.toUtf8().constData()))
+                   : -2;
     const int view = p.addIsf(corpus("s1tr-view.fs"));
     const int sink = p.addSink({64, 64});
     if(quads < 0 || opaque == -1 || view < 0)
