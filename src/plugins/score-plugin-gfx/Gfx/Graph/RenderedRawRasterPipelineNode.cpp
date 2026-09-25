@@ -3192,7 +3192,7 @@ void RenderedRawRasterPipelineNode::removeInputEdge(RenderList& renderer, Edge& 
         = (edge.sink->flags & Flag::SamplableDepth) == Flag::SamplableDepth;
     QRhiTexture* depthFallback
         = hasDepthCompanion ? &renderer.emptyTexture() : nullptr;
-    updateInputTexture(*edge.sink, &renderer.emptyTexture(), depthFallback);
+    updateInputTexture(*edge.sink, &renderer.emptyTextureFor(*edge.sink), depthFallback);
   }
   else if(edge.sink->type == Types::Geometry && edge.sink->edges.size() <= 1)
   {

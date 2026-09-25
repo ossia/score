@@ -1964,3 +1964,15 @@ endif()
 # TRANSPARENCY header block of raw raster shaders: parser, direct vs internal,
 # depth test against the consumer, DEPTH_OUTPUT threshold / expected (agent S1).
 score_add_gfx_test(transparency_s1 GfxTransparencyS1.cpp)
+
+# Booting the GUI application and rendering on it, repeated, keeps the number
+# of open file descriptors stable (agent M1).
+score_add_gfx_test(fd_stable_m1 GfxFdStableM1.cpp)
+
+# A buffer retired outside a frame (a CSF regrowing during init) outlives the
+# initial batch that still names it (agent M1).
+score_add_gfx_test(outside_frame_release_m1 GfxOutsideFrameReleaseM1.cpp)
+
+# Every texture a live pipeline samples has the view type its shader declares,
+# including after a cable into an array input is cut (agent M1).
+score_add_gfx_test(bound_view_type_m1 GfxBoundViewTypeM1.cpp)

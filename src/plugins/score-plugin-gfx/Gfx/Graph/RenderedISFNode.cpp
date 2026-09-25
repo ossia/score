@@ -719,7 +719,7 @@ void RenderedISFNode::removeInputEdge(RenderList& renderer, Edge& edge)
         = (edge.sink->flags & Flag::SamplableDepth) == Flag::SamplableDepth;
     QRhiTexture* depthFallback
         = hasDepthCompanion ? &renderer.emptyTexture() : nullptr;
-    updateInputTexture(*edge.sink, &renderer.emptyTexture(), depthFallback);
+    updateInputTexture(*edge.sink, &renderer.emptyTextureFor(*edge.sink), depthFallback);
   }
 }
 

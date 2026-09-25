@@ -258,11 +258,13 @@ void RenderList::flushInitialBatch()
   if(OffscreenFrame frame{*rhi})
   {
     frame.commands().resourceUpdate(m_initialBatch);
+    retireBuffersReleasedOutsideFrame();
     frame.end();
   }
   else
   {
     m_initialBatch->release();
+    retireBuffersReleasedOutsideFrame();
   }
   m_initialBatch = nullptr;
 }
@@ -456,7 +458,7 @@ void RenderList::onEdgeRemoved(
           const bool samplableDepth
               = (edge.sink->flags & Flag::SamplableDepth) == Flag::SamplableDepth;
           sink_it->second->updateInputTexture(
-              *edge.sink, &emptyTexture(),
+              *edge.sink, &emptyTextureFor(*edge.sink),
               samplableDepth ? &emptyTexture() : nullptr);
         }
       }
@@ -615,15 +617,15 @@ QRhiTexture* RenderList::selfFeedbackGrab(const Port& in) const noexcept
   return nullptr;
 }
 
-static QRhiTexture& emptyTextureForPort(const RenderList& rl, const Port& in) noexcept
+QRhiTexture& RenderList::emptyTextureFor(const Port& in) const noexcept
 {
   if((in.flags & Flag::Cubemap) == Flag::Cubemap)
-    return rl.emptyTextureCube();
+    return emptyTextureCube();
   if((in.flags & Flag::ThreeDimensional) == Flag::ThreeDimensional)
-    return rl.emptyTexture3D();
+    return emptyTexture3D();
   if((in.flags & Flag::TextureArray) == Flag::TextureArray)
-    return rl.emptyTextureArray();
-  return rl.emptyTexture();
+    return emptyTextureArray();
+  return emptyTexture();
 }
 
 void RenderList::updateSelfFeedbackGrabs(QRhiResourceUpdateBatch& res)
@@ -686,7 +688,7 @@ void RenderList::updateSelfFeedbackGrabs(QRhiResourceUpdateBatch& res)
                      << "output (format" << int(tex->format()) << ","
                      << tex->sampleCount()
                      << "samples) through a grabbing input; it reads an empty texture";
-        auto* empty = &emptyTextureForPort(*this, *in);
+        auto* empty = &emptyTextureFor(*in);
         auto ph = m_selfFeedbackPlaceholders.find(in);
         if(ph == m_selfFeedbackPlaceholders.end() || ph->second != empty)
         {
@@ -891,6 +893,7 @@ void RenderList::release()
     m_initialBatch->release();
     m_initialBatch = nullptr;
   }
+  retireBuffersReleasedOutsideFrame();
 
   m_requiresDepth = false;
   m_ready = false;
@@ -1084,7 +1087,17 @@ void RenderList::releaseBuffer(QRhiBuffer* buf)
   // by pending uploadStaticBuffer operations in the current frame's batch.
   // deleteLater() defers destruction to the next beginFrame(), ensuring
   // the GPU handle stays valid for all queued operations this frame.
-  buf->deleteLater();
+  if(state.rhi && !state.rhi->isRecordingFrame())
+    m_buffersReleasedOutsideFrame.push_back(buf);
+  else
+    buf->deleteLater();
+}
+
+void RenderList::retireBuffersReleasedOutsideFrame() noexcept
+{
+  for(auto* buf : m_buffersReleasedOutsideFrame)
+    buf->deleteLater();
+  m_buffersReleasedOutsideFrame.clear();
 }
 
 static std::atomic_int g_staleBindings{0};
@@ -1762,6 +1775,7 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
     qWarning("RenderList::render: resource update batch pool exhausted");
     return;
   }
+  retireBuffersReleasedOutsideFrame();
 
   // Only on unwinding: the success path hands the batch to endPass() or to
   // finishFrame() and nulls it, so releasing unconditionally here would

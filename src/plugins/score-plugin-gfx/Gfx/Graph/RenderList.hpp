@@ -296,6 +296,11 @@ public:
   QRhiTexture& emptyTextureArray() const noexcept { return *m_emptyTextureArray; }
 
   /**
+   * @brief Empty texture of the view type an image input port samples
+   */
+  QRhiTexture& emptyTextureFor(const Port& in) const noexcept;
+
+  /**
    * @brief Texture a GrabsFromSource port fed by its own node samples: the
    * previous-frame copy, or an empty texture of the port's kind when the
    * output is a depth or multisampled texture, which cannot be copied.
@@ -484,6 +489,8 @@ private:
 
 
   QRhiResourceUpdateBatch* m_initialBatch{};
+  std::vector<QRhiBuffer*> m_buffersReleasedOutsideFrame;
+  void retireBuffersReleasedOutsideFrame() noexcept;
 
   // Scene-graph arena store (camera / light / material / per_draw buffers).
   // Persist-across-rebuild contract: ownership is on the OutputNode

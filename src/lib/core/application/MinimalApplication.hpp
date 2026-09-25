@@ -133,6 +133,8 @@ public:
     // context — dispatching them after delete m_presenter is a use-after-free.
     QApplication::processEvents();
     delete m_presenter;
+    delete m_view;
+    m_view = nullptr;
 
     // See ~MinimalApplication: QObject settings models must not outlive the
     // QApplication.
