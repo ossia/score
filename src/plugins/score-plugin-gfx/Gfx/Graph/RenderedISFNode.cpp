@@ -669,6 +669,8 @@ void RenderedISFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& r
 
   m_inputSamplers = initInputSamplers(this->n, renderer, n.input, &n.descriptor());
   m_storageImageSamplers = storageImageInputSamplers(n.descriptor(), n.input);
+  warnStorageImageUnits(
+      *renderer.state.rhi, "ISF", {&n.m_vertexS, &n.m_fragmentS});
 
   m_audioSamplers = initAudioTextures(renderer, n.m_audio_textures);
 

@@ -1366,6 +1366,33 @@ score_add_gfx_test(output_removal_releases GfxOutputRemovalReleases.cpp)
 # encoded forward direction. Needs Threedim::CameraArray, which is
 # hidden-visibility inside the plug-in, so it is compiled in directly.
 if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+
+# A scene filter CSF rewriting indirect_draw_cmds on one branch drives that
+# branch's rasterizer only (agent E4).
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  set(_scene_filter_indirect_c "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
+  score_plugin_hidden_sources(_scene_filter_indirect_hidden "${_scene_filter_indirect_c}/Primitive.cpp")
+  score_add_test(test_gfx_scene_filter_indirect
+    SOURCES
+      GfxSceneFilterIndirect.cpp
+      ${_scene_filter_indirect_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_scene_filter_indirect PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_scene_filter_indirect SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
   set(_ca_c "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
   score_plugin_hidden_sources(_camarray_hidden
       "${_ca_c}/Primitive.cpp"
@@ -1917,3 +1944,23 @@ if(TARGET score_plugin_avnd)
     $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
+
+# Raw raster read_only storage image INPUTS take no sampler binding; storage
+# image bindings past the OpenGL image units warn once per shader (agent A5).
+score_add_gfx_test(storage_image_bindings GfxStorageImageBindings.cpp)
+
+# Raw raster and CSF consumers follow an upstream auxiliary resized at run
+# time (agent A5).
+score_add_gfx_test(aux_resize GfxAuxResize.cpp)
+
+# A read_write / write_only CSF on an upstream it does not declare PERSISTENT
+# works on a copy: init-once upstreams do not accumulate (agent A5, N59).
+score_add_gfx_test(csf_read_write_copy GfxCsfReadWriteCopy.cpp)
+
+# Raw raster "PRIMITIVE_DATA": PRIMITIVE_ID and BARYCENTRIC in the fragment
+# stage, procedural and on an expanded indexed mesh (agent A5).
+score_add_gfx_test(raw_raster_primitive_data GfxRawRasterPrimitiveData.cpp)
+
+# An unbound raw raster image or texture gets a placeholder of the declared
+# scalar class (float / uint / sint) and shape.
+score_add_gfx_test(raw_raster_placeholder_format GfxRawRasterPlaceholderFormat.cpp)
