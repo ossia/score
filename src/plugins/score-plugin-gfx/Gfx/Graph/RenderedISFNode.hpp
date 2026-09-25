@@ -68,6 +68,7 @@ private:
   ISFNode& n;
 
   std::vector<Sampler> m_inputSamplers;
+  std::vector<int> m_storageImageSamplers;
   std::vector<Sampler> m_audioSamplers;
 
   std::vector<TextureRenderTarget> m_innerPassTargets;
@@ -91,6 +92,7 @@ private:
   // initPasses once the pass-sampler count is known (Rendered differs from
   // Simple by having one extra sampler per inner pass).
   int m_firstStorageBinding{-1};
+  int m_firstSamplerBinding{3};
 
   // Guard so the persistent-SSBO state swap runs exactly once per frame even
   // when the node has multiple output edges (each triggers runRenderPass).

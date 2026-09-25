@@ -217,7 +217,11 @@ QRhiTexture* SimpleRenderedISFNode::textureForOutput(const Port& output)
 std::vector<Sampler> SimpleRenderedISFNode::allSamplers() const noexcept
 {
   // Input ports
-  std::vector<Sampler> samplers = m_inputSamplers;
+  std::vector<Sampler> samplers;
+  samplers.reserve(m_inputSamplers.size() + m_audioSamplers.size());
+  for(int i = 0; i < (int)m_inputSamplers.size(); i++)
+    if(!ossia::contains(m_storageImageSamplers, i))
+      samplers.push_back(m_inputSamplers[i]);
 
   // Audio textures
   samplers.insert(samplers.end(), m_audioSamplers.begin(), m_audioSamplers.end());
@@ -282,7 +286,7 @@ void SimpleRenderedISFNode::initPass(
         std::span<QRhiShaderResourceBinding>(
             extraRhiBindings.data(), (std::size_t)extraRhiBindings.size()),
         eff_state,
-        n.descriptor().multiview_count);
+        n.descriptor().multiview_count, false, m_firstSamplerBinding);
     if(pip.pipeline)
     {
       m_passes.emplace_back(&edge, Pass{renderTarget, pip, pubo});
@@ -480,7 +484,7 @@ void SimpleRenderedISFNode::initMRTPass(RenderList& renderer, QRhiResourceUpdate
         std::span<QRhiShaderResourceBinding>(
             extraRhiBindings.data(), (std::size_t)extraRhiBindings.size()),
         eff_state,
-        wantMultiview ? mvCount : 0);
+        wantMultiview ? mvCount : 0, false, m_firstSamplerBinding);
     if(pip.pipeline)
     {
       // Use nullptr edge — MRT passes are shared across all output edges
@@ -581,6 +585,7 @@ void SimpleRenderedISFNode::initState(RenderList& renderer, QRhiResourceUpdateBa
   SCORE_ASSERT(m_audioSamplers.empty());
 
   m_inputSamplers = initInputSamplers(this->n, renderer, n.input, &n.descriptor());
+  m_storageImageSamplers = storageImageInputSamplers(n.descriptor(), n.input);
 
   m_audioSamplers = initAudioTextures(renderer, n.m_audio_textures);
 
@@ -629,13 +634,15 @@ void SimpleRenderedISFNode::initState(RenderList& renderer, QRhiResourceUpdateBa
 
   // Collect graphics-visible storage buffers and images declared in the
   // shader (storage_input with visibility=fragment/vertex/both, or
-  // csf_image_input with non-compute visibility). Bindings start right
-  // after the sampler bindings.
+  // csf_image_input with non-compute visibility). The storage images take
+  // the bindings from 3, the samplers follow, then the other storage
+  // resources, as isf.cpp emits them.
   {
-    const int firstStorageBinding
-        = 3 + (int)m_inputSamplers.size() + (int)m_audioSamplers.size();
+    m_firstSamplerBinding = 3 + graphicsStorageImageBindingCount(n.descriptor());
+    const int firstStorageBinding = m_firstSamplerBinding + (int)allSamplers().size();
     m_firstStorageBinding = firstStorageBinding;
-    collectGraphicsStorageResources(n.descriptor(), firstStorageBinding, m_storage);
+    collectGraphicsStorageResources(
+        n.descriptor(), firstStorageBinding, m_storage, 0, 3);
   }
 
   // Allocate the multiview UBO when MULTIVIEW >= 2 is declared.

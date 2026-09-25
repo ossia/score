@@ -1146,12 +1146,14 @@ Pipeline buildPipelineWithState(
     std::span<QRhiShaderResourceBinding> extraBindings,
     const isf::pipeline_state& state,
     int multiViewCount,
-    bool useShadingRate)
+    bool useShadingRate,
+    int firstSamplerBinding)
 {
   auto& rhi = *renderer.state.rhi;
   Pipeline ret;
   auto srb = createDefaultBindings(
-      renderer, rt, processUBO, materialUBO, samplers, extraBindings);
+      renderer, rt, processUBO, materialUBO, samplers, extraBindings,
+      firstSamplerBinding);
 
   auto ps = rhi.newGraphicsPipeline();
   ps->setName("buildPipelineWithState::ps");
@@ -1762,6 +1764,43 @@ std::vector<Sampler> initInputSamplers(
     cur_port++;
   }
   return samplers;
+}
+
+void updateInputSamplerFilter(
+    std::span<const Sampler> samplers, const score::gfx::Node& node, const Port& input,
+    const RenderTargetSpecs& spec)
+{
+  std::size_t sampler_idx = 0;
+  for(auto* p : node.input)
+  {
+    if(p == &input)
+      break;
+    if(p->type == Types::Image)
+    {
+      sampler_idx++;
+      if((p->flags & Flag::GrabsFromSource) != Flag::GrabsFromSource
+         && (p->flags & Flag::SamplableDepth) == Flag::SamplableDepth)
+        sampler_idx++;
+    }
+  }
+  if(sampler_idx >= samplers.size())
+    return;
+
+  auto* sampler = samplers[sampler_idx].sampler;
+  if(!sampler)
+    return;
+  if(sampler->magFilter() == spec.mag_filter && sampler->minFilter() == spec.min_filter
+     && sampler->mipmapMode() == spec.mipmap_mode
+     && sampler->addressU() == spec.address_u && sampler->addressV() == spec.address_v
+     && sampler->addressW() == spec.address_w)
+    return;
+  sampler->setMagFilter(spec.mag_filter);
+  sampler->setMinFilter(spec.min_filter);
+  sampler->setMipmapMode(spec.mipmap_mode);
+  sampler->setAddressU(spec.address_u);
+  sampler->setAddressV(spec.address_v);
+  sampler->setAddressW(spec.address_w);
+  sampler->create();
 }
 
 // ---------------------------------------------------------------------------

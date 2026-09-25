@@ -388,6 +388,12 @@ void RenderedCSFNode::bindInputSampler(std::size_t samplerIndex, QRhiTexture* t)
       score::gfx::replaceTexture(*gp.pipeline.srb, sampl.sampler, t);
 }
 
+void RenderedCSFNode::updateInputSamplerFilter(
+    const Port& input, const RenderTargetSpecs& spec)
+{
+  score::gfx::updateInputSamplerFilter(m_inputSamplers, node, input, spec);
+}
+
 void RenderedCSFNode::updateInputTexture(const Port& input, QRhiTexture* tex, QRhiTexture* depthTex)
 {
   std::size_t sampler_idx = 0;
@@ -3746,6 +3752,17 @@ void RenderedCSFNode::buildComputeSrbBindings(
         bindingIndex++, QRhiShaderResourceBinding::ComputeStage, m_materialUBO));
   }
 
+  int imageBindingIndex = bindingIndex;
+  for(const auto& input : n.m_descriptor.inputs)
+  {
+    if(auto* img = ossia::get_if<isf::csf_image_input>(&input.data))
+      bindingIndex += img->persistent ? 2 : 1;
+    else if(auto* geo = ossia::get_if<isf::geometry_input>(&input.data))
+      for(const auto& atx : geo->auxiliary_textures)
+        if(atx.is_storage)
+          bindingIndex++;
+  }
+
   int input_port_index = 0;
   int input_image_index = 0;
   int output_port_index = 0;
@@ -3879,7 +3896,7 @@ void RenderedCSFNode::buildComputeSrbBindings(
             {
               bindings.append(
                   QRhiShaderResourceBinding::imageLoad(
-                      bindingIndex, QRhiShaderResourceBinding::ComputeStage, tex, 0));
+                      imageBindingIndex, QRhiShaderResourceBinding::ComputeStage, tex, 0));
             }
             else
             {
@@ -3892,7 +3909,7 @@ void RenderedCSFNode::buildComputeSrbBindings(
             qWarning() << "CSF: input_samplers under-allocated for csf_image_input"
                        << QString::fromStdString(input.name);
           }
-          bindingIndex++;
+          imageBindingIndex++;
           input_port_index++;
           input_image_index++;
         }
@@ -4060,19 +4077,19 @@ void RenderedCSFNode::buildComputeSrbBindings(
           if(it->persistent && !it->read_texture)
             it->read_texture = make_tex("_prev");
 
-          it->binding = bindingIndex;
+          it->binding = imageBindingIndex;
           if(it->access == "write_only" && it->texture)
           {
             bindings.append(
                 QRhiShaderResourceBinding::imageStore(
-                    bindingIndex++, QRhiShaderResourceBinding::ComputeStage, it->texture,
+                    imageBindingIndex++, QRhiShaderResourceBinding::ComputeStage, it->texture,
                     0));
           }
           else if(it->access == "read_write" && it->texture)
           {
             bindings.append(
                 QRhiShaderResourceBinding::imageLoadStore(
-                    bindingIndex++, QRhiShaderResourceBinding::ComputeStage, it->texture,
+                    imageBindingIndex++, QRhiShaderResourceBinding::ComputeStage, it->texture,
                     0));
           }
           else
@@ -4080,7 +4097,7 @@ void RenderedCSFNode::buildComputeSrbBindings(
             if(!it->texture)
               qWarning() << "CSF: missing storage-image texture for"
                          << QString::fromStdString(input.name);
-            bindingIndex++; // keep indices synchronized with shader layout
+            imageBindingIndex++; // keep indices synchronized with shader layout
           }
 
           // Persistent pair: `<name>_prev` readonly at the adjacent slot.
@@ -4091,19 +4108,19 @@ void RenderedCSFNode::buildComputeSrbBindings(
                 = it->pending_initial_copy ? it->texture : it->read_texture;
             if(!prev_tex)
               prev_tex = it->texture;
-            it->prev_binding = bindingIndex;
+            it->prev_binding = imageBindingIndex;
             if(prev_tex)
             {
               bindings.append(
                   QRhiShaderResourceBinding::imageLoad(
-                      bindingIndex++, QRhiShaderResourceBinding::ComputeStage,
+                      imageBindingIndex++, QRhiShaderResourceBinding::ComputeStage,
                       prev_tex, 0));
             }
             else
             {
               qWarning() << "CSF: missing persistent _prev texture for"
                          << QString::fromStdString(input.name);
-              bindingIndex++;
+              imageBindingIndex++;
             }
           }
           output_port_index++;
@@ -4114,9 +4131,9 @@ void RenderedCSFNode::buildComputeSrbBindings(
       {
         qWarning() << "CSF: storage image not found for"
                    << QString::fromStdString(input.name);
-        bindingIndex++;
+        imageBindingIndex++;
         if(image->persistent)
-          bindingIndex++;
+          imageBindingIndex++;
       }
     }
     // Geometry inputs: bind per-attribute SSBOs
@@ -4329,23 +4346,24 @@ void RenderedCSFNode::buildComputeSrbBindings(
           {
             if(at.access == "read_only")
               b = QRhiShaderResourceBinding::imageLoad(
-                  bindingIndex, QRhiShaderResourceBinding::ComputeStage,
+                  imageBindingIndex, QRhiShaderResourceBinding::ComputeStage,
                   at.texture, 0);
             else if(at.access == "write_only")
               b = QRhiShaderResourceBinding::imageStore(
-                  bindingIndex, QRhiShaderResourceBinding::ComputeStage,
+                  imageBindingIndex, QRhiShaderResourceBinding::ComputeStage,
                   at.texture, 0);
             else
               b = QRhiShaderResourceBinding::imageLoadStore(
-                  bindingIndex, QRhiShaderResourceBinding::ComputeStage,
+                  imageBindingIndex, QRhiShaderResourceBinding::ComputeStage,
                   at.texture, 0);
+            bindings.append(b);
+            at.binding = imageBindingIndex;
+            imageBindingIndex++;
+            continue;
           }
-          else
-          {
-            b = QRhiShaderResourceBinding::sampledTexture(
-                bindingIndex, QRhiShaderResourceBinding::ComputeStage,
-                at.texture, at.sampler);
-          }
+          b = QRhiShaderResourceBinding::sampledTexture(
+              bindingIndex, QRhiShaderResourceBinding::ComputeStage,
+              at.texture, at.sampler);
           bindings.append(b);
           at.binding = bindingIndex;
           bindingIndex++;

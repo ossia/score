@@ -56,6 +56,7 @@ private:
   ISFNode& n;
 
   std::vector<Sampler> m_inputSamplers;
+  std::vector<int> m_storageImageSamplers;
   std::vector<Sampler> m_audioSamplers;
   ossia::small_flat_map<Edge*, QRhiSampler*, 4> m_blitSamplersByEdge;
 
@@ -85,5 +86,6 @@ private:
   // Cached number of bindings consumed by storage resources (recorded in
   // initState so that runtime buffer rebinds can reuse the same layout).
   int m_firstStorageBinding{-1};
+  int m_firstSamplerBinding{3};
 };
 }

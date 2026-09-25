@@ -33,6 +33,12 @@ SimpleRenderedVSANode::SimpleRenderedVSANode(const ISFNode& node) noexcept
 {
 }
 
+void SimpleRenderedVSANode::updateInputSamplerFilter(
+    const Port& input, const RenderTargetSpecs& spec)
+{
+  score::gfx::updateInputSamplerFilter(m_inputSamplers, node, input, spec);
+}
+
 void SimpleRenderedVSANode::updateInputTexture(const Port& input, QRhiTexture* tex, QRhiTexture* depthTex)
 {
   int sampler_idx = 0;

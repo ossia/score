@@ -106,7 +106,10 @@ std::vector<Sampler> RenderedISFNode::allSamplers(
 {
   SCORE_ASSERT(mainOrAltPassIndex == 0 || mainOrAltPassIndex == 1);
   // Input ports
-  std::vector<Sampler> samplers = m_inputSamplers;
+  std::vector<Sampler> samplers;
+  for(int i = 0; i < (int)m_inputSamplers.size(); i++)
+    if(!ossia::contains(m_storageImageSamplers, i))
+      samplers.push_back(m_inputSamplers[i]);
 
   // Audio textures
   samplers.insert(samplers.end(), m_audioSamplers.begin(), m_audioSamplers.end());
@@ -406,7 +409,7 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
           mainSamplers,
           extras,
           eff_state,
-          n.descriptor().multiview_count);
+          n.descriptor().multiview_count, false, m_firstSamplerBinding);
 
       ret.first = Pass{renderTarget, pip, pubo};
     }
@@ -436,7 +439,7 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
         // Then we have to use the textures the "main" passes are rendering to
         ret.second.p.srb = score::gfx::createDefaultBindings(
             renderer, ret.second.renderTarget, pubo, m_materialUBO,
-            allSamplers(passSamplers, 0), extras);
+            allSamplers(passSamplers, 0), extras, m_firstSamplerBinding);
       }
     }
     else if(auto psampler = ossia::get_if<PersistSampler>(&target))
@@ -462,7 +465,7 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
         // We necessarily use the main pass rendered-to samplers
         ret.second.p.srb = score::gfx::createDefaultBindings(
             renderer, ret.second.renderTarget, pubo, m_materialUBO,
-            allSamplers(passSamplers, 0), extras);
+            allSamplers(passSamplers, 0), extras, m_firstSamplerBinding);
       }
       else
       {
@@ -472,7 +475,7 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
           // Then we have to use the textures the "main" passes are rendering to
           ret.second.p.srb = score::gfx::createDefaultBindings(
               renderer, ret.second.renderTarget, pubo, m_materialUBO,
-              allSamplers(passSamplers, 0), extras);
+              allSamplers(passSamplers, 0), extras, m_firstSamplerBinding);
         }
       }
     }
@@ -518,11 +521,14 @@ void RenderedISFNode::initPasses(
       if(ossia::get_if<PersistSampler>(&s))
         passSamplerCount++;
 
+    m_firstSamplerBinding = 3 + graphicsStorageImageBindingCount(n.descriptor());
     const int firstStorageBinding
-        = 3 + (int)m_inputSamplers.size() + (int)m_audioSamplers.size()
-          + passSamplerCount;
+        = m_firstSamplerBinding
+          + (int)(m_inputSamplers.size() - m_storageImageSamplers.size())
+          + (int)m_audioSamplers.size() + passSamplerCount;
     m_firstStorageBinding = firstStorageBinding;
-    collectGraphicsStorageResources(n.descriptor(), firstStorageBinding, m_storage);
+    collectGraphicsStorageResources(
+        n.descriptor(), firstStorageBinding, m_storage, 0, 3);
 
     // Allocate the multiview UBO when MULTIVIEW >= 2 is declared.
     if(n.descriptor().multiview_count >= 2)
@@ -670,6 +676,7 @@ void RenderedISFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& r
   SCORE_ASSERT(m_audioSamplers.empty());
 
   m_inputSamplers = initInputSamplers(this->n, renderer, n.input, &n.descriptor());
+  m_storageImageSamplers = storageImageInputSamplers(n.descriptor(), n.input);
 
   m_audioSamplers = initAudioTextures(renderer, n.m_audio_textures);
 
