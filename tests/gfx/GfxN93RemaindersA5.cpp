@@ -7,9 +7,10 @@
 // storage image's placeholder instead of the cabled texture.
 //
 // On OpenGL a storage image is bound to the image unit of its binding, and
-// NVIDIA exposes 8 units. A shader whose storage images reach binding 8 now
-// logs one warning per shader (ISF, CSF, raw raster) on OpenGL, and none on
-// the other backends.
+// NVIDIA exposes 8 units. A shader whose storage images reach the context's
+// GL_MAX_IMAGE_UNITS logs one warning per shader (ISF, CSF, raw raster) on
+// OpenGL, and none on the other backends or on a context with more units
+// (Mesa's llvmpipe exposes 192).
 //
 // Registration:
 //   score_add_gfx_test(n93_remainders_a5 GfxN93RemaindersA5.cpp)
@@ -134,36 +135,39 @@ TEST_CASE("storage image bindings past the GL image units warn once", "[gfx][bin
   CAPTURE(backend_name(api), file);
 
   const QString f = QString::fromUtf8(file);
+  constexpr int highestImageBinding = 8;
 
   LogCapture::clear();
   bool skipped = false;
   std::string backend;
+  std::string err;
+  int units = 0;
   for(int run = 0; run < 2; run++)
   {
     score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
       LogCapture capture;
-      if(f.startsWith("rr-"))
+      GfxPipeline p;
+      const int node = f.startsWith("rr-")
+                           ? p.addRaster(corpus("rr-a5-six-images.vs"), corpus("rr-a5-six-images.fs"))
+                       : f.endsWith(".cs") ? p.addCsf(corpus(file))
+                                           : p.addIsf(corpus(file));
+      if(node < 0)
       {
-        GfxPipeline p;
-        const int raster = p.addRaster(corpus("rr-a5-six-images.vs"), corpus("rr-a5-six-images.fs"));
-        if(raster < 0)
-          return;
-        const int sink = p.addSink({16, 16});
-        p.wire(p.imageOut(raster, 0), p.sinkInput(sink));
-        if(!p.create(api))
-        {
-          skipped = p.skipped();
-          return;
-        }
-        backend = p.backend();
-        p.render(2);
+        err = p.error();
+        return;
       }
-      else
+      const int sink = p.addSink({16, 16});
+      p.wire(p.imageOut(node, 0), p.sinkInput(sink));
+      if(!p.create(api))
       {
-        auto r = render_isf_chain(api, {corpus(file)}, {16, 16}, 2);
-        skipped = r.skipped;
-        backend = r.backend;
+        skipped = p.skipped();
+        err = skipped ? std::string{} : p.error();
+        return;
       }
+      backend = p.backend();
+      p.render(2);
+      if(const auto st = p.sink(sink)->renderState(); st && st->rhi)
+        units = score::gfx::storageImageUnitLimit(*st->rhi);
     });
     if(skipped)
       SKIP("backend unavailable");
@@ -172,13 +176,17 @@ TEST_CASE("storage image bindings past the GL image units warn once", "[gfx][bin
     if(const char* why = compute_shader_skip_reason(api))
       SKIP(why);
 
+  INFO("error=" << err);
+  REQUIRE(err.empty());
+  REQUIRE(units > 0);
+
   const QString kind = f.startsWith("rr-")  ? QStringLiteral("raw raster shader")
                        : f.endsWith(".cs") ? QStringLiteral("CSF shader")
                                            : QStringLiteral("ISF shader");
   const int warnings = LogCapture::count(QStringLiteral("image units"));
   const int kindWarnings = LogCapture::count(kind);
-  INFO("backend " << backend);
-  if(api == score::gfx::OpenGL)
+  INFO("backend " << backend << ", image units " << units);
+  if(api == score::gfx::OpenGL && highestImageBinding >= units)
   {
     CHECK(warnings == 1);
     CHECK(kindWarnings == 1);

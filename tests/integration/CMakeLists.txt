@@ -27,6 +27,41 @@ endif()
 # not land on the developer's session. Empty when SCORE_TESTS_XVFB is off.
 score_test_display_wrapper(_display_wrapper)
 
+# ossia-score loads libclang from the SDK at runtime and the dev build carries
+# no RPATH to it, so a test that launches the binary must say where it lives.
+# Derived from LLVM_DIR rather than written out: the SDK is not always in /opt.
+if(NOT DEFINED SCORE_TEST_RUNTIME_LIBDIR)
+  set(SCORE_TEST_RUNTIME_LIBDIR "")
+  if(LLVM_DIR)
+    get_filename_component(SCORE_TEST_RUNTIME_LIBDIR "${LLVM_DIR}/../.." ABSOLUTE)
+  endif()
+endif()
+if(SCORE_TEST_RUNTIME_LIBDIR AND NOT WIN32)
+  if(APPLE)
+    set(_score_libpath_var DYLD_LIBRARY_PATH)
+  else()
+    set(_score_libpath_var LD_LIBRARY_PATH)
+  endif()
+  set(_score_libpath_env "${_score_libpath_var}=${SCORE_TEST_RUNTIME_LIBDIR}")
+  if(NOT "$ENV{${_score_libpath_var}}" STREQUAL "")
+    string(APPEND _score_libpath_env ":$ENV{${_score_libpath_var}}")
+  endif()
+else()
+  set(_score_libpath_env "")
+endif()
+
+# Tests that launch the score binary themselves (QProcess or a script) need the
+# same library path in their environment.
+function(score_test_app_libpath)
+  if(_score_libpath_env)
+    foreach(_t ${ARGN})
+      if(TEST ${_t})
+        set_property(TEST ${_t} APPEND PROPERTY ENVIRONMENT "${_score_libpath_env}")
+      endif()
+    endforeach()
+  endif()
+endfunction()
+
 # SCORE_HAS_SHELL_HARNESS is set once in cmake/ScoreTests.cmake so that
 # tests/hardware sees the same value.
 # These run from the build root so the dynamic plugins in <build>/plugins are
@@ -766,26 +801,6 @@ score_add_test(test_integration_nodal_viewport
 # frame index in two separate applications must be byte-identical.
 # Skips (77) without the binary or the out-of-repo tests-scene corpus.
 if(SCORE_HAS_SHELL_HARNESS)
-
-# ossia-score loads libclang from the SDK at runtime and the dev build carries
-# no RPATH to it, so a test that launches the binary must say where it lives.
-# Derived from LLVM_DIR rather than written out: the SDK is not always in /opt.
-if(NOT DEFINED SCORE_TEST_RUNTIME_LIBDIR)
-  set(SCORE_TEST_RUNTIME_LIBDIR "")
-  if(LLVM_DIR)
-    get_filename_component(SCORE_TEST_RUNTIME_LIBDIR "${LLVM_DIR}/../.." ABSOLUTE)
-  endif()
-endif()
-if(SCORE_TEST_RUNTIME_LIBDIR AND NOT WIN32)
-  if(APPLE)
-    set(_score_libpath_env "DYLD_LIBRARY_PATH=${SCORE_TEST_RUNTIME_LIBDIR}:$ENV{DYLD_LIBRARY_PATH}")
-  else()
-    set(_score_libpath_env "LD_LIBRARY_PATH=${SCORE_TEST_RUNTIME_LIBDIR}:$ENV{LD_LIBRARY_PATH}")
-  endif()
-else()
-  set(_score_libpath_env "")
-endif()
-
   add_test(NAME test_frame_determinism
     COMMAND ${_display_wrapper} "${CMAKE_CURRENT_SOURCE_DIR}/golden-render/frame-determinism.sh"
     WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
@@ -1449,3 +1464,27 @@ if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
   set_tests_properties(test_integration_gfx_stepped_execution_i3 PROPERTIES
     TIMEOUT 900 RUN_SERIAL TRUE LABELS "gui")
 endif()
+
+score_test_app_libpath(
+  test_integration_script_exit_code
+  test_integration_js_scripting_api
+  test_integration_js_remove_cable
+  test_integration_js_time_api
+  test_integration_js_value_types
+  test_integration_pipewire_video_input
+  test_integration_pipewire_video_motion
+  test_integration_js_texture_source_ui
+  test_integration_pipewire_video_output
+  test_integration_gfx_protocol_settings
+  test_integration_frame_determinism
+  test_integration_gfx_nested_interval
+  test_integration_gfx_light_live
+  test_integration_threedim_lit_scene
+  test_integration_gfx_video_on_geometry
+  test_integration_threedim_render
+  test_regression_offscreen_teardown
+  test_integration_js_setvalue_port_kinds
+  test_integration_gfx_step_clock_fixj
+  test_integration_gfx_grab_slow_start_g2
+  test_integration_js_list_controls_i5
+  test_integration_gfx_stepped_execution_i3)

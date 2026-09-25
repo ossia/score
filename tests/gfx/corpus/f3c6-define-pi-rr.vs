@@ -1,0 +1,9 @@
+#define PI 3.1415926535
+
+void main()
+{
+    isf_vertShaderInit();
+    vec2 p = vec2(float((gl_VertexIndex << 1) & 2), float(gl_VertexIndex & 2));
+    gl_Position = vec4((p * 2.0 - 1.0) * sin(PI * 0.5), 0.0, 1.0);
+    isf_vertShaderFinish();
+}

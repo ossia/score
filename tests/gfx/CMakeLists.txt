@@ -2040,3 +2040,37 @@ score_add_gfx_test(raw_raster_input_count_f1 GfxRawRasterInputCountF1.cpp)
 # A raw raster's Enable-blend factors are not applied on top of the colour its
 # ALPHA straight + COMPOSITE multiply/screen wrapper premultiplied (agent F1).
 score_add_gfx_test(raw_raster_user_blend_f1 GfxRawRasterUserBlendF1.cpp)
+
+# C6: a shader's own #define PI compiles on every stage kind, and a render
+# that throws neither escapes RenderList::render nor leaves the QRhi frame open
+# (92170740b1) (agent F3).
+score_add_gfx_test(define_pi_frame_leak_f3 GfxDefinePiFrameLeakF3.cpp)
+
+# C6: a geometry filter that #defines PI still bakes through a fulldome
+# ModelDisplay, whose projection code once declared PI (agent F3).
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  set(_f3_md "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
+  score_plugin_hidden_sources(_f3_md_hidden
+      "${_f3_md}/Primitive.cpp"
+      "${_f3_md}/ModelDisplay/ModelDisplayNode.cpp")
+  score_add_test(test_gfx_define_pi_model_display_f3
+    SOURCES
+      GfxDefinePiModelDisplayF3.cpp
+      ${_f3_md_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_define_pi_model_display_f3 PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus"
+    F3_THREEDIM_FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../threedim")
+  target_include_directories(test_gfx_define_pi_model_display_f3 SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
