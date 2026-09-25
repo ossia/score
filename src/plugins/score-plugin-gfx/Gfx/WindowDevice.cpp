@@ -144,6 +144,13 @@ void WindowDevice::grabTo(const QString& path) const
   };
   const auto hasPlugin = [this] { return m_ctx.findPlugin<Gfx::DocumentPlugin>(); };
 
+  if(auto plug = hasPlugin(); plug && plug->context.renderInProgress())
+  {
+    qWarning() << "grabTo: called while a frame of" << name
+               << "is being rendered; nothing written to" << path;
+    return;
+  }
+
   if(auto dev = dynamic_cast<offscreen_device*>(m_dev.get()))
   {
     auto node = dev->node();

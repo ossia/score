@@ -140,6 +140,16 @@ public:
   //! Whether the execution currently only advances through renderFrames().
   bool executionStepped() const noexcept;
 
+  /**
+   * @brief Whether a render driven from here, or a frame on one of the
+   *        outputs' devices, is under way on the calling stack.
+   *
+   * Every entry point that updates the graph or renders (the render clocks,
+   * the free-wheel and vsync callbacks, renderFrames) returns without doing
+   * anything while this holds.
+   */
+  bool renderInProgress() const noexcept;
+
   void send_message(score::gfx::Message&& msg) noexcept
   {
     tick_messages.enqueue(std::move(msg));
@@ -168,6 +178,10 @@ private:
 
   void on_no_vsync_timer(score::HighResolutionTimer* self);
   void on_watchdog_timer(score::HighResolutionTimer* self);
+
+  bool frameInProgress() const noexcept;
+  bool refuseNestedRender(const char* entry) noexcept;
+
   const score::DocumentContext& m_context;
   std::atomic_int32_t index{1};
   ossia::hash_map<int32_t, NodePtr> nodes;
@@ -238,6 +252,9 @@ private:
   AssetTable m_assets;
 
   score::Timers m_timers;
+
+  int m_renderDepth{};
+  int m_nestedRenders{};
 };
 
 }

@@ -4,6 +4,7 @@
 #include <Gfx/Graph/Graph.hpp>
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
+#include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Settings/Model.hpp>
 
 #include <score/application/ApplicationContext.hpp>
@@ -26,6 +27,22 @@
 #include <wobjectimpl.h>
 namespace Gfx
 {
+namespace
+{
+struct RenderDepth
+{
+  int& depth;
+  explicit RenderDepth(int& d) noexcept
+      : depth{d}
+  {
+    ++depth;
+  }
+  ~RenderDepth() { --depth; }
+  RenderDepth(const RenderDepth&) = delete;
+  RenderDepth& operator=(const RenderDepth&) = delete;
+};
+}
+
 GfxContext::GfxContext(const score::DocumentContext& ctx)
     : m_context{ctx}
 {
@@ -392,7 +409,12 @@ void GfxContext::recomputeTimers()
     // DisplayVSyncClock is behaviour-identical to calling setVSyncCallback here.
     m_vsyncClock
         = std::make_unique<score::gfx::DisplayVSyncClock>(*m_graph->outputs().front());
-    m_vsyncClock->start([this] { updateGraph(); });
+    m_vsyncClock->start([this] {
+      if(renderInProgress())
+        return;
+      const RenderDepth scope{m_renderDepth};
+      updateGraph();
+    });
   }
   else
   {
@@ -419,6 +441,9 @@ void GfxContext::recomputeTimers()
       m_freewheel_timer->setTimerType(Qt::PreciseTimer);
       m_freewheel_timer->setInterval(0);
       connect(m_freewheel_timer, &QTimer::timeout, this, [this] {
+        if(refuseNestedRender("free-wheel tick"))
+          return;
+        const RenderDepth scope{m_renderDepth};
         updateGraph();
         for(auto* output : m_graph->outputs())
           if(output && output->canRender())
@@ -459,7 +484,10 @@ void GfxContext::recomputeTimers()
           auto owned = std::make_unique<score::gfx::TimerClock>(m_timers, this, freq);
           clock = owned.get();
           m_renderClocks.push_back(std::move(owned));
-          clock->start([clock] {
+          clock->start([this, clock] {
+            if(refuseNestedRender("render clock tick"))
+              return;
+            const RenderDepth scope{m_renderDepth};
             for(auto* out : clock->outputs())
               if(out && out->canRender())
                 out->render();
@@ -1031,6 +1059,12 @@ void GfxContext::run_commands()
 
 void GfxContext::updateGraph()
 {
+  if(frameInProgress())
+  {
+    refuseNestedRender("updateGraph");
+    return;
+  }
+
   run_commands();
 
   update_inputs();
@@ -1091,18 +1125,60 @@ void GfxContext::updateGraph()
 
 void GfxContext::on_no_vsync_timer(score::HighResolutionTimer* self)
 {
+  if(refuseNestedRender("graph update timer"))
+    return;
+  const RenderDepth scope{m_renderDepth};
   updateGraph();
 }
 
 void GfxContext::on_watchdog_timer(score::HighResolutionTimer* self)
 {
   if(m_renderClocks.empty() && !m_no_vsync_timer && !m_freewheel_timer)
+  {
+    if(refuseNestedRender("watchdog timer"))
+      return;
+    const RenderDepth scope{m_renderDepth};
     updateGraph();
+  }
 }
+
+bool GfxContext::frameInProgress() const noexcept
+{
+  if(!m_graph)
+    return false;
+  for(const auto& rl : m_graph->renderLists())
+    if(rl && rl->rendering())
+      return true;
+  for(auto* out : m_graph->outputs())
+    if(out)
+      if(const auto st = out->renderState(); st && st->rhi && st->rhi->isRecordingFrame())
+        return true;
+  return false;
+}
+
+bool GfxContext::renderInProgress() const noexcept
+{
+  return m_renderDepth > 0 || frameInProgress();
+}
+
+bool GfxContext::refuseNestedRender(const char* entry) noexcept
+{
+  if(!renderInProgress())
+    return false;
+  if((m_nestedRenders++ % 600) == 0)
+    qWarning() << "score.gfx:" << entry
+               << "reached while a frame is being rendered; skipped (occurrence"
+               << m_nestedRenders << ")";
+  return true;
+}
+
 void GfxContext::renderFrames(int frames)
 {
   if(frames <= 0 || !m_graph)
     return;
+  if(refuseNestedRender("renderFrames"))
+    return;
+  const RenderDepth scope{m_renderDepth};
 
   const bool step = m_stepRate > 0.;
   const int64_t frame_flicks

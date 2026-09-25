@@ -101,6 +101,10 @@ public:
     return m_currentCommands;
   }
 
+  /// Whether render() is on the stack for this list. A render() entered while
+  /// it is returns without recording anything.
+  bool rendering() const noexcept { return m_rendering; }
+
   /**
    * @brief Release GPU resources owned by this render list
    */
@@ -495,6 +499,8 @@ private:
   // Rendering failures repeat every frame: report the first one per
   // RenderList, then one in 600, instead of a line per frame.
   int m_renderFailures{};
+  int m_nestedRenders{};
+  bool m_rendering{};
 
   OutputUBO m_outputUBOData;
 
