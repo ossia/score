@@ -5,6 +5,7 @@
 
 #include <Process/Dataflow/Port.hpp>
 #include <Process/ExecutionContext.hpp>
+#include <Process/ExecutionTransaction.hpp>
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
@@ -174,7 +175,18 @@ void BaseScenarioElement::cleanup()
   m_ossia_endEvent.reset();
   m_ossia_startTimeSync.reset();
   m_ossia_endTimeSync.reset();
-  m_ossia_scenario.reset();
+
+  // The time syncs' cleanup(), queued above, runs on the audio thread, and
+  // ~scenario cleans up the same time syncs: release the scenario after those
+  // commands, and on this thread.
+  if(m_ossia_scenario)
+  {
+    m_ctx.executionQueue.enqueue(
+        [s = std::move(m_ossia_scenario), gcq = m_ctx.weakGCQueue()]() mutable {
+      if(auto q = gcq.lock())
+        q->enqueue(gc(std::move(s)));
+    });
+  }
 }
 
 ossia::scenario& BaseScenarioElement::baseScenario() const
