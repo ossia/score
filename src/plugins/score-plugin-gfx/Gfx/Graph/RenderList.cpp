@@ -266,13 +266,13 @@ void RenderList::flushInitialBatch()
   if(OffscreenFrame frame{*rhi})
   {
     frame.commands().resourceUpdate(m_initialBatch);
-    retireBuffersReleasedOutsideFrame();
+    retireResourcesReleasedOutsideFrame();
     frame.end();
   }
   else
   {
     m_initialBatch->release();
-    retireBuffersReleasedOutsideFrame();
+    retireResourcesReleasedOutsideFrame();
   }
   m_initialBatch = nullptr;
 }
@@ -918,7 +918,7 @@ void RenderList::release()
     m_initialBatch->release();
     m_initialBatch = nullptr;
   }
-  retireBuffersReleasedOutsideFrame();
+  retireResourcesReleasedOutsideFrame();
 
   m_requiresDepth = false;
   m_ready = false;
@@ -1065,13 +1065,18 @@ void RenderList::dropAdoptedBuffer(QRhiBuffer* buf)
       recordRetirement(buf);
   }
   if(free)
-    buf->deleteLater();
+    releaseResource(buf);
 }
 
 int RenderList::adoptedBufferCount() noexcept
 {
   std::lock_guard lck{g_retiredMutex};
   return (int)g_adopted.size();
+}
+
+namespace
+{
+void releaseResourceOn(QRhi* rhi, QRhiResource* res);
 }
 
 void RenderList::releaseBuffer(QRhiBuffer* buf)
@@ -1112,17 +1117,94 @@ void RenderList::releaseBuffer(QRhiBuffer* buf)
   // by pending uploadStaticBuffer operations in the current frame's batch.
   // deleteLater() defers destruction to the next beginFrame(), ensuring
   // the GPU handle stays valid for all queued operations this frame.
-  if(state.rhi && !state.rhi->isRecordingFrame())
-    m_buffersReleasedOutsideFrame.push_back(buf);
-  else
-    buf->deleteLater();
+  // Before Qt 6.5 the buffer cannot name its QRhi: it was created on ours.
+  QRhi* rhi = rhiOf(*buf);
+  releaseResourceOn(rhi ? rhi : state.rhi, buf);
 }
 
-void RenderList::retireBuffersReleasedOutsideFrame() noexcept
+namespace
 {
-  for(auto* buf : m_buffersReleasedOutsideFrame)
-    buf->deleteLater();
-  m_buffersReleasedOutsideFrame.clear();
+std::mutex g_parkedMutex;
+std::vector<std::pair<QRhi*, QRhiResource*>> g_parked;
+
+std::vector<QRhiResource*> takeParked(const QRhi* rhi)
+{
+  std::vector<QRhiResource*> out;
+  std::lock_guard lck{g_parkedMutex};
+  for(auto it = g_parked.begin(); it != g_parked.end();)
+  {
+    if(it->first == rhi)
+    {
+      out.push_back(it->second);
+      it = g_parked.erase(it);
+    }
+    else
+      ++it;
+  }
+  return out;
+}
+
+void freeParked(QRhi* rhi)
+{
+  for(auto* r : takeParked(rhi))
+    delete r;
+}
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
+// Without the keyed addCleanupCallback, each call would add one more callback.
+std::vector<QRhi*> g_watchedRhis;
+#endif
+
+void freeParkedWhenDestroyed(QRhi& rhi)
+{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+  rhi.addCleanupCallback(&g_parked, freeParked);
+#else
+  {
+    std::lock_guard lck{g_parkedMutex};
+    if(std::find(g_watchedRhis.begin(), g_watchedRhis.end(), &rhi)
+       != g_watchedRhis.end())
+      return;
+    g_watchedRhis.push_back(&rhi);
+  }
+  rhi.addCleanupCallback([](QRhi* rhi) {
+    {
+      std::lock_guard lck{g_parkedMutex};
+      std::erase(g_watchedRhis, rhi);
+    }
+    freeParked(rhi);
+  });
+#endif
+}
+
+void releaseResourceOn(QRhi* rhi, QRhiResource* res)
+{
+  if(!rhi || rhi->isRecordingFrame())
+  {
+    res->deleteLater();
+    return;
+  }
+  {
+    std::lock_guard lck{g_parkedMutex};
+    g_parked.emplace_back(rhi, res);
+  }
+  freeParkedWhenDestroyed(*rhi);
+}
+}
+
+void RenderList::releaseResource(QRhiResource* res)
+{
+  if(!res)
+    return;
+  releaseResourceOn(rhiOf(*res), res);
+}
+
+void RenderList::retireResourcesReleasedOutsideFrame() noexcept
+{
+  if(!state.rhi)
+    return;
+  for(auto* r : takeParked(state.rhi))
+    r->deleteLater();
 }
 
 static std::atomic_int g_staleBindings{0};
@@ -1801,7 +1883,7 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
     qWarning("RenderList::render: resource update batch pool exhausted");
     return;
   }
-  retireBuffersReleasedOutsideFrame();
+  retireResourcesReleasedOutsideFrame();
 
   // Only on unwinding: the success path hands the batch to endPass() or to
   // finishFrame() and nulls it, so releasing unconditionally here would

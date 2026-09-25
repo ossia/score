@@ -1,4 +1,5 @@
 #include <Gfx/Graph/VertexFallbackPool.hpp>
+#include <Gfx/Graph/RenderList.hpp>
 
 #include <private/qrhi_p.h>
 
@@ -74,7 +75,7 @@ bool VertexFallbackPool::grow(
       rec.entry.buffer->setSize((quint32)stride * (quint32)prev_instances);
       if(prev_instances == 0 || !rec.entry.buffer->create())
       {
-        rec.entry.buffer->deleteLater();
+        score::gfx::RenderList::releaseResource(rec.entry.buffer);
         rec.entry.buffer = nullptr;
         rec.entry.instances = 0;
         return false;

@@ -2005,6 +2005,10 @@ score_add_gfx_test(outside_frame_release_buffer GfxOutsideFrameReleaseBuffer.cpp
 # including after a cable into an array input is cut.
 score_add_gfx_test(bound_view_type GfxBoundViewType.cpp)
 
+# Placeholders swapped for an upstream buffer and orphaned adopted buffers
+# dropped during init outlive the initial batch that names them.
+score_add_gfx_test(outside_frame_release_placeholder GfxOutsideFrameReleasePlaceholder.cpp)
+
 # Extract buffer (by name) in Buffer mode reads an auxiliary of a 0-vertex
 # geometry, such as Scene Preprocessor's splat-only carrier.
 if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
@@ -2056,3 +2060,11 @@ score_add_gfx_test(merge_geometries_tangent_mirror MergeGeometriesTangentMirror.
 # WindowDevice::grabTo stops cleanly when its device is disconnected or deleted
 # from inside the grab's event pump.
 score_add_gfx_process_test(grab_teardown GfxGrabTeardown.cpp)
+
+# $COUNT_ / $BYTESIZE_ of a raw raster's INPUTS storage_input / uniform_input
+# resolve from the buffer bound through its Buffer edge.
+score_add_gfx_test(raw_raster_input_buffer_count GfxRawRasterInputBufferCount.cpp)
+
+# A raw raster's Enable-blend factors are not applied on top of the colour its
+# ALPHA straight + COMPOSITE multiply/screen wrapper premultiplied.
+score_add_gfx_test(raw_raster_user_blend_premultiplied GfxRawRasterUserBlendPremultiplied.cpp)

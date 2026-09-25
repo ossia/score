@@ -134,6 +134,18 @@ public:
    */
   static void adoptBuffer(QRhiBuffer* buf);
   static void dropAdoptedBuffer(QRhiBuffer* buf);
+
+  /**
+   * @brief Free a resource that a pending resource update batch may still name.
+   *
+   * QRhiResource::deleteLater() deletes at once when no frame is being
+   * recorded, while the initial batch built by init() is only submitted on
+   * the first frame. Outside a frame the resource is kept until a render list
+   * on the same QRhi records or submits its next batch, or is released, or
+   * the QRhi is destroyed. Before Qt 6.5 a resource cannot name its QRhi and
+   * this is QRhiResource::deleteLater().
+   */
+  static void releaseResource(QRhiResource* res);
   /// Adoptions currently held, process-wide. Tests assert on this.
   static int adoptedBufferCount() noexcept;
 
@@ -515,8 +527,7 @@ private:
 
 
   QRhiResourceUpdateBatch* m_initialBatch{};
-  std::vector<QRhiBuffer*> m_buffersReleasedOutsideFrame;
-  void retireBuffersReleasedOutsideFrame() noexcept;
+  void retireResourcesReleasedOutsideFrame() noexcept;
 
   // Scene-graph arena store (camera / light / material / per_draw buffers).
   // Persist-across-rebuild contract: ownership is on the OutputNode
