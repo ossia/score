@@ -1,7 +1,6 @@
 #pragma once
 #include <State/Message.hpp>
 
-#include <Process/ControlMessage.hpp>
 #include <Process/State/MessageNode.hpp>
 
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
@@ -16,7 +15,6 @@
 namespace Process
 {
 class ProcessModel;
-struct ControlMessage;
 }
 
 namespace Scenario
@@ -62,7 +60,7 @@ public:
       const Scenario::StateModel& state, const State::MessageList& messages);
 };
 
-class RenameAddressInState final : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT RenameAddressInState final : public score::Command
 {
   SCORE_COMMAND_DECL(
       CommandFactoryName(), RenameAddressInState, "Rename address in a state")
@@ -82,11 +80,19 @@ private:
   void serializeImpl(DataStreamInput& s) const override;
   void deserializeImpl(DataStreamOutput& s) override;
 
+  void makeAnchors(const Scenario::StateModel& state);
+  void apply(
+      const score::DocumentContext& ctx, const State::AddressAccessor& from,
+      const State::AddressAccessor& to, const std::vector<State::AddressAccessor>& anchors)
+      const;
+
   Path<StateModel> m_state;
   State::AddressAccessor m_oldName, m_newName;
+  //! The messages under the node before and after the rename, with their anchors
+  std::vector<State::AddressAccessor> m_oldAnchors, m_newAnchors;
 };
 
-class RenameAddressesInState final : public ReplaceStateBase
+class SCORE_PLUGIN_SCENARIO_EXPORT RenameAddressesInState final : public ReplaceStateBase
 {
   SCORE_COMMAND_DECL(
       CommandFactoryName(), RenameAddressesInState, "Rename address in a state")
@@ -95,27 +101,6 @@ public:
   RenameAddressesInState(
       const Scenario::StateModel& state, const State::Address& find,
       const State::Address& replace);
-};
-
-class SCORE_PLUGIN_SCENARIO_EXPORT AddControlMessagesToState final
-    : public score::Command
-{
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(), AddControlMessagesToState, "Add control messages to state")
-public:
-  AddControlMessagesToState(
-      const Scenario::StateModel& state,
-      std::vector<Process::ControlMessage>&& messages);
-
-  void undo(const score::DocumentContext& ctx) const override;
-  void redo(const score::DocumentContext& ctx) const override;
-
-private:
-  void serializeImpl(DataStreamInput&) const override;
-  void deserializeImpl(DataStreamOutput&) override;
-  Path<StateModel> m_path;
-
-  std::vector<Process::ControlMessage> m_old, m_new;
 };
 }
 }

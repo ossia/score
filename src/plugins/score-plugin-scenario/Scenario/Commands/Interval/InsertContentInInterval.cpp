@@ -60,8 +60,7 @@ QRectF copiedProcessesRect(const rapidjson::Value::Array& sourceProcesses)
 }
 
 PasteProcessesInInterval::PasteProcessesInInterval(
-    rapidjson::Value::Array sourceProcesses, rapidjson::Value::Array sourceCables,
-    const IntervalModel& targetInterval, ExpandMode mode,
+    rapidjson::Value& copy, const IntervalModel& targetInterval, ExpandMode mode,
     QPointF p)
     : // m_cables{clone(sourceCables)}
     m_target{std::move(targetInterval)}
@@ -72,9 +71,15 @@ PasteProcessesInInterval::PasteProcessesInInterval(
   m_oldRack = targetInterval.smallView();
   m_oldFullRack = targetInterval.fullView();
 
+  auto sourceProcesses = copy["Processes"].GetArray();
+  auto sourceCables = copy["Cables"].GetArray();
+
   // Generate new ids for each cloned process.
-  auto [processes, processes_ids]
-      = ProcessesBeingCopied{sourceProcesses, targetInterval, ctx};
+  ProcessesBeingCopied copied{
+      std::as_const(copy)["Processes"].GetArray(), targetInterval, ctx};
+  copied.remapAnchors(copy, targetInterval, ctx);
+  auto& processes = copied.processes;
+  auto& processes_ids = copied.processes_ids;
 
   // Generate new ids for cables to create
   auto cables = Scenario::cableDataFromCablesJson(sourceCables);
@@ -188,6 +193,12 @@ void PasteProcessesInInterval::redo(const score::DocumentContext& ctx) const
 
   // Add cables
   m_cables.redo(ctx);
+
+  std::vector<QObject*> pasted;
+  for(const auto& id : m_ids_processes)
+    if(auto it = trg_interval.processes.find(id); it != trg_interval.processes.end())
+      pasted.push_back(&*it);
+  followPasted(ctx, pasted);
 }
 
 void PasteProcessesInInterval::serializeImpl(DataStreamInput& s) const

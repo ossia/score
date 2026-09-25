@@ -86,7 +86,8 @@ private:
       final override;
 };
 
-class DropHandlerList final : public score::InterfaceList<DropHandler>
+class SCORE_PLUGIN_SCENARIO_EXPORT DropHandlerList final
+    : public score::InterfaceList<DropHandler>
 {
 public:
   ~DropHandlerList() override;
@@ -112,7 +113,8 @@ public:
       = 0;
 };
 
-class IntervalDropHandlerList final : public score::InterfaceList<IntervalDropHandler>
+class SCORE_PLUGIN_SCENARIO_EXPORT IntervalDropHandlerList final
+    : public score::InterfaceList<IntervalDropHandler>
 {
 public:
   ~IntervalDropHandlerList() override;

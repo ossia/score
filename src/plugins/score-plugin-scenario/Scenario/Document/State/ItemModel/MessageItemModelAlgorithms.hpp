@@ -9,6 +9,8 @@ class ProcessModel;
 }
 #include <score/model/Identifier.hpp>
 
+#include <score_plugin_scenario_export.h>
+
 namespace Scenario
 {
 // An enum that says if a process is before or after the state.
@@ -19,7 +21,9 @@ enum class ProcessPosition
 };
 
 // User messages
+SCORE_PLUGIN_SCENARIO_EXPORT
 void updateTreeWithMessageList(Process::MessageNode& rootNode, State::MessageList lst);
+SCORE_PLUGIN_SCENARIO_EXPORT
 void renameAddress(
     Process::MessageNode& rootNode, const State::AddressAccessor& oldAddr,
     const State::AddressAccessor& newAddr);
@@ -38,6 +42,7 @@ void updateTreeWithRemovedProcess(
 
 void updateTreeWithRemovedInterval(Process::MessageNode& rootNode, ProcessPosition pos);
 
+SCORE_PLUGIN_SCENARIO_EXPORT
 void updateTreeWithRemovedUserMessage(
     Process::MessageNode& rootNode, const State::AddressAccessor&);
 

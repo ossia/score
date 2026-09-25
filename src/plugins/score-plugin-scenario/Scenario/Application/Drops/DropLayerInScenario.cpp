@@ -1,5 +1,10 @@
 #include <Scenario/Application/Drops/DropLayerInInterval.hpp>
 #include <Scenario/Application/Drops/DropLayerInScenario.hpp>
+#include <Scenario/Application/Drops/MessageDropHandler.hpp>
+#include <Scenario/Application/Drops/PresetDrop.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateStateMacro.hpp>
+#include <Scenario/Commands/State/SnapshotProcess.hpp>
+#include <Scenario/Document/ScenarioEditor.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
@@ -44,6 +49,33 @@ bool DropLayerInScenario::drop(
 
   if(!json.IsObject() || json.MemberCount() == 0)
     return false;
+
+  // Drop from the preset button: a cue of the processes' current values, or
+  // a copy of them; always a copy when they come from another document
+  if(auto copy = draggedCopy(json))
+  {
+    const auto& ctx = pres.context().context;
+    const auto processes = draggedProcesses(json, ctx);
+    const auto choice = processes.empty()
+                            ? std::optional{PresetDrop::Copy}
+                            : choosePresetDrop(processes, true);
+    if(!choice)
+      return true;
+    if(*choice != PresetDrop::Copy)
+    {
+      Scenario::Command::Macro m{new Scenario::Command::CreateStateMacro, ctx};
+      auto messages = Command::snapshotMessages(
+          processes, m, *choice == PresetDrop::ControlsAndState);
+      if(!messages.empty())
+      {
+        auto& state = createCueState(m, pres, pos, m_magnetic);
+        m.addMessages(state, std::move(messages));
+        m.commit();
+        return true;
+      }
+    }
+    return pasteProcessesInNewBox(pres.model(), pres.toScenarioPoint(pos), *copy, ctx);
+  }
   if(!json.HasMember("Path") || !json.HasMember("Duration"))
     return false;
 

@@ -2,6 +2,12 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MessageItemModel.hpp"
 
+#include <QBrush>
+
+#include <score/model/Skin.hpp>
+
+#include <LocalTree/ScriptableReference.hpp>
+
 #include <State/Message.hpp>
 #include <State/MessageListSerialization.hpp>
 #include <State/ValueConversion.hpp>
@@ -74,11 +80,25 @@ int MessageItemModel::columnCount(const QModelIndex& parent) const
   return (int)Column::Count;
 }
 
-static QVariant nameColumnData(const MessageItemModel::node_type& node, int role)
+static QVariant nameColumnData(
+    const MessageItemModel::node_type& node, int role, const score::DocumentContext& ctx)
 {
   if(role == Qt::DisplayRole || role == Qt::EditRole)
   {
     return node.displayName();
+  }
+  else if(role == Qt::ForegroundRole || role == Qt::ToolTipRole)
+  {
+    if(node.hasValue())
+    {
+      auto status = LocalTree::addressStatus(Process::address(node).address, ctx);
+      if(status != LocalTree::AddressStatus::Found)
+      {
+        if(role == Qt::ForegroundRole)
+          return QBrush{score::Skin::instance().Warn2.color()};
+        return LocalTree::describe(status);
+      }
+    }
   }
 
   return {};
@@ -136,9 +156,13 @@ QVariant MessageItemModel::data(const QModelIndex& index, int role) const
   switch((Column)col)
   {
     case Column::Name: {
-      return nameColumnData(node, role);
+      return nameColumnData(node, role, stateModel.context());
     }
     case Column::Value: {
+      if(role == Qt::DisplayRole && node.hasValue()
+         && LocalTree::isProcessState(Process::address(node).address, stateModel.context()))
+        if(auto s = node.value()->target<std::string>())
+          return tr("Process state, %1 bytes").arg(s->size());
       return valueColumnData(node, role);
     }
     default:
@@ -298,8 +322,11 @@ Qt::ItemFlags MessageItemModel::flags(const QModelIndex& index) const
 
   if(index.isValid())
   {
-    f |= Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled
-         | Qt::ItemIsEditable;
+    f |= Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled;
+    auto& node = nodeFromModelIndex(index);
+    if((Column)index.column() != Column::Value || !node.hasValue()
+       || !LocalTree::isProcessState(Process::address(node).address, stateModel.context()))
+      f |= Qt::ItemIsEditable;
   }
   else
   {

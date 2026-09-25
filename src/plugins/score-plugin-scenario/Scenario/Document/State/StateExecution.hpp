@@ -38,7 +38,6 @@ public:
 
   //! To be called from the GUI thread
   void onDelete() const;
-  void updateControls();
 
   ProcessComponent*
   make(ProcessComponentFactory& factory, Process::ProcessModel& process);

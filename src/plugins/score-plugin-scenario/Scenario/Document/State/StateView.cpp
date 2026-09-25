@@ -2,6 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "StateView.hpp"
 
+#include <score/model/Skin.hpp>
+
 #include "StateMenuOverlay.hpp"
 #include "StatePresenter.hpp"
 
@@ -86,6 +88,8 @@ StateView::StateView(StatePresenter& pres, QGraphicsItem* parent)
     , m_presenter{pres}
     , m_dilated{}
     , m_containMessage{}
+    , m_brokenReferences{}
+    , m_emphasized{}
     , m_selected{}
     , m_hovered{}
     , m_hasOverlay{true}
@@ -155,7 +159,10 @@ void StateView::paint(
 
   if(m_containMessage)
   {
-    painter->setBrush(skin.StateOutline());
+    if(m_brokenReferences)
+      painter->setBrush(score::Skin::instance().Warn2.main.brush);
+    else
+      painter->setBrush(skin.StateOutline());
     if(m_dilated)
       painter->drawPath(*fullDilated);
     else
@@ -184,6 +191,13 @@ void StateView::paint(
   else
     painter->drawPath(*smallNonDilated);
 
+  if(m_emphasized)
+  {
+    painter->setPen(QPen{skin.StateSelected().color(), 2.});
+    painter->setBrush(Qt::NoBrush);
+    painter->drawPath(m_dilated ? *fullDilated : *fullNonDilated);
+  }
+
 #if defined(SCORE_SCENARIO_DEBUG_RECTS)
   painter->setBrush(Qt::NoBrush);
   painter->setPen(Qt::darkYellow);
@@ -204,6 +218,22 @@ void StateView::paint(
 void StateView::setContainMessage(bool arg)
 {
   m_containMessage = arg;
+  update();
+}
+
+void StateView::setBrokenReferences(bool arg)
+{
+  if(m_brokenReferences == arg)
+    return;
+  m_brokenReferences = arg;
+  update();
+}
+
+void StateView::setEmphasized(bool arg)
+{
+  if(m_emphasized == arg)
+    return;
+  m_emphasized = arg;
   update();
 }
 

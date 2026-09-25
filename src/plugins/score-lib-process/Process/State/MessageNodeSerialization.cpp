@@ -7,6 +7,7 @@
 #include <State/ValueSerialization.hpp>
 
 #include <score/model/Identifier.hpp>
+#include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
@@ -81,6 +82,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(const Process::StateNodeData& node)
 {
   m_stream << node.name << node.values;
+  State::readAnchor(*this, node.anchor);
   insertDelimiter();
 }
 
@@ -88,6 +90,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::StateNodeData& node)
 {
   m_stream >> node.name >> node.values;
+  State::writeAnchor(*this, node.anchor);
   checkDelimiter();
 }
 
@@ -96,6 +99,12 @@ SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::StateNodeData& nod
 {
   readFrom(node.name);
   readFrom(node.values);
+  if(node.anchor)
+  {
+    obj["Target"] = node.anchor->target;
+    if(!node.anchor->member.isEmpty())
+      obj["Member"] = node.anchor->member;
+  }
 }
 
 template <>
@@ -103,4 +112,12 @@ SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::StateNodeData& node)
 {
   writeTo(node.name);
   writeTo(node.values);
+  if(auto t = obj.tryGet("Target"))
+  {
+    State::Anchor an;
+    an.target <<= *t;
+    if(auto m = obj.tryGet("Member"))
+      an.member = m->toString();
+    node.anchor = std::make_shared<const State::Anchor>(std::move(an));
+  }
 }

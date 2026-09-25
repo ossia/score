@@ -47,6 +47,14 @@ void Scenario::EditionSettings::setTool(Scenario::Tool tool)
   }
 }
 
+void Scenario::EditionSettings::setRecordPlayback(bool b)
+{
+  if(m_recordPlayback == b)
+    return;
+  m_recordPlayback = b;
+  recordPlaybackChanged(b);
+}
+
 void Scenario::EditionSettings::setExecution(bool ex)
 {
   m_execution = ex;

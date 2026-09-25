@@ -52,10 +52,11 @@ void DecapsulateScenario(
   copyWholeScenario(r, scenar);
 
   auto doc = readJson(r.toByteArray()); // TODO UGH
-  disp.pasteElementsAfter(
-      *parent_s, Scenario::startTimeSync(*parent_itv, *parent_s), doc, ratio);
+  const auto& start = Scenario::startTimeSync(*parent_itv, *parent_s);
 
+  // Removed first so that the pasted objects take the published names of the originals
   disp.removeProcess(*parent_itv, scenar.id());
+  disp.pasteElementsAfter(*parent_s, start, doc, ratio);
   disp.commit();
 }
 

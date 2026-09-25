@@ -8,6 +8,11 @@
 #include <Process/ExecutionTransaction.hpp>
 #include <Process/Process.hpp>
 
+#include <LocalTree/ScriptableProcessComponent.hpp>
+
+#include <QPointer>
+#include <QTimer>
+
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/for_each_port.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
@@ -194,6 +199,45 @@ static void set_declared_unit_impl(
   });
 }
 
+// Without an explicit address, a scriptable port uses its published parameter
+static State::AddressAccessor effectiveAddress(const Process::Port& port)
+{
+  if(port.address().isSet())
+    return port.address();
+  return State::AddressAccessor{LocalTree::scriptableAddress(port)};
+}
+
+template <typename Port_T, typename OssiaPort_T, typename Impl>
+void SetupContext::bind_address(
+    Port_T& proc_port, const OssiaPort_T& ossia_port,
+    RegisteredPorts::connections& cons, Impl&& impl)
+{
+  for(auto& con : cons)
+    QObject::disconnect(con);
+  cons.clear();
+
+  auto rebind = [this, ossia_port, port = QPointer<Process::Port>{&proc_port}] {
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
+    if(port)
+      set_destination(effectiveAddress(*port), ossia_port);
+  };
+  cons.push_back(connect(&proc_port, &Process::Port::addressChanged, this, rebind));
+  // Queued: the namespace updates the published address on these signals too
+  cons.push_back(connect(
+      &proc_port, &Process::Port::scriptableChanged, this, rebind, Qt::QueuedConnection));
+  cons.push_back(connect(
+      &proc_port, &Process::Port::exposedChanged, this, rebind, Qt::QueuedConnection));
+  if(auto proc = Process::parentProcess(&proc_port))
+    cons.push_back(connect(
+        proc, &Process::ProcessModel::scriptableChanged, this, rebind,
+        Qt::QueuedConnection));
+  follow_published();
+  set_declared_unit_impl(proc_port, ossia_port, impl);
+
+  // Also registers the port with the execution state once the address resolves.
+  set_destination_impl(context, effectiveAddress(proc_port), ossia_port, impl);
+}
+
 template <typename Impl>
 void SetupContext::register_inlet_impl(
     Process::Inlet& proc_port, const ossia::inlet_ptr& ossia_port,
@@ -203,20 +247,7 @@ void SetupContext::register_inlet_impl(
   SCORE_ASSERT(node);
   SCORE_ASSERT(ossia_port);
 
-  auto& runtime_connection = runtime_connections[node].inlets;
-  auto& con = runtime_connection[proc_port.id()];
-  QObject::disconnect(con);
-  con = connect(
-      &proc_port, &Process::Port::addressChanged, this,
-      [this, ossia_port](const State::AddressAccessor& address) {
-    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
-    set_destination(address, ossia_port);
-  });
-  set_declared_unit_impl(proc_port, ossia_port, impl);
-
-  // Also registers the port with the execution state, once, when the address
-  // resolves.
-  set_destination_impl(context, proc_port.address(), ossia_port, impl);
+  bind_address(proc_port, ossia_port, runtime_connections[node].inlets[proc_port.id()], impl);
 
   inlets.insert({&proc_port, std::make_pair(node, ossia_port)});
 }
@@ -523,18 +554,8 @@ void SetupContext::register_outlet_impl(
   OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   SCORE_ASSERT(node);
   SCORE_ASSERT(ossia_port);
-  auto& runtime_connection = runtime_connections[node].outlets;
-  auto& con = runtime_connection[proc_port.id()];
-  QObject::disconnect(con);
-  con = connect(
-      &proc_port, &Process::Port::addressChanged, this,
-      [this, ossia_port](const State::AddressAccessor& address) {
-    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
-    set_destination(address, ossia_port);
-  });
-  set_declared_unit_impl(proc_port, ossia_port, impl);
-
-  set_destination_impl(context, proc_port.address(), ossia_port, impl);
+  bind_address(
+      proc_port, ossia_port, runtime_connections[node].outlets[proc_port.id()], impl);
 
   outlets.insert({&proc_port, std::make_pair(node, ossia_port)});
 
@@ -563,7 +584,8 @@ void SetupContext::unregister_inlet(
     auto it = runtime_connection.find(proc_port.id());
     if(it != runtime_connection.end())
     {
-      QObject::disconnect(it->second);
+      for(auto& con : it->second)
+        QObject::disconnect(con);
       runtime_connection.erase(it);
     }
 
@@ -596,7 +618,8 @@ void SetupContext::unregister_outlet(
     auto it = runtime_connection.find(proc_port.id());
     if(it != runtime_connection.end())
     {
-      QObject::disconnect(it->second);
+      for(auto& con : it->second)
+        QObject::disconnect(con);
       runtime_connection.erase(it);
     }
 
@@ -620,7 +643,8 @@ void SetupContext::unregister_inlet(
     auto it = runtime_connection.find(proc_port.id());
     if(it != runtime_connection.end())
     {
-      QObject::disconnect(it->second);
+      for(auto& con : it->second)
+        QObject::disconnect(con);
       runtime_connection.erase(it);
     }
 
@@ -654,7 +678,8 @@ void SetupContext::unregister_outlet(
     auto it = runtime_connection.find(proc_port.id());
     if(it != runtime_connection.end())
     {
-      QObject::disconnect(it->second);
+      for(auto& con : it->second)
+        QObject::disconnect(con);
       runtime_connection.erase(it);
     }
 
@@ -779,6 +804,31 @@ void SetupContext::unregister_node_soft(
 SetupContext::SetupContext(Context& other) noexcept
     : context{other}
 {
+}
+
+void SetupContext::follow_published()
+{
+  if(m_followsPublished)
+    return;
+  m_followsPublished = true;
+  // Rebinds ports published after setup, e.g. restored by undo during playback
+  if(auto tree = context.doc.findPlugin<LocalTree::ScriptableTreeBase>())
+    connect(tree, &LocalTree::ScriptableTreeBase::published, this, [this](QObject* object) {
+      QTimer::singleShot(0, this, [this, object = QPointer<QObject>{object}] {
+        if(!object)
+          return;
+        if(auto in = qobject_cast<Process::Inlet*>(object.data()))
+        {
+          if(auto it = inlets.find(in); it != inlets.end())
+            set_destination(effectiveAddress(*in), it->second.second);
+        }
+        else if(auto out = qobject_cast<Process::Outlet*>(object.data()))
+        {
+          if(auto it = outlets.find(out); it != outlets.end())
+            set_destination(effectiveAddress(*out), it->second.second);
+        }
+      });
+    });
 }
 
 SetupContext::~SetupContext() { }

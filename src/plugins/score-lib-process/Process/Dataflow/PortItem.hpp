@@ -68,6 +68,7 @@ public:
   }
 
   void setHighlight(bool b);
+  bool highlighted() const noexcept { return m_highlight; }
 
   //! What paint() actually draws, as opposed to boundingRect(), which is
   //! deliberately larger. The ellipse is inset by one pixel at the small size

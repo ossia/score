@@ -356,11 +356,13 @@ void ScenarioPasteElementsAfter::redo(const score::DocumentContext& ctx) const
     rootSync.addEvent(to_attach);
   }
 
+  std::vector<QObject*> pasted;
   for(const auto& state : m_json_states)
   {
     auto st
         = new StateModel(DataStream::Deserializer{state}, scenario.context(), &scenario);
     scenario.states.add(st);
+    pasted.push_back(st);
   }
 
   for(const auto& interval : m_json_intervals)
@@ -368,9 +370,16 @@ void ScenarioPasteElementsAfter::redo(const score::DocumentContext& ctx) const
     auto cst = new IntervalModel(
         DataStream::Deserializer{interval}, scenario.context(), &scenario);
     scenario.intervals.add(cst);
+    pasted.push_back(cst);
   }
 
   m_cables.redo(ctx);
+
+  for(auto ts : addedTimeSyncs)
+    pasted.push_back(ts);
+  for(auto ev : addedEvents)
+    pasted.push_back(ev);
+  followPasted(ctx, pasted);
 }
 
 void ScenarioPasteElementsAfter::serializeImpl(DataStreamInput& s) const

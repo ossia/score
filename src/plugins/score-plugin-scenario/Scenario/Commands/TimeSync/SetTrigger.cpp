@@ -2,6 +2,10 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "SetTrigger.hpp"
 
+#include <LocalTree/ScriptableReference.hpp>
+
+#include <score/document/DocumentInterface.hpp>
+
 #include <State/Expression.hpp>
 
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
@@ -21,6 +25,7 @@ SetTrigger::SetTrigger(const TimeSyncModel& tn, State::Expression trigger)
     , m_trigger(std::move(trigger))
 {
   m_previousTrigger = tn.expression();
+  LocalTree::settle(m_trigger, score::IDocument::documentContext(tn));
 }
 
 void SetTrigger::undo(const score::DocumentContext& ctx) const

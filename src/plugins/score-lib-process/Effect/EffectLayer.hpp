@@ -106,4 +106,11 @@ score::QGraphicsDraggablePixmap* makePresetButton(
 
 SCORE_LIB_PROCESS_EXPORT
 void copyProcess(JSONReader& r, const Process::ProcessModel& proc);
+
+//! Serializes the processes for pasting: "Processes", the "Cables" between
+//! them, their paths ("ProcessPaths") and the source document ("OriginDocument")
+SCORE_LIB_PROCESS_EXPORT
+void copyProcesses(
+    JSONReader& r, const std::vector<const Process::ProcessModel*>& processes,
+    const score::DocumentContext& ctx);
 }

@@ -1,4 +1,6 @@
 #pragma once
+#include <score_plugin_scenario_export.h>
+
 #include <vector>
 namespace score
 {
@@ -11,7 +13,8 @@ namespace Scenario
 class StateModel;
 namespace Command
 {
-void RefreshStates(const score::DocumentContext& doc);
-void RefreshStates(const std::vector<const StateModel*>&, const score::DocumentContext&);
+SCORE_PLUGIN_SCENARIO_EXPORT void RefreshStates(const score::DocumentContext& doc);
+SCORE_PLUGIN_SCENARIO_EXPORT void
+RefreshStates(const std::vector<const StateModel*>&, const score::DocumentContext&);
 }
 }

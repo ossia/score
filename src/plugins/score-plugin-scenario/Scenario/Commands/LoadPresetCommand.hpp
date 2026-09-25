@@ -171,7 +171,10 @@ public:
       const Process::ProcessModel& obj, Process::Preset newval,
       const score::DocumentContext& ctx) const override
   {
-    if(obj.flags() & Process::ProcessFlags::DynamicPorts)
+    // A preset holding another script rebuilds the ports of the process
+    const bool otherScript
+        = !newval.key.effect.isEmpty() && newval.key.effect != obj.effect();
+    if((obj.flags() & Process::ProcessFlags::DynamicPorts) || otherScript)
       return new LoadPresetWithCablesBackup{obj, std::move(newval), ctx};
     else
       return new LoadPreset{obj, std::move(newval)};

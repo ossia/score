@@ -87,7 +87,7 @@ void TimeSyncModel::setEvents(const TimeSyncModel::EventIdVec& events)
 
 void TimeSyncModel::setExpression(const State::Expression& expression)
 {
-  if(m_expression == expression)
+  if(State::identical(m_expression, expression))
     return;
   m_expression = expression;
   triggerChanged(m_expression);
@@ -116,6 +116,14 @@ void TimeSyncModel::setAutotrigger(bool a)
     return;
   m_autotrigger = a;
   autotriggerChanged(a);
+}
+
+void TimeSyncModel::setScriptable(bool b)
+{
+  if(b == m_scriptable)
+    return;
+  m_scriptable = b;
+  scriptableChanged(b);
 }
 
 bool TimeSyncModel::isStartPoint() const noexcept

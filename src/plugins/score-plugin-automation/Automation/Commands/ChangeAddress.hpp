@@ -8,6 +8,8 @@
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
 
+#include <score_plugin_automation_export.h>
+
 struct DataStreamInput;
 struct DataStreamOutput;
 namespace State
@@ -18,7 +20,7 @@ struct Address;
 namespace Automation
 {
 class ProcessModel;
-class ChangeAddress final : public score::Command
+class SCORE_PLUGIN_AUTOMATION_EXPORT ChangeAddress final : public score::Command
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), ChangeAddress, "ChangeAddress")
 public:

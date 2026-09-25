@@ -64,6 +64,11 @@ Process::Preset saveScriptProcessPreset(const T& process, const QString& data)
 template <typename ScriptProperty, typename T>
 void loadScriptProcessPreset(T& process, const Process::Preset& preset)
 {
+  const Process::ProcessModel& base = process;
+  if(!preset.key.effect.isEmpty() && preset.key.effect != base.effect())
+    if constexpr(requires { (process.*ScriptProperty::set)(preset.key.effect); })
+      (void)(process.*ScriptProperty::set)(preset.key.effect);
+
   const rapidjson::Document doc = readJson(preset.data);
   if(!doc.IsArray())
     return;

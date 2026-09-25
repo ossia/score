@@ -16,6 +16,8 @@
 #include <ossia/network/context.hpp>
 #include <ossia/network/local/local.hpp>
 
+#include <core/document/Document.hpp>
+
 #include <ossia-qt/invoke.hpp>
 
 #include <QApplication>
@@ -117,15 +119,19 @@ void LocalDevice::init()
     m_proto->expose_to(
         std::unique_ptr<ossia::oscquery::oscquery_server_protocol>(m_oscqProto));
 
+    const auto zeroconfName
+        = QString("%1 (%2)")
+              .arg(m_settings.name, m_ctx.document.metadata().documentName())
+              .toStdString();
     if(auto plug = m_ctx.findPlugin<Explorer::DeviceDocumentPlugin>())
     {
       QPointer<LocalDevice> self = this;
       boost::asio::post(plug->networkContext()->context,
-          [=, name = m_dev.get_name()] { exposeZeroconf(name, set, self); });
+          [=, name = zeroconfName] { exposeZeroconf(name, set, self); });
     }
     else
     {
-      exposeZeroconf(m_dev.get_name(), set, this);
+      exposeZeroconf(zeroconfName, set, this);
     }
   }
   catch(...)

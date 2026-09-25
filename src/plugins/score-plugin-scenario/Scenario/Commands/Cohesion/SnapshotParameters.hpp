@@ -1,4 +1,5 @@
 #pragma once
+#include <score_plugin_scenario_export.h>
 
 namespace score
 {
@@ -6,5 +7,5 @@ struct DocumentContext;
 }
 namespace Scenario
 {
-void SnapshotParametersInStates(const score::DocumentContext& doc);
+SCORE_PLUGIN_SCENARIO_EXPORT void SnapshotParametersInStates(const score::DocumentContext& doc);
 }

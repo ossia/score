@@ -14,7 +14,7 @@ class StateModel;
 
 namespace Command
 {
-class ClearState final : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT ClearState final : public score::Command
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), ClearState, "Clear a state")
 public:

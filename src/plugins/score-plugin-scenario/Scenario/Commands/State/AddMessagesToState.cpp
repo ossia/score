@@ -2,13 +2,14 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AddMessagesToState.hpp"
 
-#include <Process/ControlMessage.hpp>
 #include <Process/Process.hpp>
 #include <Process/State/ProcessStateDataInterface.hpp>
 
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
+
+#include <LocalTree/ScriptableReference.hpp>
 
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
@@ -29,6 +30,7 @@ RenameAddressInState::RenameAddressInState(
     , m_oldName{old}
     , m_newName{replacement}
 {
+  makeAnchors(state);
 }
 
 RenameAddressInState::RenameAddressInState(
@@ -44,29 +46,70 @@ RenameAddressInState::RenameAddressInState(
     m_newName.address.device = name.name;
 
   m_newName.qualifiers = name.qualifiers;
+  makeAnchors(state);
+}
+
+namespace
+{
+std::vector<State::AddressAccessor>
+messagesUnder(Process::MessageNode& root, const State::AddressAccessor& at)
+{
+  std::vector<State::AddressAccessor> res;
+  auto visit = [&](auto& self, const Process::MessageNode& n) -> void {
+    if(n.hasValue())
+      res.push_back(Process::address(n));
+    for(auto& child : n)
+      self(self, child);
+  };
+  if(auto node = Process::try_getNodeFromAddress(root, at))
+    visit(visit, *node);
+  return res;
+}
+}
+
+// Renamed messages are anchored to what their new name publishes
+void RenameAddressInState::makeAnchors(const Scenario::StateModel& state)
+{
+  auto tree = state.messages().rootNode();
+  m_oldAnchors = messagesUnder(tree, m_oldName);
+  Scenario::renameAddress(tree, m_oldName, m_newName);
+  m_newAnchors = messagesUnder(tree, m_newName);
+  for(auto& a : m_newAnchors)
+    LocalTree::settle(a, state.context());
+}
+
+void RenameAddressInState::apply(
+    const score::DocumentContext& ctx, const State::AddressAccessor& from,
+    const State::AddressAccessor& to, const std::vector<State::AddressAccessor>& anchors) const
+{
+  auto& state = m_state.find(ctx);
+  auto tree = state.messages().rootNode();
+  Scenario::renameAddress(tree, from, to);
+  for(auto& a : anchors)
+    if(auto node = Process::try_getNodeFromAddress(tree, a))
+      node->anchor = a.address.anchor;
+  state.messages() = std::move(tree);
 }
 
 void RenameAddressInState::undo(const score::DocumentContext& ctx) const
 {
-  auto& state = m_state.find(ctx);
-  Scenario::renameAddress(state.messages(), m_newName, m_oldName);
+  apply(ctx, m_newName, m_oldName, m_oldAnchors);
 }
 
 void RenameAddressInState::redo(const score::DocumentContext& ctx) const
 {
   // FIXME! This does not take into account the process messages
-  auto& state = m_state.find(ctx);
-  Scenario::renameAddress(state.messages(), m_oldName, m_newName);
+  apply(ctx, m_oldName, m_newName, m_newAnchors);
 }
 
 void RenameAddressInState::serializeImpl(DataStreamInput& s) const
 {
-  s << m_state << m_oldName << m_newName;
+  s << m_state << m_oldName << m_newName << m_oldAnchors << m_newAnchors;
 }
 
 void RenameAddressInState::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_state >> m_oldName >> m_newName;
+  s >> m_state >> m_oldName >> m_newName >> m_oldAnchors >> m_newAnchors;
 }
 
 RenameAddressesInState::RenameAddressesInState(
@@ -137,8 +180,13 @@ void ReplaceStateBase::deserializeImpl(DataStreamOutput& d)
 }
 
 void ReplaceStateBase::updateProcessMessages(
-    const Scenario::StateModel& state, const State::MessageList& messages)
+    const Scenario::StateModel& state, const State::MessageList& input)
 {
+  // Anchor the addresses that name objects of this document
+  State::MessageList messages = input;
+  for(auto& m : messages)
+    LocalTree::settle(m.address, state.context());
+
   // FIXME only difference with the one below is the lack of "newstate", this can be refactored
 
   // TODO backup all the processes, not just the messages.
@@ -191,39 +239,6 @@ AddMessagesToState::AddMessagesToState(
     : ReplaceState{
         state, state.messages().rootNode(), state.messages().rootNode(), messages}
 {
-}
-
-AddControlMessagesToState::AddControlMessagesToState(
-    const Scenario::StateModel& state, std::vector<Process::ControlMessage>&& messages)
-    : m_path{state}
-{
-  m_old = state.controlMessages().messages();
-  m_new = m_old;
-  ControlItemModel::addMessages(m_new, std::move(messages));
-}
-
-void AddControlMessagesToState::undo(const score::DocumentContext& ctx) const
-{
-  auto& sm = m_path.find(ctx);
-  sm.controlMessages().replaceWith(m_old);
-  sm.sig_controlMessagesUpdated();
-}
-
-void AddControlMessagesToState::redo(const score::DocumentContext& ctx) const
-{
-  auto& sm = m_path.find(ctx);
-  sm.controlMessages().replaceWith(m_new);
-  sm.sig_controlMessagesUpdated();
-}
-
-void AddControlMessagesToState::serializeImpl(DataStreamInput& d) const
-{
-  d << m_path << m_old << m_new;
-}
-
-void AddControlMessagesToState::deserializeImpl(DataStreamOutput& d)
-{
-  d >> m_path >> m_old >> m_new;
 }
 }
 }

@@ -15,7 +15,7 @@ class StateModel;
 
 namespace Command
 {
-class RemoveMessageNodes final : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT RemoveMessageNodes final : public score::Command
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), RemoveMessageNodes, "Remove user messages")
 

@@ -31,3 +31,8 @@ PROPERTY_COMMAND_T(
     Scenario::Command, SetTimeSyncIsAutoTrigger, TimeSyncModel::p_autotrigger,
     "Set auto-trigger")
 SCORE_COMMAND_DECL_T(Scenario::Command::SetTimeSyncIsAutoTrigger)
+
+PROPERTY_COMMAND_T(
+    Scenario::Command, SetTimeSyncScriptable, TimeSyncModel::p_scriptable,
+    "Set trigger scriptable")
+SCORE_COMMAND_DECL_T(Scenario::Command::SetTimeSyncScriptable)

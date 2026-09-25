@@ -55,6 +55,7 @@ public:
 
 private:
   void updateStateView();
+  void updateBrokenReferences();
 
   const StateModel& m_model;
   graphics_item_ptr<StateView> m_view{};

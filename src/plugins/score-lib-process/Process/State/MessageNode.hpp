@@ -61,6 +61,8 @@ struct SCORE_LIB_PROCESS_EXPORT StateNodeData
 {
   State::AddressAccessorHead name;
   StateNodeValues values;
+  //! Set on leaves that target an object of this document
+  std::shared_ptr<const State::Anchor> anchor;
 
   QString displayName() const;
   bool hasValue() const;

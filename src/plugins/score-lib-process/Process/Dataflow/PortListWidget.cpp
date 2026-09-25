@@ -9,6 +9,7 @@
 #include <Process/Process.hpp>
 
 #include <Inspector/InspectorLayout.hpp>
+#include <LocalTree/ScriptableProcessComponent.hpp>
 
 #include <score/model/Skin.hpp>
 #include <score/application/GUIApplicationContext.hpp>
@@ -23,7 +24,10 @@
 #include <score/widgets/TextLabel.hpp>
 
 #include <QCheckBox>
+#include <QPointer>
+#include <QSignalBlocker>
 #include <QComboBox>
+#include <QLineEdit>
 #include <QToolButton>
 namespace Process
 {
@@ -130,6 +134,7 @@ void PortWidgetSetup::setupControl(
   hl2->addSpacing(30);
   auto lay = new Inspector::Layout{};
   Process::PortWidgetSetup::setupInLayout(inlet, ctx, *lay, sw);
+  lay->addRow(makeScriptableWidget(inlet, ctx, sw));
   hl2->addLayout(lay);
 
   QObject::connect(advBtn, &QToolButton::clicked, sw, [=] {
@@ -137,7 +142,7 @@ void PortWidgetSetup::setupControl(
     advBtn->setArrowType(
         advBtn->arrowType() == Qt::RightArrow ? Qt::DownArrow : Qt::RightArrow);
   });
-  sw->setVisible(inlet.address().isSet());
+  sw->setVisible(inlet.address().isSet() || inlet.scriptable());
 
   vlay.addRow(widg, inlet_widget);
   vlay.addRow(sw);
@@ -169,6 +174,7 @@ void PortWidgetSetup::setupControl(
   hl2->addSpacing(30);
   auto lay = new Inspector::Layout{};
   Process::PortWidgetSetup::setupInLayout(inlet, ctx, *lay, sw);
+  lay->addRow(makeScriptableWidget(inlet, ctx, sw));
   hl2->addLayout(lay);
 
   QObject::connect(advBtn, &QToolButton::clicked, sw, [=] {
@@ -176,7 +182,7 @@ void PortWidgetSetup::setupControl(
     advBtn->setArrowType(
         advBtn->arrowType() == Qt::RightArrow ? Qt::DownArrow : Qt::RightArrow);
   });
-  sw->setVisible(inlet.address().isSet());
+  sw->setVisible(inlet.address().isSet() || inlet.scriptable());
 
   vlay.addRow(widg, inlet_widget);
   vlay.addRow(sw);
@@ -251,5 +257,67 @@ QLabel* PortWidgetSetup::setupImpl(
       break;
   }
   return lab;
+}
+
+QWidget* PortWidgetSetup::makeScriptableWidget(
+    const Port& port, const score::DocumentContext& ctx, QWidget* parent)
+{
+  auto widg = new QWidget{parent};
+  auto lay = new score::MarginLess<QHBoxLayout>{widg};
+
+  auto check = new QCheckBox{QObject::tr("Scriptable"), widg};
+  // The widget may outlive a port that its process removes
+  const QPointer<const Port> guard{&port};
+  // Controls of a scriptable process are always published
+  auto showPublished = [check, guard] {
+    if(!guard)
+      return;
+    const auto& port = *guard;
+    const bool withProcess = LocalTree::publishedWithProcess(port);
+    const QSignalBlocker block{check};
+    check->setChecked(port.scriptable() || withProcess);
+    check->setEnabled(!withProcess);
+  };
+  showPublished();
+  if(auto proc = Process::parentProcess(&port))
+    QObject::connect(proc, &ProcessModel::scriptableChanged, check, showPublished);
+  score::setHelp(
+      check, QObject::tr("Publish this control in the local device, under "
+                         "score:/controls, so that states, automations, scripts "
+                         "and remote controllers reach it by name."));
+  QObject::connect(check, &QCheckBox::toggled, widg, [guard, &ctx](bool b) {
+    if(guard && b != guard->scriptable())
+      CommandDispatcher<>{ctx.commandStack}.submit<SetPortScriptable>(*guard, b);
+  });
+  QObject::connect(&port, &Port::scriptableChanged, check, showPublished);
+
+  auto name = new QLineEdit{port.exposed(), widg};
+  name->setPlaceholderText(QObject::tr("Scripting name"));
+  auto showAddress = [name, guard] {
+    if(guard)
+      name->setToolTip(LocalTree::scriptableAddress(*guard).toString());
+  };
+  showAddress();
+  QObject::connect(name, &QLineEdit::editingFinished, widg, [name, guard, &ctx] {
+    if(!guard)
+      return;
+    const auto& port = *guard;
+    const auto txt = name->text();
+    if(!txt.isEmpty() && txt != port.exposed())
+      CommandDispatcher<>{ctx.commandStack}.submit<SetPortScriptingName>(port, txt);
+  });
+  QObject::connect(
+      &port, &Port::exposedChanged, name, [name, showAddress](const QString& n) {
+    if(n != name->text())
+      name->setText(n);
+    showAddress();
+  });
+  QObject::connect(&port, &Port::scriptableChanged, name, [showAddress](bool) {
+    showAddress();
+  });
+
+  lay->addWidget(check);
+  lay->addWidget(name);
+  return widg;
 }
 }

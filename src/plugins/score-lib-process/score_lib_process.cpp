@@ -22,6 +22,8 @@
 #include <RemoteControl/RemoteControlProvider.hpp>
 
 #include <score_lib_process.hpp>
+#include <LocalTree/ScriptableProcessComponent.hpp>
+
 #include <score_lib_process_commands_files.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Process::DataflowManager)
@@ -84,12 +86,13 @@ score_lib_process::factoryFamilies()
 {
   return make_ptr_vector<
       score::InterfaceListBase, Process::ProcessFactoryList, Process::PortFactoryList,
+      LocalTree::ScriptableProcessFactoryList,
       Process::LayerFactoryList, Process::ProcessFactoryList,
       Process::ProcessDropHandlerList, Process::MagnetismAdjuster,
       Process::OfflineActionList, Process::MediaTrimmerList,
       Execution::ExecutionActionList,
       LocalTree::ProcessComponentFactoryList, Process::RemoteControlProviderList,
-      Process::LoadPresetCommandFactoryList>();
+      Process::LoadPresetCommandFactoryList, Process::ChangePortsCommandFactoryList>();
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap> score_lib_process::make_commands()

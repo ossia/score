@@ -3,6 +3,17 @@
 
 namespace Scenario
 {
+namespace Command
+{
+class Macro;
+}
+
+//! Creates the state for a cue dropped at pos: on the event of the nearby
+//! state, at the end of an interval after it, or standalone.
+SCORE_PLUGIN_SCENARIO_EXPORT const StateModel& createCueState(
+    Scenario::Command::Macro& m, const ScenarioPresenter& pres, QPointF pos,
+    MagneticStates& magnetic);
+
 /**
  * @brief The MessageDropHandler class
  * Will create a state in the scenario at the

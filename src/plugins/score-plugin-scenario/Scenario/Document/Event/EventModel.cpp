@@ -143,9 +143,18 @@ OffsetBehavior EventModel::offsetBehavior() const noexcept
   return m_offset;
 }
 
+void EventModel::setScriptable(bool b)
+{
+  if(m_scriptable != b)
+  {
+    m_scriptable = b;
+    scriptableChanged(b);
+  }
+}
+
 void EventModel::setCondition(const State::Expression& arg)
 {
-  if(m_condition != arg)
+  if(!State::identical(m_condition, arg))
   {
     m_condition = arg;
     conditionChanged(arg);

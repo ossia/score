@@ -66,14 +66,24 @@ bool MessageDropHandler::drop(
 
   Scenario::Command::Macro m{
       new Scenario::Command::CreateStateMacro, pres.context().context};
+  auto& state = createCueState(m, pres, pos, m_magnetic);
+  m.addMessages(state, std::move(ml));
 
+  m.commit();
+  return true;
+}
+
+const StateModel& createCueState(
+    Scenario::Command::Macro& m, const ScenarioPresenter& pres, QPointF pos,
+    MagneticStates& magneticState)
+{
   const Scenario::ProcessModel& scenar = pres.model();
   Id<StateModel> createdState;
 
   Scenario::Point pt = pres.toScenarioPoint(pos);
   const auto magnetism = !bool(qApp->keyboardModifiers() & Qt::AltModifier);
-  m_magnetic = magneticStates(m_magnetic, pt, pres);
-  auto [x_state, y_state, magnetic] = m_magnetic;
+  magneticState = magneticStates(magneticState, pt, pres);
+  auto [x_state, y_state, magnetic] = magneticState;
   if(magnetism && y_state)
   {
     if(magnetic)
@@ -121,9 +131,6 @@ bool MessageDropHandler::drop(
       addStartOnPlayTrigger(m, t);
   }
 
-  m.addMessages(scenar.state(createdState), std::move(ml));
-
-  m.commit();
-  return true;
+  return scenar.state(createdState);
 }
 }

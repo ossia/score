@@ -9,6 +9,7 @@
 namespace score
 {
 struct GUIElements;
+class Document;
 }
 class QAction;
 class QActionGroup;
@@ -24,6 +25,9 @@ public:
   ToolMenuActions(ScenarioApplicationPlugin* parent);
 
   void makeGUIElements(score::GUIElements& ref);
+
+  //! Enables the keep action while the document has played values
+  void setDocument(score::Document* doc);
 
 private:
   void keyPressed(int key);
@@ -41,5 +45,8 @@ private:
 
   QAction* m_scaleAction{};
   QAction* m_lockAction{};
+  QAction* m_recordAction{};
+  QAction* m_keepAction{};
+  QMetaObject::Connection m_playedConnection;
 };
 }

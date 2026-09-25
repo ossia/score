@@ -190,6 +190,7 @@ State::AddressAccessor address(const Process::MessageNode& treeNode)
 
   SCORE_ASSERT(n);
   addr.address.device = n->name.name;
+  addr.address.anchor = treeNode.anchor;
 
   return addr;
 }

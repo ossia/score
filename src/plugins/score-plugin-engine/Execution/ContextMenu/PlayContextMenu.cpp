@@ -2,6 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "PlayContextMenu.hpp"
 
+#include <LocalTree/LocalTreeDocumentPlugin.hpp>
+
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Application/ScenarioRecordInitData.hpp>
@@ -48,8 +50,9 @@ PlayContextMenu::PlayContextMenu(
     auto sm = focusedScenarioInterface(*ctx);
     if(sm)
     {
-      auto& r_ctx = ctx->plugin<Execution::DocumentPlugin>().context();
-
+      auto& exec = ctx->plugin<Execution::DocumentPlugin>();
+      auto& r_ctx = exec.context();
+      LocalTree::StateRecall recall{*ctx, exec};
       for(const StateModel* state : selectedElements(sm->getStates()))
       {
         Engine::score_to_ossia::play_state_from_ui(*state, r_ctx);
@@ -128,7 +131,10 @@ PlayContextMenu::PlayContextMenu(
         [has_changed] { *has_changed = true; });
 
     // Send our state
-    Engine::score_to_ossia::play_state_from_ui(score_state, r_ctx);
+    {
+      LocalTree::StateRecall recall{*ctx, ctx->plugin<Execution::DocumentPlugin>()};
+      Engine::score_to_ossia::play_state_from_ui(score_state, r_ctx);
+    }
 
     // Revert the ui color
     QTimer::singleShot(250, &score_state, [&score_state, old_status, con, has_changed] {

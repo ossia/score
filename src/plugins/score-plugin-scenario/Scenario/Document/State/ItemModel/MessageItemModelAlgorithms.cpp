@@ -416,7 +416,8 @@ static void merge_impl(
           Process::StateNodeValues v;
           merge(v);
           newNode = &parentnode->emplace_back(
-              Process::StateNodeData{get_at(addr, k), std::move(v)}, nullptr);
+              Process::StateNodeData{get_at(addr, k), std::move(v), addr.address.anchor},
+              nullptr);
         }
 
         parentnode = newNode;
@@ -432,6 +433,8 @@ static void merge_impl(
       {
         // We replace the value by the one in the message
         merge(node->values);
+        if(addr.address.anchor)
+          node->anchor = addr.address.anchor;
       }
     }
   }
@@ -495,8 +498,25 @@ static void find_and_replace_impl(
     // Get the node for the replacement
     auto replacementRoot = getNodeFromString(base, new_addr);
 
-    // Move the node
+    // A node cannot be moved into itself or its descendants
+    for(auto p = replacementRoot; p; p = p->parent())
+      if(p == node)
+        return;
+
+    // The anchors named the previous target: they are dropped and set again by name
     node->moveChildren(*replacementRoot);
+    if(node->hasValue())
+    {
+      replacementRoot->values = std::move(node->values);
+      node->values = {};
+    }
+    node->anchor.reset();
+    auto dropAnchors = [](auto& self, Process::MessageNode& n) -> void {
+      n.anchor.reset();
+      for(auto& child : n)
+        self(self, child);
+    };
+    dropAnchors(dropAnchors, *replacementRoot);
 
     // If the previous node did not have a message, remove it
     if(!node->hasValue())

@@ -9,6 +9,7 @@
 
 #include <Effect/EffectLayer.hpp>
 #include <Inspector/InspectorLayout.hpp>
+#include <LocalTree/ScriptableProcessComponent.hpp>
 
 #include <score/model/Skin.hpp>
 #include <score/application/GUIApplicationContext.hpp>
@@ -23,6 +24,7 @@
 
 #include <QCheckBox>
 #include <QFormLayout>
+#include <QLineEdit>
 #include <QMenu>
 #include <QScrollArea>
 #include <QToolButton>
@@ -181,6 +183,54 @@ public:
         });
         loop_lay->addRow(tr("Loop duration"), so);
       }
+    }
+
+    // Scriptable
+    {
+      if(!loop_lay)
+        initButtonsLayout();
+
+      auto row = new QWidget;
+      auto row_lay = new score::MarginLess<QHBoxLayout>{row};
+
+      auto check = new QCheckBox{tr("Scriptable"), row};
+      check->setChecked(process.scriptable());
+      score::setHelp(
+          check, tr("Publish this process and all its controls in the local device, "
+                    "under score:/controls, with a state parameter for what it holds "
+                    "beyond them, such as a script or a shader."));
+      connect(check, &QCheckBox::toggled, this, [&](bool b) {
+        if(b != process.scriptable())
+          CommandDispatcher<>{doc.commandStack}.submit<SetProcessScriptable>(process, b);
+      });
+      con(process, &ProcessModel::scriptableChanged, this, [check](bool b) {
+        if(b != check->isChecked())
+          check->setChecked(b);
+      });
+
+      auto name = new QLineEdit{process.metadata().getName(), row};
+      name->setPlaceholderText(tr("Scripting name"));
+      auto showAddress = [name, &process] {
+        name->setToolTip(LocalTree::scriptableAddress(process).toString());
+      };
+      showAddress();
+      connect(name, &QLineEdit::editingFinished, this, [name, &process, &doc] {
+        const auto txt = name->text();
+        if(!txt.isEmpty() && txt != process.metadata().getName())
+          CommandDispatcher<>{doc.commandStack}.submit<RenameProcess>(process, txt);
+      });
+      con(process.metadata(), &score::ModelMetadata::NameChanged, this,
+          [name, showAddress](const QString& n) {
+        if(n != name->text())
+          name->setText(n);
+        showAddress();
+      });
+      con(process, &ProcessModel::scriptableChanged, this,
+          [showAddress](bool) { showAddress(); });
+
+      row_lay->addWidget(check);
+      row_lay->addWidget(name);
+      loop_lay->addRow(row);
     }
 
     auto& layer_factories = doc.app.interfaces<Process::LayerFactoryList>();

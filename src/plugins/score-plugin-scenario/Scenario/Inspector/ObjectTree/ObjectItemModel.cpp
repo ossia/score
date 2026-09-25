@@ -9,6 +9,7 @@
 #include <Process/ProcessList.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 
+#include <Scenario/Document/ScenarioEditor.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/CreateProcessInNewSlot.hpp>
@@ -1237,8 +1238,7 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
         auto duplicate = new QAction{tr("Duplicate"), m};
         m->addAction(duplicate);
         connect(duplicate, &QAction::triggered, this, [this, itv, proc] {
-          CommandDispatcher<> c{m_ctx.commandStack};
-          c.submit<Scenario::Command::DuplicateOnlyProcessToInterval>(*itv, *proc);
+          Scenario::duplicateProcess(*itv, *proc, m_ctx);
         });
       }
 

@@ -10,7 +10,7 @@
 #include <Process/Process.hpp>
 #include <Process/State/MessageNode.hpp>
 
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Device/ItemModels/NodeBasedItemModel.hpp>
 
 #include <Scenario/Commands/Cohesion/CreateCurveFromStates.hpp>
 #include <Scenario/Commands/Cohesion/InterpolateMacro.hpp>
@@ -22,6 +22,8 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <Automation/AutomationModel.hpp>
+#include <LocalTree/ScriptableReference.hpp>
+#include <Process/Dataflow/Port.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
@@ -33,6 +35,7 @@
 #include <score/selection/SelectionStack.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/network/common/destination_qualifiers.hpp>
 
 #include <utility>
@@ -42,6 +45,17 @@ namespace Scenario
 {
 namespace Command
 {
+namespace
+{
+// Lists are interpolated element by element: only when every element is a number
+bool numericElements(const ossia::value& v)
+{
+  if(auto list = v.target<std::vector<ossia::value>>())
+    return ossia::all_of(*list, [](const ossia::value& e) { return ossia::is_numeric(e); });
+  return true;
+}
+}
+
 struct MessagePairs
 {
   MessagePairs(
@@ -57,8 +71,16 @@ struct MessagePairs
       const State::MessageList& startMessages, const State::MessageList& endMessages,
       const Scenario::IntervalModel& interval)
   {
+    const auto& ctx = score::IDocument::documentContext(interval);
     for(auto& message : startMessages)
     {
+      // A control that rebuilds its process's ports is not interpolated
+      QString member;
+      if(auto ctl = qobject_cast<Process::ControlInlet*>(
+             LocalTree::publishedObject(message.address.address, ctx, member));
+         ctl && ctl->changesPorts)
+        continue;
+
       // First check if we can build a process from this
       if(ossia::is_numeric(message.value))
       {
@@ -84,7 +106,7 @@ struct MessagePairs
           numericMessages.emplace_back(message, *it);
         }
       }
-      else if(ossia::is_array(message.value))
+      else if(ossia::is_array(message.value) && numericElements(message.value))
       {
         auto it = ossia::find_if(endMessages, [&](const State::Message& arg) {
           return message.address == arg.address
@@ -145,9 +167,11 @@ void InterpolateStates(
   if(!scenar)
     return;
 
-  auto& devPlugin = score::IDocument::documentContext(*selected_intervals.front())
-                        .plugin<Explorer::DeviceDocumentPlugin>();
-  auto& rootNode = devPlugin.rootNode();
+  const auto& ctx = score::IDocument::documentContext(*selected_intervals.front());
+  auto domain = [&](const State::AddressAccessor& a) {
+    auto as = Device::addressSettings(a.address, ctx);
+    return as ? as->domain.get() : ossia::domain{};
+  };
 
   auto big_macro
       = std::make_unique<Command::AddMultipleProcessesToMultipleIntervalsMacro>();
@@ -172,9 +196,9 @@ void InterpolateStates(
     // Generate automations between numeric values
     for(const auto& elt : pairs.numericMessages)
     {
+      const auto dom = domain(elt.first.address);
       Curve::CurveDomain d = ossia::apply(
-          get_curve_domain{elt.first.address, {}, rootNode}, elt.first.value.v,
-          elt.second.value.v);
+          get_curve_domain{{}, dom}, elt.first.value.v, elt.second.value.v);
 
       macro->addCommand(new CreateAutomationFromStates{
           interval, macro->slotsToUse, process_ids[cur_proc], elt.first.address, d});
@@ -185,9 +209,9 @@ void InterpolateStates(
     // Generate interpolations between lists
     for(const auto& elt : pairs.listMessages)
     {
+      const auto dom = domain(elt.first.address);
       Curve::CurveDomain d = ossia::apply(
-          get_curve_domain{
-              elt.first.address, elt.first.address.qualifiers.get().accessors, rootNode},
+          get_curve_domain{elt.first.address.qualifiers.get().accessors, dom},
           elt.first.value.v, elt.second.value.v);
 
       macro->addCommand(new CreateAutomationFromStates{

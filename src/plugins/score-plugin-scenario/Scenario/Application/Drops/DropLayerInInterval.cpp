@@ -1,10 +1,18 @@
 #include <Scenario/Application/Drops/DropLayerInInterval.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
+#include <Scenario/Commands/Interval/InsertContentInInterval.hpp>
+#include <Scenario/Commands/Scenario/PasteAnchors.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/ScenarioEditor.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
+#include <Process/ProcessMimeSerialization.hpp>
+
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/document/DocumentInterface.hpp>
+#include <score/model/path/PathSerialization.hpp>
 
 #include <core/document/Document.hpp>
 
@@ -17,6 +25,48 @@
 
 namespace Scenario
 {
+rapidjson::Value* draggedCopy(rapidjson::Value& json)
+{
+  if(!json.IsObject())
+    return nullptr;
+  auto it = json.FindMember("Copy");
+  if(it == json.MemberEnd() || !it->value.IsObject())
+    return nullptr;
+  auto& copy = it->value;
+  if(!copy.HasMember("Processes") || !copy["Processes"].IsArray()
+     || !copy.HasMember("Cables") || !copy["Cables"].IsArray())
+    return nullptr;
+  return &copy;
+}
+
+bool isProcessesDrag(const QMimeData& mime)
+{
+  if(!mime.hasFormat(score::mime::layerdata()))
+    return false;
+  auto json = readJson(mime.data(score::mime::layerdata()));
+  return draggedCopy(json);
+}
+
+std::vector<const Process::ProcessModel*>
+draggedProcesses(const rapidjson::Value& json, const score::DocumentContext& ctx)
+{
+  std::vector<const Process::ProcessModel*> res;
+  auto copy = draggedCopy(const_cast<rapidjson::Value&>(json));
+  if(!copy || !copiedFromHere(*copy, ctx))
+    return res;
+  auto paths = copy->FindMember("ProcessPaths");
+  if(paths == copy->MemberEnd() || !paths->value.IsArray())
+    return res;
+  for(const auto& p : paths->value.GetArray())
+  {
+    ObjectPath path;
+    path <<= JsonValue{p};
+    if(auto proc = path.try_find<Process::ProcessModel>(ctx))
+      res.push_back(proc);
+  }
+  return res;
+}
+
 
 void DropLayerInInterval::perform(
     const IntervalModel& interval, const score::DocumentContext& ctx,
@@ -33,7 +83,11 @@ void DropLayerInInterval::perform(
   if(json.HasMember("PID") && json.HasMember("Document"))
   {
     same_doc = (pid == json["PID"].GetInt());
-    same_doc &= (ctx.document.id().val() == json["Document"].GetInt());
+    // Document identifiers repeat across open documents
+    if(json.HasMember("OriginDocument"))
+      same_doc &= copiedFromHere(json, ctx);
+    else
+      same_doc &= (ctx.document.id().val() == json["Document"].GetInt());
   }
 
   if(same_doc)
@@ -93,7 +147,29 @@ void DropLayerInInterval::perform(
       {
         if(proc->value.HasMember(score::StringConstant().uuid))
         {
-          m.loadProcessInSlot(interval, proc->value);
+          // As a paste: anchors between objects of the process move to the
+          // copy's, those to other objects are kept in the same document
+          rapidjson::Document copy;
+          copy.SetObject();
+          auto& alloc = copy.GetAllocator();
+          rapidjson::Value procs(rapidjson::kArrayType);
+          procs.PushBack(rapidjson::Value(proc->value, alloc), alloc);
+          copy.AddMember("Processes", procs, alloc);
+          rapidjson::Value paths(rapidjson::kArrayType);
+          paths.PushBack(rapidjson::Value(json["Path"], alloc), alloc);
+          copy.AddMember("ProcessPaths", paths, alloc);
+          if(same_doc)
+          {
+            const auto origin
+                = score::IDocument::copyOrigin(ctx.document).toStdString();
+            copy.AddMember(
+                "OriginDocument", rapidjson::Value(origin.c_str(), alloc), alloc);
+          }
+
+          std::vector<std::pair<int32_t, int32_t>> ids;
+          auto pasted = loadCopiedProcesses(m, interval, copy, ids, ctx);
+          if(!pasted.empty())
+            m.submit(new Command::FollowPasted{std::move(pasted)});
         }
       }
     }
@@ -132,9 +208,16 @@ bool DropLayerInInterval::drop(
 {
   if(mime.hasFormat(score::mime::layerdata()))
   {
-    Scenario::Command::Macro m{new Scenario::Command::DropProcessInIntervalMacro, ctx};
+    auto json = readJson(mime.data(score::mime::layerdata()));
+    if(auto copy = draggedCopy(json))
+    {
+      CommandDispatcher<>{ctx.commandStack}.submit(
+          new Command::PasteProcessesInInterval{
+              *copy, interval, ExpandMode::GrowShrink, p});
+      return true;
+    }
 
-    const auto json = readJson(mime.data(score::mime::layerdata()));
+    Scenario::Command::Macro m{new Scenario::Command::DropProcessInIntervalMacro, ctx};
     perform(interval, ctx, m, json);
     m.commit();
     return true;

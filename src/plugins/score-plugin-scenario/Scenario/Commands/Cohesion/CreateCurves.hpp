@@ -1,6 +1,8 @@
 #pragma once
 #include <Device/Address/AddressSettings.hpp>
 
+#include <score_plugin_scenario_export.h>
+
 #include <QList>
 
 #include <vector>
@@ -29,7 +31,7 @@ std::vector<Process::ProcessModel*> CreateCurvesFromAddresses(
     const Scenario::IntervalModel& interval,
     const std::vector<Device::FullAddressSettings>& a, Scenario::Command::Macro& m);
 
-void CreateCurves(
+SCORE_PLUGIN_SCENARIO_EXPORT void CreateCurves(
     const std::vector<const Scenario::IntervalModel*>& selected_intervals,
     const score::CommandStackFacade& stack);
 void CreateCurvesFromAddresses(

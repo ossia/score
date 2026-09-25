@@ -342,10 +342,11 @@ ossia::small_vector<Process::Cable*, 4> reloadPortsInNewProcess(
 
   const auto reload
       = [&](const auto& oldPorts, const auto& newPorts, std::span<const int> oldIds) {
+    std::vector<bool> taken(oldPorts.size());
     for(std::size_t i = 0; i < newPorts.size(); ++i)
     {
       auto* new_p = newPorts[i];
-      auto oldIndex = i;
+      std::size_t oldIndex = i;
       if(new_p->stableIdentity)
       {
         auto it = std::find(oldIds.begin(), oldIds.end(), new_p->id().val());
@@ -353,12 +354,27 @@ ossia::small_vector<Process::Cable*, 4> reloadPortsInNewProcess(
           continue;
         oldIndex = it - oldIds.begin();
       }
+      else if(
+          oldIndex >= oldPorts.size() || taken[oldIndex]
+          || oldPorts[oldIndex].name != new_p->name())
+      {
+        // The port moved in the new program: match it by name and type
+        oldIndex = oldPorts.size();
+        for(std::size_t j = 0; j < oldPorts.size(); ++j)
+          if(!taken[j] && oldPorts[j].name == new_p->name()
+             && oldPorts[j].type == new_p->type())
+          {
+            oldIndex = j;
+            break;
+          }
+      }
       if(oldIndex >= oldPorts.size())
         continue;
       const auto& old_p = oldPorts[oldIndex];
       if(new_p->type() == old_p.type
          && (new_p->stableIdentity || new_p->name() == old_p.name))
       {
+        taken[oldIndex] = true;
         new_p->loadData(old_p.data, flags);
         auto restored = restoreCables(*new_p, doc, ctx, oldCables);
         ret.insert(ret.end(), restored.begin(), restored.end());

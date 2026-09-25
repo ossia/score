@@ -8,6 +8,8 @@
 
 #include <Scenario/Commands/Cohesion/CreateCurves.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
+#include <Scenario/Document/ScenarioEditor.hpp>
+#include <Scenario/Commands/Scenario/PasteAnchors.hpp>
 #include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/ResizeInterval.hpp>
@@ -116,6 +118,21 @@ bool DropScoreInScenario::drop(
         res.AddMember("TimeNodes", arr, res.GetAllocator());
       }
 
+      // Anchors between elements of the file's base scenario move to the pasted ones
+      {
+        auto& alloc = res.GetAllocator();
+        rapidjson::Value origin(rapidjson::kArrayType);
+        auto id = [&](const char* name, int i) {
+          rapidjson::Value v(rapidjson::kObjectType);
+          v.AddMember("ObjectName", rapidjson::StringRef(name), alloc);
+          v.AddMember("ObjectId", i, alloc);
+          origin.PushBack(v, alloc);
+        };
+        id("Scenario::ScenarioDocumentModel", 1);
+        id("Scenario::BaseScenario", 0);
+        res.AddMember("Origin", origin, alloc);
+      }
+
       CommandDispatcher<> d{doc.commandStack};
       d.submit(new Scenario::Command::ScenarioPasteElements(
           sm, res, pres.toScenarioPoint(pos)));
@@ -201,17 +218,28 @@ bool DropScoreInInterval::drop(
       auto& itv = scenar["Constraint"];
 
       Scenario::Command::Macro m{new Command::DropProcessInIntervalMacro, doc};
-      for(auto& json : itv["Processes"].GetArray())
+      const ObjectPath old_path{
+          {"Scenario::ScenarioDocumentModel", 1},
+          {"Scenario::BaseScenario", 0},
+          {"Scenario::IntervalModel", 0}};
+
+      // Anchors between objects of the file's base interval move to the copies
+      std::vector<std::pair<int32_t, int32_t>> proc_id_map;
+      std::vector<ObjectPath> pasted;
       {
-        m.loadProcessInSlot(interval, json);
+        rapidjson::Document copy;
+        copy.SetObject();
+        auto& alloc = copy.GetAllocator();
+        copy.AddMember("Processes", rapidjson::Value(itv["Processes"], alloc), alloc);
+        JSONReader r;
+        r.readFrom(old_path);
+        const auto parent = readJson(r.toByteArray());
+        copy.AddMember("ProcessesParent", rapidjson::Value(parent, alloc), alloc);
+        pasted = loadCopiedProcesses(m, interval, copy, proc_id_map, doc);
       }
 
       // Reload cables
       {
-        ObjectPath old_path{
-            {"Scenario::ScenarioDocumentModel", 1},
-            {"Scenario::BaseScenario", 0},
-            {"Scenario::IntervalModel", 0}};
         auto new_path = score::IDocument::path(interval).unsafePath();
         auto cables = Dataflow::serializedCablesFromCableJson(
             old_path, docobj["Cables"].GetArray());
@@ -221,9 +249,25 @@ bool DropScoreInInterval::drop(
         for(auto& c : cables)
         {
           c.first = getStrongId(document.cables);
+          // The copies may have new identifiers
+          auto remap = [&](ObjectPath& path) {
+            auto& vec = path.vec();
+            if(vec.empty())
+              return;
+            for(auto& [old_id, new_id] : proc_id_map)
+              if(vec.front().id() == old_id)
+              {
+                vec.front() = ObjectIdentifier{vec.front().objectName(), new_id};
+                break;
+              }
+          };
+          remap(c.second.source.unsafePath());
+          remap(c.second.sink.unsafePath());
         }
         m.loadCables(new_path, cables);
       }
+      if(!pasted.empty())
+        m.submit(new Command::FollowPasted{std::move(pasted)});
 
       // Finally we show the newly created rack
       m.showRack(interval);

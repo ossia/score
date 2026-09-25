@@ -8,6 +8,7 @@
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 
+#include <QPointer>
 #include <QTimer>
 
 #include <score_plugin_engine_export.h>
@@ -30,6 +31,7 @@ class BaseScenarioElement;
 
 namespace LocalTree
 {
+class ReferencesDialog;
 class DocumentPlugin;
 }
 
@@ -73,5 +75,6 @@ private:
 
   Scenario::SpeedWidget* m_speedSlider{};
   QAction* m_musicalAct{};
+  QPointer<LocalTree::ReferencesDialog> m_references;
 };
 }

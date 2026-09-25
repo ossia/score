@@ -25,7 +25,7 @@ DataStreamReader::read(const Scenario::TimeSyncModel& timesync)
 {
   m_stream << timesync.m_date << timesync.m_events << timesync.m_musicalSync
            << timesync.m_active << timesync.m_autotrigger << timesync.m_startPoint
-           << timesync.m_expression;
+           << timesync.m_expression << timesync.m_scriptable;
 
   insertDelimiter();
 }
@@ -36,7 +36,7 @@ DataStreamWriter::write(Scenario::TimeSyncModel& timesync)
 {
   m_stream >> timesync.m_date >> timesync.m_events >> timesync.m_musicalSync
       >> timesync.m_active >> timesync.m_autotrigger >> timesync.m_startPoint
-      >> timesync.m_expression;
+      >> timesync.m_expression >> timesync.m_scriptable;
 
   checkDelimiter();
 }
@@ -50,8 +50,11 @@ JSONReader::read(const Scenario::TimeSyncModel& timesync)
   obj["MusicalSync"] = timesync.m_musicalSync;
   obj[strings.AutoTrigger] = timesync.m_autotrigger;
   obj["Start"] = timesync.m_startPoint;
+  if(timesync.m_scriptable)
+    obj["Scriptable"] = true;
   obj[strings.Active] = timesync.m_active;
   obj[strings.Expression] = timesync.m_expression.toString();
+  State::saveAnchors(*this, "ExpressionAnchors", timesync.m_expression);
 }
 
 template <>
@@ -63,6 +66,7 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONWriter::write(Scenario::TimeSyncModel& tim
   assign_with_default(timesync.m_musicalSync, obj.tryGet("MusicalSync"), 1.0);
   assign_with_default(timesync.m_autotrigger, obj.tryGet("AutoTrigger"), false);
   assign_with_default(timesync.m_startPoint, obj.tryGet("Start"), false);
+  assign_with_default(timesync.m_scriptable, obj.tryGet("Scriptable"), false);
 
   if(auto trigger_it = obj.tryGet(strings.Trigger))
   {
@@ -85,6 +89,7 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONWriter::write(Scenario::TimeSyncModel& tim
     assign_with_default(exprstr, obj.tryGet(strings.Expression), "");
     if(auto expr = State::parseExpression(exprstr))
       timesync.m_expression = *std::move(expr);
+    State::loadAnchors(*this, "ExpressionAnchors", timesync.m_expression);
 
     assign_with_default(timesync.m_active, obj.tryGet("Active"), false);
   }

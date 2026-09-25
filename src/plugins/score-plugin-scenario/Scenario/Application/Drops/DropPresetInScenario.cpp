@@ -1,4 +1,5 @@
 #include <Scenario/Application/Drops/DropPresetInInterval.hpp>
+#include <Scenario/Application/Drops/DropLayerInInterval.hpp>
 #include <Scenario/Application/Drops/DropPresetInScenario.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
@@ -22,6 +23,8 @@ DropPresetInScenario::DropPresetInScenario()
 bool DropPresetInScenario::drop(
     const ScenarioPresenter& pres, QPointF pos, const QMimeData& mime)
 {
+  if(isProcessesDrag(mime))
+    return false;
   QByteArray presetData;
   QString filename;
 
