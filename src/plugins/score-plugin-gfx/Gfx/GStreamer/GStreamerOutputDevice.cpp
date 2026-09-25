@@ -24,6 +24,8 @@
 #include <score/serialization/MimeVisitor.hpp>
 
 #include <ossia/audio/audio_parameter.hpp>
+
+#include <cstring>
 #include <ossia/network/generic/generic_node.hpp>
 
 #include <ossia-qt/name_utils.hpp>
@@ -266,6 +268,23 @@ struct GStreamerOutputNode : score::gfx::OutputNode
       setBool(m_audio_src, "is-live", true);
       setBool(m_audio_src, "do-timestamp", true);
       setInt(m_audio_src, "format", 3); // GST_FORMAT_TIME
+    }
+
+    // Say what the samples are: the engine's floats at the engine's rate.
+    // Without caps an appsrc sends no CAPS event, so the first buffer fails
+    // to negotiate as soon as any element sits between it and a capsfilter,
+    // and a pipeline has no way to resample from the right rate.
+    if(m_audio_src && gst.caps_from_string && gst.app_src_set_caps)
+    {
+      const int rate = score::AppContext().settings<Audio::Settings::Model>().getRate();
+      auto capsStr = QString("audio/x-raw,format=F32LE,layout=interleaved,rate=%1,channels=%2")
+                         .arg(rate > 0 ? rate : 48000)
+                         .arg(std::max(1, m_settings.audio_channels));
+      if(GstCaps* caps = gst.caps_from_string(capsStr.toStdString().c_str()))
+      {
+        gst.app_src_set_caps(m_audio_src, caps);
+        gst.caps_unref(caps);
+      }
     }
 
     // Detect target pixel format by querying pad caps downstream of appsrc.
@@ -535,8 +554,8 @@ struct GStreamerOutputNode : score::gfx::OutputNode
 
     auto& gst = libgstreamer::instance();
 
-    // Convert float to S16LE for GStreamer
-    int size = num_samples * channels * sizeof(int16_t);
+    // F32LE, as announced in the appsrc caps
+    const std::size_t size = std::size_t(num_samples) * channels * sizeof(float);
     GstBuffer* buffer = gst.buffer_new_allocate(nullptr, size, nullptr);
     if(!buffer)
       return;
@@ -544,14 +563,7 @@ struct GStreamerOutputNode : score::gfx::OutputNode
     GstMapInfo map{};
     if(gst.buffer_map(buffer, &map, GST_MAP_WRITE))
     {
-      auto* dst = reinterpret_cast<int16_t*>(map.data);
-      for(int i = 0; i < num_samples * channels; i++)
-      {
-        float s = interleaved[i];
-        if(s > 1.f) s = 1.f;
-        if(s < -1.f) s = -1.f;
-        dst[i] = (int16_t)(s * 32767.f);
-      }
+      std::memcpy(map.data, interleaved, size);
       gst.buffer_unmap(buffer, &map);
     }
 
