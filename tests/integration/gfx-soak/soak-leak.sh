@@ -16,7 +16,7 @@
 #   5. final grab is the solid-color base's full-frame magenta (the
 #      pipeline still renders the right thing after the churn)
 #   6. gfx-process population in final.score == baseline init.score
-#   7. post-warmup RSS growth < SLOPE_KB_PER_CYCLE (linear fit; catches
+#   7. RSS growth over the second half < SLOPE_KB_PER_CYCLE (linear fit; catches
 #      unbounded growth without exact counts under ASAN's noisy allocator)
 #   8. open-fd count stable (last - first <= FD_SLACK)
 #
@@ -196,7 +196,7 @@ rows = [l.split(",") for l in open(f"{out}/samples.csv").read().splitlines()[1:]
 num = [(int(c), int(r), int(f)) for c, r, f in rows if c.isdigit()]
 slope = None
 if len(num) >= 4:
-    post = num[max(1, len(num)//4):]          # discard warmup quarter
+    post = num[max(1, len(num)//2):]          # discard warmup half: driver caches fill for ~100 cycles
     xs = [c for c, _, _ in post]; ys = [r for _, r, _ in post]
     mx, my = sum(xs)/len(xs), sum(ys)/len(ys)
     den = sum((x-mx)**2 for x in xs)
