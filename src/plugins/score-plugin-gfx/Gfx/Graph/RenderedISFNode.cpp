@@ -2,6 +2,7 @@
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/RenderedISFNode.hpp>
 
+#include <bit>
 #include <iterator>
 #include <Gfx/Graph/RenderedISFSamplerUtils.hpp>
 #include <Gfx/Graph/ShaderCache.hpp>
@@ -1141,7 +1142,27 @@ void RenderedISFNode::runRenderPass(
 
 AudioTextureUpload::AudioTextureUpload()
     : m_fft{128}
+    , m_fftSize{128}
 {
+}
+
+std::size_t AudioTextureUpload::fftSize(std::size_t samples) noexcept
+{
+  return std::bit_ceil(std::max<std::size_t>(samples, 2));
+}
+
+ossia::fft_complex*
+AudioTextureUpload::executeFFT(const float* samples, std::size_t count)
+{
+  const std::size_t n = fftSize(count);
+  if(n != m_fftSize)
+  {
+    m_fft.reset(n);
+    m_fftSize = n;
+  }
+  m_fftInput.assign(n, 0.f);
+  std::copy_n(samples, count, m_fftInput.data());
+  return m_fft.execute(m_fftInput.data(), n);
 }
 
 void AudioTextureUpload::process(
@@ -1194,47 +1215,52 @@ void AudioTextureUpload::processHistogram(
   // this also matches the texture width picked in updateAudioTexture).
   if(audioInputBufferSize < 4)
     return;
-  std::size_t fftSize = audioInputBufferSize / 2 - 2;
-  m_scratchpad.resize(240 * fftSize);
-  if(m_scratchpad.empty())
+  std::size_t fftSize = AudioTextureUpload::fftSize(audioInputBufferSize) / 2 - 2;
+  if(fftSize == 0)
     return;
+  auto& history = m_histograms[&audio];
+  if(history.size() != 240 * fftSize)
+    history.assign(240 * fftSize, 0.f);
 
-  // 1. Rotate the scratchpad by one row (fftSize)
-  auto channel_begin = m_scratchpad.begin();
-  std::rotate(channel_begin, m_scratchpad.end() - fftSize, m_scratchpad.end());
+  // 1. Rotate the history by one row (fftSize)
+  std::rotate(history.begin(), history.end() - fftSize, history.end());
 
   {
     const float dbmax = 0.f;
     const float dbmin = -100.f;
     const float byte_norm = 255.f / (dbmax - dbmin);
-    const float norm = 2.f / (fftSize);
+    const float norm
+        = 2.f / std::max<std::size_t>(audioInputBufferSize / 2 - 2, 1);
 
     // Histogram treats channel 0 as the source — it's a scrolling
     // spectrogram display and summing / interleaving channels would blur
     // the visualisation.
     const int i = 0;
     {
-      float* inputData = audio.data.data() + i * audioInputBufferSize;
+      const float* inputData = audio.data.data() + i * audioInputBufferSize;
+      if(m_scratchpad.size() < audioInputBufferSize)
+        m_scratchpad.resize(audioInputBufferSize);
+      float* windowed = m_scratchpad.data();
       double current_window_value = 0.;
 
       // Basic triangular window function on the audio buffer
       double window_increment = 1. / (audioInputBufferSize / 2);
       for(int s = 0; s < (int)(audioInputBufferSize / 2); s++)
       {
-        inputData[s] *= current_window_value;
+        windowed[s] = inputData[s] * current_window_value;
         current_window_value += window_increment;
       }
       for(int s = (int)(audioInputBufferSize / 2); s < (int)audioInputBufferSize; s++)
       {
         current_window_value -= window_increment;
-        inputData[s] *= current_window_value;
+        windowed[s] = inputData[s] * current_window_value;
       }
 
       // Compute fft. Spectrum is in CCs format — index 0 is DC, the last
       // coefficient is nyquist. Skip both.
-      auto spectrum = m_fft.execute(inputData, audioInputBufferSize);
+      auto spectrum = executeFFT(windowed, audioInputBufferSize);
 
-      float* outputSpectrum = m_scratchpad.data();
+      float* outputSpectrum = history.data();
 
       // Fill all fftSize slots of the new row: bounds of k=1..fftSize-1 would
       // leave the last two pixels holding a 240-frame-old row's data.
@@ -1258,7 +1284,7 @@ void AudioTextureUpload::processHistogram(
   // Copy it. setSourceSize makes the row pitch explicit, as processSpectral
   // also does.
   QRhiTextureSubresourceUploadDescription subdesc(
-      m_scratchpad.data(), m_scratchpad.size() * sizeof(float));
+      history.data(), history.size() * sizeof(float));
   subdesc.setSourceSize(QSize((int)fftSize, 240));
   QRhiTextureUploadEntry entry{0, 0, subdesc};
   QRhiTextureUploadDescription desc{entry};
@@ -1269,7 +1295,7 @@ void AudioTextureUpload::processSpectral(
     AudioTexture& audio, QRhiResourceUpdateBatch& res, QRhiTexture* rhiTexture)
 {
   std::size_t audioBufferSize = audio.data.size() / audio.channels;
-  std::size_t fftSize = audioBufferSize / 2;
+  std::size_t fftSize = AudioTextureUpload::fftSize(audioBufferSize) / 2;
   std::size_t outputSize = fftSize * audio.channels;
 
   if(m_scratchpad.size() < outputSize)
@@ -1278,8 +1304,8 @@ void AudioTextureUpload::processSpectral(
   const float norm = 1. / (2. * audioBufferSize);
   for(int i = 0; i < audio.channels; i++)
   {
-    float* inputData = audio.data.data() + i * audioBufferSize;
-    auto spectrum = m_fft.execute(inputData, audioBufferSize);
+    const float* inputData = audio.data.data() + i * audioBufferSize;
+    auto spectrum = executeFFT(inputData, audioBufferSize);
 
     float* outputSpectrum = m_scratchpad.data() + i * fftSize;
     for(std::size_t k = 0; k < fftSize; k++)
@@ -1294,7 +1320,7 @@ void AudioTextureUpload::processSpectral(
 
   // Copy it
   QRhiTextureSubresourceUploadDescription subdesc(
-      m_scratchpad.data(), m_scratchpad.size() * sizeof(float));
+      m_scratchpad.data(), outputSize * sizeof(float));
   subdesc.setSourceSize(QSize(fftSize, audio.channels));
 
   QRhiTextureUploadEntry entry{0, 0, subdesc};
@@ -1336,11 +1362,11 @@ std::optional<Sampler> AudioTextureUpload::updateAudioTexture(
         desired = {samples, audio.channels};
         break;
       case AudioTexture::Mode::FFT:
-        desired = {std::max(1, samples / 2), audio.channels};
+        desired = {std::max(1, int(fftSize(samples)) / 2), audio.channels};
         break;
       case AudioTexture::Mode::Histogram:
         // Histogram is a scrolling spectrogram: rows = frames of FFT history.
-        desired = {std::max(1, samples / 2 - 2), 240};
+        desired = {std::max(1, int(fftSize(samples)) / 2 - 2), 240};
         break;
     }
   }
@@ -1350,8 +1376,6 @@ std::optional<Sampler> AudioTextureUpload::updateAudioTexture(
   {
     if(has_data)
     {
-      m_fft.reset(samples);
-
       if(rhiTexture)
       {
         // destroy()+create() on the same QRhiTexture wrapper swaps the

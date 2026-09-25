@@ -37,9 +37,16 @@ struct AudioTextureUpload
       AudioTexture& audio, RenderList& renderer, char* materialData,
       QRhiResourceUpdateBatch& res);
 
+  static std::size_t fftSize(std::size_t samples) noexcept;
+
 private:
+  ossia::fft_complex* executeFFT(const float* samples, std::size_t count);
+
   std::vector<float> m_scratchpad;
+  std::vector<float> m_fftInput;
+  ossia::hash_map<const AudioTexture*, std::vector<float>> m_histograms;
   ossia::fft m_fft;
+  std::size_t m_fftSize{};
 };
 
 }

@@ -2101,3 +2101,8 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
     $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
+
+# audioFFT / audioHistogram textures for non-power-of-two audio buffers:
+# finite texels, DC..nyquist span, sine peak bin, stable histogram rows
+# next to a waveform input (agent FF).
+score_add_gfx_test(audio_spectrum_ff GfxAudioSpectrum.cpp)
