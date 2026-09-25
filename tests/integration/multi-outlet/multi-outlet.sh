@@ -17,9 +17,14 @@
 #
 # Environment:
 #   OSSIA_SCORE          binary (default: build-developer/ossia-score)
-#   MULTI_OUTLET_IMAGE   test photo with sky (default: ailia depth_anything demo1.png)
-#   MULTI_OUTLET_MODEL   Depth Anything 3 metric ONNX, inputs 1x3x280x504, outputs depth + sky
+#   MULTI_OUTLET_IMAGE   test photo with sky
+#   MULTI_OUTLET_MODEL   a 2-output image model like Depth Anything 3 metric:
+#                        input 1x3x280x504, outputs depth + sky
 #   OUT                  output directory (default: /tmp/multi-outlet)
+# Without them: the DA3-metric model and its demo photo when they are on this
+# machine, else the small fixture in fixture/ (the same I/O, made by
+# fixture/make_fixture.py), so the outlet routing is tested anywhere the ONNX
+# add-on is built.
 #
 # The render environment is the same as text-render.sh: our own Xvfb, xcb,
 # Mesa llvmpipe forced. ONNX Runtime is pinned to the CPU provider.
@@ -32,8 +37,20 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 SRCROOT="$(cd "$HERE/../../.." && pwd)"
 BIN="${OSSIA_SCORE:-$SRCROOT/build-developer/ossia-score}"
 OUT="${OUT:-/tmp/multi-outlet}"
-IMAGE="${MULTI_OUTLET_IMAGE:-$HOME/projets/oss/ailia-models/depth_estimation/depth_anything/demo1.png}"
-MODEL="${MULTI_OUTLET_MODEL:-/mnt/win2/models/models-presets/models/image-processor/depth-anything-v3-metric-large-280x504.onnx}"
+DA3_IMAGE="$HOME/projets/oss/ailia-models/depth_estimation/depth_anything/demo1.png"
+DA3_MODEL="/mnt/win2/models/models-presets/models/image-processor/depth-anything-v3-metric-large-280x504.onnx"
+if [ -n "${MULTI_OUTLET_MODEL:-}" ]; then
+  IMAGE="${MULTI_OUTLET_IMAGE:-$DA3_IMAGE}"
+  MODEL="$MULTI_OUTLET_MODEL"
+elif [ -f "$DA3_MODEL" ] && [ -f "${MULTI_OUTLET_IMAGE:-$DA3_IMAGE}" ]; then
+  IMAGE="${MULTI_OUTLET_IMAGE:-$DA3_IMAGE}"
+  MODEL="$DA3_MODEL"
+else
+  IMAGE="${MULTI_OUTLET_IMAGE:-$HERE/fixture/scene.png}"
+  MODEL="$HERE/fixture/two_outputs.onnx"
+fi
+echo "model: $MODEL"
+echo "image: $IMAGE"
 OSC=6666
 TIMEOUT="${TIMEOUT:-420}"
 GRABS="${GRABS:-40}"
@@ -70,21 +87,10 @@ cleanup_xvfb() { [ -n "$XVFB_PID" ] && { kill "$XVFB_PID" 2>/dev/null; wait "$XV
 trap cleanup_xvfb EXIT
 echo "display=$DISP$([ -n "$XVFB_PID" ] && echo ' (own Xvfb)' || echo ' (inherited)')"
 
-# Hermetic config home, GraphicsApi pinned to OpenGL (user conf may say Vulkan).
-CFG="$OUT/config-home"; mkdir -p "$CFG/ossia"
-python3 - "${XDG_CONFIG_HOME:-$HOME/.config}/ossia/score.conf" "$CFG/ossia/score.conf" <<'PYEOF'
-import re, sys, pathlib
-src, dst = sys.argv[1], sys.argv[2]
-try: text = pathlib.Path(src).read_text()
-except OSError: text = ""
-if "[score_plugin_gfx]" not in text:
-    text += "\n[score_plugin_gfx]\nGraphicsApi=OpenGL\n"
-elif re.search(r"^GraphicsApi=.*$", text, re.M):
-    text = re.sub(r"^GraphicsApi=.*$", "GraphicsApi=OpenGL", text, flags=re.M)
-else:
-    text = text.replace("[score_plugin_gfx]", "[score_plugin_gfx]\nGraphicsApi=OpenGL")
-pathlib.Path(dst).write_text(text)
-PYEOF
+# Hermetic config home: a fresh one with only GraphicsApi pinned to OpenGL.
+# Nothing is read from or written to the user's own configuration.
+CFG="$OUT/config-home"; rm -rf "$CFG"; mkdir -p "$CFG/ossia"
+printf '[score_plugin_gfx]\nGraphicsApi=OpenGL\n' > "$CFG/ossia/score.conf"
 
 jsstr() { python3 -c 'import json,sys; print(json.dumps(sys.argv[1]))' "$1"; }
 
@@ -125,9 +131,11 @@ run_mode() {
     cat "$HERE/multi-outlet.js"
   } > "$dir/scene.js"
 
-  rm -f "${XDG_CONFIG_HOME:-$HOME/.config}/ossia/failsafe.bit"
+  rm -f "$CFG/ossia/failsafe.bit"
   (
-    flock -w 900 9 || { echo 98 > "$dir/run.rc"; exit 0; }
+    # Shorter than the ctest TIMEOUT: a lock held that long is another
+    # harness, and this run is skipped rather than killed.
+    flock -w 300 9 || { echo 98 > "$dir/run.rc"; exit 0; }
     # A previous run still shutting down can hold the OSC port: the new app then
     # fails to listen ("asio listen error"), never gets /script, and the run
     # times out. Wait for the port and for any earlier instance of this test.
@@ -182,6 +190,11 @@ check_mode() { # mode -> appends to $FAILS
   local mode="$1" dir="$OUT/$1" rc renderer
   echo "=== $mode wiring"
   rc=$(cat "$dir/run.rc" 2>/dev/null || echo 97)
+  if [ "$rc" = 98 ]; then
+    SKIPPED+=" $mode"
+    echo "[$mode] /tmp/score-harness.lock still held after 300 s: skipped"
+    return
+  fi
   [ "$rc" = 0 ] || FAILS+=" $mode:exit=$rc"
   if grep -q "NULL RHI BACKEND" "$dir/run.log" 2>/dev/null; then
     FAILS+=" $mode:NULL-RHI"
@@ -205,12 +218,15 @@ check_mode() { # mode -> appends to $FAILS
 }
 
 FAILS=""
+SKIPPED=""
 for mode in init live; do
   run_mode "$mode"
   check_mode "$mode"
 done
 
-if [ -z "$FAILS" ]; then
+if [ -z "$FAILS" ] && [ -n "$SKIPPED" ]; then
+  echo "SKIP: harness lock busy for:$SKIPPED"; exit 77
+elif [ -z "$FAILS" ]; then
   echo "multi-outlet PASS (grabs: $OUT/init/grid.png $OUT/live/grid.png)"
 else
   echo "multi-outlet FAIL:$FAILS  (out=$OUT)"; exit 1

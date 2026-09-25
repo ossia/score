@@ -82,6 +82,10 @@ set(SCORE_TEST_GUARD_ALLOWED_HARNESSES
   # document driven by a script, not a single ctest that dies with the first
   # bad file. run-score-corpus.sh exits 77 when the corpus is absent.
   corpus/run-score-corpus.sh
+  # Regenerates the multi-outlet test's committed fixture (two_outputs.onnx,
+  # scene.png), which multi-outlet.sh uses; run by hand after changing it
+  # (needs python's onnx and PIL), not a test.
+  integration/multi-outlet/fixture/make_fixture.py
 )
 
 # Executables built under tests/ that are deliberately not ctest entries.
