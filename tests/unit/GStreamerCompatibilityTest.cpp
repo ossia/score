@@ -179,3 +179,37 @@ TEST_CASE("the table still has every row it was written with", "[unit][gstreamer
 {
   CHECK(Video::gstreamerToLibav().size() == 56);
 }
+
+TEST_CASE("raw video caps parse with and without type annotations", "[unit][gstreamer]")
+{
+  // as GStreamer writes them
+  auto a = Video::parseRawVideoCaps(
+      "video/x-raw, format=(string)RGBA, width=(int)320, height=(int)240, "
+      "framerate=(fraction)30/1, pixel-aspect-ratio=(fraction)1/1");
+  REQUIRE(a);
+  CHECK(a->format == "RGBA");
+  CHECK(a->width == 320);
+  CHECK(a->height == 240);
+  CHECK(a->rate == 30.);
+
+  // as score's own shmdata and sh4lt writers write them: no annotations. The
+  // framerate used to parse as 0 and the stream was rejected.
+  auto b = Video::parseRawVideoCaps(
+      "video/x-raw,format=(string)RGBA,width=(int)1280,height=(int)720,framerate=30/1");
+  REQUIRE(b);
+  CHECK(b->width == 1280);
+  CHECK(b->rate == 30.);
+
+  auto c = Video::parseRawVideoCaps("video/x-raw, format=NV12, width=64, height=48, "
+                                    "framerate=30000/1001");
+  REQUIRE(c);
+  CHECK(c->format == "NV12");
+  CHECK(c->rate > 29.9);
+  CHECK(c->rate < 30.);
+
+  CHECK(!Video::parseRawVideoCaps("audio/x-raw, format=F32LE, rate=48000"));
+  CHECK(!Video::parseRawVideoCaps("video/x-raw, format=RGBA, width=64, height=48"));
+  CHECK(!Video::parseRawVideoCaps("video/x-raw, width=64, height=48, framerate=30/1"));
+  CHECK(!Video::parseRawVideoCaps("video/x-raw, format=RGBA, width=0, height=48, "
+                                  "framerate=30/1"));
+}
