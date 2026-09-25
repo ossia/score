@@ -804,6 +804,7 @@ score::QGraphicsDraggablePixmap* makePresetButton(
       case Qt::LeftButton: {
         // Preset menu
         auto menu = new QMenu;
+        menu->setToolTipsVisible(true);
         menu->addAction(
             "Save current preset", menu, [&proc, &pplug] { pplug.savePreset(&proc); });
 
@@ -841,7 +842,10 @@ score::QGraphicsDraggablePixmap* makePresetButton(
             if(it != submenus.end())
               current = it.value();
             else
+            {
               current = *submenus.insert(path, current->addMenu(part));
+              current->setToolTipsVisible(true);
+            }
           }
           return current;
         };
@@ -858,9 +862,11 @@ score::QGraphicsDraggablePixmap* makePresetButton(
 
         for(auto p : goodPresets)
         {
-          categoryMenu(p->category)->addAction(p->name, menu, [p, loadPreset] {
+          auto act = categoryMenu(p->category)->addAction(p->name, menu, [p, loadPreset] {
             loadPreset(*p);
           });
+          if(!p->description.isEmpty())
+            act->setToolTip(p->description);
         }
 
         if(auto proc_builtins = proc.builtinPresets(); !proc_builtins.empty())
