@@ -4,6 +4,7 @@
 #include <QCoreApplication>
 #include <QElapsedTimer>
 #include <QEventLoop>
+#include <QPointer>
 #include <QScopeGuard>
 #include <QThread>
 
@@ -135,6 +136,14 @@ void WindowDevice::grabTo(const QString& path) const
   s_grabbing = true;
   const auto _grab_guard = qScopeGuard([] { s_grabbing = false; });
 
+  const QPointer<const WindowDevice> self{this};
+  const QString name = m_settings.name;
+  const auto closed = [&] {
+    qWarning() << "grabTo:" << name << "was closed during the grab; nothing written to"
+               << path;
+  };
+  const auto hasPlugin = [this] { return m_ctx.findPlugin<Gfx::DocumentPlugin>(); };
+
   if(auto dev = dynamic_cast<offscreen_device*>(m_dev.get()))
   {
     auto node = dev->node();
@@ -143,6 +152,8 @@ void WindowDevice::grabTo(const QString& path) const
       qWarning() << "grabTo: offscreen device has not rendered yet";
       return;
     }
+    const auto alive
+        = [&] { return self && m_dev.get() == dev && dev->node() == node && hasPlugin(); };
 
     // Score.play() only starts the execution graph; the gfx nodes it registers
     // reach the render list once the first execution tick has run, which is
@@ -162,14 +173,22 @@ void WindowDevice::grabTo(const QString& path) const
       if(spun >= 60)
         QThread::msleep(2);
       QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents, 16);
+      if(!alive())
+        return closed();
       renderFrames(1);
+      if(!alive())
+        return closed();
     }
     // A graph that only just appeared has drawn one frame, and a multi-pass
     // chain needs several before its feedback targets hold anything. Grabbing
     // here returns a near-black image that is not what the caller's own
     // renderFrames() asked to settle, so give it that many more.
     if(!stepped && spun > 0 && node->shared_readback->pixelSize.width() > 0)
+    {
       renderFrames(30);
+      if(!alive())
+        return closed();
+    }
 
     if(node->deviceLost())
     {
@@ -217,6 +236,8 @@ void WindowDevice::grabTo(const QString& path) const
     // anything drawn on top of it. Arm the readback, then drive frames until
     // the result lands: QRhi fills it when the frame it was queued in
     // completes, which is not the call that queued it.
+    const auto alive
+        = [&] { return self && this->screenNode() == screen && hasPlugin(); };
     screen->requestReadback();
     const auto& rbp = screen->readback();
 
@@ -232,7 +253,11 @@ void WindowDevice::grabTo(const QString& path) const
     for(int i = 0; i < 60 && rbp->data.isEmpty() && !screen->deviceLost(); ++i)
     {
       QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents, 16);
+      if(!alive())
+        return closed();
       renderFrames(1);
+      if(!alive())
+        return closed();
     }
 
     if(screen->deviceLost())

@@ -1368,6 +1368,7 @@ struct texture_inputs_storage<T>
   ossia::small_flat_map<const score::gfx::Port*, QRhiSampler*, 2> m_samplers;
 
   QRhiReadbackResult m_readbacks[avnd::texture_input_introspection<T>::size];
+  bool m_readbackPremultiplied[avnd::texture_input_introspection<T>::size]{};
 
   template <typename Tex>
   QRhiTexture* createInput(
@@ -1680,6 +1681,12 @@ struct texture_inputs_storage<T>
                 gpp::qrhi::toTextureFormat(rb.format, t.texture);
               }
             }
+            if(auto& rb = m_readbacks[K]; m_readbackPremultiplied[K] && !rb.data.isEmpty())
+            {
+              gpp::qrhi::unpremultiply(
+                  rb.format, rb.data, rb.pixelSize.width(), rb.pixelSize.height());
+              m_readbackPremultiplied[K] = false;
+            }
             oscr::loadInputTexture(rhi, m_readbacks, t.texture, K);
           }
       });
@@ -1731,6 +1738,7 @@ struct texture_inputs_storage<T>
             return;
           auto& readback = m_readbacks[K];
           readback = {};
+          m_readbackPremultiplied[K] = tex == rt_it->second.texture;
           res->readBackTexture(QRhiReadbackDescription{tex}, &readback);
         }
       });
@@ -1892,6 +1900,22 @@ template<typename T>
   requires (avnd::texture_output_introspection<T>::size > 0)
 struct texture_outputs_storage<T>
 {
+  static bool drawnOutputPremultiplied(auto& self) noexcept
+  {
+    bool premultiplied = false;
+    const auto first = [&]<typename F, std::size_t N>(F&, avnd::predicate_index<N>) {
+      if constexpr(N == 0)
+        premultiplied = requires { F::premultiplied; };
+    };
+    if constexpr(avnd::cpu_texture_output_introspection<T>::size > 0)
+      avnd::cpu_texture_output_introspection<T>::for_all_n(
+          avnd::get_outputs<T>(*self.state), first);
+    else
+      avnd::gpu_texture_output_introspection<T>::for_all_n(
+          avnd::get_outputs<T>(*self.state), first);
+    return premultiplied;
+  }
+
   void init(auto& self, score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res)
   {
     const auto& mesh = renderer.defaultTriangle();
@@ -1919,6 +1943,7 @@ struct texture_outputs_storage<T>
       self.m_samplers.push_back(score::gfx::Sampler{sampler, nullptr});
     });
 
+    self.m_outputPremultiplied = drawnOutputPremultiplied(self);
     self.defaultPassesInit(renderer, mesh);
   }
 

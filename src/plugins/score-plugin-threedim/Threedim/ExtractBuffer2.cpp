@@ -177,12 +177,6 @@ ExtractBuffer2::BufferRef ExtractBuffer2::resolveBuffer(
 void ExtractBuffer2::initStrategy(score::gfx::RenderList& renderer)
 {
   const auto& mesh = inputs.geometry.mesh;
-  if(mesh.vertices == 0)
-  {
-    m_strategy = std::monostate{};
-    return;
-  }
-
   QRhi& rhi = *renderer.state.rhi;
 
   m_currentMode = inputs.mode.value;
@@ -191,6 +185,11 @@ void ExtractBuffer2::initStrategy(score::gfx::RenderList& renderer)
 
   if(inputs.mode.value == Attribute)
   {
+    if(mesh.vertices == 0)
+    {
+      m_strategy = std::monostate{};
+      return;
+    }
     const auto lookup = resolveAttribute(mesh, m_currentName);
     if(!lookup)
     {
@@ -266,8 +265,6 @@ void ExtractBuffer2::update(
     score::gfx::Edge* /*e*/)
 {
   const auto& mesh = inputs.geometry.mesh;
-  if(mesh.vertices == 0)
-    return;
 
   // Selector or pad change -> tear down and rebuild from scratch. The
   // strategies are cheap to recreate (they own at most one compute
@@ -282,6 +279,9 @@ void ExtractBuffer2::update(
     updateOutput();
     return;
   }
+
+  if(mesh.vertices == 0 && inputs.mode.value == Attribute)
+    return;
 
   // Drain dirty flags so the upstream knows we picked them up. We
   // always re-check the source buffer pointers below regardless.
