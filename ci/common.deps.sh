@@ -180,6 +180,7 @@ then
   clone_addon          https://github.com/ossia/score-addon-ndi
   clone_addon      https://github.com/ossia/score-addon-openzen
   clone_addon     https://github.com/ossia/score-addon-spatgris
+  clone_addon https://github.com/edumeneses/score-addon-spat gris
   clone_addon    https://github.com/ossia/score-addon-ultraleap
   clone_addon      https://github.com/ossia/score-addon-sysinfo
   clone_addon https://github.com/ossia/score-addon-videoio
