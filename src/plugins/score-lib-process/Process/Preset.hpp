@@ -38,6 +38,9 @@ struct SCORE_LIB_PROCESS_EXPORT Preset
   // Empty means "root"; "Foo/Bar/Baz" nests the preset under Foo > Bar > Baz.
   QString category;
 
+  // Optional text shown as the preset's tooltip.
+  QString description;
+
   static std::shared_ptr<Process::Preset>
   fromJson(const Process::ProcessFactoryList& procs, const QByteArray& obj) noexcept;
 
@@ -46,7 +49,7 @@ struct SCORE_LIB_PROCESS_EXPORT Preset
   friend bool operator==(const Preset& lhs, const Preset& rhs) noexcept
   {
     return lhs.name == rhs.name && lhs.key == rhs.key && lhs.data == rhs.data
-           && lhs.category == rhs.category;
+           && lhs.category == rhs.category && lhs.description == rhs.description;
   }
   friend bool operator!=(const Preset& lhs, const Preset& rhs) noexcept
   {

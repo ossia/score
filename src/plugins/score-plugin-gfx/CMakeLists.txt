@@ -188,12 +188,16 @@ set(HDRS
     Gfx/Images/Process.hpp
     Gfx/Images/ImageListChooser.hpp
 
+    Gfx/Sink/Executor.hpp
+    Gfx/Sink/Metadata.hpp
+    Gfx/Sink/Process.hpp
     Gfx/Text/Executor.hpp
     Gfx/Text/Metadata.hpp
     Gfx/Text/Process.hpp
     Gfx/Text/Layer.hpp
     
     Gfx/Graph/BackgroundNode.hpp
+    Gfx/Graph/SinkNode.hpp
     Gfx/Graph/CommonUBOs.hpp
     Gfx/Graph/CustomMesh.hpp
     Gfx/Graph/GeometryFilterNode.hpp
@@ -476,6 +480,8 @@ set(SRCS
     Gfx/Images/Process.cpp
     Gfx/Images/ImageListChooser.cpp
 
+    Gfx/Sink/Executor.cpp
+    Gfx/Sink/Process.cpp
     Gfx/Text/Executor.cpp
     Gfx/Text/Process.cpp
 
@@ -486,6 +492,7 @@ set(SRCS
     Gfx/Graph/decoders/GPUVideoDecoderFactory.cpp
     Gfx/Graph/decoders/HAP.cpp
     Gfx/Graph/BackgroundNode.cpp
+    Gfx/Graph/SinkNode.cpp
     Gfx/Graph/CustomMesh.cpp
     Gfx/Graph/GeometryFilterNode.cpp
     Gfx/Graph/GeometryFilterNodeRenderer.cpp

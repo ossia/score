@@ -25,6 +25,7 @@
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score/tools/Bind.hpp>
 
+#include <core/application/ApplicationSettings.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 
@@ -101,8 +102,13 @@ void DocumentPlugin::recreateBase()
   connect(
       m_base.get(), &Execution::BaseScenarioElement::finished, this,
       [this] {
-    auto& stop_action = context().doc.app.actions.action<Actions::Stop>();
-    stop_action.action()->trigger();
+    auto& app = context().doc.app;
+    // The transport actions only exist with a GUI: looking up Actions::Stop
+    // headless (--no-gui) threw out_of_range and terminated the application.
+    if(app.applicationSettings.gui)
+      app.actions.action<Actions::Stop>().action()->trigger();
+    else
+      app.guiApplicationPlugin<Engine::ApplicationPlugin>().execution().request_stop();
       },
       Qt::QueuedConnection);
 }

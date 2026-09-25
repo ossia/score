@@ -2,6 +2,7 @@
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
+#include <Engine/ApplicationPlugin.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 
@@ -15,6 +16,7 @@
 #include <score/serialization/VisitorCommon.hpp>
 #include <score/tools/Bind.hpp>
 
+#include <core/application/ApplicationSettings.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 
@@ -191,15 +193,26 @@ Receiver::Receiver(const score::DocumentContext& doc, quint16 port)
         m_dev.updateProxy.updateRemoteValue(message.address.address, message.value);
       }));
 
+  // The transport actions only exist with a GUI: headless (--no-gui), looking
+  // them up threw out_of_range, so drive the execution controller directly.
   m_answers.insert(std::make_pair("Play", [&](const rapidjson::Value&, const WSClient&) {
-    doc.app.actions.action<Actions::Play>().action()->trigger();
+    if(doc.app.applicationSettings.gui)
+      doc.app.actions.action<Actions::Play>().action()->trigger();
+    else
+      doc.app.guiApplicationPlugin<Engine::ApplicationPlugin>().execution().request_play_global(true);
   }));
   m_answers.insert(
       std::make_pair("Pause", [&](const rapidjson::Value&, const WSClient&) {
-        doc.app.actions.action<Actions::Play>().action()->trigger();
+        if(doc.app.applicationSettings.gui)
+          doc.app.actions.action<Actions::Play>().action()->trigger();
+        else
+          doc.app.guiApplicationPlugin<Engine::ApplicationPlugin>().execution().request_play_global(false);
       }));
   m_answers.insert(std::make_pair("Stop", [&](const rapidjson::Value&, const WSClient&) {
-    doc.app.actions.action<Actions::Stop>().action()->trigger();
+    if(doc.app.applicationSettings.gui)
+      doc.app.actions.action<Actions::Stop>().action()->trigger();
+    else
+      doc.app.guiApplicationPlugin<Engine::ApplicationPlugin>().execution().request_stop();
   }));
   m_answers.insert(
       std::make_pair("Transport", [&](const rapidjson::Value& v, const WSClient&) {

@@ -1640,6 +1640,19 @@ struct texture_outputs_storage<T>
     });
 
     self.defaultPassesInit(renderer, mesh);
+
+    // defaultPassesInit only covers the edges of output[0]: an edge leaving any
+    // other texture outlet (e.g. Image Processor's Mask / Depth) got no pass and
+    // drew nothing. addOutputPass binds that outlet's own sampler (see
+    // samplersForOutputEdge).
+    for(auto* port : self.node().output)
+    {
+      if(!port || port->type != score::gfx::Types::Image)
+        continue;
+      for(auto* edge : port->edges)
+        if(!self.hasOutputPassForEdge(*edge))
+          self.addOutputPass(renderer, *edge, res);
+    }
   }
 
   void runInitialPasses(auto& self,

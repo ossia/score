@@ -161,6 +161,11 @@ void Model::loadPreset(const Process::Preset& preset)
 
   auto controls = obj["Controls"].GetArray();
   Process::loadFixedControls(controls, *this);
+
+  // The executor only rebuilds its node and ports on programChanged: without
+  // it, a preset loaded while playing left the old shader running on
+  // unregistered inlets.
+  programChanged();
 }
 
 Process::Preset Model::savePreset() const noexcept
