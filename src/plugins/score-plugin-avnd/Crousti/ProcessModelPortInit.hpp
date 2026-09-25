@@ -40,6 +40,13 @@ inline void setupNewPort(Process::Port* obj)
 {
   if constexpr(avnd::has_description<T>)
     obj->setDescription(fromStringView(avnd::get_description<T>()));
+  static_assert(
+      !single_cable_port<T> || avnd::gpu_texture_port<T> || avnd::buffer_port<T>
+          || avnd::geometry_port<T> || scene_port<T>,
+      "single_cable is only supported on GPU texture, buffer, geometry and scene "
+      "inputs");
+  if constexpr(single_cable_port<T>)
+    obj->singleCable = true;
 }
 
 template <std::size_t N, typename T>

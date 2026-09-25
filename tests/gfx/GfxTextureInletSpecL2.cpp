@@ -35,7 +35,6 @@
 #include <ossia/dataflow/port.hpp>
 
 #include <Threedim/BufferInfo.hpp>
-#include <Threedim/TextureInfo.hpp>
 #include <Threedim/TextureToBuffer.hpp>
 
 #include <gpp/commands.hpp>
@@ -168,6 +167,25 @@ void main() { }
   gpp::co_dispatch dispatch() { co_return; }
 };
 
+struct TextureProbe
+{
+  halp_meta(name, "L2 texture probe")
+  halp_meta(c_name, "l2_texture_probe")
+  halp_meta(uuid, "3e6a0b27-9c4d-4f18-b2a5-7d1c8e9f0a36")
+
+  struct
+  {
+    halp::gpu_texture_input<"Texture"> texture;
+  } inputs;
+
+  struct
+  {
+    halp::val_port<"Width", int> width;
+  } outputs;
+
+  void operator()() { outputs.width.value = inputs.texture.texture.width; }
+};
+
 struct HalpProcesses
 {
   std::vector<std::unique_ptr<Process::ProcessModel>> models;
@@ -295,7 +313,7 @@ struct GpuInput
   QRhiSampler::AddressMode uAfter{};
 };
 
-// A CSF publishing its image -> Texture Info, whose input is a
+// A CSF publishing its image -> a probe whose input is a plain
 // halp::gpu_texture_input.
 GpuInput runGpuTextureInput(
     score::gfx::GraphicsApi api, const ossia::render_target_spec& spec,
@@ -319,7 +337,7 @@ GpuInput runGpuTextureInput(
       out.error = "producer build failed: " + p.error();
       return;
     }
-    auto infoOwned = procs.make<Threedim::TextureInfo>(ctx);
+    auto infoOwned = procs.make<TextureProbe>(ctx);
     auto* infoNode = infoOwned.get();
     auto* info = static_cast<score::gfx::OutputNode*>(infoOwned.get());
     const int ti = p.addNode(std::move(infoOwned));
@@ -339,7 +357,7 @@ GpuInput runGpuTextureInput(
     }
 
     REQUIRE(!infoNode->renderedNodes.empty());
-    auto* rn = dynamic_cast<oscr::GfxRenderer<Threedim::TextureInfo>*>(
+    auto* rn = dynamic_cast<oscr::GfxRenderer<TextureProbe>*>(
         infoNode->renderedNodes.begin()->second);
     REQUIRE(rn);
     const auto& t = rn->state->inputs.texture.texture;
@@ -366,7 +384,7 @@ GpuInput runGpuTextureInput(
         p.render(1);
         info->render();
       }
-      rn = dynamic_cast<oscr::GfxRenderer<Threedim::TextureInfo>*>(
+      rn = dynamic_cast<oscr::GfxRenderer<TextureProbe>*>(
           infoNode->renderedNodes.begin()->second);
       REQUIRE(rn);
       if(auto* s = static_cast<QRhiSampler*>(rn->state->inputs.texture.texture.sampler_handle))

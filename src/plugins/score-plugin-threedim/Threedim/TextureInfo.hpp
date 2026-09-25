@@ -15,10 +15,10 @@ namespace Threedim
 // (width, height, format, native handle) on regular value-output ports
 // plus a single human-readable summary string.
 //
-// Wiring: the avnd bridge (texture_inputs_storage) resolves the inlet every
-// frame. Unwired, the handle is null and the size 0x0. With one cable and no
-// size or format set on the inlet, a texture the upstream publishes
-// (textureForOutput) is reported; otherwise the inlet's render target is.
+// Wiring: the inlet is single-cable: it has no render target and reads the
+// texture the upstream publishes (textureForOutput), so the inlet's size and
+// format settings do not apply. Unwired, or fed by a node that publishes no
+// texture, the handle is null and the size 0x0.
 class TextureInfo
 {
 public:
@@ -30,7 +30,10 @@ public:
 
   struct
   {
-    halp::gpu_texture_input<"Texture"> texture;
+    struct : halp::gpu_texture_input<"Texture">
+    {
+      halp_flag(single_cable);
+    } texture;
   } inputs;
 
   struct

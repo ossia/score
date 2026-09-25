@@ -1083,6 +1083,7 @@ std::unique_ptr<Outlet> load_outlet(JSONWriter& wr, QObject* parent)
 static auto copy_port(Port&& src, Port& dst)
 {
   dst.displayHandledExplicitly = src.displayHandledExplicitly;
+  dst.singleCable = src.singleCable;
   dst.setName(src.name());
   dst.setAddress(src.address());
   dst.setExposed(src.exposed());

@@ -180,6 +180,17 @@ private:
   {
     init_controller_ports();
     init_folder_comboboxes();
+    init_single_cable_ports();
+  }
+
+  void init_single_cable_ports()
+  {
+    avnd::input_introspection<Info>::for_all(
+        [this]<std::size_t Idx, typename P>(avnd::field_reflection<Idx, P>) {
+      if constexpr(single_cable_port<P>)
+        for(auto* port : avnd_input_idx_to_model_ports(Idx))
+          port->singleCable = true;
+    });
   }
 
   // Folder-backed comboboxes (halp::folder_combobox): each carries the name of

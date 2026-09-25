@@ -54,6 +54,10 @@ enum class Flag : uint32_t
 
   // Sink expects a samplerCube.
   Cubemap          = (1 << 9),
+
+  // Image input taking a single cable: the sink reads the upstream's own
+  // texture when it publishes one, and its render target otherwise.
+  SingleCable      = (1 << 10),
 };
 
 static constexpr inline Flag operator&(Flag lhs, Flag rhs)

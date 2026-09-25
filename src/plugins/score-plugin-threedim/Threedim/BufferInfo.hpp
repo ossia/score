@@ -28,7 +28,10 @@ public:
 
   struct
   {
-    halp::gpu_buffer_input<"Buffer"> buffer;
+    struct : halp::gpu_buffer_input<"Buffer">
+    {
+      halp_flag(single_cable);
+    } buffer;
   } inputs;
 
   struct

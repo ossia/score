@@ -111,6 +111,7 @@ public:
   // Declared again by the process when constructing/loading its ports.
   // Preset reloads match these by identity, not mutable name or row position.
   bool stableIdentity{};
+  bool singleCable{};
 
   void addCable(const Process::Cable& c);
   void removeCable(const Path<Process::Cable>& c);

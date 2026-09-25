@@ -1291,6 +1291,13 @@ bool RenderList::maybeRebuild(bool force)
 
 TextureRenderTarget RenderList::renderTargetForOutput(const Edge& edge) const noexcept
 {
+  if((edge.sink->flags & Flag::SingleCable) == Flag::SingleCable && edge.source
+     && edge.source->node)
+    if(auto it = edge.source->node->renderedNodes.find(this);
+       it != edge.source->node->renderedNodes.end() && it->second
+       && it->second->textureForOutput(*edge.source))
+      return {};
+
   // Check renderer's own override first (output nodes, Crousti/halp renderers
   // that manage their own render targets)
   if(auto sink_node = edge.sink->node)
