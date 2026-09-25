@@ -298,3 +298,114 @@ Script {
   });
 #endif
 }
+
+// A message from the process's UI reaches the script with its lists as arrays:
+// scripts test Array.isArray on them (rect-mapper's shapes), and a wrapper
+// that is not an Array made rect-mapper drop every shape on any UI event.
+TEST_CASE(
+    "Javascript GPU scripts receive UI messages with arrays",
+    "[integration][js][gpu][gui]")
+{
+#if !defined(SCORE_HAS_GPU_JS) || defined(QT_NO_OPENGL)
+  SKIP("Javascript GPU execution and Qt OpenGL support are required");
+#else
+  if(qEnvironmentVariable("QT_QUICK_BACKEND") == QStringLiteral("software")
+     || qEnvironmentVariable("QSG_RHI_BACKEND") == QStringLiteral("software"))
+    SKIP("The software Qt Quick renderer cannot exercise Javascript GPU rendering");
+
+  QTemporaryDir settings;
+  REQUIRE(settings.isValid());
+  Environment config{"XDG_CONFIG_HOME", settings.path().toUtf8()};
+  Environment backend{"QSG_RHI_BACKEND", "opengl"};
+  Environment renderLoop{"QSG_RENDER_LOOP", "basic"};
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
+    QOpenGLContext probe;
+    if(!probe.create())
+      SKIP("A working OpenGL context is required (use Xvfb with GLX or a display)");
+
+    ctx.settings<Gfx::Settings::Model>().setGraphicsApi(QStringLiteral("OpenGL"));
+    score::Document* doc = score::test::new_document(ctx);
+    REQUIRE(doc != nullptr);
+    auto& interval
+        = static_cast<Scenario::ScenarioDocumentModel&>(doc->model().modelDelegate())
+              .baseInterval();
+    const auto key = UuidKey<Process::ProcessModel>::fromString(
+        QStringLiteral("846a5de5-47f9-46c5-a898-013cb20951d0"));
+    auto* factory = ctx.interfaces<Process::ProcessFactoryList>().get(key);
+    REQUIRE(factory != nullptr);
+    CommandDispatcher<> dispatcher{doc->context().commandStack};
+    dispatcher.submit<Scenario::Command::AddOnlyProcessToInterval>(
+        interval, factory->concreteKey(), factory->customConstructionData(), QPointF{});
+    JS::ProcessModel* process{};
+    for(auto& candidate : interval.processes)
+      if(candidate.concreteKey() == key)
+        process = qobject_cast<JS::ProcessModel*>(&candidate);
+    REQUIRE(process != nullptr);
+    const auto program = process->setProgram(
+        JS::QmlSource{
+            QStringLiteral(R"QML(
+import QtQuick
+import Score
+Script {
+  id: root
+  property int verdict: 0
+  uiEvent: function(m) {
+    root.verdict = (Array.isArray(m.rects) && Array.isArray(m.rects[0].v)
+                    && m.rects[0].v[1] === 2) ? 1 : 2;
+  }
+  TextureOutlet {
+    objectName: "Output"
+    item: Rectangle {
+      anchors.fill: parent
+      color: root.verdict === 1 ? "#00ff00" : root.verdict === 2 ? "#ff0000" : "#0000ff"
+    }
+  }
+}
+)QML"),
+            {}});
+    REQUIRE(program.valid);
+    process->programChanged();
+    process->inletsChanged();
+    process->outletsChanged();
+    REQUIRE(process->isGpu());
+
+    auto& graphics = doc->context().plugin<Gfx::DocumentPlugin>();
+    auto context
+        = std::make_shared<Execution::DocumentPlugin::ContextData>(doc->context());
+    context->context.alias = context;
+    context->execGraph = ossia::make_graph(ossia::graph_setup_options{});
+    context->execState = std::make_shared<ossia::execution_state>();
+    context->execState->sampleRate = 48000;
+    context->execState->bufferSize = 64;
+    auto* executorFactory
+        = ctx.interfaces<Execution::ProcessComponentFactoryList>().factory(*process);
+    REQUIRE(executorFactory != nullptr);
+    ComponentOwner owner{
+        context->m_execQueue,
+        executorFactory->make(*process, context->context, nullptr)};
+    REQUIRE(owner.component != nullptr);
+    execute(context->m_execQueue, [] { });
+    auto* node = dynamic_cast<Gfx::gfx_exec_node*>(owner.component->node.get());
+    REQUIRE(node != nullptr);
+
+    auto output = std::make_unique<score::gfx::BackgroundNode>();
+    auto readback = std::make_shared<QRhiReadbackResult>();
+    output->shared_readback = readback;
+    output->setRenderSize(QSize{64, 64});
+    const int outputId = graphics.context.register_node(std::move(output));
+    graphics.exec.setEdge({node->id, 0}, {outputId, 0}, Process::CableType::ImmediateGlutton);
+    graphics.exec.endTick(ossia::audio_tick_state{});
+    graphics.context.updateGraph();
+    graphics.context.renderFrames(4);
+    deliverUiMessages();
+    checkFrame(*readback, QColor{Qt::blue});
+
+    // What a custom UI's executionSend delivers: a map holding lists.
+    QVariantMap shape{{"v", QVariantList{1, 2}}};
+    process->uiToExecution(QVariantMap{{"rects", QVariantList{shape}}});
+    graphics.context.renderFrames(4);
+    deliverUiMessages();
+    checkFrame(*readback, QColor{Qt::green});
+  });
+#endif
+}
