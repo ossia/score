@@ -41,6 +41,8 @@ private:
   void updateTriggerTime();
   void on_GUITrigger();
   std::shared_ptr<ossia::time_sync> m_ossia_node;
+  //! State through which the published trigger node fires this sync
+  std::weak_ptr<void> m_published;
   QPointer<const Scenario::TimeSyncModel> m_score_node;
 };
 }

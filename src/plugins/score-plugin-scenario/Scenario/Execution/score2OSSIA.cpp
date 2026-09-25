@@ -8,6 +8,11 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
 
+#include <LocalTree/ScriptableReference.hpp>
+
+#include <core/document/Document.hpp>
+#include <score/document/DocumentInterface.hpp>
+
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/detail/apply.hpp>
 #include <ossia/editor/expression/expression.hpp>
@@ -66,17 +71,34 @@ void state(
     const ossia::execution_state& dl)
 {
   auto& elts = parent;
+  // Resolves addresses of ports that processes with dynamic ports do not have yet
+  auto doc = score::IDocument::try_documentFromObject(score_state);
+  auto tree = doc ? doc->context().findPlugin<LocalTree::ScriptableTreeBase>() : nullptr;
 
-  // For all elements where IOType != Invalid,
-  // we add the elements to the state.
+  auto add = [&](const State::Message& m) {
+    auto msg = message(m, dl);
+    if(!msg && tree && m.value.valid())
+      if(auto p = tree->reserve(m.address.address, m.value))
+        msg = ossia::message{
+            {*p, m.address.qualifiers.get().accessors}, m.value,
+            m.address.qualifiers.get().unit};
+    elts.add(std::move(msg));
+  };
 
-  score_state.messages().rootNode().visit_post([&elts, &dl](const auto& n) {
-    const auto& val = n.value();
-    if(val)
+  // Process states go first so that the state's own control messages override them
+  std::vector<State::Message> rest;
+  score_state.messages().rootNode().visit_post([&](const auto& n) {
+    if(const auto& val = n.value())
     {
-      elts.add(message(State::Message{Process::address(n), *val}, dl));
+      State::Message m{Process::address(n), *val};
+      if(doc && LocalTree::isProcessState(m.address.address, doc->context()))
+        add(m);
+      else
+        rest.push_back(std::move(m));
     }
   });
+  for(auto& m : rest)
+    add(m);
 }
 
 ossia::state

@@ -2,12 +2,14 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "StatePresenter.hpp"
 
+#include <Scenario/Application/Drops/DropLayerInInterval.hpp>
+#include <Scenario/Application/Drops/PresetDrop.hpp>
+
 #include "StateModel.hpp"
 
 #include <State/Message.hpp>
 #include <State/MessageListSerialization.hpp>
 
-#include <Process/ControlMessage.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
 
 #include <Scenario/Application/Drops/AutomationDropHandler.hpp>
@@ -16,6 +18,11 @@
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
+#include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/PortItem.hpp>
+#include <Scenario/Commands/State/SnapshotProcess.hpp>
+
+#include <LocalTree/ScriptableReference.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
@@ -34,6 +41,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QMimeData>
+#include <QPointer>
 #include <QUrl>
 
 #include <wobjectimpl.h>
@@ -52,10 +60,21 @@ StatePresenter::StatePresenter(
   con(m_model.selection, &Selectable::changed, m_view, &StateView::setSelected);
 
   con(m_model, &StateModel::sig_statesUpdated, this, &StatePresenter::updateStateView);
-  con(m_model, &StateModel::sig_controlMessagesUpdated, this,
-      &StatePresenter::updateStateView);
 
   con(m_model, &StateModel::statusChanged, m_view, &StateView::setStatus);
+
+  if(auto tree = ctx.findPlugin<LocalTree::ScriptableTreeBase>())
+  {
+    m_view->setEmphasized(tree->emphasized(model));
+    con(*tree, &LocalTree::ScriptableTreeBase::emphasisChanged, this,
+        [this, tree] { m_view->setEmphasized(tree->emphasized(m_model)); });
+    // The presenter can be deleted later than its state
+    con(*tree, &LocalTree::ScriptableTreeBase::referencesChanged, this,
+        [this, model = QPointer<const StateModel>{&model}](QObject* referrer) {
+      if(model && (!referrer || referrer == model.data()))
+        updateBrokenReferences();
+    });
+  }
   m_view->setStatus(m_model.status());
 
   connect(m_view, &StateView::startCreateMode, this, [=] {
@@ -121,29 +140,27 @@ void StatePresenter::handleDrop(const QMimeData& mime)
 
     CommandDispatcher<>{m_ctx.commandStack}.submit(cmd);
   }
-  else if(fmt.contains(score::mime::processcontrol()))
+  else if(fmt.contains(score::mime::port()))
   {
+    if(auto item = Dataflow::PortItem::clickedPort)
+      if(auto control = qobject_cast<const Process::ControlInlet*>(&item->port()))
+        if(score::IDocument::try_documentFromObject(*control) == &m_ctx.document)
+          Command::snapshotControlInState(m_model, *control, m_ctx);
   }
   else if(fmt.contains(score::mime::layerdata()))
   {
-    const auto json = readJson(mime.data(score::mime::layerdata()));
-    if(!json.HasMember("Path"))
-      return;
-    const auto& obj = JsonValue{json["Path"]}.to<Path<Process::ProcessModel>>();
-
-    if(auto proc = obj.try_find(m_ctx))
+    auto json = readJson(mime.data(score::mime::layerdata()));
+    auto processes = draggedProcesses(json, m_ctx);
+    if(processes.empty() && !draggedCopy(json) && json.HasMember("Path"))
     {
-      std::vector<Process::ControlMessage> controls;
-      proc->forEachControl([&](Process::Inlet& port, auto value) noexcept {
-        controls.push_back(Process::ControlMessage{port, std::move(value)});
-      });
-
-      if(!controls.empty())
-      {
-        auto cmd = new Command::AddControlMessagesToState{m_model, std::move(controls)};
-        CommandDispatcher<>{m_ctx.commandStack}.submit(cmd);
-      }
+      const auto path = JsonValue{json["Path"]}.to<Path<Process::ProcessModel>>();
+      if(auto proc = path.try_find(m_ctx))
+        processes.push_back(proc);
     }
+    if(!processes.empty())
+      if(auto choice = choosePresetDrop(processes, false))
+        Command::snapshotProcessesInState(
+            m_model, processes, m_ctx, *choice == PresetDrop::ControlsAndState);
   }
   else if(mime.hasUrls())
   {
@@ -219,9 +236,22 @@ void StatePresenter::on_processRemoved(const Process::ProcessModel&)
 
 void StatePresenter::updateStateView()
 {
-  m_view->setContainMessage(
-      m_model.messages().rootNode().hasChildren()
-      || !m_model.controlMessages().messages().empty());
+  m_view->setContainMessage(m_model.messages().rootNode().hasChildren());
+  updateBrokenReferences();
   m_view->setContainProcess(!m_model.stateProcesses.empty());
+}
+
+void StatePresenter::updateBrokenReferences()
+{
+  bool broken = false;
+  auto visit = [&](auto& self, const Process::MessageNode& n) -> void {
+    if(!broken && n.values.userValue
+       && LocalTree::broken(Process::address(n).address, m_ctx))
+      broken = true;
+    for(auto& child : n)
+      self(self, child);
+  };
+  visit(visit, m_model.messages().rootNode());
+  m_view->setBrokenReferences(broken);
 }
 }

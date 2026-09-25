@@ -83,6 +83,10 @@ public:
   void setWaiting(bool);
   bool waiting() const noexcept;
 
+  //! Published as the impulse score:/triggers/<name>.
+  bool scriptable() const noexcept { return m_scriptable; }
+  void setScriptable(bool b);
+
 public:
   void dateChanged(const TimeVal& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dateChanged, arg_1)
@@ -100,6 +104,8 @@ public:
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, autotriggerChanged, b)
   void startPointChanged(bool b)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, startPointChanged, b)
+  void scriptableChanged(bool b)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, scriptableChanged, b)
 
   void triggeredByGui() const E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, triggeredByGui)
 
@@ -118,6 +124,7 @@ public:
       bool, autotrigger READ autotrigger WRITE setAutotrigger NOTIFY autotriggerChanged)
   PROPERTY(
       bool, startPoint READ isStartPoint WRITE setStartPoint NOTIFY startPointChanged)
+  PROPERTY(bool, scriptable READ scriptable WRITE setScriptable NOTIFY scriptableChanged)
   PROPERTY(
       State::Expression,
       expression READ expression WRITE setExpression NOTIFY triggerChanged)
@@ -131,6 +138,7 @@ private:
   bool m_active{false};
   bool m_autotrigger{false};
   bool m_startPoint{false};
+  bool m_scriptable{false};
   bool m_waiting{false};
 };
 }

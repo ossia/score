@@ -59,7 +59,6 @@ public:
   void busDeleted(const IdentifiedObjectAbstract* itv);
 
   std::vector<const IntervalModel*> busIntervals;
-  std::vector<const StateModel*> statesWithControls;
 
   void busesChanged() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, busesChanged)
 

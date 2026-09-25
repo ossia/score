@@ -35,7 +35,7 @@ DataStreamReader::read(const Process::ProcessModel& process)
   m_stream << process.m_duration << process.m_slotHeight << process.m_startOffset
            << process.m_loopDuration << process.m_position << process.m_size
            << process.m_loops << process.m_foldMode << process.m_scriptEditorPlacement
-           << process.m_processUIPlacement;
+           << process.m_processUIPlacement << process.m_scriptable;
 }
 
 // We only load the members of the process here.
@@ -45,7 +45,7 @@ SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::ProcessModel& pro
   m_stream >> process.m_duration >> process.m_slotHeight >> process.m_startOffset
       >> process.m_loopDuration >> process.m_position >> process.m_size
       >> process.m_loops >> process.m_foldMode >> process.m_scriptEditorPlacement
-      >> process.m_processUIPlacement;
+      >> process.m_processUIPlacement >> process.m_scriptable;
 }
 
 template <>
@@ -58,6 +58,8 @@ SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::ProcessModel& proc
   obj["Pos"] = process.m_position;
   obj["Size"] = process.m_size;
   obj["Loops"] = process.loops();
+  if(process.m_scriptable)
+    obj["Scriptable"] = true;
   obj["FoldMode"] = process.foldMode();
   if(!process.m_scriptEditorPlacement.isEmpty())
     obj["ScriptEditorPlacement"] = process.m_scriptEditorPlacement;
@@ -79,6 +81,7 @@ SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::ProcessModel& process)
   assign_with_default(
       process.m_loopDuration, obj.tryGet("LoopDuration"), TimeVal::fromMsecs(1000));
   assign_with_default(process.m_loops, obj.tryGet("Loops"), false);
+  assign_with_default(process.m_scriptable, obj.tryGet("Scriptable"), false);
   assign_with_default(process.m_position, obj.tryGet("Pos"), QPointF{});
   assign_with_default(process.m_size, obj.tryGet("Size"), QSize(200, 200));
 

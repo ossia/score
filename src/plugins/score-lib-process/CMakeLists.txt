@@ -15,7 +15,6 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/LoadPresetCommandFactory.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/RelocateFile.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ApplicationPlugin.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/ControlMessage.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Instantiations.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ExecutionFunctions.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ExpandMode.hpp"
@@ -84,6 +83,7 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Tools/ProcessPanelGraphicsProxy.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Preset.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/PresetHelpers.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessState.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ZoomHelper.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Layer/LayerContextMenu.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/LoadPreset.hpp"
@@ -122,6 +122,8 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Control/DefaultEffectItem.hpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/ProcessComponent.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/ScriptableProcessComponent.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/ScriptableReference.hpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/RemoteControlProvider.hpp"
 
@@ -133,6 +135,7 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/MoveNodes.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/SetDuration.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/PreviewSettings.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/Properties.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/SetControlValue.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/LoadPresetCommandFactory.cpp"
 
@@ -156,7 +159,6 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/MessageNodeSerialization.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ApplicationPlugin.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/ControlMessage.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/HeaderDelegate.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Process.cpp"
@@ -186,6 +188,7 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/OfflineAction/OfflineAction.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Preset.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessState.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/MessageNode.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/ProcessStateDataInterface.cpp"
@@ -215,6 +218,8 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Control/Layout.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/LTProcessComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/ScriptableProcessComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/ScriptableReference.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/RemoteControlProvider.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score_lib_process.cpp"

@@ -114,14 +114,17 @@ struct SCORE_LIB_PROCESS_EXPORT SetupContext final
 
   struct RegisteredPorts
   {
-    ossia::flat_map<Id<Process::Port>, QMetaObject::Connection> inlets;
-    ossia::flat_map<Id<Process::Port>, QMetaObject::Connection> outlets;
+    using connections = ossia::small_vector<QMetaObject::Connection, 3>;
+    ossia::flat_map<Id<Process::Port>, connections> inlets;
+    ossia::flat_map<Id<Process::Port>, connections> outlets;
     void clear() const noexcept
     {
-      for(auto& con : inlets)
-        QObject::disconnect(con.second);
-      for(auto& con : outlets)
-        QObject::disconnect(con.second);
+      for(auto& [id, cons] : inlets)
+        for(auto& con : cons)
+          QObject::disconnect(con);
+      for(auto& [id, cons] : outlets)
+        for(auto& con : cons)
+          QObject::disconnect(con);
     }
   };
 
@@ -134,6 +137,14 @@ private:
   void register_node_impl(
       const Process::Inlets& inlets, const Process::Outlets& outlets,
       const std::shared_ptr<ossia::graph_node>& node, Impl&&);
+
+  void follow_published();
+  bool m_followsPublished{};
+
+  template <typename Port_T, typename OssiaPort_T, typename Impl>
+  void bind_address(
+      Port_T& proc_port, const OssiaPort_T& ossia_port,
+      RegisteredPorts::connections& cons, Impl&& impl);
 
   template <typename Impl>
   void register_inlet_impl(

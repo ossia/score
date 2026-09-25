@@ -18,6 +18,8 @@
 #include <Execution/Transport/JackTransport.hpp>
 #include <LocalTree/Device/LocalProtocolFactory.hpp>
 
+#include <score/plugins/panel/PanelDelegateFactory.hpp>
+
 #include <score/plugins/FactorySetup.hpp>
 #include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/StringFactoryKey.hpp>

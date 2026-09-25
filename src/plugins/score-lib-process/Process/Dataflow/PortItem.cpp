@@ -9,6 +9,8 @@
 #include <Process/DocumentPlugin.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessContext.hpp>
+
+#include <LocalTree/ScriptableReference.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 
 #include <score/application/ApplicationContext.hpp>
@@ -563,6 +565,14 @@ PortItem::PortItem(
 
     plug.ports().insert({&p, this});
 
+    if(auto tree = ctx.findPlugin<LocalTree::ScriptableTreeBase>())
+    {
+      m_highlight = tree->emphasized(p);
+      connect(tree, &LocalTree::ScriptableTreeBase::emphasisChanged, this, [this, tree] {
+        setHighlight(tree->emphasized(m_port));
+      });
+    }
+
     Path<Process::Port> path = p;
     for(auto c : plug.cables())
     {
@@ -647,6 +657,8 @@ void PortItem::resetPortVisible()
 
 void PortItem::setHighlight(bool b)
 {
+  if(m_highlight == b)
+    return;
   m_highlight = b;
   update();
 }

@@ -10,6 +10,9 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
+#include <LocalTree/ScriptableScenarioComponent.hpp>
+
+#include <score/model/ComponentUtils.hpp>
 
 #include <score/tools/Bind.hpp>
 
@@ -53,6 +56,10 @@ void TimeSyncComponent::cleanup(const std::shared_ptr<TimeSyncComponent>& self)
   // reach this component once m_ossia_node is reset.
   if(m_score_node)
     QObject::disconnect(m_score_node, nullptr, this, nullptr);
+  // Detach from triggers fired through the namespace
+  if(auto published = std::static_pointer_cast<LocalTree::ScriptableTimeSync::Execution>(
+         m_published.lock()))
+    published->detach();
   in_exec([self, ts = m_ossia_node, gcq_ptr = weak_gc] {
     OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
     ts->cleanup();
@@ -152,6 +159,14 @@ void TimeSyncComponent::onSetup(
 
     m_ossia_node->callbacks.callbacks.push_back(
         new TimeSyncExecutionCallbacks{weak_edit, this->m_score_node});
+
+    if(auto published = score::findComponent<LocalTree::ScriptableTimeSync>(
+           m_score_node->components()))
+    {
+      auto& exec = published->execution();
+      exec->attach(m_ossia_node.get());
+      m_published = exec;
+    }
   }
 }
 

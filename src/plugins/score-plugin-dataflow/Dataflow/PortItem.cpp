@@ -27,6 +27,8 @@
 #include <QApplication>
 #include <QClipboard>
 #include <QGraphicsSceneDragDropEvent>
+#include <LocalTree/ScriptableProcessComponent.hpp>
+
 #include <QMenu>
 #include <QMimeData>
 
@@ -62,19 +64,39 @@ void AutomatablePortItem::setupMenu(QMenu& menu, const score::DocumentContext& c
     }, Qt::QueuedConnection);
   }
 
-  if(auto proc = qobject_cast<Process::ProcessModel*>(this->port().parent()))
+  if(auto ctrl = qobject_cast<const Process::ControlInlet*>(&this->port()))
   {
-    if(auto addr = Process::processLocalTreeAddress(*proc); !addr.isEmpty())
+    auto act = menu.addAction(QObject::tr("Scriptable"));
+    act->setCheckable(true);
+    act->setChecked(ctrl->scriptable() || LocalTree::publishedWithProcess(*ctrl));
+    act->setEnabled(!LocalTree::publishedWithProcess(*ctrl));
+    QObject::connect(act, &QAction::toggled, &port(), [ctrl, &ctx](bool b) {
+      if(b != ctrl->scriptable())
+        CommandDispatcher<>{ctx.commandStack}.submit<Process::SetPortScriptable>(
+            *ctrl, b);
+    }, Qt::QueuedConnection);
+  }
+
+  QString addr = LocalTree::scriptableAddress(this->port()).toString();
+  if(addr.isEmpty())
+  {
+    if(auto proc = qobject_cast<Process::ProcessModel*>(this->port().parent()))
     {
-      addr += "/";
-      addr += this->port().exposed();
-      addr += "/value";
-      auto act = menu.addAction(QObject::tr("Copy address"));
-      QObject::connect(act, &QAction::triggered, &port(), [addr] {
-        auto& cb = *qApp->clipboard();
-        cb.setText(addr);
-      }, Qt::QueuedConnection);
+      if(addr = Process::processLocalTreeAddress(*proc); !addr.isEmpty())
+      {
+        addr += "/";
+        addr += this->port().exposed();
+        addr += "/value";
+      }
     }
+  }
+  if(!addr.isEmpty())
+  {
+    auto act = menu.addAction(QObject::tr("Copy address"));
+    QObject::connect(act, &QAction::triggered, &port(), [addr] {
+      auto& cb = *qApp->clipboard();
+      cb.setText(addr);
+    }, Qt::QueuedConnection);
   }
 }
 

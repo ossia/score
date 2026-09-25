@@ -1,15 +1,21 @@
 #include "ScenarioEditor.hpp"
 
 #include <Process/Commands/EditPort.hpp>
+#include <Process/Dataflow/Port.hpp>
 
 #include <Scenario/Application/Drops/DropLayerInInterval.hpp>
 #include <Scenario/Application/Menus/ScenarioCopy.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
+#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
+#include <Effect/EffectLayer.hpp>
+#include <Scenario/Commands/Interval/CreateProcessInNewSlot.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/InsertContentInInterval.hpp>
 #include <Scenario/Commands/Interval/RemoveProcessFromInterval.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateCommentBlock.hpp>
+#include <Scenario/Commands/Scenario/PasteAnchors.hpp>
+#include <Scenario/Commands/Scenario/ScenarioPaste.hpp>
 #include <Scenario/Commands/Scenario/ScenarioPasteElements.hpp>
 #include <Scenario/Commands/State/RemoveStateProcess.hpp>
 #include <Scenario/Document/Interval/FullView/NodalIntervalView.hpp>
@@ -53,6 +59,162 @@ bool ScenarioEditor::copy(
   return false;
 }
 
+std::vector<ObjectPath> loadCopiedProcesses(
+    Scenario::Command::Macro& m, const Scenario::IntervalModel& interval,
+    const rapidjson::Value& copy, std::vector<std::pair<int32_t, int32_t>>& proc_id_map,
+    const score::DocumentContext& ctx)
+{
+  std::vector<ObjectPath> pasted;
+  auto proc_it = copy.FindMember("Processes");
+  if(proc_it == copy.MemberEnd() || !proc_it->value.IsArray())
+    return pasted;
+  const auto processes = proc_it->value.GetArray();
+
+  if(hasAnchors(proc_it->value))
+  {
+    // The anchors are remapped on instances of the copies
+    ProcessesBeingCopied copied{processes, interval, ctx};
+    copied.remapAnchors(copy, interval, ctx);
+    std::vector<Scenario::Command::DuplicateOnlyProcessToInterval*> loads;
+    for(std::size_t i = 0; i < copied.processes.size(); i++)
+    {
+      auto proc = copied.processes[i];
+      for(auto port : proc->findChildren<Process::Port*>())
+        while(!port->cables().empty())
+          port->removeCable(port->cables().back());
+
+      loads.push_back(new Scenario::Command::DuplicateOnlyProcessToInterval{
+          interval, copied.processes_ids[i], *proc});
+      proc_id_map.emplace_back(proc->id().val(), copied.processes_ids[i].val());
+      delete proc;
+    }
+
+    for(auto load : loads)
+    {
+      const auto id = load->processId();
+      m.submit(load);
+      auto& new_proc = interval.processes.at(id);
+      m.createViewForNewProcess(interval, new_proc);
+      pasted.push_back(score::IDocument::unsafe_path(new_proc));
+    }
+  }
+  else
+  {
+    for(auto& proc : processes)
+    {
+      if(!proc.IsObject() || !proc.HasMember(score::StringConstant().uuid))
+        continue;
+      auto id_it = proc.FindMember("id");
+      if(id_it == proc.MemberEnd() || !id_it->value.IsInt())
+        continue;
+      int32_t old_id = id_it->value.GetInt();
+      if(auto* new_proc = m.loadProcessInSlot(interval, proc))
+      {
+        proc_id_map.emplace_back(old_id, new_proc->id().val());
+        pasted.push_back(score::IDocument::unsafe_path(*new_proc));
+      }
+    }
+  }
+  return pasted;
+}
+
+void duplicateProcess(
+    const IntervalModel& interval, const Process::ProcessModel& proc,
+    const score::DocumentContext& ctx)
+{
+  JSONReader r;
+  r.stream.StartObject();
+  Process::copyProcesses(r, {&proc}, ctx);
+  r.stream.EndObject();
+  const auto copy = readJson(r.toByteArray());
+
+  Scenario::Command::Macro m{new Scenario::Command::DuplicateProcess, ctx};
+  std::vector<std::pair<int32_t, int32_t>> ids;
+  auto pasted = loadCopiedProcesses(m, interval, copy, ids, ctx);
+  if(pasted.empty())
+    return;
+  m.submit(new Scenario::Command::FollowPasted{std::move(pasted)});
+  m.commit();
+}
+
+bool pasteProcessesInNewBox(
+    const Scenario::ProcessModel& sm, Scenario::Point origin, rapidjson::Value& obj,
+    const score::DocumentContext& ctx)
+{
+  // Create a box
+  Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, ctx};
+
+  auto proc_it = obj.FindMember("Processes");
+  if(proc_it == obj.MemberEnd() || !proc_it->value.IsArray())
+    return false;
+
+  auto cables_it = obj.FindMember("Cables");
+  if(cables_it == obj.MemberEnd() || !cables_it->value.IsArray())
+    return false;
+
+  const auto processes = proc_it->value.GetArray();
+  if(processes.Empty())
+    return true;
+
+  // Find max duration
+  TimeVal t = TimeVal::fromMsecs(10);
+  for(auto& proc : processes)
+  {
+    if(!proc.IsObject())
+      return false;
+
+    auto dur = proc.FindMember("Duration");
+    if(dur == proc.MemberEnd())
+      return false;
+    if(!dur->value.IsNumber())
+      return false;
+    auto d = dur->value.GetDouble();
+    if(d > t.impl)
+      t.impl = d;
+  }
+
+  auto& interval
+      = m.createBox(sm, origin.date, TimeVal(origin.date.impl + t.impl), origin.y);
+
+  // Load each process into a slot, collecting old→new ID mapping for cable remapping.
+  std::vector<std::pair<int32_t, int32_t>> proc_id_map;
+  const auto pasted = loadCopiedProcesses(m, interval, obj, proc_id_map, ctx);
+
+  // Remap cable endpoints from old process IDs to new ones, then load.
+  {
+    auto cables = JsonValue{cables_it->value}.to<Dataflow::SerializedCables>();
+    auto new_path = score::IDocument::path(interval).unsafePath();
+    auto& document
+        = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
+
+    for(auto& [cable_id, cable_data] : cables)
+    {
+      auto remap = [&](ObjectPath& path) {
+        auto& vec = path.vec();
+        if(vec.empty())
+          return;
+        for(auto& [old_id, new_id] : proc_id_map)
+        {
+          if(vec.front().id() == old_id)
+          {
+            vec.front() = ObjectIdentifier{vec.front().objectName(), new_id};
+            break;
+          }
+        }
+      };
+      remap(cable_data.source.unsafePath());
+      remap(cable_data.sink.unsafePath());
+      cable_id = getStrongId(document.cables);
+    }
+    m.loadCables(new_path, cables);
+  }
+  m.submit(new Scenario::Command::FollowPasted{std::move(pasted)});
+
+  m.commit();
+
+  return true;
+}
+
 static bool pasteInScenario(
     QPoint pos, ScenarioPresenter& pres, const QMimeData& mime,
     const score::DocumentContext& ctx)
@@ -85,88 +247,7 @@ static bool pasteInScenario(
   }
   else if(obj.HasMember("Processes") && obj.HasMember("Cables"))
   {
-    // Create a box
-    Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, ctx};
-
-    auto proc_it = obj.FindMember("Processes");
-    if(proc_it == obj.MemberEnd() || !proc_it->value.IsArray())
-      return false;
-
-    auto cables_it = obj.FindMember("Cables");
-    if(cables_it == obj.MemberEnd() || !cables_it->value.IsArray())
-      return false;
-
-    const auto processes = proc_it->value.GetArray();
-    if(processes.Empty())
-      return true;
-
-    // Find max duration
-    TimeVal t = TimeVal::fromMsecs(10);
-    for(auto& proc : processes)
-    {
-      if(!proc.IsObject())
-        return false;
-
-      auto dur = proc.FindMember("Duration");
-      if(dur == proc.MemberEnd())
-        return false;
-      if(!dur->value.IsNumber())
-        return false;
-      auto d = dur->value.GetDouble();
-      if(d > t.impl)
-        t.impl = d;
-    }
-
-    auto& interval
-        = m.createBox(sm, origin.date, TimeVal(origin.date.impl + t.impl), origin.y);
-
-    // Load each process into a slot, collecting old→new ID mapping for cable remapping.
-    // loadProcessInSlot always creates a view slot so processes are visible in the timeline.
-    std::vector<std::pair<int32_t, int32_t>> proc_id_map;
-    for(auto& proc : processes)
-    {
-      if(!proc.IsObject() || !proc.HasMember(score::StringConstant().uuid))
-        continue;
-      auto id_it = proc.FindMember("id");
-      if(id_it == proc.MemberEnd())
-        continue;
-      int32_t old_id = id_it->value.GetInt();
-      if(auto* new_proc = m.loadProcessInSlot(interval, proc))
-        proc_id_map.emplace_back(old_id, new_proc->id().val());
-    }
-
-    // Remap cable endpoints from old process IDs to new ones, then load.
-    {
-      auto cables = JsonValue{cables_it->value}.to<Dataflow::SerializedCables>();
-      auto new_path = score::IDocument::path(interval).unsafePath();
-      auto& document
-          = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
-
-      for(auto& [cable_id, cable_data] : cables)
-      {
-        auto remap = [&](ObjectPath& path) {
-          auto& vec = path.vec();
-          if(vec.empty())
-            return;
-          for(auto& [old_id, new_id] : proc_id_map)
-          {
-            if(vec.front().id() == old_id)
-            {
-              vec.front() = ObjectIdentifier{vec.front().objectName(), new_id};
-              break;
-            }
-          }
-        };
-        remap(cable_data.source.unsafePath());
-        remap(cable_data.sink.unsafePath());
-        cable_id = getStrongId(document.cables);
-      }
-      m.loadCables(new_path, cables);
-    }
-
-    m.commit();
-
-    return true;
+    return pasteProcessesInNewBox(sm, origin, obj, ctx);
   }
   else
   {
@@ -195,10 +276,8 @@ static bool pasteInInterval(
     if(processes.Empty())
       return true;
 
-    auto cables = cables_it->value.GetArray();
-
     auto cmd = new Scenario::Command::PasteProcessesInInterval{
-        processes, cables, itv, ExpandMode{}, item_pt};
+        obj, itv, ExpandMode{}, item_pt};
     CommandDispatcher<>{ctx.commandStack}.submit(cmd);
 
     // FIXME paste all cables recursively ! e.g. check copy-pasting a scenario

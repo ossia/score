@@ -281,6 +281,15 @@ bool ProcessModel::creatingControls() const noexcept
   return this->flags() & ProcessFlags::CreateControls;
 }
 
+void ProcessModel::setScriptable(bool b)
+{
+  if(b != m_scriptable)
+  {
+    m_scriptable = b;
+    scriptableChanged(b);
+  }
+}
+
 void ProcessModel::setLoops(bool b)
 {
   if(b != m_loops)

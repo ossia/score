@@ -8,62 +8,6 @@
 
 #include <ossia/detail/algorithms.hpp>
 
-// TODO move this !
-namespace State::convert
-{
-template <>
-State::AddressAccessor value(const ossia::value& val)
-{
-  if(val.get_type() == ossia::val_type::STRING)
-  {
-    if(auto res
-       = State::parseAddressAccessor(QString::fromStdString(*val.target<std::string>())))
-      return *res;
-  }
-  return {};
-}
-template <>
-ossia::value value(const ossia::value& val)
-{
-  return std::move(val);
-}
-const ossia::value& value(const ossia::value& val)
-{
-  return val;
-}
-ossia::value&& value(ossia::value&& val)
-{
-  return std::move(val);
-}
-}
-
-namespace ossia
-{
-template <>
-struct qt_property_converter<State::AddressAccessor>
-{
-  static constexpr const auto val = ossia::val_type::STRING;
-  using type = std::string;
-  static std::string convert(const State::AddressAccessor& t)
-  {
-    return t.toString().toStdString();
-  }
-  static std::string convert(State::AddressAccessor&& t)
-  {
-    return t.toString().toStdString();
-  }
-};
-
-template <>
-struct qt_property_converter<ossia::value>
-{
-  static constexpr const auto val = ossia::val_type::LIST;
-  using type = ossia::value;
-  static ossia::value convert(const ossia::value& t) { return t; }
-  static ossia::value convert(ossia::value&& t) { return std::move(t); }
-};
-}
-
 namespace LocalTree
 {
 template <typename Property, typename Object>

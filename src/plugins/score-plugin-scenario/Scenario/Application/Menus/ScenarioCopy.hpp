@@ -78,6 +78,7 @@ void copySelectedScenarioElements(
 void copySelectedScenarioElements(
     JSONReader&, const BaseScenarioContainer& sm, QObject* parent);
 
+SCORE_PLUGIN_SCENARIO_EXPORT
 bool copySelectedProcesses(JSONReader&, const score::DocumentContext& ctx);
 
 void copySelectedElementsToJson(

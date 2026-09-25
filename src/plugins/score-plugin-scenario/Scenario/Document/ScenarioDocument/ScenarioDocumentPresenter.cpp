@@ -2,6 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioDocumentPresenter.hpp"
 
+#include <LocalTree/ScriptableReference.hpp>
+
 #include "ZoomPolicy.hpp"
 
 #include <Process/DocumentPlugin.hpp>
@@ -128,6 +130,41 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
 
   con(view().view(), &ProcessGraphicsView::visibleRectChanged, this,
       &ScenarioDocumentPresenter::on_visibleRectChanged);
+
+  // Emphasize what the selection refers to: the targets of a selected state,
+  // the referrers of any other object
+  con(ctx.selectionStack, &score::SelectionStack::currentSelectionChanged, this,
+      [&ctx](const Selection&, const Selection& sel) {
+    auto tree = ctx.findPlugin<LocalTree::ScriptableTreeBase>();
+    if(!tree)
+      return;
+    std::vector<const QObject*> objects;
+    auto add = [&](const std::vector<QObject*>& v) {
+      for(auto o : v)
+        objects.push_back(o);
+    };
+    for(auto& obj : sel)
+    {
+      if(!obj)
+        continue;
+      if(qobject_cast<const StateModel*>(obj.data()))
+      {
+        add(tree->targets(*obj));
+      }
+      else
+      {
+        add(tree->referrers(*obj));
+        if(auto proc = qobject_cast<const Process::ProcessModel*>(obj.data()))
+        {
+          for(auto p : proc->inlets())
+            add(tree->referrers(*p));
+          for(auto p : proc->outlets())
+            add(tree->referrers(*p));
+        }
+      }
+    }
+    tree->setEmphasized(std::move(objects));
+  });
 
   con(view().view(), &ProcessGraphicsView::horizontalZoom, this,
       &ScenarioDocumentPresenter::on_horizontalZoom);

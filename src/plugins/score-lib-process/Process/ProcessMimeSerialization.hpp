@@ -17,10 +17,6 @@ inline constexpr auto processpreset()
 {
   return "application/x-score-processpreset";
 }
-inline constexpr auto processcontrol()
-{
-  return "application/x-score-processcontrol";
-}
 inline constexpr auto layerdata()
 {
   return "application/x-score-layerdata";

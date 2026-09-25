@@ -9,6 +9,8 @@
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Palette/Tool.hpp>
 
+#include <LocalTree/ScriptableReference.hpp>
+
 #include <score/model/Skin.hpp>
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/Menu.hpp>
@@ -18,6 +20,7 @@
 #include <score/widgets/SetIcons.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
+#include <core/document/Document.hpp>
 
 #include <QAction>
 #include <QActionGroup>
@@ -127,6 +130,35 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
   if(parent->context.mainWindow)
     parent->context.mainWindow->addAction(m_lockAction);
 
+  // RECORD PLAYBACK
+  m_recordAction = new QAction{tr("Record playback"), this};
+  m_recordAction->setCheckable(true);
+  score::setHelp(
+      m_recordAction,
+      tr("Keep in the document what playback writes into published controls. "
+         "When off, states, automations and scripts only drive the execution "
+         "and the controls return to their values at stop."));
+  setIcons(
+      m_recordAction, QStringLiteral(":/icons/control_record_on.png"),
+      QStringLiteral(":/icons/control_record_hover.png"),
+      QStringLiteral(":/icons/control_record_off.png"),
+      QStringLiteral(":/icons/control_record_disabled.png"));
+  connect(m_recordAction, &QAction::toggled, this, [this](bool b) {
+    m_parent->editionSettings().setRecordPlayback(b);
+  });
+  con(parent->editionSettings(), &Scenario::EditionSettings::recordPlaybackChanged, this,
+      [this](bool b) {
+    if(m_recordAction->isChecked() != b)
+      m_recordAction->setChecked(b);
+  });
+
+  m_keepAction = new QAction{tr("Keep played values"), this};
+  m_keepAction->setEnabled(false);
+  score::setHelp(
+      m_keepAction,
+      tr("Keep in the document what the last playback wrote into published "
+         "controls, as if Record playback had been on."));
+
   // SCALEMODE
   m_scaleAction = makeToolbarAction(tr("Scale"), this, ExpandMode::Scale, {});
   m_scaleAction->setCheckable(true);
@@ -229,6 +261,7 @@ void ToolMenuActions::makeGUIElements(score::GUIElements& ref)
     bar->addSeparator();
     bar->addAction(m_lockAction);
     bar->addAction(m_scaleAction);
+    bar->addAction(m_recordAction);
     score::setSkinIconSize(bar, 24);
 
     ref.toolbars.emplace_back(
@@ -253,6 +286,8 @@ void ToolMenuActions::makeGUIElements(score::GUIElements& ref)
     menu.menu()->addSeparator();
     menu.menu()->addAction(m_lockAction);
     menu.menu()->addAction(m_scaleAction);
+    menu.menu()->addAction(m_recordAction);
+    menu.menu()->addAction(m_keepAction);
 
     ref.actions.add<Actions::LockMode>(m_lockAction);
     scenario_proc_cond.add<Actions::LockMode>();
@@ -260,6 +295,29 @@ void ToolMenuActions::makeGUIElements(score::GUIElements& ref)
     ref.actions.add<Actions::Scale>(m_scaleAction);
     scenario_doc_cond.add<Actions::Scale>();
   }
+}
+
+void ToolMenuActions::setDocument(score::Document* doc)
+{
+  QObject::disconnect(m_playedConnection);
+  if(!m_keepAction)
+    return;
+  m_keepAction->disconnect(this);
+  m_keepAction->setEnabled(false);
+  if(!doc)
+    return;
+  auto tree = doc->context().findPlugin<LocalTree::ScriptableTreeBase>();
+  if(!tree)
+    return;
+  QPointer<LocalTree::ScriptableTreeBase> ptr{tree};
+  m_playedConnection = connect(
+      tree, &LocalTree::ScriptableTreeBase::playedValuesChanged, this,
+      [this, ptr] { m_keepAction->setEnabled(ptr && ptr->hasPlayedValues()); });
+  connect(m_keepAction, &QAction::triggered, this, [ptr] {
+    if(ptr)
+      ptr->keepPlayedValues();
+  });
+  m_keepAction->setEnabled(tree->hasPlayedValues());
 }
 
 void ToolMenuActions::keyPressed(int key)

@@ -53,6 +53,8 @@ public:
       override;
 
   void setContainMessage(bool);
+  void setBrokenReferences(bool);
+  void setEmphasized(bool);
   void setContainProcess(bool);
   void setSelected(bool arg);
   void setStatus(ExecutionStatus);
@@ -86,6 +88,8 @@ private:
 
   bool m_dilated : 1;
   bool m_containMessage : 1;
+  bool m_brokenReferences : 1;
+  bool m_emphasized : 1;
   bool m_containProcess : 1;
   bool m_selected : 1;
   bool m_hovered : 1;

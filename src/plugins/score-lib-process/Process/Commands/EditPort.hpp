@@ -40,11 +40,38 @@ PROPERTY_COMMAND_T(
     Process, SetPropagate, AudioOutlet::p_propagate, "Set port propagation")
 SCORE_COMMAND_DECL_T(Process::SetPropagate)
 
-PROPERTY_COMMAND_T(Process, ChangePortAddress, Port::p_address, "Set port address")
-SCORE_COMMAND_DECL_T(Process::ChangePortAddress)
+namespace Process
+{
+//! The address is re-anchored to what its name publishes on construction
+class SCORE_LIB_PROCESS_EXPORT ChangePortAddress final
+    : public score::PropertyCommand_T<Port::p_address>
+{
+  SCORE_COMMAND_DECL(Process::CommandFactoryName(), ChangePortAddress, "Set port address")
+public:
+  using PropertyCommand_T::PropertyCommand_T;
+  ChangePortAddress(const Port& port, State::AddressAccessor address);
+};
+}
+namespace score
+{
+template <>
+template <>
+struct PropertyCommand_T<Process::Port::p_address>::command<void>
+{
+  using type = Process::ChangePortAddress;
+};
+}
 
 PROPERTY_COMMAND_T(Process, SetValue, ControlInlet::p_value, "Set port value")
 SCORE_COMMAND_DECL_T(Process::SetValue)
+
+PROPERTY_COMMAND_T(
+    Process, SetPortScriptable, Port::p_scriptable, "Set port scriptable")
+SCORE_COMMAND_DECL_T(Process::SetPortScriptable)
+
+PROPERTY_COMMAND_T(
+    Process, SetPortScriptingName, Port::p_exposed, "Set port scripting name")
+SCORE_COMMAND_DECL_T(Process::SetPortScriptingName)
 
 PROPERTY_COMMAND_T(Process, SetGain, AudioOutlet::p_gain, "Set port gain")
 SCORE_COMMAND_DECL_T(Process::SetGain)

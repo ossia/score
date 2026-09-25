@@ -1,6 +1,6 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Process/ControlMessage.hpp>
+#include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 #include <Process/State/MessageNode.hpp>
@@ -29,10 +29,14 @@ SCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(const Scenario::StateMo
 
   // Message tree
   m_stream << s.m_messageItemModel->rootNode();
-  m_stream << s.m_controlItemModel->messages();
 
   // Processes plugins
   m_stream << s.stateProcesses;
+
+  // Legacy controls not migrated yet, kept for crash backups
+  m_stream << int32_t(s.m_legacyControls.size());
+  for(auto& [port, value] : s.m_legacyControls)
+    m_stream << port << value;
 
   insertDelimiter();
 }
@@ -49,15 +53,17 @@ SCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(Scenario::StateModel& 
   s.m_messageItemModel = new Scenario::MessageItemModel{s, &s};
   s.messages() = n;
 
-  // TODO load control tree
-  std::vector<Process::ControlMessage> ctrls;
-  m_stream >> ctrls;
-  s.m_controlItemModel = new Scenario::ControlItemModel{s, &s};
-  s.m_controlItemModel->replaceWith(std::move(ctrls));
-
   // Processes plugins
   EntityMapSerializer::writeTo<Process::ProcessFactoryList>(
       *this, s.stateProcesses, s.m_context, &s);
+
+  int32_t legacy{};
+  m_stream >> legacy;
+  for(int32_t i = 0; i < legacy; i++)
+  {
+    auto& [port, value] = s.m_legacyControls.emplace_back();
+    m_stream >> port >> value;
+  }
 
   checkDelimiter();
 }
@@ -72,10 +78,24 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONReader::read(const Scenario::StateModel& s
 
   // Message tree
   obj[strings.Messages] = s.m_messageItemModel->rootNode();
-  obj["Controls"] = s.m_controlItemModel->messages();
 
   // Processes plugins
   obj[strings.StateProcesses] = s.stateProcesses;
+
+  // Legacy controls not migrated yet
+  if(!s.m_legacyControls.empty())
+  {
+    stream.Key("Controls");
+    stream.StartArray();
+    for(auto& [port, value] : s.m_legacyControls)
+    {
+      stream.StartObject();
+      obj[strings.Address] = port;
+      obj[strings.Value] = value;
+      stream.EndObject();
+    }
+    stream.EndArray();
+  }
 }
 
 template <>
@@ -90,11 +110,15 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONWriter::write(Scenario::StateModel& s)
   s.m_messageItemModel = new Scenario::MessageItemModel{s, &s};
   s.messages() = obj[strings.Messages].to<Process::MessageNode>();
 
-  s.m_controlItemModel = new Scenario::ControlItemModel{s, &s};
   if(auto it = obj.tryGet("Controls"))
   {
-    auto ctrls = it->to<std::vector<Process::ControlMessage>>();
-    s.m_controlItemModel->replaceWith(std::move(ctrls));
+    for(const auto& elt : it->toArray())
+    {
+      JSONWriter w{elt};
+      auto& [port, value] = s.m_legacyControls.emplace_back();
+      port <<= w.obj[strings.Address];
+      value <<= w.obj[strings.Value];
+    }
   }
 
   // Processes plugins

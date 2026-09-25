@@ -11,6 +11,7 @@
 #include <Scenario/Application/ScenarioValidity.hpp>
 #include <Scenario/Commands/Interval/ResizeInterval.hpp>
 #include <Scenario/Commands/LoadPresetCommand.hpp>
+#include <Scenario/Commands/SetControllerControlValue.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventClassicFactory.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventList.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
@@ -84,6 +85,7 @@
 
 // #include <Interpolation/InterpolationFactory.hpp>
 #include <LocalTree/ScenarioComponent.hpp>
+#include <LocalTree/ScriptableScenarioComponent.hpp>
 
 #include <score_plugin_scenario.hpp>
 #include <score_plugin_scenario_commands_files.hpp>
@@ -259,6 +261,7 @@ std::vector<score::InterfaceBase*> score_plugin_scenario::factories(
       FW<TriggerCommandFactory, ScenarioTriggerCommandFactory,
          BaseScenarioTriggerCommandFactory>,
       FW<Process::LoadPresetCommandFactory, Scenario::Command::LoadPresetCommandFactory>,
+      FW<Process::ChangePortsCommandFactory, Scenario::ChangePortsCommandFactory>,
       FW<DisplayedElementsProvider, DefaultDisplayedElementsProvider,
          ScenarioDisplayedElementsProvider, BaseScenarioDisplayedElementsProvider>,
       FW<score::DocumentDelegateFactory, Scenario::ScenarioDocumentFactory>,
@@ -280,6 +283,7 @@ std::vector<score::InterfaceBase*> score_plugin_scenario::factories(
       FW<score::ValidityChecker, ScenarioValidityChecker>,
 
       FW<LocalTree::ProcessComponentFactory, LocalTree::ScenarioComponentFactory>,
+      FW<LocalTree::ScriptableProcessFactory, LocalTree::ScriptableScenarioFactory>,
       FW<Execution::ProcessComponentFactory, Execution::ScenarioComponentFactory>,
       FW<Library::LibraryInterface, Scenario::SlotLibraryHandler,
          Scenario::ScenarioLibraryHandler>,

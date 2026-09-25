@@ -1,4 +1,6 @@
 #pragma once
+#include <functional>
+#include <optional>
 #include <State/MessageListSerialization.hpp>
 #include <State/Widgets/AddressValidator.hpp>
 
@@ -33,6 +35,13 @@ public:
     connect(this, &QLineEdit::textChanged, this, &AddressLineEditBase::updatePalette);
   }
 
+  //! Whether a local device address is published; nullopt for other devices
+  void setLocalCheck(std::function<std::optional<bool>(const State::Address&)> f)
+  {
+    m_local = std::move(f);
+    updatePalette(this->text());
+  }
+
   void updatePalette(const QString& str)
   {
     QString s = str;
@@ -40,11 +49,19 @@ public:
     auto validity = score::InputValidity::Valid;
     if(m_validator.validate(s, i) == QValidator::State::Acceptable)
     {
-      if(m_model)
+      auto addr = State::parseAddressAccessor(s);
+      std::optional<bool> local;
+      if(addr && m_local)
+        local = m_local(addr->address);
+
+      if(local)
+      {
+        if(!*local)
+          validity = score::InputValidity::Invalid;
+      }
+      else if(m_model && addr)
       {
         // Look into the tree to see if the node actually exists
-        auto addr = State::parseAddressAccessor(s);
-
         if(!Device::try_getNodeFromAddress(m_model->rootNode(), addr->address))
           validity = score::InputValidity::Unknown;
       }
@@ -68,6 +85,7 @@ private:
 
   Validator_T m_validator;
   Device::NodeBasedItemModel* m_model{};
+  std::function<std::optional<bool>(const State::Address&)> m_local;
 };
 
 template <typename Parent_T>

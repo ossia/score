@@ -109,6 +109,9 @@ public:
 
 public:
   void finished() E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, finished)
+  //! Emitted once the graph and all its bindings are destroyed
+  void cleared() E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, cleared)
+  void started() E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, started)
 
   void slot_bench(ossia::bench_map, int64_t ns);
 

@@ -40,6 +40,8 @@ set(HDRS
   LocalTree/Device/LocalProtocolFactory.hpp
   LocalTree/Device/LocalSpecificSettings.hpp
   LocalTree/LocalTreeDocumentPlugin.hpp
+  LocalTree/ReferenceIndex.hpp
+  LocalTree/ReferencesDialog.hpp
 
   score_plugin_engine.hpp
 )
@@ -73,6 +75,8 @@ set(SRCS
   LocalTree/Device/LocalDevice.cpp
   LocalTree/Device/LocalProtocolFactory.cpp
   LocalTree/LocalTreeDocumentPlugin.cpp
+  LocalTree/ReferenceIndex.cpp
+  LocalTree/ReferencesDialog.cpp
 
   score_plugin_engine.cpp
 )

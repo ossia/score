@@ -57,9 +57,9 @@ void RefreshStates(
     auto messages = flatten(state.messages().rootNode());
     for(auto& elt : messages)
     {
-      auto val = proxy.refreshRemoteValue(elt.address.address);
-      SCORE_TODO; // FIXME merge the value with the address accessor
-      elt.value = val;
+      // Keep the current value when the address cannot be resolved
+      if(auto val = proxy.try_refreshRemoteValue(elt.address.address))
+        elt.value = *std::move(val);
     }
     macro->addCommand(new AddMessagesToState{state, messages});
   }

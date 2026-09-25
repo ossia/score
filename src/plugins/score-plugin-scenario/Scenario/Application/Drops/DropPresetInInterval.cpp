@@ -1,5 +1,6 @@
 #include <Process/ProcessList.hpp>
 
+#include <Scenario/Application/Drops/DropLayerInInterval.hpp>
 #include <Scenario/Application/Drops/DropPresetInInterval.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
@@ -39,6 +40,8 @@ bool DropPresetInInterval::drop(
     const score::DocumentContext& ctx, const IntervalModel& interval, QPointF pos,
     const QMimeData& mime)
 {
+  if(isProcessesDrag(mime))
+    return false;
   if(mime.hasFormat(score::mime::processpreset()))
   {
     Scenario::Command::Macro m{new Scenario::Command::DropProcessInIntervalMacro, ctx};

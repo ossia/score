@@ -59,6 +59,11 @@ public:
   {
     using namespace Scenario::Command;
     using namespace score::IDocument;
+    connect(this, &MetadataWidget::scriptingNameChanged, [&](const QString& name) {
+      if(!name.isEmpty() && name != model.metadata().getName())
+        m_commandDispatcher.submit(new ChangeElementName<T>{model, name});
+    });
+
     connect(this, &MetadataWidget::labelChanged, [&](const QString& newLabel) {
       if(newLabel != model.metadata().getLabel())
         m_commandDispatcher.submit(new ChangeElementLabel<T>{model, newLabel});
@@ -88,6 +93,7 @@ public:
   void updateAsked();
 
 public:
+  void scriptingNameChanged(QString arg) W_SIGNAL(scriptingNameChanged, arg);
   void labelChanged(QString arg) W_SIGNAL(labelChanged, arg);
   void commentsChanged(QString arg) W_SIGNAL(commentsChanged, arg);
   void colorChanged(score::ColorRef arg) W_SIGNAL(colorChanged, arg);
@@ -101,6 +107,7 @@ private:
   CommandDispatcher<> m_commandDispatcher;
 
   Inspector::VBoxLayout m_metadataLayout;
+  QLineEdit m_nameLine;
   QLineEdit m_labelLine;
   CommentEdit m_comments;
   color_widgets::Swatch* m_palette_widget;

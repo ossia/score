@@ -1,9 +1,11 @@
 #include "DuplicateInterval.hpp"
 
+#include <Scenario/Commands/Scenario/PasteAnchors.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 
 #include <score/document/ChangeId.hpp>
+#include <score/document/DocumentInterface.hpp>
 #include <score/model/EntitySerialization.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
@@ -52,12 +54,22 @@ void DuplicateInterval::redo(const score::DocumentContext& ctx) const
       = new Scenario::IntervalModel{DataStream::Deserializer{obj}, ctx, scenar};
   score::IDocument::changeObjectId(*interval, m_createdId);
 
+  CopiedPaths paths{.sameDocument = true};
+  {
+    auto from = score::IDocument::unsafe_path(root);
+    auto to = score::IDocument::unsafe_path(*scenar).vec();
+    to.emplace_back(from.vec().back().objectName(), m_createdId);
+    paths.moved.emplace_back(std::move(from), ObjectPath{std::move(to)});
+  }
+  remapCopiedAnchors(*interval, paths);
+
   interval->setStartState(m_cmdStart.createdState());
   interval->setEndState(m_cmdEnd.createdState());
   SetPreviousInterval(scenar->states.at(m_cmdEnd.createdState()), *interval);
   SetNextInterval(scenar->states.at(m_cmdStart.createdState()), *interval);
   interval->setHeightPercentage(root.heightPercentage() + 0.1);
   scenar->intervals.add(interval);
+  followPasted(ctx, {interval});
 }
 
 const Path<IntervalModel>& DuplicateInterval::intervalPath() const

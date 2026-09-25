@@ -30,6 +30,7 @@
 
 #include <ossia/audio/audio_protocol.hpp>
 #include <ossia/dataflow/bench_map.hpp>
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/for_each_port.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
@@ -180,15 +181,14 @@ void DocumentPlugin::on_finished()
 void DocumentPlugin::initExecState()
 {
   m_ctxData->execState = std::make_shared<ossia::execution_state>();
-  auto& devlist = score::DocumentPlugin::context()
-                      .plugin<Explorer::DeviceDocumentPlugin>()
-                      .list()
-                      .devices();
+  auto& list
+      = score::DocumentPlugin::context().plugin<Explorer::DeviceDocumentPlugin>().list();
+  local_device = list.localDevice();
   if(audio_device)
     m_ctxData->execState->register_device(audio_device->getDevice());
   if(local_device)
     m_ctxData->execState->register_device(local_device->getDevice());
-  for(auto dev : devlist)
+  for(auto dev : list.devices())
   {
     registerDevice(dev->getDevice());
   }
@@ -206,6 +206,8 @@ void DocumentPlugin::registerDevice(ossia::net::device_base* d)
     return;
   if(m_ctxData->execState)
   {
+    if(ossia::contains(m_ctxData->execState->edit_devices(), d))
+      return;
     m_ctxData->execState->register_device(d);
 
     if(m_base && m_base->active())
@@ -367,19 +369,10 @@ void DocumentPlugin::reload(bool forcePlay, Scenario::IntervalModel& cst)
   {
     m_ctxData->setupContext.connectCable(cable, t);
   }
-
-  for(auto ctl : model.statesWithControls)
-  {
-    auto state_comp
-        = score::findComponent<Execution::StateComponentBase>(ctl->components());
-    if(state_comp)
-    {
-      state_comp->updateControls(); // FIXME put in transaction too
-    }
-  }
   t.run_all();
 
   m_tid = startTimer(32);
+  started();
 }
 
 void DocumentPlugin::clear()
@@ -428,6 +421,8 @@ void DocumentPlugin::clear()
     if(auto dev = d.getDevice())
       dev->get_protocol().stop_execution();
   });
+
+  cleared();
 }
 
 void DocumentPlugin::on_documentClosing()

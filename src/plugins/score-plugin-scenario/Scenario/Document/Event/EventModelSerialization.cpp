@@ -20,7 +20,8 @@
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(const Scenario::EventModel& ev)
 {
-  m_stream << ev.m_timeSync << ev.m_states << ev.m_condition << ev.m_date << ev.m_offset;
+  m_stream << ev.m_timeSync << ev.m_states << ev.m_condition << ev.m_date << ev.m_offset
+           << ev.m_scriptable;
 
   insertDelimiter();
 }
@@ -28,7 +29,8 @@ SCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(const Scenario::EventMo
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(Scenario::EventModel& ev)
 {
-  m_stream >> ev.m_timeSync >> ev.m_states >> ev.m_condition >> ev.m_date >> ev.m_offset;
+  m_stream >> ev.m_timeSync >> ev.m_states >> ev.m_condition >> ev.m_date >> ev.m_offset
+      >> ev.m_scriptable;
 
   checkDelimiter();
 }
@@ -40,9 +42,12 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONReader::read(const Scenario::EventModel& e
   obj[strings.States] = ev.m_states;
 
   obj[strings.Condition] = ev.m_condition.toString();
+  State::saveAnchors(*this, "ConditionAnchors", ev.m_condition);
 
   obj[strings.Date] = ev.m_date;
   obj[strings.Offset] = (int32_t)ev.m_offset;
+  if(ev.m_scriptable)
+    obj["Scriptable"] = true;
 }
 
 template <>
@@ -58,6 +63,7 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONWriter::write(Scenario::EventModel& ev)
       QString exprstr = it->toString();
       if(auto expr = State::parseExpression(exprstr))
         ev.m_condition = *std::move(expr);
+      State::loadAnchors(*this, "ConditionAnchors", ev.m_condition);
     }
     else
     {
@@ -69,4 +75,5 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONWriter::write(Scenario::EventModel& ev)
   ev.m_date <<= obj[strings.Date];
   if(auto off = obj.tryGet(strings.Offset))
     ev.m_offset = static_cast<Scenario::OffsetBehavior>(off->toInt());
+  assign_with_default(ev.m_scriptable, obj.tryGet("Scriptable"), false);
 }

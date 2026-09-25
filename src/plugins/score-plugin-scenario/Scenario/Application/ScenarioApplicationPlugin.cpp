@@ -359,6 +359,7 @@ void ScenarioApplicationPlugin::on_documentChanged(
 
   m_editionSettings.setDefault();
   m_editionSettings.setExecution(false);
+  m_toolActions.setDocument(newdoc);
 
   if(!newdoc)
     return;
