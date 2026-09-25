@@ -65,7 +65,7 @@ struct gstreamer_pipeline
   gstreamer_pipeline() = default;
   ~gstreamer_pipeline() { cleanup(); }
 
-  bool load(const std::string& pipeline_string)
+  bool load(const std::string& pipeline_string, bool resampled = false)
   {
     auto& gst = libgstreamer::instance();
     if(!gst.available)
@@ -189,6 +189,24 @@ struct gstreamer_pipeline
       }
 
       appsinks.push_back(info);
+    }
+
+    // The engine reads an appsink's samples at its own rate: an audio sink at
+    // any other rate is fed through a resampler, which means parsing again.
+    if(!resampled)
+    {
+      const int engine_rate
+          = score::AppContext().settings<Audio::Settings::Model>().getRate();
+      std::vector<std::string> to_resample;
+      for(auto& sink : appsinks)
+        if(!sink.is_video && engine_rate > 0 && sink.rate != engine_rate)
+          to_resample.push_back(sink.name);
+      if(!to_resample.empty())
+      {
+        cleanup();
+        appsinks.clear();
+        return load(resample_audio_sinks(pipeline_string, to_resample, engine_rate), true);
+      }
     }
 
     // Create frame queues and audio buffers
@@ -1724,7 +1742,7 @@ ProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
     e->presets.push_back(
         {"ST 2110-30 audio sender (L16 48kHz stereo)",
          "GStreamer Out",
-         "appsrc name=audio ! audioconvert ! "
+         "appsrc name=audio ! audioconvert ! audioresample ! "
          "audio/x-raw,format=S16BE,rate=48000,channels=2 ! "
          "rtpL16pay ! udpsink host=239.0.0.1 port=5006 "
          "auto-multicast=true sync=false",
@@ -1747,7 +1765,7 @@ ProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
          "video/x-raw,format=UYVP,width=1920,height=1080,framerate=30/1 ! "
          "rtpvrawpay ! udpsink host=239.0.0.1 port=5004 "
          "auto-multicast=true sync=false "
-         "appsrc name=audio ! audioconvert ! "
+         "appsrc name=audio ! audioconvert ! audioresample ! "
          "audio/x-raw,format=S16BE,rate=48000,channels=2 ! "
          "rtpL16pay ! udpsink host=239.0.0.1 port=5006 "
          "auto-multicast=true sync=false",
@@ -1773,7 +1791,7 @@ ProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
     e->presets.push_back(
         {"SMPTE 302M audio sender (MPEG-TS)",
          "GStreamer Out",
-         "appsrc name=audio ! audioconvert ! "
+         "appsrc name=audio ! audioconvert ! audioresample ! "
          // avenc_s302m accepts S16LE or S32LE only -- 24-bit SMPTE 302M is
          // carried in 32-bit containers -- and never S24LE, which made this
          // preset refuse to link at all.
