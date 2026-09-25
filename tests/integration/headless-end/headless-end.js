@@ -32,6 +32,18 @@ function checkPlaying() {
     Score.saveAs(OUT_DIR + "/still-playing.score");
 }
 
+// MODE "end": playback must have started (checkStarted, about 2 s into the
+// 3 s root) and then stopped at the end (checkStopped, well after it): the
+// percentage runs, then is back to 0.
+function checkStarted() {
+  if (g_root.durations.percentage > 0.05)
+    Score.saveAs(OUT_DIR + "/started.score");
+}
+function checkStopped() {
+  if (g_root.durations.percentage === 0)
+    Score.saveAs(OUT_DIR + "/stopped.score");
+}
+
 function finalizeRun() { Score.saveAs(OUT_DIR + "/headless-end-final.score"); }
 
 Score.saveAs(OUT_DIR + "/headless-end-init.score"); // readiness marker

@@ -3,10 +3,11 @@
 #
 #   tests/integration/headless-end/headless-end.sh
 #
-# "end" (BUG-LEDGER X8): plays a 3 s document with --no-gui --autoplay, lets it
-# reach its end, then checks the app is still running and exits 0 on OSC
-# /exit. The end of playback looked up Actions::Stop, which only exists with a
-# GUI, and the app aborted (std::out_of_range, exit 134).
+# "end" (BUG-LEDGER X8): plays a 3 s document with --no-gui --autoplay, checks
+# it is playing 2 s in and stopped well after its end, and that the app is
+# still running and exits 0 on OSC /exit. The end of playback looked up
+# Actions::Stop, which only exists with a GUI, and the app aborted
+# (std::out_of_range, exit 134).
 #
 # "resize" (BUG-LEDGER X7): resizes the root to 60 s while it plays, and checks
 # it is still playing 25 s in. Execution received the stale stored max (the
@@ -33,7 +34,9 @@ run_mode() { # mode -> $OUT/<mode>/
   mkdir -p "$dir/config-home/ossia"
   { printf 'var OUT_DIR = "%s";\nvar MODE = "%s";\n' "$dir" "$mode"; cat "$HERE/headless-end.js"; } > "$dir/scene.js"
   (
-    flock -w 900 9 || { echo 98 > "$dir/run.rc"; exit 0; }
+    # Well within the ctest TIMEOUT: a lock held that long is another
+    # harness, and the test is skipped rather than killed.
+    flock -w 100 9 || { echo 98 > "$dir/run.rc"; exit 0; }
     for _ in $(seq 1 60); do
       ss -Hlun "sport = :$OSC" 2>/dev/null | grep -q . && { sleep 1; continue; }
       break
@@ -57,7 +60,11 @@ run_mode() { # mode -> $OUT/<mode>/
       send /script s "checkPlaying()"
       sleep 1
     else
-      sleep 10                      # the 3 s document has ended well before this
+      sleep 2                       # about 2 s into the 3 s document
+      send /script s "checkStarted()"
+      sleep 8                       # it has ended well before this
+      send /script s "checkStopped()"
+      sleep 1
     fi
     if kill -0 "$APP" 2>/dev/null; then echo alive > "$dir/alive"; fi
 
@@ -69,19 +76,30 @@ run_mode() { # mode -> $OUT/<mode>/
 }
 
 FAILS=""
+SKIPPED=""
 for mode in end resize; do
   run_mode "$mode"
   dir="$OUT/$mode"
   rc=$(cat "$dir/run.rc" 2>/dev/null || echo 97)
+  if [ "$rc" = 98 ]; then
+    SKIPPED+=" $mode"
+    continue
+  fi
   [ -f "$dir/alive" ] || FAILS+=" $mode:DIED"
   [ "$rc" = 0 ] || FAILS+=" $mode:exit=$rc"
   grep -q "terminate called\|out_of_range" "$dir/run.log" && FAILS+=" $mode:ABORT"
+  if [ "$mode" = end ]; then
+    [ -s "$dir/started.score" ] || FAILS+=" end:NEVER-PLAYED"
+    [ -s "$dir/stopped.score" ] || FAILS+=" end:NOT-STOPPED"
+  fi
   if [ "$mode" = resize ] && [ ! -s "$dir/still-playing.score" ]; then
     FAILS+=" resize:STOPPED-AT-STALE-MAX"
   fi
 done
 
-if [ -z "$FAILS" ]; then
+if [ -z "$FAILS" ] && [ -n "$SKIPPED" ]; then
+  echo "SKIP: /tmp/score-harness.lock busy for:$SKIPPED"; exit 77
+elif [ -z "$FAILS" ]; then
   echo "headless-end PASS"
 else
   echo "headless-end FAIL:$FAILS (out=$OUT)"; exit 1
