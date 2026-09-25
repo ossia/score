@@ -518,8 +518,8 @@ TEST_CASE(
   REQUIRE(fs.cameras.size() == 6);
 
   // Pack exactly as ScenePreprocessorNode's packAndUploadCameras does, in the
-  // order it does (active first, then the rest) — here that is plain face
-  // order.
+  // order it does (active first, then the rest cyclically) — here that is
+  // plain face order.
   std::vector<score::gfx::CameraUBOData> packed;
   packed.reserve(6);
   const int active = std::max(0, fs.activeCameraIndex);
@@ -529,10 +529,8 @@ TEST_CASE(
         d, *e.component, e.worldTransform, QSize{kSinkW, kSinkH}, 0.f);
     packed.push_back(d);
   };
-  packOne(fs.cameras[std::size_t(active)]);
-  for(std::size_t i = 0; i < fs.cameras.size(); ++i)
-    if(int(i) != active)
-      packOne(fs.cameras[i]);
+  for(std::size_t k = 0; k < fs.cameras.size(); ++k)
+    packOne(fs.cameras[score::gfx::cameraPackIndex(k, fs.cameras.size(), active)]);
   REQUIRE(packed.size() == 6);
 
   // The block the shader declares is 6 * 240 = 1440 bytes; see the #163
@@ -707,4 +705,25 @@ TEST_CASE(
                       << " time(s) across the six probes");
     CHECK(found == 1);
   }
+}
+
+TEST_CASE(
+    "the camera array keeps its face order whichever face is active",
+    "[gfx][threedim][scene][camera][multiview]")
+{
+  using score::gfx::cameraPackIndex;
+  for(int active = 0; active < 6; ++active)
+  {
+    INFO("active face " << active);
+    for(std::size_t slot = 0; slot < 6; ++slot)
+      CHECK(cameraPackIndex(slot, 6, active) == (std::size_t(active) + slot) % 6);
+  }
+  CHECK(cameraPackIndex(0, 6, -1) == 0);
+  CHECK(cameraPackIndex(0, 0, 3) == 0);
+
+  // Face 3 active: the multiview views that follow it see faces 4, 5, 0, 1, 2
+  // in order, not the active face followed by the others in insertion order.
+  const std::size_t expected[6]{3, 4, 5, 0, 1, 2};
+  for(std::size_t slot = 0; slot < 6; ++slot)
+    CHECK(cameraPackIndex(slot, 6, 3) == expected[slot]);
 }

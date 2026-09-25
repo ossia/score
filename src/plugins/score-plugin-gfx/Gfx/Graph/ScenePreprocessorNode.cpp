@@ -4115,7 +4115,9 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   }
 
   // Pack every camera collected by flattenScene into a std140 UBO array. Slot 0
-  // is the active camera, the rest follow in insertion order; a scene with no
+  // is the active camera and the rest follow it cyclically in insertion order,
+  // so a multiview raster reading camera.data[VIEW_INDEX] sees a camera
+  // array's faces in order whichever face is active; a scene with no
   // cameras gets one synthesized default so the binding is always valid.
   // Diff-uploaded against m_cachedCameras.
   void packAndUploadCameras(
@@ -4172,12 +4174,9 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         packCameraUBO(d, *e.component, e.worldTransform, rsize, 0.f);
         fresh.push_back(d);
       };
-      packOne(fs.cameras[(std::size_t)active]);
-      for(std::size_t i = 0; i < fs.cameras.size(); ++i)
-      {
-        if((int)i != active)
-          packOne(fs.cameras[i]);
-      }
+      const std::size_t n = fs.cameras.size();
+      for(std::size_t k = 0; k < n; ++k)
+        packOne(fs.cameras[cameraPackIndex(k, n, active)]);
     }
 
     const int64_t bytes = (int64_t)(fresh.size() * sizeof(CameraUBOData));
