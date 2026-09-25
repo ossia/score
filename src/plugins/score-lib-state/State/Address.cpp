@@ -103,6 +103,7 @@ Address::Address(Address&&) noexcept = default;
 Address::Address(const Address& other) noexcept
     : device{other.device}
     , path{other.path}
+    , anchor{other.anchor}
 {
 }
 
@@ -110,6 +111,7 @@ Address& Address::operator=(const Address& other) noexcept
 {
   device = other.device;
   path = other.path;
+  anchor = other.anchor;
   return *this;
 }
 
@@ -117,7 +119,13 @@ Address& Address::operator=(Address&& other) noexcept
 {
   device = std::move(other.device);
   path = std::move(other.path);
+  anchor = std::move(other.anchor);
   return *this;
+}
+
+QObject* Anchor::resolve(const score::DocumentContext& ctx) const noexcept
+{
+  return target.try_find<QObject>(ctx);
 }
 
 Address::Address(QString d, QStringList p) noexcept

@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ValueConversion.hpp"
 
+#include <State/Address.hpp>
 #include <State/Value.hpp>
 
 #include <score/serialization/AnySerialization.hpp>
@@ -1019,5 +1020,23 @@ const std::array<const QString, 11>& ValuePrettyTypesArray()
 {
   return ValuePrettyTypes;
 }
+}
+}
+
+namespace State::convert
+{
+template <>
+ossia::value value(const ossia::value& val)
+{
+  return val;
+}
+
+template <>
+State::AddressAccessor value(const ossia::value& val)
+{
+  if(auto s = val.target<std::string>())
+    if(auto res = State::parseAddressAccessor(QString::fromStdString(*s)))
+      return *res;
+  return {};
 }
 }

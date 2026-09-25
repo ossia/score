@@ -495,3 +495,67 @@ void TreeNode<State::ExprData>::setParent(TreeNode* parent)
       || (m_parent && !m_parent->is<State::Pulse>()));
   m_parent = parent;
 }
+
+namespace State
+{
+namespace
+{
+template <typename F>
+void forEachAddress(Expression& e, const F& f)
+{
+  auto member = [&](RelationMember& m) {
+    if(auto a = m.target<Address>())
+      f(*a);
+    else if(auto acc = m.target<AddressAccessor>())
+      f(acc->address);
+  };
+  if(auto rel = e.target<Relation>())
+  {
+    member(rel->lhs);
+    member(rel->rhs);
+  }
+  else if(auto pulse = e.target<Pulse>())
+  {
+    f(pulse->address);
+  }
+  for(auto& child : e)
+    forEachAddress(child, f);
+}
+}
+
+std::vector<std::shared_ptr<const Anchor>> anchors(const Expression& e)
+{
+  std::vector<std::shared_ptr<const Anchor>> res;
+  forEachAddress(
+      const_cast<Expression&>(e), [&](const Address& a) { res.push_back(a.anchor); });
+  return res;
+}
+
+void setAnchors(Expression& e, const std::vector<std::shared_ptr<const Anchor>>& a)
+{
+  std::size_t i = 0;
+  forEachAddress(e, [&](Address& addr) {
+    if(i < a.size())
+      addr.anchor = a[i];
+    i++;
+  });
+}
+
+bool identical(const Expression& a, const Expression& b)
+{
+  if(a != b)
+    return false;
+  const auto x = anchors(a);
+  const auto y = anchors(b);
+  if(x.size() != y.size())
+    return false;
+  for(std::size_t i = 0; i < x.size(); i++)
+  {
+    if(bool(x[i]) != bool(y[i]))
+      return false;
+    if(x[i] && (x[i]->target != y[i]->target || x[i]->member != y[i]->member))
+      return false;
+  }
+  return true;
+}
+}

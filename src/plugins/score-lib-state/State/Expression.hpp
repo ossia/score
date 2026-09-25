@@ -19,6 +19,8 @@ class JSONObject;
 template <typename DataType>
 class TreeNode;
 
+class JSONReader;
+class JSONWriter;
 namespace State
 {
 using BinaryOperator = ossia::expressions::binary_operator;
@@ -196,6 +198,20 @@ SCORE_LIB_STATE_EXPORT
 void replaceAddress(
     State::Expression& expr, const State::Address& oldAddr,
     const State::Address& newAddr);
+//! Anchors of the addresses in order of appearance, null where there is none
+SCORE_LIB_STATE_EXPORT std::vector<std::shared_ptr<const Anchor>>
+anchors(const Expression& e);
+//! Inverse of anchors(); extra entries are ignored
+SCORE_LIB_STATE_EXPORT void
+setAnchors(Expression& e, const std::vector<std::shared_ptr<const Anchor>>& a);
+//! Equal, with the same anchors
+SCORE_LIB_STATE_EXPORT bool identical(const Expression& a, const Expression& b);
+
+//! An expression is serialized as a string, which loses its anchors
+SCORE_LIB_STATE_EXPORT void
+saveAnchors(JSONReader& r, const char* key, const Expression& e);
+SCORE_LIB_STATE_EXPORT void loadAnchors(JSONWriter& w, const char* key, Expression& e);
+
 }
 
 JSON_METADATA(State::Address, "Address")
