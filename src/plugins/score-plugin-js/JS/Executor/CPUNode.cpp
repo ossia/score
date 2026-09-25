@@ -22,6 +22,7 @@
 #include <QQmlEngine>
 
 #include <libremidi/detail/conversion.hpp>
+#include <JS/Qml/VariantToJs.hpp>
 
 namespace JS
 {
@@ -81,7 +82,7 @@ void js_node::setupComponent()
       if(auto res = v.apply(ossia::qt::ossia_to_qvariant{}); res.isValid())
         vm[k] = std::move(res);
     }
-    on_load.call({m_engine->toScriptValue(vm)});
+    on_load.call({JS::variantToJs(*m_engine, vm)});
   }
 
   int input_i = 0;

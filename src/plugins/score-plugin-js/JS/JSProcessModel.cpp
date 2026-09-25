@@ -44,6 +44,7 @@
 #include <wobjectimpl.h>
 
 #include <vector>
+#include <JS/Qml/VariantToJs.hpp>
 W_OBJECT_IMPL(JS::ProcessModel)
 namespace JS
 {
@@ -279,7 +280,7 @@ QQuickItem* ProcessModel::createItemForUI(const score::DocumentContext& ctx) con
   {
     connect(this, &JS::ProcessModel::executionToUi,
             script, [&dummyEngine, on_exec] (const QVariant& v) {
-      on_exec.call({dummyEngine.toScriptValue(v)});
+      on_exec.call({JS::variantToJs(dummyEngine, v)});
     });
   }
 
@@ -397,7 +398,7 @@ QQuickItem* ProcessModel::createItemForUI(const score::DocumentContext& ctx) con
       if(v.valid())
       {
         if(auto res = v.apply(ossia::qt::ossia_to_qvariant{}); res.isValid())
-          on_stateUpdated.call({k, dummyEngine.toScriptValue(res)});
+          on_stateUpdated.call({k, JS::variantToJs(dummyEngine, res)});
         else
           on_stateUpdated.call({k, QJSValue{}});
       }
@@ -413,7 +414,7 @@ QQuickItem* ProcessModel::createItemForUI(const score::DocumentContext& ctx) con
       if(auto res = v.apply(ossia::qt::ossia_to_qvariant{}); res.isValid())
         vm[k] = std::move(res);
     }
-    on_load.call({dummyEngine.toScriptValue(vm)});
+    on_load.call({JS::variantToJs(dummyEngine, vm)});
   }
 
   return script;

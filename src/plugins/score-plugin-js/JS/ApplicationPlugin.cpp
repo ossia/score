@@ -36,6 +36,7 @@
 #endif
 
 #include <ossia/network/context.hpp>
+#include <JS/Qml/VariantToJs.hpp>
 
 namespace JS
 {
@@ -212,7 +213,7 @@ void ApplicationPlugin::callCommandHandler(
                  << "is not valid:" << err.errorString();
       return;
     }
-    arg = m_consoleEngine.toScriptValue(doc.toVariant());
+    arg = JS::variantToJs(*it->engine, doc.array().first().toVariant());
   }
   // A copy: the handler may register or replace handlers
   auto fn = it->fn;
