@@ -87,7 +87,7 @@ private:
   {
     score::DefaultGraphicsSliderImpl::paint(
         *this, score::Skin::instance(), QString::number(map(m_value), 'f', 3), painter,
-        widget);
+        widget, option);
   }
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override
@@ -137,7 +137,7 @@ private:
     int pres = abs < 10. ? 3 : abs < 100. ? 2 : abs < 1000. ? 1 : 0;
     score::DefaultGraphicsKnobImpl::paint(
         *this, score::Skin::instance(), QString::number(val, 'f', pres), painter,
-        widget);
+        widget, option);
   }
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override

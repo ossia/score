@@ -160,6 +160,8 @@ namespace Process
 {
 struct SCORE_LIB_PROCESS_EXPORT FloatSlider : public Process::ControlInlet
 {
+  W_OBJECT(FloatSlider)
+public:
   MODEL_METADATA_IMPL(FloatSlider)
   FloatSlider(
       float min, float max, float init, const QString& name, Id<Process::Port> id,
@@ -174,6 +176,8 @@ struct SCORE_LIB_PROCESS_EXPORT FloatSlider : public Process::ControlInlet
 
 struct SCORE_LIB_PROCESS_EXPORT FloatKnob : public Process::ControlInlet
 {
+  W_OBJECT(FloatKnob)
+public:
   MODEL_METADATA_IMPL(FloatKnob)
   FloatKnob(
       float min, float max, float init, const QString& name, Id<Process::Port> id,
@@ -189,6 +193,8 @@ struct SCORE_LIB_PROCESS_EXPORT FloatKnob : public Process::ControlInlet
 
 struct SCORE_LIB_PROCESS_EXPORT LogFloatSlider : public Process::ControlInlet
 {
+  W_OBJECT(LogFloatSlider)
+public:
   MODEL_METADATA_IMPL(LogFloatSlider)
   LogFloatSlider(
       float min, float max, float init, const QString& name, Id<Process::Port> id,
@@ -204,6 +210,8 @@ struct SCORE_LIB_PROCESS_EXPORT LogFloatSlider : public Process::ControlInlet
 
 struct SCORE_LIB_PROCESS_EXPORT IntSlider : public Process::ControlInlet
 {
+  W_OBJECT(IntSlider)
+public:
   MODEL_METADATA_IMPL(IntSlider)
   IntSlider(
       int min, int max, int init, const QString& name, Id<Process::Port> id,
@@ -219,6 +227,8 @@ struct SCORE_LIB_PROCESS_EXPORT IntSlider : public Process::ControlInlet
 
 struct SCORE_LIB_PROCESS_EXPORT IntRangeSlider : public Process::ControlInlet
 {
+  W_OBJECT(IntRangeSlider)
+public:
   MODEL_METADATA_IMPL(IntRangeSlider)
   IntRangeSlider(
       int min, int max, ossia::vec2f init, const QString& name, Id<Process::Port> id,
@@ -235,6 +245,8 @@ struct SCORE_LIB_PROCESS_EXPORT IntRangeSlider : public Process::ControlInlet
 
 struct SCORE_LIB_PROCESS_EXPORT FloatRangeSlider : public Process::ControlInlet
 {
+  W_OBJECT(FloatRangeSlider)
+public:
   MODEL_METADATA_IMPL(FloatRangeSlider)
   FloatRangeSlider(
       float min, float max, ossia::vec2f init, const QString& name, Id<Process::Port> id,
@@ -251,6 +263,8 @@ struct SCORE_LIB_PROCESS_EXPORT FloatRangeSlider : public Process::ControlInlet
 
 struct SCORE_LIB_PROCESS_EXPORT IntRangeSpinBox : public Process::ControlInlet
 {
+  W_OBJECT(IntRangeSpinBox)
+public:
   MODEL_METADATA_IMPL(IntRangeSpinBox)
   IntRangeSpinBox(
       int min, int max, ossia::vec2f init, const QString& name, Id<Process::Port> id,
@@ -267,6 +281,8 @@ struct SCORE_LIB_PROCESS_EXPORT IntRangeSpinBox : public Process::ControlInlet
 
 struct SCORE_LIB_PROCESS_EXPORT FloatRangeSpinBox : public Process::ControlInlet
 {
+  W_OBJECT(FloatRangeSpinBox)
+public:
   MODEL_METADATA_IMPL(FloatRangeSpinBox)
   FloatRangeSpinBox(
       float min, float max, ossia::vec2f init, const QString& name, Id<Process::Port> id,
@@ -283,6 +299,8 @@ struct SCORE_LIB_PROCESS_EXPORT FloatRangeSpinBox : public Process::ControlInlet
 
 struct SCORE_LIB_PROCESS_EXPORT IntSpinBox : public Process::ControlInlet
 {
+  W_OBJECT(IntSpinBox)
+public:
   MODEL_METADATA_IMPL(IntSpinBox)
   IntSpinBox(
       int min, int max, int init, const QString& name, Id<Process::Port> id,
@@ -298,6 +316,8 @@ struct SCORE_LIB_PROCESS_EXPORT IntSpinBox : public Process::ControlInlet
 
 struct SCORE_LIB_PROCESS_EXPORT FloatSpinBox : public Process::ControlInlet
 {
+  W_OBJECT(FloatSpinBox)
+public:
   MODEL_METADATA_IMPL(FloatSpinBox)
   FloatSpinBox(
       float min, float max, float init, const QString& name, Id<Process::Port> id,
@@ -312,6 +332,8 @@ struct SCORE_LIB_PROCESS_EXPORT FloatSpinBox : public Process::ControlInlet
 };
 struct SCORE_LIB_PROCESS_EXPORT TimeChooser : public Process::ControlInlet
 {
+  W_OBJECT(TimeChooser)
+public:
   MODEL_METADATA_IMPL(TimeChooser)
   TimeChooser(
       float min, float max, float init, const QString& name, Id<Process::Port> id,
@@ -326,6 +348,8 @@ struct SCORE_LIB_PROCESS_EXPORT TimeChooser : public Process::ControlInlet
 
 struct SCORE_LIB_PROCESS_EXPORT Toggle : public Process::ControlInlet
 {
+  W_OBJECT(Toggle)
+public:
   MODEL_METADATA_IMPL(Toggle)
   Toggle(bool init, const QString& name, Id<Process::Port> id, QObject* parent);
   ~Toggle();
@@ -337,6 +361,8 @@ struct SCORE_LIB_PROCESS_EXPORT Toggle : public Process::ControlInlet
 
 struct SCORE_LIB_PROCESS_EXPORT ChooserToggle : public Process::ControlInlet
 {
+  W_OBJECT(ChooserToggle)
+public:
   MODEL_METADATA_IMPL(ChooserToggle)
   ChooserToggle(
       QStringList alternatives, bool init, const QString& name, Id<Process::Port> id,
@@ -351,6 +377,8 @@ struct SCORE_LIB_PROCESS_EXPORT ChooserToggle : public Process::ControlInlet
 
 struct SCORE_LIB_PROCESS_EXPORT LineEdit : public Process::ControlInlet
 {
+  W_OBJECT(LineEdit)
+public:
   MODEL_METADATA_IMPL(LineEdit)
   LineEdit(QString init, const QString& name, Id<Process::Port> id, QObject* parent);
   ~LineEdit();
@@ -454,6 +482,8 @@ public:
 
 struct SCORE_LIB_PROCESS_EXPORT ProgramEdit : public Process::ControlInlet
 {
+  W_OBJECT(ProgramEdit)
+public:
   MODEL_METADATA_IMPL(ProgramEdit)
   ProgramEdit(QString init, const QString& name, Id<Process::Port> id, QObject* parent);
   ~ProgramEdit();
@@ -526,6 +556,8 @@ public:
 
 struct SCORE_LIB_PROCESS_EXPORT Enum : public Process::ControlInlet
 {
+  W_OBJECT(Enum)
+public:
   MODEL_METADATA_IMPL(Enum)
   std::vector<QString> values;
   std::vector<QString> pixmaps;
@@ -559,6 +591,8 @@ struct SCORE_LIB_PROCESS_EXPORT Enum : public Process::ControlInlet
 
 struct SCORE_LIB_PROCESS_EXPORT Button : public Process::ControlInlet
 {
+  W_OBJECT(Button)
+public:
   MODEL_METADATA_IMPL(Button)
   Button(const QString& name, Id<Process::Port> id, QObject* parent);
   ~Button();
@@ -583,6 +617,8 @@ public:
 
 struct SCORE_LIB_PROCESS_EXPORT HSVSlider : public Process::ControlInlet
 {
+  W_OBJECT(HSVSlider)
+public:
   MODEL_METADATA_IMPL(HSVSlider)
   HSVSlider(
       ossia::vec4f init, const QString& name, Id<Process::Port> id, QObject* parent);
@@ -598,6 +634,8 @@ struct SCORE_LIB_PROCESS_EXPORT HSVSlider : public Process::ControlInlet
 
 struct SCORE_LIB_PROCESS_EXPORT XYSlider : public Process::ControlInlet
 {
+  W_OBJECT(XYSlider)
+public:
   MODEL_METADATA_IMPL(XYSlider)
   XYSlider(
       ossia::vec2f init, const QString& name, Id<Process::Port> id, QObject* parent);
@@ -615,6 +653,8 @@ struct SCORE_LIB_PROCESS_EXPORT XYSlider : public Process::ControlInlet
 
 struct SCORE_LIB_PROCESS_EXPORT XYZSlider : public Process::ControlInlet
 {
+  W_OBJECT(XYZSlider)
+public:
   MODEL_METADATA_IMPL(XYZSlider)
   XYZSlider(
       ossia::vec3f init, const QString& name, Id<Process::Port> id, QObject* parent);
@@ -632,6 +672,8 @@ struct SCORE_LIB_PROCESS_EXPORT XYZSlider : public Process::ControlInlet
 
 struct SCORE_LIB_PROCESS_EXPORT XYSpinboxes : public Process::ControlInlet
 {
+  W_OBJECT(XYSpinboxes)
+public:
   MODEL_METADATA_IMPL(XYSpinboxes)
   XYSpinboxes(
       ossia::vec2f init, const QString& name, Id<Process::Port> id, QObject* parent);
@@ -656,6 +698,8 @@ struct SCORE_LIB_PROCESS_EXPORT XYSpinboxes : public Process::ControlInlet
 
 struct SCORE_LIB_PROCESS_EXPORT XYZSpinboxes : public Process::ControlInlet
 {
+  W_OBJECT(XYZSpinboxes)
+public:
   MODEL_METADATA_IMPL(XYZSpinboxes)
   XYZSpinboxes(
       ossia::vec3f init, const QString& name, Id<Process::Port> id, QObject* parent);
@@ -674,6 +718,8 @@ struct SCORE_LIB_PROCESS_EXPORT XYZSpinboxes : public Process::ControlInlet
 
 struct SCORE_LIB_PROCESS_EXPORT MultiSlider : public Process::ControlInlet
 {
+  W_OBJECT(MultiSlider)
+public:
   MODEL_METADATA_IMPL(MultiSlider)
   MultiSlider(
       ossia::value init, const QString& name, Id<Process::Port> id, QObject* parent);
@@ -689,6 +735,8 @@ struct SCORE_LIB_PROCESS_EXPORT MultiSlider : public Process::ControlInlet
 
 struct SCORE_LIB_PROCESS_EXPORT MultiSliderXY : public Process::ControlInlet
 {
+  W_OBJECT(MultiSliderXY)
+public:
   MODEL_METADATA_IMPL(MultiSliderXY)
   MultiSliderXY(
       ossia::value init, const QString& name, Id<Process::Port> id, QObject* parent);
@@ -703,6 +751,8 @@ struct SCORE_LIB_PROCESS_EXPORT MultiSliderXY : public Process::ControlInlet
 
 struct SCORE_LIB_PROCESS_EXPORT PathGeneratorXY : public Process::ControlInlet
 {
+  W_OBJECT(PathGeneratorXY)
+public:
   MODEL_METADATA_IMPL(PathGeneratorXY)
   PathGeneratorXY(
       ossia::value init, const QString& name, Id<Process::Port> id, QObject* parent);
@@ -719,6 +769,8 @@ struct SCORE_LIB_PROCESS_EXPORT PathGeneratorXY : public Process::ControlInlet
 
 struct SCORE_LIB_PROCESS_EXPORT Bargraph : public Process::ControlOutlet
 {
+  W_OBJECT(Bargraph)
+public:
   MODEL_METADATA_IMPL(Bargraph)
   Bargraph(
       float min, float max, float init, const QString& name, Id<Process::Port> id,

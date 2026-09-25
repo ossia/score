@@ -15,8 +15,15 @@ public:
 
   void setBrush(score::BrushSet& b);
   void setBackground(const QString& b);
+  //! Whether the layout paints a box of its own
+  bool hasBackground() const noexcept { return m_bg || m_pix; }
   void setMargin(qreal m);
   void setPadding(qreal p);
+
+  //! Gap between two consecutive children of a box layout. Unless set, it is
+  //! the padding on both sides of each child: twice the padding.
+  void setSpacing(qreal s);
+  qreal spacing() const noexcept;
 
   void updateChildrenRects(const QList<QGraphicsItem*>&);
 
@@ -29,6 +36,7 @@ protected:
 
   qreal m_margin{};
   qreal m_padding{};
+  qreal m_spacing{-1.};
 };
 
 }

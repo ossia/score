@@ -8,24 +8,28 @@
 
 namespace Process
 {
-Process::ControlLayout LayoutBuilderBase::makePort(Process::Inlet& port)
+Process::ControlLayout LayoutBuilderBase::makePort(
+    Process::Inlet& port, const Process::ControlPresentation& presentation)
 {
   if(auto* f = portFactory.get(port.concreteKey()))
   {
     if(auto control = qobject_cast<Process::ControlInlet*>(&port))
-      return f->makeFullItem(*control, this->doc, this->layout, &this->context);
+      return f->makeFullItem(
+          *control, this->doc, this->layout, &this->context, presentation);
     else
       return f->makeLabelItem(port, this->doc, this->layout, &this->context);
   }
   return {};
 }
 
-Process::ControlLayout LayoutBuilderBase::makePort(Process::Outlet& port)
+Process::ControlLayout LayoutBuilderBase::makePort(
+    Process::Outlet& port, const Process::ControlPresentation& presentation)
 {
   if(auto* f = portFactory.get(port.concreteKey()))
   {
     if(auto control = qobject_cast<Process::ControlOutlet*>(&port))
-      return f->makeFullItem(*control, this->doc, this->layout, &this->context);
+      return f->makeFullItem(
+          *control, this->doc, this->layout, &this->context, presentation);
     else
       return f->makeLabelItem(port, this->doc, this->layout, &this->context);
   }
@@ -33,21 +37,23 @@ Process::ControlLayout LayoutBuilderBase::makePort(Process::Outlet& port)
 }
 
 std::pair<Process::ControlInlet*, Process::ControlLayout>
-LayoutBuilderBase::makeInlet(Process::Inlet* p)
+LayoutBuilderBase::makeInlet(
+    Process::Inlet* p, const Process::ControlPresentation& presentation)
 {
   if(auto* port = qobject_cast<Process::ControlInlet*>(p))
   {
-    return {port, makePort(*port)};
+    return {port, makePort(*port, presentation)};
   }
   return {};
 }
 
 std::pair<Process::ControlOutlet*, Process::ControlLayout>
-LayoutBuilderBase::makeOutlet(Process::Outlet* p)
+LayoutBuilderBase::makeOutlet(
+    Process::Outlet* p, const Process::ControlPresentation& presentation)
 {
   if(auto* port = qobject_cast<Process::ControlOutlet*>(p))
   {
-    return {port, makePort(*port)};
+    return {port, makePort(*port, presentation)};
   }
   return {};
 }
@@ -94,8 +100,10 @@ void LayoutBuilderBase::finalizeLayout(QGraphicsItem* rootItem)
   if(createdLayouts.empty())
     return;
 
+  // The avendish builder's outermost layout is the root item itself
   auto w = createdLayouts.front();
-  w->setParentItem(rootItem);
+  if(w != rootItem)
+    w->setParentItem(rootItem);
 
   for(auto it = createdLayouts.rbegin(); it != createdLayouts.rend(); ++it)
   {
@@ -107,9 +115,16 @@ void LayoutBuilderBase::finalizeLayout(QGraphicsItem* rootItem)
     {
       //lay.setRect(lay.childrenBoundingRect().adjusted(-default_margin, -default_margin, default_margin, default_margin));
 
+      const bool outermost = (&lay == createdLayouts.front());
+      const bool margins = outermost || marginOnNestedLayouts;
+      const qreal margin = margins ? default_margin : 0.;
+      // A nested box drawn with its own background keeps as much room on its
+      // right as on its left, so that what fills its width does not reach the
+      // next box
+      const qreal right_margin
+          = (margins || lay.hasBackground()) ? default_margin : 0.;
       const auto& cld = lay.childrenBoundingRect();
-      lay.setRect(
-          QRectF{0., 0., cld.right() + default_margin, cld.bottom() + default_margin});
+      lay.setRect(QRectF{0., 0., cld.right() + right_margin, cld.bottom() + margin});
     }
   }
 

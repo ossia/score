@@ -97,6 +97,6 @@ void QGraphicsSlider::paint(
 {
   DefaultGraphicsSliderImpl::paint(
       *this, score::Skin::instance(), score::toNumber(min + m_value * (max - min)),
-      painter, widget);
+      painter, widget, option);
 }
 }

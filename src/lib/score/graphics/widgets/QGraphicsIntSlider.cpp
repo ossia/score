@@ -108,7 +108,7 @@ void QGraphicsIntSlider::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   DefaultGraphicsSliderImpl::paint(
-      *this, score::Skin::instance(), score::toNumber(value()), painter, widget);
+      *this, score::Skin::instance(), score::toNumber(value()), painter, widget, option);
 }
 
 double QGraphicsIntSlider::getHandleX() const

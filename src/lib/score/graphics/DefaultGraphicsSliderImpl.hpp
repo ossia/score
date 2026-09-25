@@ -1,4 +1,5 @@
 #pragma once
+#include <score/graphics/WidgetPresentation.hpp>
 #include <score/graphics/DefaultControlImpl.hpp>
 #include <score/graphics/RightClickWidget.hpp>
 #include <score/model/Skin.hpp>
@@ -33,7 +34,7 @@ struct DefaultGraphicsSliderImpl
   template <typename T>
   static void paint(
       T& self, const score::Skin& skin, const QString& text, QPainter* painter,
-      QWidget* widget)
+      QWidget* widget, const QStyleOptionGraphicsItem* option = nullptr)
   {
     painter->setRenderHint(QPainter::Antialiasing, false);
 
@@ -58,10 +59,24 @@ struct DefaultGraphicsSliderImpl
 #else
     static const constexpr auto dpi_adjust = -2;
 #endif
-    painter->setPen(skin.Base4.lighter180.pen1);
-    painter->setFont(skin.Medium8Pt);
-    const auto textrect = brect.adjusted(2, srect.height() + 2 + dpi_adjust, -2, -1);
-    painter->drawText(textrect, text, QTextOption(Qt::AlignCenter));
+    // Wrappers that only borrow this painter, like the multi-slider's
+    // rows, are not graphics items and always show their value.
+    bool showValue = true;
+    if constexpr(std::is_base_of_v<QGraphicsItem, std::remove_cvref_t<T>>)
+    {
+      bool grabbed = false;
+      if constexpr(requires { self.m_grab; })
+        grabbed = self.m_grab;
+      showValue = showsValue(self, grabbed, option);
+    }
+    if(showValue)
+    {
+      painter->setPen(skin.Base4.lighter180.pen1);
+      painter->setFont(skin.Medium8Pt);
+      const auto textrect
+          = brect.adjusted(2, srect.height() + 2 + dpi_adjust, -2, -1);
+      painter->drawText(textrect, text, QTextOption(Qt::AlignCenter));
+    }
 
     // Draw handle
     painter->fillRect(self.handleRect(), skin.Base4);

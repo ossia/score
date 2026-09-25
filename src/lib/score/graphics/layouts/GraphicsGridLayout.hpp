@@ -2,6 +2,10 @@
 
 #include <score/graphics/GraphicsLayout.hpp>
 
+#include <QStringList>
+
+#include <vector>
+
 namespace score
 {
 
@@ -31,6 +35,40 @@ public:
 
 private:
   int m_rows{5};
+};
+
+//! Rows of controls under shared column titles. Each child is a row layout
+//! whose children are its cells; every column is as wide as its widest cell,
+//! every row as tall as its tallest. When rows start with a title cell, the
+//! column titles start at the second column.
+class SCORE_LIB_BASE_EXPORT GraphicsTableLayout : public GraphicsLayout
+{
+public:
+  using GraphicsLayout::GraphicsLayout;
+  ~GraphicsTableLayout();
+
+  void setColumnTitles(QStringList titles);
+  void setRowTitles(bool rowTitles);
+  //! Drawn above the row titles, naming the whole table.
+  void setTitle(QString title);
+  //! Rows are GraphicsSelectableRow: a press on their background selects
+  //! them (presses on their controls are caught by the rows themselves).
+  void setRowsSelectable(bool selectable);
+
+  void layout() override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
+
+protected:
+  bool sceneEventFilter(QGraphicsItem* watched, QEvent* event) override;
+
+private:
+  static QFont titleFont();
+  QStringList m_titles;
+  QString m_title;
+  std::vector<std::pair<double, double>> m_columns; // x, width
+  bool m_rowTitles{};
+  bool m_rowsSelectable{};
 };
 
 class SCORE_LIB_BASE_EXPORT GraphicsDefaultLayout : public GraphicsLayout

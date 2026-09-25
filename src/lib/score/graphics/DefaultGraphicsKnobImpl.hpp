@@ -1,4 +1,5 @@
 #pragma once
+#include <score/graphics/WidgetPresentation.hpp>
 #include <score/graphics/DefaultControlImpl.hpp>
 #include <score/graphics/RightClickWidget.hpp>
 #include <score/graphics/InfiniteScroller.hpp>
@@ -27,7 +28,7 @@ struct DefaultGraphicsKnobImpl
   template <typename T>
   static void paint(
       T& self, const score::Skin& skin, const QString& text, QPainter* painter,
-      QWidget* widget)
+      QWidget* widget, const QStyleOptionGraphicsItem* option = nullptr)
   {
     painter->setRenderHint(QPainter::Antialiasing, true);
 
@@ -36,8 +37,15 @@ struct DefaultGraphicsKnobImpl
     constexpr const double start = (270. - space) * 16.;
     constexpr const double totalSpan = (360. - 2. * space) * 16.;
 
-    const QRectF srect = defaultKnobSize;
-    const QRectF r = srect.adjusted(adj, adj, -adj, -adj);
+    // Knobs can be resized (see WidgetPresentation); other users of this
+    // painter, like the time chooser, draw at the default size.
+    QRectF srect = defaultKnobSize;
+    if constexpr(requires { self.m_rect; })
+      srect = self.m_rect;
+    // A knob taller than wide draws its circle in the top square, and its
+    // value below it rather than across it
+    const double side = std::min(srect.width(), srect.height());
+    const QRectF r = QRectF{0., 0., side, side}.adjusted(adj, adj, -adj, -adj);
     const double rw = r.width();
 
     // Draw knob
@@ -88,10 +96,24 @@ struct DefaultGraphicsKnobImpl
     }
 
     // Draw text
-    painter->setFont(skin.Medium8Pt);
-    painter->drawText(
-        QRectF{0., srect.height() + textDelta, srect.width(), 10.}, text,
-        QTextOption(Qt::AlignCenter));
+    // Wrappers that only borrow this painter, like the multi-slider's
+    // rows, are not graphics items and always show their value.
+    bool showValue = true;
+    if constexpr(std::is_base_of_v<QGraphicsItem, std::remove_cvref_t<T>>)
+    {
+      bool grabbed = false;
+      if constexpr(requires { self.m_grab; })
+        grabbed = self.m_grab;
+      showValue = showsValue(self, grabbed, option);
+    }
+    if(showValue)
+    {
+      painter->setFont(skin.Medium8Pt);
+      const double text_y
+          = srect.height() > srect.width() ? side : srect.height() + textDelta;
+      painter->drawText(
+          QRectF{0., text_y, srect.width(), 10.}, text, QTextOption(Qt::AlignCenter));
+    }
 
     painter->setRenderHint(QPainter::Antialiasing, false);
   }

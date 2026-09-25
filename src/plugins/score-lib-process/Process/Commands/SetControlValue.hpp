@@ -5,6 +5,7 @@
 #include <Process/Commands/ProcessCommandFactory.hpp>
 #include <Process/Dataflow/Port.hpp>
 
+#include <score/command/AggregateCommand.hpp>
 #include <score/model/path/PathSerialization.hpp>
 
 namespace Process
@@ -28,6 +29,13 @@ protected:
 private:
   Path<Process::ControlInlet> m_path;
   ossia::value m_old, m_new;
+};
+
+//! Several controls edited by one gesture, e.g. the points of an envelope
+//! widget bound to its attack, decay, sustain and release: one undo step.
+class SCORE_LIB_PROCESS_EXPORT SetControlValues final : public score::AggregateCommand
+{
+  SCORE_COMMAND_DECL(Process::CommandFactoryName(), SetControlValues, "Set controls")
 };
 
 class SCORE_LIB_PROCESS_EXPORT SetControlOutletValue final : public score::Command

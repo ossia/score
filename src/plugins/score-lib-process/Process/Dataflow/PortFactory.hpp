@@ -1,10 +1,13 @@
 #pragma once
 #include <Process/Dataflow/Port.hpp>
 
+#include <score/graphics/WidgetPresentation.hpp>
 #include <score/graphics/TextItem.hpp>
 #include <score/plugins/Interface.hpp>
 #include <score/plugins/InterfaceList.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+
+#include <optional>
 class QGraphicsItem;
 namespace Inspector
 {
@@ -17,6 +20,33 @@ class PortItem;
 namespace Process
 {
 struct Context;
+//! How a control shows itself in a layout, beyond its widget's defaults.
+//! The default value changes nothing.
+struct ControlPresentation
+{
+  //! A widget other than the port's own, where the port supports it
+  enum class Widget
+  {
+    Default,
+    Knob, //!< float sliders
+    Combo //!< enumerations: one dropdown instead of a row of buttons
+  };
+
+  //! Replaces the port name on screen. The port keeps its name, which is what
+  //! automation and addresses refer to.
+  std::optional<QString> label;
+  bool labelVisible{true};
+  score::ControlSize size{score::ControlSize::Normal};
+  bool valueOnHover{false};
+  Widget widget{Widget::Default};
+
+  bool isDefault() const noexcept
+  {
+    return !label && labelVisible && size == score::ControlSize::Normal
+           && !valueOnHover && widget == Widget::Default;
+  }
+};
+
 struct ControlLayout
 {
   QGraphicsItem* container{};
@@ -53,10 +83,10 @@ public:
   // Port + control + text
   ControlLayout makeFullItem(
       Process::ControlInlet& port, const Process::Context& ctx, QGraphicsItem* parent,
-      QObject* context);
+      QObject* context, const ControlPresentation& presentation = {});
   ControlLayout makeFullItem(
       Process::ControlOutlet& port, const Process::Context& ctx, QGraphicsItem* parent,
-      QObject* context);
+      QObject* context, const ControlPresentation& presentation = {});
 
   // Port + text
   ControlLayout makeLabelItem(
