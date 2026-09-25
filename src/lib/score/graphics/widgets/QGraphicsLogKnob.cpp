@@ -118,6 +118,6 @@ void QGraphicsLogKnob::paint(
   DefaultGraphicsKnobImpl::paint(
       *this, score::Skin::instance(),
       score::toNumber(ossia::normalized_to_log(min, max - min, value())), painter,
-      widget);
+      widget, option);
 }
 }

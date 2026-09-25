@@ -2,6 +2,10 @@
 
 #include <score/graphics/GraphicsLayout.hpp>
 
+#include <QStringList>
+
+#include <vector>
+
 namespace score
 {
 
@@ -31,6 +35,36 @@ public:
 
 private:
   int m_rows{5};
+};
+
+//! Rows (row layouts of cells) under shared column titles.
+//! With row titles, column titles start at the second column.
+class SCORE_LIB_BASE_EXPORT GraphicsTableLayout : public GraphicsLayout
+{
+public:
+  using GraphicsLayout::GraphicsLayout;
+  ~GraphicsTableLayout();
+
+  void setColumnTitles(QStringList titles);
+  void setRowTitles(bool rowTitles);
+  void setTitle(QString title);
+  //! Rows must be GraphicsSelectableRow
+  void setRowsSelectable(bool selectable);
+
+  void layout() override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
+
+protected:
+  bool sceneEventFilter(QGraphicsItem* watched, QEvent* event) override;
+
+private:
+  static QFont titleFont();
+  QStringList m_titles;
+  QString m_title;
+  std::vector<std::pair<double, double>> m_columns; // x, width
+  bool m_rowTitles{};
+  bool m_rowsSelectable{};
 };
 
 class SCORE_LIB_BASE_EXPORT GraphicsDefaultLayout : public GraphicsLayout

@@ -176,6 +176,7 @@ add_library(
   Crousti/Attributes.hpp
   Crousti/Concepts.hpp
   Crousti/CpuAnalysisNode.hpp
+  Crousti/ControlViews.hpp
   Crousti/CpuFilterNode.hpp
   Crousti/Executor.hpp
   Crousti/ExecutorPortSetup.hpp

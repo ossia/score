@@ -25,12 +25,19 @@ struct SCORE_LIB_PROCESS_EXPORT LayoutBuilderBase
   QGraphicsItem* layout{}; // The current container
   std::vector<score::GraphicsLayout*> createdLayouts{};
 
-  Process::ControlLayout makePort(Process::Inlet& portModel);
-  Process::ControlLayout makePort(Process::Outlet& portModel);
+  //! Pad every sized layout, or only the outermost one.
+  //! Nested margins accumulate at the right and bottom.
+  bool marginOnNestedLayouts{true};
 
-  std::pair<Process::ControlInlet*, Process::ControlLayout> makeInlet(Process::Inlet*);
+  Process::ControlLayout
+  makePort(Process::Inlet& portModel, const Process::ControlPresentation& = {});
+  Process::ControlLayout
+  makePort(Process::Outlet& portModel, const Process::ControlPresentation& = {});
+
+  std::pair<Process::ControlInlet*, Process::ControlLayout>
+  makeInlet(Process::Inlet*, const Process::ControlPresentation& = {});
   std::pair<Process::ControlOutlet*, Process::ControlLayout>
-  makeOutlet(Process::Outlet*);
+  makeOutlet(Process::Outlet*, const Process::ControlPresentation& = {});
   std::vector<std::pair<Process::ControlInlet*, Process::ControlLayout>>
       makeInlets(std::span<Process::Inlet*>);
   std::vector<std::pair<Process::ControlOutlet*, Process::ControlLayout>>
@@ -80,6 +87,11 @@ struct SCORE_LIB_PROCESS_EXPORT LayoutBuilderBase
   template <typename Item>
   void setupLayout(const Item& it, score::GraphicsLayout& item)
   {
+    if constexpr(requires { Item::padding(); })
+      item.setPadding(Item::padding());
+    if constexpr(requires { Item::spacing(); })
+      item.setSpacing(Item::spacing());
+
     if constexpr(requires { Item::background(); })
     {
       if constexpr(requires { std::string_view{Item::background()}; })

@@ -828,12 +828,91 @@ QGraphicsItem* PortFactory::makeControlItem(
   }
 }
 
+static QGraphicsItem* makeEnumCombo(
+    Process::Enum& port, const score::DocumentContext& ctx, QObject* context)
+{
+  QStringList names;
+  for(const auto& v : port.getValues())
+    names.push_back(v);
+  auto sl = new score::QGraphicsCombo{names, nullptr};
+  WidgetFactory::initWidgetProperties(port, *sl);
+
+  auto set_index = [&port, sl](const ossia::value& v) {
+    if(const int idx = port.indexOfValue(v); idx >= 0)
+      sl->setValue(idx);
+  };
+  set_index(port.value());
+
+  QObject::connect(sl, &score::QGraphicsCombo::sliderMoved, context, [&port, sl, &ctx] {
+    sl->moving = true;
+    if(auto v = port.valueAtIndex(sl->value()); v.valid())
+      ctx.dispatcher.submit<Process::SetControlValue>(port, std::move(v));
+  });
+  QObject::connect(sl, &score::QGraphicsCombo::sliderReleased, context, [sl, &ctx] {
+    ctx.dispatcher.commit();
+    sl->moving = false;
+  });
+  QObject::connect(&port, &Process::Enum::valueChanged, sl, [sl, set_index](const ossia::value& v) {
+    if(!sl->moving)
+      set_index(v);
+  });
+  return sl;
+}
+
+//! Widget override requested by the presentation, or null if unsupported.
+//! Sets the matching item layout.
+static QGraphicsItem* makePresentationWidget(
+    Process::ControlInlet& port, const Process::Context& ctx, QObject* context,
+    const Process::ControlPresentation& presentation, Process::PortItemLayout& layout)
+{
+  using Widget = Process::ControlPresentation::Widget;
+  switch(presentation.widget)
+  {
+    case Widget::Knob:
+      if(auto s = qobject_cast<Process::FloatSlider*>(&port))
+      {
+        layout = Process::DefaultControlLayouts::knob();
+        return WidgetFactory::FloatKnob::make_item(*s, *s, ctx, nullptr, context);
+      }
+      if(auto s = qobject_cast<Process::LogFloatSlider*>(&port))
+      {
+        layout = Process::DefaultControlLayouts::knob();
+        return WidgetFactory::LogFloatKnob::make_item(*s, *s, ctx, nullptr, context);
+      }
+      break;
+    case Widget::Combo:
+      if(auto e = qobject_cast<Process::Enum*>(&port))
+      {
+        layout = Process::DefaultControlLayouts::combo();
+        return makeEnumCombo(*e, ctx, context);
+      }
+      break;
+    default:
+      break;
+  }
+  return nullptr;
+}
+
 static auto makeFullItemImpl(
-    const Process::Port& portModel, const Process::PortItemLayout& layout,
-    QGraphicsItem& port, QGraphicsItem& control, auto& item)
+    const Process::Port& portModel, Process::PortItemLayout layout,
+    QGraphicsItem& port, QGraphicsItem& control, auto& item,
+    const Process::ControlPresentation& presentation)
 {
   score::SimpleTextItem* lab{};
   using namespace score;
+
+  if(!presentation.isDefault())
+  {
+    score::setControlSize(control, presentation.size);
+    score::setValueOnHover(control, presentation.valueOnHover);
+    if(!presentation.labelVisible)
+    {
+      // Takes the label's row
+      const qreal lift = std::max(0., layout.control.y() - layout.label.y());
+      layout.control.ry() -= lift;
+      layout.labelVisible = false;
+    }
+  }
 
   // Port
   port.setParentItem(&item);
@@ -852,6 +931,8 @@ static auto makeFullItemImpl(
   if(layout.labelVisible)
   {
     lab = Dataflow::makePortLabel(portModel, &item);
+    if(presentation.label)
+      lab->setText(*presentation.label);
     lab->setToolTip(portModel.description());
     lab->setPos(layout.label);
     auto widg_r = control.boundingRect();
@@ -878,6 +959,22 @@ static auto makeFullItemImpl(
         control.setPos(port.x() - widg_w, control.pos().y());
       }
     }
+  }
+
+  const bool moved = !presentation.labelVisible
+                     || presentation.size != score::ControlSize::Normal;
+  if(!presentation.labelVisible && !(layout.controlAlignment & Qt::AlignRight))
+  {
+    // In the label's row: stay clear of the port
+    const qreal port_right = port.x() + port.boundingRect().right() + 1.;
+    if(control.x() < port_right)
+      control.setX(port_right);
+  }
+  if(moved && !(layout.controlAlignment & Qt::AlignRight))
+  {
+    // Resized or unlabelled: port level with the widget
+    const qreal ph = port.boundingRect().height();
+    port.setY(control.y() + (control.boundingRect().height() - ph) / 2.);
   }
 
   item.fitChildrenRect();
@@ -919,7 +1016,7 @@ static auto makeLabelItemImpl(
 
 Process::ControlLayout PortFactory::makeFullItem(
     ControlInlet& portModel, const Process::Context& ctx, QGraphicsItem* parent,
-    QObject* context)
+    QObject* context, const ControlPresentation& presentation)
 {
   Process::ControlLayout ret;
   using namespace score;
@@ -931,19 +1028,24 @@ Process::ControlLayout PortFactory::makeFullItem(
 #endif
   ret.container = item;
 
-  const auto& layout = defaultLayout();
+  auto layout = defaultLayout();
   ret.port_item = makePortItem(portModel, ctx, ret.container, context);
   SCORE_SOFT_ASSERT(ret.port_item);
 
   if(ret.port_item)
   {
-    ret.control = makeControlItem(portModel, ctx, ret.container, context);
+    ret.control = makePresentationWidget(portModel, ctx, context, presentation, layout);
+    if(ret.control)
+      ret.control->setParentItem(ret.container);
+    else
+      ret.control = makeControlItem(portModel, ctx, ret.container, context);
     SCORE_SOFT_ASSERT(ret.control);
 
     if(ret.control)
     {
       ret.label
-          = makeFullItemImpl(portModel, layout, *ret.port_item, *ret.control, *item);
+          = makeFullItemImpl(
+              portModel, layout, *ret.port_item, *ret.control, *item, presentation);
     }
   }
 
@@ -952,7 +1054,7 @@ Process::ControlLayout PortFactory::makeFullItem(
 
 Process::ControlLayout PortFactory::makeFullItem(
     ControlOutlet& portModel, const Process::Context& ctx, QGraphicsItem* parent,
-    QObject* context)
+    QObject* context, const ControlPresentation& presentation)
 {
   Process::ControlLayout ret;
   using namespace score;
@@ -976,7 +1078,8 @@ Process::ControlLayout PortFactory::makeFullItem(
     if(ret.control)
     {
       ret.label
-          = makeFullItemImpl(portModel, layout, *ret.port_item, *ret.control, *item);
+          = makeFullItemImpl(
+              portModel, layout, *ret.port_item, *ret.control, *item, presentation);
     }
   }
   return ret;

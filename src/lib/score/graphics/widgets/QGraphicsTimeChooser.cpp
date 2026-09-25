@@ -187,7 +187,7 @@ void QGraphicsTimeChooser::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   auto& skin = score::Skin::instance();
-  DefaultGraphicsKnobImpl::paint(*this, skin, QString{}, painter, widget);
+  DefaultGraphicsKnobImpl::paint(*this, skin, QString{}, painter, widget, option);
 
   // Readout chip: looks like a small button so the free / sync toggle is
   // discoverable. Filled with a note glyph when synced, outlined when free;

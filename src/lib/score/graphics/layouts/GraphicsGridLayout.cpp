@@ -3,7 +3,11 @@
 #include <algorithm>
 
 #include <score/graphics/layouts/Constants.hpp>
+#include <score/graphics/layouts/GraphicsBoxLayout.hpp>
+#include <score/model/Skin.hpp>
 
+#include <QEvent>
+#include <QFontMetricsF>
 #include <QPainter>
 #include <QPen>
 
@@ -60,12 +64,13 @@ void GraphicsGridColumnsLayout::layout()
     }
   }
 
-  // Make them fit
+  // Make them fit: exactly the cell span, else it overhangs the cell
   for(auto item : items)
   {
     if(auto it = dynamic_cast<score::GraphicsLayout*>(item))
     {
       QRectF cur = it->rect();
+      cur.setTop(-it->pos().y());
       cur.setHeight(cell_h);
       it->setRect(cur);
     }
@@ -124,15 +129,168 @@ void GraphicsGridRowsLayout::layout()
     }
   }
 
-  // Make them fit
+  // Make them fit: exactly the cell span, else it overhangs the cell
   for(auto item : items)
   {
     if(auto it = dynamic_cast<score::GraphicsLayout*>(item))
     {
       QRectF cur = it->rect();
+      cur.setTop(-it->pos().y());
       cur.setHeight(cell_h);
       it->setRect(cur);
     }
+  }
+}
+
+GraphicsTableLayout::~GraphicsTableLayout() { }
+
+void GraphicsTableLayout::setColumnTitles(QStringList titles)
+{
+  m_titles = std::move(titles);
+}
+
+void GraphicsTableLayout::setRowTitles(bool rowTitles)
+{
+  m_rowTitles = rowTitles;
+}
+
+void GraphicsTableLayout::setTitle(QString title)
+{
+  m_title = std::move(title);
+}
+
+void GraphicsTableLayout::setRowsSelectable(bool selectable)
+{
+  m_rowsSelectable = selectable;
+  setFiltersChildEvents(selectable);
+}
+
+bool GraphicsTableLayout::sceneEventFilter(QGraphicsItem* watched, QEvent* event)
+{
+  // Background press, propagated by the row
+  if(event->type() == QEvent::GraphicsSceneMousePress)
+    if(auto row = dynamic_cast<GraphicsSelectableRow*>(watched))
+      row->activate();
+  return false;
+}
+
+QFont GraphicsTableLayout::titleFont()
+{
+  return score::Skin::instance().Medium8Pt;
+}
+
+void GraphicsTableLayout::layout()
+{
+  const auto rows = this->childItems();
+
+  // Measure: each column is as wide as its widest cell
+  std::vector<double> col_w;
+  std::vector<double> row_h;
+  for(auto row : rows)
+  {
+    const auto cells = row->childItems();
+    updateChildrenRects(cells);
+    double h = 0.;
+    for(int c = 0; c < cells.size(); c++)
+    {
+      const auto r = cells[c]->boundingRect();
+      if(std::ssize(col_w) <= c)
+        col_w.push_back(0.);
+      col_w[c] = std::max(col_w[c], r.width());
+      h = std::max(h, r.height());
+    }
+    row_h.push_back(h);
+  }
+
+  // Titles count in column width
+  const QFontMetricsF fm{titleFont()};
+  const int first_titled = m_rowTitles ? 1 : 0;
+  for(int t = 0; t < m_titles.size(); t++)
+  {
+    const int c = t + first_titled;
+    if(std::ssize(col_w) <= c)
+      col_w.push_back(0.);
+    col_w[c] = std::max(col_w[c], fm.horizontalAdvance(m_titles[t]));
+  }
+  if(m_rowTitles && !m_title.isEmpty())
+  {
+    if(col_w.empty())
+      col_w.push_back(0.);
+    QFont tf = titleFont();
+    tf.setCapitalization(QFont::AllUppercase);
+    col_w[0] = std::max(col_w[0], QFontMetricsF{tf}.horizontalAdvance(m_title));
+  }
+  const bool has_header = !m_titles.isEmpty() || (m_rowTitles && !m_title.isEmpty());
+  const double header_h = has_header ? fm.height() + 2. : 0.;
+
+  m_columns.clear();
+  double x = 0.;
+  for(double w : col_w)
+  {
+    m_columns.emplace_back(x, w);
+    x += w + spacing();
+  }
+  const double total_w = col_w.empty() ? 0. : x - spacing();
+
+  // Inset in selectable rows for the highlight
+  const double inset_x = m_rowsSelectable ? 6. : 0.;
+  const double inset_y = m_rowsSelectable ? 2. : 0.;
+
+  // Place: cells centred in their column and row
+  double y = m_padding + header_h;
+  for(int r = 0; r < rows.size(); r++)
+  {
+    auto row = rows[r];
+    const auto cells = row->childItems();
+    for(int c = 0; c < cells.size(); c++)
+    {
+      const auto cr = cells[c]->boundingRect();
+      cells[c]->setPos(
+          inset_x + m_columns[c].first + (m_columns[c].second - cr.width()) / 2.,
+          inset_y + (row_h[r] - cr.height()) / 2.);
+    }
+    const double h = row_h[r] + 2. * inset_y;
+    row->setPos(m_padding - inset_x, y);
+    if(auto lay = dynamic_cast<score::GraphicsLayout*>(row))
+      lay->setRect({0., 0., total_w + 2. * inset_x, h});
+    y += h + (r + 1 < rows.size() ? spacing() : 0.);
+  }
+
+  setRect({0., 0., total_w + 2. * m_padding, y + m_padding});
+}
+
+void GraphicsTableLayout::paint(
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+{
+  GraphicsLayout::paint(painter, option, widget);
+  if(m_columns.empty())
+    return;
+
+  auto& skin = score::Skin::instance();
+  QFont f = titleFont();
+  const QFontMetricsF fm{f};
+  painter->setPen(skin.LightGray.main.pen1);
+  if(m_rowTitles && !m_title.isEmpty())
+  {
+    // Table title, above the row titles
+    QFont tf = f;
+    tf.setCapitalization(QFont::AllUppercase);
+    painter->setFont(tf);
+    painter->drawText(
+        QRectF{m_padding + m_columns[0].first, m_padding, m_columns[0].second, fm.height()},
+        m_title, QTextOption(Qt::AlignLeft | Qt::AlignVCenter));
+  }
+  painter->setFont(f);
+  const int first_titled = m_rowTitles ? 1 : 0;
+  for(int t = 0; t < m_titles.size(); t++)
+  {
+    const int c = t + first_titled;
+    if(c >= std::ssize(m_columns))
+      break;
+    const auto [cx, cw] = m_columns[c];
+    painter->drawText(
+        QRectF{m_padding + cx, m_padding, cw, fm.height()}, m_titles[t],
+        QTextOption(Qt::AlignCenter));
   }
 }
 
