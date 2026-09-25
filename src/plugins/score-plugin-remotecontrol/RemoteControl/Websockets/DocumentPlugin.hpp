@@ -11,12 +11,19 @@
 #include <QtWebSockets/QWebSocketServer>
 
 #include <nano_observer.hpp>
+
+namespace ossia::net
+{
+class device_base;
+class node_base;
+}
 #include <score_plugin_remotecontrol_export.h>
 template <typename T>
 class TreeNode;
 namespace Device
 {
 class DeviceExplorerNode;
+class DeviceInterface;
 using Node = TreeNode<DeviceExplorerNode>;
 }
 namespace Explorer
@@ -105,11 +112,28 @@ public:
 
   const std::vector<WSClient>& clients() const noexcept { return m_clients; }
 
+  //! Called when the device list sets the document's local device
+  void attachLocal(Device::DeviceInterface* local);
+  void detachLocal();
+
 private:
   void on_valueUpdated(const ::State::Address& addr, const ossia::value& v);
 
+  //! Describes what the local device publishes under controls, triggers and conditions
+  QString scriptableMessage() const;
+  void scheduleScriptableMessage();
+
+  //! Each change is its own event so that clients can update their bindings
+  void onLocalRenamed(ossia::net::node_base& node, std::string old);
+  void onLocalRemoving(ossia::net::node_base& node);
+  void onLocalAttribute(ossia::net::node_base& node, const std::string& key);
+
   QWebSocketServer m_server;
   std::vector<WSClient> m_clients;
+  bool m_scriptableScheduled{};
+  ossia::net::device_base* m_local{};
+  Device::DeviceInterface* m_localInterface{};
+  std::vector<QMetaObject::Connection> m_localConnections;
 
   Explorer::DeviceDocumentPlugin& m_dev;
   std::list<Path<Scenario::TimeSyncModel>> m_activeSyncs;
