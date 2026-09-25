@@ -317,6 +317,30 @@ public:
           x11.Free(data);
       }
     }
+
+    // No window manager publishes a client list (a bare X server, as in a
+    // kiosk or under Xvfb): the top-level windows are the root's children.
+    if(!found)
+    {
+      Window rootRet{}, parentRet{};
+      Window* children{};
+      unsigned int count{};
+      if(x11.QueryTree(dpy, root, &rootRet, &parentRet, &children, &count) && children)
+      {
+        for(unsigned int i = 0; i < count; i++)
+        {
+          XWindowAttributes attrs{};
+          if(!x11.GetWindowAttributes(dpy, children[i], &attrs)
+             || attrs.map_state != IsViewable)
+            continue;
+          std::string name = getWindowName(x11, dpy, children[i]);
+          if(!name.empty())
+            result.push_back({std::move(name), children[i]});
+        }
+        x11.Free(children);
+      }
+    }
+
     x11.CloseDisplay(dpy);
     return result;
   }

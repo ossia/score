@@ -24,6 +24,8 @@
 #include <score/serialization/MimeVisitor.hpp>
 
 #include <ossia/audio/audio_parameter.hpp>
+
+#include <cstring>
 #include <ossia/network/generic/generic_node.hpp>
 
 #include <ossia-qt/name_utils.hpp>
@@ -266,6 +268,23 @@ struct GStreamerOutputNode : score::gfx::OutputNode
       setBool(m_audio_src, "is-live", true);
       setBool(m_audio_src, "do-timestamp", true);
       setInt(m_audio_src, "format", 3); // GST_FORMAT_TIME
+    }
+
+    // Say what the samples are: the engine's floats at the engine's rate.
+    // Without caps an appsrc sends no CAPS event, so the first buffer fails
+    // to negotiate as soon as any element sits between it and a capsfilter,
+    // and a pipeline has no way to resample from the right rate.
+    if(m_audio_src && gst.caps_from_string && gst.app_src_set_caps)
+    {
+      const int rate = score::AppContext().settings<Audio::Settings::Model>().getRate();
+      auto capsStr = QString("audio/x-raw,format=F32LE,layout=interleaved,rate=%1,channels=%2")
+                         .arg(rate > 0 ? rate : 48000)
+                         .arg(std::max(1, m_settings.audio_channels));
+      if(GstCaps* caps = gst.caps_from_string(capsStr.toStdString().c_str()))
+      {
+        gst.app_src_set_caps(m_audio_src, caps);
+        gst.caps_unref(caps);
+      }
     }
 
     // Detect target pixel format by querying pad caps downstream of appsrc.
@@ -535,8 +554,8 @@ struct GStreamerOutputNode : score::gfx::OutputNode
 
     auto& gst = libgstreamer::instance();
 
-    // Convert float to S16LE for GStreamer
-    int size = num_samples * channels * sizeof(int16_t);
+    // F32LE, as announced in the appsrc caps
+    const std::size_t size = std::size_t(num_samples) * channels * sizeof(float);
     GstBuffer* buffer = gst.buffer_new_allocate(nullptr, size, nullptr);
     if(!buffer)
       return;
@@ -544,14 +563,7 @@ struct GStreamerOutputNode : score::gfx::OutputNode
     GstMapInfo map{};
     if(gst.buffer_map(buffer, &map, GST_MAP_WRITE))
     {
-      auto* dst = reinterpret_cast<int16_t*>(map.data);
-      for(int i = 0; i < num_samples * channels; i++)
-      {
-        float s = interleaved[i];
-        if(s > 1.f) s = 1.f;
-        if(s < -1.f) s = -1.f;
-        dst[i] = (int16_t)(s * 32767.f);
-      }
+      std::memcpy(map.data, interleaved, size);
       gst.buffer_unmap(buffer, &map);
     }
 
@@ -563,7 +575,15 @@ struct GStreamerOutputNode : score::gfx::OutputNode
   bool canRender() const override { return true; }
   void startRendering() override { start_pipeline(); }
   void onRendererChange() override { }
-  void stopRendering() override { stop_pipeline(); }
+  // Graph::createAllRenderLists stops and restarts every output around each
+  // topology rebuild - a cable added, an output added. The stream has to
+  // outlive that: taking the pipeline to NULL dropped every client of a
+  // server sink, left a webrtcsink unregistered from its signaller, and sent
+  // a recording EOS - finalizing the file - before starting a new one over
+  // it. The pipeline lives from createOutput() to destroyOutput(), as the
+  // shmdata, sh4lt, PipeWire and NDI outputs do; start_pipeline() is
+  // idempotent.
+  void stopRendering() override { }
 
   void render() override
   {
@@ -878,26 +898,32 @@ public:
 
   void push_value(const ossia::audio_port& mixed) noexcept override
   {
-    auto min_chan = std::min(mixed.channels(), (std::size_t)audio.size());
-    if(min_chan == 0)
+    const auto out_chan = (std::size_t)audio.size();
+    const auto in_chan = std::min(mixed.channels(), out_chan);
+    if(in_chan == 0)
       return;
 
-    int num_samples = mixed.channel(0).size();
+    // Channels are not all the same length: take the longest as the frame
+    // count and read each only up to its own size.
+    std::size_t num_samples = 0;
+    for(std::size_t ch = 0; ch < in_chan; ch++)
+      num_samples = std::max(num_samples, mixed.channel(ch).size());
     if(num_samples == 0)
       return;
 
-    // Interleave channels for GStreamer
-    m_interleaved.resize(num_samples * min_chan);
-    for(int s = 0; s < num_samples; s++)
+    // The appsrc caps are fixed when the pipeline is parsed, so the frame must
+    // always carry out_chan channels whatever the port provides: interleave
+    // into a zeroed buffer and leave the missing channels silent.
+    m_interleaved.assign(num_samples * out_chan, 0.f);
+    for(std::size_t ch = 0; ch < in_chan; ch++)
     {
-      for(std::size_t ch = 0; ch < min_chan; ch++)
-      {
-        m_interleaved[s * min_chan + ch]
-            = float(mixed.channel(ch)[s] * m_gain);
-      }
+      const auto& src = mixed.channel(ch);
+      const auto n = std::min(num_samples, src.size());
+      for(std::size_t s = 0; s < n; s++)
+        m_interleaved[s * out_chan + ch] = float(src[s] * m_gain);
     }
 
-    m_node.push_audio_frame(m_interleaved.data(), num_samples, min_chan);
+    m_node.push_audio_frame(m_interleaved.data(), (int)num_samples, (int)out_chan);
   }
 
 private:

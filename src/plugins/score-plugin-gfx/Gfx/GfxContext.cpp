@@ -849,12 +849,24 @@ void GfxContext::run_commands()
         case NodeCommand::REMOVE_NODE: {
           if(auto node_it = nodes.find(cmd.index); node_it != nodes.end())
           {
-            bool is_output = dynamic_cast<score::gfx::OutputNode*>(node_it->second.get());
+            auto* output
+                = dynamic_cast<score::gfx::OutputNode*>(node_it->second.get());
+            const bool is_output = output != nullptr;
             if(!is_output)
             {
               // Incremental removal: clean up edges, renderers, retopo sort.
               // Must happen BEFORE remove_node deletes the node.
               m_graph->removeNodeAndEdges(node_it->second.get());
+            }
+            else if(ossia::contains(m_graph->outputs(), output))
+            {
+              // Release what the output holds outside the process - a port,
+              // a socket, a sender or node name - now, and not when the
+              // nursery frees the node 100 ms later: a replacement created in
+              // the same tick (a document loaded over an open one) would find
+              // them taken and never start. Same teardown as the synchronous
+              // destroyOutput() path; a preview output already had it.
+              m_graph->destroyOutputRenderList(*output);
             }
             remove_node(nursery, cmd.index);
             if(is_output)

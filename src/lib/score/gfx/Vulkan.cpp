@@ -35,7 +35,12 @@ QVulkanInstance* staticVulkanInstance(bool create)
     const int validationLevel
         = qEnvironmentVariableIntValue("SCORE_GPU_VALIDATION");
 #if !defined(NDEBUG)
-    const bool enableValidation = true;
+    // On by default in a debug build, but an explicit SCORE_GPU_VALIDATION=0
+    // wins: the layer costs memory and time, and a long run sometimes has to
+    // be made without it. An empty value counts as unset.
+    const bool enableValidation = qEnvironmentVariableIsEmpty("SCORE_GPU_VALIDATION")
+                                      ? true
+                                      : validationLevel > 0;
 #else
     const bool enableValidation = validationLevel > 0;
 #endif

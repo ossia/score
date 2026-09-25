@@ -156,4 +156,33 @@ inline void classify_from_pipeline_string(
   }
 }
 
+/**
+ * @brief The pipeline with the given audio appsinks fed through a resampler.
+ *
+ * The engine reads an appsink's samples at its own rate, whatever rate the
+ * pipeline produces them at: a 48 kHz pipeline into a 44.1 kHz engine plays
+ * 8% flat. Each listed sink gets `audioconvert ! audioresample` and caps for
+ * F32LE at `rate` in front of it, so the samples arrive at the engine's rate
+ * in the format it reads.
+ *
+ * Only a sink linked with `!` is handled; one linked by name elsewhere in the
+ * description would be left with an unlinked converter in front of it.
+ */
+inline std::string resample_audio_sinks(
+    const std::string& pipeline, const std::vector<std::string>& audio_sinks, int rate)
+{
+  std::vector<std::size_t> positions;
+  for(auto m : ctre::search_all<appsink_name_rexp>(pipeline))
+    if(std::ranges::find(audio_sinks, m.get<1>().to_string()) != audio_sinks.end())
+      positions.push_back(std::distance(pipeline.begin(), m.get<0>().begin()));
+
+  const std::string converter = "audioconvert ! audioresample ! "
+                                "audio/x-raw,format=F32LE,rate="
+                                + std::to_string(rate) + " ! ";
+  std::string res = pipeline;
+  for(auto it = positions.rbegin(); it != positions.rend(); ++it)
+    res.insert(*it, converter);
+  return res;
+}
+
 }

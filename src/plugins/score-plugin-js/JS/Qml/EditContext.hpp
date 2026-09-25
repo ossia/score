@@ -61,6 +61,12 @@ public:
   QObject* device(QString name);
   W_SLOT(device)
 
+  //! An existing device's settings as a JS object - {Name, Protocol} plus the
+  //! protocol's own keys, as the document saves them. createDevice() accepts
+  //! the same object, taking the name and protocol from its own arguments.
+  QVariant deviceSettings(QString name);
+  W_SLOT(deviceSettings)
+
   QString deviceToJson(QString addr);
   W_SLOT(deviceToJson)
 
@@ -147,6 +153,10 @@ public:
 
   void setName(QObject* sel, QString new_name);
   W_SLOT(setName)
+
+  //! Set an object's comment, as an undoable command.
+  void setComment(QObject* sel, QString comment);
+  W_SLOT(setComment)
 
   QObject* createBox(QObject* obj, QString startTime, QString duration, double y);
   W_SLOT(createBox, (QObject*, QString, QString, double))
@@ -253,6 +263,11 @@ public:
   void setAddress(QObject* obj, QString addr);
   W_SLOT(setAddress)
 
+  //! Whether an audio outlet is cabled to its parent interval. An outlet
+  //! writes to its address only when nothing is cabled to it.
+  void setPropagate(QObject* obj, bool propagate);
+  W_SLOT(setPropagate)
+
   void setValue(QObject* obj, double value);
   W_SLOT(setValue, (QObject*, double))
 
@@ -282,6 +297,20 @@ public:
 
   void setValue(QObject* obj, QList<QVariant> value);
   W_SLOT(setValue, (QObject*, QList<QVariant>))
+
+  /**
+   * An edit still in progress, such as a slider being dragged: every call of
+   * one gesture updates the same command, and commitEdit() puts it on the
+   * undo stack as one step - what score's own control widgets do between
+   * press and release. Editing another control first commits the previous
+   * edit, so a gesture whose end was lost does not leak into the next one.
+   */
+  void editValue(QObject* obj, QVariant value);
+  W_SLOT(editValue)
+
+  //! Put the edit in progress on the undo stack; nothing if there is none.
+  void commitEdit();
+  W_SLOT(commitEdit)
 
   QString portName(QObject* port);
   W_SLOT(portName)
@@ -367,14 +396,58 @@ public:
   void startMacro();
   W_SLOT(startMacro)
 
+  //! Run `fn` in a macro, committed even if the script errors. A nested call
+  //! joins the enclosing macro. startMacro()/endMacro() by hand is not
+  //! exception-safe, and startMacro() overwrites an open macro, rolling back
+  //! what it had already applied.
+  void withMacro(QJSValue fn);
+  W_SLOT(withMacro)
+
   void endMacro();
   W_SLOT(endMacro)
+
+  //! Register the handler `fn` that pushCommand("name", ...) replays against.
+  //! Registering a name twice replaces it.
+  void registerCommandHandler(QString name, QJSValue fn);
+  W_SLOT(registerCommandHandler)
+
+  //! Push an undoable edit the engine knows nothing about - state that lives
+  //! in the script or outside the process. The payloads are JSON-serialisable
+  //! values handed back to the handler on redo and on undo; the command stores
+  //! them rather than closures, so it survives the crash-recovery backup.
+  //! Pushing applies the edit: the redo payload is replayed immediately, and
+  //! inside an open macro it undoes together with the engine edits around it.
+  void pushCommand(QString name, QJSValue undoPayload, QJSValue redoPayload);
+  W_SLOT(pushCommand)
 
   void undo();
   W_SLOT(undo)
 
   void redo();
   W_SLOT(redo)
+
+  //! Undo-stack introspection. Mirroring the stack script-side desynchronises
+  //! as soon as a macro commits nothing, or a document is loaded behind it.
+  bool canUndo();
+  W_SLOT(canUndo)
+
+  bool canRedo();
+  W_SLOT(canRedo)
+
+  //! Number of commands that can still be undone (the stack's current index).
+  int undoIndex();
+  W_SLOT(undoIndex)
+
+  //! Total number of commands on the stack.
+  int undoCount();
+  W_SLOT(undoCount)
+
+  //! Description of the command the next undo()/redo() would apply, or "".
+  QString undoText();
+  W_SLOT(undoText)
+
+  QString redoText();
+  W_SLOT(redoText)
 
   void load(QString path);
   W_SLOT(load)

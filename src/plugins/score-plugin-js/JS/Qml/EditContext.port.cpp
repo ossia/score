@@ -1,6 +1,7 @@
 #include <State/Domain.hpp>
 
 #include <Process/Commands/EditPort.hpp>
+#include <Process/Commands/SetControlValue.hpp>
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/Port.hpp>
 
@@ -268,6 +269,21 @@ void EditJsContext::setAddress(QObject* obj, QString addr)
   m->setProperty<Process::Port::p_address>(*proc, std::move(*a));
 }
 
+void EditJsContext::setPropagate(QObject* obj, bool propagate)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+  auto port = qobject_cast<Process::AudioOutlet*>(obj);
+  if(!port)
+    return;
+  if(port->propagate() == propagate)
+    return;
+
+  auto [m, _] = macro(*doc);
+  m->submit(new Process::SetPropagate{*port, propagate});
+}
+
 void EditJsContext::setValue(QObject* obj, double value)
 {
   auto doc = ctx();
@@ -399,6 +415,25 @@ void EditJsContext::setValue(QObject* obj, QList<QVariant> value)
 
   auto [m, _] = macro(*doc);
   m->setProperty<Process::ControlInlet::p_value>(*port, ossia::qt::qt_to_ossia{}(value));
+}
+
+void EditJsContext::editValue(QObject* obj, QVariant value)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+  auto port = qobject_cast<Process::ControlInlet*>(obj);
+  if(!port)
+    return;
+
+  doc->dispatcher.submit<Process::SetControlValue>(
+      *port, ossia::qt::qt_to_ossia{}(value));
+}
+
+void EditJsContext::commitEdit()
+{
+  if(auto doc = ctx())
+    doc->dispatcher.commit();
 }
 
 double EditJsContext::min(QObject* obj)

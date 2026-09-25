@@ -200,3 +200,32 @@ TEST_CASE("framerate= never contributes to an audio sink's rate", "[unit][gstrea
           .rate
       == 96000);
 }
+
+TEST_CASE("audio appsinks are fed through a resampler to the engine rate", "[unit][gstreamer]")
+{
+  const std::string p = "audiotestsrc ! audio/x-raw,rate=48000 ! appsink name=a "
+                        "videotestsrc ! appsink name=v";
+  const auto r = resample_audio_sinks(p, {"a"}, 44100);
+  CHECK(
+      r
+      == "audiotestsrc ! audio/x-raw,rate=48000 ! audioconvert ! audioresample ! "
+         "audio/x-raw,format=F32LE,rate=44100 ! appsink name=a "
+         "videotestsrc ! appsink name=v");
+
+  // the rate the engine will see is the one it asked for
+  AppsinkInfo info;
+  classify_from_pipeline_string(r, "a", info);
+  CHECK(!info.is_video);
+  CHECK(info.rate == 44100);
+
+  // several sinks, and properties before the name
+  const auto r2 = resample_audio_sinks(
+      "a ! appsink sync=false name=x b ! appsink name=y", {"x", "y"}, 96000);
+  CHECK(
+      r2
+      == "a ! audioconvert ! audioresample ! audio/x-raw,format=F32LE,rate=96000 ! "
+         "appsink sync=false name=x b ! audioconvert ! audioresample ! "
+         "audio/x-raw,format=F32LE,rate=96000 ! appsink name=y");
+
+  CHECK(resample_audio_sinks(p, {}, 44100) == p);
+}

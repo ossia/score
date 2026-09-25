@@ -830,6 +830,16 @@ if(TARGET score_plugin_engine)
     SOURCES ExecutionResetAfterCloseTest.cpp
     APP
     PLUGINS score_plugin_engine score_plugin_scenario)
+
+  # A removed device's addresses are dropped out of the execution graph by a
+  # queued command, so it runs after that device - and any other removed
+  # since - may already be gone. Matching has to be pointer identity against a
+  # snapshot taken while the device was alive: asking a port's stored address
+  # which device it belongs to faults on exactly the stale addresses the
+  # cleanup exists to drop.
+  score_add_test(test_unit_device_address_cleanup
+    SOURCES DeviceAddressCleanupTest.cpp
+    PLUGINS score_plugin_engine)
 endif()
 # The addresses a port's combo box lists: which devices are walked (their
 # declared node kinds) and which nodes qualify for each port type / direction.
@@ -868,6 +878,13 @@ if(TARGET score_plugin_gfx AND TARGET score_plugin_media)
 
   score_add_test(test_unit_gstreamer_audio_buffer
     SOURCES GStreamerAudioBufferTest.cpp
+    PLUGINS score_plugin_gfx)
+endif()
+
+# Which window or screen a capture device opens from its stored id and title.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_window_capture_resolve
+    SOURCES WindowCaptureResolveTest.cpp
     PLUGINS score_plugin_gfx)
 endif()
 
