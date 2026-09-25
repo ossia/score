@@ -859,42 +859,33 @@ static QVarLengthArray<QRhiGraphicsPipeline::TargetBlend, 4> rasterSeedBlends(
   return blends;
 }
 
-static void applyDeclaredGrabSamplers(
-    QRhi& rhi, const ISFNode& node, std::vector<Sampler>& samplers)
+// The generated vertex epilogue mirrors Y on D3D and Metal, and on Vulkan for a
+// pass rendering cube faces, which reverses window-space winding and so inverts
+// which faces a given FrontFace culls. ModelDisplayNode compensates the same
+// mirror the same way; without it a culled model shows its far faces through
+// its near ones, which reads as an inverted depth test rather than as a winding
+// bug.
+static void compensateEpilogueMirror(
+    QRhiGraphicsPipeline& ps, score::gfx::GraphicsApi api, const isf::descriptor& desc)
 {
-  std::vector<const isf::sampler_config*> cfgs(node.input.size(), nullptr);
-  walk_descriptor_inputs(
-      node.descriptor(), port_counts{1, 0, 0},
-      [&](const isf::input& inp, const port_counts& before, const port_counts& delta) {
-    if(delta.inlets < 1 || before.inlets >= (int)cfgs.size())
-      return;
-    if(auto* im = ossia::get_if<isf::image_input>(&inp.data))
-      cfgs[before.inlets] = &im->sampler;
-    else if(auto* cm = ossia::get_if<isf::cubemap_input>(&inp.data))
-      cfgs[before.inlets] = &cm->sampler;
-  });
-
-  std::size_t slot = 0;
-  for(std::size_t port = 0; port < node.input.size() && slot < samplers.size(); ++port)
+  bool mirrored = false;
+  switch(api)
   {
-    const Port& in = *node.input[port];
-    if(in.type != Types::Image)
-      continue;
-    const bool grabs = (in.flags & Flag::GrabsFromSource) == Flag::GrabsFromSource;
-    if(grabs && cfgs[port])
-    {
-      isf::sampler_config cfg = *cfgs[port];
-      if(cfg.mipmap_mode.empty() && (in.flags & Flag::Cubemap) == Flag::Cubemap)
-        cfg.mipmap_mode = "linear";
-      QRhiSampler* sampler = makeSampler(rhi, cfg);
-      sampler->setName("initInputSamplers::grabs_sampler");
-      delete samplers[slot].sampler;
-      samplers[slot].sampler = sampler;
-    }
-    ++slot;
-    if(!grabs && (in.flags & Flag::SamplableDepth) == Flag::SamplableDepth)
-      ++slot;
+    case score::gfx::D3D11:
+    case score::gfx::D3D12:
+    case score::gfx::Metal:
+      mirrored = true;
+      break;
+    case score::gfx::Vulkan:
+      mirrored = isf::renders_cube_faces(desc);
+      break;
+    default:
+      break;
   }
+  if(mirrored && ps.cullMode() != QRhiGraphicsPipeline::None)
+    ps.setFrontFace(
+        ps.frontFace() == QRhiGraphicsPipeline::CCW ? QRhiGraphicsPipeline::CW
+                                                    : QRhiGraphicsPipeline::CCW);
 }
 
 static bool auxPlaceholderZeroFillDisabled() noexcept
@@ -1328,24 +1319,7 @@ void RenderedRawRasterPipelineNode::initPass(
     SCORE_ASSERT(renderTarget.renderPass);
     ps->setRenderPassDescriptor(renderTarget.renderPass);
 
-    // The generated vertex epilogue mirrors Y on D3D and Metal, which reverses
-    // window-space winding and so inverts which faces a given FrontFace culls.
-    // ModelDisplayNode compensates the same mirror the same way; without it a
-    // culled model shows its far faces through its near ones, which reads as an
-    // inverted depth test rather than as a winding bug.
-    switch(renderer.state.api)
-    {
-      case score::gfx::D3D11:
-      case score::gfx::D3D12:
-      case score::gfx::Metal:
-        if(ps->cullMode() != QRhiGraphicsPipeline::None)
-          ps->setFrontFace(
-              ps->frontFace() == QRhiGraphicsPipeline::CCW ? QRhiGraphicsPipeline::CW
-                                                           : QRhiGraphicsPipeline::CCW);
-        break;
-      default:
-        break;
-    }
+    compensateEpilogueMirror(*ps, renderer.state.api, n.descriptor());
 
     // A mesh whose geometry was filtered away has an empty vertex-input layout,
     // which cannot satisfy a vertex shader that declares inputs
@@ -2525,6 +2499,8 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     SCORE_ASSERT(pipelineRP);
     ps->setRenderPassDescriptor(pipelineRP);
 
+    compensateEpilogueMirror(*ps, renderer.state.api, n.descriptor());
+
     // A mesh whose geometry was filtered away has an empty vertex-input layout,
     // which cannot satisfy a vertex shader that declares inputs
     // (VUID-VkGraphicsPipelineCreateInfo-Input-07904), and there is nothing to
@@ -2685,7 +2661,6 @@ void RenderedRawRasterPipelineNode::initState(
   SCORE_ASSERT(m_audioSamplers.empty());
 
   m_inputSamplers = initInputSamplers(this->n, renderer, n.input, &n.descriptor());
-  applyDeclaredGrabSamplers(rhi, n, m_inputSamplers);
   m_storageImageSamplers = storageImageInputSamplers(
       n.descriptor(), n.input, n.descriptor().mode == isf::descriptor::RawRaster ? 1 : 0);
   warnStorageImageUnits(rhi, "raw raster", {&n.m_vertexS, &n.m_fragmentS});

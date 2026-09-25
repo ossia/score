@@ -2221,3 +2221,36 @@ endif()
 # A raw raster reads a PER_LAYER depth array through an IS_ARRAY image input
 # with the sampler its INPUTS entry declares.
 score_add_gfx_test(rawraster_depth_array_input_e3 GfxRawRasterDepthArrayInputE3.cpp)
+
+# Raw-raster cube captures (camera-driven and NDC-derived, multiview and
+# PER_CUBE_FACE) land in GL cube-map face order on every backend (agent CB).
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  set(_cfo_cb_c "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
+  score_plugin_hidden_sources(_cfo_cb_hidden
+      "${_cfo_cb_c}/Primitive.cpp"
+      "${_cfo_cb_c}/Camera.cpp"
+      "${_cfo_cb_c}/CameraArray.cpp")
+  score_add_test(test_gfx_cube_face_orientation_cb
+    SOURCES
+      GfxCubeFaceOrientationCB.cpp
+      ${_cfo_cb_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_cube_face_orientation_cb PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_cube_face_orientation_cb SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
+# An image input after an INPUTS entry that creates no input port (write-only
+# storage) gets the sampler it declares (agent CB).
+score_add_gfx_test(input_sampler_port_map_cb GfxInputSamplerPortMapCB.cpp)

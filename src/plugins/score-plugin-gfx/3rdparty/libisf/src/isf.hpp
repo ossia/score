@@ -1115,6 +1115,12 @@ bool depth_nearer_is_greater(const descriptor& d) noexcept;
 SCORE_PLUGIN_GFX_EXPORT
 bool draws_transparent(const descriptor& d) noexcept;
 
+// Whether a raw raster renders into the faces of a cube OUTPUT. Its clip-space
+// y is then negated on every backend whose clip space is not y-up, so that the
+// faces land in the order of the GL cube-map face table.
+SCORE_PLUGIN_GFX_EXPORT
+bool renders_cube_faces(const descriptor& d) noexcept;
+
 // Whether a pipeline state declares BLEND or BLEND_PER_ATTACHMENT.
 SCORE_PLUGIN_GFX_EXPORT
 bool declares_blend(const pipeline_state& s) noexcept;

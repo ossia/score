@@ -3,8 +3,9 @@
 // Equirectangular (EquirectToCubemap): the synthetic 2:1 panorama is coloured
 // by direction, with |latitude| > 30 degrees giving +Y (top rows) / -Y (bottom
 // rows) and the equator split into four longitude quadrants centred on
-// +X (u = 0.5), +Z (u = 0.75), -X (u = 0 / 1) and -Z (u = 0.25), from the
-// converter's own mapping u = atan2(z, x) / 2pi + 0.5, v = 0.5 - asin(y) / pi.
+// -Z (u = 0.5), +X (u = 0.75), +Z (u = 0 / 1) and -X (u = 0.25), from the
+// mapping the Cubemap Loader and cubemap_view share,
+// u = atan2(x, -z) / 2pi + 0.5, v = 0.5 - asin(y) / pi.
 // Each face centre must read its own colour. Before the fix all six faces read
 // the -Z colour (one Dynamic UBO written six times in one frame), and +Y / -Y
 // were swapped (the panorama was sampled upside down). The top and bottom rows
@@ -15,7 +16,9 @@
 // with its own colour and the white corner at texel (0, 0), at the source face
 // size (Cube face size 0, the default) and at a requested size. Before the fix
 // the raw image was uploaded as six consecutive chunks, reading past the end
-// of the decoded buffer.
+// of the decoded buffer. The vertical cross stores its -Z cell rotated by 180
+// degrees, as the Cubemap Loader reads it, so that cell's white marker sits at
+// its bottom-right corner and still has to come back at texel (0, 0).
 //
 // Registration: see the test_gfx_academy_texture_loader_cube_fixa target.
 #include <score_test/Gfx.hpp>
@@ -183,7 +186,7 @@ Faces run_loader(
   return f;
 }
 
-// The converter's own mapping: u = atan2(z, x) / 2pi + 0.5, v = 0.5 - lat / pi.
+// The converter's mapping: u = atan2(x, -z) / 2pi + 0.5, v = 0.5 - lat / pi.
 QImage make_equirect(int w, int h)
 {
   QImage img(w, h, QImage::Format_RGBA8888);
@@ -199,13 +202,13 @@ QImage make_equirect(int w, int h)
       else if(v > 2. / 3.)
         face = 3;
       else if(u < 0.125 || u >= 0.875)
-        face = 1;
-      else if(u < 0.375)
-        face = 5;
-      else if(u < 0.625)
-        face = 0;
-      else
         face = 4;
+      else if(u < 0.375)
+        face = 1;
+      else if(u < 0.625)
+        face = 5;
+      else
+        face = 0;
       const auto& c = kFace[face];
       img.setPixelColor(x, y, QColor(c[0], c[1], c[2], c[3]));
     }
@@ -243,7 +246,10 @@ QImage make_layout(Academy::CubemapLayoutHint layout, int F)
       for(int x = 0; x < F; ++x)
         img.setPixelColor(
             cx[face] * F + x, cy[face] * F + y, QColor(c[0], c[1], c[2], c[3]));
-    img.setPixelColor(cx[face] * F, cy[face] * F, QColor(255, 255, 255, 255));
+    const bool rotated = layout == Academy::CubemapLayoutHint::VerticalCross && face == 5;
+    const int corner = rotated ? F - 1 : 0;
+    img.setPixelColor(
+        cx[face] * F + corner, cy[face] * F + corner, QColor(255, 255, 255, 255));
   }
   return img;
 }

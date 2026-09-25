@@ -2529,6 +2529,13 @@ bool draws_transparent(const descriptor& d) noexcept
   return d.layer.enabled();
 }
 
+bool renders_cube_faces(const descriptor& d) noexcept
+{
+  return std::any_of(d.outputs.begin(), d.outputs.end(), [](const output_declaration& o) {
+    return o.is_cubemap;
+  });
+}
+
 static std::string isf_depth_convention(const descriptor& d)
 {
   const bool greater = depth_nearer_is_greater(d);
@@ -5407,7 +5414,10 @@ void parser::parse_raw_raster_pipeline()
     m_vertex += "  isf_ViewIndexVarying = gl_ViewIndex;\n";
   m_vertex += "}\n";
   m_vertex += "void isf_vertShaderFinish()\n{\n";
-  m_vertex += "#if defined(QSHADER_HLSL) || defined(QSHADER_MSL)\n";
+  if(renders_cube_faces(m_desc))
+    m_vertex += "#if defined(QSHADER_HLSL) || defined(QSHADER_MSL) || defined(QSHADER_SPIRV)\n";
+  else
+    m_vertex += "#if defined(QSHADER_HLSL) || defined(QSHADER_MSL)\n";
   m_vertex += "  gl_Position.y = -gl_Position.y;\n";
   m_vertex += "#endif\n";
   m_vertex += "}\n";

@@ -1,4 +1,5 @@
 #include <Gfx/Graph/ISFNode.hpp>
+#include <Gfx/Graph/ISFVisitors.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/PipelineStateHelpers.hpp>
@@ -1683,25 +1684,27 @@ std::vector<Sampler> initInputSamplers(
   std::vector<Sampler> samplers;
   QRhi& rhi = *renderer.state.rhi;
 
-  // Per-port sampler-config lookup. The descriptor's `inputs` list is in
-  // 1:1 order with the Port array constructed by ISFNode's visitor, so
-  // we can walk it in lockstep and capture each image_input's
-  // sampler_config. Used by the GrabsFromSource branch below to honor
-  // shader-declared WRAP/FILTER on array / 3D textures; without it those are
-  // hardcoded to ClampToEdge, which is wrong for any glTF whose UVs go outside
-  // [0,1].
+  // Per-port sampler-config lookup, indexed by the input port each image or
+  // cubemap INPUTS entry creates (walk_descriptor_inputs mirrors ISFNode's
+  // port creation: a raw raster's port 0 is its geometry input, and write-only
+  // storage or images create no input port). Used by the GrabsFromSource
+  // branch below to honor shader-declared WRAP/FILTER on array / 3D textures;
+  // without it those are hardcoded to ClampToEdge, which is wrong for any glTF
+  // whose UVs go outside [0,1].
   std::vector<const isf::sampler_config*> port_sampler_cfg(ports.size(), nullptr);
   if(desc)
   {
-    const std::size_t N = std::min(ports.size(), desc->inputs.size());
-    for(std::size_t i = 0; i < N; ++i)
-    {
-      const auto& inp = desc->inputs[i];
+    const int first = desc->mode == isf::descriptor::RawRaster ? 1 : 0;
+    walk_descriptor_inputs(
+        *desc, port_counts{first, 0, 0},
+        [&](const isf::input& inp, const port_counts& before, const port_counts& delta) {
+      if(delta.inlets < 1 || before.inlets >= (int)port_sampler_cfg.size())
+        return;
       if(auto* im = ossia::get_if<isf::image_input>(&inp.data))
-        port_sampler_cfg[i] = &im->sampler;
+        port_sampler_cfg[before.inlets] = &im->sampler;
       else if(auto* cm = ossia::get_if<isf::cubemap_input>(&inp.data))
-        port_sampler_cfg[i] = &cm->sampler;
-    }
+        port_sampler_cfg[before.inlets] = &cm->sampler;
+    });
   }
 
   int cur_port = 0;
