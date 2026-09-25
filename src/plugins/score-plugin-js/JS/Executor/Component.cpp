@@ -2,6 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Component.hpp"
 
+#include <LocalTree/LocalTreeDocumentPlugin.hpp>
+
 #include "CPUNode.hpp"
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
@@ -44,9 +46,22 @@ Component::Component(
 
   if(!isGpu)
   {
+    auto& tree = ctx.doc.plugin<LocalTree::DocumentPlugin>();
     std::shared_ptr<js_node> node
-        = ossia::make_node<js_node>(*ctx.execState, *ctx.execState);
+        = ossia::make_node<js_node>(*ctx.execState, *ctx.execState, tree.snapshot());
     this->node = node;
+
+    // The old names go back to the GUI thread to be released
+    connect(
+        &tree, &LocalTree::ScriptableTreeBase::snapshotChanged, this,
+        [this, node, &tree] {
+      in_exec([node, names = tree.snapshot(), gcq = weak_gc]() mutable {
+        std::swap(node->m_names, names);
+        node->m_namesChanged = true;
+        if(auto q = gcq.lock())
+          q->enqueue(Execution::gc(std::move(names)));
+      });
+    });
 
     // FIXME also process in this GPU
     node->m_modelState = element.state();

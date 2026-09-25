@@ -27,12 +27,18 @@ namespace ossia::qt
 class qml_engine_functions;
 }
 
+namespace LocalTree
+{
+struct ScriptableSnapshot;
+}
 namespace JS
 {
 class SCORE_PLUGIN_JS_EXPORT js_node final : public ossia::graph_node
 {
 public:
-  explicit js_node(ossia::execution_state& st);
+  js_node(
+      ossia::execution_state& st,
+      std::shared_ptr<const LocalTree::ScriptableSnapshot> names);
   ~js_node();
 
   [[nodiscard]] std::string label() const noexcept override { return "javascript"; }
@@ -57,6 +63,12 @@ public:
   std::vector<std::pair<MidiOutlet*, ossia::outlet_ptr>> m_midOutlets;
   JS::Script* m_object{};
   ossia::qt::qml_engine_functions* m_execFuncs{};
+  //! Replaced from the GUI thread through the execution queue
+  std::shared_ptr<const LocalTree::ScriptableSnapshot> m_names;
+  //! Device caches address lookups
+  bool m_namesChanged{};
+  //! Score.Controls, Triggers and Conditions of this process
+  QJSValue m_namespaces;
   std::optional<QJSValueList> m_tickCall;
   QPointer<QObject> m_uiContext;
   QPointer<JS::ProcessModel> m_modelContext;

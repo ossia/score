@@ -20,6 +20,7 @@
 #include <JS/Qml/EditContext.hpp>
 #include <JS/Qml/QmlObjects.hpp>
 #include <JS/Qml/QmlProcess.hpp>
+#include <JS/Qml/ScriptableNames.hpp>
 #include <JS/Qml/TextureSource.hpp>
 #include <JS/Qml/Utils.hpp>
 #include <JS/Qml/ValueTypes.Qt6.hpp>
@@ -156,6 +157,11 @@ score_plugin_js::score_plugin_js()
       [](QQmlEngine*, QJSEngine*) -> QObject* {
           return new JS::EditJsContext();
       });
+  for(const char* ns : {"Controls", "Triggers", "Conditions"})
+    qmlRegisterSingletonType(
+        "Score", 1, 0, ns, [ns = QString::fromLatin1(ns)](QQmlEngine*, QJSEngine* e) {
+      return JS::ScriptableNames::makeSingleton(*e, ns);
+    });
 
   qmlRegisterType<JS::AddressSource>("Score.UI", 1, 0, "AddressSource");
   qmlRegisterType<JS::PortSource>("Score.UI", 1, 0, "PortSource");

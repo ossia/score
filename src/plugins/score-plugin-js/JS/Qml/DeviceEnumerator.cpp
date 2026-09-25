@@ -249,10 +249,8 @@ void DeviceListener::init()
 {
   auto& plug = ctx->plugin<Explorer::DeviceDocumentPlugin>();
   auto& list = plug.list();
-  for(auto& dev : list.devices())
-  {
-    on_deviceAdded(*dev);
-  }
+  // All devices, including the local and audio ones
+  list.apply([this](Device::DeviceInterface& dev) { on_deviceAdded(dev); });
 
   connect(
       &list, &Device::DeviceList::deviceAdded, this,

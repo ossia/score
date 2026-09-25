@@ -578,7 +578,7 @@ Script {
     st.sampleRate = 48000;
     st.bufferSize = 64;
 
-    auto node = std::make_shared<JS::js_node>(st);
+    auto node = std::make_shared<JS::js_node>(st, nullptr);
     node->root_inputs().push_back(new ossia::value_inlet);
     node->root_outputs().push_back(new ossia::value_outlet);
 
