@@ -127,6 +127,7 @@ public:
       cam->projection = ossia::camera_projection::perspective;
       cam->yfov = float(M_PI) / 2.f;  // 90° per face for a seamless cube
       cam->aspect_ratio = 1.f;
+      cam->aspect_ratio_set = true;
       cam->znear = near_f;
       cam->zfar = far_f;
       // Each face owns its own RawCamera slot; stamp its ref directly.

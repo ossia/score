@@ -24,6 +24,11 @@
 // already is on D3D and Metal; without the swap the counter-clockwise
 // fullscreen triangle is culled and the cube stays black.
 //
+// The camera captures run again into a 16:9 sink: Camera Array faces are
+// square whatever the render size, so every probe still decodes to its own
+// direction. Before, packCameraUBO gave them the window aspect and each face
+// was squeezed along s (direction error 0.07 - 0.09 per face).
+//
 // Registration: see the test_gfx_cube_face_orientation_cb target.
 #include <score_test/Gfx.hpp>
 #include <score_test/Document.hpp>
@@ -40,6 +45,7 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/generators/catch_generators_range.hpp>
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <memory>
@@ -57,8 +63,6 @@ QString corpus(const char* f)
   return QStringLiteral(GFX_TEST_CORPUS_DIR "/") + QString::fromUtf8(f);
 }
 
-// The sink is square: packCameraUBO takes the projection aspect from the
-// render size.
 constexpr int kColumns = 24;
 constexpr int kCellW = 8;
 constexpr int kTol = 8;
@@ -144,7 +148,9 @@ struct Outcome
   ReadbackImage view;
 };
 
-Outcome run(score::gfx::GraphicsApi api, const Capture& cap)
+Outcome run(
+    score::gfx::GraphicsApi api, const Capture& cap,
+    QSize sinkSize = {kColumns * kCellW, kColumns * kCellW})
 {
   Outcome out;
   run_in_gui_app([&](const score::GUIApplicationContext& app) {
@@ -185,7 +191,7 @@ Outcome run(score::gfx::GraphicsApi api, const Capture& cap)
           *p.node(cams), {ossia::value{ossia::vec3f{0.f, 0.f, 0.f}},
                           ossia::value{0.1f}, ossia::value{100.f}});
     }
-    const int sink = p.addSink({kColumns * kCellW, kColumns * kCellW});
+    const int sink = p.addSink(sinkSize);
     p.wire(p.imageOut(prod, 0), p.imageIn(probe, 0));
     p.wire(p.imageOut(probe, 0), p.sinkInput(sink));
     if(!p.create(api))
@@ -248,4 +254,53 @@ TEST_CASE(
   }
   INFO(out.backend << ":" << log.str());
   CHECK(wrong == 0);
+}
+
+TEST_CASE(
+    "Camera Array cube faces stay square in a non-square render",
+    "[gfx][rawraster][cubemap][camera][aspect]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  const auto ci = GENERATE(0, 1);
+  const Capture& cap = kCaptures[ci];
+  CAPTURE(backend_name(api), cap.name);
+
+  const QSize sinkSize{kColumns * 16, kColumns * 9};
+  const Outcome out = run(api, cap, sinkSize);
+  if(out.skipped)
+    SKIP(out.skip_reason);
+  REQUIRE(out.error.empty());
+  REQUIRE(out.view.width == sinkSize.width());
+  if(cap.multiview && (!out.multiview_caps || api == score::gfx::OpenGL))
+  {
+    SUCCEED(out.backend + ": MULTIVIEW layered raster not renderable here");
+    return;
+  }
+
+  std::array<float, 6> faceError{};
+  const int cellW = out.view.width / kColumns;
+  for(int c = 0; c < kColumns; ++c)
+  {
+    const auto got = out.view.at(c * cellW + cellW / 2, out.view.height / 2);
+    const auto d = probeDirection(c);
+    const float n = std::sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2]);
+    float g[3];
+    for(int k = 0; k < 3; ++k)
+      g[k] = got[k] / 255.f * 2.f - 1.f;
+    const float gn = std::sqrt(g[0] * g[0] + g[1] * g[1] + g[2] * g[2]);
+    float err = 0.f;
+    for(int k = 0; k < 3; ++k)
+    {
+      const float e = gn > 0.f ? g[k] / gn - d[k] / n : 1.f;
+      err += e * e;
+    }
+    float& fe = faceError[std::size_t(c / 4)];
+    fe = std::max(fe, std::sqrt(err));
+  }
+  std::ostringstream log;
+  for(int f = 0; f < 6; ++f)
+    log << " face" << f << "=" << faceError[std::size_t(f)];
+  INFO(out.backend << ": direction error" << log.str());
+  for(int f = 0; f < 6; ++f)
+    CHECK(faceError[std::size_t(f)] < 0.02f);
 }
