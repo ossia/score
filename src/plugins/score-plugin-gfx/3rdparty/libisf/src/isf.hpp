@@ -927,7 +927,7 @@ struct descriptor
   int point_count{};
   std::string primitive_mode;
   std::string line_size;
-  std::array<double, 4> background_color;
+  std::array<double, 4> background_color{};
 
   // For CSF
   struct type_definition

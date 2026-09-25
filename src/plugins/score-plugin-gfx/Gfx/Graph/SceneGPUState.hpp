@@ -499,7 +499,9 @@ struct FlatScene
   // defaults for materials that set no extension fields. Consumer shaders either
   // ignore it or bind it as `scene_materials_ext`.
   std::vector<MaterialExtensionsGPU> material_extensions;
-  std::vector<SkeletonGPU> skins;  // Parallel to scene_state.skeletons.
+  // scene_state.skeletons in order, then the skins meshes reference that it
+  // does not list (merge_scenes drops scene_state.skeletons).
+  std::vector<SkeletonGPU> skins;
 
   // World matrices to upload into the WorldTransform arena, one per
   // producer-authored scene_transform encountered in the walk whose

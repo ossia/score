@@ -243,36 +243,39 @@ struct isf_input_port_vis
 
   void operator()(const isf::geometry_input& in) noexcept
   {
-    if(in.attributes.empty())
+    if(self.m_descriptor.mode != isf::descriptor::RawRaster)
     {
-      // No attributes declared: pure pass-through (input + output, forwards everything)
-      self.input.push_back(new Port{&self, {}, Types::Geometry, {}});
-      self.output.push_back(new Port{&self, {}, Types::Geometry, {}});
-    }
-    else
-    {
-      // Create geometry input port if any attribute needs upstream data (read_only or read_write)
-      bool needs_input = false;
-      for(const auto& attr : in.attributes)
-        if(attr.access == "read_only" || attr.access == "read_write")
-        { needs_input = true; break; }
-
-      if(needs_input)
+      if(in.attributes.empty())
+      {
+        // No attributes declared: pure pass-through (input + output, forwards everything)
         self.input.push_back(new Port{&self, {}, Types::Geometry, {}});
-
-      // If any attributes are writable, create a geometry output port
-      bool has_output = false;
-      for(const auto& attr : in.attributes)
-      {
-        if(attr.access == "write_only" || attr.access == "read_write")
-        {
-          has_output = true;
-          break;
-        }
-      }
-      if(has_output)
-      {
         self.output.push_back(new Port{&self, {}, Types::Geometry, {}});
+      }
+      else
+      {
+        // Create geometry input port if any attribute needs upstream data (read_only or read_write)
+        bool needs_input = false;
+        for(const auto& attr : in.attributes)
+          if(attr.access == "read_only" || attr.access == "read_write")
+          { needs_input = true; break; }
+
+        if(needs_input)
+          self.input.push_back(new Port{&self, {}, Types::Geometry, {}});
+
+        // If any attributes are writable, create a geometry output port
+        bool has_output = false;
+        for(const auto& attr : in.attributes)
+        {
+          if(attr.access == "write_only" || attr.access == "read_write")
+          {
+            has_output = true;
+            break;
+          }
+        }
+        if(has_output)
+        {
+          self.output.push_back(new Port{&self, {}, Types::Geometry, {}});
+        }
       }
     }
 

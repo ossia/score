@@ -20,6 +20,7 @@
 
 #include <QByteArray>
 #include <QImage>
+#include <QFloat16>
 #include <QQuaternion>
 
 #include <algorithm>
@@ -426,16 +427,19 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   };
   std::vector<SceneDataBinding> m_sceneDataBuffers;
 
-  // One per skeleton in scene_state.skeletons, holding the packed
-  // joint_matrices (mat4[N]). Grow-only; skinned draws attach one of these
-  // as a `joint_matrices` auxiliary.
-  struct SkinBinding
+  QRhiBuffer* m_jointMatricesBuffer{};
+  int64_t m_jointMatricesCap{};
+  std::vector<WorldTransformMat4> m_cachedJointMatrices;
+
+  static constexpr uint32_t kSkinStride = 24;
+  QRhiBuffer* m_skinStream{};
+
+  static uint32_t skinStreamCapacity() noexcept
   {
-    QRhiBuffer* buffer{};
-    int64_t capacity{};
-    int64_t byte_size{};
-  };
-  std::vector<SkinBinding> m_skinBuffers;
+    constexpr int positions = (int)GpuResourceRegistry::MeshStream::Positions;
+    return GpuResourceRegistry::kMeshCapBytes[positions]
+           / GpuResourceRegistry::kMeshStride[positions] * kSkinStride;
+  }
 
   // std140 counts UBO: shaders read scene_counts.* rather than SSBO .length(),
   // so growth-only capacity does not force them to iterate dead tail slots.
@@ -1017,9 +1021,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     for(auto& sd : m_sceneDataBuffers)
       if(sd.owned && sd.buffer) renderer.releaseBuffer(sd.buffer);
     m_sceneDataBuffers.clear();
-    for(auto& sk : m_skinBuffers)
-      if(sk.buffer) renderer.releaseBuffer(sk.buffer);
-    m_skinBuffers.clear();
+    dropBuf(m_jointMatricesBuffer);
+    m_jointMatricesCap = 0;
+    m_cachedJointMatrices.clear();
+    dropBuf(m_skinStream);
     // Vertex/index streams are registry-owned; only the
     // preprocessor-owned per_draws + indirect_draw_cmds + per_draw_bounds
     // drop here.
@@ -1174,6 +1179,67 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
                   base + (int64_t)i * stride, n);
     }
     return out;
+  }
+
+  static void packSkinStream(
+      const ossia::geometry& g, bool skinned, std::vector<std::byte>& out)
+  {
+    using A = ossia::geometry::attribute;
+    out.assign(std::size_t(g.vertices) * kSkinStride, std::byte{});
+    const auto* ja = g.find(ossia::attribute_semantic::joints0);
+    const auto* wa = g.find(ossia::attribute_semantic::weights0);
+    if(!skinned || !ja || !wa)
+      return;
+    const auto joints = extractCpuAttribute<16>(g, ossia::attribute_semantic::joints0);
+    const auto weights = extractCpuAttribute<16>(g, ossia::attribute_semantic::weights0);
+    if(joints.empty() || weights.empty())
+      return;
+    for(int v = 0; v < g.vertices; ++v)
+    {
+      const std::byte* js = joints.data() + std::size_t(v) * 16;
+      const std::byte* ws = weights.data() + std::size_t(v) * 16;
+      uint32_t j[4]{};
+      qfloat16 w[4]{};
+      for(int c = 0; c < 4; ++c)
+      {
+        switch(ja->format)
+        {
+          case A::uint4:
+          case A::sint4: {
+            std::memcpy(&j[c], js + c * 4, 4);
+            break;
+          }
+          case A::ushort4:
+          case A::sshort4: {
+            uint16_t x;
+            std::memcpy(&x, js + c * 2, 2);
+            j[c] = x;
+            break;
+          }
+          default:
+            break;
+        }
+        switch(wa->format)
+        {
+          case A::float4: {
+            float x;
+            std::memcpy(&x, ws + c * 4, 4);
+            w[c] = qfloat16(x);
+            break;
+          }
+          case A::half4:
+            std::memcpy(&w[c], ws + c * 2, 2);
+            break;
+          case A::unormbyte4:
+            w[c] = qfloat16(float(uint8_t(ws[c])) / 255.f);
+            break;
+          default:
+            break;
+        }
+      }
+      std::memcpy(out.data() + std::size_t(v) * kSkinStride, j, 16);
+      std::memcpy(out.data() + std::size_t(v) * kSkinStride + 16, w, 8);
+    }
   }
 
   // GPU-backed counterpart of extractCpuAttribute. Returns the backing
@@ -1976,6 +2042,33 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       }
     }
 
+    bool skinStreamCreated = false;
+    if(!m_skinStream && m_registry)
+    {
+      const bool anySkinned = std::any_of(
+          fs.draws.begin(), fs.draws.end(), [](const DrawCall& dc) {
+        return dc.mesh && dc.skinIndex >= 0
+               && dc.mesh->find(ossia::attribute_semantic::joints0)
+               && dc.mesh->find(ossia::attribute_semantic::weights0);
+      });
+      if(anySkinned)
+      {
+        auto& rhi = *renderer.state.rhi;
+        m_skinStream = rhi.newBuffer(
+            QRhiBuffer::Static, QRhiBuffer::VertexBuffer, skinStreamCapacity());
+        m_skinStream->setName("ScenePreprocessor::skin");
+        if(m_skinStream->create())
+        {
+          skinStreamCreated = true;
+        }
+        else
+        {
+          delete m_skinStream;
+          m_skinStream = nullptr;
+        }
+      }
+    }
+
     // Reset pending GPU copies for this frame — populated below when a
     // draw's attributes are GPU-resident; issued in runInitialPasses.
     m_pendingGpuCopies.clear();
@@ -2270,6 +2363,17 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         requeue(MdiAttr::Normals, Stream::Normals, gpu_nrm, 16);
         requeue(MdiAttr::Texcoords, Stream::Texcoords, gpu_uv, 8);
         requeue(MdiAttr::Tangents, Stream::Tangents, gpu_tan, 16);
+      }
+
+      if(m_skinStream && (slab->freshly_allocated || skinStreamCreated))
+      {
+        packSkinStream(*mesh, skinIndex >= 0, scratch);
+        const uint32_t vertexSlot
+            = m_registry->meshSlabOffsetBytes(*slab, Stream::Positions)
+              / GpuResourceRegistry::kMeshStride[(int)Stream::Positions];
+        res.uploadStaticBuffer(
+            m_skinStream, vertexSlot * kSkinStride, (quint32)scratch.size(),
+            scratch.data());
       }
 
       // Per-draw GPU record.
@@ -2943,6 +3047,24 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
                instDBindIdx, ossia::geometry::attribute::uint1);
     }
 
+    if(m_skinStream)
+    {
+      const int skinBuf = (int)g.buffers.size();
+      g.buffers.push_back(wrapGpu(m_skinStream, skinStreamCapacity()));
+      ossia::geometry::binding bSkin{};
+      bSkin.byte_stride = kSkinStride;
+      bSkin.classification = ossia::geometry::binding::per_vertex;
+      const int skinBindIdx = (int)g.bindings.size();
+      g.bindings.push_back(bSkin);
+      g.input.push_back(GeomInput{.buffer = skinBuf, .byte_offset = 0});
+      pushAttr(
+          ossia::attribute_semantic::joints0, skinBindIdx,
+          ossia::geometry::attribute::uint4, 0);
+      pushAttr(
+          ossia::attribute_semantic::weights0, skinBindIdx,
+          ossia::geometry::attribute::half4, 16);
+    }
+
     g.vertices  = (int)m_mdi.totalVertices;
     g.indices   = (int)m_mdi.totalIndices;
     g.instances = 1;
@@ -3103,6 +3225,16 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         .name = "scene_light_indices", .buffer = baseBuf + 11,
         .byte_offset = 0,
         .byte_size = m_lightIndicesCap});
+
+    if(m_jointMatricesBuffer)
+    {
+      const int buf_idx = (int)g.buffers.size();
+      g.buffers.push_back(wrapGpu(m_jointMatricesBuffer, m_jointMatricesCap));
+      g.auxiliary.push_back({
+          .name = "joint_matrices", .buffer = buf_idx,
+          .byte_offset = 0,
+          .byte_size = m_jointMatricesCap});
+    }
 
     // KHR_texture_transform: per-material per-channel UV transforms.
     // Parallel to scene_materials, indexed by material_index. Identity
@@ -4692,6 +4824,17 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
               "ScenePreprocessor::light_indices"))
         m_cachedLightIndices.clear();
 
+      std::vector<WorldTransformMat4> freshJointMatrices;
+      for(const auto& sk : fs.skins)
+        for(const auto& m : sk.joint_matrices)
+          writeMat4(freshJointMatrices.emplace_back().m, m);
+      const int64_t jointBytes = std::max<int64_t>(
+          sizeof(WorldTransformMat4),
+          (int64_t)freshJointMatrices.size() * sizeof(WorldTransformMat4));
+      if(grow(m_jointMatricesBuffer, m_jointMatricesCap, jointBytes,
+              "ScenePreprocessor::joint_matrices"))
+        m_cachedJointMatrices.clear();
+
       // scene_counts: 16 bytes, allocated once, Static + StorageBuffer.
       //
       // SSBO only, no UBO half: QRhi forbids Dynamic + StorageBuffer, and
@@ -5103,6 +5246,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         diffUpload(res, m_materialWrapBuffer, m_cachedMaterialWraps,
                    freshMaterialWraps);
         diffUpload(res, m_mdi.per_draws,   m_cachedPerDraws,  freshPerDraws);
+        diffUpload(
+            res, m_jointMatricesBuffer, m_cachedJointMatrices, freshJointMatrices);
         // per_draw_bounds is static across a frame (local-space AABB,
         // never changes per-frame for the same topology) — on the fast
         // path the mirror and fresh arrays match element-for-element and
@@ -5141,6 +5286,12 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
               freshMaterialWraps.size() * sizeof(MaterialWrapGPU),
               freshMaterialWraps.data());
 
+        if(!freshJointMatrices.empty())
+          res.uploadStaticBuffer(
+              m_jointMatricesBuffer, 0,
+              freshJointMatrices.size() * sizeof(WorldTransformMat4),
+              freshJointMatrices.data());
+
         rebuildMDI(renderer, res, fs, materialTagHashes);
         rebuildPrimitiveClouds(renderer, res, fs);
 
@@ -5159,6 +5310,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         m_cachedMaterialExt = std::move(freshMaterialExtensions);
         m_cachedMaterialUVTransforms = std::move(freshMaterialUVTransforms);
         m_cachedMaterialWraps = std::move(freshMaterialWraps);
+        m_cachedJointMatrices = std::move(freshJointMatrices);
         // m_cachedPerDraws / m_cachedPerDrawBounds are NOT seeded here:
         // rebuildMDI() already assigned them from acc.perDraws (the
         // actually-emitted set, after emitDraw's skip predicate), so the

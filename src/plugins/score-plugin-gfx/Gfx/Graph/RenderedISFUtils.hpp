@@ -45,6 +45,7 @@ private:
   std::vector<float> m_scratchpad;
   std::vector<float> m_fftInput;
   ossia::hash_map<const AudioTexture*, std::vector<float>> m_histograms;
+  ossia::hash_map<const AudioTexture*, int64_t> m_uploadedFrame;
   ossia::fft m_fft;
   std::size_t m_fftSize{};
 };

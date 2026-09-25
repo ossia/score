@@ -637,9 +637,9 @@ namespace
 
 // Convert the parser's attribute_type enumerator to the lowercase GLSL
 // type name the VertexFallbackDefaults resolver expects. Only the
-// fallback-eligible scalar / vec2 / vec3 / vec4 entries map to a
-// non-empty string; everything else (mat*, integer / sampler / image
-// types) returns empty, which the caller treats as "REQUIRED:false on
+// fallback-eligible float and integer scalar / vector entries map to a
+// non-empty string; everything else (mat*, bool, sampler / image types)
+// returns empty, which the caller treats as "REQUIRED:false on
 // unsupported type" and fails pipeline-build.
 std::string_view declTypeFromAttributeType(isf::attribute_type t) noexcept
 {
@@ -649,6 +649,14 @@ std::string_view declTypeFromAttributeType(isf::attribute_type t) noexcept
     case isf::attribute_type::Vec2:  return "vec2";
     case isf::attribute_type::Vec3:  return "vec3";
     case isf::attribute_type::Vec4:  return "vec4";
+    case isf::attribute_type::Int:   return "int";
+    case isf::attribute_type::Int2:  return "ivec2";
+    case isf::attribute_type::Int3:  return "ivec3";
+    case isf::attribute_type::Int4:  return "ivec4";
+    case isf::attribute_type::Uint:  return "uint";
+    case isf::attribute_type::Uint2: return "uvec2";
+    case isf::attribute_type::Uint3: return "uvec3";
+    case isf::attribute_type::Uint4: return "uvec4";
     default: return {};
   }
 }
@@ -763,8 +771,8 @@ bool remapVertexInputs(
     {
       qDebug() << "remapPipelineVertexInputs: optional VERTEX_INPUT '"
                << QString::fromUtf8(var_name.data(), (int)var_name.size())
-               << "' uses a type (mat4 / integer / sampler) that is not"
-                  " supported by the v1 fallback path; bind a real"
+               << "' uses a type (mat4 / bool / sampler) that has no"
+                  " fallback; bind a real"
                   " attribute or declare it REQUIRED: true";
       return false;
     }
@@ -1749,7 +1757,10 @@ std::vector<Sampler> initInputSamplers(
           QRhiSampler* sampler = nullptr;
           if(cur_port < (int)port_sampler_cfg.size() && port_sampler_cfg[cur_port])
           {
-            sampler = score::gfx::makeSampler(rhi, *port_sampler_cfg[cur_port]);
+            isf::sampler_config cfg = *port_sampler_cfg[cur_port];
+            if(cfg.mipmap_mode.empty() && (in->flags & Flag::Cubemap) == Flag::Cubemap)
+              cfg.mipmap_mode = "linear";
+            sampler = score::gfx::makeSampler(rhi, cfg);
           }
           else
           {

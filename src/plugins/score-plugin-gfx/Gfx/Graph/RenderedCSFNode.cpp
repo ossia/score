@@ -827,11 +827,14 @@ std::size_t RenderedCSFNode::expressionSymbolReserveCount() const noexcept
   // exactly one category, so 6*inputs bounds the image+scalar contribution and
   // the fixed 16 absorbs the one-time and $USER registrations. Overrunning the
   // inline capacity reallocates and dangles every exprtk reference.
-  std::size_t buffers = m_storageBuffers.size();
+  const auto& desc = n.descriptor();
+  std::size_t buffers = m_storageBuffers.size() + desc.auxiliary.size();
   for(const auto& binding : m_geometryBindings)
     buffers += binding.auxiliary_ssbos.size();
-  return 16 + 6 * n.descriptor().inputs.size() + 4 * m_geometryBindings.size()
-         + 2 * buffers;
+  for(const auto& inp : desc.inputs)
+    if(auto* geo = ossia::get_if<isf::geometry_input>(&inp.data))
+      buffers += geo->auxiliary.size();
+  return 16 + 6 * desc.inputs.size() + 4 * m_geometryBindings.size() + 2 * buffers;
 }
 
 void RenderedCSFNode::registerCommonExpressionVariables(
@@ -1068,6 +1071,17 @@ void RenderedCSFNode::registerCommonExpressionVariables(
       }
       register_buffer(sb.name.toStdString(), sb.size, is_uniform, sb.layout);
     }
+
+    auto register_pending = [&](const isf::geometry_input::auxiliary_request& aux) {
+      if(aux.access == "read_only")
+        register_buffer(aux.name, 0, aux.is_uniform, aux.layout);
+    };
+    for(const auto& inp : eff_desc.inputs)
+      if(auto* geo = ossia::get_if<isf::geometry_input>(&inp.data))
+        for(const auto& aux : geo->auxiliary)
+          register_pending(aux);
+    for(const auto& aux : eff_desc.auxiliary)
+      register_pending(aux);
   }
 }
 
