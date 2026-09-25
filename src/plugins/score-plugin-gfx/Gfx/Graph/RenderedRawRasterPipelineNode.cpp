@@ -306,6 +306,373 @@ void main()
 }
 )_";
 
+static const constexpr auto rrp_layer_vs = R"_(#version 450
+out gl_PerVertex { vec4 gl_Position; };
+void main()
+{
+  vec2 p = vec2(float((gl_VertexIndex << 1) & 2), float(gl_VertexIndex & 2));
+  gl_Position = vec4(p * 2.0 - 1.0, 0.0, 1.0);
+}
+)_";
+
+static const constexpr auto rrp_layer_composite_fs = R"_(#version 450
+layout(binding = 0) uniform sampler2D layerColor;
+layout(location = 0) out vec4 fragColor;
+void main() { fragColor = texelFetch(layerColor, ivec2(gl_FragCoord.xy), 0); }
+)_";
+
+static QString rrpLayerClearFs(const isf::layer_state& l)
+{
+  QString decls, body;
+  for(int i = 0; i < int(l.targets.size()); i++)
+  {
+    const auto& c = l.targets[i].clear;
+    decls += QStringLiteral("layout(location = %1) out vec4 o%1;\n").arg(i);
+    body += QStringLiteral("  o%1 = vec4(%2, %3, %4, %5);\n")
+                .arg(i)
+                .arg(double(c[0]), 0, 'g', 9)
+                .arg(double(c[1]), 0, 'g', 9)
+                .arg(double(c[2]), 0, 'g', 9)
+                .arg(double(c[3]), 0, 'g', 9);
+  }
+  return QStringLiteral("#version 450\n%1void main()\n{\n%2}\n").arg(decls, body);
+}
+
+void RenderedRawRasterPipelineNode::LayerTargets::release()
+{
+  clearTargets.release();
+  resolve.release();
+  resolveDepth.release();
+  for(QRhiResource* r : std::initializer_list<QRhiResource*>{
+          readDepthTarget, readDepthPass, resumeTarget, resumePass, renderTarget,
+          renderPass, depthPlaceholder, sampler})
+    if(r)
+      r->deleteLater();
+  for(QRhiTexture* t : targets)
+    if(t)
+      t->deleteLater();
+  *this = {};
+}
+
+void RenderedRawRasterPipelineNode::releaseLayerTargets(Edge* edge)
+{
+  auto it = m_layers.find(edge);
+  if(it == m_layers.end())
+    return;
+  it->second.release();
+  m_layers.erase(it);
+}
+
+void RenderedRawRasterPipelineNode::releaseLayerTargets()
+{
+  for(auto& [e, t] : m_layers)
+    t.release();
+  m_layers.clear();
+}
+
+TextureRenderTarget RenderedRawRasterPipelineNode::initLayerTargets(
+    RenderList& renderer, const TextureRenderTarget& inlet, Edge& edge,
+    QRhiResourceUpdateBatch& res)
+{
+  releaseLayerTargets(&edge);
+
+  QRhi& rhi = *renderer.state.rhi;
+  const auto& desc = n.descriptor();
+  const auto& l = desc.layer;
+
+  const bool multisample = inlet.colorRenderBuffer != nullptr;
+  const bool lastInSink = !edge.sink->edges.empty() && edge.sink->edges.back() == &edge;
+  const bool resumable
+      = inlet.texture && inlet.renderTarget && inlet.colorAttachmentCount() == 1
+        && inlet.renderLayer < 0 && inlet.multiViewCount < 2 && !inlet.depthRenderBuffer
+        && inlet.texture->sampleCount() <= 1
+        && !(inlet.texture->flags() & (QRhiTexture::TextureArray | QRhiTexture::CubeMap))
+        && (!inlet.depthTexture || inlet.depthTexture->sampleCount() <= 1)
+        && (multisample ? lastInSink : !inlet.msDepthTexture);
+  if(!resumable)
+  {
+    if(!std::exchange(m_warnedLayerFallback, true))
+      qWarning() << "RawRaster: LAYER needs a 2D consumer target with single-sample "
+                    "depth, and to be its last cable when it is multisampled; drawing "
+                    "its first target directly into it"
+                 << QString::fromStdString(desc.description.substr(0, 80));
+    return {};
+  }
+
+  const QSize size = inlet.texture->pixelSize();
+  LayerTargets lt;
+  auto fail = [&](const char* what) {
+    qWarning() << "RawRaster: LAYER could not create" << what;
+    lt.release();
+    return TextureRenderTarget{};
+  };
+
+  QVarLengthArray<QRhiColorAttachment, 8> attachments;
+  for(const auto& t : l.targets)
+  {
+    auto format = parseOutputFormat(t.format, QRhiTexture::RGBA16F);
+    if(!rhi.isTextureFormatSupported(format))
+    {
+      qWarning() << "RawRaster: LAYER target" << t.name.c_str() << "format"
+                 << t.format.c_str() << "is not supported, using rgba16f";
+      format = rhi.isTextureFormatSupported(QRhiTexture::RGBA16F) ? QRhiTexture::RGBA16F
+                                                                  : QRhiTexture::RGBA8;
+    }
+    auto* tex = rhi.newTexture(format, size, 1, QRhiTexture::RenderTarget);
+    tex->setName(QByteArray("RawRaster::layer::") + t.name.c_str());
+    lt.targets.push_back(tex);
+    if(!tex->create())
+      return fail("a target");
+    attachments.push_back(QRhiColorAttachment{tex});
+  }
+
+  {
+    QRhiTextureRenderTargetDescription rtd;
+    rtd.setColorAttachments(attachments.begin(), attachments.end());
+    if(inlet.depthTexture)
+      rtd.setDepthTexture(inlet.depthTexture);
+    lt.renderTarget = rhi.newTextureRenderTarget(
+        rtd, QRhiTextureRenderTarget::PreserveDepthStencilContents);
+    lt.renderTarget->setName("RawRaster::layer::renderTarget");
+    lt.renderPass = lt.renderTarget->newCompatibleRenderPassDescriptor();
+    lt.renderTarget->setRenderPassDescriptor(lt.renderPass);
+    if(!lt.renderTarget->create())
+      return fail("its render target");
+  }
+
+  {
+    QRhiTextureRenderTargetDescription rtd;
+    rtd.setColorAttachments({QRhiColorAttachment{inlet.texture}});
+    if(inlet.depthTexture)
+      rtd.setDepthTexture(inlet.depthTexture);
+    lt.resumeTarget = rhi.newTextureRenderTarget(
+        rtd, QRhiTextureRenderTarget::PreserveColorContents
+                 | QRhiTextureRenderTarget::PreserveDepthStencilContents);
+    lt.resumeTarget->setName("RawRaster::layer::resumeTarget");
+    lt.resumePass = lt.resumeTarget->newCompatibleRenderPassDescriptor();
+    lt.resumeTarget->setRenderPassDescriptor(lt.resumePass);
+    if(!lt.resumeTarget->create())
+      return fail("the consumer's resume target");
+  }
+
+  if(l.resolve.declared && !l.resolve.depth_input.empty())
+  {
+    if(inlet.depthTexture)
+    {
+      QRhiTextureRenderTargetDescription rtd;
+      rtd.setColorAttachments({QRhiColorAttachment{inlet.texture}});
+      lt.readDepthTarget = rhi.newTextureRenderTarget(
+          rtd, QRhiTextureRenderTarget::PreserveColorContents);
+      lt.readDepthTarget->setName("RawRaster::layer::readDepthTarget");
+      lt.readDepthPass = lt.readDepthTarget->newCompatibleRenderPassDescriptor();
+      lt.readDepthTarget->setRenderPassDescriptor(lt.readDepthPass);
+      if(!lt.readDepthTarget->create())
+        return fail("the consumer's colour target");
+      lt.depthInput = inlet.depthTexture;
+    }
+    else
+    {
+      lt.depthPlaceholder = rhi.newTexture(QRhiTexture::RGBA8, QSize(1, 1));
+      lt.depthPlaceholder->setName("RawRaster::layer::depthPlaceholder");
+      if(!lt.depthPlaceholder->create())
+        return fail("its depth placeholder");
+      QImage farthest(1, 1, QImage::Format_RGBA8888);
+      farthest.fill(
+          isf::depth_nearer_is_greater(desc) ? QColor(0, 0, 0, 0)
+                                             : QColor(255, 255, 255, 255));
+      res.uploadTexture(lt.depthPlaceholder, farthest);
+      lt.depthInput = lt.depthPlaceholder;
+    }
+  }
+
+  lt.sampler = rhi.newSampler(
+      QRhiSampler::Nearest, QRhiSampler::Nearest, QRhiSampler::None,
+      QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
+  lt.sampler->setName("RawRaster::layer::sampler");
+  if(!lt.sampler->create())
+    return fail("its sampler");
+
+  const auto& c0 = l.targets.front().clear;
+  lt.clear = QColor::fromRgbF(c0[0], c0[1], c0[2], c0[3]);
+
+  TextureRenderTarget ret;
+  ret.texture = lt.targets.front();
+  for(std::size_t i = 1; i < lt.targets.size(); i++)
+    ret.additionalColorTextures.push_back(lt.targets[i]);
+  ret.depthTexture = inlet.depthTexture;
+  ret.renderTarget = lt.renderTarget;
+  ret.renderPass = lt.renderPass;
+  m_layers[&edge] = std::move(lt);
+  return ret;
+}
+
+void RenderedRawRasterPipelineNode::initLayerResolve(
+    RenderList& renderer, LayerTargets& lt, QRhiBuffer* processUBO)
+{
+  QRhi& rhi = *renderer.state.rhi;
+  const auto& desc = n.descriptor();
+  const auto& l = desc.layer;
+  const auto stage = QRhiShaderResourceBinding::FragmentStage;
+
+  enum class Kind
+  {
+    Clear,
+    Colour,
+    Depth
+  };
+  auto build = [&](const QString& fs, Kind kind,
+                   std::span<const QRhiShaderResourceBinding> bindings,
+                   QRhiRenderPassDescriptor* rpd,
+                   QRhiGraphicsPipeline::TargetBlend blend) -> Pipeline {
+    auto [vs, ps] = score::gfx::makeShaders(renderer.state, rrp_layer_vs, fs);
+    auto* srb = rhi.newShaderResourceBindings();
+    srb->setBindings(bindings.begin(), bindings.end());
+    srb->setName("RawRaster::layer::srb");
+    if(!srb->create())
+    {
+      delete srb;
+      return {};
+    }
+
+    auto* pip = rhi.newGraphicsPipeline();
+    pip->setName("RawRaster::layer::pipeline");
+    pip->setShaderStages({{QRhiShaderStage::Vertex, vs}, {QRhiShaderStage::Fragment, ps}});
+    pip->setVertexInputLayout({});
+    pip->setShaderResourceBindings(srb);
+    pip->setRenderPassDescriptor(rpd);
+    pip->setSampleCount(1);
+    pip->setCullMode(QRhiGraphicsPipeline::None);
+    switch(kind)
+    {
+      case Kind::Clear: {
+        QVarLengthArray<QRhiGraphicsPipeline::TargetBlend, 8> blends(
+            qsizetype(lt.targets.size()));
+        pip->setTargetBlends(blends.begin(), blends.end());
+        pip->setDepthTest(false);
+        pip->setDepthWrite(false);
+        break;
+      }
+      case Kind::Colour:
+        pip->setTargetBlends({blend});
+        pip->setDepthTest(false);
+        pip->setDepthWrite(false);
+        break;
+      case Kind::Depth: {
+        QRhiGraphicsPipeline::TargetBlend noColor;
+        noColor.colorWrite = {};
+        pip->setTargetBlends({noColor});
+        pip->setDepthTest(true);
+        pip->setDepthWrite(true);
+        pip->setDepthOp(depthCompare());
+        break;
+      }
+    }
+    if(!pip->create())
+    {
+      delete pip;
+      delete srb;
+      return {};
+    }
+    return Pipeline{pip, srb};
+  };
+
+  // description() returns a copy: the attachment pointer must not outlive it.
+  const auto resumeDesc = lt.resumeTarget->description();
+  const auto* dst = resumeDesc.colorAttachmentAt(0);
+  const bool dstBlends
+      = !(dst && dst->texture() && !formatSupportsBlending(dst->texture()->format()));
+
+  try
+  {
+    if(std::any_of(l.targets.begin(), l.targets.end(), [&](const isf::layer_target& t) {
+         return t.clear != l.targets.front().clear;
+       }))
+      lt.clearTargets = build(rrpLayerClearFs(l), Kind::Clear, {}, lt.renderPass, {});
+
+    if(!l.resolve.declared)
+    {
+      const QRhiShaderResourceBinding b[]{QRhiShaderResourceBinding::sampledTexture(
+          0, stage, lt.targets.front(), lt.sampler)};
+      lt.resolve = build(
+          QString::fromLatin1(rrp_layer_composite_fs), Kind::Colour, b, lt.resumePass,
+          dstBlends ? copyBlendFor(desc, nullptr) : QRhiGraphicsPipeline::TargetBlend{});
+    }
+    else
+    {
+      const auto& r = l.resolve;
+      QVarLengthArray<QRhiShaderResourceBinding, 12> b;
+      b.push_back(QRhiShaderResourceBinding::uniformBuffer(0, stage, &renderer.outputUBO()));
+      b.push_back(QRhiShaderResourceBinding::uniformBuffer(1, stage, processUBO));
+      if(m_materialUBO)
+        b.push_back(QRhiShaderResourceBinding::uniformBuffer(2, stage, m_materialUBO));
+      int binding = 3;
+      for(auto* tex : lt.targets)
+        b.push_back(
+            QRhiShaderResourceBinding::sampledTexture(binding++, stage, tex, lt.sampler));
+      if(lt.depthInput)
+        b.push_back(QRhiShaderResourceBinding::sampledTexture(
+            binding++, stage, lt.depthInput, lt.sampler));
+
+      QRhiGraphicsPipeline::TargetBlend blend;
+      if(r.blend)
+        blend = toTargetBlend(*r.blend);
+      else
+        blend = blendFor(
+            isf::resolve_alpha(desc), r.composite != isf::composite_mode::unspecified
+                                          ? r.composite
+                                          : isf::resolve_composite(desc));
+      if(!dstBlends)
+        blend = {};
+
+      const QString fs = QString::fromStdString(r.fragment);
+      lt.resolve = build(
+          fs, Kind::Colour, {b.data(), std::size_t(b.size())},
+          lt.readDepthPass ? lt.readDepthPass : lt.resumePass, blend);
+      if(r.depth_write && lt.resumeTarget->description().depthTexture())
+        lt.resolveDepth
+            = build(fs, Kind::Depth, {b.data(), std::size_t(b.size())}, lt.resumePass, {});
+    }
+  }
+  catch(const std::exception& e)
+  {
+    qWarning() << "RawRaster: LAYER resolve shaders:" << e.what();
+  }
+  if(!lt.resolve.pipeline)
+    qWarning() << "RawRaster: LAYER resolve pipeline not created";
+}
+
+void RenderedRawRasterPipelineNode::applyLayerState(
+    QRhiGraphicsPipeline& ps, bool depthAvailable, bool internal) const
+{
+  const auto& desc = n.descriptor();
+  const auto& l = desc.layer;
+  ps.setDepthTest(l.depth_test && depthAvailable);
+  ps.setDepthWrite(false);
+  ps.setDepthOp(depthCompare());
+
+  QVarLengthArray<QRhiGraphicsPipeline::TargetBlend, 8> blends(
+      ps.cbeginTargetBlends(), ps.cendTargetBlends());
+  const qsizetype count = internal ? qsizetype(l.targets.size()) : 1;
+  while(blends.size() < count)
+    blends.push_back({});
+  blends.resize(count);
+  const auto alpha = isf::resolve_alpha(desc);
+  for(qsizetype i = 0; i < count; i++)
+  {
+    const auto& t = l.targets[i];
+    if(t.blend)
+      blends[i] = toTargetBlend(*t.blend);
+    else if(t.composite != isf::composite_mode::unspecified)
+      blends[i] = blendFor(alpha, t.composite);
+    else if(!isf::declares_blend(desc.default_state))
+      blends[i] = blendFor(alpha, isf::composite_mode::over);
+    if(internal
+       && !formatSupportsBlending(parseOutputFormat(t.format, QRhiTexture::RGBA16F)))
+      blends[i].enable = false;
+  }
+  ps.setTargetBlends(blends.begin(), blends.end());
+}
+
 RenderedRawRasterPipelineNode::RenderedRawRasterPipelineNode(
     const ISFNode& node) noexcept
     : score::gfx::NodeRenderer{node}
@@ -605,13 +972,35 @@ void RenderedRawRasterPipelineNode::appendAuxTextureBindings(
 }
 
 void RenderedRawRasterPipelineNode::initPass(
-    const TextureRenderTarget& renderTarget, RenderList& renderer,
+    const TextureRenderTarget& inletTarget, RenderList& renderer,
     QRhiResourceUpdateBatch& res, Edge& edge)
 {
   auto& model_passes = n.descriptor().passes;
   SCORE_ASSERT(model_passes.size() == 1);
 
   QRhi& rhi = *renderer.state.rhi;
+
+  TextureRenderTarget renderTarget = inletTarget;
+  bool internalLayer = false;
+  if(n.descriptor().layer.enabled())
+  {
+    if(auto layer = initLayerTargets(renderer, inletTarget, edge, res))
+    {
+      renderTarget = std::move(layer);
+      internalLayer = true;
+    }
+  }
+  struct LayerCleanup
+  {
+    RenderedRawRasterPipelineNode& self;
+    Edge& edge;
+    bool active;
+    ~LayerCleanup()
+    {
+      if(active && !self.hasOutputPassForEdge(edge))
+        self.releaseLayerTargets(&edge);
+    }
+  } layerCleanup{*this, edge, internalLayer};
 
   QRhiBuffer* pubo{};
   pubo = rhi.newBuffer(
@@ -799,6 +1188,13 @@ void RenderedRawRasterPipelineNode::initPass(
       ps->setDepthOp(QRhiGraphicsPipeline::Greater);
     }
 
+    if(desc.layer.enabled())
+      applyLayerState(
+          *ps,
+          renderTarget.depthTexture || renderTarget.depthRenderBuffer
+              || renderTarget.msDepthTexture,
+          internalLayer);
+
     // The material 'mode' control seeds the topology, but an EXPLICITLY
     // declared PIPELINE_STATE TOPOLOGY wins -- same precedence rule as
     // blend ("applyPipelineState only overrides blend when BLEND was
@@ -900,6 +1296,9 @@ void RenderedRawRasterPipelineNode::initPass(
       Pass pass{renderTarget, pip, pubo};
       pass.p.plan = std::move(fallbackPlan);
       m_passes.emplace_back(&edge, std::move(pass));
+      if(internalLayer)
+        if(auto it = m_layers.find(&edge); it != m_layers.end())
+          initLayerResolve(renderer, it->second, pubo);
     }
     else
     {
@@ -2624,6 +3023,7 @@ void RenderedRawRasterPipelineNode::addOutputPass(
 
 void RenderedRawRasterPipelineNode::removeOutputPass(RenderList& renderer, Edge& edge)
 {
+  releaseLayerTargets(&edge);
   auto it = ossia::find_if(m_passes, [&](auto& p) { return p.first == &edge; });
   if(it != m_passes.end())
   {
@@ -2705,6 +3105,7 @@ void RenderedRawRasterPipelineNode::releaseState(RenderList& r)
 
     m_passes.clear();
   }
+  releaseLayerTargets();
 
   for(auto sampler : m_inputSamplers)
   {
@@ -3178,6 +3579,7 @@ void RenderedRawRasterPipelineNode::update(
         pass.second.processUBO->deleteLater();
     }
     m_passes.clear();
+    releaseLayerTargets();
 
     for(auto& [e, sampler] : m_blitSamplersByEdge)
       sampler->deleteLater();
@@ -3969,6 +4371,45 @@ void RenderedRawRasterPipelineNode::runRenderPass(
     auto pipeline = pass.p.pipeline;
     auto srb = pass.p.srb;
     auto texture = pass.renderTarget.texture;
+
+    auto layer = m_layers.find(&edge);
+    if(layer != m_layers.end() && layer->second.resolve.pipeline)
+    {
+      auto& t = layer->second;
+      const QSize sz = texture->pixelSize();
+      const QRhiViewport viewport(0, 0, sz.width(), sz.height());
+      const QRhiDepthStencilClearValue depthClear{depthClearForCompare(depthCompare()), 0};
+      auto fullScreen = [&](const Pipeline& p) {
+        cb.setGraphicsPipeline(p.pipeline);
+        cb.setShaderResources(p.srb);
+        cb.setViewport(viewport);
+        cb.draw(3);
+      };
+      cb.endPass();
+      cb.beginPass(t.renderTarget, t.clear, depthClear);
+      if(t.clearTargets.pipeline)
+        fullScreen(t.clearTargets);
+      cb.setGraphicsPipeline(pipeline);
+      cb.setViewport(viewport);
+      drawWithPerMeshAuxRebind(*srb, cb, pass.p.plan);
+      cb.endPass();
+
+      if(t.readDepthTarget)
+      {
+        cb.beginPass(t.readDepthTarget, QColor{0, 0, 0, 0}, depthClear);
+        fullScreen(t.resolve);
+        cb.endPass();
+        cb.beginPass(t.resumeTarget, QColor{0, 0, 0, 0}, depthClear);
+      }
+      else
+      {
+        cb.beginPass(t.resumeTarget, QColor{0, 0, 0, 0}, depthClear);
+        fullScreen(t.resolve);
+      }
+      if(t.resolveDepth.pipeline)
+        fullScreen(t.resolveDepth);
+      return;
+    }
 
     {
       cb.setGraphicsPipeline(pipeline);

@@ -373,5 +373,38 @@ private:
   static_assert(sizeof(PipelineChangingMaterial) == size_of_pipeline_material);
 
   ossia::transform3d m_modelTransform;
+
+  // LAYER, per output edge: the draw goes into `targets` with the consumer's
+  // depth attached read-only, then `resumeTarget` reopens the consumer's pass
+  // for the resolve. `readDepthTarget` is the consumer's colour alone, for a
+  // resolve sampling the consumer's depth.
+  struct LayerTargets
+  {
+    std::vector<QRhiTexture*> targets;
+    QRhiTextureRenderTarget* renderTarget{};
+    QRhiRenderPassDescriptor* renderPass{};
+    QRhiTextureRenderTarget* resumeTarget{};
+    QRhiRenderPassDescriptor* resumePass{};
+    QRhiTextureRenderTarget* readDepthTarget{};
+    QRhiRenderPassDescriptor* readDepthPass{};
+    QRhiTexture* depthInput{};
+    QRhiTexture* depthPlaceholder{};
+    QRhiSampler* sampler{};
+    QColor clear;
+    Pipeline clearTargets;
+    Pipeline resolve;
+    Pipeline resolveDepth;
+    void release();
+  };
+  ossia::small_flat_map<Edge*, LayerTargets, 2> m_layers;
+  bool m_warnedLayerFallback{false};
+
+  TextureRenderTarget initLayerTargets(
+      RenderList& renderer, const TextureRenderTarget& inlet, Edge& edge,
+      QRhiResourceUpdateBatch& res);
+  void initLayerResolve(RenderList& renderer, LayerTargets& t, QRhiBuffer* processUBO);
+  void releaseLayerTargets(Edge* edge);
+  void releaseLayerTargets();
+  void applyLayerState(QRhiGraphicsPipeline& ps, bool depthAvailable, bool internal) const;
 };
 }

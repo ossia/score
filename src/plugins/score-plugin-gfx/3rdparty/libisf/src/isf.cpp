@@ -2259,6 +2259,301 @@ static void parse_pipeline_state(const sajson::value& v, pipeline_state& out)
   }
 }
 
+static std::string layer_key(const sajson::value& obj, std::size_t i)
+{
+  std::string key = obj.get_object_key(i).as_string();
+  for(char& c : key)
+    c = (char)toupper((unsigned char)c);
+  return key;
+}
+
+static bool is_glsl_identifier(const std::string& s)
+{
+  if(s.empty() || std::isdigit((unsigned char)s[0]))
+    return false;
+  return std::all_of(s.begin(), s.end(), [](char c) {
+    return std::isalnum((unsigned char)c) || c == '_';
+  });
+}
+
+static bool is_layer_format(const std::string& f)
+{
+  static constexpr std::string_view formats[]{
+      "rgba8", "rgba16f", "rgba32f", "r8", "rg8", "r16", "rg16", "r16f", "r32f"};
+  return std::find(std::begin(formats), std::end(formats), f) != std::end(formats);
+}
+
+static std::optional<blend_attachment> parse_layer_blend(const sajson::value& v, const std::string& what)
+{
+  blend_attachment b{};
+  if(v.get_type() == sajson::TYPE_TRUE || v.get_type() == sajson::TYPE_FALSE)
+  {
+    b.enable = v.get_type() == sajson::TYPE_TRUE;
+    return b;
+  }
+  if(v.get_type() != sajson::TYPE_OBJECT)
+    throw invalid_file{what + ".BLEND must be a boolean or an object"};
+  b.enable = true;
+  parse_blend_attachment(v, b);
+  return b;
+}
+
+static void parse_layer_target(const sajson::value& v, layer_target& t)
+{
+  if(v.get_type() != sajson::TYPE_OBJECT)
+    throw invalid_file{"LAYER.TARGETS entries must be objects"};
+  for(std::size_t i = 0, n = v.get_length(); i < n; i++)
+  {
+    const std::string key = layer_key(v, i);
+    const auto val = v.get_object_value(i);
+    if(key == "NAME")
+    {
+      if(!get_str(val, t.name) || !is_glsl_identifier(t.name))
+        throw invalid_file{"LAYER.TARGETS.NAME must be a GLSL identifier"};
+    }
+    else if(key == "FORMAT")
+    {
+      if(!get_str(val, t.format))
+        throw invalid_file{"LAYER.TARGETS.FORMAT must be a string"};
+      for(char& c : t.format)
+        c = (char)tolower((unsigned char)c);
+      if(!is_layer_format(t.format))
+        throw invalid_file{
+            "LAYER.TARGETS.FORMAT must be rgba8, rgba16f, rgba32f, r8, rg8, r16, rg16, "
+            "r16f or r32f"};
+    }
+    else if(key == "CLEAR")
+    {
+      if(val.get_type() != sajson::TYPE_ARRAY || val.get_length() < 1
+         || val.get_length() > 4)
+        throw invalid_file{"LAYER.TARGETS.CLEAR must be an array of 1 to 4 numbers"};
+      t.clear = {0.f, 0.f, 0.f, 0.f};
+      for(std::size_t j = 0; j < val.get_length(); j++)
+        if(!get_float(val.get_array_element(j), t.clear[j]))
+          throw invalid_file{"LAYER.TARGETS.CLEAR must be an array of 1 to 4 numbers"};
+    }
+    else if(key == "BLEND")
+    {
+      t.blend = parse_layer_blend(val, "LAYER.TARGETS");
+    }
+    else if(key == "COMPOSITE")
+    {
+      t.composite = parse_composite_mode(val);
+    }
+    else
+    {
+      throw invalid_file{"LAYER.TARGETS: unknown key " + key};
+    }
+  }
+  if(t.name.empty())
+    throw invalid_file{"LAYER.TARGETS entries need a NAME"};
+  if(t.blend && t.composite != composite_mode::unspecified)
+    throw invalid_file{"LAYER.TARGETS: BLEND and COMPOSITE are exclusive"};
+}
+
+static void parse_layer_resolve(const sajson::value& v, layer_resolve& r)
+{
+  if(v.get_type() != sajson::TYPE_OBJECT)
+    throw invalid_file{"LAYER.RESOLVE must be an object"};
+  r = layer_resolve{};
+  r.declared = true;
+  for(std::size_t i = 0, n = v.get_length(); i < n; i++)
+  {
+    const std::string key = layer_key(v, i);
+    const auto val = v.get_object_value(i);
+    if(key == "OUTPUT")
+    {
+      if(!get_str(val, r.output) || !is_glsl_identifier(r.output))
+        throw invalid_file{"LAYER.RESOLVE.OUTPUT must be a GLSL identifier"};
+    }
+    else if(key == "BLEND")
+    {
+      r.blend = parse_layer_blend(val, "LAYER.RESOLVE");
+    }
+    else if(key == "COMPOSITE")
+    {
+      r.composite = parse_composite_mode(val);
+    }
+    else if(key == "DEPTH_WRITE")
+    {
+      if(!get_bool(val, r.depth_write))
+        throw invalid_file{"LAYER.RESOLVE.DEPTH_WRITE must be a boolean"};
+    }
+    else if(key == "DEPTH_INPUT")
+    {
+      if(!get_str(val, r.depth_input) || !is_glsl_identifier(r.depth_input))
+        throw invalid_file{"LAYER.RESOLVE.DEPTH_INPUT must be a GLSL identifier"};
+    }
+    else
+    {
+      throw invalid_file{"LAYER.RESOLVE: unknown key " + key};
+    }
+  }
+  if(r.blend && r.composite != composite_mode::unspecified)
+    throw invalid_file{"LAYER.RESOLVE: BLEND and COMPOSITE are exclusive"};
+  if(r.depth_write && !r.depth_input.empty())
+    throw invalid_file{"LAYER.RESOLVE: DEPTH_WRITE and DEPTH_INPUT are exclusive"};
+}
+
+static void parse_layer(const sajson::value& v, layer_state& l)
+{
+  if(v.get_type() != sajson::TYPE_OBJECT)
+    throw invalid_file{"LAYER must be an object"};
+
+  l = layer_state{};
+  l.declared = true;
+  for(std::size_t i = 0, n = v.get_length(); i < n; i++)
+  {
+    const std::string key = layer_key(v, i);
+    const auto val = v.get_object_value(i);
+    if(key == "TARGETS")
+    {
+      if(val.get_type() != sajson::TYPE_ARRAY || val.get_length() == 0)
+        throw invalid_file{"LAYER.TARGETS must be a non-empty array"};
+      for(std::size_t j = 0; j < val.get_length(); j++)
+        parse_layer_target(val.get_array_element(j), l.targets.emplace_back());
+    }
+    else if(key == "DEPTH_TEST")
+    {
+      if(!get_bool(val, l.depth_test))
+        throw invalid_file{"LAYER.DEPTH_TEST must be a boolean"};
+    }
+    else if(key == "RESOLVE")
+    {
+      parse_layer_resolve(val, l.resolve);
+    }
+    else
+    {
+      throw invalid_file{"LAYER: unknown key " + key};
+    }
+  }
+}
+
+static render_queue parse_render_queue(const sajson::value& v)
+{
+  std::string s;
+  if(get_str(v, s))
+  {
+    for(char& c : s)
+      c = (char)tolower((unsigned char)c);
+    if(s == "opaque")
+      return render_queue::opaque;
+    if(s == "transparent")
+      return render_queue::transparent;
+  }
+  throw invalid_file{"QUEUE must be \"opaque\" or \"transparent\""};
+}
+
+static void validate_layer(descriptor& d, std::string_view fragment_source)
+{
+  auto& l = d.layer;
+  if(!l.enabled())
+    return;
+  if(d.mode != descriptor::RawRaster)
+    throw invalid_file{"LAYER is only supported by RAW_RASTER_PIPELINE shaders"};
+  if(!d.outputs.empty())
+    throw invalid_file{"LAYER does not support OUTPUTS"};
+  if(d.multiview_count >= 2)
+    throw invalid_file{"LAYER does not support MULTIVIEW"};
+  std::string em = d.execution_model.type;
+  for(char& c : em)
+    c = (char)toupper((unsigned char)c);
+  if(!em.empty() && em != "SINGLE")
+    throw invalid_file{"LAYER needs EXECUTION_MODEL SINGLE"};
+
+  if(l.targets.empty())
+  {
+    if(d.fragment_outputs.empty())
+      throw invalid_file{"LAYER needs TARGETS or FRAGMENT_OUTPUTS"};
+    for(const auto& fo : d.fragment_outputs)
+      l.targets.push_back(layer_target{.name = fo.name});
+  }
+  if(l.targets.size() > 8)
+    throw invalid_file{"LAYER supports at most 8 TARGETS"};
+  for(std::size_t i = 0; i < l.targets.size(); i++)
+    for(std::size_t j = i + 1; j < l.targets.size(); j++)
+      if(l.targets[i].name == l.targets[j].name)
+        throw invalid_file{"LAYER.TARGETS: duplicate NAME " + l.targets[i].name};
+
+  if(d.fragment_outputs.empty())
+  {
+    for(std::size_t i = 0; i < l.targets.size(); i++)
+    {
+      fragment_output fo{};
+      fo.location = (int)i;
+      fo.type = attribute_type::Vec4;
+      fo.name = l.targets[i].name;
+      d.fragment_outputs.push_back(std::move(fo));
+    }
+  }
+  if(d.fragment_outputs.size() != l.targets.size())
+    throw invalid_file{"LAYER.TARGETS and FRAGMENT_OUTPUTS must match one to one"};
+  for(std::size_t i = 0; i < l.targets.size(); i++)
+    if(d.fragment_outputs[i].name != l.targets[i].name
+       || d.fragment_outputs[i].location != (int)i)
+      throw invalid_file{
+          "LAYER.TARGETS[" + std::to_string(i) + "] must be FRAGMENT_OUTPUTS["
+          + std::to_string(i) + "] at location " + std::to_string(i)};
+
+  const auto& r = l.resolve;
+  if(r.declared)
+  {
+    auto collides = [&](const std::string& name) {
+      return std::any_of(l.targets.begin(), l.targets.end(), [&](const layer_target& t) {
+        return t.name == name;
+      });
+    };
+    if(collides(r.output))
+      throw invalid_file{"LAYER.RESOLVE.OUTPUT names a target"};
+    if(!r.depth_input.empty() && (collides(r.depth_input) || r.depth_input == r.output))
+      throw invalid_file{"LAYER.RESOLVE.DEPTH_INPUT names a target or the OUTPUT"};
+    if(fragment_source.find("ISF_RESOLVE_PASS") == std::string_view::npos)
+      throw invalid_file{
+          "LAYER.RESOLVE needs an `#if defined(ISF_RESOLVE_PASS)` section in the "
+          "fragment shader"};
+  }
+}
+
+bool depth_nearer_is_greater(const descriptor& d) noexcept
+{
+  const auto& cmp = d.default_state.depth_compare;
+  if(!cmp)
+    return true;
+  char s[16]{};
+  std::size_t n = 0;
+  for(char c : *cmp)
+  {
+    if(c == '_' || c == '-' || c == ' ')
+      continue;
+    if(n == sizeof(s))
+      return false;
+    s[n++] = (char)tolower((unsigned char)c);
+  }
+  const std::string_view v{s, n};
+  return v == "greater" || v == "g" || v == "gt" || v == "greaterorequal"
+         || v == "greaterequal" || v == "gequal";
+}
+
+bool draws_transparent(const descriptor& d) noexcept
+{
+  if(d.queue != render_queue::unspecified)
+    return d.queue == render_queue::transparent;
+  return d.layer.enabled();
+}
+
+static std::string isf_depth_convention(const descriptor& d)
+{
+  const bool greater = depth_nearer_is_greater(d);
+  return fmt::format(
+      "#define ISF_DEPTH_NEARER_IS_GREATER {0}\n"
+      "#define ISF_DEPTH_FAR {1}\n"
+      "#define ISF_DEPTH_NEAR {2}\n"
+      "bool isf_depth_nearer(float a, float b) {{ return a {3} b; }}\n"
+      "float isf_depth_nearness(float z) {{ return {4}; }}\n",
+      greater ? 1 : 0, greater ? "0.0" : "1.0", greater ? "1.0" : "0.0",
+      greater ? ">" : "<", greater ? "z" : "1.0 - z");
+}
+
 using root_fun = void (*)(descriptor&, const sajson::value&);
 using input_fun = input (*)(const sajson::value&);
 static alpha_mode parse_alpha_mode(const sajson::value& v)
@@ -3230,6 +3525,14 @@ static const ossia::string_map<root_fun>& root_parse{[] {
     d.composite = parse_composite_mode(v);
   }});
 
+  p.insert({"LAYER", [](descriptor& d, const sajson::value& v) {
+    parse_layer(v, d.layer);
+  }});
+
+  p.insert({"QUEUE", [](descriptor& d, const sajson::value& v) {
+    d.queue = parse_render_queue(v);
+  }});
+
   p.insert({"PIPELINE_STATE", [](descriptor& d, const sajson::value& v) {
     parse_pipeline_state(v, d.default_state);
   }});
@@ -3522,6 +3825,10 @@ std::pair<int, descriptor> parser::parse_isf_header(std::string_view source)
       (it->second)(d, root.get_object_value(i));
     }
   }
+
+  if(d.layer.enabled()
+     && source.find("\"RAW_RASTER_PIPELINE\"") == std::string_view::npos)
+    throw invalid_file{"LAYER is only supported by RAW_RASTER_PIPELINE shaders"};
 
   bool composite = d.composite != composite_mode::unspecified;
   for(const auto& out : d.outputs)
@@ -4449,7 +4756,7 @@ void parser::parse_raw_raster_pipeline()
   std::string em_type = m_desc.execution_model.type;
   for(auto& c : em_type)
     c = (char)std::toupper((unsigned char)c);
-  if(m_desc.outputs.empty()
+  if(m_desc.outputs.empty() && !m_desc.layer.enabled()
      && (m_desc.fragment_outputs.size() > 1
          || (m_desc.fragment_outputs.size() == 1 && em_type == "MANUAL")))
   {
@@ -4458,6 +4765,7 @@ void parser::parse_raw_raster_pipeline()
       m_desc.outputs.push_back(output_declaration{.name = fo.name, .type = "color"});
     }
   }
+  validate_layer(m_desc, fragWithoutISF);
 
   // Add the raw raster uniforms
   {
@@ -4702,6 +5010,7 @@ void parser::parse_raw_raster_pipeline()
             "layout({}) out float gl_FragDepth;\n", q);
     }
   }
+  std::string material_block;
   {
     // Setup the parameters UBOs
     std::string material_ubos = GLSL45.defaultUniforms;
@@ -4868,6 +5177,7 @@ void parser::parse_raw_raster_pipeline()
         uniforms += "\n";
 
         material_ubos += uniforms;
+        material_block = uniforms;
       }
 
       material_ubos += samplers;
@@ -5095,6 +5405,10 @@ void parser::parse_raw_raster_pipeline()
     m_fragment += "#define VIEW_INDEX 0\n";
   }
 
+  const std::string depth_convention = isf_depth_convention(m_desc);
+  m_vertex += depth_convention;
+  m_fragment += depth_convention;
+
   m_vertex += "void isf_vertShaderInit()\n{\n";
   if(mv_fragment_plumbing)
     m_vertex += "  isf_ViewIndexVarying = gl_ViewIndex;\n";
@@ -5113,7 +5427,13 @@ void parser::parse_raw_raster_pipeline()
   m_vertex += '\n';
   isf_rewrite_straight_sampling(fragWithoutISF, m_desc);
   std::vector<std::string> premultiplied;
-  if(!declares_blend(m_desc.default_state))
+  if(m_desc.layer.enabled())
+  {
+    for(const auto& t : m_desc.layer.targets)
+      if(!t.blend && premultiplied_by_engine(resolve_alpha(m_desc), t.composite))
+        premultiplied.push_back(t.name);
+  }
+  else if(!declares_blend(m_desc.default_state))
   {
     std::string single;
     for(const auto& fo : m_desc.fragment_outputs)
@@ -5134,6 +5454,46 @@ void parser::parse_raw_raster_pipeline()
     m_fragment += "\n#undef main\nvoid main()\n{\n  isf_rawraster_user_fragment_main();\n";
     m_fragment += isf_premultiply_statements(premultiplied);
     m_fragment += "}\n";
+  }
+
+  if(m_desc.layer.resolve.declared)
+  {
+    auto& r = m_desc.layer.resolve;
+    std::string fs = GLSL45.versionPrelude;
+    fs += isf_emit_user_extensions(m_desc.extensions);
+    fs += "#define ISF_RESOLVE_PASS 1\n";
+    fs += fmt::format("layout(location = 0) out vec4 {};\n", r.output);
+    fs += GLSL45.defaultUniforms;
+    fs += isf_emit_types_struct(d.types);
+    fs += material_block;
+    int binding = 3;
+    for(const auto& t : m_desc.layer.targets)
+      fs += fmt::format("layout(binding = {}) uniform sampler2D {};\n", binding++, t.name);
+    if(!r.depth_input.empty())
+      fs += fmt::format(
+          "layout(binding = {}) uniform sampler2D {};\n", binding++, r.depth_input);
+    fs += GLSL45.defaultFunctions;
+    fs += "#define VIEW_INDEX 0\n";
+    fs += depth_convention;
+    fs += "#define LAYER_TEXEL(tex) texelFetch(tex, ivec2(gl_FragCoord.xy), 0)\n";
+
+    const auto composite = r.composite != composite_mode::unspecified ? r.composite
+                                                                      : resolve_composite(d);
+    if(!r.blend && premultiplied_by_engine(resolve_alpha(d), composite))
+    {
+      fs += "#define main isf_rawraster_user_resolve_main\n";
+      fs += fragWithoutISF;
+      fs += "\n#undef main\nvoid main()\n{\n  isf_rawraster_user_resolve_main();\n";
+      fs += isf_premultiply_statements({r.output});
+      fs += "}\n";
+    }
+    else
+    {
+      fs += fragWithoutISF;
+    }
+    boost::replace_all(fs, "gl_FragColor", "isf_FragColor");
+    boost::replace_all(fs, "vv_Frag", "isf_Frag");
+    r.fragment = std::move(fs);
   }
 
   // Multiview wrapper main: writes the injected view-index varying, then

@@ -852,6 +852,49 @@ struct output_declaration
   composite_mode composite{composite_mode::unspecified};
 };
 
+// QUEUE header key: the order of the cables sharing a consumer input.
+// `unspecified` resolves to transparent for a LAYER shader, else opaque.
+enum class render_queue : uint8_t
+{
+  unspecified,
+  opaque,
+  transparent
+};
+
+// One LAYER.TARGETS entry: a private colour target the draw writes as the
+// fragment output of the same NAME.
+struct layer_target
+{
+  std::string name;
+  std::string format{"rgba16f"};
+  std::array<float, 4> clear{0.f, 0.f, 0.f, 0.f};
+  std::optional<blend_attachment> blend;
+  composite_mode composite{composite_mode::unspecified};
+};
+
+// LAYER.RESOLVE: the shader's own full-screen pass into the consumer, compiled
+// from the fragment source with ISF_RESOLVE_PASS defined.
+struct layer_resolve
+{
+  bool declared{false};
+  std::string output{"isf_FragColor"};
+  std::optional<blend_attachment> blend;
+  composite_mode composite{composite_mode::unspecified};
+  bool depth_write{false};
+  std::string depth_input;
+  std::string fragment;
+};
+
+struct layer_state
+{
+  bool declared{false};
+  std::vector<layer_target> targets;
+  bool depth_test{true};
+  layer_resolve resolve;
+
+  bool enabled() const noexcept { return declared; }
+};
+
 struct descriptor
 {
   enum Mode
@@ -1001,6 +1044,33 @@ struct descriptor
   // rasterisation. Useful for cheap frustum-/occlusion-style culling.
   int cull_distances{0};
 
+  // LAYER (RAW_RASTER_PIPELINE): the draw renders into private targets of the
+  // consumer's size instead of the consumer, then a resolve pass writes the
+  // consumer.
+  //   TARGETS     [{ NAME, FORMAT, CLEAR, BLEND | COMPOSITE }]: one per
+  //               FRAGMENT_OUTPUTS entry, same names, same order (synthesised
+  //               as vec4 outputs when FRAGMENT_OUTPUTS is absent). FORMAT
+  //               rgba8 | rgba16f (default) | rgba32f | r8 | rg8 | r16 | rg16 |
+  //               r16f | r32f; CLEAR a vec4, default transparent black; BLEND
+  //               a PIPELINE_STATE.BLEND value, COMPOSITE a COMPOSITE mode,
+  //               default the premultiplied over. Without TARGETS, one rgba16f
+  //               target per FRAGMENT_OUTPUTS entry.
+  //   DEPTH_TEST  test the draw against the consumer's depth, read-only
+  //               (default true).
+  //   RESOLVE     { OUTPUT, BLEND | COMPOSITE, DEPTH_WRITE, DEPTH_INPUT }: the
+  //               shader's `#if defined(ISF_RESOLVE_PASS)` section runs as a
+  //               full-screen pass into the consumer, each target a sampler2D
+  //               of its NAME, DEPTH_INPUT (a name) the consumer's depth,
+  //               writing OUTPUT (default isf_FragColor) and, with DEPTH_WRITE,
+  //               gl_FragDepth through the consumer's depth test. Without
+  //               RESOLVE the first target is composited with COMPOSITE.
+  // Needs no OUTPUTS, SINGLE execution, no MULTIVIEW.
+  layer_state layer;
+
+  // QUEUE: "opaque" | "transparent". Transparent sources draw after the opaque
+  // ones into an input they share.
+  render_queue queue{render_queue::unspecified};
+
   // DEPTH_LAYOUT: conservative-depth qualifier on gl_FragDepth. Allowed:
   //   "any"        — driver default (no guarantee, disables early-Z when
   //                  gl_FragDepth is written).
@@ -1034,6 +1104,15 @@ composite_mode resolve_composite(const descriptor& d, const csf_image_input& img
 // is blended as premultiplied.
 SCORE_PLUGIN_GFX_EXPORT
 bool premultiplied_by_engine(alpha_mode alpha, composite_mode composite) noexcept;
+
+// Whether the shader's DEPTH_COMPARE keeps the greater depth (reverse-Z, the
+// default) rather than the smaller one.
+SCORE_PLUGIN_GFX_EXPORT
+bool depth_nearer_is_greater(const descriptor& d) noexcept;
+
+// Whether the shader draws in the transparent QUEUE.
+SCORE_PLUGIN_GFX_EXPORT
+bool draws_transparent(const descriptor& d) noexcept;
 
 // Whether a pipeline state declares BLEND or BLEND_PER_ATTACHMENT.
 SCORE_PLUGIN_GFX_EXPORT
