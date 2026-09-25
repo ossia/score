@@ -68,6 +68,10 @@ QVariant PresetItemModel::data(const QModelIndex& index, int role) const
       case Qt::DisplayRole:
       case Qt::EditRole:
         return presets[index.row()].name;
+      case Qt::ToolTipRole:
+        if(const auto& desc = presets[index.row()].description; !desc.isEmpty())
+          return desc;
+        break;
     }
   }
 
