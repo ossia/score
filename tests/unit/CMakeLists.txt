@@ -881,6 +881,13 @@ if(TARGET score_plugin_gfx AND TARGET score_plugin_media)
     PLUGINS score_plugin_gfx)
 endif()
 
+# Which window or screen a capture device opens from its stored id and title.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_window_capture_resolve
+    SOURCES WindowCaptureResolveTest.cpp
+    PLUGINS score_plugin_gfx)
+endif()
+
 # Video::gstreamerToLibav(): the gst-name -> AVPixelFormat table feeding the
 # GStreamer, Sh4lt and Shmdata inputs. Header-only and self-contained, so the
 # test needs the plug-in only for its libav include paths and SCORE_HAS_LIBAV.

@@ -174,15 +174,24 @@ public:
     // Start capturing
     if(node.backend && node.backend->available())
     {
+      auto& backend = *node.backend;
       CaptureTarget target;
       target.mode = node.settings.mode;
       target.windowId = node.settings.windowId;
       target.screenId = node.settings.screenId;
+      if(target.mode == CaptureMode::Window)
+        target.windowId = resolveWindowId(
+            backend.enumerate(), target.windowId,
+            node.settings.windowTitle.toStdString());
+      else if(target.mode == CaptureMode::SingleScreen)
+        target.screenId = resolveScreenId(
+            backend.enumerateScreens(), target.screenId,
+            node.settings.screenName.toStdString());
       target.regionX = node.settings.regionX;
       target.regionY = node.settings.regionY;
       target.regionW = node.settings.regionW;
       target.regionH = node.settings.regionH;
-      const_cast<WindowCaptureNode&>(node).backend->start(target);
+      backend.start(target);
     }
 
     m_initialized = true;

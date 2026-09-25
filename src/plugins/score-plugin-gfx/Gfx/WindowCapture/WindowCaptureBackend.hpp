@@ -1,7 +1,9 @@
 #pragma once
+#include <algorithm>
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace Gfx::WindowCapture
@@ -68,6 +70,48 @@ struct CaptureTarget
   uint64_t screenId{};
   int regionX{}, regionY{}, regionW{}, regionH{};
 };
+
+/**
+ * @brief The id to capture, given what the settings remember of a window.
+ *
+ * Window ids do not survive a restart of the captured application, and
+ * settings written by hand or by a script may only name the window: the
+ * stored id wins while such a window exists, then the first window whose
+ * title is the stored one, then the first whose title contains it. The
+ * stored id comes back unchanged when nothing matches.
+ */
+inline uint64_t resolveWindowId(
+    const std::vector<CapturableWindow>& windows, uint64_t id, std::string_view title)
+{
+  if(id != 0 && std::ranges::any_of(windows, [=](auto& w) { return w.id == id; }))
+    return id;
+  if(title.empty())
+    return id;
+  for(auto& w : windows)
+    if(w.title == title)
+      return w.id;
+  for(auto& w : windows)
+    if(w.title.find(title) != std::string::npos)
+      return w.id;
+  return id;
+}
+
+//! As resolveWindowId, for a screen and its name.
+inline uint64_t resolveScreenId(
+    const std::vector<CapturableScreen>& screens, uint64_t id, std::string_view name)
+{
+  if(id != 0 && std::ranges::any_of(screens, [=](auto& s) { return s.id == id; }))
+    return id;
+  if(name.empty())
+    return id;
+  for(auto& s : screens)
+    if(s.name == name)
+      return s.id;
+  for(auto& s : screens)
+    if(s.name.find(name) != std::string::npos)
+      return s.id;
+  return id;
+}
 
 struct WindowCaptureBackend
 {
