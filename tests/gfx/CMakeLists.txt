@@ -1277,6 +1277,10 @@ score_add_gfx_test(geometry_filter_shift GfxGeometryFilterShift.cpp)
 # crash is a red assertion in the parent rather than a dead run.
 score_add_gfx_test(document_close_teardown GfxDocumentCloseTeardown.cpp)
 
+# A removed output releases its external resources in the update that removes
+# it, so a same-settings replacement created in that update can take them.
+score_add_gfx_test(output_removal_releases GfxOutputRemovalReleases.cpp)
+
 # A camera array renders six faces, each carrying its own camera's
 # encoded forward direction. Needs Threedim::CameraArray, which is
 # hidden-visibility inside the plug-in, so it is compiled in directly.
