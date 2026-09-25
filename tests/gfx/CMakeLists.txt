@@ -1936,3 +1936,27 @@ score_add_gfx_test(raw_raster_primitive_data_a5 GfxRawRasterPrimitiveDataA5.cpp)
 # An unbound raw raster image or texture gets a placeholder of the declared
 # scalar class (float / uint / sint) and shape (agent A5).
 score_add_gfx_test(raw_raster_placeholder_format_a5 GfxRawRasterPlaceholderFormatA5.cpp)
+
+# An unsized texture inlet takes the size of the inlets it renders into, down
+# the chain, with fan-out and after a runtime size change (agent L4).
+score_add_gfx_test(inlet_size_inherit_l4 GfxInletSizeInheritL4.cpp)
+
+# A gpp compute node as the output node with two image inputs: every input
+# after the first had no resource update batch (agent L4).
+if(TARGET score_plugin_avnd)
+  score_add_test(test_gfx_compute_output_two_images_l4
+    SOURCES GfxComputeOutputTwoImagesL4.cpp
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_compute_output_two_images_l4 PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_compute_output_two_images_l4 SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()

@@ -267,10 +267,48 @@ void RenderList::flushInitialBatch()
   m_initialBatch = nullptr;
 }
 
+static bool isInletRenderTarget(const Port& p) noexcept
+{
+  return p.type == Types::Image
+         && (p.flags & Flag::GrabsFromSource) != Flag::GrabsFromSource;
+}
+
+static int32_t inputIndex(const Node& node, const Port& p) noexcept
+{
+  for(std::size_t i = 0; i < node.input.size(); ++i)
+    if(node.input[i] == &p)
+      return int32_t(i);
+  return -1;
+}
+
+QSize RenderList::resolveInletSize(
+    const Port& in,
+    const ossia::small_flat_map<const Port*, RenderTargetSpecs, 16>& resolvedSpecs,
+    ossia::flat_set<const Node*>& visiting) const noexcept
+{
+  if(auto it = resolvedSpecs.find(&in); it != resolvedSpecs.end())
+    return it->second.size;
+
+  const Node* node = in.node;
+  if(!node || node == &output)
+    return state.renderSize;
+
+  const int32_t port = inputIndex(*node, in);
+  if(auto it = node->renderTargetSpecs.find(port);
+     it != node->renderTargetSpecs.end() && it->second.size)
+    return QSize{it->second.size->width, it->second.size->height};
+
+  if(!visiting.insert(node).second)
+    return {};
+  const QSize downstream = resolveDownstreamSize(node, resolvedSpecs, visiting);
+  visiting.erase(node);
+  return downstream.isEmpty() ? state.renderSize : downstream;
+}
+
 QSize RenderList::resolveDownstreamSize(
     const Node* node,
-    const ossia::small_flat_map<const Port*, RenderTargetSpecs, 16>& resolvedSpecs)
-    const noexcept
+    const ossia::small_flat_map<const Port*, RenderTargetSpecs, 16>& resolvedSpecs,
+    ossia::flat_set<const Node*>& visiting) const noexcept
 {
   QSize best{0, 0};
 
@@ -279,45 +317,52 @@ QSize RenderList::resolveDownstreamSize(
     for(const auto* edge : out_port->edges)
     {
       const Port* sink = edge->sink;
+      if(!sink || !sink->node)
+        continue;
 
-      // Case 1: sink is the output node — use its render size.
+      QSize sz;
       if(sink->node == &output)
       {
-        best = QSize(
-            std::max(best.width(), state.renderSize.width()),
-            std::max(best.height(), state.renderSize.height()));
-        continue;
+        sz = state.renderSize;
       }
-
-      // Case 2: sink port was already resolved (downstream, processed earlier
-      // in reverse topological order).
-      if(auto it = resolvedSpecs.find(sink); it != resolvedSpecs.end())
+      else
       {
-        best = QSize(
-            std::max(best.width(), it->second.size.width()),
-            std::max(best.height(), it->second.size.height()));
-        continue;
-      }
-
-      // Case 3: sink has a renderer that provides its own RT
-      // (e.g. Crousti nodes overriding renderTargetForInput).
-      if(auto rn_it = sink->node->renderedNodes.find(this);
-         rn_it != sink->node->renderedNodes.end())
-      {
-        auto tex = rn_it->second->renderTargetForInput(*sink);
-        if(tex.texture)
-        {
-          auto sz = tex.texture->pixelSize();
-          best = QSize(
-              std::max(best.width(), sz.width()),
-              std::max(best.height(), sz.height()));
+        if(!isInletRenderTarget(*sink))
           continue;
-        }
+        if(std::find(nodes.begin(), nodes.end(), sink->node) == nodes.end()
+           && sink->node->renderedNodes.find(this) == sink->node->renderedNodes.end())
+          continue;
+        sz = resolveInletSize(*sink, resolvedSpecs, visiting);
       }
+
+      best = QSize(std::max(best.width(), sz.width()), std::max(best.height(), sz.height()));
     }
   }
 
-  return best; // {0,0} if no downstream found — caller keeps renderSize fallback
+  return best;
+}
+
+QSize RenderList::resolveDownstreamSize(
+    const Node* node,
+    const ossia::small_flat_map<const Port*, RenderTargetSpecs, 16>& resolvedSpecs)
+    const noexcept
+{
+  ossia::flat_set<const Node*> visiting;
+  visiting.insert(node);
+  return resolveDownstreamSize(node, resolvedSpecs, visiting);
+}
+
+RenderTargetSpecs
+RenderList::resolveInputRenderTargetSpecs(const Node& node, int32_t port) noexcept
+{
+  auto spec = node.resolveRenderTargetSpecs(port, *this);
+  if(&node != &output && !node.hasExplicitRenderTargetSize(port))
+  {
+    const QSize downstream = resolveDownstreamSize(&node, {});
+    if(!downstream.isEmpty())
+      spec.size = downstream;
+  }
+  return spec;
 }
 
 static QRhiTexture::Flags inputRenderTargetFlags(const RenderTargetSpecs& spec) noexcept
@@ -330,38 +375,18 @@ static QRhiTexture::Flags inputRenderTargetFlags(const RenderTargetSpecs& spec) 
 
 void RenderList::createAllInputRenderTargets()
 {
-  // Step 1: resolve specs in reverse topological order (sinks first), so
-  // downstream RTs are resolved before upstream ones and nodes without an
-  // explicit size inherit the downstream size instead of the global output
-  // resolution.
   ossia::small_flat_map<const Port*, RenderTargetSpecs, 16> resolvedSpecs;
 
-  for(auto it = nodes.rbegin(); it != nodes.rend(); ++it)
+  for(auto* node : nodes)
   {
-    auto* node = *it;
-    // Output node manages its own RT via its renderer
     if(node == &output)
       continue;
 
     int cur_port = 0;
     for(auto* in : node->input)
     {
-      if(in->type == Types::Image
-         && (in->flags & Flag::GrabsFromSource) != Flag::GrabsFromSource)
-      {
-        auto spec = node->resolveRenderTargetSpecs(cur_port, *this);
-
-        // If no explicit size, inherit from downstream.
-        if(!node->hasExplicitRenderTargetSize(cur_port))
-        {
-          QSize downstream = resolveDownstreamSize(node, resolvedSpecs);
-          if(!downstream.isEmpty())
-            spec.size = downstream;
-          // else: keep renderer.state.renderSize (ultimate fallback)
-        }
-
-        resolvedSpecs[in] = spec;
-      }
+      if(isInletRenderTarget(*in))
+        resolvedSpecs[in] = resolveInputRenderTargetSpecs(*node, cur_port);
       cur_port++;
     }
   }
@@ -1795,14 +1820,14 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
       }
     }
 
-    // Pass 2: intermediate nodes with changed RT specs
+    // Pass 2: intermediate nodes whose input render targets no longer match
+    // their resolved specs (their own settings, or a downstream size change)
     for(auto* renderer : renderers)
     {
-      if(!renderer->renderTargetSpecsChanged)
-        continue;
       // Skip output node (handled above)
       if(&renderer->node == &output)
         continue;
+      const bool ownSpecsChanged = renderer->renderTargetSpecsChanged;
 
       // Phase A: scan ports, recreate input RTs whose specs changed,
       // and collect the changed-port set so phase C only re-adds
@@ -1814,7 +1839,7 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
         if(in->type == Types::Image
            && (in->flags & Flag::GrabsFromSource) != Flag::GrabsFromSource)
         {
-          auto newSpec = renderer->node.resolveRenderTargetSpecs(cur_port, *this);
+          auto newSpec = resolveInputRenderTargetSpecs(renderer->node, cur_port);
           auto oldIt = m_inputRenderTargets.find(in);
 
           const auto newFlags = inputRenderTargetFlags(newSpec);
@@ -1833,7 +1858,8 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
 
           // Always update sampler filter settings when specs changed
           // (filter/address changes don't require RT recreation)
-          renderer->updateInputSamplerFilter(*in, newSpec);
+          if(ownSpecsChanged)
+            renderer->updateInputSamplerFilter(*in, newSpec);
 
           if(specChanged)
           {
@@ -1947,6 +1973,16 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
       = [this, &prevRenderers, &commands, &updateBatch](score::gfx::Port* input) {
     prevRenderers.clear();
     prevRenderers.reserve(input->edges.size());
+
+    if(!updateBatch)
+    {
+      updateBatch = state.rhi->nextResourceUpdateBatch();
+      if(!updateBatch)
+      {
+        qWarning("RenderList: resource update batch pool exhausted");
+        return;
+      }
+    }
 
     // First update them all and store them in prevRenderers (saves a couple lookups)
     for(auto edge : input->edges)

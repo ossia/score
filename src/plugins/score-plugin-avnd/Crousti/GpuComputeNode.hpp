@@ -207,7 +207,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
     using image_type = std::decay_t<decltype(bindings_type{}.*F::image())>;
     auto tex = createInput(
         renderer, Idx, gpp::qrhi::textureFormat<image_type>(),
-        node().resolveRenderTargetSpecs(Idx, renderer).size);
+        renderer.resolveInputRenderTargetSpecs(node(), Idx).size);
 
     using sampler_type = typename avnd::member_reflection<F::image()>::member_type;
     createdTexs[sampler_type::binding()] = tex;

@@ -1428,7 +1428,7 @@ struct texture_inputs_storage<T>
       }
 
       auto& parent = self.node();
-      auto spec = parent.resolveRenderTargetSpecs(N, renderer);
+      auto spec = renderer.resolveInputRenderTargetSpecs(parent, N);
       if constexpr(requires {
                      t.request_width;
                      t.request_height;

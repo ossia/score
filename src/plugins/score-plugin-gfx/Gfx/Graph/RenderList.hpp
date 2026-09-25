@@ -442,17 +442,37 @@ public:
   /**
    * @brief Resolve the downstream render target size for a node.
    *
-   * Returns the maximum size across all downstream render targets that
-   * this node renders to. Used as fallback when a node's input port
-   * has no explicit render target size.
+   * Returns the largest width and the largest height across the texture
+   * inlets this node renders into: the output node counts as the render
+   * size, an inlet with an explicit size as that size, and an inlet without
+   * one as the size it resolves to in turn, down the chain. Used as fallback
+   * when a node's input port has no explicit render target size. Empty when
+   * the node feeds no texture inlet of this render list.
+   *
+   * Entries of @p resolvedSpecs take precedence over the recursive resolution.
    */
   QSize resolveDownstreamSize(
       const Node* node,
       const ossia::small_flat_map<const Port*, RenderTargetSpecs, 16>& resolvedSpecs)
       const noexcept;
 
-private:
+  /**
+   * @brief The render target specs of a texture inlet, with its size resolved.
+   *
+   * The inlet's own settings; without an explicit size, the size inherited
+   * from downstream (resolveDownstreamSize), else the render size.
+   */
+  RenderTargetSpecs resolveInputRenderTargetSpecs(const Node& node, int32_t port) noexcept;
 
+private:
+  QSize resolveInletSize(
+      const Port& in,
+      const ossia::small_flat_map<const Port*, RenderTargetSpecs, 16>& resolvedSpecs,
+      ossia::flat_set<const Node*>& visiting) const noexcept;
+  QSize resolveDownstreamSize(
+      const Node* node,
+      const ossia::small_flat_map<const Port*, RenderTargetSpecs, 16>& resolvedSpecs,
+      ossia::flat_set<const Node*>& visiting) const noexcept;
 
   void renderImpl(QRhiCommandBuffer& commands, bool force);
 
