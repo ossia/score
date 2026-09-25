@@ -119,10 +119,6 @@ private:
   int m_materialSize{};
 
   QRhiBuffer* m_modelUBO{};
-  // Occupies the descriptor slot parse_raw_raster_pipeline() reserves ahead of
-  // model_material_t when MULTIVIEW >= 2. Without it every binding from the
-  // model UBO on is one lower than the shader declares.
-  QRhiBuffer* m_multiViewUBO{};
 
   struct AuxiliarySSBO
   {

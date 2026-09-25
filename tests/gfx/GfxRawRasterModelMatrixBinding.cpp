@@ -1,35 +1,12 @@
 // =============================================================================
-// MODEL_MATRIX SURVIVES THE MULTIVIEW BINDING SHIFT.
+// MODEL_MATRIX survives MULTIVIEW: the model UBO binding that
+// parse_raw_raster_pipeline() declares agrees with the one the renderer binds.
 //
-// isf.cpp's parse_raw_raster_pipeline() reserves a descriptor slot for the
-// multiview UBO when MULTIVIEW >= 2 and then bumps model_ubo_binding past it:
-//
-//     if(m_desc.multiview_count >= 2) {
-//       material_ubos += isf_emit_multiview_ubo(sampler_binding, ...);
-//       sampler_binding++;
-//     }
-//     int model_ubo_binding = sampler_binding;
-//
-// so a MULTIVIEW shader declares model_material_t one slot higher than the
-// same shader without MULTIVIEW. RenderedRawRasterPipelineNode counts its own
-// bindings independently -- `int max_binding = 3` plus samplers plus auxiliary
-// textures -- and then pushes m_modelUBO at max_binding. Nothing in that file
-// reserves the multiview slot (RenderedISFNode and SimpleRenderedISFNode both
-// create an m_multiViewUBO; the raw-raster renderer has none), so the two
-// numbers disagree by exactly one as soon as MULTIVIEW >= 2.
-//
-// Nothing caught this because no existing multiview raw-raster shader READS
-// MODEL_MATRIX: syn-camera-array-faces reads the `camera` auxiliary and
-// synthesises its triangle from gl_VertexIndex.
-//
-// The oracle needs no camera and no transform. With nothing writing the raster
-// node's transform3d port MODEL_MATRIX is identity, its translation column is
-// (0,0,0), and the shaders' +0.5 bias makes that mid-grey. Both halves run the
-// same chain and the same vertex source; the ONLY difference is MULTIVIEW:6
-// plus the cubemap output it requires. So a mid-grey control next to a
-// non-mid-grey multiview result isolates the binding shift and nothing else.
-//
-//   DISPLAY=:0 SCORE_TEST_API=vulkan ctest -R gfx_rawraster_model_matrix_binding
+// With nothing writing the raster node's transform3d port MODEL_MATRIX is
+// identity, and the shaders' +0.5 bias turns its zero translation column into
+// mid-grey. Both halves run the same chain and the same vertex source; the only
+// difference is MULTIVIEW:6 plus the cubemap output it requires, so a mid-grey
+// control next to a non-mid-grey multiview result isolates a binding shift.
 // =============================================================================
 #include <score_test/Gfx.hpp>
 #include "GfxHalpNodes.hpp"

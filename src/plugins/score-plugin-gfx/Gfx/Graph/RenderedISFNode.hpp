@@ -85,9 +85,6 @@ private:
   // (storage_input / csf_image_input / uniform_input). See IsfBindingsBuilder.
   GraphicsStorageResources m_storage;
 
-  // Multiview UBO: N × mat4 view-projection matrices, when MULTIVIEW >= 2.
-  QRhiBuffer* m_multiViewUBO{};
-
   // First binding slot reserved for storage resources; determined lazily in
   // initPasses once the pass-sampler count is known (Rendered differs from
   // Simple by having one extra sampler per inner pass).

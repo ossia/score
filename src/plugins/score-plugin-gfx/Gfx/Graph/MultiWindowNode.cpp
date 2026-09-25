@@ -1,4 +1,5 @@
 #include <Gfx/Graph/MultiWindowNode.hpp>
+#include <Gfx/Graph/PipelineStateHelpers.hpp>
 
 #include <algorithm>
 #include <cmath>
@@ -388,7 +389,7 @@ public:
       const auto& mesh = renderer.defaultTriangle();
       pw.pipeline = score::gfx::buildPipeline(
           renderer, mesh, m_vertexS, m_fragmentS, rt, nullptr, pw.uvRectUBO,
-          pw.samplers, {extraBindings, 2});
+          pw.samplers, score::gfx::premultipliedOverBlend(), {extraBindings, 2});
     }
   }
 

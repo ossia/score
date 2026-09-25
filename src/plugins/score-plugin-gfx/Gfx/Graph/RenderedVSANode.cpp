@@ -172,7 +172,8 @@ void SimpleRenderedVSANode::initPass(
     SCORE_ASSERT(ps);
     ps->setName("SimpleRenderedVSANode::initPass::ps");
 
-    ps->setTargetBlends({overBlendFor(isf::resolve_alpha(n.descriptor()))});
+    ps->setTargetBlends({blendFor(
+        isf::resolve_alpha(n.descriptor()), isf::resolve_composite(n.descriptor()))});
 
     const int rtS = renderTarget.sampleCount();
     ps->setSampleCount(rtS > 0 ? rtS : renderer.samples());

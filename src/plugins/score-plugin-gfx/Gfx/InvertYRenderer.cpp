@@ -1,5 +1,6 @@
 #include "InvertYRenderer.hpp"
 
+#include <Gfx/Graph/PipelineStateHelpers.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/ScreenNode.hpp>
 #include <Gfx/Graph/Utils.hpp>
@@ -99,7 +100,7 @@ void InvertYRenderer::init(
 
   m_p = score::gfx::buildPipeline(
       renderer, mesh, m_vertexS, m_fragmentS, m_renderTarget, nullptr, nullptr,
-      m_samplers);
+      m_samplers, score::gfx::premultipliedOverBlend());
 }
 
 void InvertYRenderer::update(
@@ -214,7 +215,7 @@ void ScaledRenderer::init(score::gfx::RenderList &renderer, QRhiResourceUpdateBa
 
   m_p = score::gfx::buildPipeline(
       renderer, mesh, m_vertexS, m_fragmentS, m_renderTarget, nullptr, nullptr,
-      m_samplers);
+      m_samplers, score::gfx::premultipliedOverBlend());
 
 }
 

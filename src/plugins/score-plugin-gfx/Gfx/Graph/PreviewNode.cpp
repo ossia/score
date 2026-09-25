@@ -1,6 +1,7 @@
 #include "PreviewNode.hpp"
 
 #include <Gfx/Graph/NodeRenderer.hpp>
+#include <Gfx/Graph/PipelineStateHelpers.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Settings/Model.hpp>
 
@@ -243,7 +244,7 @@ public:
 
     m_p = score::gfx::buildPipeline(
         renderer, mesh, m_vertexS, m_fragmentS, m_renderTarget, nullptr, nullptr,
-        m_samplers);
+        m_samplers, score::gfx::premultipliedOverBlend());
   }
   void update(
       score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res,

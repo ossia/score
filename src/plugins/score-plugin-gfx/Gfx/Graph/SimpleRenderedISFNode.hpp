@@ -80,9 +80,6 @@ private:
   // Graphics-visible storage buffers / images (see IsfBindingsBuilder).
   GraphicsStorageResources m_storage;
 
-  // Multiview UBO: N × mat4 view-projection matrices uploaded per frame.
-  QRhiBuffer* m_multiViewUBO{};
-
   // Cached number of bindings consumed by storage resources (recorded in
   // initState so that runtime buffer rebinds can reuse the same layout).
   int m_firstStorageBinding{-1};
