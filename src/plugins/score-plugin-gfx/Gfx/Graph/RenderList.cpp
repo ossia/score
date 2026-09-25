@@ -320,6 +320,14 @@ QSize RenderList::resolveDownstreamSize(
   return best; // {0,0} if no downstream found — caller keeps renderSize fallback
 }
 
+static QRhiTexture::Flags inputRenderTargetFlags(const RenderTargetSpecs& spec) noexcept
+{
+  QRhiTexture::Flags flags{};
+  if(spec.mipmap_mode != QRhiSampler::None)
+    flags |= QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips;
+  return flags;
+}
+
 void RenderList::createAllInputRenderTargets()
 {
   // Step 1: resolve specs in reverse topological order (sinks first), so
@@ -367,13 +375,10 @@ void RenderList::createAllInputRenderTargets()
     // A mip chain is only worth allocating when the consuming sampler
     // filters across levels; otherwise levels > 0 are storage nothing
     // writes and nothing reads.
-    QRhiTexture::Flags texFlags{};
-    if(spec.mipmap_mode != QRhiSampler::None)
-      texFlags |= QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips;
-
     auto rt = score::gfx::createRenderTarget(
         state, spec.format, spec.size, samples(),
-        wantsDepth || wantsSamplableDepth, wantsSamplableDepth, texFlags);
+        wantsDepth || wantsSamplableDepth, wantsSamplableDepth,
+        inputRenderTargetFlags(spec));
     m_inputRenderTargets[port] = std::move(rt);
   }
 
@@ -1812,13 +1817,18 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
           auto newSpec = renderer->node.resolveRenderTargetSpecs(cur_port, *this);
           auto oldIt = m_inputRenderTargets.find(in);
 
+          const auto newFlags = inputRenderTargetFlags(newSpec);
           bool specChanged = false;
           if(oldIt != m_inputRenderTargets.end())
           {
             auto* oldTex = oldIt->second.texture;
             if(oldTex)
               specChanged = (oldTex->format() != newSpec.format)
-                         || (oldTex->pixelSize() != newSpec.size);
+                         || (oldTex->pixelSize() != newSpec.size)
+                         || ((oldTex->flags()
+                              & (QRhiTexture::MipMapped
+                                 | QRhiTexture::UsedWithGenerateMips))
+                             != newFlags);
           }
 
           // Always update sampler filter settings when specs changed
@@ -1843,12 +1853,9 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
             bool wantsDepth = requiresDepth(*in);
             bool wantsSamplableDepth
                 = (in->flags & Flag::SamplableDepth) == Flag::SamplableDepth;
-            QRhiTexture::Flags texFlags{};
-            if(newSpec.mipmap_mode != QRhiSampler::None)
-              texFlags |= QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips;
             oldIt->second = score::gfx::createRenderTarget(
                 state, newSpec.format, newSpec.size, samples(),
-                wantsDepth || wantsSamplableDepth, wantsSamplableDepth, texFlags);
+                wantsDepth || wantsSamplableDepth, wantsSamplableDepth, newFlags);
             ensureSelfFeedbackTarget(*in);
           }
         }
