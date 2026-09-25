@@ -97,6 +97,51 @@ struct print_node_rec
   }
 };
 
+const QString& DeviceDocumentPlugin::localName() noexcept
+{
+  static const QString local = QStringLiteral("score");
+  return local;
+}
+
+bool DeviceDocumentPlugin::isLocalProtocol(
+    const UuidKey<Device::ProtocolFactory>& p) noexcept
+{
+  // LocalTree::LocalProtocolFactory, in the engine plug-in
+  static const auto local = UuidKey<Device::ProtocolFactory>{
+      score::uuids::string_generator::compute("3fad3354-e103-4bc4-a34f-2d0cc4b02565")};
+  return p == local;
+}
+
+void DeviceDocumentPlugin::reserveLocalName(Device::Node& devices)
+{
+  const QString& local = localName();
+
+  auto taken = [&](const QString& name) {
+    return ossia::any_of(devices, [&](const Device::Node& n) {
+      return n.is<Device::DeviceSettings>()
+             && n.get<Device::DeviceSettings>().name == name;
+    });
+  };
+  for(auto& node : devices)
+  {
+    if(!node.is<Device::DeviceSettings>())
+      continue;
+    auto& settings = node.get<Device::DeviceSettings>();
+    if(isLocalProtocol(settings.protocol))
+    {
+      settings.name = local;
+    }
+    else if(settings.name == local)
+    {
+      QString name;
+      for(int i = 1; name.isEmpty() || taken(name); i++)
+        name = QStringLiteral("%1.%2").arg(local).arg(i);
+      m_renamedOnLoad.emplace_back(settings.name, name);
+      settings.name = name;
+    }
+  }
+}
+
 void DeviceDocumentPlugin::init()
 {
   m_asioContext = std::make_shared<ossia::net::network_context>();

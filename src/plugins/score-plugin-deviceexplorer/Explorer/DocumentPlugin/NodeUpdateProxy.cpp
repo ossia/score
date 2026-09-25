@@ -355,52 +355,46 @@ void NodeUpdateProxy::updateRemoteValue(
 
 ossia::value NodeUpdateProxy::refreshRemoteValue(const State::Address& addr) const
 {
-  // TODO here and in the following function, we should still update
-  // the device explorer.
-  auto dev_p = devModel.list().findDevice(addr.device);
-  if(!dev_p)
-    return {};
-
-  auto& dev = *dev_p;
-
-  auto& n = Device::getNodeFromAddress(devModel.rootNode(), addr)
-                .template get<Device::AddressSettings>();
-  if(dev.capabilities().canRefreshValue)
-  {
-    if(auto val = dev.refresh(addr))
-    {
-      n.value = *val;
-    }
-  }
-
-  return n.value;
+  if(auto v = try_refreshRemoteValue(addr))
+    return *std::move(v);
+  return {};
 }
 
 std::optional<ossia::value>
 NodeUpdateProxy::try_refreshRemoteValue(const State::Address& addr) const
 {
-  // TODO here and in the following function, we should still update
-  // the device explorer.
   auto dev_p = devModel.list().findDevice(addr.device);
   if(!dev_p)
     return {};
-
   auto& dev = *dev_p;
 
+  // Nodes not shown in the explorer are only looked up on the local device,
+  // where the document publishes its controls
   auto node = Device::try_getNodeFromAddress(devModel.rootNode(), addr);
-  if(!node)
+  if(!node && dev_p != devModel.list().localDevice())
     return {};
 
-  auto& n = node->template get<Device::AddressSettings>();
+  std::optional<ossia::value> val;
   if(dev.capabilities().canRefreshValue)
+    val = dev.refresh(addr);
+
+  if(node)
   {
-    if(auto val = dev.refresh(addr))
+    if(auto n = node->target<Device::AddressSettings>())
     {
-      n.value = *val;
+      if(val)
+        n->value = *val;
+      return n->value;
     }
+    return {};
   }
 
-  return n.value;
+  if(val)
+    return val;
+  auto n = dev.getNodeWithoutChildren(addr);
+  if(auto as = n.target<Device::AddressSettings>())
+    return as->value;
+  return {};
 }
 
 static void rec_refreshRemoteValues(Device::Node& n, Device::DeviceInterface& dev)

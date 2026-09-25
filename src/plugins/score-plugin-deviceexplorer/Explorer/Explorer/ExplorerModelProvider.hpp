@@ -23,5 +23,13 @@ public:
     }
     return nullptr;
   }
+
+  Device::DeviceInterface* findDevice(
+      const QString& name, const score::DocumentContext& ctx) const noexcept override
+  {
+    if(auto plug = ctx.findPlugin<DeviceDocumentPlugin>())
+      return plug->list().findDevice(name);
+    return nullptr;
+  }
 };
 }

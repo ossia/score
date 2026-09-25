@@ -9,8 +9,13 @@
 
 #include <score_lib_device_export.h>
 
+#include <optional>
 #include <vector>
 
+namespace score
+{
+struct DocumentContext;
+}
 namespace Device
 {
 class SCORE_LIB_DEVICE_EXPORT NodeBasedItemModel
@@ -94,4 +99,14 @@ makeFullAddressAccessorSettings(
     ossia::value min, ossia::value max, ossia::value val);
 SCORE_LIB_DEVICE_EXPORT Device::FullAddressAccessorSettings
 makeFullAddressAccessorSettings(const Device::Node& mess);
+
+//! From the explorer's node if shown there, else the device's own node
+SCORE_LIB_DEVICE_EXPORT std::optional<Device::AddressSettings>
+addressSettings(const State::Address& addr, const score::DocumentContext& ctx);
+
+//! Falls back to the given defaults
+SCORE_LIB_DEVICE_EXPORT Device::FullAddressAccessorSettings
+makeFullAddressAccessorSettings(
+    const State::AddressAccessor& mess, const score::DocumentContext& ctx,
+    ossia::value min, ossia::value max, ossia::value val);
 }

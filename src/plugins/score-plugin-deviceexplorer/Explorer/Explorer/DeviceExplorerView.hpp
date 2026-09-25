@@ -4,6 +4,8 @@
 #include <QList>
 #include <QTreeView>
 
+#include <score_plugin_deviceexplorer_export.h>
+
 #include <verdigris>
 class QAction;
 class QItemSelection;
@@ -14,7 +16,7 @@ namespace Explorer
 {
 class DeviceExplorerFilterProxyModel;
 class DeviceExplorerModel;
-class DeviceExplorerView final : public QTreeView
+class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerView final : public QTreeView
 {
   W_OBJECT(DeviceExplorerView)
 

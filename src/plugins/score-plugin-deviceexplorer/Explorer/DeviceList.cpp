@@ -56,7 +56,11 @@ void DeviceList::addDevice(DeviceInterface* dev)
   if(!dev)
     return;
 
-  if(dev == m_localDevice || dev == m_audioDevice)
+  // The local device is announced when set, not when shown in the explorer
+  if(dev == m_localDevice)
+    return;
+
+  if(dev == m_audioDevice)
   {
     // ...
   }
@@ -132,8 +136,23 @@ void DeviceList::setLogging(bool b)
 void DeviceList::setLocalDevice(DeviceInterface* dev)
 {
   if(m_localDevice)
+  {
     ossia::remove_erase(m_devices, m_localDevice);
+    deviceRemoved(m_localDevice);
+  }
   m_localDevice = dev;
+  if(dev)
+  {
+    // Unique: a document plug-in may set the same device again
+    connect(
+        dev, &DeviceInterface::logInbound, this, &DeviceList::logInbound,
+        Qt::UniqueConnection);
+    connect(
+        dev, &DeviceInterface::logOutbound, this, &DeviceList::logOutbound,
+        Qt::UniqueConnection);
+    dev->setLogging(get_cur_logging(m_logging));
+    deviceAdded(dev);
+  }
 }
 
 void DeviceList::setAudioDevice(DeviceInterface* dev)
