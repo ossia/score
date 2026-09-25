@@ -1220,7 +1220,21 @@ void Graph::removeNode(Node* n)
   // every topology change: createSingleRenderList adds to it directly, so a
   // node leaving has to leave it too or the clocks keep rendering a corpse.
   if(auto* out = dynamic_cast<OutputNode*>(n))
+  {
     ossia::remove_erase(m_outputs, out);
+
+    // And the render list built for it: RenderList keeps its output by
+    // reference and in `nodes`, and ~RenderList calls
+    // node->renderedNodes.erase(this) on each. Left in m_renderers it outlives
+    // the node the device then frees, and createAllRenderLists() destroys it on
+    // the next topology recompute - a SIGSEGV in the gfx tick.
+    //
+    // Erasing here runs ~RenderList while the node is still alive, which the
+    // caller guarantees.
+    std::erase_if(m_renderers, [out](const std::shared_ptr<RenderList>& rl) {
+      return rl && &rl->output == out;
+    });
+  }
 }
 
 void Graph::clearEdges()
