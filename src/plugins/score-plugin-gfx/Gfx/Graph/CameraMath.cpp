@@ -16,6 +16,8 @@ void packCameraUBO(
 
   const float fovYDeg = cam.yfov * (180.f / float(M_PI));
   float aspect = aspectOverride;
+  if(aspect <= 0.f && cam.aspect_ratio_set && cam.aspect_ratio > 0.f)
+    aspect = cam.aspect_ratio;
   if(aspect <= 0.f)
   {
     aspect = (renderSize.height() > 0)
