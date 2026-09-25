@@ -156,7 +156,7 @@ verify_addons() {
 clone_addon https://github.com/ossia/iscore-addon-network
 clone_addon https://github.com/ossia/score-addon-synthimi feature/avnd-layout-primitives
 clone_addon https://github.com/ossia/score-addon-jk
-clone_addon https://github.com/ossia/GBAP feature/avnd-layout-primitives
+clone_addon https://github.com/ossia/GBAP
 clone_addon https://github.com/ossia/score-addon-ltc
 clone_addon https://github.com/bltzr/score-avnd-granola
 clone_addon https://github.com/jcelerier/bendage
