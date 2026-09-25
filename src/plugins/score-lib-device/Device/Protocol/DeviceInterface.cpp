@@ -1089,6 +1089,7 @@ void DeviceInterface::addressRemoved(const ossia::net::parameter_base& addr)
   {
     m_callbacks.erase(cb_it);
   }
+  m_listeningRequests.erase(address);
   auto& node = addr.get_node();
   State::Address currentAddress = ToAddress(node);
   Device::AddressSettings as;
