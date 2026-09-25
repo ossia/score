@@ -835,6 +835,12 @@ avnd_make_score(
   MAIN_CLASS ArrayCombiner
   NAMESPACE ao
 )
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/ArrayBest.hpp"
+  TARGET array_best
+  MAIN_CLASS ArrayBest
+  NAMESPACE ao
+)
 
 avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/ArrayFlattener.hpp"
