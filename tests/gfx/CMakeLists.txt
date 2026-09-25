@@ -2155,3 +2155,11 @@ target_sources(test_gfx_scene_skinning_e2 PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator/offsetAllocator.cpp")
 target_include_directories(test_gfx_scene_skinning_e2 PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator")
+
+# Posed skeletons survive a Scene Preprocessor input shared with a Camera or a
+# Light (merge_scenes carries scene_state.skeletons) (agent MS).
+score_add_gfx_test(scene_merge_skeletons_ms GfxSceneMergeSkeletonsMS.cpp)
+target_sources(test_gfx_scene_merge_skeletons_ms PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator/offsetAllocator.cpp")
+target_include_directories(test_gfx_scene_merge_skeletons_ms PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator")

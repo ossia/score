@@ -500,7 +500,7 @@ struct FlatScene
   // ignore it or bind it as `scene_materials_ext`.
   std::vector<MaterialExtensionsGPU> material_extensions;
   // scene_state.skeletons in order, then the skins meshes reference that it
-  // does not list (merge_scenes drops scene_state.skeletons).
+  // does not list.
   std::vector<SkeletonGPU> skins;
 
   // World matrices to upload into the WorldTransform arena, one per
