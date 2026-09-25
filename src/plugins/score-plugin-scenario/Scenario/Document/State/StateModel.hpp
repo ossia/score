@@ -5,7 +5,6 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/Metatypes.hpp>
-#include <Scenario/Document/State/ItemModel/ControlItemModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 
 #include <score/model/Component.hpp>
@@ -92,7 +91,6 @@ public:
   double heightPercentage() const;
 
   MessageItemModel& messages() const;
-  ControlItemModel& controlMessages() const;
 
   const Id<EventModel>& eventId() const;
   void setEventId(const Id<EventModel>&);
@@ -119,8 +117,6 @@ public:
 
 public:
   void sig_statesUpdated() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, sig_statesUpdated)
-  void sig_controlMessagesUpdated()
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, sig_controlMessagesUpdated)
 
   void heightPercentageChanged()
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, heightPercentageChanged)
@@ -136,6 +132,7 @@ public:
 private:
   void statesUpdated_slt();
   void init(); // TODO check if other model elements need an init method too.
+  void migrateLegacyControls();
 
   const score::DocumentContext& m_context;
 
@@ -150,8 +147,10 @@ private:
   double m_heightPercentage{0.5}; // In the whole scenario
 
   MessageItemModel* m_messageItemModel{};
-  ControlItemModel* m_controlItemModel{};
   ExecutionStatusProperty m_status{};
+
+  // Legacy control format, converted to messages once the document is loaded
+  std::vector<std::pair<Path<Process::Inlet>, ossia::value>> m_legacyControls;
 };
 }
 

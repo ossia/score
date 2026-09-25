@@ -199,6 +199,14 @@ public:
   virtual std::optional<Process::MagneticInfo>
   magneticPosition(const QObject* o, const TimeVal t) const noexcept;
 
+  //! Publishes a preset parameter under score:/controls/<name>, so that a state
+  //! can snapshot data not held in ports
+  bool scriptable() const noexcept { return m_scriptable; }
+  void setScriptable(bool b);
+  void scriptableChanged(bool b) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, scriptableChanged, b)
+  PROPERTY(
+      bool, scriptable W_READ scriptable W_WRITE setScriptable W_NOTIFY scriptableChanged)
+
   // Clip duration things
   bool loops() const noexcept { return m_loops; }
   void setLoops(bool b);
@@ -318,6 +326,7 @@ private:
   QString m_scriptEditorPlacement;
   QString m_processUIPlacement;
   bool m_loops{};
+  bool m_scriptable{};
   bool m_executing{};
   FoldMode m_foldMode{FoldMode::Auto};
 };

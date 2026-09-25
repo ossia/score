@@ -2,6 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AddressAccessorEditWidget.hpp"
 
+#include <LocalTree/ScriptableReference.hpp>
+
 #include <State/Widgets/UnitWidget.hpp>
 
 #include <Device/ItemModels/NodeBasedItemModel.hpp>
@@ -47,6 +49,8 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
   setAcceptDrops(true);
   auto lay = new score::MarginLess<QVBoxLayout>{this};
   m_lineEdit = new line_edit_t{m_model, this};
+  m_lineEdit->setLocalCheck(
+      [&ctx](const State::Address& a) { return LocalTree::published(a, ctx); });
 
   m_qualifiers = new State::DestinationQualifierWidget{this};
   connect(
@@ -80,29 +84,12 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
 
   connect(act, &QAction::triggered, [this]() { m_qualifiers->chooseQualifier(); });
 
-  // find the model
-  connect(m_lineEdit, &QLineEdit::editingFinished, [&]() {
+  connect(m_lineEdit, &QLineEdit::editingFinished, [this, &ctx]() {
     auto res = State::parseAddressAccessor(m_lineEdit->text());
-    // TODO Try to find the address to get its min / max.
-    // Explorer::makeFullAddressAccessorSettings(
-    //   *res,
-    //   score::IDocument::documentContext(mapping),
-    //   0., 1.)
 
     m_address = Device::FullAddressAccessorSettings{};
-
-    if(m_model && res)
-    {
-      m_address = Device::makeFullAddressAccessorSettings(*res, *m_model, 0., 1., 0.5);
-    }
-    else if(res)
-    {
-      m_address.address = *res;
-    }
-    else
-    {
-      m_address.address = State::AddressAccessor{};
-    }
+    if(res)
+      m_address = Device::makeFullAddressAccessorSettings(*res, ctx, 0., 1., 0.5);
 
     addressChanged(m_address);
   });
@@ -260,13 +247,15 @@ void AddressAccessorEditWidget::startLearn()
 {
   auto dialog = new LearnDialog{*m_model};
   dialog->exec();
+  // The explorer may have lost the node while the dialog was open
   if(dialog->selectedAddress)
   {
-    const auto& node
-        = Device::getNodeFromAddress(m_model->rootNode(), *dialog->selectedAddress);
-    setFullAddress(makeFullAddressAccessorSettings(node));
-
-    addressChanged(m_address);
+    if(auto node
+       = Device::try_getNodeFromAddress(m_model->rootNode(), *dialog->selectedAddress))
+    {
+      setFullAddress(makeFullAddressAccessorSettings(*node));
+      addressChanged(m_address);
+    }
   }
 }
 

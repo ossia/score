@@ -20,6 +20,7 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
 #include <score/plugins/panel/PanelDelegate.hpp>
+#include <score/selection/SelectionStack.hpp>
 #include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/SetIcons.hpp>
 
@@ -29,6 +30,7 @@
 #include <core/view/FixedTabWidget.hpp>
 #include <core/view/Window.hpp>
 
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/thread.hpp>
 
 #include <QActionGroup>
@@ -775,9 +777,19 @@ score::QGraphicsDraggablePixmap* makePresetButton(
       = new score::QGraphicsDraggablePixmap{pixmaps.preset_on, pixmaps.preset_off, root};
   ui_btn->setToolTip(
       QObject::tr(
-          "Presets\nDrag to the library to save the current preset. If there "
-          "are existing presets, they will be shown in a menu."));
-  ui_btn->createDrag = [&proc](QMimeData& mime) {
+          "Presets\nDrag to the library to save the current preset. Drag to a "
+          "scenario or a state for a cue of the current values of the controls; "
+          "hold Ctrl when dropping to choose what to drop. If there are "
+          "existing presets, they will be shown in a menu."));
+  ui_btn->createDrag = [&proc, &context](QMimeData& mime) {
+    // Dropped on a state or in a scenario it makes a cue; elsewhere a copy
+    std::vector<const ProcessModel*> dragged{&proc};
+    const auto& sel = context.selectionStack.currentSelection();
+    if(ossia::any_of(sel, [&](const auto& obj) { return obj.data() == &proc; }))
+      for(const auto& obj : sel)
+        if(auto p = qobject_cast<const ProcessModel*>(obj.data()); p && p != &proc)
+          dragged.push_back(p);
+
     QByteArray data;
     {
       JSONReader r;
@@ -785,6 +797,10 @@ score::QGraphicsDraggablePixmap* makePresetButton(
       copyProcess(r, proc);
       r.obj["Path"] = score::IDocument::path(proc);
       r.obj["View"] = QStringLiteral("Nodal");
+      r.stream.Key("Copy");
+      r.stream.StartObject();
+      copyProcesses(r, dragged, context);
+      r.stream.EndObject();
       r.stream.EndObject();
       data = r.toByteArray();
     }
@@ -948,7 +964,23 @@ void copyProcess(JSONReader& r, const Process::ProcessModel& proc)
   // Object is not created here but in SlotHeader
   r.obj["PID"] = ossia::get_pid();
   r.obj["Document"] = ctx.document.id();
+  // Document identifiers repeat across open documents
+  r.obj["OriginDocument"] = score::IDocument::copyOrigin(ctx.document);
   r.obj["Process"] = proc;
   r.obj["Cables"] = Process::cablesToCopy(vp, vpath, ctx);
+}
+
+void copyProcesses(
+    JSONReader& r, const std::vector<const Process::ProcessModel*>& processes,
+    const score::DocumentContext& ctx)
+{
+  r.obj["Processes"] = processes;
+  r.obj["Cables"] = Process::cablesToCopy(processes, ctx);
+  r.stream.Key("ProcessPaths");
+  r.stream.StartArray();
+  for(auto proc : processes)
+    r.readFrom(score::IDocument::unsafe_path(*proc));
+  r.stream.EndArray();
+  r.obj["OriginDocument"] = score::IDocument::copyOrigin(ctx.document);
 }
 }

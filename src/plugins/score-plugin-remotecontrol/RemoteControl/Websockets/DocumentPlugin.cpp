@@ -19,7 +19,12 @@
 #include <core/document/DocumentModel.hpp>
 
 #include <QBuffer>
+#include <QDebug>
 #include <QJSEngine>
+#include <LocalTree/ScriptableProcessComponent.hpp>
+#include <ossia/network/base/device.hpp>
+#include <ossia/network/base/node_attributes.hpp>
+#include <QTimer>
 
 #include <RemoteControl/Settings/Model.hpp>
 #include <RemoteControl/Websockets/DocumentPlugin.hpp>
@@ -102,6 +107,8 @@ void DocumentPlugin::unregisterInterval(Scenario::IntervalModel& m)
 
 void DocumentPlugin::on_documentClosing()
 {
+  // Do not notify clients of the nodes removed while the document closes
+  receiver.detachLocal();
   cleanup();
 }
 
@@ -154,6 +161,17 @@ static Path<T> readPathFromValue(const rapidjson::Value& val)
   }
 }
 
+namespace
+{
+bool isScriptable(const ::State::Address& addr)
+{
+  if(addr.path.empty())
+    return false;
+  const auto& root = addr.path[0];
+  return root == "controls" || root == "triggers" || root == "conditions";
+}
+}
+
 Receiver::Receiver(const score::DocumentContext& doc, quint16 port)
     : m_server{"i-score-ctrl", QWebSocketServer::NonSecureMode}
     , m_dev{doc.plugin<Explorer::DeviceDocumentPlugin>()}
@@ -163,6 +181,27 @@ Receiver::Receiver(const score::DocumentContext& doc, quint16 port)
     connect(
         &m_server, &QWebSocketServer::newConnection, this, &Receiver::onNewConnection);
   }
+  else
+  {
+    qWarning() << "Remote control: cannot listen on port" << port << ":"
+               << m_server.errorString();
+  }
+
+  // The local device can be set after construction, or replaced
+  auto& list = m_dev.list();
+  attachLocal(list.localDevice());
+  connect(&list, &Device::DeviceList::deviceAdded, this, [this](Device::DeviceInterface* dev) {
+    if(dev && dev == m_dev.list().localDevice() && dev != m_localInterface)
+    {
+      attachLocal(dev);
+      scheduleScriptableMessage();
+    }
+  });
+  connect(
+      &list, &Device::DeviceList::deviceRemoved, this, [this](Device::DeviceInterface* dev) {
+    if(dev && dev == m_localInterface)
+      detachLocal();
+  });
 
   m_answers.insert(
       std::make_pair("Trigger", [&](const rapidjson::Value& obj, const WSClient&) {
@@ -263,8 +302,49 @@ Receiver::Receiver(const score::DocumentContext& doc, quint16 port)
       }));
 }
 
+void Receiver::attachLocal(Device::DeviceInterface* local)
+{
+  detachLocal();
+  if(!local)
+    return;
+  m_localInterface = local;
+
+  auto changed = [this](const ::State::Address& addr) {
+    if(isScriptable(addr))
+      scheduleScriptableMessage();
+  };
+  m_localConnections.push_back(
+      connect(local, &Device::DeviceInterface::pathAdded, this, changed));
+  m_localConnections.push_back(
+      connect(local, &Device::DeviceInterface::pathRemoved, this, changed));
+
+  if(auto dev = local->getDevice())
+  {
+    m_local = dev;
+    dev->on_node_renamed.connect<&Receiver::onLocalRenamed>(this);
+    dev->on_node_removing.connect<&Receiver::onLocalRemoving>(this);
+    dev->on_attribute_modified.connect<&Receiver::onLocalAttribute>(this);
+  }
+}
+
+void Receiver::detachLocal()
+{
+  for(auto& c : m_localConnections)
+    QObject::disconnect(c);
+  m_localConnections.clear();
+  if(m_local)
+  {
+    m_local->on_node_renamed.disconnect<&Receiver::onLocalRenamed>(this);
+    m_local->on_node_removing.disconnect<&Receiver::onLocalRemoving>(this);
+    m_local->on_attribute_modified.disconnect<&Receiver::onLocalAttribute>(this);
+  }
+  m_local = nullptr;
+  m_localInterface = nullptr;
+}
+
 Receiver::~Receiver()
 {
+  detachLocal();
   m_server.close();
   for(auto c : m_clients)
     delete c.socket;
@@ -332,6 +412,121 @@ void Receiver::unregisterSync(Path<Scenario::TimeSyncModel> tn)
   }
 }
 
+
+namespace
+{
+bool underScriptableRoots(const ossia::net::node_base& node)
+{
+  const ossia::net::node_base* n = &node;
+  while(n->get_parent() && n->get_parent()->get_parent())
+    n = n->get_parent();
+  if(!n->get_parent())
+    return false;
+  const auto& name = n->get_name();
+  return name == "controls" || name == "triggers" || name == "conditions";
+}
+
+QString removedMessage(const ossia::net::node_base& node)
+{
+  JSONReader r;
+  r.stream.StartObject();
+  r.obj[score::StringConstant().Message] = "ScriptableRemoved"sv;
+  r.obj[score::StringConstant().Address] = LocalTree::addressOfNode(node).toString();
+  r.stream.EndObject();
+  return r.toString();
+}
+}
+
+void Receiver::onLocalRenamed(ossia::net::node_base& node, std::string old)
+{
+  if(m_clients.empty() || ossia::net::get_zombie(node) || !underScriptableRoots(node))
+    return;
+  auto now = LocalTree::addressOfNode(node);
+  auto before = now;
+  before.path.last() = QString::fromStdString(old);
+
+  JSONReader r;
+  r.stream.StartObject();
+  r.obj[score::StringConstant().Message] = "ScriptableRenamed"sv;
+  r.obj["Old"] = before.toString();
+  r.obj["New"] = now.toString();
+  r.stream.EndObject();
+  sendMessage(r.toString());
+}
+
+void Receiver::onLocalRemoving(ossia::net::node_base& node)
+{
+  // Zombie nodes were announced as removed when retired
+  if(m_clients.empty() || ossia::net::get_zombie(node) || !underScriptableRoots(node))
+    return;
+  sendMessage(removedMessage(node));
+}
+
+void Receiver::onLocalAttribute(ossia::net::node_base& node, const std::string& key)
+{
+  if(m_clients.empty() || key != ossia::net::text_zombie() || !underScriptableRoots(node))
+    return;
+  if(ossia::net::get_zombie(node))
+    sendMessage(removedMessage(node));
+  else
+    // Shown again, e.g. by undo
+    scheduleScriptableMessage();
+}
+
+namespace
+{
+//! Removes the nodes kept hidden in the device
+void removeHidden(Device::Node& node, ossia::net::node_base& real)
+{
+  for(auto it = node.begin(); it != node.end();)
+  {
+    auto child = real.find_child(it->displayName().toStdString());
+    if(!child || ossia::net::get_zombie(*child))
+    {
+      it = node.erase(it);
+      continue;
+    }
+    removeHidden(*it, *child);
+    ++it;
+  }
+}
+}
+
+QString Receiver::scriptableMessage() const
+{
+  auto local = m_dev.list().localDevice();
+  if(!local)
+    return {};
+  auto dev = local->getDevice();
+
+  JSONReader r;
+  r.stream.StartObject();
+  r.obj[score::StringConstant().Message] = "Scriptable"sv;
+  for(const char* root : {"controls", "triggers", "conditions"})
+  {
+    auto node = local->getNode(::State::Address{local->name(), {QString::fromUtf8(root)}});
+    if(dev)
+      if(auto real = dev->get_root_node().find_child(std::string_view{root}))
+        removeHidden(node, *real);
+    r.obj[std::string_view{root}] = node;
+  }
+  r.stream.EndObject();
+  return r.toString();
+}
+
+void Receiver::scheduleScriptableMessage()
+{
+  // Coalesce: publishing one process changes several nodes in a row
+  if(m_clients.empty() || m_scriptableScheduled)
+    return;
+  m_scriptableScheduled = true;
+  QTimer::singleShot(0, this, [this] {
+    m_scriptableScheduled = false;
+    if(auto msg = scriptableMessage(); !msg.isEmpty())
+      sendMessage(msg);
+  });
+}
+
 void Receiver::onNewConnection()
 {
   WSClient client{m_server.nextPendingConnection()};
@@ -353,6 +548,9 @@ void Receiver::onNewConnection()
 
     client.socket->sendTextMessage(r.toString());
   }
+
+  if(auto msg = scriptableMessage(); !msg.isEmpty())
+    client.socket->sendTextMessage(msg);
 
   {
     for(auto path : m_activeSyncs)

@@ -9,7 +9,12 @@
 #include <Process/Dataflow/PrettyPortName.hpp>
 #include <Process/ProcessContext.hpp>
 
+#include <LocalTree/ScriptableReference.hpp>
+
 #include <score/application/GUIApplicationContext.hpp>
+
+#include <core/document/Document.hpp>
+#include <score/document/DocumentInterface.hpp>
 #include <score/graphics/GraphicsLayout.hpp>
 #include <score/graphics/RectItem.hpp>
 #include <score/graphics/TextItem.hpp>
@@ -182,6 +187,13 @@ const std::vector<Path<Cable>>& Port::cables() const noexcept
   return m_cables;
 }
 
+static QString exposedFor(const QString& name)
+{
+  QString exposed = name.toLower();
+  ossia::net::sanitize_name(exposed);
+  return exposed;
+}
+
 void Port::setName(const QString& name)
 {
   if(m_name == name)
@@ -193,11 +205,19 @@ void Port::setName(const QString& name)
     return;
   }
 
+  const bool exposedFollowsName = m_exposed.isEmpty() || m_exposed == exposedFor(m_name);
   m_name = name;
-  QString newExposed = m_name.toLower();
-  ossia::net::sanitize_name(newExposed);
-  setExposed(newExposed);
+  if(exposedFollowsName)
+    setExposed(exposedFor(m_name));
   nameChanged(m_name);
+}
+
+void Port::setScriptable(bool b)
+{
+  if(m_scriptable == b)
+    return;
+  m_scriptable = b;
+  scriptableChanged(b);
 }
 
 void Port::setExposed(const QString& exposed)
@@ -215,6 +235,14 @@ void Port::setExposed(const QString& exposed)
   exposedChanged(m_exposed);
 }
 
+void Port::resetExposed()
+{
+  if(m_exposed.isEmpty())
+    return;
+  m_exposed.clear();
+  exposedChanged(m_name);
+}
+
 void Port::setDescription(const QString& description)
 {
   if(m_description == description)
@@ -226,10 +254,17 @@ void Port::setDescription(const QString& description)
 
 void Port::setAddress(const State::AddressAccessor& address)
 {
-  if(m_address == address)
+  auto next = address;
+  if(auto doc = score::IDocument::try_documentFromObject(*this))
+    LocalTree::anchor(next.address, doc->context());
+
+  const auto& a = m_address.address.anchor;
+  const auto& b = next.address.anchor;
+  if(m_address == next && bool(a) == bool(b)
+     && (!a || (a->target == b->target && a->member == b->member)))
     return;
 
-  m_address = address;
+  m_address = std::move(next);
   addressChanged(m_address);
 }
 
@@ -240,6 +275,7 @@ QByteArray Port::saveData() const noexcept
     QDataStream p{&arr, QIODevice::WriteOnly};
     DataStreamInput ip{p};
     ip << m_cables << m_address;
+    savePublication(ip);
   }
   return arr;
 }
@@ -249,6 +285,24 @@ void Port::loadData(const QByteArray& arr, PortLoadDataFlags flags) noexcept
   QDataStream p{arr};
   DataStreamOutput op{p};
   op >> m_cables >> m_address;
+  loadPublication(op);
+}
+
+// Every port type serializes its cables, its address and then this, so
+// that data saved from one port type can be loaded into another.
+void Port::savePublication(DataStreamInput& s) const
+{
+  s << m_scriptable << m_exposed;
+}
+
+void Port::loadPublication(DataStreamOutput& s)
+{
+  bool scriptable{};
+  QString exposed;
+  s >> scriptable >> exposed;
+  if(!exposed.isEmpty())
+    setExposed(exposed);
+  setScriptable(scriptable);
 }
 
 ///////////////////////////////
@@ -336,7 +390,9 @@ QByteArray ControlInlet::saveData() const noexcept
   {
     QDataStream p{&arr, QIODevice::WriteOnly};
     DataStreamInput ip{p};
-    ip << m_cables << m_address << true << m_value;
+    ip << m_cables << m_address;
+    savePublication(ip);
+    ip << true << m_value;
   }
   return arr;
 }
@@ -347,7 +403,9 @@ void ControlInlet::loadData(const QByteArray& arr, PortLoadDataFlags flags) noex
   DataStreamOutput op{p};
   bool has_value{};
 
-  op >> m_cables >> m_address >> has_value;
+  op >> m_cables >> m_address;
+  loadPublication(op);
+  op >> has_value;
   if(!((uint32_t)flags & (uint32_t)PortLoadDataFlags::ReloadValue))
     has_value = false;
 
@@ -691,7 +749,9 @@ QByteArray ValueInlet::saveData() const noexcept
   {
     QDataStream p{&arr, QIODevice::WriteOnly};
     DataStreamInput ip{p};
-    ip << m_cables << m_address << false;
+    ip << m_cables << m_address;
+    savePublication(ip);
+    ip << false;
     // Boolean indicates that we don't have a value. Otherwise if we change from ValueInlet to
     // ControlInlet in e.g. a JS script, then the ControlInlet tries to reload the value and crashes.
   }
@@ -703,6 +763,7 @@ void ValueInlet::loadData(const QByteArray& arr, PortLoadDataFlags flags) noexce
   QDataStream p{arr};
   DataStreamOutput op{p};
   op >> m_cables >> m_address;
+  loadPublication(op);
 }
 ValueOutlet::~ValueOutlet() { }
 
@@ -1086,6 +1147,7 @@ static auto copy_port(Port&& src, Port& dst)
   dst.setName(src.name());
   dst.setAddress(src.address());
   dst.setExposed(src.exposed());
+  dst.setScriptable(src.scriptable());
   dst.setDescription(src.description());
   dst.takeCables(std::move(src));
 }
@@ -1240,14 +1302,16 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(const Process::Port& p)
 {
   insertDelimiter();
-  m_stream << p.displayHandledExplicitly << p.m_name << p.m_exposed << p.m_description << p.m_address;
+  m_stream << p.displayHandledExplicitly << p.m_name << p.m_exposed << p.m_description
+           << p.m_address << p.m_scriptable;
   insertDelimiter();
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::Port& p)
 {
   checkDelimiter();
-  m_stream >> p.displayHandledExplicitly >> p.m_name >> p.m_exposed >> p.m_description >> p.m_address;
+  m_stream >> p.displayHandledExplicitly >> p.m_name >> p.m_exposed >> p.m_description
+      >> p.m_address >> p.m_scriptable;
   checkDelimiter();
 }
 
@@ -1261,6 +1325,8 @@ SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::Port& p)
     obj["Exposed"] = p.m_exposed;
   if(!p.m_description.isEmpty())
     obj["Description"] = p.m_description;
+  if(p.m_scriptable)
+    obj["Scriptable"] = true;
   if(!(p.m_address.address.path.isEmpty() && p.m_address.address.device.isEmpty()
        && p.m_address.qualifiers.get() == ossia::destination_qualifiers{}))
     obj["Address"] = p.m_address;
@@ -1275,6 +1341,8 @@ SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::Port& p)
     p.m_exposed = it->toString();
   if(auto it = obj.tryGet("Description"))
     p.m_description = it->toString();
+  if(auto it = obj.tryGet("Scriptable"))
+    p.m_scriptable = it->toBool();
   if(auto it = obj.tryGet("Address"))
     p.m_address <<= *it;
 }

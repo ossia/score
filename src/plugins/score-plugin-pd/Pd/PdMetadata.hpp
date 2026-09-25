@@ -14,4 +14,4 @@ PROCESS_METADATA(
     "ossia and the Pd team", {}, {}, {},
     QUrl("https://ossia.io/score-docs/processes/puredata.html#pure-data-support"),
     Process::ProcessFlags::SupportsAll | Process::ProcessFlags::PutInNewSlot
-        | Process::ProcessFlags::ControlSurface)
+        | Process::ProcessFlags::ControlSurface | Process::ProcessFlags::DynamicPorts)

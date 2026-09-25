@@ -129,5 +129,19 @@ private:
 
 public:
   NodeUpdateProxy updateProxy{*this};
+
+  static const QString& localName() noexcept;
+  static bool isLocalProtocol(const UuidKey<Device::ProtocolFactory>& p) noexcept;
+
+  //! Before loading devices: the local device takes localName(), any other is renamed
+  void reserveLocalName(Device::Node& devices);
+  //! Devices renamed by reserveLocalName: old name, new name
+  const std::vector<std::pair<QString, QString>>& renamedOnLoad() const noexcept
+  {
+    return m_renamedOnLoad;
+  }
+
+private:
+  std::vector<std::pair<QString, QString>> m_renamedOnLoad;
 };
 }

@@ -1,5 +1,7 @@
 #include "ExecutionController.hpp"
 
+#include <LocalTree/LocalTreeDocumentPlugin.hpp>
+
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/Explorer/DeviceExplorerWidget.hpp>
@@ -660,6 +662,12 @@ void ExecutionController::on_record(::TimeVal t)
 
 void ExecutionController::on_stop()
 {
+  LocalTree::DocumentPlugin* tree{};
+  if(auto doc = currentDocument())
+    tree = doc->context().findPlugin<LocalTree::DocumentPlugin>();
+  if(tree)
+    tree->beginRecall(LocalTree::Recall::Stop);
+
   bool wasplaying = m_playing;
   m_playing = false;
   m_paused = false;
@@ -670,6 +678,9 @@ void ExecutionController::on_stop()
     send_end_state();
 
   reset_after_stop();
+
+  if(tree)
+    tree->endRecall(LocalTree::Recall::Stop);
 }
 
 void ExecutionController::stop_clock()
@@ -788,6 +799,7 @@ void ExecutionController::on_reinitialize()
 
     on_stop();
 
+    LocalTree::StateRecall recall{ctx, *exec_plug};
     exec_plug->playStartState();
   }
 }

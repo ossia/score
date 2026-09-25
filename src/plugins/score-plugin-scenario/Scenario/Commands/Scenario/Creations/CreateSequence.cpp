@@ -9,6 +9,7 @@
 #include <State/ValueConversion.hpp>
 
 #include <Device/Address/AddressSettings.hpp>
+#include <Device/ItemModels/NodeBasedItemModel.hpp>
 #include <Device/Node/DeviceNode.hpp>
 
 #include <Process/State/MessageNode.hpp>
@@ -91,23 +92,21 @@ CreateSequenceProcesses::CreateSequenceProcesses(
       startMessages, std::back_inserter(endAddresses),
       [](const auto& mess) { return Device::FullAddressSettings::make(mess); });
 
-  auto& devPlugin = score::IDocument::documentContext(scenario)
-                        .plugin<Explorer::DeviceDocumentPlugin>();
-  auto& rootNode = devPlugin.rootNode();
+  const auto& ctx = score::IDocument::documentContext(scenario);
+  auto& devPlugin = ctx.plugin<Explorer::DeviceDocumentPlugin>();
 
+  // Fill each message with the settings and current value of its address
   for(auto it = endAddresses.begin(); it != endAddresses.end();)
   {
     auto& mess = *it;
 
-    auto node = Device::try_getNodeFromAddress(rootNode, mess.address);
-
-    if(node && node->is<Device::AddressSettings>())
+    if(auto settings = Device::addressSettings(mess.address, ctx))
     {
-      // TODO this would be a nice use of futures
-      devPlugin.updateProxy.refreshRemoteValue(mess.address);
-      const auto& nodeImpl = node->get<Device::AddressSettings>();
       static_cast<Device::AddressSettingsCommon&>(mess)
-          = static_cast<const Device::AddressSettingsCommon&>(nodeImpl);
+          = static_cast<const Device::AddressSettingsCommon&>(*settings);
+      // TODO this would be a nice use of futures
+      if(auto val = devPlugin.updateProxy.try_refreshRemoteValue(mess.address))
+        mess.value = *std::move(val);
       ++it;
     }
     else
@@ -214,7 +213,7 @@ CreateSequenceProcesses::CreateSequenceProcesses(
   {
     const auto& idx = elt.first.address.qualifiers.get().accessors;
     Curve::CurveDomain d = ossia::apply(
-        get_curve_domain{elt.first.address, idx, rootNode}, elt.first.value.v,
+        get_curve_domain{idx, elt.second.domain.get()}, elt.first.value.v,
         elt.second.value.v);
 
     m_interpolations.addCommand(new CreateAutomationFromStates{

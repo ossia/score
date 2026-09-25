@@ -12,6 +12,9 @@
 #include <score/model/path/Path.hpp>
 #include <score/plugins/SerializableInterface.hpp>
 #include <score/selection/Selectable.hpp>
+
+struct DataStreamInput;
+struct DataStreamOutput;
 #include <score/serialization/VisitorInterface.hpp>
 
 #include <ossia/detail/small_vector.hpp>
@@ -108,6 +111,8 @@ public:
   Selectable selection{this};
   bool displayHandledExplicitly{};
   bool noValueChangeOnMove{};
+  //! The value of this control decides which ports the process has
+  bool changesPorts{};
   // Declared again by the process when constructing/loading its ports.
   // Preset reloads match these by identity, not mutable name or row position.
   bool stableIdentity{};
@@ -122,7 +127,10 @@ public:
   const QString& name() const noexcept;
   const State::AddressAccessor& address() const noexcept;
   const std::vector<Path<Cable>>& cables() const noexcept;
+  //! Name published under score:/controls; follows name() unless set explicitly
   const QString& exposed() const noexcept;
+  bool hasOwnExposed() const noexcept { return !m_exposed.isEmpty(); }
+  bool scriptable() const noexcept { return m_scriptable; }
   const QString& description() const noexcept;
 
   //! The unit the process expects on this port, overridden by the @[unit] of its
@@ -142,6 +150,10 @@ public:
   W_SLOT(setName);
   void setExposed(const QString& add);
   W_SLOT(setExposed);
+  //! exposed() follows the port name again
+  void resetExposed();
+  void setScriptable(bool b);
+  W_SLOT(setScriptable);
   void setDescription(const QString& add);
   W_SLOT(setDescription);
   void setAddress(const State::AddressAccessor& address);
@@ -151,6 +163,7 @@ public:
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, nameChanged, name)
   void exposedChanged(const QString& addr)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, exposedChanged, addr)
+  void scriptableChanged(bool b) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, scriptableChanged, b)
   void descriptionChanged(const QString& txt)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, descriptionChanged, txt)
   void cablesChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, cablesChanged)
@@ -162,6 +175,9 @@ public:
       State::AddressAccessor,
       address W_READ address W_WRITE setAddress W_NOTIFY addressChanged)
   PROPERTY(QString, name W_READ name W_WRITE setName W_NOTIFY nameChanged)
+  PROPERTY(QString, exposed W_READ exposed W_WRITE setExposed W_NOTIFY exposedChanged)
+  PROPERTY(
+      bool, scriptable W_READ scriptable W_WRITE setScriptable W_NOTIFY scriptableChanged)
   PROPERTY(Process::PortType, type W_READ type W_CONSTANT W_FINAL)
 
   virtual QByteArray saveData() const noexcept;
@@ -169,6 +185,9 @@ public:
   virtual void loadData(const QByteArray& arr, PortLoadDataFlags = {}) noexcept;
 
 protected:
+  void savePublication(DataStreamInput& s) const;
+  void loadPublication(DataStreamOutput& s);
+
   Port() = delete;
   ~Port() override;
   Port(const Port&) = delete;
@@ -186,6 +205,7 @@ protected:
   QString m_description;
   State::AddressAccessor m_address;
   State::Unit m_unit;
+  bool m_scriptable{};
 };
 
 class SCORE_LIB_PROCESS_EXPORT Inlet : public Port

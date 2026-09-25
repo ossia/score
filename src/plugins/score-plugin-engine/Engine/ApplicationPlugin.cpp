@@ -14,8 +14,12 @@
 #include <Execution/DocumentPlugin.hpp>
 #include <LocalTree/Device/LocalProtocolFactory.hpp>
 #include <LocalTree/LocalTreeDocumentPlugin.hpp>
+#include <LocalTree/ReferencesDialog.hpp>
 
 #include <score/actions/ActionManager.hpp>
+#include <score/actions/MenuManager.hpp>
+
+#include <QMenu>
 #include <score/actions/ToolbarManager.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
 #include <score/tools/Bind.hpp>
@@ -259,6 +263,24 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
     }
   }
 
+  {
+    auto act = new QAction{tr("Broken references..."), this};
+    score::setHelp(act, tr("List the addresses of the document that point at nothing"));
+    connect(act, &QAction::triggered, this, [this] {
+      if(!m_references)
+      {
+        m_references = new LocalTree::ReferencesDialog{context, context.mainWindow};
+        m_references->setAttribute(Qt::WA_DeleteOnClose);
+        m_references->setDocument(
+            currentDocument() ? &currentDocument()->context() : nullptr);
+      }
+      m_references->show();
+      m_references->raise();
+      m_references->activateWindow();
+    });
+    context.menus.get().at(score::Menus::Windows()).menu()->addAction(act);
+  }
+
   return e;
 }
 
@@ -276,11 +298,15 @@ void ApplicationPlugin::on_createdDocument(score::Document& doc)
     initLocalTreeNodes(*lt);
   }
   score::addDocumentPlugin<Execution::DocumentPlugin>(doc);
+  if(lt)
+    lt->connectToStop();
 }
 
 void ApplicationPlugin::on_documentChanged(
     score::Document* olddoc, score::Document* newdoc)
 {
+  if(m_references)
+    m_references->setDocument(newdoc ? &newdoc->context() : nullptr);
   if(olddoc)
   {
     // Disable the local tree for this document by removing

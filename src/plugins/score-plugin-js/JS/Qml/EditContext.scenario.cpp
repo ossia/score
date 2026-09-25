@@ -12,6 +12,13 @@
 #include <Scenario/Commands/TimeSync/AddTrigger.hpp>
 #include <Scenario/Commands/TimeSync/RemoveTrigger.hpp>
 #include <Scenario/Commands/TimeSync/SetTrigger.hpp>
+#include <Process/Commands/EditPort.hpp>
+#include <Process/Commands/Properties.hpp>
+
+#include <LocalTree/ScriptableProcessComponent.hpp>
+#include <LocalTree/ScriptableReference.hpp>
+#include <LocalTree/ScriptableScenarioComponent.hpp>
+#include <Scenario/Commands/State/RebindReference.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -735,6 +742,81 @@ void EditJsContext::enableTrigger(QObject* obj)
   withTriggerCommand(*ts, [&]<typename Scenar>(Scenar&) {
     submit(*m, new Scenario::Command::AddTrigger<Scenar>{*ts});
   });
+}
+
+void EditJsContext::setScriptable(QObject* obj, bool scriptable)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+  if(auto ev = qobject_cast<Scenario::EventModel*>(obj))
+  {
+    Scenario::Command::setEventScriptable(*ev, scriptable, *doc);
+    return;
+  }
+
+  auto [m, _] = macro(*doc);
+  if(auto p = qobject_cast<Process::Port*>(obj))
+    submit(*m, new Process::SetPortScriptable{*p, scriptable});
+  else if(auto p = qobject_cast<Process::ProcessModel*>(obj))
+    submit(*m, new Process::SetProcessScriptable{*p, scriptable});
+  else if(auto ts = qobject_cast<Scenario::TimeSyncModel*>(obj))
+    submit(*m, new Scenario::Command::SetTimeSyncScriptable{*ts, scriptable});
+}
+
+QString EditJsContext::scriptableAddress(QObject* obj)
+{
+  if(auto p = qobject_cast<Process::Port*>(obj))
+    return LocalTree::scriptableAddress(*p).toString();
+  else if(auto p = qobject_cast<Process::ProcessModel*>(obj))
+    return LocalTree::scriptableAddress(*p).toString();
+  else if(auto ts = qobject_cast<Scenario::TimeSyncModel*>(obj))
+    return LocalTree::scriptableAddress(*ts).toString();
+  else if(auto ev = qobject_cast<Scenario::EventModel*>(obj))
+    return LocalTree::scriptableAddress(*ev).toString();
+  return {};
+}
+
+QObjectList EditJsContext::references(QObject* obj)
+{
+  QObjectList res;
+  auto doc = ctx();
+  if(!doc || !obj)
+    return res;
+  if(auto tree = doc->findPlugin<LocalTree::ScriptableTreeBase>())
+    for(auto o : tree->referrers(*obj))
+      res.push_back(o);
+  return res;
+}
+
+QObjectList EditJsContext::targets(QObject* obj)
+{
+  QObjectList res;
+  auto doc = ctx();
+  if(!doc || !obj)
+    return res;
+  if(auto tree = doc->findPlugin<LocalTree::ScriptableTreeBase>())
+    for(auto o : tree->targets(*obj))
+      res.push_back(o);
+  return res;
+}
+
+void EditJsContext::rebind(QObject* obj, QString from, QString to)
+{
+  auto doc = ctx();
+  if(!doc || !obj)
+    return;
+  auto f = State::Address::fromString(from);
+  auto t = State::Address::fromString(to);
+  if(!f || !t)
+    return;
+  Scenario::Command::rebindReference(*obj, *f, *t, *doc);
+}
+
+void EditJsContext::trigger(QObject* obj)
+{
+  if(auto ts = resolveTimeSync(obj))
+    ts->triggeredByGui();
 }
 
 void EditJsContext::disableTrigger(QObject* obj)

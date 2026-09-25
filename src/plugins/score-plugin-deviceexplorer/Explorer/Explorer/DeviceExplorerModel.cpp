@@ -275,6 +275,11 @@ bool DeviceExplorerModel::checkDeviceInstantiatable(
   if(n.name.isEmpty())
     return false;
 
+  // "score" is the document's local device, and only it
+  if((n.name == DeviceDocumentPlugin::localName())
+     != DeviceDocumentPlugin::isLocalProtocol(n.protocol))
+    return false;
+
   // Request from the protocol factory the protocol to see
   // if it is compatible.
   auto& context = m_devicePlugin.context().app;
@@ -304,6 +309,11 @@ bool DeviceExplorerModel::checkDeviceEditable(
 {
   // No name -> no love
   if(n.name.isEmpty())
+    return false;
+
+  // "score" is the document's local device, and only it
+  if((n.name == DeviceDocumentPlugin::localName())
+     != DeviceDocumentPlugin::isLocalProtocol(n.protocol))
     return false;
 
   // Request from the protocol factory the protocol to see
@@ -1087,20 +1097,7 @@ Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(
     const State::AddressAccessor& addr, const score::DocumentContext& ctx,
     ossia::value min, ossia::value max, ossia::value val)
 {
-  // First try to find if there is a matching address
-  // in the device explorer
-  auto deviceexplorer = Explorer::try_deviceExplorerFromContext(ctx);
-  if(deviceexplorer)
-  {
-    return Device::makeFullAddressAccessorSettings(
-        addr, *deviceexplorer, std::move(min), std::move(max), std::move(val));
-  }
-
-  // If there is none, build with some default settings
-  Device::FullAddressAccessorSettings s;
-  s.address = addr;
-  s.value = std::move(val);
-  s.domain = ossia::make_domain(std::move(min), std::move(max));
-  return s;
+  return Device::makeFullAddressAccessorSettings(
+      addr, ctx, std::move(min), std::move(max), std::move(val));
 }
 }

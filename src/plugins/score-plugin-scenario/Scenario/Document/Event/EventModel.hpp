@@ -76,6 +76,10 @@ public:
 
   bool active() const noexcept;
 
+  //! Published as the boolean score:/conditions/<name>.
+  bool scriptable() const noexcept { return m_scriptable; }
+  void setScriptable(bool b);
+
   void setCondition(const State::Expression& arg);
   void setDate(const TimeVal& date);
   void setStatus(Scenario::ExecutionStatus status, const Scenario::ScenarioInterface&);
@@ -93,9 +97,13 @@ public:
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, statusChanged, status)
   void offsetBehaviorChanged(OffsetBehavior arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, offsetBehaviorChanged, arg_1)
+  void scriptableChanged(bool b)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, scriptableChanged, b)
   void
   timeSyncChanged(Id<Scenario::TimeSyncModel> oldt, Id<Scenario::TimeSyncModel> newt)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, timeSyncChanged, oldt, newt)
+
+  PROPERTY(bool, scriptable READ scriptable WRITE setScriptable NOTIFY scriptableChanged)
 
 private:
   Id<TimeSyncModel> m_timeSync;
@@ -105,6 +113,7 @@ private:
 
   ExecutionStatusProperty m_status{};
   OffsetBehavior m_offset{};
+  bool m_scriptable{};
 
   PROPERTY(double, date READ dateInFlicks NOTIFY dateChanged)
 

@@ -5,6 +5,8 @@
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/CableCopy.hpp>
 
+#include <Effect/EffectLayer.hpp>
+
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -18,6 +20,8 @@
 #include <Dataflow/Commands/CableHelpers.hpp>
 
 #include <score/document/DocumentContext.hpp>
+#include <score/document/DocumentInterface.hpp>
+#include <score/model/path/PathSerialization.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/EntityMapSerialization.hpp>
 #include <score/model/EntitySerialization.hpp>
@@ -26,6 +30,7 @@
 #include <score/tools/std/Optional.hpp>
 
 #include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/ptr_set.hpp>
@@ -145,6 +150,10 @@ void copySelected(
   r.obj["TimeNodes"] = copiedTimeSyncs;
   r.obj["States"] = copiedStates;
   r.obj["Cables"] = Process::cablesToCopy(cs.selectedIntervals, ctx);
+  // Source of the copy: on paste, references within the selection are moved
+  // to the copies
+  r.obj["Origin"] = score::IDocument::unsafe_path(*parent);
+  r.obj["OriginDocument"] = score::IDocument::copyOrigin(ctx.document);
 
   for(auto elt : copiedTimeSyncs)
     delete elt;
@@ -178,6 +187,8 @@ void copyWholeScenario(JSONReader& r, const Scenario::ProcessModel& sm)
   r.obj["States"] = sm.states;
   r.obj["Cables"] = Process::cablesToCopy(itvs, ctx);
   r.obj["Comments"] = sm.comments;
+  r.obj["Origin"] = score::IDocument::unsafe_path(sm);
+  r.obj["OriginDocument"] = score::IDocument::copyOrigin(ctx.document);
   r.stream.EndObject();
 }
 
@@ -303,8 +314,7 @@ bool copySelectedProcesses(JSONReader& r, const score::DocumentContext& ctx)
     }
 
     r.stream.StartObject();
-    r.obj["Processes"] = processes;
-    r.obj["Cables"] = Process::cablesToCopy(processes, ctx);
+    Process::copyProcesses(r, processes, ctx);
     r.stream.EndObject();
     return true;
   }

@@ -157,13 +157,6 @@ struct AddNode
   }
 };
 
-void NodalExecutorBase::unreg(const RegisteredNode& fx, Execution::Transaction& commands)
-{
-  system().setup.unregister_node_soft(
-      fx.comp->process().inlets(), fx.comp->process().outlets(), fx.comp->node,
-      commands);
-}
-
 void NodalExecutorBase::reg(const RegisteredNode& fx, Execution::Transaction& vec)
 {
   auto& proc = fx.comp->process();
@@ -250,20 +243,16 @@ std::function<void()> NodalExecutorBase::removing(
   if(it == m_nodes.end())
     return {};
 
-  auto& this_fx = it->second;
-
-  unreg(this_fx, commands);
-
+  // As in intervals, the child is cleaned up immediately, not at the end of the run
   auto p = std::dynamic_pointer_cast<ossia::node_graph_process>(m_ossia_process);
   auto child_p = c.OSSIAProcessPtr();
   auto child_n = c.node;
   commands.push_back([child_n = std::move(child_n), child_p = std::move(child_p),
                       p = std::move(p)] { p->remove_process(child_p, child_n); });
-
   commands.run_all();
 
-  c.node.reset();
-  return {};
+  c.cleanup();
+  return [this, id = e.id()] { m_nodes.erase(id); };
 }
 
 void NodalExecutor::cleanup()

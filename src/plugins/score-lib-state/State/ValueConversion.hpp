@@ -8,6 +8,7 @@
 
 namespace State
 {
+struct AddressAccessor;
 namespace convert
 {
 
@@ -19,6 +20,10 @@ To value(const ossia::value& val)
 
 template <>
 SCORE_LIB_STATE_EXPORT QVariant value(const ossia::value& val);
+template <>
+SCORE_LIB_STATE_EXPORT ossia::value value(const ossia::value& val);
+template <>
+SCORE_LIB_STATE_EXPORT State::AddressAccessor value(const ossia::value& val);
 template <>
 SCORE_LIB_STATE_EXPORT int value(const ossia::value& val);
 template <>

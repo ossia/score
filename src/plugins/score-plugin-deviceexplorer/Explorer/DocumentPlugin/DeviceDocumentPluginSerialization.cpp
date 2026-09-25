@@ -60,6 +60,7 @@ void DataStreamWriter::write(Explorer::DeviceDocumentPlugin& plug)
 
   plug.m_explorer = new Explorer::DeviceExplorerModel{plug, &plug};
   // Here everything is loaded in m_loadingNode
+  plug.reserveLocalName(n);
 
   for(const auto& node : n)
   {
@@ -75,6 +76,7 @@ void JSONWriter::write(Explorer::DeviceDocumentPlugin& plug)
 
   plug.m_explorer = new Explorer::DeviceExplorerModel{plug, &plug};
   // Here everything is loaded in m_loadingNode
+  plug.reserveLocalName(n);
 
   // Here we recreate the correct structures in term of devices,
   // given what's present in the node hierarchy

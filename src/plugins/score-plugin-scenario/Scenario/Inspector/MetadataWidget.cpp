@@ -52,6 +52,7 @@ MetadataWidget::MetadataWidget(
     , m_metadata{metadata}
     , m_commandDispatcher{m}
     , m_metadataLayout{this}
+    , m_nameLine{metadata.getName(), this}
     , m_labelLine{metadata.getLabel(), this}
     , m_comments{metadata.getComment(), this}
 {
@@ -60,6 +61,13 @@ MetadataWidget::MetadataWidget(
 
   // Name(s)
   float margin = m_comments.document()->documentMargin() / 2.;
+
+  m_nameLine.setTextMargins(margin, 0, margin, 0);
+  m_nameLine.setPlaceholderText(tr("Scripting name"));
+  m_nameLine.setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+  m_metadataLayout.addWidget(&m_nameLine);
+  con(metadata, &score::ModelMetadata::NameChanged, this,
+      [this](const auto& str) { m_nameLine.setText(str); });
 
   m_labelLine.setTextMargins(margin, 0, margin, 0);
   m_labelLine.setPlaceholderText(tr("Label"));
@@ -130,6 +138,9 @@ MetadataWidget::MetadataWidget(
     m_metadataLayout.addWidget(m_palette_widget);
   }
 
+  con(m_nameLine, &QLineEdit::editingFinished,
+      [this]() { scriptingNameChanged(m_nameLine.text()); });
+
   con(m_labelLine, &QLineEdit::editingFinished,
       [this]() { labelChanged(m_labelLine.text()); });
 
@@ -145,6 +156,7 @@ MetadataWidget::~MetadataWidget() { }
 
 void MetadataWidget::updateAsked()
 {
+  m_nameLine.setText(m_metadata.getName());
   m_labelLine.setText(m_metadata.getLabel());
   m_comments.setText(m_metadata.getComment());
 

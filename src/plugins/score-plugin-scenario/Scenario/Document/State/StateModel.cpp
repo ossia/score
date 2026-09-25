@@ -6,6 +6,7 @@
 
 #include <State/Message.hpp>
 
+#include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
 #include <Process/State/ProcessStateDataInterface.hpp>
 
@@ -13,6 +14,8 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
+
+#include <LocalTree/ScriptableProcessComponent.hpp>
 
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
@@ -22,6 +25,7 @@
 
 #include <QAbstractItemModel>
 #include <QObject>
+#include <QTimer>
 
 #include <wobjectimpl.h>
 
@@ -36,7 +40,6 @@ StateModel::StateModel(
     , m_eventId{eventId}
     , m_heightPercentage{yPos}
     , m_messageItemModel{new MessageItemModel{*this, this}}
-    , m_controlItemModel{new ControlItemModel{*this, this}}
 {
   metadata().setInstanceName(*this);
   init();
@@ -44,7 +47,6 @@ StateModel::StateModel(
 
 StateModel::~StateModel()
 {
-  delete m_controlItemModel;
   delete m_messageItemModel;
 }
 
@@ -60,6 +62,33 @@ void StateModel::init()
       &StateModel::statesUpdated_slt);
   con(*m_messageItemModel, &QAbstractItemModel::rowsRemoved, this,
       &StateModel::statesUpdated_slt);
+
+  // Ports only resolve once the document is loaded; posted to run before a
+  // crash backup's commands are replayed.
+  if(!m_legacyControls.empty())
+    QMetaObject::invokeMethod(
+        this, &StateModel::migrateLegacyControls, Qt::QueuedConnection);
+}
+
+void StateModel::migrateLegacyControls()
+{
+  State::MessageList list;
+  for(auto& [path, value] : m_legacyControls)
+  {
+    auto port = qobject_cast<Process::ControlInlet*>(path.try_find(m_context));
+    if(!port)
+      continue;
+    port->setScriptable(true);
+    if(auto addr = LocalTree::scriptableAddress(*port); addr.isSet())
+      list.push_back({State::AddressAccessor{addr}, value});
+  }
+  m_legacyControls.clear();
+  if(list.empty())
+    return;
+
+  auto node = messages().rootNode();
+  updateTreeWithMessageList(node, std::move(list));
+  messages() = std::move(node);
 }
 
 double StateModel::heightPercentage() const
@@ -118,11 +147,6 @@ void StateModel::setPreviousInterval(const OptionalId<IntervalModel>& id)
 MessageItemModel& StateModel::messages() const
 {
   return *m_messageItemModel;
-}
-
-ControlItemModel& StateModel::controlMessages() const
-{
-  return *m_controlItemModel;
 }
 
 void StateModel::setStatus(ExecutionStatus status)

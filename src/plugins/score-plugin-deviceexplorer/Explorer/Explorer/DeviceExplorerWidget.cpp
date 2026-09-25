@@ -77,6 +77,8 @@
 #include <QList>
 #include <QListWidget>
 #include <QMenu>
+
+#include <optional>
 #include <QPair>
 #include <QRegularExpression>
 #include <QShortcut>
@@ -703,22 +705,19 @@ void DeviceExplorerWidget::populateColumnCBox()
   m_columnCBox->addItems(columns);
 }
 
-// The bool indicates if the passed node was a device
-std::pair<Device::DeviceCapas, bool>
+// The bool tells whether the node is a device; nullopt outside of the list
+std::optional<std::pair<Device::DeviceCapas, bool>>
 getCapas(Device::Node* p, const Device::DeviceList& lst)
 {
-  if(p->is<Device::DeviceSettings>())
-  {
-    return {lst.device(p->get<Device::DeviceSettings>().name).capabilities(), true};
-  }
+  const bool isDevice = p && p->is<Device::DeviceSettings>();
   while(p && !p->is<Device::DeviceSettings>())
-  {
     p = p->parent();
-  }
   if(!p)
-    throw std::runtime_error("Cannot get capabilities of no device");
-
-  return {lst.device(p->get<Device::DeviceSettings>().name).capabilities(), false};
+    return std::nullopt;
+  auto dev = lst.findDevice(p->get<Device::DeviceSettings>().name);
+  if(!dev)
+    return std::nullopt;
+  return std::make_pair(dev->capabilities(), isDevice);
 }
 
 void DeviceExplorerWidget::updateActions()
@@ -756,8 +755,11 @@ void DeviceExplorerWidget::updateActions()
 
     if(selection.size() == 1)
     {
-      const auto [capas, aDeviceIsSelected] = getCapas(
+      const auto found = getCapas(
           &m->nodeFromModelIndex(m_ntView->selectedIndex()), m->deviceModel().list());
+      if(!found)
+        return;
+      const auto [capas, aDeviceIsSelected] = *found;
 
       if(!aDeviceIsSelected)
       {
@@ -787,9 +789,8 @@ void DeviceExplorerWidget::updateActions()
       for(int i = 0; i < selectionSize; i++)
       {
         QModelIndex ind = proxyModel()->mapToSource(m_ntView->selectedIndexes().at(i));
-        const auto [capas, aDeviceIsSelected]
-            = getCapas(&m->nodeFromModelIndex(ind), m->deviceModel().list());
-        if(!aDeviceIsSelected || !capas.canDisconnect)
+        const auto found = getCapas(&m->nodeFromModelIndex(ind), m->deviceModel().list());
+        if(!found || !found->second || !found->first.canDisconnect)
         {
           validSelection = false;
           break;
@@ -988,10 +989,12 @@ void DeviceExplorerWidget::refresh()
 
     if(!dev.connected())
       return;
+    // Read the row now: the selection may change before the worker finishes
+    const int row = m_ntView->selectedIndex().row();
     auto wrkr = make_worker(
-        [this, m](Device::Node&& node) {
+        [this, m, row](Device::Node&& node) {
       auto cmd = new Explorer::Command::ReplaceDevice{
-          m->deviceModel(), m_ntView->selectedIndex().row(), std::move(node)};
+          m->deviceModel(), row, std::move(node)};
 
       m_cmdDispatcher->submit(cmd);
         },

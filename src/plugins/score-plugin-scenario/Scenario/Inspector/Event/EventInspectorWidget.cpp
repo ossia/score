@@ -19,6 +19,7 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <Inspector/InspectorWidgetBase.hpp>
+#include <LocalTree/ScriptableScenarioComponent.hpp>
 
 #include <score/model/Skin.hpp>
 #include <score/application/ApplicationContext.hpp>
@@ -39,6 +40,7 @@
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/TextLabel.hpp>
 
+#include <QCheckBox>
 #include <QComboBox>
 #include <QFormLayout>
 #include <QString>
@@ -135,6 +137,33 @@ EventInspectorWidget::EventInspectorWidget(
     });
     expr_lay->addWidget(m_exprEditor);
     m_properties.push_back(expr_widg);
+  }
+
+  // Scriptable
+  {
+    auto scriptable = new QCheckBox{tr("Scriptable"), this};
+    scriptable->setChecked(object.scriptable());
+    score::setHelp(
+        scriptable,
+        tr("Publish a boolean for this condition in the local device, under "
+           "score:/conditions, so that states, scripts and remote controllers "
+           "decide it by name."));
+    auto showAddress = [scriptable, &object] {
+      scriptable->setToolTip(LocalTree::scriptableAddress(object).toString());
+    };
+    showAddress();
+    connect(scriptable, &QCheckBox::toggled, this, [this, &object](bool b) {
+      Command::setEventScriptable(object, b, m_context);
+    });
+    con(object, &EventModel::scriptableChanged, this,
+        [scriptable, showAddress](bool b) {
+      if(b != scriptable->isChecked())
+        scriptable->setChecked(b);
+      showAddress();
+    });
+    con(object.metadata(), &score::ModelMetadata::NameChanged, this,
+        [showAddress](const QString&) { showAddress(); });
+    m_properties.push_back(scriptable);
   }
 
   // Offset

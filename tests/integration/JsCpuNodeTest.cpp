@@ -62,7 +62,7 @@ struct rig
   {
     st.sampleRate = rate;
     st.bufferSize = buffer;
-    node = std::make_shared<JS::js_node>(st);
+    node = std::make_shared<JS::js_node>(st, nullptr);
   }
 
   ~rig()

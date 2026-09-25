@@ -32,9 +32,10 @@ class SCORE_PLUGIN_SCENARIO_EXPORT PasteProcessesInInterval final : public score
   SCORE_COMMAND_DECL(
       CommandFactoryName(), PasteProcessesInInterval, "Paste processes in a interval")
 public:
+  //! copy holds "Processes" and "Cables", as copySelectedProcesses writes them
   PasteProcessesInInterval(
-      rapidjson::Value::Array sourceProcesses, rapidjson::Value::Array sourceCables,
-      const IntervalModel& targetInterval, ExpandMode mode, QPointF origin);
+      rapidjson::Value& copy, const IntervalModel& targetInterval, ExpandMode mode,
+      QPointF origin);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

@@ -44,6 +44,10 @@ public:
   static QWidget* makeAddressWidget(
       const Process::Port& port, const score::DocumentContext& ctx, QWidget* parent);
 
+  //! A checkbox and the scripting name under which the port is published.
+  static QWidget* makeScriptableWidget(
+      const Process::Port& port, const score::DocumentContext& ctx, QWidget* parent);
+
 private:
   static QLabel* setupImpl(
       const QString& txt, const Port& port, const score::DocumentContext& ctx,

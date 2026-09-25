@@ -1,6 +1,8 @@
 #pragma once
 #include <State/Address.hpp>
 
+#include <score_plugin_scenario_export.h>
+
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Node/DeviceNode.hpp>
 
@@ -22,7 +24,7 @@ namespace Scenario
 class IntervalModel;
 namespace Command
 {
-void InterpolateStates(
+SCORE_PLUGIN_SCENARIO_EXPORT void InterpolateStates(
     const std::vector<const IntervalModel*>&, const score::CommandStackFacade&);
 }
 
@@ -45,11 +47,11 @@ struct value_size
   }
 };
 
+//! Automation range between two values, widened to the target address's domain
 struct get_curve_domain
 {
-  const State::AddressAccessor& address;
   const ossia::destination_index& idx;
-  const Device::Node& rootNode;
+  const ossia::domain& domain;
 
   template <std::size_t N>
   Curve::CurveDomain
@@ -59,17 +61,12 @@ struct get_curve_domain
     const auto i = idx[0];
     Curve::CurveDomain d{start[i], end[i]};
 
-    if(auto node = Device::try_getNodeFromAddress(rootNode, address.address))
+    if(auto dom = domain.v.target<ossia::vecf_domain<N>>())
     {
-      const Device::AddressSettings& as = node->get<Device::AddressSettings>();
-
-      if(auto dom = as.domain.get().v.target<ossia::vecf_domain<N>>())
-      {
-        if(auto min_v = dom->min[i])
-          d.min = std::min(d.min, (double)*min_v);
-        if(auto max_v = dom->max[i])
-          d.max = std::max(d.max, (double)*max_v);
-      }
+      if(auto min_v = dom->min[i])
+        d.min = std::min(d.min, (double)*min_v);
+      if(auto max_v = dom->max[i])
+        d.max = std::max(d.max, (double)*max_v);
     }
 
     return d;
@@ -83,17 +80,12 @@ struct get_curve_domain
     Curve::CurveDomain d{
         ossia::convert<double>(start[i]), ossia::convert<double>(end[i])};
 
-    if(auto node = Device::try_getNodeFromAddress(rootNode, address.address))
+    if(auto dom = domain.v.target<ossia::vector_domain>())
     {
-      const Device::AddressSettings& as = node->get<Device::AddressSettings>();
-
-      if(auto dom = as.domain.get().v.target<ossia::vector_domain>())
-      {
-        if(dom->min.size() > i)
-          d.min = std::min(d.min, ossia::convert<double>(dom->min[i]));
-        if(dom->max.size() > i)
-          d.max = std::max(d.max, ossia::convert<double>(dom->max[i]));
-      }
+      if(dom->min.size() > i)
+        d.min = std::min(d.min, ossia::convert<double>(dom->min[i]));
+      if(dom->max.size() > i)
+        d.max = std::max(d.max, ossia::convert<double>(dom->max[i]));
     }
 
     return d;
@@ -109,14 +101,8 @@ struct get_curve_domain
   Curve::CurveDomain operator()(const T& start, const T& end)
   {
     Curve::CurveDomain d{(double)start, (double)end};
-
-    if(auto node = Device::try_getNodeFromAddress(rootNode, address.address))
-    {
-      const Device::AddressSettings& as = node->get<Device::AddressSettings>();
-
-      d.refine(as.domain.get());
-    }
-
+    if(domain)
+      d.refine(domain);
     return d;
   }
 

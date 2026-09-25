@@ -18,12 +18,14 @@ namespace Process
 class ProcessModel;
 }
 
+#include <score_plugin_scenario_export.h>
+
 namespace Scenario
 {
 class IntervalModel;
 namespace Command
 {
-class RemoveProcessFromInterval final : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT RemoveProcessFromInterval final : public score::Command
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), RemoveProcessFromInterval, "Remove a process")
 public:

@@ -1,4 +1,5 @@
 #pragma once
+#include <score/model/path/ObjectPath.hpp>
 #include <score/serialization/DataStreamFwd.hpp>
 #include <score/tools/std/Optional.hpp>
 
@@ -17,9 +18,31 @@ namespace ossia
 struct destination_qualifiers;
 struct unit_t;
 }
+namespace score
+{
+struct DocumentContext;
+}
+class DataStreamReader;
+class DataStreamWriter;
 
 namespace State
 {
+//! The document object an address names, surviving renames.
+//! Immutable and shared between copies of an address.
+struct SCORE_LIB_STATE_EXPORT Anchor
+{
+  ObjectPath target;
+  QString member;
+
+  QObject* resolve(const score::DocumentContext& ctx) const noexcept;
+};
+
+SCORE_LIB_STATE_EXPORT void
+readAnchor(DataStreamReader& r, const std::shared_ptr<const Anchor>& a);
+//! Leaves the anchor empty, and the stream marked corrupt, on invalid data
+SCORE_LIB_STATE_EXPORT void
+writeAnchor(DataStreamWriter& w, std::shared_ptr<const Anchor>& a);
+
 struct SCORE_LIB_STATE_EXPORT DestinationQualifiers
 {
   W_GADGET(DestinationQualifiers)
@@ -68,6 +91,11 @@ struct SCORE_LIB_STATE_EXPORT Address
 
   QStringList path; // Note : path is empty if address is root: "device:/"
   // In terms of Device::Node, this means that the node is the device node.
+
+  //! Set when the address names an object of this document
+  std::shared_ptr<const Anchor> anchor;
+
+  bool anchored() const noexcept { return bool(anchor); }
 
   // Check that the given string is a valid address
   // Note: a "maybe" concept would help here.

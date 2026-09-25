@@ -45,7 +45,7 @@ void EncapsulateInScenario(
 
 // Decpasulate a sub-scenar passed in argument in its parent scenario if
 // possible
-void DecapsulateScenario(
+SCORE_PLUGIN_SCENARIO_EXPORT void DecapsulateScenario(
     const ProcessModel& scenar, const score::CommandStackFacade& stack);
 
 void Duplicate(const ProcessModel& scenar, const score::CommandStackFacade& stack);

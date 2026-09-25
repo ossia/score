@@ -10,6 +10,8 @@
 #include <Scenario/Inspector/MetadataWidget.hpp>
 #include <Scenario/Inspector/TimeSync/TriggerInspectorWidget.hpp>
 
+#include <LocalTree/ScriptableScenarioComponent.hpp>
+
 #include <score/model/Skin.hpp>
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -124,6 +126,30 @@ to the root of a score.)_"));
   con(m_model, &TimeSyncModel::musicalSyncChanged, musicalSync,
       &score::QuantificationWidget::setQuantification);
 
+  // Scriptable
+  auto scriptable = new QCheckBox{tr("Scriptable"), this};
+  scriptable->setChecked(object.scriptable());
+  score::setHelp(
+      scriptable, tr("Publish this trigger in the local device, under score:/triggers, "
+                     "so that states, scripts and remote controllers fire it by name."));
+  auto showAddress = [scriptable, &object] {
+    scriptable->setToolTip(LocalTree::scriptableAddress(object).toString());
+  };
+  showAddress();
+  connect(scriptable, &QCheckBox::toggled, this, [&ctx, &object](bool b) {
+    if(b != object.scriptable())
+      CommandDispatcher<>{ctx.commandStack}
+          .submit<Scenario::Command::SetTimeSyncScriptable>(object, b);
+  });
+  con(object, &TimeSyncModel::scriptableChanged, this,
+      [scriptable, showAddress](bool b) {
+    if(b != scriptable->isChecked())
+      scriptable->setChecked(b);
+    showAddress();
+  });
+  con(object.metadata(), &score::ModelMetadata::NameChanged, this,
+      [showAddress](const QString&) { showAddress(); });
+
   m_trigwidg = new TriggerInspectorWidget{
       ctx, ctx.app.interfaces<Command::TriggerCommandFactoryList>(), m_model, this};
 
@@ -132,7 +158,8 @@ to the root of a score.)_"));
 
   ((QBoxLayout*)m_metadata->layout())->insertLayout(0, &m_btnLayout);
 
-  updateAreaLayout({m_date, musicalSync, new TextLabel{tr("Trigger")}, m_trigwidg});
+  updateAreaLayout(
+      {m_date, musicalSync, scriptable, new TextLabel{tr("Trigger")}, m_trigwidg});
 
   // display data
   updateDisplayedValues();

@@ -308,15 +308,15 @@ QModelIndexList DeviceExplorerView::selectedIndexes() const
 
 QModelIndex DeviceExplorerView::selectedIndex() const
 {
+  // Selecting does not always move the current index
+  QModelIndex index = currentIndex();
+  if(auto sel = selectionModel())
+    if(const auto rows = sel->selectedRows(); rows.size() == 1)
+      index = rows.front();
+
   if(!m_hasProxy)
-  {
-    return currentIndex();
-  }
-  else
-  {
-    return static_cast<const QAbstractProxyModel*>(QTreeView::model())
-        ->mapToSource(currentIndex());
-  }
+    return index;
+  return static_cast<const QAbstractProxyModel*>(QTreeView::model())->mapToSource(index);
 }
 
 void DeviceExplorerView::setSelectedIndex(const QModelIndex& index)

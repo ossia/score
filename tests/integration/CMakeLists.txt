@@ -356,6 +356,56 @@ score_add_test(test_integration_nodal_controls
   GUI
   PLUGINS score_plugin_scenario score_lib_process)
 
+# References to published objects, through the widgets, the panel, the
+# selection and a running Javascript process.
+if(TARGET score_plugin_fx)
+  score_add_test(test_integration_scriptable_references
+    SOURCES ScriptableReferencesTest.cpp
+    GUI
+    PLUGINS score_plugin_fx score_plugin_js score_plugin_engine score_plugin_scenario
+            score_lib_process score_lib_inspector)
+endif()
+
+# Moving messages between states and devices, for each kind of address a state
+# can hold.
+if(TARGET score_plugin_fx AND TARGET score_plugin_automation)
+  score_add_test(test_integration_state_explorer_paths
+    SOURCES StateExplorerPathsTest.cpp
+    GUI
+    PLUGINS score_plugin_fx score_plugin_automation score_plugin_engine
+            score_plugin_deviceexplorer score_plugin_scenario score_lib_process)
+endif()
+
+# Writes into a published control while stopped, while playing, and while
+# playing with Record playback on.
+if(TARGET score_plugin_fx)
+  score_add_test(test_integration_scriptable_playback
+    SOURCES ScriptablePlaybackTest.cpp
+    GUI
+    PLUGINS score_plugin_fx score_plugin_js score_plugin_engine score_plugin_scenario
+            score_plugin_nodal score_lib_process)
+endif()
+
+# The remote control's websocket server and the published namespace
+if(TARGET score_plugin_remotecontrol AND TARGET score_plugin_fx)
+  score_add_test(test_integration_remotecontrol_scriptable
+    SOURCES RemoteControlScriptableTest.cpp
+    GUI
+    PLUGINS score_plugin_remotecontrol score_plugin_fx score_plugin_engine
+            score_plugin_scenario score_plugin_deviceexplorer score_lib_process
+    LIBS Qt6::WebSockets)
+endif()
+
+# Shaders and scripts snapshotted into states: publication and references
+# across recalls, program edits, preset loads and reloads.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_integration_scriptable_recall
+    SOURCES ScriptableRecallTest.cpp
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_js score_plugin_automation score_plugin_nodal
+            score_plugin_engine score_plugin_scenario score_lib_process)
+endif()
+
 # The right-click type-in box on a pad of a real process node: the y field is
 # reachable, and each field typed into is one command on the document.
 score_add_test(test_integration_nodal_type_in
@@ -490,6 +540,15 @@ if(TARGET score AND NOT EMSCRIPTEN)
     "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\"")
   set_tests_properties(test_integration_js_scripting_api PROPERTIES
     TIMEOUT 900 RUN_SERIAL TRUE)
+
+  # A published control addressed by name from a state and a script: played,
+  # renamed and reloaded in a real ossia-score process.
+  score_add_test(test_integration_scriptable_script
+    SOURCES ScriptableScriptTest.cpp)
+  target_compile_definitions(test_integration_scriptable_script PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\"")
+  set_tests_properties(test_integration_scriptable_script PROPERTIES
+    TIMEOUT 600 RUN_SERIAL TRUE)
 endif()
 
 # Score.remove() on a cable, which used to be a silent no-op. A subprocess test
@@ -1304,3 +1363,21 @@ foreach(_t ${_integration_tests})
       ENVIRONMENT_MODIFICATION ${SCORE_TEST_HARNESS_ENVIRONMENT})
   endif()
 endforeach()
+
+if(TARGET score_plugin_avnd AND TARGET score_plugin_engine)
+  score_add_test(test_integration_scriptable_dynamic_ports
+    SOURCES ScriptableDynamicPortsTest.cpp
+    GUI
+    PLUGINS score_plugin_avnd score_plugin_automation score_plugin_js score_plugin_engine
+            score_plugin_scenario score_lib_process)
+  target_include_directories(test_integration_scriptable_dynamic_ports PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish")
+endif()
+
+if(TARGET score_plugin_fx AND TARGET score_plugin_protocols)
+  score_add_test(test_integration_scriptable_interactions
+    SOURCES ScriptableInteractionsTest.cpp
+    GUI
+    PLUGINS score_plugin_fx score_plugin_protocols score_plugin_engine
+            score_plugin_deviceexplorer score_plugin_scenario score_lib_process)
+endif()

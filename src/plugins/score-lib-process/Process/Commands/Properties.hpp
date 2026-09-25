@@ -11,6 +11,9 @@
 PROPERTY_COMMAND_T(Process, SetLoop, ProcessModel::p_loops, "Set process looping")
 SCORE_COMMAND_DECL_T(Process::SetLoop)
 PROPERTY_COMMAND_T(
+    Process, SetProcessScriptable, ProcessModel::p_scriptable, "Set process scriptable")
+SCORE_COMMAND_DECL_T(Process::SetProcessScriptable)
+PROPERTY_COMMAND_T(
     Process, SetStartOffset, ProcessModel::p_startOffset, "Set start offset")
 SCORE_COMMAND_DECL_T(Process::SetStartOffset)
 PROPERTY_COMMAND_T(
@@ -74,5 +77,41 @@ private:
 class MoveNodesMacro final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), MoveNodesMacro, "Move nodes")
+};
+
+//! Control values written during a playback run with "Record playback" on.
+class SCORE_LIB_PROCESS_EXPORT RecordPlayback final : public score::AggregateCommand
+{
+  SCORE_COMMAND_DECL(CommandFactoryName(), RecordPlayback, "Record playback")
+};
+
+//! Control values written during a playback run without recording, kept on request.
+class SCORE_LIB_PROCESS_EXPORT KeepPlayedValues final : public score::AggregateCommand
+{
+  SCORE_COMMAND_DECL(CommandFactoryName(), KeepPlayedValues, "Keep played values")
+};
+
+//! Control values set by playing a state while stopped.
+class SCORE_LIB_PROCESS_EXPORT RecallState final : public score::AggregateCommand
+{
+  SCORE_COMMAND_DECL(CommandFactoryName(), RecallState, "Play state")
+};
+
+class SCORE_LIB_PROCESS_EXPORT RenameProcess final : public score::Command
+{
+  SCORE_COMMAND_DECL(Process::CommandFactoryName(), RenameProcess, "Rename process")
+public:
+  RenameProcess(const ProcessModel& process, QString name);
+
+  void undo(const score::DocumentContext& ctx) const override;
+  void redo(const score::DocumentContext& ctx) const override;
+
+protected:
+  void serializeImpl(DataStreamInput& s) const override;
+  void deserializeImpl(DataStreamOutput& s) override;
+
+private:
+  Path<ProcessModel> m_path;
+  QString m_old, m_new;
 };
 }

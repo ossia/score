@@ -19,6 +19,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT EditionSettings final : public QObject
   Scenario::Tool m_previousTool{Scenario::Tool::Select};
   LockMode m_lockMode{};
   bool m_execution{false};
+  bool m_recordPlayback{false};
 
 public:
   ExpandMode expandMode() const;
@@ -33,6 +34,10 @@ public:
 
   LockMode lockMode() const;
 
+  //! Keep in the document the values playback writes into published controls
+  bool recordPlayback() const noexcept { return m_recordPlayback; }
+  void setRecordPlayback(bool b);
+
 public:
   void setLockMode(LockMode lockMode);
   W_SLOT(setLockMode);
@@ -45,6 +50,8 @@ public:
 
   void lockModeChanged(LockMode lockMode)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, lockModeChanged, lockMode)
+  void recordPlaybackChanged(bool b)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, recordPlaybackChanged, b)
 
   W_PROPERTY(Scenario::Tool, tool READ tool WRITE setTool NOTIFY toolChanged)
 

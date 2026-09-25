@@ -1,6 +1,5 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Process/ControlMessage.hpp>
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionSetup.hpp>
 
@@ -13,37 +12,12 @@
 #include <ossia/detail/pod_vector.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
 
+#include <LocalTree/ScriptableReference.hpp>
+
 #include <QDebug>
 
 namespace Execution
 {
-namespace
-{
-
-std::vector<ossia::control_message>
-toOssiaControls(const SetupContext& ctx, const Scenario::StateModel& state)
-{
-  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
-  const auto& msgs = state.controlMessages().messages();
-  std::vector<ossia::control_message> ossia_msgs;
-  ossia_msgs.reserve(msgs.size());
-  for(const Process::ControlMessage& msg : msgs)
-  {
-    auto port = msg.port.try_find(ctx.context.doc);
-    if(port)
-    {
-      auto it = ctx.inlets.find(port);
-      if(it != ctx.inlets.end())
-      {
-        ossia::inlet& inlet = *it->second.second;
-        if(ossia::value_port* port = inlet.target<ossia::value_port>())
-          ossia_msgs.push_back(ossia::control_message{port, msg.value});
-      }
-    }
-  }
-  return ossia_msgs;
-}
-}
 StateComponentBase::StateComponentBase(
     const Scenario::StateModel& element, std::shared_ptr<ossia::time_event> ev,
     const Execution::Context& ctx, QObject* parent)
@@ -58,10 +32,10 @@ StateComponentBase::StateComponentBase(
 
   system().setup.register_node({}, {}, m_node);
 
-  connect(
-      &element, &Scenario::StateModel::sig_statesUpdated, this,
-      [this, st = std::weak_ptr{ctx.execState}] {
+  auto rebuild = [this, st = std::weak_ptr{ctx.execState}] {
     OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
+    if(!m_model)
+      return;
     if(auto dl = st.lock())
     {
       in_exec(
@@ -70,26 +44,16 @@ StateComponentBase::StateComponentBase(
         n->data = std::move(x);
       });
     }
-  });
-
-  connect(
-      &element, &Scenario::StateModel::sig_controlMessagesUpdated, this,
-      &StateComponentBase::updateControls);
-  // Note : they aren't updated in the constructor, but in
-  // DocumentPlugin::reload as the ports to which we're talking may not exist
-  // yet at this time
-}
-
-void StateComponentBase::updateControls()
-{
-  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
-  auto ossia_msgs = toOssiaControls(this->system().setup, state());
-  if(!ossia_msgs.empty())
-  {
-    in_exec([n = m_node, x = std::move(ossia_msgs)]() mutable {
-      n->controls = std::move(x);
+  };
+  connect(&element, &Scenario::StateModel::sig_statesUpdated, this, rebuild);
+  // Addresses that start or stop resolving, e.g. a control published while playing
+  if(auto tree = ctx.doc.findPlugin<LocalTree::ScriptableTreeBase>())
+    connect(
+        tree, &LocalTree::ScriptableTreeBase::referencesChanged, this,
+        [this, rebuild](QObject* referrer) {
+      if(!referrer || referrer == m_model.data())
+        rebuild();
     });
-  }
 }
 
 void StateComponentBase::onDelete() const

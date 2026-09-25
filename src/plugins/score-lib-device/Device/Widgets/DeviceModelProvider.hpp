@@ -9,6 +9,7 @@ struct DocumentContext;
 }
 namespace Device
 {
+class DeviceInterface;
 class NodeBasedItemModel;
 
 class SCORE_LIB_DEVICE_EXPORT DeviceModelProvider : public score::InterfaceBase
@@ -19,6 +20,13 @@ public:
   ~DeviceModelProvider() override;
   virtual Device::NodeBasedItemModel*
   getNodeModel(const score::DocumentContext& ctx) const noexcept = 0;
+
+  //! Finds a device of the document by name, even if the explorer does not show it
+  virtual Device::DeviceInterface*
+  findDevice(const QString& name, const score::DocumentContext& ctx) const noexcept
+  {
+    return nullptr;
+  }
 };
 
 class SCORE_LIB_DEVICE_EXPORT DeviceModelProviderList final
