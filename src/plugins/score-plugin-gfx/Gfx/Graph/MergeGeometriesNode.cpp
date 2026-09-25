@@ -55,6 +55,7 @@ struct BakeMatrices
   const float* model{};
   float linear[9]{};
   float normal[9]{};
+  bool mirrors{};
 
   explicit BakeMatrices(const ossia::transform3d& t)
       : model{t.matrix}
@@ -73,6 +74,7 @@ struct BakeMatrices
         b * f - c * e, -(a * f - c * d), a * e - b * d};
     const float det = a * cof[0] + b * cof[1] + c * cof[2];
     const float sign = det < 0.f ? -1.f : 1.f;
+    mirrors = det < 0.f;
     // Inverse-transpose of the upper 3x3, up to a positive scale, column-major.
     normal[0] = sign * cof[0];
     normal[1] = sign * cof[3];
@@ -224,8 +226,13 @@ void main()
     uint rel = w - attr.x;
     uint v = rel / attr.y;
     uint c = rel % attr.y;
-    if(v >= attr.z || c >= 3u)
+    if(v >= attr.z || c > 3u || (c == 3u && attr.w != 3u))
       continue;
+    if(c == 3u)
+    {
+      value = floatBitsToUint(-uintBitsToFloat(src[w]));
+      break;
+    }
 
     uint base = attr.x + v * attr.y;
     vec3 p = vec3(
@@ -298,6 +305,8 @@ std::vector<ossia::geometry> bakeCpuAttributes(
         continue;
       }
 
+      const bool flipW = kind == 2 && comps == 4 && mats.mirrors
+                         && attr.semantic == ossia::attribute_semantic::tangent;
       const void* original = cpu->raw_data.get();
       const int64_t start = in.byte_offset + attr.byte_offset;
       if(!done.emplace(original, start, kind).second)
@@ -329,6 +338,13 @@ std::vector<ossia::geometry> bakeCpuAttributes(
         else
           transformDirection(mats.linear, p);
         std::memcpy(base + off, p, sizeof(p));
+        if(flipW && off + 4 * int64_t(sizeof(float)) <= cpu->byte_size)
+        {
+          float w;
+          std::memcpy(&w, base + off + 12, sizeof(w));
+          w = -w;
+          std::memcpy(base + off + 12, &w, sizeof(w));
+        }
       }
     }
 
@@ -565,7 +581,7 @@ struct RenderedMergeGeometriesNode final : NodeRenderer
     {
       for(const auto& attr : g.attributes)
       {
-        const int kind = bakeKind(attr.semantic);
+        int kind = bakeKind(attr.semantic);
         if(kind < 0)
           continue;
         if(attr.binding < 0 || attr.binding >= std::ssize(g.input)
@@ -589,6 +605,9 @@ struct RenderedMergeGeometriesNode final : NodeRenderer
           warnUntransformed(attr, "per-instance attributes are not transformed");
           continue;
         }
+        if(kind == 2 && comps == 4 && mats.mirrors
+           && attr.semantic == ossia::attribute_semantic::tangent)
+          kind = 3;
         if(!m_gpuBakeUnavailable
            && (!renderer.state.rhi
                || !renderer.state.rhi->isFeatureSupported(QRhi::Compute)))

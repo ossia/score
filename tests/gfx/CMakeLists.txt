@@ -2004,3 +2004,55 @@ score_add_gfx_test(outside_frame_release_buffer GfxOutsideFrameReleaseBuffer.cpp
 # Every texture a live pipeline samples has the view type its shader declares,
 # including after a cable into an array input is cut.
 score_add_gfx_test(bound_view_type GfxBoundViewType.cpp)
+
+# Extract buffer (by name) in Buffer mode reads an auxiliary of a 0-vertex
+# geometry, such as Scene Preprocessor's splat-only carrier.
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  score_plugin_hidden_sources(_extract_aux_carrier_hidden
+      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim/ExtractBuffer2.cpp")
+  score_add_test(test_gfx_extract_buffer_aux_carrier
+    SOURCES GfxExtractBufferAuxCarrier.cpp ${_extract_aux_carrier_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_extract_buffer_aux_carrier PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_extract_buffer_aux_carrier SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
+# A CPU filter unpremultiplies the readback of its input target; a
+# gpu_texture_output declaring premultiplied is drawn with the premultiplied
+# over.
+if(TARGET score_plugin_avnd)
+  score_add_test(test_gfx_cpu_filter_premultiplied
+    SOURCES GfxCpuFilterPremultiplied.cpp
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_cpu_filter_premultiplied PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_cpu_filter_premultiplied SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
+# Merge Geometries negates tangent.w under a mirroring transform, CPU and GPU
+# bakes.
+score_add_gfx_test(merge_geometries_tangent_mirror MergeGeometriesTangentMirror.cpp)
+
+# WindowDevice::grabTo stops cleanly when its device is disconnected or deleted
+# from inside the grab's event pump.
+score_add_gfx_process_test(grab_teardown GfxGrabTeardown.cpp)

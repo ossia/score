@@ -6,6 +6,8 @@
 
 #include <QFloat16>
 
+#include <algorithm>
+
 namespace gpp::qrhi
 {
 
@@ -1393,6 +1395,71 @@ inline void toRGBA32UI(QRhiTexture::Format in_format, QByteArray& buf, int width
       break;
   }
 }
+inline void unpremultiply(QRhiTexture::Format format, QByteArray& buf, int width, int height)
+{
+  const qsizetype N = qsizetype(width) * height;
+  if(N <= 0)
+    return;
+  switch(format)
+  {
+    case QRhiTexture::RGBA8:
+    case QRhiTexture::BGRA8:
+    {
+      if(buf.size() < N * 4)
+        return;
+      auto* px = reinterpret_cast<uint8_t*>(buf.data());
+      for(qsizetype i = 0; i < N; i++, px += 4)
+      {
+        const int a = px[3];
+        if(a == 255)
+          continue;
+        if(a == 0)
+        {
+          px[0] = px[1] = px[2] = 0;
+          continue;
+        }
+        for(int c = 0; c < 3; c++)
+          px[c] = uint8_t(std::min(255, (px[c] * 255 + a / 2) / a));
+      }
+      break;
+    }
+    case QRhiTexture::RGBA16F:
+    {
+      if(buf.size() < N * 8)
+        return;
+      auto* px = reinterpret_cast<qfloat16*>(buf.data());
+      for(qsizetype i = 0; i < N; i++, px += 4)
+      {
+        const float a = px[3];
+        if(a <= 0.f)
+          px[0] = px[1] = px[2] = qfloat16(0.f);
+        else if(a != 1.f)
+          for(int c = 0; c < 3; c++)
+            px[c] = qfloat16(float(px[c]) / a);
+      }
+      break;
+    }
+    case QRhiTexture::RGBA32F:
+    {
+      if(buf.size() < N * 16)
+        return;
+      auto* px = reinterpret_cast<float*>(buf.data());
+      for(qsizetype i = 0; i < N; i++, px += 4)
+      {
+        const float a = px[3];
+        if(a <= 0.f)
+          px[0] = px[1] = px[2] = 0.f;
+        else if(a != 1.f)
+          for(int c = 0; c < 3; c++)
+            px[c] /= a;
+      }
+      break;
+    }
+    default:
+      break;
+  }
+}
+
 inline void convertTexture(QRhiTexture::Format out_format, QRhiTexture::Format in_format, QByteArray& buf, int width, int height)
 {
   switch(out_format)
