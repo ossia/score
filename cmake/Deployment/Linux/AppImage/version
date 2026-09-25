@@ -1,3 +1,12 @@
-SCORE_1.0 { 
+SCORE_1.0 {
     global: *;
+    local:
+      _ZN4llvm*;
+      _ZNK4llvm*;
+      _ZTVN4llvm*;
+      _ZTIN4llvm*;
+      _ZTSN4llvm*;
+      _ZGVN4llvm*;
+      _ZThn*_N4llvm*;
+      LLVM*;
 };

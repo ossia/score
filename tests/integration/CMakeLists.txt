@@ -1488,3 +1488,11 @@ score_test_app_libpath(
   test_integration_gfx_grab_slow_start_g2
   test_integration_js_list_controls_i5
   test_integration_gfx_stepped_execution_i3)
+
+# The app exports symbols for the JIT and Faust but not its static LLVM: a
+# system libLLVM loaded by Mesa would bind to it and crash at exit.
+if(TARGET score AND UNIX AND NOT APPLE AND NOT EMSCRIPTEN
+   AND (TARGET score_plugin_jit OR TARGET score_plugin_faust))
+  add_test(NAME test_app_hides_llvm_symbols
+    COMMAND sh -c "n=$(nm -D --defined-only \"$1\" | grep -c ' _ZN4llvm'); echo \"exported llvm symbols: $n\"; test \"$n\" -eq 0" _ $<TARGET_FILE:score>)
+endif()

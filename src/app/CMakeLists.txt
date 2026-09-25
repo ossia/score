@@ -155,6 +155,15 @@ if(UNIX AND NOT APPLE)
   target_link_libraries(${APPNAME} PRIVATE ${CMAKE_DL_LIBS})
 endif()
 
+if(UNIX AND NOT APPLE AND NOT EMSCRIPTEN AND NOT ANDROID
+   AND NOT SCORE_LINKER_SCRIPT
+   AND NOT CMAKE_EXE_LINKER_FLAGS MATCHES "version-script"
+   AND (TARGET score_plugin_jit OR TARGET score_plugin_faust))
+  # ENABLE_EXPORTS exports the static LLVM; a system libLLVM loaded by Mesa
+  # would otherwise bind to it and run its static destructors on our objects.
+  set(SCORE_LINKER_SCRIPT "${SCORE_ROOT_SOURCE_DIR}/cmake/Deployment/Linux/AppImage/version")
+endif()
+
 if(SCORE_LINKER_SCRIPT)
   target_link_libraries(${APPNAME} PRIVATE "-Wl,--version-script,${SCORE_LINKER_SCRIPT}")
 endif()
