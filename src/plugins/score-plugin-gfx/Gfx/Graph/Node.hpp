@@ -175,13 +175,15 @@ public:
   }
 
   /**
-   * @brief Whether the user set a size or a non-default format on a texture inlet.
+   * @brief Whether the user set a size or a format on a texture inlet.
+   *
+   * A format other than RGBA8 counts as set even without format_set.
    */
   bool hasExplicitRenderTargetSpecs(int32_t port) const noexcept
   {
     auto it = renderTargetSpecs.find(port);
     return it != renderTargetSpecs.end()
-           && (it->second.size.has_value()
+           && (it->second.size.has_value() || it->second.format_set
                || it->second.format != ossia::texture_format::RGBA8);
   }
 

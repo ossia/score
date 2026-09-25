@@ -197,7 +197,9 @@ void TextureInlet::setupExecution(
   exec.data.address_w = m_textureAddressMode;
   exec.data.min_filter = m_textureFilter;
   exec.data.mag_filter = m_textureFilter;
-  exec.data.format = m_textureFormat;
+  exec.data.mipmap_mode = m_textureMipmapMode;
+  exec.data.format = m_textureFormat.value_or(ossia::texture_format::RGBA8);
+  exec.data.format_set = m_textureFormat.has_value();
 
   connect(
       this, &TextureInlet::renderSizeChanged, exec_context,
@@ -210,7 +212,10 @@ void TextureInlet::setupExecution(
 
   connect(
       this, &TextureInlet::textureFormatChanged, exec_context,
-      [&exec](ossia::texture_format v) { exec.data.format = v; });
+      [&exec](std::optional<ossia::texture_format> v) {
+    exec.data.format = v.value_or(ossia::texture_format::RGBA8);
+    exec.data.format_set = v.has_value();
+  });
 
   connect(
       this, &TextureInlet::textureFilterChanged, exec_context,
@@ -218,6 +223,10 @@ void TextureInlet::setupExecution(
     exec.data.min_filter = v;
     exec.data.mag_filter = v;
   });
+
+  connect(
+      this, &TextureInlet::textureMipmapModeChanged, exec_context,
+      [&exec](ossia::texture_filter v) { exec.data.mipmap_mode = v; });
 
   connect(
       this, &TextureInlet::textureAddressModeChanged, exec_context,
@@ -287,41 +296,35 @@ struct TextureSizeWidget : public QWidget
         QObject::tr(
             "When enabled, the render target will use the given size: every input "
             "process will render to a texture of said size upon execution. "
-            "Otherwise, it will "
-            "use the default render size, usually the window viewport size. "
-            "An inlet with a single cable, no size and the RGBA8 format may read "
+            "Otherwise the size is automatic: the size of the render target the "
+            "process renders into, else the render size of the output, usually "
+            "the window viewport size. "
+            "An inlet with a single cable, no size and no format set may read "
             "the texture its input process publishes directly instead."));
     auto rs = port.renderSize();
     m_enabled->setChecked(bool(rs));
 
     m_sz_w = new QSpinBox{};
-    m_sz_w->setRange(0, 65535);
-    m_sz_w->setEnabled(m_enabled->isChecked());
-    if(rs)
-      m_sz_w->setValue(rs->width());
-    else
-      m_sz_w->setValue(defaultSize().width());
+    m_sz_w->setMaximum(65535);
+    m_sz_w->setSpecialValueText(QObject::tr("Auto"));
     m_sz_h = new QSpinBox{};
-    m_sz_h->setRange(0, 65535);
-    m_sz_h->setEnabled(m_enabled->isChecked());
-    if(rs)
-      m_sz_h->setValue(rs->height());
-    else
-      m_sz_h->setValue(defaultSize().height());
+    m_sz_h->setMaximum(65535);
+    m_sz_h->setSpecialValueText(QObject::tr("Auto"));
+    showSize(rs);
 
     sz_lay->addWidget(m_enabled);
     sz_lay->addWidget(m_sz_w);
     sz_lay->addWidget(m_sz_h);
     sz_lay->setAlignment(m_enabled, Qt::AlignRight);
     QObject::connect(m_enabled, SignalUtils::QCheckBox_checkStateChanged(), this, [this](int state) {
-      m_sz_w->setEnabled(state);
-      m_sz_h->setEnabled(state);
       if(state)
       {
+        showSize(initialSize());
         update_size();
       }
       else
       {
+        showSize(std::nullopt);
         m_ongoingDispatcher.submit(m_model, std::nullopt);
       }
       m_ongoingDispatcher.commit();
@@ -346,28 +349,38 @@ struct TextureSizeWidget : public QWidget
     const QSignalBlocker blck_w{m_sz_w};
     const QSignalBlocker blck_h{m_sz_h};
     const QSignalBlocker blck_cb{m_enabled};
-    const bool enabled = bool(sz);
-    m_enabled->setChecked(enabled);
-    m_sz_w->setEnabled(enabled);
-    m_sz_h->setEnabled(enabled);
-    if(enabled)
+    m_enabled->setChecked(bool(sz));
+    showSize(sz);
+  }
+
+  void showSize(std::optional<QSize> sz)
+  {
+    const QSignalBlocker blck_w{m_sz_w};
+    const QSignalBlocker blck_h{m_sz_h};
+    if(sz)
+      m_lastSize = *sz;
+    for(auto* sb : {m_sz_w, m_sz_h})
     {
-      m_sz_w->setValue(sz->width());
-      m_sz_h->setValue(sz->height());
+      sb->setEnabled(bool(sz));
+      sb->setMinimum(sz ? 1 : 0);
     }
+    m_sz_w->setValue(sz ? sz->width() : 0);
+    m_sz_h->setValue(sz ? sz->height() : 0);
   }
 
   void update_size()
   {
-    m_ongoingDispatcher.submit(m_model, QSize{m_sz_w->value(), m_sz_h->value()});
+    m_lastSize = QSize{m_sz_w->value(), m_sz_h->value()};
+    m_ongoingDispatcher.submit(m_model, m_lastSize);
   }
 
   void commit() { m_ongoingDispatcher.commit(); }
 
-  QSize defaultSize() const noexcept
+  QSize initialSize() const noexcept
   {
-    return QSize{
-        1280, 720}; // FIXME use the actual one from the device viewport if any instead.
+    if(m_lastSize.width() > 0 && m_lastSize.height() > 0)
+      return m_lastSize;
+    return QSize{1280, 720};
   }
 
   const TextureInlet& m_model;
@@ -376,6 +389,7 @@ struct TextureSizeWidget : public QWidget
   QCheckBox* m_enabled{};
   QSpinBox* m_sz_w{};
   QSpinBox* m_sz_h{};
+  QSize m_lastSize{};
 };
 
 void TextureInletFactory::setupInletInspector(
@@ -392,6 +406,7 @@ void TextureInletFactory::setupInletInspector(
   {
     using enum ossia::texture_format;
     auto combo = new QComboBox{parent};
+    combo->addItem(QObject::tr("Auto"), -1);
     combo->addItem("RGBA8", (int)RGBA8);
     combo->addItem("RGBA16F", (int)RGBA16F);
     combo->addItem("RGBA32F", (int)RGBA32F);
@@ -399,22 +414,27 @@ void TextureInletFactory::setupInletInspector(
     combo->addItem("R16", (int)R16);
     combo->addItem("R16F", (int)R16F);
     combo->addItem("R32F", (int)R32F);
-    static const auto map = ossia::flat_map<ossia::texture_format, int>{
-        {RGBA8, 0}, {RGBA16F, 1}, {RGBA32F, 2}, {R8, 3}, {R16, 4}, {R16F, 5}, {R32F, 6}};
-    if(auto it = map.find(inlet.textureFormat()); it != map.end())
-      combo->setCurrentIndex(it->second);
+    score::setHelp(
+        combo,
+        QObject::tr(
+            "Format of the render target. Auto uses RGBA8, or the texture "
+            "the input process publishes when the inlet may read it directly."));
+    auto formatIndex = [combo](std::optional<ossia::texture_format> fmt) {
+      return combo->findData(fmt ? (int)*fmt : -1);
+    };
+    combo->setCurrentIndex(std::max(0, formatIndex(inlet.textureFormat())));
     QObject::connect(
         &inlet, &TextureInlet::textureFormatChanged, combo,
-        [combo](ossia::texture_format fmt) {
-      if((int)fmt != combo->currentData())
-      {
-        if(auto it = map.find(fmt); it != map.end())
-          combo->setCurrentIndex(it->second);
-      }
+        [combo, formatIndex](std::optional<ossia::texture_format> fmt) {
+      if(int idx = formatIndex(fmt); idx >= 0 && idx != combo->currentIndex())
+        combo->setCurrentIndex(idx);
     });
     QObject::connect(
         combo, &QComboBox::currentIndexChanged, &inlet, [&ctx, &inlet, combo](int idx) {
-      auto fmt = (ossia::texture_format)combo->itemData(idx).toInt();
+      const int data = combo->itemData(idx).toInt();
+      std::optional<ossia::texture_format> fmt;
+      if(data >= 0)
+        fmt = (ossia::texture_format)data;
       if(fmt != inlet.textureFormat())
         CommandDispatcher<>{ctx.commandStack}.submit<ChangeTextureInletFormat>(
             inlet, fmt);
@@ -473,6 +493,36 @@ void TextureInletFactory::setupInletInspector(
 
     lay.addRow("Address mode", combo);
   }
+
+  // Mipmaps
+  {
+    auto combo = new QComboBox{parent};
+    combo->addItem(QObject::tr("None"), (int)ossia::texture_filter::NONE);
+    combo->addItem(QObject::tr("Nearest"), (int)ossia::texture_filter::NEAREST);
+    combo->addItem(QObject::tr("Linear"), (int)ossia::texture_filter::LINEAR);
+    score::setHelp(
+        combo,
+        QObject::tr(
+            "When not None, the render target gets a mip chain, regenerated "
+            "every frame, and is sampled across its levels."));
+    combo->setCurrentIndex(std::max(0, combo->findData((int)inlet.textureMipmapMode())));
+
+    QObject::connect(
+        &inlet, &TextureInlet::textureMipmapModeChanged, combo,
+        [combo](ossia::texture_filter mode) {
+      if(int idx = combo->findData((int)mode); idx >= 0 && idx != combo->currentIndex())
+        combo->setCurrentIndex(idx);
+    });
+    QObject::connect(
+        combo, &QComboBox::currentIndexChanged, &inlet, [&ctx, &inlet, combo](int idx) {
+      auto mode = (ossia::texture_filter)combo->itemData(idx).toInt();
+      if(mode != inlet.textureMipmapMode())
+        CommandDispatcher<>{ctx.commandStack}.submit<ChangeTextureInletMipmapMode>(
+            inlet, mode);
+    });
+
+    lay.addRow("Mipmaps", combo);
+  }
 }
 void TextureOutletFactory::setupOutletInspector(
     const Process::Outlet& port, const score::DocumentContext& ctx, QWidget* parent,
@@ -489,14 +539,22 @@ template <>
 void DataStreamReader::read(const Gfx::TextureInlet& p)
 {
   // read((Process::Outlet&)p);
-  m_stream << p.m_renderSize << p.m_textureFormat << p.m_textureAddressMode
-           << p.m_textureFilter;
+  m_stream << p.m_renderSize
+           << p.m_textureFormat.value_or(ossia::texture_format::RGBA8)
+           << p.m_textureAddressMode << p.m_textureFilter
+           << p.m_textureFormat.has_value() << p.m_textureMipmapMode;
 }
 template <>
 void DataStreamWriter::write(Gfx::TextureInlet& p)
 {
-  m_stream >> p.m_renderSize >> p.m_textureFormat >> p.m_textureAddressMode
-      >> p.m_textureFilter;
+  ossia::texture_format fmt{};
+  bool fmt_set{};
+  m_stream >> p.m_renderSize >> fmt >> p.m_textureAddressMode >> p.m_textureFilter
+      >> fmt_set >> p.m_textureMipmapMode;
+  if(fmt_set)
+    p.m_textureFormat = fmt;
+  else
+    p.m_textureFormat = std::nullopt;
 }
 
 template <>
@@ -507,9 +565,11 @@ void JSONReader::read(const Gfx::TextureInlet& p)
   {
     obj["RenderSize"] = *p.m_renderSize;
   }
-  obj["Format"] = p.m_textureFormat;
+  obj["Format"] = p.m_textureFormat.value_or(ossia::texture_format::RGBA8);
+  obj["FormatSet"] = p.m_textureFormat.has_value();
   obj["Filter"] = p.m_textureFilter;
   obj["AddressMode"] = p.m_textureAddressMode;
+  obj["MipmapMode"] = p.m_textureMipmapMode;
 }
 template <>
 void JSONWriter::write(Gfx::TextureInlet& p)
@@ -524,12 +584,21 @@ void JSONWriter::write(Gfx::TextureInlet& p)
   {
     p.m_renderSize = std::nullopt;
   }
-  if(auto fmt = obj.tryGet("Format"))
+  p.m_textureFormat = std::nullopt;
+  if(auto fmt_v = obj.tryGet("Format"))
   {
-    p.m_textureFormat <<= *fmt;
+    ossia::texture_format fmt{};
+    fmt <<= *fmt_v;
+    bool fmt_set = fmt != ossia::texture_format::RGBA8;
+    if(auto set_v = obj.tryGet("FormatSet"))
+      fmt_set = set_v->toBool();
+    if(fmt_set)
+      p.m_textureFormat = fmt;
     p.m_textureFilter <<= obj["Filter"];
     p.m_textureAddressMode <<= obj["AddressMode"];
   }
+  if(auto mip = obj.tryGet("MipmapMode"))
+    p.m_textureMipmapMode <<= *mip;
 }
 
 template <>

@@ -54,7 +54,7 @@ public:
       renderSize W_READ renderSize W_WRITE setRenderSize W_NOTIFY renderSizeChanged)
 
   INLINE_PROPERTY_VALUE(
-      ossia::texture_format, textureFormat, = ossia::texture_format::RGBA8,
+      std::optional<ossia::texture_format>, textureFormat, = std::nullopt,
       textureFormat, setTextureFormat, textureFormatChanged)
   INLINE_PROPERTY_VALUE(
       ossia::texture_filter, textureFilter, = ossia::texture_filter::LINEAR,
@@ -63,6 +63,9 @@ public:
       ossia::texture_address_mode, textureAddressMode,
       = ossia::texture_address_mode::CLAMP_TO_EDGE, textureAddressMode,
       setTextureAddressMode, textureAddressModeChanged)
+  INLINE_PROPERTY_VALUE(
+      ossia::texture_filter, textureMipmapMode, = ossia::texture_filter::NONE,
+      textureMipmapMode, setTextureMipmapMode, textureMipmapModeChanged)
 
   void setupExecution(ossia::inlet&, QObject* exec_context) const noexcept override;
 
@@ -239,6 +242,7 @@ struct GeometryOutletFactory final : public Dataflow::AutomatablePortFactory
 
 W_REGISTER_ARGTYPE(std::optional<QSize>);
 W_REGISTER_ARGTYPE(ossia::texture_format);
+W_REGISTER_ARGTYPE(std::optional<ossia::texture_format>);
 W_REGISTER_ARGTYPE(ossia::texture_filter);
 W_REGISTER_ARGTYPE(ossia::texture_address_mode);
 
@@ -261,3 +265,8 @@ PROPERTY_COMMAND_T(
     Gfx, ChangeTextureInletAddressMode, TextureInlet::p_textureAddressMode,
     "Change render target address mode")
 SCORE_COMMAND_DECL_T(Gfx::ChangeTextureInletAddressMode)
+
+PROPERTY_COMMAND_T(
+    Gfx, ChangeTextureInletMipmapMode, TextureInlet::p_textureMipmapMode,
+    "Change render target mipmap mode")
+SCORE_COMMAND_DECL_T(Gfx::ChangeTextureInletMipmapMode)

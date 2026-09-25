@@ -67,7 +67,6 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
   bool m_createdPipeline{};
   bool m_initialized{};
 
-  int sampler_k = 0;
   int ubo_k = 0;
   ossia::flat_map<int, QRhiBuffer*> createdUbos;
   ossia::flat_map<int, QRhiTexture*> createdTexs;
@@ -206,8 +205,8 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
     using bindings_type = decltype(Node_T::layout::bindings);
     using image_type = std::decay_t<decltype(bindings_type{}.*F::image())>;
     auto tex = createInput(
-        renderer, sampler_k++, gpp::qrhi::textureFormat<image_type>(),
-        renderer.state.renderSize);
+        renderer, Idx, gpp::qrhi::textureFormat<image_type>(),
+        node().resolveRenderTargetSpecs(Idx, renderer).size);
 
     using sampler_type = typename avnd::member_reflection<F::image()>::member_type;
     createdTexs[sampler_type::binding()] = tex;
@@ -413,7 +412,6 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
 
     m_createdPipeline = false;
 
-    sampler_k = 0;
     ubo_k = 0;
 
     m_initialized = false;

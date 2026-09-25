@@ -42,10 +42,11 @@ struct CustomGpuRenderer final
 
   QRhiShaderResourceBindings* m_srb{};
 
-  int sampler_k = 0;
   ossia::flat_map<int, QRhiBuffer*> createdUbos;
   ossia::flat_map<int, QRhiSampler*> createdSamplers;
   ossia::flat_map<int, QRhiTexture*> createdTexs;
+  ossia::flat_map<int, score::gfx::RenderTargetSpecs> samplerSpecs;
+  ossia::flat_map<const score::gfx::Port*, int> inputSamplerBindings;
 
   const CustomGpuNodeBase& node() const noexcept
   {
@@ -65,12 +66,15 @@ struct CustomGpuRenderer final
     return it->second;
   }
 
-  QRhiTexture* createInput(score::gfx::RenderList& renderer, int k, QSize size)
+  QRhiTexture* createInput(
+      score::gfx::RenderList& renderer, int k, const score::gfx::RenderTargetSpecs& spec)
   {
     auto& parent = node();
     auto port = parent.input[k];
-    static constexpr auto flags = QRhiTexture::RenderTarget;
-    auto texture = renderer.state.rhi->newTexture(QRhiTexture::RGBA8, size, 1, flags);
+    QRhiTexture::Flags flags = QRhiTexture::RenderTarget;
+    if(spec.mipmap_mode != QRhiSampler::None)
+      flags |= QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips;
+    auto texture = renderer.state.rhi->newTexture(spec.format, spec.size, 1, flags);
     SCORE_ASSERT(texture->create());
     m_rts[port] = score::gfx::createRenderTarget(
         renderer.state, texture, renderer.samples(), renderer.requiresDepth(*port));
@@ -95,10 +99,16 @@ struct CustomGpuRenderer final
       QRhiTexture* tex
           = tex_it != createdTexs.end() ? tex_it->second : &renderer.emptyTexture();
 
-      // Samplers are always created by us
+      score::gfx::RenderTargetSpecs spec;
+      spec.address_u = QRhiSampler::ClampToEdge;
+      spec.address_v = QRhiSampler::ClampToEdge;
+      spec.address_w = QRhiSampler::ClampToEdge;
+      if(auto spec_it = samplerSpecs.find(F::binding()); spec_it != samplerSpecs.end())
+        spec = spec_it->second;
+
       QRhiSampler* sampler = renderer.state.rhi->newSampler(
-          QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
-          QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
+          spec.mag_filter, spec.min_filter, spec.mipmap_mode, spec.address_u,
+          spec.address_v, spec.address_w);
       sampler->create();
       createdSamplers[F::binding()] = sampler;
 
@@ -188,10 +198,41 @@ struct CustomGpuRenderer final
   requires avnd::sampler_port<F>
   void init_input(score::gfx::RenderList& renderer, avnd::field_reflection<Idx, F> field)
   {
-    auto tex = createInput(renderer, sampler_k++, renderer.state.renderSize);
+    const auto spec = node().resolveRenderTargetSpecs(Idx, renderer);
+    auto tex = createInput(renderer, Idx, spec);
 
     using sampler_type = typename avnd::member_reflection<F::sampler()>::member_type;
     createdTexs[sampler_type::binding()] = tex;
+    samplerSpecs[sampler_type::binding()] = spec;
+    inputSamplerBindings[node().input[Idx]] = sampler_type::binding();
+  }
+
+  void updateInputSamplerFilter(
+      const score::gfx::Port& input, const score::gfx::RenderTargetSpecs& spec) override
+  {
+    auto binding_it = inputSamplerBindings.find(&input);
+    if(binding_it == inputSamplerBindings.end())
+      return;
+    auto sampler_it = createdSamplers.find(binding_it->second);
+    if(sampler_it == createdSamplers.end() || !sampler_it->second)
+      return;
+    auto* sampler = sampler_it->second;
+    const auto tex_it = createdTexs.find(binding_it->second);
+    const bool mipmapped = tex_it != createdTexs.end() && tex_it->second
+                           && tex_it->second->flags().testFlag(QRhiTexture::MipMapped);
+    const auto mip = mipmapped ? spec.mipmap_mode : QRhiSampler::None;
+    if(sampler->magFilter() == spec.mag_filter && sampler->minFilter() == spec.min_filter
+       && sampler->mipmapMode() == mip && sampler->addressU() == spec.address_u
+       && sampler->addressV() == spec.address_v && sampler->addressW() == spec.address_w)
+      return;
+    sampler->destroy();
+    sampler->setMagFilter(spec.mag_filter);
+    sampler->setMinFilter(spec.min_filter);
+    sampler->setMipmapMode(mip);
+    sampler->setAddressU(spec.address_u);
+    sampler->setAddressV(spec.address_v);
+    sampler->setAddressW(spec.address_w);
+    sampler->create();
   }
 
   template <std::size_t Idx, typename F>
@@ -334,13 +375,20 @@ struct CustomGpuRenderer final
 
     // Release the allocated textures
     for(auto& [id, tex] : this->createdTexs)
-      tex->deleteLater();
+    {
+      const bool ownedByRenderTarget = ossia::any_of(
+          m_rts, [tex](const auto& rt) { return rt.second.texture == tex; });
+      if(!ownedByRenderTarget)
+        tex->deleteLater();
+    }
     this->createdTexs.clear();
 
     // Release the allocated samplers
     for(auto& [id, sampl] : this->createdSamplers)
       sampl->deleteLater();
     this->createdSamplers.clear();
+    this->samplerSpecs.clear();
+    this->inputSamplerBindings.clear();
 
     // Release the allocated ubos
     for(auto& [id, ubo] : this->createdUbos)
@@ -367,8 +415,6 @@ struct CustomGpuRenderer final
     m_srb = nullptr;
 
     m_meshBuffer = {};
-
-    sampler_k = 0;
 
     m_initialized = false;
   }
