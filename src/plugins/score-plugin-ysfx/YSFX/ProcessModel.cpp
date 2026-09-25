@@ -307,19 +307,22 @@ std::vector<Process::Preset> ProcessModel::builtinPresets() const noexcept
 }
 void ProcessModel::loadPreset(const Process::Preset& preset)
 {
-  if(!m_bank)
-    return;
-
   const rapidjson::Document doc = readJson(preset.data);
-  if(!doc.IsObject())
-    return;
-  auto obj = doc.GetObject();
-
-  if(auto it = obj.FindMember("ProgramIndex"); it != obj.MemberEnd())
+  if(doc.IsObject())
   {
-    auto idx = JsonValue{it->value}.toInt();
-    ysfx_load_state(this->fx.get(), this->m_bank->presets[idx].state);
+    // A preset of the script's own bank
+    auto obj = doc.GetObject();
+    if(auto it = obj.FindMember("ProgramIndex"); it != obj.MemberEnd() && m_bank)
+    {
+      auto idx = JsonValue{it->value}.toInt();
+      if(idx >= 0 && idx < int(m_bank->preset_count))
+        ysfx_load_state(this->fx.get(), this->m_bank->presets[idx].state);
+    }
+    return;
   }
+
+  // A preset saved by savePreset: the script and its controls
+  Process::loadScriptProcessPreset<ProcessModel::p_script>(*this, preset);
 }
 
 QString ProcessModel::effect() const noexcept
