@@ -25,6 +25,8 @@
 #include <Gfx/Settings/Factory.hpp>
 #include <Gfx/SharedInputSettings.hpp>
 #include <Gfx/SharedOutputSettings.hpp>
+#include <Gfx/Sink/Executor.hpp>
+#include <Gfx/Sink/Process.hpp>
 #include <Gfx/Text/Executor.hpp>
 #include <Gfx/Text/Process.hpp>
 #include <Gfx/TexturePort.hpp>
@@ -151,7 +153,7 @@ std::vector<score::InterfaceBase*> score_plugin_gfx::factories(
          >,
       FW<Process::ProcessModelFactory, Gfx::Filter::ProcessFactory,
          Gfx::GeometryFilter::ProcessFactory, Gfx::Video::ProcessFactory,
-         Gfx::Text::ProcessFactory, Gfx::Images::ProcessFactory,
+         Gfx::Text::ProcessFactory, Gfx::Images::ProcessFactory, Gfx::Sink::ProcessFactory,
          Gfx::VSA::ProcessFactory, Gfx::CSF::ProcessFactory>,
       FW<Process::LayerFactory, Gfx::Filter::LayerFactory,
          Gfx::GeometryFilter::LayerFactory, Gfx::Video::LayerFactory,
@@ -161,6 +163,7 @@ std::vector<score::InterfaceBase*> score_plugin_gfx::factories(
          Gfx::GeometryFilter::ProcessExecutorComponentFactory,
          Gfx::Video::ProcessExecutorComponentFactory,
          Gfx::Text::ProcessExecutorComponentFactory,
+         Gfx::Sink::ProcessExecutorComponentFactory,
          Gfx::Images::ProcessExecutorComponentFactory,
          Gfx::VSA::ProcessExecutorComponentFactory,
          Gfx::CSF::ProcessExecutorComponentFactory>,
