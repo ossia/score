@@ -2028,3 +2028,15 @@ score_add_gfx_test(merge_geometries_tangent_mirror_f2 MergeGeometriesTangentMirr
 # WindowDevice::grabTo stops cleanly when its device is disconnected or deleted
 # from inside the grab's event pump (agent F2).
 score_add_gfx_process_test(grab_teardown_f2 GfxGrabTeardownF2.cpp)
+
+# Placeholders swapped for an upstream buffer and orphaned adopted buffers
+# dropped during init outlive the initial batch that names them (agent F1).
+score_add_gfx_test(outside_frame_release_f1 GfxOutsideFrameReleaseF1.cpp)
+
+# $COUNT_ / $BYTESIZE_ of a raw raster's INPUTS storage_input / uniform_input
+# resolve from the buffer bound through its Buffer edge (agent F1).
+score_add_gfx_test(raw_raster_input_count_f1 GfxRawRasterInputCountF1.cpp)
+
+# A raw raster's Enable-blend factors are not applied on top of the colour its
+# ALPHA straight + COMPOSITE multiply/screen wrapper premultiplied (agent F1).
+score_add_gfx_test(raw_raster_user_blend_f1 GfxRawRasterUserBlendF1.cpp)

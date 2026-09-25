@@ -742,6 +742,27 @@ std::vector<Sampler> RenderedRawRasterPipelineNode::allSamplers() const noexcept
 // created and never written. It exists so the resulting crash can be A/B'd on
 // the machine that reproduces it without a second build; nothing in score sets
 // it.
+static bool
+rasterOutputPremultipliedByEngine(const isf::descriptor& desc, int attachment) noexcept
+{
+  if(isf::declares_blend(desc.default_state))
+    return false;
+  if(desc.outputs.empty())
+    return attachment == 0 && !desc.fragment_outputs.empty()
+           && isf::premultiplied_by_engine(
+               isf::resolve_alpha(desc), isf::resolve_composite(desc));
+  int colorIndex = 0;
+  for(const auto& out : desc.outputs)
+  {
+    if(out.type == "depth")
+      continue;
+    if(colorIndex++ == attachment)
+      return isf::premultiplied_by_engine(
+          isf::resolve_alpha(desc, &out), isf::resolve_composite(desc, &out));
+  }
+  return false;
+}
+
 static QVarLengthArray<QRhiGraphicsPipeline::TargetBlend, 4> rasterSeedBlends(
     const isf::descriptor& desc, const QRhiGraphicsPipeline::TargetBlend& custom,
     int colorAttachmentCount, bool ownTargets)
@@ -750,7 +771,26 @@ static QVarLengthArray<QRhiGraphicsPipeline::TargetBlend, 4> rasterSeedBlends(
     return outputBlends(desc, colorAttachmentCount, ownTargets);
   QVarLengthArray<QRhiGraphicsPipeline::TargetBlend, 4> blends;
   for(int i = 0; i < std::max(1, colorAttachmentCount); i++)
-    blends.push_back(custom);
+  {
+    auto b = custom;
+    if(rasterOutputPremultipliedByEngine(desc, i))
+    {
+      if(b.srcColor == QRhiGraphicsPipeline::SrcAlpha)
+        b.srcColor = QRhiGraphicsPipeline::One;
+      else if(
+          b.srcColor != QRhiGraphicsPipeline::Zero
+          || b.dstColor == QRhiGraphicsPipeline::SrcColor
+          || b.dstColor == QRhiGraphicsPipeline::OneMinusSrcColor)
+      {
+        static std::atomic_bool warned{false};
+        if(!warned.exchange(true))
+          qWarning() << "RawRaster: ALPHA straight with COMPOSITE multiply/screen "
+                        "premultiplies the colour output before the custom blend; "
+                        "blend factors other than a SrcAlpha source see rgb * a.";
+      }
+    }
+    blends.push_back(b);
+  }
   return blends;
 }
 
@@ -4649,6 +4689,13 @@ int RenderedRawRasterPipelineNode::resolveIntExpression(
       for(const auto& aux : m_auxiliarySSBOs)
         if(aux.name == name)
           return aux.size;
+      for(const auto& s : m_storage.ssbos)
+        if(s.name == name && s.buffer && s.buffer != m_storage.sentinelBuffer)
+          return !s.owned && s.size > 0 ? s.size : (int64_t)s.buffer->size();
+      for(const auto& u : m_storage.ubos)
+        if(u.name == name && u.buffer && !u.owned
+           && u.buffer != m_storage.sentinelUniformBuffer)
+          return (int64_t)u.buffer->size();
       return 0;
     };
 

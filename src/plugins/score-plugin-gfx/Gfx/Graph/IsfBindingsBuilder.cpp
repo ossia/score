@@ -736,7 +736,7 @@ template <typename Entry>
 void letGoOf(Entry& e)
 {
   if(e.owned && e.buffer)
-    e.buffer->deleteLater();
+    RenderList::releaseResource(e.buffer);
   else if(e.adopted)
     RenderList::dropAdoptedBuffer(e.buffer);
   e.adopted = false;
@@ -758,6 +758,36 @@ void bindSentinel(Entry& e, QRhiBuffer* sentinel)
 {
   letGoOf(e);
   e.buffer = sentinel;
+}
+
+QRhiBuffer* boundBuffer(const QRhiShaderResourceBindings& srb, int binding)
+{
+  for(auto it = srb.cbeginBindings(); it != srb.cendBindings(); ++it)
+  {
+    const auto* d = reinterpret_cast<const QRhiShaderResourceBinding::Data*>(&*it);
+    if(d->binding != binding)
+      continue;
+    switch(d->type)
+    {
+      case QRhiShaderResourceBinding::Type::UniformBuffer:
+        return d->u.ubuf.buf;
+      case QRhiShaderResourceBinding::Type::BufferLoad:
+      case QRhiShaderResourceBinding::Type::BufferStore:
+      case QRhiShaderResourceBinding::Type::BufferLoadStore:
+        return d->u.sbuf.buf;
+      default:
+        return nullptr;
+    }
+  }
+  return nullptr;
+}
+
+bool syncBinding(QRhiShaderResourceBindings* srb, int binding, QRhiBuffer* buf)
+{
+  if(!srb || binding < 0 || !buf || boundBuffer(*srb, binding) == buf)
+    return false;
+  replaceBuffer(*srb, binding, buf);
+  return true;
 }
 }
 
@@ -828,7 +858,7 @@ void bindUpstreamBuffers(
   // the virtual NodeRenderer::bufferForOutput() — never by writing
   // Port::value. RenderList::bufferForInput(edge) is the right lookup: it
   // resolves the source node's renderer and calls bufferForOutput on it.
-  auto fetchUpstream = [&](Port* port) -> QRhiBuffer* {
+  auto fetchUpstreamView = [&](Port* port) -> BufferView {
     for(Edge* edge : port->edges)
     {
       if(!edge || !edge->source)
@@ -836,9 +866,12 @@ void bindUpstreamBuffers(
       if(edge->source->type != Types::Buffer)
         continue;
       if(auto view = renderer.bufferForInput(*edge); view.handle)
-        return view.handle;
+        return view;
     }
-    return nullptr;
+    return {};
+  };
+  auto fetchUpstream = [&](Port* port) -> QRhiBuffer* {
+    return fetchUpstreamView(port).handle;
   };
   // For each SSBO that has an input_port_index and is either read-only or an
   // indirect-draw buffer, try to fetch the buffer from the upstream port.
@@ -857,15 +890,22 @@ void bindUpstreamBuffers(
     if(port->type != Types::Buffer)
       continue;
 
-    if(auto* buf = fetchUpstream(port))
+    const auto view = fetchUpstreamView(port);
+    if(auto* buf = view.handle)
     {
       if(buf == e.buffer)
-        continue; // unchanged — nothing to do
+      {
+        if(!e.owned && e.from_port && view.byte_size > 0)
+          e.size = view.byte_size;
+        syncBinding(srb, e.binding, buf);
+        continue;
+      }
 
       if(!e.owned || e.access == "read_only")
       {
         borrow(e, buf);
         e.from_port = true;
+        e.size = view.byte_size;
         if(srb && e.binding >= 0)
           replaceBuffer(*srb, e.binding, buf);
       }
@@ -898,6 +938,8 @@ void bindUpstreamBuffers(
         if(srb && e.binding >= 0)
           replaceBuffer(*srb, e.binding, store.sentinelBuffer);
       }
+      else
+        syncBinding(srb, e.binding, e.buffer);
     }
   }
 
@@ -934,7 +976,11 @@ void bindUpstreamBuffers(
     }
 
     if(found == e.buffer)
-      continue;  // unchanged — nothing to do
+    {
+      if(syncBinding(srb, e.binding, found))
+        ubo_srb_changed = true;
+      continue;
+    }
 
     if(found)
     {
@@ -972,6 +1018,8 @@ void bindUpstreamBuffers(
           ubo_srb_changed = true;
         }
       }
+      else if(syncBinding(srb, e.binding, e.buffer))
+        ubo_srb_changed = true;
     }
   }
   // No trailing srb->create() — replaceBuffer() uses the
