@@ -1366,33 +1366,6 @@ score_add_gfx_test(output_removal_releases GfxOutputRemovalReleases.cpp)
 # encoded forward direction. Needs Threedim::CameraArray, which is
 # hidden-visibility inside the plug-in, so it is compiled in directly.
 if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
-
-# A scene filter CSF rewriting indirect_draw_cmds on one branch drives that
-# branch's rasterizer only (agent E4).
-if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
-  set(_scene_filter_indirect_c "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
-  score_plugin_hidden_sources(_scene_filter_indirect_hidden "${_scene_filter_indirect_c}/Primitive.cpp")
-  score_add_test(test_gfx_scene_filter_indirect
-    SOURCES
-      GfxSceneFilterIndirect.cpp
-      ${_scene_filter_indirect_hidden}
-    GUI
-    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
-    LIBS test_gfx_engine_glue)
-  target_compile_definitions(test_gfx_scene_filter_indirect PRIVATE
-    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
-  target_include_directories(test_gfx_scene_filter_indirect SYSTEM PRIVATE
-    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
-    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
-    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
-    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
-    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
-    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
-    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
-endif()
-
   set(_ca_c "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
   score_plugin_hidden_sources(_camarray_hidden
       "${_ca_c}/Primitive.cpp"
@@ -2188,3 +2161,87 @@ target_sources(test_gfx_scene_merge_skeletons PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator/offsetAllocator.cpp")
 target_include_directories(test_gfx_scene_merge_skeletons PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/OffsetAllocator")
+
+# Cubemap Loader layouts (equirectangular, horizontal and vertical cross) read
+# back through a cubemap_view-convention unwrap. CubemapLoader is
+# hidden-visibility inside the plug-in, so it is compiled in directly.
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  score_plugin_hidden_sources(_cubemap_loader_hidden
+      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim/CubemapLoader.cpp")
+  score_add_test(test_gfx_cubemap_loader_orientation
+    SOURCES
+      GfxCubemapLoaderOrientation.cpp
+      ${_cubemap_loader_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_cubemap_loader_orientation PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_cubemap_loader_orientation SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
+# A raw raster with two outgoing edges patches the geometry-matched uniform and
+# storage buffers into the SRB of every pass. Threedim::Cube is
+# hidden-visibility, so Primitive.cpp is compiled in directly.
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  score_plugin_hidden_sources(_rr_two_edge_hidden
+      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim/Primitive.cpp")
+  score_add_test(test_gfx_raw_raster_two_edge_geometry_buffers
+    SOURCES
+      GfxRawRasterTwoEdgeGeometryBuffers.cpp
+      ${_rr_two_edge_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_raw_raster_two_edge_geometry_buffers PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_raw_raster_two_edge_geometry_buffers SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
+# A raw raster reads a PER_LAYER depth array through an IS_ARRAY image input
+# with the sampler its INPUTS entry declares.
+score_add_gfx_test(raw_raster_depth_array_input GfxRawRasterDepthArrayInput.cpp)
+
+# A scene filter CSF rewriting indirect_draw_cmds on one branch drives that
+# branch's rasterizer only.
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  set(_scene_filter_indirect_c "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
+  score_plugin_hidden_sources(_scene_filter_indirect_hidden "${_scene_filter_indirect_c}/Primitive.cpp")
+  score_add_test(test_gfx_scene_filter_indirect
+    SOURCES
+      GfxSceneFilterIndirect.cpp
+      ${_scene_filter_indirect_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_scene_filter_indirect PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_scene_filter_indirect SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()

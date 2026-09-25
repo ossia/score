@@ -14,7 +14,7 @@ namespace score::gfx
 {
 // Used for the simple case of a single, non-persistent pass (the most common case)
 
-struct RenderedRawRasterPipelineNode : score::gfx::NodeRenderer
+struct SCORE_PLUGIN_GFX_EXPORT RenderedRawRasterPipelineNode : score::gfx::NodeRenderer
 {
   explicit RenderedRawRasterPipelineNode(const ISFNode& node) noexcept;
 
@@ -88,6 +88,11 @@ private:
   // scalar inputs). Used for OUTPUTS.WIDTH / HEIGHT at init time.
   // Returns `fallback` when the expression is empty, >=1 otherwise.
   int resolveIntExpression(const std::string& expr, int fallback) const;
+
+  template <typename F>
+  void refreshStorageBuffers(F&& refresh);
+  void bindGeometryBuffersToAllSrbs(
+      RenderList& renderer, QRhiResourceUpdateBatch& res);
 
   // Issue the draw for the currently bound pipeline and SRB. When the input
   // geometry carries several sub-meshes with per-mesh aux buffers, this iterates

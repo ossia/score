@@ -87,7 +87,8 @@ void main()
   vec3 dir = normalize(faceDirection(face.faceIndex, v_texcoord));
 
   // Convert direction to equirectangular UV.
-  // Longitude: atan2(z, x) ∈ [-π, π] → u ∈ [0, 1].
+  // Longitude: atan2(x, -z) ∈ [-π, π] → u ∈ [0, 1], so the image centre
+  // looks toward -Z and +X lies a quarter turn to its right.
   // Latitude:  asin(y)    ∈ [-π/2, π/2].
   //
   // Y flip: QRhi normalizes texture sampling to top-left-origin UV
@@ -97,7 +98,7 @@ void main()
   // texture's UV.y = 0, so sky (image top) is at UV.y = 0 and
   // ground (image bottom) at UV.y = 1. The raw formula
   // `v = phi/π + 0.5` would put sky at UV.y = 1 — wrong. Flip.
-  float theta = atan(dir.z, dir.x);
+  float theta = atan(dir.x, -dir.z);
   float phi   = asin(clamp(dir.y, -1.0, 1.0));
 
   vec2 equirectUV;
@@ -141,7 +142,7 @@ QImage CubemapLoader::extractFace(int faceIndex) const
       //    [+Y]
       // [-X][+Z][+X]
       //    [-Y]
-      //    [-Z]
+      //    [-Z]  (stored rotated by 180 degrees)
       faceW = w / 3;
       faceH = h / 4;
       static const int cross_x[] = {2, 0, 1, 1, 1, 1};
@@ -175,7 +176,10 @@ QImage CubemapLoader::extractFace(int faceIndex) const
   if(faceW <= 0 || faceH <= 0)
     return {};
 
-  return m_loadedImage.copy(fx, fy, faceW, faceH);
+  QImage face = m_loadedImage.copy(fx, fy, faceW, faceH);
+  if(layout == CubemapLayout::VerticalCross && faceIndex == 5)
+    face = std::move(face).transformed(QTransform{}.rotate(180));
+  return face;
 }
 
 bool CubemapLoader::createCubemapTexture(QRhi& rhi, int faceSize)
