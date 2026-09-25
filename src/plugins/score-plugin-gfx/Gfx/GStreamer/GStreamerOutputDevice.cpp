@@ -575,7 +575,15 @@ struct GStreamerOutputNode : score::gfx::OutputNode
   bool canRender() const override { return true; }
   void startRendering() override { start_pipeline(); }
   void onRendererChange() override { }
-  void stopRendering() override { stop_pipeline(); }
+  // Graph::createAllRenderLists stops and restarts every output around each
+  // topology rebuild - a cable added, an output added. The stream has to
+  // outlive that: taking the pipeline to NULL dropped every client of a
+  // server sink, left a webrtcsink unregistered from its signaller, and sent
+  // a recording EOS - finalizing the file - before starting a new one over
+  // it. The pipeline lives from createOutput() to destroyOutput(), as the
+  // shmdata, sh4lt, PipeWire and NDI outputs do; start_pipeline() is
+  // idempotent.
+  void stopRendering() override { }
 
   void render() override
   {
