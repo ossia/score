@@ -550,3 +550,9 @@ score_add_test(test_threedim_camera_array_cube_basis
   SOURCES CameraArrayCubeBasis.cpp
   LIBS ${QT_PREFIX}::Gui)
 threedim_test_includes(test_threedim_camera_array_cube_basis)
+
+# merge_scenes carries skeletons, shadow cascades, injected buffers / textures
+# and the material variant selection.
+score_add_test(test_threedim_scene_merge_skeletons
+  SOURCES SceneMergeSkeletons.cpp)
+threedim_test_includes(test_threedim_scene_merge_skeletons)

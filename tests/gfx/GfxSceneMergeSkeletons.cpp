@@ -1,24 +1,14 @@
-// Pins skinning data through the Scene Preprocessor, the inputs
-// classic_pbr_skinned.frag reads: a mesh carrying JOINTS_0 / WEIGHTS_0 and a
-// skin reaches a raw raster as joints_0 (uvec4) / weights_0 (vec4) vertex
-// attributes, with a `joint_matrices` auxiliary holding every skeleton's
-// joint matrices and per_draws[].skeleton_offset pointing at the draw's first
-// one. Without them the pipeline is refused for missing required inputs.
+// Pins the skeletons AnimationPlayer publishes surviving a Scene Preprocessor
+// input shared with a Camera or a Light: ossia::merge_scenes, which merges the
+// scenes cabled into one input, must carry scene_state.skeletons, otherwise the
+// meshes are skinned by their rest skeletons and every clip renders one pose.
 //
-// Scene: two skeletons. S0 = {j0 identity, j1 child of j0 translated +1 in x};
-// S1 = {j0 translated +1 in x}. Quad A (upper left) is weighted to S0.j1,
-// quad B (lower left) to S1.j0, so both land on the right half; reading S0.j0
-// for B (ignoring the skeleton offset) would leave B on the left.
-//
-// The same scene is also published with scene_state.skeletons empty (a
-// producer that lists no skeletons): the skins the meshes reference are
-// packed anyway. And with scene_state.skeletons holding copies of the meshes'
-// skeletons, posed differently (what AnimationPlayer publishes): the copy with
-// the same joint node ids is the one used.
-//
-// Also pins the integer fallback of an optional vertex input: a uvec4 input
-// declared REQUIRED:false with a DEFAULT reads that DEFAULT when the upstream
-// geometry has no such attribute.
+// Scene (as GfxSceneSkinning.cpp): quad A (upper left) weighted to S0.j1,
+// quad B (lower left) to S1.j0; the meshes' own skeletons are at rest.
+// scene_state.skeletons holds posed copies: S0.j1 translated +1 in x, S1.j0
+// left at rest. The posed result is one quad on the right and the other on
+// the left (which row holds A depends on the backend's clip-space y); the
+// rest pose leaves both on the left.
 #include <score_test/Gfx.hpp>
 
 #include "GfxSceneSource.hpp"
@@ -39,6 +29,7 @@
 #include <vector>
 
 using namespace score::test::gfx;
+using scene::StaticSceneNode;
 
 namespace
 {
@@ -134,44 +125,19 @@ skeleton(std::vector<std::pair<int, float>> parentAndX, uint64_t firstNodeId)
   return sk;
 }
 
-enum class Skins
-{
-  None,
-  Listed,
-  Unlisted,
-  PosedCopies
-};
-
-std::shared_ptr<ossia::scene_state> makeState(Skins mode)
+std::shared_ptr<ossia::scene_state> posedScene()
 {
   auto children = std::make_shared<std::vector<ossia::scene_payload>>();
+  auto s0 = skeleton({{-1, 0.f}, {0, 0.f}}, 100);
+  auto s1 = skeleton({{-1, 0.f}}, 200);
+  children->push_back(quad(0.1f, 0.9f, 0x3A11u, s0, 1));
+  children->push_back(quad(-0.9f, -0.1f, 0x3B22u, s1, 0));
   auto skeletons = std::make_shared<std::vector<ossia::skeleton_component_ptr>>();
-  if(mode == Skins::PosedCopies)
-  {
-    auto s0 = skeleton({{-1, 0.f}, {0, 0.f}}, 100);
-    auto s1 = skeleton({{-1, 0.f}}, 200);
-    skeletons->push_back(skeleton({{-1, 0.f}, {0, 1.f}}, 100));
-    skeletons->push_back(skeleton({{-1, 1.f}}, 200));
-    children->push_back(quad(0.1f, 0.9f, 0xE2A11u, s0, 1));
-    children->push_back(quad(-0.9f, -0.1f, 0xE2B22u, s1, 0));
-  }
-  else if(mode != Skins::None)
-  {
-    auto s0 = skeleton({{-1, 0.f}, {0, 1.f}}, 100);
-    auto s1 = skeleton({{-1, 1.f}}, 200);
-    if(mode == Skins::Listed)
-    {
-      skeletons->push_back(s0);
-      skeletons->push_back(s1);
-    }
-    children->push_back(quad(0.1f, 0.9f, 0xE2A11u, s0, 1));
-    children->push_back(quad(-0.9f, -0.1f, 0xE2B22u, s1, 0));
-  }
-  else
-  {
-    children->push_back(quad(-0.9f, 0.9f, 0xE2C33u, nullptr, 0));
-  }
+  skeletons->push_back(skeleton({{-1, 0.f}, {0, 1.f}}, 100));
+  skeletons->push_back(skeleton({{-1, 0.f}}, 200));
+
   auto root = std::make_shared<ossia::scene_node>();
+  root->id = ossia::scene_node_id{0x3001};
   root->children = std::move(children);
   auto roots = std::make_shared<std::vector<ossia::scene_node_ptr>>();
   roots->push_back(std::move(root));
@@ -184,6 +150,39 @@ std::shared_ptr<ossia::scene_state> makeState(Skins mode)
   return st;
 }
 
+enum class Companion
+{
+  Camera,
+  Light
+};
+
+std::shared_ptr<ossia::scene_state> companionScene(Companion c)
+{
+  auto st = std::make_shared<ossia::scene_state>();
+  if(c == Companion::Camera)
+  {
+    auto cams = std::make_shared<std::vector<ossia::camera_component_ptr>>();
+    cams->push_back(std::make_shared<ossia::camera_component>());
+    st->cameras = std::move(cams);
+    st->active_camera_id = ossia::scene_node_id{0x3C01};
+  }
+  else
+  {
+    auto children = std::make_shared<std::vector<ossia::scene_payload>>();
+    children->push_back(
+        ossia::light_component_ptr{std::make_shared<ossia::light_component>()});
+    auto node = std::make_shared<ossia::scene_node>();
+    node->id = ossia::scene_node_id{0x3D01};
+    node->children = std::move(children);
+    auto roots = std::make_shared<std::vector<ossia::scene_node_ptr>>();
+    roots->push_back(std::move(node));
+    st->roots = std::move(roots);
+  }
+  st->version = 1;
+  st->dirty_index = 1;
+  return st;
+}
+
 struct Shot
 {
   bool skipped{};
@@ -191,23 +190,40 @@ struct Shot
   ReadbackImage img;
 };
 
-Shot render(score::gfx::GraphicsApi api, Skins skins, const char* shader)
+Shot render(score::gfx::GraphicsApi api, Companion companion, bool companionFirst)
 {
   Shot s;
   score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
     GfxPipeline p;
-    const int source
-        = p.addNode(std::make_unique<scene::StaticSceneNode>(makeState(skins)));
     const int flat = p.addNode(std::make_unique<score::gfx::ScenePreprocessorNode>());
-    const int raster = p.addRaster(
-        corpus((std::string{shader} + ".vs").c_str()),
-        corpus((std::string{shader} + ".fs").c_str()));
-    if(source < 0 || flat < 0 || raster < 0)
+    const int raster
+        = p.addRaster(corpus("rr-scene-skin.vs"), corpus("rr-scene-skin.fs"));
+    int posed = -1, other = -1;
+    if(companionFirst)
+    {
+      other = p.addNode(std::make_unique<StaticSceneNode>(companionScene(companion)));
+      posed = p.addNode(std::make_unique<StaticSceneNode>(posedScene()));
+    }
+    else
+    {
+      posed = p.addNode(std::make_unique<StaticSceneNode>(posedScene()));
+      other = p.addNode(std::make_unique<StaticSceneNode>(companionScene(companion)));
+    }
+    if(posed < 0 || other < 0 || flat < 0 || raster < 0)
     {
       s.err = "chain build failed: " + p.error();
       return;
     }
-    p.wire(p.nodeSceneOut(source, 0), p.nodeSceneIn(flat, 0));
+    if(companionFirst)
+    {
+      p.wire(p.nodeSceneOut(other, 0), p.nodeSceneIn(flat, 0));
+      p.wire(p.nodeSceneOut(posed, 0), p.nodeSceneIn(flat, 0));
+    }
+    else
+    {
+      p.wire(p.nodeSceneOut(posed, 0), p.nodeSceneIn(flat, 0));
+      p.wire(p.nodeSceneOut(other, 0), p.nodeSceneIn(flat, 0));
+    }
     p.wire(p.nodeGeometryOut(flat, 0), p.geometryIn(raster, 0));
     const int sink = p.addSink({kSize, kSize});
     p.wire(p.imageOut(raster, 0), p.sinkInput(sink));
@@ -236,15 +252,16 @@ bool dark(const std::array<uint8_t, 4>& px)
 }
 
 TEST_CASE(
-    "a skinned scene mesh is deformed by its skeleton through the Scene "
-    "Preprocessor",
-    "[gfx][scene][skinning]")
+    "posed skeletons survive a Scene Preprocessor input shared with a camera or "
+    "a light",
+    "[gfx][scene][skinning][merge]")
 {
   const auto api = GENERATE(from_range(platform_backends()));
-  const auto skins = GENERATE(Skins::Listed, Skins::Unlisted, Skins::PosedCopies);
-  CAPTURE(backend_name(api), int(skins));
+  const auto companion = GENERATE(Companion::Camera, Companion::Light);
+  const bool companionFirst = GENERATE(true, false);
+  CAPTURE(backend_name(api), int(companion), companionFirst);
 
-  const Shot s = render(api, skins, "rr-scene-skin");
+  const Shot s = render(api, companion, companionFirst);
   if(s.skipped)
     SKIP("backend unavailable");
   INFO("error=" << s.err);
@@ -255,28 +272,17 @@ TEST_CASE(
   const auto lowLeft = s.img.at(kSize / 4, 3 * kSize / 4);
   const auto lowRight = s.img.at(3 * kSize / 4, 3 * kSize / 4);
   CAPTURE(int(upLeft[1]), int(upRight[1]), int(lowLeft[1]), int(lowRight[1]));
-  CHECK(dark(upLeft));
-  CHECK(dark(lowLeft));
-  CHECK(green(upRight));
-  CHECK(green(lowRight));
-}
-
-TEST_CASE(
-    "an optional integer vertex input reads its DEFAULT when the geometry lacks it",
-    "[gfx][scene][vertex-fallback]")
-{
-  const auto api = GENERATE(from_range(platform_backends()));
-  CAPTURE(backend_name(api));
-
-  const Shot s = render(api, Skins::None, "rr-scene-int-fallback");
-  if(s.skipped)
-    SKIP("backend unavailable");
-  INFO("error=" << s.err);
-  REQUIRE(s.err.empty());
-
-  const auto left = s.img.at(kSize / 4, kSize / 2);
-  const auto right = s.img.at(3 * kSize / 4, kSize / 2);
-  CAPTURE(int(left[0]), int(left[1]), int(left[2]));
-  CHECK(green(left));
-  CHECK(dark(right));
+  const bool aBelow = green(lowRight) && dark(lowLeft);
+  const bool aAbove = green(upRight) && dark(upLeft);
+  CHECK(aBelow != aAbove);
+  if(aBelow)
+  {
+    CHECK(green(upLeft));
+    CHECK(dark(upRight));
+  }
+  if(aAbove)
+  {
+    CHECK(green(lowLeft));
+    CHECK(dark(lowRight));
+  }
 }
