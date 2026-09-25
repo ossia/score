@@ -298,3 +298,76 @@ Script {
   });
 #endif
 }
+
+// A message from the process's UI reaches the script with its lists as arrays:
+// scripts test Array.isArray on them (rect-mapper drops its shapes otherwise).
+TEST_CASE(
+    "Javascript GPU scripts receive UI messages with arrays",
+    "[integration][js][gpu][gui]")
+{
+#if !defined(SCORE_HAS_GPU_JS) || defined(QT_NO_OPENGL)
+  SKIP("Javascript GPU execution and Qt OpenGL support are required");
+#else
+  if(qEnvironmentVariable("QT_QUICK_BACKEND") == QStringLiteral("software")
+     || qEnvironmentVariable("QSG_RHI_BACKEND") == QStringLiteral("software"))
+    SKIP("The software Qt Quick renderer cannot exercise Javascript GPU rendering");
+
+  QTemporaryDir settings;
+  REQUIRE(settings.isValid());
+  scoped_env config{"XDG_CONFIG_HOME", settings.path().toUtf8()};
+  scoped_env backend{"QSG_RHI_BACKEND", "opengl"};
+  scoped_env renderLoop{"QSG_RENDER_LOOP", "basic"};
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
+    QOpenGLContext probe;
+    if(!probe.create())
+      SKIP("A working OpenGL context is required (use Xvfb with GLX or a display)");
+
+    ctx.settings<Gfx::Settings::Model>().setGraphicsApi(QStringLiteral("OpenGL"));
+    score::Document* doc = score::test::new_document(ctx);
+    REQUIRE(doc != nullptr);
+    auto* process = &score::test::add_js_process(ctx, *doc, QStringLiteral(R"QML(
+import QtQuick
+import Score
+Script {
+  id: root
+  property int verdict: 0
+  uiEvent: function(m) {
+    root.verdict = (Array.isArray(m.rects) && Array.isArray(m.rects[0].v)
+                    && m.rects[0].v[1] === 2) ? 1 : 2;
+  }
+  TextureOutlet {
+    objectName: "Output"
+    item: Rectangle {
+      anchors.fill: parent
+      color: root.verdict === 1 ? "#00ff00" : root.verdict === 2 ? "#ff0000" : "#0000ff"
+    }
+  }
+}
+)QML"));
+
+    auto& graphics = doc->context().plugin<Gfx::DocumentPlugin>();
+    score::test::js_gpu_executor exec{ctx, *doc, *process};
+    auto* node = exec.node;
+    REQUIRE(node != nullptr);
+
+    auto output = std::make_unique<score::gfx::BackgroundNode>();
+    auto readback = std::make_shared<QRhiReadbackResult>();
+    output->shared_readback = readback;
+    output->setRenderSize(QSize{64, 64});
+    const int outputId = graphics.context.register_node(std::move(output));
+    graphics.exec.setEdge({node->id, 0}, {outputId, 0}, Process::CableType::ImmediateGlutton);
+    graphics.exec.endTick(ossia::audio_tick_state{});
+    graphics.context.updateGraph();
+    graphics.context.renderFrames(4);
+    deliverUiMessages();
+    checkFrame(*readback, QColor{Qt::blue});
+
+    // What a custom UI's executionSend delivers: a map holding lists.
+    QVariantMap shape{{"v", QVariantList{1, 2}}};
+    process->uiToExecution(QVariantMap{{"rects", QVariantList{shape}}});
+    graphics.context.renderFrames(4);
+    deliverUiMessages();
+    checkFrame(*readback, QColor{Qt::green});
+  });
+#endif
+}
