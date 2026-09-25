@@ -1434,3 +1434,18 @@ if(TARGET score AND NOT EMSCRIPTEN)
   set_tests_properties(test_integration_js_list_controls_i5 PROPERTIES
     TIMEOUT 900 RUN_SERIAL TRUE)
 endif()
+
+# Stepped execution clock: renderFrames runs the execution for exactly one
+# step per frame, so an automation-driven frame is reproducible and a slow
+# first tick adds no settling frames (agent I3, N51 + N90 follow-up).
+if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_gfx_stepped_execution_i3
+    SOURCES GfxSteppedExecutionI3Test.cpp
+    GUI
+    LIBS ${QT_PREFIX}::Gui)
+  target_compile_definitions(test_integration_gfx_stepped_execution_i3 PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\""
+    "GFX_TEST_CORPUS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/../gfx/corpus\"")
+  set_tests_properties(test_integration_gfx_stepped_execution_i3 PROPERTIES
+    TIMEOUT 900 RUN_SERIAL TRUE LABELS "gui")
+endif()

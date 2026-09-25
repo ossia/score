@@ -11,6 +11,7 @@
 namespace score
 {
 struct DocumentContext;
+class Document;
 }
 namespace Execution
 {
@@ -51,6 +52,24 @@ public:
   void resume();
   void stop();
   virtual bool paused() const;
+
+  //! Moves the execution under step control, or back to its own clock.
+  virtual bool setStepping(bool stepping);
+  virtual bool stepping() const noexcept;
+
+  //! Runs the execution synchronously until @p seconds have been executed
+  //! since the clock started stepping.
+  virtual bool stepTo(double seconds);
+
+  //! The clock of the execution currently playing @p doc, if any.
+  static Clock* running(const score::Document& doc) noexcept;
+
+  //! Incremented each time a clock starts playing.
+  static int64_t playCount() noexcept;
+
+  //! The next clock that plays @p doc starts stepping, until it stops.
+  static void requestStepping(const score::Document& doc, bool stepping);
+  static bool steppingRequested(const score::Document& doc) noexcept;
 
 protected:
   virtual void play_impl(const TimeVal& t) = 0;

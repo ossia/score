@@ -12,6 +12,8 @@
 #include <score/tools/Bind.hpp>
 #include <score/tools/Timers.hpp>
 
+#include <Execution/Clock/ClockFactory.hpp>
+
 #include <ossia/detail/flicks.hpp>
 
 #include <algorithm>
@@ -78,6 +80,8 @@ GfxContext::GfxContext(const score::DocumentContext& ctx)
 
 GfxContext::~GfxContext()
 {
+  Execution::Clock::requestStepping(m_context.document, false);
+
 #if defined(SCORE_THREADED_GFX)
   if(m_thread.isRunning())
     m_thread.exit(0);
@@ -1085,8 +1089,26 @@ void GfxContext::renderFrames(int frames)
   // frames will ultimately be drawn, so PROGRESS is not a true 0..1 sweep
   // here; it is k/(k+1) in both forms, which is what the contract asks for.
 
+  Execution::Clock* clock{};
+  if(step)
+  {
+    if(const auto plays = Execution::Clock::playCount(); plays != m_stepPlayCount)
+    {
+      m_stepPlayCount = plays;
+      m_stepFrame = 0;
+    }
+    clock = Execution::Clock::running(m_context.document);
+  }
+
   for(int i = 0; i < frames; i++)
   {
+    if(clock && !clock->stepTo((m_stepFrame + 1) / m_stepRate))
+    {
+      if(!clock->paused())
+        qWarning() << "renderFrames: the execution did not advance with the step clock";
+      clock = nullptr;
+    }
+
     // Same order as the clock-driven path: parameters first, then draw, so a
     // value written by the script is visible in the frame that follows it.
     updateGraph();
@@ -1116,5 +1138,19 @@ void GfxContext::renderFrames(int frames)
         output->render();
     }
   }
+}
+
+void GfxContext::setStepRate(double fps)
+{
+  m_stepRate = fps;
+  Execution::Clock::requestStepping(m_context.document, fps > 0.);
+  if(auto clock = Execution::Clock::running(m_context.document))
+    clock->setStepping(fps > 0.);
+}
+
+bool GfxContext::executionStepped() const noexcept
+{
+  auto clock = Execution::Clock::running(m_context.document);
+  return clock && clock->stepping();
 }
 }

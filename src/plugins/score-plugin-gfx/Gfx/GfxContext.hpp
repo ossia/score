@@ -123,16 +123,22 @@ public:
    * animated shader keeps reading the execution clock and frame N is a
    * different picture every run.
    *
-   * Still on the execution clock: whatever a node takes from the transport
-   * itself rather than from its process UBO -- video decode position,
-   * automation -- so a graph built on those is only as reproducible as that
-   * clock is.
+   * When the document is playing, each step first runs the execution for
+   * exactly one step of samples, so automations, scripts and media positions
+   * are at `(frame + 1) / stepRate()` seconds of execution when frame N is
+   * drawn. The count restarts at every play.
    */
   void renderFrames(int frames);
 
   //! Step used by renderFrames(), in frames per second.
   double stepRate() const noexcept { return m_stepRate; }
-  void setStepRate(double fps) noexcept { m_stepRate = fps; }
+
+  //! A rate above zero puts the execution under the step clock: now if the
+  //! document plays, else from its next play, until that play stops.
+  void setStepRate(double fps);
+
+  //! Whether the execution currently only advances through renderFrames().
+  bool executionStepped() const noexcept;
 
   void send_message(score::gfx::Message&& msg) noexcept
   {
@@ -171,6 +177,7 @@ private:
 
   double m_stepRate{60.};
   int64_t m_stepFrame{};
+  int64_t m_stepPlayCount{-1};
 
   struct NodeCommand
   {

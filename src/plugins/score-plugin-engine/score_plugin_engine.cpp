@@ -76,7 +76,7 @@ std::vector<score::InterfaceBase*> score_plugin_engine::factories(
          // , Execution::ControlClockFactory
          ,
          Dataflow::ClockFactory
-         //, ManualClock::ClockFactory
+         , ManualClock::ClockFactory
          >>(ctx, key);
 }
 

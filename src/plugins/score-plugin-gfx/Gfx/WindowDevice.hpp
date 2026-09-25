@@ -88,7 +88,9 @@ public:
   void renderFrames(int frames) const;
   W_SLOT(renderFrames)
 
-  //! Frames per second the step clock advances by. 60 unless set.
+  //! Frames per second the step clock advances by. 60 unless set. Call it
+  //! before Score.play() for the execution to be stepped from its first tick;
+  //! see GfxContext::setStepRate.
   void setStepRate(double fps) const;
   W_SLOT(setStepRate)
 
