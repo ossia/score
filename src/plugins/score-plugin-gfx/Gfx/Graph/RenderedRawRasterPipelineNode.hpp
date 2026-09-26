@@ -156,6 +156,7 @@ private:
   // place of the `camera` auxiliary, whatever the geometry carries.
   QRhiBuffer* m_cameraInletBuffer{};
   void updateCameraInlet(RenderList& renderer, QRhiResourceUpdateBatch& res, QSize renderSize);
+  void dropCameraInletGeometry();
 
   // Storage images and the rest of the INPUTS storage trio -- storage_input for
   // SSBOs, csf_image_input for image2D/3D, uniform_input for UBOs -- declared in

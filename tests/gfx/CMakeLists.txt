@@ -2324,3 +2324,58 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
     $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
+
+# A mesh in the scene on a raw raster's Camera input does not become the
+# raster's geometry: the Camera input takes cameras only (agent E5).
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  set(_rrcm_c "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
+  score_plugin_hidden_sources(_rrcm_hidden
+      "${_rrcm_c}/Primitive.cpp"
+      "${_rrcm_c}/Camera.cpp")
+  score_add_test(test_gfx_raw_raster_camera_inlet_mesh_e5
+    SOURCES
+      GfxRawRasterCameraInletMeshE5.cpp
+      ${_rrcm_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_raw_raster_camera_inlet_mesh_e5 PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_raw_raster_camera_inlet_mesh_e5 SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()
+
+# WindowDevice::grabTo refusals (called inside a frame, device closed during
+# the grab) name the entry point and say what to do (agent E5).
+score_add_gfx_process_test(grab_refusal_text_e5 GfxGrabRefusalTextE5.cpp)
+
+# A single-cable texture inlet holds a render target only while its upstream
+# publishes no texture: none on direct read, allocated for the fallback and
+# released again when the cable swaps back (agent E5).
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  score_add_test(test_gfx_single_cable_lazy_target_e5
+    SOURCES GfxSingleCableLazyTargetE5.cpp
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_single_cable_lazy_target_e5 PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_single_cable_lazy_target_e5 SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+endif()

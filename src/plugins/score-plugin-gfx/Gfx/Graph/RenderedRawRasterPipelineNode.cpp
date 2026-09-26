@@ -2602,6 +2602,7 @@ void RenderedRawRasterPipelineNode::initState(
     RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
   QRhi& rhi = *renderer.state.rhi;
+  dropCameraInletGeometry();
 
   {
     if(geometry.meshes)
@@ -3443,6 +3444,36 @@ void RenderedRawRasterPipelineNode::bindGeometryBuffersToAllSrbs(
     patch(invSrb);
 }
 
+void RenderedRawRasterPipelineNode::dropCameraInletGeometry()
+{
+  const int port = n.cameraInput();
+  if(port < 0)
+    return;
+  bool clobbered = false;
+  for(auto it = m_portGeometries.begin(); it != m_portGeometries.end();)
+  {
+    if(it->first.first == port)
+    {
+      clobbered |= it->second == this->geometry;
+      it = m_portGeometries.erase(it);
+    }
+    else
+    {
+      ++it;
+    }
+  }
+  if(!clobbered)
+    return;
+  ossia::geometry_spec own;
+  if(!m_portGeometries.empty())
+    own = m_portGeometries.begin()->second;
+  if(this->geometry != own)
+  {
+    this->geometry = std::move(own);
+    this->geometryChanged = true;
+  }
+}
+
 void RenderedRawRasterPipelineNode::updateCameraInlet(
     RenderList& renderer, QRhiResourceUpdateBatch& res, QSize renderSize)
 {
@@ -3532,6 +3563,8 @@ void RenderedRawRasterPipelineNode::updateCameraInlet(
 void RenderedRawRasterPipelineNode::update(
     RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge)
 {
+  dropCameraInletGeometry();
+
   // Update node materials: must run before any early return.
   bool mustRecreatePasses = updateMaterials(renderer, res, edge);
   bool recreateDueToMaterial = mustRecreatePasses;
