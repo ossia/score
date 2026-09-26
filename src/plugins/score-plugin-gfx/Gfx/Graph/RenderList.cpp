@@ -1696,9 +1696,13 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force) noexcept
   if(m_rendering)
   {
     if((m_nestedRenders++ % 600) == 0)
-      qWarning() << "RenderList::render: entered while this list is already rendering; "
-                    "skipped (occurrence"
-                 << m_nestedRenders << ")";
+      qWarning().nospace().noquote()
+          << "score.gfx: RenderList::render refused: this list is already rendering, "
+             "so the nested render was skipped. It was reached from inside that frame: "
+             "a node's renderer or a readback callback rendered the list again. Call "
+             "renderFrames/grab outside a node's tick() or a readback callback. "
+             "(occurrence "
+          << m_nestedRenders << ")";
     return;
   }
   m_rendering = true;

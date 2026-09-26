@@ -2254,3 +2254,47 @@ endif()
 # An image input after an INPUTS entry that creates no input port (write-only
 # storage) gets the sampler it declares (agent CB).
 score_add_gfx_test(input_sampler_port_map_cb GfxInputSamplerPortMapCB.cpp)
+
+# A PreviewNode (QML TextureSource) is rendered by its host only:
+# renderFrames leaves it alone, so its render list runs once per frame
+# (agent IE).
+score_add_gfx_test(preview_host_driven_ie GfxPreviewHostDrivenIE.cpp)
+
+# POLYGON_MODE line draws a wireframe where QRhi reports NonFillPolygonMode
+# and falls back to fill, warning once, where it does not (agent IE).
+score_add_gfx_test(polygon_mode_ie GfxPolygonModeIE.cpp)
+
+# A Camera wired to a raw raster's Camera input fills its camera block and
+# wins over a Scene Preprocessor's; unwired, the block is unchanged
+# (agent IE). Threedim::Camera and Threedim::Cube are hidden-visibility,
+# so their sources are compiled in.
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  set(_rrci_c "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
+  score_plugin_hidden_sources(_rrci_hidden
+      "${_rrci_c}/Primitive.cpp"
+      "${_rrci_c}/Camera.cpp")
+  score_add_test(test_gfx_raw_raster_camera_inlet_ie
+    SOURCES
+      GfxRawRasterCameraInletIE.cpp
+      ${_rrci_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_avnd score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue)
+  target_compile_definitions(test_gfx_raw_raster_camera_inlet_ie PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_raw_raster_camera_inlet_ie SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-avnd"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+
+  # The Render Pipeline process's Camera inlet is its last inlet, matches the
+  # node's camera input, and is added to documents saved without it (agent IE).
+  score_add_gfx_process_test(render_pipeline_camera_port_ie
+    GfxRenderPipelineCameraPortIE.cpp score_plugin_threedim score_plugin_avnd)
+endif()

@@ -4,6 +4,7 @@
 #include <Gfx/Graph/Utils.hpp>
 
 #include <algorithm>
+#include <atomic>
 #include <cctype>
 
 namespace
@@ -93,6 +94,19 @@ QRhiGraphicsPipeline::PolygonMode toPolygonMode(std::string_view s) noexcept
 {
   if(ieq(s, "fill") || ieq(s, "solid"))     return QRhiGraphicsPipeline::Fill;
   if(ieq(s, "line") || ieq(s, "wireframe")) return QRhiGraphicsPipeline::Line;
+  return QRhiGraphicsPipeline::Fill;
+}
+
+QRhiGraphicsPipeline::PolygonMode supportedPolygonMode(
+    QRhiGraphicsPipeline::PolygonMode requested, bool nonFillSupported) noexcept
+{
+  if(requested == QRhiGraphicsPipeline::Fill || nonFillSupported)
+    return requested;
+  static std::atomic_flag warned = ATOMIC_FLAG_INIT;
+  if(!warned.test_and_set())
+    qWarning() << "score.gfx: POLYGON_MODE \"line\" is not supported by this graphics "
+                  "backend (QRhi::NonFillPolygonMode: OpenGL ES, or a Vulkan device "
+                  "without fillModeNonSolid); drawing filled polygons instead.";
   return QRhiGraphicsPipeline::Fill;
 }
 
@@ -476,7 +490,9 @@ void applyPipelineState(
     pip.setFrontFace(toFrontFace(*state.front_face));
 
   if(state.polygon_mode.has_value())
-    pip.setPolygonMode(toPolygonMode(*state.polygon_mode));
+    pip.setPolygonMode(supportedPolygonMode(
+        toPolygonMode(*state.polygon_mode),
+        !pip.rhi() || pip.rhi()->isFeatureSupported(QRhi::NonFillPolygonMode)));
 
   if(state.line_width.has_value())
     pip.setLineWidth(*state.line_width);

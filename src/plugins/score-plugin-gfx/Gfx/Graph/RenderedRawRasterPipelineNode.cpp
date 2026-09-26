@@ -7,6 +7,7 @@
 #include <Gfx/Graph/RhiClearBuffer.hpp>
 #include <Gfx/Graph/RenderedISFSamplerUtils.hpp>
 #include <Gfx/Graph/RenderedRawRasterPipelineNode.hpp>
+#include <Gfx/Graph/SceneGPUState.hpp>
 #include <Gfx/Graph/SSBO.hpp>
 #include <Gfx/Graph/Utils.hpp>
 #include <Gfx/Graph/VertexFallbackPool.hpp>
@@ -3204,6 +3205,12 @@ void RenderedRawRasterPipelineNode::releaseState(RenderList& r)
   }
   m_auxiliarySSBOs.clear();
 
+  if(m_cameraInletBuffer)
+  {
+    m_cameraInletBuffer->deleteLater();
+    m_cameraInletBuffer = nullptr;
+  }
+
   // INPUTS storage trio (storage_input/csf_image_input/uniform_input)
   // — owned by m_storage; release frees the underlying QRhiBuffer/Texture.
   m_storage.release();
@@ -3428,6 +3435,92 @@ void RenderedRawRasterPipelineNode::bindGeometryBuffersToAllSrbs(
       const auto& e = m_storage.ubos[i];
       if(e.buffer != prevUbos[i] && e.buffer && e.binding >= 0)
         replaceBuffer(*srb, e.binding, e.buffer);
+    }
+  };
+  for(auto& [e, pass] : m_passes)
+    patch(pass.p.srb);
+  for(auto* invSrb : m_perInvocationSRBs)
+    patch(invSrb);
+}
+
+void RenderedRawRasterPipelineNode::updateCameraInlet(
+    RenderList& renderer, QRhiResourceUpdateBatch& res, QSize renderSize)
+{
+  auto cam = ossia::find_if(m_auxiliarySSBOs, [](const AuxiliarySSBO& aux) {
+    return aux.name == "camera" && aux.is_uniform;
+  });
+  if(cam == m_auxiliarySSBOs.end() || cam->binding < 0)
+    return;
+
+  std::vector<CameraUBOData> packed;
+  if(const int port = n.cameraInput(); port >= 0)
+  {
+    ossia::small_vector<ossia::scene_spec, 2> scenes;
+    forEachSceneOnPort(port, [&](const ossia::scene_spec& s) { scenes.push_back(s); });
+    if(!scenes.empty())
+    {
+      const ossia::scene_spec scene
+          = scenes.size() == 1 ? scenes.front()
+                               : ossia::merge_scenes(std::span<const ossia::scene_spec>{
+                                     scenes.data(), scenes.size()});
+      FlatScene fs;
+      flattenScene(
+          scene, fs,
+          renderSize.height() > 0 ? float(renderSize.width()) / renderSize.height()
+                                  : 1.f);
+      const std::size_t count = fs.cameras.size();
+      packed.resize(count);
+      for(std::size_t k = 0; k < count; ++k)
+      {
+        const auto& e = fs.cameras[cameraPackIndex(k, count, fs.activeCameraIndex)];
+        packCameraUBO(packed[k], *e.component, e.worldTransform, renderSize, 0.f);
+      }
+    }
+  }
+
+  if(!packed.empty())
+  {
+    if(!m_cameraInletBuffer)
+    {
+      const int64_t size = std::max<int64_t>(
+          (cam->declared_size + 15) & ~int64_t(15),
+          16 * (int64_t)sizeof(CameraUBOData));
+      m_cameraInletBuffer = renderer.state.rhi->newBuffer(
+          QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, (quint32)size);
+      m_cameraInletBuffer->setName("RRP_camera_inlet");
+      if(!m_cameraInletBuffer->create())
+      {
+        qWarning() << "RawRaster: could not create the camera buffer for the Camera input";
+        delete m_cameraInletBuffer;
+        m_cameraInletBuffer = nullptr;
+      }
+    }
+    if(m_cameraInletBuffer)
+    {
+      const std::size_t fit = std::min<std::size_t>(
+          packed.size(), m_cameraInletBuffer->size() / sizeof(CameraUBOData));
+      res.updateDynamicBuffer(
+          m_cameraInletBuffer, 0, (quint32)(fit * sizeof(CameraUBOData)), packed.data());
+    }
+  }
+
+  QRhiBuffer* const want
+      = !packed.empty() && m_cameraInletBuffer ? m_cameraInletBuffer : cam->buffer;
+  if(!want)
+    return;
+  const auto patch = [&](QRhiShaderResourceBindings* srb) {
+    if(!srb)
+      return;
+    for(auto it = srb->cbeginBindings(); it != srb->cendBindings(); ++it)
+    {
+      const auto* d = reinterpret_cast<const QRhiShaderResourceBinding::Data*>(&*it);
+      if(d->binding != cam->binding
+         || d->type != QRhiShaderResourceBinding::Type::UniformBuffer)
+        continue;
+      QRhiBuffer* const cur = d->u.ubuf.buf;
+      if(cur != want && (cur == cam->buffer || cur == m_cameraInletBuffer))
+        replaceBuffer(*srb, cam->binding, want);
+      return;
     }
   };
   for(auto& [e, pass] : m_passes)
@@ -3779,6 +3872,8 @@ void RenderedRawRasterPipelineNode::update(
   }
 
   m_mrtRenderedThisFrame = false;
+
+  updateCameraInlet(renderer, res, renderer.renderSize(edge));
 
   n.standardUBO.passIndex = 0;
   const bool firstUpdateOfFrame = m_frameIndexFrame != renderer.frame;

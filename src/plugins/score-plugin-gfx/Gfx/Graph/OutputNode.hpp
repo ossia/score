@@ -88,6 +88,9 @@ public:
     std::optional<double> manualRenderingRate;
     bool outputNeedsRenderPass{};
     bool supportsVSync{};
+    // The host renders this output's RenderList itself, from its own frame
+    // loop: GfxContext never calls render() on it.
+    bool hostDriven{};
     OutputNode* parent{};
   };
 

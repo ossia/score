@@ -92,7 +92,7 @@ void PreviewNode::render()
 
 score::gfx::OutputNode::Configuration PreviewNode::configuration() const noexcept
 {
-  return {};
+  return {.hostDriven = true};
 }
 
 void PreviewNode::onRendererChange() { }
