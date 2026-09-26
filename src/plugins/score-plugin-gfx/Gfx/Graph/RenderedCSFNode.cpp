@@ -2321,7 +2321,6 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
   // For each geometry_input with writable attributes, construct output geometry
   // and push to downstream node's renderer
   int geo_binding_idx = 0;
-  int geo_output_idx = 0;
 
   for(const auto& input : n.m_descriptor.inputs)
   {
@@ -2596,7 +2595,9 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
           }
         }
         slots.forwarded_aux_end = (int)out_geo.buffers.size();
+      }
 
+      {
         // First: publish THIS CSF's own writable storage images so they
         // ride the geometry cable downstream and ExtractTexture / flat
         // AUXILIARY rasterizer reads can resolve them by name. Mirrors
@@ -2632,7 +2633,10 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
                   .native_handle = at.texture,
                   .sampler_handle = nullptr});
         }
+      }
 
+      if(binding_upstream)
+      {
         // Forward upstream auxiliary TEXTURES (skybox, irradiance_map, baseColorArray*,
         // normalArray*, shadow_map_array, ...) so rasterizers sampling material texture
         // arrays through sample_slot_* find them bound. Same name-collision rule as the
@@ -3193,7 +3197,9 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
         out_geo.depth_write           = binding_upstream->depth_write;
         out_geo.filter_tag            = binding_upstream->filter_tag;
         out_geo.filter_material_index = binding_upstream->filter_material_index;
+      }
 
+      {
         // Re-forward upstream auxiliary TEXTURES (skybox, baseColorArray,
         // shadow_map_array, …). Same forward as the structural-rebuild
         // path; needed every frame in case upstream rebakes (CubemapLoader
@@ -3237,7 +3243,10 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
                   .native_handle = at.texture,
                   .sampler_handle = nullptr});
         }
+      }
 
+      if(binding_upstream)
+      {
         // Then forward upstream auxiliary textures, skipping any name
         // this CSF already published above so producer-side overrides
         // win over upstream defaults (consistent with the buffer-forward
@@ -3263,30 +3272,8 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
 
     // Push to downstream
     const auto& outlets = n.output;
-    int outlet_idx = 0;
-    for(const auto& inp : n.m_descriptor.inputs)
-    {
-      if(auto* s = ossia::get_if<isf::storage_input>(&inp.data))
-      {
-        if(s->access != "read_only")
-          outlet_idx++;
-      }
-      else if(auto* img = ossia::get_if<isf::csf_image_input>(&inp.data))
-      {
-        if(img->access != "read_only")
-          outlet_idx++;
-      }
-      else if(ossia::get_if<isf::geometry_input>(&inp.data))
-      {
-        break;
-      }
-    }
-    outlet_idx += geo_output_idx;
-
-    if(!outlets.empty() && outlets[0]->type == Types::Image)
-      outlet_idx++;
-
-    if(outlet_idx < (int)outlets.size())
+    const int outlet_idx = binding.outlet_index;
+    if(outlet_idx >= 0 && outlet_idx < (int)outlets.size())
     {
       auto* out_port = outlets[outlet_idx];
       for(auto* out_edge : out_port->edges)
@@ -3310,7 +3297,6 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
     }
 
     geo_binding_idx++;
-    geo_output_idx++;
   }
 }
 
@@ -5115,6 +5101,7 @@ void RenderedCSFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& r
           if(attr.access == "write_only" || attr.access == "read_write")
           { geo_creates_outlet = true; break; }
 
+      binding.outlet_index = geo_creates_outlet ? outlet_index : -1;
       m_geometryBindings.push_back(std::move(binding));
 
       if(needs_input)
