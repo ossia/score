@@ -2385,3 +2385,6 @@ score_add_gfx_test(e6_procedural_geometry_adopt GfxE6ProceduralGeometryAdopt.cpp
 
 # A compute-written image read by an ISF and a raw raster keeps its orientation (agent E6).
 score_add_gfx_test(e6_compute_image_orientation GfxE6ComputeImageOrientation.cpp)
+
+# A raw raster Mode that overrides the cabled geometry topology warns once (agent E7).
+score_add_gfx_test(raw_raster_mode_topology_e7 GfxRawRasterModeTopologyE7.cpp)

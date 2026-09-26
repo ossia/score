@@ -156,10 +156,12 @@ layout(std140, binding = 1) uniform process_t {
 #define ISF_STORE_COORD(img, coord) ivec2(coord)
 #define ISF_STORE_COORD_LAYER(img, coord) ivec3(coord)
 #define ISF_FIXUP_COMPUTE_TEXCOORD(coord) (coord)
+#define IMG_TEXEL_PREMULTIPLIED(tex, coord) texelFetch(tex, ivec2(coord), 0)
 #else
 #define ISF_STORE_COORD(img, coord) ivec2((coord).x, imageSize(img).y - 1 - (coord).y)
 #define ISF_STORE_COORD_LAYER(img, coord) ivec3((coord).x, imageSize(img).y - 1 - (coord).y, (coord).z)
 #define ISF_FIXUP_COMPUTE_TEXCOORD(coord) vec2((coord).x, 1. - (coord).y)
+#define IMG_TEXEL_PREMULTIPLIED(tex, coord) texelFetch(tex, ivec2(ivec2(coord).x, textureSize(tex, 0).y - 1 - ivec2(coord).y), 0)
 #endif
 
 #define IMG_STORE(img, coord, val) imageStore(img, ISF_STORE_COORD(img, coord), val)
@@ -187,6 +189,8 @@ vec4 isf_unpremultiply(vec4 c) { return c.a > 0.0 ? vec4(c.rgb / c.a, c.a) : vec
 #define IMG_PIXEL(tex, coord) IMG_PIXEL_PREMULTIPLIED(tex, coord)
 #define ISF_STRAIGHT_NORM_PIXEL(tex, coord) isf_unpremultiply(IMG_NORM_PIXEL_PREMULTIPLIED(tex, coord))
 #define ISF_STRAIGHT_PIXEL(tex, coord) isf_unpremultiply(IMG_PIXEL_PREMULTIPLIED(tex, coord))
+#define IMG_TEXEL(tex, coord) IMG_TEXEL_PREMULTIPLIED(tex, coord)
+#define ISF_STRAIGHT_TEXEL(tex, coord) isf_unpremultiply(IMG_TEXEL_PREMULTIPLIED(tex, coord))
 #define IMG_CUBE(tex, dir) texture(tex, dir)
 )_";
 
@@ -221,6 +225,7 @@ vec4 isf_unpremultiply(vec4 c) { return c.a > 0.0 ? vec4(c.rgb / c.a, c.a) : vec
 #define IMG_THIS_DEPTH(tex) texture(tex##_depth, ISF_FIXUP_TEXCOORD(isf_FragNormCoord)).r
 #define IMG_DEPTH_PIXEL(tex, coord) texture(tex##_depth, ISF_FIXUP_TEXCOORD(coord / RENDERSIZE)).r
 #define IMG_DEPTH_NORM_PIXEL(tex, coord) texture(tex##_depth, ISF_FIXUP_TEXCOORD(coord)).r
+#define IMG_TEXEL_PREMULTIPLIED(tex, coord) texelFetch(tex, ivec2(ivec2(coord).x, textureSize(tex, 0).y - 1 - ivec2(coord).y), 0)
 #else
 #define isf_FragCoord gl_FragCoord
 #define IMG_THIS_PIXEL_PREMULTIPLIED(tex) texture(tex, isf_FragNormCoord)
@@ -230,6 +235,7 @@ vec4 isf_unpremultiply(vec4 c) { return c.a > 0.0 ? vec4(c.rgb / c.a, c.a) : vec
 #define IMG_THIS_DEPTH(tex) texture(tex##_depth, isf_FragNormCoord).r
 #define IMG_DEPTH_PIXEL(tex, coord) texture(tex##_depth, (coord) / RENDERSIZE).r
 #define IMG_DEPTH_NORM_PIXEL(tex, coord) texture(tex##_depth, coord).r
+#define IMG_TEXEL_PREMULTIPLIED(tex, coord) texelFetch(tex, ivec2(coord), 0)
 #endif
 
 #define IMG_THIS_PIXEL(tex) IMG_THIS_PIXEL_PREMULTIPLIED(tex)
@@ -240,6 +246,8 @@ vec4 isf_unpremultiply(vec4 c) { return c.a > 0.0 ? vec4(c.rgb / c.a, c.a) : vec
 #define ISF_STRAIGHT_THIS_NORM_PIXEL(tex) isf_unpremultiply(IMG_THIS_NORM_PIXEL_PREMULTIPLIED(tex))
 #define ISF_STRAIGHT_PIXEL(tex, coord) isf_unpremultiply(IMG_PIXEL_PREMULTIPLIED(tex, coord))
 #define ISF_STRAIGHT_NORM_PIXEL(tex, coord) isf_unpremultiply(IMG_NORM_PIXEL_PREMULTIPLIED(tex, coord))
+#define IMG_TEXEL(tex, coord) IMG_TEXEL_PREMULTIPLIED(tex, coord)
+#define ISF_STRAIGHT_TEXEL(tex, coord) isf_unpremultiply(IMG_TEXEL_PREMULTIPLIED(tex, coord))
 )_";
 
 } GLSL45;
@@ -4304,7 +4312,7 @@ static void isf_rewrite_straight_sampling(std::string& src, const descriptor& d)
     return;
 
   static constexpr std::string_view macros[]
-      = {"THIS_NORM_PIXEL", "THIS_PIXEL", "NORM_PIXEL", "PIXEL"};
+      = {"THIS_NORM_PIXEL", "THIS_PIXEL", "NORM_PIXEL", "PIXEL", "TEXEL"};
   static constexpr std::string_view prefix = "IMG_";
   static constexpr std::string_view straight = "ISF_STRAIGHT_";
 

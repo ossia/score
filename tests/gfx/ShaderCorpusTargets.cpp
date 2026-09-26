@@ -253,9 +253,43 @@ QByteArray read_all(const QString& path)
   return f.readAll();
 }
 
+/// Raw-raster fixtures whose tests pair one vertex file with several fragment
+/// files (GfxPolygonModeIE.cpp, GfxCubeFaceOrientationCB.cpp), so the fragment
+/// file has no same-named sibling. Baked with the vertex file its test uses.
+struct SharedVertex
+{
+  const char* fragment;
+  const char* vertex;
+};
+const SharedVertex shared_vertex_pairs[] = {
+    {"rr-polygon-mode-fill-ie.fs", "rr-polygon-mode-ie.vs"},
+    {"rr-polygon-mode-line-ie.fs", "rr-polygon-mode-ie.vs"},
+    {"cb-cube-dir-ndc-cull.fs", "cb-cube-dir-ndc.vs"},
+    {"cb-cube-dir-ndc-perface-cull.fs", "cb-cube-dir-ndc-perface.vs"},
+};
+
+QString shared_vertex_of(const QString& fsPath)
+{
+  const QFileInfo fi{fsPath};
+  for(const auto& p : shared_vertex_pairs)
+    if(fi.fileName() == QLatin1String(p.fragment))
+      return fi.dir().filePath(QString::fromLatin1(p.vertex));
+  return {};
+}
+
+QString shared_fragment_of(const QString& vsPath)
+{
+  const QFileInfo fi{vsPath};
+  for(const auto& p : shared_vertex_pairs)
+    if(fi.fileName() == QLatin1String(p.vertex))
+      return fi.dir().filePath(QString::fromLatin1(p.fragment));
+  return {};
+}
+
 /// The sibling vertex file of a fragment file, following the same two naming
 /// conventions Gfx::programFromISFFragmentShaderPath tries
-/// (ShaderProgram.cpp:597-601). Empty if there is none on disk.
+/// (ShaderProgram.cpp:597-601), then shared_vertex_pairs. Empty if there is
+/// none on disk.
 QString vertex_sibling(const QString& fsPath)
 {
   const QString candidates[] = {
@@ -270,6 +304,9 @@ QString vertex_sibling(const QString& fsPath)
     if(QFile::exists(c))
       return c;
   }
+  if(const QString shared = shared_vertex_of(fsPath);
+     !shared.isEmpty() && QFile::exists(shared))
+    return shared;
   return {};
 }
 
@@ -289,6 +326,9 @@ QString fragment_sibling(const QString& vsPath)
     if(QFile::exists(c))
       return c;
   }
+  if(const QString shared = shared_fragment_of(vsPath);
+     !shared.isEmpty() && QFile::exists(shared))
+    return shared;
   return {};
 }
 

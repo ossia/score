@@ -1,5 +1,5 @@
 /*{
-  "DESCRIPTION": "Procedural raw raster that copies its cabled texture with texelFetch at gl_FragCoord, which indexes memory rows. Used by GfxE6ComputeImageOrientation.",
+  "DESCRIPTION": "Procedural raw raster that copies its cabled texture with IMG_TEXEL at gl_FragCoord, the integer read that keeps IMG_PIXEL's row convention on every backend. Used by GfxE6ComputeImageOrientation.",
   "CREDIT": "test",
   "ISFVSN": "2.0",
   "MODE": "RAW_RASTER_PIPELINE",
@@ -19,5 +19,5 @@
 }*/
 void main()
 {
-    isf_FragColor = texelFetch(src, ivec2(gl_FragCoord.xy), 0);
+    isf_FragColor = IMG_TEXEL(src, ivec2(gl_FragCoord.xy));
 }

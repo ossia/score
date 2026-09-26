@@ -972,6 +972,42 @@ void RenderedRawRasterPipelineNode::appendAuxTextureBindings(
   }
 }
 
+static int topologyFamily(QRhiGraphicsPipeline::Topology t) noexcept
+{
+  switch(t)
+  {
+    case QRhiGraphicsPipeline::Points:
+      return 0;
+    case QRhiGraphicsPipeline::Lines:
+    case QRhiGraphicsPipeline::LineStrip:
+      return 1;
+    case QRhiGraphicsPipeline::Triangles:
+    case QRhiGraphicsPipeline::TriangleStrip:
+    case QRhiGraphicsPipeline::TriangleFan:
+      return 2;
+    default:
+      return 3;
+  }
+}
+
+void RenderedRawRasterPipelineNode::warnModeOverridesGeometry(
+    std::optional<QRhiGraphicsPipeline::Topology> geometry,
+    QRhiGraphicsPipeline::Topology drawn)
+{
+  if(!geometry || topologyFamily(*geometry) != 2)
+    return;
+  const int family = topologyFamily(drawn);
+  if(family == 2 || std::exchange(m_warnedModeTopology, family) == family)
+    return;
+  qWarning().noquote()
+      << QStringLiteral(
+             "RawRaster: the Mode control draws %1 but the cabled geometry is "
+             "Triangles; set Mode to Triangles, or declare PIPELINE_STATE TOPOLOGY in "
+             "the shader")
+             .arg(family == 0 ? "Points" : "Lines")
+      << QString::fromStdString(n.descriptor().description.substr(0, 80));
+}
+
 void RenderedRawRasterPipelineNode::initPass(
     const TextureRenderTarget& inletTarget, RenderList& renderer,
     QRhiResourceUpdateBatch& res, Edge& edge)
@@ -1186,8 +1222,12 @@ void RenderedRawRasterPipelineNode::initPass(
     // Procedural draws (VERTEX_INPUTS: [] + VERTEX_COUNT) don't need
     // a mesh — skip preparePipeline (no vertex-input layout bindings
     // to set).
+    std::optional<QRhiGraphicsPipeline::Topology> geometryTopology;
     if(m_mesh && m_mesh->hasGeometry())
+    {
       m_mesh->preparePipeline(*ps);
+      geometryTopology = ps->topology();
+    }
 
     // Compute effective pipeline state: the descriptor's PIPELINE_STATE (if
     // any) wins over the legacy material-UBO-driven blend. When no state is
@@ -1267,18 +1307,21 @@ void RenderedRawRasterPipelineNode::initPass(
     // PIPELINE_STATE {TOPOLOGY: points} would draw triangles
     // (tests/gfx/GfxPointCloudCount.cpp).
     if(!desc.default_state.topology.has_value())
-      switch(mat.mode)
     {
-      default:
-      case 0:
-        ps->setTopology(QRhiGraphicsPipeline::Triangles);
-        break;
-      case 1:
-        ps->setTopology(QRhiGraphicsPipeline::Points);
-        break;
-      case 2:
-        ps->setTopology(QRhiGraphicsPipeline::Lines);
-        break;
+      switch(mat.mode)
+      {
+        default:
+        case 0:
+          ps->setTopology(QRhiGraphicsPipeline::Triangles);
+          break;
+        case 1:
+          ps->setTopology(QRhiGraphicsPipeline::Points);
+          break;
+        case 2:
+          ps->setTopology(QRhiGraphicsPipeline::Lines);
+          break;
+      }
+      warnModeOverridesGeometry(geometryTopology, ps->topology());
     }
 
     // Remap vertex inputs by semantic, honouring explicit SEMANTIC overrides
@@ -2388,8 +2431,12 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     // preparePipeline sets the vertex-input layout from the mesh's
     // attributes. Skip for procedural draws (VERTEX_INPUTS: []): the
     // pipeline has no vertex bindings and the draw uses gl_VertexIndex.
+    std::optional<QRhiGraphicsPipeline::Topology> geometryTopology;
     if(m_mesh && m_mesh->hasGeometry())
+    {
       m_mesh->preparePipeline(*ps);
+      geometryTopology = ps->topology();
+    }
 
     const auto& desc = n.m_descriptor;
     const bool hasDescriptorState = stateAffectsPipeline(desc.default_state);
@@ -2449,6 +2496,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     // Same precedence rule as the single-target pass above: an explicitly
     // declared PIPELINE_STATE TOPOLOGY wins over the material mode control.
     if(!desc.default_state.topology.has_value())
+    {
       switch(mat.mode)
       {
         default:
@@ -2462,6 +2510,8 @@ void RenderedRawRasterPipelineNode::initMRTPass(
           ps->setTopology(QRhiGraphicsPipeline::Lines);
           break;
       }
+      warnModeOverridesGeometry(geometryTopology, ps->topology());
+    }
 
     // Remap vertex inputs by semantic (CSF-style; honour explicit
     // SEMANTIC). Procedural draws have no vertex inputs to remap — skip.
