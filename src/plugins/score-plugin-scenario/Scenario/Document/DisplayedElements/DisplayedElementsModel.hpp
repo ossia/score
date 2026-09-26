@@ -17,6 +17,8 @@ class SCORE_PLUGIN_SCENARIO_EXPORT DisplayedElementsModel
 public:
   DisplayedElementsModel() = default;
   bool initialized() const { return m_initialized; }
+  //! False once the displayed interval is gone, e.g. while its document closes.
+  bool hasInterval() const { return m_initialized && m_elements.interval; }
 
   void setSelection(const Selection&);
 

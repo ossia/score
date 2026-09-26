@@ -637,6 +637,10 @@ void ScenarioDocumentPresenter::setAutoScroll(bool c)
 static bool window_size_set = false;
 void ScenarioDocumentPresenter::on_windowSizeChanged(QSize sz)
 {
+  // Queued: it can arrive while the document closes, after its model is gone.
+  if(!displayedElements.hasInterval())
+    return;
+
   // Keep the same zoom level with the new width.
   // Left handle should not move.
   auto new_w = view().viewWidth();
