@@ -398,6 +398,11 @@ endif()
 # Moving messages between states and devices, for each kind of address a state
 # can hold.
 if(TARGET score_plugin_fx AND TARGET score_plugin_automation)
+  score_add_test(test_integration_automation_chain
+    SOURCES AutomationChainTest.cpp
+    GUI
+    PLUGINS score_plugin_automation score_plugin_curve score_plugin_engine
+            score_plugin_deviceexplorer score_plugin_scenario score_lib_process)
   score_add_test(test_integration_state_explorer_paths
     SOURCES StateExplorerPathsTest.cpp
     GUI

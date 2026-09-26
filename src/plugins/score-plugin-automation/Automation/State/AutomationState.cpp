@@ -136,10 +136,14 @@ std::vector<State::AddressAccessor> ProcessState::matchingAddresses()
         const auto& sorted = process().curve().sortedSegments();
         if(!sorted.empty() && sorted.front()->start().x() == 0.)
         {
+          // Same (fuzzy) comparison as SegmentModel::setStart: an exact one
+          // sees the float differ from the stored double and announces a change
+          // setStart does not make, which two automations on the same address
+          // around a state then ping-pong forever.
           auto& seg = *sorted.front();
-          if(val != seg.start().y())
+          if(const Curve::Point pt{0, val}; pt != seg.start())
           {
-            seg.setStart({0, val});
+            seg.setStart(pt);
             process().curve().changed();
           }
         }
@@ -150,9 +154,9 @@ std::vector<State::AddressAccessor> ProcessState::matchingAddresses()
         if(!sorted.empty() && sorted.back()->end().x() == 1.)
         {
           auto& seg = *sorted.back();
-          if(val != seg.end().y())
+          if(const Curve::Point pt{1, val}; pt != seg.end())
           {
-            seg.setEnd({1, val});
+            seg.setEnd(pt);
             process().curve().changed();
           }
         }
