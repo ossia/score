@@ -448,6 +448,20 @@ TEST_CASE("numbers do not change the type of a parameter back and forth", "[bitf
   CHECK(waitFor([&] { return name->value() == ossia::value{std::string("1790000000123")}; }));
 }
 
+TEST_CASE("only new or changed feedbacks are subscribed again", "[bitfocus]")
+{
+  if(!hasNode())
+    return;
+  mock m;
+  device d{m};
+  REQUIRE(!m.waitEvent("updateFeedbacks").isEmpty());
+  const auto before = m.events("updateFeedbacks").size();
+
+  d.run("/action/addFeedback");
+  const auto upd = m.waitEvent("updateFeedbacks", before + 1)["msg"]["feedbacks"].toObject();
+  CHECK(upd.keys() == QStringList{"extra"});
+}
+
 TEST_CASE("a value for an undeclared variable creates it", "[bitfocus]")
 {
   if(!hasNode())

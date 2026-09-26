@@ -64,6 +64,7 @@ const actions = [
 	{ id: 'many', name: 'Defines many variables', options: [{ type: 'number', id: 'count', label: 'Count', default: 10, min: 0, max: 100000 }] },
 	{ id: 'undeclared', name: 'Sets an undeclared variable', options: [] },
 	{ id: 'levels', name: 'Numbers of both kinds', options: [] },
+	{ id: 'addFeedback', name: 'Defines one more feedback', options: [] },
 	{ id: 'redefine', name: 'Adds an action', options: [] },
 	{ id: 'udp', name: 'Shared UDP', options: [{ type: 'number', id: 'port', label: 'Port', default: 0, min: 0, max: 65535 }] },
 	{ id: 'osc', name: 'Send OSC', options: [{ type: 'number', id: 'port', label: 'Port', default: 0, min: 0, max: 65535 }] },
@@ -177,6 +178,9 @@ const handlers = {
 				setTimeout(() => notify('setVariableValues', { newValues: [{ id: 'name', value: 1790000000123 }] }), 300)
 				break
 			}
+			case 'addFeedback':
+				notify('setFeedbackDefinitions', { feedbacks: [...feedbacks, { id: 'extra', name: 'Extra', type: 'boolean', options: [] }] })
+				break
 			case 'undeclared':
 				notify('setVariableValues', { newValues: [{ id: 'extra', value: 'hello' }] })
 				break

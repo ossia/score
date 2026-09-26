@@ -201,8 +201,10 @@ bitfocus_protocol::bitfocus_protocol(
 
   // A restarted module has no feedback subscribed
   QObject::connect(
-      m_rc.get(), &bitfocus::module_handler::reregistered, this,
-      [this] { init_device(); });
+      m_rc.get(), &bitfocus::module_handler::reregistered, this, [this] {
+    m_subscribed.clear();
+    init_device();
+  });
 }
 
 bitfocus_protocol::~bitfocus_protocol() = default;
@@ -412,6 +414,7 @@ void bitfocus_protocol::sync_feedbacks()
     removeGone(*nodes.feedbacks, m.feedbacks, [&](const std::string& name) {
       forget_touched("feedback", name);
       const auto id = QString::fromStdString(name);
+      m_subscribed.erase(id);
       m_feedbacks_recv.erase(id);
       bitfocus::module_data::feedback_instance inst;
       inst.id = id;
@@ -477,11 +480,17 @@ void bitfocus_protocol::subscribe_feedbacks(const std::vector<std::string>& ids)
     if(def == m.feedbacks.end() || !node)
       continue;
 
+    auto options = collectOptions(*node, def->second.options, "feedback");
+    auto [sub, isNew] = m_subscribed.try_emplace(id, options);
+    if(!isNew && sub->second == options)
+      continue;
+    sub->second = options;
+
     bitfocus::module_data::feedback_instance inst;
     inst.id = id;
     inst.controlId = "feedback/" + id;
     inst.definitionId = id;
-    inst.options = collectOptions(*node, def->second.options, "feedback");
+    inst.options = std::move(options);
     instances[id] = std::move(inst);
   }
   if(!instances.empty())

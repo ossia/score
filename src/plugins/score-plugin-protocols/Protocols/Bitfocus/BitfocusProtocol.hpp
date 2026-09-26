@@ -78,6 +78,9 @@ private:
   std::set<std::tuple<std::string, std::string, std::string>> m_touched;
   std::mutex m_touchedMutex;
 
+  //! The options each feedback was last subscribed with
+  std::unordered_map<QString, QVariantMap> m_subscribed;
+
   std::unordered_map<QString, ossia::net::parameter_base*> m_variables_recv;
   std::unordered_map<QString, ossia::net::parameter_base*> m_feedbacks_recv;
 };
