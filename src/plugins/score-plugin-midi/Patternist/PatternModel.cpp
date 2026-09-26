@@ -103,6 +103,14 @@ void ProcessModel::init()
   m_inlets.push_back(patternSelect.get());
   m_inlets.push_back(switchQuantification.get());
 
+  // The pattern grid is the whole body: no widget shows these controls there,
+  // so the node shows them as ports, folded or not (documents saved before
+  // carry them as "Hidden").
+  patternSelect->displayHandledExplicitly = false;
+  switchQuantification->displayHandledExplicitly = false;
+  patternSelect->visibleWhenFolded = true;
+  switchQuantification->visibleWhenFolded = true;
+
   // A document written before this port existed carries the pattern in the
   // property alone: seed the port from it before listening, or the selector
   // would show 0 while another pattern plays.

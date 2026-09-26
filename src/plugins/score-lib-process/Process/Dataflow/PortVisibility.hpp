@@ -23,7 +23,8 @@ bool isControlPort(const Process::Port& port) noexcept;
 
 //! True for the ports a folded node still has to show. A folded node displays
 //! the routing only: everything that is not a control, plus the controls that
-//! take part in the patch - those with a cable or an exposed address.
+//! take part in the patch - those with a cable or an exposed address - and
+//! those the process declares visibleWhenFolded.
 SCORE_LIB_PROCESS_EXPORT
 bool isVisibleWhenFolded(const Process::Port& port) noexcept;
 

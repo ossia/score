@@ -9,6 +9,8 @@
 
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
+#include <score_test/Events.hpp>
+#include <score_test/Project.hpp>
 
 #include <State/Address.hpp>
 
@@ -474,5 +476,44 @@ TEST_CASE("A port takes the pointer over its drawn circle only", "[integration][
       }
     }
     delete item;
+  });
+}
+
+#include <Process/Dataflow/NodeItem.hpp>
+
+// Patternist draws its own body; the node around it still shows its ports,
+// the pattern selector included, folded or not.
+TEST_CASE("A Patternist node shows its pattern selector port", "[integration][nodal][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& app) {
+    auto doc = score::test::new_document(app);
+    auto proc = score::test::add_process(
+        *doc, QStringLiteral("49047204-5c1e-4b54-9f43-2b583f664b2e"), {});
+    if(!proc)
+      SKIP("score-plugin-midi is not built");
+    auto presenter
+        = score::IDocument::try_presenterDelegate<Scenario::ScenarioDocumentPresenter>(*doc);
+    REQUIRE(presenter);
+
+    QGraphicsScene scene;
+    auto root = new QGraphicsRectItem;
+    scene.addItem(root);
+
+    const auto& selector = *proc->inlets()[0];
+    REQUIRE(selector.name() == QStringLiteral("Pattern"));
+
+    for(bool folded : {false, true})
+    {
+      CAPTURE(folded);
+      proc->setFoldMode(folded ? Process::FoldMode::Folded : Process::FoldMode::Unfolded);
+      auto node = new Process::NodeItem{*proc, presenter->context(), TimeVal::fromMsecs(1000), root};
+      score::test::wait_until([&] { return shows(*node, selector); });
+      std::string shown;
+      for(auto p : displayedPorts(*node))
+        shown += p->port().name().toStdString() + ", ";
+      INFO("shown: " << shown);
+      CHECK(shows(*node, selector));
+      delete node;
+    }
   });
 }

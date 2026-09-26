@@ -109,6 +109,10 @@ class SCORE_LIB_PROCESS_EXPORT Port
 public:
   Selectable selection{this};
   bool displayHandledExplicitly{};
+  //! A control that a folded node still shows as a port, cable or not: for
+  //! processes whose body has no widget for it. Declared by the process when
+  //! constructing/loading its ports; not saved.
+  bool visibleWhenFolded{};
   bool noValueChangeOnMove{};
   //! The value of this control decides which ports the process has
   bool changesPorts{};

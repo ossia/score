@@ -13,7 +13,7 @@ bool isControlPort(const Process::Port& port) noexcept
 
 bool isVisibleWhenFolded(const Process::Port& port) noexcept
 {
-  if(!isControlPort(port))
+  if(!isControlPort(port) || port.visibleWhenFolded)
     return true;
   if(!port.cables().empty())
     return true;

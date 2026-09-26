@@ -90,6 +90,10 @@ TEST_CASE("A folded node keeps the ports the patch is made of", "[process][port]
   // Clearing the address hides it again
   addressed.setAddress(State::AddressAccessor{});
   CHECK(!Process::isVisibleWhenFolded(addressed));
+
+  // Unless the process shows it anyway (no widget for it in its body)
+  plain.visibleWhenFolded = true;
+  CHECK(Process::isVisibleWhenFolded(plain));
 }
 
 TEST_CASE("Controls are only paginated when there are too many", "[process][port][nodal]")
