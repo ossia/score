@@ -3,8 +3,11 @@
 #include <ossia/network/value/value.hpp>
 
 #include <QString>
+#include <QVariant>
 
+#include <map>
 #include <memory>
+#include <optional>
 #include <verdigris>
 
 namespace bitfocus
@@ -26,6 +29,8 @@ struct BitfocusSpecificSettings
   QString apiVersion;
 
   std::vector<std::pair<QString, ossia::value>> configuration;
+  //! Last upgrade script the configuration went through
+  std::optional<int> upgradeIndex;
 
   QString description;
   std::shared_ptr<bitfocus::module_handler> handler;
@@ -34,6 +39,12 @@ struct BitfocusSpecificSettings
   void deduplicateConfiguration();
 
   QString enumeratorLabel() const;
+
+  //! The configuration as sent to the module
+  std::map<QString, QVariant> moduleConfiguration() const;
+
+  //! Starts the module process
+  std::shared_ptr<bitfocus::module_handler> makeHandler(const QString& label) const;
 };
 }
 Q_DECLARE_METATYPE(Protocols::BitfocusSpecificSettings)

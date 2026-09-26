@@ -24,6 +24,7 @@
 #include <QFormLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QListWidget>
 #include <QResizeEvent>
 #include <QScrollArea>
 #include <QSpinBox>
@@ -69,17 +70,39 @@ Device::DeviceSettings BitfocusProtocolSettingsWidget::getSettings() const
 
   BitfocusSpecificSettings osc = m_settings;
 
+  auto set = [&osc](const QString& id, ossia::value v) {
+    auto it = ossia::find_if(osc.configuration, [&id](const auto& kv) {
+      return kv.first == id;
+    });
+    if(it != osc.configuration.end())
+      it->second = std::move(v);
+    else
+      osc.configuration.emplace_back(id, std::move(v));
+  };
+
+  const bitfocus::module_data* model = osc.handler ? &osc.handler->model() : nullptr;
+  if(model && m_fieldsLoaded)
+  {
+    // Keys the module keeps in its configuration without showing them
+    for(auto& [k, v] : model->config)
+      if(k != "product" && !m_widgets.contains(k))
+        if(ossia::none_of(osc.configuration, [&k](auto& kv) { return kv.first == k; }))
+          osc.configuration.emplace_back(k, ossia::qt::qt_to_ossia{}(v));
+    osc.upgradeIndex = model->upgradeIndex;
+  }
+
   for(auto& [id, widg] : m_widgets)
   {
     if(!widg.getValue)
       continue;
-    auto it = ossia::find_if(osc.configuration, [&id = id](const auto& kv) {
-      return kv.first == id;
-    });
-    if(it != osc.configuration.end())
-      it->second = widg.getValue();
-    else
-      osc.configuration.emplace_back(id, widg.getValue());
+    auto v = widg.getValue();
+    if(v == widg.shown)
+    {
+      if(!widg.source)
+        continue;
+      v = *widg.source;
+    }
+    set(id, std::move(v));
   }
   s.deviceSpecificSettings = QVariant::fromValue(osc);
 
@@ -124,6 +147,34 @@ void BitfocusProtocolSettingsWidget::resetFields()
   m_scroll->setWidget(m_subWidget);
 }
 
+static ossia::value toSetting(const bitfocus::module_data::config_field& field, QVariant v)
+{
+  return ossia::qt::qt_to_ossia{}(bitfocus::toModuleValue(field, v).toVariant());
+}
+
+// A number without default stays undefined until it is set, as in companion
+template <typename Spin>
+static void setupEmptyNumber(Spin* widg, const bitfocus::module_data::config_field& field)
+{
+  if(field.hasDefault())
+    return;
+  widg->setMinimum(widg->minimum() - widg->singleStep());
+  widg->setSpecialValueText(QStringLiteral(" "));
+}
+
+template <typename Spin>
+static bool isEmptyNumber(Spin* widg, const bitfocus::module_data::config_field& field)
+{
+  return !field.hasDefault() && widg->value() == widg->minimum();
+}
+
+static QString colorToString(const QVariant& v)
+{
+  if(v.typeId() == QMetaType::QString)
+    return v.toString();
+  return QColor::fromRgb(QRgb(v.toLongLong() & 0xFFFFFF)).name();
+}
+
 void BitfocusProtocolSettingsWidget::updateFields()
 {
   if(!m_settings.handler)
@@ -142,6 +193,8 @@ void BitfocusProtocolSettingsWidget::updateFields()
       lab->setWordWrap(true);
       lab->setTextFormat(Qt::RichText);
       lab->setText(QString("<b>%1</b>").arg(field.label));
+      if(!field.tooltip.isEmpty())
+        lab->setToolTip(field.tooltip);
       m_subForm->addWidget(lab);
     }
 
@@ -160,77 +213,54 @@ void BitfocusProtocolSettingsWidget::updateFields()
             = widget{.label = lab, .widg = static_text, .getValue = {}, .setValue = {}};
       }
     }
-    else if(field.type == "textinput" || field.type == "bonjourdevice")
-    {
-      auto widg = new QLineEdit;
-      if(!field.regex.isEmpty())
-        makeValidator(widg, field.regex);
-      widg->setText(field.default_value.toString());
-      m_subForm->addWidget(widg);
-      m_widgets[field.id]
-          = {.label = lab, .widg = widg, .getValue = [widg]() -> ossia::value {
-        return widg->text().toStdString();
-      }, .setValue = [widg](ossia::value v) {
-        widg->setText(QString::fromStdString(ossia::convert<std::string>(v)));
-      }};
-    }
     else if(field.type == "number")
     {
-      auto tmin = field.min.typeId();
-      auto tmax = field.max.typeId();
-      if((tmin == QMetaType::LongLong && tmax == QMetaType::LongLong))
+      const double min = field.min.isValid() ? field.min.toDouble() : -1e9;
+      const double max = field.max.isValid() ? field.max.toDouble() : 1e9;
+      if(field.isInteger())
       {
         auto widg = new QSpinBox;
-        if(tmin == QMetaType::LongLong && tmax == QMetaType::LongLong)
-          widg->setRange(field.min.toInt(), field.max.toInt());
-        else
-          widg->setRange(0, 100000);
-        widg->setValue(field.default_value.toInt());
+        widg->setRange(
+            std::max(min, (double)std::numeric_limits<int>::lowest()),
+            std::min(max, (double)std::numeric_limits<int>::max()));
+        if(field.step.isValid())
+          widg->setSingleStep(std::max(1, field.step.toInt()));
+        setupEmptyNumber(widg, field);
+        widg->setValue(field.hasDefault() ? field.default_value.toInt() : widg->minimum());
         m_subForm->addWidget(widg);
         m_widgets[field.id]
-            = {.label = lab, .widg = widg, .getValue = [widg]() -> ossia::value {
-          return widg->value();
+            = {.label = lab, .widg = widg, .getValue = [widg, field]() -> ossia::value {
+          if(isEmptyNumber(widg, field))
+            return std::string{};
+          return toSetting(field, widg->value());
         }, .setValue = [widg](ossia::value v) {
-          widg->setValue(ossia::convert<float>(v));
-        }};
-      }
-      else if(tmin == QMetaType::Double && tmax == QMetaType::Double)
-      {
-        auto widg = new QDoubleSpinBox;
-        widg->setRange(field.min.toDouble(), field.max.toDouble());
-        widg->setValue(field.default_value.toDouble());
-        m_subForm->addWidget(widg);
-        m_widgets[field.id]
-            = {.label = lab, .widg = widg, .getValue = [widg]() -> ossia::value {
-          return widg->value();
-        }, .setValue = [widg](ossia::value v) {
-          widg->setValue(ossia::convert<float>(v));
-        }};
-      }
-      else if(!field.regex.isEmpty())
-      {
-        auto widg = new QLineEdit;
-        makeValidator(widg, field.regex);
-        widg->setText(field.default_value.toString());
-        m_subForm->addWidget(widg);
-        m_widgets[field.id]
-            = {.label = lab, .widg = widg, .getValue = [widg]() -> ossia::value {
-          return widg->text().toInt();
-        }, .setValue = [widg](ossia::value v) {
-          widg->setText(QString::number(ossia::convert<int>(v)));
+          if(v.get_type() == ossia::val_type::STRING && ossia::convert<std::string>(v).empty())
+            widg->setValue(widg->minimum());
+          else
+            widg->setValue(ossia::convert<int>(v));
         }};
       }
       else
       {
-        auto widg = new QSpinBox;
-        widg->setRange(0, 65535);
-        widg->setValue(field.default_value.toInt());
+        auto widg = new QDoubleSpinBox;
+        widg->setRange(min, max);
+        widg->setDecimals(4);
+        if(field.step.isValid())
+          widg->setSingleStep(field.step.toDouble());
+        setupEmptyNumber(widg, field);
+        widg->setValue(
+            field.hasDefault() ? field.default_value.toDouble() : widg->minimum());
         m_subForm->addWidget(widg);
         m_widgets[field.id]
-            = {.label = lab, .widg = widg, .getValue = [widg]() -> ossia::value {
-          return widg->value();
+            = {.label = lab, .widg = widg, .getValue = [widg, field]() -> ossia::value {
+          if(isEmptyNumber(widg, field))
+            return std::string{};
+          return toSetting(field, widg->value());
         }, .setValue = [widg](ossia::value v) {
-          widg->setValue(ossia::convert<float>(v));
+          if(v.get_type() == ossia::val_type::STRING && ossia::convert<std::string>(v).empty())
+            widg->setValue(widg->minimum());
+          else
+            widg->setValue(ossia::convert<double>(v));
         }};
       }
     }
@@ -246,51 +276,128 @@ void BitfocusProtocolSettingsWidget::updateFields()
         widg->setChecked(ossia::convert<bool>(v));
       }};
     }
-    else if(field.type == "choices" || field.type == "dropdown")
+    else if(field.type == "dropdown")
     {
       auto widg = new QComboBox;
-      int i = 0;
-      int default_i = -1;
-      auto default_v = field.default_value.toString();
+      widg->setEditable(field.allowCustom);
+      const auto default_v = field.default_value.toString();
       for(const auto& choice : field.choices)
-      {
         widg->addItem(choice.label, choice.id);
-        if(choice.id == default_v)
-          default_i = i;
-        i++;
-      }
-      if(default_i != -1)
-        widg->setCurrentIndex(default_i);
+      // A default outside of the choices stays selected as-is, as in companion
+      if(int idx = widg->findData(default_v); idx != -1)
+        widg->setCurrentIndex(idx);
+      else if(field.allowCustom)
+        widg->setEditText(default_v);
+      else
+        widg->setCurrentIndex(-1);
 
       m_subForm->addWidget(widg);
       m_widgets[field.id]
-          = {.label = lab, .widg = widg, .getValue = [widg]() -> ossia::value {
-        return widg->currentData().toString().toStdString();
+          = {.label = lab, .widg = widg, .getValue = [widg, field]() -> ossia::value {
+        if(widg->isEditable() && widg->currentText() != widg->currentData().toString()
+           && widg->findText(widg->currentText()) == -1)
+          return toSetting(field, widg->currentText());
+        if(widg->currentIndex() < 0)
+          return toSetting(field, field.default_value);
+        return toSetting(field, widg->currentData());
       }, .setValue = [widg](ossia::value v) {
         auto id = QString::fromStdString(ossia::convert<std::string>(v));
-        int idx = -1;
-        for(int i = 0; i < widg->count(); i++)
-        {
-          if(widg->itemData(i) == id)
-          {
-            idx = i;
-            break;
-          }
-        }
-        if(idx != -1)
+        if(int idx = widg->findData(id); idx != -1)
           widg->setCurrentIndex(idx);
+        else if(widg->isEditable())
+          widg->setEditText(id);
+      }};
+    }
+    else if(field.type == "multidropdown")
+    {
+      auto widg = new QListWidget;
+      QStringList defaults;
+      for(const auto& v : field.default_json.toArray())
+        defaults.push_back(v.toVariant().toString());
+      for(const auto& choice : field.choices)
+      {
+        auto item = new QListWidgetItem{choice.label, widg};
+        item->setData(Qt::UserRole, choice.id);
+        item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
+        item->setCheckState(defaults.contains(choice.id) ? Qt::Checked : Qt::Unchecked);
+      }
+      widg->setMaximumHeight(150);
+      m_subForm->addWidget(widg);
+      m_widgets[field.id]
+          = {.label = lab, .widg = widg, .getValue = [widg, field]() -> ossia::value {
+        QVariantList ids;
+        for(int i = 0; i < widg->count(); i++)
+          if(widg->item(i)->checkState() == Qt::Checked)
+            ids.push_back(widg->item(i)->data(Qt::UserRole));
+        return toSetting(field, ids);
+      }, .setValue = [widg](ossia::value v) {
+        QStringList ids;
+        for(auto& e : ossia::convert<std::vector<ossia::value>>(v))
+          ids.push_back(QString::fromStdString(ossia::convert<std::string>(e)));
+        for(int i = 0; i < widg->count(); i++)
+          widg->item(i)->setCheckState(
+              ids.contains(widg->item(i)->data(Qt::UserRole).toString()) ? Qt::Checked
+                                                                         : Qt::Unchecked);
+      }};
+    }
+    else if(field.type == "colorpicker")
+    {
+      auto widg = new QLineEdit;
+      widg->setText(colorToString(field.default_value));
+      m_subForm->addWidget(widg);
+      m_widgets[field.id]
+          = {.label = lab, .widg = widg, .getValue = [widg, field]() -> ossia::value {
+        if(field.default_json.isString() || field.returnType == "string")
+          return widg->text().toStdString();
+        return (int)(QColor(widg->text()).rgb() & 0xFFFFFF);
+      }, .setValue = [widg](ossia::value v) {
+        widg->setText(colorToString(v.apply(ossia::qt::ossia_to_qvariant{})));
+      }};
+    }
+    else
+    {
+      // textinput, secret-text, bonjour-device, custom-variable
+      auto widg = new QLineEdit;
+      if(field.type.startsWith("secret"))
+        widg->setEchoMode(QLineEdit::PasswordEchoOnEdit);
+      if(!field.regex.isEmpty())
+        makeValidator(widg, field.regex);
+      widg->setText(field.default_value.toString());
+      m_subForm->addWidget(widg);
+      m_widgets[field.id]
+          = {.label = lab, .widg = widg, .getValue = [widg, field]() -> ossia::value {
+        return toSetting(field, widg->text());
+      }, .setValue = [widg](ossia::value v) {
+        widg->setText(QString::fromStdString(ossia::convert<std::string>(v)));
       }};
     }
   }
   m_subForm->addStretch(1);
   m_fieldsLoaded = true;
 
+  // The declared default, then what the module holds, then what the user had set
+  for(auto& field : m.config_fields)
+    loadValue(
+        field.id, field.hasDefault() ? std::optional{ossia::qt::qt_to_ossia{}(
+                                           field.default_json.toVariant())}
+                                     : std::nullopt);
+  for(auto& [k, v] : m.config)
+    loadValue(k, ossia::qt::qt_to_ossia{}(bitfocus::widenFloat(v)));
   for(auto& [k, v] : m_settings.configuration)
-  {
-    if(auto member = m_widgets.find(k); member != m_widgets.end())
-      if(member->second.setValue)
-        member->second.setValue(v);
-  }
+    loadValue(k, v);
+}
+
+void BitfocusProtocolSettingsWidget::loadValue(
+    const QString& id, std::optional<ossia::value> v)
+{
+  auto member = m_widgets.find(id);
+  if(member == m_widgets.end() || !member->second.setValue)
+    return;
+  auto& w = member->second;
+  if(v)
+    w.setValue(*v);
+  w.shown = w.getValue();
+  w.source = std::move(v);
 }
 
 void BitfocusProtocolSettingsWidget::resizeEvent(QResizeEvent* res)
@@ -343,18 +450,9 @@ void BitfocusProtocolSettingsWidget::setSettings(const Device::DeviceSettings& s
   if(!stgs.name.isEmpty() && settings.name == stgs.enumeratorLabel())
     m_deviceNameEdit->setText(stgs.name);
 
+  // The handler is not serialized: start the module to get its config fields.
   if(!stgs.handler)
-  {
-    // The handler is not serialized: start the module to get its config fields.
-    auto conf = bitfocus::module_configuration{};
-    if(!stgs.product.isEmpty())
-      conf["product"] = stgs.product;
-    for(auto& [k, v] : stgs.configuration)
-      conf[k] = v.apply(ossia::qt::ossia_to_qvariant{});
-
-    stgs.handler = std::make_shared<bitfocus::module_handler>(
-        stgs.path, stgs.entrypoint, stgs.nodeVersion, stgs.apiVersion, std::move(conf));
-  }
+    stgs.handler = stgs.makeHandler(m_deviceNameEdit->text());
 
   m_settings = stgs;
 
@@ -364,6 +462,19 @@ void BitfocusProtocolSettingsWidget::setSettings(const Device::DeviceSettings& s
       [this, h = std::weak_ptr{m_settings.handler}] {
     if(h.lock() == m_settings.handler)
       updateFields();
+  });
+
+  disconnect(m_configurationSaved);
+  m_configurationSaved = connect(
+      m_settings.handler.get(), &bitfocus::module_handler::configurationSaved, this,
+      [this, h = std::weak_ptr{m_settings.handler}] {
+    auto handler = h.lock();
+    if(!handler || handler != m_settings.handler || !m_fieldsLoaded)
+      return;
+    for(auto& [k, v] : handler->model().config)
+      if(auto w = m_widgets.find(k); w != m_widgets.end() && w->second.getValue
+         && w->second.getValue() == w->second.shown)
+        loadValue(k, ossia::qt::qt_to_ossia{}(bitfocus::widenFloat(v)));
   });
 
   // An already-running device answered long before we connected.

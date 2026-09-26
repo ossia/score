@@ -257,7 +257,7 @@ struct win32_handles
   QByteArray readbuf;
 };
 module_handler_base::module_handler_base(
-    QString node_path, QString module_path, QString entrypoint)
+    QString node_path, QString module_path, QString entrypoint, QString connection_id)
 {
   handles = std::make_unique<win32_handles>();
   if(!handles->ready)
@@ -286,7 +286,7 @@ module_handler_base::module_handler_base(
   });
 
   auto genv = QProcessEnvironment::systemEnvironment();
-  genv.insert("CONNECTION_ID", "connectionId");
+  genv.insert("CONNECTION_ID", connection_id);
   genv.insert("VERIFICATION_TOKEN", "foobar");
   genv.insert("MODULE_MANIFEST", module_path + "/companion/manifest.json");
   genv.insert("NODE_CHANNEL_SERIALIZATION_MODE", "json");
@@ -298,6 +298,16 @@ module_handler_base::module_handler_base(
 }
 
 module_handler_base::~module_handler_base() { }
+
+bool module_handler_base::restart_process()
+{
+  return false;
+}
+
+bool module_handler_base::wait_for_reply(int id, int timeout_ms)
+{
+  return false;
+}
 
 void module_handler_base::do_write(std::string_view res)
 {
