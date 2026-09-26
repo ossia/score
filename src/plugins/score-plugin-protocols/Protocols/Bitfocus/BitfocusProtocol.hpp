@@ -8,6 +8,8 @@
 
 #include <QObject>
 
+#include <atomic>
+
 namespace ossia::net
 {
 class bitfocus_protocol
@@ -39,6 +41,7 @@ public:
       const std::vector<bitfocus::module_data::config_field>& defs);
 
 private:
+  void run_action(const std::string& id);
   void sync_actions();
   void sync_feedbacks();
   void sync_variables();
@@ -57,6 +60,10 @@ private:
     ossia::net::node_base* feedbacks{};
     ossia::net::node_base* variables{};
   } nodes;
+
+  // What push() may compare against from the execution thread
+  std::atomic<ossia::net::node_base*> m_actionsNode{};
+  std::atomic<ossia::net::node_base*> m_feedbacksNode{};
 
   ossia::flat_map<QString, ossia::net::parameter_base*> m_variables_recv;
   ossia::flat_map<QString, ossia::net::parameter_base*> m_feedbacks_recv;

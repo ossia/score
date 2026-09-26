@@ -60,6 +60,7 @@ const actions = [
 	{ id: 'single', name: 'One option', options: [{ type: 'dropdown', id: 'choice', label: 'Choice', default: 1, choices: [{ id: 1, label: 'One' }, { id: 2, label: 'Two' }] }] },
 	{ id: 'fail', name: 'Fails', options: [] },
 	{ id: 'crash', name: 'Crashes the module', options: [] },
+	{ id: 'churn', name: 'Sends its definitions again and again', options: [] },
 	{ id: 'redefine', name: 'Adds an action', options: [] },
 	{ id: 'udp', name: 'Shared UDP', options: [{ type: 'number', id: 'port', label: 'Port', default: 0, min: 0, max: 65535 }] },
 	{ id: 'osc', name: 'Send OSC', options: [{ type: 'number', id: 'port', label: 'Port', default: 0, min: 0, max: 65535 }] },
@@ -149,6 +150,15 @@ const handlers = {
 		switch (a.actionId) {
 			case 'fail':
 				return { success: false, errorMessage: 'expected failure' }
+			case 'churn': {
+				const end = Date.now() + 1500
+				const again = () => {
+					notify('setActionDefinitions', { actions })
+					if (Date.now() < end) setTimeout(again, 1)
+				}
+				again()
+				break
+			}
 			case 'crash':
 				setImmediate(() => {
 					throw new Error('crash')

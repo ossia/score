@@ -188,40 +188,42 @@ QVariantMap bitfocus_protocol::collectOptions(
 
 bool bitfocus_protocol::push(const ossia::net::parameter_base& p, const ossia::value& v)
 {
+  // Called from the execution thread: the definitions and the tree are only
+  // read on the handler's thread
   auto& node = p.get_node();
   auto parent = node.get_parent();
   if(!parent)
     return false;
 
-  auto runAction = [this](const ossia::net::node_base& actionNode) {
-    const auto& defs = m_rc->model().actions;
-    auto it = defs.find(QString::fromStdString(actionNode.get_name()));
-    if(it == defs.end())
-      return;
-    QMetaObject::invokeMethod(
-        m_rc.get(), [m = m_rc, name = actionNode.get_name(),
-                     options = collectOptions(actionNode, it->second.options)] {
-      m->actionRun(name, options);
-    });
-  };
-
-  if(parent == nodes.actions)
+  auto actions = m_actionsNode.load();
+  auto feedbacks = m_feedbacksNode.load();
+  if(actions && parent == actions)
   {
-    runAction(node);
+    QMetaObject::invokeMethod(this, [this, id = node.get_name()] { run_action(id); });
   }
-  else if(
-      parent->get_parent() == nodes.actions && nodes.actions
-      && parent->children_count() == 1)
+  else if(actions && parent->get_parent() == actions && parent->children_count() == 1)
   {
-    runAction(*parent);
+    QMetaObject::invokeMethod(this, [this, id = parent->get_name()] { run_action(id); });
   }
-  else if(parent->get_parent() == nodes.feedbacks && nodes.feedbacks)
+  else if(feedbacks && parent->get_parent() == feedbacks)
   {
     QMetaObject::invokeMethod(this, [this, id = parent->get_name()] {
       subscribe_feedbacks({id});
     });
   }
   return true;
+}
+
+void bitfocus_protocol::run_action(const std::string& id)
+{
+  if(!nodes.actions)
+    return;
+  auto node = nodes.actions->find_child(id);
+  const auto& defs = m_rc->model().actions;
+  auto it = defs.find(QString::fromStdString(id));
+  if(!node || it == defs.end())
+    return;
+  m_rc->actionRun(id, collectOptions(*node, it->second.options));
 }
 
 bool bitfocus_protocol::push_raw(const ossia::net::full_parameter_data&)
@@ -285,10 +287,14 @@ void bitfocus_protocol::sync_actions()
     if(nodes.actions)
       root.remove_child("action");
     nodes.actions = nullptr;
+    m_actionsNode = nullptr;
     return;
   }
   if(!nodes.actions)
+  {
     nodes.actions = root.create_child("action");
+    m_actionsNode = nodes.actions;
+  }
 
   std::vector<std::string> gone;
   for(auto& c : nodes.actions->children())
@@ -337,11 +343,15 @@ void bitfocus_protocol::sync_feedbacks()
     if(nodes.feedbacks)
       root.remove_child("feedback");
     nodes.feedbacks = nullptr;
+    m_feedbacksNode = nullptr;
   }
   else
   {
     if(!nodes.feedbacks)
+    {
       nodes.feedbacks = root.create_child("feedback");
+      m_feedbacksNode = nodes.feedbacks;
+    }
 
     std::vector<std::string> ids;
     for(auto& [id, def] : m.feedbacks)

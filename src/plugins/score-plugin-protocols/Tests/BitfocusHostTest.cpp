@@ -17,6 +17,9 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <atomic>
+#include <thread>
+
 namespace bitfocus
 {
 QString nodeExecutable(const QString&)
@@ -301,6 +304,47 @@ TEST_CASE("variables and later definitions reach the tree", "[bitfocus]")
   CHECK(waitFor([&] { return d.param("/action/added") != nullptr; }));
   CHECK(waitFor([&] { return count->value() == ossia::value{43}; }));
   CHECK(d.param("/action/typed/int"));
+}
+
+TEST_CASE("actions run from another thread while definitions change", "[bitfocus]")
+{
+  if(!hasNode())
+    return;
+  mock m;
+  device d{m};
+
+  // The execution engine pushes from its own thread
+  auto typed = d.param("/action/typed");
+  REQUIRE(typed);
+  d.run("/action/churn");
+  std::atomic_bool stop{};
+  std::thread engine;
+  struct join_on_exit
+  {
+    std::atomic_bool& stop;
+    std::thread& t;
+    ~join_on_exit()
+    {
+      stop = true;
+      if(t.joinable())
+        t.join();
+    }
+  } guard{stop, engine};
+  engine = std::thread{[&] {
+    while(!stop)
+    {
+      typed->push_value(ossia::impulse{});
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+  }};
+  QElapsedTimer t;
+  t.start();
+  while(t.elapsed() < 2000)
+    QCoreApplication::processEvents(QEventLoop::AllEvents, 5);
+  stop = true;
+  engine.join();
+
+  CHECK(waitFor([&] { return m.events("executeAction").size() > 10; }));
 }
 
 TEST_CASE("failed actions are reported and do not stop later ones", "[bitfocus]")
