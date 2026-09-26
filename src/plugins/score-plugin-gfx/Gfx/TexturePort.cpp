@@ -363,6 +363,9 @@ struct TextureSizeWidget : public QWidget
     {
       sb->setEnabled(bool(sz));
       sb->setMinimum(sz ? 1 : 0);
+      // A spin box shows its special text for its minimum: with a size set
+      // that is 1, which must not read "Auto".
+      sb->setSpecialValueText(sz ? QString{} : QObject::tr("Auto"));
     }
     m_sz_w->setValue(sz ? sz->width() : 0);
     m_sz_h->setValue(sz ? sz->height() : 0);

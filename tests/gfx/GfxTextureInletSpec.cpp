@@ -41,8 +41,10 @@
 #include <gpp/meta.hpp>
 #include <gpp/ports.hpp>
 
+#include <QApplication>
 #include <QComboBox>
 #include <QLabel>
+#include <QKeyEvent>
 #include <QSpinBox>
 
 #include <catch2/catch_test_macros.hpp>
@@ -818,6 +820,52 @@ TEST_CASE(
     inlet->setRenderSize(QSize{24, 16});
     CHECK(size->isEnabled());
     CHECK(size->value() == 24);
+    inlet->setRenderSize(std::nullopt);
+    CHECK(size->text() == "Auto");
+  });
+}
+
+// With a size set, the spin boxes start at 1 without the "Auto" special text,
+// otherwise 1 reads "Auto" and typing 128 stops at its first digit.
+TEST_CASE(
+    "The texture inlet size accepts 1 and multi-digit sizes",
+    "[gfx][texture][inlet-settings][inspector]")
+{
+  run_in_gui_app([&](const score::GUIApplicationContext& app) {
+    auto* doc = new_document(app);
+    REQUIRE(doc);
+    const auto& ctx = doc->context();
+    auto* proc = add_process(
+        *doc, QStringLiteral("5bd9c8e2-7f1a-4e3b-9c0d-2a4b6f8e1d72"), QString{});
+    REQUIRE(proc);
+    Gfx::TextureInlet* inlet{};
+    for(auto* in : proc->inlets())
+      if(auto* t = qobject_cast<Gfx::TextureInlet*>(in))
+        inlet = t;
+    REQUIRE(inlet);
+
+    QWidget parent;
+    auto* lay = new Inspector::Layout{&parent};
+    Gfx::TextureInletFactory{}.setupInletInspector(*inlet, ctx, &parent, *lay, &parent);
+    auto* size = findField<QSpinBox>(*lay, "Size");
+    REQUIRE(size);
+
+    inlet->setRenderSize(QSize{64, 64});
+    REQUIRE(size->isEnabled());
+    size->setValue(1);
+    CHECK(size->text() == "1");
+
+    // Typed, as a user does: select all, then digits
+    size->selectAll();
+    for(QChar c : QStringLiteral("128"))
+    {
+      QKeyEvent press{QEvent::KeyPress, 0, Qt::NoModifier, QString{c}};
+      QApplication::sendEvent(size, &press);
+    }
+    CHECK(size->text() == "128");
+    CHECK(size->value() == 128);
+
+    // Back to automatic, it reads Auto again
     inlet->setRenderSize(std::nullopt);
     CHECK(size->text() == "Auto");
   });
