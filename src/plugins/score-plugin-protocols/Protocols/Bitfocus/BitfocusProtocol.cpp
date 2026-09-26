@@ -230,8 +230,10 @@ bool bitfocus_protocol::pull(ossia::net::parameter_base&)
 }
 
 QVariantMap bitfocus_protocol::collectOptions(
-    const ossia::net::node_base& node, const std::vector<config_field>& defs)
+    const ossia::net::node_base& node, const std::vector<config_field>& defs,
+    const std::string& group)
 {
+  std::unique_lock lock{m_touchedMutex};
   QVariantMap options;
   for(const auto& opt : defs)
   {
@@ -246,7 +248,9 @@ QVariantMap bitfocus_protocol::collectOptions(
     const auto val = p->value();
     const QVariant qv = val.apply(ossia::qt::ossia_to_qvariant{});
     // Untouched: companion sends the default as declared, or nothing without one
-    if(val == optionDefault(opt))
+    const bool touched
+        = m_touched.contains({group, node.get_name(), opt.id.toStdString()});
+    if(!touched && val == optionDefault(opt))
     {
       if(opt.hasDefault())
         options[opt.id] = bitfocus::defaultOptionValue(opt).toVariant();
@@ -270,6 +274,13 @@ bool bitfocus_protocol::push(const ossia::net::parameter_base& p, const ossia::v
 
   auto actions = m_actionsNode.load();
   auto feedbacks = m_feedbacksNode.load();
+  if(auto grand = parent->get_parent(); grand && (grand == actions || grand == feedbacks))
+  {
+    std::unique_lock lock{m_touchedMutex};
+    m_touched.insert(
+        {grand == actions ? "action" : "feedback", parent->get_name(), node.get_name()});
+  }
+
   if(actions && parent == actions)
   {
     QMetaObject::invokeMethod(this, [this, id = node.get_name()] { run_action(id); });
@@ -287,6 +298,14 @@ bool bitfocus_protocol::push(const ossia::net::parameter_base& p, const ossia::v
   return true;
 }
 
+void bitfocus_protocol::forget_touched(const std::string& group, const std::string& name)
+{
+  std::unique_lock lock{m_touchedMutex};
+  std::erase_if(m_touched, [&](const auto& t) {
+    return std::get<0>(t) == group && std::get<1>(t) == name;
+  });
+}
+
 void bitfocus_protocol::run_action(const std::string& id)
 {
   if(!nodes.actions)
@@ -296,7 +315,7 @@ void bitfocus_protocol::run_action(const std::string& id)
   auto it = defs.find(QString::fromStdString(id));
   if(!node || it == defs.end())
     return;
-  m_rc->actionRun(id, collectOptions(*node, it->second.options));
+  m_rc->actionRun(id, collectOptions(*node, it->second.options, "action"));
 }
 
 bool bitfocus_protocol::push_raw(const ossia::net::full_parameter_data&)
@@ -368,7 +387,9 @@ void bitfocus_protocol::sync_actions()
     m_actionsNode = nodes.actions;
   }
 
-  removeGone(*nodes.actions, m.actions);
+  removeGone(*nodes.actions, m.actions, [this](const std::string& name) {
+    forget_touched("action", name);
+  });
 
   auto index = childIndex(*nodes.actions);
   for(auto& [id, def] : m.actions)
@@ -389,6 +410,7 @@ void bitfocus_protocol::sync_feedbacks()
   std::map<QString, bitfocus::module_data::feedback_instance> changes;
   if(nodes.feedbacks)
     removeGone(*nodes.feedbacks, m.feedbacks, [&](const std::string& name) {
+      forget_touched("feedback", name);
       const auto id = QString::fromStdString(name);
       m_feedbacks_recv.erase(id);
       bitfocus::module_data::feedback_instance inst;
@@ -459,7 +481,7 @@ void bitfocus_protocol::subscribe_feedbacks(const std::vector<std::string>& ids)
     inst.id = id;
     inst.controlId = "feedback/" + id;
     inst.definitionId = id;
-    inst.options = collectOptions(*node, def->second.options);
+    inst.options = collectOptions(*node, def->second.options, "feedback");
     instances[id] = std::move(inst);
   }
   if(!instances.empty())

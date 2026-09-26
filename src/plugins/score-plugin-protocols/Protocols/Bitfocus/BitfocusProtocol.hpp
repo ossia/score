@@ -9,6 +9,9 @@
 #include <QObject>
 
 #include <atomic>
+#include <mutex>
+#include <set>
+#include <tuple>
 #include <unordered_map>
 
 namespace ossia::net
@@ -37,12 +40,14 @@ public:
   static ossia::value optionDefault(const bitfocus::module_data::config_field& opt);
 
   //! Option values of an action or feedback node, typed as the module expects
-  static QVariantMap collectOptions(
+  QVariantMap collectOptions(
       const ossia::net::node_base& node,
-      const std::vector<bitfocus::module_data::config_field>& defs);
+      const std::vector<bitfocus::module_data::config_field>& defs,
+      const std::string& group);
 
 private:
   void run_action(const std::string& id);
+  void forget_touched(const std::string& group, const std::string& name);
   void sync_actions();
   void sync_feedbacks();
   void sync_variables();
@@ -68,6 +73,10 @@ private:
   // What push() may compare against from the execution thread
   std::atomic<ossia::net::node_base*> m_actionsNode{};
   std::atomic<ossia::net::node_base*> m_feedbacksNode{};
+
+  // Options set through the tree: {"action" or "feedback", node, option}
+  std::set<std::tuple<std::string, std::string, std::string>> m_touched;
+  std::mutex m_touchedMutex;
 
   std::unordered_map<QString, ossia::net::parameter_base*> m_variables_recv;
   std::unordered_map<QString, ossia::net::parameter_base*> m_feedbacks_recv;

@@ -247,6 +247,13 @@ TEST_CASE("actions are sent with the types the module declared", "[bitfocus]")
   CHECK(opts2["numeric"] == 1);
   CHECK(opts2["multi"] == QJsonValue(QJsonArray{"b"}));
 
+  // Set explicitly, a value equal to the placeholder is sent all the same
+  d.param("/action/typed/numnodefault")->push_value(0);
+  d.param("/action/typed/text")->push_value(std::string("hello"));
+  const auto opts3 = d.run("/action/typed")["options"].toObject();
+  CHECK(opts3["numnodefault"] == 0);
+  CHECK(opts3["text"] == "hello");
+
   // An action with a single option runs when that option is set
   const auto single = d.run("/action/single/choice", std::string("2"));
   CHECK(single["actionId"] == "single");
