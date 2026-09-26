@@ -281,6 +281,16 @@ public:
   void sharedUdpSocketError(const QString& handleId, int port, const QString& message);
   const bitfocus::module_data& model();
 
+  enum DefinitionCategory
+  {
+    Actions = 1,
+    Feedbacks = 2,
+    Variables = 4,
+    All = 7
+  };
+  //! The categories changed since the last call
+  int takeChangedDefinitions() noexcept { return std::exchange(m_changedDefinitions, 0); }
+
   void configurationParsed() W_SIGNAL(configurationParsed);
   //! The module registered again after its process was restarted
   void reregistered() W_SIGNAL(reregistered);
@@ -294,7 +304,7 @@ public:
 
 private:
   QJsonObject configObject(bool secrets) const;
-  void notifyDefinitionsChanged();
+  void notifyDefinitionsChanged(DefinitionCategory c);
   void completeRegistration();
   void on_init_response(const QJsonObject& payload);
 
@@ -322,6 +332,8 @@ private:
   bool m_firstInit{false};
   bool m_destroyed{false};
   bool m_definitionsPending{false};
+  int m_changedDefinitions{};
+  QJsonArray m_lastActions, m_lastFeedbacks, m_lastVariables;
   bool m_initDone{false};
   bool m_everRegistered{false};
   int m_restarts{0};

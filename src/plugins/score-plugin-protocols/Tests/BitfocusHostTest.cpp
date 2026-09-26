@@ -347,6 +347,84 @@ TEST_CASE("actions run from another thread while definitions change", "[bitfocus
   CHECK(waitFor([&] { return m.events("executeAction").size() > 10; }));
 }
 
+TEST_CASE("definitions sent again unchanged leave the tree alone", "[bitfocus]")
+{
+  if(!hasNode())
+    return;
+  mock m;
+  device d{m};
+  auto name = d.param("/variable/name");
+  REQUIRE(name);
+
+  int created = 0, removed = 0;
+  auto& dev = *d.dev;
+  struct counter
+  {
+    int& n;
+    void operator()(const ossia::net::node_base&) { n++; }
+  };
+  counter c1{created}, c2{removed};
+  dev.on_node_created.connect(c1);
+  dev.on_node_removing.connect(c2);
+
+  d.param("/action/many/count")->set_value(10);
+  d.run("/action/many");
+  REQUIRE(waitFor([&] { return name->value() == ossia::value{std::string("many:10")}; }));
+  CHECK(created == 10);
+  CHECK(removed == 0);
+
+  created = 0;
+  d.run("/action/many");
+  REQUIRE(waitFor([&] { return m.events("executeAction").size() >= 2; }));
+  QElapsedTimer t;
+  t.start();
+  while(t.elapsed() < 300)
+    QCoreApplication::processEvents(QEventLoop::AllEvents, 5);
+  CHECK(created == 0);
+  CHECK(removed == 0);
+
+  dev.on_node_created.disconnect(c1);
+  dev.on_node_removing.disconnect(c2);
+}
+
+TEST_CASE("a value for an undeclared variable creates it", "[bitfocus]")
+{
+  if(!hasNode())
+    return;
+  mock m;
+  device d{m};
+  d.run("/action/undeclared");
+  CHECK(waitFor([&] {
+    auto p = d.param("/variable/extra");
+    return p && p->value() == ossia::value{std::string("hello")};
+  }));
+}
+
+TEST_CASE("tree sync with thousands of variables", "[bitfocus][.bench]")
+{
+  if(!hasNode())
+    return;
+  mock m;
+  device d{m};
+  auto name = d.param("/variable/name");
+  REQUIRE(name);
+  auto time = [&](const char* what, int count) {
+    QElapsedTimer t;
+    t.start();
+    const auto expected = ossia::value{"many:" + std::to_string(count)};
+    name->set_value(std::string{});
+    d.param("/action/many/count")->set_value(count);
+    d.run("/action/many");
+    REQUIRE(waitFor([&] { return name->value() == expected; }, 60000));
+    // Queued after the tree update: done once the module has run it
+    d.run("/action/typed");
+    std::printf("%s: %lld ms\n", what, (long long)t.elapsed());
+  };
+  time("6000 variables, first time", 6000);
+  time("6000 variables, unchanged", 6000);
+  time("6001 variables", 6001);
+}
+
 TEST_CASE("failed actions are reported and do not stop later ones", "[bitfocus]")
 {
   if(!hasNode())

@@ -72,6 +72,54 @@ ossia::value receivedValue(const QVariant& v)
   }
 }
 
+std::unordered_map<std::string, ossia::net::node_base*>
+childIndex(ossia::net::node_base& n)
+{
+  std::unordered_map<std::string, ossia::net::node_base*> res;
+  const auto& cld = n.children();
+  res.reserve(cld.size());
+  for(auto& c : cld)
+    res.emplace(c->get_name(), c.get());
+  return res;
+}
+
+ossia::net::node_base& findOrCreate(
+    ossia::net::node_base& parent,
+    std::unordered_map<std::string, ossia::net::node_base*>& index,
+    const std::string& name)
+{
+  if(auto it = index.find(name); it != index.end())
+    return *it->second;
+  auto n = parent.create_child(name);
+  index.emplace(name, n);
+  return *n;
+}
+
+void setDescription(ossia::net::node_base& n, const QString& desc)
+{
+  auto str = desc.toStdString();
+  if(ossia::net::get_description(n) != str)
+    ossia::net::set_description(n, std::move(str));
+}
+
+//! Removes the children whose name is not a key of `model`
+template <typename Map>
+void removeGone(
+    ossia::net::node_base& parent, const Map& model,
+    const std::function<void(const std::string&)>& onRemove = {})
+{
+  std::vector<std::string> gone;
+  for(auto& c : parent.children())
+    if(!model.contains(QString::fromStdString(c->get_name())))
+      gone.push_back(c->get_name());
+  for(auto& name : gone)
+  {
+    if(onRemove)
+      onRemove(name);
+    parent.remove_child(name);
+  }
+}
+
 ossia::val_type feedbackType(const bitfocus::module_data::feedback_definition& fb)
 {
   if(fb.type == "boolean")
@@ -118,9 +166,20 @@ bitfocus_protocol::bitfocus_protocol(
       m_rc.get(), &bitfocus::module_handler::variableChanged, this,
       [this](const QString& name, const QVariant& v) {
     if(auto it = m_variables_recv.find(name); it != m_variables_recv.end())
+    {
       set_received_value(*it->second, receivedValue(v));
-    else if(nodes.variables)
-      sync_variables();
+    }
+    else if(m_dev)
+    {
+      auto& m = m_rc->model();
+      if(auto def = m.variables.find(name); def != m.variables.end())
+      {
+        if(!nodes.variables)
+          nodes.variables = m_dev->get_root_node().create_child("variable");
+        auto index = childIndex(*nodes.variables);
+        sync_variable(index, name, def->second);
+      }
+    }
   });
 
   QObject::connect(
@@ -132,7 +191,7 @@ bitfocus_protocol::bitfocus_protocol(
 
   QObject::connect(
       m_rc.get(), &bitfocus::module_handler::definitionsChanged, this,
-      [this] { init_device(); });
+      [this] { init_device(m_rc->takeChangedDefinitions()); });
 
   // A restarted module has no feedback subscribed
   QObject::connect(
@@ -243,6 +302,7 @@ void bitfocus_protocol::sync_options(
     ossia::net::node_base& node, const std::vector<config_field>& options)
 {
   std::vector<std::string> expected;
+  auto index = childIndex(node);
   for(const auto& opt : options)
   {
     if(opt.type == "static-text")
@@ -250,10 +310,8 @@ void bitfocus_protocol::sync_options(
     const auto name = opt.id.toStdString();
     expected.push_back(name);
 
-    auto cld = node.find_child(name);
-    if(!cld)
-      cld = node.create_child(name);
-    ossia::net::set_description(*cld, opt.label.toStdString());
+    auto cld = &findOrCreate(node, index, name);
+    setDescription(*cld, opt.label);
 
     const auto type = optionType(opt);
     auto p = cld->get_parameter();
@@ -296,20 +354,13 @@ void bitfocus_protocol::sync_actions()
     m_actionsNode = nodes.actions;
   }
 
-  std::vector<std::string> gone;
-  for(auto& c : nodes.actions->children())
-    if(!m.actions.contains(QString::fromStdString(c->get_name())))
-      gone.push_back(c->get_name());
-  for(auto& name : gone)
-    nodes.actions->remove_child(name);
+  removeGone(*nodes.actions, m.actions);
 
+  auto index = childIndex(*nodes.actions);
   for(auto& [id, def] : m.actions)
   {
-    const auto name = id.toStdString();
-    auto node = nodes.actions->find_child(name);
-    if(!node)
-      node = nodes.actions->create_child(name);
-    ossia::net::set_description(*node, def.name.toStdString());
+    auto node = &findOrCreate(*nodes.actions, index, id.toStdString());
+    setDescription(*node, def.name);
     if(!node->get_parameter())
       node->create_parameter(ossia::val_type::IMPULSE);
     sync_options(*node, def.options);
@@ -322,21 +373,15 @@ void bitfocus_protocol::sync_feedbacks()
   auto& root = m_dev->get_root_node();
 
   std::map<QString, bitfocus::module_data::feedback_instance> changes;
-  std::vector<std::string> gone;
   if(nodes.feedbacks)
-    for(auto& c : nodes.feedbacks->children())
-      if(!m.feedbacks.contains(QString::fromStdString(c->get_name())))
-        gone.push_back(c->get_name());
-  for(auto& name : gone)
-  {
-    const auto id = QString::fromStdString(name);
-    m_feedbacks_recv.erase(id);
-    nodes.feedbacks->remove_child(name);
-    bitfocus::module_data::feedback_instance inst;
-    inst.id = id;
-    inst.disabled = true;
-    changes[id] = inst;
-  }
+    removeGone(*nodes.feedbacks, m.feedbacks, [&](const std::string& name) {
+      const auto id = QString::fromStdString(name);
+      m_feedbacks_recv.erase(id);
+      bitfocus::module_data::feedback_instance inst;
+      inst.id = id;
+      inst.disabled = true;
+      changes[id] = inst;
+    });
 
   if(m.feedbacks.empty())
   {
@@ -354,13 +399,12 @@ void bitfocus_protocol::sync_feedbacks()
     }
 
     std::vector<std::string> ids;
+    auto index = childIndex(*nodes.feedbacks);
     for(auto& [id, def] : m.feedbacks)
     {
       const auto name = id.toStdString();
-      auto node = nodes.feedbacks->find_child(name);
-      if(!node)
-        node = nodes.feedbacks->create_child(name);
-      ossia::net::set_description(*node, def.name.toStdString());
+      auto node = &findOrCreate(*nodes.feedbacks, index, name);
+      setDescription(*node, def.name);
 
       const auto type = feedbackType(def);
       auto p = node->get_parameter();
@@ -423,48 +467,48 @@ void bitfocus_protocol::sync_variables()
   if(!nodes.variables)
     nodes.variables = root.create_child("variable");
 
-  std::vector<std::string> gone;
-  for(auto& c : nodes.variables->children())
-    if(!m.variables.contains(QString::fromStdString(c->get_name())))
-      gone.push_back(c->get_name());
-  for(auto& name : gone)
-  {
+  removeGone(*nodes.variables, m.variables, [this](const std::string& name) {
     m_variables_recv.erase(QString::fromStdString(name));
-    nodes.variables->remove_child(name);
-  }
+  });
 
+  auto index = childIndex(*nodes.variables);
   for(auto& [id, def] : m.variables)
-  {
-    const auto name = id.toStdString();
-    auto node = nodes.variables->find_child(name);
-    if(!node)
-      node = nodes.variables->create_child(name);
-    if(!def.name.isEmpty())
-      ossia::net::set_description(*node, def.name.toStdString());
-
-    auto p = node->get_parameter();
-    if(!p)
-    {
-      auto val = receivedValue(def.value);
-      p = node->create_parameter(
-          val.valid() && val.get_type() != ossia::val_type::IMPULSE
-              ? val.get_type()
-              : ossia::val_type::STRING);
-      if(val.valid())
-        p->set_value(val);
-    }
-    m_variables_recv[id] = p;
-  }
+    sync_variable(index, id, def);
 }
 
-void bitfocus_protocol::init_device()
+void bitfocus_protocol::sync_variable(
+    std::unordered_map<std::string, ossia::net::node_base*>& index, const QString& id,
+    const bitfocus::module_data::variable_definition& def)
+{
+  auto node = &findOrCreate(*nodes.variables, index, id.toStdString());
+  if(!def.name.isEmpty())
+    setDescription(*node, def.name);
+
+  auto p = node->get_parameter();
+  if(!p)
+  {
+    auto val = receivedValue(def.value);
+    p = node->create_parameter(
+        val.valid() && val.get_type() != ossia::val_type::IMPULSE
+            ? val.get_type()
+            : ossia::val_type::STRING);
+    if(val.valid())
+      p->set_value(val);
+  }
+  m_variables_recv[id] = p;
+}
+
+void bitfocus_protocol::init_device(int categories)
 {
   if(!m_dev)
     return;
 
-  sync_actions();
-  sync_feedbacks();
-  sync_variables();
+  if(categories & bitfocus::module_handler::Actions)
+    sync_actions();
+  if(categories & bitfocus::module_handler::Feedbacks)
+    sync_feedbacks();
+  if(categories & bitfocus::module_handler::Variables)
+    sync_variables();
 }
 
 void bitfocus_protocol::set_device(ossia::net::device_base& dev)

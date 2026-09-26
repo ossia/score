@@ -61,6 +61,8 @@ const actions = [
 	{ id: 'fail', name: 'Fails', options: [] },
 	{ id: 'crash', name: 'Crashes the module', options: [] },
 	{ id: 'churn', name: 'Sends its definitions again and again', options: [] },
+	{ id: 'many', name: 'Defines many variables', options: [{ type: 'number', id: 'count', label: 'Count', default: 10, min: 0, max: 100000 }] },
+	{ id: 'undeclared', name: 'Sets an undeclared variable', options: [] },
 	{ id: 'redefine', name: 'Adds an action', options: [] },
 	{ id: 'udp', name: 'Shared UDP', options: [{ type: 'number', id: 'port', label: 'Port', default: 0, min: 0, max: 65535 }] },
 	{ id: 'osc', name: 'Send OSC', options: [{ type: 'number', id: 'port', label: 'Port', default: 0, min: 0, max: 65535 }] },
@@ -159,6 +161,16 @@ const handlers = {
 				again()
 				break
 			}
+			case 'many': {
+				const vars = [{ id: 'name', name: 'Name' }, { id: 'count', name: 'Count' }]
+				for (let i = 0; i < a.options.count; i++) vars.push({ id: 'v' + i, name: 'Variable ' + i })
+				notify('setVariableDefinitions', { variables: vars, newValues: [] })
+				notify('setVariableValues', { newValues: [{ id: 'name', value: 'many:' + a.options.count }] })
+				break
+			}
+			case 'undeclared':
+				notify('setVariableValues', { newValues: [{ id: 'extra', value: 'hello' }] })
+				break
 			case 'crash':
 				setImmediate(() => {
 					throw new Error('crash')

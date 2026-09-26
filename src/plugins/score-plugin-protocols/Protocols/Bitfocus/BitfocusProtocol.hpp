@@ -9,6 +9,7 @@
 #include <QObject>
 
 #include <atomic>
+#include <unordered_map>
 
 namespace ossia::net
 {
@@ -30,7 +31,7 @@ public:
   void set_device(ossia::net::device_base& dev) override;
 
   //! Creates or updates the tree from the module's current definitions
-  void init_device();
+  void init_device(int categories = bitfocus::module_handler::All);
 
   //! The value an option parameter starts with
   static ossia::value optionDefault(const bitfocus::module_data::config_field& opt);
@@ -45,6 +46,9 @@ private:
   void sync_actions();
   void sync_feedbacks();
   void sync_variables();
+  void sync_variable(
+      std::unordered_map<std::string, ossia::net::node_base*>& index, const QString& id,
+      const bitfocus::module_data::variable_definition& def);
   void sync_options(
       ossia::net::node_base& node,
       const std::vector<bitfocus::module_data::config_field>& options);
@@ -65,7 +69,7 @@ private:
   std::atomic<ossia::net::node_base*> m_actionsNode{};
   std::atomic<ossia::net::node_base*> m_feedbacksNode{};
 
-  ossia::flat_map<QString, ossia::net::parameter_base*> m_variables_recv;
-  ossia::flat_map<QString, ossia::net::parameter_base*> m_feedbacks_recv;
+  std::unordered_map<QString, ossia::net::parameter_base*> m_variables_recv;
+  std::unordered_map<QString, ossia::net::parameter_base*> m_feedbacks_recv;
 };
 }

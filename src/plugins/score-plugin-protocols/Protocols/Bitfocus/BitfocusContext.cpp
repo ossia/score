@@ -561,8 +561,9 @@ void module_handler::completeRegistration()
     fun();
 }
 
-void module_handler::notifyDefinitionsChanged()
+void module_handler::notifyDefinitionsChanged(DefinitionCategory c)
 {
+  m_changedDefinitions |= c;
   if(!m_registered || m_definitionsPending)
     return;
   m_definitionsPending = true;
@@ -574,6 +575,9 @@ void module_handler::notifyDefinitionsChanged()
 
 void module_handler::on_setActionDefinitions(QJsonArray actions)
 {
+  if(actions == m_lastActions)
+    return;
+  m_lastActions = actions;
   m_model.actions.clear();
   for(auto act : actions)
   {
@@ -586,11 +590,17 @@ void module_handler::on_setActionDefinitions(QJsonArray actions)
 
     m_model.actions.emplace(obj["id"].toString(), std::move(def));
   }
-  notifyDefinitionsChanged();
+  notifyDefinitionsChanged(Actions);
 }
 
 void module_handler::on_setVariableDefinitions(QJsonArray vars, QJsonArray values)
 {
+  if(vars == m_lastVariables)
+  {
+    on_setVariableValues(values);
+    return;
+  }
+  m_lastVariables = vars;
   auto old = std::move(m_model.variables);
   m_model.variables.clear();
   for(auto var : vars)
@@ -604,11 +614,14 @@ void module_handler::on_setVariableDefinitions(QJsonArray vars, QJsonArray value
     m_model.variables[id] = std::move(def);
   }
   on_setVariableValues(values);
-  notifyDefinitionsChanged();
+  notifyDefinitionsChanged(Variables);
 }
 
 void module_handler::on_setFeedbackDefinitions(QJsonArray fbs)
 {
+  if(fbs == m_lastFeedbacks)
+    return;
+  m_lastFeedbacks = fbs;
   m_model.feedbacks.clear();
   for(auto fb : fbs)
   {
@@ -622,7 +635,7 @@ void module_handler::on_setFeedbackDefinitions(QJsonArray fbs)
 
     m_model.feedbacks.emplace(obj["id"].toString(), std::move(def));
   }
-  notifyDefinitionsChanged();
+  notifyDefinitionsChanged(Feedbacks);
 }
 
 void module_handler::on_setPresetDefinitions(QJsonArray presets)
