@@ -278,6 +278,8 @@ const Case survives[] = {
     {"reinitialize.notplaying", "Score.reinitialize()"},
     {"scrub.nan", "Score.scrub(NaN)"},
     {"scrub.neg", "Score.scrub(-1e12)"},
+    {"scrub.inf", "Score.scrub(Infinity)"},
+    {"scrub.huge", "Score.scrub(1e300)"},
     {"play.null", "Score.play(null)"},
     {"play.notinterval", "Score.play(proc)"},
     {"transport", "Score.transport()"},

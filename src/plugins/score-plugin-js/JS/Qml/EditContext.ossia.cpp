@@ -10,6 +10,13 @@
 #include <JS/Qml/EditContext.hpp>
 
 #include <Transport/DocumentPlugin.hpp>
+
+#include <ossia/editor/scenario/time_value.hpp>
+
+#include <algorithm>
+#include <cmath>
+#include <limits>
+
 namespace JS
 {
 
@@ -97,6 +104,18 @@ void EditJsContext::reinitialize()
 
 void EditJsContext::scrub(double dx)
 {
+  // TimeVal::fromMsecs converts to int64 flicks: NaN, infinities and values
+  // past that range are undefined behaviour there.
+  if(!std::isfinite(dx))
+  {
+    qWarning() << "Score.scrub: not a finite number of milliseconds";
+    return;
+  }
+  constexpr double max_ms
+      = double(std::numeric_limits<int64_t>::max()) / ossia::flicks_per_millisecond<double>
+        / 2.;
+  dx = std::clamp(dx, -max_ms, max_ms);
+
   auto plug
       = score::GUIAppContext().findGuiApplicationPlugin<Engine::ApplicationPlugin>();
   if(plug)
