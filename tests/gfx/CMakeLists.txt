@@ -2385,3 +2385,6 @@ score_add_gfx_test(compute_image_orientation GfxComputeImageOrientation.cpp)
 
 # A raw raster Mode that overrides the cabled geometry topology warns once.
 score_add_gfx_test(raw_raster_mode_topology GfxRawRasterModeTopology.cpp)
+
+# Raw raster Mode Geometry follows the cabled topology; CSF geometry TOPOLOGY.
+score_add_gfx_test(raw_raster_mode_geometry GfxRawRasterModeGeometry.cpp)

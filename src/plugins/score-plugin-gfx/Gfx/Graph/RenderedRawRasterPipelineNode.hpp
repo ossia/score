@@ -254,6 +254,9 @@ private:
   std::vector<std::pair<const void*, int64_t>> m_primitiveSourceBuffers;
   bool m_warnedPrimitiveData{false};
 
+  void applyModeTopology(
+      QRhiGraphicsPipeline& ps, int mode,
+      std::optional<QRhiGraphicsPipeline::Topology> geometry);
   void warnModeOverridesGeometry(
       std::optional<QRhiGraphicsPipeline::Topology> geometry,
       QRhiGraphicsPipeline::Topology drawn);
