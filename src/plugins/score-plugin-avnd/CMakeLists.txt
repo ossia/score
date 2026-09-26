@@ -1167,6 +1167,13 @@ avnd_make_score(
 )
 
 avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Spigot.hpp"
+  TARGET spigot
+  MAIN_CLASS Spigot
+  NAMESPACE ao
+)
+
+avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Midi/MidiSyncInput.hpp"
   TARGET midi_sync_input
   MAIN_CLASS MIDISyncIn
@@ -1334,6 +1341,9 @@ addAvndTest(port_unit_Test
              "${CMAKE_CURRENT_SOURCE_DIR}/Tests/port_unit_Test.cpp")
 addAvndTest(control_domain_Test
              "${CMAKE_CURRENT_SOURCE_DIR}/Tests/control_domain_Test.cpp")
+addAvndTest(utilities_Test
+             "${CMAKE_CURRENT_SOURCE_DIR}/Tests/Utilities_Test.cpp")
+target_include_directories(Avnd_utilities_Test PRIVATE "${AVND_FOLDER}")
 addAvndTest(shell_Test
              "${CMAKE_CURRENT_SOURCE_DIR}/Tests/Shell_Test.cpp")
 target_include_directories(Avnd_shell_Test PRIVATE "${AVND_FOLDER}")

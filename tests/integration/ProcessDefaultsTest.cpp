@@ -146,3 +146,14 @@ TEST_CASE(
     CHECK(control(*reloaded, QStringLiteral("Interpreter")));
   });
 }
+
+TEST_CASE("Spigot is available as a process", "[integration][utilities]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& app) {
+    auto doc = score::test::new_document(app);
+    auto sp = score::test::add_process(
+        *doc, QStringLiteral("8b75d69b-5ce4-4360-a066-c4a7f37f3353"), {});
+    REQUIRE(sp);
+    CHECK(control(*sp, QStringLiteral("Enabled")));
+  });
+}
