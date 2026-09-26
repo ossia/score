@@ -170,6 +170,14 @@ FixedTabWidget::addTab(QWidget* widg, const PanelStatus& v, int index)
   return std::make_pair(idx, btn);
 }
 
+FixedTabWidget::~FixedTabWidget()
+{
+  // The members go before ~QObject disconnects: m_stack deleting the tab
+  // widgets would run forgetTab on the already destroyed m_widgetActions.
+  for(auto& [widg, act] : m_widgetActions)
+    disconnect(widg, &QObject::destroyed, this, nullptr);
+}
+
 QAction* FixedTabWidget::actionFor(QWidget* widg) const noexcept
 {
   for(auto& [w, act] : m_widgetActions)

@@ -23,6 +23,7 @@ class SCORE_LIB_BASE_EXPORT FixedTabWidget : public QWidget
   W_OBJECT(FixedTabWidget)
 public:
   FixedTabWidget() noexcept;
+  ~FixedTabWidget();
 
   QActionGroup* actionGroup() const noexcept;
   QToolBar* toolbar() const noexcept;
