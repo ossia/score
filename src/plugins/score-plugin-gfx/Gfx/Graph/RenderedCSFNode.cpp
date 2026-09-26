@@ -76,6 +76,33 @@ void publishIndirectCountAux(ossia::geometry& out_geo, QRhiBuffer* cbuf)
       .byte_size = count_size});
 }
 
+template <typename AuxList>
+ossia::geometry::gpu_buffer
+forwardedIndirectCommands(const ossia::geometry& upstream, const AuxList& aux_ssbos)
+{
+  const auto& ic = upstream.indirect_count;
+  if(!ic.handle)
+    return ic;
+  for(const auto& in_aux : upstream.auxiliary)
+  {
+    if(in_aux.byte_offset != 0 || in_aux.buffer < 0
+       || in_aux.buffer >= (int)upstream.buffers.size())
+      continue;
+    const auto* gpu = ossia::get_if<ossia::geometry::gpu_buffer>(
+        &upstream.buffers[in_aux.buffer].data);
+    if(!gpu || gpu->handle != ic.handle)
+      continue;
+    for(const auto& aux : aux_ssbos)
+    {
+      if(aux.name != in_aux.name || aux.is_uniform || !aux.owned || !aux.buffer
+         || aux.buffer == ic.handle || aux.access == "read_only" || aux.size <= 0)
+        continue;
+      return ossia::geometry::gpu_buffer{aux.buffer, std::min(aux.size, ic.byte_size)};
+    }
+  }
+  return ic;
+}
+
 // Largest minStorageBufferOffsetAlignment Vulkan allows, and the largest
 // GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT OpenGL allows.
 constexpr int64_t kStorageOffsetAlignment = 256;
@@ -2004,8 +2031,12 @@ void RenderedCSFNode::updateGeometryBindings(
                      || (aux.size_expr.empty() && aux.size != published))
                   {
                     releaseSlot(renderer, aux);
+                    QRhiBuffer::UsageFlags usage = QRhiBuffer::StorageBuffer;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+                    usage |= QRhiBuffer::IndirectBuffer;
+#endif
                     auto* buf = renderer.state.rhi->newBuffer(
-                        QRhiBuffer::Static, QRhiBuffer::StorageBuffer, published);
+                        QRhiBuffer::Static, usage, published);
                     buf->setName(QByteArray("CSF_GeoAuxRestore_") + aux.name.c_str());
                     if(!buf->create())
                     {
@@ -2883,14 +2914,16 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
         // ScenePreprocessor sets indirect_count to the MDI indirect_draw_cmds buffer,
         // which a downstream MDI rasterizer reads from out_geo.indirect_count for its
         // vkCmdDrawIndexedIndirect.
-        out_geo.indirect_count = binding_upstream->indirect_count;
+        out_geo.indirect_count
+            = forwardedIndirectCommands(*binding_upstream, binding.auxiliary_ssbos);
       }
 
       // Forward CPU-side draw commands: ScenePreprocessor populates cpu_draw_commands
       // for the non-GPU-indirect fallback path, and without the forward
       // CustomMesh::update skips its assign() and the fallback issues drawIndexed with
       // whatever output_meshbuf.cpuDrawCommands still held.
-      if(binding_upstream && !binding_upstream->cpu_draw_commands.empty())
+      if(binding_upstream && !binding_upstream->cpu_draw_commands.empty()
+         && out_geo.indirect_count.handle == binding_upstream->indirect_count.handle)
       {
         out_geo.cpu_draw_commands.assign(
             binding_upstream->cpu_draw_commands.begin(),
@@ -3124,10 +3157,12 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
       {
         // Mirror the full-rebuild path: forward upstream's indirect-draw buffer when
         // this CSF produces none.
-        if(out_geo.indirect_count.handle != binding_upstream->indirect_count.handle
-           || out_geo.indirect_count.byte_size != binding_upstream->indirect_count.byte_size)
+        const auto ic
+            = forwardedIndirectCommands(*binding_upstream, binding.auxiliary_ssbos);
+        if(out_geo.indirect_count.handle != ic.handle
+           || out_geo.indirect_count.byte_size != ic.byte_size)
         {
-          out_geo.indirect_count = binding_upstream->indirect_count;
+          out_geo.indirect_count = ic;
           any_handle_changed = true;
         }
       }
@@ -3137,7 +3172,12 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
       // binding's outputGeometry mesh holds a copy that can drift if
       // upstream rebuilds (e.g. a scene reload). Cheap re-assign each
       // frame; ScenePreprocessor's command list is at most ~1k entries.
-      if(binding_upstream && !binding_upstream->cpu_draw_commands.empty())
+      if(binding_upstream
+         && out_geo.indirect_count.handle != binding_upstream->indirect_count.handle)
+      {
+        out_geo.cpu_draw_commands.clear();
+      }
+      else if(binding_upstream && !binding_upstream->cpu_draw_commands.empty())
       {
         out_geo.cpu_draw_commands.assign(
             binding_upstream->cpu_draw_commands.begin(),
