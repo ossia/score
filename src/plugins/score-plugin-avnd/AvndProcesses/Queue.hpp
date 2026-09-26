@@ -8,6 +8,7 @@
 #include <halp/value_types.hpp>
 
 #include <optional>
+#include <utility>
 
 namespace avnd_tools
 {
@@ -36,7 +37,8 @@ struct Queue
   };
   struct
   {
-    halp::val_port<"Input", ossia::value> input;
+    // An event port: only the messages received this tick are queued.
+    halp::val_port<"Input", std::optional<ossia::value>> input;
     struct : halp::spinbox_i32<"Max length", halp::range{0, 100000, 100}>
     {
       void update(Queue& self)
@@ -46,45 +48,64 @@ struct Queue
         self.buffer.set_capacity(this->value);
       }
     } length;
-    halp::maintained_button<"Clear"> clear;
+    // An impulse, from the button or a message: a maintained button read an
+    // incoming impulse as false and never cleared.
+    struct : halp::impulse_button<"Clear">
+    {
+      void update(Queue& self) { self.buffer.clear(); }
+    } clear;
     halp::maintained_button<"Lock"> lock;
     halp::enum_t<OutputMode, "Mode"> mode;
     halp::enum_t<OutputData, "Data"> data;
-    halp::val_port<"Bang", std::optional<halp::impulse>> bang;
+    // Like Counter's "Output": sends the output now, whatever the mode (and
+    // pops in the manual pop mode).
+    struct : halp::impulse_button<"Bang">
+    {
+      void update(Queue& self) { self.banged = true; }
+    } bang;
   } inputs;
 
   struct
   {
-    halp::val_port<"Output", ossia::value> output;
+    // Optional: in the manual and "when full" modes the last output must not
+    // be sent again at every tick.
+    halp::val_port<"Output", std::optional<ossia::value>> output;
   } outputs;
 
   boost::circular_buffer<ossia::value> buffer;
+  bool banged{};
 
   void operator()()
   {
-    if(inputs.input.value.valid())
+    const bool bang = std::exchange(banged, false);
+    outputs.output.value.reset();
+    // Sent again only when it changed: a whole buffer of up to 100000 values
+    // is not copied out at every tick.
+    bool changed = false;
+    if(inputs.input.value)
     {
-      if(!inputs.lock && !inputs.clear)
-        buffer.push_back(std::move(inputs.input.value));
+      if(!inputs.lock)
+        buffer.push_back(std::move(*inputs.input.value));
+        changed = true;
+      }
+      inputs.input.value.reset();
     }
 
-    if(inputs.clear)
-      buffer.clear();
-
-    if(inputs.mode == OutputMode::WhenFull)
+    switch(inputs.mode)
     {
-      if(buffer.size() < buffer.capacity())
-        return;
-    }
-    else if(inputs.mode == OutputMode::ManualBang)
-    {
-      if(!inputs.bang.value)
-        return;
-    }
-    else if(inputs.mode == OutputMode::ManualPop)
-    {
-      if(!inputs.bang.value)
-        return;
+      case OutputMode::Always:
+        if(!bang && !changed)
+          return;
+        break;
+      case OutputMode::WhenFull:
+        if(!bang && (!changed || buffer.size() < buffer.capacity()))
+          return;
+        break;
+      case OutputMode::ManualBang:
+      case OutputMode::ManualPop:
+        if(!bang)
+          return;
+        break;
     }
 
     if(buffer.empty())

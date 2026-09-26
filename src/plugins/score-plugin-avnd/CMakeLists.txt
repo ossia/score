@@ -1343,7 +1343,7 @@ addAvndTest(control_domain_Test
              "${CMAKE_CURRENT_SOURCE_DIR}/Tests/control_domain_Test.cpp")
 addAvndTest(utilities_Test
              "${CMAKE_CURRENT_SOURCE_DIR}/Tests/Utilities_Test.cpp")
-target_include_directories(Avnd_utilities_Test PRIVATE "${AVND_FOLDER}")
+target_include_directories(Avnd_utilities_Test PRIVATE "${AVND_FOLDER}" "${CMAKE_CURRENT_SOURCE_DIR}")
 addAvndTest(shell_Test
              "${CMAKE_CURRENT_SOURCE_DIR}/Tests/Shell_Test.cpp")
 target_include_directories(Avnd_shell_Test PRIVATE "${AVND_FOLDER}")

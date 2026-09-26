@@ -163,3 +163,75 @@ TEST_CASE("Accumulator: reset forgets everything", "[avnd][utilities][accumulato
   tick(a, 2.f);
   CHECK(a.outputs.diff.value == 2.f);
 }
+
+#include <AvndProcesses/Queue.hpp>
+
+namespace
+{
+struct QueueRig
+{
+  avnd_tools::Queue q;
+  explicit QueueRig(avnd_tools::Queue::OutputMode mode, int length = 3)
+  {
+    q.inputs.mode.value = mode;
+    q.inputs.length.value = length;
+    q.inputs.length.update(q);
+  }
+  std::optional<ossia::value>
+  tick(std::optional<ossia::value> in, bool bang = false, bool clear = false)
+  {
+    q.inputs.input.value = std::move(in);
+    if(clear)
+      q.inputs.clear.update(q);
+    if(bang)
+      q.inputs.bang.update(q);
+    q();
+    return q.outputs.output.value;
+  }
+};
+}
+
+TEST_CASE("Buffer queue: Clear is an impulse", "[avnd][utilities][queue]")
+{
+  QueueRig r{avnd_tools::Queue::ManualBang};
+  r.q.inputs.data.value = avnd_tools::Queue::WholeBuffer;
+  r.tick(ossia::value{1});
+  r.tick(ossia::value{2});
+  r.tick(std::nullopt, false, true);
+  auto out = r.tick(std::nullopt, true);
+  REQUIRE(out);
+  CHECK(out->get<std::vector<ossia::value>>().empty());
+}
+
+TEST_CASE("Buffer queue: Bang sends in any mode, like Counter's Output", "[avnd][utilities][queue]")
+{
+  SECTION("when full, before it is")
+  {
+    QueueRig r{avnd_tools::Queue::WhenFull};
+    CHECK_FALSE(r.tick(ossia::value{1}));
+    CHECK(r.tick(std::nullopt, true) == ossia::value{1});
+  }
+  SECTION("manual: once per bang, not again at every tick")
+  {
+    QueueRig r{avnd_tools::Queue::ManualBang};
+    CHECK_FALSE(r.tick(ossia::value{1}));
+    CHECK(r.tick(std::nullopt, true) == ossia::value{1});
+    CHECK_FALSE(r.tick(std::nullopt));
+  }
+  SECTION("manual pop")
+  {
+    QueueRig r{avnd_tools::Queue::ManualPop};
+    r.tick(ossia::value{1});
+    r.tick(ossia::value{2});
+    CHECK(r.tick(std::nullopt, true) == ossia::value{1});
+    CHECK(r.tick(std::nullopt, true) == ossia::value{2});
+  }
+  SECTION("an input is queued once, not at every tick after it")
+  {
+    QueueRig r{avnd_tools::Queue::ManualPop, 10};
+    r.tick(ossia::value{1});
+    r.tick(std::nullopt);
+    r.tick(std::nullopt);
+    CHECK(r.q.buffer.size() == 1);
+  }
+}

@@ -1,5 +1,9 @@
 // Default values of controls as a new process shows them.
 #include <Process/Dataflow/Port.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Process/Dataflow/Cable.hpp>
+#include <Dataflow/Commands/EditConnection.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
 #include <Process/Process.hpp>
 
@@ -155,5 +159,104 @@ TEST_CASE("Spigot is available as a process", "[integration][utilities]")
         *doc, QStringLiteral("8b75d69b-5ce4-4360-a066-c4a7f37f3353"), {});
     REQUIRE(sp);
     CHECK(control(*sp, QStringLiteral("Enabled")));
+  });
+}
+
+namespace
+{
+// The type of a named inlet of every process with this uuid rewritten: a
+// document saved when that port was of another kind.
+QByteArray retypeInlet(
+    const QByteArray& json, const QString& proc, const QString& port, const QString& type)
+{
+  return editInlets(json, proc, [&](QJsonArray& inlets) {
+    for(auto i = 0; i < inlets.size(); i++)
+    {
+      auto in = inlets[i].toObject();
+      if(in.value("Custom").toString() != port)
+        continue;
+      in["uuid"] = type;
+      if(type == QStringLiteral("feb87e84-e0d2-428f-96ff-a123ac964f59"))
+      {
+        auto inlets = o.value("Inlets").toArray();
+        for(auto i = 0; i < inlets.size(); i++)
+        {
+          auto in = inlets[i].toObject();
+          if(in.value("Custom").toString() == port)
+          {
+            in["uuid"] = type;
+            if(type == QStringLiteral("feb87e84-e0d2-428f-96ff-a123ac964f59"))
+            {
+              // A maintained button's value
+              in["Value"] = QJsonObject{{"Bool", false}};
+              in["Init"] = QJsonObject{{"Bool", false}};
+              in["Domain"] = QJsonObject{{"Bool", QJsonValue{}}};
+            }
+            else
+            {
+              in.remove("Value");
+              in.remove("Init");
+              in.remove("Domain");
+            }
+            inlets[i] = in;
+          }
+        }
+        o["Inlets"] = inlets;
+      }
+      else if(type == QStringLiteral("769dd38a-bfb3-4dc6-b52a-b6abb7afe2a3"))
+      {
+        // A value inlet has no value of its own
+        in.remove("Value");
+        in.remove("Init");
+        in.remove("Domain");
+      }
+      inlets[i] = in;
+    }
+  });
+}
+}
+
+TEST_CASE(
+    "a buffer queue saved with a held Clear and a Bang value inlet gets the impulses",
+    "[integration][utilities][queue]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& app) {
+    const QString queue = QStringLiteral("8f68b81e-e5ba-4a10-a888-6581a5d770fe");
+    auto doc = score::test::new_document(app);
+    auto q = score::test::add_process(*doc, queue, {});
+    REQUIRE(q);
+    CHECK(qobject_cast<Process::ImpulseButton*>(control(*q, QStringLiteral("Clear"))));
+    CHECK(qobject_cast<Process::ImpulseButton*>(control(*q, QStringLiteral("Bang"))));
+
+    // A cable into Clear, which the upgrade must keep
+    auto spigot = score::test::add_process(
+        *doc, QStringLiteral("8b75d69b-5ce4-4360-a066-c4a7f37f3353"), {});
+    REQUIRE(spigot);
+    auto& dp
+        = static_cast<Scenario::ScenarioDocumentModel&>(doc->model().modelDelegate());
+    CommandDispatcher<>{doc->context().commandStack}.submit(new Dataflow::CreateCable{
+        dp, Id<Process::Cable>{4242}, Process::CableType::ImmediateGlutton,
+        *spigot->outlets()[0], *control(*q, QStringLiteral("Clear"))});
+    REQUIRE(control(*q, QStringLiteral("Clear"))->cables().size() == 1);
+
+    auto old = score::test::save_as_json(*doc);
+    old = retypeInlet(old, queue, QStringLiteral("Clear"),
+                      QStringLiteral("feb87e84-e0d2-428f-96ff-a123ac964f59")); // Button
+    old = retypeInlet(old, queue, QStringLiteral("Bang"),
+                      QStringLiteral("769dd38a-bfb3-4dc6-b52a-b6abb7afe2a3")); // ValueInlet
+    auto reloaded = reloadedAs(app, old, *q);
+    REQUIRE(reloaded);
+    CHECK(reloaded->inlets().size() == q->inlets().size());
+    CHECK(qobject_cast<Process::ImpulseButton*>(control(*reloaded, QStringLiteral("Clear"))));
+    CHECK(qobject_cast<Process::ImpulseButton*>(control(*reloaded, QStringLiteral("Bang"))));
+
+    // The cable came through, on both ends
+    auto clear = control(*reloaded, QStringLiteral("Clear"));
+    REQUIRE(clear->cables().size() == 1);
+    auto& loaded = score::IDocument::documentContext(*reloaded);
+    auto& rdp = score::IDocument::modelDelegate<Scenario::ScenarioDocumentModel>(
+        loaded.document);
+    REQUIRE(rdp.cables.size() == 1);
+    CHECK(&rdp.cables.begin()->sink().find(loaded) == clear);
   });
 }
