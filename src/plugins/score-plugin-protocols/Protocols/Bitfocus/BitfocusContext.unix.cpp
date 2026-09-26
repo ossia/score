@@ -1,5 +1,6 @@
 #include "BitfocusContext.hpp"
 
+#include <QDebug>
 #include <QTimer>
 
 #include <poll.h>
@@ -24,8 +25,12 @@ module_handler_base::module_handler_base(
 
 void module_handler_base::start_process()
 {
-  // Create socketpair
-  socketpair(PF_LOCAL, SOCK_STREAM, 0, pfd);
+  if(::socketpair(PF_LOCAL, SOCK_STREAM, 0, pfd) != 0)
+  {
+    qWarning() << "Bitfocus: cannot create the socket for" << m_modulePath;
+    pfd[0] = pfd[1] = -1;
+    return;
+  }
   // Only the child's end is inherited
   ::fcntl(pfd[0], F_SETFD, FD_CLOEXEC);
 #if defined(SO_NOSIGPIPE)
@@ -78,6 +83,7 @@ void module_handler_base::release_process(int grace_ms)
   delete socket;
   socket = nullptr;
   queue.clear();
+  scanned = 0;
   const int fd = std::exchange(pfd[0], -1);
   auto proc = process.release();
   if(!proc)
@@ -137,17 +143,19 @@ void module_handler_base::on_read(QSocketDescriptor, QSocketNotifier::Type)
 void module_handler_base::process_queue()
 {
   std::size_t start = 0;
+  std::size_t from = scanned;
   for(;;)
   {
-    auto begin = queue.begin() + start;
-    auto nl = std::find(begin, queue.end(), '\n');
+    auto nl = std::find(queue.begin() + from, queue.end(), '\n');
     if(nl == queue.end())
       break;
-    std::size_t len = nl - begin;
+    const std::size_t len = (nl - queue.begin()) - start;
     this->processMessage(std::string_view(queue.data() + start, len));
     start += len + 1;
+    from = start;
   }
   queue.erase(queue.begin(), queue.begin() + start);
+  scanned = queue.size();
 }
 
 void module_handler_base::do_write(std::string_view res)

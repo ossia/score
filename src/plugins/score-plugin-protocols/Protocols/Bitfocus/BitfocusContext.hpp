@@ -171,6 +171,8 @@ struct module_handler_base : public QObject
 {
   char buf[16 * 4096]{};
   std::vector<char> queue;
+  //! Bytes of the queue already searched for a message end
+  std::size_t scanned{};
   std::unique_ptr<QProcess> process;
   QSocketNotifier* socket{};
   int pfd[2]{-1, -1};

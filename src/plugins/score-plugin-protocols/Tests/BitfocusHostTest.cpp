@@ -475,6 +475,22 @@ TEST_CASE("a value for an undeclared variable creates it", "[bitfocus]")
   }));
 }
 
+TEST_CASE("a message of several megabytes", "[bitfocus][.bench]")
+{
+  if(!hasNode())
+    return;
+  mock m;
+  device d{m};
+  auto name = d.param("/variable/name");
+  REQUIRE(name);
+  QElapsedTimer t;
+  t.start();
+  d.run("/action/huge");
+  REQUIRE(waitFor([&] { return name->value() == ossia::value{std::string("after huge")}; }, 60000));
+  std::printf("5 MB message: %lld ms\n", (long long)t.elapsed());
+  CHECK(m.handler->model().presets.size() == 20000);
+}
+
 TEST_CASE("tree sync with thousands of variables", "[bitfocus][.bench]")
 {
   if(!hasNode())

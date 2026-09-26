@@ -65,6 +65,7 @@ const actions = [
 	{ id: 'undeclared', name: 'Sets an undeclared variable', options: [] },
 	{ id: 'levels', name: 'Numbers of both kinds', options: [] },
 	{ id: 'addFeedback', name: 'Defines one more feedback', options: [] },
+	{ id: 'huge', name: 'Sends 5 MB of presets', options: [] },
 	{ id: 'redefine', name: 'Adds an action', options: [] },
 	{ id: 'udp', name: 'Shared UDP', options: [{ type: 'number', id: 'port', label: 'Port', default: 0, min: 0, max: 65535 }] },
 	{ id: 'osc', name: 'Send OSC', options: [{ type: 'number', id: 'port', label: 'Port', default: 0, min: 0, max: 65535 }, { type: 'textinput', id: 'host', label: 'Host', default: '127.0.0.1' }] },
@@ -176,6 +177,13 @@ const handlers = {
 				const seq = [0.5, 1, 0.75, 2, 0.25]
 				seq.forEach((v, i) => setTimeout(() => notify('setVariableValues', { newValues: [{ id: 'count', value: v }] }), 50 * i))
 				setTimeout(() => notify('setVariableValues', { newValues: [{ id: 'name', value: 1790000000123 }] }), 300)
+				break
+			}
+			case 'huge': {
+				const presets = []
+				for (let i = 0; i < 20000; i++) presets.push({ id: 'p' + i, type: 'button', category: 'c', name: 'x'.repeat(200), style: {}, steps: [], feedbacks: [] })
+				notify('setPresetDefinitions', { presets })
+				notify('setVariableValues', { newValues: [{ id: 'name', value: 'after huge' }] })
 				break
 			}
 			case 'addFeedback':
