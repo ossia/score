@@ -4,6 +4,7 @@ Name=ossia score
 Comment=An interactive sequencer for the intermedia arts
 Exec=ossia-score
 Icon=ossia-score
+StartupWMClass=ossia-score
 Terminal=false
 Categories=AudioVideo;
 X-AppImage-Name=ossia score
