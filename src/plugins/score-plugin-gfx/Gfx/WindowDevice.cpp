@@ -139,15 +139,24 @@ void WindowDevice::grabTo(const QString& path) const
   const QPointer<const WindowDevice> self{this};
   const QString name = m_settings.name;
   const auto closed = [&] {
-    qWarning() << "grabTo:" << name << "was closed during the grab; nothing written to"
-               << path;
+    qWarning().nospace().noquote()
+        << "score.gfx: grabTo stopped: " << name
+        << " was closed during the grab, so nothing was written to " << path
+        << ". The device was disconnected or deleted while grabTo pumped the event "
+           "loop (a /script message, a device edit or the document closing). Keep the "
+           "device and its document open until grabTo returns, then call grabTo again.";
   };
   const auto hasPlugin = [this] { return m_ctx.findPlugin<Gfx::DocumentPlugin>(); };
 
   if(auto plug = hasPlugin(); plug && plug->context.renderInProgress())
   {
-    qWarning() << "grabTo: called while a frame of" << name
-               << "is being rendered; nothing written to" << path;
+    qWarning().nospace().noquote()
+        << "score.gfx: grabTo refused: a frame is already being rendered, so nothing "
+           "was written to "
+        << path << " (device " << name
+        << "). It was reached from inside that frame: a node's tick() or a readback "
+           "callback called grabTo or pumped the event loop. Call grabTo outside a "
+           "node's tick() or a readback callback.";
     return;
   }
 

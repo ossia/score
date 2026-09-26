@@ -1448,9 +1448,10 @@ struct texture_inputs_storage<T>
           = avnd::gpu_texture_port<F> && halp::samplable_depth_of<F>();
       if constexpr(avnd::gpu_texture_port<F>)
       {
-        createInput(
-            renderer, parent.input[N], t.texture, spec, wantsSamplableDepth,
-            spec.mipmap_mode != QRhiSampler::None);
+        if(!single_cable_port<F> || singleCableNeedsTarget(renderer, *parent.input[N]))
+          createInput(
+              renderer, parent.input[N], t.texture, spec, wantsSamplableDepth,
+              spec.mipmap_mode != QRhiSampler::None);
         auto* sampler = renderer.state.rhi->newSampler(
             spec.mag_filter, spec.min_filter, spec.mipmap_mode, spec.address_u,
             spec.address_v, spec.address_w);
@@ -1508,6 +1509,36 @@ struct texture_inputs_storage<T>
       return it->second->textureForOutput(*edge->source);
     }
     return nullptr;
+  }
+
+  static bool
+  singleCableNeedsTarget(score::gfx::RenderList& renderer, const score::gfx::Port& port)
+  {
+    return !port.edges.empty() && !singleCableTexture(renderer, port);
+  }
+
+  static bool
+  composited(score::gfx::RenderList& renderer, const score::gfx::Port& port)
+  {
+    for(auto* edge : port.edges)
+    {
+      if(!edge || !edge->source || !edge->source->node)
+        continue;
+      auto& rendered = edge->source->node->renderedNodes;
+      if(auto it = rendered.find(&renderer);
+         it != rendered.end() && it->second && it->second->hasOutputPassForEdge(*edge))
+        return true;
+    }
+    return false;
+  }
+
+  void releaseTarget(const score::gfx::Port* port)
+  {
+    if(auto it = m_rts.find(port); it != m_rts.end())
+    {
+      it->second.release();
+      m_rts.erase(it);
+    }
   }
 
   QRhiSampler* refreshSampler(
@@ -1589,8 +1620,15 @@ struct texture_inputs_storage<T>
         if constexpr(single_cable_port<F>)
         {
           src = singleCableTexture(renderer, *port);
-          if(!src && !port->edges.empty() && rt_it != m_rts.end())
+          if(src)
+          {
+            if(rt_it != m_rts.end() && !composited(renderer, *port))
+              releaseTarget(port);
+          }
+          else if(!port->edges.empty() && rt_it != m_rts.end())
+          {
             src = rt_it->second.texture;
+          }
         }
         else if(auto [wired, direct]
                 = upstreamTexture(renderer, self.node(), N, *port, mipmapped);
@@ -1629,6 +1667,39 @@ struct texture_inputs_storage<T>
   bool update(auto& self,
       score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res)
   {
+    avnd::texture_input_introspection<T>::for_all_n2(
+        avnd::get_inputs<T>(*self.state),
+        [&]<typename F, std::size_t K, std::size_t N>(
+            F& t, avnd::predicate_index<K>, avnd::field_index<N>) {
+      if constexpr(single_cable_port<F> && avnd::gpu_texture_port<F>)
+      {
+        auto& parent = self.node();
+        auto* port = parent.input[N];
+        if(m_rts.find(port) != m_rts.end() || !singleCableNeedsTarget(renderer, *port))
+          return;
+        auto spec = renderer.resolveInputRenderTargetSpecs(parent, N);
+        if constexpr(requires {
+                       t.request_width;
+                       t.request_height;
+                     })
+        {
+          spec.size.rwidth() = t.request_width;
+          spec.size.rheight() = t.request_height;
+        }
+        createInput(
+            renderer, port, t.texture, spec, false,
+            spec.mipmap_mode != QRhiSampler::None);
+        for(auto* edge : port->edges)
+        {
+          auto& rendered = edge->source->node->renderedNodes;
+          if(auto it = rendered.find(&renderer); it != rendered.end() && it->second)
+          {
+            it->second->removeOutputPass(renderer, *edge);
+            it->second->addOutputPass(renderer, *edge, res);
+          }
+        }
+      }
+    });
 #if 0
     bool need_update = false;
     avnd::texture_input_introspection<T>::for_all_n2(
