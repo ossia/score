@@ -80,6 +80,10 @@ private:
   bool m_grab{};
   bool m_hasExec{};
   bool m_noValueChangeOnMove{};
+  // The +/- strip: the half held down (0 for none), and whether the pointer
+  // is still on it.
+  int m_pressedStep{};
+  bool m_stepArmed{};
 
 public:
   double min{}, max{}, init{};
@@ -92,6 +96,9 @@ public:
   void setRange(double min, double max, double init);
   void setNoValueChangeOnMove(bool);
   int value() const;
+
+  //! Adds n to the value within the range, as a press on the +/- strip does.
+  void step(int n);
 
   bool moving = false;
 
