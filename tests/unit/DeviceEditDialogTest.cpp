@@ -19,6 +19,7 @@
 
 #include <score/plugins/Interface.hpp>
 
+#include <QLineEdit>
 #include <QApplication>
 #include <QKeyEvent>
 #include <QTreeWidget>
@@ -541,5 +542,35 @@ TEST_CASE("setting the settings moves the protocol list", "[deviceexplorer]")
     REQUIRE(current != nullptr);
     CHECK(current->text(0) == "BPlain");
     CHECK(f.dialog->getSettings().protocol == PlainFactory::static_concreteKey());
+  });
+}
+
+// Ctrl+B opens the dialog to add a device: the protocol can be typed at once.
+TEST_CASE("adding a device starts in the protocol filter", "[deviceexplorer]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+
+    KeyboardFixture f{*doc};
+    auto filter = f.dialog->protocolsFilter();
+    REQUIRE(filter);
+    CHECK(f.dialog->focusWidget() == filter);
+  });
+}
+
+TEST_CASE("editing a device does not start in the protocol filter", "[deviceexplorer]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    Harness h;
+    auto& model = Explorer::deviceExplorerFromContext(doc->context());
+    auto dialog = new Explorer::DeviceEditDialog{
+        model, h.protocols, Explorer::DeviceEditDialog::Editing, nullptr};
+    dialog->show();
+    QApplication::processEvents();
+    CHECK(dialog->focusWidget() != dialog->protocolsFilter());
+    delete dialog;
   });
 }

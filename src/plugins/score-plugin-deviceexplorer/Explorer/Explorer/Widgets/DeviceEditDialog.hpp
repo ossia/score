@@ -18,6 +18,7 @@ class QFormLayout;
 class QWidget;
 class QListWidget;
 class QTreeWidget;
+class QLineEdit;
 class QStackedWidget;
 class QVBoxLayout;
 class QLabel;
@@ -71,6 +72,12 @@ public:
 
   //! The tree listing the available protocols.
   QTreeWidget* protocolsTree() const noexcept { return m_protocols; }
+
+  //! The line edit filtering the protocols tree.
+  QLineEdit* protocolsFilter() const noexcept;
+
+protected:
+  void showEvent(QShowEvent* ev) override;
 
 private:
   void selectedProtocolChanged();

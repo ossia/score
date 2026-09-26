@@ -34,6 +34,7 @@
 #include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
+#include <QShowEvent>
 #include <QListWidget>
 #include <QPushButton>
 #include <QSettings>
@@ -221,6 +222,20 @@ private:
   std::string m_needle;
   std::optional<rapidfuzz::fuzz::CachedPartialRatio<char>> m_scorer;
 };
+
+QLineEdit* DeviceEditDialog::protocolsFilter() const noexcept
+{
+  return m_protocolsSearch;
+}
+
+// Adding a device starts with picking its protocol: the filter has the focus,
+// so that the protocol can be typed right after the shortcut.
+void DeviceEditDialog::showEvent(QShowEvent* ev)
+{
+  QDialog::showEvent(ev);
+  if(m_mode == Mode::Creating && m_protocolsSearch && m_protocolsSearch->isVisible())
+    m_protocolsSearch->setFocus(Qt::OtherFocusReason);
+}
 
 DeviceEditDialog::DeviceEditDialog(
     const DeviceExplorerModel& model, const Device::ProtocolFactoryList& pl, Mode mode,
