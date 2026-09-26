@@ -30,11 +30,25 @@ ProcessState::ProcessState(ProcessModel& model, double watchedPoint, QObject* pa
 {
   SCORE_ASSERT(0 <= watchedPoint && watchedPoint <= 1);
 
-  con(this->process(), &ProcessModel::curveChanged, this,
-      &ProcessStateDataInterface::stateChanged);
-
+  // The neighbouring states and automations and the inspector listen to
+  // this state: a curve change that leaves its message as it was (a resize,
+  // a point in the middle of the curve) must not reach them, or resizing an
+  // interval with many automations rebuilds the message trees of every state.
+  con(this->process(), &ProcessModel::curveChanged, this, &ProcessState::updateMessages);
   con(this->process(), &ProcessModel::addressChanged, this,
-      &ProcessStateDataInterface::stateChanged);
+      &ProcessState::updateMessages);
+  // With tween the start has no message of its own and takes the address over
+  if(m_point == 0.)
+    con(this->process(), &ProcessModel::tweenChanged, this, &ProcessState::updateMessages);
+}
+
+void ProcessState::updateMessages()
+{
+  auto current = messages();
+  if(m_announced && *m_announced == current)
+    return;
+  m_announced = std::move(current);
+  stateChanged();
 }
 
 // TESTME

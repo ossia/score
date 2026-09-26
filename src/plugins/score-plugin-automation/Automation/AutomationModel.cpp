@@ -218,9 +218,9 @@ void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 
 void ProcessModel::setCurve_impl()
 {
-  connect(m_curve, &Curve::Model::changed, this, [&]() {
-    m_startState->messagesChanged();
-    m_endState->messagesChanged();
+  connect(m_curve, &Curve::Model::changed, this, [this]() {
+    m_startState->updateMessages();
+    m_endState->updateMessages();
   });
 }
 

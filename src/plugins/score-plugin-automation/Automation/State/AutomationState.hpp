@@ -7,6 +7,7 @@
 
 #include <score_plugin_automation_export.h>
 
+#include <optional>
 #include <vector>
 
 class QObject;
@@ -34,7 +35,12 @@ public:
   ::State::MessageList
   setMessages(const ::State::MessageList&, const Process::MessageNode&) override;
 
+  //! Emits stateChanged (and so messagesChanged) if messages() differs from
+  //! what was last announced.
+  void updateMessages();
+
 private:
   double m_point{};
+  std::optional<::State::MessageList> m_announced;
 };
 }
