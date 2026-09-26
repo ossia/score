@@ -352,6 +352,8 @@ public:
     auto it = m_eglSlots.find(b);
     if(it == m_eglSlots.end() || !it->second.ready)
     {
+      if(it == m_eglSlots.end())
+        reportUnbackedBuffer();
       // Slot's GL import hasn't happened yet (deferred), or no slot.
       // Drop this frame; pipewire pacing absorbs the loss.
       pw.stream_queue_buffer(m_stream, b);
@@ -421,6 +423,7 @@ public:
     auto it = m_dmabufSlots.find(b);
     if(it == m_dmabufSlots.end())
     {
+      reportUnbackedBuffer();
       pw.stream_queue_buffer(m_stream, b);
       pw.thread_loop_unlock(lp);
       return nullptr;
@@ -1136,6 +1139,7 @@ private:
     if(!extImg)
     {
       qWarning() << "PipewireProducer: createExportableImage failed";
+      self->m_unbackedBuffers.fetch_add(1, std::memory_order_relaxed);
       return;
     }
     auto h = score::gfx::vkinterop::exportMemoryHandle(
@@ -1145,6 +1149,7 @@ private:
     {
       score::gfx::vkinterop::destroyExternal(self->m_vk, *extImg);
       qWarning() << "PipewireProducer: exportMemoryHandle failed";
+      self->m_unbackedBuffers.fetch_add(1, std::memory_order_relaxed);
       return;
     }
 
@@ -1216,6 +1221,7 @@ private:
            self->m_drmFourcc))
     {
       qWarning() << "PipewireProducer: GBM allocation failed";
+      self->m_unbackedBuffers.fetch_add(1, std::memory_order_relaxed);
       return;
     }
     slot.needs_import = true;
@@ -1316,6 +1322,21 @@ private:
 public:
   /** Buffers actually handed to pipewire, over every publish path. */
   std::atomic_int m_framesQueued{0};
+  //! Buffers on_add_buffer could not back with an image: pipewire keeps them in
+  //! the pool, and every frame that lands on one is dropped.
+  std::atomic_int m_unbackedBuffers{0};
+  std::atomic_bool m_reportedUnbacked{false};
+
+  void reportUnbackedBuffer() noexcept
+  {
+    const int n = m_unbackedBuffers.load(std::memory_order_relaxed);
+    if(n > 0 && !m_reportedUnbacked.exchange(true))
+      qWarning().nospace()
+          << "PipewireProducer: " << n
+          << " of the stream's buffers have no image (their DMA-BUF allocation "
+             "failed); the frames pipewire hands out on them are dropped. "
+             "dmabuf=off streams through shared memory instead.";
+  }
 
   //! True once the consumer agreed to an explicit, tiled layout -- the only
   //! case where writing into the shared image directly is worth it.
