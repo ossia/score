@@ -308,6 +308,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsTextButton.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsCheckBox.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsCombo.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/Stepper.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsEnum.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsHSVChooser.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsIntSlider.hpp"

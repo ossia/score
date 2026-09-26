@@ -1,5 +1,6 @@
 #include <score/graphics/InfiniteScroller.hpp>
 #include <score/graphics/widgets/QGraphicsCombo.hpp>
+#include <score/graphics/widgets/Stepper.hpp>
 #include <score/model/Skin.hpp>
 #include <score/tools/Cursor.hpp>
 #include <score/widgets/ComboBox.hpp>
@@ -558,34 +559,7 @@ void QGraphicsCombo::paint(
 
 void QGraphicsCombo::paintStepper(QPainter& painter, const score::Skin& skin)
 {
-  const QRectF strip = stepperRect();
-  const QRectF halves[2]
-      = {QRectF{strip.topLeft(), QSizeF{strip.width(), strip.height() / 2.}},
-         QRectF{
-             QPointF{strip.left(), strip.top() + strip.height() / 2.},
-             QSizeF{strip.width(), strip.height() / 2.}}};
-
-  // Half the glyph's arm length, so that + and - are the same width.
-  const double arm = 2.;
-  for(int i = 0; i < 2; i++)
-  {
-    const int step = i == 0 ? +1 : -1;
-    const QRectF& half = halves[i];
-
-    if(m_pressedStep == step && m_stepArmed)
-    {
-      painter.setPen(skin.NoPen);
-      painter.setBrush(skin.Emphasis1.main.brush);
-      painter.drawRect(half);
-    }
-
-    // Rounded: a one-pixel pen with antialiasing off needs a whole pixel, and
-    // the two glyphs have to line up with each other.
-    const QPointF c{std::round(half.center().x()), std::round(half.center().y())};
-    painter.setPen(skin.Base4.main.pen1);
-    painter.drawLine(QPointF{c.x() - arm, c.y()}, QPointF{c.x() + arm, c.y()});
-    if(step > 0)
-      painter.drawLine(QPointF{c.x(), c.y() - arm}, QPointF{c.x(), c.y() + arm});
-  }
+  score::Stepper::paint(
+      painter, skin, m_rect.adjusted(1, 1, -1, -1), m_stepArmed ? m_pressedStep : 0);
 }
 }
