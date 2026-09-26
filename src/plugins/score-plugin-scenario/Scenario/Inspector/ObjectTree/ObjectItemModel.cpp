@@ -988,6 +988,11 @@ ObjectPanelDelegate::ObjectPanelDelegate(const score::GUIApplicationContext& ctx
     , m_lay{new QVBoxLayout{m_widget}}
     , m_searchWidget{new SearchWidget{ctx}}
 {
+  // The search field joins the layout only while a document is open: parent
+  // it now so that it is freed with the panel even if none ever is.
+  m_searchWidget->setParent(m_widget);
+  m_searchWidget->setVisible(false);
+
   m_widget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
   m_widget->setMinimumHeight(160);
   m_widget->setSizeHint({250, 100});
@@ -1044,6 +1049,7 @@ void ObjectPanelDelegate::on_modelChanged(
 
     setNewSelection(stack.currentSelection());
   }
+  m_searchWidget->setVisible(bool(newm));
 }
 
 void ObjectPanelDelegate::setNewSelection(const Selection& sel)
