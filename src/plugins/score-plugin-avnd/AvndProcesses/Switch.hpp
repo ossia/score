@@ -1,4 +1,6 @@
 #pragma once
+#include <cctype>
+#include <string_view>
 #include <ossia/dataflow/exec_state_facade.hpp>
 #include <ossia/dataflow/token_request.hpp>
 #include <ossia/dataflow/value_port.hpp>
@@ -22,9 +24,9 @@ struct Switch
   halp_meta(author, "ossia score")
   halp_meta(
       description,
-      "Route each event to the first matching JSON scalar case. Strings and booleans "
-      "match without coercion; numbers compare exactly after promotion to double; null "
-      "matches impulse. "
+      "Route each event to the first matching case: a number, true, false, null "
+      "(matches impulse), or a string, quoted or not. Strings and booleans match "
+      "without coercion; numbers compare exactly after promotion to double. "
       "Invalid literals never match. Row identities keep cables through reordering.")
   halp_meta(uuid, "51083c8f-aea0-4617-b026-34fd2793c818")
 
@@ -40,7 +42,7 @@ struct Switch
     {
       halp_meta(
           description,
-          "JSON scalars: quoted strings, numbers, true, false or null. "
+          "Numbers, true, false, null, or strings (quotes optional). "
           "The first matching row receives the event; null matches impulse.")
       void update(Switch& self) { self.compile(); }
       static std::function<void(Switch&, const halp::string_list_value&)>
@@ -126,7 +128,21 @@ struct Switch
         continue;
       json.Parse<rapidjson::kParseValidateEncodingFlag>(text.data(), text.size());
       if(json.HasParseError())
+      {
+        // Not JSON: a bare word is the string it spells, so that "foo"
+        // needs no quotes. Blank rows stay unmatched.
+        std::string_view word{text};
+        while(!word.empty() && std::isspace(static_cast<unsigned char>(word.front())))
+          word.remove_prefix(1);
+        while(!word.empty() && std::isspace(static_cast<unsigned char>(word.back())))
+          word.remove_suffix(1);
+        if(!word.empty())
+        {
+          literal.kind = Literal::string;
+          literal.text.assign(word);
+        }
         continue;
+      }
       if(json.IsNull())
         literal.kind = Literal::null;
       else if(json.IsBool())

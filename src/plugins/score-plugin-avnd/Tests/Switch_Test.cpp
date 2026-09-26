@@ -102,9 +102,9 @@ TEST_CASE("Switch empty and invalid case lists fall through", "[avnd][switch]")
   {
     f.edit({});
   }
-  SECTION("not JSON scalars")
+  SECTION("not scalars")
   {
-    f.edit({{10000, "unquoted"}, {10001, "[1]"}, {10002, "{}"}, {10003, "1 trailing"}});
+    f.edit({{10000, "[1]"}, {10001, "{}"}, {10002, "   "}});
   }
   const ossia::value payload{std::vector<ossia::value>{1, std::string{"unchanged"}}};
   f.input.write_value(payload, 23);
@@ -182,4 +182,26 @@ TEST_CASE("Switch publishes through real dynamic native output ports", "[avnd][s
   CHECK(output[0].value == ossia::value{"left"});
   CHECK(output[0].timestamp == 3);
   CHECK(output[1].timestamp == 11);
+}
+
+TEST_CASE("Switch matches strings with or without quotes", "[avnd][switch]")
+{
+  SwitchFixture f;
+  f.edit({{10000, "left"}, {10001, "\"right\""}, {10002, " up "}, {10003, "1 trailing"},
+          {10004, "3"}});
+  f.input.write_value(std::string{"left"}, 1);
+  f.input.write_value(std::string{"right"}, 2);
+  f.input.write_value(std::string{"up"}, 3);
+  f.input.write_value(std::string{"1 trailing"}, 4);
+  f.input.write_value(3, 5);
+  f.input.write_value(std::string{"3"}, 6); // a number case does not match text
+  f.run();
+  for(int i = 0; i < 5; i++)
+  {
+    CAPTURE(i);
+    REQUIRE(f.cases[i].get_data().size() == 1);
+    CHECK(f.cases[i].get_data()[0].timestamp == i + 1);
+  }
+  REQUIRE(f.unmatched.get_data().size() == 1);
+  CHECK(f.unmatched.get_data()[0].timestamp == 6);
 }
