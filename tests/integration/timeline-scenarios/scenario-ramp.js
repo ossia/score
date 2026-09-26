@@ -24,7 +24,7 @@ var FLICKS_PER_MS = 705600; // TimeVal impl units (double->TimeVal converter is 
 
 function llog(m) { console.log("[timeline] " + m); }
 
-Score.createDevice("Window", UUID_WINDOW, {});
+Score.createDevice("Window", UUID_WINDOW, {"InputWidth": 1280, "InputHeight": 720});
 var s = Score.find("Scenario.1");
 if (s) Score.remove(s);
 var g_root = Score.rootInterval();

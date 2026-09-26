@@ -74,7 +74,7 @@ function teardown() {
 }
 
 // ---- build baseline ----
-Score.createDevice("Window", UUID_WINDOW, {});
+Score.createDevice("Window", UUID_WINDOW, {"InputWidth": 1280, "InputHeight": 720});
 var s = Score.find("Scenario.1");
 if (s) Score.remove(s);
 g_root = Score.rootInterval();

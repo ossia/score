@@ -27,7 +27,7 @@ function llog(m) { console.log("[live-edit] " + m); }
 
 // Window device + empty root interval (default Scenario removed).
 function initBase() {
-    Score.createDevice("Window", UUID_WINDOW, {});
+    Score.createDevice("Window", UUID_WINDOW, {"InputWidth": 1280, "InputHeight": 720});
     var s = Score.find("Scenario.1");
     if(s) Score.remove(s);
     return Score.rootInterval();
