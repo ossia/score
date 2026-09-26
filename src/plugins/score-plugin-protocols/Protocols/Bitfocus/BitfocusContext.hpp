@@ -211,7 +211,8 @@ public:
   explicit module_handler(
       QString path, QString entrypoint, QString nodeVersion, QString apiversion,
       module_configuration config, QString label = {}, bool firstInit = false,
-      std::optional<int> upgradeIndex = {});
+      std::optional<int> upgradeIndex = {},
+      std::optional<std::set<QString>> secretKeys = {});
   virtual ~module_handler();
 
   using module_handler_base::do_write;
@@ -280,6 +281,8 @@ public:
       int sourcePort, bool ipv6);
   void sharedUdpSocketError(const QString& handleId, int port, const QString& message);
   const bitfocus::module_data& model();
+  //! The configuration keys of the secret fields, once known
+  std::optional<std::set<QString>> secretKeys() const;
 
   enum DefinitionCategory
   {
@@ -319,6 +322,7 @@ private:
 
   std::vector<std::function<void()>> m_afterRegistrationQueue;
   std::set<QString> m_secretFields;
+  bool m_secretsKnown{};
   QString m_label;
   int m_cbid{1};
   int m_actionId{};

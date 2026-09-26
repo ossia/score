@@ -58,13 +58,14 @@ struct mock
 
   explicit mock(
       bitfocus::module_configuration conf = {}, bool firstInit = false,
-      std::optional<int> upgradeIndex = 3)
+      std::optional<int> upgradeIndex = 3,
+      std::optional<std::set<QString>> secretKeys = std::nullopt)
   {
     app();
     qputenv("MOCK_LOG", logPath.toUtf8());
     handler = std::make_shared<bitfocus::module_handler>(
         SCORE_BITFOCUS_MOCK_DIR, "main.js", "node22", "1.14.1", std::move(conf), "mock",
-        firstInit, upgradeIndex);
+        firstInit, upgradeIndex, std::move(secretKeys));
     handler->afterRegistration([this] { registered = true; });
   }
 
@@ -139,7 +140,11 @@ TEST_CASE("init carries the saved configuration", "[bitfocus]")
 {
   if(!hasNode())
     return;
-  mock m{{{"host", "10.0.0.1"}, {"port", 99}, {"password", "pw"}}, false, 2};
+  mock m{
+      {{"host", "10.0.0.1"}, {"port", 99}, {"password", "pw"}},
+      false,
+      2,
+      std::set<QString>{"password"}};
   REQUIRE(waitFor([&] { return m.registered; }));
 
   const auto init = m.waitEvent("init")["msg"].toObject();
@@ -149,6 +154,9 @@ TEST_CASE("init carries the saved configuration", "[bitfocus]")
   CHECK(init["config"]["host"] == "10.0.0.1");
   CHECK(init["config"]["port"] == 99);
   CHECK(init["secrets"]["password"] == "pw");
+  // Known from the document: split from the first message
+  CHECK(!init["config"].toObject().contains("password"));
+  CHECK(!init["secrets"].toObject().contains("host"));
 
   CHECK(m.handler->model().upgradeIndex == 3);
 

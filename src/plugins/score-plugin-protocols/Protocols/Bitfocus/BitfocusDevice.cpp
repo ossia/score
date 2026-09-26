@@ -56,20 +56,17 @@ bool BitfocusDevice::reconnect()
 
     if(!stgs.handler)
     {
+      // init carries the configuration to a new module
       stgs.handler = stgs.makeHandler(label);
       m_settings.deviceSpecificSettings = QVariant::fromValue(stgs);
     }
-
-    stgs.handler->afterRegistration([label, conf, h = std::weak_ptr{stgs.handler}] {
-      if(auto handler = h.lock())
-        {
-        // Keys the module saved itself stay, the document's values win
-        auto merged = handler->model().config;
-        for(auto& [k, v] : conf)
-          merged[k] = v;
-        handler->updateConfigAndLabel(label, merged);
-      }
-    });
+    else
+    {
+      stgs.handler->afterRegistration([label, conf, h = std::weak_ptr{stgs.handler}] {
+        if(auto handler = h.lock())
+          handler->updateConfigAndLabel(label, conf);
+      });
+    }
 
     // What the module saves itself is kept with the document
     QObject::disconnect(m_configurationSaved);
@@ -87,6 +84,8 @@ bool BitfocusDevice::reconnect()
         if(k != "product" || v != cur.product)
           cur.configuration.emplace_back(k, ossia::qt::qt_to_ossia{}(v));
       cur.upgradeIndex = handler->model().upgradeIndex;
+      if(auto keys = handler->secretKeys())
+        cur.secretKeys = std::vector<QString>(keys->begin(), keys->end());
       m_settings.deviceSpecificSettings = QVariant::fromValue(cur);
     });
 

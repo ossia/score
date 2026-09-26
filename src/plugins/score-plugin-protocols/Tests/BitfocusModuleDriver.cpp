@@ -219,19 +219,8 @@ int run(int argc, char** argv)
   {
     auto stgs = saved;
     stgs.deduplicateConfiguration();
-    const auto conf = stgs.moduleConfiguration();
-
     handler = stgs.makeHandler(deviceName);
-    handler->afterRegistration([label = deviceName, conf, h = std::weak_ptr{handler}] {
-      if(auto handler = h.lock())
-        {
-        // Keys the module saved itself stay, the document's values win
-        auto merged = handler->model().config;
-        for(auto& [k, v] : conf)
-          merged[k] = v;
-        handler->updateConfigAndLabel(label, merged);
-      }
-    });
+
 
     auto proto = std::make_unique<ossia::net::bitfocus_protocol>(handler, ctx);
     auto pproto = proto.get();

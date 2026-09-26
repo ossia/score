@@ -178,6 +178,72 @@ TEST_CASE("a saved Bitfocus device follows the module's tree", "[integration][bi
   });
 }
 
+TEST_CASE("a loaded Bitfocus device keeps what the module upgraded", "[integration][bitfocus]")
+{
+  if(QStandardPaths::findExecutable("node").isEmpty())
+    SKIP("node is not installed");
+
+  QTemporaryDir logDir;
+  const QString logPath = logDir.path() + "/mock.jsonl";
+  qputenv("MOCK_LOG", logPath.toUtf8());
+  struct unset_log
+  {
+    ~unset_log() { qunsetenv("MOCK_LOG"); }
+  } unset;
+  auto mockEvents = [&](const QString& ev) {
+    std::vector<QJsonObject> res;
+    QFile f{logPath};
+    if(f.open(QIODevice::ReadOnly))
+      for(auto& line : f.readAll().split('\n'))
+        if(auto o = QJsonDocument::fromJson(line).object(); o["ev"] == ev)
+          res.push_back(o);
+    return res;
+  };
+
+  score::test::run_in_app([&](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& devplug = doc->context().plugin<Explorer::DeviceDocumentPlugin>();
+    auto* fact = ctx.interfaces<Device::ProtocolFactoryList>().get(
+        UuidKey<Device::ProtocolFactory>::fromString(QString(bitfocusKey)));
+    REQUIRE(fact);
+
+    const auto json = QStringLiteral(R"({
+      "Path": "%1", "Entrypoint": "main.js", "Identifier": "score-mock",
+      "Name": "Mock", "Brand": "ossia", "Product": "", "NodeVersion": "node22",
+      "APIVersion": "1.14.1", "Description": "", "UpgradeIndex": 2,
+      "Configuration": [["host", {"String": "10.0.0.1"}], ["version", {"String": "old"}]]
+    })").arg(SCORE_BITFOCUS_MOCK_DIR);
+    auto json_doc = readJson(json.toUtf8());
+    JSONWriter wrt{json_doc};
+    Device::DeviceSettings set;
+    set.name = "mock";
+    set.protocol = fact->concreteKey();
+    set.deviceSpecificSettings = fact->makeProtocolSpecificSettings(wrt.toVariant());
+    CommandDispatcher<> disp{doc->context().commandStack};
+    disp.submit(new Explorer::Command::LoadDevice{devplug, std::move(set)});
+
+    auto* device = devplug.list().findDevice("mock");
+    REQUIRE(device);
+    auto versionOf = [&] {
+      for(auto kv : settingsJson(*fact, device->settings())["Configuration"].toArray())
+        if(kv.toArray()[0] == "version")
+          return QJsonDocument{kv.toArray()[1].toObject()}.toJson(QJsonDocument::Compact);
+      return QByteArray{};
+    };
+    REQUIRE(waitFor([&] { return versionOf() == R"({"String":"new"})"; }));
+
+    // Nothing is sent back over it once the module is initialised
+    QElapsedTimer t;
+    t.start();
+    while(t.elapsed() < 500)
+      QCoreApplication::processEvents(QEventLoop::AllEvents, 10);
+    CHECK(mockEvents("updateConfigAndLabel").empty());
+    CHECK(mockEvents("init").size() == 1);
+    CHECK(versionOf() == R"({"String":"new"})");
+  });
+}
+
 TEST_CASE("the Bitfocus settings dialog saves what companion would", "[integration][bitfocus]")
 {
   if(QStandardPaths::findExecutable("node").isEmpty())

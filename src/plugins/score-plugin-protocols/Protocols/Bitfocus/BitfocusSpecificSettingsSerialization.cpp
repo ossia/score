@@ -49,7 +49,9 @@ Protocols::BitfocusSpecificSettings::makeHandler(const QString& label) const
 {
   return std::make_shared<bitfocus::module_handler>(
       path, entrypoint, nodeVersion, apiVersion, moduleConfiguration(), label,
-      configuration.empty(), upgradeIndex);
+      configuration.empty(), upgradeIndex,
+      secretKeys ? std::optional{std::set<QString>(secretKeys->begin(), secretKeys->end())}
+                 : std::nullopt);
 }
 
 template <>
@@ -57,7 +59,10 @@ void DataStreamReader::read(const Protocols::BitfocusSpecificSettings& n)
 {
   m_stream << score::relativizeFilePath(n.path) << n.entrypoint << n.id << n.name
            << n.brand << n.product << n.nodeVersion << n.apiVersion << n.configuration
-           << n.description << n.upgradeIndex.has_value() << n.upgradeIndex.value_or(-1);
+           << n.description << n.upgradeIndex.has_value() << n.upgradeIndex.value_or(-1)
+           << n.secretKeys.has_value()
+           << (n.secretKeys ? QStringList(n.secretKeys->begin(), n.secretKeys->end())
+                            : QStringList{});
   insertDelimiter();
 }
 
@@ -68,9 +73,13 @@ void DataStreamWriter::write(Protocols::BitfocusSpecificSettings& n)
       >> n.nodeVersion >> n.apiVersion >> n.configuration >> n.description;
   bool hasUpgradeIndex{};
   int upgradeIndex{};
-  m_stream >> hasUpgradeIndex >> upgradeIndex;
+  bool hasSecretKeys{};
+  QStringList secretKeys;
+  m_stream >> hasUpgradeIndex >> upgradeIndex >> hasSecretKeys >> secretKeys;
   if(hasUpgradeIndex)
     n.upgradeIndex = upgradeIndex;
+  if(hasSecretKeys)
+    n.secretKeys = std::vector<QString>(secretKeys.begin(), secretKeys.end());
   n.path = score::locateFilePath(n.path);
   n.deduplicateConfiguration();
   checkDelimiter();
@@ -91,6 +100,8 @@ void JSONReader::read(const Protocols::BitfocusSpecificSettings& n)
   obj["Description"] = n.description;
   if(n.upgradeIndex)
     obj["UpgradeIndex"] = *n.upgradeIndex;
+  if(n.secretKeys)
+    obj["SecretKeys"] = *n.secretKeys;
 }
 
 template <>
@@ -109,5 +120,11 @@ void JSONWriter::write(Protocols::BitfocusSpecificSettings& n)
   n.description <<= obj["Description"];
   if(auto idx = obj.tryGet("UpgradeIndex"))
     n.upgradeIndex = idx->toInt();
+  if(auto keys = obj.tryGet("SecretKeys"))
+  {
+    std::vector<QString> v;
+    v <<= *keys;
+    n.secretKeys = std::move(v);
+  }
   n.deduplicateConfiguration();
 }

@@ -89,6 +89,8 @@ Device::DeviceSettings BitfocusProtocolSettingsWidget::getSettings() const
         if(ossia::none_of(osc.configuration, [&k](auto& kv) { return kv.first == k; }))
           osc.configuration.emplace_back(k, ossia::qt::qt_to_ossia{}(v));
     osc.upgradeIndex = model->upgradeIndex;
+    if(auto keys = osc.handler->secretKeys())
+      osc.secretKeys = std::vector<QString>(keys->begin(), keys->end());
   }
 
   for(auto& [id, widg] : m_widgets)

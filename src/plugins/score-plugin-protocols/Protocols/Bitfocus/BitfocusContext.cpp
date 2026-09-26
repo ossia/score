@@ -256,7 +256,7 @@ module_handler::~module_handler()
 module_handler::module_handler(
     QString path, QString entrypoint, QString nodeVersion, QString apiversion,
     module_configuration conf, QString label, bool firstInit,
-    std::optional<int> upgradeIndex)
+    std::optional<int> upgradeIndex, std::optional<std::set<QString>> secretKeys)
     : module_handler_base{
         nodeExecutable(nodeVersion), path, entrypoint,
         QUuid::createUuid().toString(QUuid::WithoutBraces)}
@@ -272,6 +272,11 @@ module_handler::module_handler(
 
   this->m_model.config = std::move(conf);
   this->m_model.upgradeIndex = upgradeIndex;
+  if(secretKeys)
+  {
+    m_secretFields = std::move(*secretKeys);
+    m_secretsKnown = true;
+  }
   m_uptime.start();
 
   // Init an udp socket for sending osc
@@ -710,6 +715,7 @@ void module_handler::on_response_configFields(QJsonArray fields)
 {
   m_model.config_fields.clear();
   m_secretFields.clear();
+  m_secretsKnown = true;
   for(auto obj : fields)
   {
     auto field = parseConfigField(obj.toObject());
@@ -840,7 +846,7 @@ void module_handler::on_send_osc(QJsonObject obj)
 QJsonObject module_handler::configObject(bool secrets) const
 {
   // Until the fields are known, secrets cannot be told apart
-  const bool known = !m_model.config_fields.empty();
+  const bool known = m_secretsKnown;
   QJsonObject config;
   for(auto& [k, v] : this->m_model.config)
   {
@@ -893,7 +899,15 @@ void module_handler::on_init_response(const QJsonObject& payload)
     }
   };
   merge(payload["updatedConfig"]);
-  merge(payload["updatedSecrets"]);
+  // What was sent as a secret only while unknown comes back in both
+  if(auto secrets = payload["updatedSecrets"]; secrets.isObject())
+  {
+    auto obj = secrets.toObject();
+    const auto conf = payload["updatedConfig"].toObject();
+    for(auto it = conf.begin(); it != conf.end(); ++it)
+      obj.remove(it.key());
+    merge(obj);
+  }
   if(changed || m_firstInit)
     configurationSaved();
   m_firstInit = false;
@@ -1237,5 +1251,12 @@ void module_handler::startStopRecordingActions()
 const module_data& module_handler::model()
 {
   return m_model;
+}
+
+std::optional<std::set<QString>> module_handler::secretKeys() const
+{
+  if(!m_secretsKnown)
+    return std::nullopt;
+  return m_secretFields;
 }
 }

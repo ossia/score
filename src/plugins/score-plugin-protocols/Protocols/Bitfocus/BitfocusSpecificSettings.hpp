@@ -31,6 +31,8 @@ struct BitfocusSpecificSettings
   std::vector<std::pair<QString, ossia::value>> configuration;
   //! Last upgrade script the configuration went through
   std::optional<int> upgradeIndex;
+  //! The keys of the configuration which go to the module as secrets
+  std::optional<std::vector<QString>> secretKeys;
 
   QString description;
   std::shared_ptr<bitfocus::module_handler> handler;

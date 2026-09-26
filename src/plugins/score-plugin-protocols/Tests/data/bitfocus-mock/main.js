@@ -102,6 +102,8 @@ const handlers = {
 		// A device that never answers
 		if (msg.config.hang) await new Promise(() => {})
 		config = msg.config
+		// As an upgrade script would
+		if (config.version === 'old') config = { ...config, version: 'new' }
 		if (msg.isFirstInit) {
 			config = { host: '', port: 1234, poll: 3 }
 			notify('saveConfig', { config, secrets: {} })
