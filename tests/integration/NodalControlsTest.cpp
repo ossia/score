@@ -37,6 +37,7 @@
 #include <QGraphicsScene>
 
 #include <catch2/catch_test_macros.hpp>
+#include <QApplication>
 
 #include <algorithm>
 
@@ -422,5 +423,56 @@ TEST_CASE("Widening a node does not rebuild its ports", "[integration][nodal][gu
       CHECK(it->second == p);
       CHECK(p->isEnabled());
     }
+  });
+}
+
+#include <QGraphicsView>
+#include <QMouseEvent>
+
+// The view picks the item under the pointer for the hand cursor and for the
+// click from the port's shape: over a real node's port, in a zoomed view,
+// that zone must be the drawn circle, not reach view pixels above and below it.
+TEST_CASE("A port takes the pointer over its drawn circle only", "[integration][nodal][gui]")
+{
+  withControls(2, [](ManyControls& proc, const Process::Context& pctx, QGraphicsItem* root) {
+    auto item = new Process::DefaultEffectItem{false, proc, pctx, root};
+    spin(80);
+    auto ports = displayedPorts(*item);
+    REQUIRE(!ports.empty());
+
+    QGraphicsView view{root->scene()};
+    view.resize(600, 600);
+    view.show();
+    spin(20);
+
+    // Radius 3 and a 1.5px pen, plus half a pixel of antialiasing.
+    constexpr double drawnRadius = 3. + 0.75 + 0.5;
+    for(double zoom : {1., 2., 4., 8.})
+    {
+      CAPTURE(zoom);
+      view.setTransform(QTransform::fromScale(zoom, zoom));
+      for(auto port : ports)
+      {
+        view.centerOn(port->sceneCenter());
+        spin(5);
+        const QPoint c = view.mapFromScene(port->sceneCenter());
+        int first = 1000, last = -1000;
+        for(int dy = -60; dy <= 60; dy++)
+        {
+          const QPoint px = c + QPoint{0, dy};
+          if(view.itemAt(px) != port)
+            continue;
+          first = std::min(first, dy);
+          last = std::max(last, dy);
+        }
+        REQUIRE(last >= first);
+        // In view pixels, one pixel of slack for the pixel's own size.
+        CHECK(-first <= drawnRadius * zoom + 1.);
+        CHECK(last <= drawnRadius * zoom + 1.);
+        // And not much smaller either: the whole circle is grabbable.
+        CHECK(last - first + 1 >= 2 * 3.75 * zoom - 2.);
+      }
+    }
+    delete item;
   });
 }

@@ -169,9 +169,10 @@ TEST_CASE("The port hit zone is a circle around the drawn port", "[integration][
     CHECK(!port->shape().contains(QPointF{16, 6}));
     CHECK(port->shape().boundingRect().width() <= 2 * r + 0.01);
 
-    // The hit zone is small but still a comfortable target
-    CHECK(r >= 5.);
-    CHECK(r <= 6.5);
+    // The hit zone is the drawn circle (radius 3, 1.5px pen): the hand cursor,
+    // picked from this shape, must not show outside the visible port.
+    CHECK(r >= 3.75);
+    CHECK(r <= 4.5);
   });
 }
 

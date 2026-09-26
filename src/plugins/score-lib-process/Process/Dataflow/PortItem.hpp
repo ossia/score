@@ -85,8 +85,10 @@ public:
   //! Center of the drawn port circle, in item coordinates.
   //! Cables, the drag line and magnetic snapping all anchor on this point.
   static constexpr QPointF portCenter() noexcept { return QPointF{6., 6.}; }
-  //! Radius of the clickable zone around portCenter().
-  static constexpr double hitRadius = 5.5;
+  //! Radius of the clickable zone around portCenter(): the drawn circle
+  //! (radius 3 and a 1.5px pen) and its antialiased edge. The hand cursor
+  //! follows this zone.
+  static constexpr double hitRadius = 4.;
   //! portCenter() in scene coordinates, taking the item's transform into account.
   QPointF sceneCenter() const noexcept;
 

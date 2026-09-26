@@ -31,12 +31,14 @@
 #include <QDrag>
 #include <QGraphicsScene>
 #include <QGraphicsSceneHoverEvent>
+#include <QGraphicsSceneMouseEvent>
 #include <QGraphicsView>
 #include <QKeyEvent>
 #include <QMenu>
 #include <QMimeData>
 #include <QPainter>
 
+#include <cmath>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Dataflow::PortItem)
@@ -673,11 +675,9 @@ QRectF PortItem::boundingRect() const
 
 QPainterPath PortItem::shape() const
 {
-  // The port is drawn as a 6px (small) or 10px (large) circle centered on
-  // portCenter(); the hit zone is a circle slightly larger than that so that the
-  // port stays easy to grab, but stops short of the controls laid out right next
-  // to it (e.g. a slider starts 12px right of the port origin: see
-  // DefaultControlLayouts::slider).
+  // The port is drawn as a 6px circle (10px while a cable is dragged over it)
+  // centered on portCenter(); the hit zone is that circle, so that the hand
+  // cursor, which the view picks from this shape, shows exactly over it.
   QPainterPath p;
   p.addEllipse(portCenter(), hitRadius, hitRadius);
   return p;
@@ -721,18 +721,11 @@ void PortItem::paint(
 
 void PortItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(this->contains(event->pos()))
-  {
-    switch(event->button())
-    {
-      case Qt::RightButton:
-        contextMenuRequested(event->scenePos(), event->screenPos());
-        break;
-      case Qt::LeftButton:
-      default:
-        break;
-    }
-  }
+  // The scene gives the press to the port when the pixel under the pointer
+  // touches shape(): the same test that shows the hand cursor, so the exact
+  // point must not be checked again here.
+  if(event->button() == Qt::RightButton)
+    contextMenuRequested(event->scenePos(), event->screenPos());
   event->accept();
 }
 
@@ -981,7 +974,8 @@ void PortItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
 void PortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(this->contains(event->pos()))
+  // Still over the port, as the scene's hover tracking (the cursor's) sees it.
+  if(isUnderMouse())
   {
     event->accept();
     switch(event->button())
