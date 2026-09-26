@@ -163,6 +163,7 @@ public:
     vis.writeTo(*this);
     check_all_ports();
     upgrade_value_inlets_to_controls();
+    upgrade_changed_control_types();
     init_after_port_creation();
   }
 
@@ -330,6 +331,107 @@ private:
     *it = new_inlet;
     delete old_inlet;
     return new_inlet;
+  }
+
+  //! What a control saved as another kind keeps of its value: the same type
+  //! of value as is, a number into a number or a time chooser (in seconds, as
+  //! the execution reads a plain number). A field whose unit changed as well
+  //! (milliseconds, Hz...) converts it with `static float upgrade_value(float
+  //! old)`, or `static ossia::value upgrade_value(const ossia::value& old)`.
+  static bool is_number(const ossia::value& v) noexcept
+  {
+    const auto t = v.get_type();
+    return t == ossia::val_type::FLOAT || t == ossia::val_type::INT
+           || t == ossia::val_type::BOOL;
+  }
+
+  static std::optional<ossia::value>
+  carried_value(const ossia::value& old, const Process::ControlInlet& fresh)
+  {
+    const auto from = old.get_type();
+    const auto to = fresh.value().get_type();
+    if(from == to)
+      return old;
+    if(!is_number(old))
+      return std::nullopt;
+    if(qobject_cast<const Process::TimeChooser*>(&fresh))
+      return ossia::vec2f{ossia::convert<float>(old), 0.f};
+    switch(to)
+    {
+      case ossia::val_type::FLOAT:
+        return ossia::convert<float>(old);
+      case ossia::val_type::INT:
+        return int(std::lround(ossia::convert<float>(old)));
+      case ossia::val_type::BOOL:
+        return ossia::convert<bool>(old);
+      default:
+        return std::nullopt;
+    }
+  }
+
+  //! A control saved as another kind of control than the spec now declares
+  //! (e.g. a maintained button that became an impulse button, a float slider
+  //! that became a time chooser) is rebuilt as the declared kind, with the
+  //! same id -- cables and addresses keep pointing at it -- and its cable
+  //! list, exposed name, address and value (see carried_value). The rest
+  //! (range, init, description) is the spec's.
+  void upgrade_changed_control_types()
+  {
+    avnd::input_introspection<Info>::for_all(
+        [this]<std::size_t Idx, typename P>(avnd::field_reflection<Idx, P>) {
+      if constexpr(
+          avnd::parameter_port<P> && !oscr::ossia_port<P>
+          && !avnd::dynamic_ports_port<P> && avnd::has_widget<P>
+          && std::is_default_constructible_v<P>
+          // Controllers have their own upgrade, which keeps their value
+          // (init_controller_ports).
+          && !requires { P::on_controller_interaction(); })
+      {
+        auto ports = avnd_input_idx_to_model_ports(Idx);
+        if(ports.size() != 1)
+          return;
+        auto old_inlet = qobject_cast<Process::ControlInlet*>(ports[0]);
+        if(!old_inlet)
+          return;
+
+        Process::Inlets fresh;
+        InletInitFunc<Info> make{*this, fresh};
+        make.inlet = old_inlet->id().val();
+        make(P{}, avnd::field_index<Idx>{});
+        auto new_inlet = fresh.size() == 1
+                             ? qobject_cast<Process::ControlInlet*>(fresh[0])
+                             : nullptr;
+        if(!new_inlet || new_inlet->concreteKey() == old_inlet->concreteKey())
+        {
+          qDeleteAll(fresh);
+          return;
+        }
+
+        new_inlet->setExposed(old_inlet->exposed());
+        new_inlet->setAddress(old_inlet->address());
+        const ossia::value& old_value = old_inlet->value();
+        if constexpr(requires(float f) {
+                       { P::upgrade_value(f) } -> std::convertible_to<float>;
+                     })
+        {
+          if(is_number(old_value))
+            if(auto v = carried_value(
+                   float(P::upgrade_value(ossia::convert<float>(old_value))), *new_inlet))
+              new_inlet->setValue(*v);
+        }
+        else if constexpr(requires { P::upgrade_value(old_value); })
+          new_inlet->setValue(P::upgrade_value(old_value));
+        else if(auto v = carried_value(old_value, *new_inlet))
+          new_inlet->setValue(*v);
+        // The cables into it: the document's cables point at this id, and the
+        // port lists them too.
+        new_inlet->takeCables(std::move(*old_inlet));
+        auto it = ossia::find(m_inlets, old_inlet);
+        SCORE_ASSERT(it != m_inlets.end());
+        *it = new_inlet;
+        delete old_inlet;
+      }
+    });
   }
 
   void upgrade_value_inlets_to_controls()
