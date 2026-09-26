@@ -65,7 +65,8 @@ bool JsViewContext::grabScene(QString path)
   auto v = view();
   if(!v)
     return false;
-  return !Scenario::renderSceneToSvg(v->scene(), path).isEmpty();
+  // What the view shows, not a fixed region of the scene.
+  return Scenario::renderSceneToFile(v->scene(), path, v->visibleSceneRect());
 }
 
 bool JsViewContext::grabMainWindow(QString path)

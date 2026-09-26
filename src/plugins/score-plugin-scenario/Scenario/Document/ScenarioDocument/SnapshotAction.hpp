@@ -16,6 +16,11 @@ QByteArray renderSceneToSvg(
     QGraphicsScene& scene, const QString& path = {},
     QRectF rect = QRectF(0, 0, 1920, 1080));
 
+// Render a region of a QGraphicsScene to a file: SVG for a .svg path, else a
+// raster image in the format of the extension. False if nothing was written.
+SCORE_PLUGIN_SCENARIO_EXPORT
+bool renderSceneToFile(QGraphicsScene& scene, const QString& path, QRectF rect);
+
 struct SnapshotAction : public QAction
 {
 public:

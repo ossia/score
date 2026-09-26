@@ -7,6 +7,7 @@
 #include <QClipboard>
 #include <QFile>
 #include <QGraphicsScene>
+#include <QImage>
 #include <QMimeData>
 #include <QPainter>
 #include <QWidget>
@@ -23,11 +24,15 @@ QByteArray renderSceneToSvg(QGraphicsScene& scene, const QString& path, QRectF r
   QBuffer b;
   QSvgGenerator p;
   p.setOutputDevice(&b);
+  // Without a size and view box the SVG has a default viewport, and a
+  // viewer shows only its top-left part of the rendered region.
+  p.setSize(rect.size().toSize());
+  p.setViewBox(QRectF{QPointF{}, rect.size()});
   QPainter painter;
   painter.begin(&p);
   painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 
-  scene.render(&painter, rect, rect);
+  scene.render(&painter, QRectF{QPointF{}, rect.size()}, rect);
   painter.end();
 
   if(!path.isEmpty())
@@ -44,6 +49,22 @@ QByteArray renderSceneToSvg(QGraphicsScene& scene, const QString& path, QRectF r
 #else
   return {};
 #endif
+}
+
+bool renderSceneToFile(QGraphicsScene& scene, const QString& path, QRectF rect)
+{
+  if(rect.isEmpty())
+    return false;
+  if(path.endsWith(QStringLiteral(".svg"), Qt::CaseInsensitive))
+    return !renderSceneToSvg(scene, path, rect).isEmpty();
+
+  QImage img{rect.size().toSize(), QImage::Format_ARGB32_Premultiplied};
+  img.fill(Qt::transparent);
+  QPainter painter{&img};
+  painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+  scene.render(&painter, QRectF{QPointF{}, rect.size()}, rect);
+  painter.end();
+  return img.save(path);
 }
 
 SnapshotAction::SnapshotAction(QGraphicsScene& scene, QWidget* parent)
