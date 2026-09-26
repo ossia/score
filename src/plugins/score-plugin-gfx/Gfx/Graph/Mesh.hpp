@@ -104,6 +104,8 @@ struct MeshBuffers
   bool useIndirectDraw{false};
   bool indirectDrawIndexed{false};
   bool gpuIndirectSupported{false};  // set from RenderState::caps at init
+  //! QRhi::BaseInstance: false when the backend ignores firstInstance.
+  bool baseInstanceSupported{true};
   quint32 indirectDrawOffset{0};
   quint32 indirectDrawCount{1};
   quint32 indirectDrawStride{0};

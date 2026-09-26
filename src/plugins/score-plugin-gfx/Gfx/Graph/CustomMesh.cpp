@@ -708,23 +708,19 @@ bool CustomMesh::drawSingleMesh(
     draw_inputs[idx] = {slot.buffer, 0};
   }
 
+  QRhiBuffer* idxBuf{};
+  quint32 idxOffset{};
+  auto idxFmt = QRhiCommandBuffer::IndexUInt32;
   if(g.index.buffer >= 0)
   {
     const std::size_t flat_idx = base + (std::size_t)g.index.buffer;
     if(flat_idx >= bufs.buffers.size())
       return false;
     auto buf = bufs.buffers[flat_idx].handle;
-    const auto idxFmt = g.index.format == decltype(g.index)::uint16
-                            ? QRhiCommandBuffer::IndexUInt16
-                            : QRhiCommandBuffer::IndexUInt32;
-    // If this bind crashes with a dangling buffer, the `buf` pointer
-    // logged here matches ASan's freed-at report. The mesh= and slot=
-    // fields name which CustomMesh and which MeshBuffers entry retained it.
-    BUFTRACE() << "bindIndexBuffer mesh=" << (void*)this
-               << " sub=" << mesh_index << " slot=" << flat_idx
-               << " buf=" << (void*)buf
-               << " offset=" << (qint64)g.index.byte_offset
-               << " bufs.size=" << (qsizetype)bufs.buffers.size();
+    idxBuf = buf;
+    idxOffset = g.index.byte_offset;
+    if(g.index.format == decltype(g.index)::uint16)
+      idxFmt = QRhiCommandBuffer::IndexUInt16;
     cb.setVertexInput(
         0, (int)total, draw_inputs.data(), buf, g.index.byte_offset, idxFmt);
   }
@@ -816,6 +812,32 @@ bool CustomMesh::drawSingleMesh(
     if(!effCpuCmds->empty())
     {
       const bool indexed = (g.index.buffer >= 0);
+
+      // Without QRhi::BaseInstance the backend ignores firstInstance: the
+      // per-instance inputs are bound at that instance instead.
+      struct InstanceInput
+      {
+        std::size_t input;
+        quint32 stride;
+        quint32 stepRate;
+      };
+      QVarLengthArray<InstanceInput> instanceInputs;
+      if(!bufs.baseInstanceSupported)
+      {
+        for(std::size_t i = 0; i < mesh_input_count; ++i)
+        {
+          const std::size_t input_index = plan.compacted ? (std::size_t)kept[i] : i;
+          if(input_index >= g.bindings.size())
+            continue;
+          const auto& b = g.bindings[input_index];
+          if(b.classification == std::decay_t<decltype(b)>::per_instance)
+            instanceInputs.push_back(
+                {i, b.byte_stride, (quint32)std::max(1, b.step_rate)});
+        }
+      }
+      QVarLengthArray<QRhiCommandBuffer::VertexInput> shifted;
+      bool rebound = false;
+
       int skipped = 0;
       for(const auto& cmd : *effCpuCmds)
       {
@@ -824,14 +846,29 @@ bool CustomMesh::drawSingleMesh(
           ++skipped; // dead slot; see drawCommandPaints
           continue;
         }
+        quint32 firstInstance = cmd.first_instance;
+        if(!instanceInputs.empty() && (firstInstance != 0 || rebound))
+        {
+          shifted = draw_inputs;
+          for(const auto& ii : instanceInputs)
+            shifted[ii.input].second
+                += quint32(firstInstance / ii.stepRate) * ii.stride;
+          if(indexed)
+            cb.setVertexInput(
+                0, (int)total, shifted.data(), idxBuf, idxOffset, idxFmt);
+          else
+            cb.setVertexInput(0, (int)total, shifted.data());
+          rebound = firstInstance != 0;
+          firstInstance = 0;
+        }
         if(indexed)
           cb.drawIndexed(
               cmd.index_or_vertex_count, cmd.instance_count,
-              cmd.first_index_or_vertex, cmd.base_vertex, cmd.first_instance);
+              cmd.first_index_or_vertex, cmd.base_vertex, firstInstance);
         else
           cb.draw(
               cmd.index_or_vertex_count, cmd.instance_count,
-              cmd.first_index_or_vertex, cmd.first_instance);
+              cmd.first_index_or_vertex, firstInstance);
       }
       noteZeroCountSlotsSkipped(skipped);
       return true;

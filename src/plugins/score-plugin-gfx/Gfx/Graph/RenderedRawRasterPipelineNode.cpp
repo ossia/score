@@ -2659,16 +2659,7 @@ void RenderedRawRasterPipelineNode::initState(
     {
       std::tie(m_mesh, m_meshbufs)
           = renderer.acquireMesh(drawGeometry(), res, m_mesh, m_meshbufs);
-      m_meshbufs.gpuIndirectSupported
-          = renderer.state.caps.drawIndirect
-            && !indirectDrawBreaksMultiView(
-                renderer.state.api, n.descriptor().multiview_count);
-      m_meshbufs.gpuIndirectMultiSupported
-          = renderer.state.caps.drawIndirectMulti;
-      m_meshbufs.gpuIndirectCountSupported
-          = renderer.state.caps.drawIndirectCount
-            && drawIndirectCountUsable(
-                renderer.state.api, n.descriptor().multiview_count);
+      applyMeshCaps(m_meshbufs, renderer.state, n.descriptor().multiview_count);
     }
     else
     {
@@ -2677,16 +2668,7 @@ void RenderedRawRasterPipelineNode::initState(
         if(m_meshbufs.buffers.empty())
         {
           m_meshbufs = renderer.initMeshBuffer(*m_mesh, res);
-          m_meshbufs.gpuIndirectSupported
-          = renderer.state.caps.drawIndirect
-            && !indirectDrawBreaksMultiView(
-                renderer.state.api, n.descriptor().multiview_count);
-          m_meshbufs.gpuIndirectMultiSupported
-              = renderer.state.caps.drawIndirectMulti;
-          m_meshbufs.gpuIndirectCountSupported
-              = renderer.state.caps.drawIndirectCount
-                && drawIndirectCountUsable(
-                    renderer.state.api, n.descriptor().multiview_count);
+          applyMeshCaps(m_meshbufs, renderer.state, n.descriptor().multiview_count);
         }
       }
     }
@@ -3685,16 +3667,7 @@ void RenderedRawRasterPipelineNode::update(
       const Mesh* prevMesh = m_mesh;
       std::tie(m_mesh, m_meshbufs)
           = renderer.acquireMesh(drawGeometry(), res, m_mesh, m_meshbufs);
-      m_meshbufs.gpuIndirectSupported
-          = renderer.state.caps.drawIndirect
-            && !indirectDrawBreaksMultiView(
-                renderer.state.api, n.descriptor().multiview_count);
-      m_meshbufs.gpuIndirectMultiSupported
-          = renderer.state.caps.drawIndirectMulti;
-      m_meshbufs.gpuIndirectCountSupported
-          = renderer.state.caps.drawIndirectCount
-            && drawIndirectCountUsable(
-                renderer.state.api, n.descriptor().multiview_count);
+      applyMeshCaps(m_meshbufs, renderer.state, n.descriptor().multiview_count);
 
       this->meshChangedIndex = this->m_mesh->dirtyGeometryIndex;
 
