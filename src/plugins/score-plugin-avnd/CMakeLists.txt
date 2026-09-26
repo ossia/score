@@ -1334,6 +1334,10 @@ addAvndTest(port_unit_Test
              "${CMAKE_CURRENT_SOURCE_DIR}/Tests/port_unit_Test.cpp")
 addAvndTest(control_domain_Test
              "${CMAKE_CURRENT_SOURCE_DIR}/Tests/control_domain_Test.cpp")
+addAvndTest(shell_Test
+             "${CMAKE_CURRENT_SOURCE_DIR}/Tests/Shell_Test.cpp")
+target_include_directories(Avnd_shell_Test PRIVATE "${AVND_FOLDER}")
+target_link_libraries(Avnd_shell_Test PRIVATE ${QT_PREFIX}::Core)
 addAvndTest(port_is_event_Test
              "${CMAKE_CURRENT_SOURCE_DIR}/Tests/port_is_event_Test.cpp")
 target_include_directories(Avnd_port_is_event_Test PRIVATE "${AVND_FOLDER}")

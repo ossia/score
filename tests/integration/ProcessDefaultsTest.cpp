@@ -1,5 +1,6 @@
 // Default values of controls as a new process shows them.
 #include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/WidgetInlets.hpp>
 #include <Process/Process.hpp>
 
 #include <score/document/DocumentInterface.hpp>
@@ -9,6 +10,10 @@
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
 #include <score_test/Project.hpp>
+
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 #include <catch2/catch_all.hpp>
 
@@ -92,5 +97,52 @@ TEST_CASE("a new camera looks from 1 1 1 at the origin", "[integration][threedim
     CHECK(eye->value() == ossia::value{ossia::vec3f{1.f, 1.f, 1.f}});
     CHECK(eye->init() == ossia::value{ossia::vec3f{1.f, 1.f, 1.f}});
     CHECK(target->value() == ossia::value{ossia::vec3f{0.f, 0.f, 0.f}});
+  });
+}
+
+namespace
+{
+const QString shell_uuid = QStringLiteral("7e4ae744-1825-4f1c-9fc9-675e41f316bc");
+
+// Only the first n inlets of every process with this uuid, as a document
+// saved when the process only had those.
+QByteArray keepFirstInlets(const QByteArray& json, const QString& uuid, int n)
+{
+  return editInlets(json, uuid, [n](QJsonArray& inlets) {
+    while(inlets.size() > n)
+      inlets.removeLast();
+  });
+}
+}
+
+TEST_CASE(
+    "the shell command has an interpreter, and older documents get it",
+    "[integration][shell]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& app) {
+    auto doc = score::test::new_document(app);
+    auto sh = score::test::add_process(*doc, shell_uuid, {});
+    if(!sh)
+      SKIP("the shell command is not built");
+    REQUIRE(sh->inlets().size() == 3);
+    CHECK(sh->inlets()[0]->name() == QStringLiteral("Script"));
+    auto interp = control(*sh, QStringLiteral("Interpreter"));
+    auto custom = control(*sh, QStringLiteral("Custom command"));
+    REQUIRE(interp);
+    REQUIRE(custom);
+    // A combobox, not a row of buttons.
+    CHECK(qobject_cast<Process::ComboBox*>(interp));
+    CHECK(custom->value() == ossia::value{std::string{"/bin/bash -c %s"}});
+
+    control(*sh, QStringLiteral("Script"))->setValue(std::string{"echo old"});
+    const auto old = keepFirstInlets(score::test::save_as_json(*doc), shell_uuid, 1);
+    REQUIRE(old != score::test::save_as_json(*doc));
+
+    auto reloaded = reloadedAs(app, old, *sh);
+    REQUIRE(reloaded);
+    REQUIRE(reloaded->inlets().size() == 3);
+    CHECK(control(*reloaded, QStringLiteral("Script"))->value()
+          == ossia::value{std::string{"echo old"}});
+    CHECK(control(*reloaded, QStringLiteral("Interpreter")));
   });
 }
