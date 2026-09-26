@@ -4,6 +4,7 @@
 #include <Protocols/Bitfocus/BitfocusContext.hpp>
 #include <Protocols/Bitfocus/BitfocusProtocol.hpp>
 
+#include <ossia/network/base/node_attributes.hpp>
 #include <ossia/network/base/node_functions.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 
@@ -385,6 +386,42 @@ TEST_CASE("definitions sent again unchanged leave the tree alone", "[bitfocus]")
 
   dev.on_node_created.disconnect(c1);
   dev.on_node_removing.disconnect(c2);
+}
+
+TEST_CASE("numbers do not change the type of a parameter back and forth", "[bitfocus]")
+{
+  if(!hasNode())
+    return;
+  mock m;
+  device d{m};
+  auto count = d.param("/variable/count");
+  auto name = d.param("/variable/name");
+  REQUIRE(count);
+  REQUIRE(name);
+
+  int typeChanges = 0;
+  struct counter
+  {
+    int& n;
+    const ossia::net::node_base* node;
+    void operator()(const ossia::net::node_base& n_, ossia::string_view attr)
+    {
+      if(&n_ == node && attr == ossia::net::text_value_type())
+        n++;
+    }
+  } c{typeChanges, &count->get_node()};
+  d.dev->on_attribute_modified.connect(c);
+
+  d.run("/action/levels");
+  REQUIRE(waitFor([&] { return count->value() == ossia::value{0.25f}; }));
+  d.dev->on_attribute_modified.disconnect(c);
+
+  // 42 -> 0.5 upgrades to float once; 1 and 2 then stay floats
+  CHECK(typeChanges == 1);
+  CHECK(count->get_value_type() == ossia::val_type::FLOAT);
+
+  // Beyond 32 bits an integer stays exact
+  CHECK(waitFor([&] { return name->value() == ossia::value{std::string("1790000000123")}; }));
 }
 
 TEST_CASE("a value for an undeclared variable creates it", "[bitfocus]")

@@ -8,6 +8,8 @@
 
 #include <QPointer>
 
+#include <limits>
+
 namespace ossia::net
 {
 namespace
@@ -49,23 +51,27 @@ void applyDomain(ossia::net::parameter_base& p, const config_field& opt)
   }
 }
 
-//! Numbers keep a single ossia type as long as they are integral and fit
+// Integers beyond 32 bits, e.g. timestamps in ms, stay exact as text
 ossia::value receivedValue(const QVariant& v)
 {
+  constexpr double int_min = std::numeric_limits<int32_t>::min();
+  constexpr double int_max = std::numeric_limits<int32_t>::max();
   switch(v.typeId())
   {
     case QMetaType::Double: {
       const double d = v.toDouble();
-      if(std::floor(d) == d && std::abs(d) < (1 << 30))
+      if(std::floor(d) != d)
+        return (float)d;
+      if(d >= int_min && d <= int_max)
         return (int)d;
-      return (float)d;
+      return QString::number(d, 'f', 0).toStdString();
     }
     case QMetaType::LongLong:
     case QMetaType::ULongLong: {
       const auto i = v.toLongLong();
-      if(std::abs(i) < (1 << 30))
+      if(i >= int_min && i <= int_max)
         return (int)i;
-      return (float)i;
+      return QString::number(i).toStdString();
     }
     default:
       return ossia::qt::qt_to_ossia{}(v);
@@ -205,8 +211,16 @@ void bitfocus_protocol::set_received_value(ossia::net::parameter_base& p, ossia:
 {
   if(!v.valid())
     return;
-  if(p.get_value_type() != v.get_type())
-    p.set_value_type(v.get_type());
+  const auto cur = p.get_value_type();
+  const auto next = v.get_type();
+  // Once a number has had decimals it stays a float
+  if(cur == ossia::val_type::FLOAT && next == ossia::val_type::INT)
+  {
+    p.set_value(float(*v.target<int>()));
+    return;
+  }
+  if(cur != next)
+    p.set_value_type(next);
   p.set_value(std::move(v));
 }
 
