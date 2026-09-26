@@ -18,5 +18,6 @@ public:
 
 private:
   const ossia::net::network_context_ptr& m_ctx;
+  QMetaObject::Connection m_configurationSaved;
 };
 }

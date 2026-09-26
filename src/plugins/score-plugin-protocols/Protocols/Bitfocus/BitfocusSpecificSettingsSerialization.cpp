@@ -2,6 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "BitfocusSpecificSettings.hpp"
 
+#include "BitfocusContext.hpp"
+
 #include <State/Value.hpp>
 #include <State/ValueSerialization.hpp>
 
@@ -11,6 +13,8 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/FilePath.hpp>
+
+#include <ossia-qt/js_utilities.hpp>
 
 #include <set>
 #include <vector>
@@ -29,12 +33,36 @@ void Protocols::BitfocusSpecificSettings::deduplicateConfiguration()
   });
 }
 
+std::map<QString, QVariant>
+Protocols::BitfocusSpecificSettings::moduleConfiguration() const
+{
+  std::map<QString, QVariant> conf;
+  if(!product.isEmpty())
+    conf["product"] = product;
+  for(auto& [k, v] : configuration)
+    conf[k] = bitfocus::widenFloat(v.apply(ossia::qt::ossia_to_qvariant{}));
+  return conf;
+}
+
+std::shared_ptr<bitfocus::module_handler>
+Protocols::BitfocusSpecificSettings::makeHandler(const QString& label) const
+{
+  return std::make_shared<bitfocus::module_handler>(
+      path, entrypoint, nodeVersion, apiVersion, moduleConfiguration(), label,
+      configuration.empty() && !upgradeIndex, upgradeIndex,
+      secretKeys ? std::optional{std::set<QString>(secretKeys->begin(), secretKeys->end())}
+                 : std::nullopt);
+}
+
 template <>
 void DataStreamReader::read(const Protocols::BitfocusSpecificSettings& n)
 {
   m_stream << score::relativizeFilePath(n.path) << n.entrypoint << n.id << n.name
            << n.brand << n.product << n.nodeVersion << n.apiVersion << n.configuration
-           << n.description;
+           << n.description << n.upgradeIndex.has_value() << n.upgradeIndex.value_or(-1)
+           << n.secretKeys.has_value()
+           << (n.secretKeys ? QStringList(n.secretKeys->begin(), n.secretKeys->end())
+                            : QStringList{});
   insertDelimiter();
 }
 
@@ -43,6 +71,15 @@ void DataStreamWriter::write(Protocols::BitfocusSpecificSettings& n)
 {
   m_stream >> n.path >> n.entrypoint >> n.id >> n.name >> n.brand >> n.product
       >> n.nodeVersion >> n.apiVersion >> n.configuration >> n.description;
+  bool hasUpgradeIndex{};
+  int upgradeIndex{};
+  bool hasSecretKeys{};
+  QStringList secretKeys;
+  m_stream >> hasUpgradeIndex >> upgradeIndex >> hasSecretKeys >> secretKeys;
+  if(hasUpgradeIndex)
+    n.upgradeIndex = upgradeIndex;
+  if(hasSecretKeys)
+    n.secretKeys = std::vector<QString>(secretKeys.begin(), secretKeys.end());
   n.path = score::locateFilePath(n.path);
   n.deduplicateConfiguration();
   checkDelimiter();
@@ -61,6 +98,10 @@ void JSONReader::read(const Protocols::BitfocusSpecificSettings& n)
   obj["APIVersion"] = n.apiVersion;
   obj["Configuration"] = n.configuration;
   obj["Description"] = n.description;
+  if(n.upgradeIndex)
+    obj["UpgradeIndex"] = *n.upgradeIndex;
+  if(n.secretKeys)
+    obj["SecretKeys"] = *n.secretKeys;
 }
 
 template <>
@@ -77,5 +118,13 @@ void JSONWriter::write(Protocols::BitfocusSpecificSettings& n)
   n.apiVersion <<= obj["APIVersion"];
   n.configuration <<= obj["Configuration"];
   n.description <<= obj["Description"];
+  if(auto idx = obj.tryGet("UpgradeIndex"))
+    n.upgradeIndex = idx->toInt();
+  if(auto keys = obj.tryGet("SecretKeys"))
+  {
+    std::vector<QString> v;
+    v <<= *keys;
+    n.secretKeys = std::move(v);
+  }
   n.deduplicateConfiguration();
 }

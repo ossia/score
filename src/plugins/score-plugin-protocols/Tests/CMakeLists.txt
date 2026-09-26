@@ -65,3 +65,36 @@ if(LINUX)
   target_compile_definitions(test_protocol_can_vcan
     PRIVATE SCORE_CAN_TEST_DATA="${CAN_TEST_DATA}")
 endif()
+
+# The Bitfocus host against a mock companion module. Skips without node.
+if(UNIX AND NOT EMSCRIPTEN)
+  set(BITFOCUS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../Protocols/Bitfocus")
+  score_add_test(test_protocol_bitfocus_host
+    SOURCES
+      "${CMAKE_CURRENT_SOURCE_DIR}/BitfocusHostTest.cpp"
+      "${BITFOCUS_DIR}/BitfocusContext.cpp"
+      "${BITFOCUS_DIR}/BitfocusContext.unix.cpp"
+      "${BITFOCUS_DIR}/BitfocusProtocol.cpp"
+    LIBS ossia ${QT_PREFIX}::Network)
+  target_include_directories(test_protocol_bitfocus_host
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
+  target_compile_definitions(test_protocol_bitfocus_host
+    PRIVATE SCORE_BITFOCUS_MOCK_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data/bitfocus-mock")
+
+  # Drives a real companion module through score's Bitfocus host; not a ctest
+  # entry, see tests/tools/bitfocus/sweep.py.
+  score_add_test(bitfocus_module_driver NO_CTEST
+    SOURCES
+      "${CMAKE_CURRENT_SOURCE_DIR}/BitfocusModuleDriver.cpp"
+      "${BITFOCUS_DIR}/BitfocusContext.cpp"
+      "${BITFOCUS_DIR}/BitfocusContext.unix.cpp"
+      "${BITFOCUS_DIR}/BitfocusProtocol.cpp"
+      "${BITFOCUS_DIR}/BitfocusProtocolSettingsWidget.cpp"
+      "${BITFOCUS_DIR}/BitfocusSpecificSettingsSerialization.cpp"
+    PLUGINS score_lib_state score_lib_device score_plugin_deviceexplorer
+    LIBS ossia ${QT_PREFIX}::Widgets ${QT_PREFIX}::Qml)
+  target_include_directories(bitfocus_module_driver
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/.." "${SCORE_ROOT_SOURCE_DIR}/tests/fixtures")
+  target_compile_definitions(bitfocus_module_driver
+    PRIVATE SCORE_TEST_BINARY_DIR="${SCORE_ROOT_BINARY_DIR}")
+endif()
