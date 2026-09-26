@@ -60,7 +60,7 @@
 //   RAW_RASTER_PIPELINE (.fs/.frag + sibling .vs/.vert)
 //       ShaderSource{RawRasterPipeline, vert, frag} -> ProgramCache::get,
 //       byte for byte what Gfx::RenderPipeline::Model::setProgram and the
-//       test fixture's make_raster_node (tests/fixtures/score_test/Gfx.hpp:388)
+//       test fixture's make_raster_node (tests/fixtures/score_test/Gfx.hpp)
 //       do. THIS IS THE CASE THAT WAS BROKEN; it is covered from the generated
 //       text, not skipped.
 //
@@ -107,7 +107,7 @@
 //      SPIRV-Cross renames GLSL fract() to HLSL frac() without renaming the
 //      user's variable, so it emits `float frac = frac(...)`.
 //   2. gl_ViewIndex needs SV_ViewID, which needs Shader Model >= 6.1, while
-//      Gfx/Settings/Model.cpp:278 asks QShaderBaker for QShaderVersion(50).
+//      Gfx/Settings/Model.cpp asks QShaderBaker for QShaderVersion(50).
 //      Handled as a RULE rather than a file list (it follows from the
 //      descriptor's multiview_count): a multiview shader that fails at SM 5.0
 //      is re-baked at SM 6.1, and only counts as a known gap if the SM 6.1
@@ -117,14 +117,14 @@
 //      caught in the multiview raw-rasters.
 //
 // A third, version-shaped one: QShaderBaker::setMultiViewCount arrived in Qt
-// 6.7 (ShaderCache.cpp:92-95 guards it). CI compiles the tests against distro
+// 6.7 (ShaderCache.cpp guards it). CI compiles the tests against distro
 // Qt 6.4.2, where ShaderCache cannot emit `layout(num_views = N)` at all and
 // every multiview shader fails for every target. On such a Qt the multiview
 // shaders SKIP, by name and with that reason, instead of failing.
 //
 // GPU-less, so this is a plain (non-GUI) target -- but APP mode, because
 // ProgramCache::get reads Gfx::Settings::Model out of score::AppContext()
-// (ShaderProgram.cpp:534). The settings API is pinned to Vulkan for the same
+// (ShaderProgram.cpp). The settings API is pinned to Vulkan for the same
 // reason GfxShaderIncludePath.cpp pins it: shaderVersionForAPI(OpenGL)
 // constructs score::GLCapabilities{}, which wants a GL context.
 //
@@ -191,7 +191,7 @@ struct Target
 };
 
 // The version each backend is baked at, as Gfx::Settings::shaderVersionForAPI()
-// hands them out (Gfx/Settings/Model.cpp:262-284). Spelled out rather than
+// hands them out (Gfx/Settings/Model.cpp). Spelled out rather than
 // called, because the OpenGL answer there comes from GLCapabilities, which
 // wants a context; nothing in this file has one. Same choice as
 // GfxCsfOrientGate.cpp.
@@ -253,9 +253,45 @@ QByteArray read_all(const QString& path)
   return f.readAll();
 }
 
+/// Raw-raster fixtures whose tests pair one vertex file with several fragment
+/// files, so the fragment file has no same-named sibling. Baked with the
+/// vertex file its test uses.
+struct SharedVertex
+{
+  const char* fragment;
+  const char* vertex;
+};
+const SharedVertex shared_vertex_pairs[] = {
+    {"rr-polygon-mode-fill.fs", "rr-polygon-mode.vs"},
+    {"rr-polygon-mode-line.fs", "rr-polygon-mode.vs"},
+    {"cube-dir-ndc-cull.fs", "cube-dir-ndc.vs"},
+    {"cube-dir-ndc-perface-cull.fs", "cube-dir-ndc-perface.vs"},
+    {"rr-aux-count-single.fs", "rr-aux-count.vs"},
+    {"rr-msaa-edge-samples1.fs", "rr-msaa-edge.vs"},
+};
+
+QString shared_vertex_of(const QString& fsPath)
+{
+  const QFileInfo fi{fsPath};
+  for(const auto& p : shared_vertex_pairs)
+    if(fi.fileName() == QLatin1String(p.fragment))
+      return fi.dir().filePath(QString::fromLatin1(p.vertex));
+  return {};
+}
+
+QString shared_fragment_of(const QString& vsPath)
+{
+  const QFileInfo fi{vsPath};
+  for(const auto& p : shared_vertex_pairs)
+    if(fi.fileName() == QLatin1String(p.vertex))
+      return fi.dir().filePath(QString::fromLatin1(p.fragment));
+  return {};
+}
+
 /// The sibling vertex file of a fragment file, following the same two naming
 /// conventions Gfx::programFromISFFragmentShaderPath tries
-/// (ShaderProgram.cpp:597-601). Empty if there is none on disk.
+/// (ShaderProgram.cpp), then shared_vertex_pairs. Empty if there is
+/// none on disk.
 QString vertex_sibling(const QString& fsPath)
 {
   const QString candidates[] = {
@@ -270,6 +306,9 @@ QString vertex_sibling(const QString& fsPath)
     if(QFile::exists(c))
       return c;
   }
+  if(const QString shared = shared_vertex_of(fsPath);
+     !shared.isEmpty() && QFile::exists(shared))
+    return shared;
   return {};
 }
 
@@ -289,6 +328,9 @@ QString fragment_sibling(const QString& vsPath)
     if(QFile::exists(c))
       return c;
   }
+  if(const QString shared = shared_fragment_of(vsPath);
+     !shared.isEmpty() && QFile::exists(shared))
+    return shared;
   return {};
 }
 
@@ -529,7 +571,7 @@ Generated generate_csf(const QString& path)
 // the editor runs) and the eight ModelDisplayNode.cpp variants -- and BOTH are
 // file-static strings inside their translation units, reachable from nothing.
 //
-// So this host is a copy of Model::validate()'s (Process.cpp:50-104), and it
+// So this host is a copy of Model::validate()'s (Process.cpp), and it
 // carries that copy's risk: if the product's template gains a construct this
 // one does not have, this file bakes the older shape. That is a narrower gap
 // than not baking the geometry filter at all, which is the only alternative
@@ -606,7 +648,7 @@ Generated generate_geometry_filter(const QString& path)
       g.error = QStringLiteral("geometry_filter() produced nothing");
       return g;
     }
-    // The two substitutions Process.cpp:116-117 makes for the compile probe.
+    // The two substitutions Process.cpp makes for the compile probe.
     snippet.replace(QStringLiteral("%next%"), QStringLiteral("4"));
     snippet.replace(QStringLiteral("%node%"), QStringLiteral("0"));
 
@@ -773,7 +815,7 @@ void sweep_one(Sweep& sw, const CorpusFile& f, const Generated& g)
         continue;
       }
 
-      // SV_ViewID needs SM >= 6.1, and Settings/Model.cpp:278 asks for
+      // SV_ViewID needs SM >= 6.1, and Settings/Model.cpp asks for
       // QShaderVersion(50). Re-bake at 6.1: only a shader that compiles THERE
       // is failing because of the version request rather than because of its
       // own text.
@@ -787,7 +829,7 @@ void sweep_one(Sweep& sw, const CorpusFile& f, const Generated& g)
           sw.notes.push_back(
               "KNOWN GAP " + where
               + ": gl_ViewIndex needs SV_ViewID (Shader Model >= 6.1) while "
-                "Gfx/Settings/Model.cpp:278 requests QShaderVersion(50); the "
+                "Gfx/Settings/Model.cpp requests QShaderVersion(50); the "
                 "same stage bakes clean at SM 6.1");
           continue;
         }
@@ -821,11 +863,11 @@ TEST_CASE(
     const QString previous_api = gfx.getGraphicsApi();
 
     // ProgramCache::get bakes for the SETTINGS api on its way to producing the
-    // ProcessedProgram (ShaderProgram.cpp:534-557). Pin it to Vulkan: that
+    // ProcessedProgram (ShaderProgram.cpp). Pin it to Vulkan: that
     // branch of shaderVersionForAPI is the constant QShaderVersion(100), while
     // the OpenGL branch instantiates GLCapabilities and wants a GL context this
     // test does not have. QShaderBaker emits SPIR-V on any host; no device is
-    // touched. Same pin, same reason, as GfxShaderIncludePath.cpp:275.
+    // touched. Same pin, same reason, as GfxShaderIncludePath.cpp.
     gfx.setGraphicsApi(Gfx::Settings::GraphicsApis{}.Vulkan);
     struct restore
     {
@@ -874,7 +916,7 @@ TEST_CASE(
         continue; // baked as the vertex half of its fragment file's pair
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
-      // QShaderBaker::setMultiViewCount arrived in 6.7 and ShaderCache.cpp:92-95
+      // QShaderBaker::setMultiViewCount arrived in 6.7 and ShaderCache.cpp
       // guards its call on that version, so on an older Qt the baker has no
       // num_views to emit and every target rejects a MULTIVIEW shader --
       // including the Vulkan bake ProgramCache::get does on the way to the

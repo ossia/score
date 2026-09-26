@@ -2382,3 +2382,6 @@ score_add_gfx_test(procedural_geometry_adopt GfxProceduralGeometryAdopt.cpp)
 
 # A compute-written image read by an ISF and a raw raster keeps its orientation.
 score_add_gfx_test(compute_image_orientation GfxComputeImageOrientation.cpp)
+
+# A raw raster Mode that overrides the cabled geometry topology warns once.
+score_add_gfx_test(raw_raster_mode_topology GfxRawRasterModeTopology.cpp)

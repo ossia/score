@@ -254,6 +254,11 @@ private:
   std::vector<std::pair<const void*, int64_t>> m_primitiveSourceBuffers;
   bool m_warnedPrimitiveData{false};
 
+  void warnModeOverridesGeometry(
+      std::optional<QRhiGraphicsPipeline::Topology> geometry,
+      QRhiGraphicsPipeline::Topology drawn);
+  int m_warnedModeTopology{-1};
+
   // Emit the SRB bindings for m_auxTextureSamplers, advancing `binding`.
   // Shared by initPass and initMRTPass so the two can never disagree about
   // how many slots a ladder consumes.
