@@ -235,3 +235,62 @@ TEST_CASE("Buffer queue: Bang sends in any mode, like Counter's Output", "[avnd]
     CHECK(r.q.buffer.size() == 1);
   }
 }
+
+#include <examples/Helpers/ValueDelay.hpp>
+
+namespace
+{
+struct DelayRig
+{
+  examples::helpers::ValueDelay d;
+  DelayRig(examples::helpers::ValueDelay::Mode mode, int length, int count)
+  {
+    d.inputs.mode.value = mode;
+    d.inputs.length.value = length;
+    d.inputs.count.value = count;
+    d.prepare(halp::setup{.rate = 1000.});
+  }
+  // One tick of `ms` milliseconds (at 1 kHz, one frame per ms), with an
+  // optional new value on In.
+  std::vector<float> tick(std::optional<float> in, int ms = 1)
+  {
+    if(in)
+    {
+      d.inputs.in.value = *in;
+      d.inputs.in.update(d);
+    }
+    d(halp::tick{.frames = ms});
+    return d.outputs.a.value;
+  }
+};
+}
+
+TEST_CASE("Value delay: in messages", "[avnd][utilities][delay]")
+{
+  // Two taps, two messages apart
+  DelayRig r{examples::helpers::ValueDelay::Messages, 2, 2};
+  for(float v : {1.f, 2.f, 3.f, 4.f})
+    r.tick(v);
+  // Ticks without messages do not move it
+  r.tick(std::nullopt, 50);
+  auto out = r.tick(5.f);
+  REQUIRE(out.size() == 2);
+  CHECK(out[0] == 3.f); // 2 messages ago
+  CHECK(out[1] == 1.f); // 4 messages ago
+}
+
+TEST_CASE("Value delay: in time", "[avnd][utilities][delay]")
+{
+  // Two taps, 10 ms apart
+  DelayRig r{examples::helpers::ValueDelay::Time, 10, 2};
+  r.tick(1.f, 5);         // t = 0: 1
+  r.tick(2.f, 10);        // t = 5: 2
+  r.tick(3.f, 10);        // t = 15: 3
+  auto out = r.tick(std::nullopt, 1); // t = 25
+  REQUIRE(out.size() == 2);
+  CHECK(out[0] == 3.f); // at t = 15
+  CHECK(out[1] == 2.f); // at t = 5
+  // It follows real time, not the number of ticks
+  out = r.tick(std::nullopt, 1); // t = 26
+  CHECK(out[1] == 2.f);
+}
