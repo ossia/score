@@ -239,6 +239,9 @@ if(TARGET Qt6::Quick AND TARGET score_plugin_js)
     SOURCES JsVariantToJsTest.cpp
     PLUGINS score_plugin_js
     LIBS ${QT_PREFIX}::Qml)
+  score_add_test(test_unit_js_parse_duration
+    SOURCES JsParseDurationTest.cpp
+    PLUGINS score_plugin_js)
 endif()
 
 if(TARGET score_plugin_controlsurface)

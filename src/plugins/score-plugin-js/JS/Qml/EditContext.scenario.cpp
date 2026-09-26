@@ -36,6 +36,7 @@
 #include <JS/Commands/ScriptCommand.hpp>
 #include <JS/Commands/ScriptMacro.hpp>
 #include <JS/Qml/EditContext.hpp>
+#include <JS/Qml/ParseDuration.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/model/EntityMap.hpp>
@@ -213,19 +214,16 @@ EditJsContext::MacroClear::~MacroClear()
     macro.reset();
   }
 }
-static TimeVal parseDuration(QString dur)
+static TimeVal parseDuration(const char* function, const QString& dur)
 {
-  if(auto tm = QTime::fromString(dur); tm.isValid())
-  {
-    return TimeVal::fromMsecs(
-        tm.msec() + 1e3 * tm.second() + 1e3 * 60 * tm.minute()
-        + 1e3 * 60 * 60 * tm.hour());
-  }
-  else
-  {
-    return TimeVal{ossia::flicks_per_second<int64_t> * 2};
-  }
-};
+  if(auto t = JS::parseDuration(dur))
+    return *t;
+  qWarning().nospace() << "Score." << function << ": cannot read the duration \""
+                       << dur
+                       << "\" (flicks, \"500ms\", \"2s\", \"1min\" or \"H:MM:SS.zzz\"); "
+                          "using 2 s";
+  return TimeVal{ossia::flicks_per_second<int64_t> * 2};
+}
 
 QObject* EditJsContext::createProcess(QObject* interval, QString name, QString data)
 {
@@ -492,8 +490,8 @@ EditJsContext::createBox(QObject* obj, QString startTime, QString duration, doub
   if(!scenar)
     return nullptr;
 
-  auto t0 = parseDuration(startTime);
-  auto tdur = parseDuration(duration);
+  auto t0 = parseDuration("createBox", startTime);
+  auto tdur = parseDuration("createBox", duration);
 
   auto [m, _] = macro(*doc);
   auto& itv = m->createBox(*scenar, t0, t0 + tdur, y);
@@ -552,7 +550,7 @@ QObject* EditJsContext::createIntervalAfter(QObject* obj, QString duration, doub
 
   auto& ev = Scenario::parentEvent(*state, *scenar);
   const auto t0 = ev.date();
-  const auto tdur = parseDuration(duration);
+  const auto tdur = parseDuration("createIntervalAfter", duration);
   auto [m, _] = macro(*doc);
 
   if(state->nextInterval())

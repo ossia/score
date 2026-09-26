@@ -34,6 +34,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/ScriptableNames.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/DeviceEnumerator.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/ParseDuration.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/QmlObjects.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/QmlRhiObjects.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/ValueTypes.Qt6.hpp"
