@@ -3,6 +3,10 @@
 score_add_test(test_unit_uuid_key_stream
   SOURCES UuidKeyStreamTest.cpp)
 
+score_add_test(test_unit_timeval_stream
+  SOURCES TimeValStreamTest.cpp
+  PLUGINS score_lib_process)
+
 score_add_test(test_unit_address
   SOURCES AddressParseTest.cpp
   PLUGINS score_lib_state)

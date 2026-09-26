@@ -3,7 +3,22 @@
 
 #include <QTime>
 
+#if defined(SCORE_DEBUG_DELIMITERS)
 SCORE_SERALIZE_DATASTREAM_DEFINE(TimeVal)
+#else
+// The same int64 DataStreamReader writes, without one: QSettings streams the
+// default duration while flushing, which can happen after the application's
+// components are gone (as for UuidKey).
+QDataStream& operator<<(QDataStream& stream, const TimeVal& obj)
+{
+  return stream << obj.impl;
+}
+
+QDataStream& operator>>(QDataStream& stream, TimeVal& obj)
+{
+  return stream >> obj.impl;
+}
+#endif
 TimeVal::TimeVal(const QTime& t) noexcept
     : time_value{int64_t(
         ossia::flicks_per_millisecond<
